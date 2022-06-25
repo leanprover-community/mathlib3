@@ -1307,28 +1307,38 @@ begin
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
 
-lemma measurable_csupr_subtype {α' : Type*}
-  [measurable_space α'] [conditionally_complete_linear_order α'] [has_measurable_sup₂ α']
-  {ι} {p : ι → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty)
-  {f : ι → δ → α'} (hm : ∀ n, measurable (f n)) :
-  measurable (λ x, ⨆ y : {y // p y}, f y x) :=
+lemma _root_.finset.measurable_sup' {ι α' : Type*}
+  [measurable_space α'] [semilattice_sup α'] [has_measurable_sup₂ α']
+  {s : finset ι} (hs : s.nonempty) {f : ι → δ → α'} (hf : ∀ n ∈ s , measurable (f n)) :
+  measurable (s.sup' hs f) :=
+finset.sup'_induction hs _ (λ f hf g hg, hf.sup hg) (λ n hn, hf n hn)
+
+lemma _root_.finset.supr_subtype_eq_sup' {α β γ : Type*} [conditionally_complete_linear_order γ]
+  {p : α → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty) {f : α → β → γ} (x : β) :
+  (⨆ y : {y // p y}, f y x) = (hp.to_finset.sup' ((set.finite.nonempty_to_finset _).2 hemp) f x) :=
 begin
   haveI : fintype {y // p y} := hp.fintype,
   haveI : nonempty {y // p y} := nonempty_subtype.2 hemp,
-  have heq : (λ x, ⨆ y : {y // p y}, f y x) = (hp.to_finset.sup'
-    ((set.finite.nonempty_to_finset _).2 _) f),
-  { ext x,
-    rw [finset.sup'_apply, finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
-    refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
-    { rintro _ ⟨⟨m, hm⟩, rfl⟩,
-      exact le_cSup (set.finite.bdd_above (hp.image _)) ⟨m, hm, rfl⟩ },
-    { intros y hy,
-      obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
-      { exact ⟨f m x, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
-      { exact set.nonempty.image _ hemp } } },
-  { rw heq,
-    exact finset.sup'_induction ((set.finite.nonempty_to_finset _).2 hemp) _
-      (λ f hf g hg, hf.sup hg) (λ n hn, hm n) }
+  rw [finset.sup'_apply, finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
+  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
+  { rintro _ ⟨⟨m, hm⟩, rfl⟩,
+    exact le_cSup (set.finite.bdd_above (hp.image _)) ⟨m, hm, rfl⟩ },
+  { intros y hy,
+    obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
+    { exact ⟨f m x, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
+    { exact set.nonempty.image _ hemp } }
+end
+
+lemma measurable_csupr_subtype {α' : Type*}
+  [measurable_space α'] [conditionally_complete_linear_order α'] [has_measurable_sup₂ α']
+  {ι} {p : ι → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty)
+  {f : ι → δ → α'} (hm : ∀ n, p n → measurable (f n)) :
+  measurable (λ x, ⨆ y : {y // p y}, f y x) :=
+begin
+  simp_rw finset.supr_subtype_eq_sup' hp hemp,
+  refine finset.measurable_sup' _ _,
+  simp_rw finite.mem_to_finset,
+  exact hm,
 end
 
 end conditionally_complete_linear_order

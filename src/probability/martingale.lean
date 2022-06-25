@@ -410,19 +410,14 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 
 section maximal
 
-lemma measurable_csupr_real {β : Type*} {p : β → Prop} (hp : {x | p x}.finite)
-  {f : β → α → ℝ} (hm : ∀ n, measurable[m0] (f n)) :
-  measurable (λ x, ⨆ y : {y // p y}, f y x) :=
-begin
-  by_cases hemp : {y | p y}.nonempty,
-  { exact measurable_csupr_subtype hp hemp hm },
-  { haveI : is_empty {y // p y} := subtype.is_empty_of_false (λ x hx, hemp ⟨x, hx⟩),
-    simp [real.csupr_empty] }
-end
+open finset
 
-lemma measurable_csupr_le {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
-  measurable (λ x, ⨆ k : {k // k ≤ n}, f k x) :=
-measurable_csupr_real (set.finite_le_nat n) hf
+lemma measurable_range_sup' {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
+  measurable (λ x, (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) :=
+begin
+  sorry
+end
+-- measurable_csupr_real (set.finite_le_nat n) hf
 
 -- We use the spelling `⨆ x : {x // p x}, f x` because it behaves better than
 -- `⨆ x (h : p x), f x` in the case `f` is `ℝ`-valued. The two spellings are equal when `f` is
@@ -430,23 +425,23 @@ measurable_csupr_real (set.finite_le_nat n) hf
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
-  ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤
-  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
+  ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
     stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :=
 begin
   have hn : set.Icc 0 n = {k | k ≤ n},
   { ext x, simp },
-  have : ∀ x, ((ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x) →
+  have : ∀ x, ((ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) →
     (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x,
   { intros x hx,
+    simp_rw [le_sup'_iff, mem_range, nat.lt_succ_iff] at hx,
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop, hn],
-    exact real.exists_of_le_supr_subtype (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
-  have h := set_integral_const_le (measurable_set_le measurable_const (measurable_csupr_le
-    (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
-    (measure_ne_top _ _) this
+    exact let ⟨j, hj₁, hj₂⟩ := hx in ⟨j, hj₁, hj₂⟩ },
+  have h := set_integral_const_le (measurable_set_le measurable_const (measurable_range_sup'
+    (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _)) (measure_ne_top _ _) this
     (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time
-      hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
+     hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { exact h },
   { exact ennreal.mul_ne_top (by simp) (measure_ne_top _ _) },
@@ -460,39 +455,45 @@ In some literature, the Doob's maximal inequality refers to what we call Doob's 
 (which is a corollary of this lemma and will be proved in an upcomming PR). -/
 lemma maximal_ineq [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
-  ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤
-  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, f n x ∂μ) :=
+  ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
+  ennreal.of_real (∫ x in
+    {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+    f n x ∂μ) :=
 begin
-  suffices : ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} +
-    ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤
-    ennreal.of_real (μ[f n]),
+  suffices : ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} +
+    ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+      f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
   { have hadd : ennreal.of_real (∫ (x : α), f n x ∂μ) =
-      ennreal.of_real (∫ (x : α) in {x : α | ↑ε ≤ (⨆ k : {k // k ≤ n}, f k x)}, f n x ∂μ) +
-      ennreal.of_real (∫ (x : α) in {x : α | (⨆ k : {k // k ≤ n}, f k x) < ↑ε}, f n x ∂μ),
+      ennreal.of_real (∫ (x : α) in
+        {x : α | ↑ε ≤ ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x))}, f n x ∂μ) +
+      ennreal.of_real (∫ (x : α) in
+        {x : α | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ↑ε}, f n x ∂μ),
     { rw [← ennreal.of_real_add, ← integral_union],
       { conv_lhs { rw ← integral_univ },
         convert rfl,
         ext x,
-        simp [le_or_lt] },
+        change (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ) ↔ _,
+        simp only [le_or_lt, true_iff] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
-      { exact (measurable_set_lt (measurable_csupr_le
+      { exact (measurable_set_lt (measurable_range_sup'
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
       exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
         integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
     rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
-  calc ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}
-    + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤
-      ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
+  calc ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)}
+    + ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
+        f n x ∂μ)
+    ≤ ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
         stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ)
-    + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε},
+    + ennreal.of_real (∫ x in {x | ((range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) < ε},
         stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
     begin
       refine add_le_add (smul_le_stopped_value_hitting hsub _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
         (integrable.integrable_on (integrable_stopped_value
           (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le))
-        (measurable_set_lt (measurable_csupr_le
+        (measurable_set_lt (measurable_range_sup'
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) _)),
       intros x hx,
       rw set.mem_set_of_eq at hx,
@@ -500,9 +501,8 @@ begin
       { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
           ite_eq_right_iff, forall_exists_index, and_imp],
         intros m hm hεm,
-        haveI : fintype {k // k ≤ n} := (set.finite_le_nat n).fintype,
-        exact false.elim ((not_le.2 hx) (le_trans hεm
-          (le_cSup (set.finite.bdd_above $ set.finite_range _) ⟨⟨m, hm.2⟩, rfl⟩))) },
+        exact false.elim ((not_le.2 hx)
+          ((le_sup'_iff _).2 ⟨m, mem_range.2 (nat.lt_succ_of_le hm.2), hεm⟩)) },
       simp_rw [stopped_value, this],
     end
     ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
@@ -511,10 +511,11 @@ begin
       { conv_rhs { rw ← integral_univ },
         convert rfl,
         ext x,
-        simp [le_or_lt] },
+        change _ ↔ (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ),
+        simp only [le_or_lt, iff_true] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
-      { exact (measurable_set_lt (measurable_csupr_le
+      { exact (measurable_set_lt (measurable_range_sup'
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
       { exact (integrable.integrable_on (integrable_stopped_value
           (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },

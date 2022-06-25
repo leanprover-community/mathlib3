@@ -795,13 +795,13 @@ end
 
 /-- Given an ordinal, returns `inl none` for `0`, `inl (some a)` for `a+1`, and
   `inr f` for a limit ordinal `a`, where `f i` is a sequence converging to `a`. -/
-def fundamental_seq : onote → option onote ⊕ (ℕ → onote)
+def fundamental_sequence : onote → option onote ⊕ (ℕ → onote)
 | zero := sum.inl none
 | (oadd a m b) :=
-  match fundamental_seq b with
+  match fundamental_sequence b with
   | sum.inr f := sum.inr (λ i, oadd a m (f i))
   | sum.inl (some b') := sum.inl (some (oadd a m b'))
-  | sum.inl none := match fundamental_seq a, m.nat_pred with
+  | sum.inl none := match fundamental_sequence a, m.nat_pred with
     | sum.inl none, 0 := sum.inl (some zero)
     | sum.inl none, m+1 := sum.inl (some (oadd zero m.succ_pnat zero))
     | sum.inl (some a'), 0 := sum.inr (λ i, oadd a' i.succ_pnat zero)
@@ -837,26 +837,28 @@ begin
   exact (H hd).imp (λ i hi, h'.trans $ (opow_lt_opow_iff_right hb).2 hi)
 end
 
-/-- The property satisfied by `fundamental_seq o`:
+/-- The property satisfied by `fundamental_sequence o`:
   * `inl none` means `o = 0`
   * `inl (some a)` means `o = a.succ`
   * `inr f` means `o` is a limit ordinal and `f` is a
     strictly increasing sequence which converges to `o` -/
-def fundamental_seq_prop (o : onote) : option onote ⊕ (ℕ → onote) → Prop
+def fundamental_sequence_prop (o : onote) : option onote ⊕ (ℕ → onote) → Prop
 | (sum.inl none) := o = 0
 | (sum.inl (some a)) := o.repr = a.repr.succ ∧ (o.NF → a.NF)
 | (sum.inr f) := o.repr.is_limit ∧
   (∀ i, f i < f (i + 1) ∧ f i < o ∧ (o.NF → (f i).NF)) ∧
   (∀ a, a < o.repr → ∃ i, a < (f i).repr)
 
-theorem fundamental_seq_has_prop (o) : fundamental_seq_prop o (fundamental_seq o) :=
+theorem fundamental_sequence_has_prop (o) : fundamental_sequence_prop o (fundamental_sequence o) :=
 begin
   induction o with a m b iha ihb, {exact rfl},
-  rw [fundamental_seq],
-  rcases e : b.fundamental_seq with ⟨_|b'⟩|f;
-    simp only [fundamental_seq, fundamental_seq_prop]; rw [e, fundamental_seq_prop] at ihb,
-  { rcases e : a.fundamental_seq with ⟨_|a'⟩|f; cases e' : m.nat_pred with m';
-      simp only [fundamental_seq, fundamental_seq_prop]; rw [e, fundamental_seq_prop] at iha;
+  rw [fundamental_sequence],
+  rcases e : b.fundamental_sequence with ⟨_|b'⟩|f;
+    simp only [fundamental_sequence, fundamental_sequence_prop];
+    rw [e, fundamental_sequence_prop] at ihb,
+  { rcases e : a.fundamental_sequence with ⟨_|a'⟩|f; cases e' : m.nat_pred with m';
+      simp only [fundamental_sequence, fundamental_sequence_prop];
+      rw [e, fundamental_sequence_prop] at iha;
       try { rw show m = 1,
         { have := pnat.nat_pred_add_one m, rw [e'] at this, exact pnat.coe_inj.1 this.symm } };
       try { rw show m = m'.succ.succ_pnat,
@@ -912,7 +914,7 @@ functions `ℕ → ℕ` indexed by ordinals, with the definition:
    and `α[i]` is the fundamental sequence converging to `α` -/
 def fast_growing : onote → ℕ → ℕ
 | o :=
-  match fundamental_seq o, fundamental_seq_has_prop o with
+  match fundamental_sequence o, fundamental_sequence_has_prop o with
   | sum.inl none, _ := nat.succ
   | sum.inl (some a), h :=
     have a < o, { rw [lt_def, h.1], apply lt_succ_self },
@@ -924,19 +926,19 @@ using_well_founded
   dec_tac := `[assumption] }
 
 theorem fast_growing_def
-  {o : onote} {x} (e : fundamental_seq o = x) :
+  {o : onote} {x} (e : fundamental_sequence o = x) :
     fast_growing o =
     fast_growing._match_1 o
       (λ a _ _, a.fast_growing)
       (λ f _ i _, (f i).fast_growing i)
-      x (e ▸ fundamental_seq_has_prop _) :=
+      x (e ▸ fundamental_sequence_has_prop _) :=
 by { subst x, rw [fast_growing] }
 
-theorem fast_growing_zero' (o : onote) (h : fundamental_seq o = sum.inl none) :
+theorem fast_growing_zero' (o : onote) (h : fundamental_sequence o = sum.inl none) :
   fast_growing o = nat.succ := by { rw [fast_growing_def h], refl }
-theorem fast_growing_succ (o) {a} (h : fundamental_seq o = sum.inl (some a)) :
+theorem fast_growing_succ (o) {a} (h : fundamental_sequence o = sum.inl (some a)) :
   fast_growing o = λ i, ((fast_growing a)^[i] i) := by { rw [fast_growing_def h], refl }
-theorem fast_growing_limit (o) {f} (h : fundamental_seq o = sum.inr f) :
+theorem fast_growing_limit (o) {f} (h : fundamental_sequence o = sum.inr f) :
   fast_growing o = λ i, fast_growing (f i) i := by { rw [fast_growing_def h], refl }
 
 @[simp] theorem fast_growing_zero : fast_growing 0 = nat.succ := fast_growing_zero' _ rfl

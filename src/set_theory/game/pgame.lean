@@ -1317,6 +1317,115 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
+/-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
+`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
+instance : has_mul pgame.{u} :=
+⟨λ x y, begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  have y := mk yl yr yL yR,
+  refine ⟨xl × yl ⊕ xr × yr, xl × yr ⊕ xr × yl, _, _⟩; rintro (⟨i, j⟩ | ⟨i, j⟩),
+  { exact IHxl i y + IHyl j - IHxl i (yL j) },
+  { exact IHxr i y + IHyr j - IHxr i (yR j) },
+  { exact IHxl i y + IHyr j - IHxl i (yR j) },
+  { exact IHxr i y + IHyl j - IHxr i (yL j) }
+end⟩
+
+theorem left_moves_mul : ∀ (x y : pgame.{u}), (x * y).left_moves
+  = (x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
+
+theorem right_moves_mul : ∀ (x y : pgame.{u}), (x * y).right_moves
+  = (x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
+
+/-- Turns two left or right moves for `x` and `y` into a left move for `x * y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_mul {x y : pgame} :
+  x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves ≃ (x * y).left_moves :=
+equiv.cast (left_moves_mul x y).symm
+
+/-- Turns a left and a right move for `x` and `y` into a right move for `x * y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_mul {x y : pgame} :
+  x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves ≃ (x * y).right_moves :=
+equiv.cast (right_moves_mul x y).symm
+
+@[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
+  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
+rfl
+
+@[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
+   (x * y).move_left (to_left_moves_mul (sum.inl (i, j)))
+   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
+by { cases x, cases y, refl }
+
+@[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
+  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
+rfl
+
+@[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
+   (x * y).move_left (to_left_moves_mul (sum.inr (i, j)))
+   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
+by { cases x, cases y, refl }
+
+@[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
+  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
+rfl
+
+@[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
+   (x * y).move_right (to_right_moves_mul (sum.inl (i, j)))
+   = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
+by { cases x, cases y, refl }
+
+@[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j))
+  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
+rfl
+
+@[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
+   (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
+   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+by { cases x, cases y, refl }
+
+lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}
+  (hl : ∀ ix iy, P $ to_left_moves_mul (sum.inl ⟨ix, iy⟩))
+  (hr : ∀ jx jy, P $ to_left_moves_mul (sum.inr ⟨jx, jy⟩)) : P k :=
+begin
+  rw ←to_left_moves_mul.apply_symm_apply k,
+  rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { apply hl },
+  { apply hr }
+end
+
+lemma right_moves_mul_cases {x y : pgame} (k) {P : (x * y).right_moves → Prop}
+  (hl : ∀ ix jy, P $ to_right_moves_mul (sum.inl ⟨ix, jy⟩))
+  (hr : ∀ jx iy, P $ to_right_moves_mul (sum.inr ⟨jx, iy⟩)) : P k :=
+begin
+  rw ←to_right_moves_mul.apply_symm_apply k,
+  rcases to_right_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { apply hl },
+  { apply hr }
+end
+
+instance is_empty_mul_zero_left_moves (x : pgame.{u}) : is_empty (x * 0).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_mul_zero_right_moves (x : pgame.{u}) : is_empty (x * 0).right_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_left_moves (x : pgame.{u}) : is_empty (0 * x).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_moves :=
+by { cases x, apply sum.is_empty }
+
+/-! We prove further results about multiplication in `set_theory/game/basic.lean`. -/
+
 /-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 

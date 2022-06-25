@@ -1317,6 +1317,8 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
+theorem sub_le_iff_le_add {x y z : pgame} : x - y ≤ z ↔ x ≤ z + x
+
 /-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 

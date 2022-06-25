@@ -222,6 +222,35 @@ by rw [add_comm, to_game_add_nat]
 theorem to_pgame_nat_add (a : ordinal) (n : ℕ) : ↑n + a.to_pgame ≈ (a + n).to_pgame :=
 @quotient.exact pgame _ _ _ $ by simp
 
+@[simp] theorem to_game_nat_mul :
+  ∀ a b : ordinal.{u}, ⟦a.to_pgame * b.to_pgame⟧ = (a ⨳ b).to_game
+| a b := begin
+  apply quot.sound,
+  split,
+  { apply le_of_forall_lf,
+    { intro i, apply left_moves_mul_cases i,
+      { intros ix iy,
+        rw [mul_move_left_inl, to_pgame_move_left', to_pgame_move_left', sub_lt_iff_lt_add],
+        dsimp,
+        rw to_pgame_mul_mk,
+        rw to_pgame_mul_mk,
+        rw to_pgame_mul_mk,
+        rw sub_lt_i
+
+       },
+      { exact is_empty_elim jx }
+
+    }
+
+  }
+end
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+/-- The product of ordinals as games corresponds to natural multiplication of ordinals. -/
+theorem to_pgame_mul (a b : ordinal) : a.to_pgame * b.to_pgame ≈ (a ⨳ b).to_pgame :=
+quotient.exact (to_pgame_mul_mk a b)
+
+
 end ordinal
 
 /-- The cast from `nat_ordinal` to `game` preserves addition. -/

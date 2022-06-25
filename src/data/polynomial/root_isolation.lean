@@ -25,85 +25,20 @@ Algorithms and theorems for locating the roots of real polynomials.
 
 -/
 
--- -- TODO put in erase_lead.lean?
--- lemma rec_on_erase_lead (P : R[X] → Sort*)
---   (P_0 : P 0)
---   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → P (C r * X ^ n))
---   (P_C_erase_lead : ∀ g : R[X],
---     P g.erase_lead → P g) :
---   ∀ f : R[X], P f :=
--- begin
---   intros f,
---   generalize' hd : card f.support = c,
---   revert f,
---   induction c with c hc,
---   { assume f f0,
---     convert P_0,
---     simpa only [support_eq_empty, card_eq_zero] using f0 },
---   { intros f f0,
---     rw [← erase_lead_add_C_mul_X_pow f],
---     cases c,
---     { convert P_C_mul_pow f.nat_degree f.leading_coeff _,
---       { convert zero_add _,
---         rw [← card_support_eq_zero, erase_lead_card_support f0] },
---       { rw [leading_coeff_ne_zero, ne.def, ← card_support_eq_zero, f0],
---         exact zero_ne_one.symm } },
---     refine P_C_erase_lead _ _,
---     apply hc,
---     { simp only [polynomial.erase_lead_add_C_mul_X_pow],
---       apply erase_lead_card_support',
---       rw f0, }, },
--- end
 
--- lemma rec_on_erase_lead_with_nat_degree_le (P : R[X] → Sort*) (N : ℕ)
---   (P_0 : P 0)
---   (P_C_mul_pow : ∀ n : ℕ, ∀ r : R, r ≠ 0 → n ≤ N → P (C r * X ^ n))
---   (P_C_erase_lead : ∀ g : R[X],
---     g.nat_degree ≤ N → P g.erase_lead → P g) :
---   ∀ f : R[X], f.nat_degree ≤ N → P f :=
--- begin
---   intros f df,
---   generalize' hd : card f.support = c,
---   revert f,
---   induction c with c hc,
---   { assume f df f0,
---     convert P_0,
---     simpa only [support_eq_empty, card_eq_zero] using f0 },
---   { intros f df f0,
---     rw [← erase_lead_add_C_mul_X_pow f],
---     cases c,
---     { convert P_C_mul_pow f.nat_degree f.leading_coeff _ df,
---       { convert zero_add _,
---         rw [← card_support_eq_zero, erase_lead_card_support f0] },
---       { rw [leading_coeff_ne_zero, ne.def, ← card_support_eq_zero, f0],
---         exact zero_ne_one.symm } },
---     apply P_C_erase_lead,
---     { simp only [polynomial.erase_lead_add_C_mul_X_pow],
---       exact df, },
---     apply hc,
---     { simp only [polynomial.erase_lead_add_C_mul_X_pow],
---       apply le_trans _ df,
---       apply le_trans (erase_lead_nat_degree_le f),
---       simp only [tsub_le_self], },
---     { simp only [polynomial.erase_lead_add_C_mul_X_pow],
---       apply erase_lead_card_support',
---       rw f0, }, },
--- end
-
-
--- noncomputable def sign_switches (p : polynomial ℝ) : ℕ :=
--- begin
---   apply @polynomial.rec_on_erase_lead ℝ _ (λ _, ℕ),
---   -- The zero polynomial has zero sign changes
---   { exact 0, },
---   -- A monomial has zero sign changes
---   { intros n r hr, exact 0, },
---   -- A multinomial has as many sign changes as its erasure, potentially plus one for the leading coefficient.
---   { intros p_erased switches_in_erased,
---     exact (switches_in_erased + if p.leading_coeff * p_erased.leading_coeff < 0 then 1 else 0),
---   },
---   exact p,
--- end
+noncomputable def sign_switches (p : polynomial ℝ) : ℕ :=
+begin
+  apply @polynomial.rec_on_erase_lead ℝ _ (λ _, ℕ),
+  -- The zero polynomial has zero sign changes
+  { exact 0, },
+  -- A monomial has zero sign changes
+  { intros n r hr, exact 0, },
+  -- A multinomial has as many sign changes as its erasure, potentially plus one for the leading coefficient.
+  { intros p_erased switches_in_erased,
+    exact (switches_in_erased + if p.leading_coeff * p_erased.leading_coeff < 0 then 1 else 0),
+  },
+  exact p,
+end
 
 lemma multiset.filter_singleton (s : ℝ) (p : ℝ -> Prop) [decidable_pred p] :
   multiset.filter p {s} = if p s then {s} else ∅ :=

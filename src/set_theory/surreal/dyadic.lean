@@ -96,10 +96,10 @@ begin
   induction n using nat.strong_induction_on with n hn,
   { split; rw le_iff_forall_lf; split,
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
-      { calc 0 + pow_half n.succ ≡r pow_half n.succ : (zero_add_relabelling _)
-                             ... < pow_half n      : pow_half_succ_lt_pow_half n },
-      { calc pow_half n.succ + 0 ≈ pow_half n.succ : (add_zero_relabelling _).equiv
-                             ... < pow_half n      : pow_half_succ_lt_pow_half n } },
+      { calc 0 + pow_half n.succ ≡r pow_half n.succ : zero_add_relabelling _
+                             ... < pow_half n       : pow_half_succ_lt_pow_half n },
+      { calc pow_half n.succ + 0 ≡r pow_half n.succ : add_zero_relabelling _
+                             ... < pow_half n       : pow_half_succ_lt_pow_half n } },
     { cases n, { rintro ⟨ ⟩ },
       rintro ⟨ ⟩,
       apply lf_of_move_right_le,
@@ -109,16 +109,14 @@ begin
       ... ≈ pow_half n                        : hn _ (nat.lt_succ_self n) },
     { simp only [pow_half_move_left, forall_const],
       apply lf_of_lt,
-      calc 0 ≈ 0 + 0                            : (add_zero_relabelling 0).equiv'
-        ... ≤ pow_half n.succ + 0               : add_le_add_right (zero_le_pow_half _) _
-        ... < pow_half n.succ + pow_half n.succ : add_lt_add_left (pow_half_pos _) _ },
+      calc 0 ≡r 0 + 0                            : (add_zero_relabelling 0).symm
+         ... ≤ pow_half n.succ + 0               : add_le_add_right (zero_le_pow_half _) _
+         ... < pow_half n.succ + pow_half n.succ : add_lt_add_left (pow_half_pos _) _ },
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
-      { calc pow_half n
-            ≈ pow_half n + 0               : (add_zero_relabelling _).equiv'
-        ... < pow_half n + pow_half n.succ : add_lt_add_left (pow_half_pos _) _ },
-      { calc pow_half n
-            ≈ 0 + pow_half n               : (zero_add_relabelling _).equiv'
-        ... < pow_half n.succ + pow_half n : add_lt_add_right (pow_half_pos _) _  } } }
+      { calc pow_half n ≡r pow_half n + 0 : (add_zero_relabelling _).symm
+       ... < pow_half n + pow_half n.succ : add_lt_add_left (pow_half_pos _) _ },
+      { calc pow_half n ≡r 0 + pow_half n : (zero_add_relabelling _).symm
+       ... < pow_half n.succ + pow_half n : add_lt_add_right (pow_half_pos _) _ } } }
 end
 
 theorem half_add_half_equiv_one : pow_half 1 + pow_half 1 ≈ 1 :=

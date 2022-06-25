@@ -767,6 +767,11 @@ lf_of_lf_of_equiv h₁ h₂.equiv
 @[trans] theorem lf_of_relabelling_of_lf {x y z} (h₁ : x ≡r y) : y ⧏ z → x ⧏ z :=
 lf_of_equiv_of_lf h₁.equiv
 
+@[trans] theorem lt_of_lt_of_relabelling {x y z} (h₁ : x < y) (h₂ : y ≡r z) : x < z :=
+lt_of_lt_of_equiv h₁ h₂.equiv
+@[trans] theorem lt_of_relabelling_of_lt {x y z} (h₁ : x ≡r y) : y < z → x < z :=
+lt_of_equiv_of_lt h₁.equiv
+
 /-- Any game without left or right moves is a relabelling of 0. -/
 def relabelling.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
 ⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩

@@ -348,8 +348,7 @@ sInter_subset_of_mem ⟨h₂, h₁⟩
 
 lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
   disjoint (closure s) t :=
-disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
-  ht.is_closed_compl
+disjoint_compl_left.mono_left $ closure_minimal hd.subset_compl_right ht.is_closed_compl
 
 lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
   disjoint s (closure t) :=

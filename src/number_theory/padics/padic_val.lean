@@ -236,6 +236,11 @@ begin
   solve_by_elim,
 end
 
+lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
+  (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
+⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0.bot_lt h),
+ λ h, not_not.1 (mt padic_val_nat.eq_zero_of_not_dvd h)⟩
+
 end padic_val_nat
 
 namespace padic_val_rat

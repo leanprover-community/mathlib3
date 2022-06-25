@@ -839,12 +839,12 @@ end
 
 /-- The property satisfied by `fundamental_sequence o`:
   * `inl none` means `o = 0`
-  * `inl (some a)` means `o = a.succ`
+  * `inl (some a)` means `o = succ a`
   * `inr f` means `o` is a limit ordinal and `f` is a
     strictly increasing sequence which converges to `o` -/
 def fundamental_sequence_prop (o : onote) : option onote ⊕ (ℕ → onote) → Prop
 | (sum.inl none) := o = 0
-| (sum.inl (some a)) := o.repr = a.repr.succ ∧ (o.NF → a.NF)
+| (sum.inl (some a)) := o.repr = succ a.repr ∧ (o.NF → a.NF)
 | (sum.inr f) := o.repr.is_limit ∧
   (∀ i, f i < f (i + 1) ∧ f i < o ∧ (o.NF → (f i).NF)) ∧
   (∀ a, a < o.repr → ∃ i, a < (f i).repr)
@@ -866,7 +866,7 @@ begin
       simp only [repr, iha, ihb, opow_lt_opow_iff_right one_lt_omega,
         add_lt_add_iff_left, add_zero, coe_coe, eq_self_iff_true, lt_add_iff_pos_right,
         lt_def, mul_one, nat.cast_zero, nat.cast_succ, nat.succ_pnat_coe, opow_succ,
-        opow_zero, ordinal.mul_add_one, pnat.one_coe, succ_zero, true_and, _root_.zero_add,
+        opow_zero, mul_add_one, pnat.one_coe, succ_zero, true_and, _root_.zero_add,
         zero_def],
     { apply_instance },
     { exact ⟨rfl, infer_instance⟩ },
@@ -897,7 +897,7 @@ begin
   { refine ⟨by rw [repr, ihb.1, add_succ, repr],
       λ H, H.fst.oadd _ (NF.below_of_lt' _ (ihb.2 H.snd))⟩,
     have := H.snd'.repr_lt, rw ihb.1 at this,
-    exact (lt_succ_self _).trans this },
+    exact (lt_succ _).trans this },
   { rcases ihb with ⟨h1, h2, h3⟩,
     simp only [repr],
     exact ⟨ordinal.add_is_limit _ h1,
@@ -917,12 +917,12 @@ def fast_growing : onote → ℕ → ℕ
   match fundamental_sequence o, fundamental_sequence_has_prop o with
   | sum.inl none, _ := nat.succ
   | sum.inl (some a), h :=
-    have a < o, { rw [lt_def, h.1], apply lt_succ_self },
+    have a < o, { rw [lt_def, h.1], apply lt_succ },
     λ i, (fast_growing a)^[i] i
   | sum.inr f, h := λ i, have f i < o, from (h.2.1 i).2.1, fast_growing (f i) i
   end
 using_well_founded
-{ rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.wf⟩],
+{ rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.lt_wf⟩],
   dec_tac := `[assumption] }
 
 theorem fast_growing_def

@@ -430,10 +430,6 @@ class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
 @[protect_proj, ancestor monoid comm_semigroup, to_additive]
 class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 
-/- For units of a commutative ring, we need `comm_monoid.to_monoid` before
-`ring.to_monoid` and it seems that any number `> 100` will be fine here. -/
-attribute [instance, priority 200] comm_monoid.to_monoid
-
 section left_cancel_monoid
 
 /-- An additive monoid in which addition is left-cancellative.

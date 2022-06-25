@@ -583,7 +583,7 @@ begin
   induction s using finset.cons_induction_on with a s ha hs,
   { rwa [finset.coe_empty] },
   { rw [finset.coe_cons],
-    exact @H1 a s ha s.finite_to_set hs }
+    exact @H1 a s ha (set.finite_of_fintype _) hs }
 end
 
 @[elab_as_eliminator]

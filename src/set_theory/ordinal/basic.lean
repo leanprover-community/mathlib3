@@ -1046,7 +1046,7 @@ instance : linear_order ordinal :=
 instance : is_well_order ordinal (<) := ⟨lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot ordinal :=
-well_founded.conditionally_complete_linear_order_bot _
+is_well_order.conditionally_complete_linear_order_bot _
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 

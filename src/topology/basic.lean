@@ -602,7 +602,7 @@ lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s
 
 lemma disjoint.frontier_left (ht : is_open t) (hd : disjoint s t) : disjoint (frontier s) t :=
 subset_compl_iff_disjoint_right.1 $ frontier_subset_closure.trans $ closure_minimal
-  (λ _, disjoint_left.1 hd) $ is_closed_compl_iff.2 ht
+  (disjoint_left.1 hd) $ is_closed_compl_iff.2 ht
 
 lemma disjoint.frontier_right (hs : is_open s) (hd : disjoint s t) : disjoint s (frontier t) :=
 (hd.symm.frontier_left hs).symm

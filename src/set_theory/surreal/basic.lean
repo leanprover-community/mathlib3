@@ -54,8 +54,7 @@ The branch `surreal_mul` contains some progress on this proof.
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
-local infix ` ⧏ `:50 := pgame.lf
+open_locale pgame
 
 namespace pgame
 
@@ -92,19 +91,15 @@ theorem numeric_rec {C : pgame → Prop}
 theorem relabelling.numeric_imp {x y : pgame} (r : x ≡r y) (ox : numeric x) : numeric y :=
 begin
   induction x using pgame.move_rec_on with x IHl IHr generalizing y,
-  cases r with _ _ L R hL hR,
-  refine (numeric_def y).2 ⟨λ i j, _, λ i, _, λ j, _⟩,
-  any_goals
-  { have H := hL (L.symm i),
-    rw equiv.apply_symm_apply at H },
-  { rw ←lt_congr H.equiv (hR j).equiv,
+  apply (numeric_def y).2 ⟨λ i j, _, λ i, _, λ j, _⟩,
+  { rw ←lt_congr (r.move_left_symm _).equiv (r.move_right j).equiv,
     apply ox.left_lt_right },
-  { exact IHl _ (ox.move_left _) H },
-  { exact IHr _ (ox.move_right _) (hR _) }
+  { exact IHl _ (ox.move_left _) (r.move_left_symm i) },
+  { exact IHr _ (ox.move_right _) (r.move_right j) }
 end
 
 theorem relabelling.numeric_congr {x y : pgame} (r : x ≡r y) : numeric x ↔ numeric y :=
-⟨r.numeric_imp, r.numeric_imp⟩
+⟨r.numeric_imp, r.symm.numeric_imp⟩
 
 theorem lf_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y → ¬ y ⧏ x :=
 begin

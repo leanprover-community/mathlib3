@@ -725,14 +725,23 @@ def mk' {x y : pgame} (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃
   (h₂ : ∀ j, relabelling (x.move_right j) (y.move_right (R j))) : x ≡r y :=
 ⟨L.symm, R.symm, λ i, by simpa using h₁ (L.symm i), λ j, by simpa using h₂ (R.symm j)⟩
 
+/-- The equivalence between left moves of `x` and `y` given by the relabelling. -/
+def left_moves {x y : pgame} : Π x ≡r y, x.left_moves ≃ y.left_moves
+| _ ⟨L, R, hL, hR⟩ := L
+
+/-- The equivalence between right moves of `y` and `x` given by the relabelling. -/
+def right_moves {x y : pgame} : Π x ≡r y, y.right_moves ≃ x.right_moves
+| _ ⟨L, R, hL, hR⟩ := R
+
+theorem move_left 
+
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of `y`. -/
 def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
 ⟨L, R, λ i, (hL i).restricted, λ j, (hR j).restricted⟩
 
--- It's not the case that `restricted x y → restricted y x → relabelling x y`,
--- but if we insisted that the maps in a restriction were injective, then one
--- could use Schröder-Bernstein for do this.
+/-! It's not the case that `restricted x y → restricted y x → x ≡r y`, but if we insisted that the
+maps in a restriction were injective, then one could use Schröder-Bernstein for do this. -/
 
 /-- The identity relabelling. -/
 @[refl] def refl : Π (x : pgame), x ≡r x

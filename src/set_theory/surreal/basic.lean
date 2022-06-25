@@ -274,21 +274,24 @@ instance : has_neg surreal  :=
   (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
 
 instance : ordered_add_comm_group surreal :=
-{ add               := (+),
-  add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
-  zero              := 0,
-  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
-  neg               := has_neg.neg,
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
-  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
-  le                := (≤),
-  lt                := (<),
-  le_refl           := by { rintros ⟨_⟩, apply @le_rfl pgame },
-  le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
-  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
-  le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
-  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
+{ add              := (+),
+  add_assoc        := begin
+                        rintros ⟨_⟩ ⟨_⟩ ⟨_⟩,
+                        exact quot.sound (add_assoc_relabelling _ _ _).equiv
+                      end,
+  zero             := 0,
+  zero_add         := by { rintro ⟨_⟩, exact quot.sound (zero_add_relabelling _).equiv },
+  add_zero         := by { rintro ⟨_⟩, exact quot.sound (add_zero_relabelling _).equiv },
+  neg              := has_neg.neg,
+  add_left_neg     := by { rintros ⟨_⟩, exact quot.sound (add_left_neg_equiv a) },
+  add_comm         := by { rintros ⟨_⟩ ⟨_⟩, exact quot.sound (add_comm_relabelling _ _).equiv },
+  le               := (≤),
+  lt               := (<),
+  le_refl          := by { rintros ⟨_⟩, apply @le_rfl pgame },
+  le_trans         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
+  lt_iff_le_not_le := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
+  le_antisymm      := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
+  add_le_add_left  := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact

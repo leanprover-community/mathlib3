@@ -40,24 +40,24 @@ instance pgame.setoid : setoid pgame :=
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 abbreviation game := quotient pgame.setoid
 
-theorem pgame.equiv.quot_eq {x y : pgame} (h : x ≈ y) : ⟦x⟧ = ⟦y⟧ :=
+theorem pgame.equiv.game_eq {x y : pgame} (h : x ≈ y) : ⟦x⟧ = ⟦y⟧ :=
 quot.sound h
 
-theorem pgame.relabelling.quot_eq {x y : pgame} (h : x ≡r y) : ⟦x⟧ = ⟦y⟧ :=
-h.equiv.quot_eq
+theorem pgame.relabelling.game_eq {x y : pgame} (h : x ≡r y) : ⟦x⟧ = ⟦y⟧ :=
+h.equiv.game_eq
 
 namespace game
 
 instance : add_comm_group game :=
 { zero := ⟦0⟧,
-  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, ((@neg_equiv_neg_iff x y).2 h).quot_eq),
+  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, ((@neg_equiv_neg_iff x y).2 h).game_eq),
   add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
-    (λ x₁ y₁ x₂ y₂ hx hy, (pgame.add_congr hx hy).quot_eq),
-  add_zero := by { rintro ⟨x⟩, exact (add_zero_relabelling x).quot_eq },
-  zero_add := by { rintro ⟨x⟩, exact (zero_add_relabelling x).quot_eq },
-  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact (add_assoc_relabelling x y z).quot_eq },
-  add_left_neg := by { rintro ⟨x⟩, exact (add_left_neg_equiv x).quot_eq },
-  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact (add_comm_relabelling x y).quot_eq } }
+    (λ x₁ y₁ x₂ y₂ hx hy, (pgame.add_congr hx hy).game_eq),
+  add_zero := by { rintro ⟨x⟩, exact (add_zero_relabelling x).game_eq },
+  zero_add := by { rintro ⟨x⟩, exact (zero_add_relabelling x).game_eq },
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact (add_assoc_relabelling x y z).game_eq },
+  add_left_neg := by { rintro ⟨x⟩, exact (add_left_neg_equiv x).game_eq },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact (add_comm_relabelling x y).game_eq } }
 
 instance : has_one game := ⟨⟦1⟧⟩
 instance : inhabited game := ⟨0⟩

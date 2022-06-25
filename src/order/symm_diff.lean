@@ -21,7 +21,6 @@ The symmetric difference is the addition operator in the Boolean ring structure 
 ## Main declarations
 
 * `symm_diff`: the symmetric difference operator, defined as `(A \ B) ⊔ (B \ A)`
-* `equiv.symm_diff`: Symmetric difference by `a` as an `equiv`.
 
 In generalized Boolean algebras, the symmetric difference operator is:
 
@@ -42,8 +41,6 @@ Proof from the Book" by John McCuan:
 ## Tags
 boolean ring, generalized boolean algebra, boolean algebra, symmetric differences
 -/
-
-open function
 
 /-- The symmetric difference operator on a type with `⊔` and `\` is `(A \ B) ⊔ (B \ A)`. -/
 def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) : α := (A \ B) ⊔ (B \ A)

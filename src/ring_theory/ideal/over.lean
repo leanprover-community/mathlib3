@@ -61,7 +61,9 @@ begin
   { intros p p_nonzero ih mul_nonzero hp,
     rw [eval₂_mul, eval₂_X] at hp,
     obtain ⟨i, hi, mem⟩ := ih p_nonzero (r_non_zero_divisor hp),
-    refine ⟨i + 1, _, _⟩; simp [hi, mem] }
+    refine ⟨i + 1, _, _⟩,
+    { simpa using hi },
+    { simpa using mem } }
 end
 
 /-- Let `P` be an ideal in `R[x]`.  The map

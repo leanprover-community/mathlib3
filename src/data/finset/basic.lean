@@ -1890,6 +1890,11 @@ by { subst h, simp }
 theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
 eq_of_veq $ by simp only [map_val, multiset.map_map]; refl
 
+lemma map_comm {β'} {f : β ↪ γ} {g : α ↪ β} {f' : α ↪ β'} {g' : β' ↪ γ}
+  (h_comm : ∀ a, f (g a) = g' (f' a)) :
+  (s.map g).map f = (s.map f').map g' :=
+by simp_rw [map_map, embedding.trans, function.comp, h_comm]
+
 @[simp] theorem map_subset_map {s₁ s₂ : finset α} : s₁.map f ⊆ s₂.map f ↔ s₁ ⊆ s₂ :=
 ⟨λ h x xs, (mem_map' _).1 $ h $ (mem_map' f).2 xs,
  λ h, by simp [subset_def, map_subset_map h]⟩
@@ -2044,6 +2049,11 @@ ext $ λ _, by simp only [mem_image, exists_prop, id, exists_eq_right]
 
 theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.image (g ∘ f) :=
 eq_of_veq $ by simp only [image_val, dedup_map_dedup_eq, multiset.map_map]
+
+lemma image_comm {β'} [decidable_eq β] [decidable_eq β'] [decidable_eq γ] {f : β → γ} {g : α → β}
+  {f' : α → β'} {g' : β' → γ} (h_comm : ∀ a, f (g a) = g' (f' a)) :
+  (s.image g).image f = (s.image f').image g' :=
+by simp_rw [image_image, comp, h_comm]
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
 by simp only [subset_def, image_val, subset_dedup', dedup_subset',

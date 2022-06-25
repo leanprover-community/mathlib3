@@ -719,37 +719,39 @@ localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
 
 namespace relabelling
 
+variables {x y : pgame.{u}}
+
 /-- A constructor for relabellings swapping the equivalences. -/
-def mk' {x y : pgame} (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
+def mk' (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
   (hL : ∀ i, x.move_left (L i) ≡r y.move_left i)
   (hR : ∀ j, x.move_right j ≡r y.move_right (R j)) : x ≡r y :=
 ⟨L.symm, R.symm, λ i, by simpa using hL (L.symm i), λ j, by simpa using hR (R.symm j)⟩
 
 /-- The equivalence between left moves of `x` and `y` given by the relabelling. -/
-def left_moves_equiv {x y : pgame} : Π (r : x ≡r y), x.left_moves ≃ y.left_moves
+def left_moves_equiv : Π (r : x ≡r y), x.left_moves ≃ y.left_moves
 | ⟨L, R, hL, hR⟩ := L
 
 /-- The equivalence between right moves of `y` and `x` given by the relabelling. -/
-def right_moves_equiv {x y : pgame} : Π (r : x ≡r y), y.right_moves ≃ x.right_moves
+def right_moves_equiv : Π (r : x ≡r y), y.right_moves ≃ x.right_moves
 | ⟨L, R, hL, hR⟩ := R
 
 /-- A left move of `x` is a relabelling of a left move of `y`. -/
-def move_left {x y : pgame} : ∀ (r : x ≡r y) (i : x.left_moves),
+def move_left : ∀ (r : x ≡r y) (i : x.left_moves),
   x.move_left i ≡r y.move_left (r.left_moves_equiv i)
 | ⟨L, R, hL, hR⟩ := hL
 
-/-- A left move of `x` is a relabelling of a left move of `y`. -/
-def move_left_symm {x y : pgame} : ∀ (r : x ≡r y) (i : y.left_moves),
+/-- A left move of `y` is a relabelling of a left move of `x`. -/
+def move_left_symm : ∀ (r : x ≡r y) (i : y.left_moves),
   x.move_left (r.left_moves_equiv.symm i) ≡r y.move_left i
 | ⟨L, R, hL, hR⟩ i := by simpa using hL (L.symm i)
 
 /-- A right move of `x` is a relabelling of a right move of `y`. -/
-def move_right {x y : pgame} : ∀ (r : x ≡r y) (i : y.right_moves),
+def move_right : ∀ (r : x ≡r y) (i : y.right_moves),
   x.move_right (r.right_moves_equiv i) ≡r y.move_right i
 | ⟨L, R, hL, hR⟩ := hR
 
-/-- A left move of `x` is a relabelling of a left move of `y`. -/
-def move_right_symm {x y : pgame} : ∀ (r : x ≡r y) (i : x.right_moves),
+/-- A right move of `y` is a relabelling of a right move of `x`. -/
+def move_right_symm : ∀ (r : x ≡r y) (i : x.right_moves),
   x.move_right i ≡r y.move_right (r.right_moves_equiv.symm i)
 | ⟨L, R, hL, hR⟩ i := by simpa using hR (R.symm i)
 
@@ -773,11 +775,11 @@ instance (x : pgame) : inhabited (x ≡r x) := ⟨refl _⟩
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
 mk' L R (λ i, (hL i).symm) (λ j, (hR j).symm)
 
-theorem le {x y : pgame} (r : x ≡r y) : x ≤ y := r.restricted.le
-theorem ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.restricted.le
+theorem le (r : x ≡r y) : x ≤ y := r.restricted.le
+theorem ge (r : x ≡r y) : y ≤ x := r.symm.restricted.le
 
 /-- A relabelling lets us prove equivalence of games. -/
-theorem equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
+theorem equiv (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 
 /-- Transitivity of relabelling. -/
 @[trans] def trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z

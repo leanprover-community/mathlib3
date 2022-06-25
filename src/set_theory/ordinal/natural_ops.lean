@@ -292,7 +292,7 @@ begin
   induction n with n hn,
   { refl },
   { change to_ordinal n ♯ 1 = n + 1,
-    rw [hn, nadd_one], refl }
+    rw hn, exact nadd_one n }
 end
 
 end nat_ordinal

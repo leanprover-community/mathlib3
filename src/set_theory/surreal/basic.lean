@@ -89,7 +89,7 @@ theorem numeric_rec {C : pgame → Prop}
   H _ _ _ _ h hl hr (λ i, numeric_rec _ (hl i)) (λ i, numeric_rec _ (hr i))
 
 /-- Relabellings preserve being numeric. -/
-theorem numeric_congr {x y : pgame} (ox : numeric x) (r : relabelling x y) : numeric y :=
+theorem relabelling.numeric_imp {x y : pgame} (r : x ≡r y) (ox : numeric x) : numeric y :=
 begin
   induction x using pgame.move_rec_on with x IHl IHr generalizing y,
   cases r with _ _ L R hL hR,
@@ -102,6 +102,9 @@ begin
   { exact IHl _ (ox.move_left _) H },
   { exact IHr _ (ox.move_right _) (hR _) }
 end
+
+theorem relabelling.numeric_congr {x y : pgame} (r : x ≡r y) : numeric x ↔ numeric y :=
+⟨r.numeric_imp, r.numeric_imp⟩
 
 theorem lf_asymm {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y → ¬ y ⧏ x :=
 begin

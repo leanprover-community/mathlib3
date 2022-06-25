@@ -850,12 +850,7 @@ begin
     obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ (diagonal α)ᶜ, is_open t ∧ (x, y) ∈ t :=
       is_open_iff_forall_mem_open.mp h.is_open_compl _ this,
     rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
-    use [U, V, U_op, V_op, xU, yV],
-    have := subset.trans H t_sub,
-    rw eq_empty_iff_forall_not_mem,
-    rintros z ⟨zU, zV⟩,
-    have : ¬ (z, z) ∈ diagonal α := this (mk_mem_prod zU zV),
-    exact this rfl },
+    exact ⟨U, V, U_op, V_op, xU, yV, prod_subset_compl_diagonal_iff_disjoint.1 (H.trans t_sub)⟩ }
 end
 
 section separated
@@ -1103,20 +1098,10 @@ lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : 
   closed_embedding g :=
 ⟨h.embedding hf hg, h.closed_range hf hg⟩
 
-lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
-ext $ assume p, iff.intro
-  (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
-  (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
-
-lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
-  s ×ˢ t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
-by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
-       diagonal_eq_range_diagonal_map, range_subset_iff]; simp
-
 lemma compact_compact_separated [t2_space α] {s t : set α}
   (hs : is_compact s) (ht : is_compact t) (hst : s ∩ t = ∅) :
   ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
-by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
+by simp only [←disjoint_iff_inter_eq_empty, ←prod_subset_compl_diagonal_iff_disjoint] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal.is_open_compl hst
 
 /-- In a `t2_space`, every compact set is closed. -/

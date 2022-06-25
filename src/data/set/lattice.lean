@@ -1356,6 +1356,12 @@ by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_
 lemma image2_eq_Union (s : set α) (t : set β) : image2 f s t = ⋃ (i ∈ s) (j ∈ t), {f i j} :=
 by simp_rw [←image_eq_Union, Union_image_left]
 
+lemma prod_eq_bUnion_left : s ×ˢ t = ⋃ a ∈ s, (λ b, (a, b)) '' t :=
+by rw [Union_image_left, image2_mk_eq_prod]
+
+lemma prod_eq_bUnion_right : s ×ˢ t = ⋃ b ∈ t, (λ a, (a, b)) '' s :=
+by rw [Union_image_right, image2_mk_eq_prod]
+
 end image2
 
 section seq

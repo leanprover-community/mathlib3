@@ -103,7 +103,16 @@ by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
-meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
+
+section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `int.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
+local attribute [semireducible] reflected
+meta instance reflect : has_reflect ℤ :=
+int.mk_numeral `(ℤ) `(by apply_instance : has_zero ℤ) `(by apply_instance : has_one ℤ)
+                    `(by apply_instance : has_add ℤ) `(by apply_instance : has_neg ℤ)
+end
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
 attribute [simp] int.of_nat_eq_coe int.bodd

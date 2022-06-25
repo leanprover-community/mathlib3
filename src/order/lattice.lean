@@ -805,6 +805,30 @@ hf.dual.map_sup _ _
 
 end monotone
 
+namespace monotone_on
+
+/-- Pointwise supremum of two monotone functions is a monotone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (f ⊔ g) s :=
+λ x hx y hy h, sup_le_sup (hf hx hy h) (hg hx hy h)
+
+/-- Pointwise infimum of two monotone functions is a monotone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (f ⊓ g) s :=
+(hf.dual.sup hg.dual).dual
+
+/-- Pointwise maximum of two monotone functions is a monotone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, max (f x) (g x)) s :=
+hf.sup hg
+
+/-- Pointwise minimum of two monotone functions is a monotone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, min (f x) (g x)) s :=
+hf.inf hg
+
+end monotone_on
+
 namespace antitone
 
 /-- Pointwise supremum of two monotone functions is a monotone function. -/
@@ -846,6 +870,30 @@ lemma map_inf [semilattice_sup β] {f : α → β} (hf : antitone f) (x y : α) 
 hf.dual_right.map_inf x y
 
 end antitone
+
+namespace antitone_on
+
+/-- Pointwise supremum of two antitone functions is a antitone function. -/
+protected lemma sup [preorder α] [semilattice_sup β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (f ⊔ g) s :=
+λ x hx y hy h, sup_le_sup (hf hx hy h) (hg hx hy h)
+
+/-- Pointwise infimum of two antitone functions is a antitone function. -/
+protected lemma inf [preorder α] [semilattice_inf β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (f ⊓ g) s :=
+(hf.dual.sup hg.dual).dual
+
+/-- Pointwise maximum of two antitone functions is a antitone function. -/
+protected lemma max [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, max (f x) (g x)) s :=
+hf.sup hg
+
+/-- Pointwise minimum of two antitone functions is a antitone function. -/
+protected lemma min [preorder α] [linear_order β] {f g : α → β} {s : set α}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, min (f x) (g x)) s :=
+hf.inf hg
+
+end antitone_on
 
 /-!
 ### Products of (semi-)lattices

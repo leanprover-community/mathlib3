@@ -253,6 +253,26 @@ set.ext $ λ a,
 ⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
 
+section mono
+
+variables [preorder α] {f : α → set β} {g : α → set γ}
+
+theorem _root_.monotone.set_prod (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
+λ a b h, prod_mono (hf h) (hg h)
+
+theorem _root_.antitone.set_prod (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ×ˢ g x) :=
+λ a b h, prod_mono (hf h) (hg h)
+
+theorem _root_.monotone_on.set_prod (hf : monotone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, f x ×ˢ g x) s :=
+λ a ha b hb h, prod_mono (hf ha hb h) (hg ha hb h)
+
+theorem _root_.antitone_on.set_prod (hf : antitone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, f x ×ˢ g x) s :=
+λ a ha b hb h, prod_mono (hf ha hb h) (hg ha hb h)
+
+end mono
+
 end prod
 
 /-! ### Diagonal -/

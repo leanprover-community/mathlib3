@@ -76,18 +76,15 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthda
   { apply lsub_eq_of_range_eq.{u u u},
     ext i,
     split },
-  { rintro ⟨j, rfl⟩,
-    exact ⟨L j, (hL j).birthday_congr.symm⟩ },
-  { rintro ⟨j, rfl⟩,
-    refine ⟨L.symm j, relabelling.birthday_congr _⟩,
+  all_goals { rintro ⟨j, rfl⟩ },
+  { exact ⟨L j, (hL j).birthday_congr.symm⟩ },
+  { refine ⟨L.symm j, relabelling.birthday_congr _⟩,
     convert hL (L.symm j),
     rw L.apply_symm_apply },
-  { rintro ⟨j, rfl⟩,
-    refine ⟨R j, (relabelling.birthday_congr _).symm⟩,
-    convert hR (R j),
-    rw R.symm_apply_apply },
-  { rintro ⟨j, rfl⟩,
-    exact ⟨R.symm j, (hR j).birthday_congr⟩ }
+  { refine ⟨R.symm j, (relabelling.birthday_congr _).symm⟩,
+    convert hR (R.symm j),
+    rw R.apply_symm_apply },
+  { exact ⟨R j, (hR j).birthday_congr⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

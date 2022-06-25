@@ -134,15 +134,17 @@ namespace pgame
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
-  (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ (i : x.left_moves), ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
-  (hr : ∀ (j : y.right_moves), ⟦x.move_right (R.symm j)⟧ = ⟦y.move_right j⟧) :
-  ⟦x⟧ = ⟦y⟧ :=
-begin
-  simp only [quotient.eq] at hl hr,
-  apply quotient.sound,
-  apply equiv_of_mk_equiv L R hl hr,
-end
+  (L : x.left_moves ≃ y.left_moves) (R : y.right_moves ≃ x.right_moves)
+  (hl : ∀ i, ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
+  (hr : ∀ j, ⟦x.move_right (R j)⟧ = ⟦y.move_right j⟧) : ⟦x⟧ = ⟦y⟧ :=
+by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv L R hl hr) }
+
+/-- The same as `pgame.quot_eq_of_mk_quot_eq` but with the equivalences swapped. -/
+theorem quot_eq_of_mk_quot_eq' {x y : pgame}
+  (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
+  (hl : ∀ i, ⟦x.move_left (L i)⟧ = ⟦y.move_left i⟧)
+  (hr : ∀ j, ⟦x.move_right j⟧ = ⟦y.move_right (R j)⟧) : ⟦x⟧ = ⟦y⟧ :=
+by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv' L R hl hr) }
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.
@@ -336,12 +338,12 @@ begin
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
   { fsplit,
-    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl },
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl } },
   { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)⟧
              = ⟦xL i * y + x * yL j - xL i * yL j + x * z⟧,
@@ -395,14 +397,14 @@ begin
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { rintro i,  exact sum.inl(i, punit.star) },
+    { exact λ i, sum.inl (i, punit.star) },
     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
-    { rintro i, refl } },
+    { exact λ i, rfl } },
   { fsplit,
+    { exact λ i, sum.inr (i, punit.star) },
     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { rintro i,  exact sum.inr(i, punit.star) },
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
-    { rintro i, refl } },
+    { exact λ i, rfl },
+    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl } },
   { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩),
     change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
     simp [quot_mul_one] },
@@ -435,12 +437,12 @@ begin
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_,_⟩ | ⟨_, _⟩,_⟩); refl },
     { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_,⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
   { fsplit,
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
     { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl },
-    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl } },
   { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
     { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zL k
                - (xL i * y + x * yL j - xL i * yL j) * zL k⟧
@@ -552,7 +554,7 @@ begin
   change mk _ _ _ _ ≡r 1,
   refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
   { apply equiv.equiv_punit },
-  { apply equiv.equiv_pempty },
+  { apply equiv.equiv_of_is_empty },
   { simp }
 end
 
@@ -566,7 +568,7 @@ begin
   { rw lt_self_iff_false, apply_instance },
   refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
   { apply equiv.equiv_punit },
-  { apply equiv.equiv_pempty },
+  { apply equiv.equiv_of_is_empty },
   { simp }
 end
 

@@ -25,12 +25,6 @@ Algorithms and theorems for locating the roots of real polynomials.
 
 -/
 
-lemma multiset.filter_singleton (s : ℝ) (p : ℝ -> Prop) [decidable_pred p] :
-  multiset.filter p {s} = if p s then {s} else ∅ :=
-by simp only [singleton, multiset.filter_cons, multiset.filter_zero, add_zero,
-  multiset.empty_eq_zero]
-
-
 lemma root_parity_in_range_of_evals (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
   (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
   even ((p.roots.filter ((λ x, a < x ∧ x < b))).card)

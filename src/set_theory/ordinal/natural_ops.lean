@@ -107,6 +107,8 @@ variables {a b c : ordinal.{u}}
 @[simp] theorem to_nat_ordinal_min :
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
 
+attribute [irreducible] nat_ordinal
+
 /-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
 as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
 to normal ordinal addition, it is commutative.
@@ -239,6 +241,10 @@ end
 
 end ordinal
 
+open_locale natural_ops
+
+attribute [reducible] nat_ordinal
+
 open ordinal
 
 namespace nat_ordinal
@@ -275,16 +281,12 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 begin
   induction n with n hn,
   { refl },
-  { change nadd (to_ordinal n) 1 = n + 1,
-    rw hn,
-    apply nadd_one }
+  { apply congr_arg (λ x, x ♯ 1) hn }
 end
 
 end nat_ordinal
 
 open nat_ordinal
-
-open_locale natural_ops
 
 namespace ordinal
 

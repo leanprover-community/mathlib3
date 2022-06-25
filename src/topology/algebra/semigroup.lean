@@ -25,7 +25,7 @@ lemma exists_idempotent_of_compact_t2_of_continuous_mul_left {M} [nonempty M] [s
 begin
 /- We apply Zorn's lemma to the poset of nonempty closed subsemigroups of `M`. It will turn out that
 any minimal element is `{m}` for an idempotent `m : M`. -/
-  let S : set (set M) := { N : set M | is_closed N ∧ N.nonempty ∧ ∀ m m' ∈ N, m * m' ∈ N },
+  let S := {N : set M | is_closed N ∧ N.nonempty ∧ ∀ m m' ∈ N, m * m' ∈ N},
   suffices : ∃ N ∈ S, ∀ N' ∈ S, N' ⊆ N → N' = N,
   { rcases this with ⟨N, ⟨N_closed, ⟨m, hm⟩, N_mul⟩, N_minimal⟩,
     use m,
@@ -43,7 +43,7 @@ that this holds for all `m' ∈ N`. -/
     have absorbing_eq_self : N ∩ {m' | m' * m = m} = N,
     { apply N_minimal,
       { refine ⟨N_closed.inter ((t1_space.t1 m).preimage (continuous_mul_left m)), _, _⟩,
-        { rw ←scaling_eq_self at hm, exact hm },
+        { rwa ←scaling_eq_self at hm },
         { rintros m'' ⟨mem'', eq'' : _ = m⟩ m' ⟨mem', eq' : _ = m⟩,
           refine ⟨N_mul _ mem'' _ mem', _⟩,
           rw [set.mem_set_of_eq, mul_assoc, eq', eq''] } },

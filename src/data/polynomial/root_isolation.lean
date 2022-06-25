@@ -107,14 +107,8 @@ Algorithms and theorems for locating the roots of real polynomials.
 
 lemma multiset.filter_singleton (s : ℝ) (p : ℝ -> Prop) [decidable_pred p] :
   multiset.filter p {s} = if p s then {s} else ∅ :=
-begin
-  unfold singleton,
-  simp_rw multiset.filter_cons,
-  simp,
-  split_ifs,
-  unfold singleton,
-  refl,
-end
+by simp only [singleton, multiset.filter_cons, multiset.filter_zero, add_zero,
+  multiset.empty_eq_zero]
 
 
 lemma root_parity_in_range_of_evals (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
@@ -130,8 +124,7 @@ begin
     intros p ha hb hr,
     have p_nonzero : p ≠ 0,
     { contrapose! ha,
-      rw ha,
-      simp only [le_refl, and_self, polynomial.eval_zero], },
+      rw [ha, polynomial.eval_zero], },
     simp only [multiset.card_zero, true_iff, even_zero],
     contrapose! hr,
     simp only [ne.def],
@@ -229,6 +222,7 @@ begin
     rcases h_root_range with ⟨hra, hrb⟩,
     have hra' : ¬ root < a, by linarith [hra],
     have hrb' : ¬ b < root, by linarith [hrb],
+    -- TODO there should be a `ne_iff_lt_or_lt` so we don't have to unfold gt.
     simp_rw [ne_iff_lt_or_gt, polynomial.eval_mul] at *,
     simp_rw [polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C] at *,
     unfold gt at *,

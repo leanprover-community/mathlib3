@@ -275,7 +275,7 @@ instance : has_le pgame := ⟨λ x y, (le_lf x y).1⟩
 If `0 ⧏ x`, then Left can win `x` as the first player. -/
 def lf (x y : pgame) : Prop := (le_lf x y).2
 
-local infix ` ⧏ `:50 := lf
+localized "infix ` ⧏ `:50 := pgame.lf" in pgame
 
 /-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
@@ -288,9 +288,9 @@ theorem le_iff_forall_lf {x y : pgame} :
   x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
 by { cases x, cases y, exact mk_le_mk }
 
-theorem le_of_forall_lf {x y : pgame} :
-  ((∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j) → x ≤ y :=
-le_iff_forall_lf.2
+theorem le_of_forall_lf {x y : pgame} (h₁ : ∀ i, x.move_left i ⧏ y) (h₂ : ∀ j, x ⧏ y.move_right j) :
+  x ≤ y :=
+le_iff_forall_lf.2 ⟨h₁, h₂⟩
 
 /-- Definition of `x ⧏ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lf_mk {xl xr xL xR yl yr yL yR} :
@@ -302,10 +302,6 @@ show (le_lf _ _).2 ↔ _, by { rw le_lf, refl }
 theorem lf_iff_exists_le {x y : pgame} :
   x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
 by { cases x, cases y, exact mk_lf_mk }
-
-theorem lf_of_exists_le {x y : pgame} :
-  ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x ⧏ y :=
-lf_iff_exists_le.2
 
 private theorem not_le_lf {x y : pgame} : (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=
 begin
@@ -324,17 +320,17 @@ theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }
 
-theorem move_left_lf_of_le {x y : pgame} (i) : x ≤ y → x.move_left i ⧏ y :=
-by { cases x, cases y, rw mk_le_mk, tauto }
+theorem move_left_lf_of_le {x y : pgame} (i) (h : x ≤ y) : x.move_left i ⧏ y :=
+(le_iff_forall_lf.1 h).1 i
 
-theorem lf_move_right_of_le {x y : pgame} (j) : x ≤ y → x ⧏ y.move_right j :=
-by { cases x, cases y, rw mk_le_mk, tauto }
+theorem lf_move_right_of_le {x y : pgame} (j) (h : x ≤ y) : x ⧏ y.move_right j :=
+(le_iff_forall_lf.1 h).2 j
 
-theorem lf_of_move_right_le {x y : pgame} {j} : x.move_right j ≤ y → x ⧏ y :=
-by { cases x, cases y, rw mk_lf_mk, tauto }
+theorem lf_of_move_right_le {x y : pgame} {j} (h : x.move_right j ≤ y) : x ⧏ y :=
+lf_iff_exists_le.2 $ or.inr ⟨j, h⟩
 
-theorem lf_of_le_move_left {x y : pgame} {i} : x ≤ y.move_left i → x ⧏ y :=
-by { cases x, cases y, rw mk_lf_mk, exact λ h, or.inl ⟨_, h⟩ }
+theorem lf_of_le_move_left {x y : pgame} {i} (h : x ≤ y.move_left i) : x ⧏ y :=
+lf_iff_exists_le.2 $ or.inl ⟨i, h⟩
 
 theorem lf_of_le_mk {xl xr xL xR y} : ∀ i, mk xl xr xL xR ≤ y → xL i ⧏ y :=
 @move_left_lf_of_le (mk _ _ _ _) y
@@ -365,7 +361,7 @@ by simp only [mk_le_mk] at *; exact
 instance : preorder pgame :=
 { le_refl := λ x, begin
     induction x with _ _ _ _ IHl IHr,
-    exact le_of_forall_lf ⟨λ i, lf_of_le_move_left (IHl i), λ i, lf_of_move_right_le (IHr i)⟩
+    exact le_of_forall_lf (λ i, lf_of_le_move_left (IHl i)) (λ i, lf_of_move_right_le (IHr i))
   end,
   le_trans := λ x y z, suffices ∀ {x y z : pgame},
     (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
@@ -424,9 +420,9 @@ alias lf_of_lt ← has_lt.lt.lf
 
 /-- This special case of `pgame.le_of_forall_lf` is useful when dealing with surreals, where `<` is
 preferred over `⧏`. -/
-theorem le_of_forall_lt {x y : pgame} (h : (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) :
+theorem le_of_forall_lt {x y : pgame} (h₁ : ∀ i, x.move_left i < y) (h₂ : ∀ j, x < y.move_right j) :
   x ≤ y :=
-le_of_forall_lf ⟨λ i, (h.1 i).lf, λ i, (h.2 i).lf⟩
+le_of_forall_lf (λ i, (h₁ i).lf) (λ i, (h₂ i).lf)
 
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
@@ -508,7 +504,7 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
-local infix ` ≈ ` := pgame.equiv
+localized "infix ` ≈ ` := pgame.equiv" in pgame
 
 instance : is_equiv _ (≈) :=
 { refl := λ x, ⟨le_rfl, le_rfl⟩,
@@ -615,7 +611,7 @@ end
 If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
-local infix ` ∥ `:50 := fuzzy
+localized "infix ` ∥ `:50 := pgame.fuzzy" in pgame
 
 @[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
 instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
@@ -714,7 +710,7 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
          (∀ j, relabelling (x.move_right (R.symm j)) (y.move_right j)) →
        relabelling x y
 
-local infix ` ≡r `:50 := relabelling
+localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
 
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of  `y`. -/
 def relabelling.restricted : Π {x y : pgame} (r : x ≡r y), restricted x y

@@ -128,6 +128,10 @@ by rw [dist_eq_norm, sub_zero]
 @[simp] lemma dist_zero_left : dist (0 : E) = norm :=
 funext $ λ g, by rw [dist_comm, dist_zero_right]
 
+lemma isometry.norm_map_of_map_zero {f : E → F} (hi : isometry f) (h0 : f 0 = 0) (x : E) :
+  ∥f x∥ = ∥x∥ :=
+by rw [←dist_zero_right, ←h0, hi.dist_eq, dist_zero_right]
+
 lemma tendsto_norm_cocompact_at_top [proper_space E] :
   tendsto norm (cocompact E) at_top :=
 by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0 : E)

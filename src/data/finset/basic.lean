@@ -325,15 +325,17 @@ def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_
 /-- The property `s.nonempty` expresses the fact that the finset `s` is not empty. It should be used
 in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives access to a nice API thanks
 to the dot notation. -/
-protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
+protected def nonempty (s : finset α) : Prop := ∃ x : α, x ∈ s
 
-@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
+@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s : set α).nonempty ↔ s.nonempty := iff.rfl
 
-@[simp] lemma nonempty_coe_sort (s : finset α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+@[simp] lemma nonempty_coe_sort {s : finset α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+
+@[simp] lemma is_empty_coe_sort {s : finset α} : is_empty ↥s ↔ s = ∅ := set.is_empty_coe_sort
 
 alias coe_nonempty ↔ _ finset.nonempty.to_set
 
-lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
+lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x : α, x ∈ s := h
 
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
 set.nonempty.mono hst hs

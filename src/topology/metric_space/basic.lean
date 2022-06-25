@@ -1258,7 +1258,8 @@ squeeze_zero' (eventually_of_forall hf) (eventually_of_forall hft) g0
 theorem metric.uniformity_eq_comap_nhds_zero :
   𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=
 by { ext s,
-  simp [mem_uniformity_dist, (nhds_basis_ball.comap _).mem_iff, subset_def, real.dist_0_eq_abs] }
+  simp [-mem_comap, mem_uniformity_dist, (nhds_basis_ball.comap _).mem_iff, subset_def,
+    real.dist_0_eq_abs] }
 
 lemma cauchy_seq_iff_tendsto_dist_at_top_0 [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (𝓝 0) :=

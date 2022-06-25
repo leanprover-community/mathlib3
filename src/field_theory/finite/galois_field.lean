@@ -163,7 +163,7 @@ begin
 end
 
 /-- Any finite field is (possibly non canonically) isomorphic to some Galois field. -/
-lemma alg_equiv_galois_field (h : fintype.card K = p ^ n) :
+def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
 by convert @@is_splitting_field.alg_equiv _ _ _ _ _ (is_splitting_field_of_card_eq _ _ h)
 

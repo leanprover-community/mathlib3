@@ -26,7 +26,7 @@ rational numbers to construct an ordered field embedding of ℝ into `surreal`.
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
+open_locale pgame
 
 namespace pgame
 
@@ -96,9 +96,9 @@ begin
   induction n using nat.strong_induction_on with n hn,
   { split; rw le_iff_forall_lf; split,
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
-      { calc 0 + pow_half n.succ ≈ pow_half n.succ : zero_add_equiv _
+      { calc 0 + pow_half n.succ ≡r pow_half n.succ : (zero_add_relabelling _)
                              ... < pow_half n      : pow_half_succ_lt_pow_half n },
-      { calc pow_half n.succ + 0 ≈ pow_half n.succ : add_zero_equiv _
+      { calc pow_half n.succ + 0 ≈ pow_half n.succ : (add_zero_relabelling _).equiv
                              ... < pow_half n      : pow_half_succ_lt_pow_half n } },
     { cases n, { rintro ⟨ ⟩ },
       rintro ⟨ ⟩,
@@ -109,15 +109,15 @@ begin
       ... ≈ pow_half n                        : hn _ (nat.lt_succ_self n) },
     { simp only [pow_half_move_left, forall_const],
       apply lf_of_lt,
-      calc 0 ≈ 0 + 0                            : (add_zero_equiv 0).symm
+      calc 0 ≈ 0 + 0                            : (add_zero_relabelling 0).equiv'
         ... ≤ pow_half n.succ + 0               : add_le_add_right (zero_le_pow_half _) _
         ... < pow_half n.succ + pow_half n.succ : add_lt_add_left (pow_half_pos _) _ },
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
       { calc pow_half n
-            ≈ pow_half n + 0               : (add_zero_equiv _).symm
+            ≈ pow_half n + 0               : (add_zero_relabelling _).equiv'
         ... < pow_half n + pow_half n.succ : add_lt_add_left (pow_half_pos _) _ },
       { calc pow_half n
-            ≈ 0 + pow_half n               : (zero_add_equiv _).symm
+            ≈ 0 + pow_half n               : (zero_add_relabelling _).equiv'
         ... < pow_half n.succ + pow_half n : add_lt_add_right (pow_half_pos _) _  } } }
 end
 

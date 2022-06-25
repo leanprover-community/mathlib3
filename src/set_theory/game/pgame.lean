@@ -108,6 +108,8 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
+/-! ### Basic API on moves -/
+
 /-- The indexing type for allowable moves by Left. -/
 def left_moves : pgame → Type u
 | (mk l _ _ _) := l
@@ -228,6 +230,8 @@ meta def pgame_wf_tac :=
    subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
+/-! ### Basic pre-games -/
+
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
@@ -248,6 +252,8 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
 instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
+
+/-! ### Pre-game comparison -/
 
 /-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
   pre-games.
@@ -518,6 +524,7 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 theorem equiv_refl (x) : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+protected theorem equiv.comm {x y} : x ≈ y ↔ y ≈ x := comm
 
 theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
@@ -585,10 +592,11 @@ theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y�
 ⟨λ h y₁, ⟨λ h', h.symm.trans h', λ h', h.trans h'⟩,
  λ h, (h x₂).2 $ equiv_rfl⟩
 
+/-- Pre-games made out of equivalent left and right moves are equivalent. -/
 theorem equiv_of_mk_equiv {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ (i : x.left_moves), x.move_left i ≈ y.move_left (L i))
-  (hr : ∀ (j : y.right_moves), x.move_right (R.symm j) ≈ y.move_right j) :
+  (hl : ∀ i, x.move_left i ≈ y.move_left (L i))
+  (hr : ∀ j, x.move_right (R.symm j) ≈ y.move_right j) :
   x ≈ y :=
 begin
   fsplit; rw le_def,
@@ -615,7 +623,7 @@ localized "infix ` ∥ `:50 := pgame.fuzzy" in pgame
 
 @[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
 instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
-theorem fuzzy.swap_iff {x y : pgame} : x ∥ y ↔ y ∥ x := ⟨fuzzy.swap, fuzzy.swap⟩
+theorem fuzzy.comm {x y : pgame} : x ∥ y ↔ y ∥ x := comm
 
 theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
 instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
@@ -671,9 +679,11 @@ end
 
 theorem lt_or_equiv_or_gf (x y : pgame) : x < y ∨ x ≈ y ∨ y ⧏ x :=
 begin
-  rw [lf_iff_lt_or_fuzzy, fuzzy.swap_iff],
+  rw [lf_iff_lt_or_fuzzy, fuzzy.comm],
   exact lt_or_equiv_or_gt_or_fuzzy x y
 end
+
+/-! ### Relabellings -/
 
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
@@ -739,18 +749,27 @@ theorem relabelling.ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.restrict
 /-- A relabelling lets us prove equivalence of games. -/
 theorem relabelling.equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 
+theorem relabelling.equiv' {x y : pgame} (r : x ≡r y) : y ≈ x := ⟨r.ge, r.le⟩
+
 /-- Transitivity of relabelling. -/
 @[trans] def relabelling.trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
 ⟨L₁.trans L₂, R₁.trans R₂,
   λ i, by simpa using (hL₁ i).trans (hL₂ _), λ j, by simpa using (hR₁ _).trans (hR₂ j)⟩
 
+@[trans] theorem le_of_le_of_relabelling {x y z} (h₁ : x ≤ y) (h₂ : y ≡r z) : x ≤ z :=
+le_of_le_of_equiv h₁ h₂.equiv
+@[trans] theorem le_of_relabelling_of_le {x y z} (h₁ : x ≡r y) : y ≤ z → x ≤ z :=
+le_of_equiv_of_le h₁.equiv
+
+@[trans] theorem lf_of_lf_of_relabelling {x y z} (h₁ : x ⧏ y) (h₂ : y ≡r z) : x ⧏ z :=
+lf_of_lf_of_equiv h₁ h₂.equiv
+@[trans] theorem lf_of_relabelling_of_lf {x y z} (h₁ : x ≡r y) : y ⧏ z → x ⧏ z :=
+lf_of_equiv_of_lf h₁.equiv
+
 /-- Any game without left or right moves is a relabelling of 0. -/
 def relabelling.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
 ⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩
-
-theorem equiv.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≈ 0 :=
-(relabelling.is_empty x).equiv
 
 instance {x y : pgame} : has_coe (x ≡r y) (x ≈ y) := ⟨relabelling.equiv⟩
 
@@ -780,6 +799,8 @@ by simp
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :
   x ≡r relabel el er :=
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
+
+/-! ### Negation -/
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
@@ -902,59 +923,7 @@ by rw [equiv, equiv, neg_le_neg_iff, neg_le_neg_iff, and.comm]
 @[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
 by rw [fuzzy, fuzzy, neg_lf_neg_iff, neg_lf_neg_iff, and.comm]
 
-theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
-by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
-
-theorem neg_lf_iff {x y : pgame} : -y ⧏ x ↔ -x ⧏ y :=
-by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
-
-theorem neg_lt_iff {x y : pgame} : -y < x ↔ -x < y :=
-by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
-
-theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ x ≈ -y :=
-by rw [←neg_neg y, neg_equiv_neg_iff, neg_neg]
-
-theorem neg_fuzzy_iff {x y : pgame} : -x ∥ y ↔ x ∥ -y :=
-by rw [←neg_neg y, neg_fuzzy_neg_iff, neg_neg]
-
-theorem le_neg_iff {x y : pgame} : y ≤ -x ↔ x ≤ -y :=
-by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
-
-theorem lf_neg_iff {x y : pgame} : y ⧏ -x ↔ x ⧏ -y :=
-by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
-
-theorem lt_neg_iff {x y : pgame} : y < -x ↔ x < -y :=
-by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
-
-@[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
-by rw [neg_le_iff, pgame.neg_zero]
-
-@[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
-by rw [le_neg_iff, pgame.neg_zero]
-
-@[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
-by rw [neg_lf_iff, pgame.neg_zero]
-
-@[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
-by rw [lf_neg_iff, pgame.neg_zero]
-
-@[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
-by rw [neg_lt_iff, pgame.neg_zero]
-
-@[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
-by rw [lt_neg_iff, pgame.neg_zero]
-
-@[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
-by rw [neg_equiv_iff, pgame.neg_zero]
-
-@[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
-by rw [neg_fuzzy_iff, pgame.neg_zero]
-
-@[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
-by rw [←neg_equiv_iff, pgame.neg_zero]
-
-@[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
-by rw [←neg_fuzzy_iff, pgame.neg_zero]
+/-! ### Addition and subtraction -/
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
@@ -997,10 +966,6 @@ begin
     apply add_zero_relabelling, }
 end
 
-/-- `x + 0` is equivalent to `x`. -/
-lemma add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
-(add_zero_relabelling x).equiv
-
 /-- `0 + x` has exactly the same moves as `x`. -/
 def zero_add_relabelling : Π (x : pgame.{u}), 0 + x ≡r x
 | (mk xl xr xL xR) :=
@@ -1011,10 +976,6 @@ begin
   { rintro j,
     apply zero_add_relabelling, }
 end
-
-/-- `0 + x` is equivalent to `x`. -/
-lemma zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
-(zero_add_relabelling x).equiv
 
 theorem left_moves_add : ∀ (x y : pgame.{u}),
   (x + y).left_moves = (x.left_moves ⊕ y.left_moves)
@@ -1139,9 +1100,6 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
-(neg_add_relabelling x y).le
-
 /-- `x + y` has exactly the same moves as `y + x`. -/
 def add_comm_relabelling : Π (x y : pgame.{u}), x + y ≡r y + x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -1151,12 +1109,6 @@ begin
   { dsimp [left_moves_add, right_moves_add], apply add_comm_relabelling }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
-
-theorem add_comm_le {x y : pgame} : x + y ≤ y + x :=
-(add_comm_relabelling x y).le
-
-theorem add_comm_equiv {x y : pgame} : x + y ≈ y + x :=
-(add_comm_relabelling x y).equiv
 
 /-- `(x + y) + z` has exactly the same moves as `x + (y + z)`. -/
 def add_assoc_relabelling : Π (x y z : pgame.{u}), x + y + z ≡r x + (y + z)
@@ -1170,9 +1122,6 @@ begin
     { apply add_assoc_relabelling ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
-
-theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
-(add_assoc_relabelling x y z).equiv
 
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
@@ -1192,17 +1141,17 @@ end
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin
   rw [←neg_le_neg_iff, pgame.neg_zero],
-  exact neg_add_le.trans (add_left_neg_le_zero _)
+  exact (neg_add_relabelling _ x).le.trans (add_left_neg_le_zero _)
 end
 
 theorem add_left_neg_equiv (x : pgame) : -x + x ≈ 0 :=
 ⟨add_left_neg_le_zero x, zero_le_add_left_neg x⟩
 
 theorem add_right_neg_le_zero (x : pgame) : x + -x ≤ 0 :=
-add_comm_le.trans (add_left_neg_le_zero x)
+(add_comm_relabelling x _).le.trans (add_left_neg_le_zero x)
 
 theorem zero_le_add_right_neg (x : pgame) : 0 ≤ x + -x :=
-(zero_le_add_left_neg x).trans add_comm_le
+(zero_le_add_left_neg x).trans (add_comm_relabelling _ _).le
 
 theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 ⟨add_right_neg_le_zero x, zero_le_add_right_neg x⟩
@@ -1238,20 +1187,24 @@ instance covariant_class_swap_add_le : covariant_class pgame pgame (swap (+)) (�
 ⟨λ x y z, add_le_add_right'⟩
 
 instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
-⟨λ x y z h, (add_comm_le.trans (add_le_add_right h x)).trans add_comm_le⟩
+⟨λ x y z h,
+  ((add_comm_relabelling _ _).le.trans (add_le_add_right h x)).trans (add_comm_relabelling _ _).le⟩
 
 theorem add_lf_add_right {y z : pgame} (h : y ⧏ z) (x) : y + x ⧏ z + x :=
 suffices z + x ≤ y + x → z ≤ y, by { rw ←pgame.not_le at ⊢ h, exact mt this h }, λ w,
-  calc z ≤ z + 0        : (add_zero_relabelling _).symm.le
-     ... ≤ z + (x + -x) : add_le_add_left (zero_le_add_right_neg x) _
-     ... ≤ z + x + -x   : (add_assoc_relabelling _ _ _).symm.le
-     ... ≤ y + x + -x   : add_le_add_right w _
-     ... ≤ y + (x + -x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0        : add_le_add_left (add_right_neg_le_zero x) _
-     ... ≤ y            : (add_zero_relabelling _).le
+  calc z ≡r z + 0        : (add_zero_relabelling z).symm
+     ... ≤ z + (x + -x)  : add_le_add_left (zero_le_add_right_neg x) z
+     ... ≡r z + x + -x   : (add_assoc_relabelling z x _).symm
+     ... ≤ y + x + -x    : add_le_add_right w _
+     ... ≡r y + (x + -x) : add_assoc_relabelling y x _
+     ... ≤ y + 0         : add_le_add_left (add_right_neg_le_zero x) _
+     ... ≡r y            : add_zero_relabelling y
 
 theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
-by { rw lf_congr add_comm_equiv add_comm_equiv, apply add_lf_add_right h }
+begin
+  rw lf_congr (add_comm_relabelling x y).equiv (add_comm_relabelling x z).equiv,
+  apply add_lf_add_right h
+end
 
 instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
 ⟨λ x y z h, begin
@@ -1290,32 +1243,7 @@ sub_congr h equiv_rfl
 theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
 sub_congr equiv_rfl
 
-theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
-⟨λ h, (zero_le_add_right_neg x).trans (add_le_add_right h _),
- λ h,
-  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... ≤ y - x + x : add_le_add_right h _
-     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
-     ... ≤ y : (add_zero_relabelling y).le⟩
-
-theorem lf_iff_sub_zero_lf {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
-⟨λ h, (zero_le_add_right_neg x).trans_lf (add_lf_add_right h _),
- λ h,
-  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... ⧏ y - x + x : add_lf_add_right h _
-     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
-     ... ≤ y : (add_zero_relabelling y).le⟩
-
-theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
-⟨λ h, lt_of_le_of_lt (zero_le_add_right_neg x) (add_lt_add_right h _),
- λ h,
-  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... < y - x + x : add_lt_add_right h _
-     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
-     ... ≤ y : (add_zero_relabelling y).le⟩
+/-! ### Special pre-games -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
 `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
@@ -1451,5 +1379,7 @@ instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
 zero_lt_one.lf
+
+-- TODO: add API on `up = {star | 0}`.
 
 end pgame

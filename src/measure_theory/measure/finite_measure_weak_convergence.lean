@@ -480,7 +480,7 @@ lemma lintegral_lt_top_of_bounded_continuous_to_real
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 
-theorem tendsto_if_forall_integral_tendsto {γ : Type*} {F : filter γ}
+theorem tendsto_of_forall_integral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   ((∀ (f : α →ᵇ ℝ),
     tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α))))))
@@ -509,8 +509,8 @@ begin
 end
 
 lemma bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
-  {μ : measure α} (f : α →ᵇ ℝ≥0) :
-  (∫⁻ x, (f x : ℝ≥0∞) ∂μ).to_real = (∫ x, (f x) ∂μ) :=
+  (f : α →ᵇ ℝ≥0) (μ : measure α) :
+  (∫⁻ x, (f x : ℝ≥0∞) ∂μ).to_real = (∫ x, f x ∂μ) :=
 begin
   rw integral_eq_lintegral_of_nonneg_ae _
      (nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable,
@@ -525,7 +525,7 @@ theorem tendsto_iff_forall_integral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
   ∀ (f : α →ᵇ ℝ),
-    tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
+    tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
 begin
   refine ⟨_, tendsto_if_forall_integral_tendsto⟩,
   rw finite_measure.tendsto_iff_forall_lintegral_tendsto,

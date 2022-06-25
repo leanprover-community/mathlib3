@@ -381,9 +381,9 @@ instance has_continuous_smul [topological_ring R] :
 begin
   let B' := B.to_add_group_filter_basis,
   letI := B'.topology,
-  have basis := B'.nhds_zero_has_basis,
   haveI := B'.is_topological_add_group,
-  exact has_continuous_smul.of_basis_zero basis (λ _, B.smul) B.smul_left B.smul_right,
+  exact has_continuous_smul.of_basis_zero B'.nhds_zero_has_basis (λ _, B.smul) B.smul_left
+    B.smul_right,
 end
 
 /-- Build a module filter basis from compatible ring and additive group filter bases. -/

@@ -123,7 +123,12 @@ local attribute [-instance] Pi.topological_space
 
 /-- Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖`
 by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
-the topology of `𝔖`-convergence, is a TVS. -/
+the topology of `𝔖`-convergence, is a TVS.
+
+For convenience, we don't litteraly ask for `H : submodule (α → E)`. Instead, we prove the result
+for any vector space `H` equipped with a linear inducing to `α → E`, which is often easier to use.
+We also state the `submodule` version as
+`uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded`. -/
 lemma uniform_convergence_on.has_continuous_smul_induced_of_image_bounded (𝕜 α E H : Type*)
   {hom : Type*} [normed_field 𝕜] [add_comm_group H] [module 𝕜 H] [add_comm_group E] [module 𝕜 E]
   [topological_space H] [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
@@ -179,7 +184,9 @@ end
 
 /-- Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖`
 by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
-the topology of `𝔖`-convergence, is a TVS. -/
+the topology of `𝔖`-convergence, is a TVS.
+
+If you have a hard time using this lemma, try the one above instead. -/
 lemma uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded (𝕜 α E : Type*)
   [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
   [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E] {𝔖 : set $ set α}

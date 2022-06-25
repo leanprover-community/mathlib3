@@ -54,14 +54,12 @@ instance : inhabited (@galois_field 2 (fact.mk nat.prime_two) 1) :=
 namespace galois_field
 variables (p : ℕ) [fact p.prime] (n : ℕ)
 
-instance : algebra (zmod p) (galois_field p n) :=
-splitting_field.algebra _
+instance : char_p (galois_field p n) p :=
+let h : algebra (zmod p) (galois_field p n) := splitting_field.algebra _ in by exactI
+(algebra.char_p_iff (zmod p) (galois_field p n) p).mp (by apply_instance)
 
 instance : is_splitting_field (zmod p) (galois_field p n) (X^(p^n) - X) :=
-polynomial.is_splitting_field.splitting_field _
-
-instance : char_p (galois_field p n) p :=
-(algebra.char_p_iff (zmod p) (galois_field p n) p).mp (by apply_instance)
+by convert polynomial.is_splitting_field.splitting_field _
 
 instance : fintype (galois_field p n) := by {dsimp only [galois_field],
   exact finite_dimensional.fintype_of_fintype (zmod p) (galois_field p n) }
@@ -73,7 +71,7 @@ begin
   have aux : g_poly ≠ 0 := finite_field.X_pow_card_pow_sub_X_ne_zero _ h hp,
   have key : fintype.card ((g_poly).root_set (galois_field p n)) = (g_poly).nat_degree :=
     card_root_set_eq_nat_degree (galois_poly_separable p _ (dvd_pow (dvd_refl p) h))
-    (splitting_field.splits g_poly),
+    (by convert splitting_field.splits g_poly),
   have nat_degree_eq : (g_poly).nat_degree = p ^ n :=
     finite_field.X_pow_card_pow_sub_X_nat_degree_eq _ h hp,
   rw nat_degree_eq at key,
@@ -85,9 +83,13 @@ begin
   suffices : ∀ x (hx : x ∈ (⊤ : subalgebra (zmod p) (galois_field p n))),
     x ∈ (X ^ p ^ n - X : (zmod p)[X]).root_set (galois_field p n),
   { simpa, },
-  rw ← splitting_field.adjoin_root_set,
-  simp_rw algebra.mem_adjoin_iff,
   intros x hx,
+  replace hx : x ∈ algebra.adjoin (zmod p)
+                  ((X ^ p ^ n - X : (zmod p)[X]).root_set $ galois_field p n),
+  { convert hx,
+    -- this is a real slow `convert`; is there a better solution?
+    convert splitting_field.adjoin_root_set (X ^ p ^ n - X); exact subsingleton.elim _ _ },
+  rw algebra.mem_adjoin_iff at hx,
   -- We discharge the `p = 0` separately, to avoid typeclass issues on `zmod p`.
   unfreezingI { cases p, cases hp, },
   apply subring.closure_induction hx; clear_dependent x; simp_rw mem_root_set aux,
@@ -139,7 +141,7 @@ have h : (X ^ p ^ 1 : (zmod p)[X]) = X ^ (fintype.card (zmod p)),
   by rw [pow_one, zmod.card p],
 have inst : is_splitting_field (zmod p) (zmod p) (X ^ p ^ 1 - X),
   by { rw h, apply_instance },
-by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X])).symm
+by { resetI, convert (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X])).symm }
 
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
@@ -161,9 +163,9 @@ begin
 end
 
 /-- Any finite field is (possibly non canonically) isomorphic to some Galois field. -/
-def alg_equiv_galois_field (h : fintype.card K = p ^ n) :
+lemma alg_equiv_galois_field (h : fintype.card K = p ^ n) :
   K ≃ₐ[zmod p] galois_field p n :=
-by haveI := is_splitting_field_of_card_eq _ _ h; exact is_splitting_field.alg_equiv _ _
+by convert @@is_splitting_field.alg_equiv _ _ _ _ _ (is_splitting_field_of_card_eq _ _ h)
 
 end galois_field
 

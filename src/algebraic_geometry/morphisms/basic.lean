@@ -90,6 +90,16 @@ lemma respects_iso.cancel_right_is_iso {P : morphism_property}
     P (f ≫ g) ↔ P f :=
 ⟨λ h, by simpa using hP.2 (as_iso g).symm (f ≫ g) h, hP.2 (as_iso g) f⟩
 
+lemma respects_iso.affine_cancel_left_is_iso {P : affine_target_morphism_property}
+  (hP : respects_iso P.to_property) {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f]
+    [is_affine Z] : P (f ≫ g) ↔ P g :=
+by convert hP.cancel_left_is_iso f g; rw P.to_property_apply
+
+lemma respects_iso.affine_cancel_right_is_iso {P : affine_target_morphism_property}
+  (hP : respects_iso P.to_property) {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso g]
+  [is_affine Y] [is_affine Z] : P (f ≫ g) ↔ P f :=
+by convert hP.cancel_right_is_iso f g; rw P.to_property_apply
+
 /-- This is here to mirror `stable_under_base_change.snd`. -/
 @[nolint unused_arguments]
 lemma stable_under_base_change.fst {P : morphism_property}

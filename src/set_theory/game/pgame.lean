@@ -721,8 +721,8 @@ namespace relabelling
 
 /-- A constructor for relabellings swapping the equivalences. -/
 def mk' {x y : pgame} (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hL : ∀ i, relabelling (x.move_left (L i)) (y.move_left i))
-  (hR : ∀ j, relabelling (x.move_right j) (y.move_right (R j))) : x ≡r y :=
+  (hL : ∀ i, x.move_left (L i) ≡r y.move_left i)
+  (hR : ∀ j, x.move_right j ≡r y.move_right (R j)) : x ≡r y :=
 ⟨L.symm, R.symm, λ i, by simpa using hL (L.symm i), λ j, by simpa using hR (R.symm j)⟩
 
 /-- The equivalence between left moves of `x` and `y` given by the relabelling. -/

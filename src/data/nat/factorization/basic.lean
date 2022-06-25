@@ -62,16 +62,13 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
   to_fun := λ p, if p.prime then padic_val_nat p n else 0,
   mem_support_to_fun :=
       begin
-        intro a,
-        rw list.mem_to_finset,
         rcases eq_or_ne n 0 with rfl | hn0, { simp },
-        rw mem_factors hn0,
-        simp only [ne.def, ite_eq_right_iff, not_forall, exists_prop, and.congr_right_iff],
-        intro pa,
-        haveI : fact (prime a) := fact_iff.mpr pa,
+        simp only [mem_factors hn0, mem_to_finset, ne.def, ite_eq_right_iff, not_forall,
+          exists_prop, and.congr_right_iff],
+        rintro p hp,
+        haveI := fact_iff.mpr hp,
         exact dvd_iff_padic_val_nat_ne_zero hn0,
       end }
-
 
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=

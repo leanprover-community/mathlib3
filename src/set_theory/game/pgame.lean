@@ -326,6 +326,9 @@ theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }
 
+theorem le_iff_le_iff_lf_iff_lf {a b c d : pgame} : a ≤ b ↔ c ≤ d ↔ (b ⧏ a ↔ d ⧏ c) :=
+by rw [←pgame.not_le, ←pgame.not_le, not_iff_not]
+
 theorem move_left_lf_of_le {x y : pgame} (i) (h : x ≤ y) : x.move_left i ⧏ y :=
 (le_iff_forall_lf.1 h).1 i
 

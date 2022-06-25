@@ -162,10 +162,10 @@ theorem lt_neg {x y : pgame} : x < -y ↔ y < -x :=
 @lt_neg game _ _ _ _ ⟦x⟧ ⟦y⟧
 
 theorem neg_lf {x y : pgame} : -x ⧏ y ↔ -y ⧏ x :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, le_neg]
+by rw [←le_iff_le_iff_lf_iff_lf, le_neg]
 
 theorem lf_neg {x y : pgame} : x ⧏ -y ↔ y ⧏ -x :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le]
+by rw [←le_iff_le_iff_lf_iff_lf, neg_le]
 
 theorem equiv_neg_iff_equiv_neg {x y : pgame} : x ≈ -y ↔ y ≈ -x :=
 by simp only [equiv, le_neg, neg_le, and_comm]
@@ -222,10 +222,10 @@ theorem zero_lt_sub_iff {x y : pgame} : 0 < x - y ↔ y < x :=
 @sub_pos game _ _ _ ⟦x⟧ ⟦y⟧
 
 theorem sub_lf_zero_iff {x y : pgame} : x - y ⧏ 0 ↔ x ⧏ y :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, zero_le_sub_iff]
+by rw [←le_iff_le_iff_lf_iff_lf, zero_le_sub_iff]
 
 theorem zero_lf_sub_iff {x y : pgame} : 0 ⧏ x - y ↔ y ⧏ x :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, sub_le_zero_iff]
+by rw [←le_iff_le_iff_lf_iff_lf, sub_le_zero_iff]
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.

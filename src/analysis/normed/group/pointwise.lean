@@ -138,7 +138,7 @@ lemma is_compact.add_closed_ball_zero (hs : is_compact s) (hδ : 0 ≤ δ) :
 begin
   rw hs.cthickening_eq_bUnion_closed_ball hδ,
   ext x,
-  simp only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball,
+  simp only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball, sub_zero,
     exists_and_distrib_left, mem_closed_ball_zero_iff, ← eq_sub_iff_add_eq', exists_eq_right],
 end
 

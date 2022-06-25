@@ -1251,7 +1251,8 @@ sub_congr equiv_rfl
 /-! ### Multiplication -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-`{xL * y + x * yL - xL * yL, xR * y + x * yR - xR * yR | xL * y + x * yR - xL * yR, x * yL + xR * y - xR * yL }`. -/
+`{xL * y + x * yL - xL * yL, xR * y + x * yR - xR * yR |
+xL * y + x * yR - xL * yR, x * yL + xR * y - xR * yL }`. -/
 instance : has_mul pgame.{u} :=
 ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,

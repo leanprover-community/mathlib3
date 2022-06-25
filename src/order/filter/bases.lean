@@ -606,22 +606,6 @@ lemma comap_has_basis (f : α → β) (l : filter β) :
   has_basis (comap f l) (λ s : set β, s ∈ l) (λ s, f ⁻¹' s) :=
 ⟨λ t, mem_comap⟩
 
-lemma has_basis.prod_self (hl : l.has_basis p s) :
-  (l ×ᶠ l).has_basis p (λ i, s i ×ˢ s i) :=
-⟨begin
-  intro t,
-  apply mem_prod_iff.trans,
-  split,
-  { rintros ⟨t₁, ht₁, t₂, ht₂, H⟩,
-    rcases hl.mem_iff.1 (inter_mem ht₁ ht₂) with ⟨i, hi, ht⟩,
-    exact ⟨i, hi, λ p ⟨hp₁, hp₂⟩, H ⟨(ht hp₁).1, (ht hp₂).2⟩⟩ },
-  { rintros ⟨i, hi, H⟩,
-    exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
-end⟩
-
-lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, t ×ˢ t ⊆ s :=
-l.basis_sets.prod_self.mem_iff
-
 lemma has_basis.forall_mem_mem (h : has_basis l p s) {x : α} :
   (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i :=
 begin
@@ -689,13 +673,12 @@ lemma has_basis.prod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {p
   (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
-lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
-  {sa : ι → set α} {sb : ι → set β}
+lemma has_basis.prod_same_index {p : ι → Prop} {sb : ι → set β}
   (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
   (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
   (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
 begin
-  simp only [has_basis_iff, (hla.prod hlb).mem_iff],
+  simp only [has_basis_iff, (hla.prod'' hlb).mem_iff],
   refine λ t, ⟨_, _⟩,
   { rintros ⟨⟨i, j⟩, ⟨hi, hj⟩, hsub : sa i ×ˢ sb j ⊆ t⟩,
     rcases h_dir hi hj with ⟨k, hk, ki, kj⟩,
@@ -704,18 +687,34 @@ begin
     exact ⟨⟨i, i⟩, ⟨hi, hi⟩, h⟩ },
 end
 
-lemma has_antitone_basis.prod {f : filter α} {g : filter β}
-  {s : ℕ → set α} {t : ℕ → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
+lemma has_basis.prod_same_index_mono {ι : Type*} [linear_order ι]
+  {p : ι → Prop} {sa : ι → set α} {sb : ι → set β}
+  (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
+  (hsa : monotone_on sa {i | p i}) (hsb : monotone_on sb {i | p i}) :
+  (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
+hla.prod_same_index hlb $ λ i j hi hj,
+  have p (min i j), from min_rec' _ hi hj,
+  ⟨min i j, this, hsa this hi $ min_le_left _ _, hsb this hj $ min_le_right _ _⟩
+
+lemma has_basis.prod_same_index_anti {ι : Type*} [linear_order ι]
+  {p : ι → Prop} {sa : ι → set α} {sb : ι → set β}
+  (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
+  (hsa : antitone_on sa {i | p i}) (hsb : antitone_on sb {i | p i}) :
+  (la ×ᶠ lb).has_basis p (λ i, sa i ×ˢ sb i) :=
+@has_basis.prod_same_index_mono _ _ _ _ ιᵒᵈ _ _ _ _  hla hlb hsa.dual_left hsb.dual_left
+
+lemma has_basis.prod_self (hl : la.has_basis pa sa) :
+  (la ×ᶠ la).has_basis pa (λ i, sa i ×ˢ sa i) :=
+hl.prod_same_index hl $ λ i j hi hj, by simpa only [exists_prop, subset_inter_iff]
+  using hl.mem_iff.1 (inter_mem (hl.mem_of_mem hi) (hl.mem_of_mem hj))
+
+lemma mem_prod_self_iff {s} : s ∈ la ×ᶠ la ↔ ∃ t ∈ la, t ×ˢ t ⊆ s :=
+la.basis_sets.prod_self.mem_iff
+
+lemma has_antitone_basis.prod {ι : Type*} [linear_order ι] {f : filter α} {g : filter β}
+  {s : ι → set α} {t : ι → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
   has_antitone_basis (f ×ᶠ g) (λ n, s n ×ˢ t n) :=
-begin
-  have h : has_basis (f ×ᶠ g) _ _ := has_basis.prod' hf.to_has_basis hg.to_has_basis _,
-  swap,
-  { intros i j,
-    simp only [true_and, forall_true_left],
-    exact ⟨max i j, hf.antitone (le_max_left _ _), hg.antitone (le_max_right _ _)⟩, },
-  refine ⟨h, λ n m hn_le_m, set.prod_mono _ _⟩,
-  exacts [hf.antitone hn_le_m, hg.antitone hn_le_m]
-end
+⟨hf.1.prod_same_index_anti hg.1 (hf.2.antitone_on _) (hg.2.antitone_on _), hf.2.set_prod hg.2⟩
 
 lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
   {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
@@ -804,9 +803,19 @@ countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
 section is_countably_generated
 
+protected lemma has_antitone_basis.mem_iff [preorder ι] {l : filter α} {s : ι → set α}
+  (hs : l.has_antitone_basis s) {t : set α} : t ∈ l ↔ ∃ i, s i ⊆ t :=
+hs.to_has_basis.mem_iff.trans $ by simp only [exists_prop, true_and]
+
 protected lemma has_antitone_basis.mem [preorder ι] {l : filter α} {s : ι → set α}
   (hs : l.has_antitone_basis s) (i : ι) : s i ∈ l :=
 hs.to_has_basis.mem_of_mem trivial
+
+lemma has_antitone_basis.has_basis_ge [preorder ι] [is_directed ι (≤)] {l : filter α} {s : ι → set α}
+  (hs : l.has_antitone_basis s) (i : ι) :
+  l.has_basis (λ j, i ≤ j) s :=
+hs.1.to_has_basis (λ j _, (exists_ge_ge i j).imp $ λ k hk, ⟨hk.1, hs.2 hk.2⟩)
+  (λ j hj, ⟨j, trivial, subset.rfl⟩)
 
 /-- If `f` is countably generated and `f.has_basis p s`, then `f` admits a decreasing basis
 enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a

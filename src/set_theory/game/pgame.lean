@@ -757,6 +757,16 @@ theorem relabelling.equiv' {x y : pgame} (r : x ≡r y) : y ≈ x := ⟨r.ge, r.
 ⟨L₁.trans L₂, R₁.trans R₂,
   λ i, by simpa using (hL₁ i).trans (hL₂ _), λ j, by simpa using (hR₁ _).trans (hR₂ j)⟩
 
+@[trans] theorem le_of_le_of_relabelling {x y z} (h₁ : x ≤ y) (h₂ : y ≡r z) : x ≤ z :=
+le_of_le_of_equiv h₁ h₂.equiv
+@[trans] theorem le_of_relabelling_of_le {x y z} (h₁ : x ≡r y) : y ≤ z → x ≤ z :=
+le_of_equiv_of_le h₁.equiv
+
+@[trans] theorem lf_of_lf_of_relabelling {x y z} (h₁ : x ⧏ y) (h₂ : y ≡r z) : x ⧏ z :=
+lf_of_lf_of_equiv h₁ h₂.equiv
+@[trans] theorem lf_of_relabelling_of_lf {x y z} (h₁ : x ≡r y) : y ⧏ z → x ⧏ z :=
+lf_of_equiv_of_lf h₁.equiv
+
 /-- Any game without left or right moves is a relabelling of 0. -/
 def relabelling.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
 ⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩
@@ -1182,13 +1192,13 @@ instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
 
 theorem add_lf_add_right {y z : pgame} (h : y ⧏ z) (x) : y + x ⧏ z + x :=
 suffices z + x ≤ y + x → z ≤ y, by { rw ←pgame.not_le at ⊢ h, exact mt this h }, λ w,
-  calc z ≤ z + 0        : (add_zero_relabelling _).ge
-     ... ≤ z + (x + -x) : add_le_add_left (zero_le_add_right_neg x) _
-     ... ≤ z + x + -x   : (add_assoc_relabelling _ _ _).ge
-     ... ≤ y + x + -x   : add_le_add_right w _
-     ... ≤ y + (x + -x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0        : add_le_add_left (add_right_neg_le_zero x) _
-     ... ≤ y            : (add_zero_relabelling _).le
+  calc z ≡r z + 0        : (add_zero_relabelling z).symm
+     ... ≤ z + (x + -x)  : add_le_add_left (zero_le_add_right_neg x) z
+     ... ≡r z + x + -x   : (add_assoc_relabelling z x _).symm
+     ... ≤ y + x + -x    : add_le_add_right w _
+     ... ≡r y + (x + -x) : add_assoc_relabelling y x _
+     ... ≤ y + 0         : add_le_add_left (add_right_neg_le_zero x) _
+     ... ≡r y            : add_zero_relabelling y
 
 theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
 begin

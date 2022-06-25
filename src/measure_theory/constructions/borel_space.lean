@@ -1344,7 +1344,7 @@ lemma measurable_csupr_subtype {α' : Type*}
   {f : ι → δ → α'} (hm : ∀ n, p n → measurable (f n)) :
   measurable (λ x, ⨆ y : {y // p y}, f y x) :=
 begin
-  simp_rw finset.supr_subtype_eq_sup' hp hemp,
+  simp_rw finset.supr_subtype_eq_sup'' hp hemp,
   refine finset.measurable_sup' _ _,
   simp_rw finite.mem_to_finset,
   exact hm,

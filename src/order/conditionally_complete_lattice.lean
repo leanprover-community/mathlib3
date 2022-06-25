@@ -1054,6 +1054,14 @@ begin
     { exact set.nonempty.image _ hemp } }
 end
 
+lemma supr_subtype_eq_sup'' {α β γ : Type*} [conditionally_complete_linear_order γ]
+  {p : α → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty) {f : α → β → γ} (x : β) :
+  (⨆ y : {y // p y}, f y x) = (hp.to_finset.sup' ((set.finite.nonempty_to_finset _).2 hemp) f x) :=
+begin
+  rw [finset.sup'_apply],
+  exact @supr_subtype_eq_sup' _ _ _ _ hp hemp (λ y, f y x),
+end
+
 end finset
 
 lemma exists_of_le_supr_subtype [conditionally_complete_linear_order β]

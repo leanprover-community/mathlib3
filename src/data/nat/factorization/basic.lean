@@ -57,6 +57,9 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
         exact dvd_iff_padic_val_nat_ne_zero hn0,
       end }
 
+lemma factorization_def (n p : ℕ) (pp : p.prime) : n.factorization p = padic_val_nat p n :=
+by simpa [factorization] using absurd pp
+
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
 by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn.bot_lt)]

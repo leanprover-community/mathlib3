@@ -264,7 +264,7 @@ variables [partial_order α] [succ_order α] {a b : α}
 @[simp] lemma succ_eq_iff_is_max : succ a = a ↔ is_max a :=
 ⟨λ h, max_of_succ_le h.le, λ h, h.eq_of_ge $ le_succ _⟩
 
-alias succ_eq_iff_is_max ↔ _ is_max.succ_eq
+alias succ_eq_iff_is_max ↔ _ _root_.is_max.succ_eq
 
 lemma le_le_succ_iff : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
 begin
@@ -479,7 +479,7 @@ variables [partial_order α] [pred_order α] {a b : α}
 @[simp] lemma pred_eq_iff_is_min : pred a = a ↔ is_min a :=
 ⟨λ h, min_of_le_pred h.ge, λ h, h.eq_of_le $ pred_le _⟩
 
-alias pred_eq_iff_is_min ↔ _ is_min.pred_eq
+alias pred_eq_iff_is_min ↔ _ _root_.is_min.pred_eq
 
 lemma pred_le_le_iff {a b : α} : pred a ≤ b ∧ b ≤ a ↔ b = a ∨ b = pred a :=
 begin

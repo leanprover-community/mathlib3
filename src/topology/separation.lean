@@ -1539,22 +1539,18 @@ begin
       { exact h1} },
     right,
     suffices : (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) ⊆ v,
-    { rw [inter_comm, ←set.disjoint_iff_inter_eq_empty] at huv,
-      replace hab : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ a ∪ b := hab,
-      replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ v := this,
-      exact disjoint.left_le_of_le_sup_left hab (huv.mono this hau) },
+    { replace this : (⋂ (Z : {Z // is_clopen Z ∧ x ∈ Z}), ↑Z) ≤ v := this,
+      exact (huv.symm.mono this hau).left_le_of_le_sup_left hab },
     { apply subset.trans _ (inter_subset_right Z v),
       apply Inter_subset (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, ↑Z)
         ⟨Z ∩ v, H2, mem_inter H.2.1 h1⟩ } },
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
-  have H1 := ((is_closed_compl_iff.2 (hu.union hv)).is_compact.inter_Inter_nonempty
-    (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
-  rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
-  have huv_union := subset.trans hab (union_subset_union hau hbv),
-  rw disjoint_iff_subset_compl_right at huv_union,
-  cases H1 huv_union with Zi H2,
+  have H1 := (hu.union hv).is_closed_compl.is_compact.inter_Inter_nonempty
+    (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2),
+  rw [←not_disjoint_iff_inter_nonempty, imp_not_comm, not_forall] at H1,
+  cases H1 (disjoint_compl_left_iff_subset.2 $ hab.trans $ union_subset_union hau hbv) with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
   { exact mem_Inter₂.2 (λ Z hZ, Z.2.2) },

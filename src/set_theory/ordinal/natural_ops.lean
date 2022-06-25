@@ -49,8 +49,12 @@ noncomputable theory
 /-! ### Basic casts between `ordinal` and `nat_ordinal` -/
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
-@[derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
+@[irreducible, derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
 def nat_ordinal : Type* := ordinal
+
+section semireducible
+
+local attribute [semireducible] nat_ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
 @[pattern] def ordinal.to_nat_ordinal : ordinal ≃o nat_ordinal := order_iso.refl _
@@ -58,9 +62,9 @@ def nat_ordinal : Type* := ordinal
 /-- The identity function between `nat_ordinal` and `ordinal`. -/
 @[pattern] def nat_ordinal.to_ordinal : nat_ordinal ≃o ordinal := order_iso.refl _
 
-open ordinal
-
 namespace nat_ordinal
+
+open ordinal
 
 variables {a b c : nat_ordinal.{u}}
 
@@ -93,8 +97,6 @@ end nat_ordinal
 
 namespace ordinal
 
-variables {a b c : ordinal.{u}}
-
 @[simp] theorem to_nat_ordinal_symm_eq : to_nat_ordinal.symm = nat_ordinal.to_ordinal := rfl
 @[simp] theorem to_nat_ordinal_to_ordinal (a : ordinal) : a.to_nat_ordinal.to_ordinal = a := rfl
 
@@ -104,14 +106,20 @@ variables {a b c : ordinal.{u}}
 @[simp] theorem to_nat_ordinal_eq_zero (a) : to_nat_ordinal a = 0 ↔ a = 0 := iff.rfl
 @[simp] theorem to_nat_ordinal_eq_one (a) : to_nat_ordinal a = 1 ↔ a = 1 := iff.rfl
 
-@[simp] theorem to_nat_ordinal_max :
+@[simp] theorem to_nat_ordinal_max (a b : ordinal) :
   to_nat_ordinal (max a b) = max a.to_nat_ordinal b.to_nat_ordinal := rfl
-@[simp] theorem to_nat_ordinal_min :
+@[simp] theorem to_nat_ordinal_min (a b : ordinal) :
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
+
+end ordinal
+
+end semireducible
 
 /-! ### Natural addition -/
 
-attribute [irreducible] nat_ordinal
+namespace ordinal
+
+variables {a b c : ordinal.{u}}
 
 /-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
 as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
@@ -247,11 +255,13 @@ end ordinal
 
 open_locale natural_ops
 
-attribute [reducible] nat_ordinal
+section semireducible
 
-open ordinal
+local attribute [semireducible] nat_ordinal
 
 namespace nat_ordinal
+
+open ordinal
 
 instance : has_add nat_ordinal := ⟨nadd⟩
 
@@ -285,12 +295,11 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 begin
   induction n with n hn,
   { refl },
-  { apply congr_arg (λ x, x ♯ 1) hn }
+  { change to_ordinal n ♯ 1 = n + 1,
+    rw [hn, nadd_one], refl }
 end
 
 end nat_ordinal
-
-open nat_ordinal
 
 namespace ordinal
 
@@ -298,7 +307,7 @@ theorem nadd_eq_add (a b : ordinal) : a ♯ b = (a.to_nat_ordinal + b.to_nat_ord
 rfl
 
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
-by { rw ←to_ordinal_cast_nat n, refl }
+by { rw ←nat_ordinal.to_ordinal_cast_nat n, refl }
 
 theorem lt_of_nadd_lt_nadd_left : ∀ {a b c}, a ♯ b < a ♯ c → b < c :=
 @lt_of_add_lt_add_left nat_ordinal _ _ _
@@ -351,9 +360,13 @@ theorem nadd_left_comm : ∀ a b c, a ♯ (b ♯ c) = b ♯ (a ♯ c) :=
 theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
 @add_right_comm nat_ordinal _
 
+end ordinal
+
+end semireducible
+
 /-! ### Natural multiplication -/
 
-attribute [irreducible] nat_ordinal
+namespace ordinal
 
 variables {a b c d : ordinal.{u}}
 
@@ -503,7 +516,7 @@ theorem nmul_nadd_lt₃' {a' b' c' : ordinal} (ha : a' < a) (hb : b' < b) (hc : 
 begin
   simp only [nmul_comm _ (_ ⨳ _)],
   convert nmul_nadd_lt₃ hb hc ha using 1;
-  { simp only [nadd_eq_add, to_ordinal_to_nat_ordinal], abel }
+  { simp only [nadd_eq_add, nat_ordinal.to_ordinal_to_nat_ordinal], abel }
 end
 
 theorem nmul_nadd_le₃' {a' b' c' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) (hc : c' ≤ c) :
@@ -512,7 +525,7 @@ theorem nmul_nadd_le₃' {a' b' c' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) (h
 begin
   simp only [nmul_comm _ (_ ⨳ _)],
   convert nmul_nadd_le₃ hb hc ha using 1;
-  { simp only [nadd_eq_add, to_ordinal_to_nat_ordinal], abel }
+  { simp only [nadd_eq_add, nat_ordinal.to_ordinal_to_nat_ordinal], abel }
 end
 
 theorem lt_nmul_iff₃ : d < a ⨳ b ⨳ c ↔ ∃ (a' < a) (b' < b) (c' < c),
@@ -543,7 +556,7 @@ theorem lt_nmul_iff₃' : d < a ⨳ (b ⨳ c) ↔ ∃ (a' < a) (b' < b) (c' < c)
   d ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') ≤
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') :=
 begin
-  simp only [nmul_comm _ (_ ⨳ _), lt_nmul_iff₃, nadd_eq_add, to_ordinal_to_nat_ordinal],
+  simp only [nmul_comm _ (_ ⨳ _), lt_nmul_iff₃, nadd_eq_add, nat_ordinal.to_ordinal_to_nat_ordinal],
   split; rintro ⟨b', hb, c', hc, a', ha, h⟩,
   { use [a', ha, b', hb, c', hc], convert h using 1; abel },
   { use [c', hc, a', ha, b', hb], convert h using 1; abel }
@@ -570,11 +583,13 @@ using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.rig
 
 end ordinal
 
-attribute [reducible] nat_ordinal
+open_locale natural_ops
+
+section semireducible
+
+local attribute [semireducible] nat_ordinal
 
 open ordinal
-
-namespace nat_ordinal
 
 instance : has_mul nat_ordinal := ⟨nmul⟩
 
@@ -595,21 +610,24 @@ instance : ordered_comm_semiring nat_ordinal :=
   ..nat_ordinal.ordered_cancel_add_comm_monoid,
   ..nat_ordinal.linear_order }
 
-end nat_ordinal
-
-open_locale natural_ops
-
 namespace ordinal
 
-theorem nmul_eq_mul (a b : ordinal) : a ⨳ b = (a.to_nat_ordinal * b.to_nat_ordinal).to_ordinal :=
-rfl
+theorem nmul_eq_mul (a b) : a ⨳ b = (a.to_nat_ordinal * b.to_nat_ordinal).to_ordinal := rfl
 
 theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @mul_add_one nat_ordinal _ _ _
 theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _ _ _
-theorem nmul_succ (a b : ordinal) : a ⨳ @succ ordinal _ _ b = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
-theorem succ_nmul (a b : ordinal) : @succ ordinal _ _ a ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
+theorem nmul_succ (a b) : a ⨳ succ b = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
+theorem succ_nmul (a b) : succ a ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
 theorem nmul_add_one : ∀ a b, a ⨳ (b + 1) = a ⨳ b ♯ a := nmul_succ
 theorem add_one_nmul : ∀ a b, (a + 1) ⨳ b = a ⨳ b ♯ b := succ_nmul
+
+end ordinal
+
+end semireducible
+
+namespace nat_ordinal
+
+open ordinal
 
 theorem mul_le_nmul (a b : ordinal.{u}) : a * b ≤ a ⨳ b :=
 begin
@@ -625,4 +643,4 @@ begin
       exact λ i hi, (H i hi).trans_lt (nmul_lt_nmul_of_pos_left hi ha) } }
 end
 
-end ordinal
+end nat_ordinal

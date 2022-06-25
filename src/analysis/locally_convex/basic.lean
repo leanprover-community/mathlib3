@@ -264,8 +264,8 @@ begin
     simp [←h, ha] }
 end
 
-lemma balanced.neg_mem_iff (hA : balanced 𝕜 A) {x : E} : x ∈ A ↔ -x ∈ A :=
-by { convert hA.mem_smul_iff (norm_neg (1 : 𝕜)).symm; simp only [neg_smul, one_smul] }
+lemma balanced.neg_mem_iff (hA : balanced 𝕜 A) : -x ∈ A ↔ x ∈ A :=
+by convert hA.mem_smul_iff (norm_neg 1); simp only [neg_smul, one_smul]
 
 lemma absorbs.inter (hs : absorbs 𝕜 s u) (ht : absorbs 𝕜 t u) : absorbs 𝕜 (s ∩ t) u :=
 begin

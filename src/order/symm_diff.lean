@@ -189,28 +189,16 @@ end
 @[simp] lemma symm_diff_symm_diff_self' : a ∆ b ∆ a = b :=
 by rw [symm_diff_comm, ←symm_diff_assoc, symm_diff_self, bot_symm_diff]
 
-namespace equiv
+@[simp] lemma symm_diff_right_inj : a ∆ b = a ∆ c ↔ b = c :=
+begin
+  split; intro h,
+  { have H1 := congr_arg ((∆) a) h,
+    rwa [symm_diff_symm_diff_self, symm_diff_symm_diff_self] at H1, },
+  { rw h, },
+end
 
-/-- Symmetric difference by `a` as an equivalence. We make `equiv.symm_diff a b` and
-`(equiv.symm_diff a).symm b` defeq to `a ∆ b` and `b ∆ a` for convenience. -/
-protected def symm_diff (a : α) : α ≃ α :=
-{ to_fun := (∆) a,
-  inv_fun := (∆ a),
-  left_inv := symm_diff_symm_diff_self' _,
-  right_inv := λ b, by rw [←symm_diff_assoc, symm_diff_symm_diff_self'] }
-
-@[simp] lemma coe_symm_diff (a : α) : ⇑(equiv.symm_diff a) = (∆) a := rfl
-@[simp] lemma symm_diff_apply (a b : α) : equiv.symm_diff a b = a ∆ b := rfl
-@[simp] lemma symm_diff_symm (a : α) : (equiv.symm_diff a).symm = equiv.symm_diff a :=
-ext $ λ b, symm_diff_comm _ _
-
-end equiv
-
-lemma symm_diff_left_injective (a : α) : injective (∆ a) := (equiv.symm_diff a).symm.injective
-lemma symm_diff_right_injective (a : α) : injective ((∆) a) := (equiv.symm_diff a).injective
-
-@[simp] lemma symm_diff_left_inj : a ∆ b = c ∆ b ↔ a = c := (symm_diff_left_injective _).eq_iff
-@[simp] lemma symm_diff_right_inj : a ∆ b = a ∆ c ↔ b = c := (symm_diff_right_injective _).eq_iff
+@[simp] lemma symm_diff_left_inj : a ∆ b = c ∆ b ↔ a = c :=
+by rw [symm_diff_comm a b, symm_diff_comm c b, symm_diff_right_inj]
 
 @[simp] lemma symm_diff_eq_left : a ∆ b = a ↔ b = ⊥ :=
 calc a ∆ b = a ↔ a ∆ b = a ∆ ⊥ : by rw symm_diff_bot

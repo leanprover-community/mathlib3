@@ -481,12 +481,11 @@ lemma lintegral_lt_top_of_bounded_continuous_to_real
 lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 
 theorem tendsto_of_forall_integral_tendsto {γ : Type*} {F : filter γ}
-  {μs : γ → finite_measure α} {μ : finite_measure α} :
-  ((∀ (f : α →ᵇ ℝ),
-    tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α))))))
-  → tendsto μs F (𝓝 μ) :=
+  {μs : γ → finite_measure α} {μ : finite_measure α}
+  (h : (∀ (f : α →ᵇ ℝ), tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α)))
+        F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
+  tendsto μs F (𝓝 μ) :=
 begin
-  intro h,
   apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
   intro f,
   have key := @ennreal.tendsto_to_real_iff _ F
@@ -527,7 +526,7 @@ theorem tendsto_iff_forall_integral_tendsto {γ : Type*} {F : filter γ}
   ∀ (f : α →ᵇ ℝ),
     tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
 begin
-  refine ⟨_, tendsto_if_forall_integral_tendsto⟩,
+  refine ⟨_, tendsto_of_forall_integral_tendsto⟩,
   rw finite_measure.tendsto_iff_forall_lintegral_tendsto,
   intros h f,
   simp_rw bounded_continuous_function.integral_eq_integral_nnreal_part_sub,

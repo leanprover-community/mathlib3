@@ -793,7 +793,7 @@ by simp
 /-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) :
   x ≡r relabel el er :=
-relabelling.mk el er (λ i, by simp) (λ j, by simp)
+⟨el, er, λ i, by simp, λ j, by simp⟩ 
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame

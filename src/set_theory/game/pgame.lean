@@ -1248,10 +1248,10 @@ sub_congr h equiv_rfl
 theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
 sub_congr equiv_rfl
 
-/-! ### Special pre-games -/
+/-! ### Multiplication -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
+`{xL * y + x * yL - xL * yL, xR * y + x * yR - xR * yR | xL * y + x * yR - xL * yR, x * yL + xR * y - xR * yL }`. -/
 instance : has_mul pgame.{u} :=
 ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -1358,6 +1358,8 @@ instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_
 by { cases x, apply sum.is_empty }
 
 /-! We prove further results about multiplication in `set_theory/game/basic.lean`. -/
+
+/-! ### Special pre-games -/
 
 /-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩

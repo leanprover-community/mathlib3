@@ -53,6 +53,12 @@ lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, 
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
+@[simp] lemma prod_self_subset_prod_self : s₁ ×ˢ s₁ ⊆ s₂ ×ˢ s₂ ↔ s₁ ⊆ s₂ :=
+⟨λ h x hx, (h (mk_mem_prod hx hx)).1, λ h x hx, ⟨h hx.1, h hx.2⟩⟩
+
+@[simp] lemma prod_self_ssubset_prod_self : s₁ ×ˢ s₁ ⊂ s₂ ×ˢ s₂ ↔ s₁ ⊂ s₂ :=
+and_congr prod_self_subset_prod_self $ not_congr prod_self_subset_prod_self
+
 lemma prod_subset_iff {P : set (α × β)} : s ×ˢ t ⊆ P ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
 ⟨λ h _ hx _ hy, h (mk_mem_prod hx hy), λ h ⟨_, _⟩ hp, h _ hp.1 _ hp.2⟩
 
@@ -247,6 +253,8 @@ set.ext $ λ a,
 ⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
 
+@[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
+
 end prod
 
 /-! ### Diagonal -/
@@ -343,6 +351,9 @@ by { ext, simp [pi, or_imp_distrib, forall_and_distrib] }
 by { ext, simp [pi] }
 
 lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t i} := singleton_pi i t
+
+lemma univ_pi_singleton (f : Π i, α i) : pi univ (λ i, {f i}) = ({f} : set (Π i, α i)) :=
+ext $ λ g, by simp [funext_iff]
 
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=

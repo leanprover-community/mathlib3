@@ -74,7 +74,7 @@ lemma map_inf [semilattice_inf α] [linear_order β]
 lemma map_sup [semilattice_sup α] [linear_order β]
   [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
   (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-@map_inf (order_dual α) (order_dual β) _ _ _ _ _ _ _
+@map_inf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _
 
 protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r
 | ⟨H⟩ := ⟨λ a h, H _ (map_rel f h)⟩
@@ -485,6 +485,10 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 @[simp] lemma inv_apply_self (e : r ≃r r) (x) : e⁻¹ (e x) = x := e.symm_apply_apply x
 
 @[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
+
+/-- Two relations on empty types are isomorphic. -/
+def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
+⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
 
 end rel_iso
 

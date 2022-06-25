@@ -36,6 +36,9 @@ We also define notions where the convergence is locally uniform, called
 `tendsto_locally_uniformly_on F f p s` and `tendsto_locally_uniformly F f p`. The previous theorems
 all have corresponding versions under locally uniform convergence.
 
+Finally, we introduce the notion of a uniform Cauchy sequence, which is to uniform
+convergence what a Cauchy sequence is to the usual notion of convergence.
+
 ## Implementation notes
 
 Most results hold under weaker assumptions of locally uniform approximation. In a first section,
@@ -109,6 +112,15 @@ lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
 λ u hu, (h u hu).mono (λ n hn x hx, hn x (h' hx))
 
+lemma tendsto_uniformly_on.congr {F' : ι → α → β}
+  (hf : tendsto_uniformly_on F f p s) (hff' : ∀ᶠ n in p, set.eq_on (F n) (F' n) s) :
+  tendsto_uniformly_on F' f p s :=
+begin
+  refine (λ u hu, ((hf u hu).and hff').mono (λ n h x hx, _)),
+  rw ← h.right hx,
+  exact h.left x hx,
+end
+
 protected lemma tendsto_uniformly.tendsto_uniformly_on
   (h : tendsto_uniformly F f p) : tendsto_uniformly_on F f p s :=
 (tendsto_uniformly_on_univ.2 h).mono (subset_univ s)
@@ -125,13 +137,15 @@ lemma tendsto_uniformly.comp (h : tendsto_uniformly F f p) (g : γ → α) :
 
 /-- Composing on the left by a uniformly continuous function preserves
   uniform convergence on a set -/
-lemma tendsto_uniformly_on.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly_on F f p s)
-  (hg : uniform_continuous g) : tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
+lemma uniform_continuous.comp_tendsto_uniformly_on [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (h : tendsto_uniformly_on F f p s) :
+  tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
 λ u hu, h _ (hg hu)
 
 /-- Composing on the left by a uniformly continuous function preserves uniform convergence -/
-lemma tendsto_uniformly.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly F f p)
-  (hg : uniform_continuous g) : tendsto_uniformly (λ i, g ∘ (F i)) (g ∘ f) p :=
+lemma uniform_continuous.comp_tendsto_uniformly [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (h : tendsto_uniformly F f p) :
+  tendsto_uniformly (λ i, g ∘ (F i)) (g ∘ f) p :=
 λ u hu, h _ (hg hu)
 
 lemma tendsto_uniformly_on.prod_map {ι' α' β' : Type*} [uniform_space β']
@@ -165,16 +179,39 @@ lemma tendsto_uniformly.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' →
   tendsto_uniformly (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod p') :=
 (h.prod_map h').comp (λ a, (a, a))
 
+/-- Uniform convergence on a set `s` to a constant function is equivalent to convergence in
+`p ×ᶠ 𝓟 s`. -/
+lemma tendsto_prod_principal_iff {c : β} :
+  tendsto ↿F (p ×ᶠ 𝓟 s) (𝓝 c) ↔ tendsto_uniformly_on F (λ _, c) p s :=
+begin
+  unfold tendsto,
+  simp_rw [nhds_eq_comap_uniformity, map_le_iff_le_comap.symm, map_map, le_def, mem_map,
+    mem_prod_principal],
+  simpa,
+end
+
 /-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
 lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
-let j : β → β × β := prod.mk c in
-calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
-    ↔ map ↿F (p ×ᶠ ⊤) ≤ (𝓝 c) : iff.rfl
-... ↔ map ↿F (p ×ᶠ ⊤) ≤ comap j (𝓤 β) : by rw nhds_eq_comap_uniformity
-... ↔ map j (map ↿F (p ×ᶠ ⊤)) ≤ 𝓤 β : map_le_iff_le_comap.symm
-... ↔ map (j ∘ ↿F) (p ×ᶠ ⊤) ≤ 𝓤 β : by rw map_map
-... ↔ ∀ V ∈ 𝓤 β, {x | (c, ↿F x) ∈ V} ∈ p ×ᶠ (⊤ : filter α) : iff.rfl
-... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [mem_prod_top]
+by rw [←principal_univ, ←tendsto_uniformly_on_univ, ←tendsto_prod_principal_iff]
+
+/-- Uniform convergence on the empty set is vacuously true -/
+lemma tendsto_uniformly_on_empty :
+  tendsto_uniformly_on F f p ∅ :=
+λ u hu, by simp
+
+/-- Uniform convergence on a singleton is equivalent to regular convergence -/
+lemma tendsto_uniformly_on_singleton_iff_tendsto :
+  tendsto_uniformly_on F f p {x} ↔ tendsto (λ n : ι, F n x) p (𝓝 (f x)) :=
+by simp_rw [uniform.tendsto_nhds_right, tendsto_uniformly_on, mem_singleton_iff, forall_eq,
+  tendsto_def, preimage, filter.eventually]
+
+/-- If a sequence `g` converges to some `b`, then the sequence of constant functions
+`λ n, λ a, g n` converges to the constant function `λ a, b` on any set `s` -/
+lemma filter.tendsto.tendsto_uniformly_on_const
+  {g : ι → β} {b : β} (hg : tendsto g p (𝓝 b)) (s : set α) :
+  tendsto_uniformly_on (λ n : ι, λ a : α, g n) (λ a : α, b) p s :=
+λ u hu, hg.eventually
+  (eventually_of_mem (mem_nhds_left b hu) (λ x hx y hy, hx) : ∀ᶠ x in 𝓝 b, ∀ y ∈ s, (b, x) ∈ u)
 
 lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
   {x : α} {U : set α} (hU : U ∈ 𝓝 x)
@@ -199,6 +236,101 @@ lemma uniform_continuous₂.tendsto_uniformly [uniform_space α] [uniform_space 
   {f : α → β → γ} (h : uniform_continuous₂ f) {x : α} : tendsto_uniformly f (f x) (𝓝 x) :=
 uniform_continuous_on.tendsto_uniformly univ_mem $
   by rwa [univ_prod_univ, uniform_continuous_on_univ]
+
+/-- A sequence is uniformly Cauchy if eventually all of its pairwise differences are
+uniformly bounded -/
+def uniform_cauchy_seq_on
+  (F : ι → α → β) (p : filter ι) (s : set α) : Prop :=
+  ∀ u : set (β × β), u ∈ 𝓤 β → ∀ᶠ (m : ι × ι) in (p ×ᶠ p),
+    ∀ (x : α), x ∈ s → (F m.fst x, F m.snd x) ∈ u
+
+/-- A sequence that converges uniformly is also uniformly Cauchy -/
+lemma tendsto_uniformly_on.uniform_cauchy_seq_on (hF : tendsto_uniformly_on F f p s) :
+  uniform_cauchy_seq_on F p s :=
+begin
+  intros u hu,
+  rcases comp_symm_of_uniformity hu with ⟨t, ht, htsymm, htmem⟩,
+  apply ((hF t ht).prod_mk (hF t ht)).mono,
+  intros n h x hx,
+  cases h with hl hr,
+  specialize hl x hx,
+  specialize hr x hx,
+  exact set.mem_of_mem_of_subset (prod_mk_mem_comp_rel (htsymm hl) hr) htmem,
+end
+
+/-- A uniformly Cauchy sequence converges uniformly to its limit -/
+lemma uniform_cauchy_seq_on.tendsto_uniformly_on_of_tendsto [ne_bot p]
+  (hF : uniform_cauchy_seq_on F p s) (hF' : ∀ x : α, x ∈ s → tendsto (λ n, F n x) p (nhds (f x))) :
+  tendsto_uniformly_on F f p s :=
+begin
+  -- Proof idea: |f_n(x) - f(x)| ≤ |f_n(x) - f_m(x)| + |f_m(x) - f(x)|. We choose `n`
+  -- so that |f_n(x) - f_m(x)| is uniformly small across `s` whenever `m ≥ n`. Then for
+  -- a fixed `x`, we choose `m` sufficiently large such that |f_m(x) - f(x)| is small.
+  intros u hu,
+  rcases comp_symm_of_uniformity hu with ⟨t, ht, htsymm, htmem⟩,
+
+  -- Choose n
+  apply (hF t ht).curry.mono,
+
+  -- Work with a specific x
+  intros n hn x hx,
+  refine set.mem_of_mem_of_subset (mem_comp_rel.mpr _) htmem,
+
+  -- Choose m
+  specialize hF' x hx,
+  rw uniform.tendsto_nhds_right at hF',
+  rcases (hn.and (hF'.eventually (eventually_mem_set.mpr ht))).exists with ⟨m, hm, hm'⟩,
+
+  -- Finish the proof
+  exact ⟨F m x, ⟨hm', htsymm (hm x hx)⟩⟩,
+end
+
+lemma uniform_cauchy_seq_on.mono {s' : set α} (hf : uniform_cauchy_seq_on F p s) (hss' : s' ⊆ s) :
+  uniform_cauchy_seq_on F p s' :=
+λ u hu, (hf u hu).mono (λ x hx y hy, hx y (hss' hy))
+
+/-- Composing on the right by a function preserves uniform Cauchy sequences -/
+lemma uniform_cauchy_seq_on.comp {γ : Type*} (hf : uniform_cauchy_seq_on F p s) (g : γ → α) :
+  uniform_cauchy_seq_on (λ n, F n ∘ g) p (g ⁻¹' s) :=
+λ u hu, (hf u hu).mono (λ x hx y hy, hx (g y) hy)
+
+/-- Composing on the left by a uniformly continuous function preserves
+uniform Cauchy sequences -/
+lemma uniform_continuous.comp_uniform_cauchy_seq_on [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (hf : uniform_cauchy_seq_on F p s) :
+  uniform_cauchy_seq_on (λ n, g ∘ (F n)) p s :=
+λ u hu, hf _ (hg hu)
+
+lemma uniform_cauchy_seq_on.prod_map {ι' α' β' : Type*} [uniform_space β']
+  {F' : ι' → α' → β'} {p' : filter ι'} {s' : set α'}
+  (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p' s') :
+  uniform_cauchy_seq_on (λ (i : ι × ι'), prod.map (F i.1) (F' i.2))
+    (p.prod p') (s ×ˢ s') :=
+begin
+  intros u hu,
+  rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
+  obtain ⟨v, hv, w, hw, hvw⟩ := hu,
+  simp_rw [mem_prod, prod_map, and_imp, prod.forall],
+  rw [← set.image_subset_iff] at hvw,
+  apply (tendsto_swap4_prod.eventually ((h v hv).prod_mk (h' w hw))).mono,
+  intros x hx a b ha hb,
+  refine hvw ⟨_, mk_mem_prod (hx.1 a ha) (hx.2 b hb), rfl⟩,
+end
+
+lemma uniform_cauchy_seq_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'}
+  {p' : filter ι'}
+  (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p' s) :
+  uniform_cauchy_seq_on (λ (i : ι × ι') a, (F i.fst a, F' i.snd a)) (p ×ᶠ p') s :=
+(congr_arg _ s.inter_self).mp ((h.prod_map h').comp (λ a, (a, a)))
+
+lemma uniform_cauchy_seq_on.prod' {β' : Type*} [uniform_space β'] {F' : ι → α → β'}
+  (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p s) :
+  uniform_cauchy_seq_on (λ (i : ι) a, (F i a, F' i a)) p s :=
+begin
+  intros u hu,
+  have hh : tendsto (λ x : ι, (x, x)) p (p ×ᶠ p), { exact tendsto_diag, },
+  exact (hh.prod_map hh).eventually ((h.prod h') u hu),
+end
 
 section seq_tendsto
 

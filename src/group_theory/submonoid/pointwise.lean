@@ -34,6 +34,8 @@ on `set`s.
 
 -/
 
+open set
+
 variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
 variables [monoid M] [add_monoid A]
 
@@ -48,7 +50,7 @@ open_locale pointwise
 protected def has_inv : has_inv (submonoid G):=
 { inv := λ S,
   { carrier := (S : set G)⁻¹,
-    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw one_inv, exact S.one_mem },
+    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw inv_one, exact S.one_mem },
     mul_mem' := λ a b (ha : a⁻¹ ∈ S) (hb : b⁻¹ ∈ S), show (a * b)⁻¹ ∈ S,
       by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
 
@@ -59,10 +61,8 @@ open_locale pointwise
 
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
-@[to_additive]
-instance : has_involutive_inv (submonoid G) :=
-{ inv := has_inv.inv,
-  inv_inv := λ S, set_like.coe_injective $ inv_inv _ }
+@[to_additive] instance : has_involutive_inv (submonoid G) :=
+set_like.coe_injective.has_involutive_inv _ $ λ _, rfl
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
@@ -95,7 +95,7 @@ lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
 
 @[simp, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
-set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ one_inv
+set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ inv_one
 
 @[simp, to_additive]
 lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=

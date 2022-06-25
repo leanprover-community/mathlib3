@@ -16,9 +16,9 @@ open category_theory
 
 namespace category_theory.limits
 
-universes w v u
+universes z w v u
 variables {C : Type (max v u)} [category.{v} C]
-variables {D : Type w} [category.{max v u} D]
+variables {D : Type w} [category.{max z v u} D]
 
 instance functor_category_has_finite_limits [has_finite_limits D] :
   has_finite_limits (C ⥤ D) :=

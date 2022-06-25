@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group_with_zero.basic
-import data.pi
+import data.pi.algebra
 
 /-!
 # Multiplicative and additive equivs
@@ -229,6 +229,9 @@ theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
   (mul_equiv.mk f g h₁ h₂ h₃).symm =
   { to_fun := g, inv_fun := f, ..(mul_equiv.mk f g h₁ h₂ h₃).symm} := rfl
 
+@[simp, to_additive]
+theorem refl_symm : (refl M).symm = refl M := rfl
+
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
@@ -255,13 +258,13 @@ theorem self_comp_symm (e : M ≃* N) : e ∘ e.symm = id := funext e.apply_symm
 @[simp, to_additive]
 theorem coe_refl : ⇑(refl M) = id := rfl
 
-@[to_additive]
+@[simp, to_additive]
 theorem refl_apply (m : M) : refl M m = m := rfl
 
 @[simp, to_additive]
 theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
-@[to_additive]
+@[simp, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
 @[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :
@@ -317,17 +320,17 @@ fun_like.congr_fun h x
 
 /-- The `mul_equiv` between two monoids with a unique element. -/
 @[to_additive "The `add_equiv` between two add_monoids with a unique element."]
-def mul_equiv_of_unique_of_unique {M N}
+def mul_equiv_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
-  ..equiv_of_unique_of_unique }
+  ..equiv.equiv_of_unique M N }
 
 /-- There is a unique monoid homomorphism between two monoids with a unique element. -/
 @[to_additive
   "There is a unique additive monoid homomorphism between two additive monoids with
 a unique element."]
 instance {M N} [unique M] [unique N] [has_mul M] [has_mul N] : unique (M ≃* N) :=
-{ default := mul_equiv_of_unique_of_unique ,
+{ default := mul_equiv_of_unique ,
   uniq := λ _, ext $ λ x, subsingleton.elim _ _}
 
 /-!
@@ -456,12 +459,13 @@ def Pi_subsingleton
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
 @[to_additive "An additive equivalence of additive groups preserves negation."]
-protected lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
+protected lemma map_inv [group G] [division_monoid H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 map_inv h x
 
 /-- A multiplicative equivalence of groups preserves division. -/
 @[to_additive "An additive equivalence of additive groups preserves subtractions."]
-protected lemma map_div [group G] [group H] (h : G ≃* H) (x y : G) : h (x / y) = h x / h y :=
+protected lemma map_div [group G] [division_monoid H] (h : G ≃* H) (x y : G) :
+  h (x / y) = h x / h y :=
 map_div h x y
 
 end mul_equiv
@@ -498,10 +502,6 @@ def to_units [group G] : G ≃* Gˣ :=
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
-
-@[simp, to_additive] lemma coe_inv [group G] (u : Gˣ) :
-  ↑u⁻¹ = (u⁻¹ : G) :=
-to_units.symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 
@@ -664,24 +664,17 @@ end group_with_zero
 
 end equiv
 
-/-- When the group is commutative, `equiv.inv` is a `mul_equiv`. There is a variant of this
+/-- In a `division_comm_monoid`, `equiv.inv` is a `mul_equiv`. There is a variant of this
 `mul_equiv.inv' G : G ≃* Gᵐᵒᵖ` for the non-commutative case. -/
-@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
-def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
+@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`.", simps apply]
+def mul_equiv.inv (G : Type*) [division_comm_monoid G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,
   map_mul' := mul_inv,
   ..equiv.inv G }
 
-/-- When the group with zero is commutative, `equiv.inv₀` is a `mul_equiv`. -/
-@[simps apply] def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
-{ to_fun   := has_inv.inv,
-  inv_fun  := has_inv.inv,
-  map_mul' := λ x y, mul_inv₀,
-  ..equiv.inv G }
-
-@[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :
-  (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl
+@[simp] lemma mul_equiv.inv_symm (G : Type*) [division_comm_monoid G] :
+  (mul_equiv.inv G).symm = mul_equiv.inv G := rfl
 
 section type_tags
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.nat.cast
+import data.nat.cast_field
 import data.fintype.basic
 import tactic.wlog
 
@@ -101,13 +101,12 @@ lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : R) ≠ 0 :=
 by exact_mod_cast n.succ_ne_zero
 
 @[simp, norm_cast]
-theorem cast_dvd_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
+theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin
-  by_cases hn : n = 0,
-  { subst hn,
-    simp },
-  { exact cast_dvd n_dvd (cast_ne_zero.mpr hn), },
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { exact cast_div n_dvd (cast_ne_zero.2 hn), },
 end
 
 end nat
@@ -225,5 +224,9 @@ lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
   char_zero R ↔ char_zero S :=
 ⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, map_nat_cast ϕ, map_nat_cast ϕ]⟩,
   λ hS, by exactI ϕ.char_zero⟩
+
+lemma ring_hom.injective_nat (f : ℕ →+* R) [char_zero R] :
+  function.injective f :=
+subsingleton.elim (nat.cast_ring_hom _) f ▸ nat.cast_injective
 
 end ring_hom

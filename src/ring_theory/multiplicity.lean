@@ -6,8 +6,7 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import algebra.big_operators.basic
 import ring_theory.valuation.basic
--- import data.nat.factorization
-import data.nat.log
+import data.nat.factorization.basic
 
 /-!
 # Multiplicity of a divisor

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Floris van Doorn, Yury Kudryashov
 -/
 import order.filter.lift
+import order.filter.at_top_bot
 
 /-!
 # The filter of small sets
@@ -13,9 +14,9 @@ containing all powersets of members of `f`.
 
 `g` converges to `f.small_sets` if for all `s ∈ f`, eventually we have `g x ⊆ s`.
 
-An example usage is that if `f : ι → ℝ` is a family of nonnegative functions with integral 1, then
-saying that `f` tendsto `(𝓝 0).small_sets` is a way of saying that `f` tends to the Dirac delta
-distribution.
+An example usage is that if `f : ι → E → ℝ` is a family of nonnegative functions with integral 1,
+then saying that `λ i, support (f i)` tendsto `(𝓝 0).small_sets` is a way of saying that 
+`f` tends to the Dirac delta distribution.
 -/
 
 open_locale filter
@@ -47,13 +48,24 @@ lemma tendsto_small_sets_iff {f : α → set β} :
 (has_basis_small_sets lb).tendsto_right_iff
 
 lemma eventually_small_sets {p : set α → Prop} :
-  (∀ᶠ s in l.lift' powerset, p s) ↔ ∃ s ∈ l, ∀ t ⊆ s, p t :=
+  (∀ᶠ s in l.small_sets, p s) ↔ ∃ s ∈ l, ∀ t ⊆ s, p t :=
 eventually_lift'_iff monotone_powerset
 
 lemma eventually_small_sets' {p : set α → Prop} (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
-  (∀ᶠ s in l.lift' powerset, p s) ↔ ∃ s ∈ l, p s :=
+  (∀ᶠ s in l.small_sets, p s) ↔ ∃ s ∈ l, p s :=
 eventually_small_sets.trans $ exists₂_congr $ λ s hsf,
-  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+  ⟨λ H, H s subset.rfl, λ hs t ht, hp ht hs⟩
+
+lemma frequently_small_sets {p : set α → Prop} :
+  (∃ᶠ s in l.small_sets, p s) ↔ ∀ t ∈ l, ∃ s ⊆ t, p s :=
+l.has_basis_small_sets.frequently_iff
+
+lemma frequently_small_sets_mem (l : filter α) : ∃ᶠ s in l.small_sets, s ∈ l :=
+frequently_small_sets.2 $ λ t ht, ⟨t, subset.rfl, ht⟩
+
+lemma has_antitone_basis.tendsto_small_sets {ι} [preorder ι] {s : ι → set α}
+  (hl : l.has_antitone_basis s) : tendsto s at_top l.small_sets :=
+tendsto_small_sets_iff.2 $ λ t ht, hl.eventually_subset ht
 
 @[mono] lemma monotone_small_sets : monotone (@small_sets α) :=
 monotone_lift' monotone_id monotone_const
@@ -73,19 +85,15 @@ comap_lift'_eq2 monotone_powerset
 
 lemma comap_small_sets (l : filter β) (f : α → set β) :
   comap f l.small_sets = l.lift' (preimage f ∘ powerset) :=
-comap_lift'_eq monotone_powerset
+comap_lift'_eq
 
 lemma small_sets_infi {f : ι → filter α} :
   (infi f).small_sets = (⨅ i, (f i).small_sets) :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { rw [infi_of_empty f, infi_of_empty, small_sets_top] },
-  { exact (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
-end
+lift'_infi_of_map_univ powerset_inter powerset_univ
 
 lemma small_sets_inf (l₁ l₂ : filter α) :
   (l₁ ⊓ l₂).small_sets = l₁.small_sets ⊓ l₂.small_sets :=
-lift'_inf _ _ $ λ _ _, (powerset_inter _ _).symm
+lift'_inf _ _ powerset_inter
 
 instance small_sets_ne_bot (l : filter α) : ne_bot l.small_sets :=
 (lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty
@@ -111,5 +119,9 @@ calc _ ↔ ∃ s ∈ l, ∀ᶠ x in l', x ∈ s → p x :
 by simpa only [inf_top_eq, eventually_top] using @eventually_small_sets_eventually α l ⊤ p
 
 alias eventually_small_sets_forall ↔ filter.eventually.of_small_sets filter.eventually.small_sets
+
+@[simp] lemma eventually_small_sets_subset {s : set α} :
+  (∀ᶠ t in l.small_sets, t ⊆ s) ↔ s ∈ l :=
+eventually_small_sets_forall
 
 end filter

@@ -5,12 +5,14 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.matrix.bilinear_form
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
+import linear_algebra.finite_dimensional
 import linear_algebra.vandermonde
 import linear_algebra.trace
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
+import field_theory.galois
 import ring_theory.power_basis
 
 /-!
@@ -98,7 +100,7 @@ variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
-  trace R S s = matrix.trace _ R _ (algebra.left_mul_matrix b s) :=
+  trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
 by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
@@ -106,7 +108,7 @@ lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
   haveI := classical.dec_eq ι,
-  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, trace_diag],
+  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
   simp,
@@ -133,10 +135,10 @@ begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
-      matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
+      matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
-  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply,
+  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply, matrix.diag,
       -- The unifier is not smart enough to apply this one by itself:
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
@@ -356,6 +358,21 @@ begin
     exact is_separable.separable K _ }
 end
 
+lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L] :
+  algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
+begin
+  apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
+  rw map_sum (algebra_map L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
+  { rw ←trace_eq_sum_embeddings (algebraic_closure L),
+    { simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    { exact is_galois.to_is_separable } },
+  { intro σ,
+    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
+end
+
 end eq_sum_embeddings
 
 section det_ne_zero
@@ -396,7 +413,7 @@ begin
     trace_form_apply, algebra.smul_mul_assoc],
   rw [mul_comm (b x), ← smul_def],
   ring_nf,
-  simp,
+  simp [mul_comm],
 end
 
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :

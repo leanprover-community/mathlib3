@@ -9,7 +9,13 @@ import group_theory.group_action.defs
 /-!
 # Pi instances for multiplicative actions
 
-This file defines instances for mul_action and related structures on Pi Types
+This file defines instances for mul_action and related structures on Pi types.
+
+## See also
+
+* `group_theory.group_action.prod`
+* `group_theory.group_action.sigma`
+* `group_theory.group_action.sum`
 -/
 
 universes u v w
@@ -78,9 +84,9 @@ instance {α : Type*} [Π i, has_scalar α $ f i] [Π i, has_scalar αᵐᵒᵖ 
 /-- If `f i` has a faithful scalar action for a given `i`, then so does `Π i, f i`. This is
 not an instance as `i` cannot be inferred. -/
 @[to_additive pi.has_faithful_vadd_at]
-lemma has_faithful_scalar_at {α : Type*}
-  [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_scalar α (f i)] :
-  has_faithful_scalar α (Π i, f i) :=
+lemma has_faithful_smul_at {α : Type*}
+  [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] (i : I) [has_faithful_smul α (f i)] :
+  has_faithful_smul α (Π i, f i) :=
 ⟨λ x y h, eq_of_smul_eq_smul $ λ a : f i, begin
   classical,
   have := congr_fun (h $ function.update (λ j, classical.choice (‹Π i, nonempty (f i)› j)) i a) i,
@@ -88,10 +94,10 @@ lemma has_faithful_scalar_at {α : Type*}
 end⟩
 
 @[to_additive pi.has_faithful_vadd]
-instance has_faithful_scalar {α : Type*}
-  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_scalar α (f i)] :
-  has_faithful_scalar α (Π i, f i) :=
-let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
+instance has_faithful_smul {α : Type*}
+  [nonempty I] [Π i, has_scalar α $ f i] [Π i, nonempty (f i)] [Π i, has_faithful_smul α (f i)] :
+  has_faithful_smul α (Π i, f i) :=
+let ⟨i⟩ := ‹nonempty I› in has_faithful_smul_at i
 
 @[to_additive]
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :

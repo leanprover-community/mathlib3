@@ -846,7 +846,10 @@ noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 @[simp, is_R_or_C_simps] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
 (@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
-@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_lie.continuous
+@[priority 100]
+instance : has_continuous_star K := ⟨conj_lie.continuous⟩
+
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := continuous_star
 
 /-- The `ℝ → K` coercion, as a linear map -/
 noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K
@@ -871,6 +874,18 @@ noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_line
 linear_isometry.norm_to_continuous_linear_map of_real_li
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
+
+@[continuity] lemma continuous_abs : continuous (@is_R_or_C.abs K _) :=
+by simp only [show @is_R_or_C.abs K _ = has_norm.norm, by { ext, exact (norm_eq_abs _).symm },
+              continuous_norm]
+
+@[continuity] lemma continuous_norm_sq : continuous (@is_R_or_C.norm_sq K _) :=
+begin
+  have : (@is_R_or_C.norm_sq K _ : K → ℝ) = λ x, (is_R_or_C.abs x) ^ 2,
+  { ext,
+    exact norm_sq_eq_abs _ },
+  simp only [this, continuous_abs.pow 2],
+end
 
 end linear_maps
 

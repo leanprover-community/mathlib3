@@ -53,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set finset function filter encodable topological_space (second_countable_topology)
-open_locale classical big_operators nnreal topological_space ennreal
+open_locale classical big_operators nnreal topological_space ennreal measure_theory
 
 namespace measure_theory
 
@@ -99,11 +99,11 @@ by simpa [h] using m.Union s
   m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
 ⟨λ h i, m.mono_null (subset_Union _ _) h, m.Union_null⟩
 
-lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : countable s) {t : β → set α} :
+lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : s.countable) {t : β → set α} :
   m (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, m (t i) = 0 :=
 by { haveI := hs.to_encodable, rw [bUnion_eq_Union, Union_null_iff, set_coe.forall'] }
 
-lemma sUnion_null_iff (m : outer_measure α) {S : set (set α)} (hS : countable S) :
+lemma sUnion_null_iff (m : outer_measure α) {S : set (set α)} (hS : S.countable) :
   m (⋃₀ S) = 0 ↔ ∀ s ∈ S, m s = 0 :=
 by rw [sUnion_eq_bUnion, m.bUnion_null_iff hS]
 
@@ -832,15 +832,15 @@ protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, is_caratheodory_inter
 
 lemma is_caratheodory_iff {s : set α} :
-  caratheodory.measurable_set' s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
+  measurable_set[caratheodory] s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
 iff.rfl
 
 lemma is_caratheodory_iff_le {s : set α} :
-  caratheodory.measurable_set' s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+  measurable_set[caratheodory] s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 is_caratheodory_iff_le'
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
-  (h : ∀i, caratheodory.measurable_set' (s i)) (hd : pairwise (disjoint on s)) :
+  (h : ∀i, measurable_set[caratheodory] (s i)) (hd : pairwise (disjoint on s)) :
   m (⋃i, s i) = ∑'i, m (s i) :=
 f_Union h hd
 
@@ -850,7 +850,7 @@ variables {α : Type*}
 
 lemma of_function_caratheodory {m : set α → ℝ≥0∞} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
-  (outer_measure.of_function m h₀).caratheodory.measurable_set' s :=
+  measurable_set[(outer_measure.of_function m h₀).caratheodory] s :=
 begin
   apply (is_caratheodory_iff_le _).mpr,
   refine λ t, le_infi (λ f, le_infi $ λ hf, _),
@@ -863,7 +863,7 @@ begin
 end
 
 lemma bounded_by_caratheodory {m : set α → ℝ≥0∞} {s : set α}
-  (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : (bounded_by m).caratheodory.measurable_set' s :=
+  (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : measurable_set[(bounded_by m).caratheodory] s :=
 begin
   apply of_function_caratheodory, intro t,
   cases t.eq_empty_or_nonempty with h h,
@@ -1215,7 +1215,7 @@ end
   of `s`.
 -/
 lemma induced_outer_measure_caratheodory (s : set α) :
-  (induced_outer_measure m P0 m0).caratheodory.measurable_set' s ↔ ∀ (t : set α), P t →
+  measurable_set[(induced_outer_measure m P0 m0).caratheodory] s ↔ ∀ (t : set α), P t →
   induced_outer_measure m P0 m0 (t ∩ s) + induced_outer_measure m P0 m0 (t \ s) ≤
     induced_outer_measure m P0 m0 t :=
 begin
@@ -1414,7 +1414,7 @@ lemma trim_supr {ι} [encodable ι] (μ : ι → outer_measure α) :
   trim (⨆ i, μ i) = ⨆ i, trim (μ i) :=
 begin
   ext1 s,
-  rcases exists_measurable_superset_forall_eq_trim (λ o, option.elim o (supr μ) μ) s
+  rcases exists_measurable_superset_forall_eq_trim (option.elim (supr μ) μ) s
     with ⟨t, hst, ht, hμt⟩,
   simp only [option.forall, option.elim] at hμt,
   simp only [supr_apply, ← hμt.1, ← hμt.2]

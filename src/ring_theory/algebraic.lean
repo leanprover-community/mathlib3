@@ -25,7 +25,8 @@ open polynomial
 section
 variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 
-/-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
+/-- An element of an R-algebra is algebraic over R if it is a root of a nonzero polynomial
+with coefficients in R. -/
 def is_algebraic (x : A) : Prop :=
 ∃ p : R[X], p ≠ 0 ∧ aeval x p = 0
 
@@ -324,12 +325,14 @@ variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S
 noncomputable def polynomial.algebra_pi :
   algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
-  map_one' := funext $ λ z, by simp,
-  map_mul' := λ f g, funext $ λ z, by simp,
-  map_zero' := funext $ λ z, by simp,
-  map_add' := λ f g, funext $ λ z, by simp,
+  map_one' := funext $ λ z, by simp only [polynomial.aeval_one, pi.one_apply, map_one],
+  map_mul' := λ f g, funext $ λ z, by simp only [pi.mul_apply, map_mul],
+  map_zero' := funext $ λ z, by simp only [polynomial.aeval_zero, pi.zero_apply, map_zero],
+  map_add' := λ f g, funext $ λ z, by simp only [polynomial.aeval_add, pi.add_apply, map_add],
   commutes' := λ p f, funext $ λ z, mul_comm _ _,
-  smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
+  smul_def' := λ p f, funext $ λ z, by
+    simp only [algebra.algebra_map_eq_smul_one, polynomial_smul_apply', one_mul,
+      pi.mul_apply, algebra.smul_mul_assoc],
   ..polynomial.has_scalar_pi' R' S' T' }
 
 local attribute [instance] polynomial.algebra_pi

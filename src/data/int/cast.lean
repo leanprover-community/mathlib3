@@ -100,7 +100,7 @@ end
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
 by simp [sub_eq_add_neg]
 
-@[simp, norm_cast] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
+@[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n
 | (m : ℕ) (n : ℕ) := nat.cast_mul _ _
 | (m : ℕ) -[1+ n] := (cast_neg_of_nat _).trans $
   show (-(m * (n + 1) : ℕ) : α) = m * -(n + 1),
@@ -111,23 +111,29 @@ by simp [sub_eq_add_neg]
 | -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
   by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
 
+@[simp, norm_cast] theorem cast_ite [has_zero α] [has_one α] [has_add α] [has_neg α]
+  (P : Prop) [decidable P] (m n : ℤ) :
+  ((ite P m n : ℤ) : α) = ite P m n :=
+apply_ite _ _ _ _
+
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
 def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
 
 @[simp] lemma coe_cast_add_hom [add_group α] [has_one α] : ⇑(cast_add_hom α) = coe := rfl
 
 /-- `coe : ℤ → α` as a `ring_hom`. -/
-def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=
+⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
-@[simp] lemma coe_cast_ring_hom [ring α] : ⇑(cast_ring_hom α) = coe := rfl
+@[simp] lemma coe_cast_ring_hom [non_assoc_ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
-lemma cast_commute [ring α] (m : ℤ) (x : α) : commute ↑m x :=
+lemma cast_commute [non_assoc_ring α] (m : ℤ) (x : α) : commute ↑m x :=
 int.cases_on m (λ n, n.cast_commute x) (λ n, ((n+1).cast_commute x).neg_left)
 
-lemma cast_comm [ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
+lemma cast_comm [non_assoc_ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
 (cast_commute m x).eq
 
-lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
+lemma commute_cast [non_assoc_ring α] (x : α) (m : ℤ) : commute x m :=
 (m.cast_commute x).symm
 
 @[simp, norm_cast]
@@ -136,16 +142,17 @@ theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := by {unfold b
 @[simp, norm_cast]
 theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := by {unfold bit1, unfold bit0, simp}
 
-@[simp, norm_cast] theorem cast_bit0 [ring α] (n : ℤ) : ((bit0 n : ℤ) : α) = bit0 n := cast_add _ _
+@[simp, norm_cast] theorem cast_bit0 [non_assoc_ring α] (n : ℤ) : ((bit0 n : ℤ) : α) = bit0 n :=
+cast_add _ _
 
-@[simp, norm_cast] theorem cast_bit1 [ring α] (n : ℤ) : ((bit1 n : ℤ) : α) = bit1 n :=
+@[simp, norm_cast] theorem cast_bit1 [non_assoc_ring α] (n : ℤ) : ((bit1 n : ℤ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
-lemma cast_two [ring α] : ((2 : ℤ) : α) = 2 := by simp
+lemma cast_two [non_assoc_ring α] : ((2 : ℤ) : α) = 2 := by simp
 
-lemma cast_three [ring α] : ((3 : ℤ) : α) = 3 := by simp
+lemma cast_three [non_assoc_ring α] : ((3 : ℤ) : α) = 3 := by simp
 
-lemma cast_four [ring α] : ((4 : ℤ) : α) = 4 := by simp
+lemma cast_four [non_assoc_ring α] : ((4 : ℤ) : α) = 4 := by simp
 
 theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
 begin
@@ -315,7 +322,7 @@ end monoid_with_zero_hom
 
 namespace ring_hom
 
-variables {α : Type*} {β : Type*} [ring α] [ring β]
+variables {α : Type*} {β : Type*} [non_assoc_ring α] [non_assoc_ring β]
 
 @[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
 f.to_add_monoid_hom.eq_int_cast f.map_one n
@@ -326,10 +333,10 @@ ring_hom.ext f.eq_int_cast
 @[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
-lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
+lemma ext_int {R : Type*} [non_assoc_semiring R] (f g : ℤ →+* R) : f = g :=
 coe_add_monoid_hom_injective $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
 
-instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
+instance int.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℤ →+* R) :=
 ⟨ring_hom.ext_int⟩
 
 end ring_hom

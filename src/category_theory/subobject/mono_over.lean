@@ -370,7 +370,7 @@ nat_iso.of_components
 begin
   intro Z,
   suffices : (forget _).obj ((«exists» f).obj Z) ≅ (forget _).obj ((map f).obj Z),
-    apply preimage_iso this,
+    apply (forget _).preimage_iso this,
   apply over.iso_mk _ _,
   apply image_mono_iso_source (Z.arrow ≫ f),
   apply image_mono_iso_source_hom_self,

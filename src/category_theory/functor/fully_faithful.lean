@@ -33,7 +33,7 @@ A functor `F : C ⥤ D` is full if for each `X Y : C`, `F.map` is surjective.
 In fact, we use a constructive definition, so the `full F` typeclass contains data,
 specifying a particular preimage of each `f : F.obj X ⟶ F.obj Y`.
 
-See https://stacks.math.columbia.edu/tag/001C.
+See <https://stacks.math.columbia.edu/tag/001C>.
 -/
 class full (F : C ⥤ D) :=
 (preimage : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), X ⟶ Y)
@@ -45,7 +45,7 @@ attribute [simp] full.witness
 /--
 A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.
 
-See https://stacks.math.columbia.edu/tag/001C.
+See <https://stacks.math.columbia.edu/tag/001C>.
 -/
 class faithful (F : C ⥤ D) : Prop :=
 (map_injective' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
@@ -53,20 +53,23 @@ class faithful (F : C ⥤ D) : Prop :=
 restate_axiom faithful.map_injective'
 
 namespace functor
-lemma map_injective (F : C ⥤ D) [faithful F] {X Y : C} :
+variables {X Y : C}
+
+lemma map_injective (F : C ⥤ D) [faithful F] :
   function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.map_injective F
 
-lemma map_iso_injective (F : C ⥤ D) [faithful F] {X Y : C} :
+lemma map_iso_injective (F : C ⥤ D) [faithful F] :
   function.injective $ @functor.map_iso _ _ _ _ F X Y :=
 λ i j h, iso.ext (map_injective F (congr_arg iso.hom h : _))
 
 /-- The specified preimage of a morphism under a full functor. -/
-def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
+def preimage (F : C ⥤ D) [full F] (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
 full.preimage.{v₁ v₂} f
 @[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) :
   F.map (preimage F f) = f :=
 by unfold preimage; obviously
+
 end functor
 
 section
@@ -81,21 +84,23 @@ F.map_injective (by simp)
   F.preimage (F.map f) = f :=
 F.map_injective (by simp)
 
+variables (F)
+
+namespace functor
+
 /-- If `F : C ⥤ D` is fully faithful, every isomorphism `F.obj X ≅ F.obj Y` has a preimage. -/
+@[simps]
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
   hom_inv_id' := F.map_injective (by simp),
   inv_hom_id' := F.map_injective (by simp), }
 
-@[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) :
-  (preimage_iso f).hom = F.preimage f.hom := rfl
-@[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) :
-  (preimage_iso f).inv = F.preimage (f.inv) := rfl
-@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : preimage_iso (F.map_iso f) = f :=
-by tidy
+@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) :
+  F.preimage_iso (F.map_iso f) = f :=
+by { ext, simp, }
 
-variables (F)
+end functor
 
 /--
 If the image of a morphism under a fully faithful functor in an isomorphism,
@@ -117,7 +122,7 @@ def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
 @[simps]
 def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
 { to_fun := λ f, F.map_iso f,
-  inv_fun := λ f, preimage_iso f,
+  inv_fun := λ f, F.preimage_iso f,
   left_inv := λ f, by simp,
   right_inv := λ f, by { ext, simp, } }
 
@@ -275,7 +280,7 @@ can 'cancel' it to give a natural iso between `F` and `G`.
 def fully_faithful_cancel_right {F G : C ⥤ D} (H : D ⥤ E)
   [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) : F ≅ G :=
 nat_iso.of_components
-  (λ X, preimage_iso (comp_iso.app X))
+  (λ X, H.preimage_iso (comp_iso.app X))
   (λ X Y f, H.map_injective (by simpa using comp_iso.hom.naturality f))
 
 @[simp]

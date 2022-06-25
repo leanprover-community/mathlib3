@@ -76,11 +76,7 @@ by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn.bot_lt)]
 
 lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
   padic_val_nat p n = n.factorization p :=
-begin
-  by_cases hn : n = 0, { subst hn, simp },
-  rw @padic_val_nat_def p _ n (nat.pos_of_ne_zero hn),
-  simp [@multiplicity_eq_factorization n p hp.elim hn],
-end
+by simp [factorization, fact_iff.1 hp]
 
 /-! ### Basic facts about factorization -/
 

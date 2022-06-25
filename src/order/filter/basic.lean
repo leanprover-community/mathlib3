@@ -158,8 +158,8 @@ finite.induction_on hf (by simp) (λ i s hi _ hs, by simp [hs])
   (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
 bInter_mem is.finite_to_set
 
-alias bInter_finset_mem ← Inter_mem_sets
-attribute [protected] Inter_mem_sets
+alias bInter_finset_mem ← _root_.finset.Inter_mem_sets
+attribute [protected] finset.Inter_mem_sets
 
 @[simp] lemma sInter_mem {s : set (set α)} (hfin : s.finite) :
   ⋂₀ s ∈ f ↔ ∀ U ∈ s, U ∈ f :=
@@ -1001,8 +1001,8 @@ attribute [protected] set.finite.eventually_all
   (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ ∀ i ∈ I, ∀ᶠ x in l, p i x :=
 I.finite_to_set.eventually_all
 
-alias eventually_all_finset ← eventually_all
-attribute [protected] eventually_all
+alias eventually_all_finset ← _root_.finset.eventually_all
+attribute [protected] finset.eventually_all
 
 @[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
   (∀ᶠ x in f, p ∨ q x) ↔ (p ∨ ∀ᶠ x in f, q x) :=

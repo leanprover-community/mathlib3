@@ -111,7 +111,7 @@ noncomputable instance : normed_group ℝ :=
 { norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 
-lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+@[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
 
 section semi_normed_group
 variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group G]

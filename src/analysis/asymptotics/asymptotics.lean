@@ -143,10 +143,14 @@ theorem is_o.is_O (hgf : f =o[l] g) : f =O[l] g := hgf.is_O_with.is_O
 
 lemma is_O.is_O_with : f =O[l] g → ∃ c : ℝ, is_O_with c l f g := is_O_iff_is_O_with.1
 
+theorem is_O_with.weaken' (h : is_O_with c l f g) (hg : ∀ᶠ x in l, 0 ≤ ∥g x∥) (hc : c ≤ c') :
+  is_O_with c' l f g :=
+is_O_with.of_bound $ hg.mp $ h.bound.mono $ λ x hx hx',
+calc ∥f x∥ ≤ c * ∥g x∥ : hx
+... ≤ _ : mul_le_mul_of_nonneg_right hc hx'
+
 theorem is_O_with.weaken (h : is_O_with c l f g') (hc : c ≤ c') : is_O_with c' l f g' :=
-is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
-calc ∥f x∥ ≤ c * ∥g' x∥ : hx
-... ≤ _ : mul_le_mul_of_nonneg_right hc (norm_nonneg _)
+h.weaken' (eventually_of_forall $ λ _, norm_nonneg _) hc
 
 theorem is_O_with.exists_pos (h : is_O_with c l f g') :
   ∃ c' (H : 0 < c'), is_O_with c' l f g' :=
@@ -163,6 +167,13 @@ theorem is_O.exists_nonneg (h : f =O[l] g') :
   ∃ c (H : 0 ≤ c), is_O_with c l f g' :=
 let ⟨c, hc⟩ := h.is_O_with in hc.exists_nonneg
 
+theorem is_O_with.nonneg_imp (h : is_O_with c l f g) (hc : 0 < c) :
+  ∀ᶠ x in l, 0 ≤ ∥f x∥ → 0 ≤ ∥g x∥ :=
+h.bound.mono $ λ x hle hf, nonneg_of_mul_nonneg_left (hf.trans hle) hc
+
+theorem is_o.nonneg_imp (h : f =o[l] g) : ∀ᶠ x in l, 0 ≤ ∥f x∥ → 0 ≤ ∥g x∥ :=
+h.is_O_with.nonneg_imp one_pos
+
 /-- `f = O(g)` if and only if `is_O_with c f g` for all sufficiently large `c`. -/
 lemma is_O_iff_eventually_is_O_with : f =O[l] g' ↔ ∀ᶠ c in at_top, is_O_with c l f g' :=
 is_O_iff_is_O_with.trans
@@ -178,21 +189,33 @@ lemma is_O.exists_mem_basis {ι} {p : ι → Prop} {s : ι → set α} (h : f =O
 flip Exists₂.imp h.exists_pos $ λ c hc h,
   by simpa only [is_O_with_iff, hb.eventually_iff, exists_prop] using h
 
-lemma is_o_iff_nat_mul_le : f =o[l] g' ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f x∥ ≤ ∥g' x∥ :=
+lemma is_O_with_inv (hc : 0 < c) : is_O_with c⁻¹ l f g ↔ ∀ᶠ x in l, c * ∥f x∥ ≤ ∥g x∥ :=
+by simp only [is_O_with, ← div_eq_inv_mul, le_div_iff' hc]
+
+lemma is_o_iff_nat_mul_le'' (h₀ : ∀ᶠ x in l, 0 ≤ ∥f x∥ ∨ 0 ≤ ∥g x∥) :
+  f =o[l] g ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f x∥ ≤ ∥g x∥ :=
 begin
   split,
   { rintro H (_|n),
-    { refine eventually_of_forall (λ x, _), simp },
+    { filter_upwards [h₀, H.nonneg_imp] with x h₀ h₀',
+      rw [or_iff_right_of_imp h₀'] at h₀,
+      rwa [nat.cast_zero, zero_mul] },
     { have : (0 : ℝ) < n.succ, from nat.cast_pos.2 n.succ_pos,
-      refine (H.bound $ inv_pos.2 this).mono (λ x hx, _),
-      rwa [← div_eq_inv_mul, le_div_iff' this] at hx } },
-  { refine λ H, is_o_iff.2 (λ ε ε0, _),
+      exact (is_O_with_inv this).1 (H.def' $ inv_pos.2 this) } },
+  { refine λ H, is_o_iff_forall_is_O_with.2 (λ ε ε0, _),
     rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
     have hn₀ : (0 : ℝ) < n, from (inv_pos.2 ε0).trans hn,
-    refine (H n).mono (λ x hx, _),
-    rw [← le_div_iff' hn₀, div_eq_inv_mul] at hx,
-    exact hx.trans (mul_le_mul_of_nonneg_right (inv_le_of_inv_le ε0 hn.le) $ norm_nonneg _) }
+    have := (is_O_with_inv hn₀).2 (H n),
+    refine this.weaken' _ (inv_le_of_inv_le ε0 hn.le),
+    filter_upwards [this.nonneg_imp (inv_pos.2 hn₀), h₀] with x hx₀ hx₀',
+    rwa [or_iff_right_of_imp hx₀] at hx₀' }
 end
+
+lemma is_o_iff_nat_mul_le : f =o[l] g' ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f x∥ ≤ ∥g' x∥ :=
+is_o_iff_nat_mul_le'' $ eventually_of_forall $ λ x, or.inr (norm_nonneg _)
+
+lemma is_o_iff_nat_mul_le' : f' =o[l] g ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f' x∥ ≤ ∥g x∥ :=
+is_o_iff_nat_mul_le'' $ eventually_of_forall $ λ x, or.inl (norm_nonneg _)
 
 /-! ### Subsingleton -/
 
@@ -400,6 +423,23 @@ hfg.trans (is_O_of_le l hgk)
 
 theorem is_o.trans_le (hfg : f =o[l] g) (hgk : ∀ x, ∥g x∥ ≤ ∥k x∥) : f =o[l] k :=
 hfg.trans_is_O_with (is_O_with_of_le _ hgk) zero_lt_one
+
+theorem is_o_irrefl' (h : ∃ᶠ x in l, ∥f' x∥ ≠ 0) : ¬f' =o[l] f' :=
+begin
+  intro ho,
+  rcases ((ho.bound one_half_pos).and_frequently h).exists with ⟨x, hle, hne⟩,
+  rw [one_div, ← div_eq_inv_mul] at hle,
+  exact (half_lt_self (lt_of_le_of_ne (norm_nonneg _) hne.symm)).not_le hle
+end
+
+theorem is_o_irrefl (h : ∃ᶠ x in l, f'' x ≠ 0) : ¬f'' =o[l] f'' :=
+is_o_irrefl' $ h.mono $ λ x, norm_ne_zero_iff.mpr
+
+theorem is_O.not_is_o (h : f'' =O[l] g') (hf : ∃ᶠ x in l, f'' x ≠ 0) : ¬g' =o[l] f'' :=
+λ h', is_o_irrefl hf (h.trans_is_o h')
+
+theorem is_o.not_is_O (h : f'' =o[l] g') (hf : ∃ᶠ x in l, f'' x ≠ 0) : ¬g' =O[l] f'' :=
+λ h', is_o_irrefl hf (h.trans_is_O h')
 
 section bot
 
@@ -804,32 +844,49 @@ by rw is_O_iff; refl
 
 section
 
-variable (𝕜)
+variables (F) [has_one F] [norm_one_class F]
 
-theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ l (λ x : α, c) (λ x, (1 : 𝕜)) :=
-begin
-  refine (is_O_with_const_const c _ l).congr_const _,
-  { exact one_ne_zero },
-  { rw [norm_one, div_one] }
-end
+theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ l (λ x : α, c) (λ x, (1 : F)) :=
+by simp [is_O_with_iff]
 
-theorem is_O_const_one (c : E) (l : filter α) : (λ x : α, c) =O[l] (λ x, (1 : 𝕜)) :=
-(is_O_with_const_one 𝕜 c l).is_O
+theorem is_O_const_one (c : E) (l : filter α) : (λ x : α, c) =O[l] (λ x, (1 : F)) :=
+(is_O_with_const_one F c l).is_O
 
 theorem is_o_const_iff_is_o_one {c : F''} (hc : c ≠ 0) :
-  f =o[l] (λ x, c) ↔ f =o[l] (λ x, (1:𝕜)) :=
-⟨λ h, h.trans_is_O $ is_O_const_one 𝕜 c l, λ h, h.trans_is_O $ is_O_const_const _ hc _⟩
+  f =o[l] (λ x, c) ↔ f =o[l] (λ x, (1 : F)) :=
+⟨λ h, h.trans_is_O_with (is_O_with_const_one _ _ _) (norm_pos_iff.2 hc),
+  λ h, h.trans_is_O $ is_O_const_const _ hc _⟩
+
+@[simp] theorem is_o_one_iff : f' =o[l] (λ x, 1 : α → F) ↔ tendsto f' l (𝓝 0) :=
+by simp only [is_o_iff, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
+  metric.mem_closed_ball, dist_zero_right]
+
+@[simp] theorem is_O_one_iff [has_one F] [norm_one_class F] :
+  f =O[l] (λ x, 1 : α → F) ↔ is_bounded_under (≤) l (λ x, ∥f x∥) :=
+by { simp only [is_O_iff, norm_one, mul_one], refl }
+
+alias is_O_one_iff ↔ _ filter.is_bounded_under.is_O_one
+
+@[simp] theorem is_o_one_left_iff : (λ x, 1 : α → F) =o[l] f ↔ tendsto (λ x, ∥f x∥) l at_top :=
+calc (λ x, 1 : α → F) =o[l] f ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥(1 : F)∥ ≤ ∥f x∥ :
+  is_o_iff_nat_mul_le'' $ by simp
+... ↔ ∀ n : ℕ, true → ∀ᶠ x in l, ∥f x∥ ∈ Ici (n : ℝ) :
+  by simp only [norm_one, mul_one, true_implies_iff, mem_Ici]
+... ↔ tendsto (λ x, ∥f x∥) l at_top : at_top_countable_basis_of_archimedean.1.tendsto_right_iff.symm
+
+theorem _root_.filter.tendsto.is_O_one {c : E'} (h : tendsto f' l (𝓝 c)) :
+  f' =O[l] (λ x, 1 : α → F) :=
+h.norm.is_bounded_under_le.is_O_one F
+
+theorem is_O.trans_tendsto_nhds (hfg : f =O[l] g') {y : F'} (hg : tendsto g' l (𝓝 y)) :
+  f =O[l] (λ x, 1 : α → F) :=
+hfg.trans $ hg.is_O_one F
 
 end
 
 theorem is_o_const_iff {c : F''} (hc : c ≠ 0) :
   f'' =o[l] (λ x, c) ↔ tendsto f'' l (𝓝 0) :=
-(is_o_const_iff_is_o_one ℝ hc).trans
-begin
-  clear hc c,
-  simp only [is_o, is_O_with, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
-    metric.mem_closed_ball, dist_zero_right]
-end
+(is_o_const_iff_is_o_one ℝ hc).trans (is_o_one_iff _)
 
 lemma is_o_id_const {c : F''} (hc : c ≠ 0) :
   (λ (x : E''), x) =o[𝓝 0] (λ x, c) :=
@@ -837,14 +894,7 @@ lemma is_o_id_const {c : F''} (hc : c ≠ 0) :
 
 theorem _root_.filter.is_bounded_under.is_O_const (h : is_bounded_under (≤) l (norm ∘ f))
   {c : F''} (hc : c ≠ 0) : f =O[l] (λ x, c) :=
-begin
-  rcases h with ⟨C, hC⟩,
-  refine (is_O.of_bound 1 _).trans (is_O_const_const C hc l),
-  refine (eventually_map.1 hC).mono (λ x h, _),
-  calc ∥f x∥ ≤ C : h
-  ... ≤ abs C : le_abs_self C
-  ... = 1 * ∥C∥ : (one_mul _).symm
-end
+(h.is_O_one ℝ).trans (is_O_const_const _ hc _)
 
 theorem is_O_const_of_tendsto {y : E''} (h : tendsto f'' l (𝓝 y)) {c : F''} (hc : c ≠ 0) :
   f'' =O[l] (λ x, c) :=
@@ -859,12 +909,19 @@ theorem is_O_const_of_ne {c : F''} (hc : c ≠ 0) :
 ⟨λ h, h.is_bounded_under_le, λ h, h.is_O_const hc⟩
 
 theorem is_O_const_iff {c : F''} :
-  f'' =O[l] (λ x, c) ↔ (c = 0 → f'' =ᶠ[l] 0) ∧ is_bounded_under (≤) l (norm ∘ f'') :=
+  f'' =O[l] (λ x, c) ↔ (c = 0 → f'' =ᶠ[l] 0) ∧ is_bounded_under (≤) l (λ x, ∥f'' x∥) :=
 begin
   refine ⟨λ h, ⟨λ hc, is_O_zero_right_iff.1 (by rwa ← hc), h.is_bounded_under_le⟩, _⟩,
   rintro ⟨hcf, hf⟩,
   rcases eq_or_ne c 0 with hc|hc,
   exacts [(hcf hc).trans_is_O (is_O_zero _ _), hf.is_O_const hc]
+end
+
+theorem is_O_iff_is_bounded_under_le_div (h : ∀ᶠ x in l, g'' x ≠ 0) :
+  f =O[l] g'' ↔ is_bounded_under (≤) l (λ x, ∥f x∥ / ∥g'' x∥) :=
+begin
+  simp only [is_O_iff, is_bounded_under, is_bounded, eventually_map],
+  exact exists_congr (λ c, eventually_congr $ h.mono $ λ x hx, (div_le_iff $ norm_pos_iff.2 hx).symm),
 end
 
 /-- `(λ x, c) =O[l] f` if and only if `f` is bounded away from zero. -/
@@ -885,17 +942,6 @@ end
 section
 
 variable (𝕜)
-
-theorem is_o_one_iff : f'' =o[l] (λ x, (1 : 𝕜)) ↔ tendsto f'' l (𝓝 0) :=
-is_o_const_iff one_ne_zero
-
-theorem is_O_one_of_tendsto {y : E''} (h : tendsto f'' l (𝓝 y)) :
-  f'' =O[l] (λ x, (1:𝕜)) :=
-is_O_const_of_tendsto h one_ne_zero
-
-theorem is_O.trans_tendsto_nhds (hfg : f =O[l] g'') {y : F''} (hg : tendsto g'' l (𝓝 y)) :
-  f =O[l] (λ x, (1:𝕜)) :=
-hfg.trans $ is_O_one_of_tendsto 𝕜 hg
 
 end
 
@@ -1243,18 +1289,10 @@ alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
 alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
 
 lemma is_o_const_left_of_ne {c : E''} (hc : c ≠ 0) :
-  (λ x, c) =o[l] g ↔ tendsto (norm ∘ g) l at_top :=
+  (λ x, c) =o[l] g ↔ tendsto (λ x, ∥g x∥) l at_top :=
 begin
-  split; intro h,
-  { refine (at_top_basis' 1).tendsto_right_iff.2 (λ C hC, _),
-    replace hC : 0 < C := zero_lt_one.trans_le hC,
-    replace h : (λ _, 1 : α → ℝ) =o[l] g := (is_O_const_const _ hc _).trans_is_o h,
-    refine (h.def $ inv_pos.2 hC).mono (λ x hx, _),
-    rwa [norm_one, ← div_eq_inv_mul, one_le_div hC] at hx },
-  { suffices : (λ _, 1 : α → ℝ) =o[l] g,
-      from (is_O_const_const c (@one_ne_zero ℝ _ _) _).trans_is_o this,
-    refine is_o_iff.2 (λ ε ε0, (tendsto_at_top.1 h ε⁻¹).mono (λ x hx, _)),
-    rwa [norm_one, ← inv_inv ε, ← div_eq_inv_mul, one_le_div (inv_pos.2 ε0)] }
+  simp only [← is_o_one_left_iff ℝ],
+  exact ⟨(is_O_const_const (1 : ℝ) hc l).trans_is_o, (is_O_const_one ℝ c l).trans_is_o⟩
 end
 
 @[simp] lemma is_o_const_left {c : E''} :
@@ -1408,19 +1446,16 @@ lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_
 begin
   suffices h : u =o[l] (λ x, (1 : 𝕜)),
   { rwa is_o_one_iff at h },
-  exact huv.trans_is_O (is_O_one_of_tendsto 𝕜 hv),
+  exact huv.trans_is_O (hv.is_O_one 𝕜),
 end
 
 theorem is_o_pow_pow {m n : ℕ} (h : m < n) :
   (λ x : 𝕜, x ^ n) =o[𝓝 0] (λ x, x ^ m) :=
 begin
-  let p := n - m,
-  have nmp : n = m + p := (add_tsub_cancel_of_le (le_of_lt h)).symm,
-  have : (λ(x : 𝕜), x^m) = (λx, x^m * 1), by simp only [mul_one],
-  simp only [this, pow_add, nmp],
-  refine is_O.mul_is_o (is_O_refl _ _) ((is_o_one_iff _).2 _),
-  convert (continuous_pow p).tendsto (0 : 𝕜),
-  exact (zero_pow (tsub_pos_of_lt h)).symm
+  rcases lt_iff_exists_add.1 h with ⟨p, hp0 : 0 < p, rfl⟩,
+  suffices : (λ x : 𝕜, x ^ m * x ^ p) =o[𝓝 0] (λ x, x ^ m * 1 ^ p),
+    by simpa only [pow_add, one_pow, mul_one],
+  exact is_O.mul_is_o (is_O_refl _ _) (is_o.pow ((is_o_one_iff _).2 tendsto_id) hp0)
 end
 
 theorem is_o_norm_pow_norm_pow {m n : ℕ} (h : m < n) :

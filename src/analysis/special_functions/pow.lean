@@ -791,14 +791,14 @@ begin
   rwa [log_rpow h1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this
 end
 
-lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
+lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : n ≠ 0) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
+have hn0 : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, mul_inv_cancel hn0, rpow_one]
 
-lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
+lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : n ≠ 0) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
+have hn0 : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 
 lemma continuous_at_const_rpow {a b : ℝ} (h : a ≠ 0) : continuous_at (rpow a) b :=
@@ -1045,9 +1045,59 @@ is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).r
   (rpow_nonneg_of_nonneg hc.le _) hr.le hg).congr_const
     (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
 
+lemma is_O.of_pow {n : ℕ} (h : (f ^ n) =O[l] (g ^ n)) (hn : n ≠ 0) : f =O[l] g :=
+suffices H : (λ x, |f x ^ n| ^ (n⁻¹ : ℝ)) =O[l] (λ x, |g x ^ n| ^ (n⁻¹ : ℝ)),
+  from is_O.of_norm_norm $ by simpa only [abs_pow, pow_nat_rpow_nat_inv (abs_nonneg _) hn] using H,
+h.norm_norm.rpow (inv_nonneg.2 n.cast_nonneg) (eventually_of_forall $ λ x, abs_nonneg _)
+
+lemma is_o.of_pow {n : ℕ} (h : (f ^ n) =o[l] (g ^ n)) (hn : n ≠ 0) : f =o[l] g :=
+suffices H : (λ x, |f x ^ n| ^ (n⁻¹ : ℝ)) =o[l] (λ x, |g x ^ n| ^ (n⁻¹ : ℝ)),
+  from is_o.of_norm_norm $ by simpa only [abs_pow, pow_nat_rpow_nat_inv (abs_nonneg _) hn] using H,
+h.norm_norm.rpow (inv_pos.2 $ nat.cast_pos.2 hn.bot_lt)  (eventually_of_forall $ λ x, abs_nonneg _)
+
 end asymptotics
 
 open asymptotics
+
+@[simp] lemma is_o_exp_mul_exp_mul_at_top {a b : ℝ} :
+  (λ x, exp (a * x)) =o[at_top] (λ x, exp (b * x)) ↔ a < b :=
+begin
+  have key : ∀ {a b : ℝ}, a < b → (λ x, exp (a * x)) =o[at_top] (λ x, exp (b * x)),
+  { refine λ a b h, (is_o_iff_tendsto $ λ x hx, _).2 _,
+    { exact absurd hx (exp_ne_zero _) },
+    { simp only [← exp_sub, ← sub_mul, tendsto_exp_comp_nhds_zero],
+      exact tendsto_const_nhds.neg_mul_at_top (sub_neg.2 h) tendsto_id } },
+  have h₀ : ∃ᶠ (x : ℝ) in at_top, exp (b * x) ≠ 0 := frequently_of_forall (λ x, exp_ne_zero _),
+  rcases lt_trichotomy a b with hlt|rfl|hlt,
+  { simp only [key hlt, hlt] },
+  { simpa only [lt_irrefl, iff_false] using is_o_irrefl h₀ },
+  { simpa only [hlt.not_lt, iff_false] using (key hlt).is_O.not_is_o h₀ }
+end
+
+@[simp] lemma is_o_exp_mul_exp_at_top {a : ℝ} :
+  (λ x, exp (a * x)) =o[at_top] exp ↔ a < 1 :=
+by simp only [← is_o_exp_mul_exp_mul_at_top, one_mul]
+
+@[simp] lemma is_o_exp_exp_mul_at_top {a : ℝ} :
+  exp =o[at_top] (λ x, exp (a * x)) ↔ 1 < a :=
+by simp only [← is_o_exp_mul_exp_mul_at_top, one_mul]
+
+@[simp] lemma is_O_exp_mul_exp_mul_at_top {a b : ℝ} :
+  (λ x, exp (a * x)) =O[at_top] (λ x, exp (b * x)) ↔ a ≤ b :=
+begin
+  have h₀ : ∃ᶠ (x : ℝ) in at_top, exp (b * x) ≠ 0 := frequently_of_forall (λ x, exp_ne_zero _),
+  rcases lt_trichotomy a b with hlt|rfl|hlt,
+  { simp only [hlt.le, (is_o_exp_mul_exp_mul_at_top.2 hlt).is_O] },
+  { simp only [is_O_refl, le_rfl] },
+  { simpa only [hlt.not_le, iff_false] using (is_o_exp_mul_exp_mul_at_top.2 hlt).not_is_O h₀ }
+end
+
+@[simp] lemma is_O_exp_mul_exp_mul_at_top {a b : ℝ} :
+  (λ x, exp (a * x)) =O[at_top] (λ x, exp (b * x)) ↔ a ≤ b :=
+
+@[simp] lemma is_Theta_exp_mul_exp_mul_at_top {a b : ℝ} :
+  (λ x, exp (a * x)) =Θ[at_top] (λ x, exp (b * x)) ↔ a = b :=
+by simp only [is_Theta, is_O_exp_mul_exp_mul_at_top, le_antisymm_iff]
 
 /-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
 lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :

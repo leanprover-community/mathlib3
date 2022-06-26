@@ -10,8 +10,6 @@ import data.real.basic
 import topology.algebra.order.intermediate_value
 import topology.metric_space.basic
 import topology.continuous_function.polynomial
--- import data.finset.nat_antidiagonal
--- import data.nat.choose.sum
 
 /-!
 # Root isolation

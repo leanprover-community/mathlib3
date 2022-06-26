@@ -89,7 +89,7 @@ if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spa
 Note that this is equivalent to `ring_hom.of_localization_span` via
 `ring_hom.of_localization_span_iff_finite`, but this is easier to prove. -/
 def ring_hom.of_localization_finite_span :=
-  ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
     (s : finset R) (hs : by exactI ideal.span (s : set R) = ⊤)
     (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
 
@@ -107,7 +107,7 @@ def ring_hom.of_localization_span :=
 /-- A property `P` of ring homs satisfies `ring_hom.localization_away_is`
  if `P` holds for each localization map `R →+* Rᵣ`. -/
 def ring_hom.localization_away_is : Prop :=
-∀ {R : Type*} (S : Type*) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
+∀ ⦃R : Type u⦄ (S : Type u) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
   [by exactI is_localization.away r S], by exactI P (algebra_map R S)
 
 /-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
@@ -117,7 +117,7 @@ if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spa
 Note that this is equivalent to `ring_hom.of_localization_span` via
 `ring_hom.of_localization_span_iff_finite`, but this is easier to prove. -/
 def ring_hom.of_localization_span_target : Prop :=
-∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
   (s : set S) (hs : by exactI ideal.span s = ⊤)
   (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
   by exactI P f
@@ -125,7 +125,7 @@ def ring_hom.of_localization_span_target : Prop :=
 /-- A property `P` of comm rings satisfies `of_localization_maximal` if
   if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideal `m`. -/
 def ring_hom.of_localization_prime : Prop :=
-∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
   by exactI (∀ (J : ideal S) (hJ : J.is_prime),
     by exactI P (localization.local_ring_hom _ J f rfl)) → P f
 

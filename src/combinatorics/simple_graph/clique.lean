@@ -159,8 +159,12 @@ alias clique_set_eq_empty_iff ↔ _ simple_graph.clique_free.clique_set
 
 attribute [protected] clique_free.clique_set
 
+variables {G H}
+
 @[mono] lemma clique_set_mono (h : G ≤ H) : G.clique_set n ⊆ H.clique_set n :=
 λ _, is_n_clique.mono h
+
+lemma clique_set_mono' (h : G ≤ H) : G.clique_set ≤ H.clique_set := λ _, clique_set_mono h
 
 end clique_set
 

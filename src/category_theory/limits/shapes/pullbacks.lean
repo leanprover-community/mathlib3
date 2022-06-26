@@ -2229,4 +2229,13 @@ wide_pushout_shape_op_equiv _
 def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
 wide_pullback_shape_op_equiv _
 
+
+/-- Given a morphism `f : X ⟶ Y`, we can take morphisms over `Y` to morphisms over `X` via
+pullbacks. This is right adjoint to `over.map` (TODO) -/
+@[simps {rhs_md := semireducible, simp_rhs := tt}]
+def base_change [has_pullbacks C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ _),
+  map := λ g₁ g₂ i, over.hom_mk (pullback.map _ _ _ _ i.left (𝟙 _) (𝟙 _) (by simp) (by simp))
+    (by simp) }
+
 end category_theory.limits

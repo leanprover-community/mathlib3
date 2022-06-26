@@ -96,6 +96,8 @@ open function relation
 
 universes u
 
+/-! ### Pre-game moves -/
+
 /-- The type of pre-games, before we have quotiented
   by equivalence (`pgame.setoid`). In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
@@ -228,6 +230,8 @@ meta def pgame_wf_tac :=
    subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
+/-! ### Basic pre-games -/
+
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
@@ -248,6 +252,8 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
 instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
+
+/-! ### Pre-game order relations -/
 
 /-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
   pre-games.
@@ -682,6 +688,8 @@ begin
   exact lt_or_equiv_or_gt_or_fuzzy x y
 end
 
+/-! ### Pre-game comparison -/
+
 /-- The type representing the possible outcomes for the comparison of two games. -/
 inductive ordering
 | lt
@@ -739,6 +747,9 @@ begin
   by_cases h₂ : y ≤ x;
   simpa only [cmp, h₁, h₂]
 end
+
+theorem cmp_eq_cmp_iff_cmp_eq_cmp {w x y z : pgame} : cmp w x = cmp y z ↔ cmp x w = cmp z y :=
+by rw [←ordering.swap_inj, cmp_swap, cmp_swap]
 
 @[simp] theorem cmp_eq_lt_iff {x y : pgame} : cmp x y = ordering.lt ↔ x < y :=
 begin
@@ -824,6 +835,8 @@ by rw [fuzzy_iff_fuzzy_of_cmp_eq h, fuzzy.comm]
 
 theorem cmp_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : cmp w y = cmp x z :=
 by { rw cmp_eq_iff_le_iff_le, exact ⟨le_congr h₁ h₂, le_congr h₂ h₁⟩ }
+
+/-! ### Relabellings -/
 
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
@@ -930,6 +943,8 @@ by simp
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :
   x ≡r relabel el er :=
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
+
+/-! ### Negation -/
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
@@ -1122,6 +1137,8 @@ equiv_iff_equiv_of_cmp_eq' (cmp_zero_neg x)
 
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
 fuzzy_iff_fuzzy_of_cmp_eq' (cmp_zero_neg x)
+
+/-! ### Addition and subtraction -/
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
@@ -1407,30 +1424,99 @@ instance covariant_class_swap_add_le : covariant_class pgame pgame (swap (+)) (�
 instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
 ⟨λ x y z h, (add_comm_le.trans (add_le_add_right h x)).trans add_comm_le⟩
 
-theorem add_lf_add_right {y z : pgame} (h : y ⧏ z) (x) : y + x ⧏ z + x :=
-suffices z + x ≤ y + x → z ≤ y, by { rw ←pgame.not_le at ⊢ h, exact mt this h }, λ w,
-  calc z ≤ z + 0        : (add_zero_relabelling _).symm.le
-     ... ≤ z + (x + -x) : add_le_add_left (zero_le_add_right_neg x) _
-     ... ≤ z + x + -x   : (add_assoc_relabelling _ _ _).symm.le
-     ... ≤ y + x + -x   : add_le_add_right w _
-     ... ≤ y + (x + -x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0        : add_le_add_left (add_right_neg_le_zero x) _
-     ... ≤ y            : (add_zero_relabelling _).le
+instance contravariant_class_swap_add_le : contravariant_class pgame pgame (swap (+)) (≤) :=
+⟨λ x y z h,
+calc y ≤ y + 0        : (add_zero_relabelling _).symm.le
+   ... ≤ y + (x + -x) : add_le_add_left (zero_le_add_right_neg x) _
+   ... ≤ y + x + -x   : (add_assoc_relabelling _ _ _).symm.le
+   ... ≤ z + x + -x   : add_le_add_right h _
+   ... ≤ z + (x + -x) : (add_assoc_relabelling _ _ _).le
+   ... ≤ z + 0        : add_le_add_left (add_right_neg_le_zero x) _
+   ... ≤ z            : (add_zero_relabelling _).le⟩
 
-theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
-by { rw lf_congr add_comm_equiv add_comm_equiv, apply add_lf_add_right h }
+@[simp] theorem cmp_add_right (x y z : pgame) : cmp (x + z) (y + z) = cmp x y :=
+by { rw cmp_eq_iff_le_iff_le, simp }
+
+@[simp] theorem add_lf_add_iff_right (x) {y z : pgame} : y + x ⧏ z + x ↔ y ⧏ z :=
+lf_iff_lf_of_cmp_eq (cmp_add_right y z x)
+
+private theorem add_lt_add_iff_right' (x) {y z : pgame} : y + x < z + x ↔ y < z :=
+lt_iff_lt_of_cmp_eq (cmp_add_right y z x)
+
+@[simp] theorem add_equiv_add_iff_right (x) {y z : pgame} : y + x ≈ z + x ↔ y ≈ z :=
+equiv_iff_equiv_of_cmp_eq (cmp_add_right y z x)
+
+@[simp] theorem add_fuzzy_add_iff_right (x) {y z : pgame} : y + x ∥ z + x ↔ y ∥ z :=
+fuzzy_iff_fuzzy_of_cmp_eq (cmp_add_right y z x)
+
+instance contravariant_class_swap_add_lt : contravariant_class pgame pgame (swap (+)) (<) :=
+⟨λ x y z, (add_lt_add_iff_right' x).1⟩
 
 instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
-⟨λ x y z h, begin
-  rw lt_iff_le_and_lf at h ⊢,
-  exact ⟨add_le_add_right h.1 x, add_lf_add_right h.2 x⟩
-end⟩
+⟨λ x y z, (add_lt_add_iff_right' x).2⟩
+
+theorem add_lf_add_right {y z : pgame} (h : y ⧏ z) (x) : y + x ⧏ z + x :=
+(add_lf_add_iff_right x).2 h
+
+theorem add_equiv_add_right {y z : pgame} (h : y ≈ z) (x) : y + x ≈ z + x :=
+(add_equiv_add_iff_right x).2 h
+
+theorem add_fuzzy_add_right {y z : pgame} (h : y ∥ z) (x) : y + x ∥ z + x :=
+(add_fuzzy_add_iff_right x).2 h
+
+theorem lf_of_add_lf_add_right {x y z : pgame} : y + x ⧏ z + x → y ⧏ z :=
+(add_lf_add_iff_right x).1
+
+theorem equiv_of_add_equiv_add_right {x y z : pgame} : y + x ≈ z + x → y ≈ z :=
+(add_equiv_add_iff_right x).1
+
+theorem fuzzy_of_add_fuzzy_add_right {x y z : pgame} : y + x ∥ z + x → y ∥ z :=
+(add_fuzzy_add_iff_right x).1
+
+@[simp] theorem cmp_add_left (x y z : pgame) : cmp (x + y) (x + z) = cmp y z :=
+by rw [cmp_congr add_comm_equiv add_comm_equiv, cmp_add_right]
+
+private theorem add_le_add_iff_left' (x) {y z : pgame} : x + y ≤ x + z ↔ y ≤ z :=
+le_iff_le_of_cmp_eq (cmp_add_left x y z)
+
+@[simp] theorem add_lf_add_iff_left (x) {y z : pgame} : x + y ⧏ x + z ↔ y ⧏ z :=
+lf_iff_lf_of_cmp_eq (cmp_add_left x y z)
+
+private theorem add_lt_add_iff_left' (x) {y z : pgame} : x + y < x + z ↔ y < z :=
+lt_iff_lt_of_cmp_eq (cmp_add_left x y z)
+
+@[simp] theorem add_equiv_add_iff_left (x) {y z : pgame} : x + y ≈ x + z ↔ y ≈ z :=
+equiv_iff_equiv_of_cmp_eq (cmp_add_left x y z)
+
+@[simp] theorem add_fuzzy_add_iff_left (x) {y z : pgame} : x + y ∥ x + z ↔ y ∥ z :=
+fuzzy_iff_fuzzy_of_cmp_eq (cmp_add_left x y z)
+
+instance contravariant_class_add_le : contravariant_class pgame pgame (+) (≤) :=
+⟨λ x y z, (add_le_add_iff_left' x).1⟩
+
+instance contravariant_class_add_lt : contravariant_class pgame pgame (+) (<) :=
+⟨λ x y z, (add_lt_add_iff_left' x).1⟩
 
 instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
-⟨λ x y z h, begin
-  rw lt_iff_le_and_lf at h ⊢,
-  exact ⟨add_le_add_left h.1 x, add_lf_add_left h.2 x⟩
-end⟩
+⟨λ x y z, (add_lt_add_iff_left' x).2⟩
+
+theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
+(add_lf_add_iff_left x).2 h
+
+theorem add_equiv_add_left {y z : pgame} (h : y ≈ z) (x) : x + y ≈ x + z :=
+(add_equiv_add_iff_left x).2 h
+
+theorem add_fuzzy_add_left {y z : pgame} (h : y ∥ z) (x) : x + y ∥ x + z :=
+(add_fuzzy_add_iff_left x).2 h
+
+theorem lf_of_add_lf_add_left {x y z : pgame} : x + y ⧏ x + z → y ⧏ z :=
+(add_lf_add_iff_left x).1
+
+theorem equiv_of_add_equiv_add_left {x y z : pgame} : x + y ≈ x + z → y ≈ z :=
+(add_equiv_add_iff_left x).1
+
+theorem fuzzy_of_add_fuzzy_add_left {x y z : pgame} : x + y ∥ x + z → y ∥ z :=
+(add_fuzzy_add_iff_left x).1
 
 theorem add_lf_add_of_lf_of_le {w x y z : pgame} (hwx : w ⧏ x) (hyz : y ≤ z) : w + y ⧏ x + z :=
 lf_of_lf_of_le (add_lf_add_right hwx y) (add_le_add_left hyz x)
@@ -1439,50 +1525,114 @@ theorem add_lf_add_of_le_of_lf {w x y z : pgame} (hwx : w ≤ x) (hyz : y ⧏ z)
 lf_of_le_of_lf (add_le_add_right hwx y) (add_lf_add_left hyz x)
 
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
-⟨(add_le_add_left h₂.1 w).trans (add_le_add_right h₁.1 z),
-  (add_le_add_left h₂.2 x).trans (add_le_add_right h₁.2 y)⟩
-
-theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
-add_congr h equiv_rfl
-
-theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
-add_congr equiv_rfl
+(add_equiv_add_right h₁ y).trans (add_equiv_add_left h₂ x)
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_equiv_neg_iff.2 h₂)
 
-theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
-sub_congr h equiv_rfl
+@[simp] theorem cmp_sub_right (x y z : pgame) : cmp (x - z) (y - z) = cmp x y :=
+cmp_add_right x y _
 
-theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
-sub_congr equiv_rfl
+@[simp] theorem sub_le_sub_iff_right (x) {y z : pgame} : y - x ≤ z - x ↔ y ≤ z :=
+le_iff_le_of_cmp_eq (cmp_sub_right y z x)
 
-theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
-⟨λ h, (zero_le_add_right_neg x).trans (add_le_add_right h _),
- λ h,
-  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... ≤ y - x + x : add_le_add_right h _
-     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
-     ... ≤ y : (add_zero_relabelling y).le⟩
+@[simp] theorem sub_lf_sub_iff_right (x) {y z : pgame} : y - x ⧏ z - x ↔ y ⧏ z :=
+lf_iff_lf_of_cmp_eq (cmp_sub_right y z x)
 
-theorem lf_iff_sub_zero_lf {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
-⟨λ h, (zero_le_add_right_neg x).trans_lf (add_lf_add_right h _),
- λ h,
-  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... ⧏ y - x + x : add_lf_add_right h _
-     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
-     ... ≤ y : (add_zero_relabelling y).le⟩
+@[simp] theorem sub_lt_sub_iff_right (x) {y z : pgame} : y - x < z - x ↔ y < z :=
+lt_iff_lt_of_cmp_eq (cmp_sub_right y z x)
 
-theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
-⟨λ h, lt_of_le_of_lt (zero_le_add_right_neg x) (add_lt_add_right h _),
- λ h,
-  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... < y - x + x : add_lt_add_right h _
-     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
-     ... ≤ y : (add_zero_relabelling y).le⟩
+@[simp] theorem sub_equiv_sub_iff_right (x) {y z : pgame} : y - x ≈ z - x ↔ y ≈ z :=
+equiv_iff_equiv_of_cmp_eq (cmp_sub_right y z x)
+
+@[simp] theorem sub_fuzzy_sub_iff_right (x) {y z : pgame} : y - x ∥ z - x ↔ y ∥ z :=
+fuzzy_iff_fuzzy_of_cmp_eq (cmp_sub_right y z x)
+
+theorem sub_le_sub_right {y z : pgame} (h : y ≤ z) (x) : y - x ≤ z - x :=
+(sub_le_sub_iff_right x).2 h
+
+theorem sub_lf_sub_right {y z : pgame} (h : y ⧏ z) (x) : y - x ⧏ z - x :=
+(sub_lf_sub_iff_right x).2 h
+
+theorem sub_lt_sub_right {y z : pgame} (h : y < z) (x) : y - x < z - x :=
+(sub_lt_sub_iff_right x).2 h
+
+theorem sub_equiv_sub_right {y z : pgame} (h : y ≈ z) (x) : y - x ≈ z - x :=
+(sub_equiv_sub_iff_right x).2 h
+
+theorem sub_fuzzy_sub_right {y z : pgame} (h : y ∥ z) (x) : y + x ∥ z + x :=
+(add_fuzzy_add_iff_right x).2 h
+
+@[simp] theorem cmp_sub_left (x y z : pgame) : cmp (x - y) (x - z) = cmp z y :=
+(cmp_add_left x _ _).trans (cmp_neg y z)
+
+@[simp] theorem sub_le_sub_iff_left (x) {y z : pgame} : x - y ≤ x - z ↔ z ≤ y :=
+le_iff_le_of_cmp_eq (cmp_sub_left x y z)
+
+@[simp] theorem sub_lf_sub_iff_left (x) {y z : pgame} : x - y ⧏ x - z ↔ z ⧏ y :=
+lf_iff_lf_of_cmp_eq (cmp_sub_left x y z)
+
+@[simp] theorem sub_lt_sub_iff_left (x) {y z : pgame} : x - y < x - z ↔ z < y :=
+lt_iff_lt_of_cmp_eq (cmp_sub_left x y z)
+
+@[simp] theorem sub_equiv_sub_iff_left (x) {y z : pgame} : x - y ≈ x - z ↔ y ≈ z :=
+equiv_iff_equiv_of_cmp_eq' (cmp_sub_left x y z)
+
+@[simp] theorem sub_fuzzy_sub_iff_left (x) {y z : pgame} : x - y ∥ x - z ↔ y ∥ z :=
+fuzzy_iff_fuzzy_of_cmp_eq' (cmp_sub_left x y z)
+
+theorem sub_le_sub_left {y z : pgame} (h : z ≤ y) (x) : x - y ≤ x - z :=
+(sub_le_sub_iff_left x).2 h
+
+theorem sub_lf_sub_left {y z : pgame} (h : z ⧏ y) (x) : x - y ⧏ x - z :=
+(sub_lf_sub_iff_left x).2 h
+
+theorem sub_lt_sub_left {y z : pgame} (h : z < y) (x) : x - y < x - z :=
+(sub_lt_sub_iff_left x).2 h
+
+theorem sub_equiv_sub_left {y z : pgame} (h : y ≈ z) (x) : x - y ≈ x - z :=
+(sub_equiv_sub_iff_left x).2 h
+
+theorem sub_fuzzy_sub_left {y z : pgame} (h : y ∥ z) (x) : x + y ∥ x + z :=
+(add_fuzzy_add_iff_left x).2 h
+
+theorem cmp_eq_cmp_zero_sub (x y : pgame) : cmp x y = cmp 0 (y - x) :=
+by rw [cmp_congr (sub_self_equiv x).symm (equiv_refl _), cmp_sub_right]
+
+theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
+le_iff_le_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
+
+theorem lf_iff_zero_lf_sub {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
+lf_iff_lf_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
+
+theorem lt_iff_zero_lt_sub {x y : pgame} : x < y ↔ 0 < y - x :=
+lt_iff_lt_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
+
+theorem equiv_iff_zero_equiv_sub {x y : pgame} : x ≈ y ↔ 0 ≈ y - x :=
+equiv_iff_equiv_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
+
+theorem fuzzy_iff_zero_fuzzy_sub {x y : pgame} : x ∥ y ↔ 0 ∥ y - x :=
+fuzzy_iff_fuzzy_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
+
+theorem cmp_eq_cmp_sub_zero (x y : pgame) : cmp x y = cmp (x - y) 0 :=
+by rw [cmp_eq_cmp_iff_cmp_eq_cmp, cmp_eq_cmp_zero_sub]
+
+theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 :=
+le_iff_le_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
+
+theorem lf_iff_sub_lf_zero {x y : pgame} : x ⧏ y ↔ x - y ⧏ 0 :=
+lf_iff_lf_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
+
+theorem lt_iff_sub_lt_zero {x y : pgame} : x < y ↔ x - y < 0 :=
+lt_iff_lt_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
+
+theorem equiv_iff_sub_equiv_zero {x y : pgame} : x ≈ y ↔ x - y ≈ 0 :=
+equiv_iff_equiv_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
+
+theorem fuzzy_iff_sub_fuzzy_zero {x y : pgame} : x ∥ y ↔ x - y ∥ 0 :=
+fuzzy_iff_fuzzy_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
+
+/-! ### Special pre-games -/
 
 /-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩

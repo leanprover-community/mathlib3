@@ -1205,6 +1205,7 @@ def open_cover.pushforward_iso {X Y : Scheme} (𝒰 : open_cover X)
   (λ _, iso.refl _)
   (λ _, (category.id_comp _).symm)
 
+/-- Adding an open immersion into an open cover gives another open cover. -/
 @[simps]
 def open_cover.add {X : Scheme} (𝒰 : X.open_cover) {Y : Scheme} (f : Y ⟶ X)
   [is_open_immersion f] : X.open_cover :=
@@ -1561,7 +1562,7 @@ lemma lift_uniq (H' : set.range g.1.base ⊆ set.range f.1.base) (l : Y ⟶ X)
   (hl : l ≫ f = g) : l = lift f g H' :=
 LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
 
-/-- Two open immersions with equal range is isomorphic. -/
+/-- Two open immersions with equal range are isomorphic. -/
 @[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.1.base = set.range g.1.base) :
   X ≅ Y :=
 { hom := lift g f (le_of_eq e),
@@ -1591,8 +1592,9 @@ def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
       is_open_immersion.lift_fac, is_open_immersion.lift_fac, is_open_immersion.lift_fac]
   end }
 
+/-- The restriction of an isomorphism onto an open set. -/
 noncomputable
-abbreviation Scheme.restrict_map_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :
+abbreviation Scheme.restrict_map_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :
   X.restrict ((opens.map f.1.base).obj U).open_embedding ≅ Y.restrict U.open_embedding :=
 is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _)
 begin
@@ -1625,6 +1627,7 @@ def Scheme.open_cover.pullback_cover {X : Scheme} (𝒰 : X.open_cover) {W : Sch
     { rw ← Top.epi_iff_surjective, apply_instance }
   end }
 
+/-- Given open covers `{ Uᵢ }` and `{ Uⱼ }`, we may form the open cover `{ Uᵢ ∩ Uⱼ }`. -/
 def Scheme.open_cover.inter {X : Scheme.{u}} (𝒰₁ : Scheme.open_cover.{v₁} X)
   (𝒰₂ : Scheme.open_cover.{v₂} X) : X.open_cover :=
 { J := 𝒰₁.J × 𝒰₂.J,

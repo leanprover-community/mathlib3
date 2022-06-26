@@ -18,7 +18,7 @@ triangulations of convex polygons.
 ## Main definitions
 
 * `catalan n`: the `n`th Catalan number, defined recursively as
-               `catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)`.
+  `catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)`.
 
 ## Main results
 
@@ -48,7 +48,7 @@ def catalan : ℕ → ℕ
 | (n + 1) := ∑ i : fin n.succ, have _ := i.2, have _ := nat.lt_succ_iff.mpr (n.sub_le i),
              catalan i * catalan (n - i)
 
-@[simp] lemma catalan_zero : catalan 0 = 1 := by rw catalan
+@[simp] lemma catalan_zero : catalan 0 = 1 := rfl
 
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan

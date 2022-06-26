@@ -106,7 +106,7 @@ begin
       ← two_mul],
 end
 
-lemma two_dvd_central_binom_of_one_le {n : ℕ} (h : 0 < n) : 2 ∣  central_binom n :=
+lemma two_dvd_central_binom_of_one_le {n : ℕ} (h : 0 < n) : 2 ∣ central_binom n :=
 begin
   rw ← nat.succ_pred_eq_of_pos h,
   exact two_dvd_central_binom_succ n.pred,

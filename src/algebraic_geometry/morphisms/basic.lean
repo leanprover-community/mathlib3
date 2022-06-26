@@ -63,7 +63,7 @@ def respects_iso (P : morphism_property) :=
 /-- A morphism property is `stable_under_composition` if the composition of two such morphisms
 still falls in the class. -/
 def stable_under_composition (P : morphism_property) :=
-  ∀ ⦃X Y Z⦄ (f : X ⟶ Y) (g : Y ⟶ Z), P f → P g → (P (f ≫ g))
+  ∀ ⦃X Y Z⦄ (f : X ⟶ Y) (g : Y ⟶ Z), P f → P g → P (f ≫ g)
 
 /-- A morphism property is `stable_under_composition` if the base change of such a morphism
 still falls in the class. -/

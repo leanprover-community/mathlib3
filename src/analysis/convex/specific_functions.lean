@@ -129,9 +129,9 @@ begin
   { exact this _ },
   { exact (this _).const_mul _ },
   { intros x hx,
-    simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-    refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
-    exact int_prod_range_nonneg _ _ (even_bit0 1) }
+    rw iter_deriv_zpow,
+    refine mul_nonneg _ (zpow_nonneg (le_of_lt hx) _),
+    exact_mod_cast int_prod_range_nonneg _ _ (even_bit0 1) }
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
@@ -145,14 +145,12 @@ begin
    all_goals { rw interior_Ioi },
   { exact this _ },
   intros x hx,
-  simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-  refine mul_pos (int.cast_pos.2 _) (zpow_pos_of_pos hx _),
-  refine int_prod_range_pos (even_bit0 1) (λ hm, _),
+  rw iter_deriv_zpow,
+  refine mul_pos _ (zpow_pos_of_pos hx _),
+  exact_mod_cast int_prod_range_pos (even_bit0 1) (λ hm, _),
   norm_cast at hm,
-  rw ←finset.coe_Ico at hm,
-  fin_cases hm,
-  { exact hm₀ rfl },
-  { exact hm₁ rfl }
+  rw ← finset.coe_Ico at hm,
+  fin_cases hm; cc,
 end
 
 lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=

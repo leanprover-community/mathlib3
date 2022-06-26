@@ -827,11 +827,10 @@ begin
   simp only [γ.cast_coe],
   refine and.intro hγ.2 _,
   rintros ⟨i, hi⟩,
-  convert hγ.1 i (nat.le_of_lt_succ hi), rw ← hpp' i hi,
-  congr,
-  ext,
-  rw fin.coe_coe_of_lt hi,
-  norm_cast
+  suffices : p ⟨i, hi⟩ = p' i, by convert hγ.1 i (nat.le_of_lt_succ hi),
+  rw ← hpp' i hi,
+  suffices : i = i % n.succ, { congr, assumption },
+  rw nat.mod_eq_of_lt hi,
 end
 
 lemma is_path_connected.exists_path_through_family'
@@ -854,8 +853,6 @@ joined by a continuous path. -/
 class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)
 (joined : ∀ x y : X, joined x y)
-
-attribute [instance, priority 50] path_connected_space.nonempty
 
 lemma path_connected_space_iff_zeroth_homotopy :
   path_connected_space X ↔ nonempty (zeroth_homotopy X) ∧ subsingleton (zeroth_homotopy X) :=
@@ -900,6 +897,7 @@ lemma path_connected_space_iff_univ : path_connected_space X ↔ is_path_connect
 begin
   split,
   { introI h,
+    haveI := @path_connected_space.nonempty X _ _,
     inhabit X,
     refine ⟨default, mem_univ _, _⟩,
     simpa using path_connected_space.joined default },

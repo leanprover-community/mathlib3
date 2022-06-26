@@ -290,6 +290,8 @@ instance : has_add cardinal.{u} := ⟨map₂ sum $ λ α β γ δ, equiv.sum_con
 
 theorem add_def (α β : Type u) : #α + #β = #(α ⊕ β) := rfl
 
+instance : has_nat_cast cardinal.{u} := ⟨nat.unary_cast⟩
+
 @[simp] lemma mk_sum (α : Type u) (β : Type v) :
   #(α ⊕ β) = lift.{v u} (#α) + lift.{u v} (#β) :=
 mk_congr ((equiv.ulift).symm.sum_congr (equiv.ulift).symm)
@@ -306,7 +308,7 @@ begin
   { introsI α β h e hα, letI := fintype.of_equiv β e.symm,
     rwa [mk_congr e, fintype.card_congr e] at hα },
   { refl },
-  { introsI α h hα, simp [hα] }
+  { introsI α h hα, simp [hα], refl }
 end
 
 instance : has_mul cardinal.{u} := ⟨map₂ prod $ λ α β γ δ, equiv.prod_congr⟩
@@ -364,7 +366,7 @@ instance : comm_semiring cardinal.{u} :=
   right_distrib := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.sum_prod_distrib α β γ,
   npow          := λ n c, c ^ n,
   npow_zero'    := @power_zero,
-  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, mul_comm'] }
+  npow_succ'    := λ n c, show c ^ (n + 1) = c * c ^ n, by rw [power_add, power_one, mul_comm'] }
 
 theorem power_bit0 (a b : cardinal) : a ^ (bit0 b) = a ^ b * a ^ b :=
 power_add
@@ -1017,14 +1019,14 @@ lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀
 @[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ :=
 denumerable_iff.1 ⟨‹_›⟩
 
-@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ countable s :=
+@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
 begin
   rw [countable_iff_exists_injective], split,
   { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
 
-@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ countable {x | p x} :=
+@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
 mk_set_le_aleph_0 _
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _

@@ -27,7 +27,7 @@ universes u v
 instance : nontrivial ℕ :=
 ⟨⟨0, 1, nat.zero_ne_one⟩⟩
 
-instance : comm_semiring nat :=
+instance : comm_semiring ℕ :=
 { add            := nat.add,
   add_assoc      := nat.add_assoc,
   zero           := nat.zero,
@@ -44,6 +44,9 @@ instance : comm_semiring nat :=
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm,
+  nat_cast       := id,
+  nat_cast_zero  := rfl,
+  nat_cast_succ  := λ n, rfl,
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
   nsmul_succ'    := λ n x,

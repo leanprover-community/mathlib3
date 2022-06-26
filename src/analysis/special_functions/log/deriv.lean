@@ -317,8 +317,8 @@ theorem power_series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
     { linarith, },
     { linarith, },
     { refine div_pos one_pos (by linarith), }, },
-  { rw log_succ_div_eq_log_sub h,
-    exact has_sum_log_sub_log_of_abs_lt_1 h₁, },
+  rw log_succ_div_eq_log_sub h,
+    exact has_sum_log_sub_log_of_abs_lt_1 h₁,
  end
 
 end real

@@ -112,8 +112,11 @@ lemma noetherian_space.range [noetherian_space α] (f : α → β) (hf : continu
 noetherian_space_of_surjective (set.cod_restrict f _ set.mem_range_self) (by continuity)
   (λ ⟨a, b, h⟩, ⟨b, subtype.ext h⟩)
 
-instance noetherian_space.discrete [noetherian_space α] [t2_space α] : discrete_topology α :=
+-- This is not an instance since it makes a loop with `t2_space_discrete`.
+lemma noetherian_space.discrete [noetherian_space α] [t2_space α] : discrete_topology α :=
 ⟨eq_bot_iff.mpr (λ U _, is_closed_compl_iff.mp (noetherian_space.is_compact _).is_closed)⟩
+
+local attribute [instance] noetherian_space.discrete
 
 /-- Spaces that are both Noetherian and Hausdorff is finite. -/
 noncomputable

@@ -78,12 +78,12 @@ begin
   convert (power_series_log_succ_div $ cast_pos.mpr (succ_pos m)).mul_left ((m.succ : ℝ) + 1 / 2),
   { ext k,
     rw [← pow_mul, pow_add],
-    have : 2 * (k : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},
-    have : 2 * (m.succ : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*m.succ)},
+    have : 2 * (k : ℝ) + 1 ≠ 0, {norm_cast, exact succ_ne_zero (2*k)},
+    have : 2 * (m.succ : ℝ) + 1 ≠ 0, {norm_cast, exact succ_ne_zero (2*m.succ)},
     field_simp,
     ring },
   { have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / 2 * b - c - (d - 1 / 2 * e - f) =
-      (a - d) - 1 / 2  * (b - e) - (c - f), by
+      (a - d) - 1 / 2  * (b - e) - (c - f),
     { intros, ring_nf },
     rw [log_stirling_seq_formula, log_stirling_seq_formula, h_reorder],
     repeat {rw [log_div, factorial_succ]},
@@ -122,13 +122,13 @@ lemma log_stirling_seq_diff_le_geo_sum (n : ℕ) :
   log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
-  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2), by
+  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
   { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
   have g : has_sum (λ k : ℕ, ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
-    ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)), by
+    ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)),
   { have h_pow_succ := λ k : ℕ,
       symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
-    have hlt : (1 / (2 * (n.succ : ℝ) + 1)) ^ 2 < 1, by
+    have hlt : (1 / (2 * (n.succ : ℝ) + 1)) ^ 2 < 1,
     { simp only [cast_succ, one_div, inv_pow],
       refine inv_lt_one _,
       norm_cast,
@@ -136,10 +136,10 @@ begin
         lt_add_iff_pos_left, canonically_ordered_comm_semiring.mul_pos, succ_pos', and_self], },
     exact (has_sum_geometric_of_lt_1 h_nonneg hlt).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) },
   have hab : ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
-    ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ, by
+    ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
   { intro k,
     have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ := pow_nonneg h_nonneg _,
-    have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1, by
+    have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1,
     { rw [cast_succ, one_div],
       refine inv_le_one _,
       norm_cast,

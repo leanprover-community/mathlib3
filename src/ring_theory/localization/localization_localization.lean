@@ -129,7 +129,7 @@ localization is a localization.
 -/
 lemma localization_localization_is_localization_of_has_all_units
   [is_localization N T] (H : ∀ (x : S), is_unit x → x ∈ N) :
-  is_localization (N.comap (algebra_map R S).to_monoid_hom) T :=
+  is_localization (N.comap (algebra_map R S)) T :=
 begin
   convert localization_localization_is_localization M N T,
   symmetry,

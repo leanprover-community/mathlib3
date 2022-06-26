@@ -60,6 +60,19 @@ instance : inhabited (closeds α) := ⟨⊥⟩
 @[simp] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
 
+lemma coe_finset_Sup {ι : Type*} (f : ι → closeds α) (s : finset ι) :
+  (↑(s.sup f) : set α) = ⋃ i ∈ s, f i :=
+begin
+  have : is_closed (⋃ i ∈ s, (f i : set α)) :=
+    is_closed_bUnion (set.finite_of_fintype _) (λ i _, (f i).2),
+  apply le_antisymm,
+  { change s.sup f ≤ ⟨_, this⟩,
+    rw finset.sup_le_iff,
+    exact λ b hb, @set.subset_bUnion_of_mem ι α _ _ b hb },
+  { simp only [set.Union_subset_iff, set.le_eq_subset],
+    exact λ i hi, @finset.le_sup _ _ _ _ _ f _ hi }
+end
+
 end closeds
 
 /-- The complement of a closed set as an open set. -/

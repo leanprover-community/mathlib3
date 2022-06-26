@@ -123,7 +123,8 @@ protected def pointwise_mul_action : mul_action α (submonoid M) :=
 { smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ M a),
   one_smul := λ S, by { ext, simp, },
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f : monoid.End M, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : monoid.End M, S.map f) (monoid_hom.map_mul _ _ _)).trans
+      (S.map_map _ _).symm,}
 
 localized "attribute [instance] submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise

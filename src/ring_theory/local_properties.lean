@@ -78,7 +78,7 @@ def ring_hom.localization_preserves :=
   ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S) (M : by exactI submonoid R)
     (R' S' : Type u) [comm_ring R'] [comm_ring S'] [by exactI algebra R R']
     [by exactI algebra S S'] [by exactI is_localization M R']
-    [by exactI is_localization (M.map (f : R →* S)) S'],
+    [by exactI is_localization (M.map f) S'],
     by exactI (P f → P (is_localization.map S' f (submonoid.le_comap_map M) : R' →+* S'))
 
 /-- A property `P` of ring homs satisfies `ring_hom.of_localization_finite_span`

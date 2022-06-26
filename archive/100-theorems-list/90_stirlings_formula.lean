@@ -40,7 +40,7 @@ Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
-(n.factorial : ℝ) / (sqrt(2 * n) * (n / exp 1) ^ n)
+n.factorial / (sqrt (2 * n) * (n / exp 1) ^ n)
 
 /-- Define `log_stirling_seq n` as the log of `stirling_seq n`. -/
 noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
@@ -49,8 +49,8 @@ noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 We have the expression
 `log_stirling_seq (n + 1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
-lemma log_stirling_seq_formula (n : ℕ) : log_stirling_seq n.succ = log n.succ.factorial -
-  1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
+lemma log_stirling_seq_formula (n : ℕ) : log_stirling_seq n.succ = 
+  log n.succ.factorial - 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
   have h3, from sqrt_ne_zero'.mpr (mul_pos two_pos $ cast_pos.mpr (succ_pos n)),
   have h4 : 0 ≠ ((n.succ : ℝ) / exp 1) ^ n.succ, from
@@ -83,8 +83,8 @@ begin
     field_simp,
     ring },
   { simp only [log_stirling_seq_formula, log_div, log_mul, log_exp, factorial_succ, cast_mul,
-    cast_succ, cast_zero, range_one, sum_singleton] { discharger :=
-    `[norm_cast, apply_rules [mul_ne_zero, succ_ne_zero, factorial_ne_zero, exp_ne_zero]] },
+      cast_succ, cast_zero, range_one, sum_singleton] { discharger :=
+      `[norm_cast, apply_rules [mul_ne_zero, succ_ne_zero, factorial_ne_zero, exp_ne_zero]] },
     ring },
   { apply_instance }
 end
@@ -144,12 +144,12 @@ lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
   log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ ^ 2) :=
 begin
   have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
-  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n ],
+  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
   have h₂ : 0 < 1 - (1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2,
   { rw ← mul_lt_mul_right h₃,
-    have H : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n ],
+    have H : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n],
     convert H using 1; field_simp [h₃.ne'] },
-  refine le_trans (log_stirling_seq_diff_le_geo_sum n) _,
+  refine (log_stirling_seq_diff_le_geo_sum n).trans _,
   push_cast at *,
   rw div_le_div_iff h₂ h₁,
   field_simp [h₃.ne'],
@@ -160,8 +160,8 @@ begin
 end
 
 /-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4 * ∑' 1/k^2`  -/
-lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
-  log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
+lemma log_stirling_seq_bounded_aux :
+  ∃ (c : ℝ), ∀ (n : ℕ), log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
   let d := ∑' k : ℕ, (1 : ℝ) / k.succ ^ 2,
   use (1 / 4 * d : ℝ),
@@ -221,7 +221,7 @@ lemma stirling_seq'_antitone : antitone (stirling_seq ∘ succ) :=
 
 /-- The limit `a` of the sequence `stirling_seq` satisfies `0 < a` -/
 lemma stirling_seq_has_pos_limit_a :
-  ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a) :=
+  ∃ (a : ℝ), 0 < a ∧ tendsto stirling_seq at_top (𝓝 a) :=
 begin
   obtain ⟨x, x_pos, hx⟩ := stirling_seq'_bounded_by_pos_constant,
   have hx' : x ∈ lower_bounds (set.range (stirling_seq ∘ succ)) := by simpa [lower_bounds] using hx,

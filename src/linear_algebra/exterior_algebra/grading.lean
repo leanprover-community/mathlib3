@@ -44,6 +44,7 @@ variables {R M}
 instance graded_algebra :
   graded_algebra ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
+  -- while not necessary, the `by apply` makes this elaborate faster
   (lift R ⟨by apply graded_algebra.ι R M, by apply graded_algebra.ι_sq_zero R M⟩)
   -- the proof from here onward is identical to the `tensor_algebra` case
   (begin

@@ -304,7 +304,8 @@ lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [(P : subgroup G)
   (hP : (P : subgroup G).index ≠ 0) : ¬ p ∣ (P : subgroup G).index :=
 begin
   intro h,
-  haveI : fintype (G ⧸ (P : subgroup G)) := fintype_of_index_ne_zero hP,
+  haveI : finite (G ⧸ (P : subgroup G)) := finite_quotient_of_index_ne_zero hP,
+  casesI nonempty_fintype (G ⧸ (P : subgroup G)),
   rw index_eq_card at h,
   obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
   have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),

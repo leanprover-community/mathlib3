@@ -3,7 +3,6 @@ Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
-
 import group_theory.sylow
 import group_theory.transfer
 
@@ -286,8 +285,8 @@ begin
   have hN3 : nat.card G ≠ 0,
   { rw ← N.card_mul_index,
     exact mul_ne_zero hN1 hN2 },
-  haveI := (cardinal.lt_aleph_0_iff_fintype.mp
-    (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hN3))).some,
+  haveI := finite.of_card_ne_zero hN3,
+  casesI nonempty_fintype G,
   rw nat.card_eq_fintype_card at hN,
   exact exists_right_complement'_of_coprime_of_fintype hN,
 end

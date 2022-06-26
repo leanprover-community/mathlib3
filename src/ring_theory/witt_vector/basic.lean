@@ -230,6 +230,7 @@ include hp
 
 local attribute [instance]
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
+by letI : comm_ring (mv_polynomial R ℚ) := mv_polynomial.comm_ring; exact
 (ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring (ghost_fun)
   ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg ghost_fun_sub
   ghost_fun_nsmul ghost_fun_zsmul ghost_fun_pow ghost_fun_nat_cast ghost_fun_int_cast

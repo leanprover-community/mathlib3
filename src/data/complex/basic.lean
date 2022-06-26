@@ -200,6 +200,10 @@ intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 instance. -/
 instance : ring ℂ := by apply_instance
 
+/-- This shortcut instance ensures we do not find `comm_semiring` via the noncomputable
+`complex.field` instance. -/
+instance : comm_semiring ℂ := infer_instance
+
 /-- The "real part" map, considered as an additive group homomorphism. -/
 def re_add_group_hom : ℂ →+ ℝ :=
 { to_fun := re,

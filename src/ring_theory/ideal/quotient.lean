@@ -190,10 +190,8 @@ begin
 end
 
 /-- The quotient of a ring by an ideal is a field iff the ideal is maximal. -/
-theorem maximal_ideal_iff_is_field_quotient (I : ideal R) :
-  I.is_maximal ↔ is_field (R ⧸ I) :=
-⟨λ h, @field.to_is_field (R ⧸ I) (@ideal.quotient.field _ _ I h),
- λ h, maximal_of_is_field I h⟩
+theorem maximal_ideal_iff_is_field_quotient (I : ideal R) : I.is_maximal ↔ is_field (R ⧸ I) :=
+⟨λ h, by { letI := @quotient.field _ _ I h, exact field.to_is_field _ }, maximal_of_is_field _⟩
 
 variable [comm_ring S]
 

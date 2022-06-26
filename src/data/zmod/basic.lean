@@ -758,7 +758,7 @@ have inv : function.left_inverse inv_fun to_fun ∧ function.right_inverse inv_f
             (nat.chinese_remainder h (x : zmod m).val (x : zmod n).val).2.right.trans _⟩,
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] },
           { rw [← zmod.eq_iff_modeq_nat, zmod.nat_cast_zmod_val, zmod.nat_cast_val] } },
-        exact ⟨left_inv, fintype.right_inverse_of_left_inverse_of_card_le left_inv (by simp)⟩,
+        exact ⟨left_inv, left_inv.right_inverse_of_card_le (by simp)⟩,
       end,
 { to_fun := to_fun,
   inv_fun := inv_fun,

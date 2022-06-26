@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.complex.circle
+import analysis.normed_space.ball_action
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group
@@ -438,6 +439,7 @@ instance : lie_group (𝓡 1) circle :=
   end,
   smooth_inv := begin
     apply cont_mdiff.cod_restrict_sphere,
+    simp only [← coe_inv_circle, coe_inv_circle_eq_conj],
     exact complex.conj_cle.cont_diff.cont_mdiff.comp cont_mdiff_coe_sphere
   end }
 

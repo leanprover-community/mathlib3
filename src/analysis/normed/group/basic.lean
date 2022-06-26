@@ -372,15 +372,6 @@ ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
 ne_zero_of_mem_sphere one_ne_zero _
 
-/-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
-antipodal map. -/
-instance {r : ℝ} : has_neg (sphere (0:E) r) :=
-{ neg := λ w, ⟨-↑w, by simp⟩ }
-
-@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
-  (((-v) : sphere _ _) : E) = - (v:E) :=
-rfl
-
 namespace isometric
 -- TODO This material is superseded by similar constructions such as
 -- `affine_isometry_equiv.const_vadd`; deduplicate

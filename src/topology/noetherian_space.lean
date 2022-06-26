@@ -171,7 +171,7 @@ begin
       rintro _ z hz rfl,
       exact z.2 },
     { convert set.subset_univ _,
-      convert (closeds.coe_finset_Sup id S).symm using 1,
+      convert (closeds.coe_finset_sup id S).symm using 1,
       { rw [finset.coe_image, set.sUnion_image], refl },
       { rw ← hS₂, refl } } },
   obtain ⟨s, hs, e⟩ := finset.mem_image.mp hz,

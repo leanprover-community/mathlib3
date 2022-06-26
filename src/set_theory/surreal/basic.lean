@@ -63,21 +63,29 @@ namespace pgame
 and all the elements of L and R are also numeric. -/
 def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
-  (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
+  (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ j, numeric (R j))
 
-lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
-  (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
+lemma numeric_def {x : pgame} : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
+  (∀ i, numeric (x.move_left i)) ∧ (∀ j, numeric (x.move_right j)) :=
 by { cases x, refl }
 
-lemma numeric.left_lt_right {x : pgame} (o : numeric x) (i : x.left_moves) (j : x.right_moves) :
+namespace numeric
+
+lemma mk {x : pgame} (h₁ : ∀ i j, x.move_left i < x.move_right j)
+  (h₂ : ∀ i, numeric (x.move_left i)) (h₃ : ∀ j, numeric (x.move_right j)) : numeric x :=
+numeric_def.2 ⟨h₁, h₂, h₃⟩
+
+lemma left_lt_right {x : pgame} (o : numeric x) (i : x.left_moves) (j : x.right_moves) :
   x.move_left i < x.move_right j :=
-by { cases x with xl xr xL xR, exact o.1 i j }
-lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
+by { cases x, exact o.1 i j }
+lemma move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) :=
-by { cases x with xl xr xL xR, exact o.2.1 i }
-lemma numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
+by { cases x, exact o.2.1 i }
+lemma move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   numeric (x.move_right j) :=
-by { cases x with xl xr xL xR, exact o.2.2 j }
+by { cases x, exact o.2.2 j }
+
+end numeric
 
 @[elab_as_eliminator]
 theorem numeric_rec {C : pgame → Prop}
@@ -151,15 +159,15 @@ theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) : x < 
 
 theorem numeric_of_is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] :
   numeric x :=
-(numeric_def x).2 ⟨is_empty_elim, is_empty_elim, is_empty_elim⟩
+numeric.mk is_empty_elim is_empty_elim is_empty_elim
 
-theorem numeric_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves]
-  (H : ∀ j, numeric (x.move_right j)) : numeric x :=
-(numeric_def x).2 ⟨is_empty_elim, is_empty_elim, H⟩
+theorem numeric_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] :
+  (∀ j, numeric (x.move_right j)) → numeric x :=
+numeric.mk is_empty_elim is_empty_elim
 
 theorem numeric_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves]
   (H : ∀ i, numeric (x.move_left i)) : numeric x :=
-(numeric_def x).2 ⟨λ _, is_empty_elim, H, is_empty_elim⟩
+numeric.mk (λ _, is_empty_elim) H is_empty_elim
 
 theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
 theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
@@ -167,17 +175,19 @@ theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, num
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
 | ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_neg_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
-theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
+namespace numeric
+
+theorem move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
 (pgame.move_left_lf i).lt (o.move_left i) o
-theorem numeric.move_left_le {x : pgame} (o : numeric x) (i) : x.move_left i ≤ x :=
+theorem move_left_le {x : pgame} (o : numeric x) (i) : x.move_left i ≤ x :=
 (o.move_left_lt i).le
 
-theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right j :=
+theorem lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right j :=
 (pgame.lf_move_right j).lt o (o.move_right j)
-theorem numeric.le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
+theorem le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
 (o.lt_move_right j).le
 
-theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
+theorem add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
 ⟨begin
    rintros (ix|iy) (jx|jy),
@@ -199,7 +209,9 @@ theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
+lemma sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
+
+end numeric
 
 /-- Pre-games defined by natural numbers are numeric. -/
 theorem numeric_nat : Π (n : ℕ), numeric n

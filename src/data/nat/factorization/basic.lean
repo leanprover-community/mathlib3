@@ -92,11 +92,12 @@ lemma factorization_inj : set.inj_on factorization { x : ℕ | x ≠ 0 } :=
 λ a ha b hb h, eq_of_factorization_eq ha hb (λ p, by simp [h])
 
 @[simp] lemma factorization_zero : factorization 0 = 0 :=
-by simp [factorization]
+by { simp [factorization], refl }
 
 @[simp] lemma factorization_one : factorization 1 = 0 :=
-by simp [factorization]
+by { simp [factorization], refl }
 
+#exit
 /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : ℕ} : n.factorization.support = n.factors.to_finset :=
 by simp [factorization]

@@ -825,7 +825,7 @@ begin
           calc (a i ^ (n + 1)) • (Y i)ᶜ
                 = (a i ^ n * a i) • (Y i)ᶜ : by rw [zpow_add, zpow_one]
             ... = a i ^ n • (a i • (Y i)ᶜ) : mul_action.mul_smul _ _ _
-            ... ⊆ a i ^ n • X i : smul_set_mono hX i
+            ... ⊆ a i ^ n • X i : smul_set_mono $ hX i
             ... ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono (hXYdisj i i).subset_compl_right
             ... ⊆ X i : hi, },
       end
@@ -841,7 +841,7 @@ begin
           calc (a i ^ (n - 1)) • (X i)ᶜ
                 = (a i ^ n * (a i)⁻¹) • (X i)ᶜ : by rw [zpow_sub, zpow_one]
             ... = a i ^ n • ((a i)⁻¹ • (X i)ᶜ) : mul_action.mul_smul _ _ _
-            ... ⊆ a i ^ n • Y i : smul_set_mono hY i
+            ... ⊆ a i ^ n • Y i : smul_set_mono $ hY i
             ... ⊆ a i ^ n • (X i)ᶜ : smul_set_mono (hXYdisj i i).symm.subset_compl_right
             ... ⊆ Y i : hi, },
       end

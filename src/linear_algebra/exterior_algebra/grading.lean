@@ -44,7 +44,7 @@ def lift_ι : exterior_algebra R M →ₐ[R]
   ⨁ (i : ℕ), ↥((ι R).range ^ i : submodule R (exterior_algebra R M)) :=
 lift R ⟨by apply graded_algebra.ι R M, by apply graded_algebra.ι_sq_zero R M⟩
 
-variables {R M}
+variables (R M)
 
 lemma lift_ι_eq (i : ℕ) (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
   lift_ι R M x =
@@ -62,6 +62,7 @@ begin
     exact direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext (add_comm _ _) rfl) }
 end
 
+set_option profiler true
 /-- The exterior algebra is graded by the powers of the submodule `(exterior_algebra.ι R).range`. -/
 instance graded_algebra :
   graded_algebra ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R _) :=
@@ -75,6 +76,6 @@ graded_algebra.of_alg_hom _
       alg_hom.id_apply, lift_ι],
     rw [lift_ι_apply, graded_algebra.ι_apply R M, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by apply lift_ι_eq)
+  (by apply lift_ι_eq R M)
 
 end exterior_algebra

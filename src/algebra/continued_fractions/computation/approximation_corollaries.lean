@@ -73,7 +73,6 @@ section convergence
 We next show that `(generalized_continued_fraction.of v).convergents v` converges to `v`.
 -/
 
-variable [archimedean K]
 open nat
 
 theorem of_convergence_epsilon :

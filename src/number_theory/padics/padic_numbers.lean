@@ -664,7 +664,7 @@ def lim_seq : ℕ → ℚ := λ n, classical.some (rat_dense' (f n) (div_nat_pos
 lemma exi_rat_seq_conv {ε : ℚ} (hε : 0 < ε) :
   ∃ N, ∀ i ≥ N, padic_norm_e (f i - ((lim_seq f) i : ℚ_[p])) < ε :=
 begin
-  refine (exists_nat_gt (1/ε)).imp (λ N hN i hi, _),
+  refine (nat.exists_nat_gt (1/ε)).imp (λ N hN i hi, _),
   have h := classical.some_spec (rat_dense' (f i) (div_nat_pos i)),
   refine lt_of_lt_of_le h ((div_le_iff' $ by exact_mod_cast succ_pos _).mpr _),
   rw right_distrib,

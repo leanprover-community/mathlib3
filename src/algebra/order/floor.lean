@@ -85,6 +85,12 @@ def ceil : α → ℕ := floor_semiring.ceil
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
 
+lemma exists_nat_ge (x : α) : ∃ (n : ℕ), x ≤ ↑n :=
+⟨⌈x⌉₊, (floor_semiring.gc_ceil x ⌈x⌉₊).mp rfl.le⟩
+
+lemma exists_nat_gt [nontrivial α] (x : α) : ∃ (n : ℕ), x < ↑n :=
+⟨_, lt_of_le_of_lt ((floor_semiring.gc_ceil x ⌈x⌉₊).mp rfl.le) (cast_lt.mpr (lt_succ_self ⌈x⌉₊))⟩
+
 end ordered_semiring
 
 section linear_ordered_semiring
@@ -333,6 +339,18 @@ by { convert floor_div_nat (m : α) n, rw m.floor_coe }
 end linear_ordered_field
 
 end nat
+
+namespace int
+
+variables [ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
+
+theorem exists_int_gt [nontrivial α] (x : α) : ∃ n : ℤ, x < n :=
+let ⟨n, h⟩ := nat.exists_nat_gt x in ⟨n, by rwa ← coe_coe⟩
+
+theorem exists_int_lt [nontrivial α] (x : α) : ∃ n : ℤ, (n : α) < x :=
+let ⟨n, h⟩ := int.exists_int_gt (-x) in ⟨-n, by rw int.cast_neg; exact neg_lt.1 h⟩
+
+end int
 
 /-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
 lemma subsingleton_floor_semiring {α} [linear_ordered_semiring α] :

@@ -3,101 +3,108 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
+import algebra.order.floor
 import algebra.order.archimedean
 import order.filter.at_top_bot
 
 /-!
 # `at_top` filter and archimedean (semi)rings/fields
 
-In this file we prove that for a linear ordered archimedean semiring `R` and a function `f : α → ℕ`,
+In this file we prove that for a floor semiring `R` and a function `f : α → ℕ`,
 the function `coe ∘ f : α → R` tends to `at_top` along a filter `l` if and only if so does `f`.
 We also prove that `coe : ℕ → R` tends to `at_top` along `at_top`, as well as version of these
 two results for `ℤ` (and a ring `R`) and `ℚ` (and a field `R`).
+
+In the latter half of the file, we focus on the archimedean property, showing if a function
+tends to infinity along a filter, then this function multiplied by a positive constant
+(on the left) also tends to infinity, and several direct consequences.
 -/
 
 variables {α R : Type*}
 
 open filter set
 
-@[simp] lemma nat.comap_coe_at_top [ordered_semiring R] [nontrivial R] [archimedean R] :
+@[simp] lemma nat.comap_coe_at_top [ordered_semiring R] [nontrivial R] [floor_semiring R] :
   comap (coe : ℕ → R) at_top = at_top :=
-comap_embedding_at_top (λ _ _, nat.cast_le) exists_nat_ge
+comap_embedding_at_top (λ _ _, nat.cast_le) nat.exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [floor_semiring R]
   {f : α → ℕ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
+tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) nat.exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
+lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [floor_semiring R] :
   tendsto (coe : ℕ → R) at_top at_top :=
-nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
+nat.mono_cast.tendsto_at_top_at_top nat.exists_nat_ge
 
-@[simp] lemma int.comap_coe_at_top [ordered_ring R] [nontrivial R] [archimedean R] :
+@[simp] lemma int.comap_coe_at_top [ordered_ring R] [nontrivial R] [floor_semiring R] :
   comap (coe : ℤ → R) at_top = at_top :=
-comap_embedding_at_top (λ _ _, int.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, hn⟩
+comap_embedding_at_top (λ _ _, int.cast_le) $ λ r, let ⟨n, hn⟩ := nat.exists_nat_ge r in ⟨n, hn⟩
 
-@[simp] lemma int.comap_coe_at_bot [ordered_ring R] [nontrivial R] [archimedean R] :
+@[simp] lemma int.comap_coe_at_bot [ordered_ring R] [nontrivial R] [floor_semiring R] :
   comap (coe : ℤ → R) at_bot = at_bot :=
 comap_embedding_at_bot (λ _ _, int.cast_le) $ λ r,
-  let ⟨n, hn⟩ := exists_nat_ge (-r) in ⟨-n, by simpa [neg_le] using hn⟩
+  let ⟨n, hn⟩ := nat.exists_nat_ge (-r) in ⟨-n, by simpa [neg_le] using hn⟩
 
-lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [floor_semiring R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_top]
 
-lemma tendsto_coe_int_at_bot_iff [ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_bot_iff [ordered_ring R] [nontrivial R] [floor_semiring R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_bot]
 
-lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
+lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [floor_semiring R] :
   tendsto (coe : ℤ → R) at_top at_top :=
 int.cast_mono.tendsto_at_top_at_top $ λ b,
-  let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
+  let ⟨n, hn⟩ := nat.exists_nat_ge b in ⟨n, hn⟩
 
-@[simp] lemma rat.comap_coe_at_top [linear_ordered_field R] [archimedean R] :
+@[simp] lemma rat.comap_coe_at_top [linear_ordered_field R] [floor_semiring R] :
   comap (coe : ℚ → R) at_top = at_top :=
-comap_embedding_at_top (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, by simpa⟩
+comap_embedding_at_top (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ :=
+  nat.exists_nat_ge r in ⟨n, by simpa⟩
 
-@[simp] lemma rat.comap_coe_at_bot [linear_ordered_field R] [archimedean R] :
+@[simp] lemma rat.comap_coe_at_bot [linear_ordered_field R] [floor_semiring R] :
   comap (coe : ℚ → R) at_bot = at_bot :=
-comap_embedding_at_bot (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge (-r)
+comap_embedding_at_bot (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ := nat.exists_nat_ge (-r)
   in ⟨-n, by simpa [neg_le]⟩
 
-lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
+lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [floor_semiring R]
   {f : α → ℚ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 by rw [← tendsto_comap_iff, rat.comap_coe_at_top]
 
-lemma tendsto_coe_rat_at_bot_iff [linear_ordered_field R] [archimedean R]
+lemma tendsto_coe_rat_at_bot_iff [linear_ordered_field R] [floor_semiring R]
   {f : α → ℚ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
 by rw [← tendsto_comap_iff, rat.comap_coe_at_bot]
 
-lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+lemma at_top_countable_basis_of_floor_semiring [linear_ordered_semiring R] [floor_semiring R] :
   (at_top : filter R).has_countable_basis (λ n : ℕ, true) (λ n, Ici n) :=
 { countable := countable_encodable _,
   to_has_basis := at_top_basis.to_has_basis
-    (λ x hx, let ⟨n, hn⟩ := exists_nat_ge x in ⟨n, trivial, Ici_subset_Ici.2 hn⟩)
+    (λ x hx, let ⟨n, hn⟩ := nat.exists_nat_ge x in ⟨n, trivial, Ici_subset_Ici.2 hn⟩)
     (λ n hn, ⟨n, trivial, subset.rfl⟩) }
 
-lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean R] :
+lemma at_bot_countable_basis_of_floor_semiring [linear_ordered_ring R] [floor_semiring R] :
   (at_bot : filter R).has_countable_basis (λ m : ℤ, true) (λ m, Iic m) :=
 { countable := countable_encodable _,
   to_has_basis := at_bot_basis.to_has_basis
-    (λ x hx, let ⟨m, hm⟩ := exists_int_lt x in ⟨m, trivial, Iic_subset_Iic.2 hm.le⟩)
+    (λ x hx, let ⟨m, hm⟩ := int.exists_int_lt x in ⟨m, trivial, Iic_subset_Iic.2 hm.le⟩)
     (λ m hm, ⟨m, trivial, subset.rfl⟩) }
 
 @[priority 100]
-instance at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+instance at_top_countably_generated_of_floor_semiring
+  [linear_ordered_semiring R] [floor_semiring R] :
   (at_top : filter R).is_countably_generated :=
-at_top_countable_basis_of_archimedean.is_countably_generated
+at_top_countable_basis_of_floor_semiring.is_countably_generated
 
 @[priority 100]
-instance at_bot_countably_generated_of_archimedean [linear_ordered_ring R] [archimedean R] :
+instance at_bot_countably_generated_of_floor_semiring [linear_ordered_ring R] [floor_semiring R] :
   (at_bot : filter R).is_countably_generated :=
-at_bot_countable_basis_of_archimedean.is_countably_generated
+at_bot_countable_basis_of_floor_semiring.is_countably_generated
 
 namespace filter
 

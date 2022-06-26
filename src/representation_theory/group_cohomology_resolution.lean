@@ -50,14 +50,13 @@ universes u
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
 open_locale tensor_product
-open finsupp (hiding lift)
 
 local notation `Gⁿ` := fin n → G
 local notation `Gⁿ⁺¹` := fin (n + 1) → G
 
 namespace group_cohomology.resolution
 
-open list (partial_prod) representation
+open finsupp (hiding lift) fin (partial_prod) representation
 
 variables (k G n) [group G]
 

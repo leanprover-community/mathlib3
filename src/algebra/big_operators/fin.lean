@@ -137,34 +137,33 @@ lemma prod_trunc {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M)
   ∏ (i : fin a), f (cast_le (nat.le.intro rfl) i) :=
 by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
 
-end fin
-
-namespace list
-
-section monoid
+section partial_prod
 
 variables [monoid α] {n : ℕ}
 
-/-- Given `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_prod f` is `(1, a₁, a₁a₂, ..., a₁...aₙ)` in `αⁿ⁺¹`.
--/
-@[to_additive "Given `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_sum f` is
-`(1, a₁, a₁ + a₂, ..., a₁ + ... + aₙ)` in `αⁿ⁺¹`."]
+/-- For `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_prod f` is `(1, a₁, a₁a₂, ..., a₁...aₙ)` in `αⁿ⁺¹`. -/
+@[to_additive "For `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_sum f` is
+`(0, a₁, a₁ + a₂, ..., a₁ + ... + aₙ)` in `αⁿ⁺¹`."]
 def partial_prod (f : fin n → α) (i : fin (n + 1)) : α :=
 ((list.of_fn f).take i).prod
 
-@[simp] lemma to_prod_zero (f : fin n → α) :
+@[simp, to_additive] lemma partial_prod_zero (f : fin n → α) :
   partial_prod f 0 = 1 :=
 by simp [partial_prod]
 
-lemma to_prod_succ (f : fin n → α) (j : fin n) :
+@[to_additive] lemma partial_prod_succ (f : fin n → α) (j : fin n) :
   partial_prod f j.succ = partial_prod f j.cast_succ * (f j) :=
 by simp [partial_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←option.coe_def]
 
-lemma to_prod_succ' (f : fin (n + 1) → α) (j : fin (n + 1)) :
+@[to_additive] lemma partial_prod_succ' (f : fin (n + 1) → α) (j : fin (n + 1)) :
   partial_prod f j.succ = f 0 * partial_prod (fin.tail f) j :=
 by simpa [partial_prod]
 
-end monoid
+end partial_prod
+
+end fin
+
+namespace list
 
 section comm_monoid
 

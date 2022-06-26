@@ -454,7 +454,7 @@ begin
   apply_instance
 end
 
-instance pullback_one_is_open_immersion [is_open_immersion g] :
+instance pullback_to_base_is_open_immersion [is_open_immersion g] :
   is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
 begin
   rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
@@ -724,7 +724,7 @@ begin
   apply_instance
 end
 
-instance SheafedSpace_pullback_one_is_open_immersion [SheafedSpace.is_open_immersion g] :
+instance SheafedSpace_pullback_to_base_is_open_immersion [SheafedSpace.is_open_immersion g] :
   SheafedSpace.is_open_immersion (limit.π (cospan f g) one : pullback f g ⟶ Z) :=
 begin
   rw [←limit.w (cospan f g) hom.inl, cospan_map_inl],
@@ -935,7 +935,7 @@ begin
   apply_instance
 end
 
-instance pullback_one_is_open_immersion [LocallyRingedSpace.is_open_immersion g] :
+instance pullback_to_base_is_open_immersion [LocallyRingedSpace.is_open_immersion g] :
   LocallyRingedSpace.is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
 begin
   rw [←limit.w (cospan f g) walking_cospan.hom.inl, cospan_map_inl],
@@ -1488,7 +1488,7 @@ begin
   apply_instance
 end
 
-instance pullback_one [is_open_immersion g] :
+instance pullback_to_base [is_open_immersion g] :
   is_open_immersion (limit.π (cospan f g) walking_cospan.one) :=
 begin
   rw ← limit.w (cospan f g) walking_cospan.hom.inl,
@@ -1537,7 +1537,7 @@ begin
   apply_instance
 end
 
-lemma range_pullback_one_of_left :
+lemma range_pullback_to_base_of_left :
     set.range (pullback.fst ≫ f : pullback f g ⟶ Z).1.base =
       set.range f.1.base ∩ set.range g.1.base :=
 begin
@@ -1546,7 +1546,7 @@ begin
     set.inter_comm],
 end
 
-lemma range_pullback_one_of_right :
+lemma range_pullback_to_base_of_right :
     set.range (pullback.fst ≫ g : pullback g f ⟶ Z).1.base =
       set.range g.1.base ∩ set.range f.1.base :=
 begin
@@ -1643,7 +1643,7 @@ def Scheme.open_cover.inter {X : Scheme.{u}} (𝒰₁ : Scheme.open_cover.{v₁}
   obj := λ ij, pullback (𝒰₁.map ij.1) (𝒰₂.map ij.2),
   map := λ ij, pullback.fst ≫ 𝒰₁.map ij.1,
   f := λ x, ⟨𝒰₁.f x, 𝒰₂.f x⟩,
-  covers := λ x, by { rw is_open_immersion.range_pullback_one_of_left,
+  covers := λ x, by { rw is_open_immersion.range_pullback_to_base_of_left,
     exact ⟨𝒰₁.covers x, 𝒰₂.covers x⟩ } }
 
 section morphism_restrict

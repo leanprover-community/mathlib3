@@ -7,6 +7,7 @@ import topology.algebra.module.basic
 import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
+import topology.algebra.star
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 
@@ -60,6 +61,18 @@ instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
 lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 
 @[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
+
+instance [has_nat_cast β] : has_nat_cast C(α, β) :=
+⟨λ n, continuous_map.const _ n⟩
+
+@[simp, norm_cast]
+lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+
+instance [has_int_cast β] : has_int_cast C(α, β) :=
+⟨λ n, continuous_map.const _ n⟩
+
+@[simp, norm_cast]
+lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_scalar ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
@@ -185,6 +198,10 @@ instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [mul_zero_class β] [has_continuous_mul β] : mul_zero_class C(α, β) :=
 coe_injective.mul_zero_class _ coe_zero coe_mul
 
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero C(α, β) :=
+coe_injective.semigroup_with_zero _ coe_zero coe_mul
+
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
@@ -275,17 +292,17 @@ coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
     rw continuous_iff_continuous_at,
     rintros ⟨f, g⟩,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on, nhds_prod_eq],
-    exactI λ K hK, ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
-      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)).comp'
-      uniform_continuous_mul },
+    exactI λ K hK, uniform_continuous_mul.comp_tendsto_uniformly_on
+      ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)), },
   continuous_inv := by
   { letI : uniform_space β := topological_group.to_uniform_space β,
     have : uniform_group β := topological_group_is_uniform,
     rw continuous_iff_continuous_at,
     intro f,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
-    exactI λ K hK, (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).comp'
-      uniform_continuous_inv } }
+    exactI λ K hK, uniform_continuous_inv.comp_tendsto_uniformly_on
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK), } }
 
 end continuous_map
 
@@ -319,26 +336,64 @@ end subtype
 namespace continuous_map
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_non_assoc_semiring β] [topological_semiring β] :
+  non_unital_non_assoc_semiring C(α, β) :=
+coe_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul coe_nsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_semiring β] [topological_semiring β] :
+  non_unital_semiring C(α, β) :=
+coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul coe_nsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [add_monoid_with_one β] [has_continuous_add β] :
+  add_monoid_with_one C(α, β) :=
+coe_injective.add_monoid_with_one _ coe_zero coe_one coe_add coe_nsmul coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_assoc_semiring β] [topological_semiring β] :
+  non_assoc_semiring C(α, β) :=
+coe_injective.non_assoc_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [semiring β] [topological_semiring β] : semiring C(α, β) :=
-{ left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
-  right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
-  ..continuous_map.add_comm_monoid,
-  ..continuous_map.monoid_with_zero }
+coe_injective.semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_non_assoc_ring β] [topological_ring β] : non_unital_non_assoc_ring C(α, β) :=
+coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  coe_nsmul coe_zsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_ring β] [topological_ring β] : non_unital_ring C(α, β) :=
+coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_assoc_ring β] [topological_ring β] : non_assoc_ring C(α, β) :=
+coe_injective.non_assoc_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+  coe_nat_cast coe_int_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring C(α, β) :=
-{ ..continuous_map.semiring,
-  ..continuous_map.add_comm_group, }
+coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul coe_pow
+  coe_nat_cast coe_int_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_semiring β] [topological_semiring β] : non_unital_comm_semiring C(α, β) :=
+coe_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_semiring β] [topological_semiring β] : comm_semiring C(α, β) :=
-{ ..continuous_map.semiring,
-  ..continuous_map.comm_monoid, }
+coe_injective.comm_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow coe_nat_cast
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_ring β] [topological_ring β] : non_unital_comm_ring C(α, β) :=
+coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_ring β] [topological_ring β] : comm_ring C(α, β) :=
-{ ..continuous_map.comm_semiring,
-  ..continuous_map.ring, }
+coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+  coe_pow coe_nat_cast coe_int_cast
 
 /-- Composition on the left by a (continuous) homomorphism of topological semirings, as a
 `ring_hom`.  Similar to `ring_hom.comp_left`. -/
@@ -720,5 +775,56 @@ lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + |f - g|) :
 ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
 
 end lattice
+
+/-!
+### Star structure
+
+If `β` has a continuous star operation, we put a star structure on `C(α, β)` by using the
+star operation pointwise.
+
+If `β` is a ⋆-ring, then `C(α, β)` inherits a ⋆-ring structure.
+
+If `β` is a ⋆-ring and a ⋆-module over `R`, then the space of continuous functions from `α` to `β`
+is a ⋆-module over `R`.
+
+-/
+
+section star_structure
+variables {R α β : Type*}
+variables [topological_space α] [topological_space β]
+
+section has_star
+variables [has_star β] [has_continuous_star β]
+
+instance : has_star C(α, β) :=
+{ star := λ f, star_continuous_map.comp f }
+
+@[simp] lemma coe_star (f : C(α, β)) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : C(α, β)) (x : α) : star f x = star (f x) := rfl
+
+end has_star
+
+instance [has_involutive_star β] [has_continuous_star β] : has_involutive_star C(α, β) :=
+{ star_involutive := λ f, ext $ λ x, star_star _ }
+
+instance [add_monoid β] [has_continuous_add β] [star_add_monoid β] [has_continuous_star β] :
+  star_add_monoid C(α, β) :=
+{ star_add := λ f g, ext $ λ x, star_add _ _ }
+
+instance [semigroup β] [has_continuous_mul β] [star_semigroup β] [has_continuous_star β] :
+  star_semigroup C(α, β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul _ _ }
+
+instance [non_unital_semiring β] [topological_semiring β] [star_ring β] [has_continuous_star β] :
+  star_ring C(α, β) :=
+{ ..continuous_map.star_add_monoid }
+
+instance [has_star R] [has_star β] [has_scalar R β] [star_module R β]
+  [has_continuous_star β] [has_continuous_const_smul R β] :
+  star_module R C(α, β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul _ _ }
+
+end star_structure
 
 end continuous_map

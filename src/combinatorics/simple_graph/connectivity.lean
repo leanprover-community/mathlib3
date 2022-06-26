@@ -52,15 +52,20 @@ counterparts in [Chou1994].
 * `simple_graph.subgraph.connected` gives subgraphs the connectivity
   predicate via `simple_graph.subgraph.coe`.
 
+* `simple_graph.connected_component` is the type of connected components of
+  a given graph.
+
 ## Tags
 walks, trails, paths, circuits, cycles
 
 -/
 
-universes u
+open function
+
+universes u v
 
 namespace simple_graph
-variables {V V' : Type u} (G G' : simple_graph V)
+variables {V : Type u} {V' : Type v} (G : simple_graph V) (G' : simple_graph V')
 
 /-- A walk is a sequence of adjacent vertices.  For vertices `u v : V`,
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
@@ -857,6 +862,8 @@ by induction p; simp [*]
 @[simp] lemma edges_map : (p.map f).edges = p.edges.map (sym2.map f) :=
 by induction p; simp [*]
 
+variables {p f}
+
 lemma map_is_path_of_injective (hinj : function.injective f) (hp : p.is_path) :
   (p.map f).is_path :=
 begin
@@ -868,6 +875,24 @@ begin
     cases hinj hf,
     exact hp.2 hx, },
 end
+
+protected lemma is_path.of_map {f : G →g G'} (hp : (p.map f).is_path) : p.is_path :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, walk.cons_is_path_iff, support_map] at hp,
+    rw walk.cons_is_path_iff,
+    cases hp with hp1 hp2,
+    refine ⟨ih hp1, _⟩,
+    contrapose! hp2,
+    exact list.mem_map_of_mem f hp2, }
+end
+
+lemma map_is_path_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_path ↔ p.is_path :=
+⟨is_path.of_map, map_is_path_of_injective hinj⟩
+
+variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
@@ -894,7 +919,7 @@ variables {G G'}
 /-- Given an injective graph homomorphism, map paths to paths. -/
 @[simps] protected def map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path u v) :
   G'.path (f u) (f v) :=
-⟨walk.map f p, walk.map_is_path_of_injective f p hinj p.2⟩
+⟨walk.map f p, walk.map_is_path_of_injective hinj p.2⟩
 
 lemma map_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (path.map f hinj : G.path u v → G'.path (f u) (f v)) :=
@@ -914,6 +939,38 @@ lemma map_embedding_injective (f : G ↪g G') (u v : V) :
 map_injective f.injective u v
 
 end path
+
+/-! ## Deleting edges -/
+
+namespace walk
+variables {G}
+
+/-- Given a walk that avoids a set of edges, produce a walk in the graph
+with those edges deleted. -/
+@[simp]
+def to_delete_edges (s : set (sym2 V)) :
+  Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
+| _ _ nil _ := nil
+| _ _ (cons' u v w huv p) hp := cons ((G.delete_edges_adj _ _ _).mpr ⟨huv, hp ⟦(u, v)⟧ (by simp)⟩)
+                                (p.to_delete_edges (λ e he, hp e (by simp [he])))
+
+/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
+This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
+abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+  (G.delete_edges {e}).walk v w :=
+p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
+
+@[simp]
+lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) :
+  walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
+by induction p; simp [*]
+
+lemma is_path.to_delete_edges (s : set (sym2 V))
+  {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
+  (p.to_delete_edges s hp).is_path :=
+by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+
+end walk
 
 /-! ## `reachable` and `connected` -/
 
@@ -939,7 +996,8 @@ begin
   exact h.elim (λ q, hp q.to_path),
 end
 
-@[refl] protected lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+@[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
+protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
 
 @[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
 huv.elim (λ p, ⟨p.reverse⟩)
@@ -974,6 +1032,15 @@ def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
 /-- A graph is preconnected if every pair of vertices is reachable from one another. -/
 def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
+lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.preconnected) : H.preconnected :=
+hf.forall₂.2 $ λ a b, (hG _ _).map $ walk.map _
+
+lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.preconnected ↔ H.preconnected :=
+⟨preconnected.map e.to_hom e.to_equiv.surjective,
+  preconnected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
+
 /-- A graph is connected if it's preconnected and contains at least one vertex.
 This follows the convention observed by mathlib that something is connected iff it has
 exactly one connected component.
@@ -983,15 +1050,83 @@ of `h.preconnected u v`. -/
 @[protect_proj]
 structure connected : Prop :=
 (preconnected : G.preconnected)
-(nonempty : nonempty V)
+[nonempty : nonempty V]
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
 
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
+lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.connected) : H.connected :=
+by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+
+lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.connected ↔ H.connected :=
+⟨connected.map e.to_hom e.to_equiv.surjective,
+  connected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
+
+/-- The quotient of `V` by the `simple_graph.reachable` relation gives the connected
+components of a graph. -/
+def connected_component := quot G.reachable
+
+/-- Gives the connected component containing a particular vertex. -/
+def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
+
+instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
+⟨G.connected_component_mk default⟩
+
+section connected_component
+variables {G}
+
+@[elab_as_eliminator]
+protected lemma connected_component.ind {β : G.connected_component → Prop}
+  (h : ∀ (v : V), β (G.connected_component_mk v)) (c : G.connected_component) : β c :=
+quot.ind h c
+
+@[elab_as_eliminator]
+protected lemma connected_component.ind₂ {β : G.connected_component → G.connected_component → Prop}
+  (h : ∀ (v w : V), β (G.connected_component_mk v) (G.connected_component_mk w))
+  (c d : G.connected_component) : β c d :=
+quot.induction_on₂ c d h
+
+protected lemma connected_component.sound {v w : V} :
+  G.reachable v w → G.connected_component_mk v = G.connected_component_mk w := quot.sound
+
+protected lemma connected_component.exact {v w : V} :
+  G.connected_component_mk v = G.connected_component_mk w → G.reachable v w :=
+@quotient.exact _ G.reachable_setoid _ _
+
+@[simp] protected lemma connected_component.eq {v w : V} :
+  G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
+@quotient.eq _ G.reachable_setoid _ _
+
+/-- The `connected_component` specialization of `quot.lift`. Provides the stronger
+assumption that the vertices are connected by a path. -/
+protected def connected_component.lift {β : Sort*} (f : V → β)
+  (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
+quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
+
+@[simp] protected lemma connected_component.lift_mk {β : Sort*} {f : V → β}
+  {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
+  connected_component.lift f h (G.connected_component_mk v) = f v := rfl
+
+protected lemma connected_component.«exists» {p : G.connected_component → Prop} :
+  (∃ (c : G.connected_component), p c) ↔ ∃ v, p (G.connected_component_mk v) :=
+(surjective_quot_mk G.reachable).exists
+
+protected lemma connected_component.«forall» {p : G.connected_component → Prop} :
+  (∀ (c : G.connected_component), p c) ↔ ∀ v, p (G.connected_component_mk v) :=
+(surjective_quot_mk G.reachable).forall
+
+lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
+  subsingleton G.connected_component :=
+⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
+
+end connected_component
 
 variables {G}
+
+/-- A subgraph is connected if it is connected as a simple graph. -/
+abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
 
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=

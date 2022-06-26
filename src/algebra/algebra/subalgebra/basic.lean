@@ -245,7 +245,7 @@ instance algebra' [comm_semiring R'] [has_scalar R' R] [algebra R' A]
   [is_scalar_tower R' R A] : algebra R' S :=
 { commutes' := λ c x, subtype.eq $ algebra.commutes _ _,
   smul_def' := λ c x, subtype.eq $ algebra.smul_def _ _,
-  .. (algebra_map R' A).cod_srestrict S.to_subsemiring $ λ x, begin
+  .. (algebra_map R' A).cod_restrict S $ λ x, begin
     rw [algebra.algebra_map_eq_smul_one, ←smul_one_smul R x (1 : A),
       ←algebra.algebra_map_eq_smul_one],
     exact algebra_map_mem S _,
@@ -434,7 +434,7 @@ set_like.coe_mono (set.range_comp_subset_range f g)
 /-- Restrict the codomain of an algebra homomorphism. -/
 def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
 { commutes' := λ r, subtype.eq $ f.commutes r,
-  .. ring_hom.cod_srestrict (f : A →+* B) S.to_subsemiring hf }
+  .. ring_hom.cod_restrict (f : A →+* B) S hf }
 
 @[simp] lemma val_comp_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
   S.val.comp (f.cod_restrict S hf) = f :=
@@ -762,7 +762,10 @@ lemma inclusion_injective {S T : subalgebra R A} (h : S ≤ T) :
   inclusion (le_refl S) = alg_hom.id R S :=
 alg_hom.ext $ λ x, subtype.ext rfl
 
-@[simp] lemma inclusion_right {S T : subalgebra R A} (h : S ≤ T) (x : T)
+@[simp] lemma inclusion_mk {S T : subalgebra R A} (h : S ≤ T) (x : A) (hx : x ∈ S) :
+  inclusion h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
+
+lemma inclusion_right {S T : subalgebra R A} (h : S ≤ T) (x : T)
   (m : (x : A) ∈ S) : inclusion h ⟨x, m⟩ = x := subtype.ext rfl
 
 @[simp] lemma inclusion_inclusion {S T U : subalgebra R A} (hst : S ≤ T) (htu : T ≤ U)
@@ -931,9 +934,9 @@ instance is_scalar_tower_left
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [has_scalar A α] [has_faithful_scalar A α] (S : subalgebra R A) :
-  has_faithful_scalar S α :=
-S.to_subsemiring.has_faithful_scalar
+instance [has_scalar A α] [has_faithful_smul A α] (S : subalgebra R A) :
+  has_faithful_smul S α :=
+S.to_subsemiring.has_faithful_smul
 
 /-- The action by a subalgebra is the action by the underlying algebra. -/
 instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=
@@ -1075,8 +1078,8 @@ variables {R : Type*} [ring R]
 
 /-- A subring is a `ℤ`-subalgebra. -/
 def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
-{ algebra_map_mem' := λ i, int.induction_on i S.zero_mem
-  (λ i ih, S.add_mem ih S.one_mem)
+{ algebra_map_mem' := λ i, int.induction_on i (by simpa using S.zero_mem)
+  (λ i ih, by simpa using S.add_mem ih S.one_mem)
   (λ i ih, show ((-i - 1 : ℤ) : R) ∈ S, by { rw [int.cast_sub, int.cast_one],
     exact S.sub_mem ih S.one_mem }),
   .. S }

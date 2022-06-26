@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.density
+import set_theory.ordinal.basic
 
 /-!
 # Graph uniformity and uniform partitions
@@ -23,8 +24,12 @@ is less than `ε`.
 ## Main declarations
 
 * `simple_graph.is_uniform`: Graph uniformity of a pair of finsets of vertices.
+* `simple_graph.nonuniform_witness`: `G.nonuniform_witness ε s t` and `G.nonuniform_witness ε t s`
+  together witness the non-uniformity of `s` and `t`.
 * `finpartition.non_uniforms`: Non uniform pairs of parts of a partition.
 * `finpartition.is_uniform`: Uniformity of a partition.
+* `finpartition.nonuniform_witnesses`: For each non-uniform pair of parts of a partition, pick
+  witnesses of non-uniformity and dump them all together.
 -/
 
 open finset
@@ -62,9 +67,11 @@ begin
   intros s' hs' t' ht' hs ht,
   rw [card_singleton, nat.cast_one, one_mul] at hs ht,
   obtain rfl | rfl := finset.subset_singleton_iff.1 hs',
-  { exact (hε.not_le hs).elim },
+  { replace hs : ε ≤ 0 := by simpa using hs,
+    exact (hε.not_le hs).elim },
   obtain rfl | rfl := finset.subset_singleton_iff.1 ht',
-  { exact (hε.not_le ht).elim },
+  { replace ht : ε ≤ 0 := by simpa using ht,
+    exact (hε.not_le ht).elim },
   { rwa [sub_self, abs_zero] }
 end
 
@@ -80,11 +87,89 @@ begin
   exact zero_lt_one,
 end
 
+variables {G}
+
+lemma not_is_uniform_iff :
+  ¬ G.is_uniform ε s t ↔ ∃ s', s' ⊆ s ∧ ∃ t', t' ⊆ t ∧ ↑s.card * ε ≤ s'.card ∧
+    ↑t.card * ε ≤ t'.card ∧  ε ≤ |G.edge_density s' t' - G.edge_density s t| :=
+by { unfold is_uniform, simp only [not_forall, not_lt, exists_prop] }
+
+open_locale classical
+variables (G)
+
+/-- An arbitrary pair of subsets witnessing the non-uniformity of `(s, t)`. If `(s, t)` is uniform,
+returns `(s, t)`. Witnesses for `(s, t)` and `(t, s)` don't necessarily match. See
+`simple_graph.nonuniform_witness`. -/
+noncomputable def nonuniform_witnesses (ε : 𝕜) (s t : finset α) : finset α × finset α :=
+if h : ¬ G.is_uniform ε s t
+  then ((not_is_uniform_iff.1 h).some, (not_is_uniform_iff.1 h).some_spec.2.some)
+  else (s, t)
+
+lemma left_nonuniform_witnesses_subset (h : ¬ G.is_uniform ε s t) :
+  (G.nonuniform_witnesses ε s t).1 ⊆ s :=
+by { rw [nonuniform_witnesses, dif_pos h], exact (not_is_uniform_iff.1 h).some_spec.1 }
+
+lemma left_nonuniform_witnesses_card (h : ¬ G.is_uniform ε s t) :
+  (s.card : 𝕜) * ε ≤ (G.nonuniform_witnesses ε s t).1.card :=
+by { rw [nonuniform_witnesses, dif_pos h],
+  exact (not_is_uniform_iff.1 h).some_spec.2.some_spec.2.1 }
+
+lemma right_nonuniform_witnesses_subset (h : ¬ G.is_uniform ε s t) :
+  (G.nonuniform_witnesses ε s t).2 ⊆ t :=
+by { rw [nonuniform_witnesses, dif_pos h], exact (not_is_uniform_iff.1 h).some_spec.2.some_spec.1 }
+
+lemma right_nonuniform_witnesses_card (h : ¬ G.is_uniform ε s t) :
+  (t.card : 𝕜) * ε ≤ (G.nonuniform_witnesses ε s t).2.card :=
+by { rw [nonuniform_witnesses, dif_pos h],
+  exact (not_is_uniform_iff.1 h).some_spec.2.some_spec.2.2.1 }
+
+lemma nonuniform_witnesses_spec (h : ¬ G.is_uniform ε s t) :
+  ε ≤ |G.edge_density (G.nonuniform_witnesses ε s t).1 (G.nonuniform_witnesses ε s t).2
+    - G.edge_density s t| :=
+by { rw [nonuniform_witnesses, dif_pos h],
+  exact (not_is_uniform_iff.1 h).some_spec.2.some_spec.2.2.2 }
+
+/-- Arbitrary witness of non-uniformity. `G.nonuniform_witness ε s t` and
+`G.nonuniform_witness ε t s` form a pair of subsets witnessing the non-uniformity of `(s, t)`. If
+`(s, t)` is uniform, returns `s`. -/
+noncomputable def nonuniform_witness (ε : 𝕜) (s t : finset α) : finset α :=
+if well_ordering_rel s t then (G.nonuniform_witnesses ε s t).1 else (G.nonuniform_witnesses ε t s).2
+
+lemma nonuniform_witness_subset (h : ¬ G.is_uniform ε s t) : G.nonuniform_witness ε s t ⊆ s :=
+begin
+  unfold nonuniform_witness,
+  split_ifs,
+  { exact G.left_nonuniform_witnesses_subset h },
+  { exact G.right_nonuniform_witnesses_subset (λ i, h i.symm) }
+end
+
+lemma nonuniform_witness_card_le (h : ¬ G.is_uniform ε s t) :
+  (s.card : 𝕜) * ε ≤ (G.nonuniform_witness ε s t).card :=
+begin
+  unfold nonuniform_witness,
+  split_ifs,
+  { exact G.left_nonuniform_witnesses_card h },
+  { exact G.right_nonuniform_witnesses_card (λ i, h i.symm) }
+end
+
+lemma nonuniform_witness_spec (h₁ : s ≠ t) (h₂ : ¬ G.is_uniform ε s t) :
+  ε ≤ |G.edge_density (G.nonuniform_witness ε s t) (G.nonuniform_witness ε t s)
+    - G.edge_density s t| :=
+begin
+  unfold nonuniform_witness,
+  rcases trichotomous_of well_ordering_rel s t with lt | rfl | gt,
+  { rw [if_pos lt, if_neg (asymm lt)],
+    exact G.nonuniform_witnesses_spec h₂ },
+  { cases h₁ rfl },
+  { rw [if_neg (asymm gt), if_pos gt, edge_density_comm, edge_density_comm _ s],
+    apply G.nonuniform_witnesses_spec (λ i, h₂ i.symm) }
+end
+
 end simple_graph
 
 /-! ### Uniform partitions -/
 
-variables [decidable_eq α] {s : finset α} (P : finpartition s) (G : simple_graph α)
+variables [decidable_eq α] {A : finset α} (P : finpartition A) (G : simple_graph α)
   [decidable_rel G.adj] {ε : 𝕜}
 
 namespace finpartition
@@ -99,12 +184,10 @@ lemma mk_mem_non_uniforms_iff (u v : finset α) (ε : 𝕜) :
   (u, v) ∈ P.non_uniforms G ε ↔ u ∈ P.parts ∧ v ∈ P.parts ∧ u ≠ v ∧ ¬G.is_uniform ε u v :=
 by rw [non_uniforms, mem_filter, mem_off_diag, and_assoc, and_assoc]
 
-/-- A finpartition is `ε`-uniform (aka `ε`-regular) iff at most a proportion of `ε` of its pairs of
-parts are not `ε-uniform`. -/
-def is_uniform (ε : 𝕜) : Prop :=
-((P.non_uniforms G ε).card : 𝕜) ≤ (P.parts.card * (P.parts.card - 1) : ℕ) * ε
+lemma non_uniforms_mono {ε ε' : 𝕜} (h : ε ≤ ε') : P.non_uniforms G ε' ⊆ P.non_uniforms G ε :=
+monotone_filter_right _ $ λ uv, mt $ simple_graph.is_uniform.mono h
 
-lemma non_uniforms_bot (hε : 0 < ε) : (⊥ : finpartition s).non_uniforms G ε = ∅ :=
+lemma non_uniforms_bot (hε : 0 < ε) : (⊥ : finpartition A).non_uniforms G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
   rintro ⟨u, v⟩,
@@ -114,7 +197,12 @@ begin
   exact G.is_uniform_singleton hε,
 end
 
-lemma bot_is_uniform (hε : 0 < ε) : (⊥ : finpartition s).is_uniform G ε :=
+/-- A finpartition of a graph's vertex set is `ε`-uniform (aka `ε`-regular) iff the proportion of
+its pairs of parts that are not `ε`-uniform is at most `ε`. -/
+def is_uniform (ε : 𝕜) : Prop :=
+((P.non_uniforms G ε).card : 𝕜) ≤ (P.parts.card * (P.parts.card - 1) : ℕ) * ε
+
+lemma bot_is_uniform (hε : 0 < ε) : (⊥ : finpartition A).is_uniform G ε :=
 begin
   rw [finpartition.is_uniform, finpartition.card_bot, non_uniforms_bot _ hε,
     finset.card_empty, nat.cast_zero],
@@ -130,10 +218,27 @@ end
 
 variables {P G}
 
+lemma is_uniform.mono {ε ε' : 𝕜} (hP : P.is_uniform G ε) (h : ε ≤ ε') : P.is_uniform G ε' :=
+((nat.cast_le.2 $ card_le_of_subset $ P.non_uniforms_mono G h).trans hP).trans $
+  mul_le_mul_of_nonneg_left h $ nat.cast_nonneg _
+
 lemma is_uniform_of_empty (hP : P.parts = ∅) : P.is_uniform G ε :=
 by simp [is_uniform, hP, non_uniforms]
 
 lemma nonempty_of_not_uniform (h : ¬ P.is_uniform G ε) : P.parts.nonempty :=
 nonempty_of_ne_empty $ λ h₁, h $ is_uniform_of_empty h₁
+
+variables (P G ε) (s : finset α)
+
+/-- A choice of witnesses of non-uniformity among the parts of a finpartition. -/
+noncomputable def nonuniform_witnesses : finset (finset α) :=
+(P.parts.filter $ λ t, s ≠ t ∧ ¬ G.is_uniform ε s t).image (G.nonuniform_witness ε s)
+
+variables {P G ε s} {t : finset α}
+
+lemma nonuniform_witness_mem_nonuniform_witnesses (h : ¬ G.is_uniform ε s t) (ht : t ∈ P.parts)
+  (hst : s ≠ t) :
+  G.nonuniform_witness ε s t ∈ P.nonuniform_witnesses G ε s :=
+mem_image_of_mem _ $ mem_filter.2 ⟨ht, hst, h⟩
 
 end finpartition

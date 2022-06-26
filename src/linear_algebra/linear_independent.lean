@@ -3,10 +3,10 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
+import algebra.big_operators.fin
 import linear_algebra.finsupp
 import linear_algebra.prod
-import logic.equiv.fin
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 
@@ -144,7 +144,7 @@ end
 theorem fintype.linear_independent_iff' [fintype ι] :
   linear_independent R v ↔
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
-by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
+by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]; skip
 
 lemma fintype.not_linear_independent_iff [fintype ι] :
   ¬linear_independent R v ↔ ∃ g : ι → R, (∑ i, g i • v i) = 0 ∧ (∃ i, g i ≠ 0) :=
@@ -253,19 +253,12 @@ lemma linear_independent.fin_cons' {m : ℕ} (x : M) (v : fin m → M)
 begin
   rw fintype.linear_independent_iff at hli ⊢,
   rintros g total_eq j,
-  have zero_not_mem : (0 : fin m.succ) ∉ finset.univ.image (fin.succ : fin m → fin m.succ),
-  { rw finset.mem_image,
-    rintro ⟨x, hx, succ_eq⟩,
-    exact fin.succ_ne_zero _ succ_eq },
-  simp only [submodule.coe_mk, fin.univ_succ, finset.sum_insert zero_not_mem,
-  fin.cons_zero, fin.cons_succ,
-  forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
+  simp_rw [fin.sum_univ_succ, fin.cons_zero, fin.cons_succ] at total_eq,
   have : g 0 = 0,
   { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
     exact sum_mem (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
-  refine fin.cases this (λ j, _) j,
-  apply hli (λ i, g i.succ),
-  simpa only [this, zero_smul, zero_add] using total_eq
+  rw [this, zero_smul, zero_add] at total_eq,
+  exact fin.cases this (hli _ total_eq) j,
 end
 
 /-- A set of linearly independent vectors in a module `M` over a semiring `K` is also linearly
@@ -390,7 +383,7 @@ begin
 end
 
 lemma linear_independent_of_finite (s : set M)
-  (H : ∀ t ⊆ s, finite t → linear_independent R (λ x, x : t → M)) :
+  (H : ∀ t ⊆ s, set.finite t → linear_independent R (λ x, x : t → M)) :
   linear_independent R (λ x, x : s → M) :=
 linear_independent_subtype.2 $
   λ l hl, linear_independent_subtype.1 (H _ hl (finset.finite_to_set _)) l (subset.refl _)
@@ -438,7 +431,8 @@ variables {a b : R} {x y : M}
 
 theorem linear_independent_iff_injective_total : linear_independent R v ↔
   function.injective (finsupp.total ι M R v) :=
-linear_independent_iff.trans (finsupp.total ι M R v).to_add_monoid_hom.injective_iff.symm
+linear_independent_iff.trans
+  (injective_iff_map_eq_zero (finsupp.total ι M R v).to_add_monoid_hom).symm
 
 alias linear_independent_iff_injective_total ↔ linear_independent.injective_total _
 
@@ -649,7 +643,7 @@ lemma linear_independent.union {s t : set M}
 
 lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set M}
   (hl : ∀i, linear_independent R (λ x, x : f i → M))
-  (hd : ∀i, ∀t:set ι, finite t → i ∉ t → disjoint (span R (f i)) (⨆i∈t, span R (f i))) :
+  (hd : ∀i, ∀t:set ι, t.finite → i ∉ t → disjoint (span R (f i)) (⨆i∈t, span R (f i))) :
   linear_independent R (λ x, x : (⋃i, f i) → M) :=
 begin
   rw [Union_eq_Union_finset f],
@@ -669,7 +663,7 @@ end
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
   {f : Π j : η, ιs j → M}
   (hindep : ∀j, linear_independent R (f j))
-  (hd : ∀i, ∀t:set η, finite t → i ∉ t →
+  (hd : ∀i, ∀t:set η, t.finite → i ∉ t →
       disjoint (span R (range (f i))) (⨆i∈t, span R (range (f i)))) :
   linear_independent R (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
 begin
@@ -810,11 +804,11 @@ begin
     dsimp [indep],
     rw [linear_independent_comp_subtype],
     intros f hsupport hsum,
-    rcases eq_empty_or_nonempty c with rfl | ⟨a, hac⟩,
+    rcases eq_empty_or_nonempty c with rfl | hn,
     { simpa using hsupport },
     haveI : is_refl X r := ⟨λ _, set.subset.refl _⟩,
     obtain ⟨I, I_mem, hI⟩ : ∃ I ∈ c, (f.support : set ι) ⊆ I :=
-      finset.exists_mem_subset_of_subset_bUnion_of_directed_on hac hc.directed_on hsupport,
+      hc.directed_on.exists_mem_subset_of_finset_subset_bUnion hn hsupport,
     exact linear_independent_comp_subtype.mp I.2 f hI hsum },
   have trans : transitive r := λ I J K, set.subset.trans,
   obtain ⟨⟨I, hli : indep I⟩, hmax : ∀ a, r ⟨I, hli⟩ a → r a ⟨I, hli⟩⟩ :=
@@ -1277,11 +1271,11 @@ begin
 end
 
 lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
-  (ht : finite t) (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ span K t) :
-  ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
+  (ht : t.finite) (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ span K t) :
+  ∃h : s.finite, h.to_finset.card ≤ ht.to_finset.card :=
 have s ⊆ (span K ↑(ht.to_finset) : submodule K V), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
-have finite s, from u.finite_to_set.subset hsu,
+have s.finite, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 end module

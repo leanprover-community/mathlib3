@@ -6,9 +6,11 @@ Authors: Anne Baanen
 
 import field_theory.primitive_element
 import linear_algebra.determinant
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.finite_dimensional
+import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.matrix.to_linear_equiv
 import field_theory.is_alg_closed.algebraic_closure
+import field_theory.galois
 
 /-!
 # Norm for (finite) ring extensions
@@ -89,7 +91,7 @@ end
 (If `L` is not finite-dimensional over `K`, then `norm = 1 = x ^ 0 = x ^ (finrank L K)`.)
 -/
 @[simp]
-lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
+protected lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
   by_cases H : ∃ (s : finset L), nonempty (basis s K L),
   { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
@@ -281,6 +283,20 @@ begin
   { exact (prod_embeddings_eq_finrank_pow L E (adjoin.power_basis hx)).symm },
   { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
     exact is_separable.separable K _ }
+end
+
+lemma norm_eq_prod_automorphisms [finite_dimensional K L] [is_galois K L] {x : L}:
+  algebra_map K L (norm K x) = ∏ (σ : L ≃ₐ[K] L), σ x :=
+begin
+  apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
+  rw map_prod (algebra_map L (algebraic_closure L)),
+  rw ← fintype.prod_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
+  { rw ← norm_eq_prod_embeddings,
+    simp only [algebra_map_eq_smul_one, smul_one_smul] },
+  { intro σ,
+    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
 end
 
 lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]

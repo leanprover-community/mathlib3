@@ -148,7 +148,7 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
   M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
 { to_fun := λ m, (f m).dom_restrict q,
   map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
-  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [map_smulₛₗ, dom_restrict_apply,
+  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [f.map_smulₛₗ, dom_restrict_apply,
     smul_apply]}
 
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
@@ -216,6 +216,9 @@ variables {R Pₗ}
 @[simp] theorem lcomp_apply (f : M →ₗ[R] Nₗ) (g : Nₗ →ₗ[R] Pₗ) (x : M) :
   lcomp R Pₗ f g x = g (f x) := rfl
 
+theorem lcomp_apply' (f : M →ₗ[R] Nₗ) (g : Nₗ →ₗ[R] Pₗ) :
+  lcomp R Pₗ f g = g ∘ₗ f := rfl
+
 variables (P σ₂₃)
 /-- Composing a semilinear map `M → N` and a semilinear map `N → P` to form a semilinear map
 `M → P` is itself a linear map. -/
@@ -239,6 +242,9 @@ variables {R M Nₗ Pₗ}
 section
 @[simp] theorem llcomp_apply (f : Nₗ →ₗ[R] Pₗ) (g : M →ₗ[R] Nₗ) (x : M) :
   llcomp R M Nₗ Pₗ f g x = f (g x) := rfl
+
+theorem llcomp_apply' (f : Nₗ →ₗ[R] Pₗ) (g : M →ₗ[R] Nₗ) :
+  llcomp R M Nₗ Pₗ f g = f ∘ₗ g := rfl
 end
 
 /-- Composing a linear map `Q → N` and a bilinear map `M → N → P` to
@@ -322,7 +328,8 @@ lemma sum_repr_mul_repr_mul {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} 
   B x y :=
 begin
   conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
-  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum, map_smulₛₗ₂, map_smulₛₗ],
+  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
+    linear_map.map_smulₛₗ₂, linear_map.map_smulₛₗ],
 end
 
 

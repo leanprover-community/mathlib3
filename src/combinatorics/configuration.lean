@@ -6,7 +6,7 @@ Authors: Thomas Browning
 import algebra.big_operators.order
 import combinatorics.hall.basic
 import data.fintype.card
-import set_theory.fincard
+import set_theory.cardinal.finite
 
 /-!
 # Configurations of Points and lines
@@ -435,11 +435,11 @@ begin
   classical,
   have h1 : fintype.card {q // q ≠ p} + 1 = fintype.card P,
   { apply (eq_tsub_iff_add_eq_of_le (nat.succ_le_of_lt (fintype.card_pos_iff.mpr ⟨p⟩))).mp,
-    convert (fintype.card_subtype_compl).trans (congr_arg _ (fintype.card_subtype_eq p)) },
+    convert (fintype.card_subtype_compl _).trans (congr_arg _ (fintype.card_subtype_eq p)) },
   have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
   { intro l,
     rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),
-        fintype.card_subtype_compl, ←nat.card_eq_fintype_card],
+      fintype.card_subtype_compl (λ (x : subtype (∈ l.val)), x.val = p), ←nat.card_eq_fintype_card],
     refine tsub_eq_of_eq_add ((point_count_eq P l.1).trans _),
     rw ← fintype.card_subtype_eq (⟨p, l.2⟩ : {q : P // q ∈ l.1}),
     simp_rw subtype.ext_iff_val },

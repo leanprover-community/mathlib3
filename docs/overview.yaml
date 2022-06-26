@@ -46,12 +46,13 @@ General algebra:
     cyclic group: 'is_cyclic'
     nilpotent group: 'group.is_nilpotent'
     permutation group of a type: 'equiv.perm'
+    structure of fintely generated abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
 
   Rings:
     ring: 'ring'
     ring morphism: 'ring_hom'
     the category of rings: 'Ring'
-    subring: 'is_subring'
+    subring: 'subring'
     localization: 'localization'
     local ring: 'local_ring'
     noetherian ring: 'is_noetherian_ring'
@@ -158,6 +159,8 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
+  Finitely generated modules over a PID:
+    structure theorem: 'module.equiv_free_prod_direct_sum'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
@@ -424,3 +427,5 @@ Logic and computation:
     definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'
     Compactness theorem: 'first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable'
+    Downward Löwenheim-Skolem: 'first_order.language.exists_elementary_substructure_card_eq'
+    Upward Löwenheim-Skolem: 'first_order.language.Theory.exists_elementary_embedding_card_eq'

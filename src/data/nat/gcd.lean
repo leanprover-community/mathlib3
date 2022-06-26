@@ -275,6 +275,8 @@ theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n)
 
 theorem coprime_comm {m n : ℕ} : coprime n m ↔ coprime m n := ⟨coprime.symm, coprime.symm⟩
 
+theorem coprime.symmetric : symmetric coprime := λ m n, coprime.symm
+
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
 by rwa [gcd_mul_left, H1.gcd_eq_one, mul_one] at t
@@ -506,8 +508,8 @@ def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
 begin
 cases h0 : (gcd k m),
 case nat.zero
-{ have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
-  have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
+{ obtain rfl : k = 0 := eq_zero_of_gcd_eq_zero_left h0,
+  obtain rfl : m = 0 := eq_zero_of_gcd_eq_zero_right h0,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
 case nat.succ : tmp
 { have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,

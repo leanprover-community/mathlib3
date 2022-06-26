@@ -57,6 +57,8 @@ cons_injective.eq_iff
 theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
 by { induction l with c l',  contradiction,  use [c,l'], }
 
+lemma set_of_mem_cons (l : list α) (a : α) : {x | x ∈ a :: l} = insert a {x | x ∈ l} := rfl
+
 /-! ### mem -/
 
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
@@ -183,6 +185,19 @@ lemma map_bind (g : β → list γ) (f : α → β) :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
 
+lemma range_map (f : α → β) : set.range (map f) = {l | ∀ x ∈ l, x ∈ set.range f} :=
+begin
+  refine set.subset.antisymm (set.range_subset_iff.2 $
+    λ l, forall_mem_map_iff.2 $ λ y _, set.mem_range_self _) (λ l hl, _),
+  induction l with a l ihl, { exact ⟨[], rfl⟩ },
+  rcases ihl (λ x hx, hl x $ subset_cons _ _ hx) with ⟨l, rfl⟩,
+  rcases hl a (mem_cons_self _ _) with ⟨a, rfl⟩,
+  exact ⟨a :: l, map_cons _ _ _⟩
+end
+
+lemma range_map_coe (s : set α) : set.range (map (coe : s → α)) = {l | ∀ x ∈ l, x ∈ s} :=
+by rw [range_map, subtype.range_coe]
+
 /-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
 type. -/
 instance [h : can_lift α β] : can_lift (list α) (list β) :=
@@ -190,10 +205,8 @@ instance [h : can_lift α β] : can_lift (list α) (list β) :=
   cond := λ l, ∀ x ∈ l, can_lift.cond β x,
   prf  := λ l H,
     begin
-      induction l with a l ihl, { exact ⟨[], rfl⟩ },
-      rcases ihl (λ x hx, H x (or.inr hx)) with ⟨l, rfl⟩,
-      rcases can_lift.prf a (H a (or.inl rfl)) with ⟨a, rfl⟩,
-      exact ⟨a :: l, rfl⟩
+      rw [← set.mem_range, range_map],
+      exact λ a ha, can_lift.prf a (H a ha),
     end}
 
 /-! ### length -/
@@ -617,11 +630,10 @@ by rw [concat_eq_append, reverse_append, reverse_singleton, singleton_append]
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
-@[simp] theorem reverse_involutive : involutive (@reverse α) :=
-λ l, reverse_reverse l
-
-@[simp] theorem reverse_injective : injective (@reverse α) :=
-reverse_involutive.injective
+@[simp] theorem reverse_involutive : involutive (@reverse α) := reverse_reverse
+@[simp] theorem reverse_injective : injective (@reverse α) := reverse_involutive.injective
+theorem reverse_surjective : surjective (@reverse α) := reverse_involutive.surjective
+theorem reverse_bijective : bijective (@reverse α) := reverse_involutive.bijective
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff
@@ -1369,6 +1381,12 @@ begin
   exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)
 end
 
+lemma nth_le_eq_iff {l : list α} {n : ℕ} {x : α} {h} : l.nth_le n h = x ↔ l.nth n = some x :=
+by { rw nth_eq_some, tauto }
+
+lemma some_nth_le_eq {l : list α} {n : ℕ} {h} : some (l.nth_le n h) = l.nth n :=
+by { symmetry, rw nth_eq_some, tauto }
+
 lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
   ∀n (l:list α), (l.modify_nth_tail f n).modify_nth_tail g (m + n) =
     l.modify_nth_tail (λl, (f l).modify_nth_tail g m) n
@@ -1981,6 +1999,15 @@ up to `i` in `l₂`. -/
 lemma drop_append {l₁ l₂ : list α} (i : ℕ) :
   drop (l₁.length + i) (l₁ ++ l₂) = drop i l₂ :=
 by simp [drop_append_eq_append_drop, take_all_of_le le_self_add]
+
+lemma drop_sizeof_le [has_sizeof α] (l : list α) : ∀ (n : ℕ), (l.drop n).sizeof ≤ l.sizeof :=
+begin
+  induction l with _ _ lih; intro n,
+  { rw [drop_nil] },
+  { induction n with n nih,
+    { refl, },
+    { exact trans (lih _) le_add_self } }
+end
 
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the big list to the small list. -/
@@ -3343,6 +3370,24 @@ by rw [← diff_cons_right, diff_cons]
 @[simp] theorem nil_diff (l : list α) : [].diff l = [] :=
 by induction l; [refl, simp only [*, diff_cons, erase_of_not_mem (not_mem_nil _)]]
 
+lemma cons_diff (a : α) (l₁ l₂ : list α) :
+  (a :: l₁).diff l₂ = if a ∈ l₂ then l₁.diff (l₂.erase a) else a :: l₁.diff l₂ :=
+begin
+  induction l₂ with b l₂ ih, { refl },
+  rcases eq_or_ne a b with rfl|hne,
+  { simp },
+  { simp only [mem_cons_iff, *, false_or, diff_cons_right],
+    split_ifs with h₂; simp [diff_erase, list.erase, hne, hne.symm] }
+end
+
+lemma cons_diff_of_mem {a : α} {l₂ : list α} (h : a ∈ l₂) (l₁ : list α) :
+  (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) :=
+by rw [cons_diff, if_pos h]
+
+lemma cons_diff_of_not_mem {a : α} {l₂ : list α} (h : a ∉ l₂) (l₁ : list α) :
+  (a :: l₁).diff l₂ = a :: l₁.diff l₂ :=
+by rw [cons_diff, if_neg h]
+
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl
 | l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)
@@ -3706,6 +3751,31 @@ theorem to_chunks_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
 end
 
 end to_chunks
+
+/-! ### all₂ -/
+
+section all₂
+variables {p q : α → Prop} {l : list α}
+
+@[simp] lemma all₂_cons (p : α → Prop) (x : α) : ∀ (l : list α), all₂ p (x :: l) ↔ p x ∧ all₂ p l
+| []       := (and_true _).symm
+| (x :: l) := iff.rfl
+
+lemma all₂_iff_forall : ∀ {l : list α}, all₂ p l ↔ ∀ x ∈ l, p x
+| []       := (iff_true_intro $ ball_nil _).symm
+| (x :: l) := by rw [ball_cons, all₂_cons, all₂_iff_forall]
+
+lemma all₂.imp (h : ∀ x, p x → q x) : ∀ {l : list α}, all₂ p l → all₂ q l
+| []       := id
+| (x :: l) := by simpa using and.imp (h x) all₂.imp
+
+@[simp] lemma all₂_map_iff {p : β → Prop} (f : α → β) : all₂ p (l.map f) ↔ all₂ (p ∘ f) l :=
+by induction l; simp *
+
+instance (p : α → Prop) [decidable_pred p] : decidable_pred (all₂ p) :=
+λ l, decidable_of_iff' _ all₂_iff_forall
+
+end all₂
 
 /-! ### Retroattributes
 

@@ -9,7 +9,7 @@ Linear algebra:
     vector subspace: 'subspace'
     quotient space: 'submodule.has_quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: 'direct_sum.submodule_is_internal'
+    direct sum: 'direct_sum.is_internal'
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -71,7 +71,7 @@ Linear algebra:
     examples: ''
   Exponential:
     endomorphism exponential: ''
-    matrix exponential: 'https://en.wikipedia.org/wiki/Matrix_exponential'
+    matrix exponential: 'exp'
 
 # 2.
 Group Theory:
@@ -92,7 +92,7 @@ Group Theory:
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
-    finite type abelian groups: 'https://en.wikipedia.org/wiki/Finitely_generated_abelian_group#Classification'
+    finite type abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
     complex roots of unity: 'complex.mem_roots_of_unity'
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
@@ -124,7 +124,7 @@ Group Theory:
 Ring Theory:
   Fundamentals:
     ring: 'ring'
-    subrings: 'is_subring'
+    subrings: 'subring'
     ring morphisms: 'ring_hom'
     ring structure $\Z$: 'int.comm_ring'
     product of rings: 'pi.ring'
@@ -209,7 +209,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Sylvester's law of inertia: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
     real classification: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
     complex classification: ''
-    Gram-Schmidt orthogonalisation: 'https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process'
+    Gram-Schmidt orthogonalisation: 'gram_schmidt_orthogonal'
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
     Hermitian vector spaces: 'inner_product_space'
@@ -565,10 +565,10 @@ Probability Theory:
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
-    Tchebychev inequality: ''
+    Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
     Levy's theorem: ''
     weak law of large numbers: ''
-    strong law of large numbers: ''
+    strong law of large numbers: 'probability_theory.strong_law_ae'
     central limit theorem: ''
 
 # 12.

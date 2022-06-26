@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import group_theory.group_action.big_operators
 import group_theory.group_action.group
 import tactic.norm_num
 
@@ -38,9 +39,8 @@ semimodule, module, vector space
 open function
 open_locale big_operators
 
-universes u u' v w x y z
-variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {M₃ : Type y}
-  {ι : Type z}
+universes u v
+variables {α R k S M M₂ M₃ ι : Type*}
 
 /-- A module is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `R` and an additive monoid of "vectors" `M`,
@@ -72,6 +72,10 @@ instance add_comm_monoid.nat_module : module ℕ M :=
   add_smul := λ r s x, add_nsmul x r s }
 
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
+
+lemma convex.combo_self {a b : R} (h : a + b = 1) (x : M) : a • x + b • x = x :=
+by rw [←add_smul, h, one_smul]
+
 variables (R)
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
@@ -80,7 +84,7 @@ theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
 @[simp] lemma inv_of_two_smul_add_inv_of_two_smul [invertible (2 : R)] (x : M) :
   (⅟2 : R) • x + (⅟2 : R) • x = x :=
-by rw [←add_smul, inv_of_two_add_inv_of_two, one_smul]
+convex.combo_self inv_of_two_add_inv_of_two _
 
 /-- Pullback a `module` structure along an injective additive monoid homomorphism.
 See note [reducible non-instances]. -/
@@ -230,7 +234,7 @@ section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
-eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+eq_neg_of_add_eq_zero_left $ by rw [← add_smul, add_left_neg, zero_smul]
 
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
@@ -293,7 +297,7 @@ instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R 
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_smul [semiring R] : has_faithful_smul (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid
@@ -391,7 +395,7 @@ lemma map_inv_nat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
   (n : ℕ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-map_inv_int_cast_smul f R S n x
+by exact_mod_cast map_inv_int_cast_smul f R S n x
 
 lemma map_rat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
@@ -492,13 +496,14 @@ lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has
 ⟨λ c m h,
   or.imp_right (@hf _ _) $ h0.symm ▸ eq_zero_or_eq_zero_of_smul_eq_zero (by rw [←hs, h, h0])⟩
 
+@[priority 100] -- See note [lower instance priority]
+instance no_zero_divisors.to_no_zero_smul_divisors [has_zero R] [has_mul R] [no_zero_divisors R] :
+  no_zero_smul_divisors R R :=
+⟨λ c x, eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
 section module
 
 variables [semiring R] [add_comm_monoid M] [module R M]
-
-instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
-  no_zero_smul_divisors R R :=
-⟨λ c x, no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 @[simp]
 theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
@@ -527,9 +532,10 @@ variables (R M)
 
 /-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
 zero as well. Usually `M` is an `R`-algebra. -/
-lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+lemma char_zero.of_module (M) [add_comm_monoid_with_one M] [char_zero M] [module R M] :
+  char_zero R :=
 begin
-  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _⟩,
   rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
 end
 
@@ -545,7 +551,7 @@ variables (M)
 
 lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective ((•) c : M → M) :=
-(smul_add_hom R M c).injective_iff.2 $ λ a ha, (smul_eq_zero.mp ha).resolve_left hc
+(injective_iff_map_eq_zero (smul_add_hom R M c)).2 $ λ a ha, (smul_eq_zero.mp ha).resolve_left hc
 
 variables {M}
 
@@ -599,7 +605,7 @@ section division_ring
 variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
-instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
+instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
 end division_ring
@@ -613,3 +619,6 @@ by rw [nsmul_eq_mul, mul_one]
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [zsmul_eq_mul, mul_one]
+
+lemma finset.cast_card [comm_semiring R] (s : finset α) : (s.card : R) = ∑ a in s, 1 :=
+by rw [finset.sum_const, nat.smul_one_eq_coe]

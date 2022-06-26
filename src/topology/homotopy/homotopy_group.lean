@@ -48,10 +48,6 @@ notation `I^` := cube
 namespace cube
 
 instance locally_compact_space : locally_compact_space (I^ n) := sorry
--- begin
---   refine ⟨_⟩, intros x n' H, use n', split, assumption, split, refl,
---   unfold is_compact,
--- end
 
 @[continuity] lemma proj_continuous (i : fin n) : continuous (λ f : I^n, f i) :=
 continuous_apply i
@@ -74,7 +70,6 @@ The projection to the last `n` coordinates from an `n+1` dimensional cube.
 @[simp] def tail : I^(n+1) → I^n := λ c, fin.tail c
 
 @[continuity] lemma tail.continuous : continuous (@tail n) := sorry
--- begin continuity, end
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
@@ -112,12 +107,10 @@ The `n`-dimensional generalized loops; functions `I^n → X` that send the bound
 -- structure gen_loop (n : ℕ) (x : X) extends C(I^n, X) :=
 -- (boundary : ∀ y ∈ cube.boundary n, to_fun y = x)
 def gen_loop (n : ℕ) (x : X) : set C(I^n, X) := { p | ∀ y ∈ cube.boundary n, p y = x}
-lemma gen_loop.boundary (f : gen_loop n x) : ∀ y ∈ cube.boundary n, f y = x := f.2
 
 namespace gen_loop
 
--- instance topological_space : topological_space (gen_loop n x) := by apply_instance
--- by exact topological_space.induced (gen_loop.to_continuous_map) (by apply_instance)
+lemma boundary (f : gen_loop n x) : ∀ y ∈ cube.boundary n, f y = x := f.2
 
 instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 { coe := λ f, f.1,
@@ -186,7 +179,7 @@ begin
   apply gen_loop.boundary, exact ⟨i,iH⟩
 end
 
-lemma to_from (p : gen_loop (n+1) x) : from_path (to_path p) = p := --sorry
+lemma from_to (p : gen_loop (n+1) x) : from_path (to_path p) = p := --sorry
 begin
   rcases p with ⟨⟨p,Hc⟩,Hb⟩,
   ext,
@@ -197,7 +190,7 @@ begin
   simp only [continuous_map.coe_mk, prod.mk.eta, cube.fold_unfold],
 end
 
-lemma from_to (p : Ω (gen_loop n x) const) : to_path (from_path p) = p := --sorry
+lemma to_from (p : Ω (gen_loop n x) const) : to_path (from_path p) = p := --sorry
 begin
   rcases p with ⟨⟨p,Hc⟩,Hs,Ht⟩,
   ext,
@@ -211,75 +204,83 @@ end
 def path_equiv : gen_loop (n+1) x ≃ Ω (gen_loop n x) const  :=
 { to_fun := to_path,
   inv_fun := from_path,
-  left_inv := to_from,
-  right_inv := from_to }
+  left_inv := from_to,
+  right_inv := to_from }
+
+lemma curry_to_path {p : gen_loop (n+1) x} {t:I} {tn:I^n}
+: p (fin.cons t tn) = (to_path p).to_fun t tn :=
+by {rcases p with ⟨p,pH⟩, unfold to_path, simpa}
+
+def comp' {A B C} [topological_space A] [topological_space B] [topological_space C]
+  (g: C(A,B)) : C(C(B,C), C(A,C)) := ⟨λ f, f.comp g, by sorry⟩
+def cf : C(C(I^(n+1),X), C(I×I^n,X)) := comp' cube.fold
 
 lemma homotopic_iff {p q : gen_loop (n+1) x} : homotopic p q ↔ (to_path p).homotopic (to_path q) :=
 begin
   split,
   { apply nonempty.map, rintros H,
-    refine ⟨⟨⟨_,_⟩,_,_⟩,_⟩,
-    { rintros t,
-      refine ⟨((H.to_continuous_map.curry t.fst).comp cube.fold).curry t.snd, _⟩,
-          rintros tn ⟨i,iH⟩,
-          unfold continuous_map.curry,
-          simp only [continuous_map.coe_mk],
-          unfold continuous_map.curry',
-          unfold cube.fold,
-          simp only [continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.coe_comp,
-            continuous_map.coe_mk, function.curry_apply, function.comp_app],
-          rw H.eq_fst,
-          apply gen_loop.boundary,
-          all_goals {use i.succ, rwa fin.cons_succ},
-      },
-    { simp only [auto_param_eq],
-      -- unfold continuous_map.comp, unfold function.comp, unfold continuous_map.curry,
-      -- simp only [continuous_map.coe_mk, auto_param_eq],
-      -- unfold continuous_map.curry', unfold function.curry,
-      -- simp,
-      --  continuity,
-      sorry}, --simp,
-    --       rintros tn ⟨i,iH⟩, simp only,
-    --       rw H.eq_fst,
-    --       apply p.boundary,
-    --       all_goals {use i.succ, rwa fin.cons_succ}
-
-    -- exact
-    -- { to_fun := λ t,
-    --   { to_fun := λ tn, H ⟨t.fst,fin.cons t.snd tn⟩,
-    --     continuous_to_fun := sorry,
-    --     boundary :=
-    --     begin
-    --     end },
-    --   continuous_to_fun := sorry,
-    --   map_zero_left' := by {intro, ext, unfold to_path, simp, sorry},
-    --   map_one_left' := by {intro, ext, unfold to_path, simp, sorry},
-    --   prop' :=
-    --   begin
-    --     rintros t₀ t₁ ⟨H|H⟩,
-    --     { simp, ext, simp, rw Hpq.eq_fst,
-    --       apply p.boundary, all_goals {use 0, rw fin.cons_zero, left, refl}},
-    --     cases H, simp, ext, simp, rw Hpq.eq_fst,
-    --     apply p.boundary, all_goals {use 0, rw fin.cons_zero, right, refl}
-    --   end },
-  },
-  { rintros Hpq, cases Hpq, constructor, refine
-    { to_fun := _,
-      continuous_to_fun := _,
-      map_zero_left' := _,
-      map_one_left' := _,
-      prop' := _ },
-      rintros ⟨t,tn⟩, refine Hpq ⟨t,tn.head⟩ tn.tail,
-      all_goals {sorry}}
+    refine ⟨⟨_,_,_⟩,_⟩,
+    { let c:C(C(I × I^n, X),C(I, C(I^n, X))):=
+        ⟨continuous_map.curry,continuous_map.continuous_curry⟩,
+      refine ⟨λ t, ⟨(c.comp (cf.comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,
+      { rintros y ⟨i,iH⟩,
+        unfold continuous_map.uncurry, unfold function.uncurry,
+        unfold cf, unfold comp', unfold cube.fold,
+        simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
+          continuous_map.homotopy_with.coe_to_continuous_map],
+        rw H.eq_fst, rw p.property, all_goals {use i.succ, rwa fin.cons_succ}},
+      simp only [auto_param_eq], continuity },
+    { intro t, ext1, simp only [path.coe_to_continuous_map],
+      unfold continuous_map.uncurry, unfold function.uncurry,
+      unfold cf, unfold comp', unfold cube.fold,
+      simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
+        continuous_map.homotopy_with.coe_to_continuous_map],
+      unfold continuous_map.curry,
+      simp only [continuous_map.coe_mk],
+      unfold continuous_map.curry', unfold function.curry,
+      unfold continuous_map.comp, unfold function.comp,
+      simp only [continuous_map.coe_mk, continuous_map.homotopy_with.coe_to_continuous_map,
+        continuous_map.homotopy_with.apply_zero, subtype.val_eq_coe, mk_apply],
+      convert curry_to_path},
+    { intro t, ext1, simp only [path.coe_to_continuous_map],
+      unfold continuous_map.uncurry, unfold function.uncurry,
+      unfold cf, unfold comp', unfold cube.fold,
+      simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
+        continuous_map.homotopy_with.coe_to_continuous_map],
+      unfold continuous_map.curry,
+      simp only [continuous_map.coe_mk],
+      unfold continuous_map.curry', unfold function.curry,
+      unfold continuous_map.comp, unfold function.comp,
+      simp only [continuous_map.coe_mk, continuous_map.homotopy_with.coe_to_continuous_map,
+        continuous_map.homotopy_with.apply_one, subtype.val_eq_coe, mk_apply],
+      exact curry_to_path},
+    intros t y yH,
+    simp only [continuous_map.coe_mk, path.coe_to_continuous_map],
+    unfold continuous_map.uncurry, unfold function.uncurry,
+    unfold cf, unfold comp', unfold cube.fold,
+    simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
+      continuous_map.homotopy_with.coe_to_continuous_map],
+    unfold continuous_map.curry,
+    simp only [continuous_map.coe_mk],
+    unfold continuous_map.curry', unfold function.curry,
+    unfold continuous_map.comp, unfold function.comp,
+    simp only [continuous_map.coe_mk, continuous_map.homotopy_with.coe_to_continuous_map,
+      continuous_map.homotopy_with.apply_one, subtype.val_eq_coe, mk_apply],
+    split; ext1; simp only [continuous_map.coe_mk, mk_apply],
+    rw H.eq_fst, exact curry_to_path, use 0, rw fin.cons_zero, exact yH,
+    rw H.eq_snd, exact curry_to_path, use 0, rw fin.cons_zero, exact yH  },
+  { apply nonempty.map, rintros H,
+    refine ⟨⟨_,_,_⟩,_⟩,
+    all_goals {sorry}}
 end
 
 def concat : gen_loop (n+1) x → gen_loop (n+1) x → gen_loop (n+1) x :=
-λ p q, from_path (p.to_path.trans q.to_path)
+λ p q, from_path ((to_path p).trans (to_path q))
 
-lemma concat2trans (p q : gen_loop (n+1) x) : (p.concat q).to_path = p.to_path.trans q.to_path :=
-by { unfold concat, rw from_to}
+lemma concat2trans (p q : gen_loop (n+1) x) : to_path (concat p q) = (to_path p).trans (to_path q) :=
+by { unfold concat, rw to_from}
 
-lemma const_to_refl : (@const _ _ (n+1) x).to_path = path.refl (@const _ _ n x) :=
+lemma const_to_refl : to_path (@const _ _ (n+1) x) = path.refl (@const _ _ n x) :=
 begin
   ext, unfold const, unfold to_path,
   simp only [continuous_map.const_comp, path.coe_mk, mk_apply, continuous_map.curry_apply,
@@ -348,10 +349,10 @@ end
 
 def reverse {n':nat} : π (n'+1) x → π (n'+1) x :=
 begin
-  refine (quotient.map' (λ p, gen_loop.from_path (p.to_path.symm)) _),
+  refine (quotient.map' (λ p, gen_loop.from_path ((gen_loop.to_path p).symm)) _),
   intros p q H,
   apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.from_to},
+  repeat {rw gen_loop.to_from},
   apply nonempty.map path.homotopy.symm₂,
   exact gen_loop.homotopic_iff.1 H
 end
@@ -365,7 +366,7 @@ begin
   apply gen_loop.homotopic_iff.2,
   repeat {rw gen_loop.concat2trans},
   rw gen_loop.const_to_refl,
-  repeat {rw gen_loop.from_to},
+  repeat {rw gen_loop.to_from},
   symmetry, constructor,
   apply  path.homotopy.refl_symm_trans
 end
@@ -376,7 +377,7 @@ begin
   apply gen_loop.homotopic_iff.2,
   repeat {rw gen_loop.concat2trans},
   rw gen_loop.const_to_refl,
-  repeat {rw gen_loop.from_to},
+  repeat {rw gen_loop.to_from},
   symmetry, constructor,
   apply  path.homotopy.refl_trans_symm
 end
@@ -448,17 +449,18 @@ end
 /-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with
   paths from `x` to itself. -/
 @[simps] def gen_loop_one_equiv_path_self : gen_loop 1 x ≃ path x x :=
-{ to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by {continuity, exact p.1.2}⟩
-    (p.boundary (λ _, 0) ⟨0, or.inl rfl⟩)
-    (p.boundary (λ _, 1) ⟨1, or.inr rfl⟩),
-  inv_fun := λ p,
-  { to_fun := λ c, p c.head,
-    boundary := begin
-      rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
-      apply (congr_arg p iH).trans, exacts [p.source, p.target],
-    end },
-  left_inv := λ p, by { ext1, exact congr_arg p y.one_char.symm },
-  right_inv := λ p, by { ext, refl } }
+{ to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
+    (gen_loop.boundary p (λ _, 0) ⟨0, or.inl rfl⟩)
+    (gen_loop.boundary p (λ _, 1) ⟨1, or.inr rfl⟩),
+  inv_fun := sorry,
+  --  λ p, { to_fun := λ c, p c.head,
+  --   boundary := begin
+  --     rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
+  --     apply (congr_arg p iH).trans, exacts [p.source, p.target],
+  --   end },
+  left_inv := λ p, by sorry,--{ ext1, exact congr_arg p y.one_char.symm },
+  right_inv := λ p, by sorry,--{ ext, refl }
+  }
 
 /--
 The first homotopy group at `x` is equivalent to the fundamental group,

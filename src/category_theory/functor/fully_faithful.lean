@@ -55,8 +55,7 @@ restate_axiom faithful.map_injective'
 namespace functor
 variables {X Y : C}
 
-lemma map_injective (F : C ⥤ D) [faithful F] :
-  function.injective $ @functor.map _ _ _ _ F X Y :=
+lemma map_injective (F : C ⥤ D) [faithful F] : function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.map_injective F
 
 lemma map_iso_injective (F : C ⥤ D) [faithful F] :
@@ -69,6 +68,19 @@ full.preimage.{v₁ v₂} f
 @[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) :
   F.map (preimage F f) = f :=
 by unfold preimage; obviously
+
+lemma map_surjective (F : C ⥤ D) [full F] : function.surjective (@functor.map _ _ _ _ F X Y) :=
+λ f, ⟨F.preimage f, F.image_preimage f⟩
+
+/-- Deduce that `F` is full from the existence of preimages, using choice. -/
+noncomputable def full_of_exists (F : C ⥤ D)
+  (h : ∀ (X Y : C) (f : F.obj X ⟶ F.obj Y), ∃ p, F.map p = f) : full F :=
+by { choose p hp using h, exact ⟨p, hp⟩ }
+
+/-- Deduce that `F` is full from surjectivity of `F.map`, using choice. -/
+noncomputable def full_of_surjective (F : C ⥤ D)
+  (h : ∀ (X Y : C), function.surjective (@functor.map _ _ _ _ F X Y)) : full F :=
+full_of_exists _ h
 
 end functor
 

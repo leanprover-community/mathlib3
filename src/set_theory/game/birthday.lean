@@ -78,8 +78,8 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthda
   all_goals { rintro ⟨j, rfl⟩ },
   { exact ⟨_, (r.move_left j).birthday_congr.symm⟩ },
   { exact ⟨_, (r.move_left_symm j).birthday_congr⟩ },
-  { exact ⟨_, (r.move_right_symm j).birthday_congr.symm⟩ },
-  { exact ⟨_, (r.move_right j).birthday_congr⟩ }
+  { exact ⟨_, (r.move_right j).birthday_congr.symm⟩ },
+  { exact ⟨_, (r.move_right_symm j).birthday_congr⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

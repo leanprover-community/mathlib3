@@ -248,10 +248,8 @@ begin
     (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))
     ((equiv.sum_comm _ _).trans (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))) _ _,
   all_goals { rintro (⟨i, j⟩ | ⟨i, j⟩); dsimp; rw [quot_mul_comm, quot_mul_comm (mk xl xr xL xR)] },
-  { rw [quot_mul_comm (xL i), add_comm] },
-  { rw [quot_mul_comm (xR i), add_comm] },
-  { rw [quot_mul_comm (xR j), add_comm] },
-  { rw [quot_mul_comm (xL j), add_comm] }
+  any_goals { rw [quot_mul_comm (xL i), add_comm] },
+  any_goals { rw [quot_mul_comm (xR i), add_comm] }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -304,10 +302,10 @@ begin
       simp only [quot_add, quot_sub, quot_neg_mul],
       simp, abel } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { change ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧ = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧,
+    { change ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧ = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧,
       simp only [quot_add, quot_sub, quot_neg_mul],
       simp, abel },
-    { change ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧ = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧,
+    { change ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧ = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧,
       simp only [quot_add, quot_sub, quot_neg_mul],
       simp, abel } },
 end
@@ -331,12 +329,12 @@ begin
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
   { fsplit,
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl },
-    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
   { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)⟧
              = ⟦xL i * y + x * yL j - xL i * yL j + x * z⟧,
@@ -350,15 +348,15 @@ begin
     { change ⟦xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)⟧
              = ⟦x * y + (xR i * z + x * zR k - xR i * zR k)⟧,
       simp [quot_left_distrib], abel } },
-  { rintro (⟨⟨i, j⟩ | ⟨i, j⟩⟩ | ⟨i, k⟩ | ⟨i, k⟩),
+  { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)⟧
              = ⟦xL i * y + x * yR j - xL i * yR j + x * z⟧,
       simp [quot_left_distrib], abel },
-    { change ⟦xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)⟧
-             = ⟦xR i * y + x * yL j - xR i * yL j + x * z⟧,
-      simp [quot_left_distrib], abel },
     { change ⟦xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)⟧
              = ⟦x * y + (xL i * z + x * zR k - xL i * zR k)⟧,
+      simp [quot_left_distrib], abel },
+    { change ⟦xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)⟧
+             = ⟦xR i * y + x * yL j - xR i * yL j + x * z⟧,
       simp [quot_left_distrib], abel },
     { change ⟦xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)⟧
              = ⟦x * y + (xR i * z + x * zL k - xR i * zL k)⟧,
@@ -388,21 +386,17 @@ by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_dist
 begin
   let x := mk xl xr xL xR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
-  { fsplit,
+  any_goals { fsplit,
     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { exact λ i, sum.inl (i, punit.star) },
+    { intro i,
+      try { exact sum.inl (i, punit.star) },
+      try { exact sum.inr (i, punit.star) } },
     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
     { exact λ i, rfl } },
-  { fsplit,
-    { exact λ i, sum.inr (i, punit.star) },
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { exact λ i, rfl },
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl } },
-  { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩),
-    change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
+  all_goals { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) },
+  { change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
     simp [quot_mul_one] },
-  { rintro i,
-    change ⟦xR i * 1 + x * 0 - xR i * 0⟧ = ⟦xR i⟧,
+  { change ⟦xR i * 1 + x * 0 - xR i * 0⟧ = ⟦xR i⟧,
     simp [quot_mul_one] }
 end
 
@@ -430,12 +424,12 @@ begin
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_,_⟩ | ⟨_, _⟩,_⟩); refl },
     { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_,⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
   { fsplit,
-    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
-    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl },
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl } },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
   { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
     { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zL k
                - (xL i * y + x * yL j - xL i * yL j) * zL k⟧
@@ -457,11 +451,16 @@ begin
              = ⟦xR i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
                - xR i * (yL j * z + y * zR k - yL j * zR k)⟧,
       simp [quot_mul_assoc], abel } },
-  { rintro (⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩ | ⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩),
+  { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
     { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zR k
                - (xL i * y + x * yL j - xL i * yL j) * zR k⟧
              = ⟦xL i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
                - xL i * (yL j * z + y * zR k - yL j * zR k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
+               - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
+             = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
+               - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
       simp [quot_mul_assoc], abel },
     { change ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zL k
                - (xL i * y + x * yR j - xL i * yR j) * zL k⟧
@@ -472,11 +471,6 @@ begin
                - (xR i * y + x * yL j - xR i * yL j) * zL k⟧
              = ⟦xR i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
                - xR i * (yL j * z + y * zL k - yL j * zL k)⟧,
-      simp [quot_mul_assoc], abel },
-    { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
-               - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
-             = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
-               - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
       simp [quot_mul_assoc], abel } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -545,10 +539,14 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 def inv'_zero : inv' 0 ≡r 1 :=
 begin
   change mk _ _ _ _ ≡r 1,
-  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
-  { apply equiv.equiv_punit },
-  { apply equiv.equiv_of_is_empty },
-  { simp }
+  refine ⟨_, _, λ i, _, is_empty.elim _⟩,
+  { apply equiv.equiv_punit (inv_ty _ _ _),
+    apply_instance },
+  { apply equiv.equiv_pempty (inv_ty _ _ _),
+    apply_instance },
+  { simp },
+  { dsimp,
+    apply_instance }
 end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
@@ -559,10 +557,11 @@ begin
   change relabelling (mk _ _ _ _) 1,
   haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
-  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  refine ⟨_, _, λ i, _, is_empty.elim _⟩; dsimp,
   { apply equiv.equiv_punit },
   { apply equiv.equiv_of_is_empty },
-  { simp }
+  { simp },
+  { apply_instance }
 end
 
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv

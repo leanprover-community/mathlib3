@@ -29,6 +29,9 @@ variables {α β : Type*} [partial_order α] [partial_order β] {a a₁ a₂ : �
 @[simp] lemma swap_lt_swap_iff : x.swap < y.swap ↔ x < y :=
 lt_iff_lt_of_le_iff_le' swap_le_swap_iff swap_le_swap_iff
 
+@[simp] lemma swap_wcovby_swap_iff : x.swap ⩿ y.swap ↔ x ⩿ y :=
+apply_wcovby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
+
 @[simp] lemma swap_covby_swap_iff : x.swap ⋖ y.swap ↔ x ⋖ y :=
 apply_covby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
 
@@ -41,59 +44,101 @@ lt_iff_lt_of_le_iff_le' mk_le_mk_iff_left mk_le_mk_iff_left
 lemma mk_lt_mk_iff_right : (a, b₁) < (a, b₂) ↔ b₁ < b₂ :=
 lt_iff_lt_of_le_iff_le' mk_le_mk_iff_right mk_le_mk_iff_right
 
-lemma fst_eq_or_snd_eq_of_covby : x ⋖ y → x.1 = y.1 ∨ x.2 = y.2 :=
+lemma fst_eq_or_snd_eq_of_wcovby : x ⩿ y → x.1 = y.1 ∨ x.2 = y.2 :=
 begin
   refine λ h, of_not_not (λ hab, _),
   push_neg at hab,
-  exact h.2 (mk_lt_mk.2 $ or.inl ⟨hab.1.lt_of_le h.1.1.1, le_rfl⟩)
-    (mk_lt_mk.2 $ or.inr ⟨le_rfl, hab.2.lt_of_le h.1.1.2⟩),
+  exact h.2 (mk_lt_mk.2 $ or.inl ⟨hab.1.lt_of_le h.1.1, le_rfl⟩)
+    (mk_lt_mk.2 $ or.inr ⟨le_rfl, hab.2.lt_of_le h.1.2⟩),
 end
 
-lemma mk_covby_mk_iff_left : (a₁, b) ⋖ (a₂, b) ↔ a ⋖ a₂ :=
+lemma _root_.wcovby.fst (h : x ⩿ y) : x.1 ⩿ y.1 :=
+⟨h.1.1, λ c h₁ h₂, h.2 (mk_lt_mk_iff_left.2 h₁) ⟨⟨h₂.le, h.1.2⟩, λ hc, h₂.not_le hc.1⟩⟩
+
+lemma _root_.wcovby.snd (h : x ⩿ y) : x.2 ⩿ y.2 :=
+⟨h.1.2, λ c h₁ h₂, h.2 (mk_lt_mk_iff_right.2 h₁) ⟨⟨h.1.1, h₂.le⟩, λ hc, h₂.not_le hc.2⟩⟩
+
+lemma mk_wcovby_mk_iff_left : (a₁, b) ⩿ (a₂, b) ↔ a₁ ⩿ a₂ :=
 begin
-  split;
-  rintro ⟨hcov_left, hcov_right⟩;
-  split;
-  [ { skip },
-    { intros c hac hca₂,
-      apply @hcov_right (c, b) },
-    { skip },
-    { rintros ⟨c₁, c₂⟩ h h',
-      apply @hcov_right c₁;
-      have : c₂ = b := le_antisymm h'.1.2 h.1.2;
-      rw this at *, } ];
-  rw mk_lt_mk_iff_left at *;
-  assumption,
+  refine ⟨wcovby.fst, and.imp mk_le_mk_iff_left.2 $ λ h c h₁ h₂, _⟩,
+  have : c.2 = b:= h₂.le.2.antisymm h₁.le.2,
+  rw [←@prod.mk.eta _ _ c, this, mk_lt_mk_iff_left] at h₁ h₂,
+  exact h h₁ h₂,
 end
 
-lemma mk_covby_mk_iff_right : (a, b) ⋖ (a, b₂) ↔ b ⋖ b₂ :=
-swap_covby_swap_iff.trans mk_covby_mk_iff_left
+lemma mk_wcovby_mk_iff_right : (a, b₁) ⩿ (a, b₂) ↔ b₁ ⩿ b₂ :=
+swap_wcovby_swap_iff.trans mk_wcovby_mk_iff_left
+
+lemma mk_wcovby_mk_iff : (a₁, b₁) ⩿ (a₂, b₂) ↔ a₁ ⩿ a₂ ∧ b₁ = b₂ ∨ b₁ ⩿ b₂ ∧ a₁ = a₂ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl | rfl : a₁ = a₂ ∨ b₁ = b₂ := fst_eq_or_snd_eq_of_wcovby h,
+    { exact or.inr ⟨mk_wcovby_mk_iff_right.1 h, rfl⟩ },
+    { exact or.inl ⟨mk_wcovby_mk_iff_left.1 h, rfl⟩ } },
+  { rintro (⟨h, rfl⟩ | ⟨h, rfl⟩),
+    { exact mk_wcovby_mk_iff_left.2 h },
+    { exact mk_wcovby_mk_iff_right.2 h } }
+end
+
+lemma wcovby_iff : x ⩿ y ↔ x.1 ⩿ y.1 ∧ x.2 = y.2 ∨ x.2 ⩿ y.2 ∧ x.1 = y.1 :=
+by { cases x, cases y, exact mk_wcovby_mk_iff }
+
+lemma mk_covby_mk_iff_left : (a₁, b) ⋖ (a₂, b) ↔ a₁ ⋖ a₂ :=
+by simp_rw [covby_iff_wcovby_and_lt, mk_wcovby_mk_iff_left, mk_lt_mk_iff_left]
+
+lemma mk_covby_mk_iff_right : (a, b₁) ⋖ (a, b₂) ↔ b₁ ⋖ b₂ :=
+by simp_rw [covby_iff_wcovby_and_lt, mk_wcovby_mk_iff_right, mk_lt_mk_iff_right]
+
+lemma mk_covby_mk_iff : (a₁, b₁) ⋖ (a₂, b₂) ↔ a₁ ⋖ a₂ ∧ b₁ = b₂ ∨ b₁ ⋖ b₂ ∧ a₁ = a₂ :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain rfl | rfl : a₁ = a₂ ∨ b₁ = b₂ := fst_eq_or_snd_eq_of_wcovby h.wcovby,
+    { exact or.inr ⟨mk_covby_mk_iff_right.1 h, rfl⟩ },
+    { exact or.inl ⟨mk_covby_mk_iff_left.1 h, rfl⟩ } },
+  { rintro (⟨h, rfl⟩ | ⟨h, rfl⟩),
+    { exact mk_covby_mk_iff_left.2 h },
+    { exact mk_covby_mk_iff_right.2 h } }
+end
 
 lemma covby_iff : x ⋖ y ↔ x.1 ⋖ y.1 ∧ x.2 = y.2 ∨ x.2 ⋖ y.2 ∧ x.1 = y.1 :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { obtain h₁ | h₂ := fst_eq_or_snd_eq_of_covby h,
-    { rw [mk_covby_mk_iff_right] at *,
-      tauto },
-    { rw mk_covby_mk_iff_left at *,
-      tauto } },
-  { rcases h with ⟨acov, beq⟩ | ⟨aeq, bcov⟩,
-    { rw beq at *,
-      exact mk_covby_mk_iff_left.mpr acov },
-    { rw aeq at *,
-      exact mk_covby_mk_iff_right.mpr bcov } }
-end
+by { cases x, cases y, exact mk_covby_mk_iff }
+
+lemma _root_.is_max.prod_mk (ha : is_max a) (hb : is_max b) : is_max (a, b) :=
+λ c hc, ⟨ha hc.1, hb hc.2⟩
+
+lemma _root_.is_max.fst (hx : is_max x) : is_max x.1 :=
+λ c hc, (hx $ show x ≤ (c, x.2), from (and_iff_left le_rfl).2 hc).1
+
+lemma _root_.is_max.snd (hx : is_max x) : is_max x.2 :=
+λ c hc, (hx $ show x ≤ (x.1, c), from (and_iff_right le_rfl).2 hc).2
+
+lemma is_max_iff : is_max x ↔ is_max x.1 ∧ is_max x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
 
 lemma _root_.is_min.prod_mk (ha : is_min a) (hb : is_min b) : is_min (a, b) :=
 λ c hc, ⟨ha hc.1, hb hc.2⟩
 
 lemma _root_.is_min.fst (hx : is_min x) : is_min x.1 :=
-λ c hc, (hx ((and_iff_left le_rfl).2 hc : (c, x.2) ≤ x)).1
+λ c hc, (hx $ show (c, x.2) ≤ x, from (and_iff_left le_rfl).2 hc).1
 
 lemma _root_.is_min.snd (hx : is_min x) : is_min x.2 :=
-λ c hc, (hx ((and_iff_right le_rfl).2 hc : (x.1, c) ≤ x)).2
+λ c hc, (hx $ show (x.1, c) ≤ x, from (and_iff_right le_rfl).2 hc).2
 
 lemma is_min_iff : is_min x ↔ is_min x.1 ∧ is_min x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
+
+lemma _root_.is_top.prod_mk (ha : is_top a) (hb : is_top b) : is_top (a, b) := λ c, ⟨ha _, hb _⟩
+lemma _root_.is_top.fst (hx : is_top x) : is_top x.1 := λ c, (hx (c, x.2)).1
+lemma _root_.is_top.snd (hx : is_top x) : is_top x.2 := λ c, (hx (x.1, c)).2
+
+lemma is_top_iff : is_top x ↔ is_top x.1 ∧ is_top x.2 :=
+⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
+
+lemma _root_.is_bot.prod_mk (ha : is_bot a) (hb : is_bot b) : is_bot (a, b) := λ c, ⟨ha _, hb _⟩
+lemma _root_.is_bot.fst (hx : is_bot x) : is_bot x.1 := λ c, (hx (c, x.2)).1
+lemma _root_.is_bot.snd (hx : is_bot x) : is_bot x.2 := λ c, (hx (x.1, c)).2
+
+lemma is_bot_iff : is_bot x ↔ is_bot x.1 ∧ is_bot x.2 :=
 ⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
 
 end prod

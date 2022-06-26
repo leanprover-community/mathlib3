@@ -735,10 +735,7 @@ lemma coequalizer.π_colim_map_desc {X' Y' Z : C} (f' g' : X' ⟶ Y') [has_coequ
   (h : Y' ⟶ Z) (wh : f' ≫ h = g' ≫ h) :
   coequalizer.π f g ≫ colim_map (parallel_pair_hom f g f' g' p q wf wg) ≫ coequalizer.desc h wh =
   q ≫ h :=
-begin
-  slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
-  slice_lhs 2 3 { rw coequalizer.π_desc },
-end
+by rw [ι_colim_map_assoc, parallel_pair_hom_app_one, coequalizer.π_desc]
 
 /-- Any morphism `k : Y ⟶ W` satisfying `f ≫ k = g ≫ k` induces a morphism
     `l : coequalizer f g ⟶ W` satisfying `coequalizer.π ≫ g = l`. -/

@@ -150,7 +150,7 @@ by cases x; refl
 
 -- we generate this manually as `@[derive has_reflect]` fails
 meta instance sigma.reflect {α : Type} (β : α → Type)
-  [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
+  [reflected _ α] [reflected _ β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
   has_reflect (Σ a, β a) :=
 λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst `(a)).subst `(b)
 

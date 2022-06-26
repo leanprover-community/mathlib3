@@ -372,7 +372,7 @@ lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
 
 variables {R x}
 
-@[simp] lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : (minpoly.to_adjoin R x) a =
+lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : (minpoly.to_adjoin R x) a =
   lift_hom (minpoly R x) (⟨x, self_mem_adjoin_singleton R x⟩ : adjoin R ({x} : set S))
   (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
 
@@ -417,8 +417,6 @@ end
   adjoin_root (minpoly R x) ≃ₐ[R] adjoin R ({x} : set S) :=
 alg_equiv.of_bijective (minpoly.to_adjoin R x)
   ⟨minpoly.to_adjoin.injective hinj hx, minpoly.to_adjoin.surjective R x⟩
-
-variables [is_domain R] [normalized_gcd_monoid R] [is_domain S]
 
 /-- The `power_basis` of `adjoin R {x}` given by `x`. See `algebra.adjoin.power_basis` for a version
 over a field. -/

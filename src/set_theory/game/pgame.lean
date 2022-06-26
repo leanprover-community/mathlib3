@@ -591,13 +591,8 @@ theorem equiv_of_mk_equiv {x y : pgame}
   (hr : ∀ j, x.move_right j ≈ y.move_right (R j)) : x ≈ y :=
 begin
   fsplit; rw le_def,
-  { exact ⟨λ i, or.inl ⟨L i, (hl i).1⟩, λ j, or.inr ⟨R.symm j, by simpa using (hr (R.symm j)).1⟩⟩ },
-  { fsplit,
-    { refine λ i, or.inl _,
-      specialize hl (L.symm i),
-      simp only [move_left_mk, equiv.apply_symm_apply] at hl,
-      use ⟨L.symm i, hl.2⟩ },
-    { refine λ j, or.inr ⟨_, (hr j).2⟩ } }
+  { exact ⟨λ i, or.inl ⟨_, (hl i).1⟩, λ j, or.inr ⟨_, by simpa using (hr (R.symm j)).1⟩⟩ },
+  { exact ⟨λ i, or.inl ⟨_, by simpa using (hl (L.symm i)).2⟩, λ j, or.inr ⟨_, (hr j).2⟩⟩ }
 end
 
 /-- The fuzzy, confused, or incomparable relation on pre-games.
@@ -907,7 +902,7 @@ by simp
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x ≡r y → -x ≡r -y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
-⟨R, L, λ j, (hR j).neg_congr, λ i, (hL i).neg_congr⟩ 
+⟨R, L, λ j, (hR j).neg_congr, λ i, (hL i).neg_congr⟩
 
 private theorem neg_le_lf_neg_iff :
   Π {x y : pgame.{u}}, (-y ≤ -x ↔ x ≤ y) ∧ (-y ⧏ -x ↔ x ⧏ y)

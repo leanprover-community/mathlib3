@@ -2069,7 +2069,7 @@ ext $ λ _, by simp only [mem_image, exists_prop, id, exists_eq_right]
 theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.image (g ∘ f) :=
 eq_of_veq $ by simp only [image_val, dedup_map_dedup_eq, multiset.map_map]
 
-lemma image_comm {β'} [decidable_eq β] [decidable_eq β'] [decidable_eq γ] {f : β → γ} {g : α → β}
+lemma image_comm {β'} [decidable_eq β'] [decidable_eq γ] {f : β → γ} {g : α → β}
   {f' : α → β'} {g' : β' → γ} (h_comm : ∀ a, f (g a) = g' (f' a)) :
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, comp, h_comm]

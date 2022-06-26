@@ -18,13 +18,14 @@ In particular, we define morphisms of `k`-linear `G`-representations between `k[
 
 ## Main definitions
 
- * `representation.to_tensor`
- * `representation.of_tensor`
+ * `group_cohomology.resolution.to_tensor`
+ * `group_cohomology.resolution.of_tensor`
  * `Rep.of_mul_action`
 
 ## TODO
 
- * Show that `representation.to_tensor` and `representation.of_tensor` are mutually inverse.
+ * Show that `group_cohomology.resolution.to_tensor` and `group_cohomology.resolution.of_tensor` are
+   mutually inverse.
  * Use the above to deduce that `k[Gⁿ⁺¹]` is free over `k[G]`.
  * Use the freeness of `k[Gⁿ⁺¹]` to build a projective resolution of the (trivial) `k[G]`-module
    `k`, and so develop group cohomology.

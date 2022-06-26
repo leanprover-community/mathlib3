@@ -25,134 +25,89 @@ Algorithms and theorems for locating the roots of real polynomials.
 
 -/
 
+open_locale classical
+
+open polynomial multiset
+
 lemma root_parity_in_range_of_evals (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
   (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
-  even ((p.roots.filter ((λ x, a < x ∧ x < b))).card)
+  even ((p.roots.filter (∈ set.Ioo a b)).card)
     ↔ ((0 < p.eval a ∧ 0 < p.eval b) ∨ (p.eval a < 0 ∧ p.eval b < 0)) :=
 begin
-
-  generalize hr : (multiset.filter ((λ x, a < x ∧ x < b)) p.roots) = root_set,
+  generalize hr : (filter (∈ set.Ioo a b) p.roots) = root_set,
   revert hr hb ha p,
   refine multiset.induction_on root_set _ _,
-  {
+  { -- Base case: Polynomial has no roots in the interval.
     intros p ha hb hr,
     have p_nonzero : p ≠ 0,
     { contrapose! ha,
-      rw [ha, polynomial.eval_zero], },
-    simp only [multiset.card_zero, true_iff, even_zero],
+      rw [ha, eval_zero], },
+    have p_continuous : continuous_on (λ x, p.eval x) (set.Icc a b) := p.continuous.continuous_on,
+    simp only [card_zero, true_iff, even_zero],
     contrapose! hr,
-    simp only [ne.def],
-    rw multiset.eq_zero_iff_forall_not_mem,
+    rw [ne.def, eq_zero_iff_forall_not_mem],
     push_neg,
-    replace ha := lt_or_gt_of_ne ha,
-    replace hb := lt_or_gt_of_ne hb,
-    have p_continuous : continuous_on (λ x, p.eval x) (set.Icc a b),
-    {
-      exact (polynomial.continuous p).continuous_on,
-    },
+    replace ha := ne.lt_or_lt ha,
+    replace hb := ne.lt_or_lt hb,
+    -- Casework on sign of evaluations at endpoints.
     rcases ha with ha'|ha'; rcases hb with hb'|hb',
-    {
-      replace hr := hr.right ha',
-      linarith,
-    },
+    { replace hr := hr.right ha',
+      linarith, },
     { have ivt := intermediate_value_Ioo hab p_continuous,
-      have zero_mem_image := @set.mem_of_mem_of_subset _ 0 _ _ _ ivt,
-      { simp at zero_mem_image ⊢,
-        rcases zero_mem_image with ⟨x, hx⟩,
-        use x,
-        rw [polynomial.mem_roots p_nonzero, polynomial.is_root],
-        exact and.comm.mp hx, },
-      simp [ha'],
-      exact hb', },
+      have zero_mem_image := set.mem_of_mem_of_subset (set.mem_Ioo.mpr ⟨ha', hb'⟩) ivt,
+      simp only [set.mem_Ioo, mem_filter, set.mem_image] at zero_mem_image ⊢,
+      rcases zero_mem_image with ⟨x, hx⟩,
+      use x,
+      rwa [mem_roots p_nonzero, is_root, and.comm], },
     { have ivt := intermediate_value_Ioo' hab p_continuous,
-      have zero_mem_image := @set.mem_of_mem_of_subset _ 0 _ _ _ ivt,
-      { simp at zero_mem_image ⊢,
-        rcases zero_mem_image with ⟨x, hx⟩,
-        use x,
-        rw [polynomial.mem_roots p_nonzero, polynomial.is_root],
-        exact and.comm.mp hx, },
-      simp [hb'],
-      exact ha', },
-    {
-      replace hr := hr.left ha',
-      linarith,
-    },
-  },
+      have zero_mem_image := set.mem_of_mem_of_subset (set.mem_Ioo.mpr ⟨hb', ha'⟩) ivt,
+      simp only [set.mem_Ioo, mem_filter, set.mem_image] at zero_mem_image ⊢,
+      rcases zero_mem_image with ⟨x, hx⟩,
+      use x,
+      rwa [mem_roots p_nonzero, is_root, and.comm], },
+    { replace hr := hr.left ha',
+      linarith, }, },
   { -- Inductive case: Polynomial has at least one root `root` in the interval.
     intros root root_set' hf p ha hb hr,
     have p_nonzero : p ≠ 0,
     { contrapose! ha,
       rw ha,
-      simp only [le_refl, and_self, polynomial.eval_zero], },
-    -- clear_except ha hr,
-    have in_roots : root ∈ multiset.filter (λ (x : ℝ), a < x ∧ x < b) p.roots,
-    {
-      rw hr, simp,
-    },
-    -- clear hr,
-    rw multiset.mem_filter at in_roots,
-    rcases in_roots with ⟨in_roots, h_root_range⟩,
-    rw polynomial.mem_roots p_nonzero at in_roots,
-    -- Divide factor out the root to get a new polynomial to which to apply the inductive hypothesis
-    rw <-polynomial.dvd_iff_is_root at in_roots,
-    rcases in_roots with ⟨p', hpp'⟩,
+      simp only [le_refl, and_self, eval_zero], },
+    have in_roots : root ∈ filter (∈ set.Ioo a b) p.roots,
+    { rw hr, apply multiset.mem_cons_self, },
+    rw mem_filter at in_roots,
+    rcases in_roots with ⟨is_root, h_root_range⟩,
+    rw [mem_roots p_nonzero, ←dvd_iff_is_root] at is_root,
+    -- Divide factor out to get a new polynomial on which to apply the inductive hypothesis.
+    rcases is_root with ⟨p', hpp'⟩,
+    -- Reexpress all hypotheses in terms of new polynomial `p'`.
     rw hpp' at *,
     have ha' : p'.eval a ≠ 0,
-    {
-      clear_except ha hpp',
-      -- rw hpp' at ha,
+    { clear_except ha,
       simp at ha,
       push_neg at ha,
-      exact ha.right,
-    },
+      exact ha.right, },
     have hb' : p'.eval b ≠ 0,
-    {
-      clear_except hb hpp',
-      -- rw hpp' at hb,
+    { clear_except hb hpp',
       simp at hb,
       push_neg at hb,
-      exact hb.right,    },
-    have hr' : multiset.filter (λ (x : ℝ), a < x ∧ x < b) p'.roots = root_set',
-    {
-      clear_except hr hpp' p_nonzero h_root_range,
-      -- rw hpp' at hr,
-      rw polynomial.roots_mul at hr,
-      rw multiset.filter_add at hr,
-      simp only [polynomial.roots_X_sub_C] at hr,
-      rw multiset.filter_singleton at hr,
-      rw if_pos h_root_range at hr,
-      rw multiset.singleton_add at hr,
-      simp at hr,
-      exact hr,
-      -- rw <-hpp',
-      assumption,
-    },
-
+      exact hb.right, },
+    have hr' : filter (∈ set.Ioo a b) p'.roots = root_set',
+    { clear_except hr p_nonzero h_root_range,
+      rw [roots_mul p_nonzero, filter_add, roots_X_sub_C,
+        filter_singleton, if_pos h_root_range, singleton_add,
+        cons_inj_right] at hr,
+      exact hr, },
     replace hf := hf p' ha' hb' hr',
-    simp only [multiset.card_cons],
-    rw nat.even_succ,
-    rw hf,
+    rw [card_cons, nat.even_succ, hf],
     clear_except h_root_range ha' hb',
+    replace ha' := ne.lt_or_lt ha',
+    replace hb' := ne.lt_or_lt hb',
     rcases h_root_range with ⟨hra, hrb⟩,
     have hra' : ¬ root < a, by linarith [hra],
     have hrb' : ¬ b < root, by linarith [hrb],
-    -- TODO there should be a `ne_iff_lt_or_lt` so we don't have to unfold gt.
-    simp_rw [ne_iff_lt_or_gt, polynomial.eval_mul] at *,
-    simp_rw [polynomial.eval_sub, polynomial.eval_X, polynomial.eval_C] at *,
-    unfold gt at *,
-    simp_rw [mul_pos_iff, mul_neg_iff] at *,
-    simp only [hra, hrb, hra', hrb', sub_pos, sub_neg] at *,
-    clear hra hrb hra' hrb',
-    simp only [false_and, true_and, false_or, or_false, lt_or_lt_iff_ne, ne.def, not_false_iff] at *,
-    push_neg,
-    replace ha' := lt_or_gt_of_ne ha',
-    replace hb' := lt_or_gt_of_ne hb',
+    simp_rw [eval_mul, eval_sub, eval_X, eval_C, mul_pos_iff, mul_neg_iff, sub_pos, sub_neg,
+      hra, hrb, hra', hrb', false_and, true_and, false_or, or_false] at *,
     tauto! {closer := tactic.linarith tt ff []},
   },
-end
-
-lemma pos_root_parity_of_leading_trailing_coeff (p : polynomial ℝ) (hp : p.to_finsupp 0 ≠ 0) :
-  even ((p.roots.filter (λ x, (0 : ℝ) < x)).card + if p.leading_coeff > 0 then 1 else 0) :=
-begin
-
 end

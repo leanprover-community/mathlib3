@@ -86,7 +86,7 @@ begin
       push_neg at ha,
       exact ha.right, },
     have hb' : p'.eval b ≠ 0,
-    { clear_except hb hpp',
+    { clear_except hb,
       simp at hb,
       push_neg at hb,
       exact hb.right, },

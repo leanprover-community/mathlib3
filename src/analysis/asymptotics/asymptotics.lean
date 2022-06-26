@@ -671,7 +671,7 @@ is_o.of_is_O_with $ λ c cpos, ((h₁.forall_is_O_with $ half_pos cpos).add
 theorem is_o.add_add (h₁ : f₁ =o[l] g₁) (h₂ : f₂ =o[l] g₂) :
   (λ x, f₁ x + f₂ x) =o[l] (λ x, ∥g₁ x∥ + ∥g₂ x∥) :=
 by refine (h₁.trans_le $ λ x, _).add (h₂.trans_le _);
-  simp [real.norm_eq_abs, abs_of_nonneg, add_nonneg]
+  simp [abs_of_nonneg, add_nonneg]
 
 theorem is_O.add_is_o (h₁ : f₁ =O[l] g) (h₂ : f₂ =o[l] g) : (λ x, f₁ x + f₂ x) =O[l] g :=
 h₁.add h₂.is_O

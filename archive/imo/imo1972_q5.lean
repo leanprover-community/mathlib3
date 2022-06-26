@@ -43,7 +43,7 @@ begin
   have hk₂ : ∀ x, 2 * (∥f x∥ * ∥g y∥) ≤ 2 * k,
   { intro x,
     calc 2 * (∥f x∥ * ∥g y∥)
-        = ∥2 * f x * g y∥ : by simp [real.norm_eq_abs, abs_mul, mul_assoc]
+        = ∥2 * f x * g y∥ : by simp [abs_mul, mul_assoc]
     ... = ∥f (x + y) + f (x - y)∥ : by rw hf1
     ... ≤ ∥f (x + y)∥ + ∥f (x - y)∥ : norm_add_le _ _
     ... ≤ k + k : add_le_add (hk₁ _) (hk₁ _)

@@ -419,7 +419,7 @@ lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
   μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
-    by simp [smul_closed_ball' hr.ne' (0 : E), real.norm_eq_abs, abs_of_nonneg hr.le],
+    by simp [smul_closed_ball' hr.ne' (0 : E), abs_of_nonneg hr.le],
   simp only [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_closed_ball_center, abs_pow],
 end
 
@@ -427,7 +427,7 @@ lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 
   μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
-    by simp [smul_closed_ball r (0 : E) hs, real.norm_eq_abs, abs_of_nonneg hr],
+    by simp [smul_closed_ball r (0 : E) hs, abs_of_nonneg hr],
   simp only [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center, abs_pow],
 end
 

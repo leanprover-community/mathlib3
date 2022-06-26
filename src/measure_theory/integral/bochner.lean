@@ -1137,7 +1137,7 @@ begin
   by_cases hfm : ae_strongly_measurable f μ,
   { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
-    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+    simpa [abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
   { rw [integral_non_ae_strongly_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end

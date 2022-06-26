@@ -327,7 +327,7 @@ begin
   intros ε hε,
   cases this (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N, intros n hn,
-  simpa [norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
+  simpa [norm_mul, abs_of_nonneg (mtn n)] using hN _ hn
 end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=

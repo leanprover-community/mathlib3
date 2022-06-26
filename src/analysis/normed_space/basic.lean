@@ -173,12 +173,12 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
   left_inv := λ x,
     begin
       have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
-      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, real.norm_eq_abs, abs_div]
+      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, abs_div]
     end,
   right_inv := λ x, subtype.ext
     begin
       have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
-      field_simp [norm_smul, smul_smul, real.norm_eq_abs, abs_div, abs_of_pos this, this.ne']
+      field_simp [norm_smul, smul_smul, abs_div, abs_of_pos this, this.ne']
     end,
   continuous_to_fun := continuous_subtype_mk _ $
     ((continuous_const.add continuous_norm).inv₀

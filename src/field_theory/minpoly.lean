@@ -458,6 +458,8 @@ begin
   exact nat_degree_le_of_dvd (gcd_domain_dvd hs hinj hp0 hp) hp0
 end
 
+omit hs
+
 lemma gcd_domain_unique (hinj : function.injective (algebra_map R S)) {P : R[X]} (hmo : P.monic)
   (hP : polynomial.aeval s P = 0)
   (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :

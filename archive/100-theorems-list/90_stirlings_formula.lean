@@ -49,7 +49,7 @@ noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 We have the expression
 `log_stirling_seq (n + 1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
-lemma log_stirling_seq_formula (n : ℕ) : log_stirling_seq n.succ = 
+lemma log_stirling_seq_formula (n : ℕ) : log_stirling_seq n.succ =
   log n.succ.factorial - 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
   have h3, from sqrt_ne_zero'.mpr (mul_pos two_pos $ cast_pos.mpr (succ_pos n)),
@@ -205,7 +205,7 @@ begin
 end
 
 /--
-The sequence `stirling_seq` has a positive lower bound (in fact, `exp (3/4 - 1/2 * log 2)`)
+The sequence `stirling_seq` has a positive lower bound.
 -/
 lemma stirling_seq'_bounded_by_pos_constant : ∃ a, 0 < a ∧ ∀ n : ℕ, a ≤ stirling_seq n.succ :=
 begin

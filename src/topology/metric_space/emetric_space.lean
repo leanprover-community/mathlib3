@@ -534,10 +534,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
-theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
-not_lt_of_le (edist_triangle_left x y z)
-  (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
+theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
+λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc

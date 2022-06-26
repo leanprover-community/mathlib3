@@ -371,10 +371,9 @@ instance : preorder pgame :=
     induction x with xl xr xL xR IHxl IHxr generalizing y z,
     induction y with yl yr yL yR IHyl IHyr generalizing z,
     induction z with zl zr zL zR IHzl IHzr,
-    exact ⟨
-      le_trans_aux (λ i, (IHxl i).2.1) (λ j, (IHzr j).2.2),
+    exact ⟨le_trans_aux (λ i, (IHxl i).2.1) (λ j, (IHzr j).2.2),
       le_trans_aux (λ i, (IHyl i).2.2) (λ j, (IHxr j).1),
-      le_trans_aux (λ i, (IHzl i).1)   (λ j, (IHyr j).2.1)⟩
+      le_trans_aux (λ i, (IHzl i).1) (λ j, (IHyr j).2.1)⟩
   end,
   ..pgame.has_le }
 

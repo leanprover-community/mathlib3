@@ -68,9 +68,11 @@ noncomputable
 instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) :
   groupoid F.elements :=
 { inv := λ p q f, ⟨inv f.val,
-      calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
-                             ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
-                             ... = p.2 : by {rw ←functor.map_comp, simp}⟩, }
+    calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
+                           ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : rfl
+                           ... = p.2 : by {rw ← F.map_comp, simp} ⟩,
+  inv_comp' := λ _ _ _, by { ext, simp },
+  comp_inv' := λ _ _ _, by { ext, simp } }
 
 namespace category_of_elements
 variable (F : C ⥤ Type w)
@@ -97,7 +99,7 @@ def to_structured_arrow : F.elements ⥤ structured_arrow punit F :=
   map := λ X Y f, structured_arrow.hom_mk f.val (by tidy) }
 
 @[simp] lemma to_structured_arrow_obj (X) :
-  (to_structured_arrow F).obj X = { left := punit.star, right := X.1, hom := λ _, X.2 } := rfl
+  (to_structured_arrow F).obj X = { left := ⟨⟨⟩⟩, right := X.1, hom := λ _, X.2 } := rfl
 @[simp] lemma to_comma_map_right {X Y} (f : X ⟶ Y) :
   ((to_structured_arrow F).map f).right = f.val := rfl
 
@@ -193,8 +195,8 @@ begin
     simp only [quiver.hom.unop_op, yoneda_obj_map],
     erw category.comp_id },
   intros X Y f,
-  cases X, cases Y, cases f, cases X_right, cases Y_right,
-  simp[costructured_arrow.hom_mk],
+  rcases X with ⟨X_left, ⟨⟨⟩⟩⟩, rcases Y with ⟨Y_left, ⟨⟨⟩⟩⟩, cases f,
+  simp [costructured_arrow.hom_mk],
   delta costructured_arrow.mk,
   congr,
   { ext x f,

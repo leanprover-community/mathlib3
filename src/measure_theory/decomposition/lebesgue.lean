@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.measure.complex
+import measure_theory.measure.sub
 import measure_theory.decomposition.jordan
 import measure_theory.measure.with_density_vector_measure
 import measure_theory.function.ae_eq_of_integral
@@ -141,7 +142,7 @@ begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
-    exact measure.le_add_right (le_refl _) },
+    exact measure.le_add_right le_rfl },
   { rw [singular_part, dif_neg hl],
     exact measure.zero_le μ }
 end
@@ -152,7 +153,7 @@ begin
   by_cases hl : have_lebesgue_decomposition μ ν,
   { casesI (have_lebesgue_decomposition_spec μ ν).2 with _ h,
     conv_rhs { rw h },
-    exact measure.le_add_left (le_refl _) },
+    exact measure.le_add_left le_rfl },
   { rw [rn_deriv, dif_neg hl, with_density_zero],
     exact measure.zero_le μ }
 end
@@ -188,7 +189,7 @@ begin
       from lt_of_le_of_lt (lintegral_mono_set (subset_to_measurable _ _)) this,
     rw [← with_density_apply _ (measurable_set_to_measurable _ _)],
     refine lt_of_le_of_lt
-      (le_add_left (le_refl _) : _ ≤ μ.singular_part ν (to_measurable μ s) +
+      (le_add_left le_rfl : _ ≤ μ.singular_part ν (to_measurable μ s) +
         ν.with_density (μ.rn_deriv ν) (to_measurable μ s)) _,
     rw [← measure.add_apply, ← hadd, measure_to_measurable],
     exact hs.lt_top },
@@ -236,7 +237,7 @@ begin
   { rw compl_inter,
     refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
     rw [hT₃, hS₃, add_zero],
-    exact le_refl _ },
+    exact le_rfl },
   have heq : s.restrict (S ∩ T)ᶜ = (μ.singular_part ν).restrict (S ∩ T)ᶜ,
   { ext1 A hA,
     have hf : ν.with_density f (A ∩ (S ∩ T)ᶜ) = 0,
@@ -293,7 +294,7 @@ begin
     ((measurable_rn_deriv μ₁ ν).add (measurable_rn_deriv μ₂ ν))
     ((have_lebesgue_decomposition_spec _ _).2.1.add_left (have_lebesgue_decomposition_spec _ _).2.1)
     _).symm,
-  erw with_density_add (measurable_rn_deriv μ₁ ν) (measurable_rn_deriv μ₂ ν),
+  erw with_density_add_left (measurable_rn_deriv μ₁ ν),
   conv_rhs { rw [add_assoc, add_comm (μ₂.singular_part ν), ← add_assoc, ← add_assoc] },
   rw [← have_lebesgue_decomposition_add μ₁ ν, add_assoc,
       add_comm (ν.with_density (μ₂.rn_deriv ν)),
@@ -326,7 +327,7 @@ begin
   { rw compl_inter,
     refine nonpos_iff_eq_zero.1 (le_trans (measure_union_le _ _) _),
     rw [hT₃, hS₃, add_zero],
-    exact le_refl _ },
+    exact le_rfl },
   have heq : (ν.with_density f).restrict (S ∩ T) =
               (ν.with_density (μ.rn_deriv ν)).restrict (S ∩ T),
   { ext1 A hA,
@@ -472,34 +473,6 @@ def measurable_le (μ ν : measure α) : set (α → ℝ≥0∞) :=
 lemma zero_mem_measurable_le : (0 : α → ℝ≥0∞) ∈ measurable_le μ ν :=
 ⟨measurable_zero, λ A hA, by simp⟩
 
-lemma max_measurable_le (f g : α → ℝ≥0∞)
-  (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) (A : set α) (hA : measurable_set A) :
-  ∫⁻ a in A, max (f a) (g a) ∂μ ≤
-  ∫⁻ a in A ∩ { a | f a ≤ g a }, g a ∂μ + ∫⁻ a in A ∩ { a | g a < f a }, f a ∂μ :=
-begin
-  rw [← lintegral_indicator _ hA, ← lintegral_indicator f,
-      ← lintegral_indicator g, ← lintegral_add],
-  { refine lintegral_mono (λ a, _),
-    by_cases haA : a ∈ A,
-    { by_cases f a ≤ g a,
-      { simp only,
-        rw [indicator_of_mem haA, indicator_of_mem, indicator_of_not_mem, add_zero],
-        simp only [le_refl, max_le_iff, and_true, h],
-        { rintro ⟨_, hc⟩, exact false.elim ((not_lt.2 h) hc) },
-        { exact ⟨haA, h⟩ } },
-      { simp only,
-        rw [indicator_of_mem haA, indicator_of_mem _ f,
-            indicator_of_not_mem, zero_add],
-        simp only [true_and, le_refl, max_le_iff, le_of_lt (not_le.1 h)],
-        { rintro ⟨_, hc⟩, exact false.elim (h hc) },
-        { exact ⟨haA, not_le.1 h⟩ } } },
-    { simp [indicator_of_not_mem haA] } },
-  { exact measurable.indicator hg.1 (hA.inter (measurable_set_le hf.1 hg.1)) },
-  { exact measurable.indicator hf.1 (hA.inter (measurable_set_lt hg.1 hf.1)) },
-  { exact hA.inter (measurable_set_le hf.1 hg.1) },
-  { exact hA.inter (measurable_set_lt hg.1 hf.1) },
-end
-
 lemma sup_mem_measurable_le {f g : α → ℝ≥0∞}
   (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) :
   (λ a, f a ⊔ g a) ∈ measurable_le μ ν :=
@@ -508,7 +481,7 @@ begin
   refine ⟨measurable.max hf.1 hg.1, λ A hA, _⟩,
   have h₁ := hA.inter (measurable_set_le hf.1 hg.1),
   have h₂ := hA.inter (measurable_set_lt hg.1 hf.1),
-  refine le_trans (max_measurable_le f g hf hg A hA) _,
+  rw [set_lintegral_max hf.1 hg.1],
   refine (add_le_add (hg.2 _ h₁) (hf.2 _ h₂)).trans_eq _,
   { simp only [← not_le, ← compl_set_of, ← diff_eq],
     exact measure_inter_add_diff _ (measurable_set_le hf.1 hg.1) }
@@ -523,20 +496,15 @@ begin
   all_goals
   { set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
     set d := (f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a) with hd,
-    suffices : c ≤ d ∧ d ≤ c,
-    { change c = d, -- removing this line breaks
-      exact le_antisymm this.1 this.2 },
-    rw [hc, hd],
+    rw [@le_antisymm_iff ℝ≥0∞, hc, hd], -- Specifying the type is weirdly necessary
     refine ⟨_, _⟩,
-    { refine bsupr_le (λ n hn, _),
+    { refine supr₂_le (λ n hn, _),
       rcases nat.of_le_succ hn with (h | h),
-      { exact le_sup_of_le_right (le_bsupr n h) },
+      { exact le_sup_of_le_right (le_supr₂ n h) },
       { exact h ▸ le_sup_left } },
-    { refine sup_le _ _,
-      { convert @le_bsupr _ _ _ (λ i, i ≤ m + 1) _ m.succ (le_refl _), refl },
-      { refine bsupr_le (λ n hn, _),
-        have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
-        exact (le_bsupr n this) } } },
+    { refine sup_le _ (bsupr_mono $ λ n hn, hn.trans m.le_succ),
+      convert @le_supr₂ _ _ (λ i, i ≤ m + 1) _ _ m.succ le_rfl,
+      refl } }
 end
 
 lemma supr_mem_measurable_le
@@ -567,13 +535,7 @@ omit m
 
 lemma supr_monotone {α : Type*} (f : ℕ → α → ℝ≥0∞) :
   monotone (λ n x, ⨆ k (hk : k ≤ n), f k x) :=
-begin
-  intros n m hnm x,
-  simp only,
-  refine bsupr_le (λ k hk, _),
-  have : k ≤ m := le_trans hk hnm, -- replacing `this` below with the proof breaks
-  exact le_bsupr k this,
-end
+λ n m hnm x, bsupr_mono $ λ i, ge_trans hnm
 
 lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
   monotone (λ n, ⨆ k (hk : k ≤ n), f k x) :=
@@ -581,7 +543,7 @@ lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
 
 lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : k ≤ n) :
   f k ≤ λ x, ⨆ k (hk : k ≤ n), f k x :=
-λ x, le_bsupr k hk
+λ x, le_supr₂ k hk
 
 end supr_lemmas
 
@@ -615,7 +577,7 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
       refine tendsto_of_tendsto_of_tendsto_of_le_of_le hg₂ tendsto_const_nhds _ _,
       { intro n, rw ← hf₂ n,
         apply lintegral_mono,
-        simp only [supr_apply, supr_le_le f n n (le_refl _)] },
+        simp only [supr_apply, supr_le_le f n n le_rfl] },
       { intro n,
         exact le_Sup ⟨⨆ (k : ℕ) (hk : k ≤ n), f k, supr_mem_measurable_le' _ hf₁ _, rfl⟩ } },
     { intro n,
@@ -663,9 +625,9 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
             measure.sub_apply (hA.inter hE₁) hle,
             ennreal.to_real_sub_of_le _ (ne_of_lt (measure_lt_top _ _)), sub_nonneg,
             le_sub_iff_add_le, ← ennreal.to_real_add, ennreal.to_real_le_to_real,
-            measure.coe_nnreal_smul, pi.smul_apply, with_density_apply _ (hA.inter hE₁),
+            measure.coe_smul, pi.smul_apply, with_density_apply _ (hA.inter hE₁),
             show ε • ν (A ∩ E) = (ε : ℝ≥0∞) * ν (A ∩ E), by refl,
-            ← set_lintegral_const, ← lintegral_add measurable_const hξm] at this,
+            ← set_lintegral_const, ← lintegral_add_left measurable_const] at this,
       { rw [ne.def, ennreal.add_eq_top, not_or_distrib],
         exact ⟨ne_of_lt (measure_lt_top _ _), ne_of_lt (measure_lt_top _ _)⟩ },
       { exact ne_of_lt (measure_lt_top _ _) },
@@ -679,24 +641,18 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
     have hξε : ξ + E.indicator (λ _, ε) ∈ measurable_le ν μ,
     { refine ⟨measurable.add hξm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
       have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂ν =
-            ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A ∩ Eᶜ, ξ a ∂ν,
-      { rw [lintegral_add measurable_const hξm, add_assoc,
-            ← lintegral_union (hA.inter hE₁) (hA.inter hE₁.compl)
-              (disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-              disjoint_compl_right), inter_union_compl],
-        simp_rw [pi.add_apply],
-        rw [lintegral_add hξm (measurable.indicator measurable_const hE₁), add_comm],
-        refine congr_fun (congr_arg has_add.add _) _,
-        rw [set_lintegral_const, lintegral_indicator _ hE₁, set_lintegral_const,
-            measure.restrict_apply hE₁, inter_comm] },
+            ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A \ E, ξ a ∂ν,
+      { simp only [lintegral_add_left measurable_const, lintegral_add_left hξm,
+          set_lintegral_const, add_assoc, lintegral_inter_add_diff _ _ hE₁, pi.add_apply,
+          lintegral_indicator _ hE₁, restrict_apply hE₁],
+        rw [inter_comm, add_comm] },
       rw [this, ← measure_inter_add_diff A hE₁],
       exact add_le_add (hε₂ A hA) (hξle (A \ E) (hA.diff hE₁)) },
       have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂ν ≤ Sup (measurable_le_eval ν μ) :=
         le_Sup ⟨ξ + E.indicator (λ _, ε), hξε, rfl⟩,
   -- but this contradicts the maximality of `∫⁻ x, ξ x ∂ν`
       refine not_lt.2 this _,
-      rw [hξ₁, lintegral_add hξm (measurable.indicator (measurable_const) hE₁),
-          lintegral_indicator _ hE₁, set_lintegral_const],
+      rw [hξ₁, lintegral_add_left hξm, lintegral_indicator _ hE₁, set_lintegral_const],
       refine ennreal.lt_add_right _ (ennreal.mul_pos_iff.2 ⟨ennreal.coe_pos.2 hε₁, hE₂⟩).ne',
       have := measure_ne_top (ν.with_density ξ) univ,
       rwa [with_density_apply _ measurable_set.univ, measure.restrict_univ] at this },
@@ -965,10 +921,13 @@ lemma integrable_rn_deriv (s : signed_measure α) (μ : measure α) :
   integrable (rn_deriv s μ) μ :=
 begin
   refine integrable.sub _ _;
-  { split, measurability,
+  { split,
+    { apply measurable.ae_strongly_measurable, measurability },
     exact has_finite_integral_to_real_of_lintegral_ne_top
       (lintegral_rn_deriv_lt_top _ μ).ne }
 end
+
+variables (s μ)
 
 /-- **The Lebesgue Decomposition theorem between a signed measure and a measure**:
 Given a signed measure `s` and a σ-finite measure `μ`, there exist a signed measure `t` and a
@@ -994,6 +953,8 @@ begin
     exact (s.to_jordan_decomposition.neg_part.have_lebesgue_decomposition_add μ) },
   all_goals { exact (lintegral_rn_deriv_lt_top _ _).ne <|> measurability }
 end
+
+variables {s μ}
 
 lemma jordan_decomposition_add_with_density_mutually_singular
   {f : α → ℝ} (hf : measurable f) (htμ : t ⊥ᵥ μ.to_ennreal_vector_measure) :
@@ -1027,7 +988,7 @@ begin
   ext i hi,
   rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       to_signed_measure_apply_measurable hi, add_apply, add_apply,
-      ennreal.to_real_add, ennreal.to_real_add, add_sub_comm,
+      ennreal.to_real_add, ennreal.to_real_add, add_sub_add_comm,
       ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
       ← vector_measure.sub_apply, ← jordan_decomposition.to_signed_measure,
       to_signed_measure_to_jordan_decomposition, vector_measure.add_apply,
@@ -1278,27 +1239,21 @@ theorem singular_part_add_with_density_rn_deriv_eq [c.have_lebesgue_decompositio
   c.singular_part μ + μ.with_densityᵥ (c.rn_deriv μ) = c :=
 begin
   conv_rhs { rw [← c.to_complex_measure_to_signed_measure] },
-  ext i hi,
-  { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
-        complex.add_re, re_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
-        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
-    suffices : (c.singular_part μ i).re + ∫ x in i, (c.rn_deriv μ x).re ∂μ = (c i).re,
-    { simpa },
-    rw [← with_densityᵥ_apply _ hi],
+  ext i hi : 1,
+  rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply],
+  ext,
+  { rw [complex.add_re, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
+      ←is_R_or_C.re_eq_complex_re, ←integral_re (c.integrable_rn_deriv μ).integrable_on,
+      is_R_or_C.re_eq_complex_re, ← with_densityᵥ_apply _ hi],
     { change (c.re.singular_part μ + μ.with_densityᵥ (c.re.rn_deriv μ)) i = _,
-      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.re _,
-      refl },
+      rw c.re.singular_part_add_with_density_rn_deriv_eq μ },
     { exact (signed_measure.integrable_rn_deriv _ _) } },
-  { rw [vector_measure.add_apply, signed_measure.to_complex_measure_apply,
-        complex.add_im, im_apply, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
-        ← set_integral_re_add_im (c.integrable_rn_deriv μ).integrable_on],
-    suffices : (c.singular_part μ i).im + ∫ x in i, (c.rn_deriv μ x).im ∂μ = (c i).im,
-    { simpa },
-    rw [← with_densityᵥ_apply _ hi],
+  { rw [complex.add_im, with_densityᵥ_apply (c.integrable_rn_deriv μ) hi,
+      ←is_R_or_C.im_eq_complex_im, ←integral_im (c.integrable_rn_deriv μ).integrable_on,
+      is_R_or_C.im_eq_complex_im, ← with_densityᵥ_apply _ hi],
     { change (c.im.singular_part μ + μ.with_densityᵥ (c.im.rn_deriv μ)) i = _,
-      rw @signed_measure.singular_part_add_with_density_rn_deriv_eq _ _ μ c.im _,
-      refl },
-    { exact (signed_measure.integrable_rn_deriv _ _) } }
+      rw c.im.singular_part_add_with_density_rn_deriv_eq μ },
+    { exact (signed_measure.integrable_rn_deriv _ _) } },
 end
 
 end complex_measure

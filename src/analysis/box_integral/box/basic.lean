@@ -3,9 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.metric_space.basic
-import topology.algebra.ordered.monotone_convergence
 import data.set.intervals.monotone
+import topology.algebra.order.monotone_convergence
+import topology.metric_space.basic
 
 /-!
 # Rectangular boxes in `ℝⁿ`

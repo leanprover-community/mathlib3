@@ -1,4 +1,4 @@
-import data.equiv.basic
+import logic.equiv.basic
 import tactic.norm_swap
 
 
@@ -20,12 +20,12 @@ if `norm_swap.eval` is behaving properly.
 example : true := by do
   let l : list ℕ := [0, 1, 2, 3],
   let l' : list ((ℕ × ℕ) × ℕ) := (do a ← l, b ← l, c ← l, pure ((a, b), c)),
-  (lhs : list expr) ← mmap (λ (tup : (ℕ × ℕ) × ℕ),
-    to_expr ``(equiv.swap %%tup.fst.fst %%tup.fst.snd %%tup.snd)) l',
-  (rhs : list expr) ← mmap (λ (tup : (ℕ × ℕ) × ℕ),
-    if tup.snd = tup.fst.fst then to_expr ``(%%tup.fst.snd)
-    else if tup.snd = tup.fst.snd then to_expr ``(%%tup.fst.fst)
-    else to_expr ``(%%tup.snd)) l',
+  let lhs : list expr := l'.map (λ (tup : (ℕ × ℕ) × ℕ),
+    `(equiv.swap tup.fst.fst tup.fst.snd tup.snd).to_expr),
+  let rhs : list expr := l'.map (λ (tup : (ℕ × ℕ) × ℕ),
+    if tup.snd = tup.fst.fst then `(tup.fst.snd)
+    else if tup.snd = tup.fst.snd then `(tup.fst.fst)
+    else `(tup.snd)),
   let eqs : list expr := list.zip_with (λ L R, `(@eq.{1} ℕ %%L %%R)) lhs rhs,
   g ← get_goals,
   gls ← mmap mk_meta_var eqs,

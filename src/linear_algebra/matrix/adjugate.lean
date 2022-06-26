@@ -45,7 +45,7 @@ cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
-open_locale matrix big_operators
+open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
 section cramer
@@ -220,7 +220,7 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end
@@ -281,6 +281,20 @@ end
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
 by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
+@[simp] lemma adjugate_diagonal (v : n → α) :
+  adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
+begin
+  ext,
+  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  obtain rfl | hij := eq_or_ne i j,
+  { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
+      prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
+  { rw diagonal_apply_ne _ hij,
+    refine det_eq_zero_of_row_eq_zero j (λ k, _),
+    obtain rfl | hjk := eq_or_ne k j,
+    { rw [update_column_self, pi.single_eq_of_ne' hij] },
+    { rw [update_column_ne hjk, diagonal_apply_ne' _ hjk]} },
+end
 
 lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
@@ -382,9 +396,9 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  let g : matrix n n α → matrix n n (polynomial α) :=
-    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
-  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  let g : matrix n n α → matrix n n α[X] :=
+    λ M, M.map polynomial.C + (polynomial.X : α[X]) • 1,
+  let f' : matrix n n α[X] →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
   have f'_inv : ∀ M, f' (g M) = M,
   { intro,
     ext,
@@ -438,11 +452,8 @@ begin
   let A' := mv_polynomial_X n n ℤ,
   suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
   { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
-      ←alg_hom.map_det, ← alg_hom.map_pow],
-    -- TODO: missing an `alg_hom.map_smul_of_tower` here.
-    ext i j,
-    dsimp [-mv_polynomial_X],
-    rw [←alg_hom.map_mul] },
+      ←alg_hom.map_det, ← alg_hom.map_pow, alg_hom.map_matrix_apply, alg_hom.map_matrix_apply,
+      matrix.map_smul' _ _ _ (_root_.map_mul _)] },
   have h_card' : fintype.card n - 2 + 1 = fintype.card n - 1,
   { simp [h_card] },
 

@@ -79,7 +79,7 @@ begin
   intros I hI,
   obtain ⟨⟨h₁⟩, h₂⟩ := id h,
   by_contradiction contra,
-  rw [h₁ I contra, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self] at hI,
+  rw [h₁ I contra, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv] at hI,
   exact h₂ hI,
 end
 

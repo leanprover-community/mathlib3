@@ -33,7 +33,7 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 universes u v
 
 variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
-variables {x₀ x₁ x₂ : X}
+variables {x₀ x₁ x₂ x₃ : X}
 
 noncomputable theory
 
@@ -172,8 +172,8 @@ def hcomp (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
     intros x hx,
     norm_num [hx]
   end,
-  to_fun_zero := λ x, by norm_num [path.trans],
-  to_fun_one := λ x, by norm_num [path.trans],
+  map_zero_left' := λ x, by norm_num [path.trans],
+  map_one_left' := λ x, by norm_num [path.trans],
   prop' := begin
     rintros x t ht,
     cases ht,
@@ -206,8 +206,8 @@ def reparam (p  : path x₀ x₁) (f : I → I) (hf : continuous f) (hf₀ : f 0
 { to_fun := λ x, p ⟨σ x.1 * x.2 + x.1 * f x.2,
     show (σ x.1 : ℝ) • (x.2 : ℝ) + (x.1 : ℝ) • (f x.2 : ℝ) ∈ I, from convex_Icc _ _ x.2.2 (f x.2).2
     (by unit_interval) (by unit_interval) (by simp)⟩,
-  to_fun_zero := λ x, by norm_num,
-  to_fun_one := λ x, by norm_num,
+  map_zero_left' := λ x, by norm_num,
+  map_one_left' := λ x, by norm_num,
   prop' := λ t x hx,
   begin
     cases hx,
@@ -224,8 +224,8 @@ argument.
 @[simps]
 def symm₂ {p q : path x₀ x₁} (F : p.homotopy q) : p.symm.homotopy q.symm :=
 { to_fun := λ x, F ⟨x.1, σ x.2⟩,
-  to_fun_zero := by simp [path.symm],
-  to_fun_one := by simp [path.symm],
+  map_zero_left' := by simp [path.symm],
+  map_one_left' := by simp [path.symm],
   prop' := λ t x hx, begin
     cases hx,
     { rw hx, simp },
@@ -242,8 +242,8 @@ Given `F : homotopy p q`, and `f : C(X, Y)`, we can define a homotopy from `p.ma
 def map {p q : path x₀ x₁} (F : p.homotopy q) (f : C(X, Y)) :
   homotopy (p.map f.continuous) (q.map f.continuous) :=
 { to_fun := f ∘ F,
-  to_fun_zero := by simp,
-  to_fun_one := by simp,
+  map_zero_left' := by simp,
+  map_one_left' := by simp,
   prop' := λ t x hx, begin
     cases hx,
     { simp [hx] },
@@ -309,6 +309,29 @@ quotient.map (λ (q : path x₀ x₁), q.map f.continuous) (λ p₀ p₁ h, path
 lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
   ⟦P₀.map f.continuous⟧ = quotient.map_fn ⟦P₀⟧ f := rfl
 
+lemma hpath_hext {p₁ : path x₀ x₁} {p₂ : path x₂ x₃} (hp : ∀ t, p₁ t = p₂ t) : ⟦p₁⟧ == ⟦p₂⟧ :=
+begin
+  obtain rfl : x₀ = x₂ := by { convert hp 0; simp, },
+  obtain rfl : x₁ = x₃ := by { convert hp 1; simp, },
+  rw heq_iff_eq, congr, ext t, exact hp t,
+end
+
+
 end homotopic
 
 end path
+
+
+namespace continuous_map.homotopy
+
+/--
+Given a homotopy H: f ∼ g, get the path traced by the point `x` as it moves from
+`f x` to `g x`
+-/
+def eval_at {X : Type*} {Y : Type*} [topological_space X] [topological_space Y] {f g : C(X, Y)}
+  (H : continuous_map.homotopy f g) (x : X) : path (f x) (g x) :=
+{ to_fun := λ t, H (t, x),
+  source' := H.apply_zero x,
+  target' := H.apply_one x, }
+
+end continuous_map.homotopy

@@ -138,6 +138,11 @@ theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_triv
 
 theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_trivial
 
+@[simp] lemma band_bnot_self : ∀ x, x && !x = ff := dec_trivial
+@[simp] lemma bnot_band_self : ∀ x, !x && x = ff := dec_trivial
+@[simp] lemma bor_bnot_self : ∀ x, x || !x = tt := dec_trivial
+@[simp] lemma bnot_bor_self : ∀ x, !x || x = tt := dec_trivial
+
 theorem bxor_comm : ∀ a b, bxor a b = bxor b a := dec_trivial
 @[simp] theorem bxor_assoc : ∀ a b c, bxor (bxor a b) c = bxor a (bxor b c) := dec_trivial
 theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial
@@ -163,7 +168,6 @@ instance : linear_order bool :=
   le_total := dec_trivial,
   decidable_le := infer_instance,
   decidable_eq := infer_instance,
-  decidable_lt := infer_instance,
   max := bor,
   max_def := by { funext x y, revert x y, exact dec_trivial },
   min := band,
@@ -219,5 +223,9 @@ by cases b; simp only [of_nat,to_nat]; exact dec_trivial
 @[simp] lemma injective_iff {α : Sort*} {f : bool → α} : function.injective f ↔ f ff ≠ f tt :=
 ⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
   λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
+
+/-- **Kaminski's Equation** -/
+theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
+by cases x; cases h₁ : f tt; cases h₂ : f ff; simp only [h₁, h₂]
 
 end bool

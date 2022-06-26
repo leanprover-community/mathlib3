@@ -70,7 +70,7 @@ lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin
   rw coe_inv_circle_eq_conj,
-  apply eq_inv_of_mul_right_eq_one,
+  apply eq_inv_of_mul_eq_one_right,
   rw [mul_comm, ← complex.norm_sq_eq_conj_mul_self],
   simp,
 end
@@ -122,3 +122,6 @@ def exp_map_circle_hom : ℝ →+ (additive circle) :=
 @[simp] lemma exp_map_circle_sub (x y : ℝ) :
   exp_map_circle (x - y) = exp_map_circle x / exp_map_circle y :=
 exp_map_circle_hom.map_sub x y
+
+@[simp] lemma exp_map_circle_neg (x : ℝ) : exp_map_circle (-x) = (exp_map_circle x)⁻¹ :=
+exp_map_circle_hom.map_neg x

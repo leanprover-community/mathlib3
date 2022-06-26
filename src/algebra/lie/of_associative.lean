@@ -5,7 +5,8 @@ Authors: Oliver Nash
 -/
 import algebra.lie.basic
 import algebra.lie.subalgebra
-import algebra.algebra.subalgebra
+import algebra.lie.submodule
+import algebra.algebra.subalgebra.basic
 
 /-!
 # Lie algebras of associative algebras
@@ -190,13 +191,47 @@ def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphis
   lie_module.to_endomorphism R (module.End R M) M = lie_hom.id :=
 by { ext g m, simp [lie_eq_smul], }
 
+lemma lie_subalgebra.to_endomorphism_eq (K : lie_subalgebra R L) {x : K} :
+  lie_module.to_endomorphism R K M x = lie_module.to_endomorphism R L M x :=
+rfl
+
+@[simp] lemma lie_subalgebra.to_endomorphism_mk (K : lie_subalgebra R L) {x : L} (hx : x ∈ K) :
+  lie_module.to_endomorphism R K M ⟨x, hx⟩ = lie_module.to_endomorphism R L M x :=
+rfl
+
+variables {R L M}
+
+namespace lie_submodule
+
+open lie_module
+
+variables {N : lie_submodule R L M} {x : L}
+
+lemma coe_map_to_endomorphism_le :
+  (N : submodule R M).map (lie_module.to_endomorphism R L M x) ≤ N :=
+begin
+  rintros n ⟨m, hm, rfl⟩,
+  exact N.lie_mem hm,
+end
+
+variables (N x)
+
+lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ N) :
+  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ N :=
+by simpa using N.lie_mem hm
+
+@[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
+  (h := N.to_endomorphism_comp_subtype_mem x) :
+  ((to_endomorphism R L M x).restrict h : N →ₗ[R] N) = to_endomorphism R L N x :=
+by { ext, simp [linear_map.restrict_apply], }
+
+end lie_submodule
+
 open lie_algebra
 
 lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
   (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
 by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
-
-variables {R L}
 
 lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :
   (ad R L ↑x).comp (K.incl : K →ₗ[R] L) = (K.incl : K →ₗ[R] L).comp (ad R K x) :=

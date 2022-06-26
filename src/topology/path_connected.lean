@@ -3,9 +3,9 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.unit_interval
-import topology.algebra.ordered.proj_Icc
+import topology.algebra.order.proj_Icc
 import topology.continuous_function.basic
+import topology.unit_interval
 
 /-!
 # Path connectedness
@@ -237,7 +237,7 @@ begin
     { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
     norm_num [ht] },
   { refine congr_arg _ (subtype.ext _),
-    norm_num [sub_sub_assoc_swap, mul_sub] },
+    norm_num [sub_sub_eq_add_sub, mul_sub] },
   { refine congr_arg _ (subtype.ext _),
     have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
     norm_num [mul_sub, h] },
@@ -555,9 +555,9 @@ begin
   have : range f = univ,
   { rw range_iff_surjective,
     intro t,
-    have h₁ : continuous (Icc_extend (@zero_le_one ℝ _) f),
+    have h₁ : continuous (Icc_extend (zero_le_one' ℝ) f),
     { continuity },
-    have := intermediate_value_Icc (@zero_le_one ℝ _) h₁.continuous_on,
+    have := intermediate_value_Icc (zero_le_one' ℝ) h₁.continuous_on,
     { rw [Icc_extend_left, Icc_extend_right] at this,
       change Icc (f 0) (f 1) ⊆ _ at this,
       rw [hf₀, hf₁] at this,
@@ -800,7 +800,7 @@ begin
     { use path.refl (p' 0),
       { split,
         { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
-        { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },
+        { rw range_subset_iff, rintros x, exact hp' 0 le_rfl } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
       rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,
       let γ : path (p' 0) (p' $ n+1) := γ₀.trans γ₁,

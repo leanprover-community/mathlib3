@@ -7,7 +7,7 @@ import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
-import algebra.category.CommRing.constructions
+import algebra.category.Ring.constructions
 import ring_theory.integral_domain
 import ring_theory.local_properties
 
@@ -31,15 +31,15 @@ variable (X : Scheme)
 
 instance : t0_space X.carrier :=
 begin
-  rw t0_space_iff_distinguishable,
+  rw t0_space_iff_not_inseparable,
   intros x y h h',
   obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
   have hy := (h' _ U.1.2).mp U.2,
-  erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
+  erw ← subtype_inseparable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
   let e' : U.1 ≃ₜ prime_spectrum R :=
     homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
   have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
-  rw t0_space_iff_distinguishable at this,
+  rw t0_space_iff_not_inseparable at this,
   exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
 end
 
@@ -204,7 +204,7 @@ begin
     replace hs := (hs.map (Spec_Γ_identity.app R).inv),
     -- what the hell?!
     replace hs := @is_nilpotent.eq_zero _ _ _ _ (show _, from _) hs,
-    rw coe_hom_inv_id at hs,
+    rw iso.hom_inv_id_apply at hs,
     rw [hs, map_zero],
     exact @@is_reduced.component_reduced hX ⊤ }
 end
@@ -274,26 +274,20 @@ end
 lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_space X.carrier] :
   is_integral X :=
 begin
-  split,
-  intros U hU,
-  split,
-  { intros a b e,
-    simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
-    by_contra h,
-    push_neg at h,
-    exfalso,
-    obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
-      (X.basic_open a).2 (X.basic_open b).2
-      h.1 h.2,
-    replace e' := subtype.eq e',
-    subst e',
-    replace e := congr_arg (X.presheaf.germ x) e,
-    rw [ring_hom.map_mul, ring_hom.map_zero] at e,
-    apply @zero_ne_one (X.presheaf.stalk x.1),
-    rw ← is_unit_zero_iff,
-    convert hx₁.mul hx₂,
-    exact e.symm },
-  exact (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
+  split, refine λ U hU, ⟨λ a b e, _,
+    (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1⟩,
+  simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
+  by_contra' h,
+  obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
+    (X.basic_open a).2 (X.basic_open b).2
+    h.1 h.2,
+  replace e' := subtype.eq e',
+  subst e',
+  replace e := congr_arg (X.presheaf.germ x) e,
+  rw [ring_hom.map_mul, ring_hom.map_zero] at e,
+  refine @zero_ne_one (X.presheaf.stalk x.1) _ _ (is_unit_zero_iff.1 _),
+  convert hx₁.mul hx₂,
+  exact e.symm
 end
 
 lemma is_integral_iff_is_irreducible_and_is_reduced :
@@ -342,7 +336,7 @@ lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : 
   [H : nonempty U] :
   function.injective (X.presheaf.map i.op) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros x hx,
   rw ← basic_open_eq_bot_iff at ⊢ hx,
   rw Scheme.basic_open_res at hx,

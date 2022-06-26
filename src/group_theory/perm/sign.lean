@@ -419,7 +419,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans_self, ← one_def,
       by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt e.injective.eq_iff.1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
-    simp only [units.neg_neg, one_mul, units.neg_mul]}
+    simp only [neg_neg, one_mul, neg_mul]}
 end
 
 /-- When the multiset `s : multiset α` contains all nonfixed points of the permutation `f : perm α`,

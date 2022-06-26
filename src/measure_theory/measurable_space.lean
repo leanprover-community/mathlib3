@@ -212,7 +212,7 @@ end
 
 lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
   measurable f :=
-λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
+λ s hs, (finite_of_subtype (f ⁻¹' s)).measurable_set
 
 end typeclass_measurable_space
 

@@ -200,7 +200,7 @@ lemma to_measure_apply_of_finite (hs : s.finite) :
 @[simp]
 lemma to_measure_apply_fintype [fintype α] :
   p.to_measure s = ↑(∑ x, s.indicator p x) :=
-(p.to_measure_apply_eq_to_outer_measure_apply s (set.finite.of_fintype s).measurable_set).trans
+(p.to_measure_apply_eq_to_outer_measure_apply s (set.finite_of_subtype s).measurable_set).trans
   (p.to_outer_measure_apply_fintype s)
 
 end measurable_singleton_class

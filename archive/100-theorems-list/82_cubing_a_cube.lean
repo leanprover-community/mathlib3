@@ -301,7 +301,7 @@ end
 lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
   (cs i).w ≤ (cs i').w :=
 by simpa
-  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
+  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (finite_of_subtype _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v
@@ -350,7 +350,7 @@ begin
   have hs : s.nonempty,
   { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
     refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
-  rcases set.exists_min_image s (w ∘ cs) (finite.of_fintype _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
+  rcases set.exists_min_image s (w ∘ cs) (finite_of_subtype _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,
   have hx : x < (cs i).b j.succ,

@@ -655,7 +655,7 @@ finset_coe.fintype _
 
 lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
-set.finite_of_fintype _
+set.finite_of_subtype _
 
 theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
   [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :

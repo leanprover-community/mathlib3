@@ -898,6 +898,9 @@ set.ext $ by simp
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
 by simp [set.ext_iff]
 
+theorem Union_eq_range_psigma (s : ι → set β) : (⋃ i, s i) = range (λ a : Σ' i, s i, a.2) :=
+by simp [set.ext_iff]
+
 theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
   (⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s)) = s :=
 begin

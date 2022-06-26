@@ -1364,11 +1364,10 @@ lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
-lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_clopen (f i)) :
+lemma is_clopen_bInter {β : Type*} {s : set β} (hs : s.finite) {f : β → set α}
+  (h : ∀ i ∈ s, is_clopen (f i)) :
   is_clopen (⋂ i ∈ s, f i) :=
-⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
-  by {show is_closed (⋂ (i : β) (H : i ∈ (↑s : set β)), f i), rw bInter_eq_Inter,
-    apply is_closed_Inter, rintro ⟨i, hi⟩, exact (h i hi).2}⟩
+⟨is_open_bInter hs (λ i hi, (h i hi).1), is_closed_bInter (λ i hi, (h i hi).2)⟩
 
 lemma continuous_on.preimage_clopen_of_clopen
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)

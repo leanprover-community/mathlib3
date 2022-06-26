@@ -258,7 +258,7 @@ end
 
 theorem exists_open_singleton_of_fintype [t0_space α] [fintype α] [nonempty α] :
   ∃ x : α, is_open ({x} : set α) :=
-let ⟨x, _, h⟩ := exists_open_singleton_of_open_finite (finite.of_fintype _) univ_nonempty
+let ⟨x, _, h⟩ := exists_open_singleton_of_open_finite (finite_of_subtype _) univ_nonempty
   is_open_univ in ⟨x, h⟩
 
 lemma t0_space_of_injective_of_continuous [topological_space β] {f : α → β}
@@ -619,7 +619,7 @@ begin
   apply singletons_open_iff_discrete.mp,
   intros x,
   rw [← is_closed_compl_iff],
-  exact (finite.of_fintype _).is_closed
+  exact (finite_of_subtype _).is_closed
 end
 
 lemma singleton_mem_nhds_within_of_mem_discrete {s : set α} [discrete_topology s]

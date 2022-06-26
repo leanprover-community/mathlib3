@@ -909,18 +909,23 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
 
+theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
+begin
+  rw [← lift_mk_fin, ← mk_ulift, cardinal.eq],
+  exact nonempty.congr (λ e, e.trans equiv.ulift) (λ e, e.trans equiv.ulift.symm)
+end
+
+theorem lt_aleph_0_iff_finite {α : Type u} : #α < ℵ₀ ↔ finite α :=
+by simp only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
+
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=
-lt_aleph_0.trans ⟨λ ⟨n, e⟩, begin
-  rw [← lift_mk_fin n] at e,
-  cases quotient.exact e with f,
-  exact ⟨fintype.of_equiv _ f.symm⟩
-end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
+lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 
-theorem lt_aleph_0_of_fintype (α : Type u) [fintype α] : #α < ℵ₀ :=
-lt_aleph_0_iff_fintype.2 ⟨infer_instance⟩
+theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
+lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
-lt_aleph_0_iff_fintype.trans finite_def.symm
+theorem lt_aleph_0_iff_finite_set {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+lt_aleph_0_iff_finite.trans finite_coe_iff
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
@@ -1000,7 +1005,7 @@ calc #α = 1 ↔ #α ≤ 1 ∧ 1 ≤ #α : le_antisymm_iff
   le_one_iff_subsingleton.and (one_le_iff_ne_zero.trans mk_ne_zero_iff)
 
 theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
-by rw [←not_lt, lt_aleph_0_iff_fintype, not_nonempty_iff, is_empty_fintype]
+by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
 
@@ -1297,14 +1302,14 @@ lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
 by { rw bUnion_eq_Union, apply mk_Union_le }
 
 lemma finset_card_lt_aleph_0 (s : finset α) : #(↑s : set α) < ℵ₀ :=
-by { rw lt_aleph_0_iff_fintype, exact ⟨finset.subtype.fintype s⟩ }
+lt_aleph_0_of_finite _
 
 theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
   #s = n ↔ ∃ t : finset α, (t : set α) = s ∧ t.card = n :=
 begin
   split,
   { intro h,
-    lift s to finset α using lt_aleph_0_iff_finite.1 (h.symm ▸ nat_lt_aleph_0 n),
+    lift s to finset α using lt_aleph_0_iff_finite_set.1 (h.symm ▸ nat_lt_aleph_0 n),
     simpa using h },
   { rintro ⟨t, rfl, rfl⟩,
     exact mk_finset }

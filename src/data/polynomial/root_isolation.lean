@@ -108,6 +108,5 @@ begin
     have hrb' : ¬ b < root, by linarith [hrb],
     simp_rw [eval_mul, eval_sub, eval_X, eval_C, mul_pos_iff, mul_neg_iff, sub_pos, sub_neg,
       hra, hrb, hra', hrb', false_and, true_and, false_or, or_false] at *,
-    tauto! {closer := tactic.linarith tt ff []},
-  },
+    tauto! {closer := tactic.linarith tt ff []}, },
 end

@@ -153,19 +153,6 @@ begin
     { rw [finset.sup_union, ← hS₁', ← hS₂', ← inf_sup_left, left_eq_inf], exact h } }
 end
 
-lemma closeds_finset_Sup_coe {ι : Type*} (f : ι → closeds α) (s : finset ι) :
-  (↑(s.sup f) : set α) = ⋃ i ∈ s, f i :=
-begin
-  have : is_closed (⋃ i ∈ s, (f i : set α)) :=
-    is_closed_bUnion (set.finite_of_fintype _) (λ i _, (f i).2),
-  apply le_antisymm,
-  { change s.sup f ≤ ⟨_, this⟩,
-    rw finset.sup_le_iff,
-    exact λ b hb, @set.subset_bUnion_of_mem ι α _ _ b hb },
-  { simp only [set.Union_subset_iff, set.le_eq_subset],
-    exact λ i hi, @finset.le_sup _ _ _ _ _ f _ hi }
-end
-
 lemma noetherian_space.finite_irreducible_components [noetherian_space α] :
   (set.range irreducible_component : set (set α)).finite :=
 begin
@@ -184,7 +171,7 @@ begin
       rintro _ z hz rfl,
       exact z.2 },
     { convert set.subset_univ _,
-      convert (closeds_finset_Sup_coe id S).symm using 1,
+      convert (closeds.coe_finset_Sup id S).symm using 1,
       { rw [finset.coe_image, set.sUnion_image], refl },
       { rw ← hS₂, refl } } },
   obtain ⟨s, hs, e⟩ := finset.mem_image.mp hz,

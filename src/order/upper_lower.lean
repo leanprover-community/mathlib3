@@ -24,6 +24,11 @@ This file defines upper and lower sets in an order.
 * `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
 * `lower_set.Iio`: Strict principal lower set. `set.Iio` as an lower set.
 
+## Notes
+
+Upper sets are ordered by **reverse** inclusion. This convention is motivated by the fact that this
+makes them order-isomorphic to lower sets and antichains, and matches the convention on `filter`.
+
 ## TODO
 
 Lattice structure on antichains. Order equivalence between upper/lower sets and antichains.
@@ -354,8 +359,8 @@ by simp_rw lower_set.compl_infi
 
 end lower_set
 
-/-- Upper sets are isomorphic to lower sets under complementation. -/
-def upper_set_iso_lower_set : upper_set α ≃o lower_set α :=
+/-- Upper sets are order-isomorphic to lower sets under complementation. -/
+@[simps] def upper_set_iso_lower_set : upper_set α ≃o lower_set α :=
 { to_fun := upper_set.compl,
   inv_fun := lower_set.compl,
   left_inv := upper_set.compl_compl,

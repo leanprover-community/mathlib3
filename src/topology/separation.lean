@@ -850,7 +850,8 @@ begin
     obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ (diagonal α)ᶜ, is_open t ∧ (x, y) ∈ t :=
       is_open_iff_forall_mem_open.mp h.is_open_compl _ this,
     rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
-    exact ⟨U, V, U_op, V_op, xU, yV, prod_subset_compl_diagonal_iff_disjoint.1 (H.trans t_sub)⟩ }
+    exact ⟨U, V, U_op, V_op, xU, yV,
+      (prod_subset_compl_diagonal_iff_disjoint.1 $ H.trans t_sub).inter_eq⟩ }
 end
 
 section separated

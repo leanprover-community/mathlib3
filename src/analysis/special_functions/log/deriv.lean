@@ -273,7 +273,7 @@ lemma has_sum_log_sub_log_of_abs_lt_1 {x : ℝ} (h : |x| < 1) :
   has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * x ^ (2 * k + 1)) (log (1 + x) - log(1 - x)) :=
 begin
   have h₁ := has_sum_pow_div_log_of_abs_lt_1 h,
-  have h₂ := has_sum.mul_left (-1) (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)),
+  have h₂ := (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)).mul_left (-1),
   rw [neg_one_mul, neg_neg, sub_neg_eq_add 1 x] at h₂,
   let term := λ n : ℕ, (-1) * ((-x) ^ (n + 1) / ((n : ℝ) + 1)) + x ^ (n + 1) / (n + 1),
   have h_term_eq_goal : term ∘ (*) 2 = λ k : ℕ, 2 * (1 / (2 * k + 1)) * x ^ (2 * k + 1),

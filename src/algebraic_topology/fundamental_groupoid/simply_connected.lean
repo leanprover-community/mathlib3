@@ -17,7 +17,7 @@ A topological space is simply connected if its fundamental groupoid is equivalen
   - `simply_connected_iff_unique_homotopic` - A space is simply connected if and only if it is
     nonempty and there is a unique path up to homotopy between any two points
 
-  - `simply_conntected_space.of_contractible` - A contractible space is simply connected
+  - `simply_connected_space.of_contractible` - A contractible space is simply connected
 -/
 noncomputable theory
 
@@ -41,7 +41,6 @@ by { rw [simply_connected_def, equiv_punit_iff_unique], refl, }
 namespace simply_connected_space
 variables {X : Type*} [topological_space X] [simply_connected_space X]
 
-/-- We do not make this an instance because `unique` contains data -/
 lemma unique_homotopic (x y : X) : nonempty (unique (path.homotopic.quotient x y)) :=
 ((simply_connected_iff_unique_homotopic X).mp infer_instance).2 x y
 
@@ -63,10 +62,7 @@ by simpa using @subsingleton.elim (path.homotopic.quotient x y) _ ⟦p₁⟧ ⟦
 instance of_contractible (Y : Type*) [topological_space Y] [contractible_space Y] :
   simply_connected_space Y :=
 { equiv_unit :=
-  let H : Top.of Y ≃ₕ Top.of unit :=
-    (homotopy_equiv.refl _ : Top.of Y ≃ₕ Y).trans (
-    (contractible_space.hequiv_unit Y).some.trans
-    (homotopy_equiv.refl _ : unit ≃ₕ Top.of unit)) in
+  let H : Top.of Y ≃ₕ Top.of unit := (contractible_space.hequiv_unit Y).some in
   ⟨(fundamental_groupoid_functor.equiv_of_homotopy_equiv H).trans
     fundamental_groupoid.punit_equiv_discrete_punit⟩, }
 

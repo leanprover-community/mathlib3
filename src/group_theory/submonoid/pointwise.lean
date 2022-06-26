@@ -120,10 +120,10 @@ variables [monoid α] [mul_distrib_mul_action α M]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (submonoid M) :=
-{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ _ a),
-  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ M a),
+  one_smul := λ S, by { ext, simp, },
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : monoid.End M, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
 
 localized "attribute [instance] submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise
@@ -139,7 +139,7 @@ lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
 
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : monoid.End M, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -218,10 +218,12 @@ variables [monoid α] [distrib_mul_action α A]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (add_submonoid A) :=
-{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ _ a),
-  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ A a),
+  one_smul := λ S, (congr_arg (λ f : add_monoid.End A, S.map f)
+    (monoid_hom.map_one _)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : add_monoid.End A, S.map f) (monoid_hom.map_mul _ _ _)).trans
+      (S.map_map _ _).symm,}
 
 localized "attribute [instance] add_submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise
@@ -233,7 +235,8 @@ lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_submonoid A) : m ∈ S �
 
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
   is_central_scalar α (add_submonoid A) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : add_monoid.End A, S.map f) $
+  add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 

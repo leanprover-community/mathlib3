@@ -919,7 +919,9 @@ instance : monoid (monoid.End M) :=
 
 instance : inhabited (monoid.End M) := ⟨1⟩
 
-instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
+--instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
+
+instance : monoid_hom_class (monoid.End M) M M := monoid_hom.monoid_hom_class
 
 end End
 
@@ -946,7 +948,9 @@ instance : monoid (add_monoid.End A) :=
 
 instance : inhabited (add_monoid.End A) := ⟨1⟩
 
-instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
+--instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
+
+instance : add_monoid_hom_class (add_monoid.End A) A A := add_monoid_hom.add_monoid_hom_class
 
 end End
 
@@ -1120,6 +1124,10 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
 { to_fun := f,
   map_mul' := map_mul,
   map_one' := mul_left_eq_self.1 $ by rw [←map_mul, mul_one] }
+
+@[to_additive, simp]
+lemma mk'_apply' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
+  (mk' f map_mul : M → G) = f := rfl
 
 omit mM
 

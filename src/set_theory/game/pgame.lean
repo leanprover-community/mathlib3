@@ -699,7 +699,7 @@ inductive game_ordering
 
 namespace game_ordering
 
-instance : inhabited game_ordering := ⟨equiv⟩ 
+instance : inhabited game_ordering := ⟨equiv⟩
 
 instance : has_repr game_ordering :=
 ⟨(λ s, match s with
@@ -717,6 +717,7 @@ instance : decidable_eq game_ordering :=
   try { exact is_false (λ h, game_ordering.no_confusion h) }
 end
 
+/-- If `x` and `y` compare as `o`, then `y` and `x` compare as `o.swap`. -/
 def swap : game_ordering → game_ordering
 | lt := gt
 | equiv := equiv

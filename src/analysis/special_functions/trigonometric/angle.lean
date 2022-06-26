@@ -19,19 +19,11 @@ noncomputable theory
 namespace real
 
 /-- The type of angles -/
+@[derive [add_comm_group, topological_space, topological_add_group]]
 def angle : Type :=
 ℝ ⧸ (add_subgroup.zmultiples (2 * π))
 
 namespace angle
-
-instance angle.add_comm_group : add_comm_group angle :=
-quotient_add_group.add_comm_group _
-
-instance : topological_space angle :=
-quotient_add_group.quotient.topological_space _
-
-instance : topological_add_group angle :=
-topological_add_group_quotient _
 
 instance : inhabited angle := ⟨0⟩
 

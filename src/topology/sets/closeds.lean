@@ -63,14 +63,8 @@ instance : inhabited (closeds α) := ⟨⊥⟩
 lemma coe_finset_sup {ι : Type*} (f : ι → closeds α) (s : finset ι) :
   (↑(s.sup f) : set α) = ⋃ i ∈ s, f i :=
 begin
-  have : is_closed (⋃ i ∈ s, (f i : set α)) :=
-    is_closed_bUnion (set.finite_of_fintype _) (λ i _, (f i).2),
-  apply le_antisymm,
-  { change s.sup f ≤ ⟨_, this⟩,
-    rw finset.sup_le_iff,
-    exact λ b hb, @set.subset_bUnion_of_mem ι α _ _ b hb },
-  { simp only [set.Union_subset_iff, set.le_eq_subset],
-    exact λ i hi, @finset.le_sup _ _ _ _ _ f _ hi }
+  classical,
+  induction s using finset.induction; simp [*]
 end
 
 end closeds

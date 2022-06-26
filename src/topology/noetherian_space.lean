@@ -48,6 +48,7 @@ begin
   exact forall_congr opens.is_compact_element_iff,
 end
 
+@[priority 100]
 instance noetherian_space.compact_space [h : noetherian_space α] : compact_space α :=
 is_compact_univ_iff.mp ((noetherian_space_iff_opens α).mp h ⊤)
 

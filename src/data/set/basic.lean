@@ -1386,10 +1386,19 @@ subset.antisymm
 lemma image_image (g : β → γ) (f : α → β) (s : set α) : g '' (f '' s) = (λ x, g (f x)) '' s :=
 (image_comp g f s).symm
 
-lemma image_comm {β'} {f : β → γ} {g : α → β} {f' : α → β'} {g' : β' → γ}
-  (h_comm : ∀ a, f (g a) = g' (f' a)) :
+lemma image_image_eq_image_image_of_eq {β'} {f : β → γ} {g : α → β} {f' : α → β'} {g' : β' → γ}
+  (h_comm : ∀ a, f (g a) = g' (f' a)) (s : set α) :
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, h_comm]
+
+lemma _root_.function.semiconj.set_image {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (image f) (image ga) (image gb) :=
+image_image_eq_image_image_of_eq h
+
+lemma _root_.function.commute.set_image {f g : α → α} (h : function.commute f g) :
+  function.commute (image f) (image g) :=
+h.set_image
 
 /-- Image is monotone with respect to `⊆`. See `set.monotone_image` for the statement in
 terms of `≤`. -/

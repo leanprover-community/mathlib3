@@ -164,7 +164,8 @@ by { rw ←image_inv, exact (range_comp _ _).symm }
 open mul_opposite
 
 @[to_additive]
-lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ := by simp_rw [←image_inv, image_comm op_inv]
+lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ :=
+by simp_rw [←image_inv, function.semiconj.set_image op_inv s]
 
 end has_involutive_inv
 end inv

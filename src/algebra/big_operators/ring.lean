@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
+import algebra.field.basic
 import data.finset.pi
 import data.finset.powerset
 
@@ -24,6 +25,21 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 
+section comm_monoid
+variables [comm_monoid β]
+
+open_locale classical
+
+lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
+  ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
+begin
+  apply finset.induction,
+  { simp },
+  { assume a s has H,
+    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
+end
+
+end comm_monoid
 
 section semiring
 variables [non_unital_non_assoc_semiring β]
@@ -180,15 +196,6 @@ begin
   rw [prod_const, prod_const, ← card_sdiff (mem_powerset.1 ht)]
 end
 
-lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
-  ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
-begin
-  apply finset.induction,
-  { simp },
-  { assume a s has H,
-    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
-end
-
 theorem dvd_sum {b : β} {s : finset α} {f : α → β}
   (h : ∀ x ∈ s, b ∣ f x) : b ∣ ∑ x in s, f x :=
 multiset.dvd_sum (λ y hy, by rcases multiset.mem_map.1 hy with ⟨x, hx, rfl⟩; exact h x hx)
@@ -218,7 +225,8 @@ end comm_ring
 
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
-@[to_additive]
+@[to_additive "A sum over all subsets of `s ∪ {x}` is obtained by summing the sum over all subsets
+of `s`, and over all subsets of `s` to which one adds `x`."]
 lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s)
   (f : finset α → β) :
   (∏ a in (insert x s).powerset, f a) =
@@ -235,9 +243,10 @@ begin
     exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
 end
 
-/-- A product over `powerset s` is equal to the double product over
-sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
-@[to_additive]
+/-- A product over `powerset s` is equal to the double product over sets of subsets of `s` with
+`card s = k`, for `k = 1, ..., card s`. -/
+@[to_additive "A sum over `powerset s` is equal to the double sum over sets of subsets of `s` with
+`card s = k`, for `k = 1, ..., card s`"]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
 begin

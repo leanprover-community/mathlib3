@@ -3,8 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
-import linear_algebra.basic
+import linear_algebra.span
 import order.partial_sups
+import algebra.algebra.basic
 
 /-! ### Products of modules
 
@@ -33,7 +34,7 @@ It contains theorems relating these to each other, as well as to `submodule.prod
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
-
+variables {M₅ M₆ : Type*}
 
 section prod
 
@@ -41,7 +42,9 @@ namespace linear_map
 
 variables (S : Type*) [semiring R] [semiring S]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [add_comm_monoid M₅] [add_comm_monoid M₆]
 variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+variables [module R M₅] [module R M₆]
 variables (f : M →ₗ[R] M₂)
 
 section
@@ -234,6 +237,52 @@ begin
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
 
+@[simp]
+lemma prod_map_id : (id : M →ₗ[R] M).prod_map (id : M₂ →ₗ[R] M₂) = id :=
+linear_map.ext $ λ _, prod.mk.eta
+
+@[simp]
+lemma prod_map_one : (1 : M →ₗ[R] M).prod_map (1 : M₂ →ₗ[R] M₂) = 1 :=
+linear_map.ext $ λ _, prod.mk.eta
+
+lemma prod_map_comp (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : M₄ →ₗ[R] M₅) (g₂₃ : M₅ →ₗ[R] M₆) :
+  f₂₃.prod_map g₂₃ ∘ₗ f₁₂.prod_map g₁₂ = (f₂₃ ∘ₗ f₁₂).prod_map (g₂₃ ∘ₗ g₁₂) := rfl
+
+lemma prod_map_mul (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
+  f₂₃.prod_map g₂₃ * f₁₂.prod_map g₁₂ = (f₂₃ * f₁₂).prod_map (g₂₃ * g₁₂) := rfl
+
+lemma prod_map_add (f₁ : M →ₗ[R] M₃) (f₂ : M →ₗ[R] M₃) (g₁ : M₂ →ₗ[R] M₄) (g₂ : M₂ →ₗ[R] M₄) :
+  (f₁ + f₂).prod_map (g₁ + g₂) = f₁.prod_map g₁ + f₂.prod_map g₂ := rfl
+
+@[simp] lemma prod_map_zero :
+  (0 : M →ₗ[R] M₂).prod_map (0 : M₃ →ₗ[R] M₄) = 0 := rfl
+
+@[simp] lemma prod_map_smul
+ [module S M₃] [module S M₄] [smul_comm_class R S M₃] [smul_comm_class R S M₄]
+ (s : S) (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : prod_map (s • f) (s • g) = s • prod_map f g := rfl
+
+variables (R M M₂ M₃ M₄)
+
+/-- `linear_map.prod_map` as a `linear_map` -/
+@[simps]
+def prod_map_linear
+ [module S M₃] [module S M₄] [smul_comm_class R S M₃] [smul_comm_class R S M₄] :
+ ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₄)) →ₗ[S] ((M × M₂) →ₗ[R] (M₃ × M₄)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl}
+
+/-- `linear_map.prod_map` as a `ring_hom` -/
+@[simps]
+def prod_map_ring_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →+* ((M × M₂) →ₗ[R] (M × M₂)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_one' := prod_map_one,
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl,
+  map_mul' := λ _ _, rfl }
+
+variables {R M M₂ M₃ M₄}
+
 section map_mul
 
 variables {A : Type*} [non_unital_non_assoc_semiring A] [module R A]
@@ -252,6 +301,21 @@ end map_mul
 end linear_map
 
 end prod
+
+namespace linear_map
+
+variables (R M M₂)
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂]
+variables [module R M] [module R M₂]
+
+/-- `linear_map.prod_map` as an `algebra_hom` -/
+@[simps]
+def prod_map_alg_hom : (module.End R M) × (module.End R M₂) →ₐ[R] module.End R (M × M₂) :=
+{ commutes' := λ _, rfl, ..prod_map_ring_hom R M M₂ }
+
+end linear_map
 
 namespace linear_map
 open submodule
@@ -459,12 +523,12 @@ begin
   split,
   { intros h,
     split,
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (zero_mem _)⟩, },
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem _, hx⟩, }, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, zero_mem p₂⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem p₁, hx⟩, }, },
   { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
     have h1' : (linear_map.inl R _ _) x1 ∈ q, { apply hH, simpa using h1, },
     have h2' : (linear_map.inr R _ _) x2 ∈ q, { apply hK, simpa using h2, },
-    simpa using add_mem _ h1' h2', }
+    simpa using add_mem h1' h2', }
 end
 
 lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
@@ -498,9 +562,8 @@ variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
 protected def prod :
   (M × M₃) ≃ₗ[R] (M₂ × M₄) :=
-{ map_add'  := λ x y, prod.ext (e₁.map_add _ _) (e₂.map_add _ _),
-  map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
-  .. equiv.prod_congr e₁.to_equiv e₂.to_equiv }
+{ map_smul' := λ c x, prod.ext (e₁.map_smulₛₗ c _) (e₂.map_smulₛₗ c _),
+  .. e₁.to_add_equiv.prod_congr e₂.to_add_equiv }
 
 lemma prod_symm : (e₁.prod e₂).symm = e₁.symm.prod e₂.symm := rfl
 
@@ -622,7 +685,7 @@ noncomputable def tunnel' (f : M × N →ₗ[R] M) (i : injective f) :
 Give an injective map `f : M × N →ₗ[R] M` we can find a nested sequence of submodules
 all isomorphic to `M`.
 -/
-def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o order_dual (submodule R M) :=
+def tunnel (f : M × N →ₗ[R] M) (i : injective f) : ℕ →o (submodule R M)ᵒᵈ :=
 ⟨λ n, (tunnel' f i n).1, monotone_nat_of_le_succ (λ n, begin
     dsimp [tunnel', tunnel_aux],
     rw [submodule.map_comp, submodule.map_comp],
@@ -697,5 +760,43 @@ lemma tailings_disjoint_tailing (f : M × N →ₗ[R] M) (i : injective f) (n : 
 disjoint.mono_right (tailing_le_tunnel f i _) (tailings_disjoint_tunnel f i _)
 
 end tunnel
+
+section graph
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+  [add_comm_group M₃] [add_comm_group M₄] [module R M] [module R M₂]
+  [module R M₃] [module R M₄] (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄)
+
+/-- Graph of a linear map. -/
+def graph : submodule R (M × M₂) :=
+{ carrier := {p | p.2 = f p.1},
+  add_mem' := λ a b (ha : _ = _) (hb : _ = _),
+  begin
+    change _ + _ = f (_ + _),
+    rw [map_add, ha, hb]
+  end,
+  zero_mem' := eq.symm (map_zero f),
+  smul_mem' := λ c x (hx : _ = _),
+  begin
+    change _ • _ = f (_ • _),
+    rw [map_smul, hx]
+  end }
+
+@[simp] lemma mem_graph_iff (x : M × M₂) : x ∈ f.graph ↔ x.2 = f x.1 := iff.rfl
+
+lemma graph_eq_ker_coprod : g.graph = ((-g).coprod linear_map.id).ker :=
+begin
+  ext x,
+  change _ = _ ↔ -(g x.1) + x.2 = _,
+  rw [add_comm, add_neg_eq_zero]
+end
+
+lemma graph_eq_range_prod : f.graph = (linear_map.id.prod f).range :=
+begin
+  ext x,
+  exact ⟨λ hx, ⟨x.1, prod.ext rfl hx.symm⟩, λ ⟨u, hu⟩, hu ▸ rfl⟩
+end
+
+end graph
 
 end linear_map

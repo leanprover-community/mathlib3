@@ -21,9 +21,6 @@ open tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
-@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
-⟨λ b, pexpr.of_expr (reflect b)⟩
-
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -326,6 +323,16 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
+
+/--
+`int.to_pexpr n` creates a `pexpr` that will evaluate to `n`.
+The `pexpr` does not hold any typing information:
+`to_expr ``((%%(int.to_pexpr (-5)) : ℚ))` will create a native `ℚ` numeral `(-5 : ℚ)`.
+-/
+meta def int.to_pexpr : ℤ → pexpr
+| (int.of_nat k) := k.to_pexpr
+| (int.neg_succ_of_nat k) := ``(-%%((k+1).to_pexpr))
+
 namespace expr
 
 /--
@@ -371,6 +378,48 @@ meta def is_num_eq : expr → expr → bool
 | _ _ := ff
 
 end expr
+
+/-! ### Declarations about `pexpr` -/
+
+namespace pexpr
+
+/--
+If `e` is an annotation of `frozen_name` to `expr.const n`,
+`e.get_frozen_name` returns `n`.
+Otherwise, returns `name.anonymous`.
+-/
+meta def get_frozen_name (e : pexpr) : name :=
+match e.is_annotation with
+| some (`frozen_name, expr.const n _) := n
+| _ := name.anonymous
+end
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn_args` returns `(f, [e₁, ... eₙ])`.
+See also `expr.get_app_fn_args`.
+-/
+meta def get_app_fn_args : pexpr → opt_param (list pexpr) [] → pexpr × list pexpr
+| (expr.app e1 e2) r := get_app_fn_args e1 (e2::r)
+| e1 r := (e1, r)
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn` returns `f`.
+See also `expr.get_app_fn`.
+-/
+meta def get_app_fn : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_args` returns `[e₁, ... eₙ]`.
+See also `expr.get_app_args`.
+-/
+meta def get_app_args : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+end pexpr
 
 /-! ### Declarations about `expr` -/
 

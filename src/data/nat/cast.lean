@@ -3,7 +3,6 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order.field
 import data.nat.basic
 
 /-!
@@ -132,15 +131,6 @@ eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
-@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) :
-  ((m / n : ℕ) : α) = m / n :=
-begin
-  rcases n_dvd with ⟨k, rfl⟩,
-  have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
-  rw nat.mul_div_cancel_left _ (pos_iff_ne_zero.2 this),
-  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
-end
-
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
 { to_fun := coe,
@@ -216,36 +206,9 @@ end
 abs_of_nonneg (cast_nonneg a)
 
 lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) : (m : α) ∣ (n : α) :=
-(nat.cast_ring_hom α).map_dvd h
+map_dvd (nat.cast_ring_hom α) h
 
 alias coe_nat_dvd ← has_dvd.dvd.nat_cast
-
-section linear_ordered_field
-variables [linear_ordered_field α]
-
-/-- Natural division is always less than division in the field. -/
-lemma cast_div_le {m n : ℕ} : ((m / n : ℕ) : α) ≤ m / n :=
-begin
-  cases n,
-  { rw [cast_zero, div_zero, nat.div_zero, cast_zero] },
-  rwa [le_div_iff, ←nat.cast_mul],
-  exact nat.cast_le.2 (nat.div_mul_le_self m n.succ),
-  { exact nat.cast_pos.2 n.succ_pos }
-end
-
-lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
-inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
-
-lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
-by { rw one_div, exact inv_pos_of_nat }
-
-lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
-by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }
-
-lemma one_div_lt_one_div {n m : ℕ} (h : n < m) : 1 / ((m : α) + 1) < 1 / ((n : α) + 1) :=
-by { refine one_div_lt_one_div_of_lt _ _, exact nat.cast_add_one_pos _, simpa }
-
-end linear_ordered_field
 
 end nat
 
@@ -264,7 +227,7 @@ end prod
 
 section add_monoid_hom_class
 
-variables {A B F : Type*} [add_monoid A] [add_monoid B] [has_one B]
+variables {A B F : Type*} [add_zero_class A] [add_monoid B] [has_one B]
 
 lemma ext_nat' [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
@@ -283,7 +246,8 @@ lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
 | 0     := by simp
 | (n+1) := by rw [map_add, h1, eq_nat_cast' n, nat.cast_add_one]
 
-lemma map_nat_cast' [add_monoid_hom_class F A B] (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
+lemma map_nat_cast' {A} [add_monoid A] [has_one A] [add_monoid_hom_class F A B]
+                    (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
 | 0     := by simp
 | (n+1) := by rw [nat.cast_add, map_add, nat.cast_add, map_nat_cast', nat.cast_one, h, nat.cast_one]
 
@@ -291,7 +255,7 @@ end add_monoid_hom_class
 
 section monoid_with_zero_hom_class
 
-variables {A F : Type*} [monoid_with_zero A]
+variables {A F : Type*} [mul_zero_one_class A]
 
 /-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
 theorem ext_nat'' [monoid_with_zero_hom_class F ℕ A] (f g : F)
@@ -323,8 +287,19 @@ ext_nat' f g $ by simp only [map_one]
 
 end ring_hom_class
 
+namespace ring_hom
+
+/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
+ring_hom.ext $ eq_nat_cast f
+
+end ring_hom
+
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 (eq_nat_cast (ring_hom.id ℕ) n).symm
+
+@[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ :=
+((ring_hom.id ℕ).eq_nat_cast').symm
 
 @[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
   @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
@@ -332,8 +307,22 @@ end ring_hom_class
 | (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
-instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
-⟨ext_nat⟩
+instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=
+{ default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma op_nat_cast : ∀ n : ℕ, op (n : α) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : αᵐᵒᵖ)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_nat_cast : ∀ n : ℕ, unop (n : αᵐᵒᵖ) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : α)) $ unop_nat_cast n
+
+end mul_opposite
 
 namespace with_top
 variables {α : Type*}

@@ -84,7 +84,7 @@ exhaustive search to find a commutative group. These instances take a long time 
 Other instances will only apply if the goal has a certain shape. For example
 `int.add_group : add_group ℤ` or
 `add_group.prod {α β} [add_group α] [add_group β] : add_group (α × β)`. Usually these instances
-will fail quickly, and when they apply, they are almost the desired instance.
+will fail quickly, and when they apply, they are almost always the desired instance.
 For this reason, we want the instances of the second type (that only apply in specific cases) to
 always have higher priority than the instances of the first type (that always apply).
 See also #1561.
@@ -257,7 +257,7 @@ Some instances take quite some time to fail, and we seem to run against the cach
 https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/odd.20repeated.20type.20class.20search
 -/
 @[linter] meta def linter.fails_quickly : linter :=
-{ test := fails_quickly 15000,
+{ test := fails_quickly 20000,
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.

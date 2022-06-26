@@ -140,10 +140,10 @@ instance [add_comm_semigroup α] : add_comm_semigroup (αˢʸᵐ) :=
 unsym_injective.add_comm_semigroup _ unsym_add
 
 instance [add_monoid α] : add_monoid (αˢʸᵐ) :=
-unsym_injective.add_monoid_smul _ unsym_zero unsym_add (λ _ _, rfl)
+unsym_injective.add_monoid _ unsym_zero unsym_add (λ _ _, rfl)
 
 instance [add_group α] : add_group (αˢʸᵐ) :=
-unsym_injective.add_group_smul _ unsym_zero
+unsym_injective.add_group _ unsym_zero
   unsym_add unsym_neg unsym_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid (αˢʸᵐ) :=
@@ -192,10 +192,8 @@ instance [semiring α] [invertible (2 : α)] : non_assoc_semiring (αˢʸᵐ) :=
   end,
   ..sym_alg.add_comm_monoid, }
 
-/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring.
-
-Note there is currently no typeclass for a `non_assoc_ring`, so we discard the `unit` here. -/
-instance [ring α] [invertible (2 : α)] : non_unital_non_assoc_ring (αˢʸᵐ) :=
+/-- The symmetrization of a real (unital, associative) algebra is a non-associative ring. -/
+instance [ring α] [invertible (2 : α)] : non_assoc_ring (αˢʸᵐ) :=
 { ..sym_alg.non_assoc_semiring,
   ..sym_alg.add_comm_group, }
 

@@ -35,6 +35,10 @@ lemma _root_.set.subsingleton.is_equipartition (h : (P.parts : set (finset α)).
   P.is_equipartition :=
 h.equitable_on _
 
+lemma is_equipartition.card_parts_eq_average (hP : P.is_equipartition) (ht : t ∈ P.parts) :
+  t.card = s.card / P.parts.card ∨ t.card = s.card / P.parts.card + 1 :=
+P.is_equipartition_iff_card_parts_eq_average.1 hP _ ht
+
 lemma is_equipartition.average_le_card_part (hP : P.is_equipartition) (ht : t ∈ P.parts) :
   s.card / P.parts.card ≤ t.card :=
 by { rw ←P.sum_card_parts, exact equitable_on.le hP ht }

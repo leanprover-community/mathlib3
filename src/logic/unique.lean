@@ -75,6 +75,8 @@ instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
 
+@[simp] lemma punit.default_eq_star : (default : punit) = punit.star := rfl
+
 /-- Every provable proposition is unique, as all proofs are equal. -/
 def unique_prop {p : Prop} (h : p) : unique p :=
 { default := h, uniq := λ x, rfl }
@@ -130,21 +132,33 @@ a loop in the class inheritance graph. -/
 
 end unique
 
-@[simp] lemma pi.default_def {β : Π a : α, Sort v} [Π a, inhabited (β a)] :
+lemma unique_iff_subsingleton_and_nonempty (α : Sort u) :
+  nonempty (unique α) ↔ subsingleton α ∧ nonempty α :=
+⟨λ ⟨u⟩, by split; exactI infer_instance,
+ λ ⟨hs, hn⟩, ⟨by { resetI, inhabit α, exact unique.mk' α }⟩⟩
+
+@[simp] lemma pi.default_def {β : α → Sort v} [Π a, inhabited (β a)] :
   @default (Π a, β a) _ = λ a : α, @default (β a) _ := rfl
 
-lemma pi.default_apply {β : Π a : α, Sort v} [Π a, inhabited (β a)] (a : α) :
+lemma pi.default_apply {β : α → Sort v} [Π a, inhabited (β a)] (a : α) :
   @default (Π a, β a) _ a = default := rfl
 
-instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
+instance pi.unique {β : α → Sort v} [Π a, unique (β a)] : unique (Π a, β a) :=
 { uniq := λ f, funext $ λ x, unique.eq_default _,
   .. pi.inhabited α }
 
 /-- There is a unique function on an empty domain. -/
-instance pi.unique_of_is_empty [is_empty α] (β : Π a : α, Sort v) :
+instance pi.unique_of_is_empty [is_empty α] (β : α → Sort v) :
   unique (Π a, β a) :=
 { default := is_empty_elim,
   uniq := λ f, funext is_empty_elim }
+
+lemma eq_const_of_unique [unique α] (f : α → β) : f = function.const α (f default) :=
+by { ext x, rw subsingleton.elim x default }
+
+lemma heq_const_of_unique [unique α] {β : α → Sort v}
+  (f : Π a, β a) : f == function.const α (f default) :=
+function.hfunext rfl $ λ i _ _, by rw subsingleton.elim i default
 
 namespace function
 
@@ -166,12 +180,17 @@ protected lemma injective.subsingleton (hf : injective f) [subsingleton β] :
 protected def injective.unique [inhabited α] [subsingleton β] (hf : injective f) : unique α :=
 @unique.mk' _ _ hf.subsingleton
 
+/-- If a constant function is surjective, then the codomain is a singleton. -/
+def surjective.unique_of_surjective_const (α : Type*) {β : Type*} (b : β)
+  (h : function.surjective (function.const α b)) : unique β :=
+@unique_of_subsingleton _ (subsingleton_of_forall_eq b $ h.forall.mpr (λ _, rfl)) b
+
 end function
 
 lemma unique.bijective {A B} [unique A] [unique B] {f : A → B} : function.bijective f :=
 begin
   rw function.bijective_iff_has_inverse,
-  refine ⟨λ x, default, _, _⟩; intro x; simp
+  refine ⟨default, _, _⟩; intro x; simp
 end
 
 namespace option

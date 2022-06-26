@@ -169,8 +169,11 @@ coe_fn_eq.symm.trans function.funext_iff
 protected lemma congr_fun {f g : F} (h₁ : f = g) (x : α) : f x = g x :=
 congr_fun (congr_arg _ h₁) x
 
+lemma ne_iff {f g : F} : f ≠ g ↔ ∃ a, f a ≠ g a :=
+ext_iff.not.trans not_forall
+
 lemma exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
-not_forall.mp $ mt (fun_like.ext _ _) h
+ne_iff.mp h
 
 end fun_like
 

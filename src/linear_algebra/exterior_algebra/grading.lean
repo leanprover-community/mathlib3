@@ -38,16 +38,17 @@ begin
   refine dfinsupp.single_eq_zero.mpr (subtype.ext $ ι_sq_zero _),
 end
 
-/-- `graded_algebra.ι` lifted to exterior algebra. This is
+/-- `exterior_algebra.graded_algebra.ι` lifted to exterior algebra. This is
 primarily an auxiliary construction used to provide `exterior_algebra.graded_algebra`. -/
-def lift_ι : exterior_algebra R M →ₐ[R]
+def graded_algebra.lift_ι : exterior_algebra R M →ₐ[R]
   ⨁ (i : ℕ), ↥((ι R).range ^ i : submodule R (exterior_algebra R M)) :=
 lift R ⟨graded_algebra.ι R M, graded_algebra.ι_sq_zero R M⟩
 
 variables {R M}
 
-lemma lift_ι_eq (i : ℕ) (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
-  lift_ι R M x =
+lemma graded_algebra.lift_ι_eq (i : ℕ)
+  (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
+  graded_algebra.lift_ι R M x =
     direct_sum.of (λ i, (((ι R).range ^ i : submodule R (exterior_algebra R M)) : Type*)) i x :=
 begin
   cases x with x hx,
@@ -65,7 +66,7 @@ end
 instance graded_algebra :
   graded_algebra
     ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R (exterior_algebra R M)) :=
-graded_algebra.of_alg_hom _ (lift_ι R M)
+graded_algebra.of_alg_hom _ (graded_algebra.lift_ι R M)
   -- the proof from here onward is identical to the `tensor_algebra` case
   (begin
     ext m,
@@ -73,6 +74,6 @@ graded_algebra.of_alg_hom _ (lift_ι R M)
       alg_hom.id_apply, lift_ι],
     rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by exact lift_ι_eq)
+  (by exact graded_algebra.lift_ι_eq)
 
 end exterior_algebra

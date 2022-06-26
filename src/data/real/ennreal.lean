@@ -927,37 +927,29 @@ end interval
 
 section bit
 
-@[simp] lemma bit0_inj : bit0 a = bit0 b ↔ a = b :=
-⟨λh, begin
-  rcases (lt_trichotomy a b) with h₁| h₂| h₃,
-  { exact (absurd h (ne_of_lt (add_lt_add h₁ h₁))) },
-  { exact h₂ },
-  { exact (absurd h.symm (ne_of_lt (add_lt_add h₃ h₃))) }
-end,
-λh, congr_arg _ h⟩
+@[mono] lemma bit0_strict_mono : strict_mono (bit0 : ℝ≥0∞ → ℝ≥0∞) := λ a b h, add_lt_add h h
+lemma bit0_injective : function.injective (bit0 : ℝ≥0∞ → ℝ≥0∞) := bit0_strict_mono.injective
 
-@[simp] lemma bit0_eq_zero_iff : bit0 a = 0 ↔ a = 0 :=
-by simpa only [bit0_zero] using @bit0_inj a 0
+@[simp] lemma bit0_lt_bit0 : bit0 a < bit0 b ↔ a < b := bit0_strict_mono.lt_iff_lt
+@[simp, mono] lemma bit0_le_bit0 : bit0 a ≤ bit0 b ↔ a ≤ b := bit0_strict_mono.le_iff_le
+@[simp] lemma bit0_inj : bit0 a = bit0 b ↔ a = b := bit0_injective.eq_iff
 
-@[simp] lemma bit0_eq_top_iff : bit0 a = ∞ ↔ a = ∞ :=
-by rw [bit0, add_eq_top, or_self]
+@[simp] lemma bit0_eq_zero_iff : bit0 a = 0 ↔ a = 0 := bit0_injective.eq_iff' bit0_zero
+@[simp] lemma bit0_top : bit0 ∞ = ∞ := add_top
+@[simp] lemma bit0_eq_top_iff : bit0 a = ∞ ↔ a = ∞ := bit0_injective.eq_iff' bit0_top
 
-@[simp] lemma bit1_inj : bit1 a = bit1 b ↔ a = b :=
-⟨λh, begin
-  unfold bit1 at h,
-  rwa [add_left_inj, bit0_inj] at h,
-  simp [lt_top_iff_ne_top]
-end,
-λh, congr_arg _ h⟩
+@[mono] lemma bit1_strict_mono : strict_mono (bit1 : ℝ≥0∞ → ℝ≥0∞) :=
+λ a b h, ennreal.add_lt_add_right one_ne_top (bit0_strict_mono h)
 
-@[simp] lemma bit1_ne_zero : bit1 a ≠ 0 :=
-by unfold bit1; simp
+lemma bit1_injective : function.injective (bit1 : ℝ≥0∞ → ℝ≥0∞) := bit1_strict_mono.injective
 
-@[simp] lemma bit1_eq_one_iff : bit1 a = 1 ↔ a = 0 :=
-by simpa only [bit1_zero] using @bit1_inj a 0
-
-@[simp] lemma bit1_eq_top_iff : bit1 a = ∞ ↔ a = ∞ :=
-by unfold bit1; rw add_eq_top; simp
+@[simp] lemma bit1_lt_bit1 : bit1 a < bit1 b ↔ a < b := bit1_strict_mono.lt_iff_lt
+@[simp, mono] lemma bit1_le_bit1 : bit1 a ≤ bit1 b ↔ a ≤ b := bit1_strict_mono.le_iff_le
+@[simp] lemma bit1_inj : bit1 a = bit1 b ↔ a = b := bit1_injective.eq_iff
+@[simp] lemma bit1_ne_zero : bit1 a ≠ 0 := by simp [bit1]
+@[simp] lemma bit1_top : bit1 ∞ = ∞ := by rw [bit1, bit0_top, top_add]
+@[simp] lemma bit1_eq_top_iff : bit1 a = ∞ ↔ a = ∞ := bit1_injective.eq_iff' bit1_top
+@[simp] lemma bit1_eq_one_iff : bit1 a = 1 ↔ a = 0 := bit1_injective.eq_iff' bit1_zero
 
 end bit
 
@@ -970,21 +962,21 @@ instance : div_inv_monoid ℝ≥0∞ :=
 { inv := has_inv.inv,
   .. (infer_instance : monoid ℝ≥0∞) }
 
+lemma div_eq_inv_mul : a / b = b⁻¹ * a := by rw [div_eq_mul_inv, mul_comm]
+
 @[simp] lemma inv_zero : (0 : ℝ≥0∞)⁻¹ = ∞ :=
 show Inf {b : ℝ≥0∞ | 1 ≤ 0 * b} = ∞, by simp; refl
 
 @[simp] lemma inv_top : ∞⁻¹ = 0 :=
 bot_unique $ le_of_forall_le_of_dense $ λ a (h : a > 0), Inf_le $ by simp [*, ne_of_gt h, top_mul]
 
-@[simp, norm_cast] lemma coe_inv (hr : r ≠ 0) : (↑r⁻¹ : ℝ≥0∞) = (↑r)⁻¹ :=
-le_antisymm
-  (le_Inf $ assume b (hb : 1 ≤ ↑r * b), coe_le_iff.2 $
-    by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
-  (Inf_le $ by simp; rw [← coe_mul, mul_inv_cancel hr]; exact le_refl 1)
-
 lemma coe_inv_le : (↑r⁻¹ : ℝ≥0∞) ≤ (↑r)⁻¹ :=
-if hr : r = 0 then by simp only [hr, inv_zero, coe_zero, le_top]
-else by simp only [coe_inv hr, le_rfl]
+le_Inf $ assume b (hb : 1 ≤ ↑r * b), coe_le_iff.2 $
+    by { rintros b rfl, rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb }
+
+@[simp, norm_cast] lemma coe_inv (hr : r ≠ 0) : (↑r⁻¹ : ℝ≥0∞) = (↑r)⁻¹ :=
+coe_inv_le.antisymm
+  (Inf_le $ by simp; rw [← coe_mul, mul_inv_cancel hr]; exact le_refl 1)
 
 @[norm_cast] lemma coe_inv_two : ((2⁻¹ : ℝ≥0) : ℝ≥0∞) = 2⁻¹ :=
 by rw [coe_inv (ne_of_gt _root_.zero_lt_two), coe_two]

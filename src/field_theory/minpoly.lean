@@ -386,38 +386,80 @@ by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
 
 section gcd_domain
 
+variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
+  [field K] [comm_ring S] [is_domain S] [algebra R K] [is_fraction_ring R K] [algebra R S] [field L]
+  [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
+  {s : S} (hs : is_integral R s)
+
+include hs
+
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. -/
-lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [comm_ring A] [is_domain A]
-  [normalized_gcd_monoid A] [field K]
-  [comm_ring R] [is_domain R] [algebra A K] [is_fraction_ring A K]
-  [algebra K R] [algebra A R] [is_scalar_tower A K R] {x : R} (hx : is_integral A x) :
-  minpoly K x = (minpoly A x).map (algebra_map A K) :=
+lemma gcd_domain_eq_field_fractions :
+  minpoly K (algebra_map S L s) = (minpoly R s).map (algebra_map R K) :=
 begin
   symmetry,
   refine eq_of_irreducible_of_monic _ _ _,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
-      (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
-  { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
-    rwa [aeval, eq_comm] at htower },
-  { exact (monic hx).map _ }
+      (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
+   { rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
+      eval_map, ← aeval_def, aeval, map_zero] },
+  { exact (monic hs).map _ }
 end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
-lemma gcd_domain_dvd {A R : Type*} (K : Type*)
-  [comm_ring A] [is_domain A] [normalized_gcd_monoid A] [field K]
-  [comm_ring R] [is_domain R] [algebra A K]
-  [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
-  {x : R} (hx : is_integral A x)
-  {P : A[X]} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
-  minpoly A x ∣ P :=
+lemma gcd_domain_dvd (hinj : function.injective (algebra_map R S))
+  {P : R[X]} (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
 begin
-  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K
-    (monic.is_primitive (monic hx)) hprim).2,
-  rw ← gcd_domain_eq_field_fractions K hx,
+  let K := fraction_ring R,
+  let L := fraction_ring S,
+  haveI : no_zero_smul_divisors R L,
+  { refine no_zero_smul_divisors.iff_algebra_map_injective.2 _,
+    rw [is_scalar_tower.algebra_map_eq R S L],
+    refine (is_fraction_ring.injective S L).comp hinj },
+  let P₁ := P.prim_part,
+  suffices : minpoly R s ∣ P₁,
+  { exact dvd_trans this (prim_part_dvd _) },
+  have hP₁ : polynomial.aeval s P₁ = 0,
+  { rw [eq_C_content_mul_prim_part P, map_mul, aeval_C] at hroot,
+    have hcont : P.content ≠ 0 := λ h, hP (content_eq_zero_iff.1 h),
+    replace hcont := function.injective.ne hinj hcont,
+    rw [map_zero] at hcont,
+    exact eq_zero_of_ne_zero_of_mul_left_eq_zero hcont hroot },
+  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K (monic hs).is_primitive
+    P.is_primitive_prim_part).2,
+  let y := algebra_map S L s,
+  have hy : is_integral R y := hs.algebra_map,
+  rw [← gcd_domain_eq_field_fractions K L hs],
   refine dvd _ _ _,
-  rwa ← is_scalar_tower.aeval_apply
+  rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
+    eval_map, ← aeval_def, hP₁, map_zero]
+end
+
+lemma gcd_domain_degree_le_of_ne_zero (hinj : function.injective (algebra_map R S))
+  {p : R[X]} (hp0 : p ≠ 0) (hp : polynomial.aeval s p = 0) :
+  degree (minpoly R s) ≤ degree p :=
+begin
+  rw [degree_eq_nat_degree (minpoly.ne_zero hs), degree_eq_nat_degree hp0],
+  norm_cast,
+  exact nat_degree_le_of_dvd (gcd_domain_dvd hs hinj hp0 hp) hp0
+end
+
+lemma gcd_domain_unique (hinj : function.injective (algebra_map R S)) {P : R[X]} (hmo : P.monic)
+  (hP : polynomial.aeval s P = 0)
+  (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :
+  P = minpoly R s :=
+begin
+  have hs : is_integral R s := ⟨P, hmo, hP⟩,
+  symmetry, apply eq_of_sub_eq_zero,
+  by_contra hnz,
+  have := gcd_domain_degree_le_of_ne_zero hs hinj hnz (by simp [hP]),
+  contrapose! this,
+  refine degree_sub_lt _ (ne_zero hs) _,
+  { exact le_antisymm (min R s hmo hP)
+      (Pmin (minpoly R s) (monic hs) (aeval R s)) },
+  { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
 end gcd_domain

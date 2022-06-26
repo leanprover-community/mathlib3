@@ -398,13 +398,24 @@ over the fraction field. -/
 lemma gcd_domain_eq_field_fractions :
   minpoly K (algebra_map S L s) = (minpoly R s).map (algebra_map R K) :=
 begin
-  symmetry,
-  refine eq_of_irreducible_of_monic _ _ _,
+  refine (eq_of_irreducible_of_monic _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
       (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
    { rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
       eval_map, ← aeval_def, aeval, map_zero] },
   { exact (monic hs).map _ }
+end
+
+/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
+over the fraction field. Compared to `gcd_domain_eq_field_fractions`, this version is useful if
+the element is in a ring that is already a `K`-algebra. -/
+lemma gcd_domain_eq_field_fractions' [algebra K S] [is_scalar_tower R K S] :
+  minpoly K s = (minpoly R s).map (algebra_map R K) :=
+begin
+  let L := fraction_ring S,
+  rw [← gcd_domain_eq_field_fractions K L hs],
+  refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
+    (is_integral_of_is_scalar_tower _ hs) rfl
 end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
@@ -417,7 +428,7 @@ begin
   haveI : no_zero_smul_divisors R L,
   { refine no_zero_smul_divisors.iff_algebra_map_injective.2 _,
     rw [is_scalar_tower.algebra_map_eq R S L],
-    refine (is_fraction_ring.injective S L).comp hinj },
+    exact (is_fraction_ring.injective S L).comp hinj },
   let P₁ := P.prim_part,
   suffices : minpoly R s ∣ P₁,
   { exact dvd_trans this (prim_part_dvd _) },

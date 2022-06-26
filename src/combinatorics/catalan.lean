@@ -116,7 +116,7 @@ begin
         rw_mod_cast [gosper_trick i.is_le, mul_div] },
       { rw [← sum_range (λi, gosper_catalan (d + 1) (i + 1) - gosper_catalan (d + 1) i),
             sum_range_sub, nat.succ_eq_add_one],
-        exact_mod_cast (gosper_catalan_sub_eq_central_binom_div d) } } }
+        exact_mod_cast gosper_catalan_sub_eq_central_binom_div d } } }
 end
 
 lemma catalan_two : catalan 2 = 2 :=

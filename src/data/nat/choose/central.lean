@@ -122,7 +122,7 @@ begin
     have h_s : (n+1).coprime (2*n+1),
     { rw [two_mul,add_assoc, coprime_add_self_right, coprime_self_add_left],
       exact coprime_one_left n },
-    apply coprime.dvd_of_dvd_mul_left h_s,
+    apply h_s.dvd_of_dvd_mul_left,
     apply dvd_of_mul_dvd_mul_left zero_lt_two,
     rw [← h, ← mul_assoc, ← succ_mul_central_binom_succ, mul_comm],
     apply mul_dvd_mul,

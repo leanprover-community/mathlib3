@@ -65,10 +65,10 @@ variables {𝕜}
 
 lemma balanced_core_subset (s : set E) : balanced_core 𝕜 s ⊆ s := sUnion_subset $ λ t ht, ht.2
 
-lemma balanced_core_emptyset : balanced_core 𝕜 (∅ : set E) = ∅ :=
-set.eq_empty_of_subset_empty (balanced_core_subset _)
+lemma balanced_core_empty : balanced_core 𝕜 (∅ : set E) = ∅ :=
+eq_empty_of_subset_empty (balanced_core_subset _)
 
-lemma mem_balanced_core_iff : x ∈ balanced_core 𝕜 s ↔ ∃ t : set E, balanced 𝕜 t ∧ t ⊆ s ∧ x ∈ t :=
+lemma mem_balanced_core_iff : x ∈ balanced_core 𝕜 s ↔ ∃ t, balanced 𝕜 t ∧ t ⊆ s ∧ x ∈ t :=
 by simp_rw [balanced_core, mem_sUnion, mem_set_of_eq, exists_prop, and_assoc]
 
 lemma smul_balanced_core_subset (s : set E) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
@@ -85,19 +85,14 @@ lemma balanced_core_balanced (s : set E) : balanced 𝕜 (balanced_core 𝕜 s) 
 
 /-- The balanced core of `t` is maximal in the sense that it contains any balanced subset
 `s` of `t`.-/
-lemma balanced.subset_core_of_subset {s t : set E} (hs : balanced 𝕜 s) (h : s ⊆ t):
-  s ⊆ balanced_core 𝕜 t :=
-begin
-  refine subset_sUnion_of_mem _,
-  rw [mem_set_of_eq],
-  exact ⟨hs, h⟩,
-end
+lemma balanced.subset_core_of_subset (hs : balanced 𝕜 s) (h : s ⊆ t) : s ⊆ balanced_core 𝕜 t :=
+subset_sUnion_of_mem ⟨hs, h⟩
 
-lemma mem_balanced_core_aux_iff : x ∈ balanced_core_aux 𝕜 s ↔ ∀ (r : 𝕜), 1 ≤ ∥r∥ → x ∈ r • s :=
-by rw [balanced_core_aux, set.mem_Inter₂]
+lemma mem_balanced_core_aux_iff : x ∈ balanced_core_aux 𝕜 s ↔ ∀ r : 𝕜, 1 ≤ ∥r∥ → x ∈ r • s :=
+mem_Inter₂
 
 lemma mem_balanced_hull_iff : x ∈ balanced_hull 𝕜 s ↔ ∃ (r : 𝕜) (hr : ∥r∥ ≤ 1), x ∈ r • s :=
-by rw [balanced_hull, set.mem_Union₂]
+mem_Union₂
 
 /-- The balanced hull of `s` is minimal in the sense that it is contained in any balanced superset
 `t` of `s`. -/
@@ -173,28 +168,24 @@ begin
   exact inv_le_one hr,
 end
 
-lemma balanced_core_subset_balanced_core_aux {s : set E} :
-  balanced_core 𝕜 s ⊆ balanced_core_aux 𝕜 s :=
+lemma balanced_core_subset_balanced_core_aux : balanced_core 𝕜 s ⊆ balanced_core_aux 𝕜 s :=
 balanced_core_aux_maximal (balanced_core_subset s) (balanced_core_balanced s)
 
-lemma balanced_core_eq_Inter {s : set E} (hs : (0 : E) ∈ s) :
+lemma balanced_core_eq_Inter (hs : (0 : E) ∈ s) :
   balanced_core 𝕜 s = ⋂ (r : 𝕜) (hr : 1 ≤ ∥r∥), r • s :=
 begin
-  rw ←balanced_core_aux,
-  refine subset_antisymm balanced_core_subset_balanced_core_aux _,
-  refine balanced.subset_core_of_subset (balanced_core_aux_balanced _) (balanced_core_aux_subset s),
-  refine mem_of_subset_of_mem balanced_core_subset_balanced_core_aux (balanced_core_zero_mem hs),
+  refine balanced_core_subset_balanced_core_aux.antisymm  _,
+  refine (balanced_core_aux_balanced _).subset_core_of_subset (balanced_core_aux_subset s),
+  exact balanced_core_subset_balanced_core_aux (balanced_core_zero_mem hs),
 end
 
-lemma subset_balanced_core {U V : set E} (hV' : (0 : E) ∈ V)
-  (hUV : ∀ (a : 𝕜) (ha : ∥a∥ ≤ 1), a • U ⊆ V) :
-  U ⊆ balanced_core 𝕜 V :=
+lemma subset_balanced_core (ht : (0 : E) ∈ t) (hst : ∀ (a : 𝕜) (ha : ∥a∥ ≤ 1), a • s ⊆ t) :
+  s ⊆ balanced_core 𝕜 t :=
 begin
-  rw balanced_core_eq_Inter hV',
-  refine set.subset_Inter₂ (λ a ha, _),
-  rw [←one_smul 𝕜 U, ←mul_inv_cancel (norm_pos_iff.mp (lt_of_lt_of_le zero_lt_one ha)),
-    ←smul_eq_mul, smul_assoc],
-  refine set.smul_set_mono (hUV a⁻¹ _),
+  rw balanced_core_eq_Inter ht,
+  refine subset_Inter₂ (λ a ha, _),
+  rw ←smul_inv_smul₀ (norm_pos_iff.mp $ zero_lt_one.trans_le ha) s,
+  refine smul_set_mono (hst _ _),
   rw [norm_inv],
   exact inv_le_one ha,
 end
@@ -208,9 +199,9 @@ end balanced_hull
 section topology
 
 variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [has_continuous_smul 𝕜 E]
+  [has_continuous_smul 𝕜 E] {U : set E}
 
-lemma balanced_core_is_closed {U : set E} (hU : is_closed U) : is_closed (balanced_core 𝕜 U) :=
+protected lemma is_closed.balanced_core (hU : is_closed U) : is_closed (balanced_core 𝕜 U) :=
 begin
   by_cases h : (0 : E) ∈ U,
   { rw balanced_core_eq_Inter h,
@@ -224,8 +215,7 @@ begin
   exact balanced_core_nonempty_iff.mp (set.ne_empty_iff_nonempty.mp h),
 end
 
-lemma balanced_core_mem_nhds_zero {U : set E} (hU : U ∈ 𝓝 (0 : E)) :
-  balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=
+lemma balanced_core_mem_nhds_zero (hU : U ∈ 𝓝 (0 : E)) : balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=
 begin
   -- Getting neighborhoods of the origin for `0 : 𝕜` and `0 : E`
   have h : filter.tendsto (λ (x : 𝕜 × E), x.fst • x.snd) (𝓝 (0,0)) (𝓝 ((0 : 𝕜) • (0 : E))) :=
@@ -262,7 +252,7 @@ lemma nhds_basis_closed_balanced [regular_space E] : (𝓝 (0 : E)).has_basis
 begin
   refine (closed_nhds_basis 0).to_has_basis (λ s hs, _) (λ s hs, ⟨s, ⟨hs.1, hs.2.1⟩, rfl.subset⟩),
   refine ⟨balanced_core 𝕜 s, ⟨balanced_core_mem_nhds_zero hs.1, _⟩, balanced_core_subset s⟩,
-  refine ⟨balanced_core_is_closed hs.2, balanced_core_balanced s⟩
+  exact ⟨hs.2.balanced_core, balanced_core_balanced s⟩
 end
 
 end topology

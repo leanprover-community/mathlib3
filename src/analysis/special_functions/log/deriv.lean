@@ -312,12 +312,13 @@ theorem power_series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
   (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
   (log ((a + 1) / a)) :=
  begin
-  have h₁ : |1 / (2 * a + 1)| < 1, by
+  have h₁ : |1 / (2 * a + 1)| < 1,
   { rw [abs_of_pos, div_lt_one],
-    any_goals { linarith },
-    { refine div_pos one_pos (by linarith) }, },
-  rw log_succ_div_eq_log_sub h,
-  exact has_sum_log_sub_log_of_abs_lt_1 h₁,
+    { linarith, },
+    { linarith, },
+    { refine div_pos one_pos (by linarith), }, },
+  { rw log_succ_div_eq_log_sub h,
+    exact has_sum_log_sub_log_of_abs_lt_1 h₁, },
  end
 
 end real

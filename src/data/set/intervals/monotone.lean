@@ -184,9 +184,9 @@ section succ_order
 open order
 
 variables {α : Type*} [partial_order α] [order_bot α]
-  [succ_order α] [is_succ_archimedean α] [no_max_order α]
+  [succ_order α] [is_succ_archimedean α] [no_max_order α] {n : α} {φ : α → α}
 
-lemma strict_mono_on.Iic_id_le {n : α} {φ : α → α} (hφ : strict_mono_on φ (set.Iic n)) :
+lemma strict_mono_on.Iic_id_le (hφ : strict_mono_on φ (set.Iic n)) :
   ∀ m ≤ n, m ≤ φ m :=
 begin
   revert hφ,
@@ -201,7 +201,7 @@ begin
     { exact ih (strict_mono_on.mono hφ (λ x hx, le_trans hx (le_succ _))) _ h } }
 end
 
-lemma strict_mono_on_Iic_of_lt_succ {n : α} {φ : α → α} (hφ : ∀ m, succ m ≤ n → φ m < φ (succ m)) :
+lemma strict_mono_on_Iic_of_lt_succ (hφ : ∀ m, succ m ≤ n → φ m < φ (succ m)) :
   strict_mono_on φ (set.Iic n) :=
 begin
   revert hφ,

@@ -228,7 +228,7 @@ begin
   have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, c n • d n) :=
     (is_O_refl c l).smul_is_o this,
   have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, (1:ℝ)) :=
-    this.trans_is_O (is_O_one_of_tendsto ℝ cdlim),
+    this.trans_is_O (cdlim.is_O_one ℝ),
   have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
     (is_o_one_iff ℝ).1 this,
   have L2 : tendsto (λn, f' (c n • d n)) l (𝓝 (f' v)) :=

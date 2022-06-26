@@ -76,9 +76,6 @@ by simp
 noncomputable def zero_to_pgame_relabelling : to_pgame 0 ≡r 0 :=
 relabelling.is_empty _
 
-theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 :=
-pgame.equiv.is_empty _
-
 noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left_moves :=
 (equiv.cast $ to_pgame_left_moves 1).unique
 
@@ -98,9 +95,6 @@ noncomputable def one_to_pgame_relabelling : to_pgame 1 ≡r 1 :=
 ⟨equiv.equiv_of_unique _ _, equiv.equiv_of_is_empty _ _,
   λ i, by simpa using zero_to_pgame_relabelling, is_empty_elim⟩
 
-theorem one_to_pgame_equiv : to_pgame 1 ≈ 1 :=
-one_to_pgame_relabelling.equiv
-
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
 by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
@@ -113,6 +107,9 @@ end
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
+
+theorem to_pgame_nonneg (a : ordinal) : 0 ≤ a.to_pgame :=
+zero_to_pgame_relabelling.ge.trans $ to_pgame_le $ ordinal.zero_le a
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩

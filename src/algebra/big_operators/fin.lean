@@ -145,23 +145,24 @@ section monoid
 
 variables [monoid α] {n : ℕ}
 
-/-- Given `f = (a₁, ..., aₙ)` in `αⁿ`, `take_prod f` is `(1, a₁, a₁a₂, ..., a₁...aₙ)` in `αⁿ⁺¹`. -/
-@[to_additive "Given `f = (a₁, ..., aₙ)` in `αⁿ`, `take_sum f` is
+/-- Given `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_prod f` is `(1, a₁, a₁a₂, ..., a₁...aₙ)` in `αⁿ⁺¹`.
+-/
+@[to_additive "Given `f = (a₁, ..., aₙ)` in `αⁿ`, `partial_sum f` is
 `(1, a₁, a₁ + a₂, ..., a₁ + ... + aₙ)` in `αⁿ⁺¹`."]
-def take_prod (f : fin n → α) (i : fin (n + 1)) : α :=
+def partial_prod (f : fin n → α) (i : fin (n + 1)) : α :=
 ((list.of_fn f).take i).prod
 
 @[simp] lemma to_prod_zero (f : fin n → α) :
-  take_prod f 0 = 1 :=
-by simp [take_prod]
+  partial_prod f 0 = 1 :=
+by simp [partial_prod]
 
 lemma to_prod_succ (f : fin n → α) (j : fin n) :
-  take_prod f j.succ = take_prod f j.cast_succ * (f j) :=
-by simp [take_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←option.coe_def]
+  partial_prod f j.succ = partial_prod f j.cast_succ * (f j) :=
+by simp [partial_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←option.coe_def]
 
 lemma to_prod_succ' (f : fin (n + 1) → α) (j : fin (n + 1)) :
-  take_prod f j.succ = f 0 * take_prod (fin.tail f) j :=
-by simpa [take_prod]
+  partial_prod f j.succ = f 0 * partial_prod (fin.tail f) j :=
+by simpa [partial_prod]
 
 end monoid
 

@@ -57,7 +57,7 @@ local notation `Gⁿ⁺¹` := fin (n + 1) → G
 
 namespace group_cohomology.resolution
 
-open list (take_prod) representation
+open list (partial_prod) representation
 
 variables (k G n) [group G]
 
@@ -73,7 +73,7 @@ finsupp.lift ((G →₀ k) ⊗[k] ((fin n → G) →₀ k)) k (fin (n + 1) → G
 def of_tensor_aux :
   (G →₀ k) ⊗[k] ((fin n → G) →₀ k) →ₗ[k] ((fin (n + 1) → G) →₀ k) :=
 tensor_product.lift (finsupp.lift _ _ _ $ λ g, finsupp.lift _ _ _
-  (λ f, single (g • take_prod f) (1 : k)))
+  (λ f, single (g • partial_prod f) (1 : k)))
 
 variables {k G n}
 
@@ -92,7 +92,7 @@ by simp [of_mul_action_def, to_tensor_aux_single, mul_assoc, inv_mul_cancel_left
 
 lemma of_tensor_aux_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   of_tensor_aux k G n ((single g m) ⊗ₜ x) =
-  finsupp.lift (Gⁿ⁺¹ →₀ k) k Gⁿ (λ f, single (g • take_prod f) m) x :=
+  finsupp.lift (Gⁿ⁺¹ →₀ k) k Gⁿ (λ f, single (g • partial_prod f) m) x :=
 by simp [of_tensor_aux, sum_single_index, smul_sum, mul_comm m]
 
 lemma of_tensor_aux_comm_of_mul_action (g h : G) (x : Gⁿ) :
@@ -137,12 +137,12 @@ to_tensor_aux_single _ _
 
 @[simp] lemma of_tensor_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   (of_tensor k G n).hom ((single g m) ⊗ₜ x) =
-  finsupp.lift (Rep.of_mul_action k G Gⁿ⁺¹) k Gⁿ (λ f, single (g • take_prod f) m) x :=
+  finsupp.lift (Rep.of_mul_action k G Gⁿ⁺¹) k Gⁿ (λ f, single (g • partial_prod f) m) x :=
 of_tensor_aux_single _ _ _
 
 lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (m : k) :
   (of_tensor k G n).hom (g ⊗ₜ single x m) =
-  finsupp.lift _ k G (λ a, single (a • take_prod x) m) g :=
+  finsupp.lift _ k G (λ a, single (a • partial_prod x) m) g :=
 by simp [of_tensor, of_tensor_aux]
 
 end group_cohomology.resolution

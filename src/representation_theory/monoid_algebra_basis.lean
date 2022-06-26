@@ -37,8 +37,9 @@ scalar action diamonds.
 
 We also use the category theory library to bundle the type `k[Gⁿ]` - or more generally `k[H]` when
 `H` has `G`-action - and the representation together, as a term of type `Rep k G`, and call it
-`Rep.of_mul_action k G H.` This enables us to talk about morphisms of representations in the
-category-theoretic sense.
+`Rep.of_mul_action k G H.` This enables us to express the fact that certain maps are
+`G`-equivariant by constructing morphisms in the category `Rep k G`, i.e., representations of `G`
+over `k`.
 -/
 
 noncomputable theory
@@ -53,9 +54,9 @@ open finsupp (hiding lift)
 local notation `Gⁿ` := fin n → G
 local notation `Gⁿ⁺¹` := fin (n + 1) → G
 
-namespace representation
+namespace group_cohomology.resolution
 
-open list (take_prod)
+open list (take_prod) representation
 
 variables (k G n) [group G]
 
@@ -83,7 +84,7 @@ begin
   { simp },
 end
 
-lemma to_tensor_aux_comm (g : G) (x : Gⁿ⁺¹) :
+lemma to_tensor_aux_of_mul_action (g : G) (x : Gⁿ⁺¹) :
   to_tensor_aux k G n (of_mul_action k G Gⁿ⁺¹ g (single x 1)) =
   tensor_product.map (of_mul_action k G G g) 1 (to_tensor_aux k G n (single x 1)) :=
 by simp [of_mul_action_def, to_tensor_aux_single, mul_assoc, inv_mul_cancel_left]
@@ -93,7 +94,7 @@ lemma of_tensor_aux_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   finsupp.lift (Gⁿ⁺¹ →₀ k) k Gⁿ (λ f, single (g • take_prod f) m) x :=
 by simp [of_tensor_aux, sum_single_index, smul_sum, mul_comm m]
 
-lemma of_tensor_aux_comm (g h : G) (x : Gⁿ) :
+lemma of_tensor_aux_comm_of_mul_action (g h : G) (x : Gⁿ) :
   of_tensor_aux k G n (tensor_product.map (of_mul_action k G G g)
   (1 : module.End k (Gⁿ →₀ k)) (single h (1 : k) ⊗ₜ single x (1 : k))) =
   of_mul_action k G Gⁿ⁺¹ g (of_tensor_aux k G n (single h 1 ⊗ₜ single x 1)) :=
@@ -102,35 +103,30 @@ begin
   simp [of_mul_action_def, of_tensor_aux_single, mul_smul],
 end
 
-end representation
-
-namespace Rep
-
-open list (take_prod) representation (hiding of_mul_action)
-
-variables (k G n) [group G]
+variables (k G n)
 
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G`. -/
-abbreviation of_mul_action (G : Type u) [monoid G] (H : Type u) [mul_action G H] : Rep k G :=
-Rep.of (representation.of_mul_action k G H)
+abbreviation _root_.Rep.of_mul_action (G : Type u) [monoid G] (H : Type u) [mul_action G H] :
+  Rep k G :=
+Rep.of $ representation.of_mul_action k G H
 
 /-- A hom of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
 `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
-def to_tensor : of_mul_action k G (fin (n + 1) → G) ⟶ Rep.of
+def to_tensor : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ Rep.of
   ((representation.of_mul_action k G G).tprod (1 : G →* module.End k ((fin n → G) →₀ k))) :=
 { hom := to_tensor_aux k G n,
-  comm' := λ g, by ext; exact to_tensor_aux_comm _ _ }
+  comm' := λ g, by ext; exact to_tensor_aux_of_mul_action _ _ }
 
 /-- A hom of `k`-linear representations of `G` from `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) to `k[Gⁿ⁺¹]` sending `g ⊗ (g₁, ..., gₙ)` to
 `(g, gg₁, gg₁g₂, ..., gg₁...gₙ)`. -/
 def of_tensor :
   Rep.of ((representation.of_mul_action k G G).tprod (1 : G →* module.End k ((fin n → G) →₀ k)))
-    ⟶ of_mul_action k G (fin (n + 1) → G) :=
+    ⟶ Rep.of_mul_action k G (fin (n + 1) → G) :=
 { hom := of_tensor_aux k G n,
-  comm' := λ g, by { ext, congr' 1, exact (of_tensor_aux_comm _ _ _) }}
+  comm' := λ g, by { ext, congr' 1, exact (of_tensor_aux_comm_of_mul_action _ _ _) }}
 
 variables {k G n}
 
@@ -140,7 +136,7 @@ to_tensor_aux_single _ _
 
 @[simp] lemma of_tensor_single (g : G) (m : k) (x : Gⁿ →₀ k) :
   (of_tensor k G n).hom ((single g m) ⊗ₜ x) =
-  finsupp.lift (of_mul_action k G Gⁿ⁺¹) k Gⁿ (λ f, single (g • take_prod f) m) x :=
+  finsupp.lift (Rep.of_mul_action k G Gⁿ⁺¹) k Gⁿ (λ f, single (g • take_prod f) m) x :=
 of_tensor_aux_single _ _ _
 
 lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (m : k) :
@@ -148,4 +144,4 @@ lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (m : k) :
   finsupp.lift _ k G (λ a, single (a • take_prod x) m) g :=
 by simp [of_tensor, of_tensor_aux]
 
-end Rep
+end group_cohomology.resolution

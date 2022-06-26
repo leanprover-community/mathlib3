@@ -133,10 +133,10 @@ end game
 
 namespace pgame
 
+@[simp] lemma quot_zero : ⟦(0 : pgame)⟧ = 0 := rfl
+@[simp] lemma quot_one : ⟦(1 : pgame)⟧ = 1 := rfl
 @[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
-
 @[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
-
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
 /-- The lemma `pgame.equiv_of_mk_equiv` written in terms of quotients. -/
@@ -152,6 +152,86 @@ theorem quot_eq_of_mk_quot_eq' {x y : pgame}
   (hl : ∀ i, ⟦x.move_left (L i)⟧ = ⟦y.move_left i⟧)
   (hr : ∀ j, ⟦x.move_right j⟧ = ⟦y.move_right (R j)⟧) : ⟦x⟧ = ⟦y⟧ :=
 by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv' L R hl hr) }
+
+/-! We prove various inequalities on pre-games taking advantage of the extra structure on games. -/
+
+theorem neg_le {x y : pgame} : -x ≤ y ↔ -y ≤ x :=
+@neg_le game _ _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem neg_lt {x y : pgame} : -x < y ↔ -y < x :=
+@neg_lt game _ _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem le_neg {x y : pgame} : x ≤ -y ↔ y ≤ -x :=
+@le_neg game _ _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem lt_neg {x y : pgame} : x < -y ↔ y < -x :=
+@lt_neg game _ _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem neg_lf {x y : pgame} : -x ⧏ y ↔ -y ⧏ x :=
+by rw [←le_iff_le_iff_lf_iff_lf, le_neg]
+
+theorem lf_neg {x y : pgame} : x ⧏ -y ↔ y ⧏ -x :=
+by rw [←le_iff_le_iff_lf_iff_lf, neg_le]
+
+theorem equiv_neg_iff_equiv_neg {x y : pgame} : x ≈ -y ↔ y ≈ -x :=
+by simp only [equiv, le_neg, neg_le, and_comm]
+
+theorem neg_equiv_iff_neg_equiv {x y : pgame} : -x ≈ y ↔ -y ≈ x :=
+by simp only [equiv, le_neg, neg_le, and_comm]
+
+theorem fuzzy_neg_iff_fuzzy_neg {x y : pgame} : x ∥ -y ↔ y ∥ -x :=
+by simp only [fuzzy, lf_neg, neg_lf, and_comm]
+
+theorem neg_fuzzy_iff_neg_fuzzy {x y : pgame} : -x ∥ y ↔ -y ∥ x :=
+by simp only [fuzzy, lf_neg, neg_lf, and_comm]
+
+@[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
+@neg_nonpos game _ _ _ ⟦x⟧
+
+@[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
+@neg_nonneg game _ _ _ ⟦x⟧
+
+@[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
+@neg_lt_zero game _ _ _ ⟦x⟧
+
+@[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
+@neg_pos game _ _ _ ⟦x⟧
+
+@[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
+by rw [neg_lf, pgame.neg_zero]
+
+@[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
+by rw [lf_neg, pgame.neg_zero]
+
+@[simp] theorem neg_equiv_zero {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
+by rw [neg_equiv_iff_neg_equiv, pgame.neg_zero, equiv.comm]
+
+@[simp] theorem neg_fuzzy_zero {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
+by rw [neg_fuzzy_iff_neg_fuzzy, pgame.neg_zero, fuzzy.comm]
+
+@[simp] theorem zero_equiv_neg {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
+by rw [equiv_neg_iff_equiv_neg, pgame.neg_zero, equiv.comm]
+
+@[simp] theorem zero_fuzzy_neg {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
+by rw [fuzzy_neg_iff_fuzzy_neg, pgame.neg_zero, fuzzy.comm]
+
+theorem sub_le_zero_iff {x y : pgame} : x - y ≤ 0 ↔ x ≤ y :=
+@sub_nonpos game _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem zero_le_sub_iff {x y : pgame} : 0 ≤ x - y ↔ y ≤ x :=
+@sub_nonneg game _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem sub_lt_zero_iff {x y : pgame} : x - y < 0 ↔ x < y :=
+@sub_neg game _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem zero_lt_sub_iff {x y : pgame} : 0 < x - y ↔ y < x :=
+@sub_pos game _ _ _ ⟦x⟧ ⟦y⟧
+
+theorem sub_lf_zero_iff {x y : pgame} : x - y ⧏ 0 ↔ x ⧏ y :=
+by rw [←le_iff_le_iff_lf_iff_lf, zero_le_sub_iff]
+
+theorem zero_lf_sub_iff {x y : pgame} : 0 ⧏ x - y ↔ y ⧏ x :=
+by rw [←le_iff_le_iff_lf_iff_lf, sub_le_zero_iff]
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.

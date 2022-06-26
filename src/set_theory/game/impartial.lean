@@ -20,6 +20,8 @@ universe u
 
 open_locale pgame
 
+variables {x y : pgame.{u}}
+
 namespace pgame
 
 /-- An impartial pre-game is equivalent to its negation, and all of its options are impartial too.
@@ -31,55 +33,35 @@ def impartial : pgame → Prop
 | x := x ≈ -x ∧ (∀ i, impartial (x.move_left i)) ∧ ∀ j, impartial (x.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem impartial_def {x} :
+theorem impartial_def :
   impartial x ↔ x ≈ -x ∧ (∀ i, impartial (x.move_left i)) ∧ ∀ j, impartial (x.move_right j) :=
 by rw impartial
 
 namespace impartial
 
-theorem mk {x} (h₁ : x ≈ -x) (h₂ : ∀ i, impartial (x.move_left i))
+theorem mk (h₁ : x ≈ -x) (h₂ : ∀ i, impartial (x.move_left i))
   (h₃ : ∀ j, impartial (x.move_right j)) : impartial x :=
 impartial_def.2 ⟨h₁, h₂, h₃⟩
 
-theorem neg_equiv_self {x} (h : impartial x) : x ≈ -x :=
+theorem equiv_neg (h : impartial x) : x ≈ -x :=
 (impartial_def.1 h).1
 
-theorem mk_neg_eq_self {x} (h : impartial x) : -⟦x⟧ = ⟦x⟧ :=
-quot.sound h.neg_equiv_self.symm
+theorem quot_neg (h : impartial x) : -⟦x⟧ = ⟦x⟧ :=
+quot.sound h.equiv_neg.symm
 
-theorem move_left {x} (h : impartial x) : ∀ i, (x.move_left i).impartial :=
+theorem move_left (h : impartial x) : ∀ i, (x.move_left i).impartial :=
 (impartial_def.1 h).2.1
 
-theorem move_right {x} (h : impartial x) : ∀ i, (x.move_right i).impartial :=
+theorem move_right (h : impartial x) : ∀ i, (x.move_right i).impartial :=
 (impartial_def.1 h).2.2
 
 end impartial
 
-theorem impartial_zero : impartial 0 :=
+@[simp] theorem impartial_zero : impartial 0 :=
 by { rw impartial, simp [is_empty.forall_iff] }
 
-theorem impartial_star : impartial star :=
-by { rw impartial, simpa using impartial_zero }
-
-namespace relabelling
-
-theorem impartial_imp : ∀ {x y : pgame} (r : x ≡r y) (h : impartial x), impartial y
-| x y r := λ h, impartial.mk ((r.equiv'.trans h.neg_equiv_self).trans (neg_equiv_neg_iff.2 r.equiv))
-  (λ i, impartial_imp (r.move_left_symm i) (h.move_left _))
-  (λ j, impartial_imp (r.move_right j) (h.move_right _))
-using_well_founded { dec_tac := pgame_wf_tac }
-
-theorem impartial_congr {x y : pgame} (r : x ≡r y) : impartial x ↔ impartial y :=
-⟨r.impartial_imp, r.symm.impartial_imp⟩
-
-end relabelling
-
-theorem equiv_of_le_of_impartial {x y : pgame} (hx : impartial x) (hy : impartial y) (h : x ≤ y) :
-  x ≈ y :=
-begin
-  use h,
-  rw ←neg_le_neg at h,
-end
+@[simp] theorem impartial_star : impartial star :=
+by { rw impartial, simp }
 
 namespace impartial
 
@@ -87,7 +69,7 @@ theorem neg : ∀ {x}, impartial x → impartial (-x)
 | x := λ h, begin
   apply mk _ (λ i, _) (λ j, _),
   { rw neg_neg,
-    exact h.neg_equiv_self.symm },
+    exact h.equiv_neg.symm },
   { rw move_left_neg',
     exact (h.move_right _).neg },
   { rw move_right_neg',
@@ -97,7 +79,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem add : ∀ {x y : pgame}, impartial x → impartial y → impartial (x + y)
 | x y hx hy := begin
-  refine mk ((add_congr hx.neg_equiv_self hy.neg_equiv_self).trans
+  refine mk ((add_congr hx.equiv_neg hy.equiv_neg).trans
     (neg_add_relabelling _ _).equiv.symm) (λ k, _) (λ k, _),
   { apply left_moves_add_cases k,
     all_goals
@@ -112,97 +94,166 @@ theorem add : ∀ {x y : pgame}, impartial x → impartial y → impartial (x + 
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-variables {x : pgame} (hx : impartial x)
-include hx
+/-- A local tactic for proving impartiality of games. -/
+meta def impartiality :=
+`[solve_by_elim
+  [impartial.move_left, impartial.move_right, impartial_zero, impartial_star,
+    impartial.neg, impartial.add]
+  { max_depth := 6 }]
 
-lemma nonpos : ¬ 0 < x :=
-λ h, begin
-apply (h.trans _).false,
-  have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_left hx.neg_equiv_self.symm] at h',
-  exact (h.trans h').false
-end
+section two_vars
 
-lemma nonneg : ¬ G < 0 :=
-λ h, begin
-  have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
-  exact (h.trans h').false
-end
+variables (hx : impartial x . impartiality) (hy : impartial y . impartiality)
+include hx hy
 
-/-- In an impartial game, either the first player always wins, or the second player always wins. -/
-lemma equiv_or_fuzzy_zero : G ≈ 0 ∨ G ∥ 0 :=
+theorem le_of_ge (h : x ≤ y) : y ≤ x :=
+by rwa [le_congr hx.equiv_neg hy.equiv_neg, neg_le_neg_iff] at h
+
+theorem lf_of_gf (h : x ⧏ y) : y ⧏ x :=
+by rwa [lf_congr hx.equiv_neg hy.equiv_neg, neg_lf_neg_iff] at h
+
+theorem le_iff_ge : x ≤ y ↔ y ≤ x :=
+⟨le_of_ge hx hy, le_of_ge hy hx⟩
+
+theorem lf_iff_gf : x ⧏ y ↔ y ⧏ x :=
+⟨lf_of_gf hx hy, lf_of_gf hy hx⟩
+
+theorem equiv_of_le (h : x ≤ y) : x ≈ y :=
+⟨h, le_of_ge hx hy h⟩
+
+theorem fuzzy_of_lf (h : x ⧏ y) : x ∥ y :=
+⟨h, lf_of_gf hx hy h⟩
+
+theorem le_iff_equiv : x ≤ y ↔ x ≈ y :=
+⟨equiv_of_le hx hy, equiv.le⟩
+
+theorem lf_iff_fuzzy : x ⧏ y ↔ x ∥ y :=
+⟨fuzzy_of_lf hx hy, fuzzy.lf⟩
+
+theorem not_lt : ¬ x < y :=
+λ h, h.le.not_gf $ lf_of_gf hx hy h.lf
+
+theorem equiv_or_fuzzy : x ≈ y ∨ x ∥ y :=
 begin
-  rcases lt_or_equiv_or_gt_or_fuzzy G 0 with h | h | h | h,
-  { exact ((nonneg G) h).elim },
+  rcases lt_or_equiv_or_gt_or_fuzzy x y with h | h | h | h,
+  { exact (not_lt hx hy h).elim },
   { exact or.inl h },
-  { exact ((nonpos G) h).elim },
+  { exact (not_lt hy hx h).elim },
   { exact or.inr h }
 end
 
-@[simp] lemma not_equiv_zero_iff : ¬ G ≈ 0 ↔ G ∥ 0 :=
-⟨(equiv_or_fuzzy_zero G).resolve_left, fuzzy.not_equiv⟩
+/-! Having proven that all other order relations on impartial games are redundant, we build the API
+on impartial games using only `≈` and `∥`. -/
 
-@[simp] lemma not_fuzzy_zero_iff : ¬ G ∥ 0 ↔ G ≈ 0 :=
-⟨(equiv_or_fuzzy_zero G).resolve_right, equiv.not_fuzzy⟩
+theorem not_equiv_iff_fuzzy : ¬ x ≈ y ↔ x ∥ y :=
+⟨(equiv_or_fuzzy hx hy).resolve_left, fuzzy.not_equiv⟩
 
-lemma add_self : G + G ≈ 0 :=
-(add_congr_left (neg_equiv_self G)).trans (add_left_neg_equiv G)
+theorem not_fuzzy_iff_equiv : ¬ x ∥ y ↔ x ≈ y :=
+⟨(equiv_or_fuzzy hx hy).resolve_right, equiv.not_fuzzy⟩
 
-@[simp] lemma mk_add_self : ⟦G⟧ + ⟦G⟧ = 0 := quot.sound (add_self G)
+theorem equiv_iff_equiv_iff_fuzzy_iff_fuzzy {w z : pgame} (hw : impartial w) (hz : impartial z) :
+  x ≈ y ↔ w ≈ z ↔ (x ∥ y ↔ w ∥ z) :=
+by rw [←not_equiv_iff_fuzzy, ←not_equiv_iff_fuzzy, not_iff_not]; assumption
 
-/-- This lemma doesn't require `H` to be impartial. -/
-lemma equiv_iff_add_equiv_zero (H : pgame) : H ≈ G ↔ H + G ≈ 0 :=
-by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_right_cancel_iff _ _ (-⟦G⟧)], simpa }
-
-/-- This lemma doesn't require `H` to be impartial. -/
-lemma equiv_iff_add_equiv_zero' (H : pgame) : G ≈ H ↔ G + H ≈ 0 :=
-by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←@add_left_cancel_iff _ _ (-⟦G⟧), eq_comm], simpa }
-
-lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
-by rw [←zero_le_neg_iff, le_congr_right (neg_equiv_self G)]
-
-lemma lf_zero_iff {G : pgame} [G.impartial] : G ⧏ 0 ↔ 0 ⧏ G :=
-by rw [←zero_lf_neg_iff, lf_congr_right (neg_equiv_self G)]
-
-lemma equiv_zero_iff_le: G ≈ 0 ↔ G ≤ 0 := ⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩
-lemma fuzzy_zero_iff_lf : G ∥ 0 ↔ G ⧏ 0 := ⟨and.left, λ h, ⟨h, lf_zero_iff.1 h⟩⟩
-lemma equiv_zero_iff_ge : G ≈ 0 ↔ 0 ≤ G := ⟨and.right, λ h, ⟨le_zero_iff.2 h, h⟩⟩
-lemma fuzzy_zero_iff_gf : G ∥ 0 ↔ 0 ⧏ G := ⟨and.right, λ h, ⟨lf_zero_iff.2 h, h⟩⟩
-
-lemma forall_left_moves_fuzzy_iff_equiv_zero : (∀ i, G.move_left i ∥ 0) ↔ G ≈ 0 :=
+theorem equiv_iff_forall_fuzzy :
+  x ≈ y ↔ (∀ i, x.move_left i ∥ y) ∧ ∀ j, x ∥ y.move_right j :=
 begin
-  refine ⟨λ hb, _, λ hp i, _⟩,
-  { rw [equiv_zero_iff_le G, le_zero_lf],
-    exact λ i, (hb i).1 },
-  { rw fuzzy_zero_iff_lf,
-    exact move_left_lf_of_le i hp.1 }
+  rw [←le_iff_equiv hx hy, le_iff_forall_lf],
+  congr'; apply propext (forall_congr (λ i, _));
+  rw lf_iff_fuzzy;
+  impartiality
 end
 
-lemma forall_right_moves_fuzzy_iff_equiv_zero : (∀ j, G.move_right j ∥ 0) ↔ G ≈ 0 :=
+theorem equiv_of_forall_fuzzy (h₁ : ∀ i, x.move_left i ∥ y) (h₂ : ∀ j, x ∥ y.move_right j) :
+  x ≈ y :=
+(equiv_iff_forall_fuzzy hx hy).2 ⟨h₁, h₂⟩
+
+theorem move_left_fuzzy_of_equiv (h : x ≈ y) : ∀ i, x.move_left i ∥ y :=
+((equiv_iff_forall_fuzzy hx hy).1 h).1
+
+theorem fuzzy_move_right_of_equiv (h : x ≈ y) : ∀ j, x ∥ y.move_right j :=
+((equiv_iff_forall_fuzzy hx hy).1 h).2
+
+theorem fuzzy_iff_exists_equiv : x ∥ y ↔ (∃ i, x ≈ y.move_left i) ∨ ∃ j, x.move_right j ≈ y :=
 begin
-  refine ⟨λ hb, _, λ hp i, _⟩,
-  { rw [equiv_zero_iff_ge G, zero_le_lf],
-    exact λ i, (hb i).2 },
-  { rw fuzzy_zero_iff_gf,
-    exact lf_move_right_of_le i hp.2 }
+  rw [←lf_iff_fuzzy hx hy, lf_iff_exists_le],
+  congr' 2; apply propext (exists_congr (λ i, _));
+  rw le_iff_equiv;
+  impartiality
 end
 
-lemma exists_left_move_equiv_iff_fuzzy_zero : (∃ i, G.move_left i ≈ 0) ↔ G ∥ 0 :=
+theorem fuzzy_of_equiv_move_left {i} (h : x ≈ y.move_left i) : x ∥ y :=
+(fuzzy_iff_exists_equiv hx hy).2 $ or.inl ⟨i, h⟩
+
+theorem fuzzy_of_move_right_equiv {j} (h : x.move_right j ≈ y) : x ∥ y :=
+(fuzzy_iff_exists_equiv hx hy).2 $ or.inr ⟨j, h⟩
+
+end two_vars
+
+section one_var
+
+variable (hx : impartial x)
+include hx
+
+/-- In an impartial game, either the first player always wins, or the second player always wins. -/
+theorem equiv_or_fuzzy_zero : x ≈ 0 ∨ x ∥ 0 :=
+equiv_or_fuzzy hx impartial_zero
+
+theorem not_equiv_zero_iff : ¬ x ≈ 0 ↔ x ∥ 0 :=
+not_equiv_iff_fuzzy hx impartial_zero
+
+theorem not_fuzzy_zero_iff : ¬ x ∥ 0 ↔ x ≈ 0 :=
+not_fuzzy_iff_equiv hx impartial_zero
+
+theorem add_self_equiv : x + x ≈ 0 :=
+(add_congr_left hx.equiv_neg).trans (add_left_neg_equiv x)
+
+theorem quot_add_self : ⟦x⟧ + ⟦x⟧ = 0 := quot.sound hx.add_self_equiv
+
+/-- This lemma doesn't require `y` to be impartial. -/
+theorem quot_add_eq_zero_iff (y : pgame) : ⟦y⟧ + ⟦x⟧ = 0 ↔ ⟦y⟧ = ⟦x⟧ :=
+by rw [←@add_neg_eq_zero _ _ ⟦y⟧, hx.quot_neg]
+
+/-- This lemma doesn't require `y` to be impartial. -/
+theorem quot_add_eq_zero_iff' (y : pgame) : ⟦x⟧ + ⟦y⟧ = 0 ↔ ⟦x⟧ = ⟦y⟧ :=
+by rw [←@neg_add_eq_zero _ _ ⟦x⟧, hx.quot_neg]
+
+/-- This lemma doesn't require `y` to be impartial. -/
+theorem add_equiv_zero_iff (y : pgame) : y + x ≈ 0 ↔ y ≈ x :=
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←quot_add_eq_zero_iff hx], refl }
+
+/-- This lemma doesn't require `y` to be impartial. -/
+theorem add_equiv_zero_iff' (y : pgame) : x + y ≈ 0 ↔ x ≈ y :=
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←quot_add_eq_zero_iff' hx], refl }
+
+theorem add_fuzzy_zero_iff {y : pgame} (hy : impartial y) : x + y ∥ 0 ↔ x ∥ y :=
 begin
-  refine ⟨λ ⟨i, hi⟩, (fuzzy_zero_iff_gf G).2 (lf_of_le_move_left hi.2), λ hn, _⟩,
-  rw [fuzzy_zero_iff_gf G, zero_lf_le] at hn,
-  cases hn with i hi,
-  exact ⟨i, (equiv_zero_iff_ge _).2 hi⟩
+  rw [←equiv_iff_equiv_iff_fuzzy_iff_fuzzy], refl }
+
+/-- This lemma doesn't require `y` to be impartial. -/
+theorem add_equiv_zero_iff' (y : pgame) : x + y ≈ 0 ↔ x ≈ y :=
+by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←quot_add_eq_zero_iff' hx], refl }
+
+theorem equiv_zero_iff_forall_fuzzy : x ≈ 0 ↔ ∀ i, x.move_left i ∥ 0 :=
+by { rw equiv_iff_forall_fuzzy hx impartial_zero, simp [is_empty.forall_iff] }
+
+theorem equiv_zero_iff_forall_fuzzy' : x ≈ 0 ↔ ∀ j, x.move_right j ∥ 0 :=
+begin
+  rw [equiv.comm, equiv_iff_forall_fuzzy impartial_zero hx],
+  simp [is_empty.forall_iff, fuzzy.comm]
 end
 
-lemma exists_right_move_equiv_iff_fuzzy_zero : (∃ j, G.move_right j ≈ 0) ↔ G ∥ 0 :=
+theorem fuzzy_zero_iff_exists_equiv' : x ∥ 0 ↔ ∃ j, x.move_right j ≈ 0 :=
+by { rw fuzzy_iff_exists_equiv hx impartial_zero, simp [is_empty.exists_iff] }
+
+theorem fuzzy_zero_iff_exists_equiv : x ∥ 0 ↔ ∃ i, x.move_left i ≈ 0 :=
 begin
-  refine ⟨λ ⟨i, hi⟩, (fuzzy_zero_iff_lf G).2 (lf_of_move_right_le hi.1), λ hn, _⟩,
-  rw [fuzzy_zero_iff_lf G, lf_zero_le] at hn,
-  cases hn with i hi,
-  exact ⟨i, (equiv_zero_iff_le _).2 hi⟩
+  rw [fuzzy.comm, fuzzy_iff_exists_equiv impartial_zero hx],
+  simp [is_empty.exists_iff, equiv.comm]
 end
+
+end one_var
 
 end impartial
+
 end pgame

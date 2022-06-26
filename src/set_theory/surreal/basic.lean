@@ -296,6 +296,8 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+instance : add_monoid_with_one surreal := add_monoid_with_one.unary
+
 /-- Casts a `surreal` number into a `game`. -/
 def to_game : surreal →+o game :=
 { to_fun := lift (λ x _, ⟦x⟧) (λ x y ox oy, quot.sound),

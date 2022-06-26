@@ -488,10 +488,9 @@ theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
-  by_cases h : #ι < ℵ₀,
+  casesI fintype_or_infinite ι,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
-    haveI : fintype ι := (cardinal.lt_aleph_0_iff_fintype.mp h).some,
-    haveI : fintype (range v) := set.fintype_range ⇑v,
+    haveI : fintype (range v) := set.fintype_range v,
     haveI := basis_fintype_of_finite_spans _ v.span_eq v',
     -- We clean up a little:
     rw [cardinal.mk_fintype, cardinal.mk_fintype],
@@ -504,16 +503,10 @@ begin
     -- so by `infinite_basis_le_maximal_linear_independent`, `v'` is at least as big,
     -- and then applying `infinite_basis_le_maximal_linear_independent` again
     -- we see they have the same cardinality.
-    simp only [not_lt] at h,
-    haveI : infinite ι := cardinal.infinite_iff.mpr h,
     have w₁ :=
       infinite_basis_le_maximal_linear_independent' v _ v'.linear_independent v'.maximal,
-    haveI : infinite ι' := cardinal.infinite_iff.mpr (begin
-      apply cardinal.lift_le.{w' w}.mp,
-      have p := (cardinal.lift_le.mpr h).trans w₁,
-      rw cardinal.lift_aleph_0 at ⊢ p,
-      exact p,
-    end),
+    rcases cardinal.lift_mk_le'.mp w₁ with ⟨f⟩,
+    haveI : infinite ι' := infinite.of_injective f f.2,
     have w₂ :=
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,
     exact le_antisymm w₁ w₂, }
@@ -607,7 +600,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, le_of_lt (cardinal.lt_aleph_0_iff_finite.2 $ (finset.finite_to_set _).image _) },
+    { exact λ j, (cardinal.lt_aleph_0_of_fintype _).le },
     { simpa } },
 end
 

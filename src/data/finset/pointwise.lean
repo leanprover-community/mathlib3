@@ -153,8 +153,8 @@ localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 @[to_additive]
 lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
-@[to_additive add_image_prod]
-lemma image_mul_prod : (s.product t).image (λ x : α × α, x.fst * x.snd)  = s * t := rfl
+@[to_additive]
+lemma image_mul_product : (s.product t).image (λ x : α × α, x.fst * x.snd) = s * t := rfl
 
 @[to_additive]
 lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x := mem_image₂
@@ -717,6 +717,8 @@ subset_image₂
 
 end has_vsub
 
+open_locale pointwise
+
 /-! ### Translation/scaling of finsets -/
 
 section has_scalar
@@ -760,6 +762,9 @@ lemma smul_finset_singleton (b : β) : a • ({b} : finset β) = {a • b} := im
 @[to_additive] lemma smul_finset_inter_subset : a • (s₁ ∩ s₂) ⊆ a • s₁ ∩ (a • s₂) :=
 image_inter_subset _ _ _
 
+@[simp] lemma bUnion_smul_finset (s : finset α) (t : finset β) : s.bUnion (• t) = s • t :=
+bUnion_image_left
+
 end has_scalar
 
 open_locale pointwise
@@ -768,12 +773,17 @@ section instances
 variables [decidable_eq γ]
 
 @[to_additive]
-instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α β (finset γ) :=
+⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+
+@[to_additive]
+instance smul_comm_class_finset' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_comm]⟩
 
 @[to_additive]
-instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset'' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (finset α) β (finset γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
@@ -857,4 +867,10 @@ instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_scalar α
 coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
+
+lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α] {s : set α}
+  {t : finset α} :
+  s.pairwise_disjoint (• t) ↔ ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
+
 end finset

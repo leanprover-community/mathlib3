@@ -6,6 +6,7 @@ Authors: Andrew Yang
 import algebraic_geometry.Gamma_Spec_adjunction
 import algebraic_geometry.open_immersion
 import category_theory.limits.opposites
+import ring_theory.localization.inv_submonoid
 
 /-!
 # Affine schemes

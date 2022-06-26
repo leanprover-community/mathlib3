@@ -1633,8 +1633,12 @@ begin
 end
 
 lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
-  ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
-by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact real.to_nnreal_mul hp }
+  ennreal.of_real (p * q) = ennreal.of_real p * ennreal.of_real q :=
+by simp only [ennreal.of_real, ← coe_mul, real.to_nnreal_mul hp]
+
+lemma of_real_mul' {p q : ℝ} (hq : 0 ≤ q) :
+  ennreal.of_real (p * q) = ennreal.of_real p * ennreal.of_real q :=
+by rw [mul_comm, of_real_mul hq, mul_comm]
 
 lemma of_real_pow {p : ℝ} (hp : 0 ≤ p) (n : ℕ) :
   ennreal.of_real (p ^ n) = ennreal.of_real p ^ n :=
@@ -1647,20 +1651,7 @@ by rw [ennreal.of_real, ennreal.of_real, ←@coe_inv (real.to_nnreal x) (by simp
 
 lemma of_real_div_of_pos {x y : ℝ} (hy : 0 < y) :
   ennreal.of_real (x / y) = ennreal.of_real x / ennreal.of_real y :=
-by rw [div_eq_inv_mul, div_eq_mul_inv, of_real_mul (inv_nonneg.2 hy.le), of_real_inv_of_pos hy,
-  mul_comm]
-
-lemma to_real_of_real_mul (c : ℝ) (a : ℝ≥0∞) (h : 0 ≤ c) :
-  ennreal.to_real ((ennreal.of_real c) * a) = c * ennreal.to_real a :=
-begin
-  induction a using with_top.rec_top_coe,
-  { simp only [ennreal.to_real, top_to_nnreal, nnreal.coe_zero, mul_zero, mul_top,
-      ennreal.of_real_eq_zero, nnreal.coe_eq_zero],
-    split_ifs,
-    exacts [ennreal.zero_to_nnreal, ennreal.top_to_nnreal] },
-  { simp only [ennreal.to_real, ennreal.to_nnreal, ennreal.of_real, coe_mul.symm, to_nnreal_coe,
-      nnreal.coe_mul, real.coe_to_nnreal _ h] }
-end
+by rw [div_eq_mul_inv, div_eq_mul_inv, of_real_mul' (inv_nonneg.2 hy.le), of_real_inv_of_pos hy]
 
 @[simp] lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
 begin
@@ -1672,10 +1663,50 @@ end
 @[simp] lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 :=
 by rw [mul_comm, to_nnreal_mul_top]
 
-@[simp] lemma to_real_mul_top (a : ℝ≥0∞) : ennreal.to_real (a * ∞) = 0 :=
-by rw [ennreal.to_real, to_nnreal_mul_top, nnreal.coe_zero]
+@[simp] lemma to_nnreal_mul {a b : ℝ≥0∞} : (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
+begin
+  induction a using with_top.rec_top_coe,
+  { rw [to_nnreal_top_mul, top_to_nnreal, zero_mul] },
+  induction b using with_top.rec_top_coe,
+  { rw [to_nnreal_mul_top, top_to_nnreal, mul_zero] },
+  simp only [to_nnreal_coe, ← coe_mul]
+end
 
-@[simp] lemma to_real_top_mul (a : ℝ≥0∞) : ennreal.to_real (∞ * a) = 0 :=
+/-- `ennreal.to_nnreal` as a `monoid_hom`. -/
+def to_nnreal_hom : ℝ≥0∞ →* ℝ≥0 :=
+{ to_fun := ennreal.to_nnreal,
+  map_one' := to_nnreal_coe,
+  map_mul' := λ _ _, to_nnreal_mul }
+
+@[simp] lemma to_nnreal_pow (a : ℝ≥0∞) (n : ℕ) : (a ^ n).to_nnreal = a.to_nnreal ^ n :=
+to_nnreal_hom.map_pow a n
+
+@[simp] lemma to_nnreal_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
+  (∏ i in s, f i).to_nnreal = ∏ i in s, (f i).to_nnreal :=
+to_nnreal_hom.map_prod _ _
+
+/-- `ennreal.to_real` as a `monoid_hom`. -/
+def to_real_hom : ℝ≥0∞ →* ℝ :=
+(nnreal.to_real_hom : ℝ≥0 →* ℝ).comp to_nnreal_hom
+
+@[simp] lemma to_real_mul : (a * b).to_real = a.to_real * b.to_real :=
+to_real_hom.map_mul a b
+
+@[simp] lemma to_real_pow (a : ℝ≥0∞) (n : ℕ) : (a ^ n).to_real = a.to_real ^ n :=
+to_real_hom.map_pow a n
+
+@[simp] lemma to_real_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
+  (∏ i in s, f i).to_real = ∏ i in s, (f i).to_real :=
+to_real_hom.map_prod _ _
+
+lemma to_real_of_real_mul (c : ℝ) (a : ℝ≥0∞) (h : 0 ≤ c) :
+  ennreal.to_real ((ennreal.of_real c) * a) = c * ennreal.to_real a :=
+by rw [ennreal.to_real_mul, ennreal.to_real_of_real h]
+
+lemma to_real_mul_top (a : ℝ≥0∞) : ennreal.to_real (a * ∞) = 0 :=
+by rw [to_real_mul, top_to_real, mul_zero]
+
+lemma to_real_top_mul (a : ℝ≥0∞) : ennreal.to_real (∞ * a) = 0 :=
 by { rw mul_comm, exact to_real_mul_top _ }
 
 lemma to_real_eq_to_real (ha : a ≠ ∞) (hb : b ≠ ∞) :
@@ -1688,22 +1719,10 @@ end
 
 lemma to_real_smul (r : ℝ≥0) (s : ℝ≥0∞) :
   (r • s).to_real = r • s.to_real :=
-begin
-  induction s using with_top.rec_top_coe,
-  { simp only [ennreal.smul_def, algebra.id.smul_eq_mul, ennreal.to_real_mul_top,
-      ennreal.top_to_real, smul_zero] },
-  { simp only [← coe_smul, ennreal.coe_to_real, ennreal.coe_to_real, nnreal.smul_def,
-      algebra.id.smul_eq_mul, nonneg.coe_mul] }
-end
+by { rw [ennreal.smul_def, smul_eq_mul, to_real_mul, coe_to_real], refl }
 
 protected lemma trichotomy (p : ℝ≥0∞) : p = 0 ∨ p = ∞ ∨ 0 < p.to_real :=
-begin
-  rcases eq_or_lt_of_le (bot_le : 0 ≤ p) with (rfl : 0 = p) | (hp : 0 < p),
-  { simp },
-  rcases eq_or_lt_of_le (le_top : p ≤ ⊤) with rfl | hp',
-  { simp },
-  simp [ennreal.to_real_pos_iff, hp, hp'],
-end
+by simpa only [or_iff_not_imp_left] using to_real_pos
 
 protected lemma trichotomy₂ {p q : ℝ≥0∞} (hpq : p ≤ q) :
   (p = 0 ∧ q = 0) ∨ (p = 0 ∧ q = ∞) ∨ (p = 0 ∧ 0 < q.to_real) ∨ (p = ∞ ∧ q = ∞)
@@ -1726,47 +1745,15 @@ begin
   exact this.imp_right (λ h, h.2)
 end
 
-/-- `ennreal.to_nnreal` as a `monoid_hom`. -/
-def to_nnreal_hom : ℝ≥0∞ →* ℝ≥0 :=
-{ to_fun := ennreal.to_nnreal,
-  map_one' := to_nnreal_coe,
-  map_mul' := by rintro (_|x) (_|y); simp only [← coe_mul, none_eq_top, some_eq_coe,
-    to_nnreal_top_mul, to_nnreal_mul_top, top_to_nnreal, mul_zero, zero_mul, to_nnreal_coe] }
-
-lemma to_nnreal_mul {a b : ℝ≥0∞}: (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=
-to_nnreal_hom.map_mul a b
-
-lemma to_nnreal_pow (a : ℝ≥0∞) (n : ℕ) : (a ^ n).to_nnreal = a.to_nnreal ^ n :=
-to_nnreal_hom.map_pow a n
-
-lemma to_nnreal_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
-  (∏ i in s, f i).to_nnreal = ∏ i in s, (f i).to_nnreal :=
-to_nnreal_hom.map_prod _ _
-
 lemma to_nnreal_inv (a : ℝ≥0∞) : (a⁻¹).to_nnreal = (a.to_nnreal)⁻¹ :=
 begin
-  rcases eq_or_ne a ∞ with rfl|ha, { simp },
-  lift a to ℝ≥0 using ha,
+  induction a using with_top.rec_top_coe, { simp },
   rcases eq_or_ne a 0 with rfl|ha, { simp },
   rw [← coe_inv ha, to_nnreal_coe, to_nnreal_coe]
 end
 
 lemma to_nnreal_div (a b : ℝ≥0∞) : (a / b).to_nnreal = a.to_nnreal / b.to_nnreal :=
 by rw [div_eq_mul_inv, to_nnreal_mul, to_nnreal_inv, div_eq_mul_inv]
-
-/-- `ennreal.to_real` as a `monoid_hom`. -/
-def to_real_hom : ℝ≥0∞ →* ℝ :=
-(nnreal.to_real_hom : ℝ≥0 →* ℝ).comp to_nnreal_hom
-
-lemma to_real_mul : (a * b).to_real = a.to_real * b.to_real :=
-to_real_hom.map_mul a b
-
-lemma to_real_pow (a : ℝ≥0∞) (n : ℕ) : (a ^ n).to_real = a.to_real ^ n :=
-to_real_hom.map_pow a n
-
-lemma to_real_prod {ι : Type*} {s : finset ι} {f : ι → ℝ≥0∞} :
-  (∏ i in s, f i).to_real = ∏ i in s, (f i).to_real :=
-to_real_hom.map_prod _ _
 
 lemma to_real_inv (a : ℝ≥0∞) : (a⁻¹).to_real = (a.to_real)⁻¹ :=
 by { simp_rw ennreal.to_real, norm_cast, exact to_nnreal_inv a, }
@@ -1783,9 +1770,9 @@ end
 
 @[simp] lemma to_nnreal_bit0 {x : ℝ≥0∞} : (bit0 x).to_nnreal = bit0 (x.to_nnreal) :=
 begin
-  by_cases hx_top : x = ∞,
-  { simp [hx_top, bit0_eq_top_iff.mpr rfl], },
-  exact to_nnreal_add hx_top hx_top,
+  induction x using with_top.rec_top_coe,
+  { simp },
+  { exact to_nnreal_add coe_ne_top coe_ne_top }
 end
 
 @[simp] lemma to_nnreal_bit1 {x : ℝ≥0∞} (hx_top : x ≠ ∞) :
@@ -1799,13 +1786,13 @@ by simp [ennreal.to_real]
   (bit1 x).to_real = bit1 (x.to_real) :=
 by simp [ennreal.to_real, hx_top]
 
-@[simp] lemma of_real_bit0 {r : ℝ} (hr : 0 ≤ r) :
+@[simp] lemma of_real_bit0 (r : ℝ) :
   ennreal.of_real (bit0 r) = bit0 (ennreal.of_real r) :=
-of_real_add hr hr
+by simp [ennreal.of_real]
 
 @[simp] lemma of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
   ennreal.of_real (bit1 r) = bit1 (ennreal.of_real r) :=
-(of_real_add (by simp [hr]) zero_le_one).trans (by simp [real.to_nnreal_one, bit1, hr])
+(of_real_add (by simp [hr]) zero_le_one).trans (by simp [real.to_nnreal_one, bit1])
 
 end real
 

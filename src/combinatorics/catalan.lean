@@ -100,7 +100,7 @@ begin
   { have h := nat.succ_dvd_central_binom n,
     exact_mod_cast this },
   induction n using nat.case_strong_induction_on with d hd,
-  { simp, },
+  { simp },
   { simp_rw [catalan_succ, nat.cast_sum, nat.cast_mul],
     transitivity (∑ i : fin d.succ, (nat.central_binom i / (i + 1)) * (nat.central_binom (d - i) /
                   (d - i + 1)) : ℚ),

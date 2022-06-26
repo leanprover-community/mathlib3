@@ -28,34 +28,22 @@ noncomputable theory
 namespace algebraic_geometry
 
 /-- A `morphism_property` is a class of morphisms between schemes. -/
+@[derive complete_lattice]
 def morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), Prop
 
 /-- An `affine_target_morphism_property` is a class of morphisms from an arbitrary scheme into an
 affine scheme. -/
 def affine_target_morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y) [is_affine Y], Prop
 
-/-- `is_iso` as an `morphism_property`. -/
-protected def is_iso : morphism_property := @is_iso Scheme
+/-- `is_iso` as a `morphism_property`. -/
+protected def Scheme.is_iso : morphism_property := @is_iso Scheme _
 
-/-- `is_iso` as an `morphism_property`. -/
-protected def affine_target_is_iso : affine_target_morphism_property :=
+/-- `is_iso` as an `affine_morphism_property`. -/
+protected def Scheme.affine_target_is_iso : affine_target_morphism_property :=
 λ X Y f H, is_iso f
 
-instance : lattice morphism_property :=
-{ le := λ P₁ P₂, ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), P₁ f → P₂ f,
-  le_refl := λ P X Y f H, H,
-  le_trans := λ P₁ P₂ P₃ h₁ h₂ X Y f, h₂ f ∘ h₁ f,
-  le_antisymm := λ P₁ P₂ h₁ h₂, funext $ λ _, funext $ λ _, funext $ λ f, propext ⟨h₁ f, h₂ f⟩,
-
-  sup := λ P₁ P₂ X Y f, P₁ f ∨ P₂ f,
-  le_sup_left  := λ P₁ P₂ X Y f H, or.inl H,
-  le_sup_right := λ P₁ P₂ X Y f H, or.inr H,
-  sup_le := λ P₁ P₂ P₃ h₁ h₂ X Y f H, or.cases_on H (h₁ f) (h₂ f),
-
-  inf := λ P₁ P₂ X Y f, P₁ f ∧ P₂ f,
-  inf_le_left  := λ P₁ P₂ X Y f H, H.1,
-  inf_le_right := λ P₁ P₂ X Y f H, H.2,
-  le_inf := λ P₁ P₂ P₃ h₁ h₂ X Y f H, ⟨h₁ f H, h₂ f H⟩ }
+instance : inhabited morphism_property := ⟨Scheme.is_iso⟩
+instance : inhabited affine_target_morphism_property := ⟨Scheme.affine_target_is_iso⟩
 
 /-- A `affine_target_morphism_property` can be extended to a `morphism_property` such that it
 *never* holds when the target is not affine -/
@@ -107,7 +95,7 @@ lemma respects_iso.affine_cancel_right_is_iso {P : affine_target_morphism_proper
   [is_affine Y] [is_affine Z] : P (f ≫ g) ↔ P f :=
 by convert hP.cancel_right_is_iso f g; rw P.to_property_apply
 
-/-- This is here to mirror `stable_under_base_change.snd`. -/
+-- This is here to mirror `stable_under_base_change.snd`.
 @[nolint unused_arguments]
 lemma stable_under_base_change.fst {P : morphism_property}
   (hP : stable_under_base_change P) (hP' : respects_iso P) {X Y S : Scheme} (f : X ⟶ S)
@@ -162,4 +150,3 @@ begin
 end
 
 end algebraic_geometry
-#lint

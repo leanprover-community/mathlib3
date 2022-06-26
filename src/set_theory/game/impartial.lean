@@ -95,15 +95,15 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- A local tactic for proving impartiality of games. -/
+
+-- TODO: make a more proper tactic to which lemmas can be added.
 meta def impartiality :=
-`[solve_by_elim
-  [impartial.move_left, impartial.move_right, impartial_zero, impartial_star,
-    impartial.neg, impartial.add]
+`[solve_by_elim [move_left, move_right, impartial_zero, impartial_star, neg, add]
   { max_depth := 6 }]
 
 section two_vars
 
-variables (hx : impartial x . impartiality) (hy : impartial y . impartiality)
+variables (hx : impartial x) (hy : impartial y)
 include hx hy
 
 theorem le_of_ge (h : x ≤ y) : y ≤ x :=
@@ -210,29 +210,23 @@ theorem add_self_equiv : x + x ≈ 0 :=
 
 theorem quot_add_self : ⟦x⟧ + ⟦x⟧ = 0 := quot.sound hx.add_self_equiv
 
-/-- This lemma doesn't require `y` to be impartial. -/
-theorem quot_add_eq_zero_iff (y : pgame) : ⟦y⟧ + ⟦x⟧ = 0 ↔ ⟦y⟧ = ⟦x⟧ :=
-by rw [←@add_neg_eq_zero _ _ ⟦y⟧, hx.quot_neg]
-
-/-- This lemma doesn't require `y` to be impartial. -/
-theorem quot_add_eq_zero_iff' (y : pgame) : ⟦x⟧ + ⟦y⟧ = 0 ↔ ⟦x⟧ = ⟦y⟧ :=
+theorem quot_add_eq_zero_iff (y : pgame) : ⟦x⟧ + ⟦y⟧ = 0 ↔ ⟦x⟧ = ⟦y⟧ :=
 by rw [←@neg_add_eq_zero _ _ ⟦x⟧, hx.quot_neg]
 
-/-- This lemma doesn't require `y` to be impartial. -/
-theorem add_equiv_zero_iff (y : pgame) : y + x ≈ 0 ↔ y ≈ x :=
+theorem quot_add_eq_zero_iff' (y : pgame) : ⟦y⟧ + ⟦x⟧ = 0 ↔ ⟦y⟧ = ⟦x⟧ :=
+by rw [←@add_neg_eq_zero _ _ ⟦y⟧, hx.quot_neg]
+
+theorem add_equiv_zero_iff (y : pgame) : x + y ≈ 0 ↔ x ≈ y :=
 by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←quot_add_eq_zero_iff hx], refl }
 
-/-- This lemma doesn't require `y` to be impartial. -/
-theorem add_equiv_zero_iff' (y : pgame) : x + y ≈ 0 ↔ x ≈ y :=
+theorem add_equiv_zero_iff' (y : pgame) : y + x ≈ 0 ↔ y ≈ x :=
 by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←quot_add_eq_zero_iff' hx], refl }
+
+theorem add_fuzzy_zero_iff {y : pgame} : x + y ∥ 0 ↔ x ∥ y :=
+by { rw [fuzzy_iff_game_fuzzy, fuzzy_iff_game_fuzzy, ←quot_add_eq_zero_iff hx], refl }
 
 theorem add_fuzzy_zero_iff {y : pgame} (hy : impartial y) : x + y ∥ 0 ↔ x ∥ y :=
-begin
-  rw [←equiv_iff_equiv_iff_fuzzy_iff_fuzzy], refl }
-
-/-- This lemma doesn't require `y` to be impartial. -/
-theorem add_equiv_zero_iff' (y : pgame) : x + y ≈ 0 ↔ x ≈ y :=
-by { rw [equiv_iff_game_eq, equiv_iff_game_eq, ←quot_add_eq_zero_iff' hx], refl }
+by rw [←equiv_iff_equiv_iff_fuzzy_iff_fuzzy, add_equiv_zero_iff]; impartiality
 
 theorem equiv_zero_iff_forall_fuzzy : x ≈ 0 ↔ ∀ i, x.move_left i ∥ 0 :=
 by { rw equiv_iff_forall_fuzzy hx impartial_zero, simp [is_empty.forall_iff] }

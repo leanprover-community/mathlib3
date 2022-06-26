@@ -167,6 +167,13 @@ end
 by rw [←not_iff_not, not_fuzzy_iff_equiv (impartial_nim _) (impartial_nim _), not_ne_iff,
   nim_equiv_iff_eq]
 
+@[simp] lemma nim_add_equiv_zero_iff_eq {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
+by rw [impartial.add_equiv_zero_iff (impartial_nim _), nim_equiv_iff_eq]
+
+@[simp] lemma nim_add_fuzzy_zero_iff_ne {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
+by rw [impartial.add_fuzzy_zero_iff (impartial_nim _) (impartial_nim _), nim_fuzzy_iff_ne]
+
+
 @[simp] lemma nim_equiv_zero_iff_eq {o : ordinal} : nim o ≈ 0 ↔ o = 0 :=
 begin
   use λ h, nim_equiv_iff_eq.1 (h.trans nim_zero_relabelling.equiv'),

@@ -1554,7 +1554,7 @@ begin
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
   { exact mem_Inter₂.2 (λ Z hZ, Z.2.2) },
-  { rwa disjoint_iff_subset_compl_left at H2 }
+  { rwa [←disjoint_compl_left_iff_subset, disjoint_iff_inter_eq_empty, ←not_nonempty_iff_eq_empty] }
 end
 
 section profinite

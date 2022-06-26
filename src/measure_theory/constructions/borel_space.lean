@@ -1575,7 +1575,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
   set_mem := λ n,
     begin
       simp only [mem_Union, mem_singleton_iff],
-      refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
+      refine ⟨-(n + 1 : ℕ), n + 1, _, by simp⟩, -- TODO: norm_cast fails here?
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
   finite := λ n, measure_Ioo_lt_top,

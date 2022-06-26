@@ -48,7 +48,7 @@ def catalan : ℕ → ℕ
 | (n + 1) := ∑ i : fin n.succ, have _ := i.2, have _ := nat.lt_succ_iff.mpr (n.sub_le i),
              catalan i * catalan (n - i)
 
-@[simp] lemma catalan_zero : catalan 0 = 1 := rfl
+@[simp] lemma catalan_zero : catalan 0 = 1 := by rw catalan
 
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan
@@ -94,7 +94,7 @@ begin
 end
 
 theorem catalan_eq_central_binom_div (n : ℕ) :
-  catalan n = nat.central_binom n / (n + 1) :=
+  catalan n = n.central_binom / (n + 1) :=
 begin
   suffices : (catalan n : ℚ) = nat.central_binom n / (n + 1),
   { have h := nat.succ_dvd_central_binom n,
@@ -118,6 +118,10 @@ begin
             sum_range_sub, nat.succ_eq_add_one],
         exact_mod_cast gosper_catalan_sub_eq_central_binom_div d } } }
 end
+
+theorem succ_mul_catalan_eq_central_binom (n : ℕ) :
+  (n+1) * catalan n = n.central_binom :=
+(nat.eq_mul_of_div_eq_right n.succ_dvd_central_binom (catalan_eq_central_binom_div n).symm).symm
 
 lemma catalan_two : catalan 2 = 2 :=
 by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]

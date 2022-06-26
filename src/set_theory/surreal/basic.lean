@@ -298,7 +298,7 @@ instance : ordered_add_comm_group surreal :=
   lt                := (<),
   le_refl           := by { rintros ⟨_⟩, apply @le_rfl pgame },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
-  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
+  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, apply @lt_iff_le_not_le pgame },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
 

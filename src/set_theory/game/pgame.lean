@@ -380,8 +380,11 @@ instance : preorder pgame :=
   lt_iff_le_not_le := λ x y, by { rw pgame.not_le, refl },
   ..pgame.has_le, ..pgame.has_lt }
 
-theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
-iff.rfl
+theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y := iff.rfl
+theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y := ⟨h₁, h₂⟩
+
+theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := h.2
+alias lf_of_lt ← has_lt.lt.lf
 
 theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := le_rfl.not_gf
 instance : is_irrefl _ (⧏) := ⟨lf_irrefl⟩
@@ -414,12 +417,6 @@ theorem lf_mk {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i) : xL i ⧏ mk 
 
 theorem mk_lf {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j) : mk xl xr xL xR ⧏ xR j :=
 @lf_move_right (mk _ _ _ _) j
-
-theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y :=
-lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
-
-theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := (lt_iff_le_and_lf.1 h).2
-alias lf_of_lt ← has_lt.lt.lf
 
 /-- This special case of `pgame.le_of_forall_lf` is useful when dealing with surreals, where `<` is
 preferred over `⧏`. -/
@@ -667,8 +664,8 @@ begin
   cases le_or_gf x y with h₁ h₁;
   cases le_or_gf y x with h₂ h₂,
   { right, left, exact ⟨h₁, h₂⟩ },
-  { left, exact lt_of_le_of_lf h₁ h₂ },
-  { right, right, left, exact lt_of_le_of_lf h₂ h₁ },
+  { left, exact ⟨h₁, h₂⟩ },
+  { right, right, left, exact ⟨h₂, h₁⟩ },
   { right, right, right, exact ⟨h₂, h₁⟩ }
 end
 
@@ -1261,16 +1258,10 @@ theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
 by { rw lf_congr add_comm_equiv add_comm_equiv, apply add_lf_add_right h }
 
 instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
-⟨λ x y z h, begin
-  rw lt_iff_le_and_lf at h ⊢,
-  exact ⟨add_le_add_right h.1 x, add_lf_add_right h.2 x⟩
-end⟩
+⟨λ x y z h, ⟨add_le_add_right h.1 x, add_lf_add_right h.2 x⟩⟩
 
 instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
-⟨λ x y z h, begin
-  rw lt_iff_le_and_lf at h ⊢,
-  exact ⟨add_le_add_left h.1 x, add_lf_add_left h.2 x⟩
-end⟩
+⟨λ x y z h, ⟨add_le_add_left h.1 x, add_lf_add_left h.2 x⟩⟩
 
 theorem add_lf_add_of_lf_of_le {w x y z : pgame} (hwx : w ⧏ x) (hyz : y ≤ z) : w + y ⧏ x + z :=
 lf_of_lf_of_le (add_lf_add_right hwx y) (add_le_add_left hyz x)

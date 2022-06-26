@@ -586,30 +586,19 @@ theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y�
  λ h, (h x₂).2 $ equiv_rfl⟩
 
 theorem equiv_of_mk_equiv {x y : pgame}
-  (L : x.left_moves ≃ y.left_moves) (R : y.right_moves ≃ x.right_moves)
+  (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
   (hl : ∀ i, x.move_left i ≈ y.move_left (L i))
-  (hr : ∀ j, x.move_right (R j) ≈ y.move_right j) : x ≈ y :=
+  (hr : ∀ j, x.move_right j ≈ y.move_right (R j)) : x ≈ y :=
 begin
   fsplit; rw le_def,
-  { exact ⟨λ i, or.inl ⟨L i, (hl i).1⟩, λ j, or.inr ⟨R j, (hr j).1⟩⟩ },
+  { exact ⟨λ i, or.inl ⟨L i, (hl i).1⟩, λ j, or.inr ⟨R.symm j, by simpa using (hr (R.symm j)).1⟩⟩ },
   { fsplit,
     { refine λ i, or.inl _,
       specialize hl (L.symm i),
       simp only [move_left_mk, equiv.apply_symm_apply] at hl,
       use ⟨L.symm i, hl.2⟩ },
-    { refine λ j, or.inr _,
-      specialize hr (R.symm j),
-      simp only [move_right_mk, equiv.apply_symm_apply] at hr,
-      use ⟨R.symm j, hr.2⟩ } }
+    { refine λ j, or.inr ⟨_, (hr j).2⟩ } }
 end
-
-/-- The same as `pgame.equiv_of_mk_equiv` but with the equivalences swapped. -/
-theorem equiv_of_mk_equiv' {x y : pgame}
-  (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ i, x.move_left (L i) ≈ y.move_left i)
-  (hr : ∀ j, x.move_right j ≈ y.move_right (R j)) : x ≈ y :=
-equiv_of_mk_equiv L.symm R.symm
-  (λ i, by simpa using hl (L.symm i)) (λ j, by simpa using hr (R.symm j))
 
 /-- The fuzzy, confused, or incomparable relation on pre-games.
 
@@ -710,9 +699,9 @@ Specifically, there is a bijection between the moves for Left in `x` and in `y`,
 for Right, and under these bijections we inductively have `relabelling`s for the consequent games.
 -/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
-| mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : y.right_moves ≃ x.right_moves),
+| mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
          (∀ i, relabelling (x.move_left i) (y.move_left (L i))) →
-         (∀ j, relabelling (x.move_right (R j)) (y.move_right j)) →
+         (∀ j, relabelling (x.move_right j) (y.move_right (R j))) →
        relabelling x y
 
 localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
@@ -720,15 +709,15 @@ localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
 namespace relabelling
 
 /-- A constructor for relabellings swapping the equivalences. -/
-def mk' {x y : pgame} (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
+def mk' {x y : pgame} (L : y.left_moves ≃ x.left_moves) (R : y.right_moves ≃ x.right_moves)
   (hL : ∀ i, x.move_left (L i) ≡r y.move_left i)
-  (hR : ∀ j, x.move_right j ≡r y.move_right (R j)) : x ≡r y :=
+  (hR : ∀ j, x.move_right (R j) ≡r y.move_right j) : x ≡r y :=
 ⟨L.symm, R.symm, λ i, by simpa using hL (L.symm i), λ j, by simpa using hR (R.symm j)⟩
 
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of `y`. -/
 def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
-⟨L, R, λ i, (hL i).restricted, λ j, (hR j).restricted⟩
+⟨L, R.symm, λ i, (hL i).restricted, λ j, by simpa using (hR (R.symm j)).restricted⟩
 
 -- It's not the case that `restricted x y → restricted y x → relabelling x y`,
 -- but if we insisted that the maps in a restriction were injective, then one
@@ -755,7 +744,7 @@ theorem equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 /-- Transitivity of relabelling. -/
 @[trans] def trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
-⟨L₁.trans L₂, R₂.trans R₁, λ i, (hL₁ i).trans (hL₂ _), λ j, (hR₁ _).trans (hR₂ j)⟩
+⟨L₁.trans L₂, R₁.trans R₂, λ i, (hL₁ i).trans (hL₂ _), λ j, (hR₁ j).trans (hR₂ _)⟩
 
 /-- Any game without left or right moves is a relabelling of 0. -/
 def is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
@@ -769,31 +758,31 @@ theorem equiv.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_mov
 instance {x y : pgame} : has_coe (x ≡r y) (x ≈ y) := ⟨relabelling.equiv⟩
 
 /-- Replace the types indexing the next moves for Left and Right by equivalent types. -/
-def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) : pgame :=
-⟨xl', xr', x.move_left ∘ el.symm, x.move_right ∘ er⟩
+def relabel {x : pgame} {xl' xr'} (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) : pgame :=
+⟨xl', xr', x.move_left ∘ el, x.move_right ∘ er⟩
 
 @[simp] lemma relabel_move_left' {x : pgame} {xl' xr'}
-  (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) (i : xl') :
-  move_left (relabel el er) i = x.move_left (el.symm i) :=
+  (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (i : xl') :
+  move_left (relabel el er) i = x.move_left (el i) :=
 rfl
 @[simp] lemma relabel_move_left {x : pgame} {xl' xr'}
-  (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) (i : x.left_moves) :
-  move_left (relabel el er) (el i) = x.move_left i :=
+  (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (i : x.left_moves) :
+  move_left (relabel el er) (el.symm i) = x.move_left i :=
 by simp
 
 @[simp] lemma relabel_move_right' {x : pgame} {xl' xr'}
-  (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) (j : xr') :
+  (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (j : xr') :
   move_right (relabel el er) j = x.move_right (er j) :=
 rfl
 @[simp] lemma relabel_move_right {x : pgame} {xl' xr'}
-  (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) (j : x.right_moves) :
+  (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) (j : x.right_moves) :
   move_right (relabel el er) (er.symm j) = x.move_right j :=
 by simp
 
 /-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
-def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) :
+def relabel_relabelling {x : pgame} {xl' xr'} (el : xl' ≃ x.left_moves) (er : xr' ≃ x.right_moves) :
   x ≡r relabel el er :=
-⟨el, er, λ i, by simp, λ j, by simp⟩ 
+relabelling.mk' el er (λ i, by simp) (λ j, by simp)
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
@@ -888,7 +877,7 @@ by simp
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x ≡r y → -x ≡r -y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
-relabelling.mk' R L (λ j, relabelling.neg_congr (hR j)) (λ i, relabelling.neg_congr (hL i))
+⟨R, L, λ j, relabelling.neg_congr (hR j), λ i, relabelling.neg_congr (hL i)⟩
 
 private theorem neg_le_lf_neg_iff :
   Π {x y : pgame.{u}}, (-y ≤ -x ↔ x ≤ y) ∧ (-y ⧏ -x ↔ x ⧏ y)
@@ -1000,13 +989,11 @@ end
 
 /-- `x + 0` has exactly the same moves as `x`. -/
 def add_zero_relabelling : Π (x : pgame.{u}), x + 0 ≡r x
-| (mk xl xr xL xR) :=
+| ⟨xl, xr, xL, xR⟩ :=
 begin
-  refine ⟨equiv.sum_empty xl pempty, (equiv.sum_empty xr pempty).symm, _, _⟩,
-  { rintro (⟨i⟩|⟨⟨⟩⟩),
-    apply add_zero_relabelling, },
-  { rintro j,
-    apply add_zero_relabelling, }
+  refine ⟨equiv.sum_empty xl pempty, equiv.sum_empty xr pempty, _, _⟩;
+  rintro (⟨i⟩|⟨⟨⟩⟩);
+  apply add_zero_relabelling
 end
 
 /-- `x + 0` is equivalent to `x`. -/
@@ -1015,13 +1002,11 @@ lemma add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
 
 /-- `0 + x` has exactly the same moves as `x`. -/
 def zero_add_relabelling : Π (x : pgame.{u}), 0 + x ≡r x
-| (mk xl xr xL xR) :=
+| ⟨xl, xr, xL, xR⟩ :=
 begin
-  refine ⟨equiv.empty_sum pempty xl, (equiv.empty_sum pempty xr).symm, _, _⟩,
-  { rintro (⟨⟨⟩⟩|⟨i⟩),
-    apply zero_add_relabelling, },
-  { rintro j,
-    apply zero_add_relabelling, }
+  refine ⟨equiv.empty_sum pempty xl, equiv.empty_sum pempty xr, _, _⟩;
+  rintro (⟨⟨⟩⟩|⟨i⟩);
+  apply zero_add_relabelling
 end
 
 /-- `0 + x` is equivalent to `x`. -/
@@ -1174,7 +1159,7 @@ theorem add_comm_equiv {x y : pgame} : x + y ≈ y + x :=
 def add_assoc_relabelling : Π (x y z : pgame.{u}), x + y + z ≡r x + (y + z)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ :=
 begin
-  refine ⟨equiv.sum_assoc _ _ _, (equiv.sum_assoc _ _ _).symm, _, _⟩,
+  refine ⟨equiv.sum_assoc _ _ _, equiv.sum_assoc _ _ _, _, _⟩,
   all_goals
   { rintro (⟨i|i⟩|i) <|> rintro (j|⟨j|j⟩),
     { apply add_assoc_relabelling },

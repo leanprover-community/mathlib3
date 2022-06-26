@@ -134,17 +134,10 @@ namespace pgame
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
-  (L : x.left_moves ≃ y.left_moves) (R : y.right_moves ≃ x.right_moves)
+  (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
   (hl : ∀ i, ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
-  (hr : ∀ j, ⟦x.move_right (R j)⟧ = ⟦y.move_right j⟧) : ⟦x⟧ = ⟦y⟧ :=
-by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv L R hl hr) }
-
-/-- The same as `pgame.quot_eq_of_mk_quot_eq` but with the equivalences swapped. -/
-theorem quot_eq_of_mk_quot_eq' {x y : pgame}
-  (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ i, ⟦x.move_left (L i)⟧ = ⟦y.move_left i⟧)
   (hr : ∀ j, ⟦x.move_right j⟧ = ⟦y.move_right (R j)⟧) : ⟦x⟧ = ⟦y⟧ :=
-by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv' L R hl hr) }
+by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv L R hl hr) }
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.

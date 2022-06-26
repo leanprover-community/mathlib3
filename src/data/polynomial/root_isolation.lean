@@ -27,7 +27,7 @@ open_locale classical
 
 open polynomial multiset
 
-lemma root_parity_in_range_of_evals (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
+lemma even_card_roots_filter_mem_Ioo_iff (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
   (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :
   even ((p.roots.filter (∈ set.Ioo a b)).card)
     ↔ ((0 < p.eval a ∧ 0 < p.eval b) ∨ (p.eval a < 0 ∧ p.eval b < 0)) :=

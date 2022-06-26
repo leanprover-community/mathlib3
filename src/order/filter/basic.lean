@@ -1682,6 +1682,22 @@ lemma comap_comm (G : filter δ) : comap φ (comap ψ G) = comap θ (comap ρ G)
 by rw [filter.comap_comap, H, ← filter.comap_comap]
 end comm
 
+lemma _root_.function.semiconj.filter_map {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) : function.semiconj (map f) (map ga) (map gb) :=
+map_comm h.comp_eq
+
+lemma _root_.commute.filter_map {f g : α → α} (h : function.commute f g) :
+  function.commute (map f) (map g) :=
+h.filter_map
+
+lemma _root_.function.semiconj.filter_comap {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) : function.semiconj (comap f) (comap gb) (comap ga) :=
+comap_comm h.comp_eq.symm
+
+lemma _root_.commute.filter_comap {f g : α → α} (h : function.commute f g) :
+  function.commute (comap f) (comap g) :=
+h.filter_comap
+
 @[simp] theorem comap_principal {t : set β} : comap m (𝓟 t) = 𝓟 (m ⁻¹' t) :=
 filter.ext $ λ s,
   ⟨λ ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, (preimage_mono hu).trans b,

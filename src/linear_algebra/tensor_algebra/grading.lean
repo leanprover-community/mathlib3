@@ -35,9 +35,9 @@ variables {R M}
 
 /-- The tensor algebra is graded by the powers of the submodule `(tensor_algebra.ι R).range`. -/
 instance graded_algebra :
-  graded_algebra (λ i : ℕ, (ι R : M →ₗ[R] tensor_algebra R M).range ^ i) :=
+  graded_algebra ((^) (ι R : M →ₗ[R] tensor_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
-  (lift _ $ by apply graded_algebra.ι R M)
+  (lift R $ by apply graded_algebra.ι R M)
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,

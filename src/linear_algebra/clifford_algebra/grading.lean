@@ -85,7 +85,8 @@ end
 /-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom (even_odd Q)
-  (lift _ ⟨by apply graded_algebra.ι Q, by apply graded_algebra.ι_sq_scalar Q⟩)
+  -- while not necessary, the `by apply` makes this elaborate faster
+  (lift Q ⟨by apply graded_algebra.ι Q, by apply graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
   (begin

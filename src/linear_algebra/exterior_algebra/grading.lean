@@ -42,7 +42,7 @@ variables {R M}
 
 /-- The exterior algebra is graded by the powers of the submodule `(exterior_algebra.ι R).range`. -/
 instance graded_algebra :
-  graded_algebra (λ i : ℕ, (ι R : M →ₗ[R] exterior_algebra R M).range ^ i) :=
+  graded_algebra ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
   (lift R ⟨by apply graded_algebra.ι R M, by apply graded_algebra.ι_sq_zero R M⟩)
   -- the proof from here onward is identical to the `tensor_algebra` case

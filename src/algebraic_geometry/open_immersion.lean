@@ -512,7 +512,7 @@ lemma lift_uniq (H : set.range g.base ⊆ set.range f.base) (l : Y ⟶ X)
   (hl : l ≫ f = g) : l = lift f g H :=
 by rw [← cancel_mono f, hl, lift_fac]
 
-/-- Two open immersions with equal range is isomorphic. -/
+/-- Two open immersions with equal range are isomorphic. -/
 @[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.base = set.range g.base) :
   X ≅ Y :=
 { hom := lift g f (le_of_eq e),

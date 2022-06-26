@@ -42,15 +42,15 @@ This file defines upper and lower sets in an order.
 
 Lattice structure on antichains. Order equivalence between upper/lower sets and antichains.
 -/
-universes u v w
 
 open order_dual set
 
-variables {α : Type u} {β : Type v} {ι : Sort*} {κ : ι → Sort*} {F : Type w}
+variables {F α β : Type*} {ι : Sort*} {κ : ι → Sort*}
+
 /-! ### Unbundled upper/lower sets -/
 
 section has_le
-variables [has_le α] [has_le β] {s t : set α}
+variables [has_le α] [has_le β] [order_iso_class F α β] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
 also a member. Also called up-set, upward-closed set. -/
@@ -133,33 +133,29 @@ alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.of_dual
 alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.to_dual
 alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 
-lemma is_lower_set.map [order_iso_class F α β] {s : set α}
-(hs : is_lower_set s) (φ : F) :
-  is_lower_set ((φ : α → β) '' s) :=
-λ x y h ⟨x',hxs,hxx'⟩, ⟨equiv_like.inv φ y,
-  hs ((map_inv_le_iff φ).mpr (hxx'.symm.subst h)) hxs, equiv_like.right_inv _ _⟩
+lemma is_lower_set.map (hs : is_lower_set s) (φ : F) : is_lower_set ((φ : α → β) '' s) :=
+λ x y h ⟨x', hxs, hxx'⟩, ⟨_, hs ((map_inv_le_iff φ).mpr $ hxx'.symm.subst h) hxs,
+  equiv_like.right_inv _ _⟩
 
-lemma is_upper_set.map [order_iso_class F α β] {s : set α}
-(hs : is_upper_set s) (φ : F) :
-  is_upper_set ((φ : α → β) '' s) :=
-λ x y h ⟨x',hxs,hxx'⟩, ⟨equiv_like.inv φ y,hs
-  ((le_map_inv_iff φ).mpr (hxx'.symm.subst h)) hxs, equiv_like.right_inv _ _⟩
+lemma is_upper_set.map (hs : is_upper_set s) (φ : F) : is_upper_set ((φ : α → β) '' s) :=
+λ x y h ⟨x', hxs, hxx'⟩, ⟨_, hs ((le_map_inv_iff φ).mpr $ hxx'.symm.subst h) hxs,
+  equiv_like.right_inv _ _⟩
 
 end has_le
 
 section preorder
-variables [preorder α] [preorder β] [order_hom_class F α β] {t : set β}
+variables [preorder α] [preorder β] [order_hom_class F α β] (a : α) {s : set β}
 
-lemma is_upper_set_Ici (a : α) : is_upper_set (Ici a) := λ _ _, ge_trans
-lemma is_lower_set_Iic (a : α) : is_lower_set (Iic a) := λ _ _, le_trans
-lemma is_upper_set_Ioi (a : α) : is_upper_set (Ioi a) := λ _ _, flip lt_of_lt_of_le
-lemma is_lower_set_Iio (a : α) : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
+lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
+lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
+lemma is_upper_set_Ioi : is_upper_set (Ioi a) := λ _ _, lt_of_le_of_lt'
+lemma is_lower_set_Iio : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
 
-lemma is_lower_set.comap (ht : is_lower_set t) (φ : F) : is_lower_set ((φ : α → β) ⁻¹' t) :=
-λ x y h hx, ht (order_hom_class.mono φ h) hx
+lemma is_lower_set.preimage (ht : is_lower_set s) (φ : F) : is_lower_set ((φ : α → β) ⁻¹' s) :=
+λ x y h, ht $ order_hom_class.mono φ h
 
-lemma is_upper_set.comap (ht : is_upper_set t) (φ : F) : is_upper_set ((φ : α → β) ⁻¹' t) :=
-λ x y h hx, ht (order_hom_class.mono φ h) hx
+lemma is_upper_set.preimage (ht : is_upper_set s) (φ : F) : is_upper_set ((φ : α → β) ⁻¹' s) :=
+λ x y h, ht $ order_hom_class.mono φ h
 
 end preorder
 
@@ -526,19 +522,14 @@ section has_le
 
 variables [has_le α] [has_le β] [order_iso_class F α β]
 
-/-- The image of an `upper_set` under an `order_iso`-like function, as an `upper_set`. -/
+/-- The image of an `upper_set` under an order isomorphism, as an `upper_set`. -/
 def upper_set.map (s : upper_set α) (φ : F) : upper_set β := ⟨φ '' s, s.upper.map φ⟩
 
-/-- The image of a `lower_set` under an `order_iso`-like function, as a `lower_set`. -/
+/-- The image of a `lower_set` under an order isomorphism, as a `lower_set`. -/
 def lower_set.map (s : lower_set α) (φ : F) : lower_set β := ⟨φ '' s, s.lower.map φ⟩
 
 @[simp] lemma upper_set.coe_map (s : upper_set α) (φ : F) : (s.map φ : set β) = φ '' s := rfl
 @[simp] lemma lower_set.coe_map (s : lower_set α) (φ : F) : (s.map φ : set β) = φ '' s := rfl
-
-@[simp] lemma upper_set.mem_map_iff {s : upper_set α} {x : β} {φ : F} :
-  x ∈ s.map φ ↔ ∃ y, y ∈ s ∧ φ y = x := iff.rfl
-@[simp] lemma lower_set.mem_map_iff {s : lower_set α} {x : β} {φ : F} :
-  x ∈ s.map φ ↔ ∃ y, y ∈ s ∧ φ y = x := iff.rfl
 
 end has_le
 
@@ -546,23 +537,17 @@ section preorder
 
 variables [preorder α] [preorder β] [order_hom_class F α β]
 
-/-- The preimage of an `upper_set` under an `order_hom`-like function, as an `upper_set` -/
-protected def upper_set.comap (t : upper_set β) (φ : F) : upper_set α := ⟨φ ⁻¹' t, t.upper.comap φ⟩
+/-- The preimage of an `upper_set` under an order homomorphism, as an `upper_set` -/
+def upper_set.comap (t : upper_set β) (φ : F) : upper_set α := ⟨φ ⁻¹' t, t.upper.preimage φ⟩
 
-/-- The preimage of an `lower_set` under an `order_hom`-like function, as a `lower_set` -/
-def lower_set.comap (t : lower_set β) (φ : F) : lower_set α := ⟨φ ⁻¹' t, t.lower.comap φ⟩
+/-- The preimage of an `lower_set` under an order homomorphism, as a `lower_set` -/
+def lower_set.comap (t : lower_set β) (φ : F) : lower_set α := ⟨φ ⁻¹' t, t.lower.preimage φ⟩
 
 @[simp] lemma upper_set.coe_comap (t : upper_set β) (φ : F) :
   ((t.comap φ : upper_set α) : set α) = φ ⁻¹' t := rfl
 
 @[simp] lemma lower_set.coe_comap (t : lower_set β) (φ : F) :
   ((t.comap φ : lower_set α) : set α) = φ ⁻¹' t := rfl
-
-@[simp] lemma upper_set.mem_comap_iff {t : upper_set β} {φ : F} {x : α} :
-  x ∈ (t.comap φ : upper_set α) ↔ φ x ∈ t := iff.rfl
-
-@[simp] lemma lower_set.mem_comap_iff {t : lower_set β} {φ : F} {x : α} :
-  x ∈ (t.comap φ : lower_set α) ↔ φ x ∈ t := iff.rfl
 
 end preorder
 

@@ -58,7 +58,8 @@ begin
   { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
   { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
   { obtain ⟨_, rfl⟩ := hm,
-    rw [alg_hom.map_mul, ih, lift_ι, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
+    rw [alg_hom.map_mul, ih, graded_algebra.lift_ι, lift_ι_apply, graded_algebra.ι_apply,
+      direct_sum.of_mul_of],
     exact direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext (add_comm _ _) rfl) }
 end
 
@@ -71,7 +72,7 @@ graded_algebra.of_alg_hom _ (graded_algebra.lift_ι R M)
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
-      alg_hom.id_apply, lift_ι],
+      alg_hom.id_apply, graded_algebra.lift_ι],
     rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (by exact graded_algebra.lift_ι_eq)

@@ -813,8 +813,14 @@ by rw [lf_iff_cmp_eq_lt_or_fuzzy, lf_iff_cmp_eq_lt_or_fuzzy, h]
 theorem equiv_iff_equiv_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w ≈ x ↔ y ≈ z :=
 by rw [←cmp_eq_equiv_iff, ←cmp_eq_equiv_iff, h]
 
+theorem equiv_iff_equiv_of_cmp_eq' {w x y z : pgame} (h : cmp w x = cmp y z) : w ≈ x ↔ z ≈ y :=
+by rw [equiv_iff_equiv_of_cmp_eq h, equiv.comm]
+
 theorem fuzzy_iff_fuzzy_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w ∥ x ↔ y ∥ z :=
 by rw [←cmp_eq_fuzzy_iff, ←cmp_eq_fuzzy_iff, h]
+
+theorem fuzzy_iff_fuzzy_of_cmp_eq' {w x y z : pgame} (h : cmp w x = cmp y z) : w ∥ x ↔ z ∥ y :=
+by rw [fuzzy_iff_fuzzy_of_cmp_eq h, fuzzy.comm]
 
 theorem cmp_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : cmp w y = cmp x z :=
 by { rw cmp_eq_iff_le_iff_le, exact ⟨le_congr h₁ h₂, le_congr h₂ h₁⟩ }
@@ -1046,64 +1052,76 @@ neg_le_lf_neg_iff.2
 lt_iff_lt_of_cmp_eq (cmp_neg y x)
 
 @[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
-by rw [equiv.comm, equiv_iff_equiv_of_cmp_eq (cmp_neg y x)]
+equiv_iff_equiv_of_cmp_eq' (cmp_neg x y)
 
 @[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
-by rw [fuzzy.comm, fuzzy_iff_fuzzy_of_cmp_eq (cmp_neg y x)]
+fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg x y)
 
-theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
-by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
+theorem cmp_neg' (x y : pgame) : cmp (-x) y = cmp (-y) x :=
+by rw [←cmp_neg, neg_neg]
 
-theorem neg_lf_iff {x y : pgame} : -y ⧏ x ↔ -x ⧏ y :=
-by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
+theorem neg_le_iff {x y : pgame} : -x ≤ y ↔ -y ≤ x :=
+le_iff_le_of_cmp_eq (cmp_neg' x y)
 
-theorem neg_lt_iff {x y : pgame} : -y < x ↔ -x < y :=
-by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
+theorem neg_lf_iff {x y : pgame} : -x ⧏ y ↔ -y ⧏ x :=
+lf_iff_lf_of_cmp_eq (cmp_neg' x y)
+
+theorem neg_lt_iff {x y : pgame} : -x < y ↔ -y < x :=
+lt_iff_lt_of_cmp_eq (cmp_neg' x y)
 
 theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ x ≈ -y :=
-by rw [←neg_neg y, neg_equiv_neg_iff, neg_neg]
+equiv_iff_equiv_of_cmp_eq' (cmp_neg' x y)
 
 theorem neg_fuzzy_iff {x y : pgame} : -x ∥ y ↔ x ∥ -y :=
-by rw [←neg_neg y, neg_fuzzy_neg_iff, neg_neg]
+fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg' x y)
 
-theorem le_neg_iff {x y : pgame} : y ≤ -x ↔ x ≤ -y :=
-by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
+theorem cmp_neg'' (x y : pgame) : cmp x (-y) = cmp y (-x) :=
+by rw [←cmp_neg, neg_neg]
 
-theorem lf_neg_iff {x y : pgame} : y ⧏ -x ↔ x ⧏ -y :=
-by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
+theorem le_neg_iff {x y : pgame} : x ≤ -y ↔ y ≤ -x :=
+le_iff_le_of_cmp_eq (cmp_neg'' x y)
 
-theorem lt_neg_iff {x y : pgame} : y < -x ↔ x < -y :=
-by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
+theorem lf_neg_iff {x y : pgame} : x ⧏ -y ↔ y ⧏ -x :=
+lf_iff_lf_of_cmp_eq (cmp_neg'' x y)
+
+theorem lt_neg_iff {x y : pgame} : x < -y ↔ y < -x :=
+lt_iff_lt_of_cmp_eq (cmp_neg'' x y)
+
+@[simp] theorem cmp_neg_zero (x) : cmp (-x) 0 = cmp 0 x :=
+by rw [←cmp_neg x, pgame.neg_zero]
 
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
-by rw [neg_le_iff, pgame.neg_zero]
-
-@[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
-by rw [le_neg_iff, pgame.neg_zero]
+le_iff_le_of_cmp_eq (cmp_neg_zero x)
 
 @[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
-by rw [neg_lf_iff, pgame.neg_zero]
-
-@[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
-by rw [lf_neg_iff, pgame.neg_zero]
+lf_iff_lf_of_cmp_eq (cmp_neg_zero x)
 
 @[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
-by rw [neg_lt_iff, pgame.neg_zero]
-
-@[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
-by rw [lt_neg_iff, pgame.neg_zero]
+lt_iff_lt_of_cmp_eq (cmp_neg_zero x)
 
 @[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
-by rw [neg_equiv_iff, pgame.neg_zero]
+equiv_iff_equiv_of_cmp_eq' (cmp_neg_zero x)
 
 @[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
-by rw [neg_fuzzy_iff, pgame.neg_zero]
+fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg_zero x)
+
+@[simp] theorem cmp_zero_neg (x) : cmp 0 (-x) = cmp x 0 :=
+by rw [←cmp_neg 0, pgame.neg_zero]
+
+@[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
+le_iff_le_of_cmp_eq (cmp_zero_neg x)
+
+@[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
+lf_iff_lf_of_cmp_eq (cmp_zero_neg x)
+
+@[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
+lt_iff_lt_of_cmp_eq (cmp_zero_neg x)
 
 @[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
-by rw [←neg_equiv_iff, pgame.neg_zero]
+equiv_iff_equiv_of_cmp_eq' (cmp_zero_neg x)
 
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
-by rw [←neg_fuzzy_iff, pgame.neg_zero]
+fuzzy_iff_fuzzy_of_cmp_eq' (cmp_zero_neg x)
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin

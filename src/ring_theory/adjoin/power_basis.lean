@@ -67,7 +67,8 @@ end algebra
 
 open algebra
 
-/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. -/
+/-- The power basis given by `x` if `B.gen ∈ adjoin K {x}`. See `power_basis.of_gen_mem_adjoin'`
+for a version over a more general base ring. -/
 @[simps] noncomputable def power_basis.of_gen_mem_adjoin {x : S} (B : power_basis K S)
   (hint : _root_.is_integral K x) (hx : B.gen ∈ adjoin K ({x} : set S)) : power_basis K S :=
 (algebra.adjoin.power_basis hint).map $

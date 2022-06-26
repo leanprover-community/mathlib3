@@ -2229,6 +2229,7 @@ wide_pushout_shape_op_equiv _
 def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
 wide_pullback_shape_op_equiv _
 
+variable {C}
 
 /-- Given a morphism `f : X ⟶ Y`, we can take morphisms over `Y` to morphisms over `X` via
 pullbacks. This is right adjoint to `over.map` (TODO) -/

@@ -543,21 +543,18 @@ lemma defn (f : padic_seq p) {ε : ℚ} (hε : 0 < ε) : ∃ N, ∀ i ≥ N, pad
 begin
   simp only [padic.cast_eq_of_rat],
   change ∃ N, ∀ i ≥ N, (f - const _ (f i)).norm < ε,
-  by_contradiction h,
+  by_contra' h,
   cases cauchy₂ f hε with N hN,
-  have : ∀ N, ∃ i ≥ N, ε ≤ (f - const _ (f i)).norm,
-    by simpa only [not_forall, not_exists, not_lt] using h,
-  rcases this N with ⟨i, hi, hge⟩,
+  rcases h N with ⟨i, hi, hge⟩,
   have hne : ¬ (f - const (padic_norm p) (f i)) ≈ 0,
   { intro h, unfold padic_seq.norm at hge; split_ifs at hge, exact not_lt_of_ge hge hε },
   unfold padic_seq.norm at hge; split_ifs at hge,
   apply not_le_of_gt _ hge,
-  cases decidable.em (N ≤ stationary_point hne) with hgen hngen,
-  { apply hN; assumption },
+  cases em (N ≤ stationary_point hne) with hgen hngen,
+  { apply hN _ hgen _ hi },
   { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
-    apply hN,
-    exact le_rfl, assumption },
+    exact hN _ le_rfl _ hi },
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -651,8 +648,7 @@ quotient.induction_on q $ λ q',
         { have := eq.symm (this le_rfl hle),
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
-        { apply hN,
-          apply le_of_lt, apply lt_of_not_ge, apply hle, exact le_rfl }}
+        { exact hN _ (lt_of_not_ge hle).le _ le_rfl } }
     end⟩
 
 variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
@@ -705,9 +701,7 @@ begin
           { rw [padic_norm_e.sub_rev],
             apply_mod_cast hN,
             exact le_of_max_le_left hj },
-          { apply hN2,
-            exact le_of_max_le_right hj,
-            apply le_max_right }}},
+          { exact hN2 _ (le_of_max_le_right hj) _ (le_max_right _ _) } } },
       { apply_mod_cast hN,
         apply le_max_left }}}
 end
@@ -746,6 +740,7 @@ instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 
 instance : metric_space ℚ_[p] :=
 { dist_self := by simp [dist],
+  dist := dist,
   dist_comm := λ x y, by unfold dist; rw ←padic_norm_e.neg (x - y); simp,
   dist_triangle :=
     begin
@@ -764,7 +759,8 @@ instance : has_norm ℚ_[p] := ⟨λ x, padic_norm_e x⟩
 
 instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
-  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
+  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'],
+  norm := norm, .. padic.field, .. padic.metric_space p }
 
 instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
@@ -835,7 +831,8 @@ instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
     rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
-  end⟩ }
+  end⟩,
+  .. padic.normed_field p }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
@@ -869,7 +866,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat, neg_sub,
         padic_val_nat.eq_zero_of_not_dvd hq],
       norm_cast,
-      rw [zero_sub, zpow_neg₀, zpow_coe_nat],
+      rw [zero_sub, zpow_neg, zpow_coe_nat],
       apply inv_le_one,
       { norm_cast,
         apply one_le_pow,

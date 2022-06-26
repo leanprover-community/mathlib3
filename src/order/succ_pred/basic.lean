@@ -72,14 +72,14 @@ variables {α : Type*}
 (le_pred_of_lt {a b} : a < b → a ≤ pred b)
 (le_of_pred_lt {a b} : pred a < b → a ≤ b)
 
-instance [preorder α] [succ_order α] : pred_order (order_dual α) :=
+instance [preorder α] [succ_order α] : pred_order αᵒᵈ :=
 { pred := to_dual ∘ succ_order.succ ∘ of_dual,
   pred_le := succ_order.le_succ,
   min_of_le_pred := λ _, succ_order.max_of_succ_le,
   le_pred_of_lt := λ a b h, succ_order.succ_le_of_lt h,
   le_of_pred_lt := λ a b, succ_order.le_of_lt_succ }
 
-instance [preorder α] [pred_order α] : succ_order (order_dual α) :=
+instance [preorder α] [pred_order α] : succ_order αᵒᵈ :=
 { succ := to_dual ∘ pred_order.pred ∘ of_dual,
   le_succ := pred_order.pred_le,
   max_of_succ_le := λ _, pred_order.min_of_le_pred,
@@ -113,6 +113,29 @@ end preorder
 
 section linear_order
 variables [linear_order α]
+
+/-- A constructor for `succ_order α` for `α` a linear order. -/
+@[simps] def succ_order.of_core (succ : α → α) (hn : ∀ {a}, ¬ is_max a → ∀ b, a < b ↔ succ a ≤ b)
+  (hm : ∀ a, is_max a → succ a = a) : succ_order α :=
+{ succ           := succ,
+  succ_le_of_lt  := λ a b, classical.by_cases (λ h hab, (hm a h).symm ▸ hab.le) (λ h, (hn h b).mp),
+  le_succ        := λ a, classical.by_cases (λ h, (hm a h).symm.le)
+                                            (λ h, le_of_lt $ by simpa using (hn h a).not),
+  le_of_lt_succ  := λ a b hab, classical.by_cases (λ h, hm b h ▸ hab.le)
+                                                  (λ h, by simpa [hab] using (hn h a).not),
+  max_of_succ_le := λ a, not_imp_not.mp $ λ h, by simpa using (hn h a).not }
+
+/-- A constructor for `pred_order α` for `α` a linear order. -/
+@[simps] def pred_order.of_core {α} [linear_order α] (pred : α → α)
+  (hn : ∀ {a}, ¬ is_min a → ∀ b, b ≤ pred a ↔ b < a) (hm : ∀ a, is_min a → pred a = a) :
+  pred_order α :=
+{ pred           := pred,
+  le_pred_of_lt  := λ a b, classical.by_cases (λ h hab, (hm b h).symm ▸ hab.le) (λ h, (hn h a).mpr),
+  pred_le        := λ a, classical.by_cases (λ h, (hm a h).le)
+                                            (λ h, le_of_lt $ by simpa using (hn h a).not),
+  le_of_pred_lt  := λ a b hab, classical.by_cases (λ h, hm a h ▸ hab.le)
+                                                  (λ h, by simpa [hab] using (hn h b).not),
+  min_of_le_pred := λ a, not_imp_not.mp $ λ h, by simpa using (hn h a).not }
 
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
 def succ_order.of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
@@ -273,6 +296,17 @@ by simp_rw [←Ici_inter_Iic, Iic_succ, inter_insert_of_mem (mem_Ici.2 h)]
 lemma Ioc_succ_right (h : a < succ b) : Ioc a (succ b) = insert (succ b) (Ioc a b) :=
 by simp_rw [←Ioi_inter_Iic, Iic_succ, inter_insert_of_mem (mem_Ioi.2 h)]
 
+lemma Iio_succ_eq_insert_of_not_is_max (h : ¬is_max a) : Iio (succ a) = insert a (Iio a) :=
+ext $ λ _, lt_succ_iff_eq_or_lt_of_not_is_max h
+
+lemma Ico_succ_right_eq_insert_of_not_is_max (h₁ : a ≤ b) (h₂ : ¬is_max b) :
+  Ico a (succ b) = insert b (Ico a b) :=
+by simp_rw [←Iio_inter_Ici, Iio_succ_eq_insert_of_not_is_max h₂, insert_inter_of_mem (mem_Ici.2 h₁)]
+
+lemma Ioo_succ_right_eq_insert_of_not_is_max (h₁ : a < b) (h₂ : ¬is_max b) :
+  Ioo a (succ b) = insert b (Ioo a b) :=
+by simp_rw [←Iio_inter_Ioi, Iio_succ_eq_insert_of_not_is_max h₂, insert_inter_of_mem (mem_Ioi.2 h₁)]
+
 section no_max_order
 variables [no_max_order α]
 
@@ -290,13 +324,13 @@ lemma succ_eq_iff_covby : succ a = b ↔ a ⋖ b :=
 ⟨by { rintro rfl, exact covby_succ _ }, covby.succ_eq⟩
 
 lemma Iio_succ_eq_insert (a : α) : Iio (succ a) = insert a (Iio a) :=
-ext $ λ _, lt_succ_iff_eq_or_lt
+Iio_succ_eq_insert_of_not_is_max $ not_is_max a
 
 lemma Ico_succ_right_eq_insert (h : a ≤ b) : Ico a (succ b) = insert b (Ico a b) :=
-by simp_rw [←Iio_inter_Ici, Iio_succ_eq_insert, insert_inter_of_mem (mem_Ici.2 h)]
+Ico_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 lemma Ioo_succ_right_eq_insert (h : a < b) : Ioo a (succ b) = insert b (Ioo a b) :=
-by simp_rw [←Iio_inter_Ioi, Iio_succ_eq_insert, insert_inter_of_mem (mem_Ioi.2 h)]
+Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 end no_max_order
 
@@ -471,6 +505,13 @@ lemma pred_lt_iff_eq_or_lt_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a =
 
 lemma Ici_pred (a : α) : Ici (pred a) = insert (pred a) (Ici a) := ext $ λ _, pred_le_iff_eq_or_le
 
+lemma Ioi_pred_eq_insert_of_not_is_min (ha : ¬ is_min a) :
+  Ioi (pred a) = insert a (Ioi a) :=
+begin
+  ext x, simp only [insert, mem_set_of, @eq_comm _ x a],
+  exact pred_lt_iff_eq_or_lt_of_not_is_min ha
+end
+
 lemma Icc_pred_left (h : pred a ≤ b) : Icc (pred a) b = insert (pred a) (Icc a b) :=
 by simp_rw [←Ici_inter_Iic, Ici_pred, insert_inter_of_mem (mem_Iic.2 h)]
 
@@ -509,8 +550,8 @@ variables [order_bot α]
 
 @[simp] lemma pred_bot : pred (⊥ : α) = ⊥ := is_min_bot.pred_eq
 
-@[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top (order_dual α) _ _ _ _
-@[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top (order_dual α) _ _ _ _
+@[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top αᵒᵈ _ _ _ _
+@[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top αᵒᵈ _ _ _ _
 
 end order_bot
 
@@ -857,8 +898,7 @@ variables [preorder α]
 section succ_order
 variables [succ_order α] [is_succ_archimedean α] {a b : α}
 
-instance : is_pred_archimedean (order_dual α) :=
-⟨λ a b h, by convert exists_succ_iterate_of_le h.of_dual⟩
+instance : is_pred_archimedean αᵒᵈ := ⟨λ a b h, by convert exists_succ_iterate_of_le h.of_dual⟩
 
 lemma has_le.le.exists_succ_iterate (h : a ≤ b) : ∃ n, succ^[n] a = b :=
 exists_succ_iterate_of_le h
@@ -892,23 +932,22 @@ end succ_order
 section pred_order
 variables [pred_order α] [is_pred_archimedean α] {a b : α}
 
-instance : is_succ_archimedean (order_dual α) :=
-⟨λ a b h, by convert exists_pred_iterate_of_le h.of_dual⟩
+instance : is_succ_archimedean αᵒᵈ := ⟨λ a b h, by convert exists_pred_iterate_of_le h.of_dual⟩
 
 lemma has_le.le.exists_pred_iterate (h : a ≤ b) : ∃ n, pred^[n] b = a :=
 exists_pred_iterate_of_le h
 
 lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
-@exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
+@exists_succ_iterate_iff_le αᵒᵈ _ _ _ _ _
 
 /-- Induction principle on a type with a `pred_order` for all elements below a given element `m`. -/
 @[elab_as_eliminator] lemma pred.rec {P : α → Prop} {m : α}
   (h0 : P m) (h1 : ∀ n, n ≤ m → P n → P (pred n)) ⦃n : α⦄ (hmn : n ≤ m) : P n :=
-@succ.rec (order_dual α) _ _ _ _ _ h0 h1 _ hmn
+@succ.rec αᵒᵈ _ _ _ _ _ h0 h1 _ hmn
 
 lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
   p a ↔ p b :=
-(@succ.rec_iff (order_dual α) _ _ _ _ hsucc _ _ h).symm
+(@succ.rec_iff αᵒᵈ _ _ _ _ hsucc _ _ h).symm
 
 end pred_order
 end preorder
@@ -938,6 +977,31 @@ lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b
 
 end pred_order
 end linear_order
+
+section is_well_order
+variables [linear_order α]
+
+@[priority 100]
+instance is_well_order.to_is_pred_archimedean [h : is_well_order α (<)] [pred_order α] :
+  is_pred_archimedean α :=
+⟨λ a, begin
+  refine well_founded.fix h.wf (λ b ih hab, _),
+  replace hab := hab.eq_or_lt,
+  rcases hab with rfl | hab,
+  { exact ⟨0, rfl⟩ },
+  cases le_or_lt b (pred b) with hb hb,
+  { cases (min_of_le_pred hb).not_lt hab },
+  obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
+  refine ⟨k + 1, _⟩,
+  rw [iterate_add_apply, iterate_one, hk],
+end⟩
+
+@[priority 100]
+instance is_well_order.to_is_succ_archimedean [h : is_well_order α (>)] [succ_order α] :
+  is_succ_archimedean α :=
+by convert @order_dual.is_succ_archimedean αᵒᵈ _ _ _
+
+end is_well_order
 
 section order_bot
 variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]

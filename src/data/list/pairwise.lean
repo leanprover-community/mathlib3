@@ -104,15 +104,23 @@ protected lemma pairwise.sublist : Π {l₁ l₂ : list α}, l₁ <+ l₂ → pa
 | ._ ._ (sublist.cons2 l₁ l₂ a s) (pairwise.cons i h) :=
   (h.sublist s).cons (ball.imp_left s.subset i)
 
-lemma pairwise.forall_of_forall (H : symmetric R) (H₁ : ∀ x ∈ l, R x x) (H₂ : l.pairwise R) :
+lemma pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : l.pairwise R)
+  (h₃ : l.pairwise (flip R)) :
   ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → R x y :=
 begin
-  induction l with a l IH, { exact forall_mem_nil _ },
-  cases forall_mem_cons.1 H₁ with H₁₁ H₁₂,
-  cases pairwise_cons.1 H₂ with H₂₁ H₂₂,
+  induction l with a l ih,
+  { exact forall_mem_nil _ },
+  rw pairwise_cons at h₂ h₃,
   rintro x (rfl | hx) y (rfl | hy),
-  exacts [H₁₁, H₂₁ _ hy, H (H₂₁ _ hx), IH H₁₂ H₂₂ hx hy]
+  { exact h₁ _ (l.mem_cons_self _) },
+  { exact h₂.1 _ hy },
+  { exact h₃.1 _ hx },
+  { exact ih (λ x hx, h₁ _ $ mem_cons_of_mem _ hx) h₂.2 h₃.2 hx hy }
 end
+
+lemma pairwise.forall_of_forall (H : symmetric R) (H₁ : ∀ x ∈ l, R x x) (H₂ : l.pairwise R) :
+  ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → R x y :=
+H₂.forall_of_forall_of_flip H₁ $ by rwa H.flip_eq
 
 lemma pairwise.forall (hR : symmetric R) (hl : l.pairwise R) :
   ∀ ⦃a⦄, a ∈ l → ∀ ⦃b⦄, b ∈ l → a ≠ b → R a b :=

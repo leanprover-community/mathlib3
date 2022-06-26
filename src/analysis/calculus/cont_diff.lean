@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.mean_value
 import analysis.normed_space.multilinear
 import analysis.calculus.formal_multilinear_series
+import tactic.congrm
 
 /-!
 # Higher differentiability
@@ -173,6 +174,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
+{X : Type*} [normed_group X] [normed_space 𝕜 X]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G} {m n : with_top ℕ}
 
@@ -985,33 +987,38 @@ begin
     exact cont_diff_on_of_continuous_on_differentiable_on h.1 h.2 }
 end
 
+lemma cont_diff_on_succ_of_fderiv_within {n : ℕ} (hf : differentiable_on 𝕜 f s)
+  (h : cont_diff_on 𝕜 n (λ y, fderiv_within 𝕜 f s y) s) :
+  cont_diff_on 𝕜 ((n + 1) : ℕ) f s :=
+begin
+  intros x hx,
+  rw [cont_diff_within_at_succ_iff_has_fderiv_within_at, insert_eq_of_mem hx],
+  exact ⟨s, self_mem_nhds_within, fderiv_within 𝕜 f s,
+    λ y hy, (hf y hy).has_fderiv_within_at, h x hx⟩
+end
+
 /-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
 differentiable there, and its derivative (expressed with `fderiv_within`) is `C^n`. -/
 theorem cont_diff_on_succ_iff_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
   cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 n (λ y, fderiv_within 𝕜 f s y) s :=
 begin
-  split,
-  { assume H,
-    refine ⟨H.differentiable_on (with_top.coe_le_coe.2 (nat.le_add_left 1 n)), λ x hx, _⟩,
-    rcases cont_diff_within_at_succ_iff_has_fderiv_within_at.1 (H x hx)
-      with ⟨u, hu, f', hff', hf'⟩,
-    rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
-    rw [inter_comm, insert_eq_of_mem hx] at ho,
-    have := hf'.mono ho,
-    rw cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds (is_open.mem_nhds o_open xo))
-      at this,
-    apply this.congr_of_eventually_eq' _ hx,
-    have : o ∩ s ∈ 𝓝[s] x := mem_nhds_within.2 ⟨o, o_open, xo, subset.refl _⟩,
-    rw inter_comm at this,
-    apply filter.eventually_eq_of_mem this (λ y hy, _),
-    have A : fderiv_within 𝕜 f (s ∩ o) y = f' y :=
-      ((hff' y (ho hy)).mono ho).fderiv_within (hs.inter o_open y hy),
-    rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A, },
-  { rintros ⟨hdiff, h⟩ x hx,
-    rw [cont_diff_within_at_succ_iff_has_fderiv_within_at, insert_eq_of_mem hx],
-    exact ⟨s, self_mem_nhds_within, fderiv_within 𝕜 f s,
-      λ y hy, (hdiff y hy).has_fderiv_within_at, h x hx⟩ }
+  refine ⟨λ H, _, λ h, cont_diff_on_succ_of_fderiv_within h.1 h.2⟩,
+  refine ⟨H.differentiable_on (with_top.coe_le_coe.2 (nat.le_add_left 1 n)), λ x hx, _⟩,
+  rcases cont_diff_within_at_succ_iff_has_fderiv_within_at.1 (H x hx)
+    with ⟨u, hu, f', hff', hf'⟩,
+  rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
+  rw [inter_comm, insert_eq_of_mem hx] at ho,
+  have := hf'.mono ho,
+  rw cont_diff_within_at_inter' (mem_nhds_within_of_mem_nhds (is_open.mem_nhds o_open xo))
+    at this,
+  apply this.congr_of_eventually_eq' _ hx,
+  have : o ∩ s ∈ 𝓝[s] x := mem_nhds_within.2 ⟨o, o_open, xo, subset.refl _⟩,
+  rw inter_comm at this,
+  apply filter.eventually_eq_of_mem this (λ y hy, _),
+  have A : fderiv_within 𝕜 f (s ∩ o) y = f' y :=
+    ((hff' y (ho hy)).mono ho).fderiv_within (hs.inter o_open y hy),
+  rwa fderiv_within_inter (is_open.mem_nhds o_open hy.2) (hs y hy.1) at A
 end
 
 /-- A function is `C^(n + 1)` on an open domain if and only if it is
@@ -1021,8 +1028,7 @@ theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 n (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_succ_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -1053,8 +1059,7 @@ theorem cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_top_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -1188,8 +1193,8 @@ theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
   ∧ (∀ x, has_fderiv_at (λ y, p y 0) (p x 1).curry_left x)
   ∧ has_ftaylor_series_up_to n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) :=
-by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm,
-         -add_comm, -with_zero.coe_add]
+by simp only [has_ftaylor_series_up_to_on_succ_iff_right, ← has_ftaylor_series_up_to_on_univ_iff,
+  mem_univ, forall_true_left, has_fderiv_within_at_univ]
 
 /-! ### Smooth functions at a point -/
 
@@ -1462,9 +1467,8 @@ and its derivative (formulated in terms of `fderiv`) is `C^n`. -/
 theorem cont_diff_succ_iff_fderiv {n : ℕ} :
   cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
-by simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
-         - fderiv_within_univ, cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
-         -with_zero.coe_add, -add_comm]
+by simp only [← cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ,
+  cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ]
 
 theorem cont_diff_one_iff_fderiv :
   cont_diff 𝕜 1 f ↔ differentiable 𝕜 f ∧ continuous (fderiv 𝕜 f) :=
@@ -1623,7 +1627,7 @@ lemma has_ftaylor_series_up_to_on.continuous_linear_map_comp (g : F →L[𝕜] G
   has_ftaylor_series_up_to_on n (g ∘ f) (λ x k, g.comp_continuous_multilinear_map (p x k)) s :=
 begin
   set L : Π m : ℕ, (E [×m]→L[𝕜] F) →L[𝕜] (E [×m]→L[𝕜] G) :=
-    λ m, continuous_linear_map.comp_continuous_multilinear_mapL g,
+    λ m, continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 (λ _, E) F G g,
   split,
   { exact λ x hx, congr_arg g (hf.zero_eq x hx) },
   { intros m hm x hx,
@@ -1645,14 +1649,12 @@ end
 
 /-- Composition by continuous linear maps on the left preserves `C^n` functions in a domain
 at a point. -/
-lemma cont_diff_at.continuous_linear_map_comp (g : F →L[𝕜] G)
-  (hf : cont_diff_at 𝕜 n f x) :
+lemma cont_diff_at.continuous_linear_map_comp (g : F →L[𝕜] G) (hf : cont_diff_at 𝕜 n f x) :
   cont_diff_at 𝕜 n (g ∘ f) x :=
 cont_diff_within_at.continuous_linear_map_comp g hf
 
 /-- Composition by continuous linear maps on the left preserves `C^n` functions on domains. -/
-lemma cont_diff_on.continuous_linear_map_comp (g : F →L[𝕜] G)
-  (hf : cont_diff_on 𝕜 n f s) :
+lemma cont_diff_on.continuous_linear_map_comp (g : F →L[𝕜] G) (hf : cont_diff_on 𝕜 n f s) :
   cont_diff_on 𝕜 n (g ∘ f) s :=
 λ x hx, (hf x hx).continuous_linear_map_comp g
 
@@ -1881,14 +1883,12 @@ begin
     { have A : cont_diff_on 𝕜 n (λ y, g' (f y)) w :=
         IH g'_diff ((hf.of_le (with_top.coe_le_coe.2 (nat.le_succ n))).mono ws) wv,
       have B : cont_diff_on 𝕜 n f' w := f'_diff.mono wu,
-      have C : cont_diff_on 𝕜 n (λ y, (f' y, g' (f y))) w :=
-        cont_diff_on.prod B A,
-      have D : cont_diff_on 𝕜 n (λ(p : (Eu →L[𝕜] Fu) × (Fu →L[𝕜] Gu)), p.2.comp p.1) univ :=
+      have C : cont_diff_on 𝕜 n (λ y, (g' (f y), f' y)) w := A.prod B,
+      have D : cont_diff_on 𝕜 n (λ p : (Fu →L[𝕜] Gu) × (Eu →L[𝕜] Fu), p.1.comp p.2) univ :=
         is_bounded_bilinear_map_comp.cont_diff.cont_diff_on,
       exact IH D C (subset_univ _) } },
   { rw cont_diff_on_top at hf hg ⊢,
-    assume n,
-    apply Itop n (hg n) (hf n) st }
+    exact λ n, Itop n (hg n) (hf n) st }
 end
 
 /-- The composition of `C^n` functions on domains is `C^n`. -/
@@ -2124,6 +2124,16 @@ lemma cont_diff.comp₃ {g : E₁ × E₂ × E₃ → G} {f₁ : F → E₁} {f�
   (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂)
   (hf₃ : cont_diff 𝕜 n f₃) : cont_diff 𝕜 n (λ x, g (f₁ x, f₂ x, f₃ x)) :=
 hg.comp₂ hf₁ $ hf₂.prod hf₃
+
+lemma cont_diff.comp_cont_diff_on₂ {g : E₁ × E₂ → G} {f₁ : F → E₁} {f₂ : F → E₂} {s : set F}
+  (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff_on 𝕜 n f₁ s) (hf₂ : cont_diff_on 𝕜 n f₂ s) :
+  cont_diff_on 𝕜 n (λ x, g (f₁ x, f₂ x)) s :=
+hg.comp_cont_diff_on $ hf₁.prod hf₂
+
+lemma cont_diff.comp_cont_diff_on₃ {g : E₁ × E₂ × E₃ → G} {f₁ : F → E₁} {f₂ : F → E₂} {f₃ : F → E₃}
+  {s : set F} (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff_on 𝕜 n f₁ s) (hf₂ : cont_diff_on 𝕜 n f₂ s)
+  (hf₃ : cont_diff_on 𝕜 n f₃ s) : cont_diff_on 𝕜 n (λ x, g (f₁ x, f₂ x, f₃ x)) s :=
+hg.comp_cont_diff_on₂ hf₁ $ hf₂.prod hf₃
 
 end n_ary
 
@@ -2532,6 +2542,16 @@ cont_diff_const.prod cont_diff_id
 
 end prod_map
 
+lemma cont_diff.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  (hg : cont_diff 𝕜 n g) (hf : cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (λ x, (g x).comp (f x)) :=
+is_bounded_bilinear_map_comp.cont_diff.comp₂ hg hf
+
+lemma cont_diff_on.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  {s : set X} (hg : cont_diff_on 𝕜 n g s) (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, (g x).comp (f x)) s :=
+is_bounded_bilinear_map_comp.cont_diff.comp_cont_diff_on₂ hg hf
+
 /-! ### Inversion in a complete normed algebra -/
 
 section algebra_inverse
@@ -2648,12 +2668,8 @@ begin
   rw this,
   -- `O₁` and `O₂` are `cont_diff`,
   -- so we reduce to proving that `ring.inverse` is `cont_diff`
-  have h₁ : cont_diff 𝕜 n O₁,
-    from is_bounded_bilinear_map_comp.cont_diff.comp
-      (cont_diff_const.prod cont_diff_id),
-  have h₂ : cont_diff 𝕜 n O₂,
-    from is_bounded_bilinear_map_comp.cont_diff.comp
-      (cont_diff_id.prod cont_diff_const),
+  have h₁ : cont_diff 𝕜 n O₁ := cont_diff_id.clm_comp cont_diff_const,
+  have h₂ : cont_diff 𝕜 n O₂ := cont_diff_const.clm_comp cont_diff_id,
   refine h₁.cont_diff_at.comp _ (cont_diff_at.comp _ _ h₂.cont_diff_at),
   convert cont_diff_at_ring_inverse 𝕜 (1 : (E →L[𝕜] E)ˣ),
   simp [O₂, one_def]
@@ -2720,6 +2736,18 @@ begin
     exact Itop n (cont_diff_at_top.mp hf n) }
 end
 
+/-- If `f` is an `n` times continuously differentiable homeomorphism,
+and if the derivative of `f` at each point is a continuous linear equivalence,
+then `f.symm` is `n` times continuously differentiable.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem homeomorph.cont_diff_symm [complete_space E] (f : E ≃ₜ F) {f₀' : E → E ≃L[𝕜] F}
+  (hf₀' : ∀ a, has_fderiv_at f (f₀' a : E →L[𝕜] F) a) (hf : cont_diff 𝕜 n (f : E → F)) :
+  cont_diff 𝕜 n (f.symm : F → E) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  f.to_local_homeomorph.cont_diff_at_symm (mem_univ x) (hf₀' _) hf.cont_diff_at
+
 /-- Let `f` be a local homeomorphism of a nondiscrete normed field, let `a` be a point in its
 target. if `f` is `n` times continuously differentiable at `f.symm a`, and if the derivative at
 `f.symm a` is nonzero, then `f.symm` is `n` times continuously differentiable at the point `a`.
@@ -2732,7 +2760,72 @@ theorem local_homeomorph.cont_diff_at_symm_deriv [complete_space 𝕜]
   cont_diff_at 𝕜 n f.symm a :=
 f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
 
+/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nondiscrete normed field.
+Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times continuously
+differentiable.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem homeomorph.cont_diff_symm_deriv [complete_space 𝕜] (f : 𝕜 ≃ₜ 𝕜) {f' : 𝕜 → 𝕜}
+  (h₀ : ∀ x, f' x ≠ 0) (hf' : ∀ x, has_deriv_at f (f' x) x) (hf : cont_diff 𝕜 n (f : 𝕜 → 𝕜)) :
+  cont_diff 𝕜 n (f.symm : 𝕜 → 𝕜) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  f.to_local_homeomorph.cont_diff_at_symm_deriv (h₀ _) (mem_univ x) (hf' _) hf.cont_diff_at
+
 end function_inverse
+
+
+/-! ### Finite dimensional results -/
+section finite_dimensional
+
+open function finite_dimensional
+variables [complete_space 𝕜]
+
+/-- A family of continuous linear maps is `C^n` on `s` if all its applications are. -/
+lemma cont_diff_on_clm_apply {n : with_top ℕ} {f : E → F →L[𝕜] G}
+  {s : set E} [finite_dimensional 𝕜 F] :
+  cont_diff_on 𝕜 n f s ↔ ∀ y, cont_diff_on 𝕜 n (λ x, f x y) s :=
+begin
+  refine ⟨λ h y, (continuous_linear_map.apply 𝕜 G y).cont_diff.comp_cont_diff_on h, λ h, _⟩,
+  let d := finrank 𝕜 F,
+  have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
+  let e₁ := continuous_linear_equiv.of_finrank_eq hd,
+  let e₂ := (e₁.arrow_congr (1 : G ≃L[𝕜] G)).trans (continuous_linear_equiv.pi_ring (fin d)),
+  rw [← comp.left_id f, ← e₂.symm_comp_self],
+  exact e₂.symm.cont_diff.comp_cont_diff_on (cont_diff_on_pi.mpr (λ i, h _))
+end
+
+lemma cont_diff_clm_apply {n : with_top ℕ} {f : E → F →L[𝕜] G} [finite_dimensional 𝕜 F] :
+  cont_diff 𝕜 n f ↔ ∀ y, cont_diff 𝕜 n (λ x, f x y) :=
+by simp_rw [← cont_diff_on_univ, cont_diff_on_clm_apply]
+
+/-- This is a useful lemma to prove that a certain operation preserves functions being `C^n`.
+When you do induction on `n`, this gives a useful characterization of a function being `C^(n+1)`,
+assuming you have already computed the derivative. The advantage of this version over
+`cont_diff_succ_iff_fderiv` is that both occurences of `cont_diff` are for functions with the same
+domain and codomain (`E` and `F`). This is not the case for `cont_diff_succ_iff_fderiv`, which
+often requires an inconvenient need to generalize `F`, which results in universe issues
+(see the discussion in the section of `cont_diff.comp`).
+
+This lemma avoids these universe issues, but only applies for finite dimensional `E`. -/
+lemma cont_diff_succ_iff_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F} :
+  cont_diff 𝕜 ((n + 1) : ℕ) f ↔
+  differentiable 𝕜 f ∧ ∀ y, cont_diff 𝕜 n (λ x, fderiv 𝕜 f x y) :=
+by rw [cont_diff_succ_iff_fderiv, cont_diff_clm_apply]
+
+lemma cont_diff_on_succ_of_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F}
+  {s : set E} (hf : differentiable_on 𝕜 f s)
+  (h : ∀ y, cont_diff_on 𝕜 n (λ x, fderiv_within 𝕜 f s x y) s) :
+  cont_diff_on 𝕜 ((n + 1) : ℕ) f s :=
+cont_diff_on_succ_of_fderiv_within hf $ cont_diff_on_clm_apply.mpr h
+
+lemma cont_diff_on_succ_iff_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F}
+  {s : set E} (hs : unique_diff_on 𝕜 s) : cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
+  differentiable_on 𝕜 f s ∧ ∀ y, cont_diff_on 𝕜 n (λ x, fderiv_within 𝕜 f s x y) s :=
+by rw [cont_diff_on_succ_iff_fderiv_within hs, cont_diff_on_clm_apply]
+
+end finite_dimensional
+
 
 section real
 /-!
@@ -2907,8 +3000,7 @@ theorem cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 n (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx
@@ -2939,8 +3031,7 @@ theorem cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 ∞ (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx

@@ -16,26 +16,38 @@ This file deals with the satisfiability of first-order theories, as well as equi
 model.
 * `first_order.language.Theory.is_finitely_satisfiable`: `T.is_finitely_satisfiable` indicates that
 every finite subset of `T` is satisfiable.
+* `first_order.language.Theory.is_complete`: `T.is_complete` indicates that `T` is satisfiable and
+models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
+* `cardinal.categorical`: A theory is `κ`-categorical if all models of size `κ` are isomorphic.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
 shows that a theory is satisfiable iff it is finitely satisfiable.
+* `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
+complete.
+* `first_order.language.Theory.exists_large_model_of_infinite_model` shows that any theory with an
+infinite model has arbitrarily large models.
+* `first_order.language.Theory.exists_elementary_embedding_card_eq`: The Upward Löwenheim–Skolem
+Theorem: If `κ` is a cardinal greater than the cardinalities of `L` and an infinite `L`-structure
+`M`, then `M` has an elementary extension of cardinality `κ`.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols
-of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any universe, but this is not
-yet proven in mathlib.
+of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any universe.
 
 -/
 
-universes u v w
+universes u v w w'
+
+open cardinal category_theory
+open_locale cardinal first_order
 
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {T : L.Theory} {α : Type*} {n : ℕ}
+variables {L : language.{u v}} {T : L.Theory} {α : Type w} {n : ℕ}
 
 namespace Theory
 
@@ -84,6 +96,96 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   exact ⟨Model.of T M'⟩,
 end⟩
 
+theorem is_satisfiable_directed_union_iff {ι : Type*} [nonempty ι]
+  {T : ι → L.Theory} (h : directed (⊆) T) :
+  Theory.is_satisfiable (⋃ i, T i) ↔ ∀ i, (T i).is_satisfiable :=
+begin
+  refine ⟨λ h' i, h'.mono (set.subset_Union _ _), λ h', _⟩,
+  rw [is_satisfiable_iff_is_finitely_satisfiable, is_finitely_satisfiable],
+  intros T0 hT0,
+  obtain ⟨i, hi⟩ := h.exists_mem_subset_of_finset_subset_bUnion hT0,
+  exact (h' i).mono hi,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)
+  (M : Type w') [nonempty M] [L.Structure M] [M ⊨ T]
+  (h : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} (# M)) :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
+  rw [cardinal.lift_mk_le'] at h,
+  letI : (constants_on α).Structure M :=
+    constants_on.Structure (function.extend coe h.some default),
+  haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
+  { refine ((Lhom.on_Theory_model _ _).2 infer_instance).union _,
+    rw [model_distinct_constants_theory],
+    refine λ a as b bs ab, _,
+    rw [← subtype.coe_mk a as, ← subtype.coe_mk b bs, ← subtype.ext_iff],
+    exact h.some.injective
+      ((function.extend_apply subtype.coe_injective h.some default ⟨a, as⟩).symm.trans
+      (ab.trans (function.extend_apply subtype.coe_injective h.some default ⟨b, bs⟩))), },
+  exact model.is_satisfiable M,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_infinite (T : L.Theory) (s : set α)
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  classical,
+  rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
+  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_aleph_0.2
+      ((finset_card_lt_aleph_0 _).le)).trans (aleph_0_le_lift.2 (aleph_0_le_mk M))) },
+  { refine (monotone_const.union (monotone_distinct_constants_theory.comp _)).directed_le,
+    simp only [finset.coe_map, function.embedding.coe_subtype],
+    exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
+end
+
+/-- Any theory with an infinite model has arbitrarily large models. -/
+lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ∃ (N : Model.{_ _ (max u v w)} T), cardinal.lift.{max u v w} κ ≤ # N :=
+begin
+  obtain ⟨N⟩ :=
+    is_satisfiable_union_distinct_constants_theory_of_infinite T (set.univ : set κ.out) M,
+  refine ⟨(N.is_model.mono (set.subset_union_left _ _)).bundled.reduct _, _⟩,
+  haveI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
+  simp only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
+  refine trans (lift_le.2 (le_of_eq (cardinal.mk_out κ).symm)) _,
+  rw [← mk_univ],
+  refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
+  rw lift_lift,
+end
+
+/-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
+and an infinite `L`-structure `M`, then `M` has an elementary extension of cardinality `κ`. -/
+theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
+  (κ : cardinal.{w})
+  (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h2 : cardinal.lift.{w} (# M) ≤ cardinal.lift.{w'} κ) :
+  ∃ (N : bundled.{max u v w w'} L.Structure),
+    nonempty (M ↪ₑ[L] N) ∧ # N = cardinal.lift.{max u v w'} κ :=
+begin
+  obtain ⟨N0, hN0⟩ := exists_large_model_of_infinite_model (L.elementary_diagram M) κ M,
+  let f0 := elementary_embedding.of_models_elementary_diagram L M N0,
+  rw [← lift_le.{(max w w') (max u v)}, lift_lift, lift_lift] at h2,
+  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0)
+    (cardinal.lift.{max u v w'} κ)
+    (trans _ h2) (trans _ (lift_le.2 h2)) _ _,
+  { letI := (Lhom_with_constants L M).reduct N,
+    refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
+    apply elementary_embedding.of_models_elementary_diagram L M N },
+  { exact aleph_0_le_lift.2 (aleph_0_le_mk M) },
+  { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
+    exact mk_range_le_lift },
+  { simp only [card_with_constants, lift_add, lift_lift],
+    rw [add_comm, add_eq_max (aleph_0_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
+    rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
+    refine ⟨trans _ h2, trans _ h1⟩;
+    { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },
+  { refine trans _ (lift_le.2 hN0),
+    rw [← lift_le.{_ (max (max u w') v w)}, lift_lift, lift_lift, lift_lift, lift_lift] }
+end
+
 variable (T)
 
 /-- A theory models a (bounded) formula when any of its nonempty models realizes that formula on all
@@ -102,6 +204,14 @@ forall_congr (λ M, forall_congr (λ v, unique.forall_iff))
 lemma models_sentence_iff {φ : L.sentence} :
   T ⊨ φ ↔ ∀ (M : Model.{u v (max u v)} T), M ⊨ φ :=
 models_formula_iff.trans (forall_congr (λ M, unique.forall_iff))
+
+lemma models_sentence_of_mem {φ : L.sentence} (h : φ ∈ T) :
+  T ⊨ φ :=
+models_sentence_iff.2 (λ _, realize_sentence_of_mem T h)
+
+/-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
+def is_complete (T : L.Theory) : Prop :=
+T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
@@ -185,6 +295,23 @@ begin
 end
 
 end Theory
+
+namespace complete_theory
+
+variables (L) (M : Type w) [L.Structure M]
+
+lemma is_satisfiable [nonempty M] : (L.complete_theory M).is_satisfiable :=
+Theory.model.is_satisfiable M
+
+lemma mem_or_not_mem (φ : L.sentence) :
+  φ ∈ L.complete_theory M ∨ φ.not ∈ L.complete_theory M :=
+by simp_rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not, or_not]
+
+lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
+⟨is_satisfiable L M,
+  λ φ, ((mem_or_not_mem L M φ).imp Theory.models_sentence_of_mem Theory.models_sentence_of_mem)⟩
+
+end complete_theory
 
 namespace bounded_formula
 variables (φ ψ : L.bounded_formula α n)
@@ -302,3 +429,18 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
+
+namespace cardinal
+open first_order first_order.language
+
+variables {L : language.{u v}} (κ : cardinal.{w}) (T : L.Theory)
+
+/-- A theory is `κ`-categorical if all models of size `κ` are isomorphic. -/
+def categorical : Prop :=
+∀ (M N : T.Model), # M = κ → # N = κ → nonempty (M ≃[L] N)
+
+theorem empty_Theory_categorical (T : language.empty.Theory) :
+  κ.categorical T :=
+λ M N hM hN, by rw [empty.nonempty_equiv_iff, hM, hN]
+
+end cardinal

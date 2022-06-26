@@ -57,6 +57,9 @@ le_antisymm (span_le.2 h₁) h₂
 lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
+le_antisymm (span_le.2 hs) (span_le.2 ht)
+
 /-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
 @[simp] lemma span_coe_eq_restrict_scalars
   [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
@@ -556,6 +559,22 @@ begin
   obtain ⟨y, ⟨hyd, hxy⟩⟩ := (mem_Sup_of_directed hemp hdir).mp this,
   exact ⟨y, ⟨hyd, by simpa only [span_le, singleton_subset_iff]⟩⟩,
 end
+
+/-- The span of a finite subset is compact in the lattice of submodules. -/
+lemma finset_span_is_compact_element (S : finset M) :
+  complete_lattice.is_compact_element (span R S : submodule R M) :=
+begin
+  rw span_eq_supr_of_singleton_spans,
+  simp only [finset.mem_coe],
+  rw ←finset.sup_eq_supr,
+  exact complete_lattice.finset_sup_compact_of_compact S
+    (λ x _, singleton_span_is_compact_element x),
+end
+
+/-- The span of a finite subset is compact in the lattice of submodules. -/
+lemma finite_span_is_compact_element (S : set M) (h : S.finite) :
+  complete_lattice.is_compact_element (span R S : submodule R M) :=
+finite.coe_to_finset h ▸ (finset_span_is_compact_element h.to_finset)
 
 instance : is_compactly_generated (submodule R M) :=
 ⟨λ s, ⟨(λ x, span R {x}) '' s, ⟨λ t ht, begin

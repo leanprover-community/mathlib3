@@ -501,6 +501,9 @@ coe_injective.unique
 instance unique_of_right [subsingleton M₂] : unique (M₁ →SL[σ₁₂] M₂) :=
 coe_injective.unique
 
+lemma exists_ne_zero {f : M₁ →SL[σ₁₂] M₂} (hf : f ≠ 0) : ∃ x, f x ≠ 0 :=
+by { by_contra' h, exact hf (continuous_linear_map.ext h) }
+
 section
 
 variables (R₁ M₁)
@@ -616,6 +619,59 @@ lemma mul_def (f g : M₁ →L[R₁] M₁) : f * g = f.comp g := rfl
 @[simp] lemma coe_mul (f g : M₁ →L[R₁] M₁) : ⇑(f * g) = f ∘ g := rfl
 
 lemma mul_apply (f g : M₁ →L[R₁] M₁) (x : M₁) : (f * g) x = f (g x) := rfl
+
+instance : monoid_with_zero (M₁ →L[R₁] M₁) :=
+{ mul := (*),
+  one := 1,
+  zero := 0,
+  mul_zero := λ f, ext $ λ _, map_zero f,
+  zero_mul := λ _, ext $ λ _, rfl,
+  mul_one := λ _, ext $ λ _, rfl,
+  one_mul := λ _, ext $ λ _, rfl,
+  mul_assoc := λ _ _ _, ext $ λ _, rfl, }
+
+instance [has_continuous_add M₁] : semiring (M₁ →L[R₁] M₁) :=
+{ mul := (*),
+  one := 1,
+  left_distrib := λ f g h, ext $ λ x, map_add f (g x) (h x),
+  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
+  ..continuous_linear_map.monoid_with_zero,
+  ..continuous_linear_map.add_comm_monoid }
+
+/-- `continuous_linear_map.to_linear_map` as a `ring_hom`.-/
+@[simps]
+def to_linear_map_ring_hom [has_continuous_add M₁] : (M₁ →L[R₁] M₁) →+* (M₁ →ₗ[R₁] M₁) :=
+{ to_fun := to_linear_map,
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_add' := λ _ _, rfl,
+  map_mul' := λ _ _, rfl }
+
+section apply_action
+variables [has_continuous_add M₁]
+
+/-- The tautological action by `M₁ →L[R₁] M₁` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_module : module (M₁ →L[R₁] M₁) M₁ :=
+module.comp_hom _ to_linear_map_ring_hom
+
+@[simp] protected lemma smul_def (f : M₁ →L[R₁] M₁) (a : M₁) : f • a = f a := rfl
+
+/-- `continuous_linear_map.apply_module` is faithful. -/
+instance apply_has_faithful_smul : has_faithful_smul (M₁ →L[R₁] M₁) M₁ :=
+⟨λ _ _, continuous_linear_map.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R₁ (M₁ →L[R₁] M₁) M₁ :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M₁ →L[R₁] M₁) R₁ M₁ :=
+{ smul_comm := continuous_linear_map.map_smul }
+
+instance : has_continuous_const_smul (M₁ →L[R₁] M₁) M₁ :=
+⟨continuous_linear_map.continuous⟩
+
+end apply_action
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 protected def prod [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁] M₂) (f₂ : M₁ →L[R₁] M₃) :
@@ -981,11 +1037,7 @@ end
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),
   one := 1,
-  mul_one := λ _, ext $ λ _, rfl,
-  one_mul := λ _, ext $ λ _, rfl,
-  mul_assoc := λ _ _ _, ext $ λ _, rfl,
-  left_distrib := λ f g h, ext $ λ x, map_add f (g x) (h x),
-  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
+  ..continuous_linear_map.semiring,
   ..continuous_linear_map.add_comm_group }
 
 lemma smul_right_one_pow [topological_space R] [topological_ring R] (c : R) (n : ℕ) :
@@ -1024,6 +1076,19 @@ subtype.ext_iff_val.2 $ by simp [h y]
 end
 
 end ring
+
+section division_monoid
+variables {R M : Type*}
+
+/-- A nonzero continuous linear functional is open. -/
+protected lemma is_open_map_of_ne_zero [topological_space R] [division_ring R]
+  [has_continuous_sub R] [add_comm_group M] [topological_space M] [has_continuous_add M]
+  [module R M] [has_continuous_smul R M] (f : M →L[R] R) (hf : f ≠ 0) : is_open_map f :=
+let ⟨x, hx⟩ := exists_ne_zero hf in is_open_map.of_sections $ λ y,
+    ⟨λ a, y + (a - f y) • (f x)⁻¹ • x, continuous.continuous_at $ by continuity,
+      by simp, λ a, by simp [hx]⟩
+
+end division_monoid
 
 section smul_monoid
 
@@ -1136,10 +1201,10 @@ end smul
 
 section smul_rightₗ
 
-variables {R S T M M₂ : Type*} [ring R] [ring S] [ring T] [module R S]
-  [add_comm_group M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
+variables {R S T M M₂ : Type*} [semiring R] [semiring S] [semiring T] [module R S]
+  [add_comm_monoid M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
   [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
-  [topological_space M] [add_comm_group M] [module R M] [topological_add_group M₂]
+  [topological_space M] [add_comm_monoid M] [module R M] [has_continuous_add M₂]
   [module T M₂] [has_continuous_const_smul T M₂]
   [smul_comm_class R T M₂] [smul_comm_class S T M₂]
 
@@ -1591,7 +1656,7 @@ variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
 include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
 
 /-- A pair of continuous (semi)linear equivalences generates an equivalence between the spaces of
-continuous linear maps. -/
+continuous linear maps. See also `continuous_linear_equiv.arrow_congr`. -/
 @[simps] def arrow_congr_equiv (e₁₂ : M₁ ≃SL[σ₁₂] M₂) (e₄₃ : M₄ ≃SL[σ₄₃] M₃) :
   (M₁ →SL[σ₁₄] M₄) ≃ (M₂ →SL[σ₂₃] M₃) :=
 { to_fun := λ f, (e₄₃ : M₄ →SL[σ₄₃] M₃).comp (f.comp (e₁₂.symm : M₂ →SL[σ₂₁] M₁)),
@@ -1901,3 +1966,42 @@ lemma continuous_linear_map.closed_complemented_ker_of_right_inverse {R : Type*}
   (h : function.right_inverse f₂ f₁) :
   f₁.ker.closed_complemented :=
 ⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩
+
+section quotient
+
+namespace submodule
+
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] [topological_space M]
+  (S : submodule R M)
+
+lemma is_open_map_mkq [topological_add_group M] : is_open_map S.mkq :=
+quotient_add_group.is_open_map_coe S.to_add_subgroup
+
+instance topological_add_group_quotient [topological_add_group M] :
+  topological_add_group (M ⧸ S) :=
+topological_add_group_quotient S.to_add_subgroup
+
+instance has_continuous_smul_quotient [topological_space R] [topological_add_group M]
+  [has_continuous_smul R M] :
+  has_continuous_smul R (M ⧸ S) :=
+begin
+  split,
+  have quot : quotient_map (λ au : R × M, (au.1, S.mkq au.2)),
+    from is_open_map.to_quotient_map
+      (is_open_map.id.prod S.is_open_map_mkq)
+      (continuous_id.prod_map continuous_quot_mk)
+      (function.surjective_id.prod_map $ surjective_quot_mk _),
+  rw quot.continuous_iff,
+  exact continuous_quot_mk.comp continuous_smul
+end
+
+instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
+  regular_space (M ⧸ S) :=
+begin
+  letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
+  exact S.to_add_subgroup.regular_quotient_of_is_closed
+end
+
+end submodule
+
+end quotient

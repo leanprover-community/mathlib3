@@ -93,7 +93,7 @@ begin
   rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_sum_range, range_add_one,
     sum_insert not_mem_range_self, sum_range, (hmo.map
     (algebra_map R S)).coeff_nat_degree, one_mul] at hx,
-  replace hx := eq_neg_of_add_eq_zero hx,
+  replace hx := eq_neg_of_add_eq_zero_left hx,
   have : ∀ n < f.nat_degree, p ∣ f.coeff n,
   { intros n hn,
     refine mem_span_singleton.1 (by simpa using hf.mem hn) },
@@ -137,7 +137,7 @@ begin
   { exact mul_mem_right (x ^ k) 𝓟 this },
   rw [is_root.def, eval_eq_sum_range, finset.range_add_one, finset.sum_insert
     finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
-  rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
+  rw [eq_neg_of_add_eq_zero_left hroot, neg_mem_iff],
   refine submodule.sum_mem _ (λ i hi,  mul_mem_right _ _ (hf.mem (fin.is_lt i)))
 end
 
@@ -230,12 +230,12 @@ begin
       rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
     rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C, mul_one,
       nat_degree_cyclotomic, nat.totient_prime hp.out] at hi,
-    simp only [lt_of_lt_of_le hi (nat.sub_le _ _), int.nat_cast_eq_coe_nat, sum_ite_eq', mem_range,
+    simp only [lt_of_lt_of_le hi (nat.sub_le _ _), sum_ite_eq', mem_range,
       if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
     exact int.coe_nat_dvd.2
       (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out) },
   { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
-      eval_one, zero_add, eval_geom_sum, one_geom_sum, int.nat_cast_eq_coe_nat,
+      eval_one, zero_add, eval_geom_sum, one_geom_sum,
       ideal.submodule_span_eq, ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,
     obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,
@@ -277,9 +277,9 @@ begin
         simpa [map_comp] using hn },
       { exact ⟨p ^ n, by rw [pow_succ]⟩ } } },
   { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
-      eval_X, eval_one, zero_add, geom_sum_def, eval_finset_sum],
+      eval_X, eval_one, zero_add, eval_finset_sum],
     simp only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
-      int.nat_cast_eq_coe_nat, submodule_span_eq, ideal.submodule_span_eq,
+      submodule_span_eq, ideal.submodule_span_eq,
       ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,
     obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,

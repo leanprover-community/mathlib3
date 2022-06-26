@@ -16,7 +16,7 @@ universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
--- Rather than import order.lexicographic here, we can get away with defining the order by hand.
+-- Rather than import data.prod.lex here, we can get away with defining the order by hand.
 instance : has_lt pos :=
 { lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
 
@@ -359,6 +359,33 @@ meta def lambdas : list expr → expr → tactic expr
   f' ← lambdas es f,
   pure $ expr.lam pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
+
+/--  Given an expression `f` (likely a binary operation) and a further expression `x`, calling
+`list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
+no longer be done and returns a list of the leaves of the process.
+
+This matches `f` up to semireducible unification. In particular, it will match applications of the
+same polymorphic function with different type-class arguments.
+
+E.g., if `i1` and `i2` are both instances of `has_add T` and
+`e := has_add.add T i1 x (has_add.add T i2 y z)`, then ``list_binary_operands `((+) : T → T → T) e``
+returns `[x, y, z]`.
+
+For example:
+```lean
+#eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace
+-- [3, 4 * 5, 6, 7 / 3]
+#eval list_binary_operands `(@list.append ℕ) `([1, 2] ++ [3, 4] ++ (1 :: [])) >>= tactic.trace
+-- [[1, 2], [3, 4], [1]]
+```
+-/
+meta def list_binary_operands (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← list_binary_operands a,
+  bs ← list_binary_operands b,
+  pure (as ++ bs)
+| a                      := pure [a]
 
 -- TODO: move to `declaration` namespace in `meta/expr.lean`
 /-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
@@ -1719,11 +1746,18 @@ add_tactic_doc
   tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
-This asserts that all propositions are decidable, but does not have computational content. -/
-meta def classical : tactic unit :=
-do h ← get_unused_name `_inst,
-   mk_const `classical.prop_decidable >>= note h none,
-   reset_instance_cache
+This asserts that all propositions are decidable, but does not have computational content.
+
+The `aggressive` argument controls whether the instance is added globally, where it has low
+priority, or in the local context, where it has very high priority. -/
+meta def classical (aggressive : bool := ff) : tactic unit :=
+if aggressive then do
+  h ← get_unused_name `_inst,
+  mk_const `classical.prop_decidable >>= note h none,
+  reset_instance_cache
+else do
+  -- Turn on the `prop_decidable` instance. `9` is what we use in the `classical` locale
+  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9)
 
 open expr
 
@@ -2404,7 +2438,7 @@ then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.set %%user_attr_const %%c_name default %%persistent) <|>
+    ``(user_attribute.set %%user_attr_const %%`(c_name) default %%`(persistent)) <|>
     fail! ("Cannot set attribute @[{attr_name}].\n" ++
       "The corresponding user attribute {user_attr_nm} " ++
       "has a parameter without a default value.\n" ++

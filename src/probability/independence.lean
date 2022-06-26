@@ -234,7 +234,7 @@ lemma Indep.indep {α ι} {m : ι → measurable_space α} [measurable_space α]
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
-  change indep_sets ((λ x, (m x).measurable_set') i) ((λ x, (m x).measurable_set') j) μ,
+  change indep_sets ((λ x, measurable_set[m x]) i) ((λ x, measurable_set[m x]) j) μ,
   exact Indep_sets.indep_sets h_indep hij,
 end
 
@@ -269,7 +269,7 @@ section from_pi_systems_to_measurable_spaces
 private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [is_probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
-  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.measurable_set' t2) :
+  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : measurable_set[m2] t2) :
   μ (t1 ∩ t2) = μ t1 * μ t2 :=
 begin
   let μ_inter := μ.restrict t1,
@@ -279,7 +279,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t1 μ ⟨measure_lt_top μ t1⟩,
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
-  have ht2 : m.measurable_set' t,
+  have ht2 : measurable_set[m] t,
   { refine h2 _ _,
     rw hpm2,
     exact measurable_set_generate_from ht, },
@@ -301,7 +301,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
-  have ht1 : m.measurable_set' t,
+  have ht1 : measurable_set[m] t,
   { refine h1 _ _,
     rw hpm1,
     exact measurable_set_generate_from ht, },
@@ -344,7 +344,52 @@ end indep_set
 
 section indep_fun
 
-variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α}
+/-! ### Independence of random variables
+
+-/
+
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α} {f : α → β} {g : α → β'}
+
+lemma indep_fun_iff_measure_inter_preimage_eq_mul
+  {mβ : measurable_space β} {mβ' : measurable_space β'} [is_probability_measure μ]
+  (hf : measurable f) (hg : measurable g) :
+  indep_fun f g μ
+    ↔ ∀ s t, measurable_set s → measurable_set t
+      → μ (f ⁻¹' s ∩ g ⁻¹' t) = μ (f ⁻¹' s) * μ (g ⁻¹' t) :=
+begin
+  let Sf := {t1 | ∃ s, measurable_set s ∧ f ⁻¹' s = t1},
+  let Sg := {t1 | ∃ t, measurable_set t ∧ g ⁻¹' t = t1},
+  suffices : indep_fun f g μ ↔ indep_sets Sf Sg μ,
+  { refine this.trans _,
+    simp_rw [indep_sets, Sf, Sg, set.mem_set_of_eq],
+    split; intro h,
+    { exact λ s t hs ht, h (f ⁻¹' s) (g ⁻¹' t) ⟨s, hs, rfl⟩ ⟨t, ht, rfl⟩, },
+    { rintros t1 t2 ⟨s, hs, rfl⟩ ⟨t, ht, rfl⟩,
+      exact h s t hs ht, }, },
+  have hSf_pi : is_pi_system Sf,
+  { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
+    exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
+  have hSg_pi : is_pi_system Sg,
+  { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
+    exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
+  have hSf_gen : mβ.comap f = generate_from Sf := mβ.comap_eq_generate_from f,
+  have hSg_gen : mβ'.comap g = generate_from Sg := mβ'.comap_eq_generate_from g,
+  rw indep_fun,
+  split; intro h,
+  { rw [hSf_gen, hSg_gen] at h,
+    exact indep.indep_sets h, },
+  { exact indep_sets.indep hf.comap_le hg.comap_le hSf_pi hSg_pi hSf_gen hSg_gen h, },
+end
+
+lemma indep_fun_iff_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}
+  [is_probability_measure μ] (hf : measurable f) (hg : measurable g) :
+  indep_fun f g μ ↔ ∀ s t, measurable_set s → measurable_set t → indep_set (f ⁻¹' s) (g ⁻¹' t) μ :=
+begin
+  refine (indep_fun_iff_measure_inter_preimage_eq_mul hf hg).trans _,
+  split; intros h s t hs ht; specialize h s t hs ht,
+  { rwa indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+  { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+end
 
 lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : α → β}
   (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
@@ -358,8 +403,7 @@ begin
 end
 
 lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
-  {mγ : measurable_space γ} {mγ' : measurable_space γ'}
-  {f : α → β} {g : α → β'} {φ : β → γ} {ψ : β' → γ'}
+  {mγ : measurable_space γ} {mγ' : measurable_space γ'} {φ : β → γ} {ψ : β' → γ'}
   (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
   indep_fun (φ ∘ f) (ψ ∘ g) μ :=
 begin

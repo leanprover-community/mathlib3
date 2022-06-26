@@ -79,6 +79,26 @@ by simp * at *
 @[to_additive] lemma uniform_continuous_mul : uniform_continuous (λp:α×α, p.1 * p.2) :=
 uniform_continuous_fst.mul uniform_continuous_snd
 
+@[to_additive uniform_continuous.const_nsmul]
+lemma uniform_continuous.pow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℕ, uniform_continuous (λ x, f x ^ n)
+| 0 := by { simp_rw pow_zero, exact uniform_continuous_const }
+| (n + 1) := by { simp_rw pow_succ, exact hf.mul (uniform_continuous.pow_const n) }
+
+@[to_additive uniform_continuous_const_nsmul] lemma uniform_continuous_pow_const (n : ℕ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.pow_const n
+
+@[to_additive uniform_continuous.const_zsmul]
+lemma uniform_continuous.zpow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℤ, uniform_continuous (λ x, f x ^ n)
+| (n : ℕ) := by { simp_rw zpow_coe_nat, exact hf.pow_const _, }
+| -[1+ n] := by { simp_rw zpow_neg_succ_of_nat, exact (hf.pow_const _).inv }
+
+@[to_additive uniform_continuous_const_zsmul] lemma uniform_continuous_zpow_const (n : ℤ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.zpow_const n
+
 @[priority 10, to_additive]
 instance uniform_group.to_topological_group : topological_group α :=
 { continuous_mul := uniform_continuous_mul.continuous,
@@ -205,7 +225,13 @@ begin
   exact tendsto.comp h tendsto_comap
 end
 
-@[to_additive] lemma uniform_continuous_of_continuous_at_one {hom : Type*}
+/-- A group homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) between
+two uniform groups is uniformly continuous provided that it is continuous at one. See also
+`continuous_of_continuous_at_one`. -/
+@[to_additive "An additive group homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) between two uniform additive groups is uniformly continuous provided that it
+is continuous at zero. See also `continuous_of_continuous_at_zero`."]
+lemma uniform_continuous_of_continuous_at_one {hom : Type*}
   [uniform_space β] [group β] [uniform_group β] [monoid_hom_class hom α β]
   (f : hom) (hf : continuous_at f 1) :
   uniform_continuous f :=
@@ -260,6 +286,26 @@ uniform_continuous_inv.comp_cauchy_seq h
 (𝓝 (1 : α)).basis_sets.uniformity_of_nhds_one_inv_mul_swapped.totally_bounded_iff.trans $
   by simp [← preimage_smul_inv, preimage]
 
+section uniform_convergence
+variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+
+@[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
+  (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
+  (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
+  (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=
+λ u hu, by simpa using ((uniform_continuous_mul.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
+
+@[to_additive] lemma uniform_cauchy_seq_on.div (hf : uniform_cauchy_seq_on f l s)
+  (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f / f') l s :=
+λ u hu, by simpa using ((uniform_continuous_div.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
+
+end uniform_convergence
 end uniform_group
 
 section topological_comm_group
@@ -372,19 +418,18 @@ begin
   simpa [(∘), div_eq_mul_inv, mul_comm, mul_left_comm] using this
 end
 
-local attribute [instance] topological_group_is_uniform
-
 open set
 
-@[to_additive] lemma topological_group.separated_iff_one_closed :
-  separated_space G ↔ is_closed ({1} : set G) :=
+@[to_additive] lemma topological_group.t2_space_iff_one_closed :
+  t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  haveI : uniform_group G := topological_group_is_uniform,
+  rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,
     { intros x x_in,
       have := group_separation_rel x 1,
-      rw div_one' at this,
+      rw div_one at this,
       rw [← this, h] at x_in,
       change x = 1 at x_in,
       simp [x_in] },
@@ -395,10 +440,10 @@ begin
     refl }
 end
 
-@[to_additive] lemma topological_group.separated_of_one_sep
-  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : separated_space G:=
+@[to_additive] lemma topological_group.t2_space_of_one_sep
+  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : t2_space G :=
 begin
-  rw [topological_group.separated_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
+  rw [topological_group.t2_space_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
   intros x x_not,
   have : x ≠ 1, from mem_compl_singleton_iff.mp x_not,
   rcases H x this with ⟨U, U_in, xU⟩,

@@ -150,18 +150,25 @@ variables {F E}
   bot_equiv F E (algebra_map F (⊥ : intermediate_field F E) x) = x :=
 alg_equiv.commutes (bot_equiv F E) x
 
+@[simp] lemma bot_equiv_symm (x : F) :
+  (bot_equiv F E).symm x = algebra_map F _ x :=
+rfl
+
 noncomputable instance algebra_over_bot : algebra (⊥ : intermediate_field F E) F :=
 (intermediate_field.bot_equiv F E).to_alg_hom.to_ring_hom.to_algebra
+
+lemma coe_algebra_map_over_bot :
+  (algebra_map (⊥ : intermediate_field F E) F : (⊥ : intermediate_field F E) → F) =
+    (intermediate_field.bot_equiv F E) :=
+rfl
 
 instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
 is_scalar_tower.of_algebra_map_eq
 begin
   intro x,
-  let ϕ := algebra.of_id F (⊥ : subalgebra F E),
-  let ψ := alg_equiv.of_bijective ϕ ((algebra.bot_equiv F E).symm.bijective),
-  change (↑x : E) = ↑(ψ (ψ.symm ⟨x, _⟩)),
-  rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
-  refl
+  obtain ⟨y, rfl⟩ := (bot_equiv F E).symm.surjective x,
+  rw [coe_algebra_map_over_bot, (bot_equiv F E).apply_symm_apply, bot_equiv_symm,
+      is_scalar_tower.algebra_map_apply F (⊥ : intermediate_field F E) E]
 end
 
 /-- The top intermediate_field is isomorphic to the field.
@@ -328,7 +335,7 @@ instance insert_empty {α : Type*} : insert (∅ : set α) :=
 
 @[priority 900]
 instance insert_nonempty {α : Type*} (s : set α) : insert s :=
-{ insert := λ x, set.insert x s }
+{ insert := λ x, has_insert.insert x s }
 
 notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, insert.insert t h) ∅) `⟯` := adjoin K l
 
@@ -368,7 +375,7 @@ begin
   haveI := minpoly.irreducible hα,
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
-    refine (eq_inv_of_mul_right_eq_one _).symm,
+    refine inv_eq_of_mul_eq_one_right _,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
     rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
@@ -401,7 +408,7 @@ adjoin_simple_eq_bot_iff.mpr (one_mem ⊥)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 @[simp] lemma adjoin_nat (n : ℕ) : F⟮(n : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
+adjoin_simple_eq_bot_iff.mpr (coe_nat_mem ⊥ n)
 
 section adjoin_dim
 open finite_dimensional module
@@ -673,8 +680,8 @@ lemma lifts.eq_of_le {x y : lifts F E K} (hxy : x ≤ y) (s : x.1) :
   x.2 s = y.2 ⟨s, hxy.1 s.mem⟩ := hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl
 
 lemma lifts.exists_max_two {c : set (lifts F E K)} {x y : lifts F E K} (hc : is_chain (≤) c)
-  (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) :
-  ∃ z : lifts F E K, z ∈ set.insert ⊥ c ∧ x ≤ z ∧ y ≤ z :=
+  (hx : x ∈ has_insert.insert ⊥ c) (hy : y ∈ has_insert.insert ⊥ c) :
+  ∃ z : lifts F E K, z ∈ has_insert.insert ⊥ c ∧ x ≤ z ∧ y ≤ z :=
 begin
   cases (hc.insert $ λ _ _ _, or.inl bot_le).total hx hy with hxy hyx,
   { exact ⟨y, hy, hxy, le_refl y⟩ },
@@ -682,8 +689,9 @@ begin
 end
 
 lemma lifts.exists_max_three {c : set (lifts F E K)} {x y z : lifts F E K} (hc : is_chain (≤) c)
-  (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) (hz : z ∈ set.insert ⊥ c) :
-  ∃ w  : lifts F E K, w ∈ set.insert ⊥ c ∧ x ≤ w ∧ y ≤ w ∧ z ≤ w :=
+  (hx : x ∈ has_insert.insert ⊥ c) (hy : y ∈ has_insert.insert ⊥ c)
+  (hz : z ∈ has_insert.insert ⊥ c) :
+  ∃ w  : lifts F E K, w ∈ has_insert.insert ⊥ c ∧ x ≤ w ∧ y ≤ w ∧ z ≤ w :=
 begin
   obtain ⟨v, hv, hxv, hyv⟩ := lifts.exists_max_two hc hx hy,
   obtain ⟨w, hw, hzw, hvw⟩ := lifts.exists_max_two hc hz hv,
@@ -693,7 +701,7 @@ end
 /-- An upper bound on a chain of lifts -/
 def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : is_chain (≤) c) :
   intermediate_field F E :=
-{ carrier := λ s, ∃ x : (lifts F E K), x ∈ set.insert ⊥ c ∧ (s ∈ x.1 : Prop),
+{ carrier := λ s, ∃ x : (lifts F E K), x ∈ has_insert.insert ⊥ c ∧ (s ∈ x.1 : Prop),
   zero_mem' := ⟨⊥, set.mem_insert ⊥ c, zero_mem ⊥⟩,
   one_mem' := ⟨⊥, set.mem_insert ⊥ c, one_mem ⊥⟩,
   neg_mem' := by { rintros _ ⟨x, y, h⟩, exact ⟨x, ⟨y, x.1.neg_mem h⟩⟩ },
@@ -824,7 +832,7 @@ begin
     { rw [←subtype.coe_mk x hx, hx', subalgebra.coe_zero, inv_zero],
       exact (S1 ⊔ S2).zero_mem },
     { obtain ⟨y, h⟩ := this.mul_inv_cancel hx',
-      exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp h))).mp y.2 } },
+      exact (congr_arg (∈ S1 ⊔ S2) $ eq_inv_of_mul_eq_one_right $ subtype.ext_iff.mp h).mp y.2 } },
   exact is_field_of_is_integral_of_is_field'
     (is_integral_sup.mpr ⟨algebra.is_integral_of_finite K E1, algebra.is_integral_of_finite K E2⟩)
     (field.to_is_field K),

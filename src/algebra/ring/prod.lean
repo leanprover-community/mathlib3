@@ -43,11 +43,16 @@ instance [non_unital_semiring R] [non_unital_semiring S] :
 /-- Product of two `non_assoc_semiring`s is a `non_assoc_semiring`. -/
 instance [non_assoc_semiring R] [non_assoc_semiring S] :
   non_assoc_semiring (R × S) :=
-{ .. prod.non_unital_non_assoc_semiring, .. prod.mul_one_class }
+{ .. prod.non_unital_non_assoc_semiring, .. prod.mul_one_class, .. prod.add_monoid_with_one }
 
 /-- Product of two semirings is a semiring. -/
 instance [semiring R] [semiring S] : semiring (R × S) :=
-{ .. prod.add_comm_monoid, .. prod.monoid_with_zero, .. prod.distrib }
+{ .. prod.add_comm_monoid, .. prod.monoid_with_zero, .. prod.distrib, .. prod.add_monoid_with_one }
+
+/-- Product of two `non_unital_comm_semiring`s is a `non_unital_comm_semiring`. -/
+instance [non_unital_comm_semiring R] [non_unital_comm_semiring S] :
+  non_unital_comm_semiring (R × S) :=
+{ .. prod.non_unital_semiring, .. prod.comm_semigroup }
 
 /-- Product of two commutative semirings is a commutative semiring. -/
 instance [comm_semiring R] [comm_semiring S] : comm_semiring (R × S) :=
@@ -63,11 +68,15 @@ instance [non_unital_ring R] [non_unital_ring S] :
 
 instance [non_assoc_ring R] [non_assoc_ring S] :
   non_assoc_ring (R × S) :=
-{ .. prod.add_comm_group, .. prod.non_assoc_semiring }
+{ .. prod.add_comm_group, .. prod.non_assoc_semiring, .. prod.add_group_with_one }
 
 /-- Product of two rings is a ring. -/
 instance [ring R] [ring S] : ring (R × S) :=
-{ .. prod.add_comm_group, .. prod.semiring }
+{ .. prod.add_comm_group, .. prod.add_group_with_one, .. prod.semiring }
+
+/-- Product of two `non_unital_comm_ring`s is a `non_unital_comm_ring`. -/
+instance [non_unital_comm_ring R] [non_unital_comm_ring S] : non_unital_comm_ring (R × S) :=
+{ .. prod.non_unital_ring, .. prod.comm_semigroup }
 
 /-- Product of two commutative rings is a commutative ring. -/
 instance [comm_ring R] [comm_ring S] : comm_ring (R × S) :=

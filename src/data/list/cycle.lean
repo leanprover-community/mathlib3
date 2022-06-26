@@ -792,6 +792,10 @@ quotient.induction_on' s $ λ l, begin
   refl
 end
 
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain r (list.range n.succ) ↔ r n 0 ∧ ∀ m < n, r m m.succ :=
+by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, chain_range_succ]
+
 variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
@@ -802,7 +806,7 @@ begin
   have Ha : a ∈ ((a :: l) : cycle α) := by simp,
   have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
   rw cycle.chain_coe_cons,
-  apply chain_of_pairwise,
+  apply pairwise.chain,
   rw pairwise_cons,
   refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
     (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,

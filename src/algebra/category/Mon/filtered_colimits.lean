@@ -20,7 +20,7 @@ showing that the forgetful functor `forget Mon` preserves filtered colimits. Sim
 
 -/
 
-universe v
+universes v u
 
 noncomputable theory
 open_locale classical
@@ -35,7 +35,7 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] (F : J ⥤ Mon.{v})
+parameters {J : Type v} [small_category J] (F : J ⥤ Mon.{max v u})
 
 /--
 The colimit of `F ⋙ forget Mon` in the category of types.
@@ -43,7 +43,7 @@ In the following, we will construct a monoid structure on `M`.
 -/
 @[to_additive "The colimit of `F ⋙ forget AddMon` in the category of types.
 In the following, we will construct an additive monoid structure on `M`."]
-abbreviation M : Type v := types.quot (F ⋙ forget Mon)
+abbreviation M : Type (max v u) := types.quot (F ⋙ forget Mon)
 
 /-- The canonical projection into the colimit, as a quotient type. -/
 @[to_additive "The canonical projection into the colimit, as a quotient type."]
@@ -243,10 +243,10 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
       (λ j, funext $ λ x, monoid_hom.congr_fun (h j) x) }
 
 @[to_additive]
-instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Mon) :=
+instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget Mon.{u}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
-      (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget Mon)) } }
+      (colimit_cocone_is_colimit.{u u} F) (types.colimit_cocone_is_colimit (F ⋙ forget Mon.{u})) } }
 
 end
 
@@ -261,7 +261,7 @@ section
 
 -- We use parameters here, mainly so we can have the abbreviation `M` below, without
 -- passing around `F` all the time.
-parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommMon.{v})
+parameters {J : Type v} [small_category J] [is_filtered J] (F : J ⥤ CommMon.{max v u})
 
 /--
 The colimit of `F ⋙ forget₂ CommMon Mon` in the category `Mon`.
@@ -269,7 +269,7 @@ In the following, we will show that this has the structure of a _commutative_ mo
 -/
 @[to_additive "The colimit of `F ⋙ forget₂ AddCommMon AddMon` in the category `AddMon`. In the
 following, we will show that this has the structure of a _commutative_ additive monoid."]
-abbreviation M : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{v})
+abbreviation M : Mon := Mon.filtered_colimits.colimit (F ⋙ forget₂ CommMon Mon.{max v u})
 
 @[to_additive]
 instance colimit_comm_monoid : comm_monoid M :=
@@ -292,13 +292,13 @@ def colimit : CommMon := CommMon.of M
 @[to_additive "The cocone over the proposed colimit additive commutative monoid."]
 def colimit_cocone : cocone F :=
 { X := colimit,
-  ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommMon Mon.{v})).ι } }
+  ι := { ..(Mon.filtered_colimits.colimit_cocone (F ⋙ forget₂ CommMon Mon.{max v u})).ι } }
 
 /-- The proposed colimit cocone is a colimit in `CommMon`. -/
 @[to_additive "The proposed colimit cocone is a colimit in `AddCommMon`."]
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
-{ desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ CommMon Mon.{v})
-    ((forget₂ CommMon Mon.{v}).map_cocone t),
+{ desc := λ t, Mon.filtered_colimits.colimit_desc (F ⋙ forget₂ CommMon Mon.{max v u})
+    ((forget₂ CommMon Mon.{max v u}).map_cocone t),
   fac' := λ t j, monoid_hom.coe_inj $
     (types.colimit_cocone_is_colimit (F ⋙ forget CommMon)).fac ((forget CommMon).map_cocone t) j,
   uniq' := λ t m h, monoid_hom.coe_inj $
@@ -307,14 +307,15 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
 
 @[to_additive forget₂_AddMon_preserves_filtered_colimits]
 instance forget₂_Mon_preserves_filtered_colimits :
-  preserves_filtered_colimits (forget₂ CommMon Mon.{v}) :=
+  preserves_filtered_colimits (forget₂ CommMon Mon.{u}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
-      (colimit_cocone_is_colimit F)
-      (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{v})) } }
+      (colimit_cocone_is_colimit.{u u} F)
+      (Mon.filtered_colimits.colimit_cocone_is_colimit (F ⋙ forget₂ CommMon Mon.{u})) } }
 
 @[to_additive]
-instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget CommMon) :=
+instance forget_preserves_filtered_colimits :
+  preserves_filtered_colimits (forget CommMon.{u}) :=
 limits.comp_preserves_filtered_colimits (forget₂ CommMon Mon) (forget Mon)
 
 end

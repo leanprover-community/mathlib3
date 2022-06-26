@@ -19,8 +19,8 @@ section mul_action
 
 /-- `monoid.to_mul_action` is faithful on cancellative monoids. -/
 @[to_additive /-" `add_monoid.to_add_action` is faithful on additive cancellative monoids. "-/]
-instance right_cancel_monoid.to_has_faithful_scalar [right_cancel_monoid α] :
-  has_faithful_scalar α α :=
+instance right_cancel_monoid.to_has_faithful_smul [right_cancel_monoid α] :
+  has_faithful_smul α α :=
 ⟨λ x y h, mul_right_cancel (h 1)⟩
 
 section group
@@ -40,7 +40,7 @@ by rw [smul_smul, mul_right_inv, one_smul]
 add_decl_doc add_action.to_perm
 
 /-- `mul_action.to_perm` is injective on faithful actions. -/
-@[to_additive] lemma mul_action.to_perm_injective [has_faithful_scalar α β] :
+@[to_additive] lemma mul_action.to_perm_injective [has_faithful_smul α β] :
   function.injective (mul_action.to_perm : α → equiv.perm β) :=
 (show function.injective (equiv.to_fun ∘ mul_action.to_perm), from smul_left_injective').of_comp
 
@@ -74,7 +74,7 @@ instance equiv.perm.apply_mul_action (α : Type*) : mul_action (equiv.perm α) �
 rfl
 
 /-- `equiv.perm.apply_mul_action` is faithful. -/
-instance equiv.perm.apply_has_faithful_scalar (α : Type*) : has_faithful_scalar (equiv.perm α) α :=
+instance equiv.perm.apply_has_faithful_smul (α : Type*) : has_faithful_smul (equiv.perm α) α :=
 ⟨λ x y, equiv.ext⟩
 
 variables {α} {β}
@@ -123,8 +123,8 @@ mul_action.injective g h
 end group
 
 /-- `monoid.to_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
-instance cancel_monoid_with_zero.to_has_faithful_scalar [cancel_monoid_with_zero α] [nontrivial α] :
-  has_faithful_scalar α α :=
+instance cancel_monoid_with_zero.to_has_faithful_smul [cancel_monoid_with_zero α] [nontrivial α] :
+  has_faithful_smul α α :=
 ⟨λ x y h, mul_left_injective₀ one_ne_zero (h 1)⟩
 
 section gwz
@@ -238,9 +238,11 @@ end mul_distrib_mul_action
 section arrow
 
 /-- If `G` acts on `A`, then it acts also on `A → B`, by `(g • F) a = F (g⁻¹ • a)`. -/
-@[simps] def arrow_action {G A B : Type*} [group G] [mul_action G A] : mul_action G (A → B) :=
+@[to_additive arrow_add_action "If `G` acts on `A`, then it acts also on `A → B`, by
+`(g +ᵥ F) a = F (g⁻¹ +ᵥ a)`", simps]
+def arrow_action {G A B : Type*} [division_monoid G] [mul_action G A] : mul_action G (A → B) :=
 { smul := λ g F a, F (g⁻¹ • a),
-  one_smul := by { intro, simp only [one_inv, one_smul] },
+  one_smul := by { intro, simp only [inv_one, one_smul] },
   mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }
 
 local attribute [instance] arrow_action

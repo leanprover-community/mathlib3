@@ -234,7 +234,7 @@ section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
-eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+eq_neg_of_add_eq_zero_left $ by rw [← add_smul, add_left_neg, zero_smul]
 
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
@@ -297,7 +297,7 @@ instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R 
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_smul [semiring R] : has_faithful_smul (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid
@@ -395,7 +395,7 @@ lemma map_inv_nat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
   (n : ℕ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-map_inv_int_cast_smul f R S n x
+by exact_mod_cast map_inv_int_cast_smul f R S n x
 
 lemma map_rat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
@@ -496,13 +496,14 @@ lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has
 ⟨λ c m h,
   or.imp_right (@hf _ _) $ h0.symm ▸ eq_zero_or_eq_zero_of_smul_eq_zero (by rw [←hs, h, h0])⟩
 
+@[priority 100] -- See note [lower instance priority]
+instance no_zero_divisors.to_no_zero_smul_divisors [has_zero R] [has_mul R] [no_zero_divisors R] :
+  no_zero_smul_divisors R R :=
+⟨λ c x, eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
 section module
 
 variables [semiring R] [add_comm_monoid M] [module R M]
-
-instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
-  no_zero_smul_divisors R R :=
-⟨λ c x, no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 @[simp]
 theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
@@ -531,9 +532,10 @@ variables (R M)
 
 /-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
 zero as well. Usually `M` is an `R`-algebra. -/
-lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+lemma char_zero.of_module (M) [add_comm_monoid_with_one M] [char_zero M] [module R M] :
+  char_zero R :=
 begin
-  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _⟩,
   rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
 end
 
@@ -603,7 +605,7 @@ section division_ring
 variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
-instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
+instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
 end division_ring

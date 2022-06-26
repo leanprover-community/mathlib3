@@ -150,6 +150,14 @@ lemma is_kernel_comp_mono_lift {c : kernel_fork f} (i : is_limit c) {Z} (g : Y �
   (is_kernel_comp_mono i g hh).lift s
   = i.lift (fork.of_ι s.ι (by { rw [←cancel_mono g, category.assoc, ←hh], simp })) := rfl
 
+/-- Every kernel of `f ≫ g` is also a kernel of `f`, as long as `c.ι ≫ f` vanishes. -/
+def is_kernel_of_comp {W : C} (g : Y ⟶ W) (h : X ⟶ W) {c : kernel_fork h} (i : is_limit c)
+  (hf : c.ι ≫ f = 0) (hfg : f ≫ g = h) : is_limit (kernel_fork.of_ι c.ι hf) :=
+fork.is_limit.mk _
+  (λ s, i.lift (kernel_fork.of_ι s.ι (by simp [← hfg])))
+  (λ s, by simp only [kernel_fork.ι_of_ι, fork.is_limit.lift_ι])
+  (λ s m h, by { apply fork.is_limit.hom_ext i, simpa using h })
+
 end
 
 section
@@ -224,6 +232,13 @@ lemma kernel.lift_map {X Y Z X' Y' Z' : C}
   (p : X ⟶ X') (q : Y ⟶ Y') (r : Z ⟶ Z') (h₁ : f ≫ q = p ≫ f') (h₂ : g ≫ r = q ≫ g') :
   kernel.lift g f w ≫ kernel.map g g' q r h₂ = p ≫ kernel.lift g' f' w' :=
 by { ext, simp [h₁], }
+
+/-- A commuting square of isomorphisms induces an isomorphism of kernels. -/
+@[simps]
+def kernel.map_iso {X' Y' : C} (f' : X' ⟶ Y') [has_kernel f']
+  (p : X ≅ X') (q : Y ≅ Y') (w : f ≫ q.hom = p.hom ≫ f') : kernel f ≅ kernel f' :=
+{ hom := kernel.map f f' p.hom q.hom w,
+  inv := kernel.map f' f p.inv q.inv (by { refine (cancel_mono q.hom).1 _, simp [w], }), }
 
 /-- Every kernel of the zero morphism is an isomorphism -/
 instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
@@ -475,6 +490,14 @@ lemma is_cokernel_epi_comp_desc {c : cokernel_cofork f} (i : is_colimit c) {W}
   (is_cokernel_epi_comp i g hh).desc s
   = i.desc (cofork.of_π s.π (by { rw [←cancel_epi g, ←category.assoc, ←hh], simp })) := rfl
 
+/-- Every cokernel of `g ≫ f` is also a cokernel of `f`, as long as `f ≫ c.π` vanishes. -/
+def is_cokernel_of_comp {W : C} (g : W ⟶ X) (h : W ⟶ Y) {c : cokernel_cofork h} (i : is_colimit c)
+  (hf : f ≫ c.π = 0) (hfg : g ≫ f = h) : is_colimit (cokernel_cofork.of_π c.π hf) :=
+cofork.is_colimit.mk _
+  (λ s, i.desc (cokernel_cofork.of_π s.π (by simp [← hfg])))
+  (λ s, by simp only [cokernel_cofork.π_of_π, cofork.is_colimit.π_desc])
+  (λ s m h, by { apply cofork.is_colimit.hom_ext i, simpa using h })
+
 end
 
 section
@@ -552,6 +575,13 @@ lemma cokernel.map_desc {X Y Z X' Y' Z' : C}
   (p : X ⟶ X') (q : Y ⟶ Y') (r : Z ⟶ Z') (h₁ : f ≫ q = p ≫ f') (h₂ : g ≫ r = q ≫ g') :
   cokernel.map f f' p q h₁ ≫ cokernel.desc f' g' w' = cokernel.desc f g w ≫ r :=
 by { ext, simp [h₂], }
+
+/-- A commuting square of isomorphisms induces an isomorphism of cokernels. -/
+@[simps]
+def cokernel.map_iso {X' Y' : C} (f' : X' ⟶ Y') [has_cokernel f']
+  (p : X ≅ X') (q : Y ≅ Y') (w : f ≫ q.hom = p.hom ≫ f') : cokernel f ≅ cokernel f' :=
+{ hom := cokernel.map f f' p.hom q.hom w,
+  inv := cokernel.map f' f p.inv q.inv (by { refine (cancel_mono q.hom).1 _, simp [w], }), }
 
 /-- The cokernel of the zero morphism is an isomorphism -/
 instance cokernel.π_zero_is_iso :

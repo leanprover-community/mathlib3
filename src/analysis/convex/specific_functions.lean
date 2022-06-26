@@ -32,14 +32,6 @@ For `p : ℝ`, prove that `λ x, x ^ p` is concave when `0 ≤ p ≤ 1` and stri
 open real set
 open_locale big_operators
 
-/-- The norm of a real normed space is convex. Also see `seminorm.convex_on`. -/
-lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
-  convex_on ℝ univ (norm : E → ℝ) :=
-⟨convex_univ, λ x y hx hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
-        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
-
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
 strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
@@ -53,7 +45,7 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    obtain ⟨k, hk⟩ := (hn.tsub_even $ even_bit0 _).exists_two_nsmul _,
+    obtain ⟨k, hk⟩ := (hn.tsub $ even_bit0 _).exists_two_nsmul _,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end
@@ -137,9 +129,9 @@ begin
   { exact this _ },
   { exact (this _).const_mul _ },
   { intros x hx,
-    simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-    refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
-    exact int_prod_range_nonneg _ _ (even_bit0 1) }
+    rw iter_deriv_zpow,
+    refine mul_nonneg _ (zpow_nonneg (le_of_lt hx) _),
+    exact_mod_cast int_prod_range_nonneg _ _ (even_bit0 1) }
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
@@ -153,14 +145,12 @@ begin
    all_goals { rw interior_Ioi },
   { exact this _ },
   intros x hx,
-  simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-  refine mul_pos (int.cast_pos.2 _) (zpow_pos_of_pos hx _),
-  refine int_prod_range_pos (even_bit0 1) (λ hm, _),
+  rw iter_deriv_zpow,
+  refine mul_pos _ (zpow_pos_of_pos hx _),
+  exact_mod_cast int_prod_range_pos (even_bit0 1) (λ hm, _),
   norm_cast at hm,
-  rw ←finset.coe_Ico at hm,
-  fin_cases hm,
-  { exact hm₀ rfl },
-  { exact hm₁ rfl }
+  rw ← finset.coe_Ico at hm,
+  fin_cases hm; cc,
 end
 
 lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=

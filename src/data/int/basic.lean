@@ -513,14 +513,14 @@ have ∀ {k n : ℕ} {a : ℤ}, (a + n * k.succ) / k.succ = a / k.succ + n, from
                   n - (m / k.succ + 1 : ℕ), begin
   cases lt_or_ge m (n*k.succ) with h h,
   { rw [← int.coe_nat_sub h,
-        ← int.coe_nat_sub ((nat.div_lt_iff_lt_mul _ _ k.succ_pos).2 h)],
+        ← int.coe_nat_sub ((nat.div_lt_iff_lt_mul k.succ_pos).2 h)],
     apply congr_arg of_nat,
     rw [mul_comm, nat.mul_sub_div], rwa mul_comm },
   { change (↑(n * nat.succ k) - (m + 1) : ℤ) / ↑(nat.succ k) =
            ↑n - ((m / nat.succ k : ℕ) + 1),
     rw [← sub_sub, ← sub_sub, ← neg_sub (m:ℤ), ← neg_sub _ (n:ℤ),
         ← int.coe_nat_sub h,
-        ← int.coe_nat_sub ((nat.le_div_iff_mul_le _ _ k.succ_pos).2 h),
+        ← int.coe_nat_sub ((nat.le_div_iff_mul_le k.succ_pos).2 h),
         ← neg_succ_of_nat_coe', ← neg_succ_of_nat_coe'],
     { apply congr_arg neg_succ_of_nat,
       rw [mul_comm, nat.sub_mul_div], rwa mul_comm } }
@@ -773,7 +773,7 @@ end,
     { change m.succ * n.succ ≤ _,
       rw [mul_left_comm],
       apply nat.mul_le_mul_left,
-      apply (nat.div_lt_iff_lt_mul _ _ k.succ_pos).1,
+      apply (nat.div_lt_iff_lt_mul k.succ_pos).1,
       apply nat.lt_succ_self }
   end
 end

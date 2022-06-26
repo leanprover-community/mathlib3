@@ -82,7 +82,7 @@ rat.ext_iff.mpr ⟨hn, hd⟩
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
 ⟨n / g, d / g, begin
-  apply (nat.le_div_iff_mul_le _ _ (nat.gcd_pos_of_pos_right _ dpos)).2,
+  apply (nat.le_div_iff_mul_le (nat.gcd_pos_of_pos_right _ dpos)).2,
   rw one_mul, exact nat.le_of_dvd dpos (nat.gcd_dvd_right _ _)
 end, begin
   have : int.nat_abs (n / ↑g) = n' / g,
@@ -208,7 +208,7 @@ begin
     have gb0 := nat.gcd_pos_of_pos_right a hb,
     have gd0 := nat.gcd_pos_of_pos_right c hd,
     apply nat.le_of_dvd,
-    apply (nat.le_div_iff_mul_le _ _ gd0).2,
+    apply (nat.le_div_iff_mul_le gd0).2,
     simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
     apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
     refine ⟨c / c.gcd d, _⟩,

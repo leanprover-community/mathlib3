@@ -976,6 +976,24 @@ theorem union_distrib_left (s t u : finset α) : s ∪ (t ∩ u) = (s ∪ t) ∩
 
 theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := sup_inf_right
 
+lemma union_union_distrib_left (s t u : finset α) : s ∪ (t ∪ u) = (s ∪ t) ∪ (s ∪ u) :=
+sup_sup_distrib_left _ _ _
+
+lemma union_union_distrib_right (s t u : finset α) : (s ∪ t) ∪ u = (s ∪ u) ∪ (t ∪ u) :=
+sup_sup_distrib_right _ _ _
+
+lemma inter_inter_distrib_left (s t u : finset α) : s ∩ (t ∩ u) = (s ∩ t) ∩ (s ∩ u) :=
+inf_inf_distrib_left _ _ _
+
+lemma inter_inter_distrib_right (s t u : finset α) : (s ∩ t) ∩ u = (s ∩ u) ∩ (t ∩ u) :=
+inf_inf_distrib_right _ _ _
+
+lemma union_union_union_comm (s t u v : finset α) : (s ∪ t) ∪ (u ∪ v) = (s ∪ u) ∪ (t ∪ v) :=
+sup_sup_sup_comm _ _ _ _
+
+lemma inter_inter_inter_comm (s t u v : finset α) : (s ∩ t) ∩ (u ∩ v) = (s ∩ u) ∩ (t ∩ v) :=
+inf_inf_inf_comm _ _ _ _
+
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
 
 lemma union_subset_iff : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u := (sup_le_iff : s ⊔ t ≤ u ↔ s ≤ u ∧ t ≤ u)
@@ -2453,7 +2471,7 @@ end bUnion
 section disjoint
 variables [decidable_eq α] [decidable_eq β] {f : α → β} {s t u : finset α} {a b : α}
 
-lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
 by simp only [_root_.disjoint, inf_eq_inter, le_iff_subset, subset_iff, mem_inter, not_and,
   and_imp]; refl
 
@@ -2463,7 +2481,7 @@ lemma disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ := disjoint_i
 instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
 decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
 
-lemma disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
+lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
 by simp only [disjoint_left, imp_not_comm, forall_eq']
 

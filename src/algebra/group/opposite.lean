@@ -7,6 +7,7 @@ import algebra.group.inj_surj
 import algebra.group.commute
 import algebra.hom.equiv
 import algebra.opposites
+import data.int.cast.defs
 
 /-!
 # Group structures on the multiplicative and additive opposites
@@ -38,6 +39,12 @@ unop_injective.add_zero_class _ rfl (λ x y, rfl)
 instance [add_monoid α] : add_monoid αᵐᵒᵖ :=
 unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
+{ nat_cast := λ n, op n,
+  nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp,
+  nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,
+  .. mul_opposite.add_monoid α, .. mul_opposite.has_one α }
+
 instance [add_comm_monoid α] : add_comm_monoid αᵐᵒᵖ :=
 unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
@@ -46,6 +53,13 @@ unop_injective.sub_neg_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ 
 
 instance [add_group α] : add_group αᵐᵒᵖ :=
 unop_injective.add_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance [add_group_with_one α] : add_group_with_one αᵐᵒᵖ :=
+{ int_cast := λ n, op n,
+  int_cast_of_nat := λ n, show op ((n : ℤ) : α) = op n, by rw int.cast_coe_nat,
+  int_cast_neg_succ_of_nat := λ n, show op _ = op (- unop (op ((n + 1 : ℕ) : α))),
+    by erw [unop_op, int.cast_neg_succ_of_nat]; refl,
+  .. mul_opposite.add_monoid_with_one α, .. mul_opposite.add_group α }
 
 instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
 unop_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)

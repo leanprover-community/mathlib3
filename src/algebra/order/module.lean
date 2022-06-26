@@ -197,6 +197,10 @@ instance prod.ordered_smul : ordered_smul k (M × N) :=
 ordered_smul.mk' $ λ (v u : M × N) (c : k) h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
 
+instance pi.smul_with_zero'' {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
+  [Π i, mul_action_with_zero k (M i)] :
+  smul_with_zero k (Π i : ι, M i) := by apply_instance
+
 instance pi.ordered_smul {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
   [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_smul k (M i)] :
   ordered_smul k (Π i : ι, M i) :=

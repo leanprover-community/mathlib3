@@ -211,23 +211,21 @@ begin
     simp only [inv_smul_smul], },
 end
 
+@[to_additive] lemma disjoint_image_image_iff {U V : set β} :
+  disjoint (quotient.mk '' U) (quotient.mk '' V) ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
+begin
+  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
+  refine ⟨λ h x x_in_U a a_in_V, h ⟨⟨x, x_in_U, quotient.sound ⟨a⁻¹, _⟩⟩, ⟨a • x, a_in_V, rfl⟩⟩, _⟩,
+  { simp },
+  { rintro h x ⟨⟨y, hy₁, hy₂⟩, ⟨z, hz₁, hz₂⟩⟩,
+    obtain ⟨a, rfl⟩ := quotient.exact (hz₂.trans hy₂.symm),
+    exact h y hy₁ a hz₁ }
+end
+
 @[to_additive]
 lemma image_inter_image_iff (U V : set β) :
   (quotient.mk '' U) ∩ (quotient.mk '' V) = ∅ ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
-begin
-  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
-  rw set.eq_empty_iff_forall_not_mem,
-  split,
-  { intros h x x_in_U a a_in_V,
-    refine h (f (a • x)) ⟨⟨x, x_in_U, _⟩, ⟨a • x, a_in_V, rfl⟩⟩,
-    rw quotient.eq,
-    use a⁻¹,
-    simp, },
-  { rintros h x ⟨⟨y, hy₁, hy₂⟩, ⟨z, hz₁, hz₂⟩⟩,
-    obtain ⟨a, ha⟩ := quotient.exact (hz₂.trans hy₂.symm),
-    apply h y hy₁ a,
-    convert hz₁, },
-end
+set.disjoint_iff_inter_eq_empty.symm.trans disjoint_image_image_iff
 
 variables (α) (β)
 local notation `Ω` := (quotient $ orbit_rel α β)

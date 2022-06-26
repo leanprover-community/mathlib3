@@ -60,7 +60,7 @@ instance : inhabited (closeds α) := ⟨⊥⟩
 @[simp] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
 
-lemma coe_finset_Sup {ι : Type*} (f : ι → closeds α) (s : finset ι) :
+lemma coe_finset_sup {ι : Type*} (f : ι → closeds α) (s : finset ι) :
   (↑(s.sup f) : set α) = ⋃ i ∈ s, f i :=
 begin
   have : is_closed (⋃ i ∈ s, (f i : set α)) :=

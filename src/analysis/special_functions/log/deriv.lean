@@ -296,7 +296,7 @@ A lemma expanding the log of a fraction. The goal is to use it in `power_series_
 lemma log_succ_div_eq_log_sub {a : ℝ} (h : 0 < a) :
   log ((a + 1) / a) = log (1 + 1 / (2 * a + 1)) - log (1 - 1 / (2 * a + 1)) :=
 begin
-  have h₀ : (2 : ℝ) * a + 1 ≠ 0, by { linarith, },
+  have h₀ : (2 : ℝ) * a + 1 ≠ 0 := by linarith,
   have h₁ := h.ne',
   rw ← log_div,
   { apply congr_arg log,

@@ -802,58 +802,6 @@ finset.cons_induction_on s rfl $ λ a s has ih, by rw [prod_cons has, ih,
 
 end
 
-/-- Given a map `• : G × M → M` for `M` a `k`-module, the map `k[G] × M → M` sending
-`(Σ kᵢgᵢ, m) ↦ Σ kᵢ• (gᵢ • m)`. -/
-instance total_scalar {k : Type*} [semiring k] {G : Type*} [monoid G] {M : Type*}
-  [add_comm_monoid M] [has_scalar G M] [module k M] :
-  has_scalar (monoid_algebra k G) M :=
-⟨λ g m, finsupp.total G M k (λ g, g • m) g⟩
-
-/-- Given a map `• : G × M → M` for `M` a `k`-module, `(r • Σ kᵢgᵢ) • m = r • (Σ kᵢ • (gᵢ • m))`
-for all `r ∈ k`, `Σ kᵢgᵢ ∈ k[G]`, `m ∈ M.` -/
-instance total_is_scalar_tower {k : Type*} [semiring k] {G : Type*} [monoid G]
-  {M : Type*} [add_comm_monoid M] [has_scalar G M] [module k M] :
-  is_scalar_tower k (monoid_algebra k G) M :=
-{ smul_assoc := λ g x m,
-  begin
-    show finsupp.total _ _ _ _ _ = g • finsupp.total _ _ _ _ _,
-    simp only [ring_hom.id_apply, linear_map.map_smulₛₗ],
-  end }
-
-/-- If `M` has compatible `G`-module and `k`-module structures for a semiring `k`,
-it is also a `k[G]`-module. -/
-instance total_to_module {k : Type*} [semiring k] {G : Type*} [monoid G]
-  {M : Type*} [add_comm_monoid M] [distrib_mul_action G M] [module k M]
-  [smul_comm_class k G M] :
-  module (monoid_algebra k G) M :=
-{ smul := λ g m, finsupp.total G M k (λ g, g • m) g,
-  one_smul := λ b, by
-  { dsimp,
-    show finsupp.total _ _ _ _ _ = _,
-    erw [finsupp.total_single],
-    simp only [one_smul] },
-  mul_smul := λ g h m, by
-  { refine g.induction_on _ _ _,
-    { intros g,
-      dsimp,
-      rw [monoid_algebra.mul_def, finsupp.sum_single_index],
-      { simp only [one_mul, one_smul, finsupp.total_single],
-        simp only [finsupp.total_single, linear_map.map_finsupp_sum],
-        rw [finsupp.total_apply, finsupp.smul_sum],
-        simp only [mul_smul, smul_comm] },
-      { simp }},
-    { intros x y hx hy,
-      simp only [add_mul, linear_map.map_add] at ⊢ hx hy,
-      simp only [hx, hy] },
-    { intros r f hf,
-      rw [smul_assoc, smul_mul_assoc, smul_assoc, hf] }},
-  smul_add := λ g b c, by
-    { simp only [smul_add, finsupp.total_apply, finsupp.sum_add], },
-  smul_zero := λ x, by
-    simp only [finsupp.total_apply, finsupp.sum_zero, smul_zero],
-  add_smul := λ r s x, linear_map.map_add _ _ _,
-  zero_smul := λ x, linear_map.map_zero _ }
-
 section -- We now prove some additional statements that hold for group algebras.
 variables [semiring k] [group G]
 local attribute [reducible] monoid_algebra

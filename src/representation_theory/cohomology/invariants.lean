@@ -1,3 +1,4 @@
+#exit
 import representation_theory.invariants
 import representation_theory.cohomology.shenyang
 import representation_theory.cohomology.op_complex
@@ -14,11 +15,6 @@ variables {k : Type u} [comm_ring k] {G : Type u} [group G] {V : Type v}
 -- not sure this should exist because ... universes.. somehow
 instance fucksake (M : Rep k G) : has_coe (invariants M.ρ) M :=
 ⟨λ x, x.1⟩
-/-lemma representation.comm {M N : Type u} [add_comm_group M] [add_comm_group N]
-  [module k M] [module k N] {ρM : representation k G M} {ρN : representation k G N}
-  (f : Rep.of ρM ⟶ Rep.of ρN) (g : G) (x : M) :
-  f.hom (ρM g x) = ρN g (f.hom x) :=
-linear_map.ext_iff.1 (f.comm _) _-/
 
 lemma Rep.comm_apply {M N : Rep k G} (f : M ⟶ N) (g : G) (x : M) :
   f.hom ((M.ρ g).as_hom x) = (N.ρ g).as_hom (f.hom x) :=
@@ -93,7 +89,7 @@ def ker_equiv_invariants : (cochain.d ρ 0).ker ≃ₗ[k] invariants ρ :=
   right_inv := λ x, by ext; refl,
   ..ker_to_invariants ρ }
 
-def zeroth : (cochain_cx ρ).homology 0 ≃ₗ[k] invariants ρ :=
+def zeroth_cohomology : (cochain_cx ρ).homology 0 ≃ₗ[k] invariants ρ :=
 (cochain_complex.Module_zeroth_iso_ker _).to_linear_equiv.trans
   (ker_equiv_invariants ρ)
 

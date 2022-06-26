@@ -3,6 +3,7 @@ Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
+#exit
 import group_theory.group_action.basic
 import data.fin_simplicial_complex
 import group_theory.free_abelian_group
@@ -11,162 +12,115 @@ import algebra.monoid_algebra.basic
 import representation_theory.cohomology.lemmas
 import representation_theory.cohomology.std_resn
 
-/-!
-# Group cohomology
-
-We describe an explicit model for the group cohomology groups `Hⁿ(G,M)`,
-as certain homogeneous cocycles over coboundaries.
-
--/
-
-namespace add_comm_group
--- a sensible add_comm_group constructor
-
-universe uA
-
-variables (A : Type uA) [has_add A] [has_zero A] [has_neg A]
-
-class add_comm_group_aux  : Prop :=
-(add_assoc : ∀ (a b c : A), (a + b) + c = a + (b + c))
-(zero_add : ∀ (a : A), 0 + a = a)
-(add_left_neg : ∀ (a : A), -a + a = 0)
-(add_comm : ∀ (a b : A), a + b = b + a)
-
-open add_comm_group_aux
-
-instance add_comm_group_aux.to_add_comm_group [add_comm_group_aux A] : add_comm_group A :=
-{ add := (+),
-  zero := 0,
-  neg := has_neg.neg,
-  add_zero := λ a, (add_comm_group_aux.add_comm 0 a) ▸ (zero_add a),
-  ..‹add_comm_group_aux A›}
-
-end add_comm_group
-
 namespace group_cohomology
 
-universes uG uM uA
+universes v u
 
-variables (G : Type uG) [group G] (M : Type uM) [add_comm_group M]
-  [distrib_mul_action G M] (n : ℕ)
+def homog_cochain {k : Type*} [comm_ring k] {G : Type*} [group G] {V : Type*} [add_comm_group V]
+  [module k V] (ρ : representation k G V) (n : ℕ) :
+  submodule k ((fin n → G) → V) :=
+{ carrier := {f | ∀ (s : G) (g : fin n → G), ρ s (f g) = f (λ i, s * g i)},
+  add_mem' := λ a b ha hb s g, by dsimp; rw [(ρ s).map_add, ha s g, hb s g]; refl,
+  zero_mem' := λ s g, (ρ s).map_zero,
+  smul_mem' := λ c f hf s g, by dsimp; rw [(ρ s).map_smul, hf s g] }
 
--- need the homogeneous cochains, cocycles and coboundaries
-/-- `cochain-succ G M n.succ` is homogeneous `n`-cochains, namely functions
-$$c:G^{n+1}\to M$$ which are homogeneous in the sense that for s in G, we have
-$$c((s*g_i)_i)=s\bub c((g_i)_i)$$.
--/
-@[ext] structure cochain_succ :=
-(to_fun : (fin n → G) → M)
--- to_fin is G-linear
-(smul_apply' : ∀ (s : G) (g : fin n → G), s • to_fun g = to_fun (λ i, s * g i))
+namespace homog_cochain
+section
 
-namespace cochain_succ
+variables {k : Type*} [comm_ring k] {G : Type*} [group G] {V : Type*} [add_comm_group V]
+  [module k V] (ρ : representation k G V) (n : ℕ)
 
-variables {G M n}
-instance : has_coe_to_fun (cochain_succ G M n) (λ _, (fin n → G) → M) :=
-{ coe := to_fun }
+variables {ρ n}
+instance : has_coe_to_fun (homog_cochain ρ n) (λ _, (fin n → G) → V) := ⟨coe⟩
 
-@[simp] lemma coe_eval (c : (fin n → G) → M)
-  (hc : ∀ (s : G) (g : fin n → G), s • c g = c (λ i, s * g i)) (g : fin n → G) :
-  (⟨c, hc⟩ : cochain_succ G M n) g = c g := rfl
+@[simp] lemma coe_apply (c : (fin n → G) → V)
+  (hc : ∀ (s : G) (g : fin n → G), ρ s (c g) = c (λ i, s * g i)) (g : fin n → G) :
+  (⟨c, hc⟩ : homog_cochain ρ n) g = c g := rfl
 
-@[simp] lemma to_fun_eval (c : cochain_succ G M n) (g : fin n → G) : c.to_fun g = c g := rfl
+--hm
+@[ext] theorem ext' (c₁ c₂ : homog_cochain ρ n) (h : ∀ g : fin n → G, c₁ g = c₂ g) : c₁ = c₂ :=
+by ext; exact h _
 
-@[ext] theorem ext' (c₁ c₂ : cochain_succ G M n) (h : ∀ g : fin n → G, c₁ g = c₂ g) : c₁ = c₂ :=
-ext c₁ c₂ $ funext h
-
-theorem ext_iff' (c₁ c₂ : cochain_succ G M n) : c₁ = c₂ ↔ ∀ g : fin n → G, c₁ g = c₂ g :=
+theorem ext_iff' (c₁ c₂ : homog_cochain ρ n) : c₁ = c₂ ↔ ∀ g : fin n → G, c₁ g = c₂ g :=
 ⟨λ h x, h ▸ rfl, ext' _ _⟩
 
-variables (G M n)
+@[simps] def d_aux {i j : ℕ} (hj : j = i + 1) (c : homog_cochain ρ i) : homog_cochain ρ j :=
+{ val := λ g, (finset.range j).sum (λ p, (-1 : k) ^ p • c $ λ t, g (fin.delta hj p t)),
+  property :=
+  begin
+    intros s g,
+    dsimp,
+    rw linear_map.map_sum,
+    refine finset.sum_congr rfl (λ x hx, _),
+    erw [linear_map.map_smul (ρ s) ((-1 : k) ^ x), c.2 s (g ∘ fin.delta hj x)],
+    refl,
+  end }
 
-def zero : cochain_succ G M n :=
-{ to_fun := 0,
-  smul_apply' := λ s g, smul_zero s }
+variables (ρ)
 
-instance : has_zero (cochain_succ G M n) := ⟨zero G M n⟩
+def d {i j : ℕ} (hj : j = i + 1) : homog_cochain ρ i →ₗ[k] homog_cochain ρ j :=
+{ to_fun := d_aux hj,
+  map_add' :=
+  begin
+    intros,
+    dsimp [d_aux],
+    ext,
+    dsimp,
+    simp only [smul_add, pi.add_apply, ←finset.sum_add_distrib],
+    refl,
+  end,
+  map_smul' :=
+  begin
+    intros,
+    dsimp [d_aux],
+    ext,
+    dsimp,
+    simp only [←mul_smul, mul_comm _ r],
+    simp only [mul_smul],
+    erw ←finset.smul_sum,
+    congr,
+  end }
 
-@[simp] lemma zero_apply (g : fin n → G) : (0 : cochain_succ G M n) g = 0 := rfl
+lemma d_eval {i j : ℕ} (hj : j = i + 1) (c : homog_cochain ρ i) (g : fin j → G) :
+  d ρ hj c g = (finset.range j).sum (λ p, (-1 : k)^p • c $ λ t, g $ fin.delta hj p t) := rfl
 
-variables {G M n}
-
-@[simp]
-lemma smul_apply (c : cochain_succ G M n) (s : G) (g : fin n → G) : s • c g = c (λ i, s * g i) :=
-c.smul_apply' s g
-
-def neg (c₁ : cochain_succ G M n): cochain_succ G M n :=
-{ to_fun := λ g, -c₁ g,
-  smul_apply' := λ s g, by {rw ← smul_apply, apply smul_neg }, }
-
-instance : has_neg (cochain_succ G M n) := ⟨neg⟩
-
-@[simp] lemma neg_apply (c : cochain_succ G M n) (g : fin n → G) :
-  (-c : cochain_succ G M n) g = -(c g) := rfl
-
-def add (c₁ c₂ : cochain_succ G M n) : cochain_succ G M n :=
-{ to_fun := λ g, c₁ g + c₂ g,
-  smul_apply' := by {intros, simp * at *}, }
-
-instance : has_add (cochain_succ G M n) := ⟨add⟩
-
-@[simp] lemma add_apply (c₁ c₂ : cochain_succ G M n) (g : fin n → G) : (c₁ + c₂) g = c₁ g + c₂ g :=
-rfl
-
-instance : add_comm_group.add_comm_group_aux (cochain_succ G M n) :=
-{ add_assoc := by { intros, ext, simp [add_assoc] },
-  zero_add := by {intros, ext, simp },
-  add_left_neg := by { intros, ext, simp },
-  add_comm := by {intros, ext, simp [add_comm] },
-}
-
-@[simp] lemma sub_apply (c₁ c₂ : cochain_succ G M n) (g : fin n → G) :
-  (c₁ - c₂) g = c₁ g - c₂ g :=
-begin
-  simp [sub_eq_add_neg],
 end
+section
+variables {k : Type u} [comm_ring k] [nontrivial k] {G : Type u} [group G] {V : Type u}
+  [add_comm_group V] [module k V] (ρ : representation k G V) (n : ℕ)
 
-@[simp] lemma int_smul_apply (c : cochain_succ G M n) (z : ℤ) (g : fin n → G) :
-  (z • c) g = z • (c g) :=
-begin
-  apply int.induction_on z,
-  { simp },
-  { intros i this, simpa [add_zsmul] },
-  { intros i this, rw [int.pred_smul, int.pred_smul, sub_apply, this] },
-end
+variables {i j : ℕ} (hj : j = i + 1) (c : homog_cochain ρ i) (g : fin j → G)
 
-def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j :=
-{ to_fun := λ c,
-  { to_fun := λ g, (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g (fin.delta hj p t)),
-    smul_apply' := λ s g, begin
-      simp only [finset.smul_sum, int_smul_apply, ← c.smul_apply, distrib_mul_action.smul_zsmul],
-    end },
-  map_zero' := begin ext, simp end,
-  map_add' := λ x y, by {ext, simp [finset.sum_add_distrib]} }
-
-lemma d_eval {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G) :
-  d hj c g = (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g $ fin.delta hj p t) := rfl
-variables {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G)
-#exit
 theorem total_d_eq_d :
-  finsupp.total (fin i → G) M ℤ c (group_ring.d G hj (group_ring.of _ g)) = d hj c g :=
+  finsupp.total (fin i → G) V k c ((Rep.d k G hj).hom (finsupp.single g (1 : k))) = d ρ hj c g :=
 begin
-  rw [d_eval, group_ring.d_of],
-  simp only [int_smul_apply, finsupp.total_single, linear_map.map_sum],
+  simp only [d_eval, Rep.d_of, Rep.d_aux_eq, linear_map.map_sum, finsupp.total_single],
+  refl,
 end
 
-theorem d_squared_eq_zero {i j k : ℕ} (hj : j = i + 1) (hk : k = j + 1) (c : cochain_succ G M i) :
-  d hk (d hj c) = 0 :=
+theorem d_squared_eq_zero {i j l : ℕ} (hj : j = i + 1) (hl : l = j + 1) (c : homog_cochain ρ i) :
+  d ρ hl (d ρ hj c) = 0 :=
 begin
   ext g,
-  suffices : d hk (d hj c) g = finsupp.total (fin i → G) M ℤ c (group_ring.d G hj
-    (group_ring.d G hk (group_ring.of _ g))),
-  by rwa [group_ring.d_squared, map_zero] at this,
-  simp only [←total_d_eq_d, group_ring.d_of, linear_map.map_sum, group_ring.d_single,
-    finsupp.total_single, mul_comm, mul_smul, finset.smul_sum],
+  suffices : d ρ hl (d ρ hj c) g = finsupp.total (fin i → G) V k c ((Rep.d k G hj).hom
+    ((Rep.d k G hl).hom (finsupp.single g (1 : k)))),
+  by rwa [Rep.d_squared, map_zero] at this,
+  rw ←total_d_eq_d,
+  rw Rep.d_of,
+  conv_lhs { rw Rep.d_aux_eq },
+  rw linear_map.map_sum,
+  simp only [finsupp.total_single], sorry
+/-  rw ←total_d_eq_d, rw Rep.d_of, rw Rep.d_aux_eq,
+  rw linear_map.map_sum,
+  simp only [finsupp.total_single, linear_map.map_sum, Rep.d_single, ←total_d_eq_d],
+  squeeze_simp,
+  simp only [←total_d_eq_d, Rep.d_of, linear_map.map_sum,
+    finsupp.total_single, mul_comm, mul_smul, finset.smul_sum],-/
  end
 
-end cochain_succ
-
+end
+end homog_cochain
+#exit
 -- I claim that I just resolved `ℤ` (+ trivial `G`-action) by finite free `ℤ[G]`-modules.
 
 end group_cohomology

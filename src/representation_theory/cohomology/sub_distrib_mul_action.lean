@@ -1,3 +1,4 @@
+#exit
 import tactic
 import group_theory.group_action.basic
 import group_theory.group_action.sub_mul_action

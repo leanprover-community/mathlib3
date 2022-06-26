@@ -1,3 +1,4 @@
+#exit
 import tactic.linarith
 import tactic.omega
 import tactic.fin_cases

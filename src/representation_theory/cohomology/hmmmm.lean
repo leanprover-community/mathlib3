@@ -1,3 +1,4 @@
+#exit
 import topology.category.Profinite.as_limit
 import representation_theory.cohomology.sles
 
@@ -51,7 +52,7 @@ by ext1; exact d_to_fun_square_zero _ _
 def cts_cochain_cx : cochain_complex (Module k) ℕ :=
 cochain_complex.of (λ n, Module.of k $ cts_cochain k G V n) (λ n, d_of_cts ρ n)
   (λ n, by { ext1, ext1, exact d_to_fun_square_zero _ _ })
-
+monoid_algebra Gⁿ k
 noncomputable abbreviation cts_coh (n : ℕ) := (cts_cochain_cx ρ).homology n
 
 variables (k) {H : Type u} [topological_space H] [group H] [topological_group H]

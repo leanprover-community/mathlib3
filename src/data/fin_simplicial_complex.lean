@@ -35,6 +35,10 @@ begin
   try {linarith},
 end
 
+lemma delta_comm {i j k : ℕ} (hj : j = i.succ) (hk : k = j.succ) {p q : ℕ}
+  (hpq : p ≤ q) : delta hk q.succ ∘ delta hj p = delta hk p ∘ delta hj q :=
+by ext1; exact delta_comm_apply hj hk hpq _
+
 theorem delta_comm_apply.symm {i j k : ℕ} (hj : j = i.succ) (hk : k = j.succ) {p q_succ : ℕ}
   (hpq : q_succ ≤ p) (t : fin i) :
   delta hk p.succ (delta hj q_succ t) = delta hk q_succ (delta hj p t) :=

@@ -19,26 +19,24 @@ complex of explicit homogeneous cochains.
 -/
 open group_cohomology
 universes v u
-variables (G : Type u) [group G] (M : Type u) [add_comm_group M]
-  [distrib_mul_action G M] (n : ℕ)
+variables (k : Type u) [comm_ring k] [nontrivial k] (G : Type u) [group G] (M : Type u) [add_comm_group M]
+  [module k M] (ρ : representation k G M) (n : ℕ)
 
 noncomputable theory
 
 open category_theory category_theory.limits
 open_locale zero_object
 
-def cochain_succ.complex : cochain_complex (Module ℤ) ℕ :=
-cochain_complex.of (λ n, Module.of ℤ $ cochain_succ G M (n + 1))
- (λ i, (cochain_succ.d rfl).to_int_linear_map)
- (λ i, linear_map.ext $ cochain_succ.d_squared_eq_zero rfl rfl)
+def cochain_succ.complex : cochain_complex (Module k) ℕ :=
+cochain_complex.of (λ n, Module.of k $ homog_cochain ρ (n + 1))
+ (λ i, homog_cochain.d ρ rfl)
+ (λ i, linear_map.ext $ homog_cochain.d_squared_eq_zero ρ rfl rfl)
 
 variables {C : Type*} [category C] [abelian C] (X : cochain_complex C ℕ)
-
-local attribute [instance] group_ring.to_module
-
+#exit
 /-- The group of homogeneous cochains `Gⁿ → M` is isomorphic to the group of
 `ℤ[G]`-linear homs `ℤ[Gⁿ] → M`. -/
-def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) →ₗ[group_ring G] M) :=
+def cochain_succ_add_equiv : homog_cochain ρ n ≃+ (group_ring (fin n → G) →ₗ[group_ring G] M) :=
 { to_fun := λ f,
   { map_smul' := λ g x, by { refine group_ring.map_smul_of_map_smul_of
         (finsupp.lift_add_hom (λ v, zmultiples_hom M (f v))) _ _ _,
@@ -87,7 +85,7 @@ def cochain_succ_add_equiv : cochain_succ G M n ≃+ (group_ring (fin n → G) �
     dsimp,
     simp only [one_smul] } }
 
-@[simp] lemma cochain_succ_add_equiv_apply {f : cochain_succ G M n} {x} :
+@[simp] lemma cochain_succ_add_equiv_apply {f : homog_cochain ρ n} {x} :
   cochain_succ_add_equiv G M n f x = finsupp.lift_add_hom (λ v, zmultiples_hom M (f v)) x := rfl
 
 @[simp] lemma cochain_succ_add_equiv_symm_apply {f : group_ring (fin n → G) →ₗ[group_ring G] M} {x} :
@@ -132,8 +130,8 @@ begin
   refl,
 end
 
-lemma cochain_succ_comm_aux (x : cochain_succ G M (n + 1)) :
-  cochain_succ_add_equiv _ _ _ (cochain_succ.d rfl x)
+lemma cochain_succ_comm_aux (x : homog_cochain ρ (n + 1)) :
+  cochain_succ_add_equiv _ _ _ (homog_cochain.d rfl x)
     = (cochain_succ_add_equiv _ _ _ x).comp (group_ring.d G rfl) :=
 begin
   ext g,
@@ -151,8 +149,8 @@ begin
     simp only [add_monoid_hom.map_zsmul, linear_map.map_smul_of_tower, hf]}
 end
 
-lemma cochain_succ_comm (x : cochain_succ G M (n + 1)) :
-  cochain_succ_add_equiv _ _ _ (cochain_succ.d rfl x) = ((map_std_resn G M).d _ _).unop
+lemma cochain_succ_comm (x : homog_cochain ρ (n + 1)) :
+  cochain_succ_add_equiv _ _ _ (homog_cochain.d rfl x) = ((map_std_resn G M).d _ _).unop
     (hom_equiv_yoneda _ _ _ (cochain_succ_add_equiv G M _ x)) :=
 begin
   rw [map_std_resn_d_apply, cochain_succ_comm_aux],
@@ -161,7 +159,7 @@ end
 
 lemma cochain_succ_symm_comm (x : group_ring (fin (n + 1) → G) →ₗ[group_ring G] M) :
   (cochain_succ_add_equiv G M _).symm (((map_std_resn G M).d _ _).unop (hom_equiv_yoneda _ _ _ x))
-    = cochain_succ.d rfl ((cochain_succ_add_equiv G M _).symm x) :=
+    = homog_cochain.d rfl ((cochain_succ_add_equiv G M _).symm x) :=
 begin
   rw [add_equiv.symm_apply_eq, cochain_succ_comm, add_equiv.apply_symm_apply],
 end
@@ -200,7 +198,7 @@ def map_std_resn_to_cochain_succ :
 def homotopy_equiv_cochain_succ :
   homotopy_equiv (cochain_succ.complex G M) (map_std_resn G M).unop_obj :=
 { hom := cochain_succ_to_map_std_resn G M,
-  inv := map_std_resn_to_cochain_succ G M,
+  inv := map_std_resn_to_homog_cochain ρ,
   homotopy_hom_inv_id := homotopy.of_eq $
   begin
     ext n x i,
@@ -218,7 +216,7 @@ def homotopy_equiv_cochain_succ :
   our proj res of `ℤ`. -/
 def cochain_succ_homology_iso :
   (cochain_succ.complex G M).homology n ≅ (map_std_resn G M).unop_obj.homology n :=
-homology_obj_iso_of_homotopy_equiv (homotopy_equiv_cochain_succ G M) n
+homology_obj_iso_of_homotopy_equiv (homotopy_equiv_homog_cochain ρ) n
 #check chain_complex.homology_unop (map_std_resn G M) n
 /-- This has type
   `opposite.op ((map_std_resn G M).unop_obj.homology n) ≅ (map_std_resn G M).homology n`,

@@ -1,3 +1,4 @@
+#exit
 import representation_theory.cohomology.shenyang
 import representation_theory.invariants
 import representation_theory.cohomology.one_cocycles
@@ -34,6 +35,7 @@ def quotient_action_aux [h1 : S.normal] (g : G) :
   by {refine m.2 (⟨g⁻¹ * h * g, _⟩ : S),
   convert subgroup.normal.conj_mem h1 (h : S) h.2 g⁻¹, rw inv_inv},
   conv_rhs {rw ←this},
+
   sorry,
   --rw [←ρ.map_mul, ←mul_assoc, mul_inv_cancel_left, mul_smul],
   --refl

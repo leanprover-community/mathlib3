@@ -96,14 +96,13 @@ instance : inhabited ρ.as_module := ⟨0⟩
 instance {V : Type*} [add_comm_group V] [module k V] (ρ : representation k G V) :
   add_comm_group ρ.as_module := by dunfold as_module; apply_instance
 
-instance : module k ρ.as_module := by dunfold as_module; apply_instance
+instance as_module_module : module k ρ.as_module := by dunfold as_module; apply_instance
 
-/--
-A `k`-linear representation of `G` on `V` can be thought of as
-a module over `monoid_algebra k G`.
--/
-noncomputable def as_module_module : module (monoid_algebra k G) V :=
-  module.comp_hom V (as_algebra_hom ρ).to_ring_hom
+noncomputable instance as_module_module' : module (monoid_algebra k G) ρ.as_module :=
+begin
+  change module (monoid_algebra k G) V,
+  exact module.comp_hom V (as_algebra_hom ρ).to_ring_hom,
+end
 
 end monoid_algebra
 

@@ -1,3 +1,4 @@
+#exit
 import representation_theory.invariants
 
 universes v u

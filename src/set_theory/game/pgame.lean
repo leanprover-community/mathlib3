@@ -691,55 +691,57 @@ end
 /-! ### Pre-game comparison -/
 
 /-- The type representing the possible outcomes for the comparison of two games. -/
-inductive ordering
+inductive game_ordering
 | lt
 | equiv
 | gt
 | fuzzy
 
-namespace ordering
+namespace game_ordering
 
-def swap : ordering → ordering
+instance : inhabited game_ordering := ⟨equiv⟩ 
+
+instance : has_repr game_ordering :=
+⟨(λ s, match s with
+| game_ordering.lt := "lt"
+| game_ordering.equiv := "equiv"
+| game_ordering.gt := "gt"
+| game_ordering.fuzzy := "fuzzy"
+end)⟩
+
+instance : decidable_eq game_ordering :=
+λ a b, begin
+  cases a;
+  cases b;
+  try { exact is_true rfl };
+  try { exact is_false (λ h, game_ordering.no_confusion h) }
+end
+
+def swap : game_ordering → game_ordering
 | lt := gt
 | equiv := equiv
 | gt := lt
 | fuzzy := fuzzy
 
-@[simp] theorem swap_swap (o : ordering) : o.swap.swap = o :=
+@[simp] theorem swap_swap (o : game_ordering) : o.swap.swap = o :=
 by { cases o; refl }
 
 @[simp] theorem swap_lt : lt.swap = gt := rfl
-@[simp] theorem swap_equiv : ordering.equiv.swap = ordering.equiv := rfl
+@[simp] theorem swap_equiv : game_ordering.equiv.swap = game_ordering.equiv := rfl
 @[simp] theorem swap_gt : gt.swap = lt := rfl
-@[simp] theorem swap_fuzzy : ordering.fuzzy.swap = fuzzy := rfl
+@[simp] theorem swap_fuzzy : game_ordering.fuzzy.swap = fuzzy := rfl
 
-@[simp] theorem swap_inj (o₁ o₂ : ordering) : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
+@[simp] theorem swap_inj (o₁ o₂ : game_ordering) : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
 by { cases o₁; cases o₂; simp }
 
-end ordering
-
-instance : has_repr ordering :=
-⟨(λ s, match s with
-| ordering.lt := "lt"
-| ordering.equiv := "equiv"
-| ordering.gt := "gt"
-| ordering.fuzzy := "fuzzy"
-end)⟩
-
-instance : decidable_eq ordering :=
-λ a b, begin
-  cases a;
-  cases b;
-  try { exact is_true rfl };
-  try { exact is_false (λ h, ordering.no_confusion h) }
-end
+end game_ordering
 
 /-- Compares two pre-games. -/
-noncomputable def cmp (x y : pgame) : ordering :=
+noncomputable def cmp (x y : pgame) : game_ordering :=
 by { classical, exact if x ≤ y then
-  if y ≤ x then ordering.equiv else ordering.lt
+  if y ≤ x then game_ordering.equiv else game_ordering.lt
 else
-  if y ≤ x then ordering.gt else ordering.fuzzy }
+  if y ≤ x then game_ordering.gt else game_ordering.fuzzy }
 
 @[simp] theorem cmp_swap (x y : pgame) : (cmp x y).swap = cmp y x :=
 begin
@@ -749,9 +751,9 @@ begin
 end
 
 theorem cmp_eq_cmp_iff_cmp_eq_cmp {w x y z : pgame} : cmp w x = cmp y z ↔ cmp x w = cmp z y :=
-by rw [←ordering.swap_inj, cmp_swap, cmp_swap]
+by rw [←game_ordering.swap_inj, cmp_swap, cmp_swap]
 
-@[simp] theorem cmp_eq_lt_iff {x y : pgame} : cmp x y = ordering.lt ↔ x < y :=
+@[simp] theorem cmp_eq_lt_iff {x y : pgame} : cmp x y = game_ordering.lt ↔ x < y :=
 begin
   by_cases h₁ : x ≤ y;
   by_cases h₂ : y ≤ x;
@@ -763,7 +765,7 @@ begin
   { exact h₁.not_gt }
 end
 
-@[simp] theorem cmp_eq_equiv_iff {x y : pgame} : cmp x y = ordering.equiv ↔ x ≈ y :=
+@[simp] theorem cmp_eq_equiv_iff {x y : pgame} : cmp x y = game_ordering.equiv ↔ x ≈ y :=
 begin
   by_cases h₁ : x ≤ y;
   by_cases h₂ : y ≤ x;
@@ -775,10 +777,10 @@ begin
   { exact h₂.not_equiv }
 end
 
-@[simp] theorem cmp_eq_gt_iff {x y : pgame} : cmp x y = ordering.gt ↔ y < x :=
-by rw [←ordering.swap_inj, cmp_swap, ordering.swap_gt, cmp_eq_lt_iff]
+@[simp] theorem cmp_eq_gt_iff {x y : pgame} : cmp x y = game_ordering.gt ↔ y < x :=
+by rw [←game_ordering.swap_inj, cmp_swap, game_ordering.swap_gt, cmp_eq_lt_iff]
 
-@[simp] theorem cmp_eq_fuzzy_iff {x y : pgame} : cmp x y = ordering.fuzzy ↔ x ∥ y :=
+@[simp] theorem cmp_eq_fuzzy_iff {x y : pgame} : cmp x y = game_ordering.fuzzy ↔ x ∥ y :=
 begin
   by_cases h₁ : x ≤ y;
   by_cases h₂ : y ≤ x;
@@ -791,11 +793,11 @@ begin
 end
 
 theorem le_iff_cmp_eq_lt_or_equiv {x y : pgame} :
-  x ≤ y ↔ cmp x y = ordering.lt ∨ cmp x y = ordering.equiv :=
+  x ≤ y ↔ cmp x y = game_ordering.lt ∨ cmp x y = game_ordering.equiv :=
 by simpa using le_iff_lt_or_equiv
 
 theorem lf_iff_cmp_eq_lt_or_fuzzy {x y : pgame} :
-  x ⧏ y ↔ cmp x y = ordering.lt ∨ cmp x y = ordering.fuzzy :=
+  x ⧏ y ↔ cmp x y = game_ordering.lt ∨ cmp x y = game_ordering.fuzzy :=
 by simpa using lf_iff_lt_or_fuzzy
 
 theorem cmp_eq_iff_le_iff_le {w x y z : pgame} :

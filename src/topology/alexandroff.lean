@@ -385,7 +385,7 @@ begin
   induction x using alexandroff.rec; induction y using alexandroff.rec,
   { exact (hxy rfl).elim },
   { rcases key y with ⟨u, v, hu, hv, hxu, hyv, huv⟩,
-    exact ⟨v, u, hv, hu, hyv, hxu, (inter_comm u v) ▸ huv⟩ },
+    exact ⟨v, u, hv, hu, hyv, hxu, huv.symm⟩ },
   { exact key x },
   { exact separated_by_open_embedding open_embedding_coe (mt coe_eq_coe.mpr hxy) }
 end

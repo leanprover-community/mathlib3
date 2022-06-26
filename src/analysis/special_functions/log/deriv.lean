@@ -272,9 +272,6 @@ end
 lemma has_sum_log_sub_log_of_abs_lt_1 {x : ℝ} (h : |x| < 1) :
   has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * x ^ (2 * k + 1)) (log (1 + x) - log(1 - x)) :=
 begin
-  have h₁ := has_sum_pow_div_log_of_abs_lt_1 h,
-  have h₂ := (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)).mul_left (-1),
-  rw [neg_one_mul, neg_neg, sub_neg_eq_add 1 x] at h₂,
   let term := λ n : ℕ, (-1) * ((-x) ^ (n + 1) / ((n : ℝ) + 1)) + x ^ (n + 1) / (n + 1),
   have h_term_eq_goal : term ∘ (*) 2 = λ k : ℕ, 2 * (1 / (2 * k + 1)) * x ^ (2 * k + 1),
   { ext n,
@@ -283,10 +280,13 @@ begin
     push_cast,
     ring_nf, },
   rw [← h_term_eq_goal, (nat.mul_right_injective two_pos).has_sum_iff],
-  { exact h₂.add h₁, },
+  { have h₁ := has_sum_pow_div_log_of_abs_lt_1 h,
+    have h₂ := (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)).mul_left (-1),
+    rw [neg_one_mul, neg_neg, sub_neg_eq_add 1 x] at h₂,
+    exact h₂.add h₁, },
   { intros m hm,
     rw [range_two_mul, set.mem_set_of_eq] at hm,
-    refine (eq.refl ((-1) * ((-x) ^ (m + 1) / (↑m + 1)) + x ^ (m + 1) / (↑m + 1) = 0)).mpr _,
+    dsimp [term],
     rw [even.neg_pow (nat.even_succ.mpr hm), nat.succ_eq_add_one, neg_one_mul, neg_add_self] },
 end
 
@@ -311,14 +311,14 @@ end
 theorem power_series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
   (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
   (log ((a + 1) / a)) :=
- begin
+begin
   have h₁ : |1 / (2 * a + 1)| < 1,
   { rw [abs_of_pos, div_lt_one],
     { linarith, },
     { linarith, },
     { refine div_pos one_pos (by linarith), }, },
   rw log_succ_div_eq_log_sub h,
-    exact has_sum_log_sub_log_of_abs_lt_1 h₁,
- end
+  exact has_sum_log_sub_log_of_abs_lt_1 h₁,
+end
 
 end real

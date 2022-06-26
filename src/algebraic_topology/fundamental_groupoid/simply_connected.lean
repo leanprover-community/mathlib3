@@ -41,18 +41,15 @@ by { rw [simply_connected_def, equiv_punit_iff_unique], refl, }
 namespace simply_connected_space
 variables {X : Type*} [topological_space X] [simply_connected_space X]
 
-lemma unique_homotopic (x y : X) : nonempty (unique (path.homotopic.quotient x y)) :=
-((simply_connected_iff_unique_homotopic X).mp infer_instance).2 x y
-
 instance (x y : X) : subsingleton (path.homotopic.quotient x y) :=
-@unique.subsingleton _ (unique_homotopic x y).some
+@unique.subsingleton _ (nonempty.some (by { rw simply_connected_iff_unique_homotopic at *, tauto }))
 
 local attribute [instance] path.homotopic.setoid
 
 @[priority 100]
 instance : path_connected_space X :=
-{ nonempty := ((simply_connected_iff_unique_homotopic X).mp infer_instance).1,
-  joined := λ x y, ⟨(unique_homotopic x y).some.default.out⟩ }
+let unique_homotopic := (simply_connected_iff_unique_homotopic X).mp infer_instance in
+{ nonempty := unique_homotopic.1, joined := λ x y, ⟨(unique_homotopic.2 x y).some.default.out⟩, }
 
 /-- In a simply connected space, any two paths are homotopic -/
 lemma paths_homotopic {x y : X} (p₁ p₂ : path x y) : path.homotopic p₁ p₂ :=

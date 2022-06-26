@@ -82,21 +82,10 @@ begin
     have : 2 * (m.succ : ℝ) + 1 ≠ 0, {norm_cast, exact succ_ne_zero (2*m.succ)},
     field_simp,
     ring },
-  { have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / 2 * b - c - (d - 1 / 2 * e - f) =
-      (a - d) - 1 / 2  * (b - e) - (c - f),
-    { intros, ring_nf },
-    rw [log_stirling_seq_formula, log_stirling_seq_formula, h_reorder],
-    repeat {rw [log_div, factorial_succ]},
-    push_cast,
-    repeat {rw log_mul},
-    rw log_exp,
-    ring_nf,
-    all_goals {norm_cast},
-    { rw [range_one, sum_singleton, mul_zero, zero_add, cast_one, pow_zero, one_mul, inv_one,
-        sub_self, add_zero] },
-    all_goals {try {refine mul_ne_zero _ _}, try {exact succ_ne_zero _}},
-    any_goals {exact factorial_ne_zero m},
-    any_goals {exact exp_ne_zero 1} },
+  { simp only [log_stirling_seq_formula, log_div, log_mul, log_exp, factorial_succ, cast_mul,
+    cast_succ, cast_zero, range_one, sum_singleton] { discharger :=
+    `[norm_cast, apply_rules [mul_ne_zero, succ_ne_zero, factorial_ne_zero, exp_ne_zero]] },
+    ring },
   { apply_instance }
 end
 

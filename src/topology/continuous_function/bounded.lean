@@ -1072,11 +1072,23 @@ instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
 @[simp] lemma coe_pow (n : ℕ) (f : α →ᵇ R) : ⇑(f ^ n) = f ^ n := rfl
 @[simp] lemma pow_apply (n : ℕ) (f : α →ᵇ R) (v : α) : (f ^ n) v = f v ^ n := rfl
 
+instance : has_nat_cast (α →ᵇ R) :=
+⟨λ n, bounded_continuous_function.const _ n⟩
+
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : α →ᵇ R) : α → R) = n := rfl
+
+instance : has_int_cast (α →ᵇ R) :=
+⟨λ n, bounded_continuous_function.const _ n⟩
+
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
+
 instance : ring (α →ᵇ R) :=
 fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
   (λ _ _, coe_nsmul _ _)
   (λ _ _, coe_zsmul _ _)
   (λ _ _, coe_pow _ _)
+  coe_nat_cast
+  coe_int_cast
 
 instance : semi_normed_ring (α →ᵇ R) :=
 { ..bounded_continuous_function.non_unital_semi_normed_ring }

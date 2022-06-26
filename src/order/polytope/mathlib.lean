@@ -9,14 +9,14 @@ import data.finsupp.order
 import data.nat.succ_pred
 import data.sum.order
 import order.atoms
-import order.locally_finite
 import order.chain
+import order.locally_finite
 
 /-!
 # To move
 -/
 
-open finset function
+open finset function order
 
 variables {ι α β : Type*} {σ : ι → Type*}
 
@@ -216,12 +216,39 @@ lemma is_min_iff : is_min a ↔ ∀ i, is_min (a i) :=
 end pi
 
 namespace sum
-variables [preorder α] [preorder β]
+variables [preorder α] [preorder β] {a : α} {b : β}
 
-@[simp] lemma is_min_inl_iff {a : α} : is_min (inl a : α ⊕ β) ↔ is_min a := sorry
-@[simp] lemma is_min_inr_iff {b : β} : is_min (inr b : α ⊕ β) ↔ is_min b := sorry
-@[simp] lemma is_max_inl_iff {a : α} : is_max (inl a : α ⊕ β) ↔ is_max a := sorry
-@[simp] lemma is_max_inr_iff {b : β} : is_max (inr b : α ⊕ β) ↔ is_max b := sorry
+@[simp] lemma is_min_inl_iff : is_min (inl a : α ⊕ β) ↔ is_min a :=
+begin
+  refine ⟨λ h b hb, inl_le_inl_iff.1 $ h $ inl_le_inl_iff.2 hb, λ h b hb, _⟩,
+  cases b,
+  { exact inl_le_inl_iff.2 (h $ inl_le_inl_iff.1 hb) },
+  { cases hb }
+end
+
+@[simp] lemma is_min_inr_iff : is_min (inr b : α ⊕ β) ↔ is_min b :=
+begin
+  refine ⟨λ h b hb, inr_le_inr_iff.1 $ h $ inr_le_inr_iff.2 hb, λ h b hb, _⟩,
+  cases b,
+  { cases hb },
+  { exact inr_le_inr_iff.2 (h $ inr_le_inr_iff.1 hb) }
+end
+
+@[simp] lemma is_max_inl_iff : is_max (inl a : α ⊕ β) ↔ is_max a :=
+begin
+  refine ⟨λ h b hb, inl_le_inl_iff.1 $ h $ inl_le_inl_iff.2 hb, λ h b hb, _⟩,
+  cases b,
+  { exact inl_le_inl_iff.2 (h $ inl_le_inl_iff.1 hb) },
+  { cases hb }
+end
+
+@[simp] lemma is_max_inr_iff : is_max (inr b : α ⊕ β) ↔ is_max b :=
+begin
+  refine ⟨λ h b hb, inr_le_inr_iff.1 $ h $ inr_le_inr_iff.2 hb, λ h b hb, _⟩,
+  cases b,
+  { cases hb },
+  { exact inr_le_inr_iff.2 (h $ inr_le_inr_iff.1 hb) }
+end
 
 end sum
 
@@ -235,6 +262,10 @@ lemma strict_mono.sum_elim (hf : strict_mono f) (hg : strict_mono g) : strict_mo
 | (inl a) (inl b) (lift_rel.inl h) := hf h
 | (inr a) (inr b) (lift_rel.inr h) := hg h
 
+lemma strict_anti.sum_elim (hf : strict_anti f) (hg : strict_anti g) : strict_anti (sum.elim f g)
+| (inl a) (inl b) (lift_rel.inl h) := hf h
+| (inr a) (inr b) (lift_rel.inr h) := hg h
+
 end
 
 namespace list
@@ -242,21 +273,33 @@ variables {l : list α} {a : α}
 
 lemma sublist.rfl : l <+ l := sublist.refl _
 
-lemma sublist_singleton : Π {l : list α} {a : α}, l <+ [a] → l = nil ∨ l = [a]
-| _ _ (sublist.cons  _ _  _ _ ) := by apply or.inl; rwa ←sublist_nil_iff_eq_nil
-| _ _ (sublist.cons2 a [] _ hl) := begin
-  rw sublist_nil_iff_eq_nil at hl,
-  rw hl,
-  exact or.inr rfl
-end
+lemma sublist_singleton : Π {l} {a : α}, l <+ [a] → l = [] ∨ l = [a]
+| _ _ (sublist.cons  _ _  _ _ ) := or.inl $ by rwa ←sublist_nil_iff_eq_nil
+| _ _ (sublist.cons2 l [] a hl) := or.inr $ by rw sublist_nil_iff_eq_nil.1 hl
 
-lemma sublist_singleton_iff : l <+ [a] ↔ l = nil ∨ l = [a] :=
+lemma sublist_singleton_iff : l <+ [a] ↔ l = [] ∨ l = [a] :=
 ⟨sublist_singleton, begin
   rintro (rfl | rfl),
   { exact nil_sublist _ },
   { exact sublist.rfl }
 end⟩
 
+lemma subperm.rfl : l <+~ l := subperm.refl _
+
+lemma subperm_singleton : l <+~ [a] → l = nil ∨ l = [a] :=
+begin
+  rintro ⟨l', hl, hl'⟩,
+  obtain rfl | rfl := sublist_singleton hl',
+  { exact or.inl hl.symm.eq_nil },
+  { exact or.inr hl.symm.eq_singleton }
+end
+
+lemma subperm_singleton_iff' : l <+~ [a] ↔ l = nil ∨ l = [a] :=
+⟨subperm_singleton, begin
+  rintro (rfl | rfl),
+  { exact nil_subperm },
+  { exact subperm.rfl }
+end⟩
 
 end list
 
@@ -265,29 +308,26 @@ variables {s t : multiset α} {a : α}
 
 @[simp] lemma cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
 
-lemma cons_lt_cons_iff : a ::ₘ s < a ::ₘ t ↔ s < t :=
+@[simp] lemma cons_lt_cons_iff : a ::ₘ s < a ::ₘ t ↔ s < t :=
 lt_iff_lt_of_le_iff_le' (cons_le_cons_iff _) (cons_le_cons_iff _)
 
 lemma cons_lt_cons (a : α) (h : s < t) : a ::ₘ s < a ::ₘ t := cons_lt_cons_iff.2 h
 
-lemma lt_singleton : s < {a} ↔ s = 0 :=
+lemma le_singleton_iff : s ≤ {a} ↔ s = 0 ∨ s = {a} :=
+quot.induction_on s $ λ l, by simp only [singleton_eq_cons, singleton_coe, quot_mk_to_coe'', coe_le,
+  coe_eq_zero, coe_eq_coe, list.perm_singleton, list.subperm_singleton_iff']
+
+lemma lt_singleton_iff : s < {a} ↔ s = 0 :=
 begin
-  rcases s with ⟨s⟩,
-  change (↑s < ↑[a]) ↔ ↑s = _,
-  simp_rw [coe_eq_zero, lt_iff_cons_le, cons_coe, coe_le],
-  refine ⟨λ h, _, λ h, _⟩,
-  { rcases h with ⟨w, w', hw'w, hw'a⟩,
-    rw list.sublist_singleton_iff at hw'a,
-    obtain rfl | rfl := hw'a,
-    { rw list.nil_perm at hw'w, contradiction },
-    { rw [list.singleton_perm, list.cons.inj_eq] at hw'w,
-      rw hw'w.right } },
-  { use a,
-    induction h,
-    refl }
+  rw [lt_iff_le_and_ne, le_singleton_iff, or_and_distrib_right, or_iff_left (and_not_self _).1,
+    and_iff_left_of_imp],
+  rintro rfl,
+  rw singleton_eq_cons,
+  exact zero_ne_cons,
 end
 
-lemma covby_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m := ⟨lt_cons_self _ _, begin
+lemma covby_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m :=
+⟨lt_cons_self _ _, begin
   simp_rw lt_iff_cons_le,
   rintros m' ⟨b, hbm'⟩ ⟨c, hcm'⟩,
   apply @irrefl _ (<) _ m,
@@ -295,7 +335,7 @@ lemma covby_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m := ⟨lt_cons_self
   replace h := lt_of_lt_of_le h hcm',
   clear hbm' hcm',
   induction m using multiset.induction with d m hm,
-  { rw [cons_zero a, lt_singleton] at h,
+  { rw [cons_zero a, lt_singleton_iff] at h,
     exact (cons_ne_zero h).elim },
   { simp_rw cons_swap _ d at h,
     rw cons_lt_cons_iff at h ⊢,
@@ -305,12 +345,11 @@ end⟩
 lemma _root_.covby.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
 (lt_iff_cons_le.1 h.lt).imp $ λ a ha, ha.eq_of_not_gt $ h.2 $ lt_cons_self _ _
 
+lemma covby_iff : s ⋖ t ↔ ∃ a, t = a ::ₘ s :=
+⟨covby.exists_cons_multiset, by { rintro ⟨a, rfl⟩, exact covby_cons _ _ }⟩
+
 lemma _root_.covby.card_multiset (h : s ⋖ t) : s.card ⋖ t.card :=
-begin
-  obtain ⟨a, rfl⟩ := h.exists_cons_multiset,
-  rw card_cons,
-  exact order.covby_succ _,
-end
+by { obtain ⟨a, rfl⟩ := h.exists_cons_multiset, rw card_cons, exact covby_succ _ }
 
 lemma card_strict_mono : strict_mono (card : multiset α → ℕ) := λ _ _, card_lt_of_lt
 

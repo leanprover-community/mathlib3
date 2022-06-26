@@ -7,8 +7,6 @@ import order.locally_finite
 import tactic.linarith
 import .grade
 
-variables {α β : Type*} {n : ℕ}
-
 /-!
 # Diamond orders
 
@@ -16,6 +14,8 @@ This file defines diamond orders. An `n`-diamond order is a graded order where e
 whose grades differ by `2` have exactly `n` elements in between. Linear orders are `1`-diamond
 orders. Preorders satisfying the usual diamond condition are `2`-diamond orders.
 -/
+
+variables {α β : Type*} {n : ℕ}
 
 /-- A diamond order is a graded order where every two elements whose grades differ by `2` have
 exactly `n` elements in between. -/

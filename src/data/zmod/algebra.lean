@@ -16,16 +16,7 @@ namespace zmod
 variables (R : Type*) [ring R]
 
 instance (p : ℕ) : subsingleton (algebra (zmod p) R) :=
-⟨λ x y, begin
-  casesI p,
-  { exact @@subsingleton.elim int_algebra_subsingleton x y },
-  refine x.algebra_ext y (λ r, _),
-  convert_to (@algebra_map _ _ _ _ x) ((coe : zmod p.succ → zmod p.succ) r) =
-             (@algebra_map _ _ _ _ y) ((coe : zmod p.succ → zmod p.succ) r),
-  { rw [cast_id] },
-  { rw [cast_id] },
-  rw [←nat_cast_val r, ←nat.smul_one_eq_coe, map_nsmul, map_nsmul, map_one, map_one]
-end⟩
+⟨λ x y, algebra.algebra_ext _ _ $ ring_hom.congr_fun $ subsingleton.elim _ _⟩
 
 section
 variables {n : ℕ} (m : ℕ) [char_p R m]
@@ -45,10 +36,6 @@ def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 
 end
 
-section
-
 instance (p : ℕ) [char_p R p] : algebra (zmod p) R := algebra' R p dvd_rfl
-
-end
 
 end zmod

@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.special_functions.exp
 import topology.continuous_function.basic
+import analysis.normed.field.unit_ball
 
 /-!
 # The circle
@@ -36,14 +37,7 @@ open complex metric
 open_locale complex_conjugate
 
 /-- The unit circle in `ℂ`, here given the structure of a submonoid of `ℂ`. -/
-def circle : submonoid ℂ :=
-{ carrier := sphere (0:ℂ) 1,
-  one_mem' := by simp,
-  mul_mem' := λ a b, begin
-    simp only [norm_eq_abs, mem_sphere_zero_iff_norm],
-    intros ha hb,
-    simp [ha, hb],
-  end }
+def circle : submonoid ℂ := submonoid.unit_sphere ℂ
 
 @[simp] lemma mem_circle_iff_abs {z : ℂ} : z ∈ circle ↔ abs z = 1 := mem_sphere_zero_iff_norm
 
@@ -59,42 +53,26 @@ by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
 
 lemma ne_zero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := ne_zero_of_mem_unit_sphere z
 
-instance : comm_group circle :=
-{ inv := λ z, ⟨conj (z : ℂ), by simp⟩,
-  mul_left_inv := λ z, subtype.ext $ by { simp [has_inv.inv, ← norm_sq_eq_conj_mul_self,
-    ← mul_self_abs] },
-  .. circle.to_comm_monoid }
+instance : comm_group circle := metric.sphere.comm_group
 
-lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
+@[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ := rfl
 
-@[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
-begin
-  rw coe_inv_circle_eq_conj,
-  apply eq_inv_of_mul_eq_one_right,
-  rw [mul_comm, ← complex.norm_sq_eq_conj_mul_self],
-  simp,
-end
+lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) :=
+by rw [coe_inv_circle, inv_def, norm_sq_eq_of_mem_circle, inv_one, of_real_one, mul_one]
 
 @[simp] lemma coe_div_circle (z w : circle) : ↑(z / w) = (z:ℂ) / w :=
-show ↑(z * w⁻¹) = (z:ℂ) * w⁻¹, by simp
+circle.subtype.map_div z w
 
 /-- The elements of the circle embed into the units. -/
-@[simps]
-def circle.to_units : circle →* units ℂ :=
-{ to_fun := λ x, units.mk0 x $ ne_zero_of_mem_circle _,
-  map_one' := units.ext rfl,
-  map_mul' := λ x y, units.ext rfl }
+@[simps apply] def circle.to_units : circle →* units ℂ := unit_sphere_to_units ℂ
 
 instance : compact_space circle := metric.sphere.compact_space _ _
 
--- the following result could instead be deduced from the Lie group structure on the circle using
--- `topological_group_of_lie_group`, but that seems a little awkward since one has to first provide
--- and then forget the model space
-instance : topological_group circle :=
-{ continuous_mul := let h : continuous (λ x : circle, (x : ℂ)) := continuous_subtype_coe in
-    continuous_induced_rng (continuous_mul.comp (h.prod_map h)),
-  continuous_inv := continuous_induced_rng $
-    complex.conj_cle.continuous.comp continuous_subtype_coe }
+instance : topological_group circle := metric.sphere.topological_group
+
+/-- If `z` is a nonzero complex number, then `conj z / z` belongs to the unit circle. -/
+@[simps] def circle.of_conj_div_self (z : ℂ) (hz : z ≠ 0) : circle :=
+⟨conj z / z, mem_circle_iff_abs.2 $ by rw [complex.abs_div, abs_conj, div_self (abs_ne_zero.2 hz)]⟩
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
 def exp_map_circle : C(ℝ, circle) :=

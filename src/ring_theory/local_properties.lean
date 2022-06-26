@@ -122,8 +122,8 @@ def ring_hom.of_localization_span_target : Prop :=
   (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
   by exactI P f
 
--- /-- A property `P` of comm rings satisfies `of_localization_maximal` if
---   if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideal `m`. -/
+/-- A property `P` of comm rings satisfies `of_localization_maximal` if
+  if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideal `m`. -/
 def ring_hom.of_localization_prime : Prop :=
 ∀ {R S : Type u} [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
   by exactI (∀ (J : ideal S) (hJ : J.is_prime),
@@ -299,12 +299,6 @@ begin
   refl,
 end
 
-def range_submodule (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S] : submodule R S :=
-{ carrier := set.range (algebra_map R S),
-  zero_mem' := ⟨0, map_zero _⟩,
-  add_mem' := λ x y ⟨a, ha⟩ ⟨b, hb⟩, ⟨a+b, by rw [map_add, ha, hb]⟩,
-  smul_mem' := λ x y ⟨a, ha⟩, ⟨x*a, by rw [algebra.smul_def, map_mul, ha]⟩ }
-
 lemma surjective_of_localization_span :
   ring_hom.of_localization_span (λ R S _ _ f, function.surjective f) :=
 begin
@@ -313,7 +307,7 @@ begin
   resetI,
   letI := f.to_algebra,
   intro x,
-  apply submodule.mem_of_span_eq_top_of_smul_pow_mem (range_submodule R S) s e,
+  apply submodule.mem_of_span_eq_top_of_smul_pow_mem (algebra.of_id R S).to_linear_map.range s e,
   intro r,
   obtain ⟨a, e'⟩ := H r (algebra_map _ _ x),
   obtain ⟨b, ⟨_, n, rfl⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers (r : R)) a,

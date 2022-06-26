@@ -1510,7 +1510,7 @@ instance forget_to_Top_preserves_of_right :
   preserves_limit (cospan g f) Scheme.forget_to_Top := preserves_pullback_symmetry _ _ _
 
 lemma range_pullback_snd_of_left :
-  set.range (pullback.snd : pullback f g ⟶ _).1.base =
+  set.range (pullback.snd : pullback f g ⟶ Y).1.base =
     (opens.map g.1.base).obj ⟨set.range f.1.base, H.base_open.open_range⟩ :=
 begin
   rw [← (show _ = (pullback.snd : pullback f g ⟶ _).1.base,
@@ -1524,7 +1524,7 @@ begin
 end
 
 lemma range_pullback_fst_of_right :
-  set.range (pullback.fst : pullback g f ⟶ _).1.base =
+  set.range (pullback.fst : pullback g f ⟶ Y).1.base =
     (opens.map g.1.base).obj ⟨set.range f.1.base, H.base_open.open_range⟩ :=
 begin
   rw [← (show _ = (pullback.fst : pullback g f ⟶ _).1.base,
@@ -1597,16 +1597,16 @@ def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
   map_comp' := λ U V W i j, begin
     ext1,
     dsimp only [over.hom_mk_left, over.comp_left],
-    rw [← cancel_mono (X.of_restrict W.open_embedding), category.assoc,
-      is_open_immersion.lift_fac, is_open_immersion.lift_fac, is_open_immersion.lift_fac]
+    rw [← cancel_mono (X.of_restrict W.open_embedding), category.assoc],
+    iterate 3 { rw [is_open_immersion.lift_fac] }
   end }
 
 /-- The restriction of an isomorphism onto an open set. -/
 noncomputable
 abbreviation Scheme.restrict_map_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :
   X.restrict ((opens.map f.1.base).obj U).open_embedding ≅ Y.restrict U.open_embedding :=
-is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _)
 begin
+  refine is_open_immersion.iso_of_range_eq (X.of_restrict _ ≫ f) (Y.of_restrict _) _,
   dsimp [opens.inclusion],
   rw [coe_comp, set.range_comp],
   dsimp,

@@ -37,7 +37,7 @@ convergence theorems.
   whenever the process it is associated to is adapted.
 * `measure_theory.adapted.is_stopping_time_lower_crossing`: `lower_crossing` is a stopping time
   whenever the process it is associated to is adapted.
-* `measure_theory.submartingale.integral_mul_upcrossing_le_integral_pos_part`: Doob's upcrossing
+* `measure_theory.submartingale.mul_integral_upcrossing_le_integral_pos_part`: Doob's upcrossing
   estimate.
 
 ### References
@@ -611,7 +611,7 @@ lemma upcrossing_pos_eq (hab : a < b) :
   upcrossing 0 (b - a) (λ n x, (f n x - a)⁺) N x = upcrossing a b f N x :=
 by simp_rw [upcrossing, (crossing_pos_eq hab).1]
 
-private lemma integral_mul_upcrossing_le_integral_pos_part'' [is_finite_measure μ]
+private lemma mul_integral_upcrossing_le_integral_pos_part'' [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hN : 0 < N) (hab : a < b) :
   (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
@@ -623,7 +623,7 @@ begin
   refl,
 end
 
-private lemma integral_mul_upcrossing_le_integral_pos_part' [is_finite_measure μ]
+private lemma mul_integral_upcrossing_le_integral_pos_part' [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hab : a < b) :
   (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
@@ -631,19 +631,19 @@ begin
   { subst hN,
     simp only [upcrossing_zero, nat.cast_zero, integral_const, algebra.id.smul_eq_mul, mul_zero],
     exact integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _) },
-  { exact integral_mul_upcrossing_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
+  { exact mul_integral_upcrossing_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
 end
 
 /-- **Doob's upcrossing estimate**: given a real valued discrete submartingale `f` and real
 values `a` and `b`, we have `(b - a) * 𝔼[upcrossing a b f N] ≤ 𝔼[(f N - a)⁺]` where
 `upcrossing a b f N` is the number of times the process `f` crossed from below `a` to above
 `b` before the time `N`. -/
-lemma submartingale.integral_mul_upcrossing_le_integral_pos_part [is_finite_measure μ]
+lemma submartingale.mul_integral_upcrossing_le_integral_pos_part [is_finite_measure μ]
   (hf : submartingale f ℱ μ) :
   (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
   by_cases hab : a < b,
-  { exact integral_mul_upcrossing_le_integral_pos_part' hf hab },
+  { exact mul_integral_upcrossing_le_integral_pos_part' hf hab },
   { rw [not_lt, ← sub_nonpos] at hab,
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (integral_nonneg (λ x, nat.cast_nonneg _)))
       (integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _)) }

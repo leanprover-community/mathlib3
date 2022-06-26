@@ -43,6 +43,10 @@ open_locale direct_sum big_operators
 
 variables {ι : Type*} {σ S R : Type*}
 
+instance add_comm_monoid.of_submonoid_on_semiring [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ι → σ) : ∀ i, add_comm_monoid (A i) :=
+λ i, by apply_instance
+
 lemma set_like.has_graded_one.algebra_map_mem [has_zero ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [set_like.has_graded_one A] (s : S) : algebra_map S R s ∈ A 0 :=

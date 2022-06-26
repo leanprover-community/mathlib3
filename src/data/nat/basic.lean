@@ -27,7 +27,7 @@ universes u v
 instance : nontrivial ℕ :=
 ⟨⟨0, 1, nat.zero_ne_one⟩⟩
 
-instance : comm_semiring nat :=
+instance : comm_semiring ℕ :=
 { add            := nat.add,
   add_assoc      := nat.add_assoc,
   zero           := nat.zero,
@@ -44,6 +44,9 @@ instance : comm_semiring nat :=
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm,
+  nat_cast       := id,
+  nat_cast_zero  := rfl,
+  nat_cast_succ  := λ n, rfl,
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
   nsmul_succ'    := λ n x,
@@ -1289,6 +1292,15 @@ lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
 by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
 
+lemma mul_add_mod (a b c : ℕ) : (a * b + c) % b = c % b :=
+by simp [nat.add_mod]
+
+lemma mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
+by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
+
+lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
+by { cases n; simp [(nat.succ_ne_self _).symm] }
+
 /-! ### `find` -/
 section find
 
@@ -1479,6 +1491,14 @@ by unfold bodd div2; cases bodd_div2 n; refl
 ⟨@nat.bit1_inj n 0, λ h, by subst h⟩
 @[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
 ⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
+
+theorem bit_add : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit ff n + bit b m
+| tt := bit1_add
+| ff := bit0_add
+
+theorem bit_add' : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit b n + bit ff m
+| tt := bit1_add'
+| ff := bit0_add
 
 protected theorem bit0_le {n m : ℕ} (h : n ≤ m) : bit0 n ≤ bit0 m :=
 add_le_add h h

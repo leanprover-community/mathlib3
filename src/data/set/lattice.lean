@@ -62,14 +62,19 @@ namespace set
 /-! ### Complete lattice and complete Boolean algebra instances -/
 
 instance : has_Inf (set α) := ⟨λ s, {a | ∀ t ∈ s, a ∈ t}⟩
-instance : has_Sup (set α) := ⟨sUnion⟩
+instance : has_Sup (set α) := ⟨λ s, {a | ∃ t ∈ s, a ∈ t}⟩
 
 /-- Intersection of a set of sets. -/
 def sInter (S : set (set α)) : set α := Inf S
 
+/-- Union of a set of sets. -/
+def sUnion (S : set (set α)) : set α := Sup S
+
 prefix `⋂₀ `:110 := sInter
+prefix `⋃₀ `:110 := sUnion
 
 @[simp] theorem mem_sInter {x : α} {S : set (set α)} : x ∈ ⋂₀ S ↔ ∀ t ∈ S, x ∈ t := iff.rfl
+@[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃ t ∈ S, x ∈ t := iff.rfl
 
 /-- Indexed union of a family of sets -/
 def Union (s : ι → set β) : set β := supr s
@@ -111,8 +116,6 @@ lemma mem_Inter_of_mem {s : ι → set α} {a : α} (h : ∀ i, a ∈ s i) : a �
 lemma mem_Inter₂_of_mem {s : Π i, κ i → set α} {a : α} (h : ∀ i j, a ∈ s i j) : a ∈ ⋂ i j, s i j :=
 mem_Inter₂.2 h
 
-theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃ t ∈ S, x ∈ t := iff.rfl
-
 instance : complete_boolean_algebra (set α) :=
 { Sup    := Sup,
   Inf    := Inf,
@@ -122,8 +125,7 @@ instance : complete_boolean_algebra (set α) :=
   Inf_le := λ s t t_in a h, h _ t_in,
   infi_sup_le_sup_Inf := λ s S x, iff.mp $ by simp [forall_or_distrib_left],
   inf_Sup_le_supr_inf := λ s S x, iff.mp $ by simp [exists_and_distrib_left],
-  .. set.boolean_algebra,
-  .. pi.complete_lattice }
+  .. set.boolean_algebra }
 
 /-- `set.image` is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
@@ -1345,6 +1347,12 @@ by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_
 lemma image2_eq_Union (s : set α) (t : set β) : image2 f s t = ⋃ (i ∈ s) (j ∈ t), {f i j} :=
 by simp_rw [←image_eq_Union, Union_image_left]
 
+lemma prod_eq_bUnion_left : s ×ˢ t = ⋃ a ∈ s, (λ b, (a, b)) '' t :=
+by rw [Union_image_left, image2_mk_eq_prod]
+
+lemma prod_eq_bUnion_right : s ×ˢ t = ⋃ b ∈ t, (λ a, (a, b)) '' s :=
+by rw [Union_image_right, image2_mk_eq_prod]
+
 end image2
 
 section seq
@@ -1457,7 +1465,7 @@ We define some lemmas in the `disjoint` namespace to be able to use projection n
 
 section disjoint
 
-variables {s t u : set α}
+variables {s t u : set α} {f : α → β}
 
 namespace disjoint
 
@@ -1576,23 +1584,36 @@ lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set 
   (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
 disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
 
-lemma disjoint_preimage {s t : set β} (hd : disjoint s t) (f : α → β) :
-  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
-λ x hx, hd hx
+lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
+
+lemma _root_.disjoint.of_image (h : disjoint (f '' s) (f '' t)) : disjoint s t :=
+λ x hx, disjoint_left.1 h (mem_image_of_mem _ hx.1) (mem_image_of_mem _ hx.2)
+
+lemma disjoint_image_iff (hf : injective f) : disjoint (f '' s) (f '' t) ↔ disjoint s t :=
+⟨disjoint.of_image, disjoint_image_of_injective hf⟩
+
+lemma _root_.disjoint.of_preimage (hf : surjective f) {s t : set β}
+  (h : disjoint (f ⁻¹' s) (f ⁻¹' t)) :
+  disjoint s t :=
+by rw [disjoint_iff_inter_eq_empty, ←image_preimage_eq (_ ∩ _) hf, preimage_inter, h.inter_eq,
+  image_empty]
+
+lemma disjoint_preimage_iff (hf : surjective f) {s t : set β} :
+  disjoint (f ⁻¹' s) (f ⁻¹' t) ↔ disjoint s t :=
+⟨disjoint.of_preimage hf, disjoint.preimage _⟩
 
 lemma preimage_eq_empty {f : α → β} {s : set β} (h : disjoint s (range f)) :
   f ⁻¹' s = ∅ :=
 by simpa using h.preimage f
 
-lemma preimage_eq_empty_iff {f : α → β} {s : set β} : disjoint s (range f) ↔ f ⁻¹' s = ∅ :=
-⟨preimage_eq_empty,
-  λ h, begin
+lemma preimage_eq_empty_iff {s : set β} : f ⁻¹' s = ∅ ↔ disjoint s (range f) :=
+⟨λ h, begin
     simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
       mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
     assume y hy x hx,
     rw ← hx at hy,
     exact h x hy,
-  end ⟩
+  end, preimage_eq_empty⟩
 
 lemma disjoint_iff_subset_compl_right :
   disjoint s t ↔ s ⊆ tᶜ :=

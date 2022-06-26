@@ -141,7 +141,7 @@ end
 ⟨(equiv_or_fuzzy_zero G).resolve_right, equiv.not_fuzzy⟩
 
 lemma add_self : G + G ≈ 0 :=
-(add_congr_left (neg_equiv_self G)).trans (add_left_neg_equiv G)
+(add_equiv_add_right (neg_equiv_self G) G).trans (add_left_neg_equiv G)
 
 @[simp] lemma mk_add_self : ⟦G⟧ + ⟦G⟧ = 0 := quot.sound (add_self G)
 

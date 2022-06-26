@@ -1062,61 +1062,48 @@ by { rw cmp_eq_iff_le_iff_le, simp }
 
 @[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
 neg_le_lf_neg_iff.2
-
 @[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
 lt_iff_lt_of_cmp_eq (cmp_neg y x)
-
 @[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
 equiv_iff_equiv_of_cmp_eq' (cmp_neg x y)
-
 @[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
 fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg x y)
 
-theorem cmp_neg' (x y : pgame) : cmp (-x) y = cmp (-y) x :=
+theorem cmp_neg_left (x y : pgame) : cmp (-x) y = cmp (-y) x :=
 by rw [←cmp_neg, neg_neg]
 
 theorem neg_le_iff {x y : pgame} : -x ≤ y ↔ -y ≤ x :=
-le_iff_le_of_cmp_eq (cmp_neg' x y)
-
+le_iff_le_of_cmp_eq (cmp_neg_left x y)
 theorem neg_lf_iff {x y : pgame} : -x ⧏ y ↔ -y ⧏ x :=
-lf_iff_lf_of_cmp_eq (cmp_neg' x y)
-
+lf_iff_lf_of_cmp_eq (cmp_neg_left x y)
 theorem neg_lt_iff {x y : pgame} : -x < y ↔ -y < x :=
-lt_iff_lt_of_cmp_eq (cmp_neg' x y)
-
+lt_iff_lt_of_cmp_eq (cmp_neg_left x y)
 theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ x ≈ -y :=
-equiv_iff_equiv_of_cmp_eq' (cmp_neg' x y)
-
+equiv_iff_equiv_of_cmp_eq' (cmp_neg_left x y)
 theorem neg_fuzzy_iff {x y : pgame} : -x ∥ y ↔ x ∥ -y :=
-fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg' x y)
+fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg_left x y)
 
-theorem cmp_neg'' (x y : pgame) : cmp x (-y) = cmp y (-x) :=
+theorem cmp_neg_right (x y : pgame) : cmp x (-y) = cmp y (-x) :=
 by rw [←cmp_neg, neg_neg]
 
 theorem le_neg_iff {x y : pgame} : x ≤ -y ↔ y ≤ -x :=
-le_iff_le_of_cmp_eq (cmp_neg'' x y)
-
+le_iff_le_of_cmp_eq (cmp_neg_right x y)
 theorem lf_neg_iff {x y : pgame} : x ⧏ -y ↔ y ⧏ -x :=
-lf_iff_lf_of_cmp_eq (cmp_neg'' x y)
-
+lf_iff_lf_of_cmp_eq (cmp_neg_right x y)
 theorem lt_neg_iff {x y : pgame} : x < -y ↔ y < -x :=
-lt_iff_lt_of_cmp_eq (cmp_neg'' x y)
+lt_iff_lt_of_cmp_eq (cmp_neg_right x y)
 
 @[simp] theorem cmp_neg_zero (x) : cmp (-x) 0 = cmp 0 x :=
 by rw [←cmp_neg x, pgame.neg_zero]
 
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
 le_iff_le_of_cmp_eq (cmp_neg_zero x)
-
 @[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
 lf_iff_lf_of_cmp_eq (cmp_neg_zero x)
-
 @[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
 lt_iff_lt_of_cmp_eq (cmp_neg_zero x)
-
 @[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
 equiv_iff_equiv_of_cmp_eq' (cmp_neg_zero x)
-
 @[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
 fuzzy_iff_fuzzy_of_cmp_eq' (cmp_neg_zero x)
 
@@ -1125,16 +1112,12 @@ by rw [←cmp_neg 0, pgame.neg_zero]
 
 @[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
 le_iff_le_of_cmp_eq (cmp_zero_neg x)
-
 @[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
 lf_iff_lf_of_cmp_eq (cmp_zero_neg x)
-
 @[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
 lt_iff_lt_of_cmp_eq (cmp_zero_neg x)
-
 @[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
 equiv_iff_equiv_of_cmp_eq' (cmp_zero_neg x)
-
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
 fuzzy_iff_fuzzy_of_cmp_eq' (cmp_zero_neg x)
 
@@ -1439,13 +1422,10 @@ by { rw cmp_eq_iff_le_iff_le, simp }
 
 @[simp] theorem add_lf_add_iff_right (x) {y z : pgame} : y + x ⧏ z + x ↔ y ⧏ z :=
 lf_iff_lf_of_cmp_eq (cmp_add_right y z x)
-
 private theorem add_lt_add_iff_right' (x) {y z : pgame} : y + x < z + x ↔ y < z :=
 lt_iff_lt_of_cmp_eq (cmp_add_right y z x)
-
 @[simp] theorem add_equiv_add_iff_right (x) {y z : pgame} : y + x ≈ z + x ↔ y ≈ z :=
 equiv_iff_equiv_of_cmp_eq (cmp_add_right y z x)
-
 @[simp] theorem add_fuzzy_add_iff_right (x) {y z : pgame} : y + x ∥ z + x ↔ y ∥ z :=
 fuzzy_iff_fuzzy_of_cmp_eq (cmp_add_right y z x)
 
@@ -1457,19 +1437,15 @@ instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<
 
 theorem add_lf_add_right {y z : pgame} (h : y ⧏ z) (x) : y + x ⧏ z + x :=
 (add_lf_add_iff_right x).2 h
-
 theorem add_equiv_add_right {y z : pgame} (h : y ≈ z) (x) : y + x ≈ z + x :=
 (add_equiv_add_iff_right x).2 h
-
 theorem add_fuzzy_add_right {y z : pgame} (h : y ∥ z) (x) : y + x ∥ z + x :=
 (add_fuzzy_add_iff_right x).2 h
 
 theorem lf_of_add_lf_add_right {x y z : pgame} : y + x ⧏ z + x → y ⧏ z :=
 (add_lf_add_iff_right x).1
-
 theorem equiv_of_add_equiv_add_right {x y z : pgame} : y + x ≈ z + x → y ≈ z :=
 (add_equiv_add_iff_right x).1
-
 theorem fuzzy_of_add_fuzzy_add_right {x y z : pgame} : y + x ∥ z + x → y ∥ z :=
 (add_fuzzy_add_iff_right x).1
 
@@ -1478,16 +1454,12 @@ by rw [cmp_congr add_comm_equiv add_comm_equiv, cmp_add_right]
 
 private theorem add_le_add_iff_left' (x) {y z : pgame} : x + y ≤ x + z ↔ y ≤ z :=
 le_iff_le_of_cmp_eq (cmp_add_left x y z)
-
 @[simp] theorem add_lf_add_iff_left (x) {y z : pgame} : x + y ⧏ x + z ↔ y ⧏ z :=
 lf_iff_lf_of_cmp_eq (cmp_add_left x y z)
-
 private theorem add_lt_add_iff_left' (x) {y z : pgame} : x + y < x + z ↔ y < z :=
 lt_iff_lt_of_cmp_eq (cmp_add_left x y z)
-
 @[simp] theorem add_equiv_add_iff_left (x) {y z : pgame} : x + y ≈ x + z ↔ y ≈ z :=
 equiv_iff_equiv_of_cmp_eq (cmp_add_left x y z)
-
 @[simp] theorem add_fuzzy_add_iff_left (x) {y z : pgame} : x + y ∥ x + z ↔ y ∥ z :=
 fuzzy_iff_fuzzy_of_cmp_eq (cmp_add_left x y z)
 
@@ -1502,19 +1474,15 @@ instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
 
 theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
 (add_lf_add_iff_left x).2 h
-
 theorem add_equiv_add_left {y z : pgame} (h : y ≈ z) (x) : x + y ≈ x + z :=
 (add_equiv_add_iff_left x).2 h
-
 theorem add_fuzzy_add_left {y z : pgame} (h : y ∥ z) (x) : x + y ∥ x + z :=
 (add_fuzzy_add_iff_left x).2 h
 
 theorem lf_of_add_lf_add_left {x y z : pgame} : x + y ⧏ x + z → y ⧏ z :=
 (add_lf_add_iff_left x).1
-
 theorem equiv_of_add_equiv_add_left {x y z : pgame} : x + y ≈ x + z → y ≈ z :=
 (add_equiv_add_iff_left x).1
-
 theorem fuzzy_of_add_fuzzy_add_left {x y z : pgame} : x + y ∥ x + z → y ∥ z :=
 (add_fuzzy_add_iff_left x).1
 
@@ -1535,31 +1503,23 @@ cmp_add_right x y _
 
 @[simp] theorem sub_le_sub_iff_right (x) {y z : pgame} : y - x ≤ z - x ↔ y ≤ z :=
 le_iff_le_of_cmp_eq (cmp_sub_right y z x)
-
 @[simp] theorem sub_lf_sub_iff_right (x) {y z : pgame} : y - x ⧏ z - x ↔ y ⧏ z :=
 lf_iff_lf_of_cmp_eq (cmp_sub_right y z x)
-
 @[simp] theorem sub_lt_sub_iff_right (x) {y z : pgame} : y - x < z - x ↔ y < z :=
 lt_iff_lt_of_cmp_eq (cmp_sub_right y z x)
-
 @[simp] theorem sub_equiv_sub_iff_right (x) {y z : pgame} : y - x ≈ z - x ↔ y ≈ z :=
 equiv_iff_equiv_of_cmp_eq (cmp_sub_right y z x)
-
 @[simp] theorem sub_fuzzy_sub_iff_right (x) {y z : pgame} : y - x ∥ z - x ↔ y ∥ z :=
 fuzzy_iff_fuzzy_of_cmp_eq (cmp_sub_right y z x)
 
 theorem sub_le_sub_right {y z : pgame} (h : y ≤ z) (x) : y - x ≤ z - x :=
 (sub_le_sub_iff_right x).2 h
-
 theorem sub_lf_sub_right {y z : pgame} (h : y ⧏ z) (x) : y - x ⧏ z - x :=
 (sub_lf_sub_iff_right x).2 h
-
 theorem sub_lt_sub_right {y z : pgame} (h : y < z) (x) : y - x < z - x :=
 (sub_lt_sub_iff_right x).2 h
-
 theorem sub_equiv_sub_right {y z : pgame} (h : y ≈ z) (x) : y - x ≈ z - x :=
 (sub_equiv_sub_iff_right x).2 h
-
 theorem sub_fuzzy_sub_right {y z : pgame} (h : y ∥ z) (x) : y + x ∥ z + x :=
 (add_fuzzy_add_iff_right x).2 h
 
@@ -1568,31 +1528,23 @@ theorem sub_fuzzy_sub_right {y z : pgame} (h : y ∥ z) (x) : y + x ∥ z + x :=
 
 @[simp] theorem sub_le_sub_iff_left (x) {y z : pgame} : x - y ≤ x - z ↔ z ≤ y :=
 le_iff_le_of_cmp_eq (cmp_sub_left x y z)
-
 @[simp] theorem sub_lf_sub_iff_left (x) {y z : pgame} : x - y ⧏ x - z ↔ z ⧏ y :=
 lf_iff_lf_of_cmp_eq (cmp_sub_left x y z)
-
 @[simp] theorem sub_lt_sub_iff_left (x) {y z : pgame} : x - y < x - z ↔ z < y :=
 lt_iff_lt_of_cmp_eq (cmp_sub_left x y z)
-
 @[simp] theorem sub_equiv_sub_iff_left (x) {y z : pgame} : x - y ≈ x - z ↔ y ≈ z :=
 equiv_iff_equiv_of_cmp_eq' (cmp_sub_left x y z)
-
 @[simp] theorem sub_fuzzy_sub_iff_left (x) {y z : pgame} : x - y ∥ x - z ↔ y ∥ z :=
 fuzzy_iff_fuzzy_of_cmp_eq' (cmp_sub_left x y z)
 
 theorem sub_le_sub_left {y z : pgame} (h : z ≤ y) (x) : x - y ≤ x - z :=
 (sub_le_sub_iff_left x).2 h
-
 theorem sub_lf_sub_left {y z : pgame} (h : z ⧏ y) (x) : x - y ⧏ x - z :=
 (sub_lf_sub_iff_left x).2 h
-
 theorem sub_lt_sub_left {y z : pgame} (h : z < y) (x) : x - y < x - z :=
 (sub_lt_sub_iff_left x).2 h
-
 theorem sub_equiv_sub_left {y z : pgame} (h : y ≈ z) (x) : x - y ≈ x - z :=
 (sub_equiv_sub_iff_left x).2 h
-
 theorem sub_fuzzy_sub_left {y z : pgame} (h : y ∥ z) (x) : x + y ∥ x + z :=
 (add_fuzzy_add_iff_left x).2 h
 
@@ -1601,16 +1553,12 @@ by rw [cmp_congr (sub_self_equiv x).symm (equiv_refl _), cmp_sub_right]
 
 theorem le_iff_zero_le_sub {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
 le_iff_le_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
-
 theorem lf_iff_zero_lf_sub {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
 lf_iff_lf_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
-
 theorem lt_iff_zero_lt_sub {x y : pgame} : x < y ↔ 0 < y - x :=
 lt_iff_lt_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
-
 theorem equiv_iff_zero_equiv_sub {x y : pgame} : x ≈ y ↔ 0 ≈ y - x :=
 equiv_iff_equiv_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
-
 theorem fuzzy_iff_zero_fuzzy_sub {x y : pgame} : x ∥ y ↔ 0 ∥ y - x :=
 fuzzy_iff_fuzzy_of_cmp_eq (cmp_eq_cmp_zero_sub x y)
 
@@ -1619,16 +1567,12 @@ by rw [cmp_eq_cmp_iff_cmp_eq_cmp, cmp_eq_cmp_zero_sub]
 
 theorem le_iff_sub_le_zero {x y : pgame} : x ≤ y ↔ x - y ≤ 0 :=
 le_iff_le_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
-
 theorem lf_iff_sub_lf_zero {x y : pgame} : x ⧏ y ↔ x - y ⧏ 0 :=
 lf_iff_lf_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
-
 theorem lt_iff_sub_lt_zero {x y : pgame} : x < y ↔ x - y < 0 :=
 lt_iff_lt_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
-
 theorem equiv_iff_sub_equiv_zero {x y : pgame} : x ≈ y ↔ x - y ≈ 0 :=
 equiv_iff_equiv_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
-
 theorem fuzzy_iff_sub_fuzzy_zero {x y : pgame} : x ∥ y ↔ x - y ∥ 0 :=
 fuzzy_iff_fuzzy_of_cmp_eq (cmp_eq_cmp_sub_zero x y)
 

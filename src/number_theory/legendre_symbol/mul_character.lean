@@ -46,8 +46,7 @@ variables (R : Type u) [comm_monoid R]
 variables (R' : Type v) [comm_monoid_with_zero R']
 
 /-- Define a structure for multiplicative characters.
-A multiplicative character from a commutative monoid with zero `R`
-to another commutative monoid with zero `R'`
+A multiplicative character from a commutative monoid `R` to a commutative monoid with zero `R'`
 is a homomorphism of (multiplicative) monoids that sends non-units to zero. -/
 structure mul_char extends monoid_hom R R' :=
 (map_nonunit' : ∀ a : R, ¬ is_unit a → to_fun a = 0)
@@ -325,7 +324,7 @@ begin
     have h := is_unit.map χ ha,
     apply_fun ((*) (χ a)) using is_unit.mul_right_injective h,
     rw [ring.mul_inverse_cancel _ h, ← map_mul, ring.mul_inverse_cancel _ ha, mul_char.map_one], },
-  { revert ha, nontriviality R, intro ha,
+  { revert ha, nontriviality R, intro ha, -- `nontriviality R` by itself doesn't do it
     rw [map_nonunit _ ha, ring.inverse_non_unit a ha, mul_char.map_zero χ], },
 end
 

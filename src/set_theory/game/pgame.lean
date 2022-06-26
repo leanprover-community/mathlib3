@@ -358,6 +358,8 @@ by simp only [mk_le_mk] at *; exact
   λ i, pgame.not_le.1 (λ h, (h₁ _ ⟨yLz, yzR⟩ h).not_gf (xLy _)),
   λ i, pgame.not_le.1 (λ h, (h₂ _ h ⟨xLy, xyR⟩).not_gf (yzR _))⟩
 
+instance : has_lt pgame := ⟨λ x y, x ≤ y ∧ x ⧏ y⟩
+
 instance : preorder pgame :=
 { le_refl := λ x, begin
     induction x with _ _ _ _ IHl IHr,
@@ -375,7 +377,11 @@ instance : preorder pgame :=
       le_trans_aux (λ i, (IHyl _).2.2) (λ i, (IHxr _).1),
       le_trans_aux (λ i, (IHzl _).1) (λ i, (IHyr _).2.1)⟩,
   end,
-  ..pgame.has_le }
+  lt_iff_le_not_le := λ x y, by { rw pgame.not_le, refl },
+  ..pgame.has_le, ..pgame.has_lt }
+
+theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
+iff.rfl
 
 theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := le_rfl.not_gf
 instance : is_irrefl _ (⧏) := ⟨lf_irrefl⟩
@@ -408,9 +414,6 @@ theorem lf_mk {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i) : xL i ⧏ mk 
 
 theorem mk_lf {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j) : mk xl xr xL xR ⧏ xR j :=
 @lf_move_right (mk _ _ _ _) j
-
-theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
-by rw [lt_iff_le_not_le, pgame.not_le]
 
 theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y :=
 lt_iff_le_and_lf.2 ⟨h₁, h₂⟩

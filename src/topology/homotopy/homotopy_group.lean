@@ -48,6 +48,10 @@ notation `I^` := cube
 namespace cube
 
 instance locally_compact_space : locally_compact_space (I^ n) := sorry
+-- begin
+--   refine ⟨_⟩, intros x n' H, use n', split, assumption, split, refl,
+--   unfold is_compact,
+-- end
 
 @[continuity] lemma proj_continuous (i : fin n) : continuous (λ f : I^n, f i) :=
 continuous_apply i
@@ -105,19 +109,21 @@ local notation `Ω` := loop_space
 /--
 The `n`-dimensional generalized loops; functions `I^n → X` that send the boundary to the base point.
 -/
-structure gen_loop (n : ℕ) (x : X) extends C(I^n, X) :=
-(boundary : ∀ y ∈ cube.boundary n, to_fun y = x)
+-- structure gen_loop (n : ℕ) (x : X) extends C(I^n, X) :=
+-- (boundary : ∀ y ∈ cube.boundary n, to_fun y = x)
+def gen_loop (n : ℕ) (x : X) : set C(I^n, X) := { p | ∀ y ∈ cube.boundary n, p y = x}
+lemma gen_loop.boundary (f : gen_loop n x) : ∀ y ∈ cube.boundary n, f y = x := f.2
 
 namespace gen_loop
 
-instance topological_space : topological_space (gen_loop n x) :=
-by exact topological_space.induced (gen_loop.to_continuous_map) (by apply_instance)
+-- instance topological_space : topological_space (gen_loop n x) := by apply_instance
+-- by exact topological_space.induced (gen_loop.to_continuous_map) (by apply_instance)
 
 instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
 
-@[continuity] lemma fun_like_cont (f : gen_loop n x): continuous (f.to_fun) := f.1.2
+-- @[continuity] lemma fun_like_cont (f : gen_loop n x): continuous (f.to_fun) := f.1.2
 
 @[ext] lemma ext (f g : gen_loop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
@@ -135,8 +141,7 @@ instance inhabited : inhabited (gen_loop n x) := { default := const }
 /--
 The "homotopy relative to boundary" relation between `gen_loop`s.
 -/
-def homotopic (f g : gen_loop n x) : Prop :=
-f.to_continuous_map.homotopic_rel g.to_continuous_map (cube.boundary n)
+def homotopic (f g : gen_loop n x) : Prop := f.1.homotopic_rel g.1 (cube.boundary n)
 
 namespace homotopic
 section
@@ -144,9 +149,9 @@ variables {f g h : gen_loop n x}
 
 @[refl] lemma refl (f : gen_loop n x) : homotopic f f := continuous_map.homotopic_rel.refl _
 
-@[symm] lemma symm (H : f.homotopic g) : g.homotopic f := H.symm
+@[symm] lemma symm (H : homotopic f g) : homotopic g f := H.symm
 
-@[trans] lemma trans (H0 : f.homotopic g) (H1 : g.homotopic h) : f.homotopic h := H0.trans H1
+@[trans] lemma trans (H0 : homotopic f g) (H1 : homotopic g h) : homotopic f h := H0.trans H1
 
 lemma equiv : equivalence (@homotopic X _ n x) :=
 ⟨homotopic.refl, λ _ _, homotopic.symm, λ _ _ _, homotopic.trans⟩
@@ -161,9 +166,8 @@ begin
   rintros ⟨g,gH⟩, refine path.mk ⟨_,_⟩ _ _,
   { intro t, refine ⟨(g.comp cube.fold).curry t,_⟩,
     rintros y ⟨i,iH⟩, simp, apply gH, use i.succ, unfold cube.fold, simpa},
-  simp, --continuity,--rw continuous_def, intros s sH, unfold is_open, unfold set.preimage, simp,
-  sorry,
-  simp, ext, simp, apply gH, use 0, left, refl,
+  { simp only [auto_param_eq], continuity },
+  { simp, ext, simp, apply gH, use 0, left, refl },
   simp, ext, simp, apply gH, use 0, right, refl,
 end
 
@@ -171,7 +175,7 @@ def from_path : Ω (gen_loop n x) const → gen_loop (n+1) x := --sorry
 begin
   rintros ⟨p,H₀,H₁⟩, refine ⟨_,_⟩,
   refine continuous_map.comp _ cube.unfold,
-  refine continuous_map.uncurry ⟨λ t, (p t).to_continuous_map, by continuity⟩,
+  refine continuous_map.uncurry ⟨λ t, (p t).1, by continuity⟩,
   rintros y ⟨i,iH⟩, unfold cube.unfold, unfold continuous_map.uncurry,
   simp only [cube.head, cube.tail, continuous_map.coe_mk, continuous_map.to_fun_eq_coe,
     continuous_map.comp_apply, continuous_map.prod_eval, function.uncurry_apply_pair],
@@ -210,25 +214,31 @@ def path_equiv : gen_loop (n+1) x ≃ Ω (gen_loop n x) const  :=
   left_inv := to_from,
   right_inv := from_to }
 
-lemma homotopic_iff {p q : gen_loop (n+1) x} : p.homotopic q ↔ p.to_path.homotopic q.to_path :=
+lemma homotopic_iff {p q : gen_loop (n+1) x} : homotopic p q ↔ (to_path p).homotopic (to_path q) :=
 begin
   split,
   { apply nonempty.map, rintros H,
-    let Hf:=H.to_continuous_map,
     refine ⟨⟨⟨_,_⟩,_,_⟩,_⟩,
     { rintros t,
       refine ⟨((H.to_continuous_map.curry t.fst).comp cube.fold).curry t.snd, _⟩,
           rintros tn ⟨i,iH⟩,
           unfold continuous_map.curry,
-          simp,
+          simp only [continuous_map.coe_mk],
           unfold continuous_map.curry',
-          unfold cube.fold, simp,
-          -- apply gen_loop.boundary,
+          unfold cube.fold,
+          simp only [continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.coe_comp,
+            continuous_map.coe_mk, function.curry_apply, function.comp_app],
           rw H.eq_fst,
-          apply p.boundary,
+          apply gen_loop.boundary,
           all_goals {use i.succ, rwa fin.cons_succ},
       },
-    simp, continuity, sorry, simp,
+    { simp only [auto_param_eq],
+      -- unfold continuous_map.comp, unfold function.comp, unfold continuous_map.curry,
+      -- simp only [continuous_map.coe_mk, auto_param_eq],
+      -- unfold continuous_map.curry', unfold function.curry,
+      -- simp,
+      --  continuity,
+      sorry}, --simp,
     --       rintros tn ⟨i,iH⟩, simp only,
     --       rw H.eq_fst,
     --       apply p.boundary,

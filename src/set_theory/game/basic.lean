@@ -101,7 +101,7 @@ local infix ` ∥ `:50 := fuzzy
 theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
 
 /-- Compares two games. -/
-noncomputable def cmp : game → game → pgame.ordering :=
+noncomputable def cmp : game → game → game_ordering :=
 quotient.lift₂ pgame.cmp $ λ w x y z, cmp_congr
 
 theorem _root_.pgame.cmp_eq_game_cmp {x y : pgame} : pgame.cmp x y = cmp ⟦x⟧ ⟦y⟧ := rfl

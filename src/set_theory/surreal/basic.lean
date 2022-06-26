@@ -259,6 +259,36 @@ instance : has_le surreal :=
 instance : has_lt surreal :=
 ⟨lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_congr hx hy))⟩
 
+/-- The lift of the pre-game comparison function. We prove its correspondence with the usual
+comparison function. -/
+noncomputable def cmp : surreal → surreal → pgame.game_ordering :=
+lift₂ (λ x y _ _, pgame.cmp x y) $ λ x₁ y₁ x₂ y₂ _ _ _ _, cmp_congr
+
+@[simp] theorem cmp_eq_lt_iff : ∀ {x y : surreal}, cmp x y = game_ordering.lt ↔ x < y :=
+by { rintros ⟨_⟩ ⟨_⟩, exact cmp_eq_lt_iff }
+
+theorem cmp_eq_lt {x y : surreal} (h : x < y) : cmp x y = game_ordering.lt :=
+cmp_eq_lt_iff.2 h
+
+alias cmp_eq_lt ← has_lt.lt.surreal_cmp_eq_lt
+
+@[simp] theorem cmp_eq_equiv_iff : ∀ {x y : surreal}, cmp x y = game_ordering.equiv ↔ x = y :=
+by { rintros ⟨_⟩ ⟨_⟩, exact cmp_eq_equiv_iff.trans (@quotient.eq _ _ x y).symm }
+
+@[simp] theorem cmp_refl (x : surreal) : cmp x x = game_ordering.equiv :=
+cmp_eq_equiv_iff.2 rfl
+
+@[simp] theorem cmp_eq_gt_iff : ∀ {x y : surreal}, cmp x y = game_ordering.gt ↔ y < x :=
+by { rintros ⟨_⟩ ⟨_⟩, exact cmp_eq_gt_iff }
+
+theorem cmp_eq_gt {x y : surreal} (h : y < x) : cmp x y = game_ordering.gt :=
+cmp_eq_gt_iff.2 h
+
+alias cmp_eq_gt ← has_lt.lt.surreal_cmp_eq_gt
+
+theorem cmp_ne_fuzzy : ∀ {x y : surreal}, cmp x y ≠ game_ordering.fuzzy :=
+by { rintros ⟨_⟩ ⟨_⟩ h, exact not_fuzzy x.2 y.2 (cmp_eq_fuzzy_iff.1 h) }
+
 /-- Addition on surreals is inherited from pre-game addition:
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add surreal  :=
@@ -290,11 +320,28 @@ instance : ordered_add_comm_group surreal :=
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
 
+section classical
+
+open_locale classical
+
 noncomputable instance : linear_ordered_add_comm_group surreal :=
-{ le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
-    or_iff_not_imp_left.2 (λ h, (pgame.not_le.1 h).le oy ox),
+{ le_total := by { rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩, exact
+    or_iff_not_imp_left.2 (λ h, (pgame.not_le.1 h).le oy ox) },
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
+
+theorem cmp_eq_cmp_to_game_ordering : ∀ (x y : surreal),
+  cmp x y = (@_root_.cmp _ _ has_lt.lt.decidable x y).to_game_ordering :=
+begin
+  rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩,
+  rcases lt_trichotomy (mk x ox) (mk y oy) with h | h | h;
+  change pgame.cmp x y = (@_root_.cmp _ _ has_lt.lt.decidable (mk x ox) (mk y oy)).to_game_ordering,
+  { rw [pgame.cmp_eq_lt h, h.cmp_eq_lt, ordering.lt_to_game_ordering] },
+  { rw [cmp_eq_equiv (quotient.exact h), h, cmp_self_eq_eq, ordering.equiv_to_game_ordering] },
+  { rw [pgame.cmp_eq_gt h, h.cmp_eq_gt, ordering.gt_to_game_ordering] }
+end
+
+end classical
 
 /-- Casts a `surreal` number into a `game`. -/
 def to_game : surreal →+o game :=

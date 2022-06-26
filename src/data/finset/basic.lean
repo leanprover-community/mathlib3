@@ -2351,7 +2351,7 @@ protected def bUnion (s : finset α) (t : α → finset β) : finset β :=
 @[simp] lemma mem_bUnion {b : β} : b ∈ s.bUnion t ↔ ∃ a ∈ s, b ∈ t a :=
 by simp only [mem_def, bUnion_val, mem_dedup, mem_bind, exists_prop]
 
-@[simp] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
+@[simp, norm_cast] lemma coe_bUnion : (s.bUnion t : set β) = ⋃ x ∈ (s : set α), t x :=
 by simp only [set.ext_iff, mem_bUnion, set.mem_Union, iff_self, mem_coe, implies_true_iff]
 
 @[simp] theorem bUnion_insert [decidable_eq α] {a : α} : (insert a s).bUnion t = t a ∪ s.bUnion t :=
@@ -2471,7 +2471,7 @@ end bUnion
 section disjoint
 variables [decidable_eq α] [decidable_eq β] {f : α → β} {s t u : finset α} {a b : α}
 
-lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
 by simp only [_root_.disjoint, inf_eq_inter, le_iff_subset, subset_iff, mem_inter, not_and,
   and_imp]; refl
 
@@ -2481,7 +2481,7 @@ lemma disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ := disjoint_i
 instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
 decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
 
-lemma disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
+lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
 by simp only [disjoint_left, imp_not_comm, forall_eq']
 

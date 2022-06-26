@@ -1578,8 +1578,6 @@ lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set 
   (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
 disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
 
-lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
-
 lemma _root_.disjoint.of_image (h : disjoint (f '' s) (f '' t)) : disjoint s t :=
 λ x hx, disjoint_left.1 h (mem_image_of_mem _ hx.1) (mem_image_of_mem _ hx.2)
 

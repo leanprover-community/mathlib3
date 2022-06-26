@@ -587,7 +587,7 @@ lemma eq_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a
   (h : tendsto f (𝓝 a) (𝓝 b)) : f a = b :=
 by_contra $ assume (hfa : f a ≠ b),
 have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
-have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id' $ pure_le_nhds a),
+have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id'.2 $ pure_le_nhds a),
 fact₂ fact₁ (eq.refl $ f a)
 
 /-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that

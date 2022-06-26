@@ -89,7 +89,7 @@ begin
   { /- We construct a map x : ℕ → α with dense image -/
     rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
-    have : ∃s:set α, countable s ∧ dense s := exists_countable_dense α,
+    have : ∃s:set α, s.countable ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
     rcases countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
     /- Use embedding_of_subset to construct the desired isometry -/

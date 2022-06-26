@@ -787,24 +787,24 @@ variables {α β γ ι : Type*} {ι' : Sort*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 class is_countably_generated (f : filter α) : Prop :=
-(out [] : ∃ s : set (set α), countable s ∧ f = generate s)
+(out [] : ∃ s : set (set α), s.countable ∧ f = generate s)
 
 /-- `is_countable_basis p s` means the image of `s` bounded by `p` is a countable filter basis. -/
 structure is_countable_basis (p : ι → Prop) (s : ι → set α) extends is_basis p s : Prop :=
-(countable : countable $ set_of p)
+(countable : (set_of p).countable)
 
 /-- We say that a filter `l` has a countable basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`, and the set
 defined by `p` is countable. -/
 structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α)
   extends has_basis l p s : Prop :=
-(countable : countable $ set_of p)
+(countable : (set_of p).countable)
 
 /-- A countable filter basis `B` on a type `α` is a nonempty countable collection of sets of `α`
 such that the intersection of two elements of this collection contains some element
 of the collection. -/
 structure countable_filter_basis (α : Type*) extends filter_basis α :=
-(countable : countable sets)
+(countable : sets.countable)
 
 -- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
@@ -827,7 +827,7 @@ begin
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 
-lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B)
+lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : B.countable)
   (Bne : B.nonempty) (f : ι → α) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
@@ -839,7 +839,7 @@ begin
   { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
 end
 
-lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)
+lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : B.countable) (f : ι → α)
   {i₀ : ι} (h : f i₀ = ⊤) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
@@ -850,7 +850,7 @@ begin
   { exact countable_binfi_eq_infi_seq Bcbl Bnonempty f }
 end
 
-lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : countable B) :
+lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : B.countable) :
   ∃ (x : ℕ → set α), (⨅ t ∈ B, 𝓟 t) = ⨅ i, 𝓟 (x i) :=
 countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
@@ -938,7 +938,7 @@ lemma is_countably_generated_of_seq {f : filter α} (h : ∃ x : ℕ → set α,
   f.is_countably_generated  :=
 let ⟨x, h⟩ := h in by rw h ; apply is_countably_generated_seq
 
-lemma is_countably_generated_binfi_principal {B : set $ set α} (h : countable B) :
+lemma is_countably_generated_binfi_principal {B : set $ set α} (h : B.countable) :
   is_countably_generated (⨅ (s ∈ B), 𝓟 s) :=
 is_countably_generated_of_seq (countable_binfi_principal_eq_seq_infi h)
 

@@ -18,12 +18,9 @@ impartial.
 
 universe u
 
-namespace pgame
+open_locale pgame
 
-local infix ` ⧏ `:50 := lf
-local infix ` ≈ ` := equiv
-local infix ` ∥ `:50 := fuzzy
-local infix ` ≡r `:50 := relabelling
+namespace pgame
 
 /-- The definition for a impartial game, defined using Conway induction. -/
 def impartial_aux : pgame → Prop

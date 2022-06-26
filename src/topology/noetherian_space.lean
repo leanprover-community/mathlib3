@@ -25,8 +25,8 @@ The first is chosen as the definition, and the equivalence is shown in
 - `noetherian_space_tfae`: Describes the equivalent definitions of noetherian spaces.
 - `noetherian_space.range`: The image of a noetherian space under a continuous map is noetherian.
 - `noetherian_space.discrete`: A noetherian and hausdorff space is discrete.
-- `noetherian_space.exists_finset_irreducible` : Every closed subset of a noetherian space is a finite
-  union of irreducible closed subsets.
+- `noetherian_space.exists_finset_irreducible` : Every closed subset of a noetherian space is a
+  finite union of irreducible closed subsets.
 - `noetherian_space.finite_irreducible_components `: The number of irreducible components of a
   noetherian space is finite.
 

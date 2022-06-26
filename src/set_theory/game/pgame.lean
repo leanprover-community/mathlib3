@@ -969,7 +969,7 @@ instance : has_add pgame.{u} := ⟨λ x y, begin
 end⟩
 
 /-- The pre-game `((0+1)+⋯)+1`. -/
-instance : has_coe ℕ pgame := ⟨nat.unary_cast⟩
+instance : has_nat_cast ℕ pgame := ⟨nat.unary_cast⟩
 
 @[simp] protected theorem nat_succ (n : ℕ) : ((n + 1 : ℕ) : pgame) = n + 1 := rfl
 

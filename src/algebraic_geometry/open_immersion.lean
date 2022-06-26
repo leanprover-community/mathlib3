@@ -1537,9 +1537,18 @@ begin
   apply_instance
 end
 
-lemma range_pullback_one [is_open_immersion g] :
+lemma range_pullback_one_of_left :
     set.range (pullback.fst ≫ f : pullback f g ⟶ Z).1.base =
       set.range f.1.base ∩ set.range g.1.base :=
+begin
+  rw [pullback.condition, Scheme.comp_val_base, coe_comp, set.range_comp,
+    range_pullback_snd_of_left, opens.map_obj, subtype.coe_mk, set.image_preimage_eq_inter_range,
+    set.inter_comm],
+end
+
+lemma range_pullback_one_of_right :
+    set.range (pullback.fst ≫ g : pullback g f ⟶ Z).1.base =
+      set.range g.1.base ∩ set.range f.1.base :=
 begin
   rw [Scheme.comp_val_base, coe_comp, set.range_comp, range_pullback_fst_of_right, opens.map_obj,
     subtype.coe_mk, set.image_preimage_eq_inter_range, set.inter_comm],
@@ -1634,7 +1643,8 @@ def Scheme.open_cover.inter {X : Scheme.{u}} (𝒰₁ : Scheme.open_cover.{v₁}
   obj := λ ij, pullback (𝒰₁.map ij.1) (𝒰₂.map ij.2),
   map := λ ij, pullback.fst ≫ 𝒰₁.map ij.1,
   f := λ x, ⟨𝒰₁.f x, 𝒰₂.f x⟩,
-  covers := λ x, by { rw is_open_immersion.range_pullback_one, exact ⟨𝒰₁.covers x, 𝒰₂.covers x⟩ } }
+  covers := λ x, by { rw is_open_immersion.range_pullback_one_of_left,
+    exact ⟨𝒰₁.covers x, 𝒰₂.covers x⟩ } }
 
 section morphism_restrict
 

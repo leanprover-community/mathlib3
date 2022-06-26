@@ -42,8 +42,9 @@ abbreviation game := quotient pgame.setoid
 
 namespace game
 
-instance : add_comm_group game :=
+instance : add_comm_group_with_one game :=
 { zero := ⟦0⟧,
+  one := ⟦1⟧,
   neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound ((@neg_equiv_neg_iff x y).2 h)),
   add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
     (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
@@ -53,7 +54,6 @@ instance : add_comm_group game :=
   add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
   add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
 
-instance : has_one game := ⟨⟦1⟧⟩
 instance : inhabited game := ⟨0⟩
 
 instance : partial_order game :=
@@ -126,7 +126,7 @@ by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_left h }
 
 instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
-  ..game.add_comm_group,
+  ..game.add_comm_group_with_one,
   ..game.partial_order }
 
 end game

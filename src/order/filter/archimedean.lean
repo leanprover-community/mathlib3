@@ -34,7 +34,8 @@ nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
 
 @[simp] lemma int.comap_coe_at_top [ordered_ring R] [nontrivial R] [archimedean R] :
   comap (coe : ℤ → R) at_top = at_top :=
-comap_embedding_at_top (λ _ _, int.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, hn⟩
+comap_embedding_at_top (λ _ _, int.cast_le) $ λ r,
+  let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, by exact_mod_cast hn⟩
 
 @[simp] lemma int.comap_coe_at_bot [ordered_ring R] [nontrivial R] [archimedean R] :
   comap (coe : ℤ → R) at_bot = at_bot :=
@@ -54,7 +55,7 @@ by rw [← tendsto_comap_iff, int.comap_coe_at_bot]
 lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
   tendsto (coe : ℤ → R) at_top at_top :=
 int.cast_mono.tendsto_at_top_at_top $ λ b,
-  let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
+  let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, by exact_mod_cast hn⟩
 
 @[simp] lemma rat.comap_coe_at_top [linear_ordered_field R] [archimedean R] :
   comap (coe : ℚ → R) at_top = at_top :=

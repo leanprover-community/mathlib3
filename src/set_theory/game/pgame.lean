@@ -518,6 +518,7 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 theorem equiv_refl (x) : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+theorem equiv.comm {x y} : x ≈ y ↔ y ≈ x := comm
 
 theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
@@ -528,6 +529,9 @@ theorem lf.not_equiv {x y} (h : x ⧏ y) : ¬ x ≈ y := λ h', h.not_ge h'.2
 theorem lf.not_equiv' {x y} (h : x ⧏ y) : ¬ y ≈ x := λ h', h.not_ge h'.1
 
 theorem lf.not_gt {x y} (h : x ⧏ y) : ¬ y < x := λ h', h.not_ge h'.le
+
+theorem le_iff_lt_or_equiv {x y : pgame} : x ≤ y ↔ x < y ∨ x ≈ y :=
+by { simp only [lt_iff_le_and_lf, equiv, ←pgame.not_le], tauto! }
 
 theorem le_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ≤ y₁) : x₂ ≤ y₂ :=
 hx.2.trans (h.trans hy.1)
@@ -615,7 +619,7 @@ localized "infix ` ∥ `:50 := pgame.fuzzy" in pgame
 
 @[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
 instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
-theorem fuzzy.swap_iff {x y : pgame} : x ∥ y ↔ y ∥ x := ⟨fuzzy.swap, fuzzy.swap⟩
+theorem fuzzy.comm {x y : pgame} : x ∥ y ↔ y ∥ x := comm
 
 theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
 instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
@@ -638,6 +642,9 @@ theorem not_fuzzy_of_le {x y : pgame} (h : x ≤ y) : ¬ x ∥ y :=
 λ h', h'.2.not_ge h
 theorem not_fuzzy_of_ge {x y : pgame} (h : y ≤ x) : ¬ x ∥ y :=
 λ h', h'.1.not_ge h
+
+alias not_fuzzy_of_le ← has_le.le.not_fuzzy
+alias not_fuzzy_of_ge ← has_le.le.not_fuzzy'
 
 theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ∥ y :=
 not_fuzzy_of_le h.1
@@ -671,9 +678,146 @@ end
 
 theorem lt_or_equiv_or_gf (x y : pgame) : x < y ∨ x ≈ y ∨ y ⧏ x :=
 begin
-  rw [lf_iff_lt_or_fuzzy, fuzzy.swap_iff],
+  rw [lf_iff_lt_or_fuzzy, fuzzy.comm],
   exact lt_or_equiv_or_gt_or_fuzzy x y
 end
+
+/-- The type representing the possible outcomes for the comparison of two games. -/
+inductive ordering
+| lt
+| equiv
+| gt
+| fuzzy
+
+namespace ordering
+
+def swap : ordering → ordering
+| lt := gt
+| equiv := equiv
+| gt := lt
+| fuzzy := fuzzy
+
+@[simp] theorem swap_swap (o : ordering) : o.swap.swap = o :=
+by { cases o; refl }
+
+@[simp] theorem swap_lt : lt.swap = gt := rfl
+@[simp] theorem swap_equiv : ordering.equiv.swap = ordering.equiv := rfl
+@[simp] theorem swap_gt : gt.swap = lt := rfl
+@[simp] theorem swap_fuzzy : ordering.fuzzy.swap = fuzzy := rfl
+
+@[simp] theorem swap_inj (o₁ o₂ : ordering) : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
+by { cases o₁; cases o₂; simp }
+
+end ordering
+
+instance : has_repr ordering :=
+⟨(λ s, match s with
+| ordering.lt := "lt"
+| ordering.equiv := "equiv"
+| ordering.gt := "gt"
+| ordering.fuzzy := "fuzzy"
+end)⟩
+
+instance : decidable_eq ordering :=
+λ a b, begin
+  cases a;
+  cases b;
+  try { exact is_true rfl };
+  try { exact is_false (λ h, ordering.no_confusion h) }
+end
+
+/-- Compares two pre-games. -/
+noncomputable def cmp (x y : pgame) : ordering :=
+by { classical, exact if x ≤ y then
+  if y ≤ x then ordering.equiv else ordering.lt
+else
+  if y ≤ x then ordering.gt else ordering.fuzzy }
+
+@[simp] theorem cmp_swap (x y : pgame) : (cmp x y).swap = cmp y x :=
+begin
+  by_cases h₁ : x ≤ y;
+  by_cases h₂ : y ≤ x;
+  simpa only [cmp, h₁, h₂]
+end
+
+@[simp] theorem cmp_eq_lt_iff {x y : pgame} : cmp x y = ordering.lt ↔ x < y :=
+begin
+  by_cases h₁ : x ≤ y;
+  by_cases h₂ : y ≤ x;
+  simp only [cmp, h₁, h₂, if_true, if_false, true_iff, false_iff, eq_self_iff_true];
+  try { rw pgame.not_le at * },
+  { exact h₂.not_lt },
+  { exact lt_of_le_of_lf h₁ h₂ },
+  { exact h₂.not_lt },
+  { exact h₁.not_gt }
+end
+
+@[simp] theorem cmp_eq_equiv_iff {x y : pgame} : cmp x y = ordering.equiv ↔ x ≈ y :=
+begin
+  by_cases h₁ : x ≤ y;
+  by_cases h₂ : y ≤ x;
+  simp only [cmp, h₁, h₂, if_true, if_false, true_iff, false_iff, eq_self_iff_true];
+  try { rw pgame.not_le at * },
+  { exact ⟨h₁, h₂⟩ },
+  { exact h₂.not_equiv },
+  { exact h₁.not_equiv' },
+  { exact h₂.not_equiv }
+end
+
+@[simp] theorem cmp_eq_gt_iff {x y : pgame} : cmp x y = ordering.gt ↔ y < x :=
+by rw [←ordering.swap_inj, cmp_swap, ordering.swap_gt, cmp_eq_lt_iff]
+
+@[simp] theorem cmp_eq_fuzzy_iff {x y : pgame} : cmp x y = ordering.fuzzy ↔ x ∥ y :=
+begin
+  by_cases h₁ : x ≤ y;
+  by_cases h₂ : y ≤ x;
+  simp only [cmp, h₁, h₂, if_true, if_false, true_iff, false_iff, eq_self_iff_true];
+  try { rw pgame.not_le at * },
+  { exact h₁.not_fuzzy },
+  { exact h₁.not_fuzzy },
+  { exact h₂.not_fuzzy' },
+  { exact ⟨h₂, h₁⟩ }
+end
+
+theorem le_iff_cmp_eq_lt_or_equiv {x y : pgame} :
+  x ≤ y ↔ cmp x y = ordering.lt ∨ cmp x y = ordering.equiv :=
+by simpa using le_iff_lt_or_equiv
+
+theorem lf_iff_cmp_eq_lt_or_fuzzy {x y : pgame} :
+  x ⧏ y ↔ cmp x y = ordering.lt ∨ cmp x y = ordering.fuzzy :=
+by simpa using lf_iff_lt_or_fuzzy
+
+theorem cmp_eq_iff_le_iff_le {w x y z : pgame} :
+  cmp w x = cmp y z ↔ (w ≤ x ↔ y ≤ z) ∧ (x ≤ w ↔ z ≤ y) :=
+begin
+  by_cases h₁ : w ≤ x;
+  by_cases h₂ : x ≤ w;
+  by_cases h₃ : y ≤ z;
+  by_cases h₄ : z ≤ y;
+  simp [cmp, h₁, h₂, h₃, h₄]
+end
+
+theorem cmp_eq_iff_lf_iff_lf {w x y z : pgame} :
+  cmp w x = cmp y z ↔ (w ⧏ x ↔ y ⧏ z) ∧ (x ⧏ w ↔ z ⧏ y) :=
+by simp_rw [cmp_eq_iff_le_iff_le, ←pgame.not_le, not_iff_not, and.comm]
+
+theorem lt_iff_lt_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w < x ↔ y < z :=
+by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
+
+theorem le_iff_le_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w ≤ x ↔ y ≤ z :=
+by rw [le_iff_cmp_eq_lt_or_equiv, le_iff_cmp_eq_lt_or_equiv, h]
+
+theorem lf_iff_lf_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w ⧏ x ↔ y ⧏ z :=
+by rw [lf_iff_cmp_eq_lt_or_fuzzy, lf_iff_cmp_eq_lt_or_fuzzy, h]
+
+theorem equiv_iff_equiv_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w ≈ x ↔ y ≈ z :=
+by rw [←cmp_eq_equiv_iff, ←cmp_eq_equiv_iff, h]
+
+theorem fuzzy_iff_fuzzy_of_cmp_eq {w x y z : pgame} (h : cmp w x = cmp y z) : w ∥ x ↔ y ∥ z :=
+by rw [←cmp_eq_fuzzy_iff, ←cmp_eq_fuzzy_iff, h]
+
+theorem cmp_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : cmp w y = cmp x z :=
+by { rw cmp_eq_iff_le_iff_le, exact ⟨le_congr h₁ h₂, le_congr h₂ h₁⟩ }
 
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
@@ -889,18 +1033,23 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] theorem neg_le_neg_iff {x y : pgame} : -y ≤ -x ↔ x ≤ y := neg_le_lf_neg_iff.1
+@[simp] theorem neg_le_neg_iff {x y : pgame} : -y ≤ -x ↔ x ≤ y :=
+neg_le_lf_neg_iff.1
 
-@[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y := neg_le_lf_neg_iff.2
+@[simp] theorem cmp_neg (x y : pgame) : cmp (-x) (-y) = cmp y x :=
+by { rw cmp_eq_iff_le_iff_le, simp }
+
+@[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
+neg_le_lf_neg_iff.2
 
 @[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
-by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
+lt_iff_lt_of_cmp_eq (cmp_neg y x)
 
 @[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
-by rw [equiv, equiv, neg_le_neg_iff, neg_le_neg_iff, and.comm]
+by rw [equiv.comm, equiv_iff_equiv_of_cmp_eq (cmp_neg y x)]
 
 @[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
-by rw [fuzzy, fuzzy, neg_lf_neg_iff, neg_lf_neg_iff, and.comm]
+by rw [fuzzy.comm, fuzzy_iff_fuzzy_of_cmp_eq (cmp_neg y x)]
 
 theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
 by rw [←neg_neg x, neg_le_neg_iff, neg_neg]

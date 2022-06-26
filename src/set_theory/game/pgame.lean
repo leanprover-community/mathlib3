@@ -355,8 +355,8 @@ private theorem le_trans_aux {x y z : pgame}
   (h₂ : ∀ {j}, z.move_right j ≤ x → x ≤ y → z.move_right j ≤ y)
   (hxy : x ≤ y) (hyz : y ≤ z) : x ≤ z :=
 le_of_forall_lf
-  (λ i, pgame.not_le.1 (λ h, (h₁ hyz h).not_gf (hxy.move_left_lf i)))
-  (λ j, pgame.not_le.1 (λ h, (h₂ h hxy).not_gf (hyz.lf_move_right j)))
+  (λ i, pgame.not_le.1 $ λ h, (h₁ hyz h).not_gf $ hxy.move_left_lf i)
+  (λ j, pgame.not_le.1 $ λ h, (h₂ h hxy).not_gf $ hyz.lf_move_right j)
 
 instance : preorder pgame :=
 { le_refl := λ x, begin

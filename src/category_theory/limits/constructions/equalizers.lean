@@ -89,6 +89,7 @@ lemma has_equalizers_of_pullbacks_and_binary_products [has_binary_products C] [h
 
 local attribute[instance] has_pullback_of_preserves_pullback
 
+/-- A functor that preserves pullbacks and binary products also presrves equalizers. -/
 def preserves_equalizers_of_pullbacks_and_binary_products
     [has_binary_products C] [has_pullbacks C]
     [preserves_limits_of_shape (discrete.{v} walking_pair) G]
@@ -187,6 +188,7 @@ lemma has_coequalizers_of_pushouts_and_binary_coproducts
 
 local attribute[instance] has_pushout_of_preserves_pushout
 
+/-- A functor that preserves pushouts and binary coproducts also presrves coequalizers. -/
 def preserves_coequalizers_of_pushouts_and_binary_coproducts
     [has_binary_coproducts C] [has_pushouts C]
     [preserves_colimits_of_shape (discrete.{v} walking_pair) G]

@@ -122,8 +122,8 @@ limit.iso_limit_cone (limit_cone_of_terminal_and_pullbacks _)
 def is_binary_coproduct_of_is_initial_is_pushout (F : discrete walking_pair ⥤ C) (c : cocone F)
   {X : C} (hX : is_initial X)
   (f : X ⟶ F.obj ⟨walking_pair.left⟩) (g : X ⟶ F.obj ⟨walking_pair.right⟩)
-  (hc : is_colimit (pushout_cocone.mk (c.ι.app ⟨walking_pair.left⟩) (c.ι.app ⟨walking_pair.right⟩ : _)
-    $ hX.hom_ext (f ≫ _) (g ≫ _))) : is_colimit c :=
+  (hc : is_colimit (pushout_cocone.mk (c.ι.app ⟨walking_pair.left⟩)
+    (c.ι.app ⟨walking_pair.right⟩ : _) $ hX.hom_ext (f ≫ _) (g ≫ _))) : is_colimit c :=
 { desc := λ s, hc.desc
     (pushout_cocone.mk (s.ι.app ⟨walking_pair.left⟩) (s.ι.app ⟨walking_pair.right⟩)
       (hX.hom_ext _ _)),

@@ -87,7 +87,7 @@ def preserves_pullback_symmetry : preserves_limit (cospan g f) G :=
       (c.π.naturality walking_cospan.hom.inl : _) }
   end }
 
-lemma has_pullback_of_preserves_pullback [has_pullback f g] [preserves_limit (cospan f g) G] :
+lemma has_pullback_of_preserves_pullback [has_pullback f g] :
   has_pullback (G.map f) (G.map g) :=
 ⟨⟨⟨_, is_limit_pullback_cone_map_of_is_limit G _ (pullback_is_pullback _ _)⟩⟩⟩
 
@@ -175,7 +175,7 @@ def preserves_pushout_symmetry : preserves_colimit (span g f) G :=
       (c.ι.naturality walking_span.hom.fst).symm }
   end }
 
-lemma has_pushout_of_preserves_pushout [has_pushout f g] [preserves_colimit (span f g) G] :
+lemma has_pushout_of_preserves_pushout [has_pushout f g] :
   has_pushout (G.map f) (G.map g) :=
 ⟨⟨⟨_, is_colimit_pushout_cocone_map_of_is_colimit G _ (pushout_is_pushout _ _)⟩⟩⟩
 

@@ -11,19 +11,19 @@ import analysis.convex.join
 This file prove Stone's separation theorem. This tells us that any two disjoint convex sets can be
 separated by a convex set whose complement is also convex.
 
-It can be seen as a "cheap" version of the geometric Hahn-Banach theorem, in the sense that the
-separating set in Stone's separation corresponds to the halfspace in geometric Hahn-Banach, but in a
-much broader class of spaces (any vector space, instead of real normed spaces).
+In locally convex real topological vector spaces, the Hahn-Banach separation theorems provide
+stronger statements: one may find a separating hyperplane, instead of merely a convex set whose
+complement is convex.
 -/
 
 open set
 open_locale big_operators
 
-variables {𝕜 E ι : Type*} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {w x y z : E}
-  {s t : set E}
+variables {𝕜 E ι : Type*} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {s t : set E}
 
-/-- In a tetrahedron, any segment joining opposite edges passes through any triangle whose base is
-another edge. -/
+/-- In a tetrahedron with vertices `x`, `y`, `p`, `q`, any segment `[u, v]` joining the opposite
+edges `[x, p]` and `[y, q]` passes through any triangle of vertices `p`, `q`, `z` where
+`z ∈ [x, y]`. -/
 lemma not_disjoint_segment_convex_hull_triple {p q u v x y z : E}
   (hz : z ∈ segment 𝕜 x y) (hu : u ∈ segment 𝕜 x p) (hv : v ∈ segment 𝕜 y q) :
   ¬ disjoint (segment 𝕜 u v) (convex_hull 𝕜 {p, q, z}) :=

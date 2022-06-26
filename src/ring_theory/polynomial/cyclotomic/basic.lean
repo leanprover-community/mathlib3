@@ -828,7 +828,8 @@ lemma _root_.is_primitive_root.minpoly_dvd_cyclotomic {n : ℕ} {K : Type*} [fie
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
-  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  apply minpoly.gcd_domain_dvd (is_integral h hpos) (algebra_map ℤ K).injective_int
+    (cyclotomic_ne_zero n ℤ),
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 
@@ -857,7 +858,7 @@ lemma cyclotomic_eq_minpoly_rat {n : ℕ} {K : Type*} [field K] {μ : K}
   cyclotomic n ℚ = minpoly ℚ μ :=
 begin
   rw [← map_cyclotomic_int, cyclotomic_eq_minpoly h hpos],
-  exact (minpoly.gcd_domain_eq_field_fractions _ (is_integral h hpos)).symm
+  simpa using (minpoly.gcd_domain_eq_field_fractions' ℚ (is_integral h hpos)).symm
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/
@@ -950,9 +951,8 @@ begin
   { have hpos := nat.mul_pos hzero hp.pos,
     have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
     rw [cyclotomic_eq_minpoly hprim hpos],
-    refine @minpoly.gcd_domain_dvd ℤ ℂ ℚ _ _ _ _ _ _ _ _ complex.algebra (algebra_int ℂ) _ _
-      (is_primitive_root.is_integral hprim hpos) _ ((cyclotomic.monic n ℤ).expand
-      hp.pos).is_primitive _,
+    refine minpoly.gcd_domain_dvd (hprim.is_integral hpos) (algebra_map ℤ ℂ).injective_int
+      ((cyclotomic.monic n ℤ).expand hp.pos).ne_zero _,
     rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval,
         ← is_root.def, is_root_cyclotomic_iff],
     { convert is_primitive_root.pow_of_dvd hprim hp.ne_zero (dvd_mul_left p n),

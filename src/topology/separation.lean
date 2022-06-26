@@ -1549,7 +1549,7 @@ begin
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
   have H1 := (hu.union hv).is_closed_compl.is_compact.inter_Inter_nonempty
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2),
-  rw [←not_disjoint_iff_inter_nonempty, imp_not_comm, not_forall] at H1,
+  rw [←not_disjoint_iff_nonempty_inter, imp_not_comm, not_forall] at H1,
   cases H1 (disjoint_compl_left_iff_subset.2 $ hab.trans $ union_subset_union hau hbv) with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },

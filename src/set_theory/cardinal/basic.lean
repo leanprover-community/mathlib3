@@ -768,7 +768,7 @@ To prove an inequality between the lifts to a common universe of two different s
 it suffices to show that the lift of each cardinal from the smaller supremum
 if bounded by the lift of some cardinal from the larger supremum.
 -/
-lemma lift_sup_le_lift_sup
+lemma lift_supr_le_lift_supr
   {ι : Type v} {ι' : Type v'} {f : ι → cardinal.{w}} {f' : ι' → cardinal.{w'}}
   (hf : bdd_above (range f)) (hf' : bdd_above (range f'))
   {g : ι → ι'} (h : ∀ i, lift.{w'} (f i) ≤ lift.{w} (f' (g i))) :
@@ -778,14 +778,14 @@ begin
   exact csupr_mono' (bdd_above_range_comp hf' _) (λ i, ⟨_, h i⟩)
 end
 
-/-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
+/-- A variant of `lift_supr_le_lift_supr` with universes specialized via `w = v` and `w' = v'`.
 This is sometimes necessary to avoid universe unification issues. -/
-lemma lift_sup_le_lift_sup'
+lemma lift_supr_le_lift_supr'
   {ι : Type v} {ι' : Type v'} {f : ι → cardinal.{v}} {f' : ι' → cardinal.{v'}}
   (hf : bdd_above (range f)) (hf' : bdd_above (range f'))
   (g : ι → ι') (h : ∀ i, lift.{v'} (f i) ≤ lift.{v} (f' (g i))) :
   lift.{v'} (supr f) ≤ lift.{v} (supr f') :=
-lift_sup_le_lift_sup hf hf' h
+lift_supr_le_lift_supr hf hf' h
 
 /-- `ℵ₀` is the smallest infinite cardinal. -/
 def aleph_0 : cardinal.{u} := lift (#ℕ)

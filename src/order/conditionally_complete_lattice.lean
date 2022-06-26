@@ -689,6 +689,10 @@ theorem le_cSup_iff' {s : set α} {a : α} (h : bdd_above s) :
   a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
 ⟨λ h b hb, le_trans h (cSup_le' hb), λ hb, hb _ (λ x, le_cSup h)⟩
 
+lemma le_csupr_iff' {s : ι → α} {a : α} (h : bdd_above (range s)) :
+  a ≤ supr s ↔ ∀ b, (∀ i, s i ≤ b) → a ≤ b :=
+by simp [supr, h, le_cSup_iff', upper_bounds]
+
 theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
 le_cInf_iff ⟨⊥, λ a _, bot_le⟩ ne

@@ -332,7 +332,7 @@ protected lemma compl_inf (s t : lower_set α) : (s ⊓ t).compl = s.compl ⊓ t
 upper_set.ext compl_inf
 protected lemma compl_top : (⊤ : lower_set α).compl = ⊤ := upper_set.ext compl_univ
 protected lemma compl_bot : (⊥ : lower_set α).compl = ⊥ := upper_set.ext compl_empty
-protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = ⨆  s ∈ S, lower_set.compl s :=
+protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = ⨆ s ∈ S, lower_set.compl s :=
 upper_set.ext $ by simp only [coe_compl, coe_Sup, compl_Union₂, upper_set.coe_supr₂]
 
 protected lemma compl_Inf (S : set (lower_set α)) : (Inf S).compl = ⨅ s ∈ S, lower_set.compl s :=
@@ -349,7 +349,7 @@ upper_set.ext $ by simp only [coe_compl, coe_infi, compl_Inter, upper_set.coe_in
 by simp_rw lower_set.compl_supr
 
 @[simp] lemma compl_infi₂ (f : Π i, κ i → lower_set α) :
-  (⨅ i j, f i j).compl =  ⨅ i j, (f i j).compl :=
+  (⨅ i j, f i j).compl = ⨅ i j, (f i j).compl :=
 by simp_rw lower_set.compl_infi
 
 end lower_set

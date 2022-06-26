@@ -175,7 +175,7 @@ begin
   erw [← polynomial.map_dvd_map' (subfield.subtype $ fixed_points.subfield G F),
       minpoly, polynomial.map_to_subring _ (subfield G F).to_subring, prod_X_sub_smul],
   refine fintype.prod_dvd_of_coprime
-    (polynomial.pairwise_coprime_X_sub $ mul_action.injective_of_quotient_stabilizer G x)
+    (polynomial.pairwise_coprime_X_sub_C $ mul_action.injective_of_quotient_stabilizer G x)
     (λ y, quotient_group.induction_on y $ λ g, _),
   rw [polynomial.dvd_iff_is_root, polynomial.is_root.def, mul_action.of_quotient_stabilizer_mk,
       polynomial.eval_smul',

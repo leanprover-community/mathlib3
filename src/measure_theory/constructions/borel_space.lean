@@ -632,7 +632,7 @@ lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
-  have : countable (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)),
+  have : (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)).countable,
     from hsc.bUnion (λ l hl, hsc.bUnion
       (λ u hu, countable_Union_Prop $ λ _, countable_singleton _)),
   simp only [← set_of_eq_eq_singleton, ← set_of_exists] at this,
@@ -1228,12 +1228,12 @@ lemma ae_measurable_infi {ι} {μ : measure δ} [encodable ι] {f : ι → δ �
   ae_measurable (λ b, ⨅ i, f i b) μ :=
 ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
 
-lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨆ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [supr_subtype'],
      exact measurable_supr (λ i, hf i) }
 
-lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨆ i ∈ s, f i b) μ :=
 begin
   haveI : encodable s := hs.to_encodable,
@@ -1241,12 +1241,12 @@ begin
   exact ae_measurable_supr (λ i, hf i),
 end
 
-lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨅ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [infi_subtype'],
      exact measurable_infi (λ i, hf i) }
 
-lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨅ i ∈ s, f i b) μ :=
 begin
   haveI : encodable s := hs.to_encodable,

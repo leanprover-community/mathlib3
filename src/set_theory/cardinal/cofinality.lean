@@ -218,13 +218,15 @@ begin
 end
 
 @[simp] theorem lift_cof (o) : (cof o).lift = cof o.lift :=
-induction_on o $ begin introsI α r _,
+begin
+  refine induction_on o _,
+  introsI α r _,
   cases lift_type r with _ e, rw e,
   apply le_antisymm,
   { unfreezingI { refine le_cof_type.2 (λ S H, _) },
-    have : (#(ulift.up ⁻¹' S)).lift ≤ #S :=
-     ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
-       λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
+    have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
+    { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
+      exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },
     refine (cardinal.lift_le.2 $ cof_type_le _).trans this,
     exact λ a, let ⟨⟨b⟩, bs, br⟩ := H ⟨a⟩ in ⟨b, bs, br⟩ },
   { rcases cof_eq r with ⟨S, H, e'⟩,

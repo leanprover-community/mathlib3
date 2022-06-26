@@ -172,6 +172,8 @@ instance : order_hom_class (α →o β) α β :=
 @[ext] -- See library note [partially-applied ext lemmas]
 lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
+lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
+
 /-- One can lift an unbundled monotone function to a bundled one. -/
 instance : can_lift (α → β) (α →o β) :=
 { coe := coe_fn,
@@ -646,6 +648,20 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
   left_inv := λ a, (gf a).symm,
   right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
   map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert (h _ _).symm, apply gf } }
+
+/-- To show that `f : α →o β` and `g : β →o α` make up an order isomorphism it is enough to show
+    that `g` is the inverse of `f`-/
+def of_hom_inv {F G : Type*} [order_hom_class F α β] [order_hom_class G β α]
+  (f : F) (g : G) (h₁ : (f : α →o β).comp (g : β →o α) = order_hom.id)
+    (h₂ : (g : β →o α).comp (f : α →o β) = order_hom.id) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := fun_like.congr_fun h₂,
+  right_inv := fun_like.congr_fun h₁,
+  map_rel_iff' := λ a b, ⟨λ h, by { replace h := map_rel g h, rwa [equiv.coe_fn_mk,
+    (show g (f a) = (g : β →o α).comp (f : α →o β) a, from rfl),
+    (show g (f b) = (g : β →o α).comp (f : α →o β) b, from rfl), h₂] at h },
+    λ h, (f : α →o β).monotone h⟩ }
 
 /-- Order isomorphism between two equal sets. -/
 def set_congr (s t : set α) (h : s = t) : s ≃o t :=

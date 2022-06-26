@@ -62,6 +62,20 @@ instance : inhabited (closeds α) := ⟨⊥⟩
 
 end closeds
 
+/-- The complement of a closed set as an open set. -/
+@[simps] def closeds.compl (s : closeds α) : opens α := ⟨sᶜ, s.2.1⟩
+
+/-- The complement of an open set as a closed set. -/
+@[simps] def opens.compl (s : opens α) : closeds α := ⟨sᶜ, s.2.is_closed_compl⟩
+
+lemma closeds.compl_compl (s : closeds α) : s.compl.compl = s := closeds.ext (compl_compl s)
+lemma opens.compl_compl (s : opens α) : s.compl.compl = s := opens.ext (compl_compl s)
+
+lemma closeds.compl_bijective : function.bijective (@closeds.compl α _) :=
+function.bijective_iff_has_inverse.mpr ⟨opens.compl, closeds.compl_compl, opens.compl_compl⟩
+lemma opens.compl_bijective : function.bijective (@opens.compl α _) :=
+function.bijective_iff_has_inverse.mpr ⟨closeds.compl, opens.compl_compl, closeds.compl_compl⟩
+
 /-! ### Clopen sets -/
 
 /-- The type of clopen sets of a topological space. -/

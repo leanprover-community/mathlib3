@@ -7,6 +7,7 @@ import order.hom.complete_lattice
 import topology.bases
 import topology.homeomorph
 import topology.continuous_function.basic
+import order.compactly_generated
 
 /-!
 # Open sets
@@ -172,6 +173,30 @@ begin
     rcases h U with ⟨Us, hUs, rfl⟩,
     rcases mem_Sup.1 hx with ⟨U, Us, xU⟩,
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
+end
+
+lemma is_compact_element_iff (s : opens α) :
+  complete_lattice.is_compact_element s ↔ is_compact (s : set α) :=
+begin
+  rw [is_compact_iff_finite_subcover, complete_lattice.is_compact_element_iff],
+  split,
+  { introv H hU hU',
+    let f : ι → opens α := λ i, ⟨U i, hU i⟩,
+    obtain ⟨t, ht⟩ := H ι f (by simpa),
+    refine ⟨t, set.subset.trans ht _⟩,
+    convert_to t.sup f ≤ @supr (opens α) _ t (λ i, ⟨U i, hU i⟩),
+    { rw [opens.supr_mk, subtype.coe_mk],
+      exact (set.Union_subtype (λ x, x ∈ t) (λ i : t, U i)).symm },
+    rw finset.sup_le_iff,
+    intros b hb,
+    refine le_trans _ (le_supr _ (⟨b, hb⟩ : t)),
+    exact le_of_eq rfl },
+  { intros H ι U hU,
+    obtain ⟨t, ht⟩ := H (λ i, U i) (λ i, (U i).prop)
+      (by simpa using (show (s : set α) ⊆ ↑(supr U), from hU)),
+    refine ⟨t, set.subset.trans ht _⟩,
+    simp only [set.Union_subset_iff],
+    show ∀ i ∈ t, U i ≤ t.sup U, from λ i, finset.le_sup }
 end
 
 /-- The preimage of an open set, as an open set. -/

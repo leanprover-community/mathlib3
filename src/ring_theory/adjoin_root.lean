@@ -426,6 +426,14 @@ over a field. -/
   _root_.power_basis R (algebra.adjoin R ({x} : set S)) :=
 power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adjoin hinj hx)
 
+/-- The power basis given by `x` if `B.gen ∈ adjoin R {x}`. -/
+@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : _root_.power_basis R S)
+  (hint : is_integral R x) (hx : B.gen ∈ adjoin R ({x} : set S)) :
+  _root_.power_basis R S :=
+(algebra.adjoin.power_basis' hinj hint).map $
+  (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
+  subalgebra.top_equiv
+
 end minpoly
 
 section equiv

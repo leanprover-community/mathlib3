@@ -470,7 +470,7 @@ lemma independent_iff_linear_independent_of_ne_zero [no_zero_smul_divisors R N] 
   (h_ne_zero : ∀ i, v i ≠ 0) :
   independent (λ i, R ∙ v i) ↔ linear_independent R v :=
 ⟨λ hv, hv.linear_independent _ (λ i, submodule.mem_span_singleton_self $ v i) h_ne_zero,
- λ hv, hv.independent⟩
+ λ hv, hv.independent_span_singleton⟩
 
 end ring
 

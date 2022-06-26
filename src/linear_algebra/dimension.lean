@@ -291,7 +291,8 @@ lemma linear_independent.finite_of_is_noetherian [is_noetherian R M]
   {v : ι → M} (hv : linear_independent R v) : finite ι :=
 begin
   have hwf := is_noetherian_iff_well_founded.mp (by apply_instance : is_noetherian R M),
-  refine complete_lattice.well_founded.finite_of_independent hwf hv.independent (λ i contra, _),
+  refine complete_lattice.well_founded.finite_of_independent hwf
+    hv.independent_span_singleton (λ i contra, _),
   apply hv.ne_zero i,
   have : v i ∈ R ∙ v i := submodule.mem_span_singleton_self (v i),
   rwa [contra, submodule.mem_bot] at this,

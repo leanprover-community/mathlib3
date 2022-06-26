@@ -34,6 +34,13 @@ def morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), Prop
 affine scheme. -/
 def affine_target_morphism_property := ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y) [is_affine Y], Prop
 
+/-- `is_iso` as an `morphism_property`. -/
+protected def is_iso : morphism_property := @is_iso Scheme
+
+/-- `is_iso` as an `morphism_property`. -/
+protected def affine_target_is_iso : affine_target_morphism_property :=
+λ X Y f H, is_iso f
+
 instance : lattice morphism_property :=
 { le := λ P₁ P₂, ∀ ⦃X Y : Scheme⦄ (f : X ⟶ Y), P₁ f → P₂ f,
   le_refl := λ P X Y f H, H,
@@ -155,3 +162,4 @@ begin
 end
 
 end algebraic_geometry
+#lint

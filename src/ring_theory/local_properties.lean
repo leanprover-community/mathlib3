@@ -122,7 +122,7 @@ def ring_hom.of_localization_span_target : Prop :=
   (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
   by exactI P f
 
-/-- A property `P` of comm rings satisfies `of_localization_maximal` if
+/-- A property `P` of ring homs satisfies `of_localization_maximal` if
   if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideal `m`. -/
 def ring_hom.of_localization_prime : Prop :=
 ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S),

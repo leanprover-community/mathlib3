@@ -101,8 +101,8 @@ end stable_under_composition
 
 section stable_under_base_change
 
-/-- A morphism property is `stable_under_composition` if the composition of two such morphisms
-still falls in the class. -/
+/-- A morphism property `P` is `stable_under_base_change` if `P(S →+* A)` implies
+`P(B →+* A ⊗[S] B)`. -/
 def stable_under_base_change : Prop :=
   ∀ ⦃R S T⦄ [comm_ring R] [comm_ring S] [comm_ring T], by exactI ∀ [algebra R S] [algebra R T],
     by exactI (P (algebra_map R T) →

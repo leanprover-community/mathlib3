@@ -394,7 +394,8 @@ variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gc
 include hs
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
-over the fraction field. -/
+over the fraction field. See `minpoly.gcd_domain_eq_field_fractions'` if `S` is already a
+`K`-algebra. -/
 lemma gcd_domain_eq_field_fractions :
   minpoly K (algebra_map S L s) = (minpoly R s).map (algebra_map R K) :=
 begin
@@ -407,8 +408,8 @@ begin
 end
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
-over the fraction field. Compared to `gcd_domain_eq_field_fractions`, this version is useful if
-the element is in a ring that is already a `K`-algebra. -/
+over the fraction field. Compared to `minpoly.gcd_domain_eq_field_fractions`, this version is useful
+if the element is in a ring that is already a `K`-algebra. -/
 lemma gcd_domain_eq_field_fractions' [algebra K S] [is_scalar_tower R K S] :
   minpoly K s = (minpoly R s).map (algebra_map R K) :=
 begin

@@ -60,6 +60,27 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
 lemma factorization_def (n p : ℕ) (pp : p.prime) : n.factorization p = padic_val_nat p n :=
 by simpa [factorization] using absurd pp
 
+/-- We can write both `n.factorization p` and `n.factors.count p` to represent the power
+of `p` in the factorization of `n`: we declare the former to be the simp-normal form. -/
+@[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
+begin
+  simp only [factorization, coe_mk],
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  by_cases pp : p.prime, swap,
+  { simp only [pp, if_false], apply count_eq_zero_of_not_mem (mt prime_of_mem_factors pp) },
+  { simp only [pp, if_true],
+
+    -- simp [padic_val_nat, pp.ne_one, hn0],
+
+
+
+  sorry },
+end
+
+lemma factorization_eq_factors_multiset (n : ℕ) :
+  n.factorization = (n.factors : multiset ℕ).to_finsupp :=
+by { ext p, simp }
+
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
 by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn.bot_lt)]
@@ -72,16 +93,10 @@ by simp [factorization, fact_iff.1 hp]
 
 @[simp] lemma factorization_prod_pow_eq_self {n : ℕ} (hn : n ≠ 0) : n.factorization.prod pow = n :=
 begin
+  rw factorization_eq_factors_multiset n,
   simp only [←prod_to_multiset, factorization, multiset.coe_prod, multiset.to_finsupp_to_multiset],
   exact prod_factors hn,
 end
-
-/-- We can write both `n.factorization p` and `n.factors.count p` to represent the power
-of `p` in the factorization of `n`: we declare the former to be the simp-normal form.
-However, since `factorization` is a finsupp it's noncomputable.  This theorem can also
-be used in reverse to compute values of `factorization n p` when required. -/
-@[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
-by simp [factorization]
 
 lemma eq_of_factorization_eq {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
   (h : ∀ p : ℕ, a.factorization p = b.factorization p) : a = b :=
@@ -97,7 +112,6 @@ by { simp [factorization], refl }
 @[simp] lemma factorization_one : factorization 1 = 0 :=
 by { simp [factorization], refl }
 
-#exit
 /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : ℕ} : n.factorization.support = n.factors.to_finset :=
 by simp [factorization]
@@ -136,7 +150,10 @@ by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
-by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
+begin
+  rw factorization_eq_factors_multiset n,
+  simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero],
+end
 
 lemma factorization_eq_zero_iff' (n p : ℕ) :
   n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=

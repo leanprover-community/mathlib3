@@ -673,7 +673,7 @@ inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
 
 /-- The identity restriction. -/
 @[refl] def restricted.refl : Π (x : pgame), restricted x x
-| ⟨xl, xr, xL, xR⟩ := ⟨_, _, λ i, restricted.refl _, λ j, restricted.refl _⟩
+| x := ⟨_, _, λ i, restricted.refl _, λ j, restricted.refl _⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance (x : pgame) : inhabited (restricted x x) := ⟨restricted.refl _⟩
@@ -681,11 +681,11 @@ instance (x : pgame) : inhabited (restricted x x) := ⟨restricted.refl _⟩
 /-- Transitivity of restriction. -/
 def restricted.trans : Π {x y z : pgame} (r : restricted x y) (s : restricted y z),
   restricted x z
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
+| x y z ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
 ⟨_, _, λ i, (hL₁ i).trans (hL₂ _), λ j, (hR₁ _).trans (hR₂ j)⟩
 
 theorem restricted.le : Π {x y : pgame} (r : restricted x y), x ≤ y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
+| x y ⟨L, R, hL, hR⟩ :=
 le_def.2 ⟨λ i, or.inl ⟨L i, (hL i).le⟩, λ i, or.inr ⟨R i, (hR i).le⟩⟩
 
 /--
@@ -715,9 +715,19 @@ def mk' (L : y.left_moves ≃ x.left_moves) (R : y.right_moves ≃ x.right_moves
 def left_moves_equiv : Π (r : x ≡r y), x.left_moves ≃ y.left_moves
 | ⟨L, R, hL, hR⟩ := L
 
+@[simp] theorem mk_left_moves_equiv {x y L R hL hR} :
+  (@relabelling.mk x y L R hL hR).left_moves_equiv = L := rfl
+@[simp] theorem mk'_left_moves_equiv {x y L R hL hR} :
+  (@relabelling.mk' x y L R hL hR).left_moves_equiv = L.symm := rfl
+
 /-- The equivalence between right moves of `x` and `y` given by the relabelling. -/
 def right_moves_equiv : Π (r : x ≡r y), x.right_moves ≃ y.right_moves
 | ⟨L, R, hL, hR⟩ := R
+
+@[simp] theorem mk_right_moves_equiv {x y L R hL hR} :
+  (@relabelling.mk x y L R hL hR).right_moves_equiv = R := rfl
+@[simp] theorem mk'_right_moves_equiv {x y L R hL hR} :
+  (@relabelling.mk' x y L R hL hR).right_moves_equiv = R.symm := rfl
 
 /-- A left move of `x` is a relabelling of a left move of `y`. -/
 def move_left : ∀ (r : x ≡r y) (i : x.left_moves),
@@ -741,8 +751,7 @@ def move_right_symm : ∀ (r : x ≡r y) (i : y.right_moves),
 
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of `y`. -/
 def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ r :=
-⟨_, _, λ i, (r.move_left i).restricted, λ j, (r.move_right_symm j).restricted⟩
+| x y r := ⟨_, _, λ i, (r.move_left i).restricted, λ j, (r.move_right_symm j).restricted⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
 /-! It's not the case that `restricted x y → restricted y x → x ≡r y`, but if we insisted that the
@@ -750,15 +759,14 @@ maps in a restriction were injective, then one could use Schröder-Bernstein for
 
 /-- The identity relabelling. -/
 @[refl] def refl : Π (x : pgame), x ≡r x
-| ⟨xl, xr, xL, xR⟩ := ⟨equiv.refl _, equiv.refl _, λ i, refl _, λ j, refl _⟩
+| x := ⟨equiv.refl _, equiv.refl _, λ i, refl _, λ j, refl _⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance (x : pgame) : inhabited (x ≡r x) := ⟨refl _⟩
 
 /-- Flip a relabelling. -/
 @[symm] def symm : Π {x y : pgame}, x ≡r y → y ≡r x
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
-mk' L R (λ i, (hL i).symm) (λ j, (hR j).symm)
+| x y ⟨L, R, hL, hR⟩ := mk' L R (λ i, (hL i).symm) (λ j, (hR j).symm)
 
 theorem le (r : x ≡r y) : x ≤ y := r.restricted.le
 theorem ge (r : x ≡r y) : y ≤ x := r.symm.restricted.le
@@ -768,7 +776,7 @@ theorem equiv (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 
 /-- Transitivity of relabelling. -/
 @[trans] def trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
+| x y z ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
 ⟨L₁.trans L₂, R₁.trans R₂, λ i, (hL₁ i).trans (hL₂ _), λ j, (hR₁ j).trans (hR₂ _)⟩
 
 /-- Any game without left or right moves is a relabelling of 0. -/

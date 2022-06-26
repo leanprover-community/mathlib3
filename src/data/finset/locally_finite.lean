@@ -540,7 +540,7 @@ by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
 
 end ordered_cancel_add_comm_monoid
 
-@[to_additive] lemma prod_Ioi_mul_eq_prod_off_diag [fintype ι] [linear_order ι]
+@[to_additive] lemma prod_prod_Ioi_mul_eq_prod_prod_off_diag [fintype ι] [linear_order ι]
   [locally_finite_order_top ι] [locally_finite_order_bot ι] [comm_monoid α] (f : ι → ι → α) :
   ∏ i, ∏ j in Ioi i, f j i * f i j = ∏ i, ∏ j in {i}ᶜ, f j i :=
 begin

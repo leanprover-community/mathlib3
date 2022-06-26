@@ -226,7 +226,7 @@ begin
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
     discr_power_basis_eq_prod'' _ _ _ e],
   congr,
-  rw [norm_eq_prod_embeddings, prod_Ioi_mul_eq_prod_off_diag],
+  rw [norm_eq_prod_embeddings, prod_prod_Ioi_mul_eq_prod_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),

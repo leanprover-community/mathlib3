@@ -217,7 +217,8 @@ begin
   apply left_moves_add_cases i,
   { intro i₁,
     rw add_move_left_inl,
-    apply (fuzzy_congr_left (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm)).1,
+    apply (fuzzy_congr_left
+      (add_equiv_add_right (equiv_nim_grundy_value (G.move_left i₁)).symm _)).1,
     rw nim.add_fuzzy_zero_iff_ne,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
@@ -241,7 +242,7 @@ begin
     cases h' with i hi,
     use to_left_moves_add (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
-    apply (add_congr_left (equiv_nim_grundy_value (G.move_left i))).trans,
+    apply (add_equiv_add_right (equiv_nim_grundy_value (G.move_left i)) _).trans,
     simpa only [hi] using impartial.add_self (nim (grundy_value (G.move_left i))) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

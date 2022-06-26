@@ -255,7 +255,7 @@ begin
     zero_mem' := (span S₀ (insert 1 ↑y : set A)).zero_mem,
     add_mem' := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
     neg_mem' := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
-  have : S₁ = (algebra.adjoin S₀ (↑y : set A)).to_subring,
+  have : S₁ = subalgebra.to_subring (algebra.adjoin S₀ (↑y : set A)),
   { ext z,
     suffices : z ∈ span ↥S₀ (insert 1 ↑y : set A) ↔
       z ∈ (algebra.adjoin ↥S₀ (y : set A)).to_submodule,

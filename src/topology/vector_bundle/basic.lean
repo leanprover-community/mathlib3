@@ -518,7 +518,8 @@ namespace trivialization
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
-{ cont := begin
+{ to_fun := e.linear_map_at b, -- given explicitly to help `simps`
+  cont := begin
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
@@ -530,7 +531,8 @@ def continuous_linear_map_at (e : trivialization R F E) (b : B) :
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/
 @[simps apply {fully_applied := ff}]
 def symmL (e : trivialization R F E) (b : B) : F →L[R] E b :=
-{ cont := begin
+{ to_fun := e.symm b, -- given explicitly to help `simps`
+  cont := begin
     by_cases hb : b ∈ e.base_set,
     { rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
       exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
@@ -554,8 +556,8 @@ is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply {fully_applied := ff}]
 def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk b y)).2,
-  inv_fun := e.symm b,
+{ to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
+  inv_fun := e.symm b, -- given explicitly to help `simps`
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL b).continuous,

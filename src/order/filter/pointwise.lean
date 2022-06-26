@@ -619,7 +619,11 @@ open_locale pointwise
 @[to_additive]
 instance smul_comm_class_filter [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α β (filter γ) :=
+<<<<<<< HEAD
 ⟨λ _ _ _, map_comm $ smul_comm _ _⟩
+=======
+⟨λ _ _ _,  map_comm (funext $ smul_comm _ _) _⟩
+>>>>>>> origin
 
 @[to_additive]
 instance smul_comm_class_filter' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :

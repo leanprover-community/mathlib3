@@ -37,7 +37,7 @@ properties of eigenvalues and eigenvectors.
 
 noncomputable theory
 open finset
-open_locale big_operators
+open_locale big_operators polynomial
 
 /-- A "linear recurrence relation" over a commutative semiring is given by its
   order `n` and `n` coefficients. -/
@@ -183,7 +183,7 @@ variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
 /-- The characteristic polynomial of `E` is
 `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
-def char_poly : polynomial α :=
+def char_poly : α[X] :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
 /-- The geometric sequence `q^n` is a solution of `E` iff

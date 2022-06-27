@@ -10,7 +10,7 @@ import data.list.big_operators
 
 This file proves basic properties of `list.countp` and `list.count`, which count the number of
 elements of a list satisfying a predicate and equal to a given element respectively. Their
-definitions can be found in [`data.list.defs`](./data/list/defs).
+definitions can be found in [`data.list.defs`](./defs).
 -/
 
 open nat
@@ -29,6 +29,9 @@ if_pos pa
 
 @[simp] lemma countp_cons_of_neg {a : α} (l) (pa : ¬ p a) : countp p (a::l) = countp p l :=
 if_neg pa
+
+lemma countp_cons (a : α) (l) : countp p (a :: l) = countp p l + ite (p a) 1 0 :=
+by { by_cases h : p a; simp [h] }
 
 lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l :=
 by induction l with x h ih; [refl, by_cases p x];
@@ -49,6 +52,12 @@ by simp only [countp_eq_length_filter, filter_append, length_append]
 
 lemma countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
+
+theorem countp_eq_zero {l} : countp p l = 0 ↔ ∀ a ∈ l, ¬ p a :=
+by { rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero, countp_pos], simp }
+
+lemma countp_eq_length {l} : countp p l = l.length ↔ ∀ a ∈ l, p a :=
+by rw [countp_eq_length_filter, filter_length_eq_length]
 
 lemma length_filter_lt_length_iff_exists (l) : length (filter p l) < length l ↔ ∃ x ∈ l, ¬p x :=
 by rw [length_eq_countp_add_countp p l, ← countp_pos, countp_eq_length_filter, lt_add_iff_pos_right]
@@ -109,8 +118,11 @@ countp_append _
 lemma count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by simp [-add_comm]
 
-lemma count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
+@[simp] lemma count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
 by simp only [count, countp_pos, exists_prop, exists_eq_right']
+
+@[simp] lemma one_le_count_iff_mem {a : α} {l : list α} : 1 ≤ count a l ↔ a ∈ l :=
+count_pos
 
 @[simp, priority 980]
 lemma count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
@@ -118,6 +130,12 @@ decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', (count_pos.2 h').ne' h
+
+lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
+⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
+
+lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
+by rw [count, countp_eq_length]
 
 @[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
@@ -154,10 +172,7 @@ end
 begin
   induction l with y l IH generalizing x,
   { simp },
-  { rw map_cons,
-    by_cases h : x = y,
-    { simpa [h] using IH _ },
-    { simpa [h, hf.ne h] using IH _ } }
+  { simp [map_cons, count_cons', IH, hf.eq_iff] }
 end
 
 lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α) :

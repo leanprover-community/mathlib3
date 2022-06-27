@@ -5,7 +5,7 @@ Authors: David Renshaw
 -/
 
 import algebra.geom_sum
-import data.rat.basic
+import data.rat.defs
 import data.real.basic
 
 /-!
@@ -32,8 +32,7 @@ lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
   (h : ∀ n : ℕ, 0 < n → x^n - 1 < y^n) :
   x ≤ y :=
 begin
-  by_contra hxy,
-  push_neg at hxy,
+  by_contra' hxy,
   have hxmy : 0 < x - y := sub_pos.mpr hxy,
   have hn : ∀ n : ℕ, 0 < n → (x - y) * (n : ℝ) ≤ x^n - y^n,
   { intros n hn,
@@ -72,8 +71,7 @@ lemma le_of_all_pow_lt_succ' {x y : ℝ} (hx : 1 < x) (hy : 0 < y)
   x ≤ y :=
 begin
   refine le_of_all_pow_lt_succ hx _ h,
-  by_contra hy'',
-  push_neg at hy'', -- hy'' : y ≤ 1.
+  by_contra' hy'' : y ≤ 1,
 
   -- Then there exists y' such that 0 < y ≤ 1 < y' < x.
   let y' := (x + 1) / 2,
@@ -185,7 +183,7 @@ begin
   have hxp : 0 < x := zero_lt_one.trans hx,
 
   have hNp : 0 < N,
-  { by_contra H, push_neg at H, rw [nat.le_zero_iff.mp H] at hN, linarith },
+  { by_contra' H, rw [nat.le_zero_iff.mp H] at hN, linarith },
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)
@@ -211,15 +209,17 @@ begin
     { exact (lt_irrefl 0 hn).elim },
     induction n with pn hpn,
     { simp only [one_mul, nat.cast_one] },
-    calc (↑pn + 1 + 1) * f x
-          = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
+    calc    ↑(pn + 2) * f x
+          = (↑pn + 1 + 1) * f x            : by norm_cast
+      ... = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
       ... = (↑pn + 1) * f x + f x          : by rw one_mul
       ... ≤ f ((↑pn.succ) * x) + f x       : by exact_mod_cast add_le_add_right
                                                   (hpn pn.succ_pos) (f x)
       ... ≤ f ((↑pn + 1) * x + x)          : by exact_mod_cast H2 _ _
                                                   (mul_pos pn.cast_add_one_pos hx) hx
       ... = f ((↑pn + 1) * x + 1 * x)      : by rw one_mul
-      ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm },
+      ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm
+      ... = f (↑(pn + 2) * x)              : by norm_cast },
   have H4 : ∀ n : ℕ, 0 < n → (n : ℝ) ≤ f n,
   { intros n hn,
     have hf1 : 1 ≤ f 1,

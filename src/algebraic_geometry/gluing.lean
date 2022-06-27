@@ -106,7 +106,7 @@ begin
   refine ⟨_, _ ≫ D.to_LocallyRingedSpace_glue_data.to_glue_data.ι i, _⟩,
   swap, exact (D.U i).affine_cover.map y,
   split,
-  { dsimp,
+  { dsimp [-set.mem_range],
     rw [coe_comp, set.range_comp],
     refine set.mem_image_of_mem _ _,
     exact (D.U i).affine_cover.covers y },
@@ -429,6 +429,16 @@ lemma ι_glue_morphisms {Y : Scheme} (f : ∀ x, 𝒰.obj x ⟶ Y)
 begin
   rw [← ι_from_glued, category.assoc],
   erw [is_iso.hom_inv_id_assoc, multicoequalizer.π_desc],
+end
+
+lemma hom_ext {Y : Scheme} (f₁ f₂ : X ⟶ Y) (h : ∀ x, 𝒰.map x ≫ f₁ = 𝒰.map x ≫ f₂) : f₁ = f₂ :=
+begin
+  rw ← cancel_epi 𝒰.from_glued,
+  apply multicoequalizer.hom_ext,
+  intro x,
+  erw multicoequalizer.π_desc_assoc,
+  erw multicoequalizer.π_desc_assoc,
+  exact h x,
 end
 
 end open_cover

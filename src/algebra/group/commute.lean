@@ -24,6 +24,8 @@ This file defines only a few operations (`mul_left`, `inv_right`, etc).  Other o
 Most of the proofs come from the properties of `semiconj_by`.
 -/
 
+variables {G : Type*}
+
 /-- Two elements commute if `a * b = b * a`. -/
 @[to_additive add_commute "Two elements additively commute if `a + b = b + a`"]
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
@@ -35,14 +37,16 @@ section has_mul
 variables {S : Type*} [has_mul S]
 
 /-- Equality behind `commute a b`; useful for rewriting. -/
-@[to_additive] protected theorem eq {a b : S} (h : commute a b) : a * b = b * a := h
+@[to_additive "Equality behind `add_commute a b`; useful for rewriting."]
+protected lemma eq {a b : S} (h : commute a b) : a * b = b * a := h
 
 /-- Any element commutes with itself. -/
-@[refl, simp, to_additive] protected theorem refl (a : S) : commute a a := eq.refl (a * a)
+@[refl, simp, to_additive "Any element commutes with itself."]
+protected lemma refl (a : S) : commute a a := eq.refl (a * a)
 
 /-- If `a` commutes with `b`, then `b` commutes with `a`. -/
-@[symm, to_additive] protected theorem symm {a b : S} (h : commute a b) : commute b a :=
-eq.symm h
+@[symm, to_additive "If `a` commutes with `b`, then `b` commutes with `a`."]
+protected lemma symm {a b : S} (h : commute a b) : commute b a := eq.symm h
 
 @[to_additive] protected theorem semiconj_by {a b : S} (h : commute a b) : semiconj_by a b b := h
 
@@ -57,14 +61,12 @@ section semigroup
 variables {S : Type*} [semigroup S] {a b c : S}
 
 /-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-@[simp, to_additive] theorem mul_right (hab : commute a b) (hac : commute a c) :
-  commute a (b * c) :=
-hab.mul_right hac
+@[simp, to_additive "If `a` commutes with both `b` and `c`, then it commutes with their sum."]
+lemma mul_right (hab : commute a b) (hac : commute a c) : commute a (b * c) := hab.mul_right hac
 
 /-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
-@[simp, to_additive] theorem mul_left (hac : commute a c) (hbc : commute b c) :
-  commute (a * b) c :=
-hac.mul_left hbc
+@[simp, to_additive "If both `a` and `b` commute with `c`, then their product commutes with `c`."]
+lemma mul_left (hac : commute a c) (hbc : commute b c) : commute (a * b) c := hac.mul_left hbc
 
 @[to_additive] protected lemma right_comm (h : commute b c) (a : S) :
   a * b * c = a * c * b :=
@@ -154,9 +156,18 @@ end
 
 end monoid
 
+section division_monoid
+variables [division_monoid G] {a b : G}
+
+@[to_additive] lemma inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
+@[simp, to_additive]
+lemma inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
+
+end division_monoid
+
 section group
 
-variables {G : Type*} [group G] {a b : G}
+variables [group G] {a b : G}
 
 @[to_additive]
 theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
@@ -166,11 +177,6 @@ theorem inv_right_iff : commute a b⁻¹ ↔ commute a b := semiconj_by.inv_righ
 @[to_additive] theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
 @[simp, to_additive]
 theorem inv_left_iff : commute a⁻¹ b ↔ commute a b := semiconj_by.inv_symm_left_iff
-
-@[to_additive]
-theorem inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
-@[simp, to_additive]
-theorem inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
 
 @[to_additive]
 protected theorem inv_mul_cancel (h : commute a b) : a⁻¹ * b * a = b :=
@@ -194,7 +200,7 @@ end commute
 
 section comm_group
 
-variables {G : Type*} [comm_group G] (a b : G)
+variables [comm_group G] (a b : G)
 
 @[simp, to_additive] lemma mul_inv_cancel_comm : a * b * a⁻¹ = b :=
 (commute.all a b).mul_inv_cancel

@@ -123,6 +123,17 @@ begin
   exact hm x,
 end
 
+lemma le_max_triv_iff_bracket_eq_bot {N : lie_submodule R L M} :
+  N ≤ max_triv_submodule R L M ↔ ⁅(⊤ : lie_ideal R L), N⁆ = ⊥ :=
+begin
+  refine ⟨λ h, _, λ h m hm, _⟩,
+  { rw [← le_bot_iff, ← ideal_oper_max_triv_submodule_eq_bot R L M ⊤],
+    exact lie_submodule.mono_lie_right _ _ ⊤ h, },
+  { rw mem_max_triv_submodule,
+    rw lie_submodule.lie_eq_bot_iff at h,
+    exact λ x, h x (lie_submodule.mem_top x) m hm, },
+end
+
 lemma trivial_iff_le_maximal_trivial (N : lie_submodule R L M) :
   is_trivial L N ↔ N ≤ max_triv_submodule R L M :=
 ⟨ λ h m hm x, is_trivial.dcases_on h (λ h, subtype.ext_iff.mp (h x ⟨m, hm⟩)),

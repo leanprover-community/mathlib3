@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.analytic.composition
-
+import tactic.congrm
 /-!
 
 # Inverse of analytic functions
@@ -165,14 +165,12 @@ lemma right_inv_remove_zero (p : formal_multilinear_series 𝕜 E F) (i : E ≃L
 begin
   ext1 n,
   induction n using nat.strong_rec' with n IH,
-  cases n, { simp },
-  cases n, { simp },
+  rcases n with _|_|n,
+  { simp only [right_inv_coeff_zero] },
+  { simp only [right_inv_coeff_one] },
   simp only [right_inv, neg_inj],
-  unfold_coes,
-  congr' 1,
-  rw remove_zero_comp_of_pos _ _ (show 0 < n+2, by dec_trivial),
-  congr' 1,
-  ext k,
+  rw remove_zero_comp_of_pos _ _ (add_pos_of_nonneg_of_pos (n.zero_le) zero_lt_two),
+  congrm i.symm.to_continuous_linear_map.comp_continuous_multilinear_map (p.comp (λ k, _) _),
   by_cases hk : k < n+2; simp [hk, IH]
 end
 
@@ -478,7 +476,7 @@ begin
     have B : ∀ᶠ a in 𝓝 0, r * (I + 1) * a < 1/2,
       by { apply (tendsto_order.1 this).2, simp [zero_lt_one] },
     have C : ∀ᶠ a in 𝓝[>] (0 : ℝ), (0 : ℝ) < a,
-      by { filter_upwards [self_mem_nhds_within], exact λ a ha, ha },
+      by { filter_upwards [self_mem_nhds_within] with _ ha using ha },
     rcases (C.and ((A.and B).filter_mono inf_le_left)).exists with ⟨a, ha⟩,
     exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
   -- check by induction that the partial sums are suitably bounded, using the choice of `a` and the

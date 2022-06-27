@@ -57,10 +57,9 @@ end
 
 lemma approx_mono ⦃i j : ℕ⦄ (hij : i ≤ j) : approx f i ≤ approx f j :=
 begin
-  induction j, cases hij, refine @le_refl _ _ _,
-  cases hij, apply @le_refl _ _ _,
-  apply @le_trans _ _ _ (approx f j_n) _ (j_ih ‹_›),
-  apply approx_mono' f
+  induction j with j ih, { cases hij, exact le_rfl },
+  cases hij, { exact le_rfl },
+  exact le_trans (ih ‹_›) (approx_mono' f)
 end
 
 lemma mem_iff (a : α) (b : β a) : b ∈ part.fix f a ↔ ∃ i, b ∈ approx f i a :=
@@ -93,8 +92,8 @@ begin
   { rcases hh with ⟨i,b,hb⟩, existsi i,
     intros b' h',
     have hb' := approx_le_fix f i _ _ hb,
-    have hh := part.mem_unique h' hb',
-    subst hh, exact hb },
+    obtain rfl := part.mem_unique h' hb',
+    exact hb },
   { simp only [not_exists] at hh, existsi 0,
     intros b' h',
     simp only [mem_iff f] at h',
@@ -107,10 +106,10 @@ include f
 /-- The series of approximations of `fix f` (see `approx`) as a `chain` -/
 def approx_chain : chain (Π a, part $ β a) := ⟨approx f, approx_mono f⟩
 
-lemma le_f_of_mem_approx {x} (hx : x ∈ approx_chain f) : x ≤ f x :=
+lemma le_f_of_mem_approx {x} : x ∈ approx_chain f → x ≤ f x :=
 begin
-  revert hx, simp [(∈)],
-  intros i hx, subst x,
+  simp only [(∈), forall_exists_index],
+  rintro i rfl,
   apply approx_mono'
 end
 
@@ -184,7 +183,7 @@ lemma to_unit_cont (f : part α →o part α) (hc : continuous f) : continuous (
   erw [hc, chain.map_comp], refl
 end
 
-noncomputable instance : lawful_fix (part α) :=
+instance : lawful_fix (part α) :=
 ⟨λ f hc, show part.fix (to_unit_mono f) () = _, by rw part.fix_eq (to_unit_cont f hc); refl⟩
 
 end part
@@ -193,7 +192,7 @@ open sigma
 
 namespace pi
 
-noncomputable instance {β} : lawful_fix (α → part β) := ⟨λ f, part.fix_eq⟩
+instance {β} : lawful_fix (α → part β) := ⟨λ f, part.fix_eq⟩
 
 variables {γ : Π a : α, β a → Type*}
 

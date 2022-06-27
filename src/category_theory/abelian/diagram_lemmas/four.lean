@@ -55,7 +55,6 @@ universes v u
 variables {V : Type u} [category.{v} V] [abelian V]
 
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
-local attribute [instance] object_to_sort hom_to_fun
 
 open_locale pseudoelement
 
@@ -69,7 +68,7 @@ variables (comm₁ : α ≫ f' = f ≫ β) (comm₂ : β ≫ g' = g ≫ γ) (com
 include comm₁ comm₂ comm₃
 
 section
-variables [exact f g] [exact g h] [exact f' g']
+variables (hfg : exact f g) (hgh : exact g h) (hf'g' : exact f' g')
 
 
 /-- The four lemma, mono version. For names of objects and morphisms, refer to the following
@@ -91,12 +90,12 @@ mono_of_zero_of_map_zero _ $ λ c hc,
     calc δ (h c) = h' (γ c) : by rw [←comp_apply, ←comm₃, comp_apply]
              ... = h' 0     : by rw hc
              ... = 0        : apply_zero _,
-  exists.elim (pseudo_exact_of_exact.2 _ this) $ λ b hb,
+  exists.elim ((pseudo_exact_of_exact hgh).2 _ this) $ λ b hb,
     have g' (β b) = 0, from
       calc g' (β b) = γ (g b) : by rw [←comp_apply, comm₂, comp_apply]
                 ... = γ c     : by rw hb
                 ... = 0       : hc,
-    exists.elim (pseudo_exact_of_exact.2 _ this) $ λ a' ha',
+    exists.elim ((pseudo_exact_of_exact hf'g').2 _ this) $ λ a' ha',
       exists.elim (pseudo_surjective_of_epi α a') $ λ a ha,
       have f a = b, from
         suffices β (f a) = β b, from pseudo_injective_of_mono _ this,
@@ -105,12 +104,12 @@ mono_of_zero_of_map_zero _ $ λ c hc,
                  ... = β b      : ha',
       calc c = g b     : hb.symm
          ... = g (f a) : by rw this
-         ... = 0       : pseudo_exact_of_exact.1 _
+         ... = 0       : (pseudo_exact_of_exact hfg).1 _
 
 end
 
 section
-variables [exact g h] [exact f' g'] [exact g' h']
+variables (hgh : exact g h) (hf'g' : exact f' g') (hg'h' : exact g' h')
 
 /-- The four lemma, epi version. For names of objects and morphisms, refer to the following
     diagram:
@@ -132,7 +131,7 @@ preadditive.epi_of_cancel_zero _ $ λ R r hβr,
                  ... = 0           : has_zero_morphisms.comp_zero _ _,
   let y : R ⟶ pushout r g' := pushout.inl, z : C' ⟶ pushout r g' := pushout.inr in
   have mono y, from mono_inl_of_factor_thru_epi_mono_factorization r g' (cokernel.π f')
-    (cokernel.desc f' g' (by simp)) (by simp) (cokernel.desc f' r hf'r) (by simp) _
+    (cokernel.desc f' g' hf'g'.w) (by simp) (cokernel.desc f' r hf'r) (by simp) _
     (colimit.is_colimit _),
   have hz : g ≫ γ ≫ z = 0, from
     calc g ≫ γ ≫ z = β ≫ g' ≫ z : by rw ←reassoc_of comm₂
@@ -142,7 +141,7 @@ preadditive.epi_of_cancel_zero _ $ λ R r hβr,
   let v : pushout r g' ⟶ pushout (γ ≫ z) (h ≫ δ) := pushout.inl,
       w : D' ⟶ pushout (γ ≫ z) (h ≫ δ) := pushout.inr in
   have mono v, from mono_inl_of_factor_thru_epi_mono_factorization _ _ (cokernel.π g)
-    (cokernel.desc g h (by simp) ≫ δ) (by simp) (cokernel.desc _ _ hz) (by simp) _
+    (cokernel.desc g h hgh.w ≫ δ) (by simp) (cokernel.desc _ _ hz) (by simp) _
     (colimit.is_colimit _),
   have hzv : z ≫ v = h' ≫ w, from (cancel_epi γ).1 $
     calc γ ≫ z ≫ v = h ≫ δ ≫ w  : by rw [←category.assoc, pushout.condition, category.assoc]
@@ -150,16 +149,17 @@ preadditive.epi_of_cancel_zero _ $ λ R r hβr,
   suffices (r ≫ y) ≫ v = 0, by exactI zero_of_comp_mono _ (zero_of_comp_mono _ this),
   calc (r ≫ y) ≫ v = g' ≫ z ≫ v : by rw [pushout.condition, category.assoc]
                 ... = g' ≫ h' ≫ w : by rw hzv
-                ... = 0 ≫ w        : exact.w_assoc _
+                ... = 0 ≫ w        : hg'h'.w_assoc _
                 ... = 0            : has_zero_morphisms.zero_comp _ _
 
 end
 
 section five
 variables {E E' : V} {i : D ⟶ E} {i' : D' ⟶ E'} {ε : E ⟶ E'} (comm₄ : δ ≫ i' = i ≫ ε)
-variables [exact f g] [exact g h] [exact h i] [exact f' g'] [exact g' h'] [exact h' i']
+variables (hfg : exact f g) (hgh : exact g h) (hhi : exact h i)
+variables (hf'g' : exact f' g') (hg'h' : exact g' h') (hh'i' : exact h' i')
 variables [is_iso α] [is_iso β] [is_iso δ] [is_iso ε]
-include comm₄
+include comm₄ hfg hgh hhi hf'g' hg'h' hh'i'
 
 
 /-- The five lemma. For names of objects and morphisms, refer to the following diagram:
@@ -174,8 +174,8 @@ A' --f'-> B' --g'-> C' --h'-> D' --i'-> E'
 ```
 -/
 lemma is_iso_of_is_iso_of_is_iso_of_is_iso_of_is_iso : is_iso γ :=
-have mono γ, by apply mono_of_epi_of_mono_of_mono comm₁ comm₂ comm₃; apply_instance,
-have epi γ, by apply epi_of_epi_of_epi_of_mono comm₂ comm₃ comm₄; apply_instance,
+have mono γ, by apply mono_of_epi_of_mono_of_mono comm₁ comm₂ comm₃ hfg hgh hf'g'; apply_instance,
+have epi γ, by apply epi_of_epi_of_epi_of_mono comm₂ comm₃ comm₄ hhi hg'h' hh'i'; apply_instance,
 by exactI is_iso_of_mono_of_epi _
 
 end five

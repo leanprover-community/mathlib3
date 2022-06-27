@@ -205,7 +205,7 @@ lemma integrable_iff_cauchy_basis [complete_space F] :
 begin
   rw [integrable_iff_cauchy, cauchy_map_iff',
     (l.has_basis_to_filter_Union_top _).prod_self.tendsto_iff uniformity_basis_dist_le],
-  refine forall_congr (λ ε, forall_congr $ λ ε0, exists_congr $ λ r, _),
+  refine forall₂_congr (λ ε ε0, exists_congr $ λ r, _),
   simp only [exists_prop, prod.forall, set.mem_Union, exists_imp_distrib,
     prod_mk_mem_set_prod_eq, and_imp, mem_inter_eq, mem_set_of_eq],
   exact and_congr iff.rfl ⟨λ H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂, H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂,

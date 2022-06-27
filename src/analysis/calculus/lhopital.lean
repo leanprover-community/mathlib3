@@ -126,7 +126,7 @@ begin
           rwa [mul_comm, ← neg_eq_neg_one_mul, neg_eq_zero] at h })
     (hfb.comp tendsto_neg_nhds_within_Ioi_neg)
     (hgb.comp tendsto_neg_nhds_within_Ioi_neg)
-    (by { simp only [neg_div_neg_eq, mul_one, mul_neg_eq_neg_mul_symm],
+    (by { simp only [neg_div_neg_eq, mul_one, mul_neg],
           exact (tendsto_congr $ λ x, rfl).mp (hdiv.comp tendsto_neg_nhds_within_Ioi_neg) }),
   have := this.comp tendsto_neg_nhds_within_Iio,
   unfold function.comp at this,
@@ -182,7 +182,7 @@ begin
           refine neg_ne_zero.mpr (inv_ne_zero $ pow_ne_zero _ $ ne_of_gt hx) }),
   have := this.comp tendsto_inv_at_top_zero',
   unfold function.comp at this,
-  simpa only [inv_inv₀],
+  simpa only [inv_inv],
 end
 
 theorem lhopital_zero_at_bot_on_Iio
@@ -205,7 +205,7 @@ begin
           rwa [mul_comm, ← neg_eq_neg_one_mul, neg_eq_zero] at h })
     (hfbot.comp tendsto_neg_at_top_at_bot)
     (hgbot.comp tendsto_neg_at_top_at_bot)
-    (by { simp only [mul_one, mul_neg_eq_neg_mul_symm, neg_div_neg_eq],
+    (by { simp only [mul_one, mul_neg, neg_div_neg_eq],
           exact (tendsto_congr $ λ x, rfl).mp (hdiv.comp tendsto_neg_at_top_at_bot) }),
   have := this.comp tendsto_neg_at_bot_at_top,
   unfold function.comp at this,

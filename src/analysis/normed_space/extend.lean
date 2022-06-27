@@ -63,8 +63,8 @@ begin
     simp only [fc],
     cases @I_mul_I_ax 𝕜 _ with h h, { simp [h] },
     rw [mul_sub, ← mul_assoc, smul_smul, h],
-    simp only [neg_mul_eq_neg_mul_symm, linear_map.map_neg, one_mul, one_smul,
-      mul_neg_eq_neg_mul_symm, of_real_neg, neg_smul, sub_neg_eq_add, add_comm] },
+    simp only [neg_mul, linear_map.map_neg, one_mul, one_smul,
+      mul_neg, of_real_neg, neg_smul, sub_neg_eq_add, add_comm] },
   have smul_𝕜 : ∀ (c : 𝕜) (x : F), fc (c • x) = c • fc x,
   { assume c x,
     rw [← re_add_im c, add_smul, add_smul, add, smul_ℝ, ← smul_smul, smul_ℝ, smul_I, ← mul_assoc],
@@ -108,7 +108,7 @@ begin
       ... = 0 : by rw [← of_real_one, ← of_real_div, of_real_im]
       ... = im (fr (t • x) : 𝕜) : by rw [of_real_im] } },
   calc ∥lm x∥ = abs𝕜 t * ∥lm x∥ : by rw [ht, one_mul]
-  ... = ∥t * lm x∥ : by rw [← norm_eq_abs, normed_field.norm_mul]
+  ... = ∥t * lm x∥ : by rw [← norm_eq_abs, norm_mul]
   ... = ∥lm (t • x)∥ : by rw [←smul_eq_mul, lm.map_smul]
   ... = ∥(fr (t • x) : 𝕜)∥ : by rw h1
   ... = ∥fr (t • x)∥ : by rw [norm_eq_abs, abs_of_real, norm_eq_abs, abs_to_real]
@@ -132,7 +132,7 @@ noncomputable def linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) 
 fr.extend_to_𝕜'
 
 lemma linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →ₗ[ℝ] ℝ) (x : F) :
-  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
+  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl
 
 /-- Extend `fr : restrict_scalars ℝ 𝕜 F →L[ℝ] ℝ` to `F →L[𝕜] 𝕜`. -/
 noncomputable def continuous_linear_map.extend_to_𝕜 (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) :
@@ -140,4 +140,4 @@ noncomputable def continuous_linear_map.extend_to_𝕜 (fr : (restrict_scalars �
 fr.extend_to_𝕜'
 
 lemma continuous_linear_map.extend_to_𝕜_apply (fr : (restrict_scalars ℝ 𝕜 F) →L[ℝ] ℝ) (x : F) :
-  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
+  fr.extend_to_𝕜 x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x : _) := rfl

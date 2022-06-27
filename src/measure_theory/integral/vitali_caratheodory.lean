@@ -125,7 +125,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul (le_refl _) μu.le
+      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul le_rfl μu.le
       ... = c * μ s + ε :
         begin
           simp_rw [mul_add],
@@ -136,9 +136,10 @@ begin
     rcases h₂ (ennreal.half_pos ε0).ne' with ⟨g₂, f₂_le_g₂, g₂cont, g₂int⟩,
     refine ⟨λ x, g₁ x + g₂ x, λ x, add_le_add (f₁_le_g₁ x) (f₂_le_g₂ x), g₁cont.add g₂cont, _⟩,
     simp only [simple_func.coe_add, ennreal.coe_add, pi.add_apply],
-    rw [lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal,
-        lintegral_add g₁cont.measurable.coe_nnreal_ennreal g₂cont.measurable.coe_nnreal_ennreal],
+    rw [lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
+        lintegral_add_left g₁cont.measurable.coe_nnreal_ennreal],
     convert add_le_add g₁int g₂int using 1,
+    simp only [],
     conv_lhs { rw ← ennreal.add_halves ε },
     abel }
 end
@@ -199,7 +200,7 @@ begin
   { calc ∫⁻ (x : α), g x ∂μ
         ≤ ∫⁻ (x : α), f x + w x ∂μ + ε / 2 : gint
     ... = ∫⁻ (x : α), f x ∂ μ + ∫⁻ (x : α), w x ∂ μ + (ε / 2) :
-      by rw lintegral_add fmeas.coe_nnreal_ennreal wmeas.coe_nnreal_ennreal
+      by rw lintegral_add_right _ wmeas.coe_nnreal_ennreal
     ... ≤ ∫⁻ (x : α), f x ∂ μ + ε / 2 + ε / 2 :
       add_le_add_right (add_le_add_left wint.le _) _
     ... = ∫⁻ (x : α), f x ∂μ + ε : by rw [add_assoc, ennreal.add_halves] },
@@ -231,7 +232,7 @@ begin
       rw this,
       exact (f_lt_g0 x).trans_le le_self_add } },
   { calc ∫⁻ x, g0 x + g1 x ∂μ =  ∫⁻ x, g0 x ∂μ + ∫⁻ x, g1 x ∂μ :
-      lintegral_add g0_cont.measurable g1_cont.measurable
+      lintegral_add_left g0_cont.measurable _
     ... ≤ (∫⁻ x, f x ∂μ + ε / 2) + (0 + ε / 2) :
       begin
         refine add_le_add _ _,
@@ -256,7 +257,8 @@ lemma exists_lt_lower_semicontinuous_integral_gt_nnreal [sigma_finite μ] (f : �
   ∧ (integrable (λ x, (g x).to_real) μ) ∧ (∫ x, (g x).to_real ∂μ < ∫ x, f x ∂μ + ε) :=
 begin
   have fmeas : ae_measurable f μ,
-    by { convert fint.ae_measurable.real_to_nnreal, ext1 x, simp only [real.to_nnreal_coe] },
+  by { convert fint.ae_strongly_measurable.real_to_nnreal.ae_measurable, ext1 x,
+       simp only [real.to_nnreal_coe] },
   lift ε to ℝ≥0 using εpos.le,
   obtain ⟨δ, δpos, hδε⟩ : ∃ δ : ℝ≥0, 0 < δ ∧ δ < ε, from exists_between εpos,
   have int_f_ne_top : ∫⁻ (a : α), (f a) ∂μ ≠ ∞ :=
@@ -268,11 +270,10 @@ begin
   have g_lt_top : ∀ᵐ (x : α) ∂μ, g x < ∞ := ae_lt_top gcont.measurable gint_ne,
   have Ig : ∫⁻ (a : α), ennreal.of_real (g a).to_real ∂μ = ∫⁻ (a : α), g a ∂μ,
   { apply lintegral_congr_ae,
-    filter_upwards [g_lt_top],
-    assume x hx,
-    simp only [hx.ne, ennreal.of_real_to_real, ne.def, not_false_iff] },
+    filter_upwards [g_lt_top] with _ hx,
+    simp only [hx.ne, ennreal.of_real_to_real, ne.def, not_false_iff], },
   refine ⟨g, f_lt_g, gcont, g_lt_top, _, _⟩,
-  { refine ⟨gcont.measurable.ennreal_to_real.ae_measurable, _⟩,
+  { refine ⟨gcont.measurable.ennreal_to_real.ae_measurable.ae_strongly_measurable, _⟩,
     simp only [has_finite_integral_iff_norm, real.norm_eq_abs,
       abs_of_nonneg ennreal.to_real_nonneg],
     convert gint_ne.lt_top using 1 },
@@ -292,9 +293,9 @@ begin
       ... = (∫⁻ (a : α), ennreal.of_real ↑(f a) ∂μ).to_real + ε :
         by simp },
     { apply filter.eventually_of_forall (λ x, _), simp },
-    { exact fmeas.coe_nnreal_real, },
+    { exact fmeas.coe_nnreal_real.ae_strongly_measurable, },
     { apply filter.eventually_of_forall (λ x, _), simp },
-    { apply gcont.measurable.ennreal_to_real.ae_measurable } }
+    { apply gcont.measurable.ennreal_to_real.ae_measurable.ae_strongly_measurable } }
 end
 
 
@@ -337,7 +338,7 @@ begin
           lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
           simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
           set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
-      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul (le_refl _) μF.le
+      calc (c : ℝ≥0∞) * μ s ≤ c * (μ F + ε / c) : ennreal.mul_le_mul le_rfl μF.le
       ... = c * μ F + ε :
         begin
           simp_rw [mul_add],
@@ -345,16 +346,17 @@ begin
           simpa using hc,
         end } },
   { have A : ∫⁻ (x : α), f₁ x ∂μ + ∫⁻ (x : α), f₂ x ∂μ ≠ ⊤,
-      by rwa ← lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal ,
+      by rwa ← lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
     rcases h₁ (ennreal.add_ne_top.1 A).1 (ennreal.half_pos ε0).ne'
       with ⟨g₁, f₁_le_g₁, g₁cont, g₁int⟩,
     rcases h₂ (ennreal.add_ne_top.1 A).2 (ennreal.half_pos ε0).ne'
       with ⟨g₂, f₂_le_g₂, g₂cont, g₂int⟩,
     refine ⟨λ x, g₁ x + g₂ x, λ x, add_le_add (f₁_le_g₁ x) (f₂_le_g₂ x), g₁cont.add g₂cont, _⟩,
     simp only [simple_func.coe_add, ennreal.coe_add, pi.add_apply],
-    rw [lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal,
-        lintegral_add g₁cont.measurable.coe_nnreal_ennreal g₂cont.measurable.coe_nnreal_ennreal],
+    rw [lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
+        lintegral_add_left g₁cont.measurable.coe_nnreal_ennreal],
     convert add_le_add g₁int g₂int using 1,
+    simp only [],
     conv_lhs { rw ← ennreal.add_halves ε },
     abel }
 end
@@ -388,7 +390,7 @@ begin
   fs.exists_upper_semicontinuous_le_lintegral_le int_fs_lt_top (ennreal.half_pos ε0).ne',
   refine ⟨g, λ x, (g_le_fs x).trans (fs_le_f x), gcont, _⟩,
   calc ∫⁻ x, f x ∂μ ≤ ∫⁻ x, fs x ∂μ + ε / 2 : int_fs
-  ... ≤ (∫⁻ x, g x ∂μ + ε / 2) + ε / 2 : add_le_add gint (le_refl _)
+  ... ≤ (∫⁻ x, g x ∂μ + ε / 2) + ε / 2 : add_le_add gint le_rfl
   ... = ∫⁻ x, g x ∂μ + ε : by rw [add_assoc, ennreal.add_halves]
 end
 
@@ -409,7 +411,8 @@ begin
   { apply lt_of_le_of_lt (lintegral_mono (λ x, _)) If,
     simpa using gf x },
   refine ⟨g, gf, gcont, _, _⟩,
-  { refine integrable.mono fint gcont.measurable.coe_nnreal_real.ae_measurable _,
+  { refine integrable.mono fint
+      gcont.measurable.coe_nnreal_real.ae_measurable.ae_strongly_measurable _,
     exact filter.eventually_of_forall (λ x, by simp [gf x]) },
   { rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
     { rw sub_le_iff_le_add,
@@ -418,9 +421,9 @@ begin
       { rw ennreal.to_real_add Ig.ne ennreal.coe_ne_top, simp },
       { simpa using Ig.ne } },
     { apply filter.eventually_of_forall, simp },
-    { exact gcont.measurable.coe_nnreal_real.ae_measurable },
+    { exact gcont.measurable.coe_nnreal_real.ae_measurable.ae_strongly_measurable },
     { apply filter.eventually_of_forall, simp },
-    { exact fint.ae_measurable } }
+    { exact fint.ae_strongly_measurable } }
 end
 
 /-! ### Vitali-Carathéodory theorem -/
@@ -446,10 +449,9 @@ begin
     with ⟨gm, gm_le_fm, gmcont, gm_integrable, gmint⟩,
   let g : α → ereal := λ x, (gp x : ereal) - (gm x),
   have ae_g : ∀ᵐ x ∂ μ, (g x).to_real = (gp x : ereal).to_real - (gm x : ereal).to_real,
-  { filter_upwards [gp_lt_top],
-    assume x hx,
+  { filter_upwards [gp_lt_top] with _ hx,
     rw ereal.to_real_sub;
-    simp [hx.ne] },
+    simp [hx.ne], },
   refine ⟨g, _, _, _, _, _⟩,
   show integrable (λ x, ereal.to_real (g x)) μ,
   { rw integrable_congr ae_g,
@@ -477,9 +479,8 @@ begin
     ... = ∫ (x : α), f x ∂μ + ε :
       by { congr' 1, field_simp [δ, mul_comm] },
   show ∀ᵐ (x : α) ∂μ, g x < ⊤,
-  { filter_upwards [gp_lt_top],
-    assume x hx,
-    simp [g, ereal.sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx] },
+  { filter_upwards [gp_lt_top] with _ hx,
+    simp [g, ereal.sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
   show ∀ x, (f x : ereal) < g x,
   { assume x,
     rw ereal.coe_real_ereal_eq_coe_to_nnreal_sub_coe_to_nnreal (f x),

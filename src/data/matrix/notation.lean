@@ -47,6 +47,15 @@ variables {α : Type u} {o n m : ℕ} {m' n' o' : Type*}
 
 open_locale matrix
 
+/-- Matrices can be reflected whenever their entries can. We insert an `@id (matrix m' n' α)` to
+prevent immediate decay to a function. -/
+meta instance matrix.reflect [reflected_univ.{u}] [reflected_univ.{u_1}] [reflected_univ.{u_2}]
+  [reflected _ α] [reflected _ m'] [reflected _ n']
+  [h : has_reflect (m' → n' → α)] : has_reflect (matrix m' n' α) :=
+λ m, (by reflect_name : reflected _ @id.{(max u_1 u_2 u) + 1}).subst₂
+  ((by reflect_name : reflected _ @matrix.{u_1 u_2 u}).subst₃ `(_) `(_) `(_)) $
+  by {dunfold matrix, exact h m}
+
 section parser
 open lean
 open lean.parser
@@ -91,12 +100,15 @@ do
     pure ⟨0, n, fin_zero_elim⟩
   end
 
--- Lean can't find this instance without some help
-@[instance] meta def {u} sigma_sigma_fin_matrix_has_reflect {α : Type u}
-  [reflected_univ.{u}] [has_reflect α] [reflected α] :
+set_option pp.universes true
+
+-- Lean can't find this instance without some help. We only need it open in type, and it is a
+-- massive amount of effort to make it universe-polymorphic.
+@[instance] meta def sigma_sigma_fin_matrix_has_reflect {α : Type}
+  [has_reflect α] [reflected _ α] :
   has_reflect (Σ (m n : ℕ), fin m → fin n → α) :=
-@sigma.reflect ℕ (λ m, Σ n, matrix (fin m) (fin n) α) _ _ _ $ λ i,
-  @sigma.reflect ℕ _ _ _ _ (λ j, infer_instance)
+@sigma.reflect.{0 0} _ _ ℕ (λ m, Σ n, matrix (fin m) (fin n) α) _ _ _ $ λ i,
+  @sigma.reflect.{0 0} _ _ ℕ _ _ _ _ (λ j, infer_instance)
 
 /-- `!![a, b; c, d]` notation for matrices indexed by `fin m` and `fin n`. See the module docstring
 for details. -/

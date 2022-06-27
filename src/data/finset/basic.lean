@@ -1914,9 +1914,18 @@ theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
 eq_of_veq $ by simp only [map_val, multiset.map_map]; refl
 
 lemma map_comm {β'} {f : β ↪ γ} {g : α ↪ β} {f' : α ↪ β'} {g' : β' ↪ γ}
-  (h_comm : ∀ a, f (g a) = g' (f' a)) :
+  (h_comm : ∀ a, f (g a) = g' (f' a)) (s : finset α) :
   (s.map g).map f = (s.map f').map g' :=
 by simp_rw [map_map, embedding.trans, function.comp, h_comm]
+
+lemma _root_.function.semiconj.finset_map {f : α ↪ β} {ga : α ↪ α} {gb : β ↪ β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (map f) (map ga) (map gb) :=
+map_comm h
+
+lemma _root_.function.commute.finset_map {f g : α ↪ α} (h : function.commute f g) :
+  function.commute (map f) (map g) :=
+h.finset_map
 
 @[simp] theorem map_subset_map {s₁ s₂ : finset α} : s₁.map f ⊆ s₂.map f ↔ s₁ ⊆ s₂ :=
 ⟨λ h x xs, (mem_map' _).1 $ h $ (mem_map' f).2 xs,
@@ -2091,6 +2100,15 @@ lemma image_comm {β'} [decidable_eq β'] [decidable_eq γ] {f : β → γ} {g :
   {f' : α → β'} {g' : β' → γ} (h_comm : ∀ a, f (g a) = g' (f' a)) :
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, comp, h_comm]
+
+lemma _root_.function.semiconj.finset_image {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (image f) (image ga) (image gb) :=
+image_comm h
+
+lemma _root_.function.commute.finset_image {f g : α → α} (h : function.commute f g) :
+  function.commute (image f) (image g) :=
+h.finset_image
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
 by simp only [subset_def, image_val, subset_dedup', dedup_subset',

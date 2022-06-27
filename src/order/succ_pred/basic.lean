@@ -981,7 +981,7 @@ lemma is_succ_limit.is_min (h : is_succ_limit a) : is_min a :=
     exact h.false.elim }
 end
 
-lemma is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
+@[simp] lemma is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
 ⟨is_succ_limit.is_min, is_succ_limit_of_is_min⟩
 
 end succ_order
@@ -1009,7 +1009,7 @@ lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : 
 lemma is_pred_limit.is_max : is_pred_limit a → is_max a :=
 @is_succ_limit.is_min αᵒᵈ _ _ _ _
 
-lemma is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
+@[simp] lemma is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
 @is_succ_limit_iff αᵒᵈ _ _ _ _ _
 
 end pred_order

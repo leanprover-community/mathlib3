@@ -72,8 +72,8 @@ graded_algebra.of_alg_hom _
   -- the proof from here onward is identical to the `tensor_algebra` case
   (begin
     ext m,
-    dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply,
-      alg_hom.comp_apply, alg_hom.id_apply, graded_algebra.lift_ι],
+    dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
+      alg_hom.id_apply, graded_algebra.lift_ι],
     rw [lift_ι_apply, graded_algebra.ι_apply R M, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (by apply graded_algebra.lift_ι_eq R M)

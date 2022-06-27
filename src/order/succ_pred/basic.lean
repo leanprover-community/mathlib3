@@ -220,21 +220,22 @@ by rw [←Ici_inter_Iic, Ici_succ_of_not_is_max ha, Ioi_inter_Iic]
 lemma Ico_succ_left_of_not_is_max (ha : ¬ is_max a) : Ico (succ a) b = Ioo a b :=
 by rw [←Ici_inter_Iio, Ici_succ_of_not_is_max ha, Ioi_inter_Iio]
 
-/-- A successor limit is a value that isn't a successor. -/
-def is_succ_limit (b : α) : Prop :=
-∀ a, succ a ≠ b
+/-- A successor limit is a value that isn't a successor, except possibly of itself. -/
+def is_succ_limit (a : α) : Prop := ∀ b, succ b = a → is_max b
 
-lemma not_is_succ_limit_succ (a : α) : ¬ is_succ_limit (succ a) :=
-λ h, (h a).irrefl
+lemma is_succ_limit.is_max (h : is_succ_limit (succ a)) : is_max a :=
+h a rfl
 
-lemma is_succ_limit.false (ha : is_succ_limit (succ a)) : false :=
-not_is_succ_limit_succ a ha
+lemma _root_.is_min.is_succ_limit (h : is_min a) : is_succ_limit a :=
+by { rintros b rfl, exact max_of_succ_le (h $ le_succ b) }
+
+lemma is_succ_limit_of_succ_ne (h : ∀ b, succ b ≠ a) : is_succ_limit a :=
+by { rintros b rfl, exact (h b).irrefl.elim }
 
 section no_max_order
 variables [no_max_order α]
 
 lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
-lemma succ_ne (a : α) : succ a ≠ a := (lt_succ a).ne'
 lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
 lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
@@ -266,11 +267,40 @@ Icc_succ_left_of_not_is_max $ not_is_max _
 lemma Ico_succ_left (a b : α) : Ico (succ a) b = Ioo a b :=
 Ico_succ_left_of_not_is_max $ not_is_max _
 
-lemma is_succ_limit_of_is_min (h : is_min a) : is_succ_limit a :=
-by { rintros b rfl, exact h.not_lt (lt_succ b) }
+lemma is_succ_limit.succ_ne (h : is_succ_limit a) (b) : succ b ≠ a :=
+λ hb, not_is_max b (h b hb)
+
+lemma not_is_succ_limit_succ : ¬ is_succ_limit (succ a) :=
+λ h, h.succ_ne _ rfl
+
+lemma is_succ_limit_iff_succ_ne : is_succ_limit a ↔ ∀ b, succ b ≠ a :=
+⟨is_succ_limit.succ_ne, is_succ_limit_of_succ_ne⟩
 
 lemma is_succ_limit_of_succ_lt (H : ∀ a < b, succ a < b) : is_succ_limit b :=
-by { rintros a rfl, exact (H a (lt_succ a)).false }
+by { rintros a rfl, exact (H a (lt_succ a)).false.elim }
+
+lemma not_is_succ_limit_iff : ¬ is_succ_limit a ↔ ∃ b, succ b = a :=
+by simp_rw [is_succ_limit_iff_succ_ne, not_forall, not_ne_iff]
+
+/-- Any value is either a successor or a successor limit. -/
+@[elab_as_eliminator] def is_succ_limit_rec_on {C : α → Sort} (hs : Π a, C (succ a))
+  (hl : Π a, is_succ_limit a → C a) (b) : C b :=
+begin
+  by_cases h : is_succ_limit b,
+  { exact hl b h },
+  { cases not_is_succ_limit_iff.1 h with a ha,
+    rw ←ha,
+    exact hs a }
+end
+
+@[simp] theorem is_succ_limit_rec_on_succ {C : α → Sort} (hs : Π a, C (succ a))
+  (hl : Π a, is_succ_limit a → C a) : @is_succ_limit_rec_on α _ _ _ C hs hl (succ a) = hs a :=
+by rw is_succ_limit_rec_on
+
+@[simp] theorem is_succ_limit_rec_on_limit {C : α → Sort} (hs : Π a, C (succ a))
+  (hl : Π a, is_succ_limit a → C a) (h : is_succ_limit a) :
+  @is_succ_limit_rec_on α _ _ _ C hs hl a = hl a h :=
+by rw is_succ_limit_rec_on
 
 end no_max_order
 end preorder
@@ -324,9 +354,6 @@ lemma Ioo_succ_right_eq_insert_of_not_is_max (h₁ : a < b) (h₂ : ¬is_max b) 
   Ioo a (succ b) = insert b (Ioo a b) :=
 by simp_rw [←Iio_inter_Ioi, Iio_succ_eq_insert_of_not_is_max h₂, insert_inter_of_mem (mem_Ioi.2 h₁)]
 
-lemma not_is_succ_limit_of_is_max (h : is_max a) : ¬ is_succ_limit a :=
-by { rw ←succ_eq_iff_is_max.2 h, apply not_is_succ_limit_succ }
-
 section no_max_order
 variables [no_max_order α]
 
@@ -353,7 +380,7 @@ lemma Ioo_succ_right_eq_insert (h : a < b) : Ioo a (succ b) = insert b (Ioo a b)
 Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 lemma is_succ_limit.succ_lt (hb : is_succ_limit b) (ha : a < b) : succ a < b :=
-by { rw [lt_iff_le_and_ne, succ_le_iff], exact ⟨ha, hb a⟩ }
+by { rw [lt_iff_le_and_ne, succ_le_iff], exact ⟨ha, hb.succ_ne a⟩ }
 
 lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 ⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
@@ -369,9 +396,6 @@ variables [order_top α]
 @[simp] lemma lt_succ_iff_ne_top : a < succ a ↔ a ≠ ⊤ :=
 lt_succ_iff_not_is_max.trans not_is_max_iff_ne_top
 
-lemma not_is_succ_limit_top : ¬ is_succ_limit (⊤ : α) :=
-not_is_succ_limit_of_is_max is_max_top
-
 end order_top
 
 section order_bot
@@ -380,7 +404,9 @@ variables [order_bot α] [nontrivial α]
 lemma bot_lt_succ (a : α) : ⊥ < succ a :=
 (lt_succ_of_not_is_max not_is_max_bot).trans_le $ succ_mono bot_le
 
-lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := λ a, (bot_lt_succ a).ne'
+lemma succ_ne_bot (a : α) : succ a ≠ ⊥ := (bot_lt_succ a).ne'
+
+lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
 
 end order_bot
 end partial_order
@@ -464,21 +490,22 @@ by rw [←Ici_inter_Iic, Iic_pred_of_not_is_min ha, Ici_inter_Iio]
 lemma Ioc_pred_right_of_not_is_min (ha : ¬ is_min b) : Ioc a (pred b) = Ioo a b :=
 by rw [←Ioi_inter_Iic, Iic_pred_of_not_is_min ha, Ioi_inter_Iio]
 
-/-- A predecessor limit is a value that isn't a predecessor. -/
-def is_pred_limit (b : α) : Prop :=
-∀ a, pred a ≠ b
+/-- A predecessor limit is a value that isn't a predecessor, except possibly of itself. -/
+def is_pred_limit (a : α) : Prop := ∀ b, pred b = a → is_min b
 
-lemma not_is_pred_limit_pred (a : α) : ¬ is_pred_limit (pred a) :=
-λ h, (h a).irrefl
+lemma is_pred_limit.is_min (h : is_pred_limit (pred a)) : is_min a :=
+h a rfl
 
-lemma is_pred_limit.false (ha : is_pred_limit (pred a)) : false :=
-not_is_pred_limit_pred a ha
+lemma _root_.is_max.is_pred_limit (h : is_max a) : is_pred_limit a :=
+by { rintros b rfl, exact min_of_le_pred (h $ pred_le b) }
+
+lemma is_pred_limit_of_pred_ne (h : ∀ b, pred b ≠ a) : is_pred_limit a :=
+by { rintros b rfl, exact (h b).irrefl.elim }
 
 section no_min_order
 variables [no_min_order α]
 
 lemma pred_lt (a : α) : pred a < a := pred_lt_of_not_is_min $ not_is_min a
-lemma pred_ne (a : α) : pred a ≠ a := (pred_lt a).ne
 lemma pred_lt_iff : pred a < b ↔ a ≤ b := pred_lt_iff_of_not_is_min $ not_is_min a
 lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is_min b
 
@@ -510,11 +537,37 @@ Icc_pred_right_of_not_is_min $ not_is_min _
 lemma Ioc_pred_right (a b : α) : Ioc a (pred b) = Ioo a b :=
 Ioc_pred_right_of_not_is_min $ not_is_min _
 
-lemma is_pred_limit_of_is_max (h : is_max a) : is_pred_limit a :=
-by { rintros b rfl, exact h.not_lt (pred_lt b) }
+lemma is_pred_limit.pred_ne (h : is_pred_limit a) (b) : pred b ≠ a :=
+λ hb, not_is_min b (h b hb)
+
+lemma is_pred_limit_iff_pred_ne : is_pred_limit a ↔ ∀ b, pred b ≠ a :=
+⟨is_pred_limit.pred_ne, is_pred_limit_of_pred_ne⟩
 
 lemma is_pred_limit_of_lt_pred (H : ∀ b > a, a < pred b) : is_pred_limit a :=
-by { rintros a rfl, exact (H a (pred_lt a)).false }
+by { rintros a rfl, exact (H a (pred_lt a)).false.elim }
+
+lemma not_is_pred_limit_iff : ¬ is_pred_limit a ↔ ∃ b, pred b = a :=
+by simp_rw [is_pred_limit_iff_pred_ne, not_forall, not_ne_iff]
+
+/-- Any value is either a successor or a successor limit. -/
+@[elab_as_eliminator] def is_pred_limit_rec_on {C : α → Sort} (hs : Π a, C (pred a))
+  (hl : Π a, is_pred_limit a → C a) (b) : C b :=
+begin
+  by_cases h : is_pred_limit b,
+  { exact hl b h },
+  { cases not_is_pred_limit_iff.1 h with a ha,
+    rw ←ha,
+    exact hs a }
+end
+
+@[simp] theorem is_pred_limit_rec_on_pred {C : α → Sort} (hs : Π a, C (pred a))
+  (hl : Π a, is_pred_limit a → C a) : @is_pred_limit_rec_on α _ _ _ C hs hl (pred a) = hs a :=
+by rw is_pred_limit_rec_on
+
+@[simp] theorem is_pred_limit_rec_on_limit {C : α → Sort} (hs : Π a, C (pred a))
+  (hl : Π a, is_pred_limit a → C a) (h : is_pred_limit a) :
+  @is_pred_limit_rec_on α _ _ _ C hs hl a = hl a h :=
+by rw is_pred_limit_rec_on
 
 end no_min_order
 end preorder
@@ -564,9 +617,6 @@ by simp_rw [←Ici_inter_Iic, Ici_pred, insert_inter_of_mem (mem_Iic.2 h)]
 lemma Ico_pred_left (h : pred a < b) : Ico (pred a) b = insert (pred a) (Ico a b) :=
 by simp_rw [←Ici_inter_Iio, Ici_pred, insert_inter_of_mem (mem_Iio.2 h)]
 
-lemma not_is_pred_limit_of_is_min (h : is_min a) : ¬ is_pred_limit a :=
-by { rw ←pred_eq_iff_is_min.2 h, apply not_is_pred_limit_pred }
-
 section no_min_order
 variables [no_min_order α]
 
@@ -593,7 +643,7 @@ lemma Ioo_pred_right_eq_insert (h : a < b) : Ioo (pred a) b = insert a (Ioo a b)
 by simp_rw [←Ioi_inter_Iio, Ioi_pred_eq_insert, insert_inter_of_mem (mem_Iio.2 h)]
 
 lemma is_pred_limit.lt_pred (ha : is_pred_limit a) (hb : a < b) : a < pred b :=
-by { rw [lt_iff_le_and_ne, le_pred_iff], exact ⟨hb, (ha b).symm⟩ }
+by { rw [lt_iff_le_and_ne, le_pred_iff], exact ⟨hb, (ha.pred_ne b).symm⟩ }
 
 lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 ⟨λ ha b, ha.lt_pred, is_pred_limit_of_lt_pred⟩
@@ -608,9 +658,6 @@ variables [order_bot α]
 @[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top αᵒᵈ _ _ _ _
 @[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top αᵒᵈ _ _ _ _
 
-lemma not_is_pred_limit_bot : ¬ is_pred_limit (⊥ : α) :=
-not_is_pred_limit_of_is_min is_min_bot
-
 end order_bot
 
 section order_top
@@ -619,7 +666,9 @@ variables [order_top α] [nontrivial α]
 lemma pred_lt_top (a : α) : pred a < ⊤ :=
 (pred_mono le_top).trans_lt $ pred_lt_of_not_is_min not_is_min_top
 
-lemma is_pred_limit_top : is_pred_limit (⊤ : α) := λ a, (pred_lt_top a).ne
+lemma pred_ne_top (a : α) : pred a ≠ ⊤ := (pred_lt_top a).ne
+
+lemma is_pred_limit_top : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
 
 end order_top
 end partial_order
@@ -985,16 +1034,19 @@ begin
   exact iterate.rec (λ b, p a ↔ p b) (λ c hc, hc.trans (hsucc _)) iff.rfl n,
 end
 
-lemma is_succ_limit.is_min (h : is_succ_limit a) : is_min a :=
-λ b hb, begin
-  rcases hb.exists_succ_iterate with ⟨_ | n, rfl⟩,
+lemma order.is_succ_limit.is_min [no_max_order α] (h : is_succ_limit a) : is_min a :=
+λ a ha, begin
+  rcases ha.exists_succ_iterate with ⟨_ | n, rfl⟩,
   { exact le_rfl },
-  { rw iterate_succ' at h,
-    exact h.false.elim }
+  { rw iterate_succ_apply' at h,
+    exact (not_is_succ_limit_succ h).elim }
 end
 
-@[simp] lemma is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
-⟨is_succ_limit.is_min, is_succ_limit_of_is_min⟩
+@[simp] lemma order.is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
+⟨order.is_succ_limit.is_min, is_min.is_succ_limit⟩
+
+lemma order.not_is_succ_limit [no_min_order α] [no_max_order α] : ¬ is_succ_limit a :=
+by simp
 
 end succ_order
 
@@ -1018,11 +1070,14 @@ lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : 
   p a ↔ p b :=
 (@succ.rec_iff αᵒᵈ _ _ _ _ hsucc _ _ h).symm
 
-lemma is_pred_limit.is_max : is_pred_limit a → is_max a :=
-@is_succ_limit.is_min αᵒᵈ _ _ _ _
+lemma order.is_pred_limit.is_max [no_min_order α] : is_pred_limit a → is_max a :=
+@order.is_succ_limit.is_min αᵒᵈ _ _ _ _ _
 
-@[simp] lemma is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
-@is_succ_limit_iff αᵒᵈ _ _ _ _ _
+@[simp] lemma order.is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
+@order.is_succ_limit_iff αᵒᵈ _ _ _ _ _
+
+lemma order.not_is_pred_limit [no_min_order α] [no_max_order α] : ¬ is_pred_limit a :=
+by simp
 
 end pred_order
 end preorder

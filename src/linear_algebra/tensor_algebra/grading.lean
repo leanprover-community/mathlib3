@@ -38,7 +38,7 @@ instance graded_algebra :
   graded_algebra ((^) (ι R : M →ₗ[R] tensor_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
   -- while not necessary, the `by apply` makes this elaborate faster
-  (lift R $ by apply graded_algebra.ι R M)
+  (lift R $ graded_algebra.ι R M)
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,

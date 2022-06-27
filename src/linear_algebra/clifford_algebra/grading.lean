@@ -78,12 +78,12 @@ rfl
 lemma graded_algebra.ι_sq_scalar (m : M) :
   graded_algebra.ι Q m * graded_algebra.ι Q m = algebra_map R _ (Q m) :=
 begin
-  rw [graded_algebra.ι_apply, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
+  rw [graded_algebra.ι_apply Q, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
 end
 
 lemma graded_algebra.lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
-  lift Q ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
+  lift Q ⟨by apply graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
     direct_sum.of (λ i, even_odd Q i) i' x' :=
 begin
   cases x' with x' hx',
@@ -111,7 +111,7 @@ end
 instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom (even_odd Q)
   -- while not necessary, the `by apply` makes this elaborate faster
-  (lift Q ⟨by apply graded_algebra.ι Q, by apply graded_algebra.ι_sq_scalar Q⟩)
+  (lift Q ⟨by apply graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
   (begin

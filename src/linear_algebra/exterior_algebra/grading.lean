@@ -42,7 +42,7 @@ end
 primarily an auxiliary construction used to provide `exterior_algebra.graded_algebra`. -/
 def graded_algebra.lift_ι : exterior_algebra R M →ₐ[R]
   ⨁ (i : ℕ), ↥((ι R).range ^ i : submodule R (exterior_algebra R M)) :=
-lift R ⟨by apply graded_algebra.ι R M, by apply graded_algebra.ι_sq_zero R M⟩
+lift R ⟨by apply graded_algebra.ι R M, graded_algebra.ι_sq_zero R M⟩
 
 variables (R M)
 
@@ -60,15 +60,16 @@ begin
   { obtain ⟨_, rfl⟩ := hm,
     rw [alg_hom.map_mul, ih, graded_algebra.lift_ι, lift_ι_apply,
       graded_algebra.ι_apply R M, direct_sum.of_mul_of],
+    exact direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext (add_comm _ _) rfl) },
 end
 
-set_option profiler true
 /-- The exterior algebra is graded by the powers of the submodule `(exterior_algebra.ι R).range`. -/
 instance graded_algebra :
   graded_algebra ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
   -- while not necessary, the `by apply` makes this elaborate faster
-  (by apply graded_algebra.lift_ι R M)  -- the proof from here onward is identical to the `tensor_algebra` case
+  (by apply graded_algebra.lift_ι R M)
+  -- the proof from here onward is identical to the `tensor_algebra` case
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply,

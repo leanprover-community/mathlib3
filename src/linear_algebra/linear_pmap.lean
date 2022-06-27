@@ -430,22 +430,42 @@ def graph (f : linear_pmap R E F) : submodule R (E × F) :=
 f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
 
 lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
-  x ∈ graph f ↔ ∃ y : f.domain, (↑y, f y) = x :=
-by { simp [graph] }
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
+by simp [graph]
 
 @[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
-  x ∈ graph f ↔ ∃ y : f.domain, (↑y : E) = x.fst ∧ f y = x.snd :=
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
 by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 
-/-- The property that `f 0 = 0` in terms of the graph. -/
-lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E × F} (hx : x ∈ graph f)
-  (hx' : x.fst = 0) :
-  x.snd = 0 :=
+
+/-- The tuple `(x, f x)` is contained in the graph of `f`. -/
+lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
+by simp
+
+lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
+  (hy : (y,y') ∈ f.graph)
+  (hxy : x = y) : x' = y' :=
 begin
-  rcases f.mem_graph_iff.mp hx with ⟨y, hx1, hx2⟩,
-  rw [←hx1, submodule.coe_eq_zero] at hx',
-  rw [←hx2, hx', map_zero],
+  rw [mem_graph_iff] at hx hy,
+  rcases hx with ⟨x'', hx1, hx2⟩,
+  rcases hy with ⟨y'', hy1, hy2⟩,
+  simp only at hx1 hx2 hy1 hy2,
+  rw [←hx1, ←hy1, set_like.coe_eq_coe] at hxy,
+  rw [←hx2, ←hy2, hxy],
 end
+
+lemma mem_graph_snd_inj' (f : linear_pmap R E F) {x y : E × F} (hx : x ∈ f.graph) (hy : y ∈ f.graph)
+  (hxy : x.1 = y.1) : x.2 = y.2 :=
+by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
+
+@[simp] lemma zero_mem_graph (f : linear_pmap R E F) : (0 : E × F) ∈ f.graph :=
+by simp
+
+/-- The property that `f 0 = 0` in terms of the graph. -/
+lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ graph f)
+  (hx : x = 0) :
+  x' = 0 :=
+f.mem_graph_snd_inj h f.zero_mem_graph hx
 
 end linear_pmap
 

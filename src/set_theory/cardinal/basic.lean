@@ -453,6 +453,8 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
 
+protected theorem not_lt_zero (c : cardinal) : ¬ c < 0 := not_lt_bot
+
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
 lt_of_le_of_ne (zero_le _) zero_ne_one
 

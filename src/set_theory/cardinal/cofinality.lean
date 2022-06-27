@@ -722,7 +722,7 @@ theorem is_strong_limit.two_power_lt {x c} (h : is_strong_limit c) : x < c → 2
 h x
 
 theorem is_strong_limit_zero : is_strong_limit 0 :=
-λ x h, (not_lt_bot h).elim
+λ x h, (cardinal.not_lt_zero x h).elim
 
 theorem is_strong_limit_aleph_0 : is_strong_limit ℵ₀ :=
 λ x hx, begin

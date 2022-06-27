@@ -214,7 +214,8 @@ begin
 end
 
 /-- If `S` is finite and `is_cyclotomic_extension S A B`, then `B` is a finite `A`-algebra. -/
-lemma finite [is_domain B] [h₁ : fintype S] [h₂ : is_cyclotomic_extension S A B] : finite A B :=
+lemma finite [is_domain B] [h₁ : _root_.finite S] [h₂ : is_cyclotomic_extension S A B] :
+  finite A B :=
 begin
   unfreezingI {revert h₂ A B},
   refine set.finite.induction_on (set.finite.intro h₁) (λ A B, _) (λ n S hn hS H A B, _),

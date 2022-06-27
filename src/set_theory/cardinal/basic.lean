@@ -927,6 +927,8 @@ lt_aleph_0_iff_finite.2 ‹_›
 theorem lt_aleph_0_iff_finite_set {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
+alias lt_aleph_0_iff_finite_set ↔ _ set.finite.lt_aleph_0
+
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
 

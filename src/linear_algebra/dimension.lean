@@ -602,7 +602,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, (cardinal.lt_aleph_0_of_fintype _).le },
+    { exact λ j, (cardinal.lt_aleph_0_of_finite _).le },
     { simpa } },
 end
 
@@ -701,7 +701,7 @@ end
 must be finite if the module is Noetherian. -/
 lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
   {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-⟨fintype_of_is_noetherian_linear_independent hi⟩
+⟨finite.of_fintype $ fintype_of_is_noetherian_linear_independent hi⟩
 
 /--
 An auxiliary lemma for `linear_independent_le_basis`:

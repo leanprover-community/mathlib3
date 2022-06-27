@@ -1369,6 +1369,11 @@ lemma is_clopen_bInter {β : Type*} {s : set β} (hs : s.finite) {f : β → set
   is_clopen (⋂ i ∈ s, f i) :=
 ⟨is_open_bInter hs (λ i hi, (h i hi).1), is_closed_bInter (λ i hi, (h i hi).2)⟩
 
+lemma is_clopen_bInter_finset {β : Type*} {s : finset β} {f : β → set α}
+  (h : ∀ i ∈ s, is_clopen (f i)) :
+  is_clopen (⋂ i ∈ s, f i) :=
+is_clopen_bInter s.finite_to_set h
+
 lemma continuous_on.preimage_clopen_of_clopen
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)
   (ht : is_clopen t) : is_clopen (s ∩ f⁻¹' t) :=

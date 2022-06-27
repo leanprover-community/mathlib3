@@ -326,11 +326,24 @@ namespace finset
 This is a wrapper around `set.finite_of_subtype`. -/
 lemma finite_to_set (s : finset α) : (s : set α).finite := set.finite_of_subtype _
 
-@[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
-  s.finite_to_set.to_finset = s :=
+@[simp] lemma finite_to_set_to_finset (s : finset α) : s.finite_to_set.to_finset = s :=
 by { ext, rw [set.finite.mem_to_finset, mem_coe] }
 
 end finset
+
+namespace multiset
+
+lemma finite_to_set (s : multiset α) : {x | x ∈ s}.finite :=
+by { classical, simpa only [← multiset.mem_to_finset] using s.to_finset.finite_to_set }
+
+@[simp] lemma finite_to_set_to_finset [decidable_eq α] (s : multiset α) :
+  s.finite_to_set.to_finset = s.to_finset :=
+by { ext x, simp }
+
+end multiset
+
+lemma list.finite_to_set (l : list α) : {x | x ∈ l}.finite :=
+(show multiset α, from ⟦l⟧).finite_to_set
 
 /-! ### Finite instances
 

@@ -81,7 +81,7 @@ end
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
 lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
   {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
-⟨fintype_of_fin_dim_affine_independent k hi⟩
+⟨finite.of_fintype $ fintype_of_fin_dim_affine_independent k hi⟩
 
 variables {k}
 

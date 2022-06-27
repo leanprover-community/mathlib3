@@ -31,7 +31,7 @@ one should prefer writing a `finite` instance instead.
 ## Main definitions
 
 * `finite α` denotes that `α` is a finite type.
-* `finite_of_subtype` creates a `finite` instance from a `fintype` instance.
+* `finite.of_fintype` creates a `finite` instance from a `fintype` instance.
 * `fintype.of_finite` noncomputably creates a `fintype` instance from a `finite` instance.
 * `finite_or_infinite` is that every type is either `finite` or `infinite`.
 
@@ -46,7 +46,7 @@ however they follow a pattern: if a `fintype` instance depends on `decidable`
 instances or other `fintype` instances, then we need to "lower" the instance
 to be a `finite` instance by removing the `decidable` instances and switching
 the `fintype` instances to `finite` instances. These are precisely the ones
-that cannot be inferred using `finite_of_subtype'`. (However, when using
+that cannot be inferred using `finite.of_fintype'`. (However, when using
 `open_locale classical` or the `classical` tactic the instances relying only
 on `decidable` instances will give `finite` instances.) In the future we might
 consider writing automation to create these "lowered" instances.

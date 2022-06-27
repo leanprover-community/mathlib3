@@ -760,7 +760,7 @@ theorem totally_bounded_iff {s : set α} :
 /-- A pseudometric space is totally bounded if one can reconstruct up to any ε>0 any element of the
 space from finitely many data. -/
 lemma totally_bounded_of_finite_discretization {s : set α}
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) (_ : fintype β) (F : s → β),
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) (_ : finite β) (F : s → β),
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
 begin

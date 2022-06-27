@@ -1598,7 +1598,7 @@ begin
   rw [← compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
   cases H1 huv_union with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
-  { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
+  { exact is_clopen_bInter_finset (λ Z hZ, Z.2.1) },
   { exact mem_Inter₂.2 (λ Z hZ, Z.2.2) },
   { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
 end
@@ -1766,7 +1766,7 @@ begin
     swap, { exact λ Z, Z.2.1.2 },
     -- This clopen and its complement will separate the connected components of `a` and `b`
     set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i),
-    have hU : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
+    have hU : is_clopen U := is_clopen_bInter_finset (λ i j, i.2.1),
     exact ⟨U, coe '' U, hU, ha, subset_Inter₂ (λ Z _, Z.2.1.connected_component_subset Z.2.2),
       (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
   rw connected_components.quotient_map_coe.is_clopen_preimage at hU,

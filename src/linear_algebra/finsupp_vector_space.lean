@@ -198,7 +198,7 @@ lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional 
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
-  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_fintype K)
+  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_finite K)
     (is_noetherian.dim_lt_aleph_0 K V),
 end
 

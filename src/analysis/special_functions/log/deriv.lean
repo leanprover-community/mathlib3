@@ -209,7 +209,7 @@ begin
       exact mul_div_cancel_left _ (nat.cast_add_one_pos i).ne' },
     field_simp [F, this, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
-    ring_nf },
+    ring },
   -- second step: show that the derivative of `F` is small
   have B : ∀ y ∈ Icc (-|x|) (|x|), |deriv F y| ≤ |x|^n / (1 - |x|),
   { assume y hy,
@@ -289,14 +289,19 @@ begin
     rw [even.neg_pow (nat.even_succ.mpr hm), nat.succ_eq_add_one, neg_one_mul, neg_add_self] },
 end
 
-/--
-A lemma expanding the log of a fraction. The goal is to use it in `power_series_log_succ_div`.
--/
-lemma log_succ_div_eq_log_sub {a : ℝ} (h : 0 < a) :
-  log ((a + 1) / a) = log (1 + 1 / (2 * a + 1)) - log (1 - 1 / (2 * a + 1)) :=
+/-- Expansion of `log (1 + a⁻¹)` as a series in powers of `1 / (2 * a + 1)`. -/
+theorem series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
+  (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
+  (log (1 + a⁻¹)) :=
 begin
-  have h₀ : (2 : ℝ) * a + 1 ≠ 0 := by linarith,
-  have h₁ := h.ne',
+  have h₁ : |1 / (2 * a + 1)| < 1,
+  { rw [abs_of_pos, div_lt_one],
+    { linarith, },
+    { linarith, },
+    { exact div_pos one_pos (by linarith), }, },
+  convert has_sum_log_sub_log_of_abs_lt_1 h₁,
+  have h₂ : (2 : ℝ) * a + 1 ≠ 0 := by linarith,
+  have h₃ := h.ne',
   rw ← log_div,
   { congr,
     field_simp,
@@ -304,20 +309,6 @@ begin
   { field_simp,
     linarith } ,
   { field_simp },
-end
-
-/-- Expansion of `log ((a + 1) / a)` as a series in powers of `1 / (2 * a + 1)`. -/
-theorem power_series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
-  (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
-  (log ((a + 1) / a)) :=
-begin
-  have h₁ : |1 / (2 * a + 1)| < 1,
-  { rw [abs_of_pos, div_lt_one],
-    { linarith, },
-    { linarith, },
-    { exact div_pos one_pos (by linarith), }, },
-  rw log_succ_div_eq_log_sub h,
-  exact has_sum_log_sub_log_of_abs_lt_1 h₁,
 end
 
 end real

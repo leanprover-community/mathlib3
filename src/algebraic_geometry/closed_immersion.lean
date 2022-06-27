@@ -30,19 +30,19 @@ variables {C : Type u} [category.{v} C]
 /--
 Closed immersion between presheafed spaces are morphisms `f : X ⟶ Y`, such that
 * the underlying continuous map is a closed embedding;
-* the inverse `set.range f → X` is continuous and
-* `𝓞_Y ⟶ f_* 𝓞_X` is epi
+* `𝓞_Y ⟶ f_* 𝓞_X` is surjective
 -/
 class PresheafedSpace.is_closed_immersion [concrete_category C] [has_colimits C]
   {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
 (base_closed : closed_embedding f.base)
-(c_epi : ∀ y : Y, function.surjective $ (forget C).map ((Top.presheaf.stalk_functor _ y).map f.c))
+(c_surj : ∀ x : X, function.surjective $ (forget C).map
+  ((Top.presheaf.stalk_functor _ $ f.base x).map f.c))
 
 instance PresheafedSpace.is_closed_immersion.id [concrete_category C] [has_colimits C]
   {X : PresheafedSpace C} :
   PresheafedSpace.is_closed_immersion (𝟙 X) :=
 { base_closed := closed_embedding_id,
-  c_epi := λ x, begin
+  c_surj := λ x, begin
     change function.surjective
       ((forget C).map ((Top.presheaf.stalk_functor _ x).map (PresheafedSpace.id _).c)),
     dunfold PresheafedSpace.id,

@@ -8,6 +8,7 @@ import data.finsupp.multiset
 import algebra.big_operators.finsupp
 import tactic.linarith
 import tactic.interval_cases
+import data.nat.log
 
 /-!
 # Prime factorizations
@@ -383,6 +384,20 @@ begin
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea,
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb,
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
+end
+
+lemma factorization_eq_card_pow_dvd {n p b : ℕ} (pp : p.prime) (hn : 0 < n) (hb : log p n < b) :
+  n.factorization p = ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n)).card :=
+begin
+  rw [←nat.add_sub_cancel (n.factorization p) 1, ←card_Ico],
+  apply congr_arg card,
+  ext,
+  rw [finset.mem_filter, mem_Ico, mem_Ico, lt_succ_iff, pp.pow_dvd_iff_le_factorization hn.ne',
+    and.congr_left_iff, iff_self_and],
+  rintro ha1 -,
+  refine lt_of_le_of_lt _ hb,
+  rw ←pow_le_iff_le_log pp.one_lt hn,
+  exact le_trans (pow_le_pow pp.one_lt.le ha1) (pow_factorization_le p hn.ne'),
 end
 
 /-! ### Factorization and coprimes -/

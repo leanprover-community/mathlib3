@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Martin Zinkevich
+Authors: Johannes Hölzl, Martin Zinkevich, Rémy Degenne
 -/
 import logic.encodable.lattice
 import measure_theory.measurable_space_def
@@ -41,6 +41,12 @@ import measure_theory.measurable_space_def
 * `mem_generate_pi_system_Union_elim` and `mem_generate_pi_system_Union_elim'` show that any
   element of the π-system generated from the union of a set of π-systems can be
   represented as the intersection of a finite number of elements from these sets.
+
+* `pi_Union_Inter` defines a new π-system from a family of π-systems `π : ι → set (set α)` and a
+  set of finsets `S : set (finset α)`. `pi_Union_Inter π S` is the set of sets that can be written
+  as `⋂ x ∈ t, f x` for some `t ∈ S` and sets `f x ∈ π x`. If `S` is union-closed, then it is a
+  π-system. The π-systems used to prove Kolmogorov's 0-1 law will be defined using this mechanism
+  (TODO).
 
 ## Implementation details
 

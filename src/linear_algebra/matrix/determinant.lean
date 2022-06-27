@@ -261,14 +261,15 @@ by rw [←det_smul_of_tower, units.neg_smul, one_smul]
 /-- Multiplying each row by a fixed `v i` multiplies the determinant by
 the product of the `v`s. -/
 lemma det_mul_row (v : n → R) (A : matrix n n R) :
-  det (λ i j, v j * A i j) = (∏ i, v i) * det A :=
-calc det (λ i j, v j * A i j) = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
-                          ... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
+  det (of $ λ i j, v j * A i j) = (∏ i, v i) * det A :=
+calc  det (of $ λ i j, v j * A i j)
+    = det (A ⬝ diagonal v) : congr_arg det $ by { ext, simp [mul_comm] }
+... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal, mul_comm]
 
 /-- Multiplying each column by a fixed `v j` multiplies the determinant by
 the product of the `v`s. -/
 lemma det_mul_column (v : n → R) (A : matrix n n R) :
-  det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
+  det (of $ λ i j, v i * A i j) = (∏ i, v i) * det A :=
 multilinear_map.map_smul_univ _ v A
 
 @[simp] lemma det_pow (M : matrix m m R) (n : ℕ) : det (M ^ n) = (det M) ^ n :=

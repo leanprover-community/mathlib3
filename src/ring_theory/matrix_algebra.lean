@@ -118,11 +118,11 @@ by simp [inv_fun]
 by simp [inv_fun, add_tmul, finset.sum_add_distrib]
 
 @[simp] lemma inv_fun_smul (a : A) (M : matrix n n A) :
-  inv_fun R A n (λ i j, a * M i j) = (a ⊗ₜ 1) * inv_fun R A n M :=
+  inv_fun R A n (of $ λ i j, a * M i j) = (a ⊗ₜ 1) * inv_fun R A n M :=
 by simp [inv_fun,finset.mul_sum]
 
 @[simp] lemma inv_fun_algebra_map (M : matrix n n R) :
-  inv_fun R A n (λ i j, algebra_map R A (M i j)) = 1 ⊗ₜ M :=
+  inv_fun R A n (of $ λ i j, algebra_map R A (M i j)) = 1 ⊗ₜ M :=
 begin
   dsimp [inv_fun],
   simp only [algebra.algebra_map_eq_smul_one, smul_tmul, ←tmul_sum, mul_boole],
@@ -184,7 +184,7 @@ end
 
 @[simp] lemma matrix_equiv_tensor_apply_symm (a : A) (M : matrix n n R) :
   (matrix_equiv_tensor R A n).symm (a ⊗ₜ M) =
-    λ i j, a * algebra_map R A (M i j) :=
+    M.map (λ x, a * algebra_map R A x) :=
 begin
   simp [matrix_equiv_tensor, to_fun_alg_hom, alg_hom_of_linear_map_tensor_product, to_fun_linear],
   refl,

@@ -35,8 +35,8 @@ dimensions. -/
 @[pp_nodot]
 def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   matrix (n ⊕ o) (l ⊕ m) α :=
-sum.elim (λ i, sum.elim (A i) (B i))
-         (λ i, sum.elim (C i) (D i))
+of $ sum.elim (λ i, sum.elim (A i) (B i))
+              (λ i, sum.elim (C i) (D i))
 
 @[simp] lemma from_blocks_apply₁₁
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : l) :
@@ -61,22 +61,22 @@ rfl
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
-λ i j, M (sum.inl i) (sum.inl j)
+of $ λ i j, M (sum.inl i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
-λ i j, M (sum.inl i) (sum.inr j)
+of $ λ i j, M (sum.inl i) (sum.inr j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
-λ i j, M (sum.inr i) (sum.inl j)
+of $ λ i j, M (sum.inr i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
-λ i j, M (sum.inr i) (sum.inr j)
+of $ λ i j, M (sum.inr i) (sum.inr j)
 
 lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
   from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=

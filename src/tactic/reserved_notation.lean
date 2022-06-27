@@ -58,6 +58,3 @@ reserve infixl ` ⊔ `:68
 
 -- used in `algebra/module/linear_map.lean`
 reserve infix ` ≃ₗ `:25
-
--- used in `data/matrix/notation.lean`
-reserve  notation `!![`

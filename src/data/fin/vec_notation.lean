@@ -152,11 +152,6 @@ meta instance _root_.pi_fin.reflect {α : Type} [reflected α] [h : has_reflect 
 | (n + 1) v := (cons_head_tail v).rec $
   (`(λ x (xs : fin n → α), vec_cons x xs).subst (h _)).subst (_root_.pi_fin.reflect _)
 
-/-- Convert a vector of pexprs to the pexpr constructing that vector.-/
-meta def _root_.pi_fin.to_pexpr : Π {n}, (fin n → pexpr) → pexpr
-| 0 v := ``(![])
-| (n + 1) v := ``(vec_cons %%(v 0) %%(_root_.pi_fin.to_pexpr $ vec_tail v))
-
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
 numeral-indexed element of a vector given with matrix notation to

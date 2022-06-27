@@ -194,13 +194,13 @@ begin
 end
 
 lemma basis_to_matrix_basis_fun_mul (b : basis ι R (ι → R)) (A : matrix ι ι R) :
-  b.to_matrix (pi.basis_fun R ι) ⬝ A = (λ i j, b.repr (Aᵀ j) i) :=
+  b.to_matrix (pi.basis_fun R ι) ⬝ A = of (λ i j, b.repr (Aᵀ j) i) :=
 begin
   classical,
   simp only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
   ext i j,
   rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply,
-    matrix.mul_vec_std_basis_apply]
+    matrix.mul_vec_std_basis_apply, matrix.of_apply]
 end
 
 /-- A generalization of `linear_map.to_matrix_id`. -/

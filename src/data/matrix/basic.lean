@@ -75,7 +75,7 @@ This is available in bundled forms as:
 * `ring_equiv.map_matrix`
 * `alg_equiv.map_matrix`
 -/
-def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
+def map (M : matrix m n α) (f : α → β) : matrix m n β := of (λ i j, f (M i j))
 
 @[simp]
 lemma map_apply {M : matrix m n α} {f : α → β} {i : m} {j : n} :
@@ -740,7 +740,7 @@ lemma diagonal_pow [fintype n] [decidable_eq n] (v : n → α) (k : ℕ) :
 (map_pow (diagonal_ring_hom n α) v k).symm
 
 @[simp] lemma mul_mul_left [fintype n] (M : matrix m n α) (N : matrix n o α) (a : α) :
-  (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
+  of (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
 smul_mul a M N
 
 /--
@@ -788,7 +788,7 @@ lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
 by { ext, simp [mul_comm] }
 
 @[simp] lemma mul_mul_right (M : matrix m n α) (N : matrix n o α) (a : α) :
-  M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
+  M ⬝ of (λ i j, a * N i j) = a • (M ⬝ N) :=
 mul_smul M a N
 
 lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
@@ -1571,7 +1571,7 @@ a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l
 by `(M.minor r_reindex c_reindex) i j = M (r_reindex i) (c_reindex j)` for `(i,j) : l × o`.
 Note that the total number of row and columns does not have to be preserved. -/
 def minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
-λ i j, A (r_reindex i) (c_reindex j)
+of $ λ i j, A (r_reindex i) (c_reindex j)
 
 @[simp] lemma minor_apply (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) (i j) :
   A.minor r_reindex c_reindex i j = A (r_reindex i) (c_reindex j) := rfl
@@ -1958,7 +1958,7 @@ namespace ring_hom
 variables [fintype n] [non_assoc_semiring α] [non_assoc_semiring β]
 
 lemma map_matrix_mul (M : matrix m n α) (N : matrix n o α) (i : m) (j : o) (f : α →+* β) :
-  f (matrix.mul M N i j) = matrix.mul (λ i j, f (M i j)) (λ i j, f (N i j)) i j :=
+  f (matrix.mul M N i j) = matrix.mul (M.map f) (N.map f) i j :=
 by simp [matrix.mul_apply, ring_hom.map_sum]
 
 lemma map_dot_product [non_assoc_semiring R] [non_assoc_semiring S] (f : R →+* S) (v w : n → R) :

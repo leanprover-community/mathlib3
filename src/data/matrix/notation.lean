@@ -91,7 +91,9 @@ do
     pure ⟨0, n, fin_zero_elim⟩
   end
 
-meta instance matrix.entry_parser.has_reflect {α : Type} [has_reflect α] [reflected α] :
+-- Lean can't find this instance without some help
+@[instance] meta def {u} sigma_sigma_fin_matrix_has_reflect {α : Type u}
+  [reflected_univ.{u}] [has_reflect α] [reflected α] :
   has_reflect (Σ (m n : ℕ), fin m → fin n → α) :=
 @sigma.reflect ℕ (λ m, Σ n, matrix (fin m) (fin n) α) _ _ _ $ λ i,
   @sigma.reflect ℕ _ _ _ _ (λ j, infer_instance)

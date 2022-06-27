@@ -537,7 +537,7 @@ instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
-/-- Contrary to convention, we consider 0 a limit cardinal, since many of the same theorems hold. -/
+/-- Contrary to convention, we consider `0` a limit cardinal. -/
 theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) :=
 is_succ_limit_bot
 

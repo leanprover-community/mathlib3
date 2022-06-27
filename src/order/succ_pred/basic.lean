@@ -721,8 +721,7 @@ end pred
 section succ
 variables [preorder α] [no_max_order α] [succ_order α]
 
-instance with_top.succ_order_of_no_max_order :
-  succ_order (with_top α) :=
+instance with_top.succ_order_of_no_max_order : succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
     | (some a) := some (succ a)
@@ -891,8 +890,7 @@ end succ
 section pred
 variables [preorder α] [no_min_order α] [pred_order α]
 
-instance with_bot.pred_order_of_no_min_order :
-  pred_order (with_bot α) :=
+instance with_bot.pred_order_of_no_min_order : pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
     | (some a) := some (pred a)

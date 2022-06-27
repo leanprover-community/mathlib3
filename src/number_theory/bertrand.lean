@@ -70,107 +70,12 @@ section real
 
 open real
 
-private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
-
--- This is best possible; it is false for x = 99.
-lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
-calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
-  ... ≤ log 100 / 100 / log 4 :
-          begin
-            rw div_le_div_right log_four_pos,
-            apply log_div_self_antitone_on,
-            { rw set.mem_set_of,
-              linarith only [exp_one_lt_d9], },
-            { rw set.mem_set_of,
-              linarith only [exp_one_lt_d9, n_large], },
-            { exact n_large, },
-          end
-  ... = log 100 / log 4 / 100 : by ring_nf
-  ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
-  ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
-  ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
-  ... = (log 10 / log 2) / 100 : by { rw mul_div_mul_left (log 10) (log 2), norm_num, }
-  ... ≤ 1 / 30 :
-          begin
-            have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
-            cancel_denoms,
-            rw mul_div,
-            have log_2_pos : 0 < log 2 := log_pos (by norm_num),
-            rw div_le_iff log_2_pos,
-            calc 3 * log 10 = log (10 ^ 3) : eq.symm (log_rpow (by norm_num) 3)
-              ... = log 1000 : by norm_num
-              ... ≤ log 1024 : (log_le_log thousand_pos (by norm_num)).2 (by norm_num)
-              ... = log (2 ^ (10 : ℝ)) : by norm_num
-              ... = 10 * log 2 : log_rpow (by norm_num) 10
-          end
-
--- This is best possible: it is false for x = 312.
-lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
-begin
-  have x_pos : 0 < x := by linarith,
-  have four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num,
-  rw [div_le_iff (mul_pos x_pos log_four_pos), ←mul_assoc, four_eq_two_rpow_two, log_rpow two_pos,
-      ←mul_assoc, mul_le_mul_right (log_pos one_lt_two), ←le_div_iff (sqrt_pos.mpr x_pos),
-      mul_comm _ x, mul_assoc, mul_comm x, mul_div_assoc, div_sqrt, mul_comm],
-  rw [←div_le_iff],
-  { rw [le_sqrt _ (le_of_lt x_pos), div_pow, sq_sqrt (le_of_lt two_pos)],
-    { ring_nf, linarith, },
-    { rw div_nonneg_iff, simp only [sqrt_nonneg 2, one_div], norm_num, }, },
-  { norm_num, },
-end
-
-lemma inequality3' {x : ℝ} (x_pos : 0 < x) :
-  sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
-begin
-  have: x ≠ 0 := by linarith,
-  have: log 4 * sqrt x ≠ 0 := mul_ne_zero log_four_pos.ne' (sqrt_ne_zero'.mpr x_pos),
-  field_simp,
-  ring_nf,
-  rw @sq_sqrt x (by linarith),
-  field_simp [log_four_pos.ne'],
-  ring_nf,
-end
-
--- This is best possible: it's false for x = 721.
-lemma inequality3 {x : ℝ} (n_large : 722 ≤ x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
-begin
-  have x_pos : 0 < x := by linarith,
-  have exp_two_le_722 : exp 2 ≤ 722 :=
-  calc
-  exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
-  ... ≤ 3 ^ 2 :
-      pow_le_pow_of_le_left (exp_pos 1).le (le_of_lt exp_one_lt_three) 2
-  ... ≤ 722 : by norm_num,
-  rw [inequality3' x_pos],
-  calc sqrt 2 / log 4 * log x / sqrt x
-      = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
-  ... ≤ sqrt 2 / log 4 * (log 722 / sqrt 722) :
-          begin
-            rw mul_le_mul_left (div_pos (sqrt_pos.2 two_pos) log_four_pos),
-            exact log_div_sqrt_antitone_on exp_two_le_722 (le_trans exp_two_le_722 n_large) n_large,
-          end
-  ... = log 722 / log 4 * sqrt 2 / sqrt 722 : by ring
-  ... ≤ 1 / 4 :
-          begin
-            rw [mul_div_assoc, ←sqrt_div zero_le_two],
-            norm_num,
-            nth_rewrite 1 [(show (361 : ℝ) = (19:ℝ)^2, by norm_num)],
-            rw [sqrt_sq],
-            field_simp,
-            rw div_le_div_iff _ _,
-            { rw [one_mul, mul_comm, ←@log_rpow 722 _ 4, mul_comm, ←le_rpow_iff_log_le]; norm_num},
-            { refine mul_pos (log_pos _) _; norm_num },
-            { norm_num },
-            linarith,
-          end
-
-end
-
-lemma equality4 (x : ℝ) (n_large : x ≠ 0) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
-begin
-  field_simp [log_four_pos.ne'],
-  ring,
-end
+-- PR #14821
+lemma _root_.concave_on.right_le_of_le_left'' {x y z : ℝ} {s : set ℝ} {f : ℝ → ℝ}
+  (hf : concave_on ℝ s f) (hx : x ∈ s) (hz : z ∈ s)
+  (hxy : x < y) (hyz : y ≤ z) (h : f y ≤ f x) : f z ≤ f y :=
+hyz.eq_or_lt.elim (λ hyz, (congr_arg f hyz).ge)
+  (λ hyz, hf.le_right_of_left_le hx hz (Ioo_subset_open_segment ⟨hxy, hyz⟩) h)
 
 /--
 A reified version of the `bertrand.main_inequality` below.

@@ -969,10 +969,9 @@ instance : has_add pgame.{u} := ⟨λ x y, begin
 end⟩
 
 /-- The pre-game `((0+1)+⋯)+1`. -/
-instance : has_coe ℕ pgame := ⟨nat.unary_cast⟩
+instance : has_nat_cast pgame := ⟨nat.unary_cast⟩
 
 @[simp] protected theorem nat_succ (n : ℕ) : ((n + 1 : ℕ) : pgame) = n + 1 := rfl
-@[simp] protected theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 := rfl
 
 instance is_empty_left_moves_add (x y : pgame.{u})
   [is_empty x.left_moves] [is_empty y.left_moves] : is_empty (x + y).left_moves :=

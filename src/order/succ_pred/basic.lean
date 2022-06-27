@@ -451,6 +451,13 @@ by rw [←Ici_inter_Iic, Iic_pred_of_not_is_min ha, Ici_inter_Iio]
 lemma Ioc_pred_right_of_not_is_min (ha : ¬ is_min b) : Ioc a (pred b) = Ioo a b :=
 by rw [←Ioi_inter_Iic, Iic_pred_of_not_is_min ha, Ioi_inter_Iio]
 
+/-- A predecessor limit is a value that isn't a predecessor. -/
+def is_pred_limit (b : α) : Prop :=
+∀ a, pred a ≠ b
+
+lemma not_is_pred_limit_pred (a : α) : ¬ is_pred_limit (pred a) :=
+λ h, (h a).irrefl
+
 section no_min_order
 variables [no_min_order α]
 
@@ -496,6 +503,9 @@ variables [partial_order α] [pred_order α] {a b : α}
 ⟨λ h, min_of_le_pred h.ge, λ h, h.eq_of_le $ pred_le _⟩
 
 alias pred_eq_iff_is_min ↔ _ is_min.pred_eq
+
+lemma not_is_pred_limit_of_is_min (ha : is_min a) : ¬ is_pred_limit a :=
+by { rw ←pred_eq_iff_is_min.2 ha, apply not_is_pred_limit_pred }
 
 lemma pred_le_le_iff {a b : α} : pred a ≤ b ∧ b ≤ a ↔ b = a ∨ b = pred a :=
 begin
@@ -559,6 +569,9 @@ by simp_rw [←Ioi_inter_Iic, Ioi_pred_eq_insert, insert_inter_of_mem (mem_Iic.2
 lemma Ioo_pred_right_eq_insert (h : a < b) : Ioo (pred a) b = insert a (Ioo a b) :=
 by simp_rw [←Ioi_inter_Iio, Ioi_pred_eq_insert, insert_inter_of_mem (mem_Iio.2 h)]
 
+lemma is_pred_limit.pred_lt (ha : is_pred_limit a) (hb : a < b) : a < pred b :=
+by { rw [lt_iff_le_and_ne, le_pred_iff], exact ⟨hb, (ha b).symm⟩ }
+
 end no_min_order
 
 section order_bot
@@ -569,6 +582,9 @@ variables [order_bot α]
 @[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top αᵒᵈ _ _ _ _
 @[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top αᵒᵈ _ _ _ _
 
+lemma not_is_pred_limit_bot : ¬ is_pred_limit (⊥ : α) :=
+not_is_pred_limit_of_is_min is_min_bot
+
 end order_bot
 
 section order_top
@@ -577,7 +593,7 @@ variables [order_top α] [nontrivial α]
 lemma pred_lt_top (a : α) : pred a < ⊤ :=
 (pred_mono le_top).trans_lt $ pred_lt_of_not_is_min not_is_min_top
 
-lemma pred_ne_top (a : α) : pred a ≠ ⊤ := (pred_lt_top a).ne
+lemma is_pred_limit_top : is_pred_limit (⊤ : α) := λ a, (pred_lt_top a).ne
 
 end order_top
 end partial_order

@@ -74,42 +74,183 @@ theorem handshake [fintype V] [fintype E]:
   ∑ᶠ (x : V), G.deg x = 2 * (fintype.card E) :=
 by {induction G, exact digraph.handshake G, refl}
 
+/-- structure dart (G : graph V E) extends V × V :=
+(is_adj : G.adj fst snd)-/
+
+structure dart (G : graph V E) : Type (max u v) :=
+(head : V)
+(tail : V)
+(e : E)
+(h : G.ends_are e head tail)
+-- lemma saying that dart is same if parts of them are equal etc
+
+def reverse_dart (G : graph V E) (d : G.dart) : G.dart :=
+{ head := d.tail,
+  tail := d.head,
+  e := d.e,
+  h := by exact G.ends_are_symm d.h }
+
+@[simp]
+lemma reverse_head_tail (G : graph V E) (d : G.dart) : (G.reverse_dart d).tail = d.head :=
+  by refl
+
+@[simp]
+lemma reverse_tail_head (G : graph V E) (d : G.dart) : (G.reverse_dart d).head = d.tail :=
+  by refl
+
 end basic
-
-structure walk' (G : graph V E) :=
-(endpoints : V → V)
-
-inductive walk (G : graph V E) : V → V → Type (max u v)
-| nil {x : V} : walk x x
-| cons (a : V) {x y : V} (e : E) (h : G.ends_are e a x) (p : walk x y) : walk a y
-
-attribute [refl] walk.nil
 
 variables (G : graph V E)
 
-def reachable (u v : V) : Prop := nonempty (G.walk u v)
+structure walk (G : graph V E) : Type (max u v) :=
+(head : V)
+(tail : V)
+(darts : list G.dart)
+(is_walk :
+  [head] ++ (list.map dart.tail darts)
+  = (list.map dart.head darts) ++ [tail])
+
+
+lemma walk_rev_head (p : walk G) :
+  list.map dart.head (list.map G.reverse_dart p.darts) =
+    (list.map dart.tail p.darts) :=
+begin
+  simp,
+  refl,
+end
+
+lemma walk_rev_tail (p : walk G) :
+  list.map dart.tail (list.map G.reverse_dart p.darts) =
+    (list.map dart.head p.darts) :=
+begin
+  simp,
+  refl,
+end
+
+def empty_walk (v : V) : walk G :=
+{ head := v,
+  tail := v,
+  darts := [],
+  is_walk := by simp }
+
+def reverse (p : walk G) : walk G :=
+{ head := p.tail,
+  tail := p.head,
+  darts := (list.map G.reverse_dart p.darts.reverse),
+  is_walk :=
+    begin
+      rw list.map_reverse,
+      rw list.map_reverse,
+      rw list.map_reverse,
+      rw ← list.reverse_singleton,
+      rw ← list.reverse_append,
+      rw ← list.reverse_singleton p.head,
+      rw ← list.reverse_append,
+      rw list.reverse_inj,
+      rw [walk_rev_head, walk_rev_tail, p.is_walk],
+    end }
+
+def append (p q : walk G) (h : p.tail = q.head) : walk G :=
+{ head := p.head,
+  tail := q.tail,
+  darts := p.darts ++ q.darts,
+  is_walk :=
+    begin
+      rw list.map_append,
+      rw list.map_append,
+      rw list.append_assoc,
+      rw ← q.is_walk,
+      rw ← list.append_assoc,
+      rw p.is_walk,
+      rw h,
+      simp,
+    end }
+
+
+def reachable (u v : V) : Prop := ∃ (p : G.walk), p.head = u ∧ p.tail = v
 
 namespace walk
-variables {G}
 
-/-- The concatenation of two compatible walks. -/
-@[trans]
-def append : Π {u v w : V}, G.walk u v → G.walk v w → G.walk u w
-| _ _ _ nil q := q
-| _ _ _ (cons a e h p) q := cons a e h (p.append q)
+@[refl] protected lemma reachable.refl (u : V) : G.reachable u u :=
+begin
+  use G.empty_walk u,
+  split,
+  rw empty_walk,
+  rw empty_walk,
+end
+protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _ _
 
-@[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
-protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
+@[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
+begin
+  cases huv with p hp,
+  use G.reverse p,
+  split,
+  rw ← hp.2,
+  refl,
+  rw ← hp.1,
+  refl,
+end
 
-@[trans] protected lemma reachable.trans {u v w : V}
-  (huv : G.reachable u v) (hvw : G.reachable v w) :
-  G.reachable u w :=
-huv.elim (λ puv, hvw.elim (λ pvw, ⟨puv.append pvw⟩))
+@[trans] protected lemma reachable.trans {u v w : V} (huv : G.reachable u v) (hvw : G.reachable v w)
+  : G.reachable u w :=
+begin
+  cases huv with p hp,
+  cases hvw with q hq,
+  have h : p.tail = q.head,
+  rw [hp.2, hq.1],
+  use G.append p q h,
+  split,
+  rw ← hp.1,
+  refl,
+  rw ← hq.2,
+  refl,
+end
 
 
--- not an equivalence because you don't have symmetry in directed graphs lol
+def edges {G : graph V E} (p : G.walk) : list E := list.map dart.e p.darts
+
+def support {G : graph V E} (p : G.walk) : list V := [p.head] ++ list.map dart.head p.darts
+
+lemma edges_nodup_of_support_nodup {G : graph V E} {p : G.walk} (h : p.support.nodup) :
+  p.edges.nodup :=
+begin
+
+
+  sorry,
+end
+
+/-! ### Trails, paths, circuits, cycles -/
+
+/-- A *trail* is a walk with no repeating edges. -/
+structure is_trail {G : graph V E} (p : G.walk) : Prop :=
+(edges_nodup : p.edges.nodup)
+
+/-- A *path* is a walk with no repeating vertices. -/
+structure is_path {G : graph V E} (p : G.walk) : Prop :=
+(support_nodup : p.support.nodup)
+
+/-- A *circuit* is a nonempty trail beginning and ending at the same vertex. -/
+structure is_circuit {G : graph V E} (p : G.walk) : Prop :=
+(start_end : p.head = p.tail)
+(ne_nil : p.darts ≠ [])
+
+/-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex
+is `u` (which appears exactly twice). -/
+structure is_cycle {G : graph V E} (p : G.walk) : Prop :=
+(support_nodup : p.support.tail.nodup)
 
 end walk
+
+lemma is_trail_def {G : graph V E} (p : G.walk) : p.is_trail ↔ p.edges.nodup :=
+⟨walk.is_trail.edges_nodup, λ h, ⟨h⟩⟩
+
+lemma is_path.mk' {u v : V} {p : G.walk} (h : p.support.nodup) : p.is_path :=
+⟨walk.edges_nodup_of_support_nodup h, h⟩
+
+
+end graph
+
+
 
 -- inductive walk (G : graph V E) : V → V → Type (max u v)
 -- | nil {x : V} : walk x x
@@ -263,5 +404,3 @@ end walk
 
 
 -- end walk
-
-end graph

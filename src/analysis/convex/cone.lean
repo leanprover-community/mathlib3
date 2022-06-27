@@ -635,6 +635,15 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
+/-- Dual cone of the convex cone {0} is the total space. -/
+lemma inner_dual_cone_zero : (0 : set H).inner_dual_cone = ⊤ :=
+begin
+  ext,
+  split,
+  simp only [mem_inner_dual_cone, mem_zero, forall_eq, inner_zero_left, le_refl, forall_true_left],
+  simp only [mem_inner_dual_cone, mem_zero, forall_eq, inner_zero_left, le_refl, implies_true_iff],
+end
+
 /-- Dual cone of the total space is the convex cone {0}. -/
 lemma inner_dual_cone_top : (⊤ : set H).inner_dual_cone = 0 :=
 begin

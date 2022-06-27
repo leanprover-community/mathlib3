@@ -106,9 +106,11 @@ end mv_polynomial
 
 section xfr
 
-variables {R : Type*} [comm_semiring R] [decidable_eq R]
+variables {R : Type*} [comm_semiring R]
 
--- TODO. use dot notation everywhere it's possible
+def multiset.esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
+
+variables [decidable_eq R]
 
 lemma multiset.antidiagonal_powerset {α : Type*} [decidable_eq α] (s : multiset α) :
   s.antidiagonal =
@@ -144,9 +146,10 @@ begin
     and_false, exists_false, not_false_iff],
 end
 
-lemma multiset.powerset_len_eq_filter {α : Type*} [decidable_eq α] (s : multiset α) :
+lemma multiset.powerset_len_eq_filter {α : Type*} (s : multiset α) :
   ∀ k : ℕ, s.powerset_len k = multiset.filter (λ t, multiset.card t = k) s.powerset :=
 begin
+  classical,
   refine s.induction _ _,
   intro k,
   cases k ; { refl, },
@@ -178,9 +181,10 @@ begin
     { intros _ _, refl, }}
 end
 
-lemma multiset.powerset_sum_powerset_len {α : Type*} [decidable_eq α] (s : multiset α) :
+lemma multiset.powerset_sum_powerset_len {α : Type*} (s : multiset α) :
   s.powerset = ∑ (k:ℕ) in finset.range (s.card+1), s.powerset_len k :=
 begin
+  classical,
   rw ( _ : ∑ (k:ℕ) in finset.range (s.card+1), s.powerset_len k =
     ∑ (k:ℕ) in finset.range (s.card+1),  multiset.filter (λ t, t.card = k) s.powerset),
   swap,
@@ -213,20 +217,21 @@ begin
     by_contra h₂,
     rw multiset.mem_filter at h₂,
     rw mem_erase at h₁,
-    exact h₁.left.symm h₂.right },
+    exact h₁.left.symm h₂.right, },
 end
 
-lemma multiset.map_sum {α : Type*} {β : Type*} {ι : Type*} [decidable_eq ι]
+lemma multiset.map_sum {α : Type*} {β : Type*} {ι : Type*}
   (s : finset ι) (f : α → β) (g : ι → multiset α) :
   ∑ (j : ι) in s, (multiset.map f (g j)) = (multiset.map f ∑ (j : ι) in s, g j) :=
 begin
+  classical,
   refine s.induction_on _ _,
   simp only [finset.sum_empty, multiset.map_zero],
   intros _ _ h₁ h₂,
   simp only [h₁, h₂, sum_insert, not_false_iff, multiset.map_add],
 end
 
-def multiset.esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
+
 
 lemma multiset.prod_X_add_C_eq_sum_esymm (s : multiset R) :
   (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in range (s.card + 1),

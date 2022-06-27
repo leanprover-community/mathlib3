@@ -96,13 +96,14 @@ end multiple_topologies
 
 section image
 
-variables {F : Type*} [normed_division_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  [add_comm_group F] [module 𝕜 F] [topological_space E] [topological_space F]
+variables {𝕜₁ 𝕜₂ F : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
+  [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F]
+  [topological_space E] [topological_space F]
 
 /-- A continuous linear image of a bounded set is bounded. -/
-lemma is_vonN_bounded.image {σ : 𝕜 →+* 𝕜} [ring_hom_surjective σ] [ring_hom_isometric σ]
-  {s : set E} (hs : is_vonN_bounded 𝕜 s) (f : E →SL[σ] F) :
-  is_vonN_bounded 𝕜 (f '' s) :=
+lemma is_vonN_bounded.image {σ : 𝕜₁ →+* 𝕜₂} [ring_hom_surjective σ] [ring_hom_isometric σ]
+  {s : set E} (hs : is_vonN_bounded 𝕜₁ s) (f : E →SL[σ] F) :
+  is_vonN_bounded 𝕜₂ (f '' s) :=
 begin
   let σ' := ring_equiv.of_bijective σ ⟨σ.injective, σ.is_surjective⟩,
   have σ_iso : isometry σ := σ.to_add_monoid_hom.isometry_of_norm (λ x, ring_hom_isometric.is_iso),

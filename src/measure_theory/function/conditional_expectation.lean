@@ -1887,9 +1887,7 @@ begin
 end
 
 lemma condexp_L1_mono {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
-  [second_countable_topology E] [measurable_space E] [borel_space E] [ordered_smul ℝ E]
-  [has_measurable_sup₂ E] [has_measurable_inf₂ E]
-  {f g : α → E}
+  [ordered_smul ℝ E] {f g : α → E}
   (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
   condexp_L1 hm μ f ≤ᵐ[μ] condexp_L1 hm μ g :=
 begin
@@ -2135,9 +2133,7 @@ begin
 end
 
 lemma condexp_mono {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
-  [second_countable_topology E] [measurable_space E] [borel_space E] [ordered_smul ℝ E]
-  [has_measurable_sup₂ E] [has_measurable_inf₂ E]
-  {f g : α → E} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  [ordered_smul ℝ E] {f g : α → E} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
   μ[f | m] ≤ᵐ[μ] μ[g | m] :=
 begin
   by_cases hm : m ≤ m0,

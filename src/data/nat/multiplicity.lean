@@ -88,22 +88,19 @@ multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
 
 /-- **Legendre's Theorem**
 
-The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
-over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i` for `i ∈ Ico 1 b`,
+where `b` is any bound greater than `log p n`. -/
 lemma factorization_factorial {p : ℕ} (hp : p.prime) {n b : ℕ} (hb : log p n < b) :
   n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
 begin
   revert hb,
   apply nat.rec_on n, { simp },
   intros n IH hb',
-  simp only [factorial_succ],
-  rw factorization_mul (succ_ne_zero n) (factorial_ne_zero n),
-  simp only [finsupp.coe_add, pi.add_apply],
-  rw factorization_eq_card_pow_dvd hp (succ_pos n) hb',
-  rw IH (lt_of_le_of_lt (log_mono_right (le_succ n)) hb'),
   have h1 : (filter (λ (i : ℕ), p ^ i ∣ n.succ) (Ico 1 b)).card =
     ∑ (i : ℕ) in Ico 1 b, ite (p ^ i ∣ n + 1) 1 0, by simp [sum_boole],
-  simp_rw [h1, ←sum_add_distrib, succ_div, add_comm],
+  simp_rw [factorial_succ, factorization_mul (succ_ne_zero n) (factorial_ne_zero n),
+    finsupp.coe_add, pi.add_apply, factorization_eq_card_pow_dvd hp (succ_pos n) hb',
+    IH (lt_of_le_of_lt (log_mono_right (le_succ n)) hb'), h1, ←sum_add_distrib, succ_div, add_comm]
 end
 
 /-- **Legendre's Theorem**

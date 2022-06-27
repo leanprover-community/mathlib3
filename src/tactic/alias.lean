@@ -70,7 +70,7 @@ meta def target.to_string : target → string
 { name := `alias, descr := "This definition is an alias of another.", parser := failed }
 
 /-- The core tactic which handles `alias d ← al`. Creates an alias `al` for declaration `d`. -/
-meta def alias_direct (d : declaration) (al : name) : tactic unit :=
+meta def alias_direct (doc : option string) (d : declaration) (al : name) : tactic unit :=
 do updateex_env $ λ env,
   env.add (match d.to_definition with
   | declaration.defn n ls t _ _ _ :=
@@ -82,7 +82,7 @@ do updateex_env $ λ env,
   end),
   let target := target.plain d.to_name,
   alias_attr.set al target tt,
-  add_doc_string al target.to_string
+  add_doc_string al (doc.get_or_else target.to_string)
 
 /-- Given a proof of `Π x y z, a ↔ b`, produces a proof of `Π x y z, a → b` or `Π x y z, b → a`
 (depending on whether `iffmp` is `iff.mp` or `iff.mpr`). The variable `f` supplies the proof,
@@ -94,7 +94,8 @@ meta def mk_iff_mp_app (iffmp : name) : expr → (ℕ → expr) → tactic expr
 
 /-- The core tactic which handles `alias d ↔ al _` or `alias d ↔ _ al`. `ns` is the current
 namespace, and `is_forward` is true if this is the forward implication (the first form). -/
-meta def alias_iff (d : declaration) (ns al : name) (is_forward : bool) : tactic unit :=
+meta def alias_iff (doc : option string)
+  (d : declaration) (ns al : name) (is_forward : bool) : tactic unit :=
 if al = `_ then skip else do
   -- TODO: remove this before merge
   (guard (al.head = "_root_" → ns ≠ name.anonymous) <|> fail "unnecessary _root_"),
@@ -108,7 +109,7 @@ if al = `_ then skip else do
     t' ← infer_type v,
     updateex_env $ λ env, env.add (declaration.thm al ls t' $ task.pure v),
     alias_attr.set al target tt,
-    add_doc_string al target.to_string
+    add_doc_string al (doc.get_or_else target.to_string)
 
 /-- Get the default names for left/right to be used by `alias d ↔ ..`. -/
 meta def make_left_right : name → tactic (name × name)
@@ -164,21 +165,22 @@ do old ← ident,
   d ← (do old ← resolve_constant old, get_decl old) <|>
     fail ("declaration " ++ to_string old ++ " not found"),
   ns ← get_current_namespace,
+  let doc := meta_info.doc_string,
   do
   { tk "←" <|> tk "<-",
     aliases ← many ident,
     ↑(aliases.mmap' $ λ al,
       -- TODO: remove this before merge
       (guard (al.head = "_root_" → ns ≠ name.anonymous) <|> fail "unnecessary _root_") >>
-      alias_direct d (ns.append_namespace al)) } <|>
+      alias_direct doc d (ns.append_namespace al)) } <|>
   do
   { tk "↔" <|> tk "<->",
     (left, right) ←
       mcond ((tk ".." >> pure tt) <|> pure ff)
         (make_left_right old <|> fail "invalid name for automatic name generation")
         (prod.mk <$> types.ident_ <*> types.ident_),
-    alias_iff d ns left tt,
-    alias_iff d ns right ff }
+    alias_iff doc d ns left tt,
+    alias_iff doc d ns right ff }
 
 add_tactic_doc
 { name                     := "alias",

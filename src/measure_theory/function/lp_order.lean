@@ -88,12 +88,14 @@ ae_eq_fun.coe_fn_abs _
 noncomputable
 instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
 { add_le_add_left := λ f g, add_le_add_left,
-  solid := λ f g hfg, by { rw ← coe_fn_le at hfg, simp_rw Lp.norm_def,
-    rw ennreal.to_real_le_to_real (Lp.snorm_ne_top f) (Lp.snorm_ne_top g),
+  solid := λ f g hfg, begin
+    rw ← coe_fn_le at hfg,
+    simp_rw [Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top f) (Lp.snorm_ne_top g)],
     refine snorm_mono_ae _,
     filter_upwards [hfg, Lp.coe_fn_abs f, Lp.coe_fn_abs g] with x hx hxf hxg,
     rw [hxf, hxg] at hx,
-    exact solid hx, },
+    exact solid hx,
+  end,
   ..Lp.lattice, ..Lp.normed_group, }
 
 end order

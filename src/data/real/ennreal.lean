@@ -1653,14 +1653,14 @@ lemma of_real_div_of_pos {x y : ℝ} (hy : 0 < y) :
   ennreal.of_real (x / y) = ennreal.of_real x / ennreal.of_real y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, of_real_mul' (inv_nonneg.2 hy.le), of_real_inv_of_pos hy]
 
-@[simp] lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
+lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
 begin
   by_cases h : a = 0,
   { rw [h, zero_mul, zero_to_nnreal] },
   { rw [mul_top, if_neg h, top_to_nnreal] }
 end
 
-@[simp] lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 :=
+lemma to_nnreal_top_mul (a : ℝ≥0∞) : ennreal.to_nnreal (∞ * a) = 0 :=
 by rw [mul_comm, to_nnreal_mul_top]
 
 @[simp] lemma to_nnreal_mul {a b : ℝ≥0∞} : (a * b).to_nnreal = a.to_nnreal * b.to_nnreal :=

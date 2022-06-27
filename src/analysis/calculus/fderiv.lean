@@ -2856,7 +2856,7 @@ begin
   symmetry,
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto_congr (λ x', _),
   have : ∥x' - x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
-  simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
+  simp [norm_smul, abs_of_nonneg this]
 end
 
 lemma has_fderiv_at.lim_real (hf : has_fderiv_at f f' x) (v : E) :

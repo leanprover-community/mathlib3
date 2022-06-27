@@ -1080,7 +1080,7 @@ end
 lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
 by simpa using neg_abs_le_self (-a)
 
-lemma abs_nonneg (a : α) : 0 ≤ |a| :=
+@[simp] lemma abs_nonneg (a : α) : 0 ≤ |a| :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
 @[simp] lemma abs_abs (a : α) : | |a| | = |a| :=

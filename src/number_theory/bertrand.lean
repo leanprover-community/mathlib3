@@ -179,25 +179,36 @@ This is not best possible: it actually holds for 464 ≤ x.
 lemma real_main_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x) :
   x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) ≤ 4 ^ x :=
 begin
-  apply le_of_lt,
-  have v : 0 < (2 * x) ^ (sqrt (2 * x)) := rpow_pos_of_pos (by linarith) _,
-  apply (log_lt_log_iff _ (rpow_pos_of_pos four_pos x)).1,
-  swap,
-  { exact mul_pos (mul_pos (by linarith) v) (rpow_pos_of_pos four_pos _), },
-  -- Goal structure gets a bit odd here because there are so many little conditions...
-  rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
-  -- Discharge most of the side goals
-  repeat { linarith, },
-  { rw ←div_lt_one,
-    simp only [add_div, mul_add, add_mul, add_div, ←add_assoc, zero_le_one, sqrt_mul, zero_le_bit0],
-    { rw [equality4 x (by linarith)],
-      have x_100 : 100 ≤ x := by linarith,
-      have x_313 : 313 ≤ x := by linarith,
-      linarith only [inequality1 x_100, inequality2 x_313, inequality3 n_large], },
-      exact mul_pos (by linarith) log_four_pos, },
-  repeat {apply ne_of_gt},
-  { apply mul_pos _ v, linarith, },
-  { exact rpow_pos_of_pos four_pos _, },
+    let f : ℝ → ℝ := λ x, log x + sqrt (2 * x) * log (2 * x) - log 4 / 3 * x,
+  have hf' : ∀ x, 0 < x → 0 < x * (2 * x) ^ sqrt (2 * x) / 4 ^ (x / 3) :=
+  λ x h, div_pos (mul_pos h (rpow_pos_of_pos (mul_pos two_pos h) _)) (rpow_pos_of_pos four_pos _),
+  have hf : ∀ x, 0 < x → f x = log (x * (2 * x) ^ sqrt (2 * x) / 4 ^ (x / 3)),
+  { intros x h5,
+    have h6 := mul_pos two_pos h5,
+    have h7 := rpow_pos_of_pos h6 (sqrt (2 * x)),
+    rw [log_div (mul_pos h5 h7).ne' (rpow_pos_of_pos four_pos _).ne', log_mul h5.ne' h7.ne',
+      log_rpow h6, log_rpow zero_lt_four, ←mul_div_right_comm, ←mul_div, mul_comm x] },
+  have h5 : (0 : ℝ) < x := lt_of_lt_of_le (by norm_num) n_large,
+  rw [←div_le_one (rpow_pos_of_pos four_pos x), ←div_div_eq_mul_div, ←rpow_sub four_pos,
+      ←mul_div 2 x, mul_div_left_comm, ←mul_one_sub, show (1 : ℝ) - 2 / 3 = 1 / 3, by norm_num,
+      mul_one_div, ←log_nonpos_iff (hf' x h5), ←hf x h5],
+  have hf'' : concave_on ℝ (set.Ioi 0.5) f,
+  { refine ((strict_concave_on_log_Ioi.concave_on.subset (set.Ioi_subset_Ioi _)
+      (convex_Ioi 0.5)).add ((strict_concave_on_sqrt_mul_log_Ioi.concave_on.comp_linear_map
+      ((2 : ℝ) • linear_map.id)).subset
+      (λ a ha, lt_of_eq_of_lt _ ((mul_lt_mul_left two_pos).mpr ha)) (convex_Ioi 0.5))).sub
+      ((convex_on_id (convex_Ioi 0.5)).smul (div_nonneg (log_nonneg _) _)); norm_num },
+  suffices : ∃ x1 x2, 0.5 < x1 ∧ x1 < x2 ∧ x2 ≤ x ∧ 0 ≤ f x1 ∧ f x2 ≤ 0,
+  { obtain ⟨x1, x2, h1, h2, h0, h3, h4⟩ := this,
+    refine (hf''.right_le_of_le_left'' h1 _ h2 h0 (h4.trans h3)).trans h4,
+    exact (h1.trans h2).trans_le h0 },
+  refine ⟨18, 648, by norm_num, by norm_num, le_trans (by norm_num) n_large, _, _⟩,
+  { have : sqrt (2 * 18) = 6 :=
+    (sqrt_eq_iff_mul_self_eq_of_pos (by norm_num)).mpr (by norm_num),
+    rw [hf, log_nonneg_iff (hf' 18 _), this]; norm_num },
+  { have : sqrt (2 * 648) = 36,
+    { exact (sqrt_eq_iff_mul_self_eq_of_pos (by norm_num)).mpr (by norm_num) },
+    rw [hf, log_nonpos_iff (hf' 648 _), this]; norm_num },
 end
 
 end real

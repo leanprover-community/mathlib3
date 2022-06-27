@@ -476,52 +476,94 @@ is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).sup (h'.forall_is_O_wit
 @[simp] lemma is_o_sup : f =o[l ⊔ l'] g ↔ f =o[l] g ∧ f =o[l'] g :=
 ⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
 
-/-! ### Simplification : norm -/
+/-! ### Simplification : norm, abs -/
+
+section norm_abs
+
+variables {u v : α → ℝ}
 
 @[simp] theorem is_O_with_norm_right : is_O_with c l f (λ x, ∥g' x∥) ↔ is_O_with c l f g' :=
 by simp only [is_O_with, norm_norm]
 
+@[simp] theorem is_O_with_abs_right : is_O_with c l f (λ x, |u x|) ↔ is_O_with c l f u :=
+@is_O_with_norm_right _ _ _ _ _ _ f u l
+
 alias is_O_with_norm_right ↔ asymptotics.is_O_with.of_norm_right asymptotics.is_O_with.norm_right
+alias is_O_with_abs_right ↔ asymptotics.is_O_with.of_abs_right asymptotics.is_O_with.abs_right
 
 @[simp] theorem is_O_norm_right : f =O[l] (λ x, ∥g' x∥) ↔ f =O[l] g' :=
 by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_right) }
 
+@[simp] theorem is_O_abs_right : f =O[l] (λ x, |u x|) ↔ f =O[l] u :=
+@is_O_norm_right _ _ ℝ _ _ _ _ _
+
 alias is_O_norm_right ↔ asymptotics.is_O.of_norm_right asymptotics.is_O.norm_right
+alias is_O_abs_right ↔ asymptotics.is_O.of_abs_right asymptotics.is_O.abs_right
 
 @[simp] theorem is_o_norm_right : f =o[l] (λ x, ∥g' x∥) ↔ f =o[l] g' :=
 by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_right) }
 
+@[simp] theorem is_o_abs_right : f =o[l] (λ x, |u x|) ↔ f =o[l] u :=
+@is_o_norm_right _ _ ℝ _ _ _ _ _
+
 alias is_o_norm_right ↔ asymptotics.is_o.of_norm_right asymptotics.is_o.norm_right
+alias is_o_abs_right ↔ asymptotics.is_o.of_abs_right asymptotics.is_o.abs_right
 
 @[simp] theorem is_O_with_norm_left : is_O_with c l (λ x, ∥f' x∥) g ↔ is_O_with c l f' g :=
 by simp only [is_O_with, norm_norm]
 
+@[simp] theorem is_O_with_abs_left : is_O_with c l (λ x, |u x|) g ↔ is_O_with c l u g :=
+@is_O_with_norm_left _ _ _ _ _ _ g u l
+
 alias is_O_with_norm_left ↔ asymptotics.is_O_with.of_norm_left asymptotics.is_O_with.norm_left
+alias is_O_with_abs_left ↔ asymptotics.is_O_with.of_abs_left asymptotics.is_O_with.abs_left
 
 @[simp] theorem is_O_norm_left : (λ x, ∥f' x∥) =O[l] g ↔ f' =O[l] g :=
 by { unfold is_O, exact exists_congr (λ _, is_O_with_norm_left) }
 
+@[simp] theorem is_O_abs_left : (λ x, |u x|) =O[l] g ↔ u =O[l] g :=
+@is_O_norm_left _ _ _ _ _ g u l
+
 alias is_O_norm_left ↔ asymptotics.is_O.of_norm_left asymptotics.is_O.norm_left
+alias is_O_abs_left ↔ asymptotics.is_O.of_abs_left asymptotics.is_O.abs_left
 
 @[simp] theorem is_o_norm_left : (λ x, ∥f' x∥) =o[l] g ↔ f' =o[l] g :=
 by { unfold is_o, exact forall₂_congr (λ _ _, is_O_with_norm_left) }
 
+@[simp] theorem is_o_abs_left : (λ x, |u x|) =o[l] g ↔ u =o[l] g :=
+@is_o_norm_left _ _ _ _ _ g u l
+
 alias is_o_norm_left ↔ asymptotics.is_o.of_norm_left asymptotics.is_o.norm_left
+alias is_o_abs_left ↔ asymptotics.is_o.of_abs_left asymptotics.is_o.abs_left
 
 theorem is_O_with_norm_norm : is_O_with c l (λ x, ∥f' x∥) (λ x, ∥g' x∥) ↔ is_O_with c l f' g' :=
 is_O_with_norm_left.trans is_O_with_norm_right
 
+theorem is_O_with_abs_abs : is_O_with c l (λ x, |u x|) (λ x, |v x|) ↔ is_O_with c l u v :=
+is_O_with_abs_left.trans is_O_with_abs_right
+
 alias is_O_with_norm_norm ↔ asymptotics.is_O_with.of_norm_norm asymptotics.is_O_with.norm_norm
+alias is_O_with_abs_abs ↔ asymptotics.is_O_with.of_abs_abs asymptotics.is_O_with.abs_abs
 
 theorem is_O_norm_norm : (λ x, ∥f' x∥) =O[l] (λ x, ∥g' x∥) ↔ f' =O[l] g' :=
 is_O_norm_left.trans is_O_norm_right
 
+theorem is_O_abs_abs : (λ x, |u x|) =O[l] (λ x, |v x|) ↔ u =O[l] v :=
+is_O_abs_left.trans is_O_abs_right
+
 alias is_O_norm_norm ↔ asymptotics.is_O.of_norm_norm asymptotics.is_O.norm_norm
+alias is_O_abs_abs ↔ asymptotics.is_O.of_abs_abs asymptotics.is_O.abs_abs
 
 theorem is_o_norm_norm : (λ x, ∥f' x∥) =o[l] (λ x, ∥g' x∥) ↔ f' =o[l] g' :=
 is_o_norm_left.trans is_o_norm_right
 
+theorem is_o_abs_abs : (λ x, |u x|) =o[l] (λ x, |v x|) ↔ u =o[l] v :=
+is_o_abs_left.trans is_o_abs_right
+
 alias is_o_norm_norm ↔ asymptotics.is_o.of_norm_norm asymptotics.is_o.norm_norm
+alias is_o_abs_abs ↔ asymptotics.is_o.of_abs_abs asymptotics.is_o.abs_abs
+
+end norm_abs
 
 /-! ### Simplification: negate -/
 

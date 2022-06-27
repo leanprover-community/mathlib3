@@ -20,11 +20,11 @@ do
 #eval assert_dims `(!![,]  : matrix _ _ ℕ) 0 1
 #eval assert_dims `(!![,,] : matrix _ _ ℕ) 0 2
 
-#eval (guard $ (!![1;2])       = matrix.of ![![1], ![2]]     : tactic unit)
-#eval (guard $ (!![1,3])       = matrix.of ![![1,3]]         : tactic unit)
-#eval (guard $ (!![1,2;3,4])   = matrix.of ![![1,2], ![3,4]] : tactic unit)
-#eval (guard $ (!![1,2;3,4;])  = matrix.of ![![1,2], ![3,4]] : tactic unit)
-#eval (guard $ (!![1,2,;3,4,]) = matrix.of ![![1,2], ![3,4]] : tactic unit)
+#eval (guard $ (!![1;2])       = ![![1], ![2]]     : tactic unit)
+#eval (guard $ (!![1,3])       = ![![1,3]]         : tactic unit)
+#eval (guard $ (!![1,2;3,4])   = ![![1,2], ![3,4]] : tactic unit)
+#eval (guard $ (!![1,2;3,4;])  = ![![1,2], ![3,4]] : tactic unit)
+#eval (guard $ (!![1,2,;3,4,]) = ![![1,2], ![3,4]] : tactic unit)
 
 
 example {a a' b b' c c' d d' : α} :

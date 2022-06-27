@@ -1070,11 +1070,14 @@ lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : 
   p a ↔ p b :=
 (@succ.rec_iff αᵒᵈ _ _ _ _ hsucc _ _ h).symm
 
-lemma is_pred_limit.is_max : is_pred_limit a → is_max a :=
-@is_succ_limit.is_min αᵒᵈ _ _ _ _
+lemma order.is_pred_limit.is_max [no_min_order α] : is_pred_limit a → is_max a :=
+@order.is_succ_limit.is_min αᵒᵈ _ _ _ _ _
 
-@[simp] lemma is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
-@is_succ_limit_iff αᵒᵈ _ _ _ _ _
+@[simp] lemma order.is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
+@order.is_succ_limit_iff αᵒᵈ _ _ _ _ _
+
+lemma order.not_is_pred_limit [no_min_order α] [no_max_order α] : ¬ is_pred_limit a :=
+by simp
 
 end pred_order
 end preorder

@@ -82,9 +82,10 @@ by simp [←coe_int_mul_eq_zsmul]
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
 
-lemma two_nsmul_coe_eq_iff {ψ θ : ℝ} :
-  (2 : ℕ) • (ψ : angle) = (2 : ℕ) • (θ : angle) ↔ ((ψ : angle) = θ ∨ (ψ : angle) = θ + π) :=
+lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
 begin
+  induction ψ using real.angle.induction_on,
+  induction θ using real.angle.induction_on,
   simp_rw [←coe_nat_mul_eq_nsmul],
   norm_cast,
   simp_rw [←coe_add, angle_eq_iff_two_pi_dvd_sub],
@@ -117,20 +118,6 @@ begin
       rw [←mul_sub, hk],
       push_cast,
       ring } }
-end
-
-lemma two_zsmul_coe_eq_iff {ψ θ : ℝ} :
-  (2 : ℤ) • (ψ : angle) = (2 : ℤ) • (θ : angle) ↔ ((ψ : angle) = θ ∨ (ψ : angle) = θ + π) :=
-begin
-  rw [←two_nsmul_coe_eq_iff,  ←coe_nat_mul_eq_nsmul, ←coe_int_mul_eq_zsmul],
-  norm_cast
-end
-
-lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
-begin
-  induction ψ using real.angle.induction_on,
-  induction θ using real.angle.induction_on,
-  exact two_nsmul_coe_eq_iff
 end
 
 lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=

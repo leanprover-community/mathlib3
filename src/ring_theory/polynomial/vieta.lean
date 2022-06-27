@@ -108,6 +108,7 @@ section xfr
 
 variables {R : Type*} [comm_semiring R] [decidable_eq R]
 
+-- TODO. use dot notation everywhere it's possible
 lemma multiset.antidiagonal_powerset {α : Type*} [decidable_eq α] (s : multiset α) :
   s.antidiagonal =
       (multiset.map (λ (t : multiset α), ((t, s - t) : multiset α × multiset α)) s.powerset) :=
@@ -179,54 +180,50 @@ end
 lemma multiset.powerset_sum_powerset_len {α : Type*} [decidable_eq α] (s : multiset α) :
   s.powerset = ∑ (k:ℕ) in finset.range (s.card+1), multiset.powerset_len k s :=
 begin
- have : ∑ (k:ℕ) in finset.range (s.card+1), multiset.powerset_len k s =
-    ∑ (k:ℕ) in finset.range (s.card+1),  multiset.filter (λ t, multiset.card t = k) s.powerset,
- { rw finset.sum_congr,
-    refl,
+  rw ( _ : ∑ (k:ℕ) in finset.range (s.card+1), multiset.powerset_len k s =
+    ∑ (k:ℕ) in finset.range (s.card+1),  multiset.filter (λ t, multiset.card t = k) s.powerset),
+  swap,
+  { rw finset.sum_congr, refl,
     intros k hk,
     exact multiset.powerset_len_eq_filter s k, },
-  rw this,
   ext t,
   by_cases hts : t ≤ s,
   swap,
-  { simp only [hts, multiset.count_eq_zero_of_not_mem, multiset.mem_powerset, not_false_iff],
-    rw multiset.count_sum',
-    rw finset.sum_eq_zero,
-    simp only [hts, multiset.count_eq_zero_of_not_mem, multiset.mem_powerset, not_false_iff],
+  { rw ( _ : multiset.count t s.powerset = 0),
+    { rw [multiset.count_sum', finset.sum_eq_zero],
+      simp only [hts, multiset.count_eq_zero_of_not_mem, multiset.mem_filter,
+        multiset.mem_powerset, false_and, not_false_iff, eq_self_iff_true, implies_true_iff], },
+    simp only [hts, multiset.count_eq_zero_of_not_mem, not_false_iff, multiset.mem_powerset], },
+  { have : multiset.card t ∈ range (multiset.card s + 1),
+    { rw mem_range,
+      rw nat.lt_succ_iff,
+      exact multiset.card_le_of_le hts, },
+    rw (finset.sum_erase_add (range (multiset.card s + 1)) _ this).symm,
+    rw multiset.count_add,
+    rw ( _ :  multiset.count t (∑ (x : ℕ) in (range (multiset.card s + 1)).erase (multiset.card t),
+      multiset.filter (λ (t : multiset α), multiset.card t = x) s.powerset) = 0),
+    { rw ( _ : multiset.count t (multiset.filter (λ (t_1 : multiset α),
+        multiset.card t_1 = multiset.card t) s.powerset) = multiset.count t s.powerset),
+      { ring, },
+      rw multiset.count_filter,
+      simp only [eq_self_iff_true, if_true], },
+    rw [multiset.count_sum', finset.sum_eq_zero],
     intros x hx,
-    simp [hts, multiset.count_eq_zero_of_not_mem, not_false_iff, multiset.mem_powerset_len,
-    false_and], },
-  have t0 : multiset.card t ∈ range (multiset.card s + 1),
-  { have t1 : _, from multiset.card_le_of_le hts,
-    simp only [mem_range],
-    have t2 : _, from lt_add_one (multiset.card s),
-    exact lt_of_le_of_lt t1 t2, },
-  rw (finset.sum_erase_add (range (multiset.card s + 1)) _ t0).symm,
-  rw multiset.count_add,
-  rw ( _ :  multiset.count t (∑ (x : ℕ) in (range (multiset.card s + 1)).erase (multiset.card t),
-     multiset.filter (λ (t : multiset α), multiset.card t = x) s.powerset) = 0),
-  rw ( _ : multiset.count t (multiset.filter (λ (t_1 : multiset α),
-    multiset.card t_1 = multiset.card t) s.powerset) = multiset.count t s.powerset),
-  ring,
-  { rw multiset.count_filter,
-    simp only [eq_self_iff_true, if_true], },
-  rw multiset.count_sum',
-  rw finset.sum_eq_zero,
-  intros x hx,
-  simp [multiset.mem_powerset],
-  simp only [*, forall_true_left, mem_erase, ne.def, mem_range] at *,
-  exact ne.symm hx.left,
+    rw multiset.count_eq_zero,
+    by_contra,
+    rw multiset.mem_filter at h,
+    rw mem_erase at hx,
+    exact hx.left.symm h.right },
 end
 
-
-lemma multiset.map_sum {α : Type*} {β : Type*} {ι : Type*} [decidable_eq ι] (s : finset ι) (f : α → β)
-  (g : ι → multiset α) :
+lemma multiset.map_sum {α : Type*} {β : Type*} {ι : Type*} [decidable_eq ι]
+  (s : finset ι) (f : α → β) (g : ι → multiset α) :
   ∑ (j : ι) in s, (multiset.map f (g j)) = (multiset.map f ∑ (j : ι) in s, g j) :=
 begin
-  refine finset.induction_on s _ _,
+  refine s.induction_on _ _,
   simp only [finset.sum_empty, multiset.map_zero],
-  intros _ _ ha hs,
-  simp only [ha,hs, sum_insert, not_false_iff, multiset.map_add],
+  intros _ _ h₁ h₂,
+  simp only [h₁, h₂, sum_insert, not_false_iff, multiset.map_add],
 end
 
 def multiset.esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum

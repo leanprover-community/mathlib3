@@ -153,9 +153,9 @@ by cases x; refl
 @[instance]
 protected meta def {u v} sigma.reflect [reflected_univ.{u}] [reflected_univ.{v}]
   {α : Type u} (β : α → Type v)
-  [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
+  [reflected _ α] [reflected _ β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
   has_reflect (Σ a, β a) :=
-λ ⟨a, b⟩, (by reflect_name : reflected @sigma.mk.{u v}).subst₄ `(α) `(β) `(a) `(b)
+λ ⟨a, b⟩, (by reflect_name : reflected _ @sigma.mk.{u v}).subst₄ `(α) `(β) `(a) `(b)
 
 end sigma
 

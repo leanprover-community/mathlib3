@@ -83,7 +83,7 @@ by exact_mod_cast
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
-  rw [step_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
+  rw [step_bound, ←nat.div_div_eq_div_mul, ←nat.le_sub_iff_right h, tsub_le_iff_left,
     ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end

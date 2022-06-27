@@ -490,8 +490,8 @@ by refine iff.trans _ eq_comm; exact y.eq_zero_or_pos.elim
   (λ y0, by rw [y0, nat.div_zero]; exact
     ⟨λ o, (o.resolve_right $ λ ⟨_, h2⟩, nat.not_lt_zero _ h2).right, λ z0, or.inl ⟨rfl, z0⟩⟩)
   (λ ypos, iff.trans ⟨λ o, o.resolve_left $ λ ⟨h1, _⟩, ne_of_gt ypos h1, or.inr⟩
-    (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le _ _ ypos) $
-      iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul _ _ ypos)).symm)
+    (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le ypos) $
+      iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul ypos)).symm)
 localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
 
 omit df dg

@@ -423,6 +423,74 @@ end
 
 end preorder
 
+section countable_stopping_time
+
+namespace is_stopping_time
+
+variables [partial_order ι] {τ : α → ι} {f : filtration ι m}
+
+protected lemma measurable_set_eq_of_countable
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[f i] {a | τ a = i} :=
+begin
+  have : {a | τ a = i} = {a | τ a ≤ i} \ (⋃ (j ∈ set.range τ) (hj : j < i), {a | τ a ≤ j}),
+  { ext1 a,
+    simp only [set.mem_set_of_eq, set.mem_range, set.Union_exists, set.Union_Union_eq',
+      set.mem_diff, set.mem_Union, exists_prop, not_exists, not_and, not_le],
+    split; intro h,
+    { simp only [h, lt_iff_le_not_le, le_refl, and_imp, imp_self, implies_true_iff, and_self], },
+    { have h_lt_or_eq : τ a < i ∨ τ a = i := lt_or_eq_of_le h.1,
+      rcases h_lt_or_eq with h_lt | rfl,
+      { exfalso,
+        exact h.2 a h_lt (le_refl (τ a)), },
+      { refl, }, }, },
+  rw this,
+  refine (hτ.measurable_set_le i).diff _,
+  refine measurable_set.bUnion h_countable (λ j hj, _),
+  by_cases hji : j < i,
+  { simp only [hji, set.Union_true],
+    exact f.mono hji.le _ (hτ.measurable_set_le j), },
+  { simp only [hji, set.Union_false],
+    exact @measurable_set.empty _ (f i), },
+end
+
+protected lemma measurable_set_eq_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {a | τ a = i} :=
+hτ.measurable_set_eq_of_countable (set.countable_encodable _) i
+
+protected lemma measurable_set_lt_of_countable
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[f i] {a | τ a < i} :=
+begin
+  have : {a | τ a < i} = {a | τ a ≤ i} \ {a | τ a = i},
+  { ext1 x, simp [lt_iff_le_and_ne], },
+  rw this,
+  exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable h_countable i),
+end
+
+protected lemma measurable_set_lt_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {a | τ a < i} :=
+hτ.measurable_set_lt_of_countable (set.countable_encodable _) i
+
+protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : α → ι} {f : filtration ι m}
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[f i] {a | i ≤ τ a} :=
+begin
+  have : {x | i ≤ τ x} = {x | τ x < i}ᶜ,
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  rw this,
+  exact (hτ.measurable_set_lt_of_countable h_countable i).compl,
+end
+
+protected lemma measurable_set_ge_of_encodable {ι} [linear_order ι] {τ : α → ι} {f : filtration ι m}
+  [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {a | i ≤ τ a} :=
+hτ.measurable_set_ge_of_countable (set.countable_encodable _) i
+
+end is_stopping_time
+
+end countable_stopping_time
+
 section linear_order
 variables [linear_order ι] {f : filtration ι m} {τ : α → ι}
 
@@ -434,6 +502,8 @@ begin
   rw this,
   exact (hτ.measurable_set_le i).compl,
 end
+
+section topological_space
 
 variables [topological_space ι] [order_topology ι] [first_countable_topology ι]
 
@@ -506,6 +576,8 @@ f.mono hle _ $ hτ.measurable_set_eq i
 lemma is_stopping_time.measurable_set_lt_le (hτ : is_stopping_time f τ) {i j : ι} (hle : i ≤ j) :
   measurable_set[f j] {x | τ x < i} :=
 f.mono hle _ $ hτ.measurable_set_lt i
+
+end topological_space
 
 end linear_order
 
@@ -806,6 +878,70 @@ begin
   rw this,
   exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq' i),
 end
+
+section countable
+
+protected lemma measurable_set_eq_of_countable'
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[hτ.measurable_space] {x | τ x = i} :=
+begin
+  rw [← set.univ_inter {x | τ x = i}, measurable_set_inter_eq_iff, set.univ_inter],
+  exact hτ.measurable_set_eq_of_countable h_countable i,
+end
+
+protected lemma measurable_set_eq_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[hτ.measurable_space] {a | τ a = i} :=
+hτ.measurable_set_eq_of_countable' (set.countable_encodable _) i
+
+protected lemma measurable_set_ge_of_countable'
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[hτ.measurable_space] {x | i ≤ τ x} :=
+begin
+  have : {x | i ≤ τ x} = {x | τ x = i} ∪ {x | i < τ x},
+  { ext1 x,
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
+    rw [@eq_comm _ i, or_comm], },
+  rw this,
+  exact (hτ.measurable_set_eq_of_countable' h_countable i).union (hτ.measurable_set_gt' i),
+end
+
+protected lemma measurable_set_ge_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[hτ.measurable_space] {a | i ≤ τ a} :=
+hτ.measurable_set_ge_of_countable' (set.countable_encodable _) i
+
+protected lemma measurable_set_lt_of_countable'
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[hτ.measurable_space] {x | τ x < i} :=
+begin
+  have : {x | τ x < i} = {x | τ x ≤ i} \ {x | τ x = i},
+  { ext1 x,
+    simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_diff], },
+  rw this,
+  exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq_of_countable' h_countable i),
+end
+
+protected lemma measurable_set_lt_of_encodable' [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[hτ.measurable_space] {a | τ a < i} :=
+hτ.measurable_set_lt_of_countable' (set.countable_encodable _) i
+
+protected lemma measurable_space_le_of_countable (hτ : is_stopping_time f τ)
+  (h_countable : (set.range τ).countable) :
+  hτ.measurable_space ≤ m :=
+begin
+  intros s hs,
+  change ∀ i, measurable_set[f i] (s ∩ {x | τ x ≤ i}) at hs,
+  rw (_ : s = ⋃ (i ∈ set.range τ), s ∩ {x | τ x ≤ i}),
+  { exact measurable_set.bUnion h_countable (λ i _, f.le i _ (hs i)), },
+  { ext x,
+    split; rw set.mem_Union,
+    { exact λ hx, ⟨τ x, by simpa using hx⟩,},
+    { rintro ⟨i, hx⟩,
+      simp only [set.mem_range, set.Union_exists, set.mem_Union, set.mem_inter_eq,
+        set.mem_set_of_eq, exists_prop, exists_and_distrib_right] at hx,
+      exact hx.1.2, } }
+end
+
+end countable
 
 protected lemma measurable [topological_space ι] [measurable_space ι]
   [borel_space ι] [order_topology ι] [second_countable_topology ι]

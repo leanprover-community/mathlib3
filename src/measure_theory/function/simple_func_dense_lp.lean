@@ -394,9 +394,11 @@ def simple_func : add_subgroup (Lp E p μ) :=
                 ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.ae_strongly_measurable : α →ₘ[μ] E) = f},
   zero_mem' := ⟨0, rfl⟩,
   add_mem' := λ f g ⟨s, hs⟩ ⟨t, ht⟩, ⟨s + t,
-      by simp only [←hs, ←ht, ae_eq_fun.mk_add_mk, add_subgroup.coe_add, ae_eq_fun.mk_eq_mk, simple_func.coe_add]⟩,
+      by simp only [←hs, ←ht, ae_eq_fun.mk_add_mk, add_subgroup.coe_add, ae_eq_fun.mk_eq_mk,
+        simple_func.coe_add]⟩,
   neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
-      by simp only [←hs, ae_eq_fun.neg_mk, simple_func.coe_neg, ae_eq_fun.mk_eq_mk, add_subgroup.coe_neg]⟩ }
+      by simp only [←hs, ae_eq_fun.neg_mk, simple_func.coe_neg, ae_eq_fun.mk_eq_mk,
+        add_subgroup.coe_neg]⟩ }
 
 variables {E p μ}
 

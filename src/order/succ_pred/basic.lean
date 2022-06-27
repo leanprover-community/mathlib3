@@ -674,8 +674,8 @@ instance : succ_order (with_top α) :=
   end }
 
 @[simp] lemma succ_some_top : @succ (with_top α) _ _ (some ⊤) = ⊤ := dif_pos rfl
-lemma succ_some_of_ne_top {a : α} (ha : a ≠ ⊤) :
-  @succ (with_top α) _ _ (some a) = some (succ a) := dif_neg ha
+lemma succ_some_of_ne_top {a : α} (h : a ≠ ⊤) : @succ (with_top α) _ _ (some a) = some (succ a) :=
+dif_neg h
 
 end succ
 
@@ -866,8 +866,8 @@ instance : pred_order (with_bot α) :=
   end }
 
 @[simp] lemma pred_some_bot : @pred (with_bot α) _ _ (some ⊥) = ⊥ := dif_pos rfl
-@[simp] lemma pred_some_of_ne_bot {a : α} (ha : a ≠ ⊥) :
-  @pred (with_bot α) _ _ (some a) = some (pred a) := dif_neg ha
+lemma pred_some_of_ne_bot {a : α} (h : a ≠ ⊥) : @pred (with_bot α) _ _ (some a) = some (pred a) :=
+dif_neg h
 
 end pred
 

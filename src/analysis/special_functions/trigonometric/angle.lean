@@ -82,6 +82,66 @@ by simp [←coe_int_mul_eq_zsmul]
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
 
+lemma two_nsmul_coe_eq_iff {ψ θ : ℝ} :
+  (2 : ℕ) • (ψ : angle) = (2 : ℕ) • (θ : angle) ↔ ((ψ : angle) = θ ∨ (ψ : angle) = θ + π) :=
+begin
+  simp_rw [←coe_nat_mul_eq_nsmul],
+  norm_cast,
+  simp_rw [←coe_add, angle_eq_iff_two_pi_dvd_sub],
+  refine ⟨λ h, _, λ h, _⟩,
+  { cases h with k hk,
+    by_cases h : even k,
+    { rw int.even_iff at h,
+      left,
+      use k / 2,
+      rw [←int.div_add_mod k 2, h, add_zero, ←mul_sub, mul_assoc,
+          mul_right_inj' (show (2 : ℝ) ≠ 0, by norm_num)] at hk,
+      rw hk,
+      push_cast,
+      ring },
+    { rw int.not_even_iff at h,
+      right,
+      use k / 2,
+      rw [←int.div_add_mod k 2, h, ←mul_sub, mul_assoc,
+          mul_right_inj' (show (2 : ℝ) ≠ 0, by norm_num)] at hk,
+      rw [sub_add_eq_sub_sub, hk],
+      push_cast,
+      ring } },
+  { rcases h with ⟨k, hk⟩|⟨k, hk⟩,
+    { use 2 * k,
+      rw [←mul_sub, hk],
+      push_cast,
+      ring },
+    { use 2 * k + 1,
+      rw [sub_add_eq_sub_sub, sub_eq_iff_eq_add] at hk,
+      rw [←mul_sub, hk],
+      push_cast,
+      ring } }
+end
+
+lemma two_zsmul_coe_eq_iff {ψ θ : ℝ} :
+  (2 : ℤ) • (ψ : angle) = (2 : ℤ) • (θ : angle) ↔ ((ψ : angle) = θ ∨ (ψ : angle) = θ + π) :=
+begin
+  rw [←two_nsmul_coe_eq_iff,  ←coe_nat_mul_eq_nsmul, ←coe_int_mul_eq_zsmul],
+  norm_cast
+end
+
+lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+begin
+  induction ψ using real.angle.induction_on,
+  induction θ using real.angle.induction_on,
+  exact two_nsmul_coe_eq_iff
+end
+
+lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_iff]
+
+lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by convert two_nsmul_eq_iff; simp
+
+lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
+
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,

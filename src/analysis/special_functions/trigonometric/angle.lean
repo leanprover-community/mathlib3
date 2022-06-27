@@ -47,6 +47,8 @@ quotient.induction_on' θ h
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+lemma coe_nsmul (n : ℕ) (x : ℝ) : ↑(n • x : ℝ) = (n • ↑x : angle) := rfl
+lemma coe_zsmul (z : ℤ) (x : ℝ) : ↑(z • x : ℝ) = (z • ↑x : angle) := rfl
 
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n • (↑x : angle) :=
@@ -82,46 +84,46 @@ by simp [←coe_int_mul_eq_zsmul]
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
 
-lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+-- TODO: this holds more generally for quotients of other char-zero fields by multiples
+lemma zsmul_eq_iff {ψ θ : angle} {z : ℤ} (hz : z ≠ 0) :
+  z • ψ = z • θ ↔ (∃ k : fin z.nat_abs, ψ = θ + (k : ℕ) • (2 * π / z : ℝ)) :=
 begin
   induction ψ using real.angle.induction_on,
   induction θ using real.angle.induction_on,
-  simp_rw [←coe_nat_mul_eq_nsmul],
-  norm_cast,
-  simp_rw [←coe_add, angle_eq_iff_two_pi_dvd_sub],
-  refine ⟨λ h, _, λ h, _⟩,
-  { cases h with k hk,
-    by_cases h : even k,
-    { rw int.even_iff at h,
-      left,
-      use k / 2,
-      rw [←int.div_add_mod k 2, h, add_zero, ←mul_sub, mul_assoc,
-          mul_right_inj' (show (2 : ℝ) ≠ 0, by norm_num)] at hk,
-      rw hk,
-      push_cast,
-      ring },
-    { rw int.not_even_iff at h,
-      right,
-      use k / 2,
-      rw [←int.div_add_mod k 2, h, ←mul_sub, mul_assoc,
-          mul_right_inj' (show (2 : ℝ) ≠ 0, by norm_num)] at hk,
-      rw [sub_add_eq_sub_sub, hk],
-      push_cast,
-      ring } },
-  { rcases h with ⟨k, hk⟩|⟨k, hk⟩,
-    { use 2 * k,
-      rw [←mul_sub, hk],
-      push_cast,
-      ring },
-    { use 2 * k + 1,
-      rw [sub_add_eq_sub_sub, sub_eq_iff_eq_add] at hk,
-      rw [←mul_sub, hk],
-      push_cast,
-      ring } }
+  simp_rw [←coe_zsmul, ←coe_nsmul, ←coe_add, quotient_add_group.eq_iff_sub_mem, ←smul_sub,
+    add_subgroup.mem_zmultiples_iff, ←sub_sub, (eq_sub_iff_add_eq : _ = (ψ - θ) - _ ↔ _)],
+  generalize : 2 * π = τ,
+  simp_rw [div_eq_mul_inv, ←smul_mul_assoc],
+  have hz' : (z : ℝ) ≠ 0 := int.cast_ne_zero.mpr hz,
+  conv_rhs { simp only [←zsmul_eq_zsmul_iff' hz] { single_pass := tt}, },
+  simp_rw [smul_add, ←mul_smul_comm, zsmul_eq_mul (z : ℝ)⁻¹, mul_inv_cancel hz', mul_one,
+    ←coe_nat_zsmul, ←mul_smul, ←add_smul],
+  split,
+  { rintro ⟨k, h⟩,
+    simp_rw ← h,
+    refine ⟨⟨(k % z).to_nat, _⟩, k / z, _⟩,
+    { rw [←int.coe_nat_lt, int.to_nat_of_nonneg (int.mod_nonneg _ hz)],
+      exact (int.mod_lt _ hz).trans_eq (int.abs_eq_nat_abs _) },
+    rw [subtype.coe_mk, int.to_nat_of_nonneg (int.mod_nonneg _ hz), int.div_add_mod] },
+  { rintro ⟨k, n, h⟩,
+    exact ⟨_, h⟩, },
+end
+
+lemma nsmul_eq_iff {ψ θ : angle} {n : ℕ} (hz : n ≠ 0) :
+  n • ψ = n • θ ↔ (∃ k : fin n, ψ = θ + (k : ℕ) • (2 * π / n : ℝ)) :=
+begin
+  simp_rw [←coe_nat_zsmul ψ, ←coe_nat_zsmul θ, zsmul_eq_iff (int.coe_nat_ne_zero.mpr hz),
+    int.cast_coe_nat],
+  refl,
 end
 
 lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
-by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_iff]
+by rw [zsmul_eq_iff two_ne_zero, int.nat_abs_bit0, int.nat_abs_one,
+    fin.exists_fin_two, fin.coe_zero, fin.coe_one, zero_smul, add_zero, one_smul,
+    int.cast_two, mul_div_cancel_left (_ : ℝ) two_ne_zero]
+
+lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_iff]
 
 lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by convert two_nsmul_eq_iff; simp

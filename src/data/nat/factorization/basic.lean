@@ -64,17 +64,13 @@ by simpa [factorization] using absurd pp
 of `p` in the factorization of `n`: we declare the former to be the simp-normal form. -/
 @[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
 begin
-  simp only [factorization, coe_mk],
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp [factorization] },
   by_cases pp : p.prime, swap,
-  { simp only [pp, if_false], apply count_eq_zero_of_not_mem (mt prime_of_mem_factors pp) },
-  { simp only [pp, if_true],
-
-    -- simp [padic_val_nat, pp.ne_one, hn0],
-
-
-
-  sorry },
+  { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors pp), simp [factorization, pp] },
+  simp only [factorization, coe_mk, pp, if_true],
+  rw [←enat.coe_inj, padic_val_nat_def' pp.ne_one hn0,
+    unique_factorization_monoid.multiplicity_eq_count_normalized_factors pp hn0.ne'],
+  simp [factors_eq],
 end
 
 lemma factorization_eq_factors_multiset (n : ℕ) :

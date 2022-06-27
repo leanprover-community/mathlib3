@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import tactic.linarith
+import data.nat.bits
 
 /-!
 # Bitwise operations on natural numbers
@@ -50,6 +51,16 @@ end
 
 @[simp] lemma zero_test_bit (i : ℕ) : test_bit 0 i = ff :=
 by simp [test_bit]
+
+/-- The ith bit is the ith element of `n.bits`. -/
+lemma test_bit_eq_inth (n i : ℕ) : n.test_bit i = n.bits.inth i :=
+begin
+  induction i with i ih generalizing n,
+  { simp [test_bit, shiftr, bodd_eq_bits_head, list.nth_zero, list.head_eq_head'], },
+  conv_lhs { rw ← bit_decomp n, },
+  rw [test_bit_succ, ih n.div2, div2_bits_eq_tail],
+  cases n.bits; simp,
+end
 
 /-- Bitwise extensionality: Two numbers agree if they agree at every bit position. -/
 lemma eq_of_test_bit_eq {n m : ℕ} (h : ∀ i, test_bit n i = test_bit m i) : n = m :=

@@ -6,6 +6,7 @@ Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 import data.int.modeq
 import data.nat.log
 import data.nat.parity
+import data.nat.bits
 import data.list.indexes
 import data.list.palindrome
 import tactic.interval_cases
@@ -470,6 +471,22 @@ begin
   rcases b with _ | _ | b; try { linarith },
   exact base_pow_length_digits_le' b m,
 end
+
+/-! ### Binary -/
+lemma base_two_digits_eq_bits (n : ℕ) : digits 2 n = n.bits.map (λ b, cond b 1 0) :=
+begin
+  induction n using nat.binary_rec_from_one with b n h ih,
+  { simp, }, { simp, },
+  rw bits_append_bit, cases b,
+  { rw digits_def', simpa [nat.bit, nat.bit0_val n],
+    { refl, }, { simpa [pos_iff_ne_zero, bit_eq_zero_iff], }, },
+  { simp only [nat.bit, nat.bit1_val n, cond],
+    rw [add_comm, digits_add 2],
+    simpa,
+    { refl, }, { norm_num, }, { norm_num, }, },
+  intro, contradiction,
+end
+
 
 /-! ### Modular Arithmetic -/
 

@@ -5,8 +5,9 @@ Authors: Mitchell Rowett, Scott Morrison
 -/
 
 import algebra.quotient
-import group_theory.subgroup.basic
+import group_theory.group_action.basic
 import tactic.group
+import tactic.congrm
 
 /-!
 # Cosets
@@ -215,16 +216,30 @@ variables [group α] (s : subgroup α)
 of a subgroup.-/
 @[to_additive "The equivalence relation corresponding to the partition of a group by left cosets
 of a subgroup."]
-def left_rel : setoid α :=
-⟨λ x y, x⁻¹ * y ∈ s, by { simp_rw ←left_coset_eq_iff, exact left_coset_equivalence_rel s }⟩
+def left_rel : setoid α := mul_action.orbit_rel s.opposite α
+
+lemma left_rel_apply (x y : α) : @setoid.r _ (left_rel s) x y = (x⁻¹ * y ∈ s) :=
+begin
+  rw eq_iff_iff,
+  calc (∃ a : s.opposite, y * mul_opposite.unop a = x)
+      ↔ ∃ a : s, y * a = x : s.opposite_equiv.symm.exists_congr_left
+  ... ↔ ∃ a : s, x⁻¹ * y = a⁻¹ : by { congrm Exists (λ a, _),
+    -- exists_congr $ λ a,
+    -- by rw [inv_mul_eq_iff_eq_mul, eq_mul_inv_iff_mul_eq]
+    }
+  ... ↔ x⁻¹ * y ∈ s : by simp [set_like.exists]
+end
+
+lemma left_rel_eq : @setoid.r _ (left_rel s) = λ x y, x⁻¹ * y ∈ s :=
+funext₂ $ left_rel_apply s
 
 lemma left_rel_r_eq_left_coset_equivalence :
   @setoid.r _ (quotient_group.left_rel s) = left_coset_equivalence s :=
-by { ext, exact (left_coset_eq_iff s).symm }
+by { ext, rw left_rel_eq, exact (left_coset_eq_iff s).symm }
 
 @[to_additive]
 instance left_rel_decidable [decidable_pred (∈ s)] :
-  decidable_rel (left_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
+  decidable_rel (left_rel s).r := sorry --λ x y, ‹decidable_pred (∈ s)› _
 
 /-- `α ⧸ s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `α ⧸ s` is a group -/
@@ -236,22 +251,22 @@ instance : has_quotient α (subgroup α) := ⟨λ s, quotient (left_rel s)⟩
 subgroup. -/
 @[to_additive "The equivalence relation corresponding to the partition of a group by right cosets of
 a subgroup."]
-def right_rel : setoid α :=
-⟨λ x y, y * x⁻¹ ∈ s, by { simp_rw ←right_coset_eq_iff, exact right_coset_equivalence_rel s }⟩
+def right_rel : setoid α := mul_action.orbit_rel s α
+-- ⟨λ x y, y * x⁻¹ ∈ s, by { simp_rw ←right_coset_eq_iff, exact right_coset_equivalence_rel s }⟩
 
 lemma right_rel_r_eq_right_coset_equivalence :
   @setoid.r _ (quotient_group.right_rel s) = right_coset_equivalence s :=
-by { ext, exact (right_coset_eq_iff s).symm }
+sorry --by { ext, exact (right_coset_eq_iff s).symm }
 
 @[to_additive]
 instance right_rel_decidable [decidable_pred (∈ s)] :
-  decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
+  decidable_rel (right_rel s).r := sorry -- λ x y, ‹decidable_pred (∈ s)› _
 
 /-- Right cosets are in bijection with left cosets. -/
 @[to_additive "Right cosets are in bijection with left cosets."]
 def quotient_right_rel_equiv_quotient_left_rel : quotient (quotient_group.right_rel s) ≃ α ⧸ s :=
-{ to_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
-  inv_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+{ to_fun := quotient.map' (λ g, g⁻¹) sorry, --(λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  inv_fun := quotient.map' (λ g, g⁻¹) sorry, --(λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
   left_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
   { simp only [inv_inv],
     exact quotient.exact' rfl })),
@@ -314,7 +329,11 @@ instance (s : subgroup α) : inhabited (α ⧸ s) :=
 
 @[to_additive quotient_add_group.eq]
 protected lemma eq {a b : α} : (a : α ⧸ s) = b ↔ a⁻¹ * b ∈ s :=
-quotient.eq'
+begin
+  transitivity a ∈ mul_action.orbit s.opposite b,
+  { exact quotient.eq' },
+  sorry
+end
 
 @[to_additive quotient_add_group.eq']
 lemma eq' {a b : α} : (mk a : α ⧸ s) = mk b ↔ a⁻¹ * b ∈ s :=

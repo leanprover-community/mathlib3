@@ -290,7 +290,7 @@ begin
 end
 
 /-- Expansion of `log (1 + a⁻¹)` as a series in powers of `1 / (2 * a + 1)`. -/
-theorem series_log_succ_div {a : ℝ} (h : 0 < a) :
+theorem has_sum_log_one_add_inv {a : ℝ} (h : 0 < a) :
   has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
   (log (1 + a⁻¹)) :=
 begin

@@ -1053,6 +1053,14 @@ funext $ lift_coe _ _
   (zmod.lift n f).comp (int.cast_add_hom (zmod n)) = f :=
 add_monoid_hom.ext $ lift_cast_add_hom _ _
 
+lemma lift_injective_iff :
+  function.injective (zmod.lift n f) ↔ ∀ k : zmod n, f.val k = 0 → k = 0 :=
+begin
+  split; intro h,
+  { intros k hk, apply h, convert hk, apply map_zero },
+  { intros k l he, rw ← sub_eq_zero at he ⊢, rw ← map_sub at he, exact h _ he },
+end
+
 end lift
 
 end zmod

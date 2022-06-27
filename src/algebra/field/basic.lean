@@ -50,23 +50,59 @@ set_option old_structure_cmd true
 universe u
 variables {α β K : Type*}
 
+/-- The default definition of the coercion `(↑(a : ℚ) : K)` for a division ring `K`
+is defined as `(a / b : K) = (a : K) * (b : K)⁻¹`.
+Use `coe` instead of `of_rat_rec` for better definitional behaviour.
+-/
+def of_rat_rec [has_lift_t ℕ K] [has_lift_t ℤ K] [has_mul K] [has_inv K] : ℚ → K
+| ⟨a, b, _, _⟩ := ↑a * (↑b)⁻¹
+
+/-- The default definition of the scalar multiplication `(a : ℚ) • (x : K)` for a division ring `K`
+is given by `a • x = (↑ a) * x`.
+Use `(a : ℚ) • (x : K)` instead of `qsmul` for better definitional behaviour.
+-/
+def qsmul_rec (coe : ℚ → K) [has_mul K] (a : ℚ) (x : K) : K :=
+coe a * x
+
 /-- A `division_semiring` is a `semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor semiring group_with_zero]
 class division_semiring (α : Type*) extends semiring α, group_with_zero α
 
-/-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements. -/
-@[protect_proj, ancestor ring division_semiring]
-class division_ring (α : Type*) extends ring α, div_inv_monoid α, nontrivial α :=
-(mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
-(inv_zero : (0 : α)⁻¹ = 0)
+/-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements.
+
+An instance of `division_ring K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
+If the division ring has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
+for consistency with our division by zero convention.
+The fields `of_rat` and `qsmul are needed to implement the
+`algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
+definitions for some special cases of `K` (in particular `K = ℚ` itself).
+See also Note [forgetful inheritance].
+-/
+@[protect_proj, ancestor ring div_inv_monoid nontrivial]
+class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K :=
+(mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
+(inv_zero : (0 : K)⁻¹ = 0)
+(of_rat : ℚ → K := of_rat_rec)
+(of_rat_mk' : ∀ (a : ℤ) (b : ℕ) h1 h2, of_rat ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
+(qsmul : ℚ → K → K := qsmul_rec of_rat)
+(qsmul_eq_mul' : ∀ (a : ℚ) (x : K), qsmul a x = of_rat a * x . try_refl_tac)
 
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]
 class semifield (α : Type*) extends comm_semiring α, division_semiring α, comm_group_with_zero α
 
-/-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements. -/
-@[protect_proj, ancestor comm_ring division_ring]
-class field (α : Type*) extends comm_ring α, division_ring α
+/-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements.
+
+An instance of `field K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
+If the field has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
+for consistency with our division by zero convention.
+The fields `of_rat` and `qsmul are needed to implement the
+`algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
+definitions for some special cases of `K` (in particular `K = ℚ` itself).
+See also Note [forgetful inheritance].
+-/
+@[protect_proj, ancestor comm_ring div_inv_monoid nontrivial]
+class field (K : Type u) extends comm_ring K, division_ring K
 
 @[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=

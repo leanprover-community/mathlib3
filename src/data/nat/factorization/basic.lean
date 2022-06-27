@@ -573,9 +573,7 @@ lemma eq_iff_prime_padic_val_nat_eq (a b : ℕ) (ha : a ≠ 0) (hb : b ≠ 0) :
   a = b ↔ (∀ p : ℕ, p.prime → padic_val_nat p a = padic_val_nat p b) :=
 begin
   split,
-  {
-
-    rintros rfl, simp },
+  { rintros rfl, simp },
   { intro h,
     refine eq_of_factorization_eq ha hb (λ p, _),
     by_cases pp : p.prime,

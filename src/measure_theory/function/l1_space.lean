@@ -611,18 +611,16 @@ lemma integrable.norm {f : α → β} (hf : integrable f μ) :
 lemma integrable.inf {β} [normed_lattice_add_comm_group β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   integrable (f ⊓ g) μ :=
-integrable.mono' (hf.norm.add hg.norm) (hf.1.inf hg.1)
-  (eventually_of_forall (λ x, norm_inf_le_add (f x) (g x)))
+by { rw ← mem_ℒp_one_iff_integrable at hf hg ⊢, exact hf.inf hg, }
 
 lemma integrable.sup {β} [normed_lattice_add_comm_group β] {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   integrable (f ⊔ g) μ :=
-integrable.mono' (hf.norm.add hg.norm) (hf.1.sup hg.1)
-  (eventually_of_forall (λ x, norm_sup_le_add (f x) (g x)))
+by { rw ← mem_ℒp_one_iff_integrable at hf hg ⊢, exact hf.sup hg, }
 
 lemma integrable.abs {β} [normed_lattice_add_comm_group β] {f : α → β} (hf : integrable f μ) :
   integrable (λ a, |f a|) μ :=
-by { simp_rw abs_eq_sup_neg, exact hf.sup hf.neg, }
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.abs, }
 
 lemma integrable.bdd_mul {F : Type*} [normed_division_ring F]
   {f g : α → F} (hint : integrable g μ) (hm : ae_strongly_measurable f μ)

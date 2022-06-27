@@ -68,6 +68,10 @@ lemma _root_.measure_theory.mem_ℒp.inf {f g : α → E} (hf : mem_ℒp f p μ)
 mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.inf hg.1)
   (filter.eventually_of_forall (λ x, norm_inf_le_add (f x) (g x)))
 
+lemma _root_.measure_theory.mem_ℒp.abs {f : α → E} (hf : mem_ℒp f p μ)  :
+  mem_ℒp (|f|) p μ :=
+hf.sup hf.neg
+
 end order
 
 end Lp

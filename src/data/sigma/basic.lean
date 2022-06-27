@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import meta.univs
 import tactic.lint
 import tactic.ext
 
@@ -149,10 +150,12 @@ lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :
 by cases x; refl
 
 -- we generate this manually as `@[derive has_reflect]` fails
-meta instance sigma.reflect {α : Type} (β : α → Type)
+@[instance]
+protected meta def {u v} sigma.reflect [reflected_univ.{u}] [reflected_univ.{v}]
+  {α : Type u} (β : α → Type v)
   [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
   has_reflect (Σ a, β a) :=
-λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst `(a)).subst `(b)
+λ ⟨a, b⟩, (by reflect_name : reflected @sigma.mk.{u v}).subst₄ `(α) `(β) `(a) `(b)
 
 end sigma
 

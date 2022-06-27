@@ -53,14 +53,14 @@ end
 lemma zero_form_is_bound : is_bound_at_inf 0 :=
   is_zero_at_inf_is_bound _ zero_form_is_zero_at_inf
 
-/--Module of funcitons that are zero at infinity.-/
+/--Module of functions that are zero at infinity.-/
 def zero_at_infty_submodule : submodule ℂ (ℍ → ℂ) :=
 { carrier := is_zero_at_inf,
   zero_mem' := zero_form_is_zero_at_inf,
   add_mem' := by { intros a b ha hb, simpa using ha.add hb },
   smul_mem' := by { intros c f hf, simpa using hf.const_mul c }, }
 
-/--Module of funcitons that are bounded at infinity.-/
+/--Module of functions that are bounded at infinity.-/
 def bounded_at_infty_submodule : submodule ℂ (ℍ → ℂ) :=
 { carrier := is_bound_at_inf,
   zero_mem' := zero_form_is_bound,

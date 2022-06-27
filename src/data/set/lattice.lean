@@ -1554,6 +1554,22 @@ supr_disjoint_iff
   disjoint t (⋃ i, s i) ↔ ∀ i, disjoint t (s i) :=
 disjoint_supr_iff
 
+@[simp] lemma disjoint_Union₂_left {s : Π i, κ i → set α} {t : set α} :
+  disjoint (⋃ i j, s i j) t ↔ ∀ i j, disjoint (s i j) t :=
+supr₂_disjoint_iff
+
+@[simp] lemma disjoint_Union₂_right {s : set α} {t : Π i, κ i → set α} :
+  disjoint s (⋃ i j, t i j) ↔ ∀ i j, disjoint s (t i j) :=
+disjoint_supr₂_iff
+
+@[simp] lemma disjoint_sUnion_left {S : set (set α)} {t : set α} :
+  disjoint (⋃₀ S) t ↔ ∀ s ∈ S, disjoint s t :=
+Sup_disjoint_iff
+
+@[simp] lemma disjoint_sUnion_right {s : set α} {S : set (set α)} :
+  disjoint s (⋃₀ S) ↔ ∀ t ∈ S, disjoint s t :=
+disjoint_Sup_iff
+
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
 

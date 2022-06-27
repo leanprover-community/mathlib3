@@ -359,7 +359,7 @@ section ordered_semiring
 variables [ordered_semiring 𝕜]
 
 section module
-variables [add_comm_monoid E] [module 𝕜 E] (S : convex_cone 𝕜 E)
+variables [add_comm_monoid E] [module 𝕜 E]
 
 instance : has_zero (convex_cone 𝕜 E) :=
 ⟨ { carrier := ({0} : set E),

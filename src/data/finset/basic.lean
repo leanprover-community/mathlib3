@@ -2097,16 +2097,17 @@ theorem image_image [decidable_eq γ] {g : β → γ} : (s.image f).image g = s.
 eq_of_veq $ by simp only [image_val, dedup_map_dedup_eq, multiset.map_map]
 
 lemma image_comm {β'} [decidable_eq β'] [decidable_eq γ] {f : β → γ} {g : α → β}
-  {f' : α → β'} {g' : β' → γ} (h_comm : ∀ a, f (g a) = g' (f' a)) :
+  {f' : α → β'} {g' : β' → γ} (h_comm : ∀ a, f (g a) = g' (f' a)) (s : finset α) :
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, comp, h_comm]
 
-lemma _root_.function.semiconj.finset_image {f : α → β} {ga : α → α} {gb : β → β}
+lemma _root_.function.semiconj.finset_image [decidable_eq α] {f : α → β} {ga : α → α} {gb : β → β}
   (h : function.semiconj f ga gb) :
   function.semiconj (image f) (image ga) (image gb) :=
 image_comm h
 
-lemma _root_.function.commute.finset_image {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.finset_image [decidable_eq α] {f g : α → α}
+  (h : function.commute f g) :
   function.commute (image f) (image g) :=
 h.finset_image
 

@@ -28,7 +28,7 @@ namespace simple_graph
 variables {G : simple_graph α} {H : simple_graph β} {I : simple_graph γ} {a a₁ a₂ : α} {b b₁ b₂ : β}
   {x y : α × β}
 
-/--Box product of simple graphs. It relates `(a₁, b)` and `(a₂, b)` if `G` relates `a₁` and `a₂`,
+/-- Box product of simple graphs. It relates `(a₁, b)` and `(a₂, b)` if `G` relates `a₁` and `a₂`,
 and `(a, b₁)` and `(a, b₂)` if `H` relates `b₁` and `b₂`. -/
 def box_prod (G : simple_graph α) (H : simple_graph β) : simple_graph (α × β) :=
 { adj := λ x y, G.adj x.1 y.1 ∧ x.2 = y.2 ∨ H.adj x.2 y.2 ∧ x.1 = y.1,
@@ -40,19 +40,19 @@ infix ` □ `:70 := box_prod
 lemma box_prod_adj : (G □ H).adj x y ↔ G.adj x.1 y.1 ∧ x.2 = y.2 ∨ H.adj x.2 y.2 ∧ x.1 = y.1 :=
 iff.rfl
 
-lemma box_prod_adj_left : (G □ H).adj (a₁, b) (a₂, b) ↔ G.adj a₁ a₂ :=
+@[simp] lemma box_prod_adj_left : (G □ H).adj (a₁, b) (a₂, b) ↔ G.adj a₁ a₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.ne rfl)]
 
-lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
+@[simp] lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
 variables (G H I)
 
 /-- The box product is commutative up to isomorphism. `equiv.prod_comm` as a graph isomorphism. -/
-def box_prod_comm : G □ H ≃g H □ G := ⟨equiv.prod_comm _ _, λ x y, or_comm _ _⟩
+@[simps] def box_prod_comm : G □ H ≃g H □ G := ⟨equiv.prod_comm _ _, λ x y, or_comm _ _⟩
 
 /-- The box product is associative up to isomorphism. `equiv.prod_assoc` as a graph isomorphism. -/
-def box_prod_assoc : G □ H □ I ≃g G □ (H □ I) :=
+@[simps] def box_prod_assoc : (G □ H) □ I ≃g G □ (H □ I) :=
 ⟨equiv.prod_assoc _ _ _, λ x y, by simp only [box_prod_adj, equiv.prod_assoc_apply,
   or_and_distrib_right, or_assoc, prod.ext_iff, and_assoc, @and.comm (x.1.1 = _)]⟩
 

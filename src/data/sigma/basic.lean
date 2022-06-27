@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import meta.univs
 import tactic.lint
 import tactic.ext
 
@@ -149,10 +150,12 @@ lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :
 by cases x; refl
 
 -- we generate this manually as `@[derive has_reflect]` fails
-meta instance sigma.reflect {α : Type} (β : α → Type)
+@[instance]
+protected meta def {u v} sigma.reflect [reflected_univ.{u}] [reflected_univ.{v}]
+  {α : Type u} (β : α → Type v)
   [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
   has_reflect (Σ a, β a) :=
-λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst `(a)).subst `(b)
+λ ⟨a, b⟩, (by reflect_name : reflected @sigma.mk.{u v}).subst₄ `(α) `(β) `(a) `(b)
 
 end sigma
 
@@ -191,6 +194,14 @@ by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 
 lemma ext_iff {x₀ x₁ : psigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
 by { cases x₀, cases x₁, exact psigma.mk.inj_iff }
+
+@[simp] theorem «forall» {p : (Σ' a, β a) → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem «exists» {p : (Σ' a, β a) → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 /-- A specialized ext lemma for equality of psigma types over an indexed subtype. -/
 @[ext]

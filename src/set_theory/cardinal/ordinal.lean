@@ -103,12 +103,12 @@ def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
 λ ⟨o, e⟩, begin
   have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
   refine ordinal.induction_on o _ this, introsI α r _ h,
-  let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
+  let s := ⨆ a, inv_fun aleph_idx (ordinal.typein r a),
   apply (lt_succ s).not_le,
   have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
-  simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
-    le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
-      (ordinal.enum r _ (h (succ s))),
+  simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using le_csupr
+    (cardinal.bdd_above_range.{u u} (λ a : α, inv_fun aleph_idx (ordinal.typein r a)))
+    (ordinal.enum r _ (h (succ s)))
 end
 
 @[simp] theorem aleph_idx.rel_iso_coe :
@@ -250,7 +250,7 @@ by rw [←aleph_zero, ←aleph_succ, ordinal.succ_zero]
 lemma aleph_0_lt_aleph_one : ℵ₀ < aleph 1 :=
 by { rw ←succ_aleph_0, apply lt_succ }
 
-lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : s.countable ↔ #s < aleph 1 :=
 by rw [←succ_aleph_0, lt_succ_iff, mk_set_le_aleph_0]
 
 /-- Ordinals that are cardinals are unbounded. -/
@@ -642,7 +642,7 @@ lemma powerlt_aleph_0 {c : cardinal} (h : ℵ₀ ≤ c) : c ^< ℵ₀ = c :=
 begin
   apply le_antisymm,
   { rw powerlt_le, intro c', rw lt_aleph_0, rintro ⟨n, rfl⟩, apply power_nat_le h },
-  convert le_powerlt one_lt_aleph_0, rw power_one
+  convert le_powerlt c one_lt_aleph_0, rw power_one
 end
 
 lemma powerlt_aleph_0_le (c : cardinal) : c ^< ℵ₀ ≤ max c ℵ₀ :=

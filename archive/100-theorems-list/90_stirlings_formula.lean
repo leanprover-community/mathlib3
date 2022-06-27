@@ -173,22 +173,22 @@ begin
   intro n,
   calc
   log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl
-    ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by
-      rw ← sum_range_sub' log_stirling_seq' n
-    ... ≤ ∑ k in range n, (1/4) * (1 / k.succ^2) : by
-    { apply sum_le_sum,
-      intros k hk,
-      convert log_stirling_seq_sub_log_stirling_seq_succ k using 1,
-      field_simp, }
-    ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
-    ... ≤ 1 / 4 * d : by
-    { refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
-      refine sum_le_tsum (range n) (λ k _, _)
-        ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
-      apply le_of_lt,
-      rw one_div_pos,
-      rw sq_pos_iff,
-      exact nonzero_of_invertible ↑(succ k), },
+  ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by
+    rw ← sum_range_sub' log_stirling_seq' n
+  ... ≤ ∑ k in range n, (1/4) * (1 / k.succ^2) : by
+  { apply sum_le_sum,
+    intros k hk,
+    convert log_stirling_seq_sub_log_stirling_seq_succ k using 1,
+    field_simp, }
+  ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
+  ... ≤ 1 / 4 * d : by
+  { refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
+    refine sum_le_tsum (range n) (λ k _, _)
+      ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
+    apply le_of_lt,
+    rw one_div_pos,
+    rw sq_pos_iff,
+    exact nonzero_of_invertible ↑(succ k), },
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/

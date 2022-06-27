@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
 import tactic.generalize_proofs
-import tactic.rcases
 import tactic.norm_num
 
 /-!
@@ -33,13 +32,13 @@ lemma binary_rec_eq' {C : nat → Sort*} {z : C 0} {f : ∀ b n, C n → C (bit 
 begin
   rw [binary_rec],
   with_cases { by_cases bit b n = 0 },
-  case pos : h' {
-    simp [dif_pos h'],
+  case pos : h'
+  { simp [dif_pos h'],
     rw bit_eq_zero_iff at h', rcases h' with ⟨rfl, rfl⟩,
     rw binary_rec_zero,
     cases h, { exact h.symm, }, { simp at h, contradiction, }, },
-  case neg : h' {
-    simp [dif_neg h'],
+  case neg : h'
+  { simp [dif_neg h'],
     generalize_proofs e, revert e,
     rw [bodd_bit, div2_bit],
     intros, refl, }

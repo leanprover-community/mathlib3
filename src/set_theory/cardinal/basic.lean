@@ -7,7 +7,6 @@ import data.nat.enat
 import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
-import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
 
 /-!
@@ -531,11 +530,9 @@ is_well_order.conditionally_complete_linear_order_bot _
 dif_neg not_nonempty_empty
 
 /-- Note that the successor of `c` is not the same as `c + 1` except in the case of finite `c`. -/
-instance : succ_order cardinal :=
-succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
-  (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
+instance : succ_order cardinal := is_well_order.to_succ_order_of_no_max_order
 
-theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
+@[simp] theorem succ_def (c : cardinal) : Inf (Ioi c) = succ c := rfl
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin

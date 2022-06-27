@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import order.bounds
+import order.succ_pred.basic
 import data.set.intervals.basic
 import data.set.finite
 import data.set.lattice
@@ -641,6 +642,18 @@ lemma le_cInf_iff' (hs : s.nonempty) : b ≤ Inf s ↔ b ∈ lower_bounds s :=
 le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
+
+private lemma Inf_Ioi_le_iff {a b : α} (h : ∃ c, a < c) : Inf (Ioi a) ≤ b ↔ a < b :=
+⟨lt_of_lt_of_le $ Inf_mem $ h, cInf_le ⟨a, λ c, le_of_lt⟩⟩
+
+/-- Defines `succ a` as `Inf (Ioi a)` when `a` is not maximal, and as itself otherwise. -/
+noncomputable def is_well_order.to_succ_order : succ_order α :=
+succ_order.of_core (λ a, by { classical, exact if is_max a then a else Inf (Ioi a) })
+  (λ a h, by simp [h, Inf_Ioi_le_iff (not_is_max_iff.1 h)]) (λ a h, dif_pos h)
+
+/-- Defines `succ a` as `Inf (Ioi a)`. -/
+def is_well_order.to_succ_order_of_no_max_order [no_max_order α] : succ_order α :=
+succ_order.of_succ_le_iff (λ a, Inf (Ioi a)) $ λ a b, Inf_Ioi_le_iff $ exists_gt a
 
 lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
   (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=

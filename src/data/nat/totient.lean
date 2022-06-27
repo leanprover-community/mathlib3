@@ -325,4 +325,29 @@ begin
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
 end
 
+lemma totient_gcd_mul_totient_mul (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
+begin
+  have shuffle : ∀ a1 a2 b1 b2 c1 c2 : ℕ, b1 ∣ a1 → b2 ∣ a2 →
+    (a1/b1 * c1) * (a2/b2 * c2) = (a1*a2)/(b1*b2) * (c1*c2),
+  { intros a1 a2 b1 b2 c1 c2 h1 h2,
+    calc
+      (a1/b1 * c1) * (a2/b2 * c2) = ((a1/b1) * (a2/b2)) * (c1*c2) : by apply mul_mul_mul_comm
+      ... = (a1*a2)/(b1*b2) * (c1*c2) : by { congr' 1, exact div_mul_div_comm h1 h2 } },
+  simp only [totient_eq_div_factors_mul],
+  rw [shuffle, shuffle],
+  rotate, repeat { apply prod_prime_factors_dvd },
+  { simp only [prod_factors_gcd_mul_prod_factors_mul],
+    rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
+    exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b) }
+end
+
+lemma totient_super_multiplicative (a b : ℕ) : φ a * φ b ≤ φ (a * b) :=
+begin
+  let d := a.gcd b,
+  rcases (zero_le a).eq_or_lt with rfl | ha0, { simp },
+  have hd0 : 0 < d, from nat.gcd_pos_of_pos_left _ ha0,
+  rw [←mul_le_mul_right hd0, ←totient_gcd_mul_totient_mul a b, mul_comm],
+  apply mul_le_mul_left' (nat.totient_le d),
+end
+
 end nat

@@ -46,6 +46,10 @@ of `x` with `↑x`. This tactic also works for a function `f : α → ℝ` with 
 ## Notations
 
 This file defines `ℝ≥0` as a localized notation for `nnreal`.
+
+## TODO
+
+`semifield` instance
 -/
 
 open_locale classical big_operators

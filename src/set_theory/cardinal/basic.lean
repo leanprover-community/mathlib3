@@ -535,6 +535,10 @@ instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
+/-- Contrary to convention, we consider 0 a limit cardinal, since many of the same theorems hold. -/
+theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) :=
+is_succ_limit_bot
+
 theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
@@ -909,6 +913,11 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   rcases lt_aleph_0.1 hn with ⟨n, rfl⟩,
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
+
+theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+begin
+  intro a,
+end
 
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=
 lt_aleph_0.trans ⟨λ ⟨n, e⟩, begin

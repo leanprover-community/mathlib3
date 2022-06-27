@@ -269,6 +269,9 @@ Ico_succ_left_of_not_is_max $ not_is_max _
 lemma is_succ_limit_of_is_min (h : is_min a) : is_succ_limit a :=
 by { rintros b rfl, exact h.not_lt (lt_succ b) }
 
+lemma is_succ_limit_of_succ_lt (H : ∀ a < b, succ a < b) : is_succ_limit b :=
+by { rintros a rfl, exact (H a (lt_succ a)).false }
+
 end no_max_order
 end preorder
 
@@ -351,6 +354,9 @@ Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 lemma is_succ_limit.succ_lt (hb : is_succ_limit b) (ha : a < b) : succ a < b :=
 by { rw [lt_iff_le_and_ne, succ_le_iff], exact ⟨ha, hb a⟩ }
+
+lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
+⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
 
 end no_max_order
 

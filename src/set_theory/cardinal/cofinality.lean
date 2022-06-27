@@ -17,9 +17,7 @@ This file contains the definition of cofinality of an ordinal number and regular
 * `ordinal.cof o` is the cofinality of the ordinal `o`.
   If `o` is the order type of the relation `<` on `α`, then `o.cof` is the smallest cardinality of a
   subset `s` of α that is *cofinal* in `α`, i.e. `∀ x : α, ∃ y ∈ s, ¬ y < x`.
-* `cardinal.is_limit c` means that `c` is a (weak) limit cardinal: `c ≠ 0 ∧ ∀ x < c, succ x < c`.
-* `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal:
-  `c ≠ 0 ∧ ∀ x < c, 2 ^ x < c`.
+* `cardinal.is_strong_limit c` means that `c` is a strong limit cardinal: `∀ x < c, 2 ^ x < c`.
 * `cardinal.is_regular c` means that `c` is a regular cardinal: `ℵ₀ ≤ c ∧ c.ord.cof = c`.
 * `cardinal.is_inaccessible c` means that `c` is strongly inaccessible:
   `ℵ₀ < c ∧ is_regular c ∧ is_strong_limit c`.
@@ -715,13 +713,8 @@ open ordinal
 
 local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
-/-- A cardinal is a limit if it is not zero or a successor
-  cardinal. Note that `ℵ₀` is a limit cardinal by this definition. -/
-def is_limit (c : cardinal) : Prop :=
-c ≠ 0 ∧ ∀ x < c, succ x < c
-
-theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 :=
-h.1
+theorem is_limit_succ_zero : is_succ_limit (0 : cardinal) :=
+is_succ_limit_bot
 
 theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
 h.2 x

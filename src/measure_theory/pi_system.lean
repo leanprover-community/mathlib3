@@ -341,7 +341,7 @@ begin
 end
 
 lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set (finset ι)}
-  (h_univ : ∀ i, set.univ ∈ (π i)) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
+  (h_univ : ∀ i, set.univ ∈ π i) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
   π i ⊆ pi_Union_Inter π S :=
 begin
   refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), ⟨λ m h_pm, _, _⟩⟩,
@@ -365,7 +365,7 @@ lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space 
 subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
 
 lemma le_generate_from_pi_Union_Inter {α ι} {π : ι → set (set α)}
-  (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
+  (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ π n) {x : ι}
   {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) :
   generate_from (π x) ≤ generate_from (pi_Union_Inter π S) :=
 generate_from_mono (subset_pi_Union_Inter h_univ htS hxt)

@@ -98,6 +98,7 @@ instance : ring (completion α) :=
         (continuous.mul continuous_fst (continuous_snd.comp continuous_snd))
         (continuous.mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, add_mul]),
+  .. add_monoid_with_one.unary,
   ..completion.add_comm_group, ..completion.has_mul α, ..completion.has_one α }
 
 /-- The map from a uniform ring to its completion, as a ring homomorphism. -/

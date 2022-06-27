@@ -713,44 +713,30 @@ open ordinal
 
 local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 
-theorem is_limit_succ_zero : is_succ_limit (0 : cardinal) :=
-is_succ_limit_bot
-
-theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
-h.2 x
-
-theorem is_limit.aleph_0_le {c} (h : is_limit c) : ℵ₀ ≤ c :=
-begin
-  by_contra' h',
-  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
-  { exact h.1.irrefl },
-  { simpa using h.2 n }
-end
-
-/-- A cardinal is a strong limit if it is not zero and it is
-  closed under powersets. Note that `ℵ₀` is a strong limit by this definition. -/
+/-- A cardinal is a strong limit if it is closed under powersets. Note that both `0` and `ℵ₀` are
+strong limits by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=
-c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
-
-theorem is_strong_limit.ne_zero {c} (h : is_strong_limit c) : c ≠ 0 :=
-h.1
+∀ x < c, 2 ^ x < c
 
 theorem is_strong_limit.two_power_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
-h.2 x
+h x
+
+theorem is_strong_limit_zero : is_strong_limit 0 :=
+λ x h, (not_lt_bot h).elim
 
 theorem is_strong_limit_aleph_0 : is_strong_limit ℵ₀ :=
-⟨aleph_0_ne_zero, λ x hx, begin
+λ x hx, begin
   rcases lt_aleph_0.1 hx with ⟨n, rfl⟩,
   exact_mod_cast nat_lt_aleph_0 (pow 2 n)
-end⟩
+end
 
-theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.2 _ h)⟩
+theorem is_strong_limit.is_succ_limit {c} (H : is_strong_limit c) : is_succ_limit c :=
+is_succ_limit_of_succ_lt $ λ x h, (succ_le_of_lt $ cantor x).trans_lt $ H.two_power_lt h
 
-theorem is_limit_aleph_0 : is_limit ℵ₀ :=
-is_strong_limit_aleph_0.is_limit
+theorem aleph_0_le_of_is_strong_limit {c : cardinal} (h : is_strong_limit c) : c ≠ 0 → ℵ₀ ≤ c :=
+aleph_0_le_of_is_succ_limit h.is_succ_limit
 
-theorem mk_bounded_subset {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) {r : α → α → Prop}
+theorem mk_bounded_subset {α : Type*} (h : is_strong_limit (#α)) {r : α → α → Prop}
   [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=
 begin
   rcases eq_or_ne (#α) 0 with ha | ha,
@@ -760,15 +746,14 @@ begin
     split,
     rintro ⟨s, hs⟩,
     exact (not_unbounded_iff s).2 hs (unbounded_of_is_empty s) },
-  have h' : is_strong_limit (#α) := ⟨ha, h⟩,
-  have ha := h'.is_limit.aleph_0_le,
+  replace ha := aleph_0_le_of_is_strong_limit h ha,
   apply le_antisymm,
   { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,
     rw [←coe_set_of, this],
     convert mk_Union_le_sum_mk.trans ((sum_le_supr _).trans (mul_le_max_of_aleph_0_le_left ha)),
     apply (max_eq_left _).symm, apply csupr_le' (λ i, _),
     rw mk_powerset,
-    apply (h'.two_power_lt _).le,
+    apply (h.two_power_lt _).le,
     rw [coe_set_of, card_typein, ←lt_ord, hr],
     apply typein_lt_type },
   { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
@@ -779,13 +764,12 @@ begin
       simpa only [singleton_eq_singleton_iff] using hab } }
 end
 
-theorem mk_subset_mk_lt_cof {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) :
+theorem mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
   #{s : set α // #s < cof (#α).ord} = #α :=
 begin
   rcases eq_or_ne (#α) 0 with ha | ha,
   { rw ha,
     simp [λ s, (cardinal.zero_le s).not_lt] },
-  have h' : is_strong_limit (#α) := ⟨ha, h⟩,
   rcases ord_eq α with ⟨r, wo, hr⟩,
   haveI := wo,
   apply le_antisymm,
@@ -795,7 +779,8 @@ begin
     exact lt_cof_type hs },
   { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
     { rw mk_singleton,
-      exact one_lt_aleph_0.trans_le (aleph_0_le_cof.2 (ord_is_limit h'.is_limit.aleph_0_le)) },
+      exact one_lt_aleph_0.trans_le (aleph_0_le_cof.2
+        (ord_is_limit (aleph_0_le_of_is_strong_limit h ha))) },
     { intros a b hab,
       simpa only [singleton_eq_singleton_iff] using hab } }
 end
@@ -1018,22 +1003,24 @@ deriv_family_lt_ord_lift hc
 
 /-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=
-ℵ₀ < c ∧ is_regular c ∧ is_strong_limit c
+ℵ₀ < c ∧ c ≤ c.ord.cof ∧ is_strong_limit c
 
-theorem is_inaccessible.mk {c} (h₁ : ℵ₀ < c) (h₂ : c ≤ c.ord.cof) (h₃ : ∀ x < c, 2 ^ x < c) :
-  is_inaccessible c :=
-⟨h₁, ⟨h₁.le, h₂⟩, (aleph_0_pos.trans h₁).ne', h₃⟩
+namespace is_inaccessible
+variables {c : cardinal} (h : is_inaccessible c)
 
-/- Lean's foundations prove the existence of ℵ₀ many inaccessible cardinals -/
+theorem aleph_0_lt : ℵ₀ < c := h.1
+theorem is_regular : is_regular c := ⟨h.aleph_0_lt.le, h.2.1⟩
+theorem is_strong_limit : is_strong_limit c := h.2.2
+
+end is_inaccessible
+
+/-- Lean's foundations prove the existence of at least u inaccessible cardinals in universe u. -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=
-is_inaccessible.mk
-  (by simpa using lift_lt_univ' ℵ₀)
-  (by simp)
-  (λ c h, begin
-    rcases lt_univ'.1 h with ⟨c, rfl⟩,
-    rw ← lift_two_power.{u (max (u+1) v)},
-    apply lift_lt_univ'
-  end)
+⟨by simpa using lift_lt_univ' ℵ₀, by simp, λ c h, begin
+  rcases lt_univ'.1 h with ⟨c, rfl⟩,
+  rw ← lift_two_power.{u (max (u+1) v)},
+  apply lift_lt_univ'
+end⟩
 
 theorem lt_power_cof {c : cardinal.{u}} : ℵ₀ ≤ c → c < c ^ cof c.ord :=
 quotient.induction_on c $ λ α h, begin

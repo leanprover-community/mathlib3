@@ -915,8 +915,19 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
 end⟩
 
 theorem is_succ_limit_aleph_0 : is_succ_limit ℵ₀ :=
+is_succ_limit_of_succ_lt $ λ a ha, begin
+  rcases lt_aleph_0.1 ha with ⟨n, rfl⟩,
+  rw ←nat_succ,
+  apply nat_lt_aleph_0
+end
+
+theorem aleph_0_le_of_is_succ_limit {c : cardinal} (h : is_succ_limit c) (h0 : c ≠ 0) : ℵ₀ ≤ c :=
 begin
-  intro a,
+  by_contra' h',
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
+  { exact h0.irrefl },
+  { rw nat_succ at h,
+    exact h.false }
 end
 
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=

@@ -227,10 +227,14 @@ def is_succ_limit (b : α) : Prop :=
 lemma not_is_succ_limit_succ (a : α) : ¬ is_succ_limit (succ a) :=
 λ h, (h a).irrefl
 
+lemma is_succ_limit.false (ha : is_succ_limit (succ a)) : false :=
+not_is_succ_limit_succ a ha
+
 section no_max_order
 variables [no_max_order α]
 
 lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
+lemma succ_ne (a : α) : succ a ≠ a := (lt_succ a).ne'
 lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
 lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
@@ -344,6 +348,9 @@ Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 lemma is_succ_limit.succ_lt (hb : is_succ_limit b) (ha : a < b) : succ a < b :=
 by { rw [lt_iff_le_and_ne, succ_le_iff], exact ⟨ha, hb a⟩ }
+
+lemma is_succ_limit_of_is_min (ha : is_min a) : is_succ_limit a :=
+by { rintros b rfl, exact (succ_ne b) (ha.eq_of_ge (le_succ b)) }
 
 end no_max_order
 
@@ -959,6 +966,14 @@ begin
   exact iterate.rec (λ b, p a ↔ p b) (λ c hc, hc.trans (hsucc _)) iff.rfl n,
 end
 
+lemma is_succ_limit.is_min (h : is_succ_limit a) : is_min a :=
+λ b hb, begin
+  rcases hb.exists_succ_iterate with ⟨_ | n, rfl⟩,
+  { exact le_rfl },
+  { rw iterate_succ' at h,
+    exact h.false.elim }
+end
+
 end succ_order
 
 section pred_order
@@ -983,6 +998,19 @@ lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : 
 
 end pred_order
 end preorder
+
+section partial_order
+variables [partial_order α]
+
+section succ_order
+variables [succ_order α] [is_succ_archimedean α] {a b : α}
+
+lemma is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
+⟨is_succ_limit.is_min, is_succ_limit_of_is_min⟩
+
+end succ_order
+
+end partial_order
 
 section linear_order
 variables [linear_order α]

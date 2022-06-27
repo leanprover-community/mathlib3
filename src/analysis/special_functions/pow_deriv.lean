@@ -311,11 +311,11 @@ lemma cont_diff_rpow_const_of_le {p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
   cont_diff ℝ n (λ x : ℝ, x ^ p) :=
 begin
   induction n with n ihn generalizing p,
-  { exact cont_diff_zero.2 (continuous_id.rpow_const (λ x, or.inr h)) },
+  { exact cont_diff_zero.2 (continuous_id.rpow_const (λ x, by exact_mod_cast or.inr h)) },
   { have h1 : 1 ≤ p, from le_trans (by simp) h,
     rw [nat.cast_succ, ← le_sub_iff_add_le] at h,
-    simpa [cont_diff_succ_iff_deriv, differentiable_rpow_const, h1, deriv_rpow_const']
-      using cont_diff_const.mul (ihn h) }
+    rw [cont_diff_succ_iff_deriv, deriv_rpow_const' h1],
+    refine ⟨differentiable_rpow_const h1, cont_diff_const.mul (ihn h)⟩ }
 end
 
 lemma cont_diff_at_rpow_const_of_le {x p : ℝ} {n : ℕ} (h : ↑n ≤ p) :

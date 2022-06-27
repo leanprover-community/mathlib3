@@ -903,8 +903,7 @@ theorem is_o_const_iff_is_o_one {c : F''} (hc : c ≠ 0) :
 by simp only [is_o_iff, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
   metric.mem_closed_ball, dist_zero_right]
 
-@[simp] theorem is_O_one_iff [has_one F] [norm_one_class F] :
-  f =O[l] (λ x, 1 : α → F) ↔ is_bounded_under (≤) l (λ x, ∥f x∥) :=
+@[simp] theorem is_O_one_iff : f =O[l] (λ x, 1 : α → F) ↔ is_bounded_under (≤) l (λ x, ∥f x∥) :=
 by { simp only [is_O_iff, norm_one, mul_one], refl }
 
 alias is_O_one_iff ↔ _ filter.is_bounded_under.is_O_one

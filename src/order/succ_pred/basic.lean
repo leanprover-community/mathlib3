@@ -231,8 +231,8 @@ section no_max_order
 variables [no_max_order α]
 
 lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
-@[simp] lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
-@[simp] lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
+lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
+lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
 @[simp] lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
 ⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
@@ -272,6 +272,9 @@ variables [partial_order α] [succ_order α] {a b : α}
 ⟨λ h, max_of_succ_le h.le, λ h, h.eq_of_ge $ le_succ _⟩
 
 alias succ_eq_iff_is_max ↔ _ is_max.succ_eq
+
+lemma not_is_succ_limit_of_is_max (ha : is_max a) : ¬ is_succ_limit a :=
+by { rw ←succ_eq_iff_is_max.2 ha, apply not_is_succ_limit_succ }
 
 lemma le_le_succ_iff : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
 begin
@@ -353,6 +356,9 @@ variables [order_top α]
 @[simp] lemma lt_succ_iff_ne_top : a < succ a ↔ a ≠ ⊤ :=
 lt_succ_iff_not_is_max.trans not_is_max_iff_ne_top
 
+lemma not_is_succ_limit_top : ¬ is_succ_limit (⊤ : α) :=
+not_is_succ_limit_of_is_max is_max_top
+
 end order_top
 
 section order_bot
@@ -361,7 +367,7 @@ variables [order_bot α] [nontrivial α]
 lemma bot_lt_succ (a : α) : ⊥ < succ a :=
 (lt_succ_of_not_is_max not_is_max_bot).trans_le $ succ_mono bot_le
 
-lemma succ_ne_bot (a : α) : succ a ≠ ⊥ := (bot_lt_succ a).ne'
+lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := λ a, (bot_lt_succ a).ne'
 
 end order_bot
 end partial_order

@@ -257,6 +257,9 @@ else by rw [pred_eq_iff_not_succ.2 h,
 /-- A limit ordinal is an ordinal which is not zero and not a successor. -/
 def is_limit (o : ordinal) : Prop := o ≠ 0 ∧ ∀ a < o, succ a < o
 
+theorem is_limit.succ_lt {o a : ordinal} (h : is_limit o) : a < o → succ a < o :=
+h.2 a
+
 theorem not_zero_is_limit : ¬ is_limit 0
 | ⟨h, _⟩ := h rfl
 
@@ -485,6 +488,8 @@ theorem add_is_normal (a : ordinal) : is_normal ((+) a) :=
 theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
 (add_is_normal a).is_limit
 
+alias add_is_limit ← ordinal.is_limit.add
+
 /-! ### Subtraction on ordinals-/
 
 /-- The set in the definition of subtraction is nonempty. -/
@@ -520,6 +525,12 @@ protected theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - 
   { rw [e, add_succ, succ_le_iff, ← lt_sub, e], exact lt_succ c },
   { exact (add_le_of_limit l).2 (λ c l, (lt_sub.1 l).le) }
 end
+
+theorem le_sub_of_le {a b c : ordinal} (h : b ≤ a) : c ≤ a - b ↔ b + c ≤ a :=
+by rw [←add_le_add_iff_left b, ordinal.add_sub_cancel_of_le h]
+
+theorem sub_lt_of_le {a b c : ordinal} (h : b ≤ a) : a - b < c ↔ a < b + c :=
+lt_iff_lt_of_le_iff_le (le_sub_of_le h)
 
 instance : has_exists_add_of_le ordinal :=
 ⟨λ a b h, ⟨_, (ordinal.add_sub_cancel_of_le h).symm⟩⟩
@@ -1096,15 +1107,21 @@ theorem le_sup_shrink_equiv {s : set ordinal.{u}} (hs : small.{u} s) (a) (ha : a
   a ≤ sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) :=
 by { convert le_sup.{u u} _ ((@equiv_shrink s hs) ⟨a, ha⟩), rw symm_apply_apply }
 
-theorem small_Iio (o : ordinal.{u}) : small.{u} (set.Iio o) :=
+instance small_Iio (o : ordinal.{u}) : small.{u} (set.Iio o) :=
 let f : o.out.α → set.Iio o := λ x, ⟨typein (<) x, typein_lt_self x⟩ in
 let hf : surjective f := λ b, ⟨enum (<) b.val (by { rw type_lt, exact b.prop }),
   subtype.ext (typein_enum _ _)⟩ in
 small_of_surjective hf
 
+instance small_Iic (o : ordinal.{u}) : small.{u} (set.Iic o) :=
+by { rw ←Iio_succ, apply_instance }
+
 theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s :=
-⟨λ ⟨a, h⟩, @small_subset _ _ _ (by exact λ b hb, lt_succ_iff.2 (h hb)) (small_Iio (succ a)),
+⟨λ ⟨a, h⟩, small_subset $ show s ⊆ Iic a, from λ x hx, h hx,
 λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), le_sup_shrink_equiv h⟩⟩
+
+theorem bdd_above_of_small (s : set ordinal.{u}) [h : small.{u} s] : bdd_above s :=
+bdd_above_iff_small.2 h
 
 theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) :
   sup.{u u} (λ x, (@equiv_shrink s hs).symm x) = Sup s :=

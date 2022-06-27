@@ -260,16 +260,16 @@ lemma independent.mono
 
 /-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
-lemma independent.comp
-  (f : ι' → ι) (hf : injective f) :
-  independent $ t ∘ f :=
+lemma independent.comp {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent t) (hf : injective f) :
+  independent (t ∘ f) :=
 λ i, (ht (f i)).mono_right $ begin
   refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
   exact supr_const_mono hf.ne,
 end
 
-lemma independent.comp'
-  {f : ι' → ι} (hf : surjective f) (ht : independent $ t ∘ f) :
+lemma independent.comp' {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent $ t ∘ f) (hf : surjective f) :
   independent t :=
 begin
   intros i,

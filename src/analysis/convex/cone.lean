@@ -160,6 +160,14 @@ protected lemma convex : convex 𝕜 (S : set E) :=
 convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
   S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
+instance : has_zero (convex_cone 𝕜 E) :=
+⟨ { carrier := ({0} : set E),
+    smul_mem' := λ _ _, by simp only [set.mem_singleton_iff, forall_eq, smul_zero],
+    add_mem' := λ _, by simp only [set.mem_singleton_iff, forall_eq, add_zero, imp_self] } ⟩
+
+/-- An element is in the convex cone {0} iff it is 0. -/
+@[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := by {rw ← set.mem_zero, refl}
+
 end module
 end ordered_semiring
 
@@ -352,6 +360,9 @@ lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
 
 /-- The positive cone of an ordered module is always pointed. -/
 lemma pointed_positive_cone : pointed (positive_cone 𝕜 E) := le_refl 0
+
+/-- The convex cone {0} is pointed. -/
+lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by simp only [pointed, mem_zero]
 
 end positive_cone
 end convex_cone
@@ -615,5 +626,30 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
+
+/-- Dual cone of the total space is the convex cone {0}. -/
+lemma inner_dual_cone_top : (⊤ : set H).inner_dual_cone = 0 :=
+begin
+  ext,
+  split,
+  begin
+    simp only [mem_inner_dual_cone, convex_cone.mem_coe],
+    rintro h,
+    rw convex_cone.mem_zero,
+    contrapose! h,
+    use -x,
+    split,
+    { rw set.top_eq_univ,
+      apply set.mem_univ },
+    { rw [inner_neg_left, right.neg_neg_iff],
+      contrapose! h,
+      exact real_inner_self_nonpos.1 h },
+  end,
+  begin
+    rw [convex_cone.mem_zero, set.top_eq_univ, mem_inner_dual_cone],
+    rintros hx _ _,
+    rw [hx, inner_zero_right],
+  end
+end
 
 end dual

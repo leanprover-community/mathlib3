@@ -320,28 +320,6 @@ protected lemma strict_anti [subsingleton α] (f : α → β) : strict_anti f :=
 
 end subsingleton
 
-/-! ### Monotonicity on singletons -/
-
-@[simp]
-lemma strict_mono_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  strict_mono_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij, false.elim (hij.ne $ hj.symm ▸ hi)
-
-@[simp]
-lemma monotone_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  monotone_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij,  hi.symm ▸ hj.symm ▸ le_rfl
-
-@[simp]
-lemma strict_anti_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  strict_anti_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij, false.elim (hij.ne $ hj.symm ▸ hi)
-
-@[simp]
-lemma antitone_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  antitone_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij,  hi.symm ▸ hj.symm ▸ le_rfl
-
 /-! ### Miscellaneous monotonicity results -/
 
 lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id

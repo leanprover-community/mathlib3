@@ -103,11 +103,7 @@ begin
   rw IH (lt_of_le_of_lt (log_mono_right (le_succ n)) hb'),
   have h1 : (filter (λ (i : ℕ), p ^ i ∣ n.succ) (Ico 1 b)).card =
     ∑ (i : ℕ) in Ico 1 b, ite (p ^ i ∣ n + 1) 1 0, by simp [sum_boole],
-  rw h1, clear h1,
-  rw ←sum_add_distrib,
-  refine sum_congr rfl (λ x hx, _),
-  rw succ_div n (p^x),
-  rw add_comm,
+  simp_rw [h1, ←sum_add_distrib, succ_div, add_comm],
 end
 
 /-- **Legendre's Theorem**

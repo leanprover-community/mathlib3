@@ -1125,10 +1125,6 @@ def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G 
   map_mul' := map_mul,
   map_one' := mul_left_eq_self.1 $ by rw [←map_mul, mul_one] }
 
-@[to_additive, simp]
-lemma mk'_apply' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) :
-  (mk' f map_mul : M → G) = f := rfl
-
 omit mM
 
 /-- Makes a group homomorphism from a proof that the map preserves right division `λ x y, x * y⁻¹`.

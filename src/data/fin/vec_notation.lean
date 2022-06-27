@@ -147,12 +147,12 @@ by { refine fin.forall_fin_one.2 _ i, refl }
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)
 
-meta instance _root_.pi_fin.reflect [reflected_univ.{u}] [reflected α] [has_reflect α] :
+meta instance _root_.pi_fin.reflect [reflected_univ.{u}] [reflected _ α] [has_reflect α] :
   Π {n}, has_reflect (fin n → α)
 | 0 v := (subsingleton.elim vec_empty v).rec
-    ((by reflect_name : reflected (@vec_empty.{u})).subst `(α))
+    ((by reflect_name : reflected _ (@vec_empty.{u})).subst `(α))
 | (n + 1) v := (cons_head_tail v).rec $
-    (by reflect_name : reflected @vec_cons.{u}).subst₄ `(α) `(n) `(_) (_root_.pi_fin.reflect _)
+    (by reflect_name : reflected _ @vec_cons.{u}).subst₄ `(α) `(n) `(_) (_root_.pi_fin.reflect _)
 
 /-- Convert a vector of pexprs to the pexpr constructing that vector.-/
 meta def _root_.pi_fin.to_pexpr : Π {n}, (fin n → pexpr) → pexpr

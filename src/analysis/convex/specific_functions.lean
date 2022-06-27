@@ -246,7 +246,7 @@ lemma strict_concave_on_sqrt_mul_log_Ioi : strict_concave_on ℝ (set.Ioi 1) (λ
 begin
   refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 1) is_open_Ioi
     (λ x hx, differentiable_within_at_of_deriv_within_ne_zero _) (λ x hx, _),
-  { rw [deriv_within_of_open is_open_Ioi hx, deriv_sqrt_mul_log x (zero_lt_one.trans hx)],
+  { rw [deriv_within_of_open is_open_Ioi hx, deriv_sqrt_mul_log],
     refine div_ne_zero _ (mul_ne_zero two_ne_zero (sqrt_ne_zero'.mpr (zero_lt_one.trans hx))),
     linarith [log_pos hx] },
   { rw deriv2_sqrt_mul_log x (zero_lt_one.trans hx),

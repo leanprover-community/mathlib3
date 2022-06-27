@@ -322,15 +322,21 @@ begin
   { exact absurd hn (by simp [hn1, h]), },
 end
 
+lemma pi_Union_Inter_mono_left {α ι} {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i)
+  (S : set (finset ι)) :
+  pi_Union_Inter π S ⊆ pi_Union_Inter π' S :=
+begin
+  rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
+  exact ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), rfl⟩,
+end
+
 lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
-  {s : ι → measurable_space α} (h : ∀ n, s n ≤ m) (π : ι → set (set α)) (S : set (finset ι))
-  (hpis : ∀ n, s n = generate_from (π n)) :
+  (π : ι → set (set α)) (h : ∀ n, generate_from (π n) ≤ m) (S : set (finset ι)) :
   generate_from (pi_Union_Inter π S) ≤ m :=
 begin
   refine generate_from_le _,
   rintros t ⟨ht_p, ht_p_mem, ft, hft_mem_pi, rfl⟩,
   refine finset.measurable_set_bInter _ (λ x hx_mem, (h x) _ _),
-  rw hpis x,
   exact measurable_set_generate_from (hft_mem_pi x hx_mem),
 end
 
@@ -358,11 +364,11 @@ lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space 
   s ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S :=
 subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
 
-lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
-  {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
-  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (π x)) :
-  m ≤ generate_from (pi_Union_Inter π S) :=
-by { rw hpix, exact generate_from_mono (subset_pi_Union_Inter h_univ htS hxt), }
+lemma le_generate_from_pi_Union_Inter {α ι} {π : ι → set (set α)}
+  (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
+  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) :
+  generate_from (π x) ≤ generate_from (pi_Union_Inter π S) :=
+generate_from_mono (subset_pi_Union_Inter h_univ htS hxt)
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :

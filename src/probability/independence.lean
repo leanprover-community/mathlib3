@@ -359,13 +359,15 @@ begin
   set m_p := generate_from p with hS_eq_generate,
   have h_indep : indep m_p (m a) μ,
   { have hp : is_pi_system p := is_pi_system_pi_Union_Inter π h_pi {S} (sup_closed_singleton S),
-    have hm_p : m_p ≤ m0 := generate_from_pi_Union_Inter_le h_le π {S} h_generate,
+    have h_le' : ∀ i, generate_from (π i) ≤ m0 := λ i, (h_generate i).symm.trans_le (h_le i),
+    have hm_p : m_p ≤ m0 := generate_from_pi_Union_Inter_le π h_le' {S},
     exact indep_sets.indep hm_p (h_le a) hp (h_pi a) hS_eq_generate (h_generate a)
       (pi_system_indep_insert hp_ind ha_notin_S), },
   refine h_indep.symm (f a) (⋂ n ∈ S, f n) (hf_m a (finset.mem_insert_self a S)) _,
   have h_le_p : ∀ i ∈ S, m i ≤ m_p,
-    from λ n hn, le_generate_from_pi_Union_Inter {S} hp_univ (set.mem_singleton _) hn
-      (h_generate n),
+  { intros n hn,
+    rw [hS_eq_generate, h_generate n],
+    exact le_generate_from_pi_Union_Inter {S} hp_univ (set.mem_singleton _) hn, },
   have h_S_f : ∀ i ∈ S, measurable_set[m_p] (f i) := λ i hi, (h_le_p i hi) (f i) (hf_m_S i hi),
   exact S.measurable_set_bInter h_S_f,
 end

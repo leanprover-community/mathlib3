@@ -430,17 +430,12 @@ def graph (f : linear_pmap R E F) : submodule R (E × F) :=
 f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
 
 lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
-  x ∈ graph f ↔ ∃ (y : f.domain), (↑y, f y) = x :=
-by simp [graph]
+  x ∈ graph f ↔ ∃ y : f.domain, (↑y, f y) = x :=
+by { simp [graph] }
 
 @[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
-  x ∈ graph f ↔ ∃ (y : f.domain), x.fst = ↑y ∧ x.snd = f y :=
-begin
-  rw mem_graph_iff',
-  split; intro h; cases h with y h; use y,
-  { exact ⟨congr_arg prod.fst h.symm, congr_arg prod.snd h.symm⟩ },
-  { exact prod.ext h.1.symm h.2.symm },
-end
+  x ∈ graph f ↔ ∃ y : f.domain, (↑y : E) = x.fst ∧ f y = x.snd :=
+by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 
 /-- The property that `f 0 = 0` in terms of the graph. -/
 lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E × F} (hx : x ∈ graph f)
@@ -448,8 +443,8 @@ lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E × F} (hx : x ∈ gra
   x.snd = 0 :=
 begin
   rcases f.mem_graph_iff.mp hx with ⟨y, hx1, hx2⟩,
-  rw [hx1, submodule.coe_eq_zero] at hx',
-  rw [hx2, hx', map_zero],
+  rw [←hx1, submodule.coe_eq_zero] at hx',
+  rw [←hx2, hx', map_zero],
 end
 
 end linear_pmap

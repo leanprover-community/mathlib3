@@ -165,24 +165,36 @@ lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 /- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
 diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
 defined in `data.complex.module.lean`. -/
-instance : comm_ring ℂ :=
+
+instance : add_comm_group ℂ :=
 by refine_struct
   { zero := (0 : ℂ),
     add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
-    one := 1,
-    mul := (*),
-    zero_add := λ z, by { apply ext_iff.2, simp },
-    add_zero := λ z, by { apply ext_iff.2, simp },
     nsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩,
-    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
-/-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
-`complex.normed_group` instance. -/
-instance : add_comm_group ℂ := by apply_instance
+instance : add_group_with_one ℂ :=
+{ nat_cast := λ n, ⟨n, 0⟩,
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  int_cast_neg_succ_of_nat := λ _, by ext; simp [λ n, show @coe ℕ ℂ ⟨_⟩ n = ⟨n, 0⟩, from rfl],
+  one := 1,
+  .. complex.add_comm_group }
+
+instance : comm_ring ℂ :=
+by refine_struct
+  { zero := (0 : ℂ),
+    add := (+),
+    one := 1,
+    mul := (*),
+    npow := @npow_rec _ ⟨(1 : ℂ)⟩ ⟨(*)⟩,
+    .. complex.add_group_with_one };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/

@@ -3,15 +3,9 @@ Copyright (c) 2020 Patrick Stevens. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Bolton Bailey
 -/
-import data.nat.multiplicity
-import data.nat.choose.central
-import data.nat.parity
 import data.nat.choose.factorization
-import number_theory.padics.padic_norm
-import data.complex.exponential_bounds
 import number_theory.primorial
-import analysis.special_functions.pow
-import analysis.special_functions.log.monotone
+import analysis.convex.specific_functions
 
 /-!
 # Bertrand's Postulate

@@ -281,8 +281,8 @@ begin
     ring_nf, },
   rw [← h_term_eq_goal, (nat.mul_right_injective two_pos).has_sum_iff],
   { have h₁ := (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)).mul_left (-1),
-    rw [neg_one_mul, neg_neg, sub_neg_eq_add 1 x] at h₁,
-    exact h₁.add (has_sum_pow_div_log_of_abs_lt_1 h), },
+    convert h₁.add (has_sum_pow_div_log_of_abs_lt_1 h),
+    ring_nf },
   { intros m hm,
     rw [range_two_mul, set.mem_set_of_eq] at hm,
     dsimp [term],
@@ -298,7 +298,7 @@ begin
   have h₀ : (2 : ℝ) * a + 1 ≠ 0 := by linarith,
   have h₁ := h.ne',
   rw ← log_div,
-  { apply congr_arg log,
+  { congr,
     field_simp,
     linarith, },
   { field_simp,
@@ -306,7 +306,7 @@ begin
   { field_simp },
 end
 
-/-- Power series expansion of `log ((a + 1) / a)`. -/
+/-- Expansion of `log ((a + 1) / a)` as a series in powers of `1 / (2 * a + 1)`. -/
 theorem power_series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
   (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
   (log ((a + 1) / a)) :=
@@ -315,7 +315,7 @@ begin
   { rw [abs_of_pos, div_lt_one],
     { linarith, },
     { linarith, },
-    { refine div_pos one_pos (by linarith), }, },
+    { exact div_pos one_pos (by linarith), }, },
   rw log_succ_div_eq_log_sub h,
   exact has_sum_log_sub_log_of_abs_lt_1 h₁,
 end

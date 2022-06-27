@@ -1338,4 +1338,37 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
 
 end normed_lattice_ordered_group
 
+section nonnegative_part
+
+variables [topological_space α]
+
+/-- The nonnegative part of a bounded continuous `ℝ`-valued function as a bounded
+continuous `ℝ≥0`-valued function. -/
+def nnreal_part (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+bounded_continuous_function.comp _
+  (show lipschitz_with 1 real.to_nnreal, from lipschitz_with_pos) f
+
+@[simp] lemma nnreal_part_coe_fun_eq (f : α →ᵇ ℝ) : ⇑(f.nnreal_part) = real.to_nnreal ∘ ⇑f := rfl
+
+/-- The absolute value of a bounded continuous `ℝ`-valued function as a bounded
+continuous `ℝ≥0`-valued function. -/
+def nnnorm (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+bounded_continuous_function.comp _
+  (show lipschitz_with 1 (λ (x : ℝ), ∥x∥₊), from lipschitz_with_one_norm) f
+
+@[simp] lemma nnnorm_coe_fun_eq (f : α →ᵇ ℝ) : ⇑(f.nnnorm) = has_nnnorm.nnnorm ∘ ⇑f := rfl
+
+/-- Decompose a bounded continuous function to its positive and negative parts. -/
+lemma self_eq_nnreal_part_sub_nnreal_part_neg (f : α →ᵇ ℝ) :
+  ⇑f = coe ∘ f.nnreal_part - coe ∘ (-f).nnreal_part :=
+by { funext x, dsimp, simp only [max_zero_sub_max_neg_zero_eq_self], }
+
+/-- Express the absolute value of a bounded continuous function in terms of its
+positive and negative parts. -/
+lemma abs_self_eq_nnreal_part_add_nnreal_part_neg (f : α →ᵇ ℝ) :
+  abs ∘ ⇑f = coe ∘ f.nnreal_part + coe ∘ (-f).nnreal_part :=
+by { funext x, dsimp, simp only [max_zero_add_max_neg_zero_eq_abs_self], }
+
+end nonnegative_part
+
 end bounded_continuous_function

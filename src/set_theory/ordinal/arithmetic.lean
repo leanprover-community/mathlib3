@@ -1024,11 +1024,12 @@ supr f
 @[simp] theorem Sup_eq_sup {ι : Type u} (f : ι → ordinal.{max u v}) : Sup (set.range f) = sup f :=
 rfl
 
-/-- The range of any family of ordinals is bounded above. See also `lsub_not_mem_range`. -/
+/-- The range of an indexed ordinal function, whose outputs live in a higher universe than the
+    inputs, is always bounded above. See `ordinal.lsub` for an explicit bound. -/
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
-⟨(cardinal.sup.{u v} (succ ∘ card ∘ f)).ord, begin
+⟨(supr (succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
-  exact le_of_lt (cardinal.lt_ord.2 ((lt_succ _).trans_le (le_sup _ _)))
+  exact le_of_lt (cardinal.lt_ord.2 ((lt_succ _).trans_le (le_csupr (bdd_above_range _) _)))
 end⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
@@ -1069,10 +1070,7 @@ by rw [sup_le_iff, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, �
   intros; simp only [sup_le_iff, true_implies_iff]; tauto
 
 @[simp] theorem sup_empty {ι} [is_empty ι] (f : ι → ordinal) : sup f = 0 :=
-sup_eq_zero_iff.2 is_empty_elim
-
-theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
-eq_of_forall_ge_iff $ λ a, by simp only [sup_le_iff, cardinal.ord_le, cardinal.sup_le_iff]
+csupr_of_empty f
 
 @[simp] theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
 csupr_const
@@ -1113,6 +1111,17 @@ theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) :
 let hs' := bdd_above_iff_small.2 hs in
   ((cSup_le_iff' hs').2 (le_sup_shrink_equiv hs)).antisymm'
   (sup_le (λ x, le_cSup hs' (subtype.mem _)))
+
+theorem Sup_ord {s : set cardinal.{u}} (hs : bdd_above s) : (Sup s).ord = Sup (ord '' s) :=
+eq_of_forall_ge_iff $ λ a, begin
+  rw [cSup_le_iff' (bdd_above_iff_small.2 (@small_image _ _ _ s
+    (cardinal.bdd_above_iff_small.1 hs))), ord_le, cSup_le_iff' hs],
+  simp [ord_le]
+end
+
+theorem supr_ord {ι} {f : ι → cardinal} (hf : bdd_above (range f)) :
+  (supr f).ord = ⨆ i, (f i).ord :=
+by { unfold supr, convert Sup_ord hf, rw range_comp }
 
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)

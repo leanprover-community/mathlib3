@@ -38,16 +38,17 @@ begin
   refine dfinsupp.single_eq_zero.mpr (subtype.ext $ ι_sq_zero _),
 end
 
-/-- `graded_algebra.ι` lifted to exterior algebra. This is
+/-- `exterior_algebra.graded_algebra.ι` lifted to exterior algebra. This is
 primarily an auxiliary construction used to provide `exterior_algebra.graded_algebra`. -/
-def lift_ι : exterior_algebra R M →ₐ[R]
+def graded_algebra.lift_ι : exterior_algebra R M →ₐ[R]
   ⨁ (i : ℕ), ↥((ι R).range ^ i : submodule R (exterior_algebra R M)) :=
 lift R ⟨by apply graded_algebra.ι R M, by apply graded_algebra.ι_sq_zero R M⟩
 
 variables (R M)
 
-lemma lift_ι_eq (i : ℕ) (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
-  lift_ι R M x =
+lemma graded_algebra.lift_ι_eq (i : ℕ)
+  (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
+  graded_algebra.lift_ι R M x =
     direct_sum.of (λ i, ↥((ι R).range ^ i : submodule R (exterior_algebra R M))) i x :=
 begin
   cases x with x hx,
@@ -57,9 +58,8 @@ begin
   { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
   { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
   { obtain ⟨_, rfl⟩ := hm,
-    rw [alg_hom.map_mul, ih, lift_ι, lift_ι_apply,
+    rw [alg_hom.map_mul, ih, graded_algebra.lift_ι, lift_ι_apply,
       graded_algebra.ι_apply R M, direct_sum.of_mul_of],
-    exact direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext (add_comm _ _) rfl) }
 end
 
 set_option profiler true
@@ -68,14 +68,13 @@ instance graded_algebra :
   graded_algebra ((^) (ι R : M →ₗ[R] exterior_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
   -- while not necessary, the `by apply` makes this elaborate faster
-  (by apply lift_ι R M)
-  -- the proof from here onward is identical to the `tensor_algebra` case
+  (by apply graded_algebra.lift_ι R M)  -- the proof from here onward is identical to the `tensor_algebra` case
   (begin
     ext m,
-    dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
-      alg_hom.id_apply, lift_ι],
+    dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply,
+      alg_hom.comp_apply, alg_hom.id_apply, graded_algebra.lift_ι],
     rw [lift_ι_apply, graded_algebra.ι_apply R M, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by apply lift_ι_eq R M)
+  (by apply graded_algebra.lift_ι_eq R M)
 
 end exterior_algebra

@@ -279,17 +279,17 @@ open_locale big_operators
 lemma card_support_eq' {n : ℕ} (k : fin n → ℕ) (x : fin n → R) (hk : strict_mono k)
   (hx : ∀ i, x i ≠ 0) :  (∑ i, C (x i) * X ^ k i).support.card = n :=
 begin
-  suffices : (∑ i, C (x i) * X ^ k i).support = finset.image k finset.univ,
-  { rw [this, finset.univ.card_image_of_injective (hk.injective), card_fin] },
-  simp_rw [finset.ext_iff, mem_support_iff, finset_sum_coeff, coeff_C_mul, coeff_X_pow,
-    mul_ite, mul_zero, mul_one, mem_image, mem_univ, exists_true_left],
+  suffices : (∑ i, C (x i) * X ^ k i).support = image k univ,
+  { rw [this, univ.card_image_of_injective (hk.injective), card_fin] },
+  simp_rw [finset.ext_iff, mem_support_iff, finset_sum_coeff, coeff_C_mul_X_pow,
+    mem_image, mem_univ, exists_true_left],
   refine λ i, ⟨λ h, _, _⟩,
   { obtain ⟨j, hj, h⟩ := exists_ne_zero_of_sum_ne_zero h,
     exact ⟨j, (ite_ne_right_iff.mp h).1.symm⟩ },
-  { rintros ⟨j, hj⟩,
-    rw sum_eq_single_of_mem j (finset.mem_univ j),
-    { exact ne_of_eq_of_ne (if_pos hj.symm) (hx j) },
-    { exact λ m hm hmj, if_neg (λ h, hmj.symm (hk.injective (hj.trans h))) } },
+  { rintros ⟨j, rfl⟩,
+    rw [sum_eq_single_of_mem j (mem_univ j), if_pos rfl],
+    { exact hx j },
+    { exact λ m hm hmj, if_neg (λ h, hmj.symm (hk.injective h)) } },
 end
 
 lemma card_support_eq {n : ℕ} : f.support.card = n ↔ ∃ (k : fin n → ℕ) (x : fin n → R)

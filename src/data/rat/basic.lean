@@ -10,7 +10,7 @@ import data.rat.defs
 import logic.encodable.basic
 
 /-!
-# Basic lemmas for the Rational Numbers
+# Field Structure on the Rational Numbers
 
 ## Summary
 
@@ -20,6 +20,13 @@ was defined in `data.rat.defs`.
 ## Main Definitions
 
 - `rat.field` is the field structure on `ℚ`.
+
+## Implementation notes
+
+We have to define the field structure in a separate file to avoid cyclic imports:
+the `field` class contains a map from `ℚ` (see `field`'s docstring for the rationale),
+so we have a dependency `rat.field → field → rat` that is reflected in the import
+hierarchy `data.rat.basic → algebra.field.basic → data.rat.defs`.
 
 ## Tags
 

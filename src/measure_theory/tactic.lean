@@ -124,17 +124,13 @@ do t ← tactic.target,
   | _ := skip
   end
 
-/-- Similar to `apply_assumption`, but takes options. -/
-meta def apply_assumption' (opt : apply_any_opt := {}) : tactic unit :=
-do l ← local_context, apply_any l opt
-
 /-- List of tactics used by `measurability` internally. The option `use_exfalso := ff` is passed to
 the tactic `apply_assumption'` in order to avoid loops in the presence of negated hypotheses in
 the context. -/
 meta def measurability_tactics (md : transparency := semireducible) : list (tactic string) :=
 [
-  propositional_goal >> apply_assumption' {use_exfalso := ff}
-                        >> pure "apply_assumption'",
+  propositional_goal >> tactic.interactive.apply_assumption none {use_exfalso := ff}
+                        >> pure "tactic.interactive.apply_assumption none {use_exfalso := ff}",
   goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
   apply_rules [] [``measurability] 50 { md := md }

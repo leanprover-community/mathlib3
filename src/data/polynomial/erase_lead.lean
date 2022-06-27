@@ -351,8 +351,7 @@ lemma card_support_eq_two : f.support.card = 2 ↔ ∃ (k m : ℕ) (hkm : k < m)
 begin
   refine ⟨λ h, _, _⟩,
   { obtain ⟨k, x, hk, hx, rfl⟩ := card_support_eq.mp h,
-    refine ⟨k 0, k 1, hk _, x 0, x 1, hx 0, hx 1, _⟩,
-    { exact fin.lt_iff_coe_lt_coe.mpr zero_lt_one },
+    refine ⟨k 0, k 1, hk (by exact nat.zero_lt_one), x 0, x 1, hx 0, hx 1, _⟩,
     rw [fin.sum_univ_cast_succ, fin.sum_univ_one],
     refl },
   { rintros ⟨k, m, hkm, x, y, hx, hy, rfl⟩,

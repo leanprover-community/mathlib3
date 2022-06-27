@@ -93,29 +93,22 @@ over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
 lemma factorization_factorial {p : ℕ} (hp : p.prime) {n b : ℕ} (hb : log p n < b) :
   n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
 begin
-  rcases n with rfl | n, { simp },
+  revert hb,
+  apply nat.rec_on n, { simp },
+  intros n IH hb',
   simp only [factorial_succ],
   rw factorization_mul (succ_ne_zero n) (factorial_ne_zero n),
   simp only [finsupp.coe_add, pi.add_apply],
-  -- have := factorization_eq_card_pow_dvd hp (succ_pos n) hb,
-  sorry,
+  rw factorization_eq_card_pow_dvd hp (succ_pos n) hb',
+  rw IH (lt_of_le_of_lt (log_mono_right (le_succ n)) hb'),
+  have h1 : (filter (λ (i : ℕ), p ^ i ∣ n.succ) (Ico 1 b)).card =
+    ∑ (i : ℕ) in Ico 1 b, ite (p ^ i ∣ n + 1) 1 0, by simp [sum_boole],
+  rw h1, clear h1,
+  rw ←sum_add_distrib,
+  refine sum_congr rfl (λ x hx, _),
+  rw succ_div n (p^x),
+  rw add_comm,
 end
--- | 0     b hb := by simp [Ico, hp.multiplicity_one]
--- | (n+1) b hb :=
---   calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
---     by rw [factorial_succ, hp.multiplicity_mul, add_comm]
---   ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
---     by rw [factorization_factorial ((log_mono_right $ le_succ _).trans_lt hb),
---       ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
---   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
---     by { rw [sum_add_distrib, sum_boole], simp }
---   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
---     congr_arg coe $ finset.sum_congr rfl $ λ _ _, (succ_div _ _).symm
-
-
-
-#exit
-
 
 /-- **Legendre's Theorem**
 

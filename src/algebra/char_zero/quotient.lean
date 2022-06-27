@@ -6,7 +6,9 @@ Authors: Eric Wieser
 import algebra.char_zero
 import group_theory.quotient_group
 
-/-- # Lemmas about quotients in characteristic zero -/
+/-!
+# Lemmas about quotients in characteristic zero
+-/
 
 variables {R : Type*} [division_ring R] [char_zero R] {p : R}
 

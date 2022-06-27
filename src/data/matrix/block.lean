@@ -187,7 +187,7 @@ lemma from_blocks_multiply [fintype l] [fintype m] [non_unital_non_assoc_semirin
 begin
   ext i j, rcases i; rcases j;
   simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
-    pi.add_apply],
+    pi.add_apply, of_apply],
 end
 
 lemma from_blocks_mul_vec [fintype l] [fintype m] [non_unital_non_assoc_semiring α]

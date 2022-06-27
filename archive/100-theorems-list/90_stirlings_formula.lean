@@ -94,9 +94,8 @@ lemma log_stirling_seq'_antitone : antitone (log_stirling_seq ∘ succ) :=
 begin
   apply antitone_nat_of_succ_le,
   intro n,
-  refine sub_nonneg.mp _,
-  rw ← succ_eq_add_one,
-  refine has_sum.nonneg _ (log_stirling_seq_diff_has_sum n),
+  rw [sub_nonneg, ← succ_eq_add_one],
+  refine (log_stirling_seq_diff_has_sum n).nonneg _,
   norm_num,
   simp only [one_div],
   intro m,

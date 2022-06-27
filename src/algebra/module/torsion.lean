@@ -93,6 +93,8 @@ begin
     tauto, },
 end
 
+/-- See also `complete_lattice.independent.linear_independent` which provides the same conclusion
+but requires the stronger hypothesis `no_zero_smul_divisors R M`. -/
 lemma complete_lattice.independent.linear_independent' {ι R M : Type*} {v : ι → M}
   [ring R] [add_comm_group M] [module R M]
   (hv : complete_lattice.independent $ λ i, (R ∙ v i))

@@ -790,7 +790,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   { simp [hl] }
 end⟩
 
-/-- See also `independent_iff_linear_independent_of_ne_zero`. -/
+/-- See also `complete_lattice.independent_iff_linear_independent_of_ne_zero`. -/
 lemma linear_independent.independent_span_singleton (hv : linear_independent R v) :
   complete_lattice.independent $ λ i, R ∙ v i :=
 begin

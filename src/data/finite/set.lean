@@ -161,8 +161,8 @@ lemma finite.set.finite_of_finite_image (s : set α)
 finite.of_equiv _ (equiv.of_bijective _ h.bij_on_image.bijective).symm
 
 lemma finite.of_injective_finite_range {f : α → β}
-  (hf' : function.injective f) (hf : finite (range f)) : finite α :=
+  (hf : function.injective f) [finite (range f)] : finite α :=
 begin
-  refine finite.of_injective (set.range_factorization f) (λ x y h, hf' _),
+  refine finite.of_injective (set.range_factorization f) (λ x y h, hf _),
   simpa only [range_factorization_coe] using congr_arg (coe : range f → β) h,
 end

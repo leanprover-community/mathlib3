@@ -252,9 +252,10 @@ end
 
 lemma well_founded.finite_of_independent (hwf : well_founded ((>) : α → α → Prop))
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
-finite.of_injective_finite_range
-  (ht.injective h_ne_bot)
-  (well_founded.finite_of_set_independent hwf ht.set_independent_range).finite
+begin
+  haveI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).finite,
+  exact finite.of_injective_finite_range (ht.injective h_ne_bot),
+end
 
 end complete_lattice
 

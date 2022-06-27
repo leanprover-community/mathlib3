@@ -73,6 +73,40 @@ begin
       set.mem_singleton_iff],
 end
 
+lemma is_pi_system.union_empty {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  is_pi_system (S ∪ {∅}) :=
+begin
+  have h_subset : S ⊆ S ∪ {∅} := set.subset_union_left _ _,
+  intros s hs t ht hst,
+  cases hs,
+  { cases ht,
+    { exact h_subset (h_pi s hs t ht hst), },
+    { rw [set.mem_singleton_iff] at ht,
+      simp only [ht, set.inter_empty, set.union_singleton, set.mem_insert_iff, eq_self_iff_true,
+        true_or], }, },
+  { rw [set.mem_singleton_iff] at hs,
+    simp only [hs, set.empty_inter, set.union_singleton, set.mem_insert_iff, eq_self_iff_true,
+      true_or], },
+end
+
+lemma is_pi_system.union_univ {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  is_pi_system (S ∪ {set.univ}) :=
+begin
+  have h_subset : S ⊆ S ∪ {set.univ} := set.subset_union_left _ _,
+  intros s hs t ht hst,
+  cases hs,
+  { cases ht,
+    { exact h_subset (h_pi s hs t ht hst), },
+    { rw [set.mem_singleton_iff] at ht,
+      simp only [hs, ht, set.inter_univ, set.union_singleton, set.mem_insert_iff, or_true], }, },
+  { rw [set.mem_singleton_iff] at hs,
+    { cases ht,
+      { simp only [hs, ht, set.univ_inter, set.union_singleton, set.mem_insert_iff, or_true], },
+      { rw [set.mem_singleton_iff] at ht,
+        simp only [hs, ht, set.univ_inter, set.union_singleton, set.mem_insert_iff,
+          eq_self_iff_true, true_or], }, }, },
+end
+
 section order
 
 variables {α : Type*} {ι ι' : Sort*} [linear_order α]

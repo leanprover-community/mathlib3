@@ -359,6 +359,32 @@ lemma generate_from_sup_generate_from {s t : set (set α)} :
   generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
 (@gi_generate_from α).gc.l_sup.symm
 
+@[simp] lemma generate_from_union_univ (S : set (set α)) :
+  generate_from (S ∪ {set.univ}) = generate_from S :=
+begin
+  refine le_antisymm _ (generate_from_mono (set.subset_union_left _ _)),
+  rw generate_from_le_iff,
+  intros t ht,
+  cases ht,
+  { exact measurable_set_generate_from ht, },
+  { rw [set.mem_singleton_iff] at ht,
+    rw ht,
+    exact measurable_set.univ, },
+end
+
+@[simp] lemma generate_from_union_empty (S : set (set α)) :
+  generate_from (S ∪ {∅}) = generate_from S :=
+begin
+  refine le_antisymm _ (generate_from_mono (set.subset_union_left _ _)),
+  rw generate_from_le_iff,
+  intros t ht,
+  cases ht,
+  { exact measurable_set_generate_from ht, },
+  { rw [set.mem_singleton_iff] at ht,
+    rw ht,
+    exact @measurable_set.empty _ (generate_from S), },
+end
+
 lemma measurable_set_bot_iff {s : set α} : @measurable_set α ⊥ s ↔ (s = ∅ ∨ s = univ) :=
 let b : measurable_space α :=
 { measurable_set'      := λ s, s = ∅ ∨ s = univ,

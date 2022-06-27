@@ -40,7 +40,7 @@ This definition is equivalent to left exact functors (functors that preserves fi
 
 -/
 
-universes v₁ v₂ v₃ u₁ u₂ u₃
+universes w v₁ v₂ v₃ u₁ u₂ u₃
 
 open category_theory
 open category_theory.limits
@@ -52,7 +52,7 @@ namespace category_theory
 namespace structured_arrow_cone
 open structured_arrow
 variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D]
-variables {J : Type v₁} [small_category J]
+variables {J : Type w} [small_category J]
 variables {K : J ⥤ C} (F : C ⥤ D) (c : cone K)
 
 /--

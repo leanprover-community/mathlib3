@@ -127,6 +127,8 @@ omit h hG
 
 open limits.walking_cospan
 
+set_option pp.universes true
+
 lemma compatible_preserving_of_flat {C : Type u₁} [category.{v₁} C] {D : Type u₁} [category.{v₁} D]
   (K : grothendieck_topology D) (G : C ⥤ D) [representably_flat G] : compatible_preserving K G :=
 begin

@@ -202,7 +202,8 @@ end
 instance [has_finite_limits D] [preserves_finite_limits (forget D)]
   [reflects_isomorphisms (forget D)] : preserves_finite_limits (J.plus_functor D) :=
 begin
-  constructor, introsI K _ _,
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{max v u},
+  introsI K _ _,
   haveI : reflects_limits_of_shape K (forget D) :=
     reflects_limits_of_shape_of_reflects_isomorphisms,
   apply_instance
@@ -241,6 +242,9 @@ begin
 end
 
 instance [has_finite_limits D] : preserves_finite_limits (presheaf_to_Sheaf J D) :=
-⟨λ K _ _, by { resetI, apply_instance }⟩
+begin
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{max v u},
+  intros, resetI, apply_instance
+end
 
 end category_theory

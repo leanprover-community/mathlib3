@@ -17,7 +17,7 @@ open category_theory.limits
 
 open_locale big_operators
 
-universe u
+universes w u
 
 namespace AddCommGroup
 
@@ -72,9 +72,8 @@ is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.left
   (biprod_iso_prod G H).inv ≫ biprod.snd = add_monoid_hom.snd G H :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.right)
 
-variables {J : Type u} (f : J → AddCommGroup.{u})
-
 namespace has_limit
+variables {J : Type w} (f : J → AddCommGroup.{max w u})
 
 /--
 The map from an arbitrary cone over a indexed family of abelian groups
@@ -109,19 +108,20 @@ end has_limit
 
 open has_limit
 
+variables {J : Type} [fintype J]
+
 /--
 We verify that the biproduct we've just defined is isomorphic to the AddCommGroup structure
 on the dependent function type
 -/
 @[simps hom_apply] noncomputable
-def biproduct_iso_pi [fintype J] (f : J → AddCommGroup.{u}) :
+def biproduct_iso_pi (f : J → AddCommGroup.{u}) :
   (⨁ f : AddCommGroup) ≅ AddCommGroup.of (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
-  (f : J → AddCommGroup.{u}) (j : J) :
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π (f : J → AddCommGroup.{u}) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, f j) j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)
 

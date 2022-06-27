@@ -96,8 +96,8 @@ meta instance matrix.entry_parser.has_reflect {α : Type} [has_reflect α] [refl
 @sigma.reflect ℕ (λ m, Σ n, matrix (fin m) (fin n) α) _ _ _ $ λ i,
   @sigma.reflect ℕ _ _ _ _ (λ j, infer_instance)
 
-reserve  notation `!![`
-
+/-- `!![a, b; c, d]` notation for matrices indexed by `fin m` and `fin n`. See the module docstring
+for details. -/
 @[user_notation]
 meta def «notation» (_ : parse $ tk "!![")
   (val : parse (entry_parser (parser.pexpr 1) <* tk "]")) : parser pexpr :=

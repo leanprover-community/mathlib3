@@ -372,9 +372,8 @@ lemma card_support_eq_three : f.support.card = 3 ↔
 begin
   refine ⟨λ h, _, _⟩,
   { obtain ⟨k, x, hk, hx, rfl⟩ := card_support_eq.mp h,
-    refine ⟨k 0, k 1, k 2, hk _, hk _, x 0, x 1, x 2, hx 0, hx 1, hx 2, _⟩,
-    { exact fin.lt_iff_coe_lt_coe.mpr zero_lt_one },
-    { exact fin.lt_iff_coe_lt_coe.mpr one_lt_two },
+    refine ⟨k 0, k 1, k 2, hk (by exact nat.zero_lt_one), hk (by exact nat.lt_succ_self 1),
+      x 0, x 1, x 2, hx 0, hx 1, hx 2, _⟩,
     rw [fin.sum_univ_cast_succ, fin.sum_univ_cast_succ, fin.sum_univ_one],
     refl },
   { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,

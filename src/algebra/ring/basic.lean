@@ -1232,7 +1232,7 @@ end
 
 @[field_simps] lemma divp_sub_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
   (a /ₚ u₁) - (b /ₚ u₂) = ((a * u₂) - (u₁ * b)) /ₚ (u₁ * u₂) :=
-by simp_rw [sub_eq_add_neg, neg_divp', divp_add_divp, mul_neg]
+by simp_rw [sub_eq_add_neg, neg_divp, divp_add_divp, mul_neg]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/

@@ -15,12 +15,6 @@ structure subrep
   (ρ : representation k G V) extends submodule k V :=
 (smulG_mem' : ∀ (g : G) {x : V}, x ∈ carrier → ρ g x ∈ carrier)
 
-structure rep_hom
-  {k G V V' : Type*} [comm_semiring k] [monoid G]
-  [add_comm_monoid V] [module k V] [add_comm_monoid V'] [module k V']
-  (ρ : representation k G V) (ρ' : representation k G V') extends V →ₗ[k] V' :=
-(smul_comm : ∀ (g : G) (x : V), ρ' g (to_fun x) = to_fun (ρ g x))
-
 namespace subrep
 -- Follows algebra.module.submodule.basic
 variables

@@ -6,7 +6,6 @@ Authors: Chris Hughes
 import algebra.hom.group_action
 import group_theory.group_action.defs
 import group_theory.group_action.group
--- import group_theory.quotient_group
 import data.setoid.basic
 import data.fintype.card
 

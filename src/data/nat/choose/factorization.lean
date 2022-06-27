@@ -5,7 +5,7 @@ Authors: Bolton Bailey, Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.central
-import number_theory.padics.padic_norm
+import data.nat.factorization.basic
 import data.nat.multiplicity
 
 /-!

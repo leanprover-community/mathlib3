@@ -164,31 +164,6 @@ end
 
 variables [has_zero_morphisms C]
 
-/-
-[class_instances] caching instance for @mono ((λ (_x : β), C) i) _inst_1 (Y i)
-  ((@colim (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1 _).obj
-     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
-  (@colimit.ι (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1
-     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down))
-     _
-     (@discrete.mk (ulift β) (@ulift.up β i)))
-@split_mono.mono ((λ (_x : β), C) i) _inst_1 (Y i)
-  ((@colim (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1 (_inst_2 (ulift β))).obj
-     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
-  (@colimit.ι (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1
-     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down))
-     (@limits.has_colimit_of_has_colimits_of_shape C _inst_1 (discrete (ulift β))
-        (category_theory.discrete_category (ulift β))
-        (_inst_2 (ulift β))
-        (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
-     (@discrete.mk (ulift β) (@ulift.up β i)))
-  (@limits.split_mono_sigma_ι ((λ (_x : β), C) i) _inst_1 (ulift β) _inst_3 (λ (i : ulift β), Y i.down)
-     (@limits.has_colimit_of_has_colimits_of_shape C _inst_1 (discrete (ulift β))
-        (category_theory.discrete_category (ulift β))
-        (_inst_2 (ulift β))
-        (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
-     (@ulift.up β i))
--/
 /--
 The `total` functor taking a graded object to the coproduct of its graded components is faithful.
 To prove this, we need to know that the coprojections into the coproduct are monomorphisms,

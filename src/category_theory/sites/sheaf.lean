@@ -494,6 +494,7 @@ begin
     rw equalizer.presieve.sheaf_condition,
     refine ⟨_⟩,
     refine is_sheaf_for_is_sheaf_for' _ _ _ _ _,
+    letI := preserves_smallest_limits_of_preserves_limits (coyoneda.obj (op U)),
     apply is_limit_of_preserves,
     apply classical.choice (h _ S _),
     simpa }

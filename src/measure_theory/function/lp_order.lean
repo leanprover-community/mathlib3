@@ -78,17 +78,6 @@ subtype.lattice (λ f g hf hg, by { rw mem_Lp_iff_mem_ℒp at *,
   (λ f g hf hg, by { rw mem_Lp_iff_mem_ℒp at *,
     exact (mem_ℒp_congr_ae (ae_eq_fun.coe_fn_inf _ _)).mpr (hf.inf hg),})
 
-lemma ae_eq_fun.coe_fn_abs [second_countable_topology E] [measurable_space E] [borel_space E]
-  [has_measurable_sup₂ E]
-  (f : α →ₘ[μ] E) :
-    ⇑|f| =ᵐ[μ] λ x, |f x| :=
-begin
-  simp_rw abs_eq_sup_neg,
-  refine (ae_eq_fun.coe_fn_sup _ _).trans _,
-  filter_upwards [ae_eq_fun.coe_fn_neg f] with x hx,
-  rw [hx, pi.neg_apply],
-end
-
 lemma coe_fn_sup [measurable_space E] [second_countable_topology E]
   [borel_space E] [has_measurable_sup₂ E] (f g : Lp E p μ) : ⇑(f ⊔ g) =ᵐ[μ] ⇑f ⊔ ⇑g :=
 ae_eq_fun.coe_fn_sup _ _

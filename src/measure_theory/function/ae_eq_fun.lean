@@ -679,6 +679,21 @@ induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add_left' hf.ae_measurabl
 lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
 
+section abs
+
+lemma coe_fn_abs {β} [topological_space β] [add_group β] [topological_add_group β] [lattice β]
+  [measurable_space β] [second_countable_topology β]
+  [pseudo_metrizable_space β] [borel_space β] [has_measurable_sup₂ β]
+  (f : α →ₘ[μ] β) :
+  ⇑|f| =ᵐ[μ] λ x, |f x| :=
+begin
+  simp_rw abs_eq_sup_neg,
+  filter_upwards [ae_eq_fun.coe_fn_sup f (-f), ae_eq_fun.coe_fn_neg f] with x hx_sup hx_neg,
+  rw [hx_sup, hx_neg, pi.neg_apply],
+end
+
+end abs
+
 section pos_part
 
 variables [linear_order γ] [order_closed_topology γ] [has_zero γ]

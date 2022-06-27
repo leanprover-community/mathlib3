@@ -107,7 +107,7 @@ begin
   exact (sub_ne_zero.2 (circle_map_ne_mem_ball ha2 b)),
 end
 
-lemma circle_transform_bounding_function_continuous {R r : ℝ} (hr : r < R) (z : ℂ) :
+lemma continuous_on_abs_circle_transform_bounding_function {R r : ℝ} (hr : r < R) (z : ℂ) :
   continuous_on (abs ∘ (λ t, circle_transform_bounding_function R z t))
   ((closed_ball z r) ×ˢ (⊤ : set ℝ) : set $ ℂ × ℝ) :=
 begin
@@ -128,7 +128,7 @@ lemma abs_circle_transform_bounding_function_le {R r : ℝ} (hr : r < R) (hr' : 
   ∀ (y : ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ)),
   abs (circle_transform_bounding_function R z y) ≤ abs (circle_transform_bounding_function R z x) :=
 begin
-  have cts := circle_transform_bounding_function_continuous hr z,
+  have cts := continuous_on_abs_circle_transform_bounding_function hr z,
   have comp : is_compact (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
   have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,

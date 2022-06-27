@@ -120,7 +120,7 @@ by haveI hm0 : _root_.fact (0 < m) := ⟨(nat.find_spec hm).snd.1⟩; exact
 have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,
-    let ⟨k, hk⟩ := (nat.dvd_iff_mod_eq_zero _ _).2 hm2 in
+    let ⟨k, hk⟩ := nat.dvd_iff_mod_eq_zero.2 hm2 in
     have hk0 : 0 < k, from nat.pos_of_ne_zero $ λ _, by { simp [*, lt_irrefl] at * },
     have hkm : k < m, { rw [hk, two_mul], exact (lt_add_iff_pos_left _).2 hk0 },
     false.elim $ nat.find_min hm hkm ⟨lt_trans hkm hmp, hk0,

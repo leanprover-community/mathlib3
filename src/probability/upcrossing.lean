@@ -51,7 +51,7 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
-variables {α : Type*} {m0 : measurable_space α} {μ : measure α}
+variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α}
 
 /-!
 
@@ -118,29 +118,34 @@ To obtain the general case, we simply apply the above to $((f_n - a)^+)_n$.
 /-- `lower_crossing_aux a f c N` is the first time `f` reached below `a` after time `c` before
 time `N`. -/
 noncomputable
-def lower_crossing_aux (a : ℝ) (f : ℕ → α → ℝ) (c N : ℕ) : α → ℕ :=
+def lower_crossing_aux [preorder ι] [has_Inf ι] (a : ℝ) (f : ι → α → ℝ) (c N : ι) : α → ι :=
 hitting f (set.Iic a) c N
 
 /-- `upper_crossing a b f N n` is the first time before time `N`, `f` reaches
 above `b` after `f` reached below `a` for the `n - 1`-th time. -/
 noncomputable
-def upper_crossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) : ℕ → α → ℕ
-| 0 := 0
+def upper_crossing [preorder ι] [order_bot ι] [has_Inf ι]
+  (a b : ℝ) (f : ι → α → ℝ) (N : ι) : ℕ → α → ι
+| 0 := ⊥
 | (n + 1) := λ x, hitting f (set.Ici b) (lower_crossing_aux a f (upper_crossing n x) N x) N x
 
 /-- `lower_crossing a b f N n` is the first time before time `N`, `f` reaches
 below `a` after `f` reached above `b` for the `n`-th time. -/
 noncomputable
-def lower_crossing (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) : α → ℕ :=
+def lower_crossing [preorder ι] [order_bot ι] [has_Inf ι]
+  (a b : ℝ) (f : ι → α → ℝ) (N : ι) (n : ℕ) : α → ι :=
 λ x, hitting f (set.Iic a) (upper_crossing a b f N n x) N x
 
-variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α}
+section
+
+variables [preorder ι] [order_bot ι] [has_Inf ι]
+variables {a b : ℝ} {f : ι → α → ℝ} {N : ι} {n m : ℕ} {x : α}
 
 @[simp]
-lemma upper_crossing_zero : upper_crossing a b f N 0 = 0 := rfl
+lemma upper_crossing_zero : upper_crossing a b f N 0 = ⊥ := rfl
 
 @[simp]
-lemma lower_crossing_zero : lower_crossing a b f N 0 = hitting f (set.Iic a) 0 N := rfl
+lemma lower_crossing_zero : lower_crossing a b f N 0 = hitting f (set.Iic a) ⊥ N := rfl
 
 lemma upper_crossing_succ :
   upper_crossing a b f N (n + 1) x =
@@ -155,16 +160,23 @@ begin
   refl,
 end
 
+end
+
+section conditionally_complete_linear_order_bot
+
+variables [conditionally_complete_linear_order_bot ι]
+variables {a b : ℝ} {f : ι → α → ℝ} {N : ι} {n m : ℕ} {x : α}
+
 lemma upper_crossing_le : upper_crossing a b f N n x ≤ N :=
 begin
   cases n,
-  { simp only [upper_crossing_zero, zero_le, pi.zero_apply] },
-  { simp only [hitting_le x, upper_crossing_succ] },
+  { simp only [upper_crossing_zero, pi.bot_apply, bot_le] },
+  { simp only [upper_crossing_succ, hitting_le] },
 end
 
 @[simp]
-lemma upper_crossing_zero' : upper_crossing a b f 0 n x = 0 :=
-nat.eq_zero_of_le_zero upper_crossing_le
+lemma upper_crossing_zero' : upper_crossing a b f ⊥ n x = ⊥ :=
+eq_bot_iff.2 upper_crossing_le
 
 lemma lower_crossing_le : lower_crossing a b f N n x ≤ N :=
 by simp only [lower_crossing, hitting_le x]
@@ -197,6 +209,10 @@ begin
   exact monotone_nat_of_le_succ
     (λ n, le_trans upper_crossing_le_lower_crossing lower_crossing_le_upper_crossing_succ),
 end
+
+end conditionally_complete_linear_order_bot
+
+variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α}
 
 lemma stopped_value_lower_crossing (h : lower_crossing a b f N n x ≠ N) :
   stopped_value f (lower_crossing a b f N n) x ≤ a :=
@@ -356,13 +372,17 @@ begin
   { intros i hi j hj hij,
     rw set.Ico_disjoint_Ico,
     obtain (hij' | hij') := lt_or_gt_of_ne hij,
-    { rw [min_eq_left (upper_crossing_mono (nat.succ_le_succ hij'.le)),
-        max_eq_right (lower_crossing_mono hij'.le)],
+    { rw [min_eq_left ((upper_crossing_mono (nat.succ_le_succ hij'.le)) :
+          upper_crossing a b f N _ x ≤ upper_crossing a b f N _ x),
+          max_eq_right (lower_crossing_mono hij'.le :
+          lower_crossing a b f N _ _ ≤ lower_crossing _ _ _ _ _ _)],
       refine le_trans upper_crossing_le_lower_crossing (lower_crossing_mono
         (nat.succ_le_of_lt hij')) },
     { rw gt_iff_lt at hij',
-      rw [min_eq_right (upper_crossing_mono (nat.succ_le_succ hij'.le)),
-        max_eq_left (lower_crossing_mono hij'.le)],
+      rw [min_eq_right ((upper_crossing_mono (nat.succ_le_succ hij'.le)) :
+          upper_crossing a b f N _ x ≤ upper_crossing a b f N _ x),
+          max_eq_left (lower_crossing_mono hij'.le :
+          lower_crossing a b f N _ _ ≤ lower_crossing _ _ _ _ _ _)],
       refine le_trans upper_crossing_le_lower_crossing
         (lower_crossing_mono (nat.succ_le_of_lt hij')) } }
 end
@@ -425,11 +445,14 @@ end
 
 /-- The number of upcrossings (strictly) before time `N`. -/
 noncomputable
-def upcrossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) (x : α) : ℕ :=
+def upcrossing [preorder ι] [order_bot ι] [has_Inf ι]
+  (a b : ℝ) (f : ι → α → ℝ) (N : ι) (x : α) : ℕ :=
 Sup {n | upper_crossing a b f N n x < N}
 
 @[simp]
-lemma upcrossing_zero : upcrossing a b f 0 x = 0 :=
+lemma upcrossing_bot [preorder ι] [order_bot ι] [has_Inf ι]
+  {a b : ℝ} {f : ι → α → ℝ} {x : α} :
+  upcrossing a b f ⊥ x = ⊥ :=
 by simp [upcrossing]
 
 lemma upper_crossing_lt_of_le_upcrossing
@@ -629,7 +652,8 @@ private lemma mul_integral_upcrossing_le_integral_pos_part' [is_finite_measure �
 begin
   by_cases hN : N = 0,
   { subst hN,
-    simp only [upcrossing_zero, nat.cast_zero, integral_const, algebra.id.smul_eq_mul, mul_zero],
+    simp_rw [← bot_eq_zero, upcrossing_bot, bot_eq_zero, integral_const,
+      algebra.id.smul_eq_mul, nat.cast_zero, mul_zero],
     exact integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _) },
   { exact mul_integral_upcrossing_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
 end

@@ -513,6 +513,9 @@ Ioc_pred_right_of_not_is_min $ not_is_min _
 lemma is_pred_limit_of_is_max (h : is_max a) : is_pred_limit a :=
 by { rintros b rfl, exact h.not_lt (pred_lt b) }
 
+lemma is_pred_limit_of_lt_pred (H : ∀ b > a, a < pred b) : is_pred_limit a :=
+by { rintros a rfl, exact (H a (pred_lt a)).false }
+
 end no_min_order
 end preorder
 
@@ -591,6 +594,9 @@ by simp_rw [←Ioi_inter_Iio, Ioi_pred_eq_insert, insert_inter_of_mem (mem_Iio.2
 
 lemma is_pred_limit.lt_pred (ha : is_pred_limit a) (hb : a < b) : a < pred b :=
 by { rw [lt_iff_le_and_ne, le_pred_iff], exact ⟨hb, (ha b).symm⟩ }
+
+lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
+⟨λ ha b, ha.lt_pred, is_pred_limit_of_lt_pred⟩
 
 end no_min_order
 

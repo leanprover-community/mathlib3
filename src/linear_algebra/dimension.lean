@@ -453,7 +453,7 @@ begin
     exact i.prop },
   choose v hvV hv using hI,
   have : linear_independent R v,
-  { exact (hV.comp _ subtype.coe_injective).linear_independent _ hvV hv },
+  { exact (hV.comp subtype.coe_injective).linear_independent _ hvV hv },
   exact cardinal_lift_le_dim_of_linear_independent' this
 end
 

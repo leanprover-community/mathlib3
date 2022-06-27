@@ -3235,7 +3235,7 @@ begin
       by rw @trim_measurable_set_eq α m₂ m (μ.trim hm) _ hm₂ (measurable_spanning_sets _ _)
     ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
       by rw @trim_trim _ _ μ _ _ hm₂ hm
-    ... < ⊤ : measure_spanning_sets_lt_top _ _, },
+    ... < ∞ : measure_spanning_sets_lt_top _ _, },
 end
 
 end trim

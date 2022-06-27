@@ -82,13 +82,10 @@ begin
     have : 2 * (m.succ : ℝ) + 1 ≠ 0, {norm_cast, exact succ_ne_zero (2*m.succ)},
     field_simp,
     ring },
-  { have h : 1 + (m.succ : ℝ)⁻¹ = (m.succ + 1) / (m.succ),
-    { rw add_div _ _ _,
-      rw [one_div, add_left_inj, div_self ],
-      exact nonzero_of_invertible _, },
-    rw h,
+  { have h : ∀ (x : ℝ) (hx : x ≠ 0), 1 + x⁻¹ = (x + 1) / x,
+    { intros, rw [_root_.add_div, div_self hx, inv_eq_one_div], },
     simp only [log_stirling_seq_formula, log_div, log_mul, log_exp, factorial_succ, cast_mul,
-      cast_succ, cast_zero, range_one, sum_singleton] { discharger :=
+      cast_succ, cast_zero, range_one, sum_singleton, h] { discharger :=
       `[norm_cast, apply_rules [mul_ne_zero, succ_ne_zero, factorial_ne_zero, exp_ne_zero]] },
     ring },
   { apply_instance }

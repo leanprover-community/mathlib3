@@ -10,22 +10,22 @@ import group_theory.eckmann_hilton
 /-!
 # `n`th homotopy group
 
-We define the `n`th homotopy group at `x`, `π n x`, as the equivalence classes
+We define the `n`th homotopy group at `x`, `π_n x`, as the equivalence classes
 of functions from the nth dimensional cube to the topological space `X`
 that send the boundary to the base point `x`, up to homotopic equivalence.
 Note that such functions are generalized loops `gen_loop n x`, in particular
 `gen_loop 1 x ≃ path x x`
 
-We show that `π 0 x` is equivalent to the path-conected components, and
-that `π 1 x` is equivalent to the fundamental group at `x`.
+We show that `π_0 x` is equivalent to the path-conected components, and
+that `π_1 x` is equivalent to the fundamental group at `x`.
 
 ## definitions
 
 * `gen_loop n x` is the type of continous fuctions `I^n → X` that send the boundary to `x`
-* `homotopy_group n x` denoted `π n x` is the quotient of `gen_loop n x` by homotopy relative
+* `homotopy_group n x` denoted `π_ n x` is the quotient of `gen_loop n x` by homotopy relative
   to the boundary
 
-TODO: show that `π n x` is a group when `n > 0` and abelian when `n > 1`. Show that
+TODO: show that `π_ n x` is a group when `n > 0` and abelian when `n > 1`. Show that
 `pi1_equiv_fundamental_group` is an isomorphism of groups.
 
 -/
@@ -47,8 +47,6 @@ notation `I^` := cube
 
 namespace cube
 
--- example : compact_space (I) := by apply_instance
--- example : locally_compact_space (I) := locally_compact_of_proper
 instance c : compact_space (I^n) := by sorry
 instance locally_compact_space : locally_compact_space (I^n) := locally_compact_of_proper
 
@@ -217,7 +215,6 @@ by {rcases p with ⟨p,pH⟩, unfold to_path, simpa}
 
 def comp' {A B C} [topological_space A] [topological_space B] [topological_space C]
   (g: C(A,B)) : C(C(B,C), C(A,C)) := ⟨λ f, f.comp g, by sorry⟩
-def cf : C(C(I^(n+1),X), C(I×I^n,X)) := comp' cube.fold
 
 lemma homotopic_iff {p q : gen_loop (n+1) x} : homotopic p q ↔ (to_path p).homotopic (to_path q) :=
 begin
@@ -226,17 +223,17 @@ begin
     refine ⟨⟨_,_,_⟩,_⟩,
     { let c:C(C(I × I^n, X),C(I, C(I^n, X))):=
         ⟨continuous_map.curry,continuous_map.continuous_curry⟩,
-      refine ⟨λ t, ⟨(c.comp (cf.comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,
+      refine ⟨λ t, ⟨(c.comp ((comp' cube.fold).comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,
       { rintros y ⟨i,iH⟩,
         unfold continuous_map.uncurry, unfold function.uncurry,
-        unfold cf, unfold comp', unfold cube.fold,
+        unfold comp', unfold cube.fold,
         simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
           continuous_map.homotopy_with.coe_to_continuous_map],
         rw H.eq_fst, rw p.property, all_goals {use i.succ, rwa fin.cons_succ}},
       simp only [auto_param_eq], continuity },
     { intro t, ext1, simp only [path.coe_to_continuous_map],
       unfold continuous_map.uncurry, unfold function.uncurry,
-      unfold cf, unfold comp', unfold cube.fold,
+      unfold comp', unfold cube.fold,
       simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
         continuous_map.homotopy_with.coe_to_continuous_map],
       unfold continuous_map.curry,
@@ -248,7 +245,7 @@ begin
       exact curry_to_path},
     { intro t, ext1, simp only [path.coe_to_continuous_map],
       unfold continuous_map.uncurry, unfold function.uncurry,
-      unfold cf, unfold comp', unfold cube.fold,
+      unfold comp', unfold cube.fold,
       simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
         continuous_map.homotopy_with.coe_to_continuous_map],
       unfold continuous_map.curry,
@@ -261,7 +258,7 @@ begin
     intros t y yH,
     simp only [continuous_map.coe_mk, path.coe_to_continuous_map],
     unfold continuous_map.uncurry, unfold function.uncurry,
-    unfold cf, unfold comp', unfold cube.fold,
+    unfold comp', unfold cube.fold,
     simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
       continuous_map.homotopy_with.coe_to_continuous_map],
     unfold continuous_map.curry,
@@ -297,134 +294,11 @@ The `n`th homotopy group at `x` defined as the quotient of `gen_loop n x` by the
 `homotopic` relation.
 -/
 @[derive inhabited]
-def homotopy_group (n : ℕ) (x : X) : Type _ := quotient (gen_loop.homotopic.setoid n x)
-local notation `π` := homotopy_group
+def homotopy_group (n : ℕ) (X : Type*) [topological_space X] (x : X) : Type _ :=
+quotient (gen_loop.homotopic.setoid n x)
+local notation `π_` := homotopy_group
 
 namespace homotopy_group
-def concat : π (n+1) x → π (n+1) x → π (n+1) x :=
-begin
-  refine (quotient.map₂' gen_loop.concat _),
-  rintros p₀ p₁ Hp q₀ q₁ Hq,
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.concat2trans},
-  apply path.homotopic.hcomp; apply gen_loop.homotopic_iff.1,
-  exacts [Hp, Hq],
-end
-
-instance has_mul : has_mul (π (n+1) x) := ⟨concat⟩
-local infix `⋆`:60 := concat
-
-def concat_assoc (p q r : π (n+1) x) : ((p ⋆ q) ⋆ r) = (p ⋆ (q ⋆ r)) :=
-begin
-  refine (quotient.induction_on₃ p q r _),
-  intros a b c, refine (quotient.sound _),
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.concat2trans},
-  constructor,
-  apply path.homotopy.trans_assoc
-end
-
-def const : π n x := quotient.mk' gen_loop.const
-
-instance has_one : has_one (π n x) := ⟨const⟩
-
-local notation `𝟙` := const
-
-lemma concat_const (p: π (n+1) x) : p ⋆ 𝟙 = p :=
-begin
-  induction p using quotient.induction_on,
-  refine (quotient.sound _),
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.concat2trans},
-  rw gen_loop.const_to_refl,
-  constructor,
-  apply path.homotopy.trans_refl,
-end
-
-lemma const_concat (p: π (n+1) x) : 𝟙 ⋆ p = p :=
-begin
-  induction p using quotient.induction_on,
-  refine (quotient.sound _),
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.concat2trans},
-  rw gen_loop.const_to_refl,
-  constructor,
-  apply path.homotopy.refl_trans,
-end
-
-def reverse {n':nat} : π (n'+1) x → π (n'+1) x :=
-begin
-  refine (quotient.map' (λ p, gen_loop.from_path (gen_loop.to_path p).symm) _),
-  intros p q H,
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.to_from},
-  apply nonempty.map path.homotopy.symm₂,
-  exact gen_loop.homotopic_iff.1 H
-end
-instance has_inv : has_inv (π (n+1) x) := ⟨reverse⟩
-local postfix `⁻¹`:65 := has_inv.inv
-
-lemma reverse_concat (p: π (n+1) x) : (p⁻¹) ⋆ p = 𝟙 :=
-begin
-  induction p using quotient.induction_on,
-  refine (quotient.sound _),
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.concat2trans},
-  rw gen_loop.const_to_refl,
-  repeat {rw gen_loop.to_from},
-  symmetry, constructor,
-  apply  path.homotopy.refl_symm_trans
-end
-lemma concat_reverse (p: π (n+1) x) : p ⋆ (p⁻¹)  = 𝟙 :=
-begin
-  induction p using quotient.induction_on,
-  refine (quotient.sound _),
-  apply gen_loop.homotopic_iff.2,
-  repeat {rw gen_loop.concat2trans},
-  rw gen_loop.const_to_refl,
-  repeat {rw gen_loop.to_from},
-  symmetry, constructor,
-  apply  path.homotopy.refl_trans_symm
-end
-
-def is_group : group (π (n+1) x) := {
-  mul := concat,
-  mul_assoc := concat_assoc,
-  one := const,
-  one_mul := const_concat,
-  mul_one := concat_const,
-  npow := npow_rec,
-  npow_zero' := λ _, rfl,
-  npow_succ' := λ _ _, rfl,
-  inv := reverse,
-  div := λ a b, a⋆(b⁻¹),
-  div_eq_mul_inv := λ _ _, rfl,
-  zpow := zpow_rec,
-  zpow_zero' := λ _, rfl,
-  zpow_succ' := λ _ _, rfl,
-  zpow_neg' := λ _ _, rfl,
-  mul_left_inv := reverse_concat
-}
-
-def m₂ : π (n+2) x → π (n+2) x → π (n+2) x :=
-begin
-  refine (quotient.map₂' _ _),
-  {rintros H0 H1, refine ⟨_,_⟩; sorry},
-  rintros p₀ p₁ Hp q₀ q₁ Hq,
-  sorry
-end
-
-def unital : @eckmann_hilton.is_unital (π (n+2) x) m₂ const :=
-sorry
-
-instance comm_group : comm_group (π (n+2) x) :=
-begin
-  apply @ eckmann_hilton.comm_group _ _ _ unital is_group,
-  intros a b c d,
-  sorry
-end
-
-end homotopy_group
 
 /-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
 def gen_loop_zero_equiv : gen_loop 0 x ≃ X :=
@@ -436,7 +310,7 @@ def gen_loop_zero_equiv : gen_loop 0 x ≃ X :=
 /--
 The 0th homotopy "group" is equivalent to the path components of `X`, aka the `zeroth_homotopy`.
 -/
-def pi0_equiv_path_components : π 0 x ≃ zeroth_homotopy X :=
+def pi0_equiv_path_components : π_ 0 X x ≃ zeroth_homotopy X :=
 quotient.congr gen_loop_zero_equiv
 begin
   -- joined iff homotopic
@@ -471,7 +345,7 @@ end
 The first homotopy group at `x` is equivalent to the fundamental group,
 i.e. the loops based at `x` up to homotopy.
 -/
-def pi1_equiv_fundamental_group : π 1 x ≃ fundamental_group X x :=
+def pi1_equiv_fundamental_group : π_ 1 X x ≃ fundamental_group X x :=
 begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
   refine quotient.congr gen_loop_one_equiv_path_self _,
@@ -491,3 +365,127 @@ begin
         { convert H.eq_snd _ _, exacts [y.one_char, iH] },
       end }⟩],
 end
+
+def concat : π_(n+1) X x → π_(n+1) X x → π_(n+1) X x :=
+begin
+  refine (quotient.map₂' gen_loop.concat _),
+  rintros p₀ p₁ Hp q₀ q₁ Hq,
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  apply path.homotopic.hcomp; apply gen_loop.homotopic_iff.1,
+  exacts [Hp, Hq],
+end
+instance has_mul : has_mul (π_(n+1) X x) := ⟨concat⟩
+local infix `⋆`:60 := concat
+
+def concat_assoc (p q r : π_(n+1) X x) : ((p ⋆ q) ⋆ r) = (p ⋆ (q ⋆ r)) :=
+begin
+  refine (quotient.induction_on₃ p q r _),
+  intros a b c, refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  constructor,
+  apply path.homotopy.trans_assoc
+end
+
+def const : π_ n X x := quotient.mk' gen_loop.const
+
+instance has_one : has_one (π_ n X x) := ⟨const⟩
+
+local notation `𝟙` := const
+
+lemma concat_const (p: π_(n+1) X x) : p ⋆ 𝟙 = p :=
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  constructor,
+  apply path.homotopy.trans_refl,
+end
+
+lemma const_concat (p: π_(n+1) X x) : 𝟙 ⋆ p = p :=
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  constructor,
+  apply path.homotopy.refl_trans,
+end
+
+def reverse {n':nat} : π_(n'+1) X x → π_(n'+1) X x :=
+begin
+  refine (quotient.map' (λ p, gen_loop.from_path ((gen_loop.to_path p).symm)) _),
+  intros p q H,
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.to_from},
+  apply nonempty.map path.homotopy.symm₂,
+  exact gen_loop.homotopic_iff.1 H
+end
+instance has_inv : has_inv (π_(n+1) X x) := ⟨reverse⟩
+local postfix `⁻¹`:65 := has_inv.inv
+
+lemma reverse_concat (p: π_(n+1) X x) : p⁻¹ ⋆ p = 𝟙 :=
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  repeat {rw gen_loop.to_from},
+  symmetry, constructor,
+  apply  path.homotopy.refl_symm_trans
+end
+lemma concat_reverse (p: π_(n+1) X x) : p ⋆ p⁻¹  = 𝟙 :=
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  repeat {rw gen_loop.to_from},
+  symmetry, constructor,
+  apply  path.homotopy.refl_trans_symm
+end
+
+def is_group : group (π_(n+1) X x) := {
+  mul := concat,
+  mul_assoc := concat_assoc,
+  one := const,
+  one_mul := const_concat,
+  mul_one := concat_const,
+  npow := npow_rec,
+  npow_zero' := λ _, rfl,
+  npow_succ' := λ _ _, rfl,
+  inv := reverse,
+  div := λ a b, a⋆(b⁻¹),
+  div_eq_mul_inv := λ _ _, rfl,
+  zpow := zpow_rec,
+  zpow_zero' := λ _, rfl,
+  zpow_succ' := λ _ _, rfl,
+  zpow_neg' := λ _ _, rfl,
+  mul_left_inv := reverse_concat
+}
+
+def m₂ : π_(n+2) X x → π_(n+2) X x → π_(n+2) X x :=
+begin
+  refine (quotient.map₂' _ _),
+  {rintros H0 H1, refine ⟨_,_⟩; sorry},
+  rintros p₀ p₁ Hp q₀ q₁ Hq,
+  sorry
+end
+
+def unital : @eckmann_hilton.is_unital (π_(n+2) X x) m₂ const :=
+sorry
+
+instance comm_group : comm_group (π_(n+2) X x) :=
+begin
+  apply @ eckmann_hilton.comm_group _ _ _ unital is_group,
+  intros a b c d,
+  sorry
+end
+
+end homotopy_group

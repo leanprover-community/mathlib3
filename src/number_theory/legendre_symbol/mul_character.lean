@@ -476,9 +476,6 @@ begin
   exact eq_zero_of_mul_eq_self_left hb h₁,
 end
 
--- this can go once #14873 is merged
-instance {M} [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
-
 /-- The sum over all values of the trivial multiplicative character on a finite ring is
 the cardinality of its unit group. -/
 lemma sum_eq_card_units_of_is_trivial [fintype R] [decidable_eq R] :

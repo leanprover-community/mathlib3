@@ -48,7 +48,7 @@ variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 @[derive [inhabited, semi_normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : continuous_linear_map_class (dual 𝕜 E) 𝕜 E 𝕜 :=
-  continuous_linear_map.continuous_semilinear_map_class
+continuous_linear_map.continuous_semilinear_map_class
 
 instance : has_coe_to_fun (dual 𝕜 E) (λ _, E → 𝕜) := continuous_linear_map.to_fun
 

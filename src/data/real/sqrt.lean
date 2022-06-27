@@ -341,23 +341,23 @@ open real
 variables {α : Type*}
 
 lemma exists_rat_sq_btwn_rat_aux (x y : ℝ) (h : x < y) (hy : 0 < y) :
-  ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
+  ∃ q : ℚ, 0 < q ∧ x < q^2 ∧ ↑q^2 < y :=
 begin
-  rw ←sqrt_lt_sqrt_iff_of_pos hy at h,
-  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn h,
-  have hq : (0 : ℝ) ≤ q := x.sqrt_nonneg.trans hxq.le,
-  refine ⟨q, _, lt_sq_of_sqrt_lt hxq, _⟩,
+  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn
+    (max_lt ((sqrt_lt_sqrt_iff_of_pos hy).2 h) $ sqrt_pos.2 hy),
+  have hq : (0 : ℝ) < q := (le_max_right _ _).trans_lt hxq,
+  refine ⟨q, _, lt_sq_of_sqrt_lt $ (le_max_left _ _).trans_lt hxq, _⟩,
   { assumption_mod_cast },
-  { rwa [←real.sqrt_lt_sqrt_iff (pow_nonneg hq 2), real.sqrt_sq hq] }
+  { rwa [←real.sqrt_lt_sqrt_iff (pow_nonneg hq.le 2), real.sqrt_sq hq.le] }
 end
 
 lemma exists_rat_sq_btwn_rat {x y : ℚ} (h : x < y) (hy : 0 < y) :
-  ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
+  ∃ q : ℚ, 0 < q ∧ x < q^2 ∧ q^2 < y :=
 by apply_mod_cast exists_rat_sq_btwn_rat_aux x y; assumption
 
 /-- There is a rational square between any two positive elements of an archimedean ordered field. -/
 lemma exists_rat_sq_btwn [linear_ordered_field α] [archimedean α] {x y : α} (h : x < y)
-  (hy : 0 < y) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ (q^2 : α) < y :=
+  (hy : 0 < y) : ∃ q : ℚ, 0 < q ∧ x < q^2 ∧ (q^2 : α) < y :=
 begin
   obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
   obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,

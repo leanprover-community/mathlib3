@@ -1052,16 +1052,10 @@ instance : has_inf (uniform_space α) :=
     (u₁.to_topological_space ⊓ u₂.to_topological_space) (uniform_space.of_core
     { uniformity  := u₁.uniformity ⊓ u₂.uniformity,
       refl        := le_inf u₁.refl u₂.refl,
-      symm        := le_inf
-        (le_trans (map_mono inf_le_left) u₁.symm) (le_trans (map_mono inf_le_right) u₂.symm),
-      comp        := le_inf
-        (le_trans (lift'_mono inf_le_left le_rfl) u₁.comp)
-        (le_trans (lift'_mono inf_le_right le_rfl) u₂.comp) }) $
-    eq_of_nhds_eq_nhds $ λ a, begin
-      rw [nhds_inf, nhds_eq_uniformity, nhds_eq_uniformity, ←lift'_inf _ _ (ball_inter _),
-        nhds_eq_uniformity],
-      refl
-    end ⟩
+      symm        := u₁.symm.inf u₂.symm,
+      comp        := (lift'_inf_le _ _ _).trans $ inf_le_inf u₁.comp u₂.comp }) $
+    eq_of_nhds_eq_nhds $ λ a,
+      by simpa only [nhds_inf, nhds_eq_comap_uniformity] using comap_inf.symm⟩
 
 instance : complete_lattice (uniform_space α) :=
 { sup           := λa b, Inf {x | a ≤ x ∧ b ≤ x},

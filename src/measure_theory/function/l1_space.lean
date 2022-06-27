@@ -605,32 +605,33 @@ lemma integrable.sub {f g : α → β}
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma integrable.norm {f : α → β} (hf : integrable f μ) :
-  integrable (λa, ∥f a∥) μ :=
+  integrable (λ a, ∥f a∥) μ :=
 ⟨hf.ae_strongly_measurable.norm, hf.has_finite_integral.norm⟩
 
-lemma integrable.abs {f : α → ℝ} (hf : integrable f μ) :
-  integrable (λa, |f a|) μ :=
-by simpa [← real.norm_eq_abs] using hf.norm
+lemma integrable.inf {β} [normed_lattice_add_comm_group β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⊓ g) μ :=
+integrable.mono' (hf.norm.add hg.norm) (hf.1.inf hg.1)
+  (eventually_of_forall (λ x, norm_inf_le_add (f x) (g x)))
 
-lemma integrable.sup {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) :
+lemma integrable.sup {β} [normed_lattice_add_comm_group β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) :
   integrable (f ⊔ g) μ :=
-begin
-  refine integrable.mono' (hf.abs.add hg.abs) (hf.1.sup hg.1) (eventually_of_forall (λ x, _)),
-  simp only [pi.add_apply, real.norm_eq_abs, abs_le],
-  refine ⟨_, max_le
-    (le_add_of_le_of_nonneg (le_abs_self _) (abs_nonneg _))
-    (le_add_of_nonneg_of_le (abs_nonneg _) (le_abs_self _))⟩,
-  refine le_max_of_le_left _,
-  rw [neg_add', sub_le_iff_le_add],
-  exact le_trans (neg_abs_le_self _) (le_add_of_nonneg_right (abs_nonneg _)),
-end
+integrable.mono' (hf.norm.add hg.norm) (hf.1.sup hg.1)
+  (eventually_of_forall (λ x, norm_sup_le_add (f x) (g x)))
+
+lemma integrable.abs {β} [normed_lattice_add_comm_group β] {f : α → β} (hf : integrable f μ) :
+  integrable (λ a, |f a|) μ :=
+by { simp_rw abs_eq_sup_neg, exact hf.sup hf.neg, }
 
 lemma integrable.bdd_mul {F : Type*} [normed_division_ring F]
   {f g : α → F} (hint : integrable g μ) (hm : ae_strongly_measurable f μ)
   (hfbdd : ∃ C, ∀ x, ∥f x∥ ≤ C) :
   integrable (λ x, f x * g x) μ :=
 begin
-  by_cases hα : nonempty α,
+  casesI is_empty_or_nonempty α with hα hα,
+  { rw μ.eq_zero_of_is_empty,
+    exact integrable_zero_measure },
   { refine ⟨hm.mul hint.1, _⟩,
     obtain ⟨C, hC⟩ := hfbdd,
     have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (hC hα.some),
@@ -642,10 +643,6 @@ begin
     simp only [ennreal.coe_mul],
     rw lintegral_const_mul' _ _ ennreal.coe_ne_top,
     exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hint.2) },
-  { rw not_nonempty_iff at hα,
-    haveI := hα,
-    rw μ.eq_zero_of_is_empty,
-    exact integrable_zero_measure }
 end
 
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :

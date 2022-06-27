@@ -203,6 +203,19 @@ begin
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
 end
 
+/-- TODO remove this, this is only an example for an instance. -/
+lemma condexp_stopping_time_restrict_eq_of_order_bot
+  [(filter.at_top : filter ι).is_countably_generated]
+  [topological_space ι] [order_topology ι] [first_countable_topology ι] [order_bot ι]
+  [sigma_finite_filtration μ ℱ] {f : α → E}
+  (hτ : is_stopping_time ℱ τ) {i : ι} :
+  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
+begin
+  refine condexp_ae_eq_restrict_of_measurable_space_eq_on
+    hτ.measurable_space_le (ℱ.le i) (hτ.measurable_set_eq' i) (λ t, _),
+  rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
+end
+
 lemma condexp_min_stopping_time_restrict_le [(filter.at_top : filter ι).is_countably_generated]
   [topological_space ι] [measurable_space ι]
   [order_topology ι] [second_countable_topology ι] [borel_space ι] {f : α → E}

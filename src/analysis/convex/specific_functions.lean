@@ -208,7 +208,9 @@ end
 
 section sqrt_mul_log
 
-lemma deriv_sqrt_mul_log (x : ℝ) : deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
+variables (x : ℝ)
+
+lemma deriv_sqrt_mul_log : deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
 begin
   cases le_or_lt x 0 with hx hx,
   { rw [sqrt_eq_zero_of_nonpos hx, mul_zero, div_zero],
@@ -227,19 +229,27 @@ begin
   norm_num,
 end
 
-lemma deriv2_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
-  deriv^[2] (λ x, sqrt x * log x) x = -log x / (4 * sqrt x ^ 3) :=
+lemma deriv2_sqrt_mul_log : deriv^[2] (λ x, sqrt x * log x) x = -log x / (4 * sqrt x ^ 3) :=
 begin
-  let h := (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at,
   change deriv (λ x, deriv (λ x, sqrt x * log x) x) x = _,
-  simp_rw [deriv_sqrt_mul_log, sqrt_eq_rpow],
+  simp only [deriv_sqrt_mul_log],
+  cases le_or_lt x 0 with hx hx,
+  { rw [sqrt_eq_zero_of_nonpos hx, zero_pow zero_lt_three, mul_zero, div_zero],
+    cases em' (differentiable_at ℝ (λ x, (2 + log x) / (2 * sqrt x)) x) with h h,
+    { rw deriv_zero_of_not_differentiable_at h },
+    have h0 : unique_diff_within_at ℝ (Iic 0) x := unique_diff_on_Iic 0 x hx,
+    have h1 : ∀ x ∈ Iic (0 : ℝ), (2 + log x) / (2 * sqrt x) = 0 :=
+    λ x hx, by rw [sqrt_eq_zero_of_nonpos hx, mul_zero, div_zero],
+    rw [←h.deriv_within h0, deriv_within_congr h0 h1 (h1 x hx), deriv_within_const x _ _ h0] },
+  let h := (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at,
+  simp only [sqrt_eq_rpow],
   rw [deriv_div ((differentiable_at_log hx.ne').const_add 2) (h.const_mul 2)
       (ne_of_gt (mul_pos two_pos (rpow_pos_of_pos hx 0.5))), deriv_const_add, deriv_log,
       deriv_const_mul 2 h, deriv_rpow_const (or.inl hx.ne'), one_div, mul_comm x⁻¹, mul_assoc,
       mul_inv_cancel_left₀ (show (2 : ℝ) ≠ (0 : ℝ), from two_ne_zero), ←div_eq_mul_inv,
       ←rpow_sub_one hx.ne', ←sub_mul, sub_add_cancel', mul_pow, ←div_div_eq_mul_div, ←mul_div],
-    simp only [mul_pow, pow_succ, pow_zero, mul_one, ←rpow_add hx, ←rpow_sub hx],
-    norm_num,
+  simp only [mul_pow, pow_succ, pow_zero, mul_one, ←rpow_add hx, ←rpow_sub hx],
+  norm_num,
 end
 
 lemma strict_concave_on_sqrt_mul_log_Ioi : strict_concave_on ℝ (set.Ioi 1) (λ x, sqrt x * log x) :=
@@ -249,7 +259,7 @@ begin
   { rw [deriv_within_of_open is_open_Ioi hx, deriv_sqrt_mul_log],
     refine div_ne_zero _ (mul_ne_zero two_ne_zero (sqrt_ne_zero'.mpr (zero_lt_one.trans hx))),
     linarith [log_pos hx] },
-  { rw deriv2_sqrt_mul_log x (zero_lt_one.trans hx),
+  { rw deriv2_sqrt_mul_log,
     exact div_neg_of_neg_of_pos (neg_neg_of_pos (log_pos hx))
       (mul_pos four_pos (pow_pos (sqrt_pos.mpr (zero_lt_one.trans hx)) 3)) },
 end

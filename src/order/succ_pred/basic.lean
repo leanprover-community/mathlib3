@@ -220,12 +220,19 @@ by rw [←Ici_inter_Iic, Ici_succ_of_not_is_max ha, Ioi_inter_Iic]
 lemma Ico_succ_left_of_not_is_max (ha : ¬ is_max a) : Ico (succ a) b = Ioo a b :=
 by rw [←Ici_inter_Iio, Ici_succ_of_not_is_max ha, Ioi_inter_Iio]
 
+/-- A successor limit is a value that isn't a successor. -/
+def is_succ_limit (b : α) : Prop :=
+∀ a, succ a ≠ b
+
+lemma not_is_succ_limit_succ (a : α) : ¬ is_succ_limit (succ a) :=
+λ h, (h a).irrefl
+
 section no_max_order
 variables [no_max_order α]
 
 lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
-lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
-lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
+@[simp] lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
+@[simp] lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
 @[simp] lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
 ⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
@@ -331,6 +338,9 @@ Ico_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 lemma Ioo_succ_right_eq_insert (h : a < b) : Ioo a (succ b) = insert b (Ioo a b) :=
 Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
+
+lemma is_succ_limit.succ_lt (hb : is_succ_limit b) (ha : a < b) : succ a < b :=
+by { rw [lt_iff_le_and_ne, succ_le_iff], exact ⟨ha, hb a⟩ }
 
 end no_max_order
 

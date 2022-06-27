@@ -32,23 +32,16 @@ variables {n : Type*} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
 lemma proj_diagonal (i : n) (w : n → R) :
   (proj i).comp (to_lin' (diagonal w)) = (w i) • proj i :=
-by ext j; simp [mul_vec_diagonal]
+linear_map.ext $ λ j, mul_vec_diagonal _ _ _
 
 lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin'.comp (linear_map.std_basis R (λ_:n, R) i) =
   (w i) • linear_map.std_basis R (λ_:n, R) i :=
-begin
-  ext j,
-  simp_rw [linear_map.comp_apply, to_lin'_apply, mul_vec_diagonal, linear_map.smul_apply,
-           pi.smul_apply, algebra.id.smul_eq_mul],
-  by_cases i = j,
-  { subst h },
-  { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
-end
+linear_map.ext $ λ x, (diagonal_mul_vec_single w _ _).trans (pi.single_smul' i (w i) _)
 
 lemma diagonal_to_lin' (w : n → R) :
   (diagonal w).to_lin' = linear_map.pi (λi, w i • linear_map.proj i) :=
-by ext v j; simp [mul_vec_diagonal]
+linear_map.ext $ λ v, funext $ λ i, mul_vec_diagonal _ _ _
 
 end comm_ring
 

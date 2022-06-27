@@ -10,6 +10,7 @@ import group_theory.group_action.prod
 import group_theory.group_action.units
 import data.complex.module
 import ring_theory.algebraic
+import data.zmod.basic
 
 /-! # Tests that instances do not form diamonds -/
 
@@ -20,6 +21,9 @@ open_locale polynomial
 example :
   (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
 rfl
+
+example : restrict_scalars.module ℝ ℂ ℂ = complex.module := rfl
+example : restrict_scalars.algebra ℝ ℂ ℂ = complex.algebra := rfl
 
 example (α β : Type*) [add_monoid α] [add_monoid β] :
   (prod.has_scalar : has_scalar ℕ (α × β)) = add_monoid.has_scalar_nat := rfl
@@ -167,3 +171,17 @@ example [comm_semiring R] [nontrivial R] :
 rfl
 
 end polynomial
+
+/-! ## `zmod` instances -/
+section zmod
+
+variables {p : ℕ} [fact p.prime]
+
+example : @euclidean_domain.to_comm_ring _ (@field.to_euclidean_domain _ (zmod.field p)) =
+  zmod.comm_ring p :=
+rfl
+
+example (n : ℕ) : zmod.comm_ring (n + 1) = fin.comm_ring n := rfl
+example : zmod.comm_ring 0 = int.comm_ring := rfl
+
+end zmod

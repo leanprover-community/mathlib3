@@ -44,8 +44,8 @@ variables (R S A B)
 If an element `r : R` is invertible in `S`, then it is invertible in `A`. -/
 def invertible.algebra_tower (r : R) [invertible (algebra_map R S r)] :
   invertible (algebra_map R A r) :=
-invertible.copy (invertible.map (algebra_map S A : S →* A) (algebra_map R S r)) (algebra_map R A r)
-  (by rw [ring_hom.coe_monoid_hom, is_scalar_tower.algebra_map_apply R S A])
+invertible.copy (invertible.map (algebra_map S A) (algebra_map R S r)) (algebra_map R A r)
+  (is_scalar_tower.algebra_map_apply R S A r)
 
 /-- A natural number that is invertible when coerced to `R` is also invertible
 when coerced to any `R`-algebra. -/
@@ -64,13 +64,6 @@ end comm_semiring
 end is_scalar_tower
 
 namespace algebra
-
-theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
-  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
-  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
-le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
-  (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] [algebra R A]
@@ -243,7 +236,7 @@ begin
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
   have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
                (↑(insert 1 y : finset C) : set C) :=
-    λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
+    λ xi hxi, hf xi ▸ sum_mem (λ yj hyj, smul_mem
       (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
       ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩
       (subset_span $ mem_insert_of_mem hyj)),
@@ -254,7 +247,7 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert _ _) },
     { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
-    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem _ $ λ yk hyk, smul_mem
+    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
         ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi hyi yj hyj yk hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
@@ -318,8 +311,7 @@ def alg_hom_equiv_sigma :
   right_inv :=
   begin
     rintros ⟨⟨f, _, _, _, _, _⟩, g, _, _, _, _, hg⟩,
-    have : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
-    subst this,
+    obtain rfl : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
     refl,
   end }
 

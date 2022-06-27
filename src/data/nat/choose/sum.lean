@@ -135,7 +135,7 @@ theorem int.alternating_sum_range_choose {n : ℕ} :
 begin
   cases n, { simp },
   have h := add_pow (-1 : ℤ) 1 n.succ,
-  simp only [one_pow, mul_one, add_left_neg, int.nat_cast_eq_coe_nat] at h,
+  simp only [one_pow, mul_one, add_left_neg] at h,
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end
 
@@ -164,10 +164,7 @@ theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset
   ∑ m in x.powerset, (-1 : ℤ) ^ m.card = if x = ∅ then 1 else 0 :=
 begin
   rw sum_powerset_apply_card,
-  simp only [nsmul_eq_mul', ← card_eq_zero],
-  convert int.alternating_sum_range_choose,
-  ext,
-  simp,
+  simp only [nsmul_eq_mul', ← card_eq_zero, int.alternating_sum_range_choose]
 end
 
 theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} {x : finset α}

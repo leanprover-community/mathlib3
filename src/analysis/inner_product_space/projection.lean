@@ -123,7 +123,7 @@ begin
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
-      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm,
+      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm _ _,
     have eq : δ ≤ ∥u - half • (wq + wp)∥,
     { rw smul_add,
       apply δ_le', apply h₂,
@@ -422,7 +422,7 @@ linear_map.mk_continuous
       have ho :
         ∀ w ∈ K, ⟪x + y - (orthogonal_projection_fn K x + orthogonal_projection_fn K y), w⟫ = 0,
       { intros w hw,
-        rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
+        rw [add_sub_add_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
             orthogonal_projection_fn_inner_eq_zero _ w hw, add_zero] },
       ext,
       simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]
@@ -550,7 +550,7 @@ lemma orthogonal_projection_singleton {v : E} (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
 begin
   by_cases hv : v = 0,
-  { rw [hv, eq_orthogonal_projection_of_eq_submodule submodule.span_zero_singleton],
+  { rw [hv, eq_orthogonal_projection_of_eq_submodule (submodule.span_zero_singleton 𝕜)],
     { simp },
     { apply_instance } },
   have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
@@ -822,6 +822,23 @@ begin
     simp [hy] }
 end
 
+/-- The Pythagorean theorem, for an orthogonal projection.-/
+lemma norm_sq_eq_add_norm_sq_projection
+  (x : E) (S : submodule 𝕜 E) [complete_space E] [complete_space S] :
+  ∥x∥^2 = ∥orthogonal_projection S x∥^2 + ∥orthogonal_projection Sᗮ x∥^2 :=
+begin
+  let p1 := orthogonal_projection S,
+  let p2 := orthogonal_projection Sᗮ,
+  have x_decomp : x = p1 x + p2 x :=
+    eq_sum_orthogonal_projection_self_orthogonal_complement S x,
+  have x_orth : ⟪ p1 x, p2 x ⟫ = 0 :=
+    submodule.inner_right_of_mem_orthogonal (set_like.coe_mem (p1 x)) (set_like.coe_mem (p2 x)),
+  nth_rewrite 0 [x_decomp],
+  simp only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
+             add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
+             submodule.coe_norm, submodule.coe_eq_zero]
+end
+
 /-- In a complete space `E`, the projection maps onto a complete subspace `K` and its orthogonal
 complement sum to the identity. -/
 lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
@@ -1004,28 +1021,28 @@ end orthogonal
 section orthogonal_family
 variables {ι : Type*}
 
-/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.submodule_is_internal` (that is,
+/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.is_internal` (that is,
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
-lemma orthogonal_family.submodule_is_internal_iff_of_is_complete [decidable_eq ι]
+lemma orthogonal_family.is_internal_iff_of_is_complete [decidable_eq ι]
   {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
   (hc : is_complete (↑(supr V) : set E)) :
-  direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
+  direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI : complete_space ↥(supr V) := hc.complete_space_coe,
-  simp only [direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top, hV.independent,
+  simp only [direct_sum.is_internal_submodule_iff_independent_and_supr_eq_top, hV.independent,
     true_and, submodule.orthogonal_eq_bot_iff]
 end
 
-/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.submodule_is_internal` (that is,
+/-- An orthogonal family of subspaces of `E` satisfies `direct_sum.is_internal` (that is,
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
-lemma orthogonal_family.submodule_is_internal_iff [decidable_eq ι] [finite_dimensional 𝕜 E]
+lemma orthogonal_family.is_internal_iff [decidable_eq ι] [finite_dimensional 𝕜 E]
   {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
-  direct_sum.submodule_is_internal V ↔ (supr V)ᗮ = ⊥ :=
+  direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
-  exact hV.submodule_is_internal_iff_of_is_complete
+  exact hV.is_internal_iff_of_is_complete
     (complete_space_coe_iff_is_complete.mp infer_instance)
 end
 
@@ -1061,13 +1078,13 @@ begin
       have : e ≠ 0 := hv.ne_zero ⟨e, hev⟩,
       contradiction },
     -- put this together with `v` to provide a candidate orthonormal basis for the whole space
-    refine ⟨v.insert e, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
-    { -- show that the elements of `v.insert e` have unit length
+    refine ⟨insert e v, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
+    { -- show that the elements of `insert e v` have unit length
       rintros ⟨a, ha'⟩,
       cases eq_or_mem_of_mem_insert ha' with ha ha,
       { simp [ha, he] },
       { exact hv.1 ⟨a, ha⟩ } },
-    { -- show that the elements of `v.insert e` are orthogonal
+    { -- show that the elements of `insert e v` are orthogonal
       have h_end : ∀ a ∈ v, ⟪a, e⟫ = 0,
       { intros a ha,
         exact he' a (submodule.subset_span ha) },
@@ -1143,83 +1160,84 @@ variables (𝕜 E)
 def orthonormal_basis_index : set E :=
 classical.some (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E))
 
+
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def orthonormal_basis :
+def std_orthonormal_basis :
   basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some
 
-lemma orthonormal_basis_orthonormal :
-  orthonormal 𝕜 (orthonormal_basis 𝕜 E) :=
+lemma std_orthonormal_basis_orthonormal :
+  orthonormal 𝕜 (std_orthonormal_basis 𝕜 E) :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.1
 
-@[simp] lemma coe_orthonormal_basis :
-  ⇑(orthonormal_basis 𝕜 E) = coe :=
+@[simp] lemma coe_std_orthonormal_basis :
+  ⇑(std_orthonormal_basis 𝕜 E) = coe :=
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance : fintype (orthonormal_basis_index 𝕜 E) :=
-@is_noetherian.fintype_basis_index _ _ _ _ _ _ _
-  (is_noetherian.iff_fg.2 infer_instance) (orthonormal_basis 𝕜 E)
+@is_noetherian.fintype_basis_index _ _ _ _ _ _
+  (is_noetherian.iff_fg.2 infer_instance) (std_orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 
 /-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
-def fin_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) :
+def fin_std_orthonormal_basis {n : ℕ} (hn : finrank 𝕜 E = n) :
   basis (fin n) 𝕜 E :=
 have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
-by rw [← finrank_eq_card_basis (orthonormal_basis 𝕜 E), hn],
-(orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
+by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E), hn],
+(std_orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
 
-lemma fin_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
-  orthonormal 𝕜 (fin_orthonormal_basis hn) :=
-suffices orthonormal 𝕜 (orthonormal_basis _ _ ∘ equiv.symm _),
-by { simp only [fin_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
-(orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
+lemma fin_std_orthonormal_basis_orthonormal {n : ℕ} (hn : finrank 𝕜 E = n) :
+  orthonormal 𝕜 (fin_std_orthonormal_basis hn) :=
+suffices orthonormal 𝕜 (std_orthonormal_basis _ _ ∘ equiv.symm _),
+by { simp only [fin_std_orthonormal_basis, basis.coe_reindex], assumption }, -- simpa doesn't work?
+(std_orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
 section subordinate_orthonormal_basis
 open direct_sum
 variables {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι] [decidable_eq ι]
-  {V : ι → submodule 𝕜 E} (hV : submodule_is_internal V)
+  {V : ι → submodule 𝕜 E} (hV : is_internal V)
 
 /-- Exhibit a bijection between `fin n` and the index set of a certain basis of an `n`-dimensional
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
-@[irreducible] def direct_sum.submodule_is_internal.sigma_orthonormal_basis_index_equiv :
+@[irreducible] def direct_sum.is_internal.sigma_orthonormal_basis_index_equiv :
   (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
-let b := hV.collected_basis (λ i, orthonormal_basis 𝕜 (V i)) in
+let b := hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i)) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b).symm.trans hn
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
-@[irreducible] def direct_sum.submodule_is_internal.subordinate_orthonormal_basis :
+@[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis :
   basis (fin n) 𝕜 E :=
-(hV.collected_basis (λ i, orthonormal_basis 𝕜 (V i))).reindex
+(hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))).reindex
   (hV.sigma_orthonormal_basis_index_equiv hn)
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
 provides the mapping by which it is subordinate. -/
-def direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index (a : fin n) : ι :=
+def direct_sum.is_internal.subordinate_orthonormal_basis_index (a : fin n) : ι :=
 ((hV.sigma_orthonormal_basis_index_equiv hn).symm a).1
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is orthonormal. -/
-lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_orthonormal
+lemma direct_sum.is_internal.subordinate_orthonormal_basis_orthonormal
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   orthonormal 𝕜 (hV.subordinate_orthonormal_basis hn) :=
 begin
-  simp only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex],
-  have : orthonormal 𝕜 (hV.collected_basis (λ i, orthonormal_basis 𝕜 (V i))) :=
-    hV.collected_basis_orthonormal hV' (λ i, orthonormal_basis_orthonormal 𝕜 (V i)),
+  simp only [direct_sum.is_internal.subordinate_orthonormal_basis, basis.coe_reindex],
+  have : orthonormal 𝕜 (hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))) :=
+    hV.collected_basis_orthonormal hV' (λ i, std_orthonormal_basis_orthonormal 𝕜 (V i)),
   exact this.comp _ (equiv.injective _),
 end
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is subordinate to
 the `orthogonal_family` in question. -/
-lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_subordinate (a : fin n) :
+lemma direct_sum.is_internal.subordinate_orthonormal_basis_subordinate (a : fin n) :
   hV.subordinate_orthonormal_basis hn a ∈ V (hV.subordinate_orthonormal_basis_index hn a) :=
-by simpa only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis, basis.coe_reindex]
-  using hV.collected_basis_mem (λ i, orthonormal_basis 𝕜 (V i))
+by simpa only [direct_sum.is_internal.subordinate_orthonormal_basis, basis.coe_reindex]
+  using hV.collected_basis_mem (λ i, std_orthonormal_basis 𝕜 (V i))
     ((hV.sigma_orthonormal_basis_index_equiv hn).symm a)
 
-attribute [irreducible] direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index
+attribute [irreducible] direct_sum.is_internal.subordinate_orthonormal_basis_index
 
 end subordinate_orthonormal_basis
 

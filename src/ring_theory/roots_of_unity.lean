@@ -79,10 +79,14 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 { carrier := { ζ | ζ ^ (k : ℕ) = 1 },
   one_mem' := one_pow _,
   mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
-  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, one_inv] at * }
+  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, inv_one] at * }
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
+
+lemma mem_roots_of_unity' (k : ℕ+) (ζ : Mˣ) :
+  ζ ∈ roots_of_unity k M ↔ (ζ : M) ^ (k : ℕ) = 1 :=
+by { rw [mem_roots_of_unity], norm_cast }
 
 lemma roots_of_unity.coe_injective {n : ℕ+} : function.injective (coe : (roots_of_unity n M) → M) :=
 units.ext.comp (λ x y, subtype.ext)
@@ -112,18 +116,18 @@ begin
   simp only [←map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
 
-variables [comm_ring R]
-
-@[norm_cast]
-lemma roots_of_unity.coe_pow (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
+@[norm_cast] lemma roots_of_unity.coe_pow [comm_monoid R] (ζ : roots_of_unity k R) (m : ℕ) :
+  ↑(ζ ^ m) = (ζ ^ m : R) :=
 begin
   change ↑(↑(ζ ^ m) : Rˣ) = ↑(ζ : Rˣ) ^ m,
   rw [subgroup.coe_pow, units.coe_pow],
 end
 
-variables [comm_ring S]
+section comm_semiring
 
-/-- Restrict a ring homomorphism between integral domains to the nth roots of unity -/
+variables [comm_semiring R] [comm_semiring S]
+
+/-- Restrict a ring homomorphism to the nth roots of unity -/
 def restrict_roots_of_unity [ring_hom_class F R S] (σ : F) (n : ℕ+) :
   roots_of_unity n R →* roots_of_unity n S :=
 let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
@@ -139,7 +143,7 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
   (ζ : roots_of_unity k R) : ↑(restrict_roots_of_unity σ k ζ) = σ ↑ζ :=
 rfl
 
-/-- Restrict a ring isomorphism between integral domains to the nth roots of unity -/
+/-- Restrict a ring isomorphism to the nth roots of unity -/
 def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
   roots_of_unity n R ≃* roots_of_unity n S :=
 { to_fun := restrict_roots_of_unity σ.to_ring_hom n,
@@ -156,7 +160,11 @@ rfl
   (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
 rfl
 
-variables [is_domain R]
+end comm_semiring
+
+section is_domain
+
+variables [comm_ring R] [is_domain R]
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : Rˣ} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
@@ -210,7 +218,7 @@ lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
 calc  fintype.card (roots_of_unity k R)
     = fintype.card {x // x ∈ nth_roots k (1 : R)} :
           fintype.card_congr (roots_of_unity_equiv_nth_roots R k)
-... ≤ (nth_roots k (1 : R)).attach.card           : multiset.card_le_of_le (multiset.erase_dup_le _)
+... ≤ (nth_roots k (1 : R)).attach.card           : multiset.card_le_of_le (multiset.dedup_le _)
 ... = (nth_roots k (1 : R)).card                  : multiset.card_attach
 ... ≤ k                                           : card_nth_roots k 1
 
@@ -219,12 +227,25 @@ variables {k R}
 lemma map_root_of_unity_eq_pow_self [ring_hom_class F R R] (σ : F) (ζ : roots_of_unity k R) :
   ∃ m : ℕ, σ ζ = ζ ^ m :=
 begin
-  obtain ⟨m, hm⟩ := (restrict_roots_of_unity σ k).map_cyclic,
+  obtain ⟨m, hm⟩ := monoid_hom.map_cyclic (restrict_roots_of_unity σ k),
   rw [←restrict_roots_of_unity_coe_apply, hm, zpow_eq_mod_order_of, ←int.to_nat_of_nonneg
       (m.mod_nonneg (int.coe_nat_ne_zero.mpr (pos_iff_ne_zero.mp (order_of_pos ζ)))),
       zpow_coe_nat, roots_of_unity.coe_pow],
   exact ⟨(m % (order_of ζ)).to_nat, rfl⟩,
 end
+
+end is_domain
+
+section reduced
+
+variables (R) [comm_ring R] [is_reduced R]
+
+@[simp] lemma mem_roots_of_unity_prime_pow_mul_iff (p k : ℕ) (m : ℕ+) [hp : fact p.prime]
+  [char_p R p] {ζ : Rˣ} :
+  ζ ∈ roots_of_unity (⟨p, hp.1.pos⟩ ^ k * m) R ↔ ζ ∈ roots_of_unity m R :=
+by simp [mem_roots_of_unity']
+
+end reduced
 
 end roots_of_unity
 
@@ -321,6 +342,10 @@ begin
   { rintro rfl, exact one }
 end
 
+@[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
+  [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
+by simp [iff_def, ← submonoid_class.coe_pow]
+
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
 by simp only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
@@ -397,6 +422,23 @@ begin
   rw [order_of_pow' _ hp, ← eq_order_of h, nat.gcd_eq_right hdiv]
 end
 
+protected
+lemma mem_roots_of_unity {ζ : Mˣ} {n : ℕ+} (h : is_primitive_root ζ n) : ζ ∈ roots_of_unity n M :=
+h.pow_eq_one
+
+/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
+then there is a `b`-th primitive root of unity in `R`. -/
+lemma pow {n : ℕ} {a b : ℕ} (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
+  is_primitive_root (ζ ^ a) b :=
+begin
+  subst n,
+  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
+  intros l hl,
+  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
+  rwa ← mul_dvd_mul_iff_left ha0,
+  exact h.dvd_of_pow_eq_one _ hl
+end
+
 end comm_monoid
 
 section comm_monoid_with_zero
@@ -405,6 +447,9 @@ variables {M₀ : Type*} [comm_monoid_with_zero M₀]
 
 lemma zero [nontrivial M₀] : is_primitive_root (0 : M₀) 0 :=
 ⟨pow_zero 0, λ l hl, by simpa [zero_pow_eq, show ∀ p, ¬p → false ↔ p, from @not_not] using hl⟩
+
+protected lemma ne_zero [nontrivial M₀] {ζ : M₀} (h : is_primitive_root ζ k) : k ≠ 0 → ζ ≠ 0 :=
+mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
 
 end comm_monoid_with_zero
 
@@ -424,16 +469,16 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, one_inv] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, inv_one] }
 end
 
 lemma inv (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, one_inv, eq_self_iff_true, inv_pow],
+{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
     apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj, ← inv_pow, hl, one_inv]
+    rw [← inv_inj, ← inv_pow, hl, inv_one]
   end }
 
 @[simp] lemma inv_iff : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
@@ -454,10 +499,6 @@ begin
   exact hi
 end
 
-@[simp] lemma coe_subgroup_iff (H : subgroup G) {ζ : H} :
-  is_primitive_root (ζ : G) k ↔ is_primitive_root ζ k :=
-by simp only [iff_def, ← subgroup.coe_pow, ← H.coe_one, ← subtype.ext_iff]
-
 end comm_group
 
 section comm_group_with_zero
@@ -476,20 +517,20 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj₀, ← zpow_neg₀, ← hl', zpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow₀],
+{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
     apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj₀, ← inv_pow₀, hl, inv_one]
+    rw [← inv_inj, ← inv_pow, hl, inv_one]
   end }
 
 @[simp] lemma inv_iff' : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
-by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv₀ ζ], exact inv' h }
+by { refine ⟨_, λ h, inv' h⟩, intro h, rw [← inv_inv ζ], exact inv' h }
 
 lemma zpow_of_gcd_eq_one₀ (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 1) :
   is_primitive_root (ζ ^ i) k :=
@@ -500,7 +541,7 @@ begin
     exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff', ← zpow_neg₀, ← hi', zpow_coe_nat],
+  rw [← inv_iff', ← zpow_neg, ← hi', zpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
@@ -564,11 +605,27 @@ begin
     exact hx }
 end
 
-lemma eq_neg_one_of_two_right (h : is_primitive_root ζ 2) : ζ = -1 :=
+lemma ne_zero' {n : ℕ+} (hζ : is_primitive_root ζ n) : ne_zero ((n : ℕ) : R) :=
 begin
-  apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
-  { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
-  { simp only [h.pow_eq_one, one_pow] }
+  let p := ring_char R,
+  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one R p, n.pos⟩),
+  obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
+  by_cases hp : p ∣ n,
+  { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero (multiplicity.pos_of_dvd hfin hp).ne',
+    haveI hpri : fact p.prime :=
+      @char_p.char_is_prime_of_pos R _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
+    have := hζ.pow_eq_one,
+    rw [hm.1, hk, pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at this,
+    exfalso,
+    have hpos : 0 < p ^ k * m,
+    { refine (mul_pos (pow_pos hpri.1.pos _) (nat.pos_of_ne_zero (λ h, _))),
+      have H := hm.1,
+      rw [h] at H,
+      simpa using H },
+    refine hζ.pow_ne_one_of_pos_of_lt hpos _ (frobenius_inj R p this),
+    { rw [hm.1, hk, pow_succ, mul_assoc, mul_comm p],
+      exact lt_mul_of_one_lt_right hpos hpri.1.one_lt } },
+  { exact ne_zero.of_not_dvd R hp }
 end
 
 end is_domain
@@ -578,16 +635,19 @@ section is_domain
 variables [comm_ring R]
 variables {ζ : Rˣ} (h : is_primitive_root ζ k)
 
+lemma eq_neg_one_of_two_right [no_zero_divisors R] {ζ : R} (h : is_primitive_root ζ 2) : ζ = -1 :=
+begin
+  apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
+  { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
+  { simp only [h.pow_eq_one, one_pow] }
+end
+
 lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
 begin
   convert is_primitive_root.order_of (-1 : R),
   rw [order_of_neg_one, if_neg],
   rwa ring_char.eq_iff.mpr h
 end
-
-protected
-lemma mem_roots_of_unity {n : ℕ+} (h : is_primitive_root ζ n) : ζ ∈ roots_of_unity n R :=
-h.pow_eq_one
 
 /-- The (additive) monoid equivalence between `zmod k`
 and the powers of a primitive root of unity `ζ`. -/
@@ -607,7 +667,7 @@ add_equiv.of_bijective
     end)⟩)
   begin
     split,
-    { rw add_monoid_hom.injective_iff,
+    { rw injective_iff_map_eq_zero,
       intros i hi,
       rw subtype.ext_iff at hi,
       have := (h.zpow_eq_one_iff_dvd _).mp hi,
@@ -646,20 +706,6 @@ by rw [← h.zmod_equiv_zpowers.symm_apply_apply i, zmod_equiv_zpowers_apply_coe
 @[simp] lemma zmod_equiv_zpowers_symm_apply_pow' (i : ℕ) :
   h.zmod_equiv_zpowers.symm ⟨ζ ^ i, i, rfl⟩ = i :=
 h.zmod_equiv_zpowers_symm_apply_pow i
-
-/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
-then there is a `b`-th primitive root of unity in `R`. -/
-lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
-  (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
-  is_primitive_root (ζ ^ a) b :=
-begin
-  subst n,
-  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
-  intros l hl,
-  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
-  rwa ← mul_dvd_mul_iff_left ha0,
-  exact h.dvd_of_pow_eq_one _ hl
-end
 
 variables [is_domain R]
 
@@ -760,7 +806,7 @@ begin
   use card_nth_roots n 1,
   { rw [not_lt],
     have hcard : fintype.card {x // x ∈ nth_roots n (1 : R)}
-      ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.erase_dup_le _),
+      ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.dedup_le _),
     rw multiset.card_attach at hcard,
     rw ← pnat.to_pnat'_coe hpos at hcard h ⊢,
     set m := nat.to_pnat' n,
@@ -774,19 +820,19 @@ lemma nth_roots_nodup {ζ : R} {n : ℕ} (h : is_primitive_root ζ n) : (nth_roo
 begin
   cases nat.eq_zero_or_pos n with hzero hpos,
   { simp only [hzero, multiset.nodup_zero, nth_roots_zero] },
-  apply (@multiset.erase_dup_eq_self R _ _).1,
+  apply (@multiset.dedup_eq_self R _ _).1,
   rw eq_iff_le_not_lt,
   split,
-  { exact multiset.erase_dup_le (nth_roots n (1 : R)) },
+  { exact multiset.dedup_le (nth_roots n (1 : R)) },
   { by_contra ha,
     replace ha := multiset.card_lt_of_lt ha,
     rw card_nth_roots h at ha,
-    have hrw : (nth_roots n (1 : R)).erase_dup.card =
+    have hrw : (nth_roots n (1 : R)).dedup.card =
       fintype.card {x // x ∈ (nth_roots n (1 : R))},
-    { set fs := (⟨(nth_roots n (1 : R)).erase_dup, multiset.nodup_erase_dup _⟩ : finset R),
+    { set fs := (⟨(nth_roots n (1 : R)).dedup, multiset.nodup_dedup _⟩ : finset R),
       rw [← finset.card_mk, ← fintype.card_of_subtype fs _],
       intro x,
-      simp only [multiset.mem_erase_dup, finset.mem_mk] },
+      simp only [multiset.mem_dedup, finset.mem_mk] },
     rw ← pnat.to_pnat'_coe hpos at h hrw ha,
     set m := nat.to_pnat' n,
     rw [hrw, ← fintype.card_congr (roots_of_unity_equiv_nth_roots R m),
@@ -857,12 +903,10 @@ begin
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
   { apply le_of_eq,
     rw [h.card_nth_roots_finset, finset.card_bUnion],
-    { rw [← nat.sum_totient n, nat.filter_dvd_eq_divisors (pnat.ne_zero n), sum_congr rfl]
-        { occs := occurrences.pos [1] },
-      simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
-      rintro k ⟨H, hk⟩,
-      have hdvd := H,
-      rcases H with ⟨d, hd⟩,
+    { nth_rewrite_lhs 0 ← nat.sum_totient n,
+      refine sum_congr rfl _,
+      simp only [nat.mem_divisors],
+      rintro k ⟨⟨d, hd⟩, -⟩,
       rw mul_comm at hd,
       rw (h.pow n.pos hd).card_primitive_roots },
     { intros i hi j hj hdiff,

@@ -15,6 +15,10 @@ open finset
 
 variables {α ι ι' : Type*}
 
+instance [decidable_eq α] {r : α → α → Prop} [decidable_rel r] {s : finset α} :
+  decidable ((s : set α).pairwise r) :=
+decidable_of_iff' (∀ a ∈ s, ∀ b ∈ s, a ≠ b → r a b) iff.rfl
+
 lemma finset.pairwise_disjoint_range_singleton [decidable_eq α] :
   (set.range (singleton : α → finset α)).pairwise_disjoint id :=
 begin

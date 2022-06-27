@@ -218,7 +218,7 @@ the ratio `ρ a / μ a` converges as `a` shrinks to `x` along a Vitali family fo
 theorem ae_tendsto_div :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ a, ρ a / μ a) (v.filter_at x) (𝓝 c) :=
 begin
-  obtain ⟨w, w_count, w_dense, w_zero, w_top⟩ : ∃ w : set ℝ≥0∞, countable w ∧ dense w ∧
+  obtain ⟨w, w_count, w_dense, w_zero, w_top⟩ : ∃ w : set ℝ≥0∞, w.countable ∧ dense w ∧
     0 ∉ w ∧ ∞ ∉ w := ennreal.exists_countable_dense_no_zero_top,
   have I : ∀ x ∈ w, x ≠ ∞ := λ x xs hx, w_top (hx ▸ xs),
   have A : ∀ (c ∈ w) (d ∈ w), (c < d) → ∀ᵐ x ∂μ,
@@ -363,7 +363,7 @@ begin
       end
     ... ≤ ρ (to_measurable (ρ + μ) (u m) ∩ w n) : begin
         rw [← coe_nnreal_smul_apply],
-        refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.coe_nnreal_smul _) _ _,
+        refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.smul _) _ _,
         assume x hx,
         have L : tendsto (λ (a : set α), ρ a / μ a) (v.filter_at x) (𝓝 (v.lim_ratio ρ x)) :=
           tendsto_nhds_lim hx.2.1.1,
@@ -460,7 +460,7 @@ begin
       end
     ... ≤ ρ s :
       by { rw [A, mul_zero, add_zero], exact measure_mono (inter_subset_left _ _) },
-  refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.coe_nnreal_smul _) _ _,
+  refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.smul _) _ _,
   assume x hx,
   have I : ∀ᶠ a in v.filter_at x, (q : ℝ≥0∞) < ρ a / μ a := (tendsto_order.1 hx.2).1 _ (h hx.1),
   apply I.frequently.mono (λ a ha, _),

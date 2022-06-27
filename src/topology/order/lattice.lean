@@ -22,6 +22,9 @@ and `has_continuous_sup`.
 topological, lattice
 -/
 
+open filter
+open_locale topological_space
+
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let
 `⊓:L×L → L` be an infimum. Then `L` is said to have *(jointly) continuous infimum* if the map
@@ -40,14 +43,12 @@ class has_continuous_sup (L : Type*) [topological_space L] [has_sup L] : Prop :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.has_continuous_sup
-  (L : Type*) [topological_space L] [has_inf L] [has_continuous_inf L] :
-  has_continuous_sup (order_dual L) :=
+  (L : Type*) [topological_space L] [has_inf L] [has_continuous_inf L] : has_continuous_sup Lᵒᵈ :=
 { continuous_sup := @has_continuous_inf.continuous_inf L _ _ _ }
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.has_continuous_inf
-  (L : Type*) [topological_space L] [has_sup L] [has_continuous_sup L] :
-  has_continuous_inf (order_dual L) :=
+  (L : Type*) [topological_space L] [has_sup L] [has_continuous_sup L] : has_continuous_inf Lᵒᵈ :=
 { continuous_inf := @has_continuous_sup.continuous_sup L _ _ _ }
 
 /--
@@ -60,7 +61,7 @@ class topological_lattice (L : Type*) [topological_space L] [lattice L]
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.topological_lattice
   (L : Type*) [topological_space L] [lattice L] [topological_lattice L] :
-  topological_lattice (order_dual L) := {}
+  topological_lattice Lᵒᵈ := {}
 
 variables {L : Type*} [topological_space L]
 variables {X : Type*} [topological_space X]
@@ -82,3 +83,27 @@ has_continuous_sup.continuous_sup
   {f g : X → L} (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x ⊔ g x) :=
 continuous_sup.comp (hf.prod_mk hg : _)
+
+lemma filter.tendsto.sup_right_nhds' {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊔ g) l (𝓝 (x ⊔ y)) :=
+(continuous_sup.tendsto _).comp (tendsto.prod_mk_nhds hf hg)
+
+lemma filter.tendsto.sup_right_nhds {ι β} [topological_space β] [has_sup β] [has_continuous_sup β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ i, f i ⊔ g i) l (𝓝 (x ⊔ y)) :=
+hf.sup_right_nhds' hg
+
+lemma filter.tendsto.inf_right_nhds' {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (f ⊓ g) l (𝓝 (x ⊓ y)) :=
+(continuous_inf.tendsto _).comp (tendsto.prod_mk_nhds hf hg)
+
+lemma filter.tendsto.inf_right_nhds {ι β} [topological_space β] [has_inf β] [has_continuous_inf β]
+  {l : filter ι} {f g : ι → β} {x y : β}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) :
+  tendsto (λ i, f i ⊓ g i) l (𝓝 (x ⊓ y)) :=
+hf.inf_right_nhds' hg

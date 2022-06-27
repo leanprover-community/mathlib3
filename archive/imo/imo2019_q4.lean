@@ -13,7 +13,7 @@ import data.nat.multiplicity
 
 Find all pairs `(k, n)` of positive integers such that
 ```
-  k! = (2 ^ n − 1)(2 ^ n − 2)(2 ^ n − 4)···(2 ^ n − 2 ^ (n − 1))
+  k! = (2 ^ n - 1)(2 ^ n - 2)(2 ^ n - 4)···(2 ^ n - 2 ^ (n - 1))
 ```
 We show in this file that this property holds iff `(k, n) = (1, 1) ∨ (k, n) = (3, 2)`.
 
@@ -80,7 +80,7 @@ begin
   have := imo2019_q4_upper_bound hk h,
   interval_cases n,
   /- n = 1 -/
-  { left, congr, norm_num at h, norm_cast at h, rw [factorial_eq_one] at h, apply antisymm h,
+  { left, congr, norm_num at h, rw [factorial_eq_one] at h, apply antisymm h,
     apply succ_le_of_lt hk },
   /- n = 2 -/
   { right, congr, norm_num [prod_range_succ] at h, norm_cast at h, rw [← factorial_inj],

@@ -3,7 +3,7 @@ Copyright (c) 2020 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import ring_theory.localization
+import ring_theory.localization.away
 import ring_theory.ideal.over
 import ring_theory.jacobson_ideal
 
@@ -244,8 +244,8 @@ begin
     { rw [ideal.jacobson, mem_Inf],
       intros J hJ,
       by_cases y ∈ J,
-      { exact J.smul_mem x h },
-      { exact (mul_comm y x) ▸ J.smul_mem y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
+      { exact J.mul_mem_left x h },
+      { exact J.mul_mem_right y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
     rw hP at hxy,
     cases hP'.mem_or_mem hxy with hxy hxy,
     { exact hxy },
@@ -275,21 +275,24 @@ variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 lemma is_integral_is_localization_polynomial_quotient
   (P : ideal R[X]) (pX : R[X]) (hpX : pX ∈ P)
   [algebra (R ⧸ P.comap (C : R →+* _)) Rₘ]
-  [is_localization.away (pX.map (quotient.mk (P.comap C))).leading_coeff Rₘ]
+  [is_localization.away (pX.map (quotient.mk (P.comap (C : R →+* R[X])))).leading_coeff Rₘ]
   [algebra (R[X] ⧸ P) Sₘ]
-  [is_localization ((submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).map
+  [is_localization ((submonoid.powers (pX.map
+    (quotient.mk (P.comap (C : R →+* R[X])))).leading_coeff).map
     (quotient_map P C le_rfl) : submonoid (R[X] ⧸ P)) Sₘ] :
   (is_localization.map Sₘ (quotient_map P C le_rfl)
-    ((submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).le_comap_map) : Rₘ →+* _)
+    ((submonoid.powers
+      (pX.map (quotient.mk (P.comap (C : R →+* R[X])))).leading_coeff).le_comap_map) : Rₘ →+* _)
     .is_integral :=
 begin
   let P' : ideal R := P.comap C,
   let M : submonoid (R ⧸ P') :=
-  submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff,
+  submonoid.powers (pX.map (quotient.mk (P.comap (C : R →+* R[X])))).leading_coeff,
   let M' : submonoid (R[X] ⧸ P) :=
-  (submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).map (quotient_map P C le_rfl),
+  (submonoid.powers (pX.map (quotient.mk (P.comap (C : R →+* R[X])))).leading_coeff).map
+    (quotient_map P C le_rfl),
   let φ : R ⧸ P' →+* R[X] ⧸ P := quotient_map P C le_rfl,
-  let φ' := is_localization.map Sₘ φ M.le_comap_map,
+  let φ' : Rₘ →+* Sₘ := is_localization.map Sₘ φ M.le_comap_map,
   have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
   intro p,
   obtain ⟨⟨p', ⟨q, hq⟩⟩, hp⟩ := is_localization.surj M' p,
@@ -409,8 +412,8 @@ begin
     change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
     rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
-  haveI : (ideal.map (map_ring_hom i) I).is_prime :=
-    map_is_prime_of_surjective (map_surjective i hi) hi',
+  haveI := map_is_prime_of_surjective
+    (show function.surjective (map_ring_hom i), from map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
   { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
     rw [← map_jacobson_of_surjective _ hi',
@@ -443,18 +446,20 @@ variables (P : ideal R[X]) [hP : P.is_maximal]
 include P hP
 
 lemma is_maximal_comap_C_of_is_maximal [nontrivial R] (hP' : ∀ (x : R), C x ∈ P → x = 0) :
-  is_maximal (comap C P : ideal R) :=
+  is_maximal (comap (C : R →+* R[X]) P : ideal R) :=
 begin
-  haveI hp'_prime : (P.comap C : ideal R).is_prime := comap_is_prime C P,
+  haveI hp'_prime : (P.comap (C : R →+* R[X]) : ideal R).is_prime := comap_is_prime C P,
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_of_maximal P polynomial_not_is_field),
   have : (m : R[X]) ≠ 0, rwa [ne.def, submodule.coe_eq_zero],
-  let φ : R ⧸ P.comap C →+* R[X] ⧸ P := quotient_map P C le_rfl,
+  let φ : R ⧸ P.comap (C : R →+* R[X])  →+* R[X] ⧸ P := quotient_map P (C : R →+* R[X]) le_rfl,
   let M : submonoid (R ⧸ P.comap C) :=
-    submonoid.powers ((m : R[X]).map (quotient.mk (P.comap C : ideal R))).leading_coeff,
+    submonoid.powers ((m : R[X]).map
+      (quotient.mk (P.comap (C : R →+* R[X]) : ideal R))).leading_coeff,
   rw ← bot_quotient_is_maximal_iff,
-  have hp0 : ((m : R[X]).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
-    λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
-      ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
+  have hp0 : ((m : R[X]).map
+    (quotient.mk (P.comap (C : R →+* R[X]) : ideal R))).leading_coeff ≠ 0 :=
+    λ hp0', this $ map_injective (quotient.mk (P.comap (C : R →+* R[X]) : ideal R))
+      ((injective_iff_map_eq_zero (quotient.mk (P.comap (C : R →+* R[X]) : ideal R))).2 (λ x hx,
       by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : (P.comap C : ideal R) = ⊥)] at hx))
       (by simpa only [leading_coeff_eq_zero, polynomial.map_zero] using hp0'),
   have hM : (0 : R ⧸ P.comap C) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),
@@ -477,7 +482,7 @@ begin
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
                      map (algebra_map (R[X] ⧸ P) (localization M')) ⊥),
   let bot_maximal := ((bot_quotient_is_maximal_iff _).mpr hP),
-  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) bot_maximal,
+  refine map.is_maximal (algebra_map _ _) (is_field.localization_map_bijective hM' _) bot_maximal,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
 end
 
@@ -502,11 +507,10 @@ begin
     exact (let ⟨z, zM, z0⟩ := hM' in (quotient_map_injective (trans z0 φ.map_zero.symm)) ▸ zM) },
   { rw ← is_localization.map_comp M.le_comap_map,
     refine ring_hom.is_integral_trans (algebra_map (R ⧸ P') (localization M))
-      (is_localization.map _ _ M.le_comap_map) _ _,
+      (is_localization.map (localization M') _ M.le_comap_map) _ _,
     { exact (algebra_map (R ⧸ P') (localization M)).is_integral_of_surjective
-        (localization_map_bijective_of_field hM
-          ((quotient.maximal_ideal_iff_is_field_quotient _).mp
-          (is_maximal_comap_C_of_is_maximal P hP'))).2 },
+      (is_field.localization_map_bijective hM ((quotient.maximal_ideal_iff_is_field_quotient _).mp
+                                               (is_maximal_comap_C_of_is_maximal P hP'))).2 },
     { -- `convert` here is faster than `exact`, and this proof is near the time limit.
       convert is_integral_is_localization_polynomial_quotient P pX hpX } }
 end
@@ -552,7 +556,7 @@ lemma comp_C_integral_of_surjective_of_jacobson
   {S : Type*} [field S] (f : R[X] →+* S) (hf : function.surjective f) :
   (f.comp C).is_integral :=
 begin
-  haveI : (f.ker).is_maximal := f.ker_is_maximal_of_surjective hf,
+  haveI : (f.ker).is_maximal := ring_hom.ker_is_maximal_of_surjective f hf,
   let g : R[X] ⧸ f.ker →+* S := ideal.quotient.lift f.ker f (λ _ h, h),
   have hfg : (g.comp (quotient.mk f.ker)) = f := ring_hom_ext' rfl rfl,
   rw [← hfg, ring_hom.comp_assoc],
@@ -636,7 +640,7 @@ begin
   have hf' : function.surjective f' :=
     ((function.surjective.comp hf (rename_equiv R e.symm).surjective)),
   have : (f'.comp C).is_integral,
-  { haveI : (f'.ker).is_maximal := f'.ker_is_maximal_of_surjective hf',
+  { haveI : (f'.ker).is_maximal := ker_is_maximal_of_surjective f' hf',
     let g : mv_polynomial _ R ⧸ f'.ker →+* S := ideal.quotient.lift f'.ker f' (λ _ h, h),
     have hfg : (g.comp (quotient.mk f'.ker)) = f' := ring_hom_ext (λ r, rfl) (λ i, rfl),
     rw [← hfg, ring_hom.comp_assoc],

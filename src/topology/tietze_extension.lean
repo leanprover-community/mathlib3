@@ -17,7 +17,7 @@ function belong to some (finite or infinite, open or closed) interval, then the 
 chosen so that it takes values in the same interval. In particular, if the original function is a
 bounded function, then there exists a bounded extension of the same norm.
 
-The proof mostly follows https://ncatlab.org/nlab/show/Tietze+extension+theorem. We patch a small
+The proof mostly follows <https://ncatlab.org/nlab/show/Tietze+extension+theorem>. We patch a small
 gap in the proof for unbounded functions, see
 `exists_extension_forall_exists_le_ge_of_closed_embedding`.
 
@@ -61,7 +61,7 @@ begin
   have hc₂ : is_closed (e '' (f ⁻¹' (Ici (∥f∥ / 3)))),
     from he.is_closed_map _ (is_closed_Ici.preimage f.continuous),
   have hd : disjoint (e '' (f ⁻¹' (Iic (-∥f∥ / 3)))) (e '' (f ⁻¹' (Ici (∥f∥ / 3)))),
-  { refine disjoint_image_of_injective he.inj (disjoint_preimage _ _),
+  { refine disjoint_image_of_injective he.inj (disjoint.preimage _ _),
     rwa [Iic_disjoint_Ici, not_le] },
   rcases exists_bounded_mem_Icc_of_closed_of_le hc₁ hc₂ hd hf3.le with ⟨g, hg₁, hg₂, hgf⟩,
   refine ⟨g, _, _⟩,
@@ -150,7 +150,7 @@ topological space, then it can be extended to a bounded continuous function of t
 on the whole space. -/
 lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs : is_closed s) :
   ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.restrict s = f :=
-exists_extension_norm_eq_of_closed_embedding' f (continuous_map.id.restrict s)
+exists_extension_norm_eq_of_closed_embedding' f ((continuous_map.id _).restrict s)
   (closed_embedding_subtype_coe hs)
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version for a closed
@@ -219,7 +219,7 @@ begin
     function `dg : Y → ℝ` such that `dg ∘ e = 0`, `dg y = 0` whenever `c ≤ g y`, `dg y = c - a`
     whenever `g y = a`, and `0 ≤ dg y ≤ c - a` for all `y`.  -/
     have hd : disjoint (range e ∪ g ⁻¹' (Ici c)) (g ⁻¹' {a}),
-    { refine disjoint_union_left.2 ⟨_, disjoint_preimage _ _⟩,
+    { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
       { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = a⟩,
         exact ha' ⟨x, (congr_fun hgf x).symm⟩ },
       { exact set.disjoint_singleton_right.2 hac.not_le } },
@@ -248,7 +248,7 @@ begin
   rcases em (∃ x, f x = b) with ⟨x, rfl⟩|hb',
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
   have hd : disjoint (range e ∪ g ⁻¹' (Iic c)) (g ⁻¹' {b}),
-  { refine disjoint_union_left.2 ⟨_, disjoint_preimage _ _⟩,
+  { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
     { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = b⟩,
       exact hb' ⟨x, (congr_fun hgf x).symm⟩ },
     { exact set.disjoint_singleton_right.2 hcb.not_le } },
@@ -313,7 +313,7 @@ lemma exists_forall_mem_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs
 begin
   rcases exists_extension_forall_mem_of_closed_embedding f hf hne (closed_embedding_subtype_coe hs)
     with ⟨g, hg, hgf⟩,
-  exact ⟨g, hg, coe_injective hgf⟩
+  exact ⟨g, hg, fun_like.coe_injective hgf⟩
 end
 
 end bounded_continuous_function
@@ -334,7 +334,7 @@ begin
   set F : X →ᵇ ℝ :=
   { to_fun := coe ∘ (h ∘ f),
     continuous_to_fun := continuous_subtype_coe.comp (h.continuous.comp f.continuous),
-    bounded' := bounded_range_iff.1 ((bounded_Ioo (-1 : ℝ) 1).mono $
+    map_bounded' := bounded_range_iff.1 ((bounded_Ioo (-1 : ℝ) 1).mono $
       forall_range_iff.2 $ λ x, (h (f x)).2) },
   set t' : set ℝ := (coe ∘ h) '' t,
   have ht_sub : t' ⊆ Ioo (-1 : ℝ) 1 := image_subset_iff.2 (λ x hx, (h x).2),
@@ -378,7 +378,7 @@ lemma exists_restrict_eq_forall_mem_of_closed {s : set Y} (f : C(s, ℝ)) {t : s
   ∃ g : C(Y, ℝ), (∀ y, g y ∈ t) ∧ g.restrict s = f :=
 let ⟨g, hgt, hgf⟩ := exists_extension_forall_mem_of_closed_embedding f ht hne
   (closed_embedding_subtype_coe hs)
-in ⟨g, hgt, coe_inj hgf⟩
+in ⟨g, hgt, coe_injective hgf⟩
 
 /-- **Tietze extension theorem** for real-valued continuous maps, a version for a closed set. Let
 `s` be a closed set in a normal topological space `Y`. Let `f` be a continuous real-valued function

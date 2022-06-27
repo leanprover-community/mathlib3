@@ -5,7 +5,7 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.limits.shapes.products
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 # Any small complete category is a preorder
@@ -63,7 +63,7 @@ begin
       ext k,
       simp },
     { intros f,
-      ext,
+      ext ⟨j⟩,
       simp } },
   { apply cardinal.mk_le_of_injective _,
     { intro f,

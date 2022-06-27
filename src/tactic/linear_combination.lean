@@ -141,6 +141,7 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
   `= r_sum1 + (c_1 * r_h1) + ... + (c_n * r_hn)`
 
 * Input:
+  * `expected_tp`: the type of the terms being compared in the target equality
   * an `option (tactic expr)` : `none`, if there is no sum to add to yet, or
       `some` containing the base summation equation
   * a `list name` : a list of names, referring to equalities in the local context
@@ -150,23 +151,28 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
 * Output: an `expr`, which proves that the weighted sum of the given
     equalities added to the base equation holds
 -/
-meta def make_sum_of_hyps_helper :
-  option (tactic expr) → list name → list pexpr → tactic expr
+meta def make_sum_of_hyps_helper (expected_tp : expr) :
+  option (tactic expr) → list expr → list pexpr → tactic expr
 | none [] []                                                             :=
-  do fail "There are no hypotheses to add"
+  to_expr ``(rfl : (0 : %%expected_tp) = 0)
 | (some tactic_hcombo) [] []                                             :=
   do tactic_hcombo
-| none (h_equality_nam :: h_eqs_names) (coeff :: coeffs)                 :=
+| none (h_equality :: h_eqs_names) (coeff :: coeffs)                 :=
  do
     -- This is the first equality, and we do not have anything to add to it
-    h_equality ← get_local h_equality_nam,
+    -- h_equality ← get_local h_equality_nam,
+    `(@eq %%eqtp _ _) ← infer_type h_equality |
+      fail!"{h_equality} is expected to be a proof of an equality",
+    is_def_eq eqtp expected_tp <|>
+      fail!("{h_equality} is an equality between terms of type {eqtp}, but is expected to be" ++
+        " between terms of type {expected_tp}"),
     make_sum_of_hyps_helper
       (some (mul_equality_expr h_equality coeff))
       h_eqs_names
       coeffs
-| (some tactic_hcombo) (h_equality_nam :: h_eqs_names) (coeff :: coeffs) :=
+| (some tactic_hcombo) (h_equality :: h_eqs_names) (coeff :: coeffs) :=
   do
-    h_equality ← get_local h_equality_nam,
+    -- h_equality ← get_local h_equality_nam,
     hcombo ← tactic_hcombo,
     -- We want to add this weighted equality to the current equality in
     --   the hypothesis
@@ -184,6 +190,7 @@ Given a list of names referencing equalities and a list of pexprs representing
   (where each equation is multiplied by the corresponding coefficient) holds.
 
 * Input:
+  * `expected_tp`: the type of the terms being compared in the target equality
   * `h_eqs_names` : a list of names, referring to equalities in the local
       context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
@@ -192,10 +199,9 @@ Given a list of names referencing equalities and a list of pexprs representing
 * Output: an `expr`, which proves that the weighted sum of the equalities
     holds
 -/
-meta def make_sum_of_hyps (h_eqs_names : list name) (coeffs : list pexpr) :
+meta def make_sum_of_hyps (expected_tp : expr) (h_eqs_names : list expr) (coeffs : list pexpr) :
   tactic expr :=
-make_sum_of_hyps_helper none h_eqs_names coeffs
-
+make_sum_of_hyps_helper expected_tp none h_eqs_names coeffs
 
 /-! ### Part 2: Simplifying -/
 
@@ -300,32 +306,43 @@ Note: The left and right sides of all the equalities should have the same
 
 * Output: N/A
 -/
-meta def linear_combination (h_eqs_names : list name) (coeffs : list pexpr)
+meta def linear_combination (h_eqs_names : list pexpr) (coeffs : list pexpr)
   (config : linear_combination_config := {}) : tactic unit :=
 do
-  hsum ← make_sum_of_hyps h_eqs_names coeffs,
+  `(@eq %%ext _ _) ← target | fail "linear_combination can only be used to prove equality goals",
+  h_eqs ← h_eqs_names.mmap to_expr,
+  hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
   set_goal_to_hleft_eq_tleft hsum_on_left,
   prove_equal_if_desired config
 
+/-- `mk_mul [p₀, p₁, ..., pₙ]` produces the pexpr `p₀ * p₁ * ... * pₙ`. -/
+meta def mk_mul : list pexpr → pexpr
+| [] := ``(1)
+| [e] := e
+| (e::es) := ``(%%e * %%(mk_mul es))
+
+/--
+`as_linear_combo neg ms e` is used to parse the argument to `linear_combination`.
+This argument is a sequence of literals `x`, `-x`, or `c*x` combined with `+` or `-`,
+given by the pexpr `e`.
+The `neg` and `ms` arguments are used recursively; called at the top level, its usage should be
+`as_linear_combo ff [] e`.
+-/
+meta def as_linear_combo : bool → list pexpr → pexpr → list (pexpr × pexpr)
+| neg ms e :=
+  let (head, args) := pexpr.get_app_fn_args e in
+  match head.get_frozen_name, args with
+  | ``has_add.add, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo neg ms e2
+  | ``has_sub.sub, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo (bnot neg) ms e2
+  | ``has_mul.mul, [e1, e2] := as_linear_combo neg (e1::ms) e2
+  | ``has_neg.neg, [e1] := as_linear_combo (bnot neg) ms e1
+  | _, _ := let m := mk_mul ms in [(e, if neg then ``(-%%m) else m)]
+  end
 
 section interactive_mode
 setup_tactic_parser
-
-/--
-A parser that matches a pair in parentheses (where the first item in the pair
-is an identifier and the second item in the pair is a `pexpr`) or an identifier
-by itself.  If the identifier is by itself, this parser behaves as though it
-was given a `pexpr ` of ``(1) along with the identifier.
-
-* Input: None
-
-* Output: a `lean.parser (name × pexpr)`
--/
-meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
-(tk "(" *> prod.mk <$> ident <*> (tk "," *> parser.pexpr 0 <* tk ")")) <|>
-((λ id, (id, ``(1))) <$> ident)
 
 /--
 `linear_combination` attempts to prove the target by creating and applying a
@@ -341,10 +358,14 @@ Note: The left and right sides of all the equalities should have the same
   instances of `has_mul` and `add_group` for this type.
 
 * Input:
-  * `input` : the pairs of hypotheses and their corresponding coefficients.
-      If no coefficient is given with a hypothesis, then the coefficient for
-      that hypothesis will be set to 1.
-  * `config` : a linear_combination_config, which determines the tactic used
+  * `input` : the linear combination of proofs of equalities, given as a sum/difference
+      of coefficients multiplied by expressions. The coefficients may be arbitrary
+      pre-expressions; if a coefficient is an application of `+` or `-` it should be
+      surrounded by parentheses. The expressions can be arbitrary proof terms proving
+      equalities. Most commonly they are hypothesis names `h1, h2, ...`.
+
+      If a coefficient is omitted, it is taken to be `1`.
+  * `config` : a `linear_combination_config`, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config.  In the standard configuration,
       `normalize` is set to tt (meaning this tactic is set to use
@@ -354,41 +375,48 @@ Example Usage:
 ```
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by linear_combination (h1, 1) (h2, -2)
+by linear_combination 1*h1 - 2*h2
 
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by linear_combination h1 (h2, -2)
+by linear_combination h1 - 2*h2
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :
   -3*x - 3*y - 4*z = 2 :=
-by linear_combination (ha, 1) (hb, -1) (hc, -2)
+by linear_combination ha - hb - 2*hc
 
 example (x y : ℚ) (h1 : x + y = 3) (h2 : 3*x = 7) :
   x*x*y + y*x*y + 6*x = 3*x*y + 14 :=
-by linear_combination (h1, x*y) (h2, 2)
+by linear_combination x*y*h1 + 2*h2
 
 example (x y : ℤ) (h1 : x = -3) (h2 : y = 10) :
   2*x = -6 :=
 begin
-  linear_combination (h1, 2) {normalize := ff},
+  linear_combination 2*h1 with {normalize := ff},
   simp,
   norm_cast
 end
+
+constants (qc : ℚ) (hqc : qc = 2*qc)
+
+example (a b : ℚ) (h : ∀ p q : ℚ, p = q) : 3*a + qc = 3*b + 2*qc :=
+by linear_combination 3 * h a b + hqc
 ```
 -/
 meta def _root_.tactic.interactive.linear_combination
-  (input : parse parse_name_pexpr_pair*)
-  (config : linear_combination_config := {}) : tactic unit :=
-let (h_eqs_names, coeffs) := list.unzip input in
+  (input : parse (as_linear_combo ff [] <$> texpr)?)
+  (_ : parse (tk "with")?)
+  (config : linear_combination_config := {})
+  : tactic unit :=
+let (h_eqs_names, coeffs) := list.unzip (input.get_or_else []) in
 linear_combination h_eqs_names coeffs config
 
 add_tactic_doc
 { name := "linear_combination",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.linear_combination],
-  tags := [] }
+  tags := ["arithmetic"] }
 
 end interactive_mode
 end linear_combo

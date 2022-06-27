@@ -3,9 +3,13 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.localization
-import data.equiv.transfer_instance
 import group_theory.submonoid.pointwise
+import logic.equiv.transfer_instance
+import ring_theory.finiteness
+import ring_theory.localization.at_prime
+import ring_theory.localization.away
+import ring_theory.localization.integer
+import ring_theory.localization.submodule
 import ring_theory.nilpotent
 
 /-!
@@ -138,9 +142,9 @@ lemma ideal_eq_zero_of_localization (I : ideal R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       by exactI is_localization.coe_submodule (localization.at_prime J) I = 0) : I = 0 :=
 begin
-  by_contradiction hI,
-  obtain ⟨x, hx, hx'⟩ := set.exists_of_ssubset (bot_lt_iff_ne_bot.mpr hI),
-  rw [submodule.bot_coe, set.mem_singleton_iff] at hx',
+  by_contradiction hI, change I ≠ ⊥ at hI,
+  obtain ⟨x, hx, hx'⟩ := set_like.exists_of_lt hI.bot_lt,
+  rw [submodule.mem_bot] at hx',
   have H : (ideal.span ({x} : set R)).annihilator ≠ ⊤,
   { rw [ne.def, submodule.annihilator_eq_top_iff],
     by_contra,
@@ -227,7 +231,7 @@ lemma localization_finite : ring_hom.localization_preserves @ring_hom.finite :=
 begin
   introv R hf,
   -- Setting up the `algebra` and `is_scalar_tower` instances needed
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),
@@ -319,7 +323,6 @@ lemma multiple_mem_span_of_mem_localization_span [algebra R' S] [algebra R S]
   (s : set S) (x : S) (hx : x ∈ submodule.span R' s) :
     ∃ t : M, t • x ∈ submodule.span R s :=
 begin
-  classical,
   obtain ⟨s', hss', hs'⟩ := submodule.mem_span_finite_of_mem_span hx,
   suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
   { obtain ⟨t, ht⟩ := this,
@@ -360,7 +363,7 @@ begin
   rw ring_hom.of_localization_span_iff_finite,
   introv R hs H,
   -- We first setup the instances
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
   haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
@@ -410,7 +413,7 @@ lemma localization_finite_type : ring_hom.localization_preserves @ring_hom.finit
 begin
   introv R hf,
   -- mirrors the proof of `localization_map_finite`
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),
@@ -480,7 +483,7 @@ begin
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
   convert ha₂.symm,
   { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-    algebra.smul_def, submonoid.coe_pow], refl },
+        algebra.smul_def, submonoid_class.coe_pow], refl },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 
@@ -489,7 +492,7 @@ begin
   rw ring_hom.of_localization_span_iff_finite,
   introv R hs H,
   -- mirrors the proof of `finite_of_localization_span`
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
   haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))

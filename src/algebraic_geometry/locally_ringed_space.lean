@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import algebraic_geometry.ringed_space
 import algebraic_geometry.stalks
-import data.equiv.transfer_instance
+import logic.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces

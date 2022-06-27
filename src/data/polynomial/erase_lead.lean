@@ -80,12 +80,19 @@ begin
     finset.pred_card_le_card_erase).ne.symm
 end
 
-@[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
-by simp [not_mem_support_iff]
+lemma lt_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
+  a < f.nat_degree :=
+begin
+  rw [erase_lead_support, mem_erase] at h,
+  exact lt_of_le_of_ne (le_nat_degree_of_mem_supp a h.2) h.1,
+end
 
 lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
   a ≠ f.nat_degree :=
-by { rintro rfl, exact nat_degree_not_mem_erase_lead_support h }
+(lt_nat_degree_of_mem_erase_lead_support h).ne
+
+lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
+λ h, ne_nat_degree_of_mem_erase_lead_support h rfl
 
 lemma erase_lead_support_card_lt (h : f ≠ 0) : (erase_lead f).support.card < f.support.card :=
 begin
@@ -98,8 +105,7 @@ lemma erase_lead_card_support {c : ℕ} (fc : f.support.card = c) :
 begin
   by_cases f0 : f = 0,
   { rw [← fc, f0, erase_lead_zero, support_zero, card_empty] },
-  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc],
-    exact c.pred_eq_sub_one },
+  { rw [erase_lead_support, card_erase_of_mem (nat_degree_mem_support_of_nonzero f0), fc] }
 end
 
 lemma erase_lead_card_support' {c : ℕ} (fc : f.support.card = c + 1) :
@@ -126,6 +132,30 @@ by rw [X_pow_eq_monomial, erase_lead_monomial]
 @[simp] lemma erase_lead_C_mul_X_pow (r : R) (n : ℕ) : erase_lead (C r * X ^ n) = 0 :=
 by rw [C_mul_X_pow_eq_monomial, erase_lead_monomial]
 
+lemma erase_lead_add_of_nat_degree_lt_left {p q : R[X]} (pq : q.nat_degree < p.nat_degree) :
+  (p + q).erase_lead = p.erase_lead + q :=
+begin
+  ext n,
+  by_cases nd : n = p.nat_degree,
+  { rw [nd, erase_lead_coeff, if_pos (nat_degree_add_eq_left_of_nat_degree_lt pq).symm],
+    simpa using (coeff_eq_zero_of_nat_degree_lt pq).symm },
+  { rw [erase_lead_coeff, coeff_add, coeff_add, erase_lead_coeff, if_neg, if_neg nd],
+    rintro rfl,
+    exact nd (nat_degree_add_eq_left_of_nat_degree_lt pq) }
+end
+
+lemma erase_lead_add_of_nat_degree_lt_right {p q : R[X]} (pq : p.nat_degree < q.nat_degree) :
+  (p + q).erase_lead = p + q.erase_lead :=
+begin
+  ext n,
+  by_cases nd : n = q.nat_degree,
+  { rw [nd, erase_lead_coeff, if_pos (nat_degree_add_eq_right_of_nat_degree_lt pq).symm],
+    simpa using (coeff_eq_zero_of_nat_degree_lt pq).symm },
+  { rw [erase_lead_coeff, coeff_add, coeff_add, erase_lead_coeff, if_neg, if_neg nd],
+    rintro rfl,
+    exact nd (nat_degree_add_eq_right_of_nat_degree_lt pq) }
+end
+
 lemma erase_lead_degree_le : (erase_lead f).degree ≤ f.degree :=
 begin
   rw degree_le_iff_coeff_zero,
@@ -135,12 +165,12 @@ begin
   apply coeff_eq_zero_of_degree_lt hi
 end
 
-lemma erase_lead_nat_degree_le : (erase_lead f).nat_degree ≤ f.nat_degree :=
+lemma erase_lead_nat_degree_le_aux : (erase_lead f).nat_degree ≤ f.nat_degree :=
 nat_degree_le_nat_degree erase_lead_degree_le
 
 lemma erase_lead_nat_degree_lt (f0 : 2 ≤ f.support.card) :
   (erase_lead f).nat_degree < f.nat_degree :=
-lt_of_le_of_ne erase_lead_nat_degree_le $ ne_nat_degree_of_mem_erase_lead_support $
+lt_of_le_of_ne erase_lead_nat_degree_le_aux $ ne_nat_degree_of_mem_erase_lead_support $
   nat_degree_mem_support_of_nonzero $ erase_lead_ne_zero f0
 
 lemma erase_lead_nat_degree_lt_or_erase_lead_eq_zero (f : R[X]) :
@@ -152,6 +182,13 @@ begin
     simp },
   { left,
     apply erase_lead_nat_degree_lt (lt_of_not_ge h) }
+end
+
+lemma erase_lead_nat_degree_le (f : R[X]) : (erase_lead f).nat_degree ≤ f.nat_degree - 1 :=
+begin
+  rcases f.erase_lead_nat_degree_lt_or_erase_lead_eq_zero with h | h,
+  { exact nat.le_pred_of_lt h },
+  { simp only [h, nat_degree_zero, zero_le] }
 end
 
 end erase_lead
@@ -189,7 +226,7 @@ begin
         rintro rfl,
         simpa using f0 } },
     { exact (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree).trans df },
-    { exact hc _ (erase_lead_nat_degree_le.trans df) (erase_lead_card_support f0) },
+    { exact hc _ (erase_lead_nat_degree_le_aux.trans df) (erase_lead_card_support f0) },
     { refine P_C_mul_pow _ _ _ df,
       rw [ne.def, leading_coeff_eq_zero, ← card_support_eq_zero, f0],
       exact nat.succ_ne_zero _ } }
@@ -235,5 +272,49 @@ lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
   (φ_mon_nat : ∀ n c, c ≠ 0 → (φ (monomial n c)).nat_degree = n) :
   (φ p).nat_degree = p.nat_degree :=
 (map_nat_degree_eq_sub (λ f h, (nat.not_lt_zero _ h).elim) (by simpa)).trans p.nat_degree.sub_zero
+
+lemma card_support_eq_one : f.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), f = C x * X ^ k :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain hf := card_support_eq_zero.mp (erase_lead_card_support h),
+    refine ⟨f.nat_degree, f.leading_coeff, _, _⟩,
+    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
+      exact one_ne_zero },
+    { conv_lhs { rw [←f.erase_lead_add_C_mul_X_pow, hf, zero_add] } } },
+  { rintros ⟨k, x, hx, rfl⟩,
+    rw [support_C_mul_X_pow k hx, card_singleton] },
+end
+
+lemma card_support_eq_two : f.support.card = 2 ↔ ∃ (k m : ℕ) (hkm : k < m)
+  (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), f = C x * X ^ k + C y * X ^ m :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain ⟨k, x, hx, hf⟩ := card_support_eq_one.mp (erase_lead_card_support h),
+    refine ⟨k, f.nat_degree, _, x, f.leading_coeff, hx, _, _⟩,
+    { refine lt_of_le_of_lt _ (erase_lead_nat_degree_lt h.ge),
+      rw [hf, nat_degree_C_mul_X_pow k x hx] },
+    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
+      exact two_ne_zero },
+    { rw [←hf, erase_lead_add_C_mul_X_pow] } },
+  { rintros ⟨k, m, hkm, x, y, hx, hy, rfl⟩,
+    exact card_support_binomial hkm.ne hx hy },
+end
+
+lemma card_support_eq_three : f.support.card = 3 ↔
+  ∃ (k m n : ℕ) (hkm : k < m) (hmn : m < n) (x y z : R) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0),
+    f = C x * X ^ k + C y * X ^ m + C z * X ^ n :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain ⟨k, m, hkm, x, y, hx, hy, hf⟩ := card_support_eq_two.mp (erase_lead_card_support h),
+    refine ⟨k, m, f.nat_degree, hkm, _, x, y, f.leading_coeff, hx, hy, _, _⟩,
+    { refine lt_of_le_of_lt _ (erase_lead_nat_degree_lt (le_trans (nat.le_succ 2) h.ge)),
+      rw [hf, nat_degree_add_eq_right_of_nat_degree_lt, nat_degree_C_mul_X_pow m y hy],
+      rwa [nat_degree_C_mul_X_pow k x hx, nat_degree_C_mul_X_pow m y hy] },
+    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
+      exact three_ne_zero },
+    { rw [←hf, erase_lead_add_C_mul_X_pow] } },
+  { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
+    exact card_support_trinomial hkm hmn hx hy hz },
+end
 
 end polynomial

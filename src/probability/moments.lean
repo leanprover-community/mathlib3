@@ -99,31 +99,36 @@ by simp only [mgf, integral_zero_measure]
 @[simp] lemma cgf_zero_measure : cgf X (0 : measure Ω) t = 0 :=
 by simp only [cgf, real.log_zero, mgf_zero_measure]
 
-@[simp] lemma mgf_const (c : ℝ) : mgf (λ _, c) μ t = (μ set.univ).to_real * real.exp (t * c) :=
+@[simp] lemma mgf_const' (c : ℝ) : mgf (λ _, c) μ t = (μ set.univ).to_real * real.exp (t * c) :=
 by simp only [mgf, integral_const, algebra.id.smul_eq_mul]
 
-lemma cgf_const' [is_finite_measure μ] (hμ : μ ≠ 0) (c : ℝ) :
+@[simp] lemma mgf_const (c : ℝ) [is_probability_measure μ] : mgf (λ _, c) μ t = real.exp (t * c) :=
+by simp only [mgf_const', measure_univ, ennreal.one_to_real, one_mul]
+
+@[simp] lemma cgf_const' [is_finite_measure μ] (hμ : μ ≠ 0) (c : ℝ) :
   cgf (λ _, c) μ t = real.log (μ set.univ).to_real + t * c :=
 begin
-  simp only [cgf, mgf_const],
+  simp only [cgf, mgf_const'],
   rw real.log_mul _ (real.exp_pos _).ne',
   { rw real.log_exp _, },
   { rw [ne.def, ennreal.to_real_eq_zero_iff, measure.measure_univ_eq_zero],
     simp only [hμ, measure_ne_top μ set.univ, or_self, not_false_iff], },
 end
 
-@[simp] lemma cgf_const [is_probability_measure μ] (c : ℝ) :
-  cgf (λ _, c) μ t =  t * c :=
-begin
-  rw cgf_const' (is_probability_measure.ne_zero μ) c,
-  simp only [measure_univ, ennreal.one_to_real, real.log_one, zero_add],
-end
+@[simp] lemma cgf_const [is_probability_measure μ] (c : ℝ) : cgf (λ _, c) μ t = t * c :=
+by simp only [cgf, mgf_const, real.log_exp]
 
-@[simp] lemma mgf_zero : mgf X μ 0 = (μ set.univ).to_real :=
+@[simp] lemma mgf_zero' : mgf X μ 0 = (μ set.univ).to_real :=
 by simp only [mgf, zero_mul, real.exp_zero, integral_const, algebra.id.smul_eq_mul, mul_one]
 
-@[simp] lemma cgf_zero : cgf X μ 0 = real.log (μ set.univ).to_real :=
-by simp only [cgf, mgf_zero]
+@[simp] lemma mgf_zero [is_probability_measure μ] : mgf X μ 0 = 1 :=
+by simp only [mgf_zero', measure_univ, ennreal.one_to_real]
+
+@[simp] lemma cgf_zero' : cgf X μ 0 = real.log (μ set.univ).to_real :=
+by simp only [cgf, mgf_zero']
+
+@[simp] lemma cgf_zero [is_probability_measure μ] : cgf X μ 0 = 0 :=
+by simp only [cgf_zero', measure_univ, ennreal.one_to_real, real.log_one]
 
 lemma mgf_undef (hX : ¬ integrable (λ ω, real.exp (t * X ω)) μ) : mgf X μ t = 0 :=
 by simp only [mgf, integral_undef hX]
@@ -139,7 +144,7 @@ begin
   exact (real.exp_pos _).le,
 end
 
-lemma mgf_pos (hμ : μ ≠ 0) (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ) : 0 < mgf X μ t :=
+lemma mgf_pos' (hμ : μ ≠ 0) (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ) : 0 < mgf X μ t :=
 begin
   simp_rw mgf,
   have : ∫ (x : Ω), real.exp (t * X x) ∂μ = ∫ (x : Ω) in set.univ, real.exp (t * X x) ∂μ,
@@ -157,6 +162,10 @@ begin
     exact (real.exp_pos _).le, },
   { rwa integrable_on_univ, },
 end
+
+lemma mgf_pos [is_probability_measure μ] (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ) :
+  0 < mgf X μ t :=
+mgf_pos' (is_probability_measure.ne_zero μ) h_int_X
 
 lemma indep_fun.mgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
@@ -178,7 +187,7 @@ begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
   simp only [cgf, h_indep.mgf_add h_int_X h_int_Y],
-  exact real.log_mul (mgf_pos hμ h_int_X).ne' (mgf_pos hμ h_int_Y).ne',
+  exact real.log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
 end
 
 end moment_generating_function

@@ -257,7 +257,7 @@ begin
   erw [valuation_def, (is_localization.to_localization_map (non_zero_divisors R) K).lift_mk',
     div_eq_mul_inv, mul_eq_mul_left_iff],
   left,
-  rw [units.coe_inv', inv_inj],
+  rw [units.coe_inv, inv_inj],
   refl,
 end
 
@@ -313,7 +313,8 @@ variables (K)
 def adic_completion := @uniform_space.completion K v.adic_valued.to_uniform_space
 
 instance : field (v.adic_completion K) :=
-@field_completion K _ v.adic_valued.to_uniform_space _ _ v.adic_valued.to_uniform_add_group
+@uniform_space.completion.field K _ v.adic_valued.to_uniform_space _ _
+  v.adic_valued.to_uniform_add_group
 
 instance : inhabited (v.adic_completion K) := ⟨0⟩
 

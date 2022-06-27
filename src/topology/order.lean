@@ -481,6 +481,10 @@ instance : discrete_topology ℤ := ⟨rfl⟩
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
 
+lemma continuous_empty_function [topological_space α] [topological_space β] [is_empty β]
+  (f : α → β) : continuous f :=
+by { letI := function.is_empty f, exact continuous_of_discrete_topology }
+
 lemma le_generate_from {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   t ≤ generate_from g :=
 le_generate_from_iff_subset_is_open.2 h
@@ -721,12 +725,11 @@ continuous_iff_le_induced.2 $ bot_le
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
+lemma continuous_id_iff_le {t t' : tspace α} : cont t t' id ↔ t ≤ t' :=
+@continuous_def _ _ t t' id
+
 lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
-begin
-  rw continuous_def,
-  assume u hu,
-  exact h u hu
-end
+continuous_id_iff_le.2 h
 
 /- 𝓝 in the induced topology -/
 

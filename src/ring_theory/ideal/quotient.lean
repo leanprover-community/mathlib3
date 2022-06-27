@@ -63,6 +63,9 @@ end⟩
 instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
 { mul := (*),
   one := 1,
+  nat_cast := λ n, submodule.quotient.mk n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := by simp [nat.cast]; refl,
   mul_assoc := λ a b c, quotient.induction_on₃' a b c $
     λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
   mul_comm := λ a b, quotient.induction_on₂' a b $
@@ -187,10 +190,8 @@ begin
 end
 
 /-- The quotient of a ring by an ideal is a field iff the ideal is maximal. -/
-theorem maximal_ideal_iff_is_field_quotient (I : ideal R) :
-  I.is_maximal ↔ is_field (R ⧸ I) :=
-⟨λ h, @field.to_is_field (R ⧸ I) (@ideal.quotient.field _ _ I h),
- λ h, maximal_of_is_field I h⟩
+theorem maximal_ideal_iff_is_field_quotient (I : ideal R) : I.is_maximal ↔ is_field (R ⧸ I) :=
+⟨λ h, by { letI := @quotient.field _ _ I h, exact field.to_is_field _ }, maximal_of_is_field _⟩
 
 variable [comm_ring S]
 
@@ -305,6 +306,7 @@ noncomputable def pi_quot_equiv : ((ι → R) ⧸ I.pi ι) ≃ₗ[(R ⧸ I)] (ι
 lemma map_pi {ι} [fintype ι] {ι' : Type w} (x : ι → R) (hi : ∀ i, x i ∈ I)
   (f : (ι → R) →ₗ[R] (ι' → R)) (i : ι') : f x i ∈ I :=
 begin
+  classical,
   rw pi_eq_sum_univ x,
   simp only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
   exact I.sum_mem (λ j hj, I.mul_mem_right _ (hi j))

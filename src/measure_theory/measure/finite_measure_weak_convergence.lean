@@ -334,7 +334,7 @@ inducing.tendsto_nhds_iff ⟨rfl⟩
 theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
-  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (μs(i)).to_weak_dual_bcnn f) F (𝓝 (μ.to_weak_dual_bcnn f)) :=
+  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (μs i).to_weak_dual_bcnn f) F (𝓝 (μ.to_weak_dual_bcnn f)) :=
 by { rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto_top_dual_pairing], refl, }
 
 /-- A characterization of weak convergence in terms of integrals of bounded continuous
@@ -484,7 +484,7 @@ lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 theorem tendsto_of_forall_integral_tendsto
   {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α}
   (h : (∀ (f : α →ᵇ ℝ),
-       tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
+       tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
   tendsto μs F (𝓝 μ) :=
 begin
   apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
@@ -499,7 +499,7 @@ begin
   have f₀_eq : ⇑f₀ = (coe : ℝ≥0 → ℝ) ∘ ⇑f, by refl,
   have f₀_nn : 0 ≤ ⇑f₀, from λ _, by simp only [f₀_eq, pi.zero_apply, nnreal.zero_le_coe],
   have f₀_ae_nn : 0 ≤ᵐ[(μ : measure α)] ⇑f₀, from eventually_of_forall f₀_nn,
-  have f₀_ae_nns : ∀ i, 0 ≤ᵐ[(μs(i) : measure α)] ⇑f₀, from λ i, eventually_of_forall f₀_nn,
+  have f₀_ae_nns : ∀ i, 0 ≤ᵐ[(μs i : measure α)] ⇑f₀, from λ i, eventually_of_forall f₀_nn,
   have aux := integral_eq_lintegral_of_nonneg_ae f₀_ae_nn
               f₀.continuous.measurable.ae_strongly_measurable,
   have auxs := λ i, integral_eq_lintegral_of_nonneg_ae (f₀_ae_nns i)

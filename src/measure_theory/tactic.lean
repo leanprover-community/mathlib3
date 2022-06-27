@@ -125,7 +125,7 @@ do t ← tactic.target,
   end
 
 /-- List of tactics used by `measurability` internally. The option `use_exfalso := ff` is passed to
-the tactic `apply_assumption'` in order to avoid loops in the presence of negated hypotheses in
+the tactic `apply_assumption` in order to avoid loops in the presence of negated hypotheses in
 the context. -/
 meta def measurability_tactics (md : transparency := semireducible) : list (tactic string) :=
 [

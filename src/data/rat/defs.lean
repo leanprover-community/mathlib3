@@ -447,7 +447,7 @@ instance : decidable_eq ℚ := by tactic.mk_dec_eq_instance
 
 /-! At this point in the import hierarchy we have not defined the `field` typeclass.
 Instead we'll instantiate `comm_ring` and `comm_group_with_zero` at this point.
-The `field` structure and any field-specific lemmas can be found in `data.rat.basic`.
+The `rat.field` instance and any field-specific lemmas can be found in `data.rat.basic`.
 -/
 
 instance : comm_ring ℚ :=

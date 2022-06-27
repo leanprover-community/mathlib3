@@ -584,6 +584,11 @@ lemma has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)]
   has_binary_products C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm }
 
+lemma has_binary_proucts_of_has_products [has_products C] : has_binary_products C :=
+begin
+
+end
+
 /-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
 lemma has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
   has_binary_coproducts C :=

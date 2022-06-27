@@ -214,6 +214,14 @@ abbreviation has_coproducts := Π (J : Type w), has_colimits_of_shape (discrete 
 
 variable {C}
 
+lemma has_smallest_products_of_has_products [has_products.{w} C] : has_products.{0} C :=
+λ J, has_limits_of_shape_of_equivalence
+  (discrete.equivalence equiv.ulift : discrete (ulift.{w} J) ≌ _)
+
+lemma has_smallest_coproducts_of_has_coproducts [has_coproducts.{w} C] : has_coproducts.{0} C :=
+λ J, has_colimits_of_shape_of_equivalence
+  (discrete.equivalence equiv.ulift : discrete (ulift.{w} J) ≌ _)
+
 lemma has_products_of_limit_fans (lf : ∀ {J : Type w} (f : J → C), fan f)
   (lf_is_limit : ∀ {J : Type w} (f : J → C), is_limit (lf f)) : has_products.{w} C :=
 λ (J : Type w), { has_limit := λ F, has_limit.mk

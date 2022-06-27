@@ -2071,6 +2071,13 @@ begin
   { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
 end
 
+lemma condexp_mono {m : measurable_space α} [is_finite_measure μ]
+  (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  μ[f | m] ≤ᵐ[μ] μ[g | m] :=
+begin
+  sorry,
+end
+
 section real
 
 lemma rn_deriv_ae_eq_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)] {f : α → ℝ}

@@ -17,13 +17,13 @@ any distributive lattice.
 
 We define (semi)modularity typeclasses as Prop-valued mixins.
 
-* `is_weak_up_modular_lattice`: Weakly upper modular lattices. Lattice where `a ⊔ b` covers `a` and
-  `b` if `a` and `b` both cover `a ⊓ b`.
-* `is_weak_low_modular_lattice`: Weakly lower modular lattices. Lattice where `a` and `b` cover
+* `is_weak_upper_modular_lattice`: Weakly upper modular lattices. Lattice where `a ⊔ b` covers `a`
+  and `b` if `a` and `b` both cover `a ⊓ b`.
+* `is_weak_lower_modular_lattice`: Weakly lower modular lattices. Lattice where `a` and `b` cover
   `a ⊓ b` if `a ⊔ b` covers both `a` and `b`
-* `is_up_modular_lattice`: Upper modular lattices. Lattices where `a ⊔ b` covers `a` if `b` covers
-  `a ⊓ b`.
-* `is_low_modular_lattice`: Lower modular lattices. Lattices where `a` covers `a ⊓ b` if `a ⊔ b`
+* `is_upper_modular_lattice`: Upper modular lattices. Lattices where `a ⊔ b` covers `a` if `b`
+  covers `a ⊓ b`.
+* `is_lower_modular_lattice`: Lower modular lattices. Lattices where `a` covers `a ⊓ b` if `a ⊔ b`
   covers `b`.
 - `is_modular_lattice`: Modular lattices. Lattices where `a ≤ c → (a ⊔ b) ⊓ c = a ⊔ (b ⊓ c)`. We
   only require an inequality because the other direction holds in all lattices.
@@ -54,33 +54,33 @@ variable {α : Type*}
 
 /-- A weakly upper modular lattice is a lattice where `a ⊔ b` covers `a` and `b` if `a` and `b` both
 cover `a ⊓ b`. -/
-class is_weak_up_modular_lattice (α : Type*) [lattice α] : Prop :=
+class is_weak_upper_modular_lattice (α : Type*) [lattice α] : Prop :=
 (covby_sup_of_inf_covby_covby {a b : α} : a ⊓ b ⋖ a → a ⊓ b ⋖ b → a ⋖ a ⊔ b)
 
 /-- A weakly lower modular lattice is a lattice where `a` and `b` cover `a ⊓ b` if `a ⊔ b` covers
 both `a` and `b`. -/
-class is_weak_low_modular_lattice (α : Type*) [lattice α] : Prop :=
+class is_weak_lower_modular_lattice (α : Type*) [lattice α] : Prop :=
 (inf_covby_of_covby_covby_sup {a b : α} : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ a)
 
 /-- An upper modular lattice, aka semimodular lattice, is a lattice where `a ⊔ b` covers `a` and `b`
 if either `a` or `b` covers `a ⊓ b`. -/
-class is_up_modular_lattice (α : Type*) [lattice α] : Prop :=
+class is_upper_modular_lattice (α : Type*) [lattice α] : Prop :=
 (covby_sup_of_inf_covby {a b : α} : a ⊓ b ⋖ a → b ⋖ a ⊔ b)
 
 /-- A lower modular lattice is a lattice where `a` and `b` both cover `a ⊓ b` if `a ⊔ b` covers
 either `a` or `b`. -/
-class is_low_modular_lattice (α : Type*) [lattice α] : Prop :=
+class is_lower_modular_lattice (α : Type*) [lattice α] : Prop :=
 (inf_covby_of_covby_sup {a b : α} : a ⋖ a ⊔ b → a ⊓ b ⋖ b)
 
 /-- A modular lattice is one with a limited associativity between `⊓` and `⊔`. -/
 class is_modular_lattice (α : Type*) [lattice α] : Prop :=
 (sup_inf_le_assoc_of_le : ∀ {x : α} (y : α) {z : α}, x ≤ z → (x ⊔ y) ⊓ z ≤ x ⊔ (y ⊓ z))
 
-section weak_up_modular
-variables [lattice α] [is_weak_up_modular_lattice α] {a b : α}
+section weak_upper_modular
+variables [lattice α] [is_weak_upper_modular_lattice α] {a b : α}
 
 lemma covby_sup_of_inf_covby_of_inf_covby_left : a ⊓ b ⋖ a → a ⊓ b ⋖ b → a ⋖ a ⊔ b :=
-is_weak_up_modular_lattice.covby_sup_of_inf_covby_covby
+is_weak_upper_modular_lattice.covby_sup_of_inf_covby_covby
 
 lemma covby_sup_of_inf_covby_of_inf_covby_right : a ⊓ b ⋖ a → a ⊓ b ⋖ b → b ⋖ a ⊔ b :=
 by { rw [inf_comm, sup_comm], exact λ ha hb, covby_sup_of_inf_covby_of_inf_covby_left hb ha }
@@ -88,16 +88,16 @@ by { rw [inf_comm, sup_comm], exact λ ha hb, covby_sup_of_inf_covby_of_inf_covb
 alias covby_sup_of_inf_covby_of_inf_covby_left ← covby.sup_of_inf_of_inf_left
 alias covby_sup_of_inf_covby_of_inf_covby_right ← covby.sup_of_inf_of_inf_right
 
-instance : is_weak_low_modular_lattice (order_dual α) :=
+instance : is_weak_lower_modular_lattice (order_dual α) :=
 ⟨λ a b ha hb, (ha.of_dual.sup_of_inf_of_inf_left hb.of_dual).to_dual⟩
 
-end weak_up_modular
+end weak_upper_modular
 
-section weak_low_modular
-variables [lattice α] [is_weak_low_modular_lattice α] {a b : α}
+section weak_lower_modular
+variables [lattice α] [is_weak_lower_modular_lattice α] {a b : α}
 
 lemma inf_covby_of_covby_sup_of_covby_sup_left : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ a :=
-is_weak_low_modular_lattice.inf_covby_of_covby_covby_sup
+is_weak_lower_modular_lattice.inf_covby_of_covby_covby_sup
 
 lemma inf_covby_of_covby_sup_of_covby_sup_right : a ⋖ a ⊔ b → b ⋖ a ⊔ b → a ⊓ b ⋖ b :=
 by { rw [sup_comm, inf_comm], exact λ ha hb, inf_covby_of_covby_sup_of_covby_sup_left hb ha }
@@ -105,16 +105,16 @@ by { rw [sup_comm, inf_comm], exact λ ha hb, inf_covby_of_covby_sup_of_covby_su
 alias inf_covby_of_covby_sup_of_covby_sup_left ← covby.inf_of_sup_of_sup_left
 alias inf_covby_of_covby_sup_of_covby_sup_right ← covby.inf_of_sup_of_sup_right
 
-instance : is_weak_up_modular_lattice (order_dual α) :=
+instance : is_weak_upper_modular_lattice (order_dual α) :=
 ⟨λ a b ha hb, (ha.of_dual.inf_of_sup_of_sup_left hb.of_dual).to_dual⟩
 
-end weak_low_modular
+end weak_lower_modular
 
-section up_modular
-variables [lattice α] [is_up_modular_lattice α] {a b : α}
+section upper_modular
+variables [lattice α] [is_upper_modular_lattice α] {a b : α}
 
 lemma covby_sup_of_inf_covby_left : a ⊓ b ⋖ a → b ⋖ a ⊔ b :=
-is_up_modular_lattice.covby_sup_of_inf_covby
+is_upper_modular_lattice.covby_sup_of_inf_covby
 
 lemma covby_sup_of_inf_covby_right : a ⊓ b ⋖ b → a ⋖ a ⊔ b :=
 by { rw [sup_comm, inf_comm], exact covby_sup_of_inf_covby_left }
@@ -123,18 +123,19 @@ alias covby_sup_of_inf_covby_left ← covby.sup_of_inf_left
 alias covby_sup_of_inf_covby_right ← covby.sup_of_inf_right
 
 @[priority 100] -- See note [lower instance priority]
-instance is_up_modular_lattice.to_is_weak_up_modular_lattice : is_weak_up_modular_lattice α :=
+instance is_upper_modular_lattice.to_is_weak_upper_modular_lattice :
+  is_weak_upper_modular_lattice α :=
 ⟨λ a b _, covby.sup_of_inf_right⟩
 
-instance : is_low_modular_lattice (order_dual α) := ⟨λ a b h, h.of_dual.sup_of_inf_left.to_dual⟩
+instance : is_lower_modular_lattice (order_dual α) := ⟨λ a b h, h.of_dual.sup_of_inf_left.to_dual⟩
 
-end up_modular
+end upper_modular
 
-section low_modular
-variables [lattice α] [is_low_modular_lattice α] {a b : α}
+section lower_modular
+variables [lattice α] [is_lower_modular_lattice α] {a b : α}
 
 lemma inf_covby_of_covby_sup_left : a ⋖ a ⊔ b → a ⊓ b ⋖ b :=
-is_low_modular_lattice.inf_covby_of_covby_sup
+is_lower_modular_lattice.inf_covby_of_covby_sup
 
 lemma inf_covby_of_covby_sup_right : b ⋖ a ⊔ b → a ⊓ b ⋖ a :=
 by { rw [inf_comm, sup_comm], exact inf_covby_of_covby_sup_left }
@@ -143,12 +144,13 @@ alias inf_covby_of_covby_sup_left ← covby.inf_of_sup_left
 alias inf_covby_of_covby_sup_right ← covby.inf_of_sup_right
 
 @[priority 100] -- See note [lower instance priority]
-instance is_low_modular_lattice.to_is_weak_low_modular_lattice : is_weak_low_modular_lattice α :=
+instance is_lower_modular_lattice.to_is_weak_lower_modular_lattice :
+  is_weak_lower_modular_lattice α :=
 ⟨λ a b _, covby.inf_of_sup_right⟩
 
-instance : is_up_modular_lattice (order_dual α) := ⟨λ a b h, h.of_dual.inf_of_sup_left.to_dual⟩
+instance : is_upper_modular_lattice (order_dual α) := ⟨λ a b h, h.of_dual.inf_of_sup_left.to_dual⟩
 
-end low_modular
+end lower_modular
 
 section is_modular_lattice
 variables [lattice α] [is_modular_lattice α]

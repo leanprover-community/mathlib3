@@ -19,12 +19,14 @@ begin
   apply finite_dimensional.of_fintype_basis B
 end
 
-/-- Direct sum commutes with the product (composition) of the linear maps on each constituent space. -/
+/-- Direct sum commutes with the product (composition) of the linear maps on each constituent
+space. -/
 theorem dfinsupp.map_range.linear_map_mul
   {ι k : Type*} [semiring k] {V : ι → Type*}
   [Π i : ι, add_comm_monoid (V i)] [Π i : ι, module k (V i)]
   (f : Π i : ι, V i →ₗ[k] V i) (g : Π i : ι, V i →ₗ[k] V i) :
-  dfinsupp.map_range.linear_map (λ i : ι, f i * g i) = dfinsupp.map_range.linear_map f * dfinsupp.map_range.linear_map g :=
+  dfinsupp.map_range.linear_map (λ i : ι, f i * g i)
+    = dfinsupp.map_range.linear_map f * dfinsupp.map_range.linear_map g :=
 begin
   have : (λ i : ι, f i * g i) = λ i : ι, (f i).comp (g i),
   by {ext, refl},
@@ -32,6 +34,7 @@ begin
   apply dfinsupp.map_range.linear_map_comp
 end
 
+/-- Direct sum of representations -/
 def representation.direct_sum
   {k G ι : Type*} {V : ι → Type*} [comm_semiring k] [monoid G]
   [Π i : ι, add_comm_monoid (V i)] [Π i : ι, module k (V i)]
@@ -59,6 +62,7 @@ theorem representation.direct_sum_apply
   (ρV : Π i : ι, representation k G (V i)) (g : G) :
   representation.direct_sum ρV g = dfinsupp.map_range.linear_map (λ i : ι, (ρV i g)) := rfl
 
+/-- Direct sum of `FinVect`s as a `FinVect` -/
 def FinVect.direct_sum
   {k ι : Type*} [field k] [fintype ι] (V : ι → FinVect k)
   [Π i : ι, finite_dimensional k (V i)] :
@@ -72,6 +76,7 @@ def FinVect.direct_sum
   by apply finite_dimensional.direct_sum
 ⟩
 
+/-- Direct sum of `fdRep`s as a `fdRep` -/
 def fdRep.direct_sum
   {k G ι : Type*} [field k] [monoid G] [fintype ι] (V : ι → fdRep k G) :
   fdRep k G :=
@@ -104,7 +109,10 @@ def matrix.direct_sum
 theorem matrix.direct_sum_apply
   {ι k : Type*} [decidable_eq ι] [semiring k] {n : ι → Type*}
   (M : Π i : ι, matrix (n i) (n i) k) (x y : Σ i : ι, n i) :
-  matrix.direct_sum M x y = dite (x.1 = y.1) (λ (h : x.1 = y.1), M x.1 x.2 (cast (congr_arg n h.symm) y.2)) (λ (h : ¬x.1 = y.1), 0) :=
+  matrix.direct_sum M x y
+    = dite (x.1 = y.1)
+    (λ (h : x.1 = y.1), M x.1 x.2 (cast (congr_arg n h.symm) y.2))
+    (λ (h : ¬x.1 = y.1), 0) :=
 begin
   cases x with i x_i,
   cases y with j x_j,
@@ -142,7 +150,8 @@ theorem direct_sum.to_matrix_case_eq
   (f : Π i : ι, V i →ₗ[k] V i)
   {n : ι → Type*} [Π i : ι, fintype (n i)] [Π i : ι, decidable_eq (n i)]
   (b : Π i : ι, basis (n i) k (V i)) (x y : Σ i : ι, n i) (h : x.1 = y.1) :
-  linear_map.to_matrix (dfinsupp.basis b) (dfinsupp.basis b) (dfinsupp.map_range.linear_map f) x y = matrix.direct_sum (λ i : ι, linear_map.to_matrix (b i) (b i) (f i)) x y :=
+  linear_map.to_matrix (dfinsupp.basis b) (dfinsupp.basis b) (dfinsupp.map_range.linear_map f) x y
+    = matrix.direct_sum (λ i : ι, linear_map.to_matrix (b i) (b i) (f i)) x y :=
 begin
   rw matrix.direct_sum_apply,
   rw linear_map.to_matrix_apply,
@@ -166,7 +175,8 @@ theorem direct_sum.to_matrix
   (f : Π i : ι, V i →ₗ[k] V i)
   {n : ι → Type*} [Π i : ι, fintype (n i)] [Π i : ι, decidable_eq (n i)]
   (b : Π i : ι, basis (n i) k (V i)) :
-  linear_map.to_matrix (dfinsupp.basis b) (dfinsupp.basis b) (dfinsupp.map_range.linear_map f) = matrix.direct_sum (λ i : ι, linear_map.to_matrix (b i) (b i) (f i)) :=
+  linear_map.to_matrix (dfinsupp.basis b) (dfinsupp.basis b) (dfinsupp.map_range.linear_map f)
+    = matrix.direct_sum (λ i : ι, linear_map.to_matrix (b i) (b i) (f i)) :=
 begin
   ext x y,
   by_cases x.1 = y.1,
@@ -186,16 +196,19 @@ begin
     simp }
 end
 
-/-- Trace of direct sum matrix is sum of traces of constituent matrices. Matrices are given as linear maps with assumed finite basis. -/
+/-- Trace of direct sum matrix is sum of traces of constituent matrices. Matrices are given as
+linear maps with assumed finite basis. -/
 theorem direct_sum.fintype_trace
   {ι k : Type*} [fintype ι] [decidable_eq ι] [comm_semiring k]
   {V : ι → Type*} [Π i : ι, add_comm_monoid (V i)] [Π i : ι, module k (V i)]
   (f : Π i : ι, V i →ₗ[k] V i)
   {n : ι → Type*} [Π i : ι, fintype (n i)] [Π i : ι, decidable_eq (n i)]
   (b : Π i : ι, basis (n i) k (V i)) :
-  linear_map.trace k (⨁ i : ι, V i) (dfinsupp.map_range.linear_map f) = finset.univ.sum (λ (i : ι), linear_map.trace k (V i) (f i)) :=
+  linear_map.trace k (⨁ i : ι, V i) (dfinsupp.map_range.linear_map f)
+    = finset.univ.sum (λ (i : ι), linear_map.trace k (V i) (f i)) :=
 begin
-  rw @linear_map.trace_eq_matrix_trace k _ (⨁ i : ι, V i) _ _ _ _ _ (dfinsupp.basis b) (dfinsupp.map_range.linear_map f),
+  rw @linear_map.trace_eq_matrix_trace k _ (⨁ i : ι, V i) _ _ _ _ _
+    (dfinsupp.basis b) (dfinsupp.map_range.linear_map f),
   rw direct_sum.to_matrix,
   rw matrix.trace_direct_sum,
   congr,
@@ -203,15 +216,18 @@ begin
   rw @linear_map.trace_eq_matrix_trace k _ (V i) _ _ _ _ _
 end
 
-/-- Character of the (finite) direct sum representation is the sum of characters of the individual representations. -/
+/-- Character of the (finite) direct sum representation is the sum of characters of the individual
+representations. -/
 theorem fdRep.char_direct_sum
   {k G ι : Type*} [field k] [monoid G] [fintype ι] [decidable_eq ι] (V : ι → fdRep k G) (g : G) :
   (fdRep.direct_sum V).character g = finset.univ.sum (λ i : ι, (V i).character g) :=
 begin
   unfold fdRep.character,
   simp,
-  have : linear_map.trace k (fdRep.direct_sum V) (dfinsupp.map_range.linear_map (λ (i : ι), (V i).ρ g))
-    = linear_map.trace k (direct_sum ι (λ i : ι, V i)) (dfinsupp.map_range.linear_map (λ (i : ι), (V i).ρ g)),
+  have : linear_map.trace k (fdRep.direct_sum V)
+    (dfinsupp.map_range.linear_map (λ (i : ι), (V i).ρ g))
+    = linear_map.trace k (direct_sum ι (λ i : ι, V i))
+    (dfinsupp.map_range.linear_map (λ (i : ι), (V i).ρ g)),
   refl,
   rw this,
   have b := λ i : ι, finite_dimensional.fin_basis k (V i),

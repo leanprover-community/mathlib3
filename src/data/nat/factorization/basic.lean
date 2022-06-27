@@ -568,4 +568,21 @@ begin
     convert (factorization_disjoint_of_coprime hab) },
 end
 
+lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
+  ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
+begin
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn,
+  rw eq_comm,
+  apply finset.prod_subset_one_on_sdiff,
+  { exact λ p hp, finset.mem_filter.mpr
+      ⟨finset.mem_range.mpr (gt_of_gt_of_ge pr (le_of_mem_factorization hp)),
+       prime_of_mem_factorization hp⟩ },
+  { intros p hp,
+    cases finset.mem_sdiff.mp hp with hp1 hp2,
+    rw ←factorization_def n p (finset.mem_filter.mp hp1).2,
+    simp [finsupp.not_mem_support_iff.mp hp2] },
+  { intros p hp,
+    simp [factorization_def n p (prime_of_mem_factorization hp)] }
+end
+
 end nat

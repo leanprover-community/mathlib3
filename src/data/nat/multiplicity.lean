@@ -90,6 +90,37 @@ multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
 
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
 over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
+lemma factorization_factorial {p : ℕ} (hp : p.prime) {n b : ℕ} (hb : log p n < b) :
+  n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
+begin
+  rcases n with rfl | n, { simp },
+  simp only [factorial_succ],
+  rw factorization_mul (succ_ne_zero n) (factorial_ne_zero n),
+  simp only [finsupp.coe_add, pi.add_apply],
+  -- have := factorization_eq_card_pow_dvd hp (succ_pos n) hb,
+  sorry,
+end
+-- | 0     b hb := by simp [Ico, hp.multiplicity_one]
+-- | (n+1) b hb :=
+--   calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
+--     by rw [factorial_succ, hp.multiplicity_mul, add_comm]
+--   ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
+--     by rw [factorization_factorial ((log_mono_right $ le_succ _).trans_lt hb),
+--       ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
+--   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
+--     by { rw [sum_add_distrib, sum_boole], simp }
+--   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
+--     congr_arg coe $ finset.sum_congr rfl $ λ _ _, (succ_div _ _).symm
+
+
+
+#exit
+
+
+/-- **Legendre's Theorem**
+
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
+over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
 lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
   ∀ {n b : ℕ}, log p n < b → multiplicity p n! = (∑ i in Ico 1 b, n / p ^ i : ℕ)
 | 0     b hb := by simp [Ico, hp.multiplicity_one]
@@ -194,7 +225,7 @@ lemma multiplicity_le_multiplicity_choose_add {p : ℕ} (hp : p.prime) : ∀ (n 
   multiplicity p n ≤ multiplicity p (choose n k) + multiplicity p k
 | _     0     := by simp
 | 0     (_+1) := by simp
-| (n+1) (k+1) := 
+| (n+1) (k+1) :=
 begin
   rw ← hp.multiplicity_mul,
   refine multiplicity_le_multiplicity_of_dvd_right _,

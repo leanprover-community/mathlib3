@@ -487,6 +487,8 @@ begin
   have h₁ : ∀ a : R, (1 : mul_char R R') a = ite (is_unit a) 1 0 :=
   by { intro a, split_ifs, { exact one_eval_of_is_unit h }, { exact one_eval_of_not_is_unit h } },
   simp_rw [h₁],
+  -- `simp_rw [one_eval]` should be possible instead, but then the
+  -- two `ite` expressions don't match because of different decidability statements
   have h₂ := @finset.sum_filter R' R finset.univ _ is_unit _ 1,
   simp only [pi.one_apply] at h₂,
   have h₃ := map_sum (algebra_map ℕ R') 1 (finset.filter (is_unit : R → Prop) finset.univ),

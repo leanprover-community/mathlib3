@@ -33,7 +33,7 @@ open set metric
 open_locale convex pointwise
 
 /-- A *uniformly convex space* is a real normed space where the triangle inequality is strict with a
-uniform bound. Namely, over the `x` and `y` of norm `1`, `∥x + y∥` is uniformly bounded above over
+uniform bound. Namely, over the `x` and `y` of norm `1`, `∥x + y∥` is uniformly bounded above
 by a constant `< 2` when `∥x - y∥` is uniformly bounded below by a positive constant.
 
 See also `uniform_convex_space.of_uniform_convex_closed_unit_ball`. -/

@@ -102,6 +102,7 @@ instance [second_countable_topology E] [measurable_space E] [borel_space E]
     rw [hxf, hxg] at hx,
     exact solid hx, },
   ..Lp.lattice, ..Lp.normed_group, }
+
 end order
 
 end Lp

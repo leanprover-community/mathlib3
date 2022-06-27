@@ -36,7 +36,7 @@ In this setting, there is an equivalence between multiplicative characters
 have a natural structure as a commutative group.
 -/
 
-universes u v w
+universes u v
 
 section defi
 
@@ -91,9 +91,8 @@ instance coe_to_fun : has_coe_to_fun (mul_char R R') (λ _, R → R') :=
 lemma coe_coe (χ : mul_char R R') : (χ.to_monoid_hom : R → R') = χ := rfl
 
 /-- Extensionality. See `ext` below for the version that will actually be used. -/
-lemma ext' {χ χ' : mul_char R R'} : (∀ a, χ a = χ' a) → χ = χ' :=
+lemma ext' {χ χ' : mul_char R R'} (h : ∀ a, χ a = χ' a) : χ = χ' :=
 begin
-  intro h,
   cases χ,
   cases χ',
   congr,
@@ -114,9 +113,8 @@ lemma map_nonunit (χ : mul_char R R') {a : R} (ha : ¬ is_unit a) : χ a = 0 :=
 /-- Extensionality. Since `mul_char`s always take the value zero on non-units, it is sufficient
 to compare the values on units. -/
 @[ext]
-lemma ext {χ χ' : mul_char R R'} : (∀ a, is_unit a → χ a = χ' a) → χ = χ' :=
+lemma ext {χ χ' : mul_char R R'} (h : ∀ a, is_unit a → χ a = χ' a) : χ = χ' :=
 begin
-  intro h,
   apply ext',
   intro a,
   by_cases ha : is_unit a,
@@ -167,19 +165,16 @@ def of_unit_hom (f : Rˣ →* R'ˣ) : mul_char R R' :=
   end ,
   map_nonunit' := by { intros a ha, simp only [ha, not_false_iff, dif_neg], }, }
 
+lemma of_unit_hom_eval_def (f : Rˣ →* R'ˣ) (a : R) :
+  of_unit_hom f a = if ha : is_unit a then f ha.unit else 0 := rfl
+
 lemma of_unit_hom_eval (f : Rˣ →* R'ˣ) {a : R} (ha : is_unit a) :
   of_unit_hom f a = f ha.unit :=
-begin
-  change (of_unit_hom f).to_fun _ = _,
-  simp only [ha, of_unit_hom, units.is_unit, dif_pos, is_unit.unit_of_coe_units],
-end
+by simp only [ha, of_unit_hom_eval_def, dif_pos]
 
 lemma of_unit_hom_eval' (f : Rˣ →* R'ˣ) (a : Rˣ) :
   of_unit_hom f a = f a :=
-begin
-  change (of_unit_hom f).to_fun _ = _,
-  simp only [of_unit_hom, units.is_unit, dif_pos, is_unit.unit_of_coe_units],
-end
+by simp only [of_unit_hom_eval_def, units.is_unit, is_unit.unit_of_coe_units, dite_eq_ite, if_true]
 
 /-- The equivalence between multiplicative characters and homomorphisms of unit groups. -/
 noncomputable
@@ -213,21 +208,19 @@ instance has_one : has_one (mul_char R R') := ⟨trivial R R'⟩
 noncomputable
 instance inhabited : inhabited (mul_char R R') := ⟨1⟩
 
-@[simp]
-lemma trivial_unit {a : R} (ha : is_unit a) :
-  (1 : mul_char R R') a = 1 :=
-begin
-  change (mul_char.trivial R R').to_fun a = _,
-  simp only [ha, mul_char.trivial, ite_eq_left_iff, not_true, forall_false_left],
-end
+/-- Evaluation of the trivial character -/
+lemma one_eval {a : R} : (1 : mul_char R R') a = if (is_unit a) then 1 else 0 :=
+rfl
 
 @[simp]
-lemma trivial_nonunit {a : R} (ha : ¬ is_unit a) :
+lemma one_eval_of_is_unit {a : R} (ha : is_unit a) :
+  (1 : mul_char R R') a = 1 :=
+by simp only [one_eval, ha, if_true]
+
+@[simp]
+lemma one_eval_of_not_is_unit {a : R} (ha : ¬ is_unit a) :
   (1 : mul_char R R') a = 0 :=
-begin
-  change (mul_char.trivial R R').to_fun a = _,
-  simp only [ha, mul_char.trivial, ite_eq_right_iff, forall_false_left],
-end
+by simp only [one_eval, ha, if_false]
 
 /-- Multiplication of multiplicative characters. (This needs the target to be commutative.) -/
 def mul (χ χ' : mul_char R R') : mul_char R R' :=
@@ -244,51 +237,21 @@ instance has_mul : has_mul (mul_char R R') := ⟨mul⟩
 
 lemma mul_apply (χ χ' : mul_char R R') (a : R) : (χ * χ') a = χ a * χ' a := rfl
 
-lemma coe_to_fun_mul (χ χ' : mul_char R R') : ⇑(χ * χ') = χ * χ' :=
-begin
-  ext a,
-  change (χ.mul χ').to_fun a = χ.to_fun a * χ'.to_fun a,
-  simp only [mul, monoid_hom.to_fun_eq_coe, monoid_hom.mul_apply],
-end
+lemma coe_to_fun_mul (χ χ' : mul_char R R') : ⇑(χ * χ') = χ * χ' := rfl
 
 @[protected]
 lemma one_mul (χ : mul_char R R') : (1 : mul_char R R') * χ = χ :=
 begin
   ext a ha,
-  rw [coe_to_fun_mul, pi.mul_apply, trivial_unit ha, one_mul],
+  rw [coe_to_fun_mul, pi.mul_apply, one_eval_of_is_unit ha, one_mul],
 end
 
 @[protected]
 lemma mul_one (χ : mul_char R R') : χ * 1 = χ :=
 begin
   ext a ha,
-  rw [coe_to_fun_mul, pi.mul_apply, trivial_unit ha, mul_one],
+  rw [coe_to_fun_mul, pi.mul_apply, one_eval_of_is_unit ha, mul_one],
 end
-
-noncomputable
-instance mul_one_class : mul_one_class (mul_char R R') :=
-{ one_mul := one_mul,
-  mul_one := mul_one,
-  ..has_one,
-  ..has_mul }
-
-instance semigroup : semigroup (mul_char R R') :=
-{ mul_assoc := by { intros χ₁ χ₂ χ₃, ext a, repeat {rw [coe_to_fun_mul]}, rw [mul_assoc], },
-  ..has_mul }
-
-noncomputable
-instance monoid : monoid (mul_char R R') :=
-{ ..mul_one_class,
-  ..semigroup }
-
-instance comm_semigroup : comm_semigroup (mul_char R R') :=
-{ mul_comm := by { intros χ₁ χ₂, ext a, repeat {rw [coe_to_fun_mul]}, rw [mul_comm], },
-  ..semigroup }
-
-noncomputable
-instance comm_monoid : comm_monoid (mul_char R R') :=
-{ ..monoid,
-  ..comm_semigroup }
 
 /-- The inverse of a multiplicative character. We define it as `inverse ∘ χ`. -/
 noncomputable
@@ -297,8 +260,8 @@ def inv (χ : mul_char R R') : mul_char R R' :=
   begin
     intros a ha,
     simp only [monoid_hom.to_fun_eq_coe, monoid_hom.coe_comp, function.comp_app,
-               monoid_with_zero_hom.to_monoid_hom_coe, monoid_with_zero.coe_inverse, coe_coe],
-    rw [map_nonunit _ ha, ring.inverse_zero],
+               monoid_with_zero_hom.to_monoid_hom_coe, monoid_with_zero.coe_inverse, coe_coe,
+               map_nonunit _ ha, ring.inverse_zero],
   end,
   ..monoid_with_zero.inverse.to_monoid_hom.comp χ.to_monoid_hom }
 
@@ -332,36 +295,33 @@ end
 lemma inv_apply' {R : Type u} [field R] (χ : mul_char R R') (a : R) : χ⁻¹ a = χ a⁻¹ :=
 (inv_apply χ a).trans $ congr_arg _ (ring.inverse_eq_inv a)
 
-noncomputable
-instance div_inv_monoid : div_inv_monoid (mul_char R R') :=
-{ ..monoid,
-  ..has_inv }
-
 /-- The product of a character with its inverse is the trivial character. -/
 @[simp]
 lemma inv_mul (χ : mul_char R R') : χ⁻¹ * χ = 1 :=
 begin
   ext x hx,
   rw [coe_to_fun_mul, pi.mul_apply, inv_apply_eq_inv,
-      ring.inverse_mul_cancel _ (is_unit.map _ hx), trivial_unit hx],
+      ring.inverse_mul_cancel _ (is_unit.map _ hx), one_eval_of_is_unit hx],
 end
 
-noncomputable
-instance group : group (mul_char R R') :=
-{ mul_left_inv := inv_mul,
-  ..div_inv_monoid }
-
+/-- Finally, the commutative group structure on `mul_char R R'`. -/
 noncomputable
 instance comm_group : comm_group (mul_char R R') :=
-{ ..group,
-  ..comm_monoid }
+{ mul_left_inv := inv_mul,
+  mul_assoc := by { intros χ₁ χ₂ χ₃, ext a, repeat {rw [coe_to_fun_mul]}, rw [mul_assoc], },
+  mul_comm := by { intros χ₁ χ₂, ext a, repeat {rw [coe_to_fun_mul]}, rw [mul_comm], },
+  one_mul := one_mul,
+  mul_one := mul_one,
+  ..has_one,
+  ..has_mul,
+  ..has_inv }
 
 /-- If `a` is a unit and `n : ℕ`, then `(χ ^ n) a = (χ a) ^ n`. -/
 lemma pow_apply (χ : mul_char R R') (n : ℕ) {a : R} (ha : is_unit a) :
   (χ ^ n) a = (χ a) ^ n :=
 begin
   induction n with n ih,
-  { rw [pow_zero, pow_zero, trivial_unit ha], },
+  { rw [pow_zero, pow_zero, one_eval_of_is_unit ha], },
   { rw [pow_succ, pow_succ, mul_apply, ih], },
 end
 
@@ -395,7 +355,7 @@ namespace mul_char
 
 universes u v w
 
-variables {R : Type u} [comm_ring R] {R' : Type v} [comm_ring R'] {R'' : Type v} [comm_ring R'']
+variables {R : Type u} [comm_ring R] {R' : Type v} [comm_ring R'] {R'' : Type w} [comm_ring R'']
 
 /-- A multiplicative character is *nontrivial* if it takes a value `≠ 1` on a unit. -/
 def is_nontrivial (χ : mul_char R R') : Prop := ∃ (a : R), is_unit a ∧ χ a ≠ 1
@@ -406,28 +366,27 @@ begin
   split,
   { intros h₁ h₂,
     obtain ⟨a, ha₁, ha₂⟩ := h₁,
-    rw [h₂, trivial_unit ha₁] at ha₂,
+    rw [h₂, one_eval_of_is_unit ha₁] at ha₂,
     exact ha₂ rfl, },
   { contrapose!,
     intro h,
     change ¬ ∃ a, is_unit a ∧ χ a ≠ 1 at h,
     push_neg at h,
     ext a ha,
-    rw [trivial_unit ha, h a ha], },
+    rw [one_eval_of_is_unit ha, h a ha], },
 end
 
 /-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1`. -/
 def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨ χ a = -1
 
 /-- We can post-compose a multiplicative character with a ring homomorphism. -/
--- I can't let `R''` have universe `w` here -- why?
 def ring_hom_comp (χ : mul_char R R') (f : R' →+* R'') : mul_char R R'' :=
 { map_nonunit' :=
   begin
     intros a ha,
     simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.to_fun_eq_coe, monoid_hom.coe_comp,
-               ring_hom.coe_monoid_hom, coe_coe, function.comp_app],
-    rw [map_nonunit χ ha, ring_hom.map_zero],
+               ring_hom.coe_monoid_hom, coe_coe, function.comp_app, map_nonunit χ ha,
+               ring_hom.map_zero],
   end,
   ..f.to_monoid_hom.comp χ.to_monoid_hom}
 
@@ -517,14 +476,16 @@ begin
   exact eq_zero_of_mul_eq_self_left hb h₁,
 end
 
+-- this can go once #14873 is merged
+instance {M} [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
+
 /-- The sum over all values of the trivial multiplicative character on a finite ring is
 the cardinality of its unit group. -/
 lemma sum_eq_card_units_of_is_trivial [fintype R] [decidable_eq R] :
   ∑ a, (1 : mul_char R R') a = fintype.card Rˣ :=
 begin
-  classical, -- should be unnecessary once #14873 is merged
   have h₁ : ∀ a : R, (1 : mul_char R R') a = ite (is_unit a) 1 0 :=
-  by { intro a, split_ifs, { exact trivial_unit h }, { exact trivial_nonunit h } },
+  by { intro a, split_ifs, { exact one_eval_of_is_unit h }, { exact one_eval_of_not_is_unit h } },
   simp_rw [h₁],
   have h₂ := @finset.sum_filter R' R finset.univ _ is_unit _ 1,
   simp only [pi.one_apply] at h₂,
@@ -545,5 +506,3 @@ end
 end mul_char
 
 end properties
-
---#lint

@@ -359,7 +359,7 @@ lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space 
 subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
 
 lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
-  {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
+  {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ π n) {x : ι}
   {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (π x)) :
   m ≤ generate_from (pi_Union_Inter π S) :=
 by { rw hpix, exact generate_from_mono (subset_pi_Union_Inter h_univ htS hxt), }

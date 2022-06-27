@@ -56,6 +56,20 @@ instance : ordered_add_comm_group (Lp E p μ) :=
 { add_le_add_left := λ f g, add_le_add_left,
   ..subtype.partial_order _, ..add_subgroup.to_add_comm_group _}
 
+lemma _root_.measure_theory.mem_ℒp.sup {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  mem_ℒp (f ⊔ g) p μ :=
+mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.sup hg.1)
+  (filter.eventually_of_forall (λ x, norm_sup_le_add (f x) (g x)))
+
+lemma _root_.measure_theory.mem_ℒp.inf {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  mem_ℒp (f ⊓ g) p μ :=
+mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.inf hg.1)
+  (filter.eventually_of_forall (λ x, norm_inf_le_add (f x) (g x)))
+
+lemma _root_.measure_theory.mem_ℒp.abs {f : α → E} (hf : mem_ℒp f p μ)  :
+  mem_ℒp (|f|) p μ :=
+hf.sup hf.neg
+
 instance [second_countable_topology E] [measurable_space E] [borel_space E]
   [has_measurable_sup₂ E] [has_measurable_inf₂ E] :
   lattice (Lp E p μ) :=
@@ -99,7 +113,6 @@ instance [second_countable_topology E] [measurable_space E] [borel_space E]
     rw [hxf, hxg] at hx,
     exact solid hx, },
   ..Lp.lattice, ..Lp.normed_group, }
-
 end order
 
 end Lp

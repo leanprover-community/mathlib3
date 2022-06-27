@@ -86,10 +86,25 @@ private lemma zero_def : 0 = mk 0 := rfl
 
 private lemma one_def : 1 = mk 1 := rfl
 
+instance : add_group Cauchy :=
+by refine { add := (+), zero := (0 : Cauchy), sub := has_sub.sub, neg := has_neg.neg,
+  sub_eq_add_neg := _, nsmul := nsmul_rec, zsmul := zsmul_rec, .. }; try { intros; refl };
+{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
+  simp [zero_def, add_comm, add_left_comm, sub_eq_neg_add] }
+
+instance : add_group_with_one Cauchy :=
+{ nat_cast := λ n, mk n,
+  nat_cast_zero := congr_arg mk nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg mk (nat.cast_succ n),
+  int_cast := λ n, mk n,
+  int_cast_of_nat := λ n, congr_arg mk (int.cast_of_nat n),
+  int_cast_neg_succ_of_nat := λ n, congr_arg mk (int.cast_neg_succ_of_nat n),
+  one := 1,
+  .. Cauchy.add_group }
+
 instance : comm_ring Cauchy :=
-by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
-    add := (+), zero := (0 : Cauchy), mul := (*), one := 1, nsmul := nsmul_rec, npow := npow_rec,
-    zsmul := zsmul_rec, .. }; try { intros; refl };
+by refine { add := (+), zero := (0 : Cauchy), mul := (*), one := 1, npow := npow_rec,
+    .. Cauchy.add_group_with_one, .. }; try { intros; refl };
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
   simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
           sub_eq_add_neg] }

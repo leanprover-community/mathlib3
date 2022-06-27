@@ -75,7 +75,7 @@ The remainder of this file shows that these conditions are equivalent
 to the usual sheaf condition.
 -/
 
-variables [has_products C]
+variables [has_products.{v} C]
 
 namespace sheaf_condition_pairwise_intersections
 
@@ -393,7 +393,7 @@ end Top.presheaf
 
 namespace Top.sheaf
 
-variables {X : Top.{v}} {C : Type u} [category.{v} C] [has_products C]
+variables {X : Top.{v}} {C : Type u} [category.{v} C] [has_products.{v} C]
 variables (F : X.sheaf C) (U V : opens X)
 open category_theory.limits
 

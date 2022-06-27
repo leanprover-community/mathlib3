@@ -3,7 +3,9 @@ Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
-import tactic
+import tactic.generalize_proofs
+import tactic.rcases
+import tactic.norm_num
 
 /-!
 # Additional properties of binary recursion on `nat`

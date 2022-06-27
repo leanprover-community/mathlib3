@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
+import algebra.char_zero.quotient
 
 /-!
 # The type of angles
@@ -84,38 +85,13 @@ by simp [←coe_int_mul_eq_zsmul]
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
 
--- TODO: this holds more generally for quotients of other char-zero fields by multiples
 lemma zsmul_eq_iff {ψ θ : angle} {z : ℤ} (hz : z ≠ 0) :
   z • ψ = z • θ ↔ (∃ k : fin z.nat_abs, ψ = θ + (k : ℕ) • (2 * π / z : ℝ)) :=
-begin
-  induction ψ using real.angle.induction_on,
-  induction θ using real.angle.induction_on,
-  simp_rw [←coe_zsmul, ←coe_nsmul, ←coe_add, quotient_add_group.eq_iff_sub_mem, ←smul_sub,
-    add_subgroup.mem_zmultiples_iff, ←sub_sub, (eq_sub_iff_add_eq : _ = (ψ - θ) - _ ↔ _)],
-  generalize : 2 * π = τ,
-  simp_rw [div_eq_mul_inv, ←smul_mul_assoc],
-  have hz' : (z : ℝ) ≠ 0 := int.cast_ne_zero.mpr hz,
-  conv_rhs { simp only [←zsmul_eq_zsmul_iff' hz] { single_pass := tt}, },
-  simp_rw [smul_add, ←mul_smul_comm, zsmul_eq_mul (z : ℝ)⁻¹, mul_inv_cancel hz', mul_one,
-    ←coe_nat_zsmul, ←mul_smul, ←add_smul],
-  split,
-  { rintro ⟨k, h⟩,
-    simp_rw ← h,
-    refine ⟨⟨(k % z).to_nat, _⟩, k / z, _⟩,
-    { rw [←int.coe_nat_lt, int.to_nat_of_nonneg (int.mod_nonneg _ hz)],
-      exact (int.mod_lt _ hz).trans_eq (int.abs_eq_nat_abs _) },
-    rw [subtype.coe_mk, int.to_nat_of_nonneg (int.mod_nonneg _ hz), int.div_add_mod] },
-  { rintro ⟨k, n, h⟩,
-    exact ⟨_, h⟩, },
-end
+quotient_add_group.zmultiples_zsmul_eq_zsmul_iff hz
 
 lemma nsmul_eq_iff {ψ θ : angle} {n : ℕ} (hz : n ≠ 0) :
   n • ψ = n • θ ↔ (∃ k : fin n, ψ = θ + (k : ℕ) • (2 * π / n : ℝ)) :=
-begin
-  simp_rw [←coe_nat_zsmul ψ, ←coe_nat_zsmul θ, zsmul_eq_iff (int.coe_nat_ne_zero.mpr hz),
-    int.cast_coe_nat],
-  refl,
-end
+quotient_add_group.zmultiples_nsmul_eq_nsmul_iff hz
 
 lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
 by rw [zsmul_eq_iff two_ne_zero, int.nat_abs_bit0, int.nat_abs_one,

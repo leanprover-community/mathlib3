@@ -70,37 +70,32 @@ lemma _root_.measure_theory.mem_ℒp.abs {f : α → E} (hf : mem_ℒp f p μ)  
   mem_ℒp (|f|) p μ :=
 hf.sup hf.neg
 
-instance [second_countable_topology E] [measurable_space E] [borel_space E]
-  [has_measurable_sup₂ E] [has_measurable_inf₂ E] :
-  lattice (Lp E p μ) :=
+instance : lattice (Lp E p μ) :=
 subtype.lattice (λ f g hf hg, by { rw mem_Lp_iff_mem_ℒp at *,
     exact (mem_ℒp_congr_ae (ae_eq_fun.coe_fn_sup _ _)).mpr (hf.sup hg), })
   (λ f g hf hg, by { rw mem_Lp_iff_mem_ℒp at *,
     exact (mem_ℒp_congr_ae (ae_eq_fun.coe_fn_inf _ _)).mpr (hf.inf hg),})
 
-lemma coe_fn_sup [measurable_space E] [second_countable_topology E]
-  [borel_space E] [has_measurable_sup₂ E] (f g : Lp E p μ) : ⇑(f ⊔ g) =ᵐ[μ] ⇑f ⊔ ⇑g :=
+lemma coe_fn_sup (f g : Lp E p μ) : ⇑(f ⊔ g) =ᵐ[μ] ⇑f ⊔ ⇑g :=
 ae_eq_fun.coe_fn_sup _ _
 
-lemma coe_fn_inf [measurable_space E] [second_countable_topology E]
-  [borel_space E] [has_measurable_sup₂ E] (f g : Lp E p μ) : ⇑(f ⊓ g) =ᵐ[μ] ⇑f ⊓ ⇑g :=
+lemma coe_fn_inf (f g : Lp E p μ) : ⇑(f ⊓ g) =ᵐ[μ] ⇑f ⊓ ⇑g :=
 ae_eq_fun.coe_fn_inf _ _
 
-lemma coe_fn_abs [measurable_space E] [second_countable_topology E]
-  [borel_space E] [has_measurable_sup₂ E] (f : Lp E p μ) : ⇑|f| =ᵐ[μ] λ x, |f x| :=
+lemma coe_fn_abs (f : Lp E p μ) : ⇑|f| =ᵐ[μ] λ x, |f x| :=
 ae_eq_fun.coe_fn_abs _
 
 noncomputable
-instance [second_countable_topology E] [measurable_space E] [borel_space E]
-  [has_measurable_sup₂ E] [has_measurable_inf₂ E] [fact (1 ≤ p)] :
-  normed_lattice_add_comm_group (Lp E p μ) :=
+instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
 { add_le_add_left := λ f g, add_le_add_left,
-  solid := λ f g hfg, by { rw ← coe_fn_le at hfg, simp_rw Lp.norm_def,
-    rw ennreal.to_real_le_to_real (Lp.snorm_ne_top f) (Lp.snorm_ne_top g),
+  solid := λ f g hfg, begin
+    rw ← coe_fn_le at hfg,
+    simp_rw [Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top f) (Lp.snorm_ne_top g)],
     refine snorm_mono_ae _,
     filter_upwards [hfg, Lp.coe_fn_abs f, Lp.coe_fn_abs g] with x hx hxf hxg,
     rw [hxf, hxg] at hx,
-    exact solid hx, },
+    exact solid hx,
+  end,
   ..Lp.lattice, ..Lp.normed_group, }
 
 end order

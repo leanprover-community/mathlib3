@@ -41,13 +41,16 @@ variables {n : ℕ} {x : X}
 /--
 The `n`-dimensional cube.
 -/
-@[derive [has_zero, has_one, topological_space]]
+@[derive [has_zero, has_one, topological_space, metric_space]]
 def cube (n : ℕ) : Type := fin n → I
 notation `I^` := cube
 
 namespace cube
 
-instance locally_compact_space : locally_compact_space (I^ n) := sorry
+-- example : compact_space (I) := by apply_instance
+-- example : locally_compact_space (I) := locally_compact_of_proper
+instance c : compact_space (I^n) := by sorry
+instance locally_compact_space : locally_compact_space (I^n) := locally_compact_of_proper
 
 @[continuity] lemma proj_continuous (i : fin n) : continuous (λ f : I^n, f i) :=
 continuous_apply i
@@ -121,6 +124,7 @@ instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 @[ext] lemma ext (f g : gen_loop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
 @[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : gen_loop n x) y = f y := rfl
+-- lemma cont_reparam (f : I→ C(I^n,X)) (H y) : continuous ((λ t, ⟨f t, H⟩) : I → gen_loop n x)
 
 /--
 The constant `gen_loop` at `x`.
@@ -241,7 +245,7 @@ begin
       unfold continuous_map.comp, unfold function.comp,
       simp only [continuous_map.coe_mk, continuous_map.homotopy_with.coe_to_continuous_map,
         continuous_map.homotopy_with.apply_zero, subtype.val_eq_coe, mk_apply],
-      convert curry_to_path},
+      exact curry_to_path},
     { intro t, ext1, simp only [path.coe_to_continuous_map],
       unfold continuous_map.uncurry, unfold function.uncurry,
       unfold cf, unfold comp', unfold cube.fold,
@@ -306,6 +310,7 @@ begin
   apply path.homotopic.hcomp; apply gen_loop.homotopic_iff.1,
   exacts [Hp, Hq],
 end
+
 instance has_mul : has_mul (π (n+1) x) := ⟨concat⟩
 local infix `⋆`:60 := concat
 
@@ -349,7 +354,7 @@ end
 
 def reverse {n':nat} : π (n'+1) x → π (n'+1) x :=
 begin
-  refine (quotient.map' (λ p, gen_loop.from_path ((gen_loop.to_path p).symm)) _),
+  refine (quotient.map' (λ p, gen_loop.from_path (gen_loop.to_path p).symm) _),
   intros p q H,
   apply gen_loop.homotopic_iff.2,
   repeat {rw gen_loop.to_from},

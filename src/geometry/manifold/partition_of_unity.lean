@@ -157,8 +157,7 @@ def is_subordinate (f : smooth_partition_of_unity ι I M s) (U : ι → set M) :
   f.to_partition_of_unity.is_subordinate U ↔ f.is_subordinate U :=
 iff.rfl
 
-alias is_subordinate_to_partition_of_unity ↔
-  _ smooth_partition_of_unity.is_subordinate.to_partition_of_unity
+alias is_subordinate_to_partition_of_unity ↔ _ is_subordinate.to_partition_of_unity
 
 end smooth_partition_of_unity
 

@@ -209,7 +209,7 @@ begin
       exact mul_div_cancel_left _ (nat.cast_add_one_pos i).ne' },
     field_simp [F, this, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
-    ring_nf },
+    ring },
   -- second step: show that the derivative of `F` is small
   have B : ∀ y ∈ Icc (-|x|) (|x|), |deriv F y| ≤ |x|^n / (1 - |x|),
   { assume y hy,

@@ -15,7 +15,7 @@ This file includes `simp` lemmas for applying operations in `data.matrix.basic` 
 of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
 `data.fin.vec_notation`.
 
-This also provides the new notation `!![a, b; c, d] = matrix.of ![![a, b], ![c, d]]`.
+This also provides the new notation `!![a, b; c, d] = ![![a, b], ![c, d]]`.
 This notation also works for empty matrices; `!![,,,] : matrix (fin 0) (fin 3)` and
 `!![;;;] : matrix (fin 3) (fin 0)`.
 
@@ -29,11 +29,11 @@ already appears in the input.
 ## Notations
 
 This file provide notation `!![a, b; c, d]` for matrices, which corresponds to
-`matrix.of ![![a, b], ![c, d]]`.
+`![![a, b], ![c, d]]`.
 A parser for `a, b; c, d`-style strings is provided as `matrix.entry_parser`, while
 `matrix.notation` provides the hook for the `!!` notation.
 Note that in lean 3 the pretty-printer will not show `!!` notation, instead showing the version
-with `matrix.of`.
+with `![![...`.
 
 ## Examples
 
@@ -104,7 +104,9 @@ meta def «notation» (_ : parse $ tk "!![")
 do
   let ⟨m, n, entries⟩ := val,
   let entry_vals := pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries),
-  pure (expr.app ``(@matrix.of (fin %%m) (fin %%n) _) entry_vals)
+  -- TODO: introduce a `matrix.of : (fin m → fin n → α) ≃ matrix m n α` and use it here, to ensure
+  -- the notation is actually notation for `matrix` and not just pi types.
+  pure entry_vals
 
 end parser
 

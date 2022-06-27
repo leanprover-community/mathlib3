@@ -568,6 +568,21 @@ begin
     convert (factorization_disjoint_of_coprime hab) },
 end
 
+/-- Two positive naturals are equal if their prime padic valuations are equal -/
+lemma eq_iff_prime_padic_val_nat_eq (a b : ℕ) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a = b ↔ (∀ p : ℕ, p.prime → padic_val_nat p a = padic_val_nat p b) :=
+begin
+  split,
+  {
+
+    rintros rfl, simp },
+  { intro h,
+    refine eq_of_factorization_eq ha hb (λ p, _),
+    by_cases pp : p.prime,
+    { simp [factorization_def, pp, h p pp] },
+    { simp [factorization_eq_zero_of_non_prime, pp] } },
+end
+
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
 begin

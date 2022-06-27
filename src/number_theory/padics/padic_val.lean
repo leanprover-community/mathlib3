@@ -516,17 +516,6 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
 
 open_locale big_operators
 
-/-- Two positive naturals are equal if their prime padic valuations are equal -/
-lemma eq_iff_prime_padic_val_nat_eq (a b : ℕ) (a_pos : 0 < a) (b_pos : 0 < b) :
-  a = b ↔ (∀ p : ℕ, p.prime → padic_val_nat p a = padic_val_nat p b) :=
-begin
-  split,
-  { intros h p pp,
-    rw h, },
-  intro h,
-  apply nat.rec_on_mul,
-end
-
 lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
   (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=
 begin

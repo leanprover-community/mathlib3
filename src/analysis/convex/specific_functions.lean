@@ -219,12 +219,12 @@ end
 
 lemma deriv_sqrt_mul_log (x : ℝ) : deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
 begin
-  rcases ne_or_eq x 0 with hx | rfl,
-  { exact (has_deriv_at_sqrt_mul_log hx).deriv },
-  rw [sqrt_zero, mul_zero, div_zero],
-  refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 0 right_mem_Iic),
-  refine (has_deriv_within_at_const 0 _ 0).congr_of_mem (λ x hx, _) right_mem_Iic,
-  rw [sqrt_eq_zero_of_nonpos hx, zero_mul],
+  cases lt_or_le 0 x with hx hx,
+  { exact (has_deriv_at_sqrt_mul_log hx.ne').deriv },
+  { rw [sqrt_eq_zero_of_nonpos hx, mul_zero, div_zero],
+    refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 x hx),
+    refine (has_deriv_within_at_const x _ 0).congr_of_mem (λ x hx, _) hx,
+    rw [sqrt_eq_zero_of_nonpos hx, zero_mul] },
 end
 
 lemma deriv_sqrt_mul_log' : deriv (λ x, sqrt x * log x) = λ x, (2 + log x) / (2 * sqrt x) :=
@@ -236,8 +236,7 @@ begin
   simp only [nat.iterate, deriv_sqrt_mul_log'],
   cases le_or_lt x 0 with hx hx,
   { rw [sqrt_eq_zero_of_nonpos hx, zero_pow zero_lt_three, mul_zero, div_zero],
-    suffices : has_deriv_within_at (λ x, (2 + log x) / (2 * sqrt x)) 0 (Iic 0) x,
-      from this.deriv_eq_zero (unique_diff_on_Iic _ _ hx),
+    refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 x hx),
     refine (has_deriv_within_at_const _ _ 0).congr_of_mem (λ x hx, _) hx,
     rw [sqrt_eq_zero_of_nonpos hx, mul_zero, div_zero] },
   { have h₀ : sqrt x ≠ 0, from sqrt_ne_zero'.2 hx,

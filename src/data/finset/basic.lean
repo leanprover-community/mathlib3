@@ -2102,6 +2102,9 @@ calc s.image f ⊆ t ↔ f '' ↑s ⊆ ↑t : by norm_cast
 
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
+lemma image_subset_image_iff {t : finset α} (hf : injective f) : s.image f ⊆ t.image f ↔ s ⊆ t :=
+by { simp_rw ←coe_subset, push_cast, exact set.image_subset_image_iff hf }
+
 theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
 calc ↑(s.image f) = f '' ↑s     : coe_image
               ... ⊆ set.range f : set.image_subset_range f ↑s

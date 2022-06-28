@@ -685,7 +685,7 @@ begin
     apply le_max_right }
 end
 
-theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
+@[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
@@ -757,8 +757,8 @@ begin
   classical,
   lift s to finset α using finite.of_fintype s,
   lift t to finset β using finite.of_fintype t,
-  simp only [finset.coe_sort_coe, mk_finset, lift_nat_cast, nat.cast_inj] at h2,
-  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_finset, finset.card_compl,
+  simp only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
+  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 

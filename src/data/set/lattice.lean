@@ -1516,12 +1516,6 @@ alias not_disjoint_iff_nonempty_inter ↔ _ set.nonempty.not_disjoint
 lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
 (em _).imp_right not_disjoint_iff_nonempty_inter.mp
 
-lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
-show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
-
-theorem disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
-by rw [disjoint.comm, disjoint_left]
-
 lemma disjoint_iff_forall_ne : disjoint s t ↔ ∀ (x ∈ s) (y ∈ t), x ≠ y :=
 by simp only [ne.def, disjoint_left, @imp_not_comm _ (_ = _), forall_eq']
 
@@ -1583,8 +1577,6 @@ by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
 lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set α}
   (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
 disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
-
-lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
 
 lemma _root_.disjoint.of_image (h : disjoint (f '' s) (f '' t)) : disjoint s t :=
 λ x hx, disjoint_left.1 h (mem_image_of_mem _ hx.1) (mem_image_of_mem _ hx.2)

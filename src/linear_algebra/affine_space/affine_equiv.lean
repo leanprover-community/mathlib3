@@ -340,8 +340,7 @@ include V
 /-- Fixing a point in affine space, homothety about this point gives a group homomorphism from (the
 centre of) the units of the scalars into the group of affine equivalences. -/
 def homothety_units_mul_hom (p : P) : Rˣ →* P ≃ᵃ[R] P :=
-monoid_hom.comp (mul_equiv.to_monoid_hom equiv_units_affine_map.symm)
-  (units.map (affine_map.homothety_hom p))
+equiv_units_affine_map.symm.to_monoid_hom.comp $ units.map (affine_map.homothety_hom p)
 
 @[simp] lemma coe_homothety_units_mul_hom_apply (p : P) (t : Rˣ) :
   (homothety_units_mul_hom p t : P → P) = affine_map.homothety p (t : R) :=

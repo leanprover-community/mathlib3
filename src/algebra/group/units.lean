@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
-import algebra.group.inj_surj
 import logic.nontrivial
 
 /-!
@@ -74,7 +73,7 @@ variables [monoid α]
 
 @[to_additive] instance : has_one αˣ := ⟨⟨1, 1, one_mul 1, one_mul 1⟩⟩
 
-@[to_additive] instance : has_mul αˣ := ⟨λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
+@[to_additive, priority 0] instance : has_mul αˣ := ⟨λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
     by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
     by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩⟩
 
@@ -123,25 +122,28 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
   u.copy val hv inv hi = u :=
 ext hv
 
-variables (a b c : αˣ) {u : αˣ}
-
-@[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
-
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
-
-@[to_additive] instance : inhabited αˣ := ⟨1⟩
-
 /-- Units of a monoid form a group. -/
 @[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
-{ inv := has_inv.inv,
-  mul_left_inv := λ u, ext u.inv_val,
-  mul_assoc := λ u v w, ext $ mul_assoc _ _ _,
-  ..function.injective.mul_one_class coe ext coe_one coe_mul }
+{ mul := has_mul.mul,
+  one := has_one.one,
+  mul_one := λ u, ext $ mul_one u,
+  one_mul := λ u, ext $ one_mul u,
+  mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
+  inv := has_inv.inv,
+  mul_left_inv := λ u, ext u.inv_val }
 
 @[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 
+@[to_additive] instance : inhabited αˣ := ⟨1⟩
+
 @[to_additive] instance [has_repr α] : has_repr αˣ := ⟨repr ∘ val⟩
+
+variables (a b c : αˣ) {u : αˣ}
+
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
+
+@[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : αˣ} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]

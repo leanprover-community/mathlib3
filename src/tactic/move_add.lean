@@ -37,7 +37,6 @@ around a sum.
 ##  Future work
 
 * Add support for `neg/div/inv` in additive/multiplicative groups?
-* Customize error messages to mention `move_add/move_mul` instead of `move_op`?
 * Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
   Should there be the desire for supporting more operations, it might make sense to extract
   the `simp [add] <|> simp [mul]` block in `with_errors` to a separate tactic,
@@ -243,7 +242,7 @@ let str_unva := match
   | pes  := "'" ++ to_string pes ++"' are unused variables"
   end,
 let str_tgts := match locat with
-  | loc.wildcard := if unch_tgts.band then "'move_op at *' changed nothing" else ""
+  | loc.wildcard := if unch_tgts.band then "nothing changed" else ""
   | loc.ns names := let linames := return_unused locas unch_tgts in
       (if none ∈ return_unused names unch_tgts then "Goal did not change\n" else "") ++
       (if linames ≠ [] then ("'" ++ to_string linames.reverse ++ "' did not change") else "")

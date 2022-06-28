@@ -6,7 +6,7 @@ example (e f g : R) (h : a + b + c = d) : b + (a + c) = d :=
 begin
   success_if_fail_with_msg {move_add [d] at *} "'d' is an unused variable",
   move_add at *,
-  success_if_fail_with_msg {move_add at *} "'move_op at *' changed nothing\n",
+  success_if_fail_with_msg {move_add at *} "nothing changed\n",
   success_if_fail_with_msg {move_add [a, e, f, g] at h a b c ⊢}
     "'[a, b, c]' did not change\n'[e, f, g]' are unused variables",
   success_if_fail_with_msg {move_add [a, e, f, g] at h ⊢} "'[e, f, g]' are unused variables",
@@ -18,7 +18,7 @@ example {R : Type*} [comm_semigroup R] (a b c d e f g : R) (h : a * b * c = d) :
 begin
   success_if_fail_with_msg {move_mul [d] at *} "'d' is an unused variable",
   move_mul at *,
-  success_if_fail_with_msg {move_mul at *} "'move_op at *' changed nothing\n",
+  success_if_fail_with_msg {move_mul at *} "nothing changed\n",
   success_if_fail_with_msg {move_mul [a, e, f, g] at h a b c ⊢}
     "'[a, b, c]' did not change\n'[e, f, g]' are unused variables",
   success_if_fail_with_msg {move_mul [a, e, f, g] at h ⊢} "'[e, f, g]' are unused variables",

@@ -443,8 +443,7 @@ lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.gr
 by simp
 
 lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
-  (hy : (y,y') ∈ f.graph)
-  (hxy : x = y) : x' = y' :=
+  (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=
 begin
   rw [mem_graph_iff] at hx hy,
   rcases hx with ⟨x'', hx1, hx2⟩,

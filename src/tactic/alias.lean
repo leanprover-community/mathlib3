@@ -96,10 +96,8 @@ meta def mk_iff_mp_app (iffmp : name) : expr → (ℕ → expr) → tactic expr
 namespace, and `is_forward` is true if this is the forward implication (the first form). -/
 meta def alias_iff (doc : option string)
   (d : declaration) (ns al : name) (is_forward : bool) : tactic unit :=
-if al = `_ then skip else do
-  -- TODO: remove this before merge
-  (guard (al.head = "_root_" → ns ≠ name.anonymous) <|> fail "unnecessary _root_"),
-  let al := ns.append_namespace al,
+if al = `_ then skip else
+  let al := ns.append_namespace al in
   (get_decl al >> skip) <|> do
     let ls := d.univ_params,
     let t := d.type,
@@ -169,10 +167,7 @@ do old ← ident,
   do
   { tk "←" <|> tk "<-",
     aliases ← many ident,
-    ↑(aliases.mmap' $ λ al,
-      -- TODO: remove this before merge
-      (guard (al.head = "_root_" → ns ≠ name.anonymous) <|> fail "unnecessary _root_") >>
-      alias_direct doc d (ns.append_namespace al)) } <|>
+    ↑(aliases.mmap' $ λ al, alias_direct doc d (ns.append_namespace al)) } <|>
   do
   { tk "↔" <|> tk "<->",
     (left, right) ←

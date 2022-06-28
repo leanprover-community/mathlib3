@@ -947,7 +947,7 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 @[to_additive]
 instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α β (set γ) :=
-⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+⟨λ _ _, commute.set_image $ smul_comm _ _⟩
 
 @[to_additive]
 instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :

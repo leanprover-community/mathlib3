@@ -158,7 +158,7 @@ lemma degree_zero_part.mul_val {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A
 
 end
 
-namespace Top_component
+namespace Proj_iso_Spec_Top_component
 
 /-
 This section is to construct the homeomorphism between `Proj` restricted at basic open set at
@@ -166,7 +166,7 @@ a homogeneous element `x` and `Spec A⁰ₓ` where `A⁰ₓ` is the degree zero 
 ring `Aₓ`.
 -/
 
-namespace forward
+namespace to_Spec
 
 open ideal
 
@@ -202,6 +202,9 @@ begin
   obtain ⟨⟨_, N, rfl⟩, hN⟩ := is_localization.exist_integer_multiples_of_finset (submonoid.powers f)
     (c.support.image c),
   choose acd hacd using hN,
+  replace hacd : ∀ (a : localization (submonoid.powers f)) (H : a ∈ image ⇑c c.support),
+    localization.mk (acd a H) 1 = mk (f^N) 1 * a,
+  { intros a H, convert hacd a H, rw [algebra.smul_def], refl, },
   have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
   { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
 
@@ -215,10 +218,7 @@ begin
   ... = ∑ i in c.support.attach, mk (acd (c i.1) (prop1 _ i.2)) 1 * i.1 : begin
     rw [finset.sum_congr rfl (λ z hz, _)],
     congr' 1,
-    have := (hacd _ (prop1 _ z.2)),
-    rw [show localization.mk (acd (c z.1) _) 1 = _, from (hacd _ (prop1 _ z.2)), mul_comm,
-      algebra.smul_def],
-    refl,
+    rw [(hacd _ (prop1 _ z.2)), mul_comm],
   end
   ... = ∑ i in c.support.attach, mk (acd _ (prop1 _ i.2)) 1 * mk (classical.some i.1.2) 1 : begin
     rw [finset.sum_congr rfl (λ z hz, _)],
@@ -355,7 +355,7 @@ begin
       exact h1, }, },
 end
 
-end forward
+end to_Spec
 
 section
 
@@ -364,22 +364,22 @@ variable {𝒜}
 /--The continuous function between the basic open set `D(f)` in `Proj` to the corresponding basic
 open set in `Spec A⁰_f`.
 -/
-def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
+def to_Spec {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f_deg)) :=
-{ to_fun := forward.to_fun 𝒜 f_deg,
+{ to_fun := to_Spec.to_fun 𝒜 f_deg,
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
     rintros _ ⟨⟨g, hg⟩, rfl⟩,
     induction g using localization.induction_on with data,
     obtain ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩ := data,
 
-    erw forward.preimage_eq,
+    erw to_Spec.preimage_eq,
     refine is_open_induced_iff.mpr ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
     ext z, split; intros hz; simpa [set.mem_preimage],
   end }
 
 end
 
-end Top_component
+end Proj_iso_Spec_Top_component
 
 end algebraic_geometry

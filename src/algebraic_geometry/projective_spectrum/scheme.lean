@@ -322,6 +322,11 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
     exact (classical.some_spec h).1 },
 end⟩
 
+/-
+The preimage of basic open set `D(a/f^n)` in `Spec A⁰_f` under the forward map from `Proj A` to
+`Spec A⁰_f` is the basic open set `D(a) ∩ D(f)` in  `Proj A`. This lemma is used to prove that the
+forward map is continuous.
+-/
 lemma preimage_eq (a : A) (n : ℕ)
   (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ A⁰_ f_deg) :
   to_fun 𝒜 f_deg ⁻¹'

@@ -14,50 +14,45 @@ promoted to an order isomorphism.
 -/
 
 open finset
-open_locale big_operators classical
-noncomputable theory
-
+open_locale big_operators
 variables {α β ι  : Type*}
 
 namespace finsupp
 
 /-- Given `f : α →₀ ℕ`, `f.to_multiset` is the multiset with multiplicities given by the values of
-`f` on the elements of `α`. We define this function as an `add_equiv`. -/
-def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
-{ to_fun := λ f, f.sum (λa n, n • {a}),
-  inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
-  left_inv := λ f, ext $ λ a, by
-    { simp only [sum, multiset.count_sum', multiset.count_singleton, mul_boole, coe_mk,
-        mem_support_iff, multiset.count_nsmul, finset.sum_ite_eq, ite_not, ite_eq_right_iff],
-      exact eq.symm },
-  right_inv := λ s, by simp only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
-  map_add' := λ f g, sum_add_index' (λ a, zero_nsmul _) (λ a, add_nsmul _) }
+`f` on the elements of `α` -/
+def to_multiset (f : α →₀ ℕ) : multiset α :=
+f.sum (λa n, n • {a})
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 := rfl
 
 lemma to_multiset_add (m n : α →₀ ℕ) : (m + n).to_multiset = m.to_multiset + n.to_multiset :=
-to_multiset.map_add m n
+sum_add_index' (λ a, zero_nsmul _) (λ a, add_nsmul _)
 
-lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n • {a}) := rfl
+variables (α)
 
-@[simp]
-lemma to_multiset_symm_apply [decidable_eq α] (s : multiset α) (x : α) :
-  finsupp.to_multiset.symm s x = s.count x :=
-by convert rfl
+/-- `finsupp.to_multiset` as an `add_monoid_hom`. -/
+@[simps]
+def to_multiset_add_monoid_hom : (α →₀ ℕ) →+ multiset α :=
+{ to_fun := to_multiset,
+  map_zero' := to_multiset_zero,
+  map_add' := to_multiset_add }
+
+variables {α}
 
 @[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n • {a} :=
-by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
+sum_single_index $ zero_nsmul _
 
 lemma to_multiset_sum {f : ι → α →₀ ℕ} (s : finset ι) :
   finsupp.to_multiset (∑ i in s, f i) = ∑ i in s, finsupp.to_multiset (f i) :=
-add_equiv.map_sum _ _ _
+map_sum (to_multiset_add_monoid_hom α) _ _
 
 lemma to_multiset_sum_single (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
 by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λ a, id) :=
-by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
+by simp [to_multiset, add_monoid_hom.map_finsupp_sum, function.id_def]
 
 lemma to_multiset_map (f : α →₀ ℕ) (g : α → β) :
   f.to_multiset.map g = (f.map_domain g).to_multiset :=
@@ -105,15 +100,56 @@ calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
   ... = f a : by rw [multiset.count_singleton_self, mul_one]
 
 @[simp] lemma mem_to_multiset (f : α →₀ ℕ) (i : α) : i ∈ f.to_multiset ↔ i ∈ f.support :=
-by rw [←multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
+by { classical, rw [←multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff] }
+
+/-- `finsupp.to_multiset` as an `add_equiv`. Note that we do not bundle this immediately as only the
+reverse direction requires decidable equality. -/
+@[simps, inline]
+def to_multiset_add_equiv [decidable_eq α] : (α →₀ ℕ) ≃+ multiset α :=
+{ to_fun := to_multiset,
+  inv_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
+  left_inv := λ f, ext $ λ a, count_to_multiset _ _,
+  right_inv := λ s, multiset.to_finset_sum_count_nsmul_eq _,
+  map_add' := to_multiset_add }
 
 end finsupp
 
 namespace multiset
 
+attribute [inline]
+  add_equiv.symm finsupp.to_multiset_add_equiv add_equiv.has_coe_to_fun
+    fun_like.has_coe_to_fun add_equiv.to_equiv add_equiv.to_add_hom add_hom.inverse
+
+
+def A : Type* := sorry
+@[instance]
+noncomputable constant x : has_add A
+attribute [inline]
+  add_equiv.symm
+
+def test : A ≃+ A :=
+{ to_fun := id,
+  inv_fun := id,
+  left_inv := λ _, rfl,
+  right_inv := λ _, rfl,
+  map_add' := λ _ _, rfl }
+
+def test : A ≃ A :=
+add_equiv.to_equiv (add_equiv.refl _)
+
+def test : A ≃+ ℕ :=
+add_equiv.symm _
+
 /-- Given a multiset `s`, `s.to_finsupp` returns the finitely supported function on `ℕ` given by
 the multiplicities of the elements of `s`. -/
-def to_finsupp : multiset α ≃+ (α →₀ ℕ) := finsupp.to_multiset.symm
+def to_finsupp [decidable_eq α] : multiset α ≃+ (α →₀ ℕ) :=
+add_equiv.symm sorry
+
+-- { inv_fun := finsupp.to_multiset,
+--   to_fun := λ s, ⟨s.to_finset, λ a, s.count a, λ a, by simp⟩,
+--   ..(finsupp.to_multiset_add_equiv).symm }
+
+#print to_finsupp
 
 @[simp] lemma to_finsupp_support [decidable_eq α] (s : multiset α) :
   s.to_finsupp.support = s.to_finset :=

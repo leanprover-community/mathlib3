@@ -13,7 +13,7 @@ import algebra.support
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
-`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
+`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
 `x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
@@ -58,7 +58,7 @@ open_locale classical filter
 universes u v w
 
 /-!
-### Topological spaces
+### Topological spaces
 -/
 
 /-- A topology on `α`. -/
@@ -348,8 +348,7 @@ sInter_subset_of_mem ⟨h₂, h₁⟩
 
 lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
   disjoint (closure s) t :=
-disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
-  ht.is_closed_compl
+disjoint_compl_left.mono_left $ closure_minimal hd.subset_compl_right ht.is_closed_compl
 
 lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
   disjoint s (closure t) :=
@@ -621,7 +620,7 @@ begin
 end
 
 /-!
-### Neighborhoods
+### Neighborhoods
 -/
 
 /-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all

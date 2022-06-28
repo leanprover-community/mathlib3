@@ -965,8 +965,6 @@ forall_congr $ λ x, and_imp.trans $ imp_congr_right $ λ _, imp_iff_not_or
 lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 (not_subset.trans $ exists_congr $ by exact λ x, by simp [mem_compl]).symm
 
-lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
-
 /-! ### Lemmas about set difference -/
 
 theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl

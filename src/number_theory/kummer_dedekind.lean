@@ -36,6 +36,10 @@ kummer, dedekind, kummer dedekind, dedekind-kummer, dedekind kummer
 open_locale big_operators
 open ideal polynomial
 
+variables {R : Type} [comm_ring R] [is_domain R] [is_dedekind_domain R] (f : polynomial R)
+
+lemma dedekind_kummer
+
 
 /-
 section move_me
@@ -226,6 +230,10 @@ begin
       alg_equiv.symm_symm, adjoin_root.equiv'_apply, adjoin_root.lift_hom_mk]
 end
 -/
+/-
+variables {R S : Type*} [comm_ring R] [comm_ring S]
+-- variables [algebra R K] [is_fraction_ring R K] [algebra S L] [is_fraction_ring S L]
+variables [algebra R S]
 
 
 /-- The factorization of the minimal polynomial of `S` over `R` mod `p` into coprime divisors
@@ -481,7 +489,8 @@ begin
           power_basis.quotient_equiv_quotient_minpoly_map_symm_mk,
           polynomial.aeval_X], } },
 end
-
+-/
+/-
 /-- **Kummer-Dedekind theorem**: the factorization of the minimal polynomial mod `p`
 determines how the prime ideal `p` splits in a ring extension. -/
 theorem ideal.is_prime.prod_ideals_above [is_noetherian_ring R] {x : S} (hx : is_integral R x)
@@ -489,3 +498,4 @@ theorem ideal.is_prime.prod_ideals_above [is_noetherian_ring R] {x : S} (hx : is
   (hp.ideals_above hx).prod = p.map (algebra_map R S) :=
 begin
 end
+-/

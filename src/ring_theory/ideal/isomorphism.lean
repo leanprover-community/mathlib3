@@ -3,6 +3,7 @@ Copyright (c) 2022 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
+/-
 import ring_theory.ideal.operations
 
 /-!
@@ -46,3 +47,5 @@ def quotient_quotient_equiv_quotient :
   .. quotient_quotient_equiv_quotient_aux S T h }
 
 end submodule
+
+ -/

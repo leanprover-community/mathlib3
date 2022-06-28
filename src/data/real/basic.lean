@@ -84,11 +84,12 @@ begin
                   npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
                   nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
                   zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
-  repeat { rintro ⟨_⟩, };
+  repeat { rintro ⟨_⟩ };
   try { refl };
-  simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul];
-  apply mul_assoc <|> apply mul_comm <|> apply left_distrib <|> apply right_distrib <|>
-  apply sub_eq_add_neg <|> move_add a
+  simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul,
+    λ n, show @coe ℕ ℝ ⟨_⟩ n = ⟨n⟩, from rfl];
+  apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|>
+    move_add a <|>  move_mul a,
 end
 
 /-! Extra instances to short-circuit type class resolution.

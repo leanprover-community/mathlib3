@@ -56,7 +56,7 @@ lemma quasi_iso_of_comp_right (f : C ⟶ D) (g : D ⟶ E) [quasi_iso g] [quasi_i
 { is_iso := λ i, is_iso.of_is_iso_fac_right ((homology_functor V c i).map_comp f g).symm }
 
 /-- An homotopy equivalence is a quasi-isomorphism. -/
-lemma quasi_iso.of_homotopy_equiv {W : Type*} [category W] [preadditive W]
+lemma homotopy_equiv.to_quasi_iso {W : Type*} [category W] [preadditive W]
   [has_cokernels W] [has_images W] [has_equalizers W] [has_zero_object W]
   [has_image_maps W] {C D : homological_complex W c} (e : homotopy_equiv C D) :
   quasi_iso e.hom :=

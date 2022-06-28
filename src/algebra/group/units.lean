@@ -5,7 +5,6 @@ Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemake
 -/
 import algebra.group.basic
 import algebra.group.inj_surj
-import algebra.group_power.basic
 import logic.nontrivial
 
 /-!

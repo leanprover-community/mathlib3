@@ -534,7 +534,7 @@ lemma union_eq_union_of_subset_of_subset {s t a : set α} (h1 : s ⊆ t ∪ a) (
   s ∪ a = t ∪ a :=
 sup_eq_sup_of_le_of_le h1 h2
 
-lemma union_eq_union_iff_subset_subset {s t a : set α} : s ∪ a = t ∪ a ↔ s ≤ t ∪ a ∧ t ≤ s ∪ a :=
+lemma union_eq_union_iff_subset_subset {s t a : set α} : s ∪ a = t ∪ a ↔ s ⊆ t ∪ a ∧ t ⊆ s ∪ a :=
 sup_eq_sup_iff_le_le
 
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=

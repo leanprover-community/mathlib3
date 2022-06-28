@@ -395,7 +395,7 @@ lemma map_inv_nat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
   (n : ℕ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-map_inv_int_cast_smul f R S n x
+by exact_mod_cast map_inv_int_cast_smul f R S n x
 
 lemma map_rat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
   [add_monoid_hom_class F M M₂] (f : F)
@@ -532,9 +532,10 @@ variables (R M)
 
 /-- If `M` is an `R`-module with one and `M` has characteristic zero, then `R` has characteristic
 zero as well. Usually `M` is an `R`-algebra. -/
-lemma char_zero.of_module [has_one M] [char_zero M] : char_zero R :=
+lemma char_zero.of_module (M) [add_comm_monoid_with_one M] [char_zero M] [module R M] :
+  char_zero R :=
 begin
-  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _ _⟩,
+  refine ⟨λ m n h, @nat.cast_injective M _ _ _ _ _⟩,
   rw [← nsmul_one, ← nsmul_one, nsmul_eq_smul_cast R m (1 : M), nsmul_eq_smul_cast R n (1 : M), h]
 end
 

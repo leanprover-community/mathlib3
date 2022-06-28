@@ -353,6 +353,7 @@ variables {R : Type*}
   R → ratfunc K → ratfunc K
 | r ⟨p⟩ := ⟨r • p⟩
 
+@[nolint fails_quickly] -- cannot reproduce
 instance [has_scalar R (fraction_ring K[X])] : has_scalar R (ratfunc K) :=
 ⟨ratfunc.smul⟩
 
@@ -437,7 +438,7 @@ meta def smul_tac : tactic unit :=
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, zsmul_eq_mul, mul_add, mul_one, mul_zero,
     neg_add, mul_neg,
     int.of_nat_eq_coe, int.coe_nat_succ, int.cast_zero, int.cast_add, int.cast_one,
-    int.cast_neg_succ_of_nat, int.cast_coe_nat,
+    int.cast_neg_succ_of_nat, int.cast_coe_nat, nat.cast_succ,
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
 

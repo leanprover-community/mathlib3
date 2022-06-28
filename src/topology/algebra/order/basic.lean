@@ -2075,7 +2075,7 @@ end
 instance linear_ordered_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
 { continuous_at_inv₀ :=
   begin
-    suffices : ∀ {x : K}, 0 < x → continuous_at has_inv.inv x,
+    suffices : ∀ {x : α}, 0 < x → continuous_at has_inv.inv x,
     { intros x hx,
       cases hx.symm.lt_or_lt,
       { exact this h },
@@ -2087,15 +2087,13 @@ instance linear_ordered_field.has_continuous_inv₀ : has_continuous_inv₀ α :
         (nhds_basis_Ioo_pos t).tendsto_iff $ nhds_basis_Ioo_pos_of_pos $ inv_pos.2 ht],
     rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
     refine ⟨min (t ^ 2 * ε / 2) (t / 2),
-            lt_min (half_pos $ mul_pos (by nlinarith) hε) $ by linarith, _⟩,
-    rintro x h,
-    obtain ⟨hδx, hxδ⟩ := id h,
-    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
+            lt_min (half_pos $ mul_pos (by nlinarith) hε) $ by linarith, λ x h, _⟩,
     have hx : t / 2 < x,
-    { rw [sub_lt, lt_min_iff] at hδx,
+    { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
       nlinarith },
     have hx' : 0 < x := (half_pos ht).trans hx,
     have aux : 0 < 2 / t ^ 2 := div_pos zero_lt_two (sq_pos_of_pos ht),
+    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
     rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
     suffices : |t * x|⁻¹ < 2 / t ^ 2,
     { rw [←abs_neg, neg_sub],
@@ -2104,9 +2102,9 @@ instance linear_ordered_field.has_continuous_inv₀ : has_continuous_inv₀ α :
       apply min_le_of_left_le,
       rw [←mul_div, ←mul_assoc, div_mul_cancel _ (sq_pos_of_pos ht).ne',
           mul_div_cancel' ε two_ne_zero] },
-      refine inv_lt_of_inv_lt aux _,
-      rw [inv_div, abs_of_pos $ mul_pos ht hx', sq, ←mul_div_assoc'],
-      exact mul_lt_mul_of_pos_left hx ht,
+    refine inv_lt_of_inv_lt aux _,
+    rw [inv_div, abs_of_pos $ mul_pos ht hx', sq, ←mul_div_assoc'],
+    exact mul_lt_mul_of_pos_left hx ht
   end }
 
 end linear_ordered_field

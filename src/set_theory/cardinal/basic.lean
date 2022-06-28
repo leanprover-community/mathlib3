@@ -206,35 +206,28 @@ mk_subtype_le s
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
-theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
+/- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
+`b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. This theorem is stated
+in seemingly more general terms, as it's used to prove `lift_le`. However, given that and
+`lift_lift`, there's never a circumstance where that generalization is worth the elaboration
+problems. -/
+private theorem lift_mk_le' {α : Type u} {β : Type v} :
+  lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
-/-- A variant of `cardinal.lift_mk_le` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_le' {α : Type u} {β : Type v} :
+theorem lift_mk_le {α : Type u} {β : Type v} :
   lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
-lift_mk_le.{u v 0}
+lift_mk_le'.{u v 0}
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
+  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
 
-/-- A variant of `cardinal.lift_mk_eq` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_eq' {α : Type u} {β : Type v} :
-  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
-lift_mk_eq.{u v 0}
-
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
-induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le }
+induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le' }
 
 /-- `cardinal.lift` as an `order_embedding`. -/
 @[simps { fully_applied := ff }] def lift_order_embedding : cardinal.{v} ↪o cardinal.{max v u} :=
@@ -699,12 +692,13 @@ by { unfold infi, convert lift_Inf (range f), rw range_comp }
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :
   b ≤ lift a → ∃ a', lift a' = b :=
-induction_on₂ a b $ λ α β,
-by rw [← lift_id (#β), ← lift_umax, ← lift_umax.{u v}, lift_mk_le]; exact
-λ ⟨f⟩, ⟨#(set.range f), eq.symm $ lift_mk_eq.2
-  ⟨embedding.equiv_of_surjective
-    (embedding.cod_restrict _ f set.mem_range_self)
-    $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
+induction_on₂ a b $ λ α β, begin
+  rw [← lift_id (#β), lift_umax.{(max u v) u}, ← lift_umax.{u v}, lift_mk_le],
+  exact λ ⟨f⟩, ⟨#(set.range f), eq.symm $ lift_mk_eq.2
+    ⟨embedding.equiv_of_surjective
+      (embedding.cod_restrict _ f set.mem_range_self)
+      $ λ ⟨a, ⟨b, e⟩⟩, ⟨b, subtype.eq e⟩⟩⟩
+end
 
 theorem le_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
   b ≤ lift a ↔ ∃ a', lift a' = b ∧ a' ≤ a :=
@@ -882,10 +876,10 @@ by rw [←succ_zero, succ_le_iff]
 
 theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
-
+set_option pp.universes true
 theorem nat_lt_aleph_0 (n : ℕ) : (n : cardinal.{u}) < ℵ₀ :=
 succ_le_iff.1 begin
-  rw [←nat_succ, ←lift_mk_fin, aleph_0, lift_mk_le.{0 0 u}],
+  rw [←nat_succ, ←lift_mk_fin, aleph_0, lift_le],
   exact ⟨⟨coe, λ a b, fin.ext⟩⟩
 end
 
@@ -1254,24 +1248,24 @@ mk_le_of_surjective surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
   lift.{u} (#(f '' s)) ≤ lift.{v} (#s) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
+lift_mk_le.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : #(range f) ≤ #α :=
 mk_le_of_surjective surjective_onto_range
 
 theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
   lift.{u} (#(range f)) ≤ lift.{v} (#α) :=
-lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
+lift_mk_le.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
 
 lemma mk_range_eq (f : α → β) (h : injective f) : #(range f) = #α :=
 mk_congr ((equiv.of_injective f h).symm)
 
 lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{u} (#(range f)) = lift.{v} (#α) :=
-lift_mk_eq'.mpr ⟨(equiv.of_injective f hf).symm⟩
+lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{max u w} (# (range f)) = lift.{max v w} (# α) :=
+  lift.{u} (# (range f)) = lift.{v} (# α) :=
 lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
@@ -1342,11 +1336,11 @@ by simp
 
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
   lift.{u} (#(f '' s)) = lift.{v} (#s) :=
-lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image f s h).symm⟩
+lift_mk_eq.mpr ⟨(equiv.set.image f s h).symm⟩
 
 lemma mk_image_eq_of_inj_on_lift {α : Type u} {β : Type v} (f : α → β) (s : set α)
   (h : inj_on f s) : lift.{u} (#(f '' s)) = lift.{v} (#s) :=
-lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image_of_inj_on f s h).symm⟩
+lift_mk_eq.mpr ⟨(equiv.set.image_of_inj_on f s h).symm⟩
 
 lemma mk_image_eq_of_inj_on {α β : Type u} (f : α → β) (s : set α) (h : inj_on f s) :
   #(f '' s) = #s :=
@@ -1362,14 +1356,14 @@ mk_congr (equiv.set.sep s t)
 lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
   (h : injective f) : lift.{v} (#(f ⁻¹' s)) ≤ lift.{u} (#s) :=
 begin
-  rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
+  rw lift_mk_le, use subtype.coind (λ x, f x.1) (λ x, x.2),
   apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
   (h : s ⊆ range f) : lift.{u} (#s) ≤ lift.{v} (#(f ⁻¹' s)) :=
 begin
-  rw lift_mk_le.{v u 0},
+  rw lift_mk_le,
   refine ⟨⟨_, _⟩⟩,
   { rintro ⟨y, hy⟩, rcases classical.subtype_of_exists (h hy) with ⟨x, rfl⟩, exact ⟨x, hy⟩ },
   rintro ⟨y, hy⟩ ⟨y', hy'⟩, dsimp,

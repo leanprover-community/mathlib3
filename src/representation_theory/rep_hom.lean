@@ -102,7 +102,8 @@ lemma id_apply (x : V) :
 
 @[simp, norm_cast] lemma id_coe : ((rep_hom.id : ρ →ᵣ ρ) : V → V) = _root_.id := rfl
 
-theorem is_rep_hom (f : ρ →ᵣ ρ₂) : is_rep_hom ρ ρ₂ f := ⟨f.map_add', f.map_smul', f.map_smulG'⟩
+section
+theorem rep_hom_is_rep_hom (f : ρ →ᵣ ρ₂) : is_rep_hom ρ ρ₂ f := ⟨f.map_add', f.map_smul', f.map_smulG'⟩
 
 variables {f f' : ρ →ᵣ ρ₂}
 
@@ -131,9 +132,142 @@ protected lemma map_smulG (g : G) (x : V) : f (ρ g x) = ρ₂ g (f x) := map_sm
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : V} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
 
+-- pointwise
+-- restrict scalars
+
+@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → V} :
+  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
+f.to_linear_map.map_sum
+
+theorem to_linear_map_injective :
+  function.injective (to_linear_map : (ρ →ᵣ ρ₂) → (V →ₗ[k] V₂)) :=
+λ f g h, ext $ linear_map.congr_fun h
+
+-- ext_ring
+end
+
+section
+
+variables
+  {V₃ : Type*} [add_comm_monoid V₃] [module k V₃]
+  {ρ₃ : representation k G V₃} (f₂ : ρ₂ →ᵣ ρ₃) (f : ρ →ᵣ ρ₂)
+
+/-- Composition of two rep_hom's is a rep_hom -/
+def comp : ρ →ᵣ ρ₃ :=
+{ to_fun := f₂ ∘ f,
+  map_smulG' := λ g x, by rw [comp_app, comp_app, map_smulG, map_smulG],
+  ..linear_map.comp f₂.to_linear_map f.to_linear_map }
+
+infixr ` ∘ᵣ `:80 := rep_hom.comp
+
+lemma comp_apply (x : V) : f₂.comp f x = f₂ (f x) := rfl
+
+@[simp, norm_cast] lemma coe_comp : (f₂.comp f : V → V₃) = f₂ ∘ f := rfl
+
+@[simp] theorem comp_id : f.comp id = f :=
+rep_hom.ext $ λ x, rfl
+
+@[simp] theorem id_comp : id.comp f = f :=
+rep_hom.ext $ λ x, rfl
+
+variables {f₂ f} {f₂' : ρ₂ →ᵣ ρ₃} {f' : ρ →ᵣ ρ₂}
+
+theorem cancel_right (hg : function.surjective f) :
+  f₂.comp f = f₂'.comp f ↔ f₂ = f₂' :=
+⟨λ h, ext $ hg.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+theorem cancel_left (hf : function.injective f₂) :
+  f₂.comp f = f₂.comp f' ↔ f = f' :=
+⟨λ h, ext $ λ x, hf $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+
+end
+
+def inverse
+  (f : ρ →ᵣ ρ₂) (f' : V₂ → V) (h₁ : left_inverse f' f) (h₂ : right_inverse f' f) :
+  ρ₂ →ᵣ ρ := by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
+{ to_fun := f',
+  map_smulG' := λ g x, by {rw [←h₁ (ρ g (f' x)), map_smulG], simp [h₂]},
+  ..linear_map.inverse f.to_linear_map f' h₁ h₂ }
 
 end add_comm_monoid
 
+section add_comm_group
+
+variables
+  {k G V V₂ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_group V] [module k V] [add_comm_group V₂] [module k V₂]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂}
+  (f : ρ →ᵣ ρ₂)
+
+protected lemma map_neg (x : V) : f (- x) = - f x := map_neg f x
+
+protected lemma map_sub (x y : V) : f (x - y) = f x - f y := map_sub f x y
+
+-- compatible_smul
+
+end add_comm_group
+
 end rep_hom
+
+-- module
+-- distrib_mul_action_hom
+
+namespace is_rep_hom
+
+section add_comm_monoid
+
+variables
+  {k G V V₂ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂}
+
+/-- Convert an `is_rep_hom` predicate to a `rep_hom` -/
+def mk' (f : V → V₂) (H : is_rep_hom ρ ρ₂ f) : ρ →ᵣ ρ₂ :=
+{ to_fun := f, map_add' := H.1, map_smul' := H.2, map_smulG' := H.3 }
+
+@[simp] theorem mk'_apply {f : V → V₂} (H : is_rep_hom ρ ρ₂ f) (x : V) :
+  mk' f H x = f x := rfl
+
+lemma is_rep_hom_smul_one :
+  is_rep_hom ρ ρ (λ (z : V), 1 • z) :=
+begin
+  refine is_rep_hom.mk (smul_add 1) _ _;
+  { intros _ _,
+    simp only [one_nsmul] }
+end
+
+set_option trace.simplify.rewrite true
+lemma is_rep_hom_smulG_one :
+  is_rep_hom ρ ρ (λ (z : V), ρ 1 z) :=
+begin
+  refine is_rep_hom.mk _ _ _;
+  { intros _ _,
+    simp only [map_one, linear_map.one_apply] }
+end
+
+variables {f : V → V₂} (rh : is_rep_hom ρ ρ₂ f)
+
+lemma map_zero : f (0 : V) = (0 : V₂) := (rh.mk' f).map_zero
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables
+  {k G V V₂ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_group V] [module k V] [add_comm_group V₂] [module k V₂]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂}
+  {f : V → V₂} (rh : is_rep_hom ρ ρ₂ f)
+
+lemma map_neg (x : V) : f (- x) = - f x := (rh.mk' f).map_neg x
+
+lemma map_sub (x y) : f (x - y) = f x - f y := (rh.mk' f).map_sub x y
+
+end add_comm_group
+
+end is_rep_hom
+
+-- subclass of module.End
+
 
 end

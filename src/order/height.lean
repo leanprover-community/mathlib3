@@ -12,7 +12,7 @@ import algebra.order.monoid
 
 # Maximal length of chains
 
-This file contains lemmas to work with the maximal length of strictly ascending finite
+This file contains lemmas to work with the maximal length of strictly descending finite
 sequences (chains) in a partially ordered set.
 
 ## Main definition
@@ -43,22 +43,22 @@ namespace list
 
 variables (α : Type u) [partial_order α]
 
-/-- The maximal length of a strictly ascending sequence in a poset. -/
+/-- The maximal length of a strictly descending sequence in a poset. -/
 noncomputable
-def sup_chain_length : enat := supr $ λ l : { l : list α // list.chain' (<) l }, l.1.length
+def sup_chain_length : enat := supr $ λ l : { l : list α // list.chain' (>) l }, l.1.length
 
 variable {α}
 
-/-- The maximal length of a strictly ascending sequence in a poset starting from `a`.
+/-- The maximal length of a strictly descending sequence in a poset starting from `a`.
 Note that `a` itself is not counted in the length. -/
 noncomputable
-def chain_height (a : α) : enat := supr $ λ l : { l // list.chain (<) a l }, l.1.length
+def chain_height (a : α) : enat := supr $ λ l : { l // list.chain (>) a l }, l.1.length
 
-instance (a : α) : nonempty {l // chain has_lt.lt a l} :=
+instance (a : α) : nonempty {l // chain (>) a l} :=
 ⟨by exact ⟨[], list.chain.nil⟩⟩
 
-lemma exists_chain_of_le_length {a : α} {l : list α} (hl : chain (<) a l) {n : ℕ}
-  (hn : n ≤ l.length) : ∃ l, chain (<) a l ∧ l.length = n :=
+lemma exists_chain_of_le_length {a : α} {l : list α} (hl : chain (>) a l) {n : ℕ}
+  (hn : n ≤ l.length) : ∃ l, chain (>) a l ∧ l.length = n :=
 begin
   cases n,
   { exact ⟨[], chain.nil, rfl⟩ },
@@ -70,7 +70,7 @@ begin
 end
 
 lemma exists_chain_of_le_chain_height {a : α} {n : ℕ} (hn : ↑n ≤ chain_height a) :
-  ∃ l, chain (<) a l ∧ l.length = n :=
+  ∃ l, chain (>) a l ∧ l.length = n :=
 begin
   by_cases ha : chain_height a = ⊤,
   { obtain ⟨⟨l, hl⟩, hl'⟩ := enat.exists_le_of_supr_eq_top _ ha n,
@@ -83,7 +83,7 @@ begin
 end
 
 lemma exists_chain_of_le_sup_chain_height {n : ℕ} (hn : ↑n ≤ sup_chain_length α) :
-  ∃ l : list α, chain' (<) l ∧ l.length = n :=
+  ∃ l : list α, chain' (>) l ∧ l.length = n :=
 begin
   cases n,
   { exact ⟨[], by simp⟩ },
@@ -97,7 +97,7 @@ begin
     obtain ⟨l', h, h'⟩ := exists_chain_of_le_length hl hl',
     rw ← h',
     refine ⟨l_hd :: l', h, rfl⟩ },
-  casesI is_empty_or_nonempty {l : list α // chain' has_lt.lt l} with H H,
+  casesI is_empty_or_nonempty {l : list α // chain' (>) l} with H H,
   { rw [sup_chain_length, supr, set.range_eq_empty, Sup_empty, le_bot_iff] at hn,
     exact (n.succ_ne_zero (enat.coe_inj.mp hn)).elim },
   { obtain ⟨⟨l, hl⟩, h : ↑l.length = sup_chain_length α⟩ := enat.exists_eq_supr_of_ne_top _ ha,
@@ -119,10 +119,13 @@ begin
   exact (zero_add 1).symm
 end
 
-lemma chain_height_eq_zero_iff (a : α) : chain_height a = 0 ↔ ∀ b, ¬ a < b :=
+@[simp]
+lemma chain_height_eq_zero_iff (a : α) : chain_height a = 0 ↔ is_min a :=
 begin
   rw ← not_iff_not,
+  delta is_min,
   push_neg,
+  simp_rw ← lt_iff_le_not_le,
   rw enat.ne_zero_iff_one_le,
   split,
   { intro h,
@@ -135,6 +138,7 @@ begin
     simp }
 end
 
+@[simp]
 lemma sup_chain_length_eq_zero_iff  : sup_chain_length α = 0 ↔ is_empty α :=
 begin
   rw [← not_iff_not, ← ne.def, enat.ne_zero_iff_one_le],
@@ -148,7 +152,11 @@ begin
     refine le_trans _ (le_supr _ ⟨[a], _⟩); simp }
 end
 
-lemma chain_height_le_of_lt {a b : α} (r : a < b) : chain_height b + 1 ≤ chain_height a :=
+@[simp]
+lemma sup_chain_length_eq_zero_of_empty [h : is_empty α] : sup_chain_length α = 0 :=
+sup_chain_length_eq_zero_iff.mpr h
+
+lemma chain_height_le_of_lt {a b : α} (r : b < a) : chain_height b + 1 ≤ chain_height a :=
 begin
   erw ← enat.supr_add,
   apply supr_le,
@@ -157,7 +165,7 @@ begin
   simp
 end
 
-lemma chain_height_antitone : antitone (chain_height : α → enat) :=
+lemma chain_height_monotone : monotone (chain_height : α → enat) :=
 begin
   intros a b r,
   rcases le_iff_lt_or_eq.mp r with (h|rfl),
@@ -190,12 +198,12 @@ begin
   { exact supr_le chain_height_le_sup_chain_length }
 end
 
-lemma sup_chain_length_eq_chain_height_bot [order_bot α] :
-  sup_chain_length α = chain_height (⊥ : α) + 1 :=
+lemma sup_chain_length_eq_chain_height_bot [order_top α] :
+  sup_chain_length α = chain_height (⊤ : α) + 1 :=
 begin
   rw [sup_chain_length_eq_sup_chain_height, enat.supr_add],
   congr' 1,
-  exact le_antisymm (supr_le $ λ x, chain_height_antitone bot_le) (le_supr chain_height ⊥)
+  exact le_antisymm (supr_le $ λ x, chain_height_monotone le_top) (le_supr chain_height ⊤)
 end
 
 lemma sup_chain_length_dual : sup_chain_length αᵒᵈ = sup_chain_length α :=
@@ -206,7 +214,7 @@ begin
   apply supr_le,
   rintro ⟨l, hl⟩,
   refine le_trans _ (le_supr _ _),
-  { exact ⟨l.reverse, by simpa [chain'_iff_pairwise transitive_lt] using hl⟩ },
+  { exact ⟨l.reverse, by simpa [chain'_iff_pairwise transitive_gt] using hl⟩ },
   { simp }
 end
 
@@ -232,8 +240,8 @@ begin
     rw chain'_split,
     refine ⟨_, hl₁⟩,
     rw [← (show (a :: l₂).reverse = l₂.reverse ++ [a], by simp),
-        chain'_iff_pairwise transitive_lt, pairwise_reverse],
-    exact (chain_iff_pairwise transitive_lt).mp hl₂ },
+        chain'_iff_pairwise transitive_gt, pairwise_reverse],
+    exact (chain_iff_pairwise transitive_gt).mp hl₂ },
   { have : (↑l₁.length + ↑l₂.length + 1 : enat).dom := by refine ⟨⟨_, _⟩, _⟩; trivial,
     rw [← hl'₁, ← hl'₂, enat.le_coe_iff],
     simpa [add_comm l₁.length l₂.length, ← add_assoc] }
@@ -246,7 +254,7 @@ lemma chain_height_le_of_strict_mono (hf : strict_mono f) (a : α) :
 begin
   apply supr_le,
   rintro ⟨l, hl⟩,
-  refine le_trans _ (le_supr _ ⟨l.map f, chain_map_of_chain f hf hl⟩),
+  refine le_trans _ (le_supr _ ⟨l.map f, chain_map_of_chain f hf.dual hl⟩),
   simp
 end
 
@@ -263,7 +271,7 @@ end
 lemma chain_height_eq_of_order_iso (f : α ≃o β) (a : α) :
   chain_height a = chain_height (f a) :=
 begin
-  refine le_antisymm (chain_height_le_of_strict_mono f.strict_mono a) _,
+  apply (chain_height_le_of_strict_mono f.strict_mono a).antisymm,
   conv_rhs { rw ← f.left_inv a },
   exact chain_height_le_of_strict_mono f.symm.strict_mono (f a)
 end

@@ -629,13 +629,6 @@ begin
   simp [add_comm, nat.add_sub_assoc, one_le_iff_ne_zero.2 hi]
 end
 
-lemma le_succ_mul_sub (n : ℕ) : ∀ d, d ≤ (n + 1) * d - n
-| 0       := zero_le _
-| (d + 1) := begin
-    rw [mul_add, mul_one, add_tsub_assoc_of_le (n.le_add_right _), add_tsub_cancel_left],
-    exact add_le_add_right (le_mul_of_one_le_left d.zero_le $ nat.le_add_left _ _) 1,
-  end
-
 /-!
 ### Recursion and induction principles
 

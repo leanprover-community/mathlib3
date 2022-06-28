@@ -22,8 +22,8 @@ integer points on that sphere and map them onto `ℕ` in a way that preserves ar
 
 * `behrend.sphere`: The intersection of the Euclidean sphere with the positive integer quadrant.
   This is the set that we will map on `ℕ`.
-* `behrend.map`: The map from the Euclidean space to `n`. It reads off the coordinates as digits in
-  base `d`.
+* `behrend.map`: Given a natural number `d`, `behrend.map d : ℕⁿ → ℕ` reads off the coordinates as
+  digits in base `d`.
 * `behrend.card_sphere_le_roth_number_nat`: Implicit lower bound on Roth numbers in terms of
   `behrend.sphere`.
 
@@ -43,7 +43,7 @@ open finset nat real
 open_locale big_operators pointwise
 
 namespace behrend
-variables {α β : Type*} {n d k : ℕ} {x : fin n → ℕ}
+variables {α β : Type*} {n d k N : ℕ} {x : fin n → ℕ}
 
 /-!
 ### Turning the sphere into a Salem-Spencer set
@@ -74,13 +74,19 @@ lemma sphere_zero_subset : sphere n d 0 ⊆ 0 :=
 
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
-lemma norm_of_mem_sphere {n d k : ℕ} {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
+lemma norm_of_mem_sphere {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
   ∥(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)∥ = sqrt k :=
 begin
   rw euclidean_space.norm_eq,
   dsimp,
   simp_rw [norm_coe_nat, ←cast_pow, ←cast_sum, (mem_filter.1 hx).2],
 end
+
+lemma sphere_subset_preimage_metric_sphere :
+  (sphere n d k : set (fin n → ℕ)) ⊆
+    (λ x : fin n → ℕ, (pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)) ⁻¹'
+      metric.sphere (0 : pi_Lp 2 (λ _ : fin n, ℝ)) (sqrt k) :=
+λ x hx, by rw [set.mem_preimage, mem_sphere_zero_iff_norm, norm_of_mem_sphere hx]
 
 /-- The map that appears in Behrend's bound on Roth numbers. -/
 @[simps] def map (d : ℕ) : (fin n → ℕ) →+ ℕ :=
@@ -161,20 +167,15 @@ begin
   exact (sum_le_card_nsmul univ _ _ $ λ i _, this i).trans (by rw [card_fin, smul_eq_mul]),
 end
 
-lemma sum_eq : ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) = ((2 * d - 1) ^ n - 1) / 2 :=
+lemma sum_eq : ∑ i : fin n, d * (2 * d + 1) ^ (i : ℕ) = ((2 * d + 1) ^ n - 1) / 2 :=
 begin
-  apply (nat.div_eq_of_eq_mul_left zero_lt_two _).symm,
-  rcases nat.eq_zero_or_pos d with rfl | hd,
-  { simpa using zero_pow_le_one n },
-  have : (2 * d - 2) + 1 = 2 * d - 1,
-  { rw ←tsub_tsub_assoc (nat.le_mul_of_pos_right hd) one_le_two },
-  rw [←sum_range (λ i, (d - 1) * (2 * d - 1) ^ (i : ℕ)), ←mul_sum, mul_right_comm, tsub_mul,
-    mul_comm d, one_mul, ←this, ←geom_sum_def, ←geom_sum_mul_add, add_tsub_cancel_right, mul_comm],
+  refine (nat.div_eq_of_eq_mul_left zero_lt_two _).symm,
+  rw [←sum_range (λ i, d * (2 * d + 1) ^ (i : ℕ)), ←mul_sum, mul_right_comm,  mul_comm d,
+    ←geom_sum_mul_add, add_tsub_cancel_right, mul_comm],
 end
 
-lemma sum_lt (hd : 0 < d) : ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) < (2 * d - 1) ^ n :=
-sum_eq.trans_lt $ (nat.div_le_self _ 2).trans_lt $ pred_lt
-  (pow_pos (hd.trans_le $ le_succ_mul_sub _ _) _).ne'
+lemma sum_lt : ∑ i : fin n, d * (2 * d + 1) ^ (i : ℕ) < (2 * d + 1) ^ n :=
+sum_eq.trans_lt $ (nat.div_le_self _ 2).trans_lt $ pred_lt (pow_pos (succ_pos _) _).ne'
 
 lemma card_sphere_le_roth_number_nat (n d k : ℕ) :
   (sphere n d k).card ≤ roth_number_nat ((2 * d - 1) ^ n) :=
@@ -183,16 +184,16 @@ begin
   { refine (card_le_univ _).trans_eq _,
     rw pow_zero,
     exact fintype.card_unique },
-  obtain rfl | hd := @eq_zero_or_pos _ _ d,
-  { by simp },
+  cases d,
+  { simp },
   refine add_salem_spencer_image_sphere.le_roth_number_nat _ _ (card_image_of_inj_on _),
   { simp only [subset_iff, mem_image, and_imp, forall_exists_index, mem_range,
       forall_apply_eq_imp_iff₂, sphere, mem_filter],
     rintro _ x hx _ rfl,
-    exact (map_le_of_mem_box hx).trans_lt (sum_lt hd) },
+    exact (map_le_of_mem_box hx).trans_lt sum_lt },
   refine map_inj_on.mono (λ x, _),
-  simp only [mem_coe, sphere, mem_filter, mem_box, and_imp],
-  exact λ h _ i, (h i).trans_le (le_succ_mul_sub _ _),
+  simp only [mem_coe, sphere, mem_filter, mem_box, and_imp, two_mul],
+  exact λ h _ i, (h i).trans_le le_self_add,
 end
 
 end behrend

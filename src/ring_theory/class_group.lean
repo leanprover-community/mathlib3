@@ -96,12 +96,6 @@ noncomputable def class_group.mk0 [is_dedekind_domain R] :
 
 variables {K}
 
--- move this?
-lemma quotient_group.mk'_eq_mk' {G : Type*} [group G] {N : subgroup G} [hN : N.normal] {x y : G} :
-  quotient_group.mk' N x = quotient_group.mk' N y ↔ ∃ z ∈ N, x * z = y :=
-quotient_group.eq'.trans $
-  by simp only [← _root_.eq_inv_mul_iff_mul_eq, exists_prop, exists_eq_right]
-
 lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I J : (ideal R)⁰} :
   class_group.mk0 K I = class_group.mk0 K J ↔
     ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=

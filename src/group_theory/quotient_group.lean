@@ -72,6 +72,11 @@ lemma mk'_apply (x : G) : mk' N x = x := rfl
 @[to_additive]
 lemma mk'_surjective : function.surjective $ mk' N := @mk_surjective _ _ N
 
+@[to_additive]
+lemma mk'_eq_mk' {x y : G} : mk' N x = mk' N y ↔ ∃ z ∈ N, x * z = y :=
+quotient_group.eq'.trans $
+  by simp only [← _root_.eq_inv_mul_iff_mul_eq, exists_prop, exists_eq_right]
+
 /-- Two `monoid_hom`s from a quotient group are equal if their compositions with
 `quotient_group.mk'` are equal.
 

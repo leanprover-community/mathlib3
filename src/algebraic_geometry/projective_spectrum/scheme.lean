@@ -158,24 +158,6 @@ lemma degree_zero_part.mul_val {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A
 
 end
 
-section clear_denominator
-
--- this is a wrapper around `is_localization.exist_integer_multiples_of_finset`, the main purpose
--- of this lemma is to make the degree of denominator explicit.
-private lemma clear_denominator {f : A} (s : finset (away f)) :
-  ∃ (n : ℕ), ∀ (x : away f), x ∈ s →
-    x * (mk (f^n) 1 : away f) ∈
-    (λ y, (mk y 1 : localization.away f)) '' set.univ :=
-begin
-  rcases is_localization.exist_integer_multiples_of_finset (submonoid.powers f) s with
-    ⟨⟨_, ⟨n, rfl⟩⟩, h⟩,
-  refine ⟨n, λ x hx, _⟩,
-  rw [mk_one_eq_algebra_map, set.image_univ, mul_comm, ← algebra.smul_def],
-  exact h _ hx,
-end
-
-end clear_denominator
-
 namespace Top_component
 
 /-
@@ -217,7 +199,8 @@ begin
   erw [mem_carrier_iff, ←submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
   rcases hz with ⟨c, eq1⟩,
   rw [finsupp.total_apply, finsupp.sum] at eq1,
-  obtain ⟨N, hN⟩ := clear_denominator (finset.image c c.support),
+  obtain ⟨⟨_, N, rfl⟩, hN⟩ := is_localization.exist_integer_multiples_of_finset (submonoid.powers f)
+    (c.support.image c),
   choose acd hacd using hN,
   have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
   { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
@@ -232,7 +215,10 @@ begin
   ... = ∑ i in c.support.attach, mk (acd (c i.1) (prop1 _ i.2)) 1 * i.1 : begin
     rw [finset.sum_congr rfl (λ z hz, _)],
     congr' 1,
-    rw ← (hacd _ (prop1 _ z.2)).2,
+    have := (hacd _ (prop1 _ z.2)),
+    rw [show localization.mk (acd (c z.1) _) 1 = _, from (hacd _ (prop1 _ z.2)), mul_comm,
+      algebra.smul_def],
+    refl,
   end
   ... = ∑ i in c.support.attach, mk (acd _ (prop1 _ i.2)) 1 * mk (classical.some i.1.2) 1 : begin
     rw [finset.sum_congr rfl (λ z hz, _)],

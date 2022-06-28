@@ -161,14 +161,7 @@ instance : has_le (linear_pmap R E F) :=
 
 lemma eq_of_le_of_domain_eq {f g : linear_pmap R E F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
-begin
-  rcases f with ⟨f_dom, f⟩,
-  rcases g with ⟨g_dom, g⟩,
-  change f_dom = g_dom at heq,
-  subst g_dom,
-  obtain rfl : f = g := linear_map.ext (λ x, hle.2 rfl),
-  refl,
-end
+by { ext, rw heq, exact hle.2 }
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
@@ -311,9 +304,9 @@ end
 
 section smul
 
-variables [comm_ring R'] [module R' E] [module R' F]
-variables [comm_ring S] [module S F] [smul_comm_class R' S F]
-variables [comm_ring T] [module T F] [smul_comm_class R' T F]
+variables [ring R'] [module R' E] [module R' F]
+variables [ring S] [module S F] [smul_comm_class R' S F]
+variables [ring T] [module T F] [smul_comm_class R' T F]
 
 instance : has_scalar S (linear_pmap R' E F) :=
 ⟨λ a f,
@@ -325,14 +318,13 @@ instance : has_scalar S (linear_pmap R' E F) :=
 
 lemma coe_smul (a : S) (f : linear_pmap R' E F) : ⇑(a • f) = a • f := rfl
 
-instance : smul_comm_class R' S (linear_pmap R' E F) :=
+instance [smul_comm_class R' R' F] : smul_comm_class R' S (linear_pmap R' E F) :=
 ⟨λ a b f,
 begin
   ext,
   { refl },
   intros x y hxy,
-  simp_rw smul_apply,
-  rw [subtype.eq hxy, smul_comm]
+  simp_rw [smul_apply, subtype.eq hxy, smul_comm]
 end⟩
 
 instance [has_scalar T S] [is_scalar_tower T S F] : is_scalar_tower T S (linear_pmap R' E F) :=
@@ -341,8 +333,7 @@ begin
   ext,
   { refl },
   intros x y hxy,
-  simp_rw smul_apply,
-  rw [subtype.eq hxy, smul_assoc]
+  simp_rw [smul_apply, subtype.eq hxy, smul_assoc]
 end⟩
 
 end smul

@@ -119,11 +119,8 @@ lemma graded_algebra.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
   (decompose 𝒜).symm (of _ i (a i)) :=
 by rw [graded_algebra.proj_apply, decompose_symm_of, equiv.apply_symm_apply]
 
--- Without the `by exact` lean doesn't accept our `decidable` argument as it gets stuck unifying
--- under binders.
-lemma graded_algebra.mem_support_iff
-  [Π i (x : 𝒜 i), decidable (x ≠ 0)] (r : A) (i : ι) :
-  i ∈ (by exact decompose 𝒜 r : ⨁ i, 𝒜 i).support ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
+lemma graded_algebra.mem_support_iff [decidable_eq A] (r : A) (i : ι) :
+  i ∈ (decompose 𝒜 r).support ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
 dfinsupp.mem_support_iff.trans submodule.coe_eq_zero.not.symm
 
 end graded_algebra

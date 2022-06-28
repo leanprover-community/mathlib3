@@ -774,11 +774,16 @@ variables [decidable_eq γ]
 
 @[to_additive]
 instance smul_comm_class_finset [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α β (finset γ) :=
+⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+
+@[to_additive]
+instance smul_comm_class_finset' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_comm]⟩
 
 @[to_additive]
-instance smul_comm_class_finset' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset'' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (finset α) β (finset γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
@@ -913,8 +918,6 @@ show units.mk0 a ha • _ ⊆ _ ↔ _, from smul_finset_subset_iff
 
 lemma subset_smul_finset_iff₀ (ha : a ≠ 0) : s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
 show _ ⊆ units.mk0 a ha • _ ↔ _, from subset_smul_finset_iff
-
-attribute [norm_cast] coe_univ
 
 lemma smul_univ₀ [fintype β] {s : finset α} (hs : ¬ s ⊆ 0) : s • (univ : finset β) = univ :=
 coe_injective $ by { rw ←coe_subset at hs, push_cast at ⊢ hs, exact set.smul_univ₀ hs }

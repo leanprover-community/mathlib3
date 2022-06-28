@@ -108,4 +108,27 @@ instance right_dual : has_right_dual V := ⟨FinVect_dual K V⟩
 
 instance right_rigid_category : right_rigid_category (FinVect K) := { }
 
+variables {K V} (W : FinVect K)
+
+/-- Converts and isomorphism in the category `FinVect` to a `linear_equiv` between the underlying
+vector spaces. -/
+def iso_to_linear_equiv {V W : FinVect K} (i : V ≅ W) : V ≃ₗ[K] W :=
+  ((forget₂ (FinVect.{u} K) (Module.{u} K)).map_iso i).to_linear_equiv
+
+lemma iso.conj_eq_conj {V W : FinVect K} (i : V ≅ W) (f : End V) :
+  iso.conj i f = linear_equiv.conj (iso_to_linear_equiv i) f := rfl
+
 end FinVect
+
+variables {K}
+
+/-- Converts a `linear_equiv` to an isomorphism in the category `FinVect`. -/
+@[simps] def linear_equiv.to_FinVect_iso
+  {V W : Type u} [add_comm_group V] [module K V] [finite_dimensional K V]
+  [add_comm_group W] [module K W] [finite_dimensional K W]
+  (e : V ≃ₗ[K] W) :
+  FinVect.of K V ≅ FinVect.of K W :=
+{ hom := e.to_linear_map,
+  inv := e.symm.to_linear_map,
+  hom_inv_id' := by {ext, exact e.left_inv x},
+  inv_hom_id' := by {ext, exact e.right_inv x} }

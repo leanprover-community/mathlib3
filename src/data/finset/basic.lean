@@ -325,15 +325,15 @@ def coe_emb : finset α ↪o set α := ⟨⟨coe, coe_injective⟩, λ s t, coe_
 /-- The property `s.nonempty` expresses the fact that the finset `s` is not empty. It should be used
 in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives access to a nice API thanks
 to the dot notation. -/
-protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
+protected def nonempty (s : finset α) : Prop := ∃ x : α, x ∈ s
 
-@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s:set α).nonempty ↔ s.nonempty := iff.rfl
+@[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s : set α).nonempty ↔ s.nonempty := iff.rfl
 
-@[simp] lemma nonempty_coe_sort (s : finset α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+@[simp] lemma nonempty_coe_sort {s : finset α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
 alias coe_nonempty ↔ _ finset.nonempty.to_set
 
-lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
+lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x : α, x ∈ s := h
 
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
 set.nonempty.mono hst hs
@@ -396,6 +396,9 @@ classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
 @[simp, norm_cast] lemma coe_eq_empty {s : finset α} : (s : set α) = ∅ ↔ s = ∅ :=
 by rw [← coe_empty, coe_inj]
+
+@[simp] lemma is_empty_coe_sort {s : finset α} : is_empty ↥s ↔ s = ∅ :=
+by simpa using @set.is_empty_coe_sort α s
 
 /-- A `finset` for an empty type is empty. -/
 lemma eq_empty_of_is_empty [is_empty α] (s : finset α) : s = ∅ :=
@@ -851,7 +854,7 @@ lemma _root_.directed_on.exists_mem_subset_of_finset_subset_bUnion {α ι : Type
   {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
 begin
   rw set.bUnion_eq_Union at hs,
-  haveI := c.nonempty_coe_sort.2 hn,
+  haveI := set.nonempty_coe_sort.2 hn,
   obtain ⟨⟨i, hic⟩, hi⟩ :=
     (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
   exact ⟨i, hic, hi⟩

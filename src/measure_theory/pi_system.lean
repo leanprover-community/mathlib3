@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Martin Zinkevich
+Authors: Johannes Hölzl, Martin Zinkevich, Rémy Degenne
 -/
 import logic.encodable.lattice
 import measure_theory.measurable_space_def
@@ -42,6 +42,12 @@ import measure_theory.measurable_space_def
   element of the π-system generated from the union of a set of π-systems can be
   represented as the intersection of a finite number of elements from these sets.
 
+* `pi_Union_Inter` defines a new π-system from a family of π-systems `π : ι → set (set α)` and a
+  set of finsets `S : set (finset α)`. `pi_Union_Inter π S` is the set of sets that can be written
+  as `⋂ x ∈ t, f x` for some `t ∈ S` and sets `f x ∈ π x`. If `S` is union-closed, then it is a
+  π-system. The π-systems used to prove Kolmogorov's 0-1 law will be defined using this mechanism
+  (TODO).
+
 ## Implementation details
 
 * `is_pi_system` is a predicate, not a type. Thus, we don't explicitly define the galois
@@ -71,6 +77,28 @@ begin
   intros s h_s t h_t h_ne,
   rw [set.mem_singleton_iff.1 h_s, set.mem_singleton_iff.1 h_t, set.inter_self,
       set.mem_singleton_iff],
+end
+
+lemma is_pi_system.insert_empty {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  is_pi_system (insert ∅ S) :=
+begin
+  intros s hs t ht hst,
+  cases hs,
+  { simp [hs], },
+  { cases ht,
+    { simp [ht], },
+    { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
+end
+
+lemma is_pi_system.insert_univ {α} {S : set (set α)} (h_pi : is_pi_system S) :
+  is_pi_system (insert set.univ S) :=
+begin
+  intros s hs t ht hst,
+  cases hs,
+  { cases ht; simp [hs, ht], },
+  { cases ht,
+    { simp [hs, ht], },
+    { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
 end
 
 section order
@@ -322,20 +350,26 @@ begin
   { exact absurd hn (by simp [hn1, h]), },
 end
 
+lemma pi_Union_Inter_mono_left {α ι} {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i)
+  (S : set (finset ι)) :
+  pi_Union_Inter π S ⊆ pi_Union_Inter π' S :=
+begin
+  rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
+  exact ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), rfl⟩,
+end
+
 lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
-  {s : ι → measurable_space α} (h : ∀ n, s n ≤ m) (π : ι → set (set α)) (S : set (finset ι))
-  (hpis : ∀ n, s n = generate_from (π n)) :
+  (π : ι → set (set α)) (h : ∀ n, generate_from (π n) ≤ m) (S : set (finset ι)) :
   generate_from (pi_Union_Inter π S) ≤ m :=
 begin
   refine generate_from_le _,
   rintros t ⟨ht_p, ht_p_mem, ft, hft_mem_pi, rfl⟩,
   refine finset.measurable_set_bInter _ (λ x hx_mem, (h x) _ _),
-  rw hpis x,
   exact measurable_set_generate_from (hft_mem_pi x hx_mem),
 end
 
 lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set (finset ι)}
-  (h_univ : ∀ i, set.univ ∈ (π i)) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
+  (h_univ : ∀ i, set.univ ∈ π i) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
   π i ⊆ pi_Union_Inter π S :=
 begin
   refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), ⟨λ m h_pm, _, _⟩⟩,
@@ -358,11 +392,11 @@ lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space 
   s ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S :=
 subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
 
-lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
-  {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
-  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (π x)) :
-  m ≤ generate_from (pi_Union_Inter π S) :=
-by { rw hpix, exact generate_from_mono (subset_pi_Union_Inter h_univ htS hxt), }
+lemma le_generate_from_pi_Union_Inter {α ι} {π : ι → set (set α)}
+  (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ π n) {x : ι}
+  {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) :
+  generate_from (π x) ≤ generate_from (pi_Union_Inter π S) :=
+generate_from_mono (subset_pi_Union_Inter h_univ htS hxt)
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :

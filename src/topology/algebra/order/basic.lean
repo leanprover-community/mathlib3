@@ -2072,7 +2072,8 @@ begin
     { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
 
-instance linear_ordered_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
+@[priority 100]
+instance linear_ordered_field.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
 { continuous_at_inv₀ :=
   begin
     suffices : ∀ {x : α}, 0 < x → continuous_at has_inv.inv x,

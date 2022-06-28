@@ -929,7 +929,7 @@ begin
   rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
   { exact h0.irrefl },
   { rw nat_succ at h,
-    exact h.false }
+    exact not_is_succ_limit_succ _ h }
 end
 
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=

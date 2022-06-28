@@ -294,6 +294,10 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   end,
   ..prod.lex.is_well_founded }
 
+instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
+  is_well_founded _ (inv_image r f) :=
+⟨inv_image.wf f is_well_founded.wf⟩
+
 namespace set
 
 /-- An unbounded or cofinal set. -/

@@ -30,28 +30,27 @@ variables (r : α → α → Prop) [H : is_well_founded α r]
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
-theorem has_min {s : set α} : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
+theorem has_min (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
 | ⟨a, ha⟩ := (acc.rec_on (H.wf.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set with respect to a well-founded relation. See also
 `well_founded_lt.min` and `well_founded_gt.max`. -/
 noncomputable def min [is_well_founded α r] (s : set α) (hs : s.nonempty) : α :=
-classical.some (has_min r hs)
+classical.some (has_min r s hs)
 
-theorem min_mem [is_well_founded α r] {s : set α} (hs : s.nonempty) : min r s hs ∈ s :=
-let ⟨h, _⟩ := classical.some_spec (has_min r hs) in h
+theorem min_mem [is_well_founded α r] (s : set α) (hs : s.nonempty) : min r s hs ∈ s :=
+let ⟨h, _⟩ := classical.some_spec (has_min r s hs) in h
 
-theorem not_lt_min [is_well_founded α r] {s : set α} {x} (hx : x ∈ s) (hs : s.nonempty := ⟨x, hx⟩) :
-  ¬ r x (min r s hs) :=
-let ⟨_, h'⟩ := classical.some_spec (has_min r hs) in h' _ hx
+theorem not_lt_min [is_well_founded α r] (s : set α) {x} (hx : x ∈ s) : ¬ r x (min r s ⟨x, hx⟩) :=
+let ⟨_, h'⟩ := classical.some_spec (has_min r s ⟨x, hx⟩) in h' _ hx
 
 theorem well_founded_iff_has_min {r : α → α → Prop} : well_founded r ↔
-  ∀ {s : set α}, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a :=
+  ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a :=
 begin
   refine ⟨λ h, @has_min _ r ⟨h⟩, λ h, ⟨λ x, _⟩⟩,
   by_contra hx,
-  obtain ⟨m, hm, hm'⟩ := h ⟨x, hx⟩,
+  obtain ⟨m, hm, hm'⟩ := h _ ⟨x, hx⟩,
   refine hm (acc.intro _ (λ y hy, _)),
   by_contra hy',
   exact hm' y hy' hy
@@ -83,12 +82,12 @@ theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt 
 open set
 
 /-- A minimal upper bound of a bounded, well-founded order -/
-protected noncomputable def sup [is_well_founded α r] {s : set α} : bounded r s → α :=
+protected noncomputable def sup [is_well_founded α r] (s : set α) : bounded r s → α :=
 min r {x | ∀ a ∈ s, r a x}
 
-protected lemma lt_sup [is_well_founded α r] {s : set α} (h : bounded r s) {x} (hx : x ∈ s) :
-  r x (is_well_founded.sup r h) :=
-min_mem r h x hx
+protected lemma lt_sup [is_well_founded α r] (s : set α) (h : bounded r s) {x} (hx : x ∈ s) :
+  r x (is_well_founded.sup r s h) :=
+min_mem r _ h x hx
 
 section classical
 open_locale classical
@@ -110,7 +109,7 @@ begin
   split,
   { intro h', have : ¬r x y,
     { intro hy, rw [is_well_founded.succ, dif_pos] at h',
-      exact is_well_founded.not_lt_min _ hy h h' },
+      exact is_well_founded.not_lt_min _ _ hy h' },
     rcases trichotomous_of r x y with hy | hy | hy,
     { exact (this hy).elim },
     { exact or.inr hy.symm },
@@ -150,20 +149,20 @@ If you're working with a nonempty linear order, consider defining a
 noncomputable def min [has_lt α] [well_founded_lt α] : Π (s : set α) (hs : s.nonempty), α :=
 is_well_founded.min (<)
 
-theorem min_mem [has_lt α] [well_founded_lt α] {s : set α} (hs : s.nonempty) : min s hs ∈ s :=
-is_well_founded.min_mem _ hs
+theorem min_mem [has_lt α] [well_founded_lt α] (s : set α) (hs : s.nonempty) : min s hs ∈ s :=
+is_well_founded.min_mem _ s hs
 
-theorem not_lt_min [has_lt α] [well_founded_lt α] {s : set α} {x} (hx : x ∈ s)
-  (hs : s.nonempty := ⟨x, hx⟩) : ¬ x < min s hs :=
-is_well_founded.not_lt_min _ hx
+theorem not_lt_min [has_lt α] [well_founded_lt α] (s : set α) {x} (hx : x ∈ s) :
+  ¬ x < min s ⟨x, hx⟩ :=
+is_well_founded.not_lt_min _ s hx
 
-theorem min_le [linear_order α] [well_founded_lt α] {s : set α} {x} (hx : x ∈ s)
-  (hs : s.nonempty := ⟨x, hx⟩) : min s hs ≤ x :=
-le_of_not_lt (not_lt_min hx hs)
+theorem min_le [linear_order α] [well_founded_lt α] (s : set α) {x} (hx : x ∈ s) :
+  min s ⟨x, hx⟩ ≤ x :=
+le_of_not_lt $ not_lt_min s hx
 
 theorem self_le_of_strict_mono [linear_order α] [well_founded_lt α] {f : α → α}
   (hf : strict_mono f) : ∀ n, n ≤ f n :=
-by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+by { by_contra' h₁, have h₂ := min_mem _ h₁, exact not_lt_min {n : α | f n < n} (hf h₂) h₂ }
 
 private theorem range_eq_iff_eq_of_strict_mono_aux [linear_order α] [partial_order β]
   {f g : α → β} (hf : strict_mono f) (hg : strict_mono g) (hfg : set.range f = set.range g) {a : α}
@@ -179,7 +178,7 @@ begin
 end
 
 theorem range_eq_iff_eq_of_strict_mono [linear_order α] [partial_order β] [well_founded_lt α]
-  {f g : β → γ} (hf : strict_mono f) (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
+  {f g : α → β} (hf : strict_mono f) (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
 ⟨λ h, begin
   funext a,
   apply induction a,
@@ -189,6 +188,42 @@ theorem range_eq_iff_eq_of_strict_mono [linear_order α] [partial_order β] [wel
 end, congr_arg _⟩
 
 end well_founded_lt
+
+namespace function
+variable (f : α → β)
+
+/-- Given a function `f : α → β` where `β` carries a well-founded `<`, and a non-empty subset `s`
+of `α`, this is an element of `s` whose image under `f` is minimal in the sense of
+`function.not_lt_argmin_on`. -/
+noncomputable def argmin_on  [has_lt β] [well_founded_lt β] (s : set α) (hs : s.nonempty) : α :=
+is_well_founded.min (inv_image (<) f) s hs
+
+@[simp] lemma argmin_on_mem [has_lt β] [well_founded_lt β] (s : set α) (hs : s.nonempty) :
+  argmin_on f s hs ∈ s :=
+is_well_founded.min_mem _ _ _
+
+@[simp] lemma not_lt_argmin_on [has_lt β] [well_founded_lt β] (s : set α) {x : α} (hx : x ∈ s) :
+  ¬ f x < f (argmin_on f s ⟨x, hx⟩) :=
+is_well_founded.not_lt_min (inv_image (<) f) s hx
+
+@[simp] lemma argmin_on_le [linear_order β] [well_founded_lt β] (s : set α) {x : α} (hx : x ∈ s) :
+  f (argmin_on f s ⟨x, hx⟩) ≤ f x :=
+le_of_not_lt $ not_lt_argmin_on f s hx
+
+/-- Given a function `f : α → β` where `β` carries a well-founded `<`, this is an element of `α`
+whose image under `f` is minimal in the sense of `function.not_lt_argmin`. -/
+noncomputable def argmin [has_lt β] [well_founded_lt β] [nonempty α] : α :=
+argmin_on f set.univ set.univ_nonempty
+
+@[simp] lemma not_lt_argmin [has_lt β] [well_founded_lt β] [nonempty α] (a : α) :
+  ¬ f a < f (argmin f) :=
+not_lt_argmin_on _ _ ⟨⟩
+
+@[simp] lemma argmin_le [linear_order β] [well_founded_lt β] [nonempty α] (a : α) :
+  f (argmin f) ≤ f a :=
+le_of_not_lt $ not_lt_argmin f a
+
+end function
 
 namespace well_founded_gt
 
@@ -201,79 +236,59 @@ is_well_founded.induction (<)
 noncomputable def max [has_lt α] [well_founded_gt α] : Π (s : set α) (hs : s.nonempty), α :=
 is_well_founded.min (>)
 
-theorem max_mem [has_lt α] [well_founded_gt α] {s : set α} (hs : s.nonempty) : max s hs ∈ s :=
-is_well_founded.min_mem _ hs
+theorem max_mem [has_lt α] [well_founded_gt α] (s : set α) (hs : s.nonempty) : max s hs ∈ s :=
+is_well_founded.min_mem _ s hs
 
-theorem not_max_lt [has_lt α] [well_founded_gt α] {s : set α} {x} (hx : x ∈ s)
+theorem not_max_lt [has_lt α] [well_founded_gt α] (s : set α) {x} (hx : x ∈ s)
   (hs : s.nonempty := ⟨x, hx⟩) : ¬ max s hs < x :=
-is_well_founded.not_lt_min (>) hx
+is_well_founded.not_lt_min (>) s hx
 
-theorem le_max [linear_order α] [well_founded_gt α] {s : set α} {x} (hx : x ∈ s)
+theorem le_max [linear_order α] [well_founded_gt α] (s : set α) {x} (hx : x ∈ s)
   (hs : s.nonempty := ⟨x, hx⟩) : x ≤ max s hs :=
-le_of_not_lt (not_max_lt hx hs)
+le_of_not_lt (not_max_lt s hx hs)
 
-theorem range_eq_iff_eq_of_antitone [linear_order α] [partial_order β] [well_founded_gt α] :
-  ∀ {f g : β → γ} (hf : antitone f) (hg : antitone g), set.range f = set.range g ↔ f = g :=
-@range_eq_iff_eq_of_strict_mono αᵒᵈ _ _
+theorem le_self_of_antitone [linear_order α] [well_founded_gt α] {f : α → α}
+  (hf : strict_mono f) : ∀ n, f n ≤ n :=
+@well_founded_lt.self_le_of_strict_mono αᵒᵈ _ _ f (λ a b h, hf h)
+
+theorem range_eq_iff_eq_of_strict_anti [linear_order α] [partial_order β] [well_founded_gt α]
+  {f g : α → β} (hf : strict_anti f) (hg : strict_anti g) : set.range f = set.range g ↔ f = g :=
+@well_founded_lt.range_eq_iff_eq_of_strict_mono αᵒᵈ _ _ _ _ f g (λ a b h, hf h) (λ a b h, hg h)
 
 end well_founded_gt
 
-section linear_order
-
-variables {β : Type*} (h : well_founded ((<) : β → β → Prop))
-  {γ : Type*}
-
-theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
-by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
-
-end linear_order
-
-end well_founded
-
 namespace function
+variable (f : α → β)
 
-variables {β : Type*} (f : α → β)
+/-- Given a function `f : α → β` where `β` carries a well-founded `>`, and a non-empty subset `s`
+of `α`, this is an element of `s` whose image under `f` is maximal in the sense of
+`function.not_argmax_on_lt`. -/
+noncomputable def argmax_on [has_lt β] [well_founded_gt β] (s : set α) (hs : s.nonempty) : α :=
+is_well_founded.min (inv_image (>) f) s hs
 
-section has_lt
+@[simp] lemma argmax_on_mem [has_lt β] [well_founded_gt β] (s : set α) (hs : s.nonempty) :
+  argmax_on f s hs ∈ s :=
+is_well_founded.min_mem _ _ _
 
-variables [has_lt β] (h : well_founded ((<) : β → β → Prop))
+@[simp] lemma not_argmax_on_lt [has_lt β] [well_founded_gt β] (s : set α) {x : α} (hx : x ∈ s) :
+  ¬ f (argmax_on f s ⟨x, hx⟩) < f x :=
+is_well_founded.not_lt_min (inv_image (>) f) s hx
+
+@[simp] lemma le_argmax_on [linear_order β] [well_founded_gt β] (s : set α) {x : α} (hx : x ∈ s) :
+  f x ≤ f (argmax_on f s ⟨x, hx⟩) :=
+le_of_not_lt $ not_argmax_on_lt f s hx
 
 /-- Given a function `f : α → β` where `β` carries a well-founded `<`, this is an element of `α`
 whose image under `f` is minimal in the sense of `function.not_lt_argmin`. -/
-noncomputable def argmin [nonempty α] : α :=
-well_founded.min (inv_image.wf f h) set.univ set.univ_nonempty
+noncomputable def argmax [has_lt β] [well_founded_gt β] [nonempty α] : α :=
+argmax_on f set.univ set.univ_nonempty
 
-lemma not_lt_argmin [nonempty α] (a : α) : ¬ f a < f (argmin f h) :=
-well_founded.not_lt_min (inv_image.wf f h) _ _ (set.mem_univ a)
+@[simp] lemma not_argmax_lt [has_lt β] [well_founded_gt β] [nonempty α] (a : α) :
+  ¬ f (argmax f) < f a :=
+not_argmax_on_lt _ _ ⟨⟩
 
-/-- Given a function `f : α → β` where `β` carries a well-founded `<`, and a non-empty subset `s`
-of `α`, this is an element of `s` whose image under `f` is minimal in the sense of
-`function.not_lt_argmin_on`. -/
-noncomputable def argmin_on (s : set α) (hs : s.nonempty) : α :=
-well_founded.min (inv_image.wf f h) s hs
-
-@[simp] lemma argmin_on_mem (s : set α) (hs : s.nonempty) :
-  argmin_on f h s hs ∈ s :=
-well_founded.min_mem _ _ _
-
-@[simp] lemma not_lt_argmin_on (s : set α) {a : α} (ha : a ∈ s)
-  (hs : s.nonempty := set.nonempty_of_mem ha) :
-  ¬ f a < f (argmin_on f h s hs) :=
-well_founded.not_lt_min (inv_image.wf f h) s hs ha
-
-end has_lt
-
-section linear_order
-
-variables [linear_order β] (h : well_founded ((<) : β → β → Prop))
-
-@[simp] lemma argmin_le (a : α) [nonempty α] : f (argmin f h) ≤ f a :=
-not_lt.mp $ not_lt_argmin f h a
-
-@[simp] lemma argmin_on_le (s : set α) {a : α} (ha : a ∈ s)
-  (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
-not_lt.mp $ not_lt_argmin_on f h s ha hs
-
-end linear_order
+@[simp] lemma le_argmax [linear_order β] [well_founded_gt β] [nonempty α] (a : α) :
+  f a ≤ f (argmax f) :=
+le_of_not_lt $ not_argmax_lt f a
 
 end function

@@ -1868,8 +1868,16 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 @[simp] theorem _root_.prod.range_fst [nonempty β] : range (prod.fst : α × β → α) = univ :=
 prod.fst_surjective.range_eq
 
+lemma mem_fst_image_iff {p : set (α × β)} {x : α} :
+  x ∈ (prod.fst : α × β → α) '' p ↔ ∃ (y : β), (x,y) ∈ p :=
+by simp
+
 @[simp] theorem _root_.prod.range_snd [nonempty α] : range (prod.snd : α × β → β) = univ :=
 prod.snd_surjective.range_eq
+
+lemma mem_snd_image_iff {p : set (α × β)} {y : β} :
+  y ∈ (prod.snd : α × β → β) '' p ↔ ∃ (x : α), (x,y) ∈ p :=
+by simp
 
 @[simp] theorem range_eval {ι : Type*} {α : ι → Sort*} [Π i, nonempty (α i)] (i : ι) :
   range (eval i : (Π i, α i) → α i) = univ :=

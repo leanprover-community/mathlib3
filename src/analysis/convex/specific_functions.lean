@@ -213,22 +213,18 @@ lemma has_deriv_at_sqrt_mul_log {x : ℝ} (hx : x ≠ 0) :
   has_deriv_at (λ x, sqrt x * log x) ((2 + log x) / (2 * sqrt x)) x :=
 begin
   convert (has_deriv_at_sqrt hx).mul (has_deriv_at_log hx),
-  rw [one_div, inv_mul_eq_div, ← div_eq_mul_inv, sqrt_div_self, add_div, add_comm, div_mul_right,
-    one_div],
-  exact two_ne_zero
+  rw [add_div, div_mul_right (sqrt x) two_ne_zero, ←div_eq_mul_inv, sqrt_div_self',
+      add_comm, div_eq_mul_one_div, mul_comm],
 end
 
 lemma deriv_sqrt_mul_log (x : ℝ) : deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
 begin
-  rcases ne_or_eq x 0 with hx|rfl,
+  rcases ne_or_eq x 0 with hx | rfl,
   { exact (has_deriv_at_sqrt_mul_log hx).deriv },
   rw [sqrt_zero, mul_zero, div_zero],
-  -- The function is not differentiable at zero but we don't prove it. Instead, we show that the
-  -- left side derivative is zero.
-  suffices : has_deriv_within_at (λ x, sqrt x * log x) 0 (Iic 0) 0,
-    from this.deriv_eq_zero (unique_diff_on_Iic 0 _ right_mem_Iic),
-  refine (has_deriv_within_at_const _ _ 0).congr_of_mem (λ x hx, _) right_mem_Iic,
-  rw [sqrt_eq_zero_of_nonpos hx, zero_mul]
+  refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 0 right_mem_Iic),
+  refine (has_deriv_within_at_const 0 _ 0).congr_of_mem (λ x hx, _) right_mem_Iic,
+  rw [sqrt_eq_zero_of_nonpos hx, zero_mul],
 end
 
 lemma deriv_sqrt_mul_log' : deriv (λ x, sqrt x * log x) = λ x, (2 + log x) / (2 * sqrt x) :=

@@ -209,7 +209,7 @@ begin
 end
 
 lemma coe_factor_order_iso_map_eq_one_iff {m u : associates M} {n : associates N}
-  (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
+  (hu' : u ≤ m) (d : set.Iic m ≃o set.Iic n) :
   (d ⟨u, hu'⟩ : associates N) = 1 ↔ u = 1 :=
 ⟨λ hu, by { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), by simp only
     [subtype.coe_eta, order_iso.symm_apply_apply, subtype.coe_mk]),
@@ -254,7 +254,7 @@ begin
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
 
-lemma map_prime_of_monotone_equiv [decidable_eq (associates M)]
+lemma map_prime_of_factor_order_iso [decidable_eq (associates M)]
   {m p : associates M} {n : associates N} (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : set.Iic m ≃o set.Iic n) : prime (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
@@ -263,7 +263,7 @@ begin
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, associates.is_unit_iff_eq_one,
       coe_factor_order_iso_map_eq_one_iff _ d],
     rintro rfl,
-    exact (prime_of_normalized_factor 1 hp).not_unit is_unit_one
+    exact (prime_of_normalized_factor 1 hp).not_unit is_unit_one },
   { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
     rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
@@ -277,7 +277,7 @@ begin
     rw subtype.mk_eq_bot_iff,
     { exact ((associates.is_atom_iff $ prime.ne_zero $ prime_of_normalized_factor p hp).mpr $
       irreducible_of_normalized_factor p hp).right a (subtype.mk_lt_mk.mp $ d.lt_iff_lt.mp hb) },
-    exact bot_le },
+  exact bot_le }
 end
 
 lemma mem_normalized_factors_factor_order_iso_of_mem_normalized_factors
@@ -287,7 +287,7 @@ lemma mem_normalized_factors_factor_order_iso_of_mem_normalized_factors
   ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
 begin
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd hn
-    (map_prime_of_monotone_equiv hn hp d).irreducible
+    (map_prime_of_factor_order_iso hn hp d).irreducible
     (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
   rw associated_iff_eq at hq',
   rwa hq'
@@ -380,7 +380,7 @@ begin
     simp only [subtype.coe_mk] },
   rw [ ← associates.prime_mk, this],
   letI := classical.dec_eq (associates M),
-  refine map_prime_of_monotone_equiv (mk_ne_zero.mpr hn) _ _,
+  refine map_prime_of_factor_order_iso (mk_ne_zero.mpr hn) _ _,
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
     ((prime_mk p).mpr (prime_of_normalized_factor p (by convert hp))).irreducible
       (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp)),
@@ -398,9 +398,8 @@ begin
     ↑(d ⟨associates_equiv_of_unique_units (associates_equiv_of_unique_units.symm p),
       by simp [dvd_of_mem_normalized_factors hp]⟩))
     (associates.mk n),
-  { simp only [multiplicity_mk_eq_multiplicity, associates_equiv_of_unique_units_symm_apply,
-      associates_equiv_of_unique_units_apply, out_mk, normalize_eq] at this,
-      exact this },
+  { simpa only [multiplicity_mk_eq_multiplicity, associates_equiv_of_unique_units_symm_apply,
+      associates_equiv_of_unique_units_apply, out_mk, normalize_eq] using this },
   have : associates.mk ↑(d ⟨associates_equiv_of_unique_units
     (associates_equiv_of_unique_units.symm p), by simp only [dvd_of_mem_normalized_factors hp,
       associates_equiv_of_unique_units_symm_apply, associates_equiv_of_unique_units_apply,

@@ -115,11 +115,6 @@ instance pi_set_coe.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (s 
   can_lift (s → α) (ι → α) :=
 pi_set_coe.can_lift ι (λ _, α) s
 
-instance set_coe.can_lift (s : set α) : can_lift α s :=
-{ coe := coe,
-  cond := λ a, a ∈ s,
-  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
-
 end set
 
 section set_coe
@@ -354,8 +349,6 @@ lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
 nonempty_subtype.2 h
 
 instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
-
-@[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
 
 lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
 nonempty_subtype.mp ‹_›
@@ -633,6 +626,24 @@ sup_inf_right
 theorem inter_union_distrib_right {s t u : set α} : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
 sup_inf_right
 
+lemma union_union_distrib_left (s t u : set α) : s ∪ (t ∪ u) = (s ∪ t) ∪ (s ∪ u) :=
+sup_sup_distrib_left _ _ _
+
+lemma union_union_distrib_right (s t u : set α) : (s ∪ t) ∪ u = (s ∪ u) ∪ (t ∪ u) :=
+sup_sup_distrib_right _ _ _
+
+lemma inter_inter_distrib_left (s t u : set α) : s ∩ (t ∩ u) = (s ∩ t) ∩ (s ∩ u) :=
+inf_inf_distrib_left _ _ _
+
+lemma inter_inter_distrib_right (s t u : set α) : (s ∩ t) ∩ u = (s ∩ u) ∩ (t ∩ u) :=
+inf_inf_distrib_right _ _ _
+
+lemma union_union_union_comm (s t u v : set α) : (s ∪ t) ∪ (u ∪ v) = (s ∪ u) ∪ (t ∪ v) :=
+sup_sup_sup_comm _ _ _ _
+
+lemma inter_inter_inter_comm (s t u v : set α) : (s ∩ t) ∩ (u ∩ v) = (s ∩ u) ∩ (t ∩ v) :=
+inf_inf_inf_comm _ _ _ _
+
 /-!
 ### Lemmas about `insert`
 
@@ -691,7 +702,7 @@ theorem insert_union : insert a s ∪ t = insert a (s ∪ t) := ext $ λ x, or.a
 
 @[simp] theorem union_insert : s ∪ insert a t = insert a (s ∪ t) := ext $ λ x, or.left_comm
 
-theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, mem_insert a s⟩
+@[simp] theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, mem_insert a s⟩
 
 instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
@@ -850,6 +861,13 @@ end
 
 lemma eq_empty_of_ssubset_singleton {s : set α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
 ssubset_singleton_iff.1 hs
+
+/-! ### Disjointness -/
+
+lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
+
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
+lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 
 /-! ### Lemmas about complement -/
 

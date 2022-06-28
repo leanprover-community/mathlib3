@@ -1136,7 +1136,7 @@ class sigma_compact_space (α : Type*) [topological_space α] : Prop :=
 instance compact_space.sigma_compact [compact_space α] : sigma_compact_space α :=
 ⟨⟨λ _, univ, λ _, compact_univ, Union_const _⟩⟩
 
-lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : countable S)
+lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : S.countable)
   (Hcomp : ∀ s ∈ S, is_compact s) (HU : ⋃₀ S = univ) : sigma_compact_space α :=
 ⟨(exists_seq_cover_iff_countable ⟨_, is_compact_empty⟩).2 ⟨S, Hc, Hcomp, HU⟩⟩
 
@@ -1179,7 +1179,7 @@ Union_eq_univ_iff.mp (Union_compact_covering α) x
 only countably many elements, `set.countable` version. -/
 protected lemma locally_finite.countable_univ {ι : Type*} {f : ι → set α} (hf : locally_finite f)
   (hne : ∀ i, (f i).nonempty) :
-  countable (univ : set ι) :=
+  (univ : set ι).countable :=
 begin
   have := λ n, hf.finite_nonempty_inter_compact (is_compact_compact_covering α n),
   refine (countable_Union (λ n, (this n).countable)).mono (λ i hi, _),
@@ -1198,7 +1198,7 @@ protected noncomputable def locally_finite.encodable {ι : Type*} {f : ι → se
 `x` of a closed set `s` to a neighborhood of `x` within `s`, then for some countable set `t ⊆ s`,
 the neighborhoods `f x`, `x ∈ t`, cover the whole set `s`. -/
 lemma countable_cover_nhds_within_of_sigma_compact {f : α → set α} {s : set α} (hs : is_closed s)
-  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, f x :=
+  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, f x :=
 begin
   simp only [nhds_within, mem_inf_principal] at hf,
   choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
@@ -1214,7 +1214,7 @@ end
 point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
 `x ∈ s`, cover the whole space. -/
 lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
-  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
+  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, s.countable ∧ (⋃ x ∈ s, f x) = univ :=
 begin
   simp only [← nhds_within_univ] at hf,
   rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)

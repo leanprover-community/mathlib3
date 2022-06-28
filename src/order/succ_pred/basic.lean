@@ -605,6 +605,10 @@ variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
 
 end succ_pred_order
 
+end order
+
+open order
+
 /-! ### `with_bot`, `with_top`
 Adding a greatest/least element to a `succ_order` or to a `pred_order`.
 
@@ -618,8 +622,7 @@ where "preserves `(succ/pred)`" means
 `(succ/pred)_order α → (succ/pred)_order ((with_top/with_bot) α)`.
 -/
 
-section with_top
-open with_top
+namespace with_top
 
 /-! #### Adding a `⊤` to an `order_top` -/
 
@@ -772,8 +775,7 @@ end pred
 
 end with_top
 
-section with_bot
-open with_bot
+namespace with_bot
 
 /-! #### Adding a `⊥` to an `order_bot` -/
 
@@ -810,7 +812,7 @@ instance : succ_order (with_bot α) :=
   end }
 
 @[simp] lemma succ_bot : succ (⊥ : with_bot α) = ↑(⊥ : α) := rfl
-@[simp] lemma succ_coe' (a : α) : succ (↑a : with_bot α) = ↑(succ a) := rfl
+@[simp] lemma succ_coe (a : α) : succ (↑a : with_bot α) = ↑(succ a) := rfl
 
 end succ
 
@@ -920,13 +922,10 @@ instance with_bot.pred_order_of_no_min_order : pred_order (with_bot α) :=
     { exact some_le_some.2 (le_of_pred_lt $ some_lt_some.1 h) }
   end }
 
-@[simp] lemma pred_coe' (a : α) : pred (↑a : with_bot α) = ↑(pred a) := rfl
+@[simp] lemma pred_coe (a : α) : pred (↑a : with_bot α) = ↑(pred a) := rfl
 
 end pred
 end with_bot
-end order
-
-open order
 
 /-! ### Archimedeanness -/
 

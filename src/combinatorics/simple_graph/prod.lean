@@ -20,6 +20,10 @@ two edges is a square.
 ## Notation
 
 * `G □ H`: The box product of `G` and `H`.
+
+## TODO
+
+Define all other graph products!
 -/
 
 variables {α β γ : Type*}

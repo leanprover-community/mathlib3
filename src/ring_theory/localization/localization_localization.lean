@@ -187,7 +187,7 @@ def localization_algebra_of_submonoid_le
 localization maps -/
 lemma localization_is_scalar_tower_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
-  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_scalar _ :=
+  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_smul _ :=
 begin
   letI := localization_algebra_of_submonoid_le S T M N h,
   exact is_scalar_tower.of_algebra_map_eq' (is_localization.lift_comp _).symm

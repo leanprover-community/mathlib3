@@ -42,7 +42,7 @@ section semi_normed_ring
 section has_zero
 
 variables (𝕜)
-variables [semi_normed_ring 𝕜] [has_scalar 𝕜 E] [has_zero E]
+variables [semi_normed_ring 𝕜] [has_smul 𝕜 E] [has_zero E]
 variables [topological_space E]
 
 /-- A set `s` is von Neumann bounded if every neighborhood of 0 absorbs `s`. -/

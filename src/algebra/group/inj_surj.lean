@@ -107,7 +107,7 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive
 "A type endowed with `0` and `+` is an additive monoid,
 if it admits an injective map that preserves `0` and `+` to an additive monoid.
-This version takes a custom `nsmul` as a `[has_scalar ℕ M₁]` argument."]
+This version takes a custom `nsmul` as a `[has_smul ℕ M₁]` argument."]
 protected def monoid [monoid M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   monoid M₁ :=
@@ -206,8 +206,8 @@ See note [reducible non-instances]. -/
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `sub_neg_monoid`.
-This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
-`[has_scalar ℤ M₁]` arguments."]
+This version takes custom `nsmul` and `zsmul` as `[has_smul ℕ M₁]` and
+`[has_smul ℤ M₁]` arguments."]
 protected def div_inv_monoid [div_inv_monoid M₂]
   (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
@@ -227,8 +227,8 @@ if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `di
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `subtraction_monoid`.
-This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
-`[has_scalar ℤ M₁]` arguments."] -- See note [reducible non-instances]
+This version takes custom `nsmul` and `zsmul` as `[has_smul ℕ M₁]` and
+`[has_smul ℤ M₁]` arguments."] -- See note [reducible non-instances]
 protected def division_monoid [division_monoid M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -245,8 +245,8 @@ See note [reducible non-instances]. -/
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_comm_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `subtraction_comm_monoid`.
-This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
-`[has_scalar ℤ M₁]` arguments."] -- See note [reducible non-instances]
+This version takes custom `nsmul` and `zsmul` as `[has_smul ℕ M₁]` and
+`[has_smul ℤ M₁]` arguments."] -- See note [reducible non-instances]
 protected def division_comm_monoid [division_comm_monoid M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -356,7 +356,7 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive
 "A type endowed with `0` and `+` is an additive monoid,
 if it admits a surjective map that preserves `0` and `+` to an additive monoid.
-This version takes a custom `nsmul` as a `[has_scalar ℕ M₂]` argument."]
+This version takes a custom `nsmul` as a `[has_smul ℕ M₂]` argument."]
 protected def monoid [monoid M₁] (f : M₁ → M₂) (hf : surjective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   monoid M₂ :=

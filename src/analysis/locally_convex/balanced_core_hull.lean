@@ -49,8 +49,8 @@ section balanced_hull
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
-section has_scalar
-variables [has_scalar 𝕜 E]
+section has_smul
+variables [has_smul 𝕜 E]
 
 variables (𝕜)
 
@@ -127,7 +127,7 @@ begin
   exact balanced_mem ht (h hy) hr,
 end
 
-end has_scalar
+end has_smul
 
 section add_comm_monoid
 

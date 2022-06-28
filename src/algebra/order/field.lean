@@ -627,7 +627,7 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_field {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_pow β ℕ] [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
+  [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
   [has_inv β] [has_div β] [has_pow β ℤ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)

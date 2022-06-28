@@ -642,11 +642,11 @@ instance [measurable_space α] : has_add (measure α) :=
 theorem add_apply {m : measurable_space α} (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-section has_scalar
-variables [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
-variables [has_scalar R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
+section has_smul
+variables [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+variables [has_smul R' ℝ≥0∞] [is_scalar_tower R' ℝ≥0∞ ℝ≥0∞]
 
-instance [measurable_space α] : has_scalar R (measure α) :=
+instance [measurable_space α] : has_smul R (measure α) :=
 ⟨λ c μ,
   { to_outer_measure := c • μ.to_outer_measure,
     m_Union := λ s hs hd, begin
@@ -672,15 +672,15 @@ instance [smul_comm_class R R' ℝ≥0∞] [measurable_space α] :
   smul_comm_class R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_comm _ _ _⟩
 
-instance [has_scalar R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
+instance [has_smul R R'] [is_scalar_tower R R' ℝ≥0∞] [measurable_space α] :
   is_scalar_tower R R' (measure α) :=
 ⟨λ _ _ _, ext $ λ _ _, smul_assoc _ _ _⟩
 
-instance [has_scalar Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
+instance [has_smul Rᵐᵒᵖ ℝ≥0∞] [is_central_scalar R ℝ≥0∞] [measurable_space α] :
   is_central_scalar R (measure α) :=
 ⟨λ _ _, ext $ λ _ _, op_smul_eq_smul _ _⟩
 
-end has_scalar
+end has_smul
 
 instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] [measurable_space α] :
   mul_action R (measure α) :=
@@ -2212,7 +2212,7 @@ instance is_finite_measure_smul_nnreal [is_finite_measure μ] {r : ℝ≥0} :
 { measure_univ_lt_top := ennreal.mul_lt_top ennreal.coe_ne_top (measure_ne_top _ _) }
 
 instance is_finite_measure_smul_of_nnreal_tower
-  {R} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+  {R} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
   [is_finite_measure μ] {r : R} :
   is_finite_measure (r • μ) :=

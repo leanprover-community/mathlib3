@@ -42,8 +42,8 @@ variables {𝕜 𝕝 E ι : Type*}
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E]
+section has_smul
+variables (𝕜) [has_smul 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of `A` by elements of
 sufficiently large norm. -/
@@ -151,7 +151,7 @@ begin
   exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
 end
 
-end has_scalar
+end has_smul
 
 section add_comm_monoid
 variables [add_comm_monoid E] [module 𝕜 E] {s s' t t' u v A B : set E}

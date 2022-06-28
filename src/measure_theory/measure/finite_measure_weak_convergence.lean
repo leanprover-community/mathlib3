@@ -150,10 +150,10 @@ instance : inhabited (finite_measure α) := ⟨0⟩
 instance : has_add (finite_measure α) :=
 { add := λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩ }
 
-variables {R : Type*} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+variables {R : Type*} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
 
-instance : has_scalar R (finite_measure α) :=
+instance : has_smul R (finite_measure α) :=
 { smul := λ (c : R) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_of_nnreal_tower⟩, }
 
 @[simp, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl

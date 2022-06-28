@@ -123,6 +123,12 @@ by { rw div_eq_mul_inv, exact mul_pos ha (inv_pos.2 hb) }
 lemma div_nonneg (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 by { rw div_eq_mul_inv, exact mul_nonneg ha (inv_nonneg.2 hb) }
 
+lemma div_nonpos_of_nonpos_of_nonneg (ha : a ≤ 0) (hb : 0 ≤ b) : a / b ≤ 0 :=
+by { rw div_eq_mul_inv, exact mul_nonpos_of_nonpos_of_nonneg ha (inv_nonneg.2 hb) }
+
+lemma div_nonpos_of_nonneg_of_nonpos (ha : 0 ≤ a) (hb : b ≤ 0) : a / b ≤ 0 :=
+by { rw div_eq_mul_inv, exact mul_nonpos_of_nonneg_of_nonpos ha (inv_nonpos.2 hb) }
+
 /-!
 ### Relating one division with another term.
 -/
@@ -569,6 +575,9 @@ by simp [division_def, mul_nonneg_iff]
 
 lemma div_nonpos_iff : a / b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤ b :=
 by simp [division_def, mul_nonpos_iff]
+
+lemma div_nonneg_of_nonpos (ha : a ≤ 0) (hb : b ≤ 0) : 0 ≤ a / b :=
+div_nonneg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_pos_of_neg_of_neg (ha : a < 0) (hb : b < 0) : 0 < a / b :=
 div_pos_iff.2 $ or.inr ⟨ha, hb⟩

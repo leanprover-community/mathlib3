@@ -5,6 +5,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
 import algebraic_geometry.prime_spectrum.noetherian
+import order.hom.basic
 import ring_theory.dedekind_domain.basic
 import ring_theory.fractional_ideal
 
@@ -889,6 +890,83 @@ end
 end is_dedekind_domain
 
 end height_one_spectrum
+
+section
+
+open ideal
+
+variables {R} {A} [is_dedekind_domain A] {I : ideal R} {J : ideal A}
+
+/-- The map from ideals of `R` dividing `I` to the ideals of `A` dividing `J` induced by
+  a homomorphism `f : R/I →+* A/J` -/
+@[simps]
+def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.surjective f ) :
+  {p : ideal R | p ∣ I} →o {p : ideal A | p ∣ J} :=
+{ to_fun := λ X, ⟨comap J^.quotient.mk (map f (map I^.quotient.mk X)),
+    begin
+      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map f (map I^.quotient.mk X)),
+      { exact ker_le_comap J^.quotient.mk },
+      rw mk_ker at this,
+      exact dvd_iff_le.mpr this,
+    end ⟩,
+  monotone' :=
+    begin
+      rintros ⟨X, hX⟩ ⟨Y, hY⟩ h,
+      rw [← subtype.coe_le_coe, subtype.coe_mk, subtype.coe_mk] at h ⊢,
+      rw [subtype.coe_mk, comap_le_comap_iff_of_surjective J^.quotient.mk quotient.mk_surjective,
+        map_le_iff_le_comap, subtype.coe_mk, comap_map_of_surjective _ hf (map I^.quotient.mk Y)],
+      suffices : map I^.quotient.mk X ≤ map I^.quotient.mk Y,
+      { exact le_sup_of_le_left this },
+      rwa [map_le_iff_le_comap, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
+    end }
+
+@[simp]
+lemma ideal_factors_fun_of_quot_hom_id :
+  ideal_factors_fun_of_quot_hom  (ring_hom.id (A ⧸ J)).is_surjective = order_hom.id :=
+order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, map_id,
+  order_hom.coe_fun_mk, order_hom.id_coe, id.def, comap_map_of_surjective _ quotient.mk_surjective,
+  ← ring_hom.ker_eq_comap_bot J^.quotient.mk, mk_ker, sup_eq_left.mpr (dvd_iff_le.mp X.prop),
+  subtype.coe_eta] )
+
+variables {B : Type*} [comm_ring B] [is_domain B] [is_dedekind_domain B] {L : ideal B}
+
+lemma ideal_factors_fun_of_quot_hom_comp
+  {f : R ⧸ I →+* A ⧸ J}  {g : A ⧸ J →+* B ⧸ L} (hf : function.surjective f)
+    (hg : function.surjective g) :
+    (ideal_factors_fun_of_quot_hom hg).comp
+  (ideal_factors_fun_of_quot_hom hf)  = ideal_factors_fun_of_quot_hom
+      (show function.surjective (g.comp f), from hg.comp hf) :=
+begin
+  refine order_hom.ext _ _ (funext $ λ x, _),
+  rw [ideal_factors_fun_of_quot_hom, ideal_factors_fun_of_quot_hom, order_hom.comp_coe,
+    order_hom.coe_fun_mk, order_hom.coe_fun_mk, function.comp_app,
+    ideal_factors_fun_of_quot_hom,  order_hom.coe_fun_mk, subtype.mk_eq_mk, subtype.coe_mk,
+    map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_map],
+end
+
+variables [is_domain R] [is_dedekind_domain R]
+
+/-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
+  an isomorphism `f : R/I ≅ A/J`. -/
+@[simps]
+def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
+  {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
+order_iso.of_hom_inv
+  (ideal_factors_fun_of_quot_hom (show function.surjective
+    (f : R ⧸I →+* A ⧸ J), from f.surjective))
+    (ideal_factors_fun_of_quot_hom (show function.surjective
+    (f.symm : A ⧸J →+* R ⧸ I), from f.symm.surjective))
+  (by simp only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
+    ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
+    ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.symm_trans_self,
+    ring_equiv.to_ring_hom_refl])
+  (by simp only [← ideal_factors_fun_of_quot_hom_id, order_hom.coe_eq, order_hom.coe_eq,
+    ideal_factors_fun_of_quot_hom_comp, ← ring_equiv.to_ring_hom_eq_coe,
+    ← ring_equiv.to_ring_hom_eq_coe, ← ring_equiv.to_ring_hom_trans, ring_equiv.self_trans_symm,
+    ring_equiv.to_ring_hom_refl])
+
+end
 
 section chinese_remainder
 

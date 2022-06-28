@@ -2107,6 +2107,9 @@ instance linear_ordered_field.to_has_continuous_inv₀ : has_continuous_inv₀ �
     exact mul_lt_mul_of_pos_left hx ht
   end }
 
+instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
+{ .. linear_ordered_field.to_has_continuous_inv₀ }
+
 end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=

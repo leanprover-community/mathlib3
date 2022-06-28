@@ -26,7 +26,6 @@ This files introduces:
 * `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
 * `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
-
 noncomputable theory
 open_locale classical nnreal ennreal topological_space
 universes u v w

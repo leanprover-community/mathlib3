@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Anne Baanen. All rights reserved.
+Copyright (c) 2022 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
@@ -10,17 +10,20 @@ import linear_algebra.free_module.finite.rank
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.nonsingular_inverse
 import ring_theory.dedekind_domain.ideal
+import ring_theory.localization.module
 
 /-!
 # Ramification index and inertia degree
 
-If `P : ideal S` lies over `p : ideal R` for the ring extension `f : R →+* S`
-(assuming `P` and `p` are prime or maximal where needed).
-The **ramification index** `ramification_idx f p P` is the multiplicity of `P` in `map f p`,
-and the **inertia degree** `inertia_deg f p P` is the degree of the field extension
+Given `P : ideal S` lying over `p : ideal R` for the ring extension `f : R →+* S`
+(assuming `P` and `p` are prime or maximal where needed),
+the **ramification index** `ideal.ramification_idx f p P` is the multiplicity of `P` in `map f p`,
+and the **inertia degree** `ideal.inertia_deg f p P` is the degree of the field extension
 `(S / P) : (R / p)`.
 
-The main theorem `sum_ramification_inertia` states that for all coprime `P` lying over `p`,
+## TODO (#12287)
+
+The main theorem `ideal.sum_ramification_inertia` states that for all coprime `P` lying over `p`,
 `Σ P, ramification_idx f p P * inertia_deg f p P` equals the degree of the field extension
 `Frac(S) : Frac(R)`.
 
@@ -38,6 +41,7 @@ We will try to relax the above hypotheses as much as possible.
 
 open_locale big_operators
 open_locale non_zero_divisors
+namespace ideal
 
 universes u v
 
@@ -719,6 +723,64 @@ begin
     rw [zero_add, pow_zero, pow_one, ideal.one_eq_top];
     exact ⟨le_top, h⟩
 end
+open unique_factorization_monoid
+
+section dec_eq
+
+open_locale classical
+
+/-- The ramification index of `P` over `p` is the largest exponent `n` such that
+`p` is contained in `P^n`.
+
+In particular, if `p` is not contained in `P^n`, then the ramification index is 0.
+
+If there is no largest such `n` (e.g. because `p = ⊥`), then `ramification_idx` is
+defined to be 0.
+-/
+noncomputable def ramification_idx : ℕ :=
+Sup {n | map f p ≤ P ^ n}
+
+variables {f p P}
+
+lemma ramification_idx_eq_find (h : ∃ n, ∀ k, map f p ≤ P ^ k → k ≤ n) :
+  ramification_idx f p P = nat.find h :=
+nat.Sup_def h
+
+lemma ramification_idx_eq_zero (h : ∀ n : ℕ, ∃ k, map f p ≤ P ^ k ∧ n < k) :
+  ramification_idx f p P = 0 :=
+dif_neg (by push_neg; exact h)
+
+lemma ramification_idx_spec {n : ℕ} (hle : map f p ≤ P ^ n) (hgt : ¬ map f p ≤ P ^ (n + 1)) :
+  ramification_idx f p P = n :=
+begin
+  have : ∀ (k : ℕ), map f p ≤ P ^ k → k ≤ n,
+  { intros k hk,
+    refine le_of_not_lt (λ hnk, _),
+    exact hgt (hk.trans (ideal.pow_le_pow hnk)) },
+  rw ramification_idx_eq_find ⟨n, this⟩,
+  { refine le_antisymm (nat.find_min' _ this) (le_of_not_gt (λ (h : nat.find _ < n), _)),
+    obtain this' := nat.find_spec ⟨n, this⟩,
+    exact h.not_le (this' _ hle) },
+end
+
+lemma ramification_idx_lt {n : ℕ} (hgt : ¬ (map f p ≤ P ^ n)) :
+  ramification_idx f p P < n :=
+begin
+  cases n,
+  { simpa using hgt },
+  rw nat.lt_succ_iff,
+  have : ∀ k, map f p ≤ P ^ k → k ≤ n,
+  { refine λ k hk, le_of_not_lt (λ hnk, _),
+    exact hgt (hk.trans (ideal.pow_le_pow hnk)) },
+  rw ramification_idx_eq_find ⟨n, this⟩,
+  exact nat.find_min' ⟨n, this⟩ this
+end
+
+@[simp] lemma ramification_idx_bot : ramification_idx f ⊥ P = 0 :=
+dif_neg $ not_exists.mpr $ λ n hn, n.lt_succ_self.not_le (hn _ (by simp))
+
+@[simp] lemma ramification_idx_of_not_le (h : ¬ map f p ≤ P) : ramification_idx f p P = 0 :=
+ramification_idx_spec (by simp) (by simpa using h)
 
 lemma ramification_idx_ne_zero {e : ℕ} (he : e ≠ 0)
   (hle : map f p ≤ P ^ e) (hnle : ¬ map f p ≤ P ^ (e + 1)):
@@ -737,31 +799,42 @@ end
 
 lemma is_dedekind_domain.ramification_idx_eq_normalized_factors_count
   [is_domain S] [is_dedekind_domain S]
+by rwa ramification_idx_spec hle hnle
+
+lemma le_pow_of_le_ramification_idx {n : ℕ} (hn : n ≤ ramification_idx f p P) :
+  map f p ≤ P ^ n :=
+begin
+  contrapose! hn,
+  exact ramification_idx_lt hn
+end
+
+lemma le_pow_ramification_idx :
+  map f p ≤ P ^ ramification_idx f p P :=
+le_pow_of_le_ramification_idx (le_refl _)
+
+namespace is_dedekind_domain
+
+variables [is_domain S] [is_dedekind_domain S]
+
+lemma ramification_idx_eq_normalized_factors_count
   (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (hP0 : P ≠ ⊥) :
   ramification_idx f p P = (normalized_factors (map f p)).count P :=
 begin
   have hPirr := (ideal.prime_of_is_prime hP0 hP).irreducible,
-  refine ramification_idx_spec _ _ _ _ (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
+  refine ramification_idx_spec (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
     rw [dvd_iff_normalized_factors_le_normalized_factors (pow_ne_zero _ hP0) hp0,
         normalized_factors_pow, normalized_factors_irreducible hPirr, normalize_eq,
         multiset.nsmul_singleton, ← multiset.le_count_iff_repeat_le],
   { exact (nat.lt_succ_self _).not_le },
 end
 
-@[simp] lemma normalized_factors_eq_factors {M : Type*} [cancel_comm_monoid_with_zero M]
-  [unique_factorization_monoid M] [unique (Mˣ)] (x : M) : normalized_factors x = factors x :=
-by { unfold normalized_factors, convert multiset.map_id (factors x), ext p, exact normalize_eq p }
-
-lemma is_dedekind_domain.ramification_idx_eq_factors_count [is_domain S] [is_dedekind_domain S]
-  (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (hP0 : P ≠ ⊥) :
+lemma ramification_idx_eq_factors_count (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (hP0 : P ≠ ⊥) :
   ramification_idx f p P = (factors (map f p)).count P :=
-begin
-  rw [is_dedekind_domain.ramification_idx_eq_normalized_factors_count hp0 hP hP0,
-      normalized_factors_eq_factors],
-end
+by rw [is_dedekind_domain.ramification_idx_eq_normalized_factors_count hp0 hP hP0,
+       factors_eq_normalized_factors]
 
-lemma is_dedekind_domain.ramification_idx_ne_zero [is_domain S] [is_dedekind_domain S]
-  (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (le : map f p ≤ P) : ramification_idx f p P ≠ 0 :=
+lemma ramification_idx_ne_zero (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (le : map f p ≤ P) :
+  ramification_idx f p P ≠ 0 :=
 begin
   have hP0 : P ≠ ⊥,
   { unfreezingI { rintro rfl },
@@ -779,6 +852,8 @@ lemma is_dedekind_domain.le_pow_ramification_idx [is_domain S] [is_dedekind_doma
   map f p ≤ P ^ ramification_idx f p P :=
 le_pow_ramification_idx_of_ne_zero (is_dedekind_domain.ramification_idx_ne_zero hp0 hP le)
 
+end is_dedekind_domain
+
 variables (f p P)
 
 local attribute [instance] ideal.quotient.field
@@ -794,8 +869,8 @@ and there is an algebra structure `R / p → S / P`.
 noncomputable def inertia_deg [hp : p.is_maximal] : ℕ :=
 if hPp : comap f P = p
 then @finrank (R ⧸ p) (S ⧸ P) _ _ $ @algebra.to_module _ _ _ _ $ ring_hom.to_algebra $
-ideal.quotient.lift p (P^.quotient.mk^.comp f) $
-λ a ha, quotient.eq_zero_iff_mem.mpr $ mem_comap.mp $ hPp.symm ▸ ha
+  ideal.quotient.lift p (P^.quotient.mk^.comp f) $
+  λ a ha, quotient.eq_zero_iff_mem.mpr $ mem_comap.mp $ hPp.symm ▸ ha
 else 0
 
 -- Useful for the `nontriviality` tactic using `comap_eq_of_scalar_tower_quotient`.
@@ -1506,3 +1581,4 @@ begin
 end
 
 end factors_map
+end ideal

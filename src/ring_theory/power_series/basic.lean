@@ -156,6 +156,12 @@ coeff_monomial_same 0 1
 
 lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
 
+instance : add_monoid_with_one (mv_power_series σ R) :=
+{ nat_cast := λ n, monomial R 0 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := by simp [nat.cast, monomial_zero_one],
+  one := 1, .. mv_power_series.add_monoid }
+
 instance : has_mul (mv_power_series σ R) :=
 ⟨λ φ ψ n, ∑ p in finsupp.antidiagonal n, coeff R p.1 φ * coeff R p.2 ψ⟩
 
@@ -244,7 +250,7 @@ instance : semiring (mv_power_series σ R) :=
   zero_mul := mv_power_series.zero_mul,
   left_distrib := mv_power_series.mul_add,
   right_distrib := mv_power_series.add_mul,
-  .. mv_power_series.has_one,
+  .. mv_power_series.add_monoid_with_one,
   .. mv_power_series.has_mul,
   .. mv_power_series.add_comm_monoid }
 
@@ -384,7 +390,7 @@ lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ R) :
  then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : mv_power_series σ R) (h : is_unit φ) :
   is_unit (constant_coeff σ R φ) :=
-h.map (constant_coeff σ R).to_monoid_hom
+h.map _
 
 @[simp]
 lemma coeff_smul (f : mv_power_series σ R) (n) (a : R) :
@@ -514,7 +520,7 @@ begin
   { subst m, simp },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
-    intro H', apply H, subst m, exact ne.bot_lt hnn, }
+    rintro rfl, apply H, exact ne.bot_lt hnn, }
 end
 
 @[simp] lemma trunc_C (hnn : n ≠ 0) (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
@@ -648,11 +654,13 @@ section comm_ring
 variable [comm_ring R]
 
 /-- Multivariate formal power series over a local ring form a local ring. -/
-instance is_local_ring [local_ring R] : local_ring (mv_power_series σ R) :=
-{ is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
+instance [local_ring R] : local_ring (mv_power_series σ R) :=
+local_ring.of_is_unit_or_is_unit_one_sub_self $ by
+{ intro φ,
+  rcases local_ring.is_unit_or_is_unit_one_sub_self (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h.symm } } }
+      simpa using h.symm } }
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 
@@ -676,11 +684,6 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
-
-variables [local_ring R] [local_ring S]
-
-instance : local_ring (mv_power_series σ R) :=
-{ is_local := local_ring.is_local }
 
 end local_ring
 
@@ -761,7 +764,7 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma one_inv : (1 : mv_power_series σ k)⁻¹ = 1 :=
+@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
 by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
@@ -1287,6 +1290,21 @@ by simp
 by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
 
+lemma rescale_mk (f : ℕ → R) (a : R) :
+  rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
+by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
+
+lemma rescale_rescale (f : power_series R) (a b : R) :
+  rescale b (rescale a f) = rescale (a * b) f :=
+begin
+  ext,
+  repeat { rw coeff_rescale, },
+  rw [mul_pow, mul_comm _ (b^n), mul_assoc],
+end
+
+lemma rescale_mul (a b : R) : rescale (a * b) = (rescale b).comp (rescale a) :=
+by { ext, simp [← rescale_rescale], }
+
 section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
@@ -1312,7 +1330,7 @@ begin
   { subst m, rw [if_pos rfl] },
   { symmetry, exact if_neg (ne.elim (ne.symm H')) },
   { symmetry, refine if_neg _,
-    intro H', apply H, subst m, exact nat.zero_lt_succ _ }
+    rintro rfl, apply H, exact nat.zero_lt_succ _ }
 end
 
 @[simp] lemma trunc_C (n) (a : R) : trunc (n + 1) (C R a) = polynomial.C a :=
@@ -1446,7 +1464,8 @@ begin
     suffices : m < i,
     { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
       exfalso, exact ne_of_lt this hij.symm },
-    contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
+    contrapose! hne,
+    obtain rfl := le_antisymm hi hne,
     simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
@@ -1581,8 +1600,8 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.one_inv
+@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
+mv_power_series.inv_one
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _

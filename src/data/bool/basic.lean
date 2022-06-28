@@ -168,7 +168,6 @@ instance : linear_order bool :=
   le_total := dec_trivial,
   decidable_le := infer_instance,
   decidable_eq := infer_instance,
-  decidable_lt := infer_instance,
   max := bor,
   max_def := by { funext x y, revert x y, exact dec_trivial },
   min := band,
@@ -224,5 +223,9 @@ by cases b; simp only [of_nat,to_nat]; exact dec_trivial
 @[simp] lemma injective_iff {α : Sort*} {f : bool → α} : function.injective f ↔ f ff ≠ f tt :=
 ⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
   λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
+
+/-- **Kaminski's Equation** -/
+theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
+by cases x; cases h₁ : f tt; cases h₂ : f ff; simp only [h₁, h₂]
 
 end bool

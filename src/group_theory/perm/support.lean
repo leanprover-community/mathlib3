@@ -381,7 +381,7 @@ lemma support_swap_iff (x y : α) :
 begin
   refine ⟨λ h H, _, support_swap⟩,
   subst H,
-  simp only [swap_self, support_refl, insert_singleton_self_eq] at h,
+  simp only [swap_self, support_refl, pair_eq_singleton] at h,
   have : x ∈ ∅,
   { rw h,
     exact mem_singleton.mpr rfl },

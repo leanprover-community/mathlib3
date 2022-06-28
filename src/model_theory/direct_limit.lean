@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import data.fintype.order
 import algebra.direct_limit
 import model_theory.quotients
+import model_theory.finitely_generated
 
 /-!
 # Direct Limits of First-Order Structures
@@ -21,8 +22,7 @@ universes v w u₁ u₂
 open_locale first_order
 namespace first_order
 namespace language
-open Structure
-open set
+open Structure set
 
 variables {L : language} {ι : Type v} [preorder ι]
 variables {G : ι → Type w} [Π i, L.Structure (G i)]
@@ -41,6 +41,28 @@ directed_system.map_self (λ i j h, f i j h) i x h
 lemma map_map [directed_system G (λ i j h, f i j h)] {i j k} (hij hjk x) :
   f j k hjk (f i j hij x) = f i k (le_trans hij hjk) x :=
 directed_system.map_map (λ i j h, f i j h) hij hjk x
+
+variables {G' : ℕ → Type w} [Π i, L.Structure (G' i)] (f' : Π (n : ℕ), G' n ↪[L] G' (n + 1))
+
+/-- Given a chain of embeddings of structures indexed by `ℕ`, defines a `directed_system` by
+composing them. -/
+def nat_le_rec (m n : ℕ) (h : m ≤ n) : G' m ↪[L] G' n :=
+nat.le_rec_on h (λ k g, (f' k).comp g) (embedding.refl L _)
+
+@[simp] lemma coe_nat_le_rec (m n : ℕ) (h : m ≤ n) :
+  (nat_le_rec f' m n h : G' m → G' n) = nat.le_rec_on h (λ n, f' n) :=
+begin
+  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h,
+  ext x,
+  induction k with k ih,
+  { rw [nat_le_rec, nat.le_rec_on_self, embedding.refl_apply, nat.le_rec_on_self] },
+  { rw [nat.le_rec_on_succ le_self_add, nat_le_rec, nat.le_rec_on_succ le_self_add, ← nat_le_rec,
+      embedding.comp_apply, ih] }
+end
+
+instance nat_le_rec.directed_system : directed_system G' (λ i j h, nat_le_rec f' i j h) :=
+⟨λ i x h, congr (congr rfl (nat.le_rec_on_self _)) rfl,
+  λ i j k ij jk, by simp [nat.le_rec_on_trans ij jk]⟩
 
 end directed_system
 
@@ -224,7 +246,7 @@ end
 variables (L ι)
 
 /-- The canonical map from a component to the direct limit. -/
-noncomputable def of (i : ι) : G i ↪[L] direct_limit G f :=
+def of (i : ι) : G i ↪[L] direct_limit G f :=
 { to_fun := quotient.mk ∘ sigma.mk i,
   inj' := λ x y h, begin
     simp only [quotient.eq] at h,
@@ -264,7 +286,7 @@ variables (L ι G f)
 /-- The universal property of the direct limit: maps from the components to another module
 that respect the directed system structure (i.e. make some diagram commute) give rise
 to a unique map out of the direct limit. -/
-noncomputable def lift : direct_limit G f ↪[L] P :=
+def lift : direct_limit G f ↪[L] P :=
 { to_fun := quotient.lift (λ (x : Σ i, G i), (g x.1) x.2) (λ x y xy, begin
     simp only,
     obtain ⟨i, hx, hy⟩ := directed_of (≤) x.1 y.1,
@@ -307,6 +329,33 @@ theorem lift_unique (F : direct_limit G f ↪[L] P) (x) :
   F x = lift L ι G f (λ i, F.comp $ of L ι G f i)
     (λ i j hij x, by rw [F.comp_apply, F.comp_apply, of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of; refl
+
+/-- The direct limit of countably many countably generated structures is countably generated. -/
+theorem cg {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]
+  {G : ι → Type w} [Π i, L.Structure (G i)]
+  (f : Π i j, i ≤ j → G i ↪[L] G j) (h : ∀ i, Structure.cg L (G i))
+  [directed_system G (λ i j h, f i j h)] :
+  Structure.cg L (direct_limit G f) :=
+begin
+  refine ⟨⟨⋃ i, direct_limit.of L ι G f i '' (classical.some (h i).out), _, _⟩⟩,
+  { exact set.countable_Union (λ i, set.countable.image (classical.some_spec (h i).out).1 _) },
+  { rw [eq_top_iff, substructure.closure_Union],
+    simp_rw [← embedding.coe_to_hom, substructure.closure_image],
+    rw le_supr_iff,
+    intros S hS x hx,
+    let out := @quotient.out _ (direct_limit.setoid G f),
+    refine hS (out x).1 ⟨(out x).2, _, _⟩,
+    { rw [(classical.some_spec (h (out x).1).out).2],
+      simp only [substructure.coe_top] },
+    { simp only [embedding.coe_to_hom, direct_limit.of_apply, sigma.eta, quotient.out_eq] } }
+end
+
+instance cg' {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]
+  {G : ι → Type w} [Π i, L.Structure (G i)]
+  (f : Π i j, i ≤ j → G i ↪[L] G j) [h : ∀ i, Structure.cg L (G i)]
+  [directed_system G (λ i j h, f i j h)] :
+  Structure.cg L (direct_limit G f) :=
+cg f h
 
 end direct_limit
 

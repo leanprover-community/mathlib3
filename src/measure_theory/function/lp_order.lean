@@ -31,8 +31,7 @@ namespace measure_theory
 namespace Lp
 
 section order
-variables [normed_lattice_add_comm_group E] [measurable_space E] [borel_space E]
-  [second_countable_topology E]
+variables [normed_lattice_add_comm_group E]
 
 lemma coe_fn_le (f g : Lp E p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
 by rw [← subtype.coe_le_coe, ← ae_eq_fun.coe_fn_le, ← coe_fn_coe_base, ← coe_fn_coe_base]
@@ -58,6 +57,20 @@ end
 instance : ordered_add_comm_group (Lp E p μ) :=
 { add_le_add_left := λ f g hfg f', add_le_add_left hfg f',
   ..subtype.partial_order _, ..add_subgroup.to_add_comm_group _}
+
+lemma _root_.measure_theory.mem_ℒp.sup {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  mem_ℒp (f ⊔ g) p μ :=
+mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.sup hg.1)
+  (filter.eventually_of_forall (λ x, norm_sup_le_add (f x) (g x)))
+
+lemma _root_.measure_theory.mem_ℒp.inf {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
+  mem_ℒp (f ⊓ g) p μ :=
+mem_ℒp.mono' (hf.norm.add hg.norm) (hf.1.inf hg.1)
+  (filter.eventually_of_forall (λ x, norm_inf_le_add (f x) (g x)))
+
+lemma _root_.measure_theory.mem_ℒp.abs {f : α → E} (hf : mem_ℒp f p μ)  :
+  mem_ℒp (|f|) p μ :=
+hf.sup hf.neg
 
 end order
 

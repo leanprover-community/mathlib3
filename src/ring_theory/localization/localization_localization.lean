@@ -65,7 +65,7 @@ begin
   obtain ⟨y', z, eq⟩ := mem_localization_localization_submodule.mp y.prop,
   rw [is_scalar_tower.algebra_map_apply R S T, eq, ring_hom.map_mul, is_unit.mul_iff],
   exact ⟨is_localization.map_units T y',
-    (is_localization.map_units _ z).map (algebra_map S T : S →* T)⟩,
+    (is_localization.map_units _ z).map (algebra_map S T)⟩,
 end
 
 lemma localization_localization_surj [is_localization N T] (x : T) :
@@ -168,8 +168,8 @@ map, then `(M⁻¹R)ₚ` is isomorphic (as an `R`-algebra) to the localization o
 -/
 noncomputable
 def localization_localization_at_prime_iso_localization (p : ideal (localization M)) [p.is_prime] :
-  localization.at_prime (p.comap (algebra_map R _)) ≃ₐ[R] localization.at_prime p :=
-is_localization.alg_equiv (p.comap (algebra_map R _)).prime_compl _ _
+  localization.at_prime (p.comap (algebra_map R (localization M))) ≃ₐ[R] localization.at_prime p :=
+is_localization.alg_equiv (p.comap (algebra_map R (localization M))).prime_compl _ _
 
 end
 

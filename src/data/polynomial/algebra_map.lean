@@ -20,7 +20,7 @@ open_locale big_operators polynomial
 namespace polynomial
 universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {A' B' : Type*} {a b : R} {n : ℕ}
-variables [comm_semiring A'] [comm_semiring B']
+variables [comm_semiring A'] [semiring B']
 
 section comm_semiring
 variables [comm_semiring R] {p q r : R[X]}
@@ -29,26 +29,32 @@ variables [semiring A] [algebra R A]
 
 /-- Note that this instance also provides `algebra R R[X]`. -/
 instance algebra_of_algebra : algebra R (polynomial A) :=
-{ smul_def' := λ r p, begin
-    rcases p,
-    simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
-      function.comp_app, ring_hom.coe_comp, smul_to_finsupp, mul_to_finsupp],
+{ smul_def' := λ r p, to_finsupp_injective $ begin
+    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
+    rw [to_finsupp_smul, to_finsupp_mul, to_finsupp_C],
     exact algebra.smul_def' _ _,
   end,
-  commutes' := λ r p, begin
-    rcases p,
-    simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
-      function.comp_app, ring_hom.coe_comp, mul_to_finsupp],
-    convert algebra.commutes' r p,
+  commutes' := λ r p, to_finsupp_injective $ begin
+    dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
+    simp_rw [to_finsupp_mul, to_finsupp_C],
+    convert algebra.commutes' r p.to_finsupp,
   end,
-  .. C.comp (algebra_map R A) }
+  to_ring_hom := C.comp (algebra_map R A) }
 
 lemma algebra_map_apply (r : R) :
   algebra_map R (polynomial A) r = C (algebra_map R A r) :=
 rfl
 
+@[simp] lemma to_finsupp_algebra_map (r : R) :
+  (algebra_map R (polynomial A) r).to_finsupp = algebra_map R _ r :=
+show to_finsupp (C (algebra_map _ _ r)) = _, by { rw to_finsupp_C, refl }
+
+lemma of_finsupp_algebra_map (r : R) :
+  (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R (polynomial A) r :=
+to_finsupp_injective (to_finsupp_algebra_map _).symm
+
 /--
-When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R R[X]`.
+When we have `[comm_semiring R]`, the function `C` is the same as `algebra_map R R[X]`.
 
 (But note that `C` is defined when `R` is not necessarily commutative, in which case
 `algebra_map` is not available.)
@@ -78,8 +84,8 @@ implementation detail, but it can be useful to transfer results from `finsupp` t
 def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
 { commutes' := λ r,
   begin
-    simp only [add_monoid_algebra.coe_algebra_map, algebra.id.map_eq_self, function.comp_app],
-    rw [←C_eq_algebra_map, ←monomial_zero_left, ring_equiv.to_fun_eq_coe, to_finsupp_iso_monomial],
+    dsimp,
+    exact to_finsupp_algebra_map _,
   end,
   ..to_finsupp_iso R }
 
@@ -99,7 +105,7 @@ end⟩⟩
 
 @[simp]
 lemma alg_hom_eval₂_algebra_map
-  {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+  {R A B : Type*} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
   (p : R[X]) (f : A →ₐ[R] B) (a : A) :
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
@@ -109,7 +115,7 @@ begin
 end
 
 @[simp]
-lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
@@ -264,17 +270,8 @@ lemma aeval_eq_sum_range [algebra R S] {p : R[X]} (x : S) :
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
 
 lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
-aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
-
-lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
-  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_sum f s
-
-@[to_additive]
-lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)
-  (f : ι → R[X]) (g : S) : aeval g (∏ i in s, f i) = ∏ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_prod f s
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=
@@ -401,7 +398,7 @@ lemma aeval_endomorphism {M : Type*}
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin
   rw [aeval_def, eval₂],
-  exact (linear_map.applyₗ v).map_sum ,
+  exact (linear_map.applyₗ v).map_sum,
 end
 
 end polynomial

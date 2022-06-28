@@ -88,8 +88,24 @@ begin
   { simp, },
   { conv_lhs
   { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
-      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X])], },
-    refl, },
+      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X]), ← nat.cast_succ] } },
+end
+
+lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
+  (pochhammer S (n + 1)).eval k = (pochhammer S n).eval k * (k + n) :=
+by rw [pochhammer_succ_right, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, ← C_eq_nat_cast,
+    eval_C_mul, nat.cast_comm, ← mul_add]
+
+lemma pochhammer_succ_comp_X_add_one (n : ℕ) :
+  (pochhammer S (n + 1)).comp (X + 1) =
+    pochhammer S (n + 1) + (n + 1) • (pochhammer S n).comp (X + 1) :=
+begin
+  suffices : (pochhammer ℕ (n + 1)).comp (X + 1) =
+              pochhammer ℕ (n + 1) + (n + 1) * (pochhammer ℕ n).comp (X + 1),
+  { simpa [map_comp] using congr_arg (polynomial.map (nat.cast_ring_hom S)) this },
+  nth_rewrite 1 pochhammer_succ_left,
+  rw [← add_mul, pochhammer_succ_right ℕ n, mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑n, ← add_assoc]
 end
 
 lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
@@ -128,16 +144,6 @@ begin
 end
 
 end semiring
-
-section comm_semiring
-variables {S : Type*} [comm_semiring S]
-
-lemma pochhammer_succ_eval (n : ℕ) (k : S) :
-  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
-by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
-    polynomial.eval_nat_cast]
-
-end comm_semiring
 
 section ordered_semiring
 variables {S : Type*} [ordered_semiring S] [nontrivial S]

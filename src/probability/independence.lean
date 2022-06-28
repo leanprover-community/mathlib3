@@ -64,7 +64,7 @@ Part A, Chapter 4.
 -/
 
 open measure_theory measurable_space
-open_locale big_operators classical
+open_locale big_operators classical measure_theory
 
 namespace probability_theory
 
@@ -90,14 +90,14 @@ for any finite set of indices `s = {i_1, ..., i_n}`, for any sets
 `f i_1 ∈ m i_1, ..., f i_n ∈ m i_n`, then `μ (⋂ i in s, f i) = ∏ i in s, μ (f i) `. -/
 def Indep {α ι} (m : ι → measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-Indep_sets (λ x, (m x).measurable_set') μ
+Indep_sets (λ x, {s | measurable_set[m x] s}) μ
 
 /-- Two measurable space structures (or σ-algebras) `m₁, m₂` are independent with respect to a
 measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t₂ ∈ m₂`,
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-indep_sets (m₁.measurable_set') (m₂.measurable_set') μ
+indep_sets ({s | measurable_set[m₁] s}) ({s | measurable_set[m₂] s}) μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
@@ -234,7 +234,7 @@ lemma Indep.indep {α ι} {m : ι → measurable_space α} [measurable_space α]
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
-  change indep_sets ((λ x, (m x).measurable_set') i) ((λ x, (m x).measurable_set') j) μ,
+  change indep_sets ((λ x, measurable_set[m x]) i) ((λ x, measurable_set[m x]) j) μ,
   exact Indep_sets.indep_sets h_indep hij,
 end
 
@@ -250,14 +250,11 @@ section from_measurable_spaces_to_sets_of_sets
 /-! ### Independence of measurable space structures implies independence of generating π-systems -/
 
 lemma Indep.Indep_sets {α ι} [measurable_space α] {μ : measure α} {m : ι → measurable_space α}
-  {s : ι → set (set α)} (hms : ∀ n, m n = measurable_space.generate_from (s n))
+  {s : ι → set (set α)} (hms : ∀ n, m n = generate_from (s n))
   (h_indep : Indep m μ) :
   Indep_sets s μ :=
-begin
-  refine (λ S f hfs, h_indep S (λ x hxS, _)),
-  simp_rw hms x,
-  exact measurable_set_generate_from (hfs x hxS),
-end
+λ S f hfs, h_indep S $ λ x hxS,
+  ((hms x).symm ▸ measurable_set_generate_from (hfs x hxS) : measurable_set[m x] (f x))
 
 lemma indep.indep_sets {α} [measurable_space α] {μ : measure α} {s1 s2 : set (set α)}
   (h_indep : indep (generate_from s1) (generate_from s2) μ) :
@@ -272,7 +269,7 @@ section from_pi_systems_to_measurable_spaces
 private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [is_probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
-  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.measurable_set' t2) :
+  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : measurable_set[m2] t2) :
   μ (t1 ∩ t2) = μ t1 * μ t2 :=
 begin
   let μ_inter := μ.restrict t1,
@@ -282,7 +279,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t1 μ ⟨measure_lt_top μ t1⟩,
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
-  have ht2 : m.measurable_set' t,
+  have ht2 : measurable_set[m] t,
   { refine h2 _ _,
     rw hpm2,
     exact measurable_set_generate_from ht, },
@@ -304,7 +301,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
-  have ht1 : m.measurable_set' t,
+  have ht1 : measurable_set[m] t,
   { refine h1 _ _,
     rw hpm1,
     exact measurable_set_generate_from ht, },
@@ -344,5 +341,78 @@ lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measu
 (indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
 
 end indep_set
+
+section indep_fun
+
+/-! ### Independence of random variables
+
+-/
+
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α} {f : α → β} {g : α → β'}
+
+lemma indep_fun_iff_measure_inter_preimage_eq_mul
+  {mβ : measurable_space β} {mβ' : measurable_space β'} [is_probability_measure μ]
+  (hf : measurable f) (hg : measurable g) :
+  indep_fun f g μ
+    ↔ ∀ s t, measurable_set s → measurable_set t
+      → μ (f ⁻¹' s ∩ g ⁻¹' t) = μ (f ⁻¹' s) * μ (g ⁻¹' t) :=
+begin
+  let Sf := {t1 | ∃ s, measurable_set s ∧ f ⁻¹' s = t1},
+  let Sg := {t1 | ∃ t, measurable_set t ∧ g ⁻¹' t = t1},
+  suffices : indep_fun f g μ ↔ indep_sets Sf Sg μ,
+  { refine this.trans _,
+    simp_rw [indep_sets, Sf, Sg, set.mem_set_of_eq],
+    split; intro h,
+    { exact λ s t hs ht, h (f ⁻¹' s) (g ⁻¹' t) ⟨s, hs, rfl⟩ ⟨t, ht, rfl⟩, },
+    { rintros t1 t2 ⟨s, hs, rfl⟩ ⟨t, ht, rfl⟩,
+      exact h s t hs ht, }, },
+  have hSf_pi : is_pi_system Sf,
+  { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
+    exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
+  have hSg_pi : is_pi_system Sg,
+  { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
+    exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
+  have hSf_gen : mβ.comap f = generate_from Sf := mβ.comap_eq_generate_from f,
+  have hSg_gen : mβ'.comap g = generate_from Sg := mβ'.comap_eq_generate_from g,
+  rw indep_fun,
+  split; intro h,
+  { rw [hSf_gen, hSg_gen] at h,
+    exact indep.indep_sets h, },
+  { exact indep_sets.indep hf.comap_le hg.comap_le hSf_pi hSg_pi hSf_gen hSg_gen h, },
+end
+
+lemma indep_fun_iff_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}
+  [is_probability_measure μ] (hf : measurable f) (hg : measurable g) :
+  indep_fun f g μ ↔ ∀ s t, measurable_set s → measurable_set t → indep_set (f ⁻¹' s) (g ⁻¹' t) μ :=
+begin
+  refine (indep_fun_iff_measure_inter_preimage_eq_mul hf hg).trans _,
+  split; intros h s t hs ht; specialize h s t hs ht,
+  { rwa indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+  { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+end
+
+lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : α → β}
+  (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
+  indep_fun f' g' μ :=
+begin
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  have h1 : f ⁻¹' A =ᵐ[μ] f' ⁻¹' A := hf.fun_comp A,
+  have h2 : g ⁻¹' B =ᵐ[μ] g' ⁻¹' B := hg.fun_comp B,
+  rw [←measure_congr h1, ←measure_congr h2, ←measure_congr (h1.inter h2)],
+  exact hfg _ _ ⟨_, hA, rfl⟩ ⟨_, hB, rfl⟩
+end
+
+lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
+  {mγ : measurable_space γ} {mγ' : measurable_space γ'} {φ : β → γ} {ψ : β' → γ'}
+  (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
+  indep_fun (φ ∘ f) (ψ ∘ g) μ :=
+begin
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  apply hfg,
+  { exact ⟨φ ⁻¹' A, hφ hA, set.preimage_comp.symm⟩ },
+  { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
+end
+
+end indep_fun
 
 end probability_theory

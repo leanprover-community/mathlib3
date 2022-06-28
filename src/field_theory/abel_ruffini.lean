@@ -311,7 +311,7 @@ begin
       (minpoly.dvd F α (by rw [aeval_comp, aeval_X_pow, minpoly.aeval]))⟩ },
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
-    { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
+    { obtain ⟨s, hs⟩ := (splits_iff_exists_multiset _).1 (splitting_field.splits p),
       rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
       rw multiset_prod_comp,

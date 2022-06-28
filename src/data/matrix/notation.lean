@@ -117,10 +117,14 @@ meta def «notation» (_ : parse $ tk "!![")
   (val : parse (entry_parser (parser.pexpr 1) <* tk "]")) : parser pexpr :=
 do
   let ⟨m, n, entries⟩ := val,
-  let entry_vals := pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries),
   -- TODO: introduce a `matrix.of : (fin m → fin n → α) ≃ matrix m n α` and use it here, to ensure
   -- the notation is actually notation for `matrix` and not just pi types.
-  pure entry_vals
+  if m = 0 then
+    -- handle this specially to ensure that `n` appears in the result type, as it cannot be
+    -- inferred.
+    pure ``(@vec_empty (fin %%`(n) → (_ : Type _)))
+  else
+    pure (pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries))
 
 end parser
 

@@ -9,23 +9,27 @@ namespace matrix
 
 open_locale matrix
 
-meta def assert_dims (e : expr) (m n : ℕ) : tactic unit :=
-do
-  t ← tactic.infer_type e,
-  guard (t = `(matrix (fin m) (fin n) ℕ))
+/-! Test that the dimensions are inferred correctly, even for empty matrices -/
+section dimensions
 
-#eval assert_dims `(!![]   : matrix _ _ ℕ) 0 0
-#eval assert_dims `(!![;]  : matrix _ _ ℕ) 1 0
-#eval assert_dims `(!![;;] : matrix _ _ ℕ) 2 0
-#eval assert_dims `(!![,]  : matrix _ _ ℕ) 0 1
-#eval assert_dims `(!![,,] : matrix _ _ ℕ) 0 2
+def get_dims {m n : ℕ} (f : fin m → fin n → ℕ) : ℕ × ℕ := (m, n)
 
-#eval (guard $ (!![1;2])       = ![![1], ![2]]     : tactic unit)
-#eval (guard $ (!![1,3])       = ![![1,3]]         : tactic unit)
-#eval (guard $ (!![1,2;3,4])   = ![![1,2], ![3,4]] : tactic unit)
-#eval (guard $ (!![1,2;3,4;])  = ![![1,2], ![3,4]] : tactic unit)
-#eval (guard $ (!![1,2,;3,4,]) = ![![1,2], ![3,4]] : tactic unit)
+run_cmd guard $ get_dims !![]   = (0, 0)
+run_cmd guard $ get_dims !![;]  = (1, 0)
+run_cmd guard $ get_dims !![;;] = (2, 0)
+run_cmd guard $ get_dims !![,]  = (0, 1)
+run_cmd guard $ get_dims !![,,] = (0, 2)
+run_cmd guard $ get_dims !![1]  = (1, 1)
+run_cmd guard $ get_dims !![1,] = (1, 1)
+run_cmd guard $ get_dims !![1;] = (1, 1)
 
+end dimensions
+
+run_cmd guard $ (!![1;2])       = ![![1], ![2]]
+run_cmd guard $ (!![1,3])       = ![![1,3]]
+run_cmd guard $ (!![1,2;3,4])   = ![![1,2], ![3,4]]
+run_cmd guard $ (!![1,2;3,4;])  = ![![1,2], ![3,4]]
+run_cmd guard $ (!![1,2,;3,4,]) = ![![1,2], ![3,4]]
 
 example {a a' b b' c c' d d' : α} :
   !![a, b; c, d] + !![a', b'; c', d'] = !![a + a', b + b'; c + c', d + d'] :=

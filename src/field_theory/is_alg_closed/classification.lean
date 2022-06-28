@@ -36,7 +36,7 @@ variables [no_zero_smul_divisors R L] (halg : algebra.is_algebraic R L)
 
 lemma cardinal_mk_le_sigma_polynomial :
   #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :=
-@mk_le_of_injective L (Σ p : R[X], { x : L | x ∈ (p.map (algebra_map R L)).roots })
+mk_le_of_injective
   (λ x : L, let p := classical.indefinite_description _ (halg x) in
     ⟨p.1, x,
       begin
@@ -47,7 +47,8 @@ lemma cardinal_mk_le_sigma_polynomial :
         exact p.2.1 },
       erw [polynomial.mem_roots h, polynomial.is_root, polynomial.eval_map,
         ← polynomial.aeval_def, p.2.2],
-      end⟩) (λ x y, begin
+      end⟩)
+  (λ x y, begin
     intro h,
     simp only at h,
     refine (subtype.heq_iff_coe_eq _).1 h.2,
@@ -154,7 +155,7 @@ le_antisymm
          { exact le_trans hR this },
          { exact le_max_of_le_right this }
        end)
-  (mk_le_of_injective (show function.injective v, from hv.1.injective))
+  (mk_le_of_injective v hv.1.injective)
 
 end cardinal
 

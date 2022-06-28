@@ -196,7 +196,7 @@ begin
   refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_lt o,
-    refine (cof_type_le (λ a, _)).trans (@mk_le_of_injective _ _
+    refine (cof_type_le (λ a, _)).trans (mk_le_of_injective
       (λ s : (typein ((<) : o.out.α → o.out.α → Prop))⁻¹' (set.range f), classical.some s.prop)
       (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
         classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
@@ -778,7 +778,7 @@ begin
     apply (h'.two_power_lt _).le,
     rw [coe_set_of, card_typein, ←lt_ord, hr],
     apply typein_lt_type },
-  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
+  { refine mk_le_of_injective (λ x, subtype.mk {x} _) _,
     { apply bounded_singleton,
       rw ←hr,
       apply ord_is_limit ha },
@@ -800,7 +800,7 @@ begin
     apply mk_le_mk_of_subset (λ s hs, _),
     rw hr at hs,
     exact lt_cof_type hs },
-  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
+  { refine mk_le_of_injective (λ x, subtype.mk {x} _) _,
     { rw mk_singleton,
       exact one_lt_aleph_0.trans_le (aleph_0_le_cof.2 (ord_is_limit h'.is_limit.aleph_0_le)) },
     { intros a b hab,

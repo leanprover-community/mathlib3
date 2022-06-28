@@ -46,7 +46,7 @@ begin
   induction κ using cardinal.induction_on with γ,
   simp only [cardinal.power_def, ← cardinal.mk_sigma, cardinal.le_def] at hκ,
   cases hκ,
-  exact cardinal.mk_le_of_injective (elim_injective _ hκ.1 hκ.2)
+  exact cardinal.mk_le_of_injective _ (elim_injective _ hκ.1 hκ.2)
 end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`

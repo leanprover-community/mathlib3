@@ -26,8 +26,7 @@ namespace algebraic
 
 theorem aleph_0_le_cardinal_mk_of_char_zero (R A : Type*) [comm_ring R] [is_domain R]
   [ring A] [algebra R A] [char_zero A] : ℵ₀ ≤ #{x : A // is_algebraic R x} :=
-@mk_le_of_injective (ulift ℕ) {x : A | is_algebraic R x} (λ n, ⟨_, is_algebraic_nat n.down⟩)
-  (λ m n hmn, by simpa using hmn)
+mk_le_of_injective (λ n, ⟨_, is_algebraic_nat n.down⟩) (λ m n hmn, by simpa using hmn)
 
 section lift
 

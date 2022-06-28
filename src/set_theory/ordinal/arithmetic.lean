@@ -1580,14 +1580,11 @@ begin
   by_contra' h,
   apply (lt_succ (#ι)).not_le,
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
-  let g : (succ (#ι)).ord.out.α → ι := λ a, classical.some (H a),
-  have hg : injective g := λ a b h', begin
-    have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
-    apply_fun f at h',
-    rwa [Hf, Hf, typein_inj] at h'
-  end,
-  convert cardinal.mk_le_of_injective hg,
-  rw cardinal.mk_ord_out
+  rw ←cardinal.mk_ord_out (succ _),
+  apply cardinal.mk_le_of_injective (λ a, classical.some (H a)) (λ a b h', _),
+  have Hf : ∀ x, f _ = typein (<) x := λ a, classical.some_spec (H a),
+  apply_fun f at h',
+  rwa [Hf, Hf, typein_inj] at h'
 end
 
 /-- The minimum excluded ordinal of a family of ordinals indexed by the set of ordinals less than

@@ -66,6 +66,6 @@ variables (L)
 
 /-- If you do not localize at any zero-divisors, localization preserves cardinality. -/
 lemma card (hS : S ≤ R⁰) : #R = #L :=
-(cardinal.mk_le_of_injective (is_localization.injective L hS)).antisymm (card_le S)
+(cardinal.mk_le_of_injective _ (is_localization.injective L hS)).antisymm (card_le S)
 
 end is_localization

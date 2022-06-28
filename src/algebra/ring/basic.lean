@@ -161,7 +161,7 @@ See note [reducible non-instances]. -/
 protected def function.injective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_mul β] [has_add β]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -177,7 +177,7 @@ See note [reducible non-instances]. -/
 protected def function.injective.semiring
   {α : Type u} [semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
@@ -215,7 +215,7 @@ See note [reducible non-instances]. -/
 protected def function.surjective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -230,7 +230,7 @@ See note [reducible non-instances]. -/
 protected def function.surjective.semiring
   {α : Type u} [semiring α]
   {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
-  [has_scalar ℕ β] [has_nat_cast β]
+  [has_smul ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)

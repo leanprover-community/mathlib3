@@ -121,7 +121,7 @@ if it admits an injective map that preserves `0`, `1` and `+` to an additive mon
 See note [reducible non-instances]. -/
 @[reducible]
 protected def add_monoid_with_one {M₁}
-  [has_zero M₁] [has_one M₁] [has_add M₁] [has_scalar ℕ M₁] [has_nat_cast M₁]
+  [has_zero M₁] [has_one M₁] [has_add M₁] [has_smul ℕ M₁] [has_nat_cast M₁]
   [add_monoid_with_one M₂] (f : M₁ → M₂) (hf : injective f)
   (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -272,8 +272,8 @@ protected def group [group M₂] (f : M₁ → M₂) (hf : injective f)
 if it admits an injective map that preserves `0`, `1` and `+` to an additive group with one.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def add_group_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁] [has_scalar ℕ M₁]
-  [has_neg M₁] [has_sub M₁] [has_scalar ℤ M₁] [has_nat_cast M₁] [has_int_cast M₁]
+protected def add_group_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁] [has_smul ℕ M₁]
+  [has_neg M₁] [has_sub M₁] [has_smul ℤ M₁] [has_nat_cast M₁] [has_int_cast M₁]
   [add_group_with_one M₂] (f : M₁ → M₂) (hf : injective f)
   (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
   (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
@@ -370,7 +370,7 @@ if it admits a surjective map that preserves `0`, `1` and `*` from an additive m
 See note [reducible non-instances]. -/
 @[reducible]
 protected def add_monoid_with_one
-  {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_scalar ℕ M₂] [has_nat_cast M₂]
+  {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_smul ℕ M₂] [has_nat_cast M₂]
   [add_monoid_with_one M₁] (f : M₁ → M₂) (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -445,7 +445,7 @@ if it admits a surjective map that preserves `0`, `1`, and `+` to an additive gr
 See note [reducible non-instances]. -/
 protected def add_group_with_one
   {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_neg M₂] [has_sub M₂]
-  [has_scalar ℕ M₂] [has_scalar ℤ M₂] [has_nat_cast M₂] [has_int_cast M₂]
+  [has_smul ℕ M₂] [has_smul ℤ M₂] [has_nat_cast M₂] [has_int_cast M₂]
   [add_group_with_one M₁] (f : M₁ → M₂) (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
   (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)

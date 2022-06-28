@@ -1016,7 +1016,7 @@ protected def mul_distrib_mul_action_set [monoid α] [monoid β] [mul_distrib_mu
 localized "attribute [instance] set.distrib_mul_action_set set.mul_distrib_mul_action_set"
   in pointwise
 
-instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors α β] :
+instance [has_zero α] [has_zero β] [has_smul α β] [no_zero_smul_divisors α β] :
   no_zero_smul_divisors (set α) (set β) :=
 ⟨λ s t h, begin
   by_contra' H,
@@ -1027,7 +1027,7 @@ instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors �
   exact (eq_zero_or_eq_zero_of_smul_eq_zero $ h.subset $ smul_mem_smul hs ht).elim ha hb,
 end⟩
 
-instance no_zero_smul_divisors_set [has_zero α] [has_zero β] [has_scalar α β]
+instance no_zero_smul_divisors_set [has_zero α] [has_zero β] [has_smul α β]
   [no_zero_smul_divisors α β] : no_zero_smul_divisors α (set β) :=
 ⟨λ a s h, begin
   by_contra' H,

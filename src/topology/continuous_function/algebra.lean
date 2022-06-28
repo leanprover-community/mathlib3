@@ -820,7 +820,7 @@ instance [non_unital_semiring β] [topological_semiring β] [star_ring β] [has_
   star_ring C(α, β) :=
 { ..continuous_map.star_add_monoid }
 
-instance [has_star R] [has_star β] [has_scalar R β] [star_module R β]
+instance [has_star R] [has_star β] [has_smul R β] [star_module R β]
   [has_continuous_star β] [has_continuous_const_smul R β] :
   star_module R C(α, β) :=
 { star_smul := λ k f, ext $ λ x, star_smul _ _ }

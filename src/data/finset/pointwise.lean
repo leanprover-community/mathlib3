@@ -850,7 +850,7 @@ instance [decidable_eq α] [has_zero α] [has_mul α] [no_zero_divisors α] :
   no_zero_divisors (finset α) :=
 coe_injective.no_zero_divisors _ coe_zero coe_mul
 
-instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors α β] :
+instance [has_zero α] [has_zero β] [has_smul α β] [no_zero_smul_divisors α β] :
   no_zero_smul_divisors (finset α) (finset β) :=
 ⟨λ s t h, begin
   by_contra' H,
@@ -862,7 +862,7 @@ instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors �
   exact (eq_zero_or_eq_zero_of_smul_eq_zero $ mem_zero.1 $ this $ smul_mem_smul hs ht).elim ha hb,
 end⟩
 
-instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_scalar α β]
+instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_smul α β]
   [no_zero_smul_divisors α β] : no_zero_smul_divisors α (finset β) :=
 coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 

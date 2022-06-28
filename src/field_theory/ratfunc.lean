@@ -354,7 +354,7 @@ variables {R : Type*}
 | r ⟨p⟩ := ⟨r • p⟩
 
 @[nolint fails_quickly] -- cannot reproduce
-instance [has_scalar R (fraction_ring K[X])] : has_smul R (ratfunc K) :=
+instance [has_smul R (fraction_ring K[X])] : has_smul R (ratfunc K) :=
 ⟨ratfunc.smul⟩
 
 lemma of_fraction_ring_smul [has_smul R (fraction_ring K[X])]

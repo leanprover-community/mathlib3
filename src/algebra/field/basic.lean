@@ -337,7 +337,7 @@ end noncomputable_defs
 /-- Pullback a `division_semiring` along an injective function. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.division_semiring [division_semiring β] [has_zero α] [has_mul α]
-  [has_add α] [has_one α] [has_inv α] [has_div α] [has_scalar ℕ α] [has_pow α ℕ] [has_pow α ℤ]
+  [has_add α] [has_one α] [has_inv α] [has_div α] [has_smul ℕ α] [has_pow α ℕ] [has_pow α ℤ]
   [has_nat_cast α]
   (f : α → β) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)

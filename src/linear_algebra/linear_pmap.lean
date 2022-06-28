@@ -457,14 +457,11 @@ lemma mem_graph_snd_inj' (f : linear_pmap R E F) {x y : E × F} (hx : x ∈ f.gr
   (hxy : x.1 = y.1) : x.2 = y.2 :=
 by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
 
-@[simp] lemma zero_mem_graph (f : linear_pmap R E F) : (0 : E × F) ∈ f.graph :=
-by simp
-
 /-- The property that `f 0 = 0` in terms of the graph. -/
 lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ graph f)
   (hx : x = 0) :
   x' = 0 :=
-f.mem_graph_snd_inj h f.zero_mem_graph hx
+f.mem_graph_snd_inj h (by simp) hx
 
 end linear_pmap
 

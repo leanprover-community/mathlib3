@@ -107,12 +107,12 @@ lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 l
 
 lemma lt_succ_floor (a : α) : a < ⌊a⌋₊.succ := lt_of_floor_lt $ nat.lt_succ_self _
 
-lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 := lt_succ_floor a
+lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 := by simpa using lt_succ_floor a
 
 @[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
 eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff, nat.cast_le], exact n.cast_nonneg }
 
-@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := floor_coe 0
+@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := by rw [← nat.cast_zero, floor_coe]
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
 
@@ -192,11 +192,11 @@ lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
 @[simp] lemma ceil_coe (n : ℕ) : ⌈(n : α)⌉₊ = n :=
 eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
 
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := ceil_coe 0
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := by rw [← nat.cast_zero, ceil_coe]
 
 @[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_coe]
 
-@[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := le_zero_iff.symm.trans ceil_le
+@[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
 
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 
@@ -214,7 +214,7 @@ lemma floor_lt_ceil_of_lt_of_pos {a b : α} (h : a < b) (h' : 0 < b) : ⌊a⌋�
 begin
   rcases le_or_lt 0 a with ha|ha,
   { rw floor_lt ha, exact h.trans_le (le_ceil _) },
-  { rwa [floor_of_nonpos ha.le, lt_ceil] }
+  { rwa [floor_of_nonpos ha.le, lt_ceil, nat.cast_zero] }
 end
 
 lemma ceil_eq_iff (hn : n ≠ 0) : ⌈a⌉₊ = n ↔ ↑(n - 1) < a ∧ a ≤ n :=
@@ -418,11 +418,11 @@ lemma floor_lt : ⌊a⌋ < z ↔ a < z := lt_iff_lt_of_le_iff_le le_floor
 
 lemma floor_le (a : α) : (⌊a⌋ : α) ≤ a := gc_coe_floor.l_u_le a
 
-lemma floor_nonneg : 0 ≤ ⌊a⌋ ↔ 0 ≤ a := le_floor
+lemma floor_nonneg : 0 ≤ ⌊a⌋ ↔ 0 ≤ a := by rw [le_floor, int.cast_zero]
 
 lemma floor_nonpos (ha : a ≤ 0) : ⌊a⌋ ≤ 0 :=
 begin
-  rw ←@cast_le α,
+  rw [← @cast_le α, int.cast_zero],
   exact (floor_le a).trans ha,
 end
 
@@ -436,7 +436,7 @@ lemma sub_one_lt_floor (a : α) : a - 1 < ⌊a⌋ := sub_lt_iff_lt_add.2 (lt_flo
 @[simp] lemma floor_coe (z : ℤ) : ⌊(z : α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]
 
-@[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := floor_coe 0
+@[simp] lemma floor_zero : ⌊(0 : α)⌋ = 0 := by rw [← int.cast_zero, floor_coe]
 
 @[simp] lemma floor_one : ⌊(1 : α)⌋ = 1 := by rw [← int.cast_one, floor_coe]
 
@@ -455,14 +455,17 @@ by { convert floor_add_int a 1, exact cast_one.symm }
 @[simp] lemma floor_int_add (z : ℤ) (a : α) : ⌊↑z + a⌋ = z + ⌊a⌋ :=
 by simpa only [add_comm] using floor_add_int a z
 
-@[simp] lemma floor_add_nat (a : α) (n : ℕ) : ⌊a + n⌋ = ⌊a⌋ + n := floor_add_int a n
+@[simp] lemma floor_add_nat (a : α) (n : ℕ) : ⌊a + n⌋ = ⌊a⌋ + n :=
+by rw [← int.cast_coe_nat, floor_add_int]
 
-@[simp] lemma floor_nat_add (n : ℕ) (a : α) : ⌊↑n + a⌋ = n + ⌊a⌋ := floor_int_add n a
+@[simp] lemma floor_nat_add (n : ℕ) (a : α) : ⌊↑n + a⌋ = n + ⌊a⌋ :=
+by rw [← int.cast_coe_nat, floor_int_add]
 
 @[simp] lemma floor_sub_int (a : α) (z : ℤ) : ⌊a - z⌋ = ⌊a⌋ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
-@[simp] lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋ = ⌊a⌋ - n := floor_sub_int a n
+@[simp] lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋ = ⌊a⌋ - n :=
+by rw [← int.cast_coe_nat, floor_sub_int]
 
 lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α] [floor_ring α]
   {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
@@ -521,7 +524,7 @@ by { unfold fract, rw floor_coe, exact sub_self _ }
 @[simp] lemma fract_floor (a : α) : fract (⌊a⌋ : α) = 0 := fract_coe _
 
 @[simp] lemma floor_fract (a : α) : ⌊fract a⌋ = 0 :=
-floor_eq_iff.2 ⟨fract_nonneg _, by { rw [int.cast_zero, zero_add], exact fract_lt_one a }⟩
+by rw [floor_eq_iff, int.cast_zero, zero_add]; exact ⟨fract_nonneg _, fract_lt_one _⟩
 
 lemma fract_eq_iff {a b : α} : fract a = b ↔ 0 ≤ b ∧ b < 1 ∧ ∃ z : ℤ, a - b = z :=
 ⟨λ h, by { rw ←h, exact ⟨fract_nonneg _, fract_lt_one _, ⟨⌊a⌋, sub_sub_cancel _ _⟩⟩},
@@ -544,7 +547,7 @@ lemma fract_eq_fract {a b : α} : fract a = fract b ↔ ∃ z : ℤ, a - b = z :
 end⟩
 
 @[simp] lemma fract_eq_self {a : α} : fract a = a ↔ 0 ≤ a ∧ a < 1 :=
-fract_eq_iff.trans $ and.assoc.symm.trans $ and_iff_left ⟨0, sub_self a⟩
+fract_eq_iff.trans $ and.assoc.symm.trans $ and_iff_left ⟨0, by simp⟩
 
 @[simp] lemma fract_fract (a : α) : fract (fract a) = fract a :=
 fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
@@ -637,9 +640,9 @@ by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 
-lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := lt_ceil
+lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, int.cast_zero]
 
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := ceil_coe 0
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := by rw [← int.cast_zero, ceil_coe]
 
 @[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [←int.cast_one, ceil_coe]
 
@@ -701,8 +704,9 @@ instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
 { floor := λ a, ⌊a⌋.to_nat,
   ceil := λ a, ⌈a⌉.to_nat,
   floor_of_neg := λ a ha, int.to_nat_of_nonpos (int.floor_nonpos ha.le),
-  gc_floor := λ a n ha, by { rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor], refl },
-  gc_ceil := λ a n, by { rw [int.to_nat_le, int.ceil_le], refl } }
+  gc_floor := λ a n ha,
+    by rw [int.le_to_nat_iff (int.floor_nonneg.2 ha), int.le_floor, int.cast_coe_nat],
+  gc_ceil := λ a n, by rw [int.to_nat_le, int.ceil_le, int.cast_coe_nat] }
 
 lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 

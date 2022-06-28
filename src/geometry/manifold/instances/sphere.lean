@@ -95,7 +95,7 @@ end
 
 lemma continuous_on_stereo_to_fun [complete_space E] :
   continuous_on (stereo_to_fun v) {x : E | innerSL v x ≠ (1:ℝ)} :=
-cont_diff_on_stereo_to_fun.continuous_on
+(@cont_diff_on_stereo_to_fun E _ v _).continuous_on
 
 variables (v)
 
@@ -255,6 +255,10 @@ def stereographic (hv : ∥v∥ = 1) : local_homeomorph (sphere (0:E) 1) (ℝ �
     (λ w h, h ∘ subtype.ext ∘ eq.symm ∘ (inner_eq_norm_mul_iff_of_norm_one hv (by simp)).mp),
   continuous_inv_fun := (continuous_stereo_inv_fun hv).continuous_on }
 
+lemma stereographic_apply (hv : ∥v∥ = 1) (x : sphere (0 : E) 1) :
+  stereographic hv x = (2 / ((1:ℝ) - inner v x)) • orthogonal_projection (ℝ ∙ v)ᗮ x :=
+rfl
+
 @[simp] lemma stereographic_source (hv : ∥v∥ = 1) :
   (stereographic hv).source = {⟨v, by simp [hv]⟩}ᶜ :=
 rfl
@@ -314,6 +318,20 @@ end charted_space
 
 section smooth_manifold
 
+lemma sphere_ext_iff (u v : sphere (0:E) 1) :
+  u = v ↔ ⟪(u:E), v⟫_ℝ = 1 :=
+by simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one]
+
+lemma stereographic'_symm_apply {n : ℕ} [fact (finrank ℝ E = n + 1)]
+    (v : sphere (0:E) 1) (x : euclidean_space ℝ (fin n)) :
+  ((stereographic' n v).symm x : E) =
+    let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
+      linear_isometry_equiv.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere v) in
+    ((∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (4 : ℝ) • (U.symm x : E) +
+      (∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (∥(U.symm x : E)∥ ^ 2 - 4) • v) :=
+by simp [real_inner_comm, stereographic, stereographic', ← submodule.coe_norm]
+
 /-! ### Smooth manifold structure on the sphere -/
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
@@ -329,18 +347,12 @@ begin
   let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
     linear_isometry_equiv.from_orthogonal_span_singleton n
       (ne_zero_of_mem_unit_sphere v'),
-  have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
-    U.to_homeomorph.to_local_homeomorph := rfl,
-  have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
-    U'.to_homeomorph.to_local_homeomorph := rfl,
   have H₁ := U'.cont_diff.comp_cont_diff_on cont_diff_on_stereo_to_fun,
   have H₂ := (cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ (v:E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff,
   convert H₁.comp' (H₂.cont_diff_on : cont_diff_on ℝ ⊤ _ set.univ) using 1,
-  have h_set : ∀ p : sphere (0:E) 1, p = v' ↔ ⟪(p:E), v'⟫_ℝ = 1,
-  { simp [subtype.ext_iff, inner_eq_norm_mul_iff_of_norm_one] },
   ext,
-  simp [h_set, hUv, hU'v', stereographic, real_inner_comm, ← submodule.coe_norm]
+  simp [sphere_ext_iff, stereographic'_symm_apply, real_inner_comm]
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
@@ -373,7 +385,7 @@ begin
   intros v,
   let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
     (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))),
-  have h : cont_diff_on ℝ ⊤ U set.univ :=
+  have h : cont_diff_on ℝ ⊤ _ set.univ :=
     U.cont_diff.cont_diff_on,
   have H₁ := (h.comp' cont_diff_on_stereo_to_fun).cont_mdiff_on,
   have H₂ : cont_mdiff_on _ _ _ _ set.univ := hf.cont_mdiff_on,

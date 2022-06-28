@@ -617,7 +617,7 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
 theorem inseparable_iff : inseparable x y ↔ edist x y = 0 :=
-by simp [inseparable_iff_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
+by simp [inseparable_iff_mem_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
 
 /-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
 the pseudoedistance between its elements is arbitrarily small -/

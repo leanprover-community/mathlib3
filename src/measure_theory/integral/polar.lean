@@ -21,14 +21,14 @@ begin
 end
 
 
-/-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r, θ)` to `(r cos θ, r sin θ)`.
-It is a homeomorphism between `(0, +∞) × (-π, π)` and `ℝ^2 - (-∞, 0]`. -/
-@[simps] def polar_local_homeomorph : local_homeomorph (ℝ × ℝ) (ℝ × ℝ) :=
-{ to_fun := λ p, (p.1 * cos p.2, p.1 * sin p.2),
-  inv_fun := λ q, (real.sqrt (q.1^2 + q.2^2), complex.arg (complex.equiv_real_prod.symm q)),
-  source := Ioi (0 : ℝ) ×ˢ Ioo (-π) π,
-  target := {q | 0 < q.1} ∪ {q | q.2 ≠ 0},
-  map_source' :=
+/-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r cos θ, r sin θ)` to `(r, θ)`.
+It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. -/
+@[simps] def polar_coord : local_homeomorph (ℝ × ℝ) (ℝ × ℝ) :=
+{ to_fun := λ q, (real.sqrt (q.1^2 + q.2^2), complex.arg (complex.equiv_real_prod.symm q)),
+  inv_fun := λ p, (p.1 * cos p.2, p.1 * sin p.2),
+  source := {q | 0 < q.1} ∪ {q | q.2 ≠ 0},
+  target := Ioi (0 : ℝ) ×ˢ Ioo (-π) π,
+  map_target' :=
   begin
     rintros ⟨r, θ⟩ ⟨hr, hθ⟩,
     dsimp at hr hθ,
@@ -38,7 +38,7 @@ It is a homeomorphism between `(0, +∞) × (-π, π)` and `ℝ^2 - (-∞, 0]`. 
       simpa only [ne_of_gt hr, ne.def, mem_set_of_eq, mul_eq_zero, false_or,
         sin_eq_zero_iff_of_lt_of_lt hθ.1 hθ.2] using h'θ }
   end,
-  map_target' :=
+  map_source' :=
   begin
     rintros ⟨x, y⟩ hxy,
     simp only [prod_mk_mem_set_prod_eq, mem_Ioi, sqrt_pos, mem_Ioo, complex.neg_pi_lt_arg,
@@ -51,7 +51,7 @@ It is a homeomorphism between `(0, +∞) × (-π, π)` and `ℝ^2 - (-∞, 0]`. 
       { exact or.inl (le_of_lt hxy) },
       { exact or.inr hxy } }
   end,
-  left_inv' :=
+  right_inv' :=
   begin
     rintros ⟨r, θ⟩ ⟨hr, hθ⟩,
     dsimp at hr hθ,
@@ -65,7 +65,7 @@ It is a homeomorphism between `(0, +∞) × (-π, π)` and `ℝ^2 - (-∞, 0]`. 
         complex.of_real_sin],
       ring }
   end,
-  right_inv' :=
+  left_inv' :=
   begin
     rintros ⟨x, y⟩ hxy,
     have A : sqrt (x ^ 2 + y ^ 2) = complex.abs (x + y * complex.I),
@@ -78,12 +78,12 @@ It is a homeomorphism between `(0, +∞) × (-π, π)` and `ℝ^2 - (-∞, 0]`. 
       ← mul_assoc] at Z,
     simpa [A, -complex.of_real_cos, -complex.of_real_sin] using complex.ext_iff.1 Z,
   end,
-  open_source := is_open_Ioi.prod is_open_Ioo,
-  open_target := (is_open_lt continuous_const continuous_fst).union
+  open_target := is_open_Ioi.prod is_open_Ioo,
+  open_source := (is_open_lt continuous_const continuous_fst).union
     (is_open_ne_fun continuous_snd continuous_const),
-  continuous_to_fun := ((continuous_fst.mul (continuous_cos.comp continuous_snd)).prod_mk
+  continuous_inv_fun := ((continuous_fst.mul (continuous_cos.comp continuous_snd)).prod_mk
     (continuous_fst.mul (continuous_sin.comp continuous_snd))).continuous_on,
-  continuous_inv_fun :=
+  continuous_to_fun :=
   begin
     apply ((continuous_fst.pow 2).add (continuous_snd.pow 2)).sqrt.continuous_on.prod,
     have A : maps_to complex.equiv_real_prod.symm
@@ -117,25 +117,25 @@ begin
     continuous_linear_map.coe_fst', pi.smul_apply, algebra.id.smul_eq_mul, mul_one,
     continuous_linear_map.coe_snd', mul_zero, add_zero, continuous_linear_map.inr_apply, zero_add],
   { rw [← basis_fin_two_prod_zero ℝ, matrix.to_lin_self],
-    simp only [finset.sum_univ_fin_two, matrix.cons_val_zero, basis_fin_two_prod_zero, prod.smul_mk,
+    simp only [fin.sum_univ_two, matrix.cons_val_zero, basis_fin_two_prod_zero, prod.smul_mk,
       algebra.id.smul_eq_mul, mul_one, mul_zero, basis_fin_two_prod_one, prod.mk_add_mk,
       add_zero] },
   { rw [← basis_fin_two_prod_zero ℝ, matrix.to_lin_self],
-    simp only [finset.sum_univ_fin_two, matrix.cons_val_zero, basis_fin_two_prod_zero, prod.smul_mk,
-    algebra.id.smul_eq_mul, mul_one, mul_zero, matrix.cons_val_one, matrix.head_cons,
-    basis_fin_two_prod_one, prod.mk_add_mk, zero_add] },
+    simp only [fin.sum_univ_two, matrix.cons_val_zero, basis_fin_two_prod_zero, prod.smul_mk,
+      algebra.id.smul_eq_mul, mul_one, mul_zero, matrix.cons_val_one, matrix.head_cons,
+      basis_fin_two_prod_one, prod.mk_add_mk, zero_add] },
   { rw [← basis_fin_two_prod_one ℝ, matrix.to_lin_self],
-    simp only [finset.sum_univ_fin_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
+    simp only [fin.sum_univ_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
       basis_fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
       basis_fin_two_prod_one, prod.mk_add_mk, add_zero] },
   { rw [← basis_fin_two_prod_one ℝ, matrix.to_lin_self],
-    simp only [finset.sum_univ_fin_two, matrix.cons_val_one, matrix.head_cons,
-    basis_fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
-    basis_fin_two_prod_one, prod.mk_add_mk, zero_add] }
+    simp only [fin.sum_univ_two, matrix.cons_val_one, matrix.head_cons,
+      basis_fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
+      basis_fin_two_prod_one, prod.mk_add_mk, zero_add] }
 end
 
-lemma has_fderiv_at_polar_local_homeomorph (p : ℝ × ℝ) :
-  has_fderiv_at polar_local_homeomorph
+lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :
+  has_fderiv_at polar_coord.symm
     (matrix.to_lin (basis_fin_two_prod ℝ) (basis_fin_two_prod ℝ)
       ![![cos p.2, -p.1 * sin p.2], ![sin p.2, p.1 * cos p.2]]).to_continuous_linear_map p :=
 begin
@@ -154,6 +154,23 @@ end
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
+lemma zouf :
+  polar_coord.source =ᵐ[volume] univ :=
+begin
+  have : polar_coord.sourceᶜ ⊆ {p | p.2 = 0},
+  { assume x hx,
+    simp only [polar_coord_source, compl_union, mem_inter_eq, mem_compl_eq, mem_set_of_eq, not_lt,
+      not_not] at hx,
+    exact hx.2 },
+  have : volume ((linear_map.snd ℝ ℝ ℝ).ker : set (ℝ × ℝ)) = 0,
+  { apply measure.add_haar_submodule,
+
+  },
+  simp only [ae_eq_univ],
+end
+
+
+
 theorem glouk {E : Type*} (f : ℝ × ℝ → ℝ) :
   (∫ p in (Ioi (0 : ℝ) ×ˢ (Ioo (-π) π) : set (ℝ × ℝ)), f (p.1 * cos p.2, p.1 * sin p.2) * p.1)
     = ∫ p, f p :=
@@ -161,20 +178,21 @@ begin
   set B : (ℝ × ℝ) → ((ℝ × ℝ) →L[ℝ] (ℝ × ℝ)) := λ p,
     (matrix.to_lin (basis_fin_two_prod ℝ) (basis_fin_two_prod ℝ)
       ![![cos p.2, -p.1 * sin p.2], ![sin p.2, p.1 * cos p.2]]).to_continuous_linear_map with hB,
-  have : ∀ p, has_fderiv_at polar_local_homeomorph (B p) p := has_fderiv_at_polar_local_homeomorph,
+  have : ∀ p, has_fderiv_at polar_coord.symm (B p) p := has_fderiv_at_polar_coord_symm,
   have B_det : ∀ p, (B p).det = p.1,
   { assume p,
     conv_rhs {rw [← one_mul p.1, ← cos_sq_add_sin_sq p.2] },
-    simp only [neg_mul, linear_map.det_to_continuous_linear_map, det_to_lin, det_two],
+    simp only [neg_mul, linear_map.det_to_continuous_linear_map, det_to_lin,
+      matrix.det_fin_two_mk, sub_neg_eq_add],
     ring_exp },
   symmetry,
   calc
   ∫ p, f p
-      = ∫ p in polar_local_homeomorph.target, f p : sorry
-  ... = ∫ p in polar_local_homeomorph.source, f (polar_local_homeomorph p) * abs((B p).det) : sorry
-  ... = ∫ p in polar_local_homeomorph.source, f (polar_local_homeomorph p) * p.1 :
+      = ∫ p in polar_coord.source, f p : sorry
+  ... = ∫ p in polar_coord.target, f (polar_coord.symm p) * abs((B p).det) : sorry
+  ... = ∫ p in polar_coord.target, f (polar_coord.symm p) * p.1 :
   begin
-    apply set_integral_congr (polar_local_homeomorph.open_source.measurable_set) (λ x hx, _),
+    apply set_integral_congr (polar_coord.open_target.measurable_set) (λ x hx, _),
     rw [B_det, abs_of_pos],
     exact hx.1,
   end

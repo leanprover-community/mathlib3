@@ -876,7 +876,7 @@ by rw [←succ_zero, succ_le_iff]
 
 theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
-set_option pp.universes true
+
 theorem nat_lt_aleph_0 (n : ℕ) : (n : cardinal.{u}) < ℵ₀ :=
 succ_le_iff.1 begin
   rw [←nat_succ, ←lift_mk_fin, aleph_0, lift_le],

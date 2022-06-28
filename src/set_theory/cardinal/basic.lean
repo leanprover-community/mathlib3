@@ -208,9 +208,9 @@ by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 /- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
 `b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. This theorem is stated
-in seemingly more general terms, as it's used to prove `lift_le`. However, given that and
-`lift_lift`, there's never a circumstance where that generalization is worth the elaboration
-problems. -/
+in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given that
+theorem and `cardinal.lift_lift`, there's never a circumstance where this generalization is worth
+the elaboration problems. -/
 private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,

@@ -58,6 +58,14 @@ monoid_hom, add_monoid_hom
 
 -/
 
+/--
+For bundled morphisms involving algebraic structure, we mark any `def` that does not directly
+compute with the algebraic structure as `inline`, including the field and base structure
+projections. This means that expressions like `f.comp g` are computable for `f g : A →+ A`, even if
+the addition on `A` is noncomputable.
+-/
+library_note "inline attributes for morphisms"
+
 variables {α β M N P : Type*} -- monoids
 variables {G : Type*} {H : Type*} -- groups
 variables {F : Type*} -- homs
@@ -77,6 +85,9 @@ When you extend this structure, make sure to also extend `zero_hom_class`.
 structure zero_hom (M : Type*) (N : Type*) [has_zero M] [has_zero N] :=
 (to_fun : M → N)
 (map_zero' : to_fun 0 = 0)
+
+-- see note [inline attributes for morphisms]
+attribute [inline] zero_hom.to_fun
 
 /-- `zero_hom_class F M N` states that `F` is a type of zero-preserving homomorphisms.
 
@@ -104,6 +115,9 @@ structure add_hom (M : Type*) (N : Type*) [has_add M] [has_add N] :=
 (to_fun : M → N)
 (map_add' : ∀ x y, to_fun (x + y) = to_fun x + to_fun y)
 
+-- see note [inline attributes for morphisms]
+attribute [inline] add_hom.to_fun
+
 /-- `add_hom_class F M N` states that `F` is a type of addition-preserving homomorphisms.
 You should declare an instance of this typeclass when you extend `add_hom`.
 -/
@@ -130,6 +144,8 @@ When you extend this structure, make sure to extend `add_monoid_hom_class`.
 structure add_monoid_hom (M : Type*) (N : Type*) [add_zero_class M] [add_zero_class N]
   extends zero_hom M N, add_hom M N
 
+-- see note [inline attributes for morphisms]
+attribute [inline] add_monoid_hom.to_fun add_monoid_hom.to_zero_hom add_monoid_hom.to_add_hom
 attribute [nolint doc_blame] add_monoid_hom.to_add_hom
 attribute [nolint doc_blame] add_monoid_hom.to_zero_hom
 
@@ -164,6 +180,8 @@ When you extend this structure, make sure to also extend `one_hom_class`.
 structure one_hom (M : Type*) (N : Type*) [has_one M] [has_one N] :=
 (to_fun : M → N)
 (map_one' : to_fun 1 = 1)
+
+attribute [inline] one_hom.to_fun
 
 /-- `one_hom_class F M N` states that `F` is a type of one-preserving homomorphisms.
 You should extend this typeclass when you extend `one_hom`.
@@ -221,6 +239,9 @@ structure mul_hom (M : Type*) (N : Type*) [has_mul M] [has_mul N] :=
 (to_fun : M → N)
 (map_mul' : ∀ x y, to_fun (x * y) = to_fun x * to_fun y)
 
+-- see note [inline attributes for morphisms]
+attribute [inline] mul_hom.to_fun
+
 infixr ` →ₙ* `:25 := mul_hom
 
 /-- `mul_hom_class F M N` states that `F` is a type of multiplication-preserving homomorphisms.
@@ -264,6 +285,8 @@ When you extend this structure, make sure to extend `monoid_hom_class`.
 structure monoid_hom (M : Type*) (N : Type*) [mul_one_class M] [mul_one_class N]
   extends one_hom M N, M →ₙ* N
 
+-- see note [inline attributes for morphisms]
+attribute [inline] monoid_hom.to_fun monoid_hom.to_one_hom monoid_hom.to_mul_hom
 attribute [nolint doc_blame] monoid_hom.to_mul_hom
 attribute [nolint doc_blame] monoid_hom.to_one_hom
 
@@ -374,6 +397,9 @@ When you extend this structure, make sure to extend `monoid_with_zero_hom_class`
 structure monoid_with_zero_hom (M : Type*) (N : Type*) [mul_zero_one_class M] [mul_zero_one_class N]
   extends zero_hom M N, monoid_hom M N
 
+-- see note [inline attributes for morphisms]
+attribute [inline] monoid_with_zero_hom.to_fun monoid_with_zero_hom.to_zero_hom
+                   monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_monoid_hom
 attribute [nolint doc_blame] monoid_with_zero_hom.to_zero_hom
 
@@ -437,15 +463,16 @@ lemma monoid_with_zero_hom.coe_eq_to_zero_hom
   (f : zero_hom M N) = f.to_zero_hom := rfl
 
 -- Fallback `has_coe_to_fun` instances to help the elaborator
-@[to_additive]
+@[inline, to_additive]
 instance {mM : has_one M} {mN : has_one N} : has_coe_to_fun (one_hom M N) (λ _, M → N) :=
 ⟨one_hom.to_fun⟩
-@[to_additive]
+@[inline, to_additive]
 instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (M →ₙ* N) (λ _, M → N) :=
 ⟨mul_hom.to_fun⟩
-@[to_additive]
+@[inline, to_additive]
 instance {mM : mul_one_class M} {mN : mul_one_class N} : has_coe_to_fun (M →* N) (λ _, M → N) :=
 ⟨monoid_hom.to_fun⟩
+@[inline]
 instance {mM : mul_zero_one_class M} {mN : mul_zero_one_class N} :
   has_coe_to_fun (M →*₀ N) (λ _, M → N) :=
 ⟨monoid_with_zero_hom.to_fun⟩
@@ -614,7 +641,7 @@ end coes
 
 /-- Copy of a `one_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
-@[to_additive "Copy of a `zero_hom` with a new `to_fun` equal to the old one. Useful to fix
+@[inline, to_additive "Copy of a `zero_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities."]
 protected def one_hom.copy {hM : has_one M} {hN : has_one N} (f : one_hom M N) (f' : M → N)
   (h : f' = f) : one_hom M N :=
@@ -623,7 +650,7 @@ protected def one_hom.copy {hM : has_one M} {hN : has_one N} (f : one_hom M N) (
 
 /-- Copy of a `mul_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
-@[to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
+@[inline, to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities."]
 protected def mul_hom.copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (f' : M → N)
   (h : f' = f) : M →ₙ* N :=
@@ -632,7 +659,8 @@ protected def mul_hom.copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (
 
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-@[to_additive "Copy of an `add_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
+@[inline,
+  to_additive "Copy of an `add_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities."]
 protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f : M →* N)
   (f' : M → N) (h : f' = f) : M →* N :=
@@ -640,6 +668,7 @@ protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f :
 
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
+@[inline]
 protected def monoid_with_zero_hom.copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
   (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
@@ -736,23 +765,24 @@ add_decl_doc add_hom.id
 add_decl_doc add_monoid_hom.id
 
 /-- Composition of `one_hom`s as a `one_hom`. -/
-@[to_additive]
+@[inline, to_additive]
 def one_hom.comp [has_one M] [has_one N] [has_one P]
   (hnp : one_hom N P) (hmn : one_hom M N) : one_hom M P :=
 { to_fun := hnp ∘ hmn, map_one' := by simp, }
 /-- Composition of `mul_hom`s as a `mul_hom`. -/
-@[to_additive]
+@[inline, to_additive]
 def mul_hom.comp [has_mul M] [has_mul N] [has_mul P]
   (hnp : N →ₙ* P) (hmn : M →ₙ* N) : M →ₙ* P :=
 { to_fun := hnp ∘ hmn, map_mul' := by simp, }
 
 /-- Composition of monoid morphisms as a monoid morphism. -/
-@[to_additive]
+@[inline, to_additive]
 def monoid_hom.comp [mul_one_class M] [mul_one_class N] [mul_one_class P]
   (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn, map_one' := by simp, map_mul' := by simp, }
 
 /-- Composition of `monoid_with_zero_hom`s as a `monoid_with_zero_hom`. -/
+@[inline]
 def monoid_with_zero_hom.comp [mul_zero_one_class M] [mul_zero_one_class N] [mul_zero_one_class P]
   (hnp : N →*₀ P) (hmn : M →*₀ N) : M →*₀ P :=
 { to_fun := hnp ∘ hmn, map_zero' := by simp, map_one' := by simp, map_mul' := by simp, }
@@ -1114,7 +1144,8 @@ lemma _root_.injective_iff_map_eq_one' {G H} [group G] [mul_one_class H] [monoid
 
 include mM
 /-- Makes a group homomorphism from a proof that the map preserves multiplication. -/
-@[to_additive "Makes an additive group homomorphism from a proof that the map preserves addition.",
+@[inline,
+  to_additive "Makes an additive group homomorphism from a proof that the map preserves addition.",
   simps {fully_applied := ff}]
 def mk' (f : M → G) (map_mul : ∀ a b : M, f (a * b) = f a * f b) : M →* G :=
 { to_fun := f,
@@ -1126,7 +1157,7 @@ omit mM
 /-- Makes a group homomorphism from a proof that the map preserves right division `λ x y, x * y⁻¹`.
 See also `monoid_hom.of_map_div` for a version using `λ x y, x / y`.
 -/
-@[to_additive "Makes an additive group homomorphism from a proof that the map preserves
+@[inline, to_additive "Makes an additive group homomorphism from a proof that the map preserves
 the operation `λ a b, a + -b`. See also `add_monoid_hom.of_map_sub` for a version using
 `λ a b, a - b`."]
 def of_map_mul_inv {H : Type*} [group H] (f : G → H)
@@ -1142,7 +1173,8 @@ calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, i
 rfl
 
 /-- Define a morphism of additive groups given a map which respects ratios. -/
-@[to_additive /-"Define a morphism of additive groups given a map which respects difference."-/]
+@[inline,
+  to_additive /-"Define a morphism of additive groups given a map which respects difference."-/]
 def of_map_div {H : Type*} [group H] (f : G → H) (hf : ∀ x y, f (x / y) = f x / f y) : G →* H :=
 of_map_mul_inv f (by simpa only [div_eq_mul_inv] using hf)
 

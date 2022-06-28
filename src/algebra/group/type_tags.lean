@@ -289,7 +289,7 @@ open multiplicative (of_add)
 open additive (of_mul)
 
 /-- Reinterpret `α →+ β` as `multiplicative α →* multiplicative β`. -/
-@[simps] def add_monoid_hom.to_multiplicative [add_zero_class α] [add_zero_class β] :
+@[inline, simps] def add_monoid_hom.to_multiplicative [add_zero_class α] [add_zero_class β] :
   (α →+ β) ≃ (multiplicative α →* multiplicative β) :=
 { to_fun := λ f, ⟨λ a, of_add (f a.to_add), f.2, f.3⟩,
   inv_fun := λ f, ⟨λ a, (f (of_add a)).to_add, f.2, f.3⟩,
@@ -297,7 +297,7 @@ open additive (of_mul)
   right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `α →* β` as `additive α →+ additive β`. -/
-@[simps] def monoid_hom.to_additive [mul_one_class α] [mul_one_class β] :
+@[inline, simps] def monoid_hom.to_additive [mul_one_class α] [mul_one_class β] :
   (α →* β) ≃ (additive α →+ additive β) :=
 { to_fun := λ f, ⟨λ a, of_mul (f a.to_mul), f.2, f.3⟩,
   inv_fun := λ f, ⟨λ a, (f (of_mul a)).to_mul, f.2, f.3⟩,
@@ -305,7 +305,7 @@ open additive (of_mul)
   right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `additive α →+ β` as `α →* multiplicative β`. -/
-@[simps] def add_monoid_hom.to_multiplicative' [mul_one_class α] [add_zero_class β] :
+@[inline, simps] def add_monoid_hom.to_multiplicative' [mul_one_class α] [add_zero_class β] :
   (additive α →+ β) ≃ (α →* multiplicative β) :=
 { to_fun := λ f, ⟨λ a, of_add (f (of_mul a)), f.2, f.3⟩,
   inv_fun := λ f, ⟨λ a, (f a.to_mul).to_add, f.2, f.3⟩,
@@ -313,12 +313,12 @@ open additive (of_mul)
   right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `α →* multiplicative β` as `additive α →+ β`. -/
-@[simps] def monoid_hom.to_additive' [mul_one_class α] [add_zero_class β] :
+@[inline, simps] def monoid_hom.to_additive' [mul_one_class α] [add_zero_class β] :
   (α →* multiplicative β) ≃ (additive α →+ β) :=
 add_monoid_hom.to_multiplicative'.symm
 
 /-- Reinterpret `α →+ additive β` as `multiplicative α →* β`. -/
-@[simps] def add_monoid_hom.to_multiplicative'' [add_zero_class α] [mul_one_class β] :
+@[inline, simps] def add_monoid_hom.to_multiplicative'' [add_zero_class α] [mul_one_class β] :
   (α →+ additive β) ≃ (multiplicative α →* β) :=
 { to_fun := λ f, ⟨λ a, (f a.to_add).to_mul, f.2, f.3⟩,
   inv_fun := λ f, ⟨λ a, of_mul (f (of_add a)), f.2, f.3⟩,
@@ -326,7 +326,7 @@ add_monoid_hom.to_multiplicative'.symm
   right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `multiplicative α →* β` as `α →+ additive β`. -/
-@[simps] def monoid_hom.to_additive'' [add_zero_class α] [mul_one_class β] :
+@[inline, simps] def monoid_hom.to_additive'' [add_zero_class α] [mul_one_class β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
 

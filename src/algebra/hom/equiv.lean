@@ -58,6 +58,9 @@ set_option old_structure_cmd true
 @[ancestor equiv add_hom]
 structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B, add_hom A B
 
+-- see note [inline attributes for morphisms]
+attribute [inline] add_equiv.to_fun add_equiv.inv_fun add_equiv.to_equiv add_equiv.to_add_hom
+
 /-- `add_equiv_class F A B` states that `F` is a type of addition-preserving morphisms.
 You should extend this class when you extend `add_equiv`. -/
 class add_equiv_class (F A B : Type*) [has_add A] [has_add B]
@@ -72,6 +75,9 @@ add_decl_doc add_equiv.to_add_hom
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
 @[ancestor equiv mul_hom, to_additive]
 structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, M →ₙ* N
+
+-- see note [inline attributes for morphisms]
+attribute [inline] mul_equiv.to_fun mul_equiv.inv_fun mul_equiv.to_equiv mul_equiv.to_mul_hom
 
 /-- The `equiv` underlying a `mul_equiv`. -/
 add_decl_doc mul_equiv.to_equiv
@@ -138,7 +144,7 @@ end mul_equiv_class
 
 namespace mul_equiv
 
-@[to_additive]
+@[inline, to_additive]
 instance [has_mul M] [has_mul N] : has_coe_to_fun (M ≃* N) (λ _, M → N) := ⟨mul_equiv.to_fun⟩
 
 @[to_additive]
@@ -180,7 +186,7 @@ protected lemma injective (e : M ≃* N) : function.injective e := equiv_like.in
 protected lemma surjective (e : M ≃* N) : function.surjective e := equiv_like.surjective e
 
 /-- The identity map is a multiplicative isomorphism. -/
-@[refl, to_additive "The identity map is an additive isomorphism."]
+@[refl, inline, to_additive "The identity map is an additive isomorphism."]
 def refl (M : Type*) [has_mul M] : M ≃* M :=
 { map_mul' := λ _ _, rfl,
 ..equiv.refl _}
@@ -189,7 +195,7 @@ def refl (M : Type*) [has_mul M] : M ≃* M :=
 instance : inhabited (M ≃* M) := ⟨refl M⟩
 
 /-- The inverse of an isomorphism is an isomorphism. -/
-@[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
+@[symm, inline, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := (h.to_mul_hom.inverse h.to_equiv.symm h.left_inv h.right_inv).map_mul,
   .. h.to_equiv.symm}
@@ -233,7 +239,7 @@ theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
 theorem refl_symm : (refl M).symm = refl M := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
-@[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
+@[trans, inline, to_additive "Transitivity of addition-preserving isomorphisms"]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
 { map_mul' := λ x y, show h2 (h1 (x * y)) = h2 (h1 x) * h2 (h1 y),
     by rw [h1.map_mul, h2.map_mul],
@@ -319,7 +325,7 @@ fun_like.congr_arg f
 fun_like.congr_fun h x
 
 /-- The `mul_equiv` between two monoids with a unique element. -/
-@[to_additive "The `add_equiv` between two add_monoids with a unique element."]
+@[inline, to_additive "The `add_equiv` between two add_monoids with a unique element."]
 def mul_equiv_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
@@ -364,7 +370,7 @@ noncomputable def of_bijective {M N F} [has_mul M] [has_mul N] [mul_hom_class F 
 Extract the forward direction of a multiplicative equivalence
 as a multiplication-preserving function.
 -/
-@[to_additive "Extract the forward direction of an additive equivalence
+@[inline, to_additive "Extract the forward direction of an additive equivalence
 as an addition-preserving function."]
 def to_monoid_hom {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
@@ -378,12 +384,11 @@ rfl
   function.injective (to_monoid_hom : (M ≃* N) → M →* N) :=
 λ f g h, mul_equiv.ext (monoid_hom.ext_iff.1 h)
 
-
 /--
 A multiplicative analogue of `equiv.arrow_congr`,
 where the equivalence between the targets is multiplicative.
 -/
-@[to_additive "An additive analogue of `equiv.arrow_congr`,
+@[inline, to_additive "An additive analogue of `equiv.arrow_congr`,
 where the equivalence between the targets is additive.", simps apply]
 def arrow_congr {M N P Q : Type*} [has_mul P] [has_mul Q]
   (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
@@ -397,7 +402,7 @@ def arrow_congr {M N P Q : Type*} [has_mul P] [has_mul Q]
 A multiplicative analogue of `equiv.arrow_congr`,
 for multiplicative maps from a monoid to a commutative monoid.
 -/
-@[to_additive "An additive analogue of `equiv.arrow_congr`,
+@[inline, to_additive "An additive analogue of `equiv.arrow_congr`,
 for additive maps from an additive monoid to a commutative additive monoid.", simps apply]
 def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
   (f : M ≃* N) (g : P ≃* Q) : (M →* P) ≃* (N →* Q) :=
@@ -415,7 +420,8 @@ multiplicative equivalence between `Π j, Ms j` and `Π j, Ns j`.
 This is the `mul_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
 `mul_equiv.arrow_congr`.
 -/
-@[to_additive add_equiv.Pi_congr_right "A family of additive equivalences `Π j, (Ms j ≃+ Ns j)`
+@[inline, to_additive add_equiv.Pi_congr_right
+"A family of additive equivalences `Π j, (Ms j ≃+ Ns j)`
 generates an additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
 
 This is the `add_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
@@ -446,7 +452,7 @@ lemma Pi_congr_right_trans {η : Type*}
 
 /-- A family indexed by a nonempty subsingleton type is equivalent to the element at the single
 index. -/
-@[to_additive add_equiv.Pi_subsingleton "A family indexed by a nonempty subsingleton type is
+@[inline, to_additive add_equiv.Pi_subsingleton "A family indexed by a nonempty subsingleton type is
 equivalent to the element at the single index.", simps]
 def Pi_subsingleton
   {ι : Type*} (M : ι → Type*) [Π j, has_mul (M j)] [subsingleton ι] (i : ι) :
@@ -473,7 +479,8 @@ end mul_equiv
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/
-@[to_additive /-"Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id`
+@[inline,
+  to_additive /-"Given a pair of additive monoid homomorphisms `f`, `g` such that `g.comp f = id`
 and `f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
 constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
 monoid homomorphisms."-/, simps {fully_applied := ff}]
@@ -487,7 +494,7 @@ def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (
   map_mul' := f.map_mul }
 
 /-- A group is isomorphic to its group of units. -/
-@[to_additive "An additive group is isomorphic to its group of additive units"]
+@[inline, to_additive "An additive group is isomorphic to its group of additive units"]
 def to_units [group G] : G ≃* Gˣ :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
@@ -507,7 +514,7 @@ variables [monoid M] [monoid N] [monoid P]
 
 /-- A multiplicative equivalence of monoids defines a multiplicative equivalence
 of their groups of units. -/
-def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
+@[inline] def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
 { inv_fun := map h.symm.to_monoid_hom,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
@@ -679,7 +686,7 @@ def mul_equiv.inv (G : Type*) [division_comm_monoid G] : G ≃* G :=
 section type_tags
 
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
-def add_equiv.to_multiplicative [add_zero_class G] [add_zero_class H] :
+@[inline] def add_equiv.to_multiplicative [add_zero_class G] [add_zero_class H] :
   (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative,
                   f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
@@ -688,7 +695,7 @@ def add_equiv.to_multiplicative [add_zero_class G] [add_zero_class H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `G ≃* H` as `additive G ≃+ additive H`. -/
-def mul_equiv.to_additive [mul_one_class G] [mul_one_class H] :
+@[inline] def mul_equiv.to_additive [mul_one_class G] [mul_one_class H] :
   (G ≃* H) ≃ (additive G ≃+ additive H) :=
 { to_fun := λ f, ⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩,
   inv_fun := λ f, ⟨f.to_add_monoid_hom, f.symm.to_add_monoid_hom, f.3, f.4, f.5⟩,
@@ -696,7 +703,7 @@ def mul_equiv.to_additive [mul_one_class G] [mul_one_class H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
-def add_equiv.to_multiplicative' [mul_one_class G] [add_zero_class H] :
+@[inline] def add_equiv.to_multiplicative' [mul_one_class G] [add_zero_class H] :
   (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative',
                   f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
@@ -705,12 +712,12 @@ def add_equiv.to_multiplicative' [mul_one_class G] [add_zero_class H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `G ≃* multiplicative H` as `additive G ≃+ H` as. -/
-def mul_equiv.to_additive' [mul_one_class G] [add_zero_class H] :
+@[inline] def mul_equiv.to_additive' [mul_one_class G] [add_zero_class H] :
   (G ≃* multiplicative H) ≃ (additive G ≃+ H) :=
 add_equiv.to_multiplicative'.symm
 
 /-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
-def add_equiv.to_multiplicative'' [add_zero_class G] [mul_one_class H] :
+@[inline] def add_equiv.to_multiplicative'' [add_zero_class G] [mul_one_class H] :
   (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'',
                   f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
@@ -719,7 +726,7 @@ def add_equiv.to_multiplicative'' [add_zero_class G] [mul_one_class H] :
   right_inv := λ x, by { ext, refl, }, }
 
 /-- Reinterpret `multiplicative G ≃* H` as `G ≃+ additive H` as. -/
-def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
+@[inline] def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
   (multiplicative G ≃* H) ≃ (G ≃+ additive H) :=
 add_equiv.to_multiplicative''.symm
 

@@ -302,12 +302,12 @@ namespace monoid_hom
 variables (M N) [mul_one_class M] [mul_one_class N]
 
 /-- Given monoids `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
-@[to_additive "Given additive monoids `A`, `B`, the natural projection homomorphism
+@[inline, to_additive "Given additive monoids `A`, `B`, the natural projection homomorphism
 from `A × B` to `A`"]
 def fst : M × N →* M := ⟨prod.fst, rfl, λ _ _, rfl⟩
 
 /-- Given monoids `M`, `N`, the natural projection homomorphism from `M × N` to `N`.-/
-@[to_additive "Given additive monoids `A`, `B`, the natural projection homomorphism
+@[inline, to_additive "Given additive monoids `A`, `B`, the natural projection homomorphism
 from `A × B` to `B`"]
 def snd : M × N →* N := ⟨prod.snd, rfl, λ _ _, rfl⟩
 

@@ -14,7 +14,8 @@ implies `P x`. Well-founded relations can be used for induction and recursion, i
 construction of fixed points in the space of dependent functions `Π x : α , β x`.
 
 The predicate `well_founded` is defined in the core library. In this file we prove some extra lemmas
-and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`.
+and provide a few new definitions: `is_well_founded.min`, `is_well_founded.sup`, and
+`is_well_founded.succ`.
 
 ## Todo
 
@@ -23,6 +24,7 @@ The following to-do's apply to `well_founded_gt` as well.
 - Define `succ` on `well_founded_lt`, build a `succ_order` instance depending on whether we have a
 `no_top_order` or an `order_top`.
 - Define `sup` on `well_founded_lt`, prove `is_glb (sup s _)` on linear orders.
+- Define an ordinal-valued `height` function (not on this file).
 - Rewrite `has_min` in terms of `minimals`. This will require us to change `r b a → a = b` to
 `r a b → r b a` in said definition. We can prove the equivalence with the current definition for an
 irreflexive relation.

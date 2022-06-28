@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
-import order.filter.bases
+import algebra.order.field
 import data.finset.preimage
 import data.set.intervals.disjoint
+import order.filter.bases
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -135,11 +136,39 @@ Ioi_mem_at_top a
 
 lemma eventually_ne_at_top [preorder α] [no_max_order α] (a : α) :
   ∀ᶠ x in at_top, x ≠ a :=
-(eventually_gt_at_top a).mono (λ x hx, hx.ne.symm)
+(eventually_gt_at_top a).mono $ λ x, ne_of_gt
+
+lemma tendsto.eventually_gt_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c < f x :=
+hf.eventually (eventually_gt_at_top c)
+
+lemma tendsto.eventually_ge_at_top [preorder β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c ≤ f x :=
+hf.eventually (eventually_ge_at_top c)
+
+lemma tendsto.eventually_ne_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, f x ≠ c :=
+hf.eventually (eventually_ne_at_top c)
 
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
 Iio_mem_at_bot a
+
+lemma eventually_ne_at_bot [preorder α] [no_min_order α] (a : α) :
+  ∀ᶠ x in at_bot, x ≠ a :=
+(eventually_lt_at_bot a).mono $ λ x, ne_of_lt
+
+lemma tendsto.eventually_lt_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x < c :=
+hf.eventually (eventually_lt_at_bot c)
+
+lemma tendsto.eventually_le_at_bot [preorder β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x ≤ c :=
+hf.eventually (eventually_le_at_bot c)
+
+lemma tendsto.eventually_ne_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) :  ∀ᶠ x in l, f x ≠ c :=
+hf.eventually (eventually_ne_at_bot c)
 
 lemma at_top_basis_Ioi [nonempty α] [semilattice_sup α] [no_max_order α] :
   (@at_top α _).has_basis (λ _, true) Ioi :=
@@ -628,10 +657,6 @@ begin
   simpa only [pow_one] using pow_le_pow hx hn
 end
 
-lemma eventually_ne_of_tendsto_at_top [nontrivial α] (hf : tendsto f l at_top)
-  (c : α) :  ∀ᶠ x in l, f x ≠ c :=
-(tendsto_at_top.1 hf $ (c + 1)).mono (λ x hx, ne_of_gt (lt_of_lt_of_le (lt_add_one c) hx))
-
 end ordered_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
@@ -641,11 +666,6 @@ eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 section ordered_ring
 
 variables [ordered_ring α] {l : filter β} {f g : β → α}
-
-lemma eventually_ne_of_tendsto_at_bot [nontrivial α] (hf : tendsto f l at_bot)
-  (c : α) : ∀ᶠ x in l, f x ≠ c :=
-(tendsto_at_bot.1 hf $ (c - 1)).mono
-  (λ x hx, ne_of_lt (lt_of_le_of_lt hx ((sub_lt_self_iff c).2 zero_lt_one)))
 
 lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=
@@ -1192,7 +1212,7 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
   (assume a b h, nat.div_le_div_right h)
   (assume a b _,
     calc a / k ≤ b ↔ a / k < b + 1 : by rw [← nat.succ_eq_add_one, nat.lt_succ_iff]
-      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul _ _ hk
+      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul hk
       ... ↔ _ :
       begin
         cases k,
@@ -1280,7 +1300,10 @@ tendsto_at_bot_of_monotone_of_filter h (tendsto_map' H)
 condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with
 `at_top.map (λ s, ∏ b in s, g b)`. This is useful to compare the set of limit points of
 `Π b in s, f b` as `s → at_top` with the similar set for `g`. -/
-@[to_additive]
+@[to_additive "Let `f` and `g` be two maps to the same commutative additive monoid. This lemma gives
+a sufficient condition for comparison of the filter `at_top.map (λ s, ∑ b in s, f b)` with
+`at_top.map (λ s, ∑ b in s, g b)`. This is useful to compare the set of limit points of
+`∑ b in s, f b` as `s → at_top` with the similar set for `g`."]
 lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
   at_top.map (λs:finset β, ∏ b in s, f b) ≤ at_top.map (λs:finset γ, ∏ x in s, g x) :=
@@ -1299,13 +1322,43 @@ protected lemma has_antitone_basis.tendsto [preorder ι] {l : filter α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
 λ t ht, mem_map.2 $ (hl.eventually_subset ht).mono $ λ i hi, hi (h i)
 
+lemma has_antitone_basis.comp_mono [semilattice_sup ι] [nonempty ι] [preorder ι'] {l : filter α}
+  {s : ι' → set α} (hs : l.has_antitone_basis s)
+  {φ : ι → ι'} (φ_mono : monotone φ) (hφ : tendsto φ at_top at_top) :
+  l.has_antitone_basis (s ∘ φ) :=
+⟨hs.to_has_basis.to_has_basis
+  (λ n hn, (hφ.eventually (eventually_ge_at_top n)).exists.imp $ λ m hm, ⟨trivial, hs.antitone hm⟩)
+  (λ n hn, ⟨φ n, trivial, subset.rfl⟩), hs.antitone.comp_monotone φ_mono⟩
+
+lemma has_antitone_basis.comp_strict_mono {l : filter α} {s : ℕ → set α}
+  (hs : l.has_antitone_basis s) {φ : ℕ → ℕ} (hφ : strict_mono φ) :
+  l.has_antitone_basis (s ∘ φ) :=
+hs.comp_mono hφ.monotone hφ.tendsto_at_top
+
+/-- Given an antitone basis `s : ℕ → set α` of a filter, extract an antitone subbasis `s ∘ φ`,
+`φ : ℕ → ℕ`, such that `m < n` implies `r (φ m) (φ n)`. This lemma can be used to extract an
+antitone basis with basis sets decreasing "sufficiently fast". -/
+lemma has_antitone_basis.subbasis_with_rel {f : filter α} {s : ℕ → set α}
+  (hs : f.has_antitone_basis s) {r : ℕ → ℕ → Prop} (hr : ∀ m, ∀ᶠ n in at_top, r m n) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ (∀ ⦃m n⦄, m < n → r (φ m) (φ n)) ∧ f.has_antitone_basis (s ∘ φ) :=
+begin
+  suffices : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
+  { rcases this with ⟨φ, hφ, hrφ⟩,
+    exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
+  have : ∀ t : set ℕ, t.finite → ∀ᶠ n in at_top, ∀ m ∈ t, m < n ∧ r m n,
+    from λ t ht, (eventually_all_finite ht).2 (λ m hm, (eventually_gt_at_top m).and (hr _)),
+  rcases seq_of_forall_finite_exists (λ t ht, (this t ht).exists) with ⟨φ, hφ⟩,
+  simp only [ball_image_iff, forall_and_distrib, mem_Iio] at hφ,
+  exact ⟨φ, forall_swap.2 hφ.1, forall_swap.2 hφ.2⟩
+end
+
 /-- If `f` is a nontrivial countably generated filter, then there exists a sequence that converges
 to `f`. -/
 lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
   ∃ x : ℕ → α, tendsto x at_top f :=
 begin
   obtain ⟨B, h⟩ := f.exists_antitone_basis,
-  have := λ n, nonempty_of_mem (h.to_has_basis.mem_of_mem trivial : B n ∈ f), choose x hx,
+  choose x hx using λ n, filter.nonempty_of_mem (h.mem n),
   exact ⟨x, h.tendsto hx⟩
 end
 

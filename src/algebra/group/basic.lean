@@ -116,6 +116,18 @@ by simp only [mul_left_comm, mul_comm]
 
 end comm_semigroup
 
+section add_comm_semigroup
+variables {M : Type u} [add_comm_semigroup M]
+
+lemma bit0_add (a b : M) : bit0 (a + b) = bit0 a + bit0 b :=
+add_add_add_comm _ _ _ _
+lemma bit1_add [has_one M] (a b : M) : bit1 (a + b) = bit0 a + bit1 b :=
+(congr_arg (+ (1 : M)) $ bit0_add a b : _).trans (add_assoc _ _ _)
+lemma bit1_add' [has_one M] (a b : M) : bit1 (a + b) = bit1 a + bit0 b :=
+by rw [add_comm, bit1_add, add_comm]
+
+end add_comm_semigroup
+
 local attribute [simp] mul_assoc sub_eq_add_neg
 
 section add_monoid
@@ -190,6 +202,9 @@ theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
 eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 variables (G)
+
+@[simp, to_additive] lemma inv_comp_inv : has_inv.inv ∘ has_inv.inv = @id G :=
+inv_involutive.comp_self
 
 @[to_additive] lemma left_inverse_inv : left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) := inv_inv
 @[to_additive] lemma right_inverse_inv : left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) := inv_inv
@@ -283,6 +298,8 @@ variables (a b c)
 by simp only [mul_assoc, mul_inv_rev, div_eq_mul_inv]
 
 end division_monoid
+
+lemma bit0_neg [subtraction_monoid α] (a : α) : bit0 (-a) = -bit0 a := (neg_add_rev _ _).symm
 
 section division_comm_monoid
 variables [division_comm_monoid α] (a b c d : α)
@@ -610,6 +627,16 @@ end
 by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div, div_eq_iff_eq_mul', mul_div_assoc]
 
 end comm_group
+
+section subtraction_comm_monoid
+variables {M : Type u} [subtraction_comm_monoid M]
+
+lemma bit0_sub (a b : M) : bit0 (a - b) = bit0 a - bit0 b :=
+sub_add_sub_comm _ _ _ _
+lemma bit1_sub [has_one M] (a b : M) : bit1 (a - b) = bit1 a - bit0 b :=
+(congr_arg (+ (1 : M)) $ bit0_sub a b : _).trans $ sub_add_eq_add_sub _ _ _
+
+end subtraction_comm_monoid
 
 section commutator
 

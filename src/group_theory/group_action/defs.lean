@@ -57,16 +57,16 @@ class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
 (eq_of_vadd_eq_vadd : ∀ {g₁ g₂ : G}, (∀ p : P, g₁ +ᵥ p = g₂ +ᵥ p) → g₁ = g₂)
 
 /-- Typeclass for faithful actions. -/
-@[to_additive has_faithful_vadd]
-class has_faithful_scalar (M : Type*) (α : Type*) [has_scalar M α] : Prop :=
+@[to_additive]
+class has_faithful_smul (M : Type*) (α : Type*) [has_scalar M α] : Prop :=
 (eq_of_smul_eq_smul : ∀ {m₁ m₂ : M}, (∀ a : α, m₁ • a = m₂ • a) → m₁ = m₂)
 
-export has_faithful_scalar (eq_of_smul_eq_smul) has_faithful_vadd (eq_of_vadd_eq_vadd)
+export has_faithful_smul (eq_of_smul_eq_smul) has_faithful_vadd (eq_of_vadd_eq_vadd)
 
 @[to_additive]
-lemma smul_left_injective' [has_scalar M α] [has_faithful_scalar M α] :
+lemma smul_left_injective' [has_scalar M α] [has_faithful_smul M α] :
   function.injective ((•) : M → α → α) :=
-λ m₁ m₂ h, has_faithful_scalar.eq_of_smul_eq_smul (congr_fun h)
+λ m₁ m₂ h, has_faithful_smul.eq_of_smul_eq_smul (congr_fun h)
 
 /-- See also `monoid.to_mul_action` and `mul_zero_class.to_smul_with_zero`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
@@ -721,7 +721,7 @@ instance function.End.apply_mul_action : mul_action (function.End α) α :=
 @[simp] lemma function.End.smul_def (f : function.End α) (a : α) : f • a = f a := rfl
 
 /-- `function.End.apply_mul_action` is faithful. -/
-instance function.End.apply_has_faithful_scalar : has_faithful_scalar (function.End α) α :=
+instance function.End.apply_has_faithful_smul : has_faithful_smul (function.End α) α :=
 ⟨λ x y, funext⟩
 
 /-- The tautological action by `add_monoid.End α` on `α`.
@@ -739,8 +739,8 @@ instance add_monoid.End.apply_distrib_mul_action [add_monoid α] :
   f • a = f a := rfl
 
 /-- `add_monoid.End.apply_distrib_mul_action` is faithful. -/
-instance add_monoid.End.apply_has_faithful_scalar [add_monoid α] :
-  has_faithful_scalar (add_monoid.End α) α :=
+instance add_monoid.End.apply_has_faithful_smul [add_monoid α] :
+  has_faithful_smul (add_monoid.End α) α :=
 ⟨add_monoid_hom.ext⟩
 
 /-- The monoid hom representing a monoid action.

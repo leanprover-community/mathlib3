@@ -124,7 +124,7 @@ begin
     simp },
   -- we will use countably many linear maps. Select these from all the derivatives since the
   -- space of linear maps is second-countable
-  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, countable T ∧
+  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, T.countable ∧
     (⋃ x ∈ T, ball (f' (x : E)) (r (f' x))) = ⋃ (x : s), ball (f' x) (r (f' x)) :=
     topological_space.is_open_Union_countable _ (λ x, is_open_ball),
   -- fix a sequence `u` of positive reals tending to zero.
@@ -220,7 +220,7 @@ begin
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
         exact false.elim z.2 },
-      { exact (nonempty_coe_sort _).2 hT } },
+      { exact nonempty_coe_sort.2 hT } },
     inhabit (ℕ × T × ℕ),
     exact ⟨_, encodable.surjective_decode_iget _⟩ },
   -- these sets `t q = K n z p` will do
@@ -330,7 +330,7 @@ begin
         abel } },
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
       = {f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε),
-      by rw [smul_add_set, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
+      by rw [smul_add, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
         smul_zero, singleton_add_closed_ball_zero, ← A.image_smul_set,
         smul_closed_ball _ _ zero_le_one, smul_zero, real.norm_eq_abs, abs_of_nonneg r0, mul_one,
         mul_comm],
@@ -891,10 +891,7 @@ begin
       rw ← this,
     end
   ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :
-    begin
-      rw lintegral_add' (ae_measurable_of_real_abs_det_fderiv_within μ hs hf') ae_measurable_const,
-      simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter],
-    end
+    by simp only [lintegral_add_right' _ ae_measurable_const, set_lintegral_const]
 end
 
 lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
@@ -1034,11 +1031,10 @@ begin
                       ennreal.of_real_coe_nnreal]
     end
   ... = ∑' n, (ennreal.of_real (|(A n).det|) * μ (s ∩ t n) + ε * μ (s ∩ t n)) :
-    by simp only [measurable_const, lintegral_const, lintegral_add, measurable_set.univ,
-                  eq_self_iff_true, measure.restrict_apply, univ_inter]
+    by simp only [set_lintegral_const, lintegral_add_right _ measurable_const]
   ... ≤ ∑' n, ((μ (f '' (s ∩ t n)) + ε * μ (s ∩ t n)) + ε * μ (s ∩ t n)) :
     begin
-      refine ennreal.tsum_le_tsum (λ n, add_le_add _ le_rfl),
+      refine ennreal.tsum_le_tsum (λ n, add_le_add_right _ _),
       exact (hδ (A n)).2.2 _ _ (ht n),
     end
   ... = μ (f '' s) + 2 * ε * μ s :

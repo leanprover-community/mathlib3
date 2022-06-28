@@ -44,7 +44,8 @@ equivalent to `C(α, β)`.
 -/
 @[simps { fully_applied := ff }]
 def equiv_bounded_of_compact : C(α, β) ≃ (α →ᵇ β) :=
-⟨mk_of_compact, to_continuous_map, λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
+⟨mk_of_compact, bounded_continuous_function.to_continuous_map,
+ λ f, by { ext, refl, }, λ f, by { ext, refl, }⟩
 
 lemma uniform_inducing_equiv_bounded_of_compact :
   uniform_inducing (equiv_bounded_of_compact α β) :=
@@ -154,7 +155,8 @@ open bounded_continuous_function
 
 instance : normed_group C(α, E) :=
 { dist_eq := λ x y, by
-    rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub] }
+    rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub],
+  dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
 
 section
 variables (f : C(α, E))
@@ -199,7 +201,8 @@ variables {R : Type*}
 
 instance [non_unital_normed_ring R] : non_unital_normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
-  ..(infer_instance : normed_group C(α,R)) }
+  ..(infer_instance : normed_group C(α,R)),
+  .. continuous_map.ring }
 
 instance [non_unital_normed_comm_ring R] : non_unital_normed_comm_ring C(α,R) :=
 { mul_comm := λ f g, ext (λ x, mul_comm _ _),
@@ -436,5 +439,55 @@ begin
 end
 
 end weierstrass
+
+
+/-!
+### Star structures
+
+In this section, if `β` is a normed ⋆-group, then so is the space of
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C⋆-ring.  -/
+
+section normed_space
+
+variables {α : Type*} {β : Type*}
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
+
+lemma _root_.bounded_continuous_function.mk_of_compact_star [compact_space α] (f : C(α, β)) :
+  mk_of_compact (star f) = star (mk_of_compact f) := rfl
+
+instance [compact_space α] : normed_star_group C(α, β) :=
+{ norm_star := λ f, by rw [←bounded_continuous_function.norm_mk_of_compact,
+                          bounded_continuous_function.mk_of_compact_star, norm_star,
+                          bounded_continuous_function.norm_mk_of_compact] }
+
+end normed_space
+
+section cstar_ring
+
+variables {α : Type*} {β : Type*}
+variables [topological_space α] [normed_ring β] [star_ring β]
+
+instance [compact_space α] [cstar_ring β] : cstar_ring C(α, β) :=
+{ norm_star_mul_self :=
+  begin
+    intros f,
+    refine le_antisymm _ _,
+    { rw [←sq, continuous_map.norm_le _ (sq_nonneg _)],
+      intro x,
+      simp only [continuous_map.coe_mul, coe_star, pi.mul_apply, pi.star_apply,
+                 cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact continuous_map.norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _),
+          continuous_map.norm_le _ (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact continuous_map.norm_coe_le_norm (star f * f) x },
+  end }
+
+end cstar_ring
 
 end continuous_map

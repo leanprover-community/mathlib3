@@ -34,6 +34,8 @@ on `set`s.
 
 -/
 
+open set
+
 variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
 variables [monoid M] [add_monoid A]
 
@@ -59,10 +61,8 @@ open_locale pointwise
 
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
-@[to_additive]
-instance : has_involutive_inv (submonoid G) :=
-{ inv := has_inv.inv,
-  inv_inv := λ S, set_like.coe_injective $ inv_inv _ }
+@[to_additive] instance : has_involutive_inv (submonoid G) :=
+set_like.coe_injective.has_involutive_inv _ $ λ _, rfl
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.field.basic
+import algebra.group_power.lemmas
 import algebra.group_power.order
 import algebra.order.ring
 import order.bounds
@@ -254,8 +255,12 @@ lemma inv_le_of_inv_le (ha : 0 < a) (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv]
 
+/-- See `inv_lt_inv_of_lt` for the implication from right-to-left with one fewer assumption. -/
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
+
+lemma inv_lt_inv_of_lt (hb : 0 < b) (h : b < a) : a⁻¹ < b⁻¹ :=
+(inv_lt_inv (hb.trans h) hb).2 h
 
 /-- In a linear ordered field, for positive `a` and `b` we have `a⁻¹ < b ↔ b⁻¹ < a`.
 See also `inv_lt_of_inv_lt` for a one-sided implication with one fewer assumption. -/
@@ -621,17 +626,19 @@ end
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_field {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_pow β ℤ]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_pow β ℕ] [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
+  [has_inv β] [has_div β] [has_pow β ℤ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n):
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   linear_ordered_field β :=
-{ ..hf.linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow,
-  ..hf.field f zero one add mul neg sub inv div nsmul zsmul npow zpow}
+{ .. hf.linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
+  .. hf.field f zero one add mul neg sub inv div nsmul zsmul npow zpow nat_cast int_cast }
 
 lemma mul_sub_mul_div_mul_neg_iff (hc : c ≠ 0) (hd : d ≠ 0) :
   (a * d - b * c) / (c * d) < 0 ↔ a / c < b / d :=
@@ -719,7 +726,6 @@ by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : |a⁻¹| = (|a|)⁻¹ := (abs_hom : α →*₀ α).map_inv a
 
--- TODO: add lemmas with `a⁻¹`.
 lemma one_div_strict_anti_on : strict_anti_on (λ x : α, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (set.mem_Ioi.mp y1) (set.mem_Ioi.mp x1)).mpr xy
 
@@ -738,6 +744,23 @@ lemma one_div_pow_anti (a1 : 1 ≤ a) : antitone (λ n : ℕ, 1 / a ^ n) :=
 
 lemma one_div_pow_strict_anti (a1 : 1 < a) : strict_anti (λ n : ℕ, 1 / a ^ n) :=
 λ m n, one_div_pow_lt_one_div_pow_of_lt a1
+
+lemma inv_strict_anti_on : strict_anti_on (λ x : α, x⁻¹) (set.Ioi 0) :=
+λ x hx y hy xy, (inv_lt_inv hy hx).2 xy
+
+lemma inv_pow_le_inv_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :
+  (a ^ n)⁻¹ ≤ (a ^ m)⁻¹ :=
+by convert one_div_pow_le_one_div_pow_of_le a1 mn; simp
+
+lemma inv_pow_lt_inv_pow_of_lt (a1 : 1 < a) {m n : ℕ} (mn : m < n) :
+  (a ^ n)⁻¹ < (a ^ m)⁻¹ :=
+by convert one_div_pow_lt_one_div_pow_of_lt a1 mn; simp
+
+lemma inv_pow_anti (a1 : 1 ≤ a) : antitone (λ n : ℕ, (a ^ n)⁻¹) :=
+λ m n, inv_pow_le_inv_pow_of_le a1
+
+lemma inv_pow_strict_anti (a1 : 1 < a) : strict_anti (λ n : ℕ, (a ^ n)⁻¹) :=
+λ m n, inv_pow_lt_inv_pow_of_lt a1
 
 /-! ### Results about `is_lub` and `is_glb` -/
 
@@ -770,3 +793,30 @@ lemma is_glb.mul_right {s : set α} (ha : 0 ≤ a) (hs : is_glb s b) :
 by simpa [mul_comm] using hs.mul_left ha
 
 end linear_ordered_field
+
+section
+variables {R : Type*} [linear_ordered_field R] {a : R}
+
+lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
+begin
+  simp only [inv_nonneg, zpow_neg],
+  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
+  rw zpow_coe_nat,
+  apply sq_nonneg,
+end
+
+/-- Bernoulli's inequality reformulated to estimate `(n : K)`. -/
+theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)
+  (n : ℕ) :
+  (n : K) ≤ (a ^ n - 1) / (a - 1) :=
+(le_div_iff (sub_pos.2 H)).2 $ le_sub_left_of_add_le $
+  one_add_mul_sub_le_pow ((neg_le_self zero_le_one).trans H.le) _
+
+/-- For any `a > 1` and a natural `n` we have `n ≤ a ^ n / (a - 1)`. See also
+`nat.cast_le_pow_sub_div_sub` for a stronger inequality with `a ^ n - 1` in the numerator. -/
+theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a) (n : ℕ) :
+  (n : K) ≤ a ^ n / (a - 1) :=
+(n.cast_le_pow_sub_div_sub H).trans $ div_le_div_of_le (sub_nonneg.2 H.le)
+  (sub_le_self _ zero_le_one)
+
+end

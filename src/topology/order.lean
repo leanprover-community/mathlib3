@@ -481,6 +481,10 @@ instance : discrete_topology ℤ := ⟨rfl⟩
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
 
+lemma continuous_empty_function [topological_space α] [topological_space β] [is_empty β]
+  (f : α → β) : continuous f :=
+by { letI := function.is_empty f, exact continuous_of_discrete_topology }
+
 lemma le_generate_from {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   t ≤ generate_from g :=
 le_generate_from_iff_subset_is_open.2 h
@@ -721,12 +725,11 @@ continuous_iff_le_induced.2 $ bot_le
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
+lemma continuous_id_iff_le {t t' : tspace α} : cont t t' id ↔ t ≤ t' :=
+@continuous_def _ _ t t' id
+
 lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
-begin
-  rw continuous_def,
-  assume u hu,
-  exact h u hu
-end
+continuous_id_iff_le.2 h
 
 /- 𝓝 in the induced topology -/
 
@@ -789,16 +792,22 @@ section sierpinski
 variables {α : Type*} [topological_space α]
 
 @[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
-topological_space.generate_open.basic _ (by simp)
+topological_space.generate_open.basic _ (mem_singleton _)
+
+@[simp] lemma nhds_true : 𝓝 true = pure true :=
+le_antisymm (le_pure_iff.2 $ is_open_singleton_true.mem_nhds $ mem_singleton _) (pure_le_nhds _)
+
+@[simp] lemma nhds_false : 𝓝 false = ⊤ :=
+topological_space.nhds_generate_from.trans $ by simp [@and.comm (_ ∈ _)]
 
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
     from is_open_singleton_true.preimage h,
-  by simp [preimage, eq_true] at this; assumption,
+  by simpa [preimage, eq_true] using this,
   assume h : is_open {x | p x},
-  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
-    by simp at hs; simp [hs, preimage, eq_true, h]⟩
+  continuous_generated_from $ assume s (hs : s = {true}),
+    by simp [hs, preimage, eq_true, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm

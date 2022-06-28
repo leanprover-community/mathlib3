@@ -261,7 +261,7 @@ lemma basic_open_eq_of_affine' {R : CommRing}
     prime_spectrum.basic_open ((Spec_Γ_identity.app R).hom f) :=
 begin
   convert basic_open_eq_of_affine ((Spec_Γ_identity.app R).hom f),
-  exact (coe_hom_inv_id _ _).symm
+  exact (iso.hom_inv_id_apply _ _).symm
 end
 
 end algebraic_geometry

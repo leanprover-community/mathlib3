@@ -556,6 +556,10 @@ submodule.mem_map
 
 @[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
 
+lemma comap_incl_eq_top : N₂.comap N.incl = ⊤ ↔ N ≤ N₂ :=
+by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_submodule_comap,
+  lie_submodule.incl_coe, lie_submodule.top_coe_submodule, submodule.comap_subtype_eq_top]
+
 end lie_submodule
 
 namespace lie_ideal

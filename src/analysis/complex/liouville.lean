@@ -44,8 +44,7 @@ lemma deriv_eq_smul_circle_integral [complete_space F] {R : ℝ} {c : ℂ} {f : 
 begin
   lift R to ℝ≥0 using hR.le,
   refine (hf.has_fpower_series_on_ball hR).has_fpower_series_at.deriv.trans _,
-  simp only [cauchy_power_series_apply, one_div, zpow_neg₀, pow_one, smul_smul,
-    zpow_two, mul_inv]
+  simp only [cauchy_power_series_apply, one_div, zpow_neg, pow_one, smul_smul, zpow_two, mul_inv]
 end
 
 lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)

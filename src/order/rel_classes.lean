@@ -267,6 +267,40 @@ instance well_founded_lt.is_well_order (α : Type u) [linear_order α] [well_fou
 instance well_founded_gt.is_well_order (α : Type u) [linear_order α] [well_founded_gt α] :
   is_well_order α (>) := @well_founded_lt.is_well_order αᵒᵈ _ _
 
+namespace well_founded_lt
+variables [has_lt α] [well_founded_lt α]
+
+theorem lt_wf : @well_founded α (<) := is_well_founded.wf
+
+/-- Recurses on a well-founded `<` relation. -/
+def recursion {C : α → Sort*} : Π a, (Π x, (Π y, y < x → C y) → C x) → C a :=
+is_well_founded.recursion (<)
+
+/-- Inducts on a well-founded `<` relation. -/
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a := recursion
+
+/-- Derive a `has_well_founded` instance from a `well_founded_lt` instance. -/
+def to_has_well_founded : has_well_founded α := ⟨_, lt_wf⟩
+
+end well_founded_lt
+
+namespace well_founded_gt
+variables [has_lt α] [well_founded_gt α]
+
+theorem gt_wf : @well_founded α (>) := is_well_founded.wf
+
+/-- Recurses on a well-founded `>` relation. -/
+def recursion {C : α → Sort*} : Π a, (Π x, (Π y, x < y → C y) → C x) → C a :=
+is_well_founded.recursion (>)
+
+/-- Inducts on a well-founded `>` relation. -/
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a := recursion
+
+/-- Derive a `has_well_founded` instance from a `well_founded_gt` instance. -/
+def to_has_well_founded : has_well_founded α := ⟨_, gt_wf⟩
+
+end well_founded_gt
+
 /-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
   linear_order α :=

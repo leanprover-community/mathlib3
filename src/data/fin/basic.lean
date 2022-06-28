@@ -209,8 +209,8 @@ def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
 /-- The ordering on `fin n` is a well order. -/
-instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
-(coe_embedding n).is_well_order
+instance fin.well_founded_lt (n) : well_founded_lt (fin n) :=
+(coe_embedding n).well_founded_lt
 
 /-- Use the ordering on `fin n` for checking recursive definitions.
 
@@ -223,7 +223,7 @@ def factorial {n : ℕ} : fin n → ℕ
 ```
 -/
 instance {n : ℕ} : has_well_founded (fin n) :=
-⟨_, measure_wf coe⟩
+well_founded_lt.to_has_well_founded
 
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
 attribute [simp] val_zero

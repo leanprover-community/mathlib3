@@ -434,6 +434,17 @@ begin
          mul_div_cancel_left _ (mul_ne_zero ha hc)]
 end
 
+lemma mul_div_mul_comm_of_dvd_dvd {a b c d : R} (hac : c ∣ a) (hbd : d ∣ b) :
+  (a * b) / (c * d) = (a / c) * (b / d) :=
+begin
+  rcases eq_or_ne c 0 with rfl | hc0, { simp only [zero_mul, div_zero], },
+  rcases eq_or_ne d 0 with rfl | hd0, { simp },
+  rcases hac with ⟨k1, rfl⟩,
+  rcases hbd with ⟨k2, rfl⟩,
+  rw [mul_div_cancel_left _ hc0, mul_div_cancel_left _ hd0, mul_mul_mul_comm,
+    mul_div_cancel_left _ (mul_ne_zero hc0 hd0)],
+end
+
 end div
 
 end euclidean_domain

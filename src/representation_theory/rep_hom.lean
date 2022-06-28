@@ -78,6 +78,8 @@ instance : has_coe_to_fun (ρ →ᵣ ρ₂) (λ _, V → V₂) := ⟨λ f, f⟩
 
 @[simp] lemma to_fun_eq_coe {f : ρ →ᵣ ρ₂} : f.to_fun = (f : V → V₂) := rfl
 
+lemma coe_eq_to_linear_map_coe {f : ρ →ᵣ ρ₂} : (f : V → V₂) = (f.to_linear_map : V → V₂) := rfl
+
 @[ext] theorem ext {f g : ρ →ᵣ ρ₂} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
 /-- Copy of a `rep_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
@@ -228,15 +230,17 @@ def mk' (f : V → V₂) (H : is_rep_hom ρ ρ₂ f) : ρ →ᵣ ρ₂ :=
 @[simp] theorem mk'_apply {f : V → V₂} (H : is_rep_hom ρ ρ₂ f) (x : V) :
   mk' f H x = f x := rfl
 
-lemma is_rep_hom_smul_one :
-  is_rep_hom ρ ρ (λ (z : V), 1 • z) :=
+set_option trace.simplify.rewrite true
+lemma is_rep_hom_smul (c : k) :
+  is_rep_hom ρ ρ (λ (z : V), c • z) :=
 begin
-  refine is_rep_hom.mk (smul_add 1) _ _;
+  refine is_rep_hom.mk (smul_add c) _ _,
   { intros _ _,
-    simp only [one_nsmul] }
+    rw [←mul_smul, mul_comm, mul_smul] },
+  { intros _ _,
+    rw [linear_map.map_smulₛₗ, ring_hom.id_apply] }
 end
 
-set_option trace.simplify.rewrite true
 lemma is_rep_hom_smulG_one :
   is_rep_hom ρ ρ (λ (z : V), ρ 1 z) :=
 begin
@@ -267,7 +271,105 @@ end add_comm_group
 
 end is_rep_hom
 
--- subclass of module.End
+-- End
 
+namespace rep_hom
+
+section has_scalar
+
+variables
+  {k G V V₂ V₃ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
+  [add_comm_monoid V₃] [module k V₃]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂} {ρ₃ : representation k G V₃}
+variables
+  {k' : Type*} [monoid k'] [has_scalar k' k] [has_scalar k' V] [distrib_mul_action k' V₂]
+  [is_scalar_tower k' k V] [is_scalar_tower k' k V₂] [smul_comm_class k' k V₂]
+
+instance : has_scalar k' (ρ →ᵣ ρ₂) :=
+⟨λ a f, { to_fun := a • f,
+          map_add' := λ x y, by rw [pi.smul_apply,
+            f.map_add, smul_add, pi.smul_apply, pi.smul_apply],
+          map_smul' := λ c x, by rw [pi.smul_apply,
+            f.map_smul, ring_hom.id_apply, smul_comm, pi.smul_apply],
+          map_smulG' := λ g x, by rw [pi.smul_apply,
+            f.map_smulG, pi.smul_apply, linear_map.map_smul_of_tower] }⟩
+
+@[simp] lemma smul_apply (a : k) (f : ρ →ᵣ ρ₂) (x : V) : (a • f) x = a • f x := rfl
+
+lemma coe_smul (a : k) (f : ρ →ᵣ ρ₂) : ⇑(a • f) = a • f := rfl
+
+-- smul_comm_class
+
+end has_scalar
+
+section arithmetic
+
+variables
+  {k G V V₂ V₃ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
+  [add_comm_monoid V₃] [module k V₃]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂} {ρ₃ : representation k G V₃}
+variables
+  {W W₂ W₃ : Type*} [add_comm_group W] [module k W] [add_comm_group W₂] [module k W₂]
+  [add_comm_group W₃] [module k W₃]
+  {σ : representation k G W} {σ₂ : representation k G W₂} {σ₃ : representation k G W₃}
+
+/-- The constant 0 map is a rep_hom. -/
+instance : has_zero (ρ →ᵣ ρ₂) :=
+⟨{ to_fun := 0, map_add' := by simp, map_smul' := by simp, map_smulG' := by simp }⟩
+
+@[simp] lemma zero_apply (x : V) : (0 : ρ →ᵣ ρ₂) x = 0 := rfl
+
+@[simp] theorem comp_zero (f' : ρ₂ →ᵣ ρ₃) : (f'.comp (0 : ρ →ᵣ ρ₂) : ρ →ᵣ ρ₃) = 0 :=
+ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f'.map_zero]
+
+@[simp] theorem zero_comp (f : ρ →ᵣ ρ₂) : ((0 : ρ₂ →ᵣ ρ₃).comp f : ρ →ᵣ ρ₃) = 0 :=
+rfl
+
+instance : inhabited (ρ →ᵣ ρ₂) := ⟨0⟩
+
+@[simp] lemma default_def : (default : (ρ →ᵣ ρ₂)) = 0 := rfl
+
+/-- The sum of two rep_homs is a rep_hom. -/
+instance : has_add (ρ →ᵣ ρ₂) :=
+⟨λ f g, { to_fun := f + g,
+          map_add' := by simp [add_comm, add_left_comm],
+          map_smul' := by simp [smul_add],
+          map_smulG' := by simp [map_smulG] }⟩
+
+@[simp] lemma add_apply (f g : ρ →ᵣ ρ₂) (x : V) : (f + g) x = f x + g x := rfl
+
+lemma add_comp (f : ρ →ᵣ ρ₂) (g h : ρ₂ →ᵣ ρ₃) :
+  ((h + g).comp f : ρ →ᵣ ρ₃) = h.comp f + g.comp f := rfl
+
+lemma comp_add (f g : ρ →ᵣ ρ₂) (h : ρ₂ →ᵣ ρ₃) :
+  (h.comp (f + g) : ρ →ᵣ ρ₃) = h.comp f + h.comp g :=
+ext $ λ _, h.map_add _ _
+
+/-- The type of rep_homs is an additive monoid. -/
+instance : add_comm_monoid (ρ →ᵣ ρ₂) :=
+fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- The negation of a rep_hom is a rep_hom. -/
+instance : has_neg (ρ →ᵣ σ₂) :=
+⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp,
+      map_smulG' := by simp [map_smulG] }⟩
+
+@[simp] lemma neg_apply (f : ρ →ᵣ σ₂) (x : V) : (- f) x = - f x := rfl
+
+@[simp] lemma neg_comp (f : ρ →ᵣ σ₂) (g : σ₂ →ᵣ σ₃) : (- g).comp f = - g.comp f := rfl
+
+@[simp] lemma comp_neg (f : ρ →ᵣ σ₂) (g : σ₂ →ᵣ σ₃) : g.comp (- f) = - g.comp f :=
+ext $ λ _, g.map_neg _
+
+
+
+
+end arithmetic
+
+
+
+end rep_hom
 
 end

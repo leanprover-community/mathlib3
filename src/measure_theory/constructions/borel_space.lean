@@ -1338,18 +1338,6 @@ begin
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
 
-lemma measurable_csupr_subtype {α' : Type*}
-  [measurable_space α'] [conditionally_complete_linear_order α'] [has_measurable_sup₂ α']
-  {ι} {p : ι → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty)
-  {f : ι → δ → α'} (hm : ∀ n, p n → measurable (f n)) :
-  measurable (λ x, ⨆ y : {y // p y}, f y x) :=
-begin
-  simp_rw finset.supr_subtype_eq_sup'' hp hemp,
-  refine finset.measurable_sup' _ _,
-  simp_rw finite.mem_to_finset,
-  exact hm,
-end
-
 end conditionally_complete_linear_order
 
 /-- Convert a `homeomorph` to a `measurable_equiv`. -/

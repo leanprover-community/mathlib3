@@ -1038,41 +1038,7 @@ lemma inf'_id_eq_cInf [conditionally_complete_lattice α] (s : finset α) (H) :
   s.inf' H id = Inf s :=
 @sup'_id_eq_cSup αᵒᵈ _ _ _
 
-lemma supr_subtype_eq_sup' [conditionally_complete_linear_order β]
-  {p : α → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty) {f : α → β} :
-  (⨆ x : {x // p x}, f x) = (hp.to_finset.sup' ((set.finite.nonempty_to_finset _).2 hemp) f) :=
-begin
-  haveI : fintype {y // p y} := hp.fintype,
-  haveI : nonempty {y // p y} := nonempty_subtype.2 hemp,
-  rw [finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
-  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
-  { rintro _ ⟨⟨m, hm⟩, rfl⟩,
-    exact le_cSup (set.finite.bdd_above (hp.image _)) ⟨m, hm, rfl⟩ },
-  { intros y hy,
-    obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
-    { exact ⟨f m, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
-    { exact set.nonempty.image _ hemp } }
-end
-
-lemma supr_subtype_eq_sup'' {α β γ : Type*} [conditionally_complete_linear_order γ]
-  {p : α → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty) {f : α → β → γ} (x : β) :
-  (⨆ y : {y // p y}, f y x) = (hp.to_finset.sup' ((set.finite.nonempty_to_finset _).2 hemp) f x) :=
-begin
-  rw [finset.sup'_apply],
-  exact @supr_subtype_eq_sup' _ _ _ _ hp hemp (λ y, f y x),
-end
-
 end finset
-
-lemma exists_of_le_supr_subtype [conditionally_complete_linear_order β]
-  {p : α → Prop} (hp : {x | p x}.finite) (hp' : {x | p x}.nonempty) {f : α → β} {ε : β}
-  (h : ε ≤ ⨆ x : {x // p x}, f x) :
-  ∃ x, p x ∧ ε ≤ f x :=
-begin
-  rw [finset.supr_subtype_eq_sup' hp hp', finset.le_sup'_iff] at h,
-  obtain ⟨x, hx₁, hx₂⟩ := h,
-  exact ⟨x, (set.finite.mem_to_finset _).1 hx₁, hx₂⟩
-end
 
 section with_top_bot
 

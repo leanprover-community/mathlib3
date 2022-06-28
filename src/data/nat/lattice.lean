@@ -199,4 +199,49 @@ noncomputable instance : complete_linear_order enat :=
   .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
   .. enat.linear_order, }
 
+lemma exists_eq_supr_of_ne_top {ι : Type*} [hι : nonempty ι] (f : ι → enat) (h : supr f ≠ ⊤) :
+  ∃ i, f i = supr f :=
+begin
+  rw ne_top_iff_dom at h,
+  by_contra h',
+  push_neg at h',
+  replace h' : ∀ i, f i < supr f := λ i, lt_of_le_of_ne (le_supr f i) (h' i),
+  rw ← coe_get h at h',
+  suffices : (supr f).get h < (supr f).get h,
+  { exact ne_of_lt this rfl },
+  have : 1 ≤ (supr f).get h,
+  { rw nat.one_le_iff_ne_zero,
+    intro h'',
+    rw h'' at h',
+    exact (lt_iff_not_ge _ _).mp (h' hι.some) bot_le },
+  rw [← nat.add_one_le_iff, ← le_tsub_iff_right this, ← coe_le_coe, coe_get],
+  apply supr_le,
+  intro i,
+  obtain ⟨h₁, h₂⟩ := (lt_coe_iff _ _).mp (h' i),
+  exact (le_coe_iff _ _).mpr ⟨h₁, nat.le_pred_of_lt h₂⟩
+end
+
+lemma exists_le_of_supr_eq_top {ι : Type*} (f : ι → enat) (h : supr f = ⊤) :
+  ∀ n : ℕ, ∃ j, ↑n ≤ f j :=
+begin
+  by_contra h',
+  push_neg at h',
+  obtain ⟨n, hn⟩ := h',
+  exact coe_ne_top n (top_le_iff.mp $ h ▸ supr_le (λ i, le_of_lt (hn i))),
+end
+
+lemma supr_add {ι : Type*} [nonempty ι] (f : ι → enat) (a : enat) :
+  (⨆ i, f i + a) = supr f + a :=
+begin
+  have : supr f ≤ (⨆ i, f i + a) := supr_le
+    (λ i, le_trans (le_add_right $ le_of_eq rfl) (le_supr (λ i, f i + a) i)),
+  apply le_antisymm,
+  { exact supr_le (λ i, add_le_add_right (le_supr f i) a) },
+  { by_cases e : supr f = ⊤,
+    { exact le_top.trans (e ▸ this) },
+    { obtain ⟨i, hi⟩ := exists_eq_supr_of_ne_top f e,
+      rw ← hi,
+      exact le_supr (λ i, f i + a) i } },
+end
+
 end enat

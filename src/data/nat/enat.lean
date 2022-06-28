@@ -361,6 +361,14 @@ begin
   apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
 end
 
+lemma ne_zero_iff_one_le {n : enat} : n ≠ 0 ↔ 1 ≤ n :=
+begin
+  change ¬ n = ⊥ ↔ _,
+  rw [eq_bot_iff, ← lt_iff_not_le],
+  convert (add_one_le_iff_lt (show (0 : enat) ≠ ⊤, from coe_ne_top 0)).symm,
+  exact (zero_add 1).symm
+end
+
 lemma add_eq_top_iff {a b : enat} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 by apply enat.cases_on a; apply enat.cases_on b;
   simp; simp only [(nat.cast_add _ _).symm, enat.coe_ne_top]; simp

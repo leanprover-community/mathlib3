@@ -3218,6 +3218,26 @@ instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
 { measure_univ_lt_top :=
     by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
 
+lemma sigma_finite_trim_mono {m m₂ m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  (hm₂ : m₂ ≤ m) [sigma_finite (μ.trim (hm₂.trans hm))] :
+  sigma_finite (μ.trim hm) :=
+begin
+  have h := measure.finite_spanning_sets_in (μ.trim (hm₂.trans hm)) set.univ,
+  refine measure.finite_spanning_sets_in.sigma_finite _,
+  { use set.univ, },
+  { refine
+    { set := spanning_sets (μ.trim (hm₂.trans hm)),
+      set_mem := λ _, set.mem_univ _,
+      finite := λ i, _, -- This is the only one left to prove
+      spanning := Union_spanning_sets _, },
+    calc (μ.trim hm) (spanning_sets (μ.trim (hm₂.trans hm)) i)
+        = ((μ.trim hm).trim hm₂) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
+      by rw @trim_measurable_set_eq α m₂ m (μ.trim hm) _ hm₂ (measurable_spanning_sets _ _)
+    ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
+      by rw @trim_trim _ _ μ _ _ hm₂ hm
+    ... < ∞ : measure_spanning_sets_lt_top _ _, },
+end
+
 end trim
 
 end measure_theory

@@ -2132,7 +2132,7 @@ namespace Lp
 section pos_part
 
 lemma lipschitz_with_pos_part : lipschitz_with 1 (λ (x : ℝ), max x 0) :=
-lipschitz_with.of_dist_le_mul $ λ x y, by simp [dist, abs_max_sub_max_le_abs]
+lipschitz_with.of_dist_le_mul $ λ x y, by simp [real.dist_eq, abs_max_sub_max_le_abs]
 
 lemma _root_.measure_theory.mem_ℒp.pos_part {f : α → ℝ} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ x, max (f x) 0) p μ :=

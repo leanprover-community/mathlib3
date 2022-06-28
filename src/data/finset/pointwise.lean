@@ -68,7 +68,7 @@ protected def has_one : has_one (finset α) := ⟨{1}⟩
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 
 @[simp, to_additive] lemma mem_one : a ∈ (1 : finset α) ↔ a = 1 := mem_singleton
-@[simp, to_additive] lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_singleton 1
+@[simp, norm_cast, to_additive] lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_singleton 1
 @[simp, to_additive] lemma one_subset : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
 @[to_additive] lemma singleton_one : ({1} : finset α) = 1 := rfl
 @[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : finset α) := mem_singleton_self _
@@ -753,7 +753,7 @@ nonempty.image_iff _
 @[to_additive, mono]
 lemma smul_finset_subset_smul_finset : s ⊆ t → a • s ⊆ a • t := image_subset_image
 
-attribute [mono] add_subset_add
+attribute [mono] vadd_finset_subset_vadd_finset
 
 @[simp, to_additive]
 lemma smul_finset_singleton (b : β) : a • ({b} : finset β) = {a • b} := image_singleton _ _
@@ -773,12 +773,17 @@ section instances
 variables [decidable_eq γ]
 
 @[to_additive]
-instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α β (finset γ) :=
+⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+
+@[to_additive]
+instance smul_comm_class_finset' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_comm]⟩
 
 @[to_additive]
-instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset'' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (finset α) β (finset γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
@@ -863,9 +868,62 @@ coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
 
-lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α] {s : set α}
-  {t : finset α} :
+@[to_additive] lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α]
+  {s : set α} {t : finset α} :
   s.pairwise_disjoint (• t) ↔ ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
 
+open_locale pointwise
+
+section group
+variables [decidable_eq β] [group α] [mul_action α β] {s t : finset β} {a : α} {b : β}
+
+@[simp, to_additive] lemma smul_mem_smul_finset_iff (a : α) : a • b ∈ a • s ↔ b ∈ s :=
+(mul_action.injective _).mem_finset_image
+
+@[to_additive] lemma inv_smul_mem_iff : a⁻¹ • b ∈ s ↔ b ∈ a • s :=
+by rw [←smul_mem_smul_finset_iff a, smul_inv_smul]
+
+@[to_additive] lemma mem_inv_smul_finset_iff : b ∈ a⁻¹ • s ↔ a • b ∈ s :=
+by rw [←smul_mem_smul_finset_iff a, smul_inv_smul]
+
+@[simp, to_additive] lemma smul_finset_subset_smul_finset_iff : a • s ⊆ a • t ↔ s ⊆ t :=
+image_subset_image_iff $ mul_action.injective _
+
+@[to_additive] lemma smul_finset_subset_iff : a • s ⊆ t ↔ s ⊆ a⁻¹ • t :=
+by { simp_rw ←coe_subset, push_cast, exact set.set_smul_subset_iff }
+
+@[to_additive] lemma subset_smul_finset_iff : s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
+by { simp_rw ←coe_subset, push_cast, exact set.subset_set_smul_iff }
+
+end group
+
+section group_with_zero
+variables [decidable_eq β] [group_with_zero α] [mul_action α β] {s t : finset β} {a : α} {b : β}
+
+@[simp] lemma smul_mem_smul_finset_iff₀ (ha : a ≠ 0) : a • b ∈ a • s ↔ b ∈ s :=
+smul_mem_smul_finset_iff (units.mk0 a ha)
+
+lemma inv_smul_mem_iff₀ (ha : a ≠ 0) : a⁻¹ • b ∈ s ↔ b ∈ a • s :=
+show _ ↔ _ ∈ units.mk0 a ha • _, from inv_smul_mem_iff
+
+lemma mem_inv_smul_finset_iff₀ (ha : a ≠ 0) : b ∈ a⁻¹ • s ↔ a • b ∈ s :=
+show _ ∈ (units.mk0 a ha)⁻¹ • _ ↔ _, from mem_inv_smul_finset_iff
+
+@[simp] lemma smul_finset_subset_smul_finset_iff₀ (ha : a ≠ 0) : a • s ⊆ a • t ↔ s ⊆ t :=
+show units.mk0 a ha • _ ⊆ _ ↔ _, from smul_finset_subset_smul_finset_iff
+
+lemma smul_finset_subset_iff₀ (ha : a ≠ 0) : a • s ⊆ t ↔ s ⊆ a⁻¹ • t :=
+show units.mk0 a ha • _ ⊆ _ ↔ _, from smul_finset_subset_iff
+
+lemma subset_smul_finset_iff₀ (ha : a ≠ 0) : s ⊆ a • t ↔ a⁻¹ • s ⊆ t :=
+show _ ⊆ units.mk0 a ha • _ ↔ _, from subset_smul_finset_iff
+
+lemma smul_univ₀ [fintype β] {s : finset α} (hs : ¬ s ⊆ 0) : s • (univ : finset β) = univ :=
+coe_injective $ by { rw ←coe_subset at hs, push_cast at ⊢ hs, exact set.smul_univ₀ hs }
+
+lemma smul_finset_univ₀ [fintype β] (ha : a ≠ 0) : a • (univ : finset β) = univ :=
+coe_injective $ by {  push_cast, exact set.smul_set_univ₀ ha }
+
+end group_with_zero
 end finset

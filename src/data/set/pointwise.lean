@@ -884,7 +884,8 @@ variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s t t₁ t₂ : s
 
 @[simp, to_additive] lemma smul_set_singleton : a • ({b} : set β) = {a • b} := image_singleton
 
-@[to_additive] lemma smul_set_mono (h : s ⊆ t) : a • s ⊆ a • t := image_subset _ h
+@[to_additive] lemma smul_set_mono : s ⊆ t → a • s ⊆ a • t := image_subset _
+@[to_additive] lemma smul_set_subset_iff : a • s ⊆ t ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ t := image_subset_iff
 
 @[to_additive] lemma smul_set_union : a • (t₁ ∪ t₂) = a • t₁ ∪ a • t₂ := image_union _ _ _
 
@@ -944,11 +945,16 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 
 @[to_additive]
 instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+  smul_comm_class α β (set γ) :=
+⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+
+@[to_additive]
+instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (set β) (set γ) :=
 ⟨λ _ _ _, image_image2_distrib_right $ smul_comm _⟩
 
 @[to_additive]
-instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_set'' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) β (set γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
@@ -1181,7 +1187,7 @@ end smul_with_zero
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
-lemma pairwise_disjoint_smul_iff :
+@[to_additive] lemma pairwise_disjoint_smul_iff :
   s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 

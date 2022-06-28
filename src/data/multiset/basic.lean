@@ -1415,6 +1415,10 @@ begin
   { rw [filter_cons_of_neg _ h, zero_add] },
 end
 
+lemma filter_singleton {a : α} (p : α → Prop) [decidable_pred p] :
+  filter p {a} = if p a then {a} else ∅ :=
+by simp only [singleton, filter_cons, filter_zero, add_zero, empty_eq_zero]
+
 lemma filter_nsmul (s : multiset α) (n : ℕ) :
   filter p (n • s) = n • filter p s :=
 begin

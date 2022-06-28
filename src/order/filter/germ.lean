@@ -333,6 +333,12 @@ instance [comm_monoid M] : comm_monoid (germ l M) :=
   one := 1,
   .. germ.comm_semigroup, .. germ.monoid }
 
+instance [add_monoid_with_one M] : add_monoid_with_one (germ l M) :=
+{ nat_cast := λ n, ↑(n : M),
+  nat_cast_zero := congr_arg coe nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg coe (nat.cast_succ _),
+  .. germ.has_one, .. germ.add_monoid }
+
 @[to_additive]
 instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
 
@@ -390,7 +396,8 @@ instance [distrib R] : distrib (germ l R) :=
   right_distrib := λ f g h, induction_on₃ f g h $ λ f g h, by { norm_cast, rw [right_distrib] } }
 
 instance [semiring R] : semiring (germ l R) :=
-{ .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+{ .. germ.add_comm_monoid, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class,
+  .. germ.add_monoid_with_one }
 
 /-- Coercion `(α → R) → germ l R` as a `ring_hom`. -/
 def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
@@ -399,7 +406,7 @@ def coe_ring_hom [semiring R] (l : filter α) : (α → R) →+* germ l R :=
 @[simp] lemma coe_coe_ring_hom [semiring R] : (coe_ring_hom l : (α → R) → germ l R) = coe := rfl
 
 instance [ring R] : ring (germ l R) :=
-{ .. germ.add_comm_group, .. germ.monoid, .. germ.distrib, .. germ.mul_zero_class }
+{ .. germ.add_comm_group, .. germ.semiring }
 
 instance [comm_semiring R] : comm_semiring (germ l R) :=
 { .. germ.semiring, .. germ.comm_monoid }

@@ -310,7 +310,7 @@ end
 
 variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α}
 
-lemma pi_system_indep_insert {π : ι → set (set α)} {a : ι} {S : finset ι}
+lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set α)} {a : ι} {S : finset ι}
   (hp_ind : Indep_sets π μ) (haS : a ∉ S) :
   indep_sets (pi_Union_Inter π {S}) (π a) μ :=
 begin
@@ -362,7 +362,7 @@ begin
     have h_le' : ∀ i, generate_from (π i) ≤ m0 := λ i, (h_generate i).symm.trans_le (h_le i),
     have hm_p : m_p ≤ m0 := generate_from_pi_Union_Inter_le π h_le' {S},
     exact indep_sets.indep hm_p (h_le a) hp (h_pi a) hS_eq_generate (h_generate a)
-      (pi_system_indep_insert h_ind ha_notin_S), },
+      (h_ind.pi_Union_Inter_singleton ha_notin_S), },
   refine h_indep.symm (f a) (⋂ n ∈ S, f n) (hf_m a (finset.mem_insert_self a S)) _,
   have h_le_p : ∀ i ∈ S, m i ≤ m_p,
   { intros n hn,

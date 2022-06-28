@@ -220,7 +220,7 @@ nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)
 @[to_additive] lemma relindex_le_of_le_right (hKL : K ≤ L) (hHL : H.relindex L ≠ 0) :
   H.relindex K ≤ H.relindex L :=
 cardinal.to_nat_le_of_le_of_lt_aleph_0 (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hHL))
-  (cardinal.mk_le_of_injective (quotient_subgroup_of_embedding_of_le H hKL).2)
+  (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le
 
 @[to_additive] lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=

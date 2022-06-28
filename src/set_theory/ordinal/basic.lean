@@ -696,22 +696,23 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
   enum s o (by {convert hr using 1, apply quotient.sound, exact ⟨f.symm⟩ }) :=
 rel_iso_enum' _ _ _ _
 
-theorem lt_wf : @well_founded ordinal (<) :=
-⟨λ a, induction_on a $ λ α r wo, by exactI
-suffices ∀ a, acc (<) (typein r a), from
-⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
-λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
-  rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
-  exact IH _ ((typein_lt_typein r).1 h)
-end⟩⟩
+instance : well_founded_lt ordinal :=
+{ wf := ⟨λ a, induction_on a $ λ α r wo, by exactI
+    suffices ∀ a, acc (<) (typein r a), from
+    ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
+    λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
+      rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
+      exact IH _ ((typein_lt_typein r).1 h)
+  end⟩⟩ }
 
-instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
+instance : has_well_founded ordinal := well_founded_lt.has_well_founded
 
 /-- Reformulation of well founded induction on ordinals as a lemma that works with the
 `induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
+-- TODO (Vi): replace in favor of `well_founded_lt.induction`.
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
-lt_wf.induction i h
+well_founded_lt.induction i h
 
 /-- Principal segment version of the `typein` function, embedding a well order into
   ordinals as a principal segment. -/
@@ -1041,8 +1042,6 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := ⟨lt_wf⟩
-
 private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (induction_on a $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
   λ _ _, sum.lex_inl_inl⟩,
@@ -1182,13 +1181,13 @@ by simp only [lift.principal_seg_top, univ_id]
 
 /-- The minimal element of a nonempty family of ordinals -/
 def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-lt_wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
+well_founded_lt.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
 
 theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
-let ⟨i, e⟩ := lt_wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
+let ⟨i, e⟩ := well_founded_lt.min_mem (set.range f) _ in ⟨i, e.symm⟩
 
 theorem min_le {ι I} (f : ι → ordinal) (i) : min I f ≤ f i :=
-le_of_not_gt $ lt_wf.not_lt_min (set.range f) _ (set.mem_range_self i)
+le_of_not_gt $ well_founded_lt.not_lt_min (set.range f) _ (set.mem_range_self i)
 
 theorem le_min {ι I} {f : ι → ordinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
 ⟨λ h i, le_trans h (min_le _ _),

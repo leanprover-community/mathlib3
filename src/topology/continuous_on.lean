@@ -117,6 +117,9 @@ mem_inf_of_left h
 theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ 𝓝[s] a :=
 mem_inf_of_right (mem_principal_self s)
 
+theorem eventually_mem_nhds_within {a : α} {s : set α} : ∀ᶠ x in 𝓝[s] a, x ∈ s :=
+self_mem_nhds_within
+
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ 𝓝[s] a :=
 inter_mem self_mem_nhds_within (mem_inf_of_left h)

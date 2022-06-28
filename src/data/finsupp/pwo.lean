@@ -29,7 +29,7 @@ Dickson, order, partial well order
 ordered, when `σ` is a `fintype` and `α` is a linear well order.
 This version uses finsupps on a fintype as it is intended for use with `mv_power_series`.
 -/
-lemma finsupp.is_pwo {α σ : Type*} [has_zero α] [linear_order α] [is_well_order α (<)] [fintype σ]
+lemma finsupp.is_pwo {α σ : Type*} [has_zero α] [linear_order α] [well_founded_lt α] [fintype σ]
   (S : set (σ →₀ α)) : S.is_pwo :=
 begin
   rw ← finsupp.equiv_fun_on_fintype.symm.image_preimage S,

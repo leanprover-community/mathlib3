@@ -134,7 +134,7 @@ open_locale classical
 
 /-- A well founded linear order is conditionally complete, with a bottom element. -/
 @[reducible] noncomputable def is_well_order.conditionally_complete_linear_order_bot
-  (α : Type*) [i₁ : linear_order α] [i₂ : order_bot α] [h : is_well_order α (<)] :
+  (α : Type*) [i₁ : linear_order α] [i₂ : order_bot α] [h : well_founded_lt α] :
   conditionally_complete_linear_order_bot α :=
 { Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
@@ -629,7 +629,7 @@ lemma exists_lt_of_cinfi_lt [nonempty ι] {f : ι → α} (h : infi f < a) : ∃
 @exists_lt_of_lt_csupr αᵒᵈ _ _ _ _ _ h
 
 open function
-variables [is_well_order α (<)]
+variables [well_founded_lt α]
 
 lemma Inf_eq_argmin_on (hs : s.nonempty) : Inf s = argmin_on id (@is_well_order.wf α (<) _) s hs :=
 is_least.cInf_eq ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩

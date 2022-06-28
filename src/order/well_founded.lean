@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import tactic.by_contra
 import data.set.basic
-import order.bounds
 
 /-!
 # Well-founded relations

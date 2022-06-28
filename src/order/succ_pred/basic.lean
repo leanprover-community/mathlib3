@@ -982,7 +982,7 @@ section is_well_order
 variables [linear_order α]
 
 @[priority 100]
-instance is_well_order.to_is_pred_archimedean [h : is_well_order α (<)] [pred_order α] :
+instance is_well_order.to_is_pred_archimedean [h : well_founded_lt α] [pred_order α] :
   is_pred_archimedean α :=
 ⟨λ a, begin
   refine well_founded.fix h.wf (λ b ih hab, _),
@@ -997,7 +997,7 @@ instance is_well_order.to_is_pred_archimedean [h : is_well_order α (<)] [pred_o
 end⟩
 
 @[priority 100]
-instance is_well_order.to_is_succ_archimedean [h : is_well_order α (>)] [succ_order α] :
+instance is_well_order.to_is_succ_archimedean [h : well_founded_gt α] [succ_order α] :
   is_succ_archimedean α :=
 by convert @order_dual.is_succ_archimedean αᵒᵈ _ _ _
 

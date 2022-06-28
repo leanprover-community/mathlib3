@@ -97,7 +97,7 @@ end
 lemma hitting_mem_Icc {m : ι} (hnm : n ≤ m) (x : α) : hitting u s n m x ∈ set.Icc n m :=
 ⟨le_hitting hnm x, hitting_le x⟩
 
-lemma hitting_mem_set [is_well_order ι (<)] {m : ι} (h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s) :
+lemma hitting_mem_set [well_founded_lt ι] {m : ι} (h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s) :
   u (hitting u s n m x) x ∈ s :=
 begin
   simp_rw [hitting, if_pos h_exists],
@@ -117,7 +117,7 @@ begin
   exact cInf_le (bdd_below.inter_of_left bdd_below_Icc) (set.mem_inter ⟨hin, him⟩ his),
 end
 
-lemma hitting_le_iff_of_exists [is_well_order ι (<)] {m : ι}
+lemma hitting_le_iff_of_exists [well_founded_lt ι] {m : ι}
   (h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s) :
   hitting u s n m x ≤ i ↔ ∃ j ∈ set.Icc n i, u j x ∈ s :=
 begin
@@ -133,7 +133,7 @@ begin
     exact hitting_le_of_mem hk₁.1 (hk₁.2.trans (min_le_left _ _)) hk₂, },
 end
 
-lemma hitting_le_iff_of_lt [is_well_order ι (<)] {m : ι} (i : ι) (hi : i < m) :
+lemma hitting_le_iff_of_lt [well_founded_lt ι] {m : ι} (i : ι) (hi : i < m) :
   hitting u s n m x ≤ i ↔ ∃ j ∈ set.Icc n i, u j x ∈ s :=
 begin
   by_cases h_exists : ∃ j ∈ set.Icc n m, u j x ∈ s,
@@ -144,7 +144,7 @@ begin
     exact λ k hkn hki, h_exists k ⟨hkn, hki.trans hi.le⟩, },
 end
 
-lemma hitting_lt_iff [is_well_order ι (<)] {m : ι} (i : ι) (hi : i ≤ m) :
+lemma hitting_lt_iff [well_founded_lt ι] {m : ι} (i : ι) (hi : i ≤ m) :
   hitting u s n m x < i ↔ ∃ j ∈ set.Ico n i, u j x ∈ s :=
 begin
   split; intro h',
@@ -162,7 +162,7 @@ end inequalities
 
 /-- A discrete hitting time is a stopping time. -/
 lemma hitting_is_stopping_time
-  [conditionally_complete_linear_order ι] [is_well_order ι (<)] [encodable ι]
+  [conditionally_complete_linear_order ι] [well_founded_lt ι] [encodable ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   {f : filtration ι m} {u : ι → α → β} {s : set β} {n n' : ι}
   (hu : adapted f u) (hs : measurable_set s) :
@@ -199,7 +199,7 @@ end complete_lattice
 
 section conditionally_complete_linear_order_bot
 
-variables [conditionally_complete_linear_order_bot ι] [is_well_order ι (<)]
+variables [conditionally_complete_linear_order_bot ι] [well_founded_lt ι]
 variables {u : ι → α → β} {s : set β} {f : filtration ℕ m}
 
 lemma hitting_bot_le_iff {i n : ι} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :

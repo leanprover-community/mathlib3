@@ -248,7 +248,7 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
 /-- Derive a `has_well_founded` instance from a `is_well_order` instance. -/
-def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
+def is_well_order.to_has_well_founded [has_lt α] [hwo : well_founded_lt α] :
   has_well_founded α := { r := (<), wf := hwo.wf }
 
 -- This isn't made into an instance as it loops with `is_irrefl α r`.
@@ -507,5 +507,5 @@ instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒ
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := { wf := nat.lt_wf }
 
-instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
-instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h
+instance [linear_order α] [h : well_founded_lt α] : is_well_order αᵒᵈ (>) := h
+instance [linear_order α] [h : well_founded_gt α] : is_well_order αᵒᵈ (<) := h

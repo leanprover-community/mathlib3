@@ -416,7 +416,7 @@ protected theorem well_founded :
   well_founded ((<) : β → β → Prop) → well_founded ((<) : α → α → Prop) :=
 f.lt_embedding.well_founded
 
-protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
+protected theorem is_well_order [well_founded_lt β] : well_founded_lt α :=
 f.lt_embedding.is_well_order
 
 /-- An order embedding is also an order embedding between dual orders. -/

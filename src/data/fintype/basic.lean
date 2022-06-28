@@ -1841,11 +1841,11 @@ lemma preorder.well_founded_gt [fintype α] [preorder α] : well_founded ((>) : 
 well_founded_of_trans_of_irrefl _
 
 @[instance, priority 10] lemma linear_order.is_well_order_lt [fintype α] [linear_order α] :
-  is_well_order α (<) :=
+  well_founded_lt α :=
 { wf := preorder.well_founded_lt }
 
 @[instance, priority 10] lemma linear_order.is_well_order_gt [fintype α] [linear_order α] :
-  is_well_order α (>) :=
+  well_founded_gt α :=
 { wf := preorder.well_founded_gt }
 
 end fintype

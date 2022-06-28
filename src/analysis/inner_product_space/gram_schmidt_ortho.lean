@@ -41,7 +41,7 @@ open_locale big_operators
 open finset
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables {ι : Type*} [linear_order ι] [locally_finite_order_bot ι] [is_well_order ι (<)]
+variables {ι : Type*} [linear_order ι] [locally_finite_order_bot ι] [well_founded_lt ι]
 
 local attribute [instance] is_well_order.to_has_well_founded
 
@@ -65,7 +65,7 @@ lemma gram_schmidt_def' (f : ι → E) (n : ι):
 by rw [gram_schmidt_def, sub_add_cancel]
 
 @[simp] lemma gram_schmidt_zero {ι : Type*} [linear_order ι] [locally_finite_order ι]
-  [order_bot ι] [is_well_order ι (<)] (f : ι → E) : gram_schmidt 𝕜 f ⊥ = f ⊥ :=
+  [order_bot ι] [well_founded_lt ι] (f : ι → E) : gram_schmidt 𝕜 f ⊥ = f ⊥ :=
 by rw [gram_schmidt_def, Iio_eq_Ico, finset.Ico_self, finset.sum_empty, sub_zero]
 
 /-- **Gram-Schmidt Orthogonalisation**:

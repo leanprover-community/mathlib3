@@ -410,14 +410,16 @@ lt_succ_iff_not_is_max.trans not_is_max_iff_ne_top
 end order_top
 
 section order_bot
-variables [order_bot α] [nontrivial α]
+variable [order_bot α]
+
+lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
+
+variable [nontrivial α]
 
 lemma bot_lt_succ (a : α) : ⊥ < succ a :=
 (lt_succ_of_not_is_max not_is_max_bot).trans_le $ succ_mono bot_le
 
 lemma succ_ne_bot (a : α) : succ a ≠ ⊥ := (bot_lt_succ a).ne'
-
-lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
 
 end order_bot
 end partial_order
@@ -686,14 +688,16 @@ variables [order_bot α]
 end order_bot
 
 section order_top
-variables [order_top α] [nontrivial α]
+variables [order_top α]
+
+lemma is_pred_limit_top : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
+
+variable [nontrivial α]
 
 lemma pred_lt_top (a : α) : pred a < ⊤ :=
 (pred_mono le_top).trans_lt $ pred_lt_of_not_is_min not_is_min_top
 
 lemma pred_ne_top (a : α) : pred a ≠ ⊤ := (pred_lt_top a).ne
-
-lemma is_pred_limit_top : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
 
 end order_top
 end partial_order

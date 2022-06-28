@@ -277,8 +277,8 @@ is_well_founded.not_lt_min (inv_image (>) f) s hx
   f x ≤ f (argmax_on f s ⟨x, hx⟩) :=
 le_of_not_lt $ not_argmax_on_lt f s hx
 
-/-- Given a function `f : α → β` where `β` carries a well-founded `<`, this is an element of `α`
-whose image under `f` is minimal in the sense of `function.not_lt_argmin`. -/
+/-- Given a function `f : α → β` where `β` carries a well-founded `>`, this is an element of `α`
+whose image under `f` is maximal in the sense of `function.not_argmax_lt`. -/
 noncomputable def argmax [has_lt β] [well_founded_gt β] [nonempty α] : α :=
 argmax_on f set.univ set.univ_nonempty
 

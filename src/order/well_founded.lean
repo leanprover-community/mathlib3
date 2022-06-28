@@ -18,8 +18,11 @@ and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `
 
 ## Todo
 
+The following to-do's apply to `well_founded_gt` as well.
+
 - Define `succ` on `well_founded_lt`, build a `succ_order` instance depending on whether we have a
-`no_top_order` or an `order_top`. Similarly for `well_founded_gt`.
+`no_top_order` or an `order_top`.
+- Define `sup` on `well_founded_lt`, prove `is_glb (sup s _)` on linear orders.
 - Rewrite `has_min` in terms of `minimals`. This will require us to change `r b a → a = b` to
 `r a b → r b a` in said definition. We can prove the equivalence with the current definition for an
 irreflexive relation.
@@ -141,6 +144,8 @@ instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt α�
 @[priority 100] -- See note [lower instance priority]
 instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := { ..h }
 
+instance : well_founded_lt ℕ := {}
+
 namespace well_founded_lt
 
 theorem lt_wf [has_lt α] [well_founded_lt α] : @well_founded α (<) :=
@@ -219,7 +224,7 @@ variable (f : α → β)
 /-- Given a function `f : α → β` where `β` carries a well-founded `<`, and a non-empty subset `s`
 of `α`, this is an element of `s` whose image under `f` is minimal in the sense of
 `function.not_lt_argmin_on`. -/
-noncomputable def argmin_on  [has_lt β] [well_founded_lt β] (s : set α) (hs : s.nonempty) : α :=
+noncomputable def argmin_on [has_lt β] [well_founded_lt β] (s : set α) (hs : s.nonempty) : α :=
 is_well_founded.min (inv_image (<) f) s hs
 
 @[simp] lemma argmin_on_mem [has_lt β] [well_founded_lt β] (s : set α) (hs : s.nonempty) :

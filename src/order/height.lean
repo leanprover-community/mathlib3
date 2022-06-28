@@ -42,7 +42,9 @@ universes u v
 
 namespace list
 
-variables (α : Type u) [preorder α]
+section
+
+variables (α : Type u) [has_lt α]
 
 /-- The maximal length of a strictly descending sequence in a poset. -/
 noncomputable
@@ -113,7 +115,7 @@ begin
 end
 
 @[simp]
-lemma chain_height_eq_zero_iff (a : α) : chain_height a = 0 ↔ is_min a :=
+lemma chain_height_eq_zero_iff {α : Type u} [preorder α] (a : α) : chain_height a = 0 ↔ is_min a :=
 begin
   rw ← not_iff_not,
   delta is_min,
@@ -158,7 +160,7 @@ begin
   simp
 end
 
-lemma chain_height_monotone : monotone (chain_height : α → enat) :=
+lemma chain_height_monotone {α : Type u} [preorder α] : monotone (chain_height : α → enat) :=
 begin
   intros a b r,
   apply supr_le,
@@ -195,7 +197,7 @@ begin
   { exact supr_le chain_height_le_sup_chain_length }
 end
 
-lemma sup_chain_length_eq_chain_height_bot [order_top α] :
+lemma sup_chain_length_eq_chain_height_bot {α : Type u} [preorder α] [order_top α] :
   sup_chain_length α = chain_height (⊤ : α) + 1 :=
 begin
   rw [sup_chain_length_eq_sup_chain_height, enat.supr_add],
@@ -203,7 +205,7 @@ begin
   exact le_antisymm (supr_le $ λ x, chain_height_monotone le_top) (le_supr chain_height ⊤)
 end
 
-lemma sup_chain_length_dual : sup_chain_length αᵒᵈ = sup_chain_length α :=
+lemma sup_chain_length_dual {α : Type u} [preorder α] : sup_chain_length αᵒᵈ = sup_chain_length α :=
 begin
   suffices : ∀ (α : Type u) [preorder α], by exactI sup_chain_length α ≤ sup_chain_length αᵒᵈ,
   { exact le_antisymm (this αᵒᵈ) (this α) },
@@ -211,11 +213,11 @@ begin
   apply supr_le,
   rintro ⟨l, hl⟩,
   refine le_trans _ (le_supr _ _),
-  { exact ⟨l.reverse, by simpa [chain'_iff_pairwise transitive_gt] using hl⟩ },
+  { exactI ⟨l.reverse, by simpa [chain'_iff_pairwise transitive_gt] using hl⟩ },
   { simp }
 end
 
-lemma chain_height_add_chain_height_dual_le (a : α) :
+lemma chain_height_add_chain_height_dual_le {α : Type u} [preorder α] (a : α) :
   chain_height a + @chain_height αᵒᵈ _ a + 1 ≤ sup_chain_length α :=
 begin
   cases eq_or_ne (chain_height a) ⊤ with h₁ h₁,
@@ -244,7 +246,9 @@ begin
     simpa [add_comm l₁.length l₂.length, ← add_assoc] }
 end
 
-variables {β : Type v} [partial_order β] {f : α → β}
+end
+
+variables {α : Type u} [preorder α] {β : Type v} [preorder β] {f : α → β}
 
 lemma chain_height_le_of_strict_mono (hf : strict_mono f) (a : α) :
   chain_height a ≤ chain_height (f a) :=

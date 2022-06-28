@@ -47,6 +47,8 @@ begin
     simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
+@[simp] lemma infi_eq_zero {ι} {f : ι → ℕ} : infi f = 0 ↔ 0 ∈ range f ∨ range f = ∅ := Inf_eq_zero
+
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
 by { rw Inf_eq_zero, right, refl }
 

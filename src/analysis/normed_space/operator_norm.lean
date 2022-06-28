@@ -436,7 +436,7 @@ omit σ₁₃
 /-- Continuous linear maps form a seminormed ring with respect to the operator norm. -/
 instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := λ f g, op_norm_comp_le f g,
-  .. continuous_linear_map.to_semi_normed_group }
+  .. continuous_linear_map.to_semi_normed_group, .. continuous_linear_map.ring }
 
 /-- For a normed space `E`, continuous linear endomorphisms form a normed algebra with
 respect to the operator norm. -/
@@ -1232,8 +1232,7 @@ normed_group.of_core _ ⟨λ f, op_norm_zero_iff f, op_norm_add_le, op_norm_neg�
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
-{ norm_mul := op_norm_comp_le,
-  .. continuous_linear_map.to_normed_group }
+{ .. continuous_linear_map.to_normed_group, .. continuous_linear_map.to_semi_normed_ring }
 
 variable {f}
 

@@ -492,7 +492,7 @@ disjoint_left.2 $ λ y hy, not_mem_of_dist_lt_inf_dist $
   ... < inf_dist x s : hy
 
 lemma ball_inf_dist_subset_compl : ball x (inf_dist x s) ⊆ sᶜ :=
-disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
+disjoint_ball_inf_dist.subset_compl_right
 
 lemma ball_inf_dist_compl_subset : ball x (inf_dist x sᶜ) ⊆ s :=
 ball_inf_dist_subset_compl.trans (compl_compl s).subset

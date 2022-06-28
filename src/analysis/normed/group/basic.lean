@@ -128,6 +128,10 @@ by rw [dist_eq_norm, sub_zero]
 @[simp] lemma dist_zero_left : dist (0 : E) = norm :=
 funext $ λ g, by rw [dist_comm, dist_zero_right]
 
+lemma isometry.norm_map_of_map_zero {f : E → F} (hi : isometry f) (h0 : f 0 = 0) (x : E) :
+  ∥f x∥ = ∥x∥ :=
+by rw [←dist_zero_right, ←h0, hi.dist_eq, dist_zero_right]
+
 lemma tendsto_norm_cocompact_at_top [proper_space E] :
   tendsto norm (cocompact E) at_top :=
 by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0 : E)
@@ -367,15 +371,6 @@ ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 
 lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
 ne_zero_of_mem_sphere one_ne_zero _
-
-/-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
-antipodal map. -/
-instance {r : ℝ} : has_neg (sphere (0:E) r) :=
-{ neg := λ w, ⟨-↑w, by simp⟩ }
-
-@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
-  (((-v) : sphere _ _) : E) = - (v:E) :=
-rfl
 
 namespace isometric
 -- TODO This material is superseded by similar constructions such as
@@ -1021,11 +1016,6 @@ instance normed_uniform_group : uniform_add_group E :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group E :=
 by apply_instance -- short-circuit type class inference
-
-lemma nat.norm_cast_le [has_one E] : ∀ n : ℕ, ∥(n : E)∥ ≤ n * ∥(1 : E)∥
-| 0 := by simp
-| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
-                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
 
 lemma semi_normed_group.mem_closure_iff {s : set E} {x : E} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=

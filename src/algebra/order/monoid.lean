@@ -243,9 +243,11 @@ instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_o
 
 instance [preorder α] : order_bot (with_zero α) := with_bot.order_bot
 
-lemma zero_le [partial_order α] (a : with_zero α) : 0 ≤ a := order_bot.bot_le a
+lemma zero_le [preorder α] (a : with_zero α) : 0 ≤ a := bot_le
 
 lemma zero_lt_coe [preorder α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
+
+lemma zero_eq_bot [preorder α] : (0 : with_zero α) = ⊥ := rfl
 
 @[simp, norm_cast] lemma coe_lt_coe [preorder α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
 with_bot.coe_lt_coe
@@ -257,30 +259,28 @@ instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
 
-lemma mul_le_mul_left {α : Type u} [has_mul α] [preorder α]
+instance covariant_class_mul_le {α : Type u} [has_mul α] [preorder α]
   [covariant_class α α (*) (≤)] :
-  ∀ (a b : with_zero α),
-    a ≤ b → ∀ (c : with_zero α), c * a ≤ c * b :=
+  covariant_class (with_zero α) (with_zero α) (*) (≤) :=
 begin
-  rintro (_ | a) (_ | b) h (_ | c);
-  try { exact λ f hf, option.no_confusion hf },
-  { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
-  { simp_rw [some_eq_coe] at h ⊢,
-    norm_cast at h ⊢,
-    exact covariant_class.elim _ h }
+  refine ⟨λ a b c hbc, _⟩,
+  induction a using with_zero.rec_zero_coe, { exact zero_le _ },
+  induction b using with_zero.rec_zero_coe, { exact zero_le _ },
+  rcases with_bot.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
+  rw [← coe_mul, ← coe_mul, coe_le_coe],
+  exact mul_le_mul_left' hbc' a
 end
 
-lemma lt_of_mul_lt_mul_left {α : Type u} [has_mul α] [partial_order α]
+instance contravariant_class_mul_lt {α : Type u} [has_mul α] [partial_order α]
   [contravariant_class α α (*) (<)] :
-  ∀ (a b c : with_zero α), a * b < a * c → b < c :=
+  contravariant_class (with_zero α) (with_zero α) (*) (<) :=
 begin
-  rintro (_ | a) (_ | b) (_ | c) h;
-  try { exact false.elim (lt_irrefl _ h) },
-  { exact with_zero.zero_lt_coe c },
-  { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
-  { simp_rw [some_eq_coe] at h ⊢,
-    norm_cast at h ⊢,
-    apply lt_of_mul_lt_mul_left' h }
+  refine ⟨λ a b c h, _⟩,
+  have := ((zero_le _).trans_lt h).ne',
+  lift a to α using left_ne_zero_of_mul this,
+  lift c to α using right_ne_zero_of_mul this,
+  induction b using with_zero.rec_zero_coe,
+  exacts [zero_lt_coe _, coe_lt_coe.mpr (lt_of_mul_lt_mul_left' $ coe_lt_coe.mp h)]
 end
 
 @[simp] lemma le_max_iff [linear_order α] {a b c : α} :
@@ -292,9 +292,27 @@ by simp only [with_zero.coe_le_coe, le_max_iff]
 by simp only [with_zero.coe_le_coe, min_le_iff]
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
-{ mul_le_mul_left := with_zero.mul_le_mul_left,
+{ mul_le_mul_left := λ _ _, mul_le_mul_left',
   ..with_zero.comm_monoid_with_zero,
   ..with_zero.partial_order }
+
+protected lemma covariant_class_add_le [add_zero_class α] [preorder α]
+  [covariant_class α α (+) (≤)] (h : ∀ a : α, 0 ≤ a) :
+  covariant_class (with_zero α) (with_zero α) (+) (≤) :=
+begin
+  refine ⟨λ a b c hbc, _⟩,
+  induction a using with_zero.rec_zero_coe,
+  { rwa [zero_add, zero_add] },
+  induction b using with_zero.rec_zero_coe,
+  { rw [add_zero],
+    induction c using with_zero.rec_zero_coe,
+    { rw [add_zero], exact le_rfl },
+    { rw [← coe_add, coe_le_coe],
+      exact le_add_of_nonneg_right (h _) } },
+  { rcases with_bot.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
+    rw [← coe_add, ← coe_add, coe_le_coe],
+    exact add_le_add_left hbc' a }
+end
 
 /-
 Note 1 : the below is not an instance because it requires `zero_le`. It seems
@@ -310,25 +328,9 @@ See note [reducible non-instances].
 -/
 @[reducible] protected def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
-begin
-  suffices, refine
-  { add_le_add_left := this,
-    ..with_zero.partial_order,
-    ..with_zero.add_comm_monoid, .. },
-  { intros a b h c ca h₂,
-    cases b with b,
-    { rw le_antisymm h bot_le at h₂,
-      exact ⟨_, h₂, le_rfl⟩ },
-    cases a with a,
-    { change c + 0 = some ca at h₂,
-      simp at h₂, simp [h₂],
-      exact ⟨_, rfl, by simpa using add_le_add_left (zero_le b) _⟩ },
-    { simp at h,
-      cases c with c; change some _ = _ at h₂;
-        simp [-add_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
-      { exact h },
-      { exact add_le_add_left h _ } } }
-end
+{ add_le_add_left := @add_le_add_left _ _ _ (with_zero.covariant_class_add_le zero_le),
+  ..with_zero.partial_order,
+  ..with_zero.add_comm_monoid, .. }
 
 end with_zero
 
@@ -411,7 +413,7 @@ iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 @[to_additive] lemma eq_one_or_one_lt : a = 1 ∨ 1 < a :=
 (one_le a).eq_or_lt.imp_left eq.symm
 
-@[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=
+@[to_additive] lemma exists_one_lt_mul_of_lt (h : a < b) : ∃ c (hc : 1 < c), a * c = b :=
 begin
   obtain ⟨c, hc⟩ := le_iff_exists_mul.1 h.le,
   refine ⟨c, one_lt_iff_ne_one.2 _, hc.symm⟩,
@@ -885,106 +887,105 @@ by { induction x using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_a
 @[simp] lemma coe_add_eq_top_iff {y : with_top α} : ↑x + y = ⊤ ↔ y = ⊤ :=
 by { induction y using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_add] }
 
-variables [preorder α]
-
-instance covariant_class_add_le [covariant_class α α (+) (≤)] :
+instance covariant_class_add_le [has_le α] [covariant_class α α (+) (≤)] :
   covariant_class (with_top α) (with_top α) (+) (≤) :=
 ⟨λ a b c h, begin
   cases a; cases c; try { exact le_top },
-  cases b,
-  { exact (not_top_le_coe _ h).elim },
-  { exact some_le_some.2 (add_le_add_left (some_le_some.1 h) _) }
+  rcases le_coe_iff.1 h with ⟨b, rfl, h'⟩,
+  exact coe_le_coe.2 (add_le_add_left (coe_le_coe.1 h) _)
 end⟩
 
-instance covariant_class_swap_add_le [covariant_class α α (swap (+)) (≤)] :
+instance covariant_class_swap_add_le [has_le α] [covariant_class α α (swap (+)) (≤)] :
   covariant_class (with_top α) (with_top α) (swap (+)) (≤) :=
 ⟨λ a b c h, begin
   cases a; cases c; try { exact le_top },
-  cases b,
-  { exact (not_top_le_coe _ h).elim },
-  { exact some_le_some.2 (add_le_add_right (some_le_some.1 h) _) }
+  rcases le_coe_iff.1 h with ⟨b, rfl, h'⟩,
+  exact coe_le_coe.2 (add_le_add_right (coe_le_coe.1 h) _)
 end⟩
 
-instance contravariant_class_add_lt [contravariant_class α α (+) (<)] :
+instance contravariant_class_add_lt [has_lt α] [contravariant_class α α (+) (<)] :
   contravariant_class (with_top α) (with_top α) (+) (<) :=
 ⟨λ a b c h, begin
-  cases a; cases b; try { exact (not_top_lt h).elim },
-  cases c,
+  induction a using with_top.rec_top_coe, { exact (not_none_lt _ h).elim },
+  induction b using with_top.rec_top_coe, { exact (not_none_lt _ h).elim },
+  induction c using with_top.rec_top_coe,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (lt_of_add_lt_add_left $ some_lt_some.1 h) }
+  { exact coe_lt_coe.2 (lt_of_add_lt_add_left $ coe_lt_coe.1 h) }
 end⟩
 
-instance contravariant_class_swap_add_lt [contravariant_class α α (swap (+)) (<)] :
+instance contravariant_class_swap_add_lt [has_lt α] [contravariant_class α α (swap (+)) (<)] :
   contravariant_class (with_top α) (with_top α) (swap (+)) (<) :=
 ⟨λ a b c h, begin
-  cases a; cases b; try { exact (not_top_lt h).elim },
+  cases a; cases b; try { exact (not_none_lt _ h).elim },
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (lt_of_add_lt_add_right $ some_lt_some.1 h) }
+  { exact coe_lt_coe.2 (lt_of_add_lt_add_right $ coe_lt_coe.1 h) }
 end⟩
 
-protected lemma le_of_add_le_add_left [contravariant_class α α (+) (≤)] (ha : a ≠ ⊤)
+protected lemma le_of_add_le_add_left [has_le α] [contravariant_class α α (+) (≤)] (ha : a ≠ ⊤)
   (h : a + b ≤ a + c) : b ≤ c :=
 begin
   lift a to α using ha,
-  cases c; try {exact le_top},
-  cases b, exact (not_top_le_coe _ h).elim,
-  simp only [some_eq_coe, ← coe_add, coe_le_coe] at h, rw some_le_some,
+  induction c using with_top.rec_top_coe, { exact le_top },
+  induction b using with_top.rec_top_coe, { exact (not_top_le_coe _ h).elim },
+  simp only [← coe_add, coe_le_coe] at h ⊢,
   exact le_of_add_le_add_left h
 end
 
-protected lemma le_of_add_le_add_right [contravariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤)
-  (h : b + a ≤ c + a) : b ≤ c :=
+protected lemma le_of_add_le_add_right [has_le α] [contravariant_class α α (swap (+)) (≤)]
+  (ha : a ≠ ⊤) (h : b + a ≤ c + a) : b ≤ c :=
 begin
   lift a to α using ha,
   cases c,
   { exact le_top },
   cases b,
   { exact (not_top_le_coe _ h).elim },
-  { exact some_le_some.2 (le_of_add_le_add_right $ some_le_some.1 h) }
+  { exact coe_le_coe.2 (le_of_add_le_add_right $ coe_le_coe.1 h) }
 end
 
-protected lemma add_lt_add_left [covariant_class α α (+) (<)] (ha : a ≠ ⊤) (h : b < c) :
+protected lemma add_lt_add_left [has_lt α] [covariant_class α α (+) (<)] (ha : a ≠ ⊤) (h : b < c) :
   a + b < a + c :=
 begin
   lift a to α using ha,
-  lift b to α using (h.trans_le le_top).ne,
+  rcases lt_iff_exists_coe.1 h with ⟨b, rfl, h'⟩,
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (add_lt_add_left (some_lt_some.1 h) _) }
+  { exact coe_lt_coe.2 (add_lt_add_left (coe_lt_coe.1 h) _) }
 end
 
-protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
+protected lemma add_lt_add_right [has_lt α] [covariant_class α α (swap (+)) (<)]
+  (ha : a ≠ ⊤) (h : b < c) :
   b + a < c + a :=
 begin
   lift a to α using ha,
-  lift b to α using (h.trans_le le_top).ne,
+  rcases lt_iff_exists_coe.1 h with ⟨b, rfl, h'⟩,
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (add_lt_add_right (some_lt_some.1 h) _) }
+  { exact coe_lt_coe.2 (add_lt_add_right (coe_lt_coe.1 h) _) }
 end
 
-protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
+protected lemma add_le_add_iff_left [has_le α] [covariant_class α α (+) (≤)]
+  [contravariant_class α α (+) (≤)]
   (ha : a ≠ ⊤) : a + b ≤ a + c ↔ b ≤ c :=
 ⟨with_top.le_of_add_le_add_left ha, λ h, add_le_add_left h a⟩
 
-protected lemma add_le_add_iff_right [covariant_class α α (swap (+)) (≤)]
+protected lemma add_le_add_iff_right [has_le α] [covariant_class α α (swap (+)) (≤)]
   [contravariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤) : b + a ≤ c + a ↔ b ≤ c :=
 ⟨with_top.le_of_add_le_add_right ha, λ h, add_le_add_right h a⟩
 
-protected lemma add_lt_add_iff_left [covariant_class α α (+) (<)] [contravariant_class α α (+) (<)]
-  (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
+protected lemma add_lt_add_iff_left [has_lt α] [covariant_class α α (+) (<)]
+  [contravariant_class α α (+) (<)] (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
 ⟨lt_of_add_lt_add_left, with_top.add_lt_add_left ha⟩
 
-protected lemma add_lt_add_iff_right [covariant_class α α (swap (+)) (<)]
+protected lemma add_lt_add_iff_right [has_lt α] [covariant_class α α (swap (+)) (<)]
   [contravariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) : b + a < c + a ↔ b < c :=
 ⟨lt_of_add_lt_add_right, with_top.add_lt_add_right ha⟩
 
-protected lemma add_lt_add_of_le_of_lt [covariant_class α α (+) (<)]
+protected lemma add_lt_add_of_le_of_lt [preorder α] [covariant_class α α (+) (<)]
   [covariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤) (hab : a ≤ b) (hcd : c < d) : a + c < b + d :=
 (with_top.add_lt_add_left ha hcd).trans_le $ add_le_add_right hab _
 
-protected lemma add_lt_add_of_lt_of_le [covariant_class α α (+) (≤)]
+protected lemma add_lt_add_of_lt_of_le [preorder α] [covariant_class α α (+) (≤)]
   [covariant_class α α (swap (+)) (<)] (hc : c ≠ ⊤) (hab : a < b) (hcd : c ≤ d) : a + c < b + d :=
 (with_top.add_lt_add_right hc hab).trans_le $ add_le_add_left hcd _
 

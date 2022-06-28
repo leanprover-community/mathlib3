@@ -123,7 +123,7 @@ begin
     cardinal.lift_supr (cardinal.bdd_above_range.{v v} _)],
   apply csupr_mono' (cardinal.bdd_above_range.{v' v} _),
   rintro ⟨s, li⟩,
-  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
+  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
   exact (li.map' _ $ linear_map.ker_eq_bot.mpr i).image,
 end
 
@@ -153,7 +153,7 @@ begin
   refine (le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
     convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
-  { exact (cardinal.lift_mk_eq'.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
+  { exact (cardinal.lift_mk_eq.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
 end
 
 lemma dim_range_le (f : M →ₗ[R] M₁) : module.rank R f.range ≤ module.rank R M :=
@@ -505,7 +505,7 @@ begin
     -- we see they have the same cardinality.
     have w₁ :=
       infinite_basis_le_maximal_linear_independent' v _ v'.linear_independent v'.maximal,
-    rcases cardinal.lift_mk_le'.mp w₁ with ⟨f⟩,
+    rcases cardinal.lift_mk_le.mp w₁ with ⟨f⟩,
     haveI : infinite ι' := infinite.of_injective f f.2,
     have w₂ :=
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,

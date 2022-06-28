@@ -799,7 +799,7 @@ begin
   casesI fintype_or_infinite α,
   { exact extend_function_finite f h },
   { apply extend_function f, cases id h with g, haveI := infinite.of_injective _ g.injective,
-    rw [← lift_mk_eq'] at h ⊢,
+    rw [← lift_mk_eq] at h ⊢,
     rwa [mk_compl_of_infinite s hs, mk_compl_of_infinite],
     rwa [← lift_lt, mk_range_eq_of_injective f.injective, ← h, lift_lt] },
 end

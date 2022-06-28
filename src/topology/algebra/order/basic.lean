@@ -6,8 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import algebra.group_with_zero.power
 import data.set.intervals.pi
 import order.filter.interval
-import topology.algebra.group
-import topology.algebra.group_with_zero
+import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
 
@@ -1891,7 +1890,7 @@ begin
     ... ≤ 1 + ε : by ring_nf }
 end
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
 ⟨begin
   rw continuous_iff_continuous_at,
@@ -2072,7 +2071,7 @@ begin
     { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
 { continuous_at_inv₀ :=
   begin

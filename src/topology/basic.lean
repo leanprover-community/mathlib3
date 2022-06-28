@@ -605,8 +605,7 @@ lemma is_open.inter_frontier_eq_empty_of_disjoint {s t : set α} (ht : is_open t
   t ∩ frontier s = ∅ :=
 begin
   rw [inter_comm, ← subset_compl_iff_disjoint],
-  exact subset.trans frontier_subset_closure (closure_minimal (λ _, disjoint_left.1 hd)
-    (is_closed_compl_iff.2 ht))
+  exact frontier_subset_closure.trans (closure_minimal (disjoint_left.1 hd) ht.is_closed_compl),
 end
 
 lemma frontier_eq_inter_compl_interior {s : set α} :

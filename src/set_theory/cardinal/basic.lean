@@ -114,13 +114,13 @@ protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 
 @[simp] theorem mk_def (α : Type u) : @eq cardinal ⟦α⟧ (#α) := rfl
 
-@[simp] theorem mk_out (c : cardinal) : #(c.out) = c := quotient.out_eq _
+@[simp] theorem mk_out (c : cardinal) : #(c.out) = c := quotient.out_eq c
 
 /-- The representative of the cardinal of a type is equivalent ot the original type. -/
 def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
 nonempty.some $ cardinal.eq.mp (by simp)
 
-lemma mk_congr (e : α ≃ β) : # α = # β := quot.sound ⟨e⟩
+lemma mk_congr (e : α ≃ β) : #α = #β := quot.sound ⟨e⟩
 
 alias mk_congr ← equiv.cardinal_eq
 
@@ -180,16 +180,35 @@ instance : partial_order cardinal.{u} :=
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
 
-theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
-iff.rfl
+theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) := iff.rfl
 
-theorem mk_le_of_injective {α β : Type u} {f : α → β} (hf : injective f) : #α ≤ #β :=
-⟨⟨f, hf⟩⟩
+theorem mk_le_of_injective {α β : Type u} (f : α → β) (hf : injective f) : #α ≤ #β := ⟨⟨f, hf⟩⟩
 
 theorem _root_.function.embedding.cardinal_le {α β : Type u} (f : α ↪ β) : #α ≤ #β := ⟨f⟩
 
-theorem mk_le_of_surjective {α β : Type u} {f : α → β} (hf : surjective f) : #β ≤ #α :=
+theorem mk_le_of_surjective {α β : Type u} (f : α → β) (hf : surjective f) : #β ≤ #α :=
 ⟨embedding.of_surjective f hf⟩
+
+theorem lift_mk_le {α : Type u} {β : Type v} :
+  lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
+⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
+ λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
+
+theorem _root_.function.embedding.cardinal_lift_le {α : Type u} {β : Type v} (f : α ↪ β) :
+  lift.{max v w} (#α) ≤ lift.{max u w} (#β) :=
+lift_mk_le.2 ⟨f⟩
+
+theorem lift_mk_eq {α : Type u} {β : Type v} :
+  lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
+quotient.eq.trans
+⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
+ λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
+
+theorem congr_lift_mk {α : Type u} {β : Type v} (h : α ≃ β) :
+  lift.{max v w} (#α) = lift.{max u w} (#β) :=
+lift_mk_eq.2 ⟨h⟩
+
+alias congr_lift_mk ← equiv.cardinal_lift_eq
 
 theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   c ≤ #α ↔ ∃ p : set α, #p = c :=
@@ -205,33 +224,6 @@ mk_subtype_le s
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
-
-theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
-⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
- λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
-
-/-- A variant of `cardinal.lift_mk_le` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_le' {α : Type u} {β : Type v} :
-  lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
-lift_mk_le.{u v 0}
-
-theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
-quotient.eq.trans
-⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
- λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
-
-/-- A variant of `cardinal.lift_mk_eq` with specialized universes.
-Because Lean often can not realize it should use this specialization itself,
-we provide this statement separately so you don't have to solve the specialization problem either.
--/
-theorem lift_mk_eq' {α : Type u} {β : Type v} :
-  lift.{v} (#α) = lift.{u} (#β) ↔ nonempty (α ≃ β) :=
-lift_mk_eq.{u v 0}
 
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le }
@@ -542,7 +534,7 @@ begin
   refine (le_cInf_iff'' (exists_gt c)).2 (λ b hlt, _),
   rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
   cases le_of_lt hlt with f,
-  have : ¬ surjective f := λ hn, (not_le_of_lt hlt) (mk_le_of_surjective hn),
+  have : ¬ surjective f := λ hn, (not_le_of_lt hlt) (mk_le_of_surjective f hn),
   simp only [surjective, not_forall] at this,
   rcases this with ⟨b, hb⟩,
   calc #γ + 1 = #(option γ) : mk_option.symm
@@ -1226,7 +1218,7 @@ calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_fiber_equiv list.
 ... = sum (λ n : ℕ, (#α) ^ℕ n) : by simp
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=
-mk_le_of_surjective quot.exists_rep
+mk_le_of_surjective _ quot.exists_rep
 
 theorem mk_quotient_le {α : Type u} {s : setoid α} : #(quotient s) ≤ #α :=
 mk_quot_le
@@ -1250,14 +1242,14 @@ end
 mk_congr (equiv.set.univ α)
 
 theorem mk_image_le {α β : Type u} {f : α → β} {s : set α} : #(f '' s) ≤ #s :=
-mk_le_of_surjective surjective_onto_image
+mk_le_of_surjective _ surjective_onto_image
 
 theorem mk_image_le_lift {α : Type u} {β : Type v} {f : α → β} {s : set α} :
   lift.{u} (#(f '' s)) ≤ lift.{v} (#s) :=
 lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 
 theorem mk_range_le {α β : Type u} {f : α → β} : #(range f) ≤ #α :=
-mk_le_of_surjective surjective_onto_range
+mk_le_of_surjective _ surjective_onto_range
 
 theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
   lift.{u} (#(range f)) ≤ lift.{v} (#α) :=
@@ -1267,8 +1259,8 @@ lemma mk_range_eq (f : α → β) (h : injective f) : #(range f) = #α :=
 mk_congr ((equiv.of_injective f h).symm)
 
 lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{u} (#(range f)) = lift.{v} (#α) :=
-lift_mk_eq'.mpr ⟨(equiv.of_injective f hf).symm⟩
+  lift.{max u w} (#(range f)) = lift.{max v w} (#α) :=
+(equiv.of_injective f hf).symm.cardinal_lift_eq
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
   lift.{max u w} (# (range f)) = lift.{max v w} (# α) :=
@@ -1279,13 +1271,13 @@ theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injectiv
 mk_congr ((equiv.set.image f s hf).symm)
 
 theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : #(⋃ i, f i) ≤ sum (λ i, #(f i)) :=
-calc #(⋃ i, f i) ≤ #(Σ i, f i)        : mk_le_of_surjective (set.sigma_to_Union_surjective f)
+calc #(⋃ i, f i) ≤ #(Σ i, f i)        : mk_le_of_surjective _ (set.sigma_to_Union_surjective f)
               ... = sum (λ i, #(f i)) : mk_sigma _
 
-theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀i j, i ≠ j → disjoint (f i) (f j)) :
+theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀ i j, i ≠ j → disjoint (f i) (f j)) :
   #(⋃ i, f i) = sum (λ i, #(f i)) :=
-calc #(⋃ i, f i) = #(Σ i, f i)       : mk_congr (set.Union_eq_sigma_of_disjoint h)
-              ... = sum (λi, #(f i)) : mk_sigma _
+calc #(⋃ i, f i) = #(Σ i, f i)        : mk_congr (set.Union_eq_sigma_of_disjoint h)
+              ... = sum (λ i, #(f i)) : mk_sigma _
 
 lemma mk_Union_le {α ι : Type u} (f : ι → set α) : #(⋃ i, f i) ≤ #ι * ⨆ i, #(f i) :=
 mk_Union_le_sum_mk.trans (sum_le_supr _)

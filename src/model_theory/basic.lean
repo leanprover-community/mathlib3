@@ -695,15 +695,15 @@ section empty
 section
 variables [language.empty.Structure M] [language.empty.Structure N]
 
-@[simp] lemma empty.nonempty_embedding_iff :
-  nonempty (M ↪[language.empty] N) ↔ cardinal.lift.{w'} (# M) ≤ cardinal.lift.{w} (# N) :=
+@[simp] lemma empty.nonempty_embedding_iff : nonempty (M ↪[language.empty] N) ↔
+  cardinal.lift.{max w' u} (# M) ≤ cardinal.lift.{max w u} (# N) :=
 trans ⟨nonempty.map (λ f, f.to_embedding), nonempty.map (λ f, {to_embedding := f})⟩
-  cardinal.lift_mk_le'.symm
+  cardinal.lift_mk_le.symm
 
-@[simp] lemma empty.nonempty_equiv_iff :
-  nonempty (M ≃[language.empty] N) ↔ cardinal.lift.{w'} (# M) = cardinal.lift.{w} (# N) :=
+@[simp] lemma empty.nonempty_equiv_iff : nonempty (M ≃[language.empty] N) ↔
+  cardinal.lift.{max w' u} (# M) = cardinal.lift.{max w u} (# N) :=
 trans ⟨nonempty.map (λ f, f.to_equiv), nonempty.map (λ f, {to_equiv := f})⟩
-  cardinal.lift_mk_eq'.symm
+  cardinal.lift_mk_eq.symm
 
 end
 

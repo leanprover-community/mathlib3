@@ -681,10 +681,10 @@ instance : has_one (lp B ∞) :=
 lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) : mem_ℓp (f ^ n) ∞ :=
 begin
   induction n with n hn,
-  rw pow_zero,
-  exact mem_ℓp.infty_one,
-  rw pow_succ,
-  exact hf.infty_mul hn,
+  { rw pow_zero,
+    exact mem_ℓp.infty_one },
+  { rw pow_succ,
+    exact hf.infty_mul hn }
 end
 
 instance [nonempty I] : norm_one_class (lp B ∞) :=
@@ -693,6 +693,7 @@ instance [nonempty I] : norm_one_class (lp B ∞) :=
 instance : has_pow (lp B ∞) ℕ := { pow := λ f n, ⟨_, f.prop.infty_pow n⟩ }
 
 @[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+
 instance : ring (lp B ∞) :=
 function.injective.ring lp.has_coe_to_fun.coe subtype.coe_injective
   (lp.coe_fn_zero B ∞) (infty_coe_fn_one) lp.coe_fn_add infty_coe_fn_mul

@@ -462,7 +462,7 @@ single_eq_of_ne (λ h, by cases single_eq_zero.1 h)
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ R) (m : σ →₀ ℕ) :
   coeff m (∑ x in s, f x) = ∑ x in s, coeff m (f x) :=
-(coeff_add_monoid_hom _).map_sum _ s
+(@coeff_add_monoid_hom R σ _ _).map_sum _ s
 
 lemma monic_monomial_eq (m) : monomial m (1:R) = (m.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp [monomial_eq]

@@ -529,6 +529,10 @@ instance [has_repr α] : has_repr (with_bot α) :=
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance : has_bot (with_bot α) := ⟨none⟩
 
+meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_bot α)
+| ⊥ := `(⊥)
+| (a : α) := `(coe : α → with_bot α).subst `(a)
+
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
@@ -815,6 +819,10 @@ instance [has_repr α] : has_repr (with_top α) :=
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance : has_top (with_top α) := ⟨none⟩
+
+meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_top α)
+| ⊤ := `(⊤)
+| (a : α) := `(coe : α → with_top α).subst `(a)
 
 instance : inhabited (with_top α) := ⟨⊤⟩
 

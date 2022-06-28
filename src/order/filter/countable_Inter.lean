@@ -33,11 +33,11 @@ variables {ι α β : Type*}
 of sets `s ∈ l` their intersection belongs to `l` as well. -/
 class countable_Inter_filter (l : filter α) : Prop :=
 (countable_sInter_mem' :
-  ∀ {S : set (set α)} (hSc : countable S) (hS : ∀ s ∈ S, s ∈ l), ⋂₀ S ∈ l)
+  ∀ {S : set (set α)} (hSc : S.countable) (hS : ∀ s ∈ S, s ∈ l), ⋂₀ S ∈ l)
 
 variables {l : filter α} [countable_Inter_filter l]
 
-lemma countable_sInter_mem {S : set (set α)} (hSc : countable S) :
+lemma countable_sInter_mem {S : set (set α)} (hSc : S.countable) :
   ⋂₀ S ∈ l ↔ ∀ s ∈ S, s ∈ l :=
 ⟨λ hS s hs, mem_of_superset hS (sInter_subset_of_mem hs),
   countable_Inter_filter.countable_sInter_mem' hSc⟩
@@ -46,7 +46,7 @@ lemma countable_Inter_mem [encodable ι] {s : ι → set α} :
   (⋂ i, s i) ∈ l ↔ ∀ i, s i ∈ l :=
 sInter_range s ▸ (countable_sInter_mem (countable_range _)).trans forall_range_iff
 
-lemma countable_bInter_mem {S : set ι} (hS : countable S) {s : Π i ∈ S, set α} :
+lemma countable_bInter_mem {S : set ι} (hS : S.countable) {s : Π i ∈ S, set α} :
   (⋂ i ∈ S, s i ‹_›) ∈ l ↔  ∀ i ∈ S, s i ‹_› ∈ l :=
 begin
   rw [bInter_eq_Inter],
@@ -59,7 +59,7 @@ lemma eventually_countable_forall [encodable ι] {p : α → ι → Prop} :
 by simpa only [filter.eventually, set_of_forall]
   using @countable_Inter_mem _ _ l _ _ (λ i, {x | p x i})
 
-lemma eventually_countable_ball {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+lemma eventually_countable_ball {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :
   (∀ᶠ x in l, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᶠ x in l, p x i ‹_› :=
 by simpa only [filter.eventually, set_of_forall]
   using @countable_bInter_mem _ _ l _ _ hS (λ i hi, {x | p x i hi})
@@ -74,7 +74,7 @@ lemma eventually_eq.countable_Union [encodable ι] {s t : ι → set α} (h : �
 (eventually_le.countable_Union (λ i, (h i).le)).antisymm
   (eventually_le.countable_Union (λ i, (h i).symm.le))
 
-lemma eventually_le.countable_bUnion {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+lemma eventually_le.countable_bUnion {S : set ι} (hS : S.countable) {s t : Π i ∈ S, set α}
   (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋃ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋃ i ∈ S, t i ‹_› :=
 begin
   simp only [bUnion_eq_Union],
@@ -82,7 +82,7 @@ begin
   exact eventually_le.countable_Union (λ i, h i i.2)
 end
 
-lemma eventually_eq.countable_bUnion {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+lemma eventually_eq.countable_bUnion {S : set ι} (hS : S.countable) {s t : Π i ∈ S, set α}
   (h : ∀ i ∈ S, s i ‹_› =ᶠ[l] t i ‹_›) : (⋃ i ∈ S, s i ‹_›) =ᶠ[l] ⋃ i ∈ S, t i ‹_› :=
 (eventually_le.countable_bUnion hS (λ i hi, (h i hi).le)).antisymm
   (eventually_le.countable_bUnion hS (λ i hi, (h i hi).symm.le))
@@ -96,7 +96,7 @@ lemma eventually_eq.countable_Inter [encodable ι] {s t : ι → set α} (h : �
 (eventually_le.countable_Inter (λ i, (h i).le)).antisymm
   (eventually_le.countable_Inter (λ i, (h i).symm.le))
 
-lemma eventually_le.countable_bInter {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+lemma eventually_le.countable_bInter {S : set ι} (hS : S.countable) {s t : Π i ∈ S, set α}
   (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋂ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋂ i ∈ S, t i ‹_› :=
 begin
   simp only [bInter_eq_Inter],
@@ -104,7 +104,7 @@ begin
   exact eventually_le.countable_Inter (λ i, h i i.2)
 end
 
-lemma eventually_eq.countable_bInter {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+lemma eventually_eq.countable_bInter {S : set ι} (hS : S.countable) {s t : Π i ∈ S, set α}
   (h : ∀ i ∈ S, s i ‹_› =ᶠ[l] t i ‹_›) : (⋂ i ∈ S, s i ‹_›) =ᶠ[l] ⋂ i ∈ S, t i ‹_› :=
 (eventually_le.countable_bInter hS (λ i hi, (h i hi).le)).antisymm
   (eventually_le.countable_bInter hS (λ i hi, (h i hi).symm.le))
@@ -112,7 +112,7 @@ lemma eventually_eq.countable_bInter {S : set ι} (hS : countable S) {s t : Π i
 /-- Construct a filter with countable intersection property. This constructor deduces
 `filter.univ_sets` and `filter.inter_sets` from the countable intersection property. -/
 def filter.of_countable_Inter (l : set (set α))
-  (hp : ∀ S : set (set α), countable S → S ⊆ l → (⋂₀ S) ∈ l)
+  (hp : ∀ S : set (set α), S.countable → S ⊆ l → (⋂₀ S) ∈ l)
   (h_mono : ∀ s t, s ∈ l → s ⊆ t → t ∈ l) :
   filter α :=
 { sets := l,
@@ -122,12 +122,12 @@ def filter.of_countable_Inter (l : set (set α))
     hp _ ((countable_singleton _).insert _) (insert_subset.2 ⟨hs, singleton_subset_iff.2 ht⟩) }
 
 instance filter.countable_Inter_of_countable_Inter (l : set (set α))
-  (hp : ∀ S : set (set α), countable S → S ⊆ l → (⋂₀ S) ∈ l)
+  (hp : ∀ S : set (set α), S.countable → S ⊆ l → (⋂₀ S) ∈ l)
   (h_mono : ∀ s t, s ∈ l → s ⊆ t → t ∈ l) :
   countable_Inter_filter (filter.of_countable_Inter l hp h_mono) := ⟨hp⟩
 
 @[simp] lemma filter.mem_of_countable_Inter {l : set (set α)}
-  (hp : ∀ S : set (set α), countable S → S ⊆ l → (⋂₀ S) ∈ l)
+  (hp : ∀ S : set (set α), S.countable → S ⊆ l → (⋂₀ S) ∈ l)
   (h_mono : ∀ s t, s ∈ l → s ⊆ t → t ∈ l) {s : set α} :
   s ∈ filter.of_countable_Inter l hp h_mono ↔ s ∈ l :=
 iff.rfl

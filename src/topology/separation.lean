@@ -169,7 +169,7 @@ by { split, apply @t0_space.t0, apply t0_space.mk }
 
 lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
-by simp only [t0_space_def, xor_iff_not_iff, not_forall, exists_prop, inseparable]
+by simp only [t0_space_def, xor_iff_not_iff, not_forall, exists_prop, inseparable_iff_forall_open]
 
 lemma t0_space_iff_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), inseparable x y → x = y :=
@@ -178,23 +178,20 @@ by simp only [t0_space_iff_not_inseparable, ne.def, not_imp_not]
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 (t0_space_iff_inseparable α).1 ‹_› x y h
 
-lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
-λ h₁ h₂, ((inseparable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
-
-/-- Specialization forms a partial order on a t0 topological space. -/
-def specialization_order (α : Type*) [topological_space α] [t0_space α] : partial_order α :=
-{ le_antisymm := λ _ _ h₁ h₂, specializes_antisymm _ _ h₂ h₁,
-  .. specialization_preorder α }
-
 lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
   t0_space α ↔ injective (𝓝 : α → filter α) :=
-by simp only [t0_space_iff_inseparable, injective, inseparable_iff_nhds_eq]
+t0_space_iff_inseparable α
 
 lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
 (t0_space_iff_nhds_injective α).1 ‹_›
 
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 nhds_injective.eq_iff
+
+/-- Specialization forms a partial order on a t0 topological space. -/
+def specialization_order (α : Type*) [topological_space α] [t0_space α] : partial_order α :=
+{ .. specialization_preorder α,
+  .. partial_order.lift (order_dual.to_dual ∘ 𝓝) nhds_injective }
 
 theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
   (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
@@ -275,7 +272,7 @@ embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, a ≠ b → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
-by simp only [t0_space_iff_not_inseparable, inseparable_iff_closure, not_and_distrib]
+by simp only [t0_space_iff_not_inseparable, inseparable_iff_mem_closure, not_and_distrib]
 
 instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β) :=
 (t0_space_iff_inseparable _).2 $
@@ -498,7 +495,7 @@ hs.induction_on (by simp) $ λ x, by simp
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
 
 lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
-by simpa only [specializes, closure_singleton, mem_singleton_iff, eq_comm] using h
+by simpa only [specializes_iff_mem_closure, closure_singleton, mem_singleton_iff, eq_comm] using h
 
 @[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
 ⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
@@ -587,7 +584,7 @@ lemma eq_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a
   (h : tendsto f (𝓝 a) (𝓝 b)) : f a = b :=
 by_contra $ assume (hfa : f a ≠ b),
 have fact₁ : {f a}ᶜ ∈ 𝓝 b := compl_singleton_mem_nhds hfa.symm,
-have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id' $ pure_le_nhds a),
+have fact₂ : tendsto f (pure a) (𝓝 b) := h.comp (tendsto_id'.2 $ pure_le_nhds a),
 fact₂ fact₁ (eq.refl $ f a)
 
 /-- To prove a function to a `t1_space` is continuous at some point `a`, it suffices to prove that
@@ -850,12 +847,8 @@ begin
     obtain ⟨t, t_sub, t_op, xyt⟩ : ∃ t ⊆ (diagonal α)ᶜ, is_open t ∧ (x, y) ∈ t :=
       is_open_iff_forall_mem_open.mp h.is_open_compl _ this,
     rcases is_open_prod_iff.mp t_op x y xyt with ⟨U, V, U_op, V_op, xU, yV, H⟩,
-    use [U, V, U_op, V_op, xU, yV],
-    have := subset.trans H t_sub,
-    rw eq_empty_iff_forall_not_mem,
-    rintros z ⟨zU, zV⟩,
-    have : ¬ (z, z) ∈ diagonal α := this (mk_mem_prod zU zV),
-    exact this rfl },
+    exact ⟨U, V, U_op, V_op, xU, yV,
+      (prod_subset_compl_diagonal_iff_disjoint.1 $ H.trans t_sub).inter_eq⟩ }
 end
 
 section separated
@@ -1103,20 +1096,10 @@ lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : 
   closed_embedding g :=
 ⟨h.embedding hf hg, h.closed_range hf hg⟩
 
-lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
-ext $ assume p, iff.intro
-  (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
-  (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
-
-lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
-  s ×ˢ t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
-by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
-       diagonal_eq_range_diagonal_map, range_subset_iff]; simp
-
 lemma compact_compact_separated [t2_space α] {s t : set α}
   (hs : is_compact s) (ht : is_compact t) (hst : s ∩ t = ∅) :
   ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
-by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
+by simp only [←disjoint_iff_inter_eq_empty, ←prod_subset_compl_diagonal_iff_disjoint] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal.is_open_compl hst
 
 /-- In a `t2_space`, every compact set is closed. -/

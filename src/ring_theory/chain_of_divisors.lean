@@ -20,16 +20,18 @@ and the set of factors of `a`.
 ## Main results
 - `divisor_chain.exists_chain_of_prime_pow` : existence of a chain for prime powers.
 - `divisor_chain.is_prime_pow_of_has_chain` : elements that have a chain are prime powers.
-- `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` : if there is a
+- `multiplicity_prime_eq_multiplicity_image_by_factor_order_iso` : if there is a
   monotone bijection `d` between the set of factors of `a : associates M` and the set of factors of
-  `b : associates N`, then, for any prime `p ∣ a`, `multiplicity p a ≤ multiplicity (d p) b`.
+  `b : associates N` then for any prime `p ∣ a`, `multiplicity p a = multiplicity (d p) b`.
+- `multiplicity_eq_multiplicity_factor_dvd_iso_of_mem_normalized_factor` : if there is a bijection
+  between the set of factors of `a : M` and `b : N` then for any prime `p ∣ a`,
+  `multiplicity p a = multiplicity (d p) b`
+
 
 ## Todo
-- Show that under the assumptions of `multiplicity_prime_le_multiplicity_image_by_factor_order_iso`,
-  `d p` is prime whenever `p` is prime. Applying
-  `multiplicity_prime_le_multiplicity_image_by_factor_order_iso` on `d.symm` then gives us
-  `multiplicity p a = multiplicity (d p) b`.
 - Create a structure for chains of divisors.
+- Simplify proof of `mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors` using
+  `mem_normalized_factors_factor_order_iso_of_mem_normalized_factors` or vice versa.
 
 -/
 

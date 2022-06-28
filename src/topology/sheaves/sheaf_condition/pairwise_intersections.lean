@@ -418,12 +418,12 @@ variable (s : pullback_cone
 Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`. -/
 def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ∪ V)) :=
 begin
-  let ι : walking_pair → opens X := λ j, walking_pair.cases_on j U V,
+  let ι : ulift.{v} walking_pair → opens X := λ ⟨j⟩, walking_pair.cases_on j U V,
   have hι : U ∪ V = supr ι,
   { ext, split,
     { rintros (h|h),
-    exacts [⟨_,⟨_,⟨walking_pair.left,rfl⟩,rfl⟩,h⟩, ⟨_,⟨_,⟨walking_pair.right,rfl⟩,rfl⟩,h⟩] },
-    { rintros ⟨_,⟨_,⟨⟨⟩,⟨⟩⟩,⟨⟩⟩,z⟩, exacts [or.inl z, or.inr z] } },
+    exacts [⟨_,⟨_,⟨⟨walking_pair.left⟩,rfl⟩,rfl⟩,h⟩, ⟨_,⟨_,⟨⟨walking_pair.right⟩,rfl⟩,rfl⟩,h⟩] },
+    { rintros ⟨_,⟨_,⟨⟨⟨⟩⟩,⟨⟩⟩,⟨⟩⟩,z⟩, exacts [or.inl z, or.inr z] } },
   refine (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
     ⟨s.X, { app := _, naturality' := _ }⟩ ≫ F.1.map (eq_to_hom hι).op,
   { apply opposite.rec,
@@ -434,13 +434,14 @@ begin
   induction i using opposite.rec,
   induction j using opposite.rec,
   let g : j ⟶ i := f.unop, have : f = g.op := rfl, clear_value g, subst this,
-  rcases i with ((_|_)|(_|_)); rcases j with ((_|_)|(_|_)); rcases g; dsimp;
+  rcases i with (⟨⟨(_|_)⟩⟩|⟨⟨(_|_)⟩,⟨(_|_)⟩⟩), rcases j with (⟨⟨(_|_)⟩⟩|⟨⟨(_|_)⟩,⟨(_|_)⟩⟩),
+  /-; rcases g; dsimp;
     simp only [category.id_comp, s.condition, category_theory.functor.map_id, category.comp_id],
   { rw [← cancel_mono (F.1.map (eq_to_hom $ inf_comm : U ∩ V ⟶ _).op), category.assoc,
       category.assoc],
     erw [← F.1.map_comp, ← F.1.map_comp],
     convert s.condition.symm },
-  { convert s.condition }
+  { convert s.condition }-/
 end
 
 lemma inter_union_pullback_cone_lift_left :
@@ -462,7 +463,7 @@ end
 /-- For a sheaf `F`, `F(U ∪ V)` is the pullback of `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)`. -/
 def is_limit_pullback_cone : is_limit (inter_union_pullback_cone F U V) :=
 begin
-  let ι : walking_pair → opens X := λ j, walking_pair.cases_on j U V,
+  let ι : ulift.{v} walking_pair → opens X := λ ⟨j⟩, walking_pair.cases_on j U V,
   have hι : U ∪ V = supr ι,
   { ext, split,
     { rintros (h|h),

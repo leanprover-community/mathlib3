@@ -80,7 +80,7 @@ begin
  exact v.inj' hij
 end
 
-lemma node_linear_zero_iff : node_linear v i j = 0 ↔ i = j :=
+@[simp] lemma node_linear_zero_iff : node_linear v i j = 0 ↔ i = j :=
 ⟨node_linear_injective, λ H, H ▸ node_linear_self_zero⟩
 
 lemma node_linear_degree_ne (hij : i ≠ j) : (node_linear v i j).degree = 1 :=
@@ -89,7 +89,7 @@ begin
  exact inv_ne_zero (sub_ne_zero_of_ne (v.inj'.ne hij))
 end
 
-lemma node_linear_degree_eq : (node_linear v i i).degree = ⊥ :=
+@[simp] lemma node_linear_degree_eq : (node_linear v i i).degree = ⊥ :=
 by rw [node_linear_self_zero, degree_zero]
 
 lemma node_linear_degree : (node_linear v i j).degree = ite (i = j) ⊥ 1 :=
@@ -99,7 +99,7 @@ by {split_ifs with H,  { subst H, exact node_linear_degree_eq },
 lemma node_linear_nat_degree : (node_linear v i j).nat_degree = ite (i = j) 0 1 :=
 by { rw [nat_degree, node_linear_degree], split_ifs; refl }
 
-lemma eval_node_linear_right : eval (v j) (node_linear v i j) = 0 :=
+@[simp] lemma eval_node_linear_right : eval (v j) (node_linear v i j) = 0 :=
 by simp only [node_linear_def, eval_mul, eval_C, eval_sub, eval_X, sub_self, mul_zero]
 
 lemma eval_node_linear_left (hij : i ≠ j) :
@@ -126,11 +126,11 @@ lemma basis_def : basis v i = ∏ j, ite (i = j) 1 (node_linear v i j) := rfl
 theorem basis_eq_of_subsingleton [subsingleton ι] : basis v i = 1 :=
 by simp_rw [basis_def, eq_iff_true_of_subsingleton, if_true, prod_const_one]
 
-theorem basis_eq_of_unique [unique ι] : basis v i = 1 := basis_eq_of_subsingleton
+@[simp] theorem basis_eq_of_unique [unique ι] : basis v i = 1 := basis_eq_of_subsingleton
 
-theorem basis_eq_of_is_empty [is_empty ι] : basis v i = 1 := basis_eq_of_subsingleton
+@[simp] theorem basis_eq_of_is_empty [is_empty ι] : basis v i = 1 := basis_eq_of_subsingleton
 
-lemma basis_ne_zero : basis v i ≠ 0 :=
+@[simp] lemma basis_ne_zero : basis v i ≠ 0 :=
 begin
  rw basis_def, intro H, rw prod_eq_zero_iff at H,
  rcases H with ⟨j, _, hij⟩,
@@ -154,7 +154,7 @@ end
 theorem eval_basis : (basis v i).eval (v j) = if i = j then 1 else 0 :=
 by { split_ifs with H, { subst H, exact eval_basis_self}, { exact eval_basis_ne H } }
 
-theorem nat_degree_basis : (basis v i).nat_degree = (fintype.card ι) - 1 :=
+@[simp] theorem nat_degree_basis : (basis v i).nat_degree = (fintype.card ι) - 1 :=
 begin
  suffices h : (basis v i).nat_degree = (univ.filter (ne i)).card,
  { rw [h, card_eq_sum_ones],
@@ -184,7 +184,7 @@ def interpolate (v : ι ↪ F) (r : ι → F) : F[X] := ∑ i, C (r i) * basis v
 
 lemma interpolate_def : interpolate v r = ∑ i, C (r i) * basis v i := rfl
 
-theorem interpolate_empty [is_empty ι] : interpolate v r = 0 :=
+@[simp] theorem interpolate_empty [is_empty ι] : interpolate v r = 0 :=
 by rw [interpolate_def, univ_eq_empty, sum_empty]
 
 theorem interpolate_singleton [unique ι] : interpolate v r = C (r default) :=
@@ -228,16 +228,16 @@ def linterpolate (v : ι ↪ F) : (ι → F) →ₗ[F] polynomial F :=
 lemma interpolate_add (r s) :
  interpolate v (r + s) = interpolate v r + interpolate v s := (linterpolate v).map_add r s
 
-lemma interpolate_zero : interpolate v 0 = 0 :=
+@[simp] lemma interpolate_zero : interpolate v 0 = 0 :=
 (linterpolate v).map_zero
 
-lemma interpolate_neg (r) : interpolate v (-r) = -interpolate v r :=
+@[simp] lemma interpolate_neg (r) : interpolate v (-r) = -interpolate v r :=
 (linterpolate v).map_neg r
 
-lemma interpolate_sub (r s) :
+@[simp] lemma interpolate_sub (r s) :
  interpolate v (r - s) = interpolate v r - interpolate v s := (linterpolate v).map_sub r s
 
-lemma interpolate_smul (c : F) (r) :
+@[simp] lemma interpolate_smul (c : F) (r) :
  interpolate v (c • r) = c • interpolate v r := (linterpolate v).map_smul c r
 
 theorem eq_interpolate (f : F[X]) (hf : f.degree < fintype.card ι) :
@@ -266,13 +266,13 @@ theorem interpolate_at_eq_of_eval_eq (hs : ∀ i, f (v i) = g (v i)) :
  interpolate_at v f = interpolate_at v g :=
 by {simp_rw [interpolate_at_def], congr, exact funext hs}
 
-theorem interpolate_at_empty [is_empty ι] : interpolate_at v f = 0 :=
+@[simp] theorem interpolate_at_empty [is_empty ι] : interpolate_at v f = 0 :=
 by rw [interpolate_at_def, interpolate_empty]
 
 theorem interpolate_at_singleton [unique ι] : interpolate_at v f = C (f (v default)) :=
 by rw [interpolate_at_def, interpolate_singleton]
 
-theorem eval_interpolate_at : eval (v i) (interpolate_at v f) = f (v i) :=
+@[simp] theorem eval_interpolate_at : eval (v i) (interpolate_at v f) = f (v i) :=
 by rw [interpolate_at_def, eval_interpolate]
 
 theorem degree_interpolate_at_le : (interpolate_at v f).degree ≤ ↑(fintype.card ι - 1)
@@ -287,21 +287,21 @@ def linterpolate_at (v : ι ↪ F) : (F → F) →ₗ[F] polynomial F :=
  map_add' := λ f g, by { simp_rw [interpolate_at_def, ← interpolate_add], refl },
  map_smul' := λ c f, by { { simp_rw [interpolate_at_def, ← interpolate_smul], refl } } }
 
-lemma interpolate_at_add (f g) :
+@[simp] lemma interpolate_at_add (f g) :
   interpolate_at v (f + g) = interpolate_at v f + interpolate_at v g :=
 (linterpolate_at v).map_add f g
 
-lemma interpolate_at_zero : interpolate_at v 0 = 0 :=
+@[simp] lemma interpolate_at_zero : interpolate_at v 0 = 0 :=
 (linterpolate_at v).map_zero
 
-lemma interpolate_at_neg (f) : interpolate_at v (-f) = -interpolate_at v f :=
+@[simp] lemma interpolate_at_neg (f) : interpolate_at v (-f) = -interpolate_at v f :=
 (linterpolate_at v).map_neg f
 
-lemma interpolate_at_sub (f g) :
+@[simp] lemma interpolate_at_sub (f g) :
 interpolate_at v (f - g) = interpolate_at v f - interpolate_at v g :=
 (linterpolate_at v).map_sub f g
 
-lemma interpolate_at_smul (c : F) (f) : interpolate_at v (c • f) = c • interpolate_at v f :=
+@[simp] lemma interpolate_at_smul (c : F) (f) : interpolate_at v (c • f) = c • interpolate_at v f :=
 (linterpolate_at v).map_smul c f
 
 theorem eq_interpolate_at_of_eval_eq {g : F[X]} (hg : g.degree < fintype.card ι)

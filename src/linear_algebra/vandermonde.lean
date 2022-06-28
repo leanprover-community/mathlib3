@@ -142,7 +142,7 @@ theorem vandermonde_invertibility' {R : Type*} [comm_ring R]
 theorem vandermonde_invertibility {R : Type*} [comm_ring R]
 [is_domain R] {n : ℕ} (v : fin n ↪ R) {f : fin n → R}
 (h₂ : ∀ j, ∑ i, f i * (v j ^ (i : ℕ)) = 0) : f = 0
-:= by {refine vandermonde_invertibility' v _, simp_rw mul_comm, exact h₂}
+:= by { refine vandermonde_invertibility' v _, simp_rw mul_comm, exact h₂ }
 
 theorem vandermonde_invertibility_transposed {R : Type*} [comm_ring R]
 [is_domain R] {n : ℕ} (v : fin n ↪ R) {f : fin n → R}

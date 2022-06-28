@@ -24,7 +24,7 @@ It also contains several examples:
 - `fin_encoding_bool_bool`  : an encoding of bool.
 -/
 
-universes u v
+universes u v w
 open_locale cardinal
 
 namespace computability
@@ -191,8 +191,8 @@ instance inhabited_fin_encoding : inhabited (fin_encoding bool) := ⟨fin_encodi
 instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_bool.to_encoding⟩
 
 lemma encoding.card_le_card_list {α : Type u} (e : encoding.{u v} α) :
-  cardinal.lift.{v} (# α) ≤ cardinal.lift.{u} (# (list e.Γ)) :=
-mk_lift_le_of_injective _ e.encode_injective
+  cardinal.lift.{max v w} (# α) ≤ cardinal.lift.{max u w} (# (list e.Γ)) :=
+cardinal.mk_lift_le_of_injective _ e.encode_injective
 
 lemma encoding.card_le_aleph_0 {α : Type u} (e : encoding.{u v} α) [encodable e.Γ] : #α ≤ ℵ₀ :=
 begin

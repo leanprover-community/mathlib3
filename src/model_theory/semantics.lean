@@ -884,7 +884,8 @@ end
 lemma {m} card_le_of_model_distinct_constants_theory (s : set α) (M : Type w) [L[[α]].Structure M]
   [h : M ⊨ L.distinct_constants_theory s] :
   cardinal.lift.{max w m} (# s) ≤ cardinal.lift.{max u' m} (# M) :=
-mk_lift_le_of_injective _ $ set.inj_on_iff_injective.1 ((L.model_distinct_constants_theory s).1 h)
+cardinal.mk_lift_le_of_injective _ $ set.inj_on_iff_injective.1
+  ((L.model_distinct_constants_theory s).1 h)
 
 end cardinality
 

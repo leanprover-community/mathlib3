@@ -7,6 +7,7 @@ import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
+import measure_theory.constructions.prod
 
 /-!
 # Measures on Groups
@@ -74,6 +75,20 @@ instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c 
 @[to_additive]
 instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
+
+instance [is_mul_left_invariant μ] {H : Type*} [has_mul H] {mH : measurable_space H} {ν : measure H}
+  [is_mul_left_invariant ν] [sigma_finite ν] :
+  is_mul_left_invariant (μ.prod ν) :=
+begin
+  constructor,
+  rintros ⟨g, h⟩,
+  change map (prod.map ((*) g) ((*) h)) (μ.prod ν) = μ.prod ν,
+  rw [← map_prod_map, map_mul_left_eq_self μ g, map_mul_left_eq_self ν h],
+  sorry,
+  sorry,
+end
+
+#exit
 
 section has_measurable_mul
 
@@ -539,6 +554,14 @@ finite-dimensional real vector space has no atom. -/
 example {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E] [finite_dimensional ℝ E]
   [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
+
+instance {G : Type*} [group G] [topological_space G] [measurable_space G]
+  {H : Type*} [group H] [topological_space H] [measurable_space H]
+  (μ : measure G) (ν : measure H) [is_haar_measure μ] [is_haar_measure ν] [sigma_finite ν] :
+  is_haar_measure (μ.prod ν) :=
+{
+
+}
 
 end
 

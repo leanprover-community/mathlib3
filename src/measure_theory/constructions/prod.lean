@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.measure.giry_monad
 import dynamics.ergodic.measure_preserving
 import measure_theory.integral.set_integral
+import measure_theory.measure.open_pos
 
 /-!
 # The product measure
@@ -364,6 +365,21 @@ begin
     ... ≤ ∫⁻ x, f x ∂μ          : lintegral_mono' restrict_le_self le_rfl
     ... = μ.prod ν ST           : (prod_apply hSTm).symm
     ... = μ.prod ν (s ×ˢ t)     : measure_to_measurable _ }
+end
+
+instance {X Y : Type*} [topological_space X] [topological_space Y]
+  {m : measurable_space X} {μ : measure X} [is_open_pos_measure μ]
+  {m' : measurable_space Y} {ν : measure Y} [is_open_pos_measure ν] [sigma_finite ν] :
+  is_open_pos_measure (μ.prod ν) :=
+begin
+  constructor,
+  rintros U U_open ⟨⟨x, y⟩, hxy⟩,
+  rcases is_open_prod_iff.1 U_open x y hxy with ⟨u, v, u_open, v_open, xu, yv, huv⟩,
+  refine ne_of_gt (lt_of_lt_of_le _ (measure_mono huv)),
+  simp only [prod_prod, canonically_ordered_comm_semiring.mul_pos],
+  split,
+  { exact u_open.measure_pos μ ⟨x, xu⟩ },
+  { exact v_open.measure_pos ν ⟨y, yv⟩ }
 end
 
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)

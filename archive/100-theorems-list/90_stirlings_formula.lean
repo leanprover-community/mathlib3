@@ -317,10 +317,10 @@ begin
   { cases n,
     { rw [cast_zero, zero_div, mul_zero, zero_pow, zero_mul, zero_mul, zero_div],
     exact two_pos },
-    { have h₁ : 2 * (n.succ : ℝ) + 1 ≠ 0,
+    { have h₁ : 2 * ((n : ℝ) + 1) + 1 ≠ 0,
     by { norm_cast, exact succ_ne_zero (2*n.succ) },
     have h₂ : exp 1 ≠ 0, from exp_ne_zero 1,
-    have h₃ : (n.succ : ℝ) ≠ 0, by exact cast_ne_zero.mpr (succ_ne_zero n),
+    have h₃ : (n : ℝ) + 1 ≠ 0, from cast_add_one_ne_zero n,
     field_simp,
     repeat {rw [← pow_mul]},
     rw [← h₀, mul_assoc 2 n.succ 2, mul_left_comm 2 n.succ 2, ← h₀, mul_pow (2 : ℝ) _ (n.succ * 4),
@@ -349,7 +349,7 @@ begin
   convert h,
   funext,
   rw [add_div _ (1 : ℝ), ←mul_div,
-    div_self  (cast_ne_zero.mpr (succ_ne_zero n) : ((n + 1) : ℝ) ≠ 0), mul_one],
+    div_self  (cast_ne_zero.mpr (succ_ne_zero n) : ((n.succ) : ℝ) ≠ 0), mul_one],
 end
 
 /--
@@ -388,7 +388,7 @@ begin
     sqrt_ne_zero'.mpr (mul_pos four_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
   have h₇ : 2 * (n : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*n)},
   field_simp,
-  ring_nf,
+  ring,
 end
 
 /-- For any `n : ℕ`, we have the identity

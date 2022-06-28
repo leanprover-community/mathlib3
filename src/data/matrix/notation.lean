@@ -100,8 +100,6 @@ do
     pure ⟨0, n, fin_zero_elim⟩
   end
 
-set_option pp.universes true
-
 -- Lean can't find this instance without some help. We only need it open in type, and it is a
 -- massive amount of effort to make it universe-polymorphic.
 @[instance] meta def sigma_sigma_fin_matrix_has_reflect {α : Type}

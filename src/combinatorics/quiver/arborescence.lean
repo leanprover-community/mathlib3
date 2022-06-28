@@ -91,7 +91,7 @@ variables {V : Type u} [quiver.{v+1} V] (r : V) [rooted_connected r]
 
 /-- A path from `r` of minimal length. -/
 noncomputable def shortest_path (b : V) : path r b :=
-well_founded.min (measure_wf path.length) set.univ set.univ_nonempty
+is_well_founded.min (measure path.length) set.univ set.univ_nonempty
 
 /-- The length of a path is at least the length of the shortest path -/
 lemma shortest_path_spec {a : V} (p : path r a) :

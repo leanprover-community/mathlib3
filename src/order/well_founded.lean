@@ -24,6 +24,7 @@ The following to-do's apply to `well_founded_gt` as well.
 - Define `succ` on `well_founded_lt`, build a `succ_order` instance depending on whether we have a
 `no_top_order` or an `order_top`.
 - Define `sup` on `well_founded_lt`, prove `is_glb (sup s _)` on linear orders.
+- Change `min` to `min_on`, redefine `min` as a global minimum.
 - Define an ordinal-valued `height` function (not on this file).
 - Rewrite `has_min` in terms of `minimals`. This will require us to change `r b a → a = b` to
 `r a b → r b a` in said definition. We can prove the equivalence with the current definition for an

@@ -319,6 +319,8 @@ instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α 
   is_well_founded _ (inv_image r f) :=
 ⟨inv_image.wf f is_well_founded.wf⟩
 
+instance measure.is_well_founded (f : α → ℕ) : is_well_founded _ (measure f) := ⟨measure_wf f⟩
+
 namespace set
 
 /-- An unbounded or cofinal set. -/

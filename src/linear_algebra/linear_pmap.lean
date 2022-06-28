@@ -459,8 +459,7 @@ by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
 
 /-- The property that `f 0 = 0` in terms of the graph. -/
 lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
-  (hx : x = 0) :
-  x' = 0 :=
+  (hx : x = 0) : x' = 0 :=
 f.mem_graph_snd_inj h f.graph.zero_mem hx
 
 end linear_pmap

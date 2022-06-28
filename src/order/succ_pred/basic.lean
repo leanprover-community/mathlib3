@@ -518,7 +518,7 @@ by { contrapose! h, exact is_pred_limit_of_pred_ne h }
 
 /-- A value can be built by building it on predecessors and predecessor limits.
 
-Note that you need a partial order without a maximum for data built using this to behave nicely on
+Note that you need a partial order without a minimum for data built using this to behave nicely on
 successors. -/
 @[elab_as_eliminator] noncomputable def is_pred_limit_rec_on {C : α → Sort*} (hs : Π a, C (pred a))
   (hl : Π a, is_pred_limit a → C a) (b) : C b :=

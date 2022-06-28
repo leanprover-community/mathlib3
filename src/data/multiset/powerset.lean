@@ -103,6 +103,17 @@ end
   card (powerset s) = 2 ^ card s :=
 quotient.induction_on s $ by simp
 
+theorem count_nil_powerset [decidable_eq (multiset α)] (s : multiset α) :
+  multiset.count (0 : multiset α) s.powerset = 1 :=
+begin
+  refine s.induction_on _ _,
+  simp only [multiset.powerset_zero, multiset.count_singleton_self],
+  intros _ _ h,
+  rw [multiset.powerset_cons, multiset.count_add, h],
+  simp only [multiset.count_eq_zero_of_not_mem, multiset.mem_map, multiset.cons_ne_zero,
+    and_false, exists_false, not_false_iff],
+end
+
 theorem revzip_powerset_aux {l : list α} ⦃x⦄
   (h : x ∈ revzip (powerset_aux l)) : x.1 + x.2 = ↑l :=
 begin
@@ -230,6 +241,8 @@ theorem powerset_len_le_powerset (n : ℕ) (s : multiset α) :
   powerset_len n s ≤ powerset s :=
 quotient.induction_on s $ λ l, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_sublists' _ _).map _).subperm
+
+
 
 theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
   powerset_len n s ≤ powerset_len n t :=

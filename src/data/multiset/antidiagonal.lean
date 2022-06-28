@@ -67,6 +67,29 @@ quotient.induction_on s $ λ l, begin
   {congr; simp}, {simp}
 end
 
+theorem antidiagonal_powerset [decidable_eq α] (s : multiset α) :
+  s.antidiagonal =
+      (multiset.map (λ (t : multiset α), ((t, s - t) : multiset α × multiset α)) s.powerset) :=
+begin
+  refine s.induction_on _ _,
+  simp only [multiset.antidiagonal_zero, multiset.powerset_zero, zero_tsub,
+    multiset.map_singleton],
+  intros a s hs,
+  rw [multiset.antidiagonal_cons, multiset.powerset_cons, multiset.map_add, hs, multiset.map_map],
+  suffices : multiset.map (λ (x : multiset α), (x, a ::ₘ (s - x))) s.powerset
+    = multiset.map (λ (t : multiset α), (t, a ::ₘ s - t)) s.powerset,
+  { simpa only [_root_.prod_map, id.def, multiset.map_map, function.comp_app, multiset.sub_cons,
+    multiset.erase_cons_head, add_left_inj], },
+  rw multiset.map_congr (eq.refl _),
+  intros _ h,
+  rw prod.mk.inj_iff,
+  split, refl,
+  refine multiset.ext' _,
+  intro _,
+  rw [multiset.count_cons, multiset.count_sub, multiset.count_sub, multiset.count_cons],
+  exact tsub_add_eq_add_tsub (multiset.count_le_of_le _ (multiset.mem_powerset.mp h)),
+end
+
 @[simp] theorem card_antidiagonal (s : multiset α) :
   card (antidiagonal s) = 2 ^ card s :=
 by have := card_powerset s;

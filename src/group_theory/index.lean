@@ -55,8 +55,9 @@ noncomputable def relindex : ℕ :=
 begin
   letI := quotient_group.left_rel H,
   letI := quotient_group.left_rel (H.comap f),
-  have key : ∀ x y : G', setoid.r x y ↔ setoid.r (f x) (f y) :=
-  λ x y, iff_of_eq (congr_arg (∈ H) (by rw [f.map_mul, f.map_inv])),
+  have key : ∀ x y : G', setoid.r x y ↔ setoid.r (f x) (f y),
+  { simp only [quotient_group.left_rel_apply],
+    exact λ x y, iff_of_eq (congr_arg (∈ H) (by rw [f.map_mul, f.map_inv])) },
   refine cardinal.to_nat_congr (equiv.of_bijective (quotient.map' f (λ x y, (key x y).mp)) ⟨_, _⟩),
   { simp_rw [←quotient.eq'] at key,
     refine quotient.ind' (λ x, _),

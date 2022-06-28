@@ -145,11 +145,11 @@ binary_fan.mk (CommRing.of_hom $ ring_hom.fst A B) (CommRing.of_hom $ ring_hom.s
 
 /-- The product in `CommRing` is the cartesian product. -/
 def prod_fan_is_limit : is_limit (prod_fan A B) :=
-{ lift := λ c, ring_hom.prod (c.π.app walking_pair.left) (c.π.app walking_pair.right),
-  fac' := λ c j, by { ext, cases j;
+{ lift := λ c, ring_hom.prod (c.π.app ⟨walking_pair.left⟩) (c.π.app ⟨walking_pair.right⟩),
+  fac' := λ c j, by { ext, rcases j with ⟨⟨⟩⟩;
     simpa only [binary_fan.π_app_left, binary_fan.π_app_right, comp_apply, ring_hom.prod_apply] },
-  uniq' := λ s m h, by { ext, { simpa using congr_hom (h walking_pair.left) x },
-    { simpa using congr_hom (h walking_pair.right) x } } }
+  uniq' := λ s m h, by { ext, { simpa using congr_hom (h ⟨walking_pair.left⟩) x },
+    { simpa using congr_hom (h ⟨walking_pair.right⟩) x } } }
 
 end product
 
@@ -166,7 +166,7 @@ def equalizer_fork_is_limit : is_limit (equalizer_fork f g) :=
 begin
   fapply fork.is_limit.mk',
   intro s,
-  use s.ι.cod_restrict' _ (λ x, (concrete_category.congr_hom s.condition x : _)),
+  use s.ι.cod_restrict _ (λ x, (concrete_category.congr_hom s.condition x : _)),
   split,
   { ext, refl },
   { intros m hm, ext x, exact concrete_category.congr_hom hm x }

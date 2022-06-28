@@ -277,7 +277,7 @@ end
 
 lemma has_finite_coproducts_opposite [has_finite_products C] :
   has_finite_coproducts Cᵒᵖ :=
-{ out := λ J 𝒟 𝒥, begin
+{ out := λ J 𝒟, begin
     resetI,
     haveI : has_limits_of_shape (discrete J)ᵒᵖ C :=
       has_limits_of_shape_of_equivalence (discrete.opposite J).symm,
@@ -286,7 +286,7 @@ lemma has_finite_coproducts_opposite [has_finite_products C] :
 
 lemma has_finite_products_opposite [has_finite_coproducts C] :
   has_finite_products Cᵒᵖ :=
-{ out := λ J 𝒟 𝒥, begin
+{ out := λ J 𝒟, begin
     resetI,
     haveI : has_colimits_of_shape (discrete J)ᵒᵖ C :=
       has_colimits_of_shape_of_equivalence (discrete.opposite J).symm,

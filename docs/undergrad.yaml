@@ -9,7 +9,7 @@ Linear algebra:
     vector subspace: 'subspace'
     quotient space: 'submodule.has_quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: 'direct_sum.submodule_is_internal'
+    direct sum: 'direct_sum.is_internal'
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -92,7 +92,7 @@ Group Theory:
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
-    finite type abelian groups: 'https://en.wikipedia.org/wiki/Finitely_generated_abelian_group#Classification'
+    finite type abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
     complex roots of unity: 'complex.mem_roots_of_unity'
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
@@ -568,7 +568,7 @@ Probability Theory:
     Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
     Levy's theorem: ''
     weak law of large numbers: ''
-    strong law of large numbers: ''
+    strong law of large numbers: 'probability_theory.strong_law_ae'
     central limit theorem: ''
 
 # 12.

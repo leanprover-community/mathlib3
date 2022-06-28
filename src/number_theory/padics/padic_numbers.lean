@@ -740,6 +740,7 @@ instance : has_dist ℚ_[p] := ⟨λ x y, padic_norm_e (x - y)⟩
 
 instance : metric_space ℚ_[p] :=
 { dist_self := by simp [dist],
+  dist := dist,
   dist_comm := λ x y, by unfold dist; rw ←padic_norm_e.neg (x - y); simp,
   dist_triangle :=
     begin
@@ -758,7 +759,8 @@ instance : has_norm ℚ_[p] := ⟨λ x, padic_norm_e x⟩
 
 instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
-  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
+  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'],
+  norm := norm, .. padic.field, .. padic.metric_space p }
 
 instance is_absolute_value : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
@@ -829,7 +831,8 @@ instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
     rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt
-  end⟩ }
+  end⟩,
+  .. padic.normed_field p }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
@@ -863,7 +866,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat, neg_sub,
         padic_val_nat.eq_zero_of_not_dvd hq],
       norm_cast,
-      rw [zero_sub, zpow_neg₀, zpow_coe_nat],
+      rw [zero_sub, zpow_neg, zpow_coe_nat],
       apply inv_le_one,
       { norm_cast,
         apply one_le_pow,

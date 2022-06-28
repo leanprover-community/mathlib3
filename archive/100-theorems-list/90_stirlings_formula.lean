@@ -203,9 +203,13 @@ end
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
 lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ :=
 begin
-  apply_rules [cast_pos.mpr, factorial_pos, exp_pos, pow_pos, div_pos, mul_pos, real.sqrt_pos.mpr,
-    two_pos, succ_pos];
-  apply_instance
+  apply_rules [cast_pos.mpr, div_pos, mul_pos, factorial_pos, exp_pos, pow_pos, real.sqrt_pos.mpr,
+    two_pos, succ_pos],
+  { exact mul_pos (succ_pos n) (factorial_pos n), },
+  show 0 < n.succ, from succ_pos n,
+  show 0 < n.succ, from succ_pos n,
+  show 0 < n.succ, from succ_pos n,
+  all_goals {apply_instance},
 end
 
 /--

@@ -256,7 +256,7 @@ lemma mem_support_derivative [no_zero_smul_divisors ℕ R]
   (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
 suffices ¬p.coeff (n + 1) * (n + 1 : ℕ) = 0 ↔ coeff p (n + 1) ≠ 0,
-  by simpa only [mem_support_iff, coeff_derivative, ne.def],
+  by simpa only [mem_support_iff, coeff_derivative, ne.def, nat.cast_succ],
 by { rw [← nsmul_eq_mul', smul_eq_zero], simp only [nat.succ_ne_zero, false_or] }
 
 @[simp] lemma degree_derivative_eq [no_zero_smul_divisors ℕ R]

@@ -13,7 +13,7 @@ import algebra.support
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
-`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
+`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
 `x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
@@ -58,7 +58,7 @@ open_locale classical filter
 universes u v w
 
 /-!
-### Topological spaces
+### Topological spaces
 -/
 
 /-- A topology on `α`. -/
@@ -348,8 +348,7 @@ sInter_subset_of_mem ⟨h₂, h₁⟩
 
 lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
   disjoint (closure s) t :=
-disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
-  ht.is_closed_compl
+disjoint_compl_left.mono_left $ closure_minimal hd.subset_compl_right ht.is_closed_compl
 
 lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
   disjoint s (closure t) :=
@@ -606,8 +605,7 @@ lemma is_open.inter_frontier_eq_empty_of_disjoint {s t : set α} (ht : is_open t
   t ∩ frontier s = ∅ :=
 begin
   rw [inter_comm, ← subset_compl_iff_disjoint],
-  exact subset.trans frontier_subset_closure (closure_minimal (λ _, disjoint_left.1 hd)
-    (is_closed_compl_iff.2 ht))
+  exact frontier_subset_closure.trans (closure_minimal (disjoint_left.1 hd) ht.is_closed_compl),
 end
 
 lemma frontier_eq_inter_compl_interior {s : set α} :
@@ -622,7 +620,7 @@ begin
 end
 
 /-!
-### Neighborhoods
+### Neighborhoods
 -/
 
 /-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
@@ -1111,9 +1109,13 @@ lemma is_closed.mem_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set
   [ne_bot b] (hs : is_closed s) (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ s :=
 hs.mem_of_frequently_of_tendsto h.frequently hf
 
+lemma mem_closure_of_frequently_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
+  (h : ∃ᶠ x in b, f x ∈ s) (hf : tendsto f b (𝓝 a)) : a ∈ closure s :=
+filter.frequently.mem_closure $ hf.frequently h
+
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
   [ne_bot b] (hf : tendsto f b (𝓝 a)) (h : ∀ᶠ x in b, f x ∈ s) : a ∈ closure s :=
-is_closed_closure.mem_of_tendsto hf $ h.mono (preimage_mono subset_closure)
+mem_closure_of_frequently_of_tendsto h.frequently hf
 
 /-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.
 Then `f` tends to `a` along `l` restricted to `s` if and only if it tends to `a` along `l`. -/
@@ -1399,16 +1401,8 @@ continuous_iff_is_closed.mp hf s h
 
 lemma mem_closure_image {f : α → β} {x : α} {s : set α} (hf : continuous_at f x)
   (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
-begin
-  rw [mem_closure_iff_nhds_ne_bot] at hx ⊢,
-  rw ← bot_lt_iff_ne_bot,
-  haveI : ne_bot _ := ⟨hx⟩,
-  calc
-    ⊥   < map f (𝓝 x ⊓ principal s) : bot_lt_iff_ne_bot.mpr ne_bot.ne'
-    ... ≤ (map f $ 𝓝 x) ⊓ (map f $ principal s) : map_inf_le
-    ... = (map f $ 𝓝 x) ⊓ (principal $ f '' s) : by rw map_principal
-    ... ≤ 𝓝 (f x) ⊓ (principal $ f '' s) : inf_le_inf hf le_rfl
-end
+mem_closure_of_frequently_of_tendsto
+  ((mem_closure_iff_frequently.1 hx).mono (λ x, mem_image_of_mem _)) hf
 
 lemma continuous_at_iff_ultrafilter {f : α → β} {x} : continuous_at f x ↔
   ∀ g : ultrafilter α, ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=

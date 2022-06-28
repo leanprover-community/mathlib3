@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Sébastien Gouëzel, Yury G. Kudryashov, Dylan MacKenzie, Patrick Massot
 -/
-import algebra.order.field_pow
+import algebra.order.field
 import analysis.asymptotics.asymptotics
 import analysis.specific_limits.basic
 
@@ -189,7 +189,7 @@ end
 /-- For a real `r > 1` we have `n = o(r ^ n)` as `n → ∞`. -/
 lemma is_o_coe_const_pow_of_one_lt {R : Type*} [normed_ring R] {r : ℝ} (hr : 1 < r) :
   (coe : ℕ → R) =o[at_top] (λ n, r ^ n) :=
-by simpa only [pow_one] using is_o_pow_const_const_pow_of_one_lt 1 hr
+by simpa only [pow_one] using @is_o_pow_const_const_pow_of_one_lt R _ 1 _ hr
 
 /-- If `∥r₁∥ < r₂`, then for any naturak `k` we have `n ^ k r₁ ^ n = o (r₂ ^ n)` as `n → ∞`. -/
 lemma is_o_pow_const_mul_const_pow_const_pow_of_norm_lt {R : Type*} [normed_ring R] (k : ℕ)
@@ -323,8 +323,8 @@ begin
   set s : 𝕜 := ∑' n : ℕ, n * r ^ n,
   calc s = (1 - r) * s / (1 - r) : (mul_div_cancel_left _ (sub_ne_zero.2 hr'.symm)).symm
   ... = (s - r * s) / (1 - r) : by rw [sub_mul, one_mul]
-  ... = ((0 : ℕ) * r ^ 0 + (∑' n : ℕ, (n + 1) * r ^ (n + 1)) - r * s) / (1 - r) :
-    by { congr, exact tsum_eq_zero_add A }
+  ... = ((0 : ℕ) * r ^ 0 + (∑' n : ℕ, (n + 1 : ℕ) * r ^ (n + 1)) - r * s) / (1 - r) :
+    by rw ← tsum_eq_zero_add A
   ... = (r * (∑' n : ℕ, (n + 1) * r ^ n) - r * s) / (1 - r) :
     by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
   ... = r / (1 - r) ^ 2 :

@@ -216,9 +216,16 @@ instance is_extensional_of_is_strict_total_order'
 instance has_well_founded.is_well_founded [h : has_well_founded α] :
   is_well_founded α has_well_founded.r := { ..h }
 
-theorem is_well_founded.induction (r : α → α → Prop) [h : is_well_founded α r] {C : α → Prop} :
+def is_well_founded.recursion (r : α → α → Prop) [is_well_founded α r] {C : α → Sort*} :
+  Π a, (Π x, (Π y, r y x → C y) → C x) → C a :=
+is_well_founded.wf.recursion
+
+theorem is_well_founded.induction (r : α → α → Prop) [is_well_founded α r] {C : α → Prop} :
   ∀ a, (∀ x, (∀ y, r y x → C y) → C x) → C a :=
-h.wf.induction
+is_well_founded.wf.induction
+
+theorem is_well_founded.apply (r : α → α → Prop) [is_well_founded α r] : ∀ a, acc r a :=
+is_well_founded.wf.apply
 
 theorem well_founded.asymmetric {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
   ∀ ⦃a b⦄, r a b → ¬ r b a
@@ -502,6 +509,3 @@ instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒ
 @is_total.swap α _ _
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := { wf := nat.lt_wf }
-
-instance [linear_order α] [h : well_founded_lt α] : is_well_order αᵒᵈ (>) := h
-instance [linear_order α] [h : well_founded_gt α] : is_well_order αᵒᵈ (<) := h

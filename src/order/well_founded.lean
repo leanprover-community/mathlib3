@@ -15,6 +15,14 @@ construction of fixed points in the space of dependent functions `Π x : α , β
 
 The predicate `well_founded` is defined in the core library. In this file we prove some extra lemmas
 and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`.
+
+## Todo
+
+- Define `succ` on `well_founded_lt`, build a `succ_order` instance depending on whether we have a
+`no_top_order` or an `order_top`. Similarly for `well_founded_gt`.
+- Rewrite `has_min` in terms of `minimals`. This will require us to change `r b a → a = b` to
+`r a b → r b a` in said definition. We can prove the equivalence with the current definition for an
+irreflexive relation.
 -/
 
 /-! ### Generic relation
@@ -25,12 +33,12 @@ Note that throughout this section, we give lemmas the names they'd have if the o
 variables {α β : Type*}
 
 namespace is_well_founded
-variables (r : α → α → Prop) [H : is_well_founded α r]
+variables (r : α → α → Prop) [is_well_founded α r]
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
 theorem has_min (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (H.wf.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
+| ⟨a, ha⟩ := (acc.rec_on (is_well_founded.apply r a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set with respect to a well-founded relation. See also
@@ -120,7 +128,7 @@ end
 
 end is_well_founded
 
-/-! ### Well-founded order relation -/
+/-! ### Well-founded less than -/
 
 /-- A class for a well founded relation `<`. -/
 class well_founded_lt (α : Type*) [has_lt α] extends is_well_founded α (<) : Prop
@@ -135,14 +143,22 @@ instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt α�
 
 namespace well_founded_lt
 
+theorem lt_wf [has_lt α] [well_founded_lt α] : @well_founded α (<) :=
+is_well_founded.wf
+
+/-- Recurses on a well-founded `<` relation. -/
+def recursion [has_lt α] [well_founded_lt α] {C : α → Sort*} :
+  Π a, (Π x, (Π y, y < x → C y) → C x) → C a :=
+is_well_founded.recursion (<)
+
 /-- Inducts on a well-founded `<` relation. -/
 theorem induction [has_lt α] [well_founded_lt α] {C : α → Prop} :
   ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
-is_well_founded.induction (<)
+recursion
 
 /-- Derive a `has_well_founded` instance from a `well_founded_lt` instance. -/
-def to_has_well_founded [has_lt α] [well_founded_lt α] :
-  has_well_founded α := { r := (<) }
+def to_has_well_founded [has_lt α] [well_founded_lt α] : has_well_founded α :=
+{ r := (<), wf := lt_wf }
 
 /-- A minimal element of a nonempty set in an order with well-founded `<`.
 
@@ -162,6 +178,11 @@ is_well_founded.not_lt_min _ s hx
 theorem min_le [linear_order α] [well_founded_lt α] (s : set α) {x} (hx : x ∈ s) :
   min s ⟨x, hx⟩ ≤ x :=
 le_of_not_lt $ not_lt_min s hx
+
+/-- A linear order with well-founded `<` has a bottom element given by `min set.univ _`. -/
+noncomputable def to_order_bot [linear_order α] [well_founded_lt α] [nonempty α] : order_bot α :=
+{ bot := min set.univ set.univ_nonempty,
+  bot_le := λ a, min_le _ ⟨⟩ }
 
 theorem self_le_of_strict_mono [linear_order α] [well_founded_lt α] {f : α → α}
   (hf : strict_mono f) : ∀ n, n ≤ f n :=
@@ -228,16 +249,26 @@ le_of_not_lt $ not_lt_argmin f a
 
 end function
 
+/-! ### Well-founded greater than -/
+
 namespace well_founded_gt
+
+theorem gt_wf [has_lt α] [well_founded_gt α] : @well_founded α (>) :=
+is_well_founded.wf
+
+/-- Recurses on a well-founded `>` relation. -/
+def recursion [has_lt α] [well_founded_gt α] {C : α → Sort*} :
+  Π a, (Π x, (Π y, x < y → C y) → C x) → C a :=
+is_well_founded.recursion (>)
 
 /-- Inducts on a well-founded `>` relation. -/
 theorem induction [has_lt α] [well_founded_gt α] {C : α → Prop} :
   ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a :=
-is_well_founded.induction (>)
+recursion
 
 /-- Derive a `has_well_founded` instance from a `well_founded_gt` instance. -/
-def to_has_well_founded [has_lt α] [well_founded_gt α] :
-  has_well_founded α := { r := (>) }
+def to_has_well_founded [has_lt α] [well_founded_gt α] : has_well_founded α :=
+{ r := (>), wf := gt_wf }
 
 /-- A maximal element of a nonempty set in an order with well-founded `>`. -/
 noncomputable def max [has_lt α] [well_founded_gt α] : Π (s : set α) (hs : s.nonempty), α :=
@@ -253,6 +284,11 @@ is_well_founded.not_lt_min (>) s hx
 theorem le_max [linear_order α] [well_founded_gt α] (s : set α) {x} (hx : x ∈ s)
   (hs : s.nonempty := ⟨x, hx⟩) : x ≤ max s hs :=
 le_of_not_lt (not_max_lt s hx hs)
+
+/-- A linear order with well-founded `>` has a top element given by `max set.univ _`. -/
+noncomputable def to_order_top [linear_order α] [well_founded_gt α] [nonempty α] : order_top α :=
+{ top := max set.univ set.univ_nonempty,
+  le_top := λ a, le_max _ ⟨⟩ }
 
 theorem le_self_of_antitone [linear_order α] [well_founded_gt α] {f : α → α}
   (hf : strict_mono f) : ∀ n, f n ≤ n :=

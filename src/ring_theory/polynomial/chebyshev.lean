@@ -239,7 +239,7 @@ lemma mul_T :
   -- clean up the `T` nat indices in the inductive hypothesis applied to `m + 1` and
   -- `k + 1`
   have H₁ : 2 * T R (m + 1) * T R (m + k + 2) = T R (2 * m + k + 3) + T R (k + 1),
-  { have h_nat₁ : m + 1 + (k + 1) = m + k + , move_add [← 1, ← 1, ← 2],
+  { have h_nat₁ : m + 1 + (k + 1) = m + k + 2, move_add [← 1, ← 1, ← 2],
     have h_nat₂ : 2 * (m + 1) + (k + 1) = 2 * m + k + 3,
     { rw [mul_add, mul_one], move_add [2 * m, k] },
     simpa [h_nat₁, h_nat₂] using mul_T (m + 1) (k + 1) },

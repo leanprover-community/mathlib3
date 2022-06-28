@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 
 Some proofs and docs came from `algebra/commute` (c) Neil Strickland
 -/
-import algebra.group.units
+import algebra.group.basic
 
 /-!
 # Semiconjugate elements of a semigroup
@@ -22,8 +22,9 @@ for `commute a b = semiconj_by a b b`. As a side effect, some lemmas have only `
 Lean does not immediately recognise these terms as equations, so for rewriting we need syntax like
 `rw [(h.pow_right 5).eq]` rather than just `rw [h.pow_right 5]`.
 
-This file provides only basic operations (`mul_left`, `mul_right`, `inv_right` etc). Other
-operations (`pow_right`, field inverse etc) are in the files that define corresponding notions.
+This file provides only basic operations (`mul_left`, `mul_right`, `pow_right` etc). Other
+operations (`semiconj_by.inv_right`, `semiconj_by.zpow_right`, etc) are in the files that define
+corresponding notions.
 -/
 
 universes u v
@@ -91,41 +92,6 @@ section monoid
 
 variables {M : Type u} [monoid M]
 
-/-- If `a` semiconjugates a unit `x` to a unit `y`, then it semiconjugates `x⁻¹` to `y⁻¹`. -/
-@[to_additive "If `a` semiconjugates an additive unit `x` to an additive unit `y`, then it
-semiconjugates `-x` to `-y`."]
-lemma units_inv_right {a : M} {x y : Mˣ} (h : semiconj_by a x y) : semiconj_by a ↑x⁻¹ ↑y⁻¹ :=
-calc a * ↑x⁻¹ = ↑y⁻¹ * (y * a) * ↑x⁻¹ : by rw [units.inv_mul_cancel_left]
-          ... = ↑y⁻¹ * a              : by rw [← h.eq, mul_assoc, units.mul_inv_cancel_right]
-
-@[simp, to_additive] lemma units_inv_right_iff {a : M} {x y : Mˣ} :
-  semiconj_by a ↑x⁻¹ ↑y⁻¹ ↔ semiconj_by a x y :=
-⟨units_inv_right, units_inv_right⟩
-
-/-- If a unit `a` semiconjugates `x` to `y`, then `a⁻¹` semiconjugates `y` to `x`. -/
-@[to_additive "If an additive unit `a` semiconjugates `x` to `y`, then `-a` semiconjugates `y` to
-`x`."]
-lemma units_inv_symm_left {a : Mˣ} {x y : M} (h : semiconj_by ↑a x y) :
-  semiconj_by ↑a⁻¹ y x :=
-calc ↑a⁻¹ * y = ↑a⁻¹ * (y * a * ↑a⁻¹) : by rw [units.mul_inv_cancel_right]
-          ... = x * ↑a⁻¹              : by rw [← h.eq, ← mul_assoc, units.inv_mul_cancel_left]
-
-@[simp, to_additive] lemma units_inv_symm_left_iff {a : Mˣ} {x y : M} :
-  semiconj_by ↑a⁻¹ y x ↔ semiconj_by ↑a x y :=
-⟨units_inv_symm_left, units_inv_symm_left⟩
-
-@[to_additive] theorem units_coe {a x y : Mˣ} (h : semiconj_by a x y) :
-  semiconj_by (a : M) x y :=
-congr_arg units.val h
-
-@[to_additive] theorem units_of_coe {a x y : Mˣ} (h : semiconj_by (a : M) x y) :
-  semiconj_by a x y :=
-units.ext h
-
-@[simp, to_additive] theorem units_coe_iff {a x y : Mˣ} :
-  semiconj_by (a : M) x y ↔ semiconj_by a x y :=
-⟨units_of_coe, units_coe⟩
-
 @[simp, to_additive]
 lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 begin
@@ -149,21 +115,7 @@ inv_inv_symm_iff.2
 end division_monoid
 
 section group
-
 variables [group G] {a x y : G}
-
-@[simp, to_additive] lemma inv_right_iff : semiconj_by a x⁻¹ y⁻¹ ↔ semiconj_by a x y :=
-@units_inv_right_iff G _ a ⟨x, x⁻¹, mul_inv_self x, inv_mul_self x⟩
-  ⟨y, y⁻¹, mul_inv_self y, inv_mul_self y⟩
-
-@[to_additive] lemma inv_right : semiconj_by a x y → semiconj_by a x⁻¹ y⁻¹ :=
-inv_right_iff.2
-
-@[simp, to_additive] lemma inv_symm_left_iff : semiconj_by a⁻¹ y x ↔ semiconj_by a x y :=
-@units_inv_symm_left_iff G _ ⟨a, a⁻¹, mul_inv_self a, inv_mul_self a⟩ _ _
-
-@[to_additive] lemma inv_symm_left : semiconj_by a x y → semiconj_by a⁻¹ y x :=
-inv_symm_left_iff.2
 
 /-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
 @[to_additive "`a` semiconjugates `x` to `a + x + -a`."]
@@ -178,9 +130,3 @@ end semiconj_by
 lemma semiconj_by_iff_eq {M : Type u} [cancel_comm_monoid M] {a x y : M} :
   semiconj_by a x y ↔ x = y :=
 ⟨λ h, mul_left_cancel (h.trans (mul_comm _ _)), λ h, by rw [h, semiconj_by, mul_comm] ⟩
-
-/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
-@[to_additive "`a` semiconjugates `x` to `a + x + -a`."]
-lemma units.mk_semiconj_by {M : Type u} [monoid M] (u : Mˣ) (x : M) :
-  semiconj_by ↑u x (u * x * ↑u⁻¹) :=
-by unfold semiconj_by; rw [units.inv_mul_cancel_right]

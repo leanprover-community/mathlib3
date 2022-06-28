@@ -65,12 +65,10 @@ begin
     { intros f,
       ext ⟨j⟩,
       simp } },
-  { apply cardinal.mk_le_of_injective _,
-    { intro f,
-      exact ⟨_, _, f⟩ },
-    { rintro f g k,
-      cases k,
-      refl } },
+  { apply cardinal.mk_le_of_injective (λ f, (⟨_, _, f⟩ : md)),
+    rintro f g k,
+    cases k,
+    refl } ,
 end⟩
 
 end category_theory

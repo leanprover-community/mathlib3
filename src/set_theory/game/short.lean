@@ -215,7 +215,7 @@ instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ⧏ y
 (le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-by { rw lt_iff_le_and_lf, exact and.decidable }
+and.decidable 
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable

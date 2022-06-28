@@ -76,38 +76,6 @@ by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_countable
 
 variables [linear_order ι] {ℱ : filtration ι m} {τ σ : α → ι}
 
-lemma sigma_finite_trim_mono {m m₂ m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
-  (hm₂ : m₂ ≤ m)
-  [sigma_finite (μ.trim (hm₂.trans hm))] :
-  sigma_finite (μ.trim hm) :=
-begin
-  have h := measure.finite_spanning_sets_in (μ.trim (hm₂.trans hm)) set.univ,
-  refine measure.finite_spanning_sets_in.sigma_finite _,
-  { use set.univ, },
-  { refine
-    { set := spanning_sets (μ.trim (hm₂.trans hm)),
-      set_mem := λ _, set.mem_univ _,
-      finite := λ i, _, -- This is the only one left to prove
-      spanning := Union_spanning_sets _, },
-    calc (μ.trim hm) (spanning_sets (μ.trim (hm₂.trans hm)) i)
-        = ((μ.trim hm).trim hm₂) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
-      by rw @trim_measurable_set_eq α m₂ m (μ.trim hm) _ hm₂ (measurable_spanning_sets _ _)
-    ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
-      by rw @trim_trim _ _ μ _ _ hm₂ hm
-    ... < ⊤ : measure_spanning_sets_lt_top _ _, },
-end
-
-instance sigma_finite_stopping_time [order_bot ι]
-  [(filter.at_top : filter ι).is_countably_generated]
-  [sigma_finite_filtration μ ℱ] (hτ : is_stopping_time ℱ τ) :
-  sigma_finite (μ.trim hτ.measurable_space_le) :=
-begin
-  refine sigma_finite_trim_mono hτ.measurable_space_le _,
-  { exact ℱ ⊥, },
-  { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
-  { apply_instance, },
-end
-
 lemma _root_.measure_theory.is_stopping_time.measurable_space_le_of_le {ι} [semilattice_sup ι]
   {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
   hτ.measurable_space ≤ m :=

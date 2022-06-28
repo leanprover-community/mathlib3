@@ -203,15 +203,9 @@ lemma factor_order_iso_map_one_eq_bot {m : associates M} {n : associates N}
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   (d ⟨1, one_dvd m⟩ : associates N) = 1 :=
 begin
-  simp_rw [ ← associates.bot_eq_one],
-  suffices : d ⟨1, one_dvd m⟩ = ⟨⊥, bot_le⟩,
-  { rwa [subtype.ext_iff, subtype.coe_mk] at this, },
-  haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
-  haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
-  rwa [subtype.mk_bot, map_eq_bot_iff d, subtype.mk_eq_bot_iff, associates.bot_eq_one,
-    ← associates.is_unit_iff_eq_one],
-  { exact is_unit_one },
-  { exact bot_le },
+  letI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
+  letI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
+  simp [←associates.bot_eq_one]
 end
 
 lemma coe_factor_order_iso_map_eq_one_iff {m u : associates M} {n : associates N}
@@ -268,11 +262,8 @@ begin
   refine (associates.is_atom_iff $ ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop).mp ⟨_, λ b hb, _⟩,
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, associates.is_unit_iff_eq_one,
       coe_factor_order_iso_map_eq_one_iff _ d],
-    suffices : ¬ (is_unit p),
-    { by_contra hc,
-      rw hc at this,
-      exact this is_unit_one },
-    exact prime.not_unit (prime_of_normalized_factor p (by convert hp)) },
+    rintro rfl,
+    exact (prime_of_normalized_factor 1 hp).not_unit is_unit_one
   { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
     rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
@@ -342,8 +333,8 @@ variables [unique (Mˣ)] [unique (Nˣ)]
   bijection between the factors of `m` and the factors of `n` that preserves `∣`. -/
 @[simps]
 def mk_factor_order_iso_of_factor_dvd_equiv
-  {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
-  ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
+  {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n})
+  (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
    set.Iic (associates.mk m) ≃o set.Iic (associates.mk n) :=
 { to_fun := λ l, ⟨associates.mk (d ⟨associates_equiv_of_unique_units ↑l,
     by { obtain ⟨x, hx⟩ := l, rw [subtype.coe_mk,  associates_equiv_of_unique_units_apply,

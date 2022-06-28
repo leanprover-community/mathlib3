@@ -140,6 +140,10 @@ theorem induction [has_lt α] [well_founded_lt α] {C : α → Prop} :
   ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
 is_well_founded.induction (<)
 
+/-- Derive a `has_well_founded` instance from a `well_founded_lt` instance. -/
+def to_has_well_founded [has_lt α] [well_founded_lt α] :
+  has_well_founded α := { r := (<) }
+
 /-- A minimal element of a nonempty set in an order with well-founded `<`.
 
 If you're working with a nonempty linear order, consider defining a
@@ -227,9 +231,13 @@ end function
 namespace well_founded_gt
 
 /-- Inducts on a well-founded `>` relation. -/
-theorem induction [has_lt α] [well_founded_lt α] {C : α → Prop} :
-  ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
-is_well_founded.induction (<)
+theorem induction [has_lt α] [well_founded_gt α] {C : α → Prop} :
+  ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a :=
+is_well_founded.induction (>)
+
+/-- Derive a `has_well_founded` instance from a `well_founded_gt` instance. -/
+def to_has_well_founded [has_lt α] [well_founded_gt α] :
+  has_well_founded α := { r := (>) }
 
 /-- A maximal element of a nonempty set in an order with well-founded `>`. -/
 noncomputable def max [has_lt α] [well_founded_gt α] : Π (s : set α) (hs : s.nonempty), α :=

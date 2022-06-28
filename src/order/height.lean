@@ -7,6 +7,7 @@ Authors: Andrew Yang
 import data.list.chain
 import data.nat.lattice
 import algebra.order.monoid
+import order.grade
 
 /-!
 
@@ -41,7 +42,7 @@ universes u v
 
 namespace list
 
-variables (α : Type u) [partial_order α]
+variables (α : Type u) [preorder α]
 
 /-- The maximal length of a strictly descending sequence in a poset. -/
 noncomputable
@@ -111,14 +112,6 @@ begin
     refine ⟨l_hd :: l', h, rfl⟩ }
 end
 
-lemma enat.ne_zero_iff_one_le {n : enat} : n ≠ 0 ↔ 1 ≤ n :=
-begin
-  change ¬ n = ⊥ ↔ _,
-  rw [eq_bot_iff, ← lt_iff_not_le],
-  convert (enat.add_one_le_iff_lt (show (0 : enat) ≠ ⊤, from enat.coe_ne_top 0)).symm,
-  exact (zero_add 1).symm
-end
-
 @[simp]
 lemma chain_height_eq_zero_iff (a : α) : chain_height a = 0 ↔ is_min a :=
 begin
@@ -168,9 +161,13 @@ end
 lemma chain_height_monotone : monotone (chain_height : α → enat) :=
 begin
   intros a b r,
-  rcases le_iff_lt_or_eq.mp r with (h|rfl),
-  { exact (le_add_right $ le_of_eq rfl).trans (chain_height_le_of_lt h) },
-  { exact le_of_eq rfl }
+  apply supr_le,
+  rintro ⟨l, hl⟩,
+  refine le_trans _ (le_supr _ ⟨l, _⟩),
+  { cases l,
+    { simp },
+    { simp only [gt_iff_lt, list.chain_cons] at ⊢ hl, exact ⟨hl.1.trans_le r, hl.2⟩ } },
+  { refl }
 end
 
 lemma chain_height_le_sup_chain_length (a : α) :
@@ -208,7 +205,7 @@ end
 
 lemma sup_chain_length_dual : sup_chain_length αᵒᵈ = sup_chain_length α :=
 begin
-  suffices : ∀ (α : Type u) [partial_order α], by exactI sup_chain_length α ≤ sup_chain_length αᵒᵈ,
+  suffices : ∀ (α : Type u) [preorder α], by exactI sup_chain_length α ≤ sup_chain_length αᵒᵈ,
   { exact le_antisymm (this αᵒᵈ) (this α) },
   intros α hα,
   apply supr_le,

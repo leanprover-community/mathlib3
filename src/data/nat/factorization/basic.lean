@@ -56,7 +56,7 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
         exact dvd_iff_padic_val_nat_ne_zero hn0,
       end }
 
-lemma factorization_def (n p : ℕ) (pp : p.prime) : n.factorization p = padic_val_nat p n :=
+lemma factorization_def (n : ℕ) {p : ℕ} (pp : p.prime) : n.factorization p = padic_val_nat p n :=
 by simpa [factorization] using absurd pp
 
 /-- We can write both `n.factorization p` and `n.factors.count p` to represent the power
@@ -79,10 +79,6 @@ by { ext p, simp }
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
 by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn.bot_lt)]
-
-lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
-  padic_val_nat p n = n.factorization p :=
-by simp [factorization, fact_iff.1 hp]
 
 /-! ### Basic facts about factorization -/
 
@@ -603,10 +599,10 @@ begin
        prime_of_mem_factorization hp⟩ },
   { intros p hp,
     cases finset.mem_sdiff.mp hp with hp1 hp2,
-    rw ←factorization_def n p (finset.mem_filter.mp hp1).2,
+    rw ←factorization_def n (finset.mem_filter.mp hp1).2,
     simp [finsupp.not_mem_support_iff.mp hp2] },
   { intros p hp,
-    simp [factorization_def n p (prime_of_mem_factorization hp)] }
+    simp [factorization_def n (prime_of_mem_factorization hp)] }
 end
 
 end nat

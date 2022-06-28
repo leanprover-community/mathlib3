@@ -148,6 +148,7 @@ lemma noetherian_space.discrete [noetherian_space α] [t2_space α] : discrete_t
 local attribute [instance] noetherian_space.discrete
 
 /-- Spaces that are both Noetherian and Hausdorff is finite. -/
+@[priority 100]
 noncomputable
 def noetherian_space.fintype [noetherian_space α] [t2_space α] : fintype α :=
 set.fintype_of_finite_univ (noetherian_space.is_compact set.univ).finite_of_discrete

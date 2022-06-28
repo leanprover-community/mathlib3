@@ -209,29 +209,38 @@ instance is_extensional_of_is_strict_total_order'
 
 /-! ### Well-order -/
 
-/-- A well order is a well-founded linear order. -/
-@[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
-  extends is_strict_total_order' α r : Prop :=
+/-- A well-founded relation. Not to be confused with `is_well_order`. -/
+@[algebra] class is_well_founded (α : Type u) (r : α → α → Prop) : Prop :=
 (wf : well_founded r)
 
+instance has_well_founded.is_well_founded [h : has_well_founded α] :
+  is_well_founded α has_well_founded.r := { ..h }
+
+theorem is_well_founded.induction (r : α → α → Prop) [h : is_well_founded α r] {C : α → Prop} :
+  ∀ a, (∀ x, (∀ y, r y x → C y) → C x) → C a :=
+h.wf.induction
+
+theorem well_founded.asymmetric {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
+  ∀ ⦃a b⦄, r a b → ¬ r b a
+| a := λ b hab hba, well_founded.asymmetric hba hab
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
+                     dec_tac := tactic.assumption }
+
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
-  is_strict_total_order α r := by apply_instance
+instance is_well_founded.is_asymm (r : α → α → Prop) [is_well_founded α r] : is_asymm α r :=
+⟨is_well_founded.wf.asymmetric⟩
+
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
-  is_extensional α r := by apply_instance
+instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α r] : is_irrefl α r :=
+is_asymm.is_irrefl
+
+/-- A well order is a well-founded linear order. -/
+@[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
+  extends is_well_founded α r, is_trichotomous α r, is_trans α r : Prop
+
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
-  is_trichotomous α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] :
-  is_trans α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] :
-  is_irrefl α r := by apply_instance
-@[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
-  is_asymm α r := by apply_instance
+instance is_well_order.is_strict_total_order' (r : α → α → Prop) [is_well_order α r] :
+  is_strict_total_order' α r := {}
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
@@ -256,9 +265,12 @@ subsingleton.is_well_order _
 @[priority 100]
 instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
 { trichotomous := is_empty_elim,
-  irrefl       := is_empty_elim,
   trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
+
+instance prod.lex.is_well_founded [is_well_founded α r] [is_well_founded β s] :
+  is_well_founded (α × β) (prod.lex r s) :=
+⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
@@ -272,8 +284,6 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
-  irrefl := λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
-     [exact irrefl _ h, exact irrefl _ h],
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
@@ -282,7 +292,7 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
     { exact prod.lex.left _ _ bc },
     { exact prod.lex.right _ (trans ab bc) }
   end,
-  wf := prod.lex_wf is_well_order.wf is_well_order.wf }
+  ..prod.lex.is_well_founded }
 
 namespace set
 
@@ -491,7 +501,7 @@ lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
-instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+instance nat.lt.is_well_order : is_well_order ℕ (<) := { wf := nat.lt_wf }
 
 instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
 instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

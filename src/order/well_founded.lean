@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import tactic.by_contra
 import data.set.basic
+import order.bounds
 
 /-!
 # Well-founded relations
@@ -17,69 +18,46 @@ The predicate `well_founded` is defined in the core library. In this file we pro
 and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `well_founded.succ`.
 -/
 
-variables {α : Type*}
+/-! ### Generic relation
 
-namespace well_founded
+Note that throughout this section, we give lemmas the names they'd have if the order relation were
+`<`. -/
 
-theorem not_gt_of_lt {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
-  ∀ ⦃a b⦄, r a b → ¬ r b a
-| a := λ b hab hba, not_gt_of_lt hba hab
-using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
-                     dec_tac := tactic.assumption }
+variables {α β : Type*}
 
-protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
-⟨h.not_gt_of_lt⟩
-
-instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
-has_well_founded.wf.is_asymm
-
-protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
-(@is_asymm.is_irrefl α r h.is_asymm)
-
-instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
-is_asymm.is_irrefl
+namespace is_well_founded
+variables (r : α → α → Prop) [H : is_well_founded α r]
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
-theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
-  (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
+theorem has_min {s : set α} : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
+| ⟨a, ha⟩ := (acc.rec_on (H.wf.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
-/-- A minimal element of a nonempty set in a well-founded order.
+/-- A minimal element of a nonempty set with respect to a well-founded relation. See also
+`well_founded_lt.min` and `well_founded_gt.max`. -/
+noncomputable def min [is_well_founded α r] (s : set α) (hs : s.nonempty) : α :=
+classical.some (has_min r hs)
 
-If you're working with a nonempty linear order, consider defining a
-`conditionally_complete_linear_order_bot` instance via
-`well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
-noncomputable def min {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : α :=
-classical.some (H.has_min p h)
+theorem min_mem [is_well_founded α r] {s : set α} (hs : s.nonempty) : min r s hs ∈ s :=
+let ⟨h, _⟩ := classical.some_spec (has_min r hs) in h
 
-theorem min_mem {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
-let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
+theorem not_lt_min [is_well_founded α r] {s : set α} {x} (hx : x ∈ s) (hs : s.nonempty := ⟨x, hx⟩) :
+  ¬ r x (min r s hs) :=
+let ⟨_, h'⟩ := classical.some_spec (has_min r hs) in h' _ hx
 
-theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
-let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
-
-theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
+theorem well_founded_iff_has_min {r : α → α → Prop} : well_founded r ↔
+  ∀ {s : set α}, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a :=
 begin
-  classical,
-  split,
-  { exact has_min, },
-  { set counterexamples := { x : α | ¬ acc r x},
-    intro exists_max,
-    fconstructor,
-    intro x,
-    by_contra hx,
-    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
-    refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
-    by_contra hy,
-    exact hm y hy y_gt_m, },
+  refine ⟨λ h, @has_min _ r ⟨h⟩, λ h, ⟨λ x, _⟩⟩,
+  by_contra hx,
+  obtain ⟨m, hm, hm'⟩ := h ⟨x, hx⟩,
+  refine hm (acc.intro _ (λ y hy, _)),
+  by_contra hy',
+  exact hm' y hy' hy
 end
 
+-- TODO: remove this, or at least move it elsewhere.
 lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
 begin
   split,
@@ -92,82 +70,158 @@ begin
     exact lt_of_le_of_ne xle (ne.symm ngt) }
 end
 
+-- TODO: rewrite this in terms of `well_founded_gt`.
 theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
 by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
 
+-- TODO: rewrite this in terms of `well_founded_lt`.
 theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
 @well_founded_iff_has_max' αᵒᵈ _
 
 open set
-/-- The supremum of a bounded, well-founded order -/
-protected noncomputable def sup {r : α → α → Prop} (wf : well_founded r) (s : set α)
-  (h : bounded r s) : α :=
-wf.min { x | ∀a ∈ s, r a x } h
 
-protected lemma lt_sup {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
-  {x} (hx : x ∈ s) : r x (wf.sup s h) :=
-min_mem wf { x | ∀a ∈ s, r a x } h x hx
+/-- A minimal upper bound of a bounded, well-founded order -/
+protected noncomputable def sup [is_well_founded α r] {s : set α} : bounded r s → α :=
+min r {x | ∀ a ∈ s, r a x}
 
-section
+protected lemma lt_sup [is_well_founded α r] {s : set α} (h : bounded r s) {x} (hx : x ∈ s) :
+  r x (is_well_founded.sup r h) :=
+min_mem r h x hx
+
+section classical
 open_locale classical
+
 /-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
-protected noncomputable def succ {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
-if h : ∃y, r x y then wf.min { y | r x y } h else x
+protected noncomputable def succ [is_well_founded α r] (x : α) : α :=
+if h : ∃ y, r x y then min r {y | r x y} h else x
 
-protected lemma lt_succ {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
-  r x (wf.succ x) :=
-by { rw [well_founded.succ, dif_pos h], apply min_mem }
-end
+protected lemma lt_succ [is_well_founded α r] {x : α} (h : ∃ y, r x y) :
+  r x (is_well_founded.succ r x) :=
+by { rw [is_well_founded.succ, dif_pos h], apply min_mem }
 
-protected lemma lt_succ_iff {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
-  (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
+end classical
+
+protected lemma lt_succ_iff [is_well_order α r] {x : α} (h : ∃ y, r x y) (y : α) :
+  r y (is_well_founded.succ r x) ↔ r y x ∨ y = x :=
 begin
   split,
   { intro h', have : ¬r x y,
-    { intro hy, rw [well_founded.succ, dif_pos] at h',
-      exact wo.wf.not_lt_min _ h hy h' },
+    { intro hy, rw [is_well_founded.succ, dif_pos] at h',
+      exact is_well_founded.not_lt_min _ hy h h' },
     rcases trichotomous_of r x y with hy | hy | hy,
-    exfalso, exact this hy,
-    right, exact hy.symm,
-    left, exact hy },
-  rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
+    { exact (this hy).elim },
+    { exact or.inr hy.symm },
+    { exact or.inl hy } },
+  rintro (hy | rfl),
+  { exact trans hy (is_well_founded.lt_succ r h) },
+  { exact is_well_founded.lt_succ r h }
 end
+
+end is_well_founded
+
+/-! ### Well-founded order relation -/
+
+/-- A class for a well founded relation `<`. -/
+class well_founded_lt (α : Type*) [has_lt α] extends is_well_founded α (<) : Prop
+
+/-- A class for a well founded relation `>`. -/
+class well_founded_gt (α : Type*) [has_lt α] extends is_well_founded α (>) : Prop
+
+@[priority 100] -- See note [lower instance priority]
+instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := { ..h }
+@[priority 100] -- See note [lower instance priority]
+instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := { ..h }
+
+namespace well_founded_lt
+
+/-- Inducts on a well-founded `<` relation. -/
+theorem induction [has_lt α] [well_founded_lt α] {C : α → Prop} :
+  ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
+is_well_founded.induction (<)
+
+/-- A minimal element of a nonempty set in an order with well-founded `<`.
+
+If you're working with a nonempty linear order, consider defining a
+`conditionally_complete_linear_order_bot` instance via
+`well_founded.conditionally_complete_linear_order_with_bot` and using `Inf` instead. -/
+noncomputable def min [has_lt α] [well_founded_lt α] : Π (s : set α) (hs : s.nonempty), α :=
+is_well_founded.min (<)
+
+theorem min_mem [has_lt α] [well_founded_lt α] {s : set α} (hs : s.nonempty) : min s hs ∈ s :=
+is_well_founded.min_mem _ hs
+
+theorem not_lt_min [has_lt α] [well_founded_lt α] {s : set α} {x} (hx : x ∈ s)
+  (hs : s.nonempty := ⟨x, hx⟩) : ¬ x < min s hs :=
+is_well_founded.not_lt_min _ hx
+
+theorem min_le [linear_order α] [well_founded_lt α] {s : set α} {x} (hx : x ∈ s)
+  (hs : s.nonempty := ⟨x, hx⟩) : min s hs ≤ x :=
+le_of_not_lt (not_lt_min hx hs)
+
+theorem self_le_of_strict_mono [linear_order α] [well_founded_lt α] {f : α → α}
+  (hf : strict_mono f) : ∀ n, n ≤ f n :=
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+
+private theorem range_eq_iff_eq_of_strict_mono_aux [linear_order α] [partial_order β]
+  {f g : α → β} (hf : strict_mono f) (hg : strict_mono g) (hfg : set.range f = set.range g) {a : α}
+  (H : ∀ b < a, f b = g b) : f a ≤ g a :=
+begin
+  obtain ⟨b, hb⟩ : g a ∈ set.range f := by { rw hfg, exact set.mem_range_self a },
+  cases lt_or_le b a with hab hab,
+  { rw [H b hab] at hb,
+    rw hg.injective hb at hab,
+    exact hab.false.elim },
+  { rw ←hb,
+    exact hf.monotone hab }
+end
+
+theorem range_eq_iff_eq_of_strict_mono [linear_order α] [partial_order β] [well_founded_lt α]
+  {f g : β → γ} (hf : strict_mono f) (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
+⟨λ h, begin
+  funext a,
+  apply induction a,
+  exact λ b H, le_antisymm
+    (range_eq_iff_eq_of_strict_mono_aux hf hg h H)
+    (range_eq_iff_eq_of_strict_mono_aux hg hf h.symm (λ a hab, (H a hab).symm))
+end, congr_arg _⟩
+
+end well_founded_lt
+
+namespace well_founded_gt
+
+/-- Inducts on a well-founded `>` relation. -/
+theorem induction [has_lt α] [well_founded_lt α] {C : α → Prop} :
+  ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
+is_well_founded.induction (<)
+
+/-- A maximal element of a nonempty set in an order with well-founded `>`. -/
+noncomputable def max [has_lt α] [well_founded_gt α] : Π (s : set α) (hs : s.nonempty), α :=
+is_well_founded.min (>)
+
+theorem max_mem [has_lt α] [well_founded_gt α] {s : set α} (hs : s.nonempty) : max s hs ∈ s :=
+is_well_founded.min_mem _ hs
+
+theorem not_max_lt [has_lt α] [well_founded_gt α] {s : set α} {x} (hx : x ∈ s)
+  (hs : s.nonempty := ⟨x, hx⟩) : ¬ max s hs < x :=
+is_well_founded.not_lt_min (>) hx
+
+theorem le_max [linear_order α] [well_founded_gt α] {s : set α} {x} (hx : x ∈ s)
+  (hs : s.nonempty := ⟨x, hx⟩) : x ≤ max s hs :=
+le_of_not_lt (not_max_lt hx hs)
+
+theorem range_eq_iff_eq_of_antitone [linear_order α] [partial_order β] [well_founded_gt α] :
+  ∀ {f g : β → γ} (hf : antitone f) (hg : antitone g), set.range f = set.range g ↔ f = g :=
+@range_eq_iff_eq_of_strict_mono αᵒᵈ _ _
+
+end well_founded_gt
 
 section linear_order
 
-variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
-  {γ : Type*} [partial_order γ]
-
-theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
-  h.min s hne ≤ x :=
-not_lt.1 $ h.not_lt_min _ _ hx
-
-private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
-  (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
-  f b ≤ g b :=
-begin
-  obtain ⟨c, hc⟩ : g b ∈ set.range f := by { rw hfg, exact set.mem_range_self b },
-  cases lt_or_le c b with hcb hbc,
-  { rw [H c hcb] at hc,
-    rw hg.injective hc at hcb,
-    exact hcb.false.elim },
-  { rw ←hc,
-    exact hf.monotone hbc }
-end
-
-include h
-theorem eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
-  (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
-⟨λ hfg, begin
-  funext a,
-  apply h.induction a,
-  exact λ b H, le_antisymm
-    (eq_strict_mono_iff_eq_range_aux hf hg hfg H)
-    (eq_strict_mono_iff_eq_range_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
-end, congr_arg _⟩
+variables {β : Type*} (h : well_founded ((<) : β → β → Prop))
+  {γ : Type*}
 
 theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
 by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }

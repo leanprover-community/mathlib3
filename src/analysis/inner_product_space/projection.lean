@@ -772,7 +772,7 @@ lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
 
 /-- The orthogonal complement satisfies `Kᗮᗮᗮ = Kᗮ`. -/
-lemma submodule.orthogonal3_eq_orthogonal [complete_space E] : Kᗮᗮᗮ = Kᗮ :=
+lemma submodule.triorthogonal_eq_orthogonal [complete_space E] : Kᗮᗮᗮ = Kᗮ :=
 begin
   rw Kᗮ.orthogonal_orthogonal_eq_closure,
   exact K.is_closed_orthogonal.topological_closure_eq,
@@ -783,7 +783,7 @@ lemma topological_closure_eq_top_iff [complete_space E] : K.topological_closure 
 begin
   rw ←submodule.orthogonal_orthogonal_eq_closure,
   split; intro h,
-  { rw [←submodule.orthogonal3_eq_orthogonal, h, submodule.top_orthogonal_eq_bot] },
+  { rw [←submodule.triorthogonal_eq_orthogonal, h, submodule.top_orthogonal_eq_bot] },
   { rw [h, submodule.bot_orthogonal_eq_top] }
 end
 

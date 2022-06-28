@@ -82,7 +82,7 @@ rat.ext_iff.mpr ⟨hn, hd⟩
 def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
 ⟨n / g, d / g, begin
-  apply (nat.le_div_iff_mul_le _ _ (nat.gcd_pos_of_pos_right _ dpos)).2,
+  apply (nat.le_div_iff_mul_le (nat.gcd_pos_of_pos_right _ dpos)).2,
   rw one_mul, exact nat.le_of_dvd dpos (nat.gcd_dvd_right _ _)
 end, begin
   have : int.nat_abs (n / ↑g) = n' / g,
@@ -208,7 +208,7 @@ begin
     have gb0 := nat.gcd_pos_of_pos_right a hb,
     have gd0 := nat.gcd_pos_of_pos_right c hd,
     apply nat.le_of_dvd,
-    apply (nat.le_div_iff_mul_le _ _ gd0).2,
+    apply (nat.le_div_iff_mul_le gd0).2,
     simp, apply nat.le_of_dvd hd (nat.gcd_dvd_right _ _),
     apply (nat.coprime_div_gcd_div_gcd gb0).symm.dvd_of_dvd_mul_left,
     refine ⟨c / c.gcd d, _⟩,
@@ -463,6 +463,10 @@ instance : field ℚ :=
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
   exists_pair_ne   := ⟨0, 1, rat.zero_ne_one⟩,
+  nat_cast         := λ n, rat.of_int n,
+  nat_cast_zero    := rfl,
+  nat_cast_succ    := λ n, show of_int _ = of_int _ + 1,
+    by simp only [of_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp,
   mul_inv_cancel   := rat.mul_inv_cancel,
   inv_zero         := rfl }
 
@@ -520,10 +524,8 @@ ne_of_gt q.pos
 
 lemma eq_iff_mul_eq_mul {p q : ℚ} : p = q ↔ p.num * q.denom = q.num * p.denom :=
 begin
-  conv_lhs { rw [←(@num_denom p), ←(@num_denom q)] },
-  apply rat.mk_eq,
-  { exact_mod_cast p.denom_ne_zero },
-  { exact_mod_cast q.denom_ne_zero }
+  conv { to_lhs, rw [← @num_denom p, ← @num_denom q] },
+  apply rat.mk_eq; rw [← nat.cast_zero, ne, int.coe_nat_eq_coe_nat_iff]; apply denom_ne_zero,
 end
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=
@@ -583,23 +585,17 @@ by cases d; refl
 lemma num_mk (n d : ℤ) :
   (n /. d).num = d.sign * n / n.gcd d :=
 begin
-  rcases d with ((_ | _) | _),
-  { simp },
-  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
-  { rw rat.mk,
-    simpa [rat.mk_pnat_num, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
-           int.sign_coe_nat_of_nonzero] }
+  rcases d with ((_ | _) | _);
+  simp [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
+    -nat.cast_succ, -int.coe_nat_succ]
 end
 
 lemma denom_mk (n d : ℤ) :
   (n /. d).denom = if d = 0 then 1 else d.nat_abs / n.gcd d :=
 begin
-  rcases d with ((_ | _) | _),
-  { simp },
-  { simpa [←int.coe_nat_succ, int.sign_coe_nat_of_nonzero] },
-  { rw rat.mk,
-    simpa [rat.mk_pnat_denom, int.neg_succ_of_nat_eq, ←int.coe_nat_succ,
-           int.sign_coe_nat_of_nonzero] }
+  rcases d with ((_ | _) | _);
+  simp [rat.mk, mk_nat, mk_pnat, nat.succ_pnat, int.sign, int.gcd,
+    -nat.cast_succ, -int.coe_nat_succ]
 end
 
 theorem mk_pnat_denom_dvd (n : ℤ) (d : ℕ+) :
@@ -645,15 +641,9 @@ protected lemma add_mk (a b c : ℤ) : (a + b) /. c = a /. c + b /. c :=
 if h : c = 0 then by simp [h] else
 by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
 
-theorem coe_int_eq_mk : ∀ (z : ℤ), ↑z = z /. 1
-| (n : ℕ) := show (n:ℚ) = n /. 1,
-  by induction n with n IH n; simp [*, rat.add_mk]
-| -[1+ n] := show (-(n + 1) : ℚ) = -[1+ n] /. 1, begin
-  induction n with n IH, { rw ← of_int_eq_mk, simp, refl },
-  show -(n + 1 + 1 : ℚ) = -[1+ n.succ] /. 1,
-  rw [neg_add, IH, ← mk_neg_one_one],
-  simp [-mk_neg_one_one]
-end
+theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
+| (n : ℕ) := of_int_eq_mk _
+| -[1+ n] := show -(of_int _) = _, by simp [of_int_eq_mk, neg_def, int.neg_succ_of_nat_coe]
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin
@@ -675,7 +665,7 @@ by rw [div_eq_mul_inv, inv_def, mk_mul_mk_cancel hx]
 lemma mk_div_mk_cancel_right {x : ℤ} (hx : x ≠ 0) (n d : ℤ) : (x /. n) / (x /. d) = d /. n :=
 by rw [div_eq_mul_inv, inv_def, mul_comm, mk_mul_mk_cancel hx]
 
-@[simp] lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
+lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
 begin
   repeat {rw coe_int_eq_mk},
   exact mk_div_mk_cancel_left one_ne_zero n d,
@@ -873,7 +863,10 @@ begin
 end
 
 lemma inv_coe_nat_denom {a : ℕ} (ha0 : 0 < a) : (a : ℚ)⁻¹.denom = a :=
-by exact_mod_cast inv_coe_int_denom (by exact_mod_cast ha0 : 0 < (a : ℤ))
+begin
+  rw [← int.coe_nat_eq_coe_nat_iff, ← int.cast_coe_nat a, inv_coe_int_denom],
+  rwa [← nat.cast_zero, nat.cast_lt]
+end
 
 protected lemma «forall» {p : ℚ → Prop} : (∀ r, p r) ↔ ∀ a b : ℤ, p (a / b) :=
 ⟨λ h _ _, h _,

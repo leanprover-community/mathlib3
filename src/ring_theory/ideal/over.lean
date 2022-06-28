@@ -69,12 +69,13 @@ end
 is injective.
 -/
 lemma injective_quotient_le_comap_map (P : ideal R[X]) :
-  function.injective ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
-    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map) :=
+  function.injective ((map (map_ring_hom (quotient.mk (P.comap (C : R →+* R[X])))) P).quotient_map
+    (map_ring_hom (quotient.mk (P.comap (C : R →+* R[X])))) le_comap_map) :=
 begin
   refine quotient_map_injective' (le_of_eq _),
   rw comap_map_of_surjective
-    (map_ring_hom (quotient.mk (P.comap C))) (map_surjective _ quotient.mk_surjective),
+    (map_ring_hom (quotient.mk (P.comap (C : R →+* R[X]))))
+      (map_surjective (quotient.mk (P.comap (C : R →+* R[X]))) quotient.mk_surjective),
   refine le_antisymm (sup_le le_rfl _) (le_sup_of_le_left le_rfl),
   refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
   simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
@@ -91,10 +92,11 @@ commutes.  It is used, for instance, in the proof of `quotient_mk_comp_C_is_inte
 in the file `ring_theory/jacobson`.
 -/
 lemma quotient_mk_maps_eq (P : ideal R[X]) :
-  ((quotient.mk (map (map_ring_hom (quotient.mk (P.comap C))) P)).comp C).comp
-    (quotient.mk (P.comap C)) =
-  ((map (map_ring_hom (quotient.mk (P.comap C))) P).quotient_map
-    (map_ring_hom (quotient.mk (P.comap C))) le_comap_map).comp ((quotient.mk P).comp C) :=
+  ((quotient.mk (map (map_ring_hom (quotient.mk (P.comap (C : R →+* R[X])))) P)).comp C).comp
+    (quotient.mk (P.comap (C : R →+* R[X]))) =
+  ((map (map_ring_hom (quotient.mk (P.comap (C : R →+* R[X])))) P).quotient_map
+    (map_ring_hom (quotient.mk (P.comap (C : R →+* R[X])))) le_comap_map).comp
+      ((quotient.mk P).comp C) :=
 begin
   refine ring_hom.ext (λ x, _),
   repeat { rw [ring_hom.coe_comp, function.comp_app] },
@@ -108,11 +110,12 @@ that is non-zero in the quotient `R / (P ∩ R) [x]`.  The assumptions are equiv
 -/
 lemma exists_nonzero_mem_of_ne_bot {P : ideal R[X]}
   (Pb : P ≠ ⊥) (hP : ∀ (x : R), C x ∈ P → x = 0) :
-  ∃ p : R[X], p ∈ P ∧ (polynomial.map (quotient.mk (P.comap C)) p) ≠ 0 :=
+  ∃ p : R[X], p ∈ P ∧ (polynomial.map (quotient.mk (P.comap (C : R →+* R[X]))) p) ≠ 0 :=
 begin
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
   refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  refine (injective_iff_map_eq_zero (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
+  refine (injective_iff_map_eq_zero
+    (polynomial.map_ring_hom (quotient.mk (P.comap (C : R →+* R[X]))))).mp _ _ pp0,
   refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
   rw [mk_ker],
   exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
@@ -150,7 +153,7 @@ ring_hom.to_algebra $ quotient_map _ f h
 /-- `R / p` has a canonical map to `S / pS`. -/
 instance quotient.algebra_quotient_map_quotient :
   algebra (R ⧸ p) (S ⧸ map f p) :=
-quotient.algebra_quotient_of_le_comap le_comap_map
+by exact quotient.algebra_quotient_of_le_comap le_comap_map
 
 @[simp] lemma quotient.algebra_map_quotient_map_quotient (x : R) :
   algebra_map (R ⧸ p) (S ⧸ map f p) (quotient.mk p x) = quotient.mk _ (f x) :=
@@ -219,7 +222,7 @@ lemma mem_of_one_mem (h : (1 : S) ∈ I) (x) : x ∈ I :=
 
 lemma comap_lt_comap_of_integral_mem_sdiff [algebra R S] [hI : I.is_prime] (hIJ : I ≤ J)
   {x : S} (mem : x ∈ (J : set S) \ I) (integral : is_integral R x) :
-  I.comap (algebra_map R S) < J.comap (algebra_map _ _) :=
+  I.comap (algebra_map R S) < J.comap (algebra_map R S) :=
 begin
   obtain ⟨p, p_monic, hpx⟩ := integral,
   refine comap_lt_comap_of_root_mem_sdiff hIJ mem _ _,
@@ -290,7 +293,7 @@ variables [algebra R A] [algebra A S] [is_scalar_tower R A S] [is_integral_closu
 
 lemma is_integral_closure.comap_lt_comap {I J : ideal A} [I.is_prime]
   (I_lt_J : I < J) :
-  I.comap (algebra_map R A) < J.comap (algebra_map _ _) :=
+  I.comap (algebra_map R A) < J.comap (algebra_map R A) :=
 let ⟨I_le_J, x, hxJ, hxI⟩ := set_like.lt_iff_le_and_exists.mp I_lt_J in
 comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (is_integral_closure.is_integral R S x)
 
@@ -314,7 +317,7 @@ end is_integral_closure
 
 lemma integral_closure.comap_lt_comap {I J : ideal (integral_closure R S)} [I.is_prime]
   (I_lt_J : I < J) :
-  I.comap (algebra_map R (integral_closure R S)) < J.comap (algebra_map _ _) :=
+  I.comap (algebra_map R (integral_closure R S)) < J.comap (algebra_map R (integral_closure R S)) :=
 is_integral_closure.comap_lt_comap S I_lt_J
 
 lemma integral_closure.is_maximal_of_is_maximal_comap
@@ -366,9 +369,10 @@ theorem exists_ideal_over_prime_of_is_integral (H : algebra.is_integral R S)
   (P : ideal R) [is_prime P] (I : ideal S) [is_prime I] (hIP : I.comap (algebra_map R S) ≤ P) :
   ∃ Q ≥ I, is_prime Q ∧ Q.comap (algebra_map R S) = P :=
 begin
+  let quot := (R ⧸ I.comap (algebra_map R S)),
   obtain ⟨Q' : ideal (S ⧸ I), ⟨Q'_prime, hQ'⟩⟩ :=
     @exists_ideal_over_prime_of_is_integral'
-      (R ⧸ I.comap (algebra_map R S)) _ (S ⧸ I) _
+      quot _ (S ⧸ I) _
       ideal.quotient_algebra
       _
       (is_integral_quotient_of_is_integral H)

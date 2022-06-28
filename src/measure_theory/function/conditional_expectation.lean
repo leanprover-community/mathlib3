@@ -655,7 +655,7 @@ begin
   let s_g : set α := function.support (hgm.mk g),
   have hs_g : measurable_set[m] s_g := hgm.strongly_measurable_mk.measurable_set_support,
   have hs_g_eq : s_g =ᵐ[μ] function.support g := hgm.ae_eq_mk.symm.support,
-  have h_inter_empty : (s_f.inter s_g) =ᵐ[μ] (∅ : set α),
+  have h_inter_empty : ((s_f ∩ s_g) : set α) =ᵐ[μ] (∅ : set α),
   { refine (hs_f_eq.inter hs_g_eq).trans _,
     suffices : function.support f ∩ function.support g = ∅, by rw this,
     exact set.disjoint_iff_inter_eq_empty.mp h_disj, },

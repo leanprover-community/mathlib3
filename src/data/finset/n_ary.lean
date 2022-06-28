@@ -140,6 +140,12 @@ begin
     mem_insert_self _ _, ha⟩, h.trans $ image₂_subset (subset_insert _ _) $ subset_insert _ _⟩⟩,
 end
 
+lemma bUnion_image_left : s.bUnion (λ a, t.image $ f a) = image₂ f s t :=
+coe_injective $ by { push_cast, exact set.Union_image_left _ }
+
+lemma bUnion_image_right : t.bUnion (λ b, s.image $ λ a, f a b) = image₂ f s t :=
+coe_injective $ by { push_cast, exact set.Union_image_right _ }
+
 /-!
 ### Algebraic replacement rules
 

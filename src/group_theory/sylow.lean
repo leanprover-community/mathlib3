@@ -177,6 +177,13 @@ lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
 lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
 
+lemma sylow.smul_le {P : sylow p G} {H : subgroup G} (hP : ↑P ≤ H) (h : H) : ↑(h • P) ≤ H :=
+subgroup.conj_smul_le_of_le hP h
+
+lemma sylow.smul_subtype {P : sylow p G} {H : subgroup G} (hP : ↑P ≤ H) (h : H) :
+  h • P.subtype hP = (h • P).subtype (sylow.smul_le hP h) :=
+sylow.ext (subgroup.conj_smul_subgroup_of hP h)
+
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ (P : subgroup G).normalizer :=
 begin

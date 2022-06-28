@@ -510,9 +510,9 @@ omit h
 theorem not_correct : ¬correct cs :=
 begin
   intro h, apply (lt_aleph_0_of_fintype ι).not_le,
-  rw [aleph_0, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
+  rw [aleph_0, lift_id], apply mk_le_of_injective (λ n, (sequence_of_cubes h n).1),
   intros n m hnm, apply (strict_anti_sequence_of_cubes h).injective,
-  dsimp only [decreasing_sequence], rw hnm
+  apply congr_arg (λ x, (cs x).w) hnm
 end
 
 /-- **Dissection of Cubes**: A cube cannot be cubed. -/

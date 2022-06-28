@@ -394,7 +394,7 @@ def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
 
 localized "notation `∠` := euclidean_geometry.angle" in euclidean_geometry
 
-lemma continuous_at_angle (x : P × P × P) (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
+lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
   continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
 begin
   let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),

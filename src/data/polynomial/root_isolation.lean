@@ -108,3 +108,11 @@ begin
       hra, hrb, hra', hrb', false_and, true_and, false_or, or_false] at *,
     tauto! {closer := tactic.linarith tt ff []}, },
 end
+
+lemma even_card_roots_filter_mem_Ioi_iff (a : ℝ) (p : polynomial ℝ)
+  (ha : p.eval a ≠ 0) :
+  even ((p.roots.filter (∈ set.Ioi a)).card)
+    ↔ ((0 < p.eval a ∧ 0 < p.leading_coeff) ∨ (p.eval a < 0 ∧ p.leading_coeff < 0)) :=
+begin
+  let b := p.roots.max,
+end

@@ -217,7 +217,7 @@ begin
     exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
 end
 
-@[simp] theorem lift_cof (o) : (cof o).lift = cof o.lift :=
+@[simp] theorem lift_cof (o : ordinal.{u}) : cardinal.lift.{v} (cof o) = cof o.lift :=
 begin
   refine induction_on o _,
   introsI α r _,
@@ -226,7 +226,7 @@ begin
   { unfreezingI { refine le_cof_type.2 (λ S H, _) },
     have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
     { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
-      exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },
+      exact mk_preimage_of_injective_lift.{u (max u v) 0} ulift.up _ ulift.up_injective },
     refine (cardinal.lift_le.2 $ cof_type_le _).trans this,
     exact λ a, let ⟨⟨b⟩, bs, br⟩ := H ⟨a⟩ in ⟨b, bs, br⟩ },
   { rcases cof_eq r with ⟨S, H, e'⟩,

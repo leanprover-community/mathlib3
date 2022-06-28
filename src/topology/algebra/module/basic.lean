@@ -236,6 +236,16 @@ lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M}
 s.topological_closure_minimal (h.trans t.submodule_topological_closure)
   t.is_closed_topological_closure
 
+/-- The topological closure of a closed submodule `s` is equal to `s`. -/
+lemma is_closed.topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
+  s.topological_closure = s :=
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+
+/-- A subspace is dense iff its topological closure is the entire space. -/
+lemma dense_topological_closure_eq_top_iff {s : submodule R M} :
+  dense (s : set M) ↔ s.topological_closure = ⊤ :=
+by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the

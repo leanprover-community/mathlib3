@@ -7,11 +7,11 @@ example (e f g : R) (h : a + b + c = d) : b + (a + c) = d :=
 begin
   success_if_fail_with_msg {move_add [d] at *} "'d' is an unused variable",
   move_add at *,
-  success_if_fail_with_msg {move_add at *} "'move_op at *' changed nothing",
-  success_if_fail_with_msg {move_add [a, e, f, g] at h a b c ⊢} "'[a, b, c]' did not change",
+  success_if_fail_with_msg {move_add at *} "nothing changed\n",
+  success_if_fail_with_msg {move_add [a, e, f, g] at h a b c ⊢}
+    "'[a, b, c]' did not change\n'[e, f, g]' are unused variables",
   success_if_fail_with_msg {move_add [a, e, f, g] at h ⊢} "'[e, f, g]' are unused variables",
-  success_if_fail_with_msg {move_add at ⊢ h} "'[h]' did not change",
-  success_if_fail_with_msg {move_add at ⊢} "Goal did not change",
+  success_if_fail_with_msg {move_add at ⊢ h} "Goal did not change\n'[h]' did not change\n",
   move_add ← a at *,  -- `move_add` closes the goal, since, after rearranging, it tries `assumption`
 end
 
@@ -19,11 +19,12 @@ example {R : Type*} [comm_semigroup R] (a b c d e f g : R) (h : a * b * c = d) :
 begin
   success_if_fail_with_msg {move_mul [d] at *} "'d' is an unused variable",
   move_mul at *,
-  success_if_fail_with_msg {move_mul at *} "'move_op at *' changed nothing",
-  success_if_fail_with_msg {move_mul [a, e, f, g] at h a b c ⊢} "'[a, b, c]' did not change",
+  success_if_fail_with_msg {move_mul at *} "nothing changed\n",
+  success_if_fail_with_msg {move_mul [a, e, f, g] at h a b c ⊢}
+    "'[a, b, c]' did not change\n'[e, f, g]' are unused variables",
   success_if_fail_with_msg {move_mul [a, e, f, g] at h ⊢} "'[e, f, g]' are unused variables",
-  success_if_fail_with_msg {move_mul at ⊢ h} "'[h]' did not change",
-  success_if_fail_with_msg {move_mul at ⊢} "Goal did not change",
+  success_if_fail_with_msg {move_mul at ⊢ h} "Goal did not change\n'[h]' did not change\n",
+  success_if_fail_with_msg {move_mul at ⊢} "Goal did not change\n\n",
   move_mul ← a at *,  -- `move_mul` closes the goal, since, after rearranging, it tries `assumption`
 end
 

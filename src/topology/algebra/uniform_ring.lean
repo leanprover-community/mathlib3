@@ -151,8 +151,6 @@ instance : comm_ring (completion R) :=
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
 
-namespace ring_completion
-
 instance : algebra R (completion R) :=
 (uniform_space.completion.coe_ring_hom : R →+* (completion R)).to_algebra
 
@@ -186,8 +184,6 @@ begin
 end⟩
 
 end algebra
-
-end ring_completion
 
 end uniform_space.completion
 

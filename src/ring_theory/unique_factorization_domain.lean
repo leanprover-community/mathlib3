@@ -1028,7 +1028,6 @@ begin
   prod_mono
 end
 
-
 include dec dec'
 
 noncomputable instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩

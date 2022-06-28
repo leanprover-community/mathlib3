@@ -36,6 +36,8 @@ kummer, dedekind, kummer dedekind, dedekind-kummer, dedekind kummer
 open_locale big_operators
 open ideal polynomial
 
+
+/-
 section move_me
 
 @[simps]
@@ -103,7 +105,8 @@ variables {R}
 lemma mem_adjoin_of_mem_conductor {x y : S} (hy : y ∈ conductor R x) :
   y ∈ algebra.adjoin R ({x} : set S) :=
 by simpa only [mul_one] using hy 1
-
+-/
+/-
 lemma conductor_subset_adjoin {x : S} : (conductor R x : set S) ⊆ algebra.adjoin R ({x} : set S) :=
 λ y, mem_adjoin_of_mem_conductor
 
@@ -222,6 +225,8 @@ begin
       ring_equiv.coe_to_ring_hom, alg_equiv.to_ring_equiv_symm, alg_equiv.coe_ring_equiv,
       alg_equiv.symm_symm, adjoin_root.equiv'_apply, adjoin_root.lift_hom_mk]
 end
+-/
+
 
 /-- The factorization of the minimal polynomial of `S` over `R` mod `p` into coprime divisors
 determines how `S / pS` decomposes as a quotient of products.

@@ -133,19 +133,6 @@ end is_well_founded
 
 /-! ### Well-founded less than -/
 
-/-- A class for a well founded relation `<`. -/
-class well_founded_lt (α : Type*) [has_lt α] extends is_well_founded α (<) : Prop
-
-/-- A class for a well founded relation `>`. -/
-class well_founded_gt (α : Type*) [has_lt α] extends is_well_founded α (>) : Prop
-
-@[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := { ..h }
-@[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := { ..h }
-
-instance : well_founded_lt ℕ := {}
-
 namespace well_founded_lt
 
 theorem lt_wf [has_lt α] [well_founded_lt α] : @well_founded α (<) :=

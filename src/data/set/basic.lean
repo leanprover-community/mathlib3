@@ -1387,14 +1387,14 @@ lemma image_image (g : β → γ) (f : α → β) (s : set α) : g '' (f '' s) =
 (image_comp g f s).symm
 
 lemma image_comm {β'} {f : β → γ} {g : α → β} {f' : α → β'} {g' : β' → γ}
-  (h_comm : ∀ a, f (g a) = g' (f' a)) (s : set α) :
+  (h_comm : ∀ a, f (g a) = g' (f' a)) :
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, h_comm]
 
 lemma _root_.function.semiconj.set_image {f : α → β} {ga : α → α} {gb : β → β}
   (h : function.semiconj f ga gb) :
   function.semiconj (image f) (image ga) (image gb) :=
-image_comm h
+λ s, image_comm h
 
 lemma _root_.function.commute.set_image {f g : α → α} (h : function.commute f g) :
   function.commute (image f) (image g) :=

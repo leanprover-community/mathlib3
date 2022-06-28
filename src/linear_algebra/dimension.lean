@@ -485,7 +485,7 @@ variables {M : Type v} [add_comm_group M] [module R M]
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
 have the same cardinalities. -/
 theorem {m} mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
-  cardinal.lift.{w' m} (#ι) = cardinal.lift.{w m} (#ι') :=
+  cardinal.lift.{max w' m} (#ι) = cardinal.lift.{max w m} (#ι') :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   casesI fintype_or_infinite ι,

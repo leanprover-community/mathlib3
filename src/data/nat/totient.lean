@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import data.zmod.basic
 import data.nat.periodic
 import data.nat.factorization.basic
+import algebra.char_p.two
 
 /-!
 # Euler's totient function

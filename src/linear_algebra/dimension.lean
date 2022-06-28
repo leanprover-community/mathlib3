@@ -105,7 +105,7 @@ The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
 protected def module.rank : cardinal :=
-cardinal.sup.{v v} (λ ι : {s : set V // linear_independent K (coe : s → V)}, #ι.1)
+⨆ ι : {s : set V // linear_independent K (coe : s → V)}, #ι.1
 
 end
 
@@ -116,18 +116,15 @@ variables {M' : Type v'} [add_comm_group M'] [module R M']
 variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
 theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
-  cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{ v} (module.rank R M') :=
+  cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{v} (module.rank R M') :=
 begin
   dsimp [module.rank],
-  fapply cardinal.lift_sup_le_lift_sup',
-  { rintro ⟨s, li⟩,
-    use f '' s,
-    convert (li.map' f (linear_map.ker_eq_bot.mpr i)).comp
-      (equiv.set.image ⇑f s i).symm (equiv.injective _),
-    ext ⟨-, ⟨x, ⟨h, rfl⟩⟩⟩,
-    simp, },
-  { rintro ⟨s, li⟩,
-    exact cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩, }
+  rw [cardinal.lift_supr (cardinal.bdd_above_range.{v' v'} _),
+    cardinal.lift_supr (cardinal.bdd_above_range.{v v} _)],
+  apply csupr_mono' (cardinal.bdd_above_range.{v' v} _),
+  rintro ⟨s, li⟩,
+  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
+  exact (li.map' _ $ linear_map.ker_eq_bot.mpr i).image,
 end
 
 theorem linear_map.dim_le_of_injective (f : M →ₗ[R] M₁) (i : injective f) :
@@ -138,7 +135,7 @@ theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
   module.rank R M ≤ n :=
 begin
-  apply cardinal.sup_le,
+  apply csupr_le',
   rintro ⟨s, li⟩,
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
 end
@@ -147,12 +144,13 @@ lemma lift_dim_range_le (f : M →ₗ[R] M') :
   cardinal.lift.{v} (module.rank R f.range) ≤ cardinal.lift.{v'} (module.rank R M) :=
 begin
   dsimp [module.rank],
-  apply cardinal.lift_sup_le,
+  rw [cardinal.lift_supr (cardinal.bdd_above_range.{v' v'} _)],
+  apply csupr_le',
   rintro ⟨s, li⟩,
   apply le_trans,
   swap 2,
   apply cardinal.lift_le.mpr,
-  refine (cardinal.le_sup _ ⟨range_splitting f '' s, _⟩),
+  refine (le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
     convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
   { exact (cardinal.lift_mk_eq'.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
@@ -243,7 +241,7 @@ begin
   { simp only [cardinal.lift_le],
     apply le_trans,
     swap,
-    exact cardinal.le_sup _ ⟨range v, hv.coe_range⟩,
+    exact le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range v, hv.coe_range⟩,
     exact le_rfl, },
 end
 
@@ -267,7 +265,7 @@ variables (R M)
 @[simp] lemma dim_punit : module.rank R punit = 0 :=
 begin
   apply le_bot_iff.mp,
-  apply cardinal.sup_le,
+  apply csupr_le',
   rintro ⟨s, li⟩,
   apply le_bot_iff.mpr,
   apply cardinal.mk_emptyc_iff.mpr,
@@ -490,10 +488,9 @@ theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
-  by_cases h : #ι < ℵ₀,
+  casesI fintype_or_infinite ι,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
-    haveI : fintype ι := (cardinal.lt_aleph_0_iff_fintype.mp h).some,
-    haveI : fintype (range v) := set.fintype_range ⇑v,
+    haveI : fintype (range v) := set.fintype_range v,
     haveI := basis_fintype_of_finite_spans _ v.span_eq v',
     -- We clean up a little:
     rw [cardinal.mk_fintype, cardinal.mk_fintype],
@@ -506,16 +503,10 @@ begin
     -- so by `infinite_basis_le_maximal_linear_independent`, `v'` is at least as big,
     -- and then applying `infinite_basis_le_maximal_linear_independent` again
     -- we see they have the same cardinality.
-    simp only [not_lt] at h,
-    haveI : infinite ι := cardinal.infinite_iff.mpr h,
     have w₁ :=
       infinite_basis_le_maximal_linear_independent' v _ v'.linear_independent v'.maximal,
-    haveI : infinite ι' := cardinal.infinite_iff.mpr (begin
-      apply cardinal.lift_le.{w' w}.mp,
-      have p := (cardinal.lift_le.mpr h).trans w₁,
-      rw cardinal.lift_aleph_0 at ⊢ p,
-      exact p,
-    end),
+    rcases cardinal.lift_mk_le'.mp w₁ with ⟨f⟩,
+    haveI : infinite ι' := infinite.of_injective f f.2,
     have w₂ :=
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,
     exact le_antisymm w₁ w₂, }
@@ -609,7 +600,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, le_of_lt (cardinal.lt_aleph_0_iff_finite.2 $ (finset.finite_to_set _).image _) },
+    { exact λ j, (cardinal.lt_aleph_0_of_fintype _).le },
     { simpa } },
 end
 
@@ -720,7 +711,7 @@ lemma linear_independent_le_infinite_basis
   #κ ≤ #ι :=
 begin
   by_contradiction,
-  rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
+  rw [not_le, ← cardinal.mk_finset_of_infinite ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
   obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
@@ -789,10 +780,10 @@ begin
   apply le_antisymm,
   { transitivity,
     swap,
-    apply cardinal.le_sup,
+    apply le_csupr (cardinal.bdd_above_range.{v v} _),
     exact ⟨set.range v, by { convert v.reindex_range.linear_independent, ext, simp }⟩,
     exact (cardinal.mk_range_eq v v.injective).ge, },
-  { apply cardinal.sup_le,
+  { apply csupr_le',
     rintro ⟨s, li⟩,
     apply linear_independent_le_basis v _ li, },
 end
@@ -982,7 +973,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < ℵ₀ :=
 calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_finset]
+                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_coe_finset]
                              ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=

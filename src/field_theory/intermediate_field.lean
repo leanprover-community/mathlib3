@@ -174,6 +174,9 @@ protected lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n := submo
 
 end inherited_lemmas
 
+lemma coe_nat_mem (n : ℕ) : (n : L) ∈ S :=
+by simpa using coe_int_mem S n
+
 end intermediate_field
 
 /-- Turn a subalgebra closed under inverses into an intermediate field -/

@@ -10,6 +10,7 @@ import data.multiset.basic
 -/
 
 namespace multiset
+
 open list
 
 variables {α : Type*}
@@ -242,7 +243,40 @@ theorem powerset_len_le_powerset (n : ℕ) (s : multiset α) :
 quotient.induction_on s $ λ l, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_sublists' _ _).map _).subperm
 
-
+theorem powerset_len_eq_filter (s : multiset α) :
+  ∀ k : ℕ, s.powerset_len k = multiset.filter (λ t, multiset.card t = k) s.powerset :=
+begin
+  classical,
+  refine s.induction _ _,
+  intro k,
+  cases k ; { refl, },
+  intros _ s hk k,
+  cases k,
+  { rw [multiset.powerset_len_zero_left, multiset.powerset_cons, multiset.filter_add],
+    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0) s.powerset = {0}),
+    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0)
+      (multiset.map (multiset.cons a) s.powerset) = 0),
+    { rwa add_zero, },
+    { rw multiset.filter_eq_nil,
+      intros t ht,
+      rw multiset.card_eq_zero,
+      obtain ⟨r, hr⟩ := multiset.mem_map.mp ht,
+      rw ←hr.right,
+      exact multiset.cons_ne_zero, },
+    { ext r,
+      rw multiset.count_filter,
+      by_cases (r = 0),
+      { simp only [h, eq_self_iff_true, if_true, multiset.count_singleton_self,
+         multiset.count_nil_powerset s, multiset.card_zero] },
+      { simp only [h, if_false, multiset.count_eq_zero_of_not_mem, multiset.mem_singleton,
+        not_false_iff, multiset.card_eq_zero], }}},
+  { rw [multiset.powerset_len_cons, multiset.powerset_cons, multiset.filter_add],
+    rw [hk k, hk k.succ, add_right_inj],
+    rw [multiset.map_filter, multiset.map_congr],
+    { congr, ext,
+      simp only [function.comp_app, multiset.card_cons, add_left_inj 1], },
+    { intros _ _, refl, }}
+end
 
 theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
   powerset_len n s ≤ powerset_len n t :=

@@ -106,58 +106,15 @@ end mv_polynomial
 
 section xfr
 
+namespace multiset
+
 variables {R : Type*} [comm_semiring R]
 variables {α : Type*}
 
 /-- docstring... -/
-def multiset.esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
+def esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
 
-lemma multiset.map_map_join (s : multiset(multiset α)) {β : Type*} (f : α → β) :
-  (multiset.map (λ a, multiset.map f a) s).join = (multiset.map f (multiset.join s)) :=
-begin
-  classical,
-  refine s.induction_on _ _,
-  simp * at *,
-  intros a s hs,
-  simp * at *,
-end
-
-theorem multiset.powerset_len_eq_filter (s : multiset α) :
-  ∀ k : ℕ, s.powerset_len k = multiset.filter (λ t, multiset.card t = k) s.powerset :=
-begin
-  classical,
-  refine s.induction _ _,
-  intro k,
-  cases k ; { refl, },
-  intros _ s hk k,
-  cases k,
-  { rw [multiset.powerset_len_zero_left, multiset.powerset_cons, multiset.filter_add],
-    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0) s.powerset = {0}),
-    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0)
-      (multiset.map (multiset.cons a) s.powerset) = 0),
-    { rwa add_zero, },
-    { rw multiset.filter_eq_nil,
-      intros t ht,
-      rw multiset.card_eq_zero,
-      obtain ⟨r, hr⟩ := multiset.mem_map.mp ht,
-      rw ←hr.right,
-      exact multiset.cons_ne_zero, },
-    { ext r,
-      rw multiset.count_filter,
-      by_cases (r = 0),
-      { simp only [h, eq_self_iff_true, if_true, multiset.count_singleton_self,
-         multiset.count_nil_powerset s, multiset.card_zero] },
-      { simp only [h, if_false, multiset.count_eq_zero_of_not_mem, multiset.mem_singleton,
-        not_false_iff, multiset.card_eq_zero], }}},
-  { rw [multiset.powerset_len_cons, multiset.powerset_cons, multiset.filter_add],
-    rw [hk k, hk k.succ, add_right_inj],
-    rw [multiset.map_filter, multiset.map_congr],
-    { congr, ext,
-      simp only [function.comp_app, multiset.card_cons, add_left_inj 1], },
-    { intros _ _, refl, }}
-end
-
-theorem multiset.powerset_sum_powerset_len (s : multiset α) :
+theorem powerset_sum_powerset_len (s : multiset α) :
   s.powerset = ∑ (k:ℕ) in finset.range (s.card+1), s.powerset_len k :=
 begin
   classical,
@@ -166,7 +123,7 @@ begin
   swap,
   { rw finset.sum_congr, refl,
     intros k hk,
-    exact multiset.powerset_len_eq_filter s k, },
+    exact  multiset.powerset_len_eq_filter s k, },
   ext t,
   by_cases hts : t ≤ s,
   swap,
@@ -175,12 +132,12 @@ begin
       simp only [hts, multiset.count_eq_zero_of_not_mem, multiset.mem_filter,
         multiset.mem_powerset, false_and, not_false_iff, eq_self_iff_true, implies_true_iff], },
     simp only [hts, multiset.count_eq_zero_of_not_mem, not_false_iff, multiset.mem_powerset], },
-  { have : t.card ∈ range (s.card + 1),
+  { have : t.card ∈ finset.range (s.card + 1),
     { rw finset.mem_range_succ_iff,
       exact multiset.card_le_of_le hts, },
-    rw (finset.sum_erase_add (range (s.card + 1)) _ this).symm,
+    rw (finset.sum_erase_add (finset.range (s.card + 1)) _ this).symm,
     rw multiset.count_add,
-    rw ( _ :  multiset.count t (∑ (x : ℕ) in (range (s.card + 1)).erase t.card,
+    rw ( _ :  multiset.count t (∑ (x : ℕ) in (finset.range (s.card + 1)).erase t.card,
       multiset.filter (λ (t : multiset α), t.card = x) s.powerset) = 0),
     { rw ( _ : multiset.count t (multiset.filter (λ (r : multiset α), r.card = t.card) s.powerset)
       = multiset.count t s.powerset),
@@ -196,28 +153,27 @@ begin
     exact h₁.left.symm h₂.right, },
 end
 
-lemma multiset.prod_X_add_C_eq_sum_esymm (s : multiset R) :
-  (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in range (s.card + 1),
+lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
+  (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in finset.range (s.card + 1),
   (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
 begin
   classical,
   rw [multiset.prod_map_add, multiset.antidiagonal_powerset, multiset.map_map,
-     multiset.powerset_sum_powerset_len],
-  rw finset.sum_eq_multiset_sum,
-  rw finset.sum_eq_multiset_sum,
-  rw ( _ : (multiset.map (λ (x : ℕ), s.powerset_len x) (range (s.card + 1)).val).sum
-    = multiset.bind (range (s.card + 1)).val (λ x, s.powerset_len x)),
-  rw multiset.map_bind,
-  rw multiset.sum_bind,
+    multiset.powerset_sum_powerset_len, finset.sum_eq_multiset_sum, finset.sum_eq_multiset_sum],
+  rw ( _ : (multiset.map (λ (x : ℕ), s.powerset_len x) (finset.range (s.card + 1)).val).sum
+    = multiset.bind (finset.range (s.card + 1)).val (λ x, s.powerset_len x)),
+  swap, refl,
+  rw [multiset.map_bind, multiset.sum_bind],
   rw multiset.map_congr (eq.refl _),
-  intros j hj,
+  intros _ _,
   rw [function.comp, multiset.esymm, ←multiset.sum_hom', ←multiset.sum_map_mul_right],
   rw multiset.map_congr (eq.refl _),
-  intros t ht,
+  intros _ ht,
   rw multiset.mem_powerset_len at ht,
   simp only [ht, multiset.map_const, multiset.prod_repeat, multiset.prod_hom', multiset.map_id',
      multiset.card_sub],
-  refl,
 end
+
+end multiset
 
 end xfr

@@ -243,11 +243,10 @@ lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b �
 by rw [sup_sup_sup_comm, sup_idem]
 
 lemma sup_eq_sup_of_le_of_le (h1 : a ≤ b ⊔ c) (h2 : b ≤ a ⊔ c) : a ⊔ c = b ⊔ c :=
-  (sup_le h1 le_sup_right).antisymm (sup_le h2 le_sup_right)
+(sup_le h1 le_sup_right).antisymm (sup_le h2 le_sup_right)
 
 lemma sup_eq_sup_iff_le_le : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
-⟨λ h, ⟨by {rw ←h, exact le_sup_left}, by {rw h, exact le_sup_left}⟩,
-  λ h, sup_eq_sup_of_le_of_le h.1 h.2⟩
+⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_eq_sup_of_le_of_le h.1 h.2⟩
 
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
@@ -402,12 +401,11 @@ lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓
 lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
 @sup_sup_distrib_right αᵒᵈ _ _ _ _
 
-lemma inf_eq_inf_of_le_of_le (h1 : a ⊓ c ≤ b) (h2 : b ⊓ c ≤ a) : a ⊓ c = b ⊓ c :=
-(le_inf h1 inf_le_right).antisymm (le_inf h2 inf_le_right)
+lemma inf_eq_inf_of_le_of_le (h1 : b ⊓ c ≤ a) (h2 : a ⊓ c ≤ b) : a ⊓ c = b ⊓ c :=
+@sup_eq_sup_of_le_of_le αᵒᵈ _ _ _ _ h1 h2
 
-lemma inf_eq_inf_iff_le_le : a ⊓ c = b ⊓ c ↔ a ⊓ c ≤ b ∧ b ⊓ c ≤ a :=
-⟨λ h, ⟨by {rw h, exact inf_le_left},by {rw ←h, exact inf_le_left}⟩,
-  λ h, inf_eq_inf_of_le_of_le h.1 h.2⟩
+lemma inf_eq_inf_iff_le_le : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
+@sup_eq_sup_iff_le_le αᵒᵈ _ _ _ _
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)

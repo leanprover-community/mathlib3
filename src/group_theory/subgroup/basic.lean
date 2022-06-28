@@ -1649,7 +1649,7 @@ def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G
   .. (_ : group G) }
 
 /-- The center of an abelian group is ⊤ -/
-lemma _root_.group.center_of_comm_eq_top {H : Type*} [group H] (h : ∀ a b : H, a * b = b * a) :
+lemma _root_.group.center_eq_top_of_comm {H : Type*} [group H] (h : ∀ a b : H, a * b = b * a) :
 subgroup.center H = ⊤ :=
 begin
   rw subgroup.eq_top_iff',

@@ -180,21 +180,21 @@ variables {𝒜} {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : Proj| (pbo f))
 is prime is proven in `Top_component.forward.to_fun`-/
 def carrier : ideal (A⁰_ f_deg) :=
 ideal.comap (algebra_map (A⁰_ f_deg) (away f))
-  (ideal.span { y | ∃ (g : A), g ∈ x.1.as_homogeneous_ideal.1 ∧ y = (mk g 1 : away f) })
+  (ideal.span $ algebra_map A (away f) '' x.1.as_homogeneous_ideal)
 
 lemma mem_carrier_iff (z : A⁰_ f_deg) :
   z ∈ carrier f_deg x ↔
-  z.1 ∈ ideal.span { y | ∃ (g : A), g ∈ x.1.as_homogeneous_ideal.1 ∧ y = (mk g 1 : away f) } :=
+  z.1 ∈ ideal.span (algebra_map A (away f) '' x.1.as_homogeneous_ideal) :=
 iff.rfl
 
 lemma mem_carrier.clear_denominator [decidable_eq (away f)]
   {z : A⁰_ f_deg} (hz : z ∈ carrier f_deg x) :
-  ∃ (c : {y : away f | ∃ g, g ∈ x.1.as_homogeneous_ideal.to_ideal ∧ y = mk g 1} →₀ away f)
+  ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
     (N : ℕ)
-    (acd : Π (y : away f), y ∈ finset.image c c.support → A),
-    z.1 * mk (f ^ N) 1 =
-    mk (∑ i in c.support.attach,
-      acd (c i.1) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) 1 :=
+    (acd : Π y ∈ c.support.image c, A),
+    f ^ N • z.1 =
+    algebra_map A (away f) (∑ i in c.support.attach,
+      acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
 begin
   erw [mem_carrier_iff, ←submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
   rcases hz with ⟨c, eq1⟩,
@@ -202,39 +202,15 @@ begin
   obtain ⟨⟨_, N, rfl⟩, hN⟩ := is_localization.exist_integer_multiples_of_finset (submonoid.powers f)
     (c.support.image c),
   choose acd hacd using hN,
-  replace hacd : ∀ (a : localization (submonoid.powers f)) (H : a ∈ image ⇑c c.support),
-    localization.mk (acd a H) 1 = mk (f^N) 1 * a,
-  { intros a H, convert hacd a H, rw [algebra.smul_def], refl, },
   have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
   { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
 
   refine ⟨c, N, acd, _⟩,
-  calc z.1 * mk (f ^ N) 1
-      = (∑ i in c.support, c i • i) * mk (f ^ N) 1 : by rw ← eq1
-  ... = ∑ i in c.support, (c i • i) * mk (f ^ N) 1 : by rw finset.sum_mul
-  ... = ∑ i in c.support, c i * i.1 * mk (f ^ N) 1 : finset.sum_congr rfl (λ y hy, rfl)
-  ... = ∑ i in c.support, (c i * mk (f ^ N) 1) * i.1 : finset.sum_congr rfl (λ y hy, by ring)
-  ... = ∑ i in c.support.attach, (c i.1 * mk (f^N) 1) * i.1.1 : finset.sum_attach.symm
-  ... = ∑ i in c.support.attach, mk (acd (c i.1) (prop1 _ i.2)) 1 * i.1 : begin
-    rw [finset.sum_congr rfl (λ z hz, _)],
-    congr' 1,
-    rw [(hacd _ (prop1 _ z.2)), mul_comm],
-  end
-  ... = ∑ i in c.support.attach, mk (acd _ (prop1 _ i.2)) 1 * mk (classical.some i.1.2) 1 : begin
-    rw [finset.sum_congr rfl (λ z hz, _)],
-    congr' 1,
-    convert (classical.some_spec z.1.2).2,
-  end
-  ... = ∑ i in c.support.attach, mk (acd _ (prop1 _ i.2) * classical.some i.1.2) 1 : begin
-    rw [finset.sum_congr rfl (λ z hz, _)],
-    rw [mk_mul, one_mul],
-  end
-  ... = mk (∑ i in c.support.attach, acd _ (prop1 _ i.2) * classical.some i.1.2) 1 : begin
-    induction c.support.attach using finset.induction_on with i s hi ih,
-    { simp only [finset.sum_empty, mk_zero], },
-    { rw [finset.sum_insert hi, finset.sum_insert hi, ih, add_mk, one_mul],
-      erw [one_mul, one_mul, add_comm], },
-  end
+  rw [← eq1, smul_sum, map_sum, ← sum_attach],
+  congr' 1,
+  ext i,
+  rw [_root_.map_mul, hacd, (classical.some_spec i.1.2).2, smul_eq_mul, smul_mul_assoc],
+  refl
 end
 
 lemma carrier_ne_top :
@@ -244,14 +220,15 @@ begin
   classical,
   contrapose! eq_top,
   obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
-  erw [one_mul] at eq1,
+  rw [algebra.smul_def, subtype.val_eq_coe, subring.coe_one, mul_one] at eq1,
+  change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   erw [mul_one, mul_one] at eq1,
   simp only [← subtype.val_eq_coe] at eq1,
   refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
     (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
-  generalize_proofs _ h,
+  generalize_proofs h,
   exact (classical.some_spec h).1,
 end
 
@@ -281,8 +258,10 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
   induction x2 using localization.induction_on with data_x2,
   rcases ⟨data_x1, data_x2⟩ with ⟨⟨a1, _, ⟨n1, rfl⟩⟩, ⟨a2, _, ⟨n2, rfl⟩⟩⟩,
   rcases mem_carrier.clear_denominator f_deg x hx12 with ⟨c, N, acd, eq1⟩,
-  simp only [degree_zero_part.mul_val, localization.mk_mul, mul_one] at eq1,
-  simp only [mk_eq_mk', is_localization.eq] at eq1,
+  simp only [degree_zero_part.mul_val, localization.mk_mul, mul_one, algebra.smul_def] at eq1,
+  change localization.mk (f ^ N) 1 * mk _ (⟨f ^ n1 * f ^ n2, _⟩) = mk (∑ _, _) _ at eq1,
+  rw [mk_mul, one_mul] at eq1,
+  simp only [mk_mul, mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   erw [mul_one] at eq1,
   simp only [← subtype.val_eq_coe, submonoid.coe_mul] at eq1,
@@ -302,9 +281,9 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h2, rfl⟩), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem N rid1)), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem M rid2)), },
-  { rw eq1,
+  { rw [mul_comm _ (f^N), eq1],
     refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
-    generalize_proofs _ h,
+    generalize_proofs h,
     exact (classical.some_spec h).1 },
 end⟩
 
@@ -337,8 +316,9 @@ begin
     erw prime_spectrum.mem_basic_open,
     intro rid,
     rcases mem_carrier.clear_denominator f_deg _ rid with ⟨c, N, acd, eq1⟩,
-    rw [mk_mul, mul_one] at eq1,
-    simp only [mk_eq_mk', is_localization.eq] at eq1,
+    rw [algebra.smul_def] at eq1,
+    change localization.mk (f^N) 1 * mk _ _ = mk (∑ _, _) _ at eq1,
+    rw [mk_mul, one_mul, mk_eq_mk', is_localization.eq] at eq1,
     rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
     erw [mul_one] at eq1,
     simp only [← subtype.val_eq_coe] at eq1,
@@ -348,11 +328,10 @@ begin
     { exact hy2 H1, },
     { exact y.2 (y.1.is_prime.mem_of_pow_mem N H2), },
     { exact y.2 (y.1.is_prime.mem_of_pow_mem M H3), },
-    { rw eq1,
+    { rw [mul_comm _ (f^N), eq1],
       refine mul_mem_right _ _ (mul_mem_right _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
-      generalize_proofs _ h,
-      rcases classical.some_spec h with ⟨h1, -⟩,
-      exact h1, }, },
+      generalize_proofs h,
+      exact (classical.some_spec h).1, }, },
 end
 
 end to_Spec

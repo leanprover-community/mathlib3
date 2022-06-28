@@ -687,7 +687,7 @@ end
 
 @[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective _ (λ x y, finset.singleton_inj.1)) $
-calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
+calc #(finset α) ≤ #(list α) : mk_le_of_surjective _ list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
@@ -695,10 +695,8 @@ lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
 begin
   refine le_trans _ (by rw [←add_one_eq (aleph_0_le_mk α)]),
   induction c using cardinal.induction_on with β,
-  fapply mk_le_of_surjective,
-  { intro f, use sum.inl ⁻¹' range f,
-    refine le_trans (mk_preimage_of_injective _ _ (λ x y, sum.inl.inj)) _,
-    apply mk_range_le },
+  refine mk_le_of_surjective (λ f, ⟨sum.inl ⁻¹' range f,
+    le_trans (mk_preimage_of_injective _ _ (λ x y, sum.inl.inj)) mk_range_le⟩) _,
   rintro ⟨s, ⟨g⟩⟩,
   use λ y, if h : ∃(x : s), g x = y then sum.inl (classical.some h).val else sum.inr ⟨⟩,
   apply subtype.eq, ext,
@@ -799,7 +797,7 @@ begin
   casesI fintype_or_infinite α,
   { exact extend_function_finite f h },
   { apply extend_function f, cases id h with g, haveI := infinite.of_injective _ g.injective,
-    rw [← lift_mk_eq'] at h ⊢,
+    rw [← lift_mk_eq] at h ⊢,
     rwa [mk_compl_of_infinite s hs, mk_compl_of_infinite],
     rwa [← lift_lt, mk_range_eq_of_injective f.injective, ← h, lift_lt] },
 end

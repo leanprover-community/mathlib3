@@ -94,7 +94,7 @@ of `#R`, `#σ` and `ℵ₀` -/
 lemma cardinal_mk_le_max {σ R : Type u} [comm_semiring R] :
   #(mv_polynomial σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
 calc #(mv_polynomial σ R) ≤ #(W_type (arity σ R)) :
-  cardinal.mk_le_of_surjective to_mv_polynomial_surjective
+  cardinal.mk_le_of_surjective _ to_mv_polynomial_surjective
 ... ≤ max (#(mv_polynomial_fun σ R)) ℵ₀ : W_type.cardinal_mk_le_max_aleph_0_of_fintype
 ... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le le_rfl
 ... ≤ _ : by simp only [max_assoc, max_self]

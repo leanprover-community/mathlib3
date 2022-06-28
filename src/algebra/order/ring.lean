@@ -1225,6 +1225,14 @@ begin
     exact ⟨abs_eq_neg_self.mpr (le_of_lt h), h⟩ }
 end
 
+@[simp] lemma max_zero_add_max_neg_zero_eq_abs_self (a : α) :
+  max a 0 + max (-a) 0 = |a| :=
+begin
+  symmetry,
+  rcases le_total 0 a with ha|ha;
+  simp [ha],
+end
+
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
 have h2 : -(c * b) < -(c * a), from neg_lt_neg h,

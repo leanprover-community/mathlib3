@@ -61,14 +61,14 @@ local attribute [semireducible] reflected
 /-- This definition circumvents the protection that `reflected` tried to enforce; so is private
 such that it is only used by `tactic.interactive.reflect_name` where we have enforced the protection
 manually. -/
-private meta def reflected.of {α : Sort*} {a : α} (e : expr) : reflected a := e
+private meta def reflected.of {α : Sort*} {a : α} (e : expr) : reflected _ a := e
 end
 
 /-- Reflect a universe-polymorphic name, by searching for `reflected_univ` instances. -/
 meta def tactic.interactive.reflect_name : tactic unit :=
 do
   tgt ← tactic.target,
-  `(reflected %%x) ← pure tgt,
+  `(reflected _ %%x) ← pure tgt,
   expr.const name levels ← pure x,
   levels ← levels.mmap (λ l, do
     inst ← tactic.mk_instance (expr.const `reflected_univ [l]),
@@ -82,21 +82,22 @@ do
 /-- Convenience helper for two consecutive `reflected.subst` applications -/
 meta def reflected.subst₂ {α : Sort u} {β : α → Sort v} {γ : Π a, β a → Sort w}
   {f : Π a b, γ a b} {a : α} {b : β a} :
-  reflected f → reflected a → reflected b → reflected (f a b) :=
+  reflected _ f → reflected _ a → reflected _ b → reflected _ (f a b) :=
 (∘) reflected.subst ∘ reflected.subst
 
 /-- Convenience helper for three consecutive `reflected.subst` applications -/
 meta def reflected.subst₃ {α : Sort u} {β : α → Sort v} {γ : Π a, β a → Sort w}
   {δ : Π a b, γ a b → Sort x}
   {f : Π a b c, δ a b c} {a : α} {b : β a} {c : γ a b}:
-  reflected f → reflected a → reflected b → reflected c → reflected (f a b c) :=
+  reflected _ f → reflected _ a → reflected _ b → reflected _ c → reflected _ (f a b c) :=
 (∘) reflected.subst₂ ∘ reflected.subst
 
 /-- Convenience helper for four consecutive `reflected.subst` applications -/
 meta def reflected.subst₄ {α : Sort u} {β : α → Sort v} {γ : Π a, β a → Sort w}
   {δ : Π a b, γ a b → Sort x} {ε : Π a b c, δ a b c → Sort y}
   {f : Π a b c d, ε a b c d} {a : α} {b : β a} {c : γ a b} {d : δ a b c} :
-  reflected f → reflected a → reflected b → reflected c → reflected d → reflected (f a b c d) :=
+  reflected _ f → reflected _ a → reflected _ b → reflected _ c → reflected _ d →
+    reflected _ (f a b c d) :=
 (∘) reflected.subst₃ ∘ reflected.subst
 
 /-! ### Universe-polymorphic `has_reflect` instances -/
@@ -106,11 +107,11 @@ meta instance punit.reflect' [reflected_univ.{u}] : has_reflect punit.{u}
 | punit.star := by reflect_name
 
 /-- Universe polymorphic version of the builtin `list.reflect`. -/
-meta instance list.reflect' [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected α] :
+meta instance list.reflect' [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] :
   has_reflect (list α)
-| []     := (by reflect_name : reflected @list.nil.{u}).subst `(α)
-| (h::t) := (by reflect_name : reflected @list.cons.{u}).subst₃ `(α) `(h) (list.reflect' t)
+| []     := (by reflect_name : reflected _ @list.nil.{u}).subst `(α)
+| (h::t) := (by reflect_name : reflected _ @list.cons.{u}).subst₃ `(α) `(h) (list.reflect' t)
 
 meta instance ulift.reflect' [reflected_univ.{u}] [reflected_univ.{v}] {α : Type v}
-  [reflected α] [has_reflect α] : has_reflect (ulift.{u v} α)
-| (ulift.up x) := (by reflect_name : reflected @ulift.up.{u v}).subst₂ `(α) `(x)
+  [reflected _ α] [has_reflect α] : has_reflect (ulift.{u v} α)
+| (ulift.up x) := (by reflect_name : reflected _ @ulift.up.{u v}).subst₂ `(α) `(x)

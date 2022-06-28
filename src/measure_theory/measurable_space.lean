@@ -95,6 +95,10 @@ protected def comap (f : α → β) (m : measurable_space β) : measurable_space
     let ⟨s', hs'⟩ := classical.axiom_of_choice hs in
     ⟨⋃ i, s' i, m.measurable_set_Union _ (λ i, (hs' i).left), by simp [hs'] ⟩ }
 
+lemma comap_eq_generate_from (m : measurable_space β) (f : α → β) :
+  m.comap f = generate_from {t | ∃ s, measurable_set s ∧ f ⁻¹' s = t} :=
+by convert generate_from_measurable_set.symm
+
 @[simp] lemma comap_id : m.comap id = m :=
 measurable_space.ext $ assume s, ⟨assume ⟨s', hs', h⟩, h ▸ hs', assume h, ⟨s, h, rfl⟩⟩
 
@@ -128,14 +132,6 @@ lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
 lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
-
-@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
-  generate_from s ≤ generate_from t :=
-gi_generate_from.gc.monotone_l h
-
-lemma generate_from_sup_generate_from {s t : set (set α)} :
-  generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
-(@gi_generate_from α).gc.l_sup.symm
 
 lemma comap_generate_from {f : α → β} {s : set (set β)} :
   (generate_from s).comap f = generate_from (preimage f '' s) :=

@@ -116,6 +116,9 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   .. (infer_instance : order_bot ℕ), .. (linear_order.to_lattice : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
 
+lemma Sup_mem {s : set ℕ} (h₁ : s.nonempty) (h₂ : bdd_above s) : Sup s ∈ s :=
+let ⟨k, hk⟩ := h₂ in h₁.cSup_mem ((finite_le_nat k).subset hk)
+
 lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
   Inf {m | p (m + n)} + n = Inf {m | p m} :=
 begin

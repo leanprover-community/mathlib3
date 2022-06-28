@@ -19,11 +19,15 @@ A Noetherian space is a topological space that satisfies any of the following eq
 The first is chosen as the definition, and the equivalence is shown in
 `topological_space.noetherian_space_tfae`.
 
+Many examples of noetherian spaces come from algebraic topology. For example, the underlying space
+of a noetherian scheme (and spectrums of noetherian rings in particular) is noetherian.
+
 ## Main Results
 - `noetherian_space.set`: Every subspace of a noetherian space is noetherian.
 - `noetherian_space.is_compact`: Every subspace of a noetherian space is compact.
 - `noetherian_space_tfae`: Describes the equivalent definitions of noetherian spaces.
 - `noetherian_space.range`: The image of a noetherian space under a continuous map is noetherian.
+- `noetherian_space.Union`: The finite union of noetherian spaces is noetherian.
 - `noetherian_space.discrete`: A noetherian and hausdorff space is discrete.
 - `noetherian_space.exists_finset_irreducible` : Every closed subset of a noetherian space is a
   finite union of irreducible closed subsets.
@@ -114,6 +118,29 @@ lemma noetherian_space.range [noetherian_space α] (f : α → β) (hf : continu
 noetherian_space_of_surjective (set.cod_restrict f _ set.mem_range_self) (by continuity)
   (λ ⟨a, b, h⟩, ⟨b, subtype.ext h⟩)
 
+lemma noetherian_space_set_iff (s : set α) :
+  noetherian_space s ↔ ∀ t ⊆ s, is_compact t :=
+begin
+  rw (noetherian_space_tfae s).out 0 2,
+  split,
+  { intros H t ht,
+    have := embedding_subtype_coe.is_compact_iff_is_compact_image.mp (H (coe ⁻¹' t)),
+    simpa [set.inter_eq_left_iff_subset.mpr ht] using this },
+  { intros H t,
+    refine embedding_subtype_coe.is_compact_iff_is_compact_image.mpr (H (coe '' t) _),
+    simp }
+end
+
+lemma noetherian_space.Union {ι : Type*} [fintype ι] (f : ι → set α)
+  [hf : ∀ i, noetherian_space (f i)] :
+  noetherian_space (⋃ i, f i) :=
+begin
+  simp_rw noetherian_space_set_iff at hf ⊢,
+  intros t ht,
+  rw [← set.inter_eq_left_iff_subset.mpr ht, set.inter_Union],
+  exact compact_Union (λ i, hf i _ (set.inter_subset_right _ _))
+end
+
 -- This is not an instance since it makes a loop with `t2_space_discrete`.
 lemma noetherian_space.discrete [noetherian_space α] [t2_space α] : discrete_topology α :=
 ⟨eq_bot_iff.mpr (λ U _, is_closed_compl_iff.mp (noetherian_space.is_compact _).is_closed)⟩
@@ -124,6 +151,9 @@ local attribute [instance] noetherian_space.discrete
 noncomputable
 def noetherian_space.fintype [noetherian_space α] [t2_space α] : fintype α :=
 set.fintype_of_finite_univ (noetherian_space.is_compact set.univ).finite_of_discrete
+
+instance noetherian_space.of_fintype [fintype α] : noetherian_space α :=
+by { classical, exact ⟨@@fintype.well_founded_of_trans_of_irrefl (subtype.fintype _) _ _ _⟩ }
 
 lemma noetherian_space.exists_finset_irreducible [noetherian_space α] (s : closeds α) :
   ∃ S : finset (closeds α), (∀ k : S, is_irreducible (k : set α)) ∧ s = S.sup id :=

@@ -3,7 +3,6 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.hom.ring
 import data.nat.basic
 
 /-!
@@ -348,6 +347,11 @@ begin
   rintros rfl,
   exact zero_pow hn,
 end
+
+lemma pow_eq_zero_iff' [monoid_with_zero R] [no_zero_divisors R] [nontrivial R]
+  {a : R} {n : ℕ} :
+  a ^ n = 0 ↔ a = 0 ∧ n ≠ 0 :=
+by cases (zero_le n).eq_or_gt; simp [*, ne_of_gt]
 
 lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ} (hn : 0 < n) :
   a ^ n ≠ 0 ↔ a ≠ 0 :=

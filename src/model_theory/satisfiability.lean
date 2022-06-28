@@ -107,13 +107,13 @@ begin
   exact (h' i).mono hi,
 end
 
-theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)
+theorem {x} is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)
   (M : Type w') [nonempty M] [L.Structure M] [M ⊨ T]
-  (h : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} (# M)) :
+  (h : cardinal.lift.{max w' x} (# s) ≤ cardinal.lift.{max w x} (# M)) :
   ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
 begin
   haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
-  rw [cardinal.lift_mk_le'] at h,
+  rw cardinal.lift_mk_le at h,
   letI : (constants_on α).Structure M :=
     constants_on.Structure (function.extend coe h.some default),
   haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,

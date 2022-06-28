@@ -115,15 +115,15 @@ variables {M : Type v} [add_comm_group M] [module R M]
 variables {M' : Type v'} [add_comm_group M'] [module R M']
 variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
-theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
-  cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{v} (module.rank R M') :=
+theorem {m} linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
+  cardinal.lift.{max v' m} (module.rank R M) ≤ cardinal.lift.{max v m} (module.rank R M') :=
 begin
   dsimp [module.rank],
   rw [cardinal.lift_supr (cardinal.bdd_above_range.{v' v'} _),
     cardinal.lift_supr (cardinal.bdd_above_range.{v v} _)],
   apply csupr_mono' (cardinal.bdd_above_range.{v' v} _),
   rintro ⟨s, li⟩,
-  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
+  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
   exact (li.map' _ $ linear_map.ker_eq_bot.mpr i).image,
 end
 
@@ -153,7 +153,7 @@ begin
   refine (le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
     convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
-  { exact (cardinal.lift_mk_eq'.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
+  { exact (set.range_splitting_image_equiv f s).cardinal_lift_eq.ge, },
 end
 
 lemma dim_range_le (f : M →ₗ[R] M₁) : module.rank R f.range ≤ module.rank R M :=
@@ -395,17 +395,17 @@ Over any ring `R`, if `b` is an infinite basis for a module `M`,
 and `s` is a maximal linearly independent set,
 then the cardinality of `b` is bounded by the cardinality of `s`.
 -/
-lemma infinite_basis_le_maximal_linear_independent'
+lemma {m} infinite_basis_le_maximal_linear_independent'
   {ι : Type w} (b : basis ι R M) [infinite ι]
   {κ : Type w'} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
-  cardinal.lift.{w'} (#ι) ≤ cardinal.lift.{w} (#κ) :=
+  cardinal.lift.{max w' m} (#ι) ≤ cardinal.lift.{max w m} (#κ) :=
 begin
   let Φ := λ k : κ, (b.repr (v k)).support,
   have w₁ : #ι ≤ #(set.range Φ),
   { apply cardinal.le_range_of_union_finset_eq_top,
     exact union_support_maximal_linear_independent_eq_range_basis b v i m, },
   have w₂ :
-    cardinal.lift.{w'} (#(set.range Φ)) ≤ cardinal.lift.{w} (#κ) :=
+    cardinal.lift.{w' m} (#(set.range Φ)) ≤ cardinal.lift.{w m} (#κ) :=
     cardinal.mk_range_le_lift,
   exact (cardinal.lift_le.mpr w₁).trans w₂,
 end
@@ -423,9 +423,9 @@ lemma infinite_basis_le_maximal_linear_independent
   #ι ≤ #κ :=
 cardinal.lift_le.mp (infinite_basis_le_maximal_linear_independent' b v i m)
 
-lemma complete_lattice.independent.subtype_ne_bot_le_rank [no_zero_smul_divisors R M]
+lemma {m} complete_lattice.independent.subtype_ne_bot_le_rank [no_zero_smul_divisors R M]
   {V : ι → submodule R M} (hV : complete_lattice.independent V) :
-  cardinal.lift.{v} (#{i : ι // V i ≠ ⊥}) ≤ cardinal.lift.{w} (module.rank R M) :=
+  cardinal.lift.{max v m} (#{i : ι // V i ≠ ⊥}) ≤ cardinal.lift.{max w m} (module.rank R M) :=
 begin
   set I := {i : ι // V i ≠ ⊥},
   have hI : ∀ i : I, ∃ v ∈ V i, v ≠ (0:M),
@@ -484,8 +484,8 @@ variables {M : Type v} [add_comm_group M] [module R M]
 
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
 have the same cardinalities. -/
-theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
-  cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
+theorem {m} mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
+  cardinal.lift.{w' m} (#ι) = cardinal.lift.{w m} (#ι') :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   casesI fintype_or_infinite ι,
@@ -505,7 +505,7 @@ begin
     -- we see they have the same cardinality.
     have w₁ :=
       infinite_basis_le_maximal_linear_independent' v _ v'.linear_independent v'.maximal,
-    rcases cardinal.lift_mk_le'.mp w₁ with ⟨f⟩,
+    rcases cardinal.lift_mk_le.mp w₁ with ⟨f⟩,
     haveI : infinite ι' := infinite.of_injective f f.2,
     have w₂ :=
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,

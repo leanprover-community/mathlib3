@@ -194,9 +194,17 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
+theorem mk_lift_le_of_injective {α : Type u} {β : Type v} (f : α → β) (hf : injective f) :
+  lift.{max v w} (#α) ≤ lift.{max u w} (#β) :=
+lift_mk_le.2 ⟨⟨f, hf⟩⟩
+
 theorem _root_.function.embedding.cardinal_lift_le {α : Type u} {β : Type v} (f : α ↪ β) :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) :=
 lift_mk_le.2 ⟨f⟩
+
+theorem mk_lift_le_of_surjective {α : Type u} {β : Type v} (f : α → β) (hf : surjective f) :
+  lift.{max u w} (#β) ≤ lift.{max v w} (#α) :=
+(embedding.of_surjective f hf).cardinal_lift_le
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
@@ -1274,10 +1282,10 @@ theorem mk_Union_le_sum_mk {α ι : Type u} {f : ι → set α} : #(⋃ i, f i) 
 calc #(⋃ i, f i) ≤ #(Σ i, f i)        : mk_le_of_surjective _ (set.sigma_to_Union_surjective f)
               ... = sum (λ i, #(f i)) : mk_sigma _
 
-theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α} (h : ∀ i j, i ≠ j → disjoint (f i) (f j)) :
-  #(⋃ i, f i) = sum (λ i, #(f i)) :=
-calc #(⋃ i, f i) = #(Σ i, f i)        : mk_congr (set.Union_eq_sigma_of_disjoint h)
-              ... = sum (λ i, #(f i)) : mk_sigma _
+theorem mk_Union_eq_sum_mk {α ι : Type u} {f : ι → set α}
+  (h : ∀ i j, i ≠ j → disjoint (f i) (f j)) : #(⋃ i, f i) = sum (λ i, #(f i)) :=
+calc #(⋃ i, f i) = #(Σ i, f i)       : mk_congr (set.Union_eq_sigma_of_disjoint h)
+             ... = sum (λ i, #(f i)) : mk_sigma _
 
 lemma mk_Union_le {α ι : Type u} (f : ι → set α) : #(⋃ i, f i) ≤ #ι * ⨆ i, #(f i) :=
 mk_Union_le_sum_mk.trans (sum_le_supr _)
@@ -1352,16 +1360,16 @@ lemma mk_sep (s : set α) (t : α → Prop) : #({ x ∈ s | t x } : set α) = #{
 mk_congr (equiv.set.sep s t)
 
 lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
-  (h : injective f) : lift.{v} (#(f ⁻¹' s)) ≤ lift.{u} (#s) :=
+  (h : injective f) : lift.{max v w} (#(f ⁻¹' s)) ≤ lift.{max u w} (#s) :=
 begin
-  rw lift_mk_le.{u v 0}, use subtype.coind (λ x, f x.1) (λ x, x.2),
+  rw lift_mk_le.{u v w}, use subtype.coind (λ x, f x.1) (λ x, x.2),
   apply subtype.coind_injective, exact h.comp subtype.val_injective
 end
 
 lemma mk_preimage_of_subset_range_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)
-  (h : s ⊆ range f) : lift.{u} (#s) ≤ lift.{v} (#(f ⁻¹' s)) :=
+  (h : s ⊆ range f) : lift.{max u w} (#s) ≤ lift.{max v w} (#(f ⁻¹' s)) :=
 begin
-  rw lift_mk_le.{v u 0},
+  rw lift_mk_le.{v u w},
   refine ⟨⟨_, _⟩⟩,
   { rintro ⟨y, hy⟩, rcases classical.subtype_of_exists (h hy) with ⟨x, rfl⟩, exact ⟨x, hy⟩ },
   rintro ⟨y, hy⟩ ⟨y', hy'⟩, dsimp,
@@ -1371,24 +1379,24 @@ begin
 end
 
 lemma mk_preimage_of_injective_of_subset_range_lift {β : Type v} (f : α → β) (s : set β)
-  (h : injective f) (h2 : s ⊆ range f) : lift.{v} (#(f ⁻¹' s)) = lift.{u} (#s) :=
+  (h : injective f) (h2 : s ⊆ range f) : lift.{max v w} (#(f ⁻¹' s)) = lift.{max u w} (#s) :=
 le_antisymm (mk_preimage_of_injective_lift f s h) (mk_preimage_of_subset_range_lift f s h2)
 
 lemma mk_preimage_of_injective (f : α → β) (s : set β) (h : injective f) :
   #(f ⁻¹' s) ≤ #s :=
-by { convert mk_preimage_of_injective_lift.{u u} f s h using 1; rw [lift_id] }
+by { convert mk_preimage_of_injective_lift.{u u 0} f s h using 1; rw [lift_id] }
 
 lemma mk_preimage_of_subset_range (f : α → β) (s : set β)
   (h : s ⊆ range f) : #s ≤ #(f ⁻¹' s) :=
-by { convert mk_preimage_of_subset_range_lift.{u u} f s h using 1; rw [lift_id] }
+by { convert mk_preimage_of_subset_range_lift.{u u 0} f s h using 1; rw [lift_id] }
 
 lemma mk_preimage_of_injective_of_subset_range (f : α → β) (s : set β)
   (h : injective f) (h2 : s ⊆ range f) : #(f ⁻¹' s) = #s :=
-by { convert mk_preimage_of_injective_of_subset_range_lift.{u u} f s h h2 using 1; rw [lift_id] }
+by { convert mk_preimage_of_injective_of_subset_range_lift.{u u 0} f s h h2 using 1; rw [lift_id] }
 
 lemma mk_subset_ge_of_subset_image_lift {α : Type u} {β : Type v} (f : α → β) {s : set α}
   {t : set β} (h : t ⊆ f '' s) :
-    lift.{u} (#t) ≤ lift.{v} (#({ x ∈ s | f x ∈ t } : set α)) :=
+    lift.{max u w} (#t) ≤ lift.{max v w} (#({ x ∈ s | f x ∈ t } : set α)) :=
 by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range_lift _ _ h using 1,
      rw [mk_sep], refl }
 
@@ -1404,7 +1412,7 @@ begin
   apply exists_congr, intro t, rw [mk_image_eq], apply subtype.val_injective
 end
 
-lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
+lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃ x y : α, x ≠ y :=
 begin
   split,
   { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
@@ -1413,7 +1421,7 @@ begin
     apply h, exactI subsingleton.elim _ _ }
 end
 
-lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, x ≠ y :=
+lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃ y, x ≠ y :=
 begin
   rw [two_le_iff],
   split,
@@ -1432,8 +1440,7 @@ begin
     ... ≤ l.length                : cardinal.nat_cast_le.mpr (list.to_finset_card_le l),
 end
 
-lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
-  ∃ (z : α), z ≠ x ∧ z ≠ y :=
+lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) : ∃ z, z ≠ x ∧ z ≠ y :=
 begin
   have : ↑(3 : ℕ) ≤ # α, simpa using h,
   have : ↑(2 : ℕ) < # α, rwa [← succ_le_iff, ← cardinal.nat_succ],

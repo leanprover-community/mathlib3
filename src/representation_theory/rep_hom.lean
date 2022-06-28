@@ -493,4 +493,65 @@ end as_monoid
 
 end rep_hom
 
+-- module
+-- distrib_mul_action_hom
+
+namespace is_rep_hom
+
+section add_comm_monoid
+
+variables
+  {k G V V₂ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂}
+
+/-- Convert an `is_rep_hom` predicate to a `rep_hom` -/
+def mk' (f : V → V₂) (H : is_rep_hom ρ ρ₂ f) : ρ →ᵣ ρ₂ :=
+{ to_fun := f, map_add' := H.1, map_smul' := H.2, map_smulG' := H.3 }
+
+@[simp] theorem mk'_apply {f : V → V₂} (H : is_rep_hom ρ ρ₂ f) (x : V) :
+  mk' f H x = f x := rfl
+
+lemma is_rep_hom_smul_one :
+  is_rep_hom ρ ρ (λ (z : V), 1 • z) :=
+begin
+  refine is_rep_hom.mk (smul_add 1) _ _;
+  { intros _ _,
+    simp only [one_nsmul] }
+end
+
+set_option trace.simplify.rewrite true
+lemma is_rep_hom_smulG_one :
+  is_rep_hom ρ ρ (λ (z : V), ρ 1 z) :=
+begin
+  refine is_rep_hom.mk _ _ _;
+  { intros _ _,
+    simp only [map_one, linear_map.one_apply] }
+end
+
+variables {f : V → V₂} (rh : is_rep_hom ρ ρ₂ f)
+
+lemma map_zero : f (0 : V) = (0 : V₂) := (rh.mk' f).map_zero
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables
+  {k G V V₂ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_group V] [module k V] [add_comm_group V₂] [module k V₂]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂}
+  {f : V → V₂} (rh : is_rep_hom ρ ρ₂ f)
+
+lemma map_neg (x : V) : f (- x) = - f x := (rh.mk' f).map_neg x
+
+lemma map_sub (x y) : f (x - y) = f x - f y := (rh.mk' f).map_sub x y
+
+end add_comm_group
+
+end is_rep_hom
+
+-- subclass of module.End
+
+
 end

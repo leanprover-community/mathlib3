@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
+import data.finsupp.basic
 import data.nat.enat
 import data.set.countable
 import logic.small
@@ -139,7 +140,7 @@ quotient.map₂ f $ λ α β ⟨e₁⟩ γ δ ⟨e₂⟩, ⟨hf α β γ δ e₁
 
 /-- The universe lift operation on cardinals. You can specify the universes explicitly with
   `lift.{u v} : cardinal.{v} → cardinal.{max v u}` -/
-def lift (c : cardinal.{v}) : cardinal.{max v u} :=
+@[pp_nodot] def lift (c : cardinal.{v}) : cardinal.{max v u} :=
 map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 
 @[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
@@ -207,9 +208,13 @@ theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.ou
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
+  lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
+
+theorem _root_.function.embedding.cardinal_lift_mk_le {α : Type u} {β : Type v} (f : α ↪ β) :
+  lift.{max v w} (#α) ≤ lift.{max u w} (#β) :=
+lift_mk_le.{u v w}.2 ⟨f⟩
 
 /-- A variant of `cardinal.lift_mk_le` with specialized universes.
 Because Lean often can not realize it should use this specialization itself,
@@ -218,6 +223,10 @@ we provide this statement separately so you don't have to solve the specializati
 theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
 lift_mk_le.{u v 0}
+
+theorem _root_.function.embedding.cardinal_lift_mk_le' {α : Type u} {β : Type v} (f : α ↪ β) :
+  lift.{v} (#α) ≤ lift.{u} (#β) :=
+lift_mk_le'.2 ⟨f⟩
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
@@ -332,6 +341,10 @@ theorem power_def (α β) : #α ^ #β = #(β → α) := rfl
 
 theorem mk_arrow (α : Type u) (β : Type v) : #(α → β) = lift.{u} (#β) ^ lift.{v} (#α) :=
 mk_congr (equiv.ulift.symm.arrow_congr equiv.ulift.symm)
+
+@[simp] lemma mk_finsupp_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
+  #(α →₀ β) = lift.{u} (#β) ^ lift.{v} (#α) :=
+finsupp.equiv_fun_on_fintype.cardinal_eq.trans (mk_arrow α β)
 
 @[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
 induction_on₂ a b $ λ α β,

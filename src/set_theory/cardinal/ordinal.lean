@@ -690,6 +690,26 @@ eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
+set_option pp.universes true
+@[simp] lemma mk_finsupp_of_infinite (α : Type u) (β : Type v) [infinite α] [has_zero β]
+  [nontrivial β] : #(α →₀ β) = max (lift.{v} (#α)) (lift.{u} (#β)) :=
+begin
+  apply le_antisymm,
+  {
+    apply le_max
+  },
+  { apply max_le,
+    { cases exists_ne (0 : β) with b hb,
+      rw [←lift_id (# (α →₀ β)), ←lift_umax.{u v}],
+      apply embedding.cardinal_lift_mk_le.{u (max u v) v},
+      exact ⟨_, finsupp.single_left_injective hb⟩ },
+    { rw [←lift_id (# (α →₀ β)), ←lift_umax.{v u}],
+      apply embedding.cardinal_lift_mk_le.{v (max u v) u},
+      exact ⟨_, finsupp.single_injective (classical.arbitrary α)⟩ } }
+end
+
+#exit
+
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ #α ^ c :=
 begin

@@ -12,52 +12,55 @@ open set function real
 
 namespace normed_group
 
-variables {G S : Type*} [group G]
+section
 
--- maybe a bad idea?
-structure normed_group (G : Type*) extends has_norm G, metric_space G :=
+variables {G S : Type*} [group G] [fintype S]
+
+"""a group with a norm and associated left-invariant metric"""
+class normed_group (G : Type*) [group G] extends has_norm G, metric_space G :=
 (dist_eq : ∀ x y : G, dist x y = ∥x⁻¹*y∥)
 
 """an S-generated group"""
-structure generated_group (G S : Type*) :=
+class generated_group (G S : Type*) [group G] :=
 (marking : free_group S → G)
+(is_surjective : function.surjective marking)
 
-structure norm_generated_group (G S :Type*) extends generated_group G S :=
+"""an S-generated group, with additionally a norm on generators"""
+class norm_generated_group (G S : Type*) [group G] extends generated_group G S :=
 (Snorm : S → ℝ)
+(Spos : ∃ε > 0, ∀s : S, Snorm s ≥ ε)
 
--- norm on free group: ∥w∥ = sum of Snorm(s_i) where w = product s_i^{±1} in reduced form
+--!! I forgot how to lift an element of F to a list (S × Prop)
+def free_group_norm (F : free_group S) (Snorm : S → ℝ) : F → ℝ := λf,
+| [] -> 0
+| [ (s,_) :: tail ] -> (Snorm s) + (free_group_norm F Snorm) tail
 
-instance : "coercion from generated_group to norm_generated_group" (generated_group G S) (norm_generated_group G S) := ⟨λ GS, { Snorm := λ s, 1, ..GS }⟩
+instance gg_to_ngg [group G] (GS : generated_group G S) : norm_generated_group G S := { Snorm := λ s, 1, Spos := begin use 1,
+split, exact zero_lt_one, intro s, finish end, ..GS }
 
-instance : "coerction from norm_generated_group to normed_group" (generated_group G S) (normed_group G) := ⟨λ GS, {norm := λ g, inf{ ∥w∥ | GS.marking w = g }, .. GS }⟩
+instance ngg_to_ng [group G] (GS : norm_generated_group G S) : normed_group G := { norm := λ g, inf{ ∥w∥ | w : free_group S, marking w = g }, ..GS }
 
---! certainly this is not OK: "S" in treated once as a set and once as a type. How do we make this work?
-lemma mk_generated_group (G : Type*) (S : set G) (generates : subgroup.closure S = ⊤) : generated_group G S := sorry
+lemma independence_of_generating_set [group G] {S₁ S₂} (GS₁ : norm_generated_group G S₁) (GS₂ : norm_generated_group G S₂) : ∃ K, lipschitz_with K ((λ (g : GS₁), (g : GS₂)) : (normed_group G) → (normed_group G)) := sorry
 
--- version of the previous one, where we give length f(s) to s∈S
-lemma mk_normed_group_f (G : Type*) [group G] (S : set G) (generates : subgroup.closure S = ⊤) (f : S → ℝ) (pos : ∀(s∈S), f(s) > 0) : normed_group G := sorry
-
-lemma independence_of_generating_set (G : Type*) [group G] (S₁ S₂ : set G) (generates₁ : subgroup.closure S₁ = ⊤) (generates₂ : subgroup.closure S₂ = ⊤) : ∃ K, lipschitz_with K "(id : (mk_normed_group G S₁ generates₁) → (mk_normed_group G S₂ generates₂)" := sorry
+end
 
 end normed_group
 
 namespace group_growth
 
 --!! notation for cardinality?
-definition growth (G : Type*) [normed_group G] : ℕ → ℝ := λ n, #{x : G | ∥x∥ ≤ n }
+def growth (G : Type*) [normed_group G] : ℕ → ℝ := λ n, #{x : G | ∥x∥ ≤ n }
 
-definition dominates (a : ℕ → ℝ) (b : ℕ → ℝ) : Prop := ∃K, ∀n, a(n) ≤ b(K*n)
+--!! notation for ℝ₊, the positive reals?
+def dominates (a : ℕ → ℝ) (b : ℕ → ℝ) : Prop := ∃K, ∀n, a(n) ≤ b(K*n)
 
---!! notation infix:`≾` for dominates
-definition equivalent (a : ℕ → ℝ) (b : ℕ → ℝ) : Prop := (dominates a b) ∧ (dominates b a)
+--!! notation infix:`≾` for dominates, `∼` for equivalent
+def equivalent (a : ℕ → ℝ) (b : ℕ → ℝ) : Prop := (dominates a b) ∧ (dominates b a)
 
-lemma growth_independence_of_generating_set (G : Type*) [group G] (S₁ S₂ : set G) (generates₁ : subgroup.closure S₁ = ⊤) (generates₂ : subgroup.closure S₂ = ⊤) : equivalent (growth (mk_normed_group G S₁ generates₁)) (growth (mk_normed_group G S₂ generates₂)) := sorry
+/-
+define growth types: exponential, polynomial, intermediate
 
---!! define growth types: exponential, polynomial, intermediate
-
-/- then lots of basic lemmas: growth of subgroup is smaller than growth of group; if finite-index subgroup then the growth relate by at most the index; etc.
-
-also: natural norm on generated_group by declaring each generator to have length 1
+then lots of basic lemmas: growth of subgroup is smaller than growth of group; if finite-index subgroup then the growth relate by at most the index; etc.
 -/
 end group_growth
 

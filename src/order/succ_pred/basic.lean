@@ -673,8 +673,8 @@ instance : succ_order (with_top α) :=
     { exact le_of_lt_succ (some_lt_some.1 h) }
   end }
 
-@[simp] lemma succ_some_top : @succ (with_top α) _ _ (some ⊤) = ⊤ := dif_pos rfl
-lemma succ_some_of_ne_top {a : α} (h : a ≠ ⊤) : @succ (with_top α) _ _ (some a) = some (succ a) :=
+@[simp] lemma succ_coe_top : succ ↑(⊤ : α) = (⊤ : with_top α) := dif_pos rfl
+lemma succ_coe_of_ne_top {a : α} (h : a ≠ ⊤) : succ (↑a : with_top α) = ↑(succ a) :=
 dif_neg h
 
 end succ
@@ -711,8 +711,8 @@ instance : pred_order (with_top α) :=
     { exact some_le_some.2 (le_of_pred_lt $ some_lt_some.1 h) }
   end }
 
-@[simp] lemma pred_top : @pred (with_top α) _ _ ⊤ = some ⊤ := rfl
-@[simp] lemma pred_some (a : α) : @pred (with_top α) _ _ (some a) = some (pred a) := rfl
+@[simp] lemma pred_top : pred (⊤ : with_top α) = ↑(⊤ : α) := rfl
+@[simp] lemma pred_coe (a : α) : pred (↑a : with_top α) = ↑(pred a) := rfl
 
 end pred
 
@@ -751,7 +751,7 @@ instance with_top.succ_order_of_no_max_order : succ_order (with_top α) :=
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-@[simp] lemma succ_some (a : α) : @succ (with_top α) _ _ (some a) = some (succ a) := rfl
+@[simp] lemma succ_coe (a : α) : succ (↑a : with_top α) = ↑(succ a) := rfl
 
 end succ
 
@@ -809,8 +809,8 @@ instance : succ_order (with_bot α) :=
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-@[simp] lemma succ_bot : @succ (with_bot α) _ _ ⊥ = some ⊥ := rfl
-@[simp] lemma succ_some' (a : α) : @succ (with_bot α) _ _ (some a) = some (succ a) := rfl
+@[simp] lemma succ_bot : succ (⊥ : with_bot α) = ↑(⊥ : α) := rfl
+@[simp] lemma succ_coe' (a : α) : succ (↑a : with_bot α) = ↑(succ a) := rfl
 
 end succ
 
@@ -864,8 +864,8 @@ instance : pred_order (with_bot α) :=
     { exact le_of_pred_lt (some_lt_some.1 h) }
   end }
 
-@[simp] lemma pred_some_bot : @pred (with_bot α) _ _ (some ⊥) = ⊥ := dif_pos rfl
-lemma pred_some_of_ne_bot {a : α} (h : a ≠ ⊥) : @pred (with_bot α) _ _ (some a) = some (pred a) :=
+@[simp] lemma pred_coe_bot : pred ↑(⊥ : α) = (⊥ : with_bot α) := dif_pos rfl
+lemma pred_coe_of_ne_bot {a : α} (h : a ≠ ⊥) : pred (↑a : with_bot α) = ↑(pred a) :=
 dif_neg h
 
 end pred
@@ -920,7 +920,7 @@ instance with_bot.pred_order_of_no_min_order : pred_order (with_bot α) :=
     { exact some_le_some.2 (le_of_pred_lt $ some_lt_some.1 h) }
   end }
 
-@[simp] lemma pred_some' (a : α) : @pred (with_bot α) _ _ (some a) = some (pred a) := rfl
+@[simp] lemma pred_coe' (a : α) : pred (↑a : with_bot α) = ↑(pred a) := rfl
 
 end pred
 end with_bot

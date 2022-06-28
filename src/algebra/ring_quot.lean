@@ -68,6 +68,7 @@ namespace ring_quot
 
 variable (r : R → R → Prop)
 
+@[irreducible] private def nat_cast (n : ℕ) : ring_quot r := ⟨quot.mk _ n⟩
 @[irreducible] private def zero : ring_quot r := ⟨quot.mk _ 0⟩
 @[irreducible] private def one : ring_quot r := ⟨quot.mk _ 1⟩
 @[irreducible] private def add : ring_quot r → ring_quot r → ring_quot r
@@ -126,6 +127,9 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   mul           := (*),
   zero          := 0,
   one           := 1,
+  nat_cast      := nat_cast r,
+  nat_cast_zero := by simp [nat.cast, nat_cast, ← zero_quot],
+  nat_cast_succ := by simp [nat.cast, nat_cast, ← one_quot, add_quot],
   add_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [add_quot, add_assoc] },
   zero_add      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot] },
   add_zero      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot], },

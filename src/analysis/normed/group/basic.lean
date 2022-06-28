@@ -372,15 +372,6 @@ ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
 ne_zero_of_mem_sphere one_ne_zero _
 
-/-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
-antipodal map. -/
-instance {r : ℝ} : has_neg (sphere (0:E) r) :=
-{ neg := λ w, ⟨-↑w, by simp⟩ }
-
-@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
-  (((-v) : sphere _ _) : E) = - (v:E) :=
-rfl
-
 namespace isometric
 -- TODO This material is superseded by similar constructions such as
 -- `affine_isometry_equiv.const_vadd`; deduplicate
@@ -1041,11 +1032,6 @@ instance normed_uniform_group : uniform_add_group E :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group E :=
 by apply_instance -- short-circuit type class inference
-
-lemma nat.norm_cast_le [has_one E] : ∀ n : ℕ, ∥(n : E)∥ ≤ n * ∥(1 : E)∥
-| 0 := by simp
-| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
-                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
 
 lemma semi_normed_group.mem_closure_iff {s : set E} {x : E} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=

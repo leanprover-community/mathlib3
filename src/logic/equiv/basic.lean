@@ -1396,39 +1396,25 @@ subtype_equiv (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. This
 version allows the “inner” predicate to depend on `h : p a`. -/
+@[simps]
 def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
-⟨λ⟨⟨a, ha⟩, ha'⟩, ⟨a, ha, ha'⟩,
-  λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
+⟨λ a, ⟨a, a.1.2, by { rcases a with ⟨⟨a, hap⟩, haq⟩, exact haq }⟩,
+  λ a, ⟨⟨a, a.2.fst⟩, a.2.snd⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
-@[simp] lemma subtype_subtype_equiv_subtype_exists_apply {α : Type u} (p : α → Prop)
-  (q : subtype p → Prop) (a) : (subtype_subtype_equiv_subtype_exists p q a : α) = a :=
-by { cases a, cases a_val, refl }
-
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
-def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
+@[simps] def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
 (subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_equiv_right $ λ x, exists_prop
 
-@[simp] lemma subtype_subtype_equiv_subtype_inter_apply {α : Type u} (p q : α → Prop) (a) :
-  (subtype_subtype_equiv_subtype_inter p q a : α) = a :=
-by { cases a, cases a_val, refl }
-
 /-- If the outer subtype has more restrictive predicate than the inner one,
 then we can drop the latter. -/
-def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}, q x → p x) :
+@[simps] def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}, q x → p x) :
   {x : subtype p // q x.1} ≃ subtype q :=
 (subtype_subtype_equiv_subtype_inter p _).trans $
-subtype_equiv_right $
-assume x,
-⟨and.right, λ h₁, ⟨h h₁, h₁⟩⟩
-
-@[simp] lemma subtype_subtype_equiv_subtype_apply {α : Type u} {p q : α → Prop} (h : ∀ x, q x → p x)
-  (a : {x : subtype p // q x.1}) :
-  (subtype_subtype_equiv_subtype h a : α) = a :=
-by { cases a, cases a_val, refl }
+subtype_equiv_right $ λ x, and_iff_right_of_imp h
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/

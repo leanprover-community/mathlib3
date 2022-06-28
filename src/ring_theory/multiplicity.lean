@@ -494,10 +494,6 @@ begin
   exact hp this
 end
 
-lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  multiplicity p n = n.factorization p :=
-multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
-
 @[to_additive sum_factors_gcd_add_sum_factors_mul]
 lemma prod_factors_gcd_mul_prod_factors_mul {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
   (m.gcd n).factors.to_finset.prod f * (m * n).factors.to_finset.prod f

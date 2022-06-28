@@ -98,6 +98,12 @@ initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg a
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
 
+@[to_additive, priority 0] instance : mul_one_class αˣ :=
+{ one := has_one.one,
+  mul := has_mul.mul,
+  one_mul := λ u, ext $ one_mul u,
+  mul_one := λ u, ext $ mul_one u }
+
 @[norm_cast, to_additive] theorem eq_iff {a b : αˣ} :
   (a : α) = b ↔ a = b := ext.eq_iff
 
@@ -124,13 +130,14 @@ ext hv
 
 /-- Units of a monoid form a group. -/
 @[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
-{ mul := has_mul.mul,
-  one := has_one.one,
-  mul_one := λ u, ext $ mul_one u,
-  one_mul := λ u, ext $ one_mul u,
-  mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
-  inv := has_inv.inv,
-  mul_left_inv := λ u, ext u.inv_val }
+{ inv := has_inv.inv,
+  mul_left_inv := λ u, ext u.inv_val,
+  mul_assoc := λ u v w, ext $ mul_assoc _ _ _,
+  mul := mul_one_class.mul,
+  one := mul_one_class.one,
+  one_mul := mul_one_class.one_mul,
+  mul_one := mul_one_class.mul_one
+}
 
 @[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
@@ -141,9 +148,9 @@ ext hv
 
 variables (a b c : αˣ) {u : αˣ}
 
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
-
 @[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : αˣ) : α) = 1 := rfl
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : αˣ} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]

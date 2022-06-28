@@ -55,7 +55,7 @@ we made everything classical.
 
 noncomputable theory
 
-universes w v u
+universes w w' v u
 
 open category_theory
 open category_theory.functor
@@ -144,6 +144,58 @@ ht.hom_ext (λ j', by { rw ht.fac, discrete_cases, simp [t.ι_π] })
 structure is_bilimit {F : J → C} (B : bicone F) :=
 (is_limit : is_limit B.to_cone)
 (is_colimit : is_colimit B.to_cocone)
+
+local attribute [ext] bicone.is_bilimit
+
+instance subsingleton_is_bilimit {f : J → C} {c : bicone f} : subsingleton c.is_bilimit :=
+⟨λ h h', bicone.is_bilimit.ext _ _ (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
+
+section whisker
+variables {K : Type w'}
+
+/-- Whisker a bicone with an equivalence between the indexing types. -/
+@[simps]
+def whisker {f : J → C} (c : bicone f) (g : K ≃ J) : bicone (f ∘ g) :=
+{ X := c.X,
+  π := λ k, c.π (g k),
+  ι := λ k, c.ι (g k),
+  ι_π := λ k k',
+  begin
+    simp only [c.ι_π],
+    split_ifs with h h' h'; simp [equiv.apply_eq_iff_eq g] at h h'; tauto
+  end }
+
+local attribute [tidy] tactic.discrete_cases
+
+def whisker_to_cone {f : J → C} (c : bicone f) (g : K ≃ J) :
+  (c.whisker g).to_cone ≅ (cones.postcompose (discrete.functor_comp f g).inv).obj
+    (c.to_cone.whisker (discrete.functor (discrete.mk ∘ g))) :=
+cones.ext (iso.refl _) (by tidy)
+
+def whisker_to_cocone {f : J → C} (c : bicone f) (g : K ≃ J) :
+  (c.whisker g).to_cocone ≅ (cocones.precompose (discrete.functor_comp f g).hom).obj
+    (c.to_cocone.whisker (discrete.functor (discrete.mk ∘ g))) :=
+cocones.ext (iso.refl _) (by tidy)
+
+def whisker_is_bilimit_iff {f : J → C} (c : bicone f) (g : K ≃ J) :
+  (c.whisker g).is_bilimit ≃ c.is_bilimit :=
+begin
+  refine equiv_of_subsingleton_of_subsingleton (λ hc, ⟨_, _⟩) (λ hc, ⟨_, _⟩),
+  { let := is_limit.of_iso_limit hc.is_limit (bicone.whisker_to_cone c g),
+    let := (is_limit.postcompose_hom_equiv (discrete.functor_comp f g).symm _) this,
+    exact is_limit.of_whisker_equivalence (discrete.equivalence g) this },
+  { let := is_colimit.of_iso_colimit hc.is_colimit (bicone.whisker_to_cocone c g),
+    let := (is_colimit.precompose_hom_equiv (discrete.functor_comp f g) _) this,
+    exact is_colimit.of_whisker_equivalence (discrete.equivalence g) this },
+  { apply is_limit.of_iso_limit _ (bicone.whisker_to_cone c g).symm,
+    apply (is_limit.postcompose_hom_equiv (discrete.functor_comp f g).symm _).symm _,
+    exact is_limit.whisker_equivalence hc.is_limit (discrete.equivalence g) },
+  { apply is_colimit.of_iso_colimit _ (bicone.whisker_to_cocone c g).symm,
+    apply (is_colimit.precompose_hom_equiv (discrete.functor_comp f g) _).symm _,
+    exact is_colimit.whisker_equivalence hc.is_colimit (discrete.equivalence g) }
+end
+
+end whisker
 
 end bicone
 

@@ -56,6 +56,9 @@ def map_bicone {f : J → C} (b : bicone f) : bicone (F.obj ∘ f) :=
     { rw [bicone_ι_π_ne _ h, F.map_zero] }
   end }
 
+lemma map_bicone_whisker {K : Type w₂} {g : K ≃ J} {f : J → C} (c : bicone f) :
+  F.map_bicone (c.whisker g) = (F.map_bicone c).whisker g := rfl
+
 end bicone
 
 /-- The image of a binary bicone under a functor. -/
@@ -81,64 +84,6 @@ namespace limits
 
 section bicone
 variables {J : Type w₁} {K : Type w₂}
-
-@[simps]
-def bicone.whisker {f : J → C} (c : bicone f) (g : K ≃ J) : bicone (f ∘ g) :=
-{ X := c.X,
-  π := λ k, c.π (g k),
-  ι := λ k, c.ι (g k),
-  ι_π := λ k k',
-  begin
-    simp only [c.ι_π],
-    split_ifs with h h' h'; simp [equiv.apply_eq_iff_eq g] at h h'; tauto
-  end }
-
-section move_me
-local attribute [ext] bicone.is_bilimit
-
-instance subsingleton_is_bilimit {f : J → C} {c : bicone f} : subsingleton c.is_bilimit :=
-⟨λ h h', bicone.is_bilimit.ext _ _ (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
-
-end move_me
-
-section move_me
-local attribute [tidy] tactic.discrete_cases
-
-@[simps]
-def discrete.functor_comp (f : J → C) (g : K → J) :
-  discrete.functor (discrete.mk ∘ g) ⋙ discrete.functor f ≅ discrete.functor (f ∘ g) :=
-nat_iso.of_components (λ X, iso.refl _) (by tidy)
-
-def bicone.whisker_to_cone {f : J → C} (c : bicone f) (g : K ≃ J) :
-  (c.whisker g).to_cone ≅ (cones.postcompose (discrete.functor_comp f g).hom).obj
-    (c.to_cone.whisker (discrete.functor (discrete.mk ∘ g))) :=
-cones.ext (iso.refl _) (by tidy)
-
-def bicone.whisker_to_cocone {f : J → C} (c : bicone f) (g : K ≃ J) :
-  (c.whisker g).to_cocone ≅ (cocones.precompose (discrete.functor_comp f g).inv).obj
-    (c.to_cocone.whisker (discrete.functor (discrete.mk ∘ g))) :=
-cocones.ext (iso.refl _) (by tidy)
-
-end move_me
-
-def bicone.whisker.is_bilimit_iff (f : J → C) (g : K ≃ J) (c : bicone f) :
-  (c.whisker g).is_bilimit ≃ c.is_bilimit :=
-begin
-  refine equiv_of_subsingleton_of_subsingleton (λ hc, ⟨_, _⟩) (λ hc, ⟨_, _⟩),
-  { let := is_limit.of_iso_limit hc.is_limit (bicone.whisker_to_cone c g),
-    let := (is_limit.postcompose_hom_equiv (discrete.functor_comp f g) _) this,
-    exact is_limit.of_whisker_equivalence (discrete.equivalence g) this },
-  { let := is_colimit.of_iso_colimit hc.is_colimit (bicone.whisker_to_cocone c g),
-    let := (is_colimit.precompose_hom_equiv (discrete.functor_comp f g).symm _) this,
-    exact is_colimit.of_whisker_equivalence (discrete.equivalence g) this },
-  { apply is_limit.of_iso_limit _ (bicone.whisker_to_cone c g).symm,
-    apply (is_limit.postcompose_hom_equiv (discrete.functor_comp f g) _).symm _,
-    exact is_limit.whisker_equivalence hc.is_limit (discrete.equivalence g) },
-  { apply is_colimit.of_iso_colimit _ (bicone.whisker_to_cocone c g).symm,
-    apply (is_colimit.precompose_hom_equiv (discrete.functor_comp f g).symm _).symm _,
-    exact is_colimit.whisker_equivalence hc.is_colimit (discrete.equivalence g) }
-end
-
 
 /-- A functor `F` preserves biproducts of `f` if `F` maps every bilimit bicone over `f` to a
     bilimit bicone over `F.obj ∘ f`. -/
@@ -173,16 +118,21 @@ attribute [instance, priority 100] preserves_finite_biproducts.preserves
     The usual notion of preservation of biproducts is recovered by choosing `w` to be the universe
     of the morphisms of `C`. -/
 class preserves_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
-(preserves : Π {J : Type w}, preserves_biproducts_of_shape J F)
+(preserves : Π {J : Type w₁}, preserves_biproducts_of_shape J F)
 
 attribute [instance, priority 100] preserves_biproducts.preserves
 
 set_option pp.universes true
 
+lemma preserves_biproducts_shrink (F : C ⥤ D) [preserves_zero_morphisms F]
+  [hp : preserves_biproducts.{max w₁ w₂} F] : preserves_biproducts.{w₁} F :=
+⟨λ J, ⟨λ f, ⟨λ b ib, ((F.map_bicone b).whisker_is_bilimit_iff _).to_fun
+  (is_bilimit_of_preserves F ((b.whisker_is_bilimit_iff equiv.ulift.{w₂}).inv_fun ib))⟩⟩⟩
+
 @[priority 100]
 instance preserves_finite_biproducts_of_preserves_biproducts (F : C ⥤ D)
-  [preserves_zero_morphisms F] [preserves_biproducts.{w} F] : preserves_finite_biproducts F :=
-{ preserves := λ J _, infer_instance }
+  [preserves_zero_morphisms F] [preserves_biproducts.{w₁} F] : preserves_finite_biproducts F :=
+{ preserves := λ J _, by letI := preserves_biproducts_shrink.{0} F; apply_instance }
 
 /-- A functor `F` preserves binary biproducts of `X` and `Y` if `F` maps every bilimit bicone over
     `X` and `Y` to a bilimit bicone over `F.obj X` and `F.obj Y`. -/
@@ -216,7 +166,7 @@ def preserves_binary_biproduct_of_preserves_biproduct (F : C ⥤ D) [preserves_z
 
 /-- A functor that preserves biproducts of a pair preserves binary biproducts. -/
 def preserves_binary_biproducts_of_preserves_biproducts (F : C ⥤ D)
-  [preserves_zero_morphisms F] [preserves_biproducts_of_shape walking_pair.{v} F] :
+  [preserves_zero_morphisms F] [preserves_biproducts_of_shape walking_pair F] :
   preserves_binary_biproducts F :=
 { preserves := λ X Y, preserves_binary_biproduct_of_preserves_biproduct F X Y }
 
@@ -229,7 +179,7 @@ open category_theory.limits
 namespace functor
 
 section bicone
-variables {J : Type v} (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
+variables {J : Type w₁} (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
   [has_biproduct f] [preserves_biproduct f F]
 
 instance has_biproduct_of_preserves : has_biproduct (F.obj ∘ f) :=
@@ -278,7 +228,7 @@ namespace limits
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 section bicone
-variables {J : Type v} (f : J → C) [has_biproduct f] [preserves_biproduct f F]
+variables {J : Type w₁} (f : J → C) [has_biproduct f] [preserves_biproduct f F]
   {W : C}
 
 lemma biproduct.map_lift_map_biprod (g : Π j, W ⟶ f j) :
@@ -328,7 +278,7 @@ variables [preadditive C] [preadditive D] (F : C ⥤ D) [preserves_zero_morphism
 namespace limits
 
 section fintype
-variables {J : Type v} [fintype J]
+variables {J : Type} [fintype J]
 
 local attribute [tidy] tactic.discrete_cases
 
@@ -421,7 +371,7 @@ local attribute [instance] preserves_binary_product_of_preserves_binary_biproduc
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
     preserves binary products. -/
 def preserves_binary_products_of_preserves_binary_biproducts
-  [preserves_binary_biproducts F] : preserves_limits_of_shape (discrete walking_pair.{v}) F :=
+  [preserves_binary_biproducts F] : preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ K, preserves_limit_of_iso_diagram _ (diagram_iso_pair _).symm }
 
 end
@@ -438,7 +388,7 @@ def preserves_binary_biproduct_of_preserves_binary_product {X Y : C}
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary products
     preserves binary biproducts. -/
 def preserves_binary_biproducts_of_preserves_binary_products
-  [preserves_limits_of_shape (discrete walking_pair.{v}) F] : preserves_binary_biproducts F :=
+  [preserves_limits_of_shape (discrete walking_pair) F] : preserves_binary_biproducts F :=
 { preserves := λ X Y, preserves_binary_biproduct_of_preserves_binary_product F }
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
@@ -457,7 +407,7 @@ local attribute [instance] preserves_binary_coproduct_of_preserves_binary_biprod
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
     preserves binary coproducts. -/
 def preserves_binary_coproducts_of_preserves_binary_biproducts
-  [preserves_binary_biproducts F] : preserves_colimits_of_shape (discrete walking_pair.{v}) F :=
+  [preserves_binary_biproducts F] : preserves_colimits_of_shape (discrete walking_pair) F :=
 { preserves_colimit := λ K, preserves_colimit_of_iso_diagram _ (diagram_iso_pair _).symm }
 
 end
@@ -474,7 +424,7 @@ def preserves_binary_biproduct_of_preserves_binary_coproduct {X Y : C}
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary coproducts
     preserves binary biproducts. -/
 def preserves_binary_biproducts_of_preserves_binary_coproducts
-  [preserves_colimits_of_shape (discrete walking_pair.{v}) F] : preserves_binary_biproducts F :=
+  [preserves_colimits_of_shape (discrete walking_pair) F] : preserves_binary_biproducts F :=
 { preserves := λ X Y, preserves_binary_biproduct_of_preserves_binary_coproduct F }
 
 end limits

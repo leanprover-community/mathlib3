@@ -1229,24 +1229,15 @@ section uniform_continuous_infi
 lemma uniform_continuous_inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ u₃ : uniform_space β}
   (h₁ : @@uniform_continuous u₁ u₂ f) (h₂ : @@uniform_continuous u₁ u₃ f) :
   @@uniform_continuous u₁ (u₂ ⊓ u₃) f :=
-begin
-  rw [uniform_continuous, inf_uniformity'],
-  exact tendsto_inf.mpr ⟨h₁, h₂⟩
-end
+tendsto_inf.mpr ⟨h₁, h₂⟩
 
 lemma uniform_continuous_inf_dom_left {f : α → β} {u₁ u₂ : uniform_space α} {u₃ : uniform_space β}
   (hf : @@uniform_continuous u₁ u₃ f) : @@uniform_continuous (u₁ ⊓ u₂) u₃ f :=
-begin
-  rw [uniform_continuous, inf_uniformity'],
-  exact tendsto_inf_left hf
-end
+tendsto_inf_left hf
 
 lemma uniform_continuous_inf_dom_right {f : α → β} {u₁ u₂ : uniform_space α} {u₃ : uniform_space β}
   (hf : @@uniform_continuous u₂ u₃ f) : @@uniform_continuous (u₁ ⊓ u₂) u₃ f :=
-begin
-  rw [uniform_continuous, inf_uniformity'],
-  exact tendsto_inf_right hf
-end
+tendsto_inf_right hf
 
 lemma uniform_continuous_Inf_dom {f : α → β} {u₁ : set (uniform_space α)} {u₂ : uniform_space β}
   {u : uniform_space α} (h₁ : u ∈ u₁) (hf : @@uniform_continuous u u₂ f) :

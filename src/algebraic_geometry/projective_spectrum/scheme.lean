@@ -170,14 +170,8 @@ begin
   rcases is_localization.exist_integer_multiples_of_finset (submonoid.powers f) s with
     ⟨⟨_, ⟨n, rfl⟩⟩, h⟩,
   refine ⟨n, λ x hx, _⟩,
-  rcases h x hx with ⟨a, eq1⟩,
-  induction x using localization.induction_on with data,
-  rcases data with ⟨x, y⟩,
-  change mk a 1 = f^n • _ at eq1,
-  unfold has_scalar.smul localization.smul at eq1,
-  rw [localization.lift_on_mk, smul_eq_mul] at eq1,
-  rw [mk_mul, mul_one, mul_comm, ← eq1],
-  refine ⟨a, trivial, rfl⟩,
+  rw [mk_one_eq_algebra_map, set.image_univ, mul_comm, ← algebra.smul_def],
+  exact h _ hx,
 end
 
 end clear_denominator
@@ -261,7 +255,7 @@ lemma carrier_ne_top :
   ((x.1.as_homogeneous_ideal.to_ideal : set A) ∩ (submonoid.powers f : set A)) = ∅ →
   carrier f_deg x ≠ ⊤ := λ eq_top,
 begin
-  haveI : decidable_eq (localization.away f) := classical.dec_eq _,
+  classical,
   contrapose! eq_top,
   obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
   erw [one_mul] at eq1,
@@ -276,7 +270,7 @@ begin
 end
 
 lemma no_intersection :
-  ((x.1.as_homogeneous_ideal.to_ideal : set A) ∩ (submonoid.powers f : set A)) = ∅ :=
+  (x.1.as_homogeneous_ideal.to_ideal ∩ submonoid.powers f : set A) = ∅ :=
 begin
   by_contra rid,
   rw [←ne.def, set.ne_empty_iff_nonempty] at rid,
@@ -291,7 +285,7 @@ begin
 end
 
 /--The function between the basic open set `D(f)` in `Proj` to the corresponding basic open set in
-`Spec A⁰_f`. The fact that this function is continuous is proven in `Top_component.forward`.
+`Spec A⁰_f`. This is bundled into a continuous map in `Top_component.forward`.
 -/
 def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
 ⟨carrier f_deg x, carrier_ne_top f_deg x (no_intersection x), λ x1 x2 hx12, begin

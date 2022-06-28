@@ -246,7 +246,7 @@ lemma _root_.measurable.exists_continuous {α β : Type*}
   {f : α → β} (hf : measurable f) :
   ∃ (t' : topological_space α), t' ≤ t ∧ @continuous α β t' tβ f ∧ @polish_space α t' :=
 begin
-  obtain ⟨b, b_count, -, hb⟩ : ∃b : set (set β), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
+  obtain ⟨b, b_count, -, hb⟩ : ∃b : set (set β), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b :=
     exists_countable_basis β,
   haveI : encodable b := b_count.to_encodable,
   have : ∀ (s : b), is_clopenable (f ⁻¹' s),
@@ -451,7 +451,7 @@ begin
   contradiction since `x` belongs both to this closure and to `w`. -/
   letI := upgrade_polish_space γ,
   obtain ⟨b, b_count, b_nonempty, hb⟩ :
-    ∃ b : set (set γ), countable b ∧ ∅ ∉ b ∧ is_topological_basis b := exists_countable_basis γ,
+    ∃ b : set (set γ), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b := exists_countable_basis γ,
   haveI : encodable b := b_count.to_encodable,
   let A := {p : b × b // disjoint (p.1 : set γ) p.2},
   -- for each pair of disjoint sets in the topological basis `b`, consider Borel sets separating

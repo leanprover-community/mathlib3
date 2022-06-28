@@ -80,9 +80,6 @@ variables [monoid α]
 
 @[to_additive] instance : has_inv αˣ := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
 
--- TODO: we don't have the imports available to prove these sorrys yet
--- @[to_additive] instance : has_pow αˣ ℕ := ⟨λ u n, ⟨u.val ^ n, u.inv ^ n, sorry, sorry⟩⟩
-
 /-- See Note [custom simps projection] -/
 @[to_additive /-" See Note [custom simps projection] "-/]
 def simps.coe (u : αˣ) : α := u
@@ -136,18 +133,10 @@ variables (a b c : αˣ) {u : αˣ}
 
 /-- Units of a monoid form a group. -/
 @[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
-{ mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
-    by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
-    by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
-  one := ⟨1, 1, one_mul 1, one_mul 1⟩,
-  mul_one := λ u, ext $ mul_one u,
-  one_mul := λ u, ext $ one_mul u,
-  mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
-  inv := has_inv.inv,
-  mul_left_inv := λ u, ext u.inv_val }
--- { inv := has_inv.inv,
---   mul_left_inv := λ u, ext u.inv_val,
---   ..function.injective.monoid coe ext coe_one coe_mul  }
+{ inv := has_inv.inv,
+  mul_left_inv := λ u, ext u.inv_val,
+  mul_assoc := λ u v w, ext $ mul_assoc _ _ _,
+  ..function.injective.mul_one_class coe ext coe_one coe_mul }
 
 @[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }

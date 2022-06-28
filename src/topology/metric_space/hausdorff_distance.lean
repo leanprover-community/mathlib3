@@ -27,32 +27,6 @@ This files introduces:
 * `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
 
-section
-variables {α : Type*}
-
-section
-variables [boolean_algebra α] {x y : α}
-
-lemma disjoint_compl_left_iff : disjoint xᶜ y ↔ y ≤ x :=
-by rw [disjoint_iff_le_compl_left, compl_compl]
-
-lemma disjoint_compl_right_iff : disjoint x yᶜ ↔ x ≤ y :=
-by rw [disjoint_iff_le_compl_right, compl_compl]
-
-alias disjoint_compl_left_iff ↔ _ has_le.le.disjoint_compl_left
-alias disjoint_compl_right_iff ↔ _ has_le.le.disjoint_compl_right
-
-end
-
-variables {s t : set α}
-
-lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
-lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
-
-alias disjoint_compl_left_iff_subset ↔ _ has_subset.subset.disjoint_compl_left
-alias disjoint_compl_right_iff_subset ↔ _ has_subset.subset.disjoint_compl_right
-end
-
 noncomputable theory
 open_locale classical nnreal ennreal topological_space
 universes u v w

@@ -134,7 +134,7 @@ by { rw ← rat.cast_coe_int, exact h.ne_rat _ }
 
 theorem ne_nat (h : irrational x) (m : ℕ) : x ≠ m := h.ne_int m
 
-theorem ne_zero (h : irrational x) : x ≠ 0 := h.ne_nat 0
+theorem ne_zero (h : irrational x) : x ≠ 0 := by exact_mod_cast h.ne_nat 0
 
 theorem ne_one (h : irrational x) : x ≠ 1 := by simpa only [nat.cast_one] using h.ne_nat 1
 

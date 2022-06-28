@@ -132,6 +132,12 @@ theorem band_elim_right : ∀ {a b : bool}, a && b → b := dec_trivial
 
 @[simp] theorem bnot_true : bnot tt = ff := rfl
 
+@[simp] lemma not_eq_bnot : ∀ {a b : bool}, ¬a = !b ↔ a = b := dec_trivial
+@[simp] lemma bnot_not_eq : ∀ {a b : bool}, ¬!a = b ↔ a = b := dec_trivial
+
+lemma ne_bnot {a b : bool} : a ≠ !b ↔ a = b := not_eq_bnot
+lemma bnot_ne {a b : bool} : !a ≠ b ↔ a = b := bnot_not_eq
+
 @[simp] theorem bnot_iff_not : ∀ {b : bool}, !b ↔ ¬b := dec_trivial
 
 theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_trivial
@@ -168,7 +174,6 @@ instance : linear_order bool :=
   le_total := dec_trivial,
   decidable_le := infer_instance,
   decidable_eq := infer_instance,
-  decidable_lt := infer_instance,
   max := bor,
   max_def := by { funext x y, revert x y, exact dec_trivial },
   min := band,

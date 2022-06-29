@@ -63,11 +63,11 @@ lemma well_founded_on.is_well_founded {s : set α} {r : α → α → Prop} (h :
 ⟨h⟩
 
 lemma well_founded_on_iff {s : set α} {r : α → α → Prop} :
-  s.well_founded_on r ↔ well_founded (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
+  s.well_founded_on r ↔ is_well_founded α (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
 begin
   have f : rel_embedding (subrel r s) (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
     ⟨⟨coe, subtype.coe_injective⟩, λ a b, by simp⟩,
-  refine ⟨λ h, _, f.well_founded⟩,
+  refine ⟨λ h, _, f.is_well_founded⟩,
   rw is_well_founded.well_founded_iff_has_min,
   intros t ht,
   by_cases hst : (s ∩ t).nonempty,

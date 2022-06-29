@@ -301,6 +301,9 @@ end
 protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
+protected theorem is_well_founded (f : r ↪r s) [is_well_founded β s] : is_well_founded α r :=
+⟨f.well_founded is_well_founded.wf⟩
+
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 

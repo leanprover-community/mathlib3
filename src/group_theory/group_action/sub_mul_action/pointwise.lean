@@ -31,7 +31,7 @@ instance : has_one (sub_mul_action R M) :=
 
 lemma coe_one : ↑(1 : sub_mul_action R M) = set.range (λ r : R, r • (1 : M)) := rfl
 
-lemma mem_one {x : M} : x ∈ (1 : sub_mul_action R M) ↔ ∃ r : R, r • 1 = x := iff.rfl
+@[simp] lemma mem_one {x : M} : x ∈ (1 : sub_mul_action R M) ↔ ∃ r : R, r • 1 = x := iff.rfl
 
 lemma subset_coe_one : (1 : set M) ⊆ (1 : sub_mul_action R M) :=
 λ x hx, ⟨1, (one_smul _ _).trans hx.symm⟩

@@ -9,6 +9,7 @@ import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
 import data.set.semiring
+import group_theory.group_action.sub_mul_action.pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -38,6 +39,17 @@ open algebra set mul_opposite
 open_locale big_operators
 open_locale pointwise
 
+namespace sub_mul_action
+variables {R : Type u}  {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
+
+lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : sub_mul_action R A) :=
+⟨r, (algebra_map_eq_smul_one r).symm⟩
+
+lemma mem_one' {x : A} : x ∈ (1 : sub_mul_action R A) ↔ ∃ y, algebra_map R A y = x :=
+exists_congr $ λ r, by rw algebra_map_eq_smul_one
+
+end sub_mul_action
+
 namespace submodule
 
 variables {ι : Sort uι}
@@ -59,7 +71,10 @@ lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : submodule R A) :=
 linear_map.mem_range_self _ _
 
 @[simp] lemma mem_one {x : A} : x ∈ (1 : submodule R A) ↔ ∃ y, algebra_map R A y = x :=
-by simp only [one_eq_range, linear_map.mem_range, algebra.linear_map_apply]
+iff.rfl
+
+@[simp] lemma to_sub_mul_action_one : (1 : submodule R A).to_sub_mul_action = 1 :=
+set_like.ext $ λ x, mem_one.trans sub_mul_action.mem_one'.symm
 
 theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin

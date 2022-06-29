@@ -3,7 +3,6 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-
 import algebra.big_operators.fin
 import algebra.geom_sum
 import group_theory.perm.fin
@@ -134,17 +133,17 @@ lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
   det (vandermonde v) ≠ 0 ↔ function.injective v :=
 by simpa only [det_vandermonde_eq_zero_iff, ne.def, not_exists, not_and, not_not]
 
-theorem vandermonde_invertibility' {R : Type*} [comm_ring R]
+theorem vandermonde_invert' {R : Type*} [comm_ring R]
 [is_domain R] {n : ℕ} (v : fin n ↪ R) {f : fin n → R}
 (h₂ : ∀ j, ∑ i : fin n, (v j ^ (i : ℕ)) * f i = 0) : f = 0
 := eq_zero_of_mul_vec_eq_zero (det_vandermonde_ne_zero_iff.mpr v.inj') (funext h₂)
 
-theorem vandermonde_invertibility {R : Type*} [comm_ring R]
+theorem vandermonde_invert {R : Type*} [comm_ring R]
 [is_domain R] {n : ℕ} (v : fin n ↪ R) {f : fin n → R}
 (h₂ : ∀ j, ∑ i, f i * (v j ^ (i : ℕ)) = 0) : f = 0
-:= by { refine vandermonde_invertibility' v _, simp_rw mul_comm, exact h₂ }
+:= by { refine vandermonde_invert' v _, simp_rw mul_comm, exact h₂ }
 
-theorem vandermonde_invertibility_transposed {R : Type*} [comm_ring R]
+theorem vandermonde_invert_transposed {R : Type*} [comm_ring R]
 [is_domain R] {n : ℕ} (v : fin n ↪ R) {f : fin n → R}
 (h₂ : ∀ i : fin n, ∑ j : fin n, f j * (v j ^ (i : ℕ)) = 0) : f = 0
 := eq_zero_of_vec_mul_eq_zero (det_vandermonde_ne_zero_iff.mpr v.inj') (funext h₂)
@@ -165,32 +164,32 @@ begin
   exact (sum_fin _ (by simp_rw [zero_mul, forall_const]) (mem_degree_lt.mp hp)).symm
 end
 
-theorem vandermonde_invertibility {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
+theorem vandermonde_invert {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
   (v : fin n ↪ R) {p : R[X]} (hp₁ : p ∈ degree_lt R n)
   (hp₂ : ∀ j, eval (v j) p = 0) : p = 0 :=
 begin
   simp_rw eval_eq_sum_degree_lt_equiv hp₁ at hp₂, rw eq_zero_iff_degree_lt_equiv_eq_zero hp₁,
-  exact matrix.vandermonde_invertibility v (λ j, hp₂ j)
+  exact matrix.vandermonde_invert v (λ j, hp₂ j)
 end
 
-theorem vandermonde_invertibility_transposed {R : Type*} [comm_ring R] [is_domain R]
+theorem vandermonde_invert_transposed {R : Type*} [comm_ring R] [is_domain R]
   {n : ℕ} (v : fin n ↪ R) {p : R[X]} (hp₁ : p ∈ degree_lt R n)
   (hp₂ : ∀ i : fin n, ∑ j : fin n, (p : R[X]).coeff j * (v j ^ (i : ℕ)) = 0) : p = 0 :=
 begin
   rw eq_zero_iff_degree_lt_equiv_eq_zero hp₁,
-  exact matrix.vandermonde_invertibility_transposed v (λ i, hp₂ i)
+  exact matrix.vandermonde_invert_transposed v (λ i, hp₂ i)
 end
 
-theorem vandermonde_agreement {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
+theorem vandermonde_eq {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
   (v : fin n ↪ R) {p q : R[X]} (hpq₁ : (p - q) ∈ degree_lt R n)
   (hpq₂ : ∀ j, p.eval (v j) = q.eval (v j)) : p = q :=
 begin
-  have vi := vandermonde_invertibility v hpq₁, simp_rw [eval_sub, sub_eq_zero] at vi, exact vi hpq₂
+  have vi := vandermonde_invert v hpq₁, simp_rw [eval_sub, sub_eq_zero] at vi, exact vi hpq₂
 end
 
-theorem vandermonde_agreement' {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
+theorem vandermonde_eq' {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
   (v : fin n ↪ R) {p q : R[X]} (hp : p ∈ degree_lt R n) (hq : q ∈ degree_lt R n)
   (hpq : ∀ j, p.eval (v j) = q.eval (v j)) : p = q :=
-vandermonde_agreement v (submodule.sub_mem _ hp hq) hpq
+vandermonde_eq v (submodule.sub_mem _ hp hq) hpq
 
 end polynomial

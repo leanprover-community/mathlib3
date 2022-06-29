@@ -9,52 +9,14 @@ import ring_theory.polynomial.basic
 import logic.lemmas
 import linear_algebra.vandermonde
 
-/-
-These theorems are independent of the theory of Lagrange interpolants, though they are highly
-related to them. They are the theorems that guarantee that a polynomial of bounded degree, when
-specified on sufficient points, is completely determined.
--/
-section non_lagrange
-open_locale polynomial
-open polynomial
-
-variables {F : Type*} [field F] {ι : Type*} [fintype ι] {v : ι ↪ F} {i j : ι}
-
-theorem eq_zero_of_eval_eq_zero (v : ι ↪ F) {f : F[X]}
-  (hf1 : f.degree < fintype.card ι) (hf2 : ∀ i, f.eval (v i) = 0) : f = 0 :=
-begin
-  rw ← mem_degree_lt at hf1,
-  exact vandermonde_invertibility (function.embedding.trans
-                                  (fintype.equiv_fin ι).symm.to_embedding v) hf1 (λ _, hf2 _)
-end
-
-theorem eq_of_eval_eq (v : ι ↪ F) {f g : F[X]}
-  (hfg1 : (f - g).degree < fintype.card ι) (hfg2 : ∀ i, f.eval (v i) = g.eval (v i)) : f = g :=
-begin
-  rw ← mem_degree_lt at hfg1,
-  exact vandermonde_agreement (function.embedding.trans (fintype.equiv_fin ι).symm.to_embedding v)
-                              hfg1 (λ _, hfg2 _)
-end
-
-theorem eq_of_eval_eq' (v : ι ↪ F) {f g : F[X]}
-  (hf : f.degree < fintype.card ι) (hg : g.degree < fintype.card ι)
-  (hfg : ∀ i, f.eval (v i) = g.eval (v i)) : f = g :=
-begin
-  rw ← mem_degree_lt at hf hg,
-  exact vandermonde_agreement'  (function.embedding.trans (fintype.equiv_fin ι).symm.to_embedding v)
-                                hf hg (λ _, hfg _)
-end
-
-end non_lagrange
-
 /-!
 # Lagrange interpolation
 
 ## Main definitions
 * In everything that follows, `v : ι ↪ F` is an embedding to the field from a fintype `ι`.
 Conceptually, this is a set of distinct nodes around which we interpolate.
-* `lagrange.basis_divisor i j`, with `i j : ι`. These are the normalised irreducible factors of
-the Lagrange basis polynomials. They evaluate to `1` at `v i` and `0` at `v j` when `i` and `j`
+* `lagrange.basis_divisor x y`, with `x y : F`. These are the normalised irreducible factors of
+the Lagrange basis polynomials. They evaluate to `1` at `x` and `0` at `y` when `x` and `y`
 are distinct.
 * `lagrange.basis v i` with `i : ι`: the Lagrange basis polynomial that evaluates to `1` at `v i`
 and `0` at `v j` for `i ≠ j`.
@@ -66,6 +28,44 @@ function from the field to itself: this is the Lagrange interpolant that evaluat
 at `x i`, and so approximates the function `f`. This is just a special case of the general
 interpolation, where the values are given by a known function `f`.
 -/
+
+/-
+These theorems are independent of the theory of Lagrange interpolants, though they are highly
+related to them. They are the theorems that guarantee that a polynomial of bounded degree, when
+specified on sufficient points, is completely determined.
+-/
+section non_lagrange
+open_locale polynomial
+open polynomial
+
+variables {F : Type*} [field F] {ι : Type*} [fintype ι] {v : ι ↪ F} {i j : ι}
+
+theorem eq_zero_of_eval_eq_zero {F : Type*} [field F] {ι : Type*} [fintype ι] (v : ι ↪ F) {f : F[X]}
+  (degree_f_lt : f.degree < fintype.card ι) (eval_f : ∀ i, f.eval (v i) = 0) : f = 0 :=
+begin
+  rw ← mem_degree_lt at degree_f_lt,
+  exact vandermonde_invert  (function.embedding.trans (fintype.equiv_fin ι).symm.to_embedding v)
+                            degree_f_lt (λ _, eval_f _)
+end
+
+theorem eq_of_eval_eq (v : ι ↪ F) {f g : F[X]} (degree_fg_lt : (f - g).degree < fintype.card ι)
+  (eval_fg : ∀ i, f.eval (v i) = g.eval (v i)) : f = g :=
+begin
+  rw ← mem_degree_lt at degree_fg_lt,
+  exact vandermonde_eq  (function.embedding.trans (fintype.equiv_fin ι).symm.to_embedding v)
+                        degree_fg_lt (λ _, eval_fg _)
+end
+
+theorem eq_of_eval_eq' (v : ι ↪ F) {f g : F[X]}
+  (degree_f_lt : f.degree < fintype.card ι) (degree_g_lt : g.degree < fintype.card ι)
+  (eval_fg : ∀ i, f.eval (v i) = g.eval (v i)) : f = g :=
+begin
+  rw ← mem_degree_lt at degree_f_lt degree_g_lt,
+  exact vandermonde_eq' (function.embedding.trans (fintype.equiv_fin ι).symm.to_embedding v)
+                        degree_f_lt degree_g_lt (λ _, eval_fg _)
+end
+
+end non_lagrange
 
 noncomputable theory
 open_locale big_operators polynomial

@@ -280,7 +280,7 @@ end prod
 /-! ### Diagonal -/
 
 section diagonal
-variables {α : Type*}
+variables {α : Type*} {s t : set α}
 
 /-- `diagonal α` is the set of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
@@ -292,6 +292,10 @@ by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 
 lemma diagonal_eq_range : diagonal α = range (λ x, (x, x)) :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
+
+lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
+subset_compl_comm.trans $ by simp_rw [diagonal_eq_range, range_subset_iff,
+  disjoint_left, mem_compl_iff, prod_mk_mem_set_prod_eq, not_and]
 
 end diagonal
 

@@ -231,6 +231,11 @@ instance subalgebra.normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
   {E : Type*} [normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : normed_ring s :=
 { ..s.semi_normed_ring }
 
+lemma nat.norm_cast_le : ∀ n : ℕ, ∥(n : α)∥ ≤ n * ∥(1 : α)∥
+| 0 := by simp
+| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
+                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
+
 lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
 | [] h := (h rfl).elim
 | [a] _ := by simp

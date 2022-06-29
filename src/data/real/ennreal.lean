@@ -75,7 +75,7 @@ variables {α : Type*} {β : Type*}
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
 @[derive [
-  has_zero, add_comm_monoid,
+  has_zero, add_comm_monoid_with_one,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
   linear_ordered_add_comm_monoid_with_top]]
@@ -1382,7 +1382,7 @@ lemma exists_nat_pos_mul_gt (ha : a ≠ 0) (hb : b ≠ ∞) :
 begin
   have : b / a ≠ ∞, from mul_ne_top hb (inv_ne_top.2 ha),
   refine (ennreal.exists_nat_gt this).imp (λ n hn, _),
-  have : 0 < (n : ℝ≥0∞), from (zero_le _).trans_lt hn,
+  have : ↑0 < (n : ℝ≥0∞), from lt_of_le_of_lt (by simp) hn,
   refine ⟨coe_nat_lt_coe_nat.1 this, _⟩,
   rwa [← ennreal.div_lt_iff (or.inl ha) (or.inr hb)]
 end

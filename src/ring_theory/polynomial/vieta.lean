@@ -153,6 +153,68 @@ begin
     exact h₁.left.symm h₂.right, },
 end
 
+lemma prod_X_add_C_eq_sum_esymm0 (s : multiset R) :
+  (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in finset.range (s.card + 1),
+  (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
+begin
+  classical,
+  rw [multiset.prod_map_add, multiset.antidiagonal_powerset, multiset.map_map],
+ -- rw finset.sum_eq_multiset_sum,
+  rw function.comp,
+  conv_rhs
+  begin
+    congr,
+    skip,
+    funext,
+    rw multiset.esymm,
+    rw ←multiset.sum_hom',
+    rw ←multiset.sum_map_mul_right,
+    rw multiset.powerset_len_eq_filter s j,
+  end,
+
+  have : s.powerset = multiset.bind (multiset.range (s.card + 1))
+     (λ d, (multiset.filter (λ t, t.card = d)s.powerset)), { sorry, },
+
+  rw this,
+
+  rw ←multiset.sum_sum,
+
+  rw finset.sum_eq_multiset_sum,
+
+  simp only [map_const, prod_repeat, map_map, function.comp_app, map_cons,
+     tsub_self, pow_zero, mul_one, sum_cons],
+
+  rw [multiset.map_bind, multiset.sum_bind],
+
+  simp * at *,
+
+
+
+
+  rw multiset.map_congr (eq.refl _),
+
+
+
+
+
+
+
+
+  have : map  (λ (d : ℕ),
+    (map (λ (t : multiset R), C t.prod * X ^ (s.card - d))
+    (filter (λ (t : multiset R), t.card = d) s.powerset)).sum)
+    (finset.range (s.card + 1)).val =
+    multiset.bind (finset.range (s.card + 1)).val
+    (λ (d : ℕ), (map (λ (t : multiset R), C t.prod * X ^ (s.card - d))
+    (filter (λ (t : multiset R), t.card = d) s.powerset))), { sorry, },
+  rw this,
+  rw multiset.sum_bind,
+  rw multiset.map_bind,
+
+
+
+end
+
 lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in finset.range (s.card + 1),
   (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=

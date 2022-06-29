@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.big_operators.multiset
+import data.multiset.powerset
 
 /-!
 # Bind operation for multisets
@@ -139,6 +140,7 @@ begin
   rw count_bind, apply le_sum_of_mem,
   rw mem_map, exact ⟨x, hx, rfl⟩
 end
+
 end bind
 
 /-! ### Product of two multisets -/

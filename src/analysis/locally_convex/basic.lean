@@ -132,15 +132,15 @@ def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
 variables {𝕜}
 
-@[simp] lemma balanced_empty : balanced 𝕜 (∅ : set E) :=
-λ _ _, by { rw smul_set_empty }
-
 lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ∥a∥ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
 forall₂_congr $ λ a ha, smul_set_subset_iff
 
 alias balanced_iff_smul_mem ↔ balanced.smul_mem _
 
-lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
+@[simp] lemma balanced_empty : balanced 𝕜 (∅ : set E) :=
+λ _ _, by { rw smul_set_empty }
+
+@[simp] lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
 lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
 λ a ha, smul_set_union.subset.trans $ union_subset_union (hA _ ha) $ hB _ ha

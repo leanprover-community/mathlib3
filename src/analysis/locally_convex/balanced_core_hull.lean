@@ -137,7 +137,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s t : set E}
 
 @[simp] lemma balanced_core_aux_empty : balanced_core_aux 𝕜 (∅ : set E) = ∅ :=
 begin
-  simp_rw [balanced_core_aux, set.Inter₂_eq_empty_iff, smul_set_empty],
+  simp_rw [balanced_core_aux, Inter₂_eq_empty_iff, smul_set_empty],
   exact λ _, ⟨1, norm_one.ge, not_mem_empty _⟩,
 end
 

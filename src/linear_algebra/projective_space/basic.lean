@@ -150,7 +150,7 @@ begin
     use mk K v this,
     symmetry,
     ext x, revert x, erw ← set.ext_iff, ext x,
-    dsimp,
+    dsimp [-set_like.mem_coe],
     rw [submodule.span_singleton_eq_range],
     refine ⟨λ hh, _, _⟩,
     { obtain ⟨c,hc⟩ := h ⟨x,hh⟩,

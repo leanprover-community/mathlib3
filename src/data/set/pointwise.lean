@@ -471,21 +471,19 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
-lemma mem_pow : ∀ {a : α} {n : ℕ},
-  a ∈ s ^ n ↔ ∃ f : fin n → α, (∀ i, f i ∈ s) ∧ (list.of_fn f).prod = a
-| a 0 := begin
-  simp_rw [pow_zero, mem_one, list.of_fn_zero, list.prod_nil],
-  exact ⟨λ h, ⟨fin_zero_elim, fin_zero_elim, h.symm⟩, λ ⟨f, hf, h⟩, h.symm⟩,
-end
-| a (n + 1) :=  begin
-  have : ∀ z : α, z∈ _ ^ n ↔ _ := λ _, mem_pow,
-  simp_rw [ pow_succ _, list.of_fn_succ, list.prod_cons, fin.forall_fin_succ,
-    fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ, mem_mul, this],
-  split,
-  { rintro ⟨x, y, hx, ⟨v, hv, hv'⟩, rfl⟩,
-    exact ⟨_, v, ⟨hx, hv⟩, congr_arg _ hv'⟩ },
-  { rintro ⟨a, v, ⟨ha, hv⟩, rfl⟩,
-    exact ⟨_, _, ha, ⟨_, hv, rfl⟩, rfl⟩ },
+@[to_additive] lemma mem_pow {a : α} {n : ℕ} :
+  a ∈ s ^ n ↔ ∃ f : fin n → α, (∀ i, f i ∈ s) ∧ (list.of_fn f).prod = a :=
+begin
+  induction n with n ih generalizing a,
+  { simp_rw [pow_zero, mem_one, list.of_fn_zero, list.prod_nil],
+    exact ⟨λ h, ⟨fin_zero_elim, fin_zero_elim, h.symm⟩, λ ⟨f, hf, h⟩, h.symm⟩ },
+  { simp_rw [ pow_succ _, list.of_fn_succ, list.prod_cons, fin.forall_fin_succ,
+      fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ, mem_mul, @ih],
+    split,
+    { rintro ⟨x, y, hx, ⟨v, hv, hv'⟩, rfl⟩,
+      exact ⟨_, v, ⟨hx, hv⟩, congr_arg _ hv'⟩ },
+    { rintro ⟨a, v, ⟨ha, hv⟩, rfl⟩,
+      exact ⟨_, _, ha, ⟨_, hv, rfl⟩, rfl⟩ } },
 end
 
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=

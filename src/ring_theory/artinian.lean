@@ -190,7 +190,7 @@ end
 theorem set_has_minimal_iff_artinian :
   (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M') ↔
   is_artinian R M :=
-by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']
+by rw [is_artinian_iff_well_founded, is_well_founded.well_founded_iff_has_min']
 
 theorem is_artinian.set_has_minimal [is_artinian R M] (a : set $ submodule R M) (ha : a.nonempty) :
   ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M' :=

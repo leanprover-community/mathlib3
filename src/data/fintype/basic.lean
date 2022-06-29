@@ -1824,7 +1824,8 @@ lemma bijective_bij_inv (f_bij : bijective f) : bijective (bij_inv f_bij) :=
 
 end bijection_inverse
 
-instance fintype.is_well_founded [fintype α] (r : α → α → Prop)
+-- This can't be made into an instance, since it loops with `is_well_founded.is_irrefl`.
+theorem fintype.is_well_founded [fintype α] (r : α → α → Prop)
   [is_trans α r] [is_irrefl α r] : is_well_founded α r :=
 ⟨by { classical, exact
 have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r z y)).card,
@@ -1836,10 +1837,10 @@ subrelation.wf this (measure_wf _) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance preorder.well_founded_lt [fintype α] [preorder α] : well_founded_lt α :=
-⟨by apply_instance⟩
+⟨fintype.is_well_founded _⟩
 @[priority 100] -- see Note [lower instance priority]
 instance preorder.well_founded_gt [fintype α] [preorder α] : well_founded_gt α :=
-⟨by apply_instance⟩
+⟨fintype.is_well_founded _⟩
 
 end fintype
 

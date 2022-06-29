@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Mario Carneiro
+Authors: Jeremy Avigad, Mario Carneiro, Violeta Hernández Palacios
 -/
 import tactic.by_contra
 import data.set.basic
@@ -49,13 +49,13 @@ theorem has_min (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
 
 /-- A minimal element of a nonempty set with respect to a well-founded relation. See also
 `well_founded_lt.min` and `well_founded_gt.max`. -/
-noncomputable def min [is_well_founded α r] (s : set α) (hs : s.nonempty) : α :=
+noncomputable def min  (s : set α) (hs : s.nonempty) : α :=
 classical.some (has_min r s hs)
 
-theorem min_mem [is_well_founded α r] (s : set α) (hs : s.nonempty) : min r s hs ∈ s :=
+theorem min_mem (s : set α) (hs : s.nonempty) : min r s hs ∈ s :=
 let ⟨h, _⟩ := classical.some_spec (has_min r s hs) in h
 
-theorem not_lt_min [is_well_founded α r] (s : set α) {x} (hx : x ∈ s) : ¬ r x (min r s ⟨x, hx⟩) :=
+theorem not_lt_min (s : set α) {x} (hx : x ∈ s) : ¬ r x (min r s ⟨x, hx⟩) :=
 let ⟨_, h'⟩ := classical.some_spec (has_min r s ⟨x, hx⟩) in h' _ hx
 
 theorem well_founded_iff_has_min {r : α → α → Prop} : well_founded r ↔

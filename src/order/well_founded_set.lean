@@ -56,23 +56,31 @@ namespace set
 
 /-- `s.well_founded_on r` indicates that the relation `r` is well-founded when restricted to `s`. -/
 def well_founded_on (s : set α) (r : α → α → Prop) : Prop :=
-well_founded (λ (a : s) (b : s), r a b)
+well_founded (subrel r s)
+
+lemma well_founded_on.is_well_founded {s : set α} {r : α → α → Prop} (h : s.well_founded_on r) :
+  is_well_founded s (subrel r s) :=
+⟨h⟩
 
 lemma well_founded_on_iff {s : set α} {r : α → α → Prop} :
-  s.well_founded_on r ↔ well_founded (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
+  s.well_founded_on r ↔ well_founded (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
 begin
-  have f : rel_embedding (λ (a : s) (b : s), r a b) (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
+  have f : rel_embedding (subrel r s) (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
     ⟨⟨coe, subtype.coe_injective⟩, λ a b, by simp⟩,
   refine ⟨λ h, _, f.well_founded⟩,
-  rw well_founded.well_founded_iff_has_min,
+  rw is_well_founded.well_founded_iff_has_min,
   intros t ht,
   by_cases hst : (s ∩ t).nonempty,
   { rw ← subtype.preimage_coe_nonempty at hst,
-    rcases well_founded.well_founded_iff_has_min.1 h (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
+    rcases is_well_founded.well_founded_iff_has_min.1 h (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hm ⟨x, xs⟩ xt xm⟩ },
   { rcases ht with ⟨m, mt⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ }
 end
+
+lemma well_founded_on.is_well_founded' {s : set α} {r : α → α → Prop} (h : s.well_founded_on r) :
+  is_well_founded α (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
+⟨well_founded_on_iff.1 h⟩
 
 lemma well_founded_on.induction {s : set α} {r : α → α → Prop} (hs : s.well_founded_on r) {x : α}
   (hx : x ∈ s) {P : α → Prop} (hP : ∀ (y ∈ s), (∀ (z ∈ s), r z y → P z) → P y) :
@@ -385,16 +393,18 @@ end partial_order
 theorem is_wf.is_pwo [linear_order α] {s : set α}
   (hs : s.is_wf) : s.is_pwo :=
 λ f hf, begin
+  let r := λ a b, a < b ∧ a ∈ s ∧ b ∈ s,
+  haveI : is_well_founded α r := hs.is_well_founded',
   rw [is_wf, well_founded_on_iff] at hs,
   have hrange : (range f).nonempty := ⟨f 0, mem_range_self 0⟩,
-  let a := hs.min (range f) hrange,
-  obtain ⟨m, hm⟩ := hs.min_mem (range f) hrange,
+  let a := is_well_founded.min r (range f) hrange,
+  obtain ⟨m, hm⟩ := is_well_founded.min_mem r (range f) hrange,
   refine ⟨m, m.succ, m.lt_succ_self, le_of_not_lt (λ con, _)⟩,
   rw hm at con,
-  apply hs.not_lt_min (range f) hrange (mem_range_self m.succ)
+  apply is_well_founded.not_lt_min r (range f) (mem_range_self m.succ)
     ⟨con, hf (mem_range_self m.succ), hf _⟩,
-  rw ← hm,
-  apply mem_range_self,
+  convert @mem_range_self _ _ f m,
+  exact hm.symm
 end
 
 theorem is_wf_iff_is_pwo [linear_order α] {s : set α} :
@@ -455,13 +465,13 @@ by { rw ← union_singleton, exact hs.union (is_pwo_singleton a) }
 
 /-- `is_wf.min` returns a minimal element of a nonempty well-founded set. -/
 noncomputable def is_wf.min (hs : is_wf s) (hn : s.nonempty) : α :=
-hs.min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)
+@is_well_founded.min s _ hs.is_well_founded _ (nonempty_iff_univ_nonempty.1 hn.to_subtype)
 
 lemma is_wf.min_mem (hs : is_wf s) (hn : s.nonempty) : hs.min hn ∈ s :=
-(well_founded.min hs univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)).2
+(@is_well_founded.min s _ hs.is_well_founded _ (nonempty_iff_univ_nonempty.1 hn.to_subtype)).2
 
-lemma is_wf.not_lt_min (hs : is_wf s) (hn : s.nonempty) (ha : a ∈ s) : ¬ a < hs.min hn :=
-hs.not_lt_min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype) (mem_univ (⟨a, ha⟩ : s))
+lemma is_wf.not_lt_min (hs : is_wf s) (ha : a ∈ s) : ¬ a < hs.min ⟨a, ha⟩ :=
+@is_well_founded.not_lt_min s _ hs.is_well_founded _ ⟨a, ha⟩ (mem_univ _)
 
 @[simp]
 lemma is_wf_min_singleton (a) {hs : is_wf ({a} : set α)} {hn : ({a} : set α).nonempty} :
@@ -481,19 +491,17 @@ finset.sup_induction set.is_pwo_empty (λ a ha b hb, ha.union hb) hf
 namespace set
 variables [linear_order α] {s t : set α} {a : α}
 
-lemma is_wf.min_le
-  (hs : s.is_wf) (hn : s.nonempty) (ha : a ∈ s) : hs.min hn ≤ a :=
-le_of_not_lt (hs.not_lt_min hn ha)
+lemma is_wf.min_le (hs : s.is_wf) (ha : a ∈ s) : hs.min ⟨a, ha⟩ ≤ a :=
+le_of_not_lt (hs.not_lt_min ha)
 
-lemma is_wf.le_min_iff
-  (hs : s.is_wf) (hn : s.nonempty) :
+lemma is_wf.le_min_iff (hs : s.is_wf) (hn : s.nonempty) :
   a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
-⟨λ ha b hb, le_trans ha (hs.min_le hn hb), λ h, h _ (hs.min_mem _)⟩
+⟨λ ha b hb, le_trans ha (hs.min_le hb), λ h, h _ (hs.min_mem _)⟩
 
 lemma is_wf.min_le_min_of_subset
-  {hs : s.is_wf} {hsn : s.nonempty} {ht : t.is_wf} {htn : t.nonempty} (hst : s ⊆ t) :
-  ht.min htn ≤ hs.min hsn :=
-(is_wf.le_min_iff _ _).2 (λ b hb, ht.min_le htn (hst hb))
+  {hs : s.is_wf} {hsn : s.nonempty} {ht : t.is_wf} (hst : s ⊆ t) :
+  ht.min (hsn.mono hst) ≤ hs.min hsn :=
+(is_wf.le_min_iff _ _).2 (λ b hb, ht.min_le (hst hb))
 
 lemma is_wf.min_union (hs : s.is_wf) (hsn : s.nonempty) (ht : t.is_wf) (htn : t.nonempty) :
   (hs.union ht).min (union_nonempty.2 (or.intro_left _ hsn)) = min (hs.min hsn) (ht.min htn) :=
@@ -502,7 +510,7 @@ begin
       (is_wf.min_le_min_of_subset (subset_union_right _ _))) _,
   rw min_le_iff,
   exact ((mem_union _ _ _).1 ((hs.union ht).min_mem
-    (union_nonempty.2 (or.intro_left _ hsn)))).imp (hs.min_le _) (ht.min_le _),
+    (union_nonempty.2 (or.intro_left _ hsn)))).imp hs.min_le ht.min_le
 end
 
 end set
@@ -529,10 +537,10 @@ theorem is_wf.mul (hs : s.is_wf) (ht : t.is_wf) : is_wf (s * t) :=
 theorem is_wf.min_mul (hs : s.is_wf) (ht : t.is_wf) (hsn : s.nonempty) (htn : t.nonempty) :
   (hs.mul ht).min (hsn.mul htn) = hs.min hsn * ht.min htn :=
 begin
-  refine le_antisymm (is_wf.min_le _ _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
+  refine le_antisymm (is_wf.min_le _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
   rw is_wf.le_min_iff,
   rintros _ ⟨x, y, hx, hy, rfl⟩,
-  exact mul_le_mul' (hs.min_le _ hx) (ht.min_le _ hy),
+  exact mul_le_mul' (hs.min_le hx) (ht.min_le hy),
 end
 
 end set
@@ -848,12 +856,13 @@ begin
   rw [mem_mul_antidiagonal, finset.mem_singleton, prod.ext_iff],
   split,
   { rintro ⟨hast, has, hat⟩,
-    cases eq_or_lt_of_le (hs.min_le hns has) with heq hlt,
-    { refine ⟨heq.symm, _⟩,
-      rw heq at hast,
-      exact mul_left_cancel hast },
+    cases eq_or_lt_of_le (hs.min_le has) with heq hlt,
+    { refine ⟨heq.symm, mul_left_cancel _⟩,
+      { exact (a1, a2).fst },
+      convert hast,
+      exact heq.symm },
     { contrapose hast,
-      exact ne_of_gt (mul_lt_mul_of_lt_of_le hlt (ht.min_le hnt hat)) } },
+      exact (mul_lt_mul_of_lt_of_le hlt (ht.min_le hat)).ne' } },
   { rintro ⟨ha1, ha2⟩,
     rw [ha1, ha2],
     exact ⟨rfl, hs.min_mem _, ht.min_mem _⟩ }
@@ -885,7 +894,7 @@ begin
   { intros f hf, existsi rel_embedding.refl (≤),
     simp only [forall_false_left, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f hf,
-    obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
+    obtain ⟨g, hg⟩ := (is_well_founded.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
       ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),
     obtain ⟨g', hg'⟩ := ih (f ∘ g) (set.subset_univ _),
     refine ⟨g'.trans g, λ a b hab, _⟩,

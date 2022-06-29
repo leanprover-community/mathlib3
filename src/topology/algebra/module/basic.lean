@@ -268,8 +268,6 @@ class continuous_semilinear_map_class (F : Type*) {R S : out_param Type*} [semir
 -- `σ`, `R` and `S` become metavariables, but they are all outparams so it's OK
 attribute [nolint dangerous_instance] continuous_semilinear_map_class.to_continuous_map_class
 
-set_option old_structure_cmd false
-
 /-- `continuous_linear_map_class F R M M₂` asserts `F` is a type of bundled continuous
 `R`-linear maps `M → M₂`.  This is an abbreviation for
 `continuous_semilinear_map_class F (ring_hom.id R) M M₂`.  -/
@@ -297,6 +295,52 @@ structure continuous_linear_equiv
 notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (star_ring_end R) M M₂
+
+/-- `continuous_semilinear_equiv_class F σ M M₂` asserts `F` is a type of bundled continuous
+`σ`-semilinear equivs `M → M₂`.  See also `continuous_linear_equiv_class F R M M₂` for the case
+where `σ` is the identity map on `R`.  A map `f` between an `R`-module and an `S`-module over a ring
+homomorphism `σ : R →+* S` is semilinear if it satisfies the two properties `f (x + y) = f x + f y`
+and `f (c • x) = (σ c) • f x`. -/
+class continuous_semilinear_equiv_class (F : Type*)
+  {R : out_param Type*} {S : out_param Type*} [semiring R] [semiring S] (σ : out_param $ R →+* S)
+  {σ' : out_param $ S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+  (M : out_param Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂]
+  [module R M] [module S M₂]
+  extends semilinear_equiv_class F σ M M₂ :=
+(map_continuous  : ∀ (f : F), continuous f . tactic.interactive.continuity')
+(inv_continuous : ∀ (f : F), continuous (inv f) . tactic.interactive.continuity')
+
+/-- `continuous_linear_equiv_class F σ M M₂` asserts `F` is a type of bundled continuous
+`R`-linear equivs `M → M₂`. This is an abbreviation for
+`continuous_semilinear_equiv_class F (ring_hom.id) M M₂`. -/
+abbreviation continuous_linear_equiv_class (F : Type*)
+  (R : out_param Type*) [semiring R]
+  (M : out_param Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂]
+  [module R M] [module R M₂] :=
+continuous_semilinear_equiv_class F (ring_hom.id R) M M₂
+
+set_option old_structure_cmd false
+
+namespace continuous_semilinear_equiv_class
+variables (F : Type*)
+  {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
+  {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+  (M : Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
+  [module R M] [module S M₂]
+
+include σ'
+@[priority 100]
+instance [s: continuous_semilinear_equiv_class F σ M M₂] :
+  continuous_semilinear_map_class F σ M M₂ :=
+{ coe := (coe : F → M → M₂),
+  coe_injective' := @fun_like.coe_injective F _ _ _,
+  ..s }
+omit σ'
+
+end continuous_semilinear_equiv_class
 
 section pointwise_limits
 
@@ -1351,6 +1395,8 @@ def to_continuous_linear_map (e : M₁ ≃SL[σ₁₂] M₂) : M₁ →SL[σ₁�
 
 /-- Coerce continuous linear equivs to continuous linear maps. -/
 instance : has_coe (M₁ ≃SL[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := ⟨to_continuous_linear_map⟩
+
+instance : continuous_semilinear_equiv_class (M₁ ≃SL[σ₁₂] M₂) σ₁₂ M₁ M₂ := sorry
 
 /-- Coerce continuous linear equivs to maps. -/
 -- see Note [function coercion]

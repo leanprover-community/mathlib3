@@ -207,10 +207,11 @@ theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.ou
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 /- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
-`b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. This theorem is stated
-in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given the lemmas
-`cardinal.lift_umax_le`, `cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this
-small generalization is worth the elaboration problems. -/
+`b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. The following theorem
+is stated in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given 
+the lemmas `cardinal.lift_umax_le`, `cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this
+small generalization is not worth the elaboration problems elsewhere. -/
+
 private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,

@@ -94,6 +94,9 @@ theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt 
 
 open set
 
+/- TODO (Vi): define this on `well_founded_lt` and `well_founded_gt`, provide a basic API. Change
+the `Sup` definition on `well_founded_lt.conditionally_complete_linear_order_bot` with this. -/
+
 /-- A minimal upper bound of a bounded, well-founded order -/
 protected noncomputable def sup [is_well_founded α r] (s : set α) : bounded r s → α :=
 min r {x | ∀ a ∈ s, r a x}
@@ -137,6 +140,11 @@ end is_well_founded
 /-! ### Well-founded less than -/
 
 namespace well_founded_lt
+
+/-- If `<` is a well-founded relation, then any nonempty set has a minimal element. -/
+theorem has_min [has_lt α] [well_founded_lt α] :
+  ∀ s : set α, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ x < a :=
+is_well_founded.has_min (<)
 
 /-- A minimal element of a nonempty set in an order with well-founded `<`.
 
@@ -230,6 +238,11 @@ end function
 /-! ### Well-founded greater than -/
 
 namespace well_founded_gt
+
+/-- If `<` is a well-founded relation, then any nonempty set has a minimal element. -/
+theorem has_max [has_lt α] [well_founded_gt α] :
+  ∀ s : set α, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ a < x :=
+is_well_founded.has_min (>)
 
 /-- A maximal element of a nonempty set in an order with well-founded `>`. -/
 noncomputable def max [has_lt α] [well_founded_gt α] : Π (s : set α) (hs : s.nonempty), α :=

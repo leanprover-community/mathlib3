@@ -113,6 +113,11 @@ begin
   exact e ▸ (noetherian_space.is_compact t).image hf,
 end
 
+lemma noetherian_space_iff_of_homeomorph (f : α ≃ₜ β) :
+  noetherian_space α ↔ noetherian_space β :=
+⟨λ h, @@noetherian_space_of_surjective _ _ h f f.continuous f.surjective,
+  λ h, @@noetherian_space_of_surjective _ _ h f.symm f.symm.continuous f.symm.surjective⟩
+
 lemma noetherian_space.range [noetherian_space α] (f : α → β) (hf : continuous f) :
   noetherian_space (set.range f) :=
 noetherian_space_of_surjective (set.cod_restrict f _ set.mem_range_self) (by continuity)
@@ -130,6 +135,10 @@ begin
     refine embedding_subtype_coe.is_compact_iff_is_compact_image.mpr (H (coe '' t) _),
     simp }
 end
+
+@[simp] lemma noetherian_univ_iff :
+  noetherian_space (set.univ : set α) ↔ noetherian_space α :=
+noetherian_space_iff_of_homeomorph (homeomorph.set.univ α)
 
 lemma noetherian_space.Union {ι : Type*} [fintype ι] (f : ι → set α)
   [hf : ∀ i, noetherian_space (f i)] :

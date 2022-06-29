@@ -213,25 +213,6 @@ begin
   refl
 end
 
-lemma carrier_ne_top :
-  ((x.1.as_homogeneous_ideal.to_ideal : set A) ∩ (submonoid.powers f : set A)) = ∅ →
-  carrier f_deg x ≠ ⊤ := λ eq_top,
-begin
-  classical,
-  contrapose! eq_top,
-  obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
-  rw [algebra.smul_def, subtype.val_eq_coe, subring.coe_one, mul_one] at eq1,
-  change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
-  simp only [mk_eq_mk', is_localization.eq] at eq1,
-  rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-  erw [mul_one, mul_one] at eq1,
-  simp only [← subtype.val_eq_coe] at eq1,
-  refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
-    (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
-  generalize_proofs h,
-  exact (classical.some_spec h).1,
-end
-
 lemma no_intersection :
   (x.1.as_homogeneous_ideal.to_ideal ∩ submonoid.powers f : set A) = ∅ :=
 begin
@@ -247,11 +228,30 @@ begin
     exact hg1 },
 end
 
+lemma carrier_ne_top :
+  carrier f_deg x ≠ ⊤ :=
+begin
+  have eq_top := no_intersection x,
+  classical,
+  contrapose! eq_top,
+  obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
+  rw [algebra.smul_def, subtype.val_eq_coe, subring.coe_one, mul_one] at eq1,
+  change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
+  simp only [mk_eq_mk', is_localization.eq] at eq1,
+  rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
+  erw [mul_one, mul_one] at eq1,
+  simp only [← subtype.val_eq_coe] at eq1,
+  refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
+    (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
+  generalize_proofs h,
+  exact (classical.some_spec h).1,
+end
+
 /--The function between the basic open set `D(f)` in `Proj` to the corresponding basic open set in
 `Spec A⁰_f`. This is bundled into a continuous map in `Top_component.forward`.
 -/
 def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
-⟨carrier f_deg x, carrier_ne_top f_deg x (no_intersection x), λ x1 x2 hx12, begin
+⟨carrier f_deg x, carrier_ne_top f_deg x, λ x1 x2 hx12, begin
   haveI : decidable_eq (away f) := classical.dec_eq _,
   rcases ⟨x1, x2⟩ with ⟨⟨x1, hx1⟩, ⟨x2, hx2⟩⟩,
   induction x1 using localization.induction_on with data_x1,

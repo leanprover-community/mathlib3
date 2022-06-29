@@ -355,6 +355,10 @@ instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α 
 
 instance measure.is_well_founded (f : α → ℕ) : is_well_founded _ (measure f) := ⟨measure_wf f⟩
 
+theorem subrelation.is_well_founded [is_well_founded α r] {s : α → α → Prop} (h : subrelation s r) :
+  is_well_founded α s :=
+⟨h.wf is_well_founded.wf⟩
+
 namespace set
 
 /-- An unbounded or cofinal set. -/

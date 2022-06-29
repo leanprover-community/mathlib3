@@ -508,8 +508,8 @@ induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
 
 end order_properties
 
-protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
-⟨λ a, classical.by_contradiction $ λ h, begin
+instance : well_founded_lt cardinal :=
+⟨⟨λ a, classical.by_contradiction $ λ h, begin
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
   haveI hι : nonempty ι := ⟨⟨_, h⟩⟩,
@@ -518,11 +518,9 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
   apply hc (acc.intro _ (λ j h', classical.by_contradiction (λ hj, h'.2 _))),
   have : #_ ≤ #_ := ⟨h_1 ⟨j, hj⟩⟩,
   simpa only [f, mk_out] using this
-end⟩
+end⟩⟩
 
-instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
-
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
+instance : has_well_founded cardinal.{u} := well_founded_lt.to_has_well_founded
 
 instance : conditionally_complete_linear_order_bot cardinal :=
 well_founded_lt.conditionally_complete_linear_order_bot _

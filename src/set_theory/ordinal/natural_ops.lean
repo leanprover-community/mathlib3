@@ -47,7 +47,8 @@ open function order
 noncomputable theory
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
-@[derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
+@[derive [has_zero, inhabited, has_one, linear_order, succ_order, well_founded_lt,
+has_well_founded]]
 def nat_ordinal : Type* := ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
@@ -64,9 +65,6 @@ variables {a b c : nat_ordinal.{u}}
 
 @[simp] theorem to_ordinal_symm_eq : nat_ordinal.to_ordinal.symm = ordinal.to_nat_ordinal := rfl
 @[simp] theorem to_ordinal_to_nat_ordinal (a : nat_ordinal) : a.to_ordinal.to_nat_ordinal = a := rfl
-
-theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
-instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
 @[simp] theorem to_ordinal_one : to_ordinal 1 = 1 := rfl

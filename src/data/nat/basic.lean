@@ -374,7 +374,7 @@ lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
-  rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],
+  rw [← lt_succ_iff, div_lt_iff_lt_mul n0, succ_mul, mul_comm],
   cases n, {cases n0},
   exact lt_succ_iff,
 end
@@ -467,13 +467,6 @@ begin
   rw add_assoc,
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
-
--- TODO: generalize to some ordered add_monoids, based on #6145
-lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, simp }
-
-lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
 
@@ -832,13 +825,13 @@ lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
-le_div_iff_mul_le x y k0
+le_div_iff_mul_le k0
 
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
-by rw [le_div_iff_mul_le _ _ hb, one_mul]
+by rw [le_div_iff_mul_le hb, one_mul]
 
 lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=
 lt_iff_lt_of_le_iff_le $ one_le_div_iff hb
@@ -864,7 +857,7 @@ lt_of_mul_lt_mul_left
   (nat.zero_le n)
 
 lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
-lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le _ _ w).2
+lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le w).2
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
@@ -880,7 +873,7 @@ eq_zero_of_mul_le hb $
 
 lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
+else (nat.le_div_iff_mul_le (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact nat.mul_le_mul_left _ (nat.div_mul_le_self _ _))
 
 lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
@@ -927,7 +920,7 @@ by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
 
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
 begin
-  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul hb],
   exact nat.lt_succ_self _,
 end
 
@@ -1215,7 +1208,7 @@ nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
-(nat.le_div_iff_mul_le _ _ h₂).2 $
+(nat.le_div_iff_mul_le h₂).2 $
   le_trans (nat.mul_le_mul_left _ h₁) (div_mul_le_self _ _)
 
 lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=

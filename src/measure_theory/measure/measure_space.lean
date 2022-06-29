@@ -1386,7 +1386,7 @@ lemma ext_iff_of_Union_eq_univ [encodable ι] {s : ι → set α} (hs : (⋃ i, 
   μ = ν ↔ ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
 by rw [← restrict_Union_congr, hs, restrict_univ, restrict_univ]
 
-alias ext_iff_of_Union_eq_univ ↔ _ measure_theory.measure.ext_of_Union_eq_univ
+alias ext_iff_of_Union_eq_univ ↔ _ ext_of_Union_eq_univ
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `bUnion`). -/
@@ -1395,7 +1395,7 @@ lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : S.countab
   μ = ν ↔ ∀ i ∈ S, μ.restrict (s i) = ν.restrict (s i) :=
 by rw [← restrict_bUnion_congr hc, hs, restrict_univ, restrict_univ]
 
-alias ext_iff_of_bUnion_eq_univ ↔ _ measure_theory.measure.ext_of_bUnion_eq_univ
+alias ext_iff_of_bUnion_eq_univ ↔ _ ext_of_bUnion_eq_univ
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `sUnion`). -/
@@ -1403,7 +1403,7 @@ lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : S.countable) (hs : (⋃
   μ = ν ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 ext_iff_of_bUnion_eq_univ hc $ by rwa ← sUnion_eq_bUnion
 
-alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
+alias ext_iff_of_sUnion_eq_univ ↔ _ ext_of_sUnion_eq_univ
 
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (hc : T.countable)
@@ -1728,12 +1728,12 @@ localized "infix ` ≪ `:50 := measure_theory.measure.absolutely_continuous" in 
 lemma absolutely_continuous_of_le (h : μ ≤ ν) : μ ≪ ν :=
 λ s hs, nonpos_iff_eq_zero.1 $ hs ▸ le_iff'.1 h s
 
-alias absolutely_continuous_of_le ← has_le.le.absolutely_continuous
+alias absolutely_continuous_of_le ← _root_.has_le.le.absolutely_continuous
 
 lemma absolutely_continuous_of_eq (h : μ = ν) : μ ≪ ν :=
 h.le.absolutely_continuous
 
-alias absolutely_continuous_of_eq ← eq.absolutely_continuous
+alias absolutely_continuous_of_eq ← _root_.eq.absolutely_continuous
 
 namespace absolutely_continuous
 
@@ -1771,8 +1771,8 @@ lemma ae_le_iff_absolutely_continuous : μ.ae ≤ ν.ae ↔ μ ≪ ν :=
 ⟨λ h s, by { rw [measure_zero_iff_ae_nmem, measure_zero_iff_ae_nmem], exact λ hs, h hs },
   λ h s hs, h hs⟩
 
-alias ae_le_iff_absolutely_continuous ↔ has_le.le.absolutely_continuous_of_ae
-  measure_theory.measure.absolutely_continuous.ae_le
+alias ae_le_iff_absolutely_continuous ↔
+  _root_.has_le.le.absolutely_continuous_of_ae absolutely_continuous.ae_le
 alias absolutely_continuous.ae_le ← ae_mono'
 
 lemma absolutely_continuous.ae_eq (h : μ ≪ ν) {f g : α → δ} (h' : f =ᵐ[ν] g) : f =ᵐ[μ] g :=
@@ -2980,7 +2980,7 @@ begin
   exact measure_mono_ae (mem_of_superset hu (λ x hu ht, ⟨ht, hu⟩))
 end
 
-alias inf_ae_iff ↔ measure_theory.measure.finite_at_filter.of_inf_ae _
+alias inf_ae_iff ↔ of_inf_ae _
 
 lemma filter_mono_ae (h : f ⊓ μ.ae ≤ g) (hg : μ.finite_at_filter g) : μ.finite_at_filter f :=
 inf_ae_iff.1 (hg.filter_mono h)
@@ -3217,6 +3217,26 @@ instance is_finite_measure_trim (hm : m ≤ m0) [is_finite_measure μ] :
   is_finite_measure (μ.trim hm) :=
 { measure_univ_lt_top :=
     by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
+
+lemma sigma_finite_trim_mono {m m₂ m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  (hm₂ : m₂ ≤ m) [sigma_finite (μ.trim (hm₂.trans hm))] :
+  sigma_finite (μ.trim hm) :=
+begin
+  have h := measure.finite_spanning_sets_in (μ.trim (hm₂.trans hm)) set.univ,
+  refine measure.finite_spanning_sets_in.sigma_finite _,
+  { use set.univ, },
+  { refine
+    { set := spanning_sets (μ.trim (hm₂.trans hm)),
+      set_mem := λ _, set.mem_univ _,
+      finite := λ i, _, -- This is the only one left to prove
+      spanning := Union_spanning_sets _, },
+    calc (μ.trim hm) (spanning_sets (μ.trim (hm₂.trans hm)) i)
+        = ((μ.trim hm).trim hm₂) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
+      by rw @trim_measurable_set_eq α m₂ m (μ.trim hm) _ hm₂ (measurable_spanning_sets _ _)
+    ... = (μ.trim (hm₂.trans hm)) (spanning_sets (μ.trim (hm₂.trans hm)) i) :
+      by rw @trim_trim _ _ μ _ _ hm₂ hm
+    ... < ∞ : measure_spanning_sets_lt_top _ _, },
+end
 
 end trim
 

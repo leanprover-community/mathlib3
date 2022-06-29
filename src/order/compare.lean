@@ -56,7 +56,7 @@ lemma compares_swap [has_lt α] {a b : α} {o : ordering} :
   o.swap.compares a b ↔ o.compares b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
-alias compares_swap ↔ ordering.compares.of_swap ordering.compares.swap
+alias compares_swap ↔ compares.of_swap compares.swap
 
 lemma swap_eq_iff_eq_swap {o o' : ordering} : o.swap = o' ↔ o = o'.swap :=
 ⟨λ h, by rw [← swap_swap o, h], λ h, by rw [← swap_swap o', h]⟩

@@ -82,7 +82,7 @@ begin
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
 end
 
-lemma lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
+lemma graded_algebra.lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
   lift Q ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
     direct_sum.of (λ i, even_odd Q i) i' x' :=
 begin
@@ -119,7 +119,7 @@ graded_algebra.of_alg_hom (even_odd Q)
       alg_hom.id_apply],
     rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by exact lift_ι_eq Q)
+  (by exact graded_algebra.lift_ι_eq Q)
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin

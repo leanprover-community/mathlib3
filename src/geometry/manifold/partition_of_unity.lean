@@ -157,8 +157,7 @@ def is_subordinate (f : smooth_partition_of_unity ι I M s) (U : ι → set M) :
   f.to_partition_of_unity.is_subordinate U ↔ f.is_subordinate U :=
 iff.rfl
 
-alias is_subordinate_to_partition_of_unity ↔
-  _ smooth_partition_of_unity.is_subordinate.to_partition_of_unity
+alias is_subordinate_to_partition_of_unity ↔ _ is_subordinate.to_partition_of_unity
 
 end smooth_partition_of_unity
 
@@ -314,8 +313,7 @@ def to_bump_covering : bump_covering ι M s :=
   f.to_bump_covering.is_subordinate (λ i, U (f.c i)) ↔ f.is_subordinate U :=
 iff.rfl
 
-alias is_subordinate_to_bump_covering ↔
-  _ smooth_bump_covering.is_subordinate.to_bump_covering
+alias is_subordinate_to_bump_covering ↔ _ is_subordinate.to_bump_covering
 
 /-- Every `smooth_bump_covering` defines a smooth partition of unity. -/
 def to_smooth_partition_of_unity : smooth_partition_of_unity ι I M s :=

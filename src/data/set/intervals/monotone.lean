@@ -183,10 +183,11 @@ section succ_order
 
 open order
 
-variables {α : Type*} [partial_order α] [order_bot α]
-  [succ_order α] [is_succ_archimedean α] [no_max_order α] {n : α} {φ : α → α}
+variables {α β : Type*} [partial_order α] [order_bot α]
+  [succ_order α] [is_succ_archimedean α]
 
-lemma strict_mono_on.Iic_id_le (hφ : strict_mono_on φ (set.Iic n)) :
+lemma strict_mono_on.Iic_id_le [no_max_order α] {n : α} {φ : α → α}
+  (hφ : strict_mono_on φ (set.Iic n)) :
   ∀ m ≤ n, m ≤ φ m :=
 begin
   revert hφ,
@@ -201,22 +202,27 @@ begin
     { exact ih (strict_mono_on.mono hφ (λ x hx, le_trans hx (le_succ _))) _ h } }
 end
 
-lemma strict_mono_on_Iic_of_lt_succ (hφ : ∀ m, succ m ≤ n → φ m < φ (succ m)) :
-  strict_mono_on φ (set.Iic n) :=
+variables [preorder β] {ψ : α → β}
+
+lemma strict_mono_on_Iic_of_lt_succ {n : α} (hψ : ∀ m, succ m ≤ n → ψ m < ψ (succ m)) :
+  strict_mono_on ψ (set.Iic n) :=
 begin
-  revert hφ,
-  refine succ.rec_bot (λ n, (∀ m, succ m ≤ n → φ m < φ (succ m)) → strict_mono_on φ (set.Iic n))
-    _ _ _,
+  revert hψ,
+  refine succ.rec_bot (λ n, (∀ m, succ m ≤ n → ψ m < ψ (succ m)) → strict_mono_on ψ (set.Iic n))
+    _ _ n,
   { simp },
-  { rintro k ih hφ i hi j hj hij,
-    specialize ih (λ m hm, hφ _ (le_trans hm (le_succ _))),
+  { rintro k ih hψ i hi j hj hij,
+    specialize ih (λ m hm, hψ _ (le_trans hm (le_succ _))),
     by_cases hj' : j = succ k,
     { subst hj',
-      rw lt_succ_iff at hij,
-      exact lt_of_le_of_lt
-        (ih.monotone_on hij le_rfl hij) (hφ _ le_rfl) },
+      rw [lt_succ_iff_eq_or_lt_of_not_is_max, or_comm, ← le_iff_lt_or_eq] at hij,
+      { exact lt_of_le_of_lt (ih.monotone_on hij le_rfl hij) (hψ _ le_rfl) },
+      { intro hk,
+        rw ← succ_le_iff_is_max at hk,
+        exact not_le_of_lt (hψ k le_rfl) (ih.monotone_on hk (mem_Iic.2 le_rfl) hk) } },
     { have hj'' : j ≤ k,
-      { exact lt_succ_iff.1 (lt_of_le_of_ne hj hj') },
+      { rw [mem_Iic, le_succ_iff_eq_or_le, or_iff_not_imp_left] at hj,
+        exact hj hj' },
       exact ih (le_trans hij.le hj'') hj'' hij } }
 end
 

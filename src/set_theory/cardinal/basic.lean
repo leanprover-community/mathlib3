@@ -654,6 +654,18 @@ end
 @[simp] protected theorem supr_of_empty {ι} (f : ι → cardinal) [is_empty ι] : supr f = 0 :=
 csupr_of_empty f
 
+@[simp] lemma lift_mk_shrink (α : Type u) [small.{v} α] :
+  cardinal.lift.{max u w} (# (shrink.{v} α)) = cardinal.lift.{max v w} (# α) :=
+lift_mk_eq.2 ⟨(equiv_shrink α).symm⟩
+
+@[simp] lemma lift_mk_shrink' (α : Type u) [small.{v} α] :
+  cardinal.lift.{u} (# (shrink.{v} α)) = cardinal.lift.{v} (# α) :=
+lift_mk_shrink.{u v 0} α
+
+@[simp] lemma lift_mk_shrink'' (α : Type (max u v)) [small.{v} α] :
+  cardinal.lift.{u} (# (shrink.{v} α)) = # α :=
+by rw [← lift_umax', lift_mk_shrink.{(max u v) v 0} α, ← lift_umax, lift_id]
+
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
 def prod {ι : Type u} (f : ι → cardinal) : cardinal := #(Π i, (f i).out)

@@ -154,29 +154,31 @@ lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
 
 end separated
 
-/-- A T₀ space, also known as a Kolmogorov space, is a topological space
-  where for every pair `x ≠ y`, there is an open set containing one but not the other. -/
+/-- A T₀ space, also known as a Kolmogorov space, is a topological space for every pair `x ≠ y`,
+there is an open set containing one but not the other. We formulate the definition in terms of
+the `inseparable` relation.  -/
 class t0_space (α : Type u) [topological_space α] : Prop :=
-(t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
-
-lemma exists_is_open_xor_mem [t0_space α] {x y : α} (h : x ≠ y) :
-  ∃ U:set α, is_open U ∧ xor (x ∈ U) (y ∈ U) :=
-t0_space.t0 x y h
-
-lemma t0_space_def (α : Type u) [topological_space α] :
-  t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
-by { split, apply @t0_space.t0, apply t0_space.mk }
-
-lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
-  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
-by simp only [t0_space_def, xor_iff_not_iff, not_forall, exists_prop, inseparable_iff_forall_open]
+(t0 : ∀ ⦃x y : α⦄, inseparable x y → x = y)
 
 lemma t0_space_iff_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), inseparable x y → x = y :=
-by simp only [t0_space_iff_not_inseparable, ne.def, not_imp_not]
+⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
+
+lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
+by simp only [t0_space_iff_inseparable, ne.def, not_imp_not]
+
+lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
+by simp only [t0_space_iff_not_inseparable, xor_iff_not_iff, not_forall, exists_prop,
+  inseparable_iff_forall_open]
+
+lemma exists_is_open_xor_mem [t0_space α] {x y : α} (h : x ≠ y) :
+  ∃ U : set α, is_open U ∧ xor (x ∈ U) (y ∈ U) :=
+(t0_space_iff_exists_is_open_xor_mem α).1 ‹_› x y h
 
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
-(t0_space_iff_inseparable α).1 ‹_› x y h
+t0_space.t0 h
 
 lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
   t0_space α ↔ injective (𝓝 : α → filter α) :=
@@ -260,8 +262,7 @@ let ⟨x, _, h⟩ := exists_open_singleton_of_open_finite (finite.of_fintype _) 
 
 lemma t0_space_of_injective_of_continuous [topological_space β] {f : α → β}
   (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (f x) (f y) (hf.ne hxy) in
-  ⟨f ⁻¹' U, hU.preimage hf', hxyU⟩⟩
+⟨λ x y h, hf $ (h.map hf').eq⟩
 
 protected lemma embedding.t0_space [topological_space β] [t0_space β] {f : α → β}
   (hf : embedding f) : t0_space α :=
@@ -275,12 +276,11 @@ theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
 by simp only [t0_space_iff_not_inseparable, inseparable_iff_mem_closure, not_and_distrib]
 
 instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β) :=
-(t0_space_iff_inseparable _).2 $
-  λ x y h, prod.ext (h.map continuous_fst).eq (h.map continuous_snd).eq
+⟨λ x y h, prod.ext (h.map continuous_fst).eq (h.map continuous_snd).eq⟩
 
 instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [Π i, t0_space (π i)] :
   t0_space (Π i, π i) :=
-(t0_space_iff_inseparable _).2 $ λ x y h, funext $ λ i, (h.map (continuous_apply i)).eq
+⟨λ x y h, funext $ λ i, (h.map (continuous_apply i)).eq⟩
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
   where every singleton set is closed. Equivalently, for every pair
@@ -363,7 +363,8 @@ lemma t1_space_tfae (α : Type u) [topological_space α] :
     ∀ ⦃x y : α⦄, x ≠ y → ∃ s ∈ 𝓝 x, y ∉ s,
     ∀ ⦃x y : α⦄, x ≠ y → ∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U,
     ∀ ⦃x y : α⦄, x ≠ y → disjoint (𝓝 x) (pure y),
-    ∀ ⦃x y : α⦄, x ≠ y → disjoint (pure x) (𝓝 y)] :=
+    ∀ ⦃x y : α⦄, x ≠ y → disjoint (pure x) (𝓝 y),
+    ∀ ⦃x y : α⦄, x ⤳ y → x = y] :=
 begin
   tfae_have : 1 ↔ 2, from ⟨λ h, h.1, λ h, ⟨h⟩⟩,
   tfae_have : 2 ↔ 3, by simp only [is_open_compl_iff],
@@ -384,6 +385,9 @@ begin
     exacts [is_open_empty, compl_compl s ▸ (@set.finite.is_closed _ _ H _ hs).is_open_compl] },
   tfae_have : 4 → 2,
     from λ h x, (cofinite_topology.is_closed_iff.2 $ or.inr (finite_singleton _)).preimage h,
+  tfae_have : 2 ↔ 10,
+  { simp only [← closure_subset_iff_is_closed, specializes_iff_mem_closure, subset_def,
+      mem_singleton_iff, eq_comm] },
   tfae_finish
 end
 
@@ -404,11 +408,20 @@ lemma t1_space_iff_disjoint_pure_nhds : t1_space α ↔ ∀ ⦃x y : α⦄, x �
 lemma t1_space_iff_disjoint_nhds_pure : t1_space α ↔ ∀ ⦃x y : α⦄, x ≠ y → disjoint (𝓝 x) (pure y) :=
 (t1_space_tfae α).out 0 7
 
+lemma t1_space_iff_specializes_imp_eq : t1_space α ↔ ∀ ⦃x y : α⦄, x ⤳ y → x = y :=
+(t1_space_tfae α).out 0 9
+
 lemma disjoint_pure_nhds [t1_space α] {x y : α} (h : x ≠ y) : disjoint (pure x) (𝓝 y) :=
 t1_space_iff_disjoint_pure_nhds.mp ‹_› h
 
 lemma disjoint_nhds_pure [t1_space α] {x y : α} (h : x ≠ y) : disjoint (𝓝 x) (pure y) :=
 t1_space_iff_disjoint_nhds_pure.mp ‹_› h
+
+lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
+t1_space_iff_specializes_imp_eq.1 ‹_› h
+
+@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
+⟨specializes.eq, λ h, h ▸ specializes_rfl⟩
 
 instance {α : Type*} : t1_space (cofinite_topology α) :=
 t1_space_iff_continuous_cofinite_of.mpr continuous_id
@@ -450,12 +463,7 @@ end
 
 lemma t1_space_of_injective_of_continuous [topological_space β] {f : α → β}
   (hf : function.injective f) (hf' : continuous f) [t1_space β] : t1_space α :=
-{ t1 :=
-  begin
-    intros x,
-    rw [← function.injective.preimage_image hf {x}, image_singleton],
-    exact (t1_space.t1 $ f x).preimage hf'
-  end }
+t1_space_iff_specializes_imp_eq.2 $ λ x y h, hf (h.map hf').eq
 
 protected lemma embedding.t1_space [topological_space β] [t1_space β] {f : α → β}
   (hf : embedding f) : t1_space α :=
@@ -473,8 +481,7 @@ instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [Π i
 ⟨λ f, univ_pi_singleton f ▸ is_closed_set_pi (λ i hi, is_closed_singleton)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance t1_space.t0_space [t1_space α] : t0_space α :=
-⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
+instance t1_space.t0_space [t1_space α] : t0_space α := ⟨λ x y h, h.specializes.eq⟩
 
 @[simp] lemma compl_singleton_mem_nhds_iff [t1_space α] {x y : α} : {x}ᶜ ∈ 𝓝 y ↔ y ≠ x :=
 is_open_compl_singleton.mem_nhds_iff
@@ -493,12 +500,6 @@ hs.induction_on (by simp) $ λ x, by simp
 @[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
   (closure s).subsingleton ↔ s.subsingleton :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
-
-lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
-by simpa only [specializes_iff_mem_closure, closure_singleton, mem_singleton_iff, eq_comm] using h
-
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
-⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
 
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=
@@ -1276,7 +1277,7 @@ instance regular_space.t1_space [regular_space α] : t1_space α :=
 begin
   rw t1_space_iff_exists_open,
   intros x y hxy,
-  obtain ⟨U, hU, h⟩ := t0_space.t0 x y hxy,
+  obtain ⟨U, hU, h⟩ := exists_is_open_xor_mem hxy,
   cases h,
   { exact ⟨U, hU, h⟩ },
   { obtain ⟨R, hR, hh⟩ := regular_space.regular (is_closed_compl_iff.mpr hU) (not_not.mpr h.1),

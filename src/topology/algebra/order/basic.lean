@@ -1074,6 +1074,22 @@ instance order_topology.to_order_closed_topology : order_closed_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
+lemma dense_of_exists_between [nontrivial α] {s : set α}
+  (h : ∀ ⦃a b⦄, a < b → ∃ c ∈ s, a < c ∧ c < b) : dense s :=
+begin
+  apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
+  obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
+  obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h hab,
+  exact ⟨x, ⟨H hx, xs⟩⟩
+end
+
+/-- A set in a nontrivial densely linear ordered type is dense in the sense of topology if and only
+if for any `a < b` there exists `c ∈ s`, `a < c < b`. Each implication requires less typeclass
+assumptions. -/
+lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α} :
+  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
+⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
+
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1231,10 +1247,10 @@ This is not a straightforward consequence of second-countability as some of thes
 empty (but in fact this can happen only for countably many of them). -/
 lemma set.pairwise_disjoint.countable_of_Ioo [second_countable_topology α]
   {y : α → α} {s : set α} (h : pairwise_disjoint s (λ x, Ioo x (y x))) (h' : ∀ x ∈ s, x < y x) :
-  countable s :=
+  s.countable :=
 begin
   let t := {x | x ∈ s ∧ (Ioo x (y x)).nonempty},
-  have t_count : countable t,
+  have t_count : t.countable,
   { have : t ⊆ s := λ x hx, hx.1,
     exact (h.subset this).countable_of_is_open (λ x hx, is_open_Ioo) (λ x hx, hx.2) },
   have : s ⊆ t ∪ {x : α | ∃ x', x < x' ∧ Ioo x x' = ∅},
@@ -2650,21 +2666,6 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[<] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
 
-lemma dense_iff_forall_lt_exists_mem [nontrivial α] {s : set α} :
-  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
-begin
-  split,
-  { assume h a b hab,
-    obtain ⟨c, ⟨hc, cs⟩⟩ : ((Ioo a b) ∩ s).nonempty :=
-      dense_iff_inter_open.1 h (Ioo a b) is_open_Ioo (nonempty_Ioo.2 hab),
-    exact ⟨c, cs, hc⟩ },
-  { assume h,
-    apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
-    obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
-    obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h a b hab,
-    exact ⟨x, ⟨H hx, xs⟩⟩ }
-end
-
 instance (x : α) [nontrivial α] : ne_bot (𝓝[≠] x) :=
 begin
   apply forall_mem_nonempty_iff_ne_bot.1 (λ s hs, _),
@@ -2683,7 +2684,7 @@ separable space (e.g., if `α` has a second countable topology), then there exis
 dense subset `t ⊆ s` such that `t` does not contain bottom/top elements of `α`. -/
 lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
   {s : set α} [separable_space s] (hs : dense s) :
-  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
+  ∃ t ⊆ s, t.countable ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
 begin
   rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
   refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
@@ -2700,7 +2701,7 @@ countable dense set `s : set α` that contains neither top nor bottom elements o
 For a dense set containing both bot and top elements, see
 `exists_countable_dense_bot_top`. -/
 lemma exists_countable_dense_no_bot_top [separable_space α] [nontrivial α] :
-  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
+  ∃ s : set α, s.countable ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
 by simpa using dense_univ.exists_countable_dense_subset_no_bot_top
 
 end densely_ordered

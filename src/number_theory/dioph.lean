@@ -51,7 +51,7 @@ Matiyasevic's theorem, Hilbert's tenth problem
 
 open fin2 function nat sum
 
-local infixr ` ::ₒ `:67 := option.cons
+local infixr ` ::ₒ `:67 := option.elim
 local infixr ` ⊗ `:65 := sum.elim
 
 universe u
@@ -130,16 +130,29 @@ instance : has_mul (poly α) := ⟨λ f g, ⟨f * g, f.2.mul g.2⟩⟩
 
 instance (α : Type*) : inhabited (poly α) := ⟨0⟩
 
+instance : add_comm_group (poly α) := by refine_struct
+{ add   := ((+) : poly α → poly α → poly α),
+  neg   := (has_neg.neg : poly α → poly α),
+  sub   := (has_sub.sub),
+  zero  := 0,
+  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+  nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ };
+intros; try { refl }; refine ext (λ _, _);
+simp [sub_eq_add_neg, add_comm, add_assoc]
+
+instance : add_group_with_one (poly α) :=
+{ one := 1,
+  nat_cast := λ n, poly.const n,
+  int_cast := poly.const,
+  .. poly.add_comm_group }
+
 instance : comm_ring (poly α) := by refine_struct
 { add   := ((+) : poly α → poly α → poly α),
   zero  := 0,
-  neg   := (has_neg.neg),
   mul   := (*),
   one   := 1,
-  sub   := (has_sub.sub),
   npow  := @npow_rec _ ⟨(1 : poly α)⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩,
-  zsmul := @zsmul_rec _ ⟨(0 : poly α)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  .. poly.add_group_with_one, .. poly.add_comm_group };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 
@@ -349,7 +362,7 @@ ext (dioph_fn_comp1 (reindex_dioph _ (none :: some) d) df) $ λ v,
 theorem vec_ex1_dioph (n) {S : set (vector3 ℕ (succ n))} (d : dioph S) :
   dioph {v : fin2 n → ℕ | ∃ x, x :: v ∈ S} :=
 ext (ex1_dioph $ reindex_dioph _ (none :: some) d) $ λ v, exists_congr $ λ x, by { dsimp,
-  rw [show (option.cons x v) ∘ (cons none some) = x :: v,
+  rw [show option.elim x v ∘ cons none some = x :: v,
   from funext $ λ s, by cases s with a b; refl] }
 
 lemma dioph_fn_vec (f : vector3 ℕ n → ℕ) : dioph_fn f ↔ dioph {v | f (v ∘ fs) = v fz} :=
@@ -477,8 +490,8 @@ by refine iff.trans _ eq_comm; exact y.eq_zero_or_pos.elim
   (λ y0, by rw [y0, nat.div_zero]; exact
     ⟨λ o, (o.resolve_right $ λ ⟨_, h2⟩, nat.not_lt_zero _ h2).right, λ z0, or.inl ⟨rfl, z0⟩⟩)
   (λ ypos, iff.trans ⟨λ o, o.resolve_left $ λ ⟨h1, _⟩, ne_of_gt ypos h1, or.inr⟩
-    (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le _ _ ypos) $
-      iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul _ _ ypos)).symm)
+    (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le ypos) $
+      iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul ypos)).symm)
 localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
 
 omit df dg

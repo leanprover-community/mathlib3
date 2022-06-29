@@ -52,8 +52,8 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
 * `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
 * `monoid_hom.mker`: kernel of a monoid homomorphism as a submonoid of the domain;
-* `monoid_hom.mrestrict`: restrict a monoid homomorphism to a submonoid;
-* `monoid_hom.cod_mrestrict`: restrict the codomain of a monoid homomorphism to a submonoid;
+* `monoid_hom.restrict`: restrict a monoid homomorphism to a submonoid;
+* `monoid_hom.cod_restrict`: restrict the codomain of a monoid homomorphism to a submonoid;
 * `monoid_hom.mrange_restrict`: restrict a monoid homomorphism to its range;
 
 ## Tags
@@ -804,16 +804,20 @@ le_antisymm
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def mrestrict {N : Type*} [mul_one_class N] (f : M →* N) (S : submonoid M) : S →* N :=
-f.comp S.subtype
+def restrict {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
+  (f : M →* N) (s : S) : s →* N :=
+f.comp (submonoid_class.subtype _)
 
 @[simp, to_additive]
-lemma mrestrict_apply {N : Type*} [mul_one_class N] (f : M →* N) (x : S) : f.mrestrict S x = f x :=
+lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
+  (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
-@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.", simps]
-def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
+@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.",
+  simps apply]
+def cod_restrict {S} [set_like S N] [submonoid_class S N] (f : M →* N) (s : S)
+  (h : ∀ x, f x ∈ s) : M →* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
@@ -821,7 +825,7 @@ def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M �
 /-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
 def mrange_restrict {N} [mul_one_class N] (f : M →* N) : M →* f.mrange :=
-f.cod_mrestrict f.mrange $ λ x, ⟨x, rfl⟩
+f.cod_restrict f.mrange $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
 lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
@@ -951,7 +955,7 @@ by simp only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
-S.subtype.cod_mrestrict _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=

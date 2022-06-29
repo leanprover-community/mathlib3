@@ -132,6 +132,14 @@ begin
   exact tail_cons _ _
 end
 
+lemma forall_fin_succ_pi {P : (Π i, α i) → Prop} :
+  (∀ x, P x) ↔ (∀ a v, P (fin.cons a v)) :=
+⟨λ h a v, h (fin.cons a v), cons_induction⟩
+
+lemma exists_fin_succ_pi {P : (Π i, α i) → Prop} :
+  (∃ x, P x) ↔ (∃ a v, P (fin.cons a v)) :=
+⟨λ ⟨x, h⟩, ⟨x 0, tail x, (cons_self_tail x).symm ▸ h⟩, λ ⟨a, v, h⟩, ⟨_, h⟩⟩
+
 /-- Updating the first element of a tuple does not change the tail. -/
 @[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=
 by { ext j, simp [tail, fin.succ_ne_zero] }

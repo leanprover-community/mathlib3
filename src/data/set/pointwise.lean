@@ -6,6 +6,7 @@ Authors: Johan Commelin, Floris van Doorn
 import algebra.module.basic
 import data.set.finite
 import group_theory.submonoid.basic
+import data.fin.tuple.basic
 
 /-!
 # Pointwise operations of sets
@@ -461,6 +462,29 @@ end
 @[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
 | 0 := by { rw pow_zero, exact subset.rfl }
 | (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
+
+lemma mem_pow : ∀ {a : α} {n : ℕ} (hn : n ≠ 0),
+  a ∈ s ^ n ↔ ∃ f : fin n → α, ∀ i, f i ∈ s ∧ (list.of_fn f).prod = a
+| a 0 hn := (hn rfl).elim
+| a 1 _ := begin
+  simp_rw [pow_one, list.of_fn_succ, list.of_fn_zero, list.prod_singleton, fin.forall_fin_one],
+  exact ⟨λ h, ⟨λ _, a, h, rfl⟩, λ ⟨f, hf, h⟩, h ▸ hf⟩,
+end
+| a (nat.succ (nat.succ n)) hn :=  begin
+  have hm := n.succ_ne_zero,
+  clear hn,
+  set m := nat.succ n with hm',
+  have : ∀ a : α, a ∈ _ ↔ _ := λ _, mem_pow hm,
+  clear_value m,
+  simp_rw [ pow_succ _, list.of_fn_succ, list.prod_cons, fin.forall_fin_succ,
+    fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ, mem_mul, this],
+  subst hm',
+  split,
+  { rintro ⟨x, y, hx, ⟨v, hv⟩, rfl⟩,
+    exact ⟨_, v, ⟨hx, congr_arg _ (hv 0).2⟩, λ i, ⟨(hv i).1, congr_arg _ (hv 0).2⟩⟩ },
+  { rintro ⟨a, v, ⟨ha, rfl⟩, hv⟩,
+    exact ⟨a, _, ha, ⟨v, λ i, ⟨(hv i).1, rfl⟩⟩, rfl⟩ },
+end
 
 @[to_additive] lemma pow_subset_pow_of_one_mem (hs : (1 : α) ∈ s) : m ≤ n → s ^ m ⊆ s ^ n :=
 begin

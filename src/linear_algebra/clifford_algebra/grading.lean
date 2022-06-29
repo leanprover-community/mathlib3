@@ -137,6 +137,26 @@ lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
   simpa using congr_arg (coe : finset (zmod 2) → set (zmod 2)) this,
 end
 
+open_locale pointwise
+
+lemma pow_induction {P : clifford_algebra Q → Prop}
+  (hι : ∀ (n : ℕ) (x ∈ ((ι Q).range : set $ clifford_algebra Q) ^ n), P x)
+  (hr : ∀ (r : R), P (algebra_map R _ r))
+  (hadd : ∀ x y, P x → P y → P (x + y)) : ∀ x, P x :=
+begin
+  intro x,
+  have : x ∈ ⊤ := submodule.mem_top,
+  rw ←supr_ι_range_eq_top at this,
+  refine submodule.supr_induction _ this (λ i x hx, _) _ hadd,
+  { refine submodule.pow_induction_on_left _ hr hadd _ hx,
+    rintros _ ⟨m, rfl⟩,
+    sorry },
+  { simpa only [map_zero] using hr 0}
+
+end
+
+#exit
+
 /-- To show a property is true on the even or odd part, it suffices to show it is true on the
 scalars or vectors (respectively), closed under addition, and under left-multiplication by a pair
 of vectors. -/

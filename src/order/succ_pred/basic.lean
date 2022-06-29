@@ -982,10 +982,10 @@ section is_well_order
 variables [linear_order α]
 
 @[priority 100]
-instance is_well_order.to_is_pred_archimedean [h : well_founded_lt α] [pred_order α] :
+instance is_well_order.to_is_pred_archimedean [well_founded_lt α] [pred_order α] :
   is_pred_archimedean α :=
 ⟨λ a, begin
-  refine well_founded.fix h.wf (λ b ih hab, _),
+  refine well_founded_lt.fix (λ b ih hab, _),
   replace hab := hab.eq_or_lt,
   rcases hab with rfl | hab,
   { exact ⟨0, rfl⟩ },

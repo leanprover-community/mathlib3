@@ -216,16 +216,33 @@ instance is_extensional_of_is_strict_total_order'
 instance has_well_founded.is_well_founded [h : has_well_founded α] :
   is_well_founded α has_well_founded.r := { ..h }
 
-def is_well_founded.recursion (r : α → α → Prop) [is_well_founded α r] {C : α → Sort*} :
-  Π a, (Π x, (Π y, r y x → C y) → C x) → C a :=
-is_well_founded.wf.recursion
+namespace is_well_founded
+variables (r) [is_well_founded α r]
 
-theorem is_well_founded.induction (r : α → α → Prop) [is_well_founded α r] {C : α → Prop} :
-  ∀ a, (∀ x, (∀ y, r y x → C y) → C x) → C a :=
-is_well_founded.wf.induction
+/-- Recursion on a well-founded relation. -/
+def recursion {C : α → Sort*} : Π a, (Π x, (Π y, r y x → C y) → C x) → C a :=
+wf.recursion
 
-theorem is_well_founded.apply (r : α → α → Prop) [is_well_founded α r] : ∀ a, acc r a :=
-is_well_founded.wf.apply
+/-- Induction on a well-founded relation. -/
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, r y x → C y) → C x) → C a :=
+wf.induction
+
+/-- All values are accessible under the well-founded relation. -/
+theorem apply : ∀ a, acc r a := wf.apply
+
+/-- Creates data, given a way to generate a value from all that compare as less under a well-founded
+relation. See also `is_well_founded.fix_eq`. -/
+def fix {C : α → Sort*} : (Π (x : α), (Π (y : α), r y x → C y) → C x) → Π (x : α), C x := wf.fix
+
+/-- The value from `is_well_founded.fix` is built from the previous ones as specified. -/
+theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), r y x → C y) → C x) :
+  ∀ x, fix r F x = F x (λ y h, fix r F y) :=
+wf.fix_eq F
+
+/-- Derive a `has_well_founded` instance from an `is_well_founded` instance. -/
+def to_has_well_founded : has_well_founded α := ⟨r, is_well_founded.wf⟩
+
+end is_well_founded
 
 theorem well_founded.asymmetric {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
   ∀ ⦃a b⦄, r a b → ¬ r b a
@@ -253,7 +270,6 @@ class well_founded_gt (α : Type*) [has_lt α] : Prop :=
 instance (α : Type*) [has_lt α] [h : well_founded_lt α] : is_well_founded α (<) := h.lt_wf
 @[priority 100] -- See note [lower instance priority]
 instance (α : Type*) [has_lt α] [h : well_founded_gt α] : is_well_founded α (>) := h.gt_wf
-
 
 @[priority 100] -- See note [lower instance priority]
 instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := ⟨h.lt_wf⟩
@@ -285,8 +301,21 @@ is_well_founded.recursion (<)
 /-- Inducts on a well-founded `<` relation. -/
 theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a := recursion
 
+/-- All values are accessible under the well-founded `<`. -/
+theorem apply : ∀ a : α, acc (<) a := is_well_founded.apply _
+
+/-- Creates data, given a way to generate a value from all that compare as lesser. See also
+`well_founded_lt.fix_eq`. -/
+def fix {C : α → Sort*} : (Π (x : α), (Π (y : α), y < x → C y) → C x) → Π (x : α), C x :=
+is_well_founded.fix (<)
+
+/-- The value from `well_founded_lt.fix` is built from the previous ones as specified. -/
+theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), y < x → C y) → C x) :
+  ∀ x, fix F x = F x (λ y h, fix F y) :=
+is_well_founded.fix_eq _ F
+
 /-- Derive a `has_well_founded` instance from a `well_founded_lt` instance. -/
-def to_has_well_founded : has_well_founded α := ⟨_, lt_wf.wf⟩
+def to_has_well_founded : has_well_founded α := is_well_founded.to_has_well_founded (<)
 
 end well_founded_lt
 
@@ -300,8 +329,25 @@ is_well_founded.recursion (>)
 /-- Inducts on a well-founded `>` relation. -/
 theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a := recursion
 
+def is_well_founded.fix (r : α → α → Prop) [is_well_founded α r] {C : α → Sort*} :
+  (Π (x : α), (Π (y : α), r y x → C y) → C x) → Π (x : α), C x :=
+is_well_founded.wf.fix
+
+/-- All values are accessible under the well-founded `>`. -/
+theorem apply : ∀ a : α, acc (>) a := is_well_founded.apply _
+
+/-- Creates data, given a way to generate a value from all that compare as greater. See also
+`well_founded_gt.fix_eq`. -/
+def fix {C : α → Sort*} : (Π (x : α), (Π (y : α), x < y → C y) → C x) → Π (x : α), C x :=
+is_well_founded.fix (>)
+
+/-- The value from `well_founded_gt.fix` is built from the successive ones as specified. -/
+theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), x < y → C y) → C x) :
+  ∀ x, fix F x = F x (λ y h, fix F y) :=
+is_well_founded.fix_eq _ F
+
 /-- Derive a `has_well_founded` instance from a `well_founded_gt` instance. -/
-def to_has_well_founded : has_well_founded α := ⟨_, gt_wf.wf⟩
+def to_has_well_founded : has_well_founded α := is_well_founded.to_has_well_founded (>)
 
 end well_founded_gt
 

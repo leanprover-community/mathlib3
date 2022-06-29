@@ -45,12 +45,12 @@ instance divisible_of_elemement_divisible
 
 /-- ℚ is a divisible group. -/
 instance divisible_rat : divisible ℚ :=
-add_comm_group.divisible_of_element_divisible _ $
+add_comm_group.divisible_of_elemement_divisible _ $
   λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
 
 /-- ℝ is a divisible group. -/
 instance divisible_real : divisible ℝ :=
-add_comm_group.divisible_of_linear_solvable _ $
+add_comm_group.divisible_of_elemement_divisible _ $
   λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
 
 section product

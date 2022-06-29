@@ -213,28 +213,6 @@ begin
   refl
 end
 
-<<<<<<< HEAD
-=======
-lemma carrier_ne_top :
-  (x.1.as_homogeneous_ideal.to_ideal ∩ submonoid.powers f : set A) = ∅ →
-  carrier f_deg x ≠ ⊤ := λ eq_top,
-begin
-  classical,
-  contrapose! eq_top,
-  obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
-  rw [algebra.smul_def, subtype.val_eq_coe, subring.coe_one, mul_one] at eq1,
-  change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
-  simp only [mk_eq_mk', is_localization.eq] at eq1,
-  rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-  rw [submonoid.coe_one, mul_one, mul_one] at eq1,
-  simp only [← subtype.val_eq_coe] at eq1,
-  refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
-    (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
-  generalize_proofs h,
-  exact (classical.some_spec h).1,
-end
-
->>>>>>> 26b2525b63bad67bf5600e784e1c75687046bed6
 lemma no_intersection :
   (x.1.as_homogeneous_ideal.to_ideal ∩ submonoid.powers f : set A) = ∅ :=
 begin
@@ -273,13 +251,8 @@ end
 `Spec A⁰_f`. This is bundled into a continuous map in `Top_component.forward`.
 -/
 def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
-<<<<<<< HEAD
 ⟨carrier f_deg x, carrier_ne_top f_deg x, λ x1 x2 hx12, begin
   haveI : decidable_eq (away f) := classical.dec_eq _,
-=======
-⟨carrier f_deg x, carrier_ne_top f_deg x (no_intersection x), λ x1 x2 hx12, begin
-  classical,
->>>>>>> 26b2525b63bad67bf5600e784e1c75687046bed6
   rcases ⟨x1, x2⟩ with ⟨⟨x1, hx1⟩, ⟨x2, hx2⟩⟩,
   induction x1 using localization.induction_on with data_x1,
   induction x2 using localization.induction_on with data_x2,

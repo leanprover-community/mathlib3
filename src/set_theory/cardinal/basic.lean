@@ -208,9 +208,9 @@ by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 /- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
 `b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. This theorem is stated
-in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given that
-theorem and `cardinal.lift_lift`, there's never a circumstance where this generalization is worth
-the elaboration problems. -/
+in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given the lemmas
+`cardinal.lift_le_udown`, `cardinal.lift_lt_udown`, and `cardinal.lift_eq_udown`, this
+small generalization is worth the elaboration problems. -/
 private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
@@ -229,6 +229,10 @@ quotient.eq.trans
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le' }
 
+@[simp] theorem lift_le_udown {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{max v w} a ≤ lift.{max u w} b ↔ lift.{v} a ≤ lift.{u} b :=
+by rw [←lift_lift, ←lift_lift, lift_le]
+
 /-- `cardinal.lift` as an `order_embedding`. -/
 @[simps { fully_applied := ff }] def lift_order_embedding : cardinal.{v} ↪o cardinal.{max v u} :=
 order_embedding.of_map_le_iff lift (λ _ _, lift_le)
@@ -238,8 +242,16 @@ theorem lift_injective : injective lift.{u v} := lift_order_embedding.injective
 @[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
 lift_injective.eq_iff
 
+@[simp] theorem lift_eq_udown {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
+by rw [←lift_lift, ←lift_lift, lift_inj]
+
 @[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
 lift_order_embedding.lt_iff_lt
+
+@[simp] theorem lift_lt_udown {a : cardinal.{u}} {b : cardinal.{v}} :
+  lift.{max v w} a < lift.{max u w} b ↔ lift.{v} a < lift.{u} b :=
+by rw [←lift_lift, ←lift_lift, lift_lt]
 
 theorem lift_strict_mono : strict_mono lift :=
 λ a b, lift_lt.2

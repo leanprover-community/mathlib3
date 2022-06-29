@@ -899,8 +899,7 @@ theorem lift_down' {a : cardinal.{u}} {b : ordinal.{max u v}}
 let ⟨c, e⟩ := cardinal.lift_down h in
 cardinal.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   resetI,
-  rw [card_type, ← cardinal.lift_id'.{(max u v) u} (#β),
-      ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
+  rw [card_type, ← cardinal.lift_id'.{u v} (#β), ← cardinal.lift_umax, lift_mk_eq] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
   haveI := (g : ⇑f ⁻¹'o s ↪r s).is_well_order,
@@ -1391,9 +1390,12 @@ begin
   rw lt_univ',
   split,
   { rintro ⟨β, e⟩,
-    exact ⟨#β, lift_mk_eq.{u _ (v + 1)}.2 e⟩ },
+    use #β,
+    rwa [lift_eq_udown.{u v ((v + 1))}, lift_mk_eq] },
   { rintro ⟨c, hc⟩,
-    exact ⟨⟨c.out, lift_mk_eq.{u _ (v + 1)}.1 (hc.trans (congr rfl c.mk_out.symm))⟩⟩ }
+    refine ⟨⟨c.out, lift_mk_eq.1 _⟩⟩,
+    rw ←lift_eq_udown.{u v ((v + 1))},
+    exact hc.trans (congr rfl c.mk_out.symm) }
 end
 
 end cardinal

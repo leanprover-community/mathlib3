@@ -160,7 +160,7 @@ instance : has_le (linear_pmap R E F) :=
 
 lemma eq_of_le_of_domain_eq {f g : linear_pmap R E F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
-by { ext, rw heq, exact hle.2 }
+ext heq hle.2
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/

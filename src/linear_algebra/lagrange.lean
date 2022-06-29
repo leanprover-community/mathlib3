@@ -53,7 +53,7 @@ end non_lagrange
 ## Main definitions
 * In everything that follows, `v : ι ↪ F` is an embedding to the field from a fintype `ι`.
 Conceptually, this is a set of distinct nodes around which we interpolate.
-* `lagrange.basis_divisor v i j`, with `i j : ι`. These are the normalised irreducible factors of
+* `lagrange.basis_divisor i j`, with `i j : ι`. These are the normalised irreducible factors of
 the Lagrange basis polynomials. They evaluate to `1` at `v i` and `0` at `v j` when `i` and `j`
 are distinct.
 * `lagrange.basis v i` with `i : ι`: the Lagrange basis polynomial that evaluates to `1` at `v i`
@@ -79,43 +79,43 @@ open polynomial
 section node
 variables {ι : Type*} {v : ι ↪ F} {x y : F} {i j : ι}
 /-- The basis divisor is defined in terms of an embedded `v : ι ↪ F` from a fintype `ι`.
-`basis_divisor v i j` is the unique polynomial with `degree ≤ 1` such that when evaluated at `v i`
+`basis_divisor i j` is the unique polynomial with `degree ≤ 1` such that when evaluated at `v i`
 it gives `1` and `v j` it gives `0` (where when `i = j` it is identically `0`).
 
 Conceptually, they are therefore the building blocks for the Lagrange interpolants. -/
-def basis_divisor (v : ι ↪ F) (x y : F) : F[X] := C (x - y)⁻¹ * (X - C (y))
+def basis_divisor (x y : F) : F[X] := C (x - y)⁻¹ * (X - C (y))
 
-lemma basis_divisor_self_zero : basis_divisor v x x = 0 :=
+lemma basis_divisor_self_zero : basis_divisor x x = 0 :=
 by simp only [basis_divisor, sub_self, inv_zero, map_zero, zero_mul]
 
-lemma basis_divisor_injective (hxy : basis_divisor v x y = 0) : x = y :=
+lemma basis_divisor_injective (hxy : basis_divisor x y = 0) : x = y :=
 begin
   simp_rw [ basis_divisor, mul_eq_zero, X_sub_C_ne_zero, or_false,
             C_eq_zero, inv_eq_zero, sub_eq_zero] at hxy, exact hxy
 end
 
-@[simp] lemma basis_divisor_zero_iff : basis_divisor v x y = 0 ↔ x = y :=
+@[simp] lemma basis_divisor_zero_iff : basis_divisor x y = 0 ↔ x = y :=
 ⟨basis_divisor_injective, λ H, H ▸ basis_divisor_self_zero⟩
 
-lemma basis_divisor_degree_ne (hxy : x ≠ y) : (basis_divisor v x y).degree = 1 :=
+lemma basis_divisor_degree_ne (hxy : x ≠ y) : (basis_divisor x y).degree = 1 :=
 begin
   rw [basis_divisor, degree_mul, degree_X_sub_C, degree_C, zero_add],
   exact inv_ne_zero (sub_ne_zero_of_ne hxy)
 end
 
-@[simp] lemma basis_divisor_degree_eq : (basis_divisor v x x).degree = ⊥ :=
+@[simp] lemma basis_divisor_degree_eq : (basis_divisor x x).degree = ⊥ :=
 by rw [basis_divisor_self_zero, degree_zero]
 
-lemma basis_divisor_nat_degree_eq : (basis_divisor v x x).nat_degree = 0 :=
+lemma basis_divisor_nat_degree_eq : (basis_divisor x x).nat_degree = 0 :=
 by { rw [basis_divisor_self_zero, nat_degree_zero] }
 
-lemma basis_divisor_nat_degree_ne (hxy : x ≠ y) : (basis_divisor v x y).nat_degree = 1 :=
+lemma basis_divisor_nat_degree_ne (hxy : x ≠ y) : (basis_divisor x y).nat_degree = 1 :=
 nat_degree_eq_of_degree_eq_some (basis_divisor_degree_ne hxy)
 
-@[simp] lemma eval_basis_divisor_right : eval y (basis_divisor v x y) = 0 :=
+@[simp] lemma eval_basis_divisor_right : eval y (basis_divisor x y) = 0 :=
 by simp only [basis_divisor, eval_mul, eval_C, eval_sub, eval_X, sub_self, mul_zero]
 
-lemma eval_basis_divisor_left_ne (hxy : x ≠ y) : eval x (basis_divisor v x y) = 1 :=
+lemma eval_basis_divisor_left_ne (hxy : x ≠ y) : eval x (basis_divisor x y) = 1 :=
 begin
   simp only [basis_divisor, eval_mul, eval_C, eval_sub, eval_X],
   exact inv_mul_cancel (sub_ne_zero_of_ne hxy)
@@ -128,7 +128,7 @@ variables {ι : Type*} [fintype ι] [decidable_eq ι] {v : ι ↪ F} {i j : ι}
 
 /-- Lagrange basis polynomials indexed by `ι` defined for an embedding `v : ι ↪ F`.
 `basis v i` evaluates to 1 at `v i` and 0 at `v j` for `i ≠ j`. -/
-def basis (v : ι ↪ F) (i : ι) : F[X] := ∏ j in univ.erase i, basis_divisor v (v i) (v j)
+def basis (v : ι ↪ F) (i : ι) : F[X] := ∏ j in univ.erase i, basis_divisor (v i) (v j)
 
 theorem basis_eq_of_subsingleton [subsingleton ι] : basis v i = 1 :=
 begin
@@ -165,7 +165,7 @@ by { split_ifs with H, { subst H, exact eval_basis_self}, { exact eval_basis_ne 
 
 @[simp] theorem nat_degree_basis : (basis v i).nat_degree = (fintype.card ι) - 1 :=
 begin
-  have H : ∀ j, j ∈ univ.erase i → basis_divisor v (v i) (v j) ≠ 0,
+  have H : ∀ j, j ∈ univ.erase i → basis_divisor (v i) (v j) ≠ 0,
   by { simp [mem_erase, basis_divisor_zero_iff], rintros _ h rfl, exact h rfl },
   rw [  basis, nat_degree_prod _ _ H, ← card_univ,
         ← card_erase_of_mem (mem_univ i), card_eq_sum_ones ],

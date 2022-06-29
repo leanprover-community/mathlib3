@@ -72,7 +72,7 @@ begin
         tsub_add_cancel_of_le (h₂ t h_t_measurable_set)] },
     have h_measure_sub_eq : (μ - ν) = measure_sub,
     { rw measure_theory.measure.sub_def, apply le_antisymm,
-      { apply @Inf_le (measure α) measure.complete_lattice,
+      { refine Inf_le _,
         simp [le_refl, add_comm, h_measure_sub_add] },
       apply @le_Inf (measure α) measure.complete_lattice,
       intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,

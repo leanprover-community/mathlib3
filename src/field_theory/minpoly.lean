@@ -419,26 +419,17 @@ begin
     (is_integral_of_is_scalar_tower _ hs) rfl
 end
 
+variable [no_zero_smul_divisors R S]
+
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
-lemma gcd_domain_dvd (hinj : function.injective (algebra_map R S))
-  {P : R[X]} (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
+lemma gcd_domain_dvd {P : R[X]} (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
 begin
   let K := fraction_ring R,
   let L := fraction_ring S,
-  haveI : no_zero_smul_divisors R L,
-  { refine no_zero_smul_divisors.iff_algebra_map_injective.2 _,
-    rw [is_scalar_tower.algebra_map_eq R S L],
-    exact (is_fraction_ring.injective S L).comp hinj },
   let P₁ := P.prim_part,
   suffices : minpoly R s ∣ P₁,
   { exact dvd_trans this (prim_part_dvd _) },
-  have hP₁ : polynomial.aeval s P₁ = 0,
-  { rw [eq_C_content_mul_prim_part P, map_mul, aeval_C] at hroot,
-    have hcont : P.content ≠ 0 := λ h, hP (content_eq_zero_iff.1 h),
-    replace hcont := function.injective.ne hinj hcont,
-    rw [map_zero] at hcont,
-    exact eq_zero_of_ne_zero_of_mul_left_eq_zero hcont hroot },
   apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K (monic hs).is_primitive
     P.is_primitive_prim_part).2,
   let y := algebra_map S L s,
@@ -446,29 +437,27 @@ begin
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine dvd _ _ _,
   rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
-    eval_map, ← aeval_def, hP₁, map_zero]
+    eval_map, ← aeval_def, aeval_prim_part_eq_zero hP hroot, map_zero]
 end
 
-lemma gcd_domain_degree_le_of_ne_zero (hinj : function.injective (algebra_map R S))
-  {p : R[X]} (hp0 : p ≠ 0) (hp : polynomial.aeval s p = 0) :
+lemma gcd_domain_degree_le_of_ne_zero {p : R[X]} (hp0 : p ≠ 0) (hp : polynomial.aeval s p = 0) :
   degree (minpoly R s) ≤ degree p :=
 begin
   rw [degree_eq_nat_degree (minpoly.ne_zero hs), degree_eq_nat_degree hp0],
   norm_cast,
-  exact nat_degree_le_of_dvd (gcd_domain_dvd hs hinj hp0 hp) hp0
+  exact nat_degree_le_of_dvd (gcd_domain_dvd hs hp0 hp) hp0
 end
 
 omit hs
 
-lemma gcd_domain_unique (hinj : function.injective (algebra_map R S)) {P : R[X]} (hmo : P.monic)
-  (hP : polynomial.aeval s P = 0)
+lemma gcd_domain_unique {P : R[X]} (hmo : P.monic) (hP : polynomial.aeval s P = 0)
   (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :
   P = minpoly R s :=
 begin
   have hs : is_integral R s := ⟨P, hmo, hP⟩,
   symmetry, apply eq_of_sub_eq_zero,
   by_contra hnz,
-  have := gcd_domain_degree_le_of_ne_zero hs hinj hnz (by simp [hP]),
+  have := gcd_domain_degree_le_of_ne_zero hs hnz (by simp [hP]),
   contrapose! this,
   refine degree_sub_lt _ (ne_zero hs) _,
   { exact le_antisymm (min R s hmo hP)

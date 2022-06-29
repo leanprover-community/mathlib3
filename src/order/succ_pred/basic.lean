@@ -224,14 +224,11 @@ section no_max_order
 variables [no_max_order α]
 
 lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
-lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
-lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
+@[simp] lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
+@[simp] lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
-@[simp] lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
-⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
-
-lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
-lt_iff_lt_of_le_iff_le' succ_le_succ_iff succ_le_succ_iff
+lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b := by simp
+lemma succ_lt_succ_iff : succ a < succ b ↔ a < b := by simp
 
 alias succ_le_succ_iff ↔ order.le_of_succ_le_succ _
 alias succ_lt_succ_iff ↔ order.lt_of_succ_lt_succ order.succ_lt_succ
@@ -243,16 +240,16 @@ lemma covby_succ (a : α) : a ⋖ succ a := covby_succ_of_not_is_max $ not_is_ma
 @[simp] lemma Iio_succ (a : α) : Iio (succ a) = Iic a := Iio_succ_of_not_is_max $ not_is_max _
 @[simp] lemma Ici_succ (a : α) : Ici (succ a) = Ioi a := Ici_succ_of_not_is_max $ not_is_max _
 
-lemma Ico_succ_right (a b : α) : Ico a (succ b) = Icc a b :=
+@[simp] lemma Ico_succ_right (a b : α) : Ico a (succ b) = Icc a b :=
 Ico_succ_right_of_not_is_max $ not_is_max _
 
-lemma Ioo_succ_right (a b : α) : Ioo a (succ b) = Ioc a b :=
+@[simp] lemma Ioo_succ_right (a b : α) : Ioo a (succ b) = Ioc a b :=
 Ioo_succ_right_of_not_is_max $ not_is_max _
 
-lemma Icc_succ_left (a b : α) : Icc (succ a) b = Ioc a b :=
+@[simp] lemma Icc_succ_left (a b : α) : Icc (succ a) b = Ioc a b :=
 Icc_succ_left_of_not_is_max $ not_is_max _
 
-lemma Ico_succ_left (a b : α) : Ico (succ a) b = Ioo a b :=
+@[simp] lemma Ico_succ_left (a b : α) : Ico (succ a) b = Ioo a b :=
 Ico_succ_left_of_not_is_max $ not_is_max _
 
 end no_max_order
@@ -439,14 +436,11 @@ section no_min_order
 variables [no_min_order α]
 
 lemma pred_lt (a : α) : pred a < a := pred_lt_of_not_is_min $ not_is_min a
-lemma pred_lt_iff : pred a < b ↔ a ≤ b := pred_lt_iff_of_not_is_min $ not_is_min a
-lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is_min b
+@[simp] lemma pred_lt_iff : pred a < b ↔ a ≤ b := pred_lt_iff_of_not_is_min $ not_is_min a
+@[simp] lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is_min b
 
-@[simp] lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b :=
-⟨λ h, le_of_pred_lt $ h.trans_lt (pred_lt b), λ h, le_pred_of_lt $ (pred_lt a).trans_le h⟩
-
-@[simp] lemma pred_lt_pred_iff : pred a < pred b ↔ a < b :=
-by simp_rw [lt_iff_le_not_le, pred_le_pred_iff]
+lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b := by simp
+lemma pred_lt_pred_iff : pred a < pred b ↔ a < b := by simp
 
 alias pred_le_pred_iff ↔ order.le_of_pred_le_pred _
 alias pred_lt_pred_iff ↔ order.lt_of_pred_lt_pred pred_lt_pred
@@ -458,16 +452,16 @@ lemma pred_covby (a : α) : pred a ⋖ a := pred_covby_of_not_is_min $ not_is_mi
 @[simp] lemma Ioi_pred (a : α) : Ioi (pred a) = Ici a := Ioi_pred_of_not_is_min $ not_is_min a
 @[simp] lemma Iic_pred (a : α) : Iic (pred a) = Iio a := Iic_pred_of_not_is_min $ not_is_min a
 
-lemma Ioc_pred_left (a b : α) : Ioc (pred a) b = Icc a b :=
+@[simp] lemma Ioc_pred_left (a b : α) : Ioc (pred a) b = Icc a b :=
 Ioc_pred_left_of_not_is_min $ not_is_min _
 
-lemma Ioo_pred_left (a b : α) : Ioo (pred a) b = Ico a b :=
+@[simp] lemma Ioo_pred_left (a b : α) : Ioo (pred a) b = Ico a b :=
 Ioo_pred_left_of_not_is_min $ not_is_min _
 
-lemma Icc_pred_right (a b : α) : Icc a (pred b) = Ico a b :=
+@[simp] lemma Icc_pred_right (a b : α) : Icc a (pred b) = Ico a b :=
 Icc_pred_right_of_not_is_min $ not_is_min _
 
-lemma Ioc_pred_right (a b : α) : Ioc a (pred b) = Ioo a b :=
+@[simp] lemma Ioc_pred_right (a b : α) : Ioc a (pred b) = Ioo a b :=
 Ioc_pred_right_of_not_is_min $ not_is_min _
 
 end no_min_order

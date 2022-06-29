@@ -290,7 +290,7 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
-@[simp] lemma nonempty_coe_sort (s : set α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
+@[simp] lemma nonempty_coe_sort {s : set α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
 lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
@@ -385,6 +385,9 @@ by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 lemma empty_not_nonempty : ¬(∅ : set α).nonempty := λ h, h.ne_empty rfl
 
 theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty := not_iff_comm.1 not_nonempty_iff_eq_empty
+
+@[simp] lemma is_empty_coe_sort {s : set α} : is_empty ↥s ↔ s = ∅ :=
+not_iff_not.1 $ by simpa using ne_empty_iff_nonempty.symm
 
 lemma eq_empty_or_nonempty (s : set α) : s = ∅ ∨ s.nonempty :=
 or_iff_not_imp_left.2 ne_empty_iff_nonempty.1
@@ -927,9 +930,24 @@ ext $ λ x, and_iff_not_or_not
 
 @[simp] theorem compl_union_self (s : set α) : sᶜ ∪ s = univ := by rw [union_comm, union_compl_self]
 
-theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ s t _
+lemma compl_subset_comm : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ s _ _
+lemma subset_compl_comm : s ⊆ tᶜ ↔ t ⊆ sᶜ := @le_compl_iff_le_compl _ t _ _
 
-@[simp] lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le _ t s _
+@[simp] lemma compl_subset_compl : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le (set α) _ _ _
+
+lemma subset_compl_iff_disjoint_left : s ⊆ tᶜ ↔ disjoint t s :=
+@le_compl_iff_disjoint_left (set α) _ _ _
+
+lemma subset_compl_iff_disjoint_right : s ⊆ tᶜ ↔ disjoint s t :=
+@le_compl_iff_disjoint_right (set α) _ _ _
+
+lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
+lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
+
+alias subset_compl_iff_disjoint_right ↔ _ disjoint.subset_compl_right
+alias subset_compl_iff_disjoint_left ↔ _ disjoint.subset_compl_left
+alias disjoint_compl_left_iff_subset ↔ _ has_subset.subset.disjoint_compl_left
+alias disjoint_compl_right_iff_subset ↔ _ has_subset.subset.disjoint_compl_right
 
 theorem subset_union_compl_iff_inter_subset {s t u : set α} : s ⊆ t ∪ uᶜ ↔ s ∩ u ⊆ t :=
 (@is_compl_compl _ u _).le_sup_right_iff_inf_left_le
@@ -937,9 +955,7 @@ theorem subset_union_compl_iff_inter_subset {s t u : set α} : s ⊆ t ∪ uᶜ 
 theorem compl_subset_iff_union {s t : set α} : sᶜ ⊆ t ↔ s ∪ t = univ :=
 iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a, or_iff_not_imp_left
 
-theorem subset_compl_comm {s t : set α} : s ⊆ tᶜ ↔ t ⊆ sᶜ :=
-forall_congr $ λ a, imp_not_comm
-
+-- TODO@Yaël: This duplicates `subset_compl_iff_disjoint_right`
 theorem subset_compl_iff_disjoint {s t : set α} : s ⊆ tᶜ ↔ s ∩ t = ∅ :=
 iff.trans (forall_congr $ λ a, and_imp.symm) subset_empty_iff
 
@@ -1484,7 +1500,7 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
 theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' sᶜ ⊆ (f '' s)ᶜ :=
-subset_compl_iff_disjoint.2 $ by simp [image_inter H]
+disjoint.subset_compl_left $ by simp [disjoint, image_inter H]
 
 theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : (f '' s)ᶜ ⊆ f '' sᶜ :=
 compl_subset_iff_union.2 $

@@ -5,6 +5,7 @@ Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
 import data.real.basic
+import data.complex.basic
 
 /-!
 # Divisible Group
@@ -17,6 +18,7 @@ such that `n • x = y`.
 * `add_comm_group.divisible_iff_smul_top_eq_top` : `A` is divisible iff `n • A = A` for all `n ≠ 0`.
 * `add_comm_group.divisble_rat` : `ℚ` is a divisible group.
 * `add_comm_group.divisible_real` : `ℝ` is a divisible group.
+* `add_comm_group.divisible_complex` : `ℂ` is a divisble group.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
 
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
@@ -51,6 +53,9 @@ instance divisible_rat : divisible ℚ :=
 
 /-- ℝ is a divisible group. -/
 instance divisible_real : divisible ℝ :=
+⟨λ n hn x, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩⟩
+
+instance divisble_complex : divisible ℂ :=
 ⟨λ n hn x, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩⟩
 
 section pi

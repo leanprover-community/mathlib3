@@ -525,7 +525,7 @@ instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-is_well_order.conditionally_complete_linear_order_bot _
+well_founded_lt.conditionally_complete_linear_order_bot _
 
 @[simp] theorem Inf_empty : Inf (∅ : set cardinal.{u}) = 0 :=
 dif_neg not_nonempty_empty

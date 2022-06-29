@@ -262,8 +262,9 @@ variables {x : B}
 
 variables (A x)
 
-/-- If an element `x` is a root of a nonzero polynomial `p`,
-then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
+/-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the
+degree of the minimal polynomial of `x`. See also `gcd_domain_degree_le_of_ne_zero` which relaxes
+the assumptions on `A` in exchange for stronger assumptions on `B`. -/
 lemma degree_le_of_ne_zero
   {p : A[X]} (pnz : p ≠ 0) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
@@ -275,8 +276,9 @@ lemma ne_zero_of_finite_field_extension (e : B) [finite_dimensional A B] : minpo
 minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instance) _
 
 /-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
-if there is another monic polynomial of minimal degree that has `x` as a root,
-then this polynomial is equal to the minimal polynomial of `x`. -/
+if there is another monic polynomial of minimal degree that has `x` as a root, then this polynomial
+is equal to the minimal polynomial of `x`. See also `minpoly.gcd_unique` which relaxes the
+assumptions on `A` in exchange for stronger assumptions on `B`. -/
 lemma unique {p : A[X]}
   (pmonic : p.monic) (hp : polynomial.aeval x p = 0)
   (pmin : ∀ q : A[X], q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
@@ -293,8 +295,9 @@ begin
       (pmin (minpoly A x) (monic hx) (aeval A x)) }
 end
 
-/-- If an element `x` is a root of a polynomial `p`,
-then the minimal polynomial of `x` divides `p`. -/
+/-- If an element `x` is a root of a polynomial `p`, then the minimal polynomial of `x` divides `p`.
+See also `minpoly.gcd_domain_dvd` which relaxes the assumptions on `A` in exchange for stronger
+assumptions on `B`. -/
 lemma dvd {p : A[X]} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
 begin
   by_cases hp0 : p = 0,
@@ -422,7 +425,8 @@ end
 variable [no_zero_smul_divisors R S]
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
-element as root. -/
+element as root. See also `minpoly.dvd` which relaxes the assumptions on `S` in exchange for
+stronger assumptions on `R`. -/
 lemma gcd_domain_dvd {P : R[X]} (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
 begin
   let K := fraction_ring R,
@@ -440,6 +444,9 @@ begin
     eval_map, ← aeval_def, aeval_prim_part_eq_zero hP hroot, map_zero]
 end
 
+/-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the
+degree of the minimal polynomial of `x`. See also `minpoly.degree_le_of_ne_zero` which relaxes the
+assumptions on `S` in exchange for stronger assumptions on `R`. -/
 lemma gcd_domain_degree_le_of_ne_zero {p : R[X]} (hp0 : p ≠ 0) (hp : polynomial.aeval s p = 0) :
   degree (minpoly R s) ≤ degree p :=
 begin
@@ -450,8 +457,10 @@ end
 
 omit hs
 
-/-- See also `minpoly.unique` which relaxes the assumptions on `S`
-in exchange for stronger assumptions on `R`. -/
+/-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
+if there is another monic polynomial of minimal degree that has `x` as a root, then this polynomial
+is equal to the minimal polynomial of `x`. See also `minpoly.unique` which relaxes the
+assumptions on `S` in exchange for stronger assumptions on `R`. -/
 lemma gcd_domain_unique {P : R[X]} (hmo : P.monic) (hP : polynomial.aeval s P = 0)
   (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :
   P = minpoly R s :=

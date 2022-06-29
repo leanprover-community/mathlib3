@@ -415,16 +415,33 @@ open equiv function mem_left_transversals mul_action mul_action.quotient zmod
 
 universe u
 
-variables {G : Type u} [group G] (H : subgroup G) (g : G)
+variables {G : Type u} [group G] (H : subgroup G) (g : G) (β : Type*) [mul_action G β]
+
+noncomputable def orbit_zpowers_period (q : quotient (orbit_rel (zpowers g) β)) : ℕ :=
+quotient.lift_on' q (minimal_period ((•) g)) $ λ a b (h : _ ∈ _), begin
+  obtain ⟨⟨_, z, rfl⟩, rfl⟩ := h,
+  dsimp [subgroup.smul_def],
+  rw minimal_period_eq_minimal_period_iff,
+  intro n,
+  simp_rw [is_periodic_pt, is_fixed_pt],
+  simp,
+  rw [smul_smul, (((commute.refl g).pow_left n).zpow_right z).eq, mul_smul],
+  rw smul_left_cancel_iff,
+end
+
+lemma orbit_zpowers_period_mk (x : β) :
+  orbit_zpowers_period g β (quotient.mk' x) = minimal_period ((•) g) x := rfl
 
 /-- Partition `G ⧸ H` into orbits of the action of `g : G`. -/
 noncomputable def quotient_equiv_sigma_zmod : G ⧸ H ≃
-  Σ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))), zmod (minimal_period ((•) g) q.out') :=
+  Σ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))),
+    zmod (orbit_zpowers_period g (G ⧸ H) (quotient.mk' q.out')) :=
 (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)).trans
   (sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
 
 lemma quotient_equiv_sigma_zmod_symm_apply
-  (q : quotient (orbit_rel (zpowers g) (G ⧸ H))) (k : zmod (minimal_period ((•) g) q.out')) :
+  (q : quotient (orbit_rel (zpowers g) (G ⧸ H)))
+  (k : zmod (orbit_zpowers_period g (G ⧸ H) (quotient.mk' q.out'))) :
   (quotient_equiv_sigma_zmod H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
 rfl
 
@@ -432,7 +449,7 @@ lemma quotient_equiv_sigma_zmod_apply (q : quotient (orbit_rel (zpowers g) (G �
   quotient_equiv_sigma_zmod H g (g ^ k • q.out') = ⟨q, k⟩ :=
 by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply, ←inv_smul_eq_iff,
   ←zpow_neg, ←mul_smul, ←zpow_add, neg_add_eq_sub, zpow_smul_eq_iff_minimal_period_dvd,
-  ←int_coe_eq_int_coe_iff_dvd_sub, int_cast_cast, cast_int_cast']
+  ←orbit_zpowers_period_mk, ←int_coe_eq_int_coe_iff_dvd_sub, int_cast_cast, cast_int_cast']
 
 /-- The transfer transversal as a function. -/
 noncomputable def transfer_function : G ⧸ H → G :=

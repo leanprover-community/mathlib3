@@ -12,6 +12,7 @@ import ring_theory.ideal.operations
 import ring_theory.polynomial.basic
 import ring_theory.power_basis
 import ring_theory.unique_factorization_domain
+import data.polynomial.field_division
 
 /-!
 # Kummer-Dedekind theorem
@@ -34,16 +35,10 @@ kummer, dedekind, kummer dedekind, dedekind-kummer, dedekind kummer
 -/
 
 open_locale big_operators
-open ideal polynomial
+open ideal polynomial double_quot unique_factorization_monoid
 
-variables {R : Type} [comm_ring R] [is_domain R] [is_dedekind_domain R] (f : polynomial R)
-
-lemma dedekind_kummer
-
-
-/-
-section move_me
-
+variables {R S: Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] (f : polynomial R)
+variables [comm_ring S] [algebra R S]
 @[simps]
 def alg_equiv.of_ring_equiv {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
   [algebra R A] [algebra R B] (f : A ≃+* B) (hf : ∀ x, f (algebra_map R A x) = algebra_map R B x) :
@@ -86,41 +81,14 @@ rfl
   (ideal.quot_equiv_of_eq h).symm = ideal.quot_equiv_of_eq h.symm :=
 by ext; refl
 
-end move_me
-
-variables {R S : Type*} [comm_ring R] [comm_ring S]
--- variables [algebra R K] [is_fraction_ring R K] [algebra S L] [is_fraction_ring S L]
-variables [algebra R S]
-
-variables (R)
-/-- Let `S / R` be a ring extension and `x : S`, then the conductor of R[x] is the
-biggest ideal of `S` contained in `R[x]`. -/
-def conductor (x : S) : ideal S :=
-{ carrier := {a | ∀ (b : S), a * b ∈ algebra.adjoin R ({x} : set S)},
-  zero_mem' := λ b, by simpa only [zero_mul] using subalgebra.zero_mem _,
-  add_mem' := λ a b ha hb c, by simpa only [add_mul] using subalgebra.add_mem _ (ha c) (hb c),
-  smul_mem' := λ c a ha b, by simpa only [smul_eq_mul, mul_left_comm, mul_assoc] using ha (c * b) }
-
-lemma conductor_ne_bot (x : S) : conductor R x ≠ ⊥ :=
-sorry
-
-variables {R}
-
-lemma mem_adjoin_of_mem_conductor {x y : S} (hy : y ∈ conductor R x) :
-  y ∈ algebra.adjoin R ({x} : set S) :=
-by simpa only [mul_one] using hy 1
--/
-/-
-lemma conductor_subset_adjoin {x : S} : (conductor R x : set S) ⊆ algebra.adjoin R ({x} : set S) :=
-λ y, mem_adjoin_of_mem_conductor
-
 /-- Let `f` be a polynomial over `R` and `I` an ideal of `R`,
 then `(R[x]/(f)) / (I)` is isomorphic to `(R/I)[x] / (f mod p)` -/
 noncomputable def adjoin_root.quot_equiv_quot_map
   (f : polynomial R) (I : ideal R) :
   (_ ⧸ (ideal.map (adjoin_root.of f) I)) ≃ₐ[R]
     _ ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set (polynomial (R ⧸ I)))) :=
-begin
+alg_equiv.of_ring_equiv (adjoin_root.quot_map_of_equiv I f) sorry
+/- begin
   refine alg_equiv.of_ring_equiv ((ideal.quot_equiv_of_eq _).trans _) _,
   swap, { rw [adjoin_root.of, ← ideal.map_map, adjoin_root.mk] },
   refine (double_quot.quot_quot_equiv_comm (ideal.span {f}) (I.map polynomial.C)).trans _,
@@ -140,20 +108,9 @@ begin
         ideal.polynomial_quotient_equiv_quotient_polynomial_symm_mk,
         ← polynomial.C_eq_algebra_map, polynomial.map_C],
     refl }
-end
+end -/
 
-@[simp] lemma quotient_equiv_mk {R S : Type*} [comm_ring R] [comm_ring S]
-  (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S)) (x : R) :
-  quotient_equiv I J f hIJ (ideal.quotient.mk I x) = ideal.quotient.mk J (f x) :=
-@quotient_map_mk _ _ _ _ I J f (by { rw hIJ, exact le_comap_map }) x
-
-@[simp] lemma quotient_equiv_symm {R S : Type*} [comm_ring R] [comm_ring S]
-  (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S))
-  (hJI : I = J.map (f.symm : S →+* R) := by rw [hIJ, map_of_equiv]) :
-  (quotient_equiv I J f hIJ).symm = quotient_equiv J I f.symm hJI :=
-rfl
-
--- TODO: split me!
+ -- TODO: split me!
 @[simp] lemma adjoin_root.quot_equiv_quot_map_apply
   (f : polynomial R) (I : ideal R) (x : polynomial R) :
   adjoin_root.quot_equiv_quot_map f I (ideal.quotient.mk _ (adjoin_root.mk f x)) =
@@ -161,12 +118,7 @@ rfl
 begin
   unfold adjoin_root.quot_equiv_quot_map,
   rw alg_equiv.of_ring_equiv_apply,
-  repeat { rw ring_equiv.trans_apply },
-  rw [quot_equiv_of_eq_mk, adjoin_root.mk, double_quot.quot_quot_equiv_comm_mk_mk,
-      ← ideal.quotient.mk_algebra_map, quot_equiv_of_eq_mk, ideal.quotient_equiv_apply,
-      ring_hom.to_fun_eq_coe, ideal.quotient_map_mk, ring_equiv.coe_to_ring_hom,
-      ← ideal.quotient.mk_algebra_map, ideal.polynomial_quotient_equiv_quotient_polynomial_symm_mk],
-  refl
+  rw adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of,
 end
 
 lemma adjoin_root.quot_equiv_quot_map_symm_apply
@@ -177,12 +129,15 @@ begin
   unfold adjoin_root.quot_equiv_quot_map,
   rw alg_equiv.of_ring_equiv_symm_apply,
   repeat { rw ring_equiv.symm_trans_apply },
-  rw [ideal.quot_equiv_of_eq_symm, ideal.quot_equiv_of_eq_symm, quotient_equiv_symm,
-      quotient_equiv_mk, quot_equiv_of_eq_mk, double_quot.quot_quot_equiv_comm_symm,
-      ring_equiv.symm_symm, ideal.polynomial_quotient_equiv_quotient_polynomial_map_mk,
-      double_quot.quot_quot_equiv_comm_mk_mk, ← ideal.quotient.mk_algebra_map,
-      quot_equiv_of_eq_mk],
-  refl
+  sorry
+  --rw [ideal.quot_equiv_of_eq_symm, ideal.quot_equiv_of_eq_symm],
+
+  --rw [quotient_equiv_symm_mk,
+      --quotient_equiv_mk, quot_equiv_of_eq_mk, double_quot.quot_quot_equiv_comm_symm,
+      --ring_equiv.symm_symm, ideal.polynomial_quotient_equiv_quotient_polynomial_map_mk,
+      --double_quot.quot_quot_equiv_comm_mk_mk, ← ideal.quotient.mk_algebra_map,
+    --  quot_equiv_of_eq_mk],
+  --refl
 end
 
 /-- Let `α` have minimal polynomial `f` over `R` and `I` be an ideal of `R`,
@@ -216,10 +171,11 @@ begin
     adjoin_root.aeval_eq, adjoin_root.quot_equiv_quot_map_apply]
 end
 
+/-
 @[simp] lemma power_basis.quotient_equiv_quotient_minpoly_map_symm_mk [is_domain R] [is_domain S]
   (pb : power_basis R S) (I : ideal R) (x : polynomial R) :
   (pb.quotient_equiv_quotient_minpoly_map I).symm
-      (ideal.quotient.mk _ (map (ideal.quotient.mk _) x)) =
+      (ideal.quotient.mk _ (polynomial.map (ideal.quotient.mk _) x)) =
     ideal.quotient.mk _ (aeval pb.gen x) :=
 begin
   unfold power_basis.quotient_equiv_quotient_minpoly_map,
@@ -229,6 +185,87 @@ begin
       ring_equiv.coe_to_ring_hom, alg_equiv.to_ring_equiv_symm, alg_equiv.coe_ring_equiv,
       alg_equiv.symm_symm, adjoin_root.equiv'_apply, adjoin_root.lift_hom_mk]
 end
+-/
+
+variable [decidable_eq (ideal S)]
+
+open_locale classical
+
+instance {p : ideal R} [hp : is_prime p] : is_dedekind_domain (polynomial (R ⧸ p)) :=
+begin
+have l₁ : is_field  (R ⧸ p),
+have : is_maximal p,
+sorry,
+exact (ideal.quotient.maximal_ideal_iff_is_field_quotient p).mp this,
+haveI := is_field.to_field l₁,
+have : euclidean_domain (polynomial (R ⧸ p)),
+apply_instance,
+haveI : is_principal_ideal_ring (polynomial (R ⧸ p)),
+sorry,
+sorry,
+end
+
+noncomputable def factors_equiv [is_domain R] [is_dedekind_domain R] [is_domain S]
+  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) (p : ideal R) (hp : is_prime p) :
+  {I : ideal S | I ∣ p.map (algebra_map R S) } ≃o
+    {J : ideal (polynomial $ R ⧸ p ) | J ∣ ideal.span { map p^.quotient.mk (minpoly R pb.gen) }} :=
+ideal_factors_equiv_of_quot_equiv (pb.quotient_equiv_quotient_minpoly_map p)
+
+/- def ideal_prime_factors_equiv_prime_factors [is_domain R] [field R] (f : polynomial R):
+  {p : polynomial R | p ∈ factors f} ≃ {u : ideal (polynomial R) |
+    u ∈ factors (ideal.span ((singleton f) : set (polynomial R) ))}
+     :=
+
+sorry -/
+
+def corr [is_domain R] [is_principal_ideal_ring R] {r : R} :
+  {d : R | d ∈ factors a} ≃ {I : ideal R | I ∈ factors (ideal.span {d})} := sorry
+
+
+/-
+
+
+variables {R S : Type*} [comm_ring R] [comm_ring S]
+-- variables [algebra R K] [is_fraction_ring R K] [algebra S L] [is_fraction_ring S L]
+variables [algebra R S]
+
+variables (R)
+/-- Let `S / R` be a ring extension and `x : S`, then the conductor of R[x] is the
+biggest ideal of `S` contained in `R[x]`. -/
+def conductor (x : S) : ideal S :=
+{ carrier := {a | ∀ (b : S), a * b ∈ algebra.adjoin R ({x} : set S)},
+  zero_mem' := λ b, by simpa only [zero_mul] using subalgebra.zero_mem _,
+  add_mem' := λ a b ha hb c, by simpa only [add_mul] using subalgebra.add_mem _ (ha c) (hb c),
+  smul_mem' := λ c a ha b, by simpa only [smul_eq_mul, mul_left_comm, mul_assoc] using ha (c * b) }
+
+lemma conductor_ne_bot (x : S) : conductor R x ≠ ⊥ :=
+sorry
+
+variables {R}
+
+lemma mem_adjoin_of_mem_conductor {x y : S} (hy : y ∈ conductor R x) :
+  y ∈ algebra.adjoin R ({x} : set S) :=
+by simpa only [mul_one] using hy 1
+-/
+/-
+lemma conductor_subset_adjoin {x : S} : (conductor R x : set S) ⊆ algebra.adjoin R ({x} : set S) :=
+λ y, mem_adjoin_of_mem_conductor
+
+
+
+@[simp] lemma quotient_equiv_mk {R S : Type*} [comm_ring R] [comm_ring S]
+  (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S)) (x : R) :
+  quotient_equiv I J f hIJ (ideal.quotient.mk I x) = ideal.quotient.mk J (f x) :=
+@quotient_map_mk _ _ _ _ I J f (by { rw hIJ, exact le_comap_map }) x
+
+@[simp] lemma quotient_equiv_symm {R S : Type*} [comm_ring R] [comm_ring S]
+  (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S))
+  (hJI : I = J.map (f.symm : S →+* R) := by rw [hIJ, map_of_equiv]) :
+  (quotient_equiv I J f hIJ).symm = quotient_equiv J I f.symm hJI :=
+rfl
+
+
+
 -/
 /-
 variables {R S : Type*} [comm_ring R] [comm_ring S]

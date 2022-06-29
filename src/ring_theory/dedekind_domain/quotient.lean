@@ -9,8 +9,8 @@ variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
 
 namespace is_dedekind_domain
 
-theorem quotient_pow_succ_equiv (P : ideal R) (i : ℕ)
+/- theorem quotient_pow_succ_equiv (P : ideal R) (i : ℕ)
   (h : P^(i + 1) < P^i) : P^i ⧸ P^(i + 1) ≃ₐ[R] R ⧸ P :=
-_
+sorry -/
 
 end is_dedekind_domain

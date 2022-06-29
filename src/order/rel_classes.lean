@@ -242,15 +242,23 @@ instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α 
 is_asymm.is_irrefl
 
 /-- A class for a well founded relation `<`. -/
-class well_founded_lt (α : Type*) [has_lt α] extends is_well_founded α (<) : Prop
+class well_founded_lt (α : Type*) [has_lt α] : Prop :=
+( lt_wf : is_well_founded α (<) )
 
 /-- A class for a well founded relation `>`. -/
-class well_founded_gt (α : Type*) [has_lt α] extends is_well_founded α (>) : Prop
+class well_founded_gt (α : Type*) [has_lt α] : Prop :=
+( gt_wf : is_well_founded α (>) )
 
 @[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := { ..h }
+instance (α : Type*) [has_lt α] [h : well_founded_lt α] : is_well_founded α (<) := h.lt_wf
 @[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := { ..h }
+instance (α : Type*) [has_lt α] [h : well_founded_gt α] : is_well_founded α (>) := h.gt_wf
+
+
+@[priority 100] -- See note [lower instance priority]
+instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := ⟨h.lt_wf⟩
+@[priority 100] -- See note [lower instance priority]
+instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := ⟨h.gt_wf⟩
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
@@ -270,8 +278,6 @@ instance well_founded_gt.is_well_order (α : Type u) [linear_order α] [well_fou
 namespace well_founded_lt
 variables [has_lt α] [well_founded_lt α]
 
-theorem lt_wf : @well_founded α (<) := is_well_founded.wf
-
 /-- Recurses on a well-founded `<` relation. -/
 def recursion {C : α → Sort*} : Π a, (Π x, (Π y, y < x → C y) → C x) → C a :=
 is_well_founded.recursion (<)
@@ -280,14 +286,12 @@ is_well_founded.recursion (<)
 theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a := recursion
 
 /-- Derive a `has_well_founded` instance from a `well_founded_lt` instance. -/
-def to_has_well_founded : has_well_founded α := ⟨_, lt_wf⟩
+def to_has_well_founded : has_well_founded α := ⟨_, lt_wf.wf⟩
 
 end well_founded_lt
 
 namespace well_founded_gt
 variables [has_lt α] [well_founded_gt α]
-
-theorem gt_wf : @well_founded α (>) := is_well_founded.wf
 
 /-- Recurses on a well-founded `>` relation. -/
 def recursion {C : α → Sort*} : Π a, (Π x, (Π y, x < y → C y) → C x) → C a :=
@@ -297,7 +301,7 @@ is_well_founded.recursion (>)
 theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a := recursion
 
 /-- Derive a `has_well_founded` instance from a `well_founded_gt` instance. -/
-def to_has_well_founded : has_well_founded α := ⟨_, gt_wf⟩
+def to_has_well_founded : has_well_founded α := ⟨_, gt_wf.wf⟩
 
 end well_founded_gt
 
@@ -566,5 +570,5 @@ lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
-instance nat.lt.is_well_order : is_well_order ℕ (<) := { wf := nat.lt_wf }
-instance : well_founded_lt ℕ := {}
+instance : well_founded_lt ℕ := ⟨⟨nat.lt_wf⟩⟩
+instance nat.lt.is_well_order : is_well_order ℕ (<) := by apply_instance

@@ -56,8 +56,10 @@ Conceptually, this is a set of distinct nodes around which we interpolate.
 * `lagrange.basis_divisor v i j`, with `i j : ι`. These are the normalised irreducible factors of
 the Lagrange basis polynomials. They evaluate to `1` at `v i` and `0` at `v j` when `i` and `j`
 are distinct.
-* `lagrange.basis v i` with `i : ι`: the Lagrange basis polynomial that evaluates to `1` at `v i`  and `0` at `v j` for `i ≠ j`.
-* `lagrange.interpolate v r` where `r : ι → F` is a function from the fintype to the field: the Lagrange interpolant that evaluates to `r i` at `x i` for all `i : ι`. The `r i` are the _values_
+* `lagrange.basis v i` with `i : ι`: the Lagrange basis polynomial that evaluates to `1` at `v i`
+and `0` at `v j` for `i ≠ j`.
+* `lagrange.interpolate v r` where `r : ι → F` is a function from the fintype to the field: the
+Lagrange interpolant that evaluates to `r i` at `x i` for all `i : ι`. The `r i` are the _values_
 associated with the _nodes_`x i`.
 * `lagrange.interpolate_at v f`, where `v : ι ↪ F` and `ι` is a fintype, and `f : F → F` is a
 function from the field to itself: this is the Lagrange interpolant that evaluates to `f (x i)`
@@ -75,8 +77,10 @@ variables {F : Type*} [field F]
 open polynomial
 
 section node
-variables {ι : Type*} {v : ι ↪ F} {i j : ι}
-/-- The basis divisor is defined in terms of an embedded `v : ι ↪ F` from a fintype `ι`. `basis_divisor v i j` is the unique polynomial with `degree ≤ 1` such that when evaluated at `v i` it gives `1` and `v j` it gives `0` (where when `i = j` it is identically `0`).
+variables {ι : Type*} {v : ι ↪ F} {x y : F} {i j : ι}
+/-- The basis divisor is defined in terms of an embedded `v : ι ↪ F` from a fintype `ι`.
+`basis_divisor v i j` is the unique polynomial with `degree ≤ 1` such that when evaluated at `v i`
+it gives `1` and `v j` it gives `0` (where when `i = j` it is identically `0`).
 
 Conceptually, they are therefore the building blocks for the Lagrange interpolants. -/
 def basis_divisor (v : ι ↪ F) : ι → ι → F[X] := λ i j, C (v i - v j)⁻¹ * (X - C (v j))
@@ -332,7 +336,8 @@ end interpolate_at
 end lagrange
 
 /-
-These are a challenge to translate into this new language. What is the best way of erasing members from subtypes?
+These are a challenge to translate into this new language.
+What is the best way of erasing members from subtypes?
 
 It may simply be the case that there is no need for them - that with the updated API, erasing is
 no longer a natural way to think about this. But it should still be the case that you can split

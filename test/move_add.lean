@@ -4,43 +4,35 @@ variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
 
 example (e f g : R) (h : a + b + c = d) : b + (a + c) = d :=
 begin
-  success_if_fail_with_msg { move_add [d] at * }
-    ("'d' is an unused variable"),
+  success_if_fail_with_msg {move_add [d] at *} "'d' is an unused variable",
   move_add at *,
-  success_if_fail_with_msg { move_add at * }
-    ("'move_op at *' changed nothing"),
-  success_if_fail_with_msg { move_add [a, e, f, g] at h a b c ⊢ }
-    ("'[a, b, c]' did not change"),
-  success_if_fail_with_msg { move_add [a, e, f, g] at h ⊢ }
-    ("'[e, f, g]' are unused variables"),
-  success_if_fail_with_msg { move_add at ⊢ h }
-    ("'[h]' did not change"),
-  success_if_fail_with_msg { move_add at ⊢ }
-    ("Goal did not change"),
+  success_if_fail_with_msg {move_add at *} "nothing changed\n",
+  success_if_fail_with_msg {move_add [a, e, f, g] at h a b c ⊢}
+    "'[a, b, c]' did not change\n'[e, f, g]' are unused variables",
+  success_if_fail_with_msg {move_add [a, e, f, g] at h ⊢} "'[e, f, g]' are unused variables",
+  success_if_fail_with_msg {move_add at ⊢ h} "Goal did not change\n'[h]' did not change\n",
   move_add ← a at *,  -- `move_add` closes the goal, since, after rearranging, it tries `assumption`
 end
 
 example {R : Type*} [comm_semigroup R] (a b c d e f g : R) (h : a * b * c = d) : b * (a * c) = d :=
 begin
-  success_if_fail_with_msg { move_mul [d] at * }
-    ("'d' is an unused variable"),
+  success_if_fail_with_msg {move_mul [d] at *} "'d' is an unused variable",
   move_mul at *,
-  success_if_fail_with_msg { move_mul at * }
-    ("'move_op at *' changed nothing"),
-  success_if_fail_with_msg { move_mul [a, e, f, g] at h a b c ⊢ }
-    ("'[a, b, c]' did not change"),
-  success_if_fail_with_msg { move_mul [a, e, f, g] at h ⊢ }
-    ("'[e, f, g]' are unused variables"),
-  success_if_fail_with_msg { move_mul at ⊢ h }
-    ("'[h]' did not change"),
-  success_if_fail_with_msg { move_mul at ⊢ }
-    ("Goal did not change"),
+  success_if_fail_with_msg {move_mul at *} "nothing changed\n",
+  success_if_fail_with_msg {move_mul [a, e, f, g] at h a b c ⊢}
+    "'[a, b, c]' did not change\n'[e, f, g]' are unused variables",
+  success_if_fail_with_msg {move_mul [a, e, f, g] at h ⊢} "'[e, f, g]' are unused variables",
+  success_if_fail_with_msg {move_mul at ⊢ h} "Goal did not change\n'[h]' did not change\n",
+  success_if_fail_with_msg {move_mul at ⊢} "Goal did not change\n\n",
   move_mul ← a at *,  -- `move_mul` closes the goal, since, after rearranging, it tries `assumption`
 end
 
-example {R : Type*} [comm_semigroup R] {a b c d e f g : R} :
-  a * b = b * a :=
-by move_mul [a]
+example (h : b + a = b + c + a) : a + b = a + b + c :=
+by move_add [a]
+
+example {R : Type*} [comm_semigroup R] {a b : R} :
+  ∀ x : R, ∃ y : R, a * x * b * y = x * y * b * a :=
+by { move_mul [a, b], exact λ x, ⟨x, rfl⟩ }
 
 example {R : Type*} [has_add R] [comm_semigroup R] {a b c d e f g : R} :
   a * (b * c * a) * ((d * e) * e) * f * g = (c * b * a) * (e * (e * d)) * g * f * a :=

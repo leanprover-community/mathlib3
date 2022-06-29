@@ -183,7 +183,7 @@ theorem dense_Inter_of_open_nat {f : ℕ → set α} (ho : ∀ n, is_open (f n))
 baire_space.baire_property f ho hd
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here with ⋂₀. -/
-theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS : countable S)
+theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS : S.countable)
   (hd : ∀s∈S, dense s) : dense (⋂₀S) :=
 begin
   cases S.eq_empty_or_nonempty with h h,
@@ -197,7 +197,7 @@ end
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here with
 an index set which is a countable set in any type. -/
 theorem dense_bInter_of_open {S : set β} {f : β → set α} (ho : ∀s∈S, is_open (f s))
-  (hS : countable S) (hd : ∀s∈S, dense (f s)) : dense (⋂s∈S, f s) :=
+  (hS : S.countable) (hd : ∀s∈S, dense (f s)) : dense (⋂s∈S, f s) :=
 begin
   rw ← sInter_image,
   apply dense_sInter_of_open,
@@ -219,7 +219,7 @@ begin
 end
 
 /-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with ⋂₀. -/
-theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : countable S)
+theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : S.countable)
   (hd : ∀s∈S, dense s) : dense (⋂₀S) :=
 begin
   -- the result follows from the result for a countable intersection of dense open sets,
@@ -250,7 +250,7 @@ end
 /-- Baire theorem: a countable intersection of dense Gδ sets is dense. Formulated here with
 an index set which is a countable set in any type. -/
 theorem dense_bInter_of_Gδ {S : set β} {f : Π x ∈ S, set α} (ho : ∀s∈S, is_Gδ (f s ‹_›))
-  (hS : countable S) (hd : ∀s∈S, dense (f s ‹_›)) : dense (⋂s∈S, f s ‹_›) :=
+  (hS : S.countable) (hd : ∀s∈S, dense (f s ‹_›)) : dense (⋂s∈S, f s ‹_›) :=
 begin
   rw bInter_eq_Inter,
   haveI := hS.to_encodable,
@@ -321,7 +321,7 @@ end
 /-- If a countable family of closed sets cover a dense `Gδ` set, then the union of their interiors
 is dense. Formulated here with a union over a countable set in any type. -/
 lemma is_Gδ.dense_bUnion_interior_of_closed {t : set ι} {s : set α} (hs : is_Gδ s)
-  (hd : dense s) (ht : countable t) {f : ι → set α} (hc : ∀ i ∈ t, is_closed (f i))
+  (hd : dense s) (ht : t.countable) {f : ι → set α} (hc : ∀ i ∈ t, is_closed (f i))
   (hU : s ⊆ ⋃ i ∈ t, f i) :
   dense (⋃ i ∈ t, interior (f i)) :=
 begin
@@ -333,20 +333,20 @@ end
 /-- If a countable family of closed sets cover a dense `Gδ` set, then the union of their interiors
 is dense. Formulated here with `⋃₀`. -/
 lemma is_Gδ.dense_sUnion_interior_of_closed {T : set (set α)} {s : set α} (hs : is_Gδ s)
-  (hd : dense s) (hc : countable T) (hc' : ∀ t ∈ T, is_closed t) (hU : s ⊆ ⋃₀ T) :
+  (hd : dense s) (hc : T.countable) (hc' : ∀ t ∈ T, is_closed t) (hU : s ⊆ ⋃₀ T) :
   dense (⋃ t ∈ T, interior t) :=
 hs.dense_bUnion_interior_of_closed hd hc hc' $ by rwa [← sUnion_eq_bUnion]
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
 are dense. Formulated here with an index set which is a countable set in any type. -/
 theorem dense_bUnion_interior_of_closed {S : set β} {f : β → set α} (hc : ∀s∈S, is_closed (f s))
-  (hS : countable S) (hU : (⋃s∈S, f s) = univ) : dense (⋃s∈S, interior (f s)) :=
+  (hS : S.countable) (hU : (⋃s∈S, f s) = univ) : dense (⋃s∈S, interior (f s)) :=
 is_Gδ_univ.dense_bUnion_interior_of_closed dense_univ hS hc hU.ge
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
 are dense. Formulated here with `⋃₀`. -/
 theorem dense_sUnion_interior_of_closed {S : set (set α)} (hc : ∀s∈S, is_closed s)
-  (hS : countable S) (hU : (⋃₀ S) = univ) : dense (⋃s∈S, interior s) :=
+  (hS : S.countable) (hU : (⋃₀ S) = univ) : dense (⋃s∈S, interior s) :=
 is_Gδ_univ.dense_sUnion_interior_of_closed dense_univ hS hc hU.ge
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors

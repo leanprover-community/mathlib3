@@ -86,16 +86,14 @@ theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Artinian, then `M` is Artinian. -/
 theorem well_founded_lt_exact_sequence
-  {β γ : Type*} [partial_order β] [preorder γ]
-  (h₁ : well_founded ((<) : β → β → Prop))
-  (h₂ : well_founded ((<) : γ → γ → Prop))
+  {β γ : Type*} [partial_order β] [preorder γ] [well_founded_lt β] [well_founded_lt γ]
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
   (gci : galois_coinsertion f₁ f₂)
   (gi : galois_insertion g₂ g₁)
   (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
   (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
-  well_founded ((<) : α → α → Prop) :=
-subrelation.wf
+  well_founded_lt α :=
+subrelation.is_well_founded
   (λ A B hAB, show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
     begin
       simp only [prod.lex_def, lt_iff_le_not_le, ← gci.l_le_l_iff,
@@ -105,20 +103,18 @@ subrelation.wf
       { exact or.inl h },
       { exact or.inr ⟨h, sup_lt_sup_of_lt_of_inf_le_inf hAB (le_of_eq h.symm)⟩ }
     end)
-  (inv_image.wf _ (prod.lex_wf h₁ h₂))
+  (inv_image.wf _ (prod.lex_wf h₁ h₂))⟩
 
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Noetherian, then `M` is Noetherian.  -/
 theorem well_founded_gt_exact_sequence
-  {β γ : Type*} [preorder β] [partial_order γ]
-  (h₁ : well_founded ((>) : β → β → Prop))
-  (h₂ : well_founded ((>) : γ → γ → Prop))
+  {β γ : Type*} [preorder β] [partial_order γ] [well_founded_gt β] [well_founded_gt γ]
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
   (gci : galois_coinsertion f₁ f₂)
   (gi : galois_insertion g₂ g₁)
   (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
   (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
-  well_founded ((>) : α → α → Prop) :=
+  well_founded_gt α :=
 @well_founded_lt_exact_sequence αᵒᵈ _ _ γᵒᵈ βᵒᵈ _ _ h₂ h₁ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/

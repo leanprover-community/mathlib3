@@ -64,8 +64,8 @@ instance wf_dvd_monoid_associates : wf_dvd_monoid (associates α) :=
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
 
-theorem well_founded_associates : well_founded ((<) : associates α → associates α → Prop) :=
-subrelation.wf (λ x y, dvd_not_unit_of_lt) well_founded_dvd_not_unit
+theorem well_founded_associates : well_founded_lt (associates α) :=
+subrelation.is_well_founded (λ x y, dvd_not_unit_of_lt) well_founded_dvd_not_unit
 
 local attribute [elab_as_eliminator] well_founded.fix
 
@@ -114,12 +114,12 @@ end,
 end wf_dvd_monoid
 
 theorem wf_dvd_monoid.of_well_founded_associates [cancel_comm_monoid_with_zero α]
-  (h : well_founded ((<) : associates α → associates α → Prop)) : wf_dvd_monoid α :=
+  [well_founded_lt (associates α)] : wf_dvd_monoid α :=
 wf_dvd_monoid.of_wf_dvd_monoid_associates
   ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
 theorem wf_dvd_monoid.iff_well_founded_associates [cancel_comm_monoid_with_zero α] :
-  wf_dvd_monoid α ↔ well_founded ((<) : associates α → associates α → Prop) :=
+  wf_dvd_monoid α ↔ well_founded_lt (associates α) :=
 ⟨by apply wf_dvd_monoid.well_founded_associates, wf_dvd_monoid.of_well_founded_associates⟩
 section prio
 set_option default_priority 100 -- see Note [default priority]

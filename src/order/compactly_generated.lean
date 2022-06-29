@@ -143,7 +143,7 @@ begin
   simpa only [exists_prop],
 end
 
-lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
+lemma well_founded.is_Sup_finite_compact [well_founded_gt α] :
   is_Sup_finite_compact α :=
 begin
   intros s,
@@ -169,8 +169,7 @@ begin
   { rw ht₂, exact t.sup_closed_of_sup_closed h ht₁ hsc, },
 end
 
-lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
-  well_founded ((>) : α → α → Prop) :=
+lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) : well_founded_gt α :=
 begin
   refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
@@ -199,7 +198,7 @@ begin
 end
 
 lemma well_founded_characterisations :
-  tfae [well_founded ((>) : α → α → Prop),
+  tfae [well_founded_gt α,
         is_Sup_finite_compact α,
         is_sup_closed_compact α,
         ∀ k : α, is_compact_element k] :=
@@ -212,7 +211,7 @@ begin
 end
 
 lemma well_founded_iff_is_Sup_finite_compact :
-  well_founded ((>) : α → α → Prop) ↔ is_Sup_finite_compact α :=
+  well_founded_gt α ↔ is_Sup_finite_compact α :=
 (well_founded_characterisations α).out 0 1
 
 lemma is_Sup_finite_compact_iff_is_sup_closed_compact :
@@ -220,7 +219,7 @@ lemma is_Sup_finite_compact_iff_is_sup_closed_compact :
 (well_founded_characterisations α).out 1 2
 
 lemma is_sup_closed_compact_iff_well_founded :
-  is_sup_closed_compact α ↔ well_founded ((>) : α → α → Prop) :=
+  is_sup_closed_compact α ↔ well_founded_gt α :=
 (well_founded_characterisations α).out 2 0
 
 alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_founded
@@ -228,8 +227,8 @@ alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
 alias is_sup_closed_compact_iff_well_founded ↔ _ _root_.well_founded.is_sup_closed_compact
 
-lemma well_founded.finite_of_set_independent (h : well_founded ((>) : α → α → Prop))
-  {s : set α} (hs : set_independent s) : s.finite :=
+lemma well_founded.finite_of_set_independent [well_founded_gt α] {s : set α}
+  (hs : set_independent s) : s.finite :=
 begin
   classical,
   refine set.not_infinite.mp (λ contra, _),
@@ -352,7 +351,7 @@ end
 
 namespace complete_lattice
 
-lemma compactly_generated_of_well_founded (h : well_founded ((>) : α → α → Prop)) :
+lemma compactly_generated_of_well_founded [well_founded_gt α] :
   is_compactly_generated α :=
 begin
   rw [well_founded_iff_is_Sup_finite_compact, is_Sup_finite_compact_iff_all_elements_compact] at h,

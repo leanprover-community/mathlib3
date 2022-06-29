@@ -190,7 +190,7 @@ begin
 end
 
 /-- `cut_expand r` is well-founded when `r` is. -/
-instance is_well_founded.cut_expand [is_well_founded α r] : is_well_founded _ (cut_expand r) :=
+instance cut_expand.is_well_founded [is_well_founded α r] : is_well_founded _ (cut_expand r) :=
 ⟨⟨λ s, acc_of_singleton $ λ a _, (is_well_founded.apply r a).cut_expand⟩⟩
 
 end hydra

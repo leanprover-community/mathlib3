@@ -498,7 +498,7 @@ variables {R M P : Type*} {N : Type w} [semiring R] [add_comm_monoid M] [module 
   [add_comm_monoid N] [module R N] [add_comm_monoid P] [module R P]
 
 theorem is_noetherian_iff_well_founded :
-  is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
+  is_noetherian R M ↔ well_founded_gt (submodule R M) :=
 begin
   rw (complete_lattice.well_founded_characterisations $ submodule R M).out 0 3,
   exact ⟨λ ⟨h⟩, λ k, (fg_iff_compact k).mp (h k), λ h, ⟨λ k, (fg_iff_compact k).mpr (h k)⟩⟩,
@@ -506,8 +506,8 @@ end
 
 variables (R M)
 
-lemma well_founded_submodule_gt (R M) [semiring R] [add_comm_monoid M] [module R M] :
-  ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
+instance well_founded_submodule_gt (R M) [semiring R] [add_comm_monoid M] [module R M] :
+  ∀ [is_noetherian R M], well_founded_gt (submodule R M) :=
 is_noetherian_iff_well_founded.mp
 
 variables {R M}

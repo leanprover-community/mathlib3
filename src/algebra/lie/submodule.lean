@@ -366,9 +366,7 @@ instance : is_modular_lattice (lie_submodule R L M) :=
 
 variables (R L M)
 
-lemma well_founded_of_noetherian [is_noetherian R M] :
-  well_founded ((>) : lie_submodule R L M → lie_submodule R L M → Prop) :=
-
+lemma well_founded_of_noetherian [is_noetherian R M] : well_founded_gt (lie_submodule R L M) :=
 let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
         ((>) : submodule R M → submodule R M → Prop) :=
 { to_fun       := coe,

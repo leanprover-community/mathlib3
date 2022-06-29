@@ -52,7 +52,7 @@ open_locale big_operators pointwise
 implemented as the well-foundedness of submodule inclusion.
 -/
 class is_artinian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :=
-(well_founded_submodule_lt [] : well_founded ((<) : submodule R M → submodule R M → Prop))
+(well_founded_submodule_lt [] : well_founded_lt (submodule R M))
 
 section
 variables {R : Type*} {M : Type*} {P : Type*} {N : Type*}
@@ -155,7 +155,7 @@ section
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 
 theorem is_artinian_iff_well_founded :
-  is_artinian R M ↔ well_founded ((<) : submodule R M → submodule R M → Prop) :=
+  is_artinian R M ↔ well_founded_lt (submodule R M) :=
 ⟨λ h, h.1, is_artinian.mk⟩
 
 variables {R M}

@@ -620,7 +620,7 @@ lemma ideal.dvd_not_unit_iff_lt {I J : ideal A} :
 
 instance : wf_dvd_monoid (ideal A) :=
 { well_founded_dvd_not_unit :=
-  have well_founded ((>) : ideal A → ideal A → Prop) :=
+  have well_founded_gt (ideal A) :=
   is_noetherian_iff_well_founded.mp
     (is_noetherian_ring_iff.mp is_dedekind_domain.is_noetherian_ring),
   by { convert this, ext, rw ideal.dvd_not_unit_iff_lt } }

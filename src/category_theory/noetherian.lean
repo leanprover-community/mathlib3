@@ -34,7 +34,7 @@ which does not have infinite increasing sequences of subobjects.
 See https://stacks.math.columbia.edu/tag/0FCG
 -/
 class noetherian_object (X : C) : Prop :=
-(subobject_gt_well_founded : well_founded ((>) : subobject X → subobject X → Prop))
+(subobject_gt_well_founded : well_founded_gt (subobject X))
 
 /--
 An artinian object is an object
@@ -43,7 +43,7 @@ which does not have infinite decreasing sequences of subobjects.
 See https://stacks.math.columbia.edu/tag/0FCF
 -/
 class artinian_object (X : C) : Prop :=
-(subobject_lt_well_founded [] : well_founded ((<) : subobject X → subobject X → Prop))
+(subobject_lt_well_founded [] : well_founded_lt (subobject X))
 
 variables (C)
 

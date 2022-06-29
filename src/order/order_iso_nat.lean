@@ -160,7 +160,7 @@ end
 
 /-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
 lemma well_founded.monotone_chain_condition (α : Type*) [partial_order α] :
-  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
+  well_founded_gt α ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
 begin
   split; intros h,
   { rw is_well_founded.well_founded_iff_has_max' at h,
@@ -186,8 +186,7 @@ noncomputable def monotonic_sequence_limit {α : Type*} [preorder α] (a : ℕ �
 a (monotonic_sequence_limit_index a)
 
 lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]
-  (h : well_founded ((>) : α → α → Prop)) (a : ℕ →o α) :
-  (⨆ m, a m) = monotonic_sequence_limit a :=
+  [well_founded_gt α] (a : ℕ →o α) : (⨆ m, a m) = monotonic_sequence_limit a :=
 begin
   suffices : (⨆ (m : ℕ), a m) ≤ monotonic_sequence_limit a,
   { exact le_antisymm this (le_supr a _), },

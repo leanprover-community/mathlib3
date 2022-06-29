@@ -123,7 +123,7 @@ variables [has_lt α]
 /-- `s.is_wf` indicates that `<` is well-founded when restricted to `s`. -/
 def is_wf (s : set α) : Prop := well_founded_on s (<)
 
-lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
+lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded_lt α :=
 by simp [is_wf, well_founded_on_iff]
 
 variables {s t : set α}
@@ -870,8 +870,7 @@ end
 
 end finset
 
-lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) :
-  s.is_wf :=
+lemma well_founded.is_wf [has_lt α] [well_founded_lt α] (s : set α) : s.is_wf :=
 (set.is_wf_univ_iff.2 h).mono (set.subset_univ s)
 
 /-- A version of **Dickson's lemma** any subset of functions `Π s : σ, α s` is partially well
@@ -880,7 +879,7 @@ This includes the classical case of Dickson's lemma that `ℕ ^ n` is a well par
 Some generalizations would be possible based on this proof, to include cases where the target
 is partially well ordered, and also to consider the case of `partially_well_ordered_on` instead of
 `is_pwo`. -/
-lemma pi.is_pwo {σ : Type*} {α : σ → Type*} [∀ s, linear_order (α s)] [∀ s, is_well_order (α s) (<)]
+lemma pi.is_pwo {σ : Type*} {α : σ → Type*} [∀ s, linear_order (α s)] [∀ s, well_founded_lt (α s)]
   [fintype σ] (S : set (Π s : σ, α s)) : S.is_pwo :=
 begin
   classical,

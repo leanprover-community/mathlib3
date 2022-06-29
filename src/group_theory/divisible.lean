@@ -38,8 +38,8 @@ class divisible : Prop :=
 
 lemma divisible_iff_smul_top_eq_top :
   divisible A ↔ ∀ (n : ℤ), n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤ :=
-{ mp := λ d n hn,  (add_subgroup.eq_top_iff' (n • ⊤)).mpr $
-     λ x, ⟨(@@divisible.div _ d n hn x).some, trivial, (@@divisible.div _ d n hn x).some_spec⟩,
+{ mp := λ ⟨d⟩ n hn,  (add_subgroup.eq_top_iff' (n • ⊤)).mpr $
+     λ x, ⟨(d n hn x).some, trivial, (d n hn x).some_spec⟩,
   mpr := λ h, ⟨λ n hn x, begin
     rcases show x ∈ n • (⊤ : add_subgroup A), by rw h n hn; trivial with ⟨x', _, hx⟩,
     exact ⟨x', hx⟩,

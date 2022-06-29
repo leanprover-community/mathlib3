@@ -320,27 +320,15 @@ instance : semiring (submodule R A) :=
 
 variables (M)
 
+lemma pow_eq_span_pow_set : ∀ n : ℕ, M ^ n = span R ((M : set A) ^ n)
+| 0 := by rw [pow_zero, pow_zero, one_eq_span_one_set]
+| (n + 1) := by rw [pow_succ, pow_succ, pow_eq_span_pow_set, ←span_mul_span, span_eq]
+
 lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
-begin
-  induction n with n ih,
-  { erw [pow_zero, pow_zero, set.singleton_subset_iff],
-    rw [set_like.mem_coe, ← one_le],
-    exact le_rfl },
-  { rw [pow_succ, pow_succ],
-    refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
-    apply mul_subset_mul }
-end
+(pow_eq_span_pow_set M n).symm ▸ subset_span
 
 lemma pow_mem_pow {x : A} (hx : x ∈ M) (n : ℕ) : x ^ n ∈ M ^ n :=
 pow_subset_pow _ $ set.pow_mem_pow hx _
-
-lemma pow_eq_span_pow_set (s : submodule R A) (n : ℕ) :
-  s ^ n = span R ((s : set A) ^ n) :=
-begin
-  induction n,
-  { rw [pow_zero, pow_zero, one_eq_span_one_set], },
-  { rw [pow_succ, pow_succ, mul_eq_span_mul_set, n_ih, ←span_mul_span, span_span, span_mul_span] }
-end
 
 lemma pow_to_add_submonoid {n : ℕ} (h : n ≠ 0) :
   (M ^ n).to_add_submonoid = M.to_add_submonoid ^ n :=

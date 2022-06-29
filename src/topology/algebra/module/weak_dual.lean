@@ -186,8 +186,9 @@ namespace weak_dual
 
 instance : inhabited (weak_dual 𝕜 E) := continuous_linear_map.inhabited
 
-instance weak_dual.add_monoid_hom_class : add_monoid_hom_class (weak_dual 𝕜 E) E 𝕜 :=
-continuous_linear_map.add_monoid_hom_class
+instance weak_dual.continuous_linear_map_class :
+  continuous_linear_map_class (weak_dual 𝕜 E) 𝕜 E 𝕜 :=
+continuous_linear_map.continuous_semilinear_map_class
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/

@@ -590,7 +590,7 @@ by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
 /-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
 instance : well_founded_lt (multiset α) :=
-subrelation.is_well_founded (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+subrelation.is_well_founded (measure _) (λ _ _ , multiset.card_lt_of_lt)
 
 /-! ### `multiset.repeat` -/
 

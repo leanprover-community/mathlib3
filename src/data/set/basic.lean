@@ -944,10 +944,10 @@ lemma subset_compl_iff_disjoint_right : s ⊆ tᶜ ↔ disjoint s t :=
 lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
 lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
 
-alias subset_compl_iff_disjoint_right ↔ _ disjoint.subset_compl_right
-alias subset_compl_iff_disjoint_left ↔ _ disjoint.subset_compl_left
-alias disjoint_compl_left_iff_subset ↔ _ has_subset.subset.disjoint_compl_left
-alias disjoint_compl_right_iff_subset ↔ _ has_subset.subset.disjoint_compl_right
+alias subset_compl_iff_disjoint_right ↔ _ _root_.disjoint.subset_compl_right
+alias subset_compl_iff_disjoint_left ↔ _ _root_.disjoint.subset_compl_left
+alias disjoint_compl_left_iff_subset ↔ _ _root_.has_subset.subset.disjoint_compl_left
+alias disjoint_compl_right_iff_subset ↔ _ _root_.has_subset.subset.disjoint_compl_right
 
 theorem subset_union_compl_iff_inter_subset {s t u : set α} : s ⊆ t ∪ uᶜ ↔ s ∩ u ⊆ t :=
 (@is_compl_compl _ u _).le_sup_right_iff_inf_left_le

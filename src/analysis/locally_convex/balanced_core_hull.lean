@@ -49,8 +49,8 @@ section balanced_hull
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] {s t : set E} {x : E}
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] {s t : set E} {x : E}
 
 /-- The largest balanced subset of `s`.-/
 def balanced_core (s : set E) := ⋃₀ {t : set E | balanced 𝕜 t ∧ t ⊆ s}

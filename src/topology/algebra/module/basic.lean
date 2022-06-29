@@ -278,6 +278,8 @@ abbreviation continuous_linear_map_class (F : Type*)
   [module R M] [module R M₂] :=
 continuous_semilinear_map_class F (ring_hom.id R) M M₂
 
+set_option old_structure_cmd false
+
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological semiring `R`. -/
@@ -296,6 +298,7 @@ notation M ` ≃SL[`:50 σ `] ` M₂ := continuous_linear_equiv σ M M₂
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv (ring_hom.id R) M M₂
 notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (star_ring_end R) M M₂
 
+set_option old_structure_cmd true
 /-- `continuous_semilinear_equiv_class F σ M M₂` asserts `F` is a type of bundled continuous
 `σ`-semilinear equivs `M → M₂`.  See also `continuous_linear_equiv_class F R M M₂` for the case
 where `σ` is the identity map on `R`.  A map `f` between an `R`-module and an `S`-module over a ring
@@ -1396,7 +1399,17 @@ def to_continuous_linear_map (e : M₁ ≃SL[σ₁₂] M₂) : M₁ →SL[σ₁�
 /-- Coerce continuous linear equivs to continuous linear maps. -/
 instance : has_coe (M₁ ≃SL[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := ⟨to_continuous_linear_map⟩
 
-instance : continuous_semilinear_equiv_class (M₁ ≃SL[σ₁₂] M₂) σ₁₂ M₁ M₂ := sorry
+instance : continuous_semilinear_equiv_class (M₁ ≃SL[σ₁₂] M₂) σ₁₂ M₁ M₂ :=
+{ coe := λ f, f,
+  inv := λ f, f.inv_fun,
+  coe_injective' := λ f g h₁ h₂, by { cases f with f' _, cases g with g' _,  cases f', cases g',
+                                      congr' },
+  left_inv := λ f, f.left_inv,
+  right_inv := λ f, f.right_inv,
+  map_add := λ f, f.map_add',
+  map_smulₛₗ := λ f, f.map_smul',
+  map_continuous := continuous_to_fun,
+  inv_continuous := continuous_inv_fun }
 
 /-- Coerce continuous linear equivs to maps. -/
 -- see Note [function coercion]

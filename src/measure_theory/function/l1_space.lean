@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import measure_theory.function.lp_space
+import measure_theory.function.lp_order
 
 
 /-!
@@ -29,7 +29,7 @@ classes of integrable functions, already defined as a special case of `L^p` spac
 ## Main definitions
 
 * Let `f : α → β` be a function, where `α` is a `measure_space` and `β` a `normed_group`.
-  Then `has_finite_integral f` means `(∫⁻ a, nnnorm (f a)) < ∞`.
+  Then `has_finite_integral f` means `(∫⁻ a, ∥f a∥₊) < ∞`.
 
 * If `β` is moreover a `measurable_space` then `f` is called `integrable` if
   `f` is `measurable` and `has_finite_integral f` holds.
@@ -60,7 +60,7 @@ namespace measure_theory
 /-! ### Some results about the Lebesgue integral involving a normed group -/
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
-  ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
+  ∫⁻ a, ∥f a∥₊ ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
 by simp only [edist_eq_coe_nnnorm]
 
 lemma lintegral_norm_eq_lintegral_edist (f : α → β) :
@@ -68,24 +68,28 @@ lemma lintegral_norm_eq_lintegral_edist (f : α → β) :
 by simp only [of_real_norm_eq_coe_nnnorm, edist_eq_coe_nnnorm]
 
 lemma lintegral_edist_triangle {f g h : α → β}
-  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
-  (hh : ae_strongly_measurable h μ) :
+  (hf : ae_strongly_measurable f μ) (hh : ae_strongly_measurable h μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ ≤ ∫⁻ a, edist (f a) (h a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :=
 begin
-  rw ← lintegral_add' (hf.edist hh) (hg.edist hh),
+  rw ← lintegral_add_left' (hf.edist hh),
   refine lintegral_mono (λ a, _),
   apply edist_triangle_right
 end
 
-lemma lintegral_nnnorm_zero : ∫⁻ a : α, nnnorm (0 : β) ∂μ = 0 := by simp
+lemma lintegral_nnnorm_zero : ∫⁻ a : α, ∥(0 : β)∥₊ ∂μ = 0 := by simp
 
-lemma lintegral_nnnorm_add
-  {f : α → β} {g : α → γ} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
-  ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ = ∫⁻ a, nnnorm (f a) ∂μ + ∫⁻ a, nnnorm (g a) ∂μ :=
-lintegral_add' hf.ennnorm hg.ennnorm
+lemma lintegral_nnnorm_add_left
+  {f : α → β} (hf : ae_strongly_measurable f μ) (g : α → γ) :
+  ∫⁻ a, ∥f a∥₊ + ∥g a∥₊ ∂μ = ∫⁻ a, ∥f a∥₊ ∂μ + ∫⁻ a, ∥g a∥₊ ∂μ :=
+lintegral_add_left' hf.ennnorm _
+
+lemma lintegral_nnnorm_add_right
+  (f : α → β) {g : α → γ} (hg : ae_strongly_measurable g μ) :
+  ∫⁻ a, ∥f a∥₊ + ∥g a∥₊ ∂μ = ∫⁻ a, ∥f a∥₊ ∂μ + ∫⁻ a, ∥g a∥₊ ∂μ :=
+lintegral_add_right' _ hg.ennnorm
 
 lemma lintegral_nnnorm_neg {f : α → β} :
-  ∫⁻ a, nnnorm ((-f) a) ∂μ = ∫⁻ a, nnnorm (f a) ∂μ :=
+  ∫⁻ a, ∥(-f) a∥₊ ∂μ = ∫⁻ a, ∥f a∥₊ ∂μ :=
 by simp only [pi.neg_apply, nnnorm_neg]
 
 /-! ### The predicate `has_finite_integral` -/
@@ -93,7 +97,7 @@ by simp only [pi.neg_apply, nnnorm_neg]
 /-- `has_finite_integral f μ` means that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `has_finite_integral f` means `has_finite_integral f volume`. -/
 def has_finite_integral {m : measurable_space α} (f : α → β) (μ : measure α . volume_tac) : Prop :=
-∫⁻ a, nnnorm (f a) ∂μ < ∞
+∫⁻ a, ∥f a∥₊ ∂μ < ∞
 
 lemma has_finite_integral_iff_norm (f : α → β) :
   has_finite_integral f μ ↔ ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ < ∞ :=
@@ -207,7 +211,7 @@ by simpa [has_finite_integral] using hfi
 
 lemma has_finite_integral.norm {f : α → β} (hfi : has_finite_integral f μ) :
   has_finite_integral (λa, ∥f a∥) μ :=
-have eq : (λa, (nnnorm ∥f a∥ : ℝ≥0∞)) = λa, (nnnorm (f a) : ℝ≥0∞),
+have eq : (λa, (nnnorm ∥f a∥ : ℝ≥0∞)) = λa, (∥f a∥₊ : ℝ≥0∞),
   by { funext, rw nnnorm_norm },
 by { rwa [has_finite_integral, eq] }
 
@@ -357,7 +361,7 @@ lemma has_finite_integral.smul (c : 𝕜) {f : α → β} : has_finite_integral 
 begin
   simp only [has_finite_integral], assume hfi,
   calc
-    ∫⁻ (a : α), nnnorm (c • f a) ∂μ = ∫⁻ (a : α), (nnnorm c) * nnnorm (f a) ∂μ :
+    ∫⁻ (a : α), ∥c • f a∥₊ ∂μ = ∫⁻ (a : α), (∥c∥₊) * ∥f a∥₊ ∂μ :
       by simp only [nnnorm_smul, ennreal.coe_mul]
     ... < ∞ :
     begin
@@ -446,6 +450,25 @@ end
 lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
+lemma mem_ℒp.integrable_norm_rpow {f : α → β} {p : ℝ≥0∞}
+  (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  integrable (λ (x : α), ∥f x∥ ^ p.to_real) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable,
+  exact hf.norm_rpow hp_ne_zero hp_ne_top,
+end
+
+lemma mem_ℒp.integrable_norm_rpow' [is_finite_measure μ] {f : α → β} {p : ℝ≥0∞}
+  (hf : mem_ℒp f p μ) :
+  integrable (λ (x : α), ∥f x∥ ^ p.to_real) μ :=
+begin
+  by_cases h_zero : p = 0,
+  { simp [h_zero, integrable_const] },
+  by_cases h_top : p = ∞,
+  { simp [h_top, integrable_const] },
+  exact hf.integrable_norm_rpow h_zero h_top
+end
+
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_strongly_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩
 
@@ -486,6 +509,11 @@ lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0
   integrable f (c • μ) :=
 by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.smul_measure hc, }
 
+lemma integrable_smul_measure {f : α → β} {c : ℝ≥0∞} (h₁ : c ≠ 0) (h₂ : c ≠ ∞) :
+  integrable f (c • μ) ↔ integrable f μ :=
+⟨λ h, by simpa only [smul_smul, ennreal.inv_mul_cancel h₁ h₂, one_smul]
+  using h.smul_measure (ennreal.inv_ne_top.2 h₁), λ h, h.smul_measure h₂⟩
+
 lemma integrable.to_average {f : α → β} (h : integrable f μ) :
   integrable f ((μ univ)⁻¹ • μ) :=
 begin
@@ -493,6 +521,12 @@ begin
   { rwa smul_zero },
   { apply h.smul_measure, simpa }
 end
+
+lemma integrable_average [is_finite_measure μ] {f : α → β} :
+  integrable f ((μ univ)⁻¹ • μ) ↔ integrable f μ :=
+(eq_or_ne μ 0).by_cases (λ h, by simp [h]) $ λ h,
+  integrable_smul_measure (ennreal.inv_ne_zero.2 $ measure_ne_top _ _)
+    (ennreal.inv_ne_top.2 $ mt measure.measure_univ_eq_zero.1 h)
 
 lemma integrable_map_measure {f : α → δ} {g : δ → β}
   (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
@@ -530,9 +564,8 @@ lemma lintegral_edist_lt_top {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ < ∞ :=
 lt_of_le_of_lt
-  (lintegral_edist_triangle hf.ae_strongly_measurable hg.ae_strongly_measurable
-    (ae_strongly_measurable_const : ae_strongly_measurable (λa, (0 : β)) μ))
-  (ennreal.add_lt_top.2 $ by { simp_rw ← has_finite_integral_iff_edist,
+  (lintegral_edist_triangle hf.ae_strongly_measurable ae_strongly_measurable_zero)
+  (ennreal.add_lt_top.2 $ by { simp_rw [pi.zero_apply, ← has_finite_integral_iff_edist],
                                exact ⟨hf.has_finite_integral, hg.has_finite_integral⟩ })
 
 variables (α β μ)
@@ -540,25 +573,25 @@ variables (α β μ)
 by simp [integrable, ae_strongly_measurable_const]
 variables {α β μ}
 
-lemma integrable.add' {f g : α → β} (hf : integrable f μ)
-  (hg : integrable g μ) :
+lemma integrable.add' {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) :
   has_finite_integral (f + g) μ :=
-calc ∫⁻ a, nnnorm (f a + g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (g a) ∂μ :
+calc ∫⁻ a, ∥f a + g a∥₊ ∂μ ≤ ∫⁻ a, ∥f a∥₊ + ∥g a∥₊ ∂μ :
   lintegral_mono (λ a, by exact_mod_cast nnnorm_add_le _ _)
-... = _ : lintegral_nnnorm_add hf.ae_strongly_measurable hg.ae_strongly_measurable
+... = _ : lintegral_nnnorm_add_left hf.ae_strongly_measurable _
 ... < ∞ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
 
 lemma integrable.add
   {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) : integrable (f + g) μ :=
 ⟨hf.ae_strongly_measurable.add hg.ae_strongly_measurable, hf.add' hg⟩
 
+lemma integrable_finset_sum' {ι} (s : finset ι)
+  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (∑ i in s, f i) μ :=
+finset.sum_induction f (λ g, integrable g μ) (λ _ _, integrable.add)
+  (integrable_zero _ _ _) hf
+
 lemma integrable_finset_sum {ι} (s : finset ι)
   {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
-begin
-  simp only [← finset.sum_apply],
-  exact finset.sum_induction f (λ g, integrable g μ) (λ _ _, integrable.add)
-    (integrable_zero _ _ _) hf,
-end
+by simpa only [← finset.sum_apply] using integrable_finset_sum' s hf
 
 lemma integrable.neg {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_strongly_measurable.neg, hf.has_finite_integral.neg⟩
@@ -567,22 +600,48 @@ lemma integrable.neg {f : α → β} (hf : integrable f μ) : integrable (-f) μ
   integrable (-f) μ ↔ integrable f μ :=
 ⟨λ h, neg_neg f ▸ h.neg, integrable.neg⟩
 
-lemma integrable.sub' {f g : α → β}
-  (hf : integrable f μ) (hg : integrable g μ) : has_finite_integral (f - g) μ :=
-calc ∫⁻ a, nnnorm (f a - g a) ∂μ ≤ ∫⁻ a, nnnorm (f a) + nnnorm (-g a) ∂μ :
-  lintegral_mono (assume a, by { simp only [sub_eq_add_neg], exact_mod_cast nnnorm_add_le _ _ } )
-... = _ :
-  by { simp only [nnnorm_neg],
-       exact lintegral_nnnorm_add hf.ae_strongly_measurable hg.ae_strongly_measurable }
-... < ∞ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
-
 lemma integrable.sub {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : integrable (f - g) μ :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma integrable.norm {f : α → β} (hf : integrable f μ) :
-  integrable (λa, ∥f a∥) μ :=
+  integrable (λ a, ∥f a∥) μ :=
 ⟨hf.ae_strongly_measurable.norm, hf.has_finite_integral.norm⟩
+
+lemma integrable.inf {β} [normed_lattice_add_comm_group β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⊓ g) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf hg ⊢, exact hf.inf hg, }
+
+lemma integrable.sup {β} [normed_lattice_add_comm_group β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⊔ g) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf hg ⊢, exact hf.sup hg, }
+
+lemma integrable.abs {β} [normed_lattice_add_comm_group β] {f : α → β} (hf : integrable f μ) :
+  integrable (λ a, |f a|) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.abs, }
+
+lemma integrable.bdd_mul {F : Type*} [normed_division_ring F]
+  {f g : α → F} (hint : integrable g μ) (hm : ae_strongly_measurable f μ)
+  (hfbdd : ∃ C, ∀ x, ∥f x∥ ≤ C) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { rw μ.eq_zero_of_is_empty,
+    exact integrable_zero_measure },
+  { refine ⟨hm.mul hint.1, _⟩,
+    obtain ⟨C, hC⟩ := hfbdd,
+    have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (hC hα.some),
+    have : (λ x, ∥f x * g x∥₊) ≤ λ x, ⟨C, hCnonneg⟩ * ∥g x∥₊,
+    { intro x,
+      simp only [nnnorm_mul],
+      exact mul_le_mul_of_nonneg_right (hC x) (zero_le _) },
+    refine lt_of_le_of_lt (lintegral_mono_nnreal this) _,
+    simp only [ennreal.coe_mul],
+    rw lintegral_const_mul' _ _ ennreal.coe_ne_top,
+    exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hint.2) },
+end
 
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
@@ -804,13 +863,12 @@ mem_ℒp_one_iff_integrable.1 $ mem_ℒ1_to_real_of_lintegral_ne_top hfm hfi
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
-lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (f a) 0) μ :=
+lemma integrable.pos_part {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (f a) 0) μ :=
 ⟨(hf.ae_strongly_measurable.ae_measurable.max ae_measurable_const).ae_strongly_measurable,
   hf.has_finite_integral.max_zero⟩
 
-lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, min (f a) 0) μ :=
-⟨(hf.ae_strongly_measurable.ae_measurable.min ae_measurable_const).ae_strongly_measurable,
-  hf.has_finite_integral.min_zero⟩
+lemma integrable.neg_part {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (-f a) 0) μ :=
+hf.neg.pos_part
 
 end pos_part
 
@@ -829,9 +887,21 @@ lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, c * f x) μ :=
 integrable.smul c h
 
+lemma integrable.const_mul' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable ((λ (x : α), c) * f) μ :=
+integrable.smul c h
+
 lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
+
+lemma integrable.mul_const' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (f * (λ (x : α), c)) μ :=
+integrable.mul_const h c
+
+lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (λ x, f x / c) μ :=
+by simp_rw [div_eq_mul_inv, h.mul_const]
 
 end normed_space
 
@@ -914,13 +984,13 @@ variables {E : Type*} {m0 : measurable_space α} [normed_group E]
 
 lemma integrable_of_forall_fin_meas_le' {μ : measure α} (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_strongly_measurable f μ)
-  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
+  (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, ∥f x∥₊ ∂μ ≤ C) :
   integrable f μ :=
 ⟨hf_meas, (lintegral_le_of_forall_fin_meas_le' hm C hf_meas.ennnorm hf).trans_lt hC⟩
 
 lemma integrable_of_forall_fin_meas_le [sigma_finite μ]
   (C : ℝ≥0∞) (hC : C < ∞) {f : α → E} (hf_meas : ae_strongly_measurable f μ)
-  (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, nnnorm (f x) ∂μ ≤ C) :
+  (hf : ∀ s : set α, measurable_set s → μ s ≠ ∞ → ∫⁻ x in s, ∥f x∥₊ ∂μ ≤ C) :
   integrable f μ :=
 @integrable_of_forall_fin_meas_le' _ _ _ _ _ _ _ (by rwa trim_eq_self) C hC _ hf_meas hf
 
@@ -1020,14 +1090,14 @@ lemma dist_def (f g : α →₁[μ] β) :
 by { simp [Lp.dist_def, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
 
 lemma norm_def (f : α →₁[μ] β) :
-  ∥f∥ = (∫⁻ a, nnnorm (f a) ∂μ).to_real :=
+  ∥f∥ = (∫⁻ a, ∥f a∥₊ ∂μ).to_real :=
 by { simp [Lp.norm_def, snorm, snorm'] }
 
 /-- Computing the norm of a difference between two L¹-functions. Note that this is not a
   special case of `norm_def` since `(f - g) x` and `f x - g x` are not equal
   (but only a.e.-equal). -/
 lemma norm_sub_eq_lintegral (f g : α →₁[μ] β) :
-  ∥f - g∥ = (∫⁻ x, (nnnorm (f x - g x) : ℝ≥0∞) ∂μ).to_real :=
+  ∥f - g∥ = (∫⁻ x, (∥f x - g x∥₊ : ℝ≥0∞) ∂μ).to_real :=
 begin
   rw [norm_def],
   congr' 1,
@@ -1037,14 +1107,14 @@ begin
 end
 
 lemma of_real_norm_eq_lintegral (f : α →₁[μ] β) :
-  ennreal.of_real ∥f∥ = ∫⁻ x, (nnnorm (f x) : ℝ≥0∞) ∂μ :=
+  ennreal.of_real ∥f∥ = ∫⁻ x, (∥f x∥₊ : ℝ≥0∞) ∂μ :=
 by { rw [norm_def, ennreal.of_real_to_real], exact ne_of_lt (has_finite_integral_coe_fn f) }
 
 /-- Computing the norm of a difference between two L¹-functions. Note that this is not a
   special case of `of_real_norm_eq_lintegral` since `(f - g) x` and `f x - g x` are not equal
   (but only a.e.-equal). -/
 lemma of_real_norm_sub_eq_lintegral (f g : α →₁[μ] β) :
-  ennreal.of_real ∥f - g∥ = ∫⁻ x, (nnnorm (f x - g x) : ℝ≥0∞) ∂μ :=
+  ennreal.of_real ∥f - g∥ = ∫⁻ x, (∥f x - g x∥₊ : ℝ≥0∞) ∂μ :=
 begin
   simp_rw [of_real_norm_eq_lintegral, ← edist_eq_coe_nnnorm],
   apply lintegral_congr_ae,

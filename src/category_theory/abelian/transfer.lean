@@ -17,7 +17,7 @@ we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
 then `C` is also abelian.
 
-See https://stacks.math.columbia.edu/tag/03A3
+See <https://stacks.math.columbia.edu/tag/03A3>
 
 ## Notes
 The hypotheses, following the statement from the Stacks project,
@@ -153,7 +153,7 @@ we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
 then `C` is also abelian.
 
-See https://stacks.math.columbia.edu/tag/03A3
+See <https://stacks.math.columbia.edu/tag/03A3>
 -/
 def abelian_of_adjunction
   {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
@@ -167,5 +167,16 @@ begin
   { intros X Y f, rw ←coimage_iso_image_hom F G i adj f, apply_instance, },
   apply abelian.of_coimage_image_comparison_is_iso,
 end
+
+/--
+If `C` is an additive category equivalent to an abelian category `D`
+via a functor that preserves zero morphisms,
+then `C` is also abelian.
+-/
+def abelian_of_equivalence
+  {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
+  {D : Type u₂} [category.{v} D] [abelian D]
+  (F : C ⥤ D) [functor.preserves_zero_morphisms F] [is_equivalence F] : abelian C :=
+abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm F.as_equivalence.symm.to_adjunction
 
 end category_theory

@@ -150,7 +150,7 @@ begin
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
   { refine is_topological_basis_of_open_of_nhds _ _,
-    { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
+    { rintros sU ⟨U, ⟨H₁, rfl⟩⟩, exact U.property },
     { intros x sU hx hsU,
       rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
       exact ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
@@ -199,12 +199,9 @@ protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
   comap f (comap g U) = comap (g.comp f) U := rfl
 
 lemma comap_injective [t0_space β] : injective (comap : C(α, β) → frame_hom (opens β) (opens α)) :=
-λ f g h, continuous_map.ext $ λ a, indistinguishable.eq $ λ s hs, begin
-  simp_rw ←mem_preimage,
-  congr' 2,
-  have := fun_like.congr_fun h ⟨_, hs⟩,
-  exact congr_arg (coe : opens α → set α) this,
-end
+λ f g h, continuous_map.ext $ λ a, inseparable.eq $ inseparable_iff_forall_open.2 $ λ s hs,
+have comap f ⟨s, hs⟩ = comap g ⟨s, hs⟩, from fun_like.congr_fun h ⟨_, hs⟩,
+show a ∈ f ⁻¹' s ↔ a ∈ g ⁻¹' s, from set.ext_iff.1 (ext_iff.2 this) a
 
 /-- A homeomorphism induces an equivalence on open sets, by taking comaps. -/
 @[simp] protected def equiv (f : α ≃ₜ β) : opens α ≃ opens β :=

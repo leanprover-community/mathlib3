@@ -9,7 +9,7 @@ import data.list.big_operators
 # Join of a list of lists
 
 This file proves basic properties of `list.join`, which concatenates a list of lists. It is defined
-in [`data.list.defs`](./data/list/defs).
+in [`data.list.defs`](./defs).
 -/
 
 variables {α β : Type*}
@@ -26,6 +26,9 @@ attribute [simp] join
 
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+lemma join_concat (L : list (list α)) (l : list α) : join (L.concat l) = join L ++ l :=
+by simp
 
 @[simp] lemma join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
   ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join

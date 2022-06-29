@@ -7,7 +7,7 @@ import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
-import algebra.category.CommRing.constructions
+import algebra.category.Ring.constructions
 import ring_theory.integral_domain
 import ring_theory.local_properties
 
@@ -31,16 +31,16 @@ variable (X : Scheme)
 
 instance : t0_space X.carrier :=
 begin
-  rw t0_space_iff_distinguishable,
-  intros x y h h',
+  rw t0_space_iff_inseparable,
+  intros x y h,
   obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
-  have hy := (h' _ U.1.2).mp U.2,
-  erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
+  have hy : y ∈ U.val := (h.mem_open_iff U.1.2).1 U.2,
+  erw ← subtype_inseparable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h,
   let e' : U.1 ≃ₜ prime_spectrum R :=
     homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
   have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
-  rw t0_space_iff_distinguishable at this,
-  exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
+  rw t0_space_iff_inseparable at this,
+  by simpa only [subtype.mk_eq_mk] using this ⟨x, U.2⟩ ⟨y, hy⟩ h
 end
 
 instance : quasi_sober X.carrier :=
@@ -204,7 +204,7 @@ begin
     replace hs := (hs.map (Spec_Γ_identity.app R).inv),
     -- what the hell?!
     replace hs := @is_nilpotent.eq_zero _ _ _ _ (show _, from _) hs,
-    rw coe_hom_inv_id at hs,
+    rw iso.hom_inv_id_apply at hs,
     rw [hs, map_zero],
     exact @@is_reduced.component_reduced hX ⊤ }
 end
@@ -336,7 +336,7 @@ lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : 
   [H : nonempty U] :
   function.injective (X.presheaf.map i.op) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros x hx,
   rw ← basic_open_eq_bot_iff at ⊢ hx,
   rw Scheme.basic_open_res at hx,

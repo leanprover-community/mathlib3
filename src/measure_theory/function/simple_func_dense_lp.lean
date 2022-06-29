@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
 import measure_theory.function.l1_space
-import measure_theory.function.lp_order
 import measure_theory.function.simple_func_dense
 
 /-!
@@ -259,8 +258,8 @@ let ⟨C, hfC⟩ := f.exists_forall_norm_le in
 mem_ℒp_top_of_bound f.ae_strongly_measurable C $ eventually_of_forall hfC
 
 protected lemma snorm'_eq {p : ℝ} (f : α →ₛ F) (μ : measure α) :
-  snorm' f p μ = (∑ y in f.range, (nnnorm y : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
-have h_map : (λ a, (nnnorm (f a) : ℝ≥0∞) ^ p) = f.map (λ a : F, (nnnorm a : ℝ≥0∞) ^ p), by simp,
+  snorm' f p μ = (∑ y in f.range, (∥y∥₊ : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
+have h_map : (λ a, (∥f a∥₊ : ℝ≥0∞) ^ p) = f.map (λ a : F, (∥a∥₊ : ℝ≥0∞) ^ p), by simp,
 by rw [snorm', h_map, lintegral_eq_lintegral, map_lintegral]
 
 lemma measure_preimage_lt_top_of_mem_ℒp (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) (f : α →ₛ E)
@@ -395,9 +394,11 @@ def simple_func : add_subgroup (Lp E p μ) :=
                 ∃ (s : α →ₛ E), (ae_eq_fun.mk s s.ae_strongly_measurable : α →ₘ[μ] E) = f},
   zero_mem' := ⟨0, rfl⟩,
   add_mem' := λ f g ⟨s, hs⟩ ⟨t, ht⟩, ⟨s + t,
-      by simp only [←hs, ←ht, mk_add_mk, add_subgroup.coe_add, mk_eq_mk, simple_func.coe_add]⟩,
+      by simp only [←hs, ←ht, ae_eq_fun.mk_add_mk, add_subgroup.coe_add, ae_eq_fun.mk_eq_mk,
+        simple_func.coe_add]⟩,
   neg_mem' := λ f ⟨s, hs⟩, ⟨-s,
-      by simp only [←hs, neg_mk, simple_func.coe_neg, mk_eq_mk, add_subgroup.coe_neg]⟩ }
+      by simp only [←hs, ae_eq_fun.neg_mk, simple_func.coe_neg, ae_eq_fun.mk_eq_mk,
+        add_subgroup.coe_neg]⟩ }
 
 variables {E p μ}
 
@@ -425,7 +426,7 @@ protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λ k f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
-  apply eq.trans (smul_mk k s s.ae_strongly_measurable).symm _,
+  apply eq.trans (ae_eq_fun.smul_mk k s s.ae_strongly_measurable).symm _,
   rw hs,
   refl,
 end ⟩⟩
@@ -533,7 +534,7 @@ simple_func.eq' (classical.some_spec f.2)
 
 lemma to_simple_func_to_Lp (f : α →ₛ E) (hfi : mem_ℒp f p μ) :
   to_simple_func (to_Lp f hfi) =ᵐ[μ] f :=
-by { rw ← mk_eq_mk, exact classical.some_spec (to_Lp f hfi).2 }
+by { rw ← ae_eq_fun.mk_eq_mk, exact classical.some_spec (to_Lp f hfi).2 }
 
 variables (E μ)
 

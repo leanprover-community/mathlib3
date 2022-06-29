@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
 import order.basic
+import logic.is_empty
 
 /-!
 # Unbundled relation classes
@@ -19,6 +20,8 @@ universes u v
 variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β → Prop}
 
 open function
+
+lemma of_eq [is_refl α r] : ∀ {a b}, a = b → r a b | _ _ ⟨h⟩ := refl _
 
 lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
 lemma antisymm' [is_antisymm α r] {a b : α} : r a b → r b a → b = a := λ h h', antisymm h' h
@@ -81,6 +84,16 @@ instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y | _ _ h rfl := irrefl _ h
 lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _ _ h rfl := irrefl _ h
 
+lemma not_rel (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
+subsingleton.elim x y ▸ irrefl x
+
+@[simp] lemma empty_relation_apply (a b : α) : empty_relation a b ↔ false := iff.rfl
+
+lemma eq_empty_relation (r) [is_irrefl α r] [subsingleton α] : r = empty_relation :=
+funext₂ $ by simpa using not_rel r
+
+instance : is_irrefl α empty_relation := ⟨λ a, id⟩
+
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
 begin
@@ -94,6 +107,8 @@ begin
   intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
+
+lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
 
 /-- Construct a partial order from a `is_strict_order` relation.
 
@@ -223,11 +238,27 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
   linear_order α :=
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
+/-- Derive a `has_well_founded` instance from a `is_well_order` instance. -/
+def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
+  has_well_founded α := { r := (<), wf := hwo.wf }
+
+-- This isn't made into an instance as it loops with `is_irrefl α r`.
+theorem subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
+  is_well_order α r :=
+{ trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim a b,
+  trans        := λ a b c h, (not_rel r a b h).elim,
+  wf           := ⟨λ a, ⟨_, λ y h, (not_rel r y a h).elim⟩⟩,
+  ..hr }
+
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
-{ trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
-  irrefl       := λ a, id,
-  trans        := λ a b c, false.elim,
-  wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
+subsingleton.is_well_order _
+
+@[priority 100]
+instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
+{ trichotomous := is_empty_elim,
+  irrefl       := is_empty_elim,
+  trans        := is_empty_elim,
+  wf           := well_founded_of_empty r }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
@@ -265,6 +296,9 @@ by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, 
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by rw [not_iff_comm, not_bounded_iff]
+
+lemma unbounded_of_is_empty [is_empty α] {r : α → α → Prop} (s : set α) : unbounded r s :=
+is_empty_elim
 
 end set
 
@@ -449,7 +483,15 @@ instance [linear_order α] : is_order_connected α (<) := by apply_instance
 instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
 instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
 
-instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
+lemma transitive_le [preorder α] : transitive (@has_le.le α _) := transitive_of_trans _
+lemma transitive_lt [preorder α] : transitive (@has_lt.lt α _) := transitive_of_trans _
+lemma transitive_ge [preorder α] : transitive (@ge α _) := transitive_of_trans _
+lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans _
+
+instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+
+instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
+instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

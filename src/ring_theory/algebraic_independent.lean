@@ -62,7 +62,7 @@ ring_hom.injective_iff_ker_eq_bot _
 
 theorem algebraic_independent_iff : algebraic_independent R x ↔
   ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
-ring_hom.injective_iff _
+injective_iff_map_eq_zero _
 
 theorem algebraic_independent.eq_zero_of_aeval_eq_zero (h : algebraic_independent R x) :
   ∀p : mv_polynomial ι R, mv_polynomial.aeval (x : ι → A) p = 0 → p = 0 :=
@@ -268,7 +268,7 @@ theorem algebraic_independent_comp_subtype {s : set ι} :
 have (aeval (x ∘ coe : s → A) : _ →ₐ[R] _) =
   (aeval x).comp (rename coe), by ext; simp,
 have ∀ p : mv_polynomial s R, rename (coe : s → ι) p = 0 ↔ p = 0,
-  from (ring_hom.injective_iff' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
+  from (injective_iff_map_eq_zero' (rename (coe : s → ι) : mv_polynomial s R →ₐ[R] _).to_ring_hom).1
     (rename_injective _ subtype.val_injective),
 by simp [algebraic_independent_iff, supported_eq_range_rename, *]
 
@@ -278,7 +278,7 @@ theorem algebraic_independent_subtype {s : set A} :
 by apply @algebraic_independent_comp_subtype _ _ _ id
 
 lemma algebraic_independent_of_finite (s : set A)
-  (H : ∀ t ⊆ s, finite t → algebraic_independent R (λ x, x : t → A)) :
+  (H : ∀ t ⊆ s, t.finite → algebraic_independent R (λ x, x : t → A)) :
   algebraic_independent R (λ x, x : s → A) :=
 algebraic_independent_subtype.2 $
   λ p hp, algebraic_independent_subtype.1 (H _ (mem_supported.1 hp) (finset.finite_to_set _)) _

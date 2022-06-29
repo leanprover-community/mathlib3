@@ -78,11 +78,8 @@ by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 
-instance : decidable_pred (even : ℕ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
-
-instance decidable_pred_odd : decidable_pred (odd : ℕ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) odd_iff_not_even.symm
+instance : decidable_pred (even : ℕ → Prop) := λ n, decidable_of_iff _ even_iff.symm
+instance : decidable_pred (odd : ℕ → Prop) := λ n, decidable_of_iff _ odd_iff_not_even.symm
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
@@ -112,11 +109,6 @@ begin
   conv { to_rhs, rw [←tsub_add_cancel_of_le h, even_add] },
   by_cases h : even n; simp [h]
 end
-
-theorem even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
-(le_total n m).elim
-  (λ h, by simp only [even_sub h, *])
-  (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
 
 theorem even_sub' (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
@@ -194,20 +186,6 @@ end
 lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
 odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 
-section distrib_neg_monoid
-
-variables {R : Type*} [monoid R] [has_distrib_neg R]
-
-@[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
-
-alias nat.neg_one_sq ← nat.neg_one_pow_two
-
-theorem neg_one_pow_of_even : even n → (-1 : R) ^ n = 1 :=
-by { rintro ⟨c, rfl⟩, simp [← two_mul, pow_mul] }
-
-theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
-by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
-
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
  λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
@@ -223,15 +201,6 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
-theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
-begin
-  refine ⟨λ h, _, neg_one_pow_of_even⟩,
-  contrapose! h1,
-  exact (neg_one_pow_of_odd $ odd_iff_not_even.mpr h1).symm.trans h
-end
-
-end distrib_neg_monoid
-
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : ℕ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=
@@ -241,3 +210,11 @@ example : ¬ even 25394535 :=
 by simp
 
 end nat
+
+open nat
+
+variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
+
+lemma neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
+⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
+  even.neg_one_pow⟩

@@ -6,7 +6,7 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 
 import data.fin.vec_notation
 import group_theory.abelianization
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 # Solvable Groups

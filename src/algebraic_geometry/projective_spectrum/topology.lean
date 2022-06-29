@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Johan Commelin
 -/
 
-import topology.sets.opens
+import topology.category.Top
 import ring_theory.graded_algebra.homogeneous_ideal
 
 /-!
@@ -30,11 +30,14 @@ It is naturally endowed with a topology: the Zariski topology.
 * `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of
   `projective_spectrum 𝒜` is the intersection of points in `t` (viewed as relevant homogeneous prime
   ideals).
+* `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
+  Zariski topology
+
 -/
 
 noncomputable theory
 open_locale direct_sum big_operators pointwise
-open direct_sum set_like
+open direct_sum set_like Top topological_space category_theory opposite
 
 variables {R A: Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
@@ -127,19 +130,19 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum �
 variable (𝒜)
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_ideal : @galois_connection
-  (ideal A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (ideal A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t).to_ideal) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_set : @galois_connection
-  (set A) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (set A) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ s, zero_locus 𝒜 s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi A _).gc,
 by simpa [zero_locus_span, function.comp] using galois_connection.compose ideal_gc (gc_ideal 𝒜)
 
 lemma gc_homogeneous_ideal : @galois_connection
-  (homogeneous_ideal 𝒜) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (homogeneous_ideal 𝒜) (set (projective_spectrum 𝒜))ᵒᵈ _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t)) :=
 λ I t, by simpa [show I.to_ideal ≤ (vanishing_ideal t).to_ideal ↔ I ≤ (vanishing_ideal t),
   from iff.rfl] using subset_zero_locus_iff_le_vanishing_ideal t I.to_ideal
@@ -302,6 +305,11 @@ topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
   end
   (by { rintros _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
 
+/--
+The underlying topology of `Proj` is the projective spectrum of graded ring `A`.
+-/
+def Top : Top := Top.of (projective_spectrum 𝒜)
+
 lemma is_open_iff (U : set (projective_spectrum 𝒜)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus 𝒜 s :=
 by simp only [@eq_comm _ Uᶜ]; refl
@@ -384,8 +392,8 @@ topological_space.opens.ext $ set.ext $ λ z, begin
   split; intros hz,
   { rcases show ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal, begin
       contrapose! hz with H,
-      haveI : Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0) := λ _, classical.dec_pred _,
-      rw ←graded_algebra.sum_support_decompose 𝒜 f,
+      classical,
+      rw ←direct_sum.sum_support_decompose 𝒜 f,
       apply ideal.sum_mem _ (λ i hi, H i)
     end with ⟨i, hi⟩,
     exact ⟨basic_open 𝒜 (graded_algebra.proj 𝒜 i f), ⟨i, rfl⟩, by rwa mem_basic_open⟩ },

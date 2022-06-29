@@ -490,4 +490,7 @@ rfl
 @[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
 rfl
 
+@[simp] lemma elim_none_some (f : option α → β) : option.elim (f none) (f ∘ some) = f :=
+funext $ λ o, by cases o; refl
+
 end option

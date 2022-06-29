@@ -54,7 +54,7 @@ noncomputable theory
 
 variables (R : Type u) (X : Type v) [comm_ring R]
 
-/-- We save characters by using Bourbaki's name `lib` (as in «libre») for
+/- We save characters by using Bourbaki's name `lib` (as in «libre») for
 `free_non_unital_non_assoc_algebra` in this file. -/
 local notation `lib` := free_non_unital_non_assoc_algebra
 local notation `lib.lift` := free_non_unital_non_assoc_algebra.lift
@@ -201,7 +201,7 @@ begin
 end
 
 /-- The quotient map as a `non_unital_alg_hom`. -/
-def mk : non_unital_alg_hom R (lib R X) (free_lie_algebra R X) :=
+def mk : lib R X →ₙₐ[R] free_lie_algebra R X :=
 { to_fun    := quot.mk (rel R X),
   map_smul' := λ t a, rfl,
   map_zero' := rfl,

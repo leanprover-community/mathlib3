@@ -379,9 +379,18 @@ begin
   congr' 1,
 end
 
+instance : has_nat_cast (homogeneous_localization 𝒜 x) := ⟨nat.unary_cast⟩
+instance : has_int_cast (homogeneous_localization 𝒜 x) := ⟨int.cast_def⟩
+
+@[simp] lemma nat_cast_val (n : ℕ) : (n : homogeneous_localization 𝒜 x).val = n :=
+show val (nat.unary_cast n) = _, by induction n; simp [nat.unary_cast, zero_val, one_val, *]
+
+@[simp] lemma int_cast_val (n : ℤ) : (n : homogeneous_localization 𝒜 x).val = n :=
+show val (int.cast_def n) = _, by cases n; simp [int.cast_def, zero_val, one_val, *]
+
 instance : comm_ring (homogeneous_localization 𝒜 x) :=
 (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
-  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val
+  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val nat_cast_val int_cast_val
 
 end homogeneous_localization
 
@@ -470,28 +479,30 @@ end, λ ⟨⟨_, b, eq1, eq2⟩, rfl⟩, begin
   exact ⟨⟨f.val, b.val, eq1, eq2⟩, rfl⟩
 end⟩
 
+instance : nontrivial (homogeneous_localization 𝒜 x) :=
+⟨⟨0, 1, λ r, by simpa [ext_iff_val, zero_val, one_val, zero_ne_one] using r⟩⟩
+
 instance : local_ring (homogeneous_localization 𝒜 x) :=
-{ exists_pair_ne := ⟨0, 1, λ r, by simpa [ext_iff_val, zero_val, one_val, zero_ne_one] using r⟩,
-  is_local := λ a, begin
-    simp only [← is_unit_iff_is_unit_val, sub_val, one_val],
-    induction a using quotient.induction_on',
-    simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
-    by_cases mem1 : a.num.1 ∈ x,
-    { right,
-      have : a.denom.1 - a.num.1 ∈ x.prime_compl := λ h, a.denom_not_mem
-        ((sub_add_cancel a.denom.val a.num.val) ▸ ideal.add_mem _ h mem1 : a.denom.1 ∈ x),
-      apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
-      simp only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
-        submonoid.coe_mul],
-      convert localization.mk_self _,
-      simp only [← subtype.val_eq_coe, submonoid.coe_mul],
-      ring, },
-    { left,
-      change _ ∈ x.prime_compl at mem1,
-      apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.num.1, mem1⟩),
-      rw [localization.mk_mul],
-      convert localization.mk_self _,
-      simpa only [mul_comm], },
-end }
+local_ring.of_is_unit_or_is_unit_one_sub_self $ λ a, begin
+  simp only [← is_unit_iff_is_unit_val, sub_val, one_val],
+  induction a using quotient.induction_on',
+  simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
+  by_cases mem1 : a.num.1 ∈ x,
+  { right,
+    have : a.denom.1 - a.num.1 ∈ x.prime_compl := λ h, a.denom_not_mem
+      ((sub_add_cancel a.denom.val a.num.val) ▸ ideal.add_mem _ h mem1 : a.denom.1 ∈ x),
+    apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
+    simp only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
+      submonoid.coe_mul],
+    convert localization.mk_self _,
+    simp only [← subtype.val_eq_coe, submonoid.coe_mul],
+    ring, },
+  { left,
+    change _ ∈ x.prime_compl at mem1,
+    apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.num.1, mem1⟩),
+    rw [localization.mk_mul],
+    convert localization.mk_self _,
+    simpa only [mul_comm], },
+end
 
 end homogeneous_localization

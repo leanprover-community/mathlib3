@@ -21,15 +21,14 @@ valuation from each `X i` to `r i`.
 
 -/
 
-universes u
 open_locale big_operators polynomial
 
 open finset polynomial fintype
 
 namespace mv_polynomial
 
-variables {R : Type u} [comm_semiring R]
-variables (σ : Type u) [fintype σ]
+variables {R : Type*} [comm_semiring R]
+variables (σ : Type*) [fintype σ]
 
 /-- A sum version of Vieta's formula. Viewing `X i` as variables,
 the product of linear terms `λ + X i` is equal to a linear combination of
@@ -47,7 +46,6 @@ begin
   have h : (univ \ t).card = card σ - j :=
   by { rw card_sdiff (mem_powerset_len.mp ht).1, congr, exact (mem_powerset_len.mp ht).2 },
   rw [map_prod, prod_const, ← h],
-  congr,
 end
 
 /-- A fully expanded sum version of Vieta's formula, evaluated at the roots.

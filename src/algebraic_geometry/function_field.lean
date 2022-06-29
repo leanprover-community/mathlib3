@@ -65,7 +65,7 @@ end
 lemma germ_injective_of_is_integral [is_integral X] {U : opens X.carrier} (x : U) :
   function.injective (X.presheaf.germ x) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros y hy,
   rw ← (X.presheaf.germ x).map_zero at hy,
   obtain ⟨W, hW, iU, iV, e⟩ := X.presheaf.germ_eq _ x.prop x.prop _ _ hy,
@@ -115,10 +115,7 @@ end
 
 noncomputable
 instance (R : CommRing) [is_domain R] : algebra R (Scheme.Spec.obj $ op R).function_field :=
-begin
-  apply ring_hom.to_algebra,
-  exact structure_sheaf.to_stalk R _,
-end
+ring_hom.to_algebra $ by { change CommRing.of R ⟶ _, apply structure_sheaf.to_stalk }
 
 @[simp] lemma generic_point_eq_bot_of_affine (R : CommRing) [is_domain R] :
   generic_point (Scheme.Spec.obj $ op R).carrier = (⟨0, ideal.bot_prime⟩ : prime_spectrum R) :=

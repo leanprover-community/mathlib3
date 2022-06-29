@@ -1101,6 +1101,9 @@ lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
 @[simp] lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=
 dif_neg (infinite_iff.1 h).not_lt
 
+@[simp] theorem aleph_0_to_nat : to_nat ℵ₀ = 0 :=
+to_nat_apply_of_aleph_0_le le_rfl
+
 lemma mk_to_nat_eq_card [fintype α] : (#α).to_nat = fintype.card α := by simp
 
 @[simp] lemma zero_to_nat : to_nat 0 = 0 :=
@@ -1187,6 +1190,9 @@ by rw [to_enat_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
 
 @[simp] lemma mk_to_enat_of_infinite [h : infinite α] : (#α).to_enat = ⊤ :=
 to_enat_apply_of_aleph_0_le (infinite_iff.1 h)
+
+@[simp] theorem aleph_0_to_enat : to_enat ℵ₀ = ⊤ :=
+to_enat_apply_of_aleph_0_le le_rfl
 
 lemma to_enat_surjective : surjective to_enat :=
 λ x, enat.cases_on x ⟨ℵ₀, to_enat_apply_of_aleph_0_le le_rfl⟩ $ λ n, ⟨n, to_enat_cast n⟩

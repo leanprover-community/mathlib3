@@ -7,6 +7,7 @@ import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
+import analysis.normed_space.banach
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -2299,6 +2300,25 @@ by rw [hT x y, inner_conj_sym]
   (x y : E) :
   ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
+
+/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
+  it is automatically continuous. -/
+lemma is_self_adjoint.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) :
+  continuous T :=
+begin
+  -- We prove it by using the closed graph theorem
+  refine T.continuous_of_seq_closed_graph (λ u x y hu hTu, _),
+  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  have hlhs : ∀ k : ℕ, ⟪T (u k) - T x, y - T x⟫ = ⟪u k - x, T (y - T x)⟫ :=
+  by { intro k, rw [←T.map_sub, hT] },
+  refine @tendsto_nhds_unique _ _ _ _ (λ k : ℕ, ⟪T (u k) - T x, y - T x⟫) at_top _ _ _ _ _,
+  { exact (hTu.sub_const _).inner tendsto_const_nhds },
+  simp_rw hlhs,
+  rw ←@inner_zero_left 𝕜 E _ _ (T (y - T x)),
+  refine filter.tendsto.inner _ tendsto_const_nhds,
+  rw ←sub_self x,
+  exact hu.sub_const _,
+end
 
 /-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
 @[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply

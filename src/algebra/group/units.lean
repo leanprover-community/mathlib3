@@ -132,12 +132,11 @@ ext hv
 @[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
 { inv := has_inv.inv,
   mul_left_inv := λ u, ext u.inv_val,
-  mul_assoc := λ u v w, ext $ mul_assoc _ _ _,
+  mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
   mul := mul_one_class.mul,
   one := mul_one_class.one,
   one_mul := mul_one_class.one_mul,
-  mul_one := mul_one_class.mul_one
-}
+  mul_one := mul_one_class.mul_one}
 
 @[to_additive] instance {α} [comm_monoid α] : comm_group αˣ :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }

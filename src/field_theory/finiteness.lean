@@ -27,7 +27,7 @@ its dimension (as a cardinal) is strictly less than the first infinite cardinal 
 lemma iff_dim_lt_aleph_0 : is_noetherian K V ↔ module.rank K V < ℵ₀ :=
 begin
   let b := basis.of_vector_space K V,
-  rw [← b.mk_eq_dim'', lt_aleph_0_iff_finite],
+  rw [← b.mk_eq_dim', lt_aleph_0_iff_finite],
   split,
   { introI,
     exact finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V) },

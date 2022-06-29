@@ -209,7 +209,7 @@ by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 /- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
 `b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. This theorem is stated
 in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given the lemmas
-`cardinal.lift_le_udown`, `cardinal.lift_lt_udown`, and `cardinal.lift_eq_udown`, this
+`cardinal.lift_umax_le`, `cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this
 small generalization is worth the elaboration problems. -/
 private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
@@ -229,7 +229,7 @@ quotient.eq.trans
 @[simp] theorem lift_le {a b : cardinal} : lift a ≤ lift b ↔ a ≤ b :=
 induction_on₂ a b $ λ α β, by { rw ← lift_umax, exact lift_mk_le' }
 
-@[simp] theorem lift_le_udown {a : cardinal.{u}} {b : cardinal.{v}} :
+@[simp] theorem lift_umax_le {a : cardinal.{u}} {b : cardinal.{v}} :
   lift.{max v w} a ≤ lift.{max u w} b ↔ lift.{v} a ≤ lift.{u} b :=
 by rw [←lift_lift, ←lift_lift, lift_le]
 
@@ -242,14 +242,14 @@ theorem lift_injective : injective lift.{u v} := lift_order_embedding.injective
 @[simp] theorem lift_inj {a b : cardinal} : lift a = lift b ↔ a = b :=
 lift_injective.eq_iff
 
-@[simp] theorem lift_eq_udown {a : cardinal.{u}} {b : cardinal.{v}} :
+@[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
   lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
 by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
 lift_order_embedding.lt_iff_lt
 
-@[simp] theorem lift_lt_udown {a : cardinal.{u}} {b : cardinal.{v}} :
+@[simp] theorem lift_umax_lt {a : cardinal.{u}} {b : cardinal.{v}} :
   lift.{max v w} a < lift.{max u w} b ↔ lift.{v} a < lift.{u} b :=
 by rw [←lift_lift, ←lift_lift, lift_lt]
 
@@ -730,10 +730,6 @@ le_antisymm
     exact h.not_lt (lt_succ _)
   end)
   (succ_le_of_lt $ lift_lt.2 $ lt_succ a)
-
-@[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
-  lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
-by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
 lift_monotone.map_min

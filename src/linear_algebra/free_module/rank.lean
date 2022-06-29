@@ -33,7 +33,7 @@ variables [add_comm_group N] [module R N] [module.free R N]
 
 /-- The rank of a free module `M` over `R` is the cardinality of `choose_basis_index R M`. -/
 lemma rank_eq_card_choose_basis_index : module.rank R M = #(choose_basis_index R M) :=
-(choose_basis R M).mk_eq_dim''.symm
+(choose_basis R M).mk_eq_dim'.symm
 
 /-- The rank of `(ι →₀ R)` is `(# ι).lift`. -/
 @[simp] lemma rank_finsupp {ι : Type v} : module.rank R (ι →₀ R) = (# ι).lift :=
@@ -61,7 +61,7 @@ lemma rank_prod' (N : Type v) [add_comm_group N] [module R N] [module.free R N] 
 begin
   let B := λ i, choose_basis R (M i),
   let b : basis _ R (⨁ i, M i) := dfinsupp.basis (λ i, B i),
-  simp [← b.mk_eq_dim'', λ i, (B i).mk_eq_dim''],
+  simp [← b.mk_eq_dim', λ i, (B i).mk_eq_dim'],
 end
 
 /-- The rank of a finite product is the sum of the ranks. -/

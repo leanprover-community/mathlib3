@@ -68,8 +68,12 @@ This reflects that `module.rank` was originally called `dim`, and only defined f
 
 Many theorems in this file are not universe-generic when they relate dimensions
 in different universes. They should be as general as they can be without
-inserting `lift`s. The types `V`, `V'`, ... all live in different universes,
+inserting `cardinal.lift`s. The types `V`, `V'`, ... all live in different universes,
 and `V₁`, `V₂`, ... all live in the same universe.
+
+For those lemmas that do employ `cardinal.lift`, note that the canonical way to compare the
+cardinalities of `a : cardinal.{u}` and `b : cardinal.{v}` is by comparing `cardinal.lift.{v} a` and
+`cardinal.lift.{u} b`.
 -/
 
 noncomputable theory
@@ -231,9 +235,9 @@ theorem dim_quotient_le (p : submodule R M) :
 
 variables [nontrivial R]
 
-lemma {m} cardinal_lift_le_dim_of_linear_independent
+lemma cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{max v m} (#ι) ≤ cardinal.lift.{max w m} (module.rank R M) :=
+  cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
 begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
@@ -248,7 +252,7 @@ end
 lemma cardinal_lift_le_dim_of_linear_independent'
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
   cardinal.lift.{v} (#ι) ≤ cardinal.lift.{w} (module.rank R M) :=
-cardinal_lift_le_dim_of_linear_independent.{u v w 0} hv
+cardinal_lift_le_dim_of_linear_independent hv
 
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type v} {v : ι → M} (hv : linear_independent R v) :
@@ -515,7 +519,7 @@ end
 /-- Given two bases indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
 basis number property, an equiv `ι ≃ ι' `. -/
 def basis.index_equiv (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
-nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_umax_eq.2 (mk_eq_mk_of_basis v v')))
+(cardinal.lift_mk_eq.1 $ mk_eq_mk_of_basis v v').some
 
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   #ι = #ι' :=
@@ -773,8 +777,7 @@ begin
     exact infinite_basis_le_maximal_linear_independent b v i m, }
 end
 
-theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι R M) :
-  #ι = module.rank R M :=
+theorem basis.mk_eq_dim' {ι : Type v} (v : basis ι R M) : #ι = module.rank R M :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
   apply le_antisymm,
@@ -794,7 +797,7 @@ attribute [irreducible] module.rank
 
 theorem basis.mk_range_eq_dim (v : basis ι R M) :
   #(range v) = module.rank R M :=
-v.reindex_range.mk_eq_dim''
+v.reindex_range.mk_eq_dim'
 
 /-- If a vector space has a finite basis, then its dimension (seen as a cardinal) is equal to the
 cardinality of the basis. -/
@@ -828,10 +831,6 @@ begin
   haveI := nontrivial_of_invariant_basis_number R,
   rw [←v.mk_range_eq_dim, cardinal.mk_range_eq_of_injective v.injective]
 end
-
-theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
-  cardinal.lift.{max v m} (#ι) = cardinal.lift.{max w m} (module.rank R M) :=
-by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
 lemma basis.nonempty_fintype_index_of_dim_lt_aleph_0 {ι : Type*}
@@ -924,8 +923,8 @@ begin
   let B := basis.of_vector_space K V,
   let B' := basis.of_vector_space K V',
   have : cardinal.lift.{v' v} (#_) = cardinal.lift.{v v'} (#_),
-    by rw [B.mk_eq_dim'', cond, B'.mk_eq_dim''],
-  exact (cardinal.lift_mk_eq.{v v' 0}.1 this).map (B.equiv B')
+    by rw [B.mk_eq_dim', cond, B'.mk_eq_dim'],
+  exact (cardinal.lift_mk_eq.1 this).map (B.equiv B')
 end
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
@@ -1193,7 +1192,7 @@ begin
   split,
   { intro h,
     let t := basis.of_vector_space K V,
-    rw [← t.mk_eq_dim'', cardinal.le_mk_iff_exists_subset] at h,
+    rw [← t.mk_eq_dim', cardinal.le_mk_iff_exists_subset] at h,
     rcases h with ⟨s, hst, hsc⟩,
     exact ⟨s, hsc, (of_vector_space_index.linear_independent K V).mono hst⟩ },
   { rintro ⟨s, rfl, si⟩,
@@ -1219,7 +1218,7 @@ begin
   let b := basis.of_vector_space K V,
   split,
   { intro hd,
-    rw [← b.mk_eq_dim'', cardinal.le_one_iff_subsingleton, subsingleton_coe] at hd,
+    rw [← b.mk_eq_dim', cardinal.le_one_iff_subsingleton, subsingleton_coe] at hd,
     rcases eq_empty_or_nonempty (of_vector_space_index K V) with hb | ⟨⟨v₀, hv₀⟩⟩,
     { use 0,
       have h' : ∀ v : V, v = 0, { simpa [hb, submodule.eq_bot_iff] using b.span_eq.symm },

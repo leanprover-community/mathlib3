@@ -125,7 +125,7 @@ variables [field K] [add_comm_group V] [module K V]
 lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
-  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
+  rw [← bs.mk_eq_dim', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim',
     cardinal.mk_sigma, cardinal.sum_const']
 end
 

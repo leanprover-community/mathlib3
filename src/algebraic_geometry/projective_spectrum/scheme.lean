@@ -196,7 +196,7 @@ lemma mem_carrier.clear_denominator [decidable_eq (away f)]
     algebra_map A (away f) (∑ i in c.support.attach,
       acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
 begin
-  erw [mem_carrier_iff, ←submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
+  rw [mem_carrier_iff, ←submodule_span_eq, finsupp.span_eq_range_total, linear_map.mem_range] at hz,
   rcases hz with ⟨c, eq1⟩,
   rw [finsupp.total_apply, finsupp.sum] at eq1,
   obtain ⟨⟨_, N, rfl⟩, hN⟩ := is_localization.exist_integer_multiples_of_finset (submonoid.powers f)
@@ -214,7 +214,7 @@ begin
 end
 
 lemma carrier_ne_top :
-  ((x.1.as_homogeneous_ideal.to_ideal : set A) ∩ (submonoid.powers f : set A)) = ∅ →
+  (x.1.as_homogeneous_ideal.to_ideal ∩ submonoid.powers f : set A) = ∅ →
   carrier f_deg x ≠ ⊤ := λ eq_top,
 begin
   classical,
@@ -224,7 +224,7 @@ begin
   change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-  erw [mul_one, mul_one] at eq1,
+  rw [submonoid.coe_one, mul_one, mul_one] at eq1,
   simp only [← subtype.val_eq_coe] at eq1,
   refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
     (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
@@ -252,7 +252,7 @@ end
 -/
 def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
 ⟨carrier f_deg x, carrier_ne_top f_deg x (no_intersection x), λ x1 x2 hx12, begin
-  haveI : decidable_eq (away f) := classical.dec_eq _,
+  classical,
   rcases ⟨x1, x2⟩ with ⟨⟨x1, hx1⟩, ⟨x2, hx2⟩⟩,
   induction x1 using localization.induction_on with data_x1,
   induction x2 using localization.induction_on with data_x2,
@@ -263,7 +263,7 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
   rw [mk_mul, one_mul] at eq1,
   simp only [mk_mul, mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-  erw [mul_one] at eq1,
+  rw [submonoid.coe_one, mul_one] at eq1,
   simp only [← subtype.val_eq_coe, submonoid.coe_mul] at eq1,
 
   rcases x.1.is_prime.mem_or_mem (show a1 * a2 * f ^ N * f ^ M ∈ _, from _) with h1|rid2,
@@ -272,12 +272,12 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
   { left,
     rw mem_carrier_iff,
     simp only [show (mk a1 ⟨f ^ n1, _⟩ : away f) = mk a1 1 * mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
-     by erw [localization.mk_mul, mul_one, one_mul]],
+      by rw [localization.mk_mul, mul_one, one_mul]],
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h1, rfl⟩), },
   { right,
     rw mem_carrier_iff,
     simp only [show (mk a2 ⟨f ^ n2, _⟩ : away f) = mk a2 1 * mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
-      by erw [localization.mk_mul, mul_one, one_mul]],
+      by rw [localization.mk_mul, mul_one, one_mul]],
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h2, rfl⟩), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem N rid1)), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem M rid2)), },
@@ -301,27 +301,26 @@ begin
   haveI : decidable_eq (away f) := classical.dec_eq _,
   ext1 y, split; intros hy,
   { refine ⟨y.2, _⟩,
-    erw [set.mem_preimage, prime_spectrum.mem_basic_open] at hy,
-    erw projective_spectrum.mem_basic_open,
+    rw [set.mem_preimage, subtype.val_eq_coe, opens.mem_coe, prime_spectrum.mem_basic_open] at hy,
+    rw projective_spectrum.mem_coe_basic_open,
     intro a_mem_y,
     apply hy,
     rw [to_fun, mem_carrier_iff],
     simp only [show (mk a ⟨f^n, ⟨_, rfl⟩⟩ : away f) = mk 1 ⟨f^n, ⟨_, rfl⟩⟩ * mk a 1,
-      by erw [mk_mul, one_mul, mul_one]],
+      by rw [mk_mul, one_mul, mul_one]],
     exact ideal.mul_mem_left _ _ (ideal.subset_span ⟨_, a_mem_y, rfl⟩), },
   { change y.1 ∈ _ at hy,
     rcases hy with ⟨hy1, hy2⟩,
-    erw projective_spectrum.mem_basic_open at hy1 hy2,
-    rw [set.mem_preimage, to_fun],
-    erw prime_spectrum.mem_basic_open,
+    rw projective_spectrum.mem_coe_basic_open at hy1 hy2,
+    rw [set.mem_preimage, to_fun, subtype.val_eq_coe, opens.mem_coe, prime_spectrum.mem_basic_open],
     intro rid,
     rcases mem_carrier.clear_denominator f_deg _ rid with ⟨c, N, acd, eq1⟩,
     rw [algebra.smul_def] at eq1,
     change localization.mk (f^N) 1 * mk _ _ = mk (∑ _, _) _ at eq1,
     rw [mk_mul, one_mul, mk_eq_mk', is_localization.eq] at eq1,
     rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-    erw [mul_one] at eq1,
-    simp only [← subtype.val_eq_coe] at eq1,
+    rw [submonoid.coe_one, mul_one] at eq1,
+    simp only [subtype.coe_mk] at eq1,
 
     rcases y.1.is_prime.mem_or_mem (show a * f ^ N * f ^ M ∈ _, from _) with H1 | H3,
     rcases y.1.is_prime.mem_or_mem H1 with H1 | H2,

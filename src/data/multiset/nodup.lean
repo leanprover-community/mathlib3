@@ -161,7 +161,7 @@ nodup_of_le $ inter_le_right _ _
     (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
 
-alias nodup_powerset ↔ multiset.nodup.of_powerset multiset.nodup.powerset
+alias nodup_powerset ↔ nodup.of_powerset nodup.powerset
 
 protected lemma nodup.powerset_len {n : ℕ} (h : nodup s) : nodup (powerset_len n s) :=
 nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)

@@ -133,8 +133,8 @@ lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_
 ⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
   disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
-alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
-  set.pairwise_disjoint.sup_indep
+alias sup_indep_iff_pairwise_disjoint ↔ sup_indep.pairwise_disjoint
+  _root_.set.pairwise_disjoint.sup_indep
 
 /-- Bind operation for `sup_indep`. -/
 lemma sup_indep.sup [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
@@ -342,7 +342,7 @@ lemma set_independent_iff_pairwise_disjoint {s : set α} :
 ⟨set_independent.pairwise_disjoint, λ hs i hi, disjoint_Sup_iff.2 $ λ j hj,
   hs hi hj.1 $ ne.symm hj.2⟩
 
-alias set_independent_iff_pairwise_disjoint ↔ _ set.pairwise_disjoint.set_independent
+alias set_independent_iff_pairwise_disjoint ↔ _ _root_.set.pairwise_disjoint.set_independent
 
 lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
 ⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,

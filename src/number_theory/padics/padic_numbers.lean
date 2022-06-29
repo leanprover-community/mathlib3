@@ -1027,12 +1027,9 @@ end
 @[simp] lemma valuation_p : valuation (p : ℚ_[p]) = 1 :=
 begin
   have h : (1 : ℝ) < p := by exact_mod_cast (fact.out p.prime).one_lt,
-  rw ← neg_inj,
-  apply (zpow_strict_mono h).injective,
-  dsimp only,
-  rw ← norm_eq_pow_val,
-  { simp },
-  { exact_mod_cast (fact.out p.prime).ne_zero }
+  refine neg_injective ((zpow_strict_mono h).injective $ (norm_eq_pow_val _).symm.trans _),
+  { exact_mod_cast (fact.out p.prime).ne_zero },
+  { simp }
 end
 
 lemma valuation_map_add {x y : ℚ_[p]} (hxy : x + y ≠ 0) :

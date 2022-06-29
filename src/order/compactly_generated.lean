@@ -226,7 +226,7 @@ lemma is_sup_closed_compact_iff_well_founded :
 alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_founded
 alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
-alias is_sup_closed_compact_iff_well_founded ↔ _ well_founded.is_sup_closed_compact
+alias is_sup_closed_compact_iff_well_founded ↔ _ _root_.well_founded.is_sup_closed_compact
 
 lemma well_founded.finite_of_set_independent (h : well_founded ((>) : α → α → Prop))
   {s : set α} (hs : set_independent s) : s.finite :=

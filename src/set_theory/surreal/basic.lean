@@ -110,12 +110,12 @@ end
 theorem le_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x ≤ y :=
 not_lf.1 (lf_asymm ox oy h)
 
-alias le_of_lf ← pgame.lf.le
+alias le_of_lf ← lf.le
 
 theorem lt_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x < y :=
 (lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (h.le ox oy))
 
-alias lt_of_lf ← pgame.lf.lt
+alias lt_of_lf ← lf.lt
 
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
 ⟨λ h, h.lt ox oy, lf_of_lt⟩

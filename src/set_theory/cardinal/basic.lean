@@ -122,7 +122,7 @@ nonempty.some $ cardinal.eq.mp (by simp)
 
 lemma mk_congr (e : α ≃ β) : # α = # β := quot.sound ⟨e⟩
 
-alias mk_congr ← equiv.cardinal_eq
+alias mk_congr ← _root_.equiv.cardinal_eq
 
 /-- Lift a function between `Type*`s to a function between `cardinal`s. -/
 def map (f : Type u → Type v) (hf : ∀ α β, α ≃ β → f α ≃ f β) :

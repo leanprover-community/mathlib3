@@ -42,15 +42,17 @@ General algebra:
     abelianization: 'abelianization'
     free group: 'free_group'
     presented group: 'presented_group'
+    Schreier's lemma: 'subgroup.closure_mul_image_eq'
     cyclic group: 'is_cyclic'
     nilpotent group: 'group.is_nilpotent'
     permutation group of a type: 'equiv.perm'
+    structure of fintely generated abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
 
   Rings:
     ring: 'ring'
     ring morphism: 'ring_hom'
     the category of rings: 'Ring'
-    subring: 'is_subring'
+    subring: 'subring'
     localization: 'localization'
     local ring: 'local_ring'
     noetherian ring: 'is_noetherian_ring'
@@ -85,7 +87,7 @@ General algebra:
     $K[X]$ is Euclidean: 'polynomial.euclidean_domain'
     Hilbert basis theorem: 'polynomial.is_noetherian_ring'
     $A[X]$ has gcd and lcm if $A$ does: 'polynomial.normalized_gcd_monoid'
-    $A[X]$ is a UFD when $A$ is a UFD: 'polynomial.unique_factorization_monoid'
+    $A[{X_i}]$ is a UFD when $A$ is a UFD: 'mv_polynomial.unique_factorization_monoid'
     irreducible polynomial: 'irreducible'
     Eisenstein's criterion: 'polynomial.irreducible_of_eisenstein_criterion'
     polynomial in several indeterminates: 'mv_polynomial'
@@ -157,6 +159,8 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
+  Finitely generated modules over a PID:
+    structure theorem: 'module.equiv_free_prod_direct_sum'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
@@ -422,3 +426,6 @@ Logic and computation:
     substructure: 'first_order.language.substructure'
     definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'
+    Compactness theorem: 'first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable'
+    Downward Löwenheim-Skolem: 'first_order.language.exists_elementary_substructure_card_eq'
+    Upward Löwenheim-Skolem: 'first_order.language.Theory.exists_elementary_embedding_card_eq'

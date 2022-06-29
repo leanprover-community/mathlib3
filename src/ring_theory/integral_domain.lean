@@ -16,9 +16,12 @@ Assorted theorems about integral domains.
 
 ## Main theorems
 
-* `is_cyclic_of_subgroup_is_domain` : A finite subgroup of the units of an integral domain
-                                            is cyclic.
-* `field_of_is_domain`              : A finite integral domain is a field.
+* `is_cyclic_of_subgroup_is_domain`: A finite subgroup of the units of an integral domain is cyclic.
+* `fintype.field_of_domain`: A finite integral domain is a field.
+
+## TODO
+
+Prove Wedderburn's little theorem, which shows that all finite division rings are actually fields.
 
 ## Tags
 
@@ -111,10 +114,6 @@ To support `ℤˣ` and other infinite monoids with finite groups of units, this 
 instance [fintype Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
-/-- Every finite integral domain is a field. -/
-def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
-{ ..fintype.division_ring_of_is_domain R, ..‹comm_ring R› }
-
 section
 
 variables (S : subgroup Rˣ) [fintype S]
@@ -194,7 +193,7 @@ begin
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← mul_left_inj' hx1, zero_mul, ← geom_sum, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, geom_sum_mul, coe_coe],
   norm_cast,
   simp [pow_order_of_eq_one],
 end

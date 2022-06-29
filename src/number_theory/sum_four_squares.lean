@@ -34,7 +34,8 @@ have hxsuby : even (x - y), by simpa [sq] with parity_simps,
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
-  by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
+  by { rw even_iff_two_dvd at hxsuby hxaddy,
+    rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy] }
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
   by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
@@ -119,13 +120,13 @@ by haveI hm0 : _root_.fact (0 < m) := ⟨(nat.find_spec hm).snd.1⟩; exact
 have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,
-    let ⟨k, hk⟩ := (nat.dvd_iff_mod_eq_zero _ _).2 hm2 in
+    let ⟨k, hk⟩ := nat.dvd_iff_mod_eq_zero.2 hm2 in
     have hk0 : 0 < k, from nat.pos_of_ne_zero $ λ _, by { simp [*, lt_irrefl] at * },
     have hkm : k < m, { rw [hk, two_mul], exact (lt_add_iff_pos_left _).2 hk0 },
     false.elim $ nat.find_min hm hkm ⟨lt_trans hkm hmp, hk0,
       sum_four_squares_of_two_mul_sum_four_squares
         (show a^2 + b^2 + c^2 + d^2 = 2 * (k * p),
-          by { rw [habcd, hk, int.coe_nat_mul, mul_assoc], simp })⟩)
+          by { rw [habcd, hk, int.coe_nat_mul, mul_assoc], norm_num })⟩)
   (λ hm2 : m % 2 = 1,
     if hm1 : m = 1 then ⟨a, b, c, d, by simp only [hm1, habcd, int.coe_nat_one, one_mul]⟩
     else

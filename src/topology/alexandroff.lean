@@ -42,12 +42,16 @@ In this section we define `alexandroff X` to be the disjoint union of `X` and `�
 `option X`. Then we restate some lemmas about `option X` for `alexandroff X`.
 -/
 
+variables {X : Type*}
+
 /-- The Alexandroff extension of an arbitrary topological space `X` -/
 def alexandroff (X : Type*) := option X
 
-namespace alexandroff
+/-- The repr uses the notation from the `alexandroff` locale. -/
+instance [has_repr X] : has_repr (alexandroff X) :=
+⟨λ o, match o with | none := "∞" | (some a) := "↑" ++ repr a end⟩
 
-variables {X : Type*}
+namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none
@@ -371,19 +375,17 @@ Hausdorff and regular) topological space. -/
 instance [locally_compact_space X] [t2_space X] : normal_space (alexandroff X) :=
 begin
   have key : ∀ z : X,
-    ∃ u v : set (alexandroff X), is_open u ∧ is_open v ∧ ↑z ∈ u ∧ ∞ ∈ v ∧ u ∩ v = ∅,
+    ∃ u v : set (alexandroff X), is_open u ∧ is_open v ∧ ↑z ∈ u ∧ ∞ ∈ v ∧ disjoint u v,
   { intro z,
     rcases exists_open_with_compact_closure z with ⟨u, hu, huy', Hu⟩,
-    refine ⟨coe '' u, (coe '' closure u)ᶜ, is_open_image_coe.2 hu,
+    exact ⟨coe '' u, (coe '' closure u)ᶜ, is_open_image_coe.2 hu,
       is_open_compl_image_coe.2 ⟨is_closed_closure, Hu⟩, mem_image_of_mem _ huy',
-      mem_compl infty_not_mem_image_coe, _⟩,
-    rw [← subset_compl_iff_disjoint, compl_compl],
-    exact image_subset _ subset_closure },
+      mem_compl infty_not_mem_image_coe, (image_subset _ subset_closure).disjoint_compl_right⟩ },
   refine @normal_of_compact_t2 _ _ _ ⟨λ x y hxy, _⟩,
   induction x using alexandroff.rec; induction y using alexandroff.rec,
   { exact (hxy rfl).elim },
   { rcases key y with ⟨u, v, hu, hv, hxu, hyv, huv⟩,
-    exact ⟨v, u, hv, hu, hyv, hxu, (inter_comm u v) ▸ huv⟩ },
+    exact ⟨v, u, hv, hu, hyv, hxu, huv.symm⟩ },
   { exact key x },
   { exact separated_by_open_embedding open_embedding_coe (mt coe_eq_coe.mpr hxy) }
 end

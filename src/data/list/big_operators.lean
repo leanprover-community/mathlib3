@@ -3,16 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
-import data.list.basic
+import algebra.group_power
+import data.list.forall2
 
 /-!
 # Sums and products from lists
 
-This file provides basic results about `list.prod` and `list.sum`, which calculate the product and
-sum of elements of a list. These are defined in [`data.list.defs`](./data/list/defs).
+This file provides basic results about `list.prod`, `list.sum`, which calculate the product and sum
+of elements of a list and `list.alternating_prod`, `list.alternating_sum`, their alternating
+counterparts. These are defined in [`data.list.defs`](./defs).
 -/
 
-variables {ι M N P M₀ G R : Type*}
+variables {ι α M N P M₀ G R : Type*}
 
 namespace list
 section monoid
@@ -118,7 +120,19 @@ lemma prod_take_succ :
 /-- A list with product not one must have positive length. -/
 @[to_additive "A list with sum not zero must have positive length."]
 lemma length_pos_of_prod_ne_one (L : list M) (h : L.prod ≠ 1) : 0 < L.length :=
-by { cases L, { simp at h, cases h }, { simp } }
+by { cases L, { contrapose h, simp }, { simp } }
+
+/-- A list with product greater than one must have positive length. -/
+@[to_additive length_pos_of_sum_pos "A list with positive sum must have positive length."]
+lemma length_pos_of_one_lt_prod [preorder M] (L : list M) (h : 1 < L.prod) :
+  0 < L.length :=
+length_pos_of_prod_ne_one L h.ne'
+
+/-- A list with product less than one must have positive length. -/
+@[to_additive "A list with negative sum must have positive length."]
+lemma length_pos_of_prod_lt_one [preorder M] (L : list M) (h : L.prod < 1) :
+  0 < L.length :=
+length_pos_of_prod_ne_one L h.ne
 
 @[to_additive]
 lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
@@ -149,7 +163,8 @@ lemma head_mul_tail_prod_of_ne_nil [inhabited M] (l : list M) (h : l ≠ []) :
 by cases l; [contradiction, simp]
 
 @[to_additive]
-lemma prod_commute (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
+lemma _root_.commute.list_prod_right (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) :
+  commute y l.prod :=
 begin
   induction l with z l IH,
   { simp },
@@ -158,15 +173,66 @@ begin
     exact commute.mul_right h.1 (IH h.2), }
 end
 
+@[to_additive]
+lemma _root_.commute.list_prod_left (l : list M) (y : M) (h : ∀ (x ∈ l), commute x y) :
+  commute l.prod y  :=
+(commute.list_prod_right _ _ $ λ x hx, (h _ hx).symm).symm
+
+lemma _root_.commute.list_sum_right [non_unital_non_assoc_semiring R] (a : R) (l : list R)
+  (h : ∀ b ∈ l, commute a b) :
+  commute a l.sum :=
+begin
+  induction l with x xs ih,
+  { exact commute.zero_right _, },
+  { rw sum_cons,
+    exact (h _ $ mem_cons_self _ _).add_right (ih $ λ j hj, h _ $ mem_cons_of_mem _ hj) }
+end
+
+lemma _root_.commute.list_sum_left [non_unital_non_assoc_semiring R] (b : R) (l : list R)
+  (h : ∀ a ∈ l, commute a b) :
+  commute l.sum b :=
+(commute.list_sum_right _ _ $ λ x hx, (h _ hx).symm).symm
+
+@[to_additive sum_le_sum] lemma forall₂.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : forall₂ (≤) l₁ l₂) : l₁.prod ≤ l₂.prod :=
+begin
+  induction h with a b la lb hab ih ih',
+  { refl },
+  { simpa only [prod_cons] using mul_le_mul' hab ih' }
+end
+
+/-- If `l₁` is a sublist of `l₂` and all elements of `l₂` are greater than or equal to one, then
+`l₁.prod ≤ l₂.prod`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 1 ≤ a` instead
+of `∀ a ∈ l₂, 1 ≤ a` but this lemma is not yet in `mathlib`. -/
+@[to_additive sum_le_sum "If `l₁` is a sublist of `l₂` and all elements of `l₂` are nonnegative,
+then `l₁.sum ≤ l₂.sum`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 0 ≤ a` instead
+of `∀ a ∈ l₂, 0 ≤ a` but this lemma is not yet in `mathlib`."]
+lemma sublist.prod_le_prod' [preorder M] [covariant_class M M (function.swap (*)) (≤)]
+  [covariant_class M M (*) (≤)] {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
+begin
+  induction h, { refl },
+  case cons : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+    exact (ih' h₁.2).trans (le_mul_of_one_le_left' h₁.1) },
+  case cons2 : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+    exact mul_le_mul_left' (ih' h₁.2) _ }
+end
+
+@[to_additive sum_le_sum] lemma sublist_forall₂.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : sublist_forall₂ (≤) l₁ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
+let ⟨l, hall, hsub⟩ := sublist_forall₂_iff.1 h
+in hall.prod_le_prod'.trans $ hsub.prod_le_prod' h₁
+
 @[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   {l : list ι} {f g : ι → M} (h : ∀ i ∈ l, f i ≤ g i) :
   (l.map f).prod ≤ (l.map g).prod :=
-begin
-  induction l with i l ihl, { refl },
-  rw forall_mem_cons at h,
-  simpa using mul_le_mul' h.1 (ihl h.2)
-end
+forall₂.prod_le_prod' $ by simpa
 
 @[to_additive sum_lt_sum] lemma prod_lt_prod'
   [preorder M] [covariant_class M M (*) (<)] [covariant_class M M (*) (≤)]
@@ -200,7 +266,7 @@ lemma pow_card_le_prod [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   (l : list M) (n : M) (h : ∀ (x ∈ l), n ≤ x) :
   n ^ l.length ≤ l.prod :=
-@prod_le_pow_card (order_dual M) _ _ _ _ l n h
+@prod_le_pow_card Mᵒᵈ _ _ _ _ l n h
 
 @[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}
@@ -366,14 +432,7 @@ le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 @[to_additive] lemma prod_eq_one_iff [canonically_ordered_monoid M] (l : list M) :
   l.prod = 1 ↔ ∀ x ∈ l, x = (1 : M) :=
 ⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
-begin
-  induction l,
-  { simp },
-  { intro h,
-    rw [prod_cons, mul_eq_one_iff],
-    rw forall_mem_cons at h,
-    exact ⟨h.1, l_ih h.2⟩ },
-end⟩
+  λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
 
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
@@ -383,12 +442,6 @@ begin
   rw [sum_cons, length, add_comm],
   exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
 end
-
-/-- A list with positive sum must have positive length. -/
--- This is an easy consequence of `length_pos_of_sum_ne_zero`, but often useful in applications.
-lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid M] (L : list M) (h : 0 < L.sum) :
-  0 < L.length :=
-length_pos_of_sum_ne_zero L h.ne'
 
 -- TODO: develop theory of tropical rings
 lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M → N)
@@ -455,19 +508,51 @@ lemma tail_sum (L : list ℕ) : L.tail.sum = L.sum - L.head :=
 by rw [← head_add_tail_sum L, add_comm, add_tsub_cancel_right]
 
 section alternating
-variables [comm_group G]
+section
+variables [has_one α] [has_mul α] [has_inv α]
 
-@[simp, to_additive] lemma alternating_prod_nil : alternating_prod ([] : list G) = 1 := rfl
+@[simp, to_additive] lemma alternating_prod_nil : alternating_prod ([] : list α) = 1 := rfl
+@[simp, to_additive] lemma alternating_prod_singleton (a : α) : alternating_prod [a] = a := rfl
 
-@[simp, to_additive] lemma alternating_prod_singleton (g : G) : alternating_prod [g] = g := rfl
+@[to_additive] lemma alternating_prod_cons_cons' (a b : α) (l : list α) :
+  alternating_prod (a :: b :: l) = a * b⁻¹ * alternating_prod l := rfl
 
-@[simp, to_additive alternating_sum_cons_cons']
-lemma alternating_prod_cons_cons (g h : G) (l : list G) :
-  alternating_prod (g :: h :: l) = g * h⁻¹ * alternating_prod l := rfl
+end
 
-lemma alternating_sum_cons_cons {G : Type*} [add_comm_group G] (g h : G) (l : list G) :
-  alternating_sum (g :: h :: l) = g - h + alternating_sum l :=
-by rw [sub_eq_add_neg, alternating_sum]
+@[to_additive] lemma alternating_prod_cons_cons [div_inv_monoid α] (a b : α) (l : list α) :
+  alternating_prod (a :: b :: l) = a / b * alternating_prod l :=
+by rw [div_eq_mul_inv, alternating_prod_cons_cons']
+
+variables [comm_group α]
+
+@[to_additive] lemma alternating_prod_cons' :
+  ∀ (a : α) (l : list α), alternating_prod (a :: l) = a * (alternating_prod l)⁻¹
+| a [] := by rw [alternating_prod_nil, inv_one, mul_one, alternating_prod_singleton]
+| a (b :: l) :=
+by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv, mul_assoc]
+
+@[simp, to_additive] lemma alternating_prod_cons (a : α) (l : list α) :
+  alternating_prod (a :: l) = a / alternating_prod l :=
+by rw [div_eq_mul_inv, alternating_prod_cons']
+
+@[to_additive]
+lemma alternating_prod_append : ∀ l₁ l₂ : list α,
+  alternating_prod (l₁ ++ l₂) = alternating_prod l₁ * alternating_prod l₂ ^ (-1 : ℤ) ^ length l₁
+| [] l₂ := by simp
+| (a :: l₁) l₂ := by simp_rw [cons_append, alternating_prod_cons, alternating_prod_append,
+  length_cons, pow_succ, neg_mul, one_mul, zpow_neg, ←div_eq_mul_inv, div_div]
+
+@[to_additive]
+lemma alternating_prod_reverse :
+  ∀ l : list α, alternating_prod (reverse l) = alternating_prod l ^ (-1 : ℤ) ^ (length l + 1)
+| [] := by simp only [alternating_prod_nil, one_zpow, reverse_nil]
+| (a :: l) :=
+begin
+  simp_rw [reverse_cons, alternating_prod_append, alternating_prod_reverse,
+    alternating_prod_singleton, alternating_prod_cons, length_reverse, length, pow_succ, neg_mul,
+    one_mul, zpow_neg, inv_inv],
+  rw [mul_comm, ←div_eq_mul_inv, div_zpow],
+end
 
 end alternating
 

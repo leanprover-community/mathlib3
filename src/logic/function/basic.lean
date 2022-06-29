@@ -35,6 +35,12 @@ lemma const_def {y : β} : (λ x : α, y) = const α y := rfl
 
 @[simp] lemma comp_const {f : β → γ} {b : β} : f ∘ const α b = const α (f b) := rfl
 
+lemma const_injective [nonempty α] : injective (const α : β → α → β) :=
+λ y₁ y₂ h, let ⟨x⟩ := ‹nonempty α› in congr_fun h x
+
+@[simp] lemma const_inj [nonempty α] {y₁ y₂ : β} : const α y₁ = const α y₂ ↔ y₁ = y₂ :=
+⟨λ h, const_injective h, λ h, h ▸ rfl⟩
+
 lemma id_def : @id α = λ x, x := rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
@@ -206,14 +212,13 @@ and_congr (injective.of_comp_iff hf.injective _) (surjective.of_comp_iff' hf _)
 /-- **Cantor's diagonal argument** implies that there are no surjective functions from `α`
 to `set α`. -/
 theorem cantor_surjective {α} (f : α → set α) : ¬ function.surjective f | h :=
-let ⟨D, e⟩ := h (λ a, ¬ f a a) in
-(iff_not_self (f D D)).1 $ iff_of_eq (congr_fun e D)
+let ⟨D, e⟩ := h {a | ¬ a ∈ f a} in
+(iff_not_self (D ∈ f D)).1 $ iff_of_eq (congr_arg ((∈) D) e)
 
 /-- **Cantor's diagonal argument** implies that there are no injective functions from `set α`
 to `α`. -/
-theorem cantor_injective {α : Type*} (f : (set α) → α) :
-  ¬ function.injective f | i :=
-cantor_surjective (λ a b, ∀ U, a = f U → U b) $
+theorem cantor_injective {α : Type*} (f : set α → α) : ¬ function.injective f | i :=
+cantor_surjective (λ a, {b | ∀ U, a = f U → b ∈ U}) $
 right_inverse.surjective (λ U, funext $ λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩)
 
 /-- There is no surjection from `α : Type u` into `Type u`. This theorem
@@ -292,6 +297,14 @@ theorem left_inverse.right_inverse_of_surjective {f : α → β} {g : β → α}
   (hg : surjective g) :
   right_inverse f g :=
 λ x, let ⟨y, hy⟩ := hg x in hy ▸ congr_arg g (h y)
+
+lemma right_inverse.left_inverse_of_surjective {f : α → β} {g : β → α} :
+  right_inverse f g → surjective f → left_inverse f g :=
+left_inverse.right_inverse_of_surjective
+
+lemma right_inverse.left_inverse_of_injective {f : α → β} {g : β → α} :
+  right_inverse f g → injective g → left_inverse f g :=
+left_inverse.right_inverse_of_injective
 
 theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
   (h₂ : right_inverse g₂ f) :
@@ -681,16 +694,30 @@ def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
 
 namespace injective2
-variables {α β γ : Type*} (f : α → β → γ)
+variables {α β γ : Sort*} {f : α → β → γ}
 
-protected lemma left (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : a₁ = a₂ :=
-(hf h).1
+/-- A binary injective function is injective when only the left argument varies. -/
+protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f a b) :=
+λ a₁ a₂ h, (hf h).left
 
-protected lemma right (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : b₁ = b₂ :=
-(hf h).2
+/-- A binary injective function is injective when only the right argument varies. -/
+protected lemma right (hf : injective2 f) (a : α) : function.injective (f a) :=
+λ a₁ a₂ h, (hf h).right
 
-lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
-⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
+protected lemma uncurry {α β γ : Type*} {f : α → β → γ} (hf : injective2 f) :
+  function.injective (uncurry f) :=
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, and.elim (hf h) (congr_arg2 _)
+
+/-- As a map from the left argument to a unary function, `f` is injective. -/
+lemma left' (hf : injective2 f) [nonempty β] : function.injective f :=
+λ a₁ a₂ h, let ⟨b⟩ := ‹nonempty β› in hf.left b $ (congr_fun h b : _)
+
+/-- As a map from the right argument to a unary function, `f` is injective. -/
+lemma right' (hf : injective2 f) [nonempty α] : function.injective (λ b a, f a b) :=
+λ b₁ b₂ h, let ⟨a⟩ := ‹nonempty α› in hf.right a $ (congr_fun h a : _)
+
+lemma eq_iff (hf : injective2 f) {a₁ a₂ b₁ b₂} : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+⟨λ h, hf h, and.rec $ congr_arg2 f⟩
 
 end injective2
 

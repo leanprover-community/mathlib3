@@ -139,8 +139,7 @@ begin
   /- We consider balls of radius `1/2` around the points in `s`. They are disjoint, and all
   contained in the ball of radius `5/2`. A volume argument gives `s.card * (1/2)^dim ≤ (5/2)^dim`,
   i.e., `s.card ≤ 5^dim`. -/
-  letI : measurable_space E := borel E,
-  letI : borel_space E := ⟨rfl⟩,
+  borelize E,
   let μ : measure E := measure.add_haar,
   let δ : ℝ := (1 : ℝ)/2,
   let ρ : ℝ := (5 : ℝ)/2,

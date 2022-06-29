@@ -3,7 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.mul_add
+import data.int.cast.defs
+import algebra.hom.equiv
 
 /-!
 # `ulift` instances for groups and monoids
@@ -55,6 +56,9 @@ equiv.ulift.injective.comm_semigroup _ $ λ x y, rfl
 instance mul_one_class [mul_one_class α] : mul_one_class (ulift α) :=
 equiv.ulift.injective.mul_one_class _ rfl $ λ x y, rfl
 
+instance mul_zero_one_class [mul_zero_one_class α] : mul_zero_one_class (ulift α) :=
+equiv.ulift.injective.mul_zero_one_class _ rfl rfl $ λ x y, rfl
+
 @[to_additive has_vadd]
 instance has_scalar {β : Type*} [has_scalar α β] : has_scalar α (ulift β) :=
 ⟨λ n x, up (n • x.down)⟩
@@ -67,9 +71,21 @@ instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
 instance monoid [monoid α] : monoid (ulift α) :=
 equiv.ulift.injective.monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance add_monoid_with_one [add_monoid_with_one α] : add_monoid_with_one (ulift α) :=
+{ nat_cast := λ n, ⟨n⟩,
+  nat_cast_zero := congr_arg ulift.up nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg ulift.up (nat.cast_succ _),
+  .. ulift.has_one, .. ulift.add_monoid }
+
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
 equiv.ulift.injective.comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
+
+instance monoid_with_zero [monoid_with_zero α] : monoid_with_zero (ulift α) :=
+equiv.ulift.injective.monoid_with_zero _ rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+instance comm_monoid_with_zero [comm_monoid_with_zero α] : comm_monoid_with_zero (ulift α) :=
+equiv.ulift.injective.comm_monoid_with_zero _ rfl rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance div_inv_monoid [div_inv_monoid α] : div_inv_monoid (ulift α) :=
@@ -81,10 +97,24 @@ instance group [group α] : group (ulift α) :=
 equiv.ulift.injective.group _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
+instance add_group_with_one [add_group_with_one α] : add_group_with_one (ulift α) :=
+{ int_cast := λ n, ⟨n⟩,
+  int_cast_of_nat := λ n, congr_arg ulift.up (int.cast_of_nat _),
+  int_cast_neg_succ_of_nat := λ n, congr_arg ulift.up (int.cast_neg_succ_of_nat _),
+  .. ulift.add_monoid_with_one, .. ulift.add_group }
+
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
 equiv.ulift.injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance group_with_zero [group_with_zero α] : group_with_zero (ulift α) :=
+equiv.ulift.injective.group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+instance comm_group_with_zero [comm_group_with_zero α] : comm_group_with_zero (ulift α) :=
+equiv.ulift.injective.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :

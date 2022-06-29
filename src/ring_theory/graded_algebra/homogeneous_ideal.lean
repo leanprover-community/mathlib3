@@ -53,7 +53,7 @@ variable (I : ideal A)
 /--An `I : ideal A` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`.-/
 def ideal.is_homogeneous : Prop :=
-∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
+∀ (i : ι) ⦃r : A⦄, r ∈ I → (direct_sum.decompose 𝒜 r i : A) ∈ I
 
 /-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 structure homogeneous_ideal extends submodule A A :=
@@ -120,15 +120,15 @@ lemma ideal.mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :
   graded_algebra.proj 𝒜 j (r * x) ∈ I :=
 begin
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_algebra.sum_support_decompose 𝒜 r, finset.sum_mul, linear_map.map_sum],
+  classical,
+  rw [←direct_sum.sum_support_decompose 𝒜 r, finset.sum_mul, linear_map.map_sum],
   apply ideal.sum_mem,
   intros k hk,
   obtain ⟨i, hi⟩ := hx₁,
-  have mem₁ : (graded_algebra.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
+  have mem₁ : (direct_sum.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
     (submodule.coe_mem _) hi,
-  erw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem 𝒜 mem₁,
-    coe_of_submodule_apply 𝒜, submodule.coe_mk],
+  erw [graded_algebra.proj_apply, direct_sum.decompose_of_mem 𝒜 mem₁,
+    coe_of_apply, submodule.coe_mk],
   split_ifs,
   { exact I.mul_mem_left _ hx₂ },
   { exact I.zero_mem },
@@ -174,8 +174,8 @@ lemma ideal.is_homogeneous.to_ideal_homogeneous_core_eq_self (h : I.is_homogeneo
 begin
   apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw ←graded_algebra.sum_support_decompose 𝒜 x,
+  classical,
+  rw ←direct_sum.sum_support_decompose 𝒜 x,
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
@@ -216,7 +216,7 @@ namespace ideal.is_homogeneous
 lemma bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
-  rw [hr, alg_equiv.map_zero, zero_apply],
+  rw [hr, decompose_zero, zero_apply],
   apply ideal.zero_mem
 end
 
@@ -229,15 +229,6 @@ lemma inf {I J : ideal A} (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous �
   (I ⊓ J).is_homogeneous 𝒜 :=
 λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
-lemma Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
-  (Inf ℐ).is_homogeneous 𝒜 :=
-begin
-  intros i x Hx,
-  simp only [ideal.mem_Inf] at Hx ⊢,
-  intros J HJ,
-  exact h _ HJ _ (Hx HJ),
-end
-
 lemma sup {I J : ideal A} (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) :
   (I ⊔ J).is_homogeneous 𝒜 :=
 begin
@@ -248,15 +239,42 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
-lemma Sup {ℐ : set (ideal A)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous 𝒜 I) :
-  (Sup ℐ).is_homogeneous 𝒜 :=
+protected lemma supr {κ : Sort*} {f : κ → ideal A} (h : ∀ i, (f i).is_homogeneous 𝒜) :
+  (⨆ i, f i).is_homogeneous 𝒜 :=
 begin
-  simp_rw iff_exists at Hℐ ⊢,
-  choose 𝓈 h𝓈 using Hℐ,
-  refine ⟨⋃ I hI, 𝓈 I hI, _⟩,
-  simp_rw [set.image_Union, ideal.span_Union, Sup_eq_supr],
-  conv in (ideal.span _) { rw ←h𝓈 i x },
+  simp_rw iff_exists at h ⊢,
+  choose s hs using h,
+  refine ⟨⋃ i, s i, _⟩,
+  simp_rw [set.image_Union, ideal.span_Union],
+  congr',
+  exact funext hs,
 end
+
+protected lemma infi {κ : Sort*} {f : κ → ideal A} (h : ∀ i, (f i).is_homogeneous 𝒜) :
+  (⨅ i, f i).is_homogeneous 𝒜 :=
+begin
+  intros i x hx,
+  simp only [ideal.mem_infi] at ⊢ hx,
+  exact λ j, h _ _ (hx j),
+end
+
+lemma supr₂ {κ : Sort*} {κ' : κ → Sort*} {f : Π i, κ' i → ideal A}
+  (h : ∀ i j, (f i j).is_homogeneous 𝒜) :
+  (⨆ i j, f i j).is_homogeneous 𝒜 :=
+is_homogeneous.supr $ λ i, is_homogeneous.supr $ h i
+
+lemma infi₂ {κ : Sort*} {κ' : κ → Sort*} {f : Π i, κ' i → ideal A}
+  (h : ∀ i j, (f i j).is_homogeneous 𝒜) :
+  (⨅ i j, f i j).is_homogeneous 𝒜 :=
+is_homogeneous.infi $ λ i, is_homogeneous.infi $ h i
+
+lemma Sup {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
+  (Sup ℐ).is_homogeneous 𝒜 :=
+by { rw Sup_eq_supr, exact supr₂ h }
+
+lemma Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
+  (Inf ℐ).is_homogeneous 𝒜 :=
+by { rw Inf_eq_infi, exact infi₂ h }
 
 end ideal.is_homogeneous
 
@@ -266,53 +284,57 @@ namespace homogeneous_ideal
 
 instance : partial_order (homogeneous_ideal 𝒜) := set_like.partial_order
 
-instance : has_bot (homogeneous_ideal 𝒜) :=
-⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
+instance : has_top (homogeneous_ideal 𝒜) := ⟨⟨⊤, ideal.is_homogeneous.top 𝒜⟩⟩
+instance : has_bot (homogeneous_ideal 𝒜) := ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
+instance : has_sup (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨_, I.is_homogeneous.sup J.is_homogeneous⟩⟩
+instance : has_inf (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨_, I.is_homogeneous.inf J.is_homogeneous⟩⟩
+instance : has_Sup (homogeneous_ideal 𝒜) :=
+⟨λ S, ⟨⨆ s ∈ S, to_ideal s, ideal.is_homogeneous.supr₂ $ λ s _, s.is_homogeneous⟩⟩
+instance : has_Inf (homogeneous_ideal 𝒜) :=
+⟨λ S, ⟨⨅ s ∈ S, to_ideal s, ideal.is_homogeneous.infi₂ $ λ s _, s.is_homogeneous⟩⟩
 
-@[simp] lemma to_ideal_bot : (⊥ : homogeneous_ideal 𝒜).to_ideal = (⊥ : ideal A) := rfl
-
-@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ I.to_ideal = ⊥ :=
-to_ideal_injective.eq_iff.symm
-
-instance : has_top (homogeneous_ideal 𝒜) :=
-⟨⟨⊤, ideal.is_homogeneous.top 𝒜⟩⟩
+@[simp] lemma coe_top : ((⊤ : homogeneous_ideal 𝒜) : set A) = univ := rfl
+@[simp] lemma coe_bot : ((⊥ : homogeneous_ideal 𝒜) : set A) = 0 := rfl
+@[simp] lemma coe_sup (I J : homogeneous_ideal 𝒜) : ↑(I ⊔ J) = (I + J : set A) :=
+submodule.coe_sup _ _
+@[simp] lemma coe_inf (I J : homogeneous_ideal 𝒜) : (↑(I ⊓ J) : set A) = I ∩ J := rfl
 
 @[simp] lemma to_ideal_top : (⊤ : homogeneous_ideal 𝒜).to_ideal = (⊤ : ideal A) := rfl
-
-@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ I.to_ideal = ⊤ :=
-to_ideal_injective.eq_iff.symm
-
-instance : has_inf (homogeneous_ideal 𝒜) :=
-{ inf := λ I J, ⟨I.to_ideal ⊓ J.to_ideal, I.is_homogeneous.inf J.is_homogeneous⟩ }
-
-@[simp] lemma to_ideal_inf (I J : homogeneous_ideal 𝒜) :
-  (I ⊓ J).to_ideal = I.to_ideal ⊓ J.to_ideal := rfl
-
-instance : has_Inf (homogeneous_ideal 𝒜) :=
-⟨λ ℐ, ⟨Inf (to_ideal '' ℐ), ideal.is_homogeneous.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.is_homogeneous⟩⟩
-
-@[simp] lemma to_ideal_Inf (ℐ : set (homogeneous_ideal 𝒜)) :
-  (Inf ℐ).to_ideal = Inf (to_ideal '' ℐ) := rfl
-
-@[simp] lemma to_ideal_infi {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
-  (⨅ i, s i).to_ideal = ⨅ i, (s i).to_ideal :=
-by rw [infi, infi, to_ideal_Inf, ←set.range_comp]
-
-instance : has_sup (homogeneous_ideal 𝒜) :=
-{ sup := λ I J, ⟨I.to_ideal ⊔ J.to_ideal, I.is_homogeneous.sup J.is_homogeneous⟩ }
+@[simp] lemma to_ideal_bot : (⊥ : homogeneous_ideal 𝒜).to_ideal = (⊥ : ideal A) := rfl
 
 @[simp] lemma to_ideal_sup (I J : homogeneous_ideal 𝒜) :
   (I ⊔ J).to_ideal = I.to_ideal ⊔ J.to_ideal := rfl
 
-instance : has_Sup (homogeneous_ideal 𝒜) :=
-⟨λ ℐ, ⟨Sup (to_ideal '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.is_homogeneous⟩⟩
+@[simp] lemma to_ideal_inf (I J : homogeneous_ideal 𝒜) :
+  (I ⊓ J).to_ideal = I.to_ideal ⊓ J.to_ideal := rfl
 
 @[simp] lemma to_ideal_Sup (ℐ : set (homogeneous_ideal 𝒜)) :
-  (Sup ℐ).to_ideal = (Sup (to_ideal '' ℐ) : ideal A) := rfl
+  (Sup ℐ).to_ideal = ⨆ s ∈ ℐ, to_ideal s := rfl
 
-@[simp] lemma coe_supr {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
+@[simp] lemma to_ideal_Inf (ℐ : set (homogeneous_ideal 𝒜)) :
+  (Inf ℐ).to_ideal = ⨅ s ∈ ℐ, to_ideal s := rfl
+
+@[simp] lemma to_ideal_supr {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
   (⨆ i, s i).to_ideal = ⨆ i, (s i).to_ideal :=
-by rw [supr, supr, to_ideal_Sup, ←set.range_comp]
+by rw [supr, to_ideal_Sup, supr_range]
+
+@[simp] lemma to_ideal_infi {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
+  (⨅ i, s i).to_ideal = ⨅ i, (s i).to_ideal :=
+by rw [infi, to_ideal_Inf, infi_range]
+
+@[simp] lemma to_ideal_supr₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
+  (⨆ i j, s i j).to_ideal = ⨆ i j, (s i j).to_ideal :=
+by simp_rw to_ideal_supr
+
+@[simp] lemma to_ideal_infi₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
+  (⨅ i j, s i j).to_ideal = ⨅ i j, (s i j).to_ideal :=
+by simp_rw to_ideal_infi
+
+@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ I.to_ideal = ⊤ :=
+to_ideal_injective.eq_iff.symm
+
+@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ I.to_ideal = ⊥ :=
+to_ideal_injective.eq_iff.symm
 
 instance : complete_lattice (homogeneous_ideal 𝒜) :=
 to_ideal_injective.complete_lattice _ to_ideal_sup to_ideal_inf to_ideal_Sup to_ideal_Inf
@@ -416,7 +438,7 @@ variable (I : ideal A)
 /--For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
 the smallest homogeneous ideal containing `I`. -/
 def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
-⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin
+⟨ideal.span {r : A | ∃ (i : ι) (x : I), (direct_sum.decompose 𝒜 (x : A) i : A) = r}, begin
   refine ideal.is_homogeneous_span _ _ (λ x hx, _),
   obtain ⟨i, x, rfl⟩ := hx,
   apply set_like.is_homogeneous_coe
@@ -426,8 +448,8 @@ lemma ideal.le_to_ideal_homogeneous_hull :
   I ≤ (ideal.homogeneous_hull 𝒜 I).to_ideal :=
 begin
   intros r hr,
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_algebra.sum_support_decompose 𝒜 r],
+  classical,
+  rw [←direct_sum.sum_support_decompose 𝒜 r],
   refine ideal.sum_mem _ _, intros j hj,
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end
@@ -470,7 +492,7 @@ lemma ideal.homogeneous_hull_eq_supr :
   (I.homogeneous_hull 𝒜) =
   ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
     (by {rintros _ ⟨x, -, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
-by ext1; rw [ideal.to_ideal_homogeneous_hull_eq_supr, coe_supr]; refl
+by { ext1, rw [ideal.to_ideal_homogeneous_hull_eq_supr, to_ideal_supr], refl }
 
 end homogeneous_hull
 
@@ -523,9 +545,9 @@ with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 
 -/
 def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
-  change (decompose 𝒜 (decompose 𝒜 r _) 0 : A) = 0,
+  change (decompose 𝒜 (decompose 𝒜 r _ : A) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [h, hr, map_zero, zero_apply, submodule.coe_zero] },
+  { rw [h, hr, decompose_zero, zero_apply, submodule.coe_zero] },
   { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
 end⟩
 

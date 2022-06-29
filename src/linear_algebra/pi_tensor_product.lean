@@ -397,7 +397,7 @@ end
 
 @[simp] lemma reindex_tprod (e : ι ≃ ι₂) (f : Π i, M) :
   reindex R M e (tprod R f) = tprod R (λ i, f (e.symm i)) :=
-lift.tprod f
+lift_aux_tprod _ f
 
 @[simp] lemma reindex_comp_tprod (e : ι ≃ ι₂) :
   (reindex R M e : ⨂[R] i : ι, M →ₗ[R] ⨂[R] i : ι₂, M).comp_multilinear_map (tprod R) =
@@ -479,7 +479,7 @@ def subsingleton_equiv [subsingleton ι] (i₀ : ι) : ⨂[R] i : ι, M ≃ₗ[R
     apply x.induction_on,
     { intros r f,
       simp only [linear_map.map_smul, lift.tprod, of_subsingleton_apply, function.eval,
-                 this f, map_smul, update_eq_self], },
+                 this f, multilinear_map.map_smul, update_eq_self], },
     { intros x y hx hy,
       simp only [multilinear_map.map_add, this 0 (_ + _), linear_map.map_add, ←this 0 (lift _ _),
         hx, hy] } },

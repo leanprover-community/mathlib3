@@ -318,6 +318,62 @@ monoid_hom.to_mul_equiv
   (by { ext ⟨x, hx⟩, refl })
   (by { ext ⟨x, hx⟩, refl })
 
+section zpow
+
+variables {A B C : Type u} [comm_group A] [comm_group B] [comm_group C]
+variables (f : A →* B) (g : B →* A) (e : A ≃* B) (d : B ≃* C) (n : ℤ)
+
+/-- The map of quotients by powers of an integer induced by a group homomorphism. -/
+@[to_additive "The map of quotients by multiples of an integer induced by an additive group
+homomorphism."]
+def hom_quotient_zpow_of_hom :
+  A ⧸ (zpow_group_hom n : A →* A).range →* B ⧸ (zpow_group_hom n : B →* B).range :=
+lift _ ((mk' _).comp f) $
+  λ g ⟨h, (hg : h ^ n = g)⟩, (eq_one_iff _).mpr ⟨_, by simpa only [← hg, map_zpow]⟩
+
+@[to_additive, simp]
+lemma hom_quotient_zpow_of_hom_id :
+  hom_quotient_zpow_of_hom (monoid_hom.id A) n = monoid_hom.id _ :=
+monoid_hom_ext _ rfl
+
+@[to_additive, simp]
+lemma hom_quotient_zpow_of_hom_comp :
+  hom_quotient_zpow_of_hom (f.comp g) n
+    = (hom_quotient_zpow_of_hom f n).comp (hom_quotient_zpow_of_hom g n) :=
+monoid_hom_ext _ rfl
+
+@[to_additive, simp]
+lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (i : function.right_inverse g f) :
+  (hom_quotient_zpow_of_hom f n).comp (hom_quotient_zpow_of_hom g n) = monoid_hom.id _ :=
+monoid_hom_ext _ $ monoid_hom.ext $ λ x, congr_arg coe $ i x
+
+/-- The equivalence of quotients by powers of an integer induced by a group isomorphism. -/
+@[to_additive "The equivalence of quotients by multiples of an integer induced by an additive group
+isomorphism."]
+def equiv_quotient_zpow_of_equiv :
+  A ⧸ (zpow_group_hom n : A →* A).range ≃* B ⧸ (zpow_group_hom n : B →* B).range :=
+monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_comp_of_right_inverse e.symm e n e.left_inv)
+  (hom_quotient_zpow_of_hom_comp_of_right_inverse e e.symm n e.right_inv)
+
+@[to_additive, simp]
+lemma equiv_quotient_zpow_of_equiv_refl :
+  mul_equiv.refl (A ⧸ (zpow_group_hom n : A →* A).range)
+    = equiv_quotient_zpow_of_equiv (mul_equiv.refl A) n :=
+by { ext x, rw [← quotient.out_eq' x], refl }
+
+@[to_additive, simp]
+lemma equiv_quotient_zpow_of_equiv_symm :
+  (equiv_quotient_zpow_of_equiv e n).symm = equiv_quotient_zpow_of_equiv e.symm n :=
+rfl
+
+@[to_additive, simp]
+lemma equiv_quotient_zpow_of_equiv_trans :
+  (equiv_quotient_zpow_of_equiv e n).trans (equiv_quotient_zpow_of_equiv d n)
+    = equiv_quotient_zpow_of_equiv (e.trans d) n :=
+by { ext x, rw [← quotient.out_eq' x], refl }
+
+end zpow
+
 section snd_isomorphism_thm
 
 open _root_.subgroup
@@ -405,7 +461,7 @@ is the whole additive group."] lemma subgroup_eq_top_of_subsingleton (H : subgro
   (h : subsingleton (G ⧸ H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
-  by rwa [one_inv, one_mul] at this
+  by rwa [inv_one, one_mul] at this
 
 end trivial
 

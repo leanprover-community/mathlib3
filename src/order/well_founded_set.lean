@@ -3,7 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import algebra.pointwise
+import data.set.pointwise
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
@@ -131,8 +131,7 @@ end has_lt
 section partial_order
 variables [partial_order α] {s t : set α} {a : α}
 
-theorem is_wf_iff_no_descending_seq :
-  is_wf s ↔ ∀ (f : (order_dual ℕ) ↪o α), ¬ (range f) ⊆ s :=
+theorem is_wf_iff_no_descending_seq : is_wf s ↔ ∀ f : ℕᵒᵈ ↪o α, ¬ (range f) ⊆ s :=
 begin
   haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) :=
   { to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
@@ -147,15 +146,15 @@ begin
   classical,
   rw [is_wf_iff_no_descending_seq] at *,
   rintros f fst,
-  have h : infinite (f ⁻¹' s) ∨ infinite (f ⁻¹' t),
-  { have h : infinite (univ : set ℕ) := infinite_univ,
+  have h : (f ⁻¹' s).infinite ∨ (f ⁻¹' t).infinite,
+  { have h : (univ : set ℕ).infinite := infinite_univ,
     have hpre : f ⁻¹' (s ∪ t) = set.univ,
     { rw [← image_univ, image_subset_iff, univ_subset_iff] at fst,
       exact fst },
     rw preimage_union at hpre,
     rw ← hpre at h,
-    rw [infinite, infinite],
-    rw infinite at h,
+    rw [set.infinite, set.infinite],
+    rw set.infinite at h,
     contrapose! h,
     exact finite.union h.1 h.2, },
   rw [← infinite_coe_iff, ← infinite_coe_iff] at h,
@@ -356,15 +355,15 @@ begin
   classical,
   rw [is_pwo_iff_exists_monotone_subseq] at *,
   rintros f fst,
-  have h : infinite (f ⁻¹' s) ∨ infinite (f ⁻¹' t),
-  { have h : infinite (univ : set ℕ) := infinite_univ,
+  have h : (f ⁻¹' s).infinite ∨ (f ⁻¹' t).infinite,
+  { have h : (univ : set ℕ).infinite := infinite_univ,
     have hpre : f ⁻¹' (s ∪ t) = set.univ,
     { rw [← image_univ, image_subset_iff, univ_subset_iff] at fst,
       exact fst },
     rw preimage_union at hpre,
     rw ← hpre at h,
-    rw [infinite, infinite],
-    rw infinite at h,
+    rw [set.infinite, set.infinite],
+    rw set.infinite at h,
     contrapose! h,
     exact finite.union h.1 h.2, },
   rw [← infinite_coe_iff, ← infinite_coe_iff] at h,
@@ -685,19 +684,7 @@ begin
     { exact hl _ hy },
     { exact hl' _ hy } },
   apply ((h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _).mono hl,
-  intros l1 l2 hl1 hl2 h12,
-  obtain ⟨l, hll1, hll2⟩ := list.sublist_forall₂_iff.1 h12,
-  refine le_trans (list.rel_prod (le_refl 1) (λ a b ab c d cd, mul_le_mul' ab cd) hll1) _,
-  obtain ⟨l', hl'⟩ := hll2.exists_perm_append,
-  rw [hl'.prod_eq, list.prod_append, ← mul_one l.prod, mul_assoc, one_mul],
-  apply mul_le_mul_left',
-  have hl's := λ x hx, hl2 x (list.subset.trans (l.subset_append_right _) hl'.symm.subset hx),
-  clear hl',
-  induction l' with x1 x2 x3 x4 x5,
-  { refl },
-  rw [list.prod_cons, ← one_mul (1 : α)],
-  exact mul_le_mul' (hpos x1 (hl's x1 (list.mem_cons_self x1 x2)))
-    (x3 (λ x hx, hl's x (list.mem_cons_of_mem _ hx)))
+  exact λ l1 l2 hl1 hl2 h12, h12.prod_le_prod' (λ x hx, hpos x $ hl2 x hx)
 end
 
 end is_pwo

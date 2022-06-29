@@ -83,7 +83,7 @@ open finite_dimensional
 protected def submodule (v : ℙ K V) : submodule K V :=
 quotient.lift_on' v (λ v, K ∙ (v : V)) $ begin
   rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨x, (rfl : x • b = a)⟩,
-  exact (submodule.span_singleton_smul_eq _ x.ne_zero),
+  exact (submodule.span_singleton_group_smul_eq _ x _),
 end
 
 variable (K)
@@ -150,7 +150,7 @@ begin
     use mk K v this,
     symmetry,
     ext x, revert x, erw ← set.ext_iff, ext x,
-    dsimp,
+    dsimp [-set_like.mem_coe],
     rw [submodule.span_singleton_eq_range],
     refine ⟨λ hh, _, _⟩,
     { obtain ⟨c,hc⟩ := h ⟨x,hh⟩,

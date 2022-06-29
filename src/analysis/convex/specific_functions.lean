@@ -32,14 +32,6 @@ For `p : ℝ`, prove that `λ x, x ^ p` is concave when `0 ≤ p ≤ 1` and stri
 open real set
 open_locale big_operators
 
-/-- The norm of a real normed space is convex. Also see `seminorm.convex_on`. -/
-lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
-  convex_on ℝ univ (norm : E → ℝ) :=
-⟨convex_univ, λ x y hx hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
-        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
-
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
 strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
@@ -53,8 +45,8 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    rcases nat.even.sub_even hn (even_bit0 1) with ⟨k, hk⟩,
-    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
+    obtain ⟨k, hk⟩ := (hn.tsub $ even_bit0 _).exists_two_nsmul _,
+    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end
 
@@ -106,7 +98,8 @@ lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : even n) :
 begin
   rcases hn with ⟨n, rfl⟩,
   induction n with n ihn, { simp },
-  rw [nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
+  rw ← two_mul at ihn,
+  rw [← two_mul, nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
     finset.prod_range_succ, mul_assoc],
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,
@@ -136,9 +129,9 @@ begin
   { exact this _ },
   { exact (this _).const_mul _ },
   { intros x hx,
-    simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-    refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
-    exact int_prod_range_nonneg _ _ (even_bit0 1) }
+    rw iter_deriv_zpow,
+    refine mul_nonneg _ (zpow_nonneg (le_of_lt hx) _),
+    exact_mod_cast int_prod_range_nonneg _ _ (even_bit0 1) }
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
@@ -152,14 +145,12 @@ begin
    all_goals { rw interior_Ioi },
   { exact this _ },
   intros x hx,
-  simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
-  refine mul_pos (int.cast_pos.2 _) (zpow_pos_of_pos hx _),
-  refine int_prod_range_pos (even_bit0 1) (λ hm, _),
+  rw iter_deriv_zpow,
+  refine mul_pos _ (zpow_pos_of_pos hx _),
+  exact_mod_cast int_prod_range_pos (even_bit0 1) (λ hm, _),
   norm_cast at hm,
-  rw ←finset.coe_Ico at hm,
-  fin_cases hm,
-  { exact hm₀ rfl },
-  { exact hm₁ rfl }
+  rw ← finset.coe_Ico at hm,
+  fin_cases hm; cc,
 end
 
 lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on ℝ (Ici 0) (λ x : ℝ, x^p) :=
@@ -214,6 +205,53 @@ begin
   rw [deriv_log', deriv_inv],
   exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
 end
+
+section sqrt_mul_log
+
+lemma deriv_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
+  deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
+begin
+  simp only [sqrt_eq_rpow],
+  refine (deriv_mul (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at
+    (differentiable_at_log hx.ne')).trans _,
+  rw [deriv_rpow_const (or.inl hx.ne'), deriv_log, add_comm],
+  simp only [div_eq_mul_inv, mul_inv, ←rpow_neg hx.le, ←rpow_neg_one x, ←rpow_add hx],
+  rw [add_mul, mul_comm (log x), ←mul_assoc],
+  norm_num,
+end
+
+lemma deriv2_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
+  deriv^[2] (λ x, sqrt x * log x) x = -log x / (4 * sqrt x ^ 3) :=
+begin
+  let h := (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at,
+  rw [function.iterate_succ, function.iterate_one, function.comp_app,
+      ←deriv_within_of_open is_open_Ioi (set.mem_Ioi.mpr hx)],
+  refine (deriv_within_congr (unique_diff_on_Ioi 0 x hx) deriv_sqrt_mul_log
+    (deriv_sqrt_mul_log x hx)).trans _,
+  simp only [sqrt_eq_rpow],
+  rw [deriv_within_of_open is_open_Ioi (set.mem_Ioi.mpr hx),
+      deriv_div ((differentiable_at_log hx.ne').const_add 2) (h.const_mul 2)
+      (ne_of_gt (mul_pos two_pos (rpow_pos_of_pos hx 0.5))), deriv_const_add, deriv_log,
+      deriv_const_mul 2 h, deriv_rpow_const (or.inl hx.ne'), one_div, mul_comm x⁻¹, mul_assoc,
+      mul_inv_cancel_left₀ (show (2 : ℝ) ≠ (0 : ℝ), from two_ne_zero), ←div_eq_mul_inv,
+      ←rpow_sub_one hx.ne', ←sub_mul, sub_add_cancel', mul_pow, ←div_div_eq_mul_div, ←mul_div],
+    simp only [mul_pow, pow_succ, pow_zero, mul_one, ←rpow_add hx, ←rpow_sub hx],
+    norm_num,
+end
+
+lemma strict_concave_on_sqrt_mul_log_Ioi : strict_concave_on ℝ (set.Ioi 1) (λ x, sqrt x * log x) :=
+begin
+  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 1) is_open_Ioi
+    (λ x hx, differentiable_within_at_of_deriv_within_ne_zero _) (λ x hx, _),
+  { rw [deriv_within_of_open is_open_Ioi hx, deriv_sqrt_mul_log x (zero_lt_one.trans hx)],
+    refine div_ne_zero _ (mul_ne_zero two_ne_zero (sqrt_ne_zero'.mpr (zero_lt_one.trans hx))),
+    linarith [log_pos hx] },
+  { rw deriv2_sqrt_mul_log x (zero_lt_one.trans hx),
+    exact div_neg_of_neg_of_pos (neg_neg_of_pos (log_pos hx))
+      (mul_pos four_pos (pow_pos (sqrt_pos.mpr (zero_lt_one.trans hx)) 3)) },
+end
+
+end sqrt_mul_log
 
 open_locale real
 

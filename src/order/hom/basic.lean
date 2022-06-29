@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import data.equiv.option
+import logic.equiv.option
 import order.rel_iso
 import tactic.monotonicity.basic
 
@@ -51,11 +51,9 @@ because the more bundled version usually does not work with dot notation.
   `α →o Π i, π i`;
 * `order_hom.pi_iso`: order isomorphism between `α →o Π i, π i` and `Π i, α →o π i`;
 * `order_hom.subtyle.val`: embedding `subtype.val : subtype p → α` as a bundled monotone map;
-* `order_hom.dual`: reinterpret a monotone map `α →o β` as a monotone map
-  `order_dual α →o order_dual β`;
-* `order_hom.dual_iso`: order isomorphism between `α →o β` and
-  `order_dual (order_dual α →o order_dual β)`;
-* `order_iso.compl`: order isomorphism `α ≃o order_dual α` given by taking complements in a
+* `order_hom.dual`: reinterpret a monotone map `α →o β` as a monotone map `αᵒᵈ →o βᵒᵈ`;
+* `order_hom.dual_iso`: order isomorphism between `α →o β` and `(αᵒᵈ →o βᵒᵈ)ᵒᵈ`;
+* `order_iso.compl`: order isomorphism `α ≃o αᵒᵈ` given by taking complements in a
   boolean algebra;
 
 We also define two functions to convert other bundled maps to `α →o β`:
@@ -93,7 +91,7 @@ abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β
 infix ` ≃o `:25 := order_iso
 
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
-abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
+abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β] :=
 rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- `order_iso_class F α β` states that `F` is a type of order isomorphisms.
@@ -111,7 +109,7 @@ instance [has_le α] [has_le β] [order_iso_class F α β] : has_coe_t F (α ≃
 ⟨λ f, ⟨f, λ _ _, map_le_map_iff f⟩⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso_class.to_order_hom_class [preorder α] [preorder β] [order_iso_class F α β] :
+instance order_iso_class.to_order_hom_class [has_le α] [has_le β] [order_iso_class F α β] :
   order_hom_class F α β :=
 { map_rel := λ f a b, (map_le_map_iff f).2, ..equiv_like.to_embedding_like }
 
@@ -173,6 +171,8 @@ instance : order_hom_class (α →o β) α β :=
 
 @[ext] -- See library note [partially-applied ext lemmas]
 lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
+
+lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
 instance : can_lift (α → β) (α →o β) :=
@@ -347,17 +347,33 @@ lemma order_hom_eq_id [subsingleton α] (g : α →o α) : g = order_hom.id :=
 subsingleton.elim _ _
 
 /-- Reinterpret a bundled monotone function as a monotone function between dual orders. -/
-@[simps] protected def dual : (α →o β) ≃ (order_dual α →o order_dual β) :=
+@[simps] protected def dual : (α →o β) ≃ (αᵒᵈ →o βᵒᵈ) :=
 { to_fun := λ f, ⟨order_dual.to_dual ∘ f ∘ order_dual.of_dual, f.mono.dual⟩,
   inv_fun := λ f, ⟨order_dual.of_dual ∘ f ∘ order_dual.to_dual, f.mono.dual⟩,
   left_inv := λ f, ext _ _ rfl,
   right_inv := λ f, ext _ _ rfl }
 
+@[simp] lemma dual_id : (order_hom.id : α →o α).dual = order_hom.id := rfl
+@[simp] lemma dual_comp (g : β →o γ) (f : α →o β) : (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : order_hom.dual.symm order_hom.id = (order_hom.id : α →o α) := rfl
+@[simp] lemma symm_dual_comp (g : βᵒᵈ →o γᵒᵈ) (f : αᵒᵈ →o βᵒᵈ) :
+  order_hom.dual.symm (g.comp f) = (order_hom.dual.symm g).comp (order_hom.dual.symm f) := rfl
+
 /-- `order_hom.dual` as an order isomorphism. -/
-def dual_iso (α β : Type*) [preorder α] [preorder β] :
-  (α →o β) ≃o order_dual (order_dual α →o order_dual β) :=
+def dual_iso (α β : Type*) [preorder α] [preorder β] : (α →o β) ≃o (αᵒᵈ →o βᵒᵈ)ᵒᵈ :=
 { to_equiv := order_hom.dual.trans order_dual.to_dual,
   map_rel_iff' := λ f g, iff.rfl }
+
+/-- Lift an order homomorphism `f : α →o β` to an order homomorphism `with_bot α →o with_bot β`. -/
+@[simps { fully_applied := ff }]
+protected def with_bot_map (f : α →o β) : with_bot α →o with_bot β :=
+⟨with_bot.map f, f.mono.with_bot_map⟩
+
+/-- Lift an order homomorphism `f : α →o β` to an order homomorphism `with_top α →o with_top β`. -/
+@[simps { fully_applied := ff }]
+protected def with_top_map (f : α →o β) : with_top α →o with_top β :=
+⟨with_top.map f, f.mono.with_top_map⟩
 
 end order_hom
 
@@ -404,8 +420,22 @@ protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
 f.lt_embedding.is_well_order
 
 /-- An order embedding is also an order embedding between dual orders. -/
-protected def dual : order_dual α ↪o order_dual β :=
+protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
+
+/-- A version of `with_bot.map` for order embeddings. -/
+@[simps { fully_applied := ff }]
+protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=
+{ to_fun := with_bot.map f,
+  map_rel_iff' := λ a b, by cases a; cases b; simp [with_bot.none_eq_bot, with_bot.some_eq_coe,
+    with_bot.not_coe_le_bot],
+  .. f.to_embedding.option_map }
+
+/-- A version of `with_top.map` for order embeddings. -/
+@[simps { fully_applied := ff }]
+protected def with_top_map (f : α ↪o β) : with_top α ↪o with_top β :=
+{ to_fun := with_top.map f,
+  .. f.dual.with_bot_map.dual }
 
 /--
 To define an order embedding from a partial order to a preorder it suffices to give a function
@@ -500,7 +530,7 @@ def refl (α : Type*) [has_le α] : α ≃o α := rel_iso.refl (≤)
 
 @[simp] lemma coe_refl : ⇑(refl α) = id := rfl
 
-lemma refl_apply (x : α) : refl α x = x := rfl
+@[simp] lemma refl_apply (x : α) : refl α x = x := rfl
 
 @[simp] lemma refl_to_equiv : (refl α).to_equiv = equiv.refl α := rfl
 
@@ -554,7 +584,7 @@ e.to_equiv.preimage_image s
 
 @[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
 
-lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
+@[simp] lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
 
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 
@@ -571,7 +601,7 @@ def prod_comm : (α × β) ≃o (β × α) :=
 variables (α)
 
 /-- The order isomorphism between a type and its double dual. -/
-def dual_dual : α ≃o order_dual (order_dual α) := refl α
+def dual_dual : α ≃o αᵒᵈᵒᵈ := refl α
 
 @[simp] lemma coe_dual_dual : ⇑(dual_dual α) = to_dual ∘ to_dual := rfl
 @[simp] lemma coe_dual_dual_symm : ⇑(dual_dual α).symm = of_dual ∘ of_dual := rfl
@@ -579,9 +609,7 @@ def dual_dual : α ≃o order_dual (order_dual α) := refl α
 variables {α}
 
 @[simp] lemma dual_dual_apply (a : α) : dual_dual α a = to_dual (to_dual a) := rfl
-
-@[simp] lemma dual_dual_symm_apply (a : order_dual (order_dual α)) :
-  (dual_dual α).symm a = of_dual (of_dual a) := rfl
+@[simp] lemma dual_dual_symm_apply (a : αᵒᵈᵒᵈ) : (dual_dual α).symm a = of_dual (of_dual a) := rfl
 
 end has_le
 
@@ -620,6 +648,20 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
   left_inv := λ a, (gf a).symm,
   right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
   map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert (h _ _).symm, apply gf } }
+
+/-- To show that `f : α →o β` and `g : β →o α` make up an order isomorphism it is enough to show
+    that `g` is the inverse of `f`-/
+def of_hom_inv {F G : Type*} [order_hom_class F α β] [order_hom_class G β α]
+  (f : F) (g : G) (h₁ : (f : α →o β).comp (g : β →o α) = order_hom.id)
+    (h₂ : (g : β →o α).comp (f : α →o β) = order_hom.id) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := fun_like.congr_fun h₂,
+  right_inv := fun_like.congr_fun h₁,
+  map_rel_iff' := λ a b, ⟨λ h, by { replace h := map_rel g h, rwa [equiv.coe_fn_mk,
+    (show g (f a) = (g : β →o α).comp (f : α →o β) a, from rfl),
+    (show g (f b) = (g : β →o α).comp (f : α →o β) b, from rfl), h₂] at h },
+    λ h, (f : α →o β).monotone h⟩ }
 
 /-- Order isomorphism between two equal sets. -/
 def set_congr (s t : set α) (h : s = t) : s ≃o t :=
@@ -668,30 +710,47 @@ protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }
 
+namespace strict_mono
+
+variables {α β} [linear_order α] [preorder β]
+variables (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f)
+
 /-- A strictly monotone function from a linear order is an order isomorphism between its domain and
 its range. -/
-protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
-  (h_mono : strict_mono f) : α ≃o set.range f :=
+@[simps apply] protected noncomputable def order_iso : α ≃o set.range f :=
 { to_equiv := equiv.of_injective f h_mono.injective,
   map_rel_iff' := λ a b, h_mono.le_iff_le }
 
 /-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
-noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
-  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) : α ≃o β :=
+noncomputable def order_iso_of_surjective : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
+@[simp] lemma coe_order_iso_of_surjective :
+  (order_iso_of_surjective f h_mono h_surj : α → β) = f :=
+rfl
+
+@[simp] lemma order_iso_of_surjective_symm_apply_self (a : α) :
+  (order_iso_of_surjective f h_mono h_surj).symm (f a) = a :=
+(order_iso_of_surjective f h_mono h_surj).symm_apply_apply _
+
+lemma order_iso_of_surjective_self_symm_apply (b : β) :
+  f ((order_iso_of_surjective f h_mono h_surj).symm b) = b :=
+(order_iso_of_surjective f h_mono h_surj).apply_symm_apply _
+
 /-- A strictly monotone function with a right inverse is an order isomorphism. -/
-def strict_mono.order_iso_of_right_inverse {α β} [linear_order α] [preorder β]
-  (f : α → β) (h_mono : strict_mono f) (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
+@[simps {fully_applied := false}] def order_iso_of_right_inverse
+  (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
 { to_fun := f,
   inv_fun := g,
   left_inv := λ x, h_mono.injective $ hg _,
   right_inv := hg,
   .. order_embedding.of_strict_mono f h_mono }
 
+end strict_mono
+
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
-protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :
-  order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
+protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) : αᵒᵈ ≃o βᵒᵈ :=
+⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos
 
@@ -749,8 +808,7 @@ f.dual.map_inf x y
 namespace with_bot
 
 /-- Taking the dual then adding `⊥` is the same as adding `⊤` then taking the dual. -/
-protected def to_dual_top [has_le α] : with_bot (order_dual α) ≃o order_dual (with_top α) :=
-order_iso.refl _
+protected def to_dual_top [has_le α] : with_bot αᵒᵈ ≃o (with_top α)ᵒᵈ := order_iso.refl _
 
 @[simp] lemma to_dual_top_coe [has_le α] (a : α) :
   with_bot.to_dual_top ↑(to_dual a) = to_dual (a : with_top α) := rfl
@@ -762,8 +820,7 @@ end with_bot
 namespace with_top
 
 /-- Taking the dual then adding `⊤` is the same as adding `⊥` then taking the dual. -/
-protected def to_dual_bot [has_le α] : with_top (order_dual α) ≃o order_dual (with_bot α) :=
-order_iso.refl _
+protected def to_dual_bot [has_le α] : with_top αᵒᵈ ≃o (with_bot α)ᵒᵈ := order_iso.refl _
 
 @[simp] lemma to_dual_bot_coe [has_le α] (a : α) :
   with_top.to_dual_bot ↑(to_dual a) = to_dual (a : with_bot α) := rfl
@@ -779,8 +836,7 @@ variables [partial_order α] [partial_order β] [partial_order γ]
 @[simps apply]
 def with_top_congr (e : α ≃o β) : with_top α ≃o with_top β :=
 { to_equiv := e.to_equiv.option_congr,
-  map_rel_iff' := λ x y,
-    by induction x using with_top.rec_top_coe; induction y using with_top.rec_top_coe; simp }
+  .. e.to_order_embedding.with_top_map }
 
 @[simp] lemma with_top_congr_refl : (order_iso.refl α).with_top_congr = order_iso.refl _ :=
 rel_iso.to_equiv_injective equiv.option_congr_refl
@@ -797,8 +853,7 @@ rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
 def with_bot_congr (e : α ≃o β) :
   with_bot α ≃o with_bot β :=
 { to_equiv := e.to_equiv.option_congr,
-  map_rel_iff' := λ x y,
-    by induction x using with_bot.rec_bot_coe; induction y using with_bot.rec_bot_coe; simp }
+  .. e.to_order_embedding.with_bot_map }
 
 @[simp] lemma with_bot_congr_refl : (order_iso.refl α).with_bot_congr = order_iso.refl _ :=
 rel_iso.to_equiv_injective equiv.option_congr_refl
@@ -848,7 +903,7 @@ variables (α) [boolean_algebra α]
 
 /-- Taking complements as an order isomorphism to the order dual. -/
 @[simps]
-def order_iso.compl : α ≃o order_dual α :=
+def order_iso.compl : α ≃o αᵒᵈ :=
 { to_fun := order_dual.to_dual ∘ compl,
   inv_fun := compl ∘ order_dual.of_dual,
   left_inv := compl_compl,

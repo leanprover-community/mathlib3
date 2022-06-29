@@ -7,8 +7,8 @@ Authors: Chris Hughes, Thomas Browning
 import data.zmod.basic
 import group_theory.index
 import group_theory.group_action.conj_act
-import group_theory.perm.cycle_type
-import group_theory.quotient_group
+import group_theory.group_action.quotient
+import group_theory.perm.cycle.type
 
 /-!
 # p-groups
@@ -54,7 +54,7 @@ begin
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
-  obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
+  obtain ⟨g, hg⟩ := exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
 end
@@ -121,7 +121,7 @@ lemma card_modeq_card_fixed_points : card α ≡ card (fixed_points G α) [MOD p
 begin
   classical,
   calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
-    card_congr (equiv.sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
+    card_congr (equiv.sigma_fiber_equiv (@quotient.mk' _ (orbit_rel G α))).symm
   ... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
   ... ≡ ∑ a : fixed_points G α, 1 [MOD p] : _
   ... = _ : by simp; refl,
@@ -134,7 +134,8 @@ begin
       { rw [key, mem_fixed_points_iff_card_orbit_eq_one.mp a.2] })),
   obtain ⟨k, hk⟩ := hG.card_orbit b,
   have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p)
-    (by rwa [pow_one, ←hk, ←nat.modeq_zero_iff_dvd, ←zmod.eq_iff_modeq_nat, ←key])))),
+    (by rwa [pow_one, ←hk, ←nat.modeq_zero_iff_dvd, ←zmod.eq_iff_modeq_nat, ←key,
+      nat.cast_zero])))),
   exact ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, pow_zero]⟩,
     finset.mem_univ _, (ne_of_eq_of_ne nat.cast_one one_ne_zero), rfl⟩,
 end

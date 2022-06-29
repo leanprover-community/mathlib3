@@ -437,7 +437,6 @@ by simp [graph]
   x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
 by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 
-
 /-- The tuple `(x, f x)` is contained in the graph of `f`. -/
 lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
 by simp

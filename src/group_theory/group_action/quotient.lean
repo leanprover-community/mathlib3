@@ -3,13 +3,17 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.group_action.group
+import group_theory.group_action.basic
 import group_theory.quotient_group
 
 /-!
 # Properties of group actions involving quotient groups
 
-Orbit-stabilizer theorem etc etc, fill in this docstring.
+This file proves properties of group actions which use the quotient group construction, notably
+* the orbit-stabilizer theorem `card_orbit_mul_card_stabilizer_eq_card_group`
+* the class formula `card_eq_sum_card_group_div_card_stabilizer'`
+* Burnside's lemma `sum_card_fixed_by_eq_card_orbits_mul_card_group`
+
 -/
 
 universes u v w

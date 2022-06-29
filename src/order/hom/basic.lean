@@ -414,7 +414,7 @@ f.lt_embedding.acc a
 
 protected theorem well_founded_lt {α β} [preorder α] [linear_order β] [well_founded_lt β]
   (f : α ↪o β) : well_founded_lt α :=
-⟨⟨f.lt_embedding.is_well_order.wf⟩⟩
+⟨by { haveI := well_founded_lt.is_well_order β, exact f.lt_embedding.is_well_order.wf }⟩
 
 /-- An order embedding is also an order embedding between dual orders. -/
 protected def dual : αᵒᵈ ↪o βᵒᵈ :=

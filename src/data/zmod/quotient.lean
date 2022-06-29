@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import data.zmod.basic
-import group_theory.quotient_group
+import group_theory.group_action.quotient
 import ring_theory.int.basic
 
 /-!

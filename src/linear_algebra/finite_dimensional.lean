@@ -285,9 +285,8 @@ lemma cardinal_mk_le_finrank_of_linear_independent
   [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
   #ι ≤ finrank K V :=
 begin
-  rw ← lift_le.{_ (max v w)},
-  simpa [← finrank_eq_dim K V] using
-    cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max v w)} h
+  rw ← lift_le,
+  simpa [← finrank_eq_dim K V] using cardinal_lift_le_dim_of_linear_independent h
 end
 
 lemma fintype_card_le_finrank_of_linear_independent

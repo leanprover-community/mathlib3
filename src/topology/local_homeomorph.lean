@@ -816,7 +816,7 @@ def disjoint_union (e e' : local_homeomorph α β)
   local_homeomorph α β :=
 (e.piecewise e' e.source e.target e.is_image_source_target
   (e'.is_image_source_target_of_disjoint e Hs.symm Ht.symm)
-  (by rw [e.open_source.inter_frontier_eq, e'.open_source.inter_frontier_eq_empty_of_disjoint Hs])
+  (by rw [e.open_source.inter_frontier_eq, (Hs.symm.frontier_right e'.open_source).inter_eq])
   (by { rw e.open_source.inter_frontier_eq, exact eq_on_empty _ _ })).replace_equiv
     (e.to_local_equiv.disjoint_union e'.to_local_equiv Hs Ht)
     (local_equiv.disjoint_union_eq_piecewise _ _ _ _).symm

@@ -309,7 +309,7 @@ begin
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
   letI := linear_order_of_STO' r,
-  haveI : well_founded_lt α := wo,
+  haveI : well_founded_lt α := ⟨wo⟩,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.
   let g : α × α → α := λ p, max p.1 p.2,

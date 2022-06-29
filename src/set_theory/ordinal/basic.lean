@@ -697,13 +697,13 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 instance : well_founded_lt ordinal :=
-{ wf := ⟨λ a, induction_on a $ λ α r wo, by exactI
-    suffices ∀ a, acc (<) (typein r a), from
-    ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
-    λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
-      rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
-      exact IH _ ((typein_lt_typein r).1 h)
-  end⟩⟩ }
+⟨⟨⟨λ a, induction_on a $ λ α r wo, by exactI
+  suffices ∀ a, acc (<) (typein r a), from
+  ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
+  λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
+    rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
+    exact IH _ ((typein_lt_typein r).1 h)
+end⟩⟩⟩⟩ 
 
 instance : has_well_founded ordinal := well_founded_lt.has_well_founded
 

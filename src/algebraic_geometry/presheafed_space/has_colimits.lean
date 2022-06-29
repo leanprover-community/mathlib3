@@ -33,7 +33,7 @@ The limit of this diagram then constitutes the colimit presheaf.
 
 noncomputable theory
 
-universes v u
+universes v' u' v u
 
 open category_theory
 open Top
@@ -44,7 +44,7 @@ open category_theory.category
 open category_theory.limits
 open category_theory.functor
 
-variables {J : Type v} [small_category J]
+variables {J : Type u'} [category.{v'} J]
 variables {C : Type u} [category.{v} C]
 
 
@@ -79,6 +79,8 @@ begin
   simp only [PresheafedSpace.congr_app (F.map_comp f g)],
   dsimp, simp, dsimp, simp, -- See note [dsimp, simp]
 end
+
+variable [has_colimits_of_shape J Top.{v}]
 
 /--
 Given a diagram of presheafed spaces,
@@ -129,7 +131,7 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace.{v} C) :
     { simp, refl, },
   end, }
 
-variables [has_limits C]
+variables [has_limits_of_shape Jᵒᵖ C] [∀ X : Top.{v}, has_limits_of_shape Jᵒᵖ (X.presheaf C)]
 
 /--
 Auxiliary definition for `PresheafedSpace.has_colimits`.
@@ -278,10 +280,25 @@ def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace.{v} C) : is_colimit (co
       simp }
   end, }
 
+instance : has_colimits_of_shape J (PresheafedSpace.{v} C) :=
+{ has_colimit := λ F, has_colimit.mk
+  { cocone     := colimit_cocone F,
+    is_colimit := colimit_cocone_is_colimit F } }
+
+instance : preserves_colimits_of_shape J (PresheafedSpace.forget C) :=
+{ preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
+  (colimit_cocone_is_colimit F)
+  begin
+    apply is_colimit.of_iso_colimit (colimit.is_colimit _),
+    fapply cocones.ext,
+    { refl, },
+    { intro j, dsimp, simp, }
+  end }
+
 /--
 When `C` has limits, the category of presheaved spaces with values in `C` itself has colimits.
 -/
-instance : has_colimits (PresheafedSpace.{v} C) :=
+instance [has_limits C] : has_colimits (PresheafedSpace.{v} C) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone     := colimit_cocone F,
@@ -291,7 +308,7 @@ instance : has_colimits (PresheafedSpace.{v} C) :=
 The underlying topological space of a colimit of presheaved spaces is
 the colimit of the underlying topological spaces.
 -/
-instance forget_preserves_colimits : preserves_colimits (PresheafedSpace.forget C) :=
+instance forget_preserves_colimits [has_limits C] : preserves_colimits (PresheafedSpace.forget C) :=
 { preserves_colimits_of_shape := λ J 𝒥, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
     (colimit_cocone_is_colimit F)
@@ -309,7 +326,7 @@ This is the componentwise diagram for an open set `U` of the colimit of the unde
 -/
 @[simps]
 def componentwise_diagram (F : J ⥤ PresheafedSpace.{v} C)
-  (U : opens (limits.colimit F).carrier) : Jᵒᵖ ⥤ C :=
+  [has_colimit F] (U : opens (limits.colimit F).carrier) : Jᵒᵖ ⥤ C :=
 { obj := λ j, (F.obj (unop j)).presheaf.obj (op ((opens.map (colimit.ι F (unop j)).base).obj U)),
   map := λ j k f, (F.map f.unop).c.app _ ≫ (F.obj (unop k)).presheaf.map
     (eq_to_hom (by { rw [← colimit.w F f.unop, comp_base], refl })),
@@ -331,7 +348,7 @@ def componentwise_diagram (F : J ⥤ PresheafedSpace.{v} C)
 The components of the colimit of a diagram of `PresheafedSpace C` is obtained
 via taking componentwise limits.
 -/
-def colimit_presheaf_obj_iso_componentwise_limit (F : J ⥤ PresheafedSpace.{v} C)
+def colimit_presheaf_obj_iso_componentwise_limit (F : J ⥤ PresheafedSpace.{v} C) [has_colimit F]
   (U : opens (limits.colimit F).carrier) :
   (limits.colimit F).presheaf.obj (op U) ≅ limit (componentwise_diagram F U) :=
 begin

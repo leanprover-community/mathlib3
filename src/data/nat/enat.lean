@@ -470,13 +470,12 @@ noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
 end with_top_equiv
 
 instance : well_founded_lt enat :=
-⟨⟨begin
+⟨begin
   classical,
   change well_founded (λ a b : enat, a < b),
   simp_rw ←to_with_top_lt,
-  apply inv_image.wf,
-  exact well_founded_lt.lt_wf.wf
-end⟩⟩
+  exact inv_image.wf _ is_well_founded.wf
+end⟩
 
 instance : has_well_founded enat := well_founded_lt.to_has_well_founded
 

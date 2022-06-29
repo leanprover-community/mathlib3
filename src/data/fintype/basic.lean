@@ -1837,10 +1837,12 @@ subrelation.wf this (measure_wf _) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance preorder.well_founded_lt [fintype α] [preorder α] : well_founded_lt α :=
-⟨fintype.is_well_founded _⟩
+fintype.is_well_founded _
 @[priority 100] -- see Note [lower instance priority]
 instance preorder.well_founded_gt [fintype α] [preorder α] : well_founded_gt α :=
-⟨fintype.is_well_founded _⟩
+fintype.is_well_founded _
+
+instance fin.is_well_order_lt (n : ℕ) : is_well_order (fin n) (<) := well_founded_lt.is_well_order _
 
 end fintype
 

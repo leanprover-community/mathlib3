@@ -381,23 +381,21 @@ def collapse_F [is_well_order β s] (f : r ↪r s) : Π a, {b // ¬ s (f a) b} :
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.map_rel_iff.2 h) h')
     .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.map_rel_iff.2 h,
-  exact ⟨is_well_founded.wf.min S ⟨_, this⟩,
-   is_well_founded.wf.not_lt_min _ _ this⟩
+  exact ⟨is_well_founded.wf.min S ⟨_, this⟩, is_well_founded.wf.not_lt_min _ this⟩
 end
 
-theorem collapse_F.lt [is_well_order β s] (f : r ↪r s) {a : α}
-   : ∀ {a'}, r a' a → s (collapse_F f a').1 (collapse_F f a).1 :=
+theorem collapse_F.lt [is_well_order β s] (f : r ↪r s) {a : α} :
+  ∀ {a'}, r a' a → s (collapse_F f a').1 (collapse_F f a).1 :=
 show (collapse_F f a).1 ∈ {b | ∀ a' (h : r a' a), s (collapse_F f a').1 b}, begin
   unfold collapse_F, rw well_founded.fix_eq,
   apply well_founded.min_mem _ _
 end
 
 theorem collapse_F.not_lt [is_well_order β s] (f : r ↪r s) (a : α)
-   {b} (h : ∀ a' (h : r a' a), s (collapse_F f a').1 b) : ¬ s b (collapse_F f a).1 :=
+  {b} (h : ∀ a' (h : r a' a), s (collapse_F f a').1 b) : ¬ s b (collapse_F f a).1 :=
 begin
   unfold collapse_F, rw well_founded.fix_eq,
-  exact well_founded.not_lt_min _ _ _
-    (show b ∈ {b | ∀ a' (h : r a' a), s (collapse_F f a').1 b}, from h)
+  exact well_founded.not_lt_min _ _ h
 end
 
 /-- Construct an initial segment from an order embedding into a well order, by collapsing it
@@ -414,7 +412,7 @@ by haveI := rel_embedding.is_well_order f; exact
   { exact (is_well_founded.wf : well_founded r).min_mem S this },
   { refine collapse_F.not_lt f _ (λ a' h', _),
     by_contradiction hn,
-    exact is_well_founded.wf.not_lt_min S this hn h' }
+    exact is_well_founded.wf.not_lt_min S hn h' }
 end) a⟩
 
 theorem collapse_apply [is_well_order β s] (f : r ↪r s)
@@ -700,15 +698,15 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 instance : well_founded_lt ordinal :=
-⟨⟨⟨λ a, induction_on a $ λ α r wo, by exactI
+⟨⟨λ a, induction_on a $ λ α r wo, by exactI
   suffices ∀ a, acc (<) (typein r a), from
   ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
   λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
     rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
     exact IH _ ((typein_lt_typein r).1 h)
-end⟩⟩⟩⟩
+end⟩⟩⟩
 
-instance : has_well_founded ordinal := well_founded_lt.has_well_founded
+instance : has_well_founded ordinal := well_founded_lt.to_has_well_founded
 
 /-- Reformulation of well founded induction on ordinals as a lemma that works with the
 `induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
@@ -1045,10 +1043,10 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := well_fouhnded_lt.is_well_order _
+instance : is_well_order ordinal (<) := well_founded_lt.is_well_order _
 
 instance : conditionally_complete_linear_order_bot ordinal :=
-well_fouhnded_lt.conditionally_complete_linear_order_bot _
+well_founded_lt.conditionally_complete_linear_order_bot _
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
@@ -1072,10 +1070,8 @@ private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
     (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
     (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
-    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
-    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
+  haveI := hs,
+  refine ⟨⟨rel_embedding.of_monotone (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|_; rcases b with b|_,
     { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
@@ -1083,7 +1079,7 @@ induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, b
     { exact false.elim ∘ sum.lex_inr_inl },
     { exact false.elim ∘ sum.lex_inr_inr.1 } },
   { rcases a with a|_,
-    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
+    { intro h, have := principal_seg.init ⟨f, t, hf⟩ h,
       cases this with w h, exact ⟨sum.inl w, h⟩ },
     { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
 end⟩
@@ -1127,7 +1123,7 @@ by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ_iff], apply typein_lt_s
 ⟨λ h, begin
   by_contra hne,
   cases lt_or_gt_of_ne hne with hlt hlt;
-    apply (is_well_order.is_irrefl r).1,
+    apply @irrefl α r _,
     { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
     { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
 end, λ h, by simp_rw h⟩

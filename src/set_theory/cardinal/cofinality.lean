@@ -132,10 +132,10 @@ o.lift_on (λ a, strict_order.cof a.r)
 begin
   rintros ⟨α, r, wo₁⟩ ⟨β, s, wo₂⟩ ⟨⟨f, hf⟩⟩,
   haveI := wo₁, haveI := wo₂,
-  apply @rel_iso.cof_eq _ _ _ _ _ _ ,
+  apply @rel_iso.cof_eq _ _ _ _ _ _,
   { split, exact λ a b, not_iff_not.2 hf },
-  { exact ⟨(is_well_order.is_irrefl r).1⟩ },
-  { exact ⟨(is_well_order.is_irrefl s).1⟩ }
+  { apply is_refl.swap },
+  { apply is_refl.swap }
 end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
@@ -172,12 +172,11 @@ begin
       exact irrefl _ h } },
   { intro a,
     have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
-    let b := (is_well_founded.wf).min _ this,
+    let b := is_well_founded.min s _ this,
     have ba : ¬r b a := (is_well_founded.wf).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,
-    rw [show ∀b:S, (⟨b, b.2⟩:S) = b, by intro b; cases b; refl],
-    exact (is_well_founded.wf).not_lt_min _ this
-      (is_order_connected.neg_trans h ba) }
+    rw subtype.coe_eta,
+    exact is_well_founded.not_lt_min s _ (is_order_connected.neg_trans h ba) }
 end
 
 /-! ### Cofinality of suprema and least strict upper bounds -/
@@ -523,10 +522,11 @@ begin
       rw bfamily_of_family'_typein,
       refl },
     { push_neg at h,
-      cases wo.wf.min_mem _ h with hji hij,
+      cases is_well_founded.min_mem r _ h with hji hij,
       refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
       { by_contra' H,
-        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
+        exact (is_well_founded.not_lt_min r {j | r j i ∧ f i ≤ f j}
+          ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
       { rwa bfamily_of_family'_typein } } }
 end
 
@@ -650,10 +650,10 @@ theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_ord
 begin
   by_contra' h,
   simp_rw not_unbounded_iff at h,
-  let f : s → α := λ x : s, wo.wf.sup x (h x.1 x.2),
+  let f : s → α := λ x : s, is_well_founded.sup r x (h x.1 x.2),
   refine h₂.not_le (le_trans (cInf_le' ⟨range f, λ x, _, rfl⟩) mk_range_le),
   rcases h₁ x with ⟨y, ⟨c, hc, hy⟩, hxy⟩,
-  exact ⟨f ⟨c, hc⟩, mem_range_self _, λ hxz, hxy (trans (wo.wf.lt_sup _ hy) hxz)⟩
+  exact ⟨f ⟨c, hc⟩, mem_range_self _, λ hxz, hxy (trans (is_well_founded.lt_sup r _ _ hy) hxz)⟩
 end
 
 /-- If the union of s is unbounded and s is smaller than the cofinality,

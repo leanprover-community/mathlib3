@@ -218,15 +218,32 @@ begin
   exact nat.sub_lt (zero_lt_iff.mpr (@fintype.card_ne_zero _ _ h)) (zero_lt_one) }
 end
 
-theorem interpolate_eq_of_eval_eq (hs : ∀ i, r i = s i) : interpolate v r = interpolate v s :=
-by {rw ← @function.funext_iff _ _ r s at hs, rw hs}
+theorem eq_interpolate {f : F[X]} (degree_f_lt : f.degree < fintype.card ι) :
+  f = interpolate v (λ i, f.eval (v i)) :=
+eq_of_eval_eq' v degree_f_lt degree_interpolate_lt (λ _, by simp_rw eval_interpolate)
+
+theorem eq_interpolate_of_eval_eq {f : F[X]} (degree_f_lt : f.degree < fintype.card ι)
+(eval_f : ∀ i, f.eval (v i) = r i) : f = interpolate v r :=
+by { convert eq_interpolate degree_f_lt, simp_rw eval_f }
+
+/--
+This is the characteristic property of the interpolation: the interpolation is the
+unique polynomial of `degree < fintype.card ι` which takes the value of the `r i` on the `v i`.
+-/
+theorem eq_interpolate_iff {f : F[X]} :
+  (f.degree < fintype.card ι ∧ ∀ i, eval (v i) f = r i) ↔ f = interpolate v r :=
+begin
+  split; intro h,
+  exact eq_interpolate_of_eval_eq h.1 h.2,
+  rw h, exact ⟨degree_interpolate_lt, eval_interpolate⟩
+end
 
 /-- Linear version of `interpolate`. -/
 def linterpolate (v : ι ↪ F) : (ι → F) →ₗ[F] polynomial F :=
 { to_fun := interpolate v,
-  map_add' := λ f g, by { simp_rw [ interpolate_def, ← finset.sum_add_distrib,
+  map_add' := λ f g, by { simp_rw [ interpolate, ← finset.sum_add_distrib,
                                     ← add_mul, ← C_add], refl },
-  map_smul' := λ c f, by { simp_rw [interpolate_def, finset.smul_sum, C_mul', smul_smul], refl } }
+  map_smul' := λ c f, by { simp_rw [interpolate, finset.smul_sum, C_mul', smul_smul], refl } }
 
 lemma interpolate_add (r s) : interpolate v (r + s) = interpolate v r + interpolate v s :=
 (linterpolate v).map_add r s
@@ -243,55 +260,50 @@ lemma interpolate_add (r s) : interpolate v (r + s) = interpolate v r + interpol
 @[simp] lemma interpolate_smul (c : F) (r) : interpolate v (c • r) = c • interpolate v r :=
 (linterpolate v).map_smul c r
 
-theorem eq_interpolate (f : F[X]) (hf : f.degree < fintype.card ι) :
-  interpolate v (λ i, eval (v i) f) = f :=
-eq_of_eval_eq' v degree_interpolate_lt hf (λ _, by simp_rw eval_interpolate)
-
-/-- Lagrange interpolation induces isomorphism between functions from `ι` and polynomials of degree less than `fintype.card ι`.-/
+/-- Lagrange interpolation induces isomorphism between functions from `ι`
+and polynomials of degree less than `fintype.card ι`.-/
 def fun_equiv_degree_lt : degree_lt F (fintype.card ι) ≃ₗ[F] (ι → F) :=
 { to_fun := λ f i, f.1.eval (v i),
   map_add' := λ f g, funext $ λ v, eval_add,
   map_smul' := λ c f, funext $ by simp,
   inv_fun := λ r, ⟨interpolate v r, mem_degree_lt.mpr degree_interpolate_lt⟩,
-  left_inv := λ f, subtype.eq (eq_interpolate _ (mem_degree_lt.1 f.2)),
-  right_inv := λ f, funext (λ i, eval_interpolate) }
+  left_inv := λ f, subtype.eq (eq_interpolate (mem_degree_lt.1 f.2)).symm,
+  right_inv := λ f, funext eval_interpolate }
 
 end interpolate
 
 section interpolate_at
 variables {ι : Type*} [fintype ι] [decidable_eq ι] {v : ι ↪ F} {i j : ι} {f g : F → F}
 
-
-/-- Lagrange interpolation: given a fintype `ι`, an embedding `v : ι ↪ F`, and a function `f : F → F`, `interpolate_at v r` is the unique polynomial of degree `< fintype.card ι`
-that takes value `f (v i)` on `v i` for all `i` in `ι`. -/
+/-- Lagrange interpolation: given a fintype `ι`, an embedding `v : ι ↪ F`,
+and a function `f : F → F`, `interpolate_at v r` is the unique polynomial of
+degree `< fintype.card ι` that takes value `f (v i)` on `v i` for all `i` in `ι`. -/
 def interpolate_at (v : ι ↪ F) (f : F → F) := interpolate v (λ i, f (v i))
-
-lemma interpolate_at_def : interpolate_at v f = interpolate v (λ i, f (v i)) := rfl
 
 theorem interpolate_at_eq_of_eval_eq (hs : ∀ i, f (v i) = g (v i)) :
   interpolate_at v f = interpolate_at v g :=
-by {simp_rw [interpolate_at_def], congr, exact funext hs}
+by {simp_rw [interpolate_at], congr, exact funext hs}
 
 @[simp] theorem interpolate_at_empty [is_empty ι] : interpolate_at v f = 0 :=
-by rw [interpolate_at_def, interpolate_empty]
+by rw [interpolate_at, interpolate_empty]
 
 theorem interpolate_at_singleton [unique ι] : interpolate_at v f = C (f (v default)) :=
-by rw [interpolate_at_def, interpolate_singleton]
+by rw [interpolate_at, interpolate_singleton]
 
 @[simp] theorem eval_interpolate_at : eval (v i) (interpolate_at v f) = f (v i) :=
-by rw [interpolate_at_def, eval_interpolate]
+by rw [interpolate_at, eval_interpolate]
 
 theorem degree_interpolate_at_le : (interpolate_at v f).degree ≤ ↑(fintype.card ι - 1) :=
-by {rw [interpolate_at_def], exact degree_interpolate_le}
+by {rw [interpolate_at], exact degree_interpolate_le}
 
 theorem degree_interpolate_at_lt : (interpolate_at v f).degree < fintype.card ι :=
-by {rw [interpolate_at_def], exact degree_interpolate_lt}
+by {rw [interpolate_at], exact degree_interpolate_lt}
 
 /-- Linear version of `interpolate_at`. -/
 def linterpolate_at (v : ι ↪ F) : (F → F) →ₗ[F] polynomial F :=
 { to_fun := interpolate_at v,
-  map_add' := λ f g, by { simp_rw [interpolate_at_def, ← interpolate_add], refl },
-  map_smul' := λ c f, by { { simp_rw [interpolate_at_def, ← interpolate_smul], refl } } }
+  map_add' := λ f g, by { simp_rw [interpolate_at, ← interpolate_add], refl },
+  map_smul' := λ c f, by { { simp_rw [interpolate_at, ← interpolate_smul], refl } } }
 
 @[simp] lemma interpolate_at_add (f g) :
   interpolate_at v (f + g) = interpolate_at v f + interpolate_at v g :=
@@ -309,12 +321,20 @@ def linterpolate_at (v : ι ↪ F) : (F → F) →ₗ[F] polynomial F :=
 @[simp] lemma interpolate_at_smul (c : F) (f) : interpolate_at v (c • f) = c • interpolate_at v f :=
 (linterpolate_at v).map_smul c f
 
-theorem eq_interpolate_at_of_eval_eq {g : F[X]} (hg : g.degree < fintype.card ι)
- (hgf : ∀ i, g.eval (v i) = f (v i)) : interpolate_at v f = g :=
-eq_of_eval_eq' v degree_interpolate_at_lt hg (λ _, by simp_rw [eval_interpolate_at, hgf])
+theorem eq_interpolate_at (g : F[X]) (degree_g_lt : g.degree < fintype.card ι) :
+  g = interpolate_at v (λ x, eval x g) := eq_interpolate degree_g_lt
 
-theorem eq_interpolate_at (f : F[X]) (hf : f.degree < fintype.card ι) :
-  interpolate_at v (λ x, eval x f) = f := eq_interpolate f hf
+theorem eq_interpolate_at_of_eval_eq {g : F[X]} (degree_g_lt : g.degree < fintype.card ι)
+ (eval_g : ∀ i, g.eval (v i) = f (v i)) : g = interpolate_at v f :=
+eq_interpolate_of_eval_eq degree_g_lt eval_g
+
+/--
+This is the characteristic property of the interpolation of a function at given nodes:
+the interpolation at the nodes is the unique polynomial of `degree < fintype.card ι`
+which agrees with `f` on the `v i`.
+-/
+theorem eq_interpolate_at_iff (g : F[X]) : (g.degree < fintype.card ι ∧
+  ∀ i, g.eval (v i) = f (v i)) ↔ g = interpolate_at v f := eq_interpolate_iff
 
 end interpolate_at
 

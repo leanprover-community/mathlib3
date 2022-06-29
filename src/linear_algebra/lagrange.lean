@@ -282,7 +282,8 @@ We can use `nodal` for an alternative form of `interpolate`.
 -/
 def nodal (v : ι ↪ F) : F[X] := ∏ i, (X - C (v i))
 
-lemma nodal_eq_remove [decidable_eq ι] (i : ι) : nodal v = (X - C (v i)) * ∏ j in univ.erase i, (X - C (v j)) :=
+lemma nodal_eq_remove [decidable_eq ι] (i : ι) :
+  nodal v = (X - C (v i)) * ∏ j in univ.erase i, (X - C (v j)) :=
 by rw [nodal, mul_prod_erase _ _ (mem_univ i)]
 
 lemma nodal_derive_eval_node_eq [decidable_eq ι] (i : ι) : eval (v i) (nodal v).derivative =
@@ -294,7 +295,8 @@ begin
   { rw [eval_sub, eval_X, eval_C, sub_self] }
 end
 
-lemma nodal_div_eq (i : ι) [decidable_eq ι] : nodal v / (X - C (v i)) = ∏ j in univ.erase i, (X - C (v j)) :=
+lemma nodal_div_eq (i : ι) [decidable_eq ι] :
+  nodal v / (X - C (v i)) = ∏ j in univ.erase i, (X - C (v j)) :=
 by { rw [nodal_eq_remove i, euclidean_domain.mul_div_cancel_left], exact X_sub_C_ne_zero _ }
 
 lemma basis_eq_nodal_div_eval_deriv_mul_linear [decidable_eq ι] :

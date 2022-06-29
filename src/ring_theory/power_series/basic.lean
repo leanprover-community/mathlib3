@@ -156,6 +156,12 @@ coeff_monomial_same 0 1
 
 lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
 
+instance : add_monoid_with_one (mv_power_series σ R) :=
+{ nat_cast := λ n, monomial R 0 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := by simp [nat.cast, monomial_zero_one],
+  one := 1, .. mv_power_series.add_monoid }
+
 instance : has_mul (mv_power_series σ R) :=
 ⟨λ φ ψ n, ∑ p in finsupp.antidiagonal n, coeff R p.1 φ * coeff R p.2 ψ⟩
 
@@ -244,7 +250,7 @@ instance : semiring (mv_power_series σ R) :=
   zero_mul := mv_power_series.zero_mul,
   left_distrib := mv_power_series.mul_add,
   right_distrib := mv_power_series.add_mul,
-  .. mv_power_series.has_one,
+  .. mv_power_series.add_monoid_with_one,
   .. mv_power_series.has_mul,
   .. mv_power_series.add_comm_monoid }
 

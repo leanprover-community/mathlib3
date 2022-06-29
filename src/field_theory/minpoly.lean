@@ -450,6 +450,8 @@ end
 
 omit hs
 
+/-- See also `minpoly.unique` which relaxes the assumptions on `S`
+in exchange for stronger assumptions on `R`. -/
 lemma gcd_domain_unique {P : R[X]} (hmo : P.monic) (hP : polynomial.aeval s P = 0)
   (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :
   P = minpoly R s :=

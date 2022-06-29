@@ -210,7 +210,7 @@ instance is_extensional_of_is_strict_total_order'
 /-! ### Well-order -/
 
 /-- A well-founded relation. Not to be confused with `is_well_order`. -/
-@[algebra] class is_well_founded (α : Type u) (r : α → α → Prop) : Prop :=
+@[algebra, mk_iff] class is_well_founded (α : Type u) (r : α → α → Prop) : Prop :=
 (wf : well_founded r)
 
 instance has_well_founded.is_well_founded [h : has_well_founded α] :
@@ -259,22 +259,15 @@ instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α 
 is_asymm.is_irrefl
 
 /-- A class for a well founded relation `<`. -/
-class well_founded_lt (α : Type*) [has_lt α] : Prop :=
-( lt_wf : is_well_founded α (<) )
+@[reducible] def well_founded_lt (α : Type*) [has_lt α] : Prop := is_well_founded α (<)
 
 /-- A class for a well founded relation `>`. -/
-class well_founded_gt (α : Type*) [has_lt α] : Prop :=
-( gt_wf : is_well_founded α (>) )
+@[reducible] def well_founded_gt (α : Type*) [has_lt α] : Prop := is_well_founded α (>)
 
 @[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_lt α] : is_well_founded α (<) := h.lt_wf
+instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := h
 @[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_gt α] : is_well_founded α (>) := h.gt_wf
-
-@[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt αᵒᵈ := ⟨h.lt_wf⟩
-@[priority 100] -- See note [lower instance priority]
-instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := ⟨h.gt_wf⟩
+instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := h
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
@@ -284,11 +277,9 @@ instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt α�
 instance is_well_order.is_strict_total_order' (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order' α r := {}
 
-@[priority 100] -- see Note [lower instance priority]
-instance well_founded_lt.is_well_order (α : Type u) [linear_order α] [well_founded_lt α] :
+theorem well_founded_lt.is_well_order (α : Type u) [linear_order α] [well_founded_lt α] :
   is_well_order α (<) := {}
-@[priority 100] -- see Note [lower instance priority]
-instance well_founded_gt.is_well_order (α : Type u) [linear_order α] [well_founded_gt α] :
+theorem well_founded_gt.is_well_order (α : Type u) [linear_order α] [well_founded_gt α] :
   is_well_order α (>) := @well_founded_lt.is_well_order αᵒᵈ _ _
 
 namespace well_founded_lt
@@ -616,5 +607,5 @@ lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
-instance : well_founded_lt ℕ := ⟨⟨nat.lt_wf⟩⟩
-instance nat.lt.is_well_order : is_well_order ℕ (<) := by apply_instance
+instance : well_founded_lt ℕ := ⟨nat.lt_wf⟩
+instance nat.lt.is_well_order : is_well_order ℕ (<) := well_founded_lt.is_well_order ℕ

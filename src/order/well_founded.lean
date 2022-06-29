@@ -38,30 +38,33 @@ Note that throughout this section, we give lemmas the names they'd have if the o
 
 variables {α β : Type*}
 
-namespace is_well_founded
-variables (r : α → α → Prop) [is_well_founded α r]
+/-! We uncouple only the most basic results on well-founded relations from their typeclass. -/
+
+namespace well_founded
+variables {r : α → α → Prop} (h : well_founded r)
+include h
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
 theorem has_min (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (is_well_founded.apply r a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
+| ⟨a, ha⟩ := (acc.rec_on (h.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
-/-- A minimal element of a nonempty set with respect to a well-founded relation. See also
-`well_founded_lt.min` and `well_founded_gt.max`. -/
-noncomputable def min  (s : set α) (hs : s.nonempty) : α :=
-classical.some (has_min r s hs)
+/-- A minimal element of a nonempty set with respect to a well-founded relation. -/
+noncomputable def min (s : set α) (hs : s.nonempty) : α :=
+classical.some (h.has_min s hs)
 
-theorem min_mem (s : set α) (hs : s.nonempty) : min r s hs ∈ s :=
-let ⟨h, _⟩ := classical.some_spec (has_min r s hs) in h
+theorem min_mem (s : set α) (hs : s.nonempty) : h.min s hs ∈ s :=
+let ⟨ha, _⟩ := classical.some_spec (h.has_min s hs) in ha
 
-theorem not_lt_min (s : set α) {x} (hx : x ∈ s) : ¬ r x (min r s ⟨x, hx⟩) :=
-let ⟨_, h'⟩ := classical.some_spec (has_min r s ⟨x, hx⟩) in h' _ hx
+theorem not_lt_min (s : set α) {x} (hx : x ∈ s) : ¬ r x (h.min s ⟨x, hx⟩) :=
+let ⟨_, h'⟩ := classical.some_spec (h.has_min s ⟨x, hx⟩) in h' _ hx
 
+omit h
 theorem well_founded_iff_has_min {r : α → α → Prop} : well_founded r ↔
   ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a :=
 begin
-  refine ⟨λ h, @has_min _ r ⟨h⟩, λ h, ⟨λ x, _⟩⟩,
+  refine ⟨λ h, h.has_min, λ h, ⟨λ x, _⟩⟩,
   by_contra hx,
   obtain ⟨m, hm, hm'⟩ := h _ ⟨x, hx⟩,
   refine hm (acc.intro _ (λ y hy, _)),
@@ -69,28 +72,27 @@ begin
   exact hm' y hy' hy
 end
 
--- TODO: remove this, or at least move it elsewhere.
-lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
-begin
-  split,
-  { intros xle nge,
-    cases le_not_le_of_lt nge,
-    rw xle left at nge,
-    exact lt_irrefl x nge },
-  { intros ngt xle,
-    contrapose! ngt,
-    exact lt_of_le_of_ne xle (ne.symm ngt) }
-end
+end well_founded
 
--- TODO: rewrite this in terms of `well_founded_gt`.
-theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
-by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
+namespace is_well_founded
+variables (r : α → α → Prop) [is_well_founded α r]
 
--- TODO: rewrite this in terms of `well_founded_lt`.
-theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' αᵒᵈ _
+/-- If `r` is a well-founded relation, then any nonempty set has a minimal element
+with respect to `r`. -/
+theorem has_min : ∀ s : set α, s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a := is_well_founded.wf.has_min
+
+/-- A minimal element of a nonempty set with respect to a well-founded relation. See also
+`well_founded_lt.min` and `well_founded_gt.max`. -/
+noncomputable def min (s : set α) : s.nonempty → α := (@is_well_founded.wf α r _).min s
+
+theorem min_mem : ∀ (s : set α) (hs : s.nonempty), min r s hs ∈ s := is_well_founded.wf.min_mem
+
+theorem not_lt_min : ∀ (s : set α) {x} (hx : x ∈ s), ¬ r x (min r s ⟨x, hx⟩) :=
+is_well_founded.wf.not_lt_min
+
+theorem well_founded_iff_has_min (r : α → α → Prop) : is_well_founded α r ↔
+  ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a :=
+by rw [is_well_founded_iff, well_founded.well_founded_iff_has_min]
 
 open set
 
@@ -98,10 +100,10 @@ open set
 the `Sup` definition on `well_founded_lt.conditionally_complete_linear_order_bot` with this. -/
 
 /-- A minimal upper bound of a bounded, well-founded order -/
-protected noncomputable def sup [is_well_founded α r] (s : set α) : bounded r s → α :=
+protected noncomputable def sup (s : set α) : bounded r s → α :=
 min r {x | ∀ a ∈ s, r a x}
 
-protected lemma lt_sup [is_well_founded α r] (s : set α) (h : bounded r s) {x} (hx : x ∈ s) :
+protected lemma lt_sup (s : set α) (h : bounded r s) {x} (hx : x ∈ s) :
   r x (is_well_founded.sup r s h) :=
 min_mem r _ h x hx
 
@@ -110,10 +112,10 @@ open_locale classical
 
 /-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
-protected noncomputable def succ [is_well_founded α r] (x : α) : α :=
+protected noncomputable def succ (x : α) : α :=
 if h : ∃ y, r x y then min r {y | r x y} h else x
 
-protected lemma lt_succ [is_well_founded α r] {x : α} (h : ∃ y, r x y) :
+protected lemma lt_succ {x : α} (h : ∃ y, r x y) :
   r x (is_well_founded.succ r x) :=
 by { rw [is_well_founded.succ, dif_pos h], apply min_mem }
 
@@ -164,6 +166,10 @@ is_well_founded.not_lt_min _ s hx
 theorem min_le [linear_order α] [well_founded_lt α] (s : set α) {x} (hx : x ∈ s) :
   min s ⟨x, hx⟩ ≤ x :=
 le_of_not_lt $ not_lt_min s hx
+
+theorem well_founded_iff_has_min [has_lt α] : well_founded_lt α ↔
+  ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ x < a :=
+by rw [well_founded_lt, is_well_founded.well_founded_iff_has_min]
 
 /-- A linear order with well-founded `<` has a bottom element given by `min set.univ _`. -/
 noncomputable def to_order_bot [linear_order α] [well_founded_lt α] [nonempty α] : order_bot α :=
@@ -258,6 +264,10 @@ is_well_founded.not_lt_min (>) s hx
 theorem le_max [linear_order α] [well_founded_gt α] (s : set α) {x} (hx : x ∈ s)
   (hs : s.nonempty := ⟨x, hx⟩) : x ≤ max s hs :=
 le_of_not_lt (not_max_lt s hx hs)
+
+theorem well_founded_iff_has_max [has_lt α] : well_founded_gt α ↔
+  ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ a < x :=
+by rw [well_founded_gt, is_well_founded.well_founded_iff_has_min]
 
 /-- A linear order with well-founded `>` has a top element given by `max set.univ _`. -/
 noncomputable def to_order_top [linear_order α] [well_founded_gt α] [nonempty α] : order_top α :=

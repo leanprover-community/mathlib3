@@ -756,7 +756,7 @@ lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_bot α) = ma
 
 instance [preorder α] [well_founded_lt α] : well_founded_lt (with_bot α) :=
 -- Todo (Vi): golf by using an `acc_of_is_min` lemma.
-⟨⟨have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
+⟨have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   acc.intro _ (λ a ha, (not_le_of_gt ha bot_le).elim),
 ⟨λ a, option.rec_on a acc_bot $ λ a, acc.intro _ $ λ b, option.rec_on b (λ _, acc_bot) $
 λ b, well_founded_lt.induction b $
@@ -764,7 +764,7 @@ instance [preorder α] [well_founded_lt α] : well_founded_lt (with_bot α) :=
       acc ((<) : with_bot α → with_bot α → Prop) c) → (b : with_bot α) < a →
         acc ((<) : with_bot α → with_bot α → Prop) b,
   from λ b ih hba, acc.intro _ $ λ c, option.rec_on c (λ _, acc_bot) $
-    λ c hc, ih _ (some_lt_some.1 hc) $ hc.trans hba⟩⟩⟩
+    λ c hc, ih _ (some_lt_some.1 hc) $ hc.trans hba⟩⟩
 
 instance [has_lt α] [densely_ordered α] [no_min_order α] : densely_ordered (with_bot α) :=
 ⟨ λ a b,
@@ -1010,21 +1010,21 @@ lemma coe_max [linear_order α] (x y : α) : (↑(max x y) : with_top α) = max 
 
 instance well_founded_lt [preorder α] [well_founded_lt α] : well_founded_lt (with_top α) :=
 -- Todo (Vi): golf by using an `acc_of_is_min` lemma.
-⟨⟨have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
+⟨have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
 λ a, acc.intro _ (well_founded_lt.induction a $
   (show ∀ b, (∀ c, c < b → ∀ d : with_top α, d < some c → acc (<) d) →
     ∀ y : with_top α, y < some b → acc (<) y,
   from λ b ih c, option.rec_on c (λ hc, (not_lt_of_ge le_top hc).elim)
     (λ c hc, acc.intro _ (ih _ (some_lt_some.1 hc))))),
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
-  (λ _ _, acc_some _))) acc_some⟩⟩⟩
+  (λ _ _, acc_some _))) acc_some⟩⟩
 
 instance well_founded_gt [preorder α] [well_founded_gt α] : well_founded_gt (with_top α) :=
-⟨⟨(@with_bot.well_founded_lt αᵒᵈ _ _).lt_wf.wf⟩⟩
+⟨(@with_bot.well_founded_lt αᵒᵈ _ _).wf⟩
 
 lemma _root_.with_bot.well_founded_gt [preorder α] [well_founded_gt α] :
-   well_founded_gt (with_bot α) :=
-⟨⟨(@with_top.well_founded_lt αᵒᵈ _ _).lt_wf.wf⟩⟩
+  well_founded_gt (with_bot α) :=
+⟨(@with_top.well_founded_lt αᵒᵈ _ _).wf⟩
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
 order_dual.densely_ordered (with_bot αᵒᵈ)

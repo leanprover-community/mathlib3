@@ -120,7 +120,7 @@ begin
   rw ← preserves_coequalizer.iso_hom at this,
   erw SheafedSpace.congr_app this.symm (op U),
   rw [PresheafedSpace.comp_c_app,
-    ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π.{0 0}],
+    ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
   apply_instance
 end
 

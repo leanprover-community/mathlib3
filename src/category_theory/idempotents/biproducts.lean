@@ -42,7 +42,7 @@ namespace biproducts
 /-- The `bicone` used in order to obtain the existence of
 the biproduct of a functor `J ⥤ karoubi C` when the category `C` is additive. -/
 @[simps]
-def bicone [has_finite_biproducts C] {J : Type v} [fintype J]
+def bicone [has_finite_biproducts C] {J : Type} [fintype J]
   (F : J → karoubi C) : bicone F :=
 { X :=
   { X := biproduct (λ j, (F j).X),

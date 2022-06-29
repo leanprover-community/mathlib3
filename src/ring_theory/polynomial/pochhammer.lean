@@ -88,8 +88,7 @@ begin
   { simp, },
   { conv_lhs
   { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
-      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X])], },
-    refl, },
+      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X]), ← nat.cast_succ] } },
 end
 
 lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :

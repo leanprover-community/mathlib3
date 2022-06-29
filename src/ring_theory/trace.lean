@@ -7,10 +7,12 @@ Authors: Anne Baanen
 import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
+import linear_algebra.finite_dimensional
 import linear_algebra.vandermonde
 import linear_algebra.trace
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
+import field_theory.galois
 import ring_theory.power_basis
 
 /-!
@@ -356,6 +358,21 @@ begin
     exact is_separable.separable K _ }
 end
 
+lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L] :
+  algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
+begin
+  apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
+  rw map_sum (algebra_map L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
+  { rw ←trace_eq_sum_embeddings (algebraic_closure L),
+    { simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    { exact is_galois.to_is_separable } },
+  { intro σ,
+    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
+end
+
 end eq_sum_embeddings
 
 section det_ne_zero
@@ -497,7 +514,7 @@ begin
   refine mt mul_self_eq_zero.mp _,
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
     intros i _ j hij h,
-    exact (finset.mem_filter.mp hij).2.ne' (e.injective $ pb.alg_hom_ext h) },
+    exact (finset.mem_Ioi.mp hij).ne' (e.injective $ pb.alg_hom_ext h) },
   { rw [alg_hom.card, pb.finrank] }
 end
 

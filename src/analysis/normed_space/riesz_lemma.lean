@@ -105,7 +105,5 @@ begin
   { rw [h₀, closed_ball_zero'],
     exact closure_mono (singleton_subset_iff.2 hx) },
   { rw ← closure_ball x h₀,
-    apply closure_mono,
-    calc ball x (inf_dist x sᶜ) ⊆ sᶜᶜ : disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
-    ... = s : compl_compl s },
+    exact closure_mono ball_inf_dist_compl_subset }
 end

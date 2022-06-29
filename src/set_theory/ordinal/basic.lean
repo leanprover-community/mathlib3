@@ -763,6 +763,9 @@ type_ne_zero_iff_nonempty.2 h
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
+instance : order_bot ordinal :=
+⟨0, ordinal.zero_le⟩
+
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 
@@ -957,9 +960,10 @@ instance : has_add ordinal.{u} :=
   λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
   quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
 
-instance : add_monoid ordinal.{u} :=
+instance : add_monoid_with_one ordinal.{u} :=
 { add       := (+),
   zero      := 0,
+  one       := 1,
   zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
     ⟨⟨(empty_sum pempty α).symm, λ a b, sum.lex_inr_inr⟩⟩,
   add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
@@ -974,11 +978,11 @@ instance : add_monoid ordinal.{u} :=
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
-@[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
-by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
-
 @[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
+
+@[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
+by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
 
 instance add_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
@@ -1196,10 +1200,8 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
-instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
-
 instance : conditionally_complete_linear_order_bot ordinal :=
-lt_wf.conditionally_complete_linear_order_with_bot
+is_well_order.conditionally_complete_linear_order_bot _
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 

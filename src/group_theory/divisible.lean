@@ -35,7 +35,7 @@ A divisible group `A` is an abelian group such that `nA = A` for all `n ≠ 0`.
 class divisible : Prop :=
 (div : ∀ (n : ℤ), n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤)
 
-instance divisible_of_linear_solvable
+instance divisible_of_elemement_divisible
   (sol : ∀ (n : ℤ) (x : A), n ≠ 0 → ∃ (y : A), n • y = x) :
   divisible A :=
 { div := λ n hn, add_subgroup.ext $ λ q,
@@ -45,7 +45,7 @@ instance divisible_of_linear_solvable
 
 /-- ℚ is a divisible group. -/
 instance divisible_rat : divisible ℚ :=
-add_comm_group.divisible_of_linear_solvable _ $
+add_comm_group.divisible_of_element_divisible _ $
   λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
 
 /-- ℝ is a divisible group. -/

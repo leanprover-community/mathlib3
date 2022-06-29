@@ -513,6 +513,20 @@ function `f : α → β`. See note [reducible non-instances]. -/
   decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
   .. partial_order.lift f inj }
 
+section min_max_rec
+
+variables [linear_order α] {p : α → Prop} {x y : α}
+
+lemma min_rec (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
+(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
+  (λ h, (min_eq_right h).symm.subst (hy h))
+
+lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @min_rec αᵒᵈ _ _ _ _ hx hy
+lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
+lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
+
+end min_max_rec
+
 /-! ### Subtype of an order -/
 
 namespace subtype
@@ -555,8 +569,10 @@ instance [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 { decidable_eq := subtype.decidable_eq,
   decidable_le := subtype.decidable_le,
   decidable_lt := subtype.decidable_lt,
-  max_def := by { ext a b, convert rfl },
-  min_def := by { ext a b, convert rfl },
+  max := λ x y, ⟨max x y, max_rec' _ x.2 y.2⟩,
+  min := λ x y, ⟨min x y, min_rec' _ x.2 y.2⟩,
+  max_def := by { ext ⟨x, hx⟩ ⟨y, hy⟩, by_cases y ≤ x; simp [*, max_def, max_default] },
+  min_def := by { ext ⟨x, hx⟩ ⟨y, hy⟩, by_cases x ≤ y; simp [*, min_def, min_default] },
   .. linear_order.lift coe subtype.coe_injective }
 
 end subtype

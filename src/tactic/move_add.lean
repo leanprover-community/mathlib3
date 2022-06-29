@@ -106,11 +106,11 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- `is_given_op op e` checks if the head term of `e` is the binary operation `op`, returning
-`tt` if this is the case and `ff` otherwise. -/
-meta def is_given_op (op : expr) : expr → tactic bool
-| (expr.app (expr.app F a) b) := succeeds $ unify op F
-| _ := return ff
+/-- `is_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
+if it cannot otherwise. -/
+meta def is_given_op (op : expr) : expr → tactic unit
+| (expr.app (expr.app F a) b) := unify op F
+| _ := failed
 
 /-- `reorder_oper op lp boos e` converts an expression `e` to a similar looking one.
 The tactic scans the expression `e` looking for subexpressions that begin with the given binary
@@ -142,18 +142,15 @@ Here are two examples:
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   list bool → expr → tactic (expr × list bool)
-| lu F'@(expr.app F b) := do
-  op ← to_expr op tt ff,
-  cond ← is_given_op op F',
-  if cond then do
+| lu F'@(expr.app F b) := (do op ← to_expr op tt ff,
+    is_given_op op F',
     (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
     sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
     let (recs, list_unused) := sort_all.unzip,
     let summed := (recs.drop 1).foldl (λ e f, op.mk_app [e, f]) ((recs.nth 0).get_or_else `(0)),
-    return (summed, list_unused.transpose.map list.band)
-  else do
-    [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
-    return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band)
+    return (summed, list_unused.transpose.map list.band)) <|>
+    (do [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
+    return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band))
 | lu (expr.pi na bi e f)           := do [en, fn] ← [e, f].mmap $ reorder_oper lu,
     return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
 | lu (expr.lam na bi e f)          := do [en, fn] ← [e, f].mmap $ reorder_oper lu,

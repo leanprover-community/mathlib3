@@ -502,7 +502,7 @@ begin
       { apply ne_of_gt,
         norm_cast,
         linarith },
-      field_simp [h₄, h₅, h₆],
+      field_simp [h₄, h₅, h₆] at *,
       ring },
     all_goals { refine (ennreal.mul_lt_top (measure_lt_top _ _).ne _).ne,
       simp [ne.def, ennreal.div_eq_top] } }

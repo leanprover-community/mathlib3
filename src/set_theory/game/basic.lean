@@ -23,10 +23,9 @@ the abelian group structure on games allows us to simplify many proofs for pre-g
 
 open function pgame
 
-universes u
+open_locale pgame
 
-local infix ` ≈ ` := pgame.equiv
-local infix ` ≡r `:50 := pgame.relabelling
+universes u
 
 instance pgame.setoid : setoid pgame :=
 ⟨(≈), equiv_refl, @pgame.equiv.symm, @pgame.equiv.trans⟩
@@ -43,8 +42,9 @@ abbreviation game := quotient pgame.setoid
 
 namespace game
 
-instance : add_comm_group game :=
+instance : add_comm_group_with_one game :=
 { zero := ⟦0⟧,
+  one := ⟦1⟧,
   neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound ((@neg_equiv_neg_iff x y).2 h)),
   add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
     (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
@@ -54,14 +54,15 @@ instance : add_comm_group game :=
   add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
   add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
 
-instance : has_one game := ⟨⟦1⟧⟩
 instance : inhabited game := ⟨0⟩
 
 instance : partial_order game :=
-{ le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
+{ le := quotient.lift₂ (≤) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
   le_refl := by { rintro ⟨x⟩, exact le_refl x },
   le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
-  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
+  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ },
+  lt := quotient.lift₂ (<) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy)),
+  lt_iff_le_not_le := by { rintro ⟨x⟩ ⟨y⟩, exact @lt_iff_le_not_le _ _ x y }, }
 
 /-- The less or fuzzy relation on games.
 
@@ -121,7 +122,7 @@ by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_left h }
 
 instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
-  ..game.add_comm_group,
+  ..game.add_comm_group_with_one,
   ..game.partial_order }
 
 end game
@@ -501,7 +502,14 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
 
+instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
+⟨by rintro (_|_|_|a|a); exact is_empty_elim a⟩
+
 instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
+
+instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
+{ uniq := by { rintro (a|a|a), refl, all_goals { exact is_empty_elim a } },
+  ..inv_ty.inhabited l r }
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
@@ -513,6 +521,14 @@ def inv_val {l r} (L : l → pgame) (R : r → pgame)
 | _ (inv_ty.left₂ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
+
+@[simp] theorem inv_val_is_empty {l r : Type u} {b} (L R IHl IHr) (i : inv_ty l r b)
+  [is_empty l] [is_empty r] : inv_val L R IHl IHr i = 0 :=
+begin
+  cases i with a _ a _ a _ a,
+  { refl },
+  all_goals { exact is_empty_elim a }
+end
 
 /-- The inverse of a positive surreal number `x = {L | R}` is
 given by `x⁻¹ = {0,
@@ -529,10 +545,56 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
-/-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
+theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
+| ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
+
+/-- `inv' 0` has exactly the same moves as `1`. -/
+def inv'_zero : inv' 0 ≡r 1 :=
+begin
+  change mk _ _ _ _ ≡r 1,
+  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  { apply equiv.equiv_punit },
+  { apply equiv.equiv_pempty },
+  { simp }
+end
+
+theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
+
+/-- `inv' 1` has exactly the same moves as `1`. -/
+def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
+begin
+  change relabelling (mk _ _ _ _) 1,
+  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
+  { rw lt_self_iff_false, apply_instance },
+  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  { apply equiv.equiv_punit },
+  { apply equiv.equiv_pempty },
+  { simp }
+end
+
+theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
+
+/-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
 noncomputable instance : has_inv pgame :=
-⟨by { classical, exact λ x, if x = 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
+⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else -inv' (-x) }⟩
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
+
+theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 := if_pos h
+
+@[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
+inv_eq_of_equiv_zero (equiv_refl _)
+
+theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
+(if_neg h.lf.not_equiv').trans (if_pos h)
+
+theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
+(if_neg h.not_equiv).trans (if_neg h.not_gt)
+
+/-- `1⁻¹` has exactly the same moves as `1`. -/
+def inv_one : 1⁻¹ ≡r 1 :=
+by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
+
+theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv
 
 end pgame

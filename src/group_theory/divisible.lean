@@ -35,22 +35,30 @@ A divisible group `A` is an abelian group such that `nA = A` for all `n ≠ 0`.
 class divisible : Prop :=
 (div : ∀ (n : ℤ), n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤)
 
-instance divisible_of_elemement_divisible
+lemma divisible_of_elemement_divisible
   (sol : ∀ (n : ℤ) (x : A), n ≠ 0 → ∃ (y : A), n • y = x) :
   divisible A :=
 { div := λ n hn, add_subgroup.ext $ λ q,
   { mp := λ _, trivial,
     mpr := λ _, ⟨(sol n q hn).some, ⟨trivial, (sol n q hn).some_spec⟩⟩ } }
 
+lemma divisible_iff_element_divisible :
+  divisible A ↔ ∀ (n : ℤ) (x : A), n ≠ 0 → ∃ (y : A), n • y = x :=
+⟨λ d n x hn, begin
+  rcases show x ∈ (n • ⊤ : add_subgroup A),
+  { convert (add_subgroup.mem_top _ : x ∈ ⊤),
+    rwa d.div, } with ⟨a', _, ha'⟩,
+  exact ⟨a', ha'⟩,
+end, add_comm_group.divisible_of_elemement_divisible _⟩
 
 /-- ℚ is a divisible group. -/
 instance divisible_rat : divisible ℚ :=
-add_comm_group.divisible_of_elemement_divisible _ $
+divisible_of_elemement_divisible _ $
   λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
 
 /-- ℝ is a divisible group. -/
 instance divisible_real : divisible ℝ :=
-add_comm_group.divisible_of_elemement_divisible _ $
+divisible_of_elemement_divisible _ $
   λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
 
 section product
@@ -59,23 +67,9 @@ variables {ι : Type*} (B : ι → Type*) [Π i, add_comm_group (B i)] [Π i, di
 
 /-- Any product of divisible group is divisible.-/
 instance divisible_of_product_divisible : divisible (Π i, B i) :=
-{ div := λ n hn, set_like.ext $ λ x,
-  { mp := λ _, trivial,
-    mpr := λ _, begin
-      suffices : ∀ i, ∃ a, x i = n • a,
-      { choose rep h_rep using this,
-        refine ⟨rep, trivial, _⟩,
-        ext i,
-        rw h_rep,
-        refl, },
-      { intros i,
-        have mem1 : x i ∈ n • ⊤,
-        { rw divisible.div n hn,
-          exact add_subgroup.mem_top _,
-          apply_instance, },
-        rcases mem1 with ⟨a, -, eq1⟩,
-        exact ⟨a, eq1 ▸ rfl⟩, },
-    end } }
+add_comm_group.divisible_of_elemement_divisible _ $
+  λ n x hn, ⟨λ i, ((divisible_iff_element_divisible (B i)).mp infer_instance n (x i) hn).some,
+    funext $ λ i, ((divisible_iff_element_divisible (B i)).mp infer_instance n (x i) hn).some_spec⟩
 
 end product
 

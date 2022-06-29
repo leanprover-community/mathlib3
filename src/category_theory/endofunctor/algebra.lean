@@ -356,19 +356,16 @@ namespace adjunction
 
 variables {F : C ⥤ C} {G : C ⥤ C}
 
-lemma adj_hom_equiv_comp_G_f_eq_f_comp_adj_hom_equiv (adj : F ⊣ G) (A₁ A₂ : algebra F)
+lemma algebra.hom_equiv_naturality_str (adj : F ⊣ G) (A₁ A₂ : algebra F)
   (f : A₁ ⟶ A₂) : (adj.hom_equiv A₁.A A₁.A) A₁.str ≫ G.map f.f =
   f.f ≫ (adj.hom_equiv A₂.A A₂.A) A₂.str :=
-by { erw [adjunction.hom_equiv_unit, adjunction.hom_equiv_unit, ← category.assoc,
-       adj.unit.naturality, category.assoc, category.assoc, ← G.map_comp, ← f.h, functor.comp_map,
-       G.map_comp] }
+by { rw [← adjunction.hom_equiv_naturality_right, ← adjunction.hom_equiv_naturality_left, f.h] }
 
-lemma F_f_comp_adj_hom_equiv_eq_adj_hom_equiv_comp_f (adj : F ⊣ G) (V₁ V₂ : coalgebra G)
+lemma coalgebra.hom_equiv_naturality_str_symm (adj : F ⊣ G) (V₁ V₂ : coalgebra G)
   (f : V₁ ⟶ V₂) :  F.map f.f ≫ ((adj.hom_equiv V₂.V V₂.V).symm) V₂.str =
   ((adj.hom_equiv V₁.V V₁.V).symm) V₁.str ≫ f.f :=
-by { erw [adjunction.hom_equiv_counit, adjunction.hom_equiv_counit, category.assoc,
-       ← adj.counit.naturality, ← category.assoc, ← category.assoc, ← F.map_comp, ← f.h,
-       functor.comp_map, F.map_comp] }
+by { rw [← adjunction.hom_equiv_naturality_left_symm, ← adjunction.hom_equiv_naturality_right_symm,
+     f.h] }
 
 /-- Given an adjunction `F ⊣ G`, the functor that associates to an algebra over `F` a
 coalgebra over `G` defined via adjunction applied to the structure map. -/
@@ -376,7 +373,7 @@ def algebra.to_coalgebra_of (adj : F ⊣ G) : algebra F ⥤ coalgebra G :=
 { obj := λ A, { V := A.1,
                     str := (adj.hom_equiv A.1 A.1).to_fun A.2 },
       map := λ A₁ A₂ f, { f := f.1,
-                          h' := (adj_hom_equiv_comp_G_f_eq_f_comp_adj_hom_equiv adj A₁ A₂ f) } }
+                          h' := (algebra.hom_equiv_naturality_str adj A₁ A₂ f) } }
 
 /-- Given an adjunction `F ⊣ G`, the functor that associates to a coalgebra over `G` an algebra over
 `F` defined via adjunction applied to the structure map. -/
@@ -384,60 +381,57 @@ def coalgebra.to_algebra_of (adj : F ⊣ G) : coalgebra G ⥤ algebra F :=
 { obj := λ V, { A := V.1,
                     str := (adj.hom_equiv V.1 V.1).inv_fun V.2 },
       map := λ V₁ V₂ f, { f := f.1,
-                          h' := (F_f_comp_adj_hom_equiv_eq_adj_hom_equiv_comp_f adj V₁ V₂ f) } }
+                          h' := (coalgebra.hom_equiv_naturality_str_symm adj V₁ V₂ f) } }
 
 /-- Given an adjunction, assigning to an algebra over the left adjoint a coalgebra over its right
 adjoint and going back is isomorphic to the identity functor. -/
 def alg_coalg_equiv.unit_iso (adj : F ⊣ G) :
   𝟭 (algebra F) ≅ (algebra.to_coalgebra_of adj) ⋙ (coalgebra.to_algebra_of adj) :=
 { hom :=
-    { app := λ A,
-        { f := (𝟙 A.1),
-          h' := by { erw [F.map_id, category.id_comp, category.comp_id],
-                       apply (adj.hom_equiv _ _).left_inv A.str } },
-      naturality' := λ A₁ A₂ f,
-        by { ext1, dsimp, erw [category.id_comp, category.comp_id], refl } },
+  { app := λ A,
+    { f := (𝟙 A.1),
+      h' := by { erw [F.map_id, category.id_comp, category.comp_id],
+                 apply (adj.hom_equiv _ _).left_inv A.str } },
+    naturality' := λ A₁ A₂ f, by { ext1, dsimp, erw [category.id_comp, category.comp_id], refl } },
   inv :=
-    { app := λ A,
-        { f := (𝟙 A.1),
-          h' := by { erw [F.map_id, category.id_comp, category.comp_id],
-                       apply ((adj.hom_equiv _ _).left_inv A.str).symm } },
-      naturality' := λ A₁ A₂ f,
-        by { ext1, dsimp, erw [category.comp_id, category.id_comp], refl } },
-  hom_inv_id' := begin dsimp, ext1, dsimp, ext1, dsimp, ext1, dsimp,
-                                     erw category.comp_id, end,
-  inv_hom_id' := begin dsimp, ext1, dsimp, ext1, dsimp, ext1, dsimp,
-                                     erw category.comp_id, refl, end }
+  { app := λ A,
+    { f := (𝟙 A.1),
+      h' := by { erw [F.map_id, category.id_comp, category.comp_id],
+                 apply ((adj.hom_equiv _ _).left_inv A.str).symm } },
+    naturality' := λ A₁ A₂ f,
+      by { ext1, dsimp, erw [category.comp_id, category.id_comp], refl } },
+  hom_inv_id' := by { ext, exact category.comp_id _ },
+  inv_hom_id' := by { ext, exact category.comp_id _ } }
 
 /-- Given an adjunction, assigning to a coalgebra over the right adjoint an algebra over the left
 adjoint and going back is isomorphic to the identity functor. -/
 def alg_coalg_equiv.counit_iso (adj : F ⊣ G) :
   (coalgebra.to_algebra_of adj) ⋙ (algebra.to_coalgebra_of adj) ≅ 𝟭 (coalgebra G) :=
-{ hom := { app := λ V, { f := (𝟙 V.1),
-                             h' := begin dsimp, erw [G.map_id, category.id_comp, category.comp_id],
-                               apply (adj.hom_equiv _ _).right_inv V.str end },
-                           naturality' := λ V₁ V₂ f,
-                             by { dsimp, ext1, dsimp, erw [category.comp_id, category.id_comp],
-                                  refl, } },
-                  inv := { app := λ V, { f := (𝟙 V.1),
-                             h' := begin dsimp, rw [G.map_id, category.comp_id, category.id_comp],
-                                         apply ((adj.hom_equiv _ _).right_inv V.str).symm, end },
-                           naturality' := λ V₁ V₂ f,
-                             begin dsimp, ext1, dsimp, erw [category.comp_id, category.id_comp],
-                                   refl, end },
-                  hom_inv_id' := begin dsimp, ext1, dsimp, ext1, dsimp, ext1, dsimp,
-                                       erw category.comp_id, refl, end,
-                  inv_hom_id' := begin dsimp, ext1, dsimp, ext1, dsimp, ext1, dsimp,
-                                       erw category.comp_id, end }
+{ hom :=
+  { app := λ V,
+    { f := (𝟙 V.1),
+      h' := by { dsimp, erw [G.map_id, category.id_comp, category.comp_id],
+                 apply (adj.hom_equiv _ _).right_inv V.str } },
+    naturality' := λ V₁ V₂ f,
+      by { ext1, dsimp, erw [category.comp_id, category.id_comp], refl, } },
+  inv :=
+  { app := λ V,
+    { f := (𝟙 V.1),
+      h' := by { dsimp, rw [G.map_id, category.comp_id, category.id_comp],
+                 apply ((adj.hom_equiv _ _).right_inv V.str).symm } },
+    naturality' := λ V₁ V₂ f,
+      by { ext1, dsimp, erw [category.comp_id, category.id_comp], refl } },
+  hom_inv_id' := by { ext, exact category.comp_id _ },
+  inv_hom_id' := by { ext, exact category.comp_id _ } }
 
 /-- If `F` is left adjoint to `G`, then the category of algebras over `F` is equivalent to the
 category of coalgebras over `G`. -/
-def alg_coalg_equiv (adj : F ⊣ G) : algebra F ≌ coalgebra G :=
+def algebra_coalgebra_equiv (adj : F ⊣ G) : algebra F ≌ coalgebra G :=
 { functor := algebra.to_coalgebra_of adj,
   inverse := coalgebra.to_algebra_of adj,
   unit_iso := alg_coalg_equiv.unit_iso adj,
   counit_iso := alg_coalg_equiv.counit_iso adj,
-  functor_unit_iso_comp' := λ A, begin dsimp, ext1, dsimp, erw [category.comp_id], refl, end }
+  functor_unit_iso_comp' := λ A, by { ext, exact category.comp_id _ } }
 
 end adjunction
 

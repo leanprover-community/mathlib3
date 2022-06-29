@@ -474,10 +474,10 @@ instance : well_founded_lt enat :=
   classical,
   change well_founded (λ a b : enat, a < b),
   simp_rw ←to_with_top_lt,
-  apply_instance
-end⟩⟩ 
+  exact well_founded_lt.lt_wf.wf
+end⟩⟩
 
-instance : has_well_founded enat := well_founded_lt.has_well_founded
+instance : has_well_founded enat := well_founded_lt.to_has_well_founded
 
 section find
 

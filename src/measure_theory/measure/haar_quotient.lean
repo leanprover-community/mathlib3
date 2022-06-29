@@ -158,3 +158,11 @@ begin
     measure.map_apply meas_π, measure.restrict_apply₀' 𝓕meas, inter_comm],
   exact K.compact.measurable_set,
 end
+
+-- maybe make a special case version of all this for `K` the `set.univ`, compact quotient
+
+lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
+  [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
+  (h𝓕_finite : μ 𝓕 < ⊤) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = 1) :
+  measure_preserving (quotient_group.mk' Γ) (μ.restrict 𝓕) (measure_theory.measure.haar_measure K) :=
+sorry

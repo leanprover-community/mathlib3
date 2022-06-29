@@ -3,9 +3,10 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.group.fundamental_domain
+import measure_theory.measure.haar_quotient
 import measure_theory.integral.interval_integral
 import topology.algebra.order.floor
+import topology.instances.real_mod_zmultiples
 
 /-!
 # Integrals of periodic functions
@@ -26,6 +27,24 @@ begin
   refine this.exists_unique_iff.2 _,
   simpa only [add_comm x] using exists_unique_add_zsmul_mem_Ioc hT x t
 end
+
+section newstuff
+
+open add_subgroup
+
+variables {T : ℝ} [fact (0 < T)]
+
+instance : measure_space (ℝ ⧸ zmultiples T) := sorry -- haar measure with total size a
+
+local notation `π` := quotient_add_group.mk' (zmultiples T)
+
+lemma foo  {T : ℝ} (hT : 0 < T) (t : ℝ) :
+  measure.map π (volume.restrict (Ioc t (t + T))) = volume :=
+sorry
+
+lemma foo' : measure_preserving π (volume.restrict (Ioc t (t + T))) volume := sorry
+
+end newstuff
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
 

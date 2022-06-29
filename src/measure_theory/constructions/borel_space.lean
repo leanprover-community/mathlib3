@@ -1359,6 +1359,14 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 
+instance real_mod_zmultiples.measurable_space {a : ℝ} [fact (0 < a)] :
+  measurable_space (ℝ ⧸ add_subgroup.zmultiples a) :=
+borel (ℝ ⧸ add_subgroup.zmultiples a)
+
+instance real_mod_zmultiples.borel_space {a : ℝ} [fact (0 < a)] :
+  borel_space (ℝ ⧸ add_subgroup.zmultiples a) :=
+⟨rfl⟩
+
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
 fluctuate by more than `t`. -/

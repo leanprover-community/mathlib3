@@ -1835,9 +1835,11 @@ have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r
 subrelation.wf this (measure_wf _) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance preorder.well_founded_lt [fintype α] [preorder α] : well_founded_lt α := { }
+instance preorder.well_founded_lt [fintype α] [preorder α] : well_founded_lt α :=
+⟨by apply_instance⟩
 @[priority 100] -- see Note [lower instance priority]
-instance preorder.well_founded_gt [fintype α] [preorder α] : well_founded_gt α := { }
+instance preorder.well_founded_gt [fintype α] [preorder α] : well_founded_gt α :=
+⟨by apply_instance⟩
 
 end fintype
 

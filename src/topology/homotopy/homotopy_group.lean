@@ -47,11 +47,15 @@ notation `I^` := cube
 
 namespace cube
 
-instance c : compact_space (I^n) := by sorry
+instance compact_space : compact_space (I^n) :=
+by {have H : compact_space I, apply_instance, exact (@pi.compact_space _ _ _ (λ_,H))}
+
 instance locally_compact_space : locally_compact_space (I^n) := locally_compact_of_proper
 
 @[continuity] lemma proj_continuous (i : fin n) : continuous (λ f : I^n, f i) :=
 continuous_apply i
+
+def proj (i : fin n) : C(I^n,I) := ⟨λ t, t i, proj_continuous i⟩
 
 /--
 The points of the `n`-dimensional cube with at least one projection equal to 0 or 1.
@@ -70,13 +74,23 @@ The projection to the last `n` coordinates from an `n+1` dimensional cube.
 -/
 @[simp] def tail : I^(n+1) → I^n := λ c, fin.tail c
 
-@[continuity] lemma tail.continuous : continuous (@tail n) := sorry
+@[continuity] lemma tail.continuous : continuous (@tail n) :=
+(continuous_map.pi (λ i:fin n, ⟨λ f:I^(n+1), f i.succ, continuous_apply i.succ⟩)).2
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
 lemma one_char (f : I^1) : f = λ _, f 0 := by convert eq_const_of_unique f
 
-def fold : C(I×I^n, I^(n+1)) := ⟨λ t, fin.cons t.fst t.snd, by sorry⟩
+def fold : C(I×I^n, I^(n+1)) :=
+{ to_fun := λ t, fin.cons t.fst t.snd,
+  continuous_to_fun :=
+  begin
+    refine (continuous_map.pi (λ i:fin (n+1), ⟨λ t:I×I^n, (fin.cons t.fst t.snd : I^(n+1)) i,_⟩)).2,
+    revert i, refine (fin.cases _ _); simp only [fin.cons_zero, fin.cons_succ, auto_param_eq],
+    exacts [continuous_fst, λ i, (continuous_map.comp (proj i) ⟨_,continuous_snd⟩).2],
+  end }
+
+@[simp] lemma fold.apply (x₀:I) (xn:I^n): fold ⟨x₀,xn⟩ = fin.cons x₀ xn := rfl
 
 def unfold : C(I^(n+1), I×I^n) :=
 continuous_map.prod_mk ⟨head,head.continuous⟩ ⟨tail,tail.continuous⟩
@@ -99,14 +113,12 @@ def fold.homeomorph : I×I^n ≃ₜ I^(n+1) :=
 
 end cube
 
-def loop_space (X) [topological_space X] (x:X) := path x x
+@[simp] def loop_space (X : Type*) [topological_space X] (x:X) := path x x
 local notation `Ω` := loop_space
 
 /--
 The `n`-dimensional generalized loops; functions `I^n → X` that send the boundary to the base point.
 -/
--- structure gen_loop (n : ℕ) (x : X) extends C(I^n, X) :=
--- (boundary : ∀ y ∈ cube.boundary n, to_fun y = x)
 def gen_loop (n : ℕ) (x : X) : set C(I^n, X) := { p | ∀ y ∈ cube.boundary n, p y = x}
 
 namespace gen_loop
@@ -117,12 +129,9 @@ instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
 
--- @[continuity] lemma fun_like_cont (f : gen_loop n x): continuous (f.to_fun) := f.1.2
-
 @[ext] lemma ext (f g : gen_loop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
 @[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : gen_loop n x) y = f y := rfl
--- lemma cont_reparam (f : I→ C(I^n,X)) (H y) : continuous ((λ t, ⟨f t, H⟩) : I → gen_loop n x)
 
 /--
 The constant `gen_loop` at `x`.
@@ -160,13 +169,19 @@ def to_path : gen_loop (n+1) x → Ω (gen_loop n x) const :=
 begin
   rintros ⟨g,gH⟩, refine path.mk ⟨_,_⟩ _ _,
   { intro t, refine ⟨(g.comp cube.fold).curry t,_⟩,
-    rintros y ⟨i,iH⟩, simp, apply gH, use i.succ, unfold cube.fold, simpa},
+    rintros y ⟨i,iH⟩,
+    simp only [continuous_map.curry_apply, continuous_map.comp_apply, cube.fold.apply],
+    apply gH, use i.succ, simpa},
   { simp only [auto_param_eq], continuity },
-  { simp, ext, simp, apply gH, use 0, left, refl },
-  simp, ext, simp, apply gH, use 0, right, refl,
+  all_goals {simp only, ext,
+    simp only [continuous_map.curry_apply, continuous_map.comp_apply, cube.fold.apply, mk_apply,
+      const_eq],
+    apply gH, use 0 },
+  left, refl,
+  right, refl
 end
 
-def from_path : Ω (gen_loop n x) const → gen_loop (n+1) x := --sorry
+def from_path : Ω (gen_loop n x) const → gen_loop (n+1) x :=
 begin
   rintros ⟨p,H₀,H₁⟩, refine ⟨_,_⟩,
   refine continuous_map.comp _ cube.unfold,
@@ -181,7 +196,7 @@ begin
   apply gen_loop.boundary, exact ⟨i,iH⟩
 end
 
-lemma from_to (p : gen_loop (n+1) x) : from_path (to_path p) = p := --sorry
+lemma from_to (p : gen_loop (n+1) x) : from_path (to_path p) = p :=
 begin
   rcases p with ⟨⟨p,Hc⟩,Hb⟩,
   ext,
@@ -192,7 +207,7 @@ begin
   simp only [continuous_map.coe_mk, prod.mk.eta, cube.fold_unfold],
 end
 
-lemma to_from (p : Ω (gen_loop n x) const) : to_path (from_path p) = p := --sorry
+lemma to_from (p : Ω (gen_loop n x) const) : to_path (from_path p) = p :=
 begin
   rcases p with ⟨⟨p,Hc⟩,Hs,Ht⟩,
   ext,
@@ -211,7 +226,7 @@ def path_equiv : gen_loop (n+1) x ≃ Ω (gen_loop n x) const  :=
 
 lemma curry_to_path {p : gen_loop (n+1) x} {t:I} {tn:I^n}
 : p (fin.cons t tn) = (to_path p).to_fun t tn :=
-by {rcases p with ⟨p,pH⟩, unfold to_path, simpa}
+by {rcases p with ⟨p,pH⟩, unfold to_path, simp}
 
 def comp' {A B C} [topological_space A] [topological_space B] [topological_space C]
   (g: C(A,B)) : C(C(B,C), C(A,C)) := ⟨λ f, f.comp g, by sorry⟩
@@ -272,6 +287,7 @@ begin
     rw H.eq_snd, exact curry_to_path, use 0, rw fin.cons_zero, exact yH  },
   { apply nonempty.map, rintros H,
     refine ⟨⟨_,_,_⟩,_⟩,
+    let hf := H.to_continuous_map.curry,
     all_goals {sorry}}
 end
 
@@ -331,15 +347,14 @@ end
 { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by continuity⟩
     (gen_loop.boundary p (λ _, 0) ⟨0, or.inl rfl⟩)
     (gen_loop.boundary p (λ _, 1) ⟨1, or.inr rfl⟩),
-  inv_fun := sorry,
-  --  λ p, { to_fun := λ c, p c.head,
-  --   boundary := begin
-  --     rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
-  --     apply (congr_arg p iH).trans, exacts [p.source, p.target],
-  --   end },
-  left_inv := λ p, by sorry,--{ ext1, exact congr_arg p y.one_char.symm },
-  right_inv := λ p, by sorry,--{ ext, refl }
-  }
+  inv_fun := λ p,
+  begin
+    refine ⟨⟨λ (c : I^1), p c.head,by continuity⟩,_⟩,
+    rintro y ⟨i, iH|iH⟩; cases unique.eq_default i;
+    apply (congr_arg p iH).trans, exacts [p.source, p.target],
+  end,
+  left_inv := λ p, by { ext1, exact congr_arg p y.one_char.symm },
+  right_inv := λ p, by { ext, refl } }
 
 /--
 The first homotopy group at `x` is equivalent to the fundamental group,
@@ -470,22 +485,22 @@ def is_group : group (π_(n+1) X x) := {
   mul_left_inv := reverse_concat
 }
 
-def m₂ : π_(n+2) X x → π_(n+2) X x → π_(n+2) X x :=
-begin
-  refine (quotient.map₂' _ _),
-  {rintros H0 H1, refine ⟨_,_⟩; sorry},
-  rintros p₀ p₁ Hp q₀ q₁ Hq,
-  sorry
-end
+-- def m₂ : π_(n+2) X x → π_(n+2) X x → π_(n+2) X x :=
+-- begin
+--   refine (quotient.map₂' _ _),
+--   {rintros H0 H1, refine ⟨_,_⟩; sorry},
+--   rintros p₀ p₁ Hp q₀ q₁ Hq,
+--   sorry
+-- end
 
-def unital : @eckmann_hilton.is_unital (π_(n+2) X x) m₂ const :=
-sorry
+-- def unital : @eckmann_hilton.is_unital (π_(n+2) X x) m₂ const :=
+-- sorry
 
-instance comm_group : comm_group (π_(n+2) X x) :=
-begin
-  apply @ eckmann_hilton.comm_group _ _ _ unital is_group,
-  intros a b c d,
-  sorry
-end
+-- instance comm_group : comm_group (π_(n+2) X x) :=
+-- begin
+--   apply @eckmann_hilton.comm_group _ _ _ unital is_group,
+--   intros a b c d,
+--   sorry
+-- end
 
 end homotopy_group

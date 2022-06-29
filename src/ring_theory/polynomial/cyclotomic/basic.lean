@@ -858,7 +858,7 @@ lemma cyclotomic_eq_minpoly_rat {n : ℕ} {K : Type*} [field K] {μ : K}
   cyclotomic n ℚ = minpoly ℚ μ :=
 begin
   rw [← map_cyclotomic_int, cyclotomic_eq_minpoly h hpos],
-  simpa using (minpoly.gcd_domain_eq_field_fractions' ℚ (is_integral h hpos)).symm
+  exact (minpoly.gcd_domain_eq_field_fractions' _ (is_integral h hpos)).symm
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/

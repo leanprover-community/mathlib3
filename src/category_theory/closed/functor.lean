@@ -133,8 +133,8 @@ attribute [instance] cartesian_closed_functor.comparison_iso
 
 lemma frobenius_morphism_mate (h : L ⊣ F) (A : C) :
   transfer_nat_trans_self
-    (h.comp _ _ (exp.adjunction A))
-    ((exp.adjunction (F.obj A)).comp _ _ h)
+    (h.comp (exp.adjunction A))
+    ((exp.adjunction (F.obj A)).comp h)
     (frobenius_morphism F h A) = exp_comparison F A :=
   begin
     rw ←equiv.eq_symm_apply,

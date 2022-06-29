@@ -776,7 +776,7 @@ and for any `x y : ℕ` we can extend `P` from `(x,y+1)` and `(x+1,y)` to `(x+1,
 then we have `P n m` for all `n m : ℕ` -/
 @[elab_as_eliminator]
 def pincer_recursion {P : ℕ → ℕ → Sort*} (Ha0 : ∀ a : ℕ, P a 0) (H0b : ∀ b : ℕ, P 0 b)
-  (H : ∀ x y : ℕ, P x y.succ → P x.succ y → P x.succ y.succ) : Π (n m : ℕ), P n m :=
+  (H : ∀ x y : ℕ, P x y.succ → P x.succ y → P x.succ y.succ) (n m : ℕ) : P n m :=
 begin
   intros n m,
   induction n with n IHn generalizing m, { apply H0b },

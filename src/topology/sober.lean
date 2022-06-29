@@ -41,9 +41,13 @@ lemma is_generic_point.def {x : α} {S : set α} (h : is_generic_point x S) :
 
 lemma is_generic_point_closure {x : α} : is_generic_point x (closure ({x} : set α)) := refl _
 
-variables {x y : α} {S : set α}
+variables {x y : α} {S U Z : set α}
 
-lemma is_generic_point_iff_forall_closed {x : α} {S : set α} (hS : is_closed S) (hxS : x ∈ S) :
+lemma is_generic_point_iff_specializes :
+  is_generic_point x S ↔ ∀ y, x ⤳ y ↔ y ∈ S :=
+by simp only [specializes_iff_mem_closure, is_generic_point, set.ext_iff]
+
+lemma is_generic_point_iff_forall_closed (hS : is_closed S) (hxS : x ∈ S) :
   is_generic_point x S ↔ ∀ Z : set α, is_closed Z → x ∈ Z → S ⊆ Z :=
 have closure {x} ⊆ S, from closure_minimal (set.singleton_subset_iff.2 hxS) hS,
 by simp_rw [is_generic_point, subset_antisymm_iff, this, true_and, closure, subset_sInter_iff,
@@ -51,11 +55,14 @@ by simp_rw [is_generic_point, subset_antisymm_iff, this, true_and, closure, subs
 
 namespace is_generic_point
 
+lemma specializes_iff_mem (h : is_generic_point x S) : x ⤳ y ↔ y ∈ S :=
+is_generic_point_iff_specializes.1 h y
+
 lemma specializes (h : is_generic_point x S) (h' : y ∈ S) : x ⤳ y :=
-specializes_iff_mem_closure.2 $ by rwa h.def
+h.specializes_iff_mem.2 h'
 
 lemma mem (h : is_generic_point x S) : x ∈ S :=
-h.def ▸ subset_closure (mem_singleton x)
+h.specializes_iff_mem.1 specializes_rfl
 
 protected lemma is_closed (h : is_generic_point x S) : is_closed S :=
 h.def ▸ is_closed_closure
@@ -63,18 +70,18 @@ h.def ▸ is_closed_closure
 protected lemma is_irreducible (h : is_generic_point x S) : is_irreducible S :=
 h.def ▸ is_irreducible_singleton.closure
 
+/-- In a T₀ space, each set has at most one generic point. -/
 protected lemma eq [t0_space α] (h : is_generic_point x S) (h' : is_generic_point y S) : x = y :=
 (inseparable_iff_closure_eq.2 $ h.def.trans h'.def.symm).eq
 
-lemma mem_open_set_iff (h : is_generic_point x S) {U : set α} (hU : is_open U) :
+lemma mem_open_set_iff (h : is_generic_point x S) (hU : is_open U) :
   x ∈ U ↔ (S ∩ U).nonempty :=
 ⟨λ h', ⟨x, h.mem, h'⟩, λ ⟨y, hyS, hyU⟩, (h.specializes hyS).mem_open hU hyU⟩
 
-lemma disjoint_iff (h : is_generic_point x S) {U : set α} (hU : is_open U) :
-  disjoint S U ↔ x ∉ U :=
-by rw [h.mem_open_set_iff hU, ← ne_empty_iff_nonempty, not_not, disjoint_iff_inter_eq_empty]
+lemma disjoint_iff (h : is_generic_point x S) (hU : is_open U) : disjoint S U ↔ x ∉ U :=
+by rw [h.mem_open_set_iff hU, ← not_disjoint_iff_nonempty_inter, not_not]
 
-lemma mem_closed_set_iff (h : is_generic_point x S) {Z : set α} (hZ : is_closed Z) :
+lemma mem_closed_set_iff (h : is_generic_point x S) (hZ : is_closed Z) :
   x ∈ Z ↔ S ⊆ Z :=
 by rw [← h.def, hZ.closure_subset_iff, singleton_subset_iff]
 

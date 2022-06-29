@@ -17,16 +17,14 @@ stated via `[quasi_sober α] [t0_space α]`.
 
 ## Main definition
 
-* `specialization_order` : specialization gives a partial order on a T0 space.
 * `is_generic_point` : `x` is the generic point of `S` if `S` is the closure of `x`.
 * `quasi_sober` : A space is quasi-sober if every irreducible closed subset has a generic point.
 
 -/
 
-variables {α β : Type*} [topological_space α] [topological_space β]
-
 open set
-open_locale topological_space
+
+variables {α β : Type*} [topological_space α] [topological_space β]
 
 section generic_point
 
@@ -47,12 +45,6 @@ lemma is_generic_point_iff_specializes :
   is_generic_point x S ↔ ∀ y, x ⤳ y ↔ y ∈ S :=
 by simp only [specializes_iff_mem_closure, is_generic_point, set.ext_iff]
 
-lemma is_generic_point_iff_forall_closed (hS : is_closed S) (hxS : x ∈ S) :
-  is_generic_point x S ↔ ∀ Z : set α, is_closed Z → x ∈ Z → S ⊆ Z :=
-have closure {x} ⊆ S, from closure_minimal (set.singleton_subset_iff.2 hxS) hS,
-by simp_rw [is_generic_point, subset_antisymm_iff, this, true_and, closure, subset_sInter_iff,
-  mem_set_of_eq, and_imp, singleton_subset_iff]
-
 namespace is_generic_point
 
 lemma specializes_iff_mem (h : is_generic_point x S) : x ⤳ y ↔ y ∈ S :=
@@ -72,7 +64,7 @@ h.def ▸ is_irreducible_singleton.closure
 
 /-- In a T₀ space, each set has at most one generic point. -/
 protected lemma eq [t0_space α] (h : is_generic_point x S) (h' : is_generic_point y S) : x = y :=
-(inseparable_iff_closure_eq.2 $ h.def.trans h'.def.symm).eq
+((h.specializes h'.mem).antisymm (h'.specializes h.mem)).eq
 
 lemma mem_open_set_iff (h : is_generic_point x S) (hU : is_open U) :
   x ∈ U ↔ (S ∩ U).nonempty :=
@@ -94,6 +86,12 @@ begin
 end
 
 end is_generic_point
+
+lemma is_generic_point_iff_forall_closed (hS : is_closed S) (hxS : x ∈ S) :
+  is_generic_point x S ↔ ∀ Z : set α, is_closed Z → x ∈ Z → S ⊆ Z :=
+have closure {x} ⊆ S, from closure_minimal (singleton_subset_iff.2 hxS) hS,
+by simp_rw [is_generic_point, subset_antisymm_iff, this, true_and, closure, subset_sInter_iff,
+  mem_set_of_eq, and_imp, singleton_subset_iff]
 
 end generic_point
 

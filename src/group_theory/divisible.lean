@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
+import data.real.basic
 
 /-!
 # Divisible Group
@@ -12,7 +13,10 @@ An abelian group `A` is said to be divisible iff `nA = A` for all `n ≠ 0`.
 
 ## Main results
 
+* `add_comm_group.divisbible_of_linear_solvable` : If in a group `A`, `n • x = y` is solveable
+  whenever `n ≠ 0`, then `A` is divisible.
 * `add_comm_group.divisble_rat` : `ℚ` is a divisible group.
+* `add_comm_group.divisible_real` : `ℝ` is a divisible group.
 * `add_comm_group.divisible_of_product_divisible` : Any product of divisble group is divisible.
 
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
@@ -31,12 +35,23 @@ A divisible group `A` is an abelian group such that `nA = A` for all `n ≠ 0`.
 class divisible : Prop :=
 (div : ∀ (n : ℤ), n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤)
 
-/-- ℚ is a divisible group. -/
-instance divisible_rat : divisible ℚ :=
+instance divisible_of_linear_solvable
+  (sol : ∀ (n : ℤ) (x : A), n ≠ 0 → ∃ (y : A), n • y = x) :
+  divisible A :=
 { div := λ n hn, add_subgroup.ext $ λ q,
   { mp := λ _, trivial,
-    mpr := λ _, ⟨q/n, trivial, by norm_num; rw [div_eq_mul_inv, mul_comm q, ←mul_assoc,
-      mul_inv_cancel (by norm_cast; exact hn : (n : ℚ) ≠ 0), one_mul]⟩ } }
+    mpr := λ _, ⟨(sol n q hn).some, ⟨trivial, (sol n q hn).some_spec⟩⟩ } }
+
+
+/-- ℚ is a divisible group. -/
+instance divisible_rat : divisible ℚ :=
+add_comm_group.divisible_of_linear_solvable _ $
+  λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
+
+/-- ℝ is a divisible group. -/
+instance divisible_real : divisible ℝ :=
+add_comm_group.divisible_of_linear_solvable _ $
+  λ n x hn, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩
 
 section product
 

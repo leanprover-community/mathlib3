@@ -736,7 +736,7 @@ is_succ_limit_of_succ_lt $ λ x h, (succ_le_of_lt $ cantor x).trans_lt $ H.two_p
 theorem aleph_0_le_of_is_strong_limit {c : cardinal} (h : is_strong_limit c) : c ≠ 0 → ℵ₀ ≤ c :=
 aleph_0_le_of_is_succ_limit h.is_succ_limit
 
-theorem mk_bounded_subset {α : Type*} (h : is_strong_limit (#α)) {r : α → α → Prop}
+theorem is_strong_limit.mk_bounded_subset {α : Type*} (h : is_strong_limit (#α)) {r : α → α → Prop}
   [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=
 begin
   rcases eq_or_ne (#α) 0 with ha | ha,
@@ -764,7 +764,7 @@ begin
       simpa only [singleton_eq_singleton_iff] using hab } }
 end
 
-theorem mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
+theorem is_strong_limit.mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
   #{s : set α // #s < cof (#α).ord} = #α :=
 begin
   rcases eq_or_ne (#α) 0 with ha | ha,
@@ -773,7 +773,7 @@ begin
   rcases ord_eq α with ⟨r, wo, hr⟩,
   haveI := wo,
   apply le_antisymm,
-  { nth_rewrite_rhs 0 ←mk_bounded_subset h hr,
+  { nth_rewrite_rhs 0 ←h.mk_bounded_subset hr,
     apply mk_le_mk_of_subset (λ s hs, _),
     rw hr at hs,
     exact lt_cof_type hs },

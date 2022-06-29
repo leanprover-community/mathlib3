@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
+import data.fin.tuple.basic
 import data.set.finite
 import group_theory.submonoid.basic
 
@@ -468,6 +469,29 @@ begin
   { exact subset.rfl },
   { rw pow_succ,
     exact ih.trans (subset_mul_right _ hs) }
+end
+
+lemma mem_pow : ∀ {a : α} {n : ℕ} (hn : n ≠ 0),
+  a ∈ s ^ n ↔ ∃ f : fin n → α, ∀ i, f i ∈ s ∧ (list.of_fn f).prod = a
+| a 0 hn := (hn rfl).elim
+| a 1 _ := begin
+  simp_rw [pow_one, list.of_fn_succ, list.of_fn_zero, list.prod_singleton, fin.forall_fin_one],
+  exact ⟨λ h, ⟨λ _, a, h, rfl⟩, λ ⟨f, hf, h⟩, h ▸ hf⟩,
+end
+| a (nat.succ (nat.succ n)) hn :=  begin
+  have hm := n.succ_ne_zero,
+  clear hn,
+  set m := nat.succ n with hm',
+  have : ∀ a : α, a ∈ _ ↔ _ := λ _, mem_pow hm,
+  clear_value m,
+  simp_rw [ pow_succ _, list.of_fn_succ, list.prod_cons, fin.forall_fin_succ,
+    fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ, mem_mul, this],
+  subst hm',
+  split,
+  { rintro ⟨x, y, hx, ⟨v, hv⟩, rfl⟩,
+    exact ⟨_, v, ⟨hx, congr_arg _ (hv 0).2⟩, λ i, ⟨(hv i).1, congr_arg _ (hv 0).2⟩⟩ },
+  { rintro ⟨a, v, ⟨ha, rfl⟩, hv⟩,
+    exact ⟨a, _, ha, ⟨v, λ i, ⟨(hv i).1, rfl⟩⟩, rfl⟩ },
 end
 
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=

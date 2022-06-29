@@ -55,6 +55,13 @@ instance : has_one (submodule R A) :=
 theorem one_eq_range :
   (1 : submodule R A) = (algebra.linear_map R A).range := rfl
 
+lemma le_one_to_add_submonoid :
+  1 ≤ (1 : submodule R A).to_add_submonoid :=
+begin
+  rintros x ⟨n, rfl⟩,
+  exact ⟨n, map_nat_cast (algebra_map R A) n⟩,
+end
+
 lemma algebra_map_mem (r : R) : algebra_map R A r ∈ (1 : submodule R A) :=
 linear_map.mem_range_self _ _
 
@@ -67,6 +74,8 @@ begin
   intro a,
   simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
+
+theorem one_eq_span_one_set : (1 : submodule R A) = span R 1 := one_eq_span
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
@@ -320,6 +329,36 @@ begin
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
+end
+
+lemma pow_mem_pow {x : A} (hx : x ∈ M) (n : ℕ) : x ^ n ∈ M ^ n :=
+pow_subset_pow _ $ set.pow_mem_pow hx _
+
+lemma pow_eq_span_pow_set (s : submodule R A) (n : ℕ) :
+  s ^ n = span R ((s : set A) ^ n) :=
+begin
+  induction n,
+  { rw [pow_zero, pow_zero, one_eq_span_one_set], },
+  { rw [pow_succ, pow_succ, mul_eq_span_mul_set, n_ih, ←span_mul_span, span_span, span_mul_span] }
+end
+
+lemma pow_to_add_submonoid {n : ℕ} (h : n ≠ 0) :
+  (M ^ n).to_add_submonoid = M.to_add_submonoid ^ n :=
+begin
+  induction n with n ih,
+  { exact (h rfl).elim },
+  { rw [pow_succ, pow_succ, mul_to_add_submonoid],
+    cases n,
+    { rw [pow_zero, pow_zero, mul_one, ←mul_to_add_submonoid, mul_one] },
+    { rw ih n.succ_ne_zero } },
+end
+
+lemma le_pow_to_add_submonoid {n : ℕ} :
+  M.to_add_submonoid ^ n ≤ (M ^ n).to_add_submonoid :=
+begin
+  obtain rfl | hn := decidable.eq_or_ne n 0,
+  { rw [pow_zero, pow_zero], exact le_one_to_add_submonoid },
+  { exact (pow_to_add_submonoid M hn).ge }
 end
 
 /-- Dependent version of `submodule.pow_induction_on_left`. -/

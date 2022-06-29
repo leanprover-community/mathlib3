@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.set.pointwise
-import group_theory.submonoid.operations
+import group_theory.submonoid.membership
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -22,8 +22,13 @@ which matches the action of `mul_action_set`.
 
 These are all available in the `pointwise` locale.
 
-Additionally, it provides `add_submonoid.has_mul`, which is available globally to match
-`submodule.has_mul`.
+Additionally, it provides various degrees of monoid structure:
+* `add_submonoid.has_one`
+* `add_submonoid.has_mul`
+* `add_submonoid.mul_one_class`
+* `add_submonoid.semigroup`
+* `add_submonoid.monoid`
+which is available globally to match the monoid structure implied by `submodule.semiring`.
 
 ## Implementation notes
 
@@ -300,16 +305,40 @@ subset_set_smul_iff₀ ha
 
 end group_with_zero
 
-open_locale pointwise
-
 end add_submonoid
 
-/-! ### Elementwise multiplication of two additive submonoids
+/-! ### Elementwise monoid structure of additive submonoids
 
 These definitions are a cut-down versions of the ones around `submodule.has_mul`, as that API is
 usually more useful. -/
 namespace add_submonoid
 
+open_locale pointwise
+
+section add_monoid_with_one
+variables [add_monoid_with_one R]
+
+instance : has_one (add_submonoid R) :=
+⟨(nat.cast_add_monoid_hom _).mrange⟩
+
+theorem one_eq_mrange :
+  (1 : add_submonoid R) = (nat.cast_add_monoid_hom _).mrange := rfl
+
+lemma nat_cast_mem_one (n : ℕ) : (n : R) ∈ (1 : add_submonoid R) := ⟨_, rfl⟩
+
+@[simp] lemma mem_one {x : R} : x ∈ (1 : add_submonoid R) ↔ ∃ n : ℕ, ↑n = x := iff.rfl
+
+theorem one_eq_closure : (1 : add_submonoid R) = closure {1} :=
+begin
+  simp only [closure_singleton_eq, mul_one, one_eq_mrange],
+  congr' 1 with n,
+  simp,
+end
+
+theorem one_eq_closure_one_set : (1 : add_submonoid R) = closure 1 := one_eq_closure
+end add_monoid_with_one
+
+section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring R]
 
 /-- Multiplication of additive submonoids of a semiring R. The additive submonoid `S * T` is the
@@ -369,5 +398,54 @@ mul_le_mul (le_refl M) h
 
 lemma mul_subset_mul {M N : add_submonoid R} : (↑M : set R) * (↑N : set R) ⊆ (↑(M * N) : set R) :=
 by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
+
+end non_unital_non_assoc_semiring
+
+section non_assoc_semiring
+variables [non_assoc_semiring R]
+
+instance : mul_one_class (add_submonoid R) :=
+{ one := 1,
+  mul := (*),
+  one_mul := λ M, by rw [one_eq_closure_one_set, ←closure_eq M, closure_mul_closure, one_mul],
+  mul_one := λ M, by rw [one_eq_closure_one_set, ←closure_eq M, closure_mul_closure, mul_one] }
+
+end non_assoc_semiring
+
+section non_unital_semiring
+variables [non_unital_semiring R]
+
+instance : semigroup (add_submonoid R) :=
+{ mul := (*),
+  mul_assoc := λ M N P,
+    -- copied from `submodule.mul_assoc`
+    le_antisymm (mul_le.2 $ λ mn hmn p hp,
+      suffices M * N ≤ (M * (N * P)).comap (add_monoid_hom.mul_right p), from this hmn,
+      mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
+      (mul_assoc m n p).symm ▸ mul_mem_mul hm (mul_mem_mul hn hp))
+    (mul_le.2 $ λ m hm np hnp,
+      suffices N * P ≤ (M * N * P).comap (add_monoid_hom.mul_left m), from this hnp,
+      mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
+      mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp) }
+
+end non_unital_semiring
+
+section semiring
+variables [semiring R]
+
+instance : monoid (add_submonoid R) :=
+{ one := 1,
+  mul := (*),
+  ..add_submonoid.semigroup,
+  ..add_submonoid.mul_one_class }
+
+lemma pow_eq_closure_pow_set (s : add_submonoid R) : ∀ n : ℕ, s ^ n = closure ((s : set R) ^ n)
+| 0 := by rw [pow_zero, pow_zero, one_eq_closure_one_set]
+| (n + 1) := by rw [pow_succ, pow_succ, pow_eq_closure_pow_set, ←closure_mul_closure, closure_eq]
+
+lemma pow_subset_pow {s : add_submonoid R} {n : ℕ} : (↑s : set R)^n ⊆ ↑(s^n) :=
+(pow_eq_closure_pow_set s n).symm ▸ subset_closure
+
+end semiring
 
 end add_submonoid

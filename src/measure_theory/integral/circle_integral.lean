@@ -305,7 +305,7 @@ lemma integral_sub_inv_smul_sub_smul (f : ℂ → E) (c w : ℂ) (R : ℝ) :
   ∮ z in C(c, R), (z - w)⁻¹ • (z - w) • f z = ∮ z in C(c, R), f z :=
 begin
   rcases eq_or_ne R 0 with rfl|hR, { simp only [integral_radius_zero] },
-  have : countable (circle_map c R ⁻¹' {w}), from (countable_singleton _).preimage_circle_map c hR,
+  have : (circle_map c R ⁻¹' {w}).countable, from (countable_singleton _).preimage_circle_map c hR,
   refine interval_integral.integral_congr_ae ((this.ae_not_mem _).mono $ λ θ hθ hθ', _),
   change circle_map c R θ ≠ w at hθ,
   simp only [inv_smul_smul₀ (sub_ne_zero.2 $ hθ)]

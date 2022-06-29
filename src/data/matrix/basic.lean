@@ -230,6 +230,11 @@ by simp [diagonal]
 theorem diagonal_apply_ne' [has_zero α] (d : n → α) {i j : n} (h : j ≠ i) :
   (diagonal d) i j = 0 := diagonal_apply_ne d h.symm
 
+@[simp] theorem diagonal_eq_diagonal_iff [has_zero α] {d₁ d₂ : n → α} :
+  diagonal d₁ = diagonal d₂ ↔ ∀ i, d₁ i = d₂ i :=
+⟨λ h i, by simpa using congr_arg (λ m : matrix n n α, m i i) h,
+ λ h, by rw show d₁ = d₂, from funext h⟩
+
 lemma diagonal_injective [has_zero α] : function.injective (diagonal : (n → α) → matrix n n α) :=
 λ d₁ d₂ h, funext $ λ i, by simpa using matrix.ext_iff.mpr h i i
 
@@ -660,6 +665,9 @@ instance [fintype n] [decidable_eq n] : non_assoc_semiring (matrix n n α) :=
 { one := 1,
   one_mul := matrix.one_mul,
   mul_one := matrix.mul_one,
+  nat_cast := λ n, diagonal (λ _, n),
+  nat_cast_zero := by ext; simp [nat.cast],
+  nat_cast_succ := λ n, by ext; by_cases i = j; simp [nat.cast, *],
   .. matrix.non_unital_non_assoc_semiring }
 
 @[simp]

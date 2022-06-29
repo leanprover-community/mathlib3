@@ -722,6 +722,7 @@ instance [non_assoc_semiring R] : non_assoc_semiring (hahn_series Γ R) :=
   mul := (*),
   one_mul := λ x, by { ext, exact single_zero_mul_coeff.trans (one_mul _) },
   mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
+  .. add_monoid_with_one.unary,
   .. hahn_series.non_unital_non_assoc_semiring }
 
 instance [semiring R] : semiring (hahn_series Γ R) :=
@@ -1059,9 +1060,8 @@ begin
   ext n,
   simp only [C, single_coeff, of_power_series_apply, ring_hom.coe_mk],
   split_ifs with hn hn,
-  { rw hn,
-    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0,
-    simp },
+  { subst hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0; simp },
   { rw emb_domain_notin_image_support,
     simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
                power_series.coeff_C],
@@ -1090,7 +1090,7 @@ end
 begin
   rw ring_hom.map_pow,
   induction n with n ih,
-  { refl },
+  { simp, refl },
   rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
 end
 

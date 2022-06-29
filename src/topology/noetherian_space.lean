@@ -153,6 +153,7 @@ noncomputable
 def noetherian_space.fintype [noetherian_space α] [t2_space α] : fintype α :=
 set.fintype_of_finite_univ (noetherian_space.is_compact set.univ).finite_of_discrete
 
+@[priority 100]
 instance noetherian_space.of_fintype [fintype α] : noetherian_space α :=
 by { classical, exact ⟨@@fintype.well_founded_of_trans_of_irrefl (subtype.fintype _) _ _ _⟩ }
 

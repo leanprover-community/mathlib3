@@ -272,6 +272,42 @@ def fun_equiv_degree_lt : degree_lt F (fintype.card ι) ≃ₗ[F] (ι → F) :=
 
 end interpolate
 
+section nodal
+variables {ι : Type*} [fintype ι] {v : ι ↪ F} {i : ι} (r : ι → F)
+
+/--
+We define `nodal`, the unique monic polynomial whose roots are the nodes defined by `v`.
+
+We can use `nodal` for an alternative form of `interpolate`.
+-/
+def nodal (v : ι ↪ F) : F[X] := ∏ i, (X - C (v i))
+
+lemma nodal_eq_remove [decidable_eq ι] (i : ι) : nodal v = (X - C (v i)) * ∏ j in univ.erase i, (X - C (v j)) :=
+by rw [nodal, mul_prod_erase _ _ (mem_univ i)]
+
+lemma nodal_derive_eval_node_eq [decidable_eq ι] (i : ι) : eval (v i) (nodal v).derivative =
+  ∏ j in (univ.erase i), (v i - v j) :=
+begin
+  rw [nodal_eq_remove i, bernoulli_rule_left],
+  { simp_rw [ eval_prod, derivative_sub, derivative_X, derivative_C,
+              sub_zero, eval_one, one_mul, eval_sub, eval_X, eval_C]},
+  { rw [eval_sub, eval_X, eval_C, sub_self] }
+end
+
+lemma nodal_div_eq (i : ι) [decidable_eq ι] : nodal v / (X - C (v i)) = ∏ j in univ.erase i, (X - C (v j)) :=
+by { rw [nodal_eq_remove i, euclidean_domain.mul_div_cancel_left], exact X_sub_C_ne_zero _ }
+
+lemma basis_eq_nodal_div_eval_deriv_mul_linear [decidable_eq ι] :
+  basis v i = C (eval (v i) (nodal v).derivative)⁻¹ * (nodal v / (X - C (v i)))  :=
+by {  simp_rw [ basis, basis_divisor, nodal_div_eq, nodal_derive_eval_node_eq,
+                prod_mul_distrib, ← prod_inv_distrib, map_prod] }
+
+lemma interpolate_eq_derivative_interpolate [decidable_eq ι] :
+∑ i, C (r i * (eval (v i) (nodal v).derivative)⁻¹) * (nodal v / (X - C (v i))) = interpolate v r :=
+by simp_rw [interpolate, basis_eq_nodal_div_eval_deriv_mul_linear, map_mul, mul_assoc]
+
+end nodal
+
 section interpolate_at
 variables {ι : Type*} [fintype ι] [decidable_eq ι] {v : ι ↪ F} {i j : ι} {f g : F → F}
 
@@ -325,8 +361,8 @@ theorem eq_interpolate_at (g : F[X]) (degree_g_lt : g.degree < fintype.card ι) 
   g = interpolate_at v (λ x, eval x g) := eq_interpolate degree_g_lt
 
 theorem eq_interpolate_at_of_eval_eq {g : F[X]} (degree_g_lt : g.degree < fintype.card ι)
- (eval_g : ∀ i, g.eval (v i) = f (v i)) : g = interpolate_at v f :=
-eq_interpolate_of_eval_eq degree_g_lt eval_g
+  (eval_gf : ∀ i, g.eval (v i) = f (v i)) : g = interpolate_at v f :=
+eq_interpolate_of_eval_eq degree_g_lt eval_gf
 
 /--
 This is the characteristic property of the interpolation of a function at given nodes:

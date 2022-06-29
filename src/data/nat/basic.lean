@@ -764,6 +764,24 @@ begin
 end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
 
+/-- Given `P : ℕ → ℕ → Sort*`, if for all `a b : ℕ` we can extend `P` from the rectangle
+strictly below `(a,b)` to `P a b`, then we have `P n m` for all `n m : ℕ` -/
+def strong_sub_induction {P : ℕ → ℕ → Sort*}
+  (H : ∀ a b, (∀ x y, x < a → y < b → P x y) → P a b) : Π (n m : ℕ), P n m
+| n m := H n m (λ x y hx hy, strong_sub_induction x y)
+
+/-- Given `P : ℕ → ℕ → Sort*`, if we have `P i 0` and `P 0 i` for all `i : ℕ`,
+and for any `x y : ℕ` we can extend `P` from `(x,y+1)` and `(x+1,y)` to `(x+1,y+1)`,
+then we have `P n m` for all `n m : ℕ` -/
+def pincer_induction {P : ℕ → ℕ → Sort*} (Ha0 : ∀ a : ℕ, P a 0) (H0b : ∀ b : ℕ, P 0 b)
+  (H : ∀ x y : ℕ, P x y.succ → P x.succ y → P x.succ y.succ) : Π (n m : ℕ), P n m :=
+begin
+  intros n m,
+  induction n with n IHn generalizing m, { apply H0b },
+  induction m with m IH generalizing n, { apply Ha0 },
+  exact H _ _ (IHn _) (IH _ IHn),
+end
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]

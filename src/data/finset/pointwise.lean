@@ -384,6 +384,10 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
+@[to_additive] lemma mem_pow {a : α} {n : ℕ} :
+  a ∈ s ^ n ↔ ∃ f : fin n → α, (∀ i, f i ∈ s) ∧ (list.of_fn f).prod = a :=
+by simp_rw [←mem_coe, coe_pow, set.mem_pow]
+
 @[simp, to_additive] lemma empty_pow (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 

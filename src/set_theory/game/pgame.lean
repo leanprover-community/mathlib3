@@ -684,19 +684,18 @@ inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
 
 /-- The identity restriction. -/
 @[refl] def restricted.refl : Π (x : pgame), restricted x x
-| ⟨xl, xr, xL, xR⟩ := ⟨_, _, λ i, restricted.refl _, λ j, restricted.refl _⟩
+| x := ⟨_, _, λ i, restricted.refl _, λ j, restricted.refl _⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance (x : pgame) : inhabited (restricted x x) := ⟨restricted.refl _⟩
 
 /-- Transitivity of restriction. -/
-def restricted.trans : Π {x y z : pgame} (r : restricted x y) (s : restricted y z),
-  restricted x z
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
+def restricted.trans : Π {x y z : pgame} (r : restricted x y) (s : restricted y z), restricted x z
+| x y z ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
 ⟨_, _, λ i, (hL₁ i).trans (hL₂ _), λ j, (hR₁ _).trans (hR₂ j)⟩
 
 theorem restricted.le : Π {x y : pgame} (r : restricted x y), x ≤ y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
+| x y ⟨L, R, hL, hR⟩ :=
 le_def.2 ⟨λ i, or.inl ⟨L i, (hL i).le⟩, λ i, or.inr ⟨R i, (hR i).le⟩⟩
 
 /--
@@ -712,9 +711,11 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 
 localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
 
+namespace relabelling
+
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of  `y`. -/
-def relabelling.restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
+def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
+| x y ⟨L, R, hL, hR⟩ :=
 ⟨L, R.symm, λ i, (hL i).restricted, λ j, (hR j).restricted⟩
 
 -- It's not the case that `restricted x y → restricted y x → relabelling x y`,
@@ -722,32 +723,34 @@ def relabelling.restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
 -- could use Schröder-Bernstein for do this.
 
 /-- The identity relabelling. -/
-@[refl] def relabelling.refl : Π (x : pgame), x ≡r x
-| ⟨xl, xr, xL, xR⟩ := ⟨equiv.refl _, equiv.refl _, λ i, relabelling.refl _, λ j, relabelling.refl _⟩
+@[refl] def refl : Π (x : pgame), x ≡r x
+| x := ⟨equiv.refl _, equiv.refl _, λ i, refl _, λ j, refl _⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance (x : pgame) : inhabited (x ≡r x) := ⟨relabelling.refl _⟩
+instance (x : pgame) : inhabited (x ≡r x) := ⟨refl _⟩
 
 /-- Flip a relabelling. -/
-@[symm] def relabelling.symm : Π {x y : pgame}, x ≡r y → y ≡r x
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
+@[symm] def symm : Π {x y : pgame}, x ≡r y → y ≡r x
+| x y ⟨L, R, hL, hR⟩ :=
 ⟨L.symm, R.symm, λ i, by simpa using (hL (L.symm i)).symm, λ j, by simpa using (hR (R j)).symm⟩
 
-theorem relabelling.le {x y : pgame} (r : x ≡r y) : x ≤ y := r.restricted.le
-theorem relabelling.ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.restricted.le
+theorem le {x y : pgame} (r : x ≡r y) : x ≤ y := r.restricted.le
+theorem ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.restricted.le
 
 /-- A relabelling lets us prove equivalence of games. -/
-theorem relabelling.equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
+theorem equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 
 /-- Transitivity of relabelling. -/
-@[trans] def relabelling.trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
+@[trans] def trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z
+| x y z ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
 ⟨L₁.trans L₂, R₁.trans R₂,
   λ i, by simpa using (hL₁ i).trans (hL₂ _), λ j, by simpa using (hR₁ _).trans (hR₂ j)⟩
 
 /-- Any game without left or right moves is a relabelling of 0. -/
-def relabelling.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
+def is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
 ⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩
+
+end relabelling
 
 theorem equiv.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≈ 0 :=
 (relabelling.is_empty x).equiv

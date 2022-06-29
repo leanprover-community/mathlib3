@@ -107,7 +107,7 @@ do
   return (l1 ++ l3 ++ l2, is_unused)
 
 /-- `is_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
-if it cannot otherwise. -/
+if it cannot. -/
 meta def is_given_op (op : expr) : expr → tactic unit
 | (expr.app (expr.app F a) b) := unify op F
 | _ := failed

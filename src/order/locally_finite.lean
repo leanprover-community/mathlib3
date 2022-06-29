@@ -386,14 +386,14 @@ This is not an instance as it would not be defeq to better instances such as
 @[reducible]
 def fintype.to_locally_finite_order [fintype α] [@decidable_rel α (<)] [@decidable_rel α (≤)] :
   locally_finite_order α :=
-{ finset_Icc := λ a b, univ.filter (∈ set.Icc a b),
-  finset_Ico := λ a b, univ.filter (∈ set.Ico a b),
-  finset_Ioc := λ a b, univ.filter (∈ set.Ioc a b),
-  finset_Ioo := λ a b, univ.filter (∈ set.Ioo a b),
-  finset_mem_Icc := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Icc],
-  finset_mem_Ico := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Ico],
-  finset_mem_Ioc := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Ioc],
-  finset_mem_Ioo := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Ioo] }
+{ finset_Icc := λ a b, (set.Icc a b).to_finset,
+  finset_Ico := λ a b, (set.Ico a b).to_finset,
+  finset_Ioc := λ a b, (set.Ioc a b).to_finset,
+  finset_Ioo := λ a b, (set.Ioo a b).to_finset,
+  finset_mem_Icc := λ a b x, by simp only [set.mem_to_finset, set.mem_Icc],
+  finset_mem_Ico := λ a b x, by simp only [set.mem_to_finset, set.mem_Ico],
+  finset_mem_Ioc := λ a b x, by simp only [set.mem_to_finset, set.mem_Ioc],
+  finset_mem_Ioo := λ a b x, by simp only [set.mem_to_finset, set.mem_Ioo] }
 
 instance : subsingleton (locally_finite_order α) :=
 subsingleton.intro (λ h₀ h₁, begin

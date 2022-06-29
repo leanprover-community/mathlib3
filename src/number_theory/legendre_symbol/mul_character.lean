@@ -136,6 +136,9 @@ begin
   { rw [map_nonunit χ ha, map_nonunit χ' ha], },
 end
 
+lemma ext_iff {χ χ' : mul_char R R'} : χ = χ' ↔ ∀ a : Rˣ, χ a = χ' a :=
+⟨by { rintro rfl a, refl }, ext⟩
+
 /-!
 ### Equivalence of multiplicative characters with homomorphisms on units
 
@@ -352,42 +355,22 @@ def is_nontrivial (χ : mul_char R R') : Prop := ∃ a : Rˣ, χ a ≠ 1
 
 /-- A multiplicative character is nontrivial iff it is not the trivial character. -/
 lemma is_nontrivial_iff (χ : mul_char R R') : χ.is_nontrivial ↔ χ ≠ 1 :=
-begin
-  split,
-  { intros h₁ h₂,
-    obtain ⟨a, ha⟩ := h₁,
-    rw [h₂, one_apply_coe] at ha,
-    exact ha rfl, },
-  { contrapose!,
-    intro h,
-    change ¬ ∃ a : Rˣ, χ a ≠ 1 at h,
-    push_neg at h,
-    ext a,
-    rw [one_apply_coe a, h a], },
-end
+by simp only [is_nontrivial, ne.def, ext_iff, not_forall, one_apply_coe]
 
 /-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1`. -/
 def is_quadratic (χ : mul_char R R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨ χ a = -1
 
 /-- We can post-compose a multiplicative character with a ring homomorphism. -/
+@[simps]
 def ring_hom_comp (χ : mul_char R R') (f : R' →+* R'') : mul_char R R'' :=
-{ map_nonunit' :=
-  begin
-    intros a ha,
-    simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.to_fun_eq_coe, monoid_hom.coe_comp,
-               ring_hom.coe_monoid_hom, coe_coe, function.comp_app, map_nonunit χ ha,
-               ring_hom.map_zero],
-  end,
-  ..f.to_monoid_hom.comp χ.to_monoid_hom}
-
-@[simp]
-lemma ring_hom_comp_apply (χ : mul_char R R') (f : R' →+* R'') (a : R) :
-  χ.ring_hom_comp f a = f (χ a) := rfl
+{ to_fun := λ a, f (χ a),
+  map_nonunit' := λ a ha, by simp only [map_nonunit χ ha, map_zero],
+  ..f.to_monoid_hom.comp χ.to_monoid_hom }
 
 /-- Composition with an injective ring homomorphism preserves nontriviality. -/
 lemma is_nontrivial.comp {χ : mul_char R R'} (hχ : χ.is_nontrivial)
-  {f : R' →+* R''} (hf : function.injective f) :
-   (χ.ring_hom_comp f).is_nontrivial :=
+ {f : R' →+* R''} (hf : function.injective f) :
+  (χ.ring_hom_comp f).is_nontrivial :=
 begin
   obtain ⟨a, ha⟩ := hχ,
   use a,
@@ -400,39 +383,32 @@ lemma is_quadratic.comp {χ : mul_char R R'} (hχ : χ.is_quadratic) (f : R' →
   (χ.ring_hom_comp f).is_quadratic :=
 begin
   intro a,
-  simp only [ring_hom_comp_apply],
-  rcases hχ a with (ha | ha | ha); rw [ha],
-  { left,
-    rw [ring_hom.map_zero], },
-  { right, left,
-    rw [ring_hom.map_one], },
-  { right, right,
-    rw [ring_hom.map_neg, ring_hom.map_one], },
+  rcases hχ a with (ha | ha | ha);
+    simp [ha],
 end
 
 /-- The inverse of a quadratic character is itself. →  -/
-lemma quadratic_char_inv {χ : mul_char R R'} (hχ : χ.is_quadratic) : χ⁻¹ = χ :=
+lemma is_quadratic.inv {χ : mul_char R R'} (hχ : χ.is_quadratic) : χ⁻¹ = χ :=
 begin
   ext x,
   rw [inv_apply_eq_inv],
   rcases hχ x with h₀ | h₁ | h₂,
   { rw [h₀, ring.inverse_zero], },
   { rw [h₁, ring.inverse_one], },
-  { rw [h₂, (by norm_num : (-1 : R') = (-1 : R'ˣ)), ring.inverse_unit (-1 : R'ˣ)],
+  { rw [h₂, (by norm_cast : (-1 : R') = (-1 : R'ˣ)), ring.inverse_unit (-1 : R'ˣ)],
     refl, },
 end
 
 /-- The square of a quadratic character is the trivial character. -/
-lemma quad_char_sq_eq_one {χ : mul_char R R'} (hχ : χ.is_quadratic) : χ ^ 2 = 1 :=
+lemma is_quadratic.sq_eq_one {χ : mul_char R R'} (hχ : χ.is_quadratic) : χ ^ 2 = 1 :=
 begin
-  rw [pow_two],
-  nth_rewrite 0 ← quadratic_char_inv hχ,
-  rw [mul_left_inv],
+  convert mul_left_inv _,
+  rw [pow_two, hχ.inv],
 end
 
 /-- The `p`th power of a quadratic character is itself, when `p` is the (prime) characteristic
 of the target ring. -/
-lemma quad_char_pow_char {χ : mul_char R R'} (hχ : χ.is_quadratic)
+lemma is_quadratic.pow_char {χ : mul_char R R'} (hχ : χ.is_quadratic)
  (p : ℕ) [hp : fact p.prime] [char_p R' p] :
   χ ^ p = χ :=
 begin
@@ -444,50 +420,53 @@ begin
   { exact char_p.neg_one_pow_char R' p, },
 end
 
+/-- The `n`th power of a quadratic character is the trivial character, when `n` is even. -/
+lemma is_quadratic.pow_even {χ : mul_char R R'} (hχ : χ.is_quadratic) {n : ℕ} (hn : even n) :
+  χ ^ n = 1 :=
+begin
+  obtain ⟨n, rfl⟩ := even_iff_two_dvd.mp hn,
+  rw [pow_mul, hχ.sq_eq_one, one_pow]
+end
+
 /-- The `n`th power of a quadratic character is itself, when `n` is odd. -/
-lemma quad_char_pow_odd {χ : mul_char R R'} (hχ : χ.is_quadratic) {n : ℕ} (hn : n % 2 = 1) :
+lemma is_quadratic.pow_odd {χ : mul_char R R'} (hχ : χ.is_quadratic) {n : ℕ} (hn : odd n) :
   χ ^ n = χ :=
-by rw [← nat.div_add_mod n 2, hn,
-       pow_add, pow_mul, quad_char_sq_eq_one hχ, one_pow, pow_one, mul_char.one_mul]
+begin
+  obtain ⟨n, rfl⟩ := hn,
+  rw [pow_add, pow_one, hχ.pow_even (even_two_mul _), one_mul]
+end
 
 open_locale big_operators
 
 /-- The sum over all values of a nontrivial multiplicative character on a finite ring is zero
 (when the target is a domain). -/
-lemma sum_eq_zero_of_is_nontrivial [fintype R] [is_domain R'] {χ : mul_char R R'}
+lemma is_nontrivial.sum_eq_zero [fintype R] [is_domain R'] {χ : mul_char R R'}
  (hχ : χ.is_nontrivial) :
   ∑ a, χ a = 0 :=
 begin
   rcases hχ with ⟨b, hb⟩,
-  have h₁ : ∑ a, χ (b * a) = ∑ a, χ a :=
-    fintype.sum_bijective _ (units.mul_left_bijective b) _ _ (λ x, rfl),
-  simp only [map_mul] at h₁,
-  rw [← finset.mul_sum] at h₁,
-  exact eq_zero_of_mul_eq_self_left hb h₁,
+  refine eq_zero_of_mul_eq_self_left hb _,
+  simp only [finset.mul_sum, ← map_mul],
+  exact fintype.sum_bijective _ (units.mul_left_bijective b) _ _ (λ x, rfl)
 end
 
 /-- The sum over all values of the trivial multiplicative character on a finite ring is
 the cardinality of its unit group. -/
-lemma sum_eq_card_units_of_is_trivial [fintype R] [decidable_eq R] :
+lemma sum_one_eq_card_units [fintype R] [decidable_eq R] :
   ∑ a, (1 : mul_char R R') a = fintype.card Rˣ :=
 begin
-  have h₁ : ∀ a : R, (1 : mul_char R R') a = ite (is_unit a) 1 0 :=
-  by { intro a, split_ifs, { exact one_apply_coe h.unit }, { exact map_nonunit _ h } },
-  simp_rw [h₁],
-  have h₂ := @finset.sum_filter R' R finset.univ _ is_unit _ 1,
-  simp only [pi.one_apply] at h₂,
-  have h₃ := map_sum (algebra_map ℕ R') 1 (finset.filter (is_unit : R → Prop) finset.univ),
-  simp only [pi.one_apply] at h₃,
-  rw [← finset.card_eq_sum_ones, eq_nat_cast, eq_nat_cast, nat.cast_one] at h₃,
-  have h₄ : finset.filter (is_unit : R → Prop) finset.univ
-             = finset.map ⟨(coe : Rˣ → R), units.ext⟩ finset.univ :=
-  begin
+  calc ∑ a, (1 : mul_char R R') a
+      = ∑ a : R, if is_unit a then 1 else 0 : finset.sum_congr rfl (λ a _, _)
+  ... = ((finset.univ : finset R).filter is_unit).card : finset.sum_boole
+  ... = (finset.univ.map (⟨(coe : Rˣ → R), units.ext⟩)).card : _
+  ... = fintype.card Rˣ : congr_arg _ (finset.card_map _),
+  { split_ifs with h h,
+    { exact one_apply_coe h.unit },
+    { exact map_nonunit _ h } },
+  { congr,
     ext a,
     simp only [finset.mem_filter, finset.mem_univ, true_and, finset.mem_map,
-               function.embedding.coe_fn_mk, exists_true_left],
-    refl,
-  end,
-  rw [← h₂, ← h₃, h₄, finset.card_map, fintype.card],
+               function.embedding.coe_fn_mk, exists_true_left, is_unit], },
 end
 
 end mul_char

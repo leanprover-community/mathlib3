@@ -306,7 +306,7 @@ variables {s t : multiset α} {a : α}
 
 lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
 
-alias subset_of_le ← multiset.le.subset
+alias subset_of_le ← le.subset
 
 lemma mem_of_le (h : s ≤ t) : a ∈ s → a ∈ t := mem_of_subset (subset_of_le h)
 

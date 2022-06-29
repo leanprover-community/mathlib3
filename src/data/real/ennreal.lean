@@ -1636,7 +1636,7 @@ by simp [ennreal.of_real]
 @[simp] lemma zero_eq_of_real {p : ℝ} : 0 = ennreal.of_real p ↔ p ≤ 0 :=
 eq_comm.trans of_real_eq_zero
 
-alias ennreal.of_real_eq_zero ↔ _ ennreal.of_real_of_nonpos
+alias of_real_eq_zero ↔ _ of_real_of_nonpos
 
 lemma of_real_sub (p : ℝ) (hq : 0 ≤ q) :
   ennreal.of_real (p - q) = ennreal.of_real p - ennreal.of_real q :=

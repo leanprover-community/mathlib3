@@ -22,7 +22,7 @@ namespace submodule
 variables {R M : Type*} {r : R} {x y : M} [ring R] [add_comm_group M] [module R M]
 variables (p p' : submodule R M)
 
-open linear_map
+open linear_map quotient_add_group
 
 /-- The equivalence relation associated to a submodule `p`, defined by `x ≈ y` iff `-x + y ∈ p`.
 
@@ -32,7 +32,7 @@ def quotient_rel : setoid M :=
 quotient_add_group.left_rel p.to_add_subgroup
 
 lemma quotient_rel_r_def {x y : M} : @setoid.r _ (p.quotient_rel) x y ↔ x - y ∈ p :=
-iff.trans (by { rw [sub_eq_add_neg, neg_add, neg_neg], refl }) neg_mem_iff
+iff.trans (by { rw [left_rel_apply, sub_eq_add_neg, neg_add, neg_neg], refl }) neg_mem_iff
 
 /-- The quotient of a module `M` by a submodule `p ⊆ M`. -/
 instance has_quotient : has_quotient M (submodule R M) := ⟨λ p, quotient (quotient_rel p)⟩
@@ -48,10 +48,10 @@ def mk {p : submodule R M} : M → M ⧸ p := quotient.mk'
 @[simp] theorem mk'_eq_mk {p : submodule R M} (x : M) : (quotient.mk' x : M ⧸ p) = mk x := rfl
 @[simp] theorem quot_mk_eq_mk {p : submodule R M} (x : M) : (quot.mk _ x : M ⧸ p) = mk x := rfl
 
-protected theorem eq' {x y : M} : (mk x : M ⧸ p) = mk y ↔ -x + y ∈ p := quotient.eq'
+protected theorem eq' {x y : M} : (mk x : M ⧸ p) = mk y ↔ -x + y ∈ p := quotient_add_group.eq
 
 protected theorem eq {x y : M} : (mk x : M ⧸ p) = mk y ↔ x - y ∈ p :=
-(p^.quotient.eq').trans p.quotient_rel_r_def
+(p^.quotient.eq').trans (left_rel_apply.symm.trans p.quotient_rel_r_def)
 
 instance : has_zero (M ⧸ p) := ⟨mk 0⟩
 instance : inhabited (M ⧸ p) := ⟨0⟩
@@ -75,7 +75,8 @@ section has_scalar
 variables {S : Type*} [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] (P : submodule R M)
 
 instance has_scalar' : has_scalar S (M ⧸ P) :=
-⟨λ a, quotient.map' ((•) a) $ λ x y h, by simpa [smul_sub] using P.smul_mem (a • 1 : R) h⟩
+⟨λ a, quotient.map' ((•) a) $ λ x y h, left_rel_apply.mpr $
+  by simpa [smul_sub] using P.smul_mem (a • 1 : R) (left_rel_apply.mp h)⟩
 
 /-- Shortcut to help the elaborator in the common case. -/
 instance has_scalar : has_scalar R (M ⧸ P) :=

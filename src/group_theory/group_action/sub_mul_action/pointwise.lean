@@ -42,7 +42,7 @@ section has_mul
 variables [monoid R] [mul_action R M] [has_mul M] [is_scalar_tower R M M]
 
 instance : has_mul (sub_mul_action R M) :=
-{ mul := λ p q, { carrier := p * q,
+{ mul := λ p q, { carrier := set.image2 (*) p q,
                   smul_mem' := λ r m ⟨m₁, m₂, hm₁, hm₂, h⟩,
                     h ▸ smul_mul_assoc r m₁ m₂ ▸ set.mul_mem_mul (p.smul_mem _ hm₁) hm₂ } }
 

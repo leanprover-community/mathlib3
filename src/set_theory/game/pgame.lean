@@ -712,6 +712,7 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
 
 namespace relabelling
+variables {x y : pgame.{u}}
 
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of  `y`. -/
 def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
@@ -734,11 +735,11 @@ instance (x : pgame) : inhabited (x ≡r x) := ⟨refl _⟩
 | x y ⟨L, R, hL, hR⟩ :=
 ⟨L.symm, R.symm, λ i, by simpa using (hL (L.symm i)).symm, λ j, by simpa using (hR (R j)).symm⟩
 
-theorem le {x y : pgame} (r : x ≡r y) : x ≤ y := r.restricted.le
-theorem ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.restricted.le
+theorem le (r : x ≡r y) : x ≤ y := r.restricted.le
+theorem ge (r : x ≡r y) : y ≤ x := r.symm.restricted.le
 
 /-- A relabelling lets us prove equivalence of games. -/
-theorem equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
+theorem equiv (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 
 /-- Transitivity of relabelling. -/
 @[trans] def trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z

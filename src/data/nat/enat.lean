@@ -474,6 +474,7 @@ instance : well_founded_lt enat :=
   classical,
   change well_founded (λ a b : enat, a < b),
   simp_rw ←to_with_top_lt,
+  apply inv_image.wf,
   exact well_founded_lt.lt_wf.wf
 end⟩⟩
 

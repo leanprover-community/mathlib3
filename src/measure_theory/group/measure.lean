@@ -519,6 +519,7 @@ instance is_haar_measure.sigma_finite [sigma_compact_space G] : sigma_finite μ 
   finite := λ n, is_compact.measure_lt_top $ is_compact_compact_covering G n,
   spanning := Union_compact_covering G }⟩⟩
 
+@[to_additive]
 instance {G : Type*} [group G] [topological_space G] {mG : measurable_space G}
   {H : Type*} [group H] [topological_space H] {mH : measurable_space H}
   (μ : measure G) (ν : measure H) [is_haar_measure μ] [is_haar_measure ν]

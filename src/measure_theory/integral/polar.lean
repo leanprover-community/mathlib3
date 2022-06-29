@@ -159,31 +159,34 @@ end
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
-lemma zouf :
+lemma polar_coord_source_ae_eq_univ :
   polar_coord.source =ᵐ[volume] univ :=
 begin
-  have : polar_coord.sourceᶜ ⊆ {p | p.2 = 0},
+  have A : polar_coord.sourceᶜ ⊆ (linear_map.snd ℝ ℝ ℝ).ker,
   { assume x hx,
     simp only [polar_coord_source, compl_union, mem_inter_eq, mem_compl_eq, mem_set_of_eq, not_lt,
       not_not] at hx,
     exact hx.2 },
-  have : volume ((linear_map.snd ℝ ℝ ℝ).ker : set (ℝ × ℝ)) = 0,
+  have B : volume ((linear_map.snd ℝ ℝ ℝ).ker : set (ℝ × ℝ)) = 0,
   { apply measure.add_haar_submodule,
-
-  },
+    rw [ne.def, linear_map.ker_eq_top],
+    assume h,
+    have : (linear_map.snd ℝ ℝ ℝ) (0, 1) = (0 : (ℝ × ℝ →ₗ[ℝ] ℝ)) (0, 1), by rw h,
+    simpa using this },
   simp only [ae_eq_univ],
+  exact le_antisymm ((measure_mono A).trans (le_of_eq B)) bot_le,
 end
 
 
-
-theorem glouk {E : Type*} (f : ℝ × ℝ → ℝ) :
-  (∫ p in (Ioi (0 : ℝ) ×ˢ (Ioo (-π) π) : set (ℝ × ℝ)), f (p.1 * cos p.2, p.1 * sin p.2) * p.1)
+theorem integral_comp_polar_coord_symm {E : Type*} (f : ℝ × ℝ → ℝ) :
+  (∫ p in polar_coord.target, f (polar_coord.symm p) * p.1)
     = ∫ p, f p :=
 begin
   set B : (ℝ × ℝ) → ((ℝ × ℝ) →L[ℝ] (ℝ × ℝ)) := λ p,
     (matrix.to_lin (basis_fin_two_prod ℝ) (basis_fin_two_prod ℝ)
       ![![cos p.2, -p.1 * sin p.2], ![sin p.2, p.1 * cos p.2]]).to_continuous_linear_map with hB,
-  have : ∀ p, has_fderiv_at polar_coord.symm (B p) p := has_fderiv_at_polar_coord_symm,
+  have A : ∀ p ∈ polar_coord.symm.source, has_fderiv_at polar_coord.symm (B p) p :=
+    λ p hp, has_fderiv_at_polar_coord_symm p,
   have B_det : ∀ p, (B p).det = p.1,
   { assume p,
     conv_rhs {rw [← one_mul p.1, ← cos_sq_add_sin_sq p.2] },
@@ -193,15 +196,28 @@ begin
   symmetry,
   calc
   ∫ p, f p
-      = ∫ p in polar_coord.source, f p : sorry
-  ... = ∫ p in polar_coord.target, f (polar_coord.symm p) * abs((B p).det) : sorry
+      = ∫ p in polar_coord.source, f p :
+  begin
+    rw ← integral_univ,
+    apply set_integral_congr_set_ae,
+    exact polar_coord_source_ae_eq_univ.symm
+  end
+  ... = ∫ p in polar_coord.target, abs ((B p).det) • f (polar_coord.symm p) :
+    by apply integral_target_eq_integral_abs_det_fderiv_smul volume A
   ... = ∫ p in polar_coord.target, f (polar_coord.symm p) * p.1 :
   begin
     apply set_integral_congr (polar_coord.open_target.measurable_set) (λ x hx, _),
-    rw [B_det, abs_of_pos],
-    exact hx.1,
+    rw [B_det, abs_of_pos, mul_comm],
+    { refl },
+    { exact hx.1 },
   end
 end
 
-
-#exit
+theorem foo :
+  (∫ x, real.exp (-x^2 / 2)) ^ 2 = 2 * π :=
+calc
+(∫ x, real.exp (-x^2 / 2)) ^ 2 = ∫ p : ℝ × ℝ, real.exp (-p.1 ^ 2 / 2 * real.exp (-p.2 ^ 2 / 2)) :
+begin
+  sorry
+end
+... = 2 * π : sorry

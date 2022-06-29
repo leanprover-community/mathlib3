@@ -33,7 +33,7 @@ The limit of this diagram then constitutes the colimit presheaf.
 
 noncomputable theory
 
-universes v u
+universes w v u
 
 open category_theory
 open Top
@@ -80,6 +80,11 @@ begin
   dsimp, simp, dsimp, simp, -- See note [dsimp, simp]
 end
 
+/-
+@limits.has_colimit_of_has_colimits_of_shape Top Top.large_category J _inst_1
+  (@limits.has_colimits_of_shape_of_has_colimits_of_size Top Top.large_category J _inst_1 Top.Top_has_colimits)
+  (F ⋙ @forget C _inst_2)
+-/
 /--
 Given a diagram of presheafed spaces,
 we can push all the presheaves forward to the colimit `X` of the underlying topological spaces,

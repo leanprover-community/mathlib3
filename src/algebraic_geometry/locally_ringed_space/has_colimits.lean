@@ -94,7 +94,7 @@ def coproduct_cofan_is_colimit : is_colimit (coproduct_cofan F) :=
   uniq' := λ s f h, subtype.eq (is_colimit.uniq _ (forget_to_SheafedSpace.map_cocone s) f.1
     (λ j, congr_arg subtype.val (h j))) }
 
-instance : has_coproducts LocallyRingedSpace.{u} :=
+instance : has_coproducts.{u} LocallyRingedSpace.{u} :=
 λ ι, ⟨λ F, ⟨⟨⟨_, coproduct_cofan_is_colimit F⟩⟩⟩⟩
 
 noncomputable
@@ -106,10 +106,12 @@ end has_coproducts
 
 section has_coequalizer
 
-variables {X Y : LocallyRingedSpace.{u}} (f g : X ⟶ Y)
+variables {X Y : LocallyRingedSpace.{v}} (f g : X ⟶ Y)
 
 namespace has_coequalizer
 
+set_option pp.universes true
+#print coequalizer.π
 instance coequalizer_π_app_is_local_ring_hom
   (U : topological_space.opens ((coequalizer f.val g.val).carrier)) :
   is_local_ring_hom ((coequalizer.π f.val g.val : _).c.app (op U)) :=
@@ -118,7 +120,7 @@ begin
   rw ← preserves_coequalizer.iso_hom at this,
   erw SheafedSpace.congr_app this.symm (op U),
   rw [PresheafedSpace.comp_c_app,
-    ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π],
+    ← PresheafedSpace.colimit_presheaf_obj_iso_componentwise_limit_hom_π.{0 0}],
   apply_instance
 end
 
@@ -178,7 +180,7 @@ lemma image_basic_open_image_open :
   is_open ((coequalizer.π f.1 g.1).base '' (image_basic_open f g U s).1) :=
 begin
   rw [← (Top.homeo_of_iso (preserves_coequalizer.iso (SheafedSpace.forget _) f.1 g.1))
-      .is_open_preimage, Top.coequalizer_is_open_iff.{u}, ← set.preimage_comp],
+      .is_open_preimage, Top.coequalizer_is_open_iff, ← set.preimage_comp],
   erw ← coe_comp,
   rw [preserves_coequalizer.iso_hom, ι_comp_coequalizer_comparison],
   dsimp only [SheafedSpace.forget],
@@ -280,7 +282,7 @@ instance : has_coequalizers LocallyRingedSpace := has_coequalizers_of_has_colimi
 
 noncomputable
 instance preserves_coequalizer :
-  preserves_colimits_of_shape walking_parallel_pair.{v} forget_to_SheafedSpace.{v} :=
+  preserves_colimits_of_shape walking_parallel_pair forget_to_SheafedSpace.{v} :=
 ⟨λ F, begin
   apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair F).symm,
   apply preserves_colimit_of_preserves_colimit_cocone (coequalizer_cofork_is_colimit _ _),

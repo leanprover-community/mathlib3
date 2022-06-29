@@ -83,11 +83,6 @@ lt_of_le_of_ne
 theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z) : x ⊓ z < y ⊓ z :=
 @sup_lt_sup_of_lt_of_inf_le_inf αᵒᵈ _ _ _ _ _ hxy hinf
 
--- The lexicographical order of well founded relations is well-founded
-instance lex_wf {β} {r : α → α → Prop} {s : β → β → Prop} [is_well_founded α r] [is_well_founded β s] :
- is_well_founded _ (prod.lex r s) :=
-⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
-
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Artinian, then `M` is Artinian. -/
 theorem well_founded_lt_exact_sequence

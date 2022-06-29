@@ -958,7 +958,6 @@ lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   by_cases hpos : n = 0, { simp [hpos], },
   apply minpoly.gcd_domain_dvd (is_integral h (nat.pos_of_ne_zero hpos))
-    (algebra_map ℤ K).injective_int
     (monic_X_pow_sub_C 1 (ne_of_lt (nat.pos_of_ne_zero hpos)).symm).ne_zero,
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
@@ -991,7 +990,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
 begin
   by_cases hn : n = 0, { simp * at *, },
   have hpos := nat.pos_of_ne_zero hn,
-  refine minpoly.gcd_domain_dvd (h.is_integral hpos) (algebra_map ℤ K).injective_int _ _,
+  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
   { apply monic.ne_zero,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],

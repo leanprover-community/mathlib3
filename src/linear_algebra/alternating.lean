@@ -712,11 +712,13 @@ quotient.lift_on' σ
   (λ σ,
     σ.sign •
       (multilinear_map.dom_coprod ↑a ↑b : multilinear_map R' (λ _, Mᵢ) (N₁ ⊗ N₂)).dom_dom_congr σ)
-  (λ σ₁ σ₂ ⟨⟨sl, sr⟩, h⟩, begin
+  (λ σ₁ σ₂ H, begin
+    rw quotient_group.left_rel_apply at H,
+    obtain ⟨⟨sl, sr⟩, h⟩ := H,
     ext v,
     simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
       coe_multilinear_map, multilinear_map.smul_apply],
-    replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
+    replace h := inv_mul_eq_iff_eq_mul.mp (h.symm),
     have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
       by simp,
     rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
@@ -770,7 +772,7 @@ begin
       substs hi hj, },
   case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
   { -- the term pairs with and cancels another term
-    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
+    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient_group.left_rel_apply.mp (quotient.exact' hσ), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
@@ -892,9 +894,7 @@ begin
   -- unfold the quotient mess left by `finset.sum_partition`
   conv in (_ = quotient.mk' _)
   { change quotient.mk' _ = quotient.mk' _,
-    rw quotient.eq',
-    rw [quotient_group.left_rel],
-    dsimp only [setoid.r] },
+    rw quotient_group.eq' },
 
   -- eliminate a multiplication
   have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) :=

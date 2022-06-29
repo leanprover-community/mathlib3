@@ -57,6 +57,9 @@ le_antisymm (span_le.2 h₁) h₂
 lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
+le_antisymm (span_le.2 hs) (span_le.2 ht)
+
 /-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
 @[simp] lemma span_coe_eq_restrict_scalars
   [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
@@ -68,7 +71,7 @@ lemma map_span [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
-alias submodule.map_span ← linear_map.map_span
+alias submodule.map_span ← _root_.linear_map.map_span
 
 lemma map_span_le [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M)
   (N : submodule R₂ M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
@@ -77,7 +80,7 @@ begin
   exact iff.rfl
 end
 
-alias submodule.map_span_le ← linear_map.map_span_le
+alias submodule.map_span_le ← _root_.linear_map.map_span_le
 
 @[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
 begin
@@ -91,7 +94,7 @@ lemma span_preimage_le (f : M →ₛₗ[σ₁₂] M₂) (s : set M₂) :
   span R (f ⁻¹' s) ≤ (span R₂ s).comap f :=
 by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
 
-alias submodule.span_preimage_le  ← linear_map.span_preimage_le
+alias submodule.span_preimage_le ← _root_.linear_map.span_preimage_le
 
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of

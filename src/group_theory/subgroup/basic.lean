@@ -2000,7 +2000,7 @@ homomorphism `G →* N`. -/
 @[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group
 homomorphism `G →+ N`."]
 def range_restrict (f : G →* N) : G →* f.range :=
-monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
+cod_restrict f _ $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
 lemma coe_range_restrict (f : G →* N) (g : G) : (f.range_restrict g : N) = f g := rfl
@@ -2030,27 +2030,6 @@ by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], 
 @[simp, to_additive] lemma _root_.subgroup.inclusion_range {H K : subgroup G} (h_le : H ≤ K) :
   (inclusion h_le).range = H.subgroup_of K :=
 subgroup.ext (λ g, set.ext_iff.mp (set.range_inclusion h_le) g)
-
-/-- Restriction of a group hom to a subgroup of the domain. -/
-@[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the domain."]
-def restrict (f : G →* N) (H : subgroup G) : H →* N :=
-f.comp H.subtype
-
-@[simp, to_additive]
-lemma restrict_apply {H : subgroup G} (f : G →* N) (x : H) :
-  f.restrict H x = f (x : G) := rfl
-
-/-- Restriction of a group hom to a subgroup of the codomain. -/
-@[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the codomain."]
-def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →* S :=
-{ to_fun := λ n, ⟨f n, h n⟩,
-  map_one' := subtype.eq f.map_one,
-  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
-
-@[simp, to_additive]
-lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →* N)
-  (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
-    f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
 
 @[to_additive] lemma subgroup_of_range_eq_of_le {G₁ G₂ : Type*} [group G₁] [group G₂]
   {K : subgroup G₂} (f : G₁ →* G₂) (h : f.range ≤ K) :
@@ -3125,9 +3104,9 @@ instance
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [mul_action G α] [has_faithful_scalar G α] (S : subgroup G) :
-  has_faithful_scalar S α :=
-S.to_submonoid.has_faithful_scalar
+instance [mul_action G α] [has_faithful_smul G α] (S : subgroup G) :
+  has_faithful_smul S α :=
+S.to_submonoid.has_faithful_smul
 
 /-- The action by a subgroup is the action by the underlying group. -/
 instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=

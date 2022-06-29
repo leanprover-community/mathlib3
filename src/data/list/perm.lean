@@ -546,7 +546,7 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, p.cons_inv, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, p.cons a, s.cons2 _ _ _⟩⟩
 
-alias subperm_cons ↔ list.subperm.of_cons list.subperm.cons
+alias subperm_cons ↔ subperm.of_cons subperm.cons
 
 attribute [protected] subperm.cons
 

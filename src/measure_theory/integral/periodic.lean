@@ -39,7 +39,7 @@ instance : measure_space (ℝ ⧸ zmultiples T) := sorry -- haar measure with to
 local notation `π` := quotient_add_group.mk' (zmultiples T)
 
 lemma foo  {T : ℝ} (hT : 0 < T) (t : ℝ) :
-  measure.map π (volume.restrict (Ioc t (t + T))) = volume :=
+  measure.map π  (volume.restrict (Ioc t (t + T))) = volume :=
 sorry
 
 lemma foo' : measure_preserving π (volume.restrict (Ioc t (t + T))) volume := sorry

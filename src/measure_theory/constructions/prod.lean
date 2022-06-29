@@ -382,6 +382,38 @@ begin
   { exact v_open.measure_pos ν ⟨y, yv⟩ }
 end
 
+instance {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  (μ : measure α) (ν : measure β) [is_finite_measure μ] [is_finite_measure ν] :
+  is_finite_measure (μ.prod ν) :=
+begin
+  constructor,
+  rw [← univ_prod_univ, prod_prod],
+  exact mul_lt_top (measure_lt_top _ _).ne (measure_lt_top _ _).ne,
+end
+
+instance {α β : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  (μ : measure α) (ν : measure β) [is_probability_measure μ] [is_probability_measure ν] :
+  is_probability_measure (μ.prod ν) :=
+⟨by rw [← univ_prod_univ, prod_prod, measure_univ, measure_univ, mul_one]⟩
+
+instance {α β : Type*} [topological_space α] [topological_space β]
+  {mα : measurable_space α} {mβ : measurable_space β} (μ : measure α) (ν : measure β)
+  [is_finite_measure_on_compacts μ] [is_finite_measure_on_compacts ν] [sigma_finite ν] :
+  is_finite_measure_on_compacts (μ.prod ν) :=
+begin
+  refine ⟨λ K hK, _⟩,
+  set L := (prod.fst '' K) ×ˢ (prod.snd '' K) with hL,
+  have : K ⊆ L,
+  { rintros ⟨x, y⟩ hxy,
+    simp only [prod_mk_mem_set_prod_eq, mem_image, prod.exists, exists_and_distrib_right,
+      exists_eq_right],
+    exact ⟨⟨y, hxy⟩, ⟨x, hxy⟩⟩ },
+  apply lt_of_le_of_lt (measure_mono this),
+  rw [hL, prod_prod],
+  exact mul_lt_top ((is_compact.measure_lt_top ((hK.image continuous_fst))).ne)
+                   ((is_compact.measure_lt_top ((hK.image continuous_snd))).ne)
+end
+
 lemma ae_measure_lt_top {s : set (α × β)} (hs : measurable_set s)
   (h2s : (μ.prod ν) s ≠ ∞) : ∀ᵐ x ∂μ, ν (prod.mk x ⁻¹' s) < ∞ :=
 by { simp_rw [prod_apply hs] at h2s, refine ae_lt_top (measurable_measure_prod_mk_left hs) h2s }

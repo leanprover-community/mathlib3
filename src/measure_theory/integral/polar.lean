@@ -5,6 +5,11 @@ Authors: Sébastien Gouëzel
 -/
 import measure_theory.function.jacobian
 
+/-!
+# Changing variables in integrals through polar coordinates
+
+-/
+
 noncomputable theory
 
 open real set measure_theory

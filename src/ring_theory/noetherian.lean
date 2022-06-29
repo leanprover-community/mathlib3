@@ -517,7 +517,7 @@ variables {R M}
 theorem set_has_maximal_iff_noetherian :
   (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔
   is_noetherian R M :=
-by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
+by rw [is_noetherian_iff_well_founded, is_well_founded.well_founded_iff_has_max']
 
 /-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_noetherian :

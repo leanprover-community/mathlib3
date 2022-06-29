@@ -153,43 +153,40 @@ end matrix
 namespace polynomial
 open_locale polynomial
 
-theorem eq_zero_iff_degree_lt_equiv_eq_zero {R : Type*} [comm_ring R] {n : ℕ}
-  {p : R[X]} (hp : p ∈ degree_lt R n) : p = 0 ↔ degree_lt_equiv _ _ ⟨p, hp⟩ = 0 :=
+theorem eq_zero_iff_degree_lt_equiv_eq_zero {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) :
+  p = 0 ↔ degree_lt_equiv _ _ ⟨p, hp⟩ = 0 :=
 by {rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]}
 
-theorem eval_eq_sum_degree_lt_equiv {R : Type*} [comm_ring R] {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n)
-  (x : R) : p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=
+theorem eval_eq_sum_degree_lt_equiv {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) (x : R) :
+  p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=
 begin
   simp_rw [eval_eq_sum],
   exact (sum_fin _ (by simp_rw [zero_mul, forall_const]) (mem_degree_lt.mp hp)).symm
 end
 
-theorem vandermonde_invert {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
-  (v : fin n ↪ R) {p : R[X]} (hp₁ : p ∈ degree_lt R n)
-  (hp₂ : ∀ j, eval (v j) p = 0) : p = 0 :=
+theorem vandermonde_invert [is_domain R] {n : ℕ} (v : fin n ↪ R) {p : R[X]}
+  (hp₁ : p ∈ degree_lt R n) (hp₂ : ∀ j, eval (v j) p = 0) : p = 0 :=
 begin
   simp_rw eval_eq_sum_degree_lt_equiv hp₁ at hp₂, rw eq_zero_iff_degree_lt_equiv_eq_zero hp₁,
   exact matrix.vandermonde_invert v (λ j, hp₂ j)
 end
 
-theorem vandermonde_invert_transposed {R : Type*} [comm_ring R] [is_domain R]
-  {n : ℕ} (v : fin n ↪ R) {p : R[X]} (hp₁ : p ∈ degree_lt R n)
-  (hp₂ : ∀ i : fin n, ∑ j : fin n, (p : R[X]).coeff j * (v j ^ (i : ℕ)) = 0) : p = 0 :=
+theorem vandermonde_invert_transposed [is_domain R] {n : ℕ} (v : fin n ↪ R) {p : R[X]}
+  (hp₁ : p ∈ degree_lt R n) (hp₂ : ∀ i : fin n, ∑ j :
+  fin n, (p : R[X]).coeff j * (v j ^ (i : ℕ)) = 0) : p = 0 :=
 begin
   rw eq_zero_iff_degree_lt_equiv_eq_zero hp₁,
   exact matrix.vandermonde_invert_transposed v (λ i, hp₂ i)
 end
 
-theorem vandermonde_eq {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
-  (v : fin n ↪ R) {p q : R[X]} (hpq₁ : (p - q) ∈ degree_lt R n)
-  (hpq₂ : ∀ j, p.eval (v j) = q.eval (v j)) : p = q :=
+theorem vandermonde_eq [is_domain R] {n : ℕ} (v : fin n ↪ R) {p q : R[X]}
+  (hpq₁ : (p - q) ∈ degree_lt R n) (hpq₂ : ∀ j, p.eval (v j) = q.eval (v j)) : p = q :=
 begin
   have vi := vandermonde_invert v hpq₁, simp_rw [eval_sub, sub_eq_zero] at vi, exact vi hpq₂
 end
 
-theorem vandermonde_eq' {R : Type*} [comm_ring R] [is_domain R] {n : ℕ}
-  (v : fin n ↪ R) {p q : R[X]} (hp : p ∈ degree_lt R n) (hq : q ∈ degree_lt R n)
-  (hpq : ∀ j, p.eval (v j) = q.eval (v j)) : p = q :=
+theorem vandermonde_eq' [is_domain R] {n : ℕ} (v : fin n ↪ R) {p q : R[X]} (hp : p ∈ degree_lt R n)
+  (hq : q ∈ degree_lt R n) (hpq : ∀ j, p.eval (v j) = q.eval (v j)) : p = q :=
 vandermonde_eq v (submodule.sub_mem _ hp hq) hpq
 
 end polynomial

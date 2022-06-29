@@ -547,6 +547,6 @@ lemma strong_downward_induction_on_eq {p : finset α → Sort*} (s : finset α) 
 by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
 instance finset.well_founded_lt : well_founded_lt (finset α) :=
-@subrelation.is_well_founded (finset α) (inv_image (<) card) _ _ (λ x y hxy, card_lt_card hxy)
+subrelation.is_well_founded (inv_image (<) card) (λ x y hxy, card_lt_card hxy)
 
 end finset

@@ -83,6 +83,11 @@ lt_of_le_of_ne
 theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z) : x ⊓ z < y ⊓ z :=
 @sup_lt_sup_of_lt_of_inf_le_inf αᵒᵈ _ _ _ _ _ hxy hinf
 
+-- The lexicographical order of well founded relations is well-founded
+instance lex_wf {β} {r : α → α → Prop} {s : β → β → Prop} [is_well_founded α r] [is_well_founded β s] :
+ is_well_founded _ (prod.lex r s) :=
+⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
+
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Artinian, then `M` is Artinian. -/
 theorem well_founded_lt_exact_sequence
@@ -93,8 +98,8 @@ theorem well_founded_lt_exact_sequence
   (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
   (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
   well_founded_lt α :=
-subrelation.is_well_founded
-  (λ A B hAB, show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
+subrelation.is_well_founded (inv_image (<) (prod.lex (<) (<))) $
+  λ A B (hAB : A < B), show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
     begin
       simp only [prod.lex_def, lt_iff_le_not_le, ← gci.l_le_l_iff,
         ← gi.u_le_u_iff, hf, hg, le_antisymm_iff],
@@ -102,8 +107,7 @@ subrelation.is_well_founded
       cases lt_or_eq_of_le (inf_le_inf_right K (le_of_lt hAB)) with h h,
       { exact or.inl h },
       { exact or.inr ⟨h, sup_lt_sup_of_lt_of_inf_le_inf hAB (le_of_eq h.symm)⟩ }
-    end)
-  (inv_image.wf _ (prod.lex_wf h₁ h₂))⟩
+    end
 
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Noetherian, then `M` is Noetherian.  -/
@@ -115,7 +119,7 @@ theorem well_founded_gt_exact_sequence
   (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
   (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
   well_founded_gt α :=
-@well_founded_lt_exact_sequence αᵒᵈ _ _ γᵒᵈ βᵒᵈ _ _ h₂ h₁ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
+@well_founded_lt_exact_sequence αᵒᵈ _ _ γᵒᵈ βᵒᵈ _ _ _ _ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/
 def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a ⊔ b) :=

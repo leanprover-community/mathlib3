@@ -337,6 +337,14 @@ begin
   { simp [hij] }
 end
 
+theorem bernoulli_rule_left (p q : R[X]) {x : R} (h : eval x p = 0) :
+  (p*q).derivative.eval x = p.derivative.eval x * q.eval x :=
+by simp_rw [derivative_mul, eval_add, eval_mul, h, zero_mul, add_zero]
+
+theorem bernoulli_rule_right (p q : R[X]) {x : R} (h : eval x q = 0) :
+  (p*q).derivative.eval x = p.eval x * q.derivative.eval x :=
+by simp_rw [derivative_mul, eval_add, eval_mul, h, mul_zero, zero_add]
+
 end comm_semiring
 
 section ring

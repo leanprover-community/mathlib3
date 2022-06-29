@@ -191,7 +191,7 @@ noncomputable def monotonic_sequence_limit {α : Type*} [preorder α] (a : ℕ �
 a (monotonic_sequence_limit_index a)
 
 lemma well_founded_gt.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]
-  [well_founded_gt α] (a : ℕ →o α) : (⨆ m, a m) = monotonic_sequence_limit a :=
+  [well_founded_gt α] (a : ℕ →o α) : supr a = monotonic_sequence_limit a :=
 begin
   apply (supr_le (λ m, _)).antisymm (le_supr a _),
   cases le_or_lt m (monotonic_sequence_limit_index a) with hm hm,

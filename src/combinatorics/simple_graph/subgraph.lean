@@ -517,11 +517,11 @@ spanning_coe_le_of_le (delete_edges_le s)
 
 end delete_edges
 
-/-! ## Induced subgraphs and vertex deletion -/
+/-! ## Induced subgraphs -/
 
-/- Given a subgraph, we can change its vertex set while removing any invalid edges, and
-this leads to induced subgraphs and vertex deletion. See also `simple_graph.induce` for the
-`simple_graph` version, which, unlike for subgraphs, results in a graph with a different type. -/
+/- Given a subgraph, we can change its vertex set while removing any invalid edges, which
+gives induced subgraphs. See also `simple_graph.induce` for the `simple_graph` version, which,
+unlike for subgraphs, results in a graph with a different vertex type. -/
 
 /-- The induced subgraph of a subgraph. The expectation is that `s ⊆ G'.verts` for the usual
 notion of an induced subgraph, but, in general, `s` is taken to be the new vertex set and edges
@@ -544,13 +544,15 @@ lemma induce_mono (hg : G' ≤ G'') (hs : s ⊆ s') : G'.induce s ≤ G''.induce
 begin
   split,
   { simp [hs], },
-  { simp only [induce_adj, true_and, and_imp] {contextual := tt},
+  { simp only [induce_adj, true_and, and_imp] { contextual := tt },
     intros v w hv hw ha,
     exact ⟨hs hv, hs hw, hg.2 ha⟩, },
 end
 
+@[mono]
 lemma induce_mono_left (hg : G' ≤ G'') : G'.induce s ≤ G''.induce s := induce_mono hg (by refl)
 
+@[mono]
 lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce_mono (by refl) hs
 
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=

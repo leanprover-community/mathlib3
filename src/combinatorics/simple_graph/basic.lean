@@ -643,6 +643,26 @@ lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
 by { ext, simp [imp_false] { contextual := tt } }
 
+/-! ## Vertex relabeling -/
+
+/-- Given an injective function, there is an covariant induced map on graphs by using the function
+to relabel the vertices and then extend the vertex type. -/
+protected def map (f : V ↪ W) (G : simple_graph V) : simple_graph W :=
+{ adj := relation.map G.adj f f }
+
+@[simp] protected lemma map_adj (f : V ↪ W) (G : simple_graph V) (u v : W) :
+  (G.map f).adj u v ↔ ∃ (u' v' : V), G.adj u' v' ∧ f u' = u ∧ f v' = v := iff.rfl
+
+/-- Given an injective function, there is a contravariant induced map on graphs by taking only those
+vertices that are labelable by the function and pulling back the graph's edge set.
+This is one of the ways of creating induced graphs. See `simple_graph.induce` for a wrapper. -/
+@[simps]
+protected def comap (f : V ↪ W) (G : simple_graph W) : simple_graph V :=
+{ adj := λ u v, G.adj (f u) (f v) }
+
+protected lemma comap_map_eq (f : V ↪ W) (G : simple_graph V) : (G.map f).comap f = G :=
+by { ext, simp }
+
 /-! ## Induced graphs -/
 
 /- Given a set `s` of vertices, we can restrict a graph to those vertices by restricting its
@@ -650,22 +670,23 @@ adjacency relation. This gives a map between `simple_graph V` and `simple_graph 
 
 There is also a notion of induced subgraphs (see `simple_graph.subgraph.induce`). -/
 
-/-- Restrict a graph to the vertices in the set `s`. -/
-@[simps]
-def induce (s : set V) (G : simple_graph V) : simple_graph s :=
-{ adj := λ u v, G.adj u v }
+/-- Restrict a graph to the vertices in the set `s`, deleting all edges incident to vertices
+outside the set. This is a wrapper around `simple_graph.comap`. -/
+@[reducible] def induce (s : set V) (G : simple_graph V) : simple_graph s :=
+G.comap (function.embedding.subtype _)
 
 /-- Given a graph on a set of vertices, we can make it be a `simple_graph V` by
-adding in the remaining vertices without adding in any additional edges. -/
-@[simps]
+adding in the remaining vertices without adding in any additional edges.
+This is a wrapper around `simple_graph.map`. -/
+@[reducible]
 def spanning_coe {s : set V} (G : simple_graph s) : simple_graph V :=
-{ adj := λ u v, ∃ (hu : u ∈ s) (hv : v ∈ s), G.adj ⟨u, hu⟩ ⟨v, hv⟩ }
+G.map (function.embedding.subtype _)
 
 lemma induce_spanning_coe {s : set V} {G : simple_graph s} : G.spanning_coe.induce s = G :=
 by { ext x, simp }
 
 lemma spanning_coe_induce_le (s : set V) : (G.induce s).spanning_coe ≤ G :=
-λ v w, by simp
+λ v w, by tidy
 
 section finite_at
 
@@ -1074,26 +1095,32 @@ map_adj_iff f
     exact f.inj' h,
   end }
 
-/-- Embeddings of types induce embeddings of complete graphs on those types. -/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
-{ to_fun := f,
-  inj' := f.inj',
-  map_rel_iff' := by simp }
+/-- Given an injective function, there is an embedding from the comapped graph into the original
+graph. -/
+@[simps]
+protected def comap (f : V ↪ W) (G : simple_graph W) : G.comap f ↪g G :=
+{ map_rel_iff' := by simp, ..f }
+
+/-- Given an injective function, there is an embedding from a graph into the mapped graph. -/
+@[simps]
+protected def map (f : V ↪ W) (G : simple_graph V) : G ↪g G.map f :=
+{ map_rel_iff' := by simp, ..f }
 
 /-- Induced graphs embed in the original graph.
 
 Note that if `G.induce s = ⊤` (i.e., if `s` is a clique) then this gives the embedding of a
 complete graph. -/
-@[simps] protected def induce (s : set V) : G.induce s ↪g G :=
-{ to_fun := coe,
-  inj' := subtype.coe_injective,
-  map_rel_iff' := by simp }
+@[reducible] protected def induce (s : set V) : G.induce s ↪g G :=
+simple_graph.embedding.comap (function.embedding.subtype _) G
 
 /-- Graphs on a set of vertices embed in their `spanning_coe`. -/
-@[simps] def spanning_coe {s : set V} {G : simple_graph s} : G ↪g G.spanning_coe :=
-{ to_fun := coe,
-  inj' := subtype.coe_injective,
-  map_rel_iff' := by simp }
+@[reducible] protected def spanning_coe {s : set V} {G : simple_graph s} : G ↪g G.spanning_coe :=
+simple_graph.embedding.map (function.embedding.subtype _) G
+
+/-- Embeddings of types induce embeddings of complete graphs on those types. -/
+protected def complete_graph {α β : Type*} (f : α ↪ β) :
+  (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
+{ map_rel_iff' := by simp, ..f }
 
 variables {G'' : simple_graph X}
 
@@ -1161,14 +1188,21 @@ map_adj_iff f
 lemma card_eq_of_iso [fintype V] [fintype W] (f : G ≃g G') : fintype.card V = fintype.card W :=
 by convert (fintype.of_equiv_card f.to_equiv).symm
 
+/-- Given a bijection, there is an embedding from the comapped graph into the original
+graph. -/
+@[simps]
+protected def comap (f : V ≃ W) (G : simple_graph W) : G.comap f.to_embedding ≃g G :=
+{ map_rel_iff' := by simp, ..f }
+
+/-- Given an injective function, there is an embedding from a graph into the mapped graph. -/
+@[simps]
+protected def map (f : V ≃ W) (G : simple_graph V) : G ≃g G.map f.to_embedding :=
+{ map_rel_iff' := by simp, ..f }
+
 /-- Equivalences of types induce isomorphisms of complete graphs on those types. -/
 protected def complete_graph {α β : Type*} (f : α ≃ β) :
   (⊤ : simple_graph α) ≃g (⊤ : simple_graph β) :=
-{ to_fun := f,
-  inv_fun := f.symm,
-  left_inv := λ w, by simp,
-  right_inv := λ w, by simp,
-  map_rel_iff' := by simp }
+{ map_rel_iff' := by simp, ..f }
 
 variables {G'' : simple_graph X}
 

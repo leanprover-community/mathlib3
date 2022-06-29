@@ -68,6 +68,8 @@ begin
   simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
 
+theorem one_eq_span_one_set : (1 : submodule R A) = span R 1 := one_eq_span
+
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 

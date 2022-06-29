@@ -301,10 +301,7 @@ theorem mul_mem_mul_rev {r s} (hr : r ∈ I) (hs : s ∈ J) : s * r ∈ I * J :=
 mul_comm r s ▸ mul_mem_mul hr hs
 
 lemma pow_mem_pow {x : R} (hx : x ∈ I) (n : ℕ) : x ^ n ∈ I ^ n :=
-begin
-  induction n with n ih, { simp only [pow_zero, ideal.one_eq_top], },
-  simpa only [pow_succ] using mul_mem_mul hx ih,
-end
+submodule.pow_mem_pow _ hx
 
 lemma prod_mem_prod {ι : Type*} {s : finset ι} {I : ι → ideal R} {x : ι → R} :
   (∀ i ∈ s, x i ∈ I i) → ∏ i in s, x i ∈ ∏ i in s, I i :=

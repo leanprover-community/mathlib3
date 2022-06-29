@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import group_theory.group_action.quotient
 import group_theory.perm.sign
 import group_theory.perm.subgroup
-import group_theory.quotient_group
 import linear_algebra.linear_independent
 import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
@@ -290,6 +290,13 @@ def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
 
 end
 
+/-- Restrict the codomain of an alternating map to a submodule. -/
+@[simps]
+def cod_restrict (f : alternating_map R M N ι) (p : submodule R N) (h : ∀ v, f v ∈ p) :
+  alternating_map R M p ι :=
+{ to_fun := λ v, ⟨f v, h v⟩,
+  map_eq_zero_of_eq' := λ v i j hv hij, subtype.ext $ map_eq_zero_of_eq _ _ hv hij,
+  ..f.to_multilinear_map.cod_restrict p h }
 
 end alternating_map
 
@@ -315,6 +322,19 @@ def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ 
 @[simp]
 lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
   g.comp_alternating_map f m = g (f m) := rfl
+
+@[simp]
+lemma subtype_comp_alternating_map_cod_restrict (f : alternating_map R M N ι) (p : submodule R N)
+  (h) :
+  p.subtype.comp_alternating_map (f.cod_restrict p h) = f :=
+alternating_map.ext $ λ v, rfl
+
+@[simp]
+lemma comp_alternating_map_cod_restrict (g : N →ₗ[R] N₂) (f : alternating_map R M N ι)
+  (p : submodule R N₂) (h) :
+  (g.cod_restrict p h).comp_alternating_map f =
+    (g.comp_alternating_map f).cod_restrict p (λ v, h (f v)):=
+alternating_map.ext $ λ v, rfl
 
 end linear_map
 

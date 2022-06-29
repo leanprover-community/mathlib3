@@ -323,12 +323,12 @@ by { rw ←pgame.not_le, apply em }
 theorem move_left_lf_of_le {x y : pgame} (h : x ≤ y) (i) : x.move_left i ⧏ y :=
 (le_iff_forall_lf.1 h).1 i
 
-alias move_left_lf_of_le ← has_le.le.move_left_lf
+alias move_left_lf_of_le ← _root_.has_le.le.move_left_lf
 
 theorem lf_move_right_of_le {x y : pgame} (h : x ≤ y) (j) : x ⧏ y.move_right j :=
 (le_iff_forall_lf.1 h).2 j
 
-alias lf_move_right_of_le ← has_le.le.lf_move_right
+alias lf_move_right_of_le ← _root_.has_le.le.lf_move_right
 
 theorem lf_of_move_right_le {x y : pgame} {j} (h : x.move_right j ≤ y) : x ⧏ y :=
 lf_iff_exists_le.2 $ or.inr ⟨j, h⟩

@@ -155,7 +155,7 @@ lemma mem_clique_set_iff : s ∈ G.clique_set n ↔ G.is_n_clique n s := iff.rfl
 @[simp] lemma clique_set_eq_empty_iff : G.clique_set n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, set.eq_empty_iff_forall_not_mem, mem_clique_set_iff]
 
-alias clique_set_eq_empty_iff ↔ _ simple_graph.clique_free.clique_set
+alias clique_set_eq_empty_iff ↔ _ clique_free.clique_set
 
 attribute [protected] clique_free.clique_set
 

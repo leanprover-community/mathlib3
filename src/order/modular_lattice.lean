@@ -88,13 +88,10 @@ theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z
 theorem well_founded_lt_exact_sequence
   {β γ : Type*} [partial_order β] [preorder γ] [well_founded_lt β] [well_founded_lt γ]
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
-  (gci : galois_coinsertion f₁ f₂)
-  (gi : galois_insertion g₂ g₁)
-  (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
-  (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
-  well_founded_lt α :=
-subrelation.is_well_founded (inv_image (<) (prod.lex (<) (<))) $
-  λ A B (hAB : A < B), show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
+  (gci : galois_coinsertion f₁ f₂) (gi : galois_insertion g₂ g₁)
+  (hf : ∀ a, f₁ (f₂ a) = a ⊓ K) (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) : well_founded_lt α :=
+subrelation.is_well_founded (inv_image _ _) $
+  λ A B hAB, show prod.lex (<) (<) (f₂ A, g₂ A) (f₂ B, g₂ B),
     begin
       simp only [prod.lex_def, lt_iff_le_not_le, ← gci.l_le_l_iff,
         ← gi.u_le_u_iff, hf, hg, le_antisymm_iff],
@@ -109,11 +106,8 @@ subrelation.is_well_founded (inv_image (<) (prod.lex (<) (<))) $
 theorem well_founded_gt_exact_sequence
   {β γ : Type*} [preorder β] [partial_order γ] [well_founded_gt β] [well_founded_gt γ]
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
-  (gci : galois_coinsertion f₁ f₂)
-  (gi : galois_insertion g₂ g₁)
-  (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
-  (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
-  well_founded_gt α :=
+  (gci : galois_coinsertion f₁ f₂) (gi : galois_insertion g₂ g₁)
+  (hf : ∀ a, f₁ (f₂ a) = a ⊓ K) (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) : well_founded_gt α :=
 @well_founded_lt_exact_sequence αᵒᵈ _ _ γᵒᵈ βᵒᵈ _ _ _ _ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/

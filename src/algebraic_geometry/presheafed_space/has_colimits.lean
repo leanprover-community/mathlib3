@@ -33,7 +33,7 @@ The limit of this diagram then constitutes the colimit presheaf.
 
 noncomputable theory
 
-universes w v u
+universes v u
 
 open category_theory
 open Top
@@ -44,8 +44,8 @@ open category_theory.category
 open category_theory.limits
 open category_theory.functor
 
-variables {J : Type w} [small_category J]
-variables {C : Type (max u w)} [category.{max v w} C]
+variables {J : Type v} [small_category J]
+variables {C : Type u} [category.{v} C]
 
 
 namespace algebraic_geometry
@@ -55,7 +55,7 @@ namespace PresheafedSpace
 local attribute [simp] eq_to_hom_map
 
 @[simp]
-lemma map_id_c_app (F : J ⥤ PresheafedSpace.{max v w} C) (j) (U) :
+lemma map_id_c_app (F : J ⥤ PresheafedSpace.{v} C) (j) (U) :
   (F.map (𝟙 j)).c.app (op U) =
     (pushforward.id (F.obj j).presheaf).inv.app (op U) ≫
       (pushforward_eq (by { simp, refl }) (F.obj j).presheaf).hom.app (op U) :=
@@ -67,8 +67,7 @@ begin
 end
 
 @[simp]
-lemma map_comp_c_app (F : J ⥤ PresheafedSpace.{max v w} C) {j₁ j₂ j₃}
-  (f : j₁ ⟶ j₂) (g : j₂ ⟶ j₃) (U) :
+lemma map_comp_c_app (F : J ⥤ PresheafedSpace.{v} C) {j₁ j₂ j₃} (f : j₁ ⟶ j₂) (g : j₂ ⟶ j₃) (U) :
   (F.map (f ≫ g)).c.app (op U) =
     (F.map g).c.app (op U) ≫
     (pushforward_map (F.map g).base (F.map f).c).app (op U) ≫
@@ -81,18 +80,13 @@ begin
   dsimp, simp, dsimp, simp, -- See note [dsimp, simp]
 end
 
-instance (F : J ⥤ PresheafedSpace.{max v w} C) : has_colimit (F ⋙ forget C) :=
-@limits.has_colimit_of_has_colimits_of_shape _ _ J _inst_1
-  (@limits.has_colimits_of_shape_of_has_colimits_of_size _ _ J _ Top.Top_has_colimits_of_size.{v})
-  _
-
 /--
 Given a diagram of presheafed spaces,
 we can push all the presheaves forward to the colimit `X` of the underlying topological spaces,
 obtaining a diagram in `(presheaf C X)ᵒᵖ`.
 -/
 @[simps]
-def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace.{max v w} C) :
+def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace.{v} C) :
   J ⥤ (presheaf C (colimit (F ⋙ PresheafedSpace.forget C)))ᵒᵖ :=
 { obj := λ j, op ((colimit.ι (F ⋙ PresheafedSpace.forget C) j) _* (F.obj j).presheaf),
   map := λ j j' f,
@@ -135,17 +129,16 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace.{max v w} C) :
     { simp, refl, },
   end, }
 
-variables [has_limits_of_size.{max v w} C]
+variables [has_limits C]
 
---set_option pp.universes true
 /--
 Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
-def colimit (F : J ⥤ PresheafedSpace.{max v w} C) : PresheafedSpace C :=
+def colimit (F : J ⥤ PresheafedSpace.{v} C) : PresheafedSpace C :=
 { carrier := colimit (F ⋙ PresheafedSpace.forget C),
   presheaf := limit (pushforward_diagram_to_colimit F).left_op, }
 
-@[simp] lemma colimit_carrier (F : J ⥤ PresheafedSpace.{max v w} C) :
+@[simp] lemma colimit_carrier (F : J ⥤ PresheafedSpace.{v} C) :
   (colimit F).carrier = limits.colimit (F ⋙ PresheafedSpace.forget C) := rfl
 
 @[simp] lemma colimit_presheaf (F : J ⥤ PresheafedSpace.{v} C) :

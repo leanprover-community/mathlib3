@@ -83,50 +83,43 @@ variables {ι : Type*} {v : ι ↪ F} {x y : F} {i j : ι}
 it gives `1` and `v j` it gives `0` (where when `i = j` it is identically `0`).
 
 Conceptually, they are therefore the building blocks for the Lagrange interpolants. -/
-def basis_divisor (v : ι ↪ F) : ι → ι → F[X] := λ i j, C (v i - v j)⁻¹ * (X - C (v j))
+def basis_divisor (v : ι ↪ F) (x y : F) : F[X] := C (x - y)⁻¹ * (X - C (y))
 
-lemma basis_divisor_def : basis_divisor v i j = C (v i - v j)⁻¹ * (X - C (v j)) := rfl
+lemma basis_divisor_self_zero : basis_divisor v x x = 0 :=
+by simp only [basis_divisor, sub_self, inv_zero, map_zero, zero_mul]
 
-lemma basis_divisor_self_zero : basis_divisor v i i = 0 :=
-by simp only [basis_divisor_def, sub_self, inv_zero, map_zero, zero_mul]
-
-lemma basis_divisor_injective (hij : basis_divisor v i j = 0) : i = j :=
+lemma basis_divisor_injective (hxy : basis_divisor v x y = 0) : x = y :=
 begin
-  simp_rw [ basis_divisor_def, mul_eq_zero, X_sub_C_ne_zero, or_false,
-            C_eq_zero, inv_eq_zero, sub_eq_zero] at hij,
-  exact v.inj' hij
+  simp_rw [ basis_divisor, mul_eq_zero, X_sub_C_ne_zero, or_false,
+            C_eq_zero, inv_eq_zero, sub_eq_zero] at hxy, exact hxy
 end
 
-@[simp] lemma basis_divisor_zero_iff : basis_divisor v i j = 0 ↔ i = j :=
+@[simp] lemma basis_divisor_zero_iff : basis_divisor v x y = 0 ↔ x = y :=
 ⟨basis_divisor_injective, λ H, H ▸ basis_divisor_self_zero⟩
 
-lemma basis_divisor_degree_ne (hij : i ≠ j) : (basis_divisor v i j).degree = 1 :=
+lemma basis_divisor_degree_ne (hxy : x ≠ y) : (basis_divisor v x y).degree = 1 :=
 begin
-  rw [basis_divisor_def, degree_mul, degree_X_sub_C, degree_C, zero_add],
-  exact inv_ne_zero (sub_ne_zero_of_ne (v.inj'.ne hij))
+  rw [basis_divisor, degree_mul, degree_X_sub_C, degree_C, zero_add],
+  exact inv_ne_zero (sub_ne_zero_of_ne hxy)
 end
 
-@[simp] lemma basis_divisor_degree_eq : (basis_divisor v i i).degree = ⊥ :=
+@[simp] lemma basis_divisor_degree_eq : (basis_divisor v x x).degree = ⊥ :=
 by rw [basis_divisor_self_zero, degree_zero]
 
-lemma basis_divisor_degree [decidable_eq ι] : (basis_divisor v i j).degree = ite (i = j) ⊥ 1 :=
-by {split_ifs with H, { subst H, exact basis_divisor_degree_eq },
-                      { exact basis_divisor_degree_ne H }}
+lemma basis_divisor_nat_degree_eq : (basis_divisor v x x).nat_degree = 0 :=
+by { rw [basis_divisor_self_zero, nat_degree_zero] }
 
-lemma basis_divisor_nat_degree [decidable_eq ι] : (basis_divisor v i j).nat_degree = ite (i = j) 0 1 :=
-by { rw [nat_degree, basis_divisor_degree], split_ifs; refl }
+lemma basis_divisor_nat_degree_ne (hxy : x ≠ y) : (basis_divisor v x y).nat_degree = 1 :=
+nat_degree_eq_of_degree_eq_some (basis_divisor_degree_ne hxy)
 
-@[simp] lemma eval_basis_divisor_right : eval (v j) (basis_divisor v i j) = 0 :=
-by simp only [basis_divisor_def, eval_mul, eval_C, eval_sub, eval_X, sub_self, mul_zero]
+@[simp] lemma eval_basis_divisor_right : eval y (basis_divisor v x y) = 0 :=
+by simp only [basis_divisor, eval_mul, eval_C, eval_sub, eval_X, sub_self, mul_zero]
 
-lemma eval_basis_divisor_left (hij : i ≠ j) : eval (v i) (basis_divisor v i j) = 1 :=
+lemma eval_basis_divisor_left_ne (hxy : x ≠ y) : eval x (basis_divisor v x y) = 1 :=
 begin
-  simp only [basis_divisor_def, eval_mul, eval_C, eval_sub, eval_X],
-  exact inv_mul_cancel (sub_ne_zero_of_ne (v.inj'.ne hij))
+  simp only [basis_divisor, eval_mul, eval_C, eval_sub, eval_X],
+  exact inv_mul_cancel (sub_ne_zero_of_ne hxy)
 end
-
-lemma eval_basis_divisor [decidable_eq ι] : eval (v i) (basis_divisor v i j) = ite (i = j) 0 1 :=
-by {split_ifs with H,  { subst H, exact eval_basis_divisor_right }, { exact eval_basis_divisor_left H }}
 
 end node
 
@@ -135,12 +128,13 @@ variables {ι : Type*} [fintype ι] [decidable_eq ι] {v : ι ↪ F} {i j : ι}
 
 /-- Lagrange basis polynomials indexed by `ι` defined for an embedding `v : ι ↪ F`.
 `basis v i` evaluates to 1 at `v i` and 0 at `v j` for `i ≠ j`. -/
-def basis (v : ι ↪ F) : ι → F[X] := λ i, ∏ j, ite (i = j) 1 (basis_divisor v i j)
-
-lemma basis_def : basis v i = ∏ j, ite (i = j) 1 (basis_divisor v i j) := rfl
+def basis (v : ι ↪ F) (i : ι) : F[X] := ∏ j in univ.erase i, basis_divisor v (v i) (v j)
 
 theorem basis_eq_of_subsingleton [subsingleton ι] : basis v i = 1 :=
-by simp_rw [basis_def, eq_iff_true_of_subsingleton, if_true, prod_const_one]
+begin
+  refine prod_eq_one (λ j hj, false.elim _),
+  rwa [mem_erase, ne.def, eq_iff_true_of_subsingleton, not_true, false_and] at hj
+end
 
 @[simp] theorem basis_eq_of_unique [unique ι] : basis v i = 1 := basis_eq_of_subsingleton
 
@@ -148,23 +142,22 @@ by simp_rw [basis_def, eq_iff_true_of_subsingleton, if_true, prod_const_one]
 
 @[simp] lemma basis_ne_zero : basis v i ≠ 0 :=
 begin
-  rw basis_def, intro H, rw prod_eq_zero_iff at H,
-  rcases H with ⟨j, _, hij⟩,
-  by_cases h : i = j,
-  { rw if_pos h at hij, exact one_ne_zero hij },
-  { rw [if_neg h, basis_divisor_zero_iff] at hij, exact h hij }
+  rw basis, intro H, rw prod_eq_zero_iff at H,
+  rcases H with ⟨j, hij₁, hij₂⟩,
+  rw mem_erase at hij₁, rw basis_divisor_zero_iff at hij₂,
+  exact hij₁.1.symm (v.inj' hij₂)
 end
 
-lemma basis_eq_prod_filter : basis v i = ∏ j in univ.filter (ne i), (basis_divisor v i j)
-:= by rw [basis_def, prod_ite, prod_const_one, one_mul]
-
 theorem eval_basis_self : (basis v i).eval (v i) = 1 :=
-by {simp_rw [basis_eq_prod_filter, eval_prod, eval_basis_divisor], finish}
+begin
+  rw [basis, eval_prod], refine prod_eq_one (λ j hj, _), rw mem_erase at hj,
+  exact eval_basis_divisor_left_ne (v.inj'.ne hj.1.symm)
+end
 
 theorem eval_basis_ne (hij : i ≠ j) : (basis v i).eval (v j) = 0 :=
 begin
-  simp_rw [basis_eq_prod_filter, eval_prod, prod_eq_zero_iff],
-  use j, exact ⟨by finish, eval_basis_divisor_right⟩,
+  simp_rw [basis, eval_prod, prod_eq_zero_iff],
+  use j, exact ⟨by finish, eval_basis_divisor_right⟩
 end
 
 theorem eval_basis : (basis v i).eval (v j) = if i = j then 1 else 0 :=
@@ -172,18 +165,12 @@ by { split_ifs with H, { subst H, exact eval_basis_self}, { exact eval_basis_ne 
 
 @[simp] theorem nat_degree_basis : (basis v i).nat_degree = (fintype.card ι) - 1 :=
 begin
-  suffices h : (basis v i).nat_degree = (univ.filter (ne i)).card,
-  { rw [h, card_eq_sum_ones], simp only [ filter_ne, sum_const, card_erase_of_mem,
-                                          mem_univ, algebra.id.smul_eq_mul, mul_one, fintype.card]
-  },
-  rw [  basis_eq_prod_filter, nat_degree_prod,
-        sum_filter, card_eq_sum_ones, sum_filter, sum_congr rfl],
-  { simp only [ basis_divisor_nat_degree, mem_univ, ite_not, ite_eq_right_iff,
-                forall_true_left, forall_eq', eq_self_iff_true, if_true],
-  },
-  { intros _ hij hvij, simp only [mem_filter, mem_univ, ne.def, true_and] at hij,
-    exact hij (basis_divisor_injective hvij),
-  }
+  have H : ∀ j, j ∈ univ.erase i → basis_divisor v (v i) (v j) ≠ 0,
+  by { simp [mem_erase, basis_divisor_zero_iff], rintros _ h rfl, exact h rfl },
+  rw [  basis, nat_degree_prod _ _ H, ← card_univ,
+        ← card_erase_of_mem (mem_univ i), card_eq_sum_ones ],
+  refine sum_congr rfl (λ j hj, basis_divisor_nat_degree_ne _), rw mem_erase at hj,
+  exact (v.inj'.ne hj.1.symm)
 end
 
 theorem degree_basis : (basis v i).degree = ↑(fintype.card ι - 1) :=
@@ -200,17 +187,15 @@ and a function `r : ι → F`, `interpolate x r` is the unique polynomial of deg
 that takes value `r (v i)` on `v i` for all `i` in `ι`. -/
 def interpolate (v : ι ↪ F) (r : ι → F) : F[X] := ∑ i, C (r i) * basis v i
 
-lemma interpolate_def : interpolate v r = ∑ i, C (r i) * basis v i := rfl
-
 @[simp] theorem interpolate_empty [is_empty ι] : interpolate v r = 0 :=
-by rw [interpolate_def, univ_eq_empty, sum_empty]
+by rw [interpolate, univ_eq_empty, sum_empty]
 
 theorem interpolate_singleton [unique ι] : interpolate v r = C (r default) :=
-by rw [interpolate_def, univ_unique, sum_singleton, basis_eq_of_unique, mul_one]
+by rw [interpolate, univ_unique, sum_singleton, basis_eq_of_unique, mul_one]
 
-theorem eval_interpolate : eval (v i) (interpolate v r) = r i :=
-by simp_rw [  interpolate_def, eval_finset_sum, eval_mul, eval_C,
-              eval_basis, mul_boole, sum_ite_eq', mem_univ, if_true]
+theorem eval_interpolate : ∀ i, eval (v i) (interpolate v r) = r i :=
+λ i, by simp_rw [ interpolate, eval_finset_sum, eval_mul, eval_C,
+                  eval_basis, mul_boole, sum_ite_eq', mem_univ, if_true]
 
 theorem degree_interpolate_le : (interpolate v r).degree ≤ ↑(fintype.card ι - 1) :=
 begin

@@ -350,7 +350,7 @@ by simpa [mul_add, mul_comm, mul_left_comm, add_comm] using congr_arg (* pell_zd
 theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧
                             yn (n + 2) + yn n = (2 * a) * yn (n + 1) := begin
   have := pell_zd_succ_succ a1 n, unfold pell_zd at this,
-  rw [← int.cast_coe_nat, zsqrtd.smul_val] at this,
+  erw [zsqrtd.smul_val (2 * a : ℕ)] at this,
   injection this with h₁ h₂,
   split; apply int.coe_nat_inj; [simpa using h₁, simpa using h₂]
 end

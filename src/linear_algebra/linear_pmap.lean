@@ -1,4 +1,4 @@
-/-
+    /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
@@ -418,11 +418,54 @@ def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
   f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
 rfl
 
+/-! ### Graph -/
+section graph
+
+namespace linear_pmap
+
+/-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
+def graph (f : linear_pmap R E F) : submodule R (E × F) :=
+f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
+
+lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
+by simp [graph]
+
+@[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
+by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
+
+/-- The tuple `(x, f x)` is contained in the graph of `f`. -/
+lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
+by simp
+
+lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
+  (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=
+begin
+  rw [mem_graph_iff] at hx hy,
+  rcases hx with ⟨x'', hx1, hx2⟩,
+  rcases hy with ⟨y'', hy1, hy2⟩,
+  simp only at hx1 hx2 hy1 hy2,
+  rw [←hx1, ←hy1, set_like.coe_eq_coe] at hxy,
+  rw [←hx2, ←hy2, hxy],
+end
+
+lemma mem_graph_snd_inj' (f : linear_pmap R E F) {x y : E × F} (hx : x ∈ f.graph) (hy : y ∈ f.graph)
+  (hxy : x.1 = y.1) : x.2 = y.2 :=
+by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
+
+/-- The property that `f 0 = 0` in terms of the graph. -/
+lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
+  (hx : x = 0) : x' = 0 :=
+f.mem_graph_snd_inj h f.graph.zero_mem hx
+
+end graph
+
 end linear_pmap
 
-section submodule_from_graph
-
 namespace submodule
+
+section submodule_from_graph
 
 lemma exists_unique_from_graph {g : submodule R (E × F)}
   (hg : ∀ {x : E × F} (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E} (ha : a ∈ proj_left g) :
@@ -493,6 +536,7 @@ begin
   exact exists_unique.unique (exists_unique_from_graph hg hx_fst) hx' hcl,
 end
 
+end submodule_from_graph
+
 end submodule
 
-end submodule_from_graph

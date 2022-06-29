@@ -44,9 +44,9 @@ def digits (b : ℕ) (q : ℚ) (n : ℕ) : ℕ :=
     `(b : R) ^ (clog b r - 1) < r ≤ (b : R) ^ clog b r`.
   * `int.clog_zpow_gi`:  the galois insertion between `int.clog` and `zpow`.
 * `int.neg_log_inv_eq_clog`, `int.neg_clog_inv_eq_log`: the link between the two definitions.
-
 -/
-variables {R : Type*} [linear_ordered_field R] [floor_ring R]
+
+variables {R : Type*} [linear_ordered_semifield R] [floor_semiring R]
 
 namespace int
 
@@ -252,9 +252,9 @@ end
 lemma zpow_pred_clog_lt_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
   (b : R) ^ (clog b r - 1) < r :=
 begin
-  rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt (zpow_pos_of_pos _ _) hr],
+  rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt _ hr],
   { exact lt_zpow_succ_log_self hb _, },
-  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
+  { exact zpow_pos_of_pos (nat.cast_pos.mpr $ zero_le_one.trans_lt hb) _ }
 end
 
 @[simp] lemma clog_zero_right (b : ℕ) : clog b (0 : R) = 0 :=

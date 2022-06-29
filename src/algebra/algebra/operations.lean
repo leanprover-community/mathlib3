@@ -320,9 +320,11 @@ instance : semiring (submodule R A) :=
 
 variables (M)
 
-lemma pow_eq_span_pow_set : ∀ n : ℕ, M ^ n = span R ((M : set A) ^ n)
+lemma span_pow (s : set A) : ∀ n : ℕ, span R s ^ n = span R (s ^ n)
 | 0 := by rw [pow_zero, pow_zero, one_eq_span_one_set]
-| (n + 1) := by rw [pow_succ, pow_succ, pow_eq_span_pow_set, ←span_mul_span, span_eq]
+| (n + 1) := by rw [pow_succ, pow_succ, span_pow, span_mul_span]
+
+lemma pow_eq_span_pow_set (n : ℕ) : M ^ n = span R ((M : set A) ^ n) := by rw [←span_pow, span_eq]
 
 lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
 (pow_eq_span_pow_set M n).symm ▸ subset_span

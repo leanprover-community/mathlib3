@@ -362,7 +362,6 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
 
 open_locale pointwise
 
-variables R
 -- this proof is copied directly from `submodule.span_mul_span`
 theorem closure_mul_closure (S T : set R) : closure S * closure T = closure (S * T) :=
 begin
@@ -378,7 +377,9 @@ begin
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
 end
-variables {R}
+
+lemma mul_eq_closure_mul_set (M N : add_submonoid R) : M * N = closure (M * N) :=
+by rw [←closure_mul_closure, closure_eq, closure_eq]
 
 @[simp] theorem mul_bot (S : add_submonoid R) : S * ⊥ = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [add_submonoid.mem_bot] at hn ⊢; rw [hn, mul_zero]
@@ -439,9 +440,12 @@ instance : monoid (add_submonoid R) :=
   ..add_submonoid.semigroup,
   ..add_submonoid.mul_one_class }
 
-lemma pow_eq_closure_pow_set (s : add_submonoid R) : ∀ n : ℕ, s ^ n = closure ((s : set R) ^ n)
+lemma closure_pow (s : set R) : ∀ n : ℕ, closure s ^ n = closure (s ^ n)
 | 0 := by rw [pow_zero, pow_zero, one_eq_closure_one_set]
-| (n + 1) := by rw [pow_succ, pow_succ, pow_eq_closure_pow_set, ←closure_mul_closure, closure_eq]
+| (n + 1) := by rw [pow_succ, pow_succ, closure_pow, closure_mul_closure]
+
+lemma pow_eq_closure_pow_set (s : add_submonoid R) (n : ℕ) : s ^ n = closure ((s : set R) ^ n) :=
+by rw [←closure_pow, closure_eq]
 
 lemma pow_subset_pow {s : add_submonoid R} {n : ℕ} : (↑s : set R)^n ⊆ ↑(s^n) :=
 (pow_eq_closure_pow_set s n).symm ▸ subset_closure

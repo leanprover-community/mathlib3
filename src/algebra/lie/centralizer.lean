@@ -167,7 +167,7 @@ begin
     suffices : x ∈ H, by simpa,
     rw [← h, H.mem_normalizer_iff'],
     intros y hy,
-    replace hx : ⁅_, lie_submodule.quotient.mk' _ x⁆ = 0 := hx ⟨y, hy⟩,
+    replace hx : ⁅_, lie_submodule.quotient.mk' H.to_lie_submodule x⁆ = 0 := hx ⟨y, hy⟩,
     rwa [← lie_module_hom.map_lie, lie_submodule.quotient.mk_eq_zero] at hx, },
   { let y := lie_submodule.quotient.mk' H.to_lie_submodule x,
     have hy : y ∈ lie_module.max_triv_submodule R H (L ⧸ H.to_lie_submodule),

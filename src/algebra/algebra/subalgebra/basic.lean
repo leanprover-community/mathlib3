@@ -613,7 +613,7 @@ set_like.coe_injective $ by simp
 
 @[simp, norm_cast]
 lemma coe_infi {ι : Sort*} {S : ι → subalgebra R A} : (↑(⨅ i, S i) : set A) = ⋂ i, S i :=
-by simp [infi]
+(coe_Inf _).trans $ by simp
 
 lemma mem_infi {ι : Sort*} {S : ι → subalgebra R A} {x : A} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]

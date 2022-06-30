@@ -33,6 +33,39 @@ such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
 -/
 
+namespace add_monoid
+
+variables (A α : Type*) [add_monoid A] [has_scalar α A] [has_zero α]
+
+class divisible_by :=
+(div : A → α → A)
+(div_zero : ∀ a, div a 0 = 0)
+(div_cancel : ∀ {n : α} (a : A), n ≠ 0 → n • (div a n) = a)
+
+lemma smul_surj_of_divisible_by [divisible_by A α] {n : α} (hn : n ≠ 0) :
+  function.surjective ((•) n : A → A) :=
+λ x, ⟨divisible_by.div x n, divisible_by.div_cancel _ hn⟩
+
+
+end add_monoid
+
+namespace monoid
+
+variables (A α : Type*) [monoid A] [has_pow A α] [has_zero α]
+
+class rootable_by :=
+(root : A → α → A)
+(root_zero : ∀ a, root a 0 = 1)
+(root_pow : ∀ {n : α} (a : A), n ≠ 0 → (root a n)^n = a)
+
+attribute [to_additive rootable_by] add_monoid.divisible_by
+
+@[to_additive add_monoid.smul_surj_of_divisible_by]
+lemma root_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
+  function.surjective ((flip (^)) n : A → A) :=
+λ x, ⟨rootable_by.root x n, rootable_by.root_pow _ hn⟩
+
+end monoid
 
 namespace add_comm_group
 

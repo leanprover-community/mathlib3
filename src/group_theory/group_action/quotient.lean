@@ -54,7 +54,8 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
   mul_assoc, mul_inv_cancel_right]⟩
 
 @[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
-{ smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
+{ smul := λ b, quotient.map' ((•) b) (λ a a' h, left_rel_apply.mpr $
+    quotient_action.inv_mul_mem b $ left_rel_apply.mp h),
   one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),
   mul_smul := λ b b' q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (mul_smul b b' a)) }
 
@@ -96,7 +97,7 @@ variables (α) {β} [mul_action α β] (x : β)
 def of_quotient_stabilizer (g : α ⧸ (mul_action.stabilizer α x)) : β :=
 quotient.lift_on' g (•x) $ λ g1 g2 H,
 calc  g1 • x
-    = g1 • (g1⁻¹ * g2) • x : congr_arg _ H.symm
+    = g1 • (g1⁻¹ * g2) • x : congr_arg _ ((left_rel_apply.mp H).symm)
 ... = g2 • x : by rw [smul_smul, mul_inv_cancel_left]
 
 @[simp, to_additive] theorem of_quotient_stabilizer_mk (g : α) :
@@ -115,7 +116,7 @@ quotient.induction_on' g' $ λ _, mul_smul _ _ _
 @[to_additive] theorem injective_of_quotient_stabilizer :
   function.injective (of_quotient_stabilizer α x) :=
 λ y₁ y₂, quotient.induction_on₂' y₁ y₂ $ λ g₁ g₂ (H : g₁ • x = g₂ • x), quotient.sound' $
-show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, inv_smul_smul]
+by { rw [left_rel_apply], show (g₁⁻¹ * g₂) • x = x, rw [mul_smul, ← H, inv_smul_smul] }
 
 /-- Orbit-stabilizer theorem. -/
 @[to_additive "Orbit-stabilizer theorem."]

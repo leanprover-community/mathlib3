@@ -622,9 +622,9 @@ begin
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },
   rcases mem_sup.1 this with ⟨x', hx', y', hy', H⟩,
   refine ⟨x' + x, _, _⟩,
-  { rwa add_sub_cancel },
-  { rwa [← eq_sub_iff_add_eq.1 H, add_sub_add_right_eq_sub, ← neg_mem_iff, neg_sub,
-      add_sub_cancel'] }
+  { simp only [mem_ker.mp hx', map_add, zero_add] },
+  { simp [mem_ker.mp hy', ← eq_sub_iff_add_eq.1 H, add_sub_add_right_eq_sub, ← neg_mem_iff,
+          neg_sub, add_sub_cancel'] }
 end
 
 end linear_map

@@ -55,7 +55,7 @@ to `x + p'`, where `p` and `p'` are submodules of an ambient module.
 -/
 def quotient_inf_to_sup_quotient (p p' : submodule R M) :
   p ⧸ (comap p.subtype (p ⊓ p')) →ₗ[R] _ ⧸ (comap (p ⊔ p').subtype p') :=
-(comap p.subtype (p ⊓ p')).liftq
+by exact (comap p.subtype (p ⊓ p')).liftq
   ((comap (p ⊔ p').subtype p').mkq.comp (of_le le_sup_left)) begin
 rw [ker_comp, of_le, comap_cod_restrict, ker_mkq, map_comap_subtype],
 exact comap_mono (inf_le_inf_right _ le_sup_left) end
@@ -65,7 +65,7 @@ Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as
 -/
 noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
   (p ⧸ (comap p.subtype (p ⊓ p'))) ≃ₗ[R] _ ⧸ (comap (p ⊔ p').subtype p') :=
-linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
+by exact linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
   begin
     rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
     rw [ker_comp, ker_mkq],
@@ -113,9 +113,9 @@ namespace submodule
 variables (S T : submodule R M) (h : S ≤ T)
 
 /-- The map from the third isomorphism theorem for modules: `(M / S) / (T / S) → M / T`. -/
-def quotient_quotient_equiv_quotient_aux :
+def quotient_quotient_equiv_quotient_aux (h : S ≤ T) :
   (M ⧸ S) ⧸ (T.map S.mkq) →ₗ[R] M ⧸ T :=
-liftq _ (mapq S T linear_map.id h)
+by exact liftq _ (mapq S T linear_map.id h)
   (by { rintro _ ⟨x, hx, rfl⟩, rw [linear_map.mem_ker, mkq_apply, mapq_apply],
         exact (quotient.mk_eq_zero _).mpr hx })
 

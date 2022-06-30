@@ -197,8 +197,8 @@ begin
     rw [range_comp, image_subset_iff],
       simp }
 end
-end partial_order
 
+end partial_order
 end set
 
 namespace set
@@ -470,9 +470,9 @@ lemma is_wf.min_mem (hs : is_wf s) (hn : s.nonempty) : hs.min hn ∈ s :=
 lemma is_wf.not_lt_min (hs : is_wf s) (ha : a ∈ s) (hn : s.nonempty := ⟨a, ha⟩) : ¬ a < hs.min hn :=
 @well_founded_lt.not_lt_min s _ hs.well_founded_lt _ ⟨a, ha⟩ (mem_univ _)
 
-@[simp] lemma is_wf_min_singleton (a) {hs : is_wf ({a} : set α)}
+@[simp] lemma is_wf_min_singleton (a) (hs : is_wf ({a} : set α) := (is_pwo_singleton a).is_wf)
   (hn : ({a} : set α).nonempty := singleton_nonempty a) : hs.min hn = a :=
-eq_of_mem_singleton (is_wf.min_mem hs hn)
+eq_of_mem_singleton (hs.min_mem hn)
 
 end set
 
@@ -490,9 +490,8 @@ variables [linear_order α] {s t : set α} {a : α}
 lemma is_wf.min_le (hs : s.is_wf) (ha : a ∈ s) (hn : s.nonempty := ⟨a, ha⟩) : hs.min hn ≤ a :=
 le_of_not_lt (hs.not_lt_min ha)
 
-lemma is_wf.le_min_iff (hs : s.is_wf) (hn : s.nonempty) :
-  a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
-⟨λ ha b hb, le_trans ha (hs.min_le hb), λ h, h _ (hs.min_mem _)⟩
+lemma is_wf.le_min_iff (hs : s.is_wf) (hn : s.nonempty) : a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
+⟨λ ha b hb, ha.trans (hs.min_le hb), λ h, h _ (hs.min_mem hn)⟩
 
 lemma is_wf.min_le_min_of_subset (hs : s.is_wf) (hsn : s.nonempty) (ht : t.is_wf) (hst : s ⊆ t)
   (htn : t.nonempty := hsn.mono hst) : ht.min htn ≤ hs.min hsn :=

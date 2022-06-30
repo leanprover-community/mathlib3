@@ -142,7 +142,6 @@ lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
 λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
 
-
 lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
 λ con, h (single_injective a (con.trans single_eq_zero.symm))
 
@@ -188,7 +187,7 @@ lemma order_le_of_coeff_ne_zero {Γ} [linear_ordered_cancel_add_comm_monoid Γ]
   {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
   x.order ≤ g :=
 le_trans (le_of_eq (order_of_ne (ne_zero_of_coeff_ne_zero h)))
-  (set.is_wf.min_le _ _ ((mem_support _ _).2 h))
+  (set.is_wf.min_le _ ((mem_support _ _).2 h))
 
 @[simp]
 lemma order_single (h : r ≠ 0) : (single a r).order = a :=
@@ -202,7 +201,7 @@ begin
   contrapose! hi,
   rw [←ne.def, ←mem_support] at hi,
   rw [order_of_ne hx],
-  exact set.is_wf.not_lt_min _ _ hi
+  exact set.is_wf.not_lt_min _ hi
 end
 
 end order
@@ -329,9 +328,8 @@ begin
   by_cases hx : x = 0, { simp [hx], },
   by_cases hy : y = 0, { simp [hy], },
   rw [order_of_ne hx, order_of_ne hy, order_of_ne hxy],
-  refine le_trans _ (set.is_wf.min_le_min_of_subset support_add_subset),
+  refine le_trans _ (set.is_wf.min_le_min_of_subset _ _ _ support_add_subset),
   { exact x.is_wf_support.union y.is_wf_support },
-  { exact set.nonempty.mono (set.subset_union_left _ _) (support_nonempty_iff.2 hx) },
   rw set.is_wf.min_union,
 end
 
@@ -811,7 +809,7 @@ begin
     rw [mul_coeff_order_add_order x y],
     exact mul_ne_zero (coeff_order_ne_zero hx) (coeff_order_ne_zero hy) },
   { rw [order_of_ne hx, order_of_ne hy, order_of_ne (mul_ne_zero hx hy), ← set.is_wf.min_add],
-    exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+    exact set.is_wf.min_le_min_of_subset _ _ _ (support_mul_subset_add_support) },
 end
 
 @[simp]

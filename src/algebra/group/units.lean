@@ -415,6 +415,12 @@ begin
   simp [h.unit_spec]
 end
 
+lemma is_unit_one_def {M : Type*} [monoid M] : (@is_unit_one M _).unit = 1 :=
+begin
+  have h : is_unit ((1 : Mˣ) : M) := by simp only [units.coe_one, is_unit_one],
+  exact h.unit_of_coe_units,
+end
+
 section monoid
 variables [monoid M] {a b c : M}
 

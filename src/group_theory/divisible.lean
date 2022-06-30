@@ -24,10 +24,8 @@ such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we
   implied by the condition that `n • A = A` for all `n ≠ 0`.
 * `add_comm_group.smul_top_eq_top_of_divisible` : the constructive definition of divisiblity implies
   the condition that `n • A = A` for all `n ≠ 0`.
-* `add_comm_group.divisible_rat` : `ℚ` is a divisible group.
-* `add_comm_group.divisible_real` : `ℝ` is a divisible group.
-* `add_comm_group.divisible_complex` : `ℂ` is a divisible group.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
+* `add_comm_group.divisible_of_char_zero` : Any field of characteristic zero is divisible.
 * `add_comm_group.divisible_quotient` : Quotient group of divisible group is divisible.
 * `add_comm_group.divisible_of_surj` : if `A` is divisible and `A →+ B` is surjective, then `B` is
   divisible.
@@ -93,6 +91,18 @@ instance divisible_pi : divisible (Π i, B i) :=
   div_cancel := λ n x hn, funext $ λ i, divisible.div_cancel (x i) hn }
 
 end pi
+
+section prod
+
+variable [divisible A]
+variables (B : Type*) [add_comm_group B] [divisible B]
+
+instance divisible_prod : divisible (A × B) :=
+{ div_int := λ p n, ⟨p.1 /ℤ n, p.2 /ℤ n⟩,
+  div_zero := λ p, prod.ext (divisible.div_zero _) (divisible.div_zero _),
+  div_cancel := λ n p hn, (prod.ext (divisible.div_cancel p.1 hn) (divisible.div_cancel p.2 hn)) }
+
+section prod
 
 section quotient
 

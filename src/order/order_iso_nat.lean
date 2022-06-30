@@ -7,6 +7,7 @@ import data.nat.lattice
 import logic.denumerable
 import logic.function.iterate
 import order.hom.basic
+import tactic.congrm
 
 /-!
 # Relation embeddings from the naturals
@@ -173,9 +174,11 @@ end
 /-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
 lemma well_founded.monotone_chain_condition {α : Type*} [partial_order α] :
   well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
-well_founded.monotone_chain_condition'.trans $
-  forall_congr $ λ a, exists_congr $ λ n, forall_congr $ λ m, imp_congr_right $ λ h,
-    by { rw lt_iff_le_and_ne, simpa using or.inl (a.mono h) }
+well_founded.monotone_chain_condition'.trans $ begin
+  congrm ∀ a, ∃ n, ∀ m (h : n ≤ m), (_ : Prop),
+  rw lt_iff_le_and_ne,
+  simp [a.mono h]
+end
 
 /-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the

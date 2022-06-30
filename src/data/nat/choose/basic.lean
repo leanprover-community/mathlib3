@@ -287,4 +287,46 @@ lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choo
 
 lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
 
+/-! #### Multichoose -/
+
+def multichoose : ℕ → ℕ → ℕ
+| _             0 := 1
+| 0       (k + 1) := 0
+| (n + 1) (k + 1) := multichoose n (k + 1) + multichoose (n + 1) k
+
+@[simp] lemma multichoose_zero_right (n : ℕ) : multichoose n 0 = 1 :=
+by { cases n; simp [multichoose] }
+
+@[simp] lemma multichoose_zero_succ (k : ℕ) : multichoose 0 (k + 1) = 0 := by simp [multichoose]
+
+lemma multichoose_succ_succ (n k : ℕ) :
+  multichoose (n + 1) (k + 1) = multichoose n (k + 1) + multichoose (n + 1) k :=
+by simp [multichoose]
+
+@[simp] lemma multichoose_one (k : ℕ) : multichoose 1 k = 1 :=
+begin
+  induction k with k IH, { simp },
+  simp [multichoose_succ_succ 0 k, IH],
+end
+
+@[simp] lemma multichoose_two (k : ℕ) : multichoose 2 k = k + 1 :=
+begin
+  induction k with k IH, { simp },
+  simp [multichoose_succ_succ 1 k, IH],
+  rw add_comm,
+end
+
+@[simp] lemma multichoose_one_right (n : ℕ) : multichoose n 1 = n :=
+begin
+  induction n with n IH, { simp },
+  simp [multichoose_succ_succ n 0, IH],
+end
+
+lemma multichoose_eq : ∀ (n k : ℕ), multichoose n k = (n + k - 1).choose k
+| _      0    := by simp
+| 0     (k+1) := by simp
+| (n+1) (k+1) := by
+  { rw [multichoose_succ_succ, add_comm, nat.succ_add_sub_one, ←add_assoc, nat.choose_succ_succ],
+    simp [multichoose_eq] }
+
 end nat

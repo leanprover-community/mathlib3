@@ -266,8 +266,8 @@ begin
   show ∀ _ _ _, _,
   { intros t y yH,
     split; ext1; simp only [uncurry_helper, continuous_map.comp_apply, continuous_map.coe_mk,
-      continuous_map.curry_apply, cube.fold_apply, continuous_map.homotopy_with.coe_to_continuous_map,
-      mk_apply, path.coe_to_continuous_map],
+      continuous_map.curry_apply, cube.fold_apply,
+      continuous_map.homotopy_with.coe_to_continuous_map, mk_apply, path.coe_to_continuous_map],
     rw H.eq_fst, exact curry_to_path, use 0, rwa fin.cons_zero,
     rw H.eq_snd, exact curry_to_path, use 0, rwa fin.cons_zero, },
   all_goals {intro t, ext1,
@@ -322,7 +322,7 @@ end
 def concat : gen_loop (n+1) x → gen_loop (n+1) x → gen_loop (n+1) x :=
 λ p q, from_path ((to_path p).trans (to_path q))
 
-lemma concat2trans (p q : gen_loop (n+1) x) : to_path (concat p q) = (to_path p).trans (to_path q) :=
+lemma concat2trans (p q : gen_loop (n+1) x) : to_path (concat p q) = (to_path p).trans (to_path q):=
 by { unfold concat, rw to_from}
 
 lemma const_to_refl : to_path (@const _ _ (n+1) x) = path.refl (@const _ _ n x) :=
@@ -526,3 +526,4 @@ def is_group : group (π_(n+1) X x) :=
 -- end
 
 end homotopy_group
+#lint

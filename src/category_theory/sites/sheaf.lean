@@ -475,7 +475,6 @@ begin
     simp [fork.ι] }
 end
 
-set_option pp.universes true
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/
 theorem is_sheaf_iff_is_sheaf' :
   is_sheaf J P ↔ is_sheaf' J P :=
@@ -505,7 +504,6 @@ end
 section concrete
 
 variables [has_pullbacks C]
-set_option pp.universes true
 /--
 For a concrete category `(A, s)` where the forgetful functor `s : A ⥤ Type v` preserves limits and
 reflects isomorphisms, and `A` has limits, an `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is a sheaf iff its

@@ -57,7 +57,6 @@ section wide_pullback
 open wide_pullback
 open wide_pullback_shape
 
-set_option pp.universes true
 lemma concrete.wide_pullback_ext {B : C} {ι : Type w} {X : ι → C} (f : Π j : ι, X j ⟶ B)
   [has_wide_pullback B X f] [preserves_limit (wide_cospan B X f) (forget C)]
   (x y : wide_pullback B X f) (h₀ : base f x = base f y)

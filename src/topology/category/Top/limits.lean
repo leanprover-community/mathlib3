@@ -302,7 +302,6 @@ begin
   simpa [induced_compose]
 end
 
-set_option pp.universes true
 lemma range_prod_map {W X Y Z : Top.{u}} (f : W ⟶ Y) (g : X ⟶ Z) :
   set.range (limits.prod.map f g) =
     (limits.prod.fst : Y ⨯ Z ⟶ _) ⁻¹' (set.range f) ∩

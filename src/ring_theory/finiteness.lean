@@ -274,6 +274,10 @@ begin
   refl
 end
 
+lemma _root_.subalgebra.fg_iff_finite_type {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+  (S : subalgebra R A) : S.fg ↔ algebra.finite_type R S :=
+S.fg_top.symm.trans ⟨λ h, ⟨h⟩, λ h, h.out⟩
+
 end finite_type
 
 namespace finite_presentation

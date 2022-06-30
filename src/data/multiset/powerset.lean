@@ -104,15 +104,15 @@ end
   card (powerset s) = 2 ^ card s :=
 quotient.induction_on s $ by simp
 
-theorem count_nil_powerset [decidable_eq (multiset α)] (s : multiset α) :
+@[simp] theorem count_nil_powerset [decidable_eq (multiset α)] (s : multiset α) :
   multiset.count (0 : multiset α) s.powerset = 1 :=
 begin
   refine s.induction_on _ _,
-  simp only [multiset.powerset_zero, multiset.count_singleton_self],
+  simp only [powerset_zero, count_singleton_self],
   intros _ _ h,
-  rw [multiset.powerset_cons, multiset.count_add, h],
-  simp only [multiset.count_eq_zero_of_not_mem, multiset.mem_map, multiset.cons_ne_zero,
-    and_false, exists_false, not_false_iff],
+  rw [powerset_cons, count_add, h],
+  simp only [count_eq_zero_of_not_mem, mem_map, cons_ne_zero, and_false,
+    exists_false, not_false_iff],
 end
 
 theorem revzip_powerset_aux {l : list α} ⦃x⦄
@@ -244,7 +244,7 @@ quotient.induction_on s $ λ l, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_sublists' _ _).map _).subperm
 
 theorem powerset_len_eq_filter (s : multiset α) :
-  ∀ k : ℕ, s.powerset_len k = multiset.filter (λ t, multiset.card t = k) s.powerset :=
+  ∀ k : ℕ, s.powerset_len k = filter (λ t, t.card = k) s.powerset :=
 begin
   classical,
   refine s.induction _ _,
@@ -252,29 +252,27 @@ begin
   cases k ; { refl, },
   intros _ s hk k,
   cases k,
-  { rw [multiset.powerset_len_zero_left, multiset.powerset_cons, multiset.filter_add],
-    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0) s.powerset = {0}),
-    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0)
-      (multiset.map (multiset.cons a) s.powerset) = 0),
+  { rw [powerset_len_zero_left, powerset_cons, filter_add],
+    rw (_ : filter (λ (t : multiset α), t.card = 0) s.powerset = {0}),
+    rw (_ : filter (λ (t : multiset α), t.card = 0) (map (cons a) s.powerset) = 0),
     { rwa add_zero, },
-    { rw multiset.filter_eq_nil,
+    { rw filter_eq_nil,
       intros t ht,
-      rw multiset.card_eq_zero,
-      obtain ⟨r, hr⟩ := multiset.mem_map.mp ht,
+      rw card_eq_zero,
+      obtain ⟨r, hr⟩ := mem_map.mp ht,
       rw ←hr.right,
-      exact multiset.cons_ne_zero, },
+      exact cons_ne_zero, },
     { ext r,
-      rw multiset.count_filter,
+      rw count_filter,
       by_cases (r = 0),
-      { simp only [h, eq_self_iff_true, if_true, multiset.count_singleton_self,
-         multiset.count_nil_powerset s, multiset.card_zero] },
-      { simp only [h, if_false, multiset.count_eq_zero_of_not_mem, multiset.mem_singleton,
-        not_false_iff, multiset.card_eq_zero], }}},
-  { rw [multiset.powerset_len_cons, multiset.powerset_cons, multiset.filter_add],
-    rw [hk k, hk k.succ, add_right_inj],
-    rw [multiset.map_filter, multiset.map_congr],
+      { simp only [h, eq_self_iff_true, if_true, count_singleton_self, count_nil_powerset s,
+          card_zero] },
+      { simp only [h, if_false, count_eq_zero_of_not_mem, mem_singleton, not_false_iff,
+          card_eq_zero], }}},
+  { rw [powerset_len_cons, powerset_cons, filter_add, hk k, hk k.succ, add_right_inj, map_filter],
+    rw multiset.map_congr,
     { congr, ext,
-      simp only [function.comp_app, multiset.card_cons, add_left_inj 1], },
+      simp only [function.comp_app, card_cons, add_left_inj 1], },
     { intros _ _, refl, }}
 end
 

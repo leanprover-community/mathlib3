@@ -69,7 +69,7 @@ begin
 end
 
 lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
-  (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in finset.range (s.card + 1),
+  (s.map (λ r, polynomial.X + polynomial.C r)).prod = ∑ j in finset.range (s.card + 1),
   (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
 begin
   classical,
@@ -80,7 +80,7 @@ begin
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],
   intros _ ht,
   rw mem_powerset_len at ht,
-  simp only [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
+  simp [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
 end
 
 end multiset
@@ -94,7 +94,7 @@ variables (σ : Type*) [fintype σ]
 /-- A sum version of Vieta's formula. Viewing `X i` as variables,
 the product of linear terms `λ + X i` is equal to a linear combination of
 the symmetric polynomials `esymm σ R j`. -/
-lemma prod_X_add_C_eq_sum_esymm :
+lemma prod_C_add_X_eq_sum_esymm :
   (∏ i : σ, (polynomial.C (X i) + polynomial.X) : polynomial (mv_polynomial σ R) )=
   ∑ j in range (card σ + 1),
     (polynomial.C (esymm σ R j) * polynomial.X ^ (card σ - j)) :=
@@ -112,12 +112,12 @@ end
 /-- A fully expanded sum version of Vieta's formula, evaluated at the roots.
 The product of linear terms `X + r i` is equal to `∑ j in range (n + 1), e_j * X ^ (n - j)`,
 where `e_j` is the `j`th symmetric polynomial of the constant terms `r i`. -/
-lemma prod_X_add_C_eval (r : σ → R) : ∏ i : σ, (polynomial.C (r i) + polynomial.X) =
+lemma prod_C_add_X_eval (r : σ → R) : ∏ i : σ, (polynomial.C (r i) + polynomial.X) =
   ∑ i in range (card σ + 1), (∑ t in powerset_len i (univ : finset σ),
     ∏ i in t, polynomial.C (r i)) * polynomial.X ^ (card σ - i) :=
 begin
   classical,
-  have h := @prod_X_add_C_eq_sum_esymm _ _ σ _,
+  have h := @prod_C_add_X_eq_sum_esymm _ _ σ _,
   apply_fun (polynomial.map (eval r)) at h,
   rw [polynomial.map_prod, polynomial.map_sum] at h,
   convert h,
@@ -137,7 +137,7 @@ by simp only [esymm, eval_sum, eval_prod, eval_X, map_sum, map_prod]
 /-- Vieta's formula for the coefficients of the product of linear terms `X + r i`,
 The `k`th coefficient is `∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i`,
 i.e. the symmetric polynomial `esymm σ R (card σ - k)` of the constant terms `r i`. -/
-lemma prod_X_add_C_coeff (r : σ → R) (k : ℕ) (h : k ≤ card σ):
+lemma prod_C_add_X_coeff (r : σ → R) (k : ℕ) (h : k ≤ card σ):
   polynomial.coeff (∏ i : σ, (polynomial.C (r i) + polynomial.X)) k =
   ∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i :=
 begin
@@ -157,7 +157,7 @@ begin
     have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
     rwa add_comm,
   end,
-  simp only [prod_X_add_C_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
+  simp only [prod_C_add_X_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
     sum_singleton, esymm, eval_sum, eval_prod, eval_X, add_zero, sum_const_zero],
 end
 

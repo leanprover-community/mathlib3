@@ -139,21 +139,21 @@ end⟩
   (u : M) : of_module F (semiconj_of_polynomial_lequiv L u) = L (of_module E u) := rfl
 
 /--Equivalence between `R[X]`-linear maps and `R`-linear maps compatible with the action of `X`.-/
-noncomputable def polynomial_linear_equiv_semiconj :
+@[simps] noncomputable def polynomial_linear_equiv_semiconj :
   (module_with_End E →ₗ[R[X]] module_with_End F) ≃ { L : M →ₗ[R] N // L.comp E = F.comp L } :=
 { to_fun := semiconj_of_polynomial_linear,
-  inv_fun := λ ⟨L, h⟩, polynomial_linear_of_semiconj h,
+  inv_fun := λ L, polynomial_linear_of_semiconj L.prop,
   left_inv := λ L, by ext u; refl,
-  right_inv := λ ⟨L, h⟩, by ext u; refl }
+  right_inv := λ L, by ext u; refl }
 
 /--Equivalence between `R[X]`-linear isomorphisms and `R`-linear isomorphisms compatible with the
 action of `X`.-/
-noncomputable def polynomial_lequiv_equiv_semiconj :
+@[simps] noncomputable def polynomial_lequiv_equiv_semiconj :
   (module_with_End E ≃ₗ[R[X]] module_with_End F) ≃
   { L : M ≃ₗ[R] N // (L : M →ₗ[R] N).comp E = F.comp (L : M →ₗ[R] N) } :=
 { to_fun := semiconj_of_polynomial_lequiv,
-  inv_fun := λ ⟨L, h⟩, polynomial_lequiv_of_semiconj h,
+  inv_fun := λ L, polynomial_lequiv_of_semiconj L.prop,
   left_inv := λ L, by ext u; refl,
-  right_inv := λ ⟨L, h⟩, by ext u; refl }
+  right_inv := λ L, by ext u; refl }
 
 end module_with_End

@@ -21,10 +21,7 @@ This file provides some notable isomorphisms regarding the even subalgebra, `cli
 
 * `clifford_algebra.even_equiv_even_neg`: Every even subalgebra is isomorphic to the even subalgebra
   of the Clifford algebra with negated quadratic form.
-  * `clifford_algebra.even_to_neg`: The simp-normal form of the forward direction of this
-    isomorphism.
-  * `clifford_algebra.even_of_neg`: The simp-normal form of the reverse direction of this
-    isomorphism.
+  * `clifford_algebra.even_to_neg`: The simp-normal form of each direction of this isomorphism.
 
 ## Main results
 
@@ -210,53 +207,40 @@ end
 
 /-! ### Constructions needed for `clifford_algebra.even_equiv_even_neg` -/
 
-/-- The forward direction of `clifford_algebra.even_equiv_even_neg` -/
-def even_to_neg : clifford_algebra.even Q →ₐ[R] clifford_algebra.even (-Q) :=
+/-- One direction of `clifford_algebra.even_equiv_even_neg` -/
+def even_to_neg (Q' : quadratic_form R M) (h : Q' = -Q) :
+  clifford_algebra.even Q →ₐ[R] clifford_algebra.even Q' :=
 even.lift Q
-  { bilin := -(even.ι (-Q) : _).bilin,
-    contract := λ m, by simp_rw [linear_map.neg_apply, even_hom.contract, quadratic_form.neg_apply,
-                                  map_neg, neg_neg],
+  { bilin := -(even.ι Q' : _).bilin,
+    contract := λ m, by simp_rw [linear_map.neg_apply, even_hom.contract, h,
+                                 quadratic_form.neg_apply, map_neg, neg_neg],
     contract_mid := λ m₁ m₂ m₃,
-      by simp_rw [linear_map.neg_apply, neg_mul_neg, even_hom.contract_mid,
+      by simp_rw [linear_map.neg_apply, neg_mul_neg, even_hom.contract_mid, h,
                   quadratic_form.neg_apply, smul_neg, neg_smul] }
 
-@[simp] lemma even_to_neg_ι (m₁ m₂ : M) :
-  even_to_neg Q ((even.ι Q).bilin m₁ m₂) = -(even.ι (-Q)).bilin m₁ m₂ :=
-even.lift_ι _  _ m₁ m₂
+@[simp] lemma even_to_neg_ι (Q' : quadratic_form R M) (h : Q' = -Q) (m₁ m₂ : M) :
+  even_to_neg Q Q' h ((even.ι Q).bilin m₁ m₂) = -(even.ι Q').bilin m₁ m₂ :=
+even.lift_ι _ _ m₁ m₂
 
-/-- The reverse direction of `clifford_algebra.even_equiv_even_neg` -/
-def even_of_neg : clifford_algebra.even (-Q) →ₐ[R] clifford_algebra.even Q :=
-even.lift (-Q)
-  { bilin := -(even.ι Q : _).bilin,
-    contract := λ m,
-      by simp_rw [linear_map.neg_apply, even_hom.contract, quadratic_form.neg_apply, map_neg],
-    contract_mid := λ m₁ m₂ m₃,
-      by simp_rw [linear_map.neg_apply, neg_mul_neg, even_hom.contract_mid,
-        quadratic_form.neg_apply, neg_smul_neg] }
+lemma even_to_neg_comp_even_to_neg (Q' : quadratic_form R M)
+  (h : Q' = -Q) (h' : Q = -Q') :
+  (even_to_neg Q' Q h').comp (even_to_neg Q Q' h) = alg_hom.id R _ :=
+begin
+  ext m₁ m₂ : 4,
+  dsimp only [even_hom.compr₂_bilin, linear_map.compr₂_apply, alg_hom.to_linear_map_apply,
+              alg_hom.comp_apply, alg_hom.id_apply],
+  rw [even_to_neg_ι, map_neg, even_to_neg_ι, neg_neg]
+end
 
-@[simp] lemma even_of_neg_ι (m₁ m₂ : M) :
-  even_of_neg Q ((even.ι (-Q)).bilin m₁ m₂) = -(even.ι Q).bilin m₁ m₂ :=
-even.lift_ι (-Q) _ m₁ m₂
-
-/-- The even subalgebra of the algebras with quadratic form `Q` and `-Q` are isomorphic.
+/-- The even subalgebras of the algebras with quadratic form `Q` and `-Q` are isomorphic.
 
 Stated another way, `𝒞ℓ⁺(p,q,r)` and `𝒞ℓ⁺(q,p,r)` are isomorphic. -/
 @[simps]
 def even_equiv_even_neg : clifford_algebra.even Q ≃ₐ[R] clifford_algebra.even (-Q) :=
 alg_equiv.of_alg_hom
-  (even_to_neg Q)
-  (even_of_neg Q)
-  (begin
-    ext m₁ m₂ : 4,
-    dsimp only [even_hom.compr₂_bilin, linear_map.compr₂_apply, alg_hom.to_linear_map_apply,
-                alg_hom.comp_apply, alg_hom.id_apply],
-    rw [even_of_neg_ι, map_neg, even_to_neg_ι, neg_neg]
-  end)
-  (begin
-    ext m₁ m₂ : 4,
-    dsimp only [even_hom.compr₂_bilin, linear_map.compr₂_apply, alg_hom.to_linear_map_apply,
-                alg_hom.comp_apply, alg_hom.id_apply],
-    rw [even_to_neg_ι, map_neg, even_of_neg_ι, neg_neg]
-  end)
+  (even_to_neg Q _ rfl)
+  (even_to_neg (-Q) _ (neg_neg _).symm)
+  (even_to_neg_comp_even_to_neg _ _ _ _)
+  (even_to_neg_comp_even_to_neg _ _ _ _)
 
 end clifford_algebra

@@ -164,7 +164,7 @@ lemma adjoin_eq_span_of_subset {s : set A} (hs : ↑(submonoid.closure s) ⊆ (s
   (adjoin R s).to_submodule = span R s :=
 le_antisymm ((adjoin_to_submodule_le R).mpr hs) (span_le_adjoin R s)
 
-lemma adjoin_span {s : set A} :
+@[simp] lemma adjoin_span {s : set A} :
   adjoin R (submodule.span R s : set A) = adjoin R s :=
 le_antisymm (adjoin_le (span_le_adjoin _ _)) (adjoin_mono submodule.subset_span)
 

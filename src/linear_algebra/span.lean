@@ -104,7 +104,7 @@ lemma closure_le_to_add_submonoid_span {s : set M} :
   add_submonoid.closure s ≤ (span R s).to_add_submonoid :=
 closure_subset_span
 
-lemma span_closure {s : set M} : span R (add_submonoid.closure s : set M) = span R s :=
+@[simp] lemma span_closure {s : set M} : span R (add_submonoid.closure s : set M) = span R s :=
 le_antisymm (span_le.mpr closure_subset_span) (span_mono add_submonoid.subset_closure)
 
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is

@@ -168,15 +168,6 @@ lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
 by simp only [t0_space_iff_inseparable, ne.def, not_imp_not]
 
-lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
-  t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
-by simp only [t0_space_iff_not_inseparable, xor_iff_not_iff, not_forall, exists_prop,
-  inseparable_iff_forall_open]
-
-lemma exists_is_open_xor_mem [t0_space α] {x y : α} (h : x ≠ y) :
-  ∃ U : set α, is_open U ∧ xor (x ∈ U) (y ∈ U) :=
-(t0_space_iff_exists_is_open_xor_mem α).1 ‹_› x y h
-
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 t0_space.t0 h
 
@@ -189,6 +180,15 @@ lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
 
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 nhds_injective.eq_iff
+
+lemma t0_space_iff_exists_is_open_xor_mem (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
+by simp only [t0_space_iff_not_inseparable, xor_iff_not_iff, not_forall, exists_prop,
+  inseparable_iff_forall_open]
+
+lemma exists_is_open_xor_mem [t0_space α] {x y : α} (h : x ≠ y) :
+  ∃ U : set α, is_open U ∧ xor (x ∈ U) (y ∈ U) :=
+(t0_space_iff_exists_is_open_xor_mem α).1 ‹_› x y h
 
 /-- Specialization forms a partial order on a t0 topological space. -/
 def specialization_order (α : Type*) [topological_space α] [t0_space α] : partial_order α :=

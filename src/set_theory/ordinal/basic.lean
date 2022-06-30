@@ -1391,10 +1391,10 @@ begin
   split,
   { rintro ⟨β, e⟩,
     use #β,
-    rwa [lift_umax_eq.{u v ((v + 1))}, lift_mk_eq] },
+    rwa [lift_umax_eq.{u v (v + 1)}, lift_mk_eq] },
   { rintro ⟨c, hc⟩,
     refine ⟨⟨c.out, lift_mk_eq.1 _⟩⟩,
-    rw ←lift_umax_eq.{u v ((v + 1))},
+    rw ←lift_umax_eq.{u v (v + 1)},
     exact hc.trans (congr rfl c.mk_out.symm) }
 end
 

@@ -74,7 +74,8 @@ class semilinear_equiv_class (F : Type*) {R S : out_param Type*} [semiring R] [s
   extends add_equiv_class F M M₂ :=
 (map_smulₛₗ : ∀ (f : F) (r : R) (x : M), f (r • x) = (σ r) • f x)
 
---attribute [nolint dangerous_instance] semilinear_equiv_class.to_add_equiv_class
+-- `R, S, σ, σ'` become metavars, but it's OK since they are outparams.
+attribute [nolint dangerous_instance] semilinear_equiv_class.to_add_equiv_class
 
 /-- `linear_equiv_class F R M M₂` asserts `F` is a type of bundled `R`-linear equivs `M → M₂`.
 This is an abbreviation for `semilinear_equiv_class F (ring_hom.id R) M M₂`.
@@ -91,7 +92,8 @@ variables (F : Type*) [semiring R] [semiring S]
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
 variables [module R M] [module S M₂] {σ : R →+* S} {σ' : S →+* R}
 
-@[priority 100]
+-- `σ'` becomes a metavariable, but it's OK since it's an outparam
+@[priority 100, nolint dangerous_instance]
 instance [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ] [s : semilinear_equiv_class F σ M M₂] :
   semilinear_map_class F σ M M₂ :=
 { coe := (coe : F → M → M₂),

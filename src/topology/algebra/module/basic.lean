@@ -335,7 +335,8 @@ variables (F : Type*)
   [module R M] [module S M₂]
 
 include σ'
-@[priority 100]
+-- `σ'` becomes a metavariable, but it's OK since it's an outparam
+@[priority 100, nolint dangerous_instance]
 instance [s: continuous_semilinear_equiv_class F σ M M₂] :
   continuous_semilinear_map_class F σ M M₂ :=
 { coe := (coe : F → M → M₂),

@@ -63,7 +63,7 @@ noncomputable instance preserves_limits.preserves_finite_limits (F : C ⥤ D)
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/
-noncomputable def preserves_finite_limits_of_preserves_finite_limits_of_size (F : C ⥤ D)
+def preserves_finite_limits_of_preserves_finite_limits_of_size (F : C ⥤ D)
   (h : ∀ (J : Type w) {𝒥 : small_category J} (hJ : @fin_category J 𝒥),
     by { resetI, exact preserves_limits_of_shape J F }) :
   preserves_finite_limits F :=
@@ -112,7 +112,7 @@ noncomputable instance preserves_colimits.preserves_finite_colimits (F : C ⥤ D
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/
-noncomputable def preserves_finite_colimits_of_preserves_finite_colimits_of_size (F : C ⥤ D)
+def preserves_finite_colimits_of_preserves_finite_colimits_of_size (F : C ⥤ D)
   (h : ∀ (J : Type w) {𝒥 : small_category J} (hJ : @fin_category J 𝒥),
     by { resetI, exact preserves_colimits_of_shape J F }) :
   preserves_finite_colimits F :=

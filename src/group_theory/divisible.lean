@@ -18,7 +18,7 @@ such that `n • x = y`.
 * `add_comm_group.divisible_iff_smul_top_eq_top` : `A` is divisible iff `n • A = A` for all `n ≠ 0`.
 * `add_comm_group.divisble_rat` : `ℚ` is a divisible group.
 * `add_comm_group.divisible_real` : `ℝ` is a divisible group.
-* `add_comm_group.divisible_complex` : `ℂ` is a divisble group.
+* `add_comm_group.divisible_complex` : `ℂ` is a divisible group.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
 
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.

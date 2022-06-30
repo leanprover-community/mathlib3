@@ -156,7 +156,7 @@ begin
     (λ x y xy, ⟨xy.1, st xy.2.1, st xy.2.2⟩),
 end
 
-@[simp] lemma _root_.well_founded.is_wf [h : well_founded_lt α] (s : set α) : s.is_wf :=
+@[simp] lemma _root_.well_founded_lt.is_wf [h : well_founded_lt α] (s : set α) : s.is_wf :=
 (set.is_wf_univ_iff.2 h).mono $ set.subset_univ s
 
 end has_lt

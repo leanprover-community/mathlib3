@@ -25,77 +25,13 @@ and `filter` uses this to filter the support of a `pmf` and re-normalize the new
 
 -/
 
-namespace pmf
+universes u v
 
 noncomputable theory
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type u}
 open_locale classical big_operators nnreal ennreal
 
-section map
-
-/-- The functorial action of a function on a `pmf`. -/
-def map (f : α → β) (p : pmf α) : pmf β := bind p (pure ∘ f)
-
-variables (f : α → β) (p : pmf α) (b : β)
-
-@[simp] lemma map_apply : (map f p) b = ∑' a, if b = f a then p a else 0 := by simp [map]
-
-@[simp] lemma support_map : (map f p).support = f '' p.support :=
-set.ext (λ b, by simp [map, @eq_comm β b])
-
-lemma mem_support_map_iff : b ∈ (map f p).support ↔ ∃ a ∈ p.support, f a = b := by simp
-
-lemma bind_pure_comp : bind p (pure ∘ f) = map f p := rfl
-
-lemma map_id : map id p = p := by simp [map]
-
-lemma map_comp (g : β → γ) : (p.map f).map g = p.map (g ∘ f) :=
-by simp [map]
-
-lemma pure_map (a : α) : (pure a).map f = pure (f a) :=
-by simp [map]
-
-section measure
-
-variable (s : set β)
-
-@[simp] lemma to_outer_measure_map_apply :
-  (p.map f).to_outer_measure s = p.to_outer_measure (f ⁻¹' s) :=
-by simp [map, set.indicator, to_outer_measure_apply p (f ⁻¹' s)]
-
-@[simp] lemma to_measure_map_apply [measurable_space α] [measurable_space β] (hf : measurable f)
-  (hs : measurable_set s) : (p.map f).to_measure s = p.to_measure (f ⁻¹' s) :=
-begin
-  rw [to_measure_apply_eq_to_outer_measure_apply _ s hs,
-    to_measure_apply_eq_to_outer_measure_apply _ (f ⁻¹' s) (measurable_set_preimage hf hs)],
-  exact to_outer_measure_map_apply f p s,
-end
-
-end measure
-
-end map
-
-section seq
-
-/-- The monadic sequencing operation for `pmf`. -/
-def seq (q : pmf (α → β)) (p : pmf α) : pmf β := q.bind (λ m, p.bind $ λ a, pure (m a))
-
-variables (q : pmf (α → β)) (p : pmf α) (b : β)
-
-@[simp] lemma seq_apply : (seq q p) b = ∑' (f : α → β) (a : α), if b = f a then q f * p a else 0 :=
-begin
-  simp only [seq, mul_boole, bind_apply, pure_apply],
-  refine tsum_congr (λ f, (nnreal.tsum_mul_left (q f) _).symm.trans (tsum_congr (λ a, _))),
-  simpa only [mul_zero] using mul_ite (b = f a) (q f) (p a) 0
-end
-
-@[simp] lemma support_seq : (seq q p).support = ⋃ f ∈ q.support, f '' p.support :=
-set.ext (λ b, by simp [-mem_support_iff, seq, @eq_comm β b])
-
-lemma mem_support_seq_iff : b ∈ (seq q p).support ↔ ∃ (f ∈ q.support), b ∈ f '' p.support :=
-by simp
-
-end seq
+namespace pmf
 
 section of_finset
 

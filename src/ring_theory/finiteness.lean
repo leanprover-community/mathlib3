@@ -263,6 +263,17 @@ instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A �
   exact hA.1.prod hB.1
 end⟩
 
+lemma is_noetherian_ring {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+  [h : algebra.finite_type R S] [is_noetherian_ring R] : is_noetherian_ring S :=
+begin
+  obtain ⟨s, hs⟩ := h.1,
+  apply is_noetherian_ring_of_surjective
+    (mv_polynomial s R) S (mv_polynomial.aeval coe : mv_polynomial s R →ₐ[R] S),
+  rw [← set.range_iff_surjective, alg_hom.coe_to_ring_hom, ← alg_hom.coe_range,
+    ← algebra.adjoin_range_eq_range_aeval, subtype.range_coe_subtype, finset.set_of_mem, hs],
+  refl
+end
+
 end finite_type
 
 namespace finite_presentation

@@ -153,6 +153,13 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
   from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
 
+lemma smul_inf_le (M₁ M₂ : submodule R M) : I • (M₁ ⊓ M₂) ≤ I • M₁ ⊓ I • M₂ :=
+begin
+  apply le_inf _ _,
+  exacts [submodule.smul_mono_right inf_le_left, submodule.smul_mono_right inf_le_right],
+end
+
+
 variables (S : set R) (T : set M)
 
 theorem span_smul_span : (ideal.span S) • (span R T) =

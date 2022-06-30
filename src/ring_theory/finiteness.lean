@@ -263,7 +263,7 @@ instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A �
   exact hA.1.prod hB.1
 end⟩
 
-lemma is_noetherian_ring {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+lemma is_noetherian_ring (R S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
   [h : algebra.finite_type R S] [is_noetherian_ring R] : is_noetherian_ring S :=
 begin
   obtain ⟨s, hs⟩ := h.1,
@@ -274,8 +274,8 @@ begin
   refl
 end
 
-lemma _root_.subalgebra.fg_iff_finite_type {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
-  (S : subalgebra R A) : S.fg ↔ algebra.finite_type R S :=
+lemma _root_.subalgebra.fg_iff_finite_type {R A : Type*} [comm_semiring R] [semiring A]
+  [algebra R A] (S : subalgebra R A) : S.fg ↔ algebra.finite_type R S :=
 S.fg_top.symm.trans ⟨λ h, ⟨h⟩, λ h, h.out⟩
 
 end finite_type

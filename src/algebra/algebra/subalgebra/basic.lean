@@ -937,7 +937,7 @@ S.to_subsemiring.is_scalar_tower
 instance is_scalar_tower_mid {R S T : Type*} [comm_semiring R] [semiring S] [add_comm_monoid T]
   [algebra R S] [module R T] [module S T] [is_scalar_tower R S T] (S' : subalgebra R S) :
   is_scalar_tower R S' T :=
-⟨λ x y z, by simp [subalgebra.smul_def]⟩
+⟨λ x y z, (smul_assoc _ (y : S) _ : _)⟩
 
 instance [has_scalar A α] [has_faithful_smul A α] (S : subalgebra R A) :
   has_faithful_smul S α :=

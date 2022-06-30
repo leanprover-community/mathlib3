@@ -287,8 +287,17 @@ lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choo
 
 lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
 
-/-! #### Multichoose -/
+/-! #### Multichoose
 
+Whereas `choose n k` is the number of subsets of cardinality `k` from a type of cardinality `n`,
+`multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`.
+
+Alternatively, whereas `choose n k` is the number of ways to select `k` items (up to permutation)
+from `n` items without replacement, `multichoose n k` is the number of ways to select `k` items
+(up to permutation) from `n` items with replacement. -/
+
+/--
+`multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`. -/
 def multichoose : ℕ → ℕ → ℕ
 | _             0 := 1
 | 0       (k + 1) := 0

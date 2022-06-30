@@ -47,7 +47,7 @@ begin
   split,
   { intro h,
     ext ⟨v, hv⟩ ⟨w, hw⟩,
-    simp only [induce_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk],
+    simp only [comap_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk],
     exact ⟨adj.ne, h hv hw⟩, },
   { intros h v hv w hw hne,
     have : (G.induce s).adj ⟨v, hv⟩ ⟨w, hw⟩ = _ := rfl,
@@ -148,7 +148,8 @@ begin
     coe_univ, set.mem_univ, true_and] at hv hw,
   obtain ⟨v', rfl⟩ := hv,
   obtain ⟨w', rfl⟩ := hw,
-  simp only [induce_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk, f.map_adj_iff],
+  simp only [f.map_adj_iff, comap_adj, function.embedding.coe_subtype, subtype.coe_mk, top_adj,
+    ne.def, subtype.mk_eq_mk],
   exact (function.embedding.apply_eq_iff_eq _ _ _).symm.not,
 end
 

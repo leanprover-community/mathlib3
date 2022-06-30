@@ -88,6 +88,23 @@ lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, 
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by rw [hm, preimage_gen g hs hu]; exact continuous_map.is_open_gen hs (hu.preimage g.2)
 
+variable (f : C(α, β))
+
+private lemma image_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
+  (λ (g : C(β, γ)), g.comp f) ⁻¹' (continuous_map.compact_open.gen s u) =
+    continuous_map.compact_open.gen (f '' s) u :=
+begin
+  ext ⟨g, _⟩, unfold continuous_map.compact_open.gen,
+  simp only [set.image_subset_iff, set.preimage_set_of_eq, continuous_map.coe_comp,
+    set.mem_set_of_eq, continuous_map.coe_mk],
+  rw ← set.preimage_comp,
+end
+
+/-- C(-, γ) is a functor. -/
+lemma continuous_comp_left : continuous (λ g, g.comp f : C(β, γ) → C(α, γ)) :=
+continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
+by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
+
 end functorial
 
 section ev

@@ -56,7 +56,7 @@ lemma is_zero_of_subsingleton (V : SemiNormedGroup) [subsingleton V] :
   limits.is_zero V :=
 begin
   refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
-  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, normed_group_hom.map_zero], },
+  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, map_zero], },
   { ext, apply subsingleton.elim }
 end
 
@@ -67,7 +67,7 @@ lemma iso_isometry_of_norm_noninc {V W : SemiNormedGroup} (i : V ≅ W)
   (h1 : i.hom.norm_noninc) (h2 : i.inv.norm_noninc) :
   isometry i.hom :=
 begin
-  apply normed_group_hom.isometry_of_norm,
+  apply add_monoid_hom_class.isometry_of_norm,
   intro v,
   apply le_antisymm (h1 v),
   calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
@@ -153,8 +153,8 @@ lemma is_zero_of_subsingleton (V : SemiNormedGroup₁) [subsingleton V] :
   limits.is_zero V :=
 begin
   refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
-  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, normed_group_hom.map_zero],
-    apply f.1.map_zero, },
+  { ext, have : x = 0 := subsingleton.elim _ _, simp only [this, map_zero],
+    exact map_zero f.1 },
   { ext, apply subsingleton.elim }
 end
 
@@ -164,7 +164,8 @@ instance has_zero_object : limits.has_zero_object SemiNormedGroup₁.{u} :=
 lemma iso_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
   isometry i.hom :=
 begin
-  apply normed_group_hom.isometry_of_norm,
+  change isometry (i.hom : V →+ W),
+  refine add_monoid_hom_class.isometry_of_norm i.hom _,
   intro v,
   apply le_antisymm (i.hom.2 v),
   calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]

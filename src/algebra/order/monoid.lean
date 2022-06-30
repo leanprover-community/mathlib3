@@ -385,6 +385,9 @@ variables [canonically_ordered_monoid α] {a b c d : α}
 @[to_additive] lemma self_le_mul_right (a b : α) : a ≤ a * b := le_self_mul
 @[to_additive] lemma self_le_mul_left (a b : α) : a ≤ b * a := le_mul_self
 
+@[to_additive] lemma le_of_mul_le_left : a * b ≤ c → a ≤ c := le_self_mul.trans
+@[to_additive] lemma le_of_mul_le_right : a * b ≤ c → b ≤ c := le_mul_self.trans
+
 @[to_additive]
 lemma le_iff_exists_mul : a ≤ b ↔ ∃ c, b = a * c :=
 ⟨exists_mul_of_le, by { rintro ⟨c, rfl⟩, exact le_self_mul }⟩

@@ -364,13 +364,6 @@ begin
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
 
--- TODO: generalize to some ordered add_monoids, based on #6145
-lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, exact (le_add_iff_nonneg_right _).mpr zero_le' }
-
-lemma le_of_add_le_right {a b c : ℝ≥0} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, exact (le_add_iff_nonneg_left _).mpr zero_le' }
-
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ real.to_nnreal q < b) :=
 iff.intro

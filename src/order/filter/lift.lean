@@ -366,6 +366,10 @@ have (⨅ b : bool, cond b f g).lift' s = ⨅ b : bool, (cond b f g).lift' s :=
   lift'_infi @hs,
 by simpa only [infi_bool_eq]
 
+lemma lift'_inf_le (f g : filter α) (s : set α → set β) :
+  (f ⊓ g).lift' s ≤ f.lift' s ⊓ g.lift' s :=
+le_inf (lift'_mono inf_le_left le_rfl) (lift'_mono inf_le_right le_rfl)
+
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm

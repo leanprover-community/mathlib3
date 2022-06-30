@@ -37,29 +37,53 @@ variables (A : Type*) [add_comm_group A]
 /--
 A divisible group `A` is an abelian group such that `nA = A` for all `n ≠ 0`.
 -/
-class divisible : Prop :=
-(div : ∀ (n : ℤ), n ≠ 0 → function.surjective ((•) n : A → A))
+class divisible :=
+(div_int : A → ℤ → A)
+(div_zero : ∀ a, div_int a 0 = 0)
+(div_cancel : ∀ {n : ℤ} (a : A), n ≠ 0 → n • div_int a n = a)
+-- (div : ∀ (n : ℤ), n ≠ 0 → function.surjective ((•) n : A → A))
 
+local infix ` /ℤ ` :50 := divisible.div_int
 
-lemma divisible_iff_smul_top_eq_top :
-  divisible A ↔ ∀ (n : ℤ), n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤ :=
-{ mp := λ ⟨d⟩ n hn,  (add_subgroup.eq_top_iff' (n • ⊤)).mpr $
-     λ x, ⟨(d n hn x).some, trivial, (d n hn x).some_spec⟩,
-  mpr := λ h, ⟨λ n hn x, begin
-    rcases show x ∈ n • (⊤ : add_subgroup A), by rw h n hn; trivial with ⟨x', _, hx⟩,
-    exact ⟨x', hx⟩,
-  end⟩ }
+lemma smul_surj_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
+  function.surjective ((•) n : A → A) :=
+λ a, ⟨a /ℤ n, divisible.div_cancel a hn⟩
+
+noncomputable instance divisible_of_smul_surj (surj : ∀ {n : ℤ}, n ≠ 0 → function.surjective ((•) n : A → A)) :
+  divisible A :=
+{ div_int := λ a n, dite (n = 0) (λ _, 0) (λ h, (surj h a).some),
+  div_zero := λ a, dif_pos rfl,
+  div_cancel := λ n a h, begin
+    rw [dif_neg h, (surj h a).some_spec],
+  end }
+
+lemma smul_top_eq_top_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
+  n • (⊤ : add_subgroup A) = ⊤ :=
+(add_subgroup.eq_top_iff' (n • ⊤)).mpr $ λ x, ⟨x /ℤ n, trivial, divisible.div_cancel x hn⟩
+
+noncomputable instance divisible_of_smul_top_eq_top (H : ∀ {n : ℤ}, n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤) :
+  divisible A:=
+add_comm_group.divisible_of_smul_surj _ $ λ n hn a, begin
+  rcases (show a ∈ n • (⊤ : add_subgroup A), by simp only [H hn]) with ⟨a, _, rfl⟩,
+  exact ⟨_, rfl⟩,
+end
 
 /-- ℚ is a divisible group. -/
 instance divisible_rat : divisible ℚ :=
-⟨λ n hn x, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩⟩
+{ div_int := λ q n, q / n,
+  div_zero := λ q, by norm_num,
+  div_cancel := λ n q hn, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn, }
 
 /-- ℝ is a divisible group. -/
-instance divisible_real : divisible ℝ :=
-⟨λ n hn x, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩⟩
+noncomputable instance divisible_real : divisible ℝ :=
+{ div_int := λ q n, q / n,
+  div_zero := λ q, by norm_num,
+  div_cancel := λ n q hn, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn, }
 
-instance divisble_complex : divisible ℂ :=
-⟨λ n hn x, ⟨x/n, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn⟩⟩
+noncomputable instance divisble_complex : divisible ℂ :=
+{ div_int := λ q n, q / n,
+  div_zero := λ q, by norm_num,
+  div_cancel := λ n q hn, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn, }
 
 section pi
 
@@ -67,8 +91,9 @@ variables {ι : Type*} (B : ι → Type*) [Π i, add_comm_group (B i)] [Π i, di
 
 /-- Any product of divisible group is divisible.-/
 instance divisible_pi : divisible (Π i, B i) :=
-⟨λ n hn x, ⟨λ i, (divisible.div n hn (x i)).some,
-  funext $ λ i, (divisible.div n hn (x i)).some_spec⟩⟩
+{ div_int := λ x n i, (x i) /ℤ n,
+  div_zero := λ x, funext $ λ i, divisible.div_zero _,
+  div_cancel := λ n x hn, funext $ λ i, divisible.div_cancel (x i) hn }
 
 end pi
 
@@ -76,9 +101,9 @@ section quotient
 
 variables {B : add_subgroup A} [divisible A]
 
-instance divisible_quotient : divisible (A ⧸ B) :=
-⟨λ n hn x, quotient.induction_on' x $ λ a, ⟨quotient.mk' $ (divisible.div n hn a).some,
-  (congr_arg _ (divisible.div n hn a).some_spec : quotient.mk' _ = _)⟩⟩
+noncomputable instance divisible_quotient : divisible (A ⧸ B) :=
+add_comm_group.divisible_of_smul_surj _ $ λ n hn x, quotient.induction_on' x $ λ a,
+  ⟨quotient.mk' (a /ℤ n), (congr_arg _ $ divisible.div_cancel a hn : quotient.mk' _ = _)⟩
 
 end quotient
 
@@ -86,19 +111,10 @@ section hom
 
 variables {A} [divisible A] {B : Type*} [add_comm_group B] (f : A →+ B)
 
-lemma divisible_of_surj (hf : function.surjective f) : divisible B :=
-have aux : ∀ (n : ℤ) (a : A), n • f a = f (n • a), begin
-  intros n a,
-  induction n using int.induction_on with n ih n ih,
-  { rw [zero_smul, zero_smul, map_zero], },
-  { rw [add_smul, add_smul, map_add, ih, one_smul, one_smul], },
-  { rw [sub_smul, sub_smul, map_sub, ih, one_smul, one_smul], },
-end,
-⟨λ n hn x, ⟨f (divisible.div n hn (hf x).some).some, begin
-  generalize_proofs h1 h2,
-  generalize_proofs at h2,
-  rw [aux, h2.some_spec, h1.some_spec],
-end⟩⟩
+noncomputable instance divisible_of_surj (hf : function.surjective f) : divisible B :=
+add_comm_group.divisible_of_smul_surj _ $
+  λ n hn x, ⟨f $ (hf x).some /ℤ n, by rw [←f.map_zsmul ((hf x).some /ℤ n) n,
+    divisible.div_cancel _ hn, (hf x).some_spec]⟩
 
 end hom
 

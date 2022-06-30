@@ -37,9 +37,9 @@ in `p`, otherwise
 `trailing_degree 0 = ⊤`. -/
 def trailing_degree (p : R[X]) : with_top ℕ := p.support.inf some
 
-lemma trailing_degree_lt_wf : well_founded
-(λp q : R[X], trailing_degree p < trailing_degree q) :=
-inv_image.wf trailing_degree (with_top.well_founded_lt nat.lt_wf)
+instance trailing_degree_lt_wf :
+  is_well_founded R[X] (λ p q, trailing_degree p < trailing_degree q) :=
+inv_image.is_well_founded _ _
 
 /-- `nat_trailing_degree p` forces `trailing_degree p` to `ℕ`, by defining
 `nat_trailing_degree ⊤ = 0`. -/

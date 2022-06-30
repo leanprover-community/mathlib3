@@ -74,22 +74,13 @@ noncomputable instance divisible_of_smul_top_eq_top
 add_comm_group.divisible_of_smul_surj _ $ λ n hn a, ⟨(show a ∈ n • (⊤ : add_subgroup A),
   by simp only [H hn]).some, (show a ∈ n • (⊤ : add_subgroup A), by simp only [H hn]).some_spec.2⟩
 
-/-- ℚ is a divisible group. -/
-instance divisible_rat : divisible ℚ :=
+/-- Any division ring of characteristic zero is divisible -/
+@[priority 100]
+instance divisible_of_char_zero {𝕜} [division_ring 𝕜] [char_zero 𝕜] : divisible 𝕜 :=
 { div_int := λ q n, q / n,
   div_zero := λ q, by norm_num,
-  div_cancel := λ n q hn, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn, }
-
-/-- ℝ is a divisible group. -/
-noncomputable instance divisible_real : divisible ℝ :=
-{ div_int := λ q n, q / n,
-  div_zero := λ q, by norm_num,
-  div_cancel := λ n q hn, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn, }
-
-noncomputable instance divisble_complex : divisible ℂ :=
-{ div_int := λ q n, q / n,
-  div_zero := λ q, by norm_num,
-  div_cancel := λ n q hn, by rw [zsmul_eq_mul, mul_div_cancel']; exact_mod_cast hn, }
+  div_cancel := λ n q hn,
+    by rw [zsmul_eq_mul, (int.cast_commute n _).eq, div_mul_cancel q (int.cast_ne_zero.mpr hn)] }
 
 section pi
 

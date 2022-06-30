@@ -16,7 +16,7 @@ The main result is `exterior_algebra.graded_algebra`, which says that the exteri
 -/
 
 namespace exterior_algebra
-variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 variables (R M)
 
 open_locale direct_sum

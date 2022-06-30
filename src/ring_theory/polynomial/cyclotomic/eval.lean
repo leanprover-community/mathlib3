@@ -136,7 +136,7 @@ lemma cyclotomic_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx :
   0 ≤ eval x (cyclotomic n R) :=
 (cyclotomic_pos_and_nonneg n x).2 hx
 
-lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [comm_ring R] {n : ℕ}
+lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [ring R] {n : ℕ}
   (h : ∀ {p : ℕ}, p.prime → ∀ k : ℕ, p ^ k ≠ n) : eval 1 (cyclotomic n R) = 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn',

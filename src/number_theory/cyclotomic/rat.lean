@@ -110,6 +110,7 @@ begin
       rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
       rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
         show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
+      haveI : char_zero ℚ := ordered_semiring.to_char_zero,
       rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
         ((algebra_map ℤ ℚ).injective_int) h₂],
       exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
@@ -135,11 +136,12 @@ local attribute [instance] algebra_rat_subsingleton
 lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
   is_integral_closure (cyclotomic_ring (p ^ k) ℤ ℚ) ℤ (cyclotomic_field (p ^ k) ℚ) :=
 begin
+  haveI : char_zero ℚ := ordered_semiring.to_char_zero,
   haveI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
   { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
     { exact subsingleton.elim _ _ },
     { exact ne_zero.char_zero } },
-  have hζ := zeta_primitive_root (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
+  have hζ := zeta_spec (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
   { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,

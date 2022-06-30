@@ -675,7 +675,7 @@ by rw [div_eq_mul_inv, inv_def, mk_mul_mk_cancel hx]
 lemma mk_div_mk_cancel_right {x : ℤ} (hx : x ≠ 0) (n d : ℤ) : (x /. n) / (x /. d) = d /. n :=
 by rw [div_eq_mul_inv, inv_def, mul_comm, mk_mul_mk_cancel hx]
 
-@[simp] lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
+lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
 begin
   repeat {rw coe_int_eq_mk},
   exact mk_div_mk_cancel_left one_ne_zero n d,

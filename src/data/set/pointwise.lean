@@ -1006,6 +1006,30 @@ protected def mul_distrib_mul_action_set [monoid α] [monoid β] [mul_distrib_mu
 localized "attribute [instance] set.distrib_mul_action_set set.mul_distrib_mul_action_set"
   in pointwise
 
+instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors (set α) (set β) :=
+⟨λ s t h, begin
+  by_contra' H,
+  have hst : (s • t).nonempty := h.symm.subst zero_nonempty,
+  simp_rw [←hst.of_smul_left.subset_zero_iff, ←hst.of_smul_right.subset_zero_iff, not_subset,
+    mem_zero] at H,
+  obtain ⟨⟨a, hs, ha⟩, b, ht, hb⟩ := H,
+  exact (eq_zero_or_eq_zero_of_smul_eq_zero $ h.subset $ smul_mem_smul hs ht).elim ha hb,
+end⟩
+
+instance no_zero_smul_divisors_set [has_zero α] [has_zero β] [has_scalar α β]
+  [no_zero_smul_divisors α β] : no_zero_smul_divisors α (set β) :=
+⟨λ a s h, begin
+  by_contra' H,
+  have hst : (a • s).nonempty := h.symm.subst zero_nonempty,
+  simp_rw [←hst.of_image.subset_zero_iff, not_subset, mem_zero] at H,
+  obtain ⟨ha, b, ht, hb⟩ := H,
+  exact (eq_zero_or_eq_zero_of_smul_eq_zero $ h.subset $ smul_mem_smul_set ht).elim ha hb,
+end⟩
+
+instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (set α) :=
+⟨λ s t h, eq_zero_or_eq_zero_of_smul_eq_zero h⟩
+
 end smul
 
 section vsub

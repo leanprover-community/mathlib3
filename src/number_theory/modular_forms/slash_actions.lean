@@ -36,15 +36,15 @@ class slash_action (β : Type*) (G : Type*) (α : Type*) (γ : Type*) [group G] 
 (add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
 /--Slash_action induced by a monoid homomorphism.-/
-instance monoid_hom_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {γ : Type*} [group G]
-  [ring α] [has_scalar γ α] [group H] [slash_action β G α γ] (h : H →* G) : slash_action β H α γ:=
+instance monoid_hom_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {γ : Type*}
+  [group G] [ring α] [has_scalar γ α] [group H] [slash_action β G α γ] (h : H →* G) :
+  slash_action β H α γ:=
 { map := (λ k g a, slash_action.map γ k (h(g)) a),
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
   one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
   right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
   smul_action := by {intros k g a z, apply slash_action.smul_action, },
   add_action := by {intros k g a b, apply slash_action.add_action, }, }
-
 
 namespace modular_forms
 

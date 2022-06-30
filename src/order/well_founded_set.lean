@@ -171,7 +171,7 @@ begin
     f (λ _ _, f.map_rel_iff.2))⟩,
 end
 
-instance is_wf.union (hs : is_wf s) (ht : is_wf t) : is_wf (s ∪ t) :=
+theorem is_wf.union (hs : is_wf s) (ht : is_wf t) : is_wf (s ∪ t) :=
 begin
   classical,
   rw [is_wf_iff_no_descending_seq] at *,

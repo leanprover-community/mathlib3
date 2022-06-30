@@ -28,7 +28,7 @@ such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we
 * `add_comm_group.divisible_real` : `ℝ` is a divisible group.
 * `add_comm_group.divisible_complex` : `ℂ` is a divisible group.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
-* `add_comm_group.divisible_quotient : Quotient group of divisible group is divisible.
+* `add_comm_group.divisible_quotient` : Quotient group of divisible group is divisible.
 * `add_comm_group.divisible_of_surj` : if `A` is divisible and `A →+ B` is surjective, then `B` is
   divisible.
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
@@ -66,7 +66,7 @@ noncomputable instance divisible_of_smul_surj
 
 lemma smul_top_eq_top_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
   n • (⊤ : add_subgroup A) = ⊤ :=
-(add_subgroup.eq_top_iff' (n • ⊤)).mpr $ λ x, ⟨x /ℤ n, trivial, divisible.div_cancel x hn⟩
+add_subgroup.map_top_of_surjective _ $ smul_surj_of_divisible _ hn
 
 noncomputable instance divisible_of_smul_top_eq_top
   (H : ∀ {n : ℤ}, n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤) :

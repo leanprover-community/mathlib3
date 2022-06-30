@@ -46,6 +46,13 @@ lemma smul_surj_of_divisible_by [divisible_by A α] {n : α} (hn : n ≠ 0) :
   function.surjective ((•) n : A → A) :=
 λ x, ⟨divisible_by.div x n, divisible_by.div_cancel _ hn⟩
 
+noncomputable instance divisible_by_of_smul_surj
+  [Π (n : α), decidable (n = 0)]
+  (H : ∀ {n : α}, n ≠ 0 → function.surjective ((•) n : A → A)) :
+  divisible_by A α :=
+{ div := λ a n, dite (n = 0) (λ _, 0) (λ hn, (H hn a).some),
+  div_zero := λ _, dif_pos rfl,
+  div_cancel := λ n a hn, by rw [dif_neg hn, (H hn a).some_spec] }
 
 end add_monoid
 
@@ -64,6 +71,14 @@ attribute [to_additive rootable_by] add_monoid.divisible_by
 lemma root_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
   function.surjective ((flip (^)) n : A → A) :=
 λ x, ⟨rootable_by.root x n, rootable_by.root_pow _ hn⟩
+
+noncomputable instance rootable_by_of_root_surj
+  [Π (n : α), decidable (n = 0)]
+  (H : ∀ {n : α}, n ≠ 0 → function.surjective ((flip (^)) n : A → A)) :
+rootable_by A α :=
+{ root := λ a n, dite (n = 0) (λ _, 1) (λ hn, (H hn a).some),
+  root_zero := λ _, dif_pos rfl,
+  root_pow := λ n a hn, by rw dif_neg hn; exact (H hn a).some_spec }
 
 end monoid
 

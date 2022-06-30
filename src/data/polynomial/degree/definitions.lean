@@ -36,10 +36,10 @@ variables [semiring R] {p q r : R[X]}
 `degree 0 = ⊥`. -/
 def degree (p : R[X]) : with_bot ℕ := p.support.sup some
 
-lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
-inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
+instance degree_lt_wf : is_well_founded R[X] (λ p q, degree p < degree q) :=
+inv_image.is_well_founded _ _
 
-instance : has_well_founded R[X] := ⟨_, degree_lt_wf⟩
+instance : has_well_founded R[X] := is_well_founded.to_has_well_founded (λ p q, degree p < degree q)
 
 /-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
 def nat_degree (p : R[X]) : ℕ := (degree p).get_or_else 0

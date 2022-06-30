@@ -76,11 +76,6 @@ def mk (s : finset ι) : (Π i : (↑s : set ι), β i.1) →+ ⨁ i, β i :=
 def of (i : ι) : β i →+ ⨁ i, β i :=
 dfinsupp.single_add_hom β i
 
-lemma of_congr {i i' : ι} (h1 : i = i') {x : β i} {y : β i'}
-  (h2 : x == y) :
-  of _ i x = of _ i' y :=
-by substs h1 h2
-
 @[simp] lemma of_eq_same (i : ι) (x : β i) : (of _ i x) i = x :=
 dfinsupp.single_eq_same
 

@@ -5,8 +5,6 @@ Authors: Hanting Zhang
 -/
 import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
-import data.fintype.card
-import algebra.big_operators.multiset
 
 /-!
 # Vieta's Formula
@@ -28,9 +26,6 @@ open_locale big_operators polynomial
 variables {R : Type*} [comm_semiring R]
 
 namespace multiset
-
-/-- docstring... -/
-def esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
 
 lemma bind_powerset_card {α : Type*} (S : multiset α) :
   S.powerset = bind (range (S.card + 1)) (λ k, (filter (λ t, t.card = k) S.powerset)) :=

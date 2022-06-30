@@ -44,6 +44,15 @@ open equiv (perm)
 open_locale big_operators
 noncomputable theory
 
+namespace multiset
+
+variables {R : Type*} [comm_semiring R]
+
+/-- The `n`th elementary symmetric function evaluated at the elements of `s` -/
+def esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
+
+end multiset
+
 namespace mv_polynomial
 
 variables {σ : Type*} {R : Type*}

@@ -1232,6 +1232,9 @@ protected def complete_graph {α β : Type*} (f : α ≃ β) :
   (⊤ : simple_graph α) ≃g (⊤ : simple_graph β) :=
 { map_rel_iff' := by simp, ..f }
 
+lemma to_embedding_complete_graph {α β : Type*} (f : α ≃ β) :
+  (iso.complete_graph f).to_embedding = embedding.complete_graph f.to_embedding := rfl
+
 variables {G'' : simple_graph X}
 
 /-- Composition of graph isomorphisms. -/

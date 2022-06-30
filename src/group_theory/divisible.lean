@@ -24,6 +24,7 @@ such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we
   implied by the condition that `n • A = A` for all `n ≠ 0`.
 * `add_comm_group.smul_top_eq_top_of_divisible` : the constructive definition of divisiblity implies
   the condition that `n • A = A` for all `n ≠ 0`.
+* `add_comm_group.divisible_prod` : `A × B` is divisible for any divisible `A` and `B`.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
 * `add_comm_group.divisible_of_char_zero` : Any field of characteristic zero is divisible.
 * `add_comm_group.divisible_quotient` : Quotient group of divisible group is divisible.
@@ -103,6 +104,7 @@ instance divisible_prod : divisible (A × B) :=
   div_cancel := λ n p hn, (prod.ext (divisible.div_cancel p.1 hn) (divisible.div_cancel p.2 hn)) }
 
 end prod
+
 
 section quotient
 

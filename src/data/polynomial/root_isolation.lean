@@ -10,6 +10,7 @@ import data.real.basic
 import topology.algebra.order.intermediate_value
 import topology.metric_space.basic
 import topology.continuous_function.polynomial
+import data.sign
 
 /-!
 # Root isolation
@@ -26,6 +27,39 @@ Algorithms and theorems for locating the roots of real polynomials.
 open_locale classical
 
 open polynomial multiset
+
+
+lemma opposite_signs_of_roots_filter_mem_Ioo_empty (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
+  (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) (hempty : (p.roots.filter (∈ set.Ioo a b)) = ∅) :
+  sign (p.eval a) = sign (p.eval b) :=
+begin
+  have p_nonzero : p ≠ 0,
+  { contrapose! ha,
+    rw [ha, eval_zero], },
+  have p_continuous : continuous_on (λ x, p.eval x) (set.Icc a b) := p.continuous.continuous_on,
+  rw multiset.filter_eq_empty_iff at hempty,
+  replace ha := ne.lt_or_lt ha,
+  replace hb := ne.lt_or_lt hb,
+  -- Casework on sign of evaluations at endpoints.
+  rcases ha with ha'|ha'; rcases hb with hb'|hb',
+  { simp [ha', hb'], },
+  { have ivt := intermediate_value_Ioo hab p_continuous,
+    have zero_mem_image := set.mem_of_mem_of_subset (set.mem_Ioo.mpr ⟨ha', hb'⟩) ivt,
+    exfalso,
+    simp only [set.mem_Ioo, mem_filter, set.mem_image] at zero_mem_image,
+
+    rcases zero_mem_image with ⟨x, hx⟩,
+    use x,
+    rwa [mem_roots p_nonzero, is_root, and.comm], },
+  { have ivt := intermediate_value_Ioo' hab p_continuous,
+    have zero_mem_image := set.mem_of_mem_of_subset (set.mem_Ioo.mpr ⟨hb', ha'⟩) ivt,
+    simp only [set.mem_Ioo, mem_filter, set.mem_image] at zero_mem_image ⊢,
+    rcases zero_mem_image with ⟨x, hx⟩,
+    use x,
+    rwa [mem_roots p_nonzero, is_root, and.comm], },
+  { simp [ha', hb'], },
+end
+
 
 lemma even_card_roots_filter_mem_Ioo_iff (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
   (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :

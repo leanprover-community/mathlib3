@@ -1,5 +1,9 @@
 import tactic.congrm
 
+example {p q r s : Prop} (pr : p ↔ r) (qs : q ↔ s) :
+  p ∨ q ↔ r ∨ s :=
+by congrm _ ∨ _; assumption
+
 variables {X : Type*} [has_add X] [has_mul X] (a b c d : X) (f : X → X)
 
 example (H : a = b) : f a + f a = f b + f b :=

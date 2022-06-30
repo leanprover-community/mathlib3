@@ -59,12 +59,9 @@ def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} 
   (Σ f : α ↪ γ, β ↪ ↥((set.range f)ᶜ)) :=
 (subtype_prod_equiv_sigma_subtype $
   λ (a : α ↪ γ) (b : β ↪ _), disjoint (set.range a) (set.range b)).trans $
-  equiv.sigma_congr_right $ λ a,
-    (subtype_equiv_prop begin
-      ext f,
-      rw [←set.range_subset_iff, set.subset_compl_iff_disjoint],
-      exact disjoint.comm.trans disjoint_iff,
-    end).trans (cod_restrict _ _)
+  equiv.sigma_congr_right $ λ a, (subtype_equiv_prop $ by { ext f,
+    rw [←set.range_subset_iff, set.subset_compl_iff_disjoint_right, disjoint.comm] }).trans
+      (cod_restrict _ _)
 
 /-- A combination of the above results, allowing us to turn one embedding over a sum type
 into two dependent embeddings, the second of which avoids any members of the range

@@ -219,6 +219,12 @@ by rwa [←aleph'_zero, aleph'_lt]
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 aleph_0_pos.trans_le (aleph_0_le_aleph o)
 
+@[simp] theorem aleph_to_nat (o : ordinal) : (aleph o).to_nat = 0 :=
+to_nat_apply_of_aleph_0_le $ aleph_0_le_aleph o
+
+@[simp] theorem aleph_to_enat (o : ordinal) : (aleph o).to_enat = ⊤ :=
+to_enat_apply_of_aleph_0_le $ aleph_0_le_aleph o
+
 instance nonempty_out_aleph (o : ordinal) : nonempty (aleph o).ord.out.α :=
 begin
   rw [out_nonempty_iff_ne_zero, ←ord_zero],
@@ -685,7 +691,7 @@ begin
     apply le_max_right }
 end
 
-theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
+@[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
@@ -757,8 +763,8 @@ begin
   classical,
   lift s to finset α using finite.of_fintype s,
   lift t to finset β using finite.of_fintype t,
-  simp only [finset.coe_sort_coe, mk_finset, lift_nat_cast, nat.cast_inj] at h2,
-  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_finset, finset.card_compl,
+  simp only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
+  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 

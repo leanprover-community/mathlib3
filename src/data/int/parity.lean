@@ -160,8 +160,8 @@ by simp [even_iff_two_dvd, dvd_nat_abs, coe_nat_dvd_left.symm]
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
 
-alias nat_abs_even ↔ _ even.nat_abs
-alias nat_abs_odd ↔ _ odd.nat_abs
+alias nat_abs_even ↔ _ _root_.even.nat_abs
+alias nat_abs_odd ↔ _ _root_.odd.nat_abs
 
 attribute [protected] even.nat_abs odd.nat_abs
 

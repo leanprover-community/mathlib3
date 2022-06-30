@@ -24,59 +24,62 @@ open_locale direct_sum big_operators
 
 variables {ι R A M σ σ' : Type*}
 variables [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
-variables (𝓐 : ι → σ')
-variables [add_comm_monoid M] [module A M]
+variables (𝓐 : ι → σ') [set_like σ' A]
 variables (𝓜 : ι → σ)
 
 namespace graded_module
 
-instance graded_algebra.to_graded_module [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐] :
+include σ' A
+
+section self
+
+variable [add_submonoid_class σ' A]
+
+/--each graded ring is also a graded module over itself.-/
+lemma graded_algebra.to_graded_module [decidable_eq ι]
+  [graded_ring 𝓐] :
   set_like.has_graded_scalar 𝓐 (λ i, (𝓐 i)) :=
 { smul_mem := λ i j x y hi hj, set_like.graded_monoid.mul_mem hi hj }
 
+end self
+
+include σ M
+
+variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ M]
+
 lemma ghas_scalar.smul_zero
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
   [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a : 𝓐 i) :
   @graded_monoid.ghas_scalar.smul ι _ (λ i, 𝓜 i) _ _ i j a 0 = 0 :=
 subtype.ext_iff_val.2 $ (smul_zero _ : (a : A) • 0 = (0 : M))
 
 lemma ghas_scalar.smul_add
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
   [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a : 𝓐 i) (b c : 𝓜 j) :
   @graded_monoid.ghas_scalar.smul ι _ (λ i, 𝓜 i) _ _ i j a (b + c) =
   graded_monoid.ghas_scalar.smul a b + graded_monoid.ghas_scalar.smul a c :=
 subtype.ext_iff_val.2 $ (smul_add _ _ _ : (a : A) • (b + c : M) = (a : A) • b + (a : A) • c)
 
+variable [add_submonoid_class σ' A]
+
 lemma ghas_scalar.zero_smul
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
   [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (b : 𝓜 j) :
   @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j 0 b = 0 :=
 subtype.ext_iff_val.2 $ (zero_smul _ _ : (0 : A) • _ = 0)
 
 lemma ghas_scalar.add_smul
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
   [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a b : 𝓐 i) (c : 𝓜 j) :
   @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j (a + b) c =
   graded_monoid.ghas_scalar.smul a c + graded_monoid.ghas_scalar.smul b c :=
 subtype.ext_iff_val.2 $ (add_smul _ _ _ : (a + b : A) • _ = (a : A) • _ + (b : A) • _)
 
+
 /--
 The bi-additive morphism `𝓐 i → 𝓜 j → 𝓜 (i + j)` given by `(a, m) ↦ a • m`
 -/
-def gscalar_hom
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
-  [set_like.has_graded_scalar 𝓐 𝓜]
-  {i j} :
+def gscalar_hom [set_like.has_graded_scalar 𝓐 𝓜] {i j} :
   𝓐 i →+ 𝓜 j →+ 𝓜 (i + j) :=
 { to_fun := λ a,
   { to_fun := λ b, @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j a b,
@@ -89,19 +92,13 @@ def gscalar_hom
 The canonical morphism `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i` lifting the bi-additive map given
 by `(a, m) ↦ a • m`
 -/
-def scalar_hom [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
-  [set_like.has_graded_scalar 𝓐 𝓜] :
+def scalar_hom [decidable_eq ι] [set_like.has_graded_scalar 𝓐 𝓜] :
   (⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i :=
 direct_sum.to_add_monoid $ λ i,
   add_monoid_hom.flip $ direct_sum.to_add_monoid $ λ j, add_monoid_hom.flip $
     (direct_sum.of (λ i, 𝓜 i) _).comp_hom.comp $ gscalar_hom 𝓐 𝓜
 
-lemma scalar_hom_of_of [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [set_like σ M] [add_submonoid_class σ M]
-  [set_like.has_graded_scalar 𝓐 𝓜]
+lemma scalar_hom_of_of [decidable_eq ι] [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a : 𝓐 i) (b : 𝓜 j) :
   scalar_hom 𝓐 𝓜 (direct_sum.of _ i a) (direct_sum.of _ j b) =
   direct_sum.of _ (i + j)
@@ -118,24 +115,16 @@ Since `A ≃+ ⨁ i, 𝓐 i`, the map `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+
 multiplication of `A` on `⨁ i, 𝓜 i`
 -/
 def has_scalar [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A]
-  [direct_sum.decomposition 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜] :
+  [direct_sum.decomposition 𝓐] [set_like.has_graded_scalar 𝓐 𝓜] :
   has_scalar A (⨁ i, 𝓜 i) :=
 { smul := λ a b,
     (scalar_hom 𝓐 𝓜).comp (direct_sum.decompose_add_equiv 𝓐).to_add_monoid_hom a b }
 
 local attribute [instance] graded_module.has_scalar
 
-lemma one_smul [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+lemma one_smul [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   (b : ⨁ i, 𝓜 i) :
   (1 : A) • b = b :=
-have of_congr : ∀ {i i' : ι} (h1 : i = i') {x : 𝓜 i} {y : 𝓜 i'} (h2 : x.1 = y.1),
-  direct_sum.of _ i x = direct_sum.of _ i' y,
-from λ _ _ h1 x y h2,
-  direct_sum.of_congr _ h1 $ by subst h1; exact heq_of_eq (subtype.ext_iff_val.2 h2),
 begin
   unfold has_scalar.smul,
   refine direct_sum.induction_on b (by rw [map_zero]) _ (λ x y hx hy, by rw [map_add, hx, hy]),
@@ -143,12 +132,13 @@ begin
   rw [add_monoid_hom.comp_apply, add_equiv.coe_to_add_monoid_hom,
     show direct_sum.decompose_add_equiv 𝓐 (1 : A) = direct_sum.of _ 0 _, from
     direct_sum.decompose_coe 𝓐 (⟨1, set_like.graded_monoid.one_mem⟩ : 𝓐 0), scalar_hom_of_of],
-  exact of_congr (zero_add _) (by convert (one_smul _ _ : (1 : A) • b.1 = b.1)),
+  apply direct_sum.of_eq_of_graded_monoid_eq,
+  ext,
+  { exact zero_add i, },
+  { convert (one_smul _ _ : (1 : A) • b.1 = b.1) },
 end
 
-lemma mul_smul [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+lemma mul_smul [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   (a b : A) (c : ⨁ i, 𝓜 i) :
   (a * b) • c = a • (b • c) :=
 begin
@@ -194,16 +184,12 @@ begin
   { simp only [map_add, hx, hy], },
 end
 
-lemma smul_add [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+lemma smul_add [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   (a : A) (b c : ⨁ i, 𝓜 i) :
   a • (b + c) = a • b + a • c :=
 by unfold has_scalar.smul; simp
 
-lemma smul_zero [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+lemma smul_zero [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   (a : A) :
   a • (0 : ⨁ i, 𝓜 i) = 0 :=
 by unfold has_scalar.smul; simp
@@ -212,9 +198,7 @@ by unfold has_scalar.smul; simp
 The scalar multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i` is
 distributive.
 -/
-def distrib_mul_action [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜] :
+def distrib_mul_action [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜] :
   distrib_mul_action A (⨁ i, 𝓜 i) :=
 { smul := (•),
   one_smul := one_smul 𝓐 𝓜,
@@ -224,16 +208,12 @@ def distrib_mul_action [decidable_eq ι]
 
 local attribute [instance] graded_module.distrib_mul_action
 
-lemma add_smul [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+lemma add_smul [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   (a b : A) (c : ⨁ i, 𝓜 i) :
   (a + b) • c = a • c + b • c :=
 by unfold has_scalar.smul; simp
 
-lemma zero_smul [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A]  [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+lemma zero_smul [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   (a : ⨁ i, 𝓜 i) :
   (0 : A) • a = 0 :=
 by unfold has_scalar.smul; simp
@@ -242,9 +222,7 @@ by unfold has_scalar.smul; simp
 The scalar multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i`
 turns `⨁ i, 𝓜 i` into an `A`-module
 -/
-def is_module [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A] [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜] :
+def is_module [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜] :
   module A (⨁ i, 𝓜 i) :=
 { add_smul := add_smul 𝓐 𝓜,
   zero_smul := zero_smul 𝓐 𝓜,
@@ -255,9 +233,7 @@ local attribute [instance] graded_module.is_module
 /--
 `⨁ i, 𝓜 i` and `M` are isomorphic as `A`-modules.
 -/
-def linear_equiv [decidable_eq ι]
-  [set_like σ' A] [add_submonoid_class σ' A]  [graded_ring 𝓐]
-  [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
+def linear_equiv [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_scalar 𝓐 𝓜]
   [direct_sum.decomposition 𝓜] :
   M ≃ₗ[A] ⨁ i, 𝓜 i :=
 { to_fun := direct_sum.decompose_add_equiv 𝓜,

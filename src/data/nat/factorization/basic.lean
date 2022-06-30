@@ -7,6 +7,7 @@ import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
 import data.nat.log
+import data.nat.interval
 
 /-!
 # Prime factorizations

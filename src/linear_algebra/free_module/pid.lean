@@ -193,6 +193,7 @@ begin
   by_cases a_zero : a = 0,
   { have := eq_bot_of_generator_maximal_submodule_image_eq_zero b'M N_le_M ϕ_max a_zero,
     contradiction },
+    --delete this
 
   -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
   obtain ⟨y, yN, ϕy_eq⟩ := (linear_map.mem_submodule_image_of_le N_le_M).mp a_mem,

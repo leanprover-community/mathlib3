@@ -423,13 +423,13 @@ variables [comm_semiring R] [semiring S]
 
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself -/
 lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
-  (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap C) : p ∈ I :=
+  (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap (C : R →+* R[X])) : p ∈ I :=
 sum_C_mul_X_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
 
 /-- The push-forward of an ideal `I` of `R` to `polynomial R` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
 theorem mem_map_C_iff {I : ideal R} {f : R[X]} :
-  f ∈ (ideal.map C I : ideal R[X]) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
+  f ∈ (ideal.map (C : R →+* R[X]) I : ideal R[X]) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
 begin
   split,
   { intros hf,
@@ -454,7 +454,7 @@ begin
 end
 
 lemma _root_.polynomial.ker_map_ring_hom (f : R →+* S) :
-  (polynomial.map_ring_hom f).ker = f.ker.map C :=
+  (polynomial.map_ring_hom f).ker = f.ker.map (C : R →+* R[X]) :=
 begin
   ext,
   rw [mem_map_C_iff, ring_hom.mem_ker, polynomial.ext_iff],
@@ -555,7 +555,7 @@ section comm_ring
 variables [comm_ring R]
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
-  ∀ a ∈ I, ((quotient.mk (map C I : ideal R[X])).comp C) a = 0 :=
+  ∀ a ∈ I, ((quotient.mk (map (C : R →+* R[X]) I : ideal R[X])).comp C) a = 0 :=
 begin
   intros a ha,
   rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
@@ -563,7 +563,7 @@ begin
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} :
-  ∀ f ∈ (map C I : ideal R[X]), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
+  ∀ f ∈ (map (C : R →+* R[X]) I : ideal R[X]), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
 begin
   intros a ha,
   rw ← sum_monomial_eq a,
@@ -632,13 +632,13 @@ end
 
 /-- If `P` is a prime ideal of `R`, then `R[x]/(P)` is an integral domain. -/
 lemma is_domain_map_C_quotient {P : ideal R} (H : is_prime P) :
-  is_domain (R[X] ⧸ (map C P : ideal R[X])) :=
+  is_domain (R[X] ⧸ (map (C : R →+* R[X]) P : ideal R[X])) :=
 ring_equiv.is_domain (polynomial (R ⧸ P))
   (polynomial_quotient_equiv_quotient_polynomial P).symm
 
 /-- If `P` is a prime ideal of `R`, then `P.R[x]` is a prime ideal of `R[x]`. -/
 lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
-  is_prime (map C P : ideal R[X]) :=
+  is_prime (map (C : R →+* R[X]) P : ideal R[X]) :=
 (quotient.is_domain_iff_prime (map C P : ideal R[X])).mp
   (is_domain_map_C_quotient H)
 
@@ -1036,7 +1036,8 @@ begin
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
-  (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
+  (ideal.quotient.mk (ideal.map (C : R →+* mv_polynomial σ R) I :
+  ideal (mv_polynomial σ R))).comp C i = 0 :=
 begin
   simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
   exact ideal.mem_map_of_mem _ hi
@@ -1045,7 +1046,7 @@ end
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
 multivariate version. -/
 lemma mem_ideal_of_coeff_mem_ideal (I : ideal (mv_polynomial σ R)) (p : mv_polynomial σ R)
-  (hcoe : ∀ (m : σ →₀ ℕ), p.coeff m ∈ I.comap C) : p ∈ I :=
+  (hcoe : ∀ (m : σ →₀ ℕ), p.coeff m ∈ I.comap (C : R →+* mv_polynomial σ R)) : p ∈ I :=
 begin
   rw as_sum p,
   suffices : ∀ m ∈ p.support, monomial m (mv_polynomial.coeff m p) ∈ I,
@@ -1060,7 +1061,8 @@ end
 /-- The push-forward of an ideal `I` of `R` to `mv_polynomial σ R` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
 theorem mem_map_C_iff {I : ideal R} {f : mv_polynomial σ R} :
-  f ∈ (ideal.map C I : ideal (mv_polynomial σ R)) ↔ ∀ (m : σ →₀ ℕ), f.coeff m ∈ I :=
+  f ∈ (ideal.map (C : R →+* mv_polynomial σ R) I :
+  ideal (mv_polynomial σ R)) ↔ ∀ (m : σ →₀ ℕ), f.coeff m ∈ I :=
 begin
   split,
   { intros hf,
@@ -1089,7 +1091,8 @@ begin
     exact hf m }
 end
 
-lemma ker_map (f : R →+* S) : (map f : mv_polynomial σ R →+* mv_polynomial σ S).ker = f.ker.map C :=
+lemma ker_map (f : R →+* S) :
+  (map f : mv_polynomial σ R →+* mv_polynomial σ S).ker = f.ker.map (C : R →+* mv_polynomial σ R) :=
 begin
   ext,
   rw [mv_polynomial.mem_map_C_iff, ring_hom.mem_ker, mv_polynomial.ext_iff],
@@ -1097,7 +1100,7 @@ begin
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} {a : mv_polynomial σ R}
-  (ha : a ∈ (ideal.map C I : ideal (mv_polynomial σ R))) :
+  (ha : a ∈ (ideal.map (C : R →+* mv_polynomial σ R) I : ideal (mv_polynomial σ R))) :
   eval₂_hom (C.comp (ideal.quotient.mk I)) X a = 0 :=
 begin
   rw as_sum a,

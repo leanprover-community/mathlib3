@@ -249,20 +249,10 @@ section partial_order
 variables [topological_space α] [partial_order α] [t : order_closed_topology α]
 include t
 
-private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
-by simp only [le_antisymm_iff];
-   exact is_closed.inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
-
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
-{ t2 :=
-  have is_open {p : α × α | p.1 ≠ p.2} := is_closed_eq_aux.is_open_compl,
-  assume a b h,
-  let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
-  ⟨u, v, hu, hv, ha, hb,
-    set.eq_empty_iff_forall_not_mem.2 $ assume a ⟨h₁, h₂⟩,
-    have a ≠ a, from @h (a, a) ⟨h₁, h₂⟩,
-    this rfl⟩ }
+t2_iff_is_closed_diagonal.2 $ by simpa only [diagonal, le_antisymm_iff] using
+  t.is_closed_le'.inter (is_closed_le continuous_snd continuous_fst)
 
 end partial_order
 
@@ -1074,6 +1064,22 @@ instance order_topology.to_order_closed_topology : order_closed_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
+lemma dense_of_exists_between [nontrivial α] {s : set α}
+  (h : ∀ ⦃a b⦄, a < b → ∃ c ∈ s, a < c ∧ c < b) : dense s :=
+begin
+  apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
+  obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
+  obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h hab,
+  exact ⟨x, ⟨H hx, xs⟩⟩
+end
+
+/-- A set in a nontrivial densely linear ordered type is dense in the sense of topology if and only
+if for any `a < b` there exists `c ∈ s`, `a < c < b`. Each implication requires less typeclass
+assumptions. -/
+lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α} :
+  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
+⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
+
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1156,6 +1162,94 @@ lemma filter.eventually.exists_Ioo_subset [no_max_order α] [no_min_order α] {a
   (hp : ∀ᶠ x in 𝓝 a, p x) :
   ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
 mem_nhds_iff_exists_Ioo_subset.1 hp
+
+/-- The set of points which are isolated on the right is countable when the space is
+second-countable. -/
+lemma countable_of_isolated_right [second_countable_topology α] :
+  set.countable {x : α | ∃ y, x < y ∧ Ioo x y = ∅} :=
+begin
+  nontriviality α,
+  let s := {x : α | ∃ y, x < y ∧ Ioo x y = ∅},
+  have : ∀ x ∈ s, ∃ y, x < y ∧ Ioo x y = ∅ := λ x, id,
+  choose! y hy h'y using this,
+  have Hy : ∀ x z, x ∈ s → z < y x → z ≤ x,
+  { assume x z xs hz,
+    have A : Ioo x (y x) = ∅ := h'y _ xs,
+    contrapose! A,
+    exact ne_empty_iff_nonempty.2 ⟨z, A, hz⟩ },
+  suffices H : ∀ (a : set α), is_open a → set.countable {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
+  { have : s ⊆ ⋃ (a ∈ countable_basis α), {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
+    { assume x hx,
+      rcases (is_basis_countable_basis α).exists_mem_of_ne (hy x hx).ne with ⟨a, ab, xa, ya⟩,
+      simp only [mem_set_of_eq, mem_Union],
+      exact ⟨a, ab, hx, xa, ya⟩ },
+    apply countable.mono this,
+    refine countable.bUnion (countable_countable_basis α) (λ a ha, H _ _),
+    exact is_open_of_mem_countable_basis ha },
+  assume a ha,
+  suffices H : set.countable {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)},
+  { have : {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a} ⊆
+      {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)} ∪ {x | is_bot x},
+    { assume x hx,
+      by_cases h'x : is_bot x,
+      { simp only [h'x, mem_set_of_eq, mem_union_eq, not_true, and_false, false_or] },
+      { simpa only [h'x, hx.2.1, hx.2.2, mem_set_of_eq, mem_union_eq,
+          not_false_iff, and_true, or_false] using hx.left } },
+    exact countable.mono this (H.union (subsingleton_is_bot α).countable) },
+  let t := {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)},
+  have : ∀ x ∈ t, ∃ z < x, Ioc z x ⊆ a,
+  { assume x hx,
+    apply exists_Ioc_subset_of_mem_nhds (ha.mem_nhds hx.2.1),
+    simpa only [is_bot, not_forall, not_le] using hx.right.right.right },
+  choose! z hz h'z using this,
+  have : pairwise_disjoint t (λ x, Ioc (z x) x),
+  { assume x xt x' x't hxx',
+    rcases lt_or_gt_of_ne hxx' with h'|h',
+    { refine disjoint_left.2 (λ u ux ux', xt.2.2.1 _),
+      refine h'z x' x't ⟨ux'.1.trans_le (ux.2.trans (hy x xt.1).le), _⟩,
+      by_contra' H,
+      exact false.elim (lt_irrefl _ ((Hy _ _ xt.1 H).trans_lt h')) },
+    { refine disjoint_left.2 (λ u ux ux', x't.2.2.1 _),
+      refine h'z x xt ⟨ux.1.trans_le (ux'.2.trans (hy x' x't.1).le), _⟩,
+      by_contra' H,
+      exact false.elim (lt_irrefl _ ((Hy _ _ x't.1 H).trans_lt h')) } },
+  refine this.countable_of_is_open (λ x hx, _) (λ x hx, ⟨x, hz x hx, le_rfl⟩),
+  suffices H : Ioc (z x) x = Ioo (z x) (y x),
+  { rw H, exact is_open_Ioo },
+  exact subset.antisymm (Ioc_subset_Ioo_right (hy x hx.1)) (λ u hu, ⟨hu.1, Hy _ _ hx.1 hu.2⟩),
+end
+
+/-- The set of points which are isolated on the left is countable when the space is
+second-countable. -/
+lemma countable_of_isolated_left [second_countable_topology α] :
+  set.countable {x : α | ∃ y, y < x ∧ Ioo y x = ∅} :=
+begin
+  convert @countable_of_isolated_right αᵒᵈ _ _ _ _,
+  have : ∀ (x y : α), Ioo x y = {z | z < y ∧ x < z},
+  { simp_rw [and_comm, Ioo], simp only [eq_self_iff_true, forall_2_true_iff] },
+  simp_rw [this],
+  refl
+end
+
+/-- Consider a disjoint family of intervals `(x, y)` with `x < y` in a second-countable space.
+Then the family is countable.
+This is not a straightforward consequence of second-countability as some of these intervals might be
+empty (but in fact this can happen only for countably many of them). -/
+lemma set.pairwise_disjoint.countable_of_Ioo [second_countable_topology α]
+  {y : α → α} {s : set α} (h : pairwise_disjoint s (λ x, Ioo x (y x))) (h' : ∀ x ∈ s, x < y x) :
+  s.countable :=
+begin
+  let t := {x | x ∈ s ∧ (Ioo x (y x)).nonempty},
+  have t_count : t.countable,
+  { have : t ⊆ s := λ x hx, hx.1,
+    exact (h.subset this).countable_of_is_open (λ x hx, is_open_Ioo) (λ x hx, hx.2) },
+  have : s ⊆ t ∪ {x : α | ∃ x', x < x' ∧ Ioo x x' = ∅},
+  { assume x hx,
+    by_cases h'x : (Ioo x (y x)).nonempty,
+    { exact or.inl ⟨hx, h'x⟩ },
+    { exact or.inr ⟨y x, h' x hx, not_nonempty_iff_eq_empty.1 h'x⟩ } },
+  exact countable.mono this (t_count.union countable_of_isolated_right),
+end
 
 section pi
 
@@ -2562,21 +2656,6 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[<] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
 
-lemma dense_iff_forall_lt_exists_mem [nontrivial α] {s : set α} :
-  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
-begin
-  split,
-  { assume h a b hab,
-    obtain ⟨c, ⟨hc, cs⟩⟩ : ((Ioo a b) ∩ s).nonempty :=
-      dense_iff_inter_open.1 h (Ioo a b) is_open_Ioo (nonempty_Ioo.2 hab),
-    exact ⟨c, cs, hc⟩ },
-  { assume h,
-    apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
-    obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
-    obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h a b hab,
-    exact ⟨x, ⟨H hx, xs⟩⟩ }
-end
-
 instance (x : α) [nontrivial α] : ne_bot (𝓝[≠] x) :=
 begin
   apply forall_mem_nonempty_iff_ne_bot.1 (λ s hs, _),
@@ -2595,7 +2674,7 @@ separable space (e.g., if `α` has a second countable topology), then there exis
 dense subset `t ⊆ s` such that `t` does not contain bottom/top elements of `α`. -/
 lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
   {s : set α} [separable_space s] (hs : dense s) :
-  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
+  ∃ t ⊆ s, t.countable ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
 begin
   rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
   refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
@@ -2612,7 +2691,7 @@ countable dense set `s : set α` that contains neither top nor bottom elements o
 For a dense set containing both bot and top elements, see
 `exists_countable_dense_bot_top`. -/
 lemma exists_countable_dense_no_bot_top [separable_space α] [nontrivial α] :
-  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
+  ∃ s : set α, s.countable ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
 by simpa using dense_univ.exists_countable_dense_subset_no_bot_top
 
 end densely_ordered

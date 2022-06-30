@@ -390,13 +390,13 @@ begin
 end
 
 lemma mul_add_inv_left {g : R →+* P} (h : ∀ y : M, is_unit (g y)) (y : M) (w z₁ z₂ : P) :
-  w * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y)⁻¹ + z₁ = z₂
+  w * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) h y)⁻¹ + z₁ = z₂
     ↔ w + g y * z₁ = g y * z₂ :=
 begin
-  rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y),
+  rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.restrict M) h y),
     mul_assoc, ←mul_add, units.inv_mul_eq_iff_eq_mul, units.inv_mul_cancel_left,
     is_unit.coe_lift_right],
-  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.mrestrict_apply, ring_hom.coe_monoid_hom]
+  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.restrict_apply, ring_hom.coe_monoid_hom]
 end
 
 lemma lift_spec_mul_add {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) (z w w' v) :
@@ -435,7 +435,7 @@ variables {g : R →+* P} (hg : ∀ y : M, is_unit (g y))
 `g : R →* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
 `S` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : R, y ∈ M`. -/
 lemma lift_mk' (x y) :
-  lift hg (mk' S x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) hg y)⁻¹ :=
+  lift hg (mk' S x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) hg y)⁻¹ :=
 (to_localization_map M S).lift_mk' _ _ _
 
 lemma lift_mk'_spec (x v) (y : M) :

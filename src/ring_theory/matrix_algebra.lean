@@ -59,7 +59,7 @@ begin
   simp_rw [to_fun_linear, lift.tmul, to_fun_bilinear_apply, mul_eq_mul, matrix.map_mul],
   ext,
   dsimp,
-  simp_rw [matrix.mul_apply, matrix.map, pi.smul_apply, smul_eq_mul, finset.mul_sum,
+  simp_rw [matrix.mul_apply, matrix.map, pi.smul_apply, of_apply, smul_eq_mul, finset.mul_sum,
     _root_.mul_assoc, algebra.left_comm],
 end
 begin
@@ -106,7 +106,8 @@ end
 lemma right_inv (M : matrix n n A) : (to_fun_alg_hom R A n) (inv_fun R A n M) = M :=
 begin
   simp only [inv_fun, alg_hom.map_sum, std_basis_matrix, apply_ite ⇑(algebra_map R A), smul_eq_mul,
-    mul_boole, to_fun_alg_hom_apply, ring_hom.map_zero, ring_hom.map_one, matrix.map, pi.smul_def],
+    mul_boole, to_fun_alg_hom_apply, ring_hom.map_zero, ring_hom.map_one, matrix.map, pi.smul_def,
+    of_apply],
   convert finset.sum_product, apply matrix_eq_sum_std_basis,
 end
 

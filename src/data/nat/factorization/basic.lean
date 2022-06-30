@@ -7,7 +7,6 @@ import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
 import number_theory.padics.padic_val
-import tactic.interval_cases
 
 /-!
 # Prime factorizations
@@ -518,10 +517,8 @@ begin
     exact hp p n hp' hn },
   refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
-  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
-    interval_cases a,
-    { simpa only [dvd_zero, not_true] using hpa },
-    { contradiction } },
+  { contrapose! hpa,
+    simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

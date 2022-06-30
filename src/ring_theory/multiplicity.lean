@@ -237,7 +237,7 @@ begin
     λ h, by cases h; simp *⟩
 end
 
-alias dvd_iff_multiplicity_pos ↔ _ has_dvd.dvd.multiplicity_pos
+alias dvd_iff_multiplicity_pos ↔ _ _root_.has_dvd.dvd.multiplicity_pos
 
 end comm_monoid
 

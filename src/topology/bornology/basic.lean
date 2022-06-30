@@ -104,8 +104,8 @@ by rw [is_bounded_def, is_cobounded_def, compl_compl]
 
 @[simp] lemma is_cobounded_compl_iff : is_cobounded sᶜ ↔ is_bounded s := iff.rfl
 
-alias is_bounded_compl_iff ↔ bornology.is_bounded.of_compl bornology.is_cobounded.compl
-alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bounded.compl
+alias is_bounded_compl_iff ↔ is_bounded.of_compl is_cobounded.compl
+alias is_cobounded_compl_iff ↔ is_cobounded.of_compl is_bounded.compl
 
 @[simp] lemma is_bounded_empty : is_bounded (∅ : set α) :=
 by { rw [is_bounded_def, compl_empty], exact univ_mem}

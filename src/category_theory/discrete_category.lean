@@ -135,6 +135,10 @@ lemma functor_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) 
   (discrete.functor F).map f = 𝟙 (F i.as) :=
 by tidy
 
+/--
+The discrete functor induced by a composition of maps can be written as a
+composition of two discrete functors.
+-/
 @[simps]
 def functor_comp {I : Type u₁} {J : Type u₁'} (f : J → C) (g : I → J) :
   discrete.functor (f ∘ g) ≅ discrete.functor (discrete.mk ∘ g) ⋙ discrete.functor f :=

@@ -167,11 +167,15 @@ def whisker {f : J → C} (c : bicone f) (g : K ≃ J) : bicone (f ∘ g) :=
 
 local attribute [tidy] tactic.discrete_cases
 
+/-- Taking the cone of a whiskered bicone results in a cone isomorphic to one gained
+by whiskering the cone and postcomposing with a suitable isomorphism. -/
 def whisker_to_cone {f : J → C} (c : bicone f) (g : K ≃ J) :
   (c.whisker g).to_cone ≅ (cones.postcompose (discrete.functor_comp f g).inv).obj
     (c.to_cone.whisker (discrete.functor (discrete.mk ∘ g))) :=
 cones.ext (iso.refl _) (by tidy)
 
+/-- Taking the cocone of a whiskered bicone results in a cone isomorphic to one gained
+by whiskering the cocone and precomposing with a suitable isomorphism. -/
 def whisker_to_cocone {f : J → C} (c : bicone f) (g : K ≃ J) :
   (c.whisker g).to_cocone ≅ (cocones.precompose (discrete.functor_comp f g).hom).obj
     (c.to_cocone.whisker (discrete.functor (discrete.mk ∘ g))) :=

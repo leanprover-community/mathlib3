@@ -101,6 +101,7 @@ begin
   refl,
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance [semilattice_inf α] [order_top α] : has_binary_products α :=
 begin
   haveI : ∀ (x y : α), has_limit (pair x y),
@@ -119,6 +120,7 @@ calc limits.prod x y = limit (pair x y) : rfl
 ... = x ⊓ (y ⊓ ⊤) : rfl -- Note: finset.inf is realized as a fold, hence the definitional equality
 ... = x ⊓ y : by rw inf_top_eq
 
+@[priority 100] -- see Note [lower instance priority]
 instance [semilattice_sup α] [order_bot α] : has_binary_coproducts α :=
 begin
   haveI : ∀ (x y : α), has_colimit (pair x y),

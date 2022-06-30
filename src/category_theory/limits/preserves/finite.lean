@@ -63,7 +63,7 @@ noncomputable instance preserves_limits.preserves_finite_limits (F : C ⥤ D)
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/
-noncomputable lemma preserves_finite_limits_of_preserves_finite_limits_of_size (F : C ⥤ D)
+noncomputable def preserves_finite_limits_of_preserves_finite_limits_of_size (F : C ⥤ D)
   (h : ∀ (J : Type w) {𝒥 : small_category J} (hJ : @fin_category J 𝒥),
     by { resetI, exact preserves_limits_of_shape J F }) :
   preserves_finite_limits F :=
@@ -84,7 +84,7 @@ def comp_preserves_finite_limits (F : C ⥤ D) (G : D ⥤ E)
 ⟨λ _ _ _, by { resetI, apply_instance }⟩
 
 /--
-A functor is said to preserve finite colimits, if it preserves all colimits of 
+A functor is said to preserve finite colimits, if it preserves all colimits of
 shape `J`, where `J : Type` is a finite category.
 -/
 class preserves_finite_colimits (F : C ⥤ D) :=
@@ -112,7 +112,7 @@ noncomputable instance preserves_colimits.preserves_finite_colimits (F : C ⥤ D
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/
-noncomputable lemma preserves_finite_colimits_of_preserves_finite_colimits_of_size (F : C ⥤ D)
+noncomputable def preserves_finite_colimits_of_preserves_finite_colimits_of_size (F : C ⥤ D)
   (h : ∀ (J : Type w) {𝒥 : small_category J} (hJ : @fin_category J 𝒥),
     by { resetI, exact preserves_colimits_of_shape J F }) :
   preserves_finite_colimits F :=

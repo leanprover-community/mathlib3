@@ -124,7 +124,7 @@ attribute [instance, priority 100] preserves_biproducts.preserves
 
 set_option pp.universes true
 
-lemma preserves_biproducts_shrink (F : C ⥤ D) [preserves_zero_morphisms F]
+def preserves_biproducts_shrink (F : C ⥤ D) [preserves_zero_morphisms F]
   [hp : preserves_biproducts.{max w₁ w₂} F] : preserves_biproducts.{w₁} F :=
 ⟨λ J, ⟨λ f, ⟨λ b ib, ((F.map_bicone b).whisker_is_bilimit_iff _).to_fun
   (is_bilimit_of_preserves F ((b.whisker_is_bilimit_iff equiv.ulift.{w₂}).inv_fun ib))⟩⟩⟩

@@ -2172,6 +2172,7 @@ def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
 wide_pullback_shape_op_equiv _
 
 /-- Having wide pullback at any universe level implies having binary pullbacks. -/
+@[priority 100] -- see Note [lower instance priority]
 instance has_pullbacks_of_has_wide_pullbacks [has_wide_pullbacks.{w} C] : has_pullbacks C :=
 begin
   haveI := has_wide_pullbacks_shrink.{0 w} C,

@@ -236,12 +236,12 @@ def preserves_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e
 `preserves_limits_of_size_shrink.{w w'} F` tries to obtain `preserves_limits_of_size.{w w'} F`
 from some other `preserves_limits_of_size F`.
 -/
-lemma preserves_limits_of_size_shrink (F : C ⥤ D)
+def preserves_limits_of_size_shrink (F : C ⥤ D)
   [preserves_limits_of_size.{(max w w₂) (max w' w₂')} F] : preserves_limits_of_size.{w w'} F :=
 ⟨λ J hJ, by exactI preserves_limits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
-lemma preserves_smallest_limits_of_preserves_limits
+def preserves_smallest_limits_of_preserves_limits
   (F : C ⥤ D) [preserves_limits_of_size.{v₃ u₃} F] : preserves_limits_of_size.{0 0} F :=
 preserves_limits_of_size_shrink F
 
@@ -295,12 +295,12 @@ def preserves_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] 
 `preserves_colimits_of_size_shrink.{w w'} F` tries to obtain `preserves_colimits_of_size.{w w'} F`
 from some other `preserves_colimits_of_size F`.
 -/
-lemma preserves_colimits_of_size_shrink (F : C ⥤ D)
+def preserves_colimits_of_size_shrink (F : C ⥤ D)
   [preserves_colimits_of_size.{(max w w₂) (max w' w₂')} F] : preserves_colimits_of_size.{w w'} F :=
 ⟨λ J hJ, by exactI preserves_colimits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
-lemma preserves_smallest_colimits_of_preserves_colimits
+def preserves_smallest_colimits_of_preserves_colimits
   (F : C ⥤ D) [preserves_colimits_of_size.{v₃ u₃} F] : preserves_colimits_of_size.{0 0} F :=
 preserves_colimits_of_size_shrink F
 
@@ -550,12 +550,12 @@ def reflects_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e 
 `reflects_limits_of_size_shrink.{w w'} F` tries to obtain `reflects_limits_of_size.{w w'} F`
 from some other `reflects_limits_of_size F`.
 -/
-lemma reflects_limits_of_size_shrink (F : C ⥤ D)
+def reflects_limits_of_size_shrink (F : C ⥤ D)
   [reflects_limits_of_size.{(max w w₂) (max w' w₂')} F] : reflects_limits_of_size.{w w'} F :=
 ⟨λ J hJ, by exactI reflects_limits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
-lemma reflects_smallest_limits_of_reflects_limits
+def reflects_smallest_limits_of_reflects_limits
   (F : C ⥤ D) [reflects_limits_of_size.{v₃ u₃} F] : reflects_limits_of_size.{0 0} F :=
 reflects_limits_of_size_shrink F
 
@@ -666,12 +666,12 @@ def reflects_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (
 `reflects_colimits_of_size_shrink.{w w'} F` tries to obtain `reflects_colimits_of_size.{w w'} F`
 from some other `reflects_colimits_of_size F`.
 -/
-lemma reflects_colimits_of_size_shrink (F : C ⥤ D)
+def reflects_colimits_of_size_shrink (F : C ⥤ D)
   [reflects_colimits_of_size.{(max w w₂) (max w' w₂')} F] : reflects_colimits_of_size.{w w'} F :=
 ⟨λ J hJ, by exactI reflects_colimits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
-lemma reflects_smallest_colimits_of_reflects_colimits
+def reflects_smallest_colimits_of_reflects_colimits
   (F : C ⥤ D) [reflects_colimits_of_size.{v₃ u₃} F] : reflects_colimits_of_size.{0 0} F :=
 reflects_colimits_of_size_shrink F
 

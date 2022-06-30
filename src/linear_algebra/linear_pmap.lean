@@ -50,6 +50,16 @@ instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domai
 @[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
   f.to_fun x = f x := rfl
 
+@[ext] lemma ext {f g : linear_pmap R E F} (h : f.domain = g.domain)
+  (h' : ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y) : f = g :=
+begin
+  rcases f with ⟨f_dom, f⟩,
+  rcases g with ⟨g_dom, g⟩,
+  obtain rfl : f_dom = g_dom := h,
+  obtain rfl : f = g := linear_map.ext (λ x, h' rfl),
+  refl,
+end
+
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
@@ -150,14 +160,7 @@ instance : has_le (linear_pmap R E F) :=
 
 lemma eq_of_le_of_domain_eq {f g : linear_pmap R E F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
-begin
-  rcases f with ⟨f_dom, f⟩,
-  rcases g with ⟨g_dom, g⟩,
-  change f_dom = g_dom at heq,
-  subst g_dom,
-  obtain rfl : f = g := linear_map.ext (λ x, hle.2 rfl),
-  refl,
-end
+ext heq hle.2
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
@@ -297,6 +300,29 @@ begin
   have hx : x = 0, from subtype.eq (hxy.trans $ congr_arg _ hy),
   simp [*]
 end
+
+section smul
+
+variables {M N : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F]
+variables [monoid N] [distrib_mul_action N F] [smul_comm_class R N F]
+
+instance : has_smul M (linear_pmap R E F) :=
+⟨λ a f,
+  { domain := f.domain,
+    to_fun := a • f.to_fun }⟩
+
+lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
+  (a • f) x = a • f x := rfl
+
+@[simp] lemma coe_smul (a : M) (f : linear_pmap R E F) : ⇑(a • f) = a • f := rfl
+
+instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
+⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
+
+instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
+
+end smul
 
 section
 

@@ -170,7 +170,7 @@ begin
   { rw [equiv_zero_iff_le G, le_zero_lf],
     exact λ i, (hb i).1 },
   { rw fuzzy_zero_iff_lf,
-    exact move_left_lf_of_le i hp.1 }
+    exact hp.1.move_left_lf i }
 end
 
 lemma forall_right_moves_fuzzy_iff_equiv_zero : (∀ j, G.move_right j ∥ 0) ↔ G ≈ 0 :=
@@ -179,7 +179,7 @@ begin
   { rw [equiv_zero_iff_ge G, zero_le_lf],
     exact λ i, (hb i).2 },
   { rw fuzzy_zero_iff_gf,
-    exact lf_move_right_of_le i hp.2 }
+    exact hp.2.lf_move_right i }
 end
 
 lemma exists_left_move_equiv_iff_fuzzy_zero : (∃ i, G.move_left i ≈ 0) ↔ G ∥ 0 :=

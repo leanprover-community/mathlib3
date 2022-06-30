@@ -814,7 +814,7 @@ begin
       rw heq at hast,
       exact mul_left_cancel hast },
     { contrapose hast,
-      exact ne_of_gt (mul_lt_mul_of_lt_of_le hlt (ht.min_le hat)) } },
+      exact (mul_lt_mul_of_lt_of_le hlt (ht.min_le hat)).ne' } },
   { rintro ⟨ha1, ha2⟩,
     rw [ha1, ha2],
     exact ⟨rfl, hs.min_mem _, ht.min_mem _⟩ }

@@ -51,7 +51,8 @@ commute with finite limits.
 
 open function
 
-universes w v v₁ u u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₁ u u₁ u₂
 
 namespace category_theory
 

@@ -13,6 +13,7 @@ import ring_theory.polynomial.basic
 import ring_theory.power_basis
 import ring_theory.unique_factorization_domain
 import data.polynomial.field_division
+import ring_theory.chain_of_divisors
 
 /-!
 # Kummer-Dedekind theorem
@@ -35,10 +36,14 @@ kummer, dedekind, kummer dedekind, dedekind-kummer, dedekind kummer
 -/
 
 open_locale big_operators
+
 open ideal polynomial double_quot unique_factorization_monoid
 
-variables {R S: Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] (f : polynomial R)
-variables [comm_ring S] [algebra R S]
+open_locale classical
+
+variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
+
+variables {S : Type*} [comm_ring S] [algebra R S]
 @[simps]
 def alg_equiv.of_ring_equiv {R A B : Type*} [comm_semiring R] [semiring A] [semiring B]
   [algebra R A] [algebra R B] (f : A ≃+* B) (hf : ∀ x, f (algebra_map R A x) = algebra_map R B x) :
@@ -191,6 +196,7 @@ variable [decidable_eq (ideal S)]
 
 open_locale classical
 
+--not true as such : need p ≠ 0. Replace by is_maximal below
 instance {p : ideal R} [hp : is_prime p] : is_dedekind_domain (polynomial (R ⧸ p)) :=
 begin
 have l₁ : is_field  (R ⧸ p),
@@ -206,20 +212,78 @@ sorry,
 end
 
 noncomputable def factors_equiv [is_domain R] [is_dedekind_domain R] [is_domain S]
-  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) (p : ideal R) (hp : is_prime p) :
+  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {p : ideal R} (hp : is_prime p) :
   {I : ideal S | I ∣ p.map (algebra_map R S) } ≃o
     {J : ideal (polynomial $ R ⧸ p ) | J ∣ ideal.span { map p^.quotient.mk (minpoly R pb.gen) }} :=
 ideal_factors_equiv_of_quot_equiv (pb.quotient_equiv_quotient_minpoly_map p)
 
-/- def ideal_prime_factors_equiv_prime_factors [is_domain R] [field R] (f : polynomial R):
-  {p : polynomial R | p ∈ factors f} ≃ {u : ideal (polynomial R) |
-    u ∈ factors (ideal.span ((singleton f) : set (polynomial R) ))}
-     :=
 
-sorry -/
+/- by { obtain ⟨x, hx⟩ := j, simp only [subtype.coe_mk],
+      refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors _ _ hx
+        (factors_equiv pb hI.is_prime : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
+    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }})
+    _, -/
 
-def corr [is_domain R] [is_principal_ideal_ring R] {r : R} :
-  {d : R | d ∈ factors a} ≃ {I : ideal R | I ∈ factors (ideal.span {d})} := sorry
+
+noncomputable instance {I: ideal R} [hI : is_maximal I] : field (R ⧸ I) :=
+((ideal.quotient.maximal_ideal_iff_is_field_quotient I).mp hI).to_field
+
+
+lemma mem_normalized_factors_factors_equiv_of_mem_normalized_factors [is_domain R]
+  [is_dedekind_domain R] [is_domain S] [is_dedekind_domain S] [algebra R S] (pb : power_basis R S)
+  {I : ideal R} (hI : is_maximal I) (J : ideal S)
+  (hJ : J ∈ normalized_factors (I.map (algebra_map R S) )) :
+  ↑(factors_equiv pb hI.is_prime ⟨J, dvd_of_mem_normalized_factors hJ⟩) ∈
+    normalized_factors (ideal.span
+      ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I) ) ) :=
+begin
+  refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors
+    (show I.map (algebra_map R S) ≠ ⊥, from sorry) _ hJ
+        (factors_equiv pb hI.is_prime : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
+    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span
+      { map I^.quotient.mk (minpoly R pb.gen) }}) _,
+  sorry,
+  rintros ⟨l, hl⟩ ⟨l', hl'⟩,
+  simp,
+  haveI : is_dedekind_domain (polynomial $ R ⧸ I) := infer_instance,
+  sorry,
+end
+
+noncomputable! def normalized_factors_equiv [is_domain R] [is_dedekind_domain R]
+  [is_domain S] [is_dedekind_domain S] (pb : power_basis R S)
+  (I : ideal R) (hI : is_maximal I) :
+  {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S)) } ≃
+  {J : ideal (polynomial $ R ⧸ I ) | J ∈ normalized_factors
+    (ideal.span ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I))) } :=
+{ to_fun := λ j, ⟨factors_equiv pb hI.is_prime ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩,
+    sorry
+      ⟩,
+  inv_fun := λ j, ⟨(factors_equiv pb hI.is_prime).symm ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩, sorry⟩,
+  left_inv := λ ⟨j, hj⟩, by /- simp-/ sorry,
+  right_inv := λ ⟨j, hj⟩, by /- simp -/ sorry }
+
+def corr₁ [is_domain R] [is_principal_ideal_ring R] (r : R) :
+  {d : R | d ∈ factors r} →
+  {I : ideal R | I ∈ factors (ideal.span ({r} : set R))} :=
+λ d, ⟨ideal.span ({d} : set R), sorry ⟩
+
+noncomputable def corr₂ [is_domain R] [is_principal_ideal_ring R] {r : R} :
+  {d : R | d ∈ factors r} ≃
+  {I : ideal R | I ∈ factors (ideal.span ({r} : set R))} :=
+equiv.of_bijective (corr₁ r)
+begin
+  split,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
+  unfold corr₁ at h,
+  rw subtype.mk_eq_mk at h,
+  rw ideal.span_singleton_eq_span_singleton at h,
+  rw subtype.coe_mk at h,
+  rw subtype.coe_mk at h,
+  rw subtype.mk_eq_mk,
+  sorry,
+  sorry,
+end
+
 
 
 /-

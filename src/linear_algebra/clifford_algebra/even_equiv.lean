@@ -142,7 +142,8 @@ begin
 end
 
 lemma of_even_ι (x y : M × R) :
-  of_even Q ((even.ι _).bilin x y) = (ι Q x.1 + algebra_map R _ x.2) * (ι Q y.1 - algebra_map R _ y.2) :=
+  of_even Q ((even.ι _).bilin x y) =
+    (ι Q x.1 + algebra_map R _ x.2) * (ι Q y.1 - algebra_map R _ y.2) :=
 even.lift_ι _ _ _ _
 
 lemma to_even_comp_of_even : (to_even Q).comp (of_even Q) = alg_hom.id R _ :=

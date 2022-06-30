@@ -149,7 +149,7 @@ begin
   intros s,
   let p : set α := { x | ∃ (t : finset α), ↑t ⊆ s ∧ t.sup id = x },
   have hp : p.nonempty, { use [⊥, ∅], simp, },
-  obtain ⟨m, ⟨t, ⟨ht₁, ht₂⟩⟩, hm⟩ := well_founded.well_founded_iff_has_max'.mp h p hp,
+  obtain ⟨m, ⟨t, ⟨ht₁, ht₂⟩⟩, hm⟩ := well_founded.well_founded_iff_has_max.mp h p hp,
   use t, simp only [ht₁, ht₂, true_and], apply le_antisymm,
   { apply Sup_le, intros y hy, classical,
     have hy' : (insert y t).sup id ∈ p,

@@ -163,7 +163,7 @@ lemma well_founded.monotone_chain_condition (α : Type*) [partial_order α] :
   well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
 begin
   split; intros h,
-  { rw well_founded.well_founded_iff_has_max' at h,
+  { rw well_founded.well_founded_iff_has_max at h,
     intros a, have hne : (set.range a).nonempty, { use a 0, simp, },
     obtain ⟨x, ⟨n, hn⟩, range_bounded⟩ := h _ hne,
     use n, intros m hm, rw ← hn at range_bounded, symmetry,

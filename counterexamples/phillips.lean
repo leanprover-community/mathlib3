@@ -209,7 +209,6 @@ def restrict (f : bounded_additive_measure α) (t : set α) : bounded_additive_m
 @[simp] lemma restrict_apply (f : bounded_additive_measure α) (s t : set α) :
   f.restrict s t = f (s ∩ t) := rfl
 
-set_option profiler true
 /-- There is a maximal countable set of positive measure, in the sense that any countable set
 not intersecting it has nonpositive measure. Auxiliary lemma to prove `exists_discrete_support`. -/
 lemma exists_discrete_support_nonpos (f : bounded_additive_measure α) :
@@ -272,7 +271,7 @@ begin
       simp only [not_exists, mem_Union, mem_diff],
       tauto },
     { simp only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
-  try_for 20000 {
+  try_for 20000 {   -- This extends the timeout
     have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (s n),
     { assume n,
       induction n with n IH,

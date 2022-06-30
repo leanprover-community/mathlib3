@@ -91,12 +91,11 @@ continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
 variable (f : C(α, β))
 
 private lemma image_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
-  (λ (g : C(β, γ)), g.comp f) ⁻¹' (continuous_map.compact_open.gen s u) =
-    continuous_map.compact_open.gen (f '' s) u :=
+  (λ (g : C(β, γ)), g.comp f) ⁻¹' (compact_open.gen s u) =
+    compact_open.gen (f '' s) u :=
 begin
-  ext ⟨g, _⟩, unfold continuous_map.compact_open.gen,
-  simp only [set.image_subset_iff, set.preimage_set_of_eq, continuous_map.coe_comp,
-    set.mem_set_of_eq, continuous_map.coe_mk],
+  ext ⟨g, _⟩, unfold compact_open.gen,
+  simp only [image_subset_iff, preimage_set_of_eq, coe_comp, mem_set_of_eq, coe_mk],
   rw ← set.preimage_comp,
 end
 

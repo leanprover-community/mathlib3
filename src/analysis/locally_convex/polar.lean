@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll, Kalle Kytölä
 -/
 
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.convex.basic
 import linear_algebra.sesquilinear_form
 import topology.algebra.module.weak_dual

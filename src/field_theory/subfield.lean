@@ -85,7 +85,7 @@ instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
 instance to_field (s : S) : field s :=
 subtype.coe_injective.field (coe : s → K)
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 omit h
 
@@ -96,7 +96,7 @@ instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 end subfield_class
 
@@ -237,14 +237,14 @@ instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
 instance to_field : field s :=
 subtype.coe_injective.field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
 instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
@@ -600,20 +600,6 @@ variables {s : subfield K}
 
 open subfield
 
-/-- Restrict the codomain of a ring homomorphism to a subfield that includes the range. -/
-def cod_restrict_field (f : K →+* L)
-  (s : subfield L) (h : ∀ x, f x ∈ s) : K →+* s :=
-{ to_fun := λ x, ⟨f x, h x⟩,
-  map_add' := λ x y, subtype.eq $ f.map_add x y,
-  map_zero' := subtype.eq f.map_zero,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
-  map_one' := subtype.eq f.map_one }
-
-/-- Restriction of a ring homomorphism to a subfield of the domain. -/
-def restrict_field (f : K →+* L) (s : subfield K) : s →+* L := f.comp s.subtype
-
-@[simp] lemma restrict_field_apply (f : K →+* L) (x : s) : f.restrict_field s x = f x := rfl
-
 /-- Restriction of a ring homomorphism to its range interpreted as a subfield. -/
 def range_restrict_field (f : K →+* L) : K →+* f.field_range :=
 f.srange_restrict
@@ -661,7 +647,7 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subfields. -/
 def inclusion {S T : subfield K} (h : S ≤ T) : S →+* T :=
-S.subtype.cod_restrict_field _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp] lemma field_range_subtype (s : subfield K) : s.subtype.field_range = s :=
 set_like.ext' $ (coe_srange _).trans subtype.range_coe

@@ -7,7 +7,6 @@ import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
 import tactic.linarith
-import tactic.interval_cases
 
 /-!
 # Prime factorizations
@@ -90,8 +89,18 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
+@[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+
+lemma factorization_eq_zero_of_lt {n p : ℕ} (h : n < p) : n.factorization p = 0 :=
+finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
+
+@[simp] lemma factorization_zero_right (n : ℕ) : n.factorization 0 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_zero
+
+@[simp] lemma factorization_one_right (n : ℕ) : n.factorization 1 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_one
 
 lemma dvd_of_factorization_pos {n p : ℕ} (hn : n.factorization p ≠ 0) : p ∣ n :=
 dvd_of_mem_factors (factor_iff_mem_factorization.1 (mem_support_iff.2 hn))
@@ -103,6 +112,15 @@ by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
+
+lemma factorization_eq_zero_iff' (n p : ℕ) :
+  n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
+begin
+  rw [←not_mem_support_iff, support_factorization, mem_to_finset],
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { simp [hn, nat.mem_factors, not_and_distrib] },
+end
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
@@ -229,15 +247,6 @@ begin
   { simp [nat.factorization_eq_zero_of_non_prime n pp, hn] },
 end
 
-lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
-  ¬ p ^ (n.factorization p + 1) ∣ n :=
-begin
-  intro h,
-  have := factors_sublist_of_dvd h hn,
-  rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
-  linarith
-end
-
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
   d.factorization ≤ n.factorization ↔ d ∣ n :=
 begin
@@ -248,6 +257,14 @@ begin
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index' pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
+lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
+  ¬ p ^ (n.factorization p + 1) ∣ n :=
+begin
+  intro h,
+  rw ←factorization_le_iff_dvd (pow_pos hp.pos _).ne' hn at h,
+  simpa [hp.factorization] using h p,
 end
 
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
@@ -302,6 +319,10 @@ begin
     nat.factorization_div (nat.pow_factorization_dvd n p)],
   simp [hp.factorization],
 end
+
+lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  coprime p (n / p ^ n.factorization p) :=
+(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
@@ -452,10 +473,8 @@ begin
     exact hp p n hp' hn },
   refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
-  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
-    interval_cases a,
-    { simpa only [dvd_zero, not_true] using hpa },
-    { contradiction } },
+  { contrapose! hpa,
+    simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

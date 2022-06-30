@@ -105,7 +105,7 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
 @[simp] lemma mk_self : mk f f = 0 :=
-quotient.sound' (mem_span_singleton.2 $ by simp)
+quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
@@ -427,7 +427,8 @@ variables [comm_ring R] (I : ideal R) (f : polynomial R)
 
 See `adjoin_root.quot_map_of_equiv` for the isomorphism with `(R/I)[X] / (f mod I)`. -/
 def quot_map_of_equiv_quot_map_C_map_span_mk :
-  adjoin_root f ⧸ I.map (of f) ≃+* adjoin_root f ⧸ (I.map C).map (span {f})^.quotient.mk :=
+  adjoin_root f ⧸ I.map (of f) ≃+*
+    adjoin_root f ⧸ (I.map (C : R →+* R[X])).map (span {f})^.quotient.mk :=
 ideal.quot_equiv_of_eq (by rw [of, adjoin_root.mk, ideal.map_map])
 
 @[simp]
@@ -439,9 +440,10 @@ rfl
 /-- The natural isomorphism `R[α]/((I[x] ⊔ (f)) / (f)) ≅ (R[x]/I[x])/((f) ⊔ I[x] / I[x])`
   for `α` a root of `f : polynomial R` and `I : ideal R`-/
 def quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk :
-  (adjoin_root f) ⧸ ((I.map (C : R →+* R[X]))).map (span {f})^.quotient.mk ≃+*
-    (R[X] ⧸ map C I) ⧸ (span {f}).map (I.map C)^.quotient.mk :=
-quot_quot_equiv_comm (span ({f} : set (polynomial R))) (I.map (C : R →+* polynomial R))
+  (adjoin_root f) ⧸ (I.map (C : R →+* R[X])).map (span ({f} : set R[X]))^.quotient.mk ≃+*
+    (R[X] ⧸ I.map (C : R →+* R[X])) ⧸ (span ({f} : set R[X])).map
+    (I.map (C : R →+* R[X]))^.quotient.mk :=
+quot_quot_equiv_comm (ideal.span ({f} : set (polynomial R))) (I.map (C : R →+* polynomial R))
 
 @[simp]
 lemma quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_mk (p : R[X]) :

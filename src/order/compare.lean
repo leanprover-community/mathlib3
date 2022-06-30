@@ -56,7 +56,7 @@ lemma compares_swap [has_lt α] {a b : α} {o : ordering} :
   o.swap.compares a b ↔ o.compares b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
-alias compares_swap ↔ ordering.compares.of_swap ordering.compares.swap
+alias compares_swap ↔ compares.of_swap compares.swap
 
 lemma swap_eq_iff_eq_swap {o o' : ordering} : o.swap = o' ↔ o = o'.swap :=
 ⟨λ h, by rw [← swap_swap o, h], λ h, by rw [← swap_swap o', h]⟩
@@ -139,6 +139,10 @@ by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 lemma cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=
 by obtain h | h | h := lt_trichotomy a b; simp [cmp, cmp_using, h, h.not_lt]
 
+lemma ordering.compares.cmp_eq [linear_order α] {a b : α} {o : ordering} (h : o.compares a b) :
+  cmp a b = o :=
+(cmp_compares a b).inj h
+
 lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
 begin
   unfold cmp cmp_using,
@@ -146,8 +150,17 @@ begin
   exact lt_asymm h h₂
 end
 
-lemma order_dual.cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
-  @cmp_le αᵒᵈ _ _ x y = cmp_le y x := rfl
+@[simp] lemma cmp_le_to_dual [has_le α] [@decidable_rel α (≤)] (x y : α) :
+  cmp_le (to_dual x) (to_dual y) = cmp_le y x := rfl
+
+@[simp] lemma cmp_le_of_dual [has_le α] [@decidable_rel α (≤)] (x y : αᵒᵈ) :
+  cmp_le (of_dual x) (of_dual y) = cmp_le y x := rfl
+
+@[simp] lemma cmp_to_dual [has_lt α] [@decidable_rel α (<)] (x y : α) :
+  cmp (to_dual x) (to_dual y) = cmp y x := rfl
+
+@[simp] lemma cmp_of_dual [has_lt α] [@decidable_rel α (<)] (x y : αᵒᵈ) :
+  cmp (of_dual x) (of_dual y) = cmp y x := rfl
 
 /-- Generate a linear order structure from a preorder and `cmp` function. -/
 def linear_order_of_compares [preorder α] (cmp : α → α → ordering)
@@ -186,6 +199,10 @@ by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
 lemma le_iff_le_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x ≤ y ↔ x' ≤ y' :=
 by { rw [←not_lt, ←not_lt], apply not_congr,
   apply lt_iff_lt_of_cmp_eq_cmp, rwa cmp_eq_cmp_symm }
+
+lemma eq_iff_eq_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x = y ↔ x' = y' :=
+by rw [le_antisymm_iff, le_antisymm_iff, le_iff_le_of_cmp_eq_cmp h,
+  le_iff_le_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 h)]
 
 lemma has_lt.lt.cmp_eq_lt (h : x < y) : cmp x y = ordering.lt := (cmp_eq_lt_iff _ _).2 h
 lemma has_lt.lt.cmp_eq_gt (h : x < y) : cmp y x = ordering.gt := (cmp_eq_gt_iff _ _).2 h

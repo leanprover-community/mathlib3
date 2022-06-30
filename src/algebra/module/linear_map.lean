@@ -803,11 +803,11 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   one := (1 : M →ₗ[R] M),
   zero := 0,
   add := (+),
-  npow := @npow_rec _ ⟨(1 : M →ₗ[R] M)⟩ ⟨(*)⟩,
   mul_zero := comp_zero,
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
+  .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
@@ -847,7 +847,7 @@ instance apply_module : module (module.End R M) M :=
 @[simp] protected lemma smul_def (f : module.End R M) (a : M) : f • a = f a := rfl
 
 /-- `linear_map.apply_module` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (module.End R M) M :=
+instance apply_has_faithful_smul : has_faithful_smul (module.End R M) M :=
 ⟨λ _ _, linear_map.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=

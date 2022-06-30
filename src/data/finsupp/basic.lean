@@ -232,13 +232,13 @@ if_pos rfl
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
 if_neg h
 
-lemma single_eq_update [decidable_eq α] : ⇑(single a b) = function.update 0 a b :=
+lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
-lemma single_eq_pi_single [decidable_eq α] : ⇑(single a b) = pi.single a b :=
-single_eq_update
+lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
+single_eq_update a b
 
-@[simp] lemma single_zero : (single a 0 : α →₀ M) = 0 :=
+@[simp] lemma single_zero (a : α) : (single a 0 : α →₀ M) = 0 :=
 coe_fn_injective $ by simpa only [single_eq_update, coe_zero]
   using function.update_eq_self a (0 : α → M)
 
@@ -252,7 +252,7 @@ begin
   { rw [zero_apply, single_apply, if_t_t], },
 end
 
-lemma support_single_ne_zero (hb : b ≠ 0) : (single a b).support = {a} :=
+lemma support_single_ne_zero (a : α) (hb : b ≠ 0) : (single a b).support = {a} :=
 if_neg hb
 
 lemma support_single_subset : (single a b).support ⊆ {a} :=
@@ -318,11 +318,11 @@ lemma single_left_inj (h : b ≠ 0) : single a b = single a' b ↔ a = a' :=
 
 lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
-by simpa only [support_single_ne_zero h] using singleton_ne_empty _
+by simpa only [support_single_ne_zero _ h] using singleton_ne_empty _
 
 lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
-by rw [support_single_ne_zero hb, support_single_ne_zero hb', disjoint_singleton]
+by rw [support_single_ne_zero _ hb, support_single_ne_zero _ hb', disjoint_singleton]
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
 by simp [ext_iff, single_eq_indicator]
@@ -354,12 +354,12 @@ by rw [unique_ext_iff, unique.eq_default a, unique.eq_default a', single_eq_same
 lemma support_eq_singleton {f : α →₀ M} {a : α} :
   f.support = {a} ↔ f a ≠ 0 ∧ f = single a (f a) :=
 ⟨λ h, ⟨mem_support_iff.1 $ h.symm ▸ finset.mem_singleton_self a,
-  eq_single_iff.2 ⟨subset_of_eq h, rfl⟩⟩, λ h, h.2.symm ▸ support_single_ne_zero h.1⟩
+  eq_single_iff.2 ⟨subset_of_eq h, rfl⟩⟩, λ h, h.2.symm ▸ support_single_ne_zero _ h.1⟩
 
 lemma support_eq_singleton' {f : α →₀ M} {a : α} :
   f.support = {a} ↔ ∃ b ≠ 0, f = single a b :=
 ⟨λ h, let h := support_eq_singleton.1 h in ⟨_, h.1, h.2⟩,
-  λ ⟨b, hb, hf⟩, hf.symm ▸ support_single_ne_zero hb⟩
+  λ ⟨b, hb, hf⟩, hf.symm ▸ support_single_ne_zero _ hb⟩
 
 lemma card_support_eq_one {f : α →₀ M} : card f.support = 1 ↔ ∃ a, f a ≠ 0 ∧ f = single a (f a) :=
 by simp only [card_eq_one, support_eq_singleton]
@@ -616,7 +616,7 @@ lemma single_of_emb_domain_single
   ∃ x, l = single x b ∧ f x = a :=
 begin
   have h_map_support : finset.map f (l.support) = {a},
-    by rw [←support_emb_domain, h, support_single_ne_zero hb]; refl,
+    by rw [←support_emb_domain, h, support_single_ne_zero _ hb]; refl,
   have ha : a ∈ finset.map f (l.support),
     by simp only [h_map_support, finset.mem_singleton],
   rcases finset.mem_map.1 ha with ⟨c, hc₁, hc₂⟩,
@@ -752,7 +752,8 @@ f.prod_of_support_subset (subset_univ _) g (λ x _, h x)
 lemma prod_single_index {a : α} {b : M} {h : α → M → N} (h_zero : h a 0 = 1) :
   (single a b).prod h = h a b :=
 calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
-  prod_of_support_subset _ support_single_subset h $ λ x hx, (mem_singleton.1 hx).symm ▸ h_zero
+  prod_of_support_subset _ support_single_subset h $
+    λ x hx, (mem_singleton.1 hx).symm ▸ h_zero
 ... = h a b : by simp
 
 @[to_additive]
@@ -873,7 +874,7 @@ le_antisymm support_zip_with $ assume a ha,
     by simp only [mem_support_iff, not_not] at *;
     simpa only [add_apply, this, zero_add])
 
-@[simp] lemma single_add {a : α} {b₁ b₂ : M} : single a (b₁ + b₂) = single a b₁ + single a b₂ :=
+@[simp] lemma single_add (a : α) (b₁ b₂ : M) : single a (b₁ + b₂) = single a b₁ + single a b₂ :=
 ext $ assume a',
 begin
   by_cases h : a = a',
@@ -889,7 +890,7 @@ fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 See `finsupp.lsingle` for the stronger version as a linear map.
 -/
 @[simps] def single_add_hom (a : α) : M →+ α →₀ M :=
-⟨single a, single_zero, λ _ _, single_add⟩
+⟨single a, single_zero a, single_add a⟩
 
 /-- Evaluation of a function `f : α →₀ M` at a point as an additive monoid homomorphism.
 
@@ -1122,9 +1123,18 @@ fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
+lemma single_add_single_eq_single_add_single [add_comm_monoid M]
+  {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
+  single k u + single l v = single m u + single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
+  exact pi.single_add_single_eq_single_add_single hu hv,
+end
+
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
-multiset.induction_on s single_zero $ λ a s ih,
+multiset.induction_on s (single_zero _) $ λ a s ih,
 by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons]
 
 lemma single_finset_sum [add_comm_monoid M] (s : finset ι) (f : ι → M) (a : α) :
@@ -1395,6 +1405,8 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+@[to_additive "For disjoint `f1` and `f2`, and function `g`, the sum of the sums of `g`
+over `f1` and `f2` equals the sum of `g` over `f1 + f2`"]
 lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
   (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
@@ -1584,15 +1596,15 @@ lemma map_domain_comp {f : α → β} {g : β → γ} :
   map_domain (g ∘ f) v = map_domain g (map_domain f v) :=
 begin
   refine ((sum_sum_index _ _).trans _).symm,
-  { intros, exact single_zero },
-  { intros, exact single_add },
+  { intro, exact single_zero _ },
+  { intro, exact single_add _ },
   refine sum_congr (λ _ _, sum_single_index _),
-  { exact single_zero }
+  { exact single_zero _ }
 end
 
 @[simp]
 lemma map_domain_single {f : α → β} {a : α} {b : M} : map_domain f (single a b) = single (f a) b :=
-sum_single_index single_zero
+sum_single_index $ single_zero _
 
 @[simp] lemma map_domain_zero {f : α → β} : map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
 sum_zero_index
@@ -1602,7 +1614,7 @@ lemma map_domain_congr {f g : α → β} (h : ∀x∈v.support, f x = g x) :
 finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
-sum_add_index' (λ _, single_zero) (λ _ _ _, single_add)
+sum_add_index' (λ _, single_zero _) (λ _, single_add _)
 
 @[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
   map_domain f x a = x (f.symm a) :=
@@ -1838,8 +1850,8 @@ begin
   rcases eq_or_ne m 0 with rfl | hm,
   { simp only [single_zero, comap_domain_zero] },
   { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
-      support_single_ne_zero hm, coe_singleton, coe_singleton, single_eq_same],
-    rw [support_single_ne_zero hm, coe_singleton] at hif,
+      support_single_ne_zero _ hm, coe_singleton, coe_singleton, single_eq_same],
+    rw [support_single_ne_zero _ hm, coe_singleton] at hif,
     exact ⟨λ x hx, hif hx rfl hx, rfl⟩ }
 end
 
@@ -2185,10 +2197,10 @@ ext $ λ _, rfl
   (v - v').subtype_domain p = v.subtype_domain p - v'.subtype_domain p :=
 ext $ λ _, rfl
 
-@[simp] lemma single_neg {a : α} {b : G} : single a (-b) = -single a b :=
+@[simp] lemma single_neg (a : α) (b : G) : single a (-b) = -single a b :=
 (single_add_hom a : G →+ _).map_neg b
 
-@[simp] lemma single_sub {a : α} {b₁ b₂ : G} : single a (b₁ - b₂) = single a b₁ - single a b₂ :=
+@[simp] lemma single_sub (a : α) (b₁ b₂ : G) : single a (b₁ - b₂) = single a b₁ - single a b₂ :=
 (single_add_hom a : G →+ _).map_sub b₁ b₂
 
 @[simp] lemma erase_neg (a : α) (f : α →₀ G) : erase a (-f) = -erase a f :=
@@ -2471,8 +2483,8 @@ lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
 λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
-instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_scalar R M] :
-  has_faithful_scalar R (α →₀ M) :=
+instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_smul R M] :
+  has_faithful_smul R (α →₀ M) :=
 { eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
     by simpa using congr_fun (h (single a m)) a }
 
@@ -2817,4 +2829,16 @@ int.cast_prod _ _
 int.cast_sum _ _
 
 end int
+
+namespace rat
+
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
+cast_sum _ _
+
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
+cast_prod _ _
+
+end rat
 end cast_finsupp

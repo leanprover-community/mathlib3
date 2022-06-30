@@ -104,8 +104,8 @@ by rw [is_bounded_def, is_cobounded_def, compl_compl]
 
 @[simp] lemma is_cobounded_compl_iff : is_cobounded sᶜ ↔ is_bounded s := iff.rfl
 
-alias is_bounded_compl_iff ↔ bornology.is_bounded.of_compl bornology.is_cobounded.compl
-alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bounded.compl
+alias is_bounded_compl_iff ↔ is_bounded.of_compl is_cobounded.compl
+alias is_cobounded_compl_iff ↔ is_cobounded.of_compl is_bounded.compl
 
 @[simp] lemma is_bounded_empty : is_bounded (∅ : set α) :=
 by { rw [is_bounded_def, compl_empty], exact univ_mem}
@@ -168,7 +168,7 @@ by rw [is_bounded_def, ←filter.mem_sets, of_bounded_cobounded_sets, set.mem_se
 
 variables [bornology α]
 
-lemma is_cobounded_bInter {s : set ι} {f : ι → set α} (hs : finite s) :
+lemma is_cobounded_bInter {s : set ι} {f : ι → set α} (hs : s.finite) :
   is_cobounded (⋂ i ∈ s, f i) ↔ ∀ i ∈ s, is_cobounded (f i) :=
 bInter_mem hs
 
@@ -180,11 +180,11 @@ bInter_finset_mem s
   is_cobounded (⋂ i, f i) ↔ ∀ i, is_cobounded (f i) :=
 Inter_mem
 
-lemma is_cobounded_sInter {S : set (set α)} (hs : finite S) :
+lemma is_cobounded_sInter {S : set (set α)} (hs : S.finite) :
   is_cobounded (⋂₀ S) ↔ ∀ s ∈ S, is_cobounded s :=
 sInter_mem hs
 
-lemma is_bounded_bUnion {s : set ι} {f : ι → set α} (hs : finite s) :
+lemma is_bounded_bUnion {s : set ι} {f : ι → set α} (hs : s.finite) :
   is_bounded (⋃ i ∈ s, f i) ↔ ∀ i ∈ s, is_bounded (f i) :=
 by simp only [← is_cobounded_compl_iff, compl_Union, is_cobounded_bInter hs]
 
@@ -192,7 +192,7 @@ lemma is_bounded_bUnion_finset (s : finset ι) {f : ι → set α} :
   is_bounded (⋃ i ∈ s, f i) ↔ ∀ i ∈ s, is_bounded (f i) :=
 is_bounded_bUnion s.finite_to_set
 
-lemma is_bounded_sUnion {S : set (set α)} (hs : finite S) :
+lemma is_bounded_sUnion {S : set (set α)} (hs : S.finite) :
   is_bounded (⋃₀ S) ↔ (∀ s ∈ S, is_bounded s) :=
 by rw [sUnion_eq_bUnion, is_bounded_bUnion hs]
 

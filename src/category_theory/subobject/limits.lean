@@ -328,6 +328,9 @@ by simp [image_subobject_comp_iso]
 
 end
 
+lemma image_subobject_mono (f : X ⟶ Y) [mono f] : image_subobject f = mk f :=
+eq_of_comm (image_subobject_iso f ≪≫ image_mono_iso_source f ≪≫ (underlying_iso f).symm) (by simp)
+
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]
   {X' : C} (h : X' ⟶ X) [is_iso h] (f : X ⟶ Y) [has_image f] :

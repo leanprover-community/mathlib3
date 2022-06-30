@@ -113,15 +113,16 @@ set_like.coe_injective $ by simp [set.sUnion_image]
 
 @[simp, norm_cast]
 lemma coe_infi {ι : Sort*} (S : ι → intermediate_field F E) : (↑(infi S) : set E) = ⋂ i, (S i) :=
-by simp [infi]
+(coe_Inf _).trans $ by simp
 
 @[simp] lemma infi_to_subalgebra {ι : Sort*} (S : ι → intermediate_field F E) :
   (infi S).to_subalgebra = ⨅ i, (S i).to_subalgebra :=
-set_like.coe_injective $ by simp [infi]
+set_like.coe_injective $ by simp only [coe_to_subalgebra, coe_infi, algebra.coe_infi]
 
 @[simp] lemma infi_to_subfield {ι : Sort*} (S : ι → intermediate_field F E) :
   (infi S).to_subfield = ⨅ i, (S i).to_subfield :=
-set_like.coe_injective $ by simp [infi]
+set_like.coe_injective $ by simp only [infi, Inf_to_subfield, subfield.coe_Inf, set.mem_image,
+  set.mem_range, exists_exists_eq_and]
 
 /--  Construct an algebra isomorphism from an equality of intermediate fields -/
 @[simps apply]

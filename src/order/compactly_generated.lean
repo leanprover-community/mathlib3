@@ -31,13 +31,13 @@ The main result is that the following four conditions are equivalent for a compl
  * `∀ k, complete_lattice.is_compact_element k`
 
 This is demonstrated by means of the following four lemmas:
- * `complete_lattice.well_founded.is_Sup_finite_compact`
+ * `complete_lattice.is_well_founded.is_Sup_finite_compact`
  * `complete_lattice.is_Sup_finite_compact.is_sup_closed_compact`
  * `complete_lattice.is_sup_closed_compact.well_founded`
  * `complete_lattice.is_Sup_finite_compact_iff_all_elements_compact`
 
  We also show well-founded lattices are compactly generated
- (`complete_lattice.compactly_generated_of_well_founded`).
+ (`complete_lattice.compactly_generated_of_is_well_founded`).
 
 ## References
 - [G. Călugăreanu, *Lattice Concepts of Module Theory*][calugareanu]
@@ -143,7 +143,7 @@ begin
   simpa only [exists_prop],
 end
 
-lemma well_founded.is_Sup_finite_compact [well_founded_gt α] :
+lemma is_well_founded.is_Sup_finite_compact [well_founded_gt α] :
   is_Sup_finite_compact α :=
 begin
   intros s,
@@ -203,7 +203,7 @@ lemma well_founded_characterisations :
         is_sup_closed_compact α,
         ∀ k : α, is_compact_element k] :=
 begin
-  tfae_have : 1 → 2, by { exact well_founded.is_Sup_finite_compact α, },
+  tfae_have : 1 → 2, by { exact is_well_founded.is_Sup_finite_compact α, },
   tfae_have : 2 → 3, by { exact is_Sup_finite_compact.is_sup_closed_compact α, },
   tfae_have : 3 → 1, by { exact is_sup_closed_compact.well_founded α, },
   tfae_have : 2 ↔ 4, by { exact is_Sup_finite_compact_iff_all_elements_compact α },
@@ -232,7 +232,7 @@ lemma well_founded.finite_of_set_independent [well_founded_gt α] {s : set α}
 begin
   classical,
   refine set.not_infinite.mp (λ contra, _),
-  obtain ⟨t, ht₁, ht₂⟩ := well_founded.is_Sup_finite_compact α h s,
+  obtain ⟨t, ht₁, ht₂⟩ := is_well_founded.is_Sup_finite_compact α h s,
   replace contra : ∃ (x : α), x ∈ s ∧ x ≠ ⊥ ∧ x ∉ t,
   { have : (s \ (insert ⊥ t : finset α)).infinite := contra.diff (finset.finite_to_set _),
     obtain ⟨x, hx₁, hx₂⟩ := this.nonempty,
@@ -351,7 +351,7 @@ end
 
 namespace complete_lattice
 
-lemma compactly_generated_of_well_founded [well_founded_gt α] :
+lemma compactly_generated_of_is_well_founded [well_founded_gt α] :
   is_compactly_generated α :=
 begin
   rw [well_founded_iff_is_Sup_finite_compact, is_Sup_finite_compact_iff_all_elements_compact] at h,

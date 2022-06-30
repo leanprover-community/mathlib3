@@ -257,7 +257,7 @@ def radical := Sup { I : lie_ideal R L | is_solvable R I }
 /-- The radical of a Noetherian Lie algebra is solvable. -/
 instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :=
 begin
-  have hwf := lie_submodule.well_founded_of_noetherian R L L,
+  have hwf := lie_submodule.is_well_founded_of_noetherian R L L,
   rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
   refine hwf { I : lie_ideal R L | is_solvable R I } ⟨⊥, _⟩ (λ I hI J hJ, _),
   { exact lie_algebra.is_solvable_bot R L, },

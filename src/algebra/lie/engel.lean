@@ -261,7 +261,7 @@ begin
     is_noetherian_of_surjective L _ (linear_map.range_range_restrict (to_endomorphism R L M)),
   obtain ⟨K, hK₁, hK₂⟩ :=
     is_well_founded.well_founded_iff_has_max'.mp
-      (lie_subalgebra.well_founded_of_noetherian R L') s hs,
+      (lie_subalgebra.is_well_founded_of_noetherian R L') s hs,
   have hK₃ : K = ⊤,
   { by_contra contra,
     obtain ⟨K', hK'₁, hK'₂⟩ := this K hK₁ contra,

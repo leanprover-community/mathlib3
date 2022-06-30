@@ -410,7 +410,7 @@ show subsingleton ((⊥ : lie_subalgebra R L) : set L), by simp
 
 variables (R L)
 
-lemma well_founded_of_noetherian [is_noetherian R L] : well_founded_gt (lie_subalgebra R L) :=
+lemma is_well_founded_of_noetherian [is_noetherian R L] : well_founded_gt (lie_subalgebra R L) :=
   let f : ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) →r
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,

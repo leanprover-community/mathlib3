@@ -16,7 +16,7 @@ of a Lie module.
 ## Main definitions
 
   * `lie_submodule`
-  * `lie_submodule.well_founded_of_noetherian`
+  * `lie_submodule.is_well_founded_of_noetherian`
   * `lie_submodule.lie_span`
   * `lie_submodule.map`
   * `lie_submodule.comap`
@@ -366,7 +366,7 @@ instance : is_modular_lattice (lie_submodule R L M) :=
 
 variables (R L M)
 
-lemma well_founded_of_noetherian [is_noetherian R M] : well_founded_gt (lie_submodule R L M) :=
+lemma is_well_founded_of_noetherian [is_noetherian R M] : well_founded_gt (lie_submodule R L M) :=
 let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
         ((>) : submodule R M → submodule R M → Prop) :=
 { to_fun       := coe,

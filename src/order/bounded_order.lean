@@ -1009,7 +1009,6 @@ lemma coe_min [linear_order α] (x y : α) : (↑(min x y) : with_top α) = min 
 lemma coe_max [linear_order α] (x y : α) : (↑(max x y) : with_top α) = max x y := rfl
 
 instance well_founded_lt [preorder α] [well_founded_lt α] : well_founded_lt (with_top α) :=
--- Todo (Vi): golf by using an `acc_of_is_min` lemma.
 ⟨have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
 λ a, acc.intro _ (well_founded_lt.induction a $
   (show ∀ b, (∀ c, c < b → ∀ d : with_top α, d < some c → acc (<) d) →

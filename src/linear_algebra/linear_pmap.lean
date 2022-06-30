@@ -421,8 +421,6 @@ rfl
 /-! ### Graph -/
 section graph
 
-namespace linear_pmap
-
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
 def graph (f : linear_pmap R E F) : submodule R (E × F) :=
 f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
@@ -468,10 +466,14 @@ namespace submodule
 section submodule_from_graph
 
 lemma exists_unique_from_graph {g : submodule R (E × F)}
-  (hg : ∀ {x : E × F} (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E} (ha : a ∈ proj_left g) :
+  (hg : ∀ {x : E × F} (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
+  (ha : a ∈ g.map (linear_map.fst R E F)) :
   ∃! (b : F), (a,b) ∈ g :=
 begin
-  refine exists_unique_of_exists_of_unique ((mem_proj_left_iff g).mp ha) _,
+  refine exists_unique_of_exists_of_unique _ _,
+  { simp only [submodule.mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
+      exists_eq_right] at ha,
+    exact ha },
   intros y₁ y₂ hy₁ hy₂,
   have hy : ((0 : E), y₁ - y₂) ∈ g :=
   begin
@@ -481,62 +483,73 @@ begin
   exact sub_eq_zero.mp (hg hy (by simp)),
 end
 
+noncomputable
+def val_from_graph {g : submodule R (E × F)}
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
+  (ha : a ∈ g.map (linear_map.fst R E F)) : F :=
+classical.some (exists_of_exists_unique (exists_unique_from_graph hg ha))
+
+lemma val_mem_from_graph {g : submodule R (E × F)}
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
+  (ha : a ∈ g.map (linear_map.fst R E F)) : (a, val_from_graph hg ha) ∈ g :=
+classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg ha))
+
 /-- Define a `linear_pmap` from its graph. -/
 noncomputable
 def from_graph (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) : linear_pmap R E F :=
-{ domain := proj_left g,
+{ domain := g.map (linear_map.fst R E F),
   to_fun :=
-  { to_fun := λ x, classical.some (exists_of_exists_unique (exists_unique_from_graph hg x.2)),
+  { to_fun := λ x, val_from_graph hg x.2,
     map_add' := λ v w, begin
-      have hadd := submodule.add_mem (proj_left g) v.2 w.2,
-      have hv := classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg v.2)),
-      have hw := classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg w.2)),
-      have hvw := classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg hadd)),
-      have hvw' := submodule.add_mem g hv hw,
+      have hadd := (g.map (linear_map.fst R E F)).add_mem v.2 w.2,
+      have hvw := val_mem_from_graph hg hadd,
+      have hvw' := g.add_mem (val_mem_from_graph hg v.2) (val_mem_from_graph hg w.2),
       rw [prod.mk_add_mk] at hvw',
-      exact exists_unique.unique (exists_unique_from_graph hg hadd) hvw hvw',
+      exact (exists_unique_from_graph hg hadd).unique hvw hvw',
     end,
     map_smul' := λ a v, begin
-      have hsmul := submodule.smul_mem (proj_left g) a v.2,
-      have hv := classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg v.2)),
-      have hav := classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg hsmul)),
-      have hav' := submodule.smul_mem g a hv,
+      have hsmul := (g.map (linear_map.fst R E F)).smul_mem a v.2,
+      have hav := val_mem_from_graph hg hsmul,
+      have hav' := g.smul_mem a (val_mem_from_graph hg v.2),
       rw [prod.smul_mk] at hav',
-      exact exists_unique.unique (exists_unique_from_graph hg hsmul) hav hav',
+      exact (exists_unique_from_graph hg hsmul).unique hav hav',
     end } }
 
 lemma mem_graph_from_graph (g : submodule R (E × F))
-  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) (x : proj_left g) :
-  (x.val, from_graph g hg x) ∈ g :=
-classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg x.2))
+  (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0)
+  (x : g.map (linear_map.fst R E F)) : (x.val, from_graph g hg x) ∈ g :=
+val_mem_from_graph hg x.2
 
 @[simp] lemma graph_from_graph_eq (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) :
-  graph (from_graph g hg) = g :=
+  (from_graph g hg).graph = g :=
 begin
   ext,
   split,
   { intro hx,
-    rw [mem_graph_iff] at hx,
+    rw [linear_pmap.mem_graph_iff] at hx,
     rcases hx with ⟨y,hx1,hx2⟩,
     convert mem_graph_from_graph g hg y,
     rw [subtype.val_eq_coe],
-    exact prod.ext hx1 hx2 },
+    exact prod.ext hx1.symm hx2.symm },
   intro hx,
-  rw mem_graph_iff,
+  rw linear_pmap.mem_graph_iff,
   dunfold from_graph,
   simp,
   have hx' : (x.fst, x.snd) ∈ g := by simp[hx],
-  have hx_fst : x.fst ∈ proj_left g := (mem_proj_left_iff g).mpr ⟨x.snd, hx'⟩,
+  have hx_fst : x.fst ∈ g.map (linear_map.fst R E F) :=
+  begin
+    simp only [mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
+      exists_eq_right],
+    exact ⟨x.snd, hx'⟩,
+  end,
   use x.fst,
   { exact hx_fst },
   refine ⟨by rw submodule.coe_mk, _⟩,
-  have hcl := classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg hx_fst)),
-  exact exists_unique.unique (exists_unique_from_graph hg hx_fst) hx' hcl,
+  exact (exists_unique_from_graph hg hx_fst).unique (val_mem_from_graph hg hx_fst) hx',
 end
 
 end submodule_from_graph
 
 end submodule
-

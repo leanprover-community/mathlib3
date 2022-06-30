@@ -75,8 +75,7 @@ begin
 end
 
 lemma well_founded_on.induction {s : set α} {r : α → α → Prop} (hs : s.well_founded_on r) {x : α}
-  (hx : x ∈ s) {P : α → Prop} (hP : ∀ (y ∈ s), (∀ (z ∈ s), r z y → P z) → P y) :
-  P x :=
+  (hx : x ∈ s) {P : α → Prop} (hP : ∀ (y ∈ s), (∀ (z ∈ s), r z y → P z) → P y) : P x :=
 begin
   let Q : s → Prop := λ y, P y,
   change Q ⟨x, hx⟩,
@@ -115,17 +114,20 @@ variables [has_lt α]
 /-- `s.is_wf` indicates that `<` is well-founded when restricted to `s`. -/
 def is_wf (s : set α) : Prop := well_founded_on s (<)
 
-lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
+@[simp] lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
 by simp [is_wf, well_founded_on_iff]
 
-variables {s t : set α}
-
-theorem is_wf.mono (h : is_wf t) (st : s ⊆ t) : is_wf s :=
+theorem is_wf.mono {s t : set α} (h : is_wf t) (st : s ⊆ t) : is_wf s :=
 begin
   rw [is_wf, well_founded_on_iff] at *,
   refine subrelation.wf (λ x y xy, _) h,
   exact ⟨xy.1, st xy.2.1, st xy.2.2⟩,
 end
+
+@[simp] lemma _root_.well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop))
+  (s : set α) : s.is_wf :=
+(set.is_wf_univ_iff.2 h).mono $ set.subset_univ s
+
 end has_lt
 
 section partial_order
@@ -302,8 +304,7 @@ end
 
 variables [partial_order α]
 
-lemma is_pwo.is_wf (h : s.is_pwo) :
-  s.is_wf :=
+lemma is_pwo.is_wf (h : s.is_pwo) : s.is_wf :=
 begin
   rw [is_wf],
   convert h.well_founded_on,
@@ -311,19 +312,15 @@ begin
   rw lt_iff_le_and_ne,
 end
 
-theorem is_pwo.exists_monotone_subseq
-  (h : s.is_pwo) (f : ℕ → α) (hf : range f ⊆ s) :
+theorem is_pwo.exists_monotone_subseq (h : s.is_pwo) (f : ℕ → α) (hf : range f ⊆ s) :
   ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
 h.exists_monotone_subseq f hf
 
 theorem is_pwo_iff_exists_monotone_subseq :
-  s.is_pwo ↔
-    ∀ f : ℕ → α, range f ⊆ s → ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
+  s.is_pwo ↔ ∀ f : ℕ → α, range f ⊆ s → ∃ (g : ℕ ↪o ℕ), monotone (f ∘ g) :=
 partially_well_ordered_on_iff_exists_monotone_subseq
 
-lemma is_pwo.prod (hs : s.is_pwo)
-  (ht : t.is_pwo) :
-  (s ×ˢ t : set _).is_pwo :=
+lemma is_pwo.prod (hs : s.is_pwo) (ht : t.is_pwo) : (s ×ˢ t : set _).is_pwo :=
 begin
   classical,
   rw is_pwo_iff_exists_monotone_subseq at *,
@@ -346,8 +343,7 @@ begin
 end
 
 theorem is_pwo.image_of_monotone {β : Type*} [partial_order β]
-  (hs : s.is_pwo) {f : α → β} (hf : monotone f) :
-  is_pwo (f '' s) :=
+  (hs : s.is_pwo) {f : α → β} (hf : monotone f) : is_pwo (f '' s) :=
 hs.image_of_monotone_on (λ _ _ _ _ ab, hf ab)
 
 theorem is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) :=
@@ -382,8 +378,7 @@ end
 
 end partial_order
 
-theorem is_wf.is_pwo [linear_order α] {s : set α}
-  (hs : s.is_wf) : s.is_pwo :=
+theorem is_wf.is_pwo [linear_order α] {s : set α} (hs : s.is_wf) : s.is_pwo :=
 λ f hf, begin
   rw [is_wf, well_founded_on_iff] at hs,
   have hrange : (range f).nonempty := ⟨f 0, mem_range_self 0⟩,
@@ -397,9 +392,8 @@ theorem is_wf.is_pwo [linear_order α] {s : set α}
   apply mem_range_self,
 end
 
-theorem is_wf_iff_is_pwo [linear_order α] {s : set α} :
-  s.is_wf ↔ s.is_pwo :=
-⟨is_wf.is_pwo, is_pwo.is_wf⟩
+@[simp] theorem is_pwo_iff_is_pwf [linear_order α] {s : set α} : s.is_pwo ↔ s.is_wf :=
+⟨is_pwo.is_wf, is_wf.is_pwo⟩
 
 end set
 
@@ -460,8 +454,8 @@ hs.min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)
 lemma is_wf.min_mem (hs : is_wf s) (hn : s.nonempty) : hs.min hn ∈ s :=
 (well_founded.min hs univ (nonempty_iff_univ_nonempty.1 hn.to_subtype)).2
 
-lemma is_wf.not_lt_min (hs : is_wf s) (hn : s.nonempty) (ha : a ∈ s) : ¬ a < hs.min hn :=
-hs.not_lt_min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype) (mem_univ (⟨a, ha⟩ : s))
+lemma is_wf.not_lt_min (hs : is_wf s) (ha : a ∈ s) (hn : s.nonempty := ⟨a, ha⟩) : ¬ a < hs.min hn :=
+hs.not_lt_min univ (nonempty_iff_univ_nonempty.1 hn.to_subtype) (mem_univ ⟨a, ha⟩)
 
 @[simp]
 lemma is_wf_min_singleton (a) {hs : is_wf ({a} : set α)} {hn : ({a} : set α).nonempty} :
@@ -481,28 +475,25 @@ finset.sup_induction set.is_pwo_empty (λ a ha b hb, ha.union hb) hf
 namespace set
 variables [linear_order α] {s t : set α} {a : α}
 
-lemma is_wf.min_le
-  (hs : s.is_wf) (hn : s.nonempty) (ha : a ∈ s) : hs.min hn ≤ a :=
-le_of_not_lt (hs.not_lt_min hn ha)
+lemma is_wf.min_le (hs : s.is_wf) (ha : a ∈ s) (hn : s.nonempty := ⟨a, ha⟩) : hs.min hn ≤ a :=
+le_of_not_lt $ hs.not_lt_min ha
 
-lemma is_wf.le_min_iff
-  (hs : s.is_wf) (hn : s.nonempty) :
-  a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
-⟨λ ha b hb, le_trans ha (hs.min_le hn hb), λ h, h _ (hs.min_mem _)⟩
+lemma is_wf.le_min_iff (hs : s.is_wf) (hn : s.nonempty) : a ≤ hs.min hn ↔ ∀ b, b ∈ s → a ≤ b :=
+⟨λ ha b hb, le_trans ha (hs.min_le hb), λ h, h _ (hs.min_mem _)⟩
 
-lemma is_wf.min_le_min_of_subset
-  {hs : s.is_wf} {hsn : s.nonempty} {ht : t.is_wf} {htn : t.nonempty} (hst : s ⊆ t) :
-  ht.min htn ≤ hs.min hsn :=
-(is_wf.le_min_iff _ _).2 (λ b hb, ht.min_le htn (hst hb))
+lemma is_wf.min_le_min_of_subset (hs : s.is_wf) (hsn : s.nonempty) (ht : t.is_wf) (hst : s ⊆ t)
+  (htn : t.nonempty := hsn.mono hst) : ht.min htn ≤ hs.min hsn :=
+(is_wf.le_min_iff _ _).2 $ λ b hb, ht.min_le $ hst hb
 
-lemma is_wf.min_union (hs : s.is_wf) (hsn : s.nonempty) (ht : t.is_wf) (htn : t.nonempty) :
-  (hs.union ht).min (union_nonempty.2 (or.intro_left _ hsn)) = min (hs.min hsn) (ht.min htn) :=
+lemma is_wf.min_union (hs : s.is_wf) (hsn : s.nonempty) (ht : t.is_wf) (htn : t.nonempty)
+  (hstn : (s ∪ t).nonempty := (union_nonempty.2 (or.intro_left _ hsn))) :
+  (hs.union ht).min hstn = min (hs.min hsn) (ht.min htn) :=
 begin
-  refine le_antisymm (le_min (is_wf.min_le_min_of_subset (subset_union_left _ _))
-      (is_wf.min_le_min_of_subset (subset_union_right _ _))) _,
+  refine le_antisymm (le_min (is_wf.min_le_min_of_subset _ _ _ (subset_union_left _ _))
+    (is_wf.min_le_min_of_subset _ _ _ (subset_union_right _ _))) _,
   rw min_le_iff,
   exact ((mem_union _ _ _).1 ((hs.union ht).min_mem
-    (union_nonempty.2 (or.intro_left _ hsn)))).imp (hs.min_le _) (ht.min_le _),
+    (union_nonempty.2 (or.intro_left _ hsn)))).imp hs.min_le ht.min_le,
 end
 
 end set
@@ -526,13 +517,13 @@ theorem is_wf.mul (hs : s.is_wf) (ht : t.is_wf) : is_wf (s * t) :=
 (hs.is_pwo.mul ht.is_pwo).is_wf
 
 @[to_additive]
-theorem is_wf.min_mul (hs : s.is_wf) (ht : t.is_wf) (hsn : s.nonempty) (htn : t.nonempty) :
-  (hs.mul ht).min (hsn.mul htn) = hs.min hsn * ht.min htn :=
+theorem is_wf.min_mul (hs : s.is_wf) (ht : t.is_wf) (hsn : s.nonempty) (htn : t.nonempty)
+  (hstn : (s * t).nonempty := hsn.mul htn) : (hs.mul ht).min hstn = hs.min hsn * ht.min htn :=
 begin
-  refine le_antisymm (is_wf.min_le _ _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
+  refine le_antisymm (is_wf.min_le _ (mem_mul.2 ⟨_, _, hs.min_mem _, ht.min_mem _, rfl⟩)) _,
   rw is_wf.le_min_iff,
   rintros _ ⟨x, y, hx, hy, rfl⟩,
-  exact mul_le_mul' (hs.min_le _ hx) (ht.min_le _ hy),
+  exact mul_le_mul' (hs.min_le hx) (ht.min_le hy),
 end
 
 end set
@@ -839,8 +830,7 @@ theorem is_pwo_support_mul_antidiagonal :
 
 @[to_additive]
 theorem mul_antidiagonal_min_mul_min {α} [linear_ordered_cancel_comm_monoid α] {s t : set α}
-  (hs : s.is_wf) (ht : t.is_wf)
-  (hns : s.nonempty) (hnt : t.nonempty) :
+  (hs : s.is_wf) (ht : t.is_wf) (hns : s.nonempty) (hnt : t.nonempty) :
   mul_antidiagonal hs.is_pwo ht.is_pwo ((hs.min hns) * (ht.min hnt)) =
     {(hs.min hns, ht.min hnt)} :=
 begin
@@ -848,22 +838,18 @@ begin
   rw [mem_mul_antidiagonal, finset.mem_singleton, prod.ext_iff],
   split,
   { rintro ⟨hast, has, hat⟩,
-    cases eq_or_lt_of_le (hs.min_le hns has) with heq hlt,
+    cases eq_or_lt_of_le (hs.min_le has hns) with heq hlt,
     { refine ⟨heq.symm, _⟩,
       rw heq at hast,
       exact mul_left_cancel hast },
     { contrapose hast,
-      exact ne_of_gt (mul_lt_mul_of_lt_of_le hlt (ht.min_le hnt hat)) } },
+      exact ne_of_gt (mul_lt_mul_of_lt_of_le hlt (ht.min_le hat)) } },
   { rintro ⟨ha1, ha2⟩,
     rw [ha1, ha2],
     exact ⟨rfl, hs.min_mem _, ht.min_mem _⟩ }
 end
 
 end finset
-
-lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) :
-  s.is_wf :=
-(set.is_wf_univ_iff.2 h).mono (set.subset_univ s)
 
 /-- A version of **Dickson's lemma** any subset of functions `Π s : σ, α s` is partially well
 ordered, when `σ` is a `fintype` and each `α s` is a linear well order.

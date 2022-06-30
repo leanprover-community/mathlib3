@@ -34,7 +34,7 @@ begin
   { simp only [finset.sum_singleton, finset.coe_singleton, set.pairwise_singleton, iff_true],
     refine λ a, ⟨λ i, if h : i = a then ⟨1, _⟩ else 0, _⟩,
     { rw h, simp only [finset.mem_singleton, ne.def, infi_infi_eq_left, eq_self_iff_true,
-        not_true, infi_false]},
+        not_true, infi_of_empty]},
     { simp only [dif_pos, dif_ctx_congr, submodule.coe_mk, eq_self_iff_true] } },
   intros a t hat h ih,
   rw [finset.coe_cons,

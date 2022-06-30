@@ -471,7 +471,7 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
-@[to_additive] lemma mem_list_of_fn_prod {a : α} {s : fin n → set α} :
+@[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
   a ∈ (list.of_fn s).prod ↔ ∃ f : fin n → α, (∀ i, f i ∈ s i) ∧ (list.of_fn f).prod = a :=
 begin
   induction n with n ih generalizing a,
@@ -488,7 +488,7 @@ end
 
 @[to_additive] lemma mem_pow {a : α} {n : ℕ} :
   a ∈ s ^ n ↔ ∃ f : fin n → α, (∀ i, f i ∈ s) ∧ (list.of_fn f).prod = a :=
-by rw [←mem_list_of_fn_prod, list.of_fn_const, list.prod_repeat]
+by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_repeat]
 
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]

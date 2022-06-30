@@ -102,7 +102,7 @@ instance divisible_prod : divisible (A × B) :=
   div_zero := λ p, prod.ext (divisible.div_zero _) (divisible.div_zero _),
   div_cancel := λ n p hn, (prod.ext (divisible.div_cancel p.1 hn) (divisible.div_cancel p.2 hn)) }
 
-section prod
+end prod
 
 section quotient
 

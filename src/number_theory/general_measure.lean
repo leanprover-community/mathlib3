@@ -1,6 +1,7 @@
 import number_theory.weight_space
 
-variables (A : Type*) [topological_space A] [mul_one_class A] (p : ℕ) [fact p.prime] (d : ℕ)
+--variables (A : Type*) [topological_space A] [mul_one_class A]
+variables (p : ℕ) [fact p.prime] (d : ℕ)
 variables (R : Type*) [normed_comm_ring R] [complete_space R] [char_zero R] (inj : ℤ_[p] → R) (m : ℕ)
 variables [fact (0 < d)] {c : ℕ}
 variables [normed_algebra ℚ R] [norm_one_class R]
@@ -9,14 +10,72 @@ local attribute [instance] zmod.topological_space
 
 open_locale big_operators
 
+/-/-- Given a profinite space `X` and a normed commutative ring `A`, a `p-adic measure` is a
+  "bounded" linear map from the locally constant functions from `X` to `A` to `A` -/
+def measures' :=
+  {φ : (locally_constant (units (zmod d) × units ℤ_[p]) R) →ₗ[R] R //
+    ∃ K : ℝ, 0 < K ∧ ∀ f : (locally_constant (zmod d × ℤ_[p]) R),
+    ∀ (n : ℕ) (a : zmod (d * p^n)),
+    ∥ φ (loc_const_ind_fn _ p d (locally_constant.char_fn R (is_clopen_clopen_from p d n a))) ∥ ≤ K }-/
+
+@[to_additive] lemma locally_constant.prod_apply {B C s : Type*} [topological_space B]
+  [comm_monoid C] [fintype s] (n : ℕ)
+  (f : s → (locally_constant B C)) {x : B} :
+  (∏ i : s, (f i)) x =
+  ∏ i : s, ((f i) x) :=
+begin
+  induction n with d hd,
+  { simp only [locally_constant.coe_one, finset.range_zero, finset.prod_empty, pi.one_apply], },
+  { rw finset.prod_range_succ,
+    rw locally_constant.mul_apply, rw hd,
+    rw finset.prod_range_succ, },
+end
+
+lemma char_fn_eq_sum_char_fn [nontrivial R] (hd' : d.gcd p = 1) (n : ℕ) (a : zmod (d * p^n))
+  (x : zmod d × ℤ_[p]) :
+  locally_constant.char_fn R (is_clopen_clopen_from p d n a) x =
+  ∑ (b : equi_class p d n n.succ (nat.le_succ n) a),
+  locally_constant.char_fn R (is_clopen_clopen_from p d n.succ b) x :=
+begin
+  by_cases x ∈ clopen_from p d n a,
+  { rw (locally_constant.char_fn_one _ _ _).1 h,
+    { rw finset.sum_eq_single,
+      swap 4, { constructor, swap,
+      apply (zmod.chinese_remainder _).inv_fun (x.1, padic_int.to_zmod_pow n.succ x.2),
+      { rw nat.coprime_pow_right_iff _, assumption,
+        apply nat.succ_pos, },
+      rw mem_equi_class, rw mem_clopen_from at h, rw h.1, sorry, },
+      sorry,
+      sorry,
+      sorry, },
+    { apply_instance, }, },
+  sorry,
+end
+
+variables {φ : linear_map (ring_hom.id R) (locally_constant ((zmod d) × ℤ_[p]) R) R}
+  (hφ : ∀ (l : ℕ) (x : zmod (d * p^l)), ∑ (y : zmod (d * p ^ l.succ)) in (λ a : zmod (d * p ^ l),
+    set.to_finset ((equi_class p d l l.succ (nat.le_succ l)) a)) x, (φ (locally_constant.char_fn R (is_clopen_clopen_from p d l.succ y))) = φ (locally_constant.char_fn R (is_clopen_clopen_from p d l x)))
+
+lemma succ_eq_bUnion_equi_class' {n : ℕ} (hn : m < n) : zmod' (d*p^n) (mul_prime_pow_pos p d n) =
+  (zmod' (d*p^m) (mul_prime_pow_pos p d m)).bUnion
+    (λ a : zmod (d * p ^ m), set.to_finset ((equi_class p d m n (le_of_lt hn)) a)) :=
+begin
+  ext y, simp only [exists_prop, finset.mem_bUnion, set.mem_to_finset], split,
+  any_goals { intro h, },
+  { refine ⟨(y : zmod (d * p^m)), _, _⟩,
+    { rw finset.mem_def, exact finset.mem_univ y, },
+    { rw mem_equi_class, }, },
+  { rw finset.mem_def, exact finset.mem_univ y, },
+end
+
 /-- An eventually constant sequence constructed from a locally constant function. -/
 noncomputable def g' (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (hd : 0 < d)
   {φ : linear_map (ring_hom.id R) (locally_constant ((zmod d) × ℤ_[p]) R) R}
   (hφ : ∀ (l : ℕ) (x : zmod (d * p^l)), ∑ (y : zmod (d * p ^ l.succ)) in (λ a : zmod (d * p ^ l),
-    set.to_finset ((equi_class p d l l.succ (nat.le_succ l)) a)) x, (φ y) = φ x)
+    set.to_finset ((equi_class p d l l.succ (nat.le_succ l)) a)) x, (φ (locally_constant.char_fn R (is_clopen_clopen_from p d l.succ y))) = φ (locally_constant.char_fn R (is_clopen_clopen_from p d l x)))
   (f : locally_constant (zmod d × ℤ_[p]) R) (hd' : d.gcd p = 1) : @eventually_constant_seq R :=
 { to_seq := λ (n : ℕ),
-    ∑ a in (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • (φ a),
+    ∑ a in (zmod' (d * p^n) (mul_prime_pow_pos p d n)), f(a) • (φ (locally_constant.char_fn R (is_clopen_clopen_from p d n a))),
   is_eventually_const := ⟨classical.some (factor_F p d R hd' f) + 1,
   begin
   simp, rintros l hl', -- why is the simp needed?
@@ -36,14 +95,26 @@ noncomputable def g' (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (hd : 0 < d)
     rw mem_equi_class p d l l.succ at hz, cases hz with h1 h2, rw h1 at h2,
     exact h2, }, end⟩, }
 
-variables {φ : linear_map (ring_hom.id R) (locally_constant ((zmod d) × ℤ_[p]) R) R}
-  (hφ : ∀ (l : ℕ) (x : zmod (d * p^l)), ∑ (y : zmod (d * p ^ l.succ)) in (λ a : zmod (d * p ^ l),
-    set.to_finset ((equi_class p d l l.succ (nat.le_succ l)) a)) x, (φ y) = φ x)
+/-noncomputable abbreviation distri_bound (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (hd : 0 < d)
+  (hd' : d.gcd p = 1) : ℝ :=
+⨆ (a : zmod (d * p^(sequence_limit_index' (g' p d R hc hc' hd hφ 1 hd')))),
+  (∥φ (locally_constant.char_fn R (is_clopen_clopen_from p d _ a))∥ : ℝ) -/
 
 lemma g'_def (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (hd : 0 < d)
   (f : locally_constant (zmod d × ℤ_[p]) R) (n : ℕ) (hd' : d.gcd p = 1) :
   (g' p d R hc hc' hd hφ f hd').to_seq n =
-    ∑ a in (finset.range (d * p^n)),f(a) • (φ a) := sorry
+    ∑ a in (finset.range (d * p^n)),f(a) • (φ (locally_constant.char_fn R (is_clopen_clopen_from p d n a))) :=
+begin
+  rw g', simp only,
+  apply finset.sum_bij,
+  swap 5, { rintros, exact a.val, },
+  any_goals { rintros, simp, },
+  { apply zmod.val_lt, },
+  { rintros a b ha hb h, simp only at h, apply zmod.val_injective _ h, },
+  { refine ⟨(b : zmod (d * p^n)), _, _⟩,
+    { apply finset.mem_univ, },
+    { apply (zmod.val_cast_of_lt (finset.mem_range.1 H)).symm, }, },
+end
 
 noncomputable def distributions (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : d.gcd p = 1) :
@@ -79,14 +150,102 @@ noncomputable def distributions (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
     { rw le_sup_iff, right, apply le_refl, },
    end, }
 
+/-lemma le_distri_bound {n : ℕ} (a : zmod (d * p^n)) (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
+  (hd : 0 < d) (h' : d.gcd p = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
+  ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f (i.val)∥ ) :
+∥distributions p d R hφ hc hc' h' (locally_constant.char_fn R (is_clopen_clopen_from p d n a))∥ ≤
+  distri_bound p d R hφ hc hc' hd h' :=
+begin
+--  by_cases h1 : sequence_limit_index' (g' p d R hc hc' _ hφ (locally_constant.char_fn R (is_clopen_clopen_from p d n a)) h') ≤ n,
 
-noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
+  delta distri_bound,
+  rw distributions, simp,
+  set m := max (sequence_limit_index' (g' p d R hc hc' (fact.out _) hφ (locally_constant.char_fn R
+    (is_clopen_clopen_from p d n a)) h')) (sequence_limit_index' (g' p d R hc hc' (fact.out _) hφ 1 h')),
+  rw sequence_limit_eq _ m _,
+  --delta g',
+  --rw (g' p d R hc hc' _ hφ (locally_constant.char_fn R (is_clopen_clopen_from p d n a)) h').to_seq, simp,
+  --simp,
+  --rw succ_eq_bUnion_equi_class' _ _ _ h1,
+  rw g'_def,
+  apply le_trans (na _ _) _,
+  apply csupr_le,
+  intro x,
+  rw smul_eq_mul,
+  apply le_trans (norm_mul_le _ _) _,
+  have : ∥locally_constant.char_fn R (is_clopen_clopen_from p d n a) (x.val)∥ ≤ 1,
+  sorry,
+  apply le_trans (mul_le_mul this le_rfl _ _) _,
+  sorry,
+  sorry,
+  rw one_mul,
+  apply le_cSup _ _,
+  sorry,
+  simp,
+  refine ⟨x.val, _⟩,
+  simp,
+  refl,
+
+  induction n with k hk,
+  { sorry, },
+  { specialize hk a, apply le_trans _ hk,
+    rw distributions, simp only [linear_map.coe_mk],
+    by_cases h1 : sequence_limit_index' (g' p d R hc hc' _ hφ (locally_constant.char_fn R _) h') ≤ k,
+    repeat { rw sequence_limit_eq _ _ h1, rw g'_def, },
+
+    rw sequence_limit_eq _ _ (le_trans h1 (nat.le_succ k)),
+    conv { congr, skip, congr, apply_congr, skip, rw ← hφ, rw finset.smul_sum, simp, },
+
+    rw ← hφ k,
+    rw distributions, simp only [algebra.id.smul_eq_mul, linear_map.coe_mk],
+    delta distri_bound,
+    rw ← hφ at hd,
+    sorry },
+end
+
+lemma distri_bound_pos (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
+  (hd : 0 < d) (h' : d.gcd p = 1) : 0 < distri_bound p d R hφ hc hc' hd h' := sorry -/
+
+lemma s_nonempty'' (n : ℕ) (f : locally_constant (units (zmod d) × units ℤ_[p]) R) (a : ℝ)
+  (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (h' : d.gcd p = 1)
+  (ha : a = ⨆ (i : zmod (d * p ^ n)),
+      ∥distributions p d R hφ hc hc' h' (((loc_const_ind_fn R p d f) ↑(i.val)) •
+      locally_constant.char_fn R (is_clopen_clopen_from p d n (i.val)))∥ ) :
+  {i : zmod (d * p^n) | ∥distributions p d R hφ hc hc' h'
+      ((loc_const_ind_fn R p d f) ↑(i.val) • locally_constant.char_fn R
+      (is_clopen_clopen_from p d n ↑(i.val)))∥ = a }.nonempty :=
+sorry
+/-begin
+  have := set.nonempty.cSup_mem,
+  swap 4, { refine set.range (λ (i : zmod (d * p^n)),
+    ∥((bernoulli_distribution p d R hc hc' h'))
+    (f ↑i • char_fn R (is_clopen_clopen_from p d n i))∥), },
+  swap, { apply_instance, },
+  specialize this _ _,
+  { rw set.range_nonempty_iff_nonempty, apply_instance, },
+  { rw ←set.image_univ, apply set.finite.image, exact set.finite_univ, },
+  { suffices : a ∈ set.range (λ (i : zmod (d * p^n)),
+      ∥(bernoulli_distribution p d R hc hc' h')
+      (f ↑i • char_fn R (is_clopen_clopen_from p d n i))∥),
+    { cases this with y hy,
+      simp only [algebra.id.smul_eq_mul, linear_map.map_smul] at hy,
+      use y,
+      simp only [zmod.cast_id', algebra.id.smul_eq_mul, id.def, set.mem_set_of_eq,
+        finset.mem_range, linear_map.map_smul, zmod.nat_cast_val],
+      refine hy, },
+    { convert this using 1, rw ha,
+      convert_to Sup (set.range (λ (i :zmod (d * p ^ n)),
+        ∥(bernoulli_distribution p d R hc hc' h')
+      ((f ↑(i.val)) • char_fn R (is_clopen_clopen_from p d n ↑(i.val)))∥)) = _,
+      refine congr_arg _ _,
+      simp only [zmod.cast_id', id.def, zmod.nat_cast_val], }, },
+end-/
+
+/-abbreviation measure_of_is_bounded (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : d.gcd p = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
-  ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f (i.val)∥ ) : measures (units (zmod d) × units ℤ_[p]) R :=
-⟨ {
-    to_fun := λ f, distributions p d R hφ hc hc' h' (loc_const_ind_fn _ p d f),
-    map_add' := begin
-      rintros f1 f2,
+  ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f (i.val)∥ ) (hb : is_bounded φ) : measures (units (zmod d) × units ℤ_[p]) R :=
+⟨{ to_fun := λ f, distributions p d R hφ hc hc' h' (loc_const_ind_fn _ p d f),
+    map_add' := λ f1 f2, begin
       convert linear_map.map_add _ _ _,
       ext y,
       repeat { rw loc_const_ind_fn, },
@@ -98,10 +257,8 @@ noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
         any_goals { convert dif_pos pos, }, },
       { have : (0 : R) = 0 + 0, rw add_zero,
         convert this,
-        any_goals { convert dif_neg pos, }, },
-    end,
-    map_smul' := begin
-      rintros m f,
+        any_goals { convert dif_neg pos, }, }, end,
+    map_smul' := λ m f, begin
       simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, locally_constant.to_fun_eq_coe],
       convert linear_map.map_smul _ _ _,
       ext y,
@@ -113,19 +270,53 @@ noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
       by_cases pos : is_unit y.fst ∧ is_unit y.snd,
       { convert dif_pos pos, convert dif_pos pos, },
       { convert (mul_zero m).symm,
-        any_goals { convert dif_neg pos, }, },
-      end, }, begin
-    --simp only [linear_map.coe_mk, locally_constant.to_fun_eq_coe],
+        any_goals { convert dif_neg pos, }, }, end, }, sorry⟩
+#exit-/
+
+variable (φ)
+
+def is_bounded (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : d.gcd p = 1) : Prop :=
+  ∃ K : ℝ, 0 < K ∧ ∀ (n : ℕ) (a : zmod (d * p^n)),
+--∥ φ (locally_constant.char_fn R (is_clopen_clopen_from p d n a)) ∥ < K
+∥(distributions p d R hφ hc hc' h') (locally_constant.char_fn R (is_clopen_clopen_from p d n a))∥ ≤ K
+
+noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
+  [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : d.gcd p = 1) (hb : is_bounded p d R φ hφ hc hc' h') (na : ∀ (n : ℕ) (f : ℕ → R),
+  ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f (i.val)∥ ) : measures (units (zmod d) × units ℤ_[p]) R :=
+  ⟨{ to_fun := λ f, distributions p d R hφ hc hc' h' (loc_const_ind_fn _ p d f),
+    map_add' := λ f1 f2, begin
+      convert linear_map.map_add _ _ _,
+      ext y,
+      repeat { rw loc_const_ind_fn, },
+      simp only [pi.add_apply, locally_constant.coe_add, locally_constant.coe_mk],
+      repeat {rw ind_fn, },
+      simp only [pi.add_apply, locally_constant.coe_add],
+      by_cases pos : is_unit y.fst ∧ is_unit y.snd,
+      { convert dif_pos pos,
+        any_goals { convert dif_pos pos, }, },
+      { have : (0 : R) = 0 + 0, rw add_zero,
+        convert this,
+        any_goals { convert dif_neg pos, }, }, end,
+    map_smul' := λ m f, begin
+      simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, locally_constant.to_fun_eq_coe],
+      convert linear_map.map_smul _ _ _,
+      ext y,
+      repeat { rw loc_const_ind_fn, },
+      simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply,
+        locally_constant.coe_mk],
+      repeat { rw ind_fn, },
+      simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply],
+      by_cases pos : is_unit y.fst ∧ is_unit y.snd,
+      { convert dif_pos pos, convert dif_pos pos, },
+      { convert (mul_zero m).symm,
+        any_goals { convert dif_neg pos, }, }, end, },
+  begin
     simp only [linear_map.coe_mk, locally_constant.to_fun_eq_coe],
-    set K := 1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ with hK,
-    have Kpos : 0 < K,
-    { rw hK, rw add_comm, apply add_pos_of_nonneg_of_pos,
-      { apply norm_nonneg, },
-      { rw add_comm, apply add_pos_of_nonneg_of_pos,
-        { apply norm_nonneg, },
-        { apply zero_lt_one, }, }, },
-    refine ⟨K, _, λ f, _⟩,
-    { apply Kpos, },
+    have d_pos : 0 < d, { convert fact_iff.1 (hd 0), rw [pow_zero, mul_one], },
+    set K' := classical.some hb,
+    set hK' := classical.some_spec hb,
+    refine ⟨K', hK'.1, λ f, _⟩,
     obtain ⟨n, hn⟩ := loc_const_eq_sum_char_fn p d R (loc_const_ind_fn R p d f) h',
     rw hn,
     rw linear_map.map_sum,
@@ -137,14 +328,14 @@ noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
       ((loc_const_ind_fn R p d f) ↑(i.val) • locally_constant.char_fn R
       (is_clopen_clopen_from p d n ↑(i.val)))∥ = a } with hs,
     have nons : set.nonempty s,
-    { sorry, }, --apply s_nonempty', rw ha, },
+    { apply s_nonempty'', rw ha, },
     set i := classical.some nons with hi,
     have hi' := classical.some_spec nons,
     rw set.mem_def at hi',
     change ∥distributions p d R hφ hc hc' h' ((loc_const_ind_fn R p d f) ↑(i.val) •
       locally_constant.char_fn R (is_clopen_clopen_from p d n ↑(i.val)))∥ = a at hi',
     by_cases is_unit (i : zmod d) ∧ is_unit (i : ℤ_[p]),
-    { suffices : a ≤ K * ∥(loc_const_ind_fn R p d f) ↑i∥,
+    { suffices : a ≤ K' * ∥(loc_const_ind_fn R p d f) ↑i∥,
       convert_to a ≤ _,
       apply le_trans this _,
       rw mul_le_mul_left _,
@@ -165,16 +356,16 @@ noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
         simp only [prod.snd_nat_cast, prod.fst_nat_cast, prod.map_mk],
         repeat { rw is_unit.unit_spec, },
         simp only [prod.fst_zmod_cast, prod.snd_zmod_cast, eq_self_iff_true, and_self], },
-      { apply Kpos, },
+      { apply hK'.1, },
       { rw ←hi',
         rw linear_map.map_smul,
         rw smul_eq_mul,
         apply le_trans (norm_mul_le _ _) _,
         rw mul_comm, apply mul_le_mul,
-        { apply meas_E_c', },
+        { apply hK'.2, },
         { simp only [zmod.nat_cast_val], },
         { apply norm_nonneg, },
-        { apply le_of_lt, apply Kpos, }, }, },
+        { apply le_of_lt, apply hK'.1, }, }, },
     { have zer : (loc_const_ind_fn R p d f) ↑(i.val) = 0,
       { rw loc_const_ind_fn, simp only [locally_constant.coe_mk],
         rw ind_fn, convert dif_neg _, convert h,
@@ -184,7 +375,6 @@ noncomputable def measures_general (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
       simp only [linear_map.map_zero, norm_zero, finset.mem_range] at hi',
       rw hi'.symm at ha, rw ←ha,
       apply mul_nonneg,
-      { apply le_of_lt, apply Kpos, },
+      { apply le_of_lt, apply hK'.1, },
       apply norm_nonneg, },
---this is the proof to show it is also a measure on zmod _ × ℤ_[p]
-   end⟩
+    end⟩

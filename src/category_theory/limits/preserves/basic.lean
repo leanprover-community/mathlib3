@@ -241,6 +241,7 @@ def preserves_limits_of_size_shrink (F : C ⥤ D)
 ⟨λ J hJ, by exactI preserves_limits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
+/-- Preserving limits at any universe level implies preserving limits in universe `0`. -/
 def preserves_smallest_limits_of_preserves_limits
   (F : C ⥤ D) [preserves_limits_of_size.{v₃ u₃} F] : preserves_limits_of_size.{0 0} F :=
 preserves_limits_of_size_shrink F
@@ -300,6 +301,7 @@ def preserves_colimits_of_size_shrink (F : C ⥤ D)
 ⟨λ J hJ, by exactI preserves_colimits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
+/-- Preserving colimits at any universe implies preserving colimits at universe `0`. -/
 def preserves_smallest_colimits_of_preserves_colimits
   (F : C ⥤ D) [preserves_colimits_of_size.{v₃ u₃} F] : preserves_colimits_of_size.{0 0} F :=
 preserves_colimits_of_size_shrink F
@@ -555,6 +557,7 @@ def reflects_limits_of_size_shrink (F : C ⥤ D)
 ⟨λ J hJ, by exactI reflects_limits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
+/-- Reflecting limits at any universe implies reflecting limits at universe `0`. -/
 def reflects_smallest_limits_of_reflects_limits
   (F : C ⥤ D) [reflects_limits_of_size.{v₃ u₃} F] : reflects_limits_of_size.{0 0} F :=
 reflects_limits_of_size_shrink F
@@ -671,6 +674,7 @@ def reflects_colimits_of_size_shrink (F : C ⥤ D)
 ⟨λ J hJ, by exactI reflects_colimits_of_shape_of_equiv
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
+/-- Reflecting colimits at any universe implies reflecting colimits at universe `0`. -/
 def reflects_smallest_colimits_of_reflects_colimits
   (F : C ⥤ D) [reflects_colimits_of_size.{v₃ u₃} F] : reflects_colimits_of_size.{0 0} F :=
 reflects_colimits_of_size_shrink F

@@ -122,6 +122,8 @@ class preserves_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
 
 attribute [instance, priority 100] preserves_biproducts.preserves
 
+/-- Preserving biproducts at a bigger universe level implies preserving biproducts at a
+smaller universe level. -/
 def preserves_biproducts_shrink (F : C ⥤ D) [preserves_zero_morphisms F]
   [hp : preserves_biproducts.{max w₁ w₂} F] : preserves_biproducts.{w₁} F :=
 ⟨λ J, ⟨λ f, ⟨λ b ib, ((F.map_bicone b).whisker_is_bilimit_iff _).to_fun

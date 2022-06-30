@@ -181,6 +181,7 @@ def whisker_to_cocone {f : J → C} (c : bicone f) (g : K ≃ J) :
     (c.to_cocone.whisker (discrete.functor (discrete.mk ∘ g))) :=
 cocones.ext (iso.refl _) (by tidy)
 
+/-- Whiskering a bicone with an equivalence between types preserves being a bilimit bicone. -/
 def whisker_is_bilimit_iff {f : J → C} (c : bicone f) (g : K ≃ J) :
   (c.whisker g).is_bilimit ≃ c.is_bilimit :=
 begin

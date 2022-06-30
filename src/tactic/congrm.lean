@@ -131,7 +131,7 @@ try $ applyc ``_root_.eq.to_iff,
 `(@eq %%ty _ _) ← target | fail "congrm: goal must be an equality or iff",
 match arg with
 | [arg] := to_expr ``((%%arg : %%ty)) tt ff >>= equate_with_pattern
-| _     := fail "`congrm` only accepts one argument"
+| _     := fail "`congrm` accepts exactly one argument"
 end
 
 add_tactic_doc

@@ -153,9 +153,9 @@ begin
   apply le_antisymm,
   { rw real.equiv_Cauchy.cardinal_eq,
     apply mk_quotient_le.trans, apply (mk_subtype_le _).trans_eq,
-    rw [← power_def, mk_nat, mk_rat, omega_power_omega] },
+    rw [← power_def, mk_nat, mk_rat, aleph_0_power_aleph_0] },
   { convert mk_le_of_injective (cantor_function_injective _ _),
-    rw [←power_def, mk_bool, mk_nat, two_power_omega], exact 1 / 3, norm_num, norm_num }
+    rw [←power_def, mk_bool, mk_nat, two_power_aleph_0], exact 1 / 3, norm_num, norm_num }
 end
 
 /-- The cardinality of the reals, as a set. -/
@@ -163,8 +163,8 @@ lemma mk_univ_real : #(set.univ : set ℝ) = 𝔠 :=
 by rw [mk_univ, mk_real]
 
 /-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
-lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [← mk_set_le_omega, not_le, mk_univ_real], apply cantor }
+lemma not_countable_real : ¬ (set.univ : set ℝ).countable :=
+by { rw [← mk_set_le_aleph_0, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/
 lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 𝔠 :=
@@ -183,7 +183,7 @@ begin
   refine add_lt_of_lt (cantor _).le _ h,
   refine add_lt_of_lt (cantor _).le (mk_image_le.trans_lt h) _,
   rw mk_singleton,
-  exact one_lt_omega.trans (cantor _)
+  exact one_lt_aleph_0.trans (cantor _)
 end
 
 /-- The cardinality of the interval [a, ∞). -/

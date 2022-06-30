@@ -7,7 +7,7 @@ import data.int.log
 import data.nat.digits
 
 /-!
-# Digits of a linearly ordered field
+# Digits of a linearly ordered (semi)field
 
 ## Main definitions
 
@@ -16,8 +16,7 @@ import data.nat.digits
 
 -/
 
-
-variables {R : Type*} [linear_ordered_field R] [floor_ring R]
+variables {R : Type*} [linear_ordered_semifield R] [floor_semiring R]
 
 namespace order
 

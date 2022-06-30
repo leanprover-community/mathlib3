@@ -15,7 +15,7 @@ containing all powersets of members of `f`.
 `g` converges to `f.small_sets` if for all `s ∈ f`, eventually we have `g x ⊆ s`.
 
 An example usage is that if `f : ι → E → ℝ` is a family of nonnegative functions with integral 1,
-then saying that `λ i, support (f i)` tendsto `(𝓝 0).small_sets` is a way of saying that 
+then saying that `λ i, support (f i)` tendsto `(𝓝 0).small_sets` is a way of saying that
 `f` tends to the Dirac delta distribution.
 -/
 
@@ -54,7 +54,14 @@ eventually_lift'_iff monotone_powerset
 lemma eventually_small_sets' {p : set α → Prop} (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in l.small_sets, p s) ↔ ∃ s ∈ l, p s :=
 eventually_small_sets.trans $ exists₂_congr $ λ s hsf,
-  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+  ⟨λ H, H s subset.rfl, λ hs t ht, hp ht hs⟩
+
+lemma frequently_small_sets {p : set α → Prop} :
+  (∃ᶠ s in l.small_sets, p s) ↔ ∀ t ∈ l, ∃ s ⊆ t, p s :=
+l.has_basis_small_sets.frequently_iff
+
+lemma frequently_small_sets_mem (l : filter α) : ∃ᶠ s in l.small_sets, s ∈ l :=
+frequently_small_sets.2 $ λ t ht, ⟨t, subset.rfl, ht⟩
 
 lemma has_antitone_basis.tendsto_small_sets {ι} [preorder ι] {s : ι → set α}
   (hl : l.has_antitone_basis s) : tendsto s at_top l.small_sets :=
@@ -111,7 +118,7 @@ calc _ ↔ ∃ s ∈ l, ∀ᶠ x in l', x ∈ s → p x :
   (∀ᶠ s in l.small_sets, ∀ x ∈ s, p x) ↔ ∀ᶠ x in l, p x :=
 by simpa only [inf_top_eq, eventually_top] using @eventually_small_sets_eventually α l ⊤ p
 
-alias eventually_small_sets_forall ↔ filter.eventually.of_small_sets filter.eventually.small_sets
+alias eventually_small_sets_forall ↔ eventually.of_small_sets eventually.small_sets
 
 @[simp] lemma eventually_small_sets_subset {s : set α} :
   (∀ᶠ t in l.small_sets, t ⊆ s) ↔ s ∈ l :=

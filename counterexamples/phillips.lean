@@ -209,6 +209,7 @@ def restrict (f : bounded_additive_measure α) (t : set α) : bounded_additive_m
 @[simp] lemma restrict_apply (f : bounded_additive_measure α) (s t : set α) :
   f.restrict s t = f (s ∩ t) := rfl
 
+set_option profiler true
 /-- There is a maximal countable set of positive measure, in the sense that any countable set
 not intersecting it has nonpositive measure. Auxiliary lemma to prove `exists_discrete_support`. -/
 lemma exists_discrete_support_nonpos (f : bounded_additive_measure α) :
@@ -271,22 +272,23 @@ begin
       simp only [not_exists, mem_Union, mem_diff],
       tauto },
     { simp only [s, function.iterate_succ', subtype.coe_mk, union_diff_left] } },
-  have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (s n),
-  { assume n,
-    induction n with n IH,
-    { simp only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
-        function.iterate_zero, subtype.coe_mk], },
-    { have : (s (n+1) : set α) = (s (n+1) \ s n) ∪ s n,
-        by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
-          union_diff_left],
-      rw [nat.succ_eq_add_one, this, f.additive],
-      swap, { rw disjoint.comm, apply disjoint_diff },
-      calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
-      ... ≤ f ((s (n + 1 : ℕ)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
-  rcases exists_nat_gt (f.C / (ε / 2)) with ⟨n, hn⟩,
-  have : (n : ℝ) ≤ f.C / (ε / 2),
-    by { rw le_div_iff (half_pos ε_pos), exact (I2 n).trans (f.le_bound _) },
-  exact lt_irrefl _ (this.trans_lt hn),
+  try_for 20000 {
+    have I2 : ∀ (n : ℕ), (n : ℝ) * (ε / 2) ≤ f (s n),
+    { assume n,
+      induction n with n IH,
+      { simp only [s, bounded_additive_measure.empty, id.def, nat.cast_zero, zero_mul,
+          function.iterate_zero, subtype.coe_mk], },
+      { have : (s (n+1) : set α) = (s (n+1) \ s n) ∪ s n,
+          by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
+            union_diff_left],
+        rw [nat.succ_eq_add_one, this, f.additive],
+        swap, { rw disjoint.comm, apply disjoint_diff },
+        calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
+        ... ≤ f ((s (n + 1 : ℕ)) \ (s n)) + f (s n) : add_le_add (I1 n) IH } },
+    rcases exists_nat_gt (f.C / (ε / 2)) with ⟨n, hn⟩,
+    have : (n : ℝ) ≤ f.C / (ε / 2),
+      by { rw le_div_iff (half_pos ε_pos), exact (I2 n).trans (f.le_bound _) },
+    exact lt_irrefl _ (this.trans_lt hn) }
 end
 
 lemma exists_discrete_support (f : bounded_additive_measure α) :

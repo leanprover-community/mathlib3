@@ -25,9 +25,7 @@ universe u
 
 open pgame
 
-local infix ` ≈ ` := equiv
-local infix ` ⧏ `:50 := lf
-local infix ` ♯ `:65 := ordinal.nadd
+open_locale natural_ops pgame
 
 namespace ordinal
 
@@ -85,7 +83,7 @@ begin
 end
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
+⟨to_pgame_le h.le, to_pgame_lf h⟩ 
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩
@@ -114,7 +112,7 @@ to_pgame_injective.eq_iff
 /-- The sum of ordinals as games corresponds to natural addition of ordinals. -/
 theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯ b).to_pgame
 | a b := begin
-  refine ⟨le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩, le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩⟩,
+  refine ⟨le_of_forall_lf (λ i, _) is_empty_elim, le_of_forall_lf (λ i, _) is_empty_elim⟩,
   { apply left_moves_add_cases i;
     intro i;
     let wf := to_left_moves_to_pgame_symm_lt i;

@@ -379,9 +379,18 @@ begin
   congr' 1,
 end
 
+instance : has_nat_cast (homogeneous_localization 𝒜 x) := ⟨nat.unary_cast⟩
+instance : has_int_cast (homogeneous_localization 𝒜 x) := ⟨int.cast_def⟩
+
+@[simp] lemma nat_cast_val (n : ℕ) : (n : homogeneous_localization 𝒜 x).val = n :=
+show val (nat.unary_cast n) = _, by induction n; simp [nat.unary_cast, zero_val, one_val, *]
+
+@[simp] lemma int_cast_val (n : ℤ) : (n : homogeneous_localization 𝒜 x).val = n :=
+show val (int.cast_def n) = _, by cases n; simp [int.cast_def, zero_val, one_val, *]
+
 instance : comm_ring (homogeneous_localization 𝒜 x) :=
 (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
-  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val
+  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val nat_cast_val int_cast_val
 
 end homogeneous_localization
 

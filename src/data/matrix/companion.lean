@@ -26,9 +26,10 @@ Companion matrix, Frobenius matrix
 open_locale polynomial
 
 namespace matrix
+variables {R : Type*}
 
 /--The companion matrix of a polynomial.-/
-def companion {R : Type*} [ring R] (P : R[X]) : matrix (fin P.nat_degree) (fin P.nat_degree) R :=
+def companion [ring R] (P : R[X]) : matrix (fin P.nat_degree) (fin P.nat_degree) R :=
 if h : P.nat_degree = 0 then 0 else
   λ i j, if j = fin.last' h then -P.coeff i else if (j : ℕ) + 1 = i then 1 else 0
 
@@ -36,7 +37,7 @@ open adjoin_root polynomial
 
 /--The companion matrix of `P` is the matrix of the multiplication by `root P` in the canonical
 basis `1, root P, (root P)^2, ...` of `adjoin_root P`.-/
-lemma companion_eq_to_matrix_lmul_root {R : Type*} [comm_ring R] {P : R[X]} (hP : P.monic) :
+lemma companion_eq_to_matrix_lmul_root [comm_ring R] {P : R[X]} (hP : P.monic) :
   companion P = alg_equiv_matrix (power_basis' hP).basis (algebra.lmul _ _ (root P)) :=
 begin
   dunfold companion, split_ifs with h,
@@ -66,6 +67,18 @@ begin
     apply lt_of_le_of_ne,
     { rw nat.add_one_le_iff, exact j.is_lt },
     { intro hj', apply hj, ext, simp_rw [fin.coe_last', ← hj', nat.add_sub_cancel] } }
+end
+
+lemma minpoly_companion [field R] {P : R[X]} (hP : P.monic) : minpoly R (companion P) = P :=
+eq.symm $ minpoly.unique _ _ hP
+(by rw [companion_eq_to_matrix_lmul_root hP, aeval_alg_equiv_apply, aeval_alg_hom_apply, aeval_eq,
+    mk_self, map_zero, map_zero]) $
+λ q hq Pq, begin
+  rw [companion_eq_to_matrix_lmul_root hP, aeval_alg_equiv_apply, aeval_alg_hom_apply, aeval_eq,
+    add_equiv_class.map_eq_zero_iff, map_eq_zero_iff, mk_eq_zero] at Pq,
+  rw [degree_eq_nat_degree hP.ne_zero, degree_eq_nat_degree hq.ne_zero, with_bot.coe_le_coe],
+  exact nat_degree_le_of_dvd Pq hq.ne_zero,
+  { exact algebra.lmul_injective' _ _ }
 end
 
 end matrix

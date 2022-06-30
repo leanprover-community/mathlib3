@@ -135,7 +135,16 @@ end
 
 section
 
-variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
+variables (R A : Type*) [comm_semiring R] [ring A] [algebra R A]
+
+lemma lmul_injective' : function.injective (lmul R A) :=
+begin
+  rw injective_iff_map_eq_zero,
+  intros a ha,
+  rw [← mul_one a, ← lmul_apply a 1, ha, linear_map.zero_apply]
+end
+
+variables {R A}
 
 lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_left R x) :=

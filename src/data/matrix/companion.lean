@@ -17,6 +17,7 @@ import linear_algebra.matrix.to_lin
 
 * `matrix.companion_eq_to_matrix_lmul_root` : The companion matrix of `P` is the matrix of the
   multiplication by `root P` in the canonical basis `1, root P, (root P)^2, ...` of `adjoin_root P`.
+* `matrix.minpoly_companion` : The minimal polynomial of the companion matrix of `P` is `P`.
 
 ## Tags
 
@@ -69,6 +70,7 @@ begin
     { intro hj', apply hj, ext, simp_rw [fin.coe_last', ← hj', nat.add_sub_cancel] } }
 end
 
+/--The minimal polynomial of the companion matrix of `P` is `P`.-/
 lemma minpoly_companion [field R] {P : R[X]} (hP : P.monic) : minpoly R (companion P) = P :=
 eq.symm $ minpoly.unique _ _ hP
 (by rw [companion_eq_to_matrix_lmul_root hP, aeval_alg_equiv_apply, aeval_alg_hom_apply, aeval_eq,

@@ -12,12 +12,19 @@ import data.complex.basic
 # Divisible Group
 
 An abelian group `A` is said to be divisible iff for all `n ≠ 0` `y ∈ A`, there is an `x ∈ A`
-such that `n • x = y`.
+such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we ask for an explicit
+`div_int : A → ℤ → A` function such that `div_int a 0 = 0` and `n • div_int a n = a` for `n ≠ 0`.
 
 ## Main results
-
-* `add_comm_group.divisible_iff_smul_top_eq_top` : `A` is divisible iff `n • A = A` for all `n ≠ 0`.
-* `add_comm_group.divisble_rat` : `ℚ` is a divisible group.
+* `add_comm_group.divisible_of_smul_surj` : the constructive definition of divisiblity is implied by
+  the condition that `n • x = a` has solutions for all `n ≠ 0` and `a ∈ A`.
+* `add_comm_group.smul_surj_of_divisible` : the constructive definition of divisiblity implies
+  the condition that `n • x = a` has solutions for all `n ≠ 0` and `a ∈ A`.
+* `add_comm_group.divisible_of_smul_top_eq_top` : the constructive definition of divisiblity is
+  implied by the condition that `n • A = A` for all `n ≠ 0`.
+* `add_comm_group.smul_top_eq_top_of_divisible` : the constructive definition of divisiblity implies
+  the condition that `n • A = A` for all `n ≠ 0`.
+* `add_comm_group.divisible_rat` : `ℚ` is a divisible group.
 * `add_comm_group.divisible_real` : `ℝ` is a divisible group.
 * `add_comm_group.divisible_complex` : `ℂ` is a divisible group.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
@@ -41,15 +48,15 @@ class divisible :=
 (div_int : A → ℤ → A)
 (div_zero : ∀ a, div_int a 0 = 0)
 (div_cancel : ∀ {n : ℤ} (a : A), n ≠ 0 → n • div_int a n = a)
--- (div : ∀ (n : ℤ), n ≠ 0 → function.surjective ((•) n : A → A))
 
-local infix ` /ℤ ` :50 := divisible.div_int
+localized "infix ` /ℤ ` :50 := divisible.div_int" in divisible_group
 
 lemma smul_surj_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
   function.surjective ((•) n : A → A) :=
 λ a, ⟨a /ℤ n, divisible.div_cancel a hn⟩
 
-noncomputable instance divisible_of_smul_surj (surj : ∀ {n : ℤ}, n ≠ 0 → function.surjective ((•) n : A → A)) :
+noncomputable instance divisible_of_smul_surj
+  (surj : ∀ {n : ℤ}, n ≠ 0 → function.surjective ((•) n : A → A)) :
   divisible A :=
 { div_int := λ a n, dite (n = 0) (λ _, 0) (λ h, (surj h a).some),
   div_zero := λ a, dif_pos rfl,
@@ -61,12 +68,11 @@ lemma smul_top_eq_top_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
   n • (⊤ : add_subgroup A) = ⊤ :=
 (add_subgroup.eq_top_iff' (n • ⊤)).mpr $ λ x, ⟨x /ℤ n, trivial, divisible.div_cancel x hn⟩
 
-noncomputable instance divisible_of_smul_top_eq_top (H : ∀ {n : ℤ}, n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤) :
+noncomputable instance divisible_of_smul_top_eq_top
+  (H : ∀ {n : ℤ}, n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤) :
   divisible A:=
-add_comm_group.divisible_of_smul_surj _ $ λ n hn a, begin
-  rcases (show a ∈ n • (⊤ : add_subgroup A), by simp only [H hn]) with ⟨a, _, rfl⟩,
-  exact ⟨_, rfl⟩,
-end
+add_comm_group.divisible_of_smul_surj _ $ λ n hn a, ⟨(show a ∈ n • (⊤ : add_subgroup A),
+  by simp only [H hn]).some, (show a ∈ n • (⊤ : add_subgroup A), by simp only [H hn]).some_spec.2⟩
 
 /-- ℚ is a divisible group. -/
 instance divisible_rat : divisible ℚ :=

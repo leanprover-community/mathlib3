@@ -74,7 +74,7 @@ end pi
 
 section quotient
 
-variables {B : add_subgroup A} [add_subgroup.normal B] [divisible A]
+variables {B : add_subgroup A} [divisible A]
 
 instance divisible_quotient : divisible (A ⧸ B) :=
 ⟨λ n hn x, quotient.induction_on' x $ λ a, ⟨quotient.mk' $ (divisible.div n hn a).some,

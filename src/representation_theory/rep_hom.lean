@@ -230,7 +230,6 @@ def mk' (f : V → V₂) (H : is_rep_hom ρ ρ₂ f) : ρ →ᵣ ρ₂ :=
 @[simp] theorem mk'_apply {f : V → V₂} (H : is_rep_hom ρ ρ₂ f) (x : V) :
   mk' f H x = f x := rfl
 
-set_option trace.simplify.rewrite true
 lemma is_rep_hom_smul (c : k) :
   is_rep_hom ρ ρ (λ (z : V), c • z) :=
 begin
@@ -283,15 +282,20 @@ variables
   [add_comm_monoid V₃] [module k V₃]
   {ρ : representation k G V} {ρ₂ : representation k G V₂} {ρ₃ : representation k G V₃}
 variables
-  {k' : Type*} [monoid k'] [has_scalar k' k] [has_scalar k' V] [distrib_mul_action k' V₂]
-  [is_scalar_tower k' k V] [is_scalar_tower k' k V₂] [smul_comm_class k' k V₂]
+  {k' : Type*} [monoid k'] [distrib_mul_action k' V₂] [smul_comm_class k k' V₂]
+  [has_scalar k' k] [is_scalar_tower k' k V₂]
+  {k'' : Type*} [monoid k''] [distrib_mul_action k'' V₂] [smul_comm_class k k'' V₂]
+  [has_scalar k'' k] [is_scalar_tower k'' k V₂]
 
+-- The additional assumptions has_scalar k' k and is_scalar_tower k' k V₂ are needed in order to
+-- pass scalar multiplication by an element of k' through the representation of an element of G as
+-- a k-linear map.
 instance : has_scalar k' (ρ →ᵣ ρ₂) :=
 ⟨λ a f, { to_fun := a • f,
           map_add' := λ x y, by rw [pi.smul_apply,
             f.map_add, smul_add, pi.smul_apply, pi.smul_apply],
           map_smul' := λ c x, by rw [pi.smul_apply,
-            f.map_smul, ring_hom.id_apply, smul_comm, pi.smul_apply],
+            f.map_smul, ring_hom.id_apply, pi.smul_apply, ←smul_comm],
           map_smulG' := λ g x, by rw [pi.smul_apply,
             f.map_smulG, pi.smul_apply, linear_map.map_smul_of_tower] }⟩
 
@@ -299,7 +303,10 @@ instance : has_scalar k' (ρ →ᵣ ρ₂) :=
 
 lemma coe_smul (a : k) (f : ρ →ᵣ ρ₂) : ⇑(a • f) = a • f := rfl
 
--- smul_comm_class
+instance [smul_comm_class k'' k' V₂] : smul_comm_class k'' k' (ρ →ᵣ ρ₂) :=
+⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
+
+--
 
 end has_scalar
 
@@ -358,13 +365,32 @@ instance : has_neg (ρ →ᵣ σ₂) :=
 
 @[simp] lemma neg_apply (f : ρ →ᵣ σ₂) (x : V) : (- f) x = - f x := rfl
 
-@[simp] lemma neg_comp (f : ρ →ᵣ σ₂) (g : σ₂ →ᵣ σ₃) : (- g).comp f = - g.comp f := rfl
+@[simp] lemma neg_comp (f : ρ →ᵣ ρ₂) (g : ρ₂ →ᵣ σ₃) : (- g).comp f = - g.comp f := rfl
 
 @[simp] lemma comp_neg (f : ρ →ᵣ σ₂) (g : σ₂ →ᵣ σ₃) : g.comp (- f) = - g.comp f :=
 ext $ λ _, g.map_neg _
 
+/-- The negation of a rep_hom is a rep_hom. -/
+instance : has_sub (ρ →ᵣ σ₂) :=
+⟨λ f g, { to_fun := f - g,
+          map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],
+          map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub],
+          map_smulG' := λ g x, by simp [pi.sub_apply, map_smulG] }⟩
 
+@[simp] lemma sub_apply (f g : ρ →ᵣ σ₂) (x : V) : (f - g) x = f x - g x := rfl
 
+lemma sub_comp (f : ρ →ᵣ ρ₂) (g h : ρ₂ →ᵣ σ₃) :
+  (g - h).comp f = g.comp f - h.comp f := rfl
+
+lemma comp_sub (f g : ρ →ᵣ σ₂) (h : σ₂ →ᵣ σ₃) :
+  h.comp (g - f) = h.comp g - h.comp f :=
+ext $ λ _, h.map_sub _ _
+
+/-- The type of linear maps is an additive group. -/
+-- the additional has_scalar and is_scalar_tower assumptions are needed for rep_hom.has_scalar
+instance [has_scalar ℤ k] [is_scalar_tower ℤ k W₂] : add_comm_group (ρ →ᵣ σ₂) :=
+fun_like.coe_injective.add_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)  (λ _ _, rfl)
 
 end arithmetic
 

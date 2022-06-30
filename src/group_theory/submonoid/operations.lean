@@ -411,7 +411,7 @@ omit hA
 /-- An `add_submonoid` of an `add_monoid` inherits a scalar multiplication. -/
 instance _root_.add_submonoid_class.has_nsmul {M} [add_monoid M] {A : Type*} [set_like A M]
   [add_submonoid_class A M] (S : A) :
-  has_scalar ℕ S :=
+  has_smul ℕ S :=
 ⟨λ n a, ⟨n • a.1, nsmul_mem a.2 n⟩⟩
 
 /-- A submonoid of a monoid inherits a power operator. -/
@@ -1063,30 +1063,30 @@ section mul_one_class
 variables [mul_one_class M']
 
 @[to_additive]
-instance [has_scalar M' α] (S : submonoid M') : has_scalar S α := has_scalar.comp _ S.subtype
+instance [has_smul M' α] (S : submonoid M') : has_smul S α := has_smul.comp _ S.subtype
 
 @[to_additive]
 instance smul_comm_class_left
-  [has_scalar M' β] [has_scalar α β] [smul_comm_class M' α β] (S : submonoid M') :
+  [has_smul M' β] [has_smul α β] [smul_comm_class M' α β] (S : submonoid M') :
   smul_comm_class S α β :=
 ⟨λ a, (smul_comm (a : M') : _)⟩
 
 @[to_additive]
 instance smul_comm_class_right
-  [has_scalar α β] [has_scalar M' β] [smul_comm_class α M' β] (S : submonoid M') :
+  [has_smul α β] [has_smul M' β] [smul_comm_class α M' β] (S : submonoid M') :
   smul_comm_class α S β :=
 ⟨λ a s, (smul_comm a (s : M') : _)⟩
 
 /-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_scalar α β] [has_scalar M' α] [has_scalar M' β] [is_scalar_tower M' α β] (S : submonoid M') :
+  [has_smul α β] [has_smul M' α] [has_smul M' β] [is_scalar_tower M' α β] (S : submonoid M') :
   is_scalar_tower S α β :=
 ⟨λ a, (smul_assoc (a : M') : _)⟩
 
 @[to_additive]
-lemma smul_def [has_scalar M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
+lemma smul_def [has_smul M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
 
-instance [has_scalar M' α] [has_faithful_smul M' α] (S : submonoid M') :
+instance [has_smul M' α] [has_faithful_smul M' α] (S : submonoid M') :
   has_faithful_smul S α :=
 ⟨λ x y h, subtype.ext $ eq_of_smul_eq_smul h⟩
 

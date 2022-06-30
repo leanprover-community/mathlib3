@@ -49,8 +49,8 @@ section balanced_hull
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] {s t : set E} {x : E}
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] {s t : set E} {x : E}
 
 /-- The largest balanced subset of `s`.-/
 def balanced_core (s : set E) := ⋃₀ {t : set E | balanced 𝕜 t ∧ t ⊆ s}
@@ -99,7 +99,7 @@ mem_Union₂
 lemma balanced.hull_subset_of_subset (ht : balanced 𝕜 t) (h : s ⊆ t) : balanced_hull 𝕜 s ⊆ t :=
 λ x hx, by { obtain ⟨r, hr, y, hy, rfl⟩ := mem_balanced_hull_iff.1 hx, exact ht.smul_mem hr (h hy) }
 
-end has_scalar
+end has_smul
 
 section module
 variables [add_comm_group E] [module 𝕜 E] {s : set E}

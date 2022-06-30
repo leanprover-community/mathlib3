@@ -167,17 +167,17 @@ function.injective.field _ subtype.coe_injective
 
 end field
 
-section has_scalar
+section has_smul
 variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
-lemma smul_mem [has_scalar R A] [star_module R A] (r : R) {x : A}
+lemma smul_mem [has_smul R A] [star_module R A] (r : R) {x : A}
   (h : x ∈ self_adjoint A) : r • x ∈ self_adjoint A :=
 by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h]
 
-instance [has_scalar R A] [star_module R A] : has_scalar R (self_adjoint A) :=
+instance [has_smul R A] [star_module R A] : has_smul R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
-@[simp, norm_cast] lemma coe_smul [has_scalar R A] [star_module R A] (r : R) (x : self_adjoint A) :
+@[simp, norm_cast] lemma coe_smul [has_smul R A] [star_module R A] (r : R) (x : self_adjoint A) :
   ↑(r • x) = r • (x : A) := rfl
 
 instance [monoid R] [mul_action R A] [star_module R A] : mul_action R (self_adjoint A) :=
@@ -187,7 +187,7 @@ instance [monoid R] [distrib_mul_action R A] [star_module R A] :
   distrib_mul_action R (self_adjoint A) :=
 function.injective.distrib_mul_action (self_adjoint A).subtype subtype.coe_injective coe_smul
 
-end has_scalar
+end has_smul
 
 section module
 variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
@@ -233,14 +233,14 @@ is_star_normal_of_mem (set_like.coe_mem _)
 
 end ring
 
-section has_scalar
+section has_smul
 variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
 
 lemma smul_mem [monoid R] [distrib_mul_action R A] [star_module R A] (r : R) {x : A}
   (h : x ∈ skew_adjoint A) : r • x ∈ skew_adjoint A :=
 by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h, smul_neg r]
 
-instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_scalar R (skew_adjoint A) :=
+instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_smul R (skew_adjoint A) :=
 ⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
@@ -253,7 +253,7 @@ function.injective.distrib_mul_action (skew_adjoint A).subtype subtype.coe_injec
 instance [semiring R] [module R A] [star_module R A] : module R (skew_adjoint A) :=
 function.injective.module R (skew_adjoint A).subtype subtype.coe_injective coe_smul
 
-end has_scalar
+end has_smul
 
 end skew_adjoint
 

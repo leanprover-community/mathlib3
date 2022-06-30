@@ -89,7 +89,7 @@ instance {A} [semiring R] [add_comm_monoid A] [module R A] :
   module R (mv_power_series σ A) := pi.module _ _ _
 
 instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
-  [has_scalar R S] [is_scalar_tower R S A] :
+  [has_smul R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (mv_power_series σ A) :=
 pi.is_scalar_tower
 
@@ -938,7 +938,7 @@ instance {A} [semiring R] [add_comm_monoid A] [module R A] :
   module R (power_series A) := by apply_instance
 
 instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
-  [has_scalar R S] [is_scalar_tower R S A] :
+  [has_smul R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
 

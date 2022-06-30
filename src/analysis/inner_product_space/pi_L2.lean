@@ -39,7 +39,7 @@ open_locale big_operators uniformity topological_space nnreal ennreal complex_co
 
 noncomputable theory
 
-variables {ι : Type*}
+variables {ι : Type*} {ι' : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
 variables {E' : Type*} [inner_product_space 𝕜 E']
 variables {F : Type*} [inner_product_space ℝ F]
@@ -98,6 +98,18 @@ lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fin
   (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
 pi_Lp.nnnorm_eq_of_L2 x
 
+lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x y : euclidean_space 𝕜 n) : dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
+(pi_Lp.dist_eq_of_L2 x y : _)
+
+lemma euclidean_space.nndist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x y : euclidean_space 𝕜 n) : nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
+(pi_Lp.nndist_eq_of_L2 x y : _)
+
+lemma euclidean_space.edist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x y : euclidean_space 𝕜 n) : edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
+(pi_Lp.edist_eq_of_L2 x y : _)
+
 variables [fintype ι]
 
 section
@@ -111,6 +123,9 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 
 lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
+
+lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
+  ⟪x, y⟫ = matrix.dot_product (star $ pi_Lp.equiv _ _ x) (pi_Lp.equiv _ _ y) := rfl
 
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
@@ -153,11 +168,17 @@ end
 all other coordinates. -/
 def euclidean_space.single [decidable_eq ι] (i : ι) (a : 𝕜) :
   euclidean_space 𝕜 ι :=
-pi.single i a
+(pi_Lp.equiv _ _).symm (pi.single i a)
+
+@[simp] lemma pi_Lp.equiv_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  pi_Lp.equiv _ _ (euclidean_space.single i a) = pi.single i a := rfl
+
+@[simp] lemma pi_Lp.equiv_symm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  (pi_Lp.equiv _ _).symm (pi.single i a) = euclidean_space.single i a := rfl
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-by { rw [euclidean_space.single, ← pi.single_apply i a j] }
+by { rw [euclidean_space.single, pi_Lp.equiv_symm_apply, ← pi.single_apply i a j] }
 
 lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=

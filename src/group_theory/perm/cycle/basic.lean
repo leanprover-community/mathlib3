@@ -1388,8 +1388,8 @@ begin
   have hd1' := coe_inj.2 hd1.support_mul,
   have hd2' := coe_inj.2 hd2.support_mul,
   rw [coe_union] at *,
-  have hd1'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd1),
-  have hd2'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd2),
+  have hd1'' := disjoint_coe.2 (disjoint_iff_disjoint_support.1 hd1),
+  have hd2'' := disjoint_coe.2 (disjoint_iff_disjoint_support.1 hd2),
   refine is_conj_of_support_equiv _ _,
   { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
       ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans

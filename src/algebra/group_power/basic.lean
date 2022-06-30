@@ -107,6 +107,16 @@ by rw [←pow_add, nat.add_comm, tsub_add_cancel_of_le h]
 theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
 by rw [←pow_add, tsub_add_cancel_of_le h]
 
+/-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
+@[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
+lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
+  x ^ m = x ^ (m % n) :=
+begin
+  have t := congr_arg (λ a, x ^ a) (nat.div_add_mod m n).symm,
+  dsimp at t,
+  rw [t, pow_add, pow_mul, h, one_pow, one_mul],
+end
+
 @[to_additive bit0_nsmul]
 theorem pow_bit0 (a : M) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
 
@@ -295,6 +305,24 @@ map_pow f a
 
 end ring_hom
 
+section pow_monoid_with_zero_hom
+
+variables [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n)
+include M hn
+
+/-- We define `x ↦ x^n` (for positive `n : ℕ`) as a `monoid_with_zero_hom` -/
+def pow_monoid_with_zero_hom : M →*₀ M :=
+{ map_zero' := zero_pow hn,
+  ..pow_monoid_hom n }
+
+@[simp]
+lemma coe_pow_monoid_with_zero_hom : (pow_monoid_with_zero_hom hn : M → M) = (^ n) := rfl
+
+@[simp]
+lemma pow_monoid_with_zero_hom_apply (a : M) : pow_monoid_with_zero_hom hn a = a ^ n := rfl
+
+end pow_monoid_with_zero_hom
+
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩
 
@@ -320,6 +348,11 @@ begin
   rintros rfl,
   exact zero_pow hn,
 end
+
+lemma pow_eq_zero_iff' [monoid_with_zero R] [no_zero_divisors R] [nontrivial R]
+  {a : R} {n : ℕ} :
+  a ^ n = 0 ↔ a = 0 ∧ n ≠ 0 :=
+by cases (zero_le n).eq_or_gt; simp [*, ne_of_gt]
 
 lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ} (hn : 0 < n) :
   a ^ n ≠ 0 ↔ a ≠ 0 :=
@@ -399,7 +432,10 @@ alias neg_one_sq ← neg_one_pow_two
 end has_distrib_neg
 
 section ring
-variable [ring R]
+variables [ring R] {a b : R}
+
+protected lemma commute.sq_sub_sq (h : commute a b) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by rw [sq, sq, h.mul_self_sub_mul_self_eq]
 
 @[simp]
 lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
@@ -409,20 +445,25 @@ by rcases neg_one_pow_eq_or R n; simp [h]
 lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
 by rcases neg_one_pow_eq_or R n; simp [h]
 
+variables [no_zero_divisors R]
+
+protected lemma commute.sq_eq_sq_iff_eq_or_eq_neg (h : commute a b) :
+  a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by rw [←sub_eq_zero, h.sq_sub_sq, mul_eq_zero, add_eq_zero_iff_eq_neg, sub_eq_zero, or_comm]
+
+@[simp] lemma sq_eq_one_iff : a^2 = 1 ↔ a = 1 ∨ a = -1 :=
+by rw [←(commute.one_right a).sq_eq_sq_iff_eq_or_eq_neg, one_pow]
+
+lemma sq_ne_one_iff : a^2 ≠ 1 ↔ a ≠ 1 ∧ a ≠ -1 := sq_eq_one_iff.not.trans not_or_distrib
+
 end ring
 
 section comm_ring
 variables [comm_ring R]
 
-lemma sq_sub_sq (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by rw [sq, sq, mul_self_sub_mul_self]
+lemma sq_sub_sq (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) := (commute.all a b).sq_sub_sq
 
 alias sq_sub_sq ← pow_two_sub_pow_two
-
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : R) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← sq_sub_sq a b, sub_eq_zero]
 
 lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
 by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg, ← sub_eq_add_neg]
@@ -432,16 +473,22 @@ alias sub_sq ← sub_pow_two
 lemma sub_sq' (a b : R) : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b :=
 by rw [sub_eq_add_neg, add_sq', neg_sq, mul_neg, ← sub_eq_add_neg]
 
+variables [no_zero_divisors R] {a b : R}
+
+lemma sq_eq_sq_iff_eq_or_eq_neg : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+(commute.all a b).sq_eq_sq_iff_eq_or_eq_neg
+
+lemma eq_or_eq_neg_of_sq_eq_sq (a b : R) : a ^ 2 = b ^ 2 → a = b ∨ a = -b :=
+sq_eq_sq_iff_eq_or_eq_neg.1
+
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units
 
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-begin
-  refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
-  replace h := congr_arg (coe : Rˣ → R) h,
-  rwa [units.coe_pow, units.coe_pow] at h,
-end
+protected lemma sq_eq_sq_iff_eq_or_eq_neg {a b : Rˣ} : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by simp_rw [ext_iff, coe_pow, sq_eq_sq_iff_eq_or_eq_neg, units.coe_neg]
+
+protected lemma eq_or_eq_neg_of_sq_eq_sq (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+units.sq_eq_sq_iff_eq_or_eq_neg.1 h
 
 end units
 

@@ -157,7 +157,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_Union {s : set β} (hs : finite s)
+@[simp] lemma integrable_on_finite_Union {s : set β} (hs : s.finite)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -280,7 +280,7 @@ begin
   exact λ ⟨hv, ht⟩, ⟨hv, ⟨ht, hx⟩⟩
 end
 
-alias integrable_at_filter.inf_ae_iff ↔ measure_theory.integrable_at_filter.of_inf_ae _
+alias integrable_at_filter.inf_ae_iff ↔ integrable_at_filter.of_inf_ae _
 
 /-- If `μ` is a measure finite at filter `l` and `f` is a function such that its norm is bounded
 above at `l`, then `f` is integrable at `l`. -/
@@ -307,7 +307,7 @@ lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae
   hf.norm.is_bounded_under_le).of_inf_ae
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto_ae ←
-  filter.tendsto.integrable_at_filter_ae
+  _root_.filter.tendsto.integrable_at_filter_ae
 
 lemma measure.finite_at_filter.integrable_at_filter_of_tendsto {l : filter α}
   [is_measurably_generated l] (hfm : strongly_measurable_at_filter f l μ)
@@ -315,7 +315,8 @@ lemma measure.finite_at_filter.integrable_at_filter_of_tendsto {l : filter α}
   integrable_at_filter f l μ :=
 hμ.integrable_at_filter hfm hf.norm.is_bounded_under_le
 
-alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendsto.integrable_at_filter
+alias measure.finite_at_filter.integrable_at_filter_of_tendsto ←
+  _root_.filter.tendsto.integrable_at_filter
 
 lemma integrable_add_of_disjoint {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : strongly_measurable f) (hg : strongly_measurable g) :

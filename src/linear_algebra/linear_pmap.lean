@@ -1,4 +1,4 @@
-    /-
+/-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
@@ -471,18 +471,17 @@ lemma exists_unique_from_graph {g : submodule R (E × F)}
   ∃! (b : F), (a,b) ∈ g :=
 begin
   refine exists_unique_of_exists_of_unique _ _,
-  { simp only [submodule.mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
-      exists_eq_right] at ha,
-    exact ha },
+  { convert ha, simp },
   intros y₁ y₂ hy₁ hy₂,
   have hy : ((0 : E), y₁ - y₂) ∈ g :=
   begin
-    convert submodule.sub_mem g hy₁ hy₂,
+    convert g.sub_mem hy₁ hy₂,
     exact (sub_self _).symm,
   end,
   exact sub_eq_zero.mp (hg hy (by simp)),
 end
 
+/-- Auxiliary definition to unfold the existential quantifier. -/
 noncomputable
 def val_from_graph {g : submodule R (E × F)}
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
@@ -526,28 +525,22 @@ val_mem_from_graph hg x.2
   (from_graph g hg).graph = g :=
 begin
   ext,
-  split,
-  { intro hx,
-    rw [linear_pmap.mem_graph_iff] at hx,
+  split; intro hx,
+  { rw [linear_pmap.mem_graph_iff] at hx,
     rcases hx with ⟨y,hx1,hx2⟩,
     convert mem_graph_from_graph g hg y,
     rw [subtype.val_eq_coe],
     exact prod.ext hx1.symm hx2.symm },
-  intro hx,
   rw linear_pmap.mem_graph_iff,
-  dunfold from_graph,
-  simp,
-  have hx' : (x.fst, x.snd) ∈ g := by simp[hx],
-  have hx_fst : x.fst ∈ g.map (linear_map.fst R E F) :=
+  cases x,
+  have hx_fst : x_fst ∈ g.map (linear_map.fst R E F) :=
   begin
     simp only [mem_map, linear_map.fst_apply, prod.exists, exists_and_distrib_right,
       exists_eq_right],
-    exact ⟨x.snd, hx'⟩,
+    exact ⟨x_snd, hx⟩,
   end,
-  use x.fst,
-  { exact hx_fst },
-  refine ⟨by rw submodule.coe_mk, _⟩,
-  exact (exists_unique_from_graph hg hx_fst).unique (val_mem_from_graph hg hx_fst) hx',
+  refine ⟨⟨x_fst, hx_fst⟩, subtype.coe_mk x_fst hx_fst, _⟩,
+  exact (exists_unique_from_graph hg hx_fst).unique (val_mem_from_graph hg hx_fst) hx,
 end
 
 end submodule_from_graph

@@ -72,6 +72,7 @@ lemma root_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
   function.surjective ((flip (^)) n : A → A) :=
 λ x, ⟨rootable_by.root x n, rootable_by.root_pow _ hn⟩
 
+@[to_additive add_monoid.divisible_by_of_smul_surj]
 noncomputable instance rootable_by_of_root_surj
   [Π (n : α), decidable (n = 0)]
   (H : ∀ {n : α}, n ≠ 0 → function.surjective ((flip (^)) n : A → A)) :

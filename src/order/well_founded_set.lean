@@ -414,10 +414,7 @@ namespace set
 variables [partial_order α] {s : set α} {a : α}
 
 theorem finite.is_pwo (h : s.finite) : s.is_pwo :=
-begin
-  rw ← h.coe_to_finset,
-  exact h.to_finset.is_pwo,
-end
+by { rw ← h.coe_to_finset, exact h.to_finset.is_pwo }
 
 @[simp] theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
 

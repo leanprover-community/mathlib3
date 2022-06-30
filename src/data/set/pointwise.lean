@@ -475,8 +475,8 @@ end
   a ∈ (list.of_fn s).prod ↔ ∃ f : fin n → α, (∀ i, f i ∈ s i) ∧ (list.of_fn f).prod = a :=
 begin
   induction n with n ih generalizing a,
-  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi],
-    exact ⟨λ h, ⟨fin_zero_elim, h.symm⟩, λ ⟨f, h⟩, h.symm⟩ },
+  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi, eq_comm],
+    exact (and_iff_right fin_zero_elim).symm },
   { simp_rw [list.of_fn_succ, list.prod_cons, fin.forall_fin_succ, fin.exists_fin_succ_pi,
       fin.cons_zero, fin.cons_succ, mem_mul, @ih],
     split,

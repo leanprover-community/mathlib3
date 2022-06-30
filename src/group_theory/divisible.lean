@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
+import group_theory.quotient_group
 import data.real.basic
 import data.complex.basic
 
@@ -20,7 +21,9 @@ such that `n • x = y`.
 * `add_comm_group.divisible_real` : `ℝ` is a divisible group.
 * `add_comm_group.divisible_complex` : `ℂ` is a divisible group.
 * `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
-
+* `add_comm_group.divisible_quotient : Quotient group of divisible group is divisible.
+* `add_comm_group.divisible_of_surj` : if `A` is divisible and `A →+ B` is surjective, then `B` is
+  divisible.
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
 -/
 
@@ -68,5 +71,35 @@ instance divisible_pi : divisible (Π i, B i) :=
   funext $ λ i, (divisible.div n hn (x i)).some_spec⟩⟩
 
 end pi
+
+section quotient
+
+variables {B : add_subgroup A} [add_subgroup.normal B] [divisible A]
+
+instance divisible_quotient : divisible (A ⧸ B) :=
+⟨λ n hn x, quotient.induction_on' x $ λ a, ⟨quotient.mk' $ (divisible.div n hn a).some,
+  (congr_arg _ (divisible.div n hn a).some_spec : quotient.mk' _ = _)⟩⟩
+
+end quotient
+
+section hom
+
+variables {A} [divisible A] {B : Type*} [add_comm_group B] (f : A →+ B)
+
+lemma divisible_of_surj (hf : function.surjective f) : divisible B :=
+have aux : ∀ (n : ℤ) (a : A), n • f a = f (n • a), begin
+  intros n a,
+  induction n using int.induction_on with n ih n ih,
+  { rw [zero_smul, zero_smul, map_zero], },
+  { rw [add_smul, add_smul, map_add, ih, one_smul, one_smul], },
+  { rw [sub_smul, sub_smul, map_sub, ih, one_smul, one_smul], },
+end,
+⟨λ n hn x, ⟨f (divisible.div n hn (hf x).some).some, begin
+  generalize_proofs h1 h2,
+  generalize_proofs at h2,
+  rw [aux, h2.some_spec, h1.some_spec],
+end⟩⟩
+
+end hom
 
 end add_comm_group

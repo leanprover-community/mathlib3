@@ -303,6 +303,7 @@ begin
   let v := {a ∈ u | (a ∩ ball x (r x)).nonempty },
   have vu : v ⊆ u := λ a ha, ha.1,
   -- they are all contained in a fixed ball of finite measure, thanks to our choice of `t'`
+
   obtain ⟨R, μR, hR⟩ : ∃ R, μ (closed_ball x R) < ∞ ∧
                           ∀ a ∈ u, (a ∩ ball x (r x)).nonempty → a ⊆ closed_ball x R,
   { have : ∀ a ∈ u, ∃ y, a ⊆ closed_ball y (r y) := λ a hau, (ut' hau).2,
@@ -421,13 +422,14 @@ begin
   -- now that we have proved our main inclusion, we can use it to estimate the measure of the points
   -- in `ball x (r x)` not covered by `u`.
   haveI : encodable v := (u_count.mono vu).to_encodable,
-  calc μ ((s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x))
-      ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y a) (3 * diam (a : set α))) : measure_mono M
-  ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y a) (3 * diam (a : set α))) : measure_Union_le _
-  ... ≤ ∑' (a : {a // a ∉ w}), C * μ a : ennreal.tsum_le_tsum (λ a, (hy a (ut (vu a.1.2))).2)
-  ... = C * ∑' (a : {a // a ∉ w}), μ a : ennreal.tsum_mul_left
-  ... ≤ C * (ε / C) : ennreal.mul_le_mul le_rfl hw.le
-  ... ≤ ε : ennreal.mul_div_le,
+  try_for 50000 {   -- This de facto increases the timeout
+    calc μ ((s \ ⋃ (a : set α) (H : a ∈ u), a) ∩ ball x (r x))
+        ≤ μ (⋃ (a : {a // a ∉ w}), closed_ball (y a) (3 * diam (a : set α))) : measure_mono M
+    ... ≤ ∑' (a : {a // a ∉ w}), μ (closed_ball (y a) (3 * diam (a : set α))) : measure_Union_le _
+    ... ≤ ∑' (a : {a // a ∉ w}), C * μ a : ennreal.tsum_le_tsum (λ a, (hy a (ut (vu a.1.2))).2)
+    ... = C * ∑' (a : {a // a ∉ w}), μ a : ennreal.tsum_mul_left
+    ... ≤ C * (ε / C) : ennreal.mul_le_mul le_rfl hw.le
+    ... ≤ ε : ennreal.mul_div_le }
 end
 
 /-- Assume that around every point there are arbitrarily small scales at which the measure is

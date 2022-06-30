@@ -185,7 +185,7 @@ open order
 
 variables {α β : Type*} [partial_order α] [succ_order α] [is_succ_archimedean α]
 
-lemma strict_mono_on.Iic_id_le [order_bot α] [no_max_order α] {n : α} {φ : α → α}
+lemma strict_mono_on.Iic_id_le [order_bot α] {n : α} {φ : α → α}
   (hφ : strict_mono_on φ (set.Iic n)) :
   ∀ m ≤ n, m ≤ φ m :=
 begin
@@ -195,9 +195,14 @@ begin
     rintro _ m rfl,
     exact bot_le },
   { rintro k ih hφ m hm,
+    by_cases hk : is_max k,
+    { rw succ_eq_iff_is_max.2 hk at hm,
+      exact ih (hφ.mono $ Iic_subset_Iic.2 (le_succ _)) _ hm },
     obtain (rfl | h) := le_succ_iff_eq_or_le.1 hm,
     { specialize ih (strict_mono_on.mono hφ (λ x hx, le_trans hx (le_succ _))) k le_rfl,
-      exact le_trans (succ_mono ih) (succ_le_of_lt (hφ (le_succ _) le_rfl (lt_succ _))) },
+      refine le_trans (succ_mono ih) (succ_le_of_lt (hφ (le_succ _) le_rfl _)),
+      rw lt_succ_iff_eq_or_lt_of_not_is_max hk,
+      exact or.inl rfl },
     { exact ih (strict_mono_on.mono hφ (λ x hx, le_trans hx (le_succ _))) _ h } }
 end
 

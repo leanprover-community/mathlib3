@@ -158,8 +158,7 @@ begin
   { exact ⟨g, or.intro_right _ hnr⟩ }
 end
 
-/-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
-lemma well_founded.monotone_chain_condition {α : Type*} [preorder α] :
+lemma well_founded.monotone_chain_condition' {α : Type*} [preorder α] :
   well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → ¬ a n < a m :=
 begin
   refine ⟨λ h a, _, λ h, _⟩,
@@ -170,6 +169,13 @@ begin
     obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_order_hom,
     exact hn n.succ n.lt_succ_self.le ((rel_embedding.map_rel_iff _).2 n.lt_succ_self) },
 end
+
+/-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
+lemma well_founded.monotone_chain_condition {α : Type*} [partial_order α] :
+  well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
+well_founded.monotone_chain_condition'.trans $
+  forall_congr $ λ a, exists_congr $ λ n, forall_congr $ λ m, imp_congr_right $ λ h,
+    by { rw lt_iff_le_and_ne, simpa using or.inl (a.mono h) }
 
 /-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
@@ -189,6 +195,6 @@ begin
   apply (supr_le (λ m, _)).antisymm (le_supr a _),
   cases le_or_lt m (monotonic_sequence_limit_index a) with hm hm,
   { exact a.monotone hm },
-  { cases well_founded.monotone_chain_condition.1 h a with n hn,
+  { cases well_founded.monotone_chain_condition'.1 h a with n hn,
     exact (nat.Inf_mem ⟨n, λ k hk, (a.mono hk).eq_of_not_lt (hn k hk)⟩ m hm.le).ge }
 end

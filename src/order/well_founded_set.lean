@@ -124,8 +124,7 @@ begin
   exact ⟨xy.1, st xy.2.1, st xy.2.2⟩,
 end
 
-@[simp] lemma _root_.well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop))
-  (s : set α) : s.is_wf :=
+lemma _root_.well_founded.is_wf (h : well_founded ((<) : α → α → Prop)) (s : set α) : s.is_wf :=
 (set.is_wf_univ_iff.2 h).mono $ set.subset_univ s
 
 end has_lt
@@ -166,8 +165,8 @@ begin
     rw [range_comp, image_subset_iff],
       simp }
 end
-end partial_order
 
+end partial_order
 end set
 
 namespace set

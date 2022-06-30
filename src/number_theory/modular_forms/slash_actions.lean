@@ -36,7 +36,7 @@ class slash_action (β : Type*) (G : Type*) (α : Type*) (γ : Type*) [group G] 
 (add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
 /--Slash_action induced by a monoid homomorphism.-/
-def induced_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {γ : Type*} [group G]
+instance monoid_hom_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {γ : Type*} [group G]
   [ring α] [has_scalar γ α] [group H] [slash_action β G α γ] (h : H →* G) : slash_action β H α γ:=
 { map := (λ k g a, slash_action.map γ k (h(g)) a),
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
@@ -111,12 +111,12 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
   smul_action := by {apply smul_slash},
   add_action := by {apply slash_add},}
 
-instance subgroup_action (Γ : subgroup SL(2,ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ:=
-  induced_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
-(monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
+instance subgroup_action (Γ : subgroup SL(2,ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
+monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
+  (monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
 
 instance SL_action : slash_action ℤ SL(2,ℤ) (ℍ → ℂ) ℂ :=
-induced_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
+monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
 
 end modular_forms

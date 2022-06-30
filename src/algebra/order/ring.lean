@@ -818,12 +818,14 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_scalar ℕ β] [has_nat_cast β]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
+  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_semiring β :=
-{ .. linear_order.lift f hf,
+{ .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_semiring f zero one add mul nsmul npow nat_cast }
 
@@ -1333,14 +1335,16 @@ See note [reducible non-instances]. -/
 def function.injective.linear_ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_ring β :=
-{ .. linear_order.lift f hf,
+{ .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
@@ -1414,14 +1418,16 @@ See note [reducible non-instances]. -/
 def function.injective.linear_ordered_comm_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   [has_pow β ℕ] [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_ring β :=
-{ .. linear_order.lift f hf,
+{ .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 

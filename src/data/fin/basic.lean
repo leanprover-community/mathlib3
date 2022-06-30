@@ -193,14 +193,9 @@ iff.rfl
 @[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
-instance {n : ℕ} : linear_order (fin n) :=
-{ le := (≤), lt := (<),
-  decidable_le := fin.decidable_le,
-  decidable_lt := fin.decidable_lt,
-  decidable_eq := fin.decidable_eq _,
- ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
+instance {n : ℕ} : linear_order (fin n) := subtype.linear_order _
 
-instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+instance {n : ℕ}  : partial_order (fin n) := subtype.partial_order _
 
 lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
 

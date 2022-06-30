@@ -27,7 +27,9 @@ classes and allows to transfer order instances.
 
 ### Extra class
 
-- `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
+* `has_sup`: type class for the `⊔` notation
+* `has_inf`: type class for the `⊓` notation
+* `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
 ## Notes
@@ -486,6 +488,32 @@ instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_ord
 { le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
 
+/-! ### `min`/`max` recursors -/
+
+section min_max_rec
+
+variables [linear_order α] {p : α → Prop} {x y : α}
+
+lemma min_rec (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
+(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
+  (λ h, (min_eq_right h).symm.subst (hy h))
+
+lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @min_rec αᵒᵈ _ _ _ _ hx hy
+lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
+lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
+
+end min_max_rec
+
+/-! ### `has_sup` and `has_inf` -/
+
+/-- Typeclass for the `⊔` (`\lub`) notation -/
+@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
+/-- Typeclass for the `⊓` (`\glb`) notation -/
+@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
+
+infix ⊔ := has_sup.sup
+infix ⊓ := has_inf.inf
+
 /-! ### Lifts of order instances -/
 
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`.
@@ -505,27 +533,25 @@ function `f : α → β`. See note [reducible non-instances]. -/
 
 /-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
 function `f : α → β`. See note [reducible non-instances]. -/
-@[reducible] def linear_order.lift {α β} [linear_order β] (f : α → β) (inj : injective f) :
+@[reducible] def linear_order.lift {α β} [linear_order β] [has_sup α] [has_inf α] (f : α → β)
+  (inj : injective f) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
+  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_order α :=
 { le_total     := λ x y, le_total (f x) (f y),
   decidable_le := λ x y, (infer_instance : decidable (f x ≤ f y)),
   decidable_lt := λ x y, (infer_instance : decidable (f x < f y)),
-  decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
+  decidable_eq := λ x y, decidable_of_iff (f x = f y) inj.eq_iff,
+  min := (⊓),
+  max := (⊔),
+  min_def := by { ext x y, apply inj, rw [hinf, min_def, min_default, apply_ite f], refl },
+  max_def := by { ext x y, apply inj, rw [hsup, max_def, max_default, apply_ite f], refl },
   .. partial_order.lift f inj }
 
-section min_max_rec
-
-variables [linear_order α] {p : α → Prop} {x y : α}
-
-lemma min_rec (hx : x ≤ y → p x) (hy : y ≤ x → p y) : p (min x y) :=
-(le_total x y).rec (λ h, (min_eq_left h).symm.subst (hx h))
-  (λ h, (min_eq_right h).symm.subst (hy h))
-
-lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @min_rec αᵒᵈ _ _ _ _ hx hy
-lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
-lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
-
-end min_max_rec
+@[reducible] def linear_order.lift' {α β} [linear_order β] (f : α → β) (inj : injective f) :
+  linear_order α :=
+@linear_order.lift α β _ ⟨λ x y, if f y ≤ f x then x else y⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
+  f inj (λ x y, (apply_ite f _ _ _).trans (max_def _ _).symm)
+  (λ x y, (apply_ite f _ _ _).trans (min_def _ _).symm)
 
 /-! ### Subtype of an order -/
 
@@ -554,26 +580,20 @@ instance partial_order [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
 partial_order.lift coe subtype.coe_injective
 
-instance decidable_le [preorder α] [@decidable_rel α (≤)] {p : α → Prop} :
+instance decidable_le [preorder α] [h : @decidable_rel α (≤)] {p : α → Prop} :
   @decidable_rel (subtype p) (≤) :=
-λ a b, decidable_of_iff _ subtype.coe_le_coe
+λ a b, h a b
 
-instance decidable_lt [preorder α] [@decidable_rel α (<)] {p : α → Prop} :
+instance decidable_lt [preorder α] [h : @decidable_rel α (<)] {p : α → Prop} :
   @decidable_rel (subtype p) (<) :=
-λ a b, decidable_of_iff _ subtype.coe_lt_coe
+λ a b, h a b
 
 /-- A subtype of a linear order is a linear order. We explicitly give the proofs of decidable
 equality and decidable order in order to ensure the decidability instances are all definitionally
 equal. -/
 instance [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-{ decidable_eq := subtype.decidable_eq,
-  decidable_le := subtype.decidable_le,
-  decidable_lt := subtype.decidable_lt,
-  max := λ x y, ⟨max x y, max_rec' _ x.2 y.2⟩,
-  min := λ x y, ⟨min x y, min_rec' _ x.2 y.2⟩,
-  max_def := by { ext ⟨x, hx⟩ ⟨y, hy⟩, by_cases y ≤ x; simp [*, max_def, max_default] },
-  min_def := by { ext ⟨x, hx⟩ ⟨y, hy⟩, by_cases x ≤ y; simp [*, min_def, min_default] },
-  .. linear_order.lift coe subtype.coe_injective }
+@linear_order.lift (subtype p) _ _ ⟨λ x y, ⟨max x y, max_rec' _ x.2 y.2⟩⟩
+  ⟨λ x y, ⟨min x y, min_rec' _ x.2 y.2⟩⟩ coe subtype.coe_injective (λ _ _, rfl) (λ _ _, rfl)
 
 end subtype
 

@@ -76,6 +76,8 @@ instance : has_pow (language.ring.term α) ℕ := ⟨ λ t n, npow_rec n t ⟩
 @[simp] lemma pow_zero (t : language.ring.term α) : t ^ 0 = 1 := rfl
 @[simp] lemma pow_succ {n} (t : language.ring.term α) : t ^ (n + 1) = t * t ^ n := rfl
 
+end language.ring
+
 /-- Any type with instances of `has_one` and `has_mul` is a
   structure in the language of monoids. -/
 def monoid.Structure_of_has_one_has_mul {α : Type*} [has_one α] [has_mul α] :
@@ -142,6 +144,10 @@ protected def field_inv : L.sentence :=
 
 end functions
 
+section ring_theories
+
+open language.ring
+
 /-- The theory of commutative rings. -/
 def Theory.comm_ring : Theory language.ring :=
 { functions.assoc add,
@@ -159,6 +165,7 @@ Theory.comm_ring ∪ {
   functions.field_inv zero one mul,
   sentence.card_ge _ 1 }
 
-end language.ring
+end ring_theories
+
 end language
 end first_order

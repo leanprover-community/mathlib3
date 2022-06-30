@@ -32,7 +32,7 @@ lemma even_card_roots_filter_mem_Ioo_iff (a b : ℝ) (hab : a ≤ b) (p : polyno
   even ((p.roots.filter (∈ set.Ioo a b)).card)
     ↔ ((0 < p.eval a ∧ 0 < p.eval b) ∨ (p.eval a < 0 ∧ p.eval b < 0)) :=
 begin
-  generalize hr : (filter (∈ set.Ioo a b) p.roots) = root_set,
+  generalize hr : ( p.roots.filter (∈ set.Ioo a b)) = root_set,
   revert hr hb ha p,
   refine multiset.induction_on root_set _ _,
   { -- Base case: Polynomial has no roots in the interval.

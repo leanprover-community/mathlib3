@@ -3,7 +3,6 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import algebra.module.submodule.basic
 import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
@@ -12,7 +11,7 @@ import linear_algebra.special_linear_group
 # Slash actions
 
 This file defines a class of slash actions, which are families of right actions of a given group
-parametrized by some Type.  This is  modeled on the slash action of `GL_pos (fin 2) ℝ` on the space
+parametrized by some Type. This is modeled on the slash action of `GL_pos (fin 2) ℝ` on the space
 of modular forms.
 -/
 
@@ -30,10 +29,10 @@ local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 class slash_action (β : Type*) (G : Type*) (α : Type*) (γ : Type*) [group G] [ring α]
   [has_scalar γ α] :=
 (map : β → G → α → α)
-(mul_zero :  ∀ (k : β) (g : G), map k g 0 = 0)
+(mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
 (one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
 (right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
-(smul_action : ∀ (k : β)  (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
+(smul_action : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
 (add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
 /--Slash_action induced by a monoid homomorphism.-/
@@ -75,7 +74,7 @@ begin
     ((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) *
     ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) ,
     by {simp_rw [←mul_zpow]},
-  simp_rw [this, ← mul_assoc,  ←mul_zpow],
+  simp_rw [this, ← mul_assoc, ←mul_zpow],
 end
 
 lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :

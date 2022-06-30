@@ -38,7 +38,7 @@ variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 variables {Q : quadratic_form R M}
 -- put this after `Q` since we want to talk about morphisms from `clifford_algebra Q` to `A` and
 -- that order is more natural
-variables {A : Type*} [ring A] [algebra R A]
+variables {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
 
 open_locale direct_sum
 
@@ -53,35 +53,54 @@ def even : subalgebra R (clifford_algebra Q) :=
 lemma even_to_submodule : (even Q).to_submodule = even_odd Q 0 :=
 rfl
 
-/-- The embedding of pairs of vectors into the even subalgebra, as a bilinear map. -/
+variables (A)
+
+/-- The type of bilinear maps which are accepted by `clifford_algebra.even.lift`. -/
+@[ext]
+structure even_hom : Type (max u_2 u_3) :=
+(bilin : M →ₗ[R] M →ₗ[R] A)
+(contract (m : M) : bilin m m = algebra_map R A (Q m))
+(contract_mid (m₁ m₂ m₃ : M) : bilin m₁ m₂ * bilin m₂ m₃ = Q m₂ • bilin m₁ m₃)
+
+variables {A Q}
+
+/-- Compse an `even_hom` with an `alg_hom` on the output. -/
 @[simps]
-def even.ι : M →ₗ[R] M →ₗ[R] even Q :=
-linear_map.mk₂ R (λ m₁ m₂, ⟨ι Q m₁ * ι Q m₂, ι_mul_ι_mem_even_odd_zero _ _ _⟩)
-  (λ _ _ _, by { simp only [linear_map.map_add, add_mul], refl })
-  (λ _ _ _, by { simp only [linear_map.map_smul, smul_mul_assoc], refl })
-  (λ _ _ _, by { simp only [linear_map.map_add, mul_add], refl })
-  (λ _ _ _, by { simp only [linear_map.map_smul, mul_smul_comm], refl })
+def even_hom.compr₂ (g : even_hom Q A) (f : A →ₐ[R] B) : even_hom Q B :=
+{ bilin := g.bilin.compr₂ f.to_linear_map,
+  contract := λ m, (f.congr_arg $ g.contract _).trans $ f.commutes _,
+  contract_mid := λ m₁ m₂ m₃, (f.map_mul _ _).symm.trans $
+    (f.congr_arg $ g.contract_mid _ _ _).trans $ f.map_smul _ _ }
 
-@[simp] lemma even.ι_same (m : M) : even.ι Q m m = algebra_map R _ (Q m) :=
-subtype.ext $ ι_sq_scalar Q m
+variables (Q)
 
-@[simp] lemma even.ι_contract (m₁ m₂ m₃ : M) :
-  even.ι Q m₁ m₂ * even.ι Q m₂ m₃ = Q m₂ • even.ι Q m₁ m₃ :=
-subtype.ext $
-  calc  ι Q m₁ * ι Q m₂ * (ι Q m₂ * ι Q m₃)
-      = ι Q m₁ * ((ι Q m₂ * ι Q m₂) * ι Q m₃) : by simp only [mul_assoc]
-  ... = Q m₂ • (ι Q m₁ * ι Q m₃) : by rw [algebra.smul_def, ι_sq_scalar, algebra.left_comm]
+/-- The embedding of pairs of vectors into the even subalgebra, as a bilinear map. -/
+@[simps bilin_apply_apply_coe]
+def even.ι : even_hom Q (even Q) :=
+{ bilin := linear_map.mk₂ R (λ m₁ m₂, ⟨ι Q m₁ * ι Q m₂, ι_mul_ι_mem_even_odd_zero _ _ _⟩)
+             (λ _ _ _, by { simp only [linear_map.map_add, add_mul], refl })
+             (λ _ _ _, by { simp only [linear_map.map_smul, smul_mul_assoc], refl })
+             (λ _ _ _, by { simp only [linear_map.map_add, mul_add], refl })
+             (λ _ _ _, by { simp only [linear_map.map_smul, mul_smul_comm], refl }),
+  contract := λ m, subtype.ext $ ι_sq_scalar Q m,
+  contract_mid := λ m₁ m₂ m₃, subtype.ext $
+    calc  ι Q m₁ * ι Q m₂ * (ι Q m₂ * ι Q m₃)
+        = ι Q m₁ * ((ι Q m₂ * ι Q m₂) * ι Q m₃) : by simp only [mul_assoc]
+    ... = Q m₂ • (ι Q m₁ * ι Q m₃) : by rw [algebra.smul_def, ι_sq_scalar, algebra.left_comm] }
 
-variables (f : M →ₗ[R] M →ₗ[R] A)
+instance : inhabited (even_hom Q (even Q)) := ⟨even.ι Q⟩
+
+variables (f : even_hom Q A)
 
 /-- Two algebra morphisms from the even subalgebra are equal if they agree on pairs of generators.
 
 See note [partially-applied ext lemmas]. -/
 @[ext]
 lemma even.alg_hom_ext ⦃f g : even Q →ₐ[R] A⦄
-  (h : (even.ι Q).compr₂ f.to_linear_map = (even.ι Q).compr₂ g.to_linear_map) :
+  (h : (even.ι Q).compr₂ f = (even.ι Q).compr₂ g) :
   f = g :=
 begin
+  rw even_hom.ext_iff at h,
   ext ⟨x, hx⟩,
   refine even_induction _ _ _ _ _ hx,
   { intro r,
@@ -94,12 +113,14 @@ begin
     exact (f.map_mul _ _).trans (this.trans $ (g.map_mul _ _).symm) },
 end
 
+variables {Q}
+
 namespace even.lift
 
 /-- An auxiliary submodule used to store the half-applied values of `f`.
 This is the span of elements `f'` such that `∃ x m₂, ∀ m₁, f' m₁ = f m₁ m₂ * x`.  -/
 private def S : submodule R (M →ₗ[R] A) :=
-submodule.span R {f' | ∃ x m₂, f' = linear_map.lcomp R _ (f.flip m₂) (algebra.lmul_right R x)}
+submodule.span R {f' | ∃ x m₂, f' = linear_map.lcomp R _ (f.bilin.flip m₂) (algebra.lmul_right R x)}
 
 /-- An auxiliary bilinear map that is later passed into `clifford_algebra.fold`. Our desired result
 is stored in the `A` part of the accumulator, while auxiliary recursion state is stored in the `S f`
@@ -113,41 +134,41 @@ linear_map.mk₂ R (λ m acc,
     (linear_map.llcomp R M A A).flip.comp f.flip : M →ₗ[R] A →ₗ[R] M →ₗ[R] A)
   ```
   -/
-  (acc.2 m, ⟨(algebra.lmul_right R acc.1).comp (f.flip m), submodule.subset_span $ ⟨_, _, rfl⟩⟩))
+  (acc.2 m, ⟨(algebra.lmul_right R acc.1).comp (f.bilin.flip m),
+    submodule.subset_span $ ⟨_, _, rfl⟩⟩))
   (λ m₁ m₂ a, prod.ext
     (linear_map.map_add _ m₁ m₂)
     (subtype.ext $ linear_map.ext $ λ m₃,
-      show f m₃ (m₁ + m₂) * a.1 = f m₃ m₁ * a.1 + f m₃ m₂ * a.1,
+      show f.bilin m₃ (m₁ + m₂) * a.1 = f.bilin m₃ m₁ * a.1 + f.bilin m₃ m₂ * a.1,
       by rw [map_add, add_mul]))
   (λ c m a, prod.ext
     (linear_map.map_smul _ c m)
     (subtype.ext $ linear_map.ext $ λ m₃,
-      show f m₃ (c • m) * a.1 = c • (f m₃ m * a.1),
+      show f.bilin m₃ (c • m) * a.1 = c • (f.bilin m₃ m * a.1),
       by rw [linear_map.map_smul, smul_mul_assoc]))
   (λ m a₁ a₂, prod.ext rfl (subtype.ext $ linear_map.ext $ λ m₃, mul_add _ _ _))
   (λ c m a, prod.ext rfl (subtype.ext $ linear_map.ext $ λ m₃, mul_smul_comm _ _ _))
 
 @[simp] private lemma fst_f_fold_f_fold (m₁ m₂ : M) (x : A × S f) :
-  (f_fold f m₁ (f_fold f m₂ x)).fst = f m₁ m₂ * x.fst := rfl
+  (f_fold f m₁ (f_fold f m₂ x)).fst = f.bilin m₁ m₂ * x.fst := rfl
 
 @[simp] private lemma snd_f_fold_f_fold (m₁ m₂ m₃ : M) (x : A × S f) :
-  ((f_fold f m₁ (f_fold f m₂ x)).snd : M →ₗ[R] A) m₃ = f m₃ m₁ * (x.snd : M →ₗ[R] A) m₂ := rfl
+  ((f_fold f m₁ (f_fold f m₂ x)).snd : M →ₗ[R] A) m₃ = f.bilin m₃ m₁ * (x.snd : M →ₗ[R] A) m₂ := rfl
 
-private lemma f_fold_f_fold (hf : ∀ m, f m m = algebra_map R _ (Q m))
-  (hf₂ : ∀ m₁ m₂ m₃, f m₁ m₂ * f m₂ m₃ = Q m₂ • f m₁ m₃) (m : M) (x : A × S f) :
+private lemma f_fold_f_fold (m : M) (x : A × S f) :
   f_fold f m (f_fold f m x) = Q m • x :=
 begin
   obtain ⟨a, ⟨g, hg⟩⟩ := x,
   ext : 2,
-  { change f m m * a = Q m • a,
-    rw [algebra.smul_def, hf] },
+  { change f.bilin m m * a = Q m • a,
+    rw [algebra.smul_def, f.contract] },
   { ext m₁,
-    change f _ _ * g m = Q m • g m₁,
+    change f.bilin _ _ * g m = Q m • g m₁,
     apply submodule.span_induction' _ _ _ _ hg,
     { rintros _ ⟨b, m₃, rfl⟩,
-      change f _ _ * (f _ _ * b) = Q m • (f _ _ * b),
-      rw [←smul_mul_assoc, ←mul_assoc, hf₂] },
-    { change f m₁ m * 0 = Q m • 0,
+      change f.bilin _ _ * (f.bilin _ _ * b) = Q m • (f.bilin _ _ * b),
+      rw [←smul_mul_assoc, ←mul_assoc, f.contract_mid] },
+    { change f.bilin m₁ m * 0 = Q m • 0,
       rw [mul_zero, smul_zero] },
     { rintros x hx y hy ihx ihy,
       rw [linear_map.add_apply, linear_map.add_apply, mul_add, smul_add, ihx, ihy] },
@@ -157,40 +178,27 @@ end
 
 /-- The final auxiliary construction for `clifford_algebra.even.lift`. This map is the forwards
 direction of that equivalence, but not in the fully-bundled form. -/
-@[simps apply] def aux (hf : ∀ m, f m m = algebra_map R _ (Q m))
-  (hf₂ : ∀ m₁ m₂ m₃, f m₁ m₂ * f m₂ m₃ = Q m₂ • f m₁ m₃) :
-  clifford_algebra.even Q →ₗ[R] A :=
+@[simps apply {attrs := []}] def aux (f : even_hom Q A) : clifford_algebra.even Q →ₗ[R] A :=
 begin
   refine _ ∘ₗ (even Q).val.to_linear_map,
-  exact linear_map.fst _ _ _ ∘ₗ foldr Q (f_fold f) (f_fold_f_fold Q f hf hf₂) (1, 0),
+  exact linear_map.fst _ _ _ ∘ₗ foldr Q (f_fold f) (f_fold_f_fold f) (1, 0),
 end
 
-@[simp] lemma aux_one
-  (hf : ∀ m, f m m = algebra_map R _ (Q m))
-  (hf₂ : ∀ m₁ m₂ m₃, f m₁ m₂ * f m₂ m₃ = Q m₂ • f m₁ m₃) :
-  aux Q f hf hf₂ 1 = 1 :=
+@[simp] lemma aux_one : aux f 1 = 1 :=
 (congr_arg prod.fst (foldr_one _ _ _ _))
 
-@[simp] lemma aux_ι
-  (hf : ∀ m, f m m = algebra_map R _ (Q m))
-  (hf₂ : ∀ m₁ m₂ m₃, f m₁ m₂ * f m₂ m₃ = Q m₂ • f m₁ m₃)
-  (m₁ m₂ : M) :
-  aux Q f hf hf₂ (even.ι Q m₁ m₂) = f m₁ m₂ :=
+@[simp] lemma aux_ι (m₁ m₂ : M) : aux f ((even.ι Q).bilin m₁ m₂) = f.bilin m₁ m₂ :=
 (congr_arg prod.fst (foldr_mul _ _ _ _ _ _)).trans begin
   rw [foldr_ι, foldr_ι],
   exact mul_one _,
 end
 
-@[simp] lemma aux_algebra_map
-  (hf : ∀ m, f m m = algebra_map R _ (Q m))
-  (hf₂ : ∀ m₁ m₂ m₃, f m₁ m₂ * f m₂ m₃ = Q m₂ • f m₁ m₃) (r) (hr) :
-  aux Q f hf hf₂ ⟨algebra_map R _ r, hr⟩ = algebra_map R _ r :=
+@[simp] lemma aux_algebra_map (r) (hr) :
+  aux f ⟨algebra_map R _ r, hr⟩ = algebra_map R _ r :=
 (congr_arg prod.fst (foldr_algebra_map _ _ _ _ _)).trans (algebra.algebra_map_eq_smul_one r).symm
 
-@[simp] lemma aux_mul
-  (hf : ∀ m, f m m = algebra_map R _ (Q m))
-  (hf₂ : ∀ m₁ m₂ m₃, f m₁ m₂ * f m₂ m₃ = Q m₂ • f m₁ m₃) (x y : even Q) :
-  aux Q f hf hf₂ (x * y) = aux Q f hf hf₂ x * aux Q f hf hf₂ y :=
+@[simp] lemma aux_mul (x y : even Q) :
+  aux f (x * y) = aux f x * aux f y :=
 begin
   cases x,
   cases y,
@@ -213,35 +221,20 @@ end even.lift
 
 open even.lift
 
-variables (A)
-
-/-- The type of bilinear maps which are accepted by `clifford_algebra.even.lift`. -/
-@[ext]
-structure even_hom : Type (max u_2 u_3) :=
-(bilin : M →ₗ[R] M →ₗ[R] A)
-(contract (m : M) : bilin m m = algebra_map R A (Q m))
-(contract_mid (m₁ m₂ m₃ : M) : bilin m₁ m₂ * bilin m₂ m₃ = Q m₂ • bilin m₁ m₃)
-
-variables {A}
+variables (Q) {A}
 
 /-- Every algebra morphism from the even subalgebra is in one-to-one correspondence with a
 bilinear map that sends duplicate arguments to the quadratic form, and contracts across
 multiplication. -/
 @[simps symm_apply_bilin]
 def even.lift : even_hom Q A ≃ (clifford_algebra.even Q →ₐ[R] A) :=
-{ to_fun := λ f, alg_hom.of_linear_map
-    (aux Q f.bilin f.contract f.contract_mid)
-    (aux_one Q f.bilin f.contract f.contract_mid)
-    (aux_mul Q f.bilin f.contract f.contract_mid),
-  inv_fun := λ F, ⟨(even.ι Q).compr₂ F.to_linear_map,
-    λ m, (F.congr_arg $ even.ι_same _ _).trans $ F.commutes _,
-    λ m₁ m₂ m₃,
-      (F.map_mul _ _).symm.trans $ (F.congr_arg $ even.ι_contract _ _ _ _).trans $ F.map_smul _ _⟩,
-  left_inv := λ f, even_hom.ext _ _ $ linear_map.ext₂ $ even.lift.aux_ι Q _ _ _,
-  right_inv := λ F, even.alg_hom_ext Q $ linear_map.ext₂ $ even.lift.aux_ι Q _ _ _ }
+{ to_fun := λ f, alg_hom.of_linear_map (aux f) (aux_one f) (aux_mul f),
+  inv_fun := λ F, (even.ι Q).compr₂ F,
+  left_inv := λ f, even_hom.ext _ _ $ linear_map.ext₂ $ even.lift.aux_ι f,
+  right_inv := λ F, even.alg_hom_ext Q $ even_hom.ext _ _ $ linear_map.ext₂ $ even.lift.aux_ι _ }
 
 @[simp] lemma even.lift_ι (f : even_hom Q A) (m₁ m₂ : M) :
-  even.lift Q f (even.ι Q m₁ m₂) = f.bilin m₁ m₂ :=
-even.lift.aux_ι _ _ _ _ _ _
+  even.lift Q f ((even.ι Q).bilin m₁ m₂) = f.bilin m₁ m₂ :=
+even.lift.aux_ι _ _ _
 
 end clifford_algebra

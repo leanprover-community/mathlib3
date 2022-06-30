@@ -145,13 +145,14 @@ begin
 end
 
 lemma of_even_ι (x y : M × R) :
-  of_even Q (even.ι _ x y) = (ι Q x.1 + algebra_map R _ x.2) * (ι Q y.1 - algebra_map R _ y.2) :=
+  of_even Q ((even.ι _).bilin x y) = (ι Q x.1 + algebra_map R _ x.2) * (ι Q y.1 - algebra_map R _ y.2) :=
 even.lift_ι _ _ _ _
 
 lemma to_even_comp_of_even : (to_even Q).comp (of_even Q) = alg_hom.id R _ :=
-even.alg_hom_ext (Q' Q) $ linear_map.ext $ λ m₁, linear_map.ext $ λ m₂, subtype.ext $
+even.alg_hom_ext (Q' Q) $ even_hom.ext _ _ $ linear_map.ext $ λ m₁, linear_map.ext $ λ m₂,
+  subtype.ext $
   let ⟨m₁, r₁⟩ := m₁, ⟨m₂, r₂⟩ := m₂ in
-  calc  ↑(to_even Q (of_even Q (even.ι (Q' Q) (m₁, r₁) (m₂, r₂))))
+  calc  ↑(to_even Q (of_even Q ((even.ι (Q' Q)).bilin (m₁, r₁) (m₂, r₂))))
       = (e0 Q * v Q m₁ + algebra_map R _ r₁) * (e0 Q * v Q m₂ - algebra_map R _ r₂) :
         by rw [of_even_ι, alg_hom.map_mul, alg_hom.map_add, alg_hom.map_sub, alg_hom.commutes,
              alg_hom.commutes, subalgebra.coe_mul, subalgebra.coe_add, subalgebra.coe_sub,
@@ -211,22 +212,30 @@ end
 
 /-- The forward direction of `clifford_algebra.even_equiv_even_neg` -/
 def even_to_neg : clifford_algebra.even Q →ₐ[R] clifford_algebra.even (-Q) :=
-even.lift Q ⟨-(even.ι (-Q) : _),
-  λ m, by simp_rw [linear_map.neg_apply, even.ι_same, quadratic_form.neg_apply, map_neg, neg_neg],
-  λ m₁ m₂ m₃, by simp_rw [linear_map.neg_apply, neg_mul_neg, even.ι_contract,
-                          quadratic_form.neg_apply, smul_neg, neg_smul]⟩
+even.lift Q
+  { bilin := -(even.ι (-Q) : _).bilin,
+    contract := λ m, by simp_rw [linear_map.neg_apply, even_hom.contract, quadratic_form.neg_apply,
+                                  map_neg, neg_neg],
+    contract_mid := λ m₁ m₂ m₃,
+      by simp_rw [linear_map.neg_apply, neg_mul_neg, even_hom.contract_mid,
+                  quadratic_form.neg_apply, smul_neg, neg_smul] }
 
-@[simp] lemma even_to_neg_ι (m₁ m₂ : M) : even_to_neg Q (even.ι Q m₁ m₂) = -even.ι (-Q) m₁ m₂ :=
-even.lift_ι Q _ m₁ m₂
+@[simp] lemma even_to_neg_ι (m₁ m₂ : M) :
+  even_to_neg Q ((even.ι Q).bilin m₁ m₂) = -(even.ι (-Q)).bilin m₁ m₂ :=
+even.lift_ι _  _ m₁ m₂
 
 /-- The reverse direction of `clifford_algebra.even_equiv_even_neg` -/
 def even_of_neg : clifford_algebra.even (-Q) →ₐ[R] clifford_algebra.even Q :=
-even.lift (-Q) ⟨-(even.ι Q : _),
-  λ m, by simp_rw [linear_map.neg_apply, even.ι_same, quadratic_form.neg_apply, map_neg],
-  λ m₁ m₂ m₃, by simp_rw [linear_map.neg_apply, neg_mul_neg, even.ι_contract,
-                          quadratic_form.neg_apply, neg_smul_neg]⟩
+even.lift (-Q)
+  { bilin := -(even.ι Q : _).bilin,
+    contract := λ m,
+      by simp_rw [linear_map.neg_apply, even_hom.contract, quadratic_form.neg_apply, map_neg],
+    contract_mid := λ m₁ m₂ m₃,
+      by simp_rw [linear_map.neg_apply, neg_mul_neg, even_hom.contract_mid,
+        quadratic_form.neg_apply, neg_smul_neg] }
 
-@[simp] lemma even_of_neg_ι (m₁ m₂ : M) : even_of_neg Q (even.ι (-Q) m₁ m₂) = -even.ι Q m₁ m₂ :=
+@[simp] lemma even_of_neg_ι (m₁ m₂ : M) :
+  even_of_neg Q ((even.ι (-Q)).bilin m₁ m₂) = -(even.ι Q).bilin m₁ m₂ :=
 even.lift_ι (-Q) _ m₁ m₂
 
 /-- The even subalgebra of the algebras with quadratic form `Q` and `-Q` are isomorphic.
@@ -238,15 +247,15 @@ alg_equiv.of_alg_hom
   (even_to_neg Q)
   (even_of_neg Q)
   (begin
-    ext m₁ m₂ : 3,
-    dsimp only [linear_map.compr₂_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
-                alg_hom.id_apply],
+    ext m₁ m₂ : 4,
+    dsimp only [even_hom.compr₂_bilin, linear_map.compr₂_apply, alg_hom.to_linear_map_apply,
+                alg_hom.comp_apply, alg_hom.id_apply],
     rw [even_of_neg_ι, map_neg, even_to_neg_ι, neg_neg]
   end)
   (begin
-    ext m₁ m₂ : 3,
-    dsimp only [linear_map.compr₂_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
-                alg_hom.id_apply],
+    ext m₁ m₂ : 4,
+    dsimp only [even_hom.compr₂_bilin, linear_map.compr₂_apply, alg_hom.to_linear_map_apply,
+                alg_hom.comp_apply, alg_hom.id_apply],
     rw [even_to_neg_ι, map_neg, even_of_neg_ι, neg_neg]
   end)
 

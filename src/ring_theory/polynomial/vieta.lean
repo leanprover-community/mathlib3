@@ -23,7 +23,7 @@ valuation from each `X i` to `r i`.
 
 open_locale big_operators polynomial
 
-variables {R : Type*} [comm_semiring R]
+variables {R T : Type*} [comm_semiring R] [comm_ring T]
 
 namespace multiset
 
@@ -69,8 +69,8 @@ begin
 end
 
 lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
-  (s.map (λ r, polynomial.X + polynomial.C r)).prod = ∑ j in finset.range (s.card + 1),
-  (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
+  (s.map (λ r, polynomial.X + polynomial.C r)).prod =
+  ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
 begin
   classical,
   rw [prod_map_add, antidiagonal_powerset, map_map, bind_powerset_len, finset.sum_eq_multiset_sum,

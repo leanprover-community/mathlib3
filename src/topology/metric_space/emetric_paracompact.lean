@@ -48,10 +48,10 @@ begin
   -- choose a well founded order on `S`
   letI : linear_order ι := linear_order_of_STO' well_ordering_rel,
   -- Let `ind x` be the minimal index `s : S` such that `x ∈ s`.
-  set ind : α → ι := λ x, well_founded_lt.min {i : ι | x ∈ s i} (hcov x),
+  set ind : α → ι := λ x, well_founded_lt.min {i | x ∈ s i} (hcov x),
   have mem_ind : ∀ x, x ∈ s (ind x), from λ x, well_founded_lt.min_mem _ (hcov x),
   have nmem_of_lt_ind : ∀ {x i}, i < (ind x) → x ∉ s i,
-    from λ x i hlt hxi, well_founded_lt.not_lt_min _ (hcov x) hxi hlt,
+    from λ x i hlt hxi, well_founded_lt.not_lt_min {i | x ∈ s i} hxi hlt,
   /- The refinement `D : ℕ → ι → set α` is defined recursively. For each `n` and `i`, `D n i`
   is the union of balls `ball x (1 / 2 ^ n)` over all points `x` such that
 

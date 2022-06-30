@@ -75,7 +75,8 @@ begin
   refine ⟨λ h, (is_well_founded.well_founded_iff_has_min _).2 (λ t ht, _), _⟩,
   { by_cases hst : (s ∩ t).nonempty,
     { rw ← subtype.preimage_coe_nonempty at hst,
-      rcases (is_well_founded.well_founded_iff_has_min _).1 h (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
+      rcases (is_well_founded.well_founded_iff_has_min _).1 h (coe ⁻¹' t) hst
+        with ⟨⟨m, ms⟩, mt, hm⟩,
       exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hm ⟨x, xs⟩ xt xm⟩ },
     { rcases ht with ⟨m, mt⟩,
       exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ } },

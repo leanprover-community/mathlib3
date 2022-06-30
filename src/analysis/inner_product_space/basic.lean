@@ -2311,14 +2311,22 @@ begin
   rw [←sub_eq_zero, ←inner_self_eq_zero],
   have hlhs : ∀ k : ℕ, ⟪T (u k) - T x, y - T x⟫ = ⟪u k - x, T (y - T x)⟫ :=
   by { intro k, rw [←T.map_sub, hT] },
-  refine @tendsto_nhds_unique _ _ _ _ (λ k : ℕ, ⟪T (u k) - T x, y - T x⟫) at_top _ _ _ _ _,
-  { exact (hTu.sub_const _).inner tendsto_const_nhds },
+  refine tendsto_nhds_unique ((hTu.sub_const _).inner tendsto_const_nhds) _,
   simp_rw hlhs,
   rw ←@inner_zero_left 𝕜 E _ _ (T (y - T x)),
   refine filter.tendsto.inner _ tendsto_const_nhds,
   rw ←sub_self x,
   exact hu.sub_const _,
 end
+
+/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
+  defined symmetric operator.-/
+def is_self_adjoint.clm [complete_space E] {T : E →ₗ[𝕜] E}
+  (hT : is_self_adjoint T) : E →L[𝕜] E :=
+⟨T, hT.continuous⟩
+
+lemma is_self_adjoint.clm_apply [complete_space E] {T : E →ₗ[𝕜] E}
+  (hT : is_self_adjoint T) {x : E} : hT.clm x = T x := rfl
 
 /-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
 @[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply

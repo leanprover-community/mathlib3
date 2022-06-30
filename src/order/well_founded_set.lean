@@ -159,9 +159,6 @@ begin
     (λ x y xy, ⟨xy.1, st xy.2.1, st xy.2.2⟩),
 end
 
-lemma _root_.well_founded_lt.is_wf [has_lt α] [h : well_founded_lt α] (s : set α) : s.is_wf :=
-(is_wf_univ_iff.2 h).mono $ subset_univ s
-
 end has_lt
 
 section partial_order
@@ -893,6 +890,9 @@ begin
 end
 
 end finset
+
+lemma well_founded_lt.is_wf [has_lt α] [h : well_founded_lt α] (s : set α) : s.is_wf :=
+(set.is_wf_univ_iff.2 h).mono $ set.subset_univ s
 
 /-- A version of **Dickson's lemma** any subset of functions `Π s : σ, α s` is partially well
 ordered, when `σ` is a `fintype` and each `α s` is a linear well order.

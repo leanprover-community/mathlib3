@@ -1006,18 +1006,13 @@ begin
     exact IH (lt_of_succ_lt hi) }
 end
 
-@[simp] lemma induction_zero {n : ℕ}
-  {C : fin (n + 1) → Sort*}
-  (h0 : C 0)
+@[simp] lemma induction_zero {C : fin (n + 1) → Sort*} (h0 : C 0)
   (hs : ∀ i : fin n, C i.cast_succ → C i.succ) :
-  @fin.induction n C h0 hs 0 = h0 := rfl
+  (induction h0 hs : _) 0 = h0 := rfl
 
-@[simp] lemma induction_succ {n : ℕ}
-  {C : fin (n + 1) → Sort*}
-  (h0 : C 0)
+@[simp] lemma induction_succ {C : fin (n + 1) → Sort*} (h0 : C 0)
   (hs : ∀ i : fin n, C i.cast_succ → C i.succ) (i : fin n) :
-  @fin.induction n C h0 hs i.succ =
-    hs i (@fin.induction n C h0 hs i.cast_succ) := by cases i; refl
+  (induction h0 hs : _) i.succ = hs i (induction h0 hs i.cast_succ) := by cases i; refl
 
 /--
 Define `C i` by induction on `i : fin (n + 1)` via induction on the underlying `nat` value.

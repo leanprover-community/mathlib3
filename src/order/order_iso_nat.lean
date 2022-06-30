@@ -162,12 +162,11 @@ end
 lemma well_founded.monotone_chain_condition {α : Type*} [preorder α] :
   well_founded ((>) : α → α → Prop) ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → ¬ a n < a m :=
 begin
-  split; intros h,
-  { rw well_founded.well_founded_iff_has_min at h,
-    intros a, have hne : (set.range a).nonempty, { use a 0, simp, },
-    obtain ⟨x, ⟨n, rfl⟩, range_bounded⟩ := h _ hne,
-    exact ⟨n, λ m hm, range_bounded _ (set.mem_range_self _)⟩ },
-  { rw rel_embedding.well_founded_iff_no_descending_seq, refine ⟨λ a, _⟩,
+  refine ⟨λ h a, _, λ h, _⟩,
+  { have hne : (set.range a).nonempty := ⟨a 0, by simp⟩,
+    obtain ⟨x, ⟨n, rfl⟩, H⟩ := well_founded.well_founded_iff_has_min.1 h _ hne,
+    exact ⟨n, λ m hm, H _ (set.mem_range_self _)⟩ },
+  { refine rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ a, _⟩,
     obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_order_hom,
     exact hn n.succ n.lt_succ_self.le ((rel_embedding.map_rel_iff _).2 n.lt_succ_self) },
 end

@@ -247,9 +247,9 @@ meta def pgame_wf_tac :=
 /-- The game `P{| x}` with indexing types `pempty` and `punit`. -/
 @[reducible] def of_right (x : pgame) : pgame := ⟨pempty, punit, pempty.elim, λ _, x⟩
 
-notation `P{` x ` | ` y `}` := of x y
-notation `P{` x ` |}` := of_left x
-notation `P{| ` y `}` := of_right y
+notation `P{` x ` | ` y `}` := pgame.of x y
+notation `P{` x ` |}` := pgame.of_left x
+notation `P{| ` y `}` := pgame.of_right y
 
 -- `dsimp` can solve all of the following because `of` is reducible.
 

@@ -585,6 +585,10 @@ alias disjoint_principal_principal ↔ _ disjoint.filter_principal
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
 by simp only [← principal_singleton, disjoint_principal_principal, disjoint_singleton]
 
+@[simp] lemma compl_diagonal_mem_prod {l₁ l₂ : filter α} :
+  (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
+by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
+
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
 forall₂_congr $ λ _ _, mem_iff_inf_principal_compl

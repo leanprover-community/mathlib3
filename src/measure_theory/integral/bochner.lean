@@ -636,7 +636,7 @@ lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - int
 map_sub integral_clm f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
-map_smul (integral_clm' 𝕜) c f
+show (integral_clm' 𝕜) (c • f) = c • (integral_clm' 𝕜) f, from map_smul (integral_clm' 𝕜) c f
 
 local notation `Integral` := @integral_clm α E _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
@@ -1500,7 +1500,7 @@ lemma ae_eq_trim_iff [topological_space γ] [metrizable_space γ]
 ⟨ae_eq_of_ae_eq_trim, ae_eq_trim_of_strongly_measurable hm hf hg⟩
 
 lemma ae_le_trim_of_strongly_measurable
-  [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [pseudo_metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g)
   (hfg : f ≤ᵐ[μ] g) :
   f ≤ᵐ[μ.trim hm] g :=
@@ -1510,7 +1510,7 @@ begin
 end
 
 lemma ae_le_trim_iff
-  [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [pseudo_metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
   f ≤ᵐ[μ.trim hm] g ↔ f ≤ᵐ[μ] g :=
 ⟨ae_le_of_ae_le_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩

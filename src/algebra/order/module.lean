@@ -116,11 +116,45 @@ alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
 alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg
 alias smul_neg_iff_of_neg ↔ _ smul_neg_of_neg_of_pos
 
-lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_scalar.smul c : M → M) :=
+lemma antitone_smul_left (hc : c ≤ 0) : antitone (has_smul.smul c : M → M) :=
 λ a b h, smul_le_smul_of_nonpos h hc
 
-lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_scalar.smul c : M → M) :=
+lemma strict_anti_smul_left (hc : c < 0) : strict_anti (has_smul.smul c : M → M) :=
 λ a b h, smul_lt_smul_of_neg h hc
+
+/-- Binary **rearrangement inequality**. -/
+lemma smul_add_smul_le_smul_add_smul [contravariant_class M M (+) (≤)] {a b : k} {c d : M}
+  (hab : a ≤ b) (hcd : c ≤ d) :
+  a • d + b • c ≤ a • c + b • d :=
+begin
+  obtain ⟨b, rfl⟩ := exists_add_of_le hab,
+  obtain ⟨d, rfl⟩ := exists_add_of_le hcd,
+  rw [smul_add, add_right_comm, smul_add, ←add_assoc, add_smul _ _ d],
+  rw le_add_iff_nonneg_right at hab hcd,
+  exact add_le_add_left (le_add_of_nonneg_right $ smul_nonneg hab hcd) _,
+end
+
+/-- Binary **rearrangement inequality**. -/
+lemma smul_add_smul_le_smul_add_smul' [contravariant_class M M (+) (≤)] {a b : k} {c d : M}
+  (hba : b ≤ a) (hdc : d ≤ c) : a • d + b • c ≤ a • c + b • d :=
+by { rw [add_comm (a • d), add_comm (a • c)], exact smul_add_smul_le_smul_add_smul hba hdc }
+
+/-- Binary strict **rearrangement inequality**. -/
+lemma smul_add_smul_lt_smul_add_smul [covariant_class M M (+) (<)] [contravariant_class M M (+) (<)]
+  {a b : k} {c d : M} (hab : a < b) (hcd : c < d) : a • d + b • c < a • c + b • d :=
+begin
+  obtain ⟨b, rfl⟩ := exists_add_of_le hab.le,
+  obtain ⟨d, rfl⟩ := exists_add_of_le hcd.le,
+  rw [smul_add, add_right_comm, smul_add, ←add_assoc, add_smul _ _ d],
+  rw lt_add_iff_pos_right at hab hcd,
+  exact add_lt_add_left (lt_add_of_pos_right _ $ smul_pos hab hcd) _,
+end
+
+/-- Binary strict **rearrangement inequality**. -/
+lemma smul_add_smul_lt_smul_add_smul' [covariant_class M M (+) (<)]
+  [contravariant_class M M (+) (<)] {a b : k} {c d : M} (hba : b < a) (hdc : d < c) :
+  a • d + b • c < a • c + b • d :=
+by { rw [add_comm (a • d), add_comm (a • c)], exact smul_add_smul_lt_smul_add_smul hba hdc }
 
 end ring
 
@@ -162,6 +196,10 @@ variables {M} [ordered_add_comm_group N] [module k N] [ordered_smul k N]
 instance prod.ordered_smul : ordered_smul k (M × N) :=
 ordered_smul.mk' $ λ (v u : M × N) (c : k) h hc,
   ⟨smul_le_smul_of_nonneg h.1.1 hc.le, smul_le_smul_of_nonneg h.1.2 hc.le⟩
+
+instance pi.smul_with_zero'' {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
+  [Π i, mul_action_with_zero k (M i)] :
+  smul_with_zero k (Π i : ι, M i) := by apply_instance
 
 instance pi.ordered_smul {ι : Type*} {M : ι → Type*} [Π i, ordered_add_comm_group (M i)]
   [Π i, mul_action_with_zero k (M i)] [∀ i, ordered_smul k (M i)] :

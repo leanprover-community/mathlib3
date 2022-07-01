@@ -10,13 +10,13 @@ import ring_theory.graded_algebra.basic
 /-!
 # Homogeneous ideals of a graded algebra
 
-This file defines homogeneous ideals of `graded_algebra 𝒜` where `𝒜 : ι → submodule R A` and
+This file defines homogeneous ideals of `graded_ring 𝒜` where `𝒜 : ι → submodule R A` and
 operations on them.
 
 ## Main definitions
 
 For any `I : ideal A`:
-* `ideal.is_homogeneous 𝒜 I`: The property that an ideal is closed under `graded_algebra.proj`.
+* `ideal.is_homogeneous 𝒜 I`: The property that an ideal is closed under `graded_ring.proj`.
 * `homogeneous_ideal 𝒜`: The structure extending ideals which satisfy `ideal.is_homogeneous`
 * `ideal.homogeneous_core I 𝒜`: The largest homogeneous ideal smaller than `I`.
 * `ideal.homogeneous_hull I 𝒜`: The smallest homogeneous ideal larger than `I`.
@@ -41,19 +41,20 @@ graded algebra, homogeneous
 open set_like direct_sum set
 open_locale big_operators pointwise direct_sum
 
-variables {ι R A : Type*}
+variables {ι σ R A : Type*}
 
 section homogeneous_def
 
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables (𝒜 : ι → submodule R A)
-variables [decidable_eq ι] [add_monoid ι] [graded_algebra 𝒜]
+variables [semiring A]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ)
+variables [decidable_eq ι] [add_monoid ι] [graded_ring 𝒜]
 variable (I : ideal A)
+include A
 
 /--An `I : ideal A` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`.-/
 def ideal.is_homogeneous : Prop :=
-∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
+∀ (i : ι) ⦃r : A⦄, r ∈ I → (direct_sum.decompose 𝒜 r i : A) ∈ I
 
 /-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 structure homogeneous_ideal extends submodule A A :=
@@ -84,13 +85,14 @@ end homogeneous_def
 
 section homogeneous_core
 
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables (𝒜 : ι → submodule R A)
+variables [semiring A]
+variables [set_like σ A]  (𝒜 : ι → σ)
 variable (I : ideal A)
+include A
 
 /-- For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_core' 𝒜`
 is the largest homogeneous ideal of `A` contained in `I`, as an ideal. -/
-def ideal.homogeneous_core' : ideal A :=
+def ideal.homogeneous_core' (I : ideal A) : ideal A :=
 ideal.span (coe '' ((coe : subtype (is_homogeneous 𝒜) → A) ⁻¹' I))
 
 lemma ideal.homogeneous_core'_mono : monotone (ideal.homogeneous_core' 𝒜) :=
@@ -103,32 +105,33 @@ end homogeneous_core
 
 section is_homogeneous_ideal_defs
 
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables (𝒜 : ι → submodule R A)
-variables [decidable_eq ι] [add_monoid ι] [graded_algebra 𝒜]
+variables [semiring A]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ)
+variables [decidable_eq ι] [add_monoid ι] [graded_ring 𝒜]
 variable (I : ideal A)
+include A
 
 lemma ideal.is_homogeneous_iff_forall_subset :
-  I.is_homogeneous 𝒜 ↔ ∀ i, (I : set A) ⊆ graded_algebra.proj 𝒜 i ⁻¹' I :=
+  I.is_homogeneous 𝒜 ↔ ∀ i, (I : set A) ⊆ graded_ring.proj 𝒜 i ⁻¹' I :=
 iff.rfl
 
 lemma ideal.is_homogeneous_iff_subset_Inter :
-  I.is_homogeneous 𝒜 ↔ (I : set A) ⊆ ⋂ i, graded_algebra.proj 𝒜 i ⁻¹' ↑I :=
+  I.is_homogeneous 𝒜 ↔ (I : set A) ⊆ ⋂ i, graded_ring.proj 𝒜 i ⁻¹' ↑I :=
 subset_Inter_iff.symm
 
 lemma ideal.mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :
-  graded_algebra.proj 𝒜 j (r * x) ∈ I :=
+  graded_ring.proj 𝒜 j (r * x) ∈ I :=
 begin
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_algebra.sum_support_decompose 𝒜 r, finset.sum_mul, linear_map.map_sum],
+  classical,
+  rw [←direct_sum.sum_support_decompose 𝒜 r, finset.sum_mul, map_sum],
   apply ideal.sum_mem,
   intros k hk,
   obtain ⟨i, hi⟩ := hx₁,
-  have mem₁ : (graded_algebra.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
-    (submodule.coe_mem _) hi,
-  erw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem 𝒜 mem₁,
-    coe_of_submodule_apply 𝒜, submodule.coe_mk],
+  have mem₁ : (direct_sum.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
+    (set_like.coe_mem _) hi,
+  erw [graded_ring.proj_apply, direct_sum.decompose_of_mem 𝒜 mem₁,
+    coe_of_apply, set_like.coe_mk],
   split_ifs,
   { exact I.mul_mem_left _ hx₂ },
   { exact I.zero_mem },
@@ -141,7 +144,8 @@ begin
   rw [ideal.span, finsupp.span_eq_range_total] at hr,
   rw linear_map.mem_range at hr,
   obtain ⟨s, rfl⟩ := hr,
-  rw [←graded_algebra.proj_apply, finsupp.total_apply, finsupp.sum, linear_map.map_sum],
+  rw [finsupp.total_apply, finsupp.sum, decompose_sum, dfinsupp.finset_sum_apply,
+    add_submonoid_class.coe_finset_sum],
   refine ideal.sum_mem _ _,
   rintros z hz1,
   rw [smul_eq_mul],
@@ -174,8 +178,8 @@ lemma ideal.is_homogeneous.to_ideal_homogeneous_core_eq_self (h : I.is_homogeneo
 begin
   apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw ←graded_algebra.sum_support_decompose 𝒜 x,
+  classical,
+  rw ←direct_sum.sum_support_decompose 𝒜 x,
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
@@ -207,16 +211,16 @@ section operations
 
 section semiring
 
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [decidable_eq ι] [add_monoid ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables [semiring A] [decidable_eq ι] [add_monoid ι]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
+include A
 
 namespace ideal.is_homogeneous
 
 lemma bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
-  rw [hr, alg_equiv.map_zero, zero_apply],
+  rw [hr, decompose_zero, zero_apply],
   apply ideal.zero_mem
 end
 
@@ -352,10 +356,11 @@ end homogeneous_ideal
 end semiring
 
 section comm_semiring
-variables [comm_semiring R] [comm_semiring A] [algebra R A]
+variables [comm_semiring A]
 variables [decidable_eq ι] [add_monoid ι]
-variables {𝒜 : ι → submodule R A} [graded_algebra 𝒜]
+variables [set_like σ A] [add_submonoid_class σ A] {𝒜 : ι → σ} [graded_ring 𝒜]
 variable (I : ideal A)
+include A
 
 lemma ideal.is_homogeneous.mul {I J : ideal A}
   (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) : (I * J).is_homogeneous 𝒜 :=
@@ -387,10 +392,10 @@ section homogeneous_core
 
 open homogeneous_ideal
 
-variables [comm_semiring R] [semiring A]
-variables [algebra R A] [decidable_eq ι] [add_monoid ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables [semiring A] [decidable_eq ι] [add_monoid ι]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
 variable (I : ideal A)
+include A
 
 lemma ideal.homogeneous_core.gc : galois_connection to_ideal (ideal.homogeneous_core 𝒜) :=
 λ I J, ⟨
@@ -430,15 +435,15 @@ section homogeneous_hull
 
 open homogeneous_ideal
 
-variables [comm_semiring R] [semiring A]
-variables [algebra R A] [decidable_eq ι] [add_monoid ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables [semiring A] [decidable_eq ι] [add_monoid ι]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
 variable (I : ideal A)
+include A
 
 /--For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
 the smallest homogeneous ideal containing `I`. -/
 def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
-⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin
+⟨ideal.span {r : A | ∃ (i : ι) (x : I), (direct_sum.decompose 𝒜 (x : A) i : A) = r}, begin
   refine ideal.is_homogeneous_span _ _ (λ x hx, _),
   obtain ⟨i, x, rfl⟩ := hx,
   apply set_like.is_homogeneous_coe
@@ -448,8 +453,8 @@ lemma ideal.le_to_ideal_homogeneous_hull :
   I ≤ (ideal.homogeneous_hull 𝒜 I).to_ideal :=
 begin
   intros r hr,
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_algebra.sum_support_decompose 𝒜 r],
+  classical,
+  rw [←direct_sum.sum_support_decompose 𝒜 r],
   refine ideal.sum_mem _ _, intros j hj,
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end
@@ -479,18 +484,18 @@ homogeneous_ideal.to_ideal_injective $ I.is_homogeneous.to_ideal_homogeneous_hul
 variables (I 𝒜)
 
 lemma ideal.to_ideal_homogeneous_hull_eq_supr :
-  (I.homogeneous_hull 𝒜).to_ideal = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+  (I.homogeneous_hull 𝒜).to_ideal = ⨆ i, ideal.span (graded_ring.proj 𝒜 i '' I) :=
 begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
   ext1,
-  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
+  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_ring.proj_apply,
     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
 end
 
 lemma ideal.homogeneous_hull_eq_supr :
   (I.homogeneous_hull 𝒜) =
-  ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
+  ⨆ i, ⟨ideal.span (graded_ring.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
     (by {rintros _ ⟨x, -, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
 by { ext1, rw [ideal.to_ideal_homogeneous_hull_eq_supr, to_ideal_supr], refl }
 
@@ -500,9 +505,9 @@ section galois_connection
 
 open homogeneous_ideal
 
-variables [comm_semiring R] [semiring A]
-variables [algebra R A] [decidable_eq ι] [add_monoid ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables [semiring A] [decidable_eq ι] [add_monoid ι]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
+include A
 
 lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜) to_ideal :=
 λ I J, ⟨
@@ -525,12 +530,13 @@ end galois_connection
 
 section irrelevant_ideal
 
-variables [comm_semiring R] [semiring A]
-variables [algebra R A] [decidable_eq ι]
+variables [semiring A]
+variables [decidable_eq ι]
 variables [canonically_ordered_add_monoid ι]
-variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+variables [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
+include A
 
-open graded_algebra set_like.graded_monoid direct_sum
+open graded_ring set_like.graded_monoid direct_sum
 
 /--
 For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
@@ -544,17 +550,17 @@ of irrelevant ideal makes sense in a more general setting by defining it as the 
 with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
 -/
 def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
-⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
-  change (decompose 𝒜 (decompose 𝒜 r _) 0 : A) = 0,
+⟨(graded_ring.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
+  change (decompose 𝒜 (decompose 𝒜 r _ : A) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [h, hr, map_zero, zero_apply, submodule.coe_zero] },
-  { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
+  { rw [h, hr, decompose_zero, zero_apply, add_submonoid_class.coe_zero] },
+  { rw [decompose_of_mem_ne 𝒜 (set_like.coe_mem _) h] }
 end⟩
 
 @[simp] lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 := iff.rfl
 
 @[simp] lemma homogeneous_ideal.to_ideal_irrelevant :
-  (homogeneous_ideal.irrelevant 𝒜).to_ideal = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
+  (homogeneous_ideal.irrelevant 𝒜).to_ideal = (graded_ring.proj_zero_ring_hom 𝒜).ker := rfl
 
 end irrelevant_ideal

@@ -118,13 +118,6 @@ congr_fun ((forget _).map_id X) x
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 
-@[simp] lemma coe_hom_inv_id {X Y : C} (f : X ≅ Y) (x : X) :
-  f.inv (f.hom x) = x :=
-congr_fun ((forget C).map_iso f).hom_inv_id x
-@[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
-  f.hom (f.inv y) = y :=
-congr_fun ((forget C).map_iso f).inv_hom_id y
-
 lemma concrete_category.congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
 congr_fun (congr_arg (λ f : X ⟶ Y, (f : X → Y)) h) x
 

@@ -707,7 +707,7 @@ lemma of'_mem_span [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero _ (@one_ne_zero R _ (by apply_instance))] at h,
   simpa using h
 end
 
@@ -719,8 +719,10 @@ lemma mem_closure_of_mem_span_closure [nontrivial R] {m : M} {S : set M}
 begin
   suffices : multiplicative.of_add m ∈ submonoid.closure (multiplicative.to_add ⁻¹' S),
   { simpa [← to_submonoid_closure] },
-  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x),
-    ← monoid_hom.map_mclosure] at h,
+  let S' := @submonoid.closure M multiplicative.mul_one_class S,
+  have h' : submonoid.map (of R M) S' = submonoid.closure ((λ (x : M), (of R M) x) '' S) :=
+    monoid_hom.map_mclosure _ _,
+  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x), ← h'] at h,
   simpa using of'_mem_span.1 h
 end
 
@@ -863,7 +865,7 @@ lemma of_mem_span_of_iff [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero _ (@one_ne_zero R _ (by apply_instance))] at h,
   simpa using h
 end
 

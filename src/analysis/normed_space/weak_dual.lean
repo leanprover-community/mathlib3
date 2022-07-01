@@ -142,6 +142,8 @@ mapping). It is a linear equivalence. Here it is implemented as the inverse of t
 equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
 def to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E := normed_space.dual.to_weak_dual.symm
 
+lemma to_normed_dual_apply (x : weak_dual 𝕜 E) (y : E) : (to_normed_dual x) y = x y := rfl
+
 @[simp] lemma coe_to_normed_dual (x' : weak_dual 𝕜 E) : ⇑(x'.to_normed_dual) = x' := rfl
 
 @[simp] lemma to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :

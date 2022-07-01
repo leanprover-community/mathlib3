@@ -49,6 +49,13 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 `add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
 
+## Notation
+
+In the `discrete_valuation` locale:
+
+ * `ℕₘ₀` is a shorthand for `with_zero (multiplicative ℕ)`
+ * `ℤₘ₀` is a shorthand for `with_zero (multiplicative ℤ)`
+
 ## TODO
 
 If ever someone extends `valuation`, we should fully comply to the `fun_like` by migrating the
@@ -273,6 +280,19 @@ begin
   simpa using this
 end
 
+lemma map_one_add_of_lt (h : v x < 1) : v (1 + x) = 1 :=
+begin
+  rw ← v.map_one at h,
+  simpa only [v.map_one] using v.map_add_eq_of_lt_left h
+end
+
+lemma map_one_sub_of_lt (h : v x < 1) : v (1 - x) = 1 :=
+begin
+  rw [← v.map_one, ← v.map_neg] at h,
+  rw sub_eq_add_neg 1 x,
+  simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
+end
+
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
 def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
 { carrier   := {x | v x < γ},
@@ -448,7 +468,8 @@ def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
   R ⧸ J → Γ₀ :=
 λ q, quotient.lift_on' q v $ λ a b h,
 calc v a = v (b + -(-a + b)) : by simp
-     ... = v b             : v.map_add_supp b ((ideal.neg_mem_iff _).2 $ hJ h)
+     ... = v b             :
+      v.map_add_supp b $ (ideal.neg_mem_iff _).2 $ hJ $ quotient_add_group.left_rel_apply.mp h
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :
@@ -743,3 +764,10 @@ end supp -- end of section
 attribute [irreducible] add_valuation
 
 end add_valuation
+
+section valuation_notation
+
+localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+
+end valuation_notation

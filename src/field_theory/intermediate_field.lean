@@ -174,6 +174,9 @@ protected lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n := submo
 
 end inherited_lemmas
 
+lemma coe_nat_mem (n : ℕ) : (n : L) ∈ S :=
+by simpa using coe_int_mem S n
+
 end intermediate_field
 
 /-- Turn a subalgebra closed under inverses into an intermediate field -/
@@ -227,21 +230,21 @@ end
 
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
 
-instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L] :
+instance module' {R} [semiring R] [has_smul R K] [module R L] [is_scalar_tower R K L] :
   module R S :=
 S.to_subalgebra.module'
 instance module : module K S := S.to_subalgebra.module
 
-instance is_scalar_tower {R} [semiring R] [has_scalar R K] [module R L]
+instance is_scalar_tower {R} [semiring R] [has_smul R K] [module R L]
   [is_scalar_tower R K L] :
   is_scalar_tower R K S :=
 S.to_subalgebra.is_scalar_tower
 
-@[simp] lemma coe_smul {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L]
+@[simp] lemma coe_smul {R} [semiring R] [has_smul R K] [module R L] [is_scalar_tower R K L]
   (r : R) (x : S) :
   ↑(r • x) = (r • x : L) := rfl
 
-instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [algebra K' L]
+instance algebra' {K'} [comm_semiring K'] [has_smul K' K] [algebra K' L]
   [is_scalar_tower K' K L] :
   algebra K' S :=
 S.to_subalgebra.algebra'
@@ -280,9 +283,17 @@ set_like.coe_injective $ set.image_image _ _ _
 /-- Given an equivalence `e : L ≃ₐ[K] L'` of `K`-field extensions and an intermediate
 field `E` of `L/K`, `intermediate_field_equiv_map e E` is the induced equivalence
 between `E` and `E.map e` -/
-@[simps] def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
+def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
   E ≃ₐ[K] (E.map e.to_alg_hom) :=
 e.subalgebra_map E.to_subalgebra
+
+/- We manually add these two simp lemmas because `@[simps]` before `intermediate_field_map`
+  led to a timeout. -/
+@[simp] lemma intermediate_field_map_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
+  (a : E) : ↑(intermediate_field_map e E a) = e a := rfl
+
+@[simp] lemma intermediate_field_map_symm_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
+  (a : E.map e.to_alg_hom) : ↑((intermediate_field_map e E).symm a) = e.symm a := rfl
 
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=
@@ -318,6 +329,27 @@ begin
     refine ⟨P, hPmo, _⟩,
     rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
 end
+
+/-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.
+
+This is the intermediate field version of `subalgebra.inclusion`. -/
+def inclusion {E F : intermediate_field K L} (hEF : E ≤ F) : E →ₐ[K] F :=
+subalgebra.inclusion hEF
+
+lemma inclusion_injective {E F : intermediate_field K L} (hEF : E ≤ F) :
+  function.injective (inclusion hEF) :=
+subalgebra.inclusion_injective hEF
+
+@[simp] lemma inclusion_self {E : intermediate_field K L}:
+  inclusion (le_refl E) = alg_hom.id K E :=
+subalgebra.inclusion_self
+
+@[simp] lemma inclusion_inclusion {E F G : intermediate_field K L} (hEF : E ≤ F) (hFG : F ≤ G)
+  (x : E) : inclusion hFG (inclusion hEF x) = inclusion (le_trans hEF hFG) x :=
+subalgebra.inclusion_inclusion hEF hFG x
+
+@[simp] lemma coe_inclusion {E F : intermediate_field K L} (hEF : E ≤ F) (e : E) :
+  (inclusion hEF e : L) = e := rfl
 
 variables {S}
 

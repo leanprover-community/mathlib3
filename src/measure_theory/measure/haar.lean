@@ -150,7 +150,7 @@ begin
   obtain ⟨s, h1s, h2s⟩ := index_elim K.compact K₀.interior_nonempty,
   obtain ⟨t, h1t, h2t⟩ := index_elim K₀.compact hV,
   rw [← h2s, ← h2t, mul_comm],
-  refine le_trans _ finset.mul_card_le,
+  refine le_trans _ finset.card_mul_le,
   apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq], refine subset.trans h1s _,
   apply Union₂_subset, intros g₁ hg₁, rw preimage_subset_iff, intros g₂ hg₂,
   have := h1t hg₂,
@@ -414,9 +414,7 @@ end
 lemma chaar_sup_eq [t2_space G] {K₀ : positive_compacts G} {K₁ K₂ : compacts G}
   (h : disjoint K₁.1 K₂.1) : chaar K₀ (K₁ ⊔ K₂) = chaar K₀ K₁ + chaar K₀ K₂ :=
 begin
-  rcases compact_compact_separated K₁.2 K₂.2 (disjoint_iff.mp h) with
-    ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
-  rw [← disjoint_iff_inter_eq_empty] at hU,
+  rcases compact_compact_separated K₁.2 K₂.2 h with ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
   rcases compact_open_separated_mul_right K₁.2 h1U₁ h2U₁ with ⟨L₁, h1L₁, h2L₁⟩,
   rcases mem_nhds_iff.mp h1L₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
   replace h2L₁ := subset.trans (mul_subset_mul_left h1V₁) h2L₁,
@@ -589,12 +587,9 @@ variables [second_countable_topology G]
 @[to_additive]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
-begin
-  refine (measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
-    (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
-    K₀.compact.measure_lt_top.ne).trans _,
-  rw [haar_measure_self, ennreal.div_one]
-end
+(measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
+  (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
+  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, ennreal.div_one])
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=
@@ -708,7 +703,7 @@ begin
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
-    by simp only [hc, smul_smul, pow_two, map_smul],
+    by simp only [hc, smul_smul, pow_two, measure.map_smul],
   have μeq : μ = c^2 • μ,
   { rw [map_map continuous_inv.measurable continuous_inv.measurable] at this,
     { simpa only [inv_involutive, involutive.comp_self, map_id] },

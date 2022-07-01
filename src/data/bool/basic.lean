@@ -128,9 +128,20 @@ theorem band_intro : ∀ {a b : bool}, a → b → a && b := dec_trivial
 
 theorem band_elim_right : ∀ {a b : bool}, a && b → b := dec_trivial
 
+lemma band_bor_distrib_left (a b c : bool) : a && (b || c) = a && b || a && c := by cases a; simp
+lemma band_bor_distrib_right (a b c : bool) : (a || b) && c = a && c || b && c := by cases c; simp
+lemma bor_band_distrib_left (a b c : bool) : a || b && c = (a || b) && (a || c) := by cases a; simp
+lemma bor_band_distrib_right (a b c : bool) : a && b || c = (a || c) && (b || c) := by cases c; simp
+
 @[simp] theorem bnot_false : bnot ff = tt := rfl
 
 @[simp] theorem bnot_true : bnot tt = ff := rfl
+
+@[simp] lemma not_eq_bnot : ∀ {a b : bool}, ¬a = !b ↔ a = b := dec_trivial
+@[simp] lemma bnot_not_eq : ∀ {a b : bool}, ¬!a = b ↔ a = b := dec_trivial
+
+lemma ne_bnot {a b : bool} : a ≠ !b ↔ a = b := not_eq_bnot
+lemma bnot_ne {a b : bool} : !a ≠ b ↔ a = b := bnot_not_eq
 
 @[simp] theorem bnot_iff_not : ∀ {b : bool}, !b ↔ ¬b := dec_trivial
 
@@ -152,6 +163,11 @@ theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec
 @[simp] theorem bxor_ff_left : ∀ a, bxor ff a = a := dec_trivial
 @[simp] theorem bxor_ff_right : ∀ a, bxor a ff = a := dec_trivial
 
+lemma band_bxor_distrib_left (a b c : bool) : a && (bxor b c) = bxor (a && b) (a && c) :=
+by cases a; simp
+lemma band_bxor_distrib_right (a b c : bool) : (bxor a b) && c = bxor (a && c) (b && c) :=
+by cases c; simp
+
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
 /-! ### De Morgan's laws for booleans-/
@@ -168,7 +184,6 @@ instance : linear_order bool :=
   le_total := dec_trivial,
   decidable_le := infer_instance,
   decidable_eq := infer_instance,
-  decidable_lt := infer_instance,
   max := bor,
   max_def := by { funext x y, revert x y, exact dec_trivial },
   min := band,
@@ -224,5 +239,9 @@ by cases b; simp only [of_nat,to_nat]; exact dec_trivial
 @[simp] lemma injective_iff {α : Sort*} {f : bool → α} : function.injective f ↔ f ff ≠ f tt :=
 ⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
   λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
+
+/-- **Kaminski's Equation** -/
+theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
+by cases x; cases h₁ : f tt; cases h₂ : f ff; simp only [h₁, h₂]
 
 end bool

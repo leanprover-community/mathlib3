@@ -42,7 +42,7 @@ section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables (𝕜) [ordered_add_comm_monoid β] [has_scalar 𝕜 E] (s : set E) (f : E → β)
+variables (𝕜) [ordered_add_comm_monoid β] [has_smul 𝕜 E] (s : set E) (f : E → β)
 
 /-- A function is quasiconvex if all its sublevels are convex.
 This means that, for all `r`, `{x ∈ s | f x ≤ r}` is `𝕜`-convex. -/
@@ -78,7 +78,7 @@ lemma quasiconvex_on.convex [is_directed β (≤)] (hf : quasiconvex_on 𝕜 s f
 λ x y hx hy a b ha hb hab,
   let ⟨z, hxz, hyz⟩ := exists_ge_ge (f x) (f y) in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
 
-lemma quasiconcave_on.convex [is_directed β (swap (≤))] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
+lemma quasiconcave_on.convex [is_directed β (≥)] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
 hf.dual.convex
 
 end ordered_add_comm_monoid
@@ -86,8 +86,8 @@ end ordered_add_comm_monoid
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid β]
 
-section has_scalar
-variables [has_scalar 𝕜 E] {s : set E} {f g : E → β}
+section has_smul
+variables [has_smul 𝕜 E] {s : set E} {f g : E → β}
 
 lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on 𝕜 s g) :
   quasiconvex_on 𝕜 s (f ⊔ g) :=
@@ -137,10 +137,10 @@ end
 lemma quasiconcave_on.convex_gt (hf : quasiconcave_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | r < f x} :=
 hf.dual.convex_lt r
 
-end has_scalar
+end has_smul
 
 section ordered_smul
-variables [has_scalar 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
+variables [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on.quasiconvex_on (hf : convex_on 𝕜 s f) : quasiconvex_on 𝕜 s f :=
 hf.convex_le

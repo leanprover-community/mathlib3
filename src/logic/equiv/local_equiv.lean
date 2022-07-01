@@ -131,17 +131,6 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (left_inv'   : ∀{x}, x ∈ source → inv_fun (to_fun x) = x)
 (right_inv'  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
 
-/-- Associating a local_equiv to an equiv-/
-def equiv.to_local_equiv (e : α ≃ β) : local_equiv α β :=
-{ to_fun      := e,
-  inv_fun     := e.symm,
-  source      := univ,
-  target      := univ,
-  map_source' := λx hx, mem_univ _,
-  map_target' := λy hy, mem_univ _,
-  left_inv'   := λx hx, e.left_inv x,
-  right_inv'  := λx hx, e.right_inv x }
-
 namespace local_equiv
 
 variables (e : local_equiv α β) (e' : local_equiv β γ)
@@ -149,9 +138,6 @@ variables (e : local_equiv α β) (e' : local_equiv β γ)
 instance [inhabited α] [inhabited β] : inhabited (local_equiv α β) :=
 ⟨⟨const α default, const β default, ∅, ∅, maps_to_empty _ _, maps_to_empty _ _,
   eq_on_empty _ _, eq_on_empty _ _⟩⟩
-
-instance inhabited_of_empty [is_empty α] [is_empty β] : inhabited (local_equiv α β) :=
-⟨((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).to_local_equiv⟩
 
 /-- The inverse of a local equiv -/
 protected def symm : local_equiv β α :=
@@ -193,6 +179,10 @@ e.left_inv' h
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
+lemma eq_symm_apply {x : α} {y : β} (hx : x ∈ e.source) (hy : y ∈ e.target) :
+  x = e.symm y ↔ e x = y :=
+⟨λ h, by rw [← e.right_inv hy, h], λ h, by rw [← e.left_inv hx, h]⟩
+
 protected lemma maps_to : maps_to e e.source e.target := λ x, e.map_source
 lemma symm_maps_to : maps_to e.symm e.target e.source := e.symm.maps_to
 protected lemma left_inv_on : left_inv_on e.symm e e.source := λ x, e.left_inv
@@ -202,8 +192,23 @@ protected lemma inj_on : inj_on e e.source := e.left_inv_on.inj_on
 protected lemma bij_on : bij_on e e.source e.target := e.inv_on.bij_on e.maps_to e.symm_maps_to
 protected lemma surj_on : surj_on e e.source e.target := e.bij_on.surj_on
 
+/-- Associating a local_equiv to an equiv-/
+@[simps (mfld_cfg)] def _root_.equiv.to_local_equiv (e : α ≃ β) : local_equiv α β :=
+{ to_fun      := e,
+  inv_fun     := e.symm,
+  source      := univ,
+  target      := univ,
+  map_source' := λx hx, mem_univ _,
+  map_target' := λy hy, mem_univ _,
+  left_inv'   := λx hx, e.left_inv x,
+  right_inv'  := λx hx, e.right_inv x }
+
+instance inhabited_of_empty [is_empty α] [is_empty β] : inhabited (local_equiv α β) :=
+⟨((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).to_local_equiv⟩
+
 /-- Create a copy of a `local_equiv` providing better definitional equalities. -/
-@[simps] def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
+@[simps {fully_applied := ff}]
+def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
   (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
   local_equiv α β :=
 { to_fun := f,
@@ -268,7 +273,7 @@ lemma symm_maps_to (h : e.is_image s t) : maps_to e.symm (e.target ∩ t) (e.sou
 h.symm.maps_to
 
 /-- Restrict a `local_equiv` to a pair of corresponding sets. -/
-@[simps] def restr (h : e.is_image s t) : local_equiv α β :=
+@[simps {fully_applied := ff}] def restr (h : e.is_image s t) : local_equiv α β :=
 { to_fun := e,
   inv_fun := e.symm,
   source := e.source ∩ s,
@@ -287,13 +292,12 @@ h.symm.image_eq
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
 by simp only [is_image, set.ext_iff, mem_inter_eq, and.congr_right_iff, mem_preimage]
 
-alias iff_preimage_eq ↔ local_equiv.is_image.preimage_eq local_equiv.is_image.of_preimage_eq
+alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
 lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
 symm_iff.symm.trans iff_preimage_eq
 
-alias iff_symm_preimage_eq ↔ local_equiv.is_image.symm_preimage_eq
-  local_equiv.is_image.of_symm_preimage_eq
+alias iff_symm_preimage_eq ↔ symm_preimage_eq of_symm_preimage_eq
 
 lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
 of_symm_preimage_eq $ eq.trans (of_symm_preimage_eq rfl).image_eq.symm h
@@ -530,6 +534,25 @@ lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=
 local_equiv.ext (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rwa inter_assoc }
 
+/-- Postcompose a local equivalence with an equivalence.
+We modify the source and target to have better definitional behavior. -/
+@[simps] def trans_equiv (e' : β ≃ γ) : local_equiv α γ :=
+(e.trans e'.to_local_equiv).copy _ rfl _ rfl e.source (inter_univ _) (e'.symm ⁻¹' e.target)
+  (univ_inter _)
+
+lemma trans_equiv_eq_trans (e' : β ≃ γ) : e.trans_equiv e' = e.trans e'.to_local_equiv :=
+copy_eq_self _ _ _ _ _ _ _ _ _
+
+/-- Precompose a local equivalence with an equivalence.
+We modify the source and target to have better definitional behavior. -/
+@[simps] def _root_.equiv.trans_local_equiv (e : α ≃ β) : local_equiv α γ :=
+(e.to_local_equiv.trans e').copy _ rfl _ rfl (e ⁻¹' e'.source) (univ_inter _) e'.target
+  (inter_univ _)
+
+lemma _root_.equiv.trans_local_equiv_eq_trans (e : α ≃ β) :
+  e.trans_local_equiv e' = e.to_local_equiv.trans e' :=
+copy_eq_self _ _ _ _ _ _ _ _ _
+
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. Then `e`
 and `e'` should really be considered the same local equiv. -/
 def eq_on_source (e e' : local_equiv α β) : Prop :=
@@ -669,7 +692,7 @@ end prod
 sends `e.source ∩ s` to `e.target ∩ t` using `e` and `e'.source \ s` to `e'.target \ t` using `e'`,
 and similarly for the inverse function. The definition assumes `e.is_image s t` and
 `e'.is_image s t`. -/
-@[simps] def piecewise (e e' : local_equiv α β) (s : set α) (t : set β)
+@[simps {fully_applied := ff}] def piecewise (e e' : local_equiv α β) (s : set α) (t : set β)
   [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t) :
   local_equiv α β :=
 { to_fun := s.piecewise e e',
@@ -690,7 +713,8 @@ rfl
 /-- Combine two `local_equiv`s with disjoint sources and disjoint targets. We reuse
 `local_equiv.piecewise`, then override `source` and `target` to ensure better definitional
 equalities. -/
-@[simps] def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
+@[simps {fully_applied := ff}]
+def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
   (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
   [∀ y, decidable (y ∈ e.target)] :
   local_equiv α β :=
@@ -710,7 +734,7 @@ section pi
 variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) (βi i))
 
 /-- The product of a family of local equivs, as a local equiv on the pi type. -/
-@[simps source target] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
+@[simps (mfld_cfg)] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
 { to_fun := λ f i, ei i (f i),
   inv_fun := λ f i, (ei i).symm (f i),
   source := pi univ (λ i, (ei i).source),
@@ -719,12 +743,6 @@ variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) 
   map_target' := λ f hf i hi, (ei i).map_target (hf i hi),
   left_inv' := λ f hf, funext $ λ i, (ei i).left_inv (hf i trivial),
   right_inv' := λ f hf, funext $ λ i, (ei i).right_inv (hf i trivial) }
-
-attribute [mfld_simps] pi_source pi_target
-
-@[simp, mfld_simps] lemma pi_coe : ⇑(local_equiv.pi ei) = λ (f : Π i, αi i) i, ei i (f i) := rfl
-@[simp, mfld_simps] lemma pi_symm :
-  (local_equiv.pi ei).symm = local_equiv.pi (λ i, (ei i).symm) := rfl
 
 end pi
 
@@ -735,8 +753,8 @@ namespace set
 -- All arguments are explicit to avoid missing information in the pretty printer output
 /-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence
 between `α` and `β`. -/
-@[simps] noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (t : set β)
-  (hf : bij_on f s t) :
+@[simps {fully_applied := ff}] noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β)
+  (s : set α) (t : set β) (hf : bij_on f s t) :
   local_equiv α β :=
 { to_fun := f,
   inv_fun := inv_fun_on f s,
@@ -758,12 +776,8 @@ end set
 namespace equiv
 /- equivs give rise to local_equiv. We set up simp lemmas to reduce most properties of the local
 equiv to that of the equiv. -/
-variables (e : equiv α β) (e' : equiv β γ)
+variables (e : α ≃ β) (e' : β ≃ γ)
 
-@[simp, mfld_simps] lemma to_local_equiv_coe : (e.to_local_equiv : α → β) = e := rfl
-@[simp, mfld_simps] lemma to_local_equiv_symm_coe : (e.to_local_equiv.symm : β → α) = e.symm := rfl
-@[simp, mfld_simps] lemma to_local_equiv_source : e.to_local_equiv.source = univ := rfl
-@[simp, mfld_simps] lemma to_local_equiv_target : e.to_local_equiv.target = univ := rfl
 @[simp, mfld_simps] lemma refl_to_local_equiv :
   (equiv.refl α).to_local_equiv = local_equiv.refl α := rfl
 @[simp, mfld_simps] lemma symm_to_local_equiv : e.symm.to_local_equiv = e.to_local_equiv.symm := rfl

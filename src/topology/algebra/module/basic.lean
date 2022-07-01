@@ -253,6 +253,33 @@ notation M ` →SL[`:25 σ `] ` M₂ := continuous_linear_map σ M M₂
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map (ring_hom.id R) M M₂
 notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R) M M₂
 
+set_option old_structure_cmd true
+
+/-- `continuous_semilinear_map_class F σ M M₂` asserts `F` is a type of bundled continuous
+`σ`-semilinear maps `M → M₂`.  See also `continuous_linear_map_class F R M M₂` for the case where
+`σ` is the identity map on `R`.  A map `f` between an `R`-module and an `S`-module over a ring
+homomorphism `σ : R →+* S` is semilinear if it satisfies the two properties `f (x + y) = f x + f y`
+and `f (c • x) = (σ c) • f x`. -/
+class continuous_semilinear_map_class (F : Type*) {R S : out_param Type*} [semiring R] [semiring S]
+  (σ : out_param $ R →+* S) (M : out_param Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂] [module R M] [module S M₂]
+  extends semilinear_map_class F σ M M₂, continuous_map_class F M M₂
+
+-- `σ`, `R` and `S` become metavariables, but they are all outparams so it's OK
+attribute [nolint dangerous_instance] continuous_semilinear_map_class.to_continuous_map_class
+
+set_option old_structure_cmd false
+
+/-- `continuous_linear_map_class F R M M₂` asserts `F` is a type of bundled continuous
+`R`-linear maps `M → M₂`.  This is an abbreviation for
+`continuous_semilinear_map_class F (ring_hom.id R) M M₂`.  -/
+abbreviation continuous_linear_map_class (F : Type*)
+  (R : out_param Type*) [semiring R]
+  (M : out_param Type*) [topological_space M] [add_comm_monoid M]
+  (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂]
+  [module R M] [module R M₂] :=
+continuous_semilinear_map_class F (ring_hom.id R) M M₂
+
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological semiring `R`. -/
@@ -345,11 +372,12 @@ instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) :
 theorem coe_injective : function.injective (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
 by { intros f g H, cases f, cases g, congr' }
 
-instance : add_monoid_hom_class (M₁ →SL[σ₁₂] M₂) M₁ M₂ :=
+instance : continuous_semilinear_map_class (M₁ →SL[σ₁₂] M₂) σ₁₂ M₁ M₂ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, coe_injective (fun_like.coe_injective h),
   map_add := λ f, map_add f.to_linear_map,
-  map_zero := λ f, linear_map.map_zero f }
+  map_continuous := λ f, f.2,
+  map_smulₛₗ := λ f, f.to_linear_map.map_smul' }
 
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
@@ -399,15 +427,17 @@ protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f
 protected lemma map_add (f : M₁ →SL[σ₁₂] M₂) (x y : M₁) : f (x + y) = f x + f y := map_add f x y
-@[simp] lemma map_smulₛₗ (f : M₁ →SL[σ₁₂] M₂) (c : R₁) (x : M₁) :
+@[simp]
+protected lemma map_smulₛₗ (f : M₁ →SL[σ₁₂] M₂) (c : R₁) (x : M₁) :
   f (c • x) = (σ₁₂ c) • f x := (to_linear_map _).map_smulₛₗ _ _
 
-@[simp] lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
-by simp only [ring_hom.id_apply, map_smulₛₗ]
+@[simp]
+protected lemma map_smul [module R₁ M₂] (f : M₁ →L[R₁] M₂)(c : R₁) (x : M₁) : f (c • x) = c • f x :=
+by simp only [ring_hom.id_apply, continuous_linear_map.map_smulₛₗ]
 
 @[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M₁]
-  [module S M₁] [has_scalar R M₂] [module S M₂]
+lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M₁]
+  [module S M₁] [has_smul R M₂] [module S M₂]
   [linear_map.compatible_smul M₁ M₂ R S] (f : M₁ →L[S] M₂) (c : R) (x : M₁) :
   f (c • x) = c • f x :=
 linear_map.compatible_smul.map_smul f c x
@@ -475,7 +505,7 @@ lemma smul_apply (c : S₂) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (c • 
 lemma coe_smul (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
 @[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
 
-instance [has_scalar S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+instance [has_smul S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
 
 instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
@@ -619,6 +649,59 @@ lemma mul_def (f g : M₁ →L[R₁] M₁) : f * g = f.comp g := rfl
 @[simp] lemma coe_mul (f g : M₁ →L[R₁] M₁) : ⇑(f * g) = f ∘ g := rfl
 
 lemma mul_apply (f g : M₁ →L[R₁] M₁) (x : M₁) : (f * g) x = f (g x) := rfl
+
+instance : monoid_with_zero (M₁ →L[R₁] M₁) :=
+{ mul := (*),
+  one := 1,
+  zero := 0,
+  mul_zero := λ f, ext $ λ _, map_zero f,
+  zero_mul := λ _, ext $ λ _, rfl,
+  mul_one := λ _, ext $ λ _, rfl,
+  one_mul := λ _, ext $ λ _, rfl,
+  mul_assoc := λ _ _ _, ext $ λ _, rfl, }
+
+instance [has_continuous_add M₁] : semiring (M₁ →L[R₁] M₁) :=
+{ mul := (*),
+  one := 1,
+  left_distrib := λ f g h, ext $ λ x, map_add f (g x) (h x),
+  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
+  ..continuous_linear_map.monoid_with_zero,
+  ..continuous_linear_map.add_comm_monoid }
+
+/-- `continuous_linear_map.to_linear_map` as a `ring_hom`.-/
+@[simps]
+def to_linear_map_ring_hom [has_continuous_add M₁] : (M₁ →L[R₁] M₁) →+* (M₁ →ₗ[R₁] M₁) :=
+{ to_fun := to_linear_map,
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_add' := λ _ _, rfl,
+  map_mul' := λ _ _, rfl }
+
+section apply_action
+variables [has_continuous_add M₁]
+
+/-- The tautological action by `M₁ →L[R₁] M₁` on `M`.
+
+This generalizes `function.End.apply_mul_action`. -/
+instance apply_module : module (M₁ →L[R₁] M₁) M₁ :=
+module.comp_hom _ to_linear_map_ring_hom
+
+@[simp] protected lemma smul_def (f : M₁ →L[R₁] M₁) (a : M₁) : f • a = f a := rfl
+
+/-- `continuous_linear_map.apply_module` is faithful. -/
+instance apply_has_faithful_smul : has_faithful_smul (M₁ →L[R₁] M₁) M₁ :=
+⟨λ _ _, continuous_linear_map.ext⟩
+
+instance apply_smul_comm_class : smul_comm_class R₁ (M₁ →L[R₁] M₁) M₁ :=
+{ smul_comm := λ r e m, (e.map_smul r m).symm }
+
+instance apply_smul_comm_class' : smul_comm_class (M₁ →L[R₁] M₁) R₁ M₁ :=
+{ smul_comm := continuous_linear_map.map_smul }
+
+instance : has_continuous_const_smul (M₁ →L[R₁] M₁) M₁ :=
+⟨continuous_linear_map.continuous⟩
+
+end apply_action
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 protected def prod [module R₁ M₂] [module R₁ M₃] (f₁ : M₁ →L[R₁] M₂) (f₂ : M₁ →L[R₁] M₃) :
@@ -984,11 +1067,7 @@ end
 instance [topological_add_group M] : ring (M →L[R] M) :=
 { mul := (*),
   one := 1,
-  mul_one := λ _, ext $ λ _, rfl,
-  one_mul := λ _, ext $ λ _, rfl,
-  mul_assoc := λ _ _ _, ext $ λ _, rfl,
-  left_distrib := λ f g h, ext $ λ x, map_add f (g x) (h x),
-  right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
+  ..continuous_linear_map.semiring,
   ..continuous_linear_map.add_comm_group }
 
 lemma smul_right_one_pow [topological_space R] [topological_ring R] (c : R) (n : ℕ) :
@@ -1073,7 +1152,8 @@ include σ₁₃
   [has_continuous_const_smul R₂ M₂] [has_continuous_const_smul R₃ M₃]
   (h : M₂ →SL[σ₂₃] M₃) (c : R₂) (f : M →SL[σ₁₂] M₂) :
   h.comp (c • f) = (σ₂₃ c) • (h.comp f) :=
-by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply, map_smulₛₗ] }
+by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply,
+                      continuous_linear_map.map_smulₛₗ] }
 omit σ₁₃
 
 instance [has_continuous_add M₂] : distrib_mul_action S₃ (M →SL[σ₁₂] M₂) :=
@@ -1152,10 +1232,10 @@ end smul
 
 section smul_rightₗ
 
-variables {R S T M M₂ : Type*} [ring R] [ring S] [ring T] [module R S]
-  [add_comm_group M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
+variables {R S T M M₂ : Type*} [semiring R] [semiring S] [semiring T] [module R S]
+  [add_comm_monoid M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
   [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
-  [topological_space M] [add_comm_group M] [module R M] [topological_add_group M₂]
+  [topological_space M] [add_comm_monoid M] [module R M] [has_continuous_add M₂]
   [module T M₂] [has_continuous_const_smul T M₂]
   [smul_comm_class R T M₂] [smul_comm_class S T M₂]
 

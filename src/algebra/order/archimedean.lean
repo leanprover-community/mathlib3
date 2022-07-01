@@ -132,7 +132,7 @@ by classical; exact let n := nat.find h in
   ⟨nat.pred n, le_of_not_lt (nat.find_min h hltn), by rwa hnsp⟩
 
 theorem exists_int_gt (x : α) : ∃ n : ℤ, x < n :=
-let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa ← coe_coe⟩
+let ⟨n, h⟩ := exists_nat_gt x in ⟨n, by rwa int.cast_coe_nat⟩
 
 theorem exists_int_lt (x : α) : ∃ n : ℤ, (n : α) < x :=
 let ⟨n, h⟩ := exists_int_gt (-x) in ⟨-n, by rw int.cast_neg; exact neg_lt.1 h⟩
@@ -166,7 +166,7 @@ lemma exists_mem_Ico_zpow [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by { rw [zpow_neg₀ y (↑N), zpow_coe_nat],
+    ⟨-N, le_of_lt (by { rw [zpow_neg y (↑N), zpow_coe_nat],
     exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN })⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
@@ -185,8 +185,8 @@ lemma exists_mem_Ioc_zpow [archimedean α]
 let ⟨m, hle, hlt⟩ := exists_mem_Ico_zpow (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
-by rwa [zpow_neg₀, inv_lt (zpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, zpow_neg₀,
+by rwa [zpow_neg, inv_lt (zpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, zpow_neg,
         le_inv hx (zpow_pos_of_pos hyp _)]⟩
 
 /-- For any `y < 1` and any positive `x`, there exists `n : ℕ` with `y ^ n < x`. -/
@@ -197,7 +197,7 @@ begin
   { use 1, simp only [pow_one], linarith, },
   rw [not_le] at y_pos,
   rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
-  exact ⟨q, by rwa [inv_pow₀, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
+  exact ⟨q, by rwa [inv_pow, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
 end
 
 /-- Given `x` and `y` between `0` and `1`, `x` is between two successive powers of `y`.
@@ -209,8 +209,8 @@ begin
   rcases exists_nat_pow_near (one_le_inv_iff.2 ⟨xpos, hx⟩) (one_lt_inv_iff.2 ⟨ypos, hy⟩)
     with ⟨n, hn, h'n⟩,
   refine ⟨n, _, _⟩,
-  { rwa [inv_pow₀, inv_lt_inv xpos (pow_pos ypos _)] at h'n },
-  { rwa [inv_pow₀, inv_le_inv (pow_pos ypos _) xpos] at hn }
+  { rwa [inv_pow, inv_lt_inv xpos (pow_pos ypos _)] at h'n },
+  { rwa [inv_pow, inv_le_inv (pow_pos ypos _) xpos] at hn }
 end
 
 variables [floor_ring α]
@@ -239,7 +239,7 @@ instance : archimedean ℕ :=
 
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
-by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
+by simpa only [nsmul_eq_mul, zero_add, mul_one]
   using mul_le_mul_of_nonneg_left (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
 /-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
@@ -303,7 +303,7 @@ begin
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
        ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
-  { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
+  { intro H, rw [rat.coe_nat_num, int.cast_coe_nat, nat.cast_eq_zero] at H, subst H, cases n0 },
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
 end
 

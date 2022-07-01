@@ -10,8 +10,8 @@ import topology.continuous_function.basic
 /-!
 # Any T0 space embeds in a product of copies of the Sierpinski space.
 
-We consider `Prop` with the Sierpinski topology. If `X` is a topological space, there is a continuous
-map `product_of_mem_opens` from `X` to `opens X → Prop` which is the product of the maps
+We consider `Prop` with the Sierpinski topology. If `X` is a topological space, there is a
+continuous map `product_of_mem_opens` from `X` to `opens X → Prop` which is the product of the maps
 `X → Prop` given by `x ↦ x ∈ u`.
 
 The map `product_of_mem_opens` is always inducing. Whenever `X` is T0, `product_of_mem_opens` is

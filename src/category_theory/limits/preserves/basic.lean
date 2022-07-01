@@ -649,14 +649,8 @@ def reflects_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (
     begin
       apply is_colimit.of_whisker_equivalence e,
       apply is_colimit_of_reflects F,
-      apply is_colimit.of_whisker_equivalence e.symm,
-      let equ := (e.inv_fun_id_assoc (K ⋙ F)).symm.trans
-          (iso_whisker_left e.inverse (functor.associator e.functor K F)).symm,
-      apply (is_colimit.precompose_hom_equiv equ _).to_fun,
-      apply t.of_iso_colimit,
-      fapply cocones.ext,
-      { simp only [functor.map_cocone_X, cocones.precompose_obj_X, cocone.whisker_X]},
-      { intros j, dsimp, simp [← F.map_comp] }
+      apply is_colimit.of_iso_colimit _ (functor.map_cocone_whisker _).symm,
+      exact  is_colimit.whisker_equivalence t _,
     end } }
 
 /--

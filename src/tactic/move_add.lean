@@ -37,9 +37,9 @@ around a sum.
 ##  Future work
 
 * Add support for `neg/div/inv` in additive/multiplicative groups?
-* Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
+* Add operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
   Should there be the desire for supporting more operations, it might make sense to extract
-  the `simp [add] <|> simp [mul]` block in `with_errors` to a separate tactic,
+  the `simp [add] <|> simp [mul]` block in `reorder_hyp` to a separate tactic,
   including all the lemmas used for the rearrangement to work.
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
@@ -109,30 +109,31 @@ do
 
 /-- `is_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
 if it cannot. -/
-meta def is_given_op (op : expr) : expr → tactic unit
-| (expr.app (expr.app F a) b) := unify op F
+meta def as_given_op (op : pexpr) : expr → tactic expr
+| (expr.app (expr.app F a) b) := do
+    op ← to_expr op tt ff,
+    unify op F,
+    instantiate_mvars op
 | _ := failed
 
-/-- `reorder_oper op lp boos e` converts an expression `e` to a similar looking one.
+/-- `(e, unused) ← reorder_oper op lp e` converts an expression `e` to a similar looking one.
 The tactic scans the expression `e` looking for subexpressions that begin with the given binary
 operation `op`.  As soon as `reorder_oper` finds one such subexpression,
 * it extracts the "`op`-summands" in the subexpression,
 * it rearranges them according to the rules determined by `lp`,
 * it recurses into each `op`-summand.
 
-The `boos` parameter is a list of booleans.  It is keeping track of which of the inputs provided
+The `unused` output is a list of booleans.  It is keeping track of which of the inputs provided
 by `lp` is actually used to perform the rearrangements.  It is useful to report unused inputs.
-In its intended application, it is set to a list of `tt`, one for each element of `lp`, indicating
-that they all begin unused.
 
 Here are two examples:
 ```lean
-#eval trace $ reorder_oper ``((=)) [(ff,``(2)), (tt,``(7))] [tt] `(∀ x y : ℕ, 2 = 0)
+#eval trace $ reorder_oper ``((=)) [(ff,``(2)), (tt,``(7))] `(∀ x y : ℕ, 2 = 0)
 --  (ℕ → ℕ → 0 = 2, [ff, tt])
 -- the input `[(ff,``(2)), (tt,``(7))]` instructs Lean to move `2` to the right and `7`
 -- to the right.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
 
-#eval trace $ reorder_oper ``((+)) [(ff,``(2)), (tt,``(5))] [tt, tt]
+#eval trace $ reorder_oper ``((+)) [(ff,``(2)), (tt,``(5))]
   `(λ (e : ℕ), ∀ (x : ℕ), ∃ (y : ℕ),
       2 + x * (y + (e + 5)) + y = x + 2 + e → 2 + x = x + 5 + (2 + y))
 /-  `2` moves to the right, `5` moves to the left.  Lean reports that `2, 5` are not unused
@@ -142,37 +143,43 @@ Here are two examples:
 ```
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
-  list bool → expr → tactic (expr × list bool)
-| lu F'@(expr.app F b) := (do
-    op ← to_expr op tt ff,
-    is_given_op op F',
-    (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
-    sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
-    let (recs, list_unused) := sort_all.unzip,
-    let summed := (recs.drop 1).foldl (λ e f, op.mk_app [e, f]) ((recs.nth 0).get_or_else `(0)),
-    return (summed, list_unused.transpose.map list.band)) <|>
-  (do [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
-    return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band))
-| lu (expr.pi na bi e f)           := do
-  [en, fn] ← [e, f].mmap $ reorder_oper lu,
+  expr → tactic (expr × list bool)
+| F'@(expr.app F b) := do
+    is_op ← try_core (as_given_op op F'),
+    match is_op with
+    | some op := do
+        (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
+        sort_all ← sort_list.mmap (λ e, do
+          (e, lu) ← reorder_oper e,
+          pure (e, [lu, is_unused].transpose.map list.band)),
+        let (recs, list_unused) := sort_all.unzip,
+        recs_0 :: recs_rest ← pure recs | fail!"internal error: cannot have 0 operands",
+        let summed := recs_rest.foldl (λ e f, op.mk_app [e, f]) recs_0,
+        return (summed, list_unused.transpose.map list.band)
+    | none := do
+        [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper,
+        return $ (expr.app Fn bn, [unused_F, unused_b].transpose.map list.band)
+    end
+| (expr.pi na bi e f)           := do
+  [en, fn] ← [e, f].mmap $ reorder_oper,
   return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| lu (expr.lam na bi e f)          := do
-  [en, fn] ← [e, f].mmap $ reorder_oper lu,
+| (expr.lam na bi e f)          := do
+  [en, fn] ← [e, f].mmap $ reorder_oper,
   return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| lu (expr.mvar na pp e)           := do
-  en ← reorder_oper lu e,
+| (expr.mvar na pp e)           := do
+  en ← reorder_oper e,
   return (expr.mvar na pp en.1, [en.2].transpose.map list.band)
-| lu (expr.local_const na pp bi e) := do
-  en ← reorder_oper lu e,
+| (expr.local_const na pp bi e) := do
+  en ← reorder_oper e,
   return (expr.local_const na pp bi en.1, [en.2].transpose.map list.band)
-| lu (expr.elet na e f g)          := do
-  [en, fn, gn] ← [e, f, g].mmap $ reorder_oper lu,
+| (expr.elet na e f g)          := do
+  [en, fn, gn] ← [e, f, g].mmap $ reorder_oper,
   return (expr.elet na en.1 fn.1 gn.1, [en.2, fn.2, gn.2].transpose.map list.band)
-| lu (expr.macro ma le)            := do
-  len ← le.mmap $ reorder_oper lu,
+| (expr.macro ma le)            := do
+  len ← le.mmap $ reorder_oper,
   let (lee, lb) := len.unzip,
   return (expr.macro ma lee, lb.transpose.map list.band)
-| lu e := pure (e, lu)
+| e := pure (e, (lp.map (λ _, tt)))
 
 /-- Passes the user input `na` to `reorder_oper` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Replaces the
@@ -194,7 +201,7 @@ meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name)
       th ← infer_type hl,
       return (th, some hl)
   end,
-(reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
+(reordered, is_unused) ← reorder_oper op lp thyp,
 unify reordered thyp >> return (tt, is_unused) <|> do
 -- the current `do` block takes place where the reordered expression is not equal to the original
 neq ← mk_app `eq [thyp, reordered],
@@ -205,7 +212,7 @@ pre ← pp reordered,
   fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
   "the initial goal equals:\n\n{pre}\n"),
 match hyploc with
-| none := refine ``(eq.mpr %%prf _)
+| none := replace_target reordered prf
 | some hyploc := replace_hyp hyploc reordered prf >> skip
 end,
 return (ff, is_unused)

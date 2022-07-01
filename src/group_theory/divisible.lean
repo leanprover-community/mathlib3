@@ -33,6 +33,8 @@ such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
 -/
 
+open_locale pointwise
+
 namespace add_monoid
 
 variables (A α : Type*) [add_monoid A] [has_scalar α A] [has_zero α]
@@ -63,6 +65,30 @@ noncomputable def divisible_by_of_smul_surj
 { div := λ a n, dite (n = 0) (λ _, 0) (λ hn, (H hn a).some),
   div_zero := λ _, dif_pos rfl,
   div_cancel := λ n a hn, by rw [dif_neg hn, (H hn a).some_spec] }
+
+section pi
+
+variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), add_monoid (B i)] [Π (i : ι), has_scalar β (B i)]
+variables [has_zero β] [Π i, divisible_by (B i) β]
+
+instance divsible_by_pi : divisible_by (Π i, B i) β :=
+{ div := λ x n i, (divisible_by.div (x i) n),
+  div_zero := λ x, funext $ λ i, divisible_by.div_zero _,
+  div_cancel := λ n x hn, funext $ λ i, divisible_by.div_cancel _ hn }
+
+end pi
+
+section prod
+
+variables {β B B' : Type*} [has_zero β] [add_monoid B] [add_monoid B']
+variables [has_scalar β B] [has_scalar β B'] [divisible_by B β] [divisible_by B' β]
+
+instance divisible_by_prod : divisible_by (B × B') β :=
+{ div := λ p n, (divisible_by.div p.1 n, divisible_by.div p.2 n),
+  div_zero := λ p, prod.ext (divisible_by.div_zero _) (divisible_by.div_zero _),
+  div_cancel := λ n p hn, prod.ext (divisible_by.div_cancel _ hn) (divisible_by.div_cancel _ hn) }
+
+end prod
 
 end add_monoid
 
@@ -99,6 +125,38 @@ rootable_by A α :=
 { root := λ a n, dite (n = 0) (λ _, 1) (λ hn, (H hn a).some),
   root_zero := λ _, dif_pos rfl,
   root_pow := λ n a hn, by rw dif_neg hn; exact (H hn a).some_spec }
+
+section pi
+
+variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_pow (B i) β]
+
+instance has_pow_pi : has_pow (Π i, B i) β :=
+{ pow := λ x n i, (x i)^n }
+
+variables [has_zero β] [Π (i : ι), monoid (B i)] [Π i, rootable_by (B i) β]
+
+instance rootable_by_pi : rootable_by (Π i, B i) β :=
+{ root := λ x n i, rootable_by.root (x i) n,
+  root_zero := λ x, funext $ λ i, rootable_by.root_zero _,
+  root_pow := λ n x hn, funext $ λ i, rootable_by.root_pow _ hn }
+
+end pi
+
+section prod
+
+variables {β B B' : Type*} [has_pow B β] [has_pow B' β]
+
+instance has_pow_prod : has_pow (B × B') β :=
+{ pow := λ p n, (p.1^n, p.2^n) }
+
+variables [has_zero β] [monoid B] [monoid B'] [rootable_by B β] [rootable_by B' β]
+
+instance rootable_by_prod : rootable_by (B × B') β :=
+{ root := λ p n, (rootable_by.root p.1 n, rootable_by.root p.2 n),
+  root_zero := λ p, prod.ext (rootable_by.root_zero _) (rootable_by.root_zero _),
+  root_pow := λ n p hn, prod.ext (rootable_by.root_pow _ hn) (rootable_by.root_pow _ hn) }
+
+end prod
 
 end monoid
 
@@ -147,6 +205,60 @@ def divisible_by_nat_of_divisible_by_int [divisible_by A ℤ] :
   end }
 
 end add_group
+
+namespace add_comm_group
+
+open add_monoid
+
+variables (A : Type*) [add_comm_group A]
+
+lemma smul_top_eq_top_of_divisible_by_int [divisible_by A ℤ] {n : ℤ} (hn : n ≠ 0) :
+  n • (⊤ : add_subgroup A) = ⊤ :=
+add_subgroup.map_top_of_surjective _ $ λ a, ⟨divisible_by.div a n, divisible_by.div_cancel _ hn⟩
+
+noncomputable lemma divisible_by_int_of_smul_top_eq_top
+  (H : ∀ {n : ℤ} (hn : n ≠ 0), n • (⊤ : add_subgroup A) = ⊤) :
+  divisible_by A ℤ :=
+{ div := λ a n, dite (n = 0) (λ _, 0)
+    (λ hn, (show a ∈ n • (⊤ : add_subgroup A), by rw [H hn]; trivial).some),
+  div_zero := λ a, dif_pos rfl,
+  div_cancel := λ n a hn, begin
+    rw [dif_neg hn],
+    generalize_proofs h1,
+    exact h1.some_spec.2,
+  end }
+
+@[priority 100]
+instance divisible_of_char_zero {𝕜} [division_ring 𝕜] [char_zero 𝕜] : divisible_by 𝕜 ℤ :=
+{ div := λ q n, q / n,
+  div_zero := λ q, by norm_num,
+  div_cancel := λ n q hn,
+    by rw [zsmul_eq_mul, (int.cast_commute n _).eq, div_mul_cancel q (int.cast_ne_zero.mpr hn)] }
+
+section quotient
+
+variables {B : add_subgroup A} [divisible_by A ℕ]
+
+noncomputable instance divisible_quotient : divisible_by (A ⧸ B) ℕ :=
+add_monoid.divisible_by_of_smul_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
+  ⟨quotient.mk' (divisible_by.div a n),
+    (congr_arg _ (divisible_by.div_cancel _ hn) : quotient.mk' _ = _)⟩
+
+end quotient
+
+section hom
+
+variables {A} [divisible_by A ℕ] {B : Type*} [add_comm_group B] (f : A →+ B)
+
+noncomputable instance divisible_of_surj (hf : function.surjective f) : divisible_by B ℕ :=
+add_monoid.divisible_by_of_smul_surj _ _ $ λ n hn x,
+  ⟨f $ divisible_by.div (hf x).some n, by rw [←f.map_nsmul (divisible_by.div (hf x).some n) n,
+    divisible_by.div_cancel _ hn, (hf x).some_spec]⟩
+
+end hom
+
+
+end add_comm_group
 
 namespace group
 
@@ -197,99 +309,4 @@ attribute [to_additive group.rootable_by_nat_of_rootable_by_int]
   add_group.divisible_by_nat_of_divisible_by_int
 
 end group
-#lint
-#exit
-namespace add_comm_group
 
-open_locale pointwise
-
-variables (A : Type*) [add_comm_group A]
-
-/--
-A divisible group `A` is an abelian group such that `nA = A` for all `n ≠ 0`.
--/
-class divisible :=
-(div_int : A → ℤ → A)
-(div_zero : ∀ a, div_int a 0 = 0)
-(div_cancel : ∀ {n : ℤ} (a : A), n ≠ 0 → n • div_int a n = a)
-
-localized "infix ` /ℤ ` :50 := divisible.div_int" in divisible_group
-
-lemma smul_surj_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
-  function.surjective ((•) n : A → A) :=
-λ a, ⟨a /ℤ n, divisible.div_cancel a hn⟩
-
-noncomputable instance divisible_of_smul_surj
-  (surj : ∀ {n : ℤ}, n ≠ 0 → function.surjective ((•) n : A → A)) :
-  divisible A :=
-{ div_int := λ a n, dite (n = 0) (λ _, 0) (λ h, (surj h a).some),
-  div_zero := λ a, dif_pos rfl,
-  div_cancel := λ n a h, begin
-    rw [dif_neg h, (surj h a).some_spec],
-  end }
-
-lemma smul_top_eq_top_of_divisible [divisible A] {n : ℤ} (hn : n ≠ 0) :
-  n • (⊤ : add_subgroup A) = ⊤ :=
-add_subgroup.map_top_of_surjective _ $ smul_surj_of_divisible _ hn
-
-noncomputable instance divisible_of_smul_top_eq_top
-  (H : ∀ {n : ℤ}, n ≠ 0 → n • (⊤ : add_subgroup A) = ⊤) :
-  divisible A:=
-add_comm_group.divisible_of_smul_surj _ $ λ n hn a, ⟨(show a ∈ n • (⊤ : add_subgroup A),
-  by simp only [H hn]).some, (show a ∈ n • (⊤ : add_subgroup A), by simp only [H hn]).some_spec.2⟩
-
-/-- Any division ring of characteristic zero is divisible -/
-@[priority 100]
-instance divisible_of_char_zero {𝕜} [division_ring 𝕜] [char_zero 𝕜] : divisible 𝕜 :=
-{ div_int := λ q n, q / n,
-  div_zero := λ q, by norm_num,
-  div_cancel := λ n q hn,
-    by rw [zsmul_eq_mul, (int.cast_commute n _).eq, div_mul_cancel q (int.cast_ne_zero.mpr hn)] }
-
-section pi
-
-variables {ι : Type*} (B : ι → Type*) [Π i, add_comm_group (B i)] [Π i, divisible (B i)]
-
-/-- Any product of divisible group is divisible.-/
-instance divisible_pi : divisible (Π i, B i) :=
-{ div_int := λ x n i, (x i) /ℤ n,
-  div_zero := λ x, funext $ λ i, divisible.div_zero _,
-  div_cancel := λ n x hn, funext $ λ i, divisible.div_cancel (x i) hn }
-
-end pi
-
-section prod
-
-variable [divisible A]
-variables (B : Type*) [add_comm_group B] [divisible B]
-
-instance divisible_prod : divisible (A × B) :=
-{ div_int := λ p n, ⟨p.1 /ℤ n, p.2 /ℤ n⟩,
-  div_zero := λ p, prod.ext (divisible.div_zero _) (divisible.div_zero _),
-  div_cancel := λ n p hn, (prod.ext (divisible.div_cancel p.1 hn) (divisible.div_cancel p.2 hn)) }
-
-end prod
-
-
-section quotient
-
-variables {B : add_subgroup A} [divisible A]
-
-noncomputable instance divisible_quotient : divisible (A ⧸ B) :=
-add_comm_group.divisible_of_smul_surj _ $ λ n hn x, quotient.induction_on' x $ λ a,
-  ⟨quotient.mk' (a /ℤ n), (congr_arg _ $ divisible.div_cancel a hn : quotient.mk' _ = _)⟩
-
-end quotient
-
-section hom
-
-variables {A} [divisible A] {B : Type*} [add_comm_group B] (f : A →+ B)
-
-noncomputable instance divisible_of_surj (hf : function.surjective f) : divisible B :=
-add_comm_group.divisible_of_smul_surj _ $
-  λ n hn x, ⟨f $ (hf x).some /ℤ n, by rw [←f.map_zsmul ((hf x).some /ℤ n) n,
-    divisible.div_cancel _ hn, (hf x).some_spec]⟩
-
-end hom
-
-end add_comm_group

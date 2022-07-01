@@ -27,9 +27,9 @@ namespace polynomial_module
 
 -- this is definitionally equal to `module_polynomial_of_endo _`, but that is not used since the
 -- simp lemmas associated to it is undesirable here.
-noncomputable
+@[semireducible] noncomputable
 instance : module R[X] (polynomial_module M) :=
-{ ..(module_polynomial_of_endo ({ to_fun := λ (f : polynomial_module M),
+module_polynomial_of_endo ({ to_fun := λ (f : polynomial_module M),
     { support := f.support.image (λ x, x + 1),
       to_fun := λ i, ite (i = 0) 0 (f (i - 1)),
       mem_support_to_fun := λ a, by cases a; simp only [nat.succ_eq_add_one, nat.add_succ_sub_one,
@@ -41,7 +41,7 @@ instance : module R[X] (polynomial_module M) :=
     map_smul' := λ i j, finsupp.ext (λ i, by cases i; simp only [nat.nat_zero_eq_zero, if_true,
       finsupp.coe_smul, zero_tsub, ring_hom.id_apply, eq_self_iff_true, pi.smul_apply, smul_zero,
       finsupp.coe_mk, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_ne_zero, if_false]) } :
-  module.End R (polynomial_module M))) }
+  module.End R (polynomial_module M))
 
 instance (M : Type u) [add_comm_group M] [module R M] : is_scalar_tower R R[X] (ℕ →₀ M) :=
 module_polynomial_of_endo.is_scalar_tower _

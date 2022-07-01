@@ -71,8 +71,8 @@ def boundary (n : ℕ) : set (I^n) := {y | ∃ i, y i = 0 ∨ y i = 1}
 @[continuity] lemma tail.continuous : continuous (@tail n) :=
 (continuous_map.pi (λ i:fin n, ⟨λ f:I^(n+1), f i.succ, continuous_apply i.succ⟩)).2
 
-@[simp] lemma cons_head_tail {t : I^(n+1)} : ((fin.cons t.head t.tail) : I^(n+1)) = t:=
-by simp only [fin.cons_self_tail, cube.tail, cube.head]
+-- @[simp] lemma cons_head_tail {t : I^(n+1)} : ((fin.cons t.head t.tail) : I^(n+1)) = t:=
+-- by simp only [fin.cons_self_tail, cube.tail, cube.head]
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
@@ -100,7 +100,7 @@ continuous_map.prod_mk ⟨head,head.continuous⟩ ⟨tail,tail.continuous⟩
 by { rcases t with ⟨t,tn⟩, unfold fold, unfold unfold, simp only [head, tail, continuous_map.coe_mk,
   continuous_map.prod_eval, fin.cons_zero, fin.tail_cons]}
 
-@[simp] lemma fold_unfold (t : I^(n+1)) : fold (unfold t) = t :=
+lemma fold_unfold (t : I^(n+1)) : fold (unfold t) = t :=
 by simp only [fin.cons_self_tail, cube.fold_apply, cube.tail, cube.unfold_apply, cube.head]
 
 /-- Product with `I` homeomorphism -/
@@ -117,6 +117,8 @@ end cube
 /-- Paths fixed at both ends -/
 @[simp] def loop_space (X : Type*) [topological_space X] (x:X) := path x x
 local notation `Ω` := loop_space
+
+instance loop_space.inhabitated : inhabited (Ω X x) := ⟨path.refl x⟩
 
 /-- The `n`-dimensional generalized loops; functions `I^n → X` fixed at the boundary. -/
 def gen_loop (n : ℕ) (x : X) : set C(I^n, X) := { p | ∀ y ∈ cube.boundary n, p y = x}
@@ -238,18 +240,22 @@ by {unfold continuous_map.uncurry, unfold function.uncurry, simp only [continuou
 @[simp] lemma uncurry_helper'' (f : C(I,C(I^n, X))) (t : I) (y : I^n) : f.uncurry (t, y) = f t y :=
 by {unfold continuous_map.uncurry, unfold function.uncurry, simp only [continuous_map.coe_mk]}
 
+/--util-/
 abbreviation continuous_currying : C(C(I × I^n, X),C(I, C(I^n, X))) :=
 ⟨continuous_map.curry,continuous_map.continuous_curry⟩
 
+/--util-/
 abbreviation continuous_uncurrying : C(C(I, C(I^n, X)),C(I × I^n, X)) :=
 ⟨continuous_map.uncurry,continuous_map.continuous_uncurry⟩
 
+/--util-/
 abbreviation continuous_to_cont : C(gen_loop n x, C(I^n,X)) :=
 ⟨λ p, p.val, by continuity⟩
 
 lemma homotopic_to {p q : gen_loop (n+1) x} : homotopic p q → (to_path p).homotopic (to_path q) :=
 begin
-  let cf:C(C(I^(n+1), X), C(I×I^n, X)) := ⟨λ f, f.comp cube.fold, by sorry⟩,
+  let cf:C(C(I^(n+1), X), C(I×I^n, X)) :=
+    ⟨λ f, f.comp cube.fold, by apply continuous_map.continuous_comp_left⟩,
   apply nonempty.map, rintros H,
   refine ⟨⟨_,_,_⟩,_⟩,
   { refine ⟨λ t, ⟨(continuous_currying.comp (cf.comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,
@@ -294,7 +300,6 @@ begin
       cube.unfold_apply, uncurry_helper', continuous_map.coe_mk, uncurry_helper'',
       continuous_map.curry_apply, continuous_map.homotopy_with.coe_to_continuous_map,
       subtype.val_eq_coe],
-    -- rw boundary (H (t, y 0)),
     revert i iH, refine fin.cases _ _; intros,
     { cases iH; rw iH; simp only [path.homotopy.source, path.homotopy.target]; unfold const;
       simp only [subtype.coe_mk, continuous_map.const_apply]; split; symmetry,
@@ -311,7 +316,7 @@ begin
       continuous_map.coe_mk, uncurry_helper'', continuous_map.curry_apply,
       continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.homotopy_with.apply_zero,
       continuous_map.homotopy_with.apply_one, path.coe_to_continuous_map, subtype.val_eq_coe],
-    symmetry, convert curry_to_path, symmetry, exact cube.cons_head_tail },
+    symmetry, convert curry_to_path, simp only [fin.cons_self_tail, cube.tail, cube.head] }
 end
 
 /-- Concatenation of `gen_loop`s by transitivity as paths -/
@@ -452,7 +457,7 @@ begin
   apply path.homotopy.refl_trans,
 end
 
-/--Reversing am equivalence class of loops-/
+/--Reversing an equivalence class of loops-/
 def reverse {n':nat} : π_(n'+1) X x → π_(n'+1) X x :=
 begin
   refine (quotient.map' (λ p, gen_loop.from_path ((gen_loop.to_path p).symm)) _),

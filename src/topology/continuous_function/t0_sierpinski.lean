@@ -54,8 +54,7 @@ lemma product_of_mem_opens_injective [t0_space X] : function.injective (product_
 begin
   intros x1 x2 h,
   apply inseparable.eq,
-  intros u hu,
-  simpa only [eq_iff_iff] using congr_fun h ⟨u, hu⟩,
+  rw [←inducing.inseparable_iff (product_of_mem_opens_inducing X), h],
  end
 
 theorem product_of_mem_opens_embedding [t0_space X] : embedding (product_of_mem_opens X) :=

@@ -174,14 +174,23 @@ namespace interactive
 open compute_degree
 setup_tactic_parser
 
-/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or  `f.degree ≤ d`,
-where `d : ℕ` or `d : with_bot ℕ` and `f : R[X]`.
+/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
+where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 
 If the given degree `d` is smaller than the one that the tactic computes,
 then the tactic suggests the degree that it computed.
 
 Using `compute_degree_le!` also recurses inside powers.
 Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
+
+For instance, in the following example `compute_degree_le` makes no progress,
+while `compute_degree_le!` leaves an unprovable side-goal:
+```lean
+example {R} [semiring R] {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+  (p ^ n).nat_degree ≤ 0 :=
+by compute_degree_le!
+  -- ⊢ 0 < n
+```
  -/
 meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
 if expos.is_some then compute_degree_le_core tt else compute_degree_le_core ff

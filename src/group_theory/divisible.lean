@@ -37,6 +37,12 @@ namespace add_monoid
 
 variables (A α : Type*) [add_monoid A] [has_scalar α A] [has_zero α]
 
+/--
+An `add_monoid A` is `α`-divisible iff `n • x = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
+Here we adpot a constructive approach where we ask an explicit `div : A → α → A` function such that
+* `div a 0 = 0` for all `a ∈ A`
+* `n • div a n = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
+-/
 class divisible_by :=
 (div : A → α → A)
 (div_zero : ∀ a, div a 0 = 0)
@@ -46,7 +52,11 @@ lemma smul_surj_of_divisible_by [divisible_by A α] {n : α} (hn : n ≠ 0) :
   function.surjective ((•) n : A → A) :=
 λ x, ⟨divisible_by.div x n, divisible_by.div_cancel _ hn⟩
 
-noncomputable instance divisible_by_of_smul_surj
+/--
+An `add_monoid A` is `α`-divisible iff `n • _` is a surjective function, i.e. the constructive
+version implies the textbook approach.
+-/
+noncomputable def divisible_by_of_smul_surj
   [Π (n : α), decidable (n = 0)]
   (H : ∀ {n : α}, n ≠ 0 → function.surjective ((•) n : A → A)) :
   divisible_by A α :=
@@ -60,20 +70,29 @@ namespace monoid
 
 variables (A α : Type*) [monoid A] [has_pow A α] [has_zero α]
 
+/--
+A `monoid A` is `α`-rootable iff `xⁿ = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
+Here we adpot a constructive approach where we ask an explicit `root : A → α → A` function such that
+* `root a 0 = 1` for all `a ∈ A`
+* `(root a n)ⁿ = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
+-/
+@[to_additive add_monoid.divisible_by]
 class rootable_by :=
 (root : A → α → A)
 (root_zero : ∀ a, root a 0 = 1)
 (root_pow : ∀ {n : α} (a : A), n ≠ 0 → (root a n)^n = a)
-
-attribute [to_additive rootable_by] add_monoid.divisible_by
 
 @[to_additive add_monoid.smul_surj_of_divisible_by]
 lemma root_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
   function.surjective ((flip (^)) n : A → A) :=
 λ x, ⟨rootable_by.root x n, rootable_by.root_pow _ hn⟩
 
+/--
+A `monoid A` is `α`-rootable iff the `pow _ n` function is surjective, i.e. the constructivec version
+implies the textbook approach.
+-/
 @[to_additive add_monoid.divisible_by_of_smul_surj]
-noncomputable instance rootable_by_of_root_surj
+noncomputable def rootable_by_of_root_surj
   [Π (n : α), decidable (n = 0)]
   (H : ∀ {n : α}, n ≠ 0 → function.surjective ((flip (^)) n : A → A)) :
 rootable_by A α :=
@@ -89,7 +108,10 @@ open add_monoid
 
 variables (A : Type*) [add_group A]
 
-instance divisible_by_int_of_divisible_by_nat [divisible_by A ℕ] :
+/--
+An add_group is `ℤ` divisible if it is `ℕ`-divisible.
+-/
+def divisible_by_int_of_divisible_by_nat [divisible_by A ℕ] :
   divisible_by A ℤ :=
 { div := λ a z, match z with
   | int.of_nat m := (divisible_by.div a m)
@@ -111,7 +133,10 @@ instance divisible_by_int_of_divisible_by_nat [divisible_by A ℕ] :
       norm_num, },
   end}
 
-instance divisible_by_nat_of_divisible_by_int [divisible_by A ℤ] :
+/--
+An add_group is `ℕ`-divisible if it is `ℤ`-divisible.
+-/
+def divisible_by_nat_of_divisible_by_int [divisible_by A ℤ] :
   divisible_by A ℕ :=
 { div := λ a n, divisible_by.div a (n : ℤ),
   div_zero := λ a, divisible_by.div_zero a,
@@ -122,7 +147,8 @@ instance divisible_by_nat_of_divisible_by_int [divisible_by A ℤ] :
   end, }
 
 end add_group
-
+#lint
+#exit
 namespace add_comm_group
 
 open_locale pointwise

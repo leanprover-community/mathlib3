@@ -114,8 +114,8 @@ An add_group is `ℤ` divisible if it is `ℕ`-divisible.
 def divisible_by_int_of_divisible_by_nat [divisible_by A ℕ] :
   divisible_by A ℤ :=
 { div := λ a z, match z with
-  | int.of_nat m := (divisible_by.div a m)
-  | int.neg_succ_of_nat m := - (divisible_by.div a (m + 1))
+  | int.of_nat m := divisible_by.div a m
+  | int.neg_succ_of_nat m := - divisible_by.div a (m + 1)
   end,
   div_zero := λ a, divisible_by.div_zero a,
   div_cancel := λ z a hn, begin
@@ -144,9 +144,59 @@ def divisible_by_nat_of_divisible_by_int [divisible_by A ℤ] :
     have := divisible_by.div_cancel a (by exact_mod_cast hn : (n : ℤ) ≠ 0),
     norm_num at this,
     assumption,
-  end, }
+  end }
 
 end add_group
+
+namespace group
+
+open monoid
+
+variables (A : Type*) [group A]
+
+/--
+A group is `ℤ`-rootable if it is `ℕ`-rootable.
+-/
+def rootable_by_int_of_rootable_by_nat [rootable_by A ℕ] :
+  rootable_by A ℤ :=
+{ root := λ a z, match z with
+  | int.of_nat n := rootable_by.root a n
+  | int.neg_succ_of_nat n := (rootable_by.root a (n + 1))⁻¹
+  end,
+  root_zero := λ a, rootable_by.root_zero a,
+  root_pow := λ n a hn, begin
+    induction n,
+    { change (rootable_by.root a _) ^ _ = a,
+      norm_num,
+      rw [rootable_by.root_pow],
+      rw [int.of_nat_eq_coe] at hn,
+      exact_mod_cast hn, },
+    { change ((rootable_by.root a _) ⁻¹)^_ = a,
+      norm_num,
+      rw [rootable_by.root_pow],
+      norm_num, }
+  end}
+
+attribute [to_additive group.rootable_by_int_of_rootable_by_nat]
+  add_group.divisible_by_int_of_divisible_by_nat
+
+/--
+A group is `ℤ`-rootable if it is `ℕ`-rootable
+-/
+def rootable_by_nat_of_rootable_by_int [rootable_by A ℤ] :
+  rootable_by A ℕ :=
+{ root := λ a n, rootable_by.root a (n : ℤ),
+  root_zero := λ a, rootable_by.root_zero a,
+  root_pow := λ n a hn, begin
+    have := rootable_by.root_pow a (show (n : ℤ) ≠ 0, by exact_mod_cast hn),
+    norm_num at this,
+    exact this,
+  end }
+
+attribute [to_additive group.rootable_by_nat_of_rootable_by_int]
+  add_group.divisible_by_nat_of_divisible_by_int
+
+end group
 #lint
 #exit
 namespace add_comm_group

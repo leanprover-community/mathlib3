@@ -32,27 +32,27 @@ local infix ` ~ᵤ ` : 50 := associated
 condition on divisibility and to the ascending chain condition on
 principal ideals in an integral domain.
   -/
-class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
-(well_founded_dvd_not_unit : well_founded (@dvd_not_unit α _))
-
-export wf_dvd_monoid (well_founded_dvd_not_unit)
+@[reducible] def wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
+is_well_founded α dvd_not_unit
 
 @[priority 100]  -- see Note [lower instance priority]
 instance is_noetherian_ring.wf_dvd_monoid [comm_ring α] [is_domain α] [is_noetherian_ring α] :
   wf_dvd_monoid α :=
-⟨by { convert inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _),
-      ext,
-      exact ideal.span_singleton_lt_span_singleton.symm }⟩
+begin
+  rw wf_dvd_monoid,
+  convert inv_image.is_well_founded (>) (λ a, ideal.span ({a} : set α)),
+  ext,
+  exact ideal.span_singleton_lt_span_singleton.symm
+end
 
 namespace wf_dvd_monoid
 
 variables [comm_monoid_with_zero α]
 open associates nat
 
-theorem of_wf_dvd_monoid_associates (h : wf_dvd_monoid (associates α)): wf_dvd_monoid α :=
+theorem of_wf_dvd_monoid_associates [h : wf_dvd_monoid (associates α)] : wf_dvd_monoid α :=
 ⟨begin
-  haveI := h,
-  refine (surjective.well_founded_iff mk_surjective _).2 well_founded_dvd_not_unit,
+  refine (surjective.well_founded_iff mk_surjective _).2 _,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
 

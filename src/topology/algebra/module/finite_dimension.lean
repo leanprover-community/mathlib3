@@ -132,7 +132,7 @@ begin
         exact not_mem_compl_iff.mpr (mem_singleton ξ₀) ((balanced_core_subset _) this) },
       -- For that, we use that `𝓑` is balanced : since `∥ξ₀∥ < ε < ∥ξ∥`, we have `∥ξ₀ / ξ∥ ≤ 1`,
       -- hence `ξ₀ = (ξ₀ / ξ) • ξ ∈ 𝓑` because `ξ ∈ 𝓑`.
-      refine balanced_mem (balanced_core_balanced _) hξ _,
+      refine (balanced_core_balanced _).smul_mem _ hξ,
       rw [norm_mul, norm_inv, mul_inv_le_iff (norm_pos_iff.mpr hξ0), mul_one],
       exact (hξ₀ε.trans h).le } },
   { -- Finally, to show `𝓣₀ ≤ 𝓣`, we simply argue that `id = (λ x, x • 1)` is continuous from
@@ -268,6 +268,12 @@ begin
   dsimp,
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
+
+instance linear_map.continuous_linear_map_class_of_finite_dimensional
+  [t2_space E] [finite_dimensional 𝕜 E] :
+  continuous_linear_map_class (E →ₗ[𝕜] F') 𝕜 E F' :=
+{ map_continuous := λ f, f.continuous_of_finite_dimensional,
+  ..linear_map.semilinear_map_class }
 
 /-- In finite dimensions over a non-discrete complete normed field, the canonical identification
 (in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.

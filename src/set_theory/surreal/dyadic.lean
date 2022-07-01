@@ -102,7 +102,8 @@ begin
                              ... < pow_half n      : pow_half_succ_lt_pow_half n } },
     { cases n, { rintro ⟨ ⟩ },
       rintro ⟨ ⟩,
-      refine lf_of_exists_le (or.inr ⟨sum.inl punit.star, _⟩),
+      apply lf_of_move_right_le,
+      swap, exact sum.inl default,
       calc  pow_half n.succ + pow_half (n.succ + 1)
           ≤ pow_half n.succ + pow_half n.succ : add_le_add_left (pow_half_succ_le_pow_half _) _
       ... ≈ pow_half n                        : hn _ (nat.lt_succ_self n) },
@@ -174,7 +175,7 @@ begin
   cases h₂,
   { rw [h₂, add_comm, zsmul_pow_two_pow_half m₂ c y₁] },
   { have := nat.one_le_pow y₁ 2 nat.succ_pos',
-    linarith }
+    norm_cast at h₂, linarith },
 end
 
 /-- The additive monoid morphism `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
@@ -195,7 +196,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
       rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
       apply dyadic_aux,
       rwa [ha₁, ha₂] },
-    { have := nat.one_le_pow y₃ 2 nat.succ_pos',
+    { have : (1 : ℤ) ≤ 2 ^ y₃ := by exact_mod_cast nat.one_le_pow y₃ 2 nat.succ_pos',
       linarith }
     end,
   map_zero' := localization.lift_on_zero _ _,

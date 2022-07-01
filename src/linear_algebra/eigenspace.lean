@@ -127,7 +127,7 @@ calc
   ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
     : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
   ... = (aeval f q).ker
-     : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
+    : by rwa ← eq_X_add_C_of_degree_eq_one
 
 lemma ker_aeval_ring_hom'_unit_polynomial
   (f : End K V) (c : (K[X])ˣ) :

@@ -622,6 +622,8 @@ localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementaril
 
 variables {L} {M} {N}
 
+@[simp] lemma mem_complete_theory {φ : sentence L} : φ ∈ L.complete_theory M ↔ M ⊨ φ := iff.rfl
+
 lemma elementarily_equivalent_iff : M ≅[L] N ↔ ∀ φ : L.sentence, M ⊨ φ ↔ N ⊨ φ :=
 by simp only [elementarily_equivalent, set.ext_iff, complete_theory, set.mem_set_of_eq]
 
@@ -685,10 +687,10 @@ variables (M N)
 theorem realize_iff_of_model_complete_theory [N ⊨ L.complete_theory M] (φ : L.sentence) :
   N ⊨ φ ↔ M ⊨ φ :=
 begin
-  refine ⟨λ h, _, Theory.realize_sentence_of_mem (L.complete_theory M)⟩,
+  refine ⟨λ h, _, (L.complete_theory M).realize_sentence_of_mem⟩,
   contrapose! h,
   rw [← sentence.realize_not] at *,
-  exact Theory.realize_sentence_of_mem (L.complete_theory M) h,
+  exact (L.complete_theory M).realize_sentence_of_mem (mem_complete_theory.2 h)
 end
 
 variables {M N}
@@ -783,6 +785,9 @@ by rw [sentence.realize, sentence.realize, ← g.realize_formula, unique.eq_defa
 lemma Theory_model (g : M ≃[L] N) [M ⊨ T] : N ⊨ T :=
 ⟨λ φ hφ, (g.realize_sentence φ).1 (Theory.realize_sentence_of_mem T hφ)⟩
 
+lemma elementarily_equivalent (g : M ≃[L] N) : M ≅[L] N :=
+elementarily_equivalent_iff.2 g.realize_sentence
+
 end equiv
 
 namespace relations
@@ -865,7 +870,7 @@ L.model_nonempty_theory_iff.2 h
 lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : set α) :
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
-  simp only [distinct_constants_theory, set.compl_eq_compl, Theory.model_iff, set.mem_image,
+  simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
     set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
@@ -885,6 +890,37 @@ lemma card_le_of_model_distinct_constants_theory (s : set α) (M : Type w) [L[[�
 lift_mk_le'.2 ⟨⟨_, set.inj_on_iff_injective.1 ((L.model_distinct_constants_theory s).1 h)⟩⟩
 
 end cardinality
+
+namespace elementarily_equivalent
+
+@[symm] lemma symm (h : M ≅[L] N) : N ≅[L] M := h.symm
+
+@[trans] lemma trans (MN : M ≅[L] N) (NP : N ≅[L] P) : M ≅[L] P := MN.trans NP
+
+lemma complete_theory_eq (h : M ≅[L] N) : L.complete_theory M = L.complete_theory N := h
+
+lemma realize_sentence (h : M ≅[L] N) (φ : L.sentence) : M ⊨ φ ↔ N ⊨ φ :=
+(elementarily_equivalent_iff.1 h) φ
+
+lemma Theory_model_iff (h : M ≅[L] N) : M ⊨ T ↔ N ⊨ T :=
+by rw [Theory.model_iff_subset_complete_theory, Theory.model_iff_subset_complete_theory,
+    h.complete_theory_eq]
+
+lemma Theory_model [MT : M ⊨ T] (h : M ≅[L] N) : N ⊨ T :=
+h.Theory_model_iff.1 MT
+
+lemma nonempty_iff (h : M ≅[L] N) : nonempty M ↔ nonempty N :=
+(model_nonempty_theory_iff L).symm.trans (h.Theory_model_iff.trans (model_nonempty_theory_iff L))
+
+lemma nonempty [Mn : nonempty M] (h : M ≅[L] N) : nonempty N := h.nonempty_iff.1 Mn
+
+lemma infinite_iff (h : M ≅[L] N) : infinite M ↔ infinite N :=
+(model_infinite_theory_iff L).symm.trans (h.Theory_model_iff.trans (model_infinite_theory_iff L))
+
+lemma infinite [Mi : infinite M] (h : M ≅[L] N) : infinite N := h.infinite_iff.1 Mi
+
+end elementarily_equivalent
+
 
 end language
 end first_order

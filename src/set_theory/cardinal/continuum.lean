@@ -51,6 +51,12 @@ lemma continuum_ne_zero : 𝔠 ≠ 0 := continuum_pos.ne'
 lemma aleph_one_le_continuum : aleph 1 ≤ 𝔠 :=
 by { rw ←succ_aleph_0, exact order.succ_le_of_lt aleph_0_lt_continuum }
 
+@[simp] theorem continuum_to_nat : continuum.to_nat = 0 :=
+to_nat_apply_of_aleph_0_le aleph_0_le_continuum
+
+@[simp] theorem continuum_to_enat : continuum.to_enat = ⊤ :=
+to_enat_apply_of_aleph_0_le aleph_0_le_continuum
+
 /-!
 ### Addition
 -/

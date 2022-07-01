@@ -101,11 +101,11 @@ end group
 @[simp] lemma is_conj_iff₀ [group_with_zero α] {a b : α} :
   is_conj a b ↔ ∃ c : α, c ≠ 0 ∧ c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, begin
-    rw [← units.coe_inv', units.mul_inv_eq_iff_eq_mul],
+    rw [← units.coe_inv, units.mul_inv_eq_iff_eq_mul],
     exact ⟨c.ne_zero, hc⟩,
   end⟩, λ ⟨c, c0, hc⟩,
   ⟨units.mk0 c c0, begin
-    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv', units.coe_mk0],
+    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv, units.coe_mk0],
     exact hc
   end⟩⟩
 

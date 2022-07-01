@@ -57,9 +57,12 @@ le_antisymm (span_le.2 h₁) h₂
 lemma span_eq : span R (p : set M) = p :=
 span_eq_of_le _ (subset.refl _) subset_span
 
+lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
+le_antisymm (span_le.2 hs) (span_le.2 ht)
+
 /-- A version of `submodule.span_eq` for when the span is by a smaller ring. -/
 @[simp] lemma span_coe_eq_restrict_scalars
-  [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   span S (p : set M) = p.restrict_scalars S :=
 span_eq (p.restrict_scalars S)
 
@@ -68,7 +71,7 @@ lemma map_span [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
-alias submodule.map_span ← linear_map.map_span
+alias submodule.map_span ← _root_.linear_map.map_span
 
 lemma map_span_le [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) (s : set M)
   (N : submodule R₂ M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
@@ -77,7 +80,7 @@ begin
   exact iff.rfl
 end
 
-alias submodule.map_span_le ← linear_map.map_span_le
+alias submodule.map_span_le ← _root_.linear_map.map_span_le
 
 @[simp] lemma span_insert_zero : span R (insert (0 : M) s) = span R s :=
 begin
@@ -91,7 +94,18 @@ lemma span_preimage_le (f : M →ₛₗ[σ₁₂] M₂) (s : set M₂) :
   span R (f ⁻¹' s) ≤ (span R₂ s).comap f :=
 by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
 
-alias submodule.span_preimage_le  ← linear_map.span_preimage_le
+alias submodule.span_preimage_le ← _root_.linear_map.span_preimage_le
+
+lemma closure_subset_span {s : set M} :
+  (add_submonoid.closure s : set M) ⊆ span R s :=
+(@add_submonoid.closure_le _ _ _ (span R s).to_add_submonoid).mpr subset_span
+
+lemma closure_le_to_add_submonoid_span {s : set M} :
+  add_submonoid.closure s ≤ (span R s).to_add_submonoid :=
+closure_subset_span
+
+@[simp] lemma span_closure {s : set M} : span R (add_submonoid.closure s : set M) = span R s :=
+le_antisymm (span_le.mpr closure_subset_span) (span_mono add_submonoid.subset_closure)
 
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
@@ -348,14 +362,14 @@ by { ext, simp [mem_span_singleton, eq_comm] }
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
-lemma span_singleton_smul_le {S} [monoid S] [has_scalar S R] [mul_action S M]
+lemma span_singleton_smul_le {S} [monoid S] [has_smul S R] [mul_action S M]
   [is_scalar_tower S R M] (r : S) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
 begin
   rw [span_le, set.singleton_subset_iff, set_like.mem_coe],
   exact smul_of_tower_mem _ _ (mem_span_singleton_self _)
 end
 
-lemma span_singleton_group_smul_eq {G} [group G] [has_scalar G R] [mul_action G M]
+lemma span_singleton_group_smul_eq {G} [group G] [has_smul G R] [mul_action G M]
   [is_scalar_tower G R M] (g : G) (x : M) : (R ∙ (g • x)) = R ∙ x :=
 begin
   refine le_antisymm (span_singleton_smul_le R g x) _,
@@ -416,18 +430,18 @@ lemma span_span : span R (span R s : set M) = span R s := span_eq _
 variables (R S s)
 
 /-- If `R` is "smaller" ring than `S` then the span by `R` is smaller than the span by `S`. -/
-lemma span_le_restrict_scalars [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+lemma span_le_restrict_scalars [semiring S] [has_smul R S] [module S M] [is_scalar_tower R S M] :
   span R s ≤ (span S s).restrict_scalars R :=
 submodule.span_le.2 submodule.subset_span
 
 /-- A version of `submodule.span_le_restrict_scalars` with coercions. -/
-@[simp] lemma span_subset_span [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+@[simp] lemma span_subset_span [semiring S] [has_smul R S] [module S M] [is_scalar_tower R S M] :
   ↑(span R s) ⊆ (span S s : set M) :=
 span_le_restrict_scalars R S s
 
 /-- Taking the span by a large ring of the span by the small ring is the same as taking the span
 by just the large ring. -/
-lemma span_span_of_tower [semiring S] [has_scalar R S] [module S M] [is_scalar_tower R S M] :
+lemma span_span_of_tower [semiring S] [has_smul R S] [module S M] [is_scalar_tower R S M] :
   span S (span R s : set M) = span S s :=
 le_antisymm (span_le.2 $ span_subset_span R S s) (span_mono subset_span)
 

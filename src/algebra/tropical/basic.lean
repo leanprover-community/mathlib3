@@ -275,6 +275,12 @@ instance [has_zero R] : has_one (tropical R) := ⟨trop 0⟩
 @[simp] lemma trop_zero [has_zero R] : trop (0 : R) = 1 := rfl
 @[simp] lemma untrop_one [has_zero R] : untrop (1 : tropical R) = 0 := rfl
 
+instance [linear_order R] [order_top R] [has_zero R] : add_monoid_with_one (tropical R) :=
+{ nat_cast := λ n, if n = 0 then 0 else 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, (untrop_inj_iff _ _).1 (by cases n; simp [nat.cast]),
+  .. tropical.has_one, .. tropical.add_comm_monoid }
+
 instance [has_zero R] : nontrivial (tropical (with_top R)) :=
 ⟨⟨0, 1, trop_injective.ne with_top.top_ne_coe⟩⟩
 
@@ -295,13 +301,13 @@ instance [add_comm_semigroup R] : comm_semigroup (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.semigroup }
 
-instance {α : Type*} [has_scalar α R] : has_pow (tropical R) α :=
+instance {α : Type*} [has_smul α R] : has_pow (tropical R) α :=
 { pow := λ x n, trop $ n • untrop x }
 
-@[simp] lemma untrop_pow {α : Type*} [has_scalar α R] (x : tropical R) (n : α) :
+@[simp] lemma untrop_pow {α : Type*} [has_smul α R] (x : tropical R) (n : α) :
   untrop (x ^ n) = n • untrop x := rfl
 
-@[simp] lemma trop_smul {α : Type*} [has_scalar α R] (x : R) (n : α) :
+@[simp] lemma trop_smul {α : Type*} [has_smul α R] (x : R) (n : α) :
   trop (n • x) = trop x ^ n := rfl
 
 instance [add_zero_class R] : mul_one_class (tropical R) :=
@@ -400,7 +406,7 @@ variable [linear_ordered_add_comm_monoid_with_top R]
 instance : comm_semiring (tropical R) :=
 { zero_mul := λ _, untrop_injective (top_add _),
   mul_zero := λ _, untrop_injective (add_top _),
-  ..tropical.has_zero,
+  ..tropical.add_monoid_with_one,
   ..tropical.distrib,
   ..tropical.add_comm_monoid,
   ..tropical.comm_monoid  }

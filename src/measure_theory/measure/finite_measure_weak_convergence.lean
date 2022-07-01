@@ -18,8 +18,6 @@ for every bounded continuous `ℝ≥0`-valued function `f`, the integration of `
 measure is continuous.
 
 TODOs:
-* Prove that an equivalent definition of the topologies is obtained requiring continuity of
-  integration of bounded continuous `ℝ`-valued functions instead.
 * Include the portmanteau theorem on characterizations of weak convergence of (Borel) probability
   measures.
 
@@ -95,14 +93,27 @@ open_locale topological_space ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 
+namespace finite_measure
+
+section finite_measure
+/-! ### Finite measures
+
+In this section we define the `Type` of `finite_measure α`, when `α` is a measurable space. Finite
+measures on `α` are a module over `ℝ≥0`.
+
+If `α` is moreover a topological space and the sigma algebra on `α` is finer than the Borel sigma
+algebra (i.e. `[opens_measurable_space α]`), then `finite_measure α` is equipped with the topology
+of weak convergence of measures. This is implemented by defining a pairing of finite measures `μ`
+on `α` with continuous bounded nonnegative functions `f : α →ᵇ ℝ≥0` via integration, and using the
+associated weak topology (essentially the weak-star topology on the dual of `α →ᵇ ℝ≥0`).
+-/
+
 variables {α : Type*} [measurable_space α]
 
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
 measures (i.e., their total mass is finite). -/
-def finite_measure (α : Type*) [measurable_space α] : Type* :=
+def _root_.measure_theory.finite_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : measure α // is_finite_measure μ}
-
-namespace finite_measure
 
 /-- A finite measure can be interpreted as a measure. -/
 instance : has_coe (finite_measure α) (measure_theory.measure α) := coe_subtype
@@ -139,10 +150,10 @@ instance : inhabited (finite_measure α) := ⟨0⟩
 instance : has_add (finite_measure α) :=
 { add := λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩ }
 
-variables {R : Type*} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+variables {R : Type*} [has_smul R ℝ≥0] [has_smul R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
 
-instance : has_scalar R (finite_measure α) :=
+instance : has_smul R (finite_measure α) :=
 { smul := λ (c : R) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_of_nnreal_tower⟩, }
 
 @[simp, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
@@ -187,8 +198,9 @@ lemma _root_.bounded_continuous_function.nnreal.to_ennreal_comp_measurable {α :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
-lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
+lemma _root_.measure_theory.lintegral_lt_top_of_bounded_continuous_to_nnreal
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
+  ∫⁻ x, f x ∂μ < ∞ :=
 begin
   apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
   use nndist f 0,
@@ -203,7 +215,7 @@ end
 
 @[simp] lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ ℝ≥0} :
   (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
-ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
+ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal _ f).ne
 
 lemma test_against_nn_const (μ : finite_measure α) (c : ℝ≥0) :
   μ.test_against_nn (bounded_continuous_function.const α c) = c * μ.mass :=
@@ -322,9 +334,11 @@ inducing.tendsto_nhds_iff ⟨rfl⟩
 theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
-  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (μs(i)).to_weak_dual_bcnn f) F (𝓝 (μ.to_weak_dual_bcnn f)) :=
+  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (μs i).to_weak_dual_bcnn f) F (𝓝 (μ.to_weak_dual_bcnn f)) :=
 by { rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto_top_dual_pairing], refl, }
 
+/-- A characterization of weak convergence in terms of integrals of bounded continuous
+nonnegative functions. -/
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
@@ -336,6 +350,16 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
+end finite_measure -- section
+
+section finite_measure_bounded_convergence
+/-! ### Bounded convergence results for finite measures
+
+This section is about bounded convergence theorems for finite measures.
+-/
+
+variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
+
 /-- A bounded convergence theorem for a finite measure:
 If bounded continuous non-negative functions are uniformly bounded by a constant and tend to a
 limit, then their integrals against the finite measure tend to the integral of the limit.
@@ -346,10 +370,10 @@ This formulation assumes:
  * integration is `lintegral`, i.e., the functions and their integrals are `ℝ≥0∞`-valued.
 -/
 lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
-  (μ : finite_measure α) {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
+  (μ : measure α) [is_finite_measure μ] {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α → ℝ≥0}
   (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α), tendsto (λ i, fs i a) L (𝓝 (f a))) :
-  tendsto (λ i, (∫⁻ a, fs i a ∂(μ : measure α))) L (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
+  tendsto (λ i, (∫⁻ a, fs i a ∂μ)) L (𝓝 (∫⁻ a, (f a) ∂μ)) :=
 begin
   simpa only using tendsto_lintegral_filter_of_dominated_convergence (λ _, c)
     (eventually_of_forall ((λ i, (ennreal.continuous_coe.comp (fs i).continuous).measurable)))
@@ -390,8 +414,8 @@ lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
   tendsto (λ i, μ.test_against_nn (fs i)) L (𝓝 (μ.test_against_nn f)) :=
 begin
   apply (ennreal.tendsto_to_nnreal
-         (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne).comp,
-  exact finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
+         (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f).ne).comp,
+  exact tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
 end
 
 /-- A bounded convergence theorem for a finite measure:
@@ -410,7 +434,131 @@ lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
 tendsto_test_against_nn_filter_of_le_const
   (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
 
-end finite_measure
+end finite_measure_bounded_convergence -- section
+
+section finite_measure_convergence_by_bounded_continuous_functions
+/-! ### Weak convergence of finite measures with bounded continuous real-valued functions
+
+In this section we characterize the weak convergence of finite measures by the usual (defining)
+condition that the integrals of all bounded continuous real-valued functions converge.
+-/
+
+variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
+
+lemma integrable_of_bounded_continuous_to_nnreal
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
+  integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) μ :=
+begin
+  refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
+  simp only [has_finite_integral, nnreal.nnnorm_eq],
+  exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
+end
+
+lemma integrable_of_bounded_continuous_to_real
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
+  integrable ⇑f μ :=
+begin
+  refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
+  have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ∥f x∥),
+  { ext x,
+    simp only [function.comp_app, bounded_continuous_function.nnnorm_coe_fun_eq, coe_nnnorm], },
+  apply (has_finite_integral_iff_norm ⇑f).mpr,
+  rw ← of_real_integral_eq_lintegral_of_real,
+  { exact ennreal.of_real_lt_top, },
+  { exact aux ▸ integrable_of_bounded_continuous_to_nnreal μ f.nnnorm, },
+  { exact eventually_of_forall (λ x, norm_nonneg (f x)), },
+end
+
+lemma _root_.bounded_continuous_function.integral_eq_integral_nnreal_part_sub
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
+  ∫ x, f x ∂μ = ∫ x, f.nnreal_part x ∂μ - ∫ x, (-f).nnreal_part x ∂μ :=
+by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
+              pi.sub_apply, integral_sub, integrable_of_bounded_continuous_to_nnreal]
+
+lemma lintegral_lt_top_of_bounded_continuous_to_real
+  {α : Type*} [measurable_space α] [topological_space α] (μ : measure α) [is_finite_measure μ]
+  (f : α →ᵇ ℝ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
+lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
+
+theorem tendsto_of_forall_integral_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α}
+  (h : (∀ (f : α →ᵇ ℝ),
+       tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
+  tendsto μs F (𝓝 μ) :=
+begin
+  apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
+  intro f,
+  have key := @ennreal.tendsto_to_real_iff _ F
+              _ (λ i, (lintegral_lt_top_of_bounded_continuous_to_nnreal (μs i : measure α) f).ne)
+              _ (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f).ne,
+  simp only [ennreal.of_real_coe_nnreal] at key,
+  apply key.mp,
+  have lip : lipschitz_with 1 (coe : ℝ≥0 → ℝ), from isometry_subtype_coe.lipschitz,
+  set f₀ := bounded_continuous_function.comp _ lip f with def_f₀,
+  have f₀_eq : ⇑f₀ = (coe : ℝ≥0 → ℝ) ∘ ⇑f, by refl,
+  have f₀_nn : 0 ≤ ⇑f₀, from λ _, by simp only [f₀_eq, pi.zero_apply, nnreal.zero_le_coe],
+  have f₀_ae_nn : 0 ≤ᵐ[(μ : measure α)] ⇑f₀, from eventually_of_forall f₀_nn,
+  have f₀_ae_nns : ∀ i, 0 ≤ᵐ[(μs i : measure α)] ⇑f₀, from λ i, eventually_of_forall f₀_nn,
+  have aux := integral_eq_lintegral_of_nonneg_ae f₀_ae_nn
+              f₀.continuous.measurable.ae_strongly_measurable,
+  have auxs := λ i, integral_eq_lintegral_of_nonneg_ae (f₀_ae_nns i)
+              f₀.continuous.measurable.ae_strongly_measurable,
+  simp only [f₀_eq, ennreal.of_real_coe_nnreal] at aux auxs,
+  simpa only [←aux, ←auxs] using h f₀,
+end
+
+lemma _root_.bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
+  (f : α →ᵇ ℝ≥0) (μ : measure α) :
+  (∫⁻ x, (f x : ℝ≥0∞) ∂μ).to_real = (∫ x, f x ∂μ) :=
+begin
+  rw integral_eq_lintegral_of_nonneg_ae _
+     (nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable,
+  { simp only [ennreal.of_real_coe_nnreal], },
+  { apply eventually_of_forall,
+    simp only [pi.zero_apply, nnreal.zero_le_coe, implies_true_iff], },
+end
+
+/-- A characterization of weak convergence in terms of integrals of bounded continuous
+real-valued functions. -/
+theorem tendsto_iff_forall_integral_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α} :
+  tendsto μs F (𝓝 μ) ↔
+  ∀ (f : α →ᵇ ℝ),
+    tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
+begin
+  refine ⟨_, tendsto_of_forall_integral_tendsto⟩,
+  rw finite_measure.tendsto_iff_forall_lintegral_tendsto,
+  intros h f,
+  simp_rw bounded_continuous_function.integral_eq_integral_nnreal_part_sub,
+  set f_pos := f.nnreal_part with def_f_pos,
+  set f_neg := (-f).nnreal_part with def_f_neg,
+  have tends_pos := (ennreal.tendsto_to_real
+    ((lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f_pos).ne)).comp (h f_pos),
+  have tends_neg := (ennreal.tendsto_to_real
+    ((lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f_neg).ne)).comp (h f_neg),
+  have aux : ∀ (g : α →ᵇ ℝ≥0), ennreal.to_real ∘ (λ (i : γ), ∫⁻ (x : α), ↑(g x) ∂(μs i : measure α))
+         = λ (i : γ), (∫⁻ (x : α), ↑(g x) ∂(μs i : measure α)).to_real, from λ _, rfl,
+  simp_rw [aux, bounded_continuous_function.nnreal.to_real_lintegral_eq_integral]
+          at tends_pos tends_neg,
+  exact tendsto.sub tends_pos tends_neg,
+end
+
+end finite_measure_convergence_by_bounded_continuous_functions -- section
+
+end finite_measure -- namespace
+
+section probability_measure
+/-! ### Probability measures
+
+In this section we define the `Type*` of probability measures on a measurable space `α`, denoted by
+`probability_measure α`. TODO: Probability measures form a convex space.
+
+If `α` is moreover a topological space and the sigma algebra on `α` is finer than the Borel sigma
+algebra (i.e. `[opens_measurable_space α]`), then `probability_measure α` is equipped with the
+topology of weak convergence of measures. Since every probability measure is a finite measure, this
+is implemented as the induced topology from the coercion `probability_measure.to_finite_measure`.
+-/
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
 probability measures (i.e., their total mass is one). -/
@@ -418,6 +566,8 @@ def probability_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : measure α // is_probability_measure μ}
 
 namespace probability_measure
+
+variables {α : Type*} [measurable_space α]
 
 instance [inhabited α] : inhabited (probability_measure α) :=
 ⟨⟨measure.dirac default, measure.dirac.is_probability_measure⟩⟩
@@ -458,13 +608,7 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
 
-variables [topological_space α]
-
-lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
-  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
-μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f
-
-variables [opens_measurable_space α]
+variables [topological_space α] [opens_measurable_space α]
 
 lemma test_against_nn_lipschitz (μ : probability_measure α) :
   lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.to_finite_measure.test_against_nn f) :=
@@ -513,10 +657,9 @@ lemma tendsto_nhds_iff_to_finite_measures_tendsto_nhds {δ : Type*}
   tendsto μs F (𝓝 μ₀) ↔ tendsto (to_finite_measure ∘ μs) F (𝓝 (μ₀.to_finite_measure)) :=
 embedding.tendsto_nhds_iff (probability_measure.to_finite_measure_embedding α)
 
-/-- The usual definition of weak convergence of probability measures is given in terms of sequences
-of probability measures: it is the requirement that the integrals of all continuous bounded
-functions against members of the sequence converge. This version is a characterization using
-nonnegative bounded continuous functions. -/
+/-- A characterization of weak convergence of probability measures by the condition that the
+integrals of every continuous bounded nonnegative function converge to the integral of the function
+against the limit measure. -/
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → probability_measure α} {μ : probability_measure α} :
   tendsto μs F (𝓝 μ) ↔
@@ -527,9 +670,34 @@ begin
   exact finite_measure.tendsto_iff_forall_lintegral_tendsto,
 end
 
-end probability_measure
+/-- The characterization of weak convergence of probability measures by the usual (defining)
+condition that the integrals of every continuous bounded function converge to the integral of the
+function against the limit measure. -/
+theorem tendsto_iff_forall_integral_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → probability_measure α} {μ : probability_measure α} :
+  tendsto μs F (𝓝 μ) ↔
+  ∀ (f : α →ᵇ ℝ),
+    tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
+begin
+  rw tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
+  rw finite_measure.tendsto_iff_forall_integral_tendsto,
+  simp only [coe_comp_to_finite_measure_eq_coe],
+end
+
+end probability_measure -- namespace
+
+end probability_measure -- section
 
 section convergence_implies_limsup_closed_le
+/-! ### Portmanteau implication: weak convergence implies a limsup condition for closed sets
+
+In this section we prove, under the assumption that the underlying topological space `α` is
+pseudo-emetrizable, that the weak convergence of measures on `finite_measure α` implies that for
+any closed set `F` in `α` the limsup of the measures of `F` is at most the limit measure of `F`.
+This is one implication of the portmanteau theorem characterizing weak convergence of measures.
+-/
+
+variables {α : Type*} [measurable_space α]
 
 /-- If bounded continuous functions tend to the indicator of a measurable set and are
 uniformly bounded, then their integrals against a finite measure tend to the measure of the set.
@@ -540,12 +708,12 @@ This formulation assumes:
 -/
 lemma measure_of_cont_bdd_of_tendsto_filter_indicator {ι : Type*} {L : filter ι}
   [L.is_countably_generated] [topological_space α] [opens_measurable_space α]
-  (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
-  (fs : ι → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c)
-  (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α),
+  (μ : measure α) [is_finite_measure μ] {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
+  (fs : ι → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ᶠ i in L, ∀ᵐ (a : α) ∂μ, fs i a ≤ c)
+  (fs_lim : ∀ᵐ (a : α) ∂μ,
             tendsto (λ (i : ι), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs i) a) L
                     (𝓝 (indicator E (λ x, (1 : ℝ≥0)) a))) :
-  tendsto (λ n, lintegral (μ : measure α) (λ a, fs n a)) L (𝓝 ((μ : measure α) E)) :=
+  tendsto (λ n, lintegral μ (λ a, fs n a)) L (𝓝 (μ E)) :=
 begin
   convert finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_bdd fs_lim,
   have aux : ∀ a, indicator E (λ x, (1 : ℝ≥0∞)) a = ↑(indicator E (λ x, (1 : ℝ≥0)) a),
@@ -562,11 +730,11 @@ A similar result with more general assumptions is `measure_of_cont_bdd_of_tendst
 -/
 lemma measure_of_cont_bdd_of_tendsto_indicator
   [topological_space α] [opens_measurable_space α]
-  (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
+  (μ : measure α) [is_finite_measure μ] {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
   (fs : ℕ → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ n a, fs n a ≤ c)
   (fs_lim : tendsto (λ (n : ℕ), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs n))
             at_top (𝓝 (indicator E (λ x, (1 : ℝ≥0))))) :
-  tendsto (λ n, lintegral (μ : measure α) (λ a, fs n a)) at_top (𝓝 ((μ : measure α) E)) :=
+  tendsto (λ n, lintegral μ (λ a, fs n a)) at_top (𝓝 (μ E)) :=
 begin
   have fs_lim' : ∀ a, tendsto (λ (n : ℕ), (fs n a : ℝ≥0))
                  at_top (𝓝 (indicator E (λ x, (1 : ℝ≥0)) a)),
@@ -575,15 +743,15 @@ begin
       (eventually_of_forall (λ n, eventually_of_forall (fs_bdd n))) (eventually_of_forall fs_lim'),
 end
 
-/-- The integrals of thickenined indicators of a closed set against a finite measure tend to the
+/-- The integrals of thickened indicators of a closed set against a finite measure tend to the
 measure of the closed set if the thickening radii tend to zero.
 -/
 lemma tendsto_lintegral_thickened_indicator_of_is_closed
   {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
-  (μ : finite_measure α) {F : set α} (F_closed : is_closed F) {δs : ℕ → ℝ}
+  (μ : measure α) [is_finite_measure μ] {F : set α} (F_closed : is_closed F) {δs : ℕ → ℝ}
   (δs_pos : ∀ n, 0 < δs n) (δs_lim : tendsto δs at_top (𝓝 0)) :
-  tendsto (λ n, lintegral (μ : measure α) (λ a, (thickened_indicator (δs_pos n) F a : ℝ≥0∞)))
-          at_top (𝓝 ((μ : measure α) F)) :=
+  tendsto (λ n, lintegral μ (λ a, (thickened_indicator (δs_pos n) F a : ℝ≥0∞)))
+          at_top (𝓝 (μ F)) :=
 begin
   apply measure_of_cont_bdd_of_tendsto_indicator μ F_closed.measurable_set
           (λ n, thickened_indicator (δs_pos n) F)
@@ -610,7 +778,8 @@ begin
   set δs := λ (n : ℕ), (1 : ℝ) / (n+1) with def_δs,
   have δs_pos : ∀ n, 0 < δs n, from λ n, nat.one_div_pos_of_nat,
   have δs_lim : tendsto δs at_top (𝓝 0), from tendsto_one_div_add_at_top_nhds_0_nat,
-  have key₁ := tendsto_lintegral_thickened_indicator_of_is_closed μ F_closed δs_pos δs_lim,
+  have key₁ := tendsto_lintegral_thickened_indicator_of_is_closed
+                  (μ : measure α) F_closed δs_pos δs_lim,
   have room₁ : (μ : measure α) F < (μ : measure α) F + ε / 2,
   { apply ennreal.lt_add_right (measure_lt_top (μ : measure α) F).ne
           ((ennreal.div_pos_iff.mpr
@@ -621,7 +790,7 @@ begin
   have room₂ : lintegral (μ : measure α) (λ a, thickened_indicator (δs_pos M) F a)
                 < lintegral (μ : measure α) (λ a, thickened_indicator (δs_pos M) F a) + ε / 2,
   { apply ennreal.lt_add_right
-          (finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal μ _).ne
+          (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) _).ne
           ((ennreal.div_pos_iff.mpr
               ⟨(ennreal.coe_pos.mpr ε_pos).ne.symm, ennreal.two_ne_top⟩).ne.symm), },
   have ev_near := eventually.mono (eventually_lt_of_tendsto_lt room₂ key₂) (λ n, le_of_lt),
@@ -635,6 +804,6 @@ begin
   simp only [add_assoc, ennreal.add_halves, le_refl],
 end
 
-end convergence_implies_limsup_closed_le
+end convergence_implies_limsup_closed_le --section
 
-end measure_theory
+end measure_theory --namespace

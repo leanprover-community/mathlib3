@@ -603,7 +603,7 @@ lemma inter_eq_inter_of_subset_of_subset {s t a : set α} (h1 : t ∩ a ⊆ s) (
   s ∩ a = t ∩ a :=
 inf_eq_inf_of_le_of_le h1 h2
 
-lemma inter_eq_inter_iff_subset_subset {s t a : set α} : s ∩ a = t ∩ a ↔ t ∩ a ≤ s ∧ s ∩ a ≤ t :=
+lemma inter_eq_inter_iff_subset_subset {s t a : set α} : s ∩ a = t ∩ a ↔ t ∩ a ⊆ s ∧ s ∩ a ⊆ t :=
 inf_eq_inf_iff_le_le
 
 @[simp] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq

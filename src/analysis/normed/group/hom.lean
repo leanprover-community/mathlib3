@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import analysis.normed_space.basic
-import analysis.specific_limits
-import topology.sequences
+import analysis.specific_limits.normed
 
 /-!
 # Normed groups homomorphisms
@@ -49,7 +47,7 @@ def mk_normed_group_hom (f : V →+ W)
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
 
 See `add_monoid_hom.mk_normed_group_hom` for a version that uses `ℝ` for the bound. -/
-def mk_normed_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, nnnorm (f x) ≤ C * nnnorm x) :
+def mk_normed_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   normed_group_hom V W :=
 { bound' := ⟨C, hC⟩ .. f}
 
@@ -109,17 +107,11 @@ lemma to_add_monoid_hom_injective :
 @[simp] lemma mk_to_add_monoid_hom (f) (h₁) (h₂) :
   (⟨f, h₁, h₂⟩ : normed_group_hom V₁ V₂).to_add_monoid_hom = add_monoid_hom.mk' f h₁ := rfl
 
-@[simp] lemma map_zero : f 0 = 0 := f.to_add_monoid_hom.map_zero
-
-@[simp] lemma map_add (x y) : f (x + y) = f x + f y := f.to_add_monoid_hom.map_add _ _
-
-@[simp] lemma map_sum {ι : Type*} (v : ι → V₁) (s : finset ι) :
-  f (∑ i in s, v i) = ∑ i in s, f (v i) :=
-f.to_add_monoid_hom.map_sum _ _
-
-@[simp] lemma map_sub (x y) : f (x - y) = f x - f y := f.to_add_monoid_hom.map_sub _ _
-
-@[simp] lemma map_neg (x) : f (-x) = -(f x) := f.to_add_monoid_hom.map_neg _
+instance : add_monoid_hom_class (normed_group_hom V₁ V₂) V₁ V₂ :=
+{ coe := coe_fn,
+  coe_injective' := coe_injective,
+  map_add := λ f, f.to_add_monoid_hom.map_add,
+  map_zero := λ f, f.to_add_monoid_hom.map_zero }
 
 lemma bound : ∃ C, 0 < C ∧ ∀ x, ∥f x∥ ≤ C * ∥x∥ :=
 let ⟨C, hC⟩ := f.bound' in exists_pos_bound_of_bound _ hC
@@ -127,7 +119,7 @@ let ⟨C, hC⟩ := f.bound' in exists_pos_bound_of_bound _ hC
 theorem antilipschitz_of_norm_ge {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
 antilipschitz_with.of_le_mul_dist $
-λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+λ x y, by simpa only [dist_eq_norm, map_sub] using h (x - y)
 
 /-- A normed group hom is surjective on the subgroup `K` with constant `C` if every element
 `x` of `K` has a preimage whose norm is bounded above by `C*∥x∥`. This is a more
@@ -228,7 +220,7 @@ le_antisymm (f.op_norm_le_bound M_nonneg h_above)
 
 theorem op_norm_le_of_lipschitz {f : normed_group_hom V₁ V₂} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
-f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
+f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, map_zero] using hf.dist_le_mul x 0
 
 /-- If a bounded group homomorphism map is constructed from a group homomorphism via the constructor
 `mk_normed_group_hom`, then its norm is bounded by the bound given to the constructor if it is
@@ -245,8 +237,8 @@ lemma mk_normed_group_hom_norm_le' (f : V₁ →+ V₂) {C : ℝ} (h : ∀x, ∥
 op_norm_le_bound _ (le_max_right _ _) $ λ x, (h x).trans $
   mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg x)
 
-alias mk_normed_group_hom_norm_le ← add_monoid_hom.mk_normed_group_hom_norm_le
-alias mk_normed_group_hom_norm_le' ← add_monoid_hom.mk_normed_group_hom_norm_le'
+alias mk_normed_group_hom_norm_le ← _root_.add_monoid_hom.mk_normed_group_hom_norm_le
+alias mk_normed_group_hom_norm_le' ← _root_.add_monoid_hom.mk_normed_group_hom_norm_le'
 
 /-! ### Addition of normed group homs -/
 
@@ -367,11 +359,72 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl
 
+/-! ### Scalar actions on normed group homs -/
+
+section has_smul
+
+variables {R R' : Type*}
+  [monoid_with_zero R] [distrib_mul_action R V₂] [pseudo_metric_space R] [has_bounded_smul R V₂]
+  [monoid_with_zero R'] [distrib_mul_action R' V₂] [pseudo_metric_space R'] [has_bounded_smul R' V₂]
+
+instance : has_smul R (normed_group_hom V₁ V₂) :=
+{ smul := λ r f,
+  { to_fun := r • f,
+    map_add' := (r • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in  ⟨dist r 0 * b, λ x, begin
+      have := dist_smul_pair r (f x) (f 0),
+      rw [map_zero, smul_zero, dist_zero_right, dist_zero_right] at this,
+      rw mul_assoc,
+      refine this.trans _,
+      refine mul_le_mul_of_nonneg_left _ dist_nonneg,
+      exact hb x
+    end⟩ } }
+
+@[simp] lemma coe_smul (r : R) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma smul_apply (r : R) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
+instance [smul_comm_class R R' V₂] : smul_comm_class R R' (normed_group_hom V₁ V₂) :=
+{ smul_comm := λ r r' f, ext $ λ v, smul_comm _ _ _ }
+
+instance [has_smul R R'] [is_scalar_tower R R' V₂] :
+  is_scalar_tower R R' (normed_group_hom V₁ V₂) :=
+{ smul_assoc := λ r r' f, ext $ λ v, smul_assoc _ _ _ }
+
+instance [distrib_mul_action Rᵐᵒᵖ V₂] [is_central_scalar R V₂] :
+  is_central_scalar R (normed_group_hom V₁ V₂) :=
+{ op_smul_eq_smul := λ r f, ext $ λ v, op_smul_eq_smul _ _ }
+
+end has_smul
+
+instance has_nat_scalar : has_smul ℕ (normed_group_hom V₁ V₂) :=
+{ smul := λ n f,
+  { to_fun := n • f,
+    map_add' := (n • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨n • b, λ v, begin
+      rw [pi.smul_apply, nsmul_eq_mul, mul_assoc],
+      exact (norm_nsmul_le _ _).trans (mul_le_mul_of_nonneg_left (hb _) (nat.cast_nonneg _)),
+    end⟩ } }
+
+@[simp] lemma coe_nsmul (r : ℕ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
+instance has_int_scalar : has_smul ℤ (normed_group_hom V₁ V₂) :=
+{ smul := λ z f,
+  { to_fun := z • f,
+    map_add' := (z • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨∥z∥ • b, λ v, begin
+      rw [pi.smul_apply, smul_eq_mul, mul_assoc],
+      exact (norm_zsmul_le _ _).trans  (mul_le_mul_of_nonneg_left (hb _) $ norm_nonneg _),
+    end⟩ } }
+
+@[simp] lemma coe_zsmul (r : ℤ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
 /-! ### Normed group structure on normed group homs -/
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/
@@ -396,6 +449,18 @@ def coe_fn_add_hom : normed_group_hom V₁ V₂ →+ (V₁ → V₂) :=
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
 by simp only [coe_sum, finset.sum_apply]
+
+/-! ### Module structure on normed group homs -/
+
+instance {R : Type*} [monoid_with_zero R] [distrib_mul_action R V₂]
+  [pseudo_metric_space R] [has_bounded_smul R V₂] :
+  distrib_mul_action R (normed_group_hom V₁ V₂) :=
+function.injective.distrib_mul_action coe_fn_add_hom coe_injective coe_smul
+
+instance {R : Type*} [semiring R] [module R V₂]
+  [pseudo_metric_space R] [has_bounded_smul R V₂] :
+  module R (normed_group_hom V₁ V₂) :=
+function.injective.module _ coe_fn_add_hom coe_injective coe_smul
 
 /-! ### Composition of normed group homs -/
 
@@ -423,12 +488,12 @@ by { rw h, exact norm_comp_le_of_le hg hf }
 /-- Composition of normed groups hom as an additive group morphism. -/
 def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) →+ (normed_group_hom V₁ V₃) :=
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
-  (by { intros, ext, exact g.map_add _ _ }))
+  (by { intros, ext, exact map_add g _ _ }))
   (by { intros, ext, simp only [comp_apply, pi.add_apply, function.comp_app,
                                 add_monoid_hom.add_apply, add_monoid_hom.mk'_apply, coe_add] })
 
 @[simp] lemma comp_zero (f : normed_group_hom V₂ V₃) : f.comp (0 : normed_group_hom V₁ V₂) = 0 :=
-by { ext, exact f.map_zero }
+by { ext, exact map_zero f }
 
 @[simp] lemma zero_comp (f : normed_group_hom V₁ V₂) : (0 : normed_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
@@ -555,17 +620,9 @@ end norm_noninc
 
 section isometry
 
-lemma isometry_iff_norm (f : normed_group_hom V W) :
-  isometry f ↔ ∀ v, ∥f v∥ = ∥v∥ :=
-add_monoid_hom.isometry_iff_norm f.to_add_monoid_hom
-
-lemma isometry_of_norm (f : normed_group_hom V W) (hf : ∀ v, ∥f v∥ = ∥v∥) :
-  isometry f :=
-f.isometry_iff_norm.mpr hf
-
 lemma norm_eq_of_isometry {f : normed_group_hom V W} (hf : isometry f) (v : V) :
   ∥f v∥ = ∥v∥ :=
-f.isometry_iff_norm.mp hf v
+(add_monoid_hom_class.isometry_iff_norm f).mp hf v
 
 lemma isometry_id : @isometry V V _ _ (id V) :=
 isometry_id
@@ -728,7 +785,7 @@ begin
   { /- We indeed get a preimage. First note: -/
     have : f ∘ s = λ n, ∑ k in range (n + 1), v k,
     { ext n,
-      simp [f.map_sum, hu] },
+      simp [map_sum, hu] },
     /- In the above equality, the left-hand-side converges to `f g` by continuity of `f` and
        definition of `g` while the right-hand-side converges to `h` by construction of `v` so
        `g` is indeed a preimage of `h`. -/

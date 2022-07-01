@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product_basis
 import ring_theory.adjoin.basic
 
 /-!
@@ -332,10 +332,15 @@ begin
   simp {contextual := tt},
 end
 
+instance : has_one (A ⊗[R] B) :=
+{ one := 1 ⊗ₜ 1 }
+
+instance : add_monoid_with_one (A ⊗[R] B) := add_monoid_with_one.unary
+
 instance : semiring (A ⊗[R] B) :=
 { zero := 0,
   add := (+),
-  one := 1 ⊗ₜ 1,
+  one := 1,
   mul := λ a b, mul a b,
   one_mul := one_mul,
   mul_one := mul_one,
@@ -344,6 +349,7 @@ instance : semiring (A ⊗[R] B) :=
   mul_zero := by simp,
   left_distrib := by simp,
   right_distrib := by simp,
+  .. (by apply_instance : add_monoid_with_one (A ⊗[R] B)),
   .. (by apply_instance : add_comm_monoid (A ⊗[R] B)) }.
 
 lemma one_def : (1 : A ⊗[R] B) = (1 : A) ⊗ₜ (1 : B) := rfl
@@ -664,23 +670,21 @@ lemma assoc_aux_2 (r : R) :
   (tensor_product.assoc R A B C) (((algebra_map R A) r ⊗ₜ[R] 1) ⊗ₜ[R] 1) =
     (algebra_map R (A ⊗ (B ⊗ C))) r := rfl
 
--- variables (R A B C)
+variables (R A B C)
 
--- -- local attribute [elab_simple] alg_equiv_of_linear_equiv_triple_tensor_product
+/-- The associator for tensor product of R-algebras, as an algebra isomorphism. -/
+protected def assoc : ((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C)) :=
+alg_equiv_of_linear_equiv_triple_tensor_product
+  (tensor_product.assoc.{u v₁ v₂ v₃} R A B C : (A ⊗ B ⊗ C) ≃ₗ[R] (A ⊗ (B ⊗ C)))
+  (@algebra.tensor_product.assoc_aux_1.{u v₁ v₂ v₃} R _ A _ _ B _ _ C _ _)
+  (@algebra.tensor_product.assoc_aux_2.{u v₁ v₂ v₃} R _ A _ _ B _ _ C _ _)
 
--- /-- The associator for tensor product of R-algebras, as an algebra isomorphism. -/
--- -- FIXME This is _really_ slow to compile. :-(
--- protected def assoc : ((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C)) :=
--- alg_equiv_of_linear_equiv_triple_tensor_product
---   (tensor_product.assoc R A B C)
---   assoc_aux_1 assoc_aux_2
+variables {R A B C}
 
--- variables {R A B C}
-
--- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) :
---   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
--- rfl
+@[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
+  ((tensor_product.assoc R A B C) :
+  (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+rfl
 
 end
 
@@ -702,6 +706,18 @@ rfl
 
 @[simp] lemma map_comp_include_right (f : A →ₐ[R] B) (g : C →ₐ[R] D) :
   (map f g).comp include_right = include_right.comp g := alg_hom.ext $ by simp
+
+lemma map_range (f : A →ₐ[R] B) (g : C →ₐ[R] D) :
+  (map f g).range = (include_left.comp f).range ⊔ (include_right.comp g).range :=
+begin
+  apply le_antisymm,
+  { rw [←map_top, ←adjoin_tmul_eq_top, ←adjoin_image, adjoin_le_iff],
+    rintros _ ⟨_, ⟨a, b, rfl⟩, rfl⟩,
+    rw [map_tmul, ←_root_.mul_one (f a), ←_root_.one_mul (g b), ←tmul_mul_tmul],
+    exact mul_mem_sup (alg_hom.mem_range_self _ a) (alg_hom.mem_range_self _ b) },
+  { rw [←map_comp_include_left f g, ←map_comp_include_right f g],
+    exact sup_le (alg_hom.range_comp_le_range _ _) (alg_hom.range_comp_le_range _ _) },
+end
 
 /--
 Construct an isomorphism between tensor products of R-algebras
@@ -769,6 +785,46 @@ lemma product_map_right_apply (b : B) : product_map f g (include_right b) = g b 
 
 @[simp] lemma product_map_right : (product_map f g).comp include_right = g := alg_hom.ext $ by simp
 
+lemma product_map_range : (product_map f g).range = f.range ⊔ g.range :=
+by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_comp,
+    ←alg_hom.range_comp, ←alg_hom.comp_assoc, ←alg_hom.comp_assoc, lmul'_comp_include_left,
+    lmul'_comp_include_right, alg_hom.id_comp, alg_hom.id_comp]
+
 end
+
 end tensor_product
 end algebra
+
+namespace module
+
+variables {R M N : Type*} [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N]
+variables [module R M] [module R N]
+
+/-- The algebra homomorphism from `End M ⊗ End N` to `End (M ⊗ N)` sending `f ⊗ₜ g` to
+the `tensor_product.map f g`, the tensor product of the two maps. -/
+def End_tensor_End_alg_hom : (End R M) ⊗[R] (End R N) →ₐ[R] End R (M ⊗[R] N) :=
+begin
+  refine algebra.tensor_product.alg_hom_of_linear_map_tensor_product
+    (hom_tensor_hom_map R M N M N) _ _,
+  { intros f₁ f₂ g₁ g₂,
+    simp only [hom_tensor_hom_map_apply, tensor_product.map_mul] },
+  { intro r,
+    simp only [hom_tensor_hom_map_apply],
+    ext m n, simp [smul_tmul] }
+end
+
+lemma End_tensor_End_alg_hom_apply (f : End R M) (g : End R N) :
+  End_tensor_End_alg_hom (f ⊗ₜ[R] g) = tensor_product.map f g :=
+by simp only [End_tensor_End_alg_hom,
+  algebra.tensor_product.alg_hom_of_linear_map_tensor_product_apply, hom_tensor_hom_map_apply]
+
+end module
+
+lemma subalgebra.finite_dimensional_sup {K L : Type*} [field K] [comm_ring L] [algebra K L]
+  (E1 E2 : subalgebra K L) [finite_dimensional K E1] [finite_dimensional K E2] :
+  finite_dimensional K ↥(E1 ⊔ E2) :=
+begin
+  rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
+  exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
+end

@@ -5,7 +5,7 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import group_theory.congruence
-import linear_algebra.bilinear_map
+import algebra.module.submodule.bilinear
 
 /-!
 # Tensor product of modules over commutative semirings.
@@ -135,7 +135,7 @@ section
 variables (R R' M N)
 
 /--
-A typeclass for `has_scalar` structures which can be moved across a tensor product.
+A typeclass for `has_smul` structures which can be moved across a tensor product.
 
 This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
@@ -154,7 +154,7 @@ end
 `mul_action.is_scalar_tower.left`. -/
 @[priority 100]
 instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
+  [has_smul R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
   conv_lhs {rw ← one_smul R m},
@@ -169,10 +169,10 @@ lemma smul_tmul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (m
 compatible_smul.smul_tmul _ _ _
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
-def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
+def smul.aux {R' : Type*} [has_smul R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
-theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
+theorem smul.aux_of {R' : Type*} [has_smul R' M] (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
@@ -191,7 +191,7 @@ action. Two natural ways in which this situation arises are:
 Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
 action on a tensor product of two modules. This special case is important enough that, for
 performance reasons, we define it explicitly below. -/
-instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
+instance left_has_smul : has_smul R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
@@ -208,7 +208,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
-instance : has_scalar R (M ⊗[R] N) := tensor_product.left_has_scalar
+instance : has_smul R (M ⊗[R] N) := tensor_product.left_has_smul
 
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
@@ -266,6 +266,9 @@ rfl
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
+lemma smul_tmul_smul (r s : R) (m : M) (n : N) : (r • m) ⊗ₜ[R] (s • n) = (r * s) • (m ⊗ₜ[R] n) :=
+by simp only [tmul_smul, smul_tmul, mul_smul]
+
 instance left_module : module R'' (M ⊗[R] N) :=
 { smul := (•),
   add_smul := tensor_product.add_smul,
@@ -274,11 +277,18 @@ instance left_module : module R'' (M ⊗[R] N) :=
 
 instance : module R (M ⊗[R] N) := tensor_product.left_module
 
+instance [module R''ᵐᵒᵖ M] [is_central_scalar R'' M] : is_central_scalar R'' (M ⊗[R] N) :=
+{ op_smul_eq_smul := λ r x,
+  tensor_product.induction_on x
+    (by rw [smul_zero, smul_zero])
+    (λ x y, by rw [smul_tmul', smul_tmul', op_smul_eq_smul])
+    (λ x y hx hy, by rw [smul_add, smul_add, hx, hy]) }
+
 section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
 variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
-variables [smul_comm_class R R'₂ M] [has_scalar R'₂ R']
+variables [smul_comm_class R R'₂ M] [has_smul R'₂ R']
 
 /-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
@@ -303,7 +313,7 @@ end
 
 /-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
 instances are sufficient. -/
-instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] :
+instance is_scalar_tower [has_smul R' R] [is_scalar_tower R' R M] :
   is_scalar_tower R' R (M ⊗[R] N) :=
 tensor_product.is_scalar_tower_left  -- or right
 
@@ -356,6 +366,12 @@ begin
   { exact submodule.zero_mem _, },
   { intros m n, apply submodule.subset_span, use [m, n], },
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
+end
+
+@[simp] lemma map₂_mk_top_top_eq_top : submodule.map₂ (mk R M N) ⊤ ⊤ = ⊤ :=
+begin
+  rw [← top_le_iff, ← span_tmul_eq_top, submodule.map₂_eq_span_image2],
+  exact submodule.span_mono (λ _ ⟨m, n, h⟩, ⟨m, n, trivial, trivial, h⟩),
 end
 
 end module
@@ -651,6 +667,56 @@ begin
   { simp only [pow_succ', ih, map_mul], },
 end
 
+lemma map_add_left (f₁ f₂ : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (f₁ + f₂) g = map f₁ g + map f₂ g :=
+by {ext, simp only [add_tmul, compr₂_apply, mk_apply, map_tmul, add_apply]}
+
+lemma map_add_right (f : M →ₗ[R] P) (g₁ g₂ : N →ₗ[R] Q) : map f (g₁ + g₂) = map f g₁ + map f g₂ :=
+by {ext, simp only [tmul_add, compr₂_apply, mk_apply, map_tmul, add_apply]}
+
+lemma map_smul_left (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (r • f) g = r • map f g :=
+by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+
+lemma map_smul_right (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map f (r • g) = r • map f g :=
+by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+
+variables (R M N P Q)
+
+/-- The tensor product of a pair of linear maps between modules, bilinear in both maps. -/
+def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
+linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
+
+/-- The canonical linear map from `P ⊗[R] (M →ₗ[R] Q)` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def ltensor_hom_to_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M Q _ ∘ₗ mk R P Q)
+
+/-- The canonical linear map from `(M →ₗ[R] P) ⊗[R] Q` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def rtensor_hom_to_hom_rtensor : (M →ₗ[R] P) ⊗[R] Q →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M P _ ∘ₗ (mk R P Q).flip).flip
+
+/-- The linear map from `(M →ₗ P) ⊗ (N →ₗ Q)` to `(M ⊗ N →ₗ P ⊗ Q)` sending `f ⊗ₜ g` to
+the `tensor_product.map f g`, the tensor product of the two maps. -/
+def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
+lift (map_bilinear R M N P Q)
+
+variables {R M N P Q}
+
+@[simp]
+lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  map_bilinear R M N P Q f g = map f g := rfl
+
+@[simp]
+lemma ltensor_hom_to_hom_ltensor_apply (p : P) (f : M →ₗ[R] Q) (m : M) :
+  ltensor_hom_to_hom_ltensor R M P Q (p ⊗ₜ f) m = p ⊗ₜ f m := rfl
+
+@[simp]
+lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
+  rtensor_hom_to_hom_rtensor R M P Q (f ⊗ₜ q) m = f m ⊗ₜ q := rfl
+
+@[simp]
+lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g :=
+by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
+
 end
 
 /-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent
@@ -713,6 +779,29 @@ rfl
 
 @[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
   (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+rfl
+
+variables (M N P Q)
+
+/-- This special case is useful for describing the interplay between `dual_tensor_hom_equiv` and
+composition of linear maps.
+
+E.g., composition of linear maps gives a map `(M → N) ⊗ (N → P) → (M → P)`, and applying
+`dual_tensor_hom_equiv.symm` to the three hom-modules gives a map
+`(M.dual ⊗ N) ⊗ (N.dual ⊗ P) → (M.dual ⊗ P)`, which agrees with the application of `contract_right`
+on `N ⊗ N.dual` after the suitable rebracketting.
+-/
+def tensor_tensor_tensor_assoc : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] M ⊗[R] (N ⊗[R] P) ⊗[R] Q :=
+(tensor_product.assoc R (M ⊗[R] N) P Q).symm ≪≫ₗ
+congr (tensor_product.assoc R M N P) (1 : Q ≃ₗ[R] Q)
+
+variables {M N P Q}
+
+@[simp] lemma tensor_tensor_tensor_assoc_tmul (m : M) (n : N) (p : P) (q : Q) :
+  tensor_tensor_tensor_assoc R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = m ⊗ₜ (n ⊗ₜ p) ⊗ₜ q := rfl
+
+@[simp] lemma tensor_tensor_tensor_assoc_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  (tensor_tensor_tensor_assoc R M N P Q).symm (m ⊗ₜ (n ⊗ₜ p) ⊗ₜ q) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
 rfl
 
 end tensor_product
@@ -924,7 +1013,7 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R ℤ M N :=
+instance compatible_smul.int : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
@@ -932,7 +1021,7 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
 
 instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
   [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
+  compatible_smul R Sˣ M N :=
 ⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product

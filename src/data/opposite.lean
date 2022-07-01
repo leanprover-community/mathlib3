@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
 -/
-import data.equiv.basic
+import logic.equiv.basic
 
 /-!
 # Opposites
@@ -58,13 +58,15 @@ def unop : αᵒᵖ → α := id
 lemma op_injective : function.injective (op : α → αᵒᵖ) := λ _ _, id
 lemma unop_injective : function.injective (unop : αᵒᵖ → α) := λ _ _, id
 
-@[simp] lemma op_inj_iff (x y : α) : op x = op y ↔ x = y := iff.rfl
-@[simp] lemma unop_inj_iff (x y : αᵒᵖ) : unop x = unop y ↔ x = y := iff.rfl
-
 @[simp] lemma op_unop (x : αᵒᵖ) : op (unop x) = x := rfl
 @[simp] lemma unop_op (x : α) : unop (op x) = x := rfl
 
 attribute [irreducible] opposite
+
+-- We could prove these by `iff.rfl`, but that would make these eligible for `dsimp`. That would be
+-- a bad idea because `opposite` is irreducible.
+@[simp] lemma op_inj_iff (x y : α) : op x = op y ↔ x = y := op_injective.eq_iff
+@[simp] lemma unop_inj_iff (x y : αᵒᵖ) : unop x = unop y ↔ x = y := unop_injective.eq_iff
 
 /-- The type-level equivalence between a type and its opposite. -/
 def equiv_to_opposite : α ≃ αᵒᵖ :=
@@ -84,7 +86,7 @@ equiv_to_opposite.apply_eq_iff_eq_symm_apply
 lemma unop_eq_iff_eq_op {x} {y : α} : unop x = y ↔ x = op y :=
 equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply
 
-instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
+instance [inhabited α] : inhabited αᵒᵖ := ⟨op default⟩
 
 /-- A recursor for `opposite`. Use as `induction x using opposite.rec`. -/
 @[simp]

@@ -62,7 +62,7 @@ do fn  ← pp ctx.function,
    l   ← pp ctx.left,
    r   ← pp ctx.right,
    rel ← pp ctx.rel_def,
-   return format!"{{ function := {fn}\n, left  := {l}\n, right := {r}\n, rel_def := {rel} }"
+   return format!"{{ function := {fn}\n, left  := {l}\n, right := {r}\n, rel_def := {rel} }}"
 
 meta instance has_to_tactic_format_mono_ctx : has_to_tactic_format ac_mono_ctx :=
 { to_tactic_format := ac_mono_ctx.to_tactic_format }
@@ -609,7 +609,7 @@ meta def assert_or_rule : lean.parser (pexpr ⊕ pexpr) :=
 (tk ":=" *> inl <$> texpr <|> (tk ":" *> inr <$> texpr))
 
 meta def arity : lean.parser rep_arity :=
-rep_arity.many <$ tk "*" <|>
+tk "*" *> pure rep_arity.many <|>
 rep_arity.exactly <$> (tk "^" *> small_nat) <|>
 pure rep_arity.one
 

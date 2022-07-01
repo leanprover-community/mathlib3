@@ -100,9 +100,9 @@ structure almost_mono {α ι κ : Type*} (C : (ι → option α) → κ) :=
 (has_color : ∀ x : α, C (line (some x)) = color)
 
 instance {α ι κ : Type*} [nonempty ι] [inhabited κ] :
-  inhabited (almost_mono (λ v : ι → option α, default κ)) :=
-⟨{ line      := default _,
-   color     := default κ,
+  inhabited (almost_mono (λ v : ι → option α, (default : κ))) :=
+⟨{ line      := default,
+   color     := default,
    has_color := λ _, rfl }⟩
 
 /-- The type of collections of lines such that
@@ -183,7 +183,7 @@ fintype.induction_empty_option
 begin -- This deals with the degenerate case where `α` is empty.
   introsI κ _,
   by_cases h : nonempty κ,
-  { resetI, exact ⟨unit, infer_instance, λ C, ⟨default _, classical.arbitrary _, pempty.rec _⟩⟩, },
+  { resetI, exact ⟨unit, infer_instance, λ C, ⟨default, classical.arbitrary _, pempty.rec _⟩⟩, },
   { exact ⟨empty, infer_instance, λ C, (h ⟨C (empty.rec _)⟩).elim⟩, }
 end
 begin -- Now we have to show that the theorem holds for `option α` if it holds for `α`.
@@ -191,7 +191,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
 -- Later we'll need `α` to be nonempty. So we first deal with the trivial case where `α` is empty.
 -- Then `option α` has only one element, so any line is monochromatic.
   by_cases h : nonempty α,
-  work_on_goal 1 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
+  work_on_goal 2 { refine ⟨unit, infer_instance, λ C, ⟨diagonal _ _, C (λ _, none), _⟩⟩,
     rintros (_ | ⟨a⟩), refl, exact (h ⟨a⟩).elim, },
 -- The key idea is to show that for every `r`, in high dimension we can either find
 -- `r` color focused lines or a monochromatic line.
@@ -209,7 +209,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   intro r,
   induction r with r ihr,
 -- The base case `r = 0` is trivial as the empty collection is color-focused.
-  { exact ⟨empty, infer_instance, λ C, or.inl ⟨default _, multiset.card_zero⟩⟩, },
+  { exact ⟨empty, infer_instance, λ C, or.inl ⟨default, multiset.card_zero⟩⟩, },
 -- Supposing the key claim holds for `r`, we need to show it for `r+1`. First pick a high enough
 -- dimension `ι` for `r`.
   obtain ⟨ι, _inst, hι⟩ := ihr,
@@ -236,7 +236,7 @@ begin -- Now we have to show that the theorem holds for `option α` if it holds 
   specialize hι C',
   rcases hι with ⟨s, sr⟩ | _,
 -- By above, we are done if `C'` has a monochromatic line.
-  work_on_goal 1 { exact or.inr (mono_of_mono hι) },
+  work_on_goal 2 { exact or.inr (mono_of_mono hι) },
 -- Here we assume `C'` has `r` color focused lines. We split into cases depending on whether one of
 -- these `r` lines has the same color as the focus point.
   by_cases h : ∃ p ∈ s.lines, (p : almost_mono _).color = C' s.focus,

@@ -50,6 +50,16 @@ instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domai
 @[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
   f.to_fun x = f x := rfl
 
+@[ext] lemma ext {f g : linear_pmap R E F} (h : f.domain = g.domain)
+  (h' : ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y) : f = g :=
+begin
+  rcases f with ⟨f_dom, f⟩,
+  rcases g with ⟨g_dom, g⟩,
+  obtain rfl : f_dom = g_dom := h,
+  obtain rfl : f = g := linear_map.ext (λ x, h' rfl),
+  refl,
+end
+
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
@@ -94,7 +104,7 @@ noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0
 @[simp] lemma domain_mk_span_singleton (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   (mk_span_singleton' x y H).domain = R ∙ x := rfl
 
-@[simp] lemma mk_span_singleton_apply (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
+@[simp] lemma mk_span_singleton'_apply (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
   (c : R) (h) :
   mk_span_singleton' x y H ⟨c • x, h⟩ = c • y :=
 begin
@@ -105,6 +115,11 @@ begin
   apply classical.some_spec (mem_span_singleton.1 h),
 end
 
+@[simp] lemma mk_span_singleton'_apply_self (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0)
+  (h) :
+  mk_span_singleton' x y H ⟨x, h⟩ = y :=
+by convert mk_span_singleton'_apply x y H 1 _; rwa one_smul
+
 /-- The unique `linear_pmap` on `span R {x}` that sends a non-zero vector `x` to `y`.
 This version works for modules over division rings. -/
 @[reducible] noncomputable def mk_span_singleton {K E F : Type*} [division_ring K]
@@ -112,6 +127,12 @@ This version works for modules over division rings. -/
   linear_pmap K E F :=
 mk_span_singleton' x y $ λ c hc, (smul_eq_zero.1 hc).elim
   (λ hc, by rw [hc, zero_smul]) (λ hx', absurd hx' hx)
+
+lemma mk_span_singleton_apply (K : Type*) {E F : Type*} [division_ring K]
+  [add_comm_group E] [module K E] [add_comm_group F] [module K F] {x : E} (hx : x ≠ 0) (y : F) :
+  mk_span_singleton x y hx
+    ⟨x, (submodule.mem_span_singleton_self x : x ∈ submodule.span K {x})⟩ = y :=
+linear_pmap.mk_span_singleton'_apply_self _ _ _ _
 
 /-- Projection to the first coordinate as a `linear_pmap` -/
 protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) E :=
@@ -139,21 +160,14 @@ instance : has_le (linear_pmap R E F) :=
 
 lemma eq_of_le_of_domain_eq {f g : linear_pmap R E F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
-begin
-  rcases f with ⟨f_dom, f⟩,
-  rcases g with ⟨g_dom, g⟩,
-  change f_dom = g_dom at heq,
-  subst g_dom,
-  have : f = g, from linear_map.ext (λ x, hle.2 rfl),
-  subst g
-end
+ext heq hle.2
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
 def eq_locus (f g : linear_pmap R E F) : submodule R E :=
 { carrier   := {x | ∃ (hf : x ∈ f.domain) (hg : x ∈ g.domain), f ⟨x, hf⟩ = g ⟨x, hg⟩},
   zero_mem' := ⟨zero_mem _, zero_mem _, f.map_zero.trans g.map_zero.symm⟩,
-  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem _ hfx hfy, add_mem _ hgx hgy,
+  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem hfx hfy, add_mem hgx hgy,
     by erw [f.map_add ⟨x, hfx⟩ ⟨y, hfy⟩, g.map_add ⟨x, hgx⟩ ⟨y, hgy⟩, hx, hy]⟩,
   smul_mem' := λ c x ⟨hfx, hgx, hx⟩, ⟨smul_mem _ c hfx, smul_mem _ c hgx,
     by erw [f.map_smul c ⟨x, hfx⟩, g.map_smul c ⟨x, hgx⟩, hx]⟩ }
@@ -214,7 +228,8 @@ begin
     rw [add_comm, ← sub_eq_sub_iff_add_eq_add, eq_comm, ← map_sub, ← map_sub],
     apply h,
     simp only [← eq_sub_iff_add_eq] at hxy,
-    simp only [coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self, zero_sub, ← H],
+    simp only [add_subgroup_class.coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self,
+      zero_sub, ← H],
     apply neg_add_eq_sub },
   refine ⟨{ to_fun := fg, .. }, fg_eq⟩,
   { rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,
@@ -286,6 +301,29 @@ begin
   simp [*]
 end
 
+section smul
+
+variables {M N : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F]
+variables [monoid N] [distrib_mul_action N F] [smul_comm_class R N F]
+
+instance : has_smul M (linear_pmap R E F) :=
+⟨λ a f,
+  { domain := f.domain,
+    to_fun := a • f.to_fun }⟩
+
+lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
+  (a • f) x = a • f x := rfl
+
+@[simp] lemma coe_smul (a : M) (f : linear_pmap R E F) : ⇑(a • f) = a • f := rfl
+
+instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
+⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
+
+instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
+
+end smul
+
 section
 
 variables {K : Type*} [division_ring K] [module K E] [module K F]
@@ -305,7 +343,7 @@ f.sup (mk_span_singleton x y (λ h₀, hx $ h₀.symm ▸ f.domain.zero_mem)) $
   f.sup_span_singleton x y hx ⟨x' + c • x,
     mem_sup.2 ⟨x', hx', _, mem_span_singleton.2 ⟨c, rfl⟩, rfl⟩⟩ = f ⟨x', hx'⟩ + c • y :=
 begin
-  erw [sup_apply _ ⟨x', hx'⟩ ⟨c • x, _⟩, mk_span_singleton_apply],
+  erw [sup_apply _ ⟨x', hx'⟩ ⟨c • x, _⟩, mk_span_singleton'_apply],
   refl,
   exact mem_span_singleton.2 ⟨c, rfl⟩
 end
@@ -407,3 +445,48 @@ def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
 rfl
 
 end linear_pmap
+
+/-! ### Graph -/
+section graph
+
+namespace linear_pmap
+
+/-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
+def graph (f : linear_pmap R E F) : submodule R (E × F) :=
+f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
+
+lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
+by simp [graph]
+
+@[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
+by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
+
+/-- The tuple `(x, f x)` is contained in the graph of `f`. -/
+lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
+by simp
+
+lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
+  (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=
+begin
+  rw [mem_graph_iff] at hx hy,
+  rcases hx with ⟨x'', hx1, hx2⟩,
+  rcases hy with ⟨y'', hy1, hy2⟩,
+  simp only at hx1 hx2 hy1 hy2,
+  rw [←hx1, ←hy1, set_like.coe_eq_coe] at hxy,
+  rw [←hx2, ←hy2, hxy],
+end
+
+lemma mem_graph_snd_inj' (f : linear_pmap R E F) {x y : E × F} (hx : x ∈ f.graph) (hy : y ∈ f.graph)
+  (hxy : x.1 = y.1) : x.2 = y.2 :=
+by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
+
+/-- The property that `f 0 = 0` in terms of the graph. -/
+lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
+  (hx : x = 0) : x' = 0 :=
+f.mem_graph_snd_inj h f.graph.zero_mem hx
+
+end linear_pmap
+
+end graph

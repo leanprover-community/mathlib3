@@ -27,7 +27,7 @@ structure foo :=
 (b : list ℕ)
 ```
 Here, `@[derive inhabited]` adds the instance `foo.inhabited`, which is defined as
-`⟨⟨42, default (list ℕ)⟩⟩`.  For inductives, the default value is the first constructor.
+`⟨⟨42, default⟩⟩`.  For inductives, the default value is the first constructor.
 
 If the structure/inductive has a type parameter `α`, then the generated instance will have an
 argument `inhabited α`, even if it is not used.  (This is due to the implementation using

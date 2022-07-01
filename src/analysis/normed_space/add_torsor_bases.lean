@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
+import analysis.calculus.affine_map
 import analysis.convex.combination
 import linear_algebra.affine_space.basis
 import linear_algebra.affine_space.finite_dimensional
@@ -32,13 +33,16 @@ variables (b : affine_basis ι 𝕜 P)
 
 @[continuity]
 lemma continuous_barycentric_coord (i : ι) : continuous (b.coord i) :=
-affine_map.continuous_of_finite_dimensional _
+(b.coord i).continuous_of_finite_dimensional
 
 local attribute [instance] finite_dimensional.complete
 
 lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
   is_open_map (b.coord i) :=
-open_mapping_affine (continuous_barycentric_coord b i) (b.surjective_coord i)
+(b.coord i).is_open_map (continuous_barycentric_coord b i) (b.surjective_coord i)
+
+lemma smooth_barycentric_coord (b : affine_basis ι 𝕜 E) (i : ι) : cont_diff 𝕜 ⊤ (b.coord i) :=
+(⟨b.coord i, continuous_barycentric_coord b i⟩ : E →A[𝕜] 𝕜).cont_diff
 
 end barycentric
 
@@ -54,9 +58,8 @@ lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_group E
   (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
-  cases subsingleton_or_nontrivial ι with h h,
+  casesI subsingleton_or_nontrivial ι,
   { -- The zero-dimensional case.
-    haveI := h,
     suffices : range (b.points) = univ, { simp [this], },
     refine affine_subspace.eq_univ_of_subsingleton_span_eq_top _ b.tot,
     rw ← image_univ,
@@ -70,7 +73,7 @@ begin
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,
     simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
-      (continuous_barycentric_coord b _) (is_open_map_barycentric_coord b _),
+      (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
       interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
@@ -103,9 +106,9 @@ begin
   have hεyq : ∀ (y ∉ s), ε / 2 / dist y q ≠ 0,
   { simp only [ne.def, div_eq_zero_iff, or_false, dist_eq_zero, bit0_eq_zero, one_ne_zero,
       not_or_distrib, ne_of_gt hε, true_and, not_false_iff],
-    finish, },
+    exact λ y h1 h2, h1 (h2.symm ▸ hq) },
   classical,
-  let w : t → units ℝ := λ p, if hp : (p : P) ∈ s then 1 else units.mk0 _ (hεyq ↑p hp),
+  let w : t → ℝˣ := λ p, if hp : (p : P) ∈ s then 1 else units.mk0 _ (hεyq ↑p hp),
   refine ⟨set.range (λ (p : t), line_map q p (w p : ℝ)), _, _, _, _⟩,
   { intros p hp, use ⟨p, ht₁ hp⟩, simp [w, hp], },
   { intros y hy,
@@ -151,3 +154,7 @@ begin
       (finset.sum_centroid_weights_eq_one_of_nonempty ℝ (finset.univ : finset t) htne),
       finset.centroid_weights_apply, nat.cast_pos, inv_pos, finset.card_pos.mpr htne], },
 end
+
+lemma convex.interior_nonempty_iff_affine_span_eq_top [finite_dimensional ℝ V] {s : set V}
+  (hs : convex ℝ s) : (interior s).nonempty ↔ affine_span ℝ s = ⊤ :=
+by rw [← interior_convex_hull_nonempty_iff_aff_span_eq_top, hs.convex_hull_eq]

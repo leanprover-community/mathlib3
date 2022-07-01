@@ -7,6 +7,7 @@ import data.vector
 import data.list.nodup
 import data.list.of_fn
 import control.applicative
+import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
@@ -18,12 +19,12 @@ variables {n : ℕ}
 namespace vector
 variables {α : Type*}
 
-infixr `::ᵥ`:67  := vector.cons
+infixr ` ::ᵥ `:67  := vector.cons
 
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
-⟨of_fn (λ _, default α)⟩
+⟨of_fn default⟩
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
@@ -469,7 +470,7 @@ lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
 begin
   refine (list.prod_update_nth v.to_list i a).trans _,
   have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
-  simp [this],
+  simp * at *
 end
 
 @[to_additive]
@@ -563,5 +564,11 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   naturality := @vector.naturality n,
   id_map := by intros; cases x; simp! [(<$>)],
   comp_map := by intros; cases x; simp! [(<$>)] }
+
+meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
+  has_reflect (vector α n) :=
+λ v, @vector.induction_on n α (λ n, reflected _) v
+  ((by reflect_name : reflected _ @vector.nil.{u}).subst `(α))
+  (λ n x xs ih, (by reflect_name : reflected _ @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
 
 end vector

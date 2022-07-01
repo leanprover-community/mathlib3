@@ -21,16 +21,16 @@ This file contains some results on absolute values applied to integers.
 variables {R S : Type*} [ring R] [linear_ordered_comm_ring S]
 
 @[simp]
-lemma absolute_value.map_units_int (abv : absolute_value ℤ S) (x : units ℤ) :
+lemma absolute_value.map_units_int (abv : absolute_value ℤ S) (x : ℤˣ) :
   abv x = 1 :=
 by rcases int.units_eq_one_or x with (rfl | rfl); simp
 
 @[simp]
-lemma absolute_value.map_units_int_cast [nontrivial R] (abv : absolute_value R S) (x : units ℤ) :
+lemma absolute_value.map_units_int_cast [nontrivial R] (abv : absolute_value R S) (x : ℤˣ) :
   abv ((x : ℤ) : R) = 1 :=
 by rcases int.units_eq_one_or x with (rfl | rfl); simp
 
 @[simp]
-lemma absolute_value.map_units_int_smul (abv : absolute_value R S) (x : units ℤ) (y : R) :
+lemma absolute_value.map_units_int_smul (abv : absolute_value R S) (x : ℤˣ) (y : R) :
   abv (x • y) = abv y :=
 by rcases int.units_eq_one_or x with (rfl | rfl); simp

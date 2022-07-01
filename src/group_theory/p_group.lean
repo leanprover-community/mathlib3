@@ -7,8 +7,8 @@ Authors: Chris Hughes, Thomas Browning
 import data.zmod.basic
 import group_theory.index
 import group_theory.group_action.conj_act
-import group_theory.perm.cycle_type
-import group_theory.quotient_group
+import group_theory.group_action.quotient
+import group_theory.perm.cycle.type
 
 /-!
 # p-groups
@@ -46,7 +46,7 @@ of_card (subgroup.card_bot.trans (pow_zero p).symm)
 lemma iff_card [fact p.prime] [fintype G] :
   is_p_group p G ↔ ∃ n : ℕ, card G = p ^ n :=
 begin
-  have hG : 0 < card G := card_pos_iff.mpr has_one.nonempty,
+  have hG : card G ≠ 0 := card_ne_zero,
   refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (card G), q = p,
   { use (card G).factors.length,
@@ -54,7 +54,7 @@ begin
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
-  obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
+  obtain ⟨g, hg⟩ := exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
 end
@@ -121,7 +121,7 @@ lemma card_modeq_card_fixed_points : card α ≡ card (fixed_points G α) [MOD p
 begin
   classical,
   calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
-    card_congr (equiv.sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
+    card_congr (equiv.sigma_fiber_equiv (@quotient.mk' _ (orbit_rel G α))).symm
   ... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
   ... ≡ ∑ a : fixed_points G α, 1 [MOD p] : _
   ... = _ : by simp; refl,
@@ -134,7 +134,8 @@ begin
       { rw [key, mem_fixed_points_iff_card_orbit_eq_one.mp a.2] })),
   obtain ⟨k, hk⟩ := hG.card_orbit b,
   have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p)
-    (by rwa [pow_one, ←hk, ←nat.modeq_zero_iff_dvd, ←zmod.eq_iff_modeq_nat, ←key])))),
+    (by rwa [pow_one, ←hk, ←nat.modeq_zero_iff_dvd, ←zmod.eq_iff_modeq_nat, ←key,
+      nat.cast_zero])))),
   exact ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, pow_zero]⟩,
     finset.mem_univ _, (ne_of_eq_of_ne nat.cast_one one_ne_zero), rfl⟩,
 end
@@ -212,13 +213,17 @@ begin
   exact ⟨j + k, by rwa [subtype.ext_iff, (H.comap ϕ).coe_pow]⟩,
 end
 
+lemma ker_is_p_group_of_injective {K : Type*} [group K] {ϕ : K →* G} (hϕ : function.injective ϕ) :
+  is_p_group p ϕ.ker :=
+(congr_arg (λ Q : subgroup K, is_p_group p Q) (ϕ.ker_eq_bot_iff.mpr hϕ)).mpr is_p_group.of_bot
+
 lemma comap_of_injective {H : subgroup G} (hH : is_p_group p H) {K : Type*} [group K]
   (ϕ : K →* G) (hϕ : function.injective ϕ) : is_p_group p (H.comap ϕ) :=
-begin
-  apply hH.comap_of_ker_is_p_group ϕ,
-  rw ϕ.ker_eq_bot_iff.mpr hϕ,
-  exact is_p_group.of_bot,
-end
+hH.comap_of_ker_is_p_group ϕ (ker_is_p_group_of_injective hϕ)
+
+lemma comap_subtype {H : subgroup G} (hH : is_p_group p H) {K : subgroup G} :
+  is_p_group p (H.comap K.subtype) :=
+hH.comap_of_injective K.subtype subtype.coe_injective
 
 lemma to_sup_of_normal_right {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   [K.normal] : is_p_group p (H ⊔ K : subgroup G) :=
@@ -243,5 +248,36 @@ let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of
 lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
 (congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
+
+/-- finite p-groups with different p have coprime orders -/
+lemma coprime_card_of_ne {G₂ : Type*} [group G₂]
+  (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ : subgroup G) (H₂ : subgroup G₂) [fintype H₁] [fintype H₂]
+  (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  nat.coprime (fintype.card H₁) (fintype.card H₂) :=
+begin
+  obtain ⟨n₁, heq₁⟩ := iff_card.mp hH₁, rw heq₁, clear heq₁,
+  obtain ⟨n₂, heq₂⟩ := iff_card.mp hH₂, rw heq₂, clear heq₂,
+  exact nat.coprime_pow_primes _ _ (hp₁.elim) (hp₂.elim) hne,
+end
+
+/-- p-groups with different p are disjoint -/
+lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  disjoint H₁ H₂ :=
+begin
+  rintro x ⟨hx₁, hx₂⟩,
+  rw subgroup.mem_bot,
+  obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
+  obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
+  rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
+  have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
+  have : n₁ = 0,
+  { contrapose! hne with h,
+    rw ← associated_iff_eq at this ⊢,
+    exact associated.of_pow_associated_of_prime
+      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
+  simpa [this] using hn₁,
+end
 
 end is_p_group

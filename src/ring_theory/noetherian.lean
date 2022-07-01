@@ -68,7 +68,7 @@ variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
 def fg (N : submodule R M) : Prop := ∃ S : finset M, submodule.span R ↑S = N
 
 theorem fg_def {N : submodule R M} :
-  N.fg ↔ ∃ S : set M, finite S ∧ span R S = N :=
+  N.fg ↔ ∃ S : set M, S.finite ∧ span R S = N :=
 ⟨λ ⟨t, h⟩, ⟨_, finset.finite_to_set t, h⟩, begin
   rintro ⟨t', h, rfl⟩,
   rcases finite.exists_finset_coe h with ⟨t, rfl⟩,
@@ -132,22 +132,39 @@ begin
     rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,
     change _ • _ ∈ I • span R s,
     rw [mul_smul, ← hyz, smul_add, smul_smul, mul_comm, mul_smul],
-    exact add_mem _ (smul_mem _ _ hci) (smul_mem _ _ hz) }
+    exact add_mem (smul_mem _ _ hci) (smul_mem _ _ hz) }
 end
 
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
 
-theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
+lemma _root_.subalgebra.fg_bot_to_submodule {R A : Type*}
+  [comm_semiring R] [semiring A] [algebra R A] :
+  (⊥ : subalgebra R A).to_submodule.fg :=
+⟨{1}, by simp [algebra.to_submodule_bot] ⟩
+
+theorem fg_span {s : set M} (hs : s.finite) : fg (span R s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 
 theorem fg_span_singleton (x : M) : fg (R ∙ x) :=
 fg_span (finite_singleton x)
 
-theorem fg_sup {N₁ N₂ : submodule R M}
+theorem fg.sup {N₁ N₂ : submodule R M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
+
+lemma fg_finset_sup {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ i ∈ s, (N i).fg) :
+  (s.sup N).fg :=
+finset.sup_induction fg_bot (λ a ha b hb, ha.sup hb) h
+
+lemma fg_bsupr {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ i ∈ s, (N i).fg) :
+  (⨆ i ∈ s, N i).fg :=
+by simpa only [finset.sup_eq_supr] using fg_finset_sup s N h
+
+lemma fg_supr {ι : Type*} [fintype ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
+  (supr N).fg :=
+by simpa using fg_bsupr finset.univ N (λ i hi, h i)
 
 variables {P : Type*} [add_comm_monoid P] [module R P]
 variables (f : M →ₗ[R] P)
@@ -177,7 +194,7 @@ lemma fg_of_linear_equiv (e : M ≃ₗ[R] P) (h : (⊤ : submodule R P).fg) :
   (⊤ : submodule R M).fg :=
 e.symm.range ▸ map_top (e.symm : P →ₗ[R] M) ▸ h.map _
 
-theorem fg_prod {sb : submodule R M} {sc : submodule R P}
+theorem fg.prod {sb : submodule R M} {sc : submodule R P}
   (hsb : sb.fg) (hsc : sc.fg) : (sb.prod sc).fg :=
 let ⟨tb, htb⟩ := fg_def.1 hsb, ⟨tc, htc⟩ := fg_def.1 hsc in
 fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
@@ -283,7 +300,7 @@ begin
   { rwa [inf_of_le_right (show f.ker ≤ (comap f g.ker), from comap_mono bot_le)] }
 end
 
-lemma fg_restrict_scalars {R S M : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+lemma fg_restrict_scalars {R S M : Type*} [comm_semiring R] [semiring S] [algebra R S]
   [add_comm_group M] [module S M] [module R M] [is_scalar_tower R S M] (N : submodule S M)
   (hfin : N.fg) (h : function.surjective (algebra_map R S)) : (submodule.restrict_scalars R N).fg :=
 begin
@@ -516,7 +533,7 @@ by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_noetherian :
-  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
+  (∀ (f : ℕ →o submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
     ↔ is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
 
@@ -538,9 +555,9 @@ lemma finite_of_linear_independent [nontrivial R] [is_noetherian R M]
 begin
   refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M)).elim' _),
-  have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
+  have f : ℕ ↪ s, from set.infinite.nat_embedding s hf,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
-  { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
+  { rintros n x ⟨y, hy₁, rfl⟩, exact (f y).2 },
   have : ∀ a b : ℕ, a ≤ b ↔
     span R ((coe ∘ f) '' {m | m ≤ a}) ≤ span R ((coe ∘ f) '' {m | m ≤ b}),
   { assume a b,
@@ -632,8 +649,8 @@ begin
       exact nat.succ_le_succ_iff.mp p }, },
 
   obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I (partial_sups f),
-  exact ⟨n, (λ m p,
-    eq_bot_of_disjoint_absorbs (h m) ((eq.symm (w (m + 1) (le_add_right p))).trans (w m p)))⟩
+  exact ⟨n, λ m p, (h m).eq_bot_of_ge $ sup_eq_left.1 $ (w (m + 1) $ le_add_right p).symm.trans $
+    w m p⟩
 end
 
 /--
@@ -663,23 +680,28 @@ class is_noetherian_ring (R) [semiring R] extends is_noetherian R R : Prop
 theorem is_noetherian_ring_iff {R} [semiring R] : is_noetherian_ring R ↔ is_noetherian R R :=
 ⟨λ h, h.1, @is_noetherian_ring.mk _ _⟩
 
-/-- A commutative ring is Noetherian if and only if all its ideals are finitely-generated. -/
-lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [comm_semiring R] :
+/-- A ring is Noetherian if and only if all its ideals are finitely-generated. -/
+lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [semiring R] :
   is_noetherian_ring R ↔ ∀ I : ideal R, I.fg :=
 is_noetherian_ring_iff.trans is_noetherian_def
 
 @[priority 80] -- see Note [lower instance priority]
-instance ring.is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M]
-  [module R M] :
+instance is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M] [module R M] :
   is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
-theorem ring.is_noetherian_of_zero_eq_one {R} [semiring R] (h01 : (0 : R) = 1) :
+/-- Modules over the trivial ring are Noetherian. -/
+@[priority 100] -- see Note [lower instance priority]
+instance is_noetherian_of_subsingleton (R M) [subsingleton R] [semiring R] [add_comm_monoid M]
+  [module R M] : is_noetherian R M :=
+by haveI := module.subsingleton R M;
+   exact is_noetherian_of_fintype R M
+
+@[priority 100] -- see Note [lower instance priority]
+instance ring.is_noetherian_of_subsingleton {R} [semiring R] [subsingleton R] :
   is_noetherian_ring R :=
-by haveI := subsingleton_of_zero_eq_one h01;
-   haveI := fintype.of_subsingleton (0:R);
-   exact is_noetherian_ring_iff.2 (ring.is_noetherian_of_fintype R R)
+⟨⟩
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
@@ -698,7 +720,7 @@ end
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
 also noetherian. -/
 theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
-  [add_comm_monoid M] [has_scalar R S] [module S M] [module R M] [is_scalar_tower R S M]
+  [add_comm_monoid M] [has_smul R S] [module S M] [module R M] [is_scalar_tower R S M]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
@@ -748,10 +770,10 @@ by exactI is_noetherian_of_linear_equiv (linear_equiv.of_top (⊤ : submodule R 
 /-- In a module over a noetherian ring, the submodule generated by finitely many vectors is
 noetherian. -/
 theorem is_noetherian_span_of_finite (R) {M} [ring R] [add_comm_group M] [module R M]
-  [is_noetherian_ring R] {A : set M} (hA : finite A) : is_noetherian R (submodule.span R A) :=
+  [is_noetherian_ring R] {A : set M} (hA : A.finite) : is_noetherian R (submodule.span R A) :=
 is_noetherian_of_fg_of_noetherian _ (submodule.fg_def.mpr ⟨A, hA, rfl⟩)
 
-theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
+theorem is_noetherian_ring_of_surjective (R) [ring R] (S) [ring S]
   (f : R →+* S) (hf : function.surjective f)
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
@@ -759,26 +781,41 @@ begin
   exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
 end
 
-instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
+instance is_noetherian_ring_range {R} [ring R] {S} [ring S] (f : R →+* S)
   [is_noetherian_ring R] : is_noetherian_ring f.range :=
 is_noetherian_ring_of_surjective R f.range f.range_restrict
   f.range_restrict_surjective
 
-theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
+theorem is_noetherian_ring_of_ring_equiv (R) [ring R] {S} [ring S]
   (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace submodule
+
+section map₂
+variables {R M N P : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [module R M] [module R N] [module R P]
+
+theorem fg.map₂ (f : M →ₗ[R] N →ₗ[R] P) {p : submodule R M} {q : submodule R N}
+  (hp : p.fg) (hq : q.fg) : (map₂ f p q).fg :=
+let ⟨sm, hfm, hm⟩ := fg_def.1 hp, ⟨sn, hfn, hn⟩ := fg_def.1 hq in
+fg_def.2 ⟨set.image2 (λ m n, f m n) sm sn,
+  hfm.image2 _ hfn, map₂_span_span R f sm sn ▸ hm ▸ hn ▸ rfl⟩
+
+end map₂
+
+section mul
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-variables (M N : submodule R A)
+variables {M N : submodule R A}
 
-theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
-let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
-fg_def.2 ⟨m * n, hfm.mul hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn
 
-lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
+lemma fg.pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
-(⟨{1}, by simp [one_eq_span]⟩)
-(λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
+  (⟨{1}, by simp [one_eq_span]⟩)
+  (λ n ih, by simpa [pow_succ] using h.mul ih)
+
+end mul
 
 end submodule

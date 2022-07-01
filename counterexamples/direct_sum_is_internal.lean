@@ -14,14 +14,14 @@ This shows that while `ℤ≤0` and `ℤ≥0` are complementary `ℕ`-submodules
 implies as a collection they are `complete_lattice.independent` and that they span all of `ℤ`, they
 do not form a decomposition into a direct sum.
 
-This file demonstrates why `direct_sum.submodule_is_internal_of_independent_of_supr_eq_top` must
+This file demonstrates why `direct_sum.is_internal_submodule_of_independent_of_supr_eq_top` must
 take `ring R` and not `semiring R`.
 -/
 
-lemma units_int.one_ne_neg_one : (1 : units ℤ) ≠ -1 := dec_trivial
+lemma units_int.one_ne_neg_one : (1 : ℤˣ) ≠ -1 := dec_trivial
 
 /-- Submodules of positive and negative integers, keyed by sign. -/
-def with_sign (i : units ℤ) : submodule ℕ ℤ :=
+def with_sign (i : ℤˣ) : submodule ℕ ℤ :=
 add_submonoid.to_nat_submodule $ show add_submonoid ℤ, from
   { carrier := {z | 0 ≤ i • z},
     zero_mem' := show 0 ≤ i • (0 : ℤ), from (smul_zero _).ge,
@@ -54,17 +54,10 @@ end
 
 def with_sign.independent : complete_lattice.independent with_sign :=
 begin
+  refine (complete_lattice.independent_pair units_int.one_ne_neg_one _).mpr
+    with_sign.is_compl.disjoint,
   intros i,
-  rw [←finset.sup_univ_eq_supr, units_int.univ, finset.sup_insert, finset.sup_singleton],
-  fin_cases i,
-  { convert with_sign.is_compl.disjoint,
-    convert bot_sup_eq,
-    { exact supr_neg (not_not_intro rfl), },
-    { rw supr_pos units_int.one_ne_neg_one.symm } },
-  { convert with_sign.is_compl.disjoint.symm,
-    convert sup_bot_eq,
-    { exact supr_neg (not_not_intro rfl), },
-    { rw supr_pos units_int.one_ne_neg_one } },
+  fin_cases i; simp,
 end
 
 lemma with_sign.supr : supr with_sign = ⊤ :=
@@ -75,7 +68,7 @@ end
 
 /-- But there is no embedding into `ℤ` from the direct sum. -/
 lemma with_sign.not_injective :
-  ¬function.injective (direct_sum.to_module ℕ (units ℤ) ℤ (λ i, (with_sign i).subtype)) :=
+  ¬function.injective (direct_sum.to_module ℕ ℤˣ ℤ (λ i, (with_sign i).subtype)) :=
 begin
   intro hinj,
   let p1 : ℤ≥0 := ⟨1, mem_with_sign_one.2 zero_le_one⟩,
@@ -96,5 +89,5 @@ begin
 end
 
 /-- And so they do not represent an internal direct sum. -/
-lemma with_sign.not_internal : ¬direct_sum.submodule_is_internal with_sign :=
+lemma with_sign.not_internal : ¬direct_sum.is_internal with_sign :=
 with_sign.not_injective ∘ and.elim_left

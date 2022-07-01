@@ -28,17 +28,19 @@ namespace finset
 
 /-! ### prod -/
 section prod
-variables {s s' : finset α} {t t' : finset β}
+variables {s s' : finset α} {t t' : finset β} {a : α} {b : β}
 
 /-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
-protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
+protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, s.nodup.product t.nodup⟩
 
 @[simp] lemma product_val : (s.product t).1 = s.1.product t.1 := rfl
 
 @[simp] lemma mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
 
+lemma mk_mem_product (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s.product t := mem_product.2 ⟨ha, hb⟩
+
 @[simp, norm_cast] lemma coe_product (s : finset α) (t : finset β) :
-  (s.product t : set (α × β)) = (s : set α).prod t :=
+  (s.product t : set (α × β)) = (s : set α) ×ˢ (t : set β) :=
 set.ext $ λ x, finset.mem_product
 
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
@@ -110,6 +112,10 @@ let ⟨xy, hxy⟩ := h in ⟨xy.2, (mem_product.1 hxy).2⟩
 @[simp] lemma nonempty_product : (s.product t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.product h.2⟩
 
+@[simp] lemma product_eq_empty {s : finset α} {t : finset β} : s.product t = ∅ ↔ s = ∅ ∨ t = ∅ :=
+by rw [←not_nonempty_iff_eq_empty, nonempty_product, not_and_distrib, not_nonempty_iff_eq_empty,
+  not_nonempty_iff_eq_empty]
+
 @[simp] lemma singleton_product {a : α} :
   ({a} : finset α).product t = t.map ⟨prod.mk a, prod.mk.inj_left _⟩ :=
 by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
@@ -133,7 +139,7 @@ by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
 end prod
 
 section diag
-variables (s : finset α) [decidable_eq α]
+variables (s t : finset α) [decidable_eq α]
 
 /-- Given a finite set `s`, the diagonal, `s.diag` is the set of pairs of the form `(a, a)` for
 `a ∈ s`. -/
@@ -171,6 +177,51 @@ end
 @[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
 @[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ := rfl
+
+@[simp] lemma diag_union_off_diag : s.diag ∪ s.off_diag = s.product s :=
+filter_union_filter_neg_eq _ _
+
+@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag := disjoint_filter_filter_neg _ _
+
+lemma product_sdiff_diag : s.product s \ s.diag = s.off_diag :=
+by rw [←diag_union_off_diag, union_comm, union_sdiff_self,
+    sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _).symm]
+
+lemma product_sdiff_off_diag : s.product s \ s.off_diag = s.diag :=
+by rw [←diag_union_off_diag, union_sdiff_self, sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _)]
+
+lemma diag_union : (s ∪ t).diag = s.diag ∪ t.diag :=
+by { ext ⟨i, j⟩, simp only [mem_diag, mem_union, or_and_distrib_right] }
+
+variables {s t}
+
+lemma off_diag_union (h : disjoint s t) :
+  (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s.product t ∪ t.product s :=
+begin
+  rw [off_diag, union_product, product_union, product_union, union_comm _ (t.product t),
+    union_assoc, union_left_comm (s.product t), ←union_assoc, filter_union, filter_union, ←off_diag,
+    ←off_diag, filter_true_of_mem, ←union_assoc],
+  simp only [mem_union, mem_product, ne.def, prod.forall],
+  rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩),
+  { exact h.forall_ne_finset hi hj },
+  { exact h.symm.forall_ne_finset hi hj },
+end
+
+variables (a : α)
+
+@[simp] lemma off_diag_singleton : ({a} : finset α).off_diag = ∅ :=
+by simp [←finset.card_eq_zero]
+
+lemma diag_singleton : ({a} : finset α).diag = {(a, a)} :=
+by rw [←product_sdiff_off_diag, off_diag_singleton, sdiff_empty, singleton_product_singleton]
+
+lemma diag_insert : (insert a s).diag = insert (a, a) s.diag :=
+by rw [insert_eq, insert_eq, diag_union, diag_singleton]
+
+lemma off_diag_insert (has : a ∉ s) :
+  (insert a s).off_diag = s.off_diag ∪ ({a} : finset α).product s ∪ s.product {a} :=
+by rw [insert_eq, union_comm, off_diag_union (disjoint_singleton_right.2 has), off_diag_singleton,
+  union_empty, union_right_comm]
 
 end diag
 end finset

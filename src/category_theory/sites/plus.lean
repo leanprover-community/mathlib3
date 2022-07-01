@@ -12,7 +12,7 @@ import category_theory.sites.sheaf
 This file contains the construction of `P⁺`, for a presheaf `P : Cᵒᵖ ⥤ D`
 where `C` is endowed with a grothendieck topology `J`.
 
-See https://stacks.math.columbia.edu/tag/00W1 for details.
+See <https://stacks.math.columbia.edu/tag/00W1> for details.
 
 -/
 
@@ -78,6 +78,16 @@ end
 lemma diagram_nat_trans_comp {P Q R : Cᵒᵖ ⥤ D} (η : P ⟶ Q) (γ : Q ⟶ R) (X : C) :
   J.diagram_nat_trans (η ≫ γ) X = J.diagram_nat_trans η X ≫ J.diagram_nat_trans γ X :=
 by { ext, dsimp, simp }
+
+variable (D)
+/-- `J.diagram P`, as a functor in `P`. -/
+@[simps]
+def diagram_functor (X : C) : (Cᵒᵖ ⥤ D) ⥤ (J.cover X)ᵒᵖ ⥤ D :=
+{ obj := λ P, J.diagram P X,
+  map := λ P Q η, J.diagram_nat_trans η X,
+  map_id' := λ P, J.diagram_nat_trans_id _ _,
+  map_comp' := λ P Q R η γ, J.diagram_nat_trans_comp _ _ _ }
+variable {D}
 
 variable [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
 

@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import meta.univs
 import tactic.lint
 import tactic.ext
 
@@ -19,7 +20,7 @@ depends on the first component. This can be seen as a generalization of the sum 
   `equiv.sum_equiv_sigma_bool`.
 
 `Σ x, A x` is notation for `sigma A` (note the difference with the big operator `∑`).
-`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have 
+`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have
 `α : Type*`, `β : α → Type*`, `γ : Π a : α, β a → Type*`, ...,
 `A : Π (a : α) (b : β a) (c : γ a b) ..., Type*`  with `x : α` `y : β x`, `z : γ x y`, ...
 
@@ -35,8 +36,8 @@ variables {α α₁ α₂ : Type*} {β : α → Type*} {β₁ : α₁ → Type*}
 
 namespace sigma
 
-instance [inhabited α] [inhabited (β (default α))] : inhabited (sigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
+instance [inhabited α] [inhabited (β default)] : inhabited (sigma β) :=
+⟨⟨default, default⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (sigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with
@@ -95,10 +96,9 @@ lemma function.injective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a
   function.injective (sigma.map f₁ f₂)
 | ⟨i, x⟩ ⟨j, y⟩ h :=
 begin
-  have : i = j, from h₁ (sigma.mk.inj_iff.mp h).1,
-  subst j,
-  have : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
-  subst y
+  obtain rfl : i = j, from h₁ (sigma.mk.inj_iff.mp h).1,
+  obtain rfl : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
+  refl
 end
 
 lemma function.surjective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
@@ -149,6 +149,14 @@ by cases x; refl
 lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
 by cases x; refl
 
+-- we generate this manually as `@[derive has_reflect]` fails
+@[instance]
+protected meta def {u v} sigma.reflect [reflected_univ.{u}] [reflected_univ.{v}]
+  {α : Type u} (β : α → Type v)
+  [reflected _ α] [reflected _ β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
+  has_reflect (Σ a, β a) :=
+λ ⟨a, b⟩, (by reflect_name : reflected _ @sigma.mk.{u v}).subst₄ `(α) `(β) `(a) `(b)
+
 end sigma
 
 section psigma
@@ -162,8 +170,8 @@ psigma.cases_on a f
 
 @[simp] theorem elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
 
-instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
+instance [inhabited α] [inhabited (β default)] : inhabited (psigma β) :=
+⟨⟨default, default⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (psigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with
@@ -186,6 +194,14 @@ by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 
 lemma ext_iff {x₀ x₁ : psigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
 by { cases x₀, cases x₁, exact psigma.mk.inj_iff }
+
+@[simp] theorem «forall» {p : (Σ' a, β a) → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem «exists» {p : (Σ' a, β a) → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
 /-- A specialized ext lemma for equality of psigma types over an indexed subtype. -/
 @[ext]

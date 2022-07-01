@@ -17,9 +17,6 @@ stated via `[quasi_sober α] [t0_space α]`.
 
 ## Main definition
 
-* `specializes` : `specializes x y` (`x ⤳ y`) means that `x` specializes to `y`, i.e.
-  `y` is in the closure of `x`.
-* `specialization_preorder` : specialization gives a preorder on a topological space.
 * `specialization_order` : specialization gives a partial order on a T0 space.
 * `is_generic_point` : `x` is the generic point of `S` if `S` is the closure of `x`.
 * `quasi_sober` : A space is quasi-sober if every irreducible closed subset has a generic point.
@@ -27,89 +24,6 @@ stated via `[quasi_sober α] [t0_space α]`.
 -/
 
 variables {α β : Type*} [topological_space α] [topological_space β]
-
-section specialize_order
-
-/-- `x` specializes to `y` if `y` is in the closure of `x`. The notation used is `x ⤳ y`. -/
-def specializes (x y : α) : Prop := y ∈ closure ({x} : set α)
-
-infix ` ⤳ `:300 := specializes
-
-lemma specializes_def (x y : α) : x ⤳ y ↔ y ∈ closure ({x} : set α) := iff.rfl
-
-lemma specializes_iff_closure_subset {x y : α} :
-  x ⤳ y ↔ closure ({y} : set α) ⊆ closure ({x} : set α) :=
-is_closed_closure.mem_iff_closure_subset
-
-lemma specializes_rfl {x : α} : x ⤳ x := subset_closure (set.mem_singleton x)
-
-lemma specializes_refl (x : α) : x ⤳ x := specializes_rfl
-
-lemma specializes.trans {x y z : α} : x ⤳ y → y ⤳ z → x ⤳ z :=
-by { simp_rw specializes_iff_closure_subset, exact λ a b, b.trans a }
-
-lemma specializes_iff_forall_closed {x y : α} :
-  x ⤳ y ↔ ∀ (Z : set α) (h : is_closed Z), x ∈ Z → y ∈ Z :=
-begin
-  split,
-  { intros h Z hZ,
-    rw [hZ.mem_iff_closure_subset, hZ.mem_iff_closure_subset],
-    exact (specializes_iff_closure_subset.mp h).trans },
-  { intro h, exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) }
-end
-
-lemma specializes_iff_forall_open {x y : α} :
-  x ⤳ y ↔ ∀ (U : set α) (h : is_open U), y ∈ U → x ∈ U :=
-begin
-  rw specializes_iff_forall_closed,
-  exact ⟨λ h U hU, not_imp_not.mp (h _ (is_closed_compl_iff.mpr hU)),
-    λ h U hU, not_imp_not.mp (h _ (is_open_compl_iff.mpr hU))⟩,
-end
-
-lemma indistinguishable_iff_specializes_and (x y : α) :
-  indistinguishable x y ↔ x ⤳ y ∧ y ⤳ x :=
-(indistinguishable_iff_closure x y).trans (and_comm _ _)
-
-lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
-λ h₁ h₂, ((indistinguishable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
-
-lemma specializes.map {x y : α} (h : x ⤳ y) {f : α → β} (hf : continuous f) : f x ⤳ f y :=
-begin
-  rw [specializes_def, ← set.image_singleton],
-  exact image_closure_subset_closure_image hf ⟨_, h, rfl⟩,
-end
-
-lemma continuous_map.map_specialization {x y : α} (h : x ⤳ y) (f : C(α, β)) : f x ⤳ f y :=
-h.map f.2
-
-lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
-(set.mem_singleton_iff.mp
-  ((specializes_iff_forall_closed.mp h) _ (t1_space.t1 _) (set.mem_singleton _))).symm
-
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
-⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
-
-variable (α)
-
-/-- Specialization forms a preorder on the topological space. -/
-def specialization_preorder : preorder α :=
-{ le := λ x y, y ⤳ x,
-  le_refl := λ x, specializes_refl x,
-  le_trans := λ _ _ _ h₁ h₂, specializes.trans h₂ h₁ }
-
-local attribute [instance] specialization_preorder
-
-/-- Specialization forms a partial order on a t0 topological space. -/
-def specialization_order [t0_space α] : partial_order α :=
-{ le_antisymm := λ _ _ h₁ h₂, specializes_antisymm _ _ h₂ h₁,
-  .. specialization_preorder α }
-
-variable {α}
-
-lemma specialization_order.monotone_of_continuous (f : α → β) (hf : continuous f) : monotone f :=
-λ x y h, specializes.map h hf
-
-end specialize_order
 
 section generic_point
 
@@ -129,7 +43,8 @@ variables {x : α} {S : set α} (h : is_generic_point x S)
 include h
 
 lemma is_generic_point.specializes {y : α} (h' : y ∈ S) :
-  x ⤳ y := by rwa ← h.def at h'
+  x ⤳ y :=
+specializes_iff_mem_closure.2 $ h.def.symm ▸ h'
 
 lemma is_generic_point.mem : x ∈ S :=
 h.def ▸ subset_closure (set.mem_singleton x)
@@ -141,7 +56,7 @@ lemma is_generic_point.is_irreducible : is_irreducible S :=
 h.def ▸ is_irreducible_singleton.closure
 
 lemma is_generic_point.eq [t0_space α] {y : α} (h' : is_generic_point y S) : x = y :=
-specializes_antisymm _ _ (h.specializes h'.mem) (h'.specializes h.mem)
+((h.specializes h'.mem).antisymm (h'.specializes h.mem)).eq
 
 lemma is_generic_point.mem_open_set_iff
   {U : set α} (hU : is_open U) : x ∈ U ↔ (S ∩ U).nonempty :=
@@ -165,6 +80,19 @@ begin
       (set.singleton_subset_iff.mpr ⟨_, subset_closure $ set.mem_singleton x, rfl⟩) },
   { convert is_closed_closure.closure_subset_iff.mpr (image_closure_subset_closure_image hf),
     rw set.image_singleton }
+end
+
+omit h
+
+lemma is_generic_point_iff_forall_closed {x : α} {S : set α} (hS : is_closed S) (hxS : x ∈ S) :
+  is_generic_point x S ↔ ∀ (Z : set α) (hZ : is_closed Z) (hxZ : x ∈ Z), S ⊆ Z :=
+begin
+  split,
+  { intros h Z hZ hxZ, exact (h.mem_closed_set_iff hZ).mp hxZ },
+  { intro h,
+    apply le_antisymm,
+    { rwa [set.le_eq_subset, hS.closure_subset_iff, set.singleton_subset_iff] },
+    { exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) } }
 end
 
 end generic_point
@@ -224,7 +152,7 @@ def irreducible_set_equiv_points [quasi_sober α] [t0_space α] :
   map_rel_iff' := λ s t, by { change _ ⤳ _ ↔ _, rw specializes_iff_closure_subset,
     simp [s.prop.2.closure_eq, t.prop.2.closure_eq, ← subtype.coe_le_coe] } }
 
-lemma closed_embedding.sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
+lemma closed_embedding.quasi_sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
   quasi_sober α :=
 begin
   constructor,
@@ -238,7 +166,7 @@ begin
   rw [← hx, ← hf.closure_image_eq, set.image_singleton]
 end
 
-lemma open_embedding.sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
+lemma open_embedding.quasi_sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
   quasi_sober α :=
 begin
   constructor,
@@ -265,8 +193,8 @@ begin
     λ h, subset_closure ⟨h, hy⟩⟩
 end
 
-/-- A space is sober if it can be covered by open sober subsets. -/
-lemma sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
+/-- A space is quasi sober if it can be covered by open quasi sober subsets. -/
+lemma quasi_sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
   [hS' : ∀ s : S, quasi_sober s] (hS'' : ⋃₀ S = ⊤) : quasi_sober α :=
 begin
   rw quasi_sober_iff,
@@ -298,7 +226,7 @@ begin
   constructor,
   rintro S h -,
   obtain ⟨x, rfl⟩ := (is_irreducible_iff_singleton S).mp h,
-  exact ⟨x, (t1_space.t1 x).closure_eq⟩
+  exact ⟨x, closure_singleton⟩
 end
 
 end sober

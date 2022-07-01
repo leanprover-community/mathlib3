@@ -216,7 +216,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   symm' := λe he, begin
     cases (mem_union _ _ _).1 he with E E,
-    { finish },
+    { simp [mem_singleton_iff.mp E] },
     { right,
       simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
@@ -497,6 +497,32 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
+open topological_space
+
+lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
+  {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
+  (hsc : s.countable) :
+  second_countable_topology M :=
+begin
+  haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
+    λ x, (chart_at H x).second_countable_topology_source,
+  haveI := hsc.to_encodable,
+  rw bUnion_eq_Union at hs,
+  exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
+end
+
+lemma charted_space.second_countable_of_sigma_compact [second_countable_topology H]
+  [sigma_compact_space M] :
+  second_countable_topology M :=
+begin
+  obtain ⟨s, hsc, hsU⟩ : ∃ s, set.countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
+    countable_cover_nhds_of_sigma_compact
+      (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
+  exact charted_space.second_countable_of_countable_cover H hsU hsc
+end
+
+variable (M)
+
 /-- If a topological space admits an atlas with locally compact charts, then the space itself
 is locally compact. -/
 lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
@@ -511,30 +537,6 @@ begin
   refine locally_compact_space_of_has_basis this _,
   rintro x s ⟨h₁, h₂, h₃⟩,
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
-end
-
-open topological_space
-
-lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
-  {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
-  (hsc : countable s) :
-  second_countable_topology M :=
-begin
-  haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
-    λ x, (chart_at H x).second_countable_topology_source,
-  haveI := hsc.to_encodable,
-  rw bUnion_eq_Union at hs,
-  exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
-end
-
-lemma charted_space.second_countable_of_sigma_compact [second_countable_topology H]
-  [sigma_compact_space M] :
-  second_countable_topology M :=
-begin
-  obtain ⟨s, hsc, hsU⟩ : ∃ s, countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
-    countable_cover_nhds_of_sigma_compact
-      (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
-  exact charted_space.second_countable_of_countable_cover H hsU hsc
 end
 
 end
@@ -577,7 +579,7 @@ prod.topological_space
 /- Next lemma shows up often when dealing with derivatives, register it as simp. -/
 @[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
-  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
 
 end

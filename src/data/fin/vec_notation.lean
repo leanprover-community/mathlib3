@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import data.fin.tuple
 import data.list.range
 import group_theory.group_action.pi
+import meta.univs
 
 /-!
 # Matrix and vector notation
@@ -74,7 +75,7 @@ variables {m n : ℕ}
 #eval ![1, 2] + ![3, 4] -- ![4, 6]
 ```
 -/
-instance pi_fin.has_repr [has_repr α] : has_repr (fin n → α) :=
+instance _root_.pi_fin.has_repr [has_repr α] : has_repr (fin n → α) :=
 { repr := λ f, "![" ++ (string.intercalate ", " ((list.fin_range n).map (λ n, repr (f n)))) ++ "]" }
 
 end matrix_notation
@@ -145,6 +146,13 @@ by { refine fin.forall_fin_one.2 _ i, refl }
 
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)
+
+meta instance _root_.pi_fin.reflect [reflected_univ.{u}] [reflected _ α] [has_reflect α] :
+  Π {n}, has_reflect (fin n → α)
+| 0 v := (subsingleton.elim vec_empty v).rec
+    ((by reflect_name : reflected _ (@vec_empty.{u})).subst `(α))
+| (n + 1) v := (cons_head_tail v).rec $
+    (by reflect_name : reflected _ @vec_cons.{u}).subst₄ `(α) `(n) `(_) (_root_.pi_fin.reflect _)
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
@@ -274,14 +282,12 @@ end val
 
 section smul
 
-variables [semiring α]
--- TODO: if I generalize these lemmas to `[has_scalar M α]`, then Lean fails to apply them
--- in `data.complex.module`
+variables {M : Type*} [has_smul M α]
 
-@[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
+@[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
 
-@[simp] lemma smul_cons (x y : α) (v : fin n → α) :
-  x • vec_cons y v = vec_cons (x * y) (x • v) :=
+@[simp] lemma smul_cons (x : M) (y : α) (v : fin n → α) :
+  x • vec_cons y v = vec_cons (x • y) (x • v) :=
 by { ext i, refine fin.cases _ _ i; simp }
 
 end smul
@@ -299,6 +305,10 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 @[simp] lemma add_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v + vec_cons y w = vec_cons (vec_head v + y) (vec_tail v + w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma cons_add_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  vec_cons x v + vec_cons y w = vec_cons (x + y) (v + w) :=
+by simp
 
 @[simp] lemma head_add (a b : fin n.succ → α) : vec_head (a + b) = vec_head a + vec_head b := rfl
 
@@ -319,6 +329,10 @@ by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
 @[simp] lemma sub_cons (v : fin n.succ → α) (y : α) (w : fin n → α) :
   v - vec_cons y w = vec_cons (vec_head v - y) (vec_tail v - w) :=
 by { ext i, refine fin.cases _ _ i; simp [vec_head, vec_tail] }
+
+@[simp] lemma cons_sub_cons (x : α) (v : fin n → α) (y : α) (w : fin n → α) :
+  vec_cons x v - vec_cons y w = vec_cons (x - y) (v - w) :=
+by simp
 
 @[simp] lemma head_sub (a b : fin n.succ → α) : vec_head (a - b) = vec_head a - vec_head b := rfl
 

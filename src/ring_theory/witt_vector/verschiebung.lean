@@ -159,7 +159,7 @@ begin
   { simp only [hn, verschiebung_poly_zero, witt_polynomial_zero, bind₁_X_right] },
   { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
     rw [nat.succ_eq_add_one, add_tsub_cancel_right, ring_hom.map_mul,
-        ring_hom.map_nat_cast, hom_bind₁],
+        map_nat_cast, hom_bind₁],
     calc  _
         = ghost_component (n + 1) (verschiebung $ mk p x) : _
     ... = _ : _,
@@ -167,9 +167,7 @@ begin
       simp only [←aeval_verschiebung_poly, coeff_mk],
       funext k,
       exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-    { rw [ghost_component_verschiebung],
-      congr' 1,
-      exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl } }
+    { rw [ghost_component_verschiebung], refl } }
 end
 
 end witt_vector

@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.dfinsupp
-import data.equiv.module
+import algebra.module.equiv
+import data.dfinsupp.basic
 import data.finsupp.basic
 
 /-!
@@ -172,7 +172,7 @@ def finsupp_equiv_dfinsupp [decidable_eq ι] [has_zero M] [Π m : M, decidable (
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_add_equiv_dfinsupp
+def finsupp_add_equiv_dfinsupp
   [decidable_eq ι] [add_zero_class M] [Π m : M, decidable (m ≠ 0)] :
   (ι →₀ M) ≃+ (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
@@ -184,7 +184,7 @@ variables (R)
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_lequiv_dfinsupp
+def finsupp_lequiv_dfinsupp
   [decidable_eq ι] [semiring R] [add_comm_monoid M] [Π m : M, decidable (m ≠ 0)] [module R M] :
   (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
@@ -276,7 +276,7 @@ local attribute [-instance] finsupp.add_zero_class
 @[simp]
 lemma sigma_finsupp_equiv_dfinsupp_smul {R} [monoid R] [add_monoid N] [distrib_mul_action R N]
   (r : R) (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
-  @has_scalar.smul R (Π₀ i, η i →₀ N) mul_action.to_has_scalar r (sigma_finsupp_equiv_dfinsupp f) :=
+  @has_smul.smul R (Π₀ i, η i →₀ N) mul_action.to_has_smul r (sigma_finsupp_equiv_dfinsupp f) :=
 by { ext, refl }
 
 local attribute [-instance] finsupp.add_monoid

@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.nat.log
+import data.nat.parity
 import data.list.indexes
+import data.list.palindrome
 import tactic.interval_cases
 import tactic.linarith
 
@@ -22,6 +25,7 @@ A basic `norm_digits` tactic is also provided for proving goals of the form
 -/
 
 namespace nat
+variables {n : ℕ}
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
@@ -184,7 +188,7 @@ end
   ((of_digits b L : ℕ) : α) = of_digits (b : α) L :=
 begin
   induction L with d L ih,
-  { refl, },
+  { simp [of_digits], },
   { dsimp [of_digits], push_cast, rw ih, }
 end
 
@@ -193,7 +197,7 @@ end
 begin
   induction L with d L ih,
   { refl, },
-  { dsimp [of_digits], push_cast, rw ih, }
+  { dsimp [of_digits], push_cast }
 end
 
 lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
@@ -205,7 +209,7 @@ begin
   { intros l m,
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
-    { convert nat.eq_zero_of_add_eq_zero_right w, simp, },
+    { apply nat.eq_zero_of_add_eq_zero_right w },
     { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
@@ -220,23 +224,22 @@ begin
     replace w₂ := w₂ (by simp),
     rw digits_add b h,
     { rw ih,
-      { simp, },
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
       { intro h,
-        { rw [list.last_cons _ h] at w₂,
+        { rw [list.last_cons h] at w₂,
             convert w₂, }}},
-    { convert w₁ d (list.mem_cons_self _ _), simp, },
+    { exact w₁ d (list.mem_cons_self _ _) },
     { by_cases h' : L = [],
       { rcases h' with rfl,
         simp at w₂,
         left,
         apply nat.pos_of_ne_zero,
-        convert w₂, simp, },
+        exact w₂ },
       { right,
         apply nat.pos_of_ne_zero,
         contrapose! w₂,
         apply digits_zero_of_eq_zero _ w₂,
-        { rw list.last_cons _ h',
+        { rw list.last_cons h',
           exact list.last_mem h', },
         { exact le_of_lt h, }, }, }, },
 end
@@ -260,7 +263,7 @@ begin
       { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
-        rw [nat.cast_id, nat.mod_add_div], }, }, },
+        rw [nat.mod_add_div], }, }, },
 end
 
 lemma of_digits_one (L : list ℕ) : of_digits 1 L = L.sum :=
@@ -290,7 +293,7 @@ end
 lemma digits_ne_nil_iff_ne_zero {b n : ℕ} : digits b n ≠ [] ↔ n ≠ 0 :=
 not_congr digits_eq_nil_iff_eq_zero
 
-private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
+lemma digits_eq_cons_digits_div {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
@@ -306,7 +309,7 @@ lemma digits_last {b : ℕ} (m : ℕ) (h : 2 ≤ b) (p q) :
 begin
   by_cases hm : m = 0,
   { simp [hm], },
-  simp only [digits_last_aux h (nat.pos_of_ne_zero hm)],
+  simp only [digits_eq_cons_digits_div h (nat.pos_of_ne_zero hm)],
   rw list.last_cons,
 end
 
@@ -316,6 +319,23 @@ function.left_inverse.injective (of_digits_digits b)
 @[simp] lemma digits_inj_iff {b n m : ℕ} :
   b.digits n = b.digits m ↔ n = m :=
 (digits.injective b).eq_iff
+
+lemma digits_len (b n : ℕ) (hb : 2 ≤ b) (hn : 0 < n) :
+  (b.digits n).length = b.log n + 1 :=
+begin
+  induction n using nat.strong_induction_on with n IH,
+  rw [digits_eq_cons_digits_div hb hn, list.length],
+  cases (n / b).eq_zero_or_pos with h h,
+  { have posb : 0 < b := zero_lt_two.trans_le hb,
+    simp [h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
+  { have hb' : 1 < b := one_lt_two.trans_le hb,
+    have : n / b < n := div_lt_self hn hb',
+    rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],
+    rw [succ_le_iff],
+    refine log_pos hb' _,
+    contrapose! h,
+    rw div_eq_of_lt h }
+end
 
 lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
   (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
@@ -404,25 +424,14 @@ by rw [of_digits_append, of_digits_digits, of_digits_digits]
 
 lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
 begin
-  cases b,
-  { -- base 0
-    cases n; simp },
-  { cases b,
-    { -- base 1
-      simp },
-    { -- base >= 2
-      apply nat.strong_induction_on n,
-      clear n,
-      intros n IH,
-      cases n,
-      { simp },
-      { rw [digits_add_two_add_one, digits_add_two_add_one],
-        by_cases hdvd : (b.succ.succ) ∣ (n.succ+1),
-        { rw [nat.succ_div_of_dvd hdvd, list.length_cons, list.length_cons, nat.succ_le_succ_iff],
-          apply IH,
-          exact nat.div_lt_self (by linarith) (by linarith) },
-        { rw nat.succ_div_of_not_dvd hdvd,
-          refl } } } }
+  rcases n.eq_zero_or_pos with rfl|hn,
+  { simp },
+  cases lt_or_le b 2 with hb hb,
+  { rcases b with _|_|b,
+    { simp [digits_zero_succ', hn] },
+    { simp, },
+    { simpa [succ_lt_succ_iff] using hb } },
+  simpa [digits_len, hb, hn] using log_mono_right (le_succ _)
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
@@ -541,7 +550,6 @@ lemma of_digits_neg_one : Π (L : list ℕ),
 | (a :: b :: t) :=
   begin
     simp only [of_digits, list.alternating_sum, list.map_cons, of_digits_neg_one t],
-    push_cast,
     ring,
   end
 
@@ -578,12 +586,22 @@ begin
     (zmodeq_of_digits_digits b b' c (int.modeq_iff_dvd.2 h).symm _).symm.dvd,
 end
 
-lemma eleven_dvd_iff (n : ℕ) :
-  11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
+lemma eleven_dvd_iff : 11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
 begin
   have t := dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n,
   rw of_digits_neg_one at t,
   exact t,
+end
+
+lemma eleven_dvd_of_palindrome (p : (digits 10 n).palindrome) (h : even (digits 10 n).length) :
+  11 ∣ n :=
+begin
+  let dig := (digits 10 n).map (coe : ℕ → ℤ),
+  replace h : even dig.length := by rwa list.length_map,
+  refine eleven_dvd_iff.2 ⟨0, (_ : dig.alternating_sum = 0)⟩,
+  have := dig.alternating_sum_reverse,
+  rw [(p.map _).reverse_eq, pow_succ, h.neg_one_pow, mul_one, neg_one_zsmul] at this,
+  exact eq_zero_of_neg_eq this.symm,
 end
 
 /-! ### `norm_digits` tactic -/

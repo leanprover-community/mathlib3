@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster, Eric Wieser
 -/
 import algebra.char_p.basic
-import ring_theory.localization
+import ring_theory.localization.fraction_ring
 import algebra.free_algebra
 
 
@@ -40,6 +40,10 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
     refine iff.trans _ h.eq_iff,
     rw ring_hom.map_zero,
   end }
+
+lemma char_p_of_injective_algebra_map' (R A : Type*) [field R] [semiring A] [algebra R A]
+  [nontrivial A] (p : ℕ) [char_p R p] : char_p A p :=
+char_p_of_injective_algebra_map (algebra_map R A).injective p
 
 /-- If the algebra map `R →+* A` is injective and `R` has characteristic zero then so does `A`. -/
 lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]

@@ -68,7 +68,7 @@ end
 /-- Cardinality of a non-empty `Icc` of finsets. -/
 lemma card_Icc_finset (h : s ⊆ t) : (Icc s t).card = 2 ^ (t.card - s.card) :=
 begin
-  rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_eq_iff_inj_on],
+  rw [←card_sdiff h, ←card_powerset, Icc_eq_image_powerset h, finset.card_image_iff],
   rintro u hu v hv (huv : s ⊔ u = s ⊔ v),
   rw [mem_coe, mem_powerset] at hu hv,
   rw [←(disjoint_sdiff.mono_right hu : disjoint s u).sup_sdiff_cancel_left,
@@ -77,14 +77,14 @@ end
 
 /-- Cardinality of an `Ico` of finsets. -/
 lemma card_Ico_finset (h : s ⊆ t) : (Ico s t).card = 2 ^ (t.card - s.card) - 1 :=
-by rw [card_Ico_eq_card_Icc_sub_one (le_iff_subset.2 h), card_Icc_finset h]
+by rw [card_Ico_eq_card_Icc_sub_one, card_Icc_finset h]
 
 /-- Cardinality of an `Ioc` of finsets. -/
 lemma card_Ioc_finset (h : s ⊆ t) : (Ioc s t).card = 2 ^ (t.card - s.card) - 1 :=
-by rw [card_Ioc_eq_card_Icc_sub_one (le_iff_subset.2 h), card_Icc_finset h]
+by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc_finset h]
 
 /-- Cardinality of an `Ioo` of finsets. -/
 lemma card_Ioo_finset (h : s ⊆ t) : (Ioo s t).card = 2 ^ (t.card - s.card) - 2 :=
-by rw [card_Ioo_eq_card_Icc_sub_two (le_iff_subset.2 h), card_Icc_finset h]
+by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc_finset h]
 
 end finset

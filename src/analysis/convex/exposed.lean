@@ -14,7 +14,7 @@ This file defines exposed sets and exposed points for sets in a real vector spac
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
 (a continuous linear map `E → 𝕜`) over `A`. By convention, `∅` is an exposed subset of all sets.
-This allows for better functioriality of the definition (the intersection of two exposed subsets is
+This allows for better functoriality of the definition (the intersection of two exposed subsets is
 exposed, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
 `is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
@@ -167,7 +167,7 @@ end
 protected lemma is_extreme (hAB : is_exposed 𝕜 A B) :
   is_extreme 𝕜 A B :=
 begin
-  refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
+  refine ⟨hAB.subset, λ x₁ hx₁A x₂ hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
   have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
   have hlx₁ := hxB.2 x₁ hx₁A,

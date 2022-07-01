@@ -139,8 +139,7 @@ begin
   /- We consider balls of radius `1/2` around the points in `s`. They are disjoint, and all
   contained in the ball of radius `5/2`. A volume argument gives `s.card * (1/2)^dim ≤ (5/2)^dim`,
   i.e., `s.card ≤ 5^dim`. -/
-  letI : measurable_space E := borel E,
-  letI : borel_space E := ⟨rfl⟩,
+  borelize E,
   let μ : measure E := measure.add_haar,
   let δ : ℝ := (1 : ℝ)/2,
   let ρ : ℝ := (5 : ℝ)/2,
@@ -153,7 +152,7 @@ begin
     convert h c hc d hd hcd,
     norm_num },
   have A_subset : A ⊆ ball (0 : E) ρ,
-  { refine bUnion_subset (λ x hx, _),
+  { refine Union₂_subset (λ x hx, _),
     apply ball_subset_ball',
     calc δ + dist x 0 ≤ δ + 2 : by { rw dist_zero_right, exact add_le_add le_rfl (hs x hx) }
     ... = 5 / 2 : by norm_num [δ] },
@@ -171,7 +170,7 @@ begin
     by simp only [μ.add_haar_ball_of_pos _ ρpos],
   have J : (s.card : ℝ≥0∞) * ennreal.of_real (δ ^ (finrank ℝ E))
     ≤ ennreal.of_real (ρ ^ (finrank ℝ E)) :=
-      (ennreal.mul_le_mul_right (μ.add_haar_ball_pos _ zero_lt_one).ne'
+      (ennreal.mul_le_mul_right (measure_ball_pos _ _ zero_lt_one).ne'
         measure_ball_lt_top.ne).1 I,
   have K : (s.card : ℝ) ≤ (5 : ℝ) ^ finrank ℝ E,
     by simpa [ennreal.to_real_mul, div_eq_mul_inv] using
@@ -211,8 +210,7 @@ begin
   `N = multiplicity E + 1`. To formalize this, we work with functions `fin N → E`.
    -/
   classical,
-  by_contradiction h,
-  push_neg at h,
+  by_contra' h,
   set N := multiplicity E + 1 with hN,
   have : ∀ (δ : ℝ), 0 < δ → ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2)
     ∧ (∀ i j, i ≠ j → 1 - δ ≤ ∥f i - f j∥),
@@ -240,7 +238,7 @@ begin
                  (hF (u n) (zero_lt_u n)).left, forall_const], },
     obtain ⟨f, fmem, φ, φ_mono, hf⟩ : ∃ (f ∈ closed_ball (0 : fin N → E) 2) (φ : ℕ → ℕ),
       strict_mono φ ∧ tendsto ((F ∘ u) ∘ φ) at_top (𝓝 f) :=
-        is_compact.tendsto_subseq (proper_space.is_compact_closed_ball _ _) A,
+        is_compact.tendsto_subseq (is_compact_closed_ball _ _) A,
     refine ⟨f, λ i, _, λ i j hij, _⟩,
     { simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right] at fmem,
       exact fmem i },

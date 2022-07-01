@@ -50,7 +50,9 @@ def tensoring_right_monoidal [monoidal_category.{v} C] : monoidal_functor C (C �
   μ := λ X Y,
   { app := λ Z, (α_ Z X Y).hom,
     naturality' := λ Z Z' f, by { dsimp, rw associator_naturality, simp, } },
-  μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp, simp [associator_naturality], },
+  μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp,
+    simp only [←id_tensor_comp_tensor_id g f, id_tensor_comp, ←tensor_id, category.assoc,
+      associator_naturality, associator_naturality_assoc], },
   associativity' := λ X Y Z, by { ext W, dsimp, simp [pentagon], },
   left_unitality' := λ X, by { ext Y, dsimp, rw [category.id_comp, triangle, ←tensor_comp], simp, },
   right_unitality' := λ X,
@@ -121,7 +123,7 @@ end
 
 @[simp, reassoc]
 lemma μ_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
-  (F.obj n).map((F.map f).app X) ≫ (F.μ m' n).app X =
+  (F.obj n).map ((F.map f).app X) ≫ (F.μ m' n).app X =
     (F.μ m n).app X ≫ (F.map (f ⊗ 𝟙 n)).app X :=
 begin
   rw ← μ_naturality₂ F f (𝟙 n) X,
@@ -134,6 +136,24 @@ lemma μ_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
     (F.μ m n).app X ≫ (F.map (𝟙 m ⊗ g)).app X :=
 begin
   rw ← μ_naturality₂ F (𝟙 m) g X,
+  simp,
+end
+
+@[simp, reassoc]
+lemma μ_inv_naturalityₗ {m n m' : M} (f : m ⟶ m') (X : C) :
+  (F.μ_iso m n).inv.app X ≫ (F.obj n).map ((F.map f).app X) =
+    (F.map (f ⊗ 𝟙 n)).app X ≫ (F.μ_iso m' n).inv.app X :=
+begin
+  rw [← is_iso.comp_inv_eq, category.assoc, ← is_iso.eq_inv_comp],
+  simp,
+end
+
+@[simp, reassoc]
+lemma μ_inv_naturalityᵣ {m n n' : M} (g : n ⟶ n') (X : C) :
+  (F.μ_iso m n).inv.app X ≫ (F.map g).app ((F.obj m).obj X) =
+    (F.map (𝟙 m ⊗ g)).app X ≫ (F.μ_iso m n').inv.app X :=
+begin
+  rw [← is_iso.comp_inv_eq, category.assoc, ← is_iso.eq_inv_comp],
   simp,
 end
 

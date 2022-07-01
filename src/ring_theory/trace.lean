@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.bilinear_form
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.bilinear_form
+import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
+import linear_algebra.finite_dimensional
 import linear_algebra.vandermonde
 import linear_algebra.trace
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.primitive_element
+import field_theory.galois
 import ring_theory.power_basis
 
 /-!
@@ -98,7 +100,7 @@ variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
-  trace R S s = matrix.trace _ R _ (algebra.left_mul_matrix b s) :=
+  trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
 by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
@@ -106,7 +108,7 @@ lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
   haveI := classical.dec_eq ι,
-  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, trace_diag],
+  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
   simp,
@@ -133,10 +135,10 @@ begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
-      matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
+      matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
-  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply,
+  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply, matrix.diag,
       -- The unifier is not smart enough to apply this one by itself:
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
@@ -195,29 +197,28 @@ open algebra polynomial
 variables {F : Type*} [field F]
 variables [algebra K S] [algebra K F]
 
+/-- Given `pb : power_basis K S`, the trace of `pb.gen` is `-(minpoly K pb.gen).next_coeff`. -/
+lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_basis K S) :
+  algebra.trace K S pb.gen = -(minpoly K pb.gen).next_coeff :=
+begin
+  have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
+  have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
+  haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
+  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
+      ← pb.nat_degree_minpoly, fintype.card_fin, ← next_coeff_of_pos_nat_degree _ d_pos']
+end
+
+/-- Given `pb : power_basis K S`, then the trace of `pb.gen` is
+`((minpoly K pb.gen).map (algebra_map K F)).roots.sum`. -/
 lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
 begin
-  have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
-  have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
-  haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
-  -- Write the LHS as the `d-1`'th coefficient of `minpoly K pb.gen`
-  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
-      ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
-      ← next_coeff_of_pos_nat_degree _ d_pos',
-      ← next_coeff_map (algebra_map K F).injective],
-  -- Rewrite `minpoly K pb.gen` as a product over the roots.
-  conv_lhs { rw eq_prod_roots_of_splits hf },
-  rw [monic.next_coeff_mul, next_coeff_C_eq_zero, zero_add, monic.next_coeff_multiset_prod],
-  -- And conclude both sides are the same.
-  simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg, neg_neg],
-  -- Now we deal with the side conditions.
-  { intros, apply monic_X_sub_C },
-  { convert monic_one, simp [(minpoly.monic pb.is_integral_gen).leading_coeff] },
-  { apply monic_multiset_prod_of_monic,
-    intros, apply monic_X_sub_C },
+  rw [power_basis.trace_gen_eq_next_coeff_minpoly, ring_hom.map_neg, ← next_coeff_map
+    (algebra_map K F).injective, sum_roots_eq_next_coeff_of_monic_of_split
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
+      ((splits_id_iff_splits _).2 hf), neg_neg]
 end
 
 namespace intermediate_field.adjoin_simple
@@ -240,8 +241,7 @@ lemma trace_gen_eq_sum_roots (x : L)
   algebra_map K F (trace K K⟮x⟯ (adjoin_simple.gen K x)) =
     ((minpoly K x).map (algebra_map K F)).roots.sum :=
 begin
-  have injKKx : function.injective (algebra_map K K⟮x⟯) := ring_hom.injective _,
-  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : is_integral K x, swap,
   { simp [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
   have hx' : is_integral K (adjoin_simple.gen K x),
@@ -316,7 +316,7 @@ begin
   letI := classical.dec_eq E,
   rw [pb.trace_gen_eq_sum_roots hE, fintype.sum_equiv pb.lift_equiv', finset.sum_mem_multiset,
       finset.sum_eq_multiset_sum, multiset.to_finset_val,
-      multiset.erase_dup_eq_self.mpr _, multiset.map_id],
+      multiset.dedup_eq_self.mpr _, multiset.map_id],
   { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
@@ -358,6 +358,21 @@ begin
     exact is_separable.separable K _ }
 end
 
+lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L] :
+  algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
+begin
+  apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
+  rw map_sum (algebra_map L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
+  { rw ←trace_eq_sum_embeddings (algebraic_closure L),
+    { simp only [algebra_map_eq_smul_one, smul_one_smul] },
+    { exact is_galois.to_is_separable } },
+  { intro σ,
+    simp only [normal.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
+end
+
 end eq_sum_embeddings
 
 section det_ne_zero
@@ -377,6 +392,10 @@ def trace_matrix (b : κ → B) : matrix κ κ A
 
 lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
 
+lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
+  trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
+by {ext x y, simp}
+
 variables {A}
 
 lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ κ A) :
@@ -394,7 +413,7 @@ begin
     trace_form_apply, algebra.smul_mul_assoc],
   rw [mul_comm (b x), ← smul_def],
   ring_nf,
-  simp,
+  simp [mul_comm],
 end
 
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :
@@ -411,6 +430,26 @@ lemma trace_matrix_of_basis [fintype κ] [decidable_eq κ] (b : basis κ A B) :
 begin
   ext i j,
   rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
+end
+
+lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
+  (trace_matrix A b).mul_vec (b.equiv_fun z) = (λ i, trace A B (z * (b i))) :=
+begin
+  ext i,
+  rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
+    matrix.mul_apply, trace_matrix_def],
+  simp only [col_apply, trace_form_apply],
+  conv_lhs
+  { congr, skip, funext,
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [← linear_map.map_sum],
+    congr,
+    conv_lhs
+    { congr, skip, funext,
+      rw [← mul_smul_comm] },
+    rw [← finset.mul_sum, mul_comm z],
+    congr,
+    rw [b.sum_equiv_fun ]
 end
 
 variable (A)
@@ -475,7 +514,7 @@ begin
   refine mt mul_self_eq_zero.mp _,
   { simp only [det_vandermonde, finset.prod_eq_zero_iff, not_exists, sub_eq_zero],
     intros i _ j hij h,
-    exact (finset.mem_filter.mp hij).2.ne' (e.injective $ pb.alg_hom_ext h) },
+    exact (finset.mem_Ioi.mp hij).ne' (e.injective $ pb.alg_hom_ext h) },
   { rw [alg_hom.card, pb.finrank] }
 end
 

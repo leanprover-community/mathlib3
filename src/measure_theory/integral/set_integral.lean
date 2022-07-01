@@ -448,7 +448,7 @@ lemma set_integral_mono_set (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ.restr
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 integral_mono_measure (measure.restrict_mono_ae hst) hf hfi
 
-lemma set_integral_const_le {c : ℝ} (hs : measurable_set s) (hμs : μ s ≠ ∞)
+lemma set_integral_ge_of_const_le {c : ℝ} (hs : measurable_set s) (hμs : μ s ≠ ∞)
   (hf : ∀ x ∈ s, c ≤ f x) (hfint : integrable_on (λ (x : α), f x) s μ) :
   c * (μ s).to_real ≤ ∫ x in s, f x ∂μ :=
 begin

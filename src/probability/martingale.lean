@@ -427,7 +427,7 @@ begin
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop, hn],
     exact let ⟨j, hj₁, hj₂⟩ := hx in ⟨j, hj₁, hj₂⟩ },
-  have h := set_integral_const_le (measurable_set_le measurable_const
+  have h := set_integral_ge_of_const_le (measurable_set_le measurable_const
     (finset.measurable_range_sup'' (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))))
     (measure_ne_top _ _) this
     (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time

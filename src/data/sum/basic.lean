@@ -226,6 +226,10 @@ variables {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} 
 @[simp] lemma lift_rel_inr_inr : lift_rel r s (inr b) (inr d) ↔ s b d :=
 ⟨λ h, by { cases h, assumption }, lift_rel.inr⟩
 
+@[simp] lemma lift_rel_swap_swap : lift_rel s r (swap x) (swap y) ↔ lift_rel r s x y :=
+by cases x; cases y; simp only [swap_inl, swap_inr, lift_rel_inl_inl, lift_rel_inr_inr,
+  not_lift_rel_inl_inr, not_lift_rel_inr_inl]
+
 instance [Π a c, decidable (r a c)] [Π b d, decidable (s b d)] :
   Π (ab : α ⊕ β) (cd : γ ⊕ δ), decidable (lift_rel r s ab cd)
 | (inl a) (inl c) := decidable_of_iff' _ lift_rel_inl_inl

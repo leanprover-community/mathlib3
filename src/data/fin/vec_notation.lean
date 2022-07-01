@@ -279,7 +279,7 @@ end val
 
 section smul
 
-variables {M : Type*} [has_scalar M α]
+variables {M : Type*} [has_smul M α]
 
 @[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
 

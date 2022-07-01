@@ -76,7 +76,7 @@ def of : R →+* adjoin_root f := (mk f).comp C
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
-instance [comm_semiring S] [comm_semiring K] [has_scalar S K] [algebra S R] [algebra K R]
+instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algebra K R]
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
@@ -105,7 +105,7 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
 @[simp] lemma mk_self : mk f f = 0 :=
-quotient.sound' (mem_span_singleton.2 $ by simp)
+quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 

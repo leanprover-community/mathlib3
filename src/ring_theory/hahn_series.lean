@@ -404,7 +404,7 @@ end addition
 section distrib_mul_action
 variables [partial_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_action R V]
 
-instance : has_scalar R (hahn_series Γ V) :=
+instance : has_smul R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := r • x.coeff,
           is_pwo_support' := x.is_pwo_support.mono (function.support_smul_subset_right r x.coeff) }⟩
 
@@ -420,7 +420,7 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
 
 variables {S : Type*} [monoid S] [distrib_mul_action S V]
 
-instance [has_scalar R S] [is_scalar_tower R S V] :
+instance [has_smul R S] [is_scalar_tower R S V] :
   is_scalar_tower R S (hahn_series Γ V) :=
 ⟨λ r s a, by { ext, simp }⟩
 
@@ -1384,7 +1384,7 @@ section semiring
 
 variables [ordered_cancel_add_comm_monoid Γ] [semiring R] {α : Type*}
 
-instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
+instance : has_smul (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
     is_pwo_Union_support' := begin
       apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,

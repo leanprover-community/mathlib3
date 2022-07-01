@@ -331,23 +331,23 @@ protected lemma div [has_div β] [has_continuous_div β]
 ⟨λ n, hf.approx n / hg.approx n, λ x, (hf.tendsto_approx x).div' (hg.tendsto_approx x)⟩
 
 @[to_additive]
-protected lemma smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} {g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ x, f x • g x) :=
 continuous_smul.comp_strongly_measurable (hf.prod_mk hg)
 
-protected lemma const_smul {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (c • f) :=
 ⟨λ n, c • (hf.approx n), λ x, (hf.tendsto_approx x).const_smul c⟩
 
-protected lemma const_smul' {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul' {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (λ x, c • (f x)) :=
 hf.const_smul c
 
 @[to_additive]
-protected lemma smul_const {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul_const {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} (hf : strongly_measurable f) (c : β) :
   strongly_measurable (λ x, f x • c) :=
 continuous_smul.comp_strongly_measurable (hf.prod_mk strongly_measurable_const)
@@ -1143,23 +1143,23 @@ protected lemma div [group β] [topological_group β]
   hf.ae_eq_mk.div hg.ae_eq_mk⟩
 
 @[to_additive]
-protected lemma smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} {g : α → β} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ x, f x • g x) μ :=
 continuous_smul.comp_ae_strongly_measurable (hf.prod_mk hg)
 
-protected lemma const_smul {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (c • f) μ :=
 ⟨c • hf.mk f, hf.strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩
 
-protected lemma const_smul' {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul' {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (λ x, c • (f x)) μ :=
 hf.const_smul c
 
 @[to_additive]
-protected lemma smul_const {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul_const {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} (hf : ae_strongly_measurable f μ) (c : β) :
   ae_strongly_measurable (λ x, f x • c) μ :=
 continuous_smul.comp_ae_strongly_measurable (hf.prod_mk ae_strongly_measurable_const)

@@ -55,7 +55,7 @@ by { simp_rw is_clique_iff, exact set.pairwise.mono h }
 @[simp] lemma is_clique_bot_iff : (⊥ : simple_graph α).is_clique s ↔ (s : set α).subsingleton :=
 set.pairwise_bot_iff
 
-alias is_clique_bot_iff ↔ simple_graph.is_clique.subsingleton _
+alias is_clique_bot_iff ↔ is_clique.subsingleton _
 
 end clique
 
@@ -155,7 +155,7 @@ lemma mem_clique_set_iff : s ∈ G.clique_set n ↔ G.is_n_clique n s := iff.rfl
 @[simp] lemma clique_set_eq_empty_iff : G.clique_set n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, set.eq_empty_iff_forall_not_mem, mem_clique_set_iff]
 
-alias clique_set_eq_empty_iff ↔ _ simple_graph.clique_free.clique_set
+alias clique_set_eq_empty_iff ↔ _ clique_free.clique_set
 
 attribute [protected] clique_free.clique_set
 
@@ -185,7 +185,7 @@ set.ext $ λ _, mem_clique_finset_iff _
 @[simp] lemma clique_finset_eq_empty_iff : G.clique_finset n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, eq_empty_iff_forall_not_mem, mem_clique_finset_iff]
 
-alias clique_finset_eq_empty_iff ↔ _ simple_graph.clique_free.clique_finset
+alias clique_finset_eq_empty_iff ↔ _ _root_.simple_graph.clique_free.clique_finset
 
 attribute [protected] clique_free.clique_finset
 

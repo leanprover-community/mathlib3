@@ -68,32 +68,32 @@ def return_unused {α : Type*} : list α → list bool → list α
 | [] bo := []
 | (u::us) (b::bs) := if b then u::return_unused us bs else return_unused us bs
 
-/--  Given a list `lp` of `bool × pexpr` and a list `sl` of `expr`, scan the elements of `lp` one
-at a time and produce 3 sublists of `sl`.
+/--  Given a list `lp` of `bool × pexpr` and a list `l_un` of `expr`, scan the elements of `lp` one
+at a time and produce 3 sublists of `l_un`.
 
-If `(tf,pe)` is the first element of `lp`, we look for the first element of `sl` that unifies with
+If `(tf,pe)` is the first element of `lp`, we look for the first element of `l_un` that unifies with
 `pe.to_expr`.  If no such element exists, then we discard `(tf,pe)` and move along.
-If `eu ∈ sl` is the first element of `sl` that unifies with `pe.to_expr`, then we add `eu` as the
-next element of either the first or the second list, depending on the boolean `tf` and we remove
-`eu` from the list `sl`.  In this case, we continue our scanning with the next element of `lp`,
-replacing `sl` by `sl.erase eu`.
+If `eu ∈ l_un` is the first element of `l_un` that unifies with `pe.to_expr`, then we add `eu` as
+the next element of either the first or the second list, depending on the boolean `tf` and we remove
+`eu` from the list `l_un`.  In this case, we continue our scanning with the next element of `lp`,
+replacing `l_un` by `l_un.erase eu`.
 
 Once we exhaust the elements of `lp`, we return the four lists:
-* `l_tt`: the list of elements of `sl` that came from an element of `lp` whose boolean was `tt`,
-* `l_ff`: the list of elements of `sl` that came from an element of `lp` whose boolean was `ff`
-* `l_un`: the un-unified elements of `sl`
-* `l_m`: a "mask" list of booleans corresponding to the elements of `lp` that were placed in `l_un`
+* `l_tt`: the list of elements of `l_un` that came from an element of `lp` whose boolean was `tt`,
+* `l_ff`: the list of elements of `l_un` that came from an element of `lp` whose boolean was `ff`,
+* `l_un`: the un-unified elements of `l_un`,
+* `l_m`: a "mask" list of booleans corresponding to the elements of `lp` that were placed in `l_un`.
 
-The ununified elements of `sl` get used for error management: they keep track of which user inputs
+The ununified elements of `l_un` get used for error management: they keep track of which user inputs
 are superfluous. -/
 meta def move_left_or_right : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
-| [] sl is_unused      := return ([], [], sl, is_unused)
-| (be::l) sl is_unused := do
-    (ex :: _) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
-    move_left_or_right l sl (is_unused.append [tt]),
-  (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
-  if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
+| [] l_un l_m      := return ([], [], l_un, l_m)
+| (be::l) l_un l_m := do
+  (ex :: _) ← l_un.mfilter $ λ e', succeeds $ unify be.2 e' |
+    move_left_or_right l l_un (l_m.append [tt]),
+  (l_tt, l_ff, l_un, l_m) ← move_left_or_right l (l_un.erase ex) (l_m.append [ff]),
+  if be.1 then return (ex::l_tt, l_ff, l_un, l_m) else return (l_tt, ex::l_ff, l_un, l_m)
 
 /--  We adapt `move_left_or_right` to our goal:
 1. we convert a list of pairs `bool × pexpr` to a list of pairs `bool × expr`,

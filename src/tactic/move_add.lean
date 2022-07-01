@@ -151,7 +151,7 @@ meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
     let (recs, list_unused) := sort_all.unzip,
     let summed := (recs.drop 1).foldl (λ e f, op.mk_app [e, f]) ((recs.nth 0).get_or_else `(0)),
     return (summed, list_unused.transpose.map list.band)) <|>
-    (do [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
+  (do [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
     return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band))
 | lu (expr.pi na bi e f)           := do
   [en, fn] ← [e, f].mmap $ reorder_oper lu,

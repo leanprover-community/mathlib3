@@ -23,7 +23,7 @@ open_locale polynomial
 
 variables {R : Type*}
 
-section comm_ring
+section ring
 variables [ring R] (p q : R[X])
 
 /-- `cancel_leads p q` is formed by multiplying `p` and `q` by monomials so that they
@@ -36,7 +36,7 @@ variables {p q}
 
 @[simp] lemma neg_cancel_leads : - p.cancel_leads q = q.cancel_leads p := neg_sub _ _
 
-end comm_ring
+end ring
 
 section comm_ring
 variables [comm_ring R] {p q : R[X]}
@@ -45,10 +45,8 @@ lemma dvd_cancel_leads_of_dvd_of_dvd {r : R[X]} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=
 dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
 
-end comm_ring
-
-lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree [comm_ring R]
-  {p q : R[X]} (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
+lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree
+  (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
   (p.cancel_leads q).nat_degree < q.nat_degree :=
 begin
   by_cases hp : p = 0,
@@ -65,11 +63,13 @@ begin
   { compute_degree_le,
     repeat { rwa nat.sub_add_cancel } },
   { contrapose! h0,
-    rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, mul_comm _ p,
+    rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, X_pow_mul,
       ← tsub_add_cancel_of_le h, add_comm _ p.nat_degree],
     simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, add_tsub_cancel_left, coeff_add],
     rw [add_comm p.nat_degree, tsub_add_cancel_of_le h, ← leading_coeff, ← leading_coeff,
-      mul_comm _ q.leading_coeff, ← sub_eq_add_neg, ← mul_sub, sub_self, mul_zero] }
+      mul_comm _ q.leading_coeff, add_right_neg] }
 end
+
+end comm_ring
 
 end polynomial

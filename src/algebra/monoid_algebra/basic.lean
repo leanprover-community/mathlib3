@@ -262,8 +262,8 @@ instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 variables {S : Type*}
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_scalar R (monoid_algebra k G) :=
-finsupp.has_scalar
+  has_smul R (monoid_algebra k G) :=
+finsupp.has_smul
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (monoid_algebra k G) :=
@@ -278,7 +278,7 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k
 finsupp.has_faithful_smul
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_scalar R S] [is_scalar_tower R S k] :
+  [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
@@ -1035,8 +1035,8 @@ end mul_one_class
 section semiring
 
 instance {R : Type*} [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_scalar R (add_monoid_algebra k G) :=
-finsupp.has_scalar
+  has_smul R (add_monoid_algebra k G) :=
+finsupp.has_smul
 
 variables [semiring k] [add_monoid G]
 
@@ -1120,7 +1120,7 @@ instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k
 finsupp.module G k
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
-  [has_scalar R S] [is_scalar_tower R S k] :
+  [has_smul R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (add_monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 

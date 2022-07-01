@@ -25,7 +25,7 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 open_locale pointwise
 
-instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
+instance has_smul' : has_smul (ideal R) (submodule R M) :=
 ⟨submodule.map₂ (linear_map.lsmul R M)⟩
 
 /-- This duplicates the global `smul_eq_mul`, but doesn't have to unfold anywhere near as much to
@@ -152,6 +152,9 @@ le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
   from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
+
+lemma smul_inf_le (M₁ M₂ : submodule R M) : I • (M₁ ⊓ M₂) ≤ I • M₁ ⊓ I • M₂ :=
+le_inf (submodule.smul_mono_right inf_le_left) (submodule.smul_mono_right inf_le_right)
 
 variables (S : set R) (T : set M)
 
@@ -1670,7 +1673,7 @@ instance quotient.algebra {I : ideal A} : algebra R₁ (A ⧸ I) :=
   .. ring_hom.comp (ideal.quotient.mk I) (algebra_map R₁ A) }
 
 -- Lean can struggle to find this instance later if we don't provide this shortcut
-instance quotient.is_scalar_tower [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
+instance quotient.is_scalar_tower [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
   is_scalar_tower R₁ R₂ (A ⧸ I) :=
 by apply_instance
 

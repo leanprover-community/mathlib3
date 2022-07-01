@@ -397,7 +397,7 @@ apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
 
 -- group_theory/group_action/defs.lean
 apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_scalar to_additive_doc
+apply_nolint has_mul.to_has_smul to_additive_doc
 apply_nolint mul_action.regular.is_pretransitive to_additive_doc
 apply_nolint mul_smul_comm to_additive_doc
 apply_nolint one_smul_eq_id to_additive_doc
@@ -406,12 +406,12 @@ apply_nolint one_smul_eq_id to_additive_doc
 apply_nolint mul_action.to_perm_injective to_additive_doc
 
 -- group_theory/group_action/opposite.lean
-apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
+apply_nolint has_mul.to_has_opposite_smul to_additive_doc
 apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
 
 -- group_theory/group_action/pi.lean
-apply_nolint function.has_scalar to_additive_doc
+apply_nolint function.has_smul to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
 apply_nolint pi.has_faithful_smul_at to_additive_doc
 

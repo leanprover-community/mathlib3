@@ -382,7 +382,7 @@ lemma _root_.is_fractional.nsmul {I : submodule R P} :
   exact h.sup (_root_.is_fractional.nsmul n h)
 end
 
-instance : has_scalar ℕ (fractional_ideal S P) :=
+instance : has_smul ℕ (fractional_ideal S P) :=
 { smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
 
 @[norm_cast]

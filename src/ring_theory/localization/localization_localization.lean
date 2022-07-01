@@ -129,7 +129,7 @@ localization is a localization.
 -/
 lemma localization_localization_is_localization_of_has_all_units
   [is_localization N T] (H : ∀ (x : S), is_unit x → x ∈ N) :
-  is_localization (N.comap (algebra_map R S).to_monoid_hom) T :=
+  is_localization (N.comap (algebra_map R S)) T :=
 begin
   convert localization_localization_is_localization M N T,
   symmetry,
@@ -187,7 +187,7 @@ def localization_algebra_of_submonoid_le
 localization maps -/
 lemma localization_is_scalar_tower_of_submonoid_le
   (M N : submonoid R) (h : M ≤ N) [is_localization M S] [is_localization N T] :
-  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_scalar _ :=
+  @@is_scalar_tower R S T _ (localization_algebra_of_submonoid_le S T M N h).to_has_smul _ :=
 begin
   letI := localization_algebra_of_submonoid_le S T M N h,
   exact is_scalar_tower.of_algebra_map_eq' (is_localization.lift_comp _).symm

@@ -9,6 +9,7 @@ import order.order_iso_nat
 import order.sup_indep
 import order.zorn
 import data.finset.order
+import data.finite.default
 
 /-!
 # Compactness properties for complete lattices
@@ -224,7 +225,9 @@ alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
 alias is_sup_closed_compact_iff_well_founded ↔ _ _root_.well_founded.is_sup_closed_compact
 
-lemma well_founded.finite_of_set_independent [well_founded_gt α] {s : set α}
+variable {α}
+
+lemma well_founded_gt.finite_of_set_independent [well_founded_gt α] {s : set α}
   (hs : set_independent s) : s.finite :=
 begin
   classical,
@@ -241,6 +244,13 @@ begin
   apply hx₁,
   rw [← hs, eq_comm, inf_eq_left],
   exact le_Sup hx₀,
+end
+
+lemma well_founded.finite_of_independent [well_founded_gt α]
+  {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
+begin
+  haveI := (well_founded_gt.finite_of_set_independent ht.set_independent_range).finite,
+  exact finite.of_injective_finite_range (ht.injective h_ne_bot),
 end
 
 end complete_lattice

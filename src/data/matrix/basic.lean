@@ -126,12 +126,12 @@ instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
 instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
 function.nontrivial
 
-instance [has_scalar R α] : has_scalar R (matrix m n α) := pi.has_scalar
-instance [has_scalar R α] [has_scalar S α] [smul_comm_class R S α] :
+instance [has_smul R α] : has_smul R (matrix m n α) := pi.has_smul
+instance [has_smul R α] [has_smul S α] [smul_comm_class R S α] :
   smul_comm_class R S (matrix m n α) := pi.smul_comm_class
-instance [has_scalar R S] [has_scalar R α] [has_scalar S α] [is_scalar_tower R S α] :
+instance [has_smul R S] [has_smul R α] [has_smul S α] [is_scalar_tower R S α] :
   is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
-instance [has_scalar R α] [has_scalar Rᵐᵒᵖ α] [is_central_scalar R α] :
+instance [has_smul R α] [has_smul Rᵐᵒᵖ α] [is_central_scalar R α] :
   is_central_scalar R (matrix m n α) := pi.is_central_scalar
 instance [monoid R] [mul_action R α] :
   mul_action R (matrix m n α) := pi.mul_action _
@@ -154,25 +154,25 @@ protected lemma map_sub [has_sub α] [has_sub β] (f : α → β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 ext $ λ _ _, hf _ _
 
-lemma map_smul [has_scalar R α] [has_scalar R β] (f : α → β) (r : R)
+lemma map_smul [has_smul R α] [has_smul R β] (f : α → β) (r : R)
   (hf : ∀ a, f (r • a) = r • f a) (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 ext $ λ _ _, hf _
 
-/-- The scalar action via `has_mul.to_has_scalar` is transformed by the same map as the elements
+/-- The scalar action via `has_mul.to_has_smul` is transformed by the same map as the elements
 of the matrix, when `f` preserves multiplication. -/
 lemma map_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
   (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :
   (r • A).map f = f r • A.map f :=
 ext $ λ _ _, hf _ _
 
-/-- The scalar action via `has_mul.to_has_opposite_scalar` is transformed by the same map as the
+/-- The scalar action via `has_mul.to_has_opposite_smul` is transformed by the same map as the
 elements of the matrix, when `f` preserves multiplication. -/
 lemma map_op_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
   (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :
   (mul_opposite.op r • A).map f = mul_opposite.op (f r) • A.map f :=
 ext $ λ _ _, hf _ _
 
-lemma _root_.is_smul_regular.matrix [has_scalar R S] {k : R} (hk : is_smul_regular S k) :
+lemma _root_.is_smul_regular.matrix [has_smul R S] {k : R} (hk : is_smul_regular S k) :
   is_smul_regular (matrix m n S) k :=
 is_smul_regular.pi $ λ _, is_smul_regular.pi $ λ _, hk
 
@@ -348,7 +348,7 @@ funext $ @diagonal_apply_eq _ _ _ _ a
 
 @[simp] theorem diag_neg [has_neg α] (A : matrix n n α) : diag (-A) = -diag A := rfl
 
-@[simp] theorem diag_smul [has_scalar R α] (r : R) (A : matrix n n α) : diag (r • A) = r • diag A :=
+@[simp] theorem diag_smul [has_smul R α] (r : R) (A : matrix n n α) : diag (r • A) = r • diag A :=
 rfl
 
 @[simp] theorem diag_one [decidable_eq n] [has_zero α] [has_one α] : diag (1 : matrix n n α) = 1 :=
@@ -400,7 +400,7 @@ variables [fintype m] [fintype n]
 def dot_product [has_mul α] [add_comm_monoid α] (v w : m → α) : α :=
 ∑ i, v i * w i
 
-/- The precedence of 72 comes immediately after ` • ` for `has_scalar.smul`,
+/- The precedence of 72 comes immediately after ` • ` for `has_smul.smul`,
    so that `r₁ • a ⬝ᵥ r₂ • b` is parsed as `(r₁ • a) ⬝ᵥ (r₂ • b)` here. -/
 localized "infix  ` ⬝ᵥ `:72 := matrix.dot_product" in matrix
 
@@ -1325,7 +1325,7 @@ begin
   apply dot_product_comm
 end
 
-@[simp] lemma transpose_smul {R : Type*} [has_scalar R α] (c : R) (M : matrix m n α) :
+@[simp] lemma transpose_smul {R : Type*} [has_smul R α] (c : R) (M : matrix m n α) :
   (c • M)ᵀ = c • Mᵀ :=
 by { ext i j, refl }
 
@@ -1427,13 +1427,13 @@ variants which this lemma would not apply to:
 * `matrix.conj_transpose_rat_smul`
 * `matrix.conj_transpose_rat_cast_smul`
 -/
-@[simp] lemma conj_transpose_smul [has_star R] [has_star α] [has_scalar R α] [star_module R α]
+@[simp] lemma conj_transpose_smul [has_star R] [has_star α] [has_smul R α] [star_module R α]
   (c : R) (M : matrix m n α) :
   (c • M)ᴴ = star c • Mᴴ :=
 matrix.ext $ λ i j, star_smul _ _
 
 @[simp] lemma conj_transpose_smul_non_comm [has_star R] [has_star α]
-  [has_scalar R α] [has_scalar Rᵐᵒᵖ α] (c : R) (M : matrix m n α)
+  [has_smul R α] [has_smul Rᵐᵒᵖ α] (c : R) (M : matrix m n α)
   (h : ∀ (r : R) (a : α), star (r • a) = mul_opposite.op (star r) • star a) :
   (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
 matrix.ext $ by simp [h]
@@ -1602,7 +1602,7 @@ lemma minor_sub [has_sub α] (A B : matrix m n α) :
 @[simp] lemma minor_zero [has_zero α] :
   ((0 : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = 0 := rfl
 
-lemma minor_smul {R : Type*} [has_scalar R α] (r : R) (A : matrix m n α) :
+lemma minor_smul {R : Type*} [has_smul R α] (r : R) (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
 
 lemma minor_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
@@ -1780,10 +1780,10 @@ Simplification lemmas for `matrix.row` and `matrix.col`.
 open_locale matrix
 
 @[simp] lemma col_add [has_add α] (v w : m → α) : col (v + w) = col v + col w := by { ext, refl }
-@[simp] lemma col_smul [has_scalar R α] (x : R) (v : m → α) : col (x • v) = x • col v :=
+@[simp] lemma col_smul [has_smul R α] (x : R) (v : m → α) : col (x • v) = x • col v :=
 by { ext, refl }
 @[simp] lemma row_add [has_add α] (v w : m → α) : row (v + w) = row v + row w := by { ext, refl }
-@[simp] lemma row_smul [has_scalar R α] (x : R) (v : m → α) : row (x • v) = x • row v :=
+@[simp] lemma row_smul [has_smul R α] (x : R) (v : m → α) : row (x • v) = x • row v :=
 by { ext, refl }
 
 @[simp] lemma col_apply (v : m → α) (i j) : matrix.col v i j = v i := rfl

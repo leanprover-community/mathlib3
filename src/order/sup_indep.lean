@@ -161,7 +161,7 @@ end finset
 namespace complete_lattice
 variables [complete_lattice α]
 
-open set
+open set function
 
 /-- An independent set of elements in a complete lattice is one in which every element is disjoint
   from the `Sup` of the rest. -/
@@ -235,11 +235,11 @@ variables {t : ι → α} (ht : independent t)
 theorem independent_def : independent t ↔ ∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j) :=
 iff.rfl
 
-theorem independent_def' {ι : Type*} {t : ι → α} :
+theorem independent_def' :
   independent t ↔ ∀ i, disjoint (t i) (Sup (t '' {j | j ≠ i})) :=
 by {simp_rw Sup_image, refl}
 
-theorem independent_def'' {ι : Type*} {t : ι → α} :
+theorem independent_def'' :
   independent t ↔ ∀ i, disjoint (t i) (Sup {a | ∃ j ≠ i, t j = a}) :=
 by {rw independent_def', tidy}
 
@@ -253,19 +253,49 @@ lemma independent_pempty (t : pempty → α) : independent t.
 lemma independent.pairwise_disjoint : pairwise (disjoint on t) :=
 λ x y h, disjoint_Sup_right (ht x) ⟨y, supr_pos h.symm⟩
 
-lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
+lemma independent.mono
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
   independent t :=
 λ i, (hs i).mono (hst i) $ supr₂_mono $ λ j _, hst j
 
 /-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
-lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
-  {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
-  independent (s ∘ f) :=
-λ i, (hs (f i)).mono_right $ begin
+lemma independent.comp {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent t) (hf : injective f) :
+  independent (t ∘ f) :=
+λ i, (ht (f i)).mono_right $ begin
   refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
   exact supr_const_mono hf.ne,
+end
+
+lemma independent.comp' {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent $ t ∘ f) (hf : surjective f) :
+  independent t :=
+begin
+  intros i,
+  obtain ⟨i', rfl⟩ := hf i,
+  rw ← hf.supr_comp,
+  exact (ht i').mono_right (bsupr_mono $ λ j' hij, mt (congr_arg f) hij),
+end
+
+lemma independent.set_independent_range (ht : independent t) :
+  set_independent $ range t :=
+begin
+  rw set_independent_iff,
+  rw ← coe_comp_range_factorization t at ht,
+  exact ht.comp' surjective_onto_range,
+end
+
+lemma independent.injective (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : injective t :=
+begin
+  intros i j h,
+  by_contra' contra,
+  apply h_ne_bot j,
+  suffices : t j ≤ ⨆ k (hk : k ≠ i), t k,
+  { replace ht := (ht i).mono_right this,
+    rwa [h, disjoint_self] at ht, },
+  replace contra : j ≠ i, { exact ne.symm contra, },
+  exact le_supr₂ j contra,
 end
 
 lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):

@@ -40,7 +40,7 @@ the base ring `A 0` with:
 
 and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplication:
 
-* `direct_sum.grade_zero.has_scalar (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
+* `direct_sum.grade_zero.has_smul (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
 * `direct_sum.grade_zero.module (A 0)`
 * (nothing)
 * (nothing)

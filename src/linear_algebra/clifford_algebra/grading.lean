@@ -84,7 +84,7 @@ begin
 end
 
 lemma graded_algebra.lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
-  lift Q ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
+  lift Q ⟨by exact graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
     direct_sum.of (λ i, even_odd Q i) i' x' :=
 begin
   cases x' with x' hx',
@@ -111,7 +111,7 @@ end
 /-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom (even_odd Q)
-  (lift Q $ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
+  (lift Q $ ⟨by exact graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
   (begin

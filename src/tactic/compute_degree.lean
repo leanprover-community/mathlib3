@@ -160,7 +160,7 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
 | `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
 | `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
-| e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure n
+| e := eval_expr ℕ e <|> pure n
 
 /--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
 input, instead of parsing a `!` token. -/

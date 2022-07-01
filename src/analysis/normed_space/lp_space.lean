@@ -26,10 +26,11 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 
 * `mem_ℓp f p` : property that the function `f` satisfies, as appropriate, `f` finitely supported
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
-  `p = ∞`
+  `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure; also
-  equipped with `normed_space 𝕜` and `complete_space` instances under appropriate conditions
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
+  Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
+  `lp.complete_space`, and `lp.normed_ring`.
 
 ## Main results
 
@@ -627,6 +628,117 @@ begin
 end
 
 end normed_space
+
+section non_unital_normed_ring
+
+variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
+
+lemma _root_.mem_ℓp.infty_mul {f g : Π i, B i} (hf : mem_ℓp f ∞) (hg : mem_ℓp g ∞) :
+  mem_ℓp (f * g) ∞ :=
+begin
+  rw mem_ℓp_infty_iff,
+  obtain ⟨⟨Cf, hCf⟩, ⟨Cg, hCg⟩⟩ := ⟨hf.bdd_above, hg.bdd_above⟩,
+  refine ⟨Cf * Cg, _⟩,
+  rintros _ ⟨i, rfl⟩,
+  calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le (f i) (g i)
+  ...             ≤ Cf * Cg       : mul_le_mul (hCf ⟨i, rfl⟩) (hCg ⟨i, rfl⟩) (norm_nonneg _)
+                                      ((norm_nonneg _).trans (hCf ⟨i, rfl⟩))
+end
+
+instance : has_mul (lp B ∞) :=
+{ mul := λ f g, ⟨(f  * g : Π i, B i) , f.property.infty_mul g.property⟩}
+
+@[simp] lemma infty_coe_fn_mul (f g : lp B ∞) : ⇑(f * g) = f * g := rfl
+
+instance : non_unital_ring (lp B ∞) :=
+function.injective.non_unital_ring lp.has_coe_to_fun.coe (subtype.coe_injective)
+  (lp.coe_fn_zero B ∞) lp.coe_fn_add infty_coe_fn_mul lp.coe_fn_neg lp.coe_fn_sub
+  (λ _ _, rfl) (λ _ _,rfl)
+
+instance : non_unital_normed_ring (lp B ∞) :=
+{ norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
+    (λ i, calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le _ _
+    ...                    ≤ ∥f∥ * ∥g∥
+    : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
+        (lp.norm_apply_le_norm ennreal.top_ne_zero g i) (norm_nonneg _) (norm_nonneg _)),
+  .. lp.normed_group }
+
+-- we also want a `non_unital_normed_comm_ring` instance, but this has to wait for #13719
+
+end non_unital_normed_ring
+
+section normed_ring
+
+variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
+
+lemma _root_.one_mem_ℓp_infty : mem_ℓp (1 : Π i, B i) ∞ :=
+⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
+
+instance : has_one (lp B ∞) :=
+{ one := ⟨(1 : Π i, B i), one_mem_ℓp_infty⟩ }
+
+@[simp] lemma infty_coe_fn_one : ⇑(1 : lp B ∞) = 1 := rfl
+
+lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) : mem_ℓp (f ^ n) ∞ :=
+begin
+  induction n with n hn,
+  { rw pow_zero,
+    exact one_mem_ℓp_infty },
+  { rw pow_succ,
+    exact hf.infty_mul hn }
+end
+
+instance [nonempty I] : norm_one_class (lp B ∞) :=
+{ norm_one := by simp_rw [lp.norm_eq_csupr, infty_coe_fn_one, pi.one_apply, norm_one, csupr_const]}
+
+instance : has_pow (lp B ∞) ℕ := { pow := λ f n, ⟨_, f.prop.infty_pow n⟩ }
+
+@[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+
+lemma _root_.nat_cast_mem_ℓp_infty : ∀ (n : ℕ), mem_ℓp (n : Π i, B i) ∞
+| 0 := by { rw nat.cast_zero, exact zero_mem_ℓp }
+| (n + 1) := by { rw nat.cast_succ, exact (_root_.nat_cast_mem_ℓp_infty n).add one_mem_ℓp_infty }
+
+instance : has_nat_cast (lp B ∞) := { nat_cast := λ n, ⟨(↑n : Π i, B i), nat_cast_mem_ℓp_infty _⟩ }
+
+@[simp] lemma infty_coe_fn_nat_cast (n : ℕ) : ⇑(n : lp B ∞) = n := rfl
+
+lemma _root_.int_cast_mem_ℓp_infty (z : ℤ) : mem_ℓp (z : Π i, B i) ∞ :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw int.cast_coe_nat,
+    exact nat_cast_mem_ℓp_infty n },
+  { rw [int.cast_neg, int.cast_coe_nat],
+    exact (nat_cast_mem_ℓp_infty n).neg }
+end
+
+instance : has_int_cast (lp B ∞) := { int_cast := λ z, ⟨(↑z : Π i, B i), int_cast_mem_ℓp_infty _⟩ }
+
+@[simp] lemma infty_coe_fn_int_cast (z : ℤ) : ⇑(z : lp B ∞) = z := rfl
+
+instance : ring (lp B ∞) :=
+function.injective.ring lp.has_coe_to_fun.coe subtype.coe_injective
+  (lp.coe_fn_zero B ∞) (infty_coe_fn_one) lp.coe_fn_add infty_coe_fn_mul
+  lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _, rfl) infty_coe_fn_pow
+  infty_coe_fn_nat_cast infty_coe_fn_int_cast
+
+instance : normed_ring (lp B ∞) :=
+{ .. lp.ring, .. lp.non_unital_normed_ring }
+
+end normed_ring
+
+section normed_comm_ring
+
+variables {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [∀ i, norm_one_class (B i)]
+
+instance : comm_ring (lp B ∞) :=
+{ mul_comm := λ f g, by { ext, simp only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },
+  .. lp.ring }
+
+instance : normed_comm_ring (lp B ∞) :=
+{ .. lp.comm_ring, .. lp.normed_ring }
+
+end normed_comm_ring
 
 section single
 variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]

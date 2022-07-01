@@ -216,7 +216,10 @@ lemma smul_top_eq_top_of_divisible_by_int [divisible_by A ℤ] {n : ℤ} (hn : n
   n • (⊤ : add_subgroup A) = ⊤ :=
 add_subgroup.map_top_of_surjective _ $ λ a, ⟨divisible_by.div a n, divisible_by.div_cancel _ hn⟩
 
-noncomputable lemma divisible_by_int_of_smul_top_eq_top
+/--
+If for all `n ≠ 0 ∈ ℤ`, `n • A = A`, then `A` is divisible.
+-/
+noncomputable def divisible_by_int_of_smul_top_eq_top
   (H : ∀ {n : ℤ} (hn : n ≠ 0), n • (⊤ : add_subgroup A) = ⊤) :
   divisible_by A ℤ :=
 { div := λ a n, dite (n = 0) (λ _, 0)

@@ -35,29 +35,7 @@ identical to `tactic.congrm_fun_` to perform its job.  Thus, if you want to impl
 `tactic.congrm_fun_` or you should change `convert_to_explicit` accordingly.
 -/
 
-/-- Get the list of explicit arguments of a function. -/
-meta def expr.list_explicit_args (f : expr) : tactic (list expr) :=
-tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
-
 namespace tactic
-
-/--  Given a starting list `li`, a list `bo` of booleans and a replacement list `new`,
-read the items in `li` in succession and either replace them with the next element of `new` or
-not, using the list of booleans. -/
-def list.replace_if {α} : list α → list bool → list α → list α
-| l  _  [] := l
-| [] _  _  := []
-| l  [] _  := l
-| (n::ns) (tf::bs) e@(c::cs) := if tf then c :: ns.replace_if bs cs else n :: ns.replace_if bs e
-
-/--  `replace_explicit_args f parg` assumes that `f` is an expression corresponding to a function
-application.  It replaces the explicit arguments of `f`, in succession, by the elements of `parg`.
-The implicit arguments of `f` remain unchanged. -/
-meta def replace_explicit_args (f : expr) (parg : list expr) : tactic (expr) :=
-do finf ← (get_fun_info f.get_app_fn),
-  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
-  let nargs := list.replace_if f.get_app_args is_ex_arg parg,
-  return $ expr.mk_app f.get_app_fn nargs
 
 /--  A generic function with one argument.  It is the "function underscore" input to `congrm`. -/
 @[nolint unused_arguments]
@@ -84,7 +62,7 @@ read off from the left-hand-side of the target expression. -/
 meta def convert_to_explicit (pat lhs : expr) : tactic expr :=
 if pat.get_app_fn.const_name.to_string.starts_with "tactic.congrm_fun_"
 then
-  pat.list_explicit_args >>= replace_explicit_args lhs
+  pat.list_explicit_args >>= lhs.replace_explicit_args
 else
   return pat
 

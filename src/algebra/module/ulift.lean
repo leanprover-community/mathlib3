@@ -23,30 +23,30 @@ variable {R : Type u}
 variable {M : Type v}
 variable {N : Type w}
 
-instance has_scalar_left [has_scalar R M] :
-  has_scalar (ulift R) M :=
+instance has_smul_left [has_smul R M] :
+  has_smul (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
-@[simp] lemma smul_down [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
+@[simp] lemma smul_down [has_smul R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
 
 @[simp]
-lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :
+lemma smul_down' [has_smul R M] (s : R) (x : ulift M) :
   (s • x).down = s • x.down :=
 rfl
 
-instance is_scalar_tower [has_scalar R M] [has_scalar M N] [has_scalar R N]
+instance is_scalar_tower [has_smul R M] [has_smul M N] [has_smul R N]
   [is_scalar_tower R M N] : is_scalar_tower (ulift R) M N :=
 ⟨λ x y z, show (x.down • y) • z = x.down • y • z, from smul_assoc _ _ _⟩
 
-instance is_scalar_tower' [has_scalar R M] [has_scalar M N] [has_scalar R N]
+instance is_scalar_tower' [has_smul R M] [has_smul M N] [has_smul R N]
   [is_scalar_tower R M N] : is_scalar_tower R (ulift M) N :=
 ⟨λ x y z, show (x • y.down) • z = x • y.down • z, from smul_assoc _ _ _⟩
 
-instance is_scalar_tower'' [has_scalar R M] [has_scalar M N] [has_scalar R N]
+instance is_scalar_tower'' [has_smul R M] [has_smul M N] [has_smul R N]
   [is_scalar_tower R M N] : is_scalar_tower R M (ulift N) :=
 ⟨λ x y z, show up ((x • y) • z.down) = ⟨x • y • z.down⟩, by rw smul_assoc⟩
 
-instance [has_scalar R M] [has_scalar Rᵐᵒᵖ M] [is_central_scalar R M] :
+instance [has_smul R M] [has_smul Rᵐᵒᵖ M] [is_central_scalar R M] :
   is_central_scalar R (ulift M) :=
 ⟨λ r m, congr_arg up $ op_smul_eq_smul r m.down⟩
 
@@ -87,7 +87,7 @@ instance smul_with_zero [has_zero R] [has_zero M] [smul_with_zero R M] :
   smul_with_zero (ulift R) M :=
 { smul_zero := λ _, smul_zero' _ _,
   zero_smul := zero_smul _,
-  ..ulift.has_scalar_left }
+  ..ulift.has_smul_left }
 
 instance smul_with_zero' [has_zero R] [has_zero M] [smul_with_zero R M] :
   smul_with_zero R (ulift M) :=

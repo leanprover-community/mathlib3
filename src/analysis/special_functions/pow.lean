@@ -255,6 +255,11 @@ lemma continuous.const_cpow {b : ℂ} (hf : continuous f) (h : b ≠ 0 ∨ ∀ a
   continuous (λ x, b ^ f x) :=
 continuous_iff_continuous_at.2 $ λ a, (hf.continuous_at.const_cpow $ h.imp id $ λ h, h a)
 
+lemma continuous_on.cpow_const {b : ℂ} (hf : continuous_on f s)
+  (h : ∀ (a : α), a ∈ s → 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous_on (λ x, (f x) ^ b) s :=
+hf.cpow continuous_on_const h
+
 end lim
 
 namespace real
@@ -536,7 +541,7 @@ by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
-  suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
+  suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by rwa [int.cast_neg, int.cast_one] at H,
   simp only [rpow_int_cast, zpow_one, zpow_neg],
 end
 

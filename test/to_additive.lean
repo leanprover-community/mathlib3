@@ -10,12 +10,12 @@ def foo0 {α} [has_mul α] [has_one α] (x y : α) : α := x * y * 1
 class {u v} my_has_pow (α : Type u) (β : Type v) :=
 (pow : α → β → α)
 
-class my_has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
+class my_has_smul (M : Type*) (α : Type*) := (smul : M → α → α)
 
 attribute [to_additive_reorder 1] my_has_pow
 attribute [to_additive_reorder 1 4] my_has_pow.pow
-attribute [to_additive test.my_has_scalar] my_has_pow
-attribute [to_additive test.my_has_scalar.smul] my_has_pow.pow
+attribute [to_additive test.my_has_smul] my_has_pow
+attribute [to_additive test.my_has_smul.smul] my_has_pow.pow
 
 -- set_option pp.universes true
 -- set_option pp.implicit true

@@ -489,8 +489,8 @@ end compact
 
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
-/-- The Krull topology on `L ≃ₐ[K] L` is compact and Hausdorff whenever `L/K` is a
-  normal extension -/
+/-- The Krull topology on `L ≃ₐ[K] L` is compact and Hausdorff whenever `L/K` is an
+  algebraic extension -/
 def krull_topology_comphaus (h_int : algebra.is_integral K L) : CompHaus :=
 { to_Top := Top.of (L ≃ₐ[K] L),
   is_compact := { compact_univ := krull_topology_compact h_int },
@@ -502,7 +502,7 @@ lemma krull_topology_totally_disconnected_space (h_int : algebra.is_integral K L
   totally_disconnected_space (L ≃ₐ[K] L) :=
 { is_totally_disconnected_univ := krull_topology_totally_disconnected h_int }
 
-/-- The Krull topology on `L ≃ₐ[K] L` is profinite whenever `L/K` is a normal extension -/
+/-- The Krull topology on `L ≃ₐ[K] L` is profinite whenever `L/K` is an algebraic extension -/
 def krull_topology_profinite (h_int : algebra.is_integral K L) : Profinite :=
 { to_CompHaus := krull_topology_comphaus h_int,
   is_totally_disconnected := krull_topology_totally_disconnected_space h_int }

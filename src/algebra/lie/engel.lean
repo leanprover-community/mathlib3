@@ -264,9 +264,7 @@ begin
   have hK₃ : K = ⊤,
   { by_contra contra,
     obtain ⟨K', hK'₁, hK'₂⟩ := this K hK₁ contra,
-    specialize hK₂ K' hK'₁ (le_of_lt hK'₂),
-    replace hK'₂ := (ne_of_lt hK'₂).symm,
-    contradiction, },
+    exact hK₂ K' hK'₁ hK'₂, },
   exact hK₃ ▸ hK₁,
 end
 

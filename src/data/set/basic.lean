@@ -1740,7 +1740,7 @@ protected lemma subsingleton.strict_mono_on (h : s.subsingleton) :
   strict_mono_on f s :=
 λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
 
-@[simp] protected lemma subsingleton.strict_anti_on (h : s.subsingleton) :
+protected lemma subsingleton.strict_anti_on (h : s.subsingleton) :
   strict_anti_on f s :=
 λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
 

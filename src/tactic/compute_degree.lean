@@ -42,7 +42,7 @@ begin
 end
 
 lemma nat_degree_bit0 : (bit0 a).nat_degree ≤ a.nat_degree :=
-(nat_degree_add_le _ _).trans (by simp)
+(nat_degree_add_le _ _).trans (max_self _).le
 
 lemma nat_degree_bit1 : (bit1 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
@@ -72,11 +72,11 @@ meta def guess_degree : expr → tactic expr
 | `(polynomial.X)          := pure `(1)
 | `(bit0 %%a)              := guess_degree a
 | `(bit1 %%a)              := guess_degree a
-| `(%%a + %%b)             := do da ← guess_degree a, db ← guess_degree b,
+| `(%%a + %%b)             := do [da, db] ← [a, b].mmap guess_degree,
                               pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a - %%b)             := do da ← guess_degree a, db ← guess_degree b,
+| `(%%a - %%b)             := do [da, db] ← [a, b].mmap guess_degree,
                               pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a * %%b)             := do da ← guess_degree a, db ← guess_degree b,
+| `(%%a * %%b)             := do [da, db] ← [a, b].mmap guess_degree,
                               pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
 | `(%%a ^ %%b)             := do da ← guess_degree a,
                               pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
@@ -88,7 +88,7 @@ meta def guess_degree : expr → tactic expr
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
-*  a sum, difference, opposite or product;
+* a sum, difference, opposite or product;
 * (a power of) `X`;
 * a monomial;
 * `C a`;
@@ -104,34 +104,23 @@ The side-goals produced by `resolve_sum_step` are either again of the same shape
 or of the form `m ≤ n`, where `m n : ℕ`, or, if `tf = true`, also of the form `0 < m`. -/
 meta def resolve_sum_step (pows : bool) : expr → tactic unit
 | `(polynomial.nat_degree %%tl ≤ %%tr) := match tl with
-  | `(%%tl1 + %%tl2) := do
-      refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 - %%tl2) := do
-      refine ``((polynomial.nat_degree_sub_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 * %%tl2) := do
-    d1 ← guess_degree tl1,
-    d2 ← guess_degree tl2,
-    refine ``(polynomial.nat_degree_mul_le.trans ((add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr)))
-  | `(- %%f) := do
-    refine ``((polynomial.nat_degree_neg _).le.trans _)
-  | `(polynomial.X ^ %%n) :=
-    refine ``((polynomial.nat_degree_X_pow_le %%n).trans _)
+  | `(%%tl1 + %%tl2) := refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
+  | `(%%tl1 - %%tl2) := refine ``((polynomial.nat_degree_sub_le_iff_left _ _ _).mpr _)
+  | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
+    refine ``(polynomial.nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
+  | `(- %%f) := refine ``((polynomial.nat_degree_neg _).le.trans _)
+  | `(polynomial.X ^ %%n) := refine ``((polynomial.nat_degree_X_pow_le %%n).trans _)
   | (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
     refine ``((polynomial.nat_degree_monomial_le %%x).trans _)
   | (app `(⇑polynomial.C) x) :=
     interactive.exact ``((polynomial.nat_degree_C _).le.trans (nat.zero_le _))
   | `(polynomial.X) :=
     refine ``(polynomial.nat_degree_X_le.trans _)
-  | `(has_zero.zero) := do
-    refine ``(polynomial.nat_degree_zero.le.trans (nat.zero_le _))
-  | `(has_one.one)   := do
-    refine ``(polynomial.nat_degree_one.le.trans (nat.zero_le _))
-  | `(bit0 %%a)      := do
-    refine ``((polynomial.nat_degree_bit0 %%a).trans _)
-  | `(bit1 %%a)      := do
-    refine ``((polynomial.nat_degree_bit1 %%a).trans _)
-  | `(%%tl1 ^ %%n)   :=
-    if pows then do
+  | `(has_zero.zero) := refine ``(polynomial.nat_degree_zero.le.trans (nat.zero_le _))
+  | `(has_one.one)   := refine ``(polynomial.nat_degree_one.le.trans (nat.zero_le _))
+  | `(bit0 %%a)      := refine ``((polynomial.nat_degree_bit0 %%a).trans _)
+  | `(bit1 %%a)      := refine ``((polynomial.nat_degree_bit1 %%a).trans _)
+  | `(%%tl1 ^ %%n)   := if pows then do
       refine ``(polynomial.nat_degree_pow_le.trans $
         (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
     else failed

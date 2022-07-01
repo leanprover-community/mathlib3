@@ -248,6 +248,20 @@ lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_group E]
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
+lemma integrable_on_Ici_iff_integrable_on_Ioi'
+  {E : Type*} [normed_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
+begin
+  have : Ici a = Icc a a ∪ Ioi a := (Icc_union_Ioi_eq_Ici le_rfl).symm,
+  rw [this, integrable_on_union],
+  simp [ha.lt_top]
+end
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi
+  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} :
+  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
+integrable_on_Ici_iff_integrable_on_Ioi' (by simp)
+
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
 lemma measure_theory.integrable.interval_integrable (hf : integrable f μ) :

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import measure_theory.function.jacobian
+import measure_theory.integral.exp_decay
+import analysis.special_functions.gamma
 
 /-!
 # Changing variables in integrals through polar coordinates
@@ -24,7 +26,6 @@ begin
   ext x,
   simp,
 end
-
 
 /-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r cos θ, r sin θ)` to `(r, θ)`.
 It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. -/
@@ -178,8 +179,10 @@ begin
 end
 
 
-theorem integral_comp_polar_coord_symm {E : Type*} (f : ℝ × ℝ → ℝ) :
-  (∫ p in polar_coord.target, f (polar_coord.symm p) * p.1)
+theorem integral_comp_polar_coord_symm
+  {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+  (f : ℝ × ℝ → E) :
+  (∫ p in polar_coord.target, p.1 • f (polar_coord.symm p))
     = ∫ p, f p :=
 begin
   set B : (ℝ × ℝ) → ((ℝ × ℝ) →L[ℝ] (ℝ × ℝ)) := λ p,
@@ -204,20 +207,165 @@ begin
   end
   ... = ∫ p in polar_coord.target, abs ((B p).det) • f (polar_coord.symm p) :
     by apply integral_target_eq_integral_abs_det_fderiv_smul volume A
-  ... = ∫ p in polar_coord.target, f (polar_coord.symm p) * p.1 :
+  ... = ∫ p in polar_coord.target, p.1 • f (polar_coord.symm p) :
   begin
     apply set_integral_congr (polar_coord.open_target.measurable_set) (λ x hx, _),
-    rw [B_det, abs_of_pos, mul_comm],
-    { refl },
-    { exact hx.1 },
+    rw [B_det, abs_of_pos],
+    exact hx.1,
   end
 end
+
+open filter asymptotics
+
+lemma exp_neg_mul_sq_is_o_exp_neg {b : ℝ} (hb : 0 < b) :
+  (λ x:ℝ, exp (-b * x^2)) =o[at_top] (λ x:ℝ, exp (-x)) :=
+begin
+  refine is_o_of_tendsto (λ x hx, _) _,
+  { exfalso, exact (exp_pos (-x)).ne' hx },
+  have : (λ (x:ℝ), exp (-b * x^2) / exp (-x)) = (λ (x:ℝ), exp (x * (1 - b * x))),
+  { ext1 x, field_simp [exp_ne_zero, real.exp_neg, ← real.exp_add], ring_exp },
+  rw this,
+  apply tendsto_exp_at_bot.comp,
+  apply tendsto.at_top_mul_at_bot tendsto_id,
+  apply tendsto_at_bot_add_const_left at_top (1 : ℝ),
+  apply tendsto_neg_at_top_at_bot.comp,
+  exact tendsto.const_mul_at_top hb tendsto_id,
+end
+
+lemma rpow_mul_exp_neg_mul_sq_is_o_exp_neg {b : ℝ} (hb : 0 < b) (s : ℝ) :
+  (λ x:ℝ, x ^ s * exp (-b * x^2)) =o[at_top] (λ x:ℝ, exp (-(1/2) * x)) :=
+begin
+  apply ((is_O_refl (λ x:ℝ, x ^ s) at_top).mul_is_o (exp_neg_mul_sq_is_o_exp_neg hb)).trans,
+  convert Gamma_integrand_is_o s,
+  simp_rw [mul_comm],
+end
+
+lemma abs_rpow_neg_le_rpow {x : ℝ} (hx : 0 ≤ x) (s : ℝ) : |(-x) ^ s| ≤ x ^ s :=
+begin
+  rcases eq_or_lt_of_le hx with hx|hx,
+  { rcases eq_or_ne s 0 with rfl|hs,
+    { simp [← hx] },
+    { simp [← hx, zero_rpow hs] } },
+  rw [rpow_def_of_pos hx, rpow_def_of_neg (neg_lt_zero.mpr hx), abs_mul,
+    abs_of_nonneg (exp_pos _).le, log_neg_eq_log],
+  exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _)
+end
+
+lemma integrable_on_rpow_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) {s : ℝ} (hs : -1 < s) :
+  integrable_on (λ x:ℝ, x ^ s * exp (-b * x^2)) (Ioi 0) :=
+begin
+  rw [← Ioc_union_Ioi_eq_Ioi (zero_le_one : (0 : ℝ) ≤ 1), integrable_on_union],
+  split,
+  { rw [←integrable_on_Icc_iff_integrable_on_Ioc],
+    refine integrable_on.mul_continuous_on _ _ is_compact_Icc,
+    { refine (interval_integrable_iff_integrable_Icc_of_le zero_le_one).mp _,
+      exact interval_integral.interval_integrable_rpow' hs },
+    { exact (continuous_exp.comp (continuous_const.mul (continuous_pow 2))).continuous_on } },
+  { have B : (0 : ℝ) < 1/2, by norm_num,
+    apply integrable_of_is_O_exp_neg B _ (is_o.is_O (rpow_mul_exp_neg_mul_sq_is_o_exp_neg hb _)),
+    assume x hx,
+    have N : x ≠ 0, { refine (zero_lt_one.trans_le _).ne', exact hx },
+    apply ((continuous_at_rpow_const _ _ (or.inl N)).mul _).continuous_within_at,
+    exact (continuous_exp.comp (continuous_const.mul (continuous_pow 2))).continuous_at },
+end
+
+lemma integrable_rpow_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) {s : ℝ} (hs : -1 < s) :
+  integrable (λ x:ℝ, x ^ s * exp (-b * x^2)) :=
+begin
+  rw [← integrable_on_univ, ← @Iio_union_Ici _ _ (0 : ℝ), integrable_on_union,
+      integrable_on_Ici_iff_integrable_on_Ioi],
+  refine ⟨_, integrable_on_rpow_mul_exp_neg_mul_sq hb hs⟩,
+  rw ← (measure.measure_preserving_neg (volume : measure ℝ)).integrable_on_comp_preimage sorry,
+  simp only [function.comp, neg_sq, neg_preimage, preimage_neg_Iio, neg_neg, neg_zero],
+  apply integrable.mono' (integrable_on_rpow_mul_exp_neg_mul_sq hb hs),
+  { apply measurable.ae_strongly_measurable,
+    apply (measurable_neg.pow_const _).mul,
+
+  }
+end
+
+
+#exit
+
+lemma integrable_rpow_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) (s : ℝ) {hs : -1 < s} :
+  integrable (λ x:ℝ, x ^ s * exp (-b * x^2)) :=
+begin
+  have B : (0 : ℝ) < 1/2, by norm_num,
+  have A : (univ : set ℝ) = (Ioi (1 : ℝ) ∪ Iio (-1 : ℝ) ∪ Icc (-1) 1), sorry,
+  rw [← integrable_on_univ, A, integrable_on_union, integrable_on_union],
+  split, split,
+  { apply integrable_of_is_O_exp_neg B _ (is_o.is_O (rpow_mul_exp_neg_mul_sq_is_o_exp_neg hb _)),
+    assume x hx,
+    have N : x ≠ 0, { refine (zero_lt_one.trans_le _).ne', exact hx },
+    apply ((continuous_at_rpow_const _ _ (or.inl N)).mul _).continuous_within_at,
+    exact (continuous_exp.comp (continuous_const.mul (continuous_pow 2))).continuous_at },
+  { rw ← (measure.measure_preserving_neg (volume : measure ℝ)).integrable_on_comp_preimage sorry,
+    simp only [function.comp, neg_sq, neg_preimage, preimage_neg_Iio, neg_neg],
+    apply integrable_of_is_O_exp_neg B _ (is_o.is_O _),
+    { assume x hx,
+      have N : -x ≠ 0,
+      { rw [ne.def, neg_eq_zero], refine (zero_lt_one.trans_le _).ne', exact hx },
+      apply continuous_at.continuous_within_at,
+      apply ((continuous_at_rpow_const _ _ (or.inl N)).comp continuous_at_neg).mul _,
+      exact (continuous_exp.comp (continuous_const.mul (continuous_pow 2))).continuous_at },
+    { apply is_O.trans_is_o _ (rpow_mul_exp_neg_mul_sq_is_o_exp_neg hb s),
+      refine is_O_iff.2 ⟨1, _⟩,
+      filter_upwards [Ioi_mem_at_top (0 : ℝ)] with x hx,
+      simp only [neg_mul, norm_mul, one_mul],
+      apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+      simp only [real.norm_eq_abs],
+      exact (abs_rpow_neg_le_rpow (le_of_lt hx) s).trans (le_abs_self _) } },
+
+end
+
+#exitg
+
+  split,
+  { apply integrable_of_is_O_exp_neg B _ (is_o.is_O _),
+    { apply continuous.continuous_on,
+      apply continuous.mul,
+      apply continuous_rpo },
+  }
+end
+
+lemma integral_mul_exp_neg_sq_div_two : ∫ (r : ℝ) in Ioi 0, r * exp (-r ^ 2 / 2) = 1 :=
+begin
+  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _ _ filter.tendsto_id) _,
+  { have A : (0 : ℝ) < 1/2, by norm_num,
+    apply integrable_of_is_O_exp_neg A _ (is_o.is_O _),
+    { apply continuous.continuous_on,
+      continuity },
+    { convert rpow_mul_exp_neg_mul_sq_is_o_exp_neg A 1,
+      ext x,
+      simp [div_eq_inv_mul] } },
+  { simpa using tendsto_exp_neg_at_top_nhds_0.const_sub 1, },
+end
+
+#exit
 
 theorem foo :
   (∫ x, real.exp (-x^2 / 2)) ^ 2 = 2 * π :=
 calc
-(∫ x, real.exp (-x^2 / 2)) ^ 2 = ∫ p : ℝ × ℝ, real.exp (-p.1 ^ 2 / 2 * real.exp (-p.2 ^ 2 / 2)) :
-begin
-  sorry
-end
-... = 2 * π : sorry
+(∫ x, real.exp (-x^2 / 2)) ^ 2
+= ∫ p : ℝ × ℝ, real.exp (-p.1 ^ 2 / 2) * real.exp (-p.2 ^ 2 / 2) :
+  by { rw [pow_two, ← integral_prod_mul], refl }
+... = ∫ p : ℝ × ℝ, real.exp (- (p.1 ^ 2 + p.2^2) / 2) :
+  by { congr, ext p, simp only [←exp_add, neg_add_rev, exp_eq_exp], ring }
+... = ∫ p in polar_coord.target, p.1 * real.exp (- ((p.1 * cos p.2) ^ 2 + (p.1 * sin p.2)^2) / 2) :
+  (integral_comp_polar_coord_symm (λ p, real.exp (- (p.1^2 + p.2^2) / 2))).symm
+... = (∫ r in Ioi (0 : ℝ), r * real.exp (-r^2 / 2)) * (∫ θ in Ioo (-π) π, 1) :
+  begin
+    rw ← set_integral_prod_mul,
+    congr' with p,
+    rw mul_one,
+    congr,
+    conv_rhs { rw [← one_mul (p.1^2), ← sin_sq_add_cos_sq p.2], },
+    ring_exp,
+  end
+... = 2 * π :
+  begin
+    have : 0 ≤ π + π, by linarith [real.pi_pos],
+    simp only [integral_const, measure.restrict_apply', measurable_set_Ioo, univ_inter, this,
+        sub_neg_eq_add, algebra.id.smul_eq_mul, mul_one, volume_Ioo, two_mul,
+        ennreal.to_real_of_real, integral_mul_exp_neg_sq_div_two, one_mul],
+  end

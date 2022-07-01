@@ -83,6 +83,33 @@ begin
   simp [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
 end
 
+lemma prod_X_add_C_coeff (s : multiset R) (k : ℕ) (h : k ≤ s.card) :
+  (s.map (λ r, polynomial.X + polynomial.C r)).prod.coeff k = s.esymm (s.card - k) :=
+begin
+  have hh : _, from prod_X_add_C_eq_sum_esymm s,
+  have : _, from polynomial.ext_iff.mp hh k,
+  rw this,
+  rw polynomial.finset_sum_coeff,
+  conv_lhs
+  begin
+    congr, skip, funext, rw polynomial.coeff_C_mul_X_pow,
+  end,
+  suffices :  ∑ (b : ℕ) in finset.range (card s + 1), ite (k = card s - b) (s.esymm b) 0 =
+    ∑ (b : ℕ) in finset.range (card s + 1), ite (b = card s - k) (s.esymm b) 0,
+  rw this,
+  rw finset.sum_ite_eq',
+  have : s.card - k ∈ finset.range (s.card + 1) := finset.mem_range.mpr (nat.sub_lt_succ _ _),
+  simp only [this, if_true],
+  rw finset.sum_congr (eq.refl _),
+  intros x hx,
+  have : k = s.card - x ↔ x = s.card - k,
+  { have : x ≤ s.card := nat.lt_succ_iff.mp (finset.mem_range.mp hx),
+  rw eq_tsub_iff_add_eq_of_le h,
+  rw eq_tsub_iff_add_eq_of_le this,
+    rw add_comm, },
+  simp only [*] at *,
+end
+
 end multiset
 
 namespace mv_polynomial

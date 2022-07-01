@@ -176,8 +176,8 @@ end polynomial
 section subtype
 
 -- this diamond is the reason that `fintype.to_locally_finite_order` is not an instance
-example {α} [preorder α] [locally_finite_order α] [fintype α] [@decidable_rel α (≤)]
-  (p : α → Prop) [decidable_pred p] :
+example {α} [preorder α] [locally_finite_order α] [fintype α] [@decidable_rel α (<)]
+  [@decidable_rel α (≤)] (p : α → Prop) [decidable_pred p] :
   subtype.locally_finite_order p = fintype.to_locally_finite_order :=
 begin
   success_if_fail { refl, },

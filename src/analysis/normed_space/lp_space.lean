@@ -670,11 +670,11 @@ section normed_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
 
-lemma _root_.mem_ℓp.infty_one : mem_ℓp (1 : Π i, B i) ∞ :=
+lemma _root_.one_mem_ℓp_infty : mem_ℓp (1 : Π i, B i) ∞ :=
 ⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
 
 instance : has_one (lp B ∞) :=
-{ one := ⟨(1 : Π i, B i), mem_ℓp.infty_one⟩ }
+{ one := ⟨(1 : Π i, B i), one_mem_ℓp_infty⟩ }
 
 @[simp] lemma infty_coe_fn_one : ⇑(1 : lp B ∞) = 1 := rfl
 
@@ -682,7 +682,7 @@ lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) 
 begin
   induction n with n hn,
   { rw pow_zero,
-    exact mem_ℓp.infty_one },
+    exact one_mem_ℓp_infty },
   { rw pow_succ,
     exact hf.infty_mul hn }
 end
@@ -694,10 +694,32 @@ instance : has_pow (lp B ∞) ℕ := { pow := λ f n, ⟨_, f.prop.infty_pow n�
 
 @[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
 
+lemma _root_.nat_cast_mem_ℓp_infty : ∀ (n : ℕ), mem_ℓp (n : Π i, B i) ∞
+| 0 := by { rw nat.cast_zero, exact zero_mem_ℓp }
+| (n + 1) := by { rw nat.cast_succ, exact (_root_.nat_cast_mem_ℓp_infty n).add one_mem_ℓp_infty }
+
+instance : has_nat_cast (lp B ∞) := { nat_cast := λ n, ⟨(↑n : Π i, B i), nat_cast_mem_ℓp_infty _⟩ }
+
+@[simp] lemma infty_coe_fn_nat_cast (n : ℕ) : ⇑(n : lp B ∞) = n := rfl
+
+lemma _root_.int_cast_mem_ℓp_infty (z : ℤ) : mem_ℓp (z : Π i, B i) ∞ :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw int.cast_coe_nat,
+    exact nat_cast_mem_ℓp_infty n },
+  { rw [int.cast_neg, int.cast_coe_nat],
+    exact (nat_cast_mem_ℓp_infty n).neg }
+end
+
+instance : has_int_cast (lp B ∞) := { int_cast := λ z, ⟨(↑z : Π i, B i), int_cast_mem_ℓp_infty _⟩ }
+
+@[simp] lemma infty_coe_fn_int_cast (z : ℤ) : ⇑(z : lp B ∞) = z := rfl
+
 instance : ring (lp B ∞) :=
 function.injective.ring lp.has_coe_to_fun.coe subtype.coe_injective
   (lp.coe_fn_zero B ∞) (infty_coe_fn_one) lp.coe_fn_add infty_coe_fn_mul
   lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _, rfl) infty_coe_fn_pow
+  infty_coe_fn_nat_cast infty_coe_fn_int_cast
 
 instance : normed_ring (lp B ∞) :=
 { .. lp.ring, .. lp.non_unital_normed_ring }

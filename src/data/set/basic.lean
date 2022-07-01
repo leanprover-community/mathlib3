@@ -526,6 +526,13 @@ subset.trans h (subset_union_left t u)
 lemma subset_union_of_subset_right {s u : set α} (h : s ⊆ u) (t : set α) : s ⊆ t ∪ u :=
 subset.trans h (subset_union_right t u)
 
+lemma union_eq_union_of_subset_of_subset {s t a : set α} (h1 : s ⊆ t ∪ a) (h2 : t ⊆ s ∪ a) :
+  s ∪ a = t ∪ a :=
+sup_eq_sup_of_le_of_le h1 h2
+
+lemma union_eq_union_iff_subset_subset {s t a : set α} : s ∪ a = t ∪ a ↔ s ⊆ t ∪ a ∧ t ⊆ s ∪ a :=
+sup_eq_sup_iff_le_le
+
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 by simp only [← subset_empty_iff]; exact union_subset_iff
 
@@ -587,6 +594,13 @@ inter_eq_left_iff_subset.mpr
 
 theorem inter_eq_self_of_subset_right {s t : set α} : t ⊆ s → s ∩ t = t :=
 inter_eq_right_iff_subset.mpr
+
+lemma inter_eq_inter_of_subset_of_subset {s t a : set α} (h1 : t ∩ a ⊆ s) (h2 : s ∩ a ⊆ t) :
+  s ∩ a = t ∩ a :=
+inf_eq_inf_of_le_of_le h1 h2
+
+lemma inter_eq_inter_iff_subset_subset {s t a : set α} : s ∩ a = t ∩ a ↔ t ∩ a ⊆ s ∧ s ∩ a ⊆ t :=
+inf_eq_inf_iff_le_le
 
 @[simp] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq
 

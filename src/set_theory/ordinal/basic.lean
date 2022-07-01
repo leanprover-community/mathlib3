@@ -445,7 +445,7 @@ def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
 instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
 (rel_embedding.preimage _ _).is_well_order
 
-instance : nonempty {r // is_well_order σ r} :=
+instance is_well_order.subtype_nonempty : nonempty {r // is_well_order σ r} :=
 ⟨⟨well_ordering_rel, infer_instance⟩⟩
 
 end well_ordering_thm

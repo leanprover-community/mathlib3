@@ -68,7 +68,7 @@ begin
   intros t ht,
   by_cases hst : (s ∩ t).nonempty,
   { rw ← subtype.preimage_coe_nonempty at hst,
-    rcases well_founded.well_founded_iff_has_min.1 h (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
+    rcases h.has_min (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hm ⟨x, xs⟩ xt xm⟩ },
   { rcases ht with ⟨m, mt⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ }

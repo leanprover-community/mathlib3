@@ -395,7 +395,6 @@ noncomputable def ultrafilter.glued_generators_of_pushforwards_alg_hom
     exact (f.generator_of_pushforward _).commutes r,
   end }
 
-
 lemma ultrafilter.glued_generators_of_pushforwards_alg_hom_injective
   (h_int : algebra.is_integral K L)
   (f : ultrafilter (L →ₐ[K] L)) : function.injective

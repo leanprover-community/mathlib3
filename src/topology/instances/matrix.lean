@@ -42,11 +42,11 @@ instance [topological_space R] [t2_space R] : t2_space (matrix m n R) := Pi.t2_s
 section continuity
 variables [topological_space X] [topological_space R]
 
-instance [has_scalar α R] [has_continuous_const_smul α R] :
+instance [has_smul α R] [has_continuous_const_smul α R] :
   has_continuous_const_smul α (matrix m n R) :=
 pi.has_continuous_const_smul
 
-instance [topological_space α] [has_scalar α R] [has_continuous_smul α R] :
+instance [topological_space α] [has_smul α R] [has_continuous_smul α R] :
   has_continuous_smul α (matrix m n R) :=
 pi.has_continuous_smul
 

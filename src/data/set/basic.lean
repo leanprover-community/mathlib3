@@ -944,10 +944,10 @@ lemma subset_compl_iff_disjoint_right : s ⊆ tᶜ ↔ disjoint s t :=
 lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
 lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
 
-alias subset_compl_iff_disjoint_right ↔ _ disjoint.subset_compl_right
-alias subset_compl_iff_disjoint_left ↔ _ disjoint.subset_compl_left
-alias disjoint_compl_left_iff_subset ↔ _ has_subset.subset.disjoint_compl_left
-alias disjoint_compl_right_iff_subset ↔ _ has_subset.subset.disjoint_compl_right
+alias subset_compl_iff_disjoint_right ↔ _ _root_.disjoint.subset_compl_right
+alias subset_compl_iff_disjoint_left ↔ _ _root_.disjoint.subset_compl_left
+alias disjoint_compl_left_iff_subset ↔ _ _root_.has_subset.subset.disjoint_compl_left
+alias disjoint_compl_right_iff_subset ↔ _ _root_.has_subset.subset.disjoint_compl_right
 
 theorem subset_union_compl_iff_inter_subset {s t u : set α} : s ⊆ t ∪ uᶜ ↔ s ∩ u ⊆ t :=
 (@is_compl_compl _ u _).le_sup_right_iff_inf_left_le
@@ -1788,7 +1788,7 @@ lemma exists_subtype_range_iff {p : range f → Prop} :
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
 
-alias range_iff_surjective ↔ _ function.surjective.range_eq
+alias range_iff_surjective ↔ _ _root_.function.surjective.range_eq
 
 @[simp] theorem image_univ {f : α → β} : f '' univ = range f :=
 by { ext, simp [image, range] }
@@ -1952,8 +1952,8 @@ instance can_lift [can_lift α β] : can_lift (set α) (set β) :=
   cond := λ s, ∀ x ∈ s, can_lift.cond β x,
   prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
-@[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
-range_iff_surjective.2 quot.exists_rep
+@[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
+range_quot_mk _
 
 lemma range_const_subset {c : α} : range (λ x : ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, rfl

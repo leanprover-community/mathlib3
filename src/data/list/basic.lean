@@ -125,7 +125,7 @@ begin
       exacts [or.inl $ (congr_arg f hc.symm).trans h, or.inr ⟨c, hc, h⟩] } }
 end
 
-alias mem_map ↔ list.exists_of_mem_map _
+alias mem_map ↔ exists_of_mem_map _
 
 theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
 mem_map.2 ⟨a, h, rfl⟩
@@ -2921,6 +2921,14 @@ begin
     { split; intro t, {rw t at h; injection h}, {exact t.symm ▸ h} },
       simp only [filter_map_cons_some _ _ _ h, IH, mem_cons_iff,
         or_and_distrib_right, exists_or_distrib, this, exists_eq_left] }
+end
+
+@[simp] theorem filter_map_join (f : α → option β) (L : list (list α)) :
+  filter_map f (join L) = join (map (filter_map f) L) :=
+begin
+  induction L with hd tl ih,
+  { refl },
+  { rw [map, join, join, filter_map_append, ih] },
 end
 
 theorem map_filter_map_of_inv (f : α → option β) (g : β → α)

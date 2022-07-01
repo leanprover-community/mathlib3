@@ -109,9 +109,9 @@ by rw ← reverse_suffix; simp only [reverse_reverse]
  λ ⟨s, t, e⟩, ⟨reverse t, reverse s,
   by rw [append_assoc, ← reverse_append, ← reverse_append, e]⟩⟩
 
-alias reverse_prefix ↔ _ list.is_suffix.reverse
-alias reverse_suffix ↔ _ list.is_prefix.reverse
-alias reverse_infix ↔ _ list.is_infix.reverse
+alias reverse_prefix ↔ _ is_suffix.reverse
+alias reverse_suffix ↔ _ is_prefix.reverse
+alias reverse_infix ↔ _ is_infix.reverse
 
 lemma is_infix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
 lemma is_prefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
@@ -122,7 +122,7 @@ lemma eq_nil_of_infix_nil (h : l <:+: []) : l = [] := eq_nil_of_sublist_nil h.su
 @[simp] lemma infix_nil_iff : l <:+: [] ↔ l = [] :=
 ⟨λ h, eq_nil_of_sublist_nil h.sublist, λ h, h ▸ infix_rfl⟩
 
-alias infix_nil_iff ↔ list.eq_nil_of_infix_nil _
+alias infix_nil_iff ↔ eq_nil_of_infix_nil _
 
 @[simp] lemma prefix_nil_iff : l <+: [] ↔ l = [] :=
 ⟨λ h, eq_nil_of_infix_nil h.is_infix, λ h, h ▸ prefix_rfl⟩
@@ -130,8 +130,8 @@ alias infix_nil_iff ↔ list.eq_nil_of_infix_nil _
 @[simp] lemma suffix_nil_iff : l <:+ [] ↔ l = [] :=
 ⟨λ h, eq_nil_of_infix_nil h.is_infix, λ h, h ▸ suffix_rfl⟩
 
-alias prefix_nil_iff ↔ list.eq_nil_of_prefix_nil _
-alias suffix_nil_iff ↔ list.eq_nil_of_suffix_nil _
+alias prefix_nil_iff ↔ eq_nil_of_prefix_nil _
+alias suffix_nil_iff ↔ eq_nil_of_suffix_nil _
 
 lemma infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, l₁ <+: t ∧ t <:+ l₂ :=
 ⟨λ ⟨s, t, e⟩, ⟨l₁ ++ t, ⟨_, rfl⟩, by rw [← e, append_assoc]; exact ⟨_, rfl⟩⟩,

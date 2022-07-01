@@ -519,7 +519,7 @@ nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
+  [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
   by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]} (hfn : f.nat_degree = n),
     is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=

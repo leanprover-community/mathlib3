@@ -140,11 +140,7 @@ theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (hl : ∀ (i : x.left_moves), ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
   (hr : ∀ (j : y.right_moves), ⟦x.move_right (R.symm j)⟧ = ⟦y.move_right j⟧) :
   ⟦x⟧ = ⟦y⟧ :=
-begin
-  simp only [quotient.eq] at hl hr,
-  apply quotient.sound,
-  apply equiv_of_mk_equiv L R hl hr,
-end
+by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv L R hl hr) }
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.

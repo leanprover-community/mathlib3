@@ -34,16 +34,16 @@ class vadd_invariant_measure (M α : Type*) [has_vadd M α] {_ : measurable_spac
 /-- A measure `μ : measure α` is invariant under a multiplicative action of `M` on `α` if for any
 measurable set `s : set α` and `c : M`, the measure of its preimage under `λ x, c • x` is equal to
 the measure of `s`. -/
-@[to_additive] class smul_invariant_measure (M α : Type*) [has_scalar M α] {_ : measurable_space α}
+@[to_additive] class smul_invariant_measure (M α : Type*) [has_smul M α] {_ : measurable_space α}
   (μ : measure α) : Prop :=
 (measure_preimage_smul [] : ∀ (c : M) ⦃s : set α⦄, measurable_set s → μ ((λ x, c • x) ⁻¹' s) = μ s)
 
 namespace smul_invariant_measure
 
-@[to_additive] instance zero [measurable_space α] [has_scalar M α] : smul_invariant_measure M α 0 :=
+@[to_additive] instance zero [measurable_space α] [has_smul M α] : smul_invariant_measure M α 0 :=
 ⟨λ _ _ _, rfl⟩
 
-variables [has_scalar M α] {m : measurable_space α} {μ ν : measure α}
+variables [has_smul M α] {m : measurable_space α} {μ ν : measure α}
 
 @[to_additive] instance add [smul_invariant_measure M α μ] [smul_invariant_measure M α ν] :
   smul_invariant_measure M α (μ + ν) :=

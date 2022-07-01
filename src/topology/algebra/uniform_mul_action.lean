@@ -33,7 +33,7 @@ class has_uniform_continuous_const_vadd [uniform_space X] [has_vadd M X] : Prop 
 
 /-- A multiplicative action such that for all `c`, the map `λ x, c • x` is uniformly continuous. -/
 @[to_additive]
-class has_uniform_continuous_const_smul [uniform_space X] [has_scalar M X] : Prop :=
+class has_uniform_continuous_const_smul [uniform_space X] [has_smul M X] : Prop :=
 (uniform_continuous_const_smul : ∀ (c : M), uniform_continuous ((•) c : X → X))
 
 export has_uniform_continuous_const_vadd (uniform_continuous_const_vadd)
@@ -47,9 +47,9 @@ instance add_group.has_uniform_continuous_const_smul_int [add_group X] [uniform_
   has_uniform_continuous_const_smul ℤ X :=
 ⟨uniform_continuous_const_zsmul⟩
 
-section has_scalar
+section has_smul
 
-variable [has_scalar M X]
+variable [has_smul M X]
 
 @[priority 100, to_additive]
 instance has_uniform_continuous_const_smul.to_has_continuous_const_smul
@@ -65,7 +65,7 @@ variables {M X Y}
 
 /-- If a scalar is central, then its right action is uniform continuous when its left action is. -/
 @[priority 100]
-instance has_uniform_continuous_const_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X]
+instance has_uniform_continuous_const_smul.op [has_smul Mᵐᵒᵖ X] [is_central_scalar M X]
   [has_uniform_continuous_const_smul M X] : has_uniform_continuous_const_smul Mᵐᵒᵖ X :=
 ⟨mul_opposite.rec $ λ c, begin
   change uniform_continuous (λ m, mul_opposite.op c • m),
@@ -77,7 +77,7 @@ end⟩
   [has_uniform_continuous_const_smul M X] : has_uniform_continuous_const_smul M Xᵐᵒᵖ :=
 ⟨λ c, mul_opposite.uniform_continuous_op.comp $ mul_opposite.uniform_continuous_unop.const_smul c⟩
 
-end has_scalar
+end has_smul
 
 @[to_additive] instance uniform_group.to_has_uniform_continuous_const_smul
   {G : Type u} [group G] [uniform_space G] [uniform_group G] :
@@ -88,17 +88,17 @@ namespace uniform_space
 
 namespace completion
 
-section has_scalar
+section has_smul
 
-variable [has_scalar M X]
+variable [has_smul M X]
 
-@[to_additive has_vadd] instance : has_scalar M (completion X) :=
+@[to_additive] instance : has_smul M (completion X) :=
 ⟨λ c, completion.map ((•) c)⟩
 
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=
 ⟨λ c, uniform_continuous_map⟩
 
-instance [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (completion X) :=
+instance [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] : is_central_scalar M (completion X) :=
 ⟨λ c a, congr_arg (λ f, completion.map f a) $ by exact funext (op_smul_eq_smul c)⟩
 
 variables {M X} [has_uniform_continuous_const_smul M X]
@@ -107,7 +107,7 @@ variables {M X} [has_uniform_continuous_const_smul M X]
 lemma coe_smul (c : M) (x : X) : ↑(c • x) = (c • x : completion X) :=
 (map_coe (uniform_continuous_const_smul c) x).symm
 
-end has_scalar
+end has_smul
 
 @[to_additive] instance [monoid M] [mul_action M X] [has_uniform_continuous_const_smul M X] :
   mul_action M (completion X) :=

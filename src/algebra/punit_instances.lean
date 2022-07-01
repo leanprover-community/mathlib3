@@ -113,7 +113,7 @@ instance : linear_ordered_cancel_add_comm_monoid punit :=
   decidable_lt := λ _ _, decidable.false,
   .. punit.canonically_ordered_add_monoid }
 
-instance : has_scalar R punit :=
+instance : has_smul R punit :=
 { smul := λ _ _, star }
 
 @[simp] lemma smul_eq (r : R) : r • y = star := rfl
@@ -122,14 +122,14 @@ instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
 
 instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
-instance [has_scalar R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
+instance [has_smul R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
 instance [has_zero R] : smul_with_zero R punit :=
-by refine { ..punit.has_scalar, .. };
+by refine { ..punit.has_smul, .. };
 intros; exact subsingleton.elim _ _
 
 instance [monoid R] : mul_action R punit :=
-by refine { ..punit.has_scalar, .. };
+by refine { ..punit.has_smul, .. };
 intros; exact subsingleton.elim _ _
 
 instance [monoid R] : distrib_mul_action R punit :=

@@ -137,7 +137,7 @@ begin
     rw [list.map_cons, list.sum_cons],
     refine submodule.add_mem _ _ (ih HL.2),
     replace HL := HL.1, clear ih tl,
-    suffices : ∃ z r (hr : r ∈ submonoid.closure s), has_scalar.smul z r = list.prod hd,
+    suffices : ∃ z r (hr : r ∈ submonoid.closure s), has_smul.smul z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
     induction hd with hd tl ih, { exact ⟨1, 1, (submonoid.closure s).one_mem', one_smul _ _⟩ },
@@ -163,6 +163,10 @@ by rw [adjoin_eq_span, span_le]
 lemma adjoin_eq_span_of_subset {s : set A} (hs : ↑(submonoid.closure s) ⊆ (span R s : set A)) :
   (adjoin R s).to_submodule = span R s :=
 le_antisymm ((adjoin_to_submodule_le R).mpr hs) (span_le_adjoin R s)
+
+@[simp] lemma adjoin_span {s : set A} :
+  adjoin R (submodule.span R s : set A) = adjoin R s :=
+le_antisymm (adjoin_le (span_le_adjoin _ _)) (adjoin_mono submodule.subset_span)
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
   adjoin R (f '' s) = (adjoin R s).map f :=

@@ -82,7 +82,7 @@ begin
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
 end
 
-lemma lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
+lemma graded_algebra.lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
   lift Q ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
     direct_sum.of (λ i, even_odd Q i) i' x' :=
 begin
@@ -119,12 +119,11 @@ graded_algebra.of_alg_hom (even_odd Q)
       alg_hom.id_apply],
     rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by exact lift_ι_eq Q)
+  (by exact graded_algebra.lift_ι_eq Q)
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin
-  rw [← (graded_algebra.is_internal $ λ i, even_odd Q i).submodule_supr_eq_top, eq_comm],
-  dunfold even_odd,
+  rw [← (direct_sum.decomposition.is_internal (even_odd Q)).submodule_supr_eq_top, eq_comm],
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
     ... = (⨆ (i : ℕ), (ι Q).range ^ i)
@@ -132,7 +131,7 @@ begin
 end
 
 lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
-(graded_algebra.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
+(direct_sum.decomposition.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
   have : (finset.univ : finset (zmod 2)) = {0, 1} := rfl,
   simpa using congr_arg (coe : finset (zmod 2) → set (zmod 2)) this,
 end

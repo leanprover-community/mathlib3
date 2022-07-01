@@ -45,8 +45,8 @@ open set
 
 variables (𝕜 : Type*) {E : Type*}
 
-section has_scalar
-variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_scalar 𝕜 E]
+section has_smul
+variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_smul 𝕜 E]
 
 /-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
 segments whose ends are in `B`. -/
@@ -172,7 +172,7 @@ lemma is_extreme.extreme_points_eq (hAB : is_extreme 𝕜 A B) :
 subset.antisymm (λ x hx, ⟨hx.1, hAB.extreme_points_subset_extreme_points hx⟩)
   (inter_extreme_points_subset_extreme_points_of_subset hAB.1)
 
-end has_scalar
+end has_smul
 
 section ordered_semiring
 variables {𝕜} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E} {x : E}

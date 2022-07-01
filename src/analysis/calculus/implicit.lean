@@ -391,7 +391,7 @@ begin
   exact h₁.prod_mk_nhds h₂
 end
 
-alias tendsto_implicit_function ← filter.tendsto.implicit_function
+alias tendsto_implicit_function ← _root_.filter.tendsto.implicit_function
 
 /-- `implicit_function` sends `(z, y)` to a point in `f ⁻¹' z`. -/
 lemma map_implicit_function_eq (hf : has_strict_fderiv_at f f' a) (hf' : f'.range = ⊤) :

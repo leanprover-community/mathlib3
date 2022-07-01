@@ -262,7 +262,7 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
   (∏ i in s, (X - C (f i))).separable ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
 ⟨λ hfs x hx y hy hfxy, hfs.inj_of_prod_X_sub_C hx hy hfxy,
 λ H, by { rw ← prod_attach, exact separable_prod' (λ x hx y hy hxy,
-    @pairwise_coprime_X_sub _ _ { x // x ∈ s } (λ x, f x)
+    @pairwise_coprime_X_sub_C _ _ { x // x ∈ s } (λ x, f x)
       (λ x y hxy, subtype.eq $ H x.1 x.2 y.1 y.2 hxy) _ _ hxy)
   (λ _ _, separable_X_sub_C) }⟩
 
@@ -404,11 +404,9 @@ end
 
 lemma exists_finset_of_splits
   (i : F →+* K) {f : F[X]} (sep : separable f) (sp : splits i f) :
-  ∃ (s : finset K), f.map i =
-    C (i f.leading_coeff) * (s.prod (λ a : K, (X : K[X]) - C a)) :=
+  ∃ (s : finset K), f.map i = C (i f.leading_coeff) * (s.prod (λ a : K, X - C a)) :=
 begin
-  classical,
-  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  obtain ⟨s, h⟩ := (splits_iff_exists_multiset _).1 sp,
   use s.to_finset,
   rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
   apply nodup_of_separable_prod,

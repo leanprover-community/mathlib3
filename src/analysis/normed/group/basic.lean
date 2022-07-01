@@ -128,6 +128,10 @@ by rw [dist_eq_norm, sub_zero]
 @[simp] lemma dist_zero_left : dist (0 : E) = norm :=
 funext $ λ g, by rw [dist_comm, dist_zero_right]
 
+lemma isometry.norm_map_of_map_zero {f : E → F} (hi : isometry f) (h0 : f 0 = 0) (x : E) :
+  ∥f x∥ = ∥x∥ :=
+by rw [←dist_zero_right, ←h0, hi.dist_eq, dist_zero_right]
+
 lemma tendsto_norm_cocompact_at_top [proper_space E] :
   tendsto norm (cocompact E) at_top :=
 by simpa only [dist_zero_right] using tendsto_dist_right_cocompact_at_top (0 : E)
@@ -368,15 +372,6 @@ ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
 ne_zero_of_mem_sphere one_ne_zero _
 
-/-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
-antipodal map. -/
-instance {r : ℝ} : has_neg (sphere (0:E) r) :=
-{ neg := λ w, ⟨-↑w, by simp⟩ }
-
-@[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:E) r) :
-  (((-v) : sphere _ _) : E) = - (v:E) :=
-rfl
-
 namespace isometric
 -- TODO This material is superseded by similar constructions such as
 -- `affine_isometry_equiv.const_vadd`; deduplicate
@@ -466,9 +461,9 @@ open finset
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
 (semi)normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.lipschitz_of_bound (f : E →+ F) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  lipschitz_with (real.to_nnreal C) f :=
-lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+lemma add_monoid_hom_class.lipschitz_of_bound {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F] (f : 𝓕)
+  (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : lipschitz_with (real.to_nnreal C) f :=
+lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : E → F} {C : ℝ≥0} {s : set E} :
   lipschitz_on_with C f s ↔  ∀ (x ∈ s) (y ∈ s), ∥f x - f y∥ ≤ C * ∥x - y∥ :=
@@ -495,11 +490,14 @@ lemma lipschitz_with.norm_sub_le_of_le {f : E → F} {C : ℝ≥0} (h : lipschit
 (h.norm_sub_le x y).trans $ mul_le_mul_of_nonneg_left hd C.2
 
 /-- A homomorphism `f` of seminormed groups is continuous, if there exists a constant `C` such that
-for all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
-The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
-lemma add_monoid_hom.continuous_of_bound (f : E →+ F) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  continuous f :=
-(f.lipschitz_of_bound C h).continuous
+for all `x`, one has `∥f x∥ ≤ C * ∥x∥`.  -/
+lemma add_monoid_hom_class.continuous_of_bound {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F] (f : 𝓕)
+  (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : continuous f :=
+(add_monoid_hom_class.lipschitz_of_bound f C h).continuous
+
+lemma add_monoid_hom_class.uniform_continuous_of_bound {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F]
+  (f : 𝓕) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : uniform_continuous f :=
+(add_monoid_hom_class.lipschitz_of_bound f C h).uniform_continuous
 
 lemma is_compact.exists_bound_of_continuous_on [topological_space α]
   {s : set α} (hs : is_compact s) {f : α → E} (hf : continuous_on f s) :
@@ -510,15 +508,17 @@ begin
   exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
 end
 
-lemma add_monoid_hom.isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+lemma add_monoid_hom_class.isometry_iff_norm {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F]
+  (f : 𝓕) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
 begin
-  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ←map_sub],
   refine ⟨λ h x, _, λ h x y, h _⟩,
   simpa using h x 0
 end
 
-lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
-f.isometry_iff_norm.2 hf
+lemma add_monoid_hom_class.isometry_of_norm {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F]
+  (f : 𝓕) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+(add_monoid_hom_class.isometry_iff_norm f).2 hf
 
 lemma controlled_sum_of_mem_closure {s : add_subgroup E} {g : E}
   (hg : g ∈ closure (s : set E)) {b : ℕ → ℝ} (b_pos : ∀ n, 0 < b n) :
@@ -657,9 +657,20 @@ lemma nnnorm_sum_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (h
   ∥∑ b in s, f b∥₊ ≤ ∑ b in s, n b :=
 (norm_sum_le_of_le s h).trans_eq nnreal.coe_sum.symm
 
-lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : E →+ F) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
-  lipschitz_with C f :=
-@real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h
+lemma add_monoid_hom_class.lipschitz_of_bound_nnnorm {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F]
+  (f : 𝓕) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) : lipschitz_with C f :=
+@real.to_nnreal_coe C ▸ add_monoid_hom_class.lipschitz_of_bound f C h
+
+lemma add_monoid_hom_class.antilipschitz_of_bound {𝓕 : Type*}
+  [add_monoid_hom_class 𝓕 E F] (f : 𝓕) {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+antilipschitz_with.of_le_mul_dist $
+λ x y, by simpa only [dist_eq_norm, map_sub] using h (x - y)
+
+lemma add_monoid_hom_class.bound_of_antilipschitz {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F] (f : 𝓕)
+  {K : ℝ≥0} (h : antilipschitz_with K f) (x) : ∥x∥ ≤ K * ∥f x∥ :=
+by simpa only [dist_zero_right, map_zero] using h.le_mul_dist x 0
+
 
 end nnnorm
 
@@ -1021,11 +1032,6 @@ instance normed_uniform_group : uniform_add_group E :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group E :=
 by apply_instance -- short-circuit type class inference
-
-lemma nat.norm_cast_le [has_one E] : ∀ n : ℕ, ∥(n : E)∥ ≤ n * ∥(1 : E)∥
-| 0 := by simp
-| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
-                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
 
 lemma semi_normed_group.mem_closure_iff {s : set E} {x : E} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=

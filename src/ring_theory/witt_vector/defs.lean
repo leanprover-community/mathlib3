@@ -190,6 +190,9 @@ instance : has_neg (𝕎 R) :=
 instance has_nat_pow : has_pow (𝕎 R) ℕ :=
 ⟨λ x n, eval (witt_pow p n) ![x]⟩
 
+instance : has_nat_cast (𝕎 R) := ⟨nat.unary_cast⟩
+instance : has_int_cast (𝕎 R) := ⟨int.cast_def⟩
+
 end ring_operations
 
 section witt_structure_simplifications

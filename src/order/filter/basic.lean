@@ -158,7 +158,7 @@ finite.induction_on hf (by simp) (λ i s hi _ hs, by simp [hs])
   (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
 bInter_mem is.finite_to_set
 
-alias bInter_finset_mem ← finset.Inter_mem_sets
+alias bInter_finset_mem ← _root_.finset.Inter_mem_sets
 attribute [protected] finset.Inter_mem_sets
 
 @[simp] lemma sInter_mem {s : set (set α)} (hfin : s.finite) :
@@ -233,7 +233,7 @@ add_tactic_doc
 end tactic.interactive
 
 namespace filter
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type*} {ι : Sort x}
 
 section principal
 
@@ -994,14 +994,14 @@ by simpa only [filter.eventually, set_of_forall] using Inter_mem
   (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ (∀ i ∈ I, ∀ᶠ x in l, p i x) :=
 by simpa only [filter.eventually, set_of_forall] using bInter_mem hI
 
-alias eventually_all_finite ← set.finite.eventually_all
+alias eventually_all_finite ← _root_.set.finite.eventually_all
 attribute [protected] set.finite.eventually_all
 
 @[simp] lemma eventually_all_finset {ι} (I : finset ι) {l} {p : ι → α → Prop} :
   (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ ∀ i ∈ I, ∀ᶠ x in l, p i x :=
 I.finite_to_set.eventually_all
 
-alias eventually_all_finset ← finset.eventually_all
+alias eventually_all_finset ← _root_.finset.eventually_all
 attribute [protected] finset.eventually_all
 
 @[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
@@ -1217,7 +1217,7 @@ lemma eventually_eq_set {s t : set α} {l : filter α} :
    s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
-alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
+alias eventually_eq_set ↔ eventually_eq.mem_iff eventually.set_eq
 
 @[simp] lemma eventually_eq_univ {s : set α} {l : filter α} : s =ᶠ[l] univ ↔ s ∈ l :=
 by simp [eventually_eq_set]
@@ -1440,6 +1440,20 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
+lemma eventually_le.mul_le_mul [ordered_semiring β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) (hg₀ : 0 ≤ᶠ[l] g₁) (hf₀ : 0 ≤ᶠ[l] f₂) :
+  f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
+by filter_upwards [hf, hg, hg₀, hf₀] with x using mul_le_mul
+
+lemma eventually_le.mul_nonneg [ordered_semiring β] {l : filter α} {f g : α → β}
+  (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) :
+  0 ≤ᶠ[l] f * g :=
+by filter_upwards [hf, hg] with x using mul_nonneg
+
+lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} :
+  0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
+eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 
@@ -1647,7 +1661,6 @@ lemma comap_comap {m : γ → β} {n : β → α} : comap m (comap n f) = comap 
 filter.coext $ λ s, by simp only [compl_mem_comap, image_image]
 
 section comm
-variables  {δ : Type*}
 
 /-!
 The variables in the following lemmas are used as in this diagram:
@@ -2001,6 +2014,12 @@ lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
 lemma map_swap_eq_comap_swap {f : filter (α × β)} : prod.swap <$> f = comap prod.swap f :=
 map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 
+/-- A useful lemma when dealing with uniformities. -/
+lemma map_swap4_eq_comap {f : filter ((α × β) × (γ × δ))} :
+  map (λ p : (α × β) × (γ × δ), ((p.1.1, p.2.1), (p.1.2, p.2.2))) f =
+  comap (λ p : (α × γ) × (β × δ), ((p.1.1, p.2.1), (p.1.2, p.2.2))) f :=
+map_eq_comap_of_inverse (funext $ λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl) (funext $ λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl)
+
 lemma le_map {f : filter α} {m : α → β} {g : filter β} (h : ∀ s ∈ f, m '' s ∈ g) :
   g ≤ f.map m :=
 λ s hs, mem_of_superset (h _ hs) $ image_preimage_subset _ _
@@ -2278,7 +2297,7 @@ lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
 
-alias tendsto_iff_comap ↔ filter.tendsto.le_comap _
+alias tendsto_iff_comap ↔ tendsto.le_comap _
 
 protected lemma tendsto.disjoint {f : α → β} {la₁ la₂ : filter α} {lb₁ lb₂ : filter β}
   (h₁ : tendsto f la₁ lb₁) (hd : disjoint lb₁ lb₂) (h₂ : tendsto f la₂ lb₂) :
@@ -2301,16 +2320,13 @@ theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter 
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ → tendsto f₂ l₁ l₂ :=
 (tendsto_congr h).1
 
-lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
-by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
+lemma tendsto_id' {x y : filter α} : tendsto id x y ↔ x ≤ y := iff.rfl
 
-lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
+lemma tendsto_id {x : filter α} : tendsto id x x := le_refl x
 
 lemma tendsto.comp {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
   (hg : tendsto g y z) (hf : tendsto f x y) : tendsto (g ∘ f) x z :=
-calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
-  ... ≤ map g y : map_mono hf
-  ... ≤ z : hg
+λ s hs, hf (hg hs)
 
 lemma tendsto.mono_left {f : α → β} {x y : filter α} {z : filter β}
   (hx : tendsto f x z) (h : y ≤ x) : tendsto f y z :=
@@ -2559,6 +2575,10 @@ lemma tendsto.prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α
   (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λ x, (m₁ x, m₂ x)) f (g ×ᶠ h) :=
 tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
 
+lemma tendsto_prod_swap {α1 α2 : Type*} {a1 : filter α1} {a2 : filter α2} :
+  tendsto (prod.swap : α1 × α2 → α2 × α1) (a1 ×ᶠ a2) (a2 ×ᶠ a1) :=
+tendsto_snd.prod_mk tendsto_fst
+
 lemma eventually.prod_inl {la : filter α} {p : α → Prop} (h : ∀ᶠ x in la, p x) (lb : filter β) :
   ∀ᶠ x in la ×ᶠ lb, p (x : α × β).1 :=
 tendsto_fst.eventually h
@@ -2590,6 +2610,18 @@ begin
   exact ha.mono (λ a ha, hb.mono $ λ b hb, h ha hb)
 end
 
+/-- A fact that is eventually true about all pairs `l ×ᶠ l` is eventually true about
+all diagonal pairs `(i, i)` -/
+lemma eventually.diag_of_prod {f : filter α} {p : α × α → Prop}
+  (h : ∀ᶠ i in f ×ᶠ f, p i) : (∀ᶠ i in f, p (i, i)) :=
+begin
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  apply (ht.and hs).mono (λ x hx, hst hx.1 hx.2),
+end
+
+lemma tendsto_diag : tendsto (λ i, (i, i)) f (f ×ᶠ f) :=
+tendsto_iff_eventually.mpr (λ _ hpr, hpr.diag_of_prod)
+
 lemma prod_infi_left [nonempty ι] {f : ι → filter α} {g : filter β}:
   (⨅ i, f i) ×ᶠ g = (⨅ i, (f i) ×ᶠ g) :=
 by { rw [filter.prod, comap_infi, infi_inf], simp only [filter.prod, eq_self_iff_true] }
@@ -2613,6 +2645,35 @@ by simp only [filter.prod, comap_comap, (∘), inf_comm, prod.fst_swap,
 
 lemma prod_comm : f ×ᶠ g = map (λ p : β×α, (p.2, p.1)) (g ×ᶠ f) :=
 by { rw [prod_comm', ← map_swap_eq_comap_swap], refl }
+
+lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
+  map (equiv.prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
+by simp_rw [← comap_equiv_symm, filter.prod, comap_inf, comap_comap, inf_assoc, function.comp,
+  equiv.prod_assoc_symm_apply]
+
+theorem prod_assoc_symm (f : filter α) (g : filter β) (h : filter γ) :
+map (equiv.prod_assoc α β γ).symm (f ×ᶠ (g ×ᶠ h)) = (f ×ᶠ g) ×ᶠ h :=
+by simp_rw [map_equiv_symm, filter.prod, comap_inf, comap_comap, inf_assoc, function.comp,
+  equiv.prod_assoc_apply]
+
+lemma tendsto_prod_assoc {f : filter α} {g : filter β} {h : filter γ} :
+  tendsto (equiv.prod_assoc α β γ) (f ×ᶠ g ×ᶠ h) (f ×ᶠ (g ×ᶠ h)) :=
+(prod_assoc f g h).le
+
+lemma tendsto_prod_assoc_symm {f : filter α} {g : filter β} {h : filter γ} :
+  tendsto (equiv.prod_assoc α β γ).symm (f ×ᶠ (g ×ᶠ h)) (f ×ᶠ g ×ᶠ h) :=
+(prod_assoc_symm f g h).le
+
+/-- A useful lemma when dealing with uniformities. -/
+lemma map_swap4_prod {f : filter α} {g : filter β} {h : filter γ} {k : filter δ} :
+  map (λ p : (α × β) × (γ × δ), ((p.1.1, p.2.1), (p.1.2, p.2.2))) ((f ×ᶠ g) ×ᶠ (h ×ᶠ k)) =
+  (f ×ᶠ h) ×ᶠ (g ×ᶠ k) :=
+by simp_rw [map_swap4_eq_comap, filter.prod, comap_inf, comap_comap, inf_assoc, inf_left_comm]
+
+lemma tendsto_swap4_prod {f : filter α} {g : filter β} {h : filter γ} {k : filter δ} :
+  tendsto (λ p : (α × β) × (γ × δ), ((p.1.1, p.2.1), (p.1.2, p.2.2)))
+    ((f ×ᶠ g) ×ᶠ (h ×ᶠ k)) ((f ×ᶠ h) ×ᶠ (g ×ᶠ k)) :=
+map_swap4_prod.le
 
 lemma prod_map_map_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :

@@ -96,7 +96,7 @@ instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end subfield_class
 
@@ -245,6 +245,7 @@ instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl

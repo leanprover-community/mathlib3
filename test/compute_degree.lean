@@ -5,6 +5,13 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] {a b c d e : R}
 
+example {F} [ring F] {p : F[X]} (p0 : p.nat_degree ≤ 0) :
+  p.nat_degree ≤ 0 :=
+begin
+  success_if_fail_with_msg {compute_degree_le} "Goal did not change",
+  exact p0,
+end
+
 example {F} [ring F] {p q : F[X]} (h : p.nat_degree + 1 ≤ q.nat_degree) :
   (- p * X).nat_degree ≤ q.nat_degree :=
 by compute_degree_le

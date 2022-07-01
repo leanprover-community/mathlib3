@@ -37,9 +37,9 @@ around a sum.
 ##  Future work
 
 * Add support for `neg/div/inv` in additive/multiplicative groups?
-* Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
+* Add operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
   Should there be the desire for supporting more operations, it might make sense to extract
-  the `simp [add] <|> simp [mul]` block in `with_errors` to a separate tactic,
+  the `simp [add] <|> simp [mul]` block in `reorder_hyp` to a separate tactic,
   including all the lemmas used for the rearrangement to work.
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.

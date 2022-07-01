@@ -76,7 +76,7 @@ end finset
 
 section indexed
 
-variables {ι : Type*} {v : ι → R} {s : finset ι}
+variables {ι : Type*} {v : ι → R} (s : finset ι)
 
 theorem eq_zero_of_degree_lt_of_eval_index_eq_zero (hvs : set.inj_on v s)
   (degree_f_lt : f.degree < s.card) (eval_f : ∀ i ∈ s, f.eval (v i) = 0) : f = 0 :=
@@ -90,7 +90,7 @@ theorem eq_of_degree_sub_lt_of_eval_index_eq (hvs : set.inj_on v s)
   (degree_fg_lt : (f - g).degree < s.card) (eval_fg : ∀ i ∈ s, f.eval (v i) = g.eval (v i)) :
   f = g :=
 begin
-  rw ← sub_eq_zero, refine eq_zero_of_degree_lt_of_eval_index_eq_zero hvs degree_fg_lt _,
+  rw ← sub_eq_zero, refine eq_zero_of_degree_lt_of_eval_index_eq_zero _ hvs degree_fg_lt _,
   simp_rw [eval_sub, sub_eq_zero], exact eval_fg
 end
 
@@ -98,7 +98,7 @@ theorem eq_of_degrees_lt_of_eval_index_eq (hvs : set.inj_on v s) (degree_f_lt : 
   (degree_g_lt : g.degree < s.card) (eval_fg : ∀ i ∈ s, f.eval (v i) = g.eval (v i)) : f = g :=
 begin
   rw ← mem_degree_lt at degree_f_lt degree_g_lt,
-  refine eq_of_degree_sub_lt_of_eval_index_eq hvs _ eval_fg,
+  refine eq_of_degree_sub_lt_of_eval_index_eq _ hvs _ eval_fg,
   rw ← mem_degree_lt, exact submodule.sub_mem _ degree_f_lt degree_g_lt
 end
 
@@ -159,22 +159,6 @@ begin
   exact inv_mul_cancel (sub_ne_zero_of_ne hxy)
 end
 
-/- Note that it is possible to do this "by hand" but it is an exercise in rewrite hell.
-  This proof is a little longer, but serves to demonstrate key lemmas. -/
-lemma basis_divisor_add_symm (hxy : x ≠ y) : basis_divisor x y + basis_divisor y x = 1 :=
-begin
-  classical, refine eq_of_degrees_lt_of_eval_eq {x, y} _ _ _,
-  { refine (lt_of_le_of_lt (degree_add_le _ _) _),
-    rw [  degree_basis_divisor_ne hxy, degree_basis_divisor_ne hxy.symm, finset.card_doubleton hxy,
-          max_eq_right (le_refl _), ← with_bot.coe_one, with_bot.coe_lt_coe], exact one_lt_two },
-  { rw [finset.card_doubleton hxy, degree_one, ← with_bot.coe_zero, with_bot.coe_lt_coe],
-    exact zero_lt_two },
-  { simp_rw [eval_add, finset.mem_insert, finset.mem_singleton],
-    rintros z (rfl | rfl);
-    simp only [ eval_basis_divisor_right, eval_basis_divisor_left_ne,
-                hxy, hxy.symm, ne.def, not_false_iff, zero_add, add_zero, eval_one] }
-end
-
 end node
 
 section basis
@@ -182,7 +166,7 @@ open finset
 variables {ι : Type*} [decidable_eq ι] {s : finset ι} {v : ι → F} {i j : ι}
 
 /-- Lagrange basis polynomials indexed by `s : finset ι`,
-defined at nodes `v i` for a map `v : ι → F` For `i, j ∈ s`, `basis v i` evaluates to 1 at
+defined at nodes `v i` for a map `v : ι → F` For `i, j ∈ s`, `basis s v i` evaluates to 1 at
 `v i` and 0 at `v j` for `i ≠ j`. -/
 def basis (s : finset ι) (v : ι → F) (i : ι) : F[X] := ∏ j in s.erase i, basis_divisor (v i) (v j)
 
@@ -190,6 +174,15 @@ def basis (s : finset ι) (v : ι → F) (i : ι) : F[X] := ∏ j in s.erase i, 
 
 @[simp] theorem basis_singleton (i : ι) : basis {i} v i = 1 :=
 by rw [basis, erase_singleton, prod_empty]
+
+@[simp] theorem basis_doubleton_left (hij : i ≠ j) :
+  basis {i, j} v i = basis_divisor (v i) (v j) :=
+by { simp only [  basis, hij, erase_insert_eq_erase, erase_eq_of_not_mem,
+                  mem_singleton, not_false_iff, prod_singleton] }
+
+@[simp] theorem basis_doubleton_right (hij : i ≠ j) :
+  basis {i, j} v j = basis_divisor (v j) (v i) :=
+by { rw pair_comm, exact basis_doubleton_left hij.symm }
 
 lemma basis_ne_zero (hvs : set.inj_on v s) (hi : i ∈ s) : basis s v i ≠ 0 :=
 begin
@@ -225,11 +218,31 @@ theorem degree_basis (hvs : set.inj_on v s) (hi : i ∈ s) :
   (basis s v i).degree = ↑(s.card - 1) :=
 by rw [degree_eq_nat_degree (basis_ne_zero hvs hi), nat_degree_basis hvs hi]
 
+lemma basis_sum (hvs : set.inj_on v s) (hs : s.nonempty) : ∑ j in s, (basis s v j) = 1 :=
+begin
+  refine eq_of_degrees_lt_of_eval_index_eq s hvs (lt_of_le_of_lt (degree_sum_le _ _) _) _ _,
+  { rw finset.sup_lt_iff (with_bot.bot_lt_coe s.card),
+    intros i hi, rw degree_basis hvs hi, rw with_bot.coe_lt_coe,
+    exact nat.pred_lt (card_ne_zero_of_mem hi) },
+  { rw degree_one, rw ← with_bot.coe_zero, rw with_bot.coe_lt_coe, exact nonempty.card_pos hs },
+  { intros i hi, rw eval_finset_sum, rw eval_one,
+    rw ← add_sum_erase _ _ hi, rw eval_basis_eq hvs hi, rw add_right_eq_self,
+    refine sum_eq_zero (λ j hj, _), rw mem_erase at hj, rcases hj with ⟨hij, hj⟩,
+    rw eval_basis_ne hij hi }
+end
+
+lemma basis_divisor_add_symm {x y : F} (hxy : x ≠ y) : basis_divisor x y + basis_divisor y x = 1 :=
+begin
+  classical, rw [ ←basis_sum (set.inj_on_of_injective function.injective_id _)
+                  ⟨x, mem_insert_self _ {y}⟩, sum_insert (not_mem_singleton.mpr hxy),
+                  sum_singleton, basis_doubleton_left hxy, basis_doubleton_right hxy, id, id]
+end
+
 end basis
 
 section interpolate
 open finset
-variables {ι : Type*} [decidable_eq ι] {s : finset ι} {i j : ι} {v r r' : ι → F}
+variables {ι : Type*} [decidable_eq ι] {s t : finset ι} {i j : ι} {v r r' : ι → F}
 
 /-- Lagrange interpolation: given a finset `s : finset ι`, a nodal map  `v : ι → F`
 which is injective on s, and a value function `r : ι → F`, `interpolate x r` is the unique
@@ -251,10 +264,8 @@ end
 
 theorem degree_interpolate_le (hvs : set.inj_on v s) : (interpolate s v r).degree ≤ ↑(s.card - 1) :=
 begin
-  refine (degree_sum_le _ _).trans _,
-  rw finset.sup_le_iff, intros i hi,
-  rw [degree_mul, degree_basis hvs hi],
-  by_cases hr : (r i = 0),
+  refine (degree_sum_le _ _).trans _, rw finset.sup_le_iff, intros i hi,
+  rw [degree_mul, degree_basis hvs hi], by_cases hr : (r i = 0),
   { simp only [hr, map_zero, degree_zero, with_bot.bot_add], exact bot_le },
   { rw [degree_C hr, zero_add, with_bot.coe_le_coe] }
 end
@@ -263,21 +274,21 @@ theorem degree_interpolate_lt (hvs : set.inj_on v s) : (interpolate s v r).degre
 begin
   rcases eq_empty_or_nonempty s with rfl | h,
   { rw [interpolate_empty, degree_zero, card_empty], exact with_bot.bot_lt_coe _ },
-  {  refine lt_of_le_of_lt (degree_interpolate_le hvs) _, rw with_bot.coe_lt_coe,
+  { refine lt_of_le_of_lt (degree_interpolate_le hvs) _, rw with_bot.coe_lt_coe,
     exact nat.sub_lt (nonempty.card_pos h) (zero_lt_one) }
 end
 
 theorem degree_interpolate_erase_lt (hvs : set.inj_on v s) (hi : i ∈ s) :
   (interpolate (s.erase i) v r).degree < ↑(s.card - 1) :=
 begin
-  convert degree_interpolate_lt (λ _ hj _ hk, hvs (mem_of_mem_erase hj) (mem_of_mem_erase hk)),
-  rw finset.card_erase_of_mem hi
+  rw ← finset.card_erase_of_mem hi,
+  exact degree_interpolate_lt (set.inj_on.mono (coe_subset.mpr (erase_subset _ _)) hvs),
 end
 
 theorem values_eq_on_of_interpolate_eq (hvs : set.inj_on v s)
   (hrr' : interpolate s v r = interpolate s v r') : ∀ i ∈ s, r i = r' i :=
 begin
-  intros i hi, have hr : eval (v i) (interpolate s v r) = r i := eval_interpolate hvs hi,
+  intros _ hi, have hr : eval (v i) (interpolate s v r) = r i := eval_interpolate hvs hi,
   rw hrr' at hr, rw ← hr, exact eval_interpolate hvs hi
 end
 
@@ -292,16 +303,14 @@ by { simp_rw interpolate, refine sum_congr rfl (λ i hi, _), rw hrr' _ hi }
 theorem eq_interpolate {f : F[X]} (hvs : set.inj_on v s) (degree_f_lt : f.degree < s.card) :
   f = interpolate s v (λ i, f.eval (v i)) :=
 begin
-  refine eq_of_degrees_lt_of_eval_index_eq hvs degree_f_lt (degree_interpolate_lt hvs) _,
+  refine eq_of_degrees_lt_of_eval_index_eq _ hvs degree_f_lt (degree_interpolate_lt hvs) _,
   intros i hi, simp_rw [eval_interpolate hvs hi]
 end
 
 theorem eq_interpolate_of_eval_eq {f : F[X]} (hvs : set.inj_on v s)
   (degree_f_lt : f.degree < s.card) (eval_f : ∀ i ∈ s, f.eval (v i) = r i) :
   f = interpolate s v r :=
-begin
-  rw [eq_interpolate hvs degree_f_lt], exact interpolate_eq_of_values_eq_on eval_f
-end
+by { rw [eq_interpolate hvs degree_f_lt], exact interpolate_eq_of_values_eq_on eval_f }
 
 /--
 This is the characteristic property of the interpolation: the interpolation is the
@@ -353,30 +362,49 @@ def fun_equiv_degree_lt (hvs : set.inj_on v s) : degree_lt F s.card ≃ₗ[F] (s
                   rw eval_interpolate hvs hi, exact dif_pos hi,
                 end }
 
-theorem interpolate_eq_interpolate_erase_add (hvs : set.inj_on v s) (hi : i ∈ s) (hj : j ∈ s)
-  (hij : i ≠ j) : interpolate s v r = basis_divisor (v j) (v i) * interpolate (s.erase i) v r +
-  basis_divisor (v i) (v j) * interpolate (s.erase j) v r :=
+theorem interpolate_eq_sum_interpolate_insert_sdiff (hvt : set.inj_on v t) (hs : s.nonempty)
+  (hst : s ⊆ t) : interpolate t v r =
+  ∑ i in s, (interpolate (insert i (t \ s)) v r) * basis s v i :=
 begin
-  have H1 : v i ≠ v j, by { rw ne.def, rw hvs.eq_iff hi hj, exact hij }, symmetry,
-  refine eq_interpolate_of_eval_eq hvs (lt_of_le_of_lt (degree_add_le _ _) _) (λ k hk, _),
-  { have H2 : (s.card : with_bot ℕ) = ↑1 + ↑(s.card - 1),
-    by { rw [  ← nat.add_sub_cancel_left 1 s.card, nat.add_sub_assoc (nonempty.card_pos ⟨i, hi⟩),
-            nat.cast_add, nat.succ_add_sub_one, zero_add] },
-    simp_rw [ degree_mul, degree_basis_divisor_ne H1, degree_basis_divisor_ne H1.symm,
-              max_lt_iff, ←with_bot.coe_one, H2,
-              with_bot.add_lt_add_iff_left (@with_bot.coe_ne_bot _ 1)],
-    exact ⟨degree_interpolate_erase_lt hvs hi, degree_interpolate_erase_lt hvs hj⟩ },
-  { simp_rw [eval_add, eval_mul], rcases eq_or_ne i k with rfl | hik;
-    [skip, rcases eq_or_ne j k with rfl | hjk];
-    try { simp only [ eval_basis_divisor_right, eval_basis_divisor_left_ne, H1, H1.symm, zero_mul,
-                      zero_add, add_zero, one_mul, ne.def, not_false_iff] },
-    { exact eval_interpolate  (set.inj_on.mono (coe_subset.mpr (erase_subset _ _)) hvs)
-                              (mem_erase.mpr ⟨hij, hi⟩) },
-    { exact eval_interpolate  (set.inj_on.mono (coe_subset.mpr (erase_subset _ _)) hvs)
-                              (mem_erase.mpr ⟨hij.symm, hj⟩) },
-    { repeat {rw eval_interpolate (set.inj_on.mono (coe_subset.mpr (erase_subset _ _)) hvs)},
-      rw [ ← right_distrib, ← eval_add, basis_divisor_add_symm H1.symm, eval_one, one_mul],
-      all_goals { refine  mem_erase.mpr ⟨by symmetry; assumption, hk⟩ }, } }
+  symmetry, refine eq_interpolate_of_eval_eq hvt (lt_of_le_of_lt (degree_sum_le _ _) _) (λ i hi, _),
+  { simp_rw [(finset.sup_lt_iff (with_bot.bot_lt_coe t.card)), degree_mul], intros i hi,
+    have hs : 1 ≤ s.card := (nonempty.card_pos ⟨_, hi⟩),
+    have hst' : s.card ≤ t.card := (card_le_of_subset hst),
+    have H : t.card = (1 + (t.card - s.card)) + (s.card - 1),
+    { rw [  add_assoc, tsub_add_tsub_cancel hst' hs,
+            ← add_tsub_assoc_of_le (hs.trans hst'), nat.succ_add_sub_one, zero_add] },
+    rw [  degree_basis (set.inj_on.mono hst hvt) hi, H, with_bot.coe_add,
+          with_bot.add_lt_add_iff_right (@with_bot.coe_ne_bot _ (s.card - 1))],
+    convert (degree_interpolate_lt (hvt.mono (coe_subset.mpr
+            (insert_subset.mpr ⟨hst hi, sdiff_subset _ _⟩)))),
+    rw [card_insert_of_not_mem (not_mem_sdiff_of_mem_right hi), card_sdiff hst, add_comm] },
+  { simp_rw [eval_finset_sum, eval_mul], by_cases hi' : i ∈ s,
+    { rw ← add_sum_erase _ _ hi',
+      rw [eval_basis_eq (hvt.mono hst) hi'],
+      rw eval_interpolate (hvt.mono (coe_subset.mpr
+            (insert_subset.mpr ⟨hi, sdiff_subset _ _⟩))) (mem_insert_self _ _),
+      rw [mul_one, add_right_eq_self],
+      refine sum_eq_zero (λ j hj, _), rw mem_erase at hj, rcases hj with ⟨hij, hj⟩,
+      rw [eval_basis_ne hij hi', mul_zero] },
+    { have H : ∑ j in s, eval (v i) (basis s v j) = 1,
+      { rw ← eval_finset_sum, rw basis_sum (hvt.mono hst) hs, rw eval_one},
+      rw ←mul_one (r i), rw ← H, rw mul_sum,
+      refine sum_congr rfl (λ j hj, _), congr,
+      refine eval_interpolate (hvt.mono (insert_subset.mpr ⟨hst hj, sdiff_subset _ _⟩))
+                              (mem_insert .mpr (or.inr (mem_sdiff.mpr ⟨hi, hi'⟩))) } }
+end
+
+theorem interpolate_eq_add_interpolate_erase (hvs : set.inj_on v s) (hi : i ∈ s) (hj : j ∈ s)
+  (hij : i ≠ j) : interpolate s v r = interpolate (s.erase j) v r * basis_divisor (v i) (v j) +
+  interpolate (s.erase i) v r *basis_divisor (v j) (v i) :=
+begin
+  rw interpolate_eq_sum_interpolate_insert_sdiff hvs ⟨i, (mem_insert_self i {j})⟩ _,
+  rw sum_insert (not_mem_singleton.mpr hij), rw sum_singleton,
+  rw basis_doubleton_left hij, rw basis_doubleton_right hij, congr;
+  [skip, rw pair_comm]; ext k; rw [mem_insert, mem_erase, mem_sdiff, mem_insert, mem_singleton];
+  push_neg; exact ⟨ by { rintros (rfl | ⟨_, _, _⟩); tauto },
+                    by { rw or_iff_not_imp_left, rintros ⟨_, _⟩ _, tauto, } ⟩,
+  intros k hk, simp at hk, rcases hk with (rfl | rfl), exact hi, exact hj
 end
 
 end interpolate
@@ -415,8 +443,8 @@ by {  simp_rw [ basis, basis_divisor, nodal_div_eq hi, nodal_derive_eval_node_eq
                 prod_mul_distrib, ← prod_inv_distrib, map_prod] }
 
 lemma interpolate_eq_derivative_interpolate [decidable_eq ι] :
-∑ i in s, C (r i * (eval (v i) (nodal s v).derivative)⁻¹) *
-  (nodal s v / (X - C (v i))) = interpolate s v r :=
+interpolate s v r = ∑ i in s, C (r i * (eval (v i) (nodal s v).derivative)⁻¹) *
+  (nodal s v / (X - C (v i))) :=
 by {  refine sum_congr rfl (λ j hj, _),
       rw [basis_eq_nodal_div_eval_deriv_mul_linear hj, map_mul, mul_assoc] }
 

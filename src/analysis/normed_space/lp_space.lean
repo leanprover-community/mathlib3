@@ -26,10 +26,11 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 
 * `mem_ℓp f p` : property that the function `f` satisfies, as appropriate, `f` finitely supported
   if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
-  `p = ∞`
+  `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
-  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure; also
-  equipped with `normed_space 𝕜` and `complete_space` instances under appropriate conditions
+  a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
+  Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
+  `lp.complete_space`, and `lp.normed_ring`.
 
 ## Main results
 

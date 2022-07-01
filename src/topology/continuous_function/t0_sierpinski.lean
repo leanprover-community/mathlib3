@@ -8,9 +8,9 @@ import topology.sets.opens
 import topology.continuous_function.basic
 
 /-!
-# Any T0 space embeds in a product of copies of the Sierpinski space
+# Any T0 space embeds in a product of copies of the Sierpinski space.
 
-We consider `Prop` with the Sierpinski topology. If `t` is a topology on `X`, there is a continuous
+We consider `Prop` with the Sierpinski topology. If `X` is a topological space, there is a continuous
 map `product_of_mem_opens` from `X` to `opens X → Prop` which is the product of the maps
 `X → Prop` given by `x ↦ x ∈ u`.
 
@@ -37,30 +37,25 @@ end)
 variables (X : Type*) [topological_space X]
 
 /--
-  The continuous map from `X` to the product of copies of the Sierpinski space, (one copy for each
-  open subset `u` of `X`). The `u` coordinate of  `product_of_mem_opens x` is given by `x ∈ u`.
+The continuous map from `X` to the product of copies of the Sierpinski space, (one copy for each
+open subset `u` of `X`). The `u` coordinate of `product_of_mem_opens x` is given by `x ∈ u`.
 -/
 def product_of_mem_opens : continuous_map X (opens X → Prop) :=
 { to_fun := λ x u, x ∈ u,
   continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.property) }
 
 lemma product_of_mem_opens_inducing : inducing (product_of_mem_opens X) :=
-⟨(eq_induced_by_maps_to_sierpinski X).trans begin
-  erw induced_infi, -- same steps as in the proof of `inducing_infi_to_pi`
-  congr' 1,
-  funext,
-  erw induced_compose,
-  refl
-end⟩
+begin
+  convert inducing_infi_to_pi (λ (u : opens X) (x : X), x ∈ u),
+  apply eq_induced_by_maps_to_sierpinski,
+end
 
 lemma product_of_mem_opens_injective [t0_space X] : function.injective (product_of_mem_opens X) :=
 begin
-  rw function.injective,
   intros x1 x2 h,
-  by_contra' c,
-  cases (t0_space_def X).1 _inst_2 x1 x2 c with u hu,
-  apply (xor_iff_not_iff _ _).1 hu.2,
-  simpa only [eq_iff_iff, subtype.coe_mk] using congr_fun h ⟨u, hu.1⟩
+  apply inseparable.eq,
+  intros u hu,
+  simpa only [eq_iff_iff] using congr_fun h ⟨u, hu⟩,
  end
 
 theorem product_of_mem_opens_embedding [t0_space X] : embedding (product_of_mem_opens X) :=

@@ -29,22 +29,19 @@ namespace polynomial_module
 -- simp lemmas associated to it is undesirable here.
 noncomputable
 instance : module R[X] (polynomial_module M) :=
-begin
-  refine module.comp_hom (polynomial_module M)
-    (polynomial.aeval (_ : (polynomial_module M) →ₗ[R] (polynomial_module M))).to_ring_hom,
-  exact
-  { to_fun := λ f,
+{ ..(module_polynomial_of_endo ({ to_fun := λ (f : polynomial_module M),
     { support := f.support.image (λ x, x + 1),
       to_fun := λ i, ite (i = 0) 0 (f (i - 1)),
       mem_support_to_fun := λ a, by cases a; simp only [nat.succ_eq_add_one, nat.add_succ_sub_one,
-        finsupp.mem_support_iff, add_left_inj, exists_prop, exists_eq_right, nat.succ_ne_zero, ne.def,
-        finset.mem_image, add_zero, if_false, exists_false, if_true, not_true, eq_self_iff_true] },
+        finsupp.mem_support_iff, add_left_inj, exists_prop, exists_eq_right, nat.succ_ne_zero,
+        finset.mem_image, add_zero, if_false, nat.succ_ne_zero, ne.def, finset.mem_image,
+        exists_false, if_true, not_true, eq_self_iff_true] },
     map_add' := λ i j, finsupp.ext (λ i, by cases i; simp only [eq_self_iff_true, if_true,
       add_zero, finsupp.coe_add, pi.add_apply, finsupp.coe_mk, nat.succ_ne_zero, if_false]),
     map_smul' := λ i j, finsupp.ext (λ i, by cases i; simp only [nat.nat_zero_eq_zero, if_true,
       finsupp.coe_smul, zero_tsub, ring_hom.id_apply, eq_self_iff_true, pi.smul_apply, smul_zero,
-      finsupp.coe_mk, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_ne_zero, if_false]) },
-end
+      finsupp.coe_mk, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_ne_zero, if_false]) } :
+  module.End R (polynomial_module M))) }
 
 instance (M : Type u) [add_comm_group M] [module R M] : is_scalar_tower R R[X] (ℕ →₀ M) :=
 module_polynomial_of_endo.is_scalar_tower _

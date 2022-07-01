@@ -971,9 +971,13 @@ noncomputable theory
 
 /-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
-@[simps]
 def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+lemma module_polynomial_of_endo_smul_def (n : R[X]) (a : M) :
+  @@has_scalar.smul (module_polynomial_of_endo f).to_has_scalar n a = polynomial.aeval f n a := rfl
+
+local attribute [simp] module_polynomial_of_endo_smul_def
 
 include f
 lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _

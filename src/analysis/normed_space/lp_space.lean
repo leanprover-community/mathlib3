@@ -30,7 +30,7 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
   a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
   Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
-  `lp.complete_space`, and `lp.normed_ring`.
+  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`, `lp.infty_normed_algebra`.
 
 ## Main results
 
@@ -766,7 +766,7 @@ def _root_.lp_infty_subalgebra : subalgebra 𝕜 (pre_lp B) :=
 
 variables {𝕜 B}
 
-instance : normed_algebra 𝕜 (lp B ∞) :=
+instance infty_normed_algebra : normed_algebra 𝕜 (lp B ∞) :=
 { ..(lp_infty_subalgebra 𝕜 B).algebra,
   ..(lp.normed_space : normed_space 𝕜 (lp B ∞)) }
 

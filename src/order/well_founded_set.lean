@@ -67,17 +67,21 @@ lemma is_well_founded_on.is_well_founded {s : set α} {r : α → α → Prop} :
   s.is_well_founded_on r → is_well_founded s (subrel r s) :=
 id
 
+-- Todo (Vi): Adding API for `is_well_founded_on.min` would alleviate having to use `haveI` in the
+-- following proofs.
+
 lemma is_well_founded_on_iff {s : set α} {r : α → α → Prop} :
   s.is_well_founded_on r ↔ is_well_founded α (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
 begin
   have f : rel_embedding (subrel r s) (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
     ⟨⟨coe, subtype.coe_injective⟩, λ a b, by simp⟩,
-  refine ⟨λ h, _, f.well_founded⟩,
-  rw well_founded.well_founded_iff_has_min,
+  refine ⟨λ h, _, @rel_embedding.is_well_founded _ _ _ _ f⟩,
+  haveI := h.is_well_founded,
+  rw is_well_founded.well_founded_iff_has_min,
   intros t ht,
   by_cases hst : (s ∩ t).nonempty,
   { rw ← subtype.preimage_coe_nonempty at hst,
-    rcases h.has_min (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
+    rcases is_well_founded.has_min (subrel r s) (coe ⁻¹' t) hst with ⟨⟨m, ms⟩, mt, hm⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hm ⟨x, xs⟩ xt xm⟩ },
   { rcases ht with ⟨m, mt⟩,
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ }

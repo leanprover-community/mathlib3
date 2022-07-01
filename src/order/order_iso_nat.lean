@@ -22,23 +22,23 @@ defines the limit value of an eventually-constant sequence.
 * `monotonic_sequence_limit_index`: The index of the first occurence of `monotonic_sequence_limit`
   in the sequence.
 -/
+
+variable {α : Type*}
+
 namespace rel_embedding
 
-variables {α : Type*} {r : α → α → Prop} [is_strict_order α r]
+variables {r : α → α → Prop} [is_strict_order α r]
 
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
-def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
-  ((<) : ℕ → ℕ → Prop) ↪r r :=
+def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) : ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ nat.rel_of_forall_rel_succ_of_lt r H
 
 @[simp]
-lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} :
-  nat_lt f H n = f n :=
+lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} : nat_lt f H n = f n :=
 rfl
 
 /-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
-def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) :
-  ((>) : ℕ → ℕ → Prop) ↪r r :=
+def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) : ((>) : ℕ → ℕ → Prop) ↪r r :=
 by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
 theorem well_founded_iff_no_descending_seq :
@@ -75,8 +75,7 @@ def order_embedding_of_set : ℕ ↪o ℕ :=
 
 /-- `nat.subtype.of_nat` as an order isomorphism between `ℕ` and an infinite decidable subset.
 See also `nat.nth` for a version where the subset may be finite. -/
-noncomputable def subtype.order_iso_of_nat  :
-  ℕ ≃o s :=
+noncomputable def subtype.order_iso_of_nat : ℕ ≃o s :=
 rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
   (rel_embedding.nat_lt (nat.subtype.of_nat s) (λ n, nat.subtype.lt_succ_self _)))
   nat.subtype.of_nat_surjective
@@ -89,8 +88,7 @@ lemma coe_order_embedding_of_set : ⇑(order_embedding_of_set s) = coe ∘ subty
 lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subtype.of_nat s n := rfl
 
 @[simp]
-lemma subtype.order_iso_of_nat_apply {n : ℕ} :
-  subtype.order_iso_of_nat s n = subtype.of_nat s n :=
+lemma subtype.order_iso_of_nat_apply {n : ℕ} : subtype.order_iso_of_nat s n = subtype.of_nat s n :=
 by { simp [subtype.order_iso_of_nat] }
 
 variable (s)
@@ -98,8 +96,7 @@ variable (s)
 lemma order_embedding_of_set_range : set.range (nat.order_embedding_of_set s) = s :=
 subtype.coe_comp_of_nat_range
 
-theorem exists_subseq_of_forall_mem_union {α : Type*} {s t : set α} (e : ℕ → α)
-  (he : ∀ n, e n ∈ s ∪ t) :
+theorem exists_subseq_of_forall_mem_union {s t : set α} (e : ℕ → α) (he : ∀ n, e n ∈ s ∪ t) :
   ∃ g : ℕ ↪o ℕ, (∀ n, e (g n) ∈ s) ∨ (∀ n, e (g n) ∈ t) :=
 begin
   classical,
@@ -113,7 +110,7 @@ end
 
 end nat
 
-theorem exists_increasing_or_nonincreasing_subseq' {α : Type*} (r : α → α → Prop) (f : ℕ → α) :
+theorem exists_increasing_or_nonincreasing_subseq' (r : α → α → Prop) (f : ℕ → α) :
   ∃ (g : ℕ ↪o ℕ), (∀ n : ℕ, r (f (g n)) (f (g (n + 1)))) ∨
     (∀ m n : ℕ, m < n → ¬ r (f (g m)) (f (g n))) :=
 begin
@@ -148,8 +145,7 @@ end
 
 /-- This is the infinitary Erdős–Szekeres theorem, and an important lemma in the usual proof of
     Bolzano-Weierstrass for `ℝ`. -/
-theorem exists_increasing_or_nonincreasing_subseq
-  {α : Type*} (r : α → α → Prop) [is_trans α r] (f : ℕ → α) :
+theorem exists_increasing_or_nonincreasing_subseq (r : α → α → Prop) [is_trans α r] (f : ℕ → α) :
   ∃ (g : ℕ ↪o ℕ), (∀ m n : ℕ, m < n → r (f (g m)) (f (g n))) ∨
     (∀ m n : ℕ, m < n → ¬ r (f (g m)) (f (g n))) :=
 begin
@@ -163,7 +159,7 @@ begin
   { exact ⟨g, or.intro_right _ hnr⟩ }
 end
 
-lemma well_founded_gt.monotone_chain_condition_iff' {α : Type*} [preorder α] :
+lemma well_founded_gt.monotone_chain_condition_iff' [preorder α] :
   well_founded_gt α ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → ¬ a n < a m :=
 begin
   refine ⟨_, λ h, _⟩,
@@ -175,36 +171,38 @@ begin
     exact hn n.succ n.lt_succ_self.le ((rel_embedding.map_rel_iff _).2 n.lt_succ_self) },
 end
 
-lemma well_founded_gt.monotone_chain_condition' {α : Type*} [preorder α] [h : well_founded_gt α] :
+lemma well_founded_gt.monotone_chain_condition' [preorder α] [h : well_founded_gt α] :
   ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → ¬ a n < a m :=
 well_founded_gt.monotone_chain_condition_iff'.1 h
 
 /-- The "monotone chain condition" below is sometimes a convenient form of well foundedness. -/
-lemma well_founded_gt.monotone_chain_condition_iff {α : Type*} [preorder α] :
+lemma well_founded_gt.monotone_chain_condition_iff [partial_order α] :
   well_founded_gt α ↔ ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
-well_founded.monotone_chain_condition'.trans $ begin
+well_founded_gt.monotone_chain_condition_iff'.trans $ begin
   congrm ∀ a, ∃ n, ∀ m (h : n ≤ m), (_ : Prop),
   rw lt_iff_le_and_ne,
   simp [a.mono h]
 end
 
-lemma well_founded_gt.monotone_chain_condition' {α : Type*} [preorder α] [h : well_founded_gt α] :
+lemma well_founded_gt.monotone_chain_condition [partial_order α] [h : well_founded_gt α] :
   ∀ (a : ℕ →o α), ∃ n, ∀ m, n ≤ m → a n = a m :=
 well_founded_gt.monotone_chain_condition_iff.1 h
+
+-- Todo (Vi): add the order-dualed versions for `well_founded_lt`.
 
 /-- Given an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a partially-ordered
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
 constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
 is defined, but is a junk value. -/
-noncomputable def monotonic_sequence_limit_index {α : Type*} [preorder α] (a : ℕ →o α) : ℕ :=
+noncomputable def monotonic_sequence_limit_index [preorder α] (a : ℕ →o α) : ℕ :=
 Inf {n | ∀ m, n ≤ m → a n = a m}
 
 /-- The constant value of an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
 partially-ordered type. -/
-noncomputable def monotonic_sequence_limit {α : Type*} [preorder α] (a : ℕ →o α) :=
+noncomputable def monotonic_sequence_limit [preorder α] (a : ℕ →o α) :=
 a (monotonic_sequence_limit_index a)
 
-lemma well_founded_gt.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]
+lemma well_founded_gt.supr_eq_monotonic_sequence_limit [complete_lattice α]
   [well_founded_gt α] (a : ℕ →o α) : supr a = monotonic_sequence_limit a :=
 begin
   apply (supr_le (λ m, _)).antisymm (le_supr a _),

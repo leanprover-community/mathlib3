@@ -74,16 +74,16 @@ section
 variables {R₁ : Type*} [semiring R₁]
 
 /-- A Lie subalgebra inherits module structures from `L`. -/
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : module R₁ L' :=
 L'.to_submodule.module'
 
-instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+instance [has_smul R₁ R] [has_smul R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
   [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
   (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
 L'.to_submodule.is_central_scalar
 
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
 L'.to_submodule.is_scalar_tower
 
@@ -378,10 +378,10 @@ instance : add_comm_monoid (lie_subalgebra R L) :=
   add_zero  := λ _, sup_bot_eq,
   add_comm  := λ _ _, sup_comm, }
 
-/-- This is not an instance, as it would stop `⊥` being the simp-normal form (via `bot_eq_zero`). -/
-def canonically_ordered_add_monoid : canonically_ordered_add_monoid (lie_subalgebra R L) :=
+instance : canonically_ordered_add_monoid (lie_subalgebra R L) :=
 { add_le_add_left := λ a b, sup_le_sup_left,
-  le_iff_exists_add := λ a b, le_iff_exists_sup,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
   ..lie_subalgebra.add_comm_monoid,
   ..lie_subalgebra.complete_lattice }
 

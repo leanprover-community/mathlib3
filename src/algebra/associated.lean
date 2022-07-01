@@ -844,7 +844,8 @@ instance : cancel_comm_monoid_with_zero (associates α) :=
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
 instance : canonically_ordered_monoid (associates α) :=
-{ le_iff_exists_mul := λ a b, iff.rfl,
+{ exists_mul_of_le := λ a b, id,
+  le_self_mul := λ a b, ⟨b, rfl⟩,
   ..associates.cancel_comm_monoid_with_zero,
   ..associates.bounded_order,
   ..associates.ordered_comm_monoid}

@@ -394,6 +394,14 @@ def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
   left_inv := λ ⟨x, y⟩, rfl,
   right_inv := λ ⟨x, y⟩, rfl }
 
+/-- `pprod α β` is equivalent to `plift α × plift β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod_plift {α β : Sort*} : pprod α β ≃ plift α × plift β :=
+{ to_fun := λ x, (plift.up x.1, plift.up x.2),
+  inv_fun := λ x, ⟨x.1.down, x.2.down⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨⟨x⟩, ⟨y⟩⟩, rfl }
+
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
 { to_fun := h.mp,
@@ -595,6 +603,14 @@ section
 @[simps] def punit_prod (α : Type*) : punit.{u+1} × α ≃ α :=
 calc punit × α ≃ α × punit : prod_comm _ _
            ... ≃ α         : prod_punit _
+
+/-- Any `unique` type is a right identity for type product up to equivalence. -/
+def prod_unique (α β : Type*) [unique β] : α × β ≃ α :=
+((equiv.refl α).prod_congr $ equiv_punit β).trans $ prod_punit α
+
+/-- Any `unique` type is a left identity for type product up to equivalence. -/
+def unique_prod (α β : Type*) [unique β] : β × α ≃ α :=
+((equiv_punit β).prod_congr $ equiv.refl α).trans $ punit_prod α
 
 /-- `empty` type is a right absorbing element for type product up to an equivalence. -/
 def prod_empty (α : Type*) : α × empty ≃ empty :=
@@ -917,6 +933,16 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β�
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
+/-- Given `φ : α → β → Sort*`, we have an equivalence between `Π a b, φ a b` and `Π b a, φ a b`.
+This is `function.swap` as an `equiv`. -/
+@[simps apply]
+def Pi_comm {α β} (φ : α → β → Sort*) : (Π a b, φ a b) ≃ (Π b a, φ a b) :=
+⟨swap, swap, λ x, rfl, λ y, rfl⟩
+
+@[simp] lemma Pi_comm_symm {α β} {φ : α → β → Sort*} :
+  (Pi_comm φ).symm = (Pi_comm $ swap φ) :=
+rfl
+
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
 to the type of dependent functions of two arguments (i.e., functions to the space of functions).
 
@@ -931,9 +957,15 @@ def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
 end
 
 section
+
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
 @[simps apply symm_apply] def psigma_equiv_sigma {α} (β : α → Type*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+/-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
+@[simps apply symm_apply] def psigma_equiv_sigma_plift {α} (β : α → Sort*) :
+  (Σ' i, β i) ≃ Σ i : plift α, plift (β i.down) :=
+⟨λ a, ⟨plift.up a.1, plift.up a.2⟩, λ a, ⟨a.1.down, a.2.down⟩, λ ⟨a, b⟩, rfl, λ ⟨⟨a⟩, ⟨b⟩⟩, rfl⟩
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ' a, β₁ a` and
 `Σ' a, β₂ a`. -/
@@ -1364,39 +1396,25 @@ subtype_equiv (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. This
 version allows the “inner” predicate to depend on `h : p a`. -/
+@[simps]
 def subtype_subtype_equiv_subtype_exists {α : Type u} (p : α → Prop) (q : subtype p → Prop) :
   subtype q ≃ {a : α // ∃h:p a, q ⟨a, h⟩ } :=
-⟨λ⟨⟨a, ha⟩, ha'⟩, ⟨a, ha, ha'⟩,
-  λ⟨a, ha⟩, ⟨⟨a, ha.cases_on $ assume h _, h⟩, by { cases ha, exact ha_h }⟩,
+⟨λ a, ⟨a, a.1.2, by { rcases a with ⟨⟨a, hap⟩, haq⟩, exact haq }⟩,
+  λ a, ⟨⟨a, a.2.fst⟩, a.2.snd⟩,
   assume ⟨⟨a, ha⟩, h⟩, rfl, assume ⟨a, h₁, h₂⟩, rfl⟩
 
-@[simp] lemma subtype_subtype_equiv_subtype_exists_apply {α : Type u} (p : α → Prop)
-  (q : subtype p → Prop) (a) : (subtype_subtype_equiv_subtype_exists p q a : α) = a :=
-by { cases a, cases a_val, refl }
-
 /-- A subtype of a subtype is equivalent to the subtype of elements satisfying both predicates. -/
-def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
+@[simps] def subtype_subtype_equiv_subtype_inter {α : Type u} (p q : α → Prop) :
   {x : subtype p // q x.1} ≃ subtype (λ x, p x ∧ q x) :=
 (subtype_subtype_equiv_subtype_exists p _).trans $
 subtype_equiv_right $ λ x, exists_prop
 
-@[simp] lemma subtype_subtype_equiv_subtype_inter_apply {α : Type u} (p q : α → Prop) (a) :
-  (subtype_subtype_equiv_subtype_inter p q a : α) = a :=
-by { cases a, cases a_val, refl }
-
 /-- If the outer subtype has more restrictive predicate than the inner one,
 then we can drop the latter. -/
-def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}, q x → p x) :
+@[simps] def subtype_subtype_equiv_subtype {α : Type u} {p q : α → Prop} (h : ∀ {x}, q x → p x) :
   {x : subtype p // q x.1} ≃ subtype q :=
 (subtype_subtype_equiv_subtype_inter p _).trans $
-subtype_equiv_right $
-assume x,
-⟨and.right, λ h₁, ⟨h h₁, h₁⟩⟩
-
-@[simp] lemma subtype_subtype_equiv_subtype_apply {α : Type u} {p q : α → Prop} (h : ∀ x, q x → p x)
-  (a : {x : subtype p // q x.1}) :
-  (subtype_subtype_equiv_subtype h a : α) = a :=
-by { cases a, cases a_val, refl }
+subtype_equiv_right $ λ x, and_iff_right_of_imp h
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/

@@ -73,11 +73,11 @@ instance : has_involutive_neg (jordan_decomposition α) :=
 { neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩,
   neg_neg := λ j, jordan_decomposition.ext _ _ rfl rfl }
 
-instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
+instance : has_smul ℝ≥0 (jordan_decomposition α) :=
 { smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,
     mutually_singular.smul _ (mutually_singular.smul _ j.mutually_singular.symm).symm⟩ }
 
-instance has_scalar_real : has_scalar ℝ (jordan_decomposition α) :=
+instance has_smul_real : has_smul ℝ (jordan_decomposition α) :=
 { smul := λ r j, if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) }
 
 @[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl

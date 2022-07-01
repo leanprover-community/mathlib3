@@ -28,8 +28,8 @@ variables [ordered_semiring 𝕜] [topological_space E] [topological_space F]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (s : set E)
 
 /-- A set is strictly convex if the open segment between any two distinct points lies is in its
 interior. This basically means "convex and not flat on the boundary". -/
@@ -88,7 +88,7 @@ begin
   exact (directed_on_iff_directed.1 hdir).strict_convex_Union (λ s, hS _ s.2),
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}

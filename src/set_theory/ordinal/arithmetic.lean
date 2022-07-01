@@ -2158,7 +2158,7 @@ begin
     { rw [le_div hn', ←nat_cast_mul, nat_cast_le, mul_comm],
       apply nat.div_mul_le_self },
     { rw [div_le hn', ←add_one_eq_succ, ←nat.cast_succ, ←nat_cast_mul, nat_cast_lt, mul_comm,
-        ←nat.div_lt_iff_lt_mul _ _ (nat.pos_of_ne_zero hn)],
+        ←nat.div_lt_iff_lt_mul (nat.pos_of_ne_zero hn)],
       apply nat.lt_succ_self } }
 end
 

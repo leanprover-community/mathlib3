@@ -689,15 +689,15 @@ instance ring.is_noetherian_of_subsingleton {R} [semiring R] [subsingleton R] :
 theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
-  rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded_lt (submodule.map_subtype.order_embedding N).dual h,
+  rw is_noetherian_iff_well_founded,
+  exact (submodule.map_subtype.order_embedding N).well_founded_gt,
 end
 
 instance submodule.quotient.is_noetherian {R} [ring R] {M} [add_comm_group M] [module R M]
   (N : submodule R M) [h : is_noetherian R M] : is_noetherian R (M ⧸ N) :=
 begin
-  rw is_noetherian_iff_well_founded at h ⊢,
-  exact (submodule.comap_mkq.order_embedding N)..well_founded_gt h,
+  rw is_noetherian_iff_well_founded,
+  exact (submodule.comap_mkq.order_embedding N).well_founded_gt,
 end
 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
@@ -706,8 +706,8 @@ theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
   [add_comm_monoid M] [has_scalar R S] [module S M] [module R M] [is_scalar_tower R S M]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
-  rw is_noetherian_iff_well_founded at h ⊢,
-  refine (submodule.restrict_scalars_embedding R S M).well_founded_gt h
+  rw is_noetherian_iff_well_founded,
+  exact (submodule.restrict_scalars_embedding R S M).well_founded_gt
 end
 
 instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
@@ -760,8 +760,8 @@ theorem is_noetherian_ring_of_surjective (R) [ring R] (S) [ring S]
   (f : R →+* S) (hf : function.surjective f)
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
-  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H ⊢,
-  exact (ideal.order_embedding_of_surjective f hf).well_founded_gt H,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded],
+  exact (ideal.order_embedding_of_surjective f hf).well_founded_gt,
 end
 
 instance is_noetherian_ring_range {R} [ring R] {S} [ring S] (f : R →+* S)

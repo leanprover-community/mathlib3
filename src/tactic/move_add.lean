@@ -78,10 +78,11 @@ next element of either the first or the second list, depending on the boolean `t
 `eu` from the list `sl`.  In this case, we continue our scanning with the next element of `lp`,
 replacing `sl` by `sl.erase eu`.
 
-Once we exhaust the elements of `lp`, we return the three lists:
-* first the list of elements of `sl` that came from an element of `lp` whose boolean was `tt`,
-* next the list of elements of `sl` that came from an element of `lp` whose boolean was `ff`, and
-* finally the ununified elements of `sl`.
+Once we exhaust the elements of `lp`, we return the four lists:
+* `l_tt`: the list of elements of `sl` that came from an element of `lp` whose boolean was `tt`,
+* `l_ff`: the list of elements of `sl` that came from an element of `lp` whose boolean was `ff`
+* `l_un`: the un-unified elements of `sl`
+* `l_m`: a "mask" list of booleans corresponding to the elements of `lp` that were placed in `l_un`
 
 The ununified elements of `sl` get used for error management: they keep track of which user inputs
 are superfluous. -/
@@ -142,7 +143,8 @@ Here are two examples:
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   list bool → expr → tactic (expr × list bool)
-| lu F'@(expr.app F b) := (do op ← to_expr op tt ff,
+| lu F'@(expr.app F b) := (do
+    op ← to_expr op tt ff,
     is_given_op op F',
     (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
     sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
@@ -177,13 +179,16 @@ The list of booleans records which variable in `ll` has been unified in the appl
 This definition is useful to streamline error catching. -/
 meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
   tactic (bool × list bool) :=
-do (thyp, hyploc) ←  -- `hyploc` is only meaningful in the "is some/else" branch
-  if na.is_none then do t ← target, return (t, t)
-  else
-  (do nn ← get_unused_name,
-      hl ← get_local (na.get_or_else nn),
-      th ← infer_type hl,
-      return (th, hl)),
+do
+  (thyp, hyploc) ← match na with
+    | none := do
+        t ← target,
+        return (t, none)
+    | some na := do
+        hl ← get_local na,
+        th ← infer_type hl,
+        return (th, some hl)
+    end,
   (reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
   unify reordered thyp >> return (tt, is_unused) <|> do
   -- the current `do` block takes place where the reordered expression is not equal to the original
@@ -194,7 +199,10 @@ do (thyp, hyploc) ←  -- `hyploc` is only meaningful in the "is some/else" bran
     `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }] <|>
     fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
     "the initial goal equals:\n\n{pre}\n"),
-  if na.is_none then refine ``(eq.mpr %%prf _) else replace_hyp hyploc reordered prf >> skip,
+  match hyploc with
+  | none := refine ``(eq.mpr %%prf _)
+  | some hyploc := replace_hyp hyploc reordered prf >> skip
+  end,
   return (ff, is_unused)
 
 section parsing_arguments_for_move_op
@@ -234,18 +242,18 @@ ner ← locas_with_tg.mmap (λ e, reorder_hyp op args e.local_pp_name <|> reorde
 let (unch_tgts, unus_vars) := ner.unzip,
 let str_unva := match
   (return_unused args (unus_vars.transpose.map list.band)).map (λ e : bool × pexpr, e.2) with
-  | []   := ""
-  | [pe] := "'" ++ to_string pe ++"' is an unused variable"
-  | pes  := "'" ++ to_string pes ++"' are unused variables"
+  | []   := []
+  | [pe] := [format!"'{pe}' is an unused variable"]
+  | pes  := [format!"'{pes}' are unused variables"]
   end,
 let str_tgts := match locat with
-  | loc.wildcard := if unch_tgts.band then "nothing changed" else ""
+  | loc.wildcard := if unch_tgts.band then [format!"nothing changed"] else []
   | loc.ns names := let linames := return_unused locas unch_tgts in
-      (if none ∈ return_unused names unch_tgts then "Goal did not change\n" else "") ++
-      (if linames ≠ [] then ("'" ++ to_string linames.reverse ++ "' did not change") else "")
+      (if none ∈ return_unused names unch_tgts
+        then [format!"Goal did not change"] else []) ++
+      (if linames ≠ [] then [format!"'{linames.reverse}' did not change"] else [])
   end,
-guard (str_tgts ++ str_unva = "") <|>
-  fail (if str_tgts.length = 0 then str_unva else str_tgts ++ "\n" ++ str_unva),
+[] ← pure (str_tgts ++ str_unva) | fail (format.intercalate "\n" (str_tgts ++ str_unva)),
 assumption <|> try (tactic.reflexivity reducible)
 
 namespace interactive

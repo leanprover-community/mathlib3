@@ -153,17 +153,23 @@ meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
     return (summed, list_unused.transpose.map list.band)) <|>
     (do [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
     return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band))
-| lu (expr.pi na bi e f)           := do [en, fn] ← [e, f].mmap $ reorder_oper lu,
-    return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| lu (expr.lam na bi e f)          := do [en, fn] ← [e, f].mmap $ reorder_oper lu,
-    return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| lu (expr.mvar na pp e)           := do en ← reorder_oper lu e,
+| lu (expr.pi na bi e f)           := do
+  [en, fn] ← [e, f].mmap $ reorder_oper lu,
+  return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
+| lu (expr.lam na bi e f)          := do
+  [en, fn] ← [e, f].mmap $ reorder_oper lu,
+  return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
+| lu (expr.mvar na pp e)           := do
+  en ← reorder_oper lu e,
   return (expr.mvar na pp en.1, [en.2].transpose.map list.band)
-| lu (expr.local_const na pp bi e) := do en ← reorder_oper lu e,
+| lu (expr.local_const na pp bi e) := do
+  en ← reorder_oper lu e,
   return (expr.local_const na pp bi en.1, [en.2].transpose.map list.band)
-| lu (expr.elet na e f g)          := do [en, fn, gn] ← [e, f, g].mmap $ reorder_oper lu,
+| lu (expr.elet na e f g)          := do
+  [en, fn, gn] ← [e, f, g].mmap $ reorder_oper lu,
   return (expr.elet na en.1 fn.1 gn.1, [en.2, fn.2, gn.2].transpose.map list.band)
-| lu (expr.macro ma le)            := do len ← le.mmap $ reorder_oper lu,
+| lu (expr.macro ma le)            := do
+  len ← le.mmap $ reorder_oper lu,
   let (lee, lb) := len.unzip,
   return (expr.macro ma lee, lb.transpose.map list.band)
 | lu e := pure (e, lu)
@@ -178,32 +184,31 @@ The list of booleans records which variable in `ll` has been unified in the appl
 
 This definition is useful to streamline error catching. -/
 meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
-  tactic (bool × list bool) :=
-do
-  (thyp, hyploc) ← match na with
-    | none := do
-        t ← target,
-        return (t, none)
-    | some na := do
-        hl ← get_local na,
-        th ← infer_type hl,
-        return (th, some hl)
-    end,
-  (reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
-  unify reordered thyp >> return (tt, is_unused) <|> do
-  -- the current `do` block takes place where the reordered expression is not equal to the original
-  neq ← mk_app `eq [thyp, reordered],
-  pre ← pp reordered,
-  (_, prf) ← solve_aux neq $
-    `[{ simp only [add_comm, add_assoc, add_left_comm], done }] <|>
-    `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }] <|>
-    fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
-    "the initial goal equals:\n\n{pre}\n"),
-  match hyploc with
-  | none := refine ``(eq.mpr %%prf _)
-  | some hyploc := replace_hyp hyploc reordered prf >> skip
+  tactic (bool × list bool) := do
+(thyp, hyploc) ← match na with
+  | none := do
+      t ← target,
+      return (t, none)
+  | some na := do
+      hl ← get_local na,
+      th ← infer_type hl,
+      return (th, some hl)
   end,
-  return (ff, is_unused)
+(reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
+unify reordered thyp >> return (tt, is_unused) <|> do
+-- the current `do` block takes place where the reordered expression is not equal to the original
+neq ← mk_app `eq [thyp, reordered],
+pre ← pp reordered,
+(_, prf) ← solve_aux neq $
+  `[{ simp only [add_comm, add_assoc, add_left_comm], done }] <|>
+  `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }] <|>
+  fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
+  "the initial goal equals:\n\n{pre}\n"),
+match hyploc with
+| none := refine ``(eq.mpr %%prf _)
+| some hyploc := replace_hyp hyploc reordered prf >> skip
+end,
+return (ff, is_unused)
 
 section parsing_arguments_for_move_op
 setup_tactic_parser

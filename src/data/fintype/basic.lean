@@ -1229,17 +1229,17 @@ finset.subtype.fintype s
   fintype.card s = s.card := fintype.card_of_finset' s (λ _, iff.rfl)
 
 /-- Noncomputable equivalence between a finset `s` as a fintype and `fin (s.card)`. -/
-noncomputable def equiv_fin {s : finset α} : s ≃ fin (s.card) :=
+noncomputable def finset.equiv_fin (s : finset α) : s ≃ fin (s.card) :=
 fintype.equiv_fin_of_card_eq (fintype.card_coe _)
 
 /-- Noncomputable equivalence between a finset `s` as a fintype and `fin n`, when there is a
 proof that `s.card = n`. -/
-noncomputable def equiv_fin_of_card_eq {s : finset α} {n : ℕ} (h : s.card = n) : s ≃ fin n :=
+noncomputable def finset.equiv_fin_of_card_eq {s : finset α} {n : ℕ} (h : s.card = n) : s ≃ fin n :=
 fintype.equiv_fin_of_card_eq (h ▸ fintype.card_coe _)
 
-/-- Noncomputable equivalence between two finsets `s` and `t`as fintypes when there is a proof
+/-- Noncomputable equivalence between two finsets `s` and `t` as fintypes when there is a proof
 that `s.card = t.card`.-/
-noncomputable def equiv_of_card_eq {s t : finset α} (h : s.card = t.card ) : s ≃ t :=
+noncomputable def finset.equiv_of_card_eq {s t : finset α} (h : s.card = t.card) : s ≃ t :=
 fintype.equiv_of_card_eq ((fintype.card_coe _).trans (h.trans (fintype.card_coe _).symm))
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl

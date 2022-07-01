@@ -154,6 +154,18 @@ theorem fg.sup {N₁ N₂ : submodule R M}
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
 
+lemma fg_finset_sup {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ i ∈ s, (N i).fg) :
+  (s.sup N).fg :=
+finset.sup_induction fg_bot (λ a ha b hb, ha.sup hb) h
+
+lemma fg_bsupr {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ i ∈ s, (N i).fg) :
+  (⨆ i ∈ s, N i).fg :=
+by simpa only [finset.sup_eq_supr] using fg_finset_sup s N h
+
+lemma fg_supr {ι : Type*} [fintype ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
+  (supr N).fg :=
+by simpa using fg_bsupr finset.univ N (λ i hi, h i)
+
 variables {P : Type*} [add_comm_monoid P] [module R P]
 variables (f : M →ₗ[R] P)
 

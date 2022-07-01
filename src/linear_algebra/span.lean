@@ -96,6 +96,17 @@ by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
 
 alias submodule.span_preimage_le ← _root_.linear_map.span_preimage_le
 
+lemma closure_subset_span {s : set M} :
+  (add_submonoid.closure s : set M) ⊆ span R s :=
+(@add_submonoid.closure_le _ _ _ (span R s).to_add_submonoid).mpr subset_span
+
+lemma closure_le_to_add_submonoid_span {s : set M} :
+  add_submonoid.closure s ≤ (span R s).to_add_submonoid :=
+closure_subset_span
+
+@[simp] lemma span_closure {s : set M} : span R (add_submonoid.closure s : set M) = span R s :=
+le_antisymm (span_le.mpr closure_subset_span) (span_mono add_submonoid.subset_closure)
+
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
 `s`. -/

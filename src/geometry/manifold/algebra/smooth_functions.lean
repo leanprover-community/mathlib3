@@ -179,8 +179,8 @@ In this section we show that smooth functions valued in a vector space `M` over 
 field `𝕜` inherit a vector space structure.
 -/
 
-instance has_scalar {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  has_scalar 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+instance has_smul {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_smul 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
 @[simp]
@@ -254,8 +254,8 @@ section module_over_continuous_functions
 If `V` is a module over `𝕜`, then we show that the space of smooth functions from `N` to `V`
 is naturally a vector space over the ring of smooth functions from `N` to `𝕜`. -/
 
-instance has_scalar' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  has_scalar C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+instance has_smul' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_smul C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
 @[simp] lemma smul_comp' {V : Type*} [normed_group V] [normed_space 𝕜 V]

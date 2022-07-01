@@ -734,8 +734,10 @@ lemma mem_closure_of_mem_span_closure [nontrivial R] {m : M} {S : set M}
 begin
   suffices : multiplicative.of_add m ∈ submonoid.closure (multiplicative.to_add ⁻¹' S),
   { simpa [← to_submonoid_closure] },
-  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x),
-    ← monoid_hom.map_mclosure] at h,
+  let S' := @submonoid.closure M multiplicative.mul_one_class S,
+  have h' : submonoid.map (of R M) S' = submonoid.closure ((λ (x : M), (of R M) x) '' S) :=
+    monoid_hom.map_mclosure _ _,
+  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x), ← h'] at h,
   simpa using of'_mem_span.1 h
 end
 

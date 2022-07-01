@@ -164,7 +164,7 @@ lemma well_founded.monotone_chain_condition' {α : Type*} [preorder α] :
 begin
   refine ⟨λ h a, _, λ h, _⟩,
   { have hne : (set.range a).nonempty := ⟨a 0, by simp⟩,
-    obtain ⟨x, ⟨n, rfl⟩, H⟩ := well_founded.well_founded_iff_has_min.1 h _ hne,
+    obtain ⟨x, ⟨n, rfl⟩, H⟩ := h.has_min _ hne,
     exact ⟨n, λ m hm, H _ (set.mem_range_self _)⟩ },
   { refine rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ a, _⟩,
     obtain ⟨n, hn⟩ := h (a.swap : ((<) : ℕ → ℕ → Prop) →r ((<) : α → α → Prop)).to_order_hom,

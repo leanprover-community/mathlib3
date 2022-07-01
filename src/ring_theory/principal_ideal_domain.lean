@@ -157,10 +157,10 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
 { principal := λ S, by exactI
     ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
     then
-    have wf : well_founded (euclidean_domain.r : R → R → Prop) := euclidean_domain.r_well_founded,
-    have hmin : well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h ∈ S ∧
-        well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h ≠ 0,
-      from well_founded.min_mem wf {x : R | x ∈ S ∧ x ≠ 0} h,
+    have hmin : is_well_founded.min euclidean_domain.r {x : R | x ∈ S ∧ x ≠ 0} h ∈ S ∧
+        is_well_founded.min euclidean_domain.r {x : R | x ∈ S ∧ x ≠ 0} h ≠ 0,
+      from is_well_founded.min_mem _ {x : R | x ∈ S ∧ x ≠ 0} h,
+      --finish fixing this
     ⟨well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h,
       submodule.ext $ λ x,
       ⟨λ hx, div_add_mod x (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ▸

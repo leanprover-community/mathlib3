@@ -65,14 +65,14 @@ universe u
   The definition of a euclidean domain usually includes a valuation function `R → ℕ`.
   This definition is slightly generalised to include a well founded relation
   `r` with the property that `r (a % b) b`, instead of a valuation.  -/
-@[protect_proj without mul_left_not_lt r_well_founded]
+@[protect_proj without mul_left_not_lt r_is_well_founded]
 class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : R → R → R)
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (r : R → R → Prop)
-(r_is_well_founded : is_well_founded R r . apply_instance)
+(r_is_well_founded : is_well_founded R r . tactic.apply_instance)
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 
@@ -232,7 +232,7 @@ def gcd : R → R → R
   have h:_ := mod_lt b a0,
   gcd (b%a) a
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨(≺), is_well_fuonded.wf⟩]}
+  rel_tac := λ _ _, `[exact ⟨(≺), is_well_founded.wf⟩]}
 
 @[simp] theorem gcd_zero_left (a : R) : gcd 0 a = a :=
 by { rw gcd, exact if_pos rfl }
@@ -450,8 +450,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   quotient_zero := int.div_zero,
   remainder := (%),
   quotient_mul_add_remainder_eq := λ a b, int.div_add_mod _ _,
-  r := λ a b, a.nat_abs < b.nat_abs,
-  r_well_founded := measure_wf (λ a, int.nat_abs a),
+  r := measure int.nat_abs,
   remainder_lt := λ a b b0, int.coe_nat_lt.1 $
     by { rw [int.nat_abs_of_nonneg (int.mod_nonneg _ b0), ← int.abs_eq_nat_abs],
       exact int.mod_lt _ b0 },
@@ -474,8 +473,8 @@ instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :
   quotient_mul_add_remainder_eq := λ a b,
     by { classical, by_cases b = 0; simp [h, mul_div_cancel'] },
   r := λ a b, a = 0 ∧ b ≠ 0,
-  r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
-    acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,
+  r_is_well_founded := ⟨well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
+    acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb⟩,
   remainder_lt := λ a b hnb, by simp [hnb],
   mul_left_not_lt := λ a b hnb ⟨hab, hna⟩, or.cases_on (mul_eq_zero.1 hab) hna hnb,
   .. ‹field K› }

@@ -50,9 +50,8 @@ module_polynomial_of_endo.is_scalar_tower _
 lemma monomial_smul_single (i : ℕ) (r : R) (j : ℕ) (m : M) :
   monomial i r • finsupp.single j m = finsupp.single (i + j) (r • m) :=
 begin
-  simp only [module_polynomial_of_endo_to_distrib_mul_action_to_mul_action_to_has_scalar_smul,
-    linear_map.mul_apply, linear_map.coe_mk, polynomial.aeval_monomial, linear_map.pow_apply,
-    module.algebra_map_End_apply],
+  simp only [module_polynomial_of_endo_smul_def, linear_map.mul_apply, linear_map.coe_mk,
+    polynomial.aeval_monomial, linear_map.pow_apply,  module.algebra_map_End_apply],
   induction i generalizing r j m,
   { simp },
   { rw [function.iterate_succ, function.comp_app, nat.succ_eq_add_one, add_assoc, ← i_ih],

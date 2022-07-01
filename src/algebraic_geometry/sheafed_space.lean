@@ -53,12 +53,12 @@ rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
-/-- The trivial `punit` valued sheaf on any topological space. -/
-def punit (X : Top) : SheafedSpace (discrete punit) :=
-{ is_sheaf := presheaf.is_sheaf_punit _,
-  ..@PresheafedSpace.const (discrete punit) _ X ⟨⟨⟩⟩ }
+/-- The trivial `unit` valued sheaf on any topological space. -/
+def unit (X : Top) : SheafedSpace (discrete unit) :=
+{ is_sheaf := presheaf.is_sheaf_unit _,
+  ..@PresheafedSpace.const (discrete unit) _ X ⟨⟨⟩⟩ }
 
-instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
+instance : inhabited (SheafedSpace (discrete _root_.unit)) := ⟨unit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
 show category (induced_category (PresheafedSpace.{v} C) SheafedSpace.to_PresheafedSpace),

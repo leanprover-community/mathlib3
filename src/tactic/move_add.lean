@@ -143,16 +143,21 @@ Here are two examples:
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   list bool → expr → tactic (expr × list bool)
-| lu F'@(expr.app F b) := (do
+| lu F'@(expr.app F b) := do
     op ← to_expr op tt ff,
-    is_given_op op F',
-    (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
-    sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
-    let (recs, list_unused) := sort_all.unzip,
-    let summed := (recs.drop 1).foldl (λ e f, op.mk_app [e, f]) ((recs.nth 0).get_or_else `(0)),
-    return (summed, list_unused.transpose.map list.band)) <|>
-    (do [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
-    return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band))
+    is_op ← try_core (is_given_op op F'),
+    match is_op with
+    | some () := do
+        (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
+        sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
+        let (recs, list_unused) := sort_all.unzip,
+        recs_0 :: recs_rest ← pure recs | fail!"internal error: cannot have 0 operands",
+        let summed := recs_rest.foldl (λ e f, op.mk_app [e, f]) recs_0,
+        return (summed, list_unused.transpose.map list.band)
+    | none := do
+        [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
+        return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band)
+    end
 | lu (expr.pi na bi e f)           := do
   [en, fn] ← [e, f].mmap $ reorder_oper lu,
   return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)

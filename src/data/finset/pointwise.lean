@@ -593,7 +593,7 @@ variables [decidable_eq β] [has_smul α β] {s s₁ s₂ : finset α} {t t₁ t
   {b : β}
 
 /-- The pointwise product of two finsets `s` and `t`: `s • t = {x • y | x ∈ s, y ∈ t}`. -/
-@[to_additive has_vadd "The pointwise sum of two finsets `s` and
+@[to_additive "The pointwise sum of two finsets `s` and
 `t`: `s +ᵥ t = {x +ᵥ y | x ∈ s, y ∈ t}`."]
 protected def has_smul : has_smul (finset α) (finset β) := ⟨image₂ (•)⟩
 
@@ -725,7 +725,7 @@ section has_smul
 variables [decidable_eq β] [has_smul α β] {s s₁ s₂ t u : finset β} {a : α} {b : β}
 
 /-- The scaling of a finset `s` by a scalar `a`: `a • s = {a • x | x ∈ s}`. -/
-@[to_additive has_vadd_finset "The translation of a finset `s` by a vector `a`:
+@[to_additive "The translation of a finset `s` by a vector `a`:
 `a +ᵥ s = {a +ᵥ x | x ∈ s}`."]
 protected def has_smul_finset : has_smul α (finset β) := ⟨λ a, image $ (•) a⟩
 

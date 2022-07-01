@@ -436,14 +436,14 @@ local attribute [instance] simple_func.has_smul
 /-- If `E` is a normed space over `𝕜`, `Lp.simple_func E p μ` inherits its right action. Not
 declared as an instance as it is (as of writing) used only in the construction of the Bochner
 integral. -/
-protected def has_op_scalar : has_smul 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
+protected def has_op_smul : has_smul 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 ⟨λk f, ⟨k • f, begin
   induction k using mul_opposite.rec,
   rw op_smul_eq_smul,
   exact (k • f).prop,
 end⟩⟩
 has_op_smul
-local attribute [instance] simple_func.has_op_scalar
+local attribute [instance] simple_func.has_op_smul
 
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl

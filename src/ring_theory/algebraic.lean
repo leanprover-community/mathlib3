@@ -327,7 +327,7 @@ noncomputable def polynomial.has_op_smul_pi' [comm_semiring R'] [semiring S'] [a
 variables {R} {S}
 
 local attribute [instance] polynomial.has_smul_pi polynomial.has_smul_pi'
-local attribute [instance] polynomial.has_op_scalar_pi polynomial.has_op_scalar_pi'
+local attribute [instance] polynomial.has_op_smul_pi polynomial.has_op_smul_pi'
 has_op_smulhas_op_smul
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_smul R' S']
   (p : R'[X]) (f : R' → S') (x : R') :

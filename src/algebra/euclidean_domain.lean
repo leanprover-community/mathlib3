@@ -72,7 +72,7 @@ class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
 (remainder : R → R → R)
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (r : R → R → Prop)
-(r_well_founded : well_founded r)
+(r_is_well_founded : is_well_founded R r . apply_instance)
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 
@@ -81,6 +81,8 @@ variable {R : Type u}
 variables [euclidean_domain R]
 
 local infix ` ≺ `:50 := euclidean_domain.r
+
+instance : is_well_founded R (≺) := euclidean_domain.r_is_well_founded
 
 @[priority 70] -- see Note [lower instance priority]
 instance : has_div R := ⟨euclidean_domain.quotient⟩
@@ -216,7 +218,7 @@ theorem gcd.induction {P : R → R → Prop} : ∀ a b : R,
   have h:_ := mod_lt b a0,
   H1 _ _ a0 (gcd.induction (b%a) a H0 H1)
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
+  rel_tac := λ _ _, `[exact ⟨(≺), is_well_founded.wf⟩]}
 
 end
 
@@ -230,7 +232,7 @@ def gcd : R → R → R
   have h:_ := mod_lt b a0,
   gcd (b%a) a
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
+  rel_tac := λ _ _, `[exact ⟨(≺), is_well_fuonded.wf⟩]}
 
 @[simp] theorem gcd_zero_left (a : R) : gcd 0 a = a :=
 by { rw gcd, exact if_pos rfl }
@@ -289,7 +291,7 @@ if hr : r = 0 then (r', s', t')
   have r' % r ≺ r, from mod_lt _ hr,
   let q := r' / r in xgcd_aux (r' % r) (s' - q * s) (t' - q * t) r s t
 using_well_founded {dec_tac := tactic.assumption,
-  rel_tac := λ _ _, `[exact ⟨_, r_well_founded⟩]}
+  rel_tac := λ _ _, `[exact ⟨(≺), is_well_founded.wf⟩]}
 
 @[simp] theorem xgcd_zero_left {s t r' s' t' : R} : xgcd_aux 0 s t r' s' t' = (r', s', t') :=
 by { unfold xgcd_aux, exact if_pos rfl }

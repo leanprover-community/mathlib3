@@ -21,7 +21,7 @@ variables {G G' α β : Type*}
 namespace function.embedding
 
 @[to_additive function.embedding.has_vadd]
-instance [group G] [mul_action G β] : has_scalar G (α ↪ β) :=
+instance [group G] [mul_action G β] : has_smul G (α ↪ β) :=
 ⟨λ g f, f.trans (mul_action.to_perm g).to_embedding⟩
 
 @[to_additive]
@@ -33,7 +33,7 @@ rfl
 @[to_additive]
 lemma coe_smul [group G] [mul_action G β] (g : G) (f : α ↪ β) : ⇑(g • f) = g • f := rfl
 
-instance [group G] [group G'] [has_scalar G G'] [mul_action G β] [mul_action G' β]
+instance [group G] [group G'] [has_smul G G'] [mul_action G β] [mul_action G' β]
   [is_scalar_tower G G' β] : is_scalar_tower G G' (α ↪ β) :=
 ⟨λ x y z, function.embedding.ext $ λ i, smul_assoc x y (z i)⟩
 

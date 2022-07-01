@@ -68,6 +68,7 @@ namespace ring_quot
 
 variable (r : R → R → Prop)
 
+@[irreducible] private def nat_cast (n : ℕ) : ring_quot r := ⟨quot.mk _ n⟩
 @[irreducible] private def zero : ring_quot r := ⟨quot.mk _ 0⟩
 @[irreducible] private def one : ring_quot r := ⟨quot.mk _ 1⟩
 @[irreducible] private def add : ring_quot r → ring_quot r → ring_quot r
@@ -101,7 +102,7 @@ instance : has_mul (ring_quot r) := ⟨mul r⟩
 instance : has_pow (ring_quot r) ℕ := ⟨λ x n, npow r n x⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_neg (ring_quot r) := ⟨neg r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_sub (ring_quot r) := ⟨sub r⟩
-instance [algebra S R] : has_scalar S (ring_quot r) := ⟨smul r⟩
+instance [algebra S R] : has_smul S (ring_quot r) := ⟨smul r⟩
 
 lemma zero_quot : (⟨quot.mk _ 0⟩ : ring_quot r) = 0 := show _ = zero r, by rw zero
 lemma one_quot : (⟨quot.mk _ 1⟩ : ring_quot r) = 1 := show _ = one r, by rw one
@@ -126,6 +127,9 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   mul           := (*),
   zero          := 0,
   one           := 1,
+  nat_cast      := nat_cast r,
+  nat_cast_zero := by simp [nat.cast, nat_cast, ← zero_quot],
+  nat_cast_succ := by simp [nat.cast, nat_cast, ← one_quot, add_quot],
   add_assoc     := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [add_quot, add_assoc] },
   zero_add      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot] },
   add_zero      := by { rintros ⟨⟨⟩⟩, simp [add_quot, ← zero_quot], },

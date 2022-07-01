@@ -3,8 +3,8 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.fin.basic
-import data.fintype.basic
+import data.fin.interval
+
 /-!
 # The structure of `fintype (fin n)`
 
@@ -18,14 +18,11 @@ open fintype
 
 namespace fin
 
-@[simp]
-lemma univ_filter_zero_lt {n : ℕ} :
-  (univ : finset (fin n.succ)).filter (λ i, 0 < i) =
-    univ.map (fin.succ_embedding _).to_embedding :=
+@[simp] lemma Ioi_zero_eq_map {n : ℕ} :
+  Ioi (0 : fin n.succ) = univ.map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
-  simp only [mem_filter, mem_map, mem_univ, true_and,
-  function.embedding.coe_fn_mk, exists_true_left],
+  simp only [mem_Ioi, mem_map, mem_univ, function.embedding.coe_fn_mk, exists_true_left],
   split,
   { refine cases _ _ i,
     { rintro ⟨⟨⟩⟩ },
@@ -34,13 +31,11 @@ begin
     exact succ_pos _ },
 end
 
-@[simp]
-lemma univ_filter_succ_lt {n : ℕ} (j : fin n) :
-  (univ : finset (fin n.succ)).filter (λ i, j.succ < i) =
-    (univ.filter (λ i, j < i)).map (fin.succ_embedding _).to_embedding :=
+@[simp] lemma Ioi_succ {n : ℕ} (i : fin n) :
+  Ioi i.succ = (Ioi i).map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
-  simp only [mem_filter, mem_map, mem_univ, true_and,
+  simp only [mem_filter, mem_Ioi, mem_map, mem_univ, true_and,
   function.embedding.coe_fn_mk, exists_true_left],
   split,
   { refine cases _ _ i,

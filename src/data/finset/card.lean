@@ -53,7 +53,7 @@ lemma card_le_of_subset : s ⊆ t → s.card ≤ t.card := multiset.card_le_of_l
 lemma card_pos : 0 < s.card ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 
-alias finset.card_pos ↔ _ finset.nonempty.card_pos
+alias card_pos ↔ _ nonempty.card_pos
 
 lemma card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 := (not_congr card_eq_zero).2 $ ne_empty_of_mem h
 
@@ -305,7 +305,7 @@ lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
-by rw [←disj_union_eq_union s t $ λ x, disjoint_left.mp h, card_disj_union _ _ _]
+by rw [←disj_union_eq_union s t $ disjoint_left.mp h, card_disj_union _ _ _]
 
 @[simp] lemma card_disjoint_union (h : disjoint s t) : card (s ∪ t) = s.card + t.card :=
 card_union_eq h

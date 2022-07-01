@@ -84,9 +84,7 @@ begin
   -- move_add should work if there are unified metavariables
   have : ∀ (a b : fin _ → ℕ), @has_add.add _ (ia _) a b = @has_add.add _ (ia _) b a,
   { intros a b,
-    move_add [a],
-    exact 37,
-    refl -- this is a bug, `move_add` should have already closed this goal.
-    },
-  trivial
+    move_add [a] },
+  trivial, -- close the outer goal
+  exact 37 -- resolve the metavariable
 end

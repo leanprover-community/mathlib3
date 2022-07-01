@@ -212,7 +212,7 @@ pre ← pp reordered,
   fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
   "the initial goal equals:\n\n{pre}\n"),
 match hyploc with
-| none := refine ``(eq.mpr %%prf _)
+| none := replace_target reordered prf
 | some hyploc := replace_hyp hyploc reordered prf >> skip
 end,
 return (ff, is_unused)

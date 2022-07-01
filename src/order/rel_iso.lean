@@ -93,6 +93,10 @@ protected theorem well_founded [rel_hom_class F r s] (f : F) :
   ∀ (h : well_founded s), well_founded r
 | ⟨H⟩ := ⟨λ a, rel_hom_class.acc f _ (H _)⟩
 
+protected theorem is_well_founded [rel_hom_class F r s] (f : F) [h : is_well_founded β s] :
+  is_well_founded α r :=
+⟨rel_hom_class.well_founded f h.wf⟩
+
 end rel_hom_class
 
 namespace rel_hom

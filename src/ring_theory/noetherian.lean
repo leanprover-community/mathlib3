@@ -506,6 +506,10 @@ end
 
 variables (R M)
 
+theorem well_founded_gt.is_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M] :
+  ∀ [well_founded_gt (submodule R M)], is_noetherian R M :=
+is_noetherian_iff_well_founded.mpr
+
 instance well_founded_submodule_gt (R M) [semiring R] [add_comm_monoid M] [module R M] :
   ∀ [is_noetherian R M], well_founded_gt (submodule R M) :=
 is_noetherian_iff_well_founded.mp

@@ -415,7 +415,7 @@ lemma is_well_founded_of_noetherian [is_noetherian R L] : well_founded_gt (lie_s
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,
     map_rel' := λ N N' h, h, }
-in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
+in rel_hom_class.is_well_founded f
 
 variables {R L K K' f}
 

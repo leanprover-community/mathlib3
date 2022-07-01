@@ -1,4 +1,5 @@
 import tactic.move_add
+import algebra.group.pi
 
 variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
 
@@ -72,4 +73,20 @@ example (he : E (C r * D X + D X * h + 7 + 42 + f) = C r * D X + h * D X + 7 + 4
 begin
   -- move `7, 42, f, g` to the right of their respective sides
   move_add [(7 : R), (42 : R), f, g],
+end
+
+example : true :=
+begin
+  letI iacs : ∀ i, add_comm_semigroup (fin i → ℕ) := λ i, by apply_instance,
+  letI ia : ∀ i, has_add (fin i → ℕ) := λ i,
+    @add_semigroup.to_has_add _
+    (@add_comm_semigroup.to_add_semigroup _ (iacs i)),
+  -- move_add should work if there are unified metavariables
+  have : ∀ (a b : fin _ → ℕ), @has_add.add _ (ia _) a b = @has_add.add _ (ia _) b a,
+  { intros a b,
+    move_add [a],
+    exact 37,
+    refl -- this is a bug, `move_add` should have already closed this goal.
+    },
+  trivial
 end

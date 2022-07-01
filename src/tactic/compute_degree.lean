@@ -149,7 +149,7 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
 | `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
 | `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
-| e := eval_expr ℕ e <|> pure n
+| e              := eval_expr ℕ e <|> pure n
 
 /--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
 input, instead of parsing a `!` token. -/
@@ -158,16 +158,14 @@ do t ← target,
   try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  exp_deg ← guess_degree tl >>= eval_guessing 0,
-  cond ← succeeds $ eval_expr ℕ tr,
-  deg_bou ← if cond then eval_expr ℕ tr else pure exp_deg,
-  if deg_bou < exp_deg
-  then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
+  expected_deg ← guess_degree tl >>= eval_guessing 0,
+  deg_bound ← eval_expr ℕ tr <|> pure expected_deg,
+  if deg_bound < expected_deg
+  then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else
     repeat $ target >>= resolve_sum_step expos,
-    gs ← get_goals,
-    os ← gs.mmap infer_type >>= list.mfilter (λ e, succeeds $ unify t e),
-    guard (os.length = 0) <|> fail "Goal did not change",
+    (do gs ← get_goals >>= list.mmap infer_type,
+      success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
     try $ any_goals' norm_assum
 
 end compute_degree

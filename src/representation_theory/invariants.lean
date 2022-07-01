@@ -30,7 +30,7 @@ variables [fintype G] [invertible (fintype.card G : k)]
 /--
 The average of all elements of the group `G`, considered as an element of `monoid_algebra k G`.
 -/
-@[simp] noncomputable def average : monoid_algebra k G :=
+noncomputable def average : monoid_algebra k G :=
   ⅟(fintype.card G : k) • ∑ g : G, of k G g
 
 /--
@@ -109,7 +109,7 @@ The `average_map` acts as the identity on the subspace of invariants.
 theorem average_map_id (v : V) (hv : v ∈ invariants ρ) : average_map ρ v = v :=
 begin
   rw mem_invariants at hv,
-  simp [map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
+  simp [average, map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
 end
 
 theorem is_proj_average_map : linear_map.is_proj ρ.invariants ρ.average_map :=

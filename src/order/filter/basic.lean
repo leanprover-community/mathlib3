@@ -1282,12 +1282,12 @@ lemma eventually_eq.div [has_div β] {f f' g g' : α → β} {l : filter α} (h 
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 h.comp₂ (/) h'
 
-@[to_additive] lemma eventually_eq.const_smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
+@[to_additive] lemma eventually_eq.const_smul {𝕜} [has_smul 𝕜 β] {l : filter α} {f g : α → β}
   (h : f =ᶠ[l] g) (c : 𝕜) :
   (λ x, c • f x) =ᶠ[l] (λ x, c • g x) :=
 h.fun_comp (λ x, c • x)
 
-@[to_additive] lemma eventually_eq.smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f f' : α → 𝕜}
+@[to_additive] lemma eventually_eq.smul {𝕜} [has_smul 𝕜 β] {l : filter α} {f f' : α → 𝕜}
   {g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
   (λ x, f x • g x) =ᶠ[l] λ x, f' x • g' x :=
 hf.comp₂ (•) hg

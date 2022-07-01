@@ -125,7 +125,7 @@ namespace module
 @[reducible] def is_torsion_by_set (s : set R) := ∀ ⦃x : M⦄ ⦃a : s⦄, (a : R) • x = 0
 
 /-- A `S`-torsion module is a module where every element is `a`-torsion for some `a` in `S`. -/
-@[reducible] def is_torsion' (S : Type*) [has_scalar S M] := ∀ ⦃x : M⦄, ∃ a : S, a • x = 0
+@[reducible] def is_torsion' (S : Type*) [has_smul S M] := ∀ ⦃x : M⦄, ∃ a : S, a • x = 0
 
 /-- A torsion module is a module where every element is `a`-torsion for some non-zero-divisor `a`.
 -/
@@ -348,7 +348,7 @@ variables {I : ideal R} (hM : is_torsion_by_set R M I)
 include hM
 
 /-- can't be an instance because hM can't be inferred -/
-def is_torsion_by_set.has_scalar : has_scalar (R ⧸ I) M :=
+def is_torsion_by_set.has_smul : has_smul (R ⧸ I) M :=
 { smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ h, begin
     show b₁ • x = b₂ • x,
     have : (-b₁ + b₂) • x = 0 := @hM x ⟨_, quotient_add_group.left_rel_apply.mp h⟩,
@@ -357,11 +357,11 @@ def is_torsion_by_set.has_scalar : has_scalar (R ⧸ I) M :=
   end }
 
 @[simp] lemma is_torsion_by_set.mk_smul (b : R) (x : M) :
-  by haveI := hM.has_scalar; exact ideal.quotient.mk I b • x = b • x := rfl
+  by haveI := hM.has_smul; exact ideal.quotient.mk I b • x = b • x := rfl
 
 /-- A `(R ⧸ I)`-module is a `R`-module which `is_torsion_by_set R M I`. -/
 def is_torsion_by_set.module : module (R ⧸ I) M :=
-@function.surjective.module_left _ _ _ _ _ _ _ hM.has_scalar
+@function.surjective.module_left _ _ _ _ _ _ _ hM.has_smul
   _ ideal.quotient.mk_surjective (is_torsion_by_set.mk_smul hM)
 
 end module
@@ -374,7 +374,7 @@ module.is_torsion_by_set.module $ torsion_by_set_is_torsion_by_set I
 @[simp] lemma torsion_by_set.mk_smul (I : ideal R) (b : R) (x : torsion_by_set R M I) :
   ideal.quotient.mk I b • x = b • x := rfl
 
-instance (I : ideal R) {S : Type*} [has_scalar S R] [has_scalar S M]
+instance (I : ideal R) {S : Type*} [has_smul S R] [has_smul S M]
   [is_scalar_tower S R M] [is_scalar_tower S R R] :
   is_scalar_tower S (R ⧸ I) (torsion_by_set R M I) :=
 { smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
@@ -387,7 +387,7 @@ module.is_torsion_by_set.module $
 @[simp] lemma torsion_by.mk_smul (a b : R) (x : torsion_by R M a) :
   ideal.quotient.mk (R ∙ a) b • x = b • x := rfl
 
-instance (a : R) {S : Type*} [has_scalar S R] [has_scalar S M]
+instance (a : R) {S : Type*} [has_smul S R] [has_smul S M]
   [is_scalar_tower S R M] [is_scalar_tower S R R] :
   is_scalar_tower S (R ⧸ R ∙ a) (torsion_by R M a) :=
 { smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
@@ -405,7 +405,7 @@ variables (S : Type*) [comm_monoid S] [distrib_mul_action S M] [smul_comm_class 
 @[simp] lemma mem_torsion'_iff (x : M) : x ∈ torsion' R M S ↔ ∃ a : S, a • x = 0 := iff.rfl
 @[simp] lemma mem_torsion_iff (x : M) : x ∈ torsion R M ↔ ∃ a : R⁰, a • x = 0 := iff.rfl
 
-@[simps] instance : has_scalar S (torsion' R M S) :=
+@[simps] instance : has_smul S (torsion' R M S) :=
 ⟨λ s x, ⟨s • x, by { obtain ⟨x, a, h⟩ := x, use a, dsimp, rw [smul_comm, h, smul_zero] }⟩⟩
 instance : distrib_mul_action S (torsion' R M S) := subtype.coe_injective.distrib_mul_action
   ((torsion' R M S).subtype).to_add_monoid_hom (λ (c : S) x, rfl)

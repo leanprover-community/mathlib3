@@ -804,7 +804,7 @@ instance topological_group.has_measurable_inv [group γ] [topological_group γ] 
 @[priority 100]
 instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
-  [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [opens_measurable_space M] [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
 ⟨λ c, (continuous_const_smul _).measurable,
   λ y, (continuous_id.smul continuous_const).measurable⟩
@@ -899,7 +899,7 @@ instance has_continuous_sub.has_measurable_sub₂ [second_countable_topology γ]
 instance has_continuous_smul.has_measurable_smul₂ {M α} [topological_space M]
   [second_countable_topology M] [measurable_space M] [opens_measurable_space M]
   [topological_space α] [second_countable_topology α] [measurable_space α]
-  [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul₂ M α :=
 ⟨continuous_smul.measurable⟩
 

@@ -189,14 +189,14 @@ instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 
 variables {R : Type*}
 
-instance [has_scalar R Y] : has_scalar R (locally_constant X Y) :=
+instance [has_smul R Y] : has_smul R (locally_constant X Y) :=
 { smul := λ r f,
   { to_fun := r • f,
     is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
 
-@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_smul [has_smul R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
 
-lemma smul_apply [has_scalar R Y] (r : R) (f : locally_constant X Y) (x : X) :
+lemma smul_apply [has_smul R Y] (r : R) (f : locally_constant X Y) (x : X) :
   (r • f) x = r • (f x) :=
 rfl
 

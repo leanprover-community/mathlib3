@@ -579,7 +579,7 @@ by rw [disjoint.comm, disjoint_principal_right]
   disjoint (𝓟 s) (𝓟 t) ↔ disjoint s t :=
 by simp [←subset_compl_iff_disjoint_left]
 
-alias disjoint_principal_principal ↔ _ disjoint.filter_principal
+alias disjoint_principal_principal ↔ _ _root_.disjoint.filter_principal
 
 @[simp] lemma disjoint_pure_pure {x y : α} :
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=

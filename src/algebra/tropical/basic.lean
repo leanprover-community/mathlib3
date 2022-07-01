@@ -301,13 +301,13 @@ instance [add_comm_semigroup R] : comm_semigroup (tropical R) :=
 { mul_comm := λ _ _, untrop_injective (add_comm _ _),
   ..tropical.semigroup }
 
-instance {α : Type*} [has_scalar α R] : has_pow (tropical R) α :=
+instance {α : Type*} [has_smul α R] : has_pow (tropical R) α :=
 { pow := λ x n, trop $ n • untrop x }
 
-@[simp] lemma untrop_pow {α : Type*} [has_scalar α R] (x : tropical R) (n : α) :
+@[simp] lemma untrop_pow {α : Type*} [has_smul α R] (x : tropical R) (n : α) :
   untrop (x ^ n) = n • untrop x := rfl
 
-@[simp] lemma trop_smul {α : Type*} [has_scalar α R] (x : R) (n : α) :
+@[simp] lemma trop_smul {α : Type*} [has_smul α R] (x : R) (n : α) :
   trop (n • x) = trop x ^ n := rfl
 
 instance [add_zero_class R] : mul_one_class (tropical R) :=

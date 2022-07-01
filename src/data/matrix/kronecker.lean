@@ -95,12 +95,12 @@ lemma kronecker_map_add_right [has_add β] [has_add γ] (f : α → β → γ)
   kronecker_map f A (B₁ + B₂) = kronecker_map f A B₁ + kronecker_map f A B₂ :=
 ext $ λ i j, hf _ _ _
 
-lemma kronecker_map_smul_left [has_scalar R α] [has_scalar R γ] (f : α → β → γ)
+lemma kronecker_map_smul_left [has_smul R α] [has_smul R γ] (f : α → β → γ)
   (r : R) (hf : ∀ a b, f (r • a) b = r • f a b) (A : matrix l m α) (B : matrix n p β) :
   kronecker_map f (r • A) B = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _
 
-lemma kronecker_map_smul_right [has_scalar R β] [has_scalar R γ] (f : α → β → γ)
+lemma kronecker_map_smul_right [has_smul R β] [has_smul R γ] (f : α → β → γ)
   (r : R) (hf : ∀ a b, f a (r • b) = r • f a b) (A : matrix l m α) (B : matrix n p β) :
   kronecker_map f A (r • B) = r • kronecker_map f A B :=
 ext $ λ i j, hf _ _

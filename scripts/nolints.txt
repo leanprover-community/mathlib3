@@ -406,7 +406,7 @@ apply_nolint one_smul_eq_id to_additive_doc
 apply_nolint mul_action.to_perm_injective to_additive_doc
 
 -- group_theory/group_action/opposite.lean
-apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
+apply_nolint has_mul.to_has_opposite_smul to_additive_doc
 apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
 

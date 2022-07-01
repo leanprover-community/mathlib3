@@ -239,7 +239,7 @@ section quotient
 
 variables {B : add_subgroup A} [divisible_by A ℕ]
 
-noncomputable instance divisible_quotient : divisible_by (A ⧸ B) ℕ :=
+noncomputable instance divisible_by_quotient : divisible_by (A ⧸ B) ℕ :=
 add_monoid.divisible_by_of_smul_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
   ⟨quotient.mk' (divisible_by.div a n),
     (congr_arg _ (divisible_by.div_cancel _ hn) : quotient.mk' _ = _)⟩
@@ -250,7 +250,7 @@ section hom
 
 variables {A} [divisible_by A ℕ] {B : Type*} [add_comm_group B] (f : A →+ B)
 
-noncomputable instance divisible_of_surj (hf : function.surjective f) : divisible_by B ℕ :=
+noncomputable instance divisible_by_of_surj (hf : function.surjective f) : divisible_by B ℕ :=
 add_monoid.divisible_by_of_smul_surj _ _ $ λ n hn x,
   ⟨f $ divisible_by.div (hf x).some n, by rw [←f.map_nsmul (divisible_by.div (hf x).some n) n,
     divisible_by.div_cancel _ hn, (hf x).some_spec]⟩
@@ -310,3 +310,32 @@ attribute [to_additive group.rootable_by_nat_of_rootable_by_int]
 
 end group
 
+namespace comm_group
+
+open monoid
+
+section quotient
+
+variables (A : Type*) [comm_group A] (B : subgroup A)
+
+noncomputable instance rootable_by_quotient [rootable_by A ℕ] : rootable_by (A ⧸ B) ℕ :=
+rootable_by_of_root_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
+  ⟨quotient.mk' (rootable_by.root a n),
+    (congr_arg _ $ rootable_by.root_pow _ hn : quotient.mk' _ = _)⟩
+
+attribute [to_additive rootable_by_quotient] add_comm_group.divisible_by_quotient
+
+end quotient
+
+section hom
+
+variables {A B : Type*} [comm_group A] [comm_group B] [rootable_by A ℕ] (f : A →* B)
+
+noncomputable instance rootable_by_of_surj (hf : function.surjective f) : rootable_by B ℕ :=
+rootable_by_of_root_surj _ _ $ λ n hn x,
+  ⟨f $ rootable_by.root (hf x).some n, (by rw [←f.map_pow (rootable_by.root (hf x).some n) n,
+    rootable_by.root_pow _ hn, (hf x).some_spec] : _ ^ _ = x)⟩
+
+end hom
+
+end comm_group

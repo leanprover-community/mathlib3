@@ -516,20 +516,19 @@ variables {R M}
 -/
 theorem set_has_maximal_iff_noetherian :
   (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, ¬ M' < I) ↔ is_noetherian R M :=
-by rw [is_noetherian_iff_well_founded, is_well_founded.well_founded_iff_has_min]
+by rw [is_noetherian_iff_well_founded, well_founded_gt.well_founded_iff_has_max]
 
 /-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_noetherian :
   (∀ (f : ℕ →o submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m) ↔ is_noetherian R M :=
-by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
+by rw [is_noetherian_iff_well_founded, well_founded_gt.monotone_chain_condition_iff]
 
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
 lemma is_noetherian.induction [is_noetherian R M] {P : submodule R M → Prop}
   (hgt : ∀ I, (∀ J > I, P J) → P I) (I : submodule R M) : P I :=
-well_founded.recursion (well_founded_submodule_gt R M) I hgt
+well_founded_gt.induction I hgt
 
 end
-
 
 section
 universe w
@@ -539,7 +538,7 @@ variables {R M P : Type*} {N : Type w} [ring R] [add_comm_group M] [module R M]
 lemma finite_of_linear_independent [nontrivial R] [is_noetherian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
+  refine classical.by_contradiction (λ hf, (rel_embedding.is_well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M)).elim' _),
   have f : ℕ ↪ s, from set.infinite.nat_embedding s hf,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
@@ -567,8 +566,6 @@ theorem is_noetherian_of_range_eq_ker
   is_noetherian R N :=
 is_noetherian_iff_well_founded.2 $
 well_founded_gt_exact_sequence
-  (well_founded_submodule_gt R M)
-  (well_founded_submodule_gt R P)
   f.range
   (submodule.map f)
   (submodule.comap f)
@@ -693,14 +690,14 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_mo
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).dual h,
+  exact order_embedding.well_founded_lt (submodule.map_subtype.order_embedding N).dual h,
 end
 
 instance submodule.quotient.is_noetherian {R} [ring R] {M} [add_comm_group M] [module R M]
   (N : submodule R M) [h : is_noetherian R M] : is_noetherian R (M ⧸ N) :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
+  exact (submodule.comap_mkq.order_embedding N)..well_founded_gt h,
 end
 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
@@ -710,7 +707,7 @@ theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  refine (submodule.restrict_scalars_embedding R S M).dual.well_founded h
+  refine (submodule.restrict_scalars_embedding R S M).well_founded_gt h
 end
 
 instance ideal.quotient.is_noetherian_ring {R : Type*} [comm_ring R] [h : is_noetherian_ring R]
@@ -764,7 +761,7 @@ theorem is_noetherian_ring_of_surjective (R) [ring R] (S) [ring S]
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
   rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H ⊢,
-  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
+  exact (ideal.order_embedding_of_surjective f hf).well_founded_gt H,
 end
 
 instance is_noetherian_ring_range {R} [ring R] {S} [ring S] (f : R →+* S)

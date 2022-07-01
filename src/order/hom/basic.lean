@@ -420,6 +420,10 @@ protected theorem well_founded_lt {α β} [preorder α] [linear_order β] [well_
 protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
+protected theorem well_founded_gt {α β} [preorder α] [linear_order β] [well_founded_gt β]
+  (f : α ↪o β) : well_founded_gt α :=
+⟨by { haveI := well_founded_lt.is_well_order βᵒᵈ, exact f.dual.lt_embedding.is_well_order.wf }⟩
+
 /-- A version of `with_bot.map` for order embeddings. -/
 @[simps { fully_applied := ff }]
 protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=

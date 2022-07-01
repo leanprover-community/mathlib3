@@ -269,6 +269,11 @@ instance (α : Type*) [has_lt α] [h : well_founded_lt α] : well_founded_gt α�
 @[priority 100] -- See note [lower instance priority]
 instance (α : Type*) [has_lt α] [h : well_founded_gt α] : well_founded_lt αᵒᵈ := h
 
+theorem well_founded_gt_dual_iff (α : Type*) [has_lt α] : well_founded_gt αᵒᵈ ↔ well_founded_lt α :=
+⟨λ h, ⟨h.wf⟩, λ h, ⟨h.wf⟩⟩
+theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt αᵒᵈ ↔ well_founded_gt α :=
+⟨λ h, ⟨h.wf⟩, λ h, ⟨h.wf⟩⟩
+
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_well_founded α r, is_trichotomous α r, is_trans α r : Prop

@@ -43,17 +43,17 @@ section to_poly
 section basic
 variables [semiring R] {N : ℕ}
 
-/- Convert a vector to a polynomial. This construction allows one to work with the module of
+/-- Convert a vector to a polynomial. This construction allows one to work with the module of
 polynomials of a guaranteed maximal degree, known in mathlib as `degree_lt R`, while retaining easy
 access to the coefficients (which for an element `P : ↥(degree_lt R N)` would be accessed with the
 more cumbersome invocation `(P : R[X]).coeff`). -/
-def to_poly : (fin N → R) →+ R[X] :=
-(add_submonoid_class.subtype (degree_lt R N)).comp (degree_lt_equiv R N).symm
+def to_poly : (fin N → R) →ₗ[R] R[X] :=
+(degree_lt R N).subtype.comp (↑(degree_lt_equiv R N).symm : (fin N → R) →ₗ[R] degree_lt R N)
 
 lemma to_poly_apply (P : fin N → R) : to_poly P =  ∑ i : fin N, monomial i (P i) := rfl
 
 @[simp] lemma polynomial.degree_lt_equiv_symm_apply (P : fin N → R) :
-  ((degree_lt_equiv R N).to_equiv.symm P : R[X]) = to_poly P :=
+  ((degree_lt_equiv R N).symm P : R[X]) = to_poly P :=
 rfl
 
 lemma to_poly_mem_degree_lt (P : fin N → R) : to_poly P ∈ degree_lt R N :=

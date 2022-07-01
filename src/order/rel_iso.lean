@@ -163,7 +163,8 @@ injective_of_increasing r s f (λ x y, f.map_rel)
 
 -- TODO: define a `rel_iff_class` so we don't have to do all the `convert` trickery?
 theorem surjective.well_founded_iff {f : α → β} (hf : surjective f)
-  (o : ∀ a b, r a b ↔ s (f a) (f b)) : well_founded r ↔ well_founded s :=
+  (r : α → α → Prop) (s : β → β → Prop) (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  well_founded r ↔ well_founded s :=
 iff.intro (begin
   refine rel_hom_class.well_founded (rel_hom.mk _ _ : s →r r),
   { exact classical.some hf.has_right_inverse },
@@ -172,8 +173,19 @@ iff.intro (begin
 end) (rel_hom_class.well_founded (⟨f, λ _ _, (o _ _).1⟩ : r →r s))
 
 theorem surjective.is_well_founded_iff {f : α → β} (hf : surjective f)
-  (o : ∀ a b, r a b ↔ s (f a) (f b)) : is_well_founded α r ↔ is_well_founded β s :=
-by { rw [is_well_founded_iff, is_well_founded_iff], exact surjective.well_founded_iff hf o }
+  (r : α → α → Prop) (s : β → β → Prop) (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  is_well_founded α r ↔ is_well_founded β s :=
+by { rw [is_well_founded_iff, is_well_founded_iff], exact surjective.well_founded_iff hf r s o }
+
+theorem surjective.is_well_founded {f : α → β} (hf : surjective f)
+  (r : α → α → Prop) [h : is_well_founded α r] (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  is_well_founded β s :=
+(surjective.is_well_founded_iff hf r s o).1 h
+
+theorem surjective.is_well_founded' {f : α → β} (hf : surjective f)
+  (s : β → β → Prop) [h : is_well_founded β s] (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  is_well_founded α r :=
+(surjective.is_well_founded_iff hf r s o).2 h
 
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/

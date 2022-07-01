@@ -51,27 +51,28 @@ variables [comm_monoid_with_zero α]
 open associates nat
 
 theorem of_wf_dvd_monoid_associates [h : wf_dvd_monoid (associates α)] : wf_dvd_monoid α :=
-⟨begin
-  refine (surjective.well_founded_iff mk_surjective _).2 _,
+begin
+  -- Todo (Vi): make one sided thm
+  refine (@surjective.is_well_founded_iff _ _ dvd_not_unit dvd_not_unit _ mk_surjective _).2 h,
   intros, rw mk_dvd_not_unit_mk_iff
-end⟩
+end
 
 variables [wf_dvd_monoid α]
 
 instance wf_dvd_monoid_associates : wf_dvd_monoid (associates α) :=
-⟨begin
-  refine (surjective.well_founded_iff mk_surjective _).1 well_founded_dvd_not_unit,
+begin
+  -- Todo (Vi): make one sided thm
+  refine (@surjective.is_well_founded_iff _ _ dvd_not_unit dvd_not_unit _ mk_surjective _).1
+    infer_instance,
   intros, rw mk_dvd_not_unit_mk_iff
-end⟩
+end
 
 theorem well_founded_associates : well_founded_lt (associates α) :=
-subrelation.is_well_founded (λ x y, dvd_not_unit_of_lt) well_founded_dvd_not_unit
-
-local attribute [elab_as_eliminator] well_founded.fix
+subrelation.is_well_founded dvd_not_unit (λ x y, dvd_not_unit_of_lt)
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
-let ⟨b, hs, hr⟩ := well_founded_dvd_not_unit.has_min {b | b ∣ a ∧ ¬ is_unit b} ⟨a, dvd_rfl, ha⟩ in
+let ⟨b, hs, hr⟩ := is_well_founded.has_min dvd_not_unit {b | b ∣ a ∧ ¬ is_unit b} ⟨a, dvd_rfl, ha⟩ in
 ⟨b, ⟨hs.2, λ c d he, let h := dvd_trans ⟨d, he⟩ hs.1 in or_iff_not_imp_left.2 $
   λ hc, of_not_not $ λ hd, hr c ⟨h, hc⟩ ⟨ne_zero_of_dvd_ne_zero ha0 h, d, hd, he⟩⟩, hs.1⟩
 
@@ -79,14 +80,13 @@ let ⟨b, hs, hr⟩ := well_founded_dvd_not_unit.has_min {b | b ∣ a ∧ ¬ is_
   (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
   (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
   P a :=
-by haveI := classical.dec; exact
-well_founded_dvd_not_unit.fix
-  (λ a ih, if ha0 : a = 0 then ha0.substr h0
-    else if hau : is_unit a then hu a hau
-    else let ⟨i, hii, b, hb⟩ := exists_irreducible_factor hau ha0,
-      hb0 : b ≠ 0 := ne_zero_of_dvd_ne_zero ha0 ⟨i, mul_comm i b ▸ hb⟩ in
-      hb.symm ▸ hi b i hb0 hii $ ih b ⟨hb0, i, hii.1, mul_comm i b ▸ hb⟩)
-  a
+by { classical, exact
+  is_well_founded.fix dvd_not_unit
+    (λ a ih, if ha0 : a = 0 then ha0.substr h0
+      else if hau : is_unit a then hu a hau
+      else let ⟨i, hii, b, hb⟩ := exists_irreducible_factor hau ha0,
+        hb0 : b ≠ 0 := ne_zero_of_dvd_ne_zero ha0 ⟨i, mul_comm i b ▸ hb⟩ in
+        hb.symm ▸ hi b i hb0 hii $ ih b ⟨hb0, i, hii.1, mul_comm i b ▸ hb⟩) a }
 
 lemma exists_factors (a : α) : a ≠ 0 →
   ∃ f : multiset α, (∀ b ∈ f, irreducible b) ∧ associated f.prod a :=
@@ -114,13 +114,24 @@ end,
 end wf_dvd_monoid
 
 theorem wf_dvd_monoid.of_well_founded_associates [cancel_comm_monoid_with_zero α]
-  [well_founded_lt (associates α)] : wf_dvd_monoid α :=
-wf_dvd_monoid.of_wf_dvd_monoid_associates
-  ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
+  [h : well_founded_lt (associates α)] : wf_dvd_monoid α :=
+begin
+  haveI : wf_dvd_monoid (associates α),
+  { rw wf_dvd_monoid,
+    convert h,
+    ext,
+    exact associates.dvd_not_unit_iff_lt },
+  exact wf_dvd_monoid.of_wf_dvd_monoid_associates
+end
 
 theorem wf_dvd_monoid.iff_well_founded_associates [cancel_comm_monoid_with_zero α] :
   wf_dvd_monoid α ↔ well_founded_lt (associates α) :=
-⟨by apply wf_dvd_monoid.well_founded_associates, wf_dvd_monoid.of_well_founded_associates⟩
+begin
+  split; introI h,
+  { exact wf_dvd_monoid.well_founded_associates },
+  { exact wf_dvd_monoid.of_well_founded_associates }
+end
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- unique factorization monoids.
@@ -141,15 +152,18 @@ To define a UFD using the definition in terms of multisets
 of prime factors, use the definition `of_exists_prime_factors`
 
 -/
-class unique_factorization_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
-  extends wf_dvd_monoid α : Prop :=
+class unique_factorization_monoid (α : Type*) [cancel_comm_monoid_with_zero α] : Prop :=
+(to_wf_dvd_monoid : wf_dvd_monoid α . tactic.apply_instance)
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
+
+instance unique_factorization_monoid.wf_dvd_monoid {α : Type*} [cancel_comm_monoid_with_zero α]
+  [h : unique_factorization_monoid α] : wf_dvd_monoid α :=
+h.to_wf_dvd_monoid
 
 /-- Can't be an instance because it would cause a loop `ufm → wf_dvd_monoid → ufm → ...`. -/
 @[reducible] lemma ufm_of_gcd_of_wf_dvd_monoid [cancel_comm_monoid_with_zero α]
   [wf_dvd_monoid α] [gcd_monoid α] : unique_factorization_monoid α :=
-{ irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
-  .. ‹wf_dvd_monoid α› }
+{ irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime }
 
 instance associates.ufm [cancel_comm_monoid_with_zero α]
   [unique_factorization_monoid α] : unique_factorization_monoid (associates α) :=
@@ -247,11 +261,10 @@ variables (pf : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prim
 include pf
 
 lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
-⟨begin
+begin
   classical,
-  refine rel_hom_class.well_founded
-    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
-    (with_top.well_founded_lt nat.lt_wf),
+  refine rel_hom_class.is_well_founded
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop)),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
     exact (classical.some (pf a h)).card },
@@ -278,7 +291,7 @@ lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
     { apply associated.mul_mul; apply (classical.some_spec (pf _ _)).2 },
     { rw ← b_eq,
       apply (classical.some_spec (pf _ _)).2.symm, } }
-end⟩
+end
 
 lemma irreducible_iff_prime_of_exists_prime_factors {p : α} : irreducible p ↔ prime p :=
 begin
@@ -294,7 +307,7 @@ end
 theorem unique_factorization_monoid.of_exists_prime_factors :
   unique_factorization_monoid α :=
 { irreducible_iff_prime := λ _, irreducible_iff_prime_of_exists_prime_factors pf,
-  .. wf_dvd_monoid.of_exists_prime_factors pf }
+  to_wf_dvd_monoid := wf_dvd_monoid.of_exists_prime_factors pf }
 
 end exists_prime_factors
 

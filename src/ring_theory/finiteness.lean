@@ -240,9 +240,8 @@ begin
   split,
   { rw iff_quotient_mv_polynomial',
     rintro ⟨ι, hfintype, ⟨f, hsur⟩⟩,
-    letI := hfintype,
-    obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) hfintype,
-    replace equiv := mv_polynomial.rename_equiv R equiv,
+    resetI,
+    have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
     exact ⟨fintype.card ι, alg_hom.comp f equiv.symm, function.surjective.comp hsur
       (alg_equiv.symm equiv).surjective⟩ },
   { rintro ⟨n, ⟨f, hsur⟩⟩,
@@ -304,8 +303,7 @@ variable (R)
 protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
   finite_presentation R (mv_polynomial ι R) :=
 begin
-  obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
-  replace equiv := mv_polynomial.rename_equiv R equiv,
+  have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
   refine ⟨_, alg_equiv.to_alg_hom equiv.symm, _⟩,
   split,
   { exact (alg_equiv.symm equiv).surjective },
@@ -363,9 +361,8 @@ begin
     convert submodule.fg_bot,
     exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
   { rintro ⟨ι, hfintype, f, hf⟩,
-    haveI : fintype ι := hfintype,
-    obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
-    replace equiv := mv_polynomial.rename_equiv R equiv,
+    resetI,
+    have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
     refine ⟨fintype.card ι, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
       ideal.fg_ker_comp _ f _ hf.2 equiv.symm.surjective⟩,

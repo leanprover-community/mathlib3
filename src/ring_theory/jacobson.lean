@@ -633,12 +633,11 @@ lemma comp_C_integral_of_surjective_of_jacobson
   {σ : Type*} [fintype σ] {S : Type*} [field S] (f : mv_polynomial σ R →+* S)
   (hf : function.surjective f) : (f.comp C).is_integral :=
 begin
-  haveI := classical.dec_eq σ,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin σ,
+  have e := (fintype.equiv_fin σ).symm,
   let f' : mv_polynomial (fin _) R →+* S :=
-    f.comp (rename_equiv R e.symm).to_ring_equiv.to_ring_hom,
+    f.comp (rename_equiv R e).to_ring_equiv.to_ring_hom,
   have hf' : function.surjective f' :=
-    ((function.surjective.comp hf (rename_equiv R e.symm).surjective)),
+    ((function.surjective.comp hf (rename_equiv R e).surjective)),
   have : (f'.comp C).is_integral,
   { haveI : (f'.ker).is_maximal := ker_is_maximal_of_surjective f' hf',
     let g : mv_polynomial _ R ⧸ f'.ker →+* S := ideal.quotient.lift f'.ker f' (λ _ h, h),
@@ -651,7 +650,7 @@ begin
   rw ring_hom.comp_assoc at this,
   convert this,
   refine ring_hom.ext (λ x, _),
-  exact ((rename_equiv R e.symm).commutes' x).symm,
+  exact ((rename_equiv R e).commutes' x).symm,
 end
 
 end mv_polynomial

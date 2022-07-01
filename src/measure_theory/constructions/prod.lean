@@ -893,6 +893,17 @@ lemma integrable.integral_norm_prod_right [sigma_finite μ] ⦃f : α × β → 
   (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ∥f (x, y)∥ ∂μ) ν :=
 hf.swap.integral_norm_prod_left
 
+lemma integrable_prod_mul {f : α → ℝ} {g : β → ℝ} (hf : integrable f μ) (hg : integrable g ν) :
+  integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν) :=
+begin
+  refine (integrable_prod_iff _).2 ⟨_, _⟩,
+  { apply ae_strongly_measurable.mul,
+    { exact (hf.1.mono' prod_fst_absolutely_continuous).comp_measurable measurable_fst },
+    { exact (hg.1.mono' prod_snd_absolutely_continuous).comp_measurable measurable_snd } },
+  { exact eventually_of_forall (λ x, hg.const_mul (f x)) },
+  { simpa only [norm_mul, integral_mul_left] using hf.norm.mul_const _ }
+end
+
 end
 
 variables [normed_space ℝ E] [complete_space E]
@@ -1062,5 +1073,22 @@ begin
   simp only [← measure.prod_restrict s t, integrable_on] at hf ⊢,
   exact integral_prod f hf
 end
+
+lemma integral_prod_mul (f : α → ℝ) (g : β → ℝ) :
+  ∫ z, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x, f x ∂μ) * (∫ y, g y ∂ν) :=
+begin
+  by_cases h : integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν),
+  { rw integral_prod _ h,
+    simp_rw [integral_mul_left, integral_mul_right] },
+  have H : ¬(integrable f μ) ∨ ¬(integrable g ν),
+  { contrapose! h,
+    exact integrable_prod_mul h.1 h.2 },
+  cases H;
+  simp [integral_undef h, integral_undef H],
+end
+
+lemma set_integral_prod_mul (f : α → ℝ) (g : β → ℝ) (s : set α) (t : set β) :
+  ∫ z in s ×ˢ t, f z.1 * g z.2 ∂(μ.prod ν) = (∫ x in s, f x ∂μ) * (∫ y in t, g y ∂ν) :=
+by simp only [← measure.prod_restrict s t, integrable_on, integral_prod_mul]
 
 end measure_theory

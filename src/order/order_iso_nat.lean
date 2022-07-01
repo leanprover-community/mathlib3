@@ -89,7 +89,7 @@ lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subt
 
 @[simp]
 lemma subtype.order_iso_of_nat_apply {n : ℕ} : subtype.order_iso_of_nat s n = subtype.of_nat s n :=
-by { simp [subtype.order_iso_of_nat] }
+by simp [subtype.order_iso_of_nat]
 
 variable (s)
 

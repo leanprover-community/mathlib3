@@ -50,29 +50,20 @@ namespace wf_dvd_monoid
 variables [comm_monoid_with_zero α]
 open associates nat
 
-theorem of_wf_dvd_monoid_associates [h : wf_dvd_monoid (associates α)] : wf_dvd_monoid α :=
-begin
-  -- Todo (Vi): make one sided thm
-  refine (@surjective.is_well_founded_iff _ _ dvd_not_unit dvd_not_unit _ mk_surjective _).2 h,
-  intros, rw mk_dvd_not_unit_mk_iff
-end
+theorem of_wf_dvd_monoid_associates [wf_dvd_monoid (associates α)] : wf_dvd_monoid α :=
+surjective.is_well_founded' mk_surjective dvd_not_unit $ λ x y, mk_dvd_not_unit_mk_iff.symm
 
 variables [wf_dvd_monoid α]
 
 instance wf_dvd_monoid_associates : wf_dvd_monoid (associates α) :=
-begin
-  -- Todo (Vi): make one sided thm
-  refine (@surjective.is_well_founded_iff _ _ dvd_not_unit dvd_not_unit _ mk_surjective _).1
-    infer_instance,
-  intros, rw mk_dvd_not_unit_mk_iff
-end
+surjective.is_well_founded mk_surjective dvd_not_unit $ λ x y, mk_dvd_not_unit_mk_iff.symm
 
 theorem well_founded_associates : well_founded_lt (associates α) :=
-subrelation.is_well_founded dvd_not_unit (λ x y, dvd_not_unit_of_lt)
+subrelation.is_well_founded dvd_not_unit $ λ x y, dvd_not_unit_of_lt
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
-let ⟨b, hs, hr⟩ := is_well_founded.has_min dvd_not_unit {b | b ∣ a ∧ ¬ is_unit b} ⟨a, dvd_rfl, ha⟩ in
+let ⟨b, hs, hr⟩ := is_well_founded.has_min dvd_not_unit {b | b ∣ a ∧ ¬is_unit b} ⟨a, dvd_rfl, ha⟩ in
 ⟨b, ⟨hs.2, λ c d he, let h := dvd_trans ⟨d, he⟩ hs.1 in or_iff_not_imp_left.2 $
   λ hc, of_not_not $ λ hd, hr c ⟨h, hc⟩ ⟨ne_zero_of_dvd_ne_zero ha0 h, d, hd, he⟩⟩, hs.1⟩
 

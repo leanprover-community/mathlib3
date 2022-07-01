@@ -103,7 +103,7 @@ end
 
 lemma function.injective.of_sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
   (h : function.injective (sigma.map f₁ f₂)) (a : α₁) : function.injective (f₂ a) :=
-λ a x y hxy, sigma_mk_injective (@h ⟨a, x⟩ ⟨a, y⟩ (sigma.ext rfl (heq_iff_eq.2 hxy)))
+λ x y hxy, sigma_mk_injective $ @h ⟨a, x⟩ ⟨a, y⟩ (sigma.ext rfl (heq_iff_eq.2 hxy))
 
 lemma function.injective.sigma_map_iff {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
   (h₁ : function.injective f₁) :

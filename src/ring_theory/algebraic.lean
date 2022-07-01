@@ -292,36 +292,36 @@ section pi
 
 variables (R' : Type u) (S' : Type v) (T' : Type w)
 
-/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+/-- This is not an instance as it forms a diamond with `pi.has_smul`.
 
 See the `instance_diamonds` test for details. -/
-def polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
-  has_scalar (R'[X]) (R' → S') :=
+def polynomial.has_smul_pi [semiring R'] [has_smul R' S'] :
+  has_smul (R'[X]) (R' → S') :=
 ⟨λ p f x, eval x p • f x⟩
 
-/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+/-- This is not an instance as it forms a diamond with `pi.has_smul`.
 
 See the `instance_diamonds` test for details. -/
-noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
-  [has_scalar S' T'] :
-  has_scalar (R'[X]) (S' → T') :=
+noncomputable def polynomial.has_smul_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_smul S' T'] :
+  has_smul (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
 variables {R} {S}
 
-local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
+local attribute [instance] polynomial.has_smul_pi polynomial.has_smul_pi'
 
-@[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
+@[simp] lemma polynomial_smul_apply [semiring R'] [has_smul R' S']
   (p : R'[X]) (f : R' → S') (x : R') :
   (p • f) x = eval x p • f x := rfl
 
 @[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
-  [has_scalar S' T'] (p : R'[X]) (f : S' → T') (x : S') :
+  [has_smul S' T'] (p : R'[X]) (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
-/-- This is not an instance for the same reasons as `polynomial.has_scalar_pi'`. -/
+/-- This is not an instance for the same reasons as `polynomial.has_smul_pi'`. -/
 noncomputable def polynomial.algebra_pi :
   algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
@@ -333,7 +333,7 @@ noncomputable def polynomial.algebra_pi :
   smul_def' := λ p f, funext $ λ z, by
     simp only [algebra.algebra_map_eq_smul_one, polynomial_smul_apply', one_mul,
       pi.mul_apply, algebra.smul_mul_assoc],
-  ..polynomial.has_scalar_pi' R' S' T' }
+  ..polynomial.has_smul_pi' R' S' T' }
 
 local attribute [instance] polynomial.algebra_pi
 

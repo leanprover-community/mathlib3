@@ -455,7 +455,7 @@ class has_measurable_vadd (M α : Type*) [has_vadd M α] [measurable_space M] [m
 /-- We say that the action of `M` on `α` `has_measurable_smul` if for each `c` the map `x ↦ c • x`
 is a measurable function and for each `x` the map `c ↦ c • x` is a measurable function. -/
 @[to_additive]
-class has_measurable_smul (M α : Type*) [has_scalar M α] [measurable_space M] [measurable_space α] :
+class has_measurable_smul (M α : Type*) [has_smul M α] [measurable_space M] [measurable_space α] :
   Prop :=
 (measurable_const_smul : ∀ c : M, measurable ((•) c : α → α))
 (measurable_smul_const : ∀ x : α, measurable (λ c : M, c • x))
@@ -469,7 +469,7 @@ class has_measurable_vadd₂ (M α : Type*) [has_vadd M α] [measurable_space M]
 /-- We say that the action of `M` on `α` `has_measurable_smul₂` if the map
 `(c, x) ↦ c • x` is a measurable function. -/
 @[to_additive has_measurable_vadd₂]
-class has_measurable_smul₂ (M α : Type*) [has_scalar M α] [measurable_space M]
+class has_measurable_smul₂ (M α : Type*) [has_smul M α] [measurable_space M]
   [measurable_space α] : Prop :=
 (measurable_smul : measurable (function.uncurry (•) : M × α → α))
 
@@ -503,7 +503,7 @@ s.to_submonoid.has_measurable_smul
 
 section smul
 
-variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_scalar M β]
+variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_smul M β]
   {m : measurable_space α} {f : α → M} {g : α → β}
 
 include m
@@ -563,13 +563,13 @@ hf.const_smul' c
 omit m
 
 @[to_additive]
-instance pi.has_measurable_smul {ι : Type*} {α : ι → Type*} [∀ i, has_scalar M (α i)]
+instance pi.has_measurable_smul {ι : Type*} {α : ι → Type*} [∀ i, has_smul M (α i)]
   [∀ i, measurable_space (α i)] [∀ i, has_measurable_smul M (α i)] :
   has_measurable_smul M (Π i, α i) :=
 ⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).const_smul _,
  λ g, measurable_pi_iff.mpr $ λ i, measurable_smul_const _⟩
 
-/-- `add_monoid.has_scalar_nat` is measurable. -/
+/-- `add_monoid.has_smul_nat` is measurable. -/
 instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measurable_space M]
   [has_measurable_add₂ M] : has_measurable_smul₂ ℕ M :=
 ⟨begin
@@ -581,7 +581,7 @@ instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measu
   { simp only [succ_nsmul], exact measurable_id.add ih }
 end⟩
 
-/-- `sub_neg_monoid.has_scalar_int` is measurable. -/
+/-- `sub_neg_monoid.has_smul_int` is measurable. -/
 instance sub_neg_monoid.has_measurable_smul_int₂ (M : Type*) [sub_neg_monoid M] [measurable_space M]
   [has_measurable_add₂ M] [has_measurable_neg M] : has_measurable_smul₂ ℤ M :=
 ⟨begin
@@ -675,7 +675,7 @@ instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] 
 
 /-- If a scalar is central, then its right action is measurable when its left action is. -/
 instance has_measurable_smul.op {M α} [measurable_space M]
-  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [measurable_space α] [has_smul M α] [has_smul Mᵐᵒᵖ α] [is_central_scalar M α]
   [has_measurable_smul M α] : has_measurable_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, show measurable (λ x, op c • x),
                           by simpa only [op_smul_eq_smul] using measurable_const_smul c,
@@ -684,7 +684,7 @@ instance has_measurable_smul.op {M α} [measurable_space M]
 
 /-- If a scalar is central, then its right action is measurable when its left action is. -/
 instance has_measurable_smul₂.op {M α} [measurable_space M]
-  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [measurable_space α] [has_smul M α] [has_smul Mᵐᵒᵖ α] [is_central_scalar M α]
   [has_measurable_smul₂ M α] : has_measurable_smul₂ Mᵐᵒᵖ α :=
 ⟨show measurable (λ x : Mᵐᵒᵖ × α, op (unop x.1) • x.2), begin
   simp_rw op_smul_eq_smul,

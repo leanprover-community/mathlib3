@@ -259,7 +259,7 @@ variables {R}
 
 lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
   ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
-  
+
 @[simp] lemma ι_multi_zero_apply (v : fin 0 → M) : ι_multi R 0 v = 1 := rfl
 
 @[simp] lemma ι_multi_succ_apply {n : ℕ} (v : fin n.succ → M) :

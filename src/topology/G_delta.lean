@@ -44,7 +44,7 @@ variable [topological_space α]
 
 /-- A Gδ set is a countable intersection of open sets. -/
 def is_Gδ (s : set α) : Prop :=
-  ∃T : set (set α), (∀t ∈ T, is_open t) ∧ countable T ∧ s = (⋂₀ T)
+  ∃T : set (set α), (∀t ∈ T, is_open t) ∧ T.countable ∧ s = (⋂₀ T)
 
 /-- An open set is a Gδ set. -/
 lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
@@ -54,7 +54,7 @@ lemma is_open.is_Gδ {s : set α} (h : is_open s) : is_Gδ s :=
 
 @[simp] lemma is_Gδ_univ : is_Gδ (univ : set α) := is_open_univ.is_Gδ
 
-lemma is_Gδ_bInter_of_open {I : set ι} (hI : countable I) {f : ι → set α}
+lemma is_Gδ_bInter_of_open {I : set ι} (hI : I.countable) {f : ι → set α}
   (hf : ∀i ∈ I, is_open (f i)) : is_Gδ (⋂i∈I, f i) :=
 ⟨f '' I, by rwa ball_image_iff, hI.image _, by rw sInter_image⟩
 
@@ -71,7 +71,7 @@ begin
   simpa [@forall_swap ι] using hTo
 end
 
-lemma is_Gδ_bInter {s : set ι} (hs : countable s) {t : Π i ∈ s, set α}
+lemma is_Gδ_bInter {s : set ι} (hs : s.countable) {t : Π i ∈ s, set α}
   (ht : ∀ i ∈ s, is_Gδ (t i ‹_›)) : is_Gδ (⋂ i ∈ s, t i ‹_›) :=
 begin
   rw [bInter_eq_Inter],
@@ -80,7 +80,7 @@ begin
 end
 
 /-- A countable intersection of Gδ sets is a Gδ set. -/
-lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : countable S) : is_Gδ (⋂₀ S) :=
+lemma is_Gδ_sInter {S : set (set α)} (h : ∀s∈S, is_Gδ s) (hS : S.countable) : is_Gδ (⋂₀ S) :=
 by simpa only [sInter_eq_bInter] using is_Gδ_bInter hS h
 
 lemma is_Gδ.inter {s t : set α} (hs : is_Gδ s) (ht : is_Gδ t) : is_Gδ (s ∩ t) :=
@@ -122,7 +122,7 @@ variable [t1_space α]
 lemma is_Gδ_compl_singleton (a : α) : is_Gδ ({a}ᶜ : set α) :=
 is_open_compl_singleton.is_Gδ
 
-lemma set.countable.is_Gδ_compl {s : set α} (hs : countable s) : is_Gδ sᶜ :=
+lemma set.countable.is_Gδ_compl {s : set α} (hs : s.countable) : is_Gδ sᶜ :=
 begin
   rw [← bUnion_of_singleton s, compl_Union₂],
   exact is_Gδ_bInter hs (λ x _, is_Gδ_compl_singleton x)

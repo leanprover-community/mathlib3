@@ -664,7 +664,8 @@ metric.mk_uniformity_basis (λ n _, div_pos zero_lt_one $ nat.cast_add_one_pos n
 theorem uniformity_basis_dist_inv_nat_pos :
   (𝓤 α).has_basis (λ n:ℕ, 0<n) (λ n:ℕ, {p:α×α | dist p.1 p.2 < 1 / ↑n }) :=
 metric.mk_uniformity_basis (λ n hn, div_pos zero_lt_one $ nat.cast_pos.2 hn)
-  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n, hn.le⟩)
+  (λ ε ε0, let ⟨n, hn⟩ := exists_nat_one_div_lt ε0 in ⟨n+1, nat.succ_pos n,
+    by exact_mod_cast hn.le⟩)
 
 theorem uniformity_basis_dist_pow {r : ℝ} (h0 : 0 < r) (h1 : r < 1) :
   (𝓤 α).has_basis (λ n:ℕ, true) (λ n:ℕ, {p:α×α | dist p.1 p.2 < r ^ n }) :=
@@ -1274,7 +1275,7 @@ lemma filter.tendsto.congr_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter
   tendsto f₂ p (𝓝 a) :=
 h₁.congr_uniformity $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
-alias filter.tendsto.congr_dist ←  tendsto_of_tendsto_of_dist
+alias filter.tendsto.congr_dist ← tendsto_of_tendsto_of_dist
 
 lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
   (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
@@ -2000,7 +2001,7 @@ open topological_space
 /-- A pseudometric space is second countable if, for every `ε > 0`, there is a countable set which
 is `ε`-dense. -/
 lemma second_countable_of_almost_dense_set
-  (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
+  (H : ∀ε > (0 : ℝ), ∃ s : set α, s.countable ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
   second_countable_topology α :=
 begin
   refine emetric.second_countable_of_almost_dense_set (λ ε ε0, _),
@@ -2096,7 +2097,7 @@ let ⟨C, h⟩ := h in
 ⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
 $ ball_mem_comm.mp h⟩
 
-alias bounded_closure_of_bounded ← metric.bounded.closure
+alias bounded_closure_of_bounded ← bounded.closure
 
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
@@ -2151,7 +2152,7 @@ h.totally_bounded.bounded
 lemma bounded_of_finite {s : set α} (h : s.finite) : bounded s :=
 h.is_compact.bounded
 
-alias bounded_of_finite ← set.finite.bounded
+alias bounded_of_finite ← _root_.set.finite.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=

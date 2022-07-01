@@ -154,7 +154,7 @@ multiplication.
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
 instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
-  has_scalar α (bilin_form R M) :=
+  has_smul α (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z, by { rw [add_left, smul_add] },

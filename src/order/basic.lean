@@ -532,7 +532,9 @@ function `f : α → β`. See note [reducible non-instances]. -/
 { le_antisymm := λ a b h₁ h₂, inj (h₁.antisymm h₂), .. preorder.lift f }
 
 /-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
-function `f : α → β`. See note [reducible non-instances]. -/
+function `f : α → β`. This version takes `[has_sup α]` and `[has_inf α]` as arguments, then uses
+them for `max` and `min` fields. See `linear_order.lift'` for a version that autogenerates `min` and
+`max` fields. See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift {α β} [linear_order β] [has_sup α] [has_inf α] (f : α → β)
   (inj : injective f) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
   (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
@@ -547,6 +549,10 @@ function `f : α → β`. See note [reducible non-instances]. -/
   max_def := by { ext x y, apply inj, rw [hsup, max_def, max_default, apply_ite f], refl },
   .. partial_order.lift f inj }
 
+/-- Transfer a `linear_order` on `β` to a `linear_order` on `α` using an injective
+function `f : α → β`. This version autogenerates `min` and `max` fields. See `linear_order.lift`
+for a version that takes `[has_sup α]` and `[has_inf α]`, then uses them as `max` and `min`.
+See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift' {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
 @linear_order.lift α β _ ⟨λ x y, if f y ≤ f x then x else y⟩ ⟨λ x y, if f x ≤ f y then x else y⟩

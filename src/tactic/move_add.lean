@@ -109,8 +109,11 @@ do
 
 /-- `is_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
 if it cannot. -/
-meta def is_given_op (op : expr) : expr → tactic unit
-| (expr.app (expr.app F a) b) := unify op F
+meta def as_given_op (op : pexpr) : expr → tactic expr
+| (expr.app (expr.app F a) b) := do
+    op ← to_expr op tt ff,
+    unify op F,
+    instantiate_mvars op
 | _ := failed
 
 /-- `(e, unused) ← reorder_oper op lp e` converts an expression `e` to a similar looking one.
@@ -142,10 +145,9 @@ Here are two examples:
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   expr → tactic (expr × list bool)
 | F'@(expr.app F b) := do
-    op ← to_expr op tt ff,
-    is_op ← try_core (is_given_op op F'),
+    is_op ← try_core (as_given_op op F'),
     match is_op with
-    | some () := do
+    | some op := do
         (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
         sort_all ← sort_list.mmap (λ e, do
           (e, lu) ← reorder_oper e,

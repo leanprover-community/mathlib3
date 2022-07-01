@@ -72,10 +72,7 @@ def boundary (n : ℕ) : set (I^n) := {y | ∃ i, y i = 0 ∨ y i = 1}
 (continuous_map.pi (λ i:fin n, ⟨λ f:I^(n+1), f i.succ, continuous_apply i.succ⟩)).2
 
 @[simp] lemma cons_head_tail {t : I^(n+1)} : ((fin.cons t.head t.tail) : I^(n+1)) = t:=
-begin
-  ext1, revert x, refine (fin.cases (by {rw fin.cons_zero, refl}) _),
-  intro, rw fin.cons_succ, refl,
-end
+by simp only [fin.cons_self_tail, cube.tail, cube.head]
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
@@ -104,8 +101,7 @@ by { rcases t with ⟨t,tn⟩, unfold fold, unfold unfold, simp only [head, tail
   continuous_map.prod_eval, fin.cons_zero, fin.tail_cons]}
 
 @[simp] lemma fold_unfold (t : I^(n+1)) : fold (unfold t) = t :=
-by {unfold fold, unfold unfold, simp only [head, tail, continuous_map.prod_eval,
-  continuous_map.coe_mk, fin.cons_self_tail]}
+by simp only [fin.cons_self_tail, cube.fold_apply, cube.tail, cube.unfold_apply, cube.head]
 
 /-- Product with `I` homeomorphism -/
 def fold.homeomorph : I×I^n ≃ₜ I^(n+1) :=
@@ -404,6 +400,7 @@ begin
       end }⟩],
 end
 
+/--Concatenation of equivalence clasess.-/
 def concat : π_(n+1) X x → π_(n+1) X x → π_(n+1) X x :=
 begin
   refine (quotient.map₂' gen_loop.concat _),
@@ -416,7 +413,7 @@ end
 instance has_mul : has_mul (π_(n+1) X x) := ⟨concat⟩
 local infix `⋆`:60 := concat
 
-def concat_assoc (p q r : π_(n+1) X x) : ((p ⋆ q) ⋆ r) = (p ⋆ (q ⋆ r)) :=
+lemma concat_assoc (p q r : π_(n+1) X x) : ((p ⋆ q) ⋆ r) = (p ⋆ (q ⋆ r)) :=
 begin
   refine (quotient.induction_on₃ p q r _),
   intros a b c, refine (quotient.sound _),
@@ -426,6 +423,7 @@ begin
   apply path.homotopy.trans_assoc
 end
 
+/--Equivalence class of the constant `gen_loop`.-/
 def const : π_ n X x := quotient.mk' gen_loop.const
 
 instance has_one : has_one (π_ n X x) := ⟨const⟩
@@ -454,6 +452,7 @@ begin
   apply path.homotopy.refl_trans,
 end
 
+/--Reversing am equivalence class of loops-/
 def reverse {n':nat} : π_(n'+1) X x → π_(n'+1) X x :=
 begin
   refine (quotient.map' (λ p, gen_loop.from_path ((gen_loop.to_path p).symm)) _),
@@ -489,6 +488,7 @@ begin
   apply  path.homotopy.refl_trans_symm
 end
 
+/-- Concatecantion forms a group.-/
 def is_group : group (π_(n+1) X x) :=
 { mul := concat,
   mul_assoc := concat_assoc,
@@ -526,4 +526,3 @@ def is_group : group (π_(n+1) X x) :=
 -- end
 
 end homotopy_group
-#lint

@@ -275,70 +275,50 @@ begin
   rw [← integrable_on_univ, ← @Iio_union_Ici _ _ (0 : ℝ), integrable_on_union,
       integrable_on_Ici_iff_integrable_on_Ioi],
   refine ⟨_, integrable_on_rpow_mul_exp_neg_mul_sq hb hs⟩,
-  rw ← (measure.measure_preserving_neg (volume : measure ℝ)).integrable_on_comp_preimage sorry,
+  rw ← (measure.measure_preserving_neg (volume : measure ℝ)).integrable_on_comp_preimage
+    ((homeomorph.neg ℝ).to_measurable_equiv.measurable_embedding),
   simp only [function.comp, neg_sq, neg_preimage, preimage_neg_Iio, neg_neg, neg_zero],
   apply integrable.mono' (integrable_on_rpow_mul_exp_neg_mul_sq hb hs),
   { apply measurable.ae_strongly_measurable,
-    apply (measurable_neg.pow_const _).mul,
-
-  }
+    exact (measurable_id'.neg.pow measurable_const).mul
+      ((measurable_id'.pow measurable_const).const_mul (-b)).exp },
+  { have : measurable_set (Ioi (0 : ℝ)) := measurable_set_Ioi,
+    filter_upwards [ae_restrict_mem this] with x hx,
+    rw [real.norm_eq_abs, abs_mul, abs_of_nonneg (exp_pos _).le],
+    apply mul_le_mul_of_nonneg_right _ (exp_pos _).le,
+    exact abs_rpow_neg_le_rpow (le_of_lt hx) _ }
 end
 
-
-#exit
-
-lemma integrable_rpow_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) (s : ℝ) {hs : -1 < s} :
-  integrable (λ x:ℝ, x ^ s * exp (-b * x^2)) :=
+lemma integrable_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
+  integrable (λ x:ℝ, exp (-b * x^2)) :=
 begin
-  have B : (0 : ℝ) < 1/2, by norm_num,
-  have A : (univ : set ℝ) = (Ioi (1 : ℝ) ∪ Iio (-1 : ℝ) ∪ Icc (-1) 1), sorry,
-  rw [← integrable_on_univ, A, integrable_on_union, integrable_on_union],
-  split, split,
-  { apply integrable_of_is_O_exp_neg B _ (is_o.is_O (rpow_mul_exp_neg_mul_sq_is_o_exp_neg hb _)),
-    assume x hx,
-    have N : x ≠ 0, { refine (zero_lt_one.trans_le _).ne', exact hx },
-    apply ((continuous_at_rpow_const _ _ (or.inl N)).mul _).continuous_within_at,
-    exact (continuous_exp.comp (continuous_const.mul (continuous_pow 2))).continuous_at },
-  { rw ← (measure.measure_preserving_neg (volume : measure ℝ)).integrable_on_comp_preimage sorry,
-    simp only [function.comp, neg_sq, neg_preimage, preimage_neg_Iio, neg_neg],
-    apply integrable_of_is_O_exp_neg B _ (is_o.is_O _),
-    { assume x hx,
-      have N : -x ≠ 0,
-      { rw [ne.def, neg_eq_zero], refine (zero_lt_one.trans_le _).ne', exact hx },
-      apply continuous_at.continuous_within_at,
-      apply ((continuous_at_rpow_const _ _ (or.inl N)).comp continuous_at_neg).mul _,
-      exact (continuous_exp.comp (continuous_const.mul (continuous_pow 2))).continuous_at },
-    { apply is_O.trans_is_o _ (rpow_mul_exp_neg_mul_sq_is_o_exp_neg hb s),
-      refine is_O_iff.2 ⟨1, _⟩,
-      filter_upwards [Ioi_mem_at_top (0 : ℝ)] with x hx,
-      simp only [neg_mul, norm_mul, one_mul],
-      apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-      simp only [real.norm_eq_abs],
-      exact (abs_rpow_neg_le_rpow (le_of_lt hx) s).trans (le_abs_self _) } },
-
+  have A : (-1 : ℝ) < 0, by linarith,
+  convert integrable_rpow_mul_exp_neg_mul_sq hb A,
+  simp,
 end
 
-#exitg
-
-  split,
-  { apply integrable_of_is_O_exp_neg B _ (is_o.is_O _),
-    { apply continuous.continuous_on,
-      apply continuous.mul,
-      apply continuous_rpo },
-  }
+lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
+  integrable (λ x:ℝ, x * exp (-b * x^2)) :=
+begin
+  have A : (-1 : ℝ) < 1, by linarith,
+  convert integrable_rpow_mul_exp_neg_mul_sq hb A,
+  simp,
 end
+
 
 lemma integral_mul_exp_neg_sq_div_two : ∫ (r : ℝ) in Ioi 0, r * exp (-r ^ 2 / 2) = 1 :=
 begin
   refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _ _ filter.tendsto_id) _,
-  { have A : (0 : ℝ) < 1/2, by norm_num,
-    apply integrable_of_is_O_exp_neg A _ (is_o.is_O _),
-    { apply continuous.continuous_on,
-      continuity },
-    { convert rpow_mul_exp_neg_mul_sq_is_o_exp_neg A 1,
-      ext x,
-      simp [div_eq_inv_mul] } },
-  { simpa using tendsto_exp_neg_at_top_nhds_0.const_sub 1, },
+  sorry { have A : (0 : ℝ) < 1/2, by norm_num,
+    convert (integrable_mul_exp_neg_mul_sq A).integrable_on,
+    ext x,
+    simp [div_eq_inv_mul] },
+  { have : ∀ x, has_deriv_at (λ x, exp (-x^2 / 2)) (x * exp (- x^2 / 2)) x,
+    { assume x,
+      convert (((has_deriv_at_id x).pow).div_const 2).neg.exp,
+
+
+    } },
 end
 
 #exit

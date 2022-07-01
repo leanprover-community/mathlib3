@@ -679,9 +679,11 @@ end non_unital_normed_ring
 
 section normed_ring
 
-variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
+variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)]
 
 instance _root_.pre_lp.ring : ring (pre_lp B) := pi.ring
+
+variables [Π i, norm_one_class (B i)]
 
 lemma _root_.one_mem_ℓp_infty : mem_ℓp (1 : Π i, B i) ∞ :=
 ⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
@@ -739,15 +741,16 @@ instance infty_normed_comm_ring : normed_comm_ring (lp B ∞) :=
 end normed_comm_ring
 
 section algebra
-variables {I : Type*} {𝕜 : Type*}  {B : I → Type*}
-variables [Π i, normed_comm_ring (B i)] [∀ i, norm_one_class (B i)]
-variables [normed_field 𝕜] [Π i, normed_algebra 𝕜 (B i)]
+variables {I : Type*} {𝕜 : Type*} {B : I → Type*}
+variables [normed_field 𝕜] [Π i, normed_ring (B i)] [Π i, normed_algebra 𝕜 (B i)]
 
 /-- A variant of `pi.algebra` that lean can't find otherwise. -/
 instance _root_.pi.algebra_of_normed_algebra : algebra 𝕜 (Π i, B i) :=
 @pi.algebra I 𝕜 B _ _ $ λ i, normed_algebra.to_algebra
 
 instance _root_.pre_lp.algebra : algebra 𝕜 (pre_lp B) := _root_.pi.algebra_of_normed_algebra
+
+variables [∀ i, norm_one_class (B i)]
 
 lemma _root_.algebra_map_mem_ℓp_infty (k : 𝕜) : mem_ℓp (algebra_map 𝕜 (Π i, B i) k) ∞ :=
 begin

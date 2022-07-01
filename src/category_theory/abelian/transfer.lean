@@ -168,7 +168,6 @@ begin
   apply abelian.of_coimage_image_comparison_is_iso,
 end
 
-set_option pp.universes true
 /--
 If `C` is an additive category equivalent to an abelian category `D`
 via a functor that preserves zero morphisms,

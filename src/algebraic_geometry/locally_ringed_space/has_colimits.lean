@@ -110,8 +110,6 @@ variables {X Y : LocallyRingedSpace.{v}} (f g : X ⟶ Y)
 
 namespace has_coequalizer
 
--- set_option pp.universes true
--- #print coequalizer.π
 instance coequalizer_π_app_is_local_ring_hom
   (U : topological_space.opens ((coequalizer f.val g.val).carrier)) :
   is_local_ring_hom ((coequalizer.π f.val g.val : _).c.app (op U)) :=

@@ -1,123 +1,91 @@
-import category_theory.full_subcategory
 import topology.is_locally_homeomorph
-import topology.homotopy.fundamental_groupoid
 
-variables {E X : Type*} [topological_space E] [topological_space X]
+variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X) {x y : X}
+  (U V : set X) (I : Type*) [topological_space I]
 
-section evenly_covered
+structure even_covering extends homeomorph (U × I) (f ⁻¹' U) :=
+(commutes' : ∀ p, f (to_fun p) = p.1)
 
-variables (f : E → X) (U : set X) (I : Type*) [topological_space I]
-  {x y : X} (hx : x ∈ U) (hy : y ∈ U)
+variables {f U V I} (ϕ : even_covering f U I)
 
-structure evenly_covered :=
-(to_homeomorph : I × U ≃ₜ f ⁻¹' U)
-(commutes' : ∀ p, f (to_homeomorph p) = p.2)
+namespace even_covering
 
-variables {U I}
+instance : has_coe_to_fun (even_covering f U I) (λ ι, U × I → f ⁻¹' U) :=
+⟨λ ϕ, ϕ.to_fun⟩
 
-structure evenly_covered_point :=
-(to_homeomorph : f ⁻¹' {x} × U ≃ₜ f ⁻¹' U)
-(commutes' : ∀ p, f (to_homeomorph p) = p.2)
-(compatible' : ∀ p, to_homeomorph ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩)
+def symm : f ⁻¹' U ≃ₜ U × I :=
+ϕ.to_homeomorph.symm
 
-variables {f hx}
+@[simp] def apply_symm_apply (p : f ⁻¹' U) : ϕ (ϕ.symm p) = p :=
+ϕ.to_equiv.apply_symm_apply p
+
+@[simp] def symm_apply_apply (p : U × I) : ϕ.symm (ϕ p) = p :=
+ϕ.to_equiv.symm_apply_apply p
+
+lemma commutes (p : U × I) : f (ϕ p) = p.1 :=
+ϕ.commutes' p
+
+lemma commutes_inv (p : f ⁻¹' U) : f p = (ϕ.symm p).1 :=
+by rw [←ϕ.apply_symm_apply p, ϕ.commutes, ϕ.apply_symm_apply]
+
+def mono (h : V ⊆ U) : even_covering f V I :=
+{ to_fun := λ p, ⟨ϕ ⟨⟨p.1, h p.1.2⟩, p.2⟩, by rw [set.mem_preimage, ϕ.commutes]; exact p.1.2⟩,
+  inv_fun := λ p, ⟨⟨(ϕ.symm ⟨p, h p.2⟩).1, by rw [←ϕ.commutes, apply_symm_apply]; exact p.2⟩,
+    (ϕ.symm ⟨p, h p.2⟩).2⟩,
+  left_inv := λ p, by simp only [subtype.coe_mk, subtype.coe_eta, prod.mk.eta, symm_apply_apply],
+  right_inv := λ p, by simp only [subtype.coe_mk, subtype.coe_eta, prod.mk.eta, apply_symm_apply],
+  commutes' := λ p, ϕ.commutes ⟨⟨p.1, h p.1.2⟩, p.2⟩,
+  continuous_to_fun := by continuity! }
+
+def fiber_homeomorph (hx : x ∈ U) : f ⁻¹' {x} ≃ₜ I :=
+{ to_fun := λ p, (ϕ.symm ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩).2,
+  inv_fun := λ p, ⟨ϕ ⟨⟨x, hx⟩, p⟩, ϕ.commutes ⟨⟨x, hx⟩, p⟩⟩,
+  left_inv := λ p, subtype.ext (by
+  { obtain ⟨p, rfl : f p = x⟩ := p,
+    have := ϕ.commutes_inv ⟨p, _⟩,
+    rw subtype.coe_mk at this,
+    simp only [this, subtype.coe_mk, subtype.coe_eta, prod.mk.eta, apply_symm_apply],
+    exact hx }),
+  right_inv := λ p, by simp only [subtype.coe_mk, subtype.coe_eta, symm_apply_apply],
+  continuous_inv_fun := by continuity! }
+
+def translate (ϕ : even_covering f U I) (hx : x ∈ U) : even_covering f U (f ⁻¹' {x}) :=
+{ to_homeomorph := ((homeomorph.refl U).prod_congr (ϕ.fiber_homeomorph hx)).trans ϕ.to_homeomorph,
+  commutes' := λ p, ϕ.commutes ⟨p.1, ϕ.fiber_homeomorph hx p.2⟩ }
+
+end even_covering
+
+variables (f)
+
+def evenly_covered (hx : x ∈ U) : Prop :=
+nonempty (even_covering f U (f ⁻¹' {x}))
+
+variables {f}
 
 namespace evenly_covered
 
-instance : has_coe_to_fun (evenly_covered f U I) (λ ι, I × U → f ⁻¹' U) :=
-⟨λ ι, ι.to_homeomorph⟩
+lemma mono {hx : x ∈ V} {hy : x ∈ U} (hf : evenly_covered f hy) (h : V ⊆ U) :
+  evenly_covered f hx :=
+hf.elim (λ g, ⟨g.mono h⟩)
 
-variables (ι : evenly_covered f U I)
-
-def commutes (p : I × U) : f (ι p) = p.2 :=
-ι.commutes' p
-
-def symm : f ⁻¹' U ≃ₜ I × U :=
-ι.to_homeomorph.symm
-
-def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p :=
-ι.to_homeomorph.apply_symm_apply p
-
-def symm_apply_apply (p : I × U) : ι.symm (ι p) = p :=
-ι.to_homeomorph.symm_apply_apply p
-
-def fiber_homeomorph : f ⁻¹' {y} ≃ₜ I :=
-{ to_fun := λ p, (ι.symm ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩).1,
-  inv_fun := λ p, ⟨ι ⟨p, y, hy⟩, ι.commutes ⟨p, y, hy⟩⟩,
-  left_inv := λ p, subtype.ext (by
-  { have key := ι.commutes (ι.symm ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩),
-    rw [ι.apply_symm_apply, subtype.coe_mk, show f p = y, from p.2] at key,
-    rw [subtype.coe_mk, show (⟨y, hy⟩ : U) = _, from subtype.ext key,
-        prod.mk.eta, ι.apply_symm_apply, subtype.coe_mk] }),
-  right_inv := λ p, by simp_rw [subtype.coe_mk, subtype.coe_eta, ι.symm_apply_apply],
-  continuous_to_fun := by continuity,
-  continuous_inv_fun := by continuity! }
-
-def to_evenly_covered_point : evenly_covered_point f hy :=
-{ to_homeomorph := ((ι.fiber_homeomorph hy).prod_congr (homeomorph.refl U)).trans ι.to_homeomorph,
-  commutes' := λ p, ι.commutes' _,
-  compatible' := λ p, subtype.ext (by
-  { have this := subtype.ext_iff.mp ((ι.fiber_homeomorph hy).symm_apply_apply p),
-    exact this }) }
+lemma translate {hx : x ∈ U} (hf : evenly_covered f hx) (hy : y ∈ U) : evenly_covered f hy :=
+hf.elim (λ g, ⟨g.translate hy⟩)
 
 end evenly_covered
 
-namespace evenly_covered_point
-
-instance : has_coe_to_fun (evenly_covered_point f hx) (λ ι, f ⁻¹' {x} × U → f ⁻¹' U) :=
-⟨λ ι, ι.to_homeomorph⟩
-
-variables (ι : evenly_covered_point f hx)
-
-def commutes (p : f ⁻¹' {x} × U) : f (ι p) = p.2 :=
-ι.commutes' p
-
-def compatible (p : f ⁻¹' {x}) : ι ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩ :=
-ι.compatible' p
-
-def symm : f ⁻¹' U ≃ₜ f ⁻¹' {x} × U :=
-ι.to_homeomorph.symm
-
-def apply_symm_apply (p : f ⁻¹' U) : ι (ι.symm p) = p :=
-ι.to_homeomorph.apply_symm_apply p
-
-def symm_apply_apply (p : f ⁻¹' {x} × U) : ι.symm (ι p) = p :=
-ι.to_homeomorph.symm_apply_apply p
-
-def to_evenly_covered : evenly_covered f U (f ⁻¹' {x}) :=
-{ .. ι }
-
-def to_evenly_covered_point : evenly_covered_point f hy :=
-ι.to_evenly_covered.to_evenly_covered_point hy
-
-def fiber_homeomorph : f ⁻¹' {y} ≃ₜ f ⁻¹' {x} :=
-ι.to_evenly_covered.fiber_homeomorph hy
-
-end evenly_covered_point
-
-end evenly_covered
+lemma evenly_covered_translate_iff (hx : x ∈ U) (hy : y ∈ U) :
+  evenly_covered f hx ↔ evenly_covered f hy :=
+⟨λ hf, hf.translate hy, λ hf, hf.translate hx⟩
 
 variables (E X)
 
 structure covering_map extends continuous_map E X :=
 (surjective : function.surjective to_fun)
 (discrete_fibers : ∀ x : X, discrete_topology (to_fun ⁻¹' {x}))
-(evenly_covered : ∀ x : X, ∃ U : set X, is_open U ∧
-  ∃ hx : x ∈ U, nonempty (evenly_covered_point to_fun hx))
+(evenly_covered : ∀ x : X, ∃ (U : set X) (hU : U ∈ nhds x),
+  evenly_covered to_fun (mem_of_mem_nhds hU))
 
 variables {E X}
-
-def fundamental_group (x : X) :=
-let y : fundamental_groupoid X := x in y ⟶ y
-
-noncomputable instance (x : X) : group (fundamental_group x) :=
-{ mul := category_theory.category_struct.comp,
-  mul_assoc := category_theory.category.assoc,
-  one := category_theory.category_struct.id _,
-  one_mul := category_theory.category.id_comp,
-  mul_one := category_theory.category.comp_id,
-  inv := category_theory.groupoid.inv,
-  mul_left_inv := category_theory.groupoid.inv_comp }
 
 namespace covering_map
 
@@ -129,8 +97,9 @@ instance : has_coe_to_fun (E ↠ X) (λ _, E → X) := ⟨λ q, q.to_fun⟩
 
 lemma is_locally_homeomorph (q : E ↠ X) : is_locally_homeomorph q :=
 begin
+  apply is_locally_homeomorph.mk,
   intro x,
-  obtain ⟨U, h_open, ⟨h_mem, ⟨h_covered⟩⟩⟩ := q.evenly_covered (q x),
+  obtain ⟨U, hU, ⟨ϕ⟩⟩ := q.evenly_covered (q x),
   sorry,
 end
 
@@ -141,3 +110,17 @@ lemma covering_map_quotient_map (q : E ↠ X) : quotient_map q :=
 q.is_open_map.to_quotient_map q.continuous q.surjective
 
 end covering_map
+
+/-- *** FUNDAMENTAL GROUP *** -/
+
+-- def fundamental_group (x : X) :=
+-- let y : fundamental_groupoid X := x in y ⟶ y
+
+-- noncomputable instance (x : X) : group (fundamental_group x) :=
+-- { mul := category_theory.category_struct.comp,
+--   mul_assoc := category_theory.category.assoc,
+--   one := category_theory.category_struct.id _,
+--   one_mul := category_theory.category.id_comp,
+--   mul_one := category_theory.category.comp_id,
+--   inv := category_theory.groupoid.inv,
+--   mul_left_inv := category_theory.groupoid.inv_comp }

@@ -2097,7 +2097,7 @@ lemma smul_comp_LpL [fact (1 ≤ p)] (c : 𝕜) (L : E →L[𝕜] F) :
   (c • L).comp_LpL p μ  = c • (L.comp_LpL p μ) :=
 by { ext1 f, exact smul_comp_Lp c L f }
 
-/-- TODO: written in an "apply" way because of a missing `has_scalar` instance. -/
+/-- TODO: written in an "apply" way because of a missing `has_smul` instance. -/
 lemma smul_comp_LpL_apply [fact (1 ≤ p)] {𝕜'} [normed_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (L : E →L[𝕜] F) (f : Lp E p μ) :
   (c • L).comp_LpL p μ f = c • (L.comp_LpL p μ f) :=

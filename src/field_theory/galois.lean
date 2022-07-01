@@ -215,7 +215,7 @@ end
 instance fixed_field.algebra : algebra K (fixed_field (fixing_subgroup K)) :=
 { smul := λ x y, ⟨x*y, λ ϕ, by rw [smul_mul', (show ϕ • ↑x = ↑x, by exact subtype.mem ϕ x),
     (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩,
-  to_has_opposite_scalar := { smul := λ x y,
+  to_has_opposite_smul := { smul := λ x y,
     ⟨y*x.unop, λ ϕ, by rw [smul_mul', (show ϕ • ↑x.unop = ↑x.unop, by exact subtype.mem ϕ x.unop),
     (show ϕ • ↑y = ↑y, by exact subtype.mem y ϕ)]⟩, },
   to_fun := λ x, ⟨x, λ ϕ, subtype.mem ϕ x⟩,

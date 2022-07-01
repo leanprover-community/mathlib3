@@ -230,21 +230,21 @@ end
 
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
 
-instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L] :
+instance module' {R} [semiring R] [has_smul R K] [module R L] [is_scalar_tower R K L] :
   module R S :=
 S.to_subalgebra.module'
 instance module : module K S := S.to_subalgebra.module
 
-instance is_scalar_tower {R} [semiring R] [has_scalar R K] [module R L]
+instance is_scalar_tower {R} [semiring R] [has_smul R K] [module R L]
   [is_scalar_tower R K L] :
   is_scalar_tower R K S :=
 S.to_subalgebra.is_scalar_tower
 
-@[simp] lemma coe_smul {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L]
+@[simp] lemma coe_smul {R} [semiring R] [has_smul R K] [module R L] [is_scalar_tower R K L]
   (r : R) (x : S) :
   ↑(r • x) = (r • x : L) := rfl
 
-instance algebra' {K'} [comm_semiring K'] [has_scalar K' K] [has_scalar K'ᵐᵒᵖ K] [algebra K' L]
+instance algebra' {K'} [comm_semiring K'] [has_smul K' K] [has_smul K'ᵐᵒᵖ K] [algebra K' L]
   [is_scalar_tower K'ᵐᵒᵖ K L] [is_scalar_tower K' K L] :
   algebra K' S :=
 S.to_subalgebra.algebra'

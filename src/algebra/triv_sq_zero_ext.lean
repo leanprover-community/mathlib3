@@ -133,18 +133,18 @@ prod.add_comm_monoid
 instance [add_comm_group R] [add_comm_group M] : add_comm_group (tsze R M) :=
 prod.add_comm_group
 
-instance [has_scalar S R] [has_scalar S M] : has_scalar S (tsze R M) :=
-prod.has_scalar
+instance [has_smul S R] [has_smul S M] : has_smul S (tsze R M) :=
+prod.has_smul
 
-instance [has_scalar T R] [has_scalar T M] [has_scalar S R] [has_scalar S M] [has_scalar T S]
+instance [has_smul T R] [has_smul T M] [has_smul S R] [has_smul S M] [has_smul T S]
   [is_scalar_tower T S R] [is_scalar_tower T S M] : is_scalar_tower T S (tsze R M) :=
 prod.is_scalar_tower
 
-instance [has_scalar T R] [has_scalar T M] [has_scalar S R] [has_scalar S M]
+instance [has_smul T R] [has_smul T M] [has_smul S R] [has_smul S M]
   [smul_comm_class T S R] [smul_comm_class T S M] : smul_comm_class T S (tsze R M) :=
 prod.smul_comm_class
 
-instance [has_scalar S R] [has_scalar S M] [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M]
+instance [has_smul S R] [has_smul S M] [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M]
   [is_central_scalar S R] [is_central_scalar S M] : is_central_scalar S (tsze R M) :=
 prod.is_central_scalar
 
@@ -170,9 +170,9 @@ prod.module
 @[simp] lemma fst_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).fst = -x.fst := rfl
 @[simp] lemma snd_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).snd = -x.snd := rfl
 
-@[simp] lemma fst_smul [has_scalar S R] [has_scalar S M] (s : S) (x : tsze R M) :
+@[simp] lemma fst_smul [has_smul S R] [has_smul S M] (s : S) (x : tsze R M) :
   (s • x).fst = s • x.fst := rfl
-@[simp] lemma snd_smul [has_scalar S R] [has_scalar S M] (s : S) (x : tsze R M) :
+@[simp] lemma snd_smul [has_smul S R] [has_smul S M] (s : S) (x : tsze R M) :
   (s • x).snd = s • x.snd := rfl
 
 section
@@ -188,7 +188,7 @@ ext rfl (add_zero 0).symm
   (inl (-r) : tsze R M) = -inl r :=
 ext rfl neg_zero.symm
 
-@[simp] lemma inl_smul [monoid S] [add_monoid M] [has_scalar S R] [distrib_mul_action S M]
+@[simp] lemma inl_smul [monoid S] [add_monoid M] [has_smul S R] [distrib_mul_action S M]
   (s : S) (r : R) : (inl (s • r) : tsze R M) = s • inl r :=
 ext rfl (smul_zero s).symm
 
@@ -207,7 +207,7 @@ ext (add_zero 0).symm rfl
   (inr (-m) : tsze R M) = -inr m :=
 ext neg_zero.symm rfl
 
-@[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_scalar S M]
+@[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S M]
   (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=
 ext (smul_zero' _ _).symm rfl
 
@@ -255,15 +255,15 @@ variables {R : Type u} {M : Type v}
 instance [has_one R] [has_zero M] : has_one (tsze R M) :=
 ⟨(1, 0)⟩
 
-instance [has_mul R] [has_add M] [has_scalar R M] : has_mul (tsze R M) :=
+instance [has_mul R] [has_add M] [has_smul R M] : has_mul (tsze R M) :=
 ⟨λ x y, (x.1 * y.1, x.1 • y.2 + y.1 • x.2)⟩
 
 @[simp] lemma fst_one [has_one R] [has_zero M] : (1 : tsze R M).fst = 1 := rfl
 @[simp] lemma snd_one [has_one R] [has_zero M] : (1 : tsze R M).snd = 0 := rfl
 
-@[simp] lemma fst_mul [has_mul R] [has_add M] [has_scalar R M] (x₁ x₂ : tsze R M) :
+@[simp] lemma fst_mul [has_mul R] [has_add M] [has_smul R M] (x₁ x₂ : tsze R M) :
   (x₁ * x₂).fst = x₁.fst * x₂.fst := rfl
-@[simp] lemma snd_mul [has_mul R] [has_add M] [has_scalar R M] (x₁ x₂ : tsze R M) :
+@[simp] lemma snd_mul [has_mul R] [has_add M] [has_smul R M] (x₁ x₂ : tsze R M) :
   (x₁ * x₂).snd = x₁.fst • x₂.snd + x₂.fst • x₁.snd := rfl
 
 section

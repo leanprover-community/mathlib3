@@ -12,7 +12,7 @@ import field_theory.tower
 # Complex number as a vector space over `ℝ`
 
 This file contains the following instances:
-* Any `•`-structure (`has_scalar`, `mul_action`, `distrib_mul_action`, `module`, `algebra`) on
+* Any `•`-structure (`has_smul`, `mul_action`, `distrib_mul_action`, `module`, `algebra`) on
   `ℝ` imbues a corresponding structure on `ℂ`. This includes the statement that `ℂ` is an `ℝ`
   algebra.
 * any complex vector space is a real vector space;
@@ -41,13 +41,13 @@ variables {R : Type*} {S : Type*}
 
 section
 
-variables [has_scalar R ℝ]
+variables [has_smul R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
 `restrict_scalars.module ℝ ℂ ℂ = complex.module` definitionally.
 
 Note that unfortunately this doesn't save us from the diamond for the right action -/
-instance : has_scalar R ℂ :=
+instance : has_smul R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
 lemma smul_re (r : R) (z : ℂ) : (r • z).re = r • z.re := by simp [(•)]
@@ -57,14 +57,14 @@ lemma smul_im (r : R) (z : ℂ) : (r • z).im = r • z.im := by simp [(•)]
 
 end
 
-instance [has_scalar R ℝ] [has_scalar S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
+instance [has_smul R ℝ] [has_smul S ℝ] [smul_comm_class R S ℝ] : smul_comm_class R S ℂ :=
 { smul_comm := λ r s x, by ext; simp [smul_re, smul_im, smul_comm] }
 
-instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower R S ℝ] :
+instance [has_smul R S] [has_smul R ℝ] [has_smul S ℝ] [is_scalar_tower R S ℝ] :
   is_scalar_tower R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
-instance [has_scalar R ℝ] [has_scalar Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
+instance [has_smul R ℝ] [has_smul Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
   is_central_scalar R ℂ :=
 { op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
 
@@ -88,7 +88,7 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
   op_smul_def' := λ x r, by refl,
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
-  ..complex.of_real.comp (algebra_map R ℝ) }
+  to_has_opposite_smul (algebra_map R ℝ) }
 
 instance : star_module ℝ ℂ :=
 ⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩

@@ -24,7 +24,7 @@ variables {n : ℕ} (m : ℕ) [char_p R m]
 /-- The `zmod n`-algebra structure on rings whose characteristic `m` divides `n` -/
 def algebra' (h : m ∣ n) : algebra (zmod n) R :=
 { smul := λ a r, a * r,
-  to_has_opposite_scalar := { smul := λ a r, r * a.unop },
+  to_has_opposite_smul := { smul := λ a r, r * a.unop },
   commutes' := λ a r, show (a * r : R) = r * a,
   begin
     rcases zmod.int_cast_surjective a with ⟨k, rfl⟩,

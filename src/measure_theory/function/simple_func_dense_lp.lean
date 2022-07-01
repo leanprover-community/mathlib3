@@ -422,7 +422,7 @@ variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 /-- If `E` is a normed space over `𝕜`, `Lp.simple_func E p μ` inherits its action. Not declared as
 an instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λ k f, ⟨k • f,
+protected def has_smul : has_smul 𝕜 (Lp.simple_func E p μ) := ⟨λ k f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
@@ -431,25 +431,25 @@ begin
   refl,
 end ⟩⟩
 
-local attribute [instance] simple_func.has_scalar
+local attribute [instance] simple_func.has_smul
 
 /-- If `E` is a normed space over `𝕜`, `Lp.simple_func E p μ` inherits its right action. Not
 declared as an instance as it is (as of writing) used only in the construction of the Bochner
 integral. -/
-protected def has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
+protected def has_op_scalar : has_smul 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 ⟨λk f, ⟨k • f, begin
   induction k using mul_opposite.rec,
   rw op_smul_eq_smul,
   exact (k • f).prop,
 end⟩⟩
-
+has_op_smul
 local attribute [instance] simple_func.has_op_scalar
 
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :
   ((c • f : Lp.simple_func E p μ) : Lp E p μ) = c • (f : Lp E p μ) := rfl
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a module. Not declared as an
-instance as it is (as of writing) used only in the construction of the Bochner integral. -/
+instance as it is (as of writing) used has_op_smulonstruction of the Bochner integral. -/
 protected def module : module 𝕜 (Lp.simple_func E p μ) :=
 { one_smul  := λf, by { ext1, exact one_smul _ _ },
   mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },

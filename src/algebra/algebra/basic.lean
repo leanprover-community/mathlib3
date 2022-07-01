@@ -56,7 +56,7 @@ Given a commutative (semi)ring `R`, there are two ways to define an `R`-algebra 
 * By requiring `A` be an `R`-`R`-bimodule such that the action associates and commutes with
   multiplication as `r • (a₁ * a₂) = (r • a₁) * a₂ = a₁ * (r • a₂)`.
 
-We define `algebra R A` in a way that subsumes both definitions, by extending `has_scalar R A` and
+We define `algebra R A` in a way that subsumes both definitions, by extending `has_smul R A` and
 requiring that this scalar action `r • x` must agree with left multiplication by the image of the
 structure morphism `algebra_map R A r * x`.
 
@@ -108,7 +108,7 @@ open_locale big_operators
 section prio
 -- We set this priority to 0 later in this file
 set_option extends_priority 200 /- control priority of
-`instance [algebra R A] : has_scalar R A` -/
+`instance [algebra R A] : has_smul R A` -/
 
 /--
 An associative unital `R`-algebra is a semiring `A` equipped with a map into its center `R → A`.
@@ -117,14 +117,14 @@ See the implementation notes in this file for discussion of the details of this 
 -/
 @[nolint has_inhabited_instance]
 class algebra (R : Type u) (A : Type v) [comm_semiring R] [semiring A]
-  extends has_scalar R A, R →+* A :=
-[to_has_opposite_scalar : has_scalar Rᵐᵒᵖ A]
+  extends has_smul R A, R →+* A :=
+[to_has_opposite_smul : has_smul Rᵐᵒᵖ A]
 (commutes' : ∀ r x, to_fun r * x = x * to_fun r)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 (op_smul_def' : ∀ x r, mul_opposite.op r • x = x * to_fun r)
 end prio
 
-attribute [instance, priority 200] algebra.to_has_opposite_scalar
+attribute [instance, priority 200] algebra.to_has_opposite_smul
 
 /-- Embedding `R →+* A` given by `algebra` structure. -/
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
@@ -135,7 +135,7 @@ def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
   (h : ∀ c x, i c * x = x * i c) :
   algebra R S :=
 { smul := λ c x, i c * x,
-  to_has_opposite_scalar := { smul := λ c x, x * i c.unop },
+  to_has_opposite_smul := { smul := λ c x, x * i c.unop },
   commutes' := h,
   smul_def' := λ c x, rfl,
   op_smul_def' := λ x c, rfl,
@@ -189,12 +189,12 @@ section semiring
 variables [comm_semiring R] [comm_semiring S]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
 
-/-- We keep this lemma private because it picks up the `algebra.to_has_scalar` instance
+/-- We keep this lemma private because it picks up the `algebra.to_has_smul` instance
 which we set to priority 0 shortly. See `smul_def` below for the public version. -/
 private lemma smul_def'' (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
 
-/-- We keep this lemma private because it picks up the `algebra.to_has_scalar` instance
+/-- We keep this lemma private because it picks up the `algebra.to_has_smul` instance
 which we set to priority 0 shortly. See `smul_def` below for the public version. -/
 private lemma op_smul_def'' (r : R) (x : A) : mul_opposite.op r • x = x * algebra_map R A r :=
 algebra.op_smul_def' x r
@@ -249,7 +249,7 @@ instance to_opposite_module : module Rᵐᵒᵖ A :=
 
 -- From now on, we don't want to use the following instances anymore.
 -- Unfortunately, leaving it in place causes deterministic timeouts later in mathlib.
-attribute [instance, priority 0] algebra.to_has_scalar algebra.to_has_opposite_scalar
+attribute [instance, priority 0] algebra.to_has_smul algebra.to_has_opposite_smul
 
 lemma smul_def (r : R) (x : A) : r • x = algebra_map R A r * x :=
 algebra.smul_def' r x
@@ -404,7 +404,7 @@ end prod
 /-- Algebra over a subsemiring. This builds upon `subsemiring.module`. -/
 instance of_subsemiring (S : subsemiring R) : algebra S A :=
 { smul := (•),
-  to_has_opposite_scalar := {smul := λ r x, mul_opposite.op (r.unop : R) • x},
+  to_has_opposite_smul := {smul := λ r x, mul_opposite.op (r.unop : R) • x},
   commutes' := λ r x, algebra.commutes r x,
   smul_def' := λ r x, algebra.smul_def r x,
   op_smul_def' := λ x r, algebra.op_smul_def r x,
@@ -423,7 +423,7 @@ lemma algebra_map_of_subsemiring_apply (S : subsemiring R) (x : S) :
 instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : subring R) : algebra S A :=
 { smul := (•),
-  to_has_opposite_scalar := {smul := λ r x, mul_opposite.op (r.unop : R) • x},
+  to_has_opposite_smul := {smul := λ r x, mul_opposite.op (r.unop : R) • x},
   .. algebra.of_subsemiring S.to_subsemiring,
   .. (algebra_map R A).comp S.subtype }
 
@@ -493,7 +493,7 @@ instance : algebra R Aᵐᵒᵖ :=
   op_smul_def' := λ c x, unop_injective $
     by { dsimp, simp only [op_mul, algebra.op_smul_def, algebra.commutes, op_unop] },
   commutes' := λ r, mul_opposite.rec $ λ x, by dsimp; simp only [← op_mul, algebra.commutes],
-  .. mul_opposite.has_scalar A R }
+  .. mul_opposite.has_smul A R }
 
 @[simp] lemma algebra_map_apply (c : R) : algebra_map R Aᵐᵒᵖ c = op (algebra_map R A c) := rfl
 
@@ -735,7 +735,7 @@ by { ext, refl }
   of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
 ext $ λ _, rfl
 
-lemma map_smul_of_tower {R'} [has_scalar R' A] [has_scalar R' B]
+lemma map_smul_of_tower {R'} [has_smul R' A] [has_smul R' B]
   [linear_map.compatible_smul A B R' R] (r : R') (x : A) : φ (r • x) = r • φ x :=
 φ.to_linear_map.map_smul_of_tower r x
 
@@ -1657,7 +1657,7 @@ are all defined in `linear_algebra/basic.lean`. -/
 section module
 open module
 
-variables (R S M N : Type*) [semiring R] [semiring S] [has_scalar R S]
+variables (R S M N : Type*) [semiring R] [semiring S] [has_smul R S]
 variables [add_comm_monoid M] [module R M] [module S M] [is_scalar_tower R S M]
 variables [add_comm_monoid N] [module R N] [module S N] [is_scalar_tower R S N]
 

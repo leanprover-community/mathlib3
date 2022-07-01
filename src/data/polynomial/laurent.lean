@@ -362,7 +362,7 @@ instance op_module : module R[X]ᵐᵒᵖ R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent.op
 
 instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
-{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+{ smul_assoc := λ x y z, by simp only [has_smul.smul, has_smul.comp.smul, map_mul, mul_assoc] }
 
 end semiring
 

@@ -612,7 +612,7 @@ lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
 | 0 := by rw [nsmul_rec, zero_smul, coe_zero]
 | (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
-instance has_nat_scalar : has_scalar ℕ (α →ᵇ β) :=
+instance has_nat_scalar : has_smul ℕ (α →ᵇ β) :=
 { smul := λ n f,
   { to_continuous_map := n • f.to_continuous_map,
     map_bounded' := by simpa [coe_nsmul_rec] using (nsmul_rec n f).map_bounded' } }
@@ -825,7 +825,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 | (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
 | -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
-instance has_int_scalar : has_scalar ℤ (α →ᵇ β) :=
+instance has_int_scalar : has_smul ℤ (α →ᵇ β) :=
 { smul := λ n f,
   { to_continuous_map := n • f.to_continuous_map,
     map_bounded' := by simpa using (zsmul_rec n f).map_bounded' } }
@@ -887,10 +887,10 @@ using pointwise operations and checking that they are compatible with the unifor
 
 variables {𝕜 : Type*} [pseudo_metric_space 𝕜] [topological_space α] [pseudo_metric_space β]
 
-section has_scalar
-variables [has_zero 𝕜] [has_zero β] [has_scalar 𝕜 β] [has_bounded_smul 𝕜 β]
+section has_smul
+variables [has_zero 𝕜] [has_zero β] [has_smul 𝕜 β] [has_bounded_smul 𝕜 β]
 
-instance : has_scalar 𝕜 (α →ᵇ β) :=
+instance : has_smul 𝕜 (α →ᵇ β) :=
 { smul := λ c f,
   { to_continuous_map := c • f.to_continuous_map,
     map_bounded' := let ⟨b, hb⟩ := f.bounded in ⟨dist c 0 * b, λ x y, begin
@@ -902,7 +902,7 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
-instance [has_scalar 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
+instance [has_smul 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
 instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
@@ -920,7 +920,7 @@ instance : has_bounded_smul 𝕜 (α →ᵇ β) :=
     simp
   end }
 
-end has_scalar
+end has_smul
 
 section mul_action
 variables [monoid_with_zero 𝕜] [has_zero β] [mul_action 𝕜 β] [has_bounded_smul 𝕜 β]
@@ -1165,7 +1165,7 @@ If `β` is a normed `𝕜`-space, then we show that the space of bounded continu
 functions from `α` to `β` is naturally a module over the algebra of bounded continuous
 functions from `α` to `𝕜`. -/
 
-instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
+instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_group (λ x, (f x) • (g x))
 (f.continuous.smul g.continuous) (∥f∥ * ∥g∥) (λ x, calc
   ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _

@@ -623,7 +623,7 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
 
 variables {𝕜' : Type*} [normed_field 𝕜']
 
-instance [Π i, normed_space 𝕜' (E i)] [has_scalar 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
+instance [Π i, normed_space 𝕜' (E i)] [has_smul 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
   is_scalar_tower 𝕜' 𝕜 (lp E p) :=
 begin
   refine ⟨λ r c f, _⟩,

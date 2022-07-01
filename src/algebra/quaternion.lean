@@ -171,7 +171,7 @@ by refine_struct
 
 instance : algebra R ℍ[R, c₁, c₂] :=
 { smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,
-  to_has_opposite_scalar := { smul := λ r a, ⟨r • a.1, r • a.2, r • a.3, r • a.4⟩ },
+  to_has_opposite_smul := { smul := λ r a, ⟨r • a.1, r • a.2, r • a.3, r • a.4⟩ },
   to_fun := coe,
   map_one' := rfl,
   map_zero' := rfl,

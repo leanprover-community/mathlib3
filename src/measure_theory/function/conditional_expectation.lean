@@ -128,7 +128,7 @@ begin
   rw [hx1, hx2],
 end
 
-lemma const_smul [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+lemma const_smul [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (c : 𝕜) (hf : ae_strongly_measurable' m f μ) :
   ae_strongly_measurable' m (c • f) μ :=
 begin

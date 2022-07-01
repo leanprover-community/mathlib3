@@ -112,7 +112,7 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
-instance has_nat_scalar : has_scalar ℕ (left_invariant_derivation I G) :=
+instance has_nat_scalar : has_smul ℕ (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, begin
     -- lean gets confused looking for this somehow
     letI : ∀ g : G,
@@ -121,21 +121,21 @@ instance has_nat_scalar : has_scalar ℕ (left_invariant_derivation I G) :=
     simp_rw [linear_map.map_smul_of_tower, left_invariant'],
   end⟩ }
 
-instance has_int_scalar : has_scalar ℤ (left_invariant_derivation I G) :=
+instance has_int_scalar : has_smul ℤ (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
 
 instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
-instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
+instance : has_smul 𝕜 (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul, left_invariant']⟩ }
 
--- TODO: generalize this if `smooth_map.has_scalar` is generalized.
-instance has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (left_invariant_derivation I G) :=
+-- TODO: generalize this if `smooth_map.has_smul` is generalized.
+instance has_op_scalar : has_smul 𝕜ᵐᵒᵖ (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, begin
     induction r using mul_opposite.rec,
     rw op_smul_eq_smul,
-    exact (r • X).left_invariant'' _,
+    exacthas_op_smul_invariant'' _,
   end⟩ }
 
 variables (r X)

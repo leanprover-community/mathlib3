@@ -59,7 +59,7 @@ namespace is_scalar_tower
 section module
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [has_scalar R M] [mul_action A M] [is_scalar_tower R A M]
+variables [has_smul R M] [mul_action A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
@@ -143,7 +143,7 @@ of_algebra_map_eq $ λ x, rfl
 @[nolint instance_priority]
 instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
-  @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_scalar) _ :=
+  @is_scalar_tower R A B _ (f.to_ring_hom.to_algebra.to_has_smul) _ :=
 by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
 
 end semiring

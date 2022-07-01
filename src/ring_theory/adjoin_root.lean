@@ -76,7 +76,7 @@ def of : R →+* adjoin_root f := (mk f).comp C
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
-instance [comm_semiring S] [comm_semiring K] [has_scalar S K] [algebra S R] [algebra K R]
+instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algebra K R]
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _

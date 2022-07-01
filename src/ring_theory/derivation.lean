@@ -91,7 +91,7 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 lemma map_sum {ι : Type*} (s : finset ι) (f : ι → A) : D (∑ i in s, f i) = ∑ i in s, D (f i) :=
 D.to_linear_map.map_sum
 
-@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_scalar S A] [has_scalar S M]
+@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_smul S A] [has_smul S M]
   [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
   D (r • a) = r • D a :=
 D.to_linear_map.map_smul_of_tower r a
@@ -158,7 +158,7 @@ variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M
   [smul_comm_class S A M]
 
 @[priority 100]
-instance : has_scalar S (derivation R A M) :=
+instance : has_smul S (derivation R A M) :=
 ⟨λ r D,
   { to_linear_map := r • D,
     map_one_eq_zero' := by rw [linear_map.smul_apply, coe_fn_coe, D.map_one_eq_zero, smul_zero],

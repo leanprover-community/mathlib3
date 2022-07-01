@@ -1731,7 +1731,7 @@ def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono 
     letI := epi_of_is_colimit_cofork i,
     apply zero_of_epi_comp c.π,
     simp only [sub_comp, comp_sub, category.comp_id, category.assoc, split_mono.id, sub_self,
-      cofork.is_colimit.π_comp_desc_assoc, cokernel_cofork.π_of_π, split_mono.id_assoc],
+      cofork.is_colimit.π_desc_assoc, cokernel_cofork.π_of_π, split_mono.id_assoc],
     apply sub_eq_zero_of_eq,
     apply category.id_comp
   end,
@@ -1749,7 +1749,7 @@ begin
     split_epi_of_idempotent_of_is_colimit_cofork_section_],
   dsimp only [binary_bicone_of_split_mono_of_cokernel_X],
   rw [is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
-  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_comp_desc,
+  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_desc,
     cokernel_cofork_of_cofork_π, cofork.π_of_π, add_sub_cancel'_right]
 end
 
@@ -1781,7 +1781,7 @@ def binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
     dsimp only [kernel_fork_of_fork_ι],
     letI := mono_of_is_limit_fork i,
     apply zero_of_comp_mono c.ι,
-    simp only [comp_sub, category.comp_id, category.assoc, sub_self, fork.is_limit.lift_comp_ι,
+    simp only [comp_sub, category.comp_id, category.assoc, sub_self, fork.is_limit.lift_ι,
       fork.ι_of_ι, split_epi.id_assoc]
   end,
   inr_snd' := by simp }
@@ -1798,7 +1798,7 @@ begin
     split_mono_of_idempotent_of_is_limit_fork_retraction],
   dsimp only [binary_bicone_of_split_epi_of_kernel_X],
   rw [is_limit_fork_of_kernel_fork_lift, is_kernel_comp_mono_lift],
-  simp only [fork.is_limit.lift_comp_ι, fork.ι_of_ι, kernel_fork_of_fork_ι, sub_add_cancel]
+  simp only [fork.is_limit.lift_ι, fork.ι_of_ι, kernel_fork_of_fork_ι, sub_add_cancel]
 end
 
 end

@@ -118,7 +118,7 @@ def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
 
 /-- Wide pullback diagrams of equivalent index types are equivlent. -/
 def equivalence_of_equiv (J' : Type w') (h : J ≃ J') :
-  category_theory.equivalence (wide_pullback_shape J) (wide_pullback_shape J') :=
+  wide_pullback_shape J ≌ wide_pullback_shape J' :=
 { functor := wide_cospan none (λ j, some (h j)) (λ j, hom.term (h j)),
   inverse := wide_cospan none (λ j, some (h.inv_fun j)) (λ j, hom.term (h.inv_fun j)),
   unit_iso := nat_iso.of_components (λ j, by cases j; simp)
@@ -128,8 +128,7 @@ def equivalence_of_equiv (J' : Type w') (h : J ≃ J') :
 
 /-- Lifting  universe and morphism levels preserves wide pullback diagrams. -/
 def ulift_equivalence :
-  category_theory.equivalence (ulift_hom.{w'} (ulift.{w'} (wide_pullback_shape J)))
-     (wide_pullback_shape (ulift.{w'} J)) :=
+  ulift_hom.{w'} (ulift.{w'} (wide_pullback_shape J)) ≌ wide_pullback_shape (ulift J) :=
 (ulift_hom_ulift_category.equiv.{w' w' w w} (wide_pullback_shape J)).symm.trans
   (equivalence_of_equiv _ (equiv.ulift.{w' w}.symm : J ≃ ulift.{w'} J))
 

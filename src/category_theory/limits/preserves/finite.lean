@@ -53,13 +53,18 @@ noncomputable instance preserves_limits_of_shape_of_preserves_finite_limits (F :
 by apply preserves_limits_of_shape_of_equiv (fin_category.equiv_as_type J)
 
 @[priority 100]
-noncomputable instance preserves_limits.preserves_finite_limits (F : C ⥤ D)
+noncomputable instance preserves_limits.preserves_finite_limits_of_size (F : C ⥤ D)
   [preserves_limits_of_size.{w w₂} F] : preserves_finite_limits F :=
 ⟨λ J sJ fJ,
   begin
     haveI := preserves_smallest_limits_of_preserves_limits F,
     exact preserves_limits_of_shape_of_equiv (fin_category.equiv_as_type J) F,
   end⟩
+
+@[priority 120]
+noncomputable instance preserves_limits.preserves_finite_limits (F : C ⥤ D)
+  [preserves_limits F] : preserves_finite_limits F :=
+preserves_limits.preserves_finite_limits_of_size F
 
 /-- We can always derive `preserves_finite_limits C` by showing that we are preserving limits at an
 arbitrary universe. -/

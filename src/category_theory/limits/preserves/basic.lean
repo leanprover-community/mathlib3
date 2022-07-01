@@ -538,14 +538,8 @@ def reflects_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e 
     begin
       apply is_limit.of_whisker_equivalence e,
       apply is_limit_of_reflects F,
-      apply is_limit.of_whisker_equivalence e.symm,
-      let equ := (e.inv_fun_id_assoc (K ⋙ F)).symm.trans
-          (iso_whisker_left e.inverse (functor.associator e.functor K F)).symm,
-      apply (is_limit.postcompose_inv_equiv equ _).to_fun,
-      apply t.of_iso_limit,
-      fapply cones.ext,
-      { simp only [functor.map_cone_X, cones.postcompose_obj_X, cone.whisker_X] },
-      { intros j, dsimp, simp [← F.map_comp] }
+      apply is_limit.of_iso_limit _ (functor.map_cone_whisker _).symm,
+      exact is_limit.whisker_equivalence t _,
     end } }
 
 /--

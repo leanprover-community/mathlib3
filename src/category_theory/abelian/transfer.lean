@@ -168,6 +168,7 @@ begin
   apply abelian.of_coimage_image_comparison_is_iso,
 end
 
+set_option pp.universes true
 /--
 If `C` is an additive category equivalent to an abelian category `D`
 via a functor that preserves zero morphisms,
@@ -178,8 +179,6 @@ def abelian_of_equivalence
   {D : Type u₂} [category.{v} D] [abelian D]
   (F : C ⥤ D) [functor.preserves_zero_morphisms F] [is_equivalence F] : abelian C :=
 begin
-  haveI : preserves_limits F.inv, apply_instance,
-  letI := preserves_smallest_limits_of_preserves_limits F.inv,
   exact abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm
     F.as_equivalence.symm.to_adjunction
 end

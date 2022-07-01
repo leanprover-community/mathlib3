@@ -300,11 +300,11 @@ lemma cofork.is_colimit.hom_ext {s : cofork f g} (hs : is_colimit s) {W : C} {k 
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : k = l :=
 hs.hom_ext $ cofork.coequalizer_ext _ h
 
-@[simp, reassoc] lemma fork.is_limit.lift_comp_ι {s t : fork f g} (hs : is_limit s) :
+@[simp, reassoc] lemma fork.is_limit.lift_ι {s t : fork f g} (hs : is_limit s) :
   hs.lift t ≫ s.ι = t.ι :=
 hs.fac _ _
 
-@[simp, reassoc] lemma cofork.is_colimit.π_comp_desc {s t : cofork f g} (hs : is_colimit s) :
+@[simp, reassoc] lemma cofork.is_colimit.π_desc {s t : cofork f g} (hs : is_colimit s) :
   s.π ≫ hs.desc t = t.π :=
 hs.fac _ _
 
@@ -947,7 +947,7 @@ def split_mono_of_idempotent_of_is_limit_fork {X : C} {f : X ⟶ X} (hf : f ≫ 
   id' :=
   begin
     letI := mono_of_is_limit_fork i,
-    rw [←cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_comp_ι, fork.ι_of_ι, ←c.condition],
+    rw [←cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_ι, fork.ι_of_ι, ←c.condition],
     exact category.comp_id c.ι
   end }
 
@@ -1018,7 +1018,7 @@ def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f �
   id' :=
   begin
     letI := epi_of_is_colimit_cofork i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc, 
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_desc,
       cofork.π_of_π, ← c.condition],
     exact category.id_comp _,
   end }

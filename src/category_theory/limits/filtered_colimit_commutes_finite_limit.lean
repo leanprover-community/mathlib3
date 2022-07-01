@@ -317,7 +317,9 @@ noncomputable instance filtered_colim_preserves_finite_limits_of_types :
   preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) :=
 begin
   apply preserves_finite_limits_of_preserves_finite_limits_of_size.{v},
-  intros J _ _, resetI, constructor, intro F, constructor, intros c hc,
+  intros J _ _, resetI, constructor,
+  intro F, constructor,
+  intros c hc,
   apply is_limit.of_iso_limit (limit.is_limit _),
   symmetry, transitivity (colim.map_cone (limit.cone F)),
   exact functor.map_iso _ (hc.unique_up_to_iso (limit.is_limit F)),

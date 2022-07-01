@@ -29,7 +29,7 @@ instance {B : C} [has_pullbacks C] : has_pullbacks (over B) :=
 begin
   letI : has_limits_of_shape (ulift_hom.{v} (ulift.{v} walking_cospan)) C :=
     has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v} _),
-  letI : category_theory.category (ulift_hom.{v} (ulift.{v} walking_cospan)) := infer_instance,
+  letI : category (ulift_hom.{v} (ulift.{v} walking_cospan)) := infer_instance,
   exact has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v v} _).symm,
 end
 
@@ -38,8 +38,7 @@ instance {B : C} [has_equalizers C] : has_equalizers (over B) :=
 begin
   letI : has_limits_of_shape (ulift_hom.{v} (ulift.{v} walking_parallel_pair)) C :=
     has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v} _),
-  letI : category_theory.category (ulift_hom.{v} (ulift.{v} walking_parallel_pair)) :=
-    infer_instance,
+  letI : category (ulift_hom.{v} (ulift.{v} walking_parallel_pair)) := infer_instance,
   exact has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v v} _).symm,
 end
 

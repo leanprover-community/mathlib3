@@ -66,9 +66,9 @@ def is_sheaf (F : presheaf.{w v u} C X) : Prop :=
 ∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
 
 /--
-The presheaf valued in `punit` over any topological space is a sheaf.
+The presheaf valued in `unit` over any topological space is a sheaf.
 -/
-lemma is_sheaf_punit (F : presheaf (category_theory.discrete unit) X) : F.is_sheaf :=
+lemma is_sheaf_unit (F : presheaf (category_theory.discrete unit) X) : F.is_sheaf :=
 λ ι U, ⟨punit_cone_is_limit⟩
 
 /--
@@ -95,7 +95,7 @@ def sheaf : Type (max u v w) := { F : presheaf C X // F.is_sheaf }
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=
-⟨⟨functor.star _, presheaf.is_sheaf_punit _⟩⟩
+⟨⟨functor.star _, presheaf.is_sheaf_unit _⟩⟩
 
 namespace sheaf
 

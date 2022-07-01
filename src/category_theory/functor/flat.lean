@@ -261,9 +261,11 @@ noncomputable
 def preserves_finite_limits_of_flat (F : C ⥤ D) [representably_flat F] :
   preserves_finite_limits F :=
 begin
-  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{v₁},
-  intros J _ _, resetI, constructor, intros K, constructor, intros c hc,
-  exact { lift := preserves_finite_limits_of_flat.lift F hc,
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size,
+  intros J _ _, constructor,
+  intros K, constructor,
+  intros c hc,
+  exactI { lift := preserves_finite_limits_of_flat.lift F hc,
     fac' := preserves_finite_limits_of_flat.fac F hc,
     uniq' := λ s m h, by
     { apply preserves_finite_limits_of_flat.uniq F hc,

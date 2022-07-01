@@ -60,7 +60,7 @@ open submodule
 `p i ^ e i`-torsion submodules for some primes `p i` and numbers `e i`.-/
 theorem submodule.is_internal_prime_power_torsion_of_pid
   [module.finite R M] (hM : module.is_torsion R M) :
-  ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
+  ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) (h : ∀ i, irreducible $ p i) (e : ι → ℕ),
   by exactI direct_sum.is_internal (λ i, torsion_by R M $ p i ^ e i) :=
 begin
   obtain ⟨P, dec, hP, e, this⟩ := is_internal_prime_power_torsion hM,
@@ -202,7 +202,7 @@ end p_torsion
 /--A finitely generated torsion module over a PID is isomorphic to a direct sum of some
   `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.-/
 theorem equiv_direct_sum_of_is_torsion [h' : module.finite R N] (hN : module.is_torsion R N) :
-  ∃ (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
+  ∃ (ι : Type u) [fintype ι] (p : ι → R) (h : ∀ i, irreducible $ p i) (e : ι → ℕ),
   nonempty $ N ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
   obtain ⟨I, fI, _, p, hp, e, h⟩ := submodule.is_internal_prime_power_torsion_of_pid hN,
@@ -226,7 +226,7 @@ end
   module over a PID is isomorphic to the product of a free module and a direct sum of some
   `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.-/
 theorem equiv_free_prod_direct_sum [h' : module.finite R N] :
-  ∃ (n : ℕ) (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
+  ∃ (n : ℕ) (ι : Type u) [fintype ι] (p : ι → R) (h : ∀ i, irreducible $ p i) (e : ι → ℕ),
   nonempty $ N ≃ₗ[R] (fin n →₀ R) × ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
   haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),

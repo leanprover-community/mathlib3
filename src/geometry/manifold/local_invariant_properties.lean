@@ -133,8 +133,8 @@ lemma lift_prop_within_at_indep_chart_aux
   (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source)
   (hf' : f' ∈ G'.maximal_atlas M') (xf' : g x ∈ f'.source)
   (hgs : continuous_within_at g s x)
-  (h : P (f ∘ g ∘ e.symm) (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source)) (e x)) :
-  P (f' ∘ g ∘ e'.symm) (e'.target ∩ e'.symm ⁻¹' (s ∩ g⁻¹' f'.source)) (e' x) :=
+  (h : P (f ∘ g ∘ e.symm) (e.symm ⁻¹' (s ∩ g⁻¹' f.source)) (e x)) :
+  P (f' ∘ g ∘ e'.symm) (e'.symm ⁻¹' (s ∩ g⁻¹' f'.source)) (e' x) :=
 begin
   obtain ⟨o, o_open, xo, oe, oe', of, of'⟩ :
     ∃ (o : set M), is_open o ∧ x ∈ o ∧ o ⊆ e.source ∧ o ⊆ e'.source ∧
@@ -149,12 +149,12 @@ begin
     { assume x hx, exact (hu ⟨hx.1.1.1, hx.2⟩).1 },
     { assume x hx, exact (hu ⟨hx.1.1.1, hx.2⟩).2 } },
   have A : P (f ∘ g ∘ e.symm)
-             (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
+             (e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
   { apply (hG.is_local _ _).1 h,
     { exact e.continuous_on_symm.preimage_open_of_open e.open_target o_open },
     { simp only [xe, xo] with mfld_simps} },
   have B : P ((f.symm ≫ₕ f') ∘ (f ∘ g ∘ e.symm))
-             (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
+             (e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
   { refine hG.left_invariance (compatible_of_mem_maximal_atlas hf hf') (λ y hy, _)
       (by simp only [xe, xf, xf'] with mfld_simps) A,
     simp only with mfld_simps at hy,
@@ -162,7 +162,9 @@ begin
     simpa only [hy] with mfld_simps using of' this },
   have C : P (f' ∘ g ∘ e.symm)
              (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source) ∩ (e.target ∩ e.symm ⁻¹' o)) (e x),
-  { refine hG.congr (λ y hy, _) (by simp only [xe, xf] with mfld_simps) B,
+  { rw [inter_assoc, inter_comm e.target],
+    refine (hG.is_local e.open_target $ e.to_local_equiv.source_subset_preimage_target (oe xo)).1 _,
+    refine hG.congr (λ y hy, _) (by simp only [xe, xf] with mfld_simps) B,
     simp only [local_homeomorph.coe_trans, function.comp_app],
     rw f.left_inv,
     apply of,

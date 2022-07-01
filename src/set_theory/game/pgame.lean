@@ -251,7 +251,7 @@ notation `P{` x ` | ` y `}` := of x y
 notation `P{` x ` |}` := of_left x
 notation `P{| ` y `}` := of_right y
 
--- `simp` can solve all of the following:
+-- `dsimp` can solve all of the following because `of` is reducible.
 
 theorem of_left_moves (x y) : P{x | y}.left_moves = punit := rfl
 theorem of_right_moves (x y) : P{x | y}.right_moves = punit := rfl

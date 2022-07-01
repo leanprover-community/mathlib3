@@ -83,6 +83,46 @@ rootable_by A α :=
 
 end monoid
 
+namespace add_group
+
+open add_monoid
+
+variables (A : Type*) [add_group A]
+
+instance divisible_by_int_of_divisible_by_nat [divisible_by A ℕ] :
+  divisible_by A ℤ :=
+{ div := λ a z, match z with
+  | int.of_nat m := (divisible_by.div a m)
+  | int.neg_succ_of_nat m := - (divisible_by.div a (m + 1))
+  end,
+  div_zero := λ a, divisible_by.div_zero a,
+  div_cancel := λ z a hn, begin
+    cases z,
+    { norm_num,
+      change z • (divisible_by.div _ _) = _,
+      rw divisible_by.div_cancel _ _,
+      rw [int.of_nat_eq_coe] at hn,
+      exact_mod_cast hn, },
+    { norm_num,
+      change - ((z+1) • - (divisible_by.div _ _)) = _,
+      have := nsmul_zero_sub (divisible_by.div a (z + 1)) (z + 1),
+      rw [zero_sub, zero_sub] at this,
+      rw [this, neg_neg, divisible_by.div_cancel],
+      norm_num, },
+  end}
+
+instance divisible_by_nat_of_divisible_by_int [divisible_by A ℤ] :
+  divisible_by A ℕ :=
+{ div := λ a n, divisible_by.div a (n : ℤ),
+  div_zero := λ a, divisible_by.div_zero a,
+  div_cancel := λ n a hn, begin
+    have := divisible_by.div_cancel a (by exact_mod_cast hn : (n : ℤ) ≠ 0),
+    norm_num at this,
+    assumption,
+  end, }
+
+end add_group
+
 namespace add_comm_group
 
 open_locale pointwise

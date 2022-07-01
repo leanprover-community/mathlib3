@@ -56,6 +56,9 @@ variables {K R : Type v} {V M : Type w}
 def eigenspace (f : End R M) (μ : R) : submodule R M :=
 (f - algebra_map R (End R M) μ).ker
 
+@[simp] lemma eigenspace_zero (f : End R M) : f.eigenspace 0 = f.ker :=
+by simp [eigenspace]
+
 /-- A nonzero element of an eigenspace is an eigenvector. (Def 5.7 of [axler2015]) -/
 def has_eigenvector (f : End R M) (μ : R) (x : M) : Prop :=
 x ∈ eigenspace f μ ∧ x ≠ 0
@@ -124,7 +127,7 @@ calc
   ... = (aeval f (C q.leading_coeff * X + C (q.coeff 0))).ker
     : by { rw [C_mul', aeval_def], simp [algebra_map, algebra.to_ring_hom], }
   ... = (aeval f q).ker
-     : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
+    : by rwa ← eq_X_add_C_of_degree_eq_one
 
 lemma ker_aeval_ring_hom'_unit_polynomial
   (f : End K V) (c : (K[X])ˣ) :
@@ -323,7 +326,7 @@ lemma eigenvectors_linear_independent (f : End K V) (μs : set K) (xs : μs → 
   (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
 complete_lattice.independent.linear_independent _
-  (f.eigenspaces_independent.comp (coe : μs → K) subtype.coe_injective)
+  (f.eigenspaces_independent.comp subtype.coe_injective)
   (λ μ, (h_eigenvec μ).1) (λ μ, (h_eigenvec μ).2)
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
@@ -341,6 +344,10 @@ def generalized_eigenspace (f : End R M) (μ : R) : ℕ →o submodule R M :=
 @[simp] lemma mem_generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) (m : M) :
   m ∈ f.generalized_eigenspace μ k ↔ ((f - μ • 1)^k) m = 0 :=
 iff.rfl
+
+@[simp] lemma generalized_eigenspace_zero (f : End R M) (k : ℕ) :
+  f.generalized_eigenspace 0 k = (f^k).ker :=
+by simp [module.End.generalized_eigenspace]
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/

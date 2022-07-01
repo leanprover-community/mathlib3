@@ -404,7 +404,7 @@ end addition
 section distrib_mul_action
 variables [partial_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_action R V]
 
-instance : has_scalar R (hahn_series Γ V) :=
+instance : has_smul R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := r • x.coeff,
           is_pwo_support' := x.is_pwo_support.mono (function.support_smul_subset_right r x.coeff) }⟩
 
@@ -420,7 +420,7 @@ instance : distrib_mul_action R (hahn_series Γ V) :=
 
 variables {S : Type*} [monoid S] [distrib_mul_action S V]
 
-instance [has_scalar R S] [is_scalar_tower R S V] :
+instance [has_smul R S] [is_scalar_tower R S V] :
   is_scalar_tower R S (hahn_series Γ V) :=
 ⟨λ r s a, by { ext, simp }⟩
 
@@ -722,6 +722,7 @@ instance [non_assoc_semiring R] : non_assoc_semiring (hahn_series Γ R) :=
   mul := (*),
   one_mul := λ x, by { ext, exact single_zero_mul_coeff.trans (one_mul _) },
   mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
+  .. add_monoid_with_one.unary,
   .. hahn_series.non_unital_non_assoc_semiring }
 
 instance [semiring R] : semiring (hahn_series Γ R) :=
@@ -1059,9 +1060,8 @@ begin
   ext n,
   simp only [C, single_coeff, of_power_series_apply, ring_hom.coe_mk],
   split_ifs with hn hn,
-  { rw hn,
-    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0,
-    simp },
+  { subst hn,
+    convert @emb_domain_coeff _ _ _ _ _ _ _ _ 0; simp },
   { rw emb_domain_notin_image_support,
     simp only [not_exists, set.mem_image, to_power_series_symm_apply_coeff, mem_support,
                power_series.coeff_C],
@@ -1090,7 +1090,7 @@ end
 begin
   rw ring_hom.map_pow,
   induction n with n ih,
-  { refl },
+  { simp, refl },
   rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
 end
 
@@ -1384,7 +1384,7 @@ section semiring
 
 variables [ordered_cancel_add_comm_monoid Γ] [semiring R] {α : Type*}
 
-instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
+instance : has_smul (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
     is_pwo_Union_support' := begin
       apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,

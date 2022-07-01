@@ -84,6 +84,15 @@ lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := iff.rfl
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := iff.rfl
 
+instance decidable_mem_Ioo [decidable (a < x ∧ x < b)] : decidable (x ∈ Ioo a b) := by assumption
+instance decidable_mem_Ico [decidable (a ≤ x ∧ x < b)] : decidable (x ∈ Ico a b) := by assumption
+instance decidable_mem_Iio [decidable (x < b)] : decidable (x ∈ Iio b) := by assumption
+instance decidable_mem_Icc [decidable (a ≤ x ∧ x ≤ b)] : decidable (x ∈ Icc a b) := by assumption
+instance decidable_mem_Iic [decidable (x ≤ b)] : decidable (x ∈ Iic b) := by assumption
+instance decidable_mem_Ioc [decidable (a < x ∧ x ≤ b)] : decidable (x ∈ Ioc a b) := by assumption
+instance decidable_mem_Ici [decidable (a ≤ x)] : decidable (x ∈ Ici a) := by assumption
+instance decidable_mem_Ioi [decidable (a < x)] : decidable (x ∈ Ioi a) := by assumption
+
 @[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false := by simp [lt_irrefl]
 @[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simp [le_refl]
 @[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simp [le_refl]
@@ -289,6 +298,10 @@ lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := λ x hx, le_of_lt hx
 lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λ x hx, le_of_lt hx
 
 lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := λ x, and.left
+
+lemma Ioi_ssubset_Ici_self  : Ioi a ⊂ Ici a := ⟨Ioi_subset_Ici_self, λ h, lt_irrefl a (h le_rfl)⟩
+
+lemma Iio_ssubset_Iic_self : Iio a ⊂ Iic a := @Ioi_ssubset_Ici_self αᵒᵈ _ _
 
 lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=

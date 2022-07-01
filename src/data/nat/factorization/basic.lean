@@ -6,8 +6,6 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
-import tactic.linarith
-import tactic.interval_cases
 
 /-!
 # Prime factorizations
@@ -248,15 +246,6 @@ begin
   { simp [nat.factorization_eq_zero_of_non_prime n pp, hn] },
 end
 
-lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
-  ¬ p ^ (n.factorization p + 1) ∣ n :=
-begin
-  intro h,
-  have := factors_sublist_of_dvd h hn,
-  rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
-  linarith
-end
-
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
   d.factorization ≤ n.factorization ↔ d ∣ n :=
 begin
@@ -267,6 +256,14 @@ begin
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index' pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
+lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
+  ¬ p ^ (n.factorization p + 1) ∣ n :=
+begin
+  intro h,
+  rw ←factorization_le_iff_dvd (pow_pos hp.pos _).ne' hn at h,
+  simpa [hp.factorization] using h p,
 end
 
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
@@ -321,6 +318,10 @@ begin
     nat.factorization_div (nat.pow_factorization_dvd n p)],
   simp [hp.factorization],
 end
+
+lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  coprime p (n / p ^ n.factorization p) :=
+(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
@@ -471,10 +472,8 @@ begin
     exact hp p n hp' hn },
   refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
-  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
-    interval_cases a,
-    { simpa only [dvd_zero, not_true] using hpa },
-    { contradiction } },
+  { contrapose! hpa,
+    simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

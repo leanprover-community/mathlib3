@@ -200,8 +200,15 @@ by rw [submodule.span_union, p.span_eq]
 lemma span_sup : span R s ⊔ p = span R (s ∪ p) :=
 by rw [submodule.span_union, p.span_eq]
 
-lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, span R {x} :=
+/- Note that the character `∙` U+2219 used below is different from the scalar multiplication
+character `•` U+2022 and the matrix multiplication character `⬝` U+2B1D. -/
+notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
+
+lemma span_eq_supr_of_singleton_spans (s : set M) : span R s = ⨆ x ∈ s, R ∙ x :=
 by simp only [←span_Union, set.bUnion_of_singleton s]
+
+lemma span_range_eq_supr {ι : Type*} {v : ι → M} : span R (range v) = ⨆ i, R ∙ v i :=
+by rw [span_eq_supr_of_singleton_spans, supr_range]
 
 lemma span_smul_le (s : set M) (r : R) :
   span R (r • s) ≤ span R s :=
@@ -319,10 +326,6 @@ begin
 end
 
 end
-
-/- This is the character `∙`, with escape sequence `\.`, and is thus different from the scalar
-multiplication character `•`, with escape sequence `\bub`. -/
-notation R`∙`:1000 x := span R (@singleton _ _ set.has_singleton x)
 
 lemma mem_span_singleton_self (x : M) : x ∈ R ∙ x := subset_span rfl
 
@@ -780,7 +783,9 @@ variables (R) (M) [semiring R] [add_comm_monoid M] [module R M]
 lemma span_singleton_eq_range (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
 submodule.ext $ λ y, by {refine iff.trans _ linear_map.mem_range.symm, exact mem_span_singleton }
 
-lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+@[simp] lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
+
+@[simp] lemma to_span_singleton_zero : to_span_singleton R M 0 = 0 := by { ext, simp, }
 
 end
 

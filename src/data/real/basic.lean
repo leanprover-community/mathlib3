@@ -79,6 +79,8 @@ begin
                   add   := (+),
                   neg   := @has_neg.neg ℝ _,
                   sub   := λ a b, a + (-b),
+                  nat_cast := λ n, ⟨n⟩,
+                  int_cast := λ n, ⟨n⟩,
                   npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
                   nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
                   zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };

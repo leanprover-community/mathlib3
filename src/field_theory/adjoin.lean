@@ -335,7 +335,7 @@ instance insert_empty {α : Type*} : insert (∅ : set α) :=
 
 @[priority 900]
 instance insert_nonempty {α : Type*} (s : set α) : insert s :=
-{ insert := λ x, set.insert x s }
+{ insert := λ x, has_insert.insert x s }
 
 notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, insert.insert t h) ∅) `⟯` := adjoin K l
 
@@ -408,7 +408,7 @@ adjoin_simple_eq_bot_iff.mpr (one_mem ⊥)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 @[simp] lemma adjoin_nat (n : ℕ) : F⟮(n : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
+adjoin_simple_eq_bot_iff.mpr (coe_nat_mem ⊥ n)
 
 section adjoin_dim
 open finite_dimensional module
@@ -680,8 +680,8 @@ lemma lifts.eq_of_le {x y : lifts F E K} (hxy : x ≤ y) (s : x.1) :
   x.2 s = y.2 ⟨s, hxy.1 s.mem⟩ := hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl
 
 lemma lifts.exists_max_two {c : set (lifts F E K)} {x y : lifts F E K} (hc : is_chain (≤) c)
-  (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) :
-  ∃ z : lifts F E K, z ∈ set.insert ⊥ c ∧ x ≤ z ∧ y ≤ z :=
+  (hx : x ∈ has_insert.insert ⊥ c) (hy : y ∈ has_insert.insert ⊥ c) :
+  ∃ z : lifts F E K, z ∈ has_insert.insert ⊥ c ∧ x ≤ z ∧ y ≤ z :=
 begin
   cases (hc.insert $ λ _ _ _, or.inl bot_le).total hx hy with hxy hyx,
   { exact ⟨y, hy, hxy, le_refl y⟩ },
@@ -689,8 +689,9 @@ begin
 end
 
 lemma lifts.exists_max_three {c : set (lifts F E K)} {x y z : lifts F E K} (hc : is_chain (≤) c)
-  (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) (hz : z ∈ set.insert ⊥ c) :
-  ∃ w  : lifts F E K, w ∈ set.insert ⊥ c ∧ x ≤ w ∧ y ≤ w ∧ z ≤ w :=
+  (hx : x ∈ has_insert.insert ⊥ c) (hy : y ∈ has_insert.insert ⊥ c)
+  (hz : z ∈ has_insert.insert ⊥ c) :
+  ∃ w  : lifts F E K, w ∈ has_insert.insert ⊥ c ∧ x ≤ w ∧ y ≤ w ∧ z ≤ w :=
 begin
   obtain ⟨v, hv, hxv, hyv⟩ := lifts.exists_max_two hc hx hy,
   obtain ⟨w, hw, hzw, hvw⟩ := lifts.exists_max_two hc hz hv,
@@ -700,7 +701,7 @@ end
 /-- An upper bound on a chain of lifts -/
 def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : is_chain (≤) c) :
   intermediate_field F E :=
-{ carrier := λ s, ∃ x : (lifts F E K), x ∈ set.insert ⊥ c ∧ (s ∈ x.1 : Prop),
+{ carrier := λ s, ∃ x : (lifts F E K), x ∈ has_insert.insert ⊥ c ∧ (s ∈ x.1 : Prop),
   zero_mem' := ⟨⊥, set.mem_insert ⊥ c, zero_mem ⊥⟩,
   one_mem' := ⟨⊥, set.mem_insert ⊥ c, one_mem ⊥⟩,
   neg_mem' := by { rintros _ ⟨x, y, h⟩, exact ⟨x, ⟨y, x.1.neg_mem h⟩⟩ },

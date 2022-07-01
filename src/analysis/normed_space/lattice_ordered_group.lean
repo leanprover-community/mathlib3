@@ -131,6 +131,18 @@ begin
         exact abs_sup_sub_sup_le_abs _ _ _, } },
 end
 
+lemma norm_inf_le_add (x y : α) : ∥x ⊓ y∥ ≤ ∥x∥ + ∥y∥ :=
+begin
+  have h : ∥x ⊓ y - 0 ⊓ 0∥ ≤ ∥x - 0∥ + ∥y - 0∥ := norm_inf_sub_inf_le_add_norm x y 0 0,
+  simpa only [inf_idem, sub_zero] using h,
+end
+
+lemma norm_sup_le_add (x y : α) : ∥x ⊔ y∥ ≤ ∥x∥ + ∥y∥ :=
+begin
+  have h : ∥x ⊔ y - 0 ⊔ 0∥ ≤ ∥x - 0∥ + ∥y - 0∥ := norm_sup_sub_sup_le_add_norm x y 0 0,
+  simpa only [sup_idem, sub_zero] using h,
+end
+
 /--
 Let `α` be a normed lattice ordered group. Then the infimum is jointly continuous.
 -/

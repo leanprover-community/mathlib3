@@ -355,6 +355,12 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
 
 lemma sdiff_sdiff_le : x \ (x \ y) ≤ y := sdiff_le_iff.2 le_sdiff_sup
 
+lemma sdiff_triangle (x y z : α) : x \ z ≤ x \ y ⊔ y \ z :=
+begin
+  rw [sdiff_le_iff, sup_left_comm, ←sdiff_le_iff],
+  exact sdiff_sdiff_le.trans (sdiff_le_iff.1 le_rfl),
+end
+
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
 
@@ -658,6 +664,8 @@ is_compl_bot_top.compl_eq
 @[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
 
+theorem compl_comp_compl : compl ∘ compl = @id α := funext compl_compl
+
 @[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
 
 theorem compl_bijective : function.bijective (compl : α → α) :=
@@ -857,6 +865,10 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   inf_compl_le_bot := λ a, a.band_bnot_self.le,
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
+
+@[simp] lemma bool.sup_eq_bor : (⊔) = bor := rfl
+@[simp] lemma bool.inf_eq_band : (⊓) = band := rfl
+@[simp] lemma bool.compl_eq_bnot : has_compl.compl = bnot := rfl
 
 section lift
 

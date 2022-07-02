@@ -3,14 +3,16 @@ import topology.is_locally_homeomorph
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X)
   (I : Type*) [topological_space I] {x y : X} (U V : set X)
 
-structure even_covering extends homeomorph (I × U) (f ⁻¹' U) :=
+structure evenly_covered_set extends homeomorph (I × U) (f ⁻¹' U) :=
 (commutes' : ∀ p, f (to_fun p) = p.2)
 
-variables {f I U V} (ϕ : even_covering f I U)
+variables {f I U V}
 
-namespace even_covering
+namespace evenly_covered_set
 
-instance : has_coe_to_fun (even_covering f I U) (λ ι, I × U → f ⁻¹' U) :=
+variables (ϕ : evenly_covered_set f I U)
+
+instance : has_coe_to_fun (evenly_covered_set f I U) (λ ι, I × U → f ⁻¹' U) :=
 ⟨λ ϕ, ϕ.to_fun⟩
 
 def symm : f ⁻¹' U ≃ₜ I × U :=
@@ -28,7 +30,7 @@ lemma commutes (p : I × U) : f (ϕ p) = p.2 :=
 lemma commutes_inv (p : f ⁻¹' U) : f p = (ϕ.symm p).2 :=
 by rw [←ϕ.apply_symm_apply p, ϕ.commutes, ϕ.apply_symm_apply]
 
-def mono (h : V ⊆ U) : even_covering f I V :=
+def mono (h : V ⊆ U) : evenly_covered_set f I V :=
 { to_fun := λ p, ⟨ϕ ⟨p.1, p.2, h p.2.2⟩, by rw [set.mem_preimage, ϕ.commutes]; exact p.2.2⟩,
   inv_fun := λ p, ⟨(ϕ.symm ⟨p, h p.2⟩).1,
     ⟨(ϕ.symm ⟨p, h p.2⟩).2, by rw [←ϕ.commutes, apply_symm_apply]; exact p.2⟩⟩,
@@ -49,16 +51,58 @@ def fiber_homeomorph (hx : x ∈ U) : f ⁻¹' {x} ≃ₜ I :=
   right_inv := λ p, by simp only [subtype.coe_mk, subtype.coe_eta, symm_apply_apply],
   continuous_inv_fun := by continuity! }
 
-def translate (ϕ : even_covering f I U) (hx : x ∈ U) : even_covering f (f ⁻¹' {x}) U :=
+def translate (hx : x ∈ U) : evenly_covered_set f (f ⁻¹' {x}) U :=
 { to_homeomorph := ((ϕ.fiber_homeomorph hx).prod_congr (homeomorph.refl U)).trans ϕ.to_homeomorph,
   commutes' := λ p, ϕ.commutes ⟨ϕ.fiber_homeomorph hx p.1, p.2⟩ }
 
-end even_covering
+end evenly_covered_set
+
+variables (f)
+
+structure evenly_covered_pt (hx : x ∈ U) extends evenly_covered_set f (f ⁻¹' {x}) U :=
+(rigid' : ∀ p : f ⁻¹' {x}, to_fun ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩)
+
+variables {f}
+
+namespace evenly_covered_pt
+
+variables {hx : x ∈ U} (ϕ : evenly_covered_pt f hx)
+
+instance : has_coe_to_fun (evenly_covered_pt f hx) (λ ι, f ⁻¹' {x} × U → f ⁻¹' U) :=
+⟨λ ϕ, ϕ.to_fun⟩
+
+def symm : f ⁻¹' U ≃ₜ f ⁻¹' {x} × U :=
+ϕ.to_evenly_covered_set.symm
+
+@[simp] def apply_symm_apply (p : f ⁻¹' U) : ϕ (ϕ.symm p) = p :=
+ϕ.to_evenly_covered_set.apply_symm_apply p
+
+@[simp] def symm_apply_apply (p : f ⁻¹' {x} × U) : ϕ.symm (ϕ p) = p :=
+ϕ.to_evenly_covered_set.symm_apply_apply p
+
+lemma commutes (p : f ⁻¹' {x} × U) : f (ϕ p) = p.2 :=
+ϕ.to_evenly_covered_set.commutes p
+
+lemma commutes_inv (p : f ⁻¹' U) : f p = (ϕ.symm p).2 :=
+ϕ.to_evenly_covered_set.commutes_inv p
+
+lemma rigid (p : f ⁻¹' {x}) : ϕ ⟨p, x, hx⟩ = ⟨p, (congr_arg (∈ U) p.2).mpr hx⟩ :=
+ϕ.rigid' p
+
+def mono {hx' : x ∈ V} (h : V ⊆ U) : evenly_covered_pt f hx' :=
+{ rigid' := λ p, subtype.ext (show _, from subtype.ext_iff.mp (ϕ.rigid p)),
+  .. ϕ.to_evenly_covered_set.mono h }
+
+def translate (hy : y ∈ U) : evenly_covered_pt f hy :=
+{ rigid' := λ p, sorry,
+  .. ϕ.to_evenly_covered_set.translate hy }
+
+end evenly_covered_pt
 
 variables (f)
 
 def evenly_covered (hx : x ∈ U) : Prop :=
-nonempty (even_covering f (f ⁻¹' {x}) U)
+nonempty (evenly_covered_pt f hx)
 
 variables {f}
 
@@ -99,7 +143,7 @@ begin
   classical,
   intro x,
   obtain ⟨U, hU, hx, ⟨ϕ⟩⟩ := q.evenly_covered (q x),
-  let ψ : U → E := λ p, ϕ ⟨⟨x, rfl⟩, p⟩,
+  let ψ : U → E := λ p, ϕ ⟨⟨x, rfl⟩, p⟩, -- (ϕ.symm ⟨x, hx⟩).1 avoids rigidity
   have hψ : ∀ p : U, q (ψ p) = p := λ p, ϕ.commutes ⟨⟨x, rfl⟩, p⟩,
   refine ⟨{ to_fun := q,
   inv_fun := λ p, if hp : p ∈ U then ψ ⟨p, hp⟩ else x,
@@ -107,13 +151,19 @@ begin
   target := U,
   open_source := sorry,
   open_target := hU,
-  map_source' := sorry,
-  map_target' := sorry,
+  map_source' := λ _ ⟨⟨p, _⟩, hp⟩, by rwa [←hp, hψ],
+  map_target' := λ p hp, ⟨⟨p, hp⟩, by rw [dif_pos hp]⟩,
   left_inv' := λ _ ⟨p, hp⟩, by rw [←hp, hψ, dif_pos p.prop, subtype.coe_eta],
   right_inv' := λ p hp, by rw [dif_pos hp, hψ, subtype.coe_mk],
   continuous_to_fun := q.continuous.continuous_on,
   continuous_inv_fun := sorry }, ⟨⟨q x, hx⟩, _⟩, rfl⟩,
-  sorry,
+  conv_rhs { rw [←subtype.coe_mk x hx] },
+  rw [←subtype.ext_iff],
+  refine ϕ.to_equiv.apply_eq_iff_eq_symm_apply.mpr
+    (prod.ext _ (subtype.ext (ϕ.commutes_inv ⟨x, hx⟩))),
+  have key := prod.ext_iff.mp (ϕ.to_equiv.apply_eq_iff_eq_symm_apply.mp (ϕ.rigid ⟨x, rfl⟩)),
+  rw subtype.ext_iff at key ⊢,
+  exact key.1,
 end
 
 lemma is_open_map (q : E ↠ X) : is_open_map q :=

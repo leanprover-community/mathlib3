@@ -371,7 +371,7 @@ let f : ((>) : lie_submodule R L M → lie_submodule R L M → Prop) →r
         ((>) : submodule R M → submodule R M → Prop) :=
 { to_fun       := coe,
   map_rel' := λ N N' h, h, }
-in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
+in rel_hom_class.is_well_founded f
 
 @[simp] lemma subsingleton_iff : subsingleton (lie_submodule R L M) ↔ subsingleton M :=
 have h : subsingleton (lie_submodule R L M) ↔ subsingleton (submodule R M),

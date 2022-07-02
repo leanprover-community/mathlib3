@@ -128,7 +128,7 @@ begin
   rw [hx1, hx2],
 end
 
-lemma const_smul [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+lemma const_smul [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (c : 𝕜) (hf : ae_strongly_measurable' m f μ) :
   ae_strongly_measurable' m (c • f) μ :=
 begin
@@ -1958,6 +1958,15 @@ begin
     (condexp_ae_eq_condexp_L1 hm g).symm),
 end
 
+lemma condexp_of_ae_strongly_measurable' (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)]
+  {f : α → F'} (hf : ae_strongly_measurable' m f μ) (hfi : integrable f μ) :
+  μ[f|m] =ᵐ[μ] f :=
+begin
+  refine ((condexp_congr_ae hf.ae_eq_mk).trans _).trans hf.ae_eq_mk.symm,
+  rw condexp_of_strongly_measurable hm hf.strongly_measurable_mk
+    ((integrable_congr hf.ae_eq_mk).mp hfi),
+end
+
 lemma integrable_condexp : integrable (μ[f|m]) μ :=
 begin
   by_cases hm : m ≤ m0,
@@ -2113,9 +2122,11 @@ begin
 end
 
 /-- Auxiliary lemma for `condexp_indicator`. -/
-lemma condexp_indicator_aux (hm : m ≤ m0) (hs : measurable_set[m] s) (hf : f =ᵐ[μ.restrict sᶜ] 0) :
+lemma condexp_indicator_aux (hs : measurable_set[m] s) (hf : f =ᵐ[μ.restrict sᶜ] 0) :
   μ[s.indicator f | m] =ᵐ[μ] s.indicator (μ[f | m]) :=
 begin
+  by_cases hm : m ≤ m0,
+  swap, { simp_rw [condexp_of_not_le hm, set.indicator_zero'], },
   have hsf_zero : ∀ g : α → F', g =ᵐ[μ.restrict sᶜ] 0 → s.indicator g =ᵐ[μ] g,
     from λ g, indicator_ae_eq_of_restrict_compl_ae_eq_zero (hm _ hs),
   refine ((hsf_zero (μ[f | m]) (condexp_ae_eq_restrict_zero hs.compl hf)).trans _).symm,
@@ -2152,7 +2163,7 @@ begin
     begin
       refine filter.eventually_eq.rfl.add _,
       have : sᶜ.indicator (μ[sᶜ.indicator f|m]) =ᵐ[μ] μ[sᶜ.indicator f|m],
-      { refine (condexp_indicator_aux hm hs.compl _).symm.trans _,
+      { refine (condexp_indicator_aux hs.compl _).symm.trans _,
         { exact indicator_ae_eq_restrict_compl (hm _ hs.compl), },
         { rw [set.indicator_indicator, set.inter_self], }, },
       filter_upwards [this] with x hx,
@@ -2164,10 +2175,40 @@ begin
     by rw [set.indicator_indicator, set.inter_compl_self, set.indicator_empty', add_zero]
   ... =ᵐ[μ] μ[s.indicator f|m] :
     begin
-      refine (condexp_indicator_aux hm hs _).symm.trans _,
+      refine (condexp_indicator_aux hs _).symm.trans _,
       { exact indicator_ae_eq_restrict_compl (hm _ hs), },
       { rw [set.indicator_indicator, set.inter_self], },
     end
+end
+
+lemma condexp_restrict_ae_eq_restrict (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  (hs_m : measurable_set[m] s) (hf_int : integrable f μ) :
+  (μ.restrict s)[f | m] =ᵐ[μ.restrict s] μ[f | m] :=
+begin
+  haveI : sigma_finite ((μ.restrict s).trim hm),
+  { rw ← restrict_trim hm _ hs_m, apply_instance, },
+  rw ae_eq_restrict_iff_indicator_ae_eq (hm _ hs_m),
+  swap, { apply_instance, },
+  refine eventually_eq.trans _ (condexp_indicator hf_int hs_m),
+  refine ae_eq_condexp_of_forall_set_integral_eq hm (hf_int.indicator (hm _ hs_m)) _ _ _,
+  { intros t ht hμt,
+    rw [← integrable_indicator_iff (hm _ ht), set.indicator_indicator, set.inter_comm,
+      ← set.indicator_indicator],
+    suffices h_int_restrict : integrable (t.indicator ((μ.restrict s)[f|m])) (μ.restrict s),
+    { rw [integrable_indicator_iff (hm _ hs_m), integrable_on],
+      rw [integrable_indicator_iff (hm _ ht), integrable_on] at h_int_restrict ⊢,
+      exact h_int_restrict, },
+    exact integrable_condexp.indicator (hm _ ht), },
+  { intros t ht hμt,
+    calc ∫ x in t, s.indicator ((μ.restrict s)[f|m]) x ∂μ
+        = ∫ x in t, ((μ.restrict s)[f|m]) x ∂(μ.restrict s) :
+      by rw [integral_indicator (hm _ hs_m), measure.restrict_restrict (hm _ hs_m),
+        measure.restrict_restrict (hm _ ht), set.inter_comm]
+    ... = ∫ x in t, f x ∂(μ.restrict s) : set_integral_condexp hm hf_int.integrable_on ht
+    ... = ∫ x in t, s.indicator f x ∂μ :
+      by rw [integral_indicator (hm _ hs_m), measure.restrict_restrict (hm _ hs_m),
+        measure.restrict_restrict (hm _ ht), set.inter_comm], },
+  { exact (strongly_measurable_condexp.indicator hs_m).ae_strongly_measurable', },
 end
 
 /-- If the restriction to a `m`-measurable set `s` of a σ-algebra `m` is equal to the restriction

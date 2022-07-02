@@ -255,6 +255,10 @@ by rw [h]; exact fold_congr
 attribute [congr] finset.sum_congr
 
 @[to_additive]
+lemma prod_disj_union (h) : ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s₁, f x) * ∏ x in s₂, f x :=
+by { refine eq.trans _ (fold_disj_union h), rw one_mul, refl }
+
+@[to_additive]
 lemma prod_union_inter [decidable_eq α] :
   (∏ x in (s₁ ∪ s₂), f x) * (∏ x in (s₁ ∩ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 fold_union_inter
@@ -1718,7 +1722,7 @@ end multiset
 
 namespace nat
 
-@[simp, norm_cast] lemma cast_list_sum [add_monoid β] [has_one β] (s : list ℕ) :
+@[simp, norm_cast] lemma cast_list_sum [add_monoid_with_one β] (s : list ℕ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_list_sum (cast_add_monoid_hom β) _
 
@@ -1726,7 +1730,7 @@ map_list_sum (cast_add_monoid_hom β) _
   (↑(s.prod) : β) = (s.map coe).prod :=
 map_list_prod (cast_ring_hom β) _
 
-@[simp, norm_cast] lemma cast_multiset_sum [add_comm_monoid β] [has_one β] (s : multiset ℕ) :
+@[simp, norm_cast] lemma cast_multiset_sum [add_comm_monoid_with_one β] (s : multiset ℕ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_multiset_sum (cast_add_monoid_hom β) _
 
@@ -1734,7 +1738,7 @@ map_multiset_sum (cast_add_monoid_hom β) _
   (↑(s.prod) : β) = (s.map coe).prod :=
 map_multiset_prod (cast_ring_hom β) _
 
-@[simp, norm_cast] lemma cast_sum [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
+@[simp, norm_cast] lemma cast_sum [add_comm_monoid_with_one β] (s : finset α) (f : α → ℕ) :
   ↑(∑ x in s, f x : ℕ) = (∑ x in s, (f x : β)) :=
 map_sum (cast_add_monoid_hom β) _ _
 
@@ -1746,7 +1750,7 @@ end nat
 
 namespace int
 
-@[simp, norm_cast] lemma cast_list_sum [add_group β] [has_one β] (s : list ℤ) :
+@[simp, norm_cast] lemma cast_list_sum [add_group_with_one β] (s : list ℤ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_list_sum (cast_add_hom β) _
 
@@ -1754,7 +1758,7 @@ map_list_sum (cast_add_hom β) _
   (↑(s.prod) : β) = (s.map coe).prod :=
 map_list_prod (cast_ring_hom β) _
 
-@[simp, norm_cast] lemma cast_multiset_sum [add_comm_group β] [has_one β] (s : multiset ℤ) :
+@[simp, norm_cast] lemma cast_multiset_sum [add_comm_group_with_one β] (s : multiset ℤ) :
   (↑(s.sum) : β) = (s.map coe).sum :=
 map_multiset_sum (cast_add_hom β) _
 
@@ -1762,7 +1766,7 @@ map_multiset_sum (cast_add_hom β) _
   (↑(s.prod) : R) = (s.map coe).prod :=
 map_multiset_prod (cast_ring_hom R) _
 
-@[simp, norm_cast] lemma cast_sum [add_comm_group β] [has_one β] (s : finset α) (f : α → ℤ) :
+@[simp, norm_cast] lemma cast_sum [add_comm_group_with_one β] (s : finset α) (f : α → ℤ) :
   ↑(∑ x in s, f x : ℤ) = (∑ x in s, (f x : β)) :=
 map_sum (cast_add_hom β) _ _
 

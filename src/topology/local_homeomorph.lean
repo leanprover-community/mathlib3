@@ -330,27 +330,23 @@ h.symm.image_eq
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
 local_equiv.is_image.iff_preimage_eq
 
-alias iff_preimage_eq ↔ local_homeomorph.is_image.preimage_eq
-  local_homeomorph.is_image.of_preimage_eq
+alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
 lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
 symm_iff.symm.trans iff_preimage_eq
 
-alias iff_symm_preimage_eq ↔ local_homeomorph.is_image.symm_preimage_eq
-  local_homeomorph.is_image.of_symm_preimage_eq
+alias iff_symm_preimage_eq ↔ symm_preimage_eq of_symm_preimage_eq
 
 lemma iff_symm_preimage_eq' :
   e.is_image s t ↔ e.target ∩ e.symm ⁻¹' (e.source ∩ s) = e.target ∩ t :=
 by rw [iff_symm_preimage_eq, ← image_source_inter_eq, ← image_source_inter_eq']
 
-alias iff_symm_preimage_eq' ↔ local_homeomorph.is_image.symm_preimage_eq'
-  local_homeomorph.is_image.of_symm_preimage_eq'
+alias iff_symm_preimage_eq' ↔ symm_preimage_eq' of_symm_preimage_eq'
 
 lemma iff_preimage_eq' : e.is_image s t ↔ e.source ∩ e ⁻¹' (e.target ∩ t) = e.source ∩ s :=
 symm_iff.symm.trans iff_symm_preimage_eq'
 
-alias iff_preimage_eq' ↔ local_homeomorph.is_image.preimage_eq'
-  local_homeomorph.is_image.of_preimage_eq'
+alias iff_preimage_eq' ↔ preimage_eq' of_preimage_eq'
 
 lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
 local_equiv.is_image.of_image_eq h
@@ -816,7 +812,7 @@ def disjoint_union (e e' : local_homeomorph α β)
   local_homeomorph α β :=
 (e.piecewise e' e.source e.target e.is_image_source_target
   (e'.is_image_source_target_of_disjoint e Hs.symm Ht.symm)
-  (by rw [e.open_source.inter_frontier_eq, e'.open_source.inter_frontier_eq_empty_of_disjoint Hs])
+  (by rw [e.open_source.inter_frontier_eq, (Hs.symm.frontier_right e'.open_source).inter_eq])
   (by { rw e.open_source.inter_frontier_eq, exact eq_on_empty _ _ })).replace_equiv
     (e.to_local_equiv.disjoint_union e'.to_local_equiv Hs Ht)
     (local_equiv.disjoint_union_eq_piecewise _ _ _ _).symm

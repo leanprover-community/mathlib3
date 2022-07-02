@@ -104,7 +104,7 @@ begin
     rw [← hz, ← is_scalar_tower.algebra_map_apply],
     exact subalgebra.algebra_map_mem  _ _ },
   { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
-    { have h₁ := minpoly.gcd_domain_eq_field_fractions ℚ hint,
+    { have h₁ := minpoly.gcd_domain_eq_field_fractions' ℚ hint,
       have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
         (cyclotomic.irreducible_rat (p ^ _).pos),
       rw [is_primitive_root.sub_one_power_basis_gen] at h₁,

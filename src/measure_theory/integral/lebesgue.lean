@@ -359,9 +359,9 @@ ext $ λ x, hg _ _
 
 variables {K : Type*}
 
-instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
-@[simp] lemma coe_smul [has_scalar K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
-lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
+instance [has_smul K β] : has_smul K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
+@[simp] lemma coe_smul [has_smul K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
+lemma smul_apply [has_smul K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
 
 instance has_nat_pow [monoid β] : has_pow (α →ₛ β) ℕ := ⟨λ f n, f.map (^ n)⟩
 @[simp] lemma coe_pow [monoid β] (f : α →ₛ β) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
@@ -411,7 +411,7 @@ instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ �
 function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
   coe_injective coe_smul
 
-lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
+lemma smul_eq_map [has_smul K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
 
 instance [preorder β] : preorder (α →ₛ β) :=
 { le_refl := λf a, le_rfl,

@@ -92,7 +92,7 @@ Group Theory:
     conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
-    finite type abelian groups: 'https://en.wikipedia.org/wiki/Finitely_generated_abelian_group#Classification'
+    finite type abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
     complex roots of unity: 'complex.mem_roots_of_unity'
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:

@@ -405,7 +405,7 @@ do ((), body) ← solve_aux type tac,
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare
 situations the latter will fail but the former will succeed. -/
-meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
+meta def eval_expr' (α : Type*) [_inst_1 : reflected _ α] (e : expr) : tactic α :=
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
@@ -1403,9 +1403,11 @@ add_tactic_doc
 This function deserves a C++ implementation in core lean, and will fail if it is not called from
 the body of a command (i.e. anywhere else that the `lean.parser` monad can be invoked). -/
 meta def get_current_namespace : lean.parser name :=
-do n ← tactic.mk_user_fresh_name,
+do env ← get_env,
+   n ← tactic.mk_user_fresh_name,
    emit_code_here $ sformat!"def {n} := ()",
    nfull ← tactic.resolve_constant n,
+   set_env env,
    return $ nfull.get_nth_prefix n.components.length
 
 /-- `get_variables` returns a list of existing variable names, along with their types and binder

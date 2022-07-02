@@ -74,7 +74,7 @@ f.le_of_inf_ne_bot $ by rwa inf_comm
 @[simp] lemma frequently_iff_eventually : (∃ᶠ x in f, p x) ↔ ∀ᶠ x in f, p x :=
 compl_not_mem_iff
 
-alias frequently_iff_eventually ↔ filter.frequently.eventually _
+alias frequently_iff_eventually ↔ _root_.filter.frequently.eventually _
 
 lemma compl_mem_iff_not_mem : sᶜ ∈ f ↔ s ∉ f := by rw [← compl_not_mem_iff, compl_compl]
 
@@ -211,7 +211,7 @@ begin
     hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩, uτ.property.right⟩
 end
 
-alias exists_le ← filter.exists_ultrafilter_le
+alias exists_le ← _root_.filter.exists_ultrafilter_le
 
 /-- Construct an ultrafilter extending a given filter.
   The ultrafilter lemma is the assertion that such a filter exists;
@@ -304,13 +304,13 @@ ultrafilter.of_le cofinite
 theorem nmem_hyperfilter_of_finite {s : set α} (hf : s.finite) : s ∉ hyperfilter α :=
 λ hy, compl_not_mem hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite
 
-alias nmem_hyperfilter_of_finite ← set.finite.nmem_hyperfilter
+alias nmem_hyperfilter_of_finite ← _root_.set.finite.nmem_hyperfilter
 
 theorem compl_mem_hyperfilter_of_finite {s : set α} (hf : set.finite s) :
   sᶜ ∈ hyperfilter α :=
 compl_mem_iff_not_mem.2 hf.nmem_hyperfilter
 
-alias compl_mem_hyperfilter_of_finite ← set.finite.compl_mem_hyperfilter
+alias compl_mem_hyperfilter_of_finite ← _root_.set.finite.compl_mem_hyperfilter
 
 theorem mem_hyperfilter_of_finite_compl {s : set α} (hf : set.finite sᶜ) :
   s ∈ hyperfilter α :=

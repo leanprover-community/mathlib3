@@ -7,6 +7,7 @@ import data.vector
 import data.list.nodup
 import data.list.of_fn
 import control.applicative
+import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
@@ -564,9 +565,10 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   id_map := by intros; cases x; simp! [(<$>)],
   comp_map := by intros; cases x; simp! [(<$>)] }
 
-meta instance reflect {α : Type} [has_reflect α] [reflected α] {n : ℕ} : has_reflect (vector α n) :=
-λ v, @vector.induction_on n α (λ n, reflected) v
-  (`(λ a, @vector.nil.{0} a).subst `(α))
-  (λ n x xs ih, (`(λ x xs, vector.cons.{0} x xs).subst `(x)).subst ih)
+meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
+  has_reflect (vector α n) :=
+λ v, @vector.induction_on n α (λ n, reflected _) v
+  ((by reflect_name : reflected _ @vector.nil.{u}).subst `(α))
+  (λ n x xs ih, (by reflect_name : reflected _ @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
 
 end vector

@@ -36,11 +36,7 @@ variables [semiring R] {p q r : R[X]}
 `degree 0 = ⊥`. -/
 def degree (p : R[X]) : with_bot ℕ := p.support.sup some
 
---maybe remove and just use `inv_image degree` explicitly?
-instance degree_lt_wf : is_well_founded R[X] (λ p q, degree p < degree q) :=
-inv_image.is_well_founded _ _
-
-instance : has_well_founded R[X] := is_well_founded.to_has_well_founded (λ p q, degree p < degree q)
+instance : has_well_founded R[X] := is_well_founded.to_has_well_founded (inv_image (<) degree)
 
 /-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
 def nat_degree (p : R[X]) : ℕ := (degree p).get_or_else 0

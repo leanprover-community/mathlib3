@@ -28,6 +28,12 @@ begin
   move_mul ← a at *,  -- `move_mul` closes the goal, since, after rearranging, it tries `assumption`
 end
 
+example : let k := c + (a + b) in k = a + b + c :=
+begin
+  move_add [← a, c],
+  simp only,
+end
+
 example (a b : ℕ) : a + max a b = max b a + a :=
 begin
   move_oper [max] ← a at *,

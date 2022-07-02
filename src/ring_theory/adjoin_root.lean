@@ -62,6 +62,14 @@ instance : inhabited (adjoin_root f) := ⟨0⟩
 
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
+protected lemma nontrivial [is_domain R] (h : degree f ≠ 0) : nontrivial (adjoin_root f) :=
+ideal.quotient.nontrivial
+begin
+  simp_rw [ne.def, span_singleton_eq_top, polynomial.is_unit_iff, not_exists, not_and],
+  rintro x hx rfl,
+  exact h (degree_C hx.ne_zero),
+end
+
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
 def mk : R[X] →+* adjoin_root f := ideal.quotient.mk _
 
@@ -76,7 +84,7 @@ def of : R →+* adjoin_root f := (mk f).comp C
 instance [comm_semiring S] [algebra S R] : algebra S (adjoin_root f) :=
 ideal.quotient.algebra S
 
-instance [comm_semiring S] [comm_semiring K] [has_scalar S K] [algebra S R] [algebra K R]
+instance [comm_semiring S] [comm_semiring K] [has_smul S K] [algebra S R] [algebra K R]
   [is_scalar_tower S K R] :
   is_scalar_tower S K (adjoin_root f) :=
 submodule.quotient.is_scalar_tower _ _
@@ -105,7 +113,7 @@ instance adjoin_root.has_coe_t : has_coe_t R (adjoin_root f) := ⟨of f⟩
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
 @[simp] lemma mk_self : mk f f = 0 :=
-quotient.sound' (mem_span_singleton.2 $ by simp)
+quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
@@ -196,23 +204,25 @@ end comm_ring
 
 section irreducible
 
-variables [field K] {f : K[X]} [irreducible f]
+variables [field K] {f : K[X]}
 
-instance is_maximal_span : is_maximal (span {f} : ideal K[X]) :=
-principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
+instance span_maximal_of_irreducible [fact (irreducible f)] : (span {f}).is_maximal :=
+principal_ideal_ring.is_maximal_of_irreducible $ fact.out _
 
-noncomputable instance field : field (adjoin_root f) :=
+noncomputable instance field [fact (irreducible f)] : field (adjoin_root f) :=
 { ..adjoin_root.comm_ring f,
   ..ideal.quotient.field (span {f} : ideal K[X]) }
 
-lemma coe_injective : function.injective (coe : K → adjoin_root f) :=
+lemma coe_injective (h : degree f ≠ 0) : function.injective (coe : K → adjoin_root f) :=
+have _ := adjoin_root.nontrivial f h, by exactI (of f).injective
+
+lemma coe_injective' [fact (irreducible f)] : function.injective (coe : K → adjoin_root f) :=
 (of f).injective
 
 variable (f)
 
-lemma mul_div_root_cancel :
-  ((X - C (root f)) * (f.map (of f) / (X - C (root f))) : polynomial (adjoin_root f)) =
-    f.map (of f) :=
+lemma mul_div_root_cancel [fact (irreducible f)] :
+  ((X - C (root f)) * (f.map (of f) / (X - C (root f)))) = f.map (of f) :=
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end irreducible

@@ -285,15 +285,15 @@ mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
 lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ≥0∞) • x := rfl
 
-instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_scalar M N]
+instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_smul M N]
   [is_scalar_tower ℝ≥0∞ M N] : is_scalar_tower ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ≥0∞) : _)}
 
-instance smul_comm_class_left {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ≥0∞ N] [has_smul M N]
   [smul_comm_class ℝ≥0∞ M N] : smul_comm_class ℝ≥0 M N :=
 { smul_comm := λ r, (smul_comm (r : ℝ≥0∞) : _)}
 
-instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_smul M N]
   [smul_comm_class M ℝ≥0∞ N] : smul_comm_class M ℝ≥0 N :=
 { smul_comm := λ m r, (smul_comm m (r : ℝ≥0∞) : _)}
 
@@ -317,7 +317,7 @@ noncomputable instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra
 noncomputable example : algebra ℝ≥0 ℝ≥0∞ := infer_instance
 noncomputable example : distrib_mul_action ℝ≥0ˣ ℝ≥0∞ := infer_instance
 
-lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞]
+lemma coe_smul {R} (r : R) (s : ℝ≥0) [has_smul R ℝ≥0] [has_smul R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0 ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ≥0∞] :
   (↑(r • s) : ℝ≥0∞) = r • ↑s :=
 by rw [←smul_one_smul ℝ≥0 r (s: ℝ≥0∞), smul_def, smul_eq_mul, ←ennreal.coe_mul, smul_mul_assoc,
@@ -1636,7 +1636,7 @@ by simp [ennreal.of_real]
 @[simp] lemma zero_eq_of_real {p : ℝ} : 0 = ennreal.of_real p ↔ p ≤ 0 :=
 eq_comm.trans of_real_eq_zero
 
-alias ennreal.of_real_eq_zero ↔ _ ennreal.of_real_of_nonpos
+alias of_real_eq_zero ↔ _ of_real_of_nonpos
 
 lemma of_real_sub (p : ℝ) (hq : 0 ≤ q) :
   ennreal.of_real (p - q) = ennreal.of_real p - ennreal.of_real q :=

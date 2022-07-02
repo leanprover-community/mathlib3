@@ -43,51 +43,30 @@ section to_poly
 section basic
 variables [semiring R] {N : ℕ}
 
-/-- Convert a vector to a polynomial. This construction allows one to work with the module of
-polynomials of a guaranteed maximal degree, known in mathlib as `degree_lt R`, while retaining easy
-access to the coefficients (which for an element `P : ↥(degree_lt R N)` would be accessed with the
-more cumbersome invocation `(P : R[X]).coeff`). -/
-def to_poly : (fin N → R) →ₗ[R] R[X] :=
-(degree_lt R N).subtype.comp (↑(degree_lt_equiv R N).symm : (fin N → R) →ₗ[R] degree_lt R N)
-
-lemma to_poly_apply (P : fin N → R) : to_poly P =  ∑ i : fin N, monomial i (P i) := rfl
-
-@[simp] lemma polynomial.degree_lt_equiv_symm_apply (P : fin N → R) :
-  ((degree_lt_equiv R N).symm P : R[X]) = to_poly P :=
-rfl
-
-lemma to_poly_mem_degree_lt (P : fin N → R) : to_poly P ∈ degree_lt R N :=
-((degree_lt_equiv R N).symm P).prop
+lemma to_poly_mem_degree_lt (P : degree_lt R N) : (P : R[X]) ∈ degree_lt R N := P.prop
 
 variables (R N)
 
-@[simp] lemma to_poly_injective : function.injective (to_poly : (fin N → R) → R[X]) :=
-(submodule.injective_subtype (degree_lt R N)).comp (degree_lt_equiv R N).symm.injective
-
-@[simp] lemma to_poly_zero : to_poly (0 : fin N → R) = 0 := (@to_poly R _ _).map_zero
-
 variables {R N}
 
-@[simp] lemma to_poly_eq_iff (P Q : fin N → R) : to_poly P = to_poly Q ↔ P = Q :=
-(to_poly_injective R N).eq_iff
+def degree_lt.map [semiring S] (P : degree_lt R N) (φ : R →+* S) : degree_lt S N :=
+⟨(P : R[X]).map φ, sorry⟩
 
-@[simp] lemma to_poly_eq_zero_iff (P : fin N → R) : to_poly P = 0 ↔ P = 0 :=
-by rw [← to_poly_zero, to_poly_eq_iff]
+postfix `#`:1000 := degree_lt.map
 
-lemma map_to_poly [semiring S] {P : fin N → R} {φ : R →+* S} :
-  to_poly (φ ∘ P) = polynomial.map φ (to_poly P) :=
-by simp [to_poly_apply, polynomial.map_sum]
+@[simp] lemma map_to_poly [semiring S] {P : degree_lt R N} {φ : R →+* S} :
+  (P# φ : S[X]) = (P : R[X]).map φ :=
+sorry
 
 /-! ### Coefficients -/
 
 section coeff
-variables {P : fin N → R}
+variables {P : degree_lt R N}
 
-lemma coeff_to_poly_ge_four (P : fin N → R) (n : ℕ) (hn : N ≤ n) : (to_poly P).coeff n = 0 :=
+postfix `ᗮ`:1000 := polynomial.coeff ∘ (@degree_lt _ _ _).subtype
+
+lemma coeff_to_poly_ge_four (P : degree_lt R N) (n : ℕ) (hn : N ≤ n) : Pᗮ n = 0 :=
 (submodule.mem_infi _).mp ((submodule.mem_infi _).mp (to_poly_mem_degree_lt P) n : _ ∈ _) hn
-
-@[simp] lemma coeff_to_poly_le_three (P : fin N → R) (n : fin N) : (to_poly P).coeff n = P n :=
-by simp [to_poly_apply, coeff_monomial, set_coe.ext_iff, finset.sum_ite_eq']
 
 end coeff
 
@@ -95,36 +74,31 @@ end coeff
 
 section degree
 
-lemma degree_to_poly_lt (P : fin N → R) : (to_poly P).degree < N :=
+lemma degree_to_poly_lt (P : degree_lt R N) : (P : R[X]).degree < N :=
 by simpa [mem_degree_lt] using to_poly_mem_degree_lt P
 
-variables (P : fin N.succ → R)
+variables (P : degree_lt R N.succ)
 
-lemma degree_to_poly_le : (to_poly P).degree ≤ N :=
+lemma degree_to_poly_le : (P : R[X]).degree ≤ N :=
 (degree_le_iff_coeff_zero _ _).mpr (λ m hm, coeff_to_poly_ge_four P m (by simpa using hm))
 
-lemma nat_degree_to_poly_le : (to_poly P).nat_degree ≤ N :=
+lemma nat_degree_to_poly_le : (P : R[X]).nat_degree ≤ N :=
 begin
-  by_cases hP : to_poly P = 0,
-  { simp [hP] },
+  by_cases hP : (P : R[X]) = 0,
+  { simp [hP], },
   simpa [degree_eq_nat_degree hP] using degree_to_poly_le P,
 end
 
 variables {P}
 
-lemma degree_to_poly (ha : P N ≠ 0) : (to_poly P).degree = N :=
-le_antisymm (degree_to_poly_le P) $
-calc (N : with_bot ℕ) = _ : congr_arg some (fin.coe_coe_of_lt (nat.lt.base N)).symm
-... ≤ (to_poly P).degree : le_degree_of_ne_zero (by rwa ← coeff_to_poly_le_three P at ha)
+lemma degree_to_poly (ha : Pᗮ N ≠ 0) : (P : R[X]).degree = N :=
+le_antisymm (degree_to_poly_le P) $ le_degree_of_ne_zero ha
 
-lemma nat_degree_to_poly (ha : P N ≠ 0) : (to_poly P).nat_degree = N :=
-le_antisymm (nat_degree_to_poly_le P) $
-calc N = _ : (fin.coe_coe_of_lt (nat.lt.base N)).symm
-... ≤ _ : le_nat_degree_of_ne_zero (by rwa ← coeff_to_poly_le_three P at ha)
+lemma nat_degree_to_poly (ha : Pᗮ N ≠ 0) : (P : R[X]).nat_degree = N :=
+le_antisymm (nat_degree_to_poly_le P) $ le_nat_degree_of_ne_zero ha
 
-lemma leading_coeff (ha : P N ≠ 0) : (to_poly P).leading_coeff = P N :=
-by rw [leading_coeff, nat_degree_to_poly ha, ← coeff_to_poly_le_three P,
-  fin.coe_coe_of_lt (nat.lt.base N)]
+lemma leading_coeff (ha : Pᗮ N ≠ 0) : (P : R[X]).leading_coeff = Pᗮ N :=
+by { rw [leading_coeff, nat_degree_to_poly ha], refl }
 
 end degree
 
@@ -137,44 +111,45 @@ open multiset
 /-! ### Roots over an extension -/
 
 section extension
-variables [comm_ring R] [comm_ring S] {N: ℕ} {P : fin N → R} {φ : R →+* S}
+variables [comm_ring R] [comm_ring S] {N: ℕ} {P : degree_lt R N} {φ : R →+* S}
 
-theorem mem_roots_to_poly_iff [is_domain R] (h0 : to_poly P ≠ 0) (x : R) :
-  x ∈ (to_poly P).roots ↔ ∑ i, P i * x ^ (i:ℕ) = 0 :=
+theorem mem_roots_to_poly_iff [is_domain R] (h0 : (P : R[X]) ≠ 0) (x : R) :
+  x ∈ (P : R[X]).roots ↔ ∑ i in finset.range N, Pᗮ i * x ^ (i:ℕ) = 0 :=
 begin
-  rw [mem_roots h0, is_root, to_poly_apply, eval_finset_sum],
-  simp only [eval_monomial],
+  have : (P : R[X]).nat_degree < N := sorry,
+  simp [mem_roots h0, is_root, eval_eq_sum_range' this],
 end
 
-theorem card_roots_to_poly_le {P : fin N.succ → R} [is_domain R] [decidable_eq R] :
-  (to_poly P).roots.to_finset.card ≤ N :=
-(to_finset_card_le (to_poly P).roots).trans $
-(card_roots' (to_poly P)).trans $ nat_degree_to_poly_le P
+theorem card_roots_to_poly_le {P : degree_lt R N.succ} [is_domain R] [decidable_eq R] :
+  (P : R[X]).roots.to_finset.card ≤ N :=
+(to_finset_card_le (P : R[X]).roots).trans $
+(card_roots' (P : R[X])).trans $ nat_degree_to_poly_le P
 
 end extension
 
 /-! ### Roots over a splitting field -/
 
 section split
-variables [field F] [field K] {N : ℕ} {P : fin N.succ → F} {φ : F →+* K} {x y z : K}
+variables [field F] [field K] {N : ℕ} {P : degree_lt F N.succ} {φ : F →+* K} {x y z : K}
 
-theorem to_poly_splits_iff_card_roots (ha : P N ≠ 0) :
-  splits φ (to_poly P) ↔ (to_poly (φ ∘ P)).roots.card = N :=
+theorem to_poly_splits_iff_card_roots (ha : Pᗮ N ≠ 0) :
+  splits φ (P : F[X]) ↔ (P# φ : K[X]).roots.card = N :=
 begin
-  replace ha : (φ ∘ P) N ≠ 0 := φ.map_ne_zero.mpr ha,
+  replace ha : φ (Pᗮ N) ≠ 0 := φ.map_ne_zero.mpr ha,
+  rw ← polynomial.coeff_map at ha,
   nth_rewrite_lhs 0 [← φ.id_comp],
   rwa [← splits_map_iff, ← map_to_poly, splits_iff_card_roots, nat_degree_to_poly],
 end
 
-lemma vieta_to_poly {P : fin N.succ → F} (ha : P N ≠ 0) (hP : splits φ (to_poly P))
+lemma vieta_to_poly {P : degree_lt F N.succ} (ha : Pᗮ N ≠ 0) (hP : splits φ (P : F[X]))
   (k : fin N.succ) :
-  φ (P k)
-  = φ (P N) * (-1) ^ (N - k)
-    * (((to_poly (φ ∘ P)).roots.powerset_len (N - k)).map multiset.prod).sum :=
+  φ (Pᗮ k)
+  = φ (Pᗮ N) * (-1) ^ (N - k)
+    * (((P# φ : K[X]).roots.powerset_len (N - k)).map multiset.prod).sum :=
 begin
   rw [to_poly_splits_iff_card_roots ha, map_to_poly] at hP,
-  convert @vieta K _ _ (map φ (to_poly P)) _ k _;
-  simp [leading_coeff ha, nat_degree_to_poly ha, fin.is_le k, hP, map_to_poly]
+  convert @vieta K _ _ (map φ (P : F[X])) _ k _;
+  simp [leading_coeff ha, nat_degree_to_poly ha, fin.is_le k, hP, map_to_poly, polynomial.coeff_map]
 end
 
 end split
@@ -187,7 +162,7 @@ namespace cubic
 
 open polynomial multiset
 
-variables [field F] [field K] {P : fin 4 → F}  {φ : F →+* K} {x y z : K}
+variables [field F] [field K] {P : degree_lt F 4}  {φ : F →+* K} {x y z : K}
 
 section roots
 
@@ -195,40 +170,40 @@ section roots
 
 section split
 
-theorem splits_iff_roots_eq_three (ha : P 3 ≠ 0) :
-  splits φ (to_poly P) ↔ ∃ x y z : K, (to_poly (φ ∘ P)).roots = {x, y, z} :=
+theorem splits_iff_roots_eq_three (ha : Pᗮ 3 ≠ 0) :
+  splits φ (P : F[X]) ↔ ∃ x y z : K, (P# φ : K[X]).roots = {x, y, z} :=
 by { rw [to_poly_splits_iff_card_roots ha], norm_num, rw [card_eq_three], refl }
 
-theorem splits_of_three_roots (ha : P 3 ≠ 0) {x y z : K}
-  (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  splits φ (to_poly P) :=
+theorem splits_of_three_roots (ha : Pᗮ 3 ≠ 0) {x y z : K}
+  (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  splits φ (P : F[X]) :=
 (splits_iff_roots_eq_three ha).mpr ⟨x, y, z, h3⟩
 
-theorem eq_prod_three_roots (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  to_poly (φ ∘ P) = C (φ (P 3)) * (X - C x) * (X - C y) * (X - C z) :=
+theorem eq_prod_three_roots (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  (P# φ : K[X]) = C (φ (Pᗮ 3)) * (X - C x) * (X - C y) * (X - C z) :=
 begin
   rw [map_to_poly, eq_prod_roots_of_splits $ splits_of_three_roots ha h3,
     leading_coeff ha, ← map_to_poly, h3],
-  change C (φ (P 3)) * ((X - C x) ::ₘ (X - C y) ::ₘ {X - C z}).prod = _,
+  change C (φ (Pᗮ 3)) * ((X - C x) ::ₘ (X - C y) ::ₘ {X - C z}).prod = _,
   rw [prod_cons, prod_cons, prod_singleton, mul_assoc, mul_assoc]
 end
 
-theorem b_eq_three_roots (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  φ (P 2) = φ (P 3) * -(x + y + z) :=
-calc φ (P 2) = - φ (P 3) * (z + y + x) : by
-          { rw vieta_to_poly ha (splits_of_three_roots ha h3), norm_num [h3] }
+theorem b_eq_three_roots (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  φ (Pᗮ 2) = φ (Pᗮ 3) * -(x + y + z) :=
+calc φ (Pᗮ 2) = - φ (Pᗮ 3) * (z + y + x) : by
+          { convert vieta_to_poly ha (splits_of_three_roots ha h3) 2 using 1, rw h3, norm_num }
 ... = _ : by ring
 
-theorem c_eq_three_roots (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  φ (P 1) = φ (P 3) * (x * y + x * z + y * z) :=
-calc φ (P 1) = φ (P 3) * (y * z + (x * z + x * y)) : by
-          { rw vieta_to_poly ha (splits_of_three_roots ha h3), norm_num [h3] }
+theorem c_eq_three_roots (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  φ (Pᗮ 1) = φ (Pᗮ 3) * (x * y + x * z + y * z) :=
+calc φ (Pᗮ 1) = φ (Pᗮ 3) * (y * z + (x * z + x * y)) : by
+          { convert vieta_to_poly ha (splits_of_three_roots ha h3) 1 using 1, rw h3, norm_num }
 ... = _ : by ring
 
-theorem d_eq_three_roots (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  φ (P 0) = φ (P 3) * -(x * y * z) :=
-calc φ (P 0) = -(φ (P 3) * (x * (y * z))) : by
-          { rw vieta_to_poly ha (splits_of_three_roots ha h3), norm_num [h3] }
+theorem d_eq_three_roots (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  φ (Pᗮ 0) = φ (Pᗮ 3) * -(x * y * z) :=
+calc φ (Pᗮ 0) = -(φ (Pᗮ 3) * (x * (y * z))) : by
+          { convert vieta_to_poly ha (splits_of_three_roots ha h3) 0, rw h3, norm_num  }
 ... = _ : by ring
 
 end split
@@ -238,12 +213,12 @@ end split
 section discriminant
 
 /-- The discriminant of a cubic polynomial. -/
-def disc {R : Type*} [ring R] (P : fin 4 → R) : R :=
-P 2 ^ 2 * P 1 ^ 2 - 4 * P 3 * P 1 ^ 3 - 4 * P 2 ^ 3 * P 0 - 27 * P 3 ^ 2 * P 0 ^ 2
-  + 18 * P 3 * P 2 * P 1 * P 0
+def disc {R : Type*} [ring R] (P : degree_lt R 4) : R :=
+Pᗮ 2 ^ 2 * Pᗮ 1 ^ 2 - 4 * Pᗮ 3 * Pᗮ 1 ^ 3 - 4 * Pᗮ 2 ^ 3 * Pᗮ 0 - 27 * Pᗮ 3 ^ 2 * Pᗮ 0 ^ 2
+  + 18 * Pᗮ 3 * Pᗮ 2 * Pᗮ 1 * Pᗮ 0
 
-theorem disc_eq_prod_three_roots (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  φ (disc P) = (φ (P 3) * φ (P 3) * (x - y) * (x - z) * (y - z)) ^ 2 :=
+theorem disc_eq_prod_three_roots (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  φ (disc P) = (φ (Pᗮ 3) * φ (Pᗮ 3) * (x - y) * (x - z) * (y - z)) ^ 2 :=
 begin
   simp only [disc, ring_hom.map_add, ring_hom.map_sub, ring_hom.map_mul, map_pow],
   simp only [ring_hom.map_one, map_bit0, map_bit1],
@@ -251,7 +226,7 @@ begin
   ring1
 end
 
-theorem disc_ne_zero_iff_roots_ne (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
+theorem disc_ne_zero_iff_roots_ne (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
   disc P ≠ 0 ↔ x ≠ y ∧ x ≠ z ∧ y ≠ z :=
 begin
   rw [← ring_hom.map_ne_zero φ, disc_eq_prod_three_roots ha h3, pow_two],
@@ -260,8 +235,8 @@ begin
   tautology
 end
 
-theorem disc_ne_zero_iff_roots_nodup (ha : P 3 ≠ 0) (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) :
-  disc P ≠ 0 ↔ (to_poly (φ ∘ P)).roots.nodup :=
+theorem disc_ne_zero_iff_roots_nodup (ha : Pᗮ 3 ≠ 0) (h3 : (P# φ : K[X]).roots = {x, y, z}) :
+  disc P ≠ 0 ↔ (P# φ : K[X]).roots.nodup :=
 begin
   rw [disc_ne_zero_iff_roots_ne ha h3, h3],
   change _ ↔ (x ::ₘ y ::ₘ {z}).nodup,
@@ -270,9 +245,9 @@ begin
   tautology
 end
 
-theorem card_roots_of_disc_ne_zero [decidable_eq K] (ha : P 3 ≠ 0)
-  (h3 : (to_poly (φ ∘ P)).roots = {x, y, z}) (hd : disc P ≠ 0) :
-  (to_poly (φ ∘ P)).roots.to_finset.card = 3 :=
+theorem card_roots_of_disc_ne_zero [decidable_eq K] (ha : Pᗮ 3 ≠ 0)
+  (h3 : (P# φ : K[X]).roots = {x, y, z}) (hd : disc P ≠ 0) :
+  (P# φ : K[X]).roots.to_finset.card = 3 :=
 begin
   rw [to_finset_card_of_nodup $ (disc_ne_zero_iff_roots_nodup ha h3).mp hd,
         ← @to_poly_splits_iff_card_roots F K _ _ 3 P φ ha, splits_iff_roots_eq_three ha],

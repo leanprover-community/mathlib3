@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Winston Yin
 -/
 import representation_theory.basic
+import
 
 -- Follows algebra.module.linear_map
 
@@ -270,7 +271,13 @@ end add_comm_group
 
 end is_rep_hom
 
--- End
+/-- Endomorphisms respecting the representation structure, with associated ring structure
+`representation.End.semiring` and algebra structure `representation.End.algebra`. -/
+abbreviation representation.End {k G V : Type*}
+  [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
+  (ρ : representation k G V) := ρ →ᵣ ρ
+
+-- various more general morphisms as rep_hom
 
 namespace rep_hom
 
@@ -394,6 +401,94 @@ fun_like.coe_injective.add_comm_group _
 
 end arithmetic
 
+section actions
+
+variables
+  {k G V V₂ V₃ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
+  [add_comm_monoid V₃] [module k V₃]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂} {ρ₃ : representation k G V₃}
+
+section has_scalar
+
+variables
+  {k' : Type*} [monoid k'] [distrib_mul_action k' V₂] [smul_comm_class k k' V₂]
+  [has_scalar k' k] [is_scalar_tower k' k V₂]
+  {k₃ : Type*} [monoid k₃] [distrib_mul_action k₃ V₃] [smul_comm_class k k₃ V₃]
+  [has_scalar k₃ k] [is_scalar_tower k₃ k V₃]
+  {k'' : Type*} [monoid k''] [distrib_mul_action k'' V₂] [smul_comm_class k k'' V₂]
+  [has_scalar k'' k] [is_scalar_tower k'' k V₂]
+
+instance : distrib_mul_action k' (ρ →ᵣ ρ₂) :=
+{ one_smul := λ f, ext $ λ _, one_smul _ _,
+  mul_smul := λ c c' f, ext $ λ _, mul_smul _ _ _,
+  smul_add := λ c f g, ext $ λ x, smul_add _ _ _,
+  smul_zero := λ c, ext $ λ x, smul_zero _ }
+
+theorem smul_comp (a : k₃) (g : ρ₂ →ᵣ ρ₃) (f : ρ →ᵣ ρ₂) :
+  (a • g).comp f = a • (g.comp f) := rfl
+
+-- comp_smul
+
+end has_scalar
+
+section module
+
+variables
+  {k' : Type*} [semiring k'] [module k' V₂] [smul_comm_class k k' V₂]
+  [has_scalar k' k] [is_scalar_tower k' k V₂]
+
+instance : module k' (ρ →ᵣ ρ₂) :=
+{ add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
+  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+
+-- no_zero_smul_divisors
+
+end module
+
+end actions
+
+section as_monoid
+
+variables
+  {k G V W₁ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_group W₁] [module k W₁]
+  {ρ : representation k G V} {σ₁ : representation k G W₁}
+
+instance : has_one (representation.End ρ) := ⟨rep_hom.id⟩
+instance : has_mul (representation.End ρ) := ⟨rep_hom.comp⟩
+
+lemma one_eq_id : (1 : representation.End ρ) = id := rfl
+lemma mul_eq_comp (f g : representation.End ρ) : f * g = f.comp g := rfl
+
+@[simp] lemma one_apply (x : V) : (1 : representation.End ρ) x = x := rfl
+@[simp] lemma mul_apply (f g : representation.End ρ) (x : V) : (f * g) x = f (g x) := rfl
+
+lemma coe_one : ⇑(1 : representation.End ρ) = _root_.id := rfl
+lemma coe_mul (f g : representation.End ρ) : ⇑(f * g) = f ∘ g := rfl
+
+instance _root_.representation.End.monoid : monoid (representation.End ρ) :=
+{ mul := (*),
+  one := (1 : ρ →ᵣ ρ),
+  mul_assoc := λ f g h, rep_hom.ext $ λ x, rfl,
+  mul_one := comp_id,
+  one_mul := id_comp }
+
+instance _root_.representation.End.semiring : semiring (representation.End ρ) :=
+{ mul := (*),
+  one := (1 : ρ →ᵣ ρ),
+  zero := 0,
+  add := (+),
+  mul_zero := comp_zero,
+  zero_mul := zero_comp,
+  left_distrib := λ f g h, comp_add _ _ _,
+  right_distrib := λ f g h, add_comp _ _ _,
+  .. add_monoid_with_one.unary,
+  .. _root_.module.End.monoid,
+  .. linear_map.add_comm_monoid }
+
+
+end as_monoid
 
 
 end rep_hom

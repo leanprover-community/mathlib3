@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Winston Yin
 -/
 import representation_theory.basic
-import
+import data.nat.cast.defs
 
 -- Follows algebra.module.linear_map
 
@@ -281,7 +281,7 @@ abbreviation representation.End {k G V : Type*}
 
 namespace rep_hom
 
-section has_scalar
+section has_smul
 
 variables
   {k G V V₂ V₃ : Type*} [comm_semiring k] [monoid G]
@@ -290,14 +290,14 @@ variables
   {ρ : representation k G V} {ρ₂ : representation k G V₂} {ρ₃ : representation k G V₃}
 variables
   {k' : Type*} [monoid k'] [distrib_mul_action k' V₂] [smul_comm_class k k' V₂]
-  [has_scalar k' k] [is_scalar_tower k' k V₂]
+  [has_smul k' k] [is_scalar_tower k' k V₂]
   {k'' : Type*} [monoid k''] [distrib_mul_action k'' V₂] [smul_comm_class k k'' V₂]
-  [has_scalar k'' k] [is_scalar_tower k'' k V₂]
+  [has_smul k'' k] [is_scalar_tower k'' k V₂]
 
--- The additional assumptions has_scalar k' k and is_scalar_tower k' k V₂ are needed in order to
+-- The additional assumptions has_smul k' k and is_scalar_tower k' k V₂ are needed in order to
 -- pass scalar multiplication by an element of k' through the representation of an element of G as
 -- a k-linear map.
-instance : has_scalar k' (ρ →ᵣ ρ₂) :=
+instance : has_smul k' (ρ →ᵣ ρ₂) :=
 ⟨λ a f, { to_fun := a • f,
           map_add' := λ x y, by rw [pi.smul_apply,
             f.map_add, smul_add, pi.smul_apply, pi.smul_apply],
@@ -315,7 +315,7 @@ instance [smul_comm_class k'' k' V₂] : smul_comm_class k'' k' (ρ →ᵣ ρ₂
 
 --
 
-end has_scalar
+end has_smul
 
 section arithmetic
 
@@ -394,8 +394,8 @@ lemma comp_sub (f g : ρ →ᵣ σ₂) (h : σ₂ →ᵣ σ₃) :
 ext $ λ _, h.map_sub _ _
 
 /-- The type of linear maps is an additive group. -/
--- the additional has_scalar and is_scalar_tower assumptions are needed for rep_hom.has_scalar
-instance [has_scalar ℤ k] [is_scalar_tower ℤ k W₂] : add_comm_group (ρ →ᵣ σ₂) :=
+-- the additional has_smul and is_scalar_tower assumptions are needed for rep_hom.has_smul
+instance [has_smul ℤ k] [is_scalar_tower ℤ k W₂] : add_comm_group (ρ →ᵣ σ₂) :=
 fun_like.coe_injective.add_comm_group _
   rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)  (λ _ _, rfl)
 
@@ -409,15 +409,15 @@ variables
   [add_comm_monoid V₃] [module k V₃]
   {ρ : representation k G V} {ρ₂ : representation k G V₂} {ρ₃ : representation k G V₃}
 
-section has_scalar
+section has_smul
 
 variables
   {k' : Type*} [monoid k'] [distrib_mul_action k' V₂] [smul_comm_class k k' V₂]
-  [has_scalar k' k] [is_scalar_tower k' k V₂]
+  [has_smul k' k] [is_scalar_tower k' k V₂]
   {k₃ : Type*} [monoid k₃] [distrib_mul_action k₃ V₃] [smul_comm_class k k₃ V₃]
-  [has_scalar k₃ k] [is_scalar_tower k₃ k V₃]
+  [has_smul k₃ k] [is_scalar_tower k₃ k V₃]
   {k'' : Type*} [monoid k''] [distrib_mul_action k'' V₂] [smul_comm_class k k'' V₂]
-  [has_scalar k'' k] [is_scalar_tower k'' k V₂]
+  [has_smul k'' k] [is_scalar_tower k'' k V₂]
 
 instance : distrib_mul_action k' (ρ →ᵣ ρ₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
@@ -428,15 +428,18 @@ instance : distrib_mul_action k' (ρ →ᵣ ρ₂) :=
 theorem smul_comp (a : k₃) (g : ρ₂ →ᵣ ρ₃) (f : ρ →ᵣ ρ₂) :
   (a • g).comp f = a • (g.comp f) := rfl
 
--- comp_smul
+theorem comp_smul [distrib_mul_action k' V₃] [smul_comm_class k k' V₃]
+  [is_scalar_tower k' k V₃] [linear_map.compatible_smul V₃ V₂ k' k]
+  (g : ρ₃ →ᵣ ρ₂) (a : k') (f : ρ →ᵣ ρ₃) : g.comp (a • f) = a • (g.comp f) :=
+ext $ λ x, g.to_linear_map.map_smul_of_tower _ _
 
-end has_scalar
+end has_smul
 
 section module
 
 variables
   {k' : Type*} [semiring k'] [module k' V₂] [smul_comm_class k k' V₂]
-  [has_scalar k' k] [is_scalar_tower k' k V₂]
+  [has_smul k' k] [is_scalar_tower k' k V₂]
 
 instance : module k' (ρ →ᵣ ρ₂) :=
 { add_smul := λ a b f, ext $ λ x, add_smul _ _ _,
@@ -474,19 +477,40 @@ instance _root_.representation.End.monoid : monoid (representation.End ρ) :=
   mul_one := comp_id,
   one_mul := id_comp }
 
--- instance _root_.representation.End.semiring : semiring (representation.End ρ) :=
--- { mul := (*),
---   one := (1 : ρ →ᵣ ρ),
---   zero := 0,
---   add := (+),
---   mul_zero := comp_zero,
---   zero_mul := zero_comp,
---   left_distrib := λ f g h, comp_add _ _ _,
---   right_distrib := λ f g h, add_comp _ _ _,
---   .. add_monoid_with_one.unary,
---   .. _root_.module.End.monoid,
---   .. linear_map.add_comm_monoid }
+instance _root_.representation.End.semiring : semiring (representation.End ρ) :=
+{ mul := (*),
+  one := (1 : ρ →ᵣ ρ),
+  zero := 0,
+  add := (+),
+  mul_zero := comp_zero,
+  zero_mul := zero_comp,
+  left_distrib := λ f g h, comp_add _ _ _,
+  right_distrib := λ f g h, add_comp _ _ _,
+  .. add_monoid_with_one.unary,
+  .. _root_.representation.End.monoid,
+  .. rep_hom.add_comm_monoid }
 
+instance _root_.representation.End.ring [has_smul ℤ k] [is_scalar_tower ℤ k W₁] : ring (representation.End σ₁) :=
+{ ..representation.End.semiring, ..rep_hom.add_comm_group }
+
+section
+
+variables
+  {k' : Type*} [monoid k'] [distrib_mul_action k' V] [smul_comm_class k k' V]
+  [has_smul k' k] [is_scalar_tower k' k V]
+
+instance _root_.representation.End.is_scalar_tower :
+  is_scalar_tower k' (representation.End ρ) (representation.End ρ) := ⟨smul_comp⟩
+
+instance _root_.representation.End.smul_comm_class :
+  smul_comm_class k' (representation.End ρ) (representation.End ρ) :=
+⟨λ s _ _, (comp_smul _ s _).symm⟩
+
+instance _root_.representation.End.smul_comm_class' :
+  smul_comm_class (representation.End ρ) k' (representation.End ρ) :=
+smul_comm_class.symm _ _ _
+
+end
 
 end as_monoid
 

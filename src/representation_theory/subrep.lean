@@ -103,7 +103,7 @@ variables (p)
 protected lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := add_mem h₁ h₂
 
 lemma smul_mem (r : k) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
-lemma smul_of_tower_mem [has_scalar k' k] [has_scalar k' V] [is_scalar_tower k' k V]
+lemma smul_of_tower_mem [has_smul k' k] [has_smul k' V] [is_scalar_tower k' k V]
   (r : k') (h : x ∈ p) : r • x ∈ p :=
 p.to_submodule.smul_of_tower_mem r h
 
@@ -120,22 +120,22 @@ lemma sum_smulG_mem {t : finset ι} {f : ι → V} (g : ι → G)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, ρ (g i) (f i) ∈ p) :=
 sum_mem (λ i hi, smulG_mem _ _ (hyp i hi))
 
-@[simp] lemma smul_mem_iff' [group G'] [mul_action G' V] [has_scalar G' k] [is_scalar_tower G' k V]
+@[simp] lemma smul_mem_iff' [group G'] [mul_action G' V] [has_smul G' k] [is_scalar_tower G' k V]
   (g : G') : g • x ∈ p ↔ x ∈ p :=
 p.to_submodule.smul_mem_iff' g
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
-instance [has_scalar k' k] [has_scalar k' V] [is_scalar_tower k' k V] :
-  has_scalar k' p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
+instance [has_smul k' k] [has_smul k' V] [is_scalar_tower k' k V] :
+  has_smul k' p := ⟨λ c x, ⟨c • x.1, smul_of_tower_mem _ c x.2⟩⟩
 
-instance [has_scalar k' k] [has_scalar k' V] [is_scalar_tower k' k V] : is_scalar_tower k' k p :=
+instance [has_smul k' k] [has_smul k' V] [is_scalar_tower k' k V] : is_scalar_tower k' k p :=
 p.to_submodule.is_scalar_tower
 
 instance
-  [has_scalar k' k] [has_scalar k' V] [is_scalar_tower k' k V]
-  [has_scalar k'ᵐᵒᵖ k] [has_scalar k'ᵐᵒᵖ V] [is_scalar_tower k'ᵐᵒᵖ k V]
+  [has_smul k' k] [has_smul k' V] [is_scalar_tower k' k V]
+  [has_smul k'ᵐᵒᵖ k] [has_smul k'ᵐᵒᵖ V] [is_scalar_tower k'ᵐᵒᵖ k V]
   [is_central_scalar k' V] : is_central_scalar k' p :=
 p.to_submodule.is_central_scalar
 
@@ -149,7 +149,7 @@ variables {p}
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : V) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : p) : V) = 0 := rfl
 @[norm_cast] lemma coe_smul (r : k) (x : p) : ((r • x : p) : V) = r • ↑x := rfl
-@[simp, norm_cast] lemma coe_smul_of_tower [has_scalar k' k] [has_scalar k' V]
+@[simp, norm_cast] lemma coe_smul_of_tower [has_smul k' k] [has_smul k' V]
   [is_scalar_tower k' k V] (r : k') (x : p) : ((r • x : p) : V) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : V) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : V) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : V) ∈ p := x.2
@@ -159,7 +159,7 @@ variables (p)
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_submodule.to_add_submonoid.to_add_comm_monoid }
 
-instance module' [semiring k'] [has_scalar k' k] [module k' V] [is_scalar_tower k' k V] :
+instance module' [semiring k'] [has_smul k' k] [module k' V] [is_scalar_tower k' k V] :
   module k' p := p.to_submodule.module'
 instance : module k p := p.module'
 
@@ -253,7 +253,7 @@ namespace subrep
 variables
   {k k' G V : Type*}
   [division_ring k'] [comm_semiring k] [monoid G]
-  [add_comm_monoid V] [module k V] [has_scalar k' k]
+  [add_comm_monoid V] [module k V] [has_smul k' k]
   [module k' V] [is_scalar_tower k' k V]
   {ρ : representation k G V}
 

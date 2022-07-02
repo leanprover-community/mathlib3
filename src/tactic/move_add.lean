@@ -111,8 +111,7 @@ do
 if it cannot. -/
 meta def as_given_op (op : pexpr) : expr → tactic expr
 | (expr.app (expr.app F a) b) := do
-    op ← to_expr op tt ff,
-    unify op F,
+    to_expr op tt ff >>= unify F,
     return F
 | _ := failed
 
@@ -208,10 +207,8 @@ neq ← mk_app `eq [thyp, reordered],
 nop ← to_expr op tt ff,
 pre ← pp reordered,
 (_, prf) ← solve_aux neq $ match nop with
-  | `(has_add.add) :=
-    `[{ simp only [add_comm, add_assoc, add_left_comm], done }]
-  | `(has_mul.mul) :=
-    `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }]
+  | `(has_add.add) := `[{ simp only [add_comm, add_assoc, add_left_comm], done }]
+  | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }]
   | _ := ac_refl <|>
     fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
       "the initial goal equals:\n\n{pre}\n")

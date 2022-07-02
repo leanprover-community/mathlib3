@@ -21,26 +21,28 @@ multiset enumeration
 
 open_locale big_operators
 
+variables {α : Type*} [decidable_eq α] {m : multiset α}
+
 /-- Create a type that has the same number of elements as the multiset.
 Terms of this type are triples `⟨x, ⟨i, h⟩⟩` where `x : α`, `i : ℕ`, and `i < m.count x`.
 This way repeated elements of a multiset appear multiple times with different values of `i`. -/
-instance {α : Type*} [decidable_eq α] : has_coe_to_sort (multiset α) Type* :=
+instance : has_coe_to_sort (multiset α) Type* :=
 ⟨λ m, Σ (x : α), fin (m.count x)⟩
 
 /-- As a convenience, there is a coercion from `m : Type*` to `α` by projecting onto the first
 component. -/
-instance multiset.has_coe_to_sort.has_coe {α : Type*} [decidable_eq α] (m : multiset α) :
-  has_coe m α := ⟨λ x, x.1⟩
+instance multiset.has_coe_to_sort.has_coe : has_coe m α := ⟨λ x, x.1⟩
 
-@[simp] lemma multiset.fst_coe_eq_coe {α : Type*} [decidable_eq α] (m : multiset α) (x : m) :
-  x.1 = x := rfl
+@[simp] lemma multiset.fst_coe_eq_coe {x : m} : x.1 = x := rfl
 
-@[simp] lemma multiset.coe_eq {α : Type*} [decidable_eq α] {m : multiset α} {x y : m} :
-  (x : α) = (y : α) ↔ x.1 = y.1 :=
+@[simp] lemma multiset.coe_eq {x y : m} : (x : α) = (y : α) ↔ x.1 = y.1 :=
 by { cases x, cases y, refl }
 
-@[simp]
-lemma multiset.exists_coe {α : Type*} [decidable_eq α] (m : multiset α) (p : m → Prop) :
+@[simp] lemma multiset.coe_mk {x : α} {i : fin (m.count x)} : ↑(⟨x, i⟩ : m) = x := rfl
+
+@[simp] lemma multiset.coe_mem {x : m} : ↑x ∈ m := multiset.count_pos.mp (pos_of_gt x.2.2)
+
+@[simp] lemma multiset.exists_coe (p : m → Prop) :
   (∃ (x : m), p x) ↔ ∃ (x : α) (i : ℕ) (h : i < m.count x), p ⟨x, i, h⟩ :=
 begin
   split,
@@ -50,7 +52,7 @@ begin
     exact ⟨⟨x, i, hx⟩, h⟩, },
 end
 
-instance {α : Type*} [decidable_eq α] (m : multiset α) : fintype {p : α × ℕ | p.2 < m.count p.1} :=
+instance : fintype {p : α × ℕ | p.2 < m.count p.1} :=
 fintype.of_finset
 (m.to_finset.bUnion (λ x, (finset.range (m.count x)).map ⟨prod.mk x, prod.mk.inj_left x⟩))
 begin
@@ -61,30 +63,18 @@ begin
   exact λ h, multiset.count_pos.mp (pos_of_gt h),
 end
 
-/-- The embedding from a multiset into `α × ℕ` where the second coordinate enumerates repeats. -/
-@[simps]
-def multiset.coe_embedding {α : Type*} [decidable_eq α] (m : multiset α) :
-  m ↪ α × ℕ :=
-{ to_fun := λ x, (x, x.2.1),
-  inj' := begin
-    rintro ⟨x, i, hi⟩ ⟨y, j, hj⟩,
-    simp only [prod.mk.inj_iff, sigma.mk.inj_iff, and_imp, multiset.coe_eq],
-    rintro rfl rfl,
-    exact ⟨rfl, heq.rfl⟩
-  end }
-
 /-- Construct a finset whose elements enumerate the elements of the multiset `m`.
 The `ℕ` component is used to differentiate between equal elements: if `x` appears `n` times
 then `(x, 0)`, ..., `(x, n-1)` appear in the `finset`. -/
-def multiset.to_enum_finset {α : Type*} [decidable_eq α] (m : multiset α) : finset (α × ℕ) :=
+def multiset.to_enum_finset (m : multiset α) : finset (α × ℕ) :=
 {p : α × ℕ | p.2 < m.count p.1}.to_finset
 
-@[simp] lemma multiset.mem_to_enum_finset {α : Type*} [decidable_eq α]
-  (m : multiset α) (p : α × ℕ) : p ∈ m.to_enum_finset ↔ p.2 < m.count p.1 :=
+@[simp] lemma multiset.mem_to_enum_finset (m : multiset α) (p : α × ℕ) :
+  p ∈ m.to_enum_finset ↔ p.2 < m.count p.1 :=
 set.mem_to_finset
 
 @[mono]
-lemma multiset.to_enum_finset_mono {α : Type*} [decidable_eq α] {m₁ m₂ : multiset α}
+lemma multiset.to_enum_finset_mono {m₁ m₂ : multiset α}
   (h : m₁ ≤ m₂) : m₁.to_enum_finset ⊆ m₂.to_enum_finset :=
 begin
   intro,
@@ -92,7 +82,7 @@ begin
   exact gt_of_ge_of_gt (multiset.le_iff_count.mp h a.1),
 end
 
-@[simp] lemma multiset.to_enum_finset_subset_iff {α : Type*} [decidable_eq α] {m₁ m₂ : multiset α} :
+@[simp] lemma multiset.to_enum_finset_subset_iff {m₁ m₂ : multiset α} :
   m₁.to_enum_finset ⊆ m₂.to_enum_finset ↔ m₁ ≤ m₂ :=
 begin
   refine ⟨λ h, _, multiset.to_enum_finset_mono⟩,
@@ -107,20 +97,36 @@ begin
   { simp [hx] },
 end
 
+/-- The embedding from a multiset into `α × ℕ` where the second coordinate enumerates repeats. -/
+@[simps]
+def multiset.coe_embedding (m : multiset α) :
+  m ↪ α × ℕ :=
+{ to_fun := λ x, (x, x.2.1),
+  inj' := begin
+    rintro ⟨x, i, hi⟩ ⟨y, j, hj⟩,
+    simp only [prod.mk.inj_iff, sigma.mk.inj_iff, and_imp, multiset.coe_eq],
+    rintro rfl rfl,
+    exact ⟨rfl, heq.rfl⟩
+  end }
+
 /-- Another way to coerce a `multiset` to a type is to go through `m.to_enum_finset` and coerce
 that `finset` to a type. -/
 @[simps]
-def multiset.coe_equiv {α : Type*} [decidable_eq α] (m : multiset α) :
+def multiset.coe_equiv (m : multiset α) :
   m ≃ m.to_enum_finset :=
 { to_fun := λ x, ⟨m.coe_embedding x, by { rw multiset.mem_to_enum_finset, exact x.2.2 }⟩,
   inv_fun := λ x, ⟨x.1.1, x.1.2, by { rw ← multiset.mem_to_enum_finset, exact x.2 }⟩,
   left_inv := by { rintro ⟨x, i, h⟩, refl },
   right_inv := by {rintro ⟨⟨x, i⟩, h⟩, refl } }
 
-instance multiset.fintype_coe {α : Type*} [decidable_eq α] (m : multiset α) : fintype m :=
+@[simp] lemma multiset.to_embedding_coe_equiv_trans (m : multiset α) :
+  m.coe_equiv.to_embedding.trans (function.embedding.subtype _) = m.coe_embedding :=
+by ext; simp
+
+instance multiset.fintype_coe : fintype m :=
 fintype.of_equiv m.to_enum_finset m.coe_equiv.symm
 
-lemma multiset.map_univ_coe_embedding {α : Type*} [decidable_eq α] (m : multiset α) :
+lemma multiset.map_univ_coe_embedding (m : multiset α) :
   (finset.univ : finset m).map m.coe_embedding = m.to_enum_finset :=
 begin
   ext ⟨x, i⟩,
@@ -134,7 +140,7 @@ begin
     exact ⟨_, h, rfl⟩, }
 end
 
-lemma multiset.to_enum_finset_filter_eq {α : Type*} [decidable_eq α] (m : multiset α) (x : α) :
+lemma multiset.to_enum_finset_filter_eq (m : multiset α) (x : α) :
   m.to_enum_finset.filter (λ p, x = p.1) =
   (finset.range (m.count x)).map ⟨prod.mk x, prod.mk.inj_left x⟩ :=
 begin
@@ -146,7 +152,7 @@ begin
   refl,
 end
 
-@[simp] lemma multiset.map_to_enum_finset_fst {α : Type*} [decidable_eq α] (m : multiset α) :
+@[simp] lemma multiset.map_to_enum_finset_fst (m : multiset α) :
   m.to_enum_finset.val.map prod.fst = m :=
 begin
   ext x,
@@ -154,12 +160,11 @@ begin
     finset.map_val, finset.range_coe, multiset.card_map, multiset.card_range],
 end
 
-@[simp] lemma multiset.image_to_enum_finset_fst {α : Type*} [decidable_eq α] (m : multiset α) :
+@[simp] lemma multiset.image_to_enum_finset_fst (m : multiset α) :
   m.to_enum_finset.image prod.fst = m.to_finset :=
 by rw [finset.image, multiset.map_to_enum_finset_fst]
 
-@[simp] lemma multiset.map_univ_coe {α : Type*} [decidable_eq α] (m : multiset α) :
-  (finset.univ : finset m).val.map (λ x, ↑x) = m :=
+@[simp] lemma multiset.map_univ_coe (m : multiset α) : (finset.univ : finset m).val.map coe = m :=
 begin
   have := m.map_to_enum_finset_fst,
   rw ← m.map_univ_coe_embedding at this,
@@ -167,8 +172,7 @@ begin
     using this,
 end
 
-@[simp] lemma multiset.card_to_enum_finset {α : Type*} [decidable_eq α] {m : multiset α} :
-  m.to_enum_finset.card = m.card :=
+@[simp] lemma multiset.card_to_enum_finset (m : multiset α) : m.to_enum_finset.card = m.card :=
 begin
   change multiset.card _ = _,
   convert_to (m.to_enum_finset.val.map prod.fst).card = _,
@@ -176,24 +180,20 @@ begin
   { rw m.map_to_enum_finset_fst }
 end
 
-@[simp] lemma multiset.card_coe {α : Type*} [decidable_eq α] (m : multiset α) :
-  fintype.card m = m.card :=
+@[simp] lemma multiset.card_coe (m : multiset α) : fintype.card m = m.card :=
 by { rw fintype.card_congr m.coe_equiv, simp }
 
 @[to_additive]
-lemma multiset.prod_eq_prod_coe {α : Type*} [decidable_eq α] [comm_monoid α] (m : multiset α) :
-  m.prod = ∏ (x : m), x :=
+lemma multiset.prod_eq_prod_coe [comm_monoid α] (m : multiset α) : m.prod = ∏ (x : m), x :=
 by { congr, simp }
 
 @[to_additive]
-lemma multiset.prod_eq_prod_to_enum_finset {α : Type*} [decidable_eq α] [comm_monoid α]
-  (m : multiset α) :
+lemma multiset.prod_eq_prod_to_enum_finset [comm_monoid α] (m : multiset α) :
   m.prod = ∏ x in m.to_enum_finset, x.1 :=
 by { congr, simp }
 
 @[to_additive]
-lemma multiset.prod_to_enum_finset {α β : Type*} [decidable_eq α] [comm_monoid β] (m : multiset α)
-  (f : α → ℕ → β) :
+lemma multiset.prod_to_enum_finset {β : Type*} [comm_monoid β] (m : multiset α) (f : α → ℕ → β) :
   ∏ x in m.to_enum_finset, f x.1 x.2 = ∏ (x : m), f x x.2 :=
 begin
   rw fintype.prod_equiv m.coe_equiv (λ x, f x x.2) (λ x, f x.1.1 x.1.2),

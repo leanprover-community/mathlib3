@@ -72,12 +72,10 @@ theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
 begin
   let leval : (R[X] →ₗ[R] A) := (aeval x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
-  let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
-    (set.range D) ⟨_, ⟨0, rfl⟩⟩,
-  have HM : M ∈ set.range D := well_founded.min_mem _ _ _,
+  let M := well_founded_gt.max (set.range D) ⟨_, ⟨0, rfl⟩⟩,
+  have HM : M ∈ set.range D := well_founded_gt.max_mem _ _,
   cases HM with N HN,
-  have HM : ¬M < D (N+1) := well_founded.not_lt_min
-    (is_noetherian_iff_well_founded.1 H) (set.range D) _ ⟨N+1, rfl⟩,
+  have HM : ¬M < D (N+1) := well_founded_gt.not_max_lt (set.range D) _ ⟨N+1, rfl⟩,
   rw ← HN at HM,
   have HN2 : D (N+1) ≤ D N := classical.by_contradiction (λ H, HM
     (lt_of_le_not_le (map_mono (degree_le_mono

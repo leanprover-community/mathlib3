@@ -153,7 +153,8 @@ variables {R M}
 lemma is_artinian.finite_of_linear_independent [nontrivial R] [is_artinian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, (@rel_embedding.no_descending_seq (submodule R M) (<) _ _).elim' _),
+  refine classical.by_contradiction (λ hf,
+    (@rel_embedding.no_descending_seq (submodule R M) (<) _ _).elim' _),
   have f : ℕ ↪ s, from set.infinite.nat_embedding s hf,
   have : ∀ n, (coe ∘ f) '' {m | n ≤ m} ⊆ s,
   { rintros n x ⟨y, hy₁, rfl⟩, exact (f y).2 },

@@ -50,7 +50,7 @@ instance : has_mem α (opens α) :=
 
 @[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ (U : set α)) = (x ∈ U) := rfl
 
-@[simp] lemma topological_space.opens.mem_mk {x : α} {U : set α} {h : is_open U} :
+@[simp] lemma mem_mk {x : α} {U : set α} {h : is_open U} :
   @has_mem.mem _ _ opens.has_mem x ⟨U, h⟩ ↔ x ∈ U := iff.rfl
 
 @[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext h

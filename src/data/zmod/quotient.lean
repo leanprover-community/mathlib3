@@ -98,6 +98,8 @@ open add_action subgroup add_subgroup function
 
 variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
 
+local attribute [semireducible] mul_opposite
+
 /-- The quotient `(a ^ ℤ) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((•) a) b`. -/
 noncomputable def zpowers_quotient_stabilizer_equiv :
   zpowers a ⧸ stabilizer (zpowers a) b ≃* multiplicative (zmod (minimal_period ((•) a) b)) :=

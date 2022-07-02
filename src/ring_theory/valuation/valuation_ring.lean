@@ -273,7 +273,7 @@ section
 variables (R : Type*) [comm_ring R] [is_domain R] {K : Type*}
 variables [field K] [algebra R K] [is_fraction_ring R K]
 
-lemma iff_dvd_total [is_domain R] :
+lemma iff_dvd_total :
   valuation_ring R ↔ is_total R (∣) :=
 begin
   classical,
@@ -282,7 +282,7 @@ begin
   { obtain (⟨c, rfl⟩|⟨c, rfl⟩) := @is_total.total _ _ H a b; use c; simp }
 end
 
-lemma iff_ideal_total [is_domain R] :
+lemma iff_ideal_total :
   valuation_ring R ↔ is_total (ideal R) (≤) :=
 begin
   classical,
@@ -297,7 +297,7 @@ variable {R}
 lemma dvd_total [h : valuation_ring R] (x y : R) : x ∣ y ∨ y ∣ x :=
 @@is_total.total _ ((iff_dvd_total R).mp h) x y
 
-lemma valuation_ring.unique_irreducible [is_domain R] [valuation_ring R] ⦃p q : R⦄
+lemma unique_irreducible [valuation_ring R] ⦃p q : R⦄
   (hp : irreducible p) (hq : irreducible q) : associated p q :=
 begin
   have := dvd_total p q,
@@ -305,7 +305,7 @@ begin
   exact associated_of_dvd_dvd (irreducible.dvd_symm hq hp this) this,
 end
 
-lemma iff_exists_algebra_map_eq [is_domain R] :
+lemma iff_exists_algebra_map_eq :
   valuation_ring R ↔ ∀ x : K, ∃ c : R, algebra_map R K c = x ∨ algebra_map R K c = x⁻¹ :=
 begin
   split,
@@ -330,13 +330,13 @@ begin
     exact ⟨c, e.symm⟩ }
 end
 
-lemma exists_algebra_map_eq [is_domain R] [h : valuation_ring R] (x : K) :
+lemma exists_algebra_map_eq [h : valuation_ring R] (x : K) :
   ∃ c : R, algebra_map R K c = x ∨ algebra_map R K c = x⁻¹ :=
 iff_exists_algebra_map_eq.mp h x
 
 end
 
-lemma valuation_ring.of_surjective {R S : Type*} [comm_ring R] [is_domain R]
+lemma of_surjective {R S : Type*} [comm_ring R] [is_domain R]
   [valuation_ring R] [comm_ring S] [is_domain S] (f : R →+* S) (hf : function.surjective f) :
     valuation_ring S :=
 ⟨λ a b, begin

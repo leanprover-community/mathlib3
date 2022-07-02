@@ -93,7 +93,6 @@ def mono {hx' : x ∈ V} (h : V ⊆ U) : evenly_covered_pt f hx' :=
 { rigid' := λ p, subtype.ext (show _, from subtype.ext_iff.mp (ϕ.rigid p)),
   .. ϕ.to_evenly_covered_set.mono h }
 
--- todo: golf
 def translate (hy : y ∈ U) : evenly_covered_pt f hy :=
 { rigid' := λ p, ϕ.to_equiv.apply_eq_iff_eq_symm_apply.mpr (prod.ext rfl (subtype.ext
     (p.2.symm.trans (ϕ.commutes_inv ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩)))),

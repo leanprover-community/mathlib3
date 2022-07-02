@@ -7,6 +7,7 @@ Authors: Moritz Doll
 import analysis.calculus.iterated_deriv
 import analysis.calculus.mean_value
 import measure_theory.integral.interval_integral
+import data.polynomial.basic
 
 /-!
 # Taylor's theorem
@@ -29,26 +30,75 @@ open_locale big_operators interval
 
 variables {f : ℝ → ℝ} {n : ℕ} (x₀ : ℝ) (x : ℝ)
 
+
+/-- The `k`th coefficient of the Taylor polynomial. -/
+noncomputable
+def taylor_coeff (f : ℝ → ℝ) (k : ℕ) (x₀ : ℝ) : ℝ :=
+(iterated_deriv k f x₀) / k.factorial
+
+/-- The `k`th coefficient of the Taylor polynomial. -/
+noncomputable
+def taylor_polynomial (f : ℝ → ℝ) (n : ℕ) (x₀ : ℝ) : polynomial ℝ :=
+(finset.range (n+1)).sum (λ k, polynomial.monomial k (taylor_coeff f k x₀))
+
+lemma taylor_polynomial_succ {f : ℝ → ℝ} {n : ℕ} {x₀ : ℝ} :
+  taylor_polynomial f (n+1) x₀ = taylor_polynomial f n x₀
+    + polynomial.monomial (n+1) (taylor_coeff f (n+1) x₀) :=
+begin
+  dunfold taylor_polynomial,
+  rw finset.sum_range_succ,
+end
+
 /-- The Taylor polynomial. -/
 noncomputable
-def taylor_sum (f : ℝ → ℝ) (n : ℕ) (x₀ : ℝ) (x : ℝ) : ℝ :=
-∑ k in finset.range (n+1), (iterated_deriv k f x₀) * (x - x₀)^k / k.factorial
+def taylor_sum (f : ℝ → ℝ) (n : ℕ) (x₀ x : ℝ) : ℝ :=
+polynomial.eval (x - x₀) (taylor_polynomial f n x₀)
 
-lemma taylor_sum_succ {f : ℝ → ℝ} {n : ℕ} {x₀ x : ℝ} :
-  taylor_sum f (n+1) x₀ x = taylor_sum f n x₀ x +
-  iterated_deriv (n + 1) f x₀ * (x - x₀) ^ (n + 1) / ((↑n + 1) * ↑(n.factorial)) :=
+lemma div_mul_comm' (a b : ℝ) {c : ℝ} (hc : c ≠ 0) : a / c * b = a * b / c :=
+by rw [eq_div_iff hc, mul_assoc, mul_comm b c, ←mul_assoc, div_mul_cancel a hc]
+
+@[simp] lemma taylor_sum_succ {f : ℝ → ℝ} {n : ℕ} {x₀ x : ℝ} :
+  taylor_sum f (n+1) x₀ x = taylor_sum f n x₀ x
+    + iterated_deriv (n + 1) f x₀ * (x - x₀) ^ (n + 1) / ((↑n + 1) * ↑(n.factorial)) :=
 begin
   dunfold taylor_sum,
-  rw finset.sum_range_succ,
+  rw taylor_polynomial_succ,
+  rw polynomial.eval_add,
+  simp only [taylor_coeff, polynomial.eval_monomial, add_right_inj],
+  simp only [nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
+  refine div_mul_comm' _ _ _,
+  refine mul_ne_zero (nat.cast_add_one_ne_zero n) _,
+  rw nat.cast_ne_zero,
+  exact nat.factorial_ne_zero n,
+end
+
+
+@[simp] lemma taylor_sum_zero {f : ℝ → ℝ} {x₀ x : ℝ} :
+  taylor_sum f 0 x₀ x = f x₀ :=
+begin
+  dunfold taylor_sum,
+  dunfold taylor_polynomial,
+  dunfold taylor_coeff,
   simp,
 end
 
-/-- For `x₀ = x` the Taylor polynomial is just `f x`. -/
-@[simp] lemma taylor_sum_self {f : ℝ → ℝ} {n : ℕ} {x : ℝ} : taylor_sum f n x x = f x :=
+@[simp] lemma taylor_sum_self {f : ℝ → ℝ} {n : ℕ} {x : ℝ} :
+  taylor_sum f n x x = f x :=
 begin
   induction n with k hk,
-  { dunfold taylor_sum, simp },
-  rw [taylor_sum_succ, hk],
+  { exact taylor_sum_zero },
+  simp [hk]
+end
+
+lemma taylor_polynomial_apply {f : ℝ → ℝ} {n : ℕ} {x₀ x : ℝ} : taylor_sum f n x₀ x =
+  ∑ k in finset.range (n+1), (iterated_deriv k f x₀) * (x - x₀)^k / k.factorial :=
+begin
+  --dunfold taylor_sum',
+  induction n with k hk,
+  { simp },
+  rw taylor_sum_succ,
+  rw finset.sum_range_succ,
+  rw hk,
   simp,
 end
 
@@ -57,7 +107,7 @@ end
 lemma taylor_sum_continuous {f : ℝ → ℝ} (hf : cont_diff ℝ (n+1) f) {x : ℝ} :
   continuous (λ t, taylor_sum f n t x) :=
 begin
-  dunfold taylor_sum,
+  simp_rw taylor_polynomial_apply,
   continuity,
   rw cont_diff_iff_iterated_deriv at hf,
   cases hf,
@@ -80,10 +130,8 @@ lemma taylor_sum_has_deriv {f : ℝ → ℝ} (hf : cont_diff ℝ (n+1) f) {x t :
   has_deriv_at (λ t, taylor_sum f n t x) ((iterated_deriv (n+1) f t) * (x - t)^n /n.factorial) t :=
 begin
   induction n with k hk,
-  { dunfold taylor_sum,
-    simp only [finset.range_one, finset.sum_singleton, iterated_deriv_zero, pow_zero, mul_one,
-      nat.factorial_zero, nat.cast_one, div_one, iterated_deriv_one, has_deriv_at_deriv_iff],
-    rw [with_top.coe_zero, zero_add] at hf,
+  { simp only [taylor_sum_zero, iterated_deriv_one, pow_zero, mul_one, nat.factorial_zero,
+      nat.cast_one, div_one, has_deriv_at_deriv_iff],
     refine (hf.differentiable rfl.le).differentiable_at },
   simp_rw nat.add_succ,
   simp_rw taylor_sum_succ,

@@ -42,7 +42,7 @@ lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
 lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
-  apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
+  apply convex_on_univ_of_deriv2_nonneg (differentiable_pow n),
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
     obtain ⟨k, hk⟩ := (hn.tsub $ even_bit0 _).exists_two_nsmul _,
@@ -54,7 +54,7 @@ end
 lemma even.strict_convex_on_pow {n : ℕ} (hn : even n) (h : n ≠ 0) :
   strict_convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
-  apply strict_mono.strict_convex_on_univ_of_deriv differentiable_pow,
+  apply strict_mono.strict_convex_on_univ_of_deriv (differentiable_pow n),
   rw deriv_pow',
   replace h := nat.pos_of_ne_zero h,
   exact strict_mono.const_mul (odd.strict_mono_pow $ nat.even.sub_odd h hn $ nat.odd_iff.2 rfl)
@@ -65,7 +65,7 @@ end
 lemma convex_on_pow (n : ℕ) : convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
-    differentiable_on_pow,
+    (differentiable_on_pow n),
   { simp only [deriv_pow'], exact (@differentiable_on_pow ℝ _ _ _).const_mul (n : ℝ) },
   { intros x hx,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
@@ -76,7 +76,7 @@ end
 lemma strict_convex_on_pow {n : ℕ} (hn : 2 ≤ n) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _)
-    differentiable_on_pow,
+    (differentiable_on_pow n),
   rw [deriv_pow', interior_Ici],
   exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
     nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),

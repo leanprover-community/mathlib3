@@ -37,6 +37,45 @@ open function set filter bornology metric
 
 open_locale pointwise big_operators
 
+namespace continuous_linear_map
+
+def is_compact_map {R₁ R₂ M₁ M₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
+  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [module R₁ M₁] [module R₂ M₂] (f : M₁ →SL[σ₁₂] M₂) : Prop :=
+∃ K, is_compact K ∧ (closed_ball 0 1) ⊆ f ⁻¹' K
+
+namespace is_compact_map
+
+section semiring
+
+variables {R₁ R₂ M₁ M₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
+  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [module R₁ M₁] [module R₂ M₂] {f g : M₁ →SL[σ₁₂] M₂}
+
+protected lemma zero : (0 : M₁ →SL[σ₁₂] M₂).is_compact_map :=
+⟨{0}, is_compact_singleton, λ _ _, rfl⟩
+
+protected lemma add [has_continuous_add M₂] (hf : f.is_compact_map) (hg : g.is_compact_map) :
+  (f + g).is_compact_map :=
+let ⟨A, hA, hAf⟩ := hf, ⟨B, hB, hBg⟩ := hg in
+⟨A + B, hA.add hB, λ x hx, set.add_mem_add (hAf hx) (hBg hx)⟩
+
+protected lemma const_smul {S₂ : Type*} [monoid S₂]
+  [distrib_mul_action S₂ M₂] [smul_comm_class R₂ S₂ M₂] [has_continuous_const_smul S₂ M₂]
+  (hf : f.is_compact_map) (c : S₂) :
+  (c • f).is_compact_map :=
+let ⟨K, hK, hKf⟩ := hf in ⟨c • K, hK.image $ continuous_id.const_smul c,
+  λ x hx, smul_mem_smul_set (hKf hx)⟩
+
+#lint
+
+end semiring
+
+end is_compact_map
+
+end continuous_linear_map
+
+/-
 structure compact_operator {R₁ R₂} [semiring R₁] [semiring R₂] (σ₁₂ : R₁ →+* R₂) (M₁ M₂ : Type*)
   [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
   [module R₁ M₁] [module R₂ M₂] extends M₁ →SL[σ₁₂] M₂ :=
@@ -215,3 +254,4 @@ end add
 end semiring
 
 end compact_operator
+-/

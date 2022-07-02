@@ -786,10 +786,12 @@ instance (n : ℕ) : fintype (fin n) :=
 
 lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := rfl
 
-@[simp] theorem multiset.map_enum_of_fin_card
-  (s : multiset α) {l : list α} (h : (l : multiset α) = s) :
-  (univ : finset (fin s.card)).val.map (s.enum_of_fin_card h) = s :=
-by { subst h, exact congr_arg coe l.map_nth_le }
+/-- The elements of a multiset `s` can be enumerated by a function from `fin s.card`,
+  once an ordering `l` on `s` is chosen; `trunc` makes the result independent of the choice. -/
+def multiset.trunc_enum_of_fin_card {α} (s : multiset α) :
+  trunc {f : fin s.card → α // finset.univ.val.map f = s} :=
+quotient.rec_on s (λ l, trunc.mk ⟨λ i, l.nth_le i i.2, congr_arg coe l.map_nth_le⟩)
+  (λ _ _ _, subsingleton.elim _ _)
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n

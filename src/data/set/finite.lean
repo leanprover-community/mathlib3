@@ -532,19 +532,26 @@ by { casesI hs, apply finite_of_subtype }
 theorem finite.map {α β} {s : set α} : ∀ (f : α → β), s.finite → (f <$> s).finite :=
 finite.image
 
+theorem bij_on.finite_iff {s : set α} {t : set β} {f : α → β} (h : bij_on f s t) :
+  s.finite ↔ t.finite :=
+finite_coe_iff.symm.trans $ (h.equiv _).finite_iff.trans finite_coe_iff
+
 theorem finite.of_finite_image {s : set α} {f : α → β} (h : (f '' s).finite) (hi : set.inj_on f s) :
   s.finite :=
-begin
-  casesI h,
-  exact ⟨finite.of_injective ((maps_to_image f s).restrict _ _ _) (hi.injective.cod_restrict _)⟩
-end
+hi.bij_on_image.finite_iff.2 h
+
+theorem _root_.function.injective.finite_range_iff {f : ι → α} (h : injective f) :
+  (range f).finite ↔ finite ι :=
+finite_coe_iff.symm.trans (equiv.of_injective _ h).finite_iff.symm
+
+alias function.injective.finite_range_iff ↔ finite.domain_of_range _
 
 theorem finite.of_preimage {f : α → β} {s : set β} (h : (f ⁻¹' s).finite) (hf : surjective f) :
   s.finite :=
 hf.image_preimage s ▸ h.image _
 
-theorem finite.preimage {s : set β} {f : α → β}
-  (I : set.inj_on f (f⁻¹' s)) (h : s.finite) : (f ⁻¹' s).finite :=
+theorem finite.preimage {s : set β} {f : α → β} (I : set.inj_on f (f⁻¹' s)) (h : s.finite) :
+  (f ⁻¹' s).finite :=
 (h.subset (image_preimage_subset f s)).of_finite_image I
 
 theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=

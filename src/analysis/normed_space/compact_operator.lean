@@ -94,6 +94,28 @@ coe_injective.eq_iff
 theorem coe_fn_injective : @function.injective (compact_operator σ₁₂ M₁ M₂) (M₁ → M₂) coe_fn :=
 fun_like.coe_injective
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : compact_operator σ₁₂ M₁ M₂) : M₁ → M₂ := h
+
+/-- See Note [custom simps projection]. -/
+def simps.coe (h : compact_operator σ₁₂ M₁ M₂) : M₁ →SL[σ₁₂] M₂ := h
+
+initialize_simps_projections compact_operator
+  (to_continuous_linear_map_to_linear_map_to_fun → apply, to_continuous_linear_map → coe)
+
+@[ext] theorem ext {f g : M₁ →SL[σ₁₂] M₂} (h : ∀ x, f x = g x) : f = g :=
+fun_like.ext f g h
+
+theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
+fun_like.ext_iff
+
+/-- Copy of a `compact_operator` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
+{ to_linear_map := f.to_linear_map.copy f' h,
+  cont := show continuous f', from h.symm ▸ f.continuous }
+
 end boilerplate
 
 end compact_operator

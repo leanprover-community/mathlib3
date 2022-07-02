@@ -306,7 +306,7 @@ section smul
 variables {M N : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F]
 variables [monoid N] [distrib_mul_action N F] [smul_comm_class R N F]
 
-instance : has_scalar M (linear_pmap R E F) :=
+instance : has_smul M (linear_pmap R E F) :=
 ⟨λ a f,
   { domain := f.domain,
     to_fun := a • f.to_fun }⟩
@@ -319,7 +319,7 @@ lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
 instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
 
-instance [has_scalar M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
 ⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
 
 end smul

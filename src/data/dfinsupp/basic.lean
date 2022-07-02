@@ -155,9 +155,9 @@ funext $ add_apply g₁ g₂
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
 fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 
-/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+/-- Note the general `dfinsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_nat_scalar [Π i, add_monoid (β i)] : has_scalar ℕ (Π₀ i, β i) :=
+instance has_nat_scalar [Π i, add_monoid (β i)] : has_smul ℕ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, nsmul_zero _)⟩
 
 lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : ι) :
@@ -211,9 +211,9 @@ zip_with_apply _ _ g₁ g₂ i
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
-/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+/-- Note the general `dfinsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_int_scalar [Π i, add_group (β i)] : has_scalar ℤ (Π₀ i, β i) :=
+instance has_int_scalar [Π i, add_group (β i)] : has_smul ℤ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, zsmul_zero _)⟩
 
 lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
@@ -233,7 +233,7 @@ fun_like.coe_injective.add_comm_group _
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
-  has_scalar γ (Π₀ i, β i) :=
+  has_smul γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
 lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
@@ -254,7 +254,7 @@ instance {δ : Type*} [monoid γ] [monoid δ]
 
 instance {δ : Type*} [monoid γ] [monoid δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
-  [has_scalar γ δ] [Π i, is_scalar_tower γ δ (β i)] :
+  [has_smul γ δ] [Π i, is_scalar_tower γ δ (β i)] :
   is_scalar_tower γ δ (Π₀ i, β i) :=
 { smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 

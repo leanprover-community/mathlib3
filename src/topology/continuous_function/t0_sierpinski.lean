@@ -23,16 +23,17 @@ noncomputable theory
 namespace topological_space
 
 lemma eq_induced_by_maps_to_sierpinski (X : Type*) [t : topological_space X] :
-  t = ⨅ (u : opens X), topological_space.induced (λ x, x ∈ u) sierpinski_space :=
-le_antisymm
-(le_infi_iff.2 (λ u, continuous.le_induced $ is_open_iff_continuous_mem.1 u.2))
-(is_open_implies_is_open_iff.mp $ λ u h,
+  t = ⨅ (u : opens X), sierpinski_space.induced (∈ u) :=
 begin
-  apply is_open_implies_is_open_iff.mpr _ u _,
-  { exact topological_space.induced (λ (x : X), x ∈ u) sierpinski_space },
-  { exact infi_le_of_le ⟨u,h⟩ (le_refl _) },
-  { exact is_open_induced_iff'.mpr ⟨{true}, ⟨is_open_singleton_true, by simp [set.preimage]⟩⟩ },
-end)
+  apply le_antisymm,
+  { rw [le_infi_iff],
+    exact λ u, continuous.le_induced (is_open_iff_continuous_mem.mp u.2) },
+  { intros u h,
+    rw ← generate_from_Union_is_open,
+    apply is_open_generate_from_of_mem,
+    simp only [set.mem_Union, set.mem_set_of_eq, is_open_induced_iff'],
+    exact ⟨⟨u, h⟩, {true}, is_open_singleton_true, by simp [set.preimage]⟩ },
+end
 
 variables (X : Type*) [topological_space X]
 

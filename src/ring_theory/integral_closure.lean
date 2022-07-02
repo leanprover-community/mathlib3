@@ -72,19 +72,16 @@ theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
 begin
   let leval : (R[X] →ₗ[R] A) := (aeval x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
-  let M := well_founded_gt.max (set.range D) ⟨_, ⟨0, rfl⟩⟩,
-  have HM : M ∈ set.range D := well_founded_gt.max_mem _ _,
-  cases HM with N HN,
-  have HM : ¬M < D (N+1) := well_founded_gt.not_max_lt (set.range D) _ ⟨N+1, rfl⟩,
-  rw ← HN at HM,
-  have HN2 : D (N+1) ≤ D N := classical.by_contradiction (λ H, HM
+  let M := function.argmax D,
+  have HM : ¬D M < D (M + 1) := function.not_argmax_lt D _,
+  have HN2 : D (M + 1) ≤ D M := classical.by_contradiction (λ H, HM
     (lt_of_le_not_le (map_mono (degree_le_mono
-      (with_bot.coe_le_coe.2 (nat.le_succ N)))) H)),
-  have HN3 : leval (X^(N+1)) ∈ D N,
+      (with_bot.coe_le_coe.2 (nat.le_succ M)))) H)),
+  have HN3 : leval (X ^ (M + 1)) ∈ D M,
   { exact HN2 (mem_map_of_mem (mem_degree_le.2 (degree_X_pow_le _))) },
   rcases HN3 with ⟨p, hdp, hpe⟩,
-  refine ⟨X^(N+1) - p, monic_X_pow_sub (mem_degree_le.1 hdp), _⟩,
-  show leval (X ^ (N + 1) - p) = 0,
+  refine ⟨X ^ (M + 1) - p, monic_X_pow_sub (mem_degree_le.1 hdp), _⟩,
+  show leval (X ^ (M + 1) - p) = 0,
   rw [linear_map.map_sub, hpe, sub_self]
 end
 
@@ -100,7 +97,7 @@ begin
     rw S.val.map_sum,
     refine finset.sum_congr rfl (λ n hn, _),
     rw [S.val.map_mul, S.val.map_pow, S.val.commutes, S.val_apply, subtype.coe_mk], },
-  refine is_integral_of_noetherian H ⟨x, hx⟩
+  exact is_integral_of_noetherian H ⟨x, hx⟩
 end
 
 end ring

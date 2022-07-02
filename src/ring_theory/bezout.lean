@@ -104,6 +104,7 @@ begin
   { rw [ideal.map_span, set.image_singleton], refl }
 end
 
+@[priority 100]
 instance of_is_principal_ideal_ring [is_principal_ideal_ring R] : is_bezout R :=
 ⟨λ I _, is_principal_ideal_ring.principal I⟩
 

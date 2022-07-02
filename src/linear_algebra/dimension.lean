@@ -298,7 +298,7 @@ end
 
 lemma linear_independent.set_finite_of_is_noetherian [is_noetherian R M]
   {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-@set.finite_of_finite _ _ hi.finite_of_is_noetherian
+⟨hi.finite_of_is_noetherian⟩
 
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.

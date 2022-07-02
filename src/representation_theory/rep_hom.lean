@@ -11,8 +11,6 @@ import data.nat.cast.defs
 open function
 open_locale big_operators
 
-section
-
 set_option old_structure_cmd true
 
 /-- A map from V to V₂ is a representation homomorphism if it is a linear map that commutes with
@@ -458,26 +456,26 @@ variables
   [add_comm_monoid V] [module k V] [add_comm_group W₁] [module k W₁]
   {ρ : representation k G V} {σ₁ : representation k G W₁}
 
-instance : has_one (representation.End ρ) := ⟨rep_hom.id⟩
-instance : has_mul (representation.End ρ) := ⟨rep_hom.comp⟩
+instance : has_one ρ.End := ⟨rep_hom.id⟩
+instance : has_mul ρ.End := ⟨rep_hom.comp⟩
 
-lemma one_eq_id : (1 : representation.End ρ) = id := rfl
-lemma mul_eq_comp (f g : representation.End ρ) : f * g = f.comp g := rfl
+lemma one_eq_id : (1 : ρ.End) = id := rfl
+lemma mul_eq_comp (f g : ρ.End) : f * g = f.comp g := rfl
 
-@[simp] lemma one_apply (x : V) : (1 : representation.End ρ) x = x := rfl
-@[simp] lemma mul_apply (f g : representation.End ρ) (x : V) : (f * g) x = f (g x) := rfl
+@[simp] lemma one_apply (x : V) : (1 : ρ.End) x = x := rfl
+@[simp] lemma mul_apply (f g : ρ.End) (x : V) : (f * g) x = f (g x) := rfl
 
-lemma coe_one : ⇑(1 : representation.End ρ) = _root_.id := rfl
-lemma coe_mul (f g : representation.End ρ) : ⇑(f * g) = f ∘ g := rfl
+lemma coe_one : ⇑(1 : ρ.End) = _root_.id := rfl
+lemma coe_mul (f g : ρ.End) : ⇑(f * g) = f ∘ g := rfl
 
-instance _root_.representation.End.monoid : monoid (representation.End ρ) :=
+instance _root_.representation.End.monoid : monoid ρ.End :=
 { mul := (*),
   one := (1 : ρ →ᵣ ρ),
   mul_assoc := λ f g h, rep_hom.ext $ λ x, rfl,
   mul_one := comp_id,
   one_mul := id_comp }
 
-instance _root_.representation.End.semiring : semiring (representation.End ρ) :=
+instance _root_.representation.End.semiring : semiring ρ.End :=
 { mul := (*),
   one := (1 : ρ →ᵣ ρ),
   zero := 0,
@@ -500,21 +498,37 @@ variables
   [has_smul k' k] [is_scalar_tower k' k V]
 
 instance _root_.representation.End.is_scalar_tower :
-  is_scalar_tower k' (representation.End ρ) (representation.End ρ) := ⟨smul_comp⟩
+  is_scalar_tower k' ρ.End ρ.End := ⟨smul_comp⟩
 
 instance _root_.representation.End.smul_comm_class :
-  smul_comm_class k' (representation.End ρ) (representation.End ρ) :=
+  smul_comm_class k' ρ.End ρ.End :=
 ⟨λ s _ _, (comp_smul _ s _).symm⟩
 
 instance _root_.representation.End.smul_comm_class' :
-  smul_comm_class (representation.End ρ) k' (representation.End ρ) :=
+  smul_comm_class ρ.End k' ρ.End :=
 smul_comm_class.symm _ _ _
 
 end
 
-end as_monoid
+/-- The tautological action by `ρ.End` (aka `ρ →ᵣ ρ`) on `V`. -/
+def End_representation : representation k ρ.End V :=
+{ to_fun := to_linear_map,
+  map_one' := by {ext, simp [←coe_eq_to_linear_map_coe]},
+  map_mul' := by {intros f g, ext, simp [←coe_eq_to_linear_map_coe]} }
 
+-- apply_smul_... (unlike module, representation is not a class)
+
+instance End_module : module ρ.End V :=
+{ smul := ($),
+  smul_zero := rep_hom.map_zero,
+  smul_add := rep_hom.map_add,
+  add_smul := rep_hom.add_apply,
+  zero_smul := (rep_hom.zero_apply : ∀ m, (0 : ρ →ᵣ ρ) m = 0),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+end as_monoid
 
 end rep_hom
 
-end
+-- distrib_mul_action

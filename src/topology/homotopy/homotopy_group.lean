@@ -227,8 +227,8 @@ lemma curry_to_path {p : gen_loop (n+1) x} {t:I} {tn:I^n} :
 by {rcases p with ⟨p,pH⟩, unfold to_path, simp}
 
 @[simp] lemma uncurry_apply  {α : Type*} {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [topological_space γ] [locally_compact_space β]
-  (f : C(α, C(β, γ))) (a : α) (b : β) : f.uncurry ⟨a, b⟩ = f a b := rfl
+[topological_space α] [topological_space β] [topological_space γ] [locally_compact_space β]
+(f : C(α, C(β, γ))) (a : α) (b : β) : f.uncurry ⟨a, b⟩ = f a b := rfl
 
 lemma uncurry_helper (f : C(I, C(I, C(I^n, X)))) (t : I×I) (y : I^n) :
   f.uncurry t y = f t.fst t.snd y :=
@@ -240,11 +240,11 @@ abbreviation c_currying : C(C(I × I^n, X),C(I, C(I^n, X))) :=
 
 /-- Uncurrying as a continuous map.-/
 abbreviation c_uncurrying : C(C(I, C(I^n, X)),C(I × I^n, X)) :=
-⟨continuous_map.uncurry,continuous_map.continuous_uncurry⟩ : C(C(I × I^n, X),C(I, C(I^n, X)))
+⟨continuous_map.uncurry,continuous_map.continuous_uncurry⟩
 
 /-- Composition with fold as a continuous map.-/
 abbreviation c_comp_fold : C(C(I^(n+1), X), C(I×I^n, X)) :=
-    ⟨λ f, f.comp cube.fold, cube.fold.continuous_comp_left⟩
+⟨λ f, f.comp cube.fold, cube.fold.continuous_comp_left⟩
 
 lemma homotopic_to {p q : gen_loop (n+1) x} : homotopic p q → (to_path p).homotopic (to_path q) :=
 begin

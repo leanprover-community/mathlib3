@@ -925,13 +925,13 @@ def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.sur
 lemma ideal_factors_fun_of_quot_hom_id :
   ideal_factors_fun_of_quot_hom  (ring_hom.id (A ⧸ J)).is_surjective = order_hom.id :=
 order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, map_id,
-<<<<<<< HEAD
-  order_hom.coe_fun_mk, order_hom.id_coe, id.def, comap_map_of_surjective _ quotient.mk_surjective,
-  ← ring_hom.ker_eq_comap_bot J^.quotient.mk, mk_ker, sup_eq_left.mpr (dvd_iff_le.mp X.prop),
-  subtype.coe_eta] )
+  order_hom.coe_fun_mk, order_hom.id_coe, id.def, comap_map_of_surjective J^.quotient.mk
+  quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot J^.quotient.mk, mk_ker, sup_eq_left.mpr
+  (dvd_iff_le.mp X.prop), subtype.coe_eta] )
 
 variables {B : Type*} [comm_ring B] [is_domain B] [is_dedekind_domain B] {L : ideal B}
 
+lemma ideal_factors_fun_of_quot_hom_comp
   {f : R ⧸ I →+* A ⧸ J}  {g : A ⧸ J →+* B ⧸ L} (hf : function.surjective f)
     (hg : function.surjective g) :
     (ideal_factors_fun_of_quot_hom hg).comp

@@ -242,6 +242,7 @@ abbreviation c_currying : C(C(I × I^n, X),C(I, C(I^n, X))) :=
 abbreviation c_uncurrying : C(C(I, C(I^n, X)),C(I × I^n, X)) :=
 ⟨continuous_map.uncurry,continuous_map.continuous_uncurry⟩ : C(C(I × I^n, X),C(I, C(I^n, X)))
 
+/-- Composition with fold as a continuous map.-/
 abbreviation c_comp_fold : C(C(I^(n+1), X), C(I×I^n, X)) :=
     ⟨λ f, f.comp cube.fold, cube.fold.continuous_comp_left⟩
 
@@ -276,6 +277,7 @@ end
 [topological_space α₂] [topological_space β₂] (f : C(α₁, α₂)) (g : C(β₁, β₂)) (x:α₁) (y:β₁) :
 f.prod_map g ⟨x,y⟩ = ⟨f x, g y⟩ := rfl
 
+/--Coercion as a continuous map.-/
 abbreviation c_coe : C(gen_loop n x, C(I^n,X)) := ⟨λ p, p.val, continuous_induced_dom⟩
 
 lemma homotopic_from {p q : gen_loop (n+1) x} : (to_path p).homotopic (to_path q) → homotopic p q :=

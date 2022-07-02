@@ -42,7 +42,7 @@ section semi_normed_ring
 section has_zero
 
 variables (𝕜)
-variables [semi_normed_ring 𝕜] [has_scalar 𝕜 E] [has_zero E]
+variables [semi_normed_ring 𝕜] [has_smul 𝕜 E] [has_zero E]
 variables [topological_space E]
 
 /-- A set `s` is von Neumann bounded if every neighborhood of 0 absorbs `s`. -/
@@ -106,7 +106,8 @@ lemma is_vonN_bounded.image {σ : 𝕜₁ →+* 𝕜₂} [ring_hom_surjective σ
   is_vonN_bounded 𝕜₂ (f '' s) :=
 begin
   let σ' := ring_equiv.of_bijective σ ⟨σ.injective, σ.is_surjective⟩,
-  have σ_iso : isometry σ := σ.to_add_monoid_hom.isometry_of_norm (λ x, ring_hom_isometric.is_iso),
+  have σ_iso : isometry σ := add_monoid_hom_class.isometry_of_norm σ
+    (λ x, ring_hom_isometric.is_iso),
   have σ'_symm_iso : isometry σ'.symm := σ_iso.right_inv σ'.right_inv,
   have f_tendsto_zero := f.continuous.tendsto 0,
   rw map_zero at f_tendsto_zero,

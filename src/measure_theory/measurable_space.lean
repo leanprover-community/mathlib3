@@ -1351,7 +1351,7 @@ begin
 end
 
 alias principal_is_measurably_generated_iff ↔
-  _ measurable_set.principal_is_measurably_generated
+  _ _root_.measurable_set.principal_is_measurably_generated
 
 instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurably_generated (f i)] :
   is_measurably_generated (⨅ i, f i) :=

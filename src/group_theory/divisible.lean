@@ -68,8 +68,8 @@ noncomputable def divisible_by_of_smul_surj
 
 section pi
 
-variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), add_monoid (B i)] [Π (i : ι), has_scalar β (B i)]
-variables [has_zero β] [Π i, divisible_by (B i) β]
+variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), add_monoid (B i)]
+variables [has_zero β] [Π (i : ι), has_scalar β (B i)] [Π i, divisible_by (B i) β]
 
 instance divsible_by_pi : divisible_by (Π i, B i) β :=
 { div := λ x n i, (divisible_by.div (x i) n),
@@ -334,8 +334,6 @@ noncomputable def rootable_by_quotient [rootable_by A ℕ] : rootable_by (A ⧸ 
 rootable_by_of_root_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
   ⟨quotient.mk' (rootable_by.root a n),
     (congr_arg _ $ rootable_by.root_pow _ hn : quotient.mk' _ = _)⟩
-
-attribute [to_additive rootable_by_quotient] add_comm_group.divisible_by_quotient
 
 end quotient
 

@@ -98,9 +98,7 @@ fintype.complete x
 lemma eq_univ_iff_forall : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
 lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
-@[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
-by ext; simp
-
+@[simp, norm_cast] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) := by ext; simp
 @[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
 by rw [←coe_univ, coe_inj]
 
@@ -1159,8 +1157,8 @@ have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from injective_iff_
 λ hsurj, by simpa [function.comp] using
   e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
-alias fintype.injective_iff_surjective_of_equiv ↔ function.injective.surjective_of_fintype
-  function.surjective.injective_of_fintype
+alias fintype.injective_iff_surjective_of_equiv ↔ _root_.function.injective.surjective_of_fintype
+  _root_.function.surjective.injective_of_fintype
 
 lemma card_of_bijective {f : α → β} (hf : bijective f) : card α = card β :=
 card_congr (equiv.of_bijective f hf)
@@ -1230,6 +1228,20 @@ finset.subtype.fintype s
 
 @[simp] lemma fintype.card_coe (s : finset α) [fintype s] :
   fintype.card s = s.card := fintype.card_of_finset' s (λ _, iff.rfl)
+
+/-- Noncomputable equivalence between a finset `s` coerced to a type and `fin s.card`. -/
+noncomputable def finset.equiv_fin (s : finset α) : s ≃ fin s.card :=
+fintype.equiv_fin_of_card_eq (fintype.card_coe _)
+
+/-- Noncomputable equivalence between a finset `s` as a fintype and `fin n`, when there is a
+proof that `s.card = n`. -/
+noncomputable def finset.equiv_fin_of_card_eq {s : finset α} {n : ℕ} (h : s.card = n) : s ≃ fin n :=
+fintype.equiv_fin_of_card_eq ((fintype.card_coe _).trans h)
+
+/-- Noncomputable equivalence between two finsets `s` and `t` as fintypes when there is a proof
+that `s.card = t.card`.-/
+noncomputable def finset.equiv_of_card_eq {s t : finset α} (h : s.card = t.card) : s ≃ t :=
+fintype.equiv_of_card_eq ((fintype.card_coe _).trans (h.trans (fintype.card_coe _).symm))
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 

@@ -689,7 +689,7 @@ We may also add coercions to `ℤ` and `ℕ` as well in order to support `char_z
 rings and semirings. -/
 meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic (instance_cache × expr)
 | ic a b na nb := prove_ne_rat ic a b na nb <|> do
-  cz_inst ← mk_mapp ``char_zero [ic.α, none, none] >>= mk_instance,
+  cz_inst ← mk_mapp ``char_zero [ic.α, none] >>= mk_instance,
   if na.denom = 1 ∧ nb.denom = 1 then
     if na ≥ 0 ∧ nb ≥ 0 then do
       guard (ic.α ≠ `(ℕ)),
@@ -1252,7 +1252,7 @@ theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exa
 
 theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
   (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
-  -[1+ a] = -c := by rw [← h₂, ← h₁, int.nat_cast_eq_coe_nat]; refl
+  -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
 
 /-- Evaluates some extra numeric operations on `nat` and `int`, specifically
 `nat.succ`, `/` and `%`, and `∣` (divisibility). -/
@@ -1332,9 +1332,9 @@ meta def eval_cast : expr → tactic (expr × expr)
       (ic, b) ← ic.of_int n,
       (_, _, _, p) ← prove_int_uncast ic zc b,
       pure (b, p)
-    else if inst.app_arg.is_app_of ``int.cast_coe then do
+    else if inst.app_arg.is_app_of ``rat.cast_coe then do
       n ← a.to_rat,
-      cz_inst ← mk_mapp ``char_zero [α, none, none] >>= mk_instance,
+      cz_inst ← mk_mapp ``char_zero [α, none] >>= mk_instance,
       ic ← mk_instance_cache α,
       qc ← mk_instance_cache `(ℚ),
         (ic, b) ← ic.of_rat n,

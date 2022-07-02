@@ -133,14 +133,6 @@ lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
 end functors
 
-@[mono] lemma generate_from_mono {s t : set (set α)} (h : s ⊆ t) :
-  generate_from s ≤ generate_from t :=
-gi_generate_from.gc.monotone_l h
-
-lemma generate_from_sup_generate_from {s t : set (set α)} :
-  generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
-(@gi_generate_from α).gc.l_sup.symm
-
 lemma comap_generate_from {f : α → β} {s : set (set β)} :
   (generate_from s).comap f = generate_from (preimage f '' s) :=
 le_antisymm
@@ -1359,7 +1351,7 @@ begin
 end
 
 alias principal_is_measurably_generated_iff ↔
-  _ measurable_set.principal_is_measurably_generated
+  _ _root_.measurable_set.principal_is_measurably_generated
 
 instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurably_generated (f i)] :
   is_measurably_generated (⨅ i, f i) :=

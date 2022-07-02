@@ -77,7 +77,7 @@ lemma card_pow_degree_is_euclidean :
 have card_pos : 0 < fintype.card Fq := fintype.card_pos_iff.mpr infer_instance,
 have pow_pos : ∀ n, 0 < (fintype.card Fq : ℤ) ^ n := λ n, pow_pos (int.coe_nat_pos.mpr card_pos) n,
 { map_lt_map_iff' := λ p q, begin
-    simp only [euclidean_domain.r, card_pow_degree_apply],
+    simp only [euclidean_domain.r, inv_image, card_pow_degree_apply],
     split_ifs with hp hq hq,
     { simp only [hp, hq, lt_self_iff_false] },
     { simp only [hp, hq, degree_zero, ne.def, bot_lt_iff_ne_bot,

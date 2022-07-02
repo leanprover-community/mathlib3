@@ -197,7 +197,7 @@ monotone_stabilizes_iff_artinian.mpr ‹_› f
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
 lemma is_artinian.induction [is_artinian R M] {P : submodule R M → Prop}
   (hgt : ∀ I, (∀ J < I, P J) → P I) (I : submodule R M) : P I :=
-well_founded_lt.recursion I hgt
+well_founded_lt.induction I hgt
 
 /--
 For any endomorphism of a Artinian module, there is some nontrivial iterate

@@ -71,9 +71,6 @@ def boundary (n : ℕ) : set (I^n) := {y | ∃ i, y i = 0 ∨ y i = 1}
 @[continuity] lemma tail.continuous : continuous (@tail n) :=
 (continuous_map.pi (λ i:fin n, ⟨λ f:I^(n+1), f i.succ, continuous_apply i.succ⟩)).2
 
--- @[simp] lemma cons_head_tail {t : I^(n+1)} : ((fin.cons t.head t.tail) : I^(n+1)) = t:=
--- by simp only [fin.cons_self_tail, cube.tail, cube.head]
-
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
 lemma one_char (f : I^1) : f = λ _, f 0 := by convert eq_const_of_unique f
@@ -229,51 +226,45 @@ lemma curry_to_path {p : gen_loop (n+1) x} {t:I} {tn:I^n} :
   p (fin.cons t tn) = (to_path p).to_fun t tn :=
 by {rcases p with ⟨p,pH⟩, unfold to_path, simp}
 
-@[simp] lemma uncurry_helper (f : C(I, C(I, C(I^n, X)))) (t : I×I) (y : I^n) :
+@[simp] lemma uncurry_apply  {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ] [locally_compact_space β]
+  (f : C(α, C(β, γ))) (a : α) (b : β) : f.uncurry ⟨a, b⟩ = f a b := rfl
+
+lemma uncurry_helper (f : C(I, C(I, C(I^n, X)))) (t : I×I) (y : I^n) :
   f.uncurry t y = f t.fst t.snd y :=
 by {unfold continuous_map.uncurry, unfold function.uncurry, simp only [continuous_map.coe_mk]}
 
-@[simp] lemma uncurry_helper' (f : C(I, C(I×I^n, X))) (t : I) (y : I×I^n) :
-  f.uncurry ⟨t, y⟩ = f t y :=
-by {unfold continuous_map.uncurry, unfold function.uncurry, simp only [continuous_map.coe_mk]}
-
-@[simp] lemma uncurry_helper'' (f : C(I,C(I^n, X))) (t : I) (y : I^n) : f.uncurry (t, y) = f t y :=
-by {unfold continuous_map.uncurry, unfold function.uncurry, simp only [continuous_map.coe_mk]}
-
-/--util-/
-abbreviation continuous_currying : C(C(I × I^n, X),C(I, C(I^n, X))) :=
+/-- Currying as a continuous map.-/
+abbreviation c_currying : C(C(I × I^n, X),C(I, C(I^n, X))) :=
 ⟨continuous_map.curry,continuous_map.continuous_curry⟩
 
-/--util-/
-abbreviation continuous_uncurrying : C(C(I, C(I^n, X)),C(I × I^n, X)) :=
-⟨continuous_map.uncurry,continuous_map.continuous_uncurry⟩
+/-- Uncurrying as a continuous map.-/
+abbreviation c_uncurrying : C(C(I, C(I^n, X)),C(I × I^n, X)) :=
+⟨continuous_map.uncurry,continuous_map.continuous_uncurry⟩ : C(C(I × I^n, X),C(I, C(I^n, X)))
 
-/--util-/
-abbreviation continuous_to_cont : C(gen_loop n x, C(I^n,X)) :=
-⟨λ p, p.val, by continuity⟩
+abbreviation c_comp_fold : C(C(I^(n+1), X), C(I×I^n, X)) :=
+    ⟨λ f, f.comp cube.fold, cube.fold.continuous_comp_left⟩
 
 lemma homotopic_to {p q : gen_loop (n+1) x} : homotopic p q → (to_path p).homotopic (to_path q) :=
 begin
-  let cf:C(C(I^(n+1), X), C(I×I^n, X)) :=
-    ⟨λ f, f.comp cube.fold, by apply continuous_map.continuous_comp_left⟩,
   apply nonempty.map, rintros H,
-  refine ⟨⟨_,_,_⟩,_⟩,
-  { refine ⟨λ t, ⟨(continuous_currying.comp (cf.comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,
-    { rintros y ⟨i,iH⟩,
-      simp only [uncurry_helper, continuous_map.comp_apply, continuous_map.coe_mk,
-        continuous_map.curry_apply, cube.fold_apply,
-        continuous_map.homotopy_with.coe_to_continuous_map],
-      rw H.eq_fst, rw p.property, all_goals {use i.succ, rwa fin.cons_succ} },
-    simp only [auto_param_eq], continuity },
+  refine
+  ⟨⟨⟨λ t, ⟨(c_currying.comp (c_comp_fold.comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,_,_⟩,_⟩,
+  { rintros y ⟨i,iH⟩,
+    simp only [uncurry_helper, continuous_map.comp_apply, continuous_map.coe_mk,
+      continuous_map.curry_apply, cube.fold_apply,
+      continuous_map.homotopy_with.coe_to_continuous_map],
+    rw H.eq_fst, rw p.property, all_goals {use i.succ, rwa fin.cons_succ} },
+  { simp only [auto_param_eq], continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
-    split; ext1; simp only [uncurry_helper, continuous_map.comp_apply, continuous_map.coe_mk,
+    split; ext1; simp only [uncurry_apply, continuous_map.comp_apply, continuous_map.coe_mk,
       continuous_map.curry_apply, cube.fold_apply,
       continuous_map.homotopy_with.coe_to_continuous_map, mk_apply, path.coe_to_continuous_map],
     rw H.eq_fst, exact curry_to_path, use 0, rwa fin.cons_zero,
     rw H.eq_snd, exact curry_to_path, use 0, rwa fin.cons_zero, },
   all_goals {intro t, ext1,
-    simp only [uncurry_helper, continuous_map.comp_apply, continuous_map.coe_mk,
+    simp only [uncurry_apply, continuous_map.comp_apply, continuous_map.coe_mk,
       continuous_map.curry_apply, cube.fold_apply,
       continuous_map.homotopy_with.coe_to_continuous_map, mk_apply,
       continuous_map.homotopy_with.apply_zero, continuous_map.homotopy_with.apply_one,
@@ -285,21 +276,19 @@ end
 [topological_space α₂] [topological_space β₂] (f : C(α₁, α₂)) (g : C(β₁, β₂)) (x:α₁) (y:β₁) :
 f.prod_map g ⟨x,y⟩ = ⟨f x, g y⟩ := rfl
 
+abbreviation c_coe : C(gen_loop n x, C(I^n,X)) := ⟨λ p, p.val, continuous_induced_dom⟩
+
 lemma homotopic_from {p q : gen_loop (n+1) x} : (to_path p).homotopic (to_path q) → homotopic p q :=
 begin
   apply nonempty.map, rintros H,
-  refine ⟨⟨_,_,_⟩,_⟩,
-  { refine (continuous_map.comp _ ((continuous_map.id I).prod_map cube.unfold)),
-    refine continuous_map.uncurry _,
-    refine continuous_map.comp continuous_uncurrying _,
-    exact (continuous_to_cont.comp H.to_continuous_map).curry},
+  refine ⟨⟨(c_uncurrying.comp (c_coe.comp H.to_continuous_map).curry).uncurry.comp
+      ((continuous_map.id I).prod_map cube.unfold),_,_⟩,_⟩,
   show ∀ _ _ _, _,
   { rintros t y ⟨i,iH⟩,
     simp only [continuous_map.to_fun_eq_coe, continuous_map.comp_apply, prod_map_eval,
-      continuous_map.id_apply, cube.head, cube.tail,
-      cube.unfold_apply, uncurry_helper', continuous_map.coe_mk, uncurry_helper'',
-      continuous_map.curry_apply, continuous_map.homotopy_with.coe_to_continuous_map,
-      subtype.val_eq_coe],
+      continuous_map.id_apply, cube.head, cube.tail, cube.unfold_apply, uncurry_apply,
+      continuous_map.coe_mk, continuous_map.curry_apply,
+      continuous_map.homotopy_with.coe_to_continuous_map, subtype.val_eq_coe],
     revert i iH, refine fin.cases _ _; intros,
     { cases iH; rw iH; simp only [path.homotopy.source, path.homotopy.target]; unfold const;
       simp only [subtype.coe_mk, continuous_map.const_apply]; split; symmetry,
@@ -312,11 +301,11 @@ begin
   all_goals
   { intros y,
     simp only [continuous_map.to_fun_eq_coe, continuous_map.comp_apply, prod_map_eval,
-      continuous_map.id_apply, cube.head, cube.tail, cube.unfold_apply, uncurry_helper',
-      continuous_map.coe_mk, uncurry_helper'', continuous_map.curry_apply,
+      continuous_map.id_apply, cube.head, cube.tail, cube.unfold_apply, uncurry_apply,
+      continuous_map.coe_mk, continuous_map.curry_apply,
       continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.homotopy_with.apply_zero,
       continuous_map.homotopy_with.apply_one, path.coe_to_continuous_map, subtype.val_eq_coe],
-    symmetry, convert curry_to_path, simp only [fin.cons_self_tail, cube.tail, cube.head] }
+    symmetry, convert curry_to_path, rw fin.cons_self_tail }
 end
 
 /-- Concatenation of `gen_loop`s by transitivity as paths -/

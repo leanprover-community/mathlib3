@@ -8,8 +8,6 @@ import algebra.char_p.local_ring
 import ring_theory.ideal.quotient
 import tactic.field_simp
 import data.pnat.basic
-import algebra.hom.units
-
 
 /-!
 # Equal and mixed characteristic
@@ -17,8 +15,9 @@ import algebra.hom.units
 A commutative ring of characteristic zero can either be of 'equal characteristic zero'
 or of 'mixed characteristic'. 'Equal characteristic zero' means that the quotient
 ring `R ⧸ I` has characteristic zero for all proper ideals `I ⊆ R`.
-Equivalently, `R` has equal characteristic zero if there is an injective
-ring homomorphism `ℚ →+* R`, i.e. `R` contains a copy of `ℚ`.
+Equivalently, `R` has equal characteristic zero if there is a
+ring homomorphism `ℚ →+* R`. If `R` is nontrivial, then this homomorphism is injective,
+so `R` contains a copy of `ℚ`.
 
 Mixed characteristic `(0, p)` means `R` has characteristic `0` but there
 exists an ideal such that `R ⧸ I` has characteristic `p`. Note that a ring
@@ -33,7 +32,7 @@ into cases by characteristic.
 - `equal_char_zero` : class for a ring to be of 'equal characteristic zero'.
 - `mixed_char_zero` : class for a ring to be of 'mixed characteristic zero'.
 
-- `equal_char_zero.rat_cast` : The injective homomorphism `ℚ →+* R`.
+- `equal_char_zero.rat_cast` : The homomorphism `ℚ →+* R`.
 
 ## Main results
 
@@ -87,10 +86,11 @@ end⟩
 /-!
 ### Embedded copy of ℚ
 
-A (nontrivial) ring has equal characteristic zero iff there
+A ring has equal characteristic zero iff there
 exists an injective homomorphism `ℚ →+* R`.
 
-Note: Injectivity is automatically given by `(rat_cast R).injective` as `ℚ` is a field.
+Note: If `R` is nontrivial, then injectivity is automatically given by
+`(rat_cast R).injective` as `ℚ` is a field.
 -/
 
 section rat_cast
@@ -165,8 +165,6 @@ begin
   change ((pnat_coe_is_unit R n).unit : R) = ↑n,
   simp only [is_unit.unit_spec],
 end
-
-variable [nontrivial R]
 
 /-- The injective homomorphism `ℚ →+* R`. -/
 noncomputable def rat_cast : ℚ →+* R :=
@@ -311,25 +309,24 @@ lemma equal_iff_not_mixed_char :
 begin
   split,
   { introI h,
+    push_neg,
+    intro p,
     by_contradiction hp,
-    cases hp with p hp,
     rcases hp.residue_char_p with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
     have hI_zero := @char_p.of_char_zero _ _ _ (equal_char_zero.residue_char_zero I hI_ne_top),
     exact absurd (char_p.eq (R ⧸ I) hI_p hI_zero) hp.p_pos },
   { intro h,
+    push_neg at h,
     exact
     ⟨begin
       intros I hI_ne_top,
       apply char_p.char_p_to_char_zero _,
-      by_cases hr : ring_char (R ⧸ I) = 0,
-      exact ring_char.of_eq hr,
-      { by_contradiction h_unused,
-        apply h,
-        use (ring_char (R ⧸ I)),
-        exact
-        { char_zero := infer_instance,
-          p_pos := hr,
-          residue_char_p := ⟨I, ⟨hI_ne_top, ring_char.char_p _⟩⟩ }},
+      cases char_p.exists (R ⧸ I) with p hp,
+      cases p,
+      exact hp,
+      { have h_mixed : mixed_char_zero R p.succ :=
+          ⟨infer_instance, p.succ_ne_zero , ⟨I, ⟨hI_ne_top, hp⟩⟩⟩,
+        exact absurd h_mixed (h p.succ) },
     end⟩ }
 end
 

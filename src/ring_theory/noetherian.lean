@@ -270,7 +270,7 @@ begin
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
 end
 
-lemma submodule.fg_induction (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
+lemma fg_induction (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
   (P : submodule R M → Prop)
   (h₁ : ∀ x, P (submodule.span R {x})) (h₂ : ∀ M₁ M₂, P M₁ → P M₂ → P (M₁ ⊔ M₂))
   (N : submodule R M) (hN : N.fg) : P N :=

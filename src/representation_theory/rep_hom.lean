@@ -474,18 +474,18 @@ instance _root_.representation.End.monoid : monoid (representation.End ρ) :=
   mul_one := comp_id,
   one_mul := id_comp }
 
-instance _root_.representation.End.semiring : semiring (representation.End ρ) :=
-{ mul := (*),
-  one := (1 : ρ →ᵣ ρ),
-  zero := 0,
-  add := (+),
-  mul_zero := comp_zero,
-  zero_mul := zero_comp,
-  left_distrib := λ f g h, comp_add _ _ _,
-  right_distrib := λ f g h, add_comp _ _ _,
-  .. add_monoid_with_one.unary,
-  .. _root_.module.End.monoid,
-  .. linear_map.add_comm_monoid }
+-- instance _root_.representation.End.semiring : semiring (representation.End ρ) :=
+-- { mul := (*),
+--   one := (1 : ρ →ᵣ ρ),
+--   zero := 0,
+--   add := (+),
+--   mul_zero := comp_zero,
+--   zero_mul := zero_comp,
+--   left_distrib := λ f g h, comp_add _ _ _,
+--   right_distrib := λ f g h, add_comp _ _ _,
+--   .. add_monoid_with_one.unary,
+--   .. _root_.module.End.monoid,
+--   .. linear_map.add_comm_monoid }
 
 
 end as_monoid

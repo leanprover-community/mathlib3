@@ -39,7 +39,7 @@ language.sum language.group language.monoid
 
 variable {α : Type u}
 
-namespace language.ring
+namespace ring
 
 /-- The function symbol representing zero. -/
 def zero : language.ring.constants := sum.inl ⟨⟩
@@ -76,7 +76,7 @@ instance : has_pow (language.ring.term α) ℕ := ⟨ λ t n, npow_rec n t ⟩
 @[simp] lemma pow_zero (t : language.ring.term α) : t ^ 0 = 1 := rfl
 @[simp] lemma pow_succ {n} (t : language.ring.term α) : t ^ (n + 1) = t * t ^ n := rfl
 
-end language.ring
+end ring
 
 /-- Any type with instances of `has_one` and `has_mul` is a
   structure in the language of monoids. -/
@@ -90,15 +90,15 @@ def group_Structure_of_has_zero_has_neg_has_add {α : Type} [has_zero α] [has_n
   language.group.Structure α :=
 Structure.mk₂ (λ _, 0) (λ _, has_neg.neg) (λ _, has_add.add) empty.elim empty.elim
 
-/- Any monoid is a structure in the language of monoids. -/
+/-- Any monoid is a structure in the language of monoids. -/
 def _root_.monoid.Structure (M : Type) [monoid M] : language.monoid.Structure M :=
 monoid.Structure_of_has_one_has_mul
 
-/- Any group is a structure in the language of groups. -/
+/-- Any group is a structure in the language of groups. -/
 def _root_.add_comm_group.Structure (G : Type) [add_comm_group G] : language.group.Structure G :=
 group_Structure_of_has_zero_has_neg_has_add
 
-/- Any ring is a structure in the language of ring. -/
+/-- Any ring is a structure in the language of ring. -/
 def _root_.ring.Structure (R : Type*) [ring R] : language.ring.Structure R :=
 @language.sum_Structure _ _ _ (add_comm_group.Structure R) (monoid.Structure R)
 
@@ -169,3 +169,4 @@ end ring_theories
 
 end language
 end first_order
+

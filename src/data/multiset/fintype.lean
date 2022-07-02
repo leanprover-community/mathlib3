@@ -42,15 +42,13 @@ by { cases x, cases y, refl }
 
 @[simp] lemma multiset.coe_mem {x : m} : ↑x ∈ m := multiset.count_pos.mp (pos_of_gt x.2.2)
 
-@[simp] lemma multiset.exists_coe (p : m → Prop) :
+@[simp] protected lemma multiset.forall_coe (p : m → Prop) :
+  (∀ (x : m), p x) ↔ ∀ (x : α) (i : ℕ) (h : i < m.count x), p ⟨x, i, h⟩ :=
+⟨λ h x i hi, h _, by { rintros h ⟨x, i, hi⟩, apply h }⟩
+
+@[simp] protected lemma multiset.exists_coe (p : m → Prop) :
   (∃ (x : m), p x) ↔ ∃ (x : α) (i : ℕ) (h : i < m.count x), p ⟨x, i, h⟩ :=
-begin
-  split,
-  { rintro ⟨⟨x, i, hx⟩, h⟩,
-    exact ⟨x, i, hx, h⟩, },
-  { rintro ⟨x, i, hx, h⟩,
-    exact ⟨⟨x, i, hx⟩, h⟩, },
-end
+by { apply not_iff_not.mp, push_neg, exact multiset.forall_coe _ }
 
 instance : fintype {p : α × ℕ | p.2 < m.count p.1} :=
 fintype.of_finset

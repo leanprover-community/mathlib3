@@ -95,19 +95,8 @@ def mono {hx' : x ∈ V} (h : V ⊆ U) : evenly_covered_pt f hx' :=
 
 -- todo: golf
 def translate (hy : y ∈ U) : evenly_covered_pt f hy :=
-{ rigid' := λ p, begin
-  simp only,
-  dsimp only [evenly_covered_set.translate, evenly_covered_set.fiber_homeomorph],
-  simp only [subtype.ext_iff, equiv.to_fun_as_coe, homeomorph.coe_to_equiv, homeomorph.trans_apply,
-    homeomorph.coe_prod_congr, homeomorph.homeomorph_mk_coe, equiv.coe_fn_mk, homeomorph.refl_apply,
-    prod.map_mk, id.def, subtype.coe_mk],
-  change ↑(ϕ ((ϕ.symm _).1, _)) = ↑(⟨p, (congr_arg (∈ U) p.2).mpr hy⟩ : f ⁻¹' U),
-  rw [←subtype.ext_iff],
-  suffices : (ϕ.symm _).2 = ⟨y, hy⟩,
-  rw [←this, prod.mk.eta, ϕ.apply_symm_apply],
-  rw [subtype.ext_iff, ←ϕ.commutes_inv],
-  exact p.2,
-end,
+{ rigid' := λ p, ϕ.to_equiv.apply_eq_iff_eq_symm_apply.mpr (prod.ext rfl (subtype.ext
+    (p.2.symm.trans (ϕ.commutes_inv ⟨p, (congr_arg (∈ U) p.2).mpr hy⟩)))),
   .. ϕ.to_evenly_covered_set.translate hy }
 
 end evenly_covered_pt

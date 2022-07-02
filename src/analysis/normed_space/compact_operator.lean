@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.normed_space.operator_norm
+import analysis.locally_convex.bounded
 
 /-!
 # Compact operators
@@ -35,9 +36,9 @@ Foobars, barfoos
 
 open function set filter bornology metric
 
-open_locale pointwise big_operators
+open_locale pointwise big_operators topological_space
 
-namespace continuous_linear_map
+/-namespace continuous_linear_map
 
 def is_compact_map {R₁ R₂ M₁ M₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
   [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
@@ -73,23 +74,28 @@ end semiring
 
 end is_compact_map
 
-end continuous_linear_map
+end continuous_linear_map-/
 
-/-
 structure compact_operator {R₁ R₂} [semiring R₁] [semiring R₂] (σ₁₂ : R₁ →+* R₂) (M₁ M₂ : Type*)
-  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
-  [module R₁ M₁] [module R₂ M₂] extends M₁ →SL[σ₁₂] M₂ :=
-(ball_subset_preimage_compact' : ∃ K, is_compact K ∧ (closed_ball 0 1) ⊆ to_fun ⁻¹' K)
+  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [module R₁ M₁] [module R₂ M₂] extends M₁ →ₛₗ[σ₁₂] M₂ :=
+(exists_compact_preimage_mem_nhds' : ∃ K, is_compact K ∧ to_fun ⁻¹' K ∈ (𝓝 0 : filter M₁))
+
+localized "notation M ` →SLᶜ[`:25 σ `] ` M₂ := compact_operator σ M M₂" in compact_operator
+localized "notation M ` →Lᶜ[`:25 R `] ` M₂ := compact_operator (ring_hom.id R) M M₂"
+  in compact_operator
+localized "notation M ` →L⋆ᶜ[`:25 R `] ` M₂ := compact_operator (star_ring_end R) M M₂"
+  in compact_operator
 
 set_option old_structure_cmd true
 
 class compact_operator_class (F : Type*) {R₁ R₂ : out_param Type*} [semiring R₁] [semiring R₂]
-  (σ₁₂ : out_param $ R₁ →+* R₂) (M₁ : out_param Type*) [metric_space M₁] [add_comm_monoid M₁]
+  (σ₁₂ : out_param $ R₁ →+* R₂) (M₁ : out_param Type*) [topological_space M₁] [add_comm_monoid M₁]
   (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
-  extends continuous_semilinear_map_class F σ₁₂ M₁ M₂ :=
-(ball_subset_preimage_compact : ∀ f : F, ∃ K, is_compact K ∧ (closed_ball 0 1) ⊆ f ⁻¹' K)
+  extends semilinear_map_class F σ₁₂ M₁ M₂ :=
+(exists_compact_preimage_mem_nhds : ∀ f : F, ∃ K, is_compact K ∧ f ⁻¹' K ∈ (𝓝 0 : filter M₁))
 
-export compact_operator_class (ball_subset_preimage_compact)
+export compact_operator_class (exists_compact_preimage_mem_nhds)
 
 set_option old_structure_cmd false
 
@@ -98,72 +104,99 @@ namespace compact_operator
 section boilerplate
 
 variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ M₂ : Type*}
-  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
   [module R₁ M₁] [module R₂ M₂]
 
-/-- Coerce compact operators to continuous linear maps. -/
-instance : has_coe (compact_operator σ₁₂ M₁ M₂) (M₁ →SL[σ₁₂] M₂) := ⟨to_continuous_linear_map⟩
+/-- Coerce compact operators to linear maps. -/
+instance : has_coe (M₁ →SLᶜ[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) := ⟨to_linear_map⟩
 
 -- make the coercion the preferred form
-@[simp] lemma to_continuous_linear_map_eq_coe (f : compact_operator σ₁₂ M₁ M₂) :
-  f.to_continuous_linear_map = f := rfl
+@[simp] lemma to_linear_map_eq_coe (f : M₁ →SLᶜ[σ₁₂] M₂) :
+  f.to_linear_map = f := rfl
 
 theorem coe_injective :
-  function.injective (coe : (compact_operator σ₁₂ M₁ M₂) → (M₁ →SL[σ₁₂] M₂)) :=
+  function.injective (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
 by { intros f g H, cases f, cases g, congr' }
 
-instance : compact_operator_class (compact_operator σ₁₂ M₁ M₂) σ₁₂ M₁ M₂ :=
+instance : compact_operator_class (M₁ →SLᶜ[σ₁₂] M₂) σ₁₂ M₁ M₂ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, coe_injective (fun_like.coe_injective h),
   map_add := λ f, map_add f.to_linear_map,
-  map_continuous := λ f, f.1.2,
   map_smulₛₗ := λ f, f.to_linear_map.map_smul',
-  ball_subset_preimage_compact := λ f, f.ball_subset_preimage_compact' }
+  exists_compact_preimage_mem_nhds := λ f, f.exists_compact_preimage_mem_nhds' }
 
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
-instance to_fun : has_coe_to_fun (compact_operator σ₁₂ M₁ M₂) (λ _, M₁ → M₂) := ⟨λ f, f.to_fun⟩
+instance to_fun : has_coe_to_fun (M₁ →SLᶜ[σ₁₂] M₂) (λ _, M₁ → M₂) := ⟨λ f, f.to_fun⟩
 
-@[simp] lemma coe_mk (f : M₁ →SL[σ₁₂] M₂) (h) : (mk f h : M₁ →SL[σ₁₂] M₂) = f := rfl
-@[simp] lemma coe_mk' (f : M₁ →SL[σ₁₂] M₂) (h) : (mk f h : M₁ → M₂) = f := rfl
+@[simp] lemma coe_mk (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
+@[simp] lemma coe_mk' (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ → M₂) = f := rfl
 
-@[continuity]
-protected lemma continuous (f : compact_operator σ₁₂ M₁ M₂) : continuous f := f.1.2
-
-@[simp, norm_cast] lemma coe_inj {f g : compact_operator σ₁₂ M₁ M₂} :
-  (f : M₁ →SL[σ₁₂] M₂) = g ↔ f = g :=
+@[simp, norm_cast] lemma coe_inj {f g : M₁ →SLᶜ[σ₁₂] M₂} :
+  (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
 
-theorem coe_fn_injective : @function.injective (compact_operator σ₁₂ M₁ M₂) (M₁ → M₂) coe_fn :=
+theorem coe_fn_injective : @function.injective (M₁ →SLᶜ[σ₁₂] M₂) (M₁ → M₂) coe_fn :=
 fun_like.coe_injective
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
-def simps.apply (h : compact_operator σ₁₂ M₁ M₂) : M₁ → M₂ := h
+def simps.apply (h : M₁ →SLᶜ[σ₁₂] M₂) : M₁ → M₂ := h
 
 /-- See Note [custom simps projection]. -/
-def simps.coe (h : compact_operator σ₁₂ M₁ M₂) : M₁ →SL[σ₁₂] M₂ := h
+def simps.coe (h : M₁ →SLᶜ[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂ := h
 
 initialize_simps_projections compact_operator
-  (to_continuous_linear_map_to_linear_map_to_fun → apply, to_continuous_linear_map → coe)
+  (to_linear_map_to_fun → apply, to_linear_map → coe)
 
-@[ext] theorem ext {f g : compact_operator σ₁₂ M₁ M₂} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext {f g : M₁ →SLᶜ[σ₁₂] M₂} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
-theorem ext_iff {f g : compact_operator σ₁₂ M₁ M₂} : f = g ↔ ∀ x, f x = g x :=
+theorem ext_iff {f g : M₁ →SLᶜ[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 
 /-- Copy of a `compact_operator` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def copy (f : compact_operator σ₁₂ M₁ M₂) (f' : M₁ → M₂) (h : f' = ⇑f) :
-  compact_operator σ₁₂ M₁ M₂ :=
-{ to_continuous_linear_map := f.to_continuous_linear_map.copy f' h,
-  ball_subset_preimage_compact' := show ∃ K, is_compact K ∧ closed_ball 0 1 ⊆ f' ⁻¹' K,
-    from h.symm ▸ f.ball_subset_preimage_compact' }
+protected def copy (f : M₁ →SLᶜ[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) :
+  M₁ →SLᶜ[σ₁₂] M₂ :=
+{ to_linear_map := f.to_linear_map.copy f' h,
+  exists_compact_preimage_mem_nhds' := show ∃ K, is_compact K ∧ f' ⁻¹' K ∈ (𝓝 0 : filter M₁),
+    from h.symm ▸ f.exists_compact_preimage_mem_nhds' }
 
-@[simp, norm_cast] lemma coe_coe (f :compact_operator σ₁₂ M₁ M₂) : ⇑(f : M₁ →SL[σ₁₂] M₂) = f := rfl
+@[simp, norm_cast] lemma coe_coe (f : M₁ →SLᶜ[σ₁₂] M₂) : ⇑(f : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
 
 end boilerplate
+
+section to_continuous
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*} [topological_space M₁]
+  [add_comm_group M₁] [topological_space M₂] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [topological_add_group M₁] [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
+
+@[continuity]
+protected lemma continuous (f : M₁ →SLᶜ[σ₁₂] M₂) : continuous f :=
+begin
+  letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
+  haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+  refine continuous_of_continuous_at_zero f (λ U hU, _),
+  rw map_zero at hU,
+  rcases exists_compact_preimage_mem_nhds f with ⟨K, hK, hKf⟩,
+  rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
+  rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
+  have hcnz : c ≠ 0 := sorry,
+  suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
+  { refine mem_of_superset _ this,
+    have : is_unit c⁻¹ := sorry,
+    --rw [mem_map, f.to_linear_map.preimage_smul_setₛₗ this], },
+    sorry },
+  rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+  refine hrU (σ₁₂ c) _,
+  rw ring_hom_isometric.is_iso,
+  exact hc.le
+end
+
+end to_continuous
 
 section semiring
 
@@ -254,4 +287,3 @@ end add
 end semiring
 
 end compact_operator
--/

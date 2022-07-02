@@ -1003,7 +1003,7 @@ variables [semiring R]
 /-- The ring `hahn_series ℕ R` is isomorphic to `power_series R`. -/
 @[simps] def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
 { to_fun := λ f, power_series.mk f.coeff,
-  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, (nat.lt_wf.is_wf _).is_pwo⟩,
+  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, (well_founded_lt.is_wf _).is_pwo⟩,
   left_inv := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp },
   map_add' := λ f g, by { ext, simp },
@@ -1562,7 +1562,7 @@ def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :
     have hpwo := (is_pwo_Union_support_powers hx),
     by_cases hg : g ∈ ⋃ n : ℕ, {g | (x ^ n).coeff g ≠ 0 },
     swap, { exact set.finite_empty.subset (λ n hn, hg (set.mem_Union.2 ⟨n, hn⟩)) },
-    apply hpwo.is_wf.induction hg,
+    apply set.is_well_founded_on.induction hpwo.is_wf hg,
     intros y ys hy,
     refine ((((add_antidiagonal x.is_pwo_support hpwo y).finite_to_set.bUnion (λ ij hij,
       hy ij.snd _ _)).image nat.succ).union (set.finite_singleton 0)).subset _,

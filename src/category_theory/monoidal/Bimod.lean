@@ -204,7 +204,7 @@ colim_map
       slice_lhs 1 2 { rw associator_inv_naturality },
       slice_rhs 3 4 { rw associator_inv_naturality },
       slice_rhs 4 5 { rw [←tensor_comp, middle_assoc, tensor_comp, comp_tensor_id] },
-    coherence,
+      coherence,
     end
     begin
       dsimp,

@@ -611,7 +611,7 @@ end prod
 
 section sum
 open sum
-variables [topological_space α] [topological_space β] [topological_space γ]
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 @[continuity] lemma continuous_inl : continuous (@inl α β) :=
 continuous_sup_rng_left continuous_coinduced_rng
@@ -619,13 +619,17 @@ continuous_sup_rng_left continuous_coinduced_rng
 @[continuity] lemma continuous_inr : continuous (@inr α β) :=
 continuous_sup_rng_right continuous_coinduced_rng
 
-@[continuity] lemma continuous_sum_rec {f : α → γ} {g : β → γ}
-  (hf : continuous f) (hg : continuous g) : @continuous (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
+@[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
 begin
   apply continuous_sup_dom;
   rw continuous_def at hf hg ⊢;
   assumption
 end
+
+@[continuity] lemma continuous.sum_map {f : α → β} {g : γ → δ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.map f g) :=
+(continuous_inl.comp hf).sum_elim (continuous_inr.comp hg)
 
 lemma is_open_sum_iff {s : set (α ⊕ β)} :
   is_open s ↔ is_open (inl ⁻¹' s) ∧ is_open (inr ⁻¹' s) :=

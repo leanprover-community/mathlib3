@@ -246,7 +246,7 @@ begin
   exact le_Sup hx₀,
 end
 
-lemma well_founded.finite_of_independent [well_founded_gt α]
+lemma well_founded_gt.finite_of_independent [well_founded_gt α]
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
 begin
   haveI := (well_founded_gt.finite_of_set_independent ht.set_independent_range).finite,

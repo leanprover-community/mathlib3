@@ -328,9 +328,9 @@ lemma exists_multiset_prod_cons_le_and_prod_not_le [is_dedekind_domain A]
 begin
   -- Let `Z` be a minimal set of prime ideals such that their product is contained in `J`.
   obtain ⟨Z₀, hZ₀⟩ := prime_spectrum.exists_prime_spectrum_prod_le_and_ne_bot_of_domain hNF hI0,
-  obtain ⟨Z, ⟨hZI, hprodZ⟩, h_eraseZ⟩ := multiset.well_founded_lt.has_min
-    (λ Z, (Z.map prime_spectrum.as_ideal).prod ≤ I ∧ (Z.map prime_spectrum.as_ideal).prod ≠ ⊥)
-    ⟨Z₀, hZ₀⟩,
+  obtain ⟨Z, ⟨hZI, hprodZ⟩, h_eraseZ⟩ := well_founded_lt.has_min
+    {Z : multiset _ | (Z.map prime_spectrum.as_ideal).prod ≤ I ∧
+      (Z.map prime_spectrum.as_ideal).prod ≠ ⊥} ⟨Z₀, hZ₀⟩,
   have hZM : multiset.prod (Z.map prime_spectrum.as_ideal) ≤ M := le_trans hZI hIM,
   have hZ0 : Z ≠ 0, { rintro rfl, simpa [hM.ne_top] using hZM },
   obtain ⟨_, hPZ', hPM⟩ := (hM.is_prime.multiset_prod_le (mt multiset.map_eq_zero.mp hZ0)).mp hZM,
@@ -619,11 +619,10 @@ lemma ideal.dvd_not_unit_iff_lt {I J : ideal A} :
    (mt ideal.dvd_iff_le.mp (not_le_of_lt h))⟩
 
 instance : wf_dvd_monoid (ideal A) :=
-{ well_founded_dvd_not_unit :=
-  have well_founded_gt (ideal A) :=
-  is_noetherian_iff_well_founded.mp
-    (is_noetherian_ring_iff.mp is_dedekind_domain.is_noetherian_ring),
-  by { convert this, ext, rw ideal.dvd_not_unit_iff_lt } }
+have well_founded_gt (ideal A) :=
+is_noetherian_iff_well_founded.mp
+  (is_noetherian_ring_iff.mp is_dedekind_domain.is_noetherian_ring),
+by { rw wf_dvd_monoid, convert this, ext, rw ideal.dvd_not_unit_iff_lt }
 
 instance ideal.unique_factorization_monoid :
   unique_factorization_monoid (ideal A) :=

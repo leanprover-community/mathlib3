@@ -533,7 +533,7 @@ def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 
 /-- Division as a monoid homomorphism. -/
 @[to_additive "Subtraction as an additive monoid homomorphism.", simps]
-def div_monoid_hom [comm_group α] : α × α →* α :=
+def div_monoid_hom [division_comm_monoid α] : α × α →* α :=
 { to_fun := λ a, a.1 / a.2,
   map_one' := div_one _,
   map_mul' := λ a b, mul_div_mul_comm _ _ _ _ }

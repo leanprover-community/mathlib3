@@ -183,6 +183,9 @@ def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
 @[simp] lemma prod_eval (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
   (prod_mk f g) a = (f a, g a) := rfl
 
+@[simp] lemma prod_map_eval (f : C(α₁, α₂)) (g : C(β₁, β₂)) (x : α₁) (y : β₁) :
+  f.prod_map g ⟨x,y⟩ = ⟨f x, g y⟩ := rfl
+
 end prod
 
 section pi

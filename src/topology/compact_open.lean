@@ -333,6 +333,10 @@ begin
   apply_instance
 end
 
+@[simp]
+lemma uncurry_apply [locally_compact_space β] (f : C(α, C(β, γ))) (a : α) (b : β) :
+  f.uncurry ⟨a, b⟩ = f a b := rfl
+
 /-- The family of constant maps: `β → C(α, β)` as a continuous map. -/
 def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
 

@@ -107,9 +107,8 @@ quotient.induction_on s $ by simp
 @[simp] theorem count_nil_powerset [decidable_eq (multiset α)] (s : multiset α) :
   multiset.count (0 : multiset α) s.powerset = 1 :=
 begin
-  refine s.induction_on _ _,
-  simp only [powerset_zero, count_singleton_self],
-  intros _ _ h,
+  induction s using multiset.induction_on with _ _ h,
+  { simp only [powerset_zero, count_singleton_self] },
   rw [powerset_cons, count_add, h],
   simp only [count_eq_zero_of_not_mem, mem_map, cons_ne_zero, and_false,
     exists_false, not_false_iff],

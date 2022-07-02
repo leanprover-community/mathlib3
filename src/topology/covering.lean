@@ -157,7 +157,9 @@ begin
   left_inv' := λ _ ⟨p, hp⟩, by rw [←hp, hψ, dif_pos p.prop, subtype.coe_eta],
   right_inv' := λ p hp, by rw [dif_pos hp, hψ, subtype.coe_mk],
   continuous_to_fun := q.continuous.continuous_on,
-  continuous_inv_fun := sorry }, ⟨⟨q x, hx⟩, subtype.ext_iff.mp (ϕ.rigid ⟨x, rfl⟩)⟩, rfl⟩,
+  continuous_inv_fun := by
+  { rw [continuous_on_iff_continuous_restrict, set.restrict_dite],
+    continuity! } }, ⟨⟨q x, hx⟩, subtype.ext_iff.mp (ϕ.rigid ⟨x, rfl⟩)⟩, rfl⟩,
 end
 
 lemma is_open_map (q : E ↠ X) : is_open_map q :=

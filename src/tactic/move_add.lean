@@ -368,7 +368,7 @@ meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
 move_op args locat ``(has_mul.mul)
 
 /--  `move_oper` behaves like `move_add` except that it also takes an associative, commutative,
-binary operation as input.  The operation must be passed as a list consisting of a single element.#check
+binary operation as input.  The operation must be passed as a list consisting of a single element.
 For instance
 ```lean
 example (a b : ℕ) : max a b = max b a :=

@@ -28,7 +28,7 @@ Foobars, barfoos
 
 open_locale big_operators interval
 
-variables {f : ℝ → ℝ} {n : ℕ} (x₀ : ℝ) (x : ℝ)
+variables {f : ℝ → ℝ} {n : ℕ} {x₀ x : ℝ}
 
 
 /-- The `k`th coefficient of the Taylor polynomial. -/
@@ -36,7 +36,7 @@ noncomputable
 def taylor_coeff (f : ℝ → ℝ) (k : ℕ) (x₀ : ℝ) : ℝ :=
 (iterated_deriv k f x₀) / k.factorial
 
-/-- The `k`th coefficient of the Taylor polynomial. -/
+/-- The Taylor polynomial. -/
 noncomputable
 def taylor_polynomial (f : ℝ → ℝ) (n : ℕ) (x₀ : ℝ) : polynomial ℝ :=
 (finset.range (n+1)).sum (λ k, polynomial.monomial k (taylor_coeff f k x₀))
@@ -49,7 +49,7 @@ begin
   rw finset.sum_range_succ,
 end
 
-/-- The Taylor polynomial. -/
+/-- The Taylor polynomial as a function. -/
 noncomputable
 def taylor_sum (f : ℝ → ℝ) (n : ℕ) (x₀ x : ℝ) : ℝ :=
 polynomial.eval (x - x₀) (taylor_polynomial f n x₀)
@@ -71,7 +71,6 @@ begin
   rw nat.cast_ne_zero,
   exact nat.factorial_ne_zero n,
 end
-
 
 @[simp] lemma taylor_sum_zero {f : ℝ → ℝ} {x₀ x : ℝ} :
   taylor_sum f 0 x₀ x = f x₀ :=
@@ -174,10 +173,13 @@ begin
   exact (add_sub_cancel'_right _ _).symm,
 end
 
-/-- **Taylor's theorem** with the Lagrange form of the remainder. -/
-lemma taylor_mean_remainder {f : ℝ → ℝ} (hf : cont_diff ℝ (n+1) f) (hx : x₀ < x):
+/-- **Taylor's theorem** with the general mean value form of the remainder. -/
+lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff ℝ (n+1) f) (hx : x₀ < x)
+  (gcont : continuous_on g (set.Icc x₀ x))
+  (gdiff : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at g (g' x_1) x_1)
+  (g'_ne : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → g' x_1 ≠ 0) :
   ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n x₀ x =
-  (iterated_deriv (n+1) f x') * (x - x₀)^(n+1) /(n+1).factorial :=
+  (iterated_deriv (n+1) f x') * (x - x')^n /n.factorial * (g x - g x₀) / g' x' :=
 begin
   have tcont : continuous_on (λ (t : ℝ), taylor_sum f n t x) (set.Icc x₀ x) :=
     (taylor_sum_continuous hf).continuous_on,
@@ -188,11 +190,25 @@ begin
     simp,
     exact taylor_sum_has_deriv hf,
   end,
+  rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_sum f n t x)
+    (λ t, (iterated_deriv (n+1) f t) * (x - t)^n /n.factorial) hx tcont tdiff
+    g g' gcont gdiff with ⟨y, hy, h⟩,
+  use [y, hy],
+  simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, neg_mul,
+    taylor_sum_self] at h,
+  rw mul_comm at h,
+  rw ←div_left_inj' (g'_ne y hy) at h,
+  rw mul_div_cancel _ (g'_ne y hy) at h,
+  rw ←h,
+end
+
+/-- **Taylor's theorem** with the Lagrange form of the remainder. -/
+lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} (hf : cont_diff ℝ (n+1) f) (hx : x₀ < x):
+  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n x₀ x =
+  (iterated_deriv (n+1) f x') * (x - x₀)^(n+1) /(n+1).factorial :=
+begin
   have gcont : continuous_on (λ (t : ℝ), (x - t) ^ (n + 1)) (set.Icc x₀ x) :=
-  begin
-    refine continuous.continuous_on _,
-    continuity,
-  end,
+  by { refine continuous.continuous_on _, continuity },
   have gdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at (λ (t : ℝ), (x - t) ^ (n + 1))
     ((λ (t : ℝ), -(↑n + 1) * (x - t) ^ n) x_1) x_1) :=
   begin
@@ -200,12 +216,21 @@ begin
     simp only,
     exact monomial_has_deriv y x,
   end,
-  rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_sum f n t x)
-    (λ t, (iterated_deriv (n+1) f t) * (x - t)^n /n.factorial) hx tcont tdiff
-    (λ t, (x - t)^(n+1)) (λ t, -(n+1) * (x - t)^n) gcont gdiff with ⟨y, hy, h⟩,
+  have hg' : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x →
+    (λ (x_1 : ℝ), (λ (t : ℝ), -(↑n + 1) * (x - t) ^ n) x_1) x_1 ≠ 0 :=
+  begin
+    intros y hy,
+    simp only,
+    refine mul_ne_zero _ _,
+    { rw neg_ne_zero,
+      exact nat.cast_add_one_ne_zero n },
+    refine pow_ne_zero n _,
+    rw [set.mem_Ioo] at hy,
+    rw sub_ne_zero,
+    exact hy.2.ne.symm,
+  end,
+  rcases taylor_mean_remainder hf hx gcont gdiff hg' with ⟨y, hy, h⟩,
   use [y, hy],
-  simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, neg_mul,
-    taylor_sum_self] at h,
   have xy_ne : (x - y)^n ≠ 0 :=
   begin
     refine pow_ne_zero _ _,
@@ -213,20 +238,25 @@ begin
     rw sub_ne_zero,
     exact hy.2.ne.symm,
   end,
-  have nxy_ne : -(((↑n : ℝ) + 1) * (x - y)^n) ≠ 0 :=
-  begin
-    rw neg_ne_zero,
-    exact mul_ne_zero (nat.cast_add_one_ne_zero n) xy_ne,
-  end,
-  rw ←div_left_inj' nxy_ne at h,
-  rw ←mul_neg at h,
-  rw mul_div_cancel _ nxy_ne at h,
-  field_simp at h,
-  rw div_neg at h,
-  rw neg_div at h,
-  rw neg_neg at h,
-  rw ←mul_assoc at h,
-  rw ←mul_assoc at h,
-  rw mul_div_mul_right _ _ xy_ne at h,
-  simp[←h, mul_comm],
+  simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
+  rw h,
+  rw [neg_div, ←div_neg, neg_mul, neg_neg],
+  field_simp,
+  rw [mul_assoc, mul_comm ((x - y)^n), ←mul_assoc, ←mul_assoc, mul_comm (↑n+1 : ℝ),
+    mul_div_mul_right _ _ xy_ne]
+end
+
+/-- **Taylor's theorem** with the Cauchy form of the remainder. -/
+lemma taylor_mean_remainder_cauchy {f g g' : ℝ → ℝ} (hf : cont_diff ℝ (n+1) f) (hx : x₀ < x) :
+  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n x₀ x =
+  (iterated_deriv (n+1) f x') * (x - x')^n /n.factorial * (x - x₀) :=
+begin
+  have gcont : continuous_on id (set.Icc x₀ x) :=
+  by { refine continuous.continuous_on _, continuity },
+  have gdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at id
+    ((λ (t : ℝ), (1 : ℝ)) x_1) x_1) := λ _ _, has_deriv_at_id _,
+  rcases taylor_mean_remainder hf hx gcont gdiff (λ _ _, by simp) with ⟨y, hy, h⟩,
+  use [y, hy],
+  simp only [id.def, div_one] at h,
+  exact h,
 end

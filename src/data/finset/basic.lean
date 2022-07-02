@@ -203,6 +203,16 @@ lemma coe_injective {α} : injective (coe : finset α → set α) :=
 /-- Coercion from a finset to the corresponding subtype. -/
 instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
 
+@[simp] lemma finset.exists_coe {α : Type*} (s : finset α) (p : s → Prop) :
+  (∃ (x : s), p x) ↔ ∃ (x : α) (h : x ∈ s), p ⟨x, h⟩ :=
+begin
+  split,
+  { rintro ⟨⟨x, hx⟩, h⟩,
+    exact ⟨x, hx, h⟩, },
+  { rintro ⟨x, hx, h⟩,
+    exact ⟨⟨x, hx⟩, h⟩, },
+end
+
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :
 can_lift (Π i : s, α i) (Π i, α i) :=

@@ -19,18 +19,6 @@ a multiset. These coercions and definitions make it easier to sum over multisets
 multiset enumeration
 -/
 
--- TODO move
-@[simp]
-lemma finset.exists_coe {α : Type*} (s : finset α) (p : s → Prop) :
-  (∃ (x : s), p x) ↔ ∃ (x : α) (h : x ∈ s), p ⟨x, h⟩ :=
-begin
-  split,
-  { rintro ⟨⟨x, hx⟩, h⟩,
-    exact ⟨x, hx, h⟩, },
-  { rintro ⟨x, hx, h⟩,
-    exact ⟨⟨x, hx⟩, h⟩, },
-end
-
 open_locale big_operators
 
 /-- Create a type that has the same number of elements as the multiset.

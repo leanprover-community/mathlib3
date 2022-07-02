@@ -21,14 +21,33 @@ open_locale polynomial big_operators
 variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M] (I : ideal R)
 
 /-- The `R[X]`-module `M[X]` for an `R`-module `M`. -/
-abbreviation polynomial_module (M : Type*) [add_comm_monoid M] := ℕ →₀ M
+@[derive add_comm_group, nolint has_inhabited_instance]
+def polynomial_module (M : Type*) [add_comm_group M] := ℕ →₀ M
 
 namespace polynomial_module
 
--- this is definitionally equal to `module_polynomial_of_endo _`, but that is not used since the
--- simp lemmas associated to it is undesirable here.
+noncomputable
+instance : module R (polynomial_module M) :=
+finsupp.module ℕ M
+
+instance : has_coe_to_fun (polynomial_module M) (λ _, ℕ → M) :=
+finsupp.has_coe_to_fun
+
+/-- The monomial `m * x ^ i`. This is defeq to `finsupp.single_add_hom`, and is redefined here
+so that it has the desired type signature.  -/
+noncomputable
+def single (i : ℕ) : M →+ polynomial_module M :=
+finsupp.single_add_hom i
+
+lemma induction_linear {P : polynomial_module M → Prop} (f : polynomial_module M)
+  (h0 : P 0) (hadd : ∀ f g, P f → P g → P (f + g)) (hsingle : ∀ a b, P (single a b)) : P f :=
+finsupp.induction_linear f h0 hadd hsingle
+
+lemma single_apply (i : ℕ) (m : M) (n : ℕ) : single i m n = ite (i = n) m 0 :=
+finsupp.single_apply
+
 @[semireducible] noncomputable
-instance : module R[X] (polynomial_module M) :=
+instance polynomial_module : module R[X] (polynomial_module M) :=
 module_polynomial_of_endo ({ to_fun := λ (f : polynomial_module M),
     { support := f.support.image (λ x, x + 1),
       to_fun := λ i, ite (i = 0) 0 (f (i - 1)),
@@ -43,33 +62,33 @@ module_polynomial_of_endo ({ to_fun := λ (f : polynomial_module M),
       finsupp.coe_mk, tsub_zero, nat.succ_sub_succ_eq_sub, nat.succ_ne_zero, if_false]) } :
   module.End R (polynomial_module M))
 
-instance (M : Type u) [add_comm_group M] [module R M] : is_scalar_tower R R[X] (ℕ →₀ M) :=
+instance (M : Type u) [add_comm_group M] [module R M] :
+  is_scalar_tower R R[X] (polynomial_module M) :=
 module_polynomial_of_endo.is_scalar_tower _
 
 @[simp]
 lemma monomial_smul_single (i : ℕ) (r : R) (j : ℕ) (m : M) :
-  monomial i r • finsupp.single j m = finsupp.single (i + j) (r • m) :=
+  monomial i r • single j m = single (i + j) (r • m) :=
 begin
   simp only [module_polynomial_of_endo_smul_def, linear_map.mul_apply, linear_map.coe_mk,
     polynomial.aeval_monomial, linear_map.pow_apply,  module.algebra_map_End_apply],
   induction i generalizing r j m,
-  { simp },
+  { simp [single] },
   { rw [function.iterate_succ, function.comp_app, nat.succ_eq_add_one, add_assoc, ← i_ih],
     congr' 2,
     ext a,
-    cases a; simp [finsupp.single_apply, nat.succ_eq_one_add] }
+    cases a; simp [single_apply, nat.succ_eq_one_add] }
 end
 
 @[simp]
-lemma monomial_smul_apply (i : ℕ) (r : R) (g : ℕ →₀ M) (n : ℕ) :
+lemma monomial_smul_apply (i : ℕ) (r : R) (g : polynomial_module M) (n : ℕ) :
   (monomial i r • g) n = ite (i ≤ n) (r • (g $ n - i)) 0 :=
 begin
-  induction g using finsupp.induction_linear with p q hp hq,
+  induction g using polynomial_module.induction_linear with p q hp hq,
   { simp only [smul_zero, finsupp.zero_apply, if_t_t] },
   { simp only [smul_add, finsupp.add_apply, hp, hq],
     split_ifs, exacts [rfl, zero_add 0] },
-  { rw [monomial_smul_single, finsupp.single_apply, finsupp.single_apply,
-      smul_ite, smul_zero, ← ite_and],
+  { rw [monomial_smul_single, single_apply, single_apply, smul_ite, smul_zero, ← ite_and],
     congr,
     rw eq_iff_iff,
     split,
@@ -79,19 +98,18 @@ end
 
 @[simp]
 lemma smul_single_apply (i : ℕ) (f : R[X]) (m : M) (n : ℕ) :
-  (f • finsupp.single i m) n = ite (i ≤ n) (f.coeff (n - i) • m) 0 :=
+  (f • single i m) n = ite (i ≤ n) (f.coeff (n - i) • m) 0 :=
 begin
   induction f using polynomial.induction_on' with p q hp hq,
   { rw [add_smul, finsupp.add_apply, hp, hq, coeff_add, add_smul],
     split_ifs, exacts [rfl, zero_add 0] },
-  { rw [monomial_smul_single, finsupp.single_apply, coeff_monomial,
-      ite_smul, zero_smul],
+  { rw [monomial_smul_single, single_apply, coeff_monomial, ite_smul, zero_smul],
     by_cases h : i ≤ n,
     { simp_rw [eq_tsub_iff_add_eq_of_le h, if_pos h] },
     { rw [if_neg h, ite_eq_right_iff], intro e, exfalso, linarith } }
 end
 
-lemma smul_apply (f : R[X]) (g : ℕ →₀ M) (n : ℕ) :
+lemma smul_apply (f : R[X]) (g : polynomial_module M) (n : ℕ) :
   (f • g) n = ∑ x in finset.nat.antidiagonal n, f.coeff x.1 • g x.2 :=
 begin
   induction f using polynomial.induction_on' with p q hp hq,

@@ -219,10 +219,6 @@ instance has_well_founded.is_well_founded [h : has_well_founded α] :
 namespace is_well_founded
 variables (r) [is_well_founded α r]
 
-/-- Recursion on a well-founded relation. -/
-def recursion {C : α → Sort*} : Π a, (Π x, (Π y, r y x → C y) → C x) → C a :=
-wf.recursion
-
 /-- Induction on a well-founded relation. -/
 theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, r y x → C y) → C x) → C a :=
 wf.induction
@@ -290,12 +286,9 @@ theorem well_founded_gt.is_well_order (α : Type u) [linear_order α] [well_foun
 namespace well_founded_lt
 variables [has_lt α] [well_founded_lt α]
 
-/-- Recurses on a well-founded `<` relation. -/
-def recursion {C : α → Sort*} : Π a, (Π x, (Π y, y < x → C y) → C x) → C a :=
-is_well_founded.recursion (<)
-
 /-- Inducts on a well-founded `<` relation. -/
-theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a := recursion
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, y < x → C y) → C x) → C a :=
+is_well_founded.induction _
 
 /-- All values are accessible under the well-founded `<`. -/
 theorem apply : ∀ a : α, acc (<) a := is_well_founded.apply _
@@ -318,16 +311,9 @@ end well_founded_lt
 namespace well_founded_gt
 variables [has_lt α] [well_founded_gt α]
 
-/-- Recurses on a well-founded `>` relation. -/
-def recursion {C : α → Sort*} : Π a, (Π x, (Π y, x < y → C y) → C x) → C a :=
-is_well_founded.recursion (>)
-
 /-- Inducts on a well-founded `>` relation. -/
-theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a := recursion
-
-def is_well_founded.fix (r : α → α → Prop) [is_well_founded α r] {C : α → Sort*} :
-  (Π (x : α), (Π (y : α), r y x → C y) → C x) → Π (x : α), C x :=
-is_well_founded.wf.fix
+theorem induction {C : α → Prop} : ∀ a, (∀ x, (∀ y, x < y → C y) → C x) → C a :=
+is_well_founded.induction _
 
 /-- All values are accessible under the well-founded `>`. -/
 theorem apply : ∀ a : α, acc (>) a := is_well_founded.apply _

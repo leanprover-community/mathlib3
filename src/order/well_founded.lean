@@ -88,13 +88,15 @@ theorem min_mem : ∀ (s : set α) (hs : s.nonempty), min r s hs ∈ s := is_wel
 theorem not_lt_min : ∀ (s : set α) {x} (hx : x ∈ s), ¬ r x (min r s ⟨x, hx⟩) :=
 is_well_founded.wf.not_lt_min
 
-theorem well_founded_iff_has_min (r : α → α → Prop) : is_well_founded α r ↔
+theorem is_well_founded_iff_has_min (r : α → α → Prop) : is_well_founded α r ↔
   ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a :=
 by rw [is_well_founded_iff, well_founded.well_founded_iff_has_min]
 
+/- Todo (Vi): add lemma `min_singleton`. -/
+
 open set
 
-/- TODO (Vi): define this on `well_founded_lt` and `well_founded_gt`, provide a basic API. Change
+/- Todo (Vi): define this on `well_founded_lt` and `well_founded_gt`, provide a basic API. Change
 the `Sup` definition on `well_founded_lt.conditionally_complete_linear_order_bot` with this. -/
 
 /-- A minimal upper bound of a bounded, well-founded order -/
@@ -165,9 +167,9 @@ theorem min_le [linear_order α] [well_founded_lt α] (s : set α) {x} (hx : x �
   min s ⟨x, hx⟩ ≤ x :=
 le_of_not_lt $ not_lt_min s hx
 
-theorem well_founded_iff_has_min [has_lt α] : well_founded_lt α ↔
+theorem is_well_founded_iff_has_min [has_lt α] : well_founded_lt α ↔
   ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ x < a :=
-by rw [well_founded_lt, is_well_founded.well_founded_iff_has_min]
+by rw [well_founded_lt, is_well_founded.is_well_founded_iff_has_min]
 
 /-- A linear order with well-founded `<` has a bottom element given by `min set.univ _`. -/
 noncomputable def to_order_bot [linear_order α] [well_founded_lt α] [nonempty α] : order_bot α :=
@@ -263,9 +265,9 @@ theorem le_max [linear_order α] [well_founded_gt α] (s : set α) {x} (hx : x �
   (hs : s.nonempty := ⟨x, hx⟩) : x ≤ max s hs :=
 le_of_not_lt (not_max_lt s hx hs)
 
-theorem well_founded_iff_has_max [has_lt α] : well_founded_gt α ↔
+theorem is_well_founded_iff_has_max [has_lt α] : well_founded_gt α ↔
   ∀ (s : set α), s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ a < x :=
-by rw [well_founded_gt, is_well_founded.well_founded_iff_has_min]
+by rw [well_founded_gt, is_well_founded.is_well_founded_iff_has_min]
 
 /-- A linear order with well-founded `>` has a top element given by `max set.univ _`. -/
 noncomputable def to_order_top [linear_order α] [well_founded_gt α] [nonempty α] : order_top α :=

@@ -41,8 +41,6 @@ rfl
 def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) : ((>) : ℕ → ℕ → Prop) ↪r r :=
 by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
 
--- Todo (Vi): remove the `is_trans` assumption from the following three results.
-
 theorem well_founded_iff_no_descending_seq :
   well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
 ⟨λ ⟨h⟩, ⟨λ ⟨f, o⟩,
@@ -64,6 +62,7 @@ theorem is_well_founded_iff_no_descending_seq :
   is_well_founded α r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
 by rw [is_well_founded_iff, well_founded_iff_no_descending_seq]
 
+-- Todo (Vi): remove the `is_strict_order` assumption from this.
 theorem no_descending_seq (r : α → α → Prop) [is_strict_order α r] [h : is_well_founded α r] :
   is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
 is_well_founded_iff_no_descending_seq.1 h

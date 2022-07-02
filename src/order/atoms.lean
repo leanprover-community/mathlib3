@@ -210,11 +210,13 @@ is_atomic_dual_iff_is_coatomic.symm.trans $ is_atomic_iff_forall_is_atomic_Iic.t
 
 section well_founded
 
+@[priority 100] -- See note [lower instance priority]
 instance well_founded_lt.is_atomic [order_bot α] [well_founded_lt α] : is_atomic α :=
 ⟨λ a, or_iff_not_imp_left.2 $
   λ ha, let ⟨b, hb, hm⟩ := well_founded_lt.has_min {b | b ≠ ⊥ ∧ b ≤ a} ⟨a, ha, le_rfl⟩ in
   ⟨b, ⟨hb.1, λ c, not_imp_not.1 $ λ hc hl, hm c ⟨hc, hl.le.trans hb.2⟩ hl⟩, hb.2⟩⟩
 
+@[priority 100] -- See note [lower instance priority]
 instance well_founded_gt.is_coatomic [order_top α] [well_founded_gt α] : is_coatomic α :=
 is_atomic_dual_iff_is_coatomic.1 (@well_founded_lt.is_atomic αᵒᵈ _ _ _)
 

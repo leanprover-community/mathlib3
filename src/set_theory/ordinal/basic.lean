@@ -710,7 +710,7 @@ instance : has_well_founded ordinal := well_founded_lt.to_has_well_founded
 
 /-- Reformulation of well founded induction on ordinals as a lemma that works with the
 `induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
--- TODO (Vi): replace in favor of `well_founded_lt.induction`.
+-- Todo (Vi): replace in favor of `well_founded_lt.induction`.
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
 well_founded_lt.induction i h

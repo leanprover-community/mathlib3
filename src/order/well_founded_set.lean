@@ -77,7 +77,7 @@ begin
     ⟨⟨coe, subtype.coe_injective⟩, λ a b, by simp⟩,
   refine ⟨λ h, _, @rel_embedding.is_well_founded _ _ _ _ f⟩,
   haveI := h.is_well_founded,
-  rw is_well_founded.well_founded_iff_has_min,
+  rw is_well_founded.is_well_founded_iff_has_min,
   intros t ht,
   by_cases hst : (s ∩ t).nonempty,
   { rw ← subtype.preimage_coe_nonempty at hst,

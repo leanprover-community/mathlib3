@@ -61,18 +61,20 @@ def rees_algebra : subalgebra R R[X] :=
     { simp }
   end }
 
+lemma mem_rees_algebra_iff (f : R[X]) :
+  f ∈ rees_algebra I ↔ ∀ i, f.coeff i ∈ I ^ i := iff.rfl
+
 lemma rees_algebra.monomial_mem {I : ideal R} {i : ℕ} {r : R} :
   monomial i r ∈ rees_algebra I ↔ r ∈ I ^ i :=
 begin
-  change (∀ j, (monomial i r).coeff j ∈ I ^ j) ↔ r ∈ I ^ i,
-  dsimp [monomial, monomial_fun],
+  dsimp [mem_rees_algebra_iff, monomial, monomial_fun],
   simp_rw finsupp.single_apply,
   exact ⟨λ H, by simpa using H i, λ h j,
     by { split_ifs with h', { rwa ← h' }, { exact ideal.zero_mem _ } }⟩,
 end
 
 lemma adjoin_monomial_eq_rees_algebra :
-  algebra.adjoin R (monomial 1 '' (I : set R)) = rees_algebra I :=
+  algebra.adjoin R (submodule.map (monomial 1) I : set R[X]) = rees_algebra I :=
 begin
   apply le_antisymm,
   { apply algebra.adjoin_le _,
@@ -88,7 +90,7 @@ begin
     induction i with i hi generalizing r,
     { intro _, exact subalgebra.algebra_map_mem _ _ },
     { intro h,
-      rw [pow_succ] at h,
+      rw pow_succ at h,
       apply submodule.smul_induction_on h,
       { intros r hr s hs,
         rw [nat.succ_eq_one_add, smul_eq_mul, ← monomial_mul_monomial],

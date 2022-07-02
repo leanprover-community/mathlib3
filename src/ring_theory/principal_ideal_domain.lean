@@ -154,27 +154,29 @@ lemma mod_mem_iff {S : ideal R} {x y : R} (hy : y ∈ S) : x % y ∈ S ↔ x ∈
 
 @[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R :=
-{ principal := λ S, by exactI
-    ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
-    then
-    have hmin : is_well_founded.min euclidean_domain.r {x : R | x ∈ S ∧ x ≠ 0} h ∈ S ∧
-        is_well_founded.min euclidean_domain.r {x : R | x ∈ S ∧ x ≠ 0} h ≠ 0,
-      from is_well_founded.min_mem _ {x : R | x ∈ S ∧ x ≠ 0} h,
-      --finish fixing this
-    ⟨well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h,
-      submodule.ext $ λ x,
-      ⟨λ hx, div_add_mod x (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ▸
-        (ideal.mem_span_singleton.2 $ dvd_add (dvd_mul_right _ _) $
-        have (x % (well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h) ∉ {x : R | x ∈ S ∧ x ≠ 0}),
-          from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
-        have x % well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h = 0,
-          by { simp only [not_and_distrib, set.mem_set_of_eq, not_ne_iff] at this,
-               cases this, cases this ((mod_mem_iff hmin.1).2 hx), exact this },
-        by simp *),
-      λ hx, let ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx in hy.symm ▸ S.mul_mem_right _ hmin.1⟩⟩
-    else ⟨0, submodule.ext $ λ a,
-           by rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot];
-      exact ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
+⟨λ S, begin
+  let U := {x : R | x ∈ S ∧ x ≠ 0},
+  let r := euclidean_domain.r,
+  by_cases h : U.nonempty,
+  { let m := is_well_founded.min r U h,
+    have hmin : m ∈ S ∧ m ≠ 0 := is_well_founded.min_mem r U h,
+    use m,
+    refine submodule.ext (λ x, ⟨λ hx, div_add_mod x m ▸
+      (ideal.mem_span_singleton.2 $ dvd_add (dvd_mul_right _ _) _), λ hx, _⟩),
+    { have H₁ : x % m ∉ U := λ h₁, is_well_founded.not_lt_min r _ h₁ (mod_lt x hmin.2),
+      have H₂ : x % m = 0,
+      { simp only [not_and_distrib, set.mem_set_of_eq, not_ne_iff] at H₁,
+        cases H₁,
+        { cases H₁ ((mod_mem_iff hmin.1).2 hx) },
+        { exact H₁ } },
+      simp * },
+    { obtain ⟨y, hy⟩ := ideal.mem_span_singleton.1 hx,
+      exact hy.symm ▸ S.mul_mem_right _ hmin.1 } },
+    { use 0, ext,
+      rw [← @submodule.bot_coe R R _ _ _, span_eq, submodule.mem_bot],
+      exact ⟨λ hxS, by_contradiction $ λ hx0, h ⟨x, ⟨hxS, hx0⟩⟩, λ h₁, h₁.symm ▸ S.zero_mem⟩ }
+end⟩
+
 end
 
 lemma is_field.is_principal_ideal_ring

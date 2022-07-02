@@ -943,6 +943,17 @@ begin
   { intros h, rw h },
 end
 
+lemma mul_div_mul_comm_of_dvd_dvd {a b c d : ℕ} (hac : c ∣ a) (hbd : d ∣ b) :
+  a * b / (c * d) = a / c * (b / d) :=
+begin
+  rcases c.eq_zero_or_pos with rfl | hc0, { simp },
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp },
+  obtain ⟨k1, rfl⟩ := hac,
+  obtain ⟨k2, rfl⟩ := hbd,
+  rw [mul_mul_mul_comm, nat.mul_div_cancel_left _ hc0, nat.mul_div_cancel_left _ hd0,
+      nat.mul_div_cancel_left _ (mul_pos hc0 hd0)],
+end
+
 @[simp]
 protected lemma div_left_inj {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
 begin

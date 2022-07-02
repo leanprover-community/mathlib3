@@ -62,6 +62,9 @@ theorem is_well_founded_iff_no_descending_seq :
   is_well_founded α r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
 by rw [is_well_founded_iff, well_founded_iff_no_descending_seq]
 
+theorem no_descending_seq [h : is_well_founded α r] : is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
+is_well_founded_iff_no_descending_seq.1 h
+
 end rel_embedding
 
 namespace nat

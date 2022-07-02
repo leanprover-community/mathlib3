@@ -67,17 +67,17 @@ theorem finite_of_subtype (s : set α) [h : finite s] : s.finite := ⟨h⟩
 
 theorem finite_coe_iff {s : set α} : finite s ↔ s.finite := ⟨λ h, ⟨h⟩, λ ⟨h⟩, h⟩
 
-alias finite_coe_iff ↔ _ set.finite.to_subtype
+alias finite_coe_iff ↔ _ finite.to_subtype
 
 theorem finite_def {s : set α} : s.finite ↔ nonempty (fintype s) :=
 finite_coe_iff.symm.trans (finite_iff_nonempty_fintype s)
 
-alias finite_def ↔ set.finite.nonempty_fintype _
+alias finite_def ↔ finite.nonempty_fintype _
 
 /-- A finite set coerced to a type is a `fintype`.
 This is the `fintype` projection for a `set.finite`. -/
 protected noncomputable def finite.fintype {s : set α} (h : s.finite) : fintype s :=
-by { haveI := h.to_subtype, exact fintype.of_finite s }
+h.nonempty_fintype.some
 
 /-- Using choice, get the `finset` that represents this `set.` -/
 noncomputable def finite.to_finset {s : set α} (h : s.finite) : finset α :=

@@ -285,7 +285,7 @@ may change the goal. Also, the *order* in which the terms are provided matters: 
 them from left to right.  This is especially important if there are multiple matches for the typed
 terms in the given expressions.
 
-A single call of `move_op` moves terms across different sums in the same expression.
+A single call of `move_add` moves terms across different sums in the same expression.
 Here is an example.
 
 ```lean

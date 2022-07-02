@@ -15,6 +15,9 @@ variables (ϕ : evenly_covered_set f I U)
 instance : has_coe_to_fun (evenly_covered_set f I U) (λ ι, I × U → f ⁻¹' U) :=
 ⟨λ ϕ, ϕ.to_fun⟩
 
+lemma is_open_map : is_open_map ϕ :=
+ϕ.to_homeomorph.is_open_map
+
 def symm : f ⁻¹' U ≃ₜ I × U :=
 ϕ.to_homeomorph.symm
 
@@ -70,6 +73,9 @@ variables {hx : x ∈ U} (ϕ : evenly_covered_pt f hx)
 
 instance : has_coe_to_fun (evenly_covered_pt f hx) (λ ι, f ⁻¹' {x} × U → f ⁻¹' U) :=
 ⟨λ ϕ, ϕ.to_fun⟩
+
+lemma is_open_map : is_open_map ϕ :=
+ϕ.to_evenly_covered_set.is_open_map
 
 def symm : f ⁻¹' U ≃ₜ f ⁻¹' {x} × U :=
 ϕ.to_evenly_covered_set.symm
@@ -147,19 +153,24 @@ begin
   let ψ : U → E := λ p, ϕ ⟨⟨x, rfl⟩, p⟩,
   have hψ : ∀ p : U, q (ψ p) = p := λ p, ϕ.commutes ⟨⟨x, rfl⟩, p⟩,
   refine ⟨{ to_fun := q,
-  inv_fun := λ p, if hp : p ∈ U then ψ ⟨p, hp⟩ else x,
-  source := set.range ψ,
-  target := U,
-  open_source := sorry,
-  open_target := hU,
-  map_source' := λ _ ⟨⟨p, _⟩, hp⟩, by rwa [←hp, hψ],
-  map_target' := λ p hp, ⟨⟨p, hp⟩, by rw [dif_pos hp]⟩,
-  left_inv' := λ _ ⟨p, hp⟩, by rw [←hp, hψ, dif_pos p.prop, subtype.coe_eta],
-  right_inv' := λ p hp, by rw [dif_pos hp, hψ, subtype.coe_mk],
-  continuous_to_fun := q.continuous.continuous_on,
-  continuous_inv_fun := by
-  { rw [continuous_on_iff_continuous_restrict, set.restrict_dite],
-    continuity! } }, ⟨⟨q x, hx⟩, subtype.ext_iff.mp (ϕ.rigid ⟨x, rfl⟩)⟩, rfl⟩,
+    inv_fun := λ p, if hp : p ∈ U then ψ ⟨p, hp⟩ else x,
+    source := set.range ψ,
+    target := U,
+    open_source := by
+    { haveI := q.discrete_fibers,
+      simp only,
+      rw [←set.image_univ, set.image_comp (coe ∘ ϕ), ←set.singleton_prod],
+      exact (hU.preimage q.continuous).is_open_map_subtype_coe.comp ϕ.is_open_map _
+        ((is_open_discrete _).prod is_open_univ) },
+    open_target := hU,
+    map_source' := λ _ ⟨⟨p, _⟩, hp⟩, by rwa [←hp, hψ],
+    map_target' := λ p hp, ⟨⟨p, hp⟩, by rw [dif_pos hp]⟩,
+    left_inv' := λ _ ⟨p, hp⟩, by rw [←hp, hψ, dif_pos p.prop, subtype.coe_eta],
+    right_inv' := λ p hp, by rw [dif_pos hp, hψ, subtype.coe_mk],
+    continuous_to_fun := q.continuous.continuous_on,
+    continuous_inv_fun := by
+    { rw [continuous_on_iff_continuous_restrict, set.restrict_dite],
+      continuity! } }, ⟨⟨q x, hx⟩, subtype.ext_iff.mp (ϕ.rigid ⟨x, rfl⟩)⟩, rfl⟩,
 end
 
 lemma is_open_map (q : E ↠ X) : is_open_map q :=

@@ -166,16 +166,16 @@ meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
 | (expr.lam na bi e f)          := do
   [en, fn] ← [e, f].mmap $ reorder_oper,
   return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| (expr.mvar na pp e)           := do
+| (expr.mvar na pp e)           := do  -- is it really needed to recurse here?
   en ← reorder_oper e,
   return (expr.mvar na pp en.1, [en.2].transpose.map list.band)
-| (expr.local_const na pp bi e) := do
+| (expr.local_const na pp bi e) := do  -- is it really needed to recurse here?
   en ← reorder_oper e,
   return (expr.local_const na pp bi en.1, [en.2].transpose.map list.band)
 | (expr.elet na e f g)          := do
   [en, fn, gn] ← [e, f, g].mmap $ reorder_oper,
   return (expr.elet na en.1 fn.1 gn.1, [en.2, fn.2, gn.2].transpose.map list.band)
-| (expr.macro ma le)            := do
+| (expr.macro ma le)            := do  -- is it really needed to recurse here?
   len ← le.mmap $ reorder_oper,
   let (lee, lb) := len.unzip,
   return (expr.macro ma lee, lb.transpose.map list.band)

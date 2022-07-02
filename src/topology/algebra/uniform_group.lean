@@ -79,6 +79,26 @@ by simp * at *
 @[to_additive] lemma uniform_continuous_mul : uniform_continuous (λp:α×α, p.1 * p.2) :=
 uniform_continuous_fst.mul uniform_continuous_snd
 
+@[to_additive uniform_continuous.const_nsmul]
+lemma uniform_continuous.pow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℕ, uniform_continuous (λ x, f x ^ n)
+| 0 := by { simp_rw pow_zero, exact uniform_continuous_const }
+| (n + 1) := by { simp_rw pow_succ, exact hf.mul (uniform_continuous.pow_const n) }
+
+@[to_additive uniform_continuous_const_nsmul] lemma uniform_continuous_pow_const (n : ℕ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.pow_const n
+
+@[to_additive uniform_continuous.const_zsmul]
+lemma uniform_continuous.zpow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℤ, uniform_continuous (λ x, f x ^ n)
+| (n : ℕ) := by { simp_rw zpow_coe_nat, exact hf.pow_const _, }
+| -[1+ n] := by { simp_rw zpow_neg_succ_of_nat, exact (hf.pow_const _).inv }
+
+@[to_additive uniform_continuous_const_zsmul] lemma uniform_continuous_zpow_const (n : ℤ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.zpow_const n
+
 @[priority 10, to_additive]
 instance uniform_group.to_topological_group : topological_group α :=
 { continuous_mul := uniform_continuous_mul.continuous,

@@ -126,19 +126,15 @@ instance : topological_space (cofinite_topology α) :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,
   is_open_inter := λ s t, begin
-    classical,
     rintros hs ht ⟨x, hxs, hxt⟩,
-    haveI := set.finite.fintype (hs ⟨x, hxs⟩),
-    haveI := set.finite.fintype (ht ⟨x, hxt⟩),
     rw compl_inter,
-    exact set.finite.intro (sᶜ.fintype_union tᶜ),
+    exact (hs ⟨x, hxs⟩).union (ht ⟨x, hxt⟩),
   end,
   is_open_sUnion := begin
     rintros s h ⟨x, t, hts, hzt⟩,
     rw set.compl_sUnion,
-    apply set.finite.sInter _ (h t hts ⟨x, hzt⟩),
-    simp [hts]
-    end }
+    exact set.finite.sInter (mem_image_of_mem _ hts) (h t hts ⟨x, hzt⟩),
+  end }
 
 lemma is_open_iff {s : set (cofinite_topology α)} :
   is_open s ↔ (s.nonempty → (sᶜ).finite) := iff.rfl

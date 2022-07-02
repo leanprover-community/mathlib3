@@ -101,9 +101,7 @@ begin
     simpa using ennreal.add_lt_add_left hsμ.ne hη_pos' },
   obtain ⟨F, Fs, F_closed, μF⟩ : ∃ F ⊆ s, is_closed F ∧ μ s < μ F + ↑η :=
     hs.exists_is_closed_lt_add hsμ.ne hη_pos'.ne',
-  have : disjoint uᶜ F,
-  { rw [set.disjoint_iff_inter_eq_empty, set.inter_comm, ← set.subset_compl_iff_disjoint],
-    simpa using Fs.trans su },
+  have : disjoint uᶜ F := (Fs.trans su).disjoint_compl_left,
   have h_μ_sdiff : μ (u \ F) ≤ 2 * η,
   { have hFμ : μ F < ⊤ := (measure_mono Fs).trans_lt hsμ,
     refine ennreal.le_of_add_le_add_left hFμ.ne _,

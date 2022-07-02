@@ -133,7 +133,7 @@ lemma derivative_succ (n ν : ℕ) :
 begin
   cases n,
   { simp [bernstein_polynomial], },
-  { apply derivative_succ_aux, }
+  { rw nat.cast_succ, apply derivative_succ_aux, }
 end
 
 lemma derivative_zero (n : ℕ) :
@@ -151,7 +151,7 @@ begin
   { rw nat.lt_succ_iff,
     induction k with k ih generalizing n ν,
     { simp [eval_at_0], },
-    { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
+    { simp only [derivative_succ, int.coe_nat_eq_zero, mul_eq_zero,
         function.comp_app, function.iterate_succ,
         polynomial.iterate_derivative_sub, polynomial.iterate_derivative_cast_nat_mul,
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],

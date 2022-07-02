@@ -53,10 +53,10 @@ pointwise subtraction
 
 /--
 Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
-`has_scalar α β → has_scalar α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
+`has_smul α β → has_smul α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
 nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`. For example,
 `2 • {a, b}` can both be `{2 • a, 2 • b}` (pointwise action, pointwise repeated addition,
-`set.has_scalar_set`) and `{a + a, a + b, b + a, b + b}` (nat or int action, repeated pointwise
+`set.has_smul_set`) and `{a + a, a + b, b + a, b + b}` (nat or int action, repeated pointwise
 addition, `set.has_nsmul`).
 
 Because the pointwise action can easily be spelled out in such cases, we give higher priority to the
@@ -371,7 +371,7 @@ open_locale pointwise
 
 /-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
 note [pointwise nat action].-/
-protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
+protected def has_nsmul [has_zero α] [has_add α] : has_smul ℕ (set α) := ⟨nsmul_rec⟩
 
 /-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
 `set`. See note [pointwise nat action]. -/
@@ -380,7 +380,7 @@ protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ
 
 /-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
 addition/subtraction!) of a `set`. See note [pointwise nat action]. -/
-protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_smul ℤ (set α) := ⟨zsmul_rec⟩
 
 /-- Repeated pointwise multiplication/division (not the same as pointwise repeated
 multiplication/division!) of a `set`. See note [pointwise nat action]. -/
@@ -607,7 +607,7 @@ by simp [not_disjoint_iff_nonempty_inter, mem_div, div_eq_one, set.nonempty]
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
 one_mem_div_iff.not_left
 
-alias not_one_mem_div_iff ↔ _ disjoint.one_not_mem_div_set
+alias not_one_mem_div_iff ↔ _ _root_.disjoint.one_not_mem_div_set
 
 attribute [to_additive] disjoint.one_not_mem_div_set
 
@@ -769,27 +769,27 @@ end big_operators
 section smul
 
 /-- The dilation of set `x • s` is defined as `{x • y | y ∈ s}` in locale `pointwise`. -/
-@[to_additive has_vadd_set "The translation of set `x +ᵥ s` is defined as `{x +ᵥ y | y ∈ s}` in
+@[to_additive "The translation of set `x +ᵥ s` is defined as `{x +ᵥ y | y ∈ s}` in
 locale `pointwise`."]
-protected def has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
-⟨λ a, image (has_scalar.smul a)⟩
+protected def has_smul_set [has_smul α β] : has_smul α (set β) :=
+⟨λ a, image (has_smul.smul a)⟩
 
 /-- The pointwise scalar multiplication of sets `s • t` is defined as `{x • y | x ∈ s, y ∈ t}` in
 locale `pointwise`. -/
-@[to_additive has_vadd "The pointwise scalar addition of sets `s +ᵥ t` is defined as
+@[to_additive "The pointwise scalar addition of sets `s +ᵥ t` is defined as
 `{x +ᵥ y | x ∈ s, y ∈ t}` in locale `pointwise`."]
-protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
-⟨image2 has_scalar.smul⟩
+protected def has_smul [has_smul α β] : has_smul (set α) (set β) :=
+⟨image2 has_smul.smul⟩
 
-localized "attribute [instance] set.has_scalar_set set.has_scalar" in pointwise
+localized "attribute [instance] set.has_smul_set set.has_smul" in pointwise
 localized "attribute [instance] set.has_vadd_set set.has_vadd" in pointwise
 
-section has_scalar
-variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s s₁ s₂ : set α} {t t₁ t₂ u : set β} {a : α}
+section has_smul
+variables {ι : Sort*} {κ : ι → Sort*} [has_smul α β] {s s₁ s₂ : set α} {t t₁ t₂ u : set β} {a : α}
   {b : β}
 
 @[simp, to_additive]
-lemma image2_smul : image2 has_scalar.smul s t = s • t := rfl
+lemma image2_smul : image2 has_smul.smul s t = s • t := rfl
 
 @[to_additive add_image_prod]
 lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' s ×ˢ t = s • t := image_prod _
@@ -863,10 +863,14 @@ image2_Inter₂_subset_right _ _ _
 
 @[to_additive] lemma finite.smul : s.finite → t.finite → (s • t).finite := finite.image2 _
 
-end has_scalar
+@[simp, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
+  (⋃ a ∈ s, a • t) = s • t :=
+Union_image_left _
 
-section has_scalar_set
-variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s t t₁ t₂ : set β} {a : α} {b : β} {x y : β}
+end has_smul
+
+section has_smul_set
+variables {ι : Sort*} {κ : ι → Sort*} [has_smul α β] {s t t₁ t₂ : set β} {a : α} {b : β} {x y : β}
 
 @[simp, to_additive] lemma image_smul : (λ x, a • x) '' t = a • t := rfl
 
@@ -880,7 +884,8 @@ variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s t t₁ t₂ : s
 
 @[simp, to_additive] lemma smul_set_singleton : a • ({b} : set β) = {a • b} := image_singleton
 
-@[to_additive] lemma smul_set_mono (h : s ⊆ t) : a • s ⊆ a • t := image_subset _ h
+@[to_additive] lemma smul_set_mono : s ⊆ t → a • s ⊆ a • t := image_subset _
+@[to_additive] lemma smul_set_subset_iff : a • s ⊆ t ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ t := image_subset_iff
 
 @[to_additive] lemma smul_set_union : a • (t₁ ∪ t₂) = a • t₁ ∪ a • t₂ := image_union _ _ _
 
@@ -906,7 +911,7 @@ image_Inter₂_subset _ _
 @[to_additive] lemma nonempty.smul_set : s.nonempty → (a • s).nonempty := nonempty.image _
 @[to_additive] lemma finite.smul_set : s.finite → (a • s).finite := finite.image _
 
-end has_scalar_set
+end has_smul_set
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
@@ -929,46 +934,51 @@ lemma smul_univ [group α] [mul_action α β] {s : set α} (hs : s.nonempty) :
 let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul _ _⟩
 
 @[to_additive]
-theorem range_smul_range {ι κ : Type*} [has_scalar α β] (b : ι → α) (c : κ → β) :
+theorem range_smul_range {ι κ : Type*} [has_smul α β] (b : ι → α) (c : κ → β) :
   range b • range c = range (λ p : ι × κ, b p.1 • c p.2) :=
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
 
-@[to_additive] lemma smul_set_range [has_scalar α β] {ι : Sort*} {f : ι → β} :
+@[to_additive] lemma smul_set_range [has_smul α β] {ι : Sort*} {f : ι → β} :
   a • range f = range (λ i, a • f i) := (range_comp _ _).symm
 
 @[to_additive]
-instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_set [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
+  smul_comm_class α β (set γ) :=
+⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+
+@[to_additive]
+instance smul_comm_class_set' [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class α (set β) (set γ) :=
 ⟨λ _ _ _, image_image2_distrib_right $ smul_comm _⟩
 
 @[to_additive]
-instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_set'' [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) β (set γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
 @[to_additive]
-instance smul_comm_class [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class (set α) (set β) (set γ) :=
 ⟨λ _ _ _, image2_left_comm smul_comm⟩
 
-instance is_scalar_tower [has_scalar α β] [has_scalar α γ] [has_scalar β γ]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower α β (set γ) :=
 { smul_assoc := λ a b T, by simp only [←image_smul, image_image, smul_assoc] }
 
-instance is_scalar_tower' [has_scalar α β] [has_scalar α γ] [has_scalar β γ]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower α (set β) (set γ) :=
 ⟨λ _ _ _, image2_image_left_comm $ smul_assoc _⟩
 
-instance is_scalar_tower'' [has_scalar α β] [has_scalar α γ] [has_scalar β γ]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
   [is_scalar_tower α β γ] :
   is_scalar_tower (set α) (set β) (set γ) :=
 { smul_assoc := λ T T' T'', image2_assoc smul_assoc }
 
-instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
+instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (set β) :=
 ⟨λ a S, congr_arg (λ f, f '' S) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
 
@@ -1005,6 +1015,30 @@ protected def mul_distrib_mul_action_set [monoid α] [monoid β] [mul_distrib_mu
 
 localized "attribute [instance] set.distrib_mul_action_set set.mul_distrib_mul_action_set"
   in pointwise
+
+instance [has_zero α] [has_zero β] [has_smul α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors (set α) (set β) :=
+⟨λ s t h, begin
+  by_contra' H,
+  have hst : (s • t).nonempty := h.symm.subst zero_nonempty,
+  simp_rw [←hst.of_smul_left.subset_zero_iff, ←hst.of_smul_right.subset_zero_iff, not_subset,
+    mem_zero] at H,
+  obtain ⟨⟨a, hs, ha⟩, b, ht, hb⟩ := H,
+  exact (eq_zero_or_eq_zero_of_smul_eq_zero $ h.subset $ smul_mem_smul hs ht).elim ha hb,
+end⟩
+
+instance no_zero_smul_divisors_set [has_zero α] [has_zero β] [has_smul α β]
+  [no_zero_smul_divisors α β] : no_zero_smul_divisors α (set β) :=
+⟨λ a s h, begin
+  by_contra' H,
+  have hst : (a • s).nonempty := h.symm.subst zero_nonempty,
+  simp_rw [←hst.of_image.subset_zero_iff, not_subset, mem_zero] at H,
+  obtain ⟨ha, b, ht, hb⟩ := H,
+  exact (eq_zero_or_eq_zero_of_smul_eq_zero $ h.subset $ smul_mem_smul_set ht).elim ha hb,
+end⟩
+
+instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (set α) :=
+⟨λ s t h, eq_zero_or_eq_zero_of_smul_eq_zero h⟩
 
 end smul
 
@@ -1149,6 +1183,15 @@ begin
 end
 
 end smul_with_zero
+
+section left_cancel_semigroup
+variables [left_cancel_semigroup α] {s t : set α}
+
+@[to_additive] lemma pairwise_disjoint_smul_iff :
+  s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
+
+end left_cancel_semigroup
 
 section group
 variables [group α] [mul_action α β] {s t A B : set β} {a : α} {x : β}

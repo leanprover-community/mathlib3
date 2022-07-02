@@ -65,21 +65,7 @@ instance : has_add enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, get x h.1 + get 
 
 instance (n : ℕ) : decidable (some n).dom := is_true trivial
 
-lemma some_eq_coe (n : ℕ) : some n = n :=
-begin
-  induction n with n ih, { refl },
-  apply part.ext',
-  { show true ↔ ((n : enat).dom ∧ true), rw [← ih, and_true], exact iff.rfl },
-  { intros h H, show n.succ = (n : enat).get H.1 + 1,
-    rw [nat.cast_succ] at H, revert H, simp only [← ih], intro, refl },
-end
-
-@[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y :=
-by simpa only [← some_eq_coe] using part.some_inj
-
 @[simp] lemma dom_some (x : ℕ) : (some x).dom := trivial
-
-@[simp] lemma dom_coe (x : ℕ) : (x : enat).dom := by rw [← some_eq_coe]; trivial
 
 instance : add_comm_monoid enat :=
 { add       := (+),
@@ -88,6 +74,19 @@ instance : add_comm_monoid enat :=
   zero_add  := λ x, part.ext' (true_and _) (λ _ _, zero_add _),
   add_zero  := λ x, part.ext' (and_true _) (λ _ _, add_zero _),
   add_assoc := λ x y z, part.ext' and.assoc (λ _ _, add_assoc _ _ _) }
+
+instance : add_monoid_with_one enat :=
+{ one := 1,
+  nat_cast := some,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ _, part.ext' (true_and _).symm (λ _ _, rfl),
+  .. enat.add_comm_monoid }
+
+lemma some_eq_coe (n : ℕ) : some n = n := rfl
+
+@[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y := part.some_inj
+
+@[simp] lemma dom_coe (x : ℕ) : (x : enat).dom := trivial
 
 instance : has_le enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩
 instance : has_top enat := ⟨none⟩
@@ -235,6 +234,9 @@ instance order_top : order_top enat :=
 { top := (⊤),
   le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩ }
 
+lemma eq_zero_iff {x : enat} : x = 0 ↔ x ≤ 0 := eq_bot_iff
+lemma ne_zero_iff {x : enat} : x ≠ 0 ↔ ⊥ < x := bot_lt_iff_ne_bot.symm
+
 lemma dom_of_lt {x y : enat} : x < y → x.dom :=
 enat.cases_on x not_top_lt $ λ _ _, dom_coe _
 
@@ -244,6 +246,9 @@ lemma top_eq_none : (⊤ : enat) = none := rfl
 ne.lt_top (λ h, absurd (congr_arg dom h) $ by simpa only [dom_coe] using true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
+
+lemma not_is_max_coe (x : ℕ) : ¬ is_max (x : enat) :=
+not_is_max_of_lt (coe_lt_top x)
 
 lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃ (n : ℕ), x = n :=
 by simpa only [← some_eq_coe] using part.ne_none_iff

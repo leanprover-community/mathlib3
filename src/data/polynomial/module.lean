@@ -46,6 +46,18 @@ finsupp.induction_linear f h0 hadd hsingle
 lemma single_apply (i : ℕ) (m : M) (n : ℕ) : single i m n = ite (i = n) m 0 :=
 finsupp.single_apply
 
+variable (R)
+
+/-- `polynomial_module.single` as a linear map. -/
+noncomputable
+def lsingle (i : ℕ) : M →ₗ[R] polynomial_module M :=
+finsupp.lsingle i
+
+lemma lsingle_apply (i : ℕ) (m : M) (n : ℕ) : lsingle R i m n = ite (i = n) m 0 :=
+finsupp.single_apply
+
+variable {R}
+
 @[semireducible] noncomputable
 instance polynomial_module : module R[X] (polynomial_module M) :=
 module_polynomial_of_endo ({ to_fun := λ (f : polynomial_module M),

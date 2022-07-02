@@ -270,6 +270,83 @@ end
 
 section
 
+variables (R : Type*) [comm_ring R] [is_domain R] {K : Type*}
+variables [field K] [algebra R K] [is_fraction_ring R K]
+
+lemma iff_dvd_total [is_domain R] :
+  valuation_ring R ↔ is_total R (∣) :=
+begin
+  classical,
+  refine ⟨λ H, ⟨λ a b, _⟩, λ H, ⟨λ a b, _⟩⟩; resetI,
+  { obtain ⟨c,rfl|rfl⟩ := @@valuation_ring.cond _ _ H a b; simp },
+  { obtain (⟨c, rfl⟩|⟨c, rfl⟩) := @is_total.total _ _ H a b; use c; simp }
+end
+
+lemma iff_ideal_total [is_domain R] :
+  valuation_ring R ↔ is_total (ideal R) (≤) :=
+begin
+  classical,
+  refine ⟨λ _, by exactI ⟨le_total⟩, λ H, (iff_dvd_total R).mpr ⟨λ a b, _⟩⟩,
+  have := @is_total.total _ _ H (ideal.span {a}) (ideal.span {b}),
+  simp_rw ideal.span_singleton_le_span_singleton at this,
+  exact this.symm
+end
+
+variable {R}
+
+lemma dvd_total [h : valuation_ring R] (x y : R) : x ∣ y ∨ y ∣ x :=
+@@is_total.total _ ((iff_dvd_total R).mp h) x y
+
+lemma valuation_ring.unique_irreducible [is_domain R] [valuation_ring R] ⦃p q : R⦄
+  (hp : irreducible p) (hq : irreducible q) : associated p q :=
+begin
+  have := dvd_total p q,
+  rw [irreducible.dvd_comm hp hq, or_self] at this,
+  exact associated_of_dvd_dvd (irreducible.dvd_symm hq hp this) this,
+end
+
+lemma iff_exists_algebra_map_eq [is_domain R] :
+  valuation_ring R ↔ ∀ x : K, ∃ c : R, algebra_map R K c = x ∨ algebra_map R K c = x⁻¹ :=
+begin
+  split,
+  { introsI H x,
+    obtain ⟨x : R, y, hy, rfl⟩ := is_fraction_ring.div_surjective x,
+    any_goals { apply_instance },
+    have := (map_ne_zero_iff _ (is_fraction_ring.injective R K)).mpr (non_zero_divisors.ne_zero hy),
+    obtain ⟨s, rfl|rfl⟩ := valuation_ring.cond x y,
+    { exact ⟨s, or.inr $ eq_inv_of_mul_eq_one_left $
+        by rwa [mul_div, div_eq_one_iff_eq, map_mul, mul_comm]⟩ },
+    { exact ⟨s, or.inl $ by rwa [eq_div_iff, map_mul, mul_comm]⟩ } },
+  { intro H,
+    constructor,
+    intros a b,
+    by_cases ha : a = 0, { subst ha, exact ⟨0, or.inr $ mul_zero b⟩ },
+    by_cases hb : b = 0, { subst hb, exact ⟨0, or.inl $ mul_zero a⟩ },
+    replace ha := (map_ne_zero_iff _ (is_fraction_ring.injective R K)).mpr ha,
+    replace hb := (map_ne_zero_iff _ (is_fraction_ring.injective R K)).mpr hb,
+    obtain ⟨c, e⟩ := H (algebra_map R K a / algebra_map R K b),
+    simp_rw [inv_div, eq_div_iff ha, eq_div_iff hb, ← map_mul,
+      (is_fraction_ring.injective R K).eq_iff, mul_comm c] at e,
+    exact ⟨c, e.symm⟩ }
+end
+
+lemma exists_algebra_map_eq [is_domain R] [h : valuation_ring R] (x : K) :
+  ∃ c : R, algebra_map R K c = x ∨ algebra_map R K c = x⁻¹ :=
+iff_exists_algebra_map_eq.mp h x
+
+end
+
+lemma valuation_ring.of_surjective {R S : Type*} [comm_ring R] [is_domain R]
+  [valuation_ring R] [comm_ring S] [is_domain S] (f : R →+* S) (hf : function.surjective f) :
+    valuation_ring S :=
+⟨λ a b, begin
+  obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨hf a, hf b⟩,
+  obtain ⟨c, rfl|rfl⟩ := valuation_ring.cond a b,
+  exacts [⟨f c, or.inl $ (map_mul _ _ _).symm⟩, ⟨f c, or.inr $ (map_mul _ _ _).symm⟩],
+end⟩
+
+section
+
 variables {𝒪 : Type u} {K : Type v} {Γ : Type w}
   [comm_ring 𝒪] [is_domain 𝒪] [field K] [algebra 𝒪 K]
   [linear_ordered_comm_group_with_zero Γ]

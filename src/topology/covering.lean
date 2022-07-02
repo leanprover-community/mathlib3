@@ -143,7 +143,7 @@ begin
   classical,
   intro x,
   obtain ⟨U, hU, hx, ⟨ϕ⟩⟩ := q.evenly_covered (q x),
-  let ψ : U → E := λ p, ϕ ⟨⟨x, rfl⟩, p⟩, -- (ϕ.symm ⟨x, hx⟩).1 avoids rigidity
+  let ψ : U → E := λ p, ϕ ⟨⟨x, rfl⟩, p⟩,
   have hψ : ∀ p : U, q (ψ p) = p := λ p, ϕ.commutes ⟨⟨x, rfl⟩, p⟩,
   refine ⟨{ to_fun := q,
   inv_fun := λ p, if hp : p ∈ U then ψ ⟨p, hp⟩ else x,
@@ -156,14 +156,7 @@ begin
   left_inv' := λ _ ⟨p, hp⟩, by rw [←hp, hψ, dif_pos p.prop, subtype.coe_eta],
   right_inv' := λ p hp, by rw [dif_pos hp, hψ, subtype.coe_mk],
   continuous_to_fun := q.continuous.continuous_on,
-  continuous_inv_fun := sorry }, ⟨⟨q x, hx⟩, _⟩, rfl⟩,
-  conv_rhs { rw [←subtype.coe_mk x hx] },
-  rw [←subtype.ext_iff],
-  refine ϕ.to_equiv.apply_eq_iff_eq_symm_apply.mpr
-    (prod.ext _ (subtype.ext (ϕ.commutes_inv ⟨x, hx⟩))),
-  have key := prod.ext_iff.mp (ϕ.to_equiv.apply_eq_iff_eq_symm_apply.mp (ϕ.rigid ⟨x, rfl⟩)),
-  rw subtype.ext_iff at key ⊢,
-  exact key.1,
+  continuous_inv_fun := sorry }, ⟨⟨q x, hx⟩, subtype.ext_iff.mp (ϕ.rigid ⟨x, rfl⟩)⟩, rfl⟩,
 end
 
 lemma is_open_map (q : E ↠ X) : is_open_map q :=

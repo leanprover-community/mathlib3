@@ -246,10 +246,10 @@ theorem powerset_len_eq_filter (s : multiset α) :
   ∀ k : ℕ, s.powerset_len k = filter (λ t, t.card = k) s.powerset :=
 begin
   classical,
-  refine s.induction _ _,
+  induction s using multiset.induction_on with a s hk,
   intro k,
   cases k ; { refl, },
-  intros _ s hk k,
+  intro k,
   cases k,
   { rw [powerset_len_zero_left, powerset_cons, filter_add],
     rw (_ : filter (λ (t : multiset α), t.card = 0) s.powerset = {0}),

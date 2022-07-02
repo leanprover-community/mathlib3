@@ -72,9 +72,8 @@ theorem antidiagonal_powerset [decidable_eq α] (s : multiset α) :
   s.antidiagonal =
       (map (λ (t : multiset α), ((s - t, t) : multiset α × multiset α)) s.powerset) :=
 begin
-  refine s.induction_on _ _,
-  simp only [antidiagonal_zero, powerset_zero, zero_tsub, map_singleton],
-  intros a s hs,
+  induction s using multiset.induction_on with a s hs,
+  { simp only [antidiagonal_zero, powerset_zero, zero_tsub, map_singleton] },
   rw [antidiagonal_cons, powerset_cons, map_add, hs, map_map],
   suffices : multiset.map (λ (x : multiset α), (a ::ₘ (s - x), x)) s.powerset
     = multiset.map (λ (t : multiset α), (a ::ₘ s - t, t)) s.powerset,

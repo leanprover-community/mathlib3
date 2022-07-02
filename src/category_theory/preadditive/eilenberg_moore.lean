@@ -49,7 +49,7 @@ instance monad.algebra_preadditive : preadditive (monad.algebra T) :=
   add_comp' := by { intros, ext, apply add_comp },
   comp_add' := by { intros, ext, apply comp_add } }
 
-instance forget_additive : (monad.forget T).additive := {}
+instance monad.forget_additive : (monad.forget T).additive := {}
 
 variables (U : comonad C) [functor.additive (U : C ⥤ C)]
 
@@ -78,6 +78,6 @@ instance comonad.coalgebra_preadditive : preadditive (comonad.coalgebra U) :=
   add_comp' := by { intros, ext, apply add_comp },
   comp_add' := by { intros, ext, apply comp_add } }
 
-instance forget_additive : (comonad.forget U).additive := {}
+instance comonad.forget_additive : (comonad.forget U).additive := {}
 
 end category_theory

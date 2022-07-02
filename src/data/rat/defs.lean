@@ -883,28 +883,28 @@ section pnat_denom
 /-- Denominator as `ℕ+`. -/
 def pnat_denom (x : ℚ) : ℕ+ := ⟨x.denom, x.pos⟩
 
+/--
+This takes care of most occurances of `rat.pnat_denom` where `rat.denom` could be used instead.
+Sometimes it is necessary to do `apply pnat.eq` first.
+-/
 @[simp] lemma pnat_denom_eq_denom (x : ℚ) : (x.pnat_denom : ℕ) = x.denom :=
 begin
   unfold rat.pnat_denom,
   rw pnat.mk_coe
 end
 
-lemma mk_pnat_pnat_denom_eq (x : ℚ) : mk_pnat x.num x.pnat_denom = x :=
+@[simp] lemma mk_pnat_pnat_denom_eq (x : ℚ) : mk_pnat x.num x.pnat_denom = x :=
 begin
   unfold pnat_denom,
   rw [mk_pnat_eq, num_denom]
 end
 
-@[simp] lemma zero_pnat_denom : (0 : ℚ).pnat_denom = 1 :=
+lemma pnat_denom_iff_denom {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
 begin
-  unfold rat.pnat_denom,
-  simp only [rat.denom_zero, pnat.mk_one]
-end
-
-@[simp] lemma one_pnat_denom : (1 : ℚ).pnat_denom = 1 :=
-begin
-  unfold rat.pnat_denom,
-  simp only [rat.denom_one, pnat.mk_one]
+  rw [←pnat_denom_eq_denom],
+  split,
+  { apply congr_arg },
+  { apply pnat.eq }
 end
 
 end pnat_denom

@@ -145,6 +145,8 @@ begin
   sorry,
 end
 
+#check is_closed.unique_diff_within_at
+
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`. -/
 lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ}
   (hx : x₀ < x) (ht : t ∈ set.Ioo x₀ x)
@@ -158,8 +160,10 @@ begin
       nat.cast_one, div_one, has_deriv_at_deriv_iff, zero_add],
     simp only [iterated_deriv_within_zero] at hf',
     convert hf'.has_deriv_at (is_open.mem_nhds is_open_Ioo ht),
-    rw iterated_deriv_within_one (unique_diff_on_Icc hx) ht,
-    refine has_deriv_within_at.deriv_within _ (is_open.unique_diff_within_at is_open_Ioo ht),
+    rw iterated_deriv_within_one (unique_diff_on_Icc hx)
+      (set.mem_of_subset_of_mem set.Ioo_subset_Icc_self ht),
+    rw ←deriv_within_subset set.Ioo_subset_Icc_self (is_open.unique_diff_within_at is_open_Ioo ht),
+    --refine has_deriv_within_at.deriv_within _ (is_open.unique_diff_within_at is_open_Ioo ht),
     exact (hf'.differentiable_at (is_open.mem_nhds is_open_Ioo ht))
       .has_deriv_at.has_deriv_within_at, },
   simp_rw nat.add_succ,

@@ -119,7 +119,7 @@ theorem coe_injective :
 by { intros f g H, cases f, cases g, congr' }
 
 instance : compact_operator_class (M₁ →SLᶜ[σ₁₂] M₂) σ₁₂ M₁ M₂ :=
-{ coe := λ f, f.to_fun,
+{ coe := λ f, f,
   coe_injective' := λ f g h, coe_injective (fun_like.coe_injective h),
   map_add := λ f, map_add f.to_linear_map,
   map_smulₛₗ := λ f, f.to_linear_map.map_smul',
@@ -172,29 +172,47 @@ section to_continuous
 variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
   {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*} [topological_space M₁]
   [add_comm_group M₁] [topological_space M₂] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
-  [topological_add_group M₁] [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
+  [topological_add_group M₁] [has_continuous_const_smul 𝕜₁ M₁]
+  [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
 
-@[continuity]
-protected lemma continuous (f : M₁ →SLᶜ[σ₁₂] M₂) : continuous f :=
-begin
-  letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
-  haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
-  refine continuous_of_continuous_at_zero f (λ U hU, _),
-  rw map_zero at hU,
-  rcases exists_compact_preimage_mem_nhds f with ⟨K, hK, hKf⟩,
-  rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
-  rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
-  have hcnz : c ≠ 0 := sorry,
-  suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
-  { refine mem_of_superset _ this,
-    have : is_unit c⁻¹ := sorry,
-    --rw [mem_map, f.to_linear_map.preimage_smul_setₛₗ this], },
-    sorry },
-  rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
-  refine hrU (σ₁₂ c) _,
-  rw ring_hom_isometric.is_iso,
-  exact hc.le
-end
+instance {F : Type*} [h : compact_operator_class F σ₁₂ M₁ M₂] :
+  continuous_semilinear_map_class F σ₁₂ M₁ M₂ :=
+{ map_continuous :=
+  begin
+    letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
+    haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+    refine λ f, continuous_of_continuous_at_zero f (λ U hU, _),
+    rw map_zero at hU,
+    rcases exists_compact_preimage_mem_nhds f with ⟨K, hK, hKf⟩,
+    rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
+    rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
+    have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
+    suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
+    { refine mem_of_superset _ this,
+      have : is_unit c⁻¹ := hcnz.is_unit.inv,
+      rwa [mem_map, preimage_smul_setₛₗ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
+      apply_instance },
+    rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+    refine hrU (σ₁₂ c) _,
+    rw ring_hom_isometric.is_iso,
+    exact hc.le
+  end,
+  ..h }
+
+/-- Coerce compact operators to continuous linear maps. -/
+instance : has_coe (M₁ →SLᶜ[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := ⟨λ f, ⟨f, map_continuous f⟩⟩
+
+theorem coe_clm_injective :
+  function.injective (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →SL[σ₁₂] M₂)) :=
+by { intros f g, rw [continuous_linear_map.ext_iff, ext_iff], exact id }
+
+@[simp] lemma coe_clm_mk (f : M₁ →SL[σ₁₂] M₂) (h) :
+  (mk (f : M₁ →ₛₗ[σ₁₂] M₂) h : M₁ →SL[σ₁₂] M₂) = f :=
+by ext; refl
+
+@[simp, norm_cast] lemma coe_clm_inj {f g : M₁ →SLᶜ[σ₁₂] M₂} :
+  (f : M₁ →SL[σ₁₂] M₂) = g ↔ f = g :=
+coe_clm_injective.eq_iff
 
 end to_continuous
 

@@ -149,21 +149,28 @@ end
 lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ} (ht : t ∈ set.Ioo x₀ x)
   (hf : cont_diff_on ℝ n f (set.Ioo x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Ioo x₀ x)) (set.Ioo x₀ x)):
-  has_deriv_at (λ t', taylor_sum f n (set.Ioo x₀ x) t' x)
+  has_deriv_at (λ t', taylor_sum f n (set.Icc x₀ x) t' x)
     ((iterated_deriv_within (n+1) f (set.Ioo x₀ x) t) * (x - t)^n /n.factorial) t :=
 begin
   induction n with k hk,
   { simp only [taylor_sum_zero, iterated_deriv_one, pow_zero, mul_one, nat.factorial_zero,
-      nat.cast_one, div_one, has_deriv_at_deriv_iff],
+      nat.cast_one, div_one, has_deriv_at_deriv_iff, zero_add],
     simp only [iterated_deriv_within_zero] at hf',
-    --rw (hf'.differentiable_at _).deriv_within (is_open.unique_diff_within_at is_open_Ioo ht),
-    --refine hf'.differentiable_at _,
-    --refine is_open.mem_nhds is_open_Ioo ht },
-    sorry },
+    convert hf'.has_deriv_at (is_open.mem_nhds is_open_Ioo ht),
+    rw iterated_deriv_within_one (unique_diff_on_Ioo x₀ x) ht,
+    refine has_deriv_within_at.deriv_within _ (is_open.unique_diff_within_at is_open_Ioo ht),
+    exact (hf'.differentiable_at (is_open.mem_nhds is_open_Ioo ht))
+      .has_deriv_at.has_deriv_within_at, },
   simp_rw nat.add_succ,
   simp_rw taylor_sum_succ,
   simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
-  specialize hk (cont_diff_on.of_succ hf),
+  have h'' : differentiable_on ℝ (iterated_deriv_within k f (set.Ioo x₀ x)) (set.Ioo x₀ x) :=
+  begin
+    refine hf.differentiable_on_iterated_deriv_within _ (unique_diff_on_Ioo x₀ x),
+    simp only [with_top.coe_lt_coe],
+    exact lt_add_one k,
+  end,
+  specialize hk (cont_diff_on.of_succ hf) h'',
   have hxt : has_deriv_at (λ t, (x - t)^(k+1)) ((-(k+1) * (x - t)^k)) t :=
   begin
     simp_rw sub_eq_neg_add,
@@ -197,45 +204,42 @@ begin
     { simp[neg_div] },
     exact nat.cast_add_one_ne_zero k,
   end,
-  have hf''' : differentiable_on ℝ (iterated_deriv_within k f (set.Ioo x₀ x)) (set.Ioo x₀ x) :=
-  begin
-    exact hf',
-    sorry,
-  end,
-  convert (hk hf''').add this,
-  exact (add_sub_cancel'_right _ _).symm,
+  sorry,
+  --convert hk.add this,
+  --exact (add_sub_cancel'_right _ _).symm,
 end
-
-#exit
 
 #check differentiable_on ℝ
 #check cont_diff_on
+#check unique_diff_on_Icc
 
 /-- **Taylor's theorem** with the general mean value form of the remainder. -/
-lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Ioo x₀ x))
-  (hf' : differentiable_on ℝ (iterated_deriv n f) (set.Ioo x₀ x))
+lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
+  (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Ioo x₀ x)) (set.Ioo x₀ x))
   (hx : x₀ < x)
   (gcont : continuous_on g (set.Icc x₀ x))
   (gdiff : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at g (g' x_1) x_1)
   (g'_ne : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → g' x_1 ≠ 0) :
-  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n x₀ x =
-  (iterated_deriv (n+1) f x') * (x - x')^n /n.factorial * (g x - g x₀) / g' x' :=
+  ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n (set.Icc x₀ x) x₀ x =
+  (iterated_deriv_within (n+1) f (set.Ioo x₀ x) x') * (x - x')^n /n.factorial * (g x - g x₀) / g' x' :=
 begin
-  have tcont : continuous_on (λ (t : ℝ), taylor_sum f n t x) (set.Icc x₀ x) := sorry,
+  have tcont : continuous_on (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x) (set.Icc x₀ x) := sorry,
     --(taylor_sum_continuous hf).continuous_on,
-  have tdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at (λ (t : ℝ), taylor_sum f n t x)
-    ((λ (t : ℝ), iterated_deriv (n + 1) f t * (x - t) ^ n / ↑(n.factorial)) x_1) x_1) :=
+  have tdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x →
+    has_deriv_at (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x)
+    ((λ (t : ℝ), iterated_deriv_within (n + 1) f (set.Ioo x₀ x) t
+      * (x - t) ^ n / ↑(n.factorial)) x_1) x_1) :=
   begin
     intros y hy,
-    simp,
-    exact taylor_sum_has_deriv hf,
+    exact taylor_sum_has_deriv hy (hf.mono set.Ioo_subset_Icc_self) hf',
   end,
-  rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_sum f n t x)
-    (λ t, (iterated_deriv (n+1) f t) * (x - t)^n /n.factorial) hx tcont tdiff
+  rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_sum f n (set.Icc x₀ x) t x)
+    (λ t, (iterated_deriv_within (n+1) f (set.Ioo x₀ x) t) * (x - t)^n /n.factorial) hx tcont tdiff
     g g' gcont gdiff with ⟨y, hy, h⟩,
   use [y, hy],
-  simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, neg_mul,
-    taylor_sum_self] at h,
+  simp only [taylor_sum_self] at h,
+  --simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, neg_mul,
+    --taylor_sum_self] at h,
   rw mul_comm at h,
   rw ←div_left_inj' (g'_ne y hy) at h,
   rw mul_div_cancel _ (g'_ne y hy) at h,

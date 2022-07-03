@@ -216,10 +216,10 @@ coe_clm_injective.eq_iff
 
 end to_continuous
 
-section semiring
+section operations
 
 variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ M₂ : Type*}
-  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
   [module R₁ M₁] [module R₂ M₂]
 
 section smul_monoid
@@ -228,56 +228,58 @@ variables {S₂ T₂ : Type*} [monoid S₂] [monoid T₂]
 variables [distrib_mul_action S₂ M₂] [smul_comm_class R₂ S₂ M₂] [has_continuous_const_smul S₂ M₂]
 variables [distrib_mul_action T₂ M₂] [smul_comm_class R₂ T₂ M₂] [has_continuous_const_smul T₂ M₂]
 
-instance : mul_action S₂ (compact_operator σ₁₂ M₁ M₂) :=
-{ smul := λ c f, ⟨c • f, let ⟨K, hK, hKf⟩ := ball_subset_preimage_compact f in
-    ⟨c • K, hK.image $ continuous_id.const_smul c, λ x hx, smul_mem_smul_set (hKf hx)⟩⟩,
+instance : mul_action S₂ (M₁ →SLᶜ[σ₁₂] M₂) :=
+{ smul := λ c f, ⟨c • f, let ⟨K, hK, hKf⟩ := exists_compact_preimage_mem_nhds f in ⟨c • K,
+    hK.image $ continuous_id.const_smul c, mem_of_superset hKf (λ x hx, smul_mem_smul_set hx)⟩⟩,
   one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
 
-lemma smul_apply (c : S₂) (f : compact_operator σ₁₂ M₁ M₂) (x : M₁) : (c • f) x = c • (f x) := rfl
+lemma smul_apply (c : S₂) (f : M₁ →SLᶜ[σ₁₂] M₂) (x : M₁) : (c • f) x = c • (f x) := rfl
 @[simp, norm_cast]
-lemma coe_smul (c : S₂) (f : compact_operator σ₁₂ M₁ M₂) :
-  (↑(c • f) : M₁ →SL[σ₁₂] M₂) = c • f := rfl
-@[simp, norm_cast] lemma coe_smul' (c : S₂) (f : compact_operator σ₁₂ M₁ M₂) :
+lemma coe_smul (c : S₂) (f : M₁ →SLᶜ[σ₁₂] M₂) :
+  (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SLᶜ[σ₁₂] M₂) :
   ⇑(c • f) = c • f := rfl
 
 instance [has_smul S₂ T₂] [is_scalar_tower S₂ T₂ M₂] :
-  is_scalar_tower S₂ T₂ (compact_operator σ₁₂ M₁ M₂) :=
+  is_scalar_tower S₂ T₂ (M₁ →SLᶜ[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
 
-instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (compact_operator σ₁₂ M₁ M₂) :=
+instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (M₁ →SLᶜ[σ₁₂] M₂) :=
 ⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
 
 end smul_monoid
 
 /-- The zero function is compact. -/
-instance : has_zero (compact_operator σ₁₂ M₁ M₂) :=
-  ⟨⟨0, ⟨{0}, is_compact_singleton, λ _ _, rfl⟩⟩⟩
-instance : inhabited (compact_operator σ₁₂ M₁ M₂) := ⟨0⟩
+instance : has_zero (M₁ →SLᶜ[σ₁₂] M₂) :=
+  ⟨⟨0, ⟨{0}, is_compact_singleton, mem_of_superset univ_mem (λ x _, rfl)⟩⟩⟩
+instance : inhabited (M₁ →SLᶜ[σ₁₂] M₂) := ⟨0⟩
 
-@[simp] lemma default_def : (default : compact_operator σ₁₂ M₁ M₂) = 0 := rfl
-@[simp] lemma zero_apply (x : M₁) : (0 : compact_operator σ₁₂ M₁ M₂) x = 0 := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : compact_operator σ₁₂ M₁ M₂) : M₁ →SL[σ₁₂] M₂) = 0 := rfl
+@[simp] lemma default_def : (default : M₁ →SLᶜ[σ₁₂] M₂) = 0 := rfl
+@[simp] lemma zero_apply (x : M₁) : (0 : M₁ →SLᶜ[σ₁₂] M₂) x = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : M₁ →SLᶜ[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify `0 x` to `0`
 when `0` is the zero function, while it does for the zero compact operator,
 and this is the most important property we care about. -/
-@[norm_cast] lemma coe_zero' : ⇑(0 : compact_operator σ₁₂ M₁ M₂) = 0 := rfl
+@[norm_cast] lemma coe_zero' : ⇑(0 : M₁ →SLᶜ[σ₁₂] M₂) = 0 := rfl
 
 section add
 variables [has_continuous_add M₂]
 
-instance : has_add (compact_operator σ₁₂ M₁ M₂) :=
+instance : has_add (M₁ →SLᶜ[σ₁₂] M₂) :=
 ⟨λ f g, ⟨f + g,
-  let ⟨A, hA, hAf⟩ := ball_subset_preimage_compact f,
-      ⟨B, hB, hBg⟩ := ball_subset_preimage_compact g in
-  ⟨A + B, hA.add hB, λ x hx, set.add_mem_add (hAf hx) (hBg hx)⟩⟩⟩
+  let ⟨A, hA, hAf⟩ := exists_compact_preimage_mem_nhds f,
+      ⟨B, hB, hBg⟩ := exists_compact_preimage_mem_nhds g in
+  ⟨A + B, hA.add hB, mem_of_superset (inter_mem hAf hBg)
+    (λ x ⟨hxA, hxB⟩, set.add_mem_add hxA hxB)⟩⟩⟩
 
-@[simp] lemma add_apply (f g : compact_operator σ₁₂ M₁ M₂)  (x : M₁) : (f + g) x = f x + g x := rfl
-@[simp, norm_cast] lemma coe_add (f g : compact_operator σ₁₂ M₁ M₂) : (↑(f + g) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
-@[norm_cast] lemma coe_add' (f g : compact_operator σ₁₂ M₁ M₂) : ⇑(f + g) = f + g := rfl
+@[simp] lemma add_apply (f g : M₁ →SLᶜ[σ₁₂] M₂)  (x : M₁) : (f + g) x = f x + g x := rfl
+@[simp, norm_cast] lemma coe_add (f g : M₁ →SLᶜ[σ₁₂] M₂) :
+  (↑(f + g) : M₁ →ₛₗ[σ₁₂] M₂) = f + g := rfl
+@[norm_cast] lemma coe_add' (f g : M₁ →SLᶜ[σ₁₂] M₂) : ⇑(f + g) = f + g := rfl
 
-instance : add_comm_monoid (compact_operator σ₁₂ M₁ M₂) :=
-{ zero := (0 : compact_operator σ₁₂ M₁ M₂),
+instance : add_comm_monoid (M₁ →SLᶜ[σ₁₂] M₂) :=
+{ zero := (0 : M₁ →SLᶜ[σ₁₂] M₂),
   add := (+),
   zero_add := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
   add_zero := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
@@ -287,21 +289,21 @@ instance : add_comm_monoid (compact_operator σ₁₂ M₁ M₂) :=
   nsmul_zero' := λ f, by { ext, simp },
   nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
 
-@[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → compact_operator σ₁₂ M₁ M₂) :
+@[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →SL[σ₁₂] M₂) :=
-(add_monoid_hom.mk (coe : (compact_operator σ₁₂ M₁ M₂) → (M₁ →SL[σ₁₂] M₂))
+(add_monoid_hom.mk (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →SL[σ₁₂] M₂))
   rfl (λ _ _, rfl)).map_sum _ _
 
-@[simp, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → compact_operator σ₁₂ M₁ M₂) :
+@[simp, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂] M₂) :
   ⇑(∑ d in t, f d) = ∑ d in t, f d :=
 by simp only [← coe_coe, coe_sum, continuous_linear_map.coe_sum']
 
-lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → compact_operator σ₁₂ M₁ M₂) (b : M₁) :
+lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂] M₂) (b : M₁) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
 by simp only [coe_sum', finset.sum_apply]
 
 end add
 
-end semiring
+end operations
 
 end compact_operator

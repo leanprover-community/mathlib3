@@ -175,7 +175,7 @@ lemma matrix_represents.iff {A : matrix ι ι R} {f : module.End R M} :
     ∀ x, fintype.total ι M R v (A.mul_vec x) = f (fintype.total ι M R v x) :=
 ⟨λ e x, e.congr_fun x, λ H, linear_map.ext $ λ x, H x⟩
 .
-def matrix_represents.iff' {A : matrix ι ι R} {f : module.End R M} :
+lemma matrix_represents.iff' {A : matrix ι ι R} {f : module.End R M} :
   matrix_represents v A f ↔ ∀ j, ∑ (i : ι), A i j • v i = f (v j) :=
 begin
   split,

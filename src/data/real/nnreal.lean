@@ -159,15 +159,15 @@ mul_action.comp_hom M to_real_hom.to_monoid_hom
 lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ) • x := rfl
 
-instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_scalar M N]
+instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_smul M N]
   [is_scalar_tower ℝ M N] : is_scalar_tower ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ) : _)}
 
-instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_smul M N]
   [smul_comm_class ℝ M N] : smul_comm_class ℝ≥0 M N :=
 { smul_comm := λ r, (smul_comm (r : ℝ) : _)}
 
-instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_smul M N]
   [smul_comm_class M ℝ N] : smul_comm_class M ℝ≥0 N :=
 { smul_comm := λ m r, (smul_comm m (r : ℝ) : _)}
 

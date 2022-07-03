@@ -193,6 +193,10 @@ def specialization_order (α : Type*) [topological_space α] [t0_space α] : par
 { .. specialization_preorder α,
   .. partial_order.lift (order_dual.to_dual ∘ 𝓝) nhds_injective }
 
+instance : t0_space (separation_quotient α) :=
+(t0_space_iff_inseparable _).2 $ λ x' y', quotient.induction_on₂' x' y' $
+  λ x y h, separation_quotient.mk_eq_mk.2 $ separation_quotient.inducing_mk.inseparable_iff.1 h
+
 theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
   (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
   s.subsingleton :=

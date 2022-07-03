@@ -38,7 +38,7 @@ namespace category_theory.limits
 
 /-- The type of objects for the diagram indexing a binary (co)product. -/
 @[derive decidable_eq, derive inhabited]
-inductive walking_pair : Type v
+inductive walking_pair : Type
 | left | right
 
 open walking_pair
@@ -82,14 +82,14 @@ def pair_function (X Y : C) : walking_pair → C := λ j, walking_pair.cases_on 
 variables [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
-def pair (X Y : C) : discrete walking_pair.{v} ⥤ C :=
-discrete.functor (pair_function X Y)
+def pair (X Y : C) : discrete walking_pair ⥤ C :=
+discrete.functor (λ j, walking_pair.cases_on j X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj ⟨left⟩ = X := rfl
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj ⟨right⟩ = Y := rfl
 
 section
-variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj ⟨left⟩ ⟶ G.obj ⟨left⟩)
+variables {F G : discrete walking_pair ⥤ C} (f : F.obj ⟨left⟩ ⟶ G.obj ⟨left⟩)
   (g : F.obj ⟨right⟩ ⟶ G.obj ⟨right⟩)
 
 local attribute [tidy] tactic.discrete_cases
@@ -390,7 +390,7 @@ by { ext; simp }
 -- TODO: is it necessary to weaken the assumption here?
 @[reassoc]
 lemma prod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
-  [has_limits_of_shape (discrete walking_pair.{v}) C] :
+  [has_limits_of_shape (discrete walking_pair) C] :
   prod.map (𝟙 X) f ≫ prod.map g (𝟙 B) = prod.map g (𝟙 A) ≫ prod.map (𝟙 Y) f :=
 by simp
 
@@ -436,7 +436,7 @@ lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y]
 by simp
 
 @[simp, reassoc]
-lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair.{v}) C]
+lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
@@ -505,7 +505,7 @@ by { ext; simp }
 -- I don't think it's a good idea to make any of the following three simp lemmas.
 @[reassoc]
 lemma coprod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
-  [has_colimits_of_shape (discrete walking_pair.{v}) C] :
+  [has_colimits_of_shape (discrete walking_pair) C] :
   coprod.map (𝟙 X) f ≫ coprod.map g (𝟙 B) = coprod.map g (𝟙 A) ≫ coprod.map (𝟙 Y) f :=
 by simp
 
@@ -556,7 +556,7 @@ by simp
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
-lemma coprod.map_comp_inl_inr_codiag [has_colimits_of_shape (discrete walking_pair.{v}) C]
+lemma coprod.map_comp_inl_inr_codiag [has_colimits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   coprod.map (g ≫ coprod.inl) (g' ≫ coprod.inr) ≫ codiag (Y ⨿ Y') = coprod.map g g' :=
 by simp
@@ -570,14 +570,14 @@ variables (C)
 
 See <https://stacks.math.columbia.edu/tag/001T>.
 -/
-abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair.{v}) C
+abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) C
 
 /--
 `has_binary_coproducts` represents a choice of coproduct for every pair of objects.
 
 See <https://stacks.math.columbia.edu/tag/04AP>.
 -/
-abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair.{v}) C
+abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 lemma has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
@@ -776,7 +776,9 @@ end coprod_functor
 
 section prod_comparison
 
-variables {C} {D : Type u₂} [category.{v} D]
+universe w
+
+variables {C} {D : Type u₂} [category.{w} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_product A B] [has_binary_product A' B']
 variables [has_binary_product (F.obj A) (F.obj B)] [has_binary_product (F.obj A') (F.obj B')]
@@ -853,7 +855,9 @@ end prod_comparison
 
 section coprod_comparison
 
-variables {C} {D : Type u₂} [category.{v} D]
+universe w
+
+variables {C} {D : Type u₂} [category.{w} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_coproduct A B] [has_binary_coproduct A' B']
 variables [has_binary_coproduct (F.obj A) (F.obj B)] [has_binary_coproduct (F.obj A') (F.obj B')]

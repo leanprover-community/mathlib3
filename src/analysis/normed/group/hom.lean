@@ -361,13 +361,13 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 
 /-! ### Scalar actions on normed group homs -/
 
-section has_scalar
+section has_smul
 
 variables {R R' : Type*}
   [monoid_with_zero R] [distrib_mul_action R V₂] [pseudo_metric_space R] [has_bounded_smul R V₂]
   [monoid_with_zero R'] [distrib_mul_action R' V₂] [pseudo_metric_space R'] [has_bounded_smul R' V₂]
 
-instance : has_scalar R (normed_group_hom V₁ V₂) :=
+instance : has_smul R (normed_group_hom V₁ V₂) :=
 { smul := λ r f,
   { to_fun := r • f,
     map_add' := (r • f.to_add_monoid_hom).map_add',
@@ -386,7 +386,7 @@ instance : has_scalar R (normed_group_hom V₁ V₂) :=
 instance [smul_comm_class R R' V₂] : smul_comm_class R R' (normed_group_hom V₁ V₂) :=
 { smul_comm := λ r r' f, ext $ λ v, smul_comm _ _ _ }
 
-instance [has_scalar R R'] [is_scalar_tower R R' V₂] :
+instance [has_smul R R'] [is_scalar_tower R R' V₂] :
   is_scalar_tower R R' (normed_group_hom V₁ V₂) :=
 { smul_assoc := λ r r' f, ext $ λ v, smul_assoc _ _ _ }
 
@@ -394,9 +394,9 @@ instance [distrib_mul_action Rᵐᵒᵖ V₂] [is_central_scalar R V₂] :
   is_central_scalar R (normed_group_hom V₁ V₂) :=
 { op_smul_eq_smul := λ r f, ext $ λ v, op_smul_eq_smul _ _ }
 
-end has_scalar
+end has_smul
 
-instance has_nat_scalar : has_scalar ℕ (normed_group_hom V₁ V₂) :=
+instance has_nat_scalar : has_smul ℕ (normed_group_hom V₁ V₂) :=
 { smul := λ n f,
   { to_fun := n • f,
     map_add' := (n • f.to_add_monoid_hom).map_add',
@@ -408,7 +408,7 @@ instance has_nat_scalar : has_scalar ℕ (normed_group_hom V₁ V₂) :=
 @[simp] lemma coe_nsmul (r : ℕ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
 @[simp] lemma nsmul_apply (r : ℕ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
 
-instance has_int_scalar : has_scalar ℤ (normed_group_hom V₁ V₂) :=
+instance has_int_scalar : has_smul ℤ (normed_group_hom V₁ V₂) :=
 { smul := λ z f,
   { to_fun := z • f,
     map_add' := (z • f.to_add_monoid_hom).map_add',

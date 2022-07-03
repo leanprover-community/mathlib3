@@ -27,6 +27,7 @@ variables {R : Type*} [comm_semiring R]
 
 namespace multiset
 
+/-- TODO. This should go elsewhere... -/
 lemma sum_powerset_len {α : Type*} (S : multiset α) :
   S.powerset = ∑ k in finset.range(S.card + 1), (S.powerset_len k) :=
 begin
@@ -69,31 +70,24 @@ end
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + λ` where `λ` runs
 through a multiset `s` : the `k`th coefficient is the symmetric function `esymm (card s - k) s`. -/
-lemma prod_X_add_C_coeff (s : multiset R) (k : ℕ) (h : k ≤ card s):
+lemma prod_X_add_C_coeff (s : multiset R) (k : ℕ) (h : k ≤ s.card):
   polynomial.coeff (s.map (λ r, polynomial.X + polynomial.C r)).prod k =
     s.esymm (s.card - k) :=
 begin
-  have hk : multiset.filter (λ (x : ℕ), k = card s - x) (range (card s + 1)) = {card s - k} :=
-  begin
-    sorry ; { refine multiset.ext _ _ _,
-    -- (λ a, ⟨λ ha, _, λ ha, _ ⟩),
-    rw mem_singleton,
-    have hσ := (tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp
-      (mem_filter.mp ha).1)).mp ((mem_filter.mp ha).2).symm,
-    symmetry,
-    rwa [(tsub_eq_iff_eq_add_of_le h), add_comm],
-    rw mem_filter,
-    have haσ : a ∈ range (card σ + 1) :=
-    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (@tsub_le_self _ _ _ _ _ k) },
-    refine ⟨haσ, eq.symm _⟩,
-    rw tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp haσ),
-     have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
-     rwa add_comm, },
-  end,
-  simp [prod_X_add_C_eq_sum_esymm, esymm, polynomial.finset_sum_coeff,
-    polynomial.coeff_C_mul_X_pow, finset.sum_ite, hk, sum_singleton, esymm, polynomial.eval_sum,
-    polynomial.eval_prod, polynomial.eval_X, add_zero, finset.sum_const_zero] at *,
-  sorry,
+  convert polynomial.ext_iff.mp (prod_X_add_C_eq_sum_esymm s) k,
+  rw polynomial.finset_sum_coeff,
+  conv_rhs { congr, skip, funext, rw polynomial.coeff_C_mul_X_pow },
+  rw finset.sum_eq_single_of_mem (s.card - k) _,
+  { rw if_pos (nat.sub_sub_self h).symm, },
+  { intros l h1 h2,
+    rw [finset.mem_range, nat.lt_succ_iff] at h1,
+    have : k ≠ card s - l,
+    { contrapose! h2,
+      rw [eq_tsub_iff_add_eq_of_le h, add_comm],
+      rwa eq_tsub_iff_add_eq_of_le h1 at h2 },
+    rw if_neg this },
+  { rw finset.mem_range,
+    exact nat.sub_lt_succ s.card k }
 end
 
 end multiset

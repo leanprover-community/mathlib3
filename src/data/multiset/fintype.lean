@@ -54,11 +54,11 @@ by { cases x, cases y, refl }
 @[simp] lemma multiset.coe_mem {x : m} : ↑x ∈ m := multiset.count_pos.mp (pos_of_gt x.2.2)
 
 @[simp] protected lemma multiset.forall_coe (p : m → Prop) :
-  (∀ (x : m), p x) ↔ ∀ (x : α) (i : ℕ) (h : i < m.count x), p ⟨x, i, h⟩ :=
-⟨λ h x i hi, h _, by { rintros h ⟨x, i, hi⟩, apply h }⟩
+  (∀ (x : m), p x) ↔ ∀ (x : α) (i : fin (m.count x)), p ⟨x, i⟩ :=
+⟨λ h x i, h _, by { rintros h ⟨x, i⟩, apply h }⟩
 
 @[simp] protected lemma multiset.exists_coe (p : m → Prop) :
-  (∃ (x : m), p x) ↔ ∃ (x : α) (i : ℕ) (h : i < m.count x), p ⟨x, i, h⟩ :=
+  (∃ (x : m), p x) ↔ ∃ (x : α) (i : fin (m.count x)), p ⟨x, i⟩ :=
 by { apply not_iff_not.mp, push_neg, exact multiset.forall_coe _ }
 
 instance : fintype {p : α × ℕ | p.2 < m.count p.1} :=
@@ -142,17 +142,10 @@ fintype.of_equiv m.to_enum_finset m.coe_equiv.symm
 
 lemma multiset.map_univ_coe_embedding (m : multiset α) :
   (finset.univ : finset m).map m.coe_embedding = m.to_enum_finset :=
-begin
-  ext ⟨x, i⟩,
-  simp only [finset.mem_map, finset.mem_univ, multiset.coe_embedding_apply, fin.val_eq_coe,
-    prod.mk.inj_iff, exists_true_left, multiset.mem_to_enum_finset, multiset.exists_coe, fin.coe_mk,
-    exists_and_distrib_right, exists_eq_right],
-  split,
-  { rintro ⟨_, hi, rfl⟩,
-    exact hi, },
-  { intro h,
-    exact ⟨_, h, rfl⟩, }
-end
+by { ext ⟨x, i⟩, simp only [fin.exists_iff, finset.mem_map, finset.mem_univ,
+  multiset.coe_embedding_apply, prod.mk.inj_iff, exists_true_left, multiset.exists_coe,
+  multiset.coe_mk, fin.coe_mk, exists_prop, exists_eq_right_right, exists_eq_right,
+  multiset.mem_to_enum_finset, iff_self, true_and] }
 
 lemma multiset.to_enum_finset_filter_eq (m : multiset α) (x : α) :
   m.to_enum_finset.filter (λ p, x = p.1) =

@@ -74,7 +74,7 @@ instance : rep_hom_class (ρ →ᵣ ρ₂) ρ ρ₂ :=
 directly.
 -/
 instance : has_coe_to_fun (ρ →ᵣ ρ₂) (λ _, V → V₂) := ⟨λ f, f⟩
-
+-- should there be coe to linear_map?
 @[simp] lemma to_fun_eq_coe {f : ρ →ᵣ ρ₂} : f.to_fun = (f : V → V₂) := rfl
 
 lemma coe_eq_to_linear_map_coe {f : ρ →ᵣ ρ₂} : (f : V → V₂) = (f.to_linear_map : V → V₂) := rfl
@@ -133,7 +133,34 @@ protected lemma map_smulG (g : G) (x : V) : f (ρ g x) = ρ₂ g (f x) := map_sm
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : V} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
 
--- pointwise
+section pointwise
+open_locale pointwise
+
+@[simp] lemma image_smul_set (c : k) (s : set V) :
+  f '' (c • s) = c • f '' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
+    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smul _ _).symm ⟩ },
+  { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smul _ _⟩ }
+end
+
+lemma preimage_smul_set {c : k} (hc : is_unit c) (s : set V₂) :
+  f ⁻¹' (c • s) = c • f ⁻¹' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ys, hy⟩,
+    refine ⟨(hc.unit.inv : k) • x, _, _⟩,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ f, ← map_mul,
+        is_unit.coe_inv_mul, one_smul, map_one, ys, ring_hom.id_apply] },
+    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
+  { rintros x ⟨y, hy, rfl⟩,
+    refine ⟨f y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ f]⟩ }
+end
+
+end pointwise
+
 -- restrict scalars
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → V} :

@@ -21,7 +21,12 @@ requiring more imports).
 * `nat.desc_factorial_eq_factorial_mul_choose`: Relates binomial coefficients to the descending
   factorial. This is used to prove `nat.choose_le_pow` and variants. We provide similar statements
   for the ascending factorial.
+* `nat.multichoose`: whereas `choose` counts combinations, `multichoose` counts multicombinations.
+* `nat.multichoose_eq` : a proof that `multichoose n k = (n + k - 1).choose k`
 
+## Tags
+
+binomial coefficient, combination, multicombination
 -/
 
 open_locale nat
@@ -292,9 +297,12 @@ lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_c
 Whereas `choose n k` is the number of subsets of cardinality `k` from a type of cardinality `n`,
 `multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`.
 
-Alternatively, whereas `choose n k` is the number of ways to select `k` items (up to permutation)
-from `n` items without replacement, `multichoose n k` is the number of ways to select `k` items
-(up to permutation) from `n` items with replacement. -/
+Alternatively, whereas `choose n k` counts the number of combinations,
+i.e. ways to select `k` items (up to permutation) from `n` items without replacement,
+`multichoose n k` counts the number of multicombinations,
+i.e. ways to select `k` items (up to permutation) from `n` items with replacement.
+
+Note that `multichoose` is *not* the multinomial coefficient. -/
 
 /--
 `multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`. -/

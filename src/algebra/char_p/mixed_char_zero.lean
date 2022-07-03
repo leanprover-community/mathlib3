@@ -188,14 +188,51 @@ noncomputable def rat_cast : ℚ →+* R :=
     assoc_rw rat.add_num_denom',
   end }
 
+lemma rat_cast_def (x : ℚ) : rat_cast R x = x.num /ₚ ↑(x.pnat_denom) := rfl
+
 -- see Note [coercion into rings]
-@[priority 900] noncomputable instance rat_coe : has_coe_t ℚ R := ⟨rat_cast R⟩
+/--
+This instance has priority `< 900` to prioritise `rat.cast_coe` in the case
+when `R` is a field of characteristic zero, as this also defines a cast `ℚ → R`.
+-/
+@[priority 850] noncomputable instance rat_coe : has_coe_t ℚ R := ⟨rat_cast R⟩
 
 @[simp, norm_cast] lemma cast_nat (n : ℕ) : ((n : ℚ) : R) = ↑n := map_nat_cast (rat_cast R) n
 
 @[simp, norm_cast] lemma cast_zero : ((0 : ℚ) : R) = 0 := ring_hom.map_zero (rat_cast R)
 
 @[simp, norm_cast] lemma cast_one : ((1 : ℚ) : R) = 1 := ring_hom.map_one (rat_cast R)
+
+section field
+
+variables (K : Type*) [field K] [char_zero K] [algebra R K]
+
+/--
+In the case of a field of characteristic zero we have two coersions `ℚ → K`,
+namely `equal_char_zero.rat_cast : ℚ →+* K` and `rat.cast_coe : ℚ → K` (defined
+in [data.rat.cast]). This lemma shows that they are the same.
+-/
+lemma rat_cast_eq_cast_coe (x : ℚ) :
+  (@rat_cast _ _ (field.equal_char_zero K)) x =
+  @coe _ K (@coe_to_lift _ _ rat.cast_coe) x :=
+begin
+  rw [rat.cast_def, rat_cast_def],
+  rw divp_eq_div,
+  simp only [coe_coe_eq_coe_coe, coe_coe, rat.pnat_denom_eq_denom],
+end
+
+lemma field.algebra_map_eq_cast_coe (x : ℚ) :
+  (algebra_map R K) ↑x = ↑x :=
+begin
+  haveI := field.equal_char_zero K,
+  rw ←rat_cast_eq_cast_coe K,
+  change (algebra_map R K) (x.num /ₚ ↑(x.pnat_denom)) = (x.num /ₚ ↑(x.pnat_denom)),
+  simp_rw [divp],
+  simp only [map_mul, ring_hom.map_int_cast, ring_hom.map_units_inv,
+    coe_coe_eq_coe_coe, coe_coe, map_nat_cast, units.coe_inv],
+end
+
+end field
 
 end rat_cast
 

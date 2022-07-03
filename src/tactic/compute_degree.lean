@@ -163,7 +163,7 @@ meta def convert_num_to_C_num (a : expr) : tactic unit :=
 match num_to_nat a with
 | (some an) := do
   `(@polynomial %%R %%inst) ← infer_type a,
-  n_eq_Cn ← to_expr ``(%%a = polynomial.C (%%an : %%R)),
+  n_eq_Cn ← to_expr ``(%%a = polynomial.C (`an : %%R)),
   (_, nproof) ← solve_aux n_eq_Cn
     `[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one] ],
   rewrite_target nproof
@@ -265,10 +265,10 @@ On the atoms of the process, `eval_guessing` tries to use `eval_expr ℕ`, resor
 
 For use with degree of polynomials, we mostly use `n = 0`. -/
 meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := do ca ← eval_guessing a, cb ← eval_guessing b, return $ ca + cb
-| `(%%a * %%b)   := do ca ← eval_guessing a, cb ← eval_guessing b, return $ ca * cb
-| `(max %%a %%b) := do ca ← eval_guessing a, cb ← eval_guessing b, return $ max ca cb
-| e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure n
+| `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
+| `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
+| `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
+| e              := eval_expr ℕ e <|> pure n
 
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
@@ -361,21 +361,6 @@ goals.  I use it to make sure that the tactics are actually making progress, by 
 meta def check_target_changes (t : expr) : tactic unit :=
 do gs ← get_goals >>= list.mmap infer_type,
   (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change"
-
-/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
-estimate for the evaluation of `eval_expr ℕ e`.  It is tailor made for estimating degrees of
-polynomials.
-
-It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
-On the atoms of the process, `eval_guessing` tries to use `eval_expr ℕ`, resorting to using
-`n` if `eval_expr ℕ` fails.
-
-For use with degree of polynomials, we mostly use `n = 0`. -/
-meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
-| `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
-| `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
-| e              := eval_expr ℕ e <|> pure n
 
 /--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
 input, instead of parsing a `!` token. -/

@@ -177,9 +177,6 @@ def abelian_of_equivalence
   {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
   {D : Type u₂} [category.{v} D] [abelian D]
   (F : C ⥤ D) [functor.preserves_zero_morphisms F] [is_equivalence F] : abelian C :=
-begin
-  exact abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm
-    F.as_equivalence.symm.to_adjunction
-end
+abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm F.as_equivalence.symm.to_adjunction
 
 end category_theory

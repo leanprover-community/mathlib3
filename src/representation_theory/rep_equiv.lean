@@ -307,3 +307,21 @@ end automorphisms
 end add_comm_monoid
 
 end rep_equiv
+
+namespace representation
+
+-- comp_hom.to_linear_equiv
+
+end representation
+
+namespace distrib_mul_action
+
+--
+
+end distrib_mul_action
+
+namespace add_equiv
+
+--
+
+end add_equiv

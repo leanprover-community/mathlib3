@@ -204,12 +204,10 @@ lemma coe_injective {α} : injective (coe : finset α → set α) :=
 instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
 
 @[simp] protected lemma forall_coe {α : Type*} (s : finset α) (p : s → Prop) :
-  (∀ (x : s), p x) ↔ ∀ (x : α) (h : x ∈ s), p ⟨x, h⟩ :=
-subtype.forall
+  (∀ (x : s), p x) ↔ ∀ (x : α) (h : x ∈ s), p ⟨x, h⟩ := subtype.forall
 
 @[simp] protected lemma exists_coe {α : Type*} (s : finset α) (p : s → Prop) :
-  (∃ (x : s), p x) ↔ ∃ (x : α) (h : x ∈ s), p ⟨x, h⟩ :=
-subtype.exists
+  (∃ (x : s), p x) ↔ ∃ (x : α) (h : x ∈ s), p ⟨x, h⟩ := subtype.exists
 
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :

@@ -126,7 +126,7 @@ def equivalence_of_equiv (J' : Type w') (h : J ≃ J') :
   counit_iso := nat_iso.of_components (λ j, by cases j; simp)
     (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}) }
 
-/-- Lifting  universe and morphism levels preserves wide pullback diagrams. -/
+/-- Lifting universe and morphism levels preserves wide pullback diagrams. -/
 def ulift_equivalence :
   ulift_hom.{w'} (ulift.{w'} (wide_pullback_shape J)) ≌ wide_pullback_shape (ulift J) :=
 (ulift_hom_ulift_category.equiv.{w' w' w w} (wide_pullback_shape J)).symm.trans

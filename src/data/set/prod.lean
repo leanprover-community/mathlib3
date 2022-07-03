@@ -253,12 +253,14 @@ set.ext $ λ a,
 ⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
 
+@[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
+
 end prod
 
 /-! ### Diagonal -/
 
 section diagonal
-variables {α : Type*}
+variables {α : Type*} {s t : set α}
 
 /-- `diagonal α` is the set of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
@@ -270,6 +272,10 @@ by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 
 lemma diagonal_eq_range : diagonal α = range (λ x, (x, x)) :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
+
+lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
+subset_compl_comm.trans $ by simp_rw [diagonal_eq_range, range_subset_iff,
+  disjoint_left, mem_compl_iff, prod_mk_mem_set_prod_eq, not_and]
 
 end diagonal
 
@@ -349,6 +355,9 @@ by { ext, simp [pi, or_imp_distrib, forall_and_distrib] }
 by { ext, simp [pi] }
 
 lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t i} := singleton_pi i t
+
+lemma univ_pi_singleton (f : Π i, α i) : pi univ (λ i, {f i}) = ({f} : set (Π i, α i)) :=
+ext $ λ g, by simp [funext_iff]
 
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=

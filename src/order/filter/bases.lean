@@ -104,6 +104,10 @@ instance : inhabited (filter_basis ℕ) :=
     exact le_of_max_le_right p_in,
   end }⟩
 
+/-- View a filter as a filter basis. -/
+def filter.as_basis (f : filter α) : filter_basis α :=
+⟨f.sets, ⟨univ, univ_mem⟩, λ x y hx hy, ⟨x ∩ y, inter_mem hx hy, subset_rfl⟩⟩
+
 /-- `is_basis p s` means the image of `s` bounded by `p` is a filter basis. -/
 protected structure filter.is_basis (p : ι → Prop) (s : ι → set α) : Prop :=
 (nonempty : ∃ i, p i)
@@ -200,7 +204,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
   {p' : ι' → Prop} {s' : ι' → set α} {i' : ι'}
 
 lemma has_basis_generate (s : set (set α)) :
-  (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
+  (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
 ⟨begin
   intro U,
   rw mem_generate_iff,
@@ -210,7 +214,7 @@ end⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
-{ sets := sInter '' { t | finite t ∧ t ⊆ s},
+{ sets := sInter '' { t | set.finite t ∧ t ⊆ s},
   nonempty := ⟨univ, ∅, ⟨⟨finite_empty, empty_subset s⟩, sInter_empty⟩⟩,
   inter_sets := begin
     rintros _ _ ⟨a, ⟨fina, suba⟩, rfl⟩ ⟨b, ⟨finb, subb⟩, rfl⟩,
@@ -272,7 +276,7 @@ lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p 
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
 lemma generate_eq_generate_inter (s : set (set α)) :
-  generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
+  generate s = generate (sInter '' { t | set.finite t ∧ t ⊆ s}) :=
 by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq] ; refl
 
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
@@ -330,6 +334,9 @@ by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
+
+lemma as_basis_filter (f : filter α) : f.as_basis.filter = f :=
+by ext t; exact exists_mem_subset_iff
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
@@ -408,9 +415,9 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 (hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
   (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
 
-lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
+lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
-  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
+  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
 ⟨begin
   intro t,
@@ -425,6 +432,62 @@ lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
     refine mem_of_superset _ hsub,
     exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
 end⟩
+
+lemma has_basis_infi_of_directed' {ι : Type*} {ι' : ι → Sort*}
+  [nonempty ι]
+  {l : ι → filter α} (s : Π i, (ι' i) → set α) (p : Π i, (ι' i) → Prop)
+  (hl : ∀ i, (l i).has_basis (p i) (s i)) (h : directed (≥) l) :
+  (⨅ i, l i).has_basis (λ (ii' : Σ i, ι' i), p ii'.1 ii'.2) (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_infi_of_directed h, sigma.exists],
+  exact exists_congr (λ i, (hl i).mem_iff)
+end
+
+lemma has_basis_infi_of_directed {ι : Type*} {ι' : Sort*}
+  [nonempty ι]
+  {l : ι → filter α} (s : ι → ι' → set α) (p : ι → ι' → Prop)
+  (hl : ∀ i, (l i).has_basis (p i) (s i)) (h : directed (≥) l) :
+  (⨅ i, l i).has_basis (λ (ii' : ι × ι'), p ii'.1 ii'.2) (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_infi_of_directed h, prod.exists],
+  exact exists_congr (λ i, (hl i).mem_iff)
+end
+
+lemma has_basis_binfi_of_directed' {ι : Type*} {ι' : ι → Sort*}
+  {dom : set ι} (hdom : dom.nonempty)
+  {l : ι → filter α} (s : Π i, (ι' i) → set α) (p : Π i, (ι' i) → Prop)
+  (hl : ∀ i ∈ dom, (l i).has_basis (p i) (s i)) (h : directed_on (l ⁻¹'o ge) dom) :
+  (⨅ i ∈ dom, l i).has_basis (λ (ii' : Σ i, ι' i), ii'.1 ∈ dom ∧ p ii'.1 ii'.2)
+    (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_binfi_of_directed h hdom, sigma.exists],
+  refine exists_congr (λ i, ⟨_, _⟩),
+  { rintros ⟨hi, hti⟩,
+    rcases (hl i hi).mem_iff.mp hti with ⟨b, hb, hbt⟩,
+    exact ⟨b, ⟨hi, hb⟩, hbt⟩ },
+  { rintros ⟨b, ⟨hi, hb⟩, hibt⟩,
+    exact ⟨hi, (hl i hi).mem_iff.mpr ⟨b, hb, hibt⟩⟩ }
+end
+
+lemma has_basis_binfi_of_directed {ι : Type*} {ι' : Sort*}
+  {dom : set ι} (hdom : dom.nonempty)
+  {l : ι → filter α} (s : ι → ι' → set α) (p : ι → ι' → Prop)
+  (hl : ∀ i ∈ dom, (l i).has_basis (p i) (s i)) (h : directed_on (l ⁻¹'o ge) dom) :
+  (⨅ i ∈ dom, l i).has_basis (λ (ii' : ι × ι'), ii'.1 ∈ dom ∧ p ii'.1 ii'.2)
+    (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_binfi_of_directed h hdom, prod.exists],
+  refine exists_congr (λ i, ⟨_, _⟩),
+  { rintros ⟨hi, hti⟩,
+    rcases (hl i hi).mem_iff.mp hti with ⟨b, hb, hbt⟩,
+    exact ⟨b, ⟨hi, hb⟩, hbt⟩ },
+  { rintros ⟨b, ⟨hi, hb⟩, hibt⟩,
+    exact ⟨hi, (hl i hi).mem_iff.mpr ⟨b, hb, hibt⟩⟩ }
+end
 
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
@@ -514,9 +577,9 @@ by rw [disjoint.comm, disjoint_principal_right]
 
 @[simp] lemma disjoint_principal_principal {s t : set α} :
   disjoint (𝓟 s) (𝓟 t) ↔ disjoint s t :=
-by simp [disjoint_iff_subset_compl_left]
+by simp [←subset_compl_iff_disjoint_left]
 
-alias disjoint_principal_principal ↔ _ disjoint.filter_principal
+alias disjoint_principal_principal ↔ _ _root_.disjoint.filter_principal
 
 @[simp] lemma disjoint_pure_pure {x y : α} :
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
@@ -553,7 +616,7 @@ end⟩
 /-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
 of `⨅ i, 𝓟 (s i)`.  -/
 lemma has_basis_infi_principal_finite {ι : Type*} (s : ι → set α) :
-  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, t.finite) (λ t, ⋂ i ∈ t, s i) :=
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal, exists_prop,
@@ -714,16 +777,6 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 
 end two_types
 
-open equiv
-
-lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
-  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
-begin
-  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
-  simpa only [prod_assoc_image, function.comp, and_assoc] using
-    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
-end
-
 end filter
 
 end sort
@@ -734,24 +787,24 @@ variables {α β γ ι : Type*} {ι' : Sort*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 class is_countably_generated (f : filter α) : Prop :=
-(out [] : ∃ s : set (set α), countable s ∧ f = generate s)
+(out [] : ∃ s : set (set α), s.countable ∧ f = generate s)
 
 /-- `is_countable_basis p s` means the image of `s` bounded by `p` is a countable filter basis. -/
 structure is_countable_basis (p : ι → Prop) (s : ι → set α) extends is_basis p s : Prop :=
-(countable : countable $ set_of p)
+(countable : (set_of p).countable)
 
 /-- We say that a filter `l` has a countable basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`, and the set
 defined by `p` is countable. -/
 structure has_countable_basis (l : filter α) (p : ι → Prop) (s : ι → set α)
   extends has_basis l p s : Prop :=
-(countable : countable $ set_of p)
+(countable : (set_of p).countable)
 
 /-- A countable filter basis `B` on a type `α` is a nonempty countable collection of sets of `α`
 such that the intersection of two elements of this collection contains some element
 of the collection. -/
 structure countable_filter_basis (α : Type*) extends filter_basis α :=
-(countable : countable sets)
+(countable : sets.countable)
 
 -- For illustration purposes, the countable filter basis defining (at_top : filter ℕ)
 instance nat.inhabited_countable_filter_basis : inhabited (countable_filter_basis ℕ) :=
@@ -774,7 +827,7 @@ begin
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 
-lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B)
+lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : B.countable)
   (Bne : B.nonempty) (f : ι → α) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
@@ -786,7 +839,7 @@ begin
   { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
 end
 
-lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)
+lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : B.countable) (f : ι → α)
   {i₀ : ι} (h : f i₀ = ⊤) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
@@ -797,7 +850,7 @@ begin
   { exact countable_binfi_eq_infi_seq Bcbl Bnonempty f }
 end
 
-lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : countable B) :
+lemma countable_binfi_principal_eq_seq_infi {B : set (set α)} (Bcbl : B.countable) :
   ∃ (x : ℕ → set α), (⨅ t ∈ B, 𝓟 t) = ⨅ i, 𝓟 (x i) :=
 countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
@@ -885,7 +938,7 @@ lemma is_countably_generated_of_seq {f : filter α} (h : ∃ x : ℕ → set α,
   f.is_countably_generated  :=
 let ⟨x, h⟩ := h in by rw h ; apply is_countably_generated_seq
 
-lemma is_countably_generated_binfi_principal {B : set $ set α} (h : countable B) :
+lemma is_countably_generated_binfi_principal {B : set $ set α} (h : B.countable) :
   is_countably_generated (⨅ (s ∈ B), 𝓟 s) :=
 is_countably_generated_of_seq (countable_binfi_principal_eq_seq_infi h)
 

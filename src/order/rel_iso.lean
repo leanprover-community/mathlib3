@@ -486,6 +486,10 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 
 @[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
+/-- Two relations on empty types are isomorphic. -/
+def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
+⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
+
 end rel_iso
 
 /-- `subrel r p` is the inherited relation on a subset. -/

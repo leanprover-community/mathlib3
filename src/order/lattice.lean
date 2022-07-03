@@ -183,6 +183,14 @@ le_sup_right.lt_iff_ne.trans $ not_congr right_eq_sup
 lemma left_or_right_lt_sup (h : a ≠ b) : (a < a ⊔ b ∨ b < a ⊔ b) :=
 h.not_le_or_not_le.symm.imp left_lt_sup.2 right_lt_sup.2
 
+theorem le_iff_exists_sup : a ≤ b ↔ ∃ c, b = a ⊔ c :=
+begin
+  split,
+  { intro h, exact ⟨b, (sup_eq_right.mpr h).symm⟩ },
+  { rintro ⟨c, (rfl : _ = _ ⊔ _)⟩,
+    exact le_sup_left }
+end
+
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 
@@ -233,6 +241,12 @@ by rw [sup_sup_sup_comm, sup_idem]
 
 lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b ⊔ c) :=
 by rw [sup_sup_sup_comm, sup_idem]
+
+lemma sup_eq_sup_of_le_of_le (h1 : a ≤ b ⊔ c) (h2 : b ≤ a ⊔ c) : a ⊔ c = b ⊔ c :=
+(sup_le h1 le_sup_right).antisymm (sup_le h2 le_sup_right)
+
+lemma sup_eq_sup_iff_le_le : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
+⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_eq_sup_of_le_of_le h.1 h.2⟩
 
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
@@ -386,6 +400,12 @@ lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓
 
 lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
 @sup_sup_distrib_right αᵒᵈ _ _ _ _
+
+lemma inf_eq_inf_of_le_of_le (h1 : b ⊓ c ≤ a) (h2 : a ⊓ c ≤ b) : a ⊓ c = b ⊓ c :=
+@sup_eq_sup_of_le_of_le αᵒᵈ _ _ _ _ h1 h2
+
+lemma inf_eq_inf_iff_le_le : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
+@sup_eq_sup_iff_le_le αᵒᵈ _ _ _ _
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)

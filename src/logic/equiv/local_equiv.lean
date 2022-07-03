@@ -179,6 +179,10 @@ e.left_inv' h
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
+lemma eq_symm_apply {x : α} {y : β} (hx : x ∈ e.source) (hy : y ∈ e.target) :
+  x = e.symm y ↔ e x = y :=
+⟨λ h, by rw [← e.right_inv hy, h], λ h, by rw [← e.left_inv hx, h]⟩
+
 protected lemma maps_to : maps_to e e.source e.target := λ x, e.map_source
 lemma symm_maps_to : maps_to e.symm e.target e.source := e.symm.maps_to
 protected lemma left_inv_on : left_inv_on e.symm e e.source := λ x, e.left_inv
@@ -288,13 +292,12 @@ h.symm.image_eq
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
 by simp only [is_image, set.ext_iff, mem_inter_eq, and.congr_right_iff, mem_preimage]
 
-alias iff_preimage_eq ↔ local_equiv.is_image.preimage_eq local_equiv.is_image.of_preimage_eq
+alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
 lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
 symm_iff.symm.trans iff_preimage_eq
 
-alias iff_symm_preimage_eq ↔ local_equiv.is_image.symm_preimage_eq
-  local_equiv.is_image.of_symm_preimage_eq
+alias iff_symm_preimage_eq ↔ symm_preimage_eq of_symm_preimage_eq
 
 lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
 of_symm_preimage_eq $ eq.trans (of_symm_preimage_eq rfl).image_eq.symm h

@@ -57,7 +57,7 @@ protected def mk : ∀ (l : list ι) (f : Π i, α i), tprod α l
 | (i :: is) := λ f, (f i, mk is f)
 
 instance [∀ i, inhabited (α i)] : inhabited (tprod α l) :=
-⟨tprod.mk l (λ _, default)⟩
+⟨tprod.mk l default⟩
 
 @[simp] lemma fst_mk (i : ι) (l : list ι) (f : Π i, α i) : (tprod.mk (i::l) f).1 = f i := rfl
 

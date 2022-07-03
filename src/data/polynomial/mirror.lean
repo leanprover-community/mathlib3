@@ -151,6 +151,23 @@ begin
   rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
 end
 
+variables [no_zero_divisors R]
+
+lemma nat_degree_mul_mirror : (p * p.mirror).nat_degree = 2 * p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
+  rw [nat_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_degree, two_mul],
+end
+
+lemma nat_trailing_degree_mul_mirror :
+  (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
+  rw [nat_trailing_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_trailing_degree, two_mul],
+end
+
 end semiring
 
 section ring

@@ -109,6 +109,13 @@ lemma circle_map_mem_closed_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) :
   circle_map c R θ ∈ closed_ball c R :=
 sphere_subset_closed_ball (circle_map_mem_sphere c hR θ)
 
+lemma circle_map_not_mem_ball (c : ℂ) (R : ℝ) (θ : ℝ) : circle_map c R θ ∉ ball c R :=
+by simp [dist_eq, le_abs_self]
+
+lemma circle_map_ne_mem_ball {c : ℂ} {R : ℝ} {w : ℂ} (hw : w ∈ ball c R) (θ : ℝ) :
+  circle_map c R θ ≠ w :=
+(ne_of_mem_of_not_mem hw (circle_map_not_mem_ball _ _ _)).symm
+
 /-- The range of `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
@@ -255,7 +262,7 @@ begin
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
       simp [dist_eq, sub_eq_zero] { contextual := tt } },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
-      (this.mono (λ θ', and.right))).trans _,
+      (this.mono (λ θ' h₁ h₂, absurd h₂ h₁.2))).trans _,
     refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
     set x := abs (f θ'),
     suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],
@@ -298,7 +305,7 @@ lemma integral_sub_inv_smul_sub_smul (f : ℂ → E) (c w : ℂ) (R : ℝ) :
   ∮ z in C(c, R), (z - w)⁻¹ • (z - w) • f z = ∮ z in C(c, R), f z :=
 begin
   rcases eq_or_ne R 0 with rfl|hR, { simp only [integral_radius_zero] },
-  have : countable (circle_map c R ⁻¹' {w}), from (countable_singleton _).preimage_circle_map c hR,
+  have : (circle_map c R ⁻¹' {w}).countable, from (countable_singleton _).preimage_circle_map c hR,
   refine interval_integral.integral_congr_ae ((this.ae_not_mem _).mono $ λ θ hθ hθ', _),
   change circle_map c R θ ≠ w at hθ,
   simp only [inv_smul_smul₀ (sub_ne_zero.2 $ hθ)]

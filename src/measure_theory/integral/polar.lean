@@ -15,17 +15,8 @@ import analysis.special_functions.gamma
 noncomputable theory
 
 open real set measure_theory
-open_locale real
+open_locale real topological_space
 
-lemma is_open_ne_fun
-  {α β : Type*} [topological_space α] [topological_space β] [t2_space α] {f g : β → α}
-  (hf : continuous f) (hg : continuous g) : is_open {x:β | f x ≠ g x} :=
-begin
-  rw ← is_closed_compl_iff,
-  convert is_closed_eq hf hg,
-  ext x,
-  simp,
-end
 
 /-- The polar coordinates local homeomorphism in `ℝ^2`, mapping `(r cos θ, r sin θ)` to `(r, θ)`.
 It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. -/
@@ -100,46 +91,6 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
     { exact complex.equiv_real_prodₗ.symm.continuous.continuous_on }
   end }
 
-/-- The basis of `R × R` given by the two vectors `(1, 0)` and `(0, 1)`. -/
-def basis_fin_two_prod (R : Type*) [semiring R] : basis (fin 2) R (R × R) :=
-basis.of_equiv_fun (linear_equiv.fin_two_arrow R R).symm
-
-@[simp] lemma basis_fin_two_prod_zero (R : Type*) [semiring R] : basis_fin_two_prod R 0 = (1, 0) :=
-by simp [basis_fin_two_prod]
-
-@[simp] lemma basis_fin_two_prod_one (R : Type*) [semiring R] : basis_fin_two_prod R 1 = (0, 1) :=
-by simp [basis_fin_two_prod]
-
-lemma to_lin_prod_continuous_linear_map (a b c d : ℝ) :
-  (matrix.to_lin (basis_fin_two_prod ℝ) (basis_fin_two_prod ℝ)
-      ![![a, b], ![c, d]]).to_continuous_linear_map =
-  (a • continuous_linear_map.fst ℝ ℝ ℝ + b • continuous_linear_map.snd ℝ ℝ ℝ).prod
-  (c • continuous_linear_map.fst ℝ ℝ ℝ + d • continuous_linear_map.snd ℝ ℝ ℝ) :=
-begin
-  ext;
-  simp only [continuous_linear_map.coe_comp', linear_map.coe_to_continuous_linear_map',
-    function.comp_app, continuous_linear_map.inl_apply, continuous_linear_map.prod_apply,
-    continuous_linear_map.add_apply, continuous_linear_map.coe_smul',
-    continuous_linear_map.coe_fst', pi.smul_apply, algebra.id.smul_eq_mul, mul_one,
-    continuous_linear_map.coe_snd', mul_zero, add_zero, continuous_linear_map.inr_apply, zero_add],
-  { rw [← basis_fin_two_prod_zero ℝ, matrix.to_lin_self],
-    simp only [fin.sum_univ_two, matrix.cons_val_zero, basis_fin_two_prod_zero, prod.smul_mk,
-      algebra.id.smul_eq_mul, mul_one, mul_zero, basis_fin_two_prod_one, prod.mk_add_mk,
-      add_zero] },
-  { rw [← basis_fin_two_prod_zero ℝ, matrix.to_lin_self],
-    simp only [fin.sum_univ_two, matrix.cons_val_zero, basis_fin_two_prod_zero, prod.smul_mk,
-      algebra.id.smul_eq_mul, mul_one, mul_zero, matrix.cons_val_one, matrix.head_cons,
-      basis_fin_two_prod_one, prod.mk_add_mk, zero_add] },
-  { rw [← basis_fin_two_prod_one ℝ, matrix.to_lin_self],
-    simp only [fin.sum_univ_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
-      basis_fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
-      basis_fin_two_prod_one, prod.mk_add_mk, add_zero] },
-  { rw [← basis_fin_two_prod_one ℝ, matrix.to_lin_self],
-    simp only [fin.sum_univ_two, matrix.cons_val_one, matrix.head_cons,
-      basis_fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
-      basis_fin_two_prod_one, prod.mk_add_mk, zero_add] }
-end
-
 lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :
   has_fderiv_at polar_coord.symm
     (matrix.to_lin (basis_fin_two_prod ℝ) (basis_fin_two_prod ℝ)
@@ -153,12 +104,6 @@ begin
 end
 
 .
-
-@[simp] lemma det_to_lin
-  {ι : Type*} {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M]
-  (b : basis ι R M) [fintype ι] [decidable_eq ι] (f : matrix ι ι R) :
-  linear_map.det (matrix.to_lin b b f) = f.det :=
-by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
 lemma polar_coord_source_ae_eq_univ :
   polar_coord.source =ᵐ[volume] univ :=
@@ -305,47 +250,60 @@ begin
   simp,
 end
 
-
 lemma integral_mul_exp_neg_sq_div_two : ∫ (r : ℝ) in Ioi 0, r * exp (-r ^ 2 / 2) = 1 :=
 begin
-  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _ _ filter.tendsto_id) _,
-  sorry { have A : (0 : ℝ) < 1/2, by norm_num,
-    convert (integrable_mul_exp_neg_mul_sq A).integrable_on,
+  have I : integrable (λ x, x * exp (-x^2 / 2)),
+  { have A : (0 : ℝ) < 1/2, by norm_num,
+    convert (integrable_mul_exp_neg_mul_sq A),
     ext x,
     simp [div_eq_inv_mul] },
-  { have : ∀ x, has_deriv_at (λ x, exp (-x^2 / 2)) (x * exp (- x^2 / 2)) x,
-    { assume x,
-      convert (((has_deriv_at_id x).pow).div_const 2).neg.exp,
-
-
-    } },
+  refine tendsto_nhds_unique
+    (interval_integral_tendsto_integral_Ioi _ I.integrable_on filter.tendsto_id) _,
+  have A : ∀ x, has_deriv_at (λ x, -exp (-x^2 / 2)) (x * exp (- x^2 / 2)) x,
+  { assume x,
+    convert (((has_deriv_at_pow 2 x)).neg.div_const 2).exp.neg using 1,
+    simp,
+    ring },
+  have : ∀ (y : ℝ), ∫ x in 0..(id y), x * exp (- x^2 / 2) = (-exp(-y^2 / 2)) - (-exp(-0^2 / 2)) :=
+    λ y, interval_integral.integral_eq_sub_of_has_deriv_at (λ x hx, A x) I.interval_integrable,
+  simp_rw [this],
+  have L : tendsto (λ (i : ℝ), 1 - exp (-i ^ 2 / 2)) at_top (𝓝 (1 - 0)),
+  { refine tendsto_const_nhds.sub _,
+    apply tendsto_exp_at_bot.comp,
+    refine tendsto.at_bot_div_const zero_lt_two _,
+    exact tendsto_neg_at_top_at_bot.comp (tendsto_pow_at_top one_le_two) },
+  simpa using L,
 end
 
-#exit
-
-theorem foo :
-  (∫ x, real.exp (-x^2 / 2)) ^ 2 = 2 * π :=
-calc
-(∫ x, real.exp (-x^2 / 2)) ^ 2
-= ∫ p : ℝ × ℝ, real.exp (-p.1 ^ 2 / 2) * real.exp (-p.2 ^ 2 / 2) :
-  by { rw [pow_two, ← integral_prod_mul], refl }
-... = ∫ p : ℝ × ℝ, real.exp (- (p.1 ^ 2 + p.2^2) / 2) :
-  by { congr, ext p, simp only [←exp_add, neg_add_rev, exp_eq_exp], ring }
-... = ∫ p in polar_coord.target, p.1 * real.exp (- ((p.1 * cos p.2) ^ 2 + (p.1 * sin p.2)^2) / 2) :
-  (integral_comp_polar_coord_symm (λ p, real.exp (- (p.1^2 + p.2^2) / 2))).symm
-... = (∫ r in Ioi (0 : ℝ), r * real.exp (-r^2 / 2)) * (∫ θ in Ioo (-π) π, 1) :
-  begin
-    rw ← set_integral_prod_mul,
-    congr' with p,
-    rw mul_one,
-    congr,
-    conv_rhs { rw [← one_mul (p.1^2), ← sin_sq_add_cos_sq p.2], },
-    ring_exp,
-  end
-... = 2 * π :
-  begin
-    have : 0 ≤ π + π, by linarith [real.pi_pos],
-    simp only [integral_const, measure.restrict_apply', measurable_set_Ioo, univ_inter, this,
-        sub_neg_eq_add, algebra.id.smul_eq_mul, mul_one, volume_Ioo, two_mul,
-        ennreal.to_real_of_real, integral_mul_exp_neg_sq_div_two, one_mul],
-  end
+theorem integral_gaussian :
+  (∫ x, real.exp (-x^2 / 2)) = sqrt (2 * π) :=
+begin
+  refine (sq_eq_sq _ (sqrt_nonneg _)).1 _,
+  { exact integral_nonneg (λ x, (exp_pos _).le) },
+  calc
+  (∫ x, real.exp (-x^2 / 2)) ^ 2
+      = ∫ p : ℝ × ℝ, real.exp (-p.1 ^ 2 / 2) * real.exp (-p.2 ^ 2 / 2) :
+    by { rw [pow_two, ← integral_prod_mul], refl }
+  ... = ∫ p : ℝ × ℝ, real.exp (- (p.1 ^ 2 + p.2^2) / 2) :
+    by { congr, ext p, simp only [← real.exp_add, neg_add_rev, real.exp_eq_exp], ring }
+  ... = ∫ p in polar_coord.target, p.1 * real.exp (- ((p.1 * cos p.2) ^ 2 + (p.1 * sin p.2)^2) / 2) :
+    (integral_comp_polar_coord_symm (λ p, real.exp (- (p.1^2 + p.2^2) / 2))).symm
+  ... = (∫ r in Ioi (0 : ℝ), r * real.exp (-r^2 / 2)) * (∫ θ in Ioo (-π) π, 1) :
+    begin
+      rw ← set_integral_prod_mul,
+      congr' with p,
+      rw mul_one,
+      congr,
+      conv_rhs { rw [← one_mul (p.1^2), ← sin_sq_add_cos_sq p.2], },
+      ring_exp,
+    end
+  ... = 2 * π :
+    begin
+      have : 0 ≤ π + π, by linarith [real.pi_pos],
+      simp only [integral_const, measure.restrict_apply', measurable_set_Ioo, univ_inter, this,
+          sub_neg_eq_add, algebra.id.smul_eq_mul, mul_one, volume_Ioo, two_mul,
+          ennreal.to_real_of_real, integral_mul_exp_neg_sq_div_two, one_mul],
+    end
+  ... = (sqrt (2 * π)) ^ 2 :
+    by { rw sq_sqrt, exact mul_nonneg zero_le_two pi_pos.le }
+end

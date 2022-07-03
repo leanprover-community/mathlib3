@@ -1064,6 +1064,15 @@ lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 
+lemma is_open_ne_fun [t2_space α] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : is_open {x:β | f x ≠ g x} :=
+begin
+  rw ← is_closed_compl_iff,
+  convert is_closed_eq hf hg,
+  ext x,
+  simp,
+end
+
 /-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. See also
 `set.eq_on.of_subset_closure` for a more general version. -/
 lemma set.eq_on.closure [t2_space α] {s : set β} {f g : β → α} (h : eq_on f g s)

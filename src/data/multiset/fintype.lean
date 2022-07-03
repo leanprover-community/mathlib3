@@ -49,7 +49,8 @@ instance : has_coe_to_sort (multiset α) Type* := ⟨multiset.to_type⟩
 
 /-- Constructor for terms of the coercion of `m` to a type.
 This helps Lean pick up the correct instances. -/
-@[reducible] def multiset.mk_to_type (m : multiset α) (x : α) (i : fin (m.count x)) : m := ⟨x, i⟩
+@[reducible, pattern] def multiset.mk_to_type (m : multiset α) (x : α) (i : fin (m.count x)) : m :=
+⟨x, i⟩
 
 /-- As a convenience, there is a coercion from `m : Type*` to `α` by projecting onto the first
 component. -/

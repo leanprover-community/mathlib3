@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.abelian
+import algebra.category.Group.epi_mono
 import category_theory.limits.shapes.images
 import category_theory.limits.types
 
@@ -23,7 +24,7 @@ namespace AddCommGroup
 
 -- Note that because `injective_of_mono` is currently only proved in `Type 0`,
 -- we restrict to the lowest universe here for now.
-variables {G H : AddCommGroup.{0}} (f : G ⟶ H)
+variables {G H : AddCommGroup.{u}} (f : G ⟶ H)
 
 local attribute [ext] subtype.ext_val
 
@@ -51,8 +52,7 @@ noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
   (λ x, F'.e (classical.indefinite_description _ x.2).1 : image f → F'.I),
   map_zero' :=
   begin
-    haveI := F'.m_mono,
-    apply injective_of_mono F'.m,
+    apply (mono_iff_injective F'.m).1 F'.m_mono,
     change (F'.e ≫ F'.m) _ = _,
     rw [F'.fac, add_monoid_hom.map_zero],
     exact (classical.indefinite_description (λ y, f y = 0) _).2,
@@ -60,8 +60,7 @@ noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
   map_add' :=
   begin
     intros x y,
-    haveI := F'.m_mono,
-    apply injective_of_mono F'.m,
+    apply (mono_iff_injective F'.m).1 F'.m_mono,
     rw [add_monoid_hom.map_add],
     change (F'.e ≫ F'.m) _ = (F'.e ≫ F'.m) _ + (F'.e ≫ F'.m) _,
     rw [F'.fac],
@@ -95,7 +94,7 @@ noncomputable def is_image : is_image (mono_factorisation f) :=
 The categorical image of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical range.
 -/
-noncomputable def image_iso_range {G H : AddCommGroup.{0}} (f : G ⟶ H) :
+noncomputable def image_iso_range {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   limits.image f ≅ AddCommGroup.of f.range :=
 is_image.iso_ext (image.is_image f) (is_image f)
 

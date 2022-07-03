@@ -178,20 +178,6 @@ lemma int_hom_ext
   {G : AddCommGroup.{0}} (f g : (AddCommGroup.of ℤ) ⟶ G) (w : f (1 : ℤ) = g (1 : ℤ)) : f = g :=
 add_monoid_hom.ext_int w
 
--- TODO: this argument should be generalised to the situation where
--- the forgetful functor is representable.
-lemma injective_of_mono {G H : AddCommGroup.{0}} (f : G ⟶ H) [mono f] : function.injective f :=
-λ g₁ g₂ h,
-begin
-  have t0 : as_hom g₁ ≫ f = as_hom g₂ ≫ f :=
-  begin
-    ext,
-    simpa [as_hom_apply] using h,
-  end,
-  have t1 : as_hom g₁ = as_hom g₂ := (cancel_mono _).1 t0,
-  apply as_hom_injective t1,
-end
-
 end AddCommGroup
 
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/

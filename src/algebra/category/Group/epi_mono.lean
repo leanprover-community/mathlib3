@@ -5,7 +5,7 @@ Authors: Adam Topaz, Johan Commelin
 -/
 import group_theory.quotient_group
 import group_theory.subgroup.basic
-import algebra.category.Group.abelian
+import algebra.category.Group.basic
 import category_theory.epi_mono
 
 /-!

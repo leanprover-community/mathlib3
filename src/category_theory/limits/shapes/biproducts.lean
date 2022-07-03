@@ -1753,6 +1753,62 @@ begin
     cokernel_cofork_of_cofork_π, cofork.π_of_π, add_sub_cancel'_right]
 end
 
+/-- If `b` is a binary bicone such that `b.inl` is a kernel of `b.snd`, then `b` is a bilimit
+    bicone. -/
+def binary_bicone.is_bilimit_of_kernel_inl {X Y : C} (b : binary_bicone X Y)
+  (hb : is_limit (kernel_fork.of_ι _ b.inl_snd)) : b.is_bilimit :=
+is_binary_bilimit_of_is_limit _ $ binary_fan.is_limit.mk _
+  (λ T f g, f ≫ b.inl + g ≫ b.inr) (λ T f g, by simp) (λ T f g, by simp) $ λ T f g m h₁ h₂,
+  begin
+    have h₁' : (m - (f ≫ b.inl + g ≫ b.inr)) ≫ b.fst = 0 := by simpa using sub_eq_zero.2 h₁,
+    have h₂' : (m - (f ≫ b.inl + g ≫ b.inr)) ≫ b.snd = 0 := by simpa using sub_eq_zero.2 h₂,
+    obtain ⟨q : T ⟶ X, hq : q ≫ b.inl = m - (f ≫ b.inl + g ≫ b.inr)⟩ :=
+      kernel_fork.is_limit.lift' hb _ h₂',
+    rw [←sub_eq_zero, ←hq, ←category.comp_id q, ←b.inl_fst, ←category.assoc, hq, h₁', zero_comp]
+  end
+
+/-- If `b` is a binary bicone such that `b.inr` is a kernel of `b.fst`, then `b` is a bilimit
+    bicone. -/
+def binary_bicone.is_bilimit_of_kernel_inr {X Y : C} (b : binary_bicone X Y)
+  (hb : is_limit (kernel_fork.of_ι _ b.inr_fst)) : b.is_bilimit :=
+is_binary_bilimit_of_is_limit _ $ binary_fan.is_limit.mk _
+  (λ T f g, f ≫ b.inl + g ≫ b.inr) (λ t f g, by simp) (λ t f g, by simp) $ λ T f g m h₁ h₂,
+  begin
+    have h₁' : (m - (f ≫ b.inl + g ≫ b.inr)) ≫ b.fst = 0 := by simpa using sub_eq_zero.2 h₁,
+    have h₂' : (m - (f ≫ b.inl + g ≫ b.inr)) ≫ b.snd = 0 := by simpa using sub_eq_zero.2 h₂,
+    obtain ⟨q : T ⟶ Y, hq : q ≫ b.inr = m - (f ≫ b.inl + g ≫ b.inr)⟩ :=
+      kernel_fork.is_limit.lift' hb _ h₁',
+    rw [←sub_eq_zero, ←hq, ←category.comp_id q, ←b.inr_snd, ←category.assoc, hq, h₂', zero_comp]
+  end
+
+/-- If `b` is a binary bicone such that `b.fst` is a cokernel of `b.inr`, then `b` is a bilimit
+    bicone. -/
+def binary_bicone.is_bilimit_of_cokernel_fst {X Y : C} (b : binary_bicone X Y)
+  (hb : is_colimit (cokernel_cofork.of_π _ b.inr_fst)) : b.is_bilimit :=
+is_binary_bilimit_of_is_colimit _ $ binary_cofan.is_colimit.mk _
+  (λ T f g, b.fst ≫ f + b.snd ≫ g) (λ T f g, by simp) (λ T f g, by simp) $ λ T f g m h₁ h₂,
+  begin
+    have h₁' : b.inl ≫ (m - (b.fst ≫ f + b.snd ≫ g)) = 0 := by simpa using sub_eq_zero.2 h₁,
+    have h₂' : b.inr ≫ (m - (b.fst ≫ f + b.snd ≫ g)) = 0 := by simpa using sub_eq_zero.2 h₂,
+    obtain ⟨q : X ⟶ T, hq : b.fst ≫ q = m - (b.fst ≫ f + b.snd ≫ g)⟩ :=
+      cokernel_cofork.is_colimit.desc' hb _ h₂',
+    rw [←sub_eq_zero, ←hq, ←category.id_comp q, ←b.inl_fst, category.assoc, hq, h₁', comp_zero]
+  end
+
+/-- If `b` is a binary bicone such that `b.snd` is a cokernel of `b.inl`, then `b` is a bilimit
+    bicone. -/
+def binary_bicone.is_bilimit_of_cokernel_snd {X Y : C} (b : binary_bicone X Y)
+  (hb : is_colimit (cokernel_cofork.of_π _ b.inl_snd)) : b.is_bilimit :=
+is_binary_bilimit_of_is_colimit _ $ binary_cofan.is_colimit.mk _
+  (λ T f g, b.fst ≫ f + b.snd ≫ g) (λ T f g, by simp) (λ T f g, by simp) $ λ T f g m h₁ h₂,
+  begin
+    have h₁' : b.inl ≫ (m - (b.fst ≫ f + b.snd ≫ g)) = 0 := by simpa using sub_eq_zero.2 h₁,
+    have h₂' : b.inr ≫ (m - (b.fst ≫ f + b.snd ≫ g)) = 0 := by simpa using sub_eq_zero.2 h₂,
+    obtain ⟨q : Y ⟶ T, hq : b.snd ≫ q = m - (b.fst ≫ f + b.snd ≫ g)⟩ :=
+      cokernel_cofork.is_colimit.desc' hb _ h₁',
+    rw [←sub_eq_zero, ←hq, ←category.id_comp q, ←b.inr_snd, category.assoc, hq, h₂', comp_zero]
+  end
+
 /--
 Every split epi `f` with a kernel induces a binary bicone with `f` as its `snd` and
 the kernel map as its `inl`.
@@ -1791,15 +1847,7 @@ This is a version of the splitting lemma that holds in all preadditive categorie
 def is_bilimit_binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
   {c : kernel_fork f} (i : is_limit c) :
   (binary_bicone_of_split_epi_of_kernel i).is_bilimit :=
-is_binary_bilimit_of_total _
-begin
-  simp only [binary_bicone_of_split_epi_of_kernel_fst, binary_bicone_of_split_epi_of_kernel_inl,
-    binary_bicone_of_split_epi_of_kernel_inr, binary_bicone_of_split_epi_of_kernel_snd,
-    split_mono_of_idempotent_of_is_limit_fork_retraction],
-  dsimp only [binary_bicone_of_split_epi_of_kernel_X],
-  rw [is_limit_fork_of_kernel_fork_lift, is_kernel_comp_mono_lift],
-  simp only [fork.is_limit.lift_ι, fork.ι_of_ι, kernel_fork_of_fork_ι, sub_add_cancel]
-end
+binary_bicone.is_bilimit_of_kernel_inl _ $ i.of_iso_limit $ fork.ext (iso.refl _) (by simp)
 
 end
 

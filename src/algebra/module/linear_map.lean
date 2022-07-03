@@ -258,9 +258,9 @@ by simp
 section pointwise
 open_locale pointwise
 
-variables ⦃M M₂ σ⦄ {F : Type*} (h : F)
+variables ⦃M M₃ σ⦄ {F : Type*} (h : F)
 
-lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
+@[simp] lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
   h '' (c • s) = (σ c) • h '' s :=
 begin
   apply set.subset.antisymm,

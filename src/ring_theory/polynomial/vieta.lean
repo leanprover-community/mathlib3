@@ -49,6 +49,9 @@ begin
     exact map_sum card (λ (k : ℕ), multiset.powerset_len k S) (finset.range (S.card + 1))},
 end
 
+/-- A sum version of Vieta's formula for `multiset`: the product of the linear terms `X + λ` where
+`λ` runs through a multiset `s` is equal to a linear combination of the symmetric functions
+`esymm s` of the `λ`'s .-/
 lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   (s.map (λ r, polynomial.X + polynomial.C r)).prod =
   ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
@@ -64,6 +67,35 @@ begin
   simp [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
 end
 
+/-- Vieta's formula for the coefficients of the product of linear terms `X + λ` where `λ` runs
+through a multiset `s` : the `k`th coefficient is the symmetric function `esymm (card s - k) s`. -/
+lemma prod_X_add_C_coeff (s : multiset R) (k : ℕ) (h : k ≤ card s):
+  polynomial.coeff (s.map (λ r, polynomial.X + polynomial.C r)).prod k =
+    s.esymm (s.card - k) :=
+begin
+  have hk : multiset.filter (λ (x : ℕ), k = card s - x) (range (card s + 1)) = {card s - k} :=
+  begin
+    sorry ; { refine multiset.ext _ _ _,
+    -- (λ a, ⟨λ ha, _, λ ha, _ ⟩),
+    rw mem_singleton,
+    have hσ := (tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp
+      (mem_filter.mp ha).1)).mp ((mem_filter.mp ha).2).symm,
+    symmetry,
+    rwa [(tsub_eq_iff_eq_add_of_le h), add_comm],
+    rw mem_filter,
+    have haσ : a ∈ range (card σ + 1) :=
+    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (@tsub_le_self _ _ _ _ _ k) },
+    refine ⟨haσ, eq.symm _⟩,
+    rw tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp haσ),
+     have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
+     rwa add_comm, },
+  end,
+  simp [prod_X_add_C_eq_sum_esymm, esymm, polynomial.finset_sum_coeff,
+    polynomial.coeff_C_mul_X_pow, finset.sum_ite, hk, sum_singleton, esymm, polynomial.eval_sum,
+    polynomial.eval_prod, polynomial.eval_X, add_zero, finset.sum_const_zero] at *,
+  sorry,
+end
+
 end multiset
 
 namespace mv_polynomial
@@ -72,7 +104,7 @@ open finset polynomial fintype
 
 variables (σ : Type*) [fintype σ]
 
-/-- A sum version of Vieta's formula. Viewing `X i` as variables,
+/-- A sum version of Vieta's formula for `mv_polynomial`: viewing `X i` as variables,
 the product of linear terms `λ + X i` is equal to a linear combination of
 the symmetric polynomials `esymm σ R j`. -/
 lemma prod_C_add_X_eq_sum_esymm :
@@ -88,58 +120,6 @@ begin
   have h : (univ \ t).card = card σ - j :=
   by { rw card_sdiff (mem_powerset_len.mp ht).1, congr, exact (mem_powerset_len.mp ht).2 },
   rw [map_prod, prod_const, ← h],
-end
-
-/-- A fully expanded sum version of Vieta's formula, evaluated at the roots.
-The product of linear terms `X + r i` is equal to `∑ j in range (n + 1), e_j * X ^ (n - j)`,
-where `e_j` is the `j`th symmetric polynomial of the constant terms `r i`. -/
-lemma prod_C_add_X_eval (r : σ → R) : ∏ i : σ, (polynomial.C (r i) + polynomial.X) =
-  ∑ i in range (card σ + 1), (∑ t in powerset_len i (univ : finset σ),
-    ∏ i in t, polynomial.C (r i)) * polynomial.X ^ (card σ - i) :=
-begin
-  classical,
-  have h := @prod_C_add_X_eq_sum_esymm _ _ σ _,
-  apply_fun (polynomial.map (eval r)) at h,
-  rw [polynomial.map_prod, polynomial.map_sum] at h,
-  convert h,
-  simp only [eval_X, polynomial.map_add, polynomial.map_C, polynomial.map_X, eq_self_iff_true],
-  funext,
-  simp only [function.funext_iff, esymm, polynomial.map_C, polynomial.map_sum, map_sum,
-    polynomial.map_C, polynomial.map_pow, polynomial.map_X, polynomial.map_mul],
-  congr,
-  funext,
-  simp only [eval_prod, eval_X, map_prod],
-end
-
-lemma esymm_to_sum (r : σ → R) (j : ℕ) : polynomial.C (eval r (esymm σ R j)) =
-  ∑ t in powerset_len j (univ : finset σ), ∏ i in t, polynomial.C (r i) :=
-by simp only [esymm, eval_sum, eval_prod, eval_X, map_sum, map_prod]
-
-/-- Vieta's formula for the coefficients of the product of linear terms `X + r i`,
-The `k`th coefficient is `∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i`,
-i.e. the symmetric polynomial `esymm σ R (card σ - k)` of the constant terms `r i`. -/
-lemma prod_C_add_X_coeff (r : σ → R) (k : ℕ) (h : k ≤ card σ):
-  polynomial.coeff (∏ i : σ, (polynomial.C (r i) + polynomial.X)) k =
-  ∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i :=
-begin
-  have hk : filter (λ (x : ℕ), k = card σ - x) (range (card σ + 1)) = {card σ - k} :=
-  begin
-    refine finset.ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
-    rw mem_singleton,
-    have hσ := (tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp
-      (mem_filter.mp ha).1)).mp ((mem_filter.mp ha).2).symm,
-    symmetry,
-    rwa [(tsub_eq_iff_eq_add_of_le h), add_comm],
-    rw mem_filter,
-    have haσ : a ∈ range (card σ + 1) :=
-    by { rw mem_singleton.mp ha, exact mem_range_succ_iff.mpr (@tsub_le_self _ _ _ _ _ k) },
-    refine ⟨haσ, eq.symm _⟩,
-    rw tsub_eq_iff_eq_add_of_le (mem_range_succ_iff.mp haσ),
-    have hσ := (tsub_eq_iff_eq_add_of_le h).mp (mem_singleton.mp ha).symm,
-    rwa add_comm,
-  end,
-  simp only [prod_C_add_X_eval, ← esymm_to_sum, finset_sum_coeff, coeff_C_mul_X_pow, sum_ite, hk,
-    sum_singleton, esymm, eval_sum, eval_prod, eval_X, add_zero, sum_const_zero],
 end
 
 end mv_polynomial

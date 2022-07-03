@@ -205,11 +205,11 @@ instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // 
 
 @[simp] protected lemma forall_coe {α : Type*} (s : finset α) (p : s → Prop) :
   (∀ (x : s), p x) ↔ ∀ (x : α) (h : x ∈ s), p ⟨x, h⟩ :=
-⟨λ h x hx, h _, by { rintro h ⟨x, hx⟩, apply h }⟩
+subtype.forall
 
 @[simp] protected lemma exists_coe {α : Type*} (s : finset α) (p : s → Prop) :
   (∃ (x : s), p x) ↔ ∃ (x : α) (h : x ∈ s), p ⟨x, h⟩ :=
-by { apply not_iff_not.mp, push_neg, apply finset.forall_coe }
+subtype.exists
 
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :

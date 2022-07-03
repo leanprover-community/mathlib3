@@ -167,60 +167,13 @@ protected def copy (f : M₁ →SLᶜ[σ₁₂] M₂) (f' : M₁ → M₂) (h : 
 
 end boilerplate
 
-section to_continuous
-
-variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
-  {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*} [topological_space M₁]
-  [add_comm_group M₁] [topological_space M₂] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
-  [topological_add_group M₁] [has_continuous_const_smul 𝕜₁ M₁]
-  [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
-
-instance {F : Type*} [h : compact_operator_class F σ₁₂ M₁ M₂] :
-  continuous_semilinear_map_class F σ₁₂ M₁ M₂ :=
-{ map_continuous :=
-  begin
-    letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
-    haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
-    refine λ f, continuous_of_continuous_at_zero f (λ U hU, _),
-    rw map_zero at hU,
-    rcases exists_compact_preimage_mem_nhds f with ⟨K, hK, hKf⟩,
-    rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
-    rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
-    have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
-    suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
-    { refine mem_of_superset _ this,
-      have : is_unit c⁻¹ := hcnz.is_unit.inv,
-      rwa [mem_map, preimage_smul_setₛₗ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
-      apply_instance },
-    rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
-    refine hrU (σ₁₂ c) _,
-    rw ring_hom_isometric.is_iso,
-    exact hc.le
-  end,
-  ..h }
-
-/-- Coerce compact operators to continuous linear maps. -/
-instance : has_coe (M₁ →SLᶜ[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := ⟨λ f, ⟨f, map_continuous f⟩⟩
-
-theorem coe_clm_injective :
-  function.injective (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →SL[σ₁₂] M₂)) :=
-by { intros f g, rw [continuous_linear_map.ext_iff, ext_iff], exact id }
-
-@[simp] lemma coe_clm_mk (f : M₁ →SL[σ₁₂] M₂) (h) :
-  (mk (f : M₁ →ₛₗ[σ₁₂] M₂) h : M₁ →SL[σ₁₂] M₂) = f :=
-by ext; refl
-
-@[simp, norm_cast] lemma coe_clm_inj {f g : M₁ →SLᶜ[σ₁₂] M₂} :
-  (f : M₁ →SL[σ₁₂] M₂) = g ↔ f = g :=
-coe_clm_injective.eq_iff
-
-end to_continuous
-
 section operations
 
-variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ M₂ : Type*}
-  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
-  [module R₁ M₁] [module R₂ M₂]
+variables {R₁ R₂ R₃ R₄ : Type*} [semiring R₁] [semiring R₂] [ring R₃] [ring R₄] {σ₁₂ : R₁ →+* R₂}
+  {σ₃₄ : R₃ →+* R₄} {M₁ M₂ M₃ M₄ : Type*} [topological_space M₁] [add_comm_monoid M₁]
+  [topological_space M₂] [add_comm_monoid M₂] [topological_space M₃] [add_comm_group M₃]
+  [topological_space M₄] [add_comm_group M₄] [module R₁ M₁] [module R₂ M₂]
+  [module R₃ M₃] [module R₄ M₄]
 
 section smul_monoid
 
@@ -290,20 +243,110 @@ instance : add_comm_monoid (M₁ →SLᶜ[σ₁₂] M₂) :=
   nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂] M₂) :
-  ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →SL[σ₁₂] M₂) :=
-(add_monoid_hom.mk (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →SL[σ₁₂] M₂))
+  ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →ₛₗ[σ₁₂] M₂) :=
+(add_monoid_hom.mk (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂))
   rfl (λ _ _, rfl)).map_sum _ _
 
 @[simp, norm_cast] lemma coe_sum' {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂] M₂) :
   ⇑(∑ d in t, f d) = ∑ d in t, f d :=
-by simp only [← coe_coe, coe_sum, continuous_linear_map.coe_sum']
+by simp only [← coe_coe, coe_sum, linear_map.coe_fn_sum]
 
 lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂] M₂) (b : M₁) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
 by simp only [coe_sum', finset.sum_apply]
 
+instance {S : Type*} [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂] [has_continuous_const_smul S M₂] :
+  distrib_mul_action S (M₁ →SL[σ₁₂] M₂) :=
+{ smul_add := λ a f g, by ext; exact smul_add _ _ _,
+  smul_zero := λ a, by ext; exact smul_zero _ }
+
 end add
 
+section sub
+
+variables [module R₁ M₃] [module R₂ M₄] [topological_add_group M₄]
+
+instance : has_neg (M₃ →SLᶜ[σ₁₂] M₄) :=
+⟨λ f, ⟨-f, let ⟨K, hK, hKf⟩ := exists_compact_preimage_mem_nhds f in
+  ⟨-K, hK.neg, mem_of_superset hKf $ λ x (hx : f x ∈ K), set.neg_mem_neg.mpr hx⟩⟩⟩
+
+@[simp] lemma neg_apply (f : M₃ →SLᶜ[σ₁₂] M₄) (x : M₃) : (-f) x = - (f x) := rfl
+@[simp, norm_cast] lemma coe_neg (f : M₃ →SLᶜ[σ₁₂] M₄) : (↑(-f) : M₃ →ₛₗ[σ₁₂] M₄) = -f := rfl
+@[norm_cast] lemma coe_neg' (f : M₃ →SLᶜ[σ₁₂] M₄) : ⇑(-f) = -f := rfl
+
+instance : has_sub (M₃ →SLᶜ[σ₁₂] M₄) := ⟨λ f g, (f + (-g)).copy (f - g) (sub_eq_add_neg _ _)⟩
+
+instance : add_comm_group (M₃ →SLᶜ[σ₁₂] M₄) :=
+by refine
+{ zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := _,
+  nsmul := (•),
+  zsmul := (•),
+  zsmul_zero' := λ f, by { ext, simp },
+  zsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
+  zsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
+  .. compact_operator.add_comm_monoid, .. };
+intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
+
+lemma sub_apply (f g : M₃ →SLᶜ[σ₁₂] M₄) (x : M₃) : (f - g) x = f x - g x := rfl
+@[simp, norm_cast] lemma coe_sub (f g : M₃ →SLᶜ[σ₁₂] M₄) :
+  (↑(f - g) : M₃ →ₛₗ[σ₁₂] M₄) = f - g := rfl
+@[simp, norm_cast] lemma coe_sub' (f g : M₃ →SLᶜ[σ₁₂] M₄) : ⇑(f - g) = f - g := rfl
+
+end sub
+
 end operations
+
+section to_continuous
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*} [topological_space M₁]
+  [add_comm_group M₁] [topological_space M₂] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [topological_add_group M₁] [has_continuous_const_smul 𝕜₁ M₁]
+  [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
+
+instance {F : Type*} [h : compact_operator_class F σ₁₂ M₁ M₂] :
+  continuous_semilinear_map_class F σ₁₂ M₁ M₂ :=
+{ map_continuous :=
+  begin
+    letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
+    haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+    refine λ f, continuous_of_continuous_at_zero f (λ U hU, _),
+    rw map_zero at hU,
+    rcases exists_compact_preimage_mem_nhds f with ⟨K, hK, hKf⟩,
+    rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
+    rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
+    have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
+    suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
+    { refine mem_of_superset _ this,
+      have : is_unit c⁻¹ := hcnz.is_unit.inv,
+      rwa [mem_map, preimage_smul_setₛₗ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
+      apply_instance },
+    rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+    refine hrU (σ₁₂ c) _,
+    rw ring_hom_isometric.is_iso,
+    exact hc.le
+  end,
+  ..h }
+
+/-- Coerce compact operators to continuous linear maps. -/
+instance : has_coe (M₁ →SLᶜ[σ₁₂] M₂) (M₁ →SL[σ₁₂] M₂) := ⟨λ f, ⟨f, map_continuous f⟩⟩
+
+theorem coe_clm_injective :
+  function.injective (coe : (M₁ →SLᶜ[σ₁₂] M₂) → (M₁ →SL[σ₁₂] M₂)) :=
+by { intros f g, rw [continuous_linear_map.ext_iff, ext_iff], exact id }
+
+@[simp] lemma coe_clm_mk (f : M₁ →SL[σ₁₂] M₂) (h) :
+  (mk (f : M₁ →ₛₗ[σ₁₂] M₂) h : M₁ →SL[σ₁₂] M₂) = f :=
+by ext; refl
+
+@[simp, norm_cast] lemma coe_clm_inj {f g : M₁ →SLᶜ[σ₁₂] M₂} :
+  (f : M₁ →SL[σ₁₂] M₂) = g ↔ f = g :=
+coe_clm_injective.eq_iff
+
+end to_continuous
 
 end compact_operator

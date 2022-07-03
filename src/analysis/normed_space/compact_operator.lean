@@ -38,44 +38,6 @@ open function set filter bornology metric
 
 open_locale pointwise big_operators topological_space
 
-/-namespace continuous_linear_map
-
-def is_compact_map {R₁ R₂ M₁ M₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
-  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
-  [module R₁ M₁] [module R₂ M₂] (f : M₁ →SL[σ₁₂] M₂) : Prop :=
-∃ K, is_compact K ∧ (closed_ball 0 1) ⊆ f ⁻¹' K
-
-namespace is_compact_map
-
-section semiring
-
-variables {R₁ R₂ M₁ M₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
-  [metric_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
-  [module R₁ M₁] [module R₂ M₂] {f g : M₁ →SL[σ₁₂] M₂}
-
-protected lemma zero : (0 : M₁ →SL[σ₁₂] M₂).is_compact_map :=
-⟨{0}, is_compact_singleton, λ _ _, rfl⟩
-
-protected lemma add [has_continuous_add M₂] (hf : f.is_compact_map) (hg : g.is_compact_map) :
-  (f + g).is_compact_map :=
-let ⟨A, hA, hAf⟩ := hf, ⟨B, hB, hBg⟩ := hg in
-⟨A + B, hA.add hB, λ x hx, set.add_mem_add (hAf hx) (hBg hx)⟩
-
-protected lemma const_smul {S₂ : Type*} [monoid S₂]
-  [distrib_mul_action S₂ M₂] [smul_comm_class R₂ S₂ M₂] [has_continuous_const_smul S₂ M₂]
-  (hf : f.is_compact_map) (c : S₂) :
-  (c • f).is_compact_map :=
-let ⟨K, hK, hKf⟩ := hf in ⟨c • K, hK.image $ continuous_id.const_smul c,
-  λ x hx, smul_mem_smul_set (hKf hx)⟩
-
-#lint
-
-end semiring
-
-end is_compact_map
-
-end continuous_linear_map-/
-
 structure compact_operator {R₁ R₂} [semiring R₁] [semiring R₂] (σ₁₂ : R₁ →+* R₂) (M₁ M₂ : Type*)
   [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
   [module R₁ M₁] [module R₂ M₂] extends M₁ →ₛₗ[σ₁₂] M₂ :=
@@ -166,6 +128,59 @@ protected def copy (f : M₁ →SLᶜ[σ₁₂] M₂) (f' : M₁ → M₂) (h : 
 @[simp, norm_cast] lemma coe_coe (f : M₁ →SLᶜ[σ₁₂] M₂) : ⇑(f : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
 
 end boilerplate
+
+section characterizations
+
+section
+
+variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ M₂ : Type*}
+  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
+  [module R₁ M₁] [module R₂ M₂]
+
+lemma exists_mem_nhds_image_in_compact (f : M₁ →SLᶜ[σ₁₂] M₂) :
+  ∃ V ∈ (𝓝 0 : filter M₁), ∃ (K : set M₂), is_compact K ∧ f '' V ⊆ K :=
+let ⟨K, hK, hKf⟩ := exists_compact_preimage_mem_nhds f in
+⟨f ⁻¹' K, hKf, K, hK, image_preimage_subset _ _⟩
+
+lemma exists_mem_nhds_image_relatively_compact [t2_space M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) :
+  ∃ V ∈ (𝓝 0 : filter M₁), is_compact (closure $ f '' V) :=
+let ⟨V, hV, K, hK, hKV⟩ := f.exists_mem_nhds_image_in_compact in
+⟨V, hV, compact_closure_of_subset_compact hK hKV⟩
+
+def mk_of_image_in_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {V} (hV : V ∈ (𝓝 0 : filter M₁)) {K}
+  (hK : is_compact K) (hVK : f '' V ⊆ K) : M₁ →SLᶜ[σ₁₂] M₂ :=
+⟨f, ⟨K, hK, mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
+
+def mk_of_image_relatively_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {V} (hV : V ∈ (𝓝 0 : filter M₁))
+  (hVc : is_compact (closure $ f '' V)) : M₁ →SLᶜ[σ₁₂] M₂ :=
+mk_of_image_in_compact f hV hVc subset_closure
+
+end
+
+section bounded
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {M₁ M₂ : Type*} [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂]
+  [add_comm_monoid M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂] [has_continuous_const_smul 𝕜₂ M₂]
+
+lemma image_in_compact_of_vonN_bounded (f : M₁ →SLᶜ[σ₁₂] M₂) {S : set M₁}
+  (hS : is_vonN_bounded 𝕜₁ S) :
+  ∃ (K : set M₂), is_compact K ∧ f '' S ⊆ K :=
+let ⟨K, hK, hKf⟩ := exists_compact_preimage_mem_nhds f,
+    ⟨r, hr, hrS⟩ := hS hKf,
+    ⟨c, hc⟩ := normed_field.exists_lt_norm 𝕜₁ r,
+    this := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm in
+⟨σ₁₂ c • K, hK.image $ continuous_id.const_smul (σ₁₂ c),
+  by rw [image_subset_iff, preimage_smul_setₛₗ f this.is_unit]; exact hrS c hc.le⟩
+
+lemma image_relatively_compact_of_vonN_bounded [t2_space M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) {S : set M₁}
+  (hS : is_vonN_bounded 𝕜₁ S) : is_compact (closure $ f '' S) :=
+let ⟨K, hK, hKf⟩ := f.image_in_compact_of_vonN_bounded hS in
+compact_closure_of_subset_compact hK hKf
+
+end bounded
+
+end characterizations
 
 section operations
 

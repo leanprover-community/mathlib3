@@ -177,7 +177,7 @@ lemma le_of_lt_succ {a b : α} : a < succ b → a ≤ b := succ_order.le_of_lt_s
 @[simp] lemma lt_succ_iff_not_is_max : a < succ a ↔ ¬ is_max a :=
 ⟨not_is_max_of_lt, λ ha, (le_succ a).lt_of_not_le $ λ h, ha $ max_of_succ_le h⟩
 
-alias lt_succ_iff_not_is_max ↔ _ order.lt_succ_of_not_is_max
+alias lt_succ_iff_not_is_max ↔ _ lt_succ_of_not_is_max
 
 lemma wcovby_succ (a : α) : a ⩿ succ a :=
 ⟨le_succ a, λ b hb, (succ_le_of_lt hb).not_lt⟩
@@ -224,17 +224,14 @@ section no_max_order
 variables [no_max_order α]
 
 lemma lt_succ (a : α) : a < succ a := lt_succ_of_not_is_max $ not_is_max a
-lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
-lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
+@[simp] lemma lt_succ_iff : a < succ b ↔ a ≤ b := lt_succ_iff_of_not_is_max $ not_is_max b
+@[simp] lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is_max a
 
-@[simp] lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
-⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
+lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b := by simp
+lemma succ_lt_succ_iff : succ a < succ b ↔ a < b := by simp
 
-lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
-lt_iff_lt_of_le_iff_le' succ_le_succ_iff succ_le_succ_iff
-
-alias succ_le_succ_iff ↔ order.le_of_succ_le_succ _
-alias succ_lt_succ_iff ↔ order.lt_of_succ_lt_succ order.succ_lt_succ
+alias succ_le_succ_iff ↔ le_of_succ_le_succ _
+alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
 
 lemma succ_strict_mono : strict_mono (succ : α → α) := λ a b, succ_lt_succ
 
@@ -243,16 +240,16 @@ lemma covby_succ (a : α) : a ⋖ succ a := covby_succ_of_not_is_max $ not_is_ma
 @[simp] lemma Iio_succ (a : α) : Iio (succ a) = Iic a := Iio_succ_of_not_is_max $ not_is_max _
 @[simp] lemma Ici_succ (a : α) : Ici (succ a) = Ioi a := Ici_succ_of_not_is_max $ not_is_max _
 
-lemma Ico_succ_right (a b : α) : Ico a (succ b) = Icc a b :=
+@[simp] lemma Ico_succ_right (a b : α) : Ico a (succ b) = Icc a b :=
 Ico_succ_right_of_not_is_max $ not_is_max _
 
-lemma Ioo_succ_right (a b : α) : Ioo a (succ b) = Ioc a b :=
+@[simp] lemma Ioo_succ_right (a b : α) : Ioo a (succ b) = Ioc a b :=
 Ioo_succ_right_of_not_is_max $ not_is_max _
 
-lemma Icc_succ_left (a b : α) : Icc (succ a) b = Ioc a b :=
+@[simp] lemma Icc_succ_left (a b : α) : Icc (succ a) b = Ioc a b :=
 Icc_succ_left_of_not_is_max $ not_is_max _
 
-lemma Ico_succ_left (a b : α) : Ico (succ a) b = Ioo a b :=
+@[simp] lemma Ico_succ_left (a b : α) : Ico (succ a) b = Ioo a b :=
 Ico_succ_left_of_not_is_max $ not_is_max _
 
 end no_max_order
@@ -264,7 +261,7 @@ variables [partial_order α] [succ_order α] {a b : α}
 @[simp] lemma succ_eq_iff_is_max : succ a = a ↔ is_max a :=
 ⟨λ h, max_of_succ_le h.le, λ h, h.eq_of_ge $ le_succ _⟩
 
-alias succ_eq_iff_is_max ↔ _ is_max.succ_eq
+alias succ_eq_iff_is_max ↔ _ _root_.is_max.succ_eq
 
 lemma le_le_succ_iff : a ≤ b ∧ b ≤ succ a ↔ b = a ∨ b = succ a :=
 begin
@@ -316,7 +313,7 @@ by simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff]
 lemma succ_injective : injective (succ : α → α) := λ a b, succ_eq_succ_iff.1
 lemma succ_ne_succ_iff : succ a ≠ succ b ↔ a ≠ b := succ_injective.ne_iff
 
-alias succ_ne_succ_iff ↔ _ order.succ_ne_succ
+alias succ_ne_succ_iff ↔ _ succ_ne_succ
 
 lemma lt_succ_iff_eq_or_lt : a < succ b ↔ a = b ∨ a < b := lt_succ_iff.trans le_iff_eq_or_lt
 
@@ -399,7 +396,7 @@ lemma le_of_pred_lt {a b : α} : pred a < b → a ≤ b := pred_order.le_of_pred
 @[simp] lemma pred_lt_iff_not_is_min : pred a < a ↔ ¬ is_min a :=
 ⟨not_is_min_of_lt, λ ha, (pred_le a).lt_of_not_le $ λ h, ha $ min_of_le_pred h⟩
 
-alias pred_lt_iff_not_is_min ↔ _ order.pred_lt_of_not_is_min
+alias pred_lt_iff_not_is_min ↔ _ pred_lt_of_not_is_min
 
 lemma pred_wcovby (a : α) : pred a ⩿ a :=
 ⟨pred_le a, λ b hb, (le_of_pred_lt hb).not_lt⟩
@@ -439,17 +436,14 @@ section no_min_order
 variables [no_min_order α]
 
 lemma pred_lt (a : α) : pred a < a := pred_lt_of_not_is_min $ not_is_min a
-lemma pred_lt_iff : pred a < b ↔ a ≤ b := pred_lt_iff_of_not_is_min $ not_is_min a
-lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is_min b
+@[simp] lemma pred_lt_iff : pred a < b ↔ a ≤ b := pred_lt_iff_of_not_is_min $ not_is_min a
+@[simp] lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is_min b
 
-@[simp] lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b :=
-⟨λ h, le_of_pred_lt $ h.trans_lt (pred_lt b), λ h, le_pred_of_lt $ (pred_lt a).trans_le h⟩
+lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b := by simp
+lemma pred_lt_pred_iff : pred a < pred b ↔ a < b := by simp
 
-@[simp] lemma pred_lt_pred_iff : pred a < pred b ↔ a < b :=
-by simp_rw [lt_iff_le_not_le, pred_le_pred_iff]
-
-alias pred_le_pred_iff ↔ order.le_of_pred_le_pred _
-alias pred_lt_pred_iff ↔ order.lt_of_pred_lt_pred pred_lt_pred
+alias pred_le_pred_iff ↔ le_of_pred_le_pred _
+alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
 
 lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
 
@@ -458,16 +452,16 @@ lemma pred_covby (a : α) : pred a ⋖ a := pred_covby_of_not_is_min $ not_is_mi
 @[simp] lemma Ioi_pred (a : α) : Ioi (pred a) = Ici a := Ioi_pred_of_not_is_min $ not_is_min a
 @[simp] lemma Iic_pred (a : α) : Iic (pred a) = Iio a := Iic_pred_of_not_is_min $ not_is_min a
 
-lemma Ioc_pred_left (a b : α) : Ioc (pred a) b = Icc a b :=
+@[simp] lemma Ioc_pred_left (a b : α) : Ioc (pred a) b = Icc a b :=
 Ioc_pred_left_of_not_is_min $ not_is_min _
 
-lemma Ioo_pred_left (a b : α) : Ioo (pred a) b = Ico a b :=
+@[simp] lemma Ioo_pred_left (a b : α) : Ioo (pred a) b = Ico a b :=
 Ioo_pred_left_of_not_is_min $ not_is_min _
 
-lemma Icc_pred_right (a b : α) : Icc a (pred b) = Ico a b :=
+@[simp] lemma Icc_pred_right (a b : α) : Icc a (pred b) = Ico a b :=
 Icc_pred_right_of_not_is_min $ not_is_min _
 
-lemma Ioc_pred_right (a b : α) : Ioc a (pred b) = Ioo a b :=
+@[simp] lemma Ioc_pred_right (a b : α) : Ioc a (pred b) = Ioo a b :=
 Ioc_pred_right_of_not_is_min $ not_is_min _
 
 end no_min_order
@@ -479,7 +473,7 @@ variables [partial_order α] [pred_order α] {a b : α}
 @[simp] lemma pred_eq_iff_is_min : pred a = a ↔ is_min a :=
 ⟨λ h, min_of_le_pred h.ge, λ h, h.eq_of_le $ pred_le _⟩
 
-alias pred_eq_iff_is_min ↔ _ is_min.pred_eq
+alias pred_eq_iff_is_min ↔ _ _root_.is_min.pred_eq
 
 lemma pred_le_le_iff {a b : α} : pred a ≤ b ∧ b ≤ a ↔ b = a ∨ b = pred a :=
 begin
@@ -527,7 +521,7 @@ by simp_rw [eq_iff_le_not_lt, pred_le_pred_iff, pred_lt_pred_iff]
 lemma pred_injective : injective (pred : α → α) := λ a b, pred_eq_pred_iff.1
 lemma pred_ne_pred_iff : pred a ≠ pred b ↔ a ≠ b := pred_injective.ne_iff
 
-alias pred_ne_pred_iff ↔ _ order.pred_ne_pred
+alias pred_ne_pred_iff ↔ _ pred_ne_pred
 
 lemma pred_lt_iff_eq_or_lt : pred a < b ↔ a = b ∨ a < b := pred_lt_iff.trans le_iff_eq_or_lt
 

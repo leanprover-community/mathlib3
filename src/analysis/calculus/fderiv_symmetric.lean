@@ -263,7 +263,7 @@ begin
       congr' 1,
       field_simp [has_lt.lt.ne' hpos] },
     { filter_upwards [self_mem_nhds_within] with _ hpos,
-      field_simp [has_lt.lt.ne' hpos, has_scalar.smul], }, },
+      field_simp [has_lt.lt.ne' hpos, has_smul.smul], }, },
   simpa only [sub_eq_zero] using is_o_const_const_iff.1 B,
 end
 

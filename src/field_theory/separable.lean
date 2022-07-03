@@ -404,11 +404,9 @@ end
 
 lemma exists_finset_of_splits
   (i : F →+* K) {f : F[X]} (sep : separable f) (sp : splits i f) :
-  ∃ (s : finset K), f.map i =
-    C (i f.leading_coeff) * (s.prod (λ a : K, (X : K[X]) - C a)) :=
+  ∃ (s : finset K), f.map i = C (i f.leading_coeff) * (s.prod (λ a : K, X - C a)) :=
 begin
-  classical,
-  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  obtain ⟨s, h⟩ := (splits_iff_exists_multiset _).1 sp,
   use s.to_finset,
   rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
   apply nodup_of_separable_prod,

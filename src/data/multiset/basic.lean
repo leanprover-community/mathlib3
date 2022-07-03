@@ -306,7 +306,7 @@ variables {s t : multiset α} {a : α}
 
 lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
 
-alias subset_of_le ← multiset.le.subset
+alias subset_of_le ← le.subset
 
 lemma mem_of_le (h : s ≤ t) : a ∈ s → a ∈ t := mem_of_subset (subset_of_le h)
 
@@ -1415,7 +1415,7 @@ begin
   { rw [filter_cons_of_neg _ h, zero_add] },
 end
 
-lemma filter_singleton {a : α} (p : α -> Prop) [decidable_pred p] :
+lemma filter_singleton {a : α} (p : α → Prop) [decidable_pred p] :
   filter p {a} = if p a then {a} else ∅ :=
 by simp only [singleton, filter_cons, filter_zero, add_zero, empty_eq_zero]
 

@@ -106,6 +106,14 @@ by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
 lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
 by simpa only [disjoint.comm] using supr_disjoint_iff
 
+lemma supr₂_disjoint_iff {f : Π i, κ i → α} :
+  disjoint (⨆ i j, f i j) a ↔ ∀ i j, disjoint (f i j) a :=
+by simp_rw supr_disjoint_iff
+
+lemma disjoint_supr₂_iff {f : Π i, κ i → α} :
+  disjoint a (⨆ i j, f i j) ↔ ∀ i j, disjoint a (f i j) :=
+by simp_rw disjoint_supr_iff
+
 lemma Sup_disjoint_iff {s : set α} : disjoint (Sup s) a ↔ ∀ b ∈ s, disjoint b a :=
 by simp only [disjoint_iff, Sup_inf_eq, supr_eq_bot]
 

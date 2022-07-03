@@ -397,7 +397,7 @@ apply_nolint mul_action.quotient_preimage_image_eq_union_mul to_additive_doc
 
 -- group_theory/group_action/defs.lean
 apply_nolint comp_smul_left to_additive_doc
-apply_nolint has_mul.to_has_scalar to_additive_doc
+apply_nolint has_mul.to_has_smul to_additive_doc
 apply_nolint mul_action.regular.is_pretransitive to_additive_doc
 apply_nolint mul_smul_comm to_additive_doc
 apply_nolint one_smul_eq_id to_additive_doc
@@ -406,12 +406,12 @@ apply_nolint one_smul_eq_id to_additive_doc
 apply_nolint mul_action.to_perm_injective to_additive_doc
 
 -- group_theory/group_action/opposite.lean
-apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
+apply_nolint has_mul.to_has_opposite_smul to_additive_doc
 apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
 
 -- group_theory/group_action/pi.lean
-apply_nolint function.has_scalar to_additive_doc
+apply_nolint function.has_smul to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
 apply_nolint pi.has_faithful_smul_at to_additive_doc
 
@@ -532,15 +532,6 @@ apply_nolint tactic.abel.smulg doc_blame
 apply_nolint tactic.abel.term doc_blame
 apply_nolint tactic.abel.termg doc_blame
 apply_nolint tactic.interactive.abel.mode doc_blame
-
--- tactic/alias.lean
-apply_nolint tactic.alias.alias_attr doc_blame
-apply_nolint tactic.alias.alias_direct doc_blame
-apply_nolint tactic.alias.alias_iff doc_blame
-apply_nolint tactic.alias.get_alias_target doc_blame
-apply_nolint tactic.alias.get_lambda_body doc_blame
-apply_nolint tactic.alias.make_left_right doc_blame
-apply_nolint tactic.alias.mk_iff_mp_app doc_blame
 
 -- tactic/chain.lean
 apply_nolint tactic.abstract_if_success doc_blame

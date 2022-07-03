@@ -5,7 +5,6 @@ Authors: Hanting Zhang
 -/
 import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
-import zap
 
 /-!
 # Vieta's Formula

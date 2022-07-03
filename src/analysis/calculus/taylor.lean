@@ -146,18 +146,19 @@ begin
 end
 
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`. -/
-lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ} (ht : t ∈ set.Ioo x₀ x)
-  (hf : cont_diff_on ℝ n f (set.Ioo x₀ x))
-  (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Ioo x₀ x)) (set.Ioo x₀ x)):
+lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ}
+  (hx : x₀ < x) (ht : t ∈ set.Ioo x₀ x)
+  (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
+  (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x)):
   has_deriv_at (λ t', taylor_sum f n (set.Icc x₀ x) t' x)
-    ((iterated_deriv_within (n+1) f (set.Ioo x₀ x) t) * (x - t)^n /n.factorial) t :=
+    ((iterated_deriv_within (n+1) f (set.Icc x₀ x) t) * (x - t)^n /n.factorial) t :=
 begin
   induction n with k hk,
   { simp only [taylor_sum_zero, iterated_deriv_one, pow_zero, mul_one, nat.factorial_zero,
       nat.cast_one, div_one, has_deriv_at_deriv_iff, zero_add],
     simp only [iterated_deriv_within_zero] at hf',
     convert hf'.has_deriv_at (is_open.mem_nhds is_open_Ioo ht),
-    rw iterated_deriv_within_one (unique_diff_on_Ioo x₀ x) ht,
+    rw iterated_deriv_within_one (unique_diff_on_Icc hx) ht,
     refine has_deriv_within_at.deriv_within _ (is_open.unique_diff_within_at is_open_Ioo ht),
     exact (hf'.differentiable_at (is_open.mem_nhds is_open_Ioo ht))
       .has_deriv_at.has_deriv_within_at, },
@@ -166,7 +167,8 @@ begin
   simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
   have h'' : differentiable_on ℝ (iterated_deriv_within k f (set.Ioo x₀ x)) (set.Ioo x₀ x) :=
   begin
-    refine hf.differentiable_on_iterated_deriv_within _ (unique_diff_on_Ioo x₀ x),
+    refine (hf.mono set.Ioo_subset_Icc_self).differentiable_on_iterated_deriv_within _ (unique_diff_on_Ioo x₀ x),
+    --exact set.Ioo_subset_Icc_self,
     simp only [with_top.coe_lt_coe],
     exact lt_add_one k,
   end,
@@ -209,9 +211,7 @@ begin
   --exact (add_sub_cancel'_right _ _).symm,
 end
 
-#check differentiable_on ℝ
-#check cont_diff_on
-#check unique_diff_on_Icc
+#exit
 
 /-- **Taylor's theorem** with the general mean value form of the remainder. -/
 lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
@@ -231,15 +231,13 @@ begin
       * (x - t) ^ n / ↑(n.factorial)) x_1) x_1) :=
   begin
     intros y hy,
-    exact taylor_sum_has_deriv hy (hf.mono set.Ioo_subset_Icc_self) hf',
+    exact taylor_sum_has_deriv hy hf hf',
   end,
   rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_sum f n (set.Icc x₀ x) t x)
     (λ t, (iterated_deriv_within (n+1) f (set.Ioo x₀ x) t) * (x - t)^n /n.factorial) hx tcont tdiff
     g g' gcont gdiff with ⟨y, hy, h⟩,
   use [y, hy],
   simp only [taylor_sum_self] at h,
-  --simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, neg_mul,
-    --taylor_sum_self] at h,
   rw mul_comm at h,
   rw ←div_left_inj' (g'_ne y hy) at h,
   rw mul_div_cancel _ (g'_ne y hy) at h,

@@ -368,8 +368,7 @@ If `C` is finitely complete, then `F : C ⥤ D` preserves finite limits iff
 -/
 noncomputable
 def preserves_finite_limits_iff_Lan_preserves_finite_limits (F : C ⥤ D) :
-  preserves_finite_limits F
-    ≃ preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
+  preserves_finite_limits F ≃ preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ Type u₁)) :=
 { to_fun := λ _, by exactI infer_instance,
   inv_fun := λ _,
   begin

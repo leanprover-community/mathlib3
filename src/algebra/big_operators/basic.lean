@@ -1718,6 +1718,48 @@ begin
   { rw [finset.sum_insert hat, finset.prod_insert hat, multiset.prod_add, ih] }
 end
 
+lemma disjoint_of_disjoint_sum {α β : Type*} {i : finset β} {f : β → multiset α} {z : β}
+  (h1 : z ∉ i) (h2 : ∀ x ∈ i, multiset.disjoint (f x) (f z)) :
+  multiset.disjoint (f z) (∑ x in i, f x) :=
+begin
+  classical,
+  apply finset.sum_induction f (λ (t : multiset α), disjoint (f z) t),
+  { exact λ _ _ ha hb, disjoint_add_right.mpr ⟨ha, hb⟩ },
+  { exact (zero_disjoint (f z)).symm},
+  { exact λ x hx, (h2 x hx).symm },
+end
+
+lemma le_of_disjoint_sum_le {α β : Type*} {T : multiset α} {i : finset β} {f : β → multiset α}
+  (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
+  ∑ x in i, f x ≤ T :=
+begin
+  classical,
+  induction i using finset.induction_on with z i hz hr,
+  { simp only [finset.sum_empty, zero_le], },
+  rw finset.sum_insert hz,
+  have hdsj : disjoint (f z) (∑ x in i, f x),
+  { refine disjoint_of_disjoint_sum hz _,
+    intros x hx,
+    have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
+    have hzi : z ∈ insert z i, from finset.mem_insert_self z i,
+    have hxz : x ≠ z,
+    { contrapose! hz,
+      rwa hz at hx, },
+    exact ((h2 x hxi) z hzi) hxz,  },
+  rw add_eq_union_iff_disjoint.mpr hdsj,
+  rw union_le_iff,
+  split,
+  { exact h1 z (finset.mem_insert_self z i), },
+  { apply hr,
+    { intros x hx,
+      have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
+      exact h1 x hxi, },
+    { intros x hx y hy,
+      have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
+      have hyi : y ∈ insert z i, from finset.mem_insert_of_mem hy,
+      exact (h2 x hxi) y hyi, }},
+end
+
 end multiset
 
 namespace nat

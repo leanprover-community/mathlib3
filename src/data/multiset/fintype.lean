@@ -14,6 +14,17 @@ It also defines `multiset.to_enum_finset`, which is another way to enumerate the
 a multiset. These coercions and definitions make it easier to sum over multisets using existing
 `finset` theory.
 
+## Main definitions
+
+* A coercion from `m : multiset α` to a `Type*`. For `x : m`, then there is a coercion `↑x : α`,
+  and `x.2` is a term of `fin (m.count x)`. The second component is what ensures each term appears
+  with the correct multiplicity. Note that this coercion requires `decidable_eq α` due to
+  `multiset.count`.
+* `multiset.to_enum_finset` is a `finset` version of this.
+* `multiset.coe_embedding` is the embedding `m ↪ α × ℕ`, whose first component is the coercion
+  and whose second component enumerates elements with multiplicity.
+* `multiset.coe_equiv` is the equivalence `m ≃ m.to_enum_finset`.
+
 ## Tags
 
 multiset enumeration
@@ -63,7 +74,7 @@ end
 
 /-- Construct a finset whose elements enumerate the elements of the multiset `m`.
 The `ℕ` component is used to differentiate between equal elements: if `x` appears `n` times
-then `(x, 0)`, ..., `(x, n-1)` appear in the `finset`. -/
+then `(x, 0)`, ..., and `(x, n-1)` appear in the `finset`. -/
 def multiset.to_enum_finset (m : multiset α) : finset (α × ℕ) :=
 {p : α × ℕ | p.2 < m.count p.1}.to_finset
 
@@ -71,13 +82,16 @@ def multiset.to_enum_finset (m : multiset α) : finset (α × ℕ) :=
   p ∈ m.to_enum_finset ↔ p.2 < m.count p.1 :=
 set.mem_to_finset
 
+lemma multiset.mem_of_mem_to_enum_finset {p : α × ℕ} (h : p ∈ m.to_enum_finset) : p.1 ∈ m :=
+multiset.count_pos.mp $ pos_of_gt $ (m.mem_to_enum_finset p).mp h
+
 @[mono]
 lemma multiset.to_enum_finset_mono {m₁ m₂ : multiset α}
   (h : m₁ ≤ m₂) : m₁.to_enum_finset ⊆ m₂.to_enum_finset :=
 begin
-  intro,
+  intro p,
   simp only [multiset.mem_to_enum_finset],
-  exact gt_of_ge_of_gt (multiset.le_iff_count.mp h a.1),
+  exact gt_of_ge_of_gt (multiset.le_iff_count.mp h p.1),
 end
 
 @[simp] lemma multiset.to_enum_finset_subset_iff {m₁ m₂ : multiset α} :
@@ -95,14 +109,16 @@ begin
   { simp [hx] },
 end
 
-/-- The embedding from a multiset into `α × ℕ` where the second coordinate enumerates repeats. -/
+/-- The embedding from a multiset into `α × ℕ` where the second coordinate enumerates repeats.
+
+If you are looking for the function `m → α`, that would be plain `coe`. -/
 @[simps]
 def multiset.coe_embedding (m : multiset α) :
   m ↪ α × ℕ :=
-{ to_fun := λ x, (x, x.2.1),
+{ to_fun := λ x, (x, x.2),
   inj' := begin
     rintro ⟨x, i, hi⟩ ⟨y, j, hj⟩,
-    simp only [prod.mk.inj_iff, sigma.mk.inj_iff, and_imp, multiset.coe_eq],
+    simp only [prod.mk.inj_iff, sigma.mk.inj_iff, and_imp, multiset.coe_eq, fin.coe_mk],
     rintro rfl rfl,
     exact ⟨rfl, heq.rfl⟩
   end }
@@ -162,13 +178,18 @@ end
   m.to_enum_finset.image prod.fst = m.to_finset :=
 by rw [finset.image, multiset.map_to_enum_finset_fst]
 
-@[simp] lemma multiset.map_univ_coe (m : multiset α) : (finset.univ : finset m).val.map coe = m :=
+@[simp] lemma multiset.map_univ_coe (m : multiset α) :
+  (finset.univ : finset m).val.map coe = m :=
 begin
   have := m.map_to_enum_finset_fst,
   rw ← m.map_univ_coe_embedding at this,
   simpa only [finset.map_val, multiset.coe_embedding_apply, multiset.map_map, function.comp_app]
     using this,
 end
+
+@[simp] lemma multiset.map_univ {β : Type*} (m : multiset α) (f : α → β) :
+  (finset.univ : finset m).val.map (λ x, f x) = m.map f :=
+by rw [← multiset.map_map, multiset.map_univ_coe]
 
 @[simp] lemma multiset.card_to_enum_finset (m : multiset α) : m.to_enum_finset.card = m.card :=
 begin

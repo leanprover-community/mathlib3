@@ -35,7 +35,7 @@ open_locale big_operators
 variables {α : Type*} [decidable_eq α] {m : multiset α}
 
 /-- Create a type that has the same number of elements as the multiset.
-Terms of this type are triples `⟨x, ⟨i, h⟩⟩` where `x : α`, `i : ℕ`, and `i < m.count x`.
+Terms of this type are triples `⟨x, ⟨i, h⟩⟩` where `x : α`, `i : ℕ`, and `h : i < m.count x`.
 This way repeated elements of a multiset appear multiple times with different values of `i`. -/
 instance : has_coe_to_sort (multiset α) Type* :=
 ⟨λ m, Σ (x : α), fin (m.count x)⟩

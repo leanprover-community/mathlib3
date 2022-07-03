@@ -302,7 +302,9 @@ i.e. ways to select `k` items (up to permutation) from `n` items without replace
 `multichoose n k` counts the number of multicombinations,
 i.e. ways to select `k` items (up to permutation) from `n` items with replacement.
 
-Note that `multichoose` is *not* the multinomial coefficient. -/
+Note that `multichoose` is *not* the multinomial coefficient, although it can be computed
+in terms of multinomial coefficients. For details see https://mathworld.wolfram.com/Multichoose.html
+-/
 
 /--
 `multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`. -/

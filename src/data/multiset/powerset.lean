@@ -104,16 +104,6 @@ end
   card (powerset s) = 2 ^ card s :=
 quotient.induction_on s $ by simp
 
-@[simp] theorem count_nil_powerset [decidable_eq (multiset α)] (s : multiset α) :
-  multiset.count (0 : multiset α) s.powerset = 1 :=
-begin
-  induction s using multiset.induction_on with _ _ h,
-  { simp only [powerset_zero, count_singleton_self] },
-  rw [powerset_cons, count_add, h],
-  simp only [count_eq_zero_of_not_mem, mem_map, cons_ne_zero, and_false,
-    exists_false, not_false_iff],
-end
-
 theorem revzip_powerset_aux {l : list α} ⦃x⦄
   (h : x ∈ revzip (powerset_aux l)) : x.1 + x.2 = ↑l :=
 begin
@@ -262,29 +252,6 @@ begin
   induction s using multiset.induction with t s ih generalizing n,
   { cases n; simp [powerset_len_zero_left, powerset_len_zero_right], },
   { cases n; simp [ih, map_comp_cons], },
-end
-
-
-lemma sum_powerset_len {α : Type*} (S : multiset α) :
-  S.powerset = ∑ k in finset.range(S.card + 1), (S.powerset_len k) :=
-begin
-  apply eq.symm,
-  apply multiset.eq_of_le_of_card_le,
-  { apply multiset.le_of_disjoint_sum_le,
-    { exact λ _ _, multiset.powerset_len_le_powerset _ _, },
-    { intros _ _ _ _ hxny _ htx hty,
-      rw multiset.mem_powerset_len at htx,
-      rw multiset.mem_powerset_len at hty,
-      rw ←htx.right at hxny,
-      rw hty.right at hxny,
-      exact ne.irrefl hxny, }},
-  { rw multiset.card_powerset,
-    rw ( _ : card (∑ (k : ℕ) in finset.range (card S + 1), powerset_len k S)
-      = ∑ (k : ℕ) in finset.range (card S + 1), card (powerset_len k S)),
-    { conv_rhs { congr, skip, funext, rw multiset.card_powerset_len },
-      apply eq.le,
-      exact (nat.sum_range_choose S.card).symm, },
-    exact map_sum card (λ (k : ℕ), multiset.powerset_len k S) (finset.range (S.card + 1))},
 end
 
 end multiset

@@ -242,39 +242,6 @@ theorem powerset_len_le_powerset (n : ℕ) (s : multiset α) :
 quotient.induction_on s $ λ l, by simp [powerset_len_coe]; exact
   ((sublists_len_sublist_sublists' _ _).map _).subperm
 
-theorem powerset_len_eq_filter (s : multiset α) :
-  ∀ k : ℕ, s.powerset_len k = filter (λ t, t.card = k) s.powerset :=
-begin
-  classical,
-  induction s using multiset.induction_on with a s hk,
-  intro k,
-  cases k ; { refl, },
-  intro k,
-  cases k,
-  { rw [powerset_len_zero_left, powerset_cons, filter_add],
-    rw (_ : filter (λ (t : multiset α), t.card = 0) s.powerset = {0}),
-    rw (_ : filter (λ (t : multiset α), t.card = 0) (map (cons a) s.powerset) = 0),
-    { rwa add_zero, },
-    { rw filter_eq_nil,
-      intros t ht,
-      rw card_eq_zero,
-      obtain ⟨r, hr⟩ := mem_map.mp ht,
-      rw ←hr.right,
-      exact cons_ne_zero, },
-    { ext r,
-      rw count_filter,
-      by_cases (r = 0),
-      { simp only [h, eq_self_iff_true, if_true, count_singleton_self, count_nil_powerset s,
-          card_zero] },
-      { simp only [h, if_false, count_eq_zero_of_not_mem, mem_singleton, not_false_iff,
-          card_eq_zero], }}},
-  { rw [powerset_len_cons, powerset_cons, filter_add, hk k, hk k.succ, add_right_inj, map_filter],
-    rw multiset.map_congr,
-    { congr, ext,
-      simp only [function.comp_app, card_cons, add_left_inj 1], },
-    { intros _ _, refl, }}
-end
-
 theorem powerset_len_mono (n : ℕ) {s t : multiset α} (h : s ≤ t) :
   powerset_len n s ≤ powerset_len n t :=
 le_induction_on h $ λ l₁ l₂ h, by simp [powerset_len_coe]; exact
@@ -295,6 +262,29 @@ begin
   induction s using multiset.induction with t s ih generalizing n,
   { cases n; simp [powerset_len_zero_left, powerset_len_zero_right], },
   { cases n; simp [ih, map_comp_cons], },
+end
+
+
+lemma sum_powerset_len {α : Type*} (S : multiset α) :
+  S.powerset = ∑ k in finset.range(S.card + 1), (S.powerset_len k) :=
+begin
+  apply eq.symm,
+  apply multiset.eq_of_le_of_card_le,
+  { apply multiset.le_of_disjoint_sum_le,
+    { exact λ _ _, multiset.powerset_len_le_powerset _ _, },
+    { intros _ _ _ _ hxny _ htx hty,
+      rw multiset.mem_powerset_len at htx,
+      rw multiset.mem_powerset_len at hty,
+      rw ←htx.right at hxny,
+      rw hty.right at hxny,
+      exact ne.irrefl hxny, }},
+  { rw multiset.card_powerset,
+    rw ( _ : card (∑ (k : ℕ) in finset.range (card S + 1), powerset_len k S)
+      = ∑ (k : ℕ) in finset.range (card S + 1), card (powerset_len k S)),
+    { conv_rhs { congr, skip, funext, rw multiset.card_powerset_len },
+      apply eq.le,
+      exact (nat.sum_range_choose S.card).symm, },
+    exact map_sum card (λ (k : ℕ), multiset.powerset_len k S) (finset.range (S.card + 1))},
 end
 
 end multiset

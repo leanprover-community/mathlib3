@@ -5,6 +5,7 @@ Authors: Hanting Zhang
 -/
 import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
+import zap
 
 /-!
 # Vieta's Formula
@@ -23,49 +24,72 @@ valuation from each `X i` to `r i`.
 
 open_locale big_operators polynomial
 
-variables {R T : Type*} [comm_semiring R] [comm_ring T]
+variables {R : Type*} [comm_semiring R]
 
 namespace multiset
 
-lemma bind_powerset_card {α : Type*} (S : multiset α) :
-  S.powerset = bind (range (S.card + 1)) (λ k, (filter (λ t, t.card = k) S.powerset)) :=
+lemma disjoint_of_disjoint_sum {α β : Type*} {i : finset β} {f : β → multiset α} {z : β}
+  (h1 : z ∉ i) (h2 : ∀ x ∈ i, multiset.disjoint (f x) (f z)) :
+  multiset.disjoint (f z) (∑ x in i, f x) :=
 begin
   classical,
-  ext a,
-  rw count_bind,
-  by_cases ha : a.card ∈ (range (S.card + 1)),
-  { rw [←cons_erase ha, map_cons, sum_cons, count_filter],
-    conv_rhs
-    begin
-      congr, skip, congr, congr, funext,
-      rw count_filter,
-    end,
-    simp_rw [eq_self_iff_true, if_true, self_eq_add_right, sum_eq_zero_iff],
-    intros x hx,
-    rw mem_map at hx,
-    obtain ⟨b, hb⟩ := hx,
-    have : a.card ≠ b,
-    { have : _, from nodup_range (S.card + 1),
-      exact ((nodup.mem_erase_iff this).mp hb.left).left.symm, },
-    simp_rw [this, if_false] at hb,
-    exact hb.right.symm, },
-  { have : a ∉ S.powerset, { contrapose! ha,
-    rw mem_powerset at ha,
-    exact mem_range.mpr (nat.lt_succ_iff.mpr (card_le_of_le ha)),  },
-    simp only [this, count_eq_zero_of_not_mem, not_false_iff, mem_filter, false_and, map_const,
-      sum_repeat, nsmul_eq_mul, mul_zero], },
+  apply finset.sum_induction f (λ (t : multiset α), disjoint (f z) t),
+  { exact λ _ _ ha hb, disjoint_add_right.mpr ⟨ha, hb⟩ },
+  { exact (zero_disjoint (f z)).symm},
+  { exact λ x hx, (h2 x hx).symm },
 end
 
-lemma bind_powerset_len {α : Type*} (S : multiset α) :
-  S.powerset = bind (range (S.card + 1)) (λ k, S.powerset_len k) :=
+lemma le_of_disjoint_sum_le {α β : Type*} {T : multiset α} {i : finset β} {f : β → multiset α}
+  (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
+  ∑ x in i, f x ≤ T :=
 begin
   classical,
-  rw bind_powerset_card S,
-  rw ( _ : range (S.card + 1) = (map (λ k, singleton k) (range (S.card + 1))).sum),
-  { rw [bind, bind, join, multiset.map_congr (eq.refl _)],
+  induction i using finset.induction_on with z i hz hr,
+  { simp only [finset.sum_empty, zero_le], },
+  rw finset.sum_insert hz,
+  have hdsj : disjoint (f z) (∑ x in i, f x),
+  { refine disjoint_of_disjoint_sum hz _,
     intros x hx,
-    exact (powerset_len_eq_filter S x).symm },
-  { simp only [map_cons, sum_cons, sum_map_singleton, cons_bind, sum_map_singleton], },
+    have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
+    have hzi : z ∈ insert z i, from finset.mem_insert_self z i,
+    have hxz : x ≠ z,
+    { contrapose! hz,
+      rwa hz at hx, },
+    exact ((h2 x hxi) z hzi) hxz,  },
+  rw add_eq_union_iff_disjoint.mpr hdsj,
+  rw union_le_iff,
+  split,
+  { exact h1 z (finset.mem_insert_self z i), },
+  { apply hr,
+    { intros x hx,
+      have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
+      exact h1 x hxi, },
+    { intros x hx y hy,
+      have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
+      have hyi : y ∈ insert z i, from finset.mem_insert_of_mem hy,
+      exact (h2 x hxi) y hyi, }},
+end
+
+lemma sum_powerset_len {α : Type*} (S : multiset α) :
+  S.powerset = ∑ k in finset.range(S.card + 1), (S.powerset_len k) :=
+begin
+  apply eq.symm,
+  apply multiset.eq_of_le_of_card_le,
+  { apply multiset.le_of_disjoint_sum_le,
+    { exact λ _ _, multiset.powerset_len_le_powerset _ _, },
+    { intros _ _ _ _ hxny _ htx hty,
+      rw multiset.mem_powerset_len at htx,
+      rw multiset.mem_powerset_len at hty,
+      rw ←htx.right at hxny,
+      rw hty.right at hxny,
+      exact ne.irrefl hxny, }},
+  { rw multiset.card_powerset,
+    rw ( _ : card (∑ (k : ℕ) in finset.range (card S + 1), powerset_len k S)
+      = ∑ (k : ℕ) in finset.range (card S + 1), card (powerset_len k S)),
+    { conv_rhs { congr, skip, funext, rw multiset.card_powerset_len },
+      apply eq.le,
+      exact (nat.sum_range_choose S.card).symm, },
+    exact map_sum card (λ (k : ℕ), multiset.powerset_len k S) (finset.range (S.card + 1))},
 end
 
 lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
@@ -73,9 +97,9 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
 begin
   classical,
-  rw [prod_map_add, antidiagonal_powerset, map_map, bind_powerset_len, finset.sum_eq_multiset_sum,
-    map_bind, sum_bind, function.comp, map_congr],
-  refl,
+  rw [prod_map_add, antidiagonal_powerset, map_map, sum_powerset_len, function.comp,
+    finset.sum_eq_multiset_sum, finset.sum_eq_multiset_sum, ←join, ←bind, map_bind, sum_bind],
+  rw map_congr (eq.refl _),
   intros _ _,
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],
   intros _ ht,

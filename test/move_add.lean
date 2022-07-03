@@ -1,4 +1,5 @@
 import tactic.move_add
+import data.list.of_fn
 import algebra.group.pi
 
 variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
@@ -32,6 +33,11 @@ example : let k := c + (a + b) in k = a + b + c :=
 begin
   move_add [← a, c],
   simp only,
+end
+
+example (n : ℕ) : list.of_fn (λ i : fin (n + 3), (i : ℕ)) = list.of_fn (λ i : fin (3 + n), i) :=
+begin
+  move_add [←n],
 end
 
 example (a b : ℕ) : a + max a b = max b a + a :=

@@ -258,7 +258,7 @@ by simp
 section pointwise
 open_locale pointwise
 
-variables ⦃R M M₂⦄ {F : Type*} (h : F)
+variables ⦃M M₂ σ⦄ {F : Type*} (h : F)
 
 lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
   h '' (c • s) = (σ c) • h '' s :=
@@ -269,10 +269,6 @@ begin
   { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
     exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, map_smulₛₗ _ _ _⟩ }
 end
-
-lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
-  h '' (c • s) = c • h '' s :=
-image_smul_setₛₗ h c s
 
 lemma _root_.preimage_smul_setₛₗ [semilinear_map_class F σ M M₃] {c : R} (hc : is_unit c)
   (s : set M₃) : h ⁻¹' (σ c • s) = c • h ⁻¹' s :=
@@ -286,6 +282,12 @@ begin
   { rintros x ⟨y, hy, rfl⟩,
     refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
+
+variables ⦃R⦄
+
+lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
+  h '' (c • s) = c • h '' s :=
+image_smul_setₛₗ h c s
 
 lemma _root_.preimage_smul_set [linear_map_class F R M M₂] {c : R} (hc : is_unit c) (s : set M₂) :
   h ⁻¹' (c • s) = c • h ⁻¹' s :=

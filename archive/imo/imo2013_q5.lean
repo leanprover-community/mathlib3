@@ -5,7 +5,7 @@ Authors: David Renshaw
 -/
 
 import algebra.geom_sum
-import data.rat.basic
+import data.rat.defs
 import data.real.basic
 
 /-!
@@ -209,15 +209,17 @@ begin
     { exact (lt_irrefl 0 hn).elim },
     induction n with pn hpn,
     { simp only [one_mul, nat.cast_one] },
-    calc (↑pn + 1 + 1) * f x
-          = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
+    calc    ↑(pn + 2) * f x
+          = (↑pn + 1 + 1) * f x            : by norm_cast
+      ... = ((pn : ℝ) + 1) * f x + 1 * f x : add_mul (↑pn + 1) 1 (f x)
       ... = (↑pn + 1) * f x + f x          : by rw one_mul
       ... ≤ f ((↑pn.succ) * x) + f x       : by exact_mod_cast add_le_add_right
                                                   (hpn pn.succ_pos) (f x)
       ... ≤ f ((↑pn + 1) * x + x)          : by exact_mod_cast H2 _ _
                                                   (mul_pos pn.cast_add_one_pos hx) hx
       ... = f ((↑pn + 1) * x + 1 * x)      : by rw one_mul
-      ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm },
+      ... = f ((↑pn + 1 + 1) * x)          : congr_arg f (add_mul (↑pn + 1) 1 x).symm
+      ... = f (↑(pn + 2) * x)              : by norm_cast },
   have H4 : ∀ n : ℕ, 0 < n → (n : ℝ) ≤ f n,
   { intros n hn,
     have hf1 : 1 ≤ f 1,

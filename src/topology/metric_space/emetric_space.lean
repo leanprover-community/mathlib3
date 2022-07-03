@@ -534,10 +534,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
   closed_ball x ε₁ ⊆ closed_ball x ε₂ :=
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
-theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : ball x ε₁ ∩ ball y ε₂ = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ z ⟨h₁, h₂⟩,
-not_lt_of_le (edist_triangle_left x y z)
-  (lt_of_lt_of_le (ennreal.add_lt_add h₁ h₂) h)
+theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
+λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc
@@ -586,8 +584,8 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem is_closed_ball_top : is_closed (ball x ⊤) :=
-is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
-  ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
+is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top,
+  (ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }).subset_compl_right⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 is_open_ball.mem_nhds (mem_ball_self ε0)
@@ -619,7 +617,7 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
 theorem inseparable_iff : inseparable x y ↔ edist x y = 0 :=
-by simp [inseparable_iff_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
+by simp [inseparable_iff_mem_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
 
 /-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
 the pseudoedistance between its elements is arbitrarily small -/
@@ -658,8 +656,8 @@ section compact
 /-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
 set that is `ε`-dense in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
 lemma subset_countable_closure_of_almost_dense_set (s : set α)
-  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
-  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+  (hs : ∀ ε > 0, ∃ t : set α, t.countable ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
+  ∃ t ⊆ s, (t.countable ∧ s ⊆ closure t) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|⟨x₀, hx₀⟩,
   { exact ⟨∅, empty_subset _, countable_empty, empty_subset _⟩ },
@@ -686,7 +684,7 @@ end
 /-- A compact set in a pseudo emetric space is separable, i.e., it is a subset of the closure of a
 countable set.  -/
 lemma subset_countable_closure_of_compact {s : set α} (hs : is_compact s) :
-  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+  ∃ t ⊆ s, (t.countable ∧ s ⊆ closure t) :=
 begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
@@ -718,7 +716,7 @@ end
 variable {α}
 
 lemma second_countable_of_almost_dense_set
-  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
+  (hs : ∀ ε > 0, ∃ t : set α, t.countable ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
   second_countable_topology α :=
 begin
   suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
@@ -984,7 +982,7 @@ namespace emetric
 
 /-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set. -/
 lemma countable_closure_of_compact {s : set γ} (hs : is_compact s) :
-  ∃ t ⊆ s, (countable t ∧ s = closure t) :=
+  ∃ t ⊆ s, (t.countable ∧ s = closure t) :=
 begin
   rcases subset_countable_closure_of_compact hs with ⟨t, hts, htc, hsub⟩,
   exact ⟨t, hts, htc, subset.antisymm hsub (closure_minimal hts hs.is_closed)⟩

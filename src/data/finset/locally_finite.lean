@@ -16,9 +16,15 @@ This file provides basic results about all the `finset.Ixx`, which are defined i
 This file was originally only about `finset.Ico a b` where `a b : ℕ`. No care has yet been taken to
 generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are missing. In general,
 what's to do is taking the lemmas in `data.x.intervals` and abstract away the concrete structure.
+
+Complete the API. See
+https://github.com/leanprover-community/mathlib/pull/14448#discussion_r906109235
+for some ideas.
 -/
 
-variables {α : Type*}
+open_locale big_operators
+
+variables {ι α : Type*}
 
 namespace finset
 section preorder
@@ -51,9 +57,9 @@ by rw [←coe_eq_empty, coe_Ioc, set.Ioc_eq_empty_iff]
 @[simp] lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
 by rw [←coe_eq_empty, coe_Ioo, set.Ioo_eq_empty_iff]
 
-alias Icc_eq_empty_iff ↔ _ finset.Icc_eq_empty
-alias Ico_eq_empty_iff ↔ _ finset.Ico_eq_empty
-alias Ioc_eq_empty_iff ↔ _ finset.Ioc_eq_empty
+alias Icc_eq_empty_iff ↔ _ Icc_eq_empty
+alias Ico_eq_empty_iff ↔ _ Ico_eq_empty
+alias Ioc_eq_empty_iff ↔ _ Ioc_eq_empty
 
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h ((mem_Ioo.1 hx).1.trans (mem_Ioo.1 hx).2)
@@ -255,6 +261,12 @@ lemma filter_gt_eq_Iio [decidable_pred (< a)] : univ.filter (< a) = Iio a := by 
 lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a := by { ext, simp }
 
 end locally_finite_order_bot
+
+variables [decidable_eq α] [locally_finite_order_top α] [locally_finite_order_bot α]
+
+lemma disjoint_Ioi_Iio (a : α) :  disjoint (Ioi a) (Iio a) :=
+disjoint_left.2 $ λ b hab hba, (mem_Ioi.1 hab).not_lt $ mem_Iio.1 hba
+
 end preorder
 
 section partial_order
@@ -377,7 +389,11 @@ end order_bot
 end partial_order
 
 section linear_order
-variables [linear_order α] [locally_finite_order α] {a b : α}
+variables [linear_order α]
+
+
+section locally_finite_order
+variables [locally_finite_order α] {a b : α}
 
 lemma Ico_subset_Ico_iff {a₁ b₁ a₂ b₂ : α} (h : a₁ < b₁) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -437,6 +453,14 @@ begin
     rw [mem_sdiff, mem_Ico, mem_Ico, mem_Ico, min_eq_right h, and_assoc, not_and', not_le],
     exact and_congr_right' ⟨λ hx, hx.2 hx.1, λ hx, ⟨hx.trans_le h, λ _, hx⟩⟩ }
 end
+
+end locally_finite_order
+
+variables [fintype α] [locally_finite_order_top α] [locally_finite_order_bot α]
+
+lemma Ioi_disj_union_Iio (a : α) :
+  (Ioi a).disj_union (Iio a) (disjoint_left.1 $ disjoint_Ioi_Iio a) = ({a} : finset α)ᶜ :=
+by { ext, simp [eq_comm] }
 
 end linear_order
 
@@ -515,4 +539,15 @@ lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (+ c) = Ioo (a + c) (b 
 by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
 
 end ordered_cancel_add_comm_monoid
+
+@[to_additive] lemma prod_prod_Ioi_mul_eq_prod_prod_off_diag [fintype ι] [linear_order ι]
+  [locally_finite_order_top ι] [locally_finite_order_bot ι] [comm_monoid α] (f : ι → ι → α) :
+  ∏ i, ∏ j in Ioi i, f j i * f i j = ∏ i, ∏ j in {i}ᶜ, f j i :=
+begin
+  simp_rw [←Ioi_disj_union_Iio, prod_disj_union, prod_mul_distrib],
+  congr' 1,
+  rw [prod_sigma', prod_sigma'],
+  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp,
+end
+
 end finset

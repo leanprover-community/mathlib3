@@ -343,7 +343,7 @@ end residue_field
 
 lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective φ) :
   φ.ker = maximal_ideal R :=
-local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
+local_ring.eq_maximal_ideal $ (ring_hom.ker_is_maximal_of_surjective φ) hφ
 
 end
 

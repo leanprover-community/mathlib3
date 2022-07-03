@@ -342,8 +342,7 @@ variable [has_finite_limits C]
 
 noncomputable
 instance Lan_preserves_finite_limits_of_preserves_finite_limits (F : C ⥤ D)
-  [preserves_finite_limits F] :
-  preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ E)) :=
+  [preserves_finite_limits F] : preserves_finite_limits (Lan F.op : _ ⥤ (Dᵒᵖ ⥤ E)) :=
 begin
   haveI := flat_of_preserves_finite_limits F,
   apply_instance

@@ -34,11 +34,22 @@ open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] {m : multiset α}
 
+/-- Auxiliary definition for the `has_coe_to_sort` instance. This prevents the `has_coe m α`
+instance from inadverently applying to other sigma types. One should not use this definition
+directly. -/
+@[nolint has_inhabited_instance]
+def multiset.to_type (m : multiset α) : Type* := Σ (x : α), fin (m.count x)
+
 /-- Create a type that has the same number of elements as the multiset.
 Terms of this type are triples `⟨x, ⟨i, h⟩⟩` where `x : α`, `i : ℕ`, and `h : i < m.count x`.
 This way repeated elements of a multiset appear multiple times with different values of `i`. -/
-instance : has_coe_to_sort (multiset α) Type* :=
-⟨λ m, Σ (x : α), fin (m.count x)⟩
+instance : has_coe_to_sort (multiset α) Type* := ⟨multiset.to_type⟩
+
+@[simp] lemma multiset.coe_sort_eq : m.to_type = m := rfl
+
+/-- Constructor for terms of the coercion of `m` to a type.
+This helps Lean pick up the correct instances. -/
+@[reducible] def multiset.mk_to_type (m : multiset α) (x : α) (i : fin (m.count x)) : m := ⟨x, i⟩
 
 /-- As a convenience, there is a coercion from `m : Type*` to `α` by projecting onto the first
 component. -/
@@ -49,7 +60,7 @@ instance multiset.has_coe_to_sort.has_coe : has_coe m α := ⟨λ x, x.1⟩
 @[simp] lemma multiset.coe_eq {x y : m} : (x : α) = (y : α) ↔ x.1 = y.1 :=
 by { cases x, cases y, refl }
 
-@[simp] lemma multiset.coe_mk {x : α} {i : fin (m.count x)} : ↑(⟨x, i⟩ : m) = x := rfl
+@[simp] lemma multiset.coe_mk {x : α} {i : fin (m.count x)} : ↑(m.mk_to_type x i) = x := rfl
 
 @[simp] lemma multiset.coe_mem {x : m} : ↑x ∈ m := multiset.count_pos.mp (pos_of_gt x.2.2)
 

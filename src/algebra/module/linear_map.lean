@@ -258,7 +258,7 @@ by simp
 section pointwise
 open_locale pointwise
 
-variables {F : Type*} (h : F)
+variables ⦃R M M₂⦄ {F : Type*} (h : F)
 
 lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
   h '' (c • s) = (σ c) • h '' s :=

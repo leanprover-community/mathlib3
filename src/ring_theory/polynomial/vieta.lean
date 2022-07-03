@@ -83,8 +83,8 @@ begin
     rw [finset.mem_range, nat.lt_succ_iff] at h1,
     have : k ≠ card s - l,
     { contrapose! h2,
-      rw [eq_tsub_iff_add_eq_of_le h, add_comm],
-      rwa eq_tsub_iff_add_eq_of_le h1 at h2 },
+      zify at h2 ⊢,
+      rw [h2, sub_sub_cancel], },
     rw if_neg this },
   { rw finset.mem_range,
     exact nat.sub_lt_succ s.card k }

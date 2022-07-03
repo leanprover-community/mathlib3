@@ -10,7 +10,6 @@ import data.multiset.basic
 -/
 
 namespace multiset
-
 open list
 
 variables {α : Type*}

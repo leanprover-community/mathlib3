@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Eduardo Freire
 -/
 import order.chain
-
+import tactic
 /-!
 # Zorn's lemmas
 
@@ -191,4 +191,77 @@ begin
   cases hcs₁ hsy hsz hsseq with h h,
   { exact (hcs₀ hsz).right (h hysy) hzsz hyz },
   { exact (hcs₀ hsy).right hysy (h hzsz) hyz }
+end
+
+/-- A finite nonempty chain has a maximal element.
+-/
+lemma max_of_fin_chain [partial_order α] {c : set α} (hc_fin : c.finite)
+ (hc_chain : is_chain (≤) c) (hc_nonempty : c.nonempty) : ∃m ∈ c, ∀{b}, b ∈ c → b ≤ m :=
+begin
+  rcases finset.exists_maximal (set.finite.to_finset hc_fin)
+    ((set.finite.nonempty_to_finset hc_fin).mpr hc_nonempty) with ⟨m, hmc, hm⟩,
+  let hmc' := (set.finite.mem_to_finset hc_fin).mp hmc,
+  use [m, hmc'],
+  intros b hbc,
+  by_cases hbm : b = m,
+  { exact (eq.symm hbm).ge },
+  { cases hc_chain hbc hmc' hbm, exact h, exfalso,
+      exact hm b ((set.finite.mem_to_finset hc_fin).mpr hbc) ((ne.symm hbm).lt_of_le h) }
+end
+
+/-- A set of sets `F` is of finite character if given any `X`, `X ∈ F` exactly when
+all of its finite subsets are in `F`.
+-/
+def finite_character (F : set (set α)) : Prop :=
+  ∀ X, X ∈ F ↔ (∀ {Y : set α}, Y ⊆ X → Y.finite → Y ∈ F)
+
+/-- Tukey's Lemma:
+Sets of finite character contain a ⊆-maximal element comparable to a given element.
+-/
+theorem max_of_fin_character {F : set (set α)} {X : set α} (hX : X ∈ F) (h : finite_character F) :
+  ∃M ∈ F, X ⊆ M ∧ ∀{Y}, Y ∈ F → M ⊆ Y → Y = M :=
+begin
+  apply zorn_subset_nonempty, swap, { exact hX },
+  intros c c_ss c_chain c_nonempty,
+  use c.sUnion,
+  split, swap, { exact λs hs, set.subset_sUnion_of_mem hs },
+  by_contra hUcF,
+  rw h c.sUnion at hUcF, push_neg at hUcF,
+  rcases hUcF with ⟨Y, Y_ss, Y_fin, hYF⟩,
+  suffices : ∃b ∈ c, b ∉ F,	{ rcases this with ⟨b, hb1, hb2⟩, exact hb2 (c_ss hb1) },
+  have : ∀y ∈ Y, ∃Z ∈ c, y ∈ Z,
+  { intros y hy,
+      rcases Y_ss hy with ⟨Z, hZc, hyZ⟩,
+      exact ⟨Z, hZc, hyZ⟩ },
+  choose f hfc hf using this,
+  have sub_chain_fin := set.finite.dependent_image Y_fin f,
+  set sub_chain := {y : set α | ∃ (x : α) (hx : x ∈ Y), y = f x hx}
+  with sub_chain_def,
+  have sub_chain_ss : sub_chain ⊆ c,
+  { intros Z hZ,
+      rw sub_chain_def at hZ,
+      simp at hZ,
+      rcases hZ with ⟨y, hyY, hyf⟩,
+      rw hyf,
+      exact hfc y hyY },
+  have Y_nonempty : Y.nonempty,
+  { rw← set.ne_empty_iff_nonempty,
+      intro contra,
+      rw contra at hYF,
+      apply hYF,
+      obtain ⟨X, hX⟩ : F.nonempty := ⟨X, hX⟩,
+      exact (h X).mp hX (set.empty_subset X) set.finite_empty },
+  have sub_chain_nonempty : sub_chain.nonempty,
+  { cases Y_nonempty with y hy,
+      exact set.nonempty_of_mem (by { rw sub_chain_def, simp, exact ⟨y, hy, rfl⟩ }) },
+  rcases max_of_fin_chain sub_chain_fin (is_chain.mono sub_chain_ss c_chain)
+  sub_chain_nonempty with ⟨m, hmsub, hm⟩,
+  use [m, sub_chain_ss hmsub],
+  suffices : Y ⊆ m, { rw h, push_neg, exact ⟨Y, this, Y_fin, hYF⟩ },
+  suffices : ∀y ∈ Y, ∃Z ∈ sub_chain, y ∈ Z,
+  { intros y hy,
+      rcases this y hy with ⟨Z, Z_sub, hyZ⟩,
+      exact hm Z_sub hyZ },
+  intros y hy,
+  use [f y hy, y, hy, rfl, hf y hy],
 end

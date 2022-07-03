@@ -650,7 +650,7 @@ def reflects_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (
       apply is_colimit.of_whisker_equivalence e,
       apply is_colimit_of_reflects F,
       apply is_colimit.of_iso_colimit _ (functor.map_cocone_whisker _).symm,
-      exact  is_colimit.whisker_equivalence t _,
+      exact is_colimit.whisker_equivalence t _,
     end } }
 
 /--

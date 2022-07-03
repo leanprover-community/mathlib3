@@ -582,20 +582,31 @@ iff.rfl
 @[simp] lemma swap_le_swap [has_le α] [has_le β] {x y : α × β} : x.swap ≤ y.swap ↔ x ≤ y :=
 and_comm _ _
 
+section preorder
+variables [preorder α] [preorder β] {a a₁ a₂ : α} {b b₁ b₂ : β} {x y : α × β}
+
 instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := λ ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
   le_trans := λ ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩ ⟨hac, hbd⟩ ⟨hce, hdf⟩,
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
-@[simp] lemma swap_lt_swap [preorder α] [preorder β] {x y : α × β} : x.swap < y.swap ↔ x < y :=
+@[simp] lemma swap_lt_swap : x.swap < y.swap ↔ x < y :=
 and_congr swap_le_swap (not_congr swap_le_swap)
 
-lemma lt_iff [preorder α] [preorder β] {a b : α × β} :
-  a < b ↔ a.1 < b.1 ∧ a.2 ≤ b.2 ∨ a.1 ≤ b.1 ∧ a.2 < b.2 :=
+lemma mk_le_mk_iff_left : (a₁, b) ≤ (a₂, b) ↔ a₁ ≤ a₂ := and_iff_left le_rfl
+lemma mk_le_mk_iff_right : (a, b₁) ≤ (a, b₂) ↔ b₁ ≤ b₂ := and_iff_right le_rfl
+
+lemma mk_lt_mk_iff_left : (a₁, b) < (a₂, b) ↔ a₁ < a₂ :=
+lt_iff_lt_of_le_iff_le' mk_le_mk_iff_left mk_le_mk_iff_left
+
+lemma mk_lt_mk_iff_right : (a, b₁) < (a, b₂) ↔ b₁ < b₂ :=
+lt_iff_lt_of_le_iff_le' mk_le_mk_iff_right mk_le_mk_iff_right
+
+lemma lt_iff : x < y ↔ x.1 < y.1 ∧ x.2 ≤ y.2 ∨ x.1 ≤ y.1 ∧ x.2 < y.2 :=
 begin
   refine ⟨λ h, _, _⟩,
-  { by_cases h₁ : b.1 ≤ a.1,
+  { by_cases h₁ : y.1 ≤ x.1,
     { exact or.inr ⟨h.1.1, h.1.2.lt_of_not_le $ λ h₂, h.2 ⟨h₁, h₂⟩⟩ },
     { exact or.inl ⟨h.1.1.lt_of_not_le h₁, h.1.2⟩ } },
   { rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
@@ -603,9 +614,9 @@ begin
     { exact ⟨⟨h₁, h₂.le⟩, λ h, h₂.not_le h.2⟩ } }
 end
 
-@[simp] lemma mk_lt_mk [preorder α] [preorder β] {x₁ x₂ : α} {y₁ y₂ : β} :
-  (x₁, y₁) < (x₂, y₂) ↔ x₁ < x₂ ∧ y₁ ≤ y₂ ∨ x₁ ≤ x₂ ∧ y₁ < y₂ :=
-lt_iff
+@[simp] lemma mk_lt_mk : (a₁, b₁) < (a₂, b₂) ↔ a₁ < a₂ ∧ b₁ ≤ b₂ ∨ a₁ ≤ a₂ ∧ b₁ < b₂ := lt_iff
+
+end preorder
 
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are

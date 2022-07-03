@@ -34,6 +34,24 @@ begin
   assumption,
   norm_num,
 end
+open tactic
+#eval compute_degree.num_to_nat `((2 * 2 + 2) ^ 2)
+
+
+example {F : Type*} [ring F] [nontrivial F] : nat_degree ((2 * 2 + 2) ^ 2 * X : F[X]) = 1 :=
+by
+  do
+
+  `(polynomial.nat_degree %%pol = %%tar) ← target,
+  `(polynomial.nat_degree (%%c * %%x) = %%tar) ← target,
+  trace pol,
+  trace $ compute_degree.num_to_nat c,
+  trace tar
+  ,
+    tactic.compute_degree.single_term_resolve pol
+--  compute_degree,
+
+
 
 #exit
 example : (X ^ 4 + 1 + X ^ 4 : polynomial ℕ).nat_degree = 1 + 1 + 1 + 1 :=
@@ -43,11 +61,74 @@ by {
   move_add (1 : ℕ[X]),
   }
 --#exit
---universe u
-example {F : Type*} [ring F] [nontrivial F] : degree (X ^ 4 + 4 + X ^ 4 + C (- 1) : F[X]) = 4 :=
+
+--set_option pp.all true
+/-
+--  with Type*
+F: Type ?l_1
+_inst_1: ring.{?l_1} F
+_inst_2: nontrivial.{?l_1} F
+⊢ @eq.{1} nat (@polynomial.nat_degree.{?l_1} F (@ring.to_semiring.{?l_1} F _inst_1) (@has_add.add.{?l_1} (@polynomial.{?l_1} F (@ring.to_semiring.{?l_1} F _inst_1)) (@infer_instance.{?l_1+1} (has_add.{?l_1} (@polynomial.{?l_1} F (@ring.to_semiring.{?l_1} F _inst_1))) (@polynomial.has_add.{?l_1} F (@ring.to_semiring.{?l_1} F _inst_1))) (@polynomial.X.{?l_1} F (@ring.to_semiring.{?l_1} F _inst_1)) (@polynomial.X.{?l_1} F (@ring.to_semiring.{?l_1} F _inst_1)))) (nat.succ (@has_zero.zero.{0} nat nat.has_zero))
+
+--  with Type u, before norm_num
+F: Type u
+_inst_1: ring.{u} F
+_inst_2: nontrivial.{u} F
+--  same
+⊢ @eq.{1} nat (@polynomial.nat_degree.{u} F (@ring.to_semiring.{u} F _inst_1) (@has_add.add.{u} (@polynomial.{u} F (@ring.to_semiring.{u} F _inst_1))
+
+-- differs 1
+(@infer_instance.{u+1} (has_add.{u} (@polynomial.{u} F (@ring.to_semiring.{u} F _inst_1))) (@polynomial.has_add.{u} F (@ring.to_semiring.{u} F _inst_1)))
+
+-- same
+(@polynomial.X.{u} F (@ring.to_semiring.{u} F _inst_1)) (@polynomial.X.{u} F (@ring.to_semiring.{u} F _inst_1))))
+
+-- differs 2
+(nat.succ (@has_zero.zero.{0} nat nat.has_zero))
+
+--  with Type u, after norm_num
+F: Type u
+_inst_1: ring.{u} F
+_inst_2: nontrivial.{u} F
+-- same
+⊢ @eq.{1} nat (@polynomial.nat_degree.{u} F (@ring.to_semiring.{u} F _inst_1) (@has_add.add.{u} (@polynomial.{u} F (@ring.to_semiring.{u} F _inst_1))
+
+-- differs 1
+(@polynomial.has_add.{u} F (@ring.to_semiring.{u} F _inst_1))
+
+-- same
+(@polynomial.X.{u} F (@ring.to_semiring.{u} F _inst_1)) (@polynomial.X.{u} F (@ring.to_semiring.{u} F _inst_1))))
+
+-- differs 2
+(@has_one.one.{0} nat nat.has_one)
+-/
+example {F : Type*} [ring F] [nontrivial F] : degree (X + 0 + X : F[X]) = 1 :=
 by {
 
   compute_degree,
+  work_on_goal 2 { norm_num },
+  norm_num,
+--  work_on_goal 2 { exact zero_lt_one },
+--  norm_num,
+/-
+  norm_num,
+  simp only [polynomial.coeff_mul_X_pow', polynomial.coeff_monomial, polynomial.coeff_bit0_mul, polynomial.coeff_bit1_mul, polynomial.coeff_neg,
+    zero_add, add_zero, polynomial.coeff_one, zero_eq_bit0, bit0_eq_zero, if_false, neg_zero', add_zero, one_ne_zero, not_false_iff],
+  rw polynomial.coeff_one,
+  norm_num,
+  norm_num,
+  --norm_num,
+  squeeze_simp [coeff_one],
+  simp only [coeff_one, zero_eq_bit0, bit0_eq_zero, if_false, neg_zero', add_zero, one_ne_zero, not_false_iff],
+  {compute_degree.compute_degree_le_core ff},
+  refine (polynomial.nat_degree_one.le.trans (nat.zero_le _)),
+-/
+  }
+#exit
+example {F : Type*} [ring F] [nontrivial F] : degree (X ^ 4 + 4 + X ^ 4 + C (- 1) : F[X]) = 4 :=
+by {
+
+  compute_degree;
   norm_num,
 /-
   norm_num,
@@ -63,7 +144,7 @@ by {
   refine (polynomial.nat_degree_one.le.trans (nat.zero_le _)),
 -/
   }
---#exit
+#exit
 example {R} [semiring R] [nontrivial R] {a b c d e : R} :
   nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   (C a * X ^ 0 + (C b * X ^ 5 + X ^ 10 + C c * X ^ 2) + --0 * X ^ 10 +

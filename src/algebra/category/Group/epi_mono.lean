@@ -17,7 +17,7 @@ groups if and only if it is injective, and similarly an epimorphism if and only 
 
 universe u
 
-open category_theory category_theory.preadditive AddCommGroup
+open category_theory AddCommGroup
 
 namespace AddCommGroup
 

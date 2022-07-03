@@ -249,20 +249,10 @@ section partial_order
 variables [topological_space α] [partial_order α] [t : order_closed_topology α]
 include t
 
-private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
-by simp only [le_antisymm_iff];
-   exact is_closed.inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
-
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
-{ t2 :=
-  have is_open {p : α × α | p.1 ≠ p.2} := is_closed_eq_aux.is_open_compl,
-  assume a b h,
-  let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
-  ⟨u, v, hu, hv, ha, hb,
-    set.eq_empty_iff_forall_not_mem.2 $ assume a ⟨h₁, h₂⟩,
-    have a ≠ a, from @h (a, a) ⟨h₁, h₂⟩,
-    this rfl⟩ }
+t2_iff_is_closed_diagonal.2 $ by simpa only [diagonal, le_antisymm_iff] using
+  t.is_closed_le'.inter (is_closed_le continuous_snd continuous_fst)
 
 end partial_order
 
@@ -1247,10 +1237,10 @@ This is not a straightforward consequence of second-countability as some of thes
 empty (but in fact this can happen only for countably many of them). -/
 lemma set.pairwise_disjoint.countable_of_Ioo [second_countable_topology α]
   {y : α → α} {s : set α} (h : pairwise_disjoint s (λ x, Ioo x (y x))) (h' : ∀ x ∈ s, x < y x) :
-  countable s :=
+  s.countable :=
 begin
   let t := {x | x ∈ s ∧ (Ioo x (y x)).nonempty},
-  have t_count : countable t,
+  have t_count : t.countable,
   { have : t ⊆ s := λ x hx, hx.1,
     exact (h.subset this).countable_of_is_open (λ x hx, is_open_Ioo) (λ x hx, hx.2) },
   have : s ⊆ t ∪ {x : α | ∃ x', x < x' ∧ Ioo x x' = ∅},
@@ -2684,7 +2674,7 @@ separable space (e.g., if `α` has a second countable topology), then there exis
 dense subset `t ⊆ s` such that `t` does not contain bottom/top elements of `α`. -/
 lemma dense.exists_countable_dense_subset_no_bot_top [nontrivial α]
   {s : set α} [separable_space s] (hs : dense s) :
-  ∃ t ⊆ s, countable t ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
+  ∃ t ⊆ s, t.countable ∧ dense t ∧ (∀ x, is_bot x → x ∉ t) ∧ (∀ x, is_top x → x ∉ t) :=
 begin
   rcases hs.exists_countable_dense_subset with ⟨t, hts, htc, htd⟩,
   refine ⟨t \ ({x | is_bot x} ∪ {x | is_top x}), _, _, _, _, _⟩,
@@ -2701,7 +2691,7 @@ countable dense set `s : set α` that contains neither top nor bottom elements o
 For a dense set containing both bot and top elements, see
 `exists_countable_dense_bot_top`. -/
 lemma exists_countable_dense_no_bot_top [separable_space α] [nontrivial α] :
-  ∃ s : set α, countable s ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
+  ∃ s : set α, s.countable ∧ dense s ∧ (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) :=
 by simpa using dense_univ.exists_countable_dense_subset_no_bot_top
 
 end densely_ordered

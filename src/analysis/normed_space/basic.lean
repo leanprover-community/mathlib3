@@ -187,16 +187,6 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
     ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
       λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
 
-variables (α)
-
-lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg α _).mp (by { conv_lhs {rw h}, simp }))
-
-lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
-ne_neg_of_mem_sphere α one_ne_zero x
-
-variables {α}
-
 open normed_field
 
 instance : normed_space α (ulift E) :=
@@ -219,7 +209,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_grou
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
   {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=

@@ -124,7 +124,7 @@ begin
     simp },
   -- we will use countably many linear maps. Select these from all the derivatives since the
   -- space of linear maps is second-countable
-  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, countable T ∧
+  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, T.countable ∧
     (⋃ x ∈ T, ball (f' (x : E)) (r (f' x))) = ⋃ (x : s), ball (f' x) (r (f' x)) :=
     topological_space.is_open_Union_countable _ (λ x, is_open_ball),
   -- fix a sequence `u` of positive reals tending to zero.
@@ -220,7 +220,7 @@ begin
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
         exact false.elim z.2 },
-      { exact (nonempty_coe_sort _).2 hT } },
+      { exact nonempty_coe_sort.2 hT } },
     inhabit (ℕ × T × ℕ),
     exact ⟨_, encodable.surjective_decode_iget _⟩ },
   -- these sets `t q = K n z p` will do

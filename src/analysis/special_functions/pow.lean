@@ -541,7 +541,7 @@ by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
-  suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
+  suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by rwa [int.cast_neg, int.cast_one] at H,
   simp only [rpow_int_cast, zpow_one, zpow_neg],
 end
 

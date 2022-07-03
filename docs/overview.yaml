@@ -46,6 +46,7 @@ General algebra:
     cyclic group: 'is_cyclic'
     nilpotent group: 'group.is_nilpotent'
     permutation group of a type: 'equiv.perm'
+    structure of fintely generated abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
 
   Rings:
     ring: 'ring'
@@ -426,5 +427,4 @@ Logic and computation:
     definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'
     Compactness theorem: 'first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable'
-    Downward Löwenheim-Skolem: 'first_order.language.exists_elementary_substructure_card_eq'
-    Upward Löwenheim-Skolem: 'first_order.language.Theory.exists_elementary_embedding_card_eq'
+    Löwenheim-Skolem: 'first_order.language.exists_elementary_embedding_card_eq'

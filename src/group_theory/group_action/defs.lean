@@ -470,9 +470,9 @@ section compatible_scalar
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]
 
-@[simp] lemma smul_one_mul {M N} [monoid N] [has_smul M N] [is_scalar_tower M N N] (x : M)
+@[simp] lemma smul_one_mul {M N} [mul_one_class N] [has_smul M N] [is_scalar_tower M N N] (x : M)
   (y : N) : (x • 1) * y = x • y :=
-smul_one_smul N x y
+by rw [smul_mul_assoc, one_mul]
 
 @[simp, to_additive] lemma mul_smul_one
   {M N} [mul_one_class N] [has_smul M N] [smul_comm_class M N N] (x : M) (y : N) :

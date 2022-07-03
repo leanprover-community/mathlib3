@@ -107,13 +107,12 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- `is_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
+/-- `as_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
 if it cannot. -/
 meta def as_given_op (op : pexpr) : expr → tactic expr
 | (expr.app (expr.app F a) b) := do
-    op ← to_expr op tt ff,
-    unify op F,
-    instantiate_mvars op
+    to_expr op tt ff >>= unify F,
+    return F
 | _ := failed
 
 /-- `(e, unused) ← reorder_oper op lp e` converts an expression `e` to a similar looking one.
@@ -166,16 +165,16 @@ meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
 | (expr.lam na bi e f)          := do
   [en, fn] ← [e, f].mmap $ reorder_oper,
   return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| (expr.mvar na pp e)           := do
+| (expr.mvar na pp e)           := do  -- is it really needed to recurse here?
   en ← reorder_oper e,
   return (expr.mvar na pp en.1, [en.2].transpose.map list.band)
-| (expr.local_const na pp bi e) := do
+| (expr.local_const na pp bi e) := do  -- is it really needed to recurse here?
   en ← reorder_oper e,
   return (expr.local_const na pp bi en.1, [en.2].transpose.map list.band)
 | (expr.elet na e f g)          := do
   [en, fn, gn] ← [e, f, g].mmap $ reorder_oper,
   return (expr.elet na en.1 fn.1 gn.1, [en.2, fn.2, gn.2].transpose.map list.band)
-| (expr.macro ma le)            := do
+| (expr.macro ma le)            := do  -- is it really needed to recurse here?
   len ← le.mmap $ reorder_oper,
   let (lee, lb) := len.unzip,
   return (expr.macro ma lee, lb.transpose.map list.band)
@@ -205,12 +204,15 @@ meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name)
 unify reordered thyp >> return (tt, is_unused) <|> do
 -- the current `do` block takes place where the reordered expression is not equal to the original
 neq ← mk_app `eq [thyp, reordered],
+nop ← to_expr op tt ff,
 pre ← pp reordered,
-(_, prf) ← solve_aux neq $
-  `[{ simp only [add_comm, add_assoc, add_left_comm], done }] <|>
-  `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }] <|>
-  fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
-  "the initial goal equals:\n\n{pre}\n"),
+(_, prf) ← solve_aux neq $ match nop with
+  | `(has_add.add) := `[{ simp only [add_comm, add_assoc, add_left_comm]; refl, done }]
+  | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm]; refl, done }]
+  | _ := ac_refl <|>
+    fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
+      "the initial goal equals:\n\n{pre}\n")
+  end,
 match hyploc with
 | none := replace_target reordered prf
 | some hyploc := replace_hyp hyploc reordered prf >> skip
@@ -280,7 +282,7 @@ may change the goal. Also, the *order* in which the terms are provided matters: 
 them from left to right.  This is especially important if there are multiple matches for the typed
 terms in the given expressions.
 
-A single call of `move_op` moves terms across different sums in the same expression.
+A single call of `move_add` moves terms across different sums in the same expression.
 Here is an example.
 
 ```lean
@@ -361,6 +363,22 @@ replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
 move_op args locat ``(has_mul.mul)
+
+/--  `move_oper` behaves like `move_add` except that it also takes an associative, commutative,
+binary operation as input.  The operation must be passed as a list consisting of a single element.
+For instance
+```lean
+example (a b : ℕ) : max a b = max b a :=
+by move_oper [max] [← a, b] at *
+```
+solves the goal.  For more details, see the `move_add` doc-string, replacing `add` with your
+intended operation.
+-/
+meta def move_oper
+  (op : parse pexpr_list) (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
+  tactic unit := do
+[op] ← pure op | fail "only one operation is allowed",
+move_op args locat op
 
 add_tactic_doc
 { name := "move_add",

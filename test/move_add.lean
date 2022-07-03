@@ -1,4 +1,5 @@
 import tactic.move_add
+import data.list.of_fn
 import algebra.group.pi
 
 variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
@@ -26,6 +27,23 @@ begin
   success_if_fail_with_msg {move_mul at ⊢ h} "Goal did not change\n'[h]' did not change",
   success_if_fail_with_msg {move_mul at ⊢} "Goal did not change",
   move_mul ← a at *,  -- `move_mul` closes the goal, since, after rearranging, it tries `assumption`
+end
+
+example : let k := c + (a + b) in k = a + b + c :=
+begin
+  move_add [← a, c],
+  simp only,
+end
+
+example (n : ℕ) : list.of_fn (λ i : fin (n + 3), (i : ℕ)) = list.of_fn (λ i : fin (3 + n), i) :=
+begin
+  move_add [←n],
+end
+
+example (a b : ℕ) : a + max a b = max b a + a :=
+begin
+  move_oper [max] ← a at *,
+  move_oper [(+)] a at *,
 end
 
 example (h : b + a = b + c + a) : a + b = a + b + c :=

@@ -175,16 +175,13 @@ def prod_mk (f : C(α, β₁)) (g : C(α, β₂)) :
   continuous_to_fun := continuous.prod_mk f.continuous g.continuous }
 
 /-- Given two continuous maps `f` and `g`, this is the continuous map `(x, y) ↦ (f x, g y)`. -/
-def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
+@[simps] def prod_map (f : C(α₁, α₂)) (g : C(β₁, β₂)) :
   C(α₁ × β₁, α₂ × β₂) :=
 { to_fun := prod.map f g,
   continuous_to_fun := continuous.prod_map f.continuous g.continuous }
 
 @[simp] lemma prod_eval (f : C(α, β₁)) (g : C(α, β₂)) (a : α) :
   (prod_mk f g) a = (f a, g a) := rfl
-
-@[simp] lemma prod_map_eval (f : C(α₁, α₂)) (g : C(β₁, β₂)) (x : α₁) (y : β₁) :
-  f.prod_map g ⟨x,y⟩ = ⟨f x, g y⟩ := rfl
 
 end prod
 

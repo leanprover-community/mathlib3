@@ -77,7 +77,7 @@ instance : has_coe_to_fun (ρ →ᵣ ρ₂) (λ _, V → V₂) := ⟨λ f, f⟩
 -- should there be coe to linear_map?
 @[simp] lemma to_fun_eq_coe {f : ρ →ᵣ ρ₂} : f.to_fun = (f : V → V₂) := rfl
 
-lemma coe_eq_to_linear_map_coe {f : ρ →ᵣ ρ₂} : (f : V → V₂) = (f.to_linear_map : V → V₂) := rfl
+@[simp] lemma coe_eq_to_linear_map_coe {f : ρ →ᵣ ρ₂} : (f.to_linear_map : V → V₂) = (f : V → V₂) := rfl
 
 @[ext] theorem ext {f g : ρ →ᵣ ρ₂} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
@@ -492,6 +492,8 @@ lemma mul_eq_comp (f g : ρ.End) : f * g = f.comp g := rfl
 @[simp] lemma one_apply (x : V) : (1 : ρ.End) x = x := rfl
 @[simp] lemma mul_apply (f g : ρ.End) (x : V) : (f * g) x = f (g x) := rfl
 
+lemma monoid_hom_one_apply (x : V) : ρ (1 : G) x = (1 : ρ.End) x := by simp
+
 lemma coe_one : ⇑(1 : ρ.End) = _root_.id := rfl
 lemma coe_mul (f g : ρ.End) : ⇑(f * g) = f ∘ g := rfl
 
@@ -540,8 +542,8 @@ end
 /-- The tautological action by `ρ.End` (aka `ρ →ᵣ ρ`) on `V`. -/
 def End_representation : representation k ρ.End V :=
 { to_fun := to_linear_map,
-  map_one' := by {ext, simp [←coe_eq_to_linear_map_coe]},
-  map_mul' := by {intros f g, ext, simp [←coe_eq_to_linear_map_coe]} }
+  map_one' := by {ext, simp},
+  map_mul' := by {intros f g, ext, simp} }
 
 -- apply_smul_... (unlike module, representation is not a class)
 

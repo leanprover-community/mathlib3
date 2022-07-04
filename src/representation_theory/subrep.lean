@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Winston Yin
 -/
 import representation_theory.direct_sum
+import representation_theory.rep_equiv
+
+-- Follows algebra.module.submodule.basic
 
 open function
 open_locale big_operators
@@ -16,7 +19,7 @@ structure subrep
 (smulG_mem' : ∀ (g : G) {x : V}, x ∈ carrier → ρ g x ∈ carrier)
 
 namespace subrep
--- Follows algebra.module.submodule.basic
+
 variables
   {k G V : Type*}
   [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
@@ -184,6 +187,8 @@ begin
       eq_self_iff_true] }
 end
 
+@[simp] lemma representation_apply (g : G) (x : p) : ↑(p.representation' g x) = ρ g ↑x := rfl
+
 instance no_zero_smul_divisors [no_zero_smul_divisors k V] : no_zero_smul_divisors k p :=
 ⟨λ c x h,
   have c = 0 ∨ (x : V) = 0,
@@ -191,8 +196,8 @@ instance no_zero_smul_divisors [no_zero_smul_divisors k V] : no_zero_smul_diviso
   this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
-protected def subtype : p →ₗ[k] V :=
-by refine {to_fun := coe, ..}; simp [coe_smul]
+protected def subtype : p.representation' →ᵣ ρ :=
+by refine {to_fun := coe, ..}; simp
 
 theorem subtype_apply (x : p) : p.subtype x = x := rfl
 

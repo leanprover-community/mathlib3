@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Winston Yin
 -/
 import representation_theory.subrep
-import representation_theory.rep_equiv
+
+-- Follows algebra.module.submodule.lattice
 
 variables {k k' G V : Type*}
 

@@ -5,6 +5,8 @@ Authors: Winston Yin
 -/
 import representation_theory.rep_hom
 
+-- Follows algebra.module.equiv
+
 open function
 open_locale big_operators
 

@@ -81,7 +81,7 @@ begin
   rw [hG.is_local ho hxo, host, ← hG.is_local ho hxo]
 end
 
-lemma is_local_nhds {s u : set H} {x : H} {f : H → H'} (hu : u ∈ 𝓝[s] x) (hx : x ∈ u) :
+lemma is_local_nhds {s u : set H} {x : H} {f : H → H'} (hu : u ∈ 𝓝[s] x) :
   P f s x ↔ P f (s ∩ u) x :=
 hG.congr_set $ mem_nhds_within_iff_eventually_eq.mp hu
 
@@ -89,13 +89,13 @@ lemma left_invariance {s : set H} {x : H} {f : H → H'} {e' : local_homeomorph 
   (he' : e' ∈ G') (hfs : continuous_within_at f s x) (hxe' : f x ∈ e'.source) (hP : P f s x) :
   P (e' ∘ f) s x :=
 begin
-  rw [hG.is_local_nhds (hfs.preimage_mem_nhds_within $ e'.open_source.mem_nhds hxe') hxe'] at hP ⊢,
+  rw [hG.is_local_nhds (hfs.preimage_mem_nhds_within $ e'.open_source.mem_nhds hxe')] at hP ⊢,
   exact hG.left_invariance' he' (inter_subset_right _ _) hxe' hP
 end
 
 lemma congr_iff_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g)
   (h2 : f x = g x) : P f s x ↔ P g s x :=
-by { simp_rw [hG.is_local_nhds h1 h2],
+by { simp_rw [hG.is_local_nhds h1],
   exact ⟨hG.congr_of_forall (λ y hy, hy.2) h2, hG.congr_of_forall (λ y hy, hy.2.symm) h2.symm⟩ }
 
 lemma congr_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x)

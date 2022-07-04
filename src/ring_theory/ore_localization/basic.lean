@@ -49,8 +49,8 @@ include ore
 
 /-- The setoid on `R × S` used for the Ore localization. -/
 def ore_eqv : setoid (R × S) :=
-{ r := λ rs r's', ∃ (u : S) (v : R), r's'.1 * u = rs.1 * v
-                             ∧ (r's'.2 : R) * u = rs.2 * v,
+{ r := λ rs rs', ∃ (u : S) (v : R), rs'.1 * u = rs.1 * v
+                            ∧ (rs'.2 : R) * u = rs.2 * v,
   iseqv :=
   begin
     refine ⟨_, _, _⟩,

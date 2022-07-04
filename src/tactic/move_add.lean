@@ -189,20 +189,31 @@ meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name)
       th ← infer_type hl,
       return (th, some hl)
   end,
-((unchanged, is_unused), reordered, prf) ← ext_simplify_core
-  (tt, lp.map (λ _, tt)) { fail_if_unchanged := ff } simp_lemmas.mk (λ _, failed)
-  (λ data _ _ _ e, do
-    let (unchanged, unused) := data,
-    (new_unchanged, new_unused, new_e, prf) ← reorder_at op lp e,
-    return ((band unchanged new_unchanged, [unused, new_unused].transpose.map list.band), new_e,
-      prf, prf = none)
-    ) (λ _ _ _ _ _, failed)
+st ← read,
+(result, reordered, prf) ← ext_simplify_core
+  (interaction_monad.result.success (tt, lp.map (λ _, tt)) st)
+  { fail_if_unchanged := ff } simp_lemmas.mk (λ _, failed)
+  (λ result _ _ _ e, do
+    (unchanged, unused) ← tactic.unwrap result,
+    result ← tactic.capture ( reorder_at op lp e),
+    match result with
+    | interaction_monad.result.success (new_unchanged, new_unused, new_e, prf) st :=
+        pure (
+          interaction_monad.result.success
+            (band unchanged new_unchanged, [unused, new_unused].transpose.map list.band) st,
+          new_e, prf, prf = none)
+    | interaction_monad.result.exception fmt pos st :=
+        pure (
+          interaction_monad.result.exception fmt pos st,
+          e, none, ff)
+    end) (λ _ _ _ _ _, failed)
   `eq thyp,
+(unchanged, unused) ← tactic.unwrap result,
 match hyploc with
 | none := replace_target reordered prf
 | some hyploc := replace_hyp hyploc reordered prf >> skip
 end,
-return (unchanged, is_unused)
+return (unchanged, unused)
 
 section parsing_arguments_for_move_op
 setup_tactic_parser

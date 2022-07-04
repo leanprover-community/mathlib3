@@ -276,15 +276,7 @@ by rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.target_inter_inv_pre
 
 lemma eventually_nhds (e : local_homeomorph α β) {x : α} (p : β → Prop)
   (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p y) ↔ ∀ᶠ x in 𝓝 x, p (e x) :=
-begin
-  refine ⟨(e.continuous_at hx).eventually, _⟩,
-  intro h,
-  rw [← e.left_inv hx] at h,
-  filter_upwards [(e.symm.continuous_at $ e.maps_to hx).eventually h,
-    e.eventually_right_inverse' hx],
-  intros y hy heq,
-  rwa [heq] at hy
-end
+iff.trans (by rw [e.map_nhds_eq hx]) eventually_map
 
 lemma eventually_nhds' (e : local_homeomorph α β) {x : α} (p : α → Prop)
   (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝 x, p x :=
@@ -310,6 +302,9 @@ begin
   rw [hy]
 end
 
+/-- This lemma is useful in the manifold library in the case that `e` is a chart. It states that
+  locally around `e x` the set `e.symm ⁻¹' s` is the same as the set intersected with the target
+  of `e` and some other neighborhood of `f x` (which will be the source of a chart on `γ`).  -/
 lemma preimage_eventually_eq_target_inter_preimage_inter
   {e : local_homeomorph α β} {s : set α} {t : set γ} {x : α}
   {f : α → γ} (hf : continuous_within_at f s x) (hxe : x ∈ e.source) (ht : t ∈ 𝓝 (f x)) :

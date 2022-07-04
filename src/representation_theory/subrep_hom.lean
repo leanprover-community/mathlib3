@@ -103,7 +103,7 @@ end
 begin
   induction n with n ih,
   { refl, },
-  { simp only [function.comp_app, function.iterate_succ, linear_map.mul_apply, pow_succ, ih, mul_apply],
+  { simp only [function.comp_app, function.iterate_succ, rep_hom.mul_apply, pow_succ, ih, mul_apply],
     exact (function.commute.iterate_self _ _ m).symm, }
 end
 
@@ -246,7 +246,7 @@ noncomputable def equiv_map_of_injective (f : ρ →ᵣ ρ₂) (i : injective f)
 @[simp] lemma coe_equiv_map_of_injective_apply (f : ρ →ᵣ ρ₂) (i : injective f)
   (p : subrep ρ) (x : p) :
   (equiv_map_of_injective f i p x : V₂) = f x := rfl
-set_option trace.simplify.rewrite true
+
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : ρ →ᵣ ρ₂) (p : subrep ρ₂) : subrep ρ :=
 { carrier   := f ⁻¹' p,
@@ -357,4 +357,282 @@ ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx,
 
 end add_comm_group
 
+section field
+
+variables
+  {k G V V₂ : Type*} [field k] [monoid G]
+  [add_comm_group V] [module k V] {ρ : representation k G V}
+  [add_comm_group V₂] [module k V₂] {ρ₂ : representation k G V₂}
+
+lemma comap_smul (f : ρ →ᵣ ρ₂) (p : subrep ρ₂) (a : k) (h : a ≠ 0) :
+  p.comap (a • f) = p.comap f :=
+by ext b; simp only [subrep.mem_comap, p.smul_mem_iff h, rep_hom.smul_apply]
+
+lemma map_smul (f : ρ →ᵣ ρ₂) (p : subrep ρ) (a : k) (h : a ≠ 0) :
+  p.map (a • f) = p.map f :=
+le_antisymm
+  begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_rfl end
+  begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_rfl end
+
+lemma comap_smul' (f : ρ →ᵣ ρ₂) (p : subrep ρ₂) (a : k) :
+  p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
+by classical; by_cases a = 0; simp [h, comap_smul]
+
+lemma map_smul' (f : ρ →ᵣ ρ₂) (p : subrep ρ) (a : k) :
+  p.map (a • f) = (⨆ h : a ≠ 0, p.map f) :=
+by classical; by_cases a = 0; simp [h, map_smul]
+
+end field
+
 end subrep
+
+namespace rep_hom
+
+section add_comm_monoid
+
+variables
+  {k G V V₂ V₃ : Type*} [comm_semiring k] [monoid G]
+  [add_comm_monoid V] [module k V] {ρ : representation k G V}
+  [add_comm_monoid V₂] [module k V₂] {ρ₂ : representation k G V₂}
+  [add_comm_monoid V₃] [module k V₃] {ρ₃ : representation k G V₃}
+open subrep
+
+-- dfinsupp
+
+theorem map_cod_restrict (p : subrep ρ) (f : ρ₂ →ᵣ ρ) (h p') :
+  subrep.map (cod_restrict p f h) p' = comap p.subtype (p'.map f) :=
+subrep.ext $ λ ⟨x, hx⟩, by simp [subtype.ext_iff_val]
+
+theorem comap_cod_restrict (p : subrep ρ) (f : ρ₂ →ᵣ ρ) (hf p') :
+  subrep.comap (cod_restrict p f hf) p' = subrep.comap f (map p.subtype p') :=
+subrep.ext $ λ x, ⟨λ h, ⟨⟨_, hf x⟩, h, rfl⟩, by rintro ⟨⟨_, _⟩, h, ⟨⟩⟩; exact h⟩
+
+/-- The range of a linear map `f : M → M₂` is a submodule of `M₂`.
+See Note [range copy pattern]. -/
+def range (f : ρ →ᵣ ρ₂) : subrep ρ₂ :=
+(map f ⊤).copy (set.range f) set.image_univ.symm
+
+theorem range_coe (f : ρ →ᵣ ρ₂) :
+  (range f : set V₂) = set.range f := rfl
+
+lemma range_to_submodule (f : ρ →ᵣ ρ₂) :
+  f.range.to_submodule = f.to_linear_map.range := rfl
+
+@[simp] theorem mem_range   {f : ρ →ᵣ ρ₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=
+iff.rfl
+
+lemma range_eq_map   (f : ρ →ᵣ ρ₂) : f.range = map f ⊤ :=
+by { ext, simp }
+
+theorem mem_range_self   (f : ρ →ᵣ ρ₂) (x : V) : f x ∈ f.range := ⟨x, rfl⟩
+
+@[simp] theorem range_id : range (rep_hom.id : ρ →ᵣ ρ) = ⊤ :=
+set_like.coe_injective set.range_id
+
+theorem range_comp   (f : ρ →ᵣ ρ₂) (g : ρ₂ →ᵣ ρ₃) :
+  range (g.comp f : ρ →ᵣ ρ₃) = map g (range f) :=
+set_like.coe_injective (set.range_comp g f)
+
+theorem range_comp_le_range   (f : ρ →ᵣ ρ₂) (g : ρ₂ →ᵣ ρ₃) :
+  range (g.comp f : ρ →ᵣ ρ₃) ≤ range g :=
+set_like.coe_mono (set.range_comp_subset_range f g)
+
+theorem range_eq_top {f : ρ →ᵣ ρ₂} :
+  range f = ⊤ ↔ surjective f :=
+by rw [set_like.ext'_iff, range_coe, top_coe, set.range_iff_surjective]
+
+lemma range_le_iff_comap {f : ρ →ᵣ ρ₂} {p : subrep ρ₂} :
+  range f ≤ p ↔ comap f p = ⊤ :=
+by rw [range_eq_map, map_le_iff_le_comap, eq_top_iff]
+
+lemma map_le_range {f : ρ →ᵣ ρ₂} {p : subrep ρ} :
+  map f p ≤ range f :=
+set_like.coe_mono (set.image_subset_range f p)
+
+@[simp] lemma range_neg {k G V V₂ : Type*} [comm_ring k] [monoid G]
+  [add_comm_monoid V] [module k V] [add_comm_group V₂] [module k V₂]
+  {ρ : representation k G V} {ρ₂ : representation k G V₂} (f : ρ →ᵣ ρ₂) :
+  (-f).range = f.range :=
+begin
+  change ((-rep_hom.id : ρ₂ →ᵣ ρ₂).comp f).range = _,
+  rw [range_comp, subrep.map_neg, subrep.map_id]
+end
+
+-- iterate_range
+
+/-- Restrict the codomain of a rep_hom `f` to `f.range`.
+This is the bundled version of `set.range_factorization`. -/
+@[reducible] def range_restrict (f : ρ →ᵣ ρ₂) :
+  ρ →ᵣ f.range.representation' := f.cod_restrict f.range f.mem_range_self
+
+/-- The range of a rep_hom is finite if the domain is finite.
+Note: this instance can form a diamond with `subtype.fintype` in the
+  presence of `fintype M₂`. -/
+instance fintype_range [fintype V] [decidable_eq V₂]
+  (f : ρ →ᵣ ρ₂) : fintype (range f) :=
+set.fintype_range f
+
+/-- The kernel of a rep_hom `f : M → M₂` is defined to be `comap f ⊥`. This is equivalent to the
+set of `x : M` such that `f x = 0`. The kernel is a submodule of `M`. -/
+def ker (f : ρ →ᵣ ρ₂) : subrep ρ := comap f ⊥
+
+@[simp] theorem mem_ker {f : ρ →ᵣ ρ₂} {y} : y ∈ ker f ↔ f y = 0 :=
+by { rw ←@mem_bot k G V₂ _ _ _ _ ρ₂ (f y), refl }
+
+@[simp] theorem ker_id : ker (rep_hom.id : ρ →ᵣ ρ) = ⊥ := rfl
+
+@[simp] theorem map_coe_ker (f : ρ →ᵣ ρ₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
+
+lemma ker_to_submodule (f : ρ →ᵣ ρ₂) :
+  f.ker.to_submodule = f.to_linear_map.ker := rfl
+
+lemma comp_ker_subtype (f : ρ →ᵣ ρ₂) : f.comp f.ker.subtype = 0 :=
+rep_hom.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
+
+theorem ker_comp (f : ρ →ᵣ ρ₂) (g : ρ₂ →ᵣ ρ₃) :
+  ker (g.comp f : ρ →ᵣ ρ₃) = comap f (ker g) := rfl
+
+theorem ker_le_ker_comp (f : ρ →ᵣ ρ₂) (g : ρ₂ →ᵣ ρ₃) :
+  ker f ≤ ker (g.comp f : ρ →ᵣ ρ₃) :=
+by rw ker_comp; exact comap_mono bot_le
+
+theorem disjoint_ker {f : ρ →ᵣ ρ₂} {p : subrep ρ} :
+  disjoint p (ker f) ↔ ∀ x ∈ p, f x = 0 → x = 0 :=
+by simp [disjoint_def]
+
+theorem ker_eq_bot' {f : ρ →ᵣ ρ₂} :
+  ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
+by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+
+theorem ker_eq_bot_of_inverse
+  {f : ρ →ᵣ ρ₂} {g : ρ₂ →ᵣ ρ} (h : (g.comp f : ρ →ᵣ ρ) = id) :
+  ker f = ⊥ :=
+ker_eq_bot'.2 $ λ m hm, by rw [← id_apply m, ← h, comp_apply, hm, g.map_zero]
+
+lemma le_ker_iff_map {f : ρ →ᵣ ρ₂} {p : subrep ρ} :
+  p ≤ ker f ↔ map f p = ⊥ :=
+by rw [ker, eq_bot_iff, map_le_iff_le_comap]
+
+lemma ker_cod_restrict (p : subrep ρ) (f : ρ₂ →ᵣ ρ) (hf) :
+  ker (cod_restrict p f hf) = ker f :=
+by rw [ker, comap_cod_restrict, map_bot]; refl
+
+lemma range_cod_restrict (p : subrep ρ) (f : ρ₂ →ᵣ ρ) (hf) :
+  range (cod_restrict p f hf) = comap p.subtype f.range :=
+by simpa only [range_eq_map] using map_cod_restrict _ _ _ _
+
+lemma ker_restrict {p : subrep ρ} {f : ρ →ᵣ ρ} (hf : ∀ x : V, x ∈ p → f x ∈ p) :
+  ker (f.restrict hf) = (f.dom_restrict p).ker :=
+by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
+
+lemma _root_.subrep.map_comap_eq
+  (f : ρ →ᵣ ρ₂) (q : subrep ρ₂) : map f (comap f q) = range f ⊓ q :=
+le_antisymm (le_inf map_le_range (map_comap_le _ _)) $
+by rintro _ ⟨⟨x, _, rfl⟩, hx⟩; exact ⟨x, hx, rfl⟩
+
+lemma _root_.subrep.map_comap_eq_self
+  {f : ρ →ᵣ ρ₂} {q : subrep ρ₂} (h : q ≤ range f) : map f (comap f q) = q :=
+by rwa [subrep.map_comap_eq, inf_eq_right]
+
+@[simp] theorem ker_zero : ker (0 : ρ →ᵣ ρ₂) = ⊤ :=
+eq_top_iff'.2 $ λ x, by simp
+
+@[simp] theorem range_zero : range (0 : ρ →ᵣ ρ₂) = ⊥ :=
+by simpa only [range_eq_map] using subrep.map_zero _
+
+theorem ker_eq_top {f : ρ →ᵣ ρ₂} : ker f = ⊤ ↔ f = 0 :=
+⟨λ h, ext $ λ x, mem_ker.1 $ h.symm ▸ trivial, λ h, h.symm ▸ ker_zero⟩
+
+lemma range_le_bot_iff (f : ρ →ᵣ ρ₂) : range f ≤ ⊥ ↔ f = 0 :=
+by rw [range_le_iff_comap]; exact ker_eq_top
+
+theorem range_eq_bot {f : ρ →ᵣ ρ₂} : range f = ⊥ ↔ f = 0 :=
+by rw [← range_le_bot_iff, le_bot_iff]
+
+lemma range_le_ker_iff {f : ρ →ᵣ ρ₂} {g : ρ₂ →ᵣ ρ₃} :
+  range f ≤ ker g ↔ (g.comp f : ρ →ᵣ ρ₃) = 0 :=
+⟨λ h, ker_eq_top.1 $ eq_top_iff'.2 $ λ x, h $ ⟨_, rfl⟩,
+ λ h x hx, mem_ker.2 $ exists.elim hx $ λ y hy, by rw [←hy, ←comp_apply, h, zero_apply]⟩
+
+theorem comap_le_comap_iff {f : ρ →ᵣ ρ₂} (hf : range f = ⊤) {p p'} :
+  comap f p ≤ comap f p' ↔ p ≤ p' :=
+⟨λ H x hx, by rcases range_eq_top.1 hf x with ⟨y, hy, rfl⟩; exact H hx, comap_mono⟩
+
+theorem comap_injective {f : ρ →ᵣ ρ₂} (hf : range f = ⊤) : injective (comap f) :=
+λ p p' h, le_antisymm ((comap_le_comap_iff hf).1 (le_of_eq h))
+  ((comap_le_comap_iff hf).1 (ge_of_eq h))
+
+theorem ker_eq_bot_of_injective {f : ρ →ᵣ ρ₂} (hf : injective f) : ker f = ⊥ :=
+begin
+  have : disjoint ⊤ f.ker, by { rw [disjoint_ker, ← map_zero f], exact λ x hx H, hf H },
+  simpa [disjoint]
+end
+
+-- iterate ker
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables
+  {k G V V₂ : Type*} [comm_ring k] [monoid G]
+  [add_comm_group V] [module k V] {ρ : representation k G V}
+  [add_comm_group V₂] [module k V₂] {ρ₂ : representation k G V₂}
+  {f : ρ →ᵣ ρ₂}
+open subrep
+
+theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
+by rw [mem_ker, map_sub, sub_eq_zero]
+
+theorem disjoint_ker' {p : subrep ρ} :
+  disjoint p (ker f) ↔ ∀ x y ∈ p, f x = f y → x = y :=
+disjoint_ker.trans
+⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
+ λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
+
+theorem inj_of_disjoint_ker {p : subrep ρ}
+  {s : set V} (h : s ⊆ p) (hd : disjoint p (ker f)) :
+  ∀ x y ∈ s, f x = f y → x = y :=
+λ x hx y hy, disjoint_ker'.1 hd _ (h hx) _ (h hy)
+
+theorem ker_eq_bot : ker f = ⊥ ↔ injective f :=
+by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+
+lemma ker_le_iff {p : subrep ρ} :
+  ker f ≤ p ↔ ∃ (y ∈ range f), f ⁻¹' {y} ⊆ p :=
+begin
+  split,
+  { intros h, use 0, rw [← set_like.mem_coe, f.range_coe], exact ⟨⟨0, map_zero f⟩, h⟩, },
+  { rintros ⟨y, h₁, h₂⟩,
+    rw set_like.le_def, intros z hz, simp only [mem_ker, set_like.mem_coe] at hz,
+    rw [← set_like.mem_coe, f.range_coe, set.mem_range] at h₁, obtain ⟨x, hx⟩ := h₁,
+    have hx' : x ∈ p, { exact h₂ hx, },
+    have hxz : z + x ∈ p, { apply h₂, simp [hx, hz], },
+    suffices : z + x - x ∈ p, { simpa only [this, add_sub_cancel], },
+    exact p.sub_mem hxz hx', },
+end
+
+end add_comm_group
+
+section field
+
+variables
+  {k G V V₂ : Type*} [field k] [monoid G]
+  [add_comm_group V] [module k V] {ρ : representation k G V}
+  [add_comm_group V₂] [module k V₂] {ρ₂ : representation k G V₂}
+
+lemma ker_smul (f : ρ →ᵣ ρ₂) (a : k) (h : a ≠ 0) : ker (a • f) = ker f :=
+subrep.comap_smul f _ a h
+
+lemma ker_smul' (f : ρ →ᵣ ρ₂) (a : k) : ker (a • f) = ⨅(h : a ≠ 0), ker f :=
+subrep.comap_smul' f _ a
+
+lemma range_smul (f : ρ →ᵣ ρ₂) (a : k) (h : a ≠ 0) : range (a • f) = range f :=
+by simpa only [range_eq_map] using subrep.map_smul f _ a h
+
+lemma range_smul' (f : ρ →ᵣ ρ₂) (a : k) : range (a • f) = ⨆(h : a ≠ 0), range f :=
+by simpa only [range_eq_map] using subrep.map_smul' f _ a
+
+end field
+
+end rep_hom

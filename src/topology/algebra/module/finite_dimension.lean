@@ -309,6 +309,10 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 @[simp] lemma coe_to_continuous_linear_map_symm :
   ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
 
+@[simp] lemma det_to_continuous_linear_map (f : E →ₗ[𝕜] E) :
+  f.to_continuous_linear_map.det = f.det :=
+rfl
+
 end linear_map
 
 namespace linear_equiv
@@ -365,6 +369,36 @@ by { ext x, refl }
   (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
   f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
 rfl
+
+lemma to_lin_prod_continuous_linear_map (a b c d : 𝕜) :
+  (matrix.to_lin (basis.fin_two_prod 𝕜) (basis.fin_two_prod 𝕜)
+      ![![a, b], ![c, d]]).to_continuous_linear_map =
+  (a • continuous_linear_map.fst 𝕜 𝕜 𝕜 + b • continuous_linear_map.snd 𝕜 𝕜 𝕜).prod
+  (c • continuous_linear_map.fst 𝕜 𝕜 𝕜 + d • continuous_linear_map.snd 𝕜 𝕜 𝕜) :=
+begin
+  ext;
+  simp only [continuous_linear_map.coe_comp', linear_map.coe_to_continuous_linear_map',
+    function.comp_app, continuous_linear_map.inl_apply, continuous_linear_map.prod_apply,
+    continuous_linear_map.add_apply, continuous_linear_map.coe_smul',
+    continuous_linear_map.coe_fst', pi.smul_apply, algebra.id.smul_eq_mul, mul_one,
+    continuous_linear_map.coe_snd', mul_zero, add_zero, continuous_linear_map.inr_apply, zero_add],
+  { rw [← basis.fin_two_prod_zero 𝕜, matrix.to_lin_self],
+    simp only [fin.sum_univ_two, matrix.cons_val_zero, basis.fin_two_prod_zero, prod.smul_mk,
+      algebra.id.smul_eq_mul, mul_one, mul_zero, basis.fin_two_prod_one, prod.mk_add_mk,
+      add_zero] },
+  { rw [← basis.fin_two_prod_zero 𝕜, matrix.to_lin_self],
+    simp only [fin.sum_univ_two, matrix.cons_val_zero, basis.fin_two_prod_zero, prod.smul_mk,
+      algebra.id.smul_eq_mul, mul_one, mul_zero, matrix.cons_val_one, matrix.head_cons,
+      basis.fin_two_prod_one, prod.mk_add_mk, zero_add] },
+  { rw [← basis.fin_two_prod_one 𝕜, matrix.to_lin_self],
+    simp only [fin.sum_univ_two, matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
+      basis.fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
+      basis.fin_two_prod_one, prod.mk_add_mk, add_zero] },
+  { rw [← basis.fin_two_prod_one 𝕜, matrix.to_lin_self],
+    simp only [fin.sum_univ_two, matrix.cons_val_one, matrix.head_cons,
+      basis.fin_two_prod_zero, prod.smul_mk, algebra.id.smul_eq_mul, mul_one, mul_zero,
+      basis.fin_two_prod_one, prod.mk_add_mk, zero_add] }
+end
 
 end continuous_linear_map
 

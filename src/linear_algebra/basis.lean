@@ -616,6 +616,8 @@ by { ext; cases i; simp only [prod_apply_inl_fst, sum.elim_inl, linear_map.inl_a
                               prod_apply_inr_fst, sum.elim_inr, linear_map.inr_apply,
                               prod_apply_inl_snd, prod_apply_inr_snd, comp_app] }
 
+/- For the specific case of `R × R`, see also `basis.fin_two_prod` below. -/
+
 end prod
 
 section no_zero_smul_divisors
@@ -1067,6 +1069,16 @@ mk_fin_cons ⟨y, yO⟩ (b.map (submodule.comap_subtype_equiv_of_le hNO).symm)
   (mk_fin_cons_of_le y yO b hNO hli hsp : fin (n + 1) → O) =
     fin.cons ⟨y, yO⟩ (submodule.of_le hNO ∘ b) :=
 coe_mk_fin_cons _ _ _ _
+
+/-- The basis of `R × R` given by the two vectors `(1, 0)` and `(0, 1)`. -/
+protected def fin_two_prod (R : Type*) [semiring R] : basis (fin 2) R (R × R) :=
+basis.of_equiv_fun (linear_equiv.fin_two_arrow R R).symm
+
+@[simp] lemma fin_two_prod_zero (R : Type*) [semiring R] : basis.fin_two_prod R 0 = (1, 0) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma fin_two_prod_one (R : Type*) [semiring R] : basis.fin_two_prod R 1 = (0, 1) :=
+by simp [basis.fin_two_prod]
 
 end fin
 

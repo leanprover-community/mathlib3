@@ -209,9 +209,10 @@ st ← read,
     end) (λ _ _ _ _ _, failed)
   `eq thyp,
 (unchanged, unused) ← tactic.unwrap result,
-match hyploc with
-| none := replace_target reordered prf
-| some hyploc := replace_hyp hyploc reordered prf >> skip
+match unchanged, hyploc with
+| ff, none := replace_target reordered prf
+| ff, some hyploc := replace_hyp hyploc reordered prf >> skip
+| tt, _ := skip
 end,
 return (unchanged, unused)
 

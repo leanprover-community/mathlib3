@@ -87,7 +87,7 @@ by simpa [mul_comm] using prod_univ_succ_above f (last n)
   ∏ i : fin n.succ, (cons x f : fin n.succ → β) i = x * ∏ i : fin n, f i :=
 by simp_rw [prod_univ_succ, cons_zero, cons_succ]
 
-@[simp, to_additive sum_univ_one] theorem prod_univ_one [comm_monoid β] (f : fin 1 → β) :
+@[to_additive sum_univ_one] theorem prod_univ_one [comm_monoid β] (f : fin 1 → β) :
   ∏ i, f i = f 0 :=
 by simp
 

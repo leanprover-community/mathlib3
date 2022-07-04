@@ -455,41 +455,53 @@ def coe_clmL : (M₁ →SLᶜ[σ₁₂] M₂) →L[𝕜₂] (M₁ →SL[σ₁₂
 
 variables {σ₁₂ M₁ M₂}
 
+lemma is_closed_range_coe_clmL [complete_space M₄] : is_closed (range $ coe_clmL σ₁₂ M₁ M₄) :=
+begin
+  refine is_closed_of_closure_subset _,
+  rintros u hu,
+  rw metric.mem_closure_iff at hu,
+  suffices : totally_bounded (u '' metric.closed_ball 0 1),
+  from ⟨mk_of_image_closed_ball_relatively_compact (u : M₁ →ₛₗ[σ₁₂] M₄) zero_lt_one $
+        compact_of_totally_bounded_is_closed this.closure is_closed_closure, by ext; refl⟩,
+  rw metric.totally_bounded_iff,
+  intros ε hε,
+  rcases hu (ε/2) (by linarith) with ⟨_, ⟨v, rfl⟩, huv⟩,
+  rcases (v.image_closed_ball_relatively_compact 1).finite_cover_balls
+    (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
+  have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,
+  refine ⟨T, hT, _⟩,
+  rw image_subset_iff at ⊢ hTv,
+  intros x hx,
+  specialize hTv hx,
+  rw [mem_preimage, mem_Union₂] at ⊢ hTv,
+  rcases hTv with ⟨t, ht, htx⟩,
+  refine ⟨t, ht, _⟩,
+  suffices : dist (u x) (v x) < ε/2,
+  { rw mem_ball at *,
+    linarith [dist_triangle (u x) (v x) t] },
+  rw mem_closed_ball_zero_iff at hx,
+  calc dist (u x) (v x)
+      = ∥u x - v x∥ : dist_eq_norm _ _
+  ... = ∥(u - v) x∥ : by rw continuous_linear_map.sub_apply; refl
+  ... ≤ ∥u - v∥ : (u - v).unit_le_op_norm x hx
+  ... = dist u v : (dist_eq_norm _ _).symm
+  ... < ε/2 : huv
+end
+
 lemma closed_embedding_coe_clmL [complete_space M₄] : closed_embedding (coe_clmL σ₁₂ M₁ M₄) :=
 { induced := rfl,
   inj := coe_clm_injective,
-  closed_range :=
-  begin
-    refine is_closed_of_closure_subset _,
-    rintros u hu,
-    rw metric.mem_closure_iff at hu,
-    suffices : totally_bounded (u '' metric.closed_ball 0 1),
-    from ⟨mk_of_image_closed_ball_relatively_compact (u : M₁ →ₛₗ[σ₁₂] M₄) zero_lt_one $
-          compact_of_totally_bounded_is_closed this.closure is_closed_closure, by ext; refl⟩,
-    rw metric.totally_bounded_iff,
-    intros ε hε,
-    rcases hu (ε/2) (by linarith) with ⟨_, ⟨v, rfl⟩, huv⟩,
-    rcases (v.image_closed_ball_relatively_compact 1).finite_cover_balls
-      (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
-    have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,
-    refine ⟨T, hT, _⟩,
-    rw image_subset_iff at ⊢ hTv,
-    intros x hx,
-    specialize hTv hx,
-    rw [mem_preimage, mem_Union₂] at ⊢ hTv,
-    rcases hTv with ⟨t, ht, htx⟩,
-    refine ⟨t, ht, _⟩,
-    suffices : dist (u x) (v x) < ε/2,
-    { rw mem_ball at *,
-      linarith [dist_triangle (u x) (v x) t] },
-    rw mem_closed_ball_zero_iff at hx,
-    calc dist (u x) (v x)
-        = ∥u x - v x∥ : dist_eq_norm _ _
-    ... = ∥(u - v) x∥ : by rw continuous_linear_map.sub_apply; refl
-    ... ≤ ∥u - v∥ : (u - v).unit_le_op_norm x hx
-    ... = dist u v : (dist_eq_norm _ _).symm
-    ... < ε/2 : huv
-  end }
+  closed_range := is_closed_range_coe_clmL }
+
+lemma uniform_embedding_coe_clmL : uniform_embedding (coe_clmL σ₁₂ M₁ M₄) :=
+{ comap_uniformity := rfl,
+  inj := coe_clm_injective }
+
+instance [complete_space M₄] : complete_space (M₁ →SLᶜ[σ₁₂] M₄) :=
+begin
+  rw complete_space_iff_is_complete_range uniform_embedding_coe_clmL.to_uniform_inducing,
+  exact is_closed_range_coe_clmL.is_complete
+end
 
 end topology
 

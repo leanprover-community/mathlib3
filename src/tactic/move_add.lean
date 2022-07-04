@@ -130,7 +130,7 @@ Here are two examples:
 #eval trace $ reorder_oper ``((=)) [(ff,``(2)), (tt,``(7))] `(∀ x y : ℕ, 2 = 0)
 --  (ℕ → ℕ → 0 = 2, [ff, tt])
 -- the input `[(ff,``(2)), (tt,``(7))]` instructs Lean to move `2` to the right and `7`
--- to the right.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
+-- to the left.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
 
 #eval trace $ reorder_oper ``((+)) [(ff,``(2)), (tt,``(5))]
   `(λ (e : ℕ), ∀ (x : ℕ), ∃ (y : ℕ),

@@ -1719,14 +1719,14 @@ begin
 end
 
 lemma disjoint_of_disjoint_sum {α β : Type*} {i : finset β} {f : β → multiset α} {z : β}
-  (h1 : z ∉ i) (h2 : ∀ x ∈ i, multiset.disjoint (f x) (f z)) :
+  (h : ∀ x ∈ i, multiset.disjoint (f x) (f z)) :
   multiset.disjoint (f z) (∑ x in i, f x) :=
 begin
   classical,
   apply finset.sum_induction f (λ (t : multiset α), disjoint (f z) t),
   { exact λ _ _ ha hb, disjoint_add_right.mpr ⟨ha, hb⟩ },
   { exact (zero_disjoint (f z)).symm},
-  { exact λ x hx, (h2 x hx).symm },
+  { exact λ x hx, (h x hx).symm },
 end
 
 lemma le_of_disjoint_sum_le {α β : Type*} {T : multiset α} {i : finset β} {f : β → multiset α}
@@ -1738,7 +1738,7 @@ begin
   { simp only [finset.sum_empty, zero_le], },
   rw finset.sum_insert hz,
   have hdsj : disjoint (f z) (∑ x in i, f x),
-  { refine disjoint_of_disjoint_sum hz _,
+  { refine disjoint_of_disjoint_sum _,
     intros x hx,
     have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
     have hzi : z ∈ insert z i, from finset.mem_insert_self z i,

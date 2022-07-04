@@ -551,7 +551,7 @@ Probability Theory:
     mean of a random variable: 'measure_theory.integral'
     variance of a real-valued random variable: 'probability_theory.variance'
     transfer theorem: ''
-    moments: ''
+    moments: 'probability_theory.moment'
     Bernoulli law: 'pmf.bernoulli'
     binomial law: ''
     geometric law: ''

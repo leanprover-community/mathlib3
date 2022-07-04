@@ -70,7 +70,7 @@ end
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + λ` where `λ` runs
 through a multiset `s` : the `k`th coefficient is the symmetric function `esymm (card s - k) s`. -/
-lemma prod_X_add_C_coeff (s : multiset R) (k : ℕ) (h : k ≤ s.card):
+lemma prod_X_add_C_coeff (s : multiset R) {k : ℕ} (h : k ≤ s.card):
   polynomial.coeff (s.map (λ r, polynomial.X + polynomial.C r)).prod k =
     s.esymm (s.card - k) :=
 begin
@@ -102,18 +102,32 @@ variables (σ : Type*) [fintype σ]
 the product of linear terms `λ + X i` is equal to a linear combination of
 the symmetric polynomials `esymm σ R j`. -/
 lemma prod_C_add_X_eq_sum_esymm :
-  (∏ i : σ, (polynomial.C (X i) + polynomial.X) : polynomial (mv_polynomial σ R) )=
+  (∏ i : σ, (polynomial.X + polynomial.C (X i)) : polynomial (mv_polynomial σ R) )=
   ∑ j in range (card σ + 1),
     (polynomial.C (esymm σ R j) * polynomial.X ^ (card σ - j)) :=
 begin
-  classical,
-  rw [prod_add, sum_powerset],
-  refine sum_congr begin congr end (λ j hj, _),
-  rw [esymm, map_sum, sum_mul],
-  refine sum_congr rfl (λ t ht, _),
-  have h : (univ \ t).card = card σ - j :=
-  by { rw card_sdiff (mem_powerset_len.mp ht).1, congr, exact (mem_powerset_len.mp ht).2 },
-  rw [map_prod, prod_const, ← h],
+  set s :=  (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val),
+  rw (_ : card σ = s.card),
+  { conv_rhs { congr, skip, funext, rw esymm_eq_multiset.esymm σ R j},
+    rw finset.prod_eq_multiset_prod,
+    convert multiset.prod_X_add_C_eq_sum_esymm s,
+    rw multiset.map_map, },
+  { rw multiset.card_map, exact rfl, }
 end
+
+lemma prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ):
+  (∏ i : σ, (polynomial.X + polynomial.C (X i)) : polynomial (mv_polynomial σ R) ).coeff k =
+  esymm σ R (card σ - k) :=
+begin
+  set s :=  (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val),
+  rw (_ : card σ = s.card) at ⊢ h,
+  { rw esymm_eq_multiset.esymm σ R (s.card - k),
+    rw finset.prod_eq_multiset_prod,
+    convert multiset.prod_X_add_C_coeff s h,
+    rw multiset.map_map },
+  all_goals { rw multiset.card_map, exact rfl, },
+end
+
+
 
 end mv_polynomial

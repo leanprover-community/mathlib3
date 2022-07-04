@@ -132,12 +132,12 @@ def esymm (n : ℕ) : mv_polynomial σ R :=
 
 /-- The `n`th elementary symmetric `mv_polynomial σ R` is obtained by evaluating the
 `n`th elementary symmetric at the `multiset` of the monomials -/
-lemma esymm_eq_multiset.esymm_eval (n : ℕ) :
-  multiset.esymm (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val) n =
-  esymm σ R n :=
+lemma esymm_eq_multiset.esymm (n : ℕ) :
+  esymm σ R n =
+  multiset.esymm (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val) n :=
 begin
   rw [esymm, multiset.esymm, finset.sum_eq_multiset_sum],
-  conv_rhs { congr, congr, funext, rw finset.prod_eq_multiset_prod },
+  conv_lhs { congr, congr, funext, rw finset.prod_eq_multiset_prod },
   rw [multiset.powerset_len_map, ←map_val_val_powerset_len, multiset.map_map, multiset.map_map],
 end
 

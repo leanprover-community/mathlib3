@@ -284,9 +284,9 @@ begin
     convert h₁.add (has_sum_pow_div_log_of_abs_lt_1 h),
     ring_nf },
   { intros m hm,
-    rw [range_two_mul, set.mem_set_of_eq] at hm,
+    rw [range_two_mul, set.mem_set_of_eq, ← nat.even_add_one] at hm,
     dsimp [term],
-    rw [even.neg_pow (nat.even_succ.mpr hm), nat.succ_eq_add_one, neg_one_mul, neg_add_self] },
+    rw [even.neg_pow hm, neg_one_mul, neg_add_self] },
 end
 
 /-- Expansion of `log (1 + a⁻¹)` as a series in powers of `1 / (2 * a + 1)`. -/

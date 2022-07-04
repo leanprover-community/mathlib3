@@ -193,15 +193,6 @@ end matrix
 
 section ideal
 
-lemma add_tsub_add_le_tsub_add_tsub {a b c d : ℕ} :
-  (a + b) - (c + d) ≤ (a - c) + (b - d) :=
-begin
-  rw [add_comm c, ← tsub_tsub],
-  refine (tsub_le_tsub_right add_tsub_le_assoc c).trans _,
-  rw [add_comm a, add_comm (a - c)],
-  exact add_tsub_le_assoc
-end
-
 lemma coeff_prod_mem_ideal_pow_tsub {α : Type*} (s : finset α) (f : α → R[X])
   (I : ideal R) (n : α → ℕ) (h : ∀ i k, (f i).coeff k ∈ I ^ (n i - k)) (k : ℕ) :
   (s.prod f).coeff k ∈ I ^ (s.sum n - k) :=

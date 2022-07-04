@@ -517,7 +517,8 @@ Measures and integral calculus:
     change of variables to polar co-ordinates: ''
     change of variables to spherical co-ordinates: ''
     convolution: 'convolution'
-    regularization and approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    regulatization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''
     Riemann-Lebesgue lemma: ''

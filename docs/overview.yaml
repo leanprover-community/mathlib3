@@ -327,8 +327,9 @@ Analysis:
     fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
-    Convolution: 'convolution'
-    Approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    convolution: 'convolution'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    regulatization by convolution: 'has_compact_support.cont_diff_convolution_left'
 
 Probability Theory:
   Definitions of a probability space:

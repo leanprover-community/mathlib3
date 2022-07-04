@@ -104,6 +104,29 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
   strict_concave_on 𝕜 s f :=
 ⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
 
+section composition
+variables Q : Type*
+variables [has_smul 𝕜 Q] [ordered_add_comm_monoid Q]
+variables (t : set β) (g : β → Q)
+
+lemma convex_on.compose (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 t g) (hg' : monotone g)
+  (ht : (range f) ⊆ t) : convex_on 𝕜 s (g ∘ f) :=
+begin
+  split,
+  { exact hf.left },
+  {
+    begin
+      intros x y hx hy a b ha hb hsum,
+      have h₁ : f(a • x + b • y) ≤ a • f x + b • f y := hf.right hx hy ha hb hsum,
+      have h₃ : f x ∈ t := range_subset_iff.mp ht x,
+      have h₄ : f y ∈ t := range_subset_iff.mp ht y,
+      have h₅ : g(a • f x + b • f y) ≤ a • g(f x) + b • g(f y) := hg.right h₃ h₄ ha hb hsum,
+      exact le_trans (hg' h₁) h₅,
+    end
+  },
+end
+
+end composition
 end has_smul
 
 section distrib_mul_action

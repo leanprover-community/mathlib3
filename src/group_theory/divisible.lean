@@ -96,10 +96,12 @@ noncomputable def divisible_by_of_smul_surj
 section pi
 
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), add_monoid (B i)]
-variables [has_zero β] [Π (i : ι), has_scalar β (B i)] [Π i, divisible_by (B i) β]
+variables [has_zero β] [Π (i : ι), has_scalar β (B i)]
 
 instance has_scalar_pi : has_scalar β (Π i, B i) :=
 { smul := λ n x i, n • (x i) }
+
+variables [Π i, divisible_by (B i) β]
 
 instance divsible_by_pi : divisible_by (Π i, B i) β :=
 { div := λ x n i, (divisible_by.div (x i) n),

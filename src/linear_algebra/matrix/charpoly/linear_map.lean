@@ -8,115 +8,26 @@ import linear_algebra.matrix.to_lin
 
 /-!
 
-# Calyley-Hamilton theorem for arbitrary rings and f.g. modules.
+# Calyley-Hamilton theorem for f.g. modules.
 
+Given a fixed finite spanning set `v : ι → M` of a `R`-module `M`, we say that a matrix `M`
+represents an endomorphism `f : M →ₗ[R] M` if the matrix as an endomorphism of `ι → R` commutes
+with `f` via the projection `(ι → R) →ₗ[R] M` given by `v`.
+
+We show that every endomorphism has a matrix representation, and if `f.range ≤ I • ⊤` for some
+ideal `I`, we may furthermore obtain a matrix representation whose entries fall in `I`.
+
+This is used to conclue the Calyley-Hamilton theorem for f.g. modules over arbitrary rings.
 -/
 
-variables (ι : Type*) [decidable_eq ι]
-variables {M : Type*} [add_comm_group M] {R : Type*} [comm_ring R] [module R M] (I : ideal R)
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
+variables {M : Type*} [add_comm_group M] (R : Type*) [comm_ring R] [module R M] (I : ideal R)
 variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
-
-variables {M' : Type*} [add_comm_monoid M'] [module R M']
-variables (v' : ι → M') (hv' : submodule.span R (set.range v') = ⊤)
-
--- def linear_map.fun_right (f : module.End R M') : (ι → M) →ₗ[R] (ι → M') :=
--- { to_fun := λ x i, f (x i),
---   map_add' := λ x y, funext $ λ i, f.map_add _ _,
---   map_smul' := λ x y, funext $ λ i, f.map_smul _ _ }
-
-variables (M)
 
 open_locale big_operators
 
-noncomputable
-def ideal.finsupp_total : (ι →₀ I) →ₗ[R] M :=
-(finsupp.total ι M R v).comp (finsupp.map_range.linear_map I.subtype)
-
-variables {ι M v}
-
-@[simp] lemma ideal.finsupp_total_apply (f : ι →₀ I) :
-  ideal.finsupp_total ι M I v f = f.sum (λ i x, (x : R) • v i) :=
-begin
-  dsimp [ideal.finsupp_total],
-  rw [finsupp.total_apply, finsupp.sum_map_range_index],
-  exact λ _, zero_smul _ _
-end
-
-lemma ideal.finsupp_total_apply_eq_of_fintype [fintype ι] (f : ι →₀ I) :
-  ideal.finsupp_total ι M I v f = ∑ i, (f i : R) • v i :=
-begin
-  rw ideal.finsupp_total_apply,
-  apply finset.sum_subset (finset.subset_univ _),
-  intros x _ hx,
-  rw finsupp.not_mem_support_iff.mp hx,
-  exact zero_smul _ _
-end
-
-lemma ideal.range_finsupp_total :
-  (ideal.finsupp_total ι M I v).range = I • (submodule.span R (set.range v)) :=
-begin
-  apply le_antisymm,
-  { rintros x ⟨f, rfl⟩,
-    rw ideal.finsupp_total_apply,
-    apply sum_mem _, { apply_instance },
-    intros c _,
-    apply submodule.smul_mem_smul (f c).2,
-    apply submodule.subset_span,
-    exact set.mem_range_self c },
-  { rw submodule.smul_le,
-    rintros r hr m hm,
-    rw ← set.image_univ at hm,
-    obtain ⟨l, hl, rfl⟩ := (finsupp.mem_span_image_iff_total _).mp hm,
-    let l' : ι →₀ I := finsupp.map_range (λ x : R, (⟨x * r, I.mul_mem_left _ hr⟩ : I))
-      (subtype.ext $ zero_mul _) l,
-    use l',
-    rw [ideal.finsupp_total_apply, finsupp.total_apply, finsupp.sum, finsupp.sum, finset.smul_sum],
-    dsimp,
-    simp only [← mul_smul, mul_comm r],
-    apply finset.sum_subset,
-    { exact finsupp.support_map_range },
-    { intros x hx hx',
-      have : l x * r = 0 := by injection finsupp.not_mem_support_iff.mp hx',
-      rw [this, zero_smul] } }
-end
-
-variables (v) [fintype ι]
-
-variables (R M ι)
-
-noncomputable
-def fintype.total : (ι → R) →ₗ[R] M :=
-(finsupp.total ι M R v).comp (finsupp.linear_equiv_fun_on_fintype R R ι).symm.to_linear_map
-
-variables {M ι v}
-
-lemma fintype.range_total : (fintype.total ι M R v).range = submodule.span R (set.range v) :=
-begin
-  rw [fintype.total, linear_map.range_comp, linear_equiv.to_linear_map_eq_coe, linear_equiv.range,
-    submodule.map_top, finsupp.range_total],
-end
-
-lemma fintype.total_apply (f) : fintype.total ι M R v f = ∑ i, f i • v i :=
-begin
-  apply finset.sum_subset,
-  { exact finset.subset_univ _ },
-  { intros x _ hx,
-    rw finsupp.not_mem_support_iff.mp hx,
-    exact zero_smul _ _ }
-end
-
-lemma fintype.total_apply_single (i : ι) (r : R) :
-  fintype.total ι M R v (pi.single i r) = r • v i :=
-begin
-  simp_rw [fintype.total_apply, pi.single_apply, ite_smul, zero_smul],
-  rw [finset.sum_ite_eq', if_pos (finset.mem_univ _)]
-end
-
-variables (v)
-
-/-- Matrices, being endomorphisms of `ι → R`, acts on the projection `(ι → R) →ₗ[R] M` and gives
-a new `(ι → R) →ₗ[R] M`.  -/
-noncomputable
+/-- Matrices, being endomorphisms of `ι → R`, acts on `(ι → R) →ₗ[R] M`, and takes the projection
+to a `(ι → R) →ₗ[R] M`.  -/
 def pi_to_module.from_matrix : matrix ι ι R →ₗ[R] (ι → R) →ₗ[R] M :=
 (linear_map.llcomp R _ _ _ (fintype.total ι M R v)).comp alg_equiv_matrix'.symm.to_linear_map
 
@@ -130,9 +41,8 @@ begin
   simp_rw [mul_one]
 end
 
-/-- The endomorphisms of `M`, acts on the projection `(ι → R) →ₗ[R] M` and gives a new
-`(ι → R) →ₗ[R] M`.  -/
-noncomputable
+/-- The endomorphisms of `M` acts on `(ι → R) →ₗ[R] M`, and takes the projection
+to a `(ι → R) →ₗ[R] M`. -/
 def pi_to_module.from_End : (module.End R M) →ₗ[R] (ι → R) →ₗ[R] M :=
 linear_map.lcomp _ _ (fintype.total ι M R v)
 
@@ -142,9 +52,11 @@ lemma pi_to_module.from_End_apply (f : module.End R M) (w : ι → R) :
 lemma pi_to_module.from_End_apply_single_one (f : module.End R M) (i : ι) :
   pi_to_module.from_End R v f (pi.single i 1) = f (v i) :=
 begin
-  rw [pi_to_module.from_End_apply, fintype.total_apply_single, one_smul],
+  rw pi_to_module.from_End_apply,
+  congr,
+  convert fintype.total_apply_single R i 1,
+  rw one_smul,
 end
-
 
 lemma pi_to_module.from_End_injective (hv : submodule.span R (set.range v) = ⊤) :
   function.injective (pi_to_module.from_End R v) :=
@@ -174,7 +86,7 @@ lemma matrix_represents.iff {A : matrix ι ι R} {f : module.End R M} :
   matrix_represents v A f ↔
     ∀ x, fintype.total ι M R v (A.mul_vec x) = f (fintype.total ι M R v x) :=
 ⟨λ e x, e.congr_fun x, λ H, linear_map.ext $ λ x, H x⟩
-.
+
 lemma matrix_represents.iff' {A : matrix ι ι R} {f : module.End R M} :
   matrix_represents v A f ↔ ∀ j, ∑ (i : ι), A i j • v i = f (v j) :=
 begin
@@ -266,7 +178,7 @@ lemma matrix_represents_subring.eq_to_End_of_represents (A : matrix_represents_s
 A.2.some_spec.eq hv h
 
 lemma matrix_represents_subring.to_End_exists_mem_ideal
-  (f : module.End R M) {I : ideal R} (hI : f.range ≤ I • ⊤) :
+  (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
   ∃ M, matrix_represents_subring.to_End R v hv M = f ∧ ∀ i j, M.1 i j ∈ I :=
 begin
   have : ∀ x, f x ∈ (ideal.finsupp_total ι M I v).range,
@@ -283,8 +195,25 @@ begin
     λ i j, (bM' (v j) i).prop⟩,
 end
 
-lemma exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul [module.finite R M]
-  (f : module.End R M) {I : ideal R} (hI : f.range ≤ I • ⊤) :
+lemma matrix_represents_subring.to_End_surjective :
+  function.surjective (matrix_represents_subring.to_End R v hv) :=
+begin
+  intro f,
+  obtain ⟨M, e, -⟩ := matrix_represents_subring.to_End_exists_mem_ideal R v hv f ⊤ _,
+  exact ⟨M, e⟩,
+  simp,
+end
+
+/--
+The **Cayley-Hamilton Theorem** for f.g. modules over arbirary rings, states that for each
+`R`-endomorphism `φ` of an `R`-module `M` such that `φ(M) ≤ I • M` for some ideal `I`, then there
+exists some `n` and some `aᵢ ∈ Iⁱ` such that `φⁿ + a₁ φⁿ⁻¹ + ⋯ + aₙ = 0`.
+
+This is the version found in Eisenbud 4.3, which is slightly weaker than Matsumura 2.1
+(this lacks the constraint on `n`), and is slightly stonger than Atiyah-Macdonald 2.4.
+-/
+lemma linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul
+  [module.finite R M] (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
   ∃ p : polynomial R, p.monic ∧
     (∀ k, p.coeff k ∈ I ^ (p.nat_degree - k)) ∧
       polynomial.aeval f p = 0 :=
@@ -295,7 +224,7 @@ begin
   resetI,
   obtain ⟨s : finset M, hs : submodule.span R (s : set M) = ⊤⟩ := module.finite.out,
   obtain ⟨A, rfl, h⟩ := matrix_represents_subring.to_End_exists_mem_ideal R (coe : s → M)
-    (by rw [subtype.range_coe_subtype, finset.set_of_mem, hs]) f hI,
+    (by rw [subtype.range_coe_subtype, finset.set_of_mem, hs]) f I hI,
   refine ⟨A.1.charpoly, A.1.charpoly_monic, _, _⟩,
   { rw A.1.charpoly_nat_degree_eq_dim,
     exact coeff_charpoly_mem_ideal_pow h },
@@ -305,4 +234,12 @@ begin
     rw [polynomial.aeval_subalgebra_coe, subtype.val_eq_coe, matrix.aeval_self_charpoly,
       subalgebra.coe_zero] },
   { apply_instance }
+end
+
+lemma linear_map.exists_monic_and_aeval_eq_zero [module.finite R M]
+  (f : module.End R M) : ∃ p : polynomial R, p.monic ∧ polynomial.aeval f p = 0 :=
+begin
+  obtain ⟨p, hp₁, -, hp₂⟩ :=
+    linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul R f ⊤ (by simp),
+  exact ⟨p, hp₁, hp₂⟩
 end

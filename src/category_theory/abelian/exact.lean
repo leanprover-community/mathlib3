@@ -322,9 +322,9 @@ namespace functor
 
 open limits abelian
 
-universes u v
+universes u₁ u₂ v₁ v₂
 
-variables {A B : Type u} [category.{v} A] [category.{v} B]
+variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
 variables [has_zero_object A] [has_zero_morphisms A] [has_images A] [has_equalizers A]
 variables [has_cokernels A] [abelian B]
 variables (L : A ⥤ B) [preserves_finite_limits L] [preserves_finite_colimits L]

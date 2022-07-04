@@ -25,10 +25,10 @@ section monoid
 into common factors on the right, and if each pair of `r : R` and `s : S` admits an Ore numerator
 `v : R` and an Ore denominator `u : S` such that `r * u = s * v`. -/
 class ore_set {R : Type*} [monoid R] (S : submonoid R) :=
-  (ore_left_cancel : ∀ (r₁ r₂ : R) (s : S), ↑s * r₁ = s * r₂ → {s' : S // r₁ * s' = r₂ * s'})
-  (ore_num : R → S → R)
-  (ore_denom : R → S → S)
-  (ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s))
+(ore_left_cancel : ∀ (r₁ r₂ : R) (s : S), ↑s * r₁ = s * r₂ → {s' : S // r₁ * s' = r₂ * s'})
+(ore_num : R → S → R)
+(ore_denom : R → S → S)
+(ore_eq : ∀ (r : R) (s : S), r * ore_denom r s = s * ore_num r s)
 
 variables {R : Type*} [monoid R] {S : submonoid R} [ore_set S]
 

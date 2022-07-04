@@ -110,7 +110,7 @@ begin
       exact hr, },
     -- Apply the inductive hypothesis to `p'`
     replace hf := hf p' ha' hb' hr',
-    rw [card_cons, nat.even_succ, hf],
+    rw [card_cons, nat.even_add_one, hf],
     clear_except h_root_range ha' hb',
     replace ha' := ne.lt_or_lt ha',
     replace hb' := ne.lt_or_lt hb',

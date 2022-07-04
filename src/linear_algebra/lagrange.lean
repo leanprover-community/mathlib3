@@ -112,7 +112,7 @@ namespace lagrange
 
 variables {F : Type*} [field F]
 
-section node
+section basis_divisor
 variables {x y : F}
 /-- `basis_divisor x y` is the unique linear or constant polynomial such that
 when evaluated at `x` it gives `1` and `y` it gives `0` (where when `x = y` it is identically `0`).
@@ -159,7 +159,7 @@ begin
   exact inv_mul_cancel (sub_ne_zero_of_ne hxy)
 end
 
-end node
+end basis_divisor
 
 section basis
 open finset
@@ -196,7 +196,7 @@ begin
   rw [mem_erase] at H, rcases H with ⟨hij, hj⟩, rw [ne.def, hvs.eq_iff hi hj], exact hij.symm
 end
 
-theorem eval_basis_ne (hij : i ≠ j) (hj : j ∈ s) : (basis s v i).eval (v j) = 0 :=
+@[simp] theorem eval_basis_ne (hij : i ≠ j) (hj : j ∈ s) : (basis s v i).eval (v j) = 0 :=
 begin
   simp_rw [basis, eval_prod, prod_eq_zero_iff],
   exact ⟨j, ⟨mem_erase.mpr ⟨hij.symm, hj⟩, eval_basis_divisor_right⟩⟩
@@ -242,7 +242,7 @@ end basis
 
 section interpolate
 open finset
-variables {ι : Type*} [decidable_eq ι] {s t : finset ι} {i j : ι} {v r r' : ι → F}
+variables {ι : Type*} [decidable_eq ι] {s t : finset ι} {i j : ι} {v : ι → F} (r r' : ι → F)
 
 /-- Lagrange interpolation: given a finset `s : finset ι`, a nodal map  `v : ι → F`
 which is injective on s, and a value function `r : ι → F`, `interpolate x r` is the unique
@@ -254,7 +254,10 @@ def interpolate (s : finset ι) (v r : ι → F) : F[X] := ∑ i in s, C (r i) *
 @[simp] theorem interpolate_singleton : interpolate {i} v r = C (r i) :=
 by rw [interpolate, sum_singleton, basis_singleton, mul_one]
 
-theorem eval_interpolate (hvs : set.inj_on v s) (hi : i ∈ s) :
+@[simp] theorem interpolate_one (hvs : set.inj_on v s) (hs : s.nonempty) : interpolate s v 1 = 1 :=
+by { simp_rw [interpolate, pi.one_apply, map_one, one_mul], exact basis_sum hvs hs }
+
+@[simp] theorem eval_interpolate_at_node (hvs : set.inj_on v s) (hi : i ∈ s) :
   eval (v i) (interpolate s v r) = r i :=
 begin
   rw [interpolate, eval_finset_sum, ← add_sum_erase _ _ hi],
@@ -274,7 +277,7 @@ theorem degree_interpolate_lt (hvs : set.inj_on v s) : (interpolate s v r).degre
 begin
   rcases eq_empty_or_nonempty s with rfl | h,
   { rw [interpolate_empty, degree_zero, card_empty], exact with_bot.bot_lt_coe _ },
-  { refine lt_of_le_of_lt (degree_interpolate_le hvs) _, rw with_bot.coe_lt_coe,
+  { refine lt_of_le_of_lt (degree_interpolate_le _ hvs) _, rw with_bot.coe_lt_coe,
     exact nat.sub_lt (nonempty.card_pos h) (zero_lt_one) }
 end
 
@@ -282,35 +285,33 @@ theorem degree_interpolate_erase_lt (hvs : set.inj_on v s) (hi : i ∈ s) :
   (interpolate (s.erase i) v r).degree < ↑(s.card - 1) :=
 begin
   rw ← finset.card_erase_of_mem hi,
-  exact degree_interpolate_lt (set.inj_on.mono (coe_subset.mpr (erase_subset _ _)) hvs),
+  exact degree_interpolate_lt _ (set.inj_on.mono (coe_subset.mpr (erase_subset _ _)) hvs),
 end
 
 theorem values_eq_on_of_interpolate_eq (hvs : set.inj_on v s)
   (hrr' : interpolate s v r = interpolate s v r') : ∀ i ∈ s, r i = r' i :=
-begin
-  intros _ hi, have hr : eval (v i) (interpolate s v r) = r i := eval_interpolate hvs hi,
-  rw hrr' at hr, rw ← hr, exact eval_interpolate hvs hi
-end
+by { intros _ hi, rw [  ← eval_interpolate_at_node r hvs hi, hrr',
+                        eval_interpolate_at_node r' hvs hi] }
 
-theorem interpolate_eq_of_values_eq_on  (hrr' : ∀ i ∈ s, r i = r' i) :
+theorem interpolate_eq_of_values_eq_on (hrr' : ∀ i ∈ s, r i = r' i) :
   interpolate s v r = interpolate s v r' :=
 by { simp_rw interpolate, refine sum_congr rfl (λ i hi, _), rw hrr' _ hi }
 
 @[simp] theorem interpolate_eq_iff_values_eq_on (hvs : set.inj_on v s)
   : interpolate s v r = interpolate s v r' ↔ ∀ i ∈ s, r i = r' i :=
-⟨values_eq_on_of_interpolate_eq hvs, interpolate_eq_of_values_eq_on⟩
+⟨values_eq_on_of_interpolate_eq _ _ hvs, interpolate_eq_of_values_eq_on _ _⟩
 
 theorem eq_interpolate {f : F[X]} (hvs : set.inj_on v s) (degree_f_lt : f.degree < s.card) :
   f = interpolate s v (λ i, f.eval (v i)) :=
 begin
-  refine eq_of_degrees_lt_of_eval_index_eq _ hvs degree_f_lt (degree_interpolate_lt hvs) _,
-  intros i hi, simp_rw [eval_interpolate hvs hi]
+  refine eq_of_degrees_lt_of_eval_index_eq _ hvs degree_f_lt (degree_interpolate_lt _ hvs) _,
+  intros i hi, simp_rw [eval_interpolate_at_node _ hvs hi]
 end
 
 theorem eq_interpolate_of_eval_eq {f : F[X]} (hvs : set.inj_on v s)
   (degree_f_lt : f.degree < s.card) (eval_f : ∀ i ∈ s, f.eval (v i) = r i) :
   f = interpolate s v r :=
-by { rw [eq_interpolate hvs degree_f_lt], exact interpolate_eq_of_values_eq_on eval_f }
+by { rw [eq_interpolate hvs degree_f_lt], exact interpolate_eq_of_values_eq_on _ _ eval_f }
 
 /--
 This is the characteristic property of the interpolation: the interpolation is the
@@ -320,8 +321,8 @@ theorem eq_interpolate_iff {f : F[X]} (hvs : set.inj_on v s) :
   (f.degree < s.card ∧ ∀ i ∈ s, eval (v i) f = r i) ↔ f = interpolate s v r :=
 begin
   split; intro h,
-  { exact eq_interpolate_of_eval_eq hvs h.1 h.2 },
-  { rw h, exact ⟨degree_interpolate_lt hvs, λ _ hi, eval_interpolate hvs hi⟩ }
+  { exact eq_interpolate_of_eval_eq _ hvs h.1 h.2 },
+  { rw h, exact ⟨degree_interpolate_lt _ hvs, λ _ hi, eval_interpolate_at_node _ hvs hi⟩ }
 end
 
 /-- Linear version of `interpolate`. -/
@@ -353,20 +354,21 @@ def fun_equiv_degree_lt (hvs : set.inj_on v s) : degree_lt F s.card ≃ₗ[F] (s
   map_add' := λ f g, funext $ λ v, eval_add,
   map_smul' := λ c f, funext $ by simp,
   inv_fun := λ r, ⟨ interpolate s v (λ x, if hx : x ∈ s then r ⟨x, hx⟩ else 0),
-                    mem_degree_lt.2 $ degree_interpolate_lt hvs⟩,
+                    mem_degree_lt.2 $ degree_interpolate_lt _ hvs⟩,
   left_inv :=   by  { rintros ⟨f, hf⟩, simp only [subtype.mk_eq_mk, subtype.coe_mk, dite_eq_ite],
                       rw mem_degree_lt at hf, nth_rewrite_rhs 0 eq_interpolate hvs hf,
-                      rw interpolate_eq_iff_values_eq_on hvs, exact λ _ hi, if_pos hi },
+                      rw interpolate_eq_iff_values_eq_on _ _ hvs, exact λ _ hi, if_pos hi },
   right_inv :=  begin
                   intro f, ext i, rcases i with ⟨i, hi⟩, simp only [subtype.coe_mk],
-                  rw eval_interpolate hvs hi, exact dif_pos hi,
+                  rw eval_interpolate_at_node _ hvs hi, exact dif_pos hi,
                 end }
 
 theorem interpolate_eq_sum_interpolate_insert_sdiff (hvt : set.inj_on v t) (hs : s.nonempty)
   (hst : s ⊆ t) : interpolate t v r =
   ∑ i in s, (interpolate (insert i (t \ s)) v r) * basis s v i :=
 begin
-  symmetry, refine eq_interpolate_of_eval_eq hvt (lt_of_le_of_lt (degree_sum_le _ _) _) (λ i hi, _),
+  symmetry, refine eq_interpolate_of_eval_eq _ hvt  (lt_of_le_of_lt (degree_sum_le _ _) _)
+                                                    (λ i hi, _),
   { simp_rw [(finset.sup_lt_iff (with_bot.bot_lt_coe t.card)), degree_mul], intros i hi,
     have hs : 1 ≤ s.card := (nonempty.card_pos ⟨_, hi⟩),
     have hst' : s.card ≤ t.card := (card_le_of_subset hst),
@@ -375,13 +377,13 @@ begin
             ← add_tsub_assoc_of_le (hs.trans hst'), nat.succ_add_sub_one, zero_add] },
     rw [  degree_basis (set.inj_on.mono hst hvt) hi, H, with_bot.coe_add,
           with_bot.add_lt_add_iff_right (@with_bot.coe_ne_bot _ (s.card - 1))],
-    convert (degree_interpolate_lt (hvt.mono (coe_subset.mpr
+    convert (degree_interpolate_lt _ (hvt.mono (coe_subset.mpr
             (insert_subset.mpr ⟨hst hi, sdiff_subset _ _⟩)))),
     rw [card_insert_of_not_mem (not_mem_sdiff_of_mem_right hi), card_sdiff hst, add_comm] },
   { simp_rw [eval_finset_sum, eval_mul], by_cases hi' : i ∈ s,
     { rw ← add_sum_erase _ _ hi',
       rw [eval_basis_eq (hvt.mono hst) hi'],
-      rw eval_interpolate (hvt.mono (coe_subset.mpr
+      rw eval_interpolate_at_node _ (hvt.mono (coe_subset.mpr
             (insert_subset.mpr ⟨hi, sdiff_subset _ _⟩))) (mem_insert_self _ _),
       rw [mul_one, add_right_eq_self],
       refine sum_eq_zero (λ j hj, _), rw mem_erase at hj, rcases hj with ⟨hij, hj⟩,
@@ -390,15 +392,15 @@ begin
       { rw ← eval_finset_sum, rw basis_sum (hvt.mono hst) hs, rw eval_one},
       rw ←mul_one (r i), rw ← H, rw mul_sum,
       refine sum_congr rfl (λ j hj, _), congr,
-      refine eval_interpolate (hvt.mono (insert_subset.mpr ⟨hst hj, sdiff_subset _ _⟩))
-                              (mem_insert .mpr (or.inr (mem_sdiff.mpr ⟨hi, hi'⟩))) } }
+      refine eval_interpolate_at_node _ (hvt.mono (insert_subset.mpr ⟨hst hj, sdiff_subset _ _⟩))
+                                (mem_insert .mpr (or.inr (mem_sdiff.mpr ⟨hi, hi'⟩))) } }
 end
 
 theorem interpolate_eq_add_interpolate_erase (hvs : set.inj_on v s) (hi : i ∈ s) (hj : j ∈ s)
   (hij : i ≠ j) : interpolate s v r = interpolate (s.erase j) v r * basis_divisor (v i) (v j) +
-  interpolate (s.erase i) v r *basis_divisor (v j) (v i) :=
+  interpolate (s.erase i) v r * basis_divisor (v j) (v i) :=
 begin
-  rw interpolate_eq_sum_interpolate_insert_sdiff hvs ⟨i, (mem_insert_self i {j})⟩ _,
+  rw interpolate_eq_sum_interpolate_insert_sdiff _ hvs ⟨i, (mem_insert_self i {j})⟩ _,
   rw sum_insert (not_mem_singleton.mpr hij), rw sum_singleton,
   rw basis_doubleton_left hij, rw basis_doubleton_right hij, congr;
   [skip, rw pair_comm]; ext k; rw [mem_insert, mem_erase, mem_sdiff, mem_insert, mem_singleton];
@@ -410,43 +412,128 @@ end
 end interpolate
 
 section nodal
-open finset
-variables {ι : Type*} {s : finset ι} {v : ι → F} {i : ι} (r : ι → F)
+open finset polynomial
+variables {ι : Type*} {s : finset ι} {v : ι → F} {i : ι} (r : ι → F) {x : F}
 
 /--
-We define `nodal`, the unique monic polynomial whose roots are the nodes defined by `v`.
+We define `nodal`, the unique monic polynomial whose roots are the nodes defined by `v` and `s`.
 
-We can use `nodal` for an alternative form of `interpolate`.
+We can use `nodal` to define the barycentric forms of the evaluated interpolant.
 -/
 def nodal (s : finset ι) (v : ι → F) : F[X] := ∏ i in s, (X - C (v i))
 
-lemma nodal_eq_remove [decidable_eq ι] (hi : i ∈ s) :
-  nodal s v = (X - C (v i)) * ∏ j in s.erase i, (X - C (v j)) :=
-by rw [nodal, mul_prod_erase _ _ hi]
+lemma nodal_eq (s : finset ι) (v : ι → F) : nodal s v = ∏ i in s, (X - C (v i)) := rfl
 
-lemma nodal_derive_eval_node_eq [decidable_eq ι] (hi : i ∈ s) :
-  eval (v i) (nodal s v).derivative = ∏ j in s.erase i, (v i - v j) :=
+@[simp] lemma nodal_empty : nodal ∅ v = 1 := rfl
+
+lemma degree_nodal : (nodal s v).degree = s.card :=
+by simp_rw [nodal, degree_prod, degree_X_sub_C, sum_const, nat.smul_one_eq_coe]
+
+lemma eval_nodal {x : F} : (nodal s v).eval x = ∏ i in s, (x - v i) :=
+by simp_rw [nodal, eval_prod, eval_sub, eval_X, eval_C]
+
+lemma eval_nodal_at_node (hi : i ∈ s) : eval (v i) (nodal s v) = 0 :=
+by { rw [eval_nodal, prod_eq_zero_iff], exact ⟨i, hi, sub_eq_zero_of_eq rfl⟩ }
+
+lemma eval_nodal_not_at_node (hx : ∀ i ∈ s, x ≠ v i) : eval x (nodal s v) ≠ 0 :=
+by { simp_rw [nodal, eval_prod, prod_ne_zero_iff, eval_sub, eval_X, eval_C, sub_ne_zero], exact hx }
+
+lemma nodal_eq_mul_nodal_erase [decidable_eq ι] (hi : i ∈ s) :
+  nodal s v = (X - C (v i)) * nodal (s.erase i) v := by simp_rw [nodal, mul_prod_erase _ _ hi]
+
+lemma X_sub_C_dvd_nodal (v : ι → F) (hi : i ∈ s) : (X - C (v i)) ∣ nodal s v :=
+⟨_, by { classical, exact nodal_eq_mul_nodal_erase hi}⟩
+
+variable [decidable_eq ι]
+
+lemma nodal_erase_eq_nodal_div (hi : i ∈ s) :
+  nodal (s.erase i) v = nodal s v / (X - C (v i)) :=
+by {  rw [nodal_eq_mul_nodal_erase hi, euclidean_domain.mul_div_cancel_left],
+      exact X_sub_C_ne_zero _ }
+
+lemma nodal_insert_eq_nodal (hi : i ∉ s) :
+  nodal (insert i s) v = (X - C (v i)) * (nodal s v) := by simp_rw [nodal, prod_insert hi]
+
+lemma derivative_nodal : (nodal s v).derivative = ∑ i in s, nodal (s.erase i) v :=
 begin
-  rw [nodal_eq_remove hi, bernoulli_rule_left],
-  { simp_rw [ eval_prod, derivative_sub, derivative_X, derivative_C,
-              sub_zero, eval_one, one_mul, eval_sub, eval_X, eval_C]},
-  { rw [eval_sub, eval_X, eval_C, sub_self] }
+refine finset.induction_on s _ (λ _ _ hit IH, _),
+  { rw [nodal_empty, derivative_one, sum_empty] },
+  { rw [  nodal_insert_eq_nodal hit, derivative_mul, IH, derivative_sub,
+          derivative_X, derivative_C, sub_zero, one_mul, sum_insert hit,
+          mul_sum, erase_insert hit, add_right_inj],
+    refine sum_congr rfl (λ j hjt, _),
+    rw [  nodal_erase_eq_nodal_div (mem_insert_of_mem hjt), nodal_insert_eq_nodal hit,
+          euclidean_domain.mul_div_assoc _ (X_sub_C_dvd_nodal v hjt),
+          nodal_erase_eq_nodal_div hjt] }
 end
 
-lemma nodal_div_eq [decidable_eq ι] (hi : i ∈ s) :
-  nodal s v / (X - C (v i)) = ∏ j in s.erase i, (X - C (v j)) :=
-by { rw [nodal_eq_remove hi, euclidean_domain.mul_div_cancel_left], exact X_sub_C_ne_zero _ }
+lemma eval_nodal_derivative_eval_node_eq (hi : i ∈ s) :
+  eval (v i) (nodal s v).derivative = eval (v i) (nodal (s.erase i) v) :=
+begin
+  rw [derivative_nodal, eval_finset_sum, ← add_sum_erase _ _ hi, add_right_eq_self],
+  refine sum_eq_zero (λ j hj, _),
+  simp_rw [nodal, eval_prod, eval_sub, eval_X, eval_C, prod_eq_zero_iff, mem_erase],
+  rw mem_erase at hj, refine ⟨i, ⟨hj.1.symm, hi⟩, sub_eq_zero_of_eq rfl⟩
+end
 
-lemma basis_eq_nodal_div_eval_deriv_mul_linear [decidable_eq ι] (hi : i ∈ s) :
-  basis s v i = C (eval (v i) (nodal s v).derivative)⁻¹ * (nodal s v / (X - C (v i)))  :=
-by {  simp_rw [ basis, basis_divisor, nodal_div_eq hi, nodal_derive_eval_node_eq hi,
-                prod_mul_distrib, ← prod_inv_distrib, map_prod] }
+/-- This defines the nodal weight for a given set of node indexes and node mapping function v. -/
+def nodal_weight (s : finset ι) (v : ι → F) (i : ι) := ∏ j in s.erase i, (v i - v j)⁻¹
 
-lemma interpolate_eq_derivative_interpolate [decidable_eq ι] :
-interpolate s v r = ∑ i in s, C (r i * (eval (v i) (nodal s v).derivative)⁻¹) *
-  (nodal s v / (X - C (v i))) :=
-by {  refine sum_congr rfl (λ j hj, _),
-      rw [basis_eq_nodal_div_eval_deriv_mul_linear hj, map_mul, mul_assoc] }
+lemma nodal_weight_eq_eval_nodal_erase_inv : nodal_weight s v i =
+  (eval (v i) (nodal (s.erase i) v))⁻¹ :=
+by rw [eval_nodal, nodal_weight, prod_inv_distrib]
+
+lemma nodal_weight_eq_eval_nodal_derative (hi : i ∈ s) : nodal_weight s v i =
+  (eval (v i) (nodal s v).derivative)⁻¹ :=
+by rw [eval_nodal_derivative_eval_node_eq hi, nodal_weight_eq_eval_nodal_erase_inv]
+
+lemma nodal_weight_ne_zero (hvs : set.inj_on v s) (hi : i ∈ s) : nodal_weight s v i ≠ 0 :=
+begin
+  rw nodal_weight, rw prod_ne_zero_iff, intros j hj, rw mem_erase at hj, rcases hj with ⟨hij, hj⟩,
+  refine inv_ne_zero (sub_ne_zero_of_ne _), rw [ne.def, hvs.eq_iff hi hj], exact hij.symm
+end
+
+lemma basis_eq_prod_sub_inv_mul_nodal_div (hi : i ∈ s) :
+  basis s v i = C (nodal_weight s v i) * ( nodal s v / (X - C (v i)) )  :=
+by {  simp_rw [ basis, basis_divisor, nodal_weight, prod_mul_distrib,
+                map_prod, ← nodal_erase_eq_nodal_div hi, nodal]  }
+
+lemma eval_basis_not_at_node (hi : i ∈ s) (hxi : x ≠ v i) :
+  eval x (basis s v i) = (eval x (nodal s v)) * (nodal_weight s v i * (x - v i)⁻¹)  :=
+by rw [ mul_comm, basis_eq_prod_sub_inv_mul_nodal_div hi, eval_mul, eval_C,
+        ← nodal_erase_eq_nodal_div hi, eval_nodal, eval_nodal, mul_assoc, ← mul_prod_erase _ _ hi,
+        ← mul_assoc (x - v i)⁻¹, inv_mul_cancel (sub_ne_zero_of_ne hxi), one_mul]
+
+lemma interpolate_eq_nodal_weight_mul_nodal_div_X_sub_C :
+interpolate s v r = ∑ i in s, C (nodal_weight s v i) * (nodal s v / (X - C (v i))) * C (r i) :=
+by {  refine sum_congr rfl (λ j hj, _), rw [mul_comm, basis_eq_prod_sub_inv_mul_nodal_div hj]  }
+
+/-- This is the first barycentric form of the Lagrange interpolant. -/
+lemma eval_interpolate_not_at_node (hx : ∀ i ∈ s, x ≠ v i) : eval x (interpolate s v r) =
+  eval x (nodal s v) * ∑ i in s, nodal_weight s v i * (x - v i)⁻¹ * r i :=
+begin
+  simp_rw [interpolate, mul_sum, eval_finset_sum, eval_mul, eval_C],
+  refine sum_congr rfl (λ i hi, _),
+  rw [← mul_assoc, mul_comm, eval_basis_not_at_node hi (hx _ hi)]
+end
+
+lemma sum_nodal_weight_mul_inv_sub_ne_zero (hvs : set.inj_on v s)
+  (hx : ∀ i ∈ s, x ≠ v i) (hs : s.nonempty)
+  : ∑ i in s, nodal_weight s v i * (x - v i)⁻¹ ≠ 0 :=
+begin
+  refine @right_ne_zero_of_mul_eq_one  _ _ _ (eval x (nodal s v)) _ _,
+  have H := eval_interpolate_not_at_node 1 hx,
+  dsimp at H, rw interpolate_one hvs hs at H, rw eval_one at H, rw H, simp_rw mul_one,
+end
+
+/-- This is the second barycentric form of the Lagrange interpolant. -/
+lemma eval_interpolate_not_at_node' (hvs : set.inj_on v s) (hs : s.nonempty)
+  (hx : ∀ i ∈ s, x ≠ v i) : eval x (interpolate s v r) =
+  (∑ i in s, nodal_weight s v i * (x - v i)⁻¹ * r i) /
+  ∑ i in s, nodal_weight s v i * (x - v i)⁻¹ :=
+by { rw [  ← div_one (eval x (interpolate s v r)), ← @eval_one _ _ x, ← interpolate_one hvs hs,
+        eval_interpolate_not_at_node r hx, eval_interpolate_not_at_node 1 hx],
+  simp_rw [mul_div_mul_left _ _ (eval_nodal_not_at_node hx), pi.one_apply, mul_one] }
 
 end nodal
 

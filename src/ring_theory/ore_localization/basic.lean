@@ -43,7 +43,7 @@ open ore_localization
 
 namespace ore_localization
 
-variables (R : Type*) [monoid R] (S : submonoid R) [ore : is_ore S]
+variables (R : Type*) [monoid R] (S : submonoid R) [ore : ore_set S]
 
 include ore
 
@@ -74,7 +74,7 @@ def ore_eqv : setoid (R × S) :=
 end ore_localization
 
 /-- The ore localization of a monoid and a submonoid fulfilling the ore condition. -/
-def ore_localization (R : Type*) [monoid R] (S : submonoid R) [ore : is_ore S] :=
+def ore_localization (R : Type*) [monoid R] (S : submonoid R) [ore : ore_set S] :=
 quotient (ore_localization.ore_eqv R S)
 
 namespace ore_localization
@@ -89,7 +89,7 @@ lemma submonoid.eq_of_coe_eq_mul {s s' : S} {r : R} (h : (s : R) = s' * r) :
   s = ⟨s' * r, by { rw [←h], simp }⟩ :=
 by { ext, simp [h] }
 
-variables (R S) [ore : is_ore S]
+variables (R S) [ore : ore_set S]
 
 include ore
 
@@ -101,7 +101,7 @@ local attribute [instance] ore_eqv
 variables {R S}
 
 /-- The division in the ore localization `R[S⁻¹]`, as a fraction of an element of `R` and `S`. -/
-def ore_div : R → S → R[S⁻¹] := λ r s, quotient.mk (r, s)
+def ore_div (r : R) (s : S) : R[S⁻¹] := quotient.mk (r, s)
 
 infixl ` /ₒ `:70 := ore_div
 
@@ -388,7 +388,7 @@ end monoid
 
 section comm_monoid
 
-variables {R : Type*} [comm_monoid R] {S : submonoid R} [is_ore S]
+variables {R : Type*} [comm_monoid R] {S : submonoid R} [ore_set S]
 
 lemma ore_div_mul_ore_div_comm {r₁ r₂ : R} {s₁ s₂ : S} :
   (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * r₂) /ₒ (s₁ * s₂) :=
@@ -437,7 +437,7 @@ end comm_monoid
 
 section semiring
 
-variables {R : Type*} [semiring R] {S : submonoid R} [is_ore S]
+variables {R : Type*} [semiring R] {S : submonoid R} [ore_set S]
 
 private def add'' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
 (r₁ * (ore_denom (s₁ : R) s₂) + r₂ * (ore_num s₁ s₂)) /ₒ (s₁ * ore_denom s₁ s₂)
@@ -700,7 +700,7 @@ end UMP
 end semiring
 
 section ring
-variables {R : Type*} [ring R] {S : submonoid R} [is_ore S]
+variables {R : Type*} [ring R] {S : submonoid R} [ore_set S]
 
 /-- Negation on the Ore localization is defined via negation on the numerator. -/
 protected def neg : R[S⁻¹] → R[S⁻¹] :=
@@ -725,20 +725,16 @@ section division_ring
 
 open_locale non_zero_divisors
 open_locale classical
-open non_zero_divisors
 
-variables {R : Type*} [ring R] [nontrivial R] [is_ore R⁰]
+variables {R : Type*} [ring R] [nontrivial R] [ore_set R⁰]
 
-protected lemma exists_pair_ne : ∃ (x y : R[R⁰⁻¹]), x ≠ y :=
-⟨0, 1,
+instance : nontrivial R[R⁰⁻¹] := ⟨⟨0, 1,
   begin
     rw [ore_localization.one_def, ore_localization.zero_def], intro h,
     rw ore_div_eq_iff at h, rcases h with ⟨u, v, h, _⟩ ,
     simp only [one_mul, zero_mul v] at h,
     apply non_zero_divisors.coe_ne_zero u h
-  end⟩
-
-instance : nontrivial R[R⁰⁻¹] := ⟨ore_localization.exists_pair_ne⟩
+  end⟩⟩
 
 variables [no_zero_divisors R]
 

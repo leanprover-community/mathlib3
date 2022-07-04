@@ -81,7 +81,7 @@ hyz.eq_or_lt.elim (λ hyz, (congr_arg f hyz).ge)
 A reified version of the `bertrand.main_inequality` below.
 This is not best possible: it actually holds for 464 ≤ x.
 -/
-lemma real_main_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x) :
+lemma real_main_inequality {x : ℝ} (n_large : (648 : ℝ) ≤ x) :
   x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) ≤ 4 ^ x :=
 begin
     let f : ℝ → ℝ := λ x, log x + sqrt (2 * x) * log (2 * x) - log 4 / 3 * x,
@@ -125,11 +125,11 @@ open nat
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
-lemma main_inequality {n : ℕ} (n_large : 722 ≤ n) :
+lemma main_inequality {n : ℕ} (n_large : 648 ≤ n) :
   n * (2 * n) ^ (sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@cast_le ℝ,
-  have n_large_real : 722 ≤ (n : ℝ),
+  have n_large_real : 648 ≤ (n : ℝ),
   { rw ←@cast_le ℝ at n_large,
     convert n_large, norm_num, },
   have n_pos : 0 < (n : ℝ),
@@ -375,7 +375,7 @@ end bertrand
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
-lemma bertrand_eventually (n : nat) (n_big : 722 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 648 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Assume there is no prime in the range
   by_contradiction no_prime,
@@ -443,7 +443,7 @@ it, but no more than twice as large.
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
-  cases lt_or_le 721 n,
+  cases lt_or_le 647 n,
   -- If `n` is large, apply the lemma derived from the inequalities on the central binomial
   -- coefficient.
   { exact bertrand_eventually n h, },

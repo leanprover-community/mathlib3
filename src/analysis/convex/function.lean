@@ -30,7 +30,7 @@ a convex set.
 open finset linear_map set
 open_locale big_operators classical convex pointwise
 
-variables {𝕜 E F β ι : Type*}
+variables {𝕜 E F β ι Q : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -105,9 +105,7 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
 ⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
 
 section composition
-variables Q : Type*
-variables [has_smul 𝕜 Q] [ordered_add_comm_monoid Q]
-variables (t : set β) (g : β → Q)
+variables [has_smul 𝕜 Q] [ordered_add_comm_monoid Q] (t : set β) (g : β → Q)
 
 lemma convex_on.compose (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 t g) (hg' : monotone g)
   (ht : (range f) ⊆ t) : convex_on 𝕜 s (g ∘ f) :=

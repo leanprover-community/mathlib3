@@ -562,7 +562,7 @@ Probability Theory:
     characteristic function: ''
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
-  Convergence of sequence of random variables:
+  Convergence of a sequence of random variables:
     convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'

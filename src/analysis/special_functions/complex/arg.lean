@@ -69,14 +69,20 @@ end
   (abs x * (cos (arg x) + sin (arg x) * I) : ℂ) = x :=
 by rw [← exp_mul_I, abs_mul_exp_arg_mul_I]
 
+lemma abs_eq_one_iff (z : ℂ) : abs z = 1 ↔ ∃ θ : ℝ, exp (θ * I) = z :=
+begin
+  refine ⟨λ hz, ⟨arg z, _⟩, _⟩,
+  { calc exp (arg z * I) = abs z * exp (arg z * I) : by rw [hz, of_real_one, one_mul]
+    ... = z : abs_mul_exp_arg_mul_I z },
+  { rintro ⟨θ, rfl⟩,
+    exact complex.abs_exp_of_real_mul_I θ },
+end
+
 @[simp] lemma range_exp_mul_I : range (λ x : ℝ, exp (x * I)) = metric.sphere 0 1 :=
 begin
-  simp only [metric.sphere, dist_eq, sub_zero],
-  refine (range_subset_iff.2 $ λ x, _).antisymm (λ z (hz : abs z = 1), _),
-  { exact abs_exp_of_real_mul_I _ },
-  { refine ⟨arg z, _⟩,
-    calc exp (arg z * I) = abs z * exp (arg z * I) : by rw [hz, of_real_one, one_mul]
-    ... = z : abs_mul_exp_arg_mul_I z }
+  simp only [metric.sphere, dist_eq, sub_zero, range_eq_iff, mem_set_of_eq, abs_exp_of_real_mul_I,
+    eq_self_iff_true, forall_const, true_and, abs_eq_one_iff, exists_apply_eq_apply,
+    forall_exists_index, forall_apply_eq_imp_iff', and_self],
 end
 
 lemma arg_mul_cos_add_sin_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :

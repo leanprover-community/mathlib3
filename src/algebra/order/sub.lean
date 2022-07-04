@@ -574,6 +574,15 @@ protected lemma tsub_tsub_cancel_of_le (hba : add_le_cancellable (b - a)) (h : a
   b - (b - a) = a :=
 by rw [hba.tsub_eq_iff_eq_add_of_le tsub_le_self, add_tsub_cancel_of_le h]
 
+protected lemma add_tsub_add_le_tsub_add_tsub :
+  (a + b) - (c + d) ≤ (a - c) + (b - d) :=
+begin
+  rw [add_comm c, ← tsub_tsub],
+  refine (tsub_le_tsub_right add_tsub_le_assoc c).trans _,
+  rw [add_comm a, add_comm (a - c)],
+  exact add_tsub_le_assoc
+end
+
 end add_le_cancellable
 
 section contra

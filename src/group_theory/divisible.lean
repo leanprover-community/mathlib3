@@ -5,31 +5,58 @@ Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
 import group_theory.quotient_group
-import data.real.basic
-import data.complex.basic
 
 /-!
-# Divisible Group
+# Divisible Group and rootable group
 
-An abelian group `A` is said to be divisible iff for all `n ≠ 0` `y ∈ A`, there is an `x ∈ A`
-such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we ask for an explicit
-`div_int : A → ℤ → A` function such that `div_int a 0 = 0` and `n • div_int a n = a` for `n ≠ 0`.
+In this file, we define a divisible add monoid and a rootable monoid with some basic properties.
+
+## Main definition
+* An additive monoid `A` is said to be divisible by `α` iff for all `n ≠ 0 ∈ α` and `y ∈ A`, there
+  is an `x ∈ A` such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we ask
+  for an explicit `div : A → α → A` function such that `div a 0 = 0` and `n • div a n = a` for all
+  `n ≠ 0 ∈ α`.
+* A monoid `A` is said to be rootable by `α` iff for all `n ≠ 0 ∈ α` and `y ∈ A`, there is an
+  `x ∈ A` such that `x^n = y`. In this file, we adopt a constructive approach, i.e. we ask for an
+  explicit `root : A → α → A` function such that `root a 0 = 1` and `(root a n)ⁿ = a` for all
+  `n ≠ 0 ∈ α`.
 
 ## Main results
-* `add_comm_group.divisible_of_smul_surj` : the constructive definition of divisiblity is implied by
+For additive monoids and groups:
+* `add_monoid.divisible_by_of_smul_surj` : the constructive definition of divisiblity is implied by
   the condition that `n • x = a` has solutions for all `n ≠ 0` and `a ∈ A`.
-* `add_comm_group.smul_surj_of_divisible` : the constructive definition of divisiblity implies
+* `add_monoid.smul_surj_of_divisible_by` : the constructive definition of divisiblity implies
   the condition that `n • x = a` has solutions for all `n ≠ 0` and `a ∈ A`.
+* `add_monoid.divisible_by_prod` : `A × B` is divisible for any two divisible additive monoids.
+* `add_monoid.divisible_by_pi` : any product of divisble additive monoids is divisible.
+* `add_group.divisible_by_int_of_divisible_by_nat` : for additive groups, int divisiblity is implied
+  by nat divisiblity.
+* `add_group.divisible_by_nat_of_divisible_by_int` : for additive groups, nat divisiblity is implied
+  by int divisiblity.
 * `add_comm_group.divisible_of_smul_top_eq_top` : the constructive definition of divisiblity is
   implied by the condition that `n • A = A` for all `n ≠ 0`.
 * `add_comm_group.smul_top_eq_top_of_divisible` : the constructive definition of divisiblity implies
   the condition that `n • A = A` for all `n ≠ 0`.
-* `add_comm_group.divisible_prod` : `A × B` is divisible for any divisible `A` and `B`.
-* `add_comm_group.divisible_pi` : Any product of divisble group is divisible.
-* `add_comm_group.divisible_of_char_zero` : Any field of characteristic zero is divisible.
-* `add_comm_group.divisible_quotient` : Quotient group of divisible group is divisible.
-* `add_comm_group.divisible_of_surj` : if `A` is divisible and `A →+ B` is surjective, then `B` is
-  divisible.
+* `add_comm_group.divisible_of_char_zero` : any field of characteristic zero is divisible.
+* `add_comm_group.divisible_by_quotient` : 1uotient group of divisible group is divisible.
+* `add_comm_group.divisible_by_of_surj` : if `A` is divisible and `A →+ B` is surjective, then `B`
+  is divisible.
+
+and their multiplicative counterparts:
+* `monoid.rootable_by_of_pow_surj` : the constructive definition of rootablity is implied by the
+  condition that `xⁿ = y` has solutions for all `n ≠ 0` and `a ∈ A`.
+* `monoid.pow_surj_of_rootable_by` : the constructive definition of rootablity implies the
+  condition that `xⁿ = y` has solutions for all `n ≠ 0` and `a ∈ A`.
+* `monoid.rootable_by_prod` : any product of two rootable monoids is rootable.
+* `monoid.rootable_by_pi` : any product of rootable monoids is rootable.
+* `group.divisible_by_int_of_divisible_by_nat` : in groups, int divisibility is implied by nat
+  divisiblity.
+* `group.divisible_by_nat_of_divisible_by_int` : in groups, nat divisiblity is implied by int
+  divisiblity.
+* `comm_group.divisible_by_quotient` : quotient group of rootable group is rootable.
+* `comm_group.divisible_by_of_surj` : if `A` is rootable and `A →* B` is surjective, then `B` is
+  rootable.
+
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.
 -/
 
@@ -71,6 +98,9 @@ section pi
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), add_monoid (B i)]
 variables [has_zero β] [Π (i : ι), has_scalar β (B i)] [Π i, divisible_by (B i) β]
 
+instance has_scalar_pi : has_scalar β (Π i, B i) :=
+{ smul := λ n x i, n • (x i) }
+
 instance divsible_by_pi : divisible_by (Π i, B i) β :=
 { div := λ x n i, (divisible_by.div (x i) n),
   div_zero := λ x, funext $ λ i, divisible_by.div_zero _,
@@ -109,7 +139,7 @@ class rootable_by :=
 (root_pow : ∀ {n : α} (a : A), n ≠ 0 → (root a n)^n = a)
 
 @[to_additive add_monoid.smul_surj_of_divisible_by]
-lemma root_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
+lemma pow_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
   function.surjective ((flip (^)) n : A → A) :=
 λ x, ⟨rootable_by.root x n, rootable_by.root_pow _ hn⟩
 
@@ -118,7 +148,7 @@ A `monoid A` is `α`-rootable iff the `pow _ n` function is surjective, i.e. the
 implies the textbook approach.
 -/
 @[to_additive add_monoid.divisible_by_of_smul_surj]
-noncomputable def rootable_by_of_root_surj
+noncomputable def rootable_by_of_pow_surj
   [Π (n : α), decidable (n = 0)]
   (H : ∀ {n : α}, n ≠ 0 → function.surjective ((flip (^)) n : A → A)) :
 rootable_by A α :=
@@ -331,7 +361,7 @@ variables (A : Type*) [comm_group A] (B : subgroup A)
 Any quotient group of a rootable group is rootable.
 -/
 noncomputable def rootable_by_quotient [rootable_by A ℕ] : rootable_by (A ⧸ B) ℕ :=
-rootable_by_of_root_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
+rootable_by_of_pow_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
   ⟨quotient.mk' (rootable_by.root a n),
     (congr_arg _ $ rootable_by.root_pow _ hn : quotient.mk' _ = _)⟩
 
@@ -345,7 +375,7 @@ variables {A B : Type*} [comm_group A] [comm_group B] [rootable_by A ℕ] (f : A
 If `f : A → B` is a surjective homomorphism and `A` is rootable, then `B` is also rootable.
 -/
 noncomputable def rootable_by_of_surj (hf : function.surjective f) : rootable_by B ℕ :=
-rootable_by_of_root_surj _ _ $ λ n hn x,
+rootable_by_of_pow_surj _ _ $ λ n hn x,
   ⟨f $ rootable_by.root (hf x).some n, (by rw [←f.map_pow (rootable_by.root (hf x).some n) n,
     rootable_by.root_pow _ hn, (hf x).some_spec] : _ ^ _ = x)⟩
 

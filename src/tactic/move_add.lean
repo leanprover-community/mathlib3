@@ -5,6 +5,7 @@ Authors: Arthur Paulino, Damiano Testa
 -/
 import tactic.core
 import algebra.group.basic
+import meta.expr
 
 /-!
 # `move_add`: a tactic for moving summands
@@ -115,7 +116,7 @@ meta def as_given_op (op : pexpr) : expr → tactic expr
     return F
 | _ := failed
 
-/-- `(e, unused) ← reorder_oper op lp e` converts an expression `e` to a similar looking one.
+/- `(e, unused) ← reorder_oper op lp e` converts an expression `e` to a similar looking one.
 The tactic scans the expression `e` looking for subexpressions that begin with the given binary
 operation `op`.  As soon as `reorder_oper` finds one such subexpression,
 * it extracts the "`op`-summands" in the subexpression,
@@ -141,44 +142,32 @@ Here are two examples:
       x * (5 + y + e) + y + 2   = x + e + 2 → x + 2 = 5 + x + y + 2, [ff, ff]) -/
 ```
 -/
-meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
-  expr → tactic (expr × list bool)
-| F'@(expr.app F b) := do
-    is_op ← try_core (as_given_op op F'),
-    match is_op with
-    | some op := do
-        (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
-        sort_all ← sort_list.mmap (λ e, do
-          (e, lu) ← reorder_oper e,
-          pure (e, [lu, is_unused].transpose.map list.band)),
-        let (recs, list_unused) := sort_all.unzip,
-        recs_0 :: recs_rest ← pure recs | fail!"internal error: cannot have 0 operands",
-        let summed := recs_rest.foldl (λ e f, op.mk_app [e, f]) recs_0,
-        return (summed, list_unused.transpose.map list.band)
-    | none := do
-        [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper,
-        return $ (expr.app Fn bn, [unused_F, unused_b].transpose.map list.band)
-    end
-| (expr.pi na bi e f)           := do
-  [en, fn] ← [e, f].mmap $ reorder_oper,
-  return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| (expr.lam na bi e f)          := do
-  [en, fn] ← [e, f].mmap $ reorder_oper,
-  return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| (expr.mvar na pp e)           := do  -- is it really needed to recurse here?
-  en ← reorder_oper e,
-  return (expr.mvar na pp en.1, [en.2].transpose.map list.band)
-| (expr.local_const na pp bi e) := do  -- is it really needed to recurse here?
-  en ← reorder_oper e,
-  return (expr.local_const na pp bi en.1, [en.2].transpose.map list.band)
-| (expr.elet na e f g)          := do
-  [en, fn, gn] ← [e, f, g].mmap $ reorder_oper,
-  return (expr.elet na en.1 fn.1 gn.1, [en.2, fn.2, gn.2].transpose.map list.band)
-| (expr.macro ma le)            := do  -- is it really needed to recurse here?
-  len ← le.mmap $ reorder_oper,
-  let (lee, lb) := len.unzip,
-  return (expr.macro ma lee, lb.transpose.map list.band)
-| e := pure (e, (lp.map (λ _, tt)))
+meta def reorder_at (op : pexpr) (lp : list (bool × pexpr)) (e : expr) :
+  tactic (bool × list bool × expr × option expr):=
+do
+  unified_op ← try_core (as_given_op op e),
+  match unified_op with
+  | some op := do
+      (sort_list, is_unused) ← list_binary_operands op e >>= final_sort lp,
+      recs_0 :: recs_rest ← pure sort_list | fail!"internal error: cannot have 0 operands",
+      let reordered := recs_rest.foldl (λ e f, op.mk_app [e, f]) recs_0,
+      neq ← mk_app `eq [e, reordered],
+      pre ← pp reordered,
+      (_, prf) ← solve_aux neq $ match op with
+        | `(has_add.add) := `[{ simp only [add_comm, add_assoc, add_left_comm]; refl, done }]
+        | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm]; refl, done }]
+        | _ := ac_refl <|>
+          fail format!("the associative/commutative lemmas used for {op} do not suffice to prove "
+            ++ "that the initial goal equals:\n\n{pre}\n")
+        end,
+      prf ← instantiate_mvars prf,
+      unchanged ← succeeds (unify reordered e),
+      return (unchanged, is_unused, reordered, prf)
+  | none := do
+      return (tt, lp.map (λ _, tt), e, none)
+  end
+
+
 
 /-- Passes the user input `na` to `reorder_oper` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Replaces the
@@ -200,24 +189,20 @@ meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name)
       th ← infer_type hl,
       return (th, some hl)
   end,
-(reordered, is_unused) ← reorder_oper op lp thyp,
-unify reordered thyp >> return (tt, is_unused) <|> do
--- the current `do` block takes place where the reordered expression is not equal to the original
-neq ← mk_app `eq [thyp, reordered],
-nop ← to_expr op tt ff,
-pre ← pp reordered,
-(_, prf) ← solve_aux neq $ match nop with
-  | `(has_add.add) := `[{ simp only [add_comm, add_assoc, add_left_comm]; refl, done }]
-  | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm]; refl, done }]
-  | _ := ac_refl <|>
-    fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
-      "the initial goal equals:\n\n{pre}\n")
-  end,
+((unchanged, is_unused), reordered, prf) ← ext_simplify_core
+  (tt, lp.map (λ _, tt)) { fail_if_unchanged := ff } simp_lemmas.mk (λ _, failed)
+  (λ data _ _ _ e, do
+    let (unchanged, unused) := data,
+    (new_unchanged, new_unused, new_e, prf) ← reorder_at op lp e,
+    return ((band unchanged new_unchanged, [unused, new_unused].transpose.map list.band), new_e,
+      prf, prf = none)
+    ) (λ _ _ _ _ _, failed)
+  `eq thyp,
 match hyploc with
 | none := replace_target reordered prf
 | some hyploc := replace_hyp hyploc reordered prf >> skip
 end,
-return (ff, is_unused)
+return (unchanged, is_unused)
 
 section parsing_arguments_for_move_op
 setup_tactic_parser

@@ -63,22 +63,21 @@ def ore_condition (r : R) (s : S) : Σ' r' : R, Σ' s' : S, r * s' = s * r' :=
 /-- The trivial submonoid is an Ore set. -/
 instance ore_set_bot : ore_set (⊥ : submonoid R) :=
 { ore_left_cancel := λ _ _ s h,
-    ⟨1, begin
+    ⟨s, begin
           rcases s with ⟨s, hs⟩, rw submonoid.mem_bot at hs,subst hs,
           rw [set_like.coe_mk, one_mul, one_mul] at h, subst h
         end⟩,
   ore_num := λ r _, r,
-  ore_denom := λ _ _, 1,
+  ore_denom := λ _ s, s,
   ore_eq := λ _ s, by { rcases s with ⟨s, hs⟩, rw submonoid.mem_bot at hs, simp [hs] } }
 
 /-- Every submonoid of a commutative monoid is an Ore set. -/
-def ore_set_comm {R} [comm_monoid R] (S : submonoid R) : ore_set S :=
+@[priority 100]
+instance ore_set_comm {R} [comm_monoid R] (S : submonoid R) : ore_set S :=
 { ore_left_cancel := λ m n s h, ⟨s, by rw [mul_comm n s, mul_comm m s, h]⟩,
   ore_num := λ r _, r,
   ore_denom := λ _ s, s,
   ore_eq := λ r s, by rw mul_comm }
-
-attribute [instance, priority 100] ore_set_comm
 
 end monoid
 
@@ -93,16 +92,10 @@ def ore_set_of_no_zero_divisors
   (ore_denom : R → S → S)
   {ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)} :
   ore_set S :=
-{ ore_left_cancel := λ r₁ r₂ s h,
-  begin
-    cases s with s hs,
-    use ⟨s, hs⟩,
-    have : s * (r₂ - r₁) = 0,
-    { rw [mul_sub], apply sub_eq_zero_of_eq, symmetry, assumption },
-    cases eq_zero_or_eq_zero_of_mul_eq_zero this with h0 h0,
-    { subst h0, simp },
-    { replace h0 := eq_of_sub_eq_zero h0, subst h0 }
-  end,
+{ ore_left_cancel := λ r₁ r₂ s h, ⟨s, begin
+    letI : cancel_monoid_with_zero R := no_zero_divisors.to_cancel_monoid_with_zero,
+    exact mul_eq_mul_right_iff.mpr (mul_eq_mul_left_iff.mp h)
+  end⟩,
   ore_num := ore_num,
   ore_denom := ore_denom,
   ore_eq := ore_eq }

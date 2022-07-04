@@ -103,7 +103,7 @@ variables {K V} (W : FinVect K)
 
 /-- Converts and isomorphism in the category `FinVect` to a `linear_equiv` between the underlying
 vector spaces. -/
-def iso_to_linear_equiv {V W : FinVect K} (i : V ≅ W) : V ≃ₗ[K] W :=
+def iso_to_linear_equiv {V W : FinVect K} (i : V ≅ W) : V.obj ≃ₗ[K] W.obj :=
   ((forget₂ (FinVect.{u} K) (Module.{u} K)).map_iso i).to_linear_equiv
 
 lemma iso.conj_eq_conj {V W : FinVect K} (i : V ≅ W) (f : End V) :

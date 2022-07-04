@@ -37,7 +37,6 @@ begin
   { contrapose! ha,
     rw [ha, eval_zero], },
   have p_continuous : continuous_on (λ x, p.eval x) (set.Icc a b) := p.continuous.continuous_on,
-  -- simp only [card_zero, true_iff, even_zero],
   contrapose! hr,
   simp only [ne.def, multiset.empty_eq_zero],
   rw [eq_zero_iff_forall_not_mem],

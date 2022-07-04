@@ -180,14 +180,58 @@ compact_closure_of_subset_compact hK hKf
 
 end bounded
 
+section normed_space
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {M₁ M₂ : Type*} [semi_normed_group M₁] [topological_space M₂]
+  [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂] [has_continuous_const_smul 𝕜₂ M₂]
+
+lemma image_ball_in_compact (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
+  ∃ (K : set M₂), is_compact K ∧ f '' metric.ball 0 r ⊆ K :=
+image_in_compact_of_vonN_bounded f sorry
+
+lemma image_closed_ball_in_compact (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
+  ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
+image_in_compact_of_vonN_bounded f sorry
+
+lemma image_ball_relatively_compact [t2_space M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
+  is_compact (closure $ f '' metric.ball 0 r) :=
+image_relatively_compact_of_vonN_bounded f sorry
+
+lemma image_closed_ball_relatively_compact [t2_space M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
+  is_compact (closure $ f '' metric.closed_ball 0 r) :=
+image_relatively_compact_of_vonN_bounded f sorry
+
+def mk_of_image_ball_in_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r)
+  {K : set M₂} (hK : is_compact K) (hrK : f '' metric.ball 0 r ⊆ K) :
+  M₁ →SLᶜ[σ₁₂] M₂ :=
+mk_of_image_in_compact f (ball_mem_nhds (0 : M₁) hr) hK hrK
+
+def mk_of_image_closed_ball_in_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r)
+  {K : set M₂} (hK : is_compact K) (hrK : f '' metric.closed_ball 0 r ⊆ K) :
+  M₁ →SLᶜ[σ₁₂] M₂ :=
+mk_of_image_in_compact f (closed_ball_mem_nhds (0 : M₁) hr) hK hrK
+
+def mk_of_image_ball_relatively_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r)
+  (hrf : is_compact $ closure $ f '' metric.ball 0 r) :
+  M₁ →SLᶜ[σ₁₂] M₂ :=
+mk_of_image_relatively_compact f (ball_mem_nhds (0 : M₁) hr) hrf
+
+def mk_of_image_closed_ball_relatively_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r)
+  (hrf : is_compact $ closure $ f '' metric.closed_ball 0 r) :
+  M₁ →SLᶜ[σ₁₂] M₂ :=
+mk_of_image_relatively_compact f (closed_ball_mem_nhds (0 : M₁) hr) hrf
+
+end normed_space
+
 end characterizations
 
 section operations
 
-variables {R₁ R₂ R₃ R₄ : Type*} [semiring R₁] [semiring R₂] [ring R₃] [ring R₄] {σ₁₂ : R₁ →+* R₂}
-  {σ₃₄ : R₃ →+* R₄} {M₁ M₂ M₃ M₄ : Type*} [topological_space M₁] [add_comm_monoid M₁]
-  [topological_space M₂] [add_comm_monoid M₂] [topological_space M₃] [add_comm_group M₃]
-  [topological_space M₄] [add_comm_group M₄] [module R₁ M₁] [module R₂ M₂]
+variables {R₁ R₂ R₃ R₄ : Type*} [semiring R₁] [semiring R₂] [comm_semiring R₃] [comm_semiring R₄]
+  {σ₁₂ : R₁ →+* R₂} {σ₃₄ : R₃ →+* R₄} {M₁ M₂ M₃ M₄ : Type*} [topological_space M₁]
+  [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂] [topological_space M₃]
+  [add_comm_group M₃] [topological_space M₄] [add_comm_group M₄] [module R₁ M₁] [module R₂ M₂]
   [module R₃ M₃] [module R₄ M₄]
 
 section smul_monoid
@@ -270,8 +314,9 @@ lemma sum_apply {ι : Type*} (t : finset ι) (f : ι → M₁ →SLᶜ[σ₁₂]
   (∑ d in t, f d) b = ∑ d in t, f d b :=
 by simp only [coe_sum', finset.sum_apply]
 
-instance {S : Type*} [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂] [has_continuous_const_smul S M₂] :
-  distrib_mul_action S (M₁ →SL[σ₁₂] M₂) :=
+instance {S : Type*} [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
+  [has_continuous_const_smul S M₂] :
+  distrib_mul_action S (M₁ →SLᶜ[σ₁₂] M₂) :=
 { smul_add := λ a f g, by ext; exact smul_add _ _ _,
   smul_zero := λ a, by ext; exact smul_zero _ }
 
@@ -312,6 +357,16 @@ lemma sub_apply (f g : M₃ →SLᶜ[σ₁₂] M₄) (x : M₃) : (f - g) x = f 
 @[simp, norm_cast] lemma coe_sub' (f g : M₃ →SLᶜ[σ₁₂] M₄) : ⇑(f - g) = f - g := rfl
 
 end sub
+
+section module
+
+variables [topological_add_group M₄] [has_continuous_const_smul R₄ M₄]
+
+instance : module R₄ (M₃ →SLᶜ[σ₃₄] M₄) :=
+{ zero_smul := λ _, ext $ λ _, zero_smul _ _,
+  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _ }
+
+end module
 
 end operations
 
@@ -362,6 +417,80 @@ by ext; refl
   (f : M₁ →SL[σ₁₂] M₂) = g ↔ f = g :=
 coe_clm_injective.eq_iff
 
+@[simp, norm_cast]
+lemma coe_clm_smul {S : Type*} [monoid S] [distrib_mul_action S M₂] [smul_comm_class 𝕜₂ S M₂]
+  [has_continuous_const_smul S M₂](c : S) (f : M₁ →SLᶜ[σ₁₂] M₂) :
+  (↑(c • f) : M₁ →SL[σ₁₂] M₂) = c • f := rfl
+
+@[simp, norm_cast] lemma coe_clm_zero : ((0 : M₁ →SLᶜ[σ₁₂] M₂) : M₁ →SL[σ₁₂] M₂) = 0 := rfl
+
+@[simp, norm_cast] lemma coe_clm_add (f g : M₁ →SLᶜ[σ₁₂] M₂) :
+  (↑(f + g) : M₁ →SL[σ₁₂] M₂) = f + g := rfl
+
+variables (σ₁₂ M₁ M₂)
+
+def coe_clmₗ : (M₁ →SLᶜ[σ₁₂] M₂) →ₗ[𝕜₂] (M₁ →SL[σ₁₂] M₂) :=
+⟨coe, coe_clm_add, coe_clm_smul⟩
+
 end to_continuous
+
+section topology
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ M₃ M₄ : Type*} [semi_normed_group M₁]
+  [semi_normed_group M₂] [normed_group M₃] [normed_group M₄] [normed_space 𝕜₁ M₁]
+  [normed_space 𝕜₂ M₂] [normed_space 𝕜₁ M₃] [normed_space 𝕜₂ M₄]
+
+noncomputable instance : semi_normed_group (M₁ →SLᶜ[σ₁₂] M₂) :=
+semi_normed_group.induced ((coe_clmₗ σ₁₂ M₁ M₂) : (M₁ →SLᶜ[σ₁₂] M₂) →+ (M₁ →SL[σ₁₂] M₂))
+
+noncomputable instance : normed_group (M₃ →SLᶜ[σ₁₂] M₄) :=
+normed_group.induced ((coe_clmₗ σ₁₂ M₃ M₄) : (M₃ →SLᶜ[σ₁₂] M₄) →+ (M₃ →SL[σ₁₂] M₄))
+  coe_clm_injective
+
+variables (σ₁₂ M₁ M₂)
+
+def coe_clmL : (M₁ →SLᶜ[σ₁₂] M₂) →L[𝕜₂] (M₁ →SL[σ₁₂] M₂) :=
+⟨coe_clmₗ σ₁₂ M₁ M₂, continuous_induced_dom⟩
+
+variables {σ₁₂ M₁ M₂}
+
+lemma closed_embedding_coe_clmL [complete_space M₄] : closed_embedding (coe_clmL σ₁₂ M₁ M₄) :=
+{ induced := rfl,
+  inj := coe_clm_injective,
+  closed_range :=
+  begin
+    refine is_closed_of_closure_subset _,
+    rintros u hu,
+    rw metric.mem_closure_iff at hu,
+    suffices : totally_bounded (u '' metric.closed_ball 0 1),
+    from ⟨mk_of_image_closed_ball_relatively_compact (u : M₁ →ₛₗ[σ₁₂] M₄) zero_lt_one $
+          compact_of_totally_bounded_is_closed this.closure is_closed_closure, by ext; refl⟩,
+    rw metric.totally_bounded_iff,
+    intros ε hε,
+    rcases hu (ε/2) (by linarith) with ⟨_, ⟨v, rfl⟩, huv⟩,
+    rcases (v.image_closed_ball_relatively_compact 1).finite_cover_balls
+      (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
+    have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,
+    refine ⟨T, hT, _⟩,
+    rw image_subset_iff at ⊢ hTv,
+    intros x hx,
+    specialize hTv hx,
+    rw [mem_preimage, mem_Union₂] at ⊢ hTv,
+    rcases hTv with ⟨t, ht, htx⟩,
+    refine ⟨t, ht, _⟩,
+    suffices : dist (u x) (v x) < ε/2,
+    { rw mem_ball at *,
+      linarith [dist_triangle (u x) (v x) t] },
+    rw mem_closed_ball_zero_iff at hx,
+    calc dist (u x) (v x)
+        = ∥u x - v x∥ : dist_eq_norm _ _
+    ... = ∥(u - v) x∥ : by rw continuous_linear_map.sub_apply; refl
+    ... ≤ ∥u - v∥ : (u - v).unit_le_op_norm x hx
+    ... = dist u v : (dist_eq_norm _ _).symm
+    ... < ε/2 : huv
+  end }
+
+end topology
 
 end compact_operator

@@ -254,11 +254,15 @@ tg ← target,
 let locas_with_tg := if locat.include_goal then locas ++ [tg] else locas,
 ner ← locas_with_tg.mmap (λ e, reorder_hyp op args e.local_pp_name <|> reorder_hyp op args none),
 let (unch_tgts, unus_vars) := ner.unzip,
-let str_unva := match
+str_unva ← match
   (return_unused args (unus_vars.transpose.map list.band)).map (λ e : bool × pexpr, e.2) with
-  | []   := []
-  | [pe] := [format!"'{pe}' is an unused variable"]
-  | pes  := [format!"'{pes}' are unused variables"]
+  | []   := pure []
+  | [pe] := do
+    nm ← to_expr pe tt ff >>= λ ex, pp ex.replace_mvars,
+    return [format!"'{nm}' is an unused variable"]
+  | pes  := do
+    nms ← pes.mmap (λ e, to_expr e tt ff) >>= λ exs, (exs.map expr.replace_mvars).mmap pp,
+    return [format!"'{nms}' are unused variables"]
   end,
 let str_tgts := match locat with
   | loc.wildcard := if unch_tgts.band then [format!"nothing changed"] else []

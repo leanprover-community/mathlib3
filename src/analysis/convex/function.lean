@@ -111,20 +111,8 @@ variables (t : set β) (g : β → Q)
 
 lemma convex_on.compose (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 t g) (hg' : monotone g)
   (ht : (range f) ⊆ t) : convex_on 𝕜 s (g ∘ f) :=
-begin
-  split,
-  { exact hf.left },
-  {
-    begin
-      intros x y hx hy a b ha hb hsum,
-      have h₁ : f(a • x + b • y) ≤ a • f x + b • f y := hf.right hx hy ha hb hsum,
-      have h₃ : f x ∈ t := range_subset_iff.mp ht x,
-      have h₄ : f y ∈ t := range_subset_iff.mp ht y,
-      have h₅ : g(a • f x + b • f y) ≤ a • g(f x) + b • g(f y) := hg.right h₃ h₄ ha hb hsum,
-      exact le_trans (hg' h₁) h₅,
-    end
-  },
-end
+⟨hf.left, λ x y hx hy a b ha hb hsum, (hg' $ hf.right hx hy ha hb hsum).trans $
+  hg.right (range_subset_iff.mp ht x) (range_subset_iff.mp ht y) ha hb hsum⟩
 
 end composition
 end has_smul

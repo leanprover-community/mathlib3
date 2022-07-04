@@ -121,7 +121,7 @@ the following states:
 `wlog` supports different calling conventions. The name `h` is used to give a name to the introduced
 case hypothesis. If the name is avoided, the default will be `case`.
 
-1. `wlog : p xs0 using [xs0, …, xsn]`
+1. `wlog : p xs0 using [xs0, …, xsn]`  
    Results in the case goal `p xs0 ∨ ⋯ ∨ ps xsn`, the main goal `(case : p xs0) ⊢ g xs0` and the
    invariance goals `(case : p xsi) (this : g xs0) ⊢ g xsi`.
 
@@ -129,11 +129,11 @@ case hypothesis. If the name is avoided, the default will be `case`.
    The expression `r` is a proof of the shape `p xs0 ∨ ⋯ ∨ p xsi`, it is also used to compute the
    variable permutations.
 
-3. `wlog := r using xs0`
+3. `wlog := r using xs0`  
    The expression `r` is a proof of the shape `p xs0 ∨ ⋯ ∨ p xsi`, it is also used to compute the
    variable permutations. This is not as stable as (2), for example `p` cannot be a disjunction.
 
-4. `wlog : R x y using x y` and `wlog : R x y`
+4. `wlog : R x y using x y` and `wlog : R x y`  
    Produces the case `R x y ∨ R y x`. If `R` is ≤, then the disjunction discharged using linearity.
    If `using x y` is avoided then `x` and `y` are the last two variables appearing in the
    expression `R x y`.

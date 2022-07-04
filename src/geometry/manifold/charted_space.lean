@@ -497,6 +497,9 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
+lemma chart_source_mem_nhds (x : M) : (chart_at H x).source ∈ 𝓝 x :=
+(chart_at H x).open_source.mem_nhds $ mem_chart_source H x
+
 open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]

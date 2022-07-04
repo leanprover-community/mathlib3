@@ -66,6 +66,56 @@ structure local_invariant_prop (P : (H → H') → (set H) → H → Prop) : Pro
 (left_invariance' : ∀ {s x f} {e' : local_homeomorph H' H'}, e' ∈ G' → s ⊆ f ⁻¹' e'.source →
                      f x ∈ e'.source → P f s x → P (e' ∘ f) s x)
 
+variables {G G'} {P : (H → H') → (set H) → H → Prop} {s t u : set H} {x : H}
+
+variable (hG : G.local_invariant_prop G' P)
+include hG
+
+namespace local_invariant_prop
+
+lemma congr_set {s t : set H} {x : H} {f : H → H'} (hu : s =ᶠ[𝓝 x] t) :
+  P f s x ↔ P f t x :=
+begin
+  obtain ⟨o, host, ho, hxo⟩ := mem_nhds_iff.mp hu.mem_iff,
+  simp_rw [subset_def, mem_set_of, ← and.congr_left_iff, ← mem_inter_iff, ← set.ext_iff] at host,
+  rw [hG.is_local ho hxo, host, ← hG.is_local ho hxo]
+end
+
+lemma is_local_nhds {s u : set H} {x : H} {f : H → H'} (hu : u ∈ 𝓝[s] x) (hx : x ∈ u) :
+  P f s x ↔ P f (s ∩ u) x :=
+hG.congr_set $ mem_nhds_within_iff_eventually_eq.mp hu
+
+lemma left_invariance {s : set H} {x : H} {f : H → H'} {e' : local_homeomorph H' H'}
+  (he' : e' ∈ G') (hfs : continuous_within_at f s x) (hxe' : f x ∈ e'.source) (hP : P f s x) :
+  P (e' ∘ f) s x :=
+begin
+  rw [hG.is_local_nhds (hfs.preimage_mem_nhds_within $ e'.open_source.mem_nhds hxe') hxe'] at hP ⊢,
+  exact hG.left_invariance' he' (inter_subset_right _ _) hxe' hP
+end
+
+lemma congr_iff_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x) :
+  P f s x ↔ P g s x :=
+by { simp_rw [hG.is_local_nhds h1 h2],
+  exact ⟨hG.congr_of_forall (λ y hy, hy.2) h2, hG.congr_of_forall (λ y hy, hy.2.symm) h2.symm⟩ }
+
+lemma congr_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x)
+  (hP : P f s x) : P g s x :=
+(hG.congr_iff_nhds_within h1 h2).mp hP
+
+lemma congr_nhds_within' {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x)
+  (hP : P g s x) : P f s x :=
+(hG.congr_iff_nhds_within h1 h2).mpr hP
+
+lemma congr_iff {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) : P f s x ↔ P g s x :=
+hG.congr_iff_nhds_within (mem_nhds_within_of_mem_nhds h) (mem_of_mem_nhds h : _)
+
+lemma congr {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P f s x) : P g s x :=
+(hG.congr_iff h).mp hP
+
+lemma congr' {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P g s x) : P f s x :=
+hG.congr h.symm hP
+
+end local_invariant_prop
 end structure_groupoid
 
 namespace charted_space
@@ -127,110 +177,8 @@ by simp [lift_prop_on, lift_prop, lift_prop_at]
 
 namespace local_invariant_prop
 
-lemma _root_.mem_nhds_within_iff_eventually : t ∈ 𝓝[s] x ↔ ∀ᶠ y in 𝓝 x, y ∈ s → y ∈ t :=
-begin
-  rw [mem_nhds_within_iff_exists_mem_nhds_inter],
-  split,
-  { rintro ⟨u, hu, hut⟩, exact eventually_of_mem hu (λ x hxu hxs, hut ⟨hxu, hxs⟩) },
-  { refine λ h, ⟨_, h, λ y hy, hy.1 hy.2⟩ }
-end
-
-lemma _root_.mem_nhds_within_iff_eventually_eq : t ∈ 𝓝[s] x ↔ s =ᶠ[𝓝 x] (s ∩ t : set M) :=
-by simp_rw [mem_nhds_within_iff_eventually, eventually_eq_set, mem_inter_iff, iff_self_and]
-
-lemma _root_.local_homeomorph.eventually_nhds (e : local_homeomorph H H') {x : H} (p : H' → Prop)
-  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p y) ↔ ∀ᶠ x in 𝓝 x, p (e x) :=
-begin
-  refine ⟨(e.continuous_at hx).eventually, _⟩,
-  intro h,
-  rw [← e.left_inv hx] at h,
-  filter_upwards [(e.symm.continuous_at $ e.maps_to hx).eventually h,
-    e.eventually_right_inverse' hx],
-  intros y hy heq,
-  rwa [heq] at hy
-end
-
-lemma _root_.local_homeomorph.eventually_nhds' (e : local_homeomorph H H') {x : H} (p : H → Prop)
-  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝 x, p x :=
-begin
-  rw [e.eventually_nhds _ hx],
-  refine eventually_congr ((e.eventually_left_inverse hx).mono $ λ y hy, _),
-  rw [hy]
-end
-
-lemma _root_.local_homeomorph.eventually_nhds_within (e : local_homeomorph H H') {x : H}
-  (p : H' → Prop) {s : set H}
-  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝[e.symm ⁻¹' s] (e x), p y) ↔ ∀ᶠ x in 𝓝[s] x, p (e x) :=
-begin
-  refine iff.trans _ eventually_map,
-  rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.nhds_within_target_inter (e.maps_to hx)]
-end
-
-lemma _root_.local_homeomorph.eventually_nhds_within' (e : local_homeomorph H H') {x : H}
-  (p : H → Prop) {s : set H}
-  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝[e.symm ⁻¹' s] (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝[s] x, p x :=
-begin
-  rw [e.eventually_nhds_within _ hx],
-  refine eventually_congr ((eventually_nhds_within_of_eventually_nhds $
-    e.eventually_left_inverse hx).mono $ λ y hy, _),
-  rw [hy]
-end
-
-lemma _root_.local_homeomorph.preimage_eventually_eq_target_inter_preimage_inter
-  {e : local_homeomorph M H} {t : set M'}
-  {f : M → M'} (hf : continuous_within_at f s x) (hxe : x ∈ e.source) (ht : t ∈ 𝓝 (f x)) :
-  e.symm ⁻¹' s =ᶠ[𝓝 (e x)] (e.target ∩ e.symm ⁻¹' (s ∩ f ⁻¹' t) : set H) :=
-begin
-  rw [eventually_eq_set, e.eventually_nhds _ hxe],
-  filter_upwards [(e.open_source.mem_nhds hxe),
-    mem_nhds_within_iff_eventually.mp (hf.preimage_mem_nhds_within ht)],
-  intros y hy hyu,
-  simp_rw [mem_inter_iff, mem_preimage, mem_inter_iff, e.maps_to hy, true_and, iff_self_and,
-    e.left_inv hy, iff_true_intro hyu]
-end
-
-variables (H x)
-lemma _root_.chart_source_mem_nhds : (chart_at H x).source ∈ 𝓝 x :=
-(chart_at H x).open_source.mem_nhds $ mem_chart_source H x
-variables {H x}
--- note: which is preferred? `𝓝[s] x = 𝓝[t] x ↔ s =ᶠ[𝓝 x] t`
-
 variable (hG : G.local_invariant_prop G' P)
 include hG
-
-lemma congr_set {s t : set H} {x : H} {f : H → H'} (hu : s =ᶠ[𝓝 x] t) :
-  P f s x ↔ P f t x :=
-begin
-  obtain ⟨o, host, ho, hxo⟩ := mem_nhds_iff.mp hu.mem_iff,
-  simp_rw [subset_def, mem_set_of, ← and.congr_left_iff, ← mem_inter_iff, ← set.ext_iff] at host,
-  rw [hG.is_local ho hxo, host, ← hG.is_local ho hxo]
-end
-
-lemma is_local_nhds {s u : set H} {x : H} {f : H → H'} (hu : u ∈ 𝓝[s] x) (hx : x ∈ u) :
-  P f s x ↔ P f (s ∩ u) x :=
-hG.congr_set $ mem_nhds_within_iff_eventually_eq.mp hu
-
-lemma left_invariance {s : set H} {x : H} {f : H → H'} {e' : local_homeomorph H' H'}
-  (he' : e' ∈ G') (hfs : continuous_within_at f s x) (hxe' : f x ∈ e'.source) (hP : P f s x) :
-  P (e' ∘ f) s x :=
-begin
-  rw [hG.is_local_nhds (hfs.preimage_mem_nhds_within $ e'.open_source.mem_nhds hxe') hxe'] at hP ⊢,
-  exact hG.left_invariance' he' (inter_subset_right _ _) hxe' hP
-end
-
-lemma congr_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x)
-  (hP : P f s x) : P g s x :=
-by { rw [hG.is_local_nhds h1 h2] at hP ⊢, exact hG.congr_of_forall (λ y hy, hy.2) h2 hP }
-
-lemma congr_nhds_within' {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x)
-  (hP : P g s x) : P f s x :=
-hG.congr_nhds_within h1.symm h2.symm hP
-
-lemma congr {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P f s x) : P g s x :=
-hG.congr_nhds_within (mem_nhds_within_of_mem_nhds h) (mem_of_mem_nhds h : _) hP
-
-lemma congr' {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P g s x) : P f s x :=
-hG.congr h.symm hP
 
 /-- `lift_prop_within_at P f s x` is equivalent to a definition where we restrict the set we are
   considering to the domain of the charts at `x` and `f x`. -/
@@ -244,14 +192,6 @@ begin
   exact local_homeomorph.preimage_eventually_eq_target_inter_preimage_inter hf
     (mem_chart_source H x) (chart_source_mem_nhds H' (f x))
 end
-
--- lemma congr_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x) :
---   P f s x ↔ P g s x :=
--- by { simp_rw [hG.is_local_nhds h1 h2],
---   exact ⟨hG.congr' (λ y hy, hy.2) h2, hG.congr' (λ y hy, hy.2.symm) h2.symm⟩ }
-
--- lemma congr {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) : P f s x ↔ P g s x :=
--- hG.congr_nhds_within (mem_nhds_within_of_mem_nhds h) (mem_of_mem_nhds h : _)
 
 /-- If a property of a germ of function `g` on a pointed set `(s, x)` is invariant under the
 structure groupoid (by composition in the source space and in the target space), then

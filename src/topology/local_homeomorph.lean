@@ -237,7 +237,7 @@ lemma symm_target : e.symm.target = e.source := rfl
 
 /-- A local homeomorphism is continuous at any point of its source -/
 protected lemma continuous_at {x : α} (h : x ∈ e.source) : continuous_at e x :=
-(e.continuous_on x h).continuous_at (is_open.mem_nhds e.open_source h)
+(e.continuous_on x h).continuous_at (e.open_source.mem_nhds h)
 
 /-- A local homeomorphism inverse is continuous at any point of its target -/
 lemma continuous_at_symm {x : β} (h : x ∈ e.target) : continuous_at e.symm x :=
@@ -272,6 +272,56 @@ lemma map_nhds_within_preimage_eq (e : local_homeomorph α β) {x} (hx : x ∈ e
   map e (𝓝[e ⁻¹' s] x) = 𝓝[s] (e x) :=
 by rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.target_inter_inv_preimage_preimage,
   e.nhds_within_target_inter (e.map_source hx)]
+
+
+lemma eventually_nhds (e : local_homeomorph α β) {x : α} (p : β → Prop)
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p y) ↔ ∀ᶠ x in 𝓝 x, p (e x) :=
+begin
+  refine ⟨(e.continuous_at hx).eventually, _⟩,
+  intro h,
+  rw [← e.left_inv hx] at h,
+  filter_upwards [(e.symm.continuous_at $ e.maps_to hx).eventually h,
+    e.eventually_right_inverse' hx],
+  intros y hy heq,
+  rwa [heq] at hy
+end
+
+lemma eventually_nhds' (e : local_homeomorph α β) {x : α} (p : α → Prop)
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝 x, p x :=
+begin
+  rw [e.eventually_nhds _ hx],
+  refine eventually_congr ((e.eventually_left_inverse hx).mono $ λ y hy, _),
+  rw [hy]
+end
+
+lemma eventually_nhds_within (e : local_homeomorph α β) {x : α} (p : β → Prop) {s : set α}
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝[e.symm ⁻¹' s] (e x), p y) ↔ ∀ᶠ x in 𝓝[s] x, p (e x) :=
+begin
+  refine iff.trans _ eventually_map,
+  rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.nhds_within_target_inter (e.maps_to hx)]
+end
+
+lemma eventually_nhds_within' (e : local_homeomorph α β) {x : α} (p : α → Prop) {s : set α}
+  (hx : x ∈ e.source) : (∀ᶠ y in 𝓝[e.symm ⁻¹' s] (e x), p (e.symm y)) ↔ ∀ᶠ x in 𝓝[s] x, p x :=
+begin
+  rw [e.eventually_nhds_within _ hx],
+  refine eventually_congr ((eventually_nhds_within_of_eventually_nhds $
+    e.eventually_left_inverse hx).mono $ λ y hy, _),
+  rw [hy]
+end
+
+lemma preimage_eventually_eq_target_inter_preimage_inter
+  {e : local_homeomorph α β} {s : set α} {t : set γ} {x : α}
+  {f : α → γ} (hf : continuous_within_at f s x) (hxe : x ∈ e.source) (ht : t ∈ 𝓝 (f x)) :
+  e.symm ⁻¹' s =ᶠ[𝓝 (e x)] (e.target ∩ e.symm ⁻¹' (s ∩ f ⁻¹' t) : set β) :=
+begin
+  rw [eventually_eq_set, e.eventually_nhds _ hxe],
+  filter_upwards [(e.open_source.mem_nhds hxe),
+    mem_nhds_within_iff_eventually.mp (hf.preimage_mem_nhds_within ht)],
+  intros y hy hyu,
+  simp_rw [mem_inter_iff, mem_preimage, mem_inter_iff, e.maps_to hy, true_and, iff_self_and,
+    e.left_inv hy, iff_true_intro hyu]
+end
 
 lemma preimage_open_of_open {s : set β} (hs : is_open s) : is_open (e.source ∩ e ⁻¹' s) :=
 e.continuous_on.preimage_open_of_open e.open_source hs

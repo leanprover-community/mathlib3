@@ -150,7 +150,9 @@ variables [decidable_eq ι]
 
 variables (v R)
 
-def matrix_represents_subring : subalgebra R (matrix ι ι R) :=
+/-- The subalgebra of `matrix ι ι R` that consists of matrices that actually represents
+endomorphisms on `M`. -/
+def matrix.is_representation : subalgebra R (matrix ι ι R) :=
 { carrier := { A | ∃ f : module.End R M, matrix_represents v A f },
   mul_mem' := λ A₁ A₂ ⟨f₁, e₁⟩ ⟨f₂, e₂⟩, ⟨f₁ * f₂, e₁.mul e₂⟩,
   one_mem' := ⟨1, matrix_represents.one⟩,
@@ -158,28 +160,29 @@ def matrix_represents_subring : subalgebra R (matrix ι ι R) :=
   zero_mem' := ⟨0, matrix_represents.zero⟩,
   algebra_map_mem' := λ r, ⟨r • 1, matrix_represents.one.smul r⟩ }
 
+/-- The map sending a matrix to the endomorphism it represents. This is an `R`-algebra morphism. -/
 noncomputable
-def matrix_represents_subring.to_End : matrix_represents_subring R v →ₐ[R] module.End R M :=
+def matrix.is_representation.to_End : matrix.is_representation R v →ₐ[R] module.End R M :=
 { to_fun := λ A, A.2.some,
-  map_one' := (1 : matrix_represents_subring R v).2.some_spec.eq hv matrix_represents.one,
+  map_one' := (1 : matrix.is_representation R v).2.some_spec.eq hv matrix_represents.one,
   map_mul' := λ A₁ A₂, (A₁ * A₂).2.some_spec.eq hv (A₁.2.some_spec.mul A₂.2.some_spec),
-  map_zero' := (0 : matrix_represents_subring R v).2.some_spec.eq hv matrix_represents.zero,
+  map_zero' := (0 : matrix.is_representation R v).2.some_spec.eq hv matrix_represents.zero,
   map_add' := λ A₁ A₂, (A₁ + A₂).2.some_spec.eq hv (A₁.2.some_spec.add A₂.2.some_spec),
-  commutes' := λ r, (r • 1 : matrix_represents_subring R v).2.some_spec.eq
+  commutes' := λ r, (r • 1 : matrix.is_representation R v).2.some_spec.eq
     hv (matrix_represents.one.smul r) }
 
-lemma matrix_represents_subring.to_End_represents (A : matrix_represents_subring R v) :
-  matrix_represents v (A : matrix ι ι R) (matrix_represents_subring.to_End R v hv A) :=
+lemma matrix.is_representation.to_End_represents (A : matrix.is_representation R v) :
+  matrix_represents v (A : matrix ι ι R) (matrix.is_representation.to_End R v hv A) :=
 A.2.some_spec
 
-lemma matrix_represents_subring.eq_to_End_of_represents (A : matrix_represents_subring R v)
+lemma matrix.is_representation.eq_to_End_of_represents (A : matrix.is_representation R v)
   {f : module.End R M} (h : matrix_represents v (A : matrix ι ι R) f) :
-    matrix_represents_subring.to_End R v hv A = f :=
+    matrix.is_representation.to_End R v hv A = f :=
 A.2.some_spec.eq hv h
 
-lemma matrix_represents_subring.to_End_exists_mem_ideal
+lemma matrix.is_representation.to_End_exists_mem_ideal
   (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
-  ∃ M, matrix_represents_subring.to_End R v hv M = f ∧ ∀ i j, M.1 i j ∈ I :=
+  ∃ M, matrix.is_representation.to_End R v hv M = f ∧ ∀ i j, M.1 i j ∈ I :=
 begin
   have : ∀ x, f x ∈ (ideal.finsupp_total ι M I v).range,
   { rw [ideal.range_finsupp_total, hv], exact λ x, hI (f.mem_range_self x) },
@@ -191,15 +194,15 @@ begin
     intro j,
     specialize hbM' (v j),
     rwa ideal.finsupp_total_apply_eq_of_fintype at hbM' },
-  exact ⟨⟨A, f, this⟩, matrix_represents_subring.eq_to_End_of_represents R v hv ⟨A, f, this⟩ this,
+  exact ⟨⟨A, f, this⟩, matrix.is_representation.eq_to_End_of_represents R v hv ⟨A, f, this⟩ this,
     λ i j, (bM' (v j) i).prop⟩,
 end
 
-lemma matrix_represents_subring.to_End_surjective :
-  function.surjective (matrix_represents_subring.to_End R v hv) :=
+lemma matrix.is_representation.to_End_surjective :
+  function.surjective (matrix.is_representation.to_End R v hv) :=
 begin
   intro f,
-  obtain ⟨M, e, -⟩ := matrix_represents_subring.to_End_exists_mem_ideal R v hv f ⊤ _,
+  obtain ⟨M, e, -⟩ := matrix.is_representation.to_End_exists_mem_ideal R v hv f ⊤ _,
   exact ⟨M, e⟩,
   simp,
 end
@@ -223,12 +226,12 @@ begin
   { exactI ⟨0, polynomial.monic_of_subsingleton _, by simp⟩ },
   resetI,
   obtain ⟨s : finset M, hs : submodule.span R (s : set M) = ⊤⟩ := module.finite.out,
-  obtain ⟨A, rfl, h⟩ := matrix_represents_subring.to_End_exists_mem_ideal R (coe : s → M)
+  obtain ⟨A, rfl, h⟩ := matrix.is_representation.to_End_exists_mem_ideal R (coe : s → M)
     (by rw [subtype.range_coe_subtype, finset.set_of_mem, hs]) f I hI,
   refine ⟨A.1.charpoly, A.1.charpoly_monic, _, _⟩,
   { rw A.1.charpoly_nat_degree_eq_dim,
     exact coeff_charpoly_mem_ideal_pow h },
-  { rw [polynomial.aeval_alg_hom_apply, ← map_zero (matrix_represents_subring.to_End R coe _)],
+  { rw [polynomial.aeval_alg_hom_apply, ← map_zero (matrix.is_representation.to_End R coe _)],
     congr' 1,
     ext1,
     rw [polynomial.aeval_subalgebra_coe, subtype.val_eq_coe, matrix.aeval_self_charpoly,

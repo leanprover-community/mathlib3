@@ -1405,6 +1405,7 @@ variables (M)
 
 open_locale big_operators
 
+/-- A variant of `finsupp.total` that takes in vectors valued in `I`. -/
 noncomputable
 def finsupp_total : (ι →₀ I) →ₗ[R] M :=
 (finsupp.total ι M R v).comp (finsupp.map_range.linear_map I.subtype)

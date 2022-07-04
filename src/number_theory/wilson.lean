@@ -19,15 +19,19 @@ This could be generalized to similar results about finite abelian groups.
 
 * [Wilson's Theorem](https://en.wikipedia.org/wiki/Wilson%27s_theorem)
 
+## TODO
+
+* Move `wilsons_lemma` into this file, and give it a descriptive name.
 -/
 
 open_locale nat
 
 namespace nat
+variable {n : ℕ}
 
 /-- For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
 lemma prime_of_fac_equiv_neg_one
-  {n : ℕ} (h : ((n - 1)! : zmod n) = -1) (h1 : 1 < n) : prime n :=
+  (h : ((n - 1)! : zmod n) = -1) (h1 : 1 < n) : prime n :=
 begin
   by_contradiction h2,
   obtain ⟨m, hm1, hm2 : 1 < m, hm3⟩ := exists_dvd_of_not_prime2 h1 h2,
@@ -37,7 +41,7 @@ begin
 end
 
 /-- **Wilson's Theorem**: For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
-theorem prime_iff_fac_equiv_neg_one {n : ℕ} (h : 1 < n) :
+theorem prime_iff_fac_equiv_neg_one (h : 1 < n) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin
   refine ⟨λ h1, _, λ h2, prime_of_fac_equiv_neg_one h2 h⟩,

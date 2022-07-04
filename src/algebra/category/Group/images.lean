@@ -22,8 +22,6 @@ universe u
 
 namespace AddCommGroup
 
--- Note that because `injective_of_mono` is currently only proved in `Type 0`,
--- we restrict to the lowest universe here for now.
 variables {G H : AddCommGroup.{u}} (f : G ⟶ H)
 
 local attribute [ext] subtype.ext_val

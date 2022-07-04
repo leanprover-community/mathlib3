@@ -330,7 +330,7 @@ Analysis:
     product of finitely many measures: 'measure_theory.measure.pi'
     convolution: 'convolution'
     approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
-    regulatization by convolution: 'has_compact_support.cont_diff_convolution_left'
+    regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
 
 Probability Theory:
   Definitions of a probability space:
@@ -346,7 +346,7 @@ Probability Theory:
     mean of product of independent random variables: 'probability_theory.indep_fun.integral_mul_of_integrable'
     moment of a random variable: 'probability_theory.moment'
     Bernoulli law: 'pmf.bernoulli'
-  Convergence of series of random variables:
+  Convergence of sequence of random variables:
     convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'
@@ -354,10 +354,10 @@ Probability Theory:
     Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
     strong law of large numbers: 'probability_theory.strong_law_ae'
   Stochastic Processes:
-    Martingale: 'measure_theory.martingale'
-    Optional stopping theorem: 'measure_theory.submartingale_iff_expected_stopped_value_mono'
-    Stopping time: 'measure_theory.is_stopping_time'
-    Hitting time: 'measure_theory.hitting'
+    martingale: 'measure_theory.martingale'
+    optional stopping theorem: 'measure_theory.submartingale_iff_expected_stopped_value_mono'
+    stopping time: 'measure_theory.is_stopping_time'
+    hitting time: 'measure_theory.hitting'
 
 Geometry:
   Affine and Euclidean geometry:

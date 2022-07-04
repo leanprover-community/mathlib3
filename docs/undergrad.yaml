@@ -518,7 +518,7 @@ Measures and integral calculus:
     change of variables to spherical co-ordinates: ''
     convolution: 'convolution'
     approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
-    regulatization by convolution: 'has_compact_support.cont_diff_convolution_left'
+    regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''
     Riemann-Lebesgue lemma: ''
@@ -562,7 +562,7 @@ Probability Theory:
     characteristic function: ''
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
-  Convergence of series of random variables:
+  Convergence of sequence of random variables:
     convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'

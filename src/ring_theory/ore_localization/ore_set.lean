@@ -81,10 +81,12 @@ instance ore_set_comm {R} [comm_monoid R] (S : submonoid R) : ore_set S :=
 
 end monoid
 
+/-- Cancellability in monoids with zeros can act as a replacement for the `ore_left_cancel`
+condition of an ore set. -/
 def ore_set_of_cancel_monoid_with_zero
   {R : Type*} [cancel_monoid_with_zero R] {S : submonoid R}
   (ore_num : R → S → R) (ore_denom : R → S → S)
-  {ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)} :
+  (ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)) :
   ore_set S :=
 { ore_left_cancel := λ r₁ r₂ s h, ⟨s, mul_eq_mul_right_iff.mpr (mul_eq_mul_left_iff.mp h)⟩,
   ore_num := ore_num,
@@ -95,16 +97,12 @@ def ore_set_of_cancel_monoid_with_zero
 it suffices to give a prove for the ore condition itself. -/
 def ore_set_of_no_zero_divisors
   {R : Type*} [ring R] [no_zero_divisors R] {S : submonoid R}
-  (ore_num : R → S → R)
-  (ore_denom : R → S → S)
-  {ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)} :
+  (ore_num : R → S → R) (ore_denom : R → S → S)
+  (ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)) :
   ore_set S :=
-{ ore_left_cancel := λ r₁ r₂ s h, ⟨s, begin
-    letI : cancel_monoid_with_zero R := no_zero_divisors.to_cancel_monoid_with_zero,
-    exact mul_eq_mul_right_iff.mpr (mul_eq_mul_left_iff.mp h)
-  end⟩,
-  ore_num := ore_num,
-  ore_denom := ore_denom,
-  ore_eq := ore_eq }
+begin
+  letI : cancel_monoid_with_zero R := no_zero_divisors.to_cancel_monoid_with_zero,
+  exact ore_set_of_cancel_monoid_with_zero ore_num ore_denom ore_eq
+end
 
 end ore_localization

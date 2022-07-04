@@ -64,7 +64,7 @@ If `F` is full and faithful and has a left adjoint `L` which preserves binary pr
 Frobenius morphism is an isomorphism.
 -/
 instance frobenius_morphism_iso_of_preserves_binary_products (h : L ⊣ F) (A : C)
-  [preserves_limits_of_shape (discrete.{v} walking_pair) L] [full F] [faithful F] :
+  [preserves_limits_of_shape (discrete walking_pair) L] [full F] [faithful F] :
 is_iso (frobenius_morphism F h A) :=
 begin
   apply nat_iso.is_iso_of_is_iso_app _,
@@ -74,7 +74,7 @@ begin
 end
 
 variables [cartesian_closed C] [cartesian_closed D]
-variables [preserves_limits_of_shape (discrete.{v} walking_pair) F]
+variables [preserves_limits_of_shape (discrete walking_pair) F]
 
 /--
 The exponential comparison map.
@@ -182,7 +182,7 @@ TODO: Show the converse, that if `F` is cartesian closed and its left adjoint pr
 products, then it is full and faithful.
 -/
 def cartesian_closed_functor_of_left_adjoint_preserves_binary_products (h : L ⊣ F)
-  [full F] [faithful F] [preserves_limits_of_shape (discrete.{v} walking_pair) L] :
+  [full F] [faithful F] [preserves_limits_of_shape (discrete walking_pair) L] :
   cartesian_closed_functor F :=
 { comparison_iso := λ A, exp_comparison_iso_of_frobenius_morphism_iso F h _ }
 

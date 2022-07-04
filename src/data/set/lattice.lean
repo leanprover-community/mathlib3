@@ -1511,7 +1511,7 @@ not_forall.trans $ exists_congr $ λ x, not_not
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
 by simp [set.not_disjoint_iff, set.nonempty_def]
 
-alias not_disjoint_iff_nonempty_inter ↔ _ set.nonempty.not_disjoint
+alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 
 lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
 (em _).imp_right not_disjoint_iff_nonempty_inter.mp
@@ -1547,6 +1547,22 @@ supr_disjoint_iff
 @[simp] theorem disjoint_Union_right {ι : Sort*} {s : ι → set α} :
   disjoint t (⋃ i, s i) ↔ ∀ i, disjoint t (s i) :=
 disjoint_supr_iff
+
+@[simp] lemma disjoint_Union₂_left {s : Π i, κ i → set α} {t : set α} :
+  disjoint (⋃ i j, s i j) t ↔ ∀ i j, disjoint (s i j) t :=
+supr₂_disjoint_iff
+
+@[simp] lemma disjoint_Union₂_right {s : set α} {t : Π i, κ i → set α} :
+  disjoint s (⋃ i j, t i j) ↔ ∀ i j, disjoint s (t i j) :=
+disjoint_supr₂_iff
+
+@[simp] lemma disjoint_sUnion_left {S : set (set α)} {t : set α} :
+  disjoint (⋃₀ S) t ↔ ∀ s ∈ S, disjoint s t :=
+Sup_disjoint_iff
+
+@[simp] lemma disjoint_sUnion_right {s : set α} {S : set (set α)} :
+  disjoint s (⋃₀ S) ↔ ∀ t ∈ S, disjoint s t :=
+disjoint_Sup_iff
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
@@ -1606,14 +1622,6 @@ lemma preimage_eq_empty_iff {s : set β} : f ⁻¹' s = ∅ ↔ disjoint s (rang
     rw ← hx at hy,
     exact h x hy,
   end, preimage_eq_empty⟩
-
-lemma disjoint_iff_subset_compl_right :
-  disjoint s t ↔ s ⊆ tᶜ :=
-disjoint_left
-
-lemma disjoint_iff_subset_compl_left :
-  disjoint s t ↔ t ⊆ sᶜ :=
-disjoint_right
 
 lemma _root_.disjoint.image {s t u : set α} {f : α → β} (h : disjoint s t) (hf : inj_on f u)
   (hs : s ⊆ u) (ht : t ⊆ u) : disjoint (f '' s) (f '' t) :=

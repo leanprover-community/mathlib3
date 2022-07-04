@@ -141,7 +141,7 @@ rfl
 
 @[simp, norm_cast] lemma coe_eq : (f : germ l β) = g ↔ (f =ᶠ[l] g) := quotient.eq'
 
-alias coe_eq ↔ _ filter.eventually_eq.germ_eq
+alias coe_eq ↔ _ _root_.filter.eventually_eq.germ_eq
 
 /-- Lift a function `β → γ` to a function `germ l β → germ l γ`. -/
 def map (op : β → γ) : germ l β → germ l γ :=
@@ -173,7 +173,7 @@ lift_on f (λ f, tendsto f l lb) $ λ f g H, propext (tendsto_congr' H)
   (f : germ l β).tendsto lb ↔ tendsto f l lb :=
 iff.rfl
 
-alias coe_tendsto ↔ _ filter.tendsto.germ_tendsto
+alias coe_tendsto ↔ _ _root_.filter.tendsto.germ_tendsto
 
 /-- Given two germs `f : germ l β`, and `g : germ lc α`, where `l : filter α`, if `g` tends to `l`,
 then the composition `f ∘ g` is well-defined as a germ at `lc`. -/
@@ -303,10 +303,10 @@ instance has_int_pow [div_inv_monoid G] : has_pow (germ l G) ℤ := ⟨λ f z, m
 @[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑(f ^ z) = (f ^ z : germ l G) :=
 rfl
 
-instance [has_scalar M β] : has_scalar M (germ l β) :=
+instance [has_smul M β] : has_smul M (germ l β) :=
 ⟨λ c, map ((•) c)⟩
 
-@[simp, norm_cast] lemma coe_smul [has_scalar M β] (c : M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul [has_smul M β] (c : M) (f : α → β) :
   ↑(c • f) = (c • f : germ l β) :=
 rfl
 
@@ -420,10 +420,10 @@ section module
 
 variables {M N R : Type*}
 
-instance has_scalar' [has_scalar M β] : has_scalar (germ l M) (germ l β) :=
+instance has_smul' [has_smul M β] : has_smul (germ l M) (germ l β) :=
 ⟨map₂ (•)⟩
 
-@[simp, norm_cast] lemma coe_smul' [has_scalar M β] (c : α → M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul' [has_smul M β] (c : α → M) (f : α → β) :
   ↑(c • f) = (c : germ l M) • (f : germ l β) :=
 rfl
 

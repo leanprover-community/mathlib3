@@ -555,6 +555,28 @@ lemma tendsto_arg_nhds_within_im_nonneg_of_re_neg_of_im_zero
 by simpa only [arg_eq_pi_iff.2 ⟨hre, him⟩]
   using (continuous_within_at_arg_of_re_neg_of_im_zero hre him).tendsto
 
+lemma continuous_at_arg_coe_angle (h : x ≠ 0) : continuous_at (coe ∘ arg : ℂ → real.angle) x :=
+begin
+  by_cases hs : 0 < x.re ∨ x.im ≠ 0,
+  { exact real.angle.continuous_coe.continuous_at.comp (continuous_at_arg hs) },
+  { rw [←function.comp.right_id (coe ∘ arg),
+        (function.funext_iff.2 (λ _, (neg_neg _).symm) :
+          (id : ℂ → ℂ) = has_neg.neg ∘ has_neg.neg), ←function.comp.assoc],
+    refine continuous_at.comp _ continuous_neg.continuous_at,
+    suffices : continuous_at (function.update ((coe ∘ arg) ∘ has_neg.neg : ℂ → real.angle) 0 π)
+      (-x), by rwa continuous_at_update_of_ne (neg_ne_zero.2 h) at this,
+    have ha : function.update ((coe ∘ arg) ∘ has_neg.neg : ℂ → real.angle) 0 π =
+      λ z, (arg z : real.angle) + π,
+    { rw function.update_eq_iff,
+      exact ⟨by simp, λ z hz, arg_neg_coe_angle hz⟩ },
+    rw ha,
+    push_neg at hs,
+    refine (real.angle.continuous_coe.continuous_at.comp (continuous_at_arg (or.inl _))).add
+      continuous_at_const,
+    rw [neg_re, neg_pos],
+    exact hs.1.lt_of_ne (λ h0, h (ext_iff.2 ⟨h0, hs.2⟩)) }
+end
+
 end continuity
 
 end complex

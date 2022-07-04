@@ -59,7 +59,7 @@ begin
   simp_rw [to_fun_linear, lift.tmul, to_fun_bilinear_apply, mul_eq_mul, matrix.map_mul],
   ext,
   dsimp,
-  simp_rw [matrix.mul_apply, pi.smul_apply, matrix.map_apply, smul_eq_mul, finset.mul_sum,
+  simp_rw [matrix.mul_apply, matrix.map_apply, pi.smul_apply, smul_eq_mul, finset.mul_sum,
     _root_.mul_assoc, algebra.left_comm],
 end
 begin

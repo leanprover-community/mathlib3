@@ -202,13 +202,13 @@ begin
     obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C' * ∥f g∥⟩ :=
       hC' (f g) (mem_range_self g),
     have mem_ker : g - g' ∈ f.ker,
-      by rw [f.mem_ker, f.map_sub, sub_eq_zero.mpr hgg'.symm],
+      by rw [f.mem_ker, map_sub, sub_eq_zero.mpr hgg'.symm],
     have : ∥f g∥ ≤ ∥f∥*∥hatg - g∥,
     calc
       ∥f g∥ = ∥f.completion g∥ : by rw [f.completion_coe, completion.norm_coe]
         ... = ∥f.completion g - 0∥ : by rw [sub_zero _]
         ... = ∥f.completion g - (f.completion hatg)∥ : by rw [(f.completion.mem_ker _).mp hatg_in]
-        ... = ∥f.completion (g - hatg)∥ : by rw [f.completion.map_sub]
+        ... = ∥f.completion (g - hatg)∥ : by rw [map_sub]
         ... ≤ ∥f.completion∥ * ∥(g :completion G) - hatg∥ : f.completion.le_op_norm _
         ... = ∥f∥ * ∥hatg - g∥ : by rw [norm_sub_rev, f.norm_completion],
     have : ∥(g' : completion G)∥ ≤ C'*∥f∥*∥hatg - g∥,

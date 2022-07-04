@@ -36,6 +36,7 @@ begin
     all_goals { rw (map_ne_zero_iff _ $ is_fraction_ring.injective R K), assumption } }
 end
 
+@[priority 100]
 instance gcd_monoid.to_is_integrally_closed {R : Type*} [comm_ring R] [is_domain R] [gcd_monoid R] :
   is_integrally_closed R :=
 begin

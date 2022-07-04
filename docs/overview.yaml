@@ -327,6 +327,35 @@ Analysis:
     fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
+    Convolution: 'convolution'
+    Approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+
+Probability Theory:
+  Definitions of a probability space:
+    probability measure: 'measure_theory.is_probability_measure'
+    independent events: 'probability_theory.Indep_set'
+    independent sigma-algebra: 'probability_theory.Indep'
+    conditional probability: 'probability_theory.cond'
+  Random variables and their laws:
+    variance: 'probability_theory.variance'
+    discrete law: 'pmf'
+    probability density function: 'measure_theory.has_pdf'
+    independence of random variables: 'probability_theory.Indep_fun'
+    mean of product of independent random variables: 'probability_theory.indep_fun.integral_mul_of_integrable'
+    moment of a random variable: 'probability_theory.moment'
+    Bernoulli law: 'pmf.bernoulli'
+  Convergence of series of random variables:
+    convergence in probability: 'measure_theory.tendsto_in_measure'
+    $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
+    almost surely convergence: 'measure_theory.measure.ae'
+    Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
+    Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
+    strong law of large numbers: 'probability_theory.strong_law_ae'
+  Stochastic Processes:
+    Martingale: 'measure_theory.martingale'
+    Optional stopping theorem: 'measure_theory.submartingale_iff_expected_stopped_value_mono'
+    Stopping time: 'measure_theory.is_stopping_time'
+    Hitting time: 'measure_theory.hitting'
 
 Geometry:
   Affine and Euclidean geometry:

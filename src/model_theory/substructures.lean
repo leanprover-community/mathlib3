@@ -262,11 +262,12 @@ begin
   exact cardinal.mk_range_le_lift,
 end
 
-theorem lift_card_closure_le : cardinal.lift.{(max u w) w} (# (closure L s)) ≤
-  max ℵ₀ (cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i))) :=
+theorem lift_card_closure_le : cardinal.lift.{u w} (# (closure L s)) ≤
+  max ℵ₀ (cardinal.lift.{u w} (#s) + cardinal.lift.{w u} (#(Σ i, L.functions i))) :=
 begin
+  rw ←lift_umax,
   refine lift_card_closure_le_card_term.trans (term.card_le.trans _),
-  rw [mk_sum, lift_umax', lift_umax],
+  rw [mk_sum, lift_umax],
 end
 
 variable (L)

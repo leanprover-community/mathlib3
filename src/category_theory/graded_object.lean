@@ -53,7 +53,7 @@ namespace graded_object
 
 variables {C : Type u} [category.{v} C]
 
-instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
+instance category_of_graded_objects (β : Type w) : category.{max w v} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
 /-- The projection of a graded object to its `i`-th component. -/
@@ -124,7 +124,7 @@ rfl
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
-  has_zero_morphisms.{(max w v)} (graded_object β C) :=
+  has_zero_morphisms.{max w v} (graded_object β C) :=
 { has_zero := λ X Y,
   { zero := λ b, 0 } }
 
@@ -136,7 +136,7 @@ section
 open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
-  has_zero_object.{(max w v)} (graded_object β C) :=
+  has_zero_object.{max w v} (graded_object β C) :=
 by { refine ⟨⟨λ b, 0, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩⟩⟩; ext, }
 end
 

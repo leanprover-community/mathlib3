@@ -530,10 +530,10 @@ begin
     ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) + ∏ i, ∥p.2 i∥)
     (λq hq, _),
   have : 0 ≤ (max ∥q.2∥ ∥p.2∥), by simp,
-  have : 0 ≤ ∥p∥ + 1, by simp [le_trans zero_le_one],
-  have A : ∥q∥ ≤ ∥p∥ + 1 := norm_le_of_mem_closed_ball (le_of_lt hq),
+  have : 0 ≤ ∥p∥ + 1 := zero_le_one.trans ((le_add_iff_nonneg_left 1).2 $ norm_nonneg p),
+  have A : ∥q∥ ≤ ∥p∥ + 1 := norm_le_of_mem_closed_ball hq.le,
   have : (max ∥q.2∥ ∥p.2∥) ≤ ∥p∥ + 1 :=
-    le_trans (max_le_max (norm_snd_le q) (norm_snd_le p)) (by simp [A, -add_comm, zero_le_one]),
+    (max_le_max (norm_snd_le q) (norm_snd_le p)).trans (by simp [A, -add_comm, zero_le_one]),
   have : ∀ (i : ι), i ∈ univ → 0 ≤ ∥p.2 i∥ := λ i hi, norm_nonneg _,
   calc dist (q.1 q.2) (p.1 p.2)
     ≤ dist (q.1 q.2) (q.1 p.2) + dist (q.1 p.2) (p.1 p.2) : dist_triangle _ _ _

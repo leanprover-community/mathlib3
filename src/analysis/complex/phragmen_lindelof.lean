@@ -382,7 +382,7 @@ begin
     refine ⟨c, hc, max B 0, _⟩,
     rw [← comap_comap, comap_abs_at_top, comap_sup, inf_sup_right],
     -- We prove separately the estimates as `ζ.re → ∞` and as `ζ.re → -∞`
-    refine is_O.join _ ((hO.comp_tendsto $ tendsto_exp_comap_re_at_top.inf H.tendsto).trans $
+    refine is_O.sup _ ((hO.comp_tendsto $ tendsto_exp_comap_re_at_top.inf H.tendsto).trans $
       is_O.of_bound 1 _),
     { -- For the estimate as `ζ.re → -∞`, note that `f` is continuous within the first quadrant at
       -- zero, hence `f (exp ζ)` has a limit as `ζ.re → -∞`, `0 < ζ.im < π / 2`.

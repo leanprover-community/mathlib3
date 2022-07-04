@@ -46,7 +46,7 @@ instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
 /-- Enable automatic handling of pi types in `can_lift`. -/
-instance pi.can_lift (ι : Type*) (α : Π i : ι, Type*) (β : Π i : ι, Type*)
+instance pi.can_lift (ι : Sort*) (α : Π i : ι, Sort*) (β : Π i : ι, Sort*)
   [Π i : ι, can_lift (α i) (β i)] :
   can_lift (Π i : ι, α i) (Π i : ι, β i) :=
 { coe := λ f i, can_lift.coe (f i),
@@ -54,7 +54,7 @@ instance pi.can_lift (ι : Type*) (α : Π i : ι, Type*) (β : Π i : ι, Type*
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
 
-instance pi_subtype.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
+instance pi_subtype.can_lift (ι : Sort*) (α : Π i : ι, Sort*) [ne : Π i, nonempty (α i)]
   (p : ι → Prop) :
   can_lift (Π i : subtype p, α i) (Π i, α i) :=
 { coe := λ f i, f i,
@@ -67,9 +67,14 @@ instance pi_subtype.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, no
       exact dif_pos hi
     end }
 
-instance pi_subtype.can_lift' (ι : Type*) (α : Type*) [ne : nonempty α] (p : ι → Prop) :
+instance pi_subtype.can_lift' (ι : Sort*) (α : Sort*) [ne : nonempty α] (p : ι → Prop) :
   can_lift (subtype p → α) (ι → α) :=
 pi_subtype.can_lift ι (λ _, α) p
+
+instance subtype.can_lift {α : Sort*} (p : α → Prop) : can_lift α {x // p x} :=
+{ coe := coe,
+  cond := p,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
 
 namespace tactic
 

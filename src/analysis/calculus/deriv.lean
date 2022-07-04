@@ -367,10 +367,7 @@ has_fderiv_within_at_inter h
 lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x)
   (ht : has_deriv_within_at f f' t x) :
   has_deriv_within_at f f' (s ∪ t) x :=
-begin
-  simp only [has_deriv_within_at, nhds_within_union],
-  exact hs.join ht,
-end
+hs.has_fderiv_within_at.union ht.has_fderiv_within_at
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ 𝓝[t] x) : has_deriv_within_at f f' t x :=
@@ -814,6 +811,14 @@ lemma deriv_smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 
   deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
 (hc.has_deriv_at.smul hf.has_deriv_at).deriv
 
+theorem has_strict_deriv_at.smul_const
+  (hc : has_strict_deriv_at c c' x) (f : F) :
+  has_strict_deriv_at (λ y, c y • f) (c' • f) x :=
+begin
+  have := hc.smul (has_strict_deriv_at_const x f),
+  rwa [smul_zero, zero_add] at this,
+end
+
 theorem has_deriv_within_at.smul_const
   (hc : has_deriv_within_at c c' s x) (f : F) :
   has_deriv_within_at (λ y, c y • f) (c' • f) s x :=
@@ -986,7 +991,7 @@ has_fderiv_at_filter.is_O_sub h
 theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
   (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
 suffices antilipschitz_with ∥f'∥₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
-(smul_right (1 : 𝕜 →L[𝕜] 𝕜) f').to_linear_map.antilipschitz_of_bound $
+add_monoid_hom_class.antilipschitz_of_bound (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') $
   λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
 
 theorem has_deriv_at_filter.sub_const

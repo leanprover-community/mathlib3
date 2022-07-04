@@ -352,6 +352,20 @@ adjunction.mk_of_hom_equiv
       apply comp_id,
     end }}
 
+/-- Given a coalgebra morphism whose carrier part is an epimorphism, we get an algebra epimorphism.
+-/
+lemma algebra_epi_of_epi {X Y : coalgebra G} (f : X ⟶ Y) [epi f.f] : epi f :=
+{ left_cancellation := λ Z g h w, begin
+    ext, rw [← cancel_epi f.f, ← coalgebra.comp_f, w, coalgebra.comp_f],
+  end }
+
+/-- Given a coalgebra morphism whose carrier part is a monomorphism, we get an algebra monomorphism.
+-/
+lemma algebra_mono_of_mono {X Y : coalgebra G} (f : X ⟶ Y) [mono f.f] : mono f :=
+{ right_cancellation := λ Z g h w, begin
+    ext, rw [← cancel_mono f.f, ← coalgebra.comp_f, w, coalgebra.comp_f],
+  end }
+
 /--
 Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalgebra isomorphism.
 -/

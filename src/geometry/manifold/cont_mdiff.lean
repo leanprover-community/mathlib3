@@ -254,7 +254,7 @@ iff.rfl
 
 /-- One can reformulate smoothness within a set at a point as continuity within this set at this
 point, and smoothness in the corresponding extended chart. This form states smoothness of `f`
-written om sicj a way that the set is restrited to lie within the domain/codomain of the
+written in such a way that the set is restricted to lie within the domain/codomain of the
 corresponding charts.
 Even though this expression is more complicated than the one in `cont_mdiff_within_at_iff`, it is
 a smaller set, but their germs at `ext_chart_at I x x` are equal. It is sometimes useful to rewrite
@@ -270,7 +270,6 @@ begin
   rw [cont_mdiff_within_at_iff, and.congr_right_iff],
   set e := ext_chart_at I x, set e' := ext_chart_at I' (f x),
   refine λ hc, cont_diff_within_at_congr_nhds _,
-  -- [⇑(e.symm) ⁻¹' s ∩ range ⇑I] ⇑e x' = 𝓝[e.target ∩ ⇑(e.symm) ⁻¹' (s ∩ f ⁻¹' (ext_chart_at I' y).source)] ⇑e x'
   rw [← e.image_source_inter_eq', ← ext_chart_at_map_nhds_within_eq_image,
       ← ext_chart_at_map_nhds_within, inter_comm, nhds_within_inter_of_mem],
   exact hc (ext_chart_at_source_mem_nhds _ _)
@@ -340,7 +339,7 @@ begin
   exact hc ((ext_chart_at_open_source _ _).mem_nhds hy)
 end
 
-lemma cont_mdiff_at_iff' {x' : M} {y : M'} (hx : x' ∈ (chart_at H x).source)
+lemma cont_mdiff_at_iff_of_mem_source {x' : M} {y : M'} (hx : x' ∈ (chart_at H x).source)
   (hy : f x' ∈ (chart_at H' y).source) :
   cont_mdiff_at I I' n f x' ↔ continuous_at f x' ∧
     cont_diff_within_at 𝕜 n (ext_chart_at I' y ∘ f ∘ (ext_chart_at I x).symm)
@@ -354,7 +353,7 @@ omit I's
 lemma cont_mdiff_at_ext_chart_at' {x' : M} (h : x' ∈ (chart_at H x).source) :
   cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x' :=
 begin
-  refine (cont_mdiff_at_iff' h (mem_chart_source _ _)).mpr _,
+  refine (cont_mdiff_at_iff_of_mem_source h (mem_chart_source _ _)).mpr _,
   rw [← ext_chart_at_source I] at h,
   refine ⟨ext_chart_at_continuous_at' _ _ h, _⟩,
   refine cont_diff_within_at_id.congr_of_eventually_eq _ _,

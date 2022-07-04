@@ -93,8 +93,8 @@ begin
   exact hG.left_invariance' he' (inter_subset_right _ _) hxe' hP
 end
 
-lemma congr_iff_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x) :
-  P f s x ↔ P g s x :=
+lemma congr_iff_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g)
+  (h2 : f x = g x) : P f s x ↔ P g s x :=
 by { simp_rw [hG.is_local_nhds h1 h2],
   exact ⟨hG.congr_of_forall (λ y hy, hy.2) h2, hG.congr_of_forall (λ y hy, hy.2.symm) h2.symm⟩ }
 
@@ -469,16 +469,6 @@ structure groupoid `G` for `H`, relative to a set `s` in `H`, if for all points 
 function agrees with a `G`-structomorphism on `s` in a neighbourhood of `x`. -/
 def is_local_structomorph_within_at (f : H → H) (s : set H) (x : H) : Prop :=
 x ∈ s → ∃ (e : local_homeomorph H H), e ∈ G ∧ eq_on f e.to_fun (s ∩ e.source) ∧ x ∈ e.source
-
--- lemma is_local_structomorph_within_at_iff {f : H → H} {s : set H} {x : H} :
---   is_local_structomorph_within_at G f s x ↔
---   (x ∈ s → ∃ (e : local_homeomorph H H), e ∈ G ∧ eq_on f e.to_fun s ∧ x ∈ e.source) :=
--- begin
---   refine ⟨_, λ h hx, let ⟨e, h1, h2, h3⟩ := h hx in ⟨e, h1, h2.mono (inter_subset_left _ _), h3⟩⟩,
---   intros h hx,
---   obtain ⟨e, h1, h2, h3⟩ := h hx,
---   sorry
--- end
 
 /-- For a groupoid `G` which is `closed_under_restriction`, being a local structomorphism is a local
 invariant property. -/

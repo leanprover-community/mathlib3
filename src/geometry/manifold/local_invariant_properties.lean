@@ -176,6 +176,25 @@ begin
   rw [hy]
 end
 
+lemma _root_.local_homeomorph.preimage_eventually_eq_target_inter_preimage_inter
+  {e : local_homeomorph M H} {t : set M'}
+  {f : M → M'} (hf : continuous_within_at f s x) (hxe : x ∈ e.source) (ht : t ∈ 𝓝 (f x)) :
+  e.symm ⁻¹' s =ᶠ[𝓝 (e x)] (e.target ∩ e.symm ⁻¹' (s ∩ f ⁻¹' t) : set H) :=
+begin
+  rw [eventually_eq_set, e.eventually_nhds _ hxe],
+  filter_upwards [(e.open_source.mem_nhds hxe),
+    mem_nhds_within_iff_eventually.mp (hf.preimage_mem_nhds_within ht)],
+  intros y hy hyu,
+  simp_rw [mem_inter_iff, mem_preimage, mem_inter_iff, e.maps_to hy, true_and, iff_self_and,
+    e.left_inv hy, iff_true_intro hyu]
+end
+
+variables (H x)
+lemma _root_.chart_source_mem_nhds : (chart_at H x).source ∈ 𝓝 x :=
+(chart_at H x).open_source.mem_nhds $ mem_chart_source H x
+variables {H x}
+-- note: which is preferred? `𝓝[s] x = 𝓝[t] x ↔ s =ᶠ[𝓝 x] t`
+
 variable (hG : G.local_invariant_prop G' P)
 include hG
 
@@ -212,6 +231,19 @@ hG.congr_nhds_within (mem_nhds_within_of_mem_nhds h) (mem_of_mem_nhds h : _) hP
 
 lemma congr' {s : set H} {x : H} {f g : H → H'} (h : f =ᶠ[𝓝 x] g) (hP : P g s x) : P f s x :=
 hG.congr h.symm hP
+
+/-- `lift_prop_within_at P f s x` is equivalent to a definition where we restrict the set we are
+  considering to the domain of the charts at `x` and `f x`. -/
+lemma lift_prop_within_at_iff {f : M → M'} (hf : continuous_within_at f s x) :
+  lift_prop_within_at P f s x ↔
+  P ((chart_at H' (f x)) ∘ f ∘ (chart_at H x).symm)
+  ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (s ∩ f ⁻¹' (chart_at H' (f x)).source))
+  (chart_at H x x) :=
+begin
+  rw [lift_prop_within_at, iff_true_intro hf, true_and, hG.congr_set],
+  exact local_homeomorph.preimage_eventually_eq_target_inter_preimage_inter hf
+    (mem_chart_source H x) (chart_source_mem_nhds H' (f x))
+end
 
 -- lemma congr_nhds_within {s : set H} {x : H} {f g : H → H'} (h1 : f =ᶠ[𝓝[s] x] g) (h2 : f x = g x) :
 --   P f s x ↔ P g s x :=

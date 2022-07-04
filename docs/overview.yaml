@@ -338,9 +338,9 @@ Probability Theory:
     independent sigma-algebra: 'probability_theory.Indep'
     conditional probability: 'probability_theory.cond'
   Random variables and their laws:
-    variance: 'probability_theory.variance'
     discrete law: 'pmf'
     probability density function: 'measure_theory.has_pdf'
+    variance of a real-valued random variable: 'probability_theory.variance'
     independence of random variables: 'probability_theory.Indep_fun'
     mean of product of independent random variables: 'probability_theory.indep_fun.integral_mul_of_integrable'
     moment of a random variable: 'probability_theory.moment'

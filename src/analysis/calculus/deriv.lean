@@ -1896,7 +1896,7 @@ end polynomial
 section pow
 /-! ### Derivative of `x ↦ x^n` for `n : ℕ` -/
 variables {x : 𝕜} {s : set 𝕜} {c : 𝕜 → 𝕜} {c' : 𝕜}
-variable {n : ℕ }
+variable (n : ℕ)
 
 lemma has_strict_deriv_at_pow (n : ℕ) (x : 𝕜) :
   has_strict_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
@@ -1917,19 +1917,19 @@ lemma differentiable_at_pow : differentiable_at 𝕜 (λx, x^n) x :=
 (has_deriv_at_pow n x).differentiable_at
 
 lemma differentiable_within_at_pow : differentiable_within_at 𝕜 (λx, x^n) s x :=
-differentiable_at_pow.differentiable_within_at
+(differentiable_at_pow n).differentiable_within_at
 
 lemma differentiable_pow : differentiable 𝕜 (λx:𝕜, x^n) :=
-λx, differentiable_at_pow
+λ x, differentiable_at_pow n
 
 lemma differentiable_on_pow : differentiable_on 𝕜 (λx, x^n) s :=
-differentiable_pow.differentiable_on
+(differentiable_pow n).differentiable_on
 
-lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
+lemma deriv_pow : deriv (λ x, x^n) x = (n : 𝕜) * x^(n-1) :=
 (has_deriv_at_pow n x).deriv
 
-@[simp] lemma deriv_pow' : deriv (λx, x^n) = λ x, (n : 𝕜) * x^(n-1) :=
-funext $ λ x, deriv_pow
+@[simp] lemma deriv_pow' : deriv (λ x, x^n) = λ x, (n : 𝕜) * x^(n-1) :=
+funext $ λ x, deriv_pow n
 
 lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
@@ -1941,32 +1941,32 @@ lemma has_deriv_within_at.pow (hc : has_deriv_within_at c c' s x) :
 
 lemma has_deriv_at.pow (hc : has_deriv_at c c' x) :
   has_deriv_at (λ y, (c y)^n) ((n : 𝕜) * (c x)^(n-1) * c') x :=
-by { rw ← has_deriv_within_at_univ at *, exact hc.pow }
+by { rw ← has_deriv_within_at_univ at *, exact hc.pow n }
 
 lemma differentiable_within_at.pow (hc : differentiable_within_at 𝕜 c s x) :
   differentiable_within_at 𝕜 (λx, (c x)^n) s x :=
-hc.has_deriv_within_at.pow.differentiable_within_at
+(hc.has_deriv_within_at.pow n).differentiable_within_at
 
 @[simp] lemma differentiable_at.pow (hc : differentiable_at 𝕜 c x) :
   differentiable_at 𝕜 (λx, (c x)^n) x :=
-hc.has_deriv_at.pow.differentiable_at
+(hc.has_deriv_at.pow n).differentiable_at
 
 lemma differentiable_on.pow (hc : differentiable_on 𝕜 c s) :
   differentiable_on 𝕜 (λx, (c x)^n) s :=
-λx h, (hc x h).pow
+λx h, (hc x h).pow n
 
 @[simp] lemma differentiable.pow (hc : differentiable 𝕜 c) :
   differentiable 𝕜 (λx, (c x)^n) :=
-λx, (hc x).pow
+λx, (hc x).pow n
 
 lemma deriv_within_pow' (hc : differentiable_within_at 𝕜 c s x)
   (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, (c x)^n) s x = (n : 𝕜) * (c x)^(n-1) * (deriv_within c s x) :=
-hc.has_deriv_within_at.pow.deriv_within hxs
+(hc.has_deriv_within_at.pow n).deriv_within hxs
 
 @[simp] lemma deriv_pow'' (hc : differentiable_at 𝕜 c x) :
   deriv (λx, (c x)^n) x = (n : 𝕜) * (c x)^(n-1) * (deriv c x) :=
-hc.has_deriv_at.pow.deriv
+(hc.has_deriv_at.pow n).deriv
 
 end pow
 

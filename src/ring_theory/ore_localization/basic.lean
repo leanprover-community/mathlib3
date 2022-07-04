@@ -314,7 +314,7 @@ lemma div_one_mul {p r : R} {s : S} :
   (r /ₒ 1) * (p /ₒ s) = (r * p) /ₒ s := --TODO use coercion r ↦ r /ₒ 1
 by simp [ore_div_mul_char r p 1 s p 1 (by simp)]
 
-/-- The unit in `R[S⁻¹]` consistinc of the fraction `s /ₒ 1` for `s : S`. -/
+/-- The unit in `R[S⁻¹]` consisting of the fraction `s /ₒ 1` for `s : S`. -/
 def numerator_unit (s : S) : units R[S⁻¹] :=
 { val := (s : R) /ₒ 1,
   inv := (1 : R) /ₒ s,

@@ -1079,6 +1079,10 @@ by simp [basis.fin_two_prod]
 @[simp] lemma fin_two_prod_one (R : Type*) [semiring R] : basis.fin_two_prod R 1 = (0, 1) :=
 by simp [basis.fin_two_prod]
 
+@[simp] lemma coe_fin_two_prod_repr {R : Type*} [semiring R] (x : R × R) :
+  ⇑((basis.fin_two_prod R).repr x) = ![x.fst, x.snd] :=
+rfl
+
 end fin
 
 end basis

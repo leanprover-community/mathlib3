@@ -24,7 +24,7 @@ import probability.variance
   defined at `t`, then `cgf (X + Y) μ t = cgf X μ t + cgf Y μ t`
 * `measure_ge_le_exp_cgf` and `measure_le_le_exp_cgf`: Chernoff bound on the upper (resp.
   lower) tail of a random variable. For `t` nonnegative such that the cgf exists,
-  `ℙ(ε ≤ X) ≤ exp( - t*ε + cfg X ℙ t)`. See also `measure_ge_le_exp_mul_mgf` and
+  `ℙ(ε ≤ X) ≤ exp(- t*ε + cgf X ℙ t)`. See also `measure_ge_le_exp_mul_mgf` and
   `measure_le_le_exp_mul_mgf` for versions of these results using `mgf` instead of `cgf`.
 
 -/

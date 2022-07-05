@@ -554,13 +554,19 @@ begin
   let πS := {s : set α | ∃ t ∈ πSβ, (λ a (i : S), f i a) ⁻¹' t = s},
   have hπS_pi : is_pi_system πS :=  is_pi_system_pi.comap (λ a i, f i a),
   have hπS_gen : measurable_space.pi.comap (λ a (i : S), f i a) = generate_from πS,
-  { sorry, },
+  { rw [generate_from_pi.symm, comap_generate_from],
+    { congr' with s,
+      simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
+    { exact finset.fintype_coe_sort S, }, },
   let πTβ := (set.pi (set.univ : set T) ''
     (set.pi (set.univ : set T) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πT := {s : set α | ∃ t ∈ πTβ, (λ a (i : T), f i a) ⁻¹' t = s},
   have hπT_pi : is_pi_system πT :=  is_pi_system_pi.comap (λ a i, f i a),
   have hπT_gen : measurable_space.pi.comap (λ a (i : T), f i a) = generate_from πT,
-  { sorry, },
+  { rw [generate_from_pi.symm, comap_generate_from],
+    { congr' with s,
+      simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
+    { exact finset.fintype_coe_sort T, }, },
 
   refine indep_sets.indep (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i)))
     (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i))) hπS_pi hπT_pi hπS_gen hπT_gen _,

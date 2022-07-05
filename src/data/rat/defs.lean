@@ -887,11 +887,7 @@ def pnat_denom (x : ℚ) : ℕ+ := ⟨x.denom, x.pos⟩
 This takes care of most occurances of `rat.pnat_denom` where `rat.denom` could be used instead.
 Sometimes it is necessary to do `apply pnat.eq` first.
 -/
-@[simp] lemma pnat_denom_eq_denom (x : ℚ) : (x.pnat_denom : ℕ) = x.denom :=
-begin
-  unfold rat.pnat_denom,
-  rw pnat.mk_coe
-end
+@[simp] lemma coe_pnat_denom (x : ℚ) : (x.pnat_denom : ℕ) = x.denom := rfl
 
 @[simp] lemma mk_pnat_pnat_denom_eq (x : ℚ) : mk_pnat x.num x.pnat_denom = x :=
 begin

@@ -150,7 +150,7 @@ instance [semiring R] [add_comm_monoid α] [module R α] :
 @[simp] lemma of_add_of [has_add α] (f g : m → n → α) : of f + of g  = of (f + g) := rfl
 @[simp] lemma of_sub_of [has_sub α] (f g : m → n → α) : of f - of g = of (f - g) := rfl
 @[simp] lemma neg_of [has_neg α] (f : m → n → α) : -of f = of (-f) := rfl
-@[simp] lemma smul_of [has_scalar R α] (r : R) (f : m → n → α) : r • of f = of (r • f) := rfl
+@[simp] lemma smul_of [has_smul R α] (r : R) (f : m → n → α) : r • of f = of (r • f) := rfl
 
 @[simp] protected lemma map_zero [has_zero α] [has_zero β] (f : α → β) (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=

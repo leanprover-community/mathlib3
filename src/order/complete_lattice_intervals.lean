@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import order.conditionally_complete_lattice
 import data.set.intervals.ord_connected
+import order.lattice_intervals
 
 /-! # Subtypes of conditionally complete linear orders
 
@@ -65,6 +66,8 @@ lemma subset_Inf_of_within [inhabited s] {t : set s} (h : Inf (coe '' t : set α
 by simp [dif_pos h]
 
 end has_Inf
+
+section conditionally_complete
 
 variables [conditionally_complete_linear_order α]
 
@@ -144,3 +147,88 @@ noncomputable instance ord_connected_subset_conditionally_complete_linear_order
 subset_conditionally_complete_linear_order s Sup_within_of_ord_connected Inf_within_of_ord_connected
 
 end ord_connected
+
+end conditionally_complete
+
+section complete
+
+variables [complete_lattice α] {a b : α}
+
+open subtype
+
+/-- The set of elements below or equal to `a` in a complete lattice is a complete lattice. -/
+instance : complete_lattice (Iic a) :=
+{ Sup := λ S, ⟨_, (Sup_le (λ _ ⟨⟨_,hb⟩,_,rfl⟩, hb) : complete_lattice.Sup (coe '' S) ≤ a)⟩,
+  Inf := λ S, ⟨_, @inf_le_left _ _ a (complete_lattice.Inf (coe '' S))⟩,
+  le_Sup := λ _ _ h, coe_le_coe.mp (le_Sup (mem_image_of_mem _ h)),
+  Sup_le := λ _ _ h, coe_le_coe.mp (Sup_le (by {rintros y ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
+  Inf_le := λ _ x h, coe_le_coe.mp (inf_le_of_right_le (Inf_le ⟨x,h,rfl⟩)),
+  le_Inf := λ _ x h, coe_le_coe.mp (le_inf x.2
+    (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
+  .. (infer_instance : lattice (set.Iic a)),
+  .. (infer_instance : bounded_order (set.Iic a))}
+
+/-- The set of elements above or equal to `a` in a complete lattice is a complete lattice. -/
+instance [complete_lattice α] {a : α} : complete_lattice (Ici a) :=
+{ Sup := λ S, ⟨_, (@le_sup_left _ _ a (complete_lattice.Sup (coe '' S)))⟩,
+  Inf := λ S, ⟨complete_lattice.Inf (coe '' S), (le_Inf (λ _ ⟨⟨_,hb⟩,_,rfl⟩, hb))⟩,
+  Inf_le := λ _ _ h, coe_le_coe.mp (Inf_le (mem_image_of_mem _ h)),
+  le_Inf := λ _ _ h, coe_le_coe.mp (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
+  le_Sup := λ _ x h, coe_le_coe.mp (le_sup_of_le_right (le_Sup ⟨x,h,rfl⟩)),
+  Sup_le := λ _ x h, coe_le_coe.mp
+    (sup_le x.2 (Sup_le (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
+  .. (infer_instance : lattice (set.Ici a)),
+  .. (infer_instance : bounded_order (set.Ici a)) }
+
+/-- The set of elements weakly between `a` and `b` in a complete lattice is a complete lattice. -/
+@[reducible] def Icc_complete_lattice (hab : a ≤ b) : complete_lattice (Icc a b) :=
+{ Sup := λ S, ⟨a ⊔ Sup (coe '' S),
+    ⟨le_sup_left, sup_le hab (Sup_le (by {rintros _ ⟨⟨_,h⟩,_,rfl⟩, exact h.2}))⟩ ⟩,
+  Inf := λ S, ⟨b ⊓ Inf (coe '' S),
+    ⟨le_inf hab (le_Inf (by {rintros _ ⟨⟨_,h⟩,_,rfl⟩, exact h.1})), inf_le_left⟩⟩,
+  Inf_le := λ _ x h, coe_le_coe.mp (inf_le_of_right_le (Inf_le (⟨x,h,rfl⟩))),
+  le_Inf := λ _ x h, coe_le_coe.mp
+    (le_inf x.2.2 (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
+  le_Sup := λ _ x h, coe_le_coe.mp (le_sup_of_le_right (le_Sup ⟨x,h,rfl⟩)),
+  Sup_le := λ _ x h,
+    (sup_le x.2.1 (Sup_le (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
+  .. (infer_instance : lattice (set.Icc a b)),
+  .. (Icc.bounded_order hab) }
+
+@[simp] lemma set.Iic.coe_Sup (S : set (Iic a)) :
+  ((Sup S : Iic a) : α) = Sup ((coe : Iic a → α) '' S) := rfl
+
+@[simp] lemma set.Iic.coe_Inf (S : set (Iic a)) :
+  ((Inf S : Iic a) : α) = a ⊓ Inf ((coe : Iic a → α) '' S) := rfl
+
+lemma set.Iic.coe_Inf_nonempty_eq {S : set (Iic a)} (hS : S.nonempty) :
+  ((Inf S : Iic a) : α) = Inf ((coe : Iic a → α) '' S) :=
+exists.elim hS $ λ x h, inf_eq_right.mpr (le_trans (Inf_le (⟨_,h,rfl⟩)) x.2)
+
+@[simp] lemma set.Ici.coe_Sup (S : set (Ici a)) :
+  ((Sup S : Ici a) : α) = a ⊔ Sup ((coe : Ici a → α) '' S) := rfl
+
+lemma set.Ici.coe_Sup_nonempty_eq {S : set (Ici a)} (hS : S.nonempty):
+  ((Sup S : Ici a) : α) = Sup ((coe : Ici a → α) '' S) :=
+exists.elim hS $ λ x h, sup_eq_right.mpr (le_trans x.2 (le_Sup (⟨_,h,rfl⟩)))
+
+@[simp] lemma set.Ici.coe_Inf (S : set (Ici a)) :
+  ((Inf S : Ici a) : α) = Inf ((coe : Ici a → α) '' S) := rfl
+
+@[simp] lemma set.Icc.coe_Sup (hab : a ≤ b) (S : set (Icc a b)) :
+  (@complete_lattice.Sup _ (Icc_complete_lattice hab) S : α) = a ⊔ Sup (coe '' S) := rfl
+
+lemma set.Icc.coe_Sup_nonempty_eq {S : set (Icc a b)} (hS : S.nonempty) :
+  (@complete_lattice.Sup _
+    (Icc_complete_lattice (exists.elim hS (λ x _, le_trans x.2.1 x.2.2))) S : α) = Sup (coe '' S) :=
+exists.elim hS $ λ x h, sup_eq_right.mpr (le_trans x.2.1 (le_Sup ⟨_,h,rfl⟩))
+
+@[simp] lemma set.Icc.coe_Inf (hab : a ≤ b) (S : set (Icc a b)) :
+  (@complete_lattice.Inf _ (Icc_complete_lattice hab) S : α) = b ⊓ Inf (coe '' S) := rfl
+
+lemma set.Icc.coe_Inf_nonempty_eq {S : set (Icc a b)} (hS : S.nonempty) :
+  (@complete_lattice.Inf _
+    (Icc_complete_lattice (exists.elim hS (λ x _, le_trans x.2.1 x.2.2))) S : α) = Inf (coe '' S) :=
+exists.elim hS $ λ x h, inf_eq_right.mpr (le_trans (Inf_le ⟨_,h,rfl⟩) x.2.2)
+
+end complete

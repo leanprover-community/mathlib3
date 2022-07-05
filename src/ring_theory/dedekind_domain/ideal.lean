@@ -755,8 +755,8 @@ associated_iff_eq.1 (normalized_factors_prod hI)
 
 lemma normalized_factors_prod_of_prime {α : multiset (ideal T)} (h : ∀ p ∈ α, prime p) :
   normalized_factors α.prod = α :=
-by { have := normalized_factors_prod_of_prime h,
-      simpa only [←multiset.rel_eq, ←associated_eq_eq] using this }
+by simpa only [←multiset.rel_eq, ←associated_eq_eq]
+  using rel_associated_normalized_factors_prod_of_prime h
 
 lemma count_le_of_ideal_ge {I J : ideal T} (h : I ≤ J) (hI : I ≠ ⊥) (K : ideal T) :
   count K (normalized_factors J) ≤ count K (normalized_factors I) :=

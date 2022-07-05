@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.normed_space.operator_norm
-import analysis.locally_convex.bounded
+import analysis.locally_convex.with_seminorms
 
 /-!
 # Compact operators
@@ -41,7 +41,7 @@ open_locale pointwise big_operators topological_space
 structure compact_operator {R₁ R₂} [semiring R₁] [semiring R₂] (σ₁₂ : R₁ →+* R₂) (M₁ M₂ : Type*)
   [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
   [module R₁ M₁] [module R₂ M₂] extends M₁ →ₛₗ[σ₁₂] M₂ :=
-(exists_compact_preimage_mem_nhds' : ∃ K, is_compact K ∧ to_fun ⁻¹' K ∈ (𝓝 0 : filter M₁))
+(exists_compact_preimage_mem_nhds' : ∃ K, is_compact K ∧ K ∈ (𝓝 0).map to_fun)
 
 localized "notation M ` →SLᶜ[`:25 σ `] ` M₂ := compact_operator σ M M₂" in compact_operator
 localized "notation M ` →Lᶜ[`:25 R `] ` M₂ := compact_operator (ring_hom.id R) M M₂"
@@ -55,7 +55,7 @@ class compact_operator_class (F : Type*) {R₁ R₂ : out_param Type*} [semiring
   (σ₁₂ : out_param $ R₁ →+* R₂) (M₁ : out_param Type*) [topological_space M₁] [add_comm_monoid M₁]
   (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
   extends semilinear_map_class F σ₁₂ M₁ M₂ :=
-(exists_compact_preimage_mem_nhds : ∀ f : F, ∃ K, is_compact K ∧ f ⁻¹' K ∈ (𝓝 0 : filter M₁))
+(exists_compact_preimage_mem_nhds : ∀ f : F, ∃ K, is_compact K ∧ K ∈ (𝓝 0).map f)
 
 export compact_operator_class (exists_compact_preimage_mem_nhds)
 
@@ -149,7 +149,7 @@ let ⟨V, hV, K, hK, hKV⟩ := f.exists_mem_nhds_image_in_compact in
 
 def mk_of_image_in_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {V} (hV : V ∈ (𝓝 0 : filter M₁)) {K}
   (hK : is_compact K) (hVK : f '' V ⊆ K) : M₁ →SLᶜ[σ₁₂] M₂ :=
-⟨f, ⟨K, hK, mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
+⟨f, ⟨K, hK, show f ⁻¹' K ∈ _, from mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
 
 def mk_of_image_relatively_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {V} (hV : V ∈ (𝓝 0 : filter M₁))
   (hVc : is_compact (closure $ f '' V)) : M₁ →SLᶜ[σ₁₂] M₂ :=
@@ -184,23 +184,23 @@ section normed_space
 
 variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
   {M₁ M₂ : Type*} [semi_normed_group M₁] [topological_space M₂]
-  [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂] [has_continuous_const_smul 𝕜₂ M₂]
+  [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
 
-lemma image_ball_in_compact (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
+lemma image_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
   ∃ (K : set M₂), is_compact K ∧ f '' metric.ball 0 r ⊆ K :=
-image_in_compact_of_vonN_bounded f sorry
+image_in_compact_of_vonN_bounded f (normed_space.is_vonN_bounded_ball 𝕜₁ M₁ r)
 
-lemma image_closed_ball_in_compact (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
-  ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
-image_in_compact_of_vonN_bounded f sorry
+lemma image_closed_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂] (f : M₁ →SLᶜ[σ₁₂] M₂)
+  (r : ℝ) : ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
+image_in_compact_of_vonN_bounded f (normed_space.is_vonN_bounded_closed_ball 𝕜₁ M₁ r)
 
-lemma image_ball_relatively_compact [t2_space M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
-  is_compact (closure $ f '' metric.ball 0 r) :=
-image_relatively_compact_of_vonN_bounded f sorry
+lemma image_ball_relatively_compact [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
+  (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) : is_compact (closure $ f '' metric.ball 0 r) :=
+image_relatively_compact_of_vonN_bounded f (normed_space.is_vonN_bounded_ball 𝕜₁ M₁ r)
 
-lemma image_closed_ball_relatively_compact [t2_space M₂] (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) :
-  is_compact (closure $ f '' metric.closed_ball 0 r) :=
-image_relatively_compact_of_vonN_bounded f sorry
+lemma image_closed_ball_relatively_compact [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
+  (f : M₁ →SLᶜ[σ₁₂] M₂) (r : ℝ) : is_compact (closure $ f '' metric.closed_ball 0 r) :=
+image_relatively_compact_of_vonN_bounded f (normed_space.is_vonN_bounded_closed_ball 𝕜₁ M₁ r)
 
 def mk_of_image_ball_in_compact (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r)
   {K : set M₂} (hK : is_compact K) (hrK : f '' metric.ball 0 r ⊆ K) :
@@ -242,7 +242,8 @@ variables [distrib_mul_action T₂ M₂] [smul_comm_class R₂ T₂ M₂] [has_c
 
 instance : mul_action S₂ (M₁ →SLᶜ[σ₁₂] M₂) :=
 { smul := λ c f, ⟨c • f, let ⟨K, hK, hKf⟩ := exists_compact_preimage_mem_nhds f in ⟨c • K,
-    hK.image $ continuous_id.const_smul c, mem_of_superset hKf (λ x hx, smul_mem_smul_set hx)⟩⟩,
+    hK.image $ continuous_id.const_smul c,
+    show _ ∈ (𝓝 0 : filter M₁), from mem_of_superset hKf (λ x hx, smul_mem_smul_set hx)⟩⟩,
   one_smul := λ f, ext $ λ x, one_smul _ _,
   mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
 
@@ -378,7 +379,7 @@ variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscr
   [topological_add_group M₁] [has_continuous_const_smul 𝕜₁ M₁]
   [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
 
-instance {F : Type*} [h : compact_operator_class F σ₁₂ M₁ M₂] :
+@[priority 100] instance {F : Type*} [h : compact_operator_class F σ₁₂ M₁ M₂] :
   continuous_semilinear_map_class F σ₁₂ M₁ M₂ :=
 { map_continuous :=
   begin
@@ -506,3 +507,5 @@ end
 end topology
 
 end compact_operator
+
+#lint

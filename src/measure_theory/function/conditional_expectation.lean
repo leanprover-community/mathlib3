@@ -1346,7 +1346,7 @@ lemma condexp_L2_indicator_nonneg (hm : m ≤ m0) (hs : measurable_set s) (hμs 
   [sigma_finite (μ.trim hm)] :
   0 ≤ᵐ[μ] condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
 begin
-have h : ae_strongly_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
+  have h : ae_strongly_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
     from ae_strongly_measurable'_condexp_L2 _ _,
   refine eventually_le.trans_eq _ h.ae_eq_mk.symm,
   refine @ae_le_of_ae_le_trim _ _ _ _ _ _ hm _ _ _,

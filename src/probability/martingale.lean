@@ -239,7 +239,7 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
   (hf : submartingale f ℱ μ) (hg : martingale g ℱ μ) : submartingale (f - g) ℱ μ :=
 hf.sub_supermartingale hg.supermartingale
 
-lemma sup {f g : ι → α → ℝ} (hf : submartingale f ℱ μ) (hg : submartingale g ℱ μ) :
+protected lemma sup {f g : ι → α → ℝ} (hf : submartingale f ℱ μ) (hg : submartingale g ℱ μ) :
   submartingale (f ⊔ g) ℱ μ :=
 begin
   refine ⟨λ i, @strongly_measurable.sup _ _ _ _ (ℱ i) _ _ _ (hf.adapted i) (hg.adapted i),
@@ -253,7 +253,7 @@ begin
       (eventually_of_forall (λ x, le_max_right _ _))) }
 end
 
-lemma pos {f : ι → α → ℝ} (hf : submartingale f ℱ μ) :
+protected lemma pos {f : ι → α → ℝ} (hf : submartingale f ℱ μ) :
   submartingale (f⁺) ℱ μ :=
 hf.sup (martingale_zero _ _ _).submartingale
 

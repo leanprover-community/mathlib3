@@ -1454,7 +1454,7 @@ lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} 
   0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
 eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
 
-lemma eventually_le.sup_le_sup [semilattice_sup β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+lemma eventually_le.sup [semilattice_sup β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
   (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
   f₁ ⊔ g₁ ≤ᶠ[l] f₂ ⊔ g₂ :=
 by filter_upwards [hf, hg] with x hfx hgx using sup_le_sup hfx hgx

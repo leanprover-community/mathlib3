@@ -325,7 +325,7 @@ protected def prod (K : compact_opens α) (L : compact_opens β) :
 { open' := K.open.prod L.open,
   .. K.to_compacts.prod L.to_compacts }
 
-@[simp] lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
+@[simp] lemma coe_prod (K : compact_opens α) (L : compact_opens β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end compact_opens

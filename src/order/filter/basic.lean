@@ -1816,6 +1816,9 @@ lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
   map m f ≤ map m g ↔ f ≤ g :=
 iff.intro (le_of_map_le_map_inj' hsf hsg hm) (λ h, map_mono h)
 
+lemma map_le_map {f g : filter α} {m : α → β} (hm : injective m) : map m f ≤ map m g ↔ f ≤ g :=
+by rw [map_le_iff_le_comap, comap_map hm]
+
 lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : inj_on m s)
   (h : map m f = map m g) : f = g :=
@@ -1823,9 +1826,12 @@ le_antisymm
   (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
   (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
 
-lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) (h : map m f = map m g) :
-  f = g :=
-eq_of_map_eq_map_inj' univ_mem univ_mem (hm.inj_on _) h
+lemma map_injective {m : α → β} (hm : injective m) : injective (map m) :=
+λ f g, eq_of_map_eq_map_inj' univ_mem univ_mem (hm.inj_on _)
+
+lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) :
+  map m f = map m g ↔ f = g :=
+(map_injective hm).eq_iff
 
 lemma comap_ne_bot_iff {f : filter β} {m : α → β} : ne_bot (comap m f) ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
 begin

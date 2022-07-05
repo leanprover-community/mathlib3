@@ -23,9 +23,9 @@ import probability.variance
 * `indep_fun.cgf_add`: if two real random variables `X` and `Y` are independent and their mgf are
   defined at `t`, then `cgf (X + Y) μ t = cgf X μ t + cgf Y μ t`
 * `measure_ge_le_exp_cgf` and `measure_le_le_exp_cgf`: Chernoff bound on the upper (resp.
-  lower) tail of a random variable. For `0 ≤ t`, `ℙ(ε ≤ X) ≤ exp( - t*ε + cfg X μ t)`. See also
-  `measure_ge_le_exp_mul_mgf` and `measure_le_le_exp_mul_mgf` for versions of these results using
-  `mgf` instead of `cgf`.
+  lower) tail of a random variable. For `t` nonnegative such that the cgf exists,
+  `ℙ(ε ≤ X) ≤ exp( - t*ε + cfg X ℙ t)`. See also `measure_ge_le_exp_mul_mgf` and
+  `measure_le_le_exp_mul_mgf` for versions of these results using `mgf` instead of `cgf`.
 
 -/
 

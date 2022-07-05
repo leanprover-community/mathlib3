@@ -190,6 +190,44 @@ begin
   exact real.log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
 end
 
+lemma chernoff_bound [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
+  (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε) * mgf X μ t :=
+begin
+  rw le_iff_eq_or_lt at ht,
+  cases ht with ht ht,
+  { rw ht.symm,
+    simp only [neg_zero', zero_mul, real.exp_zero, mgf_zero', one_mul],
+    rw ennreal.to_real_le_to_real (measure_ne_top _ _) (measure_ne_top _ _),
+    { exact measure_mono (set.subset_univ _), },
+    { apply_instance, },
+    { apply_instance, }, },
+  calc (μ {ω | ε ≤ X ω}).to_real
+      = (μ {ω | real.exp (t * ε) ≤ real.exp (t * X ω)}).to_real :
+    begin
+      congr' with ω,
+      simp only [real.exp_le_exp, eq_iff_iff],
+      exact ⟨λ h, mul_le_mul_of_nonneg_left h ht.le, λ h, le_of_mul_le_mul_left h ht⟩,
+    end
+  ... ≤ (real.exp (t * ε))⁻¹ * μ[λ ω, real.exp (t * X ω)] :
+    begin
+      have : real.exp (t * ε) * (μ {ω | real.exp (t * ε) ≤ real.exp (t * X ω)}).to_real
+          ≤ μ[λ ω, real.exp (t * X ω)],
+        from mul_meas_ge_le_integral_of_nonneg (λ x, (real.exp_pos _).le) h_int _,
+      rwa [mul_comm (real.exp (t * ε))⁻¹, ← div_eq_mul_inv, le_div_iff' (real.exp_pos _)],
+    end
+  ... = real.exp(- t * ε) * mgf X μ t : by { rw [neg_mul, real.exp_neg], refl, },
+end
+
+lemma chernoff_bound_cgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
+  (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε + cgf X μ t) :=
+begin
+  refine (chernoff_bound ε ht h_int).trans _,
+  rw real.exp_add,
+  refine mul_le_mul le_rfl (real.le_exp_log _) mgf_nonneg (real.exp_pos _).le,
+end
+
 end moment_generating_function
 
 end probability_theory

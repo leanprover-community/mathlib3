@@ -20,12 +20,6 @@ code.
 In this file we define `hamm β`, the type synonym of a Pi type with the Hamming
 distance `hamm_dist` and weight `hamm_wt` attached, and the various instances that arise
 from the properties of these definitions.
-
--/
-
-/-
-We define `hamm_dist` and `hamm_wt` over Pi types, and will later attach them to our type
-synonym.
 -/
 section hamm_dist_wt
 
@@ -55,7 +49,7 @@ hamm_dist_comp_le_hamm_dist $ λ i, (•) k
 
 lemma hamm_dist_smul [Π i, has_scalar α (β i)] {k : α} {x y : Π i, β i}
   (hk : Π i, is_smul_regular (β i) k) : hamm_dist (k • x) (k • y) = hamm_dist x y :=
-hamm_dist_comp (λ i (c : β i), k • c) hk
+hamm_dist_comp (λ i, (•) k) hk
 
 @[simp] lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
 by {  rw [function.funext_iff, hamm_dist, card_eq_zero_iff],
@@ -113,8 +107,10 @@ lemma hamm_wt_le_card_fintype {x : Π i, β i} : hamm_wt x ≤ card ι := hamm_d
 
 lemma hamm_wt_comp_le_hamm_wt (f : Π i, γ i → β i) {x : Π i, γ i} (hf : Π i, f i 0 = 0) :
   hamm_wt (λ i, f i (x i)) ≤ hamm_wt x :=
-by {  simp_rw hamm_wt_eq_hamm_dist_zero, convert hamm_dist_comp_le_hamm_dist f,
-      simp_rw [pi.zero_apply, hf], refl }
+begin
+  refine eq.trans_le _ (hamm_dist_comp_le_hamm_dist f),
+  simp_rw [hamm_wt, pi.zero_def, hf],
+end
 
 lemma hamm_wt_comp (f : Π i, γ i → β i) {x : Π i, γ i} (hf₁ : Π i, injective (f i))
   (hf₂ : Π i, f i 0 = 0) : hamm_wt (λ i, f i (x i)) = hamm_wt x :=
@@ -152,6 +148,8 @@ lemma hamm_dist_eq_hamm_wt_sub [Π i, add_group (β i)] (x y : Π i, β i) :
 by simp_rw [hamm_wt_eq, hamm_dist, pi.sub_apply, sub_ne_zero]
 
 end hamm_dist_wt
+
+/!- ### The `hamm` type synonym -/
 
 /--
 Type synonym for a Pi type which we equip with the Hamming metric, adding relevant

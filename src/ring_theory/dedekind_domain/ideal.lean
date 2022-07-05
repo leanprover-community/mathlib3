@@ -753,7 +753,7 @@ open multiset unique_factorization_monoid ideal
 lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
-lemma normalized_factors_prod_primes {α : multiset (ideal T)} (h : ∀ p ∈ α, prime p) :
+lemma normalized_factors_prod_of_prime {α : multiset (ideal T)} (h : ∀ p ∈ α, prime p) :
   normalized_factors α.prod = α :=
 by { have := normalized_factors_prod_primes h,
       simpa only [←multiset.rel_eq, ←associated_eq_eq] using this }

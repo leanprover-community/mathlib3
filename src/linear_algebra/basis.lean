@@ -561,7 +561,8 @@ section prod
 variables (b' : basis ι' R M')
 
 /-- `basis.prod` maps a `ι`-indexed basis for `M` and a `ι'`-indexed basis for `M'`
-to a `ι ⊕ ι'`-index basis for `M × M'`. -/
+to a `ι ⊕ ι'`-index basis for `M × M'`.
+For the specific case of `R × R`, see also `basis.fin_two_prod`. -/
 protected def prod : basis (ι ⊕ ι') R (M × M') :=
 of_repr ((b.repr.prod b'.repr).trans (finsupp.sum_finsupp_lequiv_prod_finsupp R).symm)
 
@@ -615,8 +616,6 @@ lemma prod_apply (i) :
 by { ext; cases i; simp only [prod_apply_inl_fst, sum.elim_inl, linear_map.inl_apply,
                               prod_apply_inr_fst, sum.elim_inr, linear_map.inr_apply,
                               prod_apply_inl_snd, prod_apply_inr_snd, comp_app] }
-
-/- For the specific case of `R × R`, see also `basis.fin_two_prod` below. -/
 
 end prod
 

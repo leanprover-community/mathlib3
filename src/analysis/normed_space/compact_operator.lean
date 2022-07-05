@@ -38,6 +38,226 @@ open function set filter bornology metric
 
 open_locale pointwise big_operators topological_space
 
+def compact_operator {M₁ M₂ : Type*} [add_comm_monoid M₁] [topological_space M₁]
+  [topological_space M₂] (f : M₁ → M₂) : Prop :=
+∃ K, is_compact K ∧ f ⁻¹' K ∈ (𝓝 0 : filter M₁)
+
+lemma compact_operator_zero {M₁ M₂ : Type*} [add_comm_monoid M₁] [topological_space M₁]
+  [topological_space M₂] [has_zero M₂] : compact_operator (0 : M₁ → M₂) :=
+⟨{0}, is_compact_singleton, mem_of_superset univ_mem (λ x _, rfl)⟩
+
+section characterizations
+
+section
+
+variables {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ M₂ : Type*}
+  [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂]
+
+lemma compact_operator_iff_exists_mem_nhds_image_in_compact (f : M₁ → M₂) :
+  compact_operator f ↔ ∃ V ∈ (𝓝 0 : filter M₁), ∃ (K : set M₂), is_compact K ∧ f '' V ⊆ K :=
+⟨λ ⟨K, hK, hKf⟩, ⟨f ⁻¹' K, hKf, K, hK, image_preimage_subset _ _⟩,
+ λ ⟨V, hV, K, hK, hVK⟩, ⟨K, hK, mem_of_superset hV (image_subset_iff.mp hVK)⟩⟩
+
+lemma compact_operator_iff_exists_mem_nhds_image_rel_compact [t2_space M₂] (f : M₁ → M₂) :
+  compact_operator f ↔ ∃ V ∈ (𝓝 0 : filter M₁), is_compact (closure $ f '' V) :=
+begin
+  rw compact_operator_iff_exists_mem_nhds_image_in_compact,
+  exact ⟨λ ⟨V, hV, K, hK, hKV⟩, ⟨V, hV, compact_closure_of_subset_compact hK hKV⟩,
+         λ ⟨V, hV, hVc⟩, ⟨V, hV, closure (f '' V), hVc, subset_closure⟩⟩,
+end
+
+end
+
+section bounded
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {M₁ M₂ : Type*} [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂]
+  [add_comm_monoid M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂] [has_continuous_const_smul 𝕜₂ M₂]
+
+lemma compact_operator.image_in_compact_of_vonN_bounded {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : compact_operator f) {S : set M₁} (hS : is_vonN_bounded 𝕜₁ S) :
+  ∃ (K : set M₂), is_compact K ∧ f '' S ⊆ K :=
+let ⟨K, hK, hKf⟩ := hf,
+    ⟨r, hr, hrS⟩ := hS hKf,
+    ⟨c, hc⟩ := normed_field.exists_lt_norm 𝕜₁ r,
+    this := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm in
+⟨σ₁₂ c • K, hK.image $ continuous_id.const_smul (σ₁₂ c),
+  by rw [image_subset_iff, preimage_smul_setₛₗ f this.is_unit]; exact hrS c hc.le⟩
+
+lemma compact_operator.image_rel_compact_of_vonN_bounded [t2_space M₂] {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : compact_operator f) {S : set M₁}
+  (hS : is_vonN_bounded 𝕜₁ S) : is_compact (closure $ f '' S) :=
+let ⟨K, hK, hKf⟩ := hf.image_in_compact_of_vonN_bounded hS in
+compact_closure_of_subset_compact hK hKf
+
+end bounded
+
+section normed_space
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [semi_normed_ring 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂}
+  {M₁ M₂ : Type*} [semi_normed_group M₁] [topological_space M₂]
+  [add_comm_monoid M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
+
+lemma compact_operator.image_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂]
+  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : compact_operator f) (r : ℝ) :
+  ∃ (K : set M₂), is_compact K ∧ f '' metric.ball 0 r ⊆ K :=
+hf.image_in_compact_of_vonN_bounded (normed_space.is_vonN_bounded_ball 𝕜₁ M₁ r)
+
+lemma compact_operator.image_closed_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂]
+  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : compact_operator f) (r : ℝ) :
+  ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
+hf.image_in_compact_of_vonN_bounded (normed_space.is_vonN_bounded_closed_ball 𝕜₁ M₁ r)
+
+lemma compact_operator.image_ball_rel_compact [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
+  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : compact_operator f) (r : ℝ) :
+  is_compact (closure $ f '' metric.ball 0 r) :=
+hf.image_rel_compact_of_vonN_bounded (normed_space.is_vonN_bounded_ball 𝕜₁ M₁ r)
+
+lemma compact_operator.image_closed_ball_rel_compact [has_continuous_const_smul 𝕜₂ M₂]
+  [t2_space M₂] {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : compact_operator f) (r : ℝ) :
+  is_compact (closure $ f '' metric.closed_ball 0 r) :=
+hf.image_rel_compact_of_vonN_bounded (normed_space.is_vonN_bounded_closed_ball 𝕜₁ M₁ r)
+
+lemma compact_operator_iff_image_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂]
+  (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
+  compact_operator f ↔ ∃ (K : set M₂), is_compact K ∧ f '' metric.ball 0 r ⊆ K :=
+⟨λ hf, hf.image_ball_in_compact r,
+ λ ⟨K, hK, hKr⟩, (compact_operator_iff_exists_mem_nhds_image_in_compact f).mpr
+  ⟨metric.ball 0 r, ball_mem_nhds _ hr, K, hK, hKr⟩⟩
+
+lemma compact_operator_iff_image_closed_ball_in_compact [has_continuous_const_smul 𝕜₂ M₂]
+  (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
+  compact_operator f ↔ ∃ (K : set M₂), is_compact K ∧ f '' metric.closed_ball 0 r ⊆ K :=
+⟨λ hf, hf.image_closed_ball_in_compact r,
+ λ ⟨K, hK, hKr⟩, (compact_operator_iff_exists_mem_nhds_image_in_compact f).mpr
+  ⟨metric.closed_ball 0 r, closed_ball_mem_nhds _ hr, K, hK, hKr⟩⟩
+
+lemma compact_operator_iff_image_ball_rel_compact [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
+  (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
+  compact_operator f ↔ is_compact (closure $ f '' metric.ball 0 r) :=
+⟨λ hf, hf.image_ball_rel_compact r,
+ λ hf, (compact_operator_iff_exists_mem_nhds_image_rel_compact f).mpr
+  ⟨metric.ball 0 r, ball_mem_nhds _ hr, hf⟩⟩
+
+lemma compact_operator_iff_image_closed_ball_rel_compact [has_continuous_const_smul 𝕜₂ M₂]
+  [t2_space M₂] (f : M₁ →ₛₗ[σ₁₂] M₂) {r : ℝ} (hr : 0 < r) :
+  compact_operator f ↔ is_compact (closure $ f '' metric.closed_ball 0 r) :=
+⟨λ hf, hf.image_closed_ball_rel_compact r,
+ λ hf, (compact_operator_iff_exists_mem_nhds_image_rel_compact f).mpr
+  ⟨metric.closed_ball 0 r, closed_ball_mem_nhds _ hr, hf⟩⟩
+
+end normed_space
+
+end characterizations
+
+section operations
+
+variables {R₁ R₂ R₃ R₄ : Type*} [semiring R₁] [semiring R₂] [comm_semiring R₃] [comm_semiring R₄]
+  {σ₁₂ : R₁ →+* R₂} {σ₃₄ : R₃ →+* R₄} {M₁ M₂ M₃ M₄ : Type*} [topological_space M₁]
+  [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂] [topological_space M₃]
+  [add_comm_group M₃] [topological_space M₄] [add_comm_group M₄]
+
+lemma compact_operator.smul {S : Type*} [monoid S] [distrib_mul_action S M₂]
+  [has_continuous_const_smul S M₂] {f : M₁ → M₂}
+  (hf : compact_operator f) (c : S) :
+  compact_operator (c • f) :=
+let ⟨K, hK, hKf⟩ := hf in ⟨c • K, hK.image $ continuous_id.const_smul c,
+  mem_of_superset hKf (λ x hx, smul_mem_smul_set hx)⟩
+
+lemma compact_operator.add [has_continuous_add M₂] {f g : M₁ → M₂}
+  (hf : compact_operator f) (hg : compact_operator g) :
+  compact_operator (f + g) :=
+let ⟨A, hA, hAf⟩ := hf, ⟨B, hB, hBg⟩ := hg in
+⟨A + B, hA.add hB, mem_of_superset (inter_mem hAf hBg) (λ x ⟨hxA, hxB⟩, set.add_mem_add hxA hxB)⟩
+
+lemma compact_operator.neg [has_continuous_neg M₄] {f : M₁ → M₄}
+  (hf : compact_operator f) : compact_operator (-f) :=
+let ⟨K, hK, hKf⟩ := hf in
+  ⟨-K, hK.neg, mem_of_superset hKf $ λ x (hx : f x ∈ K), set.neg_mem_neg.mpr hx⟩
+
+lemma compact_operator.sub [topological_add_group M₄] {f g : M₁ → M₄}
+  (hf : compact_operator f) (hg : compact_operator g) : compact_operator (f - g) :=
+by rw sub_eq_add_neg; exact hf.add hg.neg
+
+end operations
+
+section continuous
+
+variables {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁] [nondiscrete_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*} [topological_space M₁]
+  [add_comm_group M₁] [topological_space M₂] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [topological_add_group M₁] [has_continuous_const_smul 𝕜₁ M₁]
+  [topological_add_group M₂] [has_continuous_smul 𝕜₂ M₂]
+
+@[continuity] lemma compact_operator.continuous {f : M₁ →ₛₗ[σ₁₂] M₂}
+  (hf : compact_operator f) : continuous f :=
+begin
+  letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
+  haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+  refine continuous_of_continuous_at_zero f (λ U hU, _),
+  rw map_zero at hU,
+  rcases hf with ⟨K, hK, hKf⟩,
+  rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
+  rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
+  have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
+  suffices : (σ₁₂ $ c⁻¹) • K ⊆ U,
+  { refine mem_of_superset _ this,
+    have : is_unit c⁻¹ := hcnz.is_unit.inv,
+    rwa [mem_map, preimage_smul_setₛₗ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
+    apply_instance },
+  rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
+  refine hrU (σ₁₂ c) _,
+  rw ring_hom_isometric.is_iso,
+  exact hc.le
+end
+
+def continuous_linear_map.mk_of_compact_operator {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : compact_operator f) :
+  M₁ →SL[σ₁₂] M₂ :=
+⟨f, hf.continuous⟩
+
+end continuous
+
+lemma is_closed_set_of_compact_operator {𝕜₁ 𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₁]
+  [nondiscrete_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
+  [semi_normed_group M₁] [normed_group M₂] [normed_space 𝕜₁ M₁] [normed_space 𝕜₂ M₂]
+  [complete_space M₂] : is_closed {f : M₁ →SL[σ₁₂] M₂ | compact_operator f} :=
+begin
+  refine is_closed_of_closure_subset _,
+  rintros u hu,
+  rw metric.mem_closure_iff at hu,
+  suffices : totally_bounded (u '' metric.closed_ball 0 1),
+  { change compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
+    rw compact_operator_iff_image_closed_ball_rel_compact (u : M₁ →ₛₗ[σ₁₂] M₂) zero_lt_one,
+    exact compact_of_totally_bounded_is_closed this.closure is_closed_closure },
+  rw metric.totally_bounded_iff,
+  intros ε hε,
+  rcases hu (ε/2) (by linarith) with ⟨v, hv, huv⟩,
+  rcases (hv.image_closed_ball_rel_compact 1).finite_cover_balls
+    (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
+  have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,
+  refine ⟨T, hT, _⟩,
+  rw image_subset_iff at ⊢ hTv,
+  intros x hx,
+  specialize hTv hx,
+  rw [mem_preimage, mem_Union₂] at ⊢ hTv,
+  rcases hTv with ⟨t, ht, htx⟩,
+  refine ⟨t, ht, _⟩,
+  suffices : dist (u x) (v x) < ε/2,
+  { rw mem_ball at *,
+    linarith [dist_triangle (u x) (v x) t] },
+  rw mem_closed_ball_zero_iff at hx,
+  calc dist (u x) (v x)
+      = ∥u x - v x∥ : dist_eq_norm _ _
+  ... = ∥(u - v) x∥ : by rw continuous_linear_map.sub_apply; refl
+  ... ≤ ∥u - v∥ : (u - v).unit_le_op_norm x hx
+  ... = dist u v : (dist_eq_norm _ _).symm
+  ... < ε/2 : huv
+end
+
+/- ---------------------------- -/
+
+namespace old
+
 structure compact_operator {R₁ R₂} [semiring R₁] [semiring R₂] (σ₁₂ : R₁ →+* R₂) (M₁ M₂ : Type*)
   [topological_space M₁] [add_comm_monoid M₁] [topological_space M₂] [add_comm_monoid M₂]
   [module R₁ M₁] [module R₂ M₂] extends M₁ →ₛₗ[σ₁₂] M₂ :=
@@ -507,4 +727,4 @@ end topology
 
 end compact_operator
 
-#lint
+end old

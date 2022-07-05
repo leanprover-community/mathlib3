@@ -673,4 +673,36 @@ begin
       (integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
+/- We want to show a real sequence `x` converges if
+(a) `limsup |x| < ∞`,
+(b) For all `a < b : ℚ` we have `sup N, upcrossing a b x N < ∞`.
+
+With this, for all `x` satisfying `limsup |λ n, f n x| < ∞` and
+for all `a < b : ℚ`, `sup N, upcrossing a b f N x < ∞`, we have `λ n, f n x` converges.
+
+Now, we want another lemma which states if `𝔼[|X|] < ∞` then `|X| < ∞ a.e.`.
+
+With this lemma and assumping `f` is L¹-bounded, using Fatou's lemma,
+we have `𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
+the upcrossing lemma, `sup N, upcrossing a b f N < ∞ a.e.` implying `f` converges pointwise almost
+everywhere.
+-/
+
+#check cauchy_seq_iff_tendsto
+#check le_nhds_of_Limsup_eq_Liminf
+-- #check limsup_
+
+lemma foo {x : α}
+  (hf₁ : ∃ R, liminf at_top (λ n, f n x) < R)
+  (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x ≤ K) :
+  cauchy_seq (λ n, f n x) :=
+begin
+  /- A real sequence converges if the limsup coninside with the liminf. Suppose otherwise, then
+  `liminf < limsup` and as ℚ is dense, there exists `a, b : ℚ` such that `liminf ≤ a < b ≤ limsup`.
+  In particular
+  -/
+  sorry,
+  -- rw metric.cauchy_seq_iff,
+end
+
 end measure_theory

@@ -344,7 +344,7 @@ section pos_part
 
 lemma has_finite_integral.max_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, max (f a) 0) μ :=
-hf.mono $ eventually_of_forall $ λ x, by simp [abs_le, abs_nonneg, le_abs_self]
+hf.mono $ eventually_of_forall $ λ x, by simp [abs_le, le_abs_self]
 
 lemma has_finite_integral.min_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, min (f a) 0) μ :=

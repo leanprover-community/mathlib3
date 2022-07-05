@@ -370,7 +370,7 @@ by { ext x, refl }
   f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
 rfl
 
-lemma _root_.matrix.to_lin_prod_continuous_linear_map (a b c d : 𝕜) :
+lemma _root_.matrix.to_lin_fin_two_prod_to_continuous_linear_map (a b c d : 𝕜) :
   (matrix.to_lin (basis.fin_two_prod 𝕜) (basis.fin_two_prod 𝕜)
       ![![a, b], ![c, d]]).to_continuous_linear_map =
   (a • continuous_linear_map.fst 𝕜 𝕜 𝕜 + b • continuous_linear_map.snd 𝕜 𝕜 𝕜).prod

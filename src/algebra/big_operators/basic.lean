@@ -1718,18 +1718,55 @@ begin
   { rw [finset.sum_insert hat, finset.prod_insert hat, multiset.prod_add, ih] }
 end
 
-lemma disjoint_of_disjoint_sum {α β : Type*} {i : finset β} {f : β → multiset α} {z : β}
-  (h : ∀ x ∈ i, multiset.disjoint (f x) (f z)) :
-  multiset.disjoint (f z) (∑ x in i, f x) :=
+lemma disjoint_list_sum_right {α : Type*} {a : multiset α} {l : list (multiset α)}
+  (h : ∀ b ∈ l, multiset.disjoint a b) :
+  multiset.disjoint a l.sum :=
 begin
-  classical,
-  apply finset.sum_induction f (λ (t : multiset α), disjoint (f z) t),
-  { exact λ _ _ ha hb, disjoint_add_right.mpr ⟨ha, hb⟩ },
-  { exact (zero_disjoint (f z)).symm},
-  { exact λ x hx, (h x hx).symm },
+  induction l with b bs ih,
+  { exact (zero_disjoint _).symm },
+  { rw [list.sum_cons, disjoint_add_right],
+    exact ⟨h _ (list.mem_cons_self _ _), ih $ λ b hb, h _ $ list.mem_cons_of_mem _ hb⟩ }
 end
 
-lemma le_of_disjoint_sum_le {α β : Type*} {T : multiset α} {i : finset β} {f : β → multiset α}
+lemma disjoint_sum_right {α : Type*} {a : multiset α} {i : multiset (multiset α)} :
+  (∀ b ∈ i, multiset.disjoint a b) → multiset.disjoint a i.sum :=
+  quotient.induction_on i $ λ l h, begin
+    rw [quot_mk_to_coe, multiset.coe_sum],
+    exact disjoint_list_sum_right h,
+  end
+
+lemma disjoint_finset_sum_right {α β : Type*} {i : finset β} {f : β → multiset α} {a : β}
+  (h : ∀ b ∈ i, multiset.disjoint (f a) (f b)) :
+  multiset.disjoint (f a) (∑ x in i, f x) :=
+disjoint_sum_right $ by simpa using h
+
+lemma list_sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {l : list (multiset α)}
+  (h1 : ∀ b ∈ l, b ≤ T) (h2 : ∀ a b ∈ l, a ≠ b → multiset.disjoint a b) :
+  l.sum ≤ T :=
+begin
+  induction l with b bs ih,
+  { simp only [list.sum_nil, zero_le], },
+  { rw list.sum_cons,
+
+    sorry }
+end
+
+lemma sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {i : multiset (multiset α)}
+  (h1 : ∀ b ∈ i, b ≤ T) (h2 : ∀ a b ∈ i, a ≠ b → multiset.disjoint a b) :
+  i.sum ≤ T := by sorry
+  -- prod_list_map_count s id
+  -- quotient.induction_on i (λ l, begin
+  --  rw [quot_mk_to_coe, multiset.coe_sum],
+  --  end)
+
+lemma finset_sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {i : finset β}
+  {f : β → multiset α}
+  (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
+  ∑ x in i, f x ≤ T := by sorry
+-- sum_le_of_le_of_disjoint $ by simpa using [h1, h2]
+
+lemma finset_sum_le_of_le_of_disjoint0 {α β : Type*} {T : multiset α} {i : finset β}
+  {f : β → multiset α}
   (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
   ∑ x in i, f x ≤ T :=
 begin

@@ -6,7 +6,28 @@ Authors: Rémy Degenne
 
 import probability.moments
 
-/-! # Sub-Gaussian random variables -/
+/-! # Sub-Gaussian random variables
+
+TODO explain the many equivalent definitions.
+
+## Main definitions
+
+* `subgaussian_cgf X μ c`: the random variable `X` has a sub-Gaussian cgf, with constant `c`. That
+  is, for all `t ∈ ℝ` `exp(t*X)` is integrable (the cgf is well defined) and
+  `cgf X μ t ≤ c * t^2 / 2`.
+
+## Main statements
+
+* `Indep_fun.chernoff_sum_range`: For `X : ℕ → Ω → ℝ` an independent family of real random
+  variables, all with sub-Gaussian cdf with constant `c`, we have for all `ε ≥ 0`,
+  `ℙ(ε ≤ ∑ i in finset.range n, X i) ≤ exp(- ε^2 / (2 * c * n))`.
+
+## References
+
+* [F. Bar, *Quuxes*][bibkey]
+
+-/
+
 
 open measure_theory filter finset
 
@@ -145,6 +166,34 @@ begin
       ≤ real.exp(- ε^2 / (2 * c * (card (finset.range n.succ)))) :
         h_indep.chernoff_sum_same hε h_meas ⟨0, finset.mem_range.mpr n.succ_pos⟩ (λ i _, h_subg i)
   ... = real.exp(- ε^2 / (2 * c * n.succ)) : by rw card_range
+end
+
+lemma Indep_fun.chernoff_mean_range [is_probability_measure μ]
+  {X : ℕ → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
+  (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :
+  (μ {ω | ε ≤ (∑ i in finset.range n, X i ω) / n}).to_real ≤ real.exp(- n * ε^2 / (2 * c)) :=
+begin
+  cases n,
+  { simp only [range_zero, sum_empty, nat.cast_zero, neg_zero', zero_mul, zero_div, real.exp_zero],
+    exact to_real_measure_le_one _, },
+  have h_nε : 0 ≤ ↑n.succ * ε := mul_nonneg (nat.cast_nonneg _) hε,
+  have h := h_indep.chernoff_sum_range h_meas h_subg h_nε n.succ,
+  refine (eq.trans_le _ (h.trans_eq _)),
+  { congr' with ω,
+    rw [le_div_iff (nat.cast_pos.mpr n.succ_pos), mul_comm ε],
+    apply_instance, },
+  { congr' 1,
+    rw [mul_pow, pow_two, mul_assoc, mul_comm, ← neg_mul, ← neg_mul, ← mul_div,
+      mul_comm ((2 : ℝ) * c), div_eq_mul_inv, inv_mul', mul_div, mul_inv_cancel, mul_div, mul_one],
+    exact (nat.cast_pos.mpr n.succ_pos).ne', },
+end
+
+example (n : ℕ) (c ε : ℝ) :
+  -(↑n.succ * ε) ^ 2 / (2 * c * ↑n.succ) = -↑n.succ * ε ^ 2 / (2 * c) :=
+begin
+  rw [mul_pow, pow_two, mul_assoc, mul_comm, ← neg_mul, ← neg_mul, ← mul_div,
+    mul_comm ((2 : ℝ) * c), div_eq_mul_inv, inv_mul', mul_div, mul_inv_cancel, mul_div, mul_one],
+  exact (nat.cast_pos.mpr n.succ_pos).ne',
 end
 
 end probability_theory

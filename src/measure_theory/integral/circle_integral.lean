@@ -120,7 +120,7 @@ lemma circle_map_ne_mem_ball {c : ℂ} {R : ℝ} {w : ℂ} (hw : w ∈ ball c R)
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
   by simp only [← image_vadd, ← image_smul, ← range_comp, vadd_eq_add, circle_map, (∘), real_smul]
-... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one, real.norm_eq_abs]
+... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one]
 
 /-- The image of `(0, 2π]` under `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma image_circle_map_Ioc (c : ℂ) (R : ℝ) :

@@ -117,7 +117,7 @@ by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
 by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
 
 @[simp] lemma is_empty_subtype (p : α → Prop) : is_empty (subtype p) ↔ ∀ x, ¬p x :=
-⟨λ h i hi, h.elim' $ subtype.mk i hi, subtype.is_empty_of_false⟩
+by simp only [← not_nonempty_iff, nonempty_subtype, not_exists]
 
 lemma well_founded_of_empty {α} [is_empty α] (r : α → α → Prop) : well_founded r :=
 ⟨is_empty_elim⟩

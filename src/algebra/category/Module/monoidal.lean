@@ -59,7 +59,8 @@ lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module.{v} R}
 by tidy
 
 /-- (implementation) the associator for R-modules -/
-def associator (M N K : Module.{v} R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
+def associator (M N K : Module.{v} R) :
+  tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
 (tensor_product.assoc R M N K).to_Module_iso
 
 section

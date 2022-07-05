@@ -33,7 +33,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate
+open_locale complex_conjugate topological_space
 
 instance : has_norm ℂ := ⟨abs⟩
 
@@ -49,7 +49,7 @@ instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
-  .. complex.field }
+  .. complex.field, .. complex.normed_group }
 
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp; norm_num⟩ }
@@ -70,12 +70,45 @@ normed_space.restrict_scalars ℝ ℂ E
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
-lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
-by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul, abs_two,
-  abs_of_real, abs_I, mul_one]
+lemma dist_eq_re_im (z w : ℂ) : dist z w = real.sqrt ((z.re - w.re) ^ 2 + (z.im - w.im) ^ 2) :=
+by { rw [sq, sq], refl }
+
+@[simp] lemma dist_mk (x₁ y₁ x₂ y₂ : ℝ) :
+  dist (mk x₁ y₁) (mk x₂ y₂) = real.sqrt ((x₁ - x₂) ^ 2 + (y₁ - y₂) ^ 2) :=
+dist_eq_re_im _ _
+
+lemma dist_of_re_eq {z w : ℂ} (h : z.re = w.re) : dist z w = dist z.im w.im :=
+by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, zero_add, real.sqrt_sq_eq_abs, real.dist_eq]
+
+lemma nndist_of_re_eq {z w : ℂ} (h : z.re = w.re) : nndist z w = nndist z.im w.im :=
+nnreal.eq $ dist_of_re_eq h
+
+lemma edist_of_re_eq {z w : ℂ} (h : z.re = w.re) : edist z w = edist z.im w.im :=
+by rw [edist_nndist, edist_nndist, nndist_of_re_eq h]
+
+lemma dist_of_im_eq {z w : ℂ} (h : z.im = w.im) : dist z w = dist z.re w.re :=
+by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, add_zero, real.sqrt_sq_eq_abs, real.dist_eq]
+
+lemma nndist_of_im_eq {z w : ℂ} (h : z.im = w.im) : nndist z w = nndist z.re w.re :=
+nnreal.eq $ dist_of_im_eq h
+
+lemma edist_of_im_eq {z w : ℂ} (h : z.im = w.im) : edist z w = edist z.re w.re :=
+by rw [edist_nndist, edist_nndist, nndist_of_im_eq h]
 
 lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
-by rw [dist_comm, dist_self_conj]
+by rw [dist_of_re_eq (conj_re z), conj_im, dist_comm, real.dist_eq, sub_neg_eq_add, ← two_mul,
+  _root_.abs_mul, abs_of_pos (@two_pos ℝ _ _)]
+
+lemma nndist_conj_self (z : ℂ) : nndist (conj z) z = 2 * real.nnabs z.im :=
+nnreal.eq $ by rw [← dist_nndist, nnreal.coe_mul, nnreal.coe_two, real.coe_nnabs, dist_conj_self]
+
+lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
+by rw [dist_comm, dist_conj_self]
+
+lemma nndist_self_conj (z : ℂ) : nndist z (conj z) = 2 * real.nnabs z.im :=
+by rw [nndist_comm, nndist_conj_self]
+
+@[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 

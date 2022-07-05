@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
 
-import data.set.finite
+import data.fintype.basic
 import group_theory.perm.sign
 import logic.equiv.basic
 
@@ -87,7 +87,7 @@ is an equivalence between the complement of those subtypes.
 See also `equiv.compl`, for a computable version when a term of type
 `{e' : α ≃ α // ∀ x : {x // p x}, e' x = e x}` is known. -/
 noncomputable def to_compl (e : {x // p x} ≃ {x // q x}) : {x // ¬ p x} ≃ {x // ¬ q x} :=
-classical.choice (fintype.card_eq.mp (fintype.card_compl_eq_card_compl (fintype.card_congr e)))
+classical.choice (fintype.card_eq.mp (fintype.card_compl_eq_card_compl _ _ (fintype.card_congr e)))
 
 /-- If `e` is an equivalence between two subtypes of a fintype `α`, `e.extend_subtype`
 is a permutation of `α` acting like `e` on the subtypes and doing something arbitrary outside.

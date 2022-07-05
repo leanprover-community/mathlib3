@@ -565,9 +565,8 @@ in terms of the pairwise distances between the points in that
 combination. -/
 lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
     (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
-  dist (s.affine_combination p w₁) (s.affine_combination p w₂) *
-    dist (s.affine_combination p w₁) (s.affine_combination p w₂) =
-    (-∑ i₁ in s, ∑ i₂ in s,
+  by have a₁ := s.affine_combination p w₁; have a₂ := s.affine_combination p w₂; exact
+  dist a₁ a₂ * dist a₁ a₂ = (-∑ i₁ in s, ∑ i₂ in s,
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
@@ -963,7 +962,7 @@ lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
     dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
     dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
-  rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
+  rw [dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
@@ -1186,7 +1185,7 @@ end
 include V
 
 /-- Two points are cospherical. -/
-lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+lemma cospherical_pair (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
 begin
   use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
   intro p,

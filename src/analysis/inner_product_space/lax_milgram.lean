@@ -66,7 +66,7 @@ lemma antilipschitz (coercive : is_coercive B) :
 begin
   rcases coercive.bounded_below with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
-  refine linear_map.antilipschitz_of_bound B♯ _,
+  refine continuous_linear_map.antilipschitz_of_bound B♯ _,
   simp_rw [real.coe_to_nnreal',
     max_eq_left_of_lt (inv_pos.mpr C_pos),
     ←inv_mul_le_iff (inv_pos.mpr C_pos)],

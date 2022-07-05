@@ -95,7 +95,7 @@ instance grade_by.graded_monoid [add_monoid M] [add_monoid ι] [comm_semiring R]
     { rw [H , finsupp.single_zero] at h,
       exfalso,
       exact h },
-    { rw [finsupp.support_single_ne_zero H, finset.mem_singleton] at h,
+    { rw [finsupp.support_single_ne_zero _ H, finset.mem_singleton] at h,
       rw [h, add_monoid_hom.map_zero] }
   end,
   mul_mem := λ i j a b ha hb c hc, begin
@@ -113,7 +113,7 @@ by apply grade_by.graded_monoid (add_monoid_hom.id _)
 variables {R} [add_monoid M] [decidable_eq ι] [add_monoid ι] [comm_semiring R] (f : M →+ ι)
 
 /-- Auxiliary definition; the canonical grade decomposition, used to provide
-`graded_algebra.decompose`. -/
+`direct_sum.decompose`. -/
 def decompose_aux : add_monoid_algebra R M →ₐ[R] ⨁ i : ι, grade_by R f i :=
 add_monoid_algebra.lift R M _
 { to_fun := λ m, direct_sum.of (λ i : ι, grade_by R f i) (f m.to_add)
@@ -156,12 +156,12 @@ begin
     exact add_monoid_hom.map_zero _ },
   { intros m b y hmy hb ih hmby,
     have : disjoint (finsupp.single m b).support y.support,
-    { simpa only [finsupp.support_single_ne_zero hb, finset.disjoint_singleton_left] },
+    { simpa only [finsupp.support_single_ne_zero _ hb, finset.disjoint_singleton_left] },
     rw [mem_grade_by_iff, finsupp.support_add_eq this, finset.coe_union,
       set.union_subset_iff] at hmby,
     cases hmby with h1 h2,
     have : f m = i,
-    { rwa [finsupp.support_single_ne_zero hb, finset.coe_singleton,
+    { rwa [finsupp.support_single_ne_zero _ hb, finset.coe_singleton,
         set.singleton_subset_iff] at h1 },
     subst this,
     simp only [alg_hom.map_add, submodule.coe_mk, decompose_aux_single f m],
@@ -178,16 +178,20 @@ graded_algebra.of_alg_hom _
   (begin
     ext : 2,
     dsimp,
-    rw [decompose_aux_single, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
+    rw [decompose_aux_single, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (λ i x, by convert (decompose_aux_coe f x : _))
 
+-- Lean can't find this later without us repeating it
+instance grade_by.decomposition : direct_sum.decomposition (grade_by R f) :=
+by apply_instance
+
 @[simp] lemma decompose_aux_eq_decompose :
   ⇑(decompose_aux f : add_monoid_algebra R M →ₐ[R] ⨁ i : ι, grade_by R f i) =
-    (graded_algebra.decompose (grade_by R f)) := rfl
+    (direct_sum.decompose (grade_by R f)) := rfl
 
 @[simp] lemma grades_by.decompose_single (m : M) (r : R) :
-  graded_algebra.decompose (grade_by R f) (finsupp.single m r) =
+  direct_sum.decompose (grade_by R f) (finsupp.single m r) =
     direct_sum.of (λ i : ι, grade_by R f i) (f m)
       ⟨finsupp.single m r, single_mem_grade_by _ _ _⟩ :=
 decompose_aux_single _ _ _
@@ -195,18 +199,22 @@ decompose_aux_single _ _ _
 instance grade.graded_algebra : graded_algebra (grade R : ι → submodule _ _) :=
 add_monoid_algebra.grade_by.graded_algebra (add_monoid_hom.id _)
 
+-- Lean can't find this later without us repeating it
+instance grade.decomposition : direct_sum.decomposition (grade R : ι → submodule _ _) :=
+by apply_instance
+
 @[simp]
 lemma grade.decompose_single (i : ι) (r : R) :
-  graded_algebra.decompose (grade R : ι → submodule _ _) (finsupp.single i r) =
+  direct_sum.decompose (grade R : ι → submodule _ _) (finsupp.single i r) =
     direct_sum.of (λ i : ι, grade R i) i ⟨finsupp.single i r, single_mem_grade _ _⟩ :=
 decompose_aux_single _ _ _
 
 /-- `add_monoid_algebra.gradesby` describe an internally graded algebra -/
-lemma grade_by.is_internal : direct_sum.submodule_is_internal (grade_by R f) :=
-graded_algebra.is_internal _
+lemma grade_by.is_internal : direct_sum.is_internal (grade_by R f) :=
+direct_sum.decomposition.is_internal _
 
 /-- `add_monoid_algebra.grades` describe an internally graded algebra -/
-lemma grade.is_internal : direct_sum.submodule_is_internal (grade R : ι → submodule R _) :=
-graded_algebra.is_internal _
+lemma grade.is_internal : direct_sum.is_internal (grade R : ι → submodule R _) :=
+direct_sum.decomposition.is_internal _
 
 end add_monoid_algebra

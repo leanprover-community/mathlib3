@@ -850,6 +850,16 @@ lemma smooth.comp_smooth_on {f : M → M'} {g : M' → M''} {s : set M}
   smooth_on I I'' (g ∘ f) s :=
 hg.smooth_on.comp hf set.subset_preimage_univ
 
+lemma cont_mdiff_on.comp_cont_mdiff {t : set M'} {g : M' → M''}
+  (hg : cont_mdiff_on I' I'' n g t) (hf : cont_mdiff I I' n f)
+  (ht : ∀ x, f x ∈ t) : cont_mdiff I I'' n (g ∘ f) :=
+cont_mdiff_on_univ.mp $ hg.comp hf.cont_mdiff_on (λ x _, ht x)
+
+lemma smooth_on.comp_smooth {t : set M'} {g : M' → M''}
+  (hg : smooth_on I' I'' g t) (hf : smooth I I' f)
+  (ht : ∀ x, f x ∈ t) : smooth I I'' (g ∘ f) :=
+hg.comp_cont_mdiff hf ht
+
 end composition
 
 /-! ### Atlas members are smooth -/
@@ -1548,7 +1558,7 @@ begin
   { apply is_open.mem_nhds,
     apply (local_homeomorph.open_target _).preimage I.continuous_inv_fun,
     simp only with mfld_simps },
-  have A : mdifferentiable_at I I.tangent (λ (x : M), total_space_mk (tangent_space I) x 0) x :=
+  have A : mdifferentiable_at I I.tangent (λ x, @total_space_mk M (tangent_space I) x 0) x :=
     tangent_bundle.smooth_zero_section.mdifferentiable_at,
   have B : fderiv_within 𝕜 (λ (x_1 : E), (x_1, (0 : E))) (set.range ⇑I) (I ((chart_at H x) x)) v
     = (v, 0),

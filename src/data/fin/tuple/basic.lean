@@ -259,6 +259,27 @@ funext (λ i, by rw [function.comp_app, snoc_cast_succ])
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
 by { simp [snoc] }
 
+@[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} (f : fin (m + n) → α) (a : α) :
+  (snoc f a : fin _ → α) ∘ (nat_add m : fin (n + 1) → fin (m + n + 1)) = snoc (f ∘ nat_add m) a :=
+begin
+  ext i,
+  refine fin.last_cases _ (λ i, _) i,
+  { simp only [function.comp_app],
+    rw [snoc_last, nat_add_last, snoc_last] },
+  { simp only [function.comp_app],
+    rw [snoc_cast_succ, nat_add_cast_succ, snoc_cast_succ] }
+end
+
+@[simp] lemma snoc_cast_add {α : fin (n + m + 1) → Type*}
+  (f : Π i : fin (n + m), α (cast_succ i)) (a : α (last (n + m)))
+  (i : fin n) :
+  (snoc f a) (cast_add (m + 1) i) = f (cast_add m i) :=
+dif_pos _
+
+@[simp] lemma snoc_comp_cast_add {n m : ℕ} {α : Sort*} (f : fin (n + m) → α) (a : α) :
+  (snoc f a : fin _ → α) ∘ cast_add (m + 1) = f ∘ cast_add m :=
+funext (snoc_cast_add f a)
+
 /-- Updating a tuple and adding an element at the end commute. -/
 @[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=
 begin
@@ -558,8 +579,8 @@ lemma find_spec : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p] {i : fin 
   { rw h at hi,
     dsimp at hi,
     split_ifs at hi with hl hl,
-    { exact option.some_inj.1 hi ▸ hl },
-    { exact option.no_confusion hi } },
+    { exact hi ▸ hl },
+    { exact hi.elim } },
   { rw h at hi,
     rw [← option.some_inj.1 hi],
     exact find_spec _ h }
@@ -604,10 +625,10 @@ lemma find_min : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p] {i : fin n
   cases h : find (λ i : fin n, (p (i.cast_lt (nat.lt_succ_of_lt i.2)))) with k,
   { rw [h] at hi,
     split_ifs at hi with hl hl,
-    { obtain rfl := option.some_inj.1 hi,
+    { subst hi,
       rw [find_eq_none_iff] at h,
       exact h ⟨j, hj⟩ hpj },
-    { exact option.no_confusion hi } },
+    { exact hi.elim } },
   { rw h at hi,
     dsimp at hi,
     obtain rfl := option.some_inj.1 hi,

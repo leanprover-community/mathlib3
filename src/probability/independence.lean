@@ -543,23 +543,6 @@ begin
   { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
 end
 
-lemma _root_.is_pi_system.comap {π : set (set β)} (hπ : is_pi_system π) (f : α → β) :
-  is_pi_system {s : set α | ∃ t ∈ π, f ⁻¹' t = s} :=
-begin
-  rintros _ ⟨s, hs_mem, rfl⟩ _ ⟨t, ht_mem, rfl⟩ hst,
-  rw ← set.preimage_inter at hst ⊢,
-  refine ⟨s ∩ t, hπ s hs_mem t ht_mem _, rfl⟩,
-  by_contra,
-  rw set.not_nonempty_iff_eq_empty at h,
-  rw h at hst,
-  simpa using hst,
-end
-
-lemma _root_.is_pi_system.generate_from_comap {π : set (set β)}
-  {m : measurable_space β} (hmπ : m = generate_from π) (f : α → β) :
-  m.comap f = generate_from {s : set α | ∃ t ∈ π, f ⁻¹' t = s} :=
-by { rw hmπ, rw comap_generate_from, congr' with s, simp, }
-
 lemma Indep_fun.indep_fun_finset [is_probability_measure μ]
   {ι : Type*} {β : ι → Type*} (m : Π x, measurable_space (β x))
   (f : Π i, α → β i) (S T : finset ι) (hST : disjoint S T) (hf_Indep : Indep_fun m f μ)
@@ -571,13 +554,13 @@ begin
   let πS := {s : set α | ∃ t ∈ πSβ, (λ a (i : S), f i a) ⁻¹' t = s},
   have hπS_pi : is_pi_system πS :=  is_pi_system_pi.comap (λ a i, f i a),
   have hπS_gen : measurable_space.pi.comap (λ a (i : S), f i a) = generate_from πS,
-    from is_pi_system.generate_from_comap generate_from_pi.symm _,
+  { sorry, },
   let πTβ := (set.pi (set.univ : set T) ''
     (set.pi (set.univ : set T) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πT := {s : set α | ∃ t ∈ πTβ, (λ a (i : T), f i a) ⁻¹' t = s},
   have hπT_pi : is_pi_system πT :=  is_pi_system_pi.comap (λ a i, f i a),
   have hπT_gen : measurable_space.pi.comap (λ a (i : T), f i a) = generate_from πT,
-    from is_pi_system.generate_from_comap generate_from_pi.symm _,
+  { sorry, },
 
   refine indep_sets.indep (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i)))
     (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i))) hπS_pi hπT_pi hπS_gen hπT_gen _,

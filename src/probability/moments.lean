@@ -228,35 +228,73 @@ lemma indep.inf {α} {m1 m1' m2 m : measurable_space α} {μ : measure α} (h : 
   indep (m1 ⊓ m1') m2 μ :=
 indep_sets.inter _ h
 
-lemma Indep_fun.prod_mk {ι : Type*} {X : ι → Ω → ℝ}
-  (h : Indep_fun (λ i, infer_instance) X μ) (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
+lemma Indep_fun.prod_mk {ι : Type*} [is_probability_measure μ]
+  {X : ι → Ω → ℝ} (h_meas : ∀ i, measurable (X i))
+  (h_indep : Indep_fun (λ i, infer_instance) X μ) (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
   indep_fun (λ ω, (X i ω, X j ω)) (X k) μ :=
 begin
-  sorry,
+  classical,
+  have h_right : X k = (λ p : (Π j : ({k} : finset ι), ℝ), p ⟨k, finset.mem_singleton_self k⟩)
+    ∘ (λ a (j : ({k} : finset ι)), X j a) := rfl,
+  have h_meas_right : measurable
+      (λ p : (Π j : ({k} : finset ι), ℝ), p ⟨k, finset.mem_singleton_self k⟩),
+    from measurable_pi_apply ⟨k, mem_singleton_self k⟩,
+  let s : finset ι := {i, j},
+  have h_left : (λ ω, (X i ω, X j ω))
+    = (λ p : (Π l : s, ℝ),
+        (p ⟨i, mem_insert_self i _⟩, p ⟨j, mem_insert_of_mem (mem_singleton_self _)⟩))
+      ∘ (λ a (j : s), X j a),
+  { ext1 a,
+    simp only [subtype.coe_mk, prod.mk.inj_iff, eq_self_iff_true, and_self], },
+  have h_meas_left : measurable (λ p : (Π l : s, ℝ),
+        (p ⟨i, mem_insert_self i _⟩, p ⟨j, mem_insert_of_mem (mem_singleton_self _)⟩)),
+  { exact measurable.prod (measurable_pi_apply ⟨i, mem_insert_self i {j}⟩)
+      (measurable_pi_apply ⟨j, mem_insert_of_mem (mem_singleton_self j)⟩), },
+  rw [h_left, h_right],
+  refine (h_indep.indep_fun_finset s {k} _ h_meas).comp h_meas_left h_meas_right,
+  intros x hx,
+  simp only [inf_eq_inter, mem_inter, mem_insert, mem_singleton] at hx,
+  simp only [bot_eq_empty, not_mem_empty],
+  cases hx.1 with hx_eq hx_eq; rw hx_eq at hx,
+  { exact hik hx.2, },
+  { exact hjk hx.2, },
 end
 
-lemma indep_fun.add {ι : Type*} {X : ι → Ω → ℝ}
+lemma indep_fun.add {ι : Type*} [is_probability_measure μ]
+  {X : ι → Ω → ℝ} (h_meas : ∀ i, measurable (X i))
   (h : Indep_fun (λ i, infer_instance) X μ) (i j k : ι) (hik : i ≠ k) (hjk : j ≠ k) :
   indep_fun (X i + X j) (X k) μ :=
 begin
-  have : indep_fun (λ ω, (X i ω, X j ω)) (X k) μ := h.prod_mk i j k hik hjk,
+  have : indep_fun (λ ω, (X i ω, X j ω)) (X k) μ := h.prod_mk h_meas i j k hik hjk,
   change indep_fun ((λ p : ℝ × ℝ, p.fst + p.snd) ∘ (λ ω, (X i ω, X j ω))) (id ∘ (X k)) μ,
-  refine indep_fun.comp this _ _,
-  exact measurable.add measurable_fst measurable_snd,  -- todo investigate measurability
-  exact measurable_id,  -- todo investigate measurability
+  exact indep_fun.comp this (measurable_fst.add measurable_snd) measurable_id,
 end
 
 lemma Indep_fun.indep_fun_finset_of_not_mem {ι : Type*} [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ)
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   {s : finset ι} {i : ι} (hi : i ∉ s) :
   indep_fun (X i) (∑ j in s, X j) μ :=
 begin
-  rw indep_fun,
-  sorry
+  classical,
+  have h_left : X i = (λ p : (Π j : ({i} : finset ι), ℝ), p ⟨i, finset.mem_singleton_self i⟩)
+    ∘ (λ a (j : ({i} : finset ι)), X j a) := rfl,
+  have h_meas_left : measurable
+      (λ p : (Π j : ({i} : finset ι), ℝ), p ⟨i, finset.mem_singleton_self i⟩),
+    from measurable_pi_apply ⟨i, mem_singleton_self i⟩,
+  have h_right : (∑ j in s, X j) = (λ p : (Π j : s, ℝ), ∑ j, p j) ∘ (λ a (j : s), X j a),
+  { ext1 a,
+    simp only [function.comp_app],
+    have : (∑ (j : ↥s), X ↑j a) = (∑ (j : ↥s), X ↑j) a, by rw finset.sum_apply,
+    rw [this, sum_coe_sort], },
+  have h_meas_right : measurable (λ p : (Π j : s, ℝ), ∑ j, p j),
+    from univ.measurable_sum (λ (j : ↥s) (H : j ∈ univ), measurable_pi_apply j),
+  rw [h_left, h_right],
+  exact (h_indep.indep_fun_finset {i} s (disjoint_singleton_left.mpr hi) h_meas).comp
+    h_meas_left h_meas_right,
 end
 
 lemma Indep_fun.integrable_exp_mul_sum {ι : Type*} [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ)
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
   integrable (λ ω, real.exp (t * (∑ i in s, X i) ω)) μ :=
 begin
@@ -270,11 +308,11 @@ begin
     specialize h_rec this,
     rw sum_insert hi_notin_s,
     refine indep_fun.integrable_exp_mul_add _ (h_int i (mem_insert_self _ _)) h_rec,
-    exact h_indep.indep_fun_finset_of_not_mem hi_notin_s, },
+    exact h_indep.indep_fun_finset_of_not_mem h_meas hi_notin_s, },
 end
 
 lemma Indep_fun.mgf_sum {ι : Type*} [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ)
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
   mgf (∑ i in s, X i) μ t = ∏ i in s, mgf (X i) μ t :=
 begin
@@ -284,13 +322,14 @@ begin
   { simp only [sum_empty, mgf_zero_fun, measure_univ, ennreal.one_to_real, prod_empty], },
   { have h_int' : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), real.exp (t * X i ω)) μ,
       from λ i hi, h_int i (mem_insert_of_mem hi),
-    rw [sum_insert hi_notin_s, indep_fun.mgf_add (h_indep.indep_fun_finset_of_not_mem hi_notin_s)
-        (h_int i (mem_insert_self _ _)) (h_indep.integrable_exp_mul_sum h_int'),
+    rw [sum_insert hi_notin_s, indep_fun.mgf_add
+        (h_indep.indep_fun_finset_of_not_mem h_meas hi_notin_s)
+        (h_int i (mem_insert_self _ _)) (h_indep.integrable_exp_mul_sum h_meas h_int'),
       h_rec h_int', prod_insert hi_notin_s], },
 end
 
 lemma Indep_fun.cgf_sum {ι : Type*} [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ)
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
   cgf (∑ i in s, X i) μ t = ∑ i in s, cgf (X i) μ t :=
 begin
@@ -298,7 +337,7 @@ begin
   by_cases hμ : μ = 0,
   { simp [hμ], },
   rw ← real.log_prod _ _ (λ j hj, _),
-  { rw h_indep.mgf_sum h_int, },
+  { rw h_indep.mgf_sum h_meas h_int, },
   { exact (mgf_pos (h_int j hj)).ne', },
 end
 

@@ -1043,9 +1043,7 @@ lemma strict_mono_on.exists_slope_lt_deriv_aux {x y : ℝ} {f : ℝ → ℝ}
   ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a :=
 begin
   have A : differentiable_on ℝ f (Ioo x y),
-  { assume w wmem,
-    apply differentiable_at.differentiable_within_at,
-    exact differentiable_at_of_deriv_ne_zero (h w wmem), },
+    from λ w wmem, (differentiable_at_of_deriv_ne_zero (h w wmem)).differentiable_within_at,
   obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
     from exists_deriv_eq_slope f hxy hf A,
   rcases nonempty_Ioo.2 hay with ⟨b, ⟨hab, hby⟩⟩,
@@ -1095,9 +1093,7 @@ lemma strict_mono_on.exists_deriv_lt_slope_aux {x y : ℝ} {f : ℝ → ℝ}
   ∃ a ∈ Ioo x y, deriv f a < (f y - f x) / (y - x) :=
 begin
   have A : differentiable_on ℝ f (Ioo x y),
-  { assume w wmem,
-    apply differentiable_at.differentiable_within_at,
-    exact differentiable_at_of_deriv_ne_zero (h w wmem), },
+    from λ w wmem, (differentiable_at_of_deriv_ne_zero (h w wmem)).differentiable_within_at,
   obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
     from exists_deriv_eq_slope f hxy hf A,
   rcases nonempty_Ioo.2 hxa with ⟨b, ⟨hxb, hba⟩⟩,
@@ -1160,7 +1156,7 @@ begin
   have hyzD' : Ioo y z ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hyzD⟩,
   -- Then we get points `a` and `b` in each interval `[x, y]` and `[y, z]` where the derivatives
-  -- can be compared to the slopes between `x, y` and `, z` respectively.
+  -- can be compared to the slopes between `x, y` and `y, z` respectively.
   obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a,
     from strict_mono_on.exists_slope_lt_deriv (hf.mono hxyD) hxy (hf'.mono hxyD'),
   obtain ⟨b, ⟨hyb, hbz⟩, hb⟩ : ∃ b ∈ Ioo y z, deriv f b < (f z - f y) / (z - y),

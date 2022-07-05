@@ -2072,7 +2072,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_field.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
+instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
 { continuous_at_inv₀ :=
   begin
     suffices : ∀ {x : α}, 0 < x → continuous_at has_inv.inv x,
@@ -2106,10 +2106,6 @@ instance linear_ordered_field.to_has_continuous_inv₀ : has_continuous_inv₀ �
     rw [inv_div, abs_of_pos $ mul_pos ht hx', sq, ←mul_div_assoc'],
     exact mul_lt_mul_of_pos_left hx ht
   end }
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
-{ .. linear_ordered_field.to_has_continuous_inv₀ }
 
 end linear_ordered_field
 

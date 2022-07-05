@@ -43,7 +43,7 @@ lemma hamm_dist_le_card_fintype {x y : Π i, β i} : hamm_dist x y ≤ card ι :
 
 lemma hamm_dist_comp_le_hamm_dist (f : Π i, γ i → β i) {x y : Π i, γ i} :
   hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) ≤ hamm_dist x y :=
-card_subtype_mono _ _ (λ _ H1 H2, by { simp_rw H2 at H1, exact H1 rfl })
+card_subtype_mono _ _ $ λ x H1 H2, H1 $ congr_arg (f x) H2
 
 lemma hamm_dist_comp (f : Π i, γ i → β i) {x y : Π i, γ i} (hf : Π i, injective (f i))
   : hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) = hamm_dist x y :=
@@ -51,7 +51,7 @@ le_antisymm (hamm_dist_comp_le_hamm_dist  _) (card_subtype_mono _ _ (λ i H1 H2,
 
 lemma hamm_dist_smul_le_hamm_dist [Π i, has_scalar α (β i)] {k : α} {x y : Π i, β i} :
   hamm_dist (k • x) (k • y) ≤ hamm_dist x y :=
-hamm_dist_comp_le_hamm_dist (λ i (c : β i), k • c)
+hamm_dist_comp_le_hamm_dist $ λ i, (•) k
 
 lemma hamm_dist_smul [Π i, has_scalar α (β i)] {k : α} {x y : Π i, β i}
   (hk : Π i, is_smul_regular (β i) k) : hamm_dist (k • x) (k • y) = hamm_dist x y :=

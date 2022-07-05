@@ -546,7 +546,7 @@ lemma normed_space.is_vonN_bounded_closed_ball (r : ℝ) :
 lemma normed_space.is_vonN_bounded_iff (s : set E) :
   bornology.is_vonN_bounded 𝕜 s ↔ bornology.is_bounded s :=
 begin
-  rw [metric.is_bounded_iff, ← metric.bounded, metric.bounded_iff_subset_ball (0 : E)],
+  rw [← metric.bounded_iff_is_bounded, metric.bounded_iff_subset_ball (0 : E)],
   split,
   { intros h,
     rcases h (metric.ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,

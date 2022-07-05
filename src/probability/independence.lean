@@ -543,12 +543,16 @@ begin
   { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
 end
 
+/-- If `f` is a family of mutually independent random variables (`Indep_fun m f μ`) and `S,T` are
+two disjoint index sets, then the finite product of `f` over `S` is independent of the finite
+product of `f` over `T`. -/
 lemma Indep_fun.indep_fun_finset [is_probability_measure μ]
   {ι : Type*} {β : ι → Type*} (m : Π x, measurable_space (β x))
   (f : Π i, α → β i) (S T : finset ι) (hST : disjoint S T) (hf_Indep : Indep_fun m f μ)
   (hf_meas : ∀ i, measurable (f i)) :
   indep_fun (λ a (i : S), f i a) (λ a (i : T), f i a) μ :=
 begin
+  -- We introduce π-systems, build from the π-system of boxes which generates `measurable_space.pi`.
   let πSβ := (set.pi (set.univ : set S) ''
     (set.pi (set.univ : set S) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πS := {s : set α | ∃ t ∈ πSβ, (λ a (i : S), f i a) ⁻¹' t = s},
@@ -568,6 +572,7 @@ begin
       simp only [set.mem_image, set.mem_set_of_eq, exists_prop], },
     { exact finset.fintype_coe_sort T, }, },
 
+  -- To prove independence, we prove independence of the generating π-systems.
   refine indep_sets.indep (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i)))
     (measurable.comap_le (measurable_pi_iff.mpr (λ i, hf_meas i))) hπS_pi hπT_pi hπS_gen hπT_gen _,
 
@@ -580,14 +585,12 @@ begin
   have h_sets_s'_univ : ∀ {i} (hi : i ∈ T), sets_s' i = set.univ,
   { intros i hi, simp_rw [sets_s', dif_neg (finset.disjoint_right.mp hST hi)], },
   let sets_t' : (Π i : ι, set (β i)) := λ i, dite (i ∈ T) (λ hi, sets_t ⟨i, hi⟩) (λ _, set.univ),
-  have h_sets_t'_eq : ∀ {i} (hi : i ∈ T), sets_t' i = sets_t ⟨i, hi⟩,
-  { intros i hi, simp_rw [sets_t', dif_pos hi], },
   have h_sets_t'_univ : ∀ {i} (hi : i ∈ S), sets_t' i = set.univ,
   { intros i hi, simp_rw [sets_t', dif_neg (finset.disjoint_left.mp hST hi)], },
   have h_meas_s' : ∀ i ∈ S, measurable_set (sets_s' i),
   { intros i hi, rw h_sets_s'_eq hi, exact hs1 _, },
   have h_meas_t' : ∀ i ∈ T, measurable_set (sets_t' i),
-  { intros i hi, rw h_sets_t'_eq hi, exact ht1 _, },
+  { intros i hi, simp_rw [sets_t', dif_pos hi], exact ht1 _, },
   have h_eq_inter_S : (λ (a : α) (i : ↥S), f ↑i a) ⁻¹' set.pi set.univ sets_s
     = ⋂ i ∈ S, (f i) ⁻¹' (sets_s' i),
   { ext1 x,
@@ -613,9 +616,7 @@ begin
       cases hi,
       { rw h_sets_t'_univ hi, exact ⟨h.1 i hi, set.mem_univ _⟩, },
       { rw h_sets_s'_univ hi, exact ⟨set.mem_univ _, h.2 i hi⟩, }, },
-    { split; intros i hi,
-      { specialize h i (or.inl hi), exact h.1, },
-      { specialize h i (or.inr hi), exact h.2, }, }, },
+    { exact ⟨λ i hi, (h i (or.inl hi)).1, λ i hi, (h i (or.inr hi)).2⟩, }, },
   rw [h_Inter_inter, hf_Indep (S ∪ T)],
   swap, { intros i hi_mem,
     rw finset.mem_union at hi_mem,

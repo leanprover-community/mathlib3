@@ -188,12 +188,4 @@ begin
     exact (nat.cast_pos.mpr n.succ_pos).ne', },
 end
 
-example (n : ℕ) (c ε : ℝ) :
-  -(↑n.succ * ε) ^ 2 / (2 * c * ↑n.succ) = -↑n.succ * ε ^ 2 / (2 * c) :=
-begin
-  rw [mul_pow, pow_two, mul_assoc, mul_comm, ← neg_mul, ← neg_mul, ← mul_div,
-    mul_comm ((2 : ℝ) * c), div_eq_mul_inv, inv_mul', mul_div, mul_inv_cancel, mul_div, mul_one],
-  exact (nat.cast_pos.mpr n.succ_pos).ne',
-end
-
 end probability_theory

@@ -1037,7 +1037,7 @@ begin
   exact neg_convex_on_iff.mp (this.convex_on_of_deriv hD hf.neg hf'.neg),
 end
 
-lemma strict_mono_on.strict_convex_on_of_deriv_aux1 {x y : ℝ} {f : ℝ → ℝ}
+lemma strict_mono_on.exists_slope_lt_deriv_aux {x y : ℝ} {f : ℝ → ℝ}
   (hf : continuous_on f (Icc x y)) (hxy : x < y)
   (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) (h : ∀ w ∈ Ioo x y, deriv f w ≠ 0) :
   ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a :=
@@ -1054,17 +1054,17 @@ begin
   exact hf'_mono ⟨hxa, hay⟩ ⟨hxa.trans hab, hby⟩ hab
 end
 
-lemma strict_mono_on.strict_convex_on_of_deriv_aux2 {x y : ℝ} {f : ℝ → ℝ}
+lemma strict_mono_on.exists_slope_lt_deriv {x y : ℝ} {f : ℝ → ℝ}
   (hf : continuous_on f (Icc x y)) (hxy : x < y)
   (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) :
   ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a :=
 begin
   by_cases h : ∀ w ∈ Ioo x y, deriv f w ≠ 0,
-  { apply strict_mono_on.strict_convex_on_of_deriv_aux1 hf hxy hf'_mono h },
+  { apply strict_mono_on.exists_slope_lt_deriv_aux hf hxy hf'_mono h },
   { push_neg at h,
     rcases h with ⟨w, ⟨hxw, hwy⟩, hw⟩,
     obtain ⟨a, ⟨hxa, haw⟩, ha⟩ : ∃ (a : ℝ) (H : a ∈ Ioo x w), (f w - f x) / (w - x) < deriv f a,
-    { apply strict_mono_on.strict_convex_on_of_deriv_aux1 _ hxw _ _,
+    { apply strict_mono_on.exists_slope_lt_deriv_aux _ hxw _ _,
       { exact hf.mono (Icc_subset_Icc le_rfl hwy.le) },
       { exact hf'_mono.mono (Ioo_subset_Ioo le_rfl hwy.le) },
       { assume z hz,
@@ -1072,7 +1072,7 @@ begin
         apply ne_of_lt,
         exact hf'_mono ⟨hz.1, hz.2.trans hwy⟩ ⟨hxw, hwy⟩ hz.2 } },
     obtain ⟨b, ⟨hwb, hby⟩, hb⟩ : ∃ (b : ℝ) (H : b ∈ Ioo w y), (f y - f w) / (y - w) < deriv f b,
-    { apply strict_mono_on.strict_convex_on_of_deriv_aux1 _ hwy _ _,
+    { apply strict_mono_on.exists_slope_lt_deriv_aux _ hwy _ _,
       { refine hf.mono (Icc_subset_Icc hxw.le le_rfl), },
       { exact hf'_mono.mono (Ioo_subset_Ioo hxw.le le_rfl) },
       { assume z hz,
@@ -1089,7 +1089,7 @@ begin
     linarith }
 end
 
-lemma strict_mono_on.strict_convex_on_of_deriv_aux3 {x y : ℝ} {f : ℝ → ℝ}
+lemma strict_mono_on.exists_deriv_lt_slope_aux {x y : ℝ} {f : ℝ → ℝ}
   (hf : continuous_on f (Icc x y)) (hxy : x < y)
   (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) (h : ∀ w ∈ Ioo x y, deriv f w ≠ 0) :
   ∃ a ∈ Ioo x y, deriv f a < (f y - f x) / (y - x) :=
@@ -1106,17 +1106,17 @@ begin
   exact hf'_mono ⟨hxb, hba.trans hay⟩ ⟨hxa, hay⟩ hba
 end
 
-lemma strict_mono_on.strict_convex_on_of_deriv_aux4 {x y : ℝ} {f : ℝ → ℝ}
+lemma strict_mono_on.exists_deriv_lt_slope {x y : ℝ} {f : ℝ → ℝ}
   (hf : continuous_on f (Icc x y)) (hxy : x < y)
   (hf'_mono : strict_mono_on (deriv f) (Ioo x y)) :
   ∃ a ∈ Ioo x y, deriv f a < (f y - f x) / (y - x) :=
 begin
   by_cases h : ∀ w ∈ Ioo x y, deriv f w ≠ 0,
-  { apply strict_mono_on.strict_convex_on_of_deriv_aux3 hf hxy hf'_mono h },
+  { apply strict_mono_on.exists_deriv_lt_slope_aux hf hxy hf'_mono h },
   { push_neg at h,
     rcases h with ⟨w, ⟨hxw, hwy⟩, hw⟩,
     obtain ⟨a, ⟨hxa, haw⟩, ha⟩ : ∃ (a : ℝ) (H : a ∈ Ioo x w), deriv f a < (f w - f x) / (w - x),
-    { apply strict_mono_on.strict_convex_on_of_deriv_aux3 _ hxw _ _,
+    { apply strict_mono_on.exists_deriv_lt_slope_aux _ hxw _ _,
       { exact hf.mono (Icc_subset_Icc le_rfl hwy.le) },
       { exact hf'_mono.mono (Ioo_subset_Ioo le_rfl hwy.le) },
       { assume z hz,
@@ -1124,7 +1124,7 @@ begin
         apply ne_of_lt,
         exact hf'_mono ⟨hz.1, hz.2.trans hwy⟩ ⟨hxw, hwy⟩ hz.2 } },
     obtain ⟨b, ⟨hwb, hby⟩, hb⟩ : ∃ (b : ℝ) (H : b ∈ Ioo w y), deriv f b < (f y - f w) / (y - w),
-    { apply strict_mono_on.strict_convex_on_of_deriv_aux3 _ hwy _ _,
+    { apply strict_mono_on.exists_deriv_lt_slope_aux _ hwy _ _,
       { refine hf.mono (Icc_subset_Icc hxw.le le_rfl), },
       { exact hf'_mono.mono (Ioo_subset_Ioo hxw.le le_rfl) },
       { assume z hz,
@@ -1162,9 +1162,9 @@ begin
   -- Then we get points `a` and `b` in each interval `[x, y]` and `[y, z]` where the derivatives
   -- can be compared to the slopes between `x, y` and `, z` respectively.
   obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, (f y - f x) / (y - x) < deriv f a,
-    from strict_mono_on.strict_convex_on_of_deriv_aux2 (hf.mono hxyD) hxy (hf'.mono hxyD'),
+    from strict_mono_on.exists_slope_lt_deriv (hf.mono hxyD) hxy (hf'.mono hxyD'),
   obtain ⟨b, ⟨hyb, hbz⟩, hb⟩ : ∃ b ∈ Ioo y z, deriv f b < (f z - f y) / (z - y),
-    from strict_mono_on.strict_convex_on_of_deriv_aux4 (hf.mono hyzD) hyz (hf'.mono hyzD'),
+    from strict_mono_on.exists_deriv_lt_slope (hf.mono hyzD) hyz (hf'.mono hyzD'),
   apply ha.trans (lt_trans _ hb),
   exact hf' (hxyD' ⟨hxa, hay⟩) (hyzD' ⟨hyb, hbz⟩) (hay.trans hyb),
 end
@@ -1200,8 +1200,7 @@ theorem antitone.concave_on_univ_of_deriv {f : ℝ → ℝ} (hf : differentiable
 convex. Note that we don't require differentiability, since it is guaranteed at all but at most
 one point by the strict monotonicity of `f'`. -/
 lemma strict_mono.strict_convex_on_univ_of_deriv {f : ℝ → ℝ} (hf : continuous f)
-  (hf'_mono : strict_mono (deriv f)) :
-  strict_convex_on ℝ univ f :=
+  (hf'_mono : strict_mono (deriv f)) : strict_convex_on ℝ univ f :=
 (hf'_mono.strict_mono_on _).strict_convex_on_of_deriv convex_univ hf.continuous_on
 
 /-- If a function `f` is continuous and `f'` is strictly antitone on `ℝ` then `f` is strictly

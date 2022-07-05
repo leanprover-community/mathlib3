@@ -22,6 +22,10 @@ import probability.variance
   defined at `t`, then `mgf (X + Y) μ t = mgf X μ t * mgf Y μ t`
 * `indep_fun.cgf_add`: if two real random variables `X` and `Y` are independent and their mgf are
   defined at `t`, then `cgf (X + Y) μ t = cgf X μ t + cgf Y μ t`
+* `measure_ge_le_exp_cgf` and `measure_le_le_exp_cgf`: Chernoff bound on the upper (resp.
+  lower) tail of a random variable. For `0 ≤ t`, `ℙ(ε ≤ X) ≤ exp( - t*ε + cfg X μ t)`. See also
+  `measure_ge_le_exp_mul_mgf` and `measure_le_le_exp_mul_mgf` for versions of these results using
+  `mgf` instead of `cgf`.
 
 -/
 
@@ -195,6 +199,7 @@ begin
   exact real.log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
 end
 
+/-- **Chernoff bound** on the upper tail of a real random variable. -/
 lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
   (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
   (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε) * mgf X μ t :=
@@ -222,6 +227,7 @@ begin
   ... = real.exp(- t * ε) * mgf X μ t : by { rw [neg_mul, real.exp_neg], refl, },
 end
 
+/-- **Chernoff bound** on the lower tail of a real random variable. -/
 lemma measure_le_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
   (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
   (μ {ω | X ω ≤ ε}).to_real ≤ real.exp(- t * ε) * mgf X μ t :=
@@ -234,6 +240,7 @@ begin
     exact h_int, },
 end
 
+/-- **Chernoff bound** on the upper tail of a real random variable. -/
 lemma measure_ge_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
   (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
   (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε + cgf X μ t) :=
@@ -243,6 +250,7 @@ begin
   exact mul_le_mul le_rfl (real.le_exp_log _) mgf_nonneg (real.exp_pos _).le,
 end
 
+/-- **Chernoff bound** on the lower tail of a real random variable. -/
 lemma measure_le_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
   (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
   (μ {ω | X ω ≤ ε}).to_real ≤ real.exp(- t * ε + cgf X μ t) :=

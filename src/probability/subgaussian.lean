@@ -183,9 +183,10 @@ begin
     rw [le_div_iff (nat.cast_pos.mpr n.succ_pos), mul_comm ε],
     apply_instance, },
   { congr' 1,
-    rw [mul_pow, pow_two, mul_assoc, mul_comm, ← neg_mul, ← neg_mul, ← mul_div,
-      mul_comm ((2 : ℝ) * c), div_eq_mul_inv, inv_mul', mul_div, mul_inv_cancel, mul_div, mul_one],
-    exact (nat.cast_pos.mpr n.succ_pos).ne', },
+    by_cases hc : c = 0,
+    { simp only [hc, mul_zero, zero_mul, div_zero], },
+    field_simp [n.cast_add_one_ne_zero],
+    ring, },
 end
 
 end probability_theory

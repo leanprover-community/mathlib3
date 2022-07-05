@@ -27,7 +27,7 @@ If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.
 -/
 
-universes u
+universes v u
 
 open category_theory
 
@@ -44,25 +44,26 @@ open_locale tensor_product
 local attribute [ext] tensor_product.ext
 
 /-- (implementation) tensor product of R-modules -/
-def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
+def tensor_obj (M N : Module.{v} R) : Module R := Module.of R (M ⊗[R] N)
 /-- (implementation) tensor product of morphisms R-modules -/
-def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
+def tensor_hom {M N M' N' : Module.{v} R} (f : M ⟶ N) (g : M' ⟶ N') :
   tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
-lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (↥M ⊗ ↥N)) :=
+lemma tensor_id (M N : Module.{v} R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (M ⊗ N)) :=
 by tidy
 
-lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
+lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module.{v} R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
 by tidy
 
 /-- (implementation) the associator for R-modules -/
-def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-linear_equiv.to_Module_iso (tensor_product.assoc R M N K)
+def associator (M N K : Module.{v} R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
+(tensor_product.assoc R M N K).to_Module_iso
 
 section
+
 
 /-! The `associator_naturality` and `pentagon` lemmas below are very slow to elaborate.
 
@@ -109,7 +110,7 @@ lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
     (associator X₁ X₂ X₃).hom ≫ tensor_hom f₁ (tensor_hom f₂ f₃) :=
 by convert associator_naturality_aux f₁ f₂ f₃ using 1
 
-lemma pentagon (W X Y Z : Module R) :
+lemma pentagon (W X Y Z : Module.{v} R) :
   tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom
   ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
@@ -122,7 +123,7 @@ def left_unitor (M : Module.{u} R) : Module.of R (R ⊗[R] M) ≅ M :=
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
+  ext x y, dsimp,
   erw [tensor_product.lid_tmul, tensor_product.lid_tmul],
   rw linear_map.map_smul,
   refl,
@@ -135,7 +136,7 @@ def right_unitor (M : Module.{u} R) : Module.of R (M ⊗[R] R) ≅ M :=
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  ext x y, simp,
+  ext x y, dsimp,
   erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
   rw linear_map.map_smul,
   refl,
@@ -215,7 +216,7 @@ lemma associator_inv_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
 end monoidal_category
 
 /-- (implementation) the braiding for R-modules -/
-def braiding (M N : Module R) : tensor_obj M N ≅ tensor_obj N M :=
+def braiding (M N : Module.{v} R) : tensor_obj M N ≅ tensor_obj N M :=
 linear_equiv.to_Module_iso (tensor_product.comm R M N)
 
 @[simp] lemma braiding_naturality {X₁ X₂ Y₁ Y₂ : Module.{u} R} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :

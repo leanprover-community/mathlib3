@@ -358,6 +358,9 @@ linear_map.map_sub derivative f g
   derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
 by induction k with k ih generalizing f g; simp*
 
+lemma derivative_X_sub_C (a : R) : (X - C a).derivative = 1 :=
+by simp only [derivative_sub, derivative_X, derivative_C, sub_zero]
+
 end ring
 
 section comm_ring

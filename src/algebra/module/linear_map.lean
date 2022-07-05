@@ -258,7 +258,7 @@ by simp
 section pointwise
 open_locale pointwise
 
-variables ⦃M M₃ σ⦄ {F : Type*} (h : F)
+variables (M M₃ σ) {F : Type*} (h : F)
 
 @[simp] lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
   h '' (c • s) = (σ c) • h '' s :=
@@ -283,15 +283,15 @@ begin
     refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
 
-variables ⦃R M₂⦄
+variables (M₂)
 
 lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
   h '' (c • s) = c • h '' s :=
-image_smul_setₛₗ h c s
+image_smul_setₛₗ _ _ _ h c s
 
 lemma _root_.preimage_smul_set [linear_map_class F R M M₂] {c : R} (hc : is_unit c) (s : set M₂) :
   h ⁻¹' (c • s) = c • h ⁻¹' s :=
-preimage_smul_setₛₗ h hc s
+preimage_smul_setₛₗ _ _ _ h hc s
 
 end pointwise
 

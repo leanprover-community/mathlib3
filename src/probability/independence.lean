@@ -555,7 +555,7 @@ lemma head_n_eq_generate_from_Union_Inter_range (s : ℕ → measurable_space α
     = generate_from (pi_Union_Inter (λ n, {t | measurable_set[s n] t}) {finset.range n}) :=
 by simp [generate_from_pi_Union_Inter_measurable_space s {finset.range n}]
 
-lemma tail_n_eq_generate_from_Union_Inter_Icc (s : ℕ → measurable_space α) (N : ℕ) :
+lemma tail_n_eq_generate_from_pi_Union_Inter_Icc (s : ℕ → measurable_space α) (N : ℕ) :
   (⨆ i ≥ N, s i) = generate_from (pi_Union_Inter (λ n, {t | measurable_set[s n] t})
     {p : finset ℕ | ∃ r, p = finset.Icc N (N + r)}) :=
 begin
@@ -575,38 +575,28 @@ begin
     exact hip.left, },
 end
 
+@[to_additive]
+lemma prod_ite_mem {ι} [comm_monoid α] (s t : finset ι) (f : ι → α) :
+  ∏ i in s, ite (i ∈ t) (f i) 1 = ∏ i in (s ∩ t), f i :=
+by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
+
 lemma prod_range_ite_eq_prod_range [comm_monoid α] (N r : ℕ) (f : ℕ → α) :
   (∏ n in finset.range (N + r), ite (n ∈ finset.range N) (f n) 1) = ∏ n in finset.range N, (f n) :=
 begin
-  simp_rw [finset.mem_range],
-  rw [finset.range_eq_Ico,
-    ← finset.prod_Ico_consecutive (λ x, ite (x < N) (f x) 1) (zero_le N) (le_add_right le_rfl)],
-  have h_left : (∏ i in finset.Ico 0 N, (λ (x : ℕ), ite (x < N) (f x) 1) i)
-      = ∏ i in finset.Ico 0 N, f i,
-    from finset.prod_congr rfl (λ n hn, by simp [finset.mem_Ico.mp hn]),
-  have h_right : (∏ i in finset.Ico N (N+r), (λ x, ite (x < N) (f x) 1) i) = 1,
-  { refine finset.prod_eq_one (λ i hi, _),
-    rw finset.mem_Ico at hi,
-    dsimp only,
-    rw if_neg (not_lt.mpr hi.1), },
-  rw [h_left, h_right, mul_one],
+  convert prod_ite_mem (finset.range (N + r)) (finset.range N) f,
+  { ext1 x, congr, },
+  { ext1 x,
+    simp only [finset.mem_range, finset.mem_inter, iff_and_self],
+    exact λ h, h.trans_le (le_add_right le_rfl), },
 end
 
 lemma prod_range_ite_range_le [comm_monoid α] (N r : ℕ) (f : ℕ → α) :
   (∏ n in finset.range (N + r), ite (n ∈ finset.Ico N (N + r)) (f n) 1)
     = ∏ n in finset.Ico N (N + r), f n :=
 begin
-  simp_rw [finset.mem_Ico, finset.range_eq_Ico,
-    ← finset.prod_Ico_consecutive (λ x, ite (N ≤ x ∧ x < N + r) (f x) 1) (zero_le N)
-      (le_add_right le_rfl)],
-  have h_left : (∏ (x : ℕ) in finset.range N, ite (N ≤ x ∧ x < N +r) (f x) 1) = 1,
-  { refine finset.prod_eq_one (λ i hi, _),
-    rw finset.mem_range at hi,
-    simp [not_le.mpr hi], },
-  rw [← finset.range_eq_Ico, h_left, one_mul],
-  refine finset.prod_congr rfl (λ x hx, _),
-  rw finset.mem_Ico at hx,
-  simp [hx],
+  convert (prod_ite_mem (finset.range (N + r)) (finset.Ico N (N + r)) f),
+  { ext1 x, congr, },
+  { ext1 x, simp, },
 end
 
 lemma aux_t1_inter_t2 (N r : ℕ) (f1 f2 : ℕ → set α) :
@@ -633,11 +623,11 @@ begin
 end
 
 lemma measurable_set.ite' {m0 : measurable_space α} {s t : set α} {p : Prop}
-  (hs : p → measurable_set s) (ht : ¬ p → measurable_set t)  :
+  (hs : p → measurable_set s) (ht : ¬ p → measurable_set t) :
   measurable_set (ite p s t) :=
 by { split_ifs, exacts [hs h, ht h], }
 
-lemma indep_sets_head_n_tail_n_pi_systems [is_probability_measure μ] (s : ℕ → measurable_space α)
+lemma indep_sets_head_n_tail_n [is_probability_measure μ] (s : ℕ → measurable_space α)
   (h_indep : Indep s μ) (N : ℕ) :
   indep_sets (pi_Union_Inter (λ n, {t | measurable_set[s n] t}) {finset.range N})
     (pi_Union_Inter (λ n, {t | measurable_set[s n] t})
@@ -686,7 +676,7 @@ lemma supr_eq_generate_from_Union_head_n (s : ℕ → measurable_space α) :
 by rw [supr_eq_supr_head_n, generate_from_Union_measurable_set]
 
 lemma is_pi_system_Union_of_monotone {ι} [linear_order ι] (p : ι → set (set α))
-  (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : ∀ n m : ι, n ≤ m → p n ⊆ p m) :
+  (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : monotone p) :
   is_pi_system (⋃ n, p n) :=
 begin
   intros t1 ht1 t2 ht2 h,
@@ -694,20 +684,31 @@ begin
   cases ht1 with n ht1,
   cases ht2 with m ht2,
   cases le_total n m with h_le h_le,
-  { exact ⟨m, hp_pi m t1 (set.mem_of_mem_of_subset ht1 (hp_mono n m h_le)) t2 ht2 h⟩, },
-  { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono m n h_le)) h⟩, },
+  { exact ⟨m, hp_pi m t1 (set.mem_of_mem_of_subset ht1 (hp_mono h_le)) t2 ht2 h⟩, },
+  { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono h_le)) h⟩, },
 end
 
 variables [is_probability_measure μ] {s : ℕ → measurable_space α}
 
-lemma sup_closed_finset_Icc_right (N : ℕ) :
-  sup_closed {s : finset ℕ | ∃ r : ℕ, s = finset.Icc N (N + r)} :=
+lemma sup_closed_finset_Icc_right' {ι} [linear_order ι] [locally_finite_order ι] (N : ι) :
+  sup_closed {s : finset ι | ∃ (r : ι) (hr : N ≤ r), s = finset.Icc N r} :=
+begin
+  refine sup_closed_of_totally_ordered _ _,
+  rintros s1 s2 ⟨r1, hr1, rfl⟩ ⟨r2, hr2, rfl⟩,
+  cases le_total r1 r2,
+  { exact or.inr (finset.Icc_subset_Icc le_rfl h), },
+  { exact or.inl (finset.Icc_subset_Icc le_rfl h), },
+end
+
+lemma sup_closed_finset_Icc_right {ι} [linear_order ι] [locally_finite_order ι] [has_add ι]
+  [covariant_class ι ι (+) (≤)] (N : ι) :
+  sup_closed {s : finset ι | ∃ r : ι, s = finset.Icc N (N + r)} :=
 begin
   refine sup_closed_of_totally_ordered _ _,
   rintros s1 s2 ⟨r1, rfl⟩ ⟨r2, rfl⟩,
   cases le_total r1 r2,
-  { exact or.inr (finset.Icc_subset_Icc le_rfl (by simp [h])), },
-  { exact or.inl (finset.Icc_subset_Icc le_rfl (by simp [h])), },
+  { exact or.inr (finset.Icc_subset_Icc le_rfl (add_le_add_left h _)), },
+  { exact or.inl (finset.Icc_subset_Icc le_rfl (add_le_add_left h _)), },
 end
 
 lemma head_n_indep_tail_n (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (N : ℕ) :
@@ -730,11 +731,11 @@ begin
       {p : finset ℕ | ∃ r : ℕ, p = finset.Icc N (N + r)}
       (by convert sup_closed_finset_Icc_right N),
   have h_generate_tail : (⨆ i ≥ N, s i) = generate_from p_tail,
-    from tail_n_eq_generate_from_Union_Inter_Icc s N,
+    from tail_n_eq_generate_from_pi_Union_Inter_Icc s N,
   -- if these π-systems are independent, then head and tail are independent
   refine indep_sets.indep (head_n_le s N h_le) (tail_n_le s N h_le)
     h_pi_head h_pi_tail h_generate_head h_generate_tail _,
-  exact indep_sets_head_n_tail_n_pi_systems s h_indep N,
+  exact indep_sets_head_n_tail_n s h_indep N,
 end
 
 lemma head_n_indep_tail (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (n : ℕ) :

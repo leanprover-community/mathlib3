@@ -65,7 +65,7 @@ begin
     polynomial.to_continuous_map_on_to_fun,
     polynomial.aeval_subalgebra_coe,
     polynomial.aeval_continuous_map_apply,
-    polynomial.to_continuous_map_to_fun],
+    polynomial.to_continuous_map_apply],
 end
 
 /--

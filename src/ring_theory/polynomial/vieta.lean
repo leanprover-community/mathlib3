@@ -11,11 +11,11 @@ import ring_theory.polynomial.symmetric
 
 The main result is `multiset.prod_X_add_C_eq_sum_esymm`, which shows that the product of
 linear terms ` X + λ` with `λ` in a `multiset s` is equal to a linear combination of the
-symmetric polynomials `esymm s`.
+symmetric functions `esymm s`.
 
 From this, we deduce `mv_polynomial.prod_X_add_C_eq_sum_esymm` which is the equivalent formula
 for the product of linear terms `X + X i` with `i` in a `fintype σ` as a linear combination
-of the symmetric functions `esymm σ R j`.
+of the symmetric polynomials `esymm σ R j`.
 
 -/
 

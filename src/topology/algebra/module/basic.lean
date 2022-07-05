@@ -280,13 +280,6 @@ abbreviation continuous_linear_map_class (F : Type*)
   [module R M] [module R M₂] :=
 continuous_semilinear_map_class F (ring_hom.id R) M M₂
 
-instance shortcut_linear (F : Type*) (R : out_param Type*) [semiring R]
-  (M : out_param Type*) [topological_space M] [add_comm_monoid M]
-  (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂]
-  [module R M] [module R M₂] [continuous_linear_map_class F R M M₂] :
-  linear_map_class F R M M₂ :=
-infer_instance
-
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
 topological semiring `R`. -/

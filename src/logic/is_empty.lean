@@ -116,6 +116,14 @@ by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
 @[simp] lemma is_empty_psum {α β} : is_empty (psum α β) ↔ is_empty α ∧ is_empty β :=
 by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
 
+@[simp] lemma is_empty_psigma {α} {E : α → Type*} :
+  is_empty (psigma E) ↔ ∀ a, is_empty (E a) :=
+by simp only [← not_nonempty_iff, nonempty_psigma, not_exists]
+
+@[simp] lemma is_empty_sigma {α} {E : α → Type*} :
+  is_empty (sigma E) ↔ ∀ a, is_empty (E a) :=
+by simp only [← not_nonempty_iff, nonempty_sigma, not_exists]
+
 @[simp] lemma is_empty_subtype (p : α → Prop) : is_empty (subtype p) ↔ ∀ x, ¬p x :=
 by simp only [← not_nonempty_iff, nonempty_subtype, not_exists]
 

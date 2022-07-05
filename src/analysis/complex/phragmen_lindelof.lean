@@ -800,8 +800,8 @@ begin
       (norm_pos_iff.2 H) tendsto_const_nhds).eventually (eventually_gt_at_top C)).exists },
   intro n,
   -- This estimate follows from the Phragmen-Lindelöf principle in the right half-plane.
-  refine right_half_plane_of_tendsto_zero_on_real (differentiable_exp.pow.diff_cont_on_cl.smul hd)
-    _ _ (λ y, _) hz.le,
+  refine right_half_plane_of_tendsto_zero_on_real
+    ((differentiable_exp.pow n).diff_cont_on_cl.smul hd) _ _ (λ y, _) hz.le,
   { rcases hexp with ⟨c, hc, B, hO⟩,
     refine ⟨max c 1, max_lt hc one_lt_two, n + max B 0, is_O.of_norm_left _⟩,
     simp only [hg],

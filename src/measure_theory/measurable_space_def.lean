@@ -102,7 +102,7 @@ begin
   exact ‹measurable_space α›.measurable_set_Union _ (measurable_set.bUnion_decode₂ h)
 end
 
-lemma measurable_set.bUnion {f : β → set α} {s : set β} (hs : countable s)
+lemma measurable_set.bUnion {f : β → set α} {s : set β} (hs : s.countable)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋃ b ∈ s, f b) :=
 begin
   rw bUnion_eq_Union,
@@ -120,7 +120,7 @@ lemma finset.measurable_set_bUnion {f : β → set α} (s : finset β)
   measurable_set (⋃ b ∈ s, f b) :=
 s.finite_to_set.measurable_set_bUnion h
 
-lemma measurable_set.sUnion {s : set (set α)} (hs : countable s) (h : ∀ t ∈ s, measurable_set t) :
+lemma measurable_set.sUnion {s : set (set α)} (hs : s.countable) (h : ∀ t ∈ s, measurable_set t) :
   measurable_set (⋃₀ s) :=
 by { rw sUnion_eq_bUnion, exact measurable_set.bUnion hs h }
 
@@ -152,7 +152,7 @@ measurable_set.Inter h
 
 end fintype
 
-lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : countable s)
+lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : s.countable)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
 measurable_set.compl_iff.1 $
 by { rw compl_Inter₂, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
@@ -165,7 +165,7 @@ lemma finset.measurable_set_bInter {f : β → set α} (s : finset β)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
 s.finite_to_set.measurable_set_bInter h
 
-lemma measurable_set.sInter {s : set (set α)} (hs : countable s) (h : ∀ t ∈ s, measurable_set t) :
+lemma measurable_set.sInter {s : set (set α)} (hs : s.countable) (h : ∀ t ∈ s, measurable_set t) :
   measurable_set (⋂₀ s) :=
 by { rw sInter_eq_bInter, exact measurable_set.bInter hs h }
 
@@ -265,7 +265,7 @@ finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 protected lemma finset.measurable_set (s : finset α) : measurable_set (↑s : set α) :=
 s.finite_to_set.measurable_set
 
-lemma set.countable.measurable_set {s : set α} (hs : countable s) : measurable_set s :=
+lemma set.countable.measurable_set {s : set α} (hs : s.countable) : measurable_set s :=
 begin
   rw [← bUnion_of_singleton s],
   exact measurable_set.bUnion hs (λ b hb, measurable_set_singleton b)

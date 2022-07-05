@@ -882,7 +882,7 @@ instance {M : Type*} [mul_one_class M] (c : con M) : has_one c.quotient :=
 { one := ((1 : M) : c.quotient) }
 
 instance _root_.add_con.quotient.has_nsmul
-  {M : Type*} [add_monoid M] (c : add_con M) : has_scalar ℕ c.quotient :=
+  {M : Type*} [add_monoid M] (c : add_con M) : has_smul ℕ c.quotient :=
 { smul := λ n x, quotient.lift_on' x (λ w, ((n • w : M) : c.quotient))
      $ λ x y h, c.eq.2 $ c.nsmul n h}
 
@@ -957,7 +957,7 @@ instance has_div : has_div c.quotient :=
 /-- The integer scaling induced on the quotient by a congruence relation on a type with a
     subtraction. -/
 instance _root_.add_con.quotient.has_zsmul
-  {M : Type*} [add_group M] (c : add_con M) : has_scalar ℤ c.quotient :=
+  {M : Type*} [add_group M] (c : add_con M) : has_smul ℤ c.quotient :=
 ⟨λ z x, quotient.lift_on' x (λ w, ((z • w : M) : c.quotient))
      $ λ x y h, c.eq.2 $ c.zsmul z h⟩
 

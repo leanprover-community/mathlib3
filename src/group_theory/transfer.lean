@@ -37,7 +37,8 @@ variables (R S T : left_transversals (H : set G)) [fintype (G ⧸ H)]
 @[to_additive "The difference of two left transversals"]
 noncomputable def diff : A :=
 let α := mem_left_transversals.to_equiv S.2, β := mem_left_transversals.to_equiv T.2 in
-∏ q, ϕ ⟨(α q)⁻¹ * β q, quotient.exact' ((α.symm_apply_apply q).trans (β.symm_apply_apply q).symm)⟩
+∏ q, ϕ ⟨(α q)⁻¹ * β q, quotient_group.left_rel_apply.mp $
+  quotient.exact' ((α.symm_apply_apply q).trans (β.symm_apply_apply q).symm)⟩
 
 @[to_additive] lemma diff_mul_diff : diff ϕ R S * diff ϕ S T = diff ϕ R T :=
 prod_mul_distrib.symm.trans (prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans (congr_arg ϕ

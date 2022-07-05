@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Jakob von Raumer
 -/
 import category_theory.limits.has_limits
 import category_theory.thin
@@ -24,13 +24,13 @@ Typeclasses `has_wide_pullbacks` and `has_finite_wide_pullbacks` assert the exis
 pullbacks and finite wide pullbacks.
 -/
 
-universes v u
+universes w w' v u
 
 open category_theory category_theory.limits opposite
 
 namespace category_theory.limits
 
-variable (J : Type v)
+variable (J : Type w)
 
 /-- A wide pullback shape for any type `J` can be written simply as `option J`. -/
 @[derive inhabited]
@@ -46,7 +46,7 @@ variable {J}
 
 /-- The type of arrows for the shape indexing a wide pullback. -/
 @[derive decidable_eq]
-inductive hom : wide_pullback_shape J → wide_pullback_shape J → Type v
+inductive hom : wide_pullback_shape J → wide_pullback_shape J → Type w
 | id : Π X, hom X X
 | term : Π (j : J), hom (some j) none
 
@@ -116,6 +116,22 @@ def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
     end,
     naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
 
+/-- Wide pullback diagrams of equivalent index types are equivlent. -/
+def equivalence_of_equiv (J' : Type w') (h : J ≃ J') :
+  wide_pullback_shape J ≌ wide_pullback_shape J' :=
+{ functor := wide_cospan none (λ j, some (h j)) (λ j, hom.term (h j)),
+  inverse := wide_cospan none (λ j, some (h.inv_fun j)) (λ j, hom.term (h.inv_fun j)),
+  unit_iso := nat_iso.of_components (λ j, by cases j; simp)
+    (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}),
+  counit_iso := nat_iso.of_components (λ j, by cases j; simp)
+    (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}) }
+
+/-- Lifting universe and morphism levels preserves wide pullback diagrams. -/
+def ulift_equivalence :
+  ulift_hom.{w'} (ulift.{w'} (wide_pullback_shape J)) ≌ wide_pullback_shape (ulift J) :=
+(ulift_hom_ulift_category.equiv.{w' w' w w} (wide_pullback_shape J)).symm.trans
+  (equivalence_of_equiv _ (equiv.ulift.{w' w}.symm : J ≃ ulift.{w'} J))
+
 end wide_pullback_shape
 
 namespace wide_pushout_shape
@@ -124,7 +140,7 @@ variable {J}
 
 /-- The type of arrows for the shape indexing a wide psuhout. -/
 @[derive decidable_eq]
-inductive hom : wide_pushout_shape J → wide_pushout_shape J → Type v
+inductive hom : wide_pushout_shape J → wide_pushout_shape J → Type w
 | id : Π X, hom X X
 | init : Π (j : J), hom none (some j)
 
@@ -193,11 +209,11 @@ variables (C : Type u) [category.{v} C]
 
 /-- `has_wide_pullbacks` represents a choice of wide pullback for every collection of morphisms -/
 abbreviation has_wide_pullbacks : Prop :=
-Π (J : Type v), has_limits_of_shape (wide_pullback_shape J) C
+Π (J : Type w), has_limits_of_shape (wide_pullback_shape J) C
 
 /-- `has_wide_pushouts` represents a choice of wide pushout for every collection of morphisms -/
 abbreviation has_wide_pushouts : Prop :=
-Π (J : Type v), has_colimits_of_shape (wide_pushout_shape J) C
+Π (J : Type w), has_colimits_of_shape (wide_pushout_shape J) C
 
 variables {C J}
 
@@ -444,5 +460,11 @@ def wide_pullback_shape_op_equiv : (wide_pullback_shape J)ᵒᵖ ≌ wide_pushou
   inverse := wide_pushout_shape_op J,
   unit_iso := (wide_pullback_shape_op_unop J).symm,
   counit_iso := wide_pushout_shape_unop_op J, }
+
+/-- If a category has wide pullbacks on a higher universe level it also has wide pullbacks
+on a lower universe level. -/
+lemma has_wide_pullbacks_shrink [has_wide_pullbacks.{max w w'} C] : has_wide_pullbacks.{w} C :=
+λ J, has_limits_of_shape_of_equivalence
+  (wide_pullback_shape.equivalence_of_equiv _ equiv.ulift.{w'})
 
 end category_theory.limits

@@ -337,6 +337,14 @@ begin
   { simp [hij] }
 end
 
+theorem eval_mul_derivative_eq_derivative_mul_of_is_root {f g : R[X]} {x : R} (hf: f.eval x = 0) :
+  (f * g).derivative.eval x = f.derivative.eval x * g.eval x :=
+by simp_rw [derivative_mul, eval_add, eval_mul, hf, zero_mul, add_zero]
+
+theorem eval_mul_derivative_eq_mul_derivative_of_is_root {f g : R[X]} {x : R} (hf: g.eval x = 0) :
+  (f * g).derivative.eval x = f.eval x * g.derivative.eval x :=
+by simp_rw [derivative_mul, eval_add, eval_mul, hf, mul_zero, zero_add]
+
 end comm_semiring
 
 section ring

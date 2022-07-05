@@ -21,9 +21,12 @@ of the symmetric polynomials `esymm σ R j`.
 
 open_locale big_operators polynomial
 
+namespace multiset
+
+section semiring
+
 variables {R : Type*} [comm_semiring R]
 
-namespace multiset
 
 /-- TODO. This should go elsewhere... -/
 lemma sum_powerset_len {α : Type*} (S : multiset α) :
@@ -53,7 +56,7 @@ end
 `esymm s` of the `λ`'s .-/
 lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
   (s.map (λ r, polynomial.X + polynomial.C r)).prod =
-  ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
+  ∑ j in finset.range (s.card + 1), (polynomial.C (s.esymm j) * polynomial.X^(s.card - j)) :=
 begin
   classical,
   rw [prod_map_add, antidiagonal_powerset, map_map, sum_powerset_len, function.comp,
@@ -88,13 +91,58 @@ begin
     exact nat.sub_lt_succ s.card k }
 end
 
+end semiring
+
+section ring
+
+variables  {R : Type*} [comm_ring R]
+
+lemma esymm_neg (s : multiset R) (k : ℕ) :
+  (map has_neg.neg s).esymm k = (-1)^k * esymm s k :=
+begin
+  rw [esymm, esymm, ←multiset.sum_map_mul_left, multiset.powerset_len_map, multiset.map_map],
+  rw map_congr (eq.refl _),
+  intros x hx,
+  rw ( _ : k = x.card),
+  rw [←prod_repeat, ←multiset.map_const],
+  nth_rewrite 2 ←map_id' x,
+  rw ←prod_map_mul,
+  rw map_congr (eq.refl _),
+  { exact λ z _, neg_one_mul z, },
+  { exact (mem_powerset_len.mp hx).right.symm, }
+end
+
+lemma prod_X_sub_C_eq_sum_esymm (s : multiset R) :
+  (s.map (λ t, polynomial.X - polynomial.C t)).prod =
+  ∑ j in finset.range (s.card + 1),
+  (-1)^j* (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
+begin
+  conv_lhs { congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg polynomial.C _,  },
+  convert prod_X_add_C_eq_sum_esymm (map (λ t, -t) s) using 1,
+  { rw map_map },
+  { simp only [esymm_neg, card_map, mul_assoc, map_mul, map_pow, map_neg, map_one], },
+end
+
+lemma prod_X_sub_C_coeff (s : multiset R) {k : ℕ} (h : k ≤ s.card):
+  polynomial.coeff (s.map (λ t, polynomial.X - polynomial.C t)).prod k =
+    (-1)^(s.card - k) * s.esymm (s.card - k) :=
+begin
+  conv_lhs { congr, congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg polynomial.C _,  },
+  convert prod_X_add_C_coeff (map (λ t, -t) s) _ using 1,
+  { rw map_map, },
+  { rw [esymm_neg, card_map] },
+  { rwa card_map },
+end
+
+end ring
+
 end multiset
 
 namespace mv_polynomial
 
 open finset polynomial fintype
 
-variables (σ : Type*) [fintype σ]
+variables (R σ : Type*) [comm_semiring R] [fintype σ]
 
 /-- A sum version of Vieta's formula for `mv_polynomial`: viewing `X i` as variables,
 the product of linear terms `λ + X i` is equal to a linear combination of
@@ -104,7 +152,7 @@ lemma prod_C_add_X_eq_sum_esymm :
   ∑ j in range (card σ + 1),
     (polynomial.C (esymm σ R j) * polynomial.X ^ (card σ - j)) :=
 begin
-  set s :=  (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val),
+  let s := (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val),
   rw (_ : card σ = s.card),
   { conv_rhs { congr, skip, funext, rw esymm_eq_multiset.esymm σ R j},
     rw finset.prod_eq_multiset_prod,
@@ -117,7 +165,7 @@ lemma prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ):
   (∏ i : σ, (polynomial.X + polynomial.C (X i)) : polynomial (mv_polynomial σ R) ).coeff k =
   esymm σ R (card σ - k) :=
 begin
-  set s :=  (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val),
+  let s :=  (multiset.map (λ i : σ, (X i : mv_polynomial σ R)) finset.univ.val),
   rw (_ : card σ = s.card) at ⊢ h,
   { rw esymm_eq_multiset.esymm σ R (s.card - k),
     rw finset.prod_eq_multiset_prod,

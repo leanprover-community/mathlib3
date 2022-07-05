@@ -1438,6 +1438,10 @@ theorem compl_compl_image [boolean_algebra α] (S : set α) :
   compl '' (compl '' S) = S :=
 by rw [←image_comp, compl_comp_compl, image_id]
 
+theorem compl_compl_preimage [boolean_algebra α] (S : set α) :
+  compl ⁻¹' (compl ⁻¹' S) = S :=
+by rw [preimage_compl_eq_image_compl, preimage_compl_eq_image_compl, compl_compl_image]
+
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
 by { ext, simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm] }

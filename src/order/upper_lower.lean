@@ -465,184 +465,116 @@ end has_le
 
 /-! #### Images -/
 
-section map
+section images
 
-section has_le
+section iso
 
-variables [preorder α] [preorder β]
+variables [preorder α] [preorder β] [order_iso_class F α β]
 
 /-- An order isomorphism induces an order isomorphism on upper sets -/
 @[simps apply]
-def order_iso.upper_set_equiv (φ : α ≃o β) : upper_set α ≃o upper_set β :=
+def upper_set_equiv (φ : F) : upper_set α ≃o upper_set β :=
 { to_fun := λ s, ⟨φ '' s, s.upper.map φ⟩,
   inv_fun := λ t, ⟨φ ⁻¹' t, t.upper.preimage φ⟩,
-  left_inv := λ _, set_like.coe_injective (by simp [←upper_set.carrier_eq_coe, φ.preimage_image]),
-  right_inv := λ _, set_like.coe_injective (by simp [←upper_set.carrier_eq_coe, φ.image_preimage]),
-  map_rel_iff' := λ _ _, by simp [←set_like.coe_subset_coe, ←upper_set.carrier_eq_coe] }
+  left_inv := λ _, set_like.coe_injective $ (φ : α ≃o β).preimage_image _,
+  right_inv := λ _, set_like.coe_injective $ (φ : α ≃o β).image_preimage _,
+  map_rel_iff' := λ s t, image_subset_image_iff (φ : α ≃o β).injective }
 
 /-- An order isomorphism induces an order isomorphism on lower sets -/
 @[simps apply]
-def order_iso.lower_set_equiv (φ : α ≃o β) : lower_set α ≃o lower_set β :=
+def lower_set_equiv (φ : F) : lower_set α ≃o lower_set β :=
 { to_fun := λ s, ⟨φ '' s, s.lower.map φ⟩,
   inv_fun := λ t, ⟨φ ⁻¹' t, t.lower.preimage φ⟩,
-  left_inv := λ _, set_like.coe_injective (by simp [←lower_set.carrier_eq_coe, φ.preimage_image]),
-  right_inv := λ _, set_like.coe_injective (by simp [←lower_set.carrier_eq_coe, φ.image_preimage]),
-  map_rel_iff' := λ _ _, by simp [←set_like.coe_subset_coe, ←lower_set.carrier_eq_coe] }
+  left_inv := λ _, set_like.coe_injective $ (φ : α ≃o β).preimage_image _,
+  right_inv := λ _, set_like.coe_injective $ (φ : α ≃o β).image_preimage _,
+  map_rel_iff' := λ s t, image_subset_image_iff (φ : α ≃o β).injective }
+
+@[simp] lemma upper_set.coe_equiv (s : upper_set α) (φ : F) :
+  (upper_set_equiv φ s : set β) = φ '' s := rfl
+
+@[simp] lemma upper_set.coe_equiv_symm (t : upper_set β) (φ : F) :
+  ((upper_set_equiv φ).symm t : set α) = φ ⁻¹' t := rfl
+
+@[simp] lemma lower_set.coe_equiv (s : lower_set α) (φ : F) :
+  (lower_set_equiv φ s : set β) = φ '' (s : set α) := rfl
+
+@[simp] lemma lower_set.coe_equiv_symm (t : lower_set β) (φ : F) :
+  ((lower_set_equiv φ).symm t : set α) = φ ⁻¹' t := rfl
+
+end iso
+
+section hom
+
+variables [preorder α] [preorder β] [order_hom_class F α β]
 
 /-- An order homomorphism induces an order homomorphism on upper sets in the reverse direction -/
-def order_hom.upper_set_inv_hom (φ : α →o β) : upper_set β →o upper_set α :=
+def upper_set_inv_hom (φ : F) : upper_set β →o upper_set α :=
 ⟨λ t, ⟨φ ⁻¹' t, t.upper.preimage φ⟩, λ s t hst x hx, hst hx⟩
 
 /-- An order homomorphism induces an order homomorphism on lower sets in the reverse direction -/
-def order_hom.lower_set_inv_hom (φ : α →o β) : lower_set β →o lower_set α :=
+def lower_set_inv_hom (φ : F) : lower_set β →o lower_set α :=
 ⟨λ t, ⟨φ ⁻¹' t, t.lower.preimage φ⟩, λ s t hst x hx, hst hx⟩
 
-@[simp] lemma upper_set.coe_equiv (s : upper_set α) (φ : α ≃o β) :
-  (φ.upper_set_equiv s : set β) = φ '' s := rfl
+@[simp] lemma upper_set.coe_inv_hom (t : upper_set β) (φ : F) :
+  ((upper_set_inv_hom φ : upper_set β →o upper_set α) t : set α) = φ ⁻¹' t := rfl
 
-@[simp] lemma upper_set.coe_equiv_symm (t : upper_set β) (φ : α ≃o β) :
-  (φ.upper_set_equiv.symm t : set α) = φ ⁻¹' t := rfl
+@[simp] lemma lower_set.coe_inv_hom (t : lower_set β) (φ : F) :
+  ((lower_set_inv_hom φ : lower_set β →o lower_set α) t : set α) = φ ⁻¹' t := rfl
 
-@[simp] lemma upper_set.coe_inv_hom (t : upper_set β) (φ : α →o β) :
-  (φ.upper_set_inv_hom t : set α) = φ ⁻¹' t := rfl
-
-@[simp] lemma lower_set.coe_equiv (s : lower_set α) (φ : α ≃o β) :
-  (φ.lower_set_equiv s : set β) = φ '' (s : set α) := rfl
-
-@[simp] lemma lower_set.coe_equiv_symm (t : lower_set β) (φ : α ≃o β) :
-  (φ.lower_set_equiv.symm t : set α) = φ ⁻¹' t := rfl
-
-@[simp] lemma lower.coe_inv_hom (t : lower_set β) (φ : α →o β) :
-  (φ.lower_set_inv_hom t : set α) = φ ⁻¹' t := rfl
-
--- /-- The image of an `upper_set` under an order isomorphism, as an `upper_set`. -/
--- def upper_set.map (s : upper_set α) (φ : F) : upper_set β := ⟨φ '' s, s.upper.map φ⟩
-
--- /-- The image of a `lower_set` under an order isomorphism, as a `lower_set`. -/
--- def lower_set.map (s : lower_set α) (φ : F) : lower_set β := ⟨φ '' s, s.lower.map φ⟩
-
--- @[simp] lemma upper_set.coe_map (s : upper_set α) (φ : F) : (s.map φ : set β) = φ '' s := rfl
--- @[simp] lemma lower_set.coe_map (s : lower_set α) (φ : F) : (s.map φ : set β) = φ '' s := rfl
-
-end has_le
-
-section preorder
-
-
-
-
--- variables [preorder α] [preorder β] [order_hom_class F α β]
-
--- /-- The preimage of an `upper_set` under an order homomorphism, as an `upper_set` -/
--- def upper_set.comap (t : upper_set β) (φ : F) : upper_set α := ⟨φ ⁻¹' t, t.upper.preimage φ⟩
-
--- /-- The preimage of an `lower_set` under an order homomorphism, as a `lower_set` -/
--- def lower_set.comap (t : lower_set β) (φ : F) : lower_set α := ⟨φ ⁻¹' t, t.lower.preimage φ⟩
-
--- lemma comap_mono (φ : F) {s t : upper_set β} (hst : s ≤ t) :
---   (s.comap φ : upper_set α) ≤ t.comap φ := sorry
-
--- @[simp] lemma upper_set.coe_comap (t : upper_set β) (φ : F) :
---   ((t.comap φ : upper_set α) : set α) = φ ⁻¹' t := rfl
-
--- @[simp] lemma lower_set.coe_comap (t : lower_set β) (φ : F) :
---   ((t.comap φ : lower_set α) : set α) = φ ⁻¹' t := rfl
-
--- end preorder
+end hom
 
 section boolean_algebra
 
 variables [boolean_algebra α]
 
-/-- The preimage of an `upper_set` under complementation, as a `lower_set`-/
-def upper_set.map_compl (s : upper_set α) : lower_set α :=
-⟨has_compl.compl ⁻¹' (s : set α), λ x y h hx, s.upper (compl_le_compl h) hx⟩
+/-- Complementing all the elements maps an upper set to a lower set -/
+def upper_set.map_compl_equiv : upper_set α ≃o lower_set α :=
+{ to_fun := λ s, ⟨has_compl.compl ⁻¹' s, λ x y h hx, s.upper (compl_le_compl h) hx⟩,
+  inv_fun := λ t, ⟨has_compl.compl ⁻¹' t, λ x y h hx, t.lower (compl_le_compl h) hx⟩,
+  left_inv := λ s, set_like.coe_injective (compl_compl_preimage _),
+  right_inv := λ t, set_like.coe_injective (compl_compl_preimage _),
+  map_rel_iff' := λ s t, compl_surjective.preimage_subset_preimage_iff}
 
-namespace upper_set
+/-- Complementing all the elements maps a lower set to an upper set. This is the inverse of
+  `upper_set.map_compl_equiv`, but we define it separately for better definitional properties. -/
+def lower_set.map_compl_equiv : lower_set α ≃o upper_set α :=
+{ to_fun := λ s, ⟨has_compl.compl ⁻¹' s, λ x y h hx, s.lower (compl_le_compl h) hx⟩,
+  inv_fun := λ t, ⟨has_compl.compl ⁻¹' t, λ x y h hx, t.upper (compl_le_compl h) hx⟩,
+  left_inv := λ s, set_like.coe_injective (compl_compl_preimage _),
+  right_inv := λ t, set_like.coe_injective (compl_compl_preimage _),
+  map_rel_iff' := λ s t, compl_surjective.preimage_subset_preimage_iff}
 
-@[simp] lemma coe_map_compl (s : upper_set α) : (s.map_compl : set α) = has_compl.compl ⁻¹' s := rfl
+@[simp] lemma upper_set.map_compl_equiv_symm_eq :
+  (upper_set.map_compl_equiv.symm : lower_set α ≃o upper_set α) = lower_set.map_compl_equiv :=
+by {ext, refl}
 
-@[simp] lemma map_compl_bot : (⊥ : upper_set α).map_compl = ⊥ := rfl
-@[simp] lemma map_compl_top : (⊤ : upper_set α).map_compl = ⊤ := rfl
+@[simp] lemma lower_set.map_compl_equiv_symm_eq :
+  (lower_set.map_compl_equiv.symm : upper_set α ≃o lower_set α) = upper_set.map_compl_equiv :=
+by {ext, refl}
 
-@[simp] lemma map_compl_inf (s t : upper_set α) :
-  (s ⊓ t).map_compl = s.map_compl ⊓ t.map_compl := rfl
-@[simp] lemma map_compl_sup (s t : upper_set α) :
-  (s ⊔ t).map_compl = s.map_compl ⊔ t.map_compl := rfl
+@[simp] lemma upper_set.coe_map_compl (s : upper_set α) :
+  (upper_set.map_compl_equiv s : set α) = has_compl.compl ⁻¹' s := rfl
 
-@[simp] lemma map_compl_Inf (S : set (upper_set α)) :
-  (Inf S).map_compl = Inf (upper_set.map_compl '' S) :=
-set_like.coe_injective (by simp [preimage_Inter])
+@[simp] lemma lower_set.coe_map_compl (s : lower_set α) :
+  (lower_set.map_compl_equiv s : set α) = has_compl.compl ⁻¹' s := rfl
 
-@[simp] lemma map_compl_Sup (S : set (upper_set α)) :
-  (Sup S).map_compl = Sup (upper_set.map_compl '' S) :=
-set_like.coe_injective (by simp)
+@[simp] lemma upper_set.mem_map_compl_iff {x : α} {s : upper_set α} :
+  x ∈ upper_set.map_compl_equiv s ↔ xᶜ ∈ s := iff.rfl
 
-@[simp] lemma map_compl_supr (f : ι → upper_set α) : (⨆ i, f i).map_compl = ⨆ i, (f i).map_compl :=
-set_like.coe_injective (by simp)
-@[simp] lemma map_compl_infi (f : ι → upper_set α) : (⨅ i, f i).map_compl = ⨅ i, (f i).map_compl :=
-set_like.coe_injective (by simp [preimage_Inter])
+@[simp] lemma lower_set.mem_map_compl_iff {x : α} {s : lower_set α} :
+  x ∈ lower_set.map_compl_equiv s ↔ xᶜ ∈ s := iff.rfl
 
-@[simp] lemma map_compl_infi₂ (f : Π i, κ i → upper_set α) :
-  (⨅ i j, f i j).map_compl = (⨅ i j, (f i j).map_compl) :=
-set_like.coe_injective (by simp)
-@[simp] lemma map_compl_supr₂ (f : Π i, κ i → upper_set α) :
-  (⨆ i j, f i j).map_compl = (⨆ i j, (f i j).map_compl) :=
-set_like.coe_injective (by simp)
+@[simp] lemma upper_set.map_compl_map_compl (s : upper_set α) :
+  lower_set.map_compl_equiv (upper_set.map_compl_equiv s) = s :=
+by {ext, simp}
 
-@[simp] lemma mem_map_compl_iff {x : α} {s : upper_set α} : x ∈ s.map_compl ↔ xᶜ ∈ s := iff.rfl
-
-end upper_set
-
-/-- The preimage of a `lower_set` under complementation, as an `upper_set`-/
-def lower_set.map_compl (s : lower_set α) : upper_set α :=
-⟨compl ⁻¹' s, λ x y h hx, s.lower (compl_le_compl h) hx⟩
-
-namespace lower_set
-
-@[simp] lemma coe_map_compl (s : lower_set α) : (s.map_compl : set α) = has_compl.compl ⁻¹' s := rfl
-
-@[simp] lemma map_compl_bot : (⊥ : lower_set α).map_compl = ⊥ := rfl
-@[simp] lemma map_compl_top : (⊤ : lower_set α).map_compl = ⊤ := rfl
-
-@[simp] lemma map_compl_inf (s t : lower_set α) :
-  (s ⊓ t).map_compl = s.map_compl ⊓ t.map_compl := rfl
-@[simp] lemma map_compl_sup (s t : lower_set α) :
-  (s ⊔ t).map_compl = s.map_compl ⊔ t.map_compl := rfl
-
-@[simp] lemma map_compl_Inf (S : set (lower_set α)) :
-  (Inf S).map_compl = Inf (lower_set.map_compl '' S) :=
-set_like.coe_injective (by simp [preimage_Inter])
-
-@[simp] lemma map_compl_Sup (S : set (lower_set α)) :
-  (Sup S).map_compl = Sup (lower_set.map_compl '' S) :=
-set_like.coe_injective (by simp)
-
-@[simp] lemma map_compl_supr (f : ι → lower_set α) : (⨆ i, f i).map_compl = ⨆ i, (f i).map_compl :=
-set_like.coe_injective (by simp)
-@[simp] lemma map_compl_infi (f : ι → lower_set α) : (⨅ i, f i).map_compl = ⨅ i, (f i).map_compl :=
-set_like.coe_injective (by simp [preimage_Inter])
-
-@[simp] lemma map_compl_infi₂ (f : Π i, κ i → lower_set α) :
-  (⨅ i j, f i j).map_compl = (⨅ i j, (f i j).map_compl) :=
-set_like.coe_injective (by simp)
-@[simp] lemma map_compl_supr₂ (f : Π i, κ i → lower_set α) :
-  (⨆ i j, f i j).map_compl = (⨆ i j, (f i j).map_compl) :=
-set_like.coe_injective (by simp)
-
-@[simp] lemma mem_map_compl_iff {x : α} {s : lower_set α} : x ∈ s.map_compl ↔ xᶜ ∈ s := iff.rfl
-
-end lower_set
-
-@[simp] lemma upper_set.map_compl_map_compl (s : upper_set α): s.map_compl.map_compl = s :=
-set_like.coe_injective (by simp [preimage_compl_eq_image_compl, compl_compl_image])
-
-@[simp] lemma lower_set.map_compl_map_compl (s : lower_set α): s.map_compl.map_compl = s :=
-set_like.coe_injective (by simp [preimage_compl_eq_image_compl, compl_compl_image])
+@[simp] lemma lower_set.map_compl_map_compl (s : lower_set α) :
+  upper_set.map_compl_equiv (lower_set.map_compl_equiv s) = s :=
+by {ext, simp}
 
 end boolean_algebra
 
-end map
+end images
 
 /-! #### Principal sets -/
 
@@ -666,18 +598,20 @@ lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 @[simp] lemma Ici_top [order_bot α] : Ici (⊥ : α) = ⊤ := set_like.coe_injective Ici_bot
 @[simp] lemma Ioi_bot [order_top α] : Ioi (⊤ : α) = ⊥ := set_like.coe_injective Ioi_top
 
-@[simp] lemma map_Ici [order_iso_class F α β] (a : α) (φ : F) : (Ici a).map φ = Ici (φ a) :=
+@[simp] lemma image_Ici [order_iso_class F α β] (φ : F) (a : α) :
+  upper_set_equiv φ (Ici a) = Ici (φ a) :=
 set_like.coe_injective $ (φ : α ≃o β).image_Ici _
 
-@[simp] lemma map_Ioi [order_iso_class F α β] (a : α) (φ : F) : (Ioi a).map φ = Ioi (φ a) :=
+@[simp] lemma image_Ioi [order_iso_class F α β] (a : α) (φ : F) :
+  upper_set_equiv φ (Ioi a) = Ioi (φ a) :=
 set_like.coe_injective $ (φ : α ≃o β).image_Ioi _
 
-@[simp] lemma comap_Ici [order_iso_class F α β] (b : β) (φ : F) :
-  ((Ici b).comap φ : upper_set α) = Ici ((φ : α ≃o β).symm b) :=
+@[simp] lemma preimage_Ici [order_iso_class F α β] (b : β) (φ : F) :
+  ((upper_set_equiv φ : upper_set α ≃o upper_set β).symm (Ici b)) = Ici ((φ : α ≃o β).symm b) :=
 set_like.coe_injective $ (φ : α ≃o β).preimage_Ici _
 
-@[simp] lemma comap_Ioi [order_iso_class F α β] (b : β) (φ : F) :
-  ((Ioi b).comap φ : upper_set α) = Ioi ((φ : α ≃o β).symm b) :=
+@[simp] lemma preimage_Ioi [order_iso_class F α β] (b : β) (φ : F) :
+  ((upper_set_equiv φ : upper_set α ≃o upper_set β).symm (Ioi b)) = Ioi ((φ : α ≃o β).symm b) :=
 set_like.coe_injective $ (φ : α ≃o β).preimage_Ioi _
 
 end preorder
@@ -736,18 +670,20 @@ lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 @[simp] lemma Iic_top [order_top α] : Iic (⊤ : α) = ⊤ := set_like.coe_injective Iic_top
 @[simp] lemma Iio_bot [order_bot α] : Iio (⊥ : α) = ⊥ := set_like.coe_injective Iio_bot
 
-@[simp] lemma map_Iic [order_iso_class F α β] (a : α) (φ : F) : (Iic a).map φ = Iic (φ a) :=
+@[simp] lemma image_Iic [order_iso_class F α β] (φ : F) (a : α) :
+  lower_set_equiv φ (Iic a) = Iic (φ a) :=
 set_like.coe_injective $ (φ : α ≃o β).image_Iic _
 
-@[simp] lemma map_Iio [order_iso_class F α β] (a : α) (φ : F) : (Iio a).map φ = Iio (φ a) :=
+@[simp] lemma image_Iio [order_iso_class F α β] (a : α) (φ : F) :
+  lower_set_equiv φ (Iio a) = Iio (φ a) :=
 set_like.coe_injective $ (φ : α ≃o β).image_Iio _
 
-@[simp] lemma comap_Iic [order_iso_class F α β] (b : β) (φ : F) :
-  ((Iic b).comap φ : lower_set α) = Iic ((φ : α ≃o β).symm b) :=
+@[simp] lemma preimage_Iic [order_iso_class F α β] (b : β) (φ : F) :
+  ((lower_set_equiv φ : lower_set α ≃o lower_set β).symm (Iic b)) = Iic ((φ : α ≃o β).symm b) :=
 set_like.coe_injective $ (φ : α ≃o β).preimage_Iic _
 
-@[simp] lemma comap_Iio  [order_iso_class F α β] (b : β) (φ : F) :
-  ((Iio b).comap φ : lower_set α) = Iio ((φ : α ≃o β).symm b) :=
+@[simp] lemma preimage_Iio [order_iso_class F α β] (b : β) (φ : F) :
+  ((lower_set_equiv φ : lower_set α ≃o lower_set β).symm (Iio b)) = Iio ((φ : α ≃o β).symm b) :=
 set_like.coe_injective $ (φ : α ≃o β).preimage_Iio _
 
 end preorder

@@ -207,11 +207,7 @@ begin
 end
 
 lemma arg_lt_pi_iff {z : ℂ} : arg z < π ↔ 0 ≤ z.re ∨ z.im ≠ 0 :=
-begin
-  rw ← not_iff_not,
-  simp only [not_or_distrib, ←arg_eq_pi_iff, not_lt, not_le, not_not],
-  exact ⟨λ h, le_antisymm (arg_le_pi z) h, λ h, le_of_eq h.symm⟩,
-end
+by rw [(arg_le_pi z).lt_iff_ne, not_iff_comm, not_or_distrib, not_le, not_not, arg_eq_pi_iff]
 
 lemma arg_of_real_of_neg {x : ℝ} (hx : x < 0) : arg x = π :=
 arg_eq_pi_iff.2 ⟨hx, rfl⟩

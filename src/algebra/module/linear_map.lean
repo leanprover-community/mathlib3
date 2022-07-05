@@ -283,7 +283,7 @@ begin
     refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
 
-variables (M₂)
+variables (R M₂)
 
 lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
   h '' (c • s) = c • h '' s :=

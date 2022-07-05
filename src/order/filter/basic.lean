@@ -1811,7 +1811,7 @@ lemma map_le_map_iff_of_inj_on {l₁ l₂ : filter α} {f : α → β} {s : set 
 ⟨λ h t ht, mp_mem h₁ $ mem_of_superset (h $ image_mem_map (inter_mem h₂ ht)) $
   λ y ⟨x, ⟨hxs, hxt⟩, hxy⟩ hys, hinj hxs hys hxy ▸ hxt, λ h, map_mono h⟩
 
-lemma map_le_map {f g : filter α} {m : α → β} (hm : injective m) : map m f ≤ map m g ↔ f ≤ g :=
+lemma map_le_map_iff {f g : filter α} {m : α → β} (hm : injective m) : map m f ≤ map m g ↔ f ≤ g :=
 by rw [map_le_iff_le_comap, comap_map hm]
 
 lemma map_eq_map_iff_of_inj_on {f g : filter α} {m : α → β} {s : set α}

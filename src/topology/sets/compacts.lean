@@ -111,7 +111,7 @@ protected def prod (K : compacts α) (L : compacts β) : compacts (α × β) :=
 { carrier := (K : set α) ×ˢ (L : set β),
   compact' := is_compact.prod K.2 L.2 }
 
-lemma coe_prod (K : compacts α) (L : compacts β) :
+@[simp] lemma coe_prod (K : compacts α) (L : compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end compacts
@@ -171,7 +171,7 @@ protected def prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
 { nonempty' := K.nonempty.prod L.nonempty,
   .. K.to_compacts.prod L.to_compacts }
 
-lemma coe_prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
+@[simp] lemma coe_prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end nonempty_compacts
@@ -239,13 +239,12 @@ protected def prod (K : positive_compacts α) (L : positive_compacts β) :
   positive_compacts (α × β) :=
 { interior_nonempty' :=
   begin
-    change (interior ((K : set α) ×ˢ (L : set β))).nonempty,
-    rw interior_prod_eq,
+    simp only [compacts.carrier_eq_coe, compacts.coe_prod, interior_prod_eq],
     exact K.interior_nonempty.prod L.interior_nonempty,
   end,
   .. K.to_compacts.prod L.to_compacts }
 
-lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
+@[simp] lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end positive_compacts
@@ -326,7 +325,7 @@ protected def prod (K : compact_opens α) (L : compact_opens β) :
 { open' := K.open.prod L.open,
   .. K.to_compacts.prod L.to_compacts }
 
-lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
+@[simp] lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end compact_opens

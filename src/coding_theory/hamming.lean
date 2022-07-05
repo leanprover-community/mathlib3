@@ -81,11 +81,11 @@ by rw [←hamm_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 @[simp] lemma hamm_dist_lt_one {x y : Π i, β i} : hamm_dist x y < 1 ↔ x = y :=
 by {rw nat.lt_one_iff, exact hamm_dist_eq_zero}
 
-lemma hamm_dist_eq_zero_iff_forall_eq {x y : Π i, β i} :
+lemma hamm_dist_eq_zero_iff_forall_eq_zero {x y : Π i, β i} :
   hamm_dist x y = 0 ↔ ∀ i, x i = y i :=
 by rw [hamm_dist_eq_zero, function.funext_iff]
 
-lemma hamm_dist_ne_zero_iff_exists_ne {x y : Π i, β i} :
+lemma hamm_dist_ne_zero_iff_exists_ne_zero {x y : Π i, β i} :
   hamm_dist x y ≠ 0 ↔ ∃ i, x i ≠ y i :=
 by rw [hamm_dist_ne_zero, function.ne_iff]
 
@@ -136,10 +136,10 @@ lemma hamm_wt_pos {x : Π i, β i} : 0 < hamm_wt x ↔ x ≠ 0 := hamm_dist_pos
 @[simp] lemma hamm_wt_lt_one {x : Π i, β i} : hamm_wt x < 1 ↔ x = 0 := hamm_dist_lt_one
 
 lemma hamm_wt_zero_iff_forall_zero {x : Π i, β i} : hamm_wt x = 0 ↔ ∀ i, x i = 0 :=
-hamm_dist_eq_zero_iff_forall_eq
+hamm_dist_eq_zero_iff_forall_eq_zero
 
-lemma hamm_wt_pos_iff_exists_nz {x : Π i, β i} : hamm_wt x ≠ 0 ↔ ∃ i, x i ≠ 0 :=
-hamm_dist_ne_zero_iff_exists_ne
+lemma hamm_wt_ne_zero_iff_exists_ne_zero {x : Π i, β i} : hamm_wt x ≠ 0 ↔ ∃ i, x i ≠ 0 :=
+hamm_dist_ne_zero_iff_exists_ne_zero
 
 end has_zero
 

@@ -556,7 +556,7 @@ begin
   let πSβ := (set.pi (set.univ : set S) ''
     (set.pi (set.univ : set S) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πS := {s : set α | ∃ t ∈ πSβ, (λ a (i : S), f i a) ⁻¹' t = s},
-  have hπS_pi : is_pi_system πS :=  is_pi_system_pi.comap (λ a i, f i a),
+  have hπS_pi : is_pi_system πS := is_pi_system_pi.comap (λ a i, f i a),
   have hπS_gen : measurable_space.pi.comap (λ a (i : S), f i a) = generate_from πS,
   { rw [generate_from_pi.symm, comap_generate_from],
     { congr' with s,
@@ -565,7 +565,7 @@ begin
   let πTβ := (set.pi (set.univ : set T) ''
     (set.pi (set.univ : set T) (λ i, {s : set (β i) | measurable_set[m i] s}))),
   let πT := {s : set α | ∃ t ∈ πTβ, (λ a (i : T), f i a) ⁻¹' t = s},
-  have hπT_pi : is_pi_system πT :=  is_pi_system_pi.comap (λ a i, f i a),
+  have hπT_pi : is_pi_system πT := is_pi_system_pi.comap (λ a i, f i a),
   have hπT_gen : measurable_space.pi.comap (λ a (i : T), f i a) = generate_from πT,
   { rw [generate_from_pi.symm, comap_generate_from],
     { congr' with s,

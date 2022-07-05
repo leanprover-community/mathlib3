@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import measure_theory.function.lp_space
+import measure_theory.function.lp_order
 
 
 /-!
@@ -605,12 +605,43 @@ lemma integrable.sub {f g : α → β}
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
 lemma integrable.norm {f : α → β} (hf : integrable f μ) :
-  integrable (λa, ∥f a∥) μ :=
+  integrable (λ a, ∥f a∥) μ :=
 ⟨hf.ae_strongly_measurable.norm, hf.has_finite_integral.norm⟩
 
-lemma integrable.abs {f : α → ℝ} (hf : integrable f μ) :
-  integrable (λa, |f a|) μ :=
-by simpa [← real.norm_eq_abs] using hf.norm
+lemma integrable.inf {β} [normed_lattice_add_comm_group β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⊓ g) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf hg ⊢, exact hf.inf hg, }
+
+lemma integrable.sup {β} [normed_lattice_add_comm_group β] {f g : α → β}
+  (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⊔ g) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf hg ⊢, exact hf.sup hg, }
+
+lemma integrable.abs {β} [normed_lattice_add_comm_group β] {f : α → β} (hf : integrable f μ) :
+  integrable (λ a, |f a|) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact hf.abs, }
+
+lemma integrable.bdd_mul {F : Type*} [normed_division_ring F]
+  {f g : α → F} (hint : integrable g μ) (hm : ae_strongly_measurable f μ)
+  (hfbdd : ∃ C, ∀ x, ∥f x∥ ≤ C) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  casesI is_empty_or_nonempty α with hα hα,
+  { rw μ.eq_zero_of_is_empty,
+    exact integrable_zero_measure },
+  { refine ⟨hm.mul hint.1, _⟩,
+    obtain ⟨C, hC⟩ := hfbdd,
+    have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (hC hα.some),
+    have : (λ x, ∥f x * g x∥₊) ≤ λ x, ⟨C, hCnonneg⟩ * ∥g x∥₊,
+    { intro x,
+      simp only [nnnorm_mul],
+      exact mul_le_mul_of_nonneg_right (hC x) (zero_le _) },
+    refine lt_of_le_of_lt (lintegral_mono_nnreal this) _,
+    simp only [ennreal.coe_mul],
+    rw lintegral_const_mul' _ _ ennreal.coe_ne_top,
+    exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hint.2) },
+end
 
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=

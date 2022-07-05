@@ -435,10 +435,16 @@ section splitting_field
 def factor (f : K[X]) : K[X] :=
 if H : ∃ g, irreducible g ∧ g ∣ f then classical.some H else X
 
-instance irreducible_factor (f : K[X]) : irreducible (factor f) :=
+lemma irreducible_factor (f : K[X]) : irreducible (factor f) :=
 begin
   rw factor, split_ifs with H, { exact (classical.some_spec H).1 }, { exact irreducible_X }
 end
+
+/-- See note [fact non-instances]. -/
+lemma fact_irreducible_factor (f : K[X]) : fact (irreducible (factor f)) :=
+⟨irreducible_factor f⟩
+
+local attribute [instance] fact_irreducible_factor
 
 theorem factor_dvd_of_not_is_unit {f : K[X]} (hf1 : ¬is_unit f) : factor f ∣ f :=
 begin
@@ -519,7 +525,7 @@ nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
+  [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
   by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]} (hfn : f.nat_degree = n),
     is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=

@@ -310,14 +310,14 @@ end ring
 section semiring_operators
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-section has_scalar
+section has_smul
 
 variables [monoid S] [distrib_mul_action S R] [smul_comm_class S R R]
 
 /-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
 
 When `R` is commutative, this provides an `R`-action via `algebra.id`. -/
-instance : has_scalar S (quadratic_form R M) :=
+instance : has_smul S (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
     to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, mul_smul_comm],
@@ -329,7 +329,7 @@ instance : has_scalar S (quadratic_form R M) :=
 @[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
   (a • Q) x = a • Q x := rfl
 
-end has_scalar
+end has_smul
 
 instance : has_zero (quadratic_form R M) :=
 ⟨ { to_fun := λ x, 0,

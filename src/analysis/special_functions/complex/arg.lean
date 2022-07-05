@@ -79,11 +79,7 @@ begin
 end
 
 @[simp] lemma range_exp_mul_I : range (λ x : ℝ, exp (x * I)) = metric.sphere 0 1 :=
-begin
-  simp only [metric.sphere, dist_eq, sub_zero, range_eq_iff, mem_set_of_eq, abs_exp_of_real_mul_I,
-    eq_self_iff_true, forall_const, true_and, abs_eq_one_iff, exists_apply_eq_apply,
-    forall_exists_index, forall_apply_eq_imp_iff', and_self],
-end
+by { ext x, simp only [mem_sphere_zero_iff_norm, norm_eq_abs, abs_eq_one_iff, mem_range] }
 
 lemma arg_mul_cos_add_sin_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ ∈ Ioc (-π) π) :
   arg (r * (cos θ + sin θ * I)) = θ :=

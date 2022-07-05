@@ -161,7 +161,8 @@ instance : complete_lattice (Iic a) :=
 { Sup := λ S, ⟨_, (Sup_le (λ _ ⟨⟨_,hb⟩,_,rfl⟩, hb) : complete_lattice.Sup (coe '' S) ≤ a)⟩,
   Inf := λ S, ⟨_, @inf_le_left _ _ a (complete_lattice.Inf (coe '' S))⟩,
   le_Sup := λ _ _ h, coe_le_coe.mp (le_Sup (mem_image_of_mem _ h)),
-  Sup_le := λ _ _ h, coe_le_coe.mp (Sup_le (by {rintros y ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
+  Sup_le := λ _ _ h, coe_le_coe.mp $
+    Sup_le (by {rintros y ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}),
   Inf_le := λ _ x h, coe_le_coe.mp (inf_le_of_right_le (Inf_le ⟨x,h,rfl⟩)),
   le_Inf := λ _ x h, coe_le_coe.mp (le_inf x.2
     (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
@@ -172,11 +173,12 @@ instance : complete_lattice (Iic a) :=
 instance [complete_lattice α] {a : α} : complete_lattice (Ici a) :=
 { Sup := λ S, ⟨_, (@le_sup_left _ _ a (complete_lattice.Sup (coe '' S)))⟩,
   Inf := λ S, ⟨complete_lattice.Inf (coe '' S), (le_Inf (λ _ ⟨⟨_,hb⟩,_,rfl⟩, hb))⟩,
-  Inf_le := λ _ _ h, coe_le_coe.mp (Inf_le (mem_image_of_mem _ h)),
-  le_Inf := λ _ _ h, coe_le_coe.mp (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
-  le_Sup := λ _ x h, coe_le_coe.mp (le_sup_of_le_right (le_Sup ⟨x,h,rfl⟩)),
-  Sup_le := λ _ x h, coe_le_coe.mp
-    (sup_le x.2 (Sup_le (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
+  Inf_le := λ _ _ h, coe_le_coe.mp $ Inf_le (mem_image_of_mem _ h),
+  le_Inf := λ _ _ h, coe_le_coe.mp $
+    le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}),
+  le_Sup := λ _ x h, coe_le_coe.mp $ le_sup_of_le_right (le_Sup ⟨x,h,rfl⟩),
+  Sup_le := λ _ x h, coe_le_coe.mp $
+    sup_le x.2 (Sup_le (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
   .. (infer_instance : lattice (set.Ici a)),
   .. (infer_instance : bounded_order (set.Ici a)) }
 
@@ -186,12 +188,12 @@ instance [complete_lattice α] {a : α} : complete_lattice (Ici a) :=
     ⟨le_sup_left, sup_le hab (Sup_le (by {rintros _ ⟨⟨_,h⟩,_,rfl⟩, exact h.2}))⟩ ⟩,
   Inf := λ S, ⟨b ⊓ Inf (coe '' S),
     ⟨le_inf hab (le_Inf (by {rintros _ ⟨⟨_,h⟩,_,rfl⟩, exact h.1})), inf_le_left⟩⟩,
-  Inf_le := λ _ x h, coe_le_coe.mp (inf_le_of_right_le (Inf_le (⟨x,h,rfl⟩))),
-  le_Inf := λ _ x h, coe_le_coe.mp
-    (le_inf x.2.2 (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
-  le_Sup := λ _ x h, coe_le_coe.mp (le_sup_of_le_right (le_Sup ⟨x,h,rfl⟩)),
+  Inf_le := λ _ x h, coe_le_coe.mp $ inf_le_of_right_le (Inf_le (⟨x,h,rfl⟩)),
+  le_Inf := λ _ x h, coe_le_coe.mp $
+    le_inf x.2.2 (le_Inf (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
+  le_Sup := λ _ x h, coe_le_coe.mp $ le_sup_of_le_right (le_Sup ⟨x,h,rfl⟩),
   Sup_le := λ _ x h,
-    (sup_le x.2.1 (Sup_le (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)}))),
+    (sup_le x.2.1 $ Sup_le (by {rintros _ ⟨z,p,rfl⟩, exact coe_le_coe.mpr (h z p)})),
   .. (infer_instance : lattice (set.Icc a b)),
   .. (Icc.bounded_order hab) }
 

@@ -226,6 +226,12 @@ begin
     refine ⟨f ⁻¹' W, ⟨_, hS hW, rfl⟩, ha, set.preimage_mono $ set.subset_sUnion_of_mem hW⟩ }
 end
 
+protected lemma is_topological_basis.is_open_map {β} [topological_space β] {f : α → β}
+  {T : set (set α)} (hT : is_topological_basis T) (hf : ∀ t ∈ T, is_open (f '' t)) :
+  is_open_map f :=
+λ s hs, let ⟨γ, g, hs, hgT⟩ := hT.open_eq_Union hs in
+  by simpa only [hs, image_Union] using is_open_Union (λ i, hf _ (hgT i))
+
 lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))
   (Uc : (⋃ i, U i) = univ) {b : Π i, set (set (U i))} (hb : ∀ i, is_topological_basis (b i)) :
   is_topological_basis (⋃ i : ι, image (coe : U i → α) '' (b i)) :=
@@ -491,8 +497,7 @@ end
 
 instance separable_space_univ {α : Type*} [topological_space α] [separable_space α] :
   separable_space (univ : set α) :=
-(equiv.set.univ α).symm.surjective.dense_range.separable_space
-  (continuous_subtype_mk _ continuous_id)
+(equiv.set.univ α).symm.surjective.dense_range.separable_space (continuous_id.subtype_mk _)
 
 /-- If `α` is a separable topological space with a partial order, then there exists a countable
 dense set `s : set α` that contains those of both bottom and top elements of `α` that actually

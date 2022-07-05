@@ -160,7 +160,7 @@ protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 
 /-- Homeomorphism given an embedding. -/
 noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
-{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+{ continuous_to_fun := hf.continuous.subtype_mk _,
   continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
   .. equiv.of_injective f hf.inj }
 
@@ -272,6 +272,10 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
   end,
   to_equiv := e }
 
+/-- If an equivalence `e : α ≃ β` is an open embedding, then it is a homeomorphism. -/
+def _root_.open_embedding.to_homeomorph (e : α ≃ β) (he : open_embedding e) : α ≃ₜ β :=
+homeomorph_of_continuous_open e he.continuous he.is_open_map
+
 @[simp] lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
   continuous_on (h ∘ f) s ↔ continuous_on f s :=
 h.inducing.continuous_on_iff.symm
@@ -316,8 +320,8 @@ end
 
 /-- If two sets are equal, then they are homeomorphic. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ₜ t :=
-{ continuous_to_fun := continuous_subtype_mk _ continuous_subtype_val,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_subtype_val,
+{ continuous_to_fun := continuous_inclusion h.subset,
+  continuous_inv_fun := continuous_inclusion h.symm.subset,
   to_equiv := equiv.set_congr h }
 
 /-- Sum of two homeomorphisms. -/
@@ -377,8 +381,8 @@ end
 
 /-- `ulift α` is homeomorphic to `α`. -/
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
-{ continuous_to_fun := continuous_ulift_down,
-  continuous_inv_fun := continuous_ulift_up,
+{ continuous_to_fun := ulift.continuous_down,
+  continuous_inv_fun := ulift.continuous_up,
   to_equiv := equiv.ulift }
 
 section distrib
@@ -387,8 +391,7 @@ section distrib
 def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
 homeomorph.symm $ homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
   ((continuous_inl.prod_map continuous_id).sum_elim (continuous_inr.prod_map continuous_id)) $
-  is_open_map_sum (open_embedding_inl.is_open_map.prod is_open_map.id)
-    (open_embedding_inr.is_open_map.prod is_open_map.id)
+  (is_open_map_inl.prod is_open_map.id).sum_elim (is_open_map_inr.prod is_open_map.id)
 
 /-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
 def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=
@@ -400,12 +403,9 @@ variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
 /-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/
 def sigma_prod_distrib : ((Σ i, σ i) × β) ≃ₜ (Σ i, (σ i × β)) :=
-homeomorph.symm $
-homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
-  (continuous_sigma $ λ i,
-    (continuous_sigma_mk.comp continuous_fst).prod_mk continuous_snd)
-  (is_open_map_sigma $ λ i,
-    (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
+homeomorph.symm $ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
+  (continuous_sigma $ λ i, continuous_sigma_mk.fst'.prod_mk continuous_snd)
+  (is_open_map_sigma.2 $ λ i, is_open_map_sigma_mk.prod is_open_map.id)
 
 end distrib
 
@@ -440,7 +440,7 @@ A subset of a topological space is homeomorphic to its image under a homeomorphi
 def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 { to_equiv := equiv.set.univ α,
   continuous_to_fun := continuous_subtype_coe,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_id }
+  continuous_inv_fun := continuous_id.subtype_mk _ }
 
 end homeomorph
 

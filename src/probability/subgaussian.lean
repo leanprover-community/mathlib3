@@ -78,7 +78,16 @@ begin
   exact sum_le_sum (λ i hi, (h_subg i hi).cgf_le t),
 end
 
-lemma subgaussian_cgf.chernoff_bound [is_finite_measure μ] (hε : 0 ≤ ε)
+lemma measure_le_one [is_probability_measure μ] (s : set Ω) : μ s ≤ 1 :=
+(measure_mono (set.subset_univ _)).trans_eq measure_univ
+
+lemma to_real_measure_le_one [is_probability_measure μ] (s : set Ω) : (μ s).to_real ≤ 1 :=
+begin
+  rw [← ennreal.one_to_real, ennreal.to_real_le_to_real (measure_ne_top μ _) ennreal.one_ne_top],
+  exact measure_le_one _,
+end
+
+lemma subgaussian_cgf.chernoff_bound' [is_finite_measure μ] (hε : 0 ≤ ε)
   (h : subgaussian_cgf X μ c) (hc : 0 < c) :
   (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
 begin
@@ -92,35 +101,45 @@ begin
   ring,
 end
 
+lemma subgaussian_cgf.chernoff_bound [is_probability_measure μ] (hε : 0 ≤ ε)
+  (h : subgaussian_cgf X μ c) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
+begin
+  cases lt_or_le 0 c with hc hc,
+  { exact h.chernoff_bound' hε hc, },
+  suffices : 1 ≤ real.exp (-ε ^ 2 / (2 * c)), from (to_real_measure_le_one _).trans this,
+  rw real.one_le_exp_iff,
+  exact div_nonneg_of_nonpos (neg_nonpos_of_nonneg (sq_nonneg _))
+    (mul_nonpos_of_nonneg_of_nonpos zero_le_two hc),
+end
+
 lemma Indep_fun.chernoff_sum {ι : Type*} [is_probability_measure μ] (hε : 0 ≤ ε)
   {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) {c : ι → ℝ}
   (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (hs : s.nonempty) (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ (c i))
-  (hc : ∀ i ∈ s, 0 < c i) :
+  {s : finset ι} (hs : s.nonempty) (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ (c i)) :
   (μ {ω | ε ≤ ∑ i in s, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * (∑ i in s, c i))) :=
 begin
   simp_rw ← finset.sum_apply,
-  exact (h_indep.subgaussian_cgf_sum h_meas h_subg).chernoff_bound hε (finset.sum_pos hc hs),
+  exact (h_indep.subgaussian_cgf_sum h_meas h_subg).chernoff_bound hε,
 end
 
 lemma Indep_fun.chernoff_sum_same {ι : Type*} [is_probability_measure μ] (hε : 0 ≤ ε)
   {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ)
   (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (hs : s.nonempty) (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ c)
-  (hc : 0 < c) :
+  {s : finset ι} (hs : s.nonempty) (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ c) :
   (μ {ω | ε ≤ ∑ i in s, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * (card s))) :=
 calc (μ {ω | ε ≤ ∑ i in s, X i ω}).to_real
-    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) : h_indep.chernoff_sum hε h_meas hs h_subg (λ _ _, hc)
+    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) : h_indep.chernoff_sum hε h_meas hs h_subg
 ... = real.exp(- ε^2 / (2 * c * (card s))) :
     by { rw mul_assoc, congr, rw [sum_const, nsmul_eq_mul, mul_comm c], }
 
 lemma Indep_fun.chernoff_sum_range [is_probability_measure μ] (hε : 0 ≤ ε)
   {X : ℕ → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
-  (h_subg : ∀ i, subgaussian_cgf (X i) μ c) {n : ℕ} (hn : 1 ≤ n) (hc : 0 < c) :
+  (h_subg : ∀ i, subgaussian_cgf (X i) μ c) {n : ℕ} (hn : 1 ≤ n) :
   (μ {ω | ε ≤ ∑ i in finset.range n, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * n)) :=
 calc (μ {ω | ε ≤ ∑ i in finset.range n, X i ω}).to_real
     ≤ real.exp(- ε^2 / (2 * c * (card (finset.range n)))) : h_indep.chernoff_sum_same hε h_meas
-        ⟨0, finset.mem_range.mpr (zero_lt_one.trans_le hn)⟩ (λ i _, h_subg i) hc
+        ⟨0, finset.mem_range.mpr (zero_lt_one.trans_le hn)⟩ (λ i _, h_subg i)
 ... = real.exp(- ε^2 / (2 * c * n)) : by rw card_range
 
 

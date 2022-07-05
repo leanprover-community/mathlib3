@@ -9,15 +9,13 @@ import ring_theory.polynomial.symmetric
 /-!
 # Vieta's Formula
 
-The main result is `mv_polynomial.prod_X_add_C_eq_sum_esymm`, which shows that the product of
-linear terms `λ + X i` is equal to a linear combination of the symmetric polynomials `esymm σ R j`.
+The main result is `multiset.prod_X_add_C_eq_sum_esymm`, which shows that the product of
+linear terms ` X + λ` with `λ` in a `multiset s` is equal to a linear combination of the
+symmetric polynomials `esymm s`.
 
-## Implementation Notes:
-
-We first take the viewpoint where the "roots" `X i` are variables. This means we work over
-`polynomial (mv_polynomial σ R)`, which enables us to talk about linear combinations of
-`esymm σ R j`. We then derive Vieta's formula in `polynomial R` by giving a
-valuation from each `X i` to `r i`.
+From this, we deduce `mv_polynomial.prod_X_add_C_eq_sum_esymm` which is the equivalent formula
+for the product of linear terms `X + X i` with `i` in a `fintype σ` as a linear combination
+of the symmetric functions `esymm σ R j`.
 
 -/
 
@@ -127,7 +125,5 @@ begin
     rw multiset.map_map },
   all_goals { rw multiset.card_map, exact rfl, },
 end
-
-
 
 end mv_polynomial

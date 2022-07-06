@@ -254,68 +254,30 @@ else by rw [pred_eq_iff_not_succ.2 h,
 
 /-! ### Limit ordinals -/
 
-/-- A limit ordinal is an ordinal which is not zero and not a successor. -/
-def is_limit (o : ordinal) : Prop := o ≠ 0 ∧ ∀ a < o, succ a < o
+/-- Contrary to convention, we consider `0` a limit ordinal. -/
+theorem is_succ_limit_zero : is_succ_limit (0 : ordinal) := is_succ_limit_bot
 
-theorem not_zero_is_limit : ¬ is_limit 0
-| ⟨h, _⟩ := h rfl
+@[simp] theorem lift_is_limit (o) : is_succ_limit (lift o) ↔ is_succ_limit o :=
+begin
+  rw [is_succ_limit_iff_succ_lt, is_succ_limit_iff_succ_lt],
+  refine ⟨λ H a h, _, λ H a h, _⟩,
+  { have := H a.lift (lift_lt.2 h),
+    rwa [←lift_succ, lift_lt] at this },
+  { obtain ⟨a, rfl⟩ := lift_down h.le,
+    rw [←lift_succ, lift_lt],
+    exact H a (lift_lt.1 h) }
+end
 
-theorem not_succ_is_limit (o) : ¬ is_limit (succ o)
-| ⟨_, h⟩ := lt_irrefl _ (h _ (lt_succ o))
+theorem eq_zero_of_is_succ_limit_nat : ∀ {n : ℕ} (h : is_succ_limit (n : ordinal)), n = 0
+| 0       h := rfl
+| (n + 1) h := (not_is_succ_limit_succ _ h).elim
 
-theorem not_succ_of_is_limit {o} (h : is_limit o) : ¬ ∃ a, o = succ a
-| ⟨a, e⟩ := not_succ_is_limit a (e ▸ h)
-
-theorem succ_lt_of_is_limit {o a : ordinal} (h : is_limit o) : succ a < o ↔ a < o :=
-⟨(lt_succ a).trans, h.2 _⟩
-
-theorem le_succ_of_is_limit {o} (h : is_limit o) {a} : o ≤ succ a ↔ o ≤ a :=
-le_iff_le_iff_lt_iff_lt.2 $ succ_lt_of_is_limit h
-
-theorem limit_le {o} (h : is_limit o) {a} : o ≤ a ↔ ∀ x < o, x ≤ a :=
-⟨λ h x l, l.le.trans h,
- λ H, (le_succ_of_is_limit h).1 $ le_of_not_lt $ λ hn,
-  not_lt_of_le (H _ hn) (lt_succ a)⟩
-
-theorem lt_limit {o} (h : is_limit o) {a} : a < o ↔ ∃ x < o, a < x :=
-by simpa only [not_ball, not_le] using not_congr (@limit_le _ h a)
-
-@[simp] theorem lift_is_limit (o) : is_limit (lift o) ↔ is_limit o :=
-and_congr (not_congr $ by simpa only [lift_zero] using @lift_inj o 0)
-⟨λ H a h, lift_lt.1 $ by simpa only [lift_succ] using H _ (lift_lt.2 h),
- λ H a h, begin
-   obtain ⟨a', rfl⟩ := lift_down h.le,
-   rw [←lift_succ, lift_lt],
-   exact H a' (lift_lt.1 h)
- end⟩
-
-theorem is_limit.pos {o : ordinal} (h : is_limit o) : 0 < o :=
-lt_of_le_of_ne (ordinal.zero_le _) h.1.symm
-
-theorem is_limit.one_lt {o : ordinal} (h : is_limit o) : 1 < o :=
-by simpa only [succ_zero] using h.2 _ h.pos
-
-theorem is_limit.nat_lt {o : ordinal} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
-| 0     := h.pos
-| (n+1) := h.2 _ (is_limit.nat_lt n)
-
-theorem zero_or_succ_or_limit (o : ordinal) :
-  o = 0 ∨ (∃ a, o = succ a) ∨ is_limit o :=
-if o0 : o = 0 then or.inl o0 else
-if h : ∃ a, o = succ a then or.inr (or.inl h) else
-or.inr $ or.inr ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩
-
-/-- Main induction principle of ordinals: if one can prove a property by
-  induction at successor ordinals and at limit ordinals, then it holds for all ordinals. -/
+/-- Main induction principle of ordinals: if one can prove a property by induction at successor
+ordinals and at limit ordinals, then it holds for all ordinals. -/
 @[elab_as_eliminator] def limit_rec_on {C : ordinal → Sort*}
   (o : ordinal) (H₁ : C 0) (H₂ : ∀ o, C o → C (succ o))
-  (H₃ : ∀ o, is_limit o → (∀ o' < o, C o') → C o) : C o :=
-lt_wf.fix (λ o IH,
-  if o0 : o = 0 then by rw o0; exact H₁ else
-  if h : ∃ a, o = succ a then
-    by rw ← succ_pred_iff_is_succ.2 h; exact
-    H₂ _ (IH _ $ pred_lt_iff_is_succ.2 h)
-  else H₃ _ ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩ IH) o
+  (H₃ : ∀ o, o ≠ 0 → is_succ_limit o → (∀ o' < o, C o') → C o) : C o :=
+is_succ_limit_rec_on H₂
 
 @[simp] theorem limit_rec_on_zero {C} (H₁ H₂ H₃) : @limit_rec_on C 0 H₁ H₂ H₃ = H₁ :=
 by rw [limit_rec_on, lt_wf.fix_eq, dif_pos rfl]; refl

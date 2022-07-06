@@ -220,6 +220,54 @@ begin
   exact (h_indep.exp_mul t).integrable_mul h_int_X h_int_Y,
 end
 
+lemma Indep_fun.integrable_exp_mul_sum [is_probability_measure μ]
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
+  {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
+  integrable (λ ω, real.exp (t * (∑ i in s, X i) ω)) μ :=
+begin
+  classical,
+  revert h_int,
+  refine finset.induction_on s (λ h, _) (λ i s hi_notin_s h_rec h_int, _),
+  { simp only [pi.zero_apply, sum_apply, sum_empty, mul_zero, real.exp_zero],
+    exact integrable_const _, },
+  { have : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), real.exp (t * X i ω)) μ,
+      from λ i hi, h_int i (mem_insert_of_mem hi),
+    specialize h_rec this,
+    rw sum_insert hi_notin_s,
+    refine indep_fun.integrable_exp_mul_add _ (h_int i (mem_insert_self _ _)) h_rec,
+    exact (h_indep.indep_fun_finset_sum_of_not_mem h_meas hi_notin_s).symm, },
+end
+
+lemma Indep_fun.mgf_sum [is_probability_measure μ]
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
+  {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
+  mgf (∑ i in s, X i) μ t = ∏ i in s, mgf (X i) μ t :=
+begin
+  classical,
+  revert h_int,
+  refine finset.induction_on s (λ h, _) (λ i s hi_notin_s h_rec h_int, _),
+  { simp only [sum_empty, mgf_zero_fun, measure_univ, ennreal.one_to_real, prod_empty], },
+  { have h_int' : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), real.exp (t * X i ω)) μ,
+      from λ i hi, h_int i (mem_insert_of_mem hi),
+    rw [sum_insert hi_notin_s, indep_fun.mgf_add
+        (h_indep.indep_fun_finset_sum_of_not_mem h_meas hi_notin_s).symm
+        (h_int i (mem_insert_self _ _)) (h_indep.integrable_exp_mul_sum h_meas h_int'),
+      h_rec h_int', prod_insert hi_notin_s], },
+end
+
+lemma Indep_fun.cgf_sum [is_probability_measure μ]
+  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
+  {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
+  cgf (∑ i in s, X i) μ t = ∑ i in s, cgf (X i) μ t :=
+begin
+  simp_rw cgf,
+  by_cases hμ : μ = 0,
+  { simp [hμ], },
+  rw ← real.log_prod _ _ (λ j hj, _),
+  { rw h_indep.mgf_sum h_meas h_int, },
+  { exact (mgf_pos (h_int j hj)).ne', },
+end
+
 /-- **Chernoff bound** on the upper tail of a real random variable. -/
 lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
   (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
@@ -279,54 +327,6 @@ begin
   refine (measure_le_le_exp_mul_mgf ε ht h_int).trans _,
   rw real.exp_add,
   exact mul_le_mul le_rfl (real.le_exp_log _) mgf_nonneg (real.exp_pos _).le,
-end
-
-lemma Indep_fun.integrable_exp_mul_sum [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
-  integrable (λ ω, real.exp (t * (∑ i in s, X i) ω)) μ :=
-begin
-  classical,
-  revert h_int,
-  refine finset.induction_on s (λ h, _) (λ i s hi_notin_s h_rec h_int, _),
-  { simp only [pi.zero_apply, sum_apply, sum_empty, mul_zero, real.exp_zero],
-    exact integrable_const _, },
-  { have : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), real.exp (t * X i ω)) μ,
-      from λ i hi, h_int i (mem_insert_of_mem hi),
-    specialize h_rec this,
-    rw sum_insert hi_notin_s,
-    refine indep_fun.integrable_exp_mul_add _ (h_int i (mem_insert_self _ _)) h_rec,
-    exact (h_indep.indep_fun_finset_sum_of_not_mem h_meas hi_notin_s).symm, },
-end
-
-lemma Indep_fun.mgf_sum [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
-  mgf (∑ i in s, X i) μ t = ∏ i in s, mgf (X i) μ t :=
-begin
-  classical,
-  revert h_int,
-  refine finset.induction_on s (λ h, _) (λ i s hi_notin_s h_rec h_int, _),
-  { simp only [sum_empty, mgf_zero_fun, measure_univ, ennreal.one_to_real, prod_empty], },
-  { have h_int' : ∀ (i : ι), i ∈ s → integrable (λ (ω : Ω), real.exp (t * X i ω)) μ,
-      from λ i hi, h_int i (mem_insert_of_mem hi),
-    rw [sum_insert hi_notin_s, indep_fun.mgf_add
-        (h_indep.indep_fun_finset_sum_of_not_mem h_meas hi_notin_s).symm
-        (h_int i (mem_insert_self _ _)) (h_indep.integrable_exp_mul_sum h_meas h_int'),
-      h_rec h_int', prod_insert hi_notin_s], },
-end
-
-lemma Indep_fun.cgf_sum [is_probability_measure μ]
-  {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (h_int : ∀ i ∈ s, integrable (λ ω, real.exp (t * X i ω)) μ) :
-  cgf (∑ i in s, X i) μ t = ∑ i in s, cgf (X i) μ t :=
-begin
-  simp_rw cgf,
-  by_cases hμ : μ = 0,
-  { simp [hμ], },
-  rw ← real.log_prod _ _ (λ j hj, _),
-  { rw h_indep.mgf_sum h_meas h_int, },
-  { exact (mgf_pos (h_int j hj)).ne', },
 end
 
 end moment_generating_function

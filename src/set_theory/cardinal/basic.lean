@@ -43,6 +43,8 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 * There is a type of cardinal numbers in every universe level:
   `cardinal.{u} : Type (u + 1)` is the quotient of types in `Type u`.
   The operation `cardinal.lift` lifts cardinal numbers to a higher level.
+* We enforce a canonical way to compare cardinals in different universes. Namely, to compare
+  `a : cardinal.{u}` and `b : cardinal.{v}`, we compare `lift.{v} a` and `lift.{u} b`.
 * Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
   `set_theory/cardinal_ordinal.lean`.
 * There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
@@ -208,7 +210,7 @@ by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 /- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
 `b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. The following theorem
-is stated in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given 
+is stated in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given
 the lemmas `cardinal.lift_umax_le`, `cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this
 small generalization is not worth the elaboration problems elsewhere. -/
 

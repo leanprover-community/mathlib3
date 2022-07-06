@@ -272,48 +272,23 @@ theorem eq_zero_of_is_succ_limit_nat : ∀ {n : ℕ} (h : is_succ_limit (n : ord
 | 0       h := rfl
 | (n + 1) h := (not_is_succ_limit_succ _ h).elim
 
-/-- If one can prove a property by induction at successor ordinals and at limit ordinals, then it
-holds for all ordinals. -/
-@[elab_as_eliminator] def limit_rec_on' {C : ordinal → Sort*}
-  (o : ordinal) (H₁ : ∀ o, C o → C (succ o))
-  (H₂ : ∀ o, is_succ_limit o → (∀ o' < o, C o') → C o) : C o :=
-lt_wf.fix (λ o, is_succ_limit_rec_on o (λ a IH, H₁ a (IH a (lt_succ a))) H₂) o
-
 /-- Main induction principle of ordinals: if one can prove a property by induction at zero,
 successor ordinals and at limit ordinals, then it holds for all ordinals. -/
 @[elab_as_eliminator] def limit_rec_on {C : ordinal → Sort*}
   (o : ordinal) (H₁ : C 0) (H₂ : ∀ o, C o → C (succ o))
   (H₃ : ∀ o, o ≠ 0 → is_succ_limit o → (∀ o' < o, C o') → C o) : C o :=
-lt_wf.fix (λ o IH, begin
-  by_cases h0 : o = 0,
-  { rwa h0 },
-  {
-
-  }
-  /-if o0 : o = 0 then by rw o0; exact H₁ else
-  if h : ∃ a, o = succ a then
-    by rw ← succ_pred_iff_is_succ.2 h; exact
-    H₂ _ (IH _ $ pred_lt_iff_is_succ.2 h)
-  else H₃ _ ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩ IH-/
-  end) o
+is_succ_limit_wf_rec_on lt_wf o H₂ (λ a h IH, if ha : a = 0 then by rwa ha else H₃ a ha h IH)
 
 @[simp] theorem limit_rec_on_zero {C} (H₁ H₂ H₃) : @limit_rec_on C 0 H₁ H₂ H₃ = H₁ :=
-by rw [limit_rec_on, lt_wf.fix_eq, dif_pos rfl]; refl
+by { rw [limit_rec_on, is_succ_limit_wf_rec_on_limit _ _ _ is_succ_limit_zero], simp }
 
 @[simp] theorem limit_rec_on_succ {C} (o H₁ H₂ H₃) :
   @limit_rec_on C (succ o) H₁ H₂ H₃ = H₂ o (@limit_rec_on C o H₁ H₂ H₃) :=
-begin
-  have h : ∃ a, succ o = succ a := ⟨_, rfl⟩,
-  rw [limit_rec_on, lt_wf.fix_eq, dif_neg (succ_ne_zero o), dif_pos h],
-  generalize : limit_rec_on._proof_2 (succ o) h = h₂,
-  generalize : limit_rec_on._proof_3 (succ o) h = h₃,
-  revert h₂ h₃, generalize e : pred (succ o) = o', intros,
-  rw pred_succ at e, subst o', refl
-end
+by { rw [limit_rec_on, is_succ_limit_wf_rec_on_succ], refl }
 
-@[simp] theorem limit_rec_on_limit {C} (o H₁ H₂ H₃ h) :
-  @limit_rec_on C o H₁ H₂ H₃ = H₃ o h (λ x h, @limit_rec_on C x H₁ H₂ H₃) :=
-by rw [limit_rec_on, lt_wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
+theorem limit_rec_on_limit {C} (o : ordinal) (H₁ H₂ H₃) (h₁ : o ≠ 0) (h₂ : is_succ_limit o) :
+  @limit_rec_on C o H₁ H₂ H₃ = H₃ o h₁ h₂ (λ x h, @limit_rec_on C x H₁ H₂ H₃) :=
+by { rw [limit_rec_on, is_succ_limit_wf_rec_on_limit _ _ _ h₂], simpa [h₁] }
 
 instance order_top_out_succ (o : ordinal) : order_top (succ o).out.α :=
 ⟨_, le_enum_succ⟩
@@ -322,20 +297,20 @@ theorem enum_succ_eq_top {o : ordinal} :
   enum (<) o (by { rw type_lt, exact lt_succ o }) = (⊤ : (succ o).out.α) :=
 rfl
 
-lemma has_succ_of_type_succ_lt {α} {r : α → α → Prop} [wo : is_well_order α r]
-  (h : ∀ a < type r, succ a < type r) (x : α) : ∃ y, r x y :=
+lemma has_succ_of_is_succ_limit_type {α} {r : α → α → Prop} [wo : is_well_order α r]
+  (h : is_succ_limit (type r)) (x : α) : ∃ y, r x y :=
 begin
-  use enum r (succ (typein r x)) (h _ (typein_lt_type r x)),
+  use enum r (succ (typein r x)) (h.succ_lt (typein_lt_type r x)),
   convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ _), rw [enum_typein]
 end
 
-theorem out_no_max_of_succ_lt {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
-⟨has_succ_of_type_succ_lt (by rwa type_lt)⟩
+theorem out_no_max_of_is_succ_limit {o : ordinal} (ho : is_succ_limit o) : no_max_order o.out.α :=
+⟨has_succ_of_is_succ_limit_type $ by rwa type_lt⟩
 
-lemma bounded_singleton {r : α → α → Prop} [is_well_order α r] (hr : (type r).is_limit) (x) :
+lemma bounded_singleton {r : α → α → Prop} [is_well_order α r] (hr : is_succ_limit (type r)) (x) :
   bounded r {x} :=
 begin
-  refine ⟨enum r (succ (typein r x)) (hr.2 _ (typein_lt_type r x)), _⟩,
+  refine ⟨enum r (succ (typein r x)) (hr.succ_lt (typein_lt_type r x)), _⟩,
   intros b hb,
   rw mem_singleton_iff.1 hb,
   nth_rewrite 0 ←enum_typein r x,
@@ -361,48 +336,49 @@ by rw [lift_card, ←type_subrel_lt, card_type]
   order-continuous, i.e., the image `f o` of a limit ordinal `o` is the sup of `f a` for
   `a < o`.  -/
 def is_normal (f : ordinal → ordinal) : Prop :=
-(∀ o, f o < f (succ o)) ∧ ∀ o, is_limit o → ∀ a, f o ≤ a ↔ ∀ b < o, f b ≤ a
+(∀ o, f o < f (succ o)) ∧ ∀ o, o ≠ 0 → is_succ_limit o → ∀ a, f o ≤ a ↔ ∀ b < o, f b ≤ a
 
-theorem is_normal.limit_le {f} (H : is_normal f) : ∀ {o}, is_limit o →
-  ∀ {a}, f o ≤ a ↔ ∀ b < o, f b ≤ a := H.2
+section
+variables {f g : ordinal.{u} → ordinal.{u}} {o a b : ordinal.{u}}
 
-theorem is_normal.limit_lt {f} (H : is_normal f) {o} (h : is_limit o) {a} :
+theorem is_normal.limit_le (H : is_normal f) : ∀ {o : ordinal}, o ≠ 0 → is_succ_limit o →
+  ∀ {a}, f o ≤ a ↔ ∀ b < o, f b ≤ a :=
+H.2
+
+theorem is_normal.limit_lt (H : is_normal f) (h₁ : o ≠ 0) (h₂ : is_succ_limit o) :
   a < f o ↔ ∃ b < o, a < f b :=
-not_iff_not.1 $ by simpa only [exists_prop, not_exists, not_and, not_lt] using H.2 _ h a
+not_iff_not.1 $ by simpa only [exists_prop, not_exists, not_and, not_lt] using H.limit_le h₁ h₂
 
-theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
-λ a b, limit_rec_on b (not.elim (not_lt_of_le $ ordinal.zero_le _))
+theorem is_normal.strict_mono (H : is_normal f) : strict_mono f :=
+λ a b, limit_rec_on b (ordinal.not_lt_zero a).elim
   (λ b IH h, (lt_or_eq_of_le (le_of_lt_succ h)).elim
     (λ h, (IH h).trans (H.1 _))
     (λ e, e ▸ H.1 _))
-  (λ b l IH h, lt_of_lt_of_le (H.1 a)
-    ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
+  (λ b hb hl IH h, lt_of_lt_of_le (H.1 a) $
+    (H.limit_le hb hl).1 le_rfl _ (hl.succ_lt h))
 
-theorem is_normal.monotone {f} (H : is_normal f) : monotone f :=
-H.strict_mono.monotone
+theorem is_normal.monotone (H : is_normal f) : monotone f := H.strict_mono.monotone
 
-theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
-  is_normal f ↔ (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) :=
-⟨λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩, λ ⟨hs, hl⟩, ⟨λ a, hs (lt_succ a),
-  λ a ha c, ⟨λ hac b hba, ((hs hba).trans_le hac).le, hl a ha c⟩⟩⟩
+theorem is_normal_iff_strict_mono_limit : is_normal f ↔
+  strict_mono f ∧ ∀ o, o ≠ 0 → is_succ_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a :=
+⟨λ hf, ⟨hf.strict_mono, λ a h0 ha b, (hf.limit_le h0 ha).2⟩, λ ⟨hs, hl⟩, ⟨λ a, hs (lt_succ a),
+  λ a h0 ha b, ⟨λ hab c hca, ((hs hca).trans_le hab).le, hl a h0 ha b⟩⟩⟩
 
-theorem is_normal.lt_iff {f} (H : is_normal f) {a b} : f a < f b ↔ a < b :=
-strict_mono.lt_iff_lt $ H.strict_mono
+theorem is_normal.lt_iff (H : is_normal f) : f a < f b ↔ a < b := H.strict_mono.lt_iff_lt
+theorem is_normal.le_iff (H : is_normal f) : f a ≤ f b ↔ a ≤ b := H.strict_mono.le_iff_le
 
-theorem is_normal.le_iff {f} (H : is_normal f) {a b} : f a ≤ f b ↔ a ≤ b :=
-le_iff_le_iff_lt_iff_lt.2 H.lt_iff
-
-theorem is_normal.inj {f} (H : is_normal f) {a b} : f a = f b ↔ a = b :=
+theorem is_normal.inj (H : is_normal f): f a = f b ↔ a = b :=
 by simp only [le_antisymm_iff, H.le_iff]
 
-theorem is_normal.self_le {f} (H : is_normal f) (a) : a ≤ f a :=
+theorem is_normal.self_le (H : is_normal f) (a) : a ≤ f a :=
 lt_wf.self_le_of_strict_mono H.strict_mono a
 
-theorem is_normal.le_set {f} (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
+theorem is_normal.le_set (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
   (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) {o : ordinal} : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
 ⟨λ h a pa, (H.le_iff.2 ((H₂ _).1 le_rfl _ pa)).trans h,
 λ h, begin
-  revert H₂, refine limit_rec_on b (λ H₂, _) (λ S _ H₂, _) (λ S L _ H₂, (H.2 _ L _).2 (λ a h', _)),
+  revert H₂, refine limit_rec_on b (λ H₂, _) (λ S _ H₂, _) (λ S hS L _ H₂,
+    (H.limit_le hS L).2 (λ a h', _)),
   { cases p0 with x px,
     have := ordinal.le_zero.1 ((H₂ _).1 (ordinal.zero_le _) _ px),
     rw this at px, exact h _ px },
@@ -412,39 +388,39 @@ theorem is_normal.le_set {f} (H : is_normal f) (p : set ordinal) (p0 : p.nonempt
     exact (H.le_iff.2 $ (not_le.1 h₂).le).trans (h _ h₁) }
 end⟩
 
-theorem is_normal.le_set' {f} (H : is_normal f) (p : set α) (g : α → ordinal) (p0 : p.nonempty) (b)
-  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, g a ≤ o) {o} : f b ≤ o ↔ ∀ a ∈ p, f (g a) ≤ o :=
+theorem is_normal.le_set' (H : is_normal f) (p : set α) (g : α → ordinal) (p0 : p.nonempty) (b)
+  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, g a ≤ o) : f b ≤ o ↔ ∀ a ∈ p, f (g a) ≤ o :=
 (H.le_set (λ x, ∃ y, p y ∧ x = g y)
   (let ⟨x, px⟩ := p0 in ⟨_, _, px, rfl⟩) _
   (λ o, (H₂ o).trans ⟨λ H a ⟨y, h1, h2⟩, h2.symm ▸ H y h1,
     λ H a h1, H (g a) ⟨a, h1, rfl⟩⟩)).trans
 ⟨λ H a h, H (g a) ⟨a, h, rfl⟩, λ H a ⟨y, h1, h2⟩, h2.symm ▸ H y h1⟩
 
-theorem is_normal.refl : is_normal id :=
-⟨lt_succ, λ o l a, limit_le l⟩
+theorem is_normal.refl : is_normal id := ⟨lt_succ, λ o h0 hl a, hl.le_iff_forall_le⟩
 
-theorem is_normal.trans {f g} (H₁ : is_normal f) (H₂ : is_normal g) :
-  is_normal (λ x, f (g x)) :=
+theorem is_normal.trans (H₁ : is_normal f) (H₂ : is_normal g) : is_normal (f ∘ g) :=
 ⟨λ x, H₁.lt_iff.2 (H₂.1 _),
- λ o l a, H₁.le_set' (< o) g ⟨_, l.pos⟩ _ (λ c, H₂.2 _ l _)⟩
+  λ o h0 hl a, H₁.le_set' (< o) g ⟨0, ordinal.pos_iff_ne_zero.2 h0⟩ _ (λ c, H₂.2 _ h0 hl _)⟩
 
-theorem is_normal.is_limit {f} (H : is_normal f) {o} (l : is_limit o) :
-  is_limit (f o) :=
-⟨ne_of_gt $ (ordinal.zero_le _).trans_lt $ H.lt_iff.2 l.pos,
-λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt l).1 h in
-  (succ_le_of_lt h₂).trans_lt (H.lt_iff.2 h₁)⟩
+theorem is_normal.is_limit (H : is_normal f) (h0 : o ≠ 0) (ho : is_succ_limit o) :
+  is_succ_limit (f o) :=
+is_succ_limit_of_succ_lt $ λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt h0 ho).1 h in
+  (succ_le_of_lt h₂).trans_lt (H.lt_iff.2 h₁)
 
-theorem is_normal.le_iff_eq {f} (H : is_normal f) {a} : f a ≤ a ↔ f a = a :=
-(H.self_le a).le_iff_eq
+theorem is_normal.le_iff_eq (H : is_normal f) : f a ≤ a ↔ f a = a := (H.self_le a).le_iff_eq
 
-theorem add_le_of_limit {a b c : ordinal} (h : is_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
+end
+
+theorem add_le_of_limit {a b c : ordinal} (h0 : b ≠ 0) (hb : is_succ_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
 ⟨λ h b' l, (add_le_add_left l.le _).trans h,
-λ H, le_of_not_lt $
-induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
+λ H, le_of_not_lt $ λ l,
+begin
+  induction a using ordinal.induction_on with α r generalizing b,
+  induction b using ordinal.induction_on with β s,
   resetI,
   suffices : ∀ x : β, sum.lex r s (sum.inr x) (enum _ _ l),
   { cases enum _ _ l with x x,
-    { cases this (enum s 0 h.pos) },
+    { cases this (enum s 0 (ordinal.pos_iff_ne_zero.2 h0)) },
     { exact irrefl _ (this _) } },
   intros x,
   rw [←typein_lt_typein (sum.lex r s), typein_enum],
@@ -456,7 +432,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
     { exact sum.inr ⟨b, by cases h; assumption⟩ } },
   { rcases a with ⟨a | a, h₁⟩; rcases b with ⟨b | b, h₂⟩; cases h₁; cases h₂;
       rintro ⟨⟩; constructor; assumption }
-end) h H⟩
+end⟩
 
 theorem add_is_normal (a : ordinal) : is_normal ((+) a) :=
 ⟨λ b, (add_lt_add_iff_left a).2 (lt_succ b),

@@ -398,6 +398,9 @@ Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 lemma is_succ_limit.succ_lt (hb : is_succ_limit b) (ha : a < b) : succ a < b :=
 by { rw [lt_iff_le_and_ne, succ_le_iff], exact ⟨ha, hb.succ_ne a⟩ }
 
+lemma is_succ_limit.succ_lt_iff (hb : is_succ_limit b) : succ a < b ↔ a < b :=
+⟨(le_succ a).trans_lt, hb.succ_lt⟩
+
 lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 ⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
 
@@ -453,6 +456,27 @@ instance [partial_order α] : subsingleton (succ_order α) :=
   { exact (@is_max.succ_eq _ _ h₀ _ ha).trans ha.succ_eq.symm },
   { exact @covby.succ_eq _ _ h₀ _ _ (covby_succ_of_not_is_max ha) }
 end⟩
+
+section linear_order
+variables [linear_order α] [succ_order α] {a b : α}
+
+section no_max_order
+variable [no_max_order α]
+
+lemma is_succ_limit.le_succ_iff (ha : is_succ_limit a) : a ≤ succ b ↔ a ≤ b :=
+le_iff_le_iff_lt_iff_lt.2 $ ha.succ_lt_iff
+
+lemma is_succ_limit.le_of_le_succ (ha : is_succ_limit a) : a ≤ succ b → a ≤ b := ha.le_succ_iff.1
+
+lemma is_succ_limit.le_iff_forall_le (ha : is_succ_limit a) : a ≤ b ↔ ∀ c < a, c ≤ b :=
+⟨λ hb hc hc, hc.le.trans hb,
+  λ H, ha.le_of_le_succ $ le_of_not_lt $ λ hb, (H _ hb).not_lt $ lt_succ b⟩
+
+lemma is_succ_limit.lt_iff_exists_lt (ha : is_succ_limit a) : b < a ↔ ∃ c < a, b < c :=
+by simpa using not_congr ha.le_iff_forall_le
+
+end no_max_order
+end linear_order
 
 section complete_lattice
 variables [complete_lattice α] [succ_order α]
@@ -697,6 +721,9 @@ by simp_rw [←Ioi_inter_Iio, Ioi_pred_eq_insert, insert_inter_of_mem (mem_Iio.2
 lemma is_pred_limit.lt_pred (ha : is_pred_limit a) (hb : a < b) : a < pred b :=
 by { rw [lt_iff_le_and_ne, le_pred_iff], exact ⟨hb, (ha.pred_ne b).symm⟩ }
 
+lemma is_pred_limit.lt_pred_iff (ha : is_pred_limit a) : a < pred b ↔ a < b :=
+⟨λ h, h.trans_le (pred_le b), ha.lt_pred⟩
+
 lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 ⟨λ ha b, ha.lt_pred, is_pred_limit_of_lt_pred⟩
 
@@ -751,6 +778,27 @@ instance [partial_order α] : subsingleton (pred_order α) :=
   { exact (@is_min.pred_eq _ _ h₀ _ ha).trans ha.pred_eq.symm },
   { exact @covby.pred_eq _ _ h₀ _ _ (pred_covby_of_not_is_min ha) }
 end⟩
+
+section linear_order
+variables [linear_order α] [pred_order α] {a b : α}
+
+section no_min_order
+variable [no_min_order α]
+
+lemma is_pred_limit.pred_le_iff (ha : is_pred_limit a) : pred b ≤ a ↔ b ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 $ ha.lt_pred_iff
+
+lemma is_pred_limit.le_of_pred_le (ha : is_pred_limit a) : pred b ≤ a → b ≤ a := ha.pred_le_iff.1
+
+lemma is_pred_limit.le_iff_forall_le (ha : is_pred_limit a) : b ≤ a ↔ ∀ c > a, b ≤ c :=
+⟨λ hb hc hc, hb.trans $ le_of_lt hc,
+  λ H, ha.le_of_pred_le $ le_of_not_lt $ λ hb, (H _ hb).not_lt $ pred_lt b⟩
+
+lemma is_pred_limit.lt_iff_exists_lt (ha : is_pred_limit a) : a < b ↔ ∃ c > a, c < b :=
+by simpa using not_congr ha.le_iff_forall_le
+
+end no_min_order
+end linear_order
 
 section complete_lattice
 variables [complete_lattice α] [pred_order α]

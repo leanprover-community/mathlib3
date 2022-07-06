@@ -208,6 +208,11 @@ end
 
 variables [preorder β] {ψ : α → β}
 
+/-- A function `ψ` on a `succ_order` is strictly monotone before some `n` if for all `m` such that
+`succ m ≤ n`, we have `ψ m < ψ (succ m)`.
+
+We note that in the lemma `succ m ≤ n` and `m < n` are not equivalent since this is in general
+not true if we do not assume `no_max_order`. -/
 lemma strict_mono_on_Iic_of_lt_succ
   {n : α} (hψ : ∀ m, succ m ≤ n → ψ m < ψ (succ m)) :
   strict_mono_on ψ (set.Iic n) :=
@@ -231,9 +236,5 @@ begin
   refine hψ _ (le_trans _ hy),
   rw [function.iterate_succ', function.comp_apply],
 end
-
-lemma strict_mono_on_Icc_of_lt_succ {n₁ n₂ : α} (hψ : ∀ m, succ m ≤ n₂ → ψ m < ψ (succ m)) :
-  strict_mono_on ψ (set.Icc n₁ n₂) :=
-strict_mono_on.mono (strict_mono_on_Iic_of_lt_succ hψ) Icc_subset_Iic_self
 
 end succ_order

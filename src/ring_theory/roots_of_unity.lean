@@ -7,7 +7,7 @@ Authors: Johan Commelin
 import data.polynomial.ring_division
 import tactic.zify
 import field_theory.separable
-import data.zmod.basic
+import algebra.ne_zero
 import ring_theory.integral_domain
 import number_theory.divisors
 import field_theory.finite.basic

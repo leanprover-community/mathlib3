@@ -7,10 +7,5 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
-  "search.usePCRE2": true,
-  "lean.input.eagerReplacementEnabled": false,
-  "lean.memoryLimit": 8096,
-  "lean.extraOptions": [
-    "--old"
-  ]
+  "search.usePCRE2": true
 }

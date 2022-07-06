@@ -775,7 +775,7 @@ orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogona
 lemma submodule.triorthogonal_eq_orthogonal [complete_space E] : Kᗮᗮᗮ = Kᗮ :=
 begin
   rw Kᗮ.orthogonal_orthogonal_eq_closure,
-  exact K.is_closed_orthogonal.topological_closure_eq,
+  exact K.is_closed_orthogonal.submodule_topological_closure_eq,
 end
 
 /-- The closure of `K` is the full space iff `Kᗮ` is trivial. -/

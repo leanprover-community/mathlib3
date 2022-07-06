@@ -158,7 +158,8 @@ section sums
 
 variables {ι : Type*} [is_probability_measure μ] {Xs : ι → Ω → ℝ}
 
-lemma Indep_fun.chernoff_sum (h_indep : Indep_fun (λ i, infer_instance) Xs μ) {c : ι → ℝ}
+lemma Indep_fun.measure_sum_ge_le_of_subgaussian_cgf'
+  (h_indep : Indep_fun (λ i, infer_instance) Xs μ) {c : ι → ℝ}
   (h_meas : ∀ i, measurable (Xs i))
   {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (Xs i) μ (c i)) (hε : 0 ≤ ε) :
   (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ real.exp(- ε^2 / (2 * (∑ i in s, c i))) :=
@@ -167,16 +168,17 @@ begin
   exact (h_indep.subgaussian_cgf_sum h_meas h_subg).chernoff_bound hε,
 end
 
-lemma Indep_fun.chernoff_sum_same (h_indep : Indep_fun (λ i, infer_instance) Xs μ)
-  (h_meas : ∀ i, measurable (Xs i))
+lemma Indep_fun.measure_sum_ge_le_of_subgaussian_cgf
+  (h_indep : Indep_fun (λ i, infer_instance) Xs μ) (h_meas : ∀ i, measurable (Xs i))
   {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (Xs i) μ c) (hε : 0 ≤ ε) :
   (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * (card s))) :=
 calc (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real
-    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) : h_indep.chernoff_sum h_meas h_subg hε
+    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) :
+      h_indep.measure_sum_ge_le_of_subgaussian_cgf' h_meas h_subg hε
 ... = real.exp(- ε^2 / (2 * c * (card s))) :
     by { rw mul_assoc, congr, rw [sum_const, nsmul_eq_mul, mul_comm c], }
 
-lemma Indep_fun.chernoff_sum_range {X : ℕ → Ω → ℝ}
+lemma Indep_fun.measure_sum_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → ℝ}
   (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :
   (μ {ω | ε ≤ ∑ i in finset.range n, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * n)) :=
@@ -186,11 +188,11 @@ begin
     exact to_real_prob_le_one _, },
   calc (μ {ω | ε ≤ ∑ i in finset.range n.succ, X i ω}).to_real
       ≤ real.exp(- ε^2 / (2 * c * (card (finset.range n.succ)))) :
-        h_indep.chernoff_sum_same h_meas (λ i _, h_subg i) hε
+        h_indep.measure_sum_ge_le_of_subgaussian_cgf h_meas (λ i _, h_subg i) hε
   ... = real.exp(- ε^2 / (2 * c * n.succ)) : by rw card_range
 end
 
-lemma Indep_fun.chernoff_mean_range {X : ℕ → Ω → ℝ}
+lemma Indep_fun.measure_mean_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → ℝ}
   (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :
   (μ {ω | ε ≤ (∑ i in finset.range n, X i ω) / n}).to_real ≤ real.exp(- n * ε^2 / (2 * c)) :=
@@ -199,7 +201,7 @@ begin
   { simp only [range_zero, sum_empty, nat.cast_zero, neg_zero', zero_mul, zero_div, real.exp_zero],
     exact to_real_prob_le_one _, },
   have h_nε : 0 ≤ ↑n.succ * ε := mul_nonneg (nat.cast_nonneg _) hε,
-  have h := h_indep.chernoff_sum_range h_meas h_subg h_nε n.succ,
+  have h := h_indep.measure_sum_range_ge_le_of_subgaussian_cgf h_meas h_subg h_nε n.succ,
   refine (eq.trans_le _ (h.trans_eq _)),
   { congr' with ω,
     rw [le_div_iff (nat.cast_pos.mpr n.succ_pos), mul_comm ε],

@@ -320,11 +320,15 @@ theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }
 
-theorem move_left_lf_of_le {x y : pgame} (i) (h : x ≤ y) : x.move_left i ⧏ y :=
+theorem move_left_lf_of_le {x y : pgame} (h : x ≤ y) (i) : x.move_left i ⧏ y :=
 (le_iff_forall_lf.1 h).1 i
 
-theorem lf_move_right_of_le {x y : pgame} (j) (h : x ≤ y) : x ⧏ y.move_right j :=
+alias move_left_lf_of_le ← _root_.has_le.le.move_left_lf
+
+theorem lf_move_right_of_le {x y : pgame} (h : x ≤ y) (j) : x ⧏ y.move_right j :=
 (le_iff_forall_lf.1 h).2 j
+
+alias lf_move_right_of_le ← _root_.has_le.le.lf_move_right
 
 theorem lf_of_move_right_le {x y : pgame} {j} (h : x.move_right j ≤ y) : x ⧏ y :=
 lf_iff_exists_le.2 $ or.inr ⟨j, h⟩
@@ -332,11 +336,11 @@ lf_iff_exists_le.2 $ or.inr ⟨j, h⟩
 theorem lf_of_le_move_left {x y : pgame} {i} (h : x ≤ y.move_left i) : x ⧏ y :=
 lf_iff_exists_le.2 $ or.inl ⟨i, h⟩
 
-theorem lf_of_le_mk {xl xr xL xR y} : ∀ i, mk xl xr xL xR ≤ y → xL i ⧏ y :=
-@move_left_lf_of_le (mk _ _ _ _) y
+theorem lf_of_le_mk {xl xr xL xR y} : mk xl xr xL xR ≤ y → ∀ i, xL i ⧏ y :=
+move_left_lf_of_le
 
-theorem lf_of_mk_le {x yl yr yL yR} : ∀ j, x ≤ mk yl yr yL yR → x ⧏ yR j :=
-@lf_move_right_of_le x (mk _ _ _ _)
+theorem lf_of_mk_le {x yl yr yL yR} : x ≤ mk yl yr yL yR → ∀ j, x ⧏ yR j :=
+lf_move_right_of_le
 
 theorem mk_lf_of_le {xl xr y j} (xL) {xR : xr → pgame} : xR j ≤ y → mk xl xr xL xR ⧏ y :=
 @lf_of_move_right_le (mk _ _ _ _) y j
@@ -344,19 +348,15 @@ theorem mk_lf_of_le {xl xr y j} (xL) {xR : xr → pgame} : xR j ≤ y → mk xl 
 theorem lf_mk_of_le {x yl yr} {yL : yl → pgame} (yR) {i} : x ≤ yL i → x ⧏ mk yl yr yL yR :=
 @lf_of_le_move_left x (mk _ _ _ _) i
 
-private theorem le_trans_aux
-  {xl xr} {xL : xl → pgame} {xR : xr → pgame}
-  {yl yr} {yL : yl → pgame} {yR : yr → pgame}
-  {zl zr} {zL : zl → pgame} {zR : zr → pgame}
-  (h₁ : ∀ i, mk yl yr yL yR ≤ mk zl zr zL zR → mk zl zr zL zR ≤ xL i → mk yl yr yL yR ≤ xL i)
-  (h₂ : ∀ i, zR i ≤ mk xl xr xL xR → mk xl xr xL xR ≤ mk yl yr yL yR → zR i ≤ mk yl yr yL yR) :
-  mk xl xr xL xR ≤ mk yl yr yL yR →
-  mk yl yr yL yR ≤ mk zl zr zL zR →
-  mk xl xr xL xR ≤ mk zl zr zL zR :=
-by simp only [mk_le_mk] at *; exact
-λ ⟨xLy, xyR⟩ ⟨yLz, yzR⟩, ⟨
-  λ i, pgame.not_le.1 (λ h, (h₁ _ ⟨yLz, yzR⟩ h).not_gf (xLy _)),
-  λ i, pgame.not_le.1 (λ h, (h₂ _ h ⟨xLy, xyR⟩).not_gf (yzR _))⟩
+/- We prove that `x ≤ y → y ≤ z ← x ≤ z` inductively, by also simultaneously proving its cyclic
+reorderings. This auxiliary lemma is used during said induction. -/
+private theorem le_trans_aux {x y z : pgame}
+  (h₁ : ∀ {i}, y ≤ z → z ≤ x.move_left i → y ≤ x.move_left i)
+  (h₂ : ∀ {j}, z.move_right j ≤ x → x ≤ y → z.move_right j ≤ y)
+  (hxy : x ≤ y) (hyz : y ≤ z) : x ≤ z :=
+le_of_forall_lf
+  (λ i, pgame.not_le.1 $ λ h, (h₁ hyz h).not_gf $ hxy.move_left_lf i)
+  (λ j, pgame.not_le.1 $ λ h, (h₂ h hxy).not_gf $ hyz.lf_move_right j)
 
 instance : has_lt pgame := ⟨λ x y, x ≤ y ∧ x ⧏ y⟩
 
@@ -365,17 +365,17 @@ instance : preorder pgame :=
     induction x with _ _ _ _ IHl IHr,
     exact le_of_forall_lf (λ i, lf_of_le_move_left (IHl i)) (λ i, lf_of_move_right_le (IHr i))
   end,
-  le_trans := λ x y z, suffices ∀ {x y z : pgame},
-    (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
-  from this.1, begin
-    clear x y z, intros,
+  le_trans := begin
+    suffices : ∀ {x y z : pgame},
+      (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
+      from λ x y z, this.1,
+    intros x y z,
     induction x with xl xr xL xR IHxl IHxr generalizing y z,
     induction y with yl yr yL yR IHyl IHyr generalizing z,
     induction z with zl zr zL zR IHzl IHzr,
-    exact ⟨
-      le_trans_aux (λ i, (IHxl _).2.1) (λ i, (IHzr _).2.2),
-      le_trans_aux (λ i, (IHyl _).2.2) (λ i, (IHxr _).1),
-      le_trans_aux (λ i, (IHzl _).1) (λ i, (IHyr _).2.1)⟩,
+    exact ⟨le_trans_aux (λ i, (IHxl i).2.1) (λ j, (IHzr j).2.2),
+      le_trans_aux (λ i, (IHyl i).2.2) (λ j, (IHxr j).1),
+      le_trans_aux (λ i, (IHzl i).1) (λ j, (IHyr j).2.1)⟩
   end,
   lt_iff_le_not_le := λ x y, by { rw pgame.not_le, refl },
   ..pgame.has_le, ..pgame.has_lt }
@@ -406,11 +406,11 @@ h₁.trans_le h₂.le
 alias lf_of_lt_of_lf ← _root_.has_lt.lt.trans_lf
 alias lf_of_lf_of_lt ← lf.trans_lt
 
-theorem move_left_lf {x : pgame} (i) : x.move_left i ⧏ x :=
-move_left_lf_of_le i le_rfl
+theorem move_left_lf {x : pgame} : ∀ i, x.move_left i ⧏ x :=
+le_rfl.move_left_lf
 
-theorem lf_move_right {x : pgame} (j) : x ⧏ x.move_right j :=
-lf_move_right_of_le j le_rfl
+theorem lf_move_right {x : pgame} : ∀ j, x ⧏ x.move_right j :=
+le_rfl.lf_move_right
 
 theorem lf_mk {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i) : xL i ⧏ mk xl xr xL xR :=
 @move_left_lf (mk _ _ _ _) i

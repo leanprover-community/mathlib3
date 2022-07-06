@@ -193,6 +193,10 @@ def specialization_order (α : Type*) [topological_space α] [t0_space α] : par
 { .. specialization_preorder α,
   .. partial_order.lift (order_dual.to_dual ∘ 𝓝) nhds_injective }
 
+instance : t0_space (separation_quotient α) :=
+(t0_space_iff_inseparable _).2 $ λ x' y', quotient.induction_on₂' x' y' $
+  λ x y h, separation_quotient.mk_eq_mk.2 $ separation_quotient.inducing_mk.inseparable_iff.1 h
+
 theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
   (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
   s.subsingleton :=
@@ -1044,6 +1048,10 @@ variables [topological_space β]
 lemma is_closed_eq [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
 continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
+
+lemma is_open_ne_fun [t2_space α] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : is_open {x:β | f x ≠ g x} :=
+is_open_compl_iff.mpr $ is_closed_eq hf hg
 
 /-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. See also
 `set.eq_on.of_subset_closure` for a more general version. -/

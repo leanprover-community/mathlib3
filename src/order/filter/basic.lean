@@ -1282,12 +1282,12 @@ lemma eventually_eq.div [has_div β] {f f' g g' : α → β} {l : filter α} (h 
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 h.comp₂ (/) h'
 
-@[to_additive] lemma eventually_eq.const_smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
+@[to_additive] lemma eventually_eq.const_smul {𝕜} [has_smul 𝕜 β] {l : filter α} {f g : α → β}
   (h : f =ᶠ[l] g) (c : 𝕜) :
   (λ x, c • f x) =ᶠ[l] (λ x, c • g x) :=
 h.fun_comp (λ x, c • x)
 
-@[to_additive] lemma eventually_eq.smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f f' : α → 𝕜}
+@[to_additive] lemma eventually_eq.smul {𝕜} [has_smul 𝕜 β] {l : filter α} {f f' : α → 𝕜}
   {g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
   (λ x, f x • g x) =ᶠ[l] λ x, f' x • g' x :=
 hf.comp₂ (•) hg
@@ -1453,6 +1453,26 @@ by filter_upwards [hf, hg] with x using mul_nonneg
 lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} :
   0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
 eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
+
+lemma eventually_le.sup [semilattice_sup β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
+  f₁ ⊔ g₁ ≤ᶠ[l] f₂ ⊔ g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le_sup hfx hgx
+
+lemma eventually_le.sup_le [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : f ≤ᶠ[l] h) (hg : g ≤ᶠ[l] h) :
+  f ⊔ g ≤ᶠ[l] h :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le hfx hgx
+
+lemma eventually_le.le_sup_of_le_left [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : h ≤ᶠ[l] f) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hf] with x hfx using le_sup_of_le_left hfx
+
+lemma eventually_le.le_sup_of_le_right [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hg : h ≤ᶠ[l] g) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hg] with x hgx using le_sup_of_le_right hgx
 
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs

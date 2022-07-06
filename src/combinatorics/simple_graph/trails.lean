@@ -112,8 +112,7 @@ lemma is_trail.is_eulerian_of_forall_mem {u v : V} {p : G.walk u v}
   p.is_eulerian :=
 λ e he, list.count_eq_one_of_mem h.edges_nodup (hc e he)
 
-lemma is_eulerian_iff [fintype G.edge_set]
-  {u v : V} (p : G.walk u v) :
+lemma is_eulerian_iff {u v : V} (p : G.walk u v) :
   p.is_eulerian ↔ p.is_trail ∧ ∀ e, e ∈ G.edge_set → e ∈ p.edges :=
 begin
   split,

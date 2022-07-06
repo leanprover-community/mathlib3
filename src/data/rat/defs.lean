@@ -897,7 +897,7 @@ end
 
 lemma pnat_denom_iff_denom {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
 begin
-  rw [←pnat_denom_eq_denom],
+  rw [←coe_pnat_denom],
   split,
   { apply congr_arg },
   { apply pnat.eq }

@@ -422,31 +422,6 @@ theorem collapse_apply [is_well_order β s] (f : r ↪r s)
 
 end rel_embedding
 
-/-! ### Well order on an arbitrary type -/
-
-section well_ordering_thm
-parameter {σ : Type u}
-open function
-
-theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
-(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
-  let g : σ → cardinal.{u} := inv_fun f in
-  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
-  have g x ≤ sum g, from le_sum.{u u} g x,
-  not_le_of_gt (by rw hx; exact cantor _) this
-
-/-- An embedding of any type to the set of cardinals. -/
-def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
-
-/-- Any type can be endowed with a well order, obtained by pulling back the well order over
-cardinals by some embedding. -/
-def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
-
-instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
-(rel_embedding.preimage _ _).is_well_order
-
-end well_ordering_thm
-
 /-! ### Definition of ordinals -/
 
 /-- Bundled structure registering a well order on a type. Ordinals will be defined as a quotient
@@ -1220,6 +1195,46 @@ dif_neg not_nonempty_empty
 
 end ordinal
 
+/-! ### Well order on an arbitrary type -/
+
+section well_ordering_thm
+variable {σ : Type u}
+open function ordinal
+
+theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
+(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
+  let g : σ → cardinal.{u} := inv_fun f in
+  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
+  have g x ≤ sum g, from le_sum.{u u} g x,
+  not_le_of_gt (by rw hx; exact cantor _) this
+
+/-- An embedding of any type to the set of cardinals. -/
+def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
+
+instance is_well_order.subtype_nonempty : nonempty $ subtype $ is_well_order σ :=
+⟨⟨embedding_to_cardinal ⁻¹'o (<), (rel_embedding.preimage _ _).is_well_order⟩⟩
+
+/-- Any type can be endowed with a well order, obtained by pulling back the well order over
+cardinals by some embedding. We choose a well order so that it defines the least possible ordinal,
+see `ordinal.type_well_ordering_rel`. -/
+def well_ordering_rel : σ → σ → Prop :=
+↑(argmin (λ r : {r : σ → σ → Prop // is_well_order σ r}, @type σ r r.2) lt_wf)
+
+instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
+subtype.property _
+
+/-- `well_ordering_rel` is a well order that defines the minimal ordinal on the underlying type. -/
+lemma type_well_ordering_rel_le (r : σ → σ → Prop) [wo : is_well_order σ r] :
+  type (@well_ordering_rel σ) ≤ type r :=
+argmin_le (λ r : subtype (is_well_order σ), @type σ r r.2) lt_wf ⟨r, wo⟩
+
+end well_ordering_thm
+
+/-- A helper lemma for `quotient.lift_on' (f : α → β)`, where `β` is a partial order.  -/
+lemma eqv_imp_eq_of_eqv_imp_le {β} [partial_order β] {s : setoid α} {f : α → β}
+  (h : ∀ a b, a ≈ b → f a ≤ f b) : ∀ a b, a ≈ b → f a = f b :=
+λ a b hab, le_antisymm (h a b hab) (h b a $ setoid.symm hab)
+
 /-! ### Representing a cardinal with an ordinal -/
 
 namespace cardinal
@@ -1231,19 +1246,11 @@ open ordinal
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
 def ord (c : cardinal) : ordinal :=
+quotient.lift_on c (λ α, type $ @well_ordering_rel α) $ eqv_imp_eq_of_eqv_imp_le
 begin
-  let ι := λ α, {r // is_well_order α r},
-  have : Π α, ι α := λ α, ⟨well_ordering_rel, by apply_instance⟩,
-  let F := λ α, ordinal.min ⟨this _⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
-  refine quot.lift_on c F _,
-  suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
-  from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
-  intros α β h, cases h with f, refine ordinal.le_min.2 (λ i, _),
-  haveI := @rel_embedding.is_well_order _ _
-    (f ⁻¹'o i.1) _ ↑(rel_iso.preimage f i.1) i.2,
-  rw ← show type (f ⁻¹'o i.1) = ⟦⟨β, i.1, i.2⟩⟧, from
-    quot.sound ⟨rel_iso.preimage f i.1⟩,
-  exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
+  rintros α β ⟨e⟩,
+  calc type (@well_ordering_rel α) ≤ type (e ⁻¹'o well_ordering_rel) : type_well_ordering_rel_le _
+  ... = type well_ordering_rel : type_preimage _
 end
 
 lemma ord_eq_min (α : Type u) : ord (#α) =

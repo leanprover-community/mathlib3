@@ -25,12 +25,12 @@ by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];
   exact ⟨λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length at hi, h⟩,
     λ ⟨i, hi, h⟩, ⟨i, by rwa to_list_length, h⟩⟩
 
-@[simp] lemma not_mem_nil : a ∉ (vector.nil : vector α 0).to_list := id
+lemma not_mem_nil : a ∉ (vector.nil : vector α 0).to_list := id
 
 @[simp] lemma not_mem_zero (v : vector α 0) : a ∉ v.to_list :=
 (vector.eq_nil v).symm ▸ (not_mem_nil a)
 
-@[simp] lemma mem_cons_iff (v : vector α n) :
+lemma mem_cons_iff (v : vector α n) :
   a' ∈ (a ::ᵥ v).to_list ↔ a' = a ∨ a' ∈ v.to_list :=
 by rw [vector.to_list_cons, list.mem_cons_iff]
 
@@ -41,7 +41,7 @@ begin
   simp_rw [h, vector.mem_cons_iff, vector.head_cons, vector.tail_cons],
 end
 
-@[simp] lemma mem_cons_self (v : vector α n) : a ∈ (a ::ᵥ v).to_list :=
+lemma mem_cons_self (v : vector α n) : a ∈ (a ::ᵥ v).to_list :=
 (vector.mem_iff_nth a (a ::ᵥ v)).2 ⟨0, vector.nth_cons_zero a v⟩
 
 @[simp] lemma head_mem (v : vector α (n + 1)) : v.head ∈ v.to_list :=
@@ -57,14 +57,14 @@ begin
   { exact (mem_succ_iff a v).2 (or.inr ha) }
 end
 
-@[simp] lemma mem_map_iff (b : β) (v : vector α n) (f : α → β) :
+lemma mem_map_iff (b : β) (v : vector α n) (f : α → β) :
   b ∈ (v.map f).to_list ↔ ∃ (a : α), a ∈ v.to_list ∧ f a = b :=
 by rw [vector.to_list_map, list.mem_map]
 
-@[simp] lemma not_mem_map_zero (b : β) (v : vector α 0) (f : α → β) : b ∉ (v.map f).to_list :=
+lemma not_mem_map_zero (b : β) (v : vector α 0) (f : α → β) : b ∉ (v.map f).to_list :=
 by simpa only [vector.eq_nil v, vector.map_nil, vector.to_list_nil] using list.not_mem_nil b
 
-@[simp] lemma mem_map_succ_iff (b : β) (v : vector α (n + 1)) (f : α → β) :
+lemma mem_map_succ_iff (b : β) (v : vector α (n + 1)) (f : α → β) :
   b ∈ (v.map f).to_list ↔ f v.head = b ∨ ∃ (a : α), a ∈ v.tail.to_list ∧ f a = b :=
 by rw [mem_succ_iff, head_map, tail_map, mem_map_iff, @eq_comm _ b]
 

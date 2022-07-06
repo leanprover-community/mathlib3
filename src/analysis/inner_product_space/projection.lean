@@ -779,7 +779,8 @@ begin
 end
 
 /-- The closure of `K` is the full space iff `Kᗮ` is trivial. -/
-lemma topological_closure_eq_top_iff [complete_space E] : K.topological_closure = ⊤ ↔ Kᗮ = ⊥ :=
+lemma submodule.topological_closure_eq_top_iff [complete_space E] :
+  K.topological_closure = ⊤ ↔ Kᗮ = ⊥ :=
 begin
   rw ←submodule.orthogonal_orthogonal_eq_closure,
   split; intro h,

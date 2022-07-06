@@ -1253,61 +1253,45 @@ open ordinal
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
 def ord (c : cardinal) : ordinal :=
-quotient.lift_on c (λ α, type $ @well_ordering_rel α) $ eqv_imp_eq_of_eqv_imp_le
+quotient.lift_on c (λ α, type $ @well_ordering_rel α) $ rel_imp_eq_of_rel_imp_le (≈)
 begin
   rintros α β ⟨e⟩,
-  calc type (@well_ordering_rel α) ≤ type (e ⁻¹'o well_ordering_rel) : type_well_ordering_rel_le _
-  ... = type well_ordering_rel : type_preimage _
+  simp_rw ←type_preimage _ e,
+  exact type_well_ordering_rel_le _
 end
 
-lemma ord_eq_min (α : Type u) : ord (#α) =
-  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-    (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
-
-theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
-  ord (#α) = @type α r wo :=
-let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-  (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
-⟨r, wo, h⟩
+/-- This theorem isn't marked as `simp`, as there are circumstances where knowing the exact order
+type of this relation is just noise. -/
+theorem _root_.ordinal.type_well_ordering_rel (α) : type (@well_ordering_rel α) = ord (#α) := rfl
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
-@ordinal.min_le {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-  (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
+type_well_ordering_rel_le r
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
 induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
-let ⟨r, _, e⟩ := ord_eq α in begin
+begin
   resetI, simp only [card_type], split; intro h,
-  { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
+  { rw ←ordinal.type_well_ordering_rel at h,
+    exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
     haveI := rel_embedding.is_well_order g,
     exact le_trans (ord_le_type _) (type_le'.2 ⟨g⟩) }
 end
 
-theorem lt_ord {c o} : o < ord c ↔ o.card < c :=
-by rw [← not_le, ← not_le, ord_le]
+theorem lt_ord {c o} : o < ord c ↔ o.card < c := by rw [← not_le, ← not_le, ord_le]
 
 @[simp] theorem card_ord (c) : (ord c).card = c :=
-quotient.induction_on c $ λ α,
-let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
+quotient.induction_on c $ λ α, by simp only [mk_def, ←ordinal.type_well_ordering_rel, card_type]
 
-theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 le_rfl
+theorem ord_card_le (o : ordinal) : o.card.ord ≤ o := ord_le.2 le_rfl
 
-lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
-by { rw lt_ord, apply lt_succ }
+lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord := by { rw lt_ord, apply lt_succ }
 
-@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
-by simp only [ord_le, card_ord]
+@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ := by simp only [ord_le, card_ord]
+@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ := by simp only [lt_ord, card_ord]
 
-@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ :=
-by simp only [lt_ord, card_ord]
-
-@[simp] theorem ord_zero : ord 0 = 0 :=
-le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
+@[simp] theorem ord_zero : ord 0 = 0 := type_eq_zero_of_empty _
 
 @[simp] theorem ord_nat (n : ℕ) : ord n = n :=
 le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
@@ -1316,8 +1300,7 @@ le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
   { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
-@[simp] theorem ord_one : ord 1 = 1 :=
-by simpa using ord_nat 1
+@[simp] theorem ord_one : ord 1 = 1 := by simpa using ord_nat 1
 
 @[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=
 eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
@@ -1339,8 +1322,7 @@ by { rw [←lt_ord, h], apply typein_lt_type }
 lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
 by { rw ←lt_ord, apply typein_lt_self }
 
-lemma ord_injective : injective ord :=
-by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
+lemma ord_injective : injective ord := λ c c' h, by rw [←card_ord c, ←card_ord c', h]
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. This is the order-embedding version. For the regular function, see `ord`.
@@ -1349,8 +1331,7 @@ def ord.order_embedding : cardinal ↪o ordinal :=
 rel_embedding.order_embedding_of_lt_embedding
   (rel_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2)
 
-@[simp] theorem ord.order_embedding_coe :
-  (ord.order_embedding : cardinal → ordinal) = ord := rfl
+@[simp] theorem ord.order_embedding_coe : (ord.order_embedding : cardinal → ordinal) = ord := rfl
 
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,

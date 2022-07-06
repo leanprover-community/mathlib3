@@ -1,7 +1,21 @@
+/-
+Copyright (c) 2022 Chris Birkbeck. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Birkbeck
+-/
 import linear_algebra.special_linear_group
 import data.zmod.basic
 import group_theory.subgroup.pointwise
 import group_theory.group_action.conj_act
+/-!
+# Congruence subgroups
+
+This defines congruence subgroups of `SL(2,ℤ)` such as `Γ(N)`, `Γ₀(N)` and `Γ₁(N)` for `N` a
+natural number.
+
+It also contains basic results about congruence subgroups.
+
+-/
 
 local notation `SL(` n `, ` R `)`:= matrix.special_linear_group (fin n) R
 

@@ -99,8 +99,7 @@ begin
       ((convex_on_id (convex_Ioi 0.5)).smul (div_nonneg (log_nonneg _) _)); norm_num },
   suffices : ∃ x1 x2, 0.5 < x1 ∧ x1 < x2 ∧ x2 ≤ x ∧ 0 ≤ f x1 ∧ f x2 ≤ 0,
   { obtain ⟨x1, x2, h1, h2, h0, h3, h4⟩ := this,
-    refine (hf''.right_le_of_le_left'' h1 _ h2 h0 (h4.trans h3)).trans h4,
-    exact (h1.trans h2).trans_le h0 },
+    exact (h.right_le_of_le_left'' h1 ((h1.trans h2).trans_le h0) h2 h0 (h4.trans h3)).trans h4 },
   refine ⟨18, 648, by norm_num, by norm_num, le_trans (by norm_num) n_large, _, _⟩,
   { have : sqrt (2 * 18) = 6 :=
     (sqrt_eq_iff_mul_self_eq_of_pos (by norm_num)).mpr (by norm_num),

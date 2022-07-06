@@ -333,7 +333,7 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
       rw ← hIcc,
       refine preimage_interior_subset_interior_preimage eL.continuous _,
       simp only [set.mem_preimage, eL.apply_symm_apply, ← pi_univ_Icc,
-        interior_pi_set (finite.of_fintype _), interior_Icc],
+        interior_pi_set (set.finite.of_fintype _), interior_Icc],
       exact hx.1 },
     { rw [← he_vol.integrable_on_comp_preimage he_emb, hIcc],
       simp [← hDF, (∘), Hi] }

@@ -41,8 +41,8 @@ variables [add_comm_monoid E] [add_comm_monoid F]
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 β] (s : set E) (f : E → β)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 β] (s : set E) (f : E → β)
 
 /-- Convexity of functions -/
 def convex_on : Prop :=
@@ -104,10 +104,10 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
   strict_concave_on 𝕜 s f :=
 ⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
 
-end has_scalar
+end has_smul
 
 section distrib_mul_action
-variables [has_scalar 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
+variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
 
 lemma convex_on.add (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   convex_on 𝕜 s (f + g) :=
@@ -124,7 +124,7 @@ hf.dual.add hg
 end distrib_mul_action
 
 section module
-variables [has_scalar 𝕜 E] [module 𝕜 β] {s : set E} {f : E → β}
+variables [has_smul 𝕜 E] [module 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on_const (c : β) (hs : convex 𝕜 s) : convex_on 𝕜 s (λ x:E, c) :=
 ⟨hs, λ x y _ _ a b _ _ hab, (convex.combo_self hab c).ge⟩
@@ -144,7 +144,7 @@ lemma concave_on_of_convex_hypograph (h : convex 𝕜 {p : E × β | p.1 ∈ s �
 end module
 
 section ordered_smul
-variables [has_scalar 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
+variables [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on.convex_le (hf : convex_on 𝕜 s f) (r : β) :
   convex 𝕜 {x ∈ s | f x ≤ r} :=
@@ -184,7 +184,7 @@ lemma concave_on_iff_convex_hypograph :
 end ordered_smul
 
 section module
-variables [module 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β}
+variables [module 𝕜 E] [has_smul 𝕜 β] {s : set E} {f : E → β}
 
 /-- Right translation preserves convexity. -/
 lemma convex_on.translate_right (hf : convex_on 𝕜 s f) (c : E) :
@@ -342,7 +342,7 @@ end linear_order
 end module
 
 section module
-variables [module 𝕜 E] [module 𝕜 F] [has_scalar 𝕜 β]
+variables [module 𝕜 E] [module 𝕜 F] [has_smul 𝕜 β]
 
 /-- If `g` is convex on `s`, so is `(f ∘ g)` on `f ⁻¹' s` for a linear `f`. -/
 lemma convex_on.comp_linear_map {f : F → β} {s : set F} (hf : convex_on 𝕜 s f) (g : E →ₗ[𝕜] F) :
@@ -364,7 +364,7 @@ section ordered_cancel_add_comm_monoid
 variables [ordered_cancel_add_comm_monoid β]
 
 section distrib_mul_action
-variables [has_scalar 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
+variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
 
 lemma strict_convex_on.add_convex_on (hf : strict_convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   strict_convex_on 𝕜 s (f + g) :=
@@ -444,7 +444,7 @@ end module
 end ordered_cancel_add_comm_monoid
 
 section linear_ordered_add_comm_monoid
-variables [linear_ordered_add_comm_monoid β] [has_scalar 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β]
+variables [linear_ordered_add_comm_monoid β] [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β]
   {s : set E} {f g : E → β}
 
 /-- The pointwise maximum of convex functions is convex. -/
@@ -553,7 +553,7 @@ section linear_ordered_cancel_add_comm_monoid
 variables [linear_ordered_cancel_add_comm_monoid β]
 
 section ordered_smul
-variables [has_scalar 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f g : E → β}
+variables [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f g : E → β}
 
 lemma convex_on.le_left_of_right_le' (hf : convex_on 𝕜 s f) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
   {a b : 𝕜} (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) (hfy : f y ≤ f (a • x + b • y)) :
@@ -686,7 +686,7 @@ end module
 end linear_ordered_cancel_add_comm_monoid
 
 section ordered_add_comm_group
-variables [ordered_add_comm_group β] [has_scalar 𝕜 E] [module 𝕜 β] {s : set E} {f g : E → β}
+variables [ordered_add_comm_group β] [has_smul 𝕜 E] [module 𝕜 β] {s : set E} {f g : E → β}
 
 /-- A function `-f` is convex iff `f` is concave. -/
 @[simp] lemma neg_convex_on_iff : convex_on 𝕜 s (-f) ↔ concave_on 𝕜 s f :=
@@ -765,7 +765,7 @@ end ordered_add_comm_group
 end add_comm_monoid
 
 section add_cancel_comm_monoid
-variables [add_cancel_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E] [has_scalar 𝕜 β]
+variables [add_cancel_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E] [has_smul 𝕜 β]
   {s : set E} {f : E → β}
 
 /-- Right translation preserves strict convexity. -/
@@ -802,7 +802,7 @@ section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 
 section module
-variables [has_scalar 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
+variables [has_smul 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma convex_on.smul {c : 𝕜} (hc : 0 ≤ c) (hf : convex_on 𝕜 s f) : convex_on 𝕜 s (λ x, c • f x) :=
 ⟨hf.1, λ x y hx hy a b ha hb hab,
@@ -827,7 +827,7 @@ section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 
 section module
-variables [module 𝕜 E] [module 𝕜 F] [has_scalar 𝕜 β]
+variables [module 𝕜 E] [module 𝕜 F] [has_smul 𝕜 β]
 
 /-- If a function is convex on `s`, it remains convex when precomposed by an affine map. -/
 lemma convex_on.comp_affine_map {f : F → β} (g : E →ᵃ[𝕜] F) {s : set F} (hf : convex_on 𝕜 s f) :
@@ -853,8 +853,8 @@ variables [linear_ordered_field 𝕜] [add_comm_monoid E]
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
 
-section has_scalar
-variables [has_scalar 𝕜 E] [has_scalar 𝕜 β] {s : set E}
+section has_smul
+variables [has_smul 𝕜 E] [has_smul 𝕜 β] {s : set E}
 
 lemma convex_on_iff_div {f : E → β} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → 0 < a + b
@@ -895,6 +895,6 @@ lemma strict_concave_on_iff_div {f : E → β} :
     → 0 < b → (a/(a+b)) • f x + (b/(a+b)) • f y < f ((a/(a+b)) • x + (b/(a+b)) • y) :=
 @strict_convex_on_iff_div _ _ βᵒᵈ _ _ _ _ _ _ _
 
-end has_scalar
+end has_smul
 end ordered_add_comm_monoid
 end linear_ordered_field

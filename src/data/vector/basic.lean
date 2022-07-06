@@ -565,10 +565,10 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   id_map := by intros; cases x; simp! [(<$>)],
   comp_map := by intros; cases x; simp! [(<$>)] }
 
-meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected α] {n : ℕ} :
+meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
   has_reflect (vector α n) :=
-λ v, @vector.induction_on n α (λ n, reflected) v
-  ((by reflect_name : reflected @vector.nil.{u}).subst `(α))
-  (λ n x xs ih, (by reflect_name : reflected @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
+λ v, @vector.induction_on n α (λ n, reflected _) v
+  ((by reflect_name : reflected _ @vector.nil.{u}).subst `(α))
+  (λ n x xs ih, (by reflect_name : reflected _ @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
 
 end vector

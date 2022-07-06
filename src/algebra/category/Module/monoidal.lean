@@ -27,7 +27,7 @@ If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.
 -/
 
-universes v u
+universes v w x u
 
 open category_theory
 
@@ -42,24 +42,25 @@ namespace monoidal_category
 
 open_locale tensor_product
 local attribute [ext] tensor_product.ext
+set_option pp.universes true
 
 /-- (implementation) tensor product of R-modules -/
-def tensor_obj (M N : Module.{v} R) : Module R := Module.of R (M ⊗[R] N)
+def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
 /-- (implementation) tensor product of morphisms R-modules -/
-def tensor_hom {M N M' N' : Module.{v} R} (f : M ⟶ N) (g : M' ⟶ N') :
+def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') :
   tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
-lemma tensor_id (M N : Module.{v} R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (M ⊗ N)) :=
-by tidy
+lemma tensor_id (M N : Module R) : tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (Module.of R (M ⊗ N)) :=
+by { ext1, refl }
 
-lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module.{v} R}
+lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : Y₁ ⟶ Z₁) (g₂ : Y₂ ⟶ Z₂) :
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
-by tidy
+by { ext1, refl }
 
 /-- (implementation) the associator for R-modules -/
-def associator (M N K : Module.{v} R) :
+def associator (M : Module.{v} R) (N : Module.{w} R) (K : Module.{x} R) :
   tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
 (tensor_product.assoc R M N K).to_Module_iso
 

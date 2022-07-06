@@ -206,6 +206,9 @@ begin
     rw [← arg_neg_one, ← arg_real_mul (-1) (neg_pos.2 h)], simp [← of_real_def] }
 end
 
+lemma arg_lt_pi_iff {z : ℂ} : arg z < π ↔ 0 ≤ z.re ∨ z.im ≠ 0 :=
+by rw [(arg_le_pi z).lt_iff_ne, not_iff_comm, not_or_distrib, not_le, not_not, arg_eq_pi_iff]
+
 lemma arg_of_real_of_neg {x : ℝ} (hx : x < 0) : arg x = π :=
 arg_eq_pi_iff.2 ⟨hx, rfl⟩
 

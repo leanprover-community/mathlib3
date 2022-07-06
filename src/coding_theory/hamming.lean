@@ -52,9 +52,8 @@ lemma hamm_dist_smul [Π i, has_scalar α (β i)] {k : α} {x y : Π i, β i}
 hamm_dist_comp (λ i, (•) k) hk
 
 @[simp] lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
-by {  rw [function.funext_iff, hamm_dist, card_eq_zero_iff],
-      exact ⟨ λ h i, imp_of_not_imp_not _ _ (λ H, h.elim' ⟨i, H⟩) h,
-              λ h, subtype.is_empty_of_false (λ i H, H (h _))⟩ }
+by simp_rw [  function.funext_iff, hamm_dist, card_eq_zero_iff,
+              is_empty_iff, subtype.forall, imp_false, not_not]
 
 @[simp] lemma hamm_dist_self (x : Π i, β i) : hamm_dist x x = 0 := hamm_dist_eq_zero.mpr rfl
 
@@ -114,8 +113,10 @@ end
 
 lemma hamm_wt_comp (f : Π i, γ i → β i) {x : Π i, γ i} (hf₁ : Π i, injective (f i))
   (hf₂ : Π i, f i 0 = 0) : hamm_wt (λ i, f i (x i)) = hamm_wt x :=
-by {  simp_rw hamm_wt_eq_hamm_dist_zero, convert hamm_dist_comp f hf₁,
-      simp_rw [pi.zero_apply, hf₂], refl }
+begin
+  simp_rw hamm_wt_eq_hamm_dist_zero, convert hamm_dist_comp f hf₁,
+  simp_rw [pi.zero_apply, hf₂], refl
+end
 
 lemma hamm_wt_smul_le_hamm_wt [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
   {x : Π i, β i} : hamm_wt (k • x) ≤ hamm_wt x :=
@@ -149,7 +150,7 @@ by simp_rw [hamm_wt_eq, hamm_dist, pi.sub_apply, sub_ne_zero]
 
 end hamm_dist_wt
 
-/!- ### The `hamm` type synonym -/
+/-! ### The `hamm` type synonym -/
 
 /--
 Type synonym for a Pi type which we equip with the Hamming metric, adding relevant

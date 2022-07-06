@@ -10,6 +10,14 @@ import probability.moments
 
 TODO explain the many equivalent definitions.
 
+* (i)
+* (ii)
+* (iii)
+* (iv)
+
+If `𝔼[X] = 0` then these four properties are equivalent to
+* (v) for all `t : ℝ`, `log 𝔼[exp(t*X)] ≤ c t^2 / 2`.
+
 ## Main definitions
 
 * `subgaussian_cgf X μ c`: the random variable `X` has a sub-Gaussian cgf, with constant `c`. That

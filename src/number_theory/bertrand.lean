@@ -70,12 +70,6 @@ section real
 
 open real
 
--- PR #14821
-lemma _root_.concave_on.right_le_of_le_left'' {x y z : ℝ} {s : set ℝ} {f : ℝ → ℝ}
-  (hf : concave_on ℝ s f) (hx : x ∈ s) (hz : z ∈ s)
-  (hxy : x < y) (hyz : y ≤ z) (h : f y ≤ f x) : f z ≤ f y :=
-hyz.eq_or_lt.elim (λ hyz, (congr_arg f hyz).ge)
-  (λ hyz, hf.le_right_of_left_le hx hz (Ioo_subset_open_segment ⟨hxy, hyz⟩) h)
 
 /--
 A reified version of the `bertrand.main_inequality` below.

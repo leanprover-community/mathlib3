@@ -52,8 +52,7 @@ begin
       { exact h.imp (λ f hf, hf.imp_left or.inr) } },
     { rintro ⟨f, rfl|hf, h⟩,
       { exact or.inl h },
-      { exact or.inr ⟨f, hf, h⟩ } }
-  }
+      { exact or.inr ⟨f, hf, h⟩ } } }
 end
 
 lemma multiset.mem_foldr_sup_support_iff [has_zero M] {s : multiset (ι →₀ M)} {x : ι} :

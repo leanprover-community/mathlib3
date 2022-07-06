@@ -134,6 +134,15 @@ theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : lis
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma _root_.function.involutive.exists_mem_and_apply_eq_iff {f : α → α}
+  (hf : function.involutive f) (x : α) (l : list α) :
+  (∃ (y : α), y ∈ l ∧ f y = x) ↔ f x ∈ l :=
+⟨by { rintro ⟨y, h, rfl⟩, rwa hf y }, λ h, ⟨f x, h, hf _⟩⟩
+
+theorem mem_map_of_involutive {f : α → α} (hf : involutive f) {a : α} {l : list α} :
+  a ∈ map f l ↔ f a ∈ l :=
+by rw [mem_map, hf.exists_mem_and_apply_eq_iff]
+
 lemma forall_mem_map_iff {f : α → β} {l : list α} {P : β → Prop} :
   (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) :=
 begin

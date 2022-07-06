@@ -362,11 +362,6 @@ by induction p; simp [*]
   p.reverse.darts = (p.darts.map dart.symm).reverse :=
 by induction p; simp [*, sym2.eq_swap]
 
-/-- For `simp` confluence -/
-@[simp] lemma exists_mem_darts_and_symm_eq_iff {u v : V} (p : G.walk u v) (d : G.dart) :
-  (∃ (d' : G.dart), d' ∈ p.darts ∧ d'.symm = d) ↔ d.symm ∈ p.darts :=
-⟨by { rintro ⟨d', h, rfl⟩, rwa dart.symm_symm, }, λ h, ⟨d.symm, h, dart.symm_symm _⟩⟩
-
 lemma mem_darts_reverse {u v : V} {d : G.dart} {p : G.walk u v} :
   d ∈ p.reverse.darts ↔ d.symm ∈ p.darts :=
 by simp

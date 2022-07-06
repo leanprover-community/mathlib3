@@ -21,7 +21,7 @@ so that the second argument only needs to be defined on the support of the first
 universes u v
 
 noncomputable theory
-variables {α β γ : Type u}
+variables {α : Type*} {β : Type*} {γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
 namespace pmf
@@ -177,56 +177,6 @@ instance : is_lawful_monad pmf :=
   bind_map_eq_seq := λ α β f x, rfl,
   pure_bind := λ α β f x, pmf.pure_bind x f,
   bind_assoc := λ α β γ x f g, pmf.bind_bind x f g }
-
-section map
-
-variables (f : α → β) (p : pmf α) (b : β)
-
-@[simp] lemma map_apply : (f <$> p) b = ∑' a, if b = f a then p a else 0 := by simp [functor.map]
-
-@[simp] lemma support_map : (f <$> p).support = f '' p.support :=
-set.ext (λ b, by simp [functor.map, @eq_comm β b])
-
-lemma mem_support_map_iff : b ∈ (f <$> p).support ↔ ∃ a ∈ p.support, f a = b := by simp
-
-section measure
-
-variable (s : set β)
-
-@[simp] lemma to_outer_measure_map_apply :
-  (f <$> p).to_outer_measure s = p.to_outer_measure (f ⁻¹' s) :=
-by simp [functor.map, set.indicator, to_outer_measure_apply p (f ⁻¹' s)]
-
-@[simp] lemma to_measure_map_apply [measurable_space α] [measurable_space β] (hf : measurable f)
-  (hs : measurable_set s) : (f <$> p).to_measure s = p.to_measure (f ⁻¹' s) :=
-begin
-  rw [to_measure_apply_eq_to_outer_measure_apply _ s hs,
-    to_measure_apply_eq_to_outer_measure_apply _ (f ⁻¹' s) (measurable_set_preimage hf hs)],
-  exact to_outer_measure_map_apply f p s,
-end
-
-end measure
-
-end map
-
-section seq
-
-variables (q : pmf (α → β)) (p : pmf α) (b : β)
-
-@[simp] lemma seq_apply : (q <*> p) b = ∑' (f : α → β) (a : α), if b = f a then q f * p a else 0 :=
-begin
-  simp only [has_seq.seq, mul_boole, bind_apply, pure_apply],
-  refine tsum_congr (λ f, (nnreal.tsum_mul_left (q f) _).symm.trans (tsum_congr (λ a, _))),
-  simpa only [mul_zero] using mul_ite (b = f a) (q f) (p a) 0
-end
-
-@[simp] lemma support_seq : (q <*> p).support = ⋃ f ∈ q.support, f '' p.support :=
-set.ext (λ b, by simp [-mem_support_iff, has_seq.seq, @eq_comm β b])
-
-lemma mem_support_seq_iff : b ∈ (q <*> p).support ↔ ∃ (f ∈ q.support), b ∈ f '' p.support :=
-by simp only [support_seq, set.mem_Union]
-
-end seq
 
 section bind_on_support
 

@@ -25,11 +25,11 @@ and `filter` uses this to filter the support of a `pmf` and re-normalize the new
 
 -/
 
+namespace pmf
+
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
 open_locale classical big_operators nnreal ennreal
-
-namespace pmf
 
 section map
 

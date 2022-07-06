@@ -505,11 +505,15 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
 quotient.eq
 
 theorem _root_.rel_iso.ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
-  type r = type s := type_eq.2 ⟨h⟩
+  [is_well_order α r] [is_well_order β s] (h : r ≃r s) : type r = type s :=
+type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
 (type_def' _).symm.trans $ quotient.out_eq o
+
+@[simp] theorem type_preimage {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β ≃ α) :
+  type (f ⁻¹'o r) = type r :=
+(rel_iso.preimage f r).ordinal_type_eq
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
@@ -808,16 +812,23 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
   a proper initial segment of `ordinal.{v}` for `v > u`. For the initial segment version,
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{v}) : ordinal.{max v u} :=
-quotient.lift_on o (λ ⟨α, r, wo⟩,
-  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{u} α ⁻¹'o r) r
-    (rel_iso.preimage equiv.ulift.{u} r) wo)) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
-quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
-  f.trans (rel_iso.preimage equiv.ulift s).symm⟩
+quotient.lift_on o (λ w, type $ ulift.down ⁻¹'o w.r) $
+  λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩, quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
+    f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
-theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
-  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
-⟨_, rfl⟩
+@[simp] theorem type_ulift (r : α → α → Prop) [is_well_order α r] :
+  type (ulift.down ⁻¹'o r) = lift.{v} (type r) :=
+rfl
+
+theorem _root_.rel_iso.ordinal_lift_type_eq {α : Type u} {β : Type v}
+  {r : α → α → Prop} {s : β → β → Prop} [is_well_order α r] [is_well_order β s] (f : r ≃r s) :
+  lift.{v} (type r) = lift.{u} (type s) :=
+((rel_iso.preimage equiv.ulift r).trans $
+  f.trans (rel_iso.preimage equiv.ulift s).symm).ordinal_type_eq
+
+@[simp] theorem type_lift_preimage {α : Type u} {β : Type v} (r : α → α → Prop) [is_well_order α r]
+  (f : β ≃ α) : lift.{u} (type (f ⁻¹'o r)) = lift.{v} (type r) :=
+(rel_iso.preimage f r).ordinal_lift_type_eq
 
 /-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
     easier to understand what's happening when using this lemma. -/
@@ -871,8 +882,7 @@ by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o 
     (initial_seg.of_iso (rel_iso.preimage equiv.ulift s).symm)⟩⟩
 
 @[simp] theorem lift_le {a b : ordinal} : lift.{u v} a ≤ lift b ↔ a ≤ b :=
-induction_on a $ λ α r _, induction_on b $ λ β s _,
-by rw ← lift_umax; exactI lift_type_le
+induction_on a $ λ α r _, induction_on b $ λ β s _, by { rw ← lift_umax, exactI lift_type_le }
 
 @[simp] theorem lift_inj {a b : ordinal} : lift a = lift b ↔ a = b :=
 by simp only [le_antisymm_iff, lift_le]
@@ -880,13 +890,10 @@ by simp only [le_antisymm_iff, lift_le]
 @[simp] theorem lift_lt {a b : ordinal} : lift a < lift b ↔ a < b :=
 by simp only [lt_iff_le_not_le, lift_le]
 
-@[simp] theorem lift_zero : lift 0 = 0 :=
-quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
+@[simp] theorem lift_zero : lift 0 = 0 := (rel_iso.rel_iso_of_is_empty _ _).ordinal_type_eq
 
 @[simp] theorem lift_one : lift 1 = 1 :=
-quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
 
 theorem one_eq_lift_type_unit : 1 = lift.{u} (@type unit empty_relation _) :=
 by rw [← one_eq_type_unit, lift_one]

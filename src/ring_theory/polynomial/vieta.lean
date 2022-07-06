@@ -27,7 +27,6 @@ section semiring
 
 variables {R : Type*} [comm_semiring R]
 
-
 /-- TODO. This should go elsewhere... -/
 lemma sum_powerset_len {α : Type*} (S : multiset α) :
   S.powerset = ∑ k in finset.range(S.card + 1), (S.powerset_len k) :=
@@ -36,19 +35,12 @@ begin
   apply multiset.eq_of_le_of_card_le,
   { apply multiset.finset_sum_le_of_le_of_disjoint,
     { exact λ _ _, multiset.powerset_len_le_powerset _ _, },
-    { intros _ _ _ _ hxny _ htx hty,
-      rw multiset.mem_powerset_len at htx,
-      rw multiset.mem_powerset_len at hty,
-      rw ←htx.right at hxny,
-      rw hty.right at hxny,
-      exact ne.irrefl hxny, }},
-  { rw multiset.card_powerset,
-    rw ( _ : card (∑ (k : ℕ) in finset.range (card S + 1), powerset_len k S)
-      = ∑ (k : ℕ) in finset.range (card S + 1), card (powerset_len k S)),
-    { conv_rhs { congr, skip, funext, rw multiset.card_powerset_len },
-      apply eq.le,
-      exact (nat.sum_range_choose S.card).symm, },
-    exact map_sum card (λ (k : ℕ), multiset.powerset_len k S) (finset.range (S.card + 1))},
+    { exact λ _ _ _ _ hxny _ htx hty,
+      hxny (eq.trans (multiset.mem_powerset_len.mp htx).right.symm
+        (multiset.mem_powerset_len.mp hty).right) }},
+  { rw [multiset.card_powerset, map_sum card],
+    conv_rhs { congr, skip, funext, rw multiset.card_powerset_len },
+    exact eq.le (nat.sum_range_choose S.card).symm, }
 end
 
 /-- A sum version of Vieta's formula for `multiset`: the product of the linear terms `X + λ` where
@@ -80,13 +72,12 @@ begin
   conv_rhs { congr, skip, funext, rw polynomial.coeff_C_mul_X_pow },
   rw finset.sum_eq_single_of_mem (s.card - k) _,
   { rw if_pos (nat.sub_sub_self h).symm, },
-  { intros l h1 h2,
-    rw [finset.mem_range, nat.lt_succ_iff] at h1,
-    have : k ≠ card s - l,
-    { contrapose! h2,
-      zify at h2 ⊢,
-      rw [h2, sub_sub_cancel], },
-    rw if_neg this },
+  { intros j hj1 hj2,
+    suffices : k ≠ card s - j,
+    { rw if_neg this, },
+    { intro hn,
+      rw [hn, nat.sub_sub_self (nat.lt_succ_iff.mp (finset.mem_range.mp hj1))] at hj2,
+      exact ne.irrefl hj2, }},
   { rw finset.mem_range,
     exact nat.sub_lt_succ s.card k }
 end
@@ -103,13 +94,11 @@ begin
   rw [esymm, esymm, ←multiset.sum_map_mul_left, multiset.powerset_len_map, multiset.map_map],
   rw map_congr (eq.refl _),
   intros x hx,
-  rw ( _ : k = x.card),
+  rw ( by { exact (mem_powerset_len.mp hx).right.symm } : k = x.card),
   rw [←prod_repeat, ←multiset.map_const],
   nth_rewrite 2 ←map_id' x,
-  rw ←prod_map_mul,
-  rw map_congr (eq.refl _),
-  { exact λ z _, neg_one_mul z, },
-  { exact (mem_powerset_len.mp hx).right.symm, }
+  rw [←prod_map_mul, map_congr (eq.refl _)],
+  exact λ z _, neg_one_mul z,
 end
 
 lemma prod_X_sub_C_eq_sum_esymm (s : multiset R) :

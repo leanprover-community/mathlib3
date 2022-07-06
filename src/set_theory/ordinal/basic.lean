@@ -1250,10 +1250,10 @@ open ordinal
 @[simp] theorem mk_ordinal_out (o : ordinal) : #(o.out.α) = o.card :=
 (ordinal.card_type _).symm.trans $ by rw ordinal.type_lt
 
-/-- The ordinal corresponding to a cardinal `c` is the least ordinal
-  whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
+/-- The ordinal corresponding to a cardinal `c` is the least ordinal whose cardinal is `c`. For the
+order-embedding version, see `ord.order_embedding`. -/
 def ord (c : cardinal) : ordinal :=
-quotient.lift_on c (λ α, type $ @well_ordering_rel α) $ rel_imp_eq_of_rel_imp_le (≈)
+quotient.lift_on c (λ α, type $ @well_ordering_rel α) $ λ a b, rel_imp_eq_of_rel_imp_le (≈)
 begin
   rintros α β ⟨e⟩,
   simp_rw ←type_preimage _ e,

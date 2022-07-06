@@ -59,7 +59,7 @@ begin
   ext,
   simp_rw [circle_transform_deriv, circle_transform, ←mul_smul, ←mul_assoc],
   ring_nf,
-  simp,
+    simp,
 end
 
 lemma integral_circle_transform [complete_space E] (f : ℂ → E) :

@@ -34,7 +34,7 @@ lemma sum_powerset_len {α : Type*} (S : multiset α) :
 begin
   apply eq.symm,
   apply multiset.eq_of_le_of_card_le,
-  { apply multiset.le_of_disjoint_sum_le,
+  { apply multiset.finset_sum_le_of_le_of_disjoint,
     { exact λ _ _, multiset.powerset_len_le_powerset _ _, },
     { intros _ _ _ _ hxny _ htx hty,
       rw multiset.mem_powerset_len at htx,

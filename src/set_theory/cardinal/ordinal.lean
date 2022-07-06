@@ -313,9 +313,8 @@ begin
   refine acc.rec_on (cardinal.lt_wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
-  rcases ord_eq α with ⟨r, wo, e⟩, resetI,
-  letI := linear_order_of_STO' r,
-  haveI : is_well_order α (<) := wo,
+  letI : linear_order α := linear_order_of_STO' well_ordering_rel,
+  haveI : is_well_order α (<) := well_ordering_rel.is_well_order,
   -- Define an order `s` on `α × α` by writing `(a, b) < (c, d)` if `max a b < max c d`, or
   -- the max are equal and `a < c`, or the max are equal and `a = c` and `b < d`.
   let g : α × α → α := λ p, max p.1 p.2,
@@ -329,10 +328,10 @@ begin
     `β × β` for some `β` of cardinality `< c`. By the inductive assumption, this set has the
     same cardinality as `β` (or it is finite if `β` is finite), so it is `< c`, which is a
     contradiction. -/
-  suffices : type s ≤ type r, {exact card_le_card this},
+  suffices : type s ≤ ord (#α), { exact card_le_card this },
   refine le_of_forall_lt (λ o h, _),
   rcases typein_surj s h with ⟨p, rfl⟩,
-  rw [← e, lt_ord],
+  rw [lt_ord],
   refine lt_of_le_of_lt
     (_ : _ ≤ card (succ (typein (<) (g p))) * card (succ (typein (<) (g p)))) _,
   { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
@@ -340,17 +339,17 @@ begin
       simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
         at h,
       exact max_le_iff.1 (le_iff_lt_or_eq.2 $ h.imp_right and.left) },
-    suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ punit),
+    suffices H : (insert (g p) {x | x < g p} : set α) ≃ ({x | x < g p} ⊕ punit),
     { exact ⟨(set.embedding_of_subset _ _ this).trans
         ((equiv.set.prod _ _).trans (H.prod_congr H)).to_embedding⟩ },
     refine (equiv.set.insert _).trans
       ((equiv.refl _).sum_congr punit_equiv_punit),
-    apply @irrefl _ r },
+    apply lt_irrefl },
   cases lt_or_le (card (succ (typein (<) (g p)))) ℵ₀ with qo qo,
   { exact (mul_lt_aleph_0 qo qo).trans_le ol },
   { suffices, {exact (IH _ this qo).trans_lt this},
     rw ← lt_ord, apply (ord_is_limit ol).2,
-    rw [mk_def, e], apply typein_lt_type }
+    apply typein_lt_type }
 end
 
 end using_ordinals

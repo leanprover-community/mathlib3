@@ -155,18 +155,18 @@ Inf_mem (strict_order.cof_nonempty r)
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
   ∃ S, unbounded r S ∧ type (subrel r S) = (cof (type r)).ord :=
-let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
-    T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin
-  resetI, suffices,
+  rcases cof_eq r with ⟨S, hS, e⟩,
+  set T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, well_ordering_rel b ⟨_, aS⟩ → r b a},
+  suffices : unbounded r T,
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
-    rw [← e, e'],
+    rw [← e],
     refine type_le'.2 ⟨rel_embedding.of_monotone
       (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
-    change s ⟨a, _⟩ ⟨b, _⟩,
-    refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
+    dsimp only [subtype.coe_mk],
+    refine ((trichotomous_of _ _ _).resolve_left (λ hn, _)).resolve_left _,
     { exact asymm h (ha _ hn) },
     { intro e, injection e with e, subst b,
       exact irrefl _ h } },
@@ -337,18 +337,15 @@ nfp_family_lt_ord_lift hc (by simpa using cardinal.one_lt_aleph_0.trans hc) (λ 
 
 theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
 begin
-  rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
-  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-  rw ←@blsub_eq_lsub' ι r hr at hf,
-  rw [←hι, hι'],
-  exact ⟨_, hf⟩
+  rcases exists_lsub_cof o with ⟨ι, f, rfl, hι⟩,
+  rw [← hι, ← blsub_eq_lsub'.{u u} well_ordering_rel f, ← type_well_ordering_rel],
+  exact ⟨_, rfl⟩
 end
 
 theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
   a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
 le_cof_iff_lsub.trans ⟨λ H o f hf, by simpa using H _ hf, λ H ι f hf, begin
-  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-  rw ←@blsub_eq_lsub' ι r hr at hf,
+  rw [← blsub_eq_lsub'.{u u} well_ordering_rel f] at hf,
   simpa using H _ hf
 end⟩
 
@@ -503,30 +500,28 @@ begin
   { rcases this with ⟨o, f, hf⟩,
     exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
-  rcases ord_eq ι with ⟨r, wo, hr⟩,
-  haveI := wo,
-  let r' := subrel r {i | ∀ j, r j i → f j < f i},
-  let hrr' : r' ↪r r := subrel.rel_embedding _ _,
+  let r' := subrel well_ordering_rel {i | ∀ j, well_ordering_rel j i → f j < f i},
+  let hrr' : r' ↪r well_ordering_rel := subrel.rel_embedding _ _,
   haveI := hrr'.is_well_order,
   refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
     le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
-  { rw [←hι, hr] },
-  { change r (hrr'.1 _ ) (hrr'.1 _ ),
-    rwa [hrr'.2, @enum_lt_enum _ r'] },
+  { rw [←hι, type_well_ordering_rel] },
+  { change well_ordering_rel (hrr' _ ) (hrr' _ ),
+    rwa [hrr'.map_rel_iff, @enum_lt_enum _ r'] },
   { rw [←hf, lsub_le_iff],
     intro i,
     suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
     { rcases this with ⟨i', hi', hfg⟩,
       exact hfg.trans_lt (lt_blsub _ _ _) },
-    by_cases h : ∀ j, r j i → f j < f i,
+    by_cases h : ∀ j, well_ordering_rel j i → f j < f i,
     { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
       rw bfamily_of_family'_typein,
       refl },
     { push_neg at h,
-      cases wo.wf.min_mem _ h with hji hij,
+      cases (@is_well_order.wf _ well_ordering_rel _).min_mem _ h with hji hij,
       refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
       { by_contra' H,
-        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
+        exact (is_well_order.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
       { rwa bfamily_of_family'_typein } } }
 end
 
@@ -793,18 +788,14 @@ begin
   { rw ha,
     simp [λ s, (cardinal.zero_le s).not_lt] },
   have h' : is_strong_limit (#α) := ⟨ha, h⟩,
-  rcases ord_eq α with ⟨r, wo, hr⟩,
-  haveI := wo,
   apply le_antisymm,
-  { nth_rewrite_rhs 0 ←mk_bounded_subset h hr,
-    apply mk_le_mk_of_subset (λ s hs, _),
-    rw hr at hs,
-    exact lt_cof_type hs },
-  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
-    { rw mk_singleton,
+  { conv_rhs { rw [← mk_bounded_subset h (type_well_ordering_rel α)] },
+    exact mk_le_mk_of_subset (λ s hs, lt_cof_type hs) },
+  { have : ∀ (x : α), {x} ∈ {s : set α | # s < (# α).ord.cof},
+    { intro x,
+      rw [mem_set_of_eq, mk_singleton],
       exact one_lt_aleph_0.trans_le (aleph_0_le_cof.2 (ord_is_limit h'.is_limit.aleph_0_le)) },
-    { intros a b hab,
-      simpa only [singleton_eq_singleton_iff] using hab } }
+    exact mk_le_of_injective (singleton_injective.cod_restrict this) }
 end
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
@@ -831,18 +822,17 @@ theorem is_regular_aleph_0 : is_regular ℵ₀ :=
 
 theorem is_regular_succ {c : cardinal.{u}} (h : ℵ₀ ≤ c) : is_regular (succ c) :=
 ⟨h.trans (le_succ c), succ_le_of_lt begin
-  cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
-  rcases ord_eq α with ⟨r, wo, re⟩, resetI,
+  induction αe : succ c using cardinal.induction_on,
   have := ord_is_limit (h.trans (le_succ _)),
-  rw [← αe, re] at this ⊢,
-  rcases cof_eq' r this with ⟨S, H, Se⟩,
-  rw [← Se],
+  rw [αe] at this,
+  rcases cof_eq' well_ordering_rel this with ⟨S, H, Se⟩,
+  rw [← type_well_ordering_rel, ← Se],
   apply lt_imp_lt_of_le_imp_le (λ h, mul_le_mul_right' h c),
-  rw [mul_eq_self h, ← succ_le_iff, ← αe, ← sum_const'],
-  refine le_trans _ (sum_le_sum (λ x, card (typein r x)) _ (λ i, _)),
+  rw [mul_eq_self h, ← succ_le_iff, αe, ← sum_const'],
+  refine le_trans _ (sum_le_sum (λ x, card (typein well_ordering_rel x)) _ (λ i, _)),
   { simp only [← card_typein, ← mk_sigma],
-    exact ⟨embedding.of_surjective (λ x, x.2.1)
-      (λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩)⟩ },
+    exact @mk_le_of_surjective (Σ i : S, {y // well_ordering_rel y i}) _ (λ x, x.2.1)
+      (λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨b, h⟩, _⟩, _⟩) },
   { rw [← lt_succ_iff, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩

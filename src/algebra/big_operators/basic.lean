@@ -1740,32 +1740,7 @@ lemma disjoint_finset_sum_right {α β : Type*} {i : finset β} {f : β → mult
   multiset.disjoint (f a) (∑ x in i, f x) :=
 disjoint_sum_right $ by simpa using h
 
-lemma list_sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {l : list (multiset α)}
-  (h1 : ∀ b ∈ l, b ≤ T) (h2 : ∀ a b ∈ l, a ≠ b → multiset.disjoint a b) :
-  l.sum ≤ T :=
-begin
-  induction l with b bs ih,
-  { simp only [list.sum_nil, zero_le], },
-  { rw list.sum_cons,
-
-    sorry }
-end
-
-lemma sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {i : multiset (multiset α)}
-  (h1 : ∀ b ∈ i, b ≤ T) (h2 : ∀ a b ∈ i, a ≠ b → multiset.disjoint a b) :
-  i.sum ≤ T := by sorry
-  -- prod_list_map_count s id
-  -- quotient.induction_on i (λ l, begin
-  --  rw [quot_mk_to_coe, multiset.coe_sum],
-  --  end)
-
 lemma finset_sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {i : finset β}
-  {f : β → multiset α}
-  (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
-  ∑ x in i, f x ≤ T := by sorry
--- sum_le_of_le_of_disjoint $ by simpa using [h1, h2]
-
-lemma finset_sum_le_of_le_of_disjoint0 {α β : Type*} {T : multiset α} {i : finset β}
   {f : β → multiset α}
   (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
   ∑ x in i, f x ≤ T :=
@@ -1774,27 +1749,14 @@ begin
   induction i using finset.induction_on with z i hz hr,
   { simp only [finset.sum_empty, zero_le], },
   rw finset.sum_insert hz,
-  have hdsj : disjoint (f z) (∑ x in i, f x),
-  { refine disjoint_of_disjoint_sum _,
-    intros x hx,
-    have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
-    have hzi : z ∈ insert z i, from finset.mem_insert_self z i,
-    have hxz : x ≠ z,
-    { contrapose! hz,
-      rwa hz at hx, },
-    exact ((h2 x hxi) z hzi) hxz,  },
-  rw add_eq_union_iff_disjoint.mpr hdsj,
-  rw union_le_iff,
-  split,
-  { exact h1 z (finset.mem_insert_self z i), },
-  { apply hr,
-    { intros x hx,
-      have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
-      exact h1 x hxi, },
-    { intros x hx y hy,
-      have hxi : x ∈ insert z i, from finset.mem_insert_of_mem hx,
-      have hyi : y ∈ insert z i, from finset.mem_insert_of_mem hy,
-      exact (h2 x hxi) y hyi, }},
+  apply add_le_of_le_of_disjoint,
+  { exact h1 z (finset.mem_insert_self z i) },
+  { exact hr
+    (λ x hx, h1 x (finset.mem_insert_of_mem hx))
+    (λ x hx y hy hxy, h2 x (finset.mem_insert_of_mem hx) y (finset.mem_insert_of_mem hy) hxy), },
+  { exact disjoint_finset_sum_right
+    (λ x hx, h2 z (finset.mem_insert_self z i) x (finset.mem_insert_of_mem hx)
+      (by {contrapose! hx, simp [←hx, hz], } : z ≠ x)), }
 end
 
 end multiset

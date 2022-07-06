@@ -2209,7 +2209,7 @@ lemma add_eq_union_iff_disjoint [decidable_eq α] {s t : multiset α} :
 by simp_rw [←inter_eq_zero_iff_disjoint, ext, count_add, count_union, count_inter, count_zero,
             nat.min_eq_zero_iff, nat.add_eq_max_iff]
 
-lemma add_le_of_le_of_disjoint {a : Type*} [decidable_eq α] {s t T : multiset α}
+lemma add_le_of_le_of_disjoint [decidable_eq α] {s t T : multiset α}
   (hs : s ≤ T) (ht : t ≤ T) (h : multiset.disjoint s t):
   s + t ≤ T :=
 by rw add_eq_union_iff_disjoint.mpr h ; simp [hs, ht, union_le_iff, and_self]

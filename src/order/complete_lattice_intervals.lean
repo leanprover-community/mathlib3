@@ -170,7 +170,7 @@ instance : complete_lattice (Iic a) :=
   .. (infer_instance : bounded_order (set.Iic a))}
 
 /-- The set of elements above or equal to `a` in a complete lattice is a complete lattice. -/
-instance [complete_lattice α] {a : α} : complete_lattice (Ici a) :=
+instance : complete_lattice (Ici a) :=
 { Sup := λ S, ⟨_, (@le_sup_left _ _ a (complete_lattice.Sup (coe '' S)))⟩,
   Inf := λ S, ⟨complete_lattice.Inf (coe '' S), (le_Inf (λ _ ⟨⟨_,hb⟩,_,rfl⟩, hb))⟩,
   Inf_le := λ _ _ h, coe_le_coe.mp $ Inf_le (mem_image_of_mem _ h),

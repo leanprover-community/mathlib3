@@ -980,9 +980,19 @@ protected def lattice [lattice α] {P : α → Prop}
   = x ⊔ y := rfl
 
 @[simp, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
-  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
-(@has_inf.inf _ (@semilattice_inf.to_has_inf _ (subtype.semilattice_inf Psup)) x y : α)
+(Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
+(@has_inf.inf _ (@semilattice_inf.to_has_inf _ (subtype.semilattice_inf Pinf)) x y : α)
   = x ⊓ y := rfl
+
+@[simp] lemma subtype.mk_inf [semilattice_inf α] {P : α → Prop}
+(Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) {x y : α} (hx : P x) (hy : P y) :
+(@has_inf.inf _ (@semilattice_inf.to_has_inf _ (subtype.semilattice_inf Pinf)) ⟨x,hx⟩ ⟨y,hy⟩) =
+  ⟨x ⊓ y, Pinf hx hy⟩ := rfl
+
+@[simp] lemma subtype.mk_sup [semilattice_sup α] {P : α → Prop}
+(Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) {x y : α} (hx : P x) (hy : P y) :
+(@has_sup.sup _ (@semilattice_sup.to_has_sup _ (subtype.semilattice_sup Psup)) ⟨x,hx⟩ ⟨y,hy⟩) =
+  ⟨x ⊔ y, Psup hx hy⟩ := rfl
 
 end subtype
 

@@ -544,8 +544,8 @@ begin
 end
 
 /-- If `f` is a family of mutually independent random variables (`Indep_fun m f μ`) and `S,T` are
-two disjoint index sets, then the finite product of `f` over `S` is independent of the finite
-product of `f` over `T`. -/
+two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
+tuple `(f i)_i` for `i ∈ T`. -/
 lemma Indep_fun.indep_fun_finset [is_probability_measure μ]
   {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
   {f : Π i, α → β i} (S T : finset ι) (hST : disjoint S T) (hf_Indep : Indep_fun m f μ)

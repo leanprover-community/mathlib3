@@ -350,6 +350,7 @@ Probability Theory:
     convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'
+    convergence in distribution: 'measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
     Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
     strong law of large numbers: 'probability_theory.strong_law_ae'

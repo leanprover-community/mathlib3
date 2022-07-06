@@ -128,7 +128,7 @@ begin
   exact prob_le_one,
 end
 
-lemma subgaussian_cgf.chernoff_bound' [is_finite_measure μ]
+lemma subgaussian_cgf.measure_ge_le' [is_finite_measure μ]
   (h : subgaussian_cgf X μ c) (hc : 0 < c) (hε : 0 ≤ ε) :
   (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
 begin
@@ -142,12 +142,12 @@ begin
   ring,
 end
 
-lemma subgaussian_cgf.chernoff_bound [is_probability_measure μ]
+lemma subgaussian_cgf.measure_ge_le [is_probability_measure μ]
   (h : subgaussian_cgf X μ c) (hε : 0 ≤ ε) :
   (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
 begin
   cases lt_or_le 0 c with hc hc,
-  { exact h.chernoff_bound' hc hε, },
+  { exact h.measure_ge_le' hc hε, },
   suffices : 1 ≤ real.exp (-ε ^ 2 / (2 * c)), from (to_real_prob_le_one _).trans this,
   rw real.one_le_exp_iff,
   exact div_nonneg_of_nonpos (neg_nonpos_of_nonneg (sq_nonneg _))
@@ -165,7 +165,7 @@ lemma Indep_fun.measure_sum_ge_le_of_subgaussian_cgf'
   (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ real.exp(- ε^2 / (2 * (∑ i in s, c i))) :=
 begin
   simp_rw ← finset.sum_apply,
-  exact (h_indep.subgaussian_cgf_sum h_meas h_subg).chernoff_bound hε,
+  exact (h_indep.subgaussian_cgf_sum h_meas h_subg).measure_ge_le hε,
 end
 
 lemma Indep_fun.measure_sum_ge_le_of_subgaussian_cgf

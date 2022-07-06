@@ -412,7 +412,7 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
 @[simps] protected def cast {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
-⟨equiv.cast h₁, by { subst h₁, rw eq_of_heq h₂, exact λ a b, iff.rfl }⟩
+⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=

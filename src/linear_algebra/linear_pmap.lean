@@ -463,7 +463,7 @@ end linear_pmap
 
 namespace submodule
 
-section submodule_from_graph
+section submodule_to_linear_pmap
 
 lemma exists_unique_from_graph {g : submodule R (E × F)}
   (hg : ∀ {x : E × F} (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
@@ -495,7 +495,7 @@ classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg ha))
 
 /-- Define a `linear_pmap` from its graph. -/
 noncomputable
-def from_graph (g : submodule R (E × F))
+def to_linear_pmap (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) : linear_pmap R E F :=
 { domain := g.map (linear_map.fst R E F),
   to_fun :=
@@ -515,20 +515,20 @@ def from_graph (g : submodule R (E × F))
       exact (exists_unique_from_graph hg hsmul).unique hav hav',
     end } }
 
-lemma mem_graph_from_graph (g : submodule R (E × F))
+lemma mem_graph_to_linear_pmap (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0)
-  (x : g.map (linear_map.fst R E F)) : (x.val, from_graph g hg x) ∈ g :=
+  (x : g.map (linear_map.fst R E F)) : (x.val, g.to_linear_pmap hg x) ∈ g :=
 val_mem_from_graph hg x.2
 
-@[simp] lemma graph_from_graph_eq (g : submodule R (E × F))
+@[simp] lemma to_linear_pmap_graph_eq (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) :
-  (from_graph g hg).graph = g :=
+  (g.to_linear_pmap hg).graph = g :=
 begin
   ext,
   split; intro hx,
   { rw [linear_pmap.mem_graph_iff] at hx,
     rcases hx with ⟨y,hx1,hx2⟩,
-    convert mem_graph_from_graph g hg y,
+    convert g.mem_graph_to_linear_pmap hg y,
     rw [subtype.val_eq_coe],
     exact prod.ext hx1.symm hx2.symm },
   rw linear_pmap.mem_graph_iff,
@@ -543,6 +543,6 @@ begin
   exact (exists_unique_from_graph hg hx_fst).unique (val_mem_from_graph hg hx_fst) hx,
 end
 
-end submodule_from_graph
+end submodule_to_linear_pmap
 
 end submodule

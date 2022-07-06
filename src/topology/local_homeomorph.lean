@@ -273,7 +273,6 @@ lemma map_nhds_within_preimage_eq (e : local_homeomorph α β) {x} (hx : x ∈ e
 by rw [e.map_nhds_within_eq hx, e.image_source_inter_eq', e.target_inter_inv_preimage_preimage,
   e.nhds_within_target_inter (e.map_source hx)]
 
-
 lemma eventually_nhds (e : local_homeomorph α β) {x : α} (p : β → Prop)
   (hx : x ∈ e.source) : (∀ᶠ y in 𝓝 (e x), p y) ↔ ∀ᶠ x in 𝓝 x, p (e x) :=
 iff.trans (by rw [e.map_nhds_eq hx]) eventually_map

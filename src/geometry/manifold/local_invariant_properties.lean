@@ -253,10 +253,10 @@ lemma lift_prop_within_at_indep_chart [has_groupoid M G] [has_groupoid M' G']
     hf xf (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
 
 lemma lift_prop_on_indep_chart [has_groupoid M G] [has_groupoid M' G']
-  (he : e ∈ G.maximal_atlas M) (hf : f ∈ G'.maximal_atlas M') (h : lift_prop_on P g s) :
-  ∀ y ∈ e.target ∩ e.symm ⁻¹'  (s ∩ g ⁻¹' f.source), P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) y :=
+  (he : e ∈ G.maximal_atlas M) (hf : f ∈ G'.maximal_atlas M') (h : lift_prop_on P g s)
+  {y : H} (hy : y ∈ e.target ∩ e.symm ⁻¹'  (s ∩ g ⁻¹' f.source)) :
+  P (f ∘ g ∘ e.symm) (e.symm ⁻¹' s) y :=
 begin
-  intros y hy,
   convert ((hG.lift_prop_within_at_indep_chart he (e.symm_maps_to hy.1) hf hy.2.2).1
     (h _ hy.2.1)).2,
   rw [e.right_inv hy.1],

@@ -40,8 +40,8 @@ subtype.semilattice_inf (λ x y hx hy, ⟨le_inf hx.1 hy.1, lt_of_le_of_lt inf_l
   order_bot (Ico a b) :=
 (is_least_Ico h).order_bot
 
-@[simp] lemma coe_inf [semilattice_inf α] {a b : α} (x y : Ico a b) :
-  (↑(x ⊓ y) : α) = (↑x ⊓ ↑y) := rfl
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {a b : α} (x y : Ico a b) :
+  (↑(x ⊓ y) : α) = x ⊓ y := rfl
 
 end Ico
 
@@ -50,7 +50,8 @@ namespace Iio
 instance [semilattice_inf α] {a : α} : semilattice_inf (Iio a) :=
 subtype.semilattice_inf (λ x y hx hy, lt_of_le_of_lt inf_le_left hx)
 
-@[simp] lemma coe_inf [semilattice_inf α] {a : α} (x y : Iio a) : (↑(x ⊓ y) : α) = (↑x ⊓ ↑y) := rfl
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {a : α} (x y : Iio a) :
+  (↑(x ⊓ y) : α) = x ⊓ y := rfl
 
 end Iio
 
@@ -64,8 +65,8 @@ subtype.semilattice_sup (λ x y hx hy, ⟨lt_of_lt_of_le hx.1 le_sup_left, sup_l
   order_top (Ioc a b) :=
 (is_greatest_Ioc h).order_top
 
-@[simp] lemma coe_sup [semilattice_sup α] {a b : α} (x y : Ioc a b) :
-  (↑(x ⊔ y) : α) = (↑x ⊔ ↑y) := rfl
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {a b : α} (x y : Ioc a b) :
+  (↑(x ⊔ y) : α) = x ⊔ y := rfl
 
 end Ioc
 
@@ -74,7 +75,8 @@ namespace Ioi
 instance [semilattice_sup α] {a : α} : semilattice_sup (Ioi a) :=
 subtype.semilattice_sup (λ x y hx hy, lt_of_lt_of_le hx le_sup_left)
 
-@[simp] lemma coe_sup [semilattice_sup α] {a : α} (x y : Ioi a) : (↑(x ⊔ y) : α) = (↑x ⊔ ↑y) := rfl
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {a : α} (x y : Ioi a) :
+  (↑(x ⊔ y) : α) = x ⊔ y := rfl
 
 end Ioi
 
@@ -106,9 +108,11 @@ instance [preorder α] [order_bot α] {a : α} : bounded_order (Iic a) :=
 { .. Iic.order_top,
   .. Iic.order_bot }
 
-@[simp] lemma coe_sup [semilattice_sup α] {a : α} (x y : Iic a) : (↑(x ⊔ y) : α) = (↑x ⊔ ↑y) := rfl
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {a : α} (x y : Iic a) :
+  (↑(x ⊔ y) : α) = x ⊔ y := rfl
 
-@[simp] lemma coe_inf [semilattice_inf α] {a : α} (x y : Iic a) : (↑(x ⊓ y) : α) = (↑x ⊓ ↑y) := rfl
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {a : α} (x y : Iic a) :
+  (↑(x ⊓ y) : α) = x ⊓ y := rfl
 
 end Iic
 
@@ -140,9 +144,11 @@ instance [preorder α] [order_top α] {a : α}: bounded_order (Ici a) :=
 { .. Ici.order_top,
   .. Ici.order_bot }
 
-@[simp] lemma coe_inf [semilattice_inf α] {a : α} (x y : Ici a) : (↑(x ⊓ y) : α) = (↑x ⊓ ↑y) := rfl
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {a : α} (x y : Ici a) :
+  (↑(x ⊓ y) : α) = x ⊓ y := rfl
 
-@[simp] lemma coe_sup [semilattice_sup α] {a : α} (x y : Ici a) : (↑(x ⊔ y) : α) = (↑x ⊔ ↑y) := rfl
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {a : α} (x y : Ici a) :
+  (↑(x ⊔ y) : α) = x ⊔ y := rfl
 
 end Ici
 
@@ -172,11 +178,11 @@ instance [lattice α] {a b : α} : lattice (Icc a b) :=
 { .. Icc.order_top h,
   .. Icc.order_bot h }
 
-@[simp] lemma coe_inf [semilattice_inf α] {a b : α} (x y : Icc a b) :
-  (↑(x ⊓ y) : α) = (↑x ⊓ ↑y) := rfl
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {a b : α} (x y : Icc a b) :
+  (↑(x ⊓ y) : α) = x ⊓ y := rfl
 
-@[simp] lemma coe_sup [semilattice_sup α] {a b : α} (x y : Icc a b) :
-  (↑(x ⊔ y) : α) = (↑x ⊔ ↑y) := rfl
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {a b : α} (x y : Icc a b) :
+  (↑(x ⊔ y) : α) = x ⊔ y := rfl
 
 end Icc
 

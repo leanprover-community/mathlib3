@@ -586,16 +586,6 @@ begin
   cases quotient.out α, cases quotient.out β, exact classical.choice
 end
 
-/-- Given two ordinals `α = β`, then `rel_iso_out α β` is the order isomorphism between two
-model types for `α` and `β`. -/
-def rel_iso_out {α β : ordinal} (h : α = β) :
-  ((<) : α.out.α → α.out.α → Prop) ≃r ((<) : β.out.α → β.out.α → Prop) :=
-begin
-  change α.out.r ≃r β.out.r,
-  rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
-  cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
-end
-
 theorem typein_lt_type (r : α → α → Prop) [is_well_order α r] (a : α) : typein r a < type r :=
 ⟨principal_seg.of_element _ _⟩
 

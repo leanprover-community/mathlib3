@@ -34,7 +34,7 @@ variables {R : Type*} [monoid R] {S : submonoid R} [ore_set S]
 
 /-- Common factors on the left can be turned into common factors on the right, a weak form of
 cancellability. -/
-def ore_left_cancel (r₁ r₂ : R) (s : S) (h : ↑s * r₁ = s * r₂) : ∃ s' : S, r₁ * s' = r₂ * s' :=
+lemma ore_left_cancel (r₁ r₂ : R) (s : S) (h : ↑s * r₁ = s * r₂) : ∃ s' : S, r₁ * s' = r₂ * s' :=
 ore_set.ore_left_cancel r₁ r₂ s h
 
 /-- The Ore numerator of a fraction. -/

@@ -25,7 +25,7 @@ section monoid
 into common factors on the right, and if each pair of `r : R` and `s : S` admits an Ore numerator
 `v : R` and an Ore denominator `u : S` such that `r * u = s * v`. -/
 class ore_set {R : Type*} [monoid R] (S : submonoid R) :=
-(ore_left_cancel : ∀ (r₁ r₂ : R) (s : S), ↑s * r₁ = s * r₂ → {s' : S // r₁ * s' = r₂ * s'})
+(ore_left_cancel : ∀ (r₁ r₂ : R) (s : S), ↑s * r₁ = s * r₂ → ∃ s' : S, r₁ * s' = r₂ * s')
 (ore_num : R → S → R)
 (ore_denom : R → S → S)
 (ore_eq : ∀ (r : R) (s : S), r * ore_denom r s = s * ore_num r s)
@@ -34,17 +34,8 @@ variables {R : Type*} [monoid R] {S : submonoid R} [ore_set S]
 
 /-- Common factors on the left can be turned into common factors on the right, a weak form of
 cancellability. -/
-def ore_left_cancel (r₁ r₂ : R) (s : S) (h : ↑s * r₁ = s * r₂) : {s' : S // r₁ * s' = r₂ * s'} :=
+def ore_left_cancel (r₁ r₂ : R) (s : S) (h : ↑s * r₁ = s * r₂) : ∃ s' : S, r₁ * s' = r₂ * s' :=
 ore_set.ore_left_cancel r₁ r₂ s h
-
-/-- The common right factor of an Ore set's weak cancellability property. -/
-def ore_left_cancel_factor (r₁ r₂ : R) (s : S) (h : (s : R) * r₁ = s * r₂) : S :=
-(ore_left_cancel r₁ r₂ s h).1
-
-/-- The defining equality of an Ore set's weak cancellability. -/
-lemma ore_left_cancel_factor_eq (r₁ r₂ : R) (s : S) (h : (s : R) * r₁ = s * r₂) :
-  r₁ * (ore_left_cancel_factor r₁ r₂ s h) = r₂ * (ore_left_cancel_factor r₁ r₂ s h) :=
-(ore_left_cancel r₁ r₂ s h).2
 
 /-- The Ore numerator of a fraction. -/
 def ore_num (r : R) (s : S) : R := ore_set.ore_num r s

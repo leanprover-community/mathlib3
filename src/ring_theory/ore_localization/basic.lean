@@ -43,9 +43,7 @@ open ore_localization
 
 namespace ore_localization
 
-variables (R : Type*) [monoid R] (S : submonoid R) [ore : ore_set S]
-
-include ore
+variables (R : Type*) [monoid R] (S : submonoid R) [ore_set S]
 
 /-- The setoid on `R × S` used for the Ore localization. -/
 def ore_eqv : setoid (R × S) :=
@@ -74,7 +72,7 @@ def ore_eqv : setoid (R × S) :=
 end ore_localization
 
 /-- The ore localization of a monoid and a submonoid fulfilling the ore condition. -/
-def ore_localization (R : Type*) [monoid R] (S : submonoid R) [ore : ore_set S] :=
+def ore_localization (R : Type*) [monoid R] (S : submonoid R) [ore_set S] :=
 quotient (ore_localization.ore_eqv R S)
 
 namespace ore_localization
@@ -83,13 +81,8 @@ section monoid
 
 variables {R : Type*} [monoid R] {S : submonoid R}
 
--- TODO replace with subtype.coe_eq_of_eq_mk
+variables (R S) [ore_set S]
 
-variables (R S) [ore : ore_set S]
-
-include ore
-
--- TODO is the binding strength reasonable?
 notation R `[`:1075 S `⁻¹]`:1075 := ore_localization R S
 
 local attribute [instance] ore_eqv
@@ -139,17 +132,16 @@ end
 under expansion on the right. -/
 def lift_expand {C : Sort*} (P : R → S → C)
   (hP : ∀ (r t : R) (s : S) (ht : ((s : R) * t) ∈ S), P r s = P (r * t) ⟨s * t, ht⟩) :
-  R[S ⁻¹] → C :=
+  R[S⁻¹] → C :=
 quotient.lift (λ (p : R × S), P p.1 p.2) $ λ p q pq,
 begin
-  rcases p with ⟨r₁, s₁⟩, rcases q with ⟨r₂, s₂⟩, rcases pq with ⟨u, v, hr₂, hs₂⟩,
+  cases p with r₁ s₁, cases q with r₂ s₂, rcases pq with ⟨u, v, hr₂, hs₂⟩,
   dsimp at *,
   have s₁vS : (s₁ : R) * v ∈ S,
   { rw [←hs₂, ←S.coe_mul], exact set_like.coe_mem (s₂ * u) },
   replace hs₂ : s₂ * u = ⟨(s₁ : R) * v, s₁vS⟩, { ext, simp [hs₂] },
-  have := hP r₂ u s₂ (by { norm_cast, rw hs₂, assumption }),
   rw [hP r₁ v s₁ s₁vS, hP r₂ u s₂ (by { norm_cast, rw hs₂, assumption }), hr₂],
-  simpa [hs₂.symm]
+  simpa [← hs₂]
 end
 
 @[simp]
@@ -163,7 +155,7 @@ in ``R[S⁻¹]`.-/
 def lift₂_expand {C : Sort*} (P : R → S → R → S → C)
   (hP : ∀ (r₁ t₁ : R) (s₁ : S) (ht₁ : (s₁ : R) * t₁ ∈ S)
           (r₂ t₂ : R) (s₂ : S) (ht₂ : (s₂ : R) * t₂ ∈ S),
-    P r₁ s₁ r₂ s₂ = P (r₁ * t₁) ⟨s₁ * t₁, ht₁⟩ (r₂ * t₂) ⟨s₂ * t₂, ht₂⟩) : R[S ⁻¹] → R[S ⁻¹] → C :=
+    P r₁ s₁ r₂ s₂ = P (r₁ * t₁) ⟨s₁ * t₁, ht₁⟩ (r₂ * t₂) ⟨s₂ * t₂, ht₂⟩) : R[S⁻¹] → R[S⁻¹] → C :=
 lift_expand
   (λ r₁ s₁, lift_expand (P r₁ s₁) $ λ r₂ t₂ s₂ ht₂, by simp [hP r₁ 1 s₁ (by simp) r₂ t₂ s₂ ht₂]) $
    λ r₁ t₁ s₁ ht₁,
@@ -181,8 +173,8 @@ lemma lift₂_expand_of {C : Sort*} {P : R → S → R → S → C}
   lift₂_expand P hP (r₁ /ₒ s₁) (r₂ /ₒ s₂) = P r₁ s₁ r₂ s₂ :=
 rfl
 
-private def mul' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
-  (r₁ * (ore_num r₂ s₁)) /ₒ (s₂ * (ore_denom r₂ s₁))
+private def mul' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S⁻¹] :=
+  (r₁ * ore_num r₂ s₁) /ₒ (s₂ * ore_denom r₂ s₁)
 
 private lemma mul'_char (r₁ r₂ : R) (s₁ s₂ : S) (u : S) (v : R) (huv : r₂ * (u : R) = s₁ * v) :
   mul' r₁ s₁ r₂ s₂ = (r₁ * v) /ₒ (s₂ * u) :=
@@ -202,7 +194,7 @@ begin
 end
 
 /-- The multiplication on the Ore localization of monoids. -/
-protected def mul : R[S ⁻¹] → R[S ⁻¹] → R[S ⁻¹] :=
+protected def mul : R[S⁻¹] → R[S⁻¹] → R[S⁻¹] :=
 lift₂_expand mul' $ λ r₂ p s₂ hp r₁ r s₁ hr,
 begin
   have h₁ := ore_eq r₁ s₂, set r₁' := ore_num r₁ s₂, set s₂' := ore_denom r₁ s₂,
@@ -227,7 +219,7 @@ end
 instance : has_mul R[S⁻¹] := ⟨ore_localization.mul⟩
 
 lemma ore_div_mul_ore_div {r₁ r₂ : R} {s₁ s₂ : S} :
-  (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * (ore_num r₂ s₁)) /ₒ (s₂ * (ore_denom r₂ s₁)) := rfl
+  (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * ore_num r₂ s₁) /ₒ (s₂ * ore_denom r₂ s₁) := rfl
 
 /-- A characterization lemma for the multiplication on the Ore localization, allowing for a choice
 of Ore numerator and Ore denominator. -/
@@ -244,7 +236,7 @@ def ore_div_mul_char' (r₁ r₂ : R) (s₁ s₂ : S) :
 
 instance : has_one R[S⁻¹] := ⟨1 /ₒ 1⟩
 
-protected lemma one_def : (1 : R[S ⁻¹]) = 1 /ₒ 1 := rfl
+protected lemma one_def : (1 : R[S⁻¹]) = 1 /ₒ 1 := rfl
 
 instance : inhabited R[S⁻¹] := ⟨1⟩
 
@@ -256,19 +248,19 @@ by { rw [ore_localization.one_def, ore_div_eq_iff], exact ⟨⟨r, hr⟩, 1, by 
 protected lemma div_eq_one {s : S} : (s : R) /ₒ s = 1 :=
 by { cases s; apply ore_localization.div_eq_one' }
 
-protected lemma one_mul (x : R[S ⁻¹]) : 1 * x = x :=
+protected lemma one_mul (x : R[S⁻¹]) : 1 * x = x :=
 begin
   induction x using ore_localization.ind with r s,
   simp [ore_localization.one_def, ore_div_mul_char (1 : R) r (1 : S) s r 1 (by simp)]
 end
 
-protected lemma mul_one (x : R[S ⁻¹]) : x * 1 = x :=
+protected lemma mul_one (x : R[S⁻¹]) : x * 1 = x :=
 begin
   induction x using ore_localization.ind with r s,
   simp [ore_localization.one_def, ore_div_mul_char r 1 s 1 1 s (by simp)]
 end
 
-protected lemma mul_assoc (x y z : R[S ⁻¹]) : x * y * z = x * (y * z) :=
+protected lemma mul_assoc (x y z : R[S⁻¹]) : x * y * z = x * (y * z) :=
 begin
   induction x using ore_localization.ind with r₁ s₁,
   induction y using ore_localization.ind with r₂ s₂,
@@ -310,7 +302,7 @@ lemma div_one_mul {p r : R} {s : S} :
   (r /ₒ 1) * (p /ₒ s) = (r * p) /ₒ s := --TODO use coercion r ↦ r /ₒ 1
 by simp [ore_div_mul_char r p 1 s p 1 (by simp)]
 
-/-- The unit in `R[S⁻¹]` consisting of the fraction `s /ₒ 1` for `s : S`. -/
+/-- The fraction `s /ₒ 1` as a unit in `R[S⁻¹]`, where `s : S`. -/
 def numerator_unit (s : S) : units R[S⁻¹] :=
 { val := (s : R) /ₒ 1,
   inv := (1 : R) /ₒ s,
@@ -326,7 +318,7 @@ def numerator_hom : R →* R[S⁻¹] :=
 
 lemma numerator_hom_apply {r : R} : numerator_hom r = r /ₒ (1 : S) := rfl
 
-lemma numerator_is_unit (s : S) : is_unit ((numerator_hom (s : R)) : R[S ⁻¹]) :=
+lemma numerator_is_unit (s : S) : is_unit ((numerator_hom (s : R)) : R[S⁻¹]) :=
 ⟨numerator_unit s, rfl⟩
 
 section UMP
@@ -426,7 +418,7 @@ protected def localization_map : S.localization_map R[S⁻¹] :=
   end }
 
 /-- If `R` is commutative, Ore localization and monoid localization are isomorphic. -/
-protected noncomputable def equiv_monoid_localization : localization S ≃* R[S ⁻¹] :=
+protected noncomputable def equiv_monoid_localization : localization S ≃* R[S⁻¹] :=
 localization.mul_equiv_of_quotient (ore_localization.localization_map R S)
 
 end comm_monoid
@@ -435,8 +427,8 @@ section semiring
 
 variables {R : Type*} [semiring R] {S : submonoid R} [ore_set S]
 
-private def add'' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
-(r₁ * (ore_denom (s₁ : R) s₂) + r₂ * (ore_num s₁ s₂)) /ₒ (s₁ * ore_denom s₁ s₂)
+private def add'' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S⁻¹] :=
+(r₁ * ore_denom (s₁ : R) s₂ + r₂ * ore_num s₁ s₂) /ₒ (s₁ * ore_denom s₁ s₂)
 
 private lemma add''_char
   (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S)
@@ -460,7 +452,7 @@ end
 
 local attribute [instance] ore_localization.ore_eqv
 
-private def add' (r₂ : R) (s₂ : S) : R[S ⁻¹] → R[S ⁻¹] := --plus tilde
+private def add' (r₂ : R) (s₂ : S) : R[S⁻¹] → R[S⁻¹] := --plus tilde
 quotient.lift (λ (r₁s₁ : R × S), add'' r₁s₁.1 r₁s₁.2 r₂ s₂) $
 begin
   rintros ⟨r₁', s₁'⟩ ⟨r₁, s₁⟩ ⟨sb, rb, hb, hb'⟩, -- s*, r*
@@ -495,7 +487,7 @@ begin
 end
 
 /-- The addition on the Ore localization. -/
-private def add : R[S ⁻¹] → R[S ⁻¹] → R[S ⁻¹] :=
+private def add : R[S⁻¹] → R[S⁻¹] → R[S⁻¹] :=
 λ x,
 quotient.lift (λ rs : R × S, add' rs.1 rs.2 x)
 begin
@@ -528,7 +520,7 @@ def ore_div_add_char' (r r' : R) (s s' : S) :
 @[simp] lemma add_ore_div {r r' : R} {s : S} : (r /ₒ s) + (r' /ₒ s) = (r + r') /ₒ s :=
 by simp [ore_div_add_char s s 1 1 (by simp)]
 
-protected lemma add_assoc (x y z : R[S ⁻¹]) :
+protected lemma add_assoc (x y z : R[S⁻¹]) :
   (x + y) + z = x + (y + z) :=
 begin
   induction x using ore_localization.ind with r₁ s₁,
@@ -543,37 +535,37 @@ begin
   congr' 1,
   { rcases ore_condition (sd : R) (sa * sc) with ⟨re, se, he⟩,
     { simp_rw ←submonoid.coe_mul at hb hc hd,
-      assoc_rw [submonoid.eq_of_coe_eq_mul hc],
-      rw [←ore_localization.expand, submonoid.eq_of_coe_eq_mul hd, ←mul_assoc,
-        ←ore_localization.expand, submonoid.eq_of_coe_eq_mul hb],
+      assoc_rw [subtype.coe_eq_of_eq_mk hc],
+      rw [←ore_localization.expand, subtype.coe_eq_of_eq_mk hd, ←mul_assoc,
+        ←ore_localization.expand, subtype.coe_eq_of_eq_mk hb],
       apply ore_localization.expand } },
   congr' 1,
   { rw [←ore_localization.expand', ←mul_assoc, ←mul_assoc,
       ←ore_localization.expand', ←ore_localization.expand'] },
   { simp_rw [←submonoid.coe_mul] at ha hd,
-    rw [submonoid.eq_of_coe_eq_mul hd, ←mul_assoc, ←mul_assoc,
+    rw [subtype.coe_eq_of_eq_mk hd, ←mul_assoc, ←mul_assoc,
       ←mul_assoc, ←ore_localization.expand, ←ore_localization.expand',
-      submonoid.eq_of_coe_eq_mul ha, ←ore_localization.expand],
+      subtype.coe_eq_of_eq_mk ha, ←ore_localization.expand],
     apply ore_localization.expand' }
 end
 
-private def zero : R[S ⁻¹] := 0 /ₒ 1
+private def zero : R[S⁻¹] := 0 /ₒ 1
 
 instance : has_zero R[S⁻¹] := ⟨zero⟩
 
-protected lemma zero_def : (0 : R[S ⁻¹]) = 0 /ₒ 1 := rfl
+protected lemma zero_def : (0 : R[S⁻¹]) = 0 /ₒ 1 := rfl
 
 @[simp]
 lemma zero_div_eq_zero (s : S) : 0 /ₒ s = 0 :=
 by { rw [ore_localization.zero_def, ore_div_eq_iff], exact ⟨s, 1, by simp⟩ }
 
-protected lemma zero_add (x : R[S ⁻¹]) : 0 + x = x :=
+protected lemma zero_add (x : R[S⁻¹]) : 0 + x = x :=
 begin
   induction x using ore_localization.ind,
   rw [←zero_div_eq_zero, add_ore_div], simp
 end
 
-protected lemma add_comm (x y : R[S ⁻¹]) : x + y = y + x :=
+protected lemma add_comm (x y : R[S⁻¹]) : x + y = y + x :=
 begin
   induction x using ore_localization.ind,
   induction y using ore_localization.ind,
@@ -588,19 +580,19 @@ instance : add_comm_monoid R[S⁻¹] :=
   add_zero := λ x, by rw [ore_localization.add_comm, ore_localization.zero_add],
   .. ore_localization.has_add }
 
-protected lemma zero_mul (x : R[S ⁻¹]) : 0 * x = 0 :=
+protected lemma zero_mul (x : R[S⁻¹]) : 0 * x = 0 :=
 begin
   induction x using ore_localization.ind with r s,
   rw [ore_localization.zero_def, ore_div_mul_char 0 r 1 s r 1 (by simp)], simp
 end
 
-protected lemma mul_zero (x : R[S ⁻¹]) : x * 0 = 0 :=
+protected lemma mul_zero (x : R[S⁻¹]) : x * 0 = 0 :=
 begin
   induction x using ore_localization.ind with r s,
   rw [ore_localization.zero_def, ore_div_mul_char r 0 s 1 0 1 (by simp)], simp
 end
 
-protected lemma left_distrib (x y z : R[S ⁻¹]) : x * (y + z) = x * y + x * z :=
+protected lemma left_distrib (x y z : R[S⁻¹]) : x * (y + z) = x * y + x * z :=
 begin
   induction x using ore_localization.ind with r₁ s₁,
   induction y using ore_localization.ind with r₂ s₂,
@@ -611,7 +603,7 @@ begin
   have hs₃rasb : ↑s₃ * (ra * sb) ∈ S, { rw [←mul_assoc, ←ha], norm_cast, apply set_like.coe_mem },
   rw ore_localization.expand _ _ _ hs₃rasb,
   have ha' : (↑(s₂ * sa * sb)) = ↑s₃ * (ra * sb), { simp [ha, ←mul_assoc] },
-  rw ←submonoid.eq_of_coe_eq_mul ha',
+  rw ←subtype.coe_eq_of_eq_mk ha',
   rcases ore_div_mul_char' r₁ (r₃ * (ra * sb)) s₁ (s₂ * sa * sb) with ⟨rc, sc, hc, hc'⟩, rw hc',
   rw ore_div_add_char (s₂ * sa * sb) (s₂ * sa * sb * sc) 1 sc (by simp),
   rw ore_localization.expand' (r₂ * ↑sa + r₃ * ra) (s₂ * sa) (sb * sc),
@@ -620,7 +612,7 @@ begin
   rw ore_localization.mul_cancel', simp only [mul_one, submonoid.coe_mul, mul_add, ←mul_assoc],
 end
 
-lemma right_distrib (x y z : R[S ⁻¹]) : (x + y) * z = x * z + y * z :=
+lemma right_distrib (x y z : R[S⁻¹]) : (x + y) * z = x * z + y * z :=
 begin
   induction x using ore_localization.ind with r₁ s₁,
   induction y using ore_localization.ind with r₂ s₂,
@@ -628,7 +620,7 @@ begin
   rcases ore_div_add_char' r₁ r₂ s₁ s₂ with ⟨ra, sa, ha, ha'⟩, rw ha', clear ha', norm_cast at ha,
   rw ore_localization.expand' r₁ s₁ sa,
   rw ore_localization.expand r₂ s₂ ra (by rw ←ha; apply set_like.coe_mem),
-  rw ←submonoid.eq_of_coe_eq_mul ha,
+  rw ←subtype.coe_eq_of_eq_mk ha,
   repeat { rw ore_div_mul_ore_div }, simp only [add_mul, add_ore_div]
 end
 
@@ -667,7 +659,7 @@ def universal_hom : R[S⁻¹] →+* T :=
     rw [add_mul, ←mul_assoc, mul_assoc (f r₁), hf, ←units.coe_mul],
     simp only [mul_one, mul_right_inv, units.coe_one],
     congr' 1, rw [mul_assoc], congr' 1,
-    norm_cast at h₃, have h₃' := submonoid.eq_of_coe_eq_mul h₃,
+    norm_cast at h₃, have h₃' := subtype.coe_eq_of_eq_mk h₃,
     rw [←units.coe_mul, ←mul_inv_rev, ←fS.map_mul, h₃'],
     have hs₂r₃ : ↑s₂ * r₃ ∈ S, { rw ←h₃, exact set_like.coe_mem (s₁ * s₃)},
     apply (units.inv_mul_cancel_left (fS s₂) _).symm.trans,

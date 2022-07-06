@@ -203,47 +203,47 @@ end term_pow
 
 /-- Any type with instances of `has_one` and `has_mul` is a
   structure in the language of monoids. -/
-def monoid.Structure_of_has_one_has_mul {α : Type*} [has_one α] [has_mul α] :
+def monoid.Structure_of_has_one_has_mul [has_one α] [has_mul α] :
   language.monoid.Structure α :=
 Structure.mk₂ (λ _, 1) empty.elim (λ _, has_mul.mul) empty.elim empty.elim
 
 /-- Any type with instances of `has_zero` and `has_add` is a
   structure in the language of additive monoids. -/
-def add_monoid.Structure_of_has_zero_has_add {α : Type*} [has_zero α] [has_add α] :
+def add_monoid.Structure_of_has_zero_has_add [has_zero α] [has_add α] :
   language.monoid.Structure α :=
 Structure.mk₂ (λ _, 0) empty.elim (λ _, has_add.add) empty.elim empty.elim
 
 /-- Any type with instances of `has_one`, `has_inv` and `has_mul` is a
   structure in the language of groups. -/
-def group.Structure_of_has_one_has_inv_has_mul {α : Type} [has_one α] [has_inv α] [has_mul α] :
+def group.Structure_of_has_one_has_inv_has_mul [has_one α] [has_inv α] [has_mul α] :
   language.group.Structure α :=
 Structure.mk₂ (λ _, 1) (λ _, has_inv.inv) (λ _, has_mul.mul) empty.elim empty.elim
 
 /-- Any type with instances of `has_zero`, `has_neg` and `has_add` is a
   structure in the language of additive groups. -/
-def add_group.Structure_of_has_zero_has_neg_has_add {α : Type} [has_zero α] [has_neg α] [has_add α] :
+def add_group.Structure_of_has_zero_has_neg_has_add [has_zero α] [has_neg α] [has_add α] :
   language.group.Structure α :=
 Structure.mk₂ (λ _, 0) (λ _, has_neg.neg) (λ _, has_add.add) empty.elim empty.elim
 
 /-- Any monoid is a structure in the language of monoids. -/
-def _root_.monoid.Structure (M : Type) [monoid M] : language.monoid.Structure M :=
+def _root_.monoid.Structure [monoid α] : language.monoid.Structure α :=
 monoid.Structure_of_has_one_has_mul
 
 /-- Any additive monoid is a structure in the language of additive monoids. -/
-def _root_.add_monoid.Structure (M : Type) [add_monoid M] : language.monoid.Structure M :=
+def _root_.add_monoid.Structure [add_monoid α] : language.monoid.Structure α :=
 add_monoid.Structure_of_has_zero_has_add
 
 /-- Any group is a structure in the language of groups. -/
-def _root_.group.Structure (G : Type) [group G] : language.group.Structure G :=
+def _root_.group.Structure [group α] : language.group.Structure α :=
 group.Structure_of_has_one_has_inv_has_mul
 
 /-- Any additive group is a structure in the language of additive groups. -/
-def _root_.add_comm_group.Structure (G : Type) [add_comm_group G] : language.group.Structure G :=
+def _root_.add_comm_group.Structure [add_comm_group α] : language.group.Structure α :=
 add_group.Structure_of_has_zero_has_neg_has_add
 
 /-- Any ring is a structure in the language of ring. -/
-def _root_.ring.Structure (R : Type*) [ring R] : language.ring.Structure R :=
-@language.sum_Structure _ _ _ (add_comm_group.Structure R) (monoid.Structure R)
+def _root_.ring.Structure [ring α] : language.ring.Structure α :=
+@language.sum_Structure _ _ _ add_comm_group.Structure monoid.Structure
 
 section sentences
 

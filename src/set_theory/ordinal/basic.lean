@@ -505,11 +505,15 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
 quotient.eq
 
 theorem _root_.rel_iso.ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
-  type r = type s := type_eq.2 ⟨h⟩
+  [is_well_order α r] [is_well_order β s] (h : r ≃r s) : type r = type s :=
+type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
 (type_def' _).symm.trans $ quotient.out_eq o
+
+@[simp] theorem type_preimage {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β ≃ α) :
+  type (f ⁻¹'o r) = type r :=
+(rel_iso.preimage f r).ordinal_type_eq
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
@@ -804,22 +808,34 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
 
 /-! ### Lifting ordinals to a higher universe -/
 
-instance {α : Type u} (r : α → α → Prop) [is_well_order α r] :
-  is_well_order (ulift.{v} α) (equiv.ulift.{v} ⁻¹'o r) :=
-@rel_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'o r) r
-  (rel_iso.preimage equiv.ulift.{v} r) _
-
 /-- The universe lift operation for ordinals, which embeds `ordinal.{u}` as
   a proper initial segment of `ordinal.{v}` for `v > u`. For the initial segment version,
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{v}) : ordinal.{max v u} :=
-quotient.lift_on o (λ ⟨α, r, wo⟩, by exactI type (@equiv.ulift.{u} α ⁻¹'o r)) $
+quotient.lift_on o (λ w, type $ ulift.down ⁻¹'o w.r) $
   λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩, quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
     f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
 @[simp] theorem type_lift (r : α → α → Prop) [is_well_order α r] :
-  type (@equiv.ulift.{v} α ⁻¹'o r) = lift.{v} (type r) :=
+  type (ulift.down ⁻¹'o r) = lift.{v} (type r) :=
 rfl
+
+set_option pp.universes true
+theorem _root_.rel_iso.ordinal_lift_type_eq {α : Type u} {β : Type v}
+  {r : α → α → Prop} {s : β → β → Prop} [is_well_order α r] [is_well_order β s] (f : r ≃r s) :
+  lift.{v} (type r) = lift.{u} (type s) :=
+begin
+  change type (ulift.down.{v} ⁻¹'o r) = type (ulift.down.{u} ⁻¹'o s),
+  apply rel_iso.ordinal_type_eq,
+  apply (rel_iso.preimage equiv.ulift r).trans,
+  exact f.trans (rel_iso.preimage equiv.ulift s).symm
+end
+
+#exit
+
+@[simp] theorem type_preimage_lift {α : Type u} {β : Type v} (r : α → α → Prop) [is_well_order α r]
+  (f : β ≃ α) : lift.{u} (type (f ⁻¹'o r)) = lift.{v} (type r) :=
+(rel_iso.preimage f r).ordinal_type_eq
 
 /-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
     easier to understand what's happening when using this lemma. -/

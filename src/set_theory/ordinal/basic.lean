@@ -727,23 +727,20 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 
 /-! ### Cardinality of ordinals -/
 
-/-- The cardinal of an ordinal is the cardinal of any
-  set with that order type. -/
-def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
+/-- The cardinal of an ordinal is the cardinality of any type on which a relation with that order
+type is defined. -/
+def card : ordinal → cardinal := quotient.map Well_order.α $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.to_equiv⟩
 
-@[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
-  card (type r) = #α := rfl
+@[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] : card (type r) = #α := rfl
 
 @[simp] lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
-  #{y // r y x} = (typein r x).card := rfl
+  #{y // r y x} = (typein r x).card :=
+rfl
 
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
-instance : has_zero ordinal :=
-⟨@type pempty empty_relation _⟩
-
+instance : has_zero ordinal := ⟨type $ @empty_relation pempty⟩
 instance : inhabited ordinal := ⟨0⟩
 
 @[simp] theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
@@ -752,8 +749,7 @@ instance : inhabited ordinal := ⟨0⟩
 @[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
 ⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
 
-theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
-by simp
+theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α := by simp
 
 theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
 type_ne_zero_iff_nonempty.2 h
@@ -763,8 +759,7 @@ type_ne_zero_iff_nonempty.2 h
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
-instance : order_bot ordinal :=
-⟨0, ordinal.zero_le⟩
+instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
 
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
@@ -772,30 +767,21 @@ by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
-lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
-begin
-  by_contra ho,
-  replace ho := ordinal.pos_iff_ne_zero.2 ho,
-  rw ←type_lt o at ho,
-  have α := enum (<) 0 ho,
-  exact h.elim α
-end
-
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
-begin
-  refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
-  subst o,
-  exact (ordinal.zero_le _).not_lt (typein_lt_self i)
-end
+by rw [←@type_eq_zero_iff_is_empty o.out.α (<), type_lt]
+
+lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
+out_empty_iff_eq_zero.1 h
+
+instance is_empty_out_zero : is_empty (0 : ordinal).out.α := out_empty_iff_eq_zero.2 rfl
 
 @[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
-by rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not, out_empty_iff_eq_zero]
+by rw [←@type_ne_zero_iff_nonempty o.out.α (<), type_lt]
 
-instance is_empty_out_zero : is_empty (0 : ordinal).out.α :=
-out_empty_iff_eq_zero.2 rfl
+lemma ne_zero_of_out_nonempty (o : ordinal) [h : nonempty o.out.α] : o ≠ 0 :=
+out_nonempty_iff_ne_zero.1 h
 
-instance : has_one ordinal :=
-⟨@type punit empty_relation _⟩
+instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
 quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩

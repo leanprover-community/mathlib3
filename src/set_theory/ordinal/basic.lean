@@ -804,20 +804,22 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
 
 /-! ### Lifting ordinals to a higher universe -/
 
+instance {α : Type u} (r : α → α → Prop) [is_well_order α r] :
+  is_well_order (ulift.{v} α) (equiv.ulift.{v} ⁻¹'o r) :=
+@rel_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'o r) r
+  (rel_iso.preimage equiv.ulift.{v} r) _
+
 /-- The universe lift operation for ordinals, which embeds `ordinal.{u}` as
   a proper initial segment of `ordinal.{v}` for `v > u`. For the initial segment version,
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{v}) : ordinal.{max v u} :=
-quotient.lift_on o (λ ⟨α, r, wo⟩,
-  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{u} α ⁻¹'o r) r
-    (rel_iso.preimage equiv.ulift.{u} r) wo)) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
-quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
-  f.trans (rel_iso.preimage equiv.ulift s).symm⟩
+quotient.lift_on o (λ ⟨α, r, wo⟩, by exactI type (@equiv.ulift.{u} α ⁻¹'o r)) $
+  λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩, quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
+    f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
-theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
-  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
-⟨_, rfl⟩
+@[simp] theorem type_lift (r : α → α → Prop) [is_well_order α r] :
+  type (@equiv.ulift.{v} α ⁻¹'o r) = lift.{v} (type r) :=
+rfl
 
 /-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
     easier to understand what's happening when using this lemma. -/

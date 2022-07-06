@@ -91,7 +91,7 @@ begin
   rw [←div_le_one (rpow_pos_of_pos four_pos x), ←div_div_eq_mul_div, ←rpow_sub four_pos,
       ←mul_div 2 x, mul_div_left_comm, ←mul_one_sub, show (1 : ℝ) - 2 / 3 = 1 / 3, by norm_num,
       mul_one_div, ←log_nonpos_iff (hf' x h5), ←hf x h5],
-  have hf'' : concave_on ℝ (set.Ioi 0.5) f,
+  have h : concave_on ℝ (set.Ioi 0.5) f,
   { refine ((strict_concave_on_log_Ioi.concave_on.subset (set.Ioi_subset_Ioi _)
       (convex_Ioi 0.5)).add ((strict_concave_on_sqrt_mul_log_Ioi.concave_on.comp_linear_map
       ((2 : ℝ) • linear_map.id)).subset

@@ -56,7 +56,7 @@ def add : language.ring.functions 2 := sum.inl ⟨⟩
 /-- The function symbol representing multiplication. -/
 def mul : language.ring.functions 2 := sum.inr ⟨⟩
 
-@[simp] instance : has_zero (language.ring.term α) := ⟨ constants.term (sum.inl ⟨⟩) ⟩
+@[simp] instance : has_zero (language.ring.term α) := ⟨ constants.term zero ⟩
 
 @[simp] instance : has_one (language.ring.term α) := ⟨ constants.term (sum.inr ⟨⟩) ⟩
 

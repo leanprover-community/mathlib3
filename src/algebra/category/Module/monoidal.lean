@@ -42,7 +42,6 @@ namespace monoidal_category
 
 open_locale tensor_product
 local attribute [ext] tensor_product.ext
-set_option pp.universes true
 
 /-- (implementation) tensor product of R-modules -/
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
@@ -65,7 +64,6 @@ def associator (M : Module.{v} R) (N : Module.{w} R) (K : Module.{x} R) :
 (tensor_product.assoc R M N K).to_Module_iso
 
 section
-
 
 /-! The `associator_naturality` and `pentagon` lemmas below are very slow to elaborate.
 
@@ -112,7 +110,7 @@ lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
     (associator X₁ X₂ X₃).hom ≫ tensor_hom f₁ (tensor_hom f₂ f₃) :=
 by convert associator_naturality_aux f₁ f₂ f₃ using 1
 
-lemma pentagon (W X Y Z : Module.{v} R) :
+lemma pentagon (W X Y Z : Module R) :
   tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom
   ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
@@ -218,7 +216,7 @@ lemma associator_inv_apply {M N K : Module.{u} R} (m : M) (n : N) (k : K) :
 end monoidal_category
 
 /-- (implementation) the braiding for R-modules -/
-def braiding (M N : Module.{v} R) : tensor_obj M N ≅ tensor_obj N M :=
+def braiding (M N : Module R) : tensor_obj M N ≅ tensor_obj N M :=
 linear_equiv.to_Module_iso (tensor_product.comm R M N)
 
 @[simp] lemma braiding_naturality {X₁ X₂ Y₁ Y₂ : Module.{u} R} (f : X₁ ⟶ Y₁) (g : X₂ ⟶ Y₂) :

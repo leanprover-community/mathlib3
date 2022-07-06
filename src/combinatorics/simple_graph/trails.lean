@@ -30,10 +30,6 @@ namespace walk
   (h : p.is_trail) : finset (sym2 V) :=
 ⟨p.edges, h.edges_nodup⟩
 
-lemma is_trail.card_edges_finset_eq_length {u v : V} {p : G.walk u v}
-  (h : p.is_trail) : h.edges_finset.card = p.length :=
-by rw [finset.card_mk, multiset.coe_card, length_edges]
-
 variables [decidable_eq V]
 
 lemma is_trail.even_countp_edges_iff {u v : V} {p : G.walk u v} (ht : p.is_trail) (x : V) :
@@ -126,7 +122,7 @@ begin
   rw [ht.edges_finset_eq, G.incidence_finset_eq_filter x],
 end
 
-lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
+lemma is_eulerian.card_filter_odd_degree [fintype V] [decidable_rel G.adj]
   {u v : V} {p : G.walk u v} (ht : p.is_eulerian) :
   ((finset.univ : finset V).filter (λ v, odd (G.degree v))).card ∈ ({0, 2} : set ℕ) :=
 begin
@@ -141,6 +137,16 @@ begin
     { congr',
       ext x,
       simp [hn, imp_iff_not_or], } },
+end
+
+lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
+  {u v : V} {p : G.walk u v} (ht : p.is_eulerian) :
+  fintype.card {v : V | odd (G.degree v)} ∈ ({0, 2} : set ℕ) :=
+begin
+  rw ← set.to_finset_card,
+  convert is_eulerian.card_filter_odd_degree ht,
+  ext v,
+  simp,
 end
 
 end walk

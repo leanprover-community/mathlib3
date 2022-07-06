@@ -820,22 +820,15 @@ quotient.lift_on o (λ w, type $ ulift.down ⁻¹'o w.r) $
   type (ulift.down ⁻¹'o r) = lift.{v} (type r) :=
 rfl
 
-set_option pp.universes true
 theorem _root_.rel_iso.ordinal_lift_type_eq {α : Type u} {β : Type v}
   {r : α → α → Prop} {s : β → β → Prop} [is_well_order α r] [is_well_order β s] (f : r ≃r s) :
   lift.{v} (type r) = lift.{u} (type s) :=
-begin
-  change type (ulift.down.{v} ⁻¹'o r) = type (ulift.down.{u} ⁻¹'o s),
-  apply rel_iso.ordinal_type_eq,
-  apply (rel_iso.preimage equiv.ulift r).trans,
-  exact f.trans (rel_iso.preimage equiv.ulift s).symm
-end
+((rel_iso.preimage equiv.ulift r).trans $
+  f.trans (rel_iso.preimage equiv.ulift s).symm).ordinal_type_eq
 
-#exit
-
-@[simp] theorem type_preimage_lift {α : Type u} {β : Type v} (r : α → α → Prop) [is_well_order α r]
+@[simp] theorem type_lift_preimage {α : Type u} {β : Type v} (r : α → α → Prop) [is_well_order α r]
   (f : β ≃ α) : lift.{u} (type (f ⁻¹'o r)) = lift.{v} (type r) :=
-(rel_iso.preimage f r).ordinal_type_eq
+(rel_iso.preimage f r).ordinal_lift_type_eq
 
 /-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
     easier to understand what's happening when using this lemma. -/

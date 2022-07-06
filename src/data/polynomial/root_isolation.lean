@@ -28,7 +28,6 @@ open_locale classical
 
 open polynomial multiset
 
-
 lemma opposite_signs_of_roots_filter_mem_Ioo_empty (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
   (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) (hr : (p.roots.filter (∈ set.Ioo a b)) = ∅) :
   ((0 < p.eval a ∧ 0 < p.eval b) ∨ (p.eval a < 0 ∧ p.eval b < 0)) :=
@@ -62,7 +61,6 @@ begin
   { replace hr := hr.left ha',
     linarith, },
 end
-
 
 lemma even_card_roots_filter_mem_Ioo_iff (a b : ℝ) (hab : a ≤ b) (p : polynomial ℝ)
   (ha : p.eval a ≠ 0) (hb : p.eval b ≠ 0) :

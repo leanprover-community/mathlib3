@@ -1,0 +1,176 @@
+/-
+Copyright (c) 2022 Kyle Miller. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kyle Miller
+-/
+import combinatorics.simple_graph.connectivity
+import data.nat.parity
+
+/-!
+
+# Trails and Eulerian trails
+
+## Main definitions
+
+* `simple_graph.walk.is_eulerian`
+
+## Tags
+
+Eulerian circuits
+
+-/
+
+namespace simple_graph
+variables {V : Type*} {G : simple_graph V}
+
+namespace walk
+
+/-- The edges of a trail as a finset. -/
+@[reducible] def is_trail.edges_finset {u v : V} {p : G.walk u v}
+  (h : p.is_trail) : finset (sym2 V) :=
+⟨p.edges, h.edges_nodup⟩
+
+lemma is_trail.length_eq_card_edges_finset {u v : V} {p : G.walk u v}
+  (h : p.is_trail) : p.length = h.edges_finset.card :=
+by simp only [finset.card_mk, multiset.coe_card, length_edges]
+
+lemma is_trail.forall_mem_edges_iff_length_eq [fintype G.edge_set]
+  {u v : V} {p : G.walk u v} (h : p.is_trail) :
+  (∀ e, e ∈ G.edge_set → e ∈ p.edges) ↔ p.length = G.edge_finset.card :=
+begin
+  rw h.length_eq_card_edges_finset,
+  split,
+  { intro hc,
+    congr',
+    ext e,
+    simp only [finset.mem_mk, multiset.mem_coe, mem_edge_finset],
+    exact ⟨λ h, p.edges_subset_edge_set h, hc e⟩, },
+  { intros h e,
+    rw [← mem_edge_finset, ← finset.eq_of_subset_of_card_le _ h.ge],
+    { simp },
+    { intro e',
+      simp,
+      exact λ h, p.edges_subset_edge_set h, } }
+end
+
+variables [decidable_eq V]
+
+lemma is_trail.even_countp_edges_iff {u v : V} {p : G.walk u v} (ht : p.is_trail) (x : V) :
+  even (p.edges.countp (λ e, x ∈ e)) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
+begin
+  induction p with u u v w huv p ih,
+  { simp, },
+  { rw [cons_is_trail_iff] at ht,
+    specialize ih ht.1,
+    simp only [list.countp_cons, ne.def, edges_cons, sym2.mem_iff],
+    split_ifs with h,
+    { obtain (rfl | rfl) := h,
+      { rw [nat.even_add_one, ih],
+        simp only [huv.ne, imp_false, ne.def, not_false_iff, true_and, not_forall, not_not,
+          exists_prop, eq_self_iff_true, not_true, false_and, and_iff_right_iff_imp],
+        rintro rfl rfl,
+        exact G.loopless _ huv, },
+      { rw [nat.even_add_one, ih, ← not_iff_not],
+        simp only [huv.ne.symm, ne.def, eq_self_iff_true, not_true, false_and, not_forall,
+          not_false_iff, exists_prop, and_true, not_not, true_and, iff_and_self],
+        rintro rfl,
+        exact huv.ne, } },
+    { rw not_or_distrib at h,
+      simp only [h.1, h.2, not_false_iff, true_and, add_zero, ne.def] at ih ⊢,
+      rw ih,
+      split;
+      { rintro h' h'' rfl,
+        simp only [imp_false, eq_self_iff_true, not_true, not_not] at h',
+        cases h',
+        simpa using h } } },
+end
+
+/-- An *Eulerian trail* (also known as an "Eulerian path") is a walk
+`p` that visits every edge exactly once.  The lemma
+`simple_graph.walk.is_eulerian.is_trail` shows these are trails.
+
+Combine with `p.is_circuit` to get an Eulerian circuit (also known as an "Eulerian cycle"). -/
+def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
+∀ e, e ∈ G.edge_set → p.edges.count e = 1
+
+lemma is_eulerian.is_trail {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : p.is_trail :=
+begin
+  rw [is_trail_def, list.nodup_iff_count_le_one],
+  intro e,
+  by_cases he : e ∈ p.edges,
+  { exact (h e (edges_subset_edge_set _ he)).le },
+  { simp [he] },
+end
+
+lemma is_eulerian.mem_edges {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) {e : sym2 V} (he : e ∈ G.edge_set) : e ∈ p.edges :=
+by simpa using (h e he).ge
+
+lemma is_trail.is_eulerian_of_forall_mem {u v : V} {p : G.walk u v}
+  (h : p.is_trail) (hc : ∀ e, e ∈ G.edge_set → e ∈ p.edges) :
+  p.is_eulerian :=
+λ e he, list.count_eq_one_of_mem h.edges_nodup (hc e he)
+
+lemma is_eulerian_iff [fintype G.edge_set]
+  {u v : V} (p : G.walk u v) :
+  p.is_eulerian ↔ p.is_trail ∧ ∀ e, e ∈ G.edge_set → e ∈ p.edges :=
+begin
+  split,
+  { intro h,
+    exact ⟨h.is_trail, λ _, h.mem_edges⟩, },
+  { rintro ⟨h, hl⟩,
+    exact h.is_eulerian_of_forall_mem hl, },
+end
+
+lemma is_eulerian.mem_edges_iff {u v : V} {p : G.walk u v} (h : p.is_eulerian) {e : sym2 V} :
+  e ∈ p.edges ↔ e ∈ G.edge_set :=
+⟨λ h, p.edges_subset_edge_set h, h.mem_edges⟩
+
+lemma is_eulerian.edges_finset_eq [fintype G.edge_set]
+  {u v : V} {p : G.walk u v} (h : p.is_eulerian) :
+  h.is_trail.edges_finset = G.edge_finset :=
+by { ext e, simp [h.mem_edges_iff] }
+
+lemma is_eulerian.length_eq_card_edge_finset [fintype G.edge_set] {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : p.length = G.edge_finset.card :=
+by simp only [h.is_trail.length_eq_card_edges_finset, h.edges_finset_eq]
+
+/-- The edge set of an Eulerian graph is finite. -/
+def is_eulerian.fintype_edge_set {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : fintype G.edge_set :=
+fintype.of_finset h.is_trail.edges_finset $ λ e,
+by simp only [finset.mem_mk, multiset.mem_coe, h.mem_edges_iff]
+
+lemma is_eulerian.even_degree_iff {x u v : V} {p : G.walk u v} (ht : p.is_eulerian)
+  [fintype V] [decidable_rel G.adj] :
+  even (G.degree x) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
+begin
+  convert ht.is_trail.even_countp_edges_iff x,
+  rw [← multiset.coe_countp, multiset.countp_eq_card_filter, ← card_incidence_finset_eq_degree],
+  change multiset.card _ = _,
+  congr' 1,
+  convert_to _ = (ht.is_trail.edges_finset.filter (has_mem.mem x)).val,
+  rw [ht.edges_finset_eq, G.incidence_finset_eq_filter x],
+end
+
+lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
+  {u v : V} {p : G.walk u v} (ht : p.is_eulerian) :
+  ((finset.univ : finset V).filter (λ v, odd (G.degree v))).card ∈ ({0, 2} : set ℕ) :=
+begin
+  simp only [nat.odd_iff_not_even, set.mem_insert_iff, finset.card_eq_zero, set.mem_singleton_iff],
+  simp only [ht.even_degree_iff, ne.def, not_forall, not_and, not_not, exists_prop],
+  obtain (rfl | hn) := eq_or_ne u v,
+  { left,
+    simp, },
+  { right,
+    convert_to _ = ({u, v} : finset V).card,
+    { simp [hn], },
+    { congr',
+      ext x,
+      simp [hn, imp_iff_not_or], } },
+end
+
+end walk
+
+end simple_graph

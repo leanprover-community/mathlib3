@@ -154,9 +154,9 @@ lemma union_right {a b c : set α} (ab : separated a b) (ac : separated a c) :
 
 end separated
 
-/-- A T₀ space, also known as a Kolmogorov space, is a topological space for every pair `x ≠ y`,
-there is an open set containing one but not the other. We formulate the definition in terms of
-the `inseparable` relation.  -/
+/-- A T₀ space, also known as a Kolmogorov space, is a topological space such that for every pair
+`x ≠ y`, there is an open set containing one but not the other. We formulate the definition in terms
+of the `inseparable` relation.  -/
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ ⦃x y : α⦄, inseparable x y → x = y)
 

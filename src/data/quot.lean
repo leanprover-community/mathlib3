@@ -445,6 +445,11 @@ nonempty_of_exists q.exists_rep
 
 end trunc
 
+/-- A helper lemma for `quotient.lift_on' (f : α → β)`, where `β` is a partial order.  -/
+lemma eqv_imp_eq_of_eqv_imp_le {β} [partial_order β] {s : setoid α} {f : α → β}
+  (h : ∀ a b, a ≈ b → f a ≤ f b) : ∀ a b, a ≈ b → f a = f b :=
+λ a b hab, le_antisymm (h a b hab) (h b a $ setoid.symm hab)
+
 /-! ### `quotient` with implicit `setoid` -/
 
 namespace quotient

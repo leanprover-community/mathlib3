@@ -422,31 +422,6 @@ theorem collapse_apply [is_well_order β s] (f : r ↪r s)
 
 end rel_embedding
 
-/-! ### Well order on an arbitrary type -/
-
-section well_ordering_thm
-parameter {σ : Type u}
-open function
-
-theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
-(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
-  let g : σ → cardinal.{u} := inv_fun f in
-  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
-  have g x ≤ sum g, from le_sum.{u u} g x,
-  not_le_of_gt (by rw hx; exact cantor _) this
-
-/-- An embedding of any type to the set of cardinals. -/
-def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
-
-/-- Any type can be endowed with a well order, obtained by pulling back the well order over
-cardinals by some embedding. -/
-def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
-
-instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
-(rel_embedding.preimage _ _).is_well_order
-
-end well_ordering_thm
-
 /-! ### Definition of ordinals -/
 
 /-- Bundled structure registering a well order on a type. Ordinals will be defined as a quotient
@@ -729,8 +704,8 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 
 /-- The cardinal of an ordinal is the cardinal of any
   set with that order type. -/
-def card (o : ordinal) : cardinal :=
-quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotient.sound ⟨e.to_equiv⟩
+def card : ordinal → cardinal :=
+quotient.map Well_order.α $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.to_equiv⟩
 
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl
@@ -808,15 +783,15 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
   a proper initial segment of `ordinal.{v}` for `v > u`. For the initial segment version,
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{v}) : ordinal.{max v u} :=
-quotient.lift_on o (λ ⟨α, r, wo⟩,
-  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{u} α ⁻¹'o r) r
-    (rel_iso.preimage equiv.ulift.{u} r) wo)) $
+quotient.lift_on o (λ x,
+  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{u} x.α ⁻¹'o x.2) x.r
+    (rel_iso.preimage equiv.ulift.{u} x.r) x.wo)) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
 quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
   f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
 theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
-  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
+  ∃ wo', lift (type r) = @type (ulift α) (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
 ⟨_, rfl⟩
 
 /-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
@@ -1180,25 +1155,30 @@ by simp only [lift.principal_seg_top, univ_id]
 
 /-! ### Minimum -/
 
+section argmin_min
+
+variables {ι : Sort*} {I : nonempty ι} {f : ι → ordinal}
+
+/-- The index of the minimal element of a nonempty family of ordinals. -/
+def argmin (I : nonempty ι) (f : ι → ordinal) : ι :=
+(lt_wf.min_mem (set.range f) (@set.range_nonempty _ _ I f)).some
+
 /-- The minimal element of a nonempty family of ordinals -/
-def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-lt_wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
+def min (I : nonempty ι) (f : ι → ordinal) : ordinal := f (argmin I f)
 
-theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
-let ⟨i, e⟩ := lt_wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
+lemma apply_argmin (I : nonempty ι) (f : ι → ordinal) : f (argmin I f) = min I f := rfl
 
-theorem min_le {ι I} (f : ι → ordinal) (i) : min I f ≤ f i :=
-le_of_not_gt $ lt_wf.not_lt_min (set.range f) _ (set.mem_range_self i)
+theorem min_le (f : ι → ordinal) (i) : min I f ≤ f i :=
+(lt_wf.min_mem (set.range f) _).some_spec.trans_le $ lt_wf.min_le (mem_range_self _)
 
-theorem le_min {ι I} {f : ι → ordinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
-⟨λ h i, le_trans h (min_le _ _),
- λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
+theorem le_min {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
+⟨λ h i, le_trans h (min_le _ _), λ h, h _⟩
 
 @[simp] theorem lift_min {ι} (I) (f : ι → ordinal) : lift (min I f) = min I (lift ∘ f) :=
 le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
-let ⟨i, e⟩ := min_eq I (lift ∘ f) in
-by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
-by have := min_le (lift ∘ f) j; rwa e at this)
+  lift_le.2 (le_min.2 $ λ j, lift_le.1 $ min_le (lift ∘ f) j)
+
+end argmin_min
 
 instance : conditionally_complete_linear_order_bot ordinal :=
 is_well_order.conditionally_complete_linear_order_bot _
@@ -1220,6 +1200,41 @@ dif_neg not_nonempty_empty
 
 end ordinal
 
+/-! ### Well order on an arbitrary type -/
+
+section well_ordering_thm
+variable {σ : Type u}
+open function ordinal
+
+theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
+(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
+  let g : σ → cardinal.{u} := inv_fun f in
+  let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
+  have g x ≤ sum g, from le_sum.{u u} g x,
+  not_le_of_gt (by rw hx; exact cantor _) this
+
+/-- An embedding of any type to the set of cardinals. -/
+def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
+
+lemma exists_well_ordering (σ : Type u) : ∃ r : σ → σ → Prop, is_well_order σ r :=
+⟨embedding_to_cardinal ⁻¹'o (<), (rel_embedding.preimage _ _).is_well_order⟩
+
+/-- Any type can be endowed with a well order, obtained by pulling back the well order over
+cardinals by some embedding. We choose a well order so that it defines the least possible
+ordinal, see `ordinal.type_well_ordering_rel`. -/
+def well_ordering_rel : σ → σ → Prop :=
+↑(ordinal.argmin (nonempty_subtype.2 $ exists_well_ordering σ) $ λ r, @type σ r r.2)
+
+instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
+subtype.property _
+
+/-- `well_ordering_rel` is a well order that defines the minimal ordinal on the underlying type. -/
+lemma type_well_ordering_rel_le (r : σ → σ → Prop) [is_well_order σ r] :
+  type (@well_ordering_rel σ) ≤ type r :=
+min_le (λ r : subtype (is_well_order σ), @type σ r r.2) ⟨r, infer_instance⟩
+
+end well_ordering_thm
+
 /-! ### Representing a cardinal with an ordinal -/
 
 namespace cardinal
@@ -1231,72 +1246,56 @@ open ordinal
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
 def ord (c : cardinal) : ordinal :=
-begin
-  let ι := λ α, {r // is_well_order α r},
-  have : Π α, ι α := λ α, ⟨well_ordering_rel, by apply_instance⟩,
-  let F := λ α, ordinal.min ⟨this _⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
-  refine quot.lift_on c F _,
-  suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
-  from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
-  intros α β h, cases h with f, refine ordinal.le_min.2 (λ i, _),
-  haveI := @rel_embedding.is_well_order _ _
-    (f ⁻¹'o i.1) _ ↑(rel_iso.preimage f i.1) i.2,
-  rw ← show type (f ⁻¹'o i.1) = ⟦⟨β, i.1, i.2⟩⟧, from
-    quot.sound ⟨rel_iso.preimage f i.1⟩,
-  exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
-end
+quotient.lift_on c (λ α, type (@well_ordering_rel α)) $
+  begin
+    apply eqv_imp_eq_of_eqv_imp_le,
+    rintro α β ⟨e⟩,
+    haveI : is_well_order α (e ⁻¹'o well_ordering_rel),
+      from rel_embedding.is_well_order (rel_iso.preimage e _).to_rel_embedding,
+    calc type (@well_ordering_rel α) ≤ type (e ⁻¹'o well_ordering_rel) :
+      type_well_ordering_rel_le _
+    ... = type well_ordering_rel : (rel_iso.preimage e _).ordinal_type_eq
+  end
 
-lemma ord_eq_min (α : Type u) : ord (#α) =
-  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-    (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
-
-theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
-  ord (#α) = @type α r wo :=
-let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-  (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
-⟨r, wo, h⟩
+@[simp] lemma _root_.ordinal.type_well_ordering_rel (α : Type u) :
+  type (@well_ordering_rel α) = ord (#α) := rfl
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
-@ordinal.min_le {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-  (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
+type_well_ordering_rel_le r
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
-induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
-let ⟨r, _, e⟩ := ord_eq α in begin
-  resetI, simp only [card_type], split; intro h,
-  { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
-  { cases h with f,
-    have g := rel_embedding.preimage f s,
-    haveI := rel_embedding.is_well_order g,
-    exact le_trans (ord_le_type _) (type_le'.2 ⟨g⟩) }
-end
+induction_on c $ λ α, ordinal.induction_on o $ λ β s hs,
+  begin
+    refine ⟨λ ⟨e⟩, ⟨e.to_embedding⟩, _⟩,
+    rintro ⟨e⟩,
+    set f := rel_embedding.preimage e s,
+    haveI := f.is_well_order,
+    exact le_trans (ord_le_type (e ⁻¹'o s)) (type_le'.2 ⟨f⟩)
+  end
 
-theorem lt_ord {c o} : o < ord c ↔ o.card < c :=
-by rw [← not_le, ← not_le, ord_le]
+theorem gc_ord_card : galois_connection ord card := λ _ _, ord_le
 
-@[simp] theorem card_ord (c) : (ord c).card = c :=
-quotient.induction_on c $ λ α,
-let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
+theorem lt_ord {c o} : o < ord c ↔ o.card < c := gc_ord_card.lt_iff_lt
 
-theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 le_rfl
+@[simp] theorem card_ord (c) : (ord c).card = c := induction_on c $ λ α, rfl
 
-lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
-by { rw lt_ord, apply lt_succ }
+/-- Galois coinsertion between `cardinal.ord` and `ordinal.card`. -/
+def gci_ord_card : galois_coinsertion ord card :=
+gc_ord_card.to_galois_coinsertion $ λ c, c.card_ord.le
 
-@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
-by simp only [ord_le, card_ord]
+theorem ord_card_le (o : ordinal) : o.card.ord ≤ o := gc_ord_card.l_u_le _
 
-@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ :=
-by simp only [lt_ord, card_ord]
+lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord := lt_ord.2 $ lt_succ _
 
-@[simp] theorem ord_zero : ord 0 = 0 :=
-le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
+@[mono] theorem ord_strict_mono : strict_mono ord := gci_ord_card.strict_mono_l
+@[mono] theorem ord_mono : monotone ord := gc_ord_card.monotone_l
+
+@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ := gci_ord_card.l_le_l_iff
+@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ := ord_strict_mono.lt_iff_lt
+@[simp] theorem ord_zero : ord 0 = 0 := gc_ord_card.l_bot
 
 @[simp] theorem ord_nat (n : ℕ) : ord n = n :=
-le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
+le_antisymm (ord_le.2 (card_nat n).ge) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
   { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
@@ -1306,14 +1305,11 @@ end
 by simpa using ord_nat 1
 
 @[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=
-eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
-  split; intro h,
-  { rcases ordinal.lt_lift_iff.1 h with ⟨a, e, h⟩,
-    rwa [← e, lt_ord, ← lift_card, lift_lt, ← lt_ord] },
-  { rw lt_ord at h,
-    rcases lift_down' (le_of_lt h) with ⟨o, rfl⟩,
-    rw [← lift_card, lift_lt] at h,
-    rwa [ordinal.lift_lt, lt_ord] }
+begin
+  refine le_antisymm (le_of_forall_lt (λ a ha, _)) _,
+  { rcases ordinal.lt_lift_iff.1 ha with ⟨a, rfl, h⟩,
+    rwa [lt_ord, ← lift_card, lift_lt, ← lt_ord, ← ordinal.lift_lt] },
+  { rw [ord_le, ← lift_card, card_ord] }
 end
 
 lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp

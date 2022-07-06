@@ -9,5 +9,8 @@
   "files.trimTrailingWhitespace": true,
   "search.usePCRE2": true,
   "lean.input.eagerReplacementEnabled": false,
-  "lean.memoryLimit": 8096
+  "lean.memoryLimit": 8096,
+  "lean.extraOptions": [
+    "--old"
+  ]
 }

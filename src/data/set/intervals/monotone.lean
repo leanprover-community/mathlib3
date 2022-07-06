@@ -208,54 +208,32 @@ end
 
 variables [preorder β] {ψ : α → β}
 
-lemma strict_mono_on_Iic_of_lt_succ [order_bot α]
+lemma strict_mono_on_Iic_of_lt_succ
   {n : α} (hψ : ∀ m, succ m ≤ n → ψ m < ψ (succ m)) :
   strict_mono_on ψ (set.Iic n) :=
 begin
-  revert hψ,
-  refine succ.rec_bot (λ n, (∀ m, succ m ≤ n → ψ m < ψ (succ m)) → strict_mono_on ψ (set.Iic n))
-    _ _ n,
-  { simp },
-  { rintro k ih hψ i hi j hj hij,
-    specialize ih (λ m hm, hψ _ (le_trans hm (le_succ _))),
-    by_cases hj' : j = succ k,
-    { subst hj',
-      rw [lt_succ_iff_eq_or_lt_of_not_is_max, or_comm, ← le_iff_lt_or_eq] at hij,
-      { exact lt_of_le_of_lt (ih.monotone_on hij le_rfl hij) (hψ _ le_rfl) },
-      { intro hk,
-        rw ← succ_le_iff_is_max at hk,
-        exact not_le_of_lt (hψ k le_rfl) (ih.monotone_on hk (mem_Iic.2 le_rfl) hk) } },
-    { have hj'' : j ≤ k,
-      { rw [mem_Iic, le_succ_iff_eq_or_le, or_iff_not_imp_left] at hj,
-        exact hj hj' },
-      exact ih (le_trans hij.le hj'') hj'' hij } }
+  intros x hx y hy hxy,
+  obtain ⟨i, rfl⟩ := hxy.le.exists_succ_iterate,
+  induction i with k ih,
+  { simpa using hxy },
+  cases k,
+  { exact hψ _ hy },
+  rw set.mem_Iic at *,
+  simp only [function.iterate_succ', function.comp_apply] at ih hxy hy ⊢,
+  by_cases hmax : is_max (succ^[k] x),
+  { rw succ_eq_iff_is_max.2 hmax at hxy ⊢,
+    exact ih (le_trans (le_succ _) hy) hxy },
+  refine lt_trans (ih (le_trans (le_succ _) hy) _) _,
+  { refine lt_of_le_of_lt (le_succ_iterate k _) _,
+    rw lt_succ_iff_not_is_max,
+    exact hmax },
+  rw [← function.comp_apply succ, ← function.iterate_succ'],
+  refine hψ _ (le_trans _ hy),
+  rw [function.iterate_succ', function.comp_apply],
 end
 
 lemma strict_mono_on_Icc_of_lt_succ {n₁ n₂ : α} (hψ : ∀ m, succ m ≤ n₂ → ψ m < ψ (succ m)) :
   strict_mono_on ψ (set.Icc n₁ n₂) :=
-begin
-  by_cases hn : n₁ ≤ n₂,
-  swap,
-  { rw Icc_eq_empty hn,
-    exact λ i hi, false.elim hi },
-  revert hψ,
-  refine @succ.rec _ _ _ _
-    (λ n₂, (∀ m, succ m ≤ n₂ → ψ m < ψ (succ m)) → strict_mono_on ψ (set.Icc n₁ n₂)) n₁ _ _ n₂ hn,
-  { simp },
-  { rintro k hk ih hψ i hi j hj hij,
-    specialize ih (λ m hm, hψ _ (le_trans hm (le_succ _))),
-    by_cases hj' : j = succ k,
-    { subst hj',
-      rw [lt_succ_iff_eq_or_lt_of_not_is_max, or_comm, ← le_iff_lt_or_eq] at hij,
-      { exact lt_of_le_of_lt (ih.monotone_on ⟨hi.1, hij⟩ ⟨hk, le_rfl⟩ hij) (hψ _ le_rfl) },
-      { intro hk,
-        rw ← succ_le_iff_is_max at hk,
-        exact not_le_of_lt (hψ k le_rfl) (ih.monotone_on ⟨hj.1, hk⟩
-          ⟨le_trans hi.1 (le_trans hij.le hk), le_rfl⟩ hk) } },
-    { have hj'' : j ≤ k,
-      { rw [mem_Icc, le_succ_iff_eq_or_le, or_iff_not_imp_left] at hj,
-        exact hj.2 hj' },
-      exact ih ⟨hi.1, le_trans hij.le hj''⟩ ⟨hj.1, hj''⟩ hij } }
-end
+strict_mono_on.mono (strict_mono_on_Iic_of_lt_succ hψ) Icc_subset_Iic_self
 
 end succ_order

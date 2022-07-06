@@ -202,6 +202,12 @@ end
 
 lemma succ_mono : monotone (succ : α → α) := λ a b, succ_le_succ
 
+lemma le_succ_iterate (k : ℕ) (x : α) : x ≤ (succ^[k] x) :=
+begin
+  conv_lhs { rw (by simp only [function.iterate_id, id.def] : x = (id^[k] x)) },
+  exact monotone.le_iterate_of_le succ_mono le_succ k x,
+end
+
 lemma Iio_succ_of_not_is_max (ha : ¬ is_max a) : Iio (succ a) = Iic a :=
 set.ext $ λ x, lt_succ_iff_of_not_is_max ha
 

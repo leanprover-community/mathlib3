@@ -25,8 +25,8 @@ If `𝔼[X] = 0` then properties (i)-(iv) are equivalent to (v) in that same sen
 
 The name sub-Gaussian is used by various authors to refer to any one of (i)-(v). We will say that a
 random variable has sub-Gaussian cumulant generating function (cgf) with constant `K₅` to mean that
-property (v) holds with that constant. Property (v) is the one which can most directly be used in
-combination with Chernoff bounds to get concentration inequalities.
+property (v) holds with that constant. The function `t^2 / 2` which appears in property (v) is the
+cgf of a Gaussian with variance 1.
 
 TODO: implement (i)-(iv) and prove relations between those properties.
 
@@ -38,9 +38,10 @@ TODO: implement (i)-(iv) and prove relations between those properties.
 
 ## Main statements
 
-* `Indep_fun.chernoff_sum_range`: For `X : ℕ → Ω → ℝ` an independent family of real random
-  variables, all with sub-Gaussian cdf with constant `c`, we have for all `ε ≥ 0`,
-  `ℙ(ε ≤ ∑ i in finset.range n, X i) ≤ exp(- ε^2 / (2 * c * n))`.
+* `Indep_fun.prob_sum_range_ge_le_of_subgaussian_cgf`: For `X : ℕ → Ω → ℝ` an independent family of
+  real random variables, all with sub-Gaussian cdf with constant `c`, we have for all `ε ≥ 0`,
+  `ℙ(ε ≤ ∑ i in finset.range n, X i) ≤ exp(- ε^2 / (2 * c * n))`. This is **Hoeffding's inequality**
+  for sub-Gaussian random variables.
 
 ## References
 
@@ -152,6 +153,7 @@ section sums
 
 variables {ι : Type*} [is_probability_measure μ] {Xs : ι → Ω → ℝ}
 
+/-- **Hoeffding's inequality** for independent sub-Gaussian random variables. -/
 lemma Indep_fun.prob_sum_ge_le_of_subgaussian_cgf'
   (h_indep : Indep_fun (λ i, infer_instance) Xs μ) {c : ι → ℝ}
   (h_meas : ∀ i, measurable (Xs i))
@@ -162,6 +164,7 @@ begin
   exact (h_indep.subgaussian_cgf_sum h_meas h_subg).prob_ge_le hε,
 end
 
+/-- **Hoeffding's inequality** for independent sub-Gaussian random variables. -/
 lemma Indep_fun.prob_sum_ge_le_of_subgaussian_cgf
   (h_indep : Indep_fun (λ i, infer_instance) Xs μ) (h_meas : ∀ i, measurable (Xs i))
   {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (Xs i) μ c) (hε : 0 ≤ ε) :
@@ -172,6 +175,7 @@ calc (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real
 ... = real.exp(- ε^2 / (2 * c * (card s))) :
     by { rw mul_assoc, congr, rw [sum_const, nsmul_eq_mul, mul_comm c], }
 
+/-- **Hoeffding's inequality** for independent sub-Gaussian random variables. -/
 lemma Indep_fun.prob_sum_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → ℝ}
   (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :
@@ -186,6 +190,7 @@ begin
   ... = real.exp(- ε^2 / (2 * c * n.succ)) : by rw card_range
 end
 
+/-- **Hoeffding's inequality** for independent sub-Gaussian random variables. -/
 lemma Indep_fun.prob_mean_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → ℝ}
   (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :

@@ -882,8 +882,7 @@ by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o 
     (initial_seg.of_iso (rel_iso.preimage equiv.ulift s).symm)⟩⟩
 
 @[simp] theorem lift_le {a b : ordinal} : lift.{u v} a ≤ lift b ↔ a ≤ b :=
-induction_on a $ λ α r _, induction_on b $ λ β s _,
-by rw ← lift_umax; exactI lift_type_le
+induction_on a $ λ α r _, induction_on b $ λ β s _, by { rw ← lift_umax, exactI lift_type_le }
 
 @[simp] theorem lift_inj {a b : ordinal} : lift a = lift b ↔ a = b :=
 by simp only [le_antisymm_iff, lift_le]
@@ -892,12 +891,10 @@ by simp only [le_antisymm_iff, lift_le]
 by simp only [lt_iff_le_not_le, lift_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
-quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
 
 @[simp] theorem lift_one : lift 1 = 1 :=
-quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
 
 theorem one_eq_lift_type_unit : 1 = lift.{u} (@type unit empty_relation _) :=
 by rw [← one_eq_type_unit, lift_one]

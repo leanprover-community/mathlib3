@@ -221,7 +221,6 @@ end
 begin
   refine induction_on o _,
   introsI α r _,
-  cases lift_type r with _ e, rw e,
   apply le_antisymm,
   { unfreezingI { refine le_cof_type.2 (λ S H, _) },
     have : (#(ulift.up ⁻¹' S)).lift ≤ #S,

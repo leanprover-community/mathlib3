@@ -122,12 +122,6 @@ begin
   exact sum_le_sum (λ i hi, (h_subg i hi).cgf_le t),
 end
 
-lemma to_real_prob_le_one [is_probability_measure μ] (s : set Ω) : (μ s).to_real ≤ 1 :=
-begin
-  rw [← ennreal.one_to_real, ennreal.to_real_le_to_real (measure_ne_top μ _) ennreal.one_ne_top],
-  exact prob_le_one,
-end
-
 lemma subgaussian_cgf.measure_ge_le' [is_finite_measure μ]
   (h : subgaussian_cgf X μ c) (hc : 0 < c) (hε : 0 ≤ ε) :
   (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
@@ -148,7 +142,7 @@ lemma subgaussian_cgf.measure_ge_le [is_probability_measure μ]
 begin
   cases lt_or_le 0 c with hc hc,
   { exact h.measure_ge_le' hc hε, },
-  suffices : 1 ≤ real.exp (-ε ^ 2 / (2 * c)), from (to_real_prob_le_one _).trans this,
+  suffices : 1 ≤ real.exp (-ε ^ 2 / (2 * c)), from to_real_prob_le_one.trans this,
   rw real.one_le_exp_iff,
   exact div_nonneg_of_nonpos (neg_nonpos_of_nonneg (sq_nonneg _))
     (mul_nonpos_of_nonneg_of_nonpos zero_le_two hc),
@@ -185,7 +179,7 @@ lemma Indep_fun.measure_sum_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → �
 begin
   cases n,
   { simp only [range_zero, sum_empty, nat.cast_zero, mul_zero, div_zero, real.exp_zero],
-    exact to_real_prob_le_one _, },
+    exact to_real_prob_le_one, },
   calc (μ {ω | ε ≤ ∑ i in finset.range n.succ, X i ω}).to_real
       ≤ real.exp(- ε^2 / (2 * c * (card (finset.range n.succ)))) :
         h_indep.measure_sum_ge_le_of_subgaussian_cgf h_meas (λ i _, h_subg i) hε
@@ -199,7 +193,7 @@ lemma Indep_fun.measure_mean_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → 
 begin
   cases n,
   { simp only [range_zero, sum_empty, nat.cast_zero, neg_zero', zero_mul, zero_div, real.exp_zero],
-    exact to_real_prob_le_one _, },
+    exact to_real_prob_le_one, },
   have h_nε : 0 ≤ ↑n.succ * ε := mul_nonneg (nat.cast_nonneg _) hε,
   have h := h_indep.measure_sum_range_ge_le_of_subgaussian_cgf h_meas h_subg h_nε n.succ,
   refine (eq.trans_le _ (h.trans_eq _)),

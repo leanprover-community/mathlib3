@@ -10,13 +10,27 @@ import data.nat.parity
 
 # Trails and Eulerian trails
 
+This module contains additional theory about trails, including Eulerian trails (also known
+as Eulerian circuits).
+
 ## Main definitions
 
-* `simple_graph.walk.is_eulerian`
+* `simple_graph.walk.is_eulerian` is the predicate that a trail is an Eulerian trail.
+* `simple_graph.walk.is_trail.even_countp_edges_iff` gives a condition on the number of edges
+  in a trail that can be incident to a given vertex.
+* `simple_graph.walk.is_eulerian.even_degree_iff` gives a condition on the degrees of vertices
+  when there exists an Eulerian trail.
+* `simple_graph.walk.is_eulerian.card_odd_degree` gives the possible numbers of odd-degree
+  vertices when there exists an Eulerian trail.
+
+## Todo
+
+* Prove that there exists an Eulerian trail when the conclusion to
+  `simple_graph.walk.is_eulerian.card_odd_degree` holds.
 
 ## Tags
 
-Eulerian circuits
+Eulerian trails
 
 -/
 

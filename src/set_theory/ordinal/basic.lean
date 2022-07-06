@@ -816,7 +816,7 @@ quotient.lift_on o (λ w, type $ ulift.down ⁻¹'o w.r) $
   λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩, quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
     f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
-@[simp] theorem type_lift (r : α → α → Prop) [is_well_order α r] :
+@[simp] theorem type_ulift (r : α → α → Prop) [is_well_order α r] :
   type (ulift.down ⁻¹'o r) = lift.{v} (type r) :=
 rfl
 

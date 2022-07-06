@@ -18,10 +18,8 @@ so that the second argument only needs to be defined on the support of the first
 
 -/
 
-universes u v
-
 noncomputable theory
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
 namespace pmf

@@ -25,33 +25,14 @@ variables {V : Type*} {G : simple_graph V}
 
 namespace walk
 
-/-- The edges of a trail as a finset. -/
+/-- The edges of a trail as a finset, since each edge in a trail appears exactly once. -/
 @[reducible] def is_trail.edges_finset {u v : V} {p : G.walk u v}
   (h : p.is_trail) : finset (sym2 V) :=
 ⟨p.edges, h.edges_nodup⟩
 
-lemma is_trail.length_eq_card_edges_finset {u v : V} {p : G.walk u v}
-  (h : p.is_trail) : p.length = h.edges_finset.card :=
-by simp only [finset.card_mk, multiset.coe_card, length_edges]
-
-lemma is_trail.forall_mem_edges_iff_length_eq [fintype G.edge_set]
-  {u v : V} {p : G.walk u v} (h : p.is_trail) :
-  (∀ e, e ∈ G.edge_set → e ∈ p.edges) ↔ p.length = G.edge_finset.card :=
-begin
-  rw h.length_eq_card_edges_finset,
-  split,
-  { intro hc,
-    congr',
-    ext e,
-    simp only [finset.mem_mk, multiset.mem_coe, mem_edge_finset],
-    exact ⟨λ h, p.edges_subset_edge_set h, hc e⟩, },
-  { intros h e,
-    rw [← mem_edge_finset, ← finset.eq_of_subset_of_card_le _ h.ge],
-    { simp },
-    { intro e',
-      simp,
-      exact λ h, p.edges_subset_edge_set h, } }
-end
+lemma is_trail.card_edges_finset_eq_length {u v : V} {p : G.walk u v}
+  (h : p.is_trail) : h.edges_finset.card = p.length :=
+by rw [finset.card_mk, multiset.coe_card, length_edges]
 
 variables [decidable_eq V]
 
@@ -86,8 +67,8 @@ begin
 end
 
 /-- An *Eulerian trail* (also known as an "Eulerian path") is a walk
-`p` that visits every edge exactly once.  The lemma
-`simple_graph.walk.is_eulerian.is_trail` shows these are trails.
+`p` that visits every edge exactly once.  The lemma `simple_graph.walk.is_eulerian.is_trail` shows
+that these are trails.
 
 Combine with `p.is_circuit` to get an Eulerian circuit (also known as an "Eulerian cycle"). -/
 def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
@@ -103,9 +84,15 @@ begin
   { simp [he] },
 end
 
-lemma is_eulerian.mem_edges {u v : V} {p : G.walk u v}
-  (h : p.is_eulerian) {e : sym2 V} (he : e ∈ G.edge_set) : e ∈ p.edges :=
-by simpa using (h e he).ge
+lemma is_eulerian.mem_edges_iff {u v : V} {p : G.walk u v} (h : p.is_eulerian) {e : sym2 V} :
+  e ∈ p.edges ↔ e ∈ G.edge_set :=
+⟨λ h, p.edges_subset_edge_set h, λ he, by simpa using (h e he).ge⟩
+
+/-- The edge set of an Eulerian graph is finite. -/
+def is_eulerian.fintype_edge_set {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : fintype G.edge_set :=
+fintype.of_finset h.is_trail.edges_finset $ λ e,
+by simp only [finset.mem_mk, multiset.mem_coe, h.mem_edges_iff]
 
 lemma is_trail.is_eulerian_of_forall_mem {u v : V} {p : G.walk u v}
   (h : p.is_trail) (hc : ∀ e, e ∈ G.edge_set → e ∈ p.edges) :
@@ -117,29 +104,15 @@ lemma is_eulerian_iff {u v : V} (p : G.walk u v) :
 begin
   split,
   { intro h,
-    exact ⟨h.is_trail, λ _, h.mem_edges⟩, },
+    exact ⟨h.is_trail, λ _, h.mem_edges_iff.mpr⟩, },
   { rintro ⟨h, hl⟩,
     exact h.is_eulerian_of_forall_mem hl, },
 end
-
-lemma is_eulerian.mem_edges_iff {u v : V} {p : G.walk u v} (h : p.is_eulerian) {e : sym2 V} :
-  e ∈ p.edges ↔ e ∈ G.edge_set :=
-⟨λ h, p.edges_subset_edge_set h, h.mem_edges⟩
 
 lemma is_eulerian.edges_finset_eq [fintype G.edge_set]
   {u v : V} {p : G.walk u v} (h : p.is_eulerian) :
   h.is_trail.edges_finset = G.edge_finset :=
 by { ext e, simp [h.mem_edges_iff] }
-
-lemma is_eulerian.length_eq_card_edge_finset [fintype G.edge_set] {u v : V} {p : G.walk u v}
-  (h : p.is_eulerian) : p.length = G.edge_finset.card :=
-by simp only [h.is_trail.length_eq_card_edges_finset, h.edges_finset_eq]
-
-/-- The edge set of an Eulerian graph is finite. -/
-def is_eulerian.fintype_edge_set {u v : V} {p : G.walk u v}
-  (h : p.is_eulerian) : fintype G.edge_set :=
-fintype.of_finset h.is_trail.edges_finset $ λ e,
-by simp only [finset.mem_mk, multiset.mem_coe, h.mem_edges_iff]
 
 lemma is_eulerian.even_degree_iff {x u v : V} {p : G.walk u v} (ht : p.is_eulerian)
   [fintype V] [decidable_rel G.adj] :

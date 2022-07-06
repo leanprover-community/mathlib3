@@ -49,6 +49,8 @@ variables {Ω : Type*} {m : measurable_space Ω} {X : Ω → ℝ} {μ : measure 
 
 include m
 
+/-- A random variable has a sub-Gaussian cumulant generating function if this function is defined
+on `ℝ` and verifies `cgf X μ t ≤ c * t^2 / 2` for some real `c` and all `t ∈ ℝ`. -/
 def subgaussian_cgf (X : Ω → ℝ) (μ : measure Ω) (c : ℝ) : Prop :=
 ∀ t, integrable (λ ω, real.exp (t * X ω)) μ ∧ cgf X μ t ≤ c * t^2 / 2
 
@@ -145,7 +147,7 @@ end
 lemma Indep_fun.chernoff_sum {ι : Type*} [is_probability_measure μ]
   {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ) {c : ι → ℝ}
   (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (hs : s.nonempty) (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ (c i)) (hε : 0 ≤ ε) :
+  {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ (c i)) (hε : 0 ≤ ε) :
   (μ {ω | ε ≤ ∑ i in s, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * (∑ i in s, c i))) :=
 begin
   simp_rw ← finset.sum_apply,
@@ -155,10 +157,10 @@ end
 lemma Indep_fun.chernoff_sum_same {ι : Type*} [is_probability_measure μ] (hε : 0 ≤ ε)
   {X : ι → Ω → ℝ} (h_indep : Indep_fun (λ i, infer_instance) X μ)
   (h_meas : ∀ i, measurable (X i))
-  {s : finset ι} (hs : s.nonempty) (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ c) :
+  {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (X i) μ c) :
   (μ {ω | ε ≤ ∑ i in s, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * (card s))) :=
 calc (μ {ω | ε ≤ ∑ i in s, X i ω}).to_real
-    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) : h_indep.chernoff_sum h_meas hs h_subg hε
+    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) : h_indep.chernoff_sum h_meas h_subg hε
 ... = real.exp(- ε^2 / (2 * c * (card s))) :
     by { rw mul_assoc, congr, rw [sum_const, nsmul_eq_mul, mul_comm c], }
 
@@ -172,7 +174,7 @@ begin
     exact to_real_measure_le_one _, },
   calc (μ {ω | ε ≤ ∑ i in finset.range n.succ, X i ω}).to_real
       ≤ real.exp(- ε^2 / (2 * c * (card (finset.range n.succ)))) :
-        h_indep.chernoff_sum_same hε h_meas ⟨0, finset.mem_range.mpr n.succ_pos⟩ (λ i _, h_subg i)
+        h_indep.chernoff_sum_same hε h_meas (λ i _, h_subg i)
   ... = real.exp(- ε^2 / (2 * c * n.succ)) : by rw card_range
 end
 

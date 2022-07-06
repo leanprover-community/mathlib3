@@ -222,7 +222,7 @@ begin
   refine induction_on o _,
   introsI α r _,
   apply le_antisymm,
-  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
+  { refine le_cof_type.2 (λ S H, _),
     have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
     { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
       exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },

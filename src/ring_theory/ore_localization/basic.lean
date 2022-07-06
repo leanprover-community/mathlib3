@@ -707,6 +707,24 @@ instance : ring R[S⁻¹] :=
   .. ore_localization.semiring,
   .. ore_localization.has_neg }
 
+open_locale non_zero_divisors
+
+lemma numerator_hom_inj (hS : S ≤ R⁰) : function.injective (numerator_hom : R → R[S⁻¹]) :=
+λ r₁ r₂ h,
+begin
+  rw [numerator_hom_apply, numerator_hom_apply, ore_div_eq_iff] at h,
+  rcases h with ⟨u, v, h₁, h₂⟩,
+  simp only [S.coe_one, one_mul] at h₂,
+  rwa [←h₂, mul_cancel_right_mem_non_zero_divisor (hS (set_like.coe_mem u)), eq_comm] at h₁,
+end
+
+lemma nontrivial_of_non_zero_divisors [nontrivial R] (hS : S ≤ R⁰) : nontrivial R[S⁻¹] :=
+⟨⟨0, 1, λ h,
+  begin
+    rw [ore_localization.one_def, ore_localization.zero_def] at h,
+    apply non_zero_divisors.coe_ne_zero 1 (numerator_hom_inj hS h).symm
+  end⟩⟩
+
 end ring
 
 section division_ring
@@ -716,13 +734,7 @@ open_locale classical
 
 variables {R : Type*} [ring R] [nontrivial R] [ore_set R⁰]
 
-instance : nontrivial R[R⁰⁻¹] := ⟨⟨0, 1,
-  begin
-    rw [ore_localization.one_def, ore_localization.zero_def], intro h,
-    rw ore_div_eq_iff at h, rcases h with ⟨u, v, h, _⟩ ,
-    simp only [one_mul, zero_mul v] at h,
-    apply non_zero_divisors.coe_ne_zero u h
-  end⟩⟩
+instance : nontrivial R[R⁰⁻¹] := nontrivial_of_non_zero_divisors (refl R⁰)
 
 variables [no_zero_divisors R]
 

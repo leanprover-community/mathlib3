@@ -239,8 +239,8 @@ by { contrapose! h, exact is_succ_limit_of_succ_ne h }
 
 Note that you need a partial order without a maximum for data built using this to behave nicely on
 successors. -/
-@[elab_as_eliminator] noncomputable def is_succ_limit_rec_on {C : α → Sort*} (hs : Π a, C (succ a))
-  (hl : Π a, is_succ_limit a → C a) (b) : C b :=
+@[elab_as_eliminator] noncomputable def is_succ_limit_rec_on {C : α → Sort*} (b)
+  (hs : Π a, C (succ a)) (hl : Π a, is_succ_limit a → C a) : C b :=
 begin
   by_cases hb : is_succ_limit b,
   { exact hl b hb },
@@ -250,7 +250,7 @@ end
 
 @[simp] theorem is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, C (succ a))
   (hl : Π a, is_succ_limit a → C a) (hb : is_succ_limit b) :
-  @is_succ_limit_rec_on α _ _ C hs hl b = hl b hb :=
+  @is_succ_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
 
 section no_max_order
@@ -302,6 +302,20 @@ by { rintros a rfl, exact (H a (lt_succ a)).false.elim }
 
 lemma not_is_succ_limit_iff : ¬ is_succ_limit a ↔ ∃ b, succ b = a :=
 by simp_rw [is_succ_limit_iff_succ_ne, not_forall, not_ne_iff]
+
+/-- A value can be built by building it from previous values on successors and successor limits.
+
+Note that you need a partial order for data built using this to behave nicely on successors. -/
+@[elab_as_eliminator] noncomputable def is_succ_limit_wf_rec_on {C : α → Sort*}
+  (wf : @well_founded α (<)) (b) (hs : Π a, C a → C (succ a))
+  (hl : Π a, is_succ_limit a → (∀ b < a, C b) → C a) : C b :=
+wf.fix (λ o, is_succ_limit_rec_on o (λ a IH, hs a (IH a (lt_succ a))) hl) b
+
+@[simp] theorem is_succ_limit_wf_rec_on_limit {C : α → Sort*} (wf : @well_founded α (<))
+  (hs : Π a, C a → C (succ a)) (hl : Π a, is_succ_limit a → (∀ b < a, C b) → C a)
+  (hb : is_succ_limit b) : @is_succ_limit_wf_rec_on α _ _ _ C wf b hs hl =
+    hl b hb (λ c hc, @is_succ_limit_wf_rec_on α _ _ _ C wf c hs hl) :=
+by { rw [is_succ_limit_wf_rec_on, wf.fix_eq, is_succ_limit_rec_on_limit _ _ hb], refl }
 
 end no_max_order
 end preorder
@@ -388,13 +402,19 @@ lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 
 @[simp] theorem is_succ_limit_rec_on_succ {C : α → Sort*} (hs : Π a, C (succ a))
   (hl : Π a, is_succ_limit a → C a) (a : α) :
-  @is_succ_limit_rec_on α _ _ C hs hl (succ a) = hs a :=
+  @is_succ_limit_rec_on α _ _ C (succ a) hs hl = hs a :=
 begin
   rw is_succ_limit_rec_on,
   simp only [cast_eq_iff_heq, not_is_succ_limit_succ, not_false_iff, eq_mpr_eq_cast, dif_neg],
   congr,
   exact succ_eq_succ_iff.1 (classical.some_spec (⟨a, rfl⟩ : ∃ b, succ b = succ a))
 end
+
+@[simp] theorem is_succ_limit_wf_rec_on_succ {C : α → Sort*} (wf : @well_founded α (<))
+  (hs : Π a, C a → C (succ a)) (hl : Π a, is_succ_limit a → (∀ b < a, C b) → C a)
+  (b : α) : @is_succ_limit_wf_rec_on α _ _ _ C wf (succ b) hs hl =
+    hs b (@is_succ_limit_wf_rec_on α _ _ _ C wf b hs hl) :=
+by rw [is_succ_limit_wf_rec_on, is_succ_limit_wf_rec_on, wf.fix_eq, is_succ_limit_rec_on_succ] 
 
 end no_max_order
 
@@ -522,8 +542,8 @@ by { contrapose! h, exact is_pred_limit_of_pred_ne h }
 
 Note that you need a partial order without a minimum for data built using this to behave nicely on
 successors. -/
-@[elab_as_eliminator] noncomputable def is_pred_limit_rec_on {C : α → Sort*} (hs : Π a, C (pred a))
-  (hl : Π a, is_pred_limit a → C a) (b) : C b :=
+@[elab_as_eliminator] noncomputable def is_pred_limit_rec_on {C : α → Sort*} (b)
+  (hs : Π a, C (pred a)) (hl : Π a, is_pred_limit a → C a) : C b :=
 begin
   by_cases hb : is_pred_limit b,
   { exact hl b hb },
@@ -533,7 +553,7 @@ end
 
 @[simp] theorem is_pred_limit_rec_on_limit {C : α → Sort*} (hs : Π a, C (pred a))
   (hl : Π a, is_pred_limit a → C a) (hb : is_pred_limit b) :
-  @is_pred_limit_rec_on α _ _ C hs hl b = hl b hb :=
+  @is_pred_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
 
 section no_min_order
@@ -667,7 +687,7 @@ lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 
 @[simp] theorem is_pred_limit_rec_on_succ {C : α → Sort*} (hs : Π a, C (pred a))
   (hl : Π a, is_pred_limit a → C a) (a : α) :
-  @is_pred_limit_rec_on α _ _ C hs hl (pred a) = hs a :=
+  @is_pred_limit_rec_on α _ _ C (pred a) hs hl = hs a :=
 begin
   rw is_pred_limit_rec_on,
   simp only [cast_eq_iff_heq, not_is_pred_limit_pred, not_false_iff, eq_mpr_eq_cast, dif_neg],

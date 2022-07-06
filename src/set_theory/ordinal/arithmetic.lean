@@ -272,12 +272,30 @@ theorem eq_zero_of_is_succ_limit_nat : ∀ {n : ℕ} (h : is_succ_limit (n : ord
 | 0       h := rfl
 | (n + 1) h := (not_is_succ_limit_succ _ h).elim
 
-/-- Main induction principle of ordinals: if one can prove a property by induction at successor
-ordinals and at limit ordinals, then it holds for all ordinals. -/
+/-- If one can prove a property by induction at successor ordinals and at limit ordinals, then it
+holds for all ordinals. -/
+@[elab_as_eliminator] def limit_rec_on' {C : ordinal → Sort*}
+  (o : ordinal) (H₁ : ∀ o, C o → C (succ o))
+  (H₂ : ∀ o, is_succ_limit o → (∀ o' < o, C o') → C o) : C o :=
+lt_wf.fix (λ o, is_succ_limit_rec_on o (λ a IH, H₁ a (IH a (lt_succ a))) H₂) o
+
+/-- Main induction principle of ordinals: if one can prove a property by induction at zero,
+successor ordinals and at limit ordinals, then it holds for all ordinals. -/
 @[elab_as_eliminator] def limit_rec_on {C : ordinal → Sort*}
   (o : ordinal) (H₁ : C 0) (H₂ : ∀ o, C o → C (succ o))
   (H₃ : ∀ o, o ≠ 0 → is_succ_limit o → (∀ o' < o, C o') → C o) : C o :=
-is_succ_limit_rec_on H₂
+lt_wf.fix (λ o IH, begin
+  by_cases h0 : o = 0,
+  { rwa h0 },
+  {
+
+  }
+  /-if o0 : o = 0 then by rw o0; exact H₁ else
+  if h : ∃ a, o = succ a then
+    by rw ← succ_pred_iff_is_succ.2 h; exact
+    H₂ _ (IH _ $ pred_lt_iff_is_succ.2 h)
+  else H₃ _ ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩ IH-/
+  end) o
 
 @[simp] theorem limit_rec_on_zero {C} (H₁ H₂ H₃) : @limit_rec_on C 0 H₁ H₂ H₃ = H₁ :=
 by rw [limit_rec_on, lt_wf.fix_eq, dif_pos rfl]; refl

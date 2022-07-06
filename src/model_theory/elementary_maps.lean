@@ -92,6 +92,9 @@ lemma Theory_model_iff (f : M ↪ₑ[L] N) (T : L.Theory) :
   M ⊨ T ↔ N ⊨ T :=
 by simp only [Theory.model_iff, f.map_sentence]
 
+lemma elementarily_equivalent (f : M ↪ₑ[L] N) : M ≅[L] N :=
+elementarily_equivalent_iff.2 f.map_sentence
+
 @[simp] lemma injective (φ : M ↪ₑ[L] N) :
   function.injective φ :=
 begin
@@ -344,6 +347,9 @@ instance Theory_model {T : L.Theory} [h : M ⊨ T] {S : L.elementary_substructur
 
 instance [h : nonempty M] {S : L.elementary_substructure M} : nonempty S :=
 (model_nonempty_theory_iff L).1 infer_instance
+
+lemma elementarily_equivalent (S : L.elementary_substructure M) : S ≅[L] M :=
+S.subtype.elementarily_equivalent
 
 end elementary_substructure
 

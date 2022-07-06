@@ -137,18 +137,18 @@ prod.add_comm_monoid
 instance [add_comm_group R] [add_comm_group A] : add_comm_group (unitization R A) :=
 prod.add_comm_group
 
-instance [has_scalar S R] [has_scalar S A] : has_scalar S (unitization R A) :=
-prod.has_scalar
+instance [has_smul S R] [has_smul S A] : has_smul S (unitization R A) :=
+prod.has_smul
 
-instance [has_scalar T R] [has_scalar T A] [has_scalar S R] [has_scalar S A] [has_scalar T S]
+instance [has_smul T R] [has_smul T A] [has_smul S R] [has_smul S A] [has_smul T S]
   [is_scalar_tower T S R] [is_scalar_tower T S A] : is_scalar_tower T S (unitization R A) :=
 prod.is_scalar_tower
 
-instance [has_scalar T R] [has_scalar T A] [has_scalar S R] [has_scalar S A]
+instance [has_smul T R] [has_smul T A] [has_smul S R] [has_smul S A]
   [smul_comm_class T S R] [smul_comm_class T S A] : smul_comm_class T S (unitization R A) :=
 prod.smul_comm_class
 
-instance [has_scalar S R] [has_scalar S A] [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ A]
+instance [has_smul S R] [has_smul S A] [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ A]
   [is_central_scalar S R] [is_central_scalar S A] : is_central_scalar S (unitization R A) :=
 prod.is_central_scalar
 
@@ -174,9 +174,9 @@ prod.module
 @[simp] lemma fst_neg [has_neg R] [has_neg A] (x : unitization R A) : (-x).fst = -x.fst := rfl
 @[simp] lemma snd_neg [has_neg R] [has_neg A] (x : unitization R A) : (-x).snd = -x.snd := rfl
 
-@[simp] lemma fst_smul [has_scalar S R] [has_scalar S A] (s : S) (x : unitization R A) :
+@[simp] lemma fst_smul [has_smul S R] [has_smul S A] (s : S) (x : unitization R A) :
   (s • x).fst = s • x.fst := rfl
-@[simp] lemma snd_smul [has_scalar S R] [has_scalar S A] (s : S) (x : unitization R A) :
+@[simp] lemma snd_smul [has_smul S R] [has_smul S A] (s : S) (x : unitization R A) :
   (s • x).snd = s • x.snd := rfl
 
 section
@@ -192,7 +192,7 @@ ext rfl (add_zero 0).symm
   (inl (-r) : unitization R A) = -inl r :=
 ext rfl neg_zero.symm
 
-@[simp] lemma inl_smul [monoid S] [add_monoid A] [has_scalar S R] [distrib_mul_action S A]
+@[simp] lemma inl_smul [monoid S] [add_monoid A] [has_smul S R] [distrib_mul_action S A]
   (s : S) (r : R) : (inl (s • r) : unitization R A) = s • inl r :=
 ext rfl (smul_zero s).symm
 
@@ -211,7 +211,7 @@ ext (add_zero 0).symm rfl
   (↑(-m) : unitization R A) = -m :=
 ext neg_zero.symm rfl
 
-@[simp] lemma coe_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_scalar S A]
+@[simp] lemma coe_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S A]
   (r : S) (m : A) : (↑(r • m) : unitization R A) = r • m :=
 ext (smul_zero' _ _).symm rfl
 
@@ -259,15 +259,15 @@ variables {R A : Type*}
 instance [has_one R] [has_zero A] : has_one (unitization R A) :=
 ⟨(1, 0)⟩
 
-instance [has_mul R] [has_add A] [has_mul A] [has_scalar R A] : has_mul (unitization R A) :=
+instance [has_mul R] [has_add A] [has_mul A] [has_smul R A] : has_mul (unitization R A) :=
 ⟨λ x y, (x.1 * y.1, x.1 • y.2 + y.1 • x.2 + x.2 * y.2)⟩
 
 @[simp] lemma fst_one [has_one R] [has_zero A] : (1 : unitization R A).fst = 1 := rfl
 @[simp] lemma snd_one [has_one R] [has_zero A] : (1 : unitization R A).snd = 0 := rfl
 
-@[simp] lemma fst_mul [has_mul R] [has_add A] [has_mul A] [has_scalar R A]
+@[simp] lemma fst_mul [has_mul R] [has_add A] [has_mul A] [has_smul R A]
   (x₁ x₂ : unitization R A) : (x₁ * x₂).fst = x₁.fst * x₂.fst := rfl
-@[simp] lemma snd_mul [has_mul R] [has_add A] [has_mul A] [has_scalar R A]
+@[simp] lemma snd_mul [has_mul R] [has_add A] [has_mul A] [has_smul R A]
   (x₁ x₂ : unitization R A) : (x₁ * x₂).snd = x₁.fst • x₂.snd + x₂.fst • x₁.snd + x₁.snd * x₂.snd :=
 rfl
 

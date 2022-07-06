@@ -82,7 +82,7 @@ begin
   { have eq_bot : 𝓝 (0 : hat K) ⊓ 𝓝 y = ⊥,
     { by_contradiction h,
       exact y_ne (eq_of_nhds_ne_bot $ ne_bot_iff.mpr h).symm },
-    erw [dense_inducing_coe.nhds_eq_comap (0 : K), ← comap_inf,  eq_bot],
+    erw [dense_inducing_coe.nhds_eq_comap (0 : K), ← filter.comap_inf, eq_bot],
     exact comap_bot },
 end
 

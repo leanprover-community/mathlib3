@@ -501,7 +501,7 @@ open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
   {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
-  (hsc : countable s) :
+  (hsc : s.countable) :
   second_countable_topology M :=
 begin
   haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
@@ -515,7 +515,7 @@ lemma charted_space.second_countable_of_sigma_compact [second_countable_topology
   [sigma_compact_space M] :
   second_countable_topology M :=
 begin
-  obtain ⟨s, hsc, hsU⟩ : ∃ s, countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
+  obtain ⟨s, hsc, hsU⟩ : ∃ s, set.countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
     countable_cover_nhds_of_sigma_compact
       (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
   exact charted_space.second_countable_of_countable_cover H hsU hsc

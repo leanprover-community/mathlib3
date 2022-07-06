@@ -10,9 +10,8 @@ import field_theory.finite.galois_field
 /-!
 # The trace map for finite fields
 
-We define `trace_to_zmod F` for a finite field `F` as the trace map
-from `F` to its prime field `zmod p` (where `p = ring_char F`),
-and we state the fact that this trace map is nondegenerate.
+We state the fact that the trace map from a finite field of
+characteristic `p` to `zmod p` is nondegenerate.
 
 ## Tags
 finite field, trace

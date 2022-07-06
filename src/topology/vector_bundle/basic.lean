@@ -518,7 +518,8 @@ namespace trivialization
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
-{ cont := begin
+{ to_fun := e.linear_map_at b, -- given explicitly to help `simps`
+  cont := begin
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
@@ -530,7 +531,8 @@ def continuous_linear_map_at (e : trivialization R F E) (b : B) :
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/
 @[simps apply {fully_applied := ff}]
 def symmL (e : trivialization R F E) (b : B) : F →L[R] E b :=
-{ cont := begin
+{ to_fun := e.symm b, -- given explicitly to help `simps`
+  cont := begin
     by_cases hb : b ∈ e.base_set,
     { rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
       exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
@@ -554,8 +556,8 @@ is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply {fully_applied := ff}]
 def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk b y)).2,
-  inv_fun := e.symm b,
+{ to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
+  inv_fun := e.symm b, -- given explicitly to help `simps`
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL b).continuous,
@@ -742,14 +744,14 @@ namespace topological_vector_bundle_core
 variables {R B F} {ι : Type*} (Z : topological_vector_bundle_core R B F ι)
 
 /-- Natural identification to a `topological_fiber_bundle_core`. -/
-def to_topological_vector_bundle_core : topological_fiber_bundle_core ι B F :=
+def to_topological_fiber_bundle_core : topological_fiber_bundle_core ι B F :=
 { coord_change := λ i j b, Z.coord_change i j b,
   coord_change_continuous := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
       ((Z.coord_change_continuous i j).prod_map continuous_on_id),
   ..Z }
 
-instance to_topological_vector_bundle_core_coe : has_coe (topological_vector_bundle_core R B F ι)
-  (topological_fiber_bundle_core ι B F) := ⟨to_topological_vector_bundle_core⟩
+instance to_topological_fiber_bundle_core_coe : has_coe (topological_vector_bundle_core R B F ι)
+  (topological_fiber_bundle_core ι B F) := ⟨to_topological_fiber_bundle_core⟩
 
 include Z
 
@@ -858,8 +860,13 @@ Z.local_triv (Z.index_at b)
 @[simp, mfld_simps] lemma mem_source_at : (⟨b, a⟩ : Z.total_space) ∈ (Z.local_triv_at b).source :=
 by { rw [local_triv_at, mem_local_triv_source], exact Z.mem_base_set_at b }
 
-@[simp, mfld_simps] lemma local_triv_at_apply : ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
-topological_fiber_bundle_core.local_triv_at_apply Z b a
+@[simp, mfld_simps] lemma local_triv_at_apply (p : Z.total_space) :
+  ((Z.local_triv_at p.1) p) = ⟨p.1, p.2⟩ :=
+topological_fiber_bundle_core.local_triv_at_apply Z p
+
+@[simp, mfld_simps] lemma local_triv_at_apply_mk (b : B) (a : F) :
+  ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
+Z.local_triv_at_apply _
 
 @[simp, mfld_simps] lemma mem_local_triv_at_base_set :
   b ∈ (Z.local_triv_at b).base_set :=
@@ -876,9 +883,9 @@ instance : topological_vector_bundle R F Z.fiber :=
       rw [preimage_inter, ←preimage_comp, function.comp],
       simp only [total_space_mk],
       refine ext_iff.mpr (λ a, ⟨λ ha, _, λ ha, ⟨Z.mem_base_set_at b, _⟩⟩),
-      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply] at ha,
+      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply_mk] at ha,
         exact ha.2.2, },
-      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
+      { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply_mk],
         exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
   trivialization_atlas := set.range Z.local_triv,
   trivialization_at := Z.local_triv_at,

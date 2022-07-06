@@ -83,11 +83,7 @@ section monoid
 
 variables {R : Type*} [monoid R] {S : submonoid R}
 
-/-- Helper lemma to convert between two common forms of equality in `R` and `S`, used in a lot
-of constructions in this file. -/
-lemma submonoid.eq_of_coe_eq_mul {s s' : S} {r : R} (h : (s : R) = s' * r) :
-  s = ⟨s' * r, by { rw [←h], simp }⟩ :=
-by { ext, simp [h] }
+-- TODO replace with subtype.coe_eq_of_eq_mk
 
 variables (R S) [ore : ore_set S]
 

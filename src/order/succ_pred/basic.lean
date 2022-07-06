@@ -664,7 +664,7 @@ by { rw [lt_iff_le_and_ne, le_pred_iff], exact ⟨hb, (ha.pred_ne b).symm⟩ }
 lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 ⟨λ ha b, ha.lt_pred, is_pred_limit_of_lt_pred⟩
 
-@[simp] theorem is_pred_limit_rec_on_succ {C : α → Sort*} (hs : Π a, C (pred a))
+@[simp] theorem is_pred_limit_rec_on_pred {C : α → Sort*} (hs : Π a, C (pred a))
   (hl : Π a, is_pred_limit a → C a) (b : α) : @is_pred_limit_rec_on α _ _ C (pred b) hs hl = hs b :=
 begin
   rw is_pred_limit_rec_on,

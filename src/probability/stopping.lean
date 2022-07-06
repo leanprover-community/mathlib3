@@ -245,7 +245,7 @@ namespace adapted
   adapted f (u - v) :=
 (sub_eq_add_neg u v).symm ▸ hu.add hv.neg
 
-@[protected] lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+lemma smul [has_smul ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 

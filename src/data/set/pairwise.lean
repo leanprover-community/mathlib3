@@ -103,7 +103,7 @@ subsingleton_singleton.pairwise r
 lemma pairwise_iff_of_refl [is_refl α r] : s.pairwise r ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b :=
 forall₄_congr $ λ a _ b _, or_iff_not_imp_left.symm.trans $ or_iff_right_of_imp of_eq
 
-alias pairwise_iff_of_refl ↔ set.pairwise.of_refl _
+alias pairwise_iff_of_refl ↔ pairwise.of_refl _
 
 lemma _root_.reflexive.set_pairwise_iff (hr : reflexive r) :
   s.pairwise r ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b :=
@@ -191,7 +191,7 @@ by simp only [set.pairwise, pairwise, mem_univ, forall_const]
 @[simp] lemma pairwise_bot_iff : s.pairwise (⊥ : α → α → Prop) ↔ (s : set α).subsingleton :=
 ⟨λ h a ha b hb, h.eq ha hb id, λ h, h.pairwise _⟩
 
-alias pairwise_bot_iff ↔ set.pairwise.subsingleton _
+alias pairwise_bot_iff ↔ pairwise.subsingleton _
 
 lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
   (hfs : ∀ x, f x ∈ s) :

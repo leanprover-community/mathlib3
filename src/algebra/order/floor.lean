@@ -306,8 +306,8 @@ lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 end linear_ordered_ring
 
-section linear_ordered_field
-variables [linear_ordered_field α] [floor_semiring α]
+section linear_ordered_semifield
+variables [linear_ordered_semifield α] [floor_semiring α]
 
 lemma floor_div_nat (a : α) (n : ℕ) : ⌊a / n⌋₊ = ⌊a⌋₊ / n :=
 begin
@@ -330,7 +330,7 @@ end
 lemma floor_div_eq_div (m n : ℕ) : ⌊(m : α) / n⌋₊ = m / n :=
 by { convert floor_div_nat (m : α) n, rw m.floor_coe }
 
-end linear_ordered_field
+end linear_ordered_semifield
 
 end nat
 

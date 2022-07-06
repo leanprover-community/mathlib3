@@ -8,15 +8,27 @@ import probability.moments
 
 /-! # Sub-Gaussian random variables
 
-TODO explain the many equivalent definitions.
+This presentation of sub-Gaussian random variables is inspired by section 2.5 of
+[vershynin2018high]. Let `X` be a random variable. We define the following five properties, where
+`Kᵢ` are positive reals,
+* (i) for all `t ≥ 0`, `ℙ(|X| ≥ t) ≤ 2 * exp(-t^2 / K₁^2)`,
+* (ii) for all `p : ℕ` with `1 ≤ p`, `𝔼[|X|^p]^(1/p) ≤ K₂ sqrt(p)`,
+* (iii) for all `|t| ≤ 1/K₃`, `𝔼[exp(t^2 * X^2)] ≤ exp(K₃^2 * t^2)`,
+* (iv) `𝔼[exp(X^2 / K₄)] ≤ 2`,
+* (v) for all `t : ℝ`, `log 𝔼[exp(t*X)] ≤ K₅ t^2 / 2`.
 
-* (i)
-* (ii)
-* (iii)
-* (iv)
+Properties (i) to (iv) are equivalent, in the sense that there exists a constant `C` such that
+if `X` verifies one of those properties with constant `K`, then it verifies any other one with
+constant at most `CK`.
 
-If `𝔼[X] = 0` then these four properties are equivalent to
-* (v) for all `t : ℝ`, `log 𝔼[exp(t*X)] ≤ c t^2 / 2`.
+If `𝔼[X] = 0` then properties (i)-(iv) are equivalent to (v) in that same sense.
+
+The name sub-Gaussian is used by various authors to refer to any one of (i)-(v). We will say that a
+random variable has sub-Gaussian cumulant generating function (cgf) with constant `K₅` to mean that
+property (v) holds with that constant. Property (v) is the one which can most directly be used in
+combination with Chernoff bounds to get concentration inequalities.
+
+TODO: implement (i)-(iv) and prove relations between those properties.
 
 ## Main definitions
 
@@ -32,7 +44,8 @@ If `𝔼[X] = 0` then these four properties are equivalent to
 
 ## References
 
-* [F. Bar, *Quuxes*][bibkey]
+* [R. Vershynin, *High-dimensional probability: An introduction with applications in data
+science*][vershynin2018high]
 
 -/
 

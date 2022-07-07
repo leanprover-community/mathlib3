@@ -44,23 +44,23 @@ section
 variables (α) (n : ℕ)
 
 /--
-Over `fin x+1`, the multisets of size `y+1` containing `0` are equivalent to those of size `y`,
+Over `fin n+1`, the multisets of size `k+1` containing `0` are equivalent to those of size `k`,
 as demonstrated by respectively erasing or appending `0`.
 -/
-protected def E1 {x y : ℕ} :
-  {i : sym (fin x.succ) y.succ // ↑0 ∈ i} ≃ sym (fin x.succ) y :=
+protected def E1 {n k : ℕ} :
+  {s : sym (fin n.succ) k.succ // ↑0 ∈ s} ≃ sym (fin n.succ) k :=
 { to_fun    := λ s, s.1.erase 0 s.2,
   inv_fun   := λ s, ⟨cons 0 s, mem_cons_self 0 s⟩,
   left_inv  := λ s, by simp,
   right_inv := λ s, by simp }
 
 /--
-The multisets of size `y` over `fin x+2` not containing `0`
-are equivalent to those of size `y` over `fin x+1`,
+The multisets of size `k` over `fin n+2` not containing `0`
+are equivalent to those of size `k` over `fin n+1`,
 as demonstrated by respectively decrementing or incrementing every element of the multiset.
 -/
-protected def E2 {x y : ℕ} :
-  {i : sym (fin x.succ.succ) y // ↑0 ∉ i} ≃ sym (fin x.succ) y :=
+protected def E2 {n k : ℕ} :
+  {s : sym (fin n.succ.succ) k // ↑0 ∉ s} ≃ sym (fin n.succ) k :=
 { to_fun    := λ s, map (fin.pred_above 0) s.1,
   inv_fun   := λ s, ⟨map (fin.succ_above 0) s,
     (mt mem_map.1) (not_exists.2 (λ t, (not_and.2 (λ _, (fin.succ_above_ne _ t)))))⟩,

@@ -374,7 +374,7 @@ theorem is_normal.self_le (H : is_normal f) (a) : a ≤ f a :=
 lt_wf.self_le_of_strict_mono H.strict_mono a
 
 theorem is_normal.le_set (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
-  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) {o : ordinal} : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
+  (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
 ⟨λ h a pa, (H.le_iff.2 ((H₂ _).1 le_rfl _ pa)).trans h,
 λ h, begin
   revert H₂, refine limit_rec_on b (λ H₂, _) (λ S _ H₂, _) (λ S hS L _ H₂,
@@ -390,11 +390,7 @@ end⟩
 
 theorem is_normal.le_set' (H : is_normal f) (p : set α) (g : α → ordinal) (p0 : p.nonempty) (b)
   (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, g a ≤ o) : f b ≤ o ↔ ∀ a ∈ p, f (g a) ≤ o :=
-(H.le_set (λ x, ∃ y, p y ∧ x = g y)
-  (let ⟨x, px⟩ := p0 in ⟨_, _, px, rfl⟩) _
-  (λ o, (H₂ o).trans ⟨λ H a ⟨y, h1, h2⟩, h2.symm ▸ H y h1,
-    λ H a h1, H (g a) ⟨a, h1, rfl⟩⟩)).trans
-⟨λ H a h, H (g a) ⟨a, h, rfl⟩, λ H a ⟨y, h1, h2⟩, h2.symm ▸ H y h1⟩
+by simpa [H₂] using H.le_set (g '' p) (p0.image g) b
 
 theorem is_normal.refl : is_normal id := ⟨lt_succ, λ o h0 hl a, hl.le_iff_forall_le⟩
 
@@ -402,7 +398,7 @@ theorem is_normal.trans (H₁ : is_normal f) (H₂ : is_normal g) : is_normal (f
 ⟨λ x, H₁.lt_iff.2 (H₂.1 _),
   λ o h0 hl a, H₁.le_set' (< o) g ⟨0, ordinal.pos_iff_ne_zero.2 h0⟩ _ (λ c, H₂.2 _ h0 hl _)⟩
 
-theorem is_normal.is_limit (H : is_normal f) (h0 : o ≠ 0) (ho : is_succ_limit o) :
+theorem is_normal.is_succ_limit (H : is_normal f) (h0 : o ≠ 0) (ho : is_succ_limit o) :
   is_succ_limit (f o) :=
 is_succ_limit_of_succ_lt $ λ a h, let ⟨b, h₁, h₂⟩ := (H.limit_lt h0 ho).1 h in
   (succ_le_of_lt h₂).trans_lt (H.lt_iff.2 h₁)
@@ -413,8 +409,7 @@ end
 
 theorem add_le_of_limit {a b c : ordinal} (h0 : b ≠ 0) (hb : is_succ_limit b) : a + b ≤ c ↔ ∀ b' < b, a + b' ≤ c :=
 ⟨λ h b' l, (add_le_add_left l.le _).trans h,
-λ H, le_of_not_lt $ λ l,
-begin
+λ H, le_of_not_lt $ λ l, begin
   induction a using ordinal.induction_on with α r generalizing b,
   induction b using ordinal.induction_on with β s,
   resetI,
@@ -424,7 +419,7 @@ begin
     { exact irrefl _ (this _) } },
   intros x,
   rw [←typein_lt_typein (sum.lex r s), typein_enum],
-  have := H _ (h.2 _ (typein_lt_type s x)),
+  have := H _ (hb.succ_lt (typein_lt_type s x)),
   rw [add_succ, succ_le_iff] at this,
   refine (type_le'.2 ⟨rel_embedding.of_monotone (λ a, _) (λ a b, _)⟩).trans_lt this,
   { rcases a with ⟨a | b, h⟩,
@@ -435,11 +430,20 @@ begin
 end⟩
 
 theorem add_is_normal (a : ordinal) : is_normal ((+) a) :=
-⟨λ b, (add_lt_add_iff_left a).2 (lt_succ b),
- λ b l c, add_le_of_limit l⟩
+⟨λ b, (add_lt_add_iff_left a).2 (lt_succ b), λ b h0 hl c, add_le_of_limit h0 hl⟩
 
-theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
-(add_is_normal a).is_limit
+theorem add_is_succ_limit (a : ordinal) {b : ordinal} :
+  b ≠ 0 → is_succ_limit b → is_succ_limit (a + b) :=
+(add_is_normal a).is_succ_limit
+
+theorem is_succ_limit_of_add_is_succ_limit {a b : ordinal} (h : is_succ_limit (a + b)) :
+  is_succ_limit b :=
+begin
+  by_contra hb,
+  rcases exists_succ_of_not_is_succ_limit hb with ⟨b, rfl⟩,
+  rw add_succ at h,
+  exact not_is_succ_limit_succ _ h
+end
 
 /-! ### Subtraction on ordinals-/
 
@@ -471,10 +475,12 @@ sub_le.2 $ le_add_left _ _
 
 protected theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - b) = a :=
 (le_add_sub a b).antisymm' begin
-  rcases zero_or_succ_or_limit (a-b) with e|⟨c,e⟩|l,
-  { simp only [e, add_zero, h] },
-  { rw [e, add_succ, succ_le_iff, ← lt_sub, e], exact lt_succ c },
-  { exact (add_le_of_limit l).2 (λ c l, (lt_sub.1 l).le) }
+  rcases is_succ_limit_or_succ (a - b) with H | ⟨c, hc⟩,
+  { cases eq_or_ne (a - b) 0 with hab hab,
+    { rwa [hab, add_zero] },
+    { exact (add_le_of_limit hab H).2 (λ c l, (lt_sub.1 l).le) } },
+  { rw [← hc, add_succ, succ_le_iff, ← lt_sub, ← hc],
+    exact lt_succ c }
 end
 
 instance : has_exists_add_of_le ordinal :=
@@ -499,9 +505,9 @@ eq_of_forall_ge_iff $ λ d, by rw [sub_le, sub_le, sub_le, add_assoc]
 theorem add_sub_add_cancel (a b c : ordinal) : a + b - (a + c) = b - c :=
 by rw [← sub_sub, add_sub_cancel]
 
-theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
-⟨ne_of_gt $ lt_sub.2 $ by rwa add_zero,
- λ c h, by rw [lt_sub, add_succ]; exact l.2 _ (lt_sub.1 h)⟩
+theorem sub_is_succ_limit {a b : ordinal} (ha : is_succ_limit a) (h : b < a) :
+  is_succ_limit (a - b) :=
+is_succ_limit_of_succ_lt $ λ c h, by rw [lt_sub, add_succ]; exact ha.succ_lt (lt_sub.1 h)
 
 @[simp] theorem one_add_omega : 1 + ω = ω :=
 begin
@@ -612,15 +618,15 @@ by { convert mul_le_mul_left' (one_le_iff_pos.2 hb) a, rw mul_one a }
 theorem le_mul_right (a : ordinal) {b : ordinal} (hb : 0 < b) : a ≤ b * a :=
 by { convert mul_le_mul_right' (one_le_iff_pos.2 hb) a, rw one_mul a }
 
-private lemma mul_le_of_limit_aux {α β r s} [is_well_order α r] [is_well_order β s]
-  {c} (h : is_limit (type s)) (H : ∀ b' < type s, type r * b' ≤ c)
+private lemma mul_le_of_is_succ_limit_aux {α β r s} [is_well_order α r] [is_well_order β s]
+  {c} (h : is_succ_limit (type s)) (H : ∀ b' < type s, type r * b' ≤ c)
   (l : c < type r * type s) : false :=
 begin
   suffices : ∀ a b, prod.lex s r (b, a) (enum _ _ l),
   { cases enum _ _ l with b a, exact irrefl _ (this _ _) },
   intros a b,
   rw [←typein_lt_typein (prod.lex s r), typein_enum],
-  have := H _ (h.2 _ (typein_lt_type s b)),
+  have := H _ (h.succ_lt (typein_lt_type s b)),
   rw mul_succ at this,
   have := ((add_lt_add_iff_left _).2 (typein_lt_type _ a)).trans_le this,
   refine (type_le'.2 _).trans_lt this,
@@ -650,17 +656,18 @@ begin
         sum.lex_inl_inl] using h } }
 end
 
-theorem mul_le_of_limit {a b c : ordinal} (h : is_limit b) : a * b ≤ c ↔ ∀ b' < b, a * b' ≤ c :=
+theorem mul_le_of_limit {a b c : ordinal} (h : is_succ_limit b) :
+  a * b ≤ c ↔ ∀ b' < b, a * b' ≤ c :=
 ⟨λ h b' l, (mul_le_mul_left' l.le _).trans h,
 λ H, le_of_not_lt $ induction_on a (λ α r _, induction_on b $ λ β s _,
-  by exactI mul_le_of_limit_aux) h H⟩
+  by exactI mul_le_of_is_succ_limit_aux) h H⟩
 
 theorem mul_is_normal {a : ordinal} (h : 0 < a) : is_normal ((*) a) :=
 ⟨λ b, by rw mul_succ; simpa only [add_zero] using (add_lt_add_iff_left (a*b)).2 h,
- λ b l c, mul_le_of_limit l⟩
+  λ b h0 hl c, mul_le_of_limit hl⟩
 
 theorem lt_mul_of_limit {a b c : ordinal}
-  (h : is_limit c) : a < b * c ↔ ∃ c' < c, a < b * c' :=
+  (h : is_succ_limit c) : a < b * c ↔ ∃ c' < c, a < b * c' :=
 by simpa only [not_ball, not_le] using not_congr (@mul_le_of_limit b c a h)
 
 theorem mul_lt_mul_iff_left {a b c : ordinal} (a0 : 0 < a) : a * b < a * c ↔ b < c :=
@@ -686,17 +693,25 @@ le_imp_le_of_lt_imp_lt (λ h', mul_lt_mul_of_pos_left h' h0) h
 theorem mul_right_inj {a b c : ordinal} (a0 : 0 < a) : a * b = a * c ↔ b = c :=
 (mul_is_normal a0).inj
 
-theorem mul_is_limit {a b : ordinal}
-  (a0 : 0 < a) : is_limit b → is_limit (a * b) :=
-(mul_is_normal a0).is_limit
-
-theorem mul_is_limit_left {a b : ordinal}
-  (l : is_limit a) (b0 : 0 < b) : is_limit (a * b) :=
+theorem mul_is_succ_limit (a) {b : ordinal} (h : is_succ_limit b) : is_succ_limit (a * b) :=
 begin
-  rcases zero_or_succ_or_limit b with rfl|⟨b,rfl⟩|lb,
-  { exact b0.false.elim },
-  { rw mul_succ, exact add_is_limit _ l },
-  { exact mul_is_limit l.pos lb }
+  rcases eq_zero_or_pos a with rfl | ha,
+  { rw zero_mul,
+    exact is_succ_limit_zero },
+  rcases eq_or_ne b 0 with rfl | hb,
+  { rw mul_zero,
+    exact is_succ_limit_zero },
+  exact (mul_is_normal ha).is_succ_limit hb h
+end
+
+theorem mul_is_succ_limit_left {a : ordinal} (b) (h : is_succ_limit a) : is_succ_limit (a * b) :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { rw zero_mul,
+    exact is_succ_limit_zero },
+  { refine is_succ_limit_rec_on b (λ c, _) (λ c hc, mul_is_succ_limit a hc),
+    rw mul_succ,
+    exact add_is_succ_limit _ ha h }
 end
 
 theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
@@ -733,13 +748,13 @@ theorem div_le {a b c : ordinal} (b0 : b ≠ 0) : a / b ≤ c ↔ a < b * succ c
 theorem lt_div {a b c : ordinal} (c0 : c ≠ 0) : a < b / c ↔ c * succ a ≤ b :=
 by rw [← not_le, div_le c0, not_lt]
 
-theorem le_div {a b c : ordinal} (c0 : c ≠ 0) :
-  a ≤ b / c ↔ c * a ≤ b :=
+theorem le_div {a b c : ordinal} (c0 : c ≠ 0) : a ≤ b / c ↔ c * a ≤ b :=
 begin
-  apply limit_rec_on a,
+  refine limit_rec_on a _ (λ o IH, _) (λ o h0 ho IH, _),
   { simp only [mul_zero, ordinal.zero_le] },
-  { intros, rw [succ_le_iff, lt_div c0] },
-  { simp only [mul_le_of_limit, limit_le, iff_self, forall_true_iff] {contextual := tt} }
+  { rw [succ_le_iff, lt_div c0] },
+  { rw [mul_le_of_limit ho, ho.le_iff_forall_le],
+    exact forall_congr (λ a, imp_congr_right (IH a)) }
 end
 
 theorem div_lt {a b c : ordinal} (b0 : b ≠ 0) :
@@ -789,15 +804,17 @@ if a0 : a = 0 then by simp only [a0, zero_mul, sub_self] else
 eq_of_forall_ge_iff $ λ d,
 by rw [sub_le, ← le_div a0, sub_le, ← le_div a0, mul_add_div _ a0]
 
-theorem is_limit_add_iff {a b} : is_limit (a + b) ↔ is_limit b ∨ (b = 0 ∧ is_limit a) :=
+theorem is_succ_limit_add_iff {a b : ordinal} :
+  is_succ_limit (a + b) ↔ is_succ_limit b ∧ (b = 0 → is_succ_limit a) :=
 begin
-  split; intro h,
-  { by_cases h' : b = 0,
-    { rw [h', add_zero] at h, right, exact ⟨h', h⟩ },
-      left, rw [←add_sub_cancel a b], apply sub_is_limit h,
-      suffices : a + 0 < a + b, simpa only [add_zero],
-      rwa [add_lt_add_iff_left, ordinal.pos_iff_ne_zero] },
-  rcases h with h|⟨rfl, h⟩, exact add_is_limit a h, simpa only [add_zero]
+  refine ⟨λ h, _, λ h, _⟩;
+  rcases eq_or_ne b 0 with rfl | hb,
+  { rw add_zero at h,
+    exact ⟨is_succ_limit_zero, λ _, h⟩ },
+  { exact ⟨is_succ_limit_of_add_is_succ_limit h, λ hb', (hb hb').elim⟩ },
+  { rw add_zero,
+    exact h.2 rfl },
+  { exact add_is_succ_limit a hb h.1 }
 end
 
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
@@ -1019,10 +1036,10 @@ begin
   exact le_sup f i
 end
 
-theorem is_normal.sup {f} (H : is_normal f) {ι} (g : ι → ordinal) (h : nonempty ι) :
+theorem is_normal.sup {f} (H : is_normal f) {ι} (g : ι → ordinal) [h : nonempty ι] :
   f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
-by rw [sup_le_iff, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
+by rw [sup_le_iff, comp, is_normal.le_set' H (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le_iff, true_implies_iff]; tauto
 
 @[simp] theorem sup_empty {ι} [is_empty ι] (f : ι → ordinal) : sup f = 0 :=

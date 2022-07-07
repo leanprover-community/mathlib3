@@ -235,6 +235,9 @@ by { rintros b rfl, exact (h b).irrefl.elim }
 lemma exists_succ_of_not_is_succ_limit (h : ¬ is_succ_limit a) : ∃ b, succ b = a :=
 by { contrapose! h, exact is_succ_limit_of_succ_ne h }
 
+lemma is_succ_limit_or_succ (a : α) : is_succ_limit a ∨ ∃ b, succ b = a :=
+or_iff_not_imp_left.mpr exists_succ_of_not_is_succ_limit
+
 /-- A value can be built by building it on successors and successor limits. See also
 `order.is_succ_limit_wf_rec_on` for a version on a well-founded `<` relation.
 
@@ -561,6 +564,9 @@ by { rintros b rfl, exact (h b).irrefl.elim }
 
 lemma exists_pred_of_not_is_pred_limit (h : ¬ is_pred_limit a) : ∃ b, pred b = a :=
 by { contrapose! h, exact is_pred_limit_of_pred_ne h }
+
+lemma is_pred_limit_or_pred (a : α) : is_pred_limit a ∨ ∃ b, pred b = a :=
+or_iff_not_imp_left.mpr exists_pred_of_not_is_pred_limit
 
 /-- A value can be built by building it on predecessors and predecessor limits. See also
 `order.is_pred_limit_wf_rec_on` for a version on a well-founded `>` relation.

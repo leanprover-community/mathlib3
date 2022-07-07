@@ -162,14 +162,24 @@ namespace hamm
 
 section
 
-local notation `𝓗[` K`,` n`]` := hamm (λ _ : fin n, K)
-
 variables {α ι : Type*} {β : ι → Type*}
 
 instance [Π i, inhabited (β i)] : inhabited (hamm β) := ⟨λ i, default⟩
 instance [decidable_eq ι] [fintype ι] [Π i, fintype (β i)] : fintype (hamm β) := pi.fintype
-instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)] :
-  nontrivial (hamm β) := pi.nontrivial
+instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)] : nontrivial (hamm β)
+:= pi.nontrivial
+instance [fintype ι] [Π i, decidable_eq (β i)] : decidable_eq (hamm β) :=
+fintype.decidable_pi_fintype
+instance [Π i, has_zero (β i)] : has_zero (hamm β) := pi.has_zero
+instance [Π i, has_sub (β i)] : has_sub (hamm β) := pi.has_sub
+instance [Π i, has_scalar α (β i)] : has_scalar α (hamm β) := pi.has_scalar
+instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] :
+  smul_with_zero α (hamm β) := pi.smul_with_zero _
+instance [Π i, add_monoid (β i)] : add_monoid (hamm β) := pi.add_monoid
+instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (hamm β) := pi.add_comm_monoid
+instance [Π i, add_comm_group (β i)] : add_comm_group (hamm β) := pi.add_comm_group
+instance (α) [semiring α] (β: ι → Type*) [Π i, add_comm_monoid (β i)]
+  [Π i, module α (β i)] : module α (hamm β) := pi.module _ _ _
 
 /-- `to_hamm` is the identity function to the `hamm` of a type.  -/
 @[pattern] def to_hamm : (Π i, β i) ≃ hamm β := equiv.refl _
@@ -183,17 +193,6 @@ instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)
 @[simp] lemma of_hamm_to_hamm (x : Π i, β i)  : of_hamm (to_hamm x) = x := rfl
 @[simp] lemma to_hamm_inj {x y : Π i, β i}    : to_hamm x = to_hamm y ↔ x = y := iff.rfl
 @[simp] lemma of_hamm_inj {x y : hamm β}      : of_hamm x = of_hamm y ↔ x = y := iff.rfl
-
-instance [Π i, has_zero (β i)] : has_zero (hamm β) := pi.has_zero
-instance [Π i, has_sub (β i)] : has_sub (hamm β) := pi.has_sub
-instance [Π i, has_scalar α (β i)] : has_scalar α (hamm β) := pi.has_scalar
-instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] :
-  smul_with_zero α (hamm β) := pi.smul_with_zero _
-instance [Π i, add_monoid (β i)] : add_monoid (hamm β) := pi.add_monoid
-instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (hamm β) := pi.add_comm_monoid
-instance [Π i, add_comm_group (β i)] : add_comm_group (hamm β) := pi.add_comm_group
-instance (α) [semiring α] (β: ι → Type*) [Π i, add_comm_monoid (β i)]
-  [Π i, module α (β i)] : module α (hamm β) := pi.module _ _ _
 
 end
 

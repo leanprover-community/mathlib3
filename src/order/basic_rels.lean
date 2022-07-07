@@ -88,3 +88,9 @@ instance incomp_rel.decidable_rel [decidable_rel r] : decidable_rel (incomp_rel 
 by { rw [incomp_rel, not_and_distrib, not_not, not_not], exact is_total.total a b }
 
 end incomp
+
+/-- Two elements in a preorder compare as either less than, or equivalent (up to antisymmetry), or
+greater than, or are incomparable. In fact, exactly one of them holds: see `preordering.precmp`. -/
+lemma lt_or_antisymm_rel_or_gt_or_incomp_rel [preorder α] (a b : α) :
+  a < b ∨ antisymm_rel (≤) a b ∨ b < a ∨ incomp_rel (≤) a b :=
+by { rw [antisymm_rel, incomp_rel, lt_iff_le_not_le, lt_iff_le_not_le], tauto! }

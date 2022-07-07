@@ -448,7 +448,7 @@ def to_preordering : ordering → preordering
 @[simp] lemma eq_to_preordering : eq.to_preordering = preordering.equiv := rfl
 @[simp] lemma gt_to_preordering : gt.to_preordering = preordering.gt := rfl
 
-@[simp] lemma precmp_to_cmp [linear_order α] (a b : α) : (cmp a b).to_preordering = precmp a b :=
+@[simp] lemma cmp_to_precmp [linear_order α] (a b : α) : (cmp a b).to_preordering = precmp a b :=
 begin
   rcases lt_trichotomy a b with h | h | h,
   { rw [h.cmp_eq_lt, h.precmp_eq_lt], refl },

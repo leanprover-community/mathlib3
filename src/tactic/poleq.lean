@@ -51,12 +51,3 @@ refine ``((polynomial.nat_degree_le_max %%max_deg %%prf_left %%prf_right).mp _),
 try `[norm_num at H]
 
 end tactic
-
-open polynomial
-
-example {K : Type*} [field K] {p q a b c : K} :
-  X ^ 3 + C p * X - C q = (X - C a) * (X - C b) * (X - C c) :=
-begin
-  show_deg_le,
-  admit,
-end

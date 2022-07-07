@@ -98,7 +98,9 @@ lemma stars_and_bars {α : Type*} [fintype α] (k : ℕ) [fintype (sym α k)] :
 by rw [card_sym_eq_multichoose, nat.multichoose_eq]
 
 
-
+------------------------------------------------------------------------------------------
+-- Original approach, using `option`:
+------------------------------------------------------------------------------------------
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
 `option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and
@@ -190,6 +192,7 @@ begin
           apply fintype.card_congr (sym.equiv_congr βeqv), },
         { apply fintype.card_congr (sym.equiv_congr βeqv.symm), } } } },
 end
+------------------------------------------------------------------------------------------
 
 
 end sym

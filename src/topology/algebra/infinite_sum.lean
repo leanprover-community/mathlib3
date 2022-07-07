@@ -453,11 +453,12 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
 (has_sum_single b hf).tsum_eq
 
 lemma tsum_tsum_eq_single (f : β → γ → α) (b : β) (c : γ)
-  (hf : ∀ (b' : β) (c' : γ), b ≠ b' ∨ c ≠ c' → f b' c' = 0) :
+  (hfb : ∀ (b' : β) (c' : γ), b' ≠ b → f b' c' = 0)
+  (hfc : ∀ (b' : β) (c' : γ), c' ≠ c → f b' c' = 0) :
   ∑' (b' : β) (c' : γ), f b' c' = f b c :=
 calc ∑' (b' : β) (c' : γ), f b' c' = ∑' (c' : γ), f b c' : tsum_eq_single b $ λ b' hb',
-  (tsum_eq_single c $ λ c' hc', hf b' c' (or.inl hb'.symm)).trans (hf b' c (or.inl hb'.symm))
-... = f b c : (tsum_eq_single c (λ c' hc', hf b c' (or.inr hc'.symm)))
+  (tsum_eq_single c $ λ c' hc', hfb b' c' hb').trans (hfb b' c hb')
+... = f b c : tsum_eq_single c (λ c' hc', hfc b c' hc')
 
 @[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∑' b', (if b' = b then a else 0) = a :=

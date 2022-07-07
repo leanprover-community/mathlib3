@@ -1198,6 +1198,7 @@ begin
 end
 
 local attribute [instance] topological_add_group.regular_space
+local attribute [-instance] regular_space.to_t0_space
 
 /-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole
 space. This does not need a summability assumption, as otherwise all sums are zero. -/
@@ -1206,6 +1207,7 @@ lemma tendsto_tsum_compl_at_top_zero [t1_space α] (f : β → α) :
 begin
   by_cases H : summable f,
   { assume e he,
+    -- haveI : t0_space α := by apply_instance,
     rcases nhds_is_closed he with ⟨o, ho, oe, o_closed⟩,
     simp only [le_eq_subset, set.mem_preimage, mem_at_top_sets, filter.mem_map, ge_iff_le],
     obtain ⟨s, hs⟩ : ∃ (s : finset β), ∀ (t : finset β), disjoint t s → ∑ (b : β) in t, f b ∈ o :=

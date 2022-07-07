@@ -905,11 +905,7 @@ lemma smul_right_apply {c : M₁ →L[R] S} {f : M₂} {x : M₁} :
   (smul_right c f : M₁ → M₂) x = c x • f :=
 rfl
 
-#check linear_map.smul_right
-
 end
-
-#exit
 
 section pointwise
 open_locale pointwise

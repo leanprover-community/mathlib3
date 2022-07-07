@@ -40,20 +40,21 @@ def taylor_coeff (f : ℝ → ℝ) (k : ℕ) (s : set ℝ) (x₀ : ℝ) : ℝ :=
 /-- The Taylor polynomial. -/
 noncomputable
 def taylor_polynomial (f : ℝ → ℝ) (n : ℕ) (s : set ℝ) (x₀ : ℝ) : polynomial ℝ :=
-(finset.range (n+1)).sum (λ k, polynomial.monomial k (taylor_coeff f k s x₀))
+(finset.range (n+1)).sum (λ k, (polynomial.monomial k (taylor_coeff f k s x₀)).comp
+  (polynomial.X - polynomial.C x₀))
 
 lemma taylor_polynomial_succ {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
   taylor_polynomial f (n+1) s x₀ = taylor_polynomial f n s x₀
-    + polynomial.monomial (n+1) (taylor_coeff f (n+1) s x₀) :=
+  + (polynomial.monomial (n+1) (taylor_coeff f (n+1) s x₀)).comp (polynomial.X - polynomial.C x₀) :=
 begin
   dunfold taylor_polynomial,
   rw finset.sum_range_succ,
 end
 
-/-- The Taylor polynomial as a function. -/
+/-- The evaluation of the Taylor polynomial. -/
 noncomputable
 def taylor_sum (f : ℝ → ℝ) (n : ℕ) (s : set ℝ) (x₀ x : ℝ) : ℝ :=
-polynomial.eval (x - x₀) (taylor_polynomial f n s x₀)
+(taylor_polynomial f n s x₀).eval x
 
 lemma div_mul_comm' (a b : ℝ) {c : ℝ} (hc : c ≠ 0) : a / c * b = a * b / c :=
 by rw [eq_div_iff hc, mul_assoc, mul_comm b c, ←mul_assoc, div_mul_cancel a hc]
@@ -66,8 +67,9 @@ begin
   dunfold taylor_sum,
   rw taylor_polynomial_succ,
   rw polynomial.eval_add,
-  simp only [taylor_coeff, polynomial.eval_monomial, add_right_inj],
-  simp only [nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
+  simp only [add_right_inj, taylor_coeff, polynomial.eval_comp, polynomial.eval_monomial,
+    nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one, polynomial.eval_sub,
+    polynomial.eval_X, polynomial.eval_C],
   refine div_mul_comm' _ _ _,
   refine mul_ne_zero (nat.cast_add_one_ne_zero n) _,
   rw nat.cast_ne_zero,
@@ -102,7 +104,6 @@ begin
   rw hk,
   simp,
 end
-.
 
 section cont_on
 

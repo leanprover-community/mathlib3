@@ -38,7 +38,7 @@ instance : topological_space.second_countable_topology ℍ :=
 topological_space.subtype.second_countable_topology _ _
 
 instance : t3_space ℍ := subtype.t3_space
-instance : normal_space ℍ := normal_space_of_regular_second_countable ℍ
+instance : normal_space ℍ := normal_space_of_t3_second_countable ℍ
 
 instance : contractible_space ℍ :=
 (convex_halfspace_im_gt 0).contractible_space ⟨I, one_pos.trans_eq I_im.symm⟩

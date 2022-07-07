@@ -72,6 +72,32 @@ def E2 {x y : ℕ} :
     refine sym.map_congr (λ v hv,  _),
     rw [←fin.zero_succ_above v, ←fin.cast_succ_zero, fin.pred_above_succ_above 0 v] } }
 
+lemma card_sym_fin_eq_multichoose (n k : ℕ) : card (sym (fin n) k) = multichoose n k :=
+begin
+  apply @pincer_recursion (λ n k, card (sym (fin n) k) = multichoose n k),
+  { simp },
+  { intros b,
+    induction b with b IHb, { simp },
+    rw [multichoose_zero_succ, card_eq_zero_iff],
+    apply_instance },
+  { intros x y h1 h2,
+    rw [multichoose_succ_succ, ←h1, ←h2, add_comm],
+    cases x,
+    {
+      simp only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
+      apply_instance },
+      rw ←card_sum,
+      apply fintype.card_congr,
+
+      have h3 : {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∈ i}
+           ⊕ {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∉ i}
+            ≃ sym (fin x.succ.succ) y.succ,
+      { apply equiv.sum_compl },
+      refine equiv.trans h3.symm _,
+      refine equiv.sum_congr E1 E2 },
+end
+
+
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
 `option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and

@@ -838,10 +838,10 @@ fold_insert_idem
 @[simp] theorem min_singleton {a : α} : finset.min {a} = (a : with_top α) :=
 by { rw ← insert_emptyc_eq, exact min_insert }
 
-theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ (b : α), s.min = b :=
+theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b : α, s.min = b :=
 (@inf_le (with_top α) _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
-theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ (a : α), s.min = a :=
+theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a : α, s.min = a :=
 let ⟨a, ha⟩ := h in min_of_mem ha
 
 theorem min_eq_top {s : finset α} : s.min = ⊤ ↔ s = ∅ :=
@@ -859,9 +859,7 @@ by rcases @inf_le (with_top α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
 taking values in `with_top α`. -/
 def min' (s : finset α) (H : s.nonempty) : α :=
-with_top.untop s.min $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := min_of_mem hk in by simp [hb]
+with_top.untop s.min $ mt min_eq_top.1 H.ne_empty
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
@@ -875,8 +873,8 @@ variables (s : finset α) (H : s.nonempty) {x : α}
 
 theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
 
-theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x := min_le_of_mem H2
-  (with_top.coe_untop _ _).symm
+theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x :=
+min_le_of_mem H2 (with_top.coe_untop _ _).symm
 
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
@@ -892,8 +890,8 @@ by simp [min']
 
 theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
 
-theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ := le_max_of_mem H2
-  (with_bot.coe_unbot _ _).symm
+theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ :=
+le_max_of_mem H2 (with_bot.coe_unbot _ _).symm
 
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
 

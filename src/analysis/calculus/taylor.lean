@@ -28,6 +28,7 @@ Foobars, barfoos
 
 open_locale big_operators interval
 
+variables {𝕜 E F : Type*}
 variables {f : ℝ → ℝ} {n : ℕ} {x₀ x : ℝ}
 
 
@@ -94,7 +95,6 @@ lemma taylor_polynomial_apply {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ x 
   ∑ k in finset.range (n+1), (iterated_deriv_within k f s x₀)
     * (x - x₀)^k / k.factorial :=
 begin
-  --dunfold taylor_sum',
   induction n with k hk,
   { simp },
   rw taylor_sum_succ,
@@ -105,8 +105,8 @@ end
 
 theorem continuous_on_finset_sum {ι : Type*} {X : Type*} {M : Type*} {t : set X}
   [topological_space X] [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-  {f : ι → X → M} (s : finset ι) :
-  (∀ (i : ι), i ∈ s → continuous_on (f i) t) → continuous_on (λ (a : X), s.sum (λ (i : ι), f i a)) t :=
+  {f : ι → X → M} (s : finset ι) (h : ∀ (i : ι), i ∈ s → continuous_on (f i) t) :
+  continuous_on (λ (a : X), s.sum (λ (i : ι), f i a)) t :=
 begin
   sorry,
 end
@@ -138,11 +138,20 @@ begin
   simp only [nat.cast_add, nat.cast_one],
 end
 
-theorem cont_diff_on.of_succ {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {E : Type*} [normed_group E]
-  [normed_space 𝕜 E] {F : Type*} [normed_group F] [normed_space 𝕜 F] {s : set E} {f : E → F} {n : ℕ}
-  (h : cont_diff_on 𝕜 (↑n + 1) f s) : cont_diff_on 𝕜 ↑n f s :=
+theorem cont_diff_on.of_succ [nondiscrete_normed_field 𝕜] [normed_group E]
+  [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {s : set E} {f : E → F} {n : ℕ}
+  (hs : unique_diff_on 𝕜 s) (h : cont_diff_on 𝕜 (↑n + 1) f s) :
+  cont_diff_on 𝕜 ↑n f s :=
 begin
-  sorry,
+  rw cont_diff_on_iff_continuous_on_differentiable_on hs at ⊢ h,
+  cases h,
+  split; intros m hm,
+  { refine h_left m (hm.trans _),
+    rw [←with_top.coe_one, ←with_top.coe_add, with_top.coe_le_coe, le_add_iff_nonneg_right],
+    exact zero_le' },
+  refine h_right m (hm.trans _),
+  rw [←with_top.coe_one, ←with_top.coe_add, with_top.coe_lt_coe, lt_add_iff_pos_right,
+    nat.lt_one_iff],
 end
 
 lemma unique_diff_within_at_Ioo {x₀ x t : ℝ} (ht : t ∈ set.Ioo x₀ x) :
@@ -178,7 +187,7 @@ begin
     refine (hf.differentiable_on_iterated_deriv_within coe_lt_succ (unique_diff_on_Icc hx)).mono _,
     exact set.Ioo_subset_Icc_self,
   end,
-  specialize hk (cont_diff_on.of_succ hf) h'',
+  specialize hk (cont_diff_on.of_succ (unique_diff_on_Icc hx) hf) h'',
   have hxt : has_deriv_at (λ t, (x - t)^(k+1)) ((-(k+1) * (x - t)^k)) t :=
   begin
     simp_rw sub_eq_neg_add,

@@ -44,7 +44,8 @@ section
 variables (α) (n : ℕ)
 
 /--
-
+Over `fin x+1`, the multisets of size `y+1` containing `0` are equivalent to those of size `y`,
+as demonstrated by respectively erasing or appending `0`.
 -/
 protected def E1 {x y : ℕ} :
   {i : sym (fin x.succ) y.succ // (0 : fin x.succ) ∈ i} ≃ sym (fin x.succ) y :=
@@ -53,6 +54,11 @@ protected def E1 {x y : ℕ} :
   left_inv  := λ s, by simp,
   right_inv := λ s, by simp }
 
+/--
+The multisets of size `y` over `fin x+2` not containing `0`
+are equivalent to those of size `y` over `fin x+1`,
+as demonstrated by respectively decrementing or incrementing every element of the multiset.
+-/
 protected def E2 {x y : ℕ} :
   {i : sym (fin x.succ.succ) y // (0 : fin x.succ.succ) ∉ i} ≃ sym (fin x.succ) y :=
 { to_fun    := λ s, map (fin.pred_above 0) s.1,

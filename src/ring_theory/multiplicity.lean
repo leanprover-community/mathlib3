@@ -260,6 +260,23 @@ begin
   rwa zero_dvd_iff,
 end
 
+lemma multiplicity_mk_eq_multiplicity [decidable_rel ((∣) : associates α → associates α → Prop)]
+  {a b : α} : multiplicity (associates.mk a) (associates.mk b) = multiplicity a b :=
+begin
+  by_cases h : finite a b,
+  { rw ← enat.coe_get (finite_iff_dom.mp h),
+    refine (multiplicity.unique
+      (show (associates.mk a)^(((multiplicity a b).get h)) ∣ associates.mk b, from _) _).symm ;
+      rw [← associates.mk_pow, associates.mk_dvd_mk],
+    { exact pow_multiplicity_dvd h },
+    { exact is_greatest ((enat.lt_coe_iff _ _).mpr (exists.intro
+        (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
+  { suffices : ¬ (finite (associates.mk a) (associates.mk b)),
+    { rw [finite_iff_dom, enat.not_dom_iff_eq_top] at h this,
+      rw [h, this] },
+    refine not_finite_iff_forall.mpr (λ n, by {rw [← associates.mk_pow, associates.mk_dvd_mk],
+      exact not_finite_iff_forall.mp h n }) }
+end
 
 end comm_monoid_with_zero
 

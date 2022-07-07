@@ -303,10 +303,10 @@ instance has_int_pow [div_inv_monoid G] : has_pow (germ l G) ℤ := ⟨λ f z, m
 @[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑(f ^ z) = (f ^ z : germ l G) :=
 rfl
 
-instance [has_scalar M β] : has_scalar M (germ l β) :=
+instance [has_smul M β] : has_smul M (germ l β) :=
 ⟨λ c, map ((•) c)⟩
 
-@[simp, norm_cast] lemma coe_smul [has_scalar M β] (c : M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul [has_smul M β] (c : M) (f : α → β) :
   ↑(c • f) = (c • f : germ l β) :=
 rfl
 
@@ -420,10 +420,10 @@ section module
 
 variables {M N R : Type*}
 
-instance has_scalar' [has_scalar M β] : has_scalar (germ l M) (germ l β) :=
+instance has_smul' [has_smul M β] : has_smul (germ l M) (germ l β) :=
 ⟨map₂ (•)⟩
 
-@[simp, norm_cast] lemma coe_smul' [has_scalar M β] (c : α → M) (f : α → β) :
+@[simp, norm_cast] lemma coe_smul' [has_smul M β] (c : α → M) (f : α → β) :
   ↑(c • f) = (c : germ l M) • (f : germ l β) :=
 rfl
 

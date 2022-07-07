@@ -108,7 +108,7 @@ protected lemma coe_add [add_zero_class α] [preorder α] [covariant_class α α
   (a b : {x : α // 0 ≤ x}) : ((a + b : {x : α // 0 ≤ x}) : α) = a + b := rfl
 
 instance has_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)] :
-  has_scalar ℕ {x : α // 0 ≤ x} :=
+  has_smul ℕ {x : α // 0 ≤ x} :=
 ⟨λ n x, ⟨n • x, nsmul_nonneg x.prop n⟩⟩
 
 @[simp] lemma nsmul_mk [add_monoid α] [preorder α] [covariant_class α α (+) (≤)] (n : ℕ)

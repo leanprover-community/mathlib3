@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
+import algebra.group_power.ring
 import data.int.cast
 
 /-!

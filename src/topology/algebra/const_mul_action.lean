@@ -44,7 +44,7 @@ local attribute [instance] mul_action.orbit_rel
 is continuous in the second argument. We use the same class for all kinds of multiplicative
 actions, including (semi)modules and algebras.
 -/
-class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
+class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_smul Γ T]
  : Prop :=
 (continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
 
@@ -64,8 +64,8 @@ export has_continuous_const_vadd (continuous_const_vadd)
 
 variables {M α β : Type*}
 
-section has_scalar
-variables [topological_space α] [has_scalar M α] [has_continuous_const_smul M α]
+section has_smul
+variables [topological_space α] [has_smul M α] [has_continuous_const_smul M α]
 
 @[to_additive]
 lemma filter.tendsto.const_smul {f : β → α} {l : filter β} {a : α} (hf : tendsto f l (𝓝 a))
@@ -96,7 +96,7 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
 (continuous_const_smul _).comp hg
 
 /-- If a scalar is central, then its right action is continuous when its left action is. -/
-instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+instance has_continuous_const_smul.op [has_smul Mᵐᵒᵖ α] [is_central_scalar M α] :
   has_continuous_const_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
 
@@ -105,16 +105,16 @@ instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_sca
 ⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
 
 @[to_additive]
-instance [has_scalar M β] [has_continuous_const_smul M β] :
+instance [has_smul M β] [has_continuous_const_smul M β] :
   has_continuous_const_smul M (α × β) :=
 ⟨λ _, (continuous_fst.const_smul _).prod_mk (continuous_snd.const_smul _)⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)]
+instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_smul M (γ i)]
   [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
 ⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
 
-end has_scalar
+end has_smul
 
 section monoid
 
@@ -322,7 +322,7 @@ is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, 
 `γ:Γ` move `K` to have nontrivial intersection with `L`.
 -/
 class properly_discontinuous_smul (Γ : Type*) (T : Type*) [topological_space T]
-  [has_scalar Γ T] : Prop :=
+  [has_smul Γ T] : Prop :=
 (finite_disjoint_inter_image : ∀ {K L : set T}, is_compact K → is_compact L →
   set.finite {γ : Γ | (((•) γ) '' K) ∩ L ≠ ∅ })
 
@@ -343,7 +343,7 @@ variables {Γ : Type*} [group Γ] {T : Type*} [topological_space T] [mul_action 
 -/
 @[priority 100, to_additive] instance fintype.properly_discontinuous_smul [fintype Γ] :
   properly_discontinuous_smul Γ T :=
-{ finite_disjoint_inter_image := λ _ _ _ _, set.finite.of_fintype _}
+{ finite_disjoint_inter_image := λ _ _ _ _, set.to_finite _}
 
 export properly_discontinuous_smul (finite_disjoint_inter_image)
 

@@ -3483,14 +3483,14 @@ end
 @[simp] lemma enum_nil : enum ([] : list α) = [] := rfl
 @[simp] lemma enum_from_nil (n : ℕ) : enum_from n ([] : list α) = [] := rfl
 
-lemma enum_from_cons (x : α) (xs : list α) (n : ℕ) :
+@[simp] lemma enum_from_cons (x : α) (xs : list α) (n : ℕ) :
   enum_from n (x :: xs) = (n, x) :: enum_from (n + 1) xs := rfl
-lemma enum_cons (x : α) (xs : list α) :
-  enum (x :: xs) = (0, x) :: enum_from 1 xs := enum_from_cons _ _ _
+@[simp] lemma enum_cons (x : α) (xs : list α) :
+  enum (x :: xs) = (0, x) :: enum_from 1 xs := rfl
 @[simp] lemma enum_from_singleton (x : α) (n : ℕ) :
-  enum_from n [x] = [(n, x)] := enum_from_cons _ _ _
+  enum_from n [x] = [(n, x)] := rfl
 @[simp] lemma enum_singleton (x : α) :
-  enum [x] = [(0, x)] := enum_cons _ _
+  enum [x] = [(0, x)] := rfl
 
 lemma enum_from_append (xs ys : list α) (n : ℕ) :
   enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (n + xs.length) ys :=
@@ -3505,19 +3505,19 @@ lemma enum_append (xs ys : list α) :
   enum (xs ++ ys) = enum xs ++ enum_from xs.length ys :=
 by simp [enum, enum_from_append]
 
-lemma map_fst_add_enum_eq_enum_from (l : list α) (n : ℕ) :
-  map (prod.map (+ n) id) (enum l) = enum_from n l :=
+lemma map_fst_add_enum_from_eq_enum_from (l : list α) (n k : ℕ) :
+  map (prod.map (+ n) id) (enum_from k l) = enum_from (n + k) l :=
 begin
-  rw [enum],
-  induction l with hd tl IH generalizing n,
+  induction l with hd tl IH generalizing n k,
   { simp [enum_from] },
   { simp only [enum_from, map, zero_add, prod.map_mk, id.def,
                eq_self_iff_true, true_and],
-    rw [←IH (n + 1), ←IH 1, map_map],
-    congr,
-    ext;
-    simp [add_comm, add_left_comm] }
+    simp [IH, add_comm n k, add_assoc, add_left_comm] }
 end
+
+lemma map_fst_add_enum_eq_enum_from (l : list α) (n : ℕ) :
+  map (prod.map (+ n) id) (enum l) = enum_from n l :=
+map_fst_add_enum_from_eq_enum_from l _ _
 
 lemma nth_le_enum_from (l : list α) (n i : ℕ)
   (hi' : i < (l.enum_from n).length)

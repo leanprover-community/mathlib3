@@ -875,10 +875,8 @@ by simp only [le_antisymm_iff, lift_le]
 @[simp] theorem lift_lt {a b : ordinal} : lift a < lift b ↔ a < b :=
 by simp only [lt_iff_le_not_le, lift_le]
 
-@[simp] theorem lift_zero : lift 0 = 0 := (rel_iso.rel_iso_of_is_empty _ _).ordinal_type_eq
-
-@[simp] theorem lift_one : lift 1 = 1 :=
-quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
+@[simp] theorem lift_zero : lift 0 = 0 := type_eq_zero_of_empty _
+@[simp] theorem lift_one : lift 1 = 1 := type_eq_one_of_unique _
 
 @[simp] theorem lift_card (a) : (card a).lift = card (lift a) :=
 induction_on a $ λ α r _, rfl

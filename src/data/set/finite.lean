@@ -462,6 +462,8 @@ theorem finite_univ [finite α] : (@univ α).finite := set.to_finite _
 theorem finite_univ_iff : (@univ α).finite ↔ finite α :=
 finite_coe_iff.symm.trans (equiv.set.univ α).finite_iff
 
+alias finite_univ_iff ↔ _root_.finite.of_finite_univ _
+
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
 by { casesI hs, casesI ht, apply to_finite }
 

@@ -936,10 +936,10 @@ lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
 lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_finite_set {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
-alias lt_aleph_0_iff_finite_set ↔ _ _root_.set.finite.lt_aleph_0
+alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
@@ -1327,7 +1327,7 @@ theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
 begin
   split,
   { intro h,
-    lift s to finset α using lt_aleph_0_iff_finite_set.1 (h.symm ▸ nat_lt_aleph_0 n),
+    lift s to finset α using lt_aleph_0_iff_set_finite.1 (h.symm ▸ nat_lt_aleph_0 n),
     simpa using h },
   { rintro ⟨t, rfl, rfl⟩,
     exact mk_coe_finset }

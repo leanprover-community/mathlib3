@@ -771,6 +771,23 @@ lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
 
+/-- The orthogonal complement satisfies `Kᗮᗮᗮ = Kᗮ`. -/
+lemma submodule.triorthogonal_eq_orthogonal [complete_space E] : Kᗮᗮᗮ = Kᗮ :=
+begin
+  rw Kᗮ.orthogonal_orthogonal_eq_closure,
+  exact K.is_closed_orthogonal.submodule_topological_closure_eq,
+end
+
+/-- The closure of `K` is the full space iff `Kᗮ` is trivial. -/
+lemma submodule.topological_closure_eq_top_iff [complete_space E] :
+  K.topological_closure = ⊤ ↔ Kᗮ = ⊥ :=
+begin
+  rw ←submodule.orthogonal_orthogonal_eq_closure,
+  split; intro h,
+  { rw [←submodule.triorthogonal_eq_orthogonal, h, submodule.top_orthogonal_eq_bot] },
+  { rw [h, submodule.bot_orthogonal_eq_top] }
+end
+
 /-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg
   [complete_space E] {v : E} (hv : v ∈ K) :

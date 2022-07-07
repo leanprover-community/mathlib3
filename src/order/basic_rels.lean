@@ -24,7 +24,7 @@ section antisymm
 /-- The antisymmetrization relation. -/
 def antisymm_rel (a b : α) : Prop := r a b ∧ r b a
 
-@[simp] lemma antisymm_rel_swap : antisymm_rel (swap r) = antisymm_rel r :=
+lemma antisymm_rel_swap : antisymm_rel (swap r) = antisymm_rel r :=
 funext $ λ _, funext $ λ _, propext and.comm
 
 @[refl] lemma antisymm_rel_refl [is_refl α r] (a : α) : antisymm_rel r a a := ⟨refl _, refl _⟩
@@ -60,7 +60,7 @@ section incomp
 /-- The incomparability relation. -/
 def incomp_rel (a b : α) : Prop := ¬ r a b ∧ ¬ r b a
 
-@[simp] lemma incomp_rel_swap : incomp_rel (swap r) = incomp_rel r := antisymm_rel_swap _
+lemma incomp_rel_swap : incomp_rel (swap r) = incomp_rel r := antisymm_rel_swap _
 
 @[refl] lemma incomp_rel_refl [is_irrefl α r] (a : α) : incomp_rel r a a := ⟨irrefl _, irrefl _⟩
 

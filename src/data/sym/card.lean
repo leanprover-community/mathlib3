@@ -43,6 +43,13 @@ namespace sym
 section
 variables (α) (n : ℕ)
 
+/-- For any fintype `α` of cardinality `n`, `card (sym α k) = card (sym (fin n) k)` -/
+lemma card_sym_eq_card_sym_fin (α : Type*) (k : ℕ) [fintype α] [fintype (sym α k)] :
+  card (sym α k) = card (sym (fin (card α)) k) :=
+card_congr (equiv_congr (equiv_fin α))
+
+
+
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
 `option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and
 produces a `sym (option α) n`. -/

@@ -263,14 +263,18 @@ protected def homeomorph.inv (G : Type*) [topological_space G] [has_involutive_i
 @[to_additive] lemma is_closed_map_inv : is_closed_map (has_inv.inv : G → G) :=
 (homeomorph.inv _).is_closed_map
 
-variables {G}
-
-@[to_additive] lemma is_open.inv (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
-@[to_additive] lemma is_closed.inv (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 @[to_additive] lemma inv_closure : ∀ s : set G, (closure s)⁻¹ = closure s⁻¹ :=
 (homeomorph.inv G).preimage_closure
 
 end continuous_involutive_inv
+
+section continuous_inv
+variables {G} [topological_space G] [has_inv G] [has_continuous_inv G] {s : set G}
+
+@[to_additive] lemma is_open.inv (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
+@[to_additive] lemma is_closed.inv (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
+
+end continuous_inv
 
 section lattice_ops
 
@@ -415,7 +419,7 @@ end zpow
 
 section ordered_comm_group
 
-variables [topological_space H] [ordered_comm_group H] [topological_group H]
+variables [topological_space H] [ordered_comm_group H] [has_continuous_inv H]
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi {a : H} :
   tendsto has_inv.inv (𝓝[>] a) (𝓝[<] (a⁻¹)) :=
@@ -464,7 +468,7 @@ instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)
 open mul_opposite
 
 @[to_additive]
-instance [group α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
+instance [has_inv α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
 { continuous_inv := continuous_induced_rng $ (@continuous_inv α _ _ _).comp continuous_unop }
 
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
@@ -962,14 +966,18 @@ class add_group_with_zero_nhd (G : Type u) extends add_comm_group G :=
 section filter_mul
 
 section
-variables (G) [topological_space G] [group G] [topological_group G]
+variables (G) [topological_space G] [group G] [has_continuous_mul G]
 
 @[to_additive]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
+end
+
+section
+variables (G) [topological_space G] [group G] [topological_group G]
 
 @[to_additive]
-lemma topological_group.regular_space [t1_space G] : regular_space G :=
+lemma topological_group.regular_space [t0_space G] : regular_space G :=
 ⟨assume s a hs ha,
  let f := λ p : G × G, p.1 * (p.2)⁻¹ in
  have hf : continuous f := continuous_fst.mul continuous_snd.inv,
@@ -988,19 +996,18 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
  end⟩
 
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G :=
+lemma topological_group.t2_space [t0_space G] : t2_space G :=
 @regular_space.t2_space G _ (topological_group.regular_space G)
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
 instance subgroup.regular_quotient_of_is_closed
-  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
+  (S : subgroup G) [subgroup.normal S] [hS : is_closed (S : set G)] : regular_space (G ⧸ S) :=
 begin
-  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
-  have hS : is_closed (S : set G) := infer_instance,
   rw ← quotient_group.ker_mk S at hS,
-  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
+  haveI := topological_group.t1_space (G ⧸ S) (quotient_map_quotient_mk.is_closed_preimage.mp hS),
+  exact topological_group.regular_space _,
 end
 
 end
@@ -1009,7 +1016,7 @@ section
 
 /-! Some results about an open set containing the product of two sets in a topological group. -/
 
-variables [topological_space G] [group G] [topological_group G]
+variables [topological_space G] [mul_one_class G] [has_continuous_mul G]
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `K * V ⊆ U`. -/
@@ -1149,7 +1156,7 @@ instance multiplicative.topological_group {G} [h : topological_space G]
 { continuous_inv := @continuous_neg G _ _ _ }
 
 section quotient
-variables [group G] [topological_space G] [topological_group G] {Γ : subgroup G}
+variables [group G] [topological_space G] [has_continuous_mul G] {Γ : subgroup G}
 
 @[to_additive]
 instance quotient_group.has_continuous_const_smul : has_continuous_const_smul G (G ⧸ Γ) :=

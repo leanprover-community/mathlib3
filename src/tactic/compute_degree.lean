@@ -27,15 +27,16 @@ We start with a goal of the form `f.(nat_)degree ≤ d`.  Recurse into `f` break
 products and powers.  Take care of numerals, `C a, X (^ n), monomial a n` separately. -/
 
 namespace polynomial
-variables {R : Type*} [semiring R] (a : polynomial R)
+variables {R : Type*}
 
-lemma nat_degree_sub_le_iff_left {R : Type*} [ring R] {n : ℕ} (p q : polynomial R)
-  (qn : q.nat_degree ≤ n) :
+lemma nat_degree_sub_le_iff_left [ring R] {n : ℕ} (p q : polynomial R) (qn : q.nat_degree ≤ n) :
   (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
 begin
   rw [sub_eq_add_neg, nat_degree_add_le_iff_left],
   rwa nat_degree_neg,
 end
+
+variables [semiring R] (a : polynomial R)
 
 lemma nat_degree_bit0 : (bit0 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (max_self _).le

@@ -88,7 +88,7 @@ end order_bot
 section is_succ_archimedean
 variable [is_succ_archimedean α]
 
-lemma order.is_succ_limit.is_min [no_max_order α] (h : is_succ_limit a) : is_min a :=
+lemma is_succ_limit.is_min [no_max_order α] (h : is_succ_limit a) : is_min a :=
 λ a ha, begin
   rcases ha.exists_succ_iterate with ⟨_ | n, rfl⟩,
   { exact le_rfl },
@@ -96,10 +96,10 @@ lemma order.is_succ_limit.is_min [no_max_order α] (h : is_succ_limit a) : is_mi
     exact (not_is_succ_limit_succ _ h).elim }
 end
 
-@[simp] lemma order.is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
-⟨order.is_succ_limit.is_min, is_min.is_succ_limit⟩
+@[simp] lemma is_succ_limit_iff [no_max_order α] : is_succ_limit a ↔ is_min a :=
+⟨is_succ_limit.is_min, is_min.is_succ_limit⟩
 
-lemma order.not_is_succ_limit [no_min_order α] [no_max_order α] : ¬ is_succ_limit a :=
+lemma not_is_succ_limit [no_min_order α] [no_max_order α] : ¬ is_succ_limit a :=
 by simp
 
 end is_succ_archimedean
@@ -189,13 +189,13 @@ end order_top
 section is_pred_archimedean
 variable [is_pred_archimedean α]
 
-lemma order.is_pred_limit.is_max [no_min_order α] : is_pred_limit a → is_max a :=
-@order.is_succ_limit.is_min αᵒᵈ a _ _ _ _
+lemma is_pred_limit.is_max [no_min_order α] : is_pred_limit a → is_max a :=
+@is_succ_limit.is_min αᵒᵈ a _ _ _ _
 
-@[simp] lemma order.is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
-@order.is_succ_limit_iff αᵒᵈ a _ _ _ _
+@[simp] lemma is_pred_limit_iff [no_min_order α] : is_pred_limit a ↔ is_max a :=
+@is_succ_limit_iff αᵒᵈ a _ _ _ _
 
-lemma order.not_is_pred_limit [no_min_order α] [no_max_order α] : ¬ is_pred_limit a :=
+lemma not_is_pred_limit [no_min_order α] [no_max_order α] : ¬ is_pred_limit a :=
 by simp
 
 end is_pred_archimedean

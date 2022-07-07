@@ -1275,7 +1275,7 @@ lemma filter.tendsto.congr_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter
   tendsto f₂ p (𝓝 a) :=
 h₁.congr_uniformity $ tendsto_uniformity_iff_dist_tendsto_zero.2 h
 
-alias filter.tendsto.congr_dist ←  tendsto_of_tendsto_of_dist
+alias filter.tendsto.congr_dist ← tendsto_of_tendsto_of_dist
 
 lemma tendsto_iff_of_dist {ι : Type*} {f₁ f₂ : ι → α} {p : filter ι} {a : α}
   (h : tendsto (λ x, dist (f₁ x) (f₂ x)) p (𝓝 0)) :
@@ -2097,7 +2097,7 @@ let ⟨C, h⟩ := h in
 ⟨C, λ a ha b hb, (is_closed_le' C).closure_subset $ map_mem_closure2 continuous_dist ha hb
 $ ball_mem_comm.mp h⟩
 
-alias bounded_closure_of_bounded ← metric.bounded.closure
+alias bounded_closure_of_bounded ← bounded.closure
 
 @[simp] lemma bounded_closure_iff : bounded (closure s) ↔ bounded s :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
@@ -2152,7 +2152,7 @@ h.totally_bounded.bounded
 lemma bounded_of_finite {s : set α} (h : s.finite) : bounded s :=
 h.is_compact.bounded
 
-alias bounded_of_finite ← set.finite.bounded
+alias bounded_of_finite ← _root_.set.finite.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=

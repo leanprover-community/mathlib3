@@ -98,7 +98,7 @@ instance : has_add R[X] := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg R[X] := ⟨neg⟩
 instance {R : Type u} [ring R] : has_sub R[X] := ⟨λ a b, a + -b⟩
 instance : has_mul R[X] := ⟨mul⟩
-instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S R[X] :=
+instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_smul S R[X] :=
 ⟨λ r p, ⟨r • p.to_finsupp⟩⟩
 @[priority 1]  -- to avoid a bug in the `ring` tactic
 instance has_pow : has_pow R[X] ℕ := { pow := λ p n, npow_rec n p }
@@ -205,7 +205,7 @@ instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [di
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_comm] }⟩
 
-instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
+instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
   [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
 

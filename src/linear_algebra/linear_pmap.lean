@@ -50,6 +50,16 @@ instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domai
 @[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
   f.to_fun x = f x := rfl
 
+@[ext] lemma ext {f g : linear_pmap R E F} (h : f.domain = g.domain)
+  (h' : ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y) : f = g :=
+begin
+  rcases f with ⟨f_dom, f⟩,
+  rcases g with ⟨g_dom, g⟩,
+  obtain rfl : f_dom = g_dom := h,
+  obtain rfl : f = g := linear_map.ext (λ x, h' rfl),
+  refl,
+end
+
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
@@ -150,14 +160,7 @@ instance : has_le (linear_pmap R E F) :=
 
 lemma eq_of_le_of_domain_eq {f g : linear_pmap R E F} (hle : f ≤ g) (heq : f.domain = g.domain) :
   f = g :=
-begin
-  rcases f with ⟨f_dom, f⟩,
-  rcases g with ⟨g_dom, g⟩,
-  change f_dom = g_dom at heq,
-  subst g_dom,
-  obtain rfl : f = g := linear_map.ext (λ x, hle.2 rfl),
-  refl,
-end
+ext heq hle.2
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that
 both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
@@ -298,6 +301,29 @@ begin
   simp [*]
 end
 
+section smul
+
+variables {M N : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F]
+variables [monoid N] [distrib_mul_action N F] [smul_comm_class R N F]
+
+instance : has_smul M (linear_pmap R E F) :=
+⟨λ a f,
+  { domain := f.domain,
+    to_fun := a • f.to_fun }⟩
+
+lemma smul_apply (a : M) (f : linear_pmap R E F) (x : ((a • f).domain)) :
+  (a • f) x = a • f x := rfl
+
+@[simp] lemma coe_smul (a : M) (f : linear_pmap R E F) : ⇑(a • f) = a • f := rfl
+
+instance [smul_comm_class M N F] : smul_comm_class M N (linear_pmap R E F) :=
+⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
+
+instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (linear_pmap R E F) :=
+⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
+
+end smul
+
 section
 
 variables {K : Type*} [division_ring K] [module K E] [module K F]
@@ -419,3 +445,48 @@ def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
 rfl
 
 end linear_pmap
+
+/-! ### Graph -/
+section graph
+
+namespace linear_pmap
+
+/-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
+def graph (f : linear_pmap R E F) : submodule R (E × F) :=
+f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
+
+lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y, f y) = x :=
+by simp [graph]
+
+@[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
+  x ∈ f.graph ↔ ∃ y : f.domain, (↑y : E) = x.1 ∧ f y = x.2 :=
+by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
+
+/-- The tuple `(x, f x)` is contained in the graph of `f`. -/
+lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
+by simp
+
+lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
+  (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=
+begin
+  rw [mem_graph_iff] at hx hy,
+  rcases hx with ⟨x'', hx1, hx2⟩,
+  rcases hy with ⟨y'', hy1, hy2⟩,
+  simp only at hx1 hx2 hy1 hy2,
+  rw [←hx1, ←hy1, set_like.coe_eq_coe] at hxy,
+  rw [←hx2, ←hy2, hxy],
+end
+
+lemma mem_graph_snd_inj' (f : linear_pmap R E F) {x y : E × F} (hx : x ∈ f.graph) (hy : y ∈ f.graph)
+  (hxy : x.1 = y.1) : x.2 = y.2 :=
+by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
+
+/-- The property that `f 0 = 0` in terms of the graph. -/
+lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
+  (hx : x = 0) : x' = 0 :=
+f.mem_graph_snd_inj h f.graph.zero_mem hx
+
+end linear_pmap
+
+end graph

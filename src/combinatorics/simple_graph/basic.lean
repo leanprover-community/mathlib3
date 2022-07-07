@@ -829,7 +829,6 @@ begin
   have ht₂ := mem_of_max ht,
   simp only [mem_image, mem_univ, exists_prop_of_true] at ht₂,
   rcases ht₂ with ⟨v, rfl⟩,
-  rw option.mem_def at ht,
   refine ⟨v, _⟩,
   rw [max_degree, ht],
   refl
@@ -840,7 +839,7 @@ lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
   have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
-  rwa [max_degree, ht, option.get_or_else_some],
+  rwa [max_degree, ht],
 end
 
 /--

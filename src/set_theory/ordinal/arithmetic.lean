@@ -547,10 +547,10 @@ theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
 ⟨ne_of_gt $ lt_sub.2 $ by rwa add_zero,
  λ c h, by rw [lt_sub, add_succ]; exact l.2 _ (lt_sub.1 h)⟩
 
-@[simp] theorem one_add_omega : (1 : ordinal.{u}) + ω = ω :=
+@[simp] theorem one_add_omega : 1 + ω = ω :=
 begin
   refine le_antisymm _ (le_add_left _ _),
-  rw [omega, ← lift_one.{0 u}, ← lift_add, lift_le, ← type_unit, type_add],
+  rw [omega, ← lift_one.{0}, ← lift_add, lift_le, ← type_unit, type_add],
   refine ⟨rel_embedding.collapse (rel_embedding.of_monotone _ _)⟩,
   { apply sum.rec, exact λ _, 0, exact nat.succ },
   { intros a b, cases a; cases b; intro H; cases H with _ _ H _ _ H;

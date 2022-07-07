@@ -43,15 +43,18 @@ namespace sym
 section
 variables (α) (n : ℕ)
 
+/--
+
+-/
 protected def E1 {x y : ℕ} :
-  {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∈ i} ≃ sym (fin x.succ.succ) y :=
+  {i : sym (fin x.succ) y.succ // (0 : fin x.succ) ∈ i} ≃ sym (fin x.succ) y :=
 { to_fun    := λ s, s.1.erase 0 s.2,
   inv_fun   := λ s, ⟨cons 0 s, mem_cons_self 0 s⟩,
   left_inv  := λ s, by simp,
   right_inv := λ s, by simp }
 
 protected def E2 {x y : ℕ} :
-  {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∉ i} ≃ sym (fin x.succ) y.succ :=
+  {i : sym (fin x.succ.succ) y // (0 : fin x.succ.succ) ∉ i} ≃ sym (fin x.succ) y :=
 { to_fun    := λ s, map (fin.pred_above 0) s.1,
   inv_fun   := λ s, ⟨map (fin.succ_above 0) s,
     (mt mem_map.1) (not_exists.2 (λ t, (not_and.2 (λ _, (fin.succ_above_ne _ t)))))⟩,

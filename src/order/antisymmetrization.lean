@@ -3,6 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+
+import order.basic_rels
 import order.hom.basic
 
 /-!
@@ -15,8 +17,6 @@ such that `a ≤ b` and `b ≤ a`.
 
 ## Main declarations
 
-* `antisymm_rel`: The antisymmetrization relation. `antisymm_rel r a b` means that `a` and `b` are
-  related both ways by `r`.
 * `antisymmetrization α r`: The quotient of `α` by `antisymm_rel r`. Even when `r` is just a
   preorder, `antisymmetrization α` is a partial order.
 -/
@@ -24,36 +24,6 @@ such that `a ≤ b` and `b ≤ a`.
 open function order_dual
 
 variables {α β : Type*}
-
-section relation
-variables (r : α → α → Prop)
-
-/-- The antisymmetrization relation. -/
-def antisymm_rel (a b : α) : Prop := r a b ∧ r b a
-
-lemma antisymm_rel_swap : antisymm_rel (swap r) = antisymm_rel r :=
-funext $ λ _, funext $ λ _, propext and.comm
-
-@[refl] lemma antisymm_rel_refl [is_refl α r] (a : α) : antisymm_rel r a a := ⟨refl _, refl _⟩
-
-variables {r}
-
-@[symm] lemma antisymm_rel.symm {a b : α} : antisymm_rel r a b → antisymm_rel r b a := and.symm
-
-@[trans] lemma antisymm_rel.trans [is_trans α r] {a b c : α} (hab : antisymm_rel r a b)
-  (hbc : antisymm_rel r b c) :
-  antisymm_rel r a c :=
-⟨trans hab.1 hbc.1, trans hbc.2 hab.2⟩
-
-instance antisymm_rel.decidable_rel [decidable_rel r] : decidable_rel (antisymm_rel r) :=
-λ _ _, and.decidable
-
-@[simp] lemma antisymm_rel_iff_eq [is_refl α r] [is_antisymm α r] {a b : α} :
-  antisymm_rel r a b ↔ a = b := antisymm_iff
-
-alias antisymm_rel_iff_eq ↔ antisymm_rel.eq _
-
-end relation
 
 section is_preorder
 variables (α) (r : α → α → Prop) [is_preorder α r]

@@ -54,7 +54,7 @@ lemma to_rep_hom_injective :
   injective (coe : (ρ ≃ᵣ ρ₂) → (ρ →ᵣ ρ₂)) :=
 λ e₁ e₂ H, to_equiv_injective $ equiv.ext $ rep_hom.congr_fun H
 
-@[simp, norm_cast] lemma to_linear_map_inj {e₁ e₂ : ρ ≃ᵣ ρ₂} :
+@[simp, norm_cast] lemma to_rep_hom_inj {e₁ e₂ : ρ ≃ᵣ ρ₂} :
   (e₁ : ρ →ᵣ ρ₂) = e₂ ↔ e₁ = e₂ :=
 to_rep_hom_injective.eq_iff
 
@@ -216,9 +216,8 @@ by { ext x, simp }
 rfl
 
 @[simp, norm_cast]
-lemma comp_coe (f : ρ ≃ᵣ ρ₂)
-  (f' : ρ₂ ≃ᵣ ρ₃) : (f' : ρ₂ →ᵣ ρ₃).comp (f : ρ →ᵣ ρ₂) = (f.trans f' : ρ ≃ᵣ ρ₃) :=
-rfl
+lemma comp_coe (f : ρ ≃ᵣ ρ₂) (f' : ρ₂ ≃ᵣ ρ₃) :
+  (f' : ρ₂ →ᵣ ρ₃).comp (f : ρ →ᵣ ρ₂) = (f.trans f' : ρ ≃ᵣ ρ₃) := rfl
 
 @[simp] lemma mk_coe (h₁ h₂ h₃ f h₄ h₅) :
   (rep_equiv.mk e h₁ h₂ h₃ f h₄ h₅ : ρ ≃ᵣ ρ₂) = e := ext $ λ _, rfl

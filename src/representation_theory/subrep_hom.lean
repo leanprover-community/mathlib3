@@ -827,8 +827,7 @@ def subrep_map (p : subrep ρ) :
 
 @[simp] lemma subrep_map_symm_apply (p : subrep ρ)
   (x : (p.map (e : ρ →ᵣ ρ₂) : subrep ρ₂)) :
-  ↑((e.subrep_map p).symm x) = e.symm x :=
-rfl
+  ↑((e.subrep_map p).symm x) = e.symm x := rfl
 
 end
 
@@ -990,3 +989,16 @@ end
 end add_comm_monoid
 
 end rep_equiv
+
+instance rep_hom.finite_dimensional {k G W W₂ : Type*} [field k] [monoid G]
+  [add_comm_group W] [module k W] [finite_dimensional k W]
+  [add_comm_group W₂] [module k W₂] [finite_dimensional k W₂]
+  {σ : representation k G W} {σ₂ : representation k G W₂}
+  : finite_dimensional k (σ →ᵣ σ₂) :=
+begin
+  unfold finite_dimensional,
+  convert module.finite.of_injective rep_hom.to_linear_map' _,
+  { apply is_noetherian.iff_fg.mpr,
+    apply_instance },
+  { apply rep_hom.to_linear_map_injective }
+end

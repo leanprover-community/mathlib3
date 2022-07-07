@@ -92,23 +92,22 @@ submodule.add_comm_group _
 instance [has_continuous_add F] : module K (finite_rank_operator σₛ E F) :=
 submodule.module _
 
-def smul_right [module K E] [topological_space K] [has_continuous_add F] [has_continuous_smul K F]
+def smul_rightf [module K E] [topological_space K] [has_continuous_add F] [has_continuous_smul K F]
   (l : E →L[K] K) (x : F) : (finite_rank_operator (ring_hom.id K) E F) :=
-⟨l.smul_right x, _⟩
+⟨l.smul_right x, smul_right_range_finite_dimensional⟩
 
-def smul_right [module K E] [topological_space K] [topological_ring K] [has_continuous_add F] :
+def smul_rightfₗ [module K E] [topological_space K] [topological_ring K] [has_continuous_add F]
+  [has_continuous_smul K F] :
   (E →L[K] K) →ₗ[K] F →ₗ[K] (finite_rank_operator (ring_hom.id K) E F) :=
-{  }
+⟨λ f, ⟨smul_rightf f, λ x y, by ext; apply smul_add, λ r x, by ext; apply smul_comm⟩,
+  λ f g, by ext; apply add_smul, λ r f, by ext; apply smul_assoc⟩
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜] (E G) [module 𝕜 E] [module 𝕜 G]
+variables (E G)
 
-def dual_tensor_hom [has_continuous_add G] [has_continuous_const_smul 𝕜 G] :
+def dual_tensor_hom  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [module 𝕜 E] [module 𝕜 G]
+  [has_continuous_add G] [has_continuous_smul 𝕜 G] :
   ((E →L[𝕜] 𝕜) ⊗[𝕜] G) →ₗ[𝕜] (finite_rank_operator (ring_hom.id 𝕜) E G) :=
-let E' := E →L[𝕜] 𝕜 in
-  (uncurry 𝕜 E' G (finite_rank_operator (ring_hom.id 𝕜) E G) : _ → E' ⊗[𝕜] G →ₗ[𝕜] (finite_rank_operator (ring_hom.id 𝕜) E G))
-  _
-
-variables
+uncurry 𝕜 (E →L[𝕜] 𝕜) G (finite_rank_operator (ring_hom.id 𝕜) E G) smul_rightfₗ
 
 end basics
 

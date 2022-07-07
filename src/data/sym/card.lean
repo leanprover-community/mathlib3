@@ -86,11 +86,18 @@ begin
     apply equiv.sum_compl },
 end
 
-
 /-- For any fintype `α` of cardinality `n`, `card (sym α k) = multichoose (card α) k` -/
 lemma card_sym_eq_multichoose (α : Type*) (k : ℕ) [fintype α] [fintype (sym α k)] :
   card (sym α k) = multichoose (card α) k :=
 by { rw ←card_sym_fin_eq_multichoose, exact card_congr (equiv_congr (equiv_fin α)) }
+
+/-- The *stars and bars* lemma: the cardinality of `sym α k` is equal to
+`nat.choose (card α + k - 1) k`. -/
+lemma stars_and_bars {α : Type*} [fintype α] (k : ℕ) [fintype (sym α k)] :
+  card (sym α k) = (card α + k - 1).choose k :=
+by rw [card_sym_eq_multichoose, nat.multichoose_eq]
+
+
 
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
@@ -184,11 +191,6 @@ begin
         { apply fintype.card_congr (sym.equiv_congr βeqv.symm), } } } },
 end
 
-/-- The *stars and bars* lemma: the cardinality of `sym α k` is equal to
-`nat.choose (card α + k - 1) k`. -/
-lemma stars_and_bars {α : Type*} [fintype α] (k : ℕ) [fintype (sym α k)] :
-  card (sym α k) = (card α + k - 1).choose k :=
-by simpa only [multichoose] using (multichoose_eq α k).symm
 
 end sym
 

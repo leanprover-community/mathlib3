@@ -21,7 +21,7 @@ See the doc-string for more details.
 ##  Future work
 
 * Deal with goals of the form `f.(nat_)degree = d` (PR #14040 does exactly this).
-* Add better functionality to deal with exponents that are not necessarily natural numbers.
+* Add better functionality to deal with exponents that are not necessarily closed natural numbers.
 * Add support for proving goals of the from `f.(nat_)degree ≠ 0`.
 * Make sure that `degree` and `nat_degree` are equally supported.
 
@@ -55,14 +55,14 @@ open expr
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the degree of `e`.  Heuristics for `guess_degree`:
-* `0, 1, C a`,      guessing `0`,
-* `polynomial.X`,   guessing `1`,
-*  `bit0/1 f, -f`,  guessing `guess_degree f`,
-* `f + g, f - g`,   guessing `max (guess_degree f) (guess_degree g)`,
-* `f * g`,          guessing `guess_degree f + guess_degree g`,
-* `f ^ n`,          guessing `guess_degree f * n`,
-* `monomial n r`,   guessing `n`,
-* `f` not as above, guessing `f.nat_degree`.
+* `0, 1, C a`,      guess `0`,
+* `polynomial.X`,   guess `1`,
+*  `bit0/1 f, -f`,  guess `guess_degree f`,
+* `f + g, f - g`,   guess `max (guess_degree f) (guess_degree g)`,
+* `f * g`,          guess `guess_degree f + guess_degree g`,
+* `f ^ n`,          guess `guess_degree f * n`,
+* `monomial n r`,   guess `n`,
+* `f` not as above, guess `f.nat_degree`.
  -/
 meta def guess_degree : expr → tactic expr
 | `(has_zero.zero)         := pure `(0)
@@ -112,15 +112,13 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
   | `(polynomial.X ^ %%n) := refine ``((polynomial.nat_degree_X_pow_le %%n).trans _)
   | (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
     refine ``((polynomial.nat_degree_monomial_le %%x).trans _)
-  | (app `(⇑polynomial.C) x) :=
-    interactive.exact ``((polynomial.nat_degree_C _).le.trans (nat.zero_le _))
-  | `(polynomial.X) :=
-    refine ``(polynomial.nat_degree_X_le.trans _)
+  | (app `(⇑polynomial.C) x) := refine ``((polynomial.nat_degree_C %%x).le.trans (nat.zero_le %%tr))
+  | `(polynomial.X)  := refine ``(polynomial.nat_degree_X_le.trans _)
   | `(has_zero.zero) := refine ``(polynomial.nat_degree_zero.le.trans (nat.zero_le _))
   | `(has_one.one)   := refine ``(polynomial.nat_degree_one.le.trans (nat.zero_le _))
   | `(bit0 %%a)      := refine ``((polynomial.nat_degree_bit0 %%a).trans _)
   | `(bit1 %%a)      := refine ``((polynomial.nat_degree_bit1 %%a).trans _)
-  | `(%%tl1 ^ %%n)   := if pows then do
+  | `(%%tl1 ^ %%n)   := if pows then
       refine ``(polynomial.nat_degree_pow_le.trans $
         (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
     else failed
@@ -193,7 +191,7 @@ by compute_degree_le!
 ```
  -/
 meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
-if expos.is_some then compute_degree_le_core tt else compute_degree_le_core ff
+compute_degree_le_core expos.is_some
 
 add_tactic_doc
 { name := "compute_degree_le",

@@ -74,22 +74,30 @@ this is π/2. See `orientation.oangle` for the corresponding oriented angle
 definition. -/
 def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
 
+lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
+  continuous_at (λ y : V × V, angle y.1 y.2) x :=
+real.continuous_arccos.continuous_at.comp $ continuous_inner.continuous_at.div
+  ((continuous_norm.comp continuous_fst).mul (continuous_norm.comp continuous_snd)).continuous_at
+  (by simp [hx1, hx2])
+
+lemma angle_smul_smul {c : ℝ} (hc : c ≠ 0) (x y : V) :
+  angle (c • x) (c • y) = angle x y :=
+have c * c ≠ 0, from mul_ne_zero hc hc,
+by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smul, real.norm_eq_abs,
+  mul_mul_mul_comm _ (∥x∥), abs_mul_abs_self, ← mul_assoc c c, mul_div_mul_left _ _ this]
+
+@[simp] lemma _root_.linear_isometry.angle_map {E F : Type*}
+  [inner_product_space ℝ E] [inner_product_space ℝ F] (f : E →ₗᵢ[ℝ] F) (u v : E) :
+  angle (f u) (f v) = angle u v :=
+by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
+
 lemma is_conformal_map.preserves_angle {E F : Type*}
   [inner_product_space ℝ E] [inner_product_space ℝ F]
   {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
   angle (f' u) (f' v) = angle u v :=
 begin
-  obtain ⟨c, hc, li, hcf⟩ := h,
-  suffices : c * (c * inner u v) / (∥c∥ * ∥u∥ * (∥c∥ * ∥v∥)) = inner u v / (∥u∥ * ∥v∥),
-  { simp [this, angle, hcf, norm_smul, inner_smul_left, inner_smul_right] },
-  by_cases hu : ∥u∥ = 0,
-  { simp [norm_eq_zero.mp hu] },
-  by_cases hv : ∥v∥ = 0,
-  { simp [norm_eq_zero.mp hv] },
-  have hc : ∥c∥ ≠ 0 := λ w, hc (norm_eq_zero.mp w),
-  field_simp,
-  have : c * c = ∥c∥ * ∥c∥ := by simp [real.norm_eq_abs, abs_mul_abs_self],
-  convert congr_arg (λ x, x * ⟪u, v⟫ * ∥u∥ * ∥v∥) this using 1; ring,
+  obtain ⟨c, hc, li, rfl⟩ := h,
+  exact (angle_smul_smul hc _ _).trans (li.angle_map _ _)
 end
 
 /-- If a real differentiable map `f` is conformal at a point `x`,
@@ -387,6 +395,17 @@ notation. -/
 def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
 
 localized "notation `∠` := euclidean_geometry.angle" in euclidean_geometry
+
+lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
+  continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
+begin
+  let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
+  have hf1 : (f x).1 ≠ 0, by simp [hx12],
+  have hf2 : (f x).2 ≠ 0, by simp [hx32],
+  exact (inner_product_geometry.continuous_at_angle hf1 hf2).comp
+    ((continuous_fst.vsub continuous_snd.fst).prod_mk
+      (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
+end
 
 /-- The angle at a point does not depend on the order of the other two
 points. -/

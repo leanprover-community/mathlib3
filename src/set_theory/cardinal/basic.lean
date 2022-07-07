@@ -925,10 +925,7 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
 end⟩
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
-begin
-  rw [← lift_mk_fin, ← mk_ulift, cardinal.eq],
-  exact nonempty.congr (λ e, e.trans equiv.ulift) (λ e, e.trans equiv.ulift.symm)
-end
+by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
 
 theorem lt_aleph_0_iff_finite {α : Type u} : #α < ℵ₀ ↔ finite α :=
 by simp only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]

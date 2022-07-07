@@ -21,7 +21,7 @@ See the doc-string for more details.
 ##  Future work
 
 * Deal with goals of the form `f.(nat_)degree = d` (PR #14040 does exactly this).
-* Add better functionality to deal with exponents that are not necessarily natural numbers.
+* Add better functionality to deal with exponents that are not necessarily closed natural numbers.
 * Add support for proving goals of the from `f.(nat_)degree ≠ 0`.
 * Make sure that `degree` and `nat_degree` are equally supported.
 

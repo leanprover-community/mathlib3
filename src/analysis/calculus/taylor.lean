@@ -342,7 +342,7 @@ begin
 end
 
 /-- **Taylor's theorem** with the Cauchy form of the remainder. -/
-lemma taylor_mean_remainder_cauchy {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
+lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x))
   (hx : x₀ < x) :
   ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n (set.Icc x₀ x) x₀ x =

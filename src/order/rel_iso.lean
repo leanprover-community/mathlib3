@@ -410,6 +410,11 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
 @[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
+/-- A relation isomorphism between equal relations on equal types. -/
+@[simps] protected def cast {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+  (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
+⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
+
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
@@ -497,6 +502,18 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 /-- Two relations on empty types are isomorphic. -/
 def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
 ⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
+
+/-- Two irreflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_irrefl (r : α → α → Prop) (s : β → β → Prop)
+  [is_irrefl α r] [is_irrefl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ x y, by simp [not_rel_of_subsingleton r, not_rel_of_subsingleton s]⟩
+
+/-- Two reflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
+  [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
 
 end rel_iso
 

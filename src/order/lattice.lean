@@ -974,6 +974,24 @@ protected def lattice [lattice α] {P : α → Prop}
   lattice {x : α // P x} :=
 { ..subtype.semilattice_inf Pinf, ..subtype.semilattice_sup Psup }
 
+@[simp, norm_cast] lemma coe_sup [semilattice_sup α] {P : α → Prop}
+  (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y)) (x y : subtype P) :
+  (by {haveI := subtype.semilattice_sup Psup, exact (x ⊔ y : subtype P)} : α) = x ⊔ y := rfl
+
+@[simp, norm_cast] lemma coe_inf [semilattice_inf α] {P : α → Prop}
+  (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y)) (x y : subtype P) :
+  (by {haveI := subtype.semilattice_inf Pinf, exact (x ⊓ y : subtype P)} : α) = x ⊓ y := rfl
+
+@[simp] lemma mk_sup_mk [semilattice_sup α] {P : α → Prop} (Psup : ∀⦃x y⦄, P x → P y → P (x ⊔ y))
+  {x y : α} (hx : P x) (hy : P y) :
+  (by {haveI := subtype.semilattice_sup Psup, exact (⟨x, hx⟩ ⊔ ⟨y, hy⟩ : subtype P)}) =
+    ⟨x ⊔ y, Psup hx hy⟩ := rfl
+
+@[simp] lemma mk_inf_mk [semilattice_inf α] {P : α → Prop} (Pinf : ∀⦃x y⦄, P x → P y → P (x ⊓ y))
+  {x y : α} (hx : P x) (hy : P y) :
+  (by {haveI := subtype.semilattice_inf Pinf, exact (⟨x, hx⟩ ⊓ ⟨y, hy⟩ : subtype P)}) =
+    ⟨x ⊓ y, Pinf hx hy⟩ := rfl
+
 end subtype
 
 section lift

@@ -12,10 +12,6 @@ This file defines the tactic `compute_degree_le`.
 Using `compute_degree_le` when the goal is of the form `f.nat_degree ≤ d`, tries to solve the goal.
 It may leave side-goals, in case it is not entirely successful.
 
-There is also a second version `compute_degree_le!` that recurses more aggressively into powers.
-If there are exponents that are not closed naturals that could be zero, then the `!`-version
-could leave unsolvable side-goals.
-
 See the doc-string for more details.
 
 ##  Future work
@@ -88,21 +84,14 @@ meta def guess_degree : expr → tactic expr
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
-* a sum, difference, opposite or product;
-* (a power of) `X`;
+* a sum, difference, opposite, product, or a power;
 * a monomial;
 * `C a`;
 * `0, 1` or `bit0 a, bit1 a` (to deal with numerals).
 
-The boolean `tf` determines whether `resolve_sum_step` aggressively simplifies powers.
-If `tf` is `false`, then `resolve_sum_step` will fail on powers other than `X ^ n`.
-
-If `tf` is `true`, then `resolve_sum_step` tries to make progress on powers.
-Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
-
 The side-goals produced by `resolve_sum_step` are either again of the same shape `f'.nat_degree ≤ d`
-or of the form `m ≤ n`, where `m n : ℕ`, or, if `tf = true`, also of the form `0 < m`. -/
-meta def resolve_sum_step (pows : bool) : expr → tactic unit
+or of the form `m ≤ n`, where `m n : ℕ`. -/
+meta def resolve_sum_step : expr → tactic unit
 | `(polynomial.nat_degree %%tl ≤ %%tr) := match tl with
   | `(%%tl1 + %%tl2) := refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
   | `(%%tl1 - %%tl2) := refine ``((polynomial.nat_degree_sub_le_iff_left _ _ _).mpr _)
@@ -118,10 +107,11 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
   | `(has_one.one)   := refine ``(polynomial.nat_degree_one.le.trans (nat.zero_le _))
   | `(bit0 %%a)      := refine ``((polynomial.nat_degree_bit0 %%a).trans _)
   | `(bit1 %%a)      := refine ``((polynomial.nat_degree_bit1 %%a).trans _)
-  | `(%%tl1 ^ %%n)   := if pows then
-      refine ``(polynomial.nat_degree_pow_le.trans $
-        (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
-    else failed
+  | `(%%tl1 ^ %%n)   := do
+      refine ``(polynomial.nat_degree_pow_le.trans _),
+      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0),
+        (by simp only [n0, zero_mul, zero_le])) (λ (n0 : ¬ %%n = 0), _)),
+      refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero ‹_›)).mp _))
   | e                := do ppe ← pp e, fail format!"'{ppe}' is not supported"
   end
 | e := do ppe ← pp e, fail format!("'resolve_sum_step' was called on\n" ++
@@ -149,23 +139,6 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
 | e              := eval_expr ℕ e <|> pure n
 
-/--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
-input, instead of parsing a `!` token. -/
-meta def compute_degree_le_core (expos : bool) : tactic unit :=
-do t ← target,
-  try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
-  `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
-    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  expected_deg ← guess_degree tl >>= eval_guessing 0,
-  deg_bound ← eval_expr ℕ tr <|> pure expected_deg,
-  if deg_bound < expected_deg
-  then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
-  else
-    repeat $ target >>= resolve_sum_step expos,
-    (do gs ← get_goals >>= list.mmap infer_type,
-      success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
-    try $ any_goals' norm_assum
-
 end compute_degree
 
 namespace interactive
@@ -176,22 +149,21 @@ setup_tactic_parser
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 
 If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed.
-
-Using `compute_degree_le!` also recurses inside powers.
-Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
-
-For instance, in the following example `compute_degree_le` makes no progress,
-while `compute_degree_le!` leaves an unprovable side-goal:
-```lean
-example {R} [semiring R] {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
-  (p ^ n).nat_degree ≤ 0 :=
-by compute_degree_le!
-  -- ⊢ 0 < n
-```
- -/
-meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
-compute_degree_le_core expos.is_some
+then the tactic suggests the degree that it computed. -/
+meta def compute_degree_le : tactic unit :=
+do t ← target,
+  try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
+  `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
+    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
+  expected_deg ← guess_degree tl >>= eval_guessing 0,
+  deg_bound ← eval_expr ℕ tr <|> pure expected_deg,
+  if deg_bound < expected_deg
+  then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
+  else
+    repeat $ target >>= resolve_sum_step,
+    (do gs ← get_goals >>= list.mmap infer_type,
+      success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
+    try $ any_goals' norm_assum
 
 add_tactic_doc
 { name := "compute_degree_le",

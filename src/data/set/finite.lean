@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Kyle Miller
 -/
 import data.finset.sort
 import data.set.functor
+import data.finite.basic
 
 /-!
 # Finite sets
@@ -64,7 +65,27 @@ namespace set
 /-- Constructor for `set.finite` with the `fintype` as an instance argument. -/
 theorem finite_of_fintype (s : set α) [h : fintype s] : s.finite := ⟨h⟩
 
+/-- Construct a `finite` instance for a `set` from a `finset` with the same elements. -/
+protected lemma finite.of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : finite p :=
+finite.of_fintype (fintype.of_finset s H)
+
 lemma finite_def {s : set α} : s.finite ↔ nonempty (fintype s) := ⟨λ ⟨h⟩, ⟨h⟩, λ ⟨h⟩, ⟨h⟩⟩
+
+alias finite_def ↔ finite.nonempty_fintype _
+
+lemma finite_iff_finite {s : set α} : s.finite ↔ finite s :=
+by rw [finite_iff_nonempty_fintype, finite_def]
+
+/-- Constructor for `set.finite` using a `finite` instance. -/
+theorem finite_of_finite (s : set α) [finite s] : s.finite :=
+finite_iff_finite.mpr ‹_›
+
+/-- Projection of `set.finite` to its `finite` instance.
+This is intended to be used with dot notation.
+See also `set.finite.fintype` and `set.finite.nonempty_fintype`. -/
+@[nolint dup_namespace]
+protected lemma finite.finite {s : set α} (h : s.finite) : finite s :=
+finite_iff_finite.mp h
 
 /-- A finite set coerced to a type is a `fintype`.
 This is the `fintype` projection for a `set.finite`.
@@ -156,7 +177,6 @@ begin
 end
 
 end finite_to_finset
-
 
 /-! ### Fintype instances
 
@@ -323,6 +343,112 @@ finset.fintype_coe_sort s
 
 end fintype_instances
 
+end set
+
+/-! ### Finite instances
+
+There is seemingly some overlap between the following instances and the `fintype` instances
+in `data.set.finite`. While every `fintype` instance gives a `finite` instance, those
+instances that depend on `fintype` or `decidable` instances need an additional `finite` instance
+to be able to generally apply.
+
+Some set instances do not appear here since they are consequences of others, for example
+`subtype.finite` for subsets of a finite type.
+-/
+
+namespace finite.set
+
+open_locale classical
+
+example {s : set α} [finite α] : finite s := infer_instance
+example : finite (∅ : set α) := infer_instance
+example (a : α) : finite ({a} : set α) := infer_instance
+
+instance finite_union (s t : set α) [finite s] [finite t] :
+  finite (s ∪ t : set α) :=
+by { casesI nonempty_fintype s, casesI nonempty_fintype t, apply_instance }
+
+instance finite_sep (s : set α) (p : α → Prop) [finite s] :
+  finite ({a ∈ s | p a} : set α) :=
+by { casesI nonempty_fintype s, apply_instance }
+
+protected lemma subset (s : set α) {t : set α} [finite s] (h : t ⊆ s) : finite t :=
+by { rw eq_sep_of_subset h, apply_instance }
+
+instance finite_inter_of_right (s t : set α) [finite t] :
+  finite (s ∩ t : set α) := finite.set.subset t (inter_subset_right s t)
+
+instance finite_inter_of_left (s t : set α) [finite s] :
+  finite (s ∩ t : set α) := finite.set.subset s (inter_subset_left s t)
+
+instance finite_diff (s t : set α) [finite s] :
+  finite (s \ t : set α) := finite.set.subset s (diff_subset s t)
+
+instance finite_Union [finite ι] (f : ι → set α) [∀ i, finite (f i)] : finite (⋃ i, f i) :=
+begin
+  convert_to finite (⋃ (i : plift ι), f i.down),
+  { congr, ext, simp },
+  haveI := fintype.of_finite (plift ι),
+  haveI := λ i, fintype.of_finite (f i),
+  apply_instance,
+end
+
+instance finite_sUnion {s : set (set α)} [finite s] [H : ∀ (t : s), finite (t : set α)] :
+  finite (⋃₀ s) :=
+by { rw sUnion_eq_Union, exact @finite.set.finite_Union _ _ _ _ H }
+
+lemma finite_bUnion {ι : Type*} (s : set ι) [finite s] (t : ι → set α) (H : ∀ i ∈ s, finite (t i)) :
+  finite (⋃(x ∈ s), t x) :=
+begin
+  convert_to finite (⋃ (x : s), t x),
+  { congr' 1, ext, simp },
+  haveI : ∀ (i : s), finite (t i) := λ i, H i i.property,
+  apply_instance,
+end
+
+instance finite_bUnion' {ι : Type*} (s : set ι) [finite s] (t : ι → set α) [∀ i, finite (t i)] :
+  finite (⋃(x ∈ s), t x) :=
+finite_bUnion s t (λ i h, infer_instance)
+
+/--
+Example: `finite (⋃ (i < n), f i)` where `f : ℕ → set α` and `[∀ i, finite (f i)]`
+(when given instances from `data.nat.interval`).
+-/
+instance finite_bUnion'' {ι : Type*} (p : ι → Prop) [h : finite {x | p x}]
+  (t : ι → set α) [∀ i, finite (t i)] :
+  finite (⋃ x (h : p x), t x) :=
+@finite.set.finite_bUnion' _ _ (set_of p) h t _
+
+instance finite_Inter {ι : Sort*} [nonempty ι] (t : ι → set α) [∀ i, finite (t i)] :
+  finite (⋂ i, t i) :=
+finite.set.subset (t $ classical.arbitrary ι) (Inter_subset _ _)
+
+instance finite_insert (a : α) (s : set α) [finite s] : finite (insert a s : set α) :=
+finite.set.finite_union {a} s
+
+instance finite_image (s : set α) (f : α → β) [finite s] : finite (f '' s) :=
+by { casesI nonempty_fintype s, apply_instance }
+
+instance finite_range (f : ι → α) [finite ι] : finite (range f) :=
+by { casesI nonempty_fintype (plift ι), apply_instance }
+
+instance finite_replacement [finite α] (f : α → β) : finite {(f x) | (x : α)} :=
+finite.set.finite_range f
+
+instance finite_prod (s : set α) (t : set β) [finite s] [finite t] :
+  finite (s ×ˢ t : set (α × β)) :=
+finite.of_equiv _ (equiv.set.prod s t).symm
+
+instance finite_image2 (f : α → β → γ) (s : set α) (t : set β) [finite s] [finite t] :
+  finite (image2 f s t : set γ) :=
+by { rw ← image_prod, apply_instance }
+
+instance finite_seq (f : set (α → β)) (s : set α) [finite f] [finite s] : finite (f.seq s) :=
+by { rw seq_def, apply_instance }
+
+end finite.set
+
+namespace set
 
 /-! ### Constructors for `set.finite`
 
@@ -334,8 +460,7 @@ after possibly setting up some `fintype` and classical `decidable` instances.
 -/
 section set_finite_constructors
 
-theorem finite.of_fintype [fintype α] (s : set α) : s.finite :=
-by { classical, apply finite_of_fintype }
+theorem finite.of_fintype [fintype α] (s : set α) : s.finite := finite_of_finite s
 
 @[nontriviality] lemma finite.of_subsingleton [subsingleton α] (s : set α) : s.finite :=
 finite.of_fintype s

@@ -125,7 +125,7 @@ variables (F)
 
 /-- Preserving zero morphisms implies preserving terminal objects. -/
 def preserves_terminal_object_of_preserves_zero_morphisms
-  [preserves_zero_morphisms F] : preserves_limit (functor.empty.{v₁} C) F :=
+  [preserves_zero_morphisms F] : preserves_limit (functor.empty C) F :=
 preserves_terminal_of_iso F $
   (F.map_iso has_zero_object.zero_iso_terminal.symm).trans $
   (map_zero_object F).trans $
@@ -133,7 +133,7 @@ preserves_terminal_of_iso F $
 
 /-- Preserving zero morphisms implies preserving terminal objects. -/
 def preserves_initial_object_of_preserves_zero_morphisms
-  [preserves_zero_morphisms F] : preserves_colimit (functor.empty.{v₁} C) F :=
+  [preserves_zero_morphisms F] : preserves_colimit (functor.empty C) F :=
 preserves_initial_of_iso F $
   has_zero_object.zero_iso_initial.symm.trans $
   (map_zero_object F).symm.trans $

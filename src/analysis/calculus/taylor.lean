@@ -120,36 +120,6 @@ begin
   simp,
 end
 
-section cont_on
-
-variables {ι α X M N : Type*} [topological_space X]
-variables [topological_space M] [comm_monoid M] [has_continuous_mul M]
-
-@[to_additive]
-lemma continuous_on_list_prod {f : ι → X → M} (l : list ι) {t : set X}
-  (h : ∀ i ∈ l, continuous_on (f i) t) :
-  continuous_on (λ a, (l.map (λ i, f i a)).prod) t :=
-begin
-  intros x hx,
-  rw continuous_within_at_iff_continuous_at_restrict _ hx,
-  refine tendsto_list_prod _ (λ i hi, _),
-  specialize h i hi x hx,
-  rw continuous_within_at_iff_continuous_at_restrict _ hx at h,
-  exact h,
-end
-
-@[continuity, to_additive]
-lemma continuous_on_multiset_prod {f : ι → X → M} (s : multiset ι) {t : set X} :
-  (∀i ∈ s, continuous_on (f i) t) → continuous_on (λ a, (s.map (λ i, f i a)).prod) t :=
-by { rcases s with ⟨l⟩, simpa using continuous_on_list_prod l }
-
-@[continuity, to_additive]
-lemma continuous_on_finset_prod {f : ι → X → M} (s : finset ι) {t : set X} :
-  (∀ i ∈ s, continuous_on (f i) t) → continuous_on (λ a, ∏ i in s, f i a) t :=
-continuous_on_multiset_prod _
-
-end cont_on
-
 /-- If `f` is `n` times continuous differentiable, then the Taylor polynomial is continuous in the
   second variable. -/
 lemma taylor_sum_continuous_on {f : ℝ → ℝ} {x₀ x : ℝ} (hx : x₀ < x)

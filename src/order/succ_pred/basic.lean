@@ -892,7 +892,7 @@ end succ
 section pred
 variables [preorder α] [no_min_order α] [pred_order α]
 
-instance with_bot.pred_order_of_no_min_order : pred_order (with_bot α) :=
+instance pred_order_of_no_min_order : pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥
     | (some a) := some (pred a)

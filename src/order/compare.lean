@@ -27,7 +27,7 @@ This file provides basic results about orderings and comparison in linear orders
 * `preordering`: One of the four outcome classes for comparison on a preorder: less than,
   equivalent, greater than, incomparable.
 * `precmp`: Compares two values in a `preorder`.
-* `preordering.compares`: Turns an `preordering` into its corresponding proposition.
+* `preordering.precompares`: Turns an `preordering` into its corresponding proposition.
 
 ### Conversion
 
@@ -38,6 +38,8 @@ This file provides basic results about orderings and comparison in linear orders
 variables {α : Type*}
 
 open order_dual
+
+section linear_order
 
 /-! ### Linear orders -/
 
@@ -193,8 +195,6 @@ def linear_order_of_compares [preorder α] (cmp : α → α → ordering)
   decidable_eq := λ a b, decidable_of_iff _ (h a b).eq_eq,
   .. ‹preorder α› }
 
-section
-
 variables [linear_order α] (x y : α)
 
 @[simp] lemma cmp_eq_lt_iff : cmp x y = ordering.lt ↔ x < y :=
@@ -234,9 +234,11 @@ lemma has_lt.lt.cmp_eq_gt (h : x < y) : cmp y x = ordering.gt := (cmp_eq_gt_iff 
 lemma eq.cmp_eq_eq (h : x = y) : cmp x y = ordering.eq := (cmp_eq_eq_iff _ _).2 h
 lemma eq.cmp_eq_eq' (h : x = y) : cmp y x = ordering.eq := h.symm.cmp_eq_eq
 
-end
+end linear_order
 
 /-! ### Preorders -/
+
+section preorder
 
 /-- The type representing the possible outcomes for the comparison of two elements in a preorder. -/
 inductive preordering
@@ -293,73 +295,78 @@ else
 def precmp {α : Type*} [has_le α] [decidable_rel ((≤) : α → α → Prop)] (a b : α) : preordering :=
 precmp_using (≤) a b
 
-namespace preordering
 variable [preorder α]
 
-/-- `compares o a b` means that `a` and `b` have the ordering relation `o` between them. -/
-@[simp] def compares : preordering → α → α → Prop
+namespace preordering
+
+/-- `precompares o a b` means that `a` and `b` have the ordering relation `o` between them. -/
+@[simp] def precompares : preordering → α → α → Prop
 | lt     a b := a < b
 | equiv  a b := antisymm_rel (≤) a b
 | gt     a b := a > b
 | incomp a b := incomp_rel (≤) a b
 
-lemma compares_swap {a b : α} : ∀ {o : preordering}, o.swap.compares a b ↔ o.compares b a
+lemma precompares_swap {a b : α} : ∀ {o : preordering}, o.swap.precompares a b ↔ o.precompares b a
 | lt     := iff.rfl
 | equiv  := and.comm
 | gt     := iff.rfl
 | incomp := and.comm
 
-alias compares_swap ↔ compares.of_swap compares.swap
+alias precompares_swap ↔ precompares.of_swap precompares.swap
 
 lemma swap_eq_iff_eq_swap {o o' : preordering} : o.swap = o' ↔ o = o'.swap :=
 by rw [←swap_inj, swap_swap]
 
-lemma compares.eq_lt : ∀ {o} {a b : α}, compares o a b → (o = lt ↔ a < b)
+lemma precompares.eq_lt : ∀ {o} {a b : α}, precompares o a b → (o = lt ↔ a < b)
 | lt     a b h := ⟨λ _, h, λ _, rfl⟩
 | equiv  a b h := ⟨λ h, by injection h, λ h', (h'.not_le h.2).elim⟩
 | gt     a b h := ⟨λ h, by injection h, λ h', (lt_asymm h h').elim⟩
 | incomp a b h := ⟨λ h, by injection h, λ h', (h.1 h'.le).elim⟩
 
-lemma compares.eq_equiv : ∀ {o} {a b : α}, compares o a b → (o = equiv ↔ antisymm_rel (≤) a b)
+lemma precompares.eq_equiv : ∀ {o} {a b : α}, precompares o a b → (o = equiv ↔ antisymm_rel (≤) a b)
 | lt     a b h := ⟨λ h, by injection h, λ h', (h'.2.not_lt h).elim⟩
 | equiv  a b h := ⟨λ _, h, λ _, rfl⟩
 | gt     a b h := ⟨λ h, by injection h, λ h', (h'.1.not_lt h).elim⟩
 | incomp a b h := ⟨λ h, by injection h, λ h', (h.1 h'.1).elim⟩
 
-lemma compares.eq_gt {o} {a b : α} (h : compares o a b) : (o = gt ↔ b < a) :=
+lemma precompares.eq_gt {o} {a b : α} (h : precompares o a b) : (o = gt ↔ b < a) :=
 swap_eq_iff_eq_swap.symm.trans h.swap.eq_lt
 
-lemma compares.eq_incomp : ∀ {o} {a b : α}, compares o a b → (o = incomp ↔ incomp_rel (≤) a b)
+lemma precompares.eq_incomp : ∀ {o} {a b : α}, precompares o a b → (o = incomp ↔ incomp_rel (≤) a b)
 | lt     a b h := ⟨λ h, by injection h, λ h', (h'.1 $ le_of_lt h).elim⟩
 | equiv  a b h := ⟨λ h, by injection h, λ h', (h'.1 $ h.1).elim⟩
 | gt     a b h := ⟨λ h, by injection h, λ h', (h'.2 $ le_of_lt h).elim⟩
 | incomp a b h := ⟨λ _, h, λ _, rfl⟩
 
-lemma compares.inj {o₁} : ∀ {o₂} {a b : α}, compares o₁ a b → compares o₂ a b → o₁ = o₂
+lemma precompares.inj {o₁} : ∀ {o₂} {a b : α}, precompares o₁ a b → precompares o₂ a b → o₁ = o₂
 | lt     a b h₁ h₂ := h₁.eq_lt.2 h₂
 | equiv  a b h₁ h₂ := h₁.eq_equiv.2 h₂
 | gt     a b h₁ h₂ := h₁.eq_gt.2 h₂
 | incomp a b h₁ h₂ := h₁.eq_incomp.2 h₂
 
-@[simp] lemma to_dual_compares_to_dual {a b : α} {o : preordering} :
-  compares o (to_dual a) (to_dual b) ↔ compares o b a :=
+end preordering
+
+open preordering
+
+@[simp] lemma to_dual_precompares_to_dual {a b : α} {o : preordering} :
+  precompares o (to_dual a) (to_dual b) ↔ precompares o b a :=
 by cases o; exact iff.rfl
 
-@[simp] lemma of_dual_compares_of_dual {a b : αᵒᵈ} {o : preordering} :
-  compares o (of_dual a) (of_dual b) ↔ compares o b a :=
+@[simp] lemma of_dual_precompares_of_dual {a b : αᵒᵈ} {o : preordering} :
+  precompares o (of_dual a) (of_dual b) ↔ precompares o b a :=
 by cases o; exact iff.rfl
 
 variable [@decidable_rel α (≤)]
 
-lemma cmp_compares (a b : α) : (precmp a b).compares a b :=
+lemma precmp_precompares (a b : α) : (precmp a b).precompares a b :=
 begin
   unfold precmp precmp_using,
   split_ifs with h₁ h₂ h₂,
   exacts [⟨h₁, h₂⟩, lt_of_le_not_le h₁ h₂, lt_of_le_not_le h₂ h₁, ⟨h₁, h₂⟩]
 end
 
-lemma compares.precmp_eq {a b : α} {o : preordering} (h : o.compares a b) : precmp a b = o :=
-(cmp_compares a b).inj h
+lemma precompares.precmp_eq {a b : α} {o : preordering} (h : o.precompares a b) : precmp a b = o :=
+(precmp_precompares a b).inj h
 
 @[simp] lemma precmp_swap (a b : α) : (precmp a b).swap = precmp b a :=
 by { unfold precmp precmp_using, split_ifs; refl }
@@ -367,16 +374,16 @@ by { unfold precmp precmp_using, split_ifs; refl }
 variables {x y : α}
 
 @[simp] lemma precmp_eq_lt_iff : precmp x y = lt ↔ x < y :=
-compares.eq_lt (cmp_compares x y)
+precompares.eq_lt (precmp_precompares x y)
 
 @[simp] lemma precmp_eq_equiv_iff : precmp x y = equiv ↔ antisymm_rel (≤) x y :=
-compares.eq_equiv (cmp_compares x y)
+precompares.eq_equiv (precmp_precompares x y)
 
 @[simp] lemma precmp_eq_gt_iff : precmp x y = gt ↔ y < x :=
-compares.eq_gt (cmp_compares x y)
+precompares.eq_gt (precmp_precompares x y)
 
 @[simp] lemma precmp_eq_incomp_iff : precmp x y = incomp ↔ incomp_rel (≤) x y :=
-compares.eq_incomp (cmp_compares x y)
+precompares.eq_incomp (precmp_precompares x y)
 
 @[simp] lemma precmp_self_eq_equiv : precmp x x = equiv :=
 by rw precmp_eq_equiv_iff
@@ -396,17 +403,17 @@ begin
   { rwa [←precmp_swap _ x, ←precmp_swap _ x', swap_inj] }
 end
 
-lemma lt_iff_lt_of_cmp_eq_cmp (h : precmp x y = precmp x' y') : x < y ↔ x' < y' :=
+lemma lt_iff_lt_of_precmp_eq_precmp (h : precmp x y = precmp x' y') : x < y ↔ x' < y' :=
 by rw [←precmp_eq_lt_iff, ←precmp_eq_lt_iff, h]
 
-lemma le_iff_le_of_cmp_eq_cmp (h : precmp x y = precmp x' y') : x ≤ y ↔ x' ≤ y' :=
+lemma le_iff_le_of_precmp_eq_precmp (h : precmp x y = precmp x' y') : x ≤ y ↔ x' ≤ y' :=
 by rw [←precmp_eq_lt_or_equiv_iff, ←precmp_eq_lt_or_equiv_iff, h]
 
-lemma equiv_iff_equiv_of_cmp_eq_cmp (h : precmp x y = precmp x' y') :
+lemma equiv_iff_equiv_of_precmp_eq_precmp (h : precmp x y = precmp x' y') :
   antisymm_rel (≤) x y ↔ antisymm_rel (≤) x' y' :=
 by rw [←precmp_eq_equiv_iff, ←precmp_eq_equiv_iff, h]
 
-lemma incomp_iff_incomp_of_cmp_eq_cmp (h : precmp x y = precmp x' y') :
+lemma incomp_iff_incomp_of_precmp_eq_precmp (h : precmp x y = precmp x' y') :
   incomp_rel (≤) x y ↔ incomp_rel (≤) x' y' :=
 by rw [←precmp_eq_incomp_iff, ←precmp_eq_incomp_iff, h]
 
@@ -425,7 +432,7 @@ precmp_eq_incomp_iff.2 h
 lemma _root_.incomp_rel.precmp_eq_incomp' (h : incomp_rel (≤) x y) : precmp y x = incomp :=
 h.symm.precmp_eq_incomp
 
-end preordering
+end preorder
 
 /-! ### Conversion -/
 

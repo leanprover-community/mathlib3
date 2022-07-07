@@ -36,16 +36,8 @@ variables {p q}
 
 @[simp] lemma neg_cancel_leads : - p.cancel_leads q = q.cancel_leads p := neg_sub _ _
 
-end ring
-
-section comm_ring
-variables [comm_ring R] {p q : R[X]}
-
-lemma dvd_cancel_leads_of_dvd_of_dvd {r : R[X]} (pq : p ∣ q) (pr : p ∣ r) :
-  p ∣ q.cancel_leads r :=
-dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
-
-lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree
+lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree_of_comm
+  (comm : p.leading_coeff * q.leading_coeff = q.leading_coeff * p.leading_coeff)
   (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
   (p.cancel_leads q).nat_degree < q.nat_degree :=
 begin
@@ -63,9 +55,23 @@ begin
     rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, X_pow_mul,
       ← tsub_add_cancel_of_le h, add_comm _ p.nat_degree],
     simp only [coeff_mul_X_pow, coeff_neg, coeff_C_mul, add_tsub_cancel_left, coeff_add],
-    rw [add_comm p.nat_degree, tsub_add_cancel_of_le h, ← leading_coeff, ← leading_coeff,
-      mul_comm _ q.leading_coeff, add_right_neg] }
+    rw [add_comm p.nat_degree, tsub_add_cancel_of_le h, ← leading_coeff, ← leading_coeff, comm,
+      add_right_neg] }
 end
+
+end ring
+
+section comm_ring
+variables [comm_ring R] {p q : R[X]}
+
+lemma dvd_cancel_leads_of_dvd_of_dvd {r : R[X]} (pq : p ∣ q) (pr : p ∣ r) :
+  p ∣ q.cancel_leads r :=
+dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
+
+lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree
+  (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
+  (p.cancel_leads q).nat_degree < q.nat_degree :=
+nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree_of_comm (mul_comm _ _) h hq
 
 end comm_ring
 

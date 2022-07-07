@@ -26,7 +26,7 @@ local attribute [ext] tensor_product.ext
 
 section contraction
 
-open tensor_product linear_map matrix
+open tensor_product linear_map matrix module
 open_locale tensor_product big_operators
 
 section comm_semiring
@@ -58,6 +58,12 @@ variables {R M N P Q}
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
 by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+
+@[simp] lemma transpose_dual_tensor_hom (f : module.dual R M) (m : M) :
+  dual.transpose (dual_tensor_hom R M M (f ⊗ₜ m)) = dual_tensor_hom R _ _ (dual.eval R M m ⊗ₜ f) :=
+by { ext f' m', simp only [dual.transpose_apply, coe_comp, function.comp_app, dual_tensor_hom_apply,
+  linear_map.map_smulₛₗ, ring_hom.id_apply, algebra.id.smul_eq_mul, dual.eval_apply, smul_apply],
+  exact mul_comm _ _ }
 
 @[simp] lemma dual_tensor_hom_prod_map_zero (f : module.dual R M) (p : P) :
   ((dual_tensor_hom R M P) (f ⊗ₜ[R] p)).prod_map (0 : N →ₗ[R] Q) =

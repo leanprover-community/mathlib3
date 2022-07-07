@@ -1071,6 +1071,23 @@ begin
   simp only [sq, ← mul_div_right_comm, ← add_div]
 end
 
+/-- Formula for the distance between the images of two nonzero points under an inversion with center
+zero. See also `euclidean_geometry.dist_inversion_inversion` for inversions around a general
+point. -/
+lemma dist_div_norm_sq_smul {x y : F} (hx : x ≠ 0) (hy : y ≠ 0) (R : ℝ) :
+  dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y) = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :=
+have hx' : ∥x∥ ≠ 0, from norm_ne_zero_iff.2 hx,
+have hy' : ∥y∥ ≠ 0, from norm_ne_zero_iff.2 hy,
+calc dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y)
+    = sqrt (∥(R / ∥x∥) ^ 2 • x - (R / ∥y∥) ^ 2 • y∥^2) :
+  by rw [dist_eq_norm, sqrt_sq (norm_nonneg _)]
+... = sqrt ((R ^ 2 / (∥x∥ * ∥y∥)) ^ 2 * ∥x - y∥ ^ 2) :
+  congr_arg sqrt $ by { field_simp [sq, norm_sub_mul_self_real, norm_smul, real_inner_smul_left,
+    inner_smul_right, real.norm_of_nonneg (mul_self_nonneg _)], ring }
+... = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :
+  by rw [sqrt_mul (sq_nonneg _), sqrt_sq (norm_nonneg _),
+    sqrt_sq (div_nonneg (sq_nonneg _) (mul_nonneg (norm_nonneg _) (norm_nonneg _))), dist_eq_norm]
+
 @[priority 100] -- See note [lower instance priority]
 instance inner_product_space.to_uniform_convex_space : uniform_convex_space F :=
 ⟨λ ε hε, begin
@@ -1935,9 +1952,8 @@ begin
     have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
     simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
-    { rw ← hV.norm_sq_diff_sum,
-      apply sq_lt_sq,
-      rw [_root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
+    { rw [← hV.norm_sq_diff_sum, sq_lt_sq,
+        _root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
@@ -1989,9 +2005,9 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
-  (hV_sum : direct_sum.submodule_is_internal (λ i, V i))
+  (hV_sum : direct_sum.is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=

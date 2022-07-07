@@ -38,7 +38,7 @@ namespace category_theory.limits
 
 /-- The type of objects for the diagram indexing a binary (co)product. -/
 @[derive decidable_eq, derive inhabited]
-inductive walking_pair : Type v
+inductive walking_pair : Type
 | left | right
 
 open walking_pair
@@ -82,14 +82,14 @@ def pair_function (X Y : C) : walking_pair → C := λ j, walking_pair.cases_on 
 variables [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
-def pair (X Y : C) : discrete walking_pair.{v} ⥤ C :=
-discrete.functor (pair_function X Y)
+def pair (X Y : C) : discrete walking_pair ⥤ C :=
+discrete.functor (λ j, walking_pair.cases_on j X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj ⟨left⟩ = X := rfl
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj ⟨right⟩ = Y := rfl
 
 section
-variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj ⟨left⟩ ⟶ G.obj ⟨left⟩)
+variables {F G : discrete walking_pair ⥤ C} (f : F.obj ⟨left⟩ ⟶ G.obj ⟨left⟩)
   (g : F.obj ⟨right⟩ ⟶ G.obj ⟨right⟩)
 
 local attribute [tidy] tactic.discrete_cases
@@ -139,15 +139,16 @@ abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app ⟨walkin
 @[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
   s.π.app ⟨walking_pair.right⟩ = s.snd := rfl
 
-/-- A convenient way to show that a `binary_fan` is a limit. -/
-@[simps] def binary_fan.is_limit.mk {X Y : C} (t : binary_fan X Y)
-  (lift : ∀ (s : binary_fan X Y), s.X ⟶ t.X)
-  (fac_fst : ∀ s, lift s ≫ t.fst = s.fst) (fac_snd : ∀ s, lift s ≫ t.snd = s.snd)
-  (uniq : ∀ (s : binary_fan X Y) (m : s.X ⟶ t.X) (w_fst : m ≫ t.fst = s.fst)
-    (w_snd : m ≫ t.snd = s.snd), m = lift s) :
-  is_limit t :=
-is_limit.mk lift (λ s j, discrete.rec_on j (λ j, walking_pair.cases_on j (fac_fst s) (fac_snd s)))
-  (λ s m w, by solve_by_elim)
+/-- A convenient way to show that a binary fan is a limit. -/
+def binary_fan.is_limit.mk {X Y : C} (s : binary_fan X Y)
+  (lift : Π {T : C} (f : T ⟶ X) (g : T ⟶ Y), T ⟶ s.X)
+  (hl₁ : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y), lift f g ≫ s.fst = f)
+  (hl₂ : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y), lift f g ≫ s.snd = g)
+  (uniq : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y) (m : T ⟶ s.X) (h₁ : m ≫ s.fst = f)
+    (h₂ : m ≫ s.snd = g), m = lift f g) : is_limit s := is_limit.mk
+  (λ t, lift (binary_fan.fst t) (binary_fan.snd t))
+  (by { rintros t (rfl|rfl), { exact hl₁ _ _ }, { exact hl₂ _ _ } })
+  (λ t m h, uniq _ _ _ (h ⟨walking_pair.left⟩) (h ⟨walking_pair.right⟩))
 
 lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
   {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
@@ -167,16 +168,16 @@ abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app ⟨wa
 @[simp] lemma binary_cofan.ι_app_right {X Y : C} (s : binary_cofan X Y) :
   s.ι.app ⟨walking_pair.right⟩ = s.inr := rfl
 
-/-- A convenient way to show that a `binary_cofan` is a colimit. -/
-@[simps] def binary_fan.is_colimit.mk {X Y : C} (t : binary_cofan X Y)
-  (desc : ∀ (s : binary_cofan X Y), t.X ⟶ s.X)
-  (fac_inl : ∀ s, t.inl ≫ desc s = s.inl) (fac_inr : ∀ s, t.inr ≫ desc s = s.inr)
-  (uniq : ∀ (s : binary_cofan X Y) (m : t.X ⟶ s.X) (w_fst : t.inl ≫ m = s.inl)
-    (w_snd : t.inr ≫ m = s.inr), m = desc s)
-  : is_colimit t :=
-is_colimit.mk desc
-  (λ s j, discrete.rec_on j (λ j, walking_pair.cases_on j (fac_inl s) (fac_inr s)))
-  (λ s m w, by solve_by_elim)
+/-- A convenient way to show that a binary cofan is a colimit. -/
+def binary_cofan.is_colimit.mk {X Y : C} (s : binary_cofan X Y)
+  (desc : Π {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.X ⟶ T)
+  (hd₁ : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.inl ≫ desc f g = f)
+  (hd₂ : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.inr ≫ desc f g = g)
+  (uniq : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T) (m : s.X ⟶ T) (h₁ : s.inl ≫ m = f)
+    (h₂ : s.inr ≫ m = g), m = desc f g) : is_colimit s := is_colimit.mk
+    (λ t, desc (binary_cofan.inl t) (binary_cofan.inr t))
+    (by { rintros t (rfl|rfl), { exact hd₁ _ _ }, { exact hd₂ _ _ }})
+    (λ t m h, uniq _ _ _ (h ⟨walking_pair.left⟩) (h ⟨walking_pair.right⟩))
 
 lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
   {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=
@@ -419,7 +420,7 @@ by { ext; simp }
 -- TODO: is it necessary to weaken the assumption here?
 @[reassoc]
 lemma prod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
-  [has_limits_of_shape (discrete walking_pair.{v}) C] :
+  [has_limits_of_shape (discrete walking_pair) C] :
   prod.map (𝟙 X) f ≫ prod.map g (𝟙 B) = prod.map g (𝟙 A) ≫ prod.map (𝟙 Y) f :=
 by simp
 
@@ -465,7 +466,7 @@ lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y]
 by simp
 
 @[simp, reassoc]
-lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair.{v}) C]
+lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
@@ -534,7 +535,7 @@ by { ext; simp }
 -- I don't think it's a good idea to make any of the following three simp lemmas.
 @[reassoc]
 lemma coprod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
-  [has_colimits_of_shape (discrete walking_pair.{v}) C] :
+  [has_colimits_of_shape (discrete walking_pair) C] :
   coprod.map (𝟙 X) f ≫ coprod.map g (𝟙 B) = coprod.map g (𝟙 A) ≫ coprod.map (𝟙 Y) f :=
 by simp
 
@@ -585,7 +586,7 @@ by simp
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
-lemma coprod.map_comp_inl_inr_codiag [has_colimits_of_shape (discrete walking_pair.{v}) C]
+lemma coprod.map_comp_inl_inr_codiag [has_colimits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   coprod.map (g ≫ coprod.inl) (g' ≫ coprod.inr) ≫ codiag (Y ⨿ Y') = coprod.map g g' :=
 by simp
@@ -599,14 +600,14 @@ variables (C)
 
 See <https://stacks.math.columbia.edu/tag/001T>.
 -/
-abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair.{v}) C
+abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) C
 
 /--
 `has_binary_coproducts` represents a choice of coproduct for every pair of objects.
 
 See <https://stacks.math.columbia.edu/tag/04AP>.
 -/
-abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair.{v}) C
+abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 lemma has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
@@ -805,7 +806,9 @@ end coprod_functor
 
 section prod_comparison
 
-variables {C} {D : Type u₂} [category.{v} D]
+universe w
+
+variables {C} {D : Type u₂} [category.{w} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_product A B] [has_binary_product A' B']
 variables [has_binary_product (F.obj A) (F.obj B)] [has_binary_product (F.obj A') (F.obj B')]
@@ -882,7 +885,9 @@ end prod_comparison
 
 section coprod_comparison
 
-variables {C} {D : Type u₂} [category.{v} D]
+universe w
+
+variables {C} {D : Type u₂} [category.{w} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_coproduct A B] [has_binary_coproduct A' B']
 variables [has_binary_coproduct (F.obj A) (F.obj B)] [has_binary_coproduct (F.obj A') (F.obj B')]

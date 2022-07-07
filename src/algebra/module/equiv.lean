@@ -481,7 +481,7 @@ instance apply_distrib_mul_action : distrib_mul_action (M ≃ₗ[R] M) M :=
   f • a = f a := rfl
 
 /-- `linear_equiv.apply_distrib_mul_action` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (M ≃ₗ[R] M) M :=
+instance apply_has_faithful_smul : has_faithful_smul (M ≃ₗ[R] M) M :=
 ⟨λ _ _, linear_equiv.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (M ≃ₗ[R] M) M :=

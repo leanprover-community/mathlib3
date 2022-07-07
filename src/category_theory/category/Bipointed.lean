@@ -36,7 +36,7 @@ def of {X : Type*} (to_prod : X × X) : Bipointed := ⟨X, to_prod⟩
 
 @[simp] lemma coe_of {X : Type*} (to_prod : X × X) : ↥(of to_prod) = X := rfl
 
-alias of ← prod.Bipointed
+alias of ← _root_.prod.Bipointed
 
 instance : inhabited Bipointed := ⟨of ((), ())⟩
 

@@ -86,6 +86,14 @@ begin
     exact ⟨⟨x, hx⟩, ⟨n, hn⟩, rfl⟩, },
 end
 
+lemma lie_le_iff : ⁅I, N⁆ ≤ N' ↔ ∀ (x ∈ I) (m ∈ N), ⁅x, m⁆ ∈ N' :=
+begin
+  rw [lie_ideal_oper_eq_span, lie_submodule.lie_span_le],
+  refine ⟨λ h x hx m hm, h ⟨⟨x, hx⟩, ⟨m, hm⟩, rfl⟩, _⟩,
+  rintros h _ ⟨⟨x, hx⟩, ⟨m, hm⟩, rfl⟩,
+  exact h x hx m hm,
+end
+
 lemma lie_coe_mem_lie (x : I) (m : N) : ⁅(x : L), (m : M)⁆ ∈ ⁅I, N⁆ :=
 by { rw lie_ideal_oper_eq_span, apply subset_lie_span, use [x, m], }
 

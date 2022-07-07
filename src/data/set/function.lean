@@ -123,7 +123,7 @@ variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f�
   injective (cod_restrict f t h) ↔ injective f :=
 by simp only [injective, subtype.ext_iff, coe_cod_restrict_apply]
 
-alias injective_cod_restrict ↔ _ function.injective.cod_restrict
+alias injective_cod_restrict ↔ _ _root_.function.injective.cod_restrict
 
 /-! ### Equality on a set -/
 
@@ -219,6 +219,20 @@ lemma _root_.strict_mono_on.mono (h : strict_mono_on f s) (h' : s₂ ⊆ s) : st
 
 lemma _root_.strict_anti_on.mono (h : strict_anti_on f s) (h' : s₂ ⊆ s) : strict_anti_on f s₂ :=
 λ x hx y hy, h (h' hx) (h' hy)
+
+protected lemma _root_.monotone_on.monotone (h : monotone_on f s) : monotone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.antitone_on.monotone (h : antitone_on f s) : antitone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.strict_mono_on.strict_mono (h : strict_mono_on f s) :
+  strict_mono (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
+protected lemma _root_.strict_anti_on.strict_anti (h : strict_anti_on f s) :
+  strict_anti (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
 
 end mono
 
@@ -394,7 +408,7 @@ lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 lemma inj_on_of_injective (h : injective f) (s : set α) : inj_on f s :=
 λ x hx y hy hxy, h hxy
 
-alias inj_on_of_injective ← function.injective.inj_on
+alias inj_on_of_injective ← _root_.function.injective.inj_on
 
 theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
@@ -404,7 +418,7 @@ lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
-alias inj_on_iff_injective ↔ set.inj_on.injective _
+alias inj_on_iff_injective ↔ inj_on.injective _
 
 lemma inj_on_preimage {B : set (set β)} (hB : B ⊆ 𝒫 (range f)) :
   inj_on (preimage f) B :=

@@ -43,11 +43,6 @@ namespace sym
 section
 variables (α) (n : ℕ)
 
-/-- For any fintype `α` of cardinality `n`, `card (sym α k) = card (sym (fin n) k)` -/
-lemma card_sym_eq_card_sym_fin (α : Type*) (k : ℕ) [fintype α] [fintype (sym α k)] :
-  card (sym α k) = card (sym (fin (card α)) k) :=
-card_congr (equiv_congr (equiv_fin α))
-
 def E1 {x y : ℕ} :
   {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∈ i} ≃ sym (fin x.succ.succ) y :=
 { to_fun    := λ s, s.1.erase 0 s.2,
@@ -97,6 +92,10 @@ begin
       refine equiv.sum_congr E1 E2 },
 end
 
+/-- For any fintype `α` of cardinality `n`, `card (sym α k) = multichoose (card α) k` -/
+lemma card_sym_eq_multichoose (α : Type*) (k : ℕ) [fintype α] [fintype (sym α k)] :
+  card (sym α k) = multichoose (card α) k :=
+by { rw ←card_sym_fin_eq_multichoose, exact card_congr (equiv_congr (equiv_fin α)) }
 
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting

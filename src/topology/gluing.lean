@@ -184,7 +184,7 @@ begin
     generalize : (sigma_iso_sigma.{u} D.V).hom x = x',
     obtain ⟨⟨i,j⟩,y⟩ := x',
     unfold inv_image multispan_index.fst_sigma_map multispan_index.snd_sigma_map,
-    simp only [opens.inclusion_to_fun, Top.comp_app, sigma_iso_sigma_inv_apply,
+    simp only [opens.inclusion_apply, Top.comp_app, sigma_iso_sigma_inv_apply,
       category_theory.limits.colimit.ι_desc_apply, cofan.mk_ι_app,
       sigma_iso_sigma_hom_ι_apply, continuous_map.to_fun_eq_coe],
     erw [sigma_iso_sigma_hom_ι_apply, sigma_iso_sigma_hom_ι_apply],

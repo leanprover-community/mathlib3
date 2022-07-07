@@ -102,14 +102,37 @@ begin
   rw hk,
   simp,
 end
+.
 
-theorem continuous_on_finset_sum {ι : Type*} {X : Type*} {M : Type*} {t : set X}
-  [topological_space X] [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-  {f : ι → X → M} (s : finset ι) (h : ∀ (i : ι), i ∈ s → continuous_on (f i) t) :
-  continuous_on (λ (a : X), s.sum (λ (i : ι), f i a)) t :=
+section cont_on
+
+variables {ι α X M N : Type*} [topological_space X]
+variables [topological_space M] [comm_monoid M] [has_continuous_mul M]
+
+@[to_additive]
+lemma continuous_on_list_prod {f : ι → X → M} (l : list ι) {t : set X}
+  (h : ∀ i ∈ l, continuous_on (f i) t) :
+  continuous_on (λ a, (l.map (λ i, f i a)).prod) t :=
 begin
-  sorry,
+  intros x hx,
+  rw continuous_within_at_iff_continuous_at_restrict _ hx,
+  refine tendsto_list_prod _ (λ i hi, _),
+  specialize h i hi x hx,
+  rw continuous_within_at_iff_continuous_at_restrict _ hx at h,
+  exact h,
 end
+
+@[continuity, to_additive]
+lemma continuous_on_multiset_prod {f : ι → X → M} (s : multiset ι) {t : set X} :
+  (∀i ∈ s, continuous_on (f i) t) → continuous_on (λ a, (s.map (λ i, f i a)).prod) t :=
+by { rcases s with ⟨l⟩, simpa using continuous_on_list_prod l }
+
+@[continuity, to_additive]
+lemma continuous_on_finset_prod {f : ι → X → M} (s : finset ι) {t : set X} :
+  (∀ i ∈ s, continuous_on (f i) t) → continuous_on (λ a, ∏ i in s, f i a) t :=
+continuous_on_multiset_prod _
+
+end cont_on
 
 /-- If `f` is `n` times continuous differentiable, then the Taylor polynomial is continuous in the
   second variable. -/
@@ -232,9 +255,10 @@ lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (s
   (gdiff : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at g (g' x_1) x_1)
   (g'_ne : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → g' x_1 ≠ 0) :
   ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n (set.Icc x₀ x) x₀ x =
-  (iterated_deriv_within (n+1) f (set.Icc x₀ x) x') * (x - x')^n /n.factorial * (g x - g x₀) / g' x' :=
+  (iterated_deriv_within (n+1) f (set.Icc x₀ x) x') * (x - x')^n /n.factorial * (g x - g x₀) / g' x'
+  :=
 begin
-  have tcont : continuous_on (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x) (set.Icc x₀ x) := --sorry,
+  have tcont : continuous_on (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x) (set.Icc x₀ x) :=
     taylor_sum_continuous_on hx hf,
   have tdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x →
     has_deriv_at (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x)

@@ -1057,6 +1057,10 @@ begin
   rwa [← image_preimage_eq V op_surjective, ← image_op_mul, image_subset_iff,
     preimage_image_eq _ op_injective] at hV'
 end
+end
+
+section
+variables [topological_space G] [group G] [topological_group G]
 
 /-- A compact set is covered by finitely many left multiplicative translates of a set
   with non-empty interior. -/

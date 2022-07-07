@@ -547,6 +547,18 @@ def rec_bot_coe {C : with_bot α → Sort*} (h₁ : C ⊥) (h₂ : Π (a : α), 
   Π (n : with_bot α), C n :=
 option.rec h₁ h₂
 
+@[simp] lemma with_bot.rec_bot_coe_bot {C : with_bot α → Sort*} (d : C ⊥) (f : Π (a : α), C a) :
+  @with_bot.rec_bot_coe _ C d f ⊥ = d := rfl
+@[simp] lemma with_bot.rec_bot_coe_coe {C : with_bot α → Sort*} (d : C ⊥) (f : Π (a : α), C a)
+  (x : α) : @with_bot.rec_bot_coe _ C d f ↑x = f x := rfl
+
+/-- Specialization of `option.get_or_else` to values in `with_bot α` that respects API boundaries.
+-/
+def with_bot.unbot' (d : α) (x : with_bot α) : α := with_bot.rec_bot_coe d id x
+
+@[simp] lemma with_bot.unbot'_bot {α} (d : α) : with_bot.unbot' d ⊥ = d := rfl
+@[simp] lemma with_bot.unbot'_coe {α} (d x : α) : with_bot.unbot' d x = x := rfl
+
 @[norm_cast] lemma coe_eq_coe : (a : with_bot α) = b ↔ a = b := option.some_inj
 
 /-- Lift a map `f : α → β` to `with_bot α → with_bot β`. Implemented using `option.map`. -/
@@ -837,6 +849,18 @@ lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rf
 def rec_top_coe {C : with_top α → Sort*} (h₁ : C ⊤) (h₂ : Π (a : α), C a) :
   Π (n : with_top α), C n :=
 option.rec h₁ h₂
+
+@[simp] lemma with_top.rec_top_coe_top {C : with_top α → Sort*} (d : C ⊤) (f : Π (a : α), C a) :
+  @with_top.rec_top_coe _ C d f ⊤ = d := rfl
+@[simp] lemma with_top.rec_top_coe_coe {C : with_top α → Sort*} (d : C ⊤) (f : Π (a : α), C a)
+  (x : α) : @with_top.rec_top_coe _ C d f ↑x = f x := rfl
+
+/-- Specialization of `option.get_or_else` to values in `with_top α` that respects API boundaries.
+-/
+def with_top.untop' (d : α) (x : with_top α) : α := with_top.rec_top_coe d id x
+
+@[simp] lemma with_top.untop'_top {α} (d : α) : with_top.untop' d ⊤ = d := rfl
+@[simp] lemma with_top.untop'_coe {α} (d x : α) : with_top.untop' d x = x := rfl
 
 @[norm_cast] lemma coe_eq_coe : (a : with_top α) = b ↔ a = b := option.some_inj
 

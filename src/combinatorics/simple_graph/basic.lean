@@ -778,7 +778,7 @@ The key properties of this are given in `exists_minimal_degree_vertex`, `min_deg
 and `le_min_degree_of_forall_le_degree`.
 -/
 def min_degree [decidable_rel G.adj] : ℕ :=
-option.get_or_else (univ.image (λ v, G.degree v)).min 0
+with_top.untop' 0 (univ.image (λ v, G.degree v)).min
 
 /--
 There exists a vertex of minimal degree. Note the assumption of being nonempty is necessary, as
@@ -797,8 +797,7 @@ lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.de
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
   have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
-  rw option.mem_def at ht,
-  rwa [min_degree, ht, option.get_or_else_some],
+  rwa [min_degree, ht]
 end
 
 /--

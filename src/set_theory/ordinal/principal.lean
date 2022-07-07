@@ -205,14 +205,14 @@ principal_add_iff_add_left_eq_self.2 (λ a, add_omega_opow)
 
 /-- The main characterization theorem for additive principal ordinals. -/
 theorem principal_add_iff_zero_or_omega_opow {o : ordinal} :
-  principal (+) o ↔ o = 0 ∨ ∃ a, o = omega ^ a :=
+  principal (+) o ↔ o = 0 ∨ o ∈ set.range ((^) omega) :=
 begin
   rcases eq_or_ne o 0 with rfl | ho,
   { simp only [principal_zero, or.inl] },
   { rw [principal_add_iff_add_left_eq_self],
     simp only [ho, false_or],
-    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le_self _ (ordinal.pos_iff_ne_zero.2 ho)))
-        .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
+    refine ⟨λ H, ⟨_, (lt_or_eq_of_le (opow_log_le_self _ (ordinal.pos_iff_ne_zero.2 ho)))
+      .resolve_left $ λ h, _⟩, λ ⟨b, e⟩, e ▸ λ a, add_omega_opow⟩,
     have := H _ h,
     have := lt_opow_succ_log_self one_lt_omega o,
     rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
@@ -367,7 +367,7 @@ end
 
 /-- The main characterization theorem for multiplicative principal ordinals. -/
 theorem principal_mul_iff_le_two_or_omega_opow_opow {o : ordinal} :
-  principal (*) o ↔ o ≤ 2 ∨ ∃ a, o = omega ^ omega ^ a :=
+  principal (*) o ↔ o ≤ 2 ∨ o ∈ set.range (λ a, omega ^ omega ^ a) :=
 begin
   refine ⟨λ ho, _, _⟩,
   { cases le_or_lt o 2 with ho₂ ho₂,
@@ -377,7 +377,7 @@ begin
     { exact (ordinal.not_lt_zero 2 ho₂).elim },
     rcases principal_add_iff_zero_or_omega_opow.1
       (principal_add_of_principal_mul_opow one_lt_omega ho) with rfl | ⟨b, rfl⟩,
-    { rw opow_zero at ho₂,
+    { simp_rw opow_zero at ho₂,
       exact ((lt_succ 1).not_le ho₂.le).elim },
     exact or.inr ⟨b, rfl⟩ },
   { rintro (ho₂ | ⟨a, rfl⟩),

@@ -28,6 +28,11 @@ This file provides basic results about orderings and comparison in linear orders
   equivalent, greater than, incomparable.
 * `precmp`: Compares two values in a `preorder`.
 * `preordering.compares`: Turns an `preordering` into its corresponding proposition.
+
+### Conversion
+
+* `ordering.to_preordering`: Converts the outcome classes for linear orders to the corresponding
+  outcome classes on linear orders.
 -/
 
 variables {α : Type*}
@@ -207,8 +212,11 @@ by rw cmp_eq_eq_iff
 variables {x y} {β : Type*} [linear_order β] {x' y' : β}
 
 lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
-by { split, rw [←cmp_swap _ y, ←cmp_swap _ y'], cc,
-  rw [←cmp_swap _ x, ←cmp_swap _ x'], cc, }
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←cmp_swap _ y, ←cmp_swap _ y', swap_inj] },
+  { rwa [←cmp_swap _ x, ←cmp_swap _ x', swap_inj] }
+end
 
 lemma lt_iff_lt_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
 by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
@@ -260,14 +268,14 @@ def swap : preordering → preordering
 | gt     := lt
 | incomp := incomp
 
-@[simp] theorem swap_swap (o : preordering) : o.swap.swap = o := by cases o; refl
+@[simp] lemma swap_swap (o : preordering) : o.swap.swap = o := by cases o; refl
 
-@[simp] theorem swap_lt : lt.swap = gt := rfl
-@[simp] theorem swap_equiv : preordering.equiv.swap = equiv := rfl
-@[simp] theorem swap_gt : gt.swap = lt := rfl
-@[simp] theorem swap_incomp : incomp.swap = incomp := rfl
+@[simp] lemma swap_lt : lt.swap = gt := rfl
+@[simp] lemma swap_equiv : preordering.equiv.swap = equiv := rfl
+@[simp] lemma swap_gt : gt.swap = lt := rfl
+@[simp] lemma swap_incomp : incomp.swap = incomp := rfl
 
-@[simp] theorem swap_inj (o₁ o₂ : preordering) : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
+@[simp] lemma swap_inj (o₁ o₂ : preordering) : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
 by cases o₁; cases o₂; dec_trivial
 
 end preordering
@@ -350,10 +358,95 @@ begin
   exacts [⟨h₁, h₂⟩, lt_of_le_not_le h₁ h₂, lt_of_le_not_le h₂ h₁, ⟨h₁, h₂⟩]
 end
 
-lemma ordering.compares.cmp_eq {a b : α} {o : preordering} (h : o.compares a b) : precmp a b = o :=
+lemma compares.precmp_eq {a b : α} {o : preordering} (h : o.compares a b) : precmp a b = o :=
 (cmp_compares a b).inj h
 
-@[simp] lemma cmp_swap (a b : α) : (precmp a b).swap = precmp b a :=
+@[simp] lemma precmp_swap (a b : α) : (precmp a b).swap = precmp b a :=
 by { unfold precmp precmp_using, split_ifs; refl }
 
+variables {x y : α}
+
+@[simp] lemma precmp_eq_lt_iff : precmp x y = lt ↔ x < y :=
+compares.eq_lt (cmp_compares x y)
+
+@[simp] lemma precmp_eq_equiv_iff : precmp x y = equiv ↔ antisymm_rel (≤) x y :=
+compares.eq_equiv (cmp_compares x y)
+
+@[simp] lemma precmp_eq_gt_iff : precmp x y = gt ↔ y < x :=
+compares.eq_gt (cmp_compares x y)
+
+@[simp] lemma precmp_eq_incomp_iff : precmp x y = incomp ↔ incomp_rel (≤) x y :=
+compares.eq_incomp (cmp_compares x y)
+
+@[simp] lemma precmp_self_eq_equiv : precmp x x = equiv :=
+by rw precmp_eq_equiv_iff
+
+lemma precmp_eq_lt_or_equiv_iff : precmp x y = lt ∨ precmp x y = equiv ↔ x ≤ y :=
+by rw [le_iff_lt_or_antisymm_rel, precmp_eq_lt_iff, precmp_eq_equiv_iff]
+
+lemma precmp_eq_gt_or_equiv_iff : precmp x y = gt ∨ precmp x y = equiv ↔ y ≤ x :=
+by rw [le_iff_lt_or_antisymm_rel, precmp_eq_gt_iff, precmp_eq_equiv_iff, antisymm_rel.comm]
+
+variables {β : Type*} [preorder β] [@decidable_rel β (≤)] {x' y' : β}
+
+lemma precmp_eq_precmp_symm : precmp x y = precmp x' y' ↔ precmp y x = precmp y' x' :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←precmp_swap _ y, ←precmp_swap _ y', swap_inj] },
+  { rwa [←precmp_swap _ x, ←precmp_swap _ x', swap_inj] }
+end
+
+lemma lt_iff_lt_of_cmp_eq_cmp (h : precmp x y = precmp x' y') : x < y ↔ x' < y' :=
+by rw [←precmp_eq_lt_iff, ←precmp_eq_lt_iff, h]
+
+lemma le_iff_le_of_cmp_eq_cmp (h : precmp x y = precmp x' y') : x ≤ y ↔ x' ≤ y' :=
+by rw [←precmp_eq_lt_or_equiv_iff, ←precmp_eq_lt_or_equiv_iff, h]
+
+lemma equiv_iff_equiv_of_cmp_eq_cmp (h : precmp x y = precmp x' y') :
+  antisymm_rel (≤) x y ↔ antisymm_rel (≤) x' y' :=
+by rw [←precmp_eq_equiv_iff, ←precmp_eq_equiv_iff, h]
+
+lemma incomp_iff_incomp_of_cmp_eq_cmp (h : precmp x y = precmp x' y') :
+  incomp_rel (≤) x y ↔ incomp_rel (≤) x' y' :=
+by rw [←precmp_eq_incomp_iff, ←precmp_eq_incomp_iff, h]
+
+lemma _root_.has_lt.lt.precmp_eq_lt (h : x < y) : precmp x y = lt := precmp_eq_lt_iff.2 h
+lemma _root_.has_lt.lt.precmp_eq_gt (h : x < y) : precmp y x = gt := precmp_eq_gt_iff.2 h
+lemma _root_.antisymm_rel.precmp_eq_equiv (h : antisymm_rel (≤) x y) : precmp x y = equiv :=
+precmp_eq_equiv_iff.2 h
+lemma _root_.antisymm_rel.precmp_eq_equiv' (h : antisymm_rel (≤) x y) : precmp y x = equiv :=
+h.symm.precmp_eq_equiv
+lemma _root_.eq.precmp_eq_equiv (h : x = y) : precmp x y = equiv :=
+(h.antisymm_rel _).precmp_eq_equiv
+lemma _root_.eq.precmp_eq_equiv' (h : x = y) : precmp y x = equiv :=
+h.symm.precmp_eq_equiv
+lemma _root_.incomp_rel.precmp_eq_incomp (h : incomp_rel (≤) x y) : precmp x y = incomp :=
+precmp_eq_incomp_iff.2 h
+lemma _root_.incomp_rel.precmp_eq_incomp' (h : incomp_rel (≤) x y) : precmp y x = incomp :=
+h.symm.precmp_eq_incomp
+
 end preordering
+
+/-! ### Conversion -/
+
+namespace ordering
+
+/-- Converts a comparison outcome in linear orders to one in preorders. -/
+def to_preordering : ordering → preordering
+| lt := preordering.lt
+| eq := preordering.equiv
+| gt := preordering.gt
+
+@[simp] lemma lt_to_preordering : lt.to_preordering = preordering.lt := rfl
+@[simp] lemma eq_to_preordering : eq.to_preordering = preordering.equiv := rfl
+@[simp] lemma gt_to_preordering : gt.to_preordering = preordering.gt := rfl
+
+@[simp] lemma precmp_to_cmp [linear_order α] (a b : α) : (cmp a b).to_preordering = precmp a b :=
+begin
+  rcases lt_trichotomy a b with h | h | h,
+  { rw [h.cmp_eq_lt, h.precmp_eq_lt], refl },
+  { rw [h.cmp_eq_eq, h.precmp_eq_equiv], refl },
+  { rw [h.cmp_eq_gt, h.precmp_eq_gt], refl }
+end
+
+end ordering

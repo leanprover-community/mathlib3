@@ -31,11 +31,15 @@ funext $ λ _, funext $ λ _, propext and.comm
 
 instance [is_refl α r] : is_refl α (antisymm_rel r) := ⟨antisymm_rel_refl r⟩
 
+lemma eq.antisymm_rel [is_refl α r] {a b : α} (h : a = b) : antisymm_rel r a b := by rw h
+
 variables {r}
 
 @[symm] lemma antisymm_rel.symm {a b : α} : antisymm_rel r a b → antisymm_rel r b a := and.symm
 
 instance : is_symm α (antisymm_rel r) := ⟨λ a b, antisymm_rel.symm⟩
+
+lemma antisymm_rel.comm {a b : α} : antisymm_rel r a b ↔ antisymm_rel r b a := comm
 
 @[trans] lemma antisymm_rel.trans [is_trans α r] {a b c : α} (hab : antisymm_rel r a b)
   (hbc : antisymm_rel r b c) : antisymm_rel r a c :=
@@ -50,6 +54,9 @@ instance antisymm_rel.decidable_rel [decidable_rel r] : decidable_rel (antisymm_
   antisymm_rel r a b ↔ a = b := antisymm_iff
 
 alias antisymm_rel_iff_eq ↔ antisymm_rel.eq _
+
+lemma le_iff_lt_or_antisymm_rel [preorder α] {a b : α} : a ≤ b ↔ a < b ∨ antisymm_rel (≤) a b :=
+by { rw [lt_iff_le_not_le, antisymm_rel], tauto! }
 
 end antisymm
 
@@ -71,6 +78,8 @@ variables {r}
 @[symm] lemma incomp_rel.symm {a b : α} : incomp_rel r a b → incomp_rel r b a := and.symm
 
 instance : is_symm α (incomp_rel r) := ⟨λ a b, incomp_rel.symm⟩
+
+lemma incomp_rel.comm {a b : α} : incomp_rel r a b ↔ incomp_rel r b a := comm
 
 instance incomp_rel.decidable_rel [decidable_rel r] : decidable_rel (incomp_rel r) :=
 λ _ _, and.decidable

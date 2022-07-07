@@ -1290,7 +1290,7 @@ lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord := lt_ord.2 $ lt_su
 @[simp] theorem ord_zero : ord 0 = 0 := gc_ord_card.l_bot
 
 @[simp] theorem ord_nat (n : ℕ) : ord n = n :=
-le_antisymm (ord_le.2 (card_nat n).ge) $ begin
+(ord_le.2 (card_nat n).ge).antisymm begin
   induction n with n IH,
   { apply ordinal.zero_le },
   { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }

@@ -111,7 +111,6 @@ begin
     exact ht (f x) 0 }
 end
 
-set_option trace.simplify.rewrite true
 /-- The space of rep_hom between two equivalent non-zero irreducible representations
 is one-dimensional. -/
 lemma lin_hom_irreducible_rank_eq_one {k G V V₂ : Type*} [field k] [is_alg_closed k] [monoid G]
@@ -136,7 +135,7 @@ begin
     { refine ⟨0, _⟩,
       rw [sch, zero_smul] },
     { set f' := rep_equiv.of_bijective f sch.1 sch.2 with hf,
-      obtain ⟨c, hc⟩ := schur_smul_one ((f'.trans e.symm) : ρ →ᵣ ρ) h₁,
+      obtain ⟨c, hc⟩ := schur_smul_one ((f'.trans e.symm) : ρ →ᵣ ρ) h,
       refine ⟨c, _⟩,
       rw [←rep_equiv.comp_coe, ←rep_equiv.to_rep_hom_eq_coe,
       rep_equiv.to_rep_hom_symm_comp_eq, rep_equiv.to_rep_hom_eq_coe, rep_hom.comp_smul,

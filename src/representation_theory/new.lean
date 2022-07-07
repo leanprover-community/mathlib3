@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Winston Yin
 -/
 import representation_theory.character
-import representation_theory.rep_hom
+import representation_theory.schur
 
 open_locale big_operators
 
@@ -41,7 +41,7 @@ variables
   V.character g = (linear_map.trace k V) (V.ρ g) := rfl
 
 /-- The character of the trivial representation is the dimension of the vector space V. -/
-theorem char_of_trivial (g : G) :
+lemma char_of_trivial (g : G) :
   (fdRep.of $ trivial_representation k G V).character g = finite_dimensional.finrank k V :=
 by {simp, congr}
 
@@ -64,11 +64,6 @@ lemma rep_hom.average_apply' {k G V : Type u} [field k] [monoid G] [fintype G]
   (ρ : representation k G V) {x : V} : rep_hom.average' ρ x =
   ((fintype.card G) : ℚ)⁻¹ • finset.univ.sum (λ g' : G, ρ g' x) :=
 by rw [rep_hom.average_apply, linear_map.coe_fn_sum, fintype.sum_apply]
-
--- lemma representation.map_mul_apply
---   {k G V V₂ : Type*} [comm_semiring k] [monoid G]
---   [add_comm_monoid V] [module k V] {ρ : representation k G V}
---   (g g' : G) (x : V) : (ρ g) (ρ g' x) = ρ (g * g') x := by rw [map_mul, linear_map.mul_apply]
 
 /-- The mean of the representation over all group elements of a finite group commutes with the
 group action. -/
@@ -103,3 +98,5 @@ def rep_hom.average {k G V : Type u} [field k] [group G] [fintype G]
   [linear_map.compatible_smul V V ℚ k] (ρ : representation k G V) : ρ →ᵣ ρ :=
 { map_smulG' := rep_hom.average_smulG ρ,
   ..rep_hom.average' ρ }
+
+-- TODO: trace of rep_hom.average on the lin_hom representation is the dimension of ρ →ᵣ ρ₂

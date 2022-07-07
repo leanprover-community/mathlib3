@@ -56,9 +56,6 @@ begin
   by_cases h0 :
       C p.leading_coeff * q + -(C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p) = 0,
   { exact (le_of_eq (by simp only [h0, nat_degree_zero])).trans_lt hq },
-  have hq0 : ¬ q = 0,
-  { contrapose! hq,
-    simp [hq] },
   apply lt_of_le_of_ne,
   { compute_degree_le,
     repeat { rwa nat.sub_add_cancel } },

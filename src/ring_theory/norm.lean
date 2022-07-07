@@ -245,8 +245,7 @@ lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
 by rw [norm_eq_norm_adjoin K x, map_pow,
   intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
 
-variables (E : Type*) [field E] [algebra K E]
-variable (F)
+variables (F) (E : Type*) [field E] [algebra K E]
 
 lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F] [is_alg_closed E]
   [is_separable K F] [finite_dimensional K F] (pb : power_basis K L) :

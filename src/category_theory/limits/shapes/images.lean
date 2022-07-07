@@ -247,6 +247,10 @@ lemma has_image.of_arrow_iso {f g : arrow C} [h : has_image f.hom] (sq : f ⟶ g
   has_image g.hom :=
 ⟨⟨h.exists_image.some.of_arrow_iso sq⟩⟩
 
+@[priority 100]
+instance mono_has_image (f : X ⟶ Y) [mono f] : has_image f :=
+has_image.mk ⟨_, is_image.self f⟩
+
 section
 variable [has_image f]
 
@@ -327,7 +331,7 @@ attribute [instance, priority 100] has_images.has_image
 end
 
 section
-variables (f) [has_image f]
+variables (f)
 /-- The image of a monomorphism is isomorphic to the source. -/
 def image_mono_iso_source [mono f] : image f ≅ X :=
 is_image.iso_ext (image.is_image f) (is_image.self f)
@@ -346,7 +350,7 @@ end
 -- from https://en.wikipedia.org/wiki/Image_%28category_theory%29, which is in turn taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
 @[ext]
-lemma image.ext {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
+lemma image.ext [has_image f] {W : C} {g h : image f ⟶ W} [has_limit (parallel_pair g h)]
   (w : factor_thru_image f ≫ g = factor_thru_image f ≫ h) :
   g = h :=
 begin
@@ -371,7 +375,7 @@ begin
      ... = h                : by rw [category.id_comp]
 end
 
-instance [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
+instance [has_image f] [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
   epi (factor_thru_image f) :=
 ⟨λ Z g h w, image.ext f w⟩
 

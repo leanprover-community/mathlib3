@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import group_theory.group_action.quotient
 import group_theory.order_of_element
 
 /-!
@@ -172,9 +173,8 @@ end
   S ∈ left_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.left_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
-  have key : ∀ g h, quotient.mk' g = quotient.mk' h ↔ g⁻¹ * h ∈ H :=
-  @quotient.eq' G (quotient_group.left_rel H),
-  simp_rw [mem_left_transversals_iff_exists_unique_inv_mul_mem, set_like.mem_coe, ←key],
+  simp_rw [mem_left_transversals_iff_exists_unique_inv_mul_mem, set_like.mem_coe,
+    ← quotient_group.eq'],
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
@@ -182,9 +182,8 @@ end
   S ∈ right_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.right_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
-  have key : ∀ g h, quotient.mk' g = quotient.mk' h ↔ h * g⁻¹ ∈ H :=
-  @quotient.eq' G (quotient_group.right_rel H),
-  simp_rw [mem_right_transversals_iff_exists_unique_mul_inv_mem, set_like.mem_coe, ←key],
+  simp_rw [mem_right_transversals_iff_exists_unique_mul_inv_mem, set_like.mem_coe,
+    ← quotient_group.right_rel_apply, ← quotient.eq'],
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
@@ -257,7 +256,7 @@ to_equiv hS ∘ quotient.mk'
 
 @[to_additive] lemma inv_to_fun_mul_mem (hS : S ∈ subgroup.left_transversals (H : set G))
   (g : G) : (to_fun hS g : G)⁻¹ * g ∈ H :=
-quotient.exact' (mk'_to_equiv hS g)
+quotient_group.left_rel_apply.mp $ quotient.exact' $ mk'_to_equiv _ _
 
 @[to_additive] lemma inv_mul_to_fun_mem (hS : S ∈ subgroup.left_transversals (H : set G))
   (g : G) : g⁻¹ * to_fun hS g ∈ H :=
@@ -294,7 +293,7 @@ to_equiv hS ∘ quotient.mk'
 
 @[to_additive] lemma mul_inv_to_fun_mem (hS : S ∈ subgroup.right_transversals (H : set G))
   (g : G) : g * (to_fun hS g : G)⁻¹ ∈ H :=
-quotient.exact' (mk'_to_equiv hS _)
+quotient_group.right_rel_apply.mp $ quotient.exact' $ mk'_to_equiv _ _
 
 @[to_additive] lemma to_fun_mul_inv_mem (hS : S ∈ subgroup.right_transversals (H : set G))
   (g : G) : (to_fun hS g : G) * g⁻¹ ∈ H :=
@@ -402,7 +401,7 @@ begin
   refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
   rintros ⟨h', g, hg : g • a = a⟩ rfl,
   specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
-  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  refine prod.ext (eq_inv_of_mul_eq_one_right h1) (subtype.ext _),
   rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
 end
 

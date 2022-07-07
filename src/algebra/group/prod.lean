@@ -139,8 +139,8 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 @[to_additive subtraction_monoid]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
 { mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
-  inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one $ congr_arg fst h)
-    (inv_eq_of_mul_eq_one $ congr_arg snd h),
+  inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)
+    (inv_eq_of_mul_eq_one_right $ congr_arg snd h),
   .. prod.div_inv_monoid, .. prod.has_involutive_inv }
 
 @[to_additive subtraction_comm_monoid]
@@ -448,6 +448,26 @@ def prod_comm : M × N ≃* N × M :=
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
+variables {M' N' : Type*} [mul_one_class M'] [mul_one_class N']
+
+/--Product of multiplicative isomorphisms; the maps come from `equiv.prod_congr`.-/
+@[to_additive prod_congr "Product of additive isomorphisms; the maps come from `equiv.prod_congr`."]
+def prod_congr (f : M ≃* M') (g : N ≃* N') : M × N ≃* M' × N' :=
+{ map_mul' := λ x y, prod.ext (f.map_mul _ _) (g.map_mul _ _),
+  ..f.to_equiv.prod_congr g.to_equiv }
+
+/--Multiplying by the trivial monoid doesn't change the structure.-/
+@[to_additive unique_prod "Multiplying by the trivial monoid doesn't change the structure."]
+def unique_prod [unique N] : N × M ≃* M :=
+{ map_mul' := λ x y, rfl,
+  ..equiv.unique_prod M N }
+
+/--Multiplying by the trivial monoid doesn't change the structure.-/
+@[to_additive prod_unique "Multiplying by the trivial monoid doesn't change the structure."]
+def prod_unique [unique N] : M × N ≃* M :=
+{ map_mul' := λ x y, rfl,
+  ..equiv.prod_unique M N }
+
 end
 
 section
@@ -478,9 +498,13 @@ Used mainly to define the natural topology of `αˣ`. -/
 Used mainly to define the natural topology of `add_units α`."]
 def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
-  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
+  map_one' := by simp only [inv_one, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
+
+@[to_additive]
+lemma embed_product_injective (α : Type*) [monoid α] : function.injective (embed_product α) :=
+λ a₁ a₂ h, units.ext $ (congr_arg prod.fst h : _)
 
 end units
 
@@ -509,10 +533,10 @@ def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 
 /-- Division as a monoid homomorphism. -/
 @[to_additive "Subtraction as an additive monoid homomorphism.", simps]
-def div_monoid_hom [comm_group α] : α × α →* α :=
+def div_monoid_hom [division_comm_monoid α] : α × α →* α :=
 { to_fun := λ a, a.1 / a.2,
-  map_one' := div_one' _,
-  map_mul' := λ a b, mul_div_comm' _ _ _ _ }
+  map_one' := div_one _,
+  map_mul' := λ a b, mul_div_mul_comm _ _ _ _ }
 
 /-- Division as a multiplicative homomorphism with zero. -/
 @[simps]
@@ -520,6 +544,6 @@ def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,
-  map_mul' := λ a b, (div_mul_div_comm₀ _ _ _ _).symm }
+  map_mul' := λ a b, mul_div_mul_comm _ _ _ _ }
 
 end bundled_mul_div

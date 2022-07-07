@@ -112,7 +112,7 @@ begin
       { rw ← add_sub_cancel α (c • β),
         exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-    { rw adjoin_le_iff,
+    { rw [adjoin_le_iff, set.le_eq_subset],
       change {γ} ⊆ _,
       rw set.singleton_subset_iff,
       have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
@@ -211,7 +211,9 @@ variables (K : Type*) [field K] [algebra F K]
 variables (E F)
 
 /-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
-def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
+-- Marked as `noncomputable!` since this definition takes multiple seconds to compile,
+-- and isn't very computable in practice (since neither `finrank` nor `fin_basis` are).
+noncomputable! def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
   (x : set.range (finite_dimensional.fin_basis F E : _ → E)) :
   {l : K // l ∈ (((minpoly F x.1).map (algebra_map F K)).roots : multiset K)} :=
 ⟨φ x, begin

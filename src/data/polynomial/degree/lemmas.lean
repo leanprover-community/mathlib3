@@ -61,6 +61,22 @@ lemma nat_degree_le_iff_coeff_eq_zero :
   p.nat_degree ≤ n ↔ ∀ N : ℕ, n < N → p.coeff N = 0 :=
 by simp_rw [nat_degree_le_iff_degree_le, degree_le_iff_coeff_zero, with_bot.coe_lt_coe]
 
+lemma nat_degree_add_le_iff_left {n : ℕ} (p q : R[X]) (qn : q.nat_degree ≤ n) :
+  (p + q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
+begin
+  refine ⟨λ h, _, λ h, nat_degree_add_le_of_degree_le h qn⟩,
+  refine nat_degree_le_iff_coeff_eq_zero.mpr (λ m hm, _),
+  convert nat_degree_le_iff_coeff_eq_zero.mp h m hm using 1,
+  rw [coeff_add, nat_degree_le_iff_coeff_eq_zero.mp qn _ hm, add_zero],
+end
+
+lemma nat_degree_add_le_iff_right {n : ℕ} (p q : R[X]) (pn : p.nat_degree ≤ n) :
+  (p + q).nat_degree ≤ n ↔ q.nat_degree ≤ n :=
+begin
+  rw add_comm,
+  exact nat_degree_add_le_iff_left _ _ pn,
+end
+
 lemma nat_degree_C_mul_le (a : R) (f : R[X]) :
   (C a * f).nat_degree ≤ f.nat_degree :=
 calc

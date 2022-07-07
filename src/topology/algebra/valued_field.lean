@@ -69,7 +69,7 @@ begin
     ... = (v x⁻¹) * (v $ y - x) * (v y⁻¹) : by repeat { rw valuation.map_mul }
     ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [v.map_inv, v.map_inv]
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : by
-      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev₀] }
+      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev] }
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : rfl
     ... = (v $ x - y) * ((v y) * (v y))⁻¹ : by rw valuation.map_sub_swap
     ... < γ : hyp1',
@@ -272,7 +272,7 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
     { apply hV,
       have : ((z₀⁻¹ : K) : hat K) = z₀⁻¹,
       from ring_hom.map_inv (completion.coe_ring_hom : K →+* hat K) z₀,
-      rw [completion.coe_mul, this, ← hy, hz₀, mul_inv₀, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
+      rw [completion.coe_mul, this, ← hy, hz₀, mul_inv, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
           mul_inv_cancel h, mul_one],
       solve_by_elim },
     calc v x = v (x*z₀⁻¹*z₀) : by rw [mul_assoc, inv_mul_cancel z₀_ne, mul_one]

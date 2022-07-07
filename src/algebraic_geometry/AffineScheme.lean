@@ -202,7 +202,7 @@ begin
   cases h,
   refine (Scheme.congr_app this _).trans _,
   erw category.id_comp,
-  simpa
+  simpa [eq_to_hom_map],
 end
 
 lemma is_affine_open.Spec_Γ_identity_hom_app_from_Spec {X : Scheme} {U : opens X.carrier}

@@ -182,7 +182,7 @@ begin
     have A : ∫⁻ x in s, g x ∂μ + ε * μ s ≤ ∫⁻ x in s, g x ∂μ + 0 := calc
       ∫⁻ x in s, g x ∂μ + ε * μ s = ∫⁻ x in s, g x ∂μ + ∫⁻ x in s, ε ∂μ :
         by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
-      ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add hg measurable_const).symm
+      ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add_right _ measurable_const).symm
       ... ≤ ∫⁻ x in s, f x ∂μ : set_lintegral_mono (hg.add measurable_const) hf (λ x hx, hx.1.1)
       ... ≤ ∫⁻ x in s, g x ∂μ + 0 : by { rw [add_zero], exact h s s_meas s_lt_top },
     have B : ∫⁻ x in s, g x ∂μ ≠ ∞,
@@ -280,6 +280,16 @@ begin
     exact hf_zero s hs, },
   exact (ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_strongly_measurable hf'_meas
     hf'_integrable hf'_zero).trans hf_ae.symm.le,
+end
+
+lemma ae_le_of_forall_set_integral_le {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ)
+  (hf_le : ∀ s, measurable_set s → ∫ x in s, f x ∂μ ≤ ∫ x in s, g x ∂μ) :
+  f ≤ᵐ[μ] g :=
+begin
+  rw ← eventually_sub_nonneg,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure (hg.sub hf) (λ s hs, _),
+  rw [integral_sub' hg.integrable_on hf.integrable_on, sub_nonneg],
+  exact hf_le s hs
 end
 
 end real_finite_measure

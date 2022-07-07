@@ -16,6 +16,10 @@ We define two type tags:
   multiplicative structure on `multiplicative α`.
 
 We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
+
+## See also
+
+This file is similar to `order.synonym`.
 -/
 
 universes u v
@@ -253,12 +257,12 @@ instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
 
 instance [division_monoid α] : subtraction_monoid (additive α) :=
 { neg_add_rev := @mul_inv_rev _ _,
-  neg_eq_of_add := @inv_eq_of_mul_eq_one _ _,
+  neg_eq_of_add := @inv_eq_of_mul_eq_one_right _ _,
   .. additive.sub_neg_monoid, .. additive.has_involutive_neg }
 
 instance [subtraction_monoid α] : division_monoid (multiplicative α) :=
 { mul_inv_rev := @neg_add_rev _ _,
-  inv_eq_of_mul := @neg_eq_of_add_eq_zero _ _,
+  inv_eq_of_mul := @neg_eq_of_add_eq_zero_right _ _,
   .. multiplicative.div_inv_monoid, .. multiplicative.has_involutive_inv }
 
 instance [division_comm_monoid α] : subtraction_comm_monoid (additive α) :=

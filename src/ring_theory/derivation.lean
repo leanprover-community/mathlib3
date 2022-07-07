@@ -91,7 +91,7 @@ protected lemma map_zero : D 0 = 0 := map_zero D
 lemma map_sum {ι : Type*} (s : finset ι) (f : ι → A) : D (∑ i in s, f i) = ∑ i in s, D (f i) :=
 D.to_linear_map.map_sum
 
-@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_scalar S A] [has_scalar S M]
+@[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_smul S A] [has_smul S M]
   [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
   D (r • a) = r • D a :=
 D.to_linear_map.map_smul_of_tower r a
@@ -158,7 +158,7 @@ variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M
   [smul_comm_class S A M]
 
 @[priority 100]
-instance : has_scalar S (derivation R A M) :=
+instance : has_smul S (derivation R A M) :=
 ⟨λ r D,
   { to_linear_map := r • D,
     map_one_eq_zero' := by rw [linear_map.smul_apply, coe_fn_coe, D.map_one_eq_zero, smul_zero],
@@ -260,7 +260,7 @@ by rw [← zsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin
   rw neg_smul,
-  refine eq_neg_of_add_eq_zero _,
+  refine eq_neg_of_add_eq_zero_left _,
   calc D a + a ^ 2 • D b = a • b • D a + a • a • D b : by simp only [smul_smul, h, one_smul, sq]
                      ... = a • D (a * b)             : by rw [leibniz, smul_add, add_comm]
                      ... = 0                         : by rw [h, map_one_eq_zero, smul_zero]
@@ -288,7 +288,7 @@ lemma neg_apply : (-D) a = -D a := rfl
 
 instance : has_sub (derivation R A M) :=
 ⟨λ D1 D2, mk' (D1 - D2 : A →ₗ[R] M) $ λ a b,
-  by simp only [linear_map.sub_apply, leibniz, coe_fn_coe, smul_sub, add_sub_comm]⟩
+  by simp only [linear_map.sub_apply, leibniz, coe_fn_coe, smul_sub, add_sub_add_comm]⟩
 
 @[simp] lemma coe_sub (D1 D2 : derivation R A M) : ⇑(D1 - D2) = D1 - D2 := rfl
 @[simp] lemma coe_sub_linear_map (D1 D2 : derivation R A M) : ↑(D1 - D2) = (D1 - D2 : A →ₗ[R] M) :=

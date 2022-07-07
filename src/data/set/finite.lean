@@ -67,6 +67,9 @@ theorem finite_of_subtype (s : set α) [h : finite s] : s.finite := ⟨h⟩
 
 theorem finite_coe_iff {s : set α} : finite s ↔ s.finite := ⟨λ h, ⟨h⟩, λ ⟨h⟩, h⟩
 
+/-- Projection of `set.finite` to its `finite` instance.
+This is intended to be used with dot notation.
+See also `set.finite.fintype`. -/
 alias finite_coe_iff ↔ _ finite.to_subtype
 
 theorem finite_def {s : set α} : s.finite ↔ nonempty (fintype s) :=
@@ -455,6 +458,9 @@ section set_finite_constructors
 @[nontriviality] lemma finite.of_subsingleton [subsingleton α] (s : set α) : s.finite :=
 finite_of_subtype s
 
+theorem finite_univ_iff : (@univ α).finite ↔ finite α :=
+finite_coe_iff.symm.trans (equiv.set.univ α).finite_iff
+
 theorem finite_univ [fintype α] : (@univ α).finite := finite_of_subtype _
 
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
@@ -819,7 +825,6 @@ begin
   rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
       finset.card_univ],
 end
-
 
 /-! ### Infinite sets -/
 

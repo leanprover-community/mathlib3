@@ -18,6 +18,9 @@ namespace list
 variables {M : Type*} [has_zero M] (l : list M)
   [decidable_pred (λ (i : ℕ), nthd 0 l i ≠ 0)] (n : ℕ)
 
+/-- Indexing into a `l : list M`, as a finitely-supported function,
+where the support are all the indices within the length of the list
+that index to a non-zero value. -/
 def to_finsupp : ℕ →₀ M :=
 { to_fun := nthd 0 l,
   support := (finset.range l.length).filter (λ i, nthd 0 l i ≠ 0),

@@ -32,10 +32,7 @@ variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
 
 /-! ### Non-instances -/
 
-lemma set.finite_univ_iff : finite (set.univ : set α) ↔ finite α :=
-(equiv.set.univ α).finite_iff
-
-lemma finite.of_finite_univ [finite ↥(univ : set α)] : finite α :=
+lemma finite.of_finite_univ (h : (univ : set α).finite) : finite α :=
 set.finite_univ_iff.mp ‹_›
 
 lemma finite.set.finite_of_finite_image (s : set α)

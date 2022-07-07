@@ -1174,8 +1174,7 @@ by simpa only [not_forall, not_le] using not_congr (@bsup_le_iff _ f a)
 
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
-induction_on o $ λ α r _ g h,
-begin
+induction_on o $ λ α r _ g h, begin
   resetI,
   haveI := type_ne_zero_iff_nonempty.1 h,
   rw [←sup_eq_bsup' r, H.sup, ←sup_eq_bsup' r];

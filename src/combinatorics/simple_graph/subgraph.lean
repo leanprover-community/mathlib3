@@ -342,7 +342,7 @@ protected def map {G' : simple_graph W} (f : G →g G') (H : G.subgraph) : G'.su
   edge_vert := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact set.mem_image_of_mem _ (H.edge_vert h) },
   symm := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact ⟨v, u, H.symm h, rfl, rfl⟩ } }
 
-lemma map_monotone {G' : simple_graph W} (f : G →g G') : monotone (simple_graph.subgraph.map f) :=
+lemma map_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.map f) :=
 begin
   intros H H' h,
   split,

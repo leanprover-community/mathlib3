@@ -171,6 +171,8 @@ instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)
 instance [fintype ι] [Π i, decidable_eq (β i)] : decidable_eq (hamm β) :=
 fintype.decidable_pi_fintype
 instance [Π i, has_zero (β i)] : has_zero (hamm β) := pi.has_zero
+instance [Π i, has_add (β i)] : has_add (hamm β) := pi.has_add
+instance [Π i, has_neg (β i)] : has_neg (hamm β) := pi.has_neg
 instance [Π i, has_sub (β i)] : has_sub (hamm β) := pi.has_sub
 instance [Π i, has_scalar α (β i)] : has_scalar α (hamm β) := pi.has_scalar
 instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] :

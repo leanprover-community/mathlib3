@@ -500,7 +500,7 @@ lemma mem_ℒp.of_le {f : α → E} {g : α → F}
   mem_ℒp f p μ :=
 ⟨hf, (snorm_mono_ae hfg).trans_lt hg.snorm_lt_top⟩
 
-alias mem_ℒp.of_le ← measure_theory.mem_ℒp.mono
+alias mem_ℒp.of_le ← mem_ℒp.mono
 
 lemma mem_ℒp.mono' {f : α → E} {g : α → ℝ} (hg : mem_ℒp g p μ)
   (hf : ae_strongly_measurable f μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ g a) : mem_ℒp f p μ :=

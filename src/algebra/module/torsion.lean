@@ -351,7 +351,7 @@ include hM
 def is_torsion_by_set.has_scalar : has_scalar (R ⧸ I) M :=
 { smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ h, begin
     show b₁ • x = b₂ • x,
-    have : (-b₁ + b₂) • x = 0 := @hM x ⟨_, h⟩,
+    have : (-b₁ + b₂) • x = 0 := @hM x ⟨_, quotient_add_group.left_rel_apply.mp h⟩,
     rw [add_smul, neg_smul, neg_add_eq_zero] at this,
     exact this
   end }

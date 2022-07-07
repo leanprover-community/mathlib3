@@ -158,7 +158,7 @@ finite.induction_on hf (by simp) (λ i s hi _ hs, by simp [hs])
   (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
 bInter_mem is.finite_to_set
 
-alias bInter_finset_mem ← finset.Inter_mem_sets
+alias bInter_finset_mem ← _root_.finset.Inter_mem_sets
 attribute [protected] finset.Inter_mem_sets
 
 @[simp] lemma sInter_mem {s : set (set α)} (hfin : s.finite) :
@@ -994,14 +994,14 @@ by simpa only [filter.eventually, set_of_forall] using Inter_mem
   (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ (∀ i ∈ I, ∀ᶠ x in l, p i x) :=
 by simpa only [filter.eventually, set_of_forall] using bInter_mem hI
 
-alias eventually_all_finite ← set.finite.eventually_all
+alias eventually_all_finite ← _root_.set.finite.eventually_all
 attribute [protected] set.finite.eventually_all
 
 @[simp] lemma eventually_all_finset {ι} (I : finset ι) {l} {p : ι → α → Prop} :
   (∀ᶠ x in l, ∀ i ∈ I, p i x) ↔ ∀ i ∈ I, ∀ᶠ x in l, p i x :=
 I.finite_to_set.eventually_all
 
-alias eventually_all_finset ← finset.eventually_all
+alias eventually_all_finset ← _root_.finset.eventually_all
 attribute [protected] finset.eventually_all
 
 @[simp] lemma eventually_or_distrib_left {f : filter α} {p : Prop} {q : α → Prop} :
@@ -1217,7 +1217,7 @@ lemma eventually_eq_set {s t : set α} {l : filter α} :
    s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
-alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
+alias eventually_eq_set ↔ eventually_eq.mem_iff eventually.set_eq
 
 @[simp] lemma eventually_eq_univ {s : set α} {l : filter α} : s =ᶠ[l] univ ↔ s ∈ l :=
 by simp [eventually_eq_set]
@@ -2297,7 +2297,7 @@ lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
 
-alias tendsto_iff_comap ↔ filter.tendsto.le_comap _
+alias tendsto_iff_comap ↔ tendsto.le_comap _
 
 protected lemma tendsto.disjoint {f : α → β} {la₁ la₂ : filter α} {lb₁ lb₂ : filter β}
   (h₁ : tendsto f la₁ lb₁) (hd : disjoint lb₁ lb₂) (h₂ : tendsto f la₂ lb₂) :

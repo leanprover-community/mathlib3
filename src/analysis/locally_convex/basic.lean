@@ -132,9 +132,10 @@ def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
 variables {𝕜}
 
-lemma balanced_mem {s : set E} (hs : balanced 𝕜 s) {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
-  a • x ∈ s :=
-mem_of_subset_of_mem (hs a ha) (smul_mem_smul_set hx)
+lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ∥a∥ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
+forall₂_congr $ λ a ha, smul_set_subset_iff
+
+alias balanced_iff_smul_mem ↔ balanced.smul_mem _
 
 lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
@@ -172,8 +173,7 @@ begin
   exact add_mem_add (hA₁ _ ha ⟨_, hx, rfl⟩) (hA₂ _ ha ⟨_, hy, rfl⟩),
 end
 
-lemma zero_singleton_balanced : balanced 𝕜 ({0} : set E) :=
-λ a ha, by simp only [smul_set_singleton, smul_zero]
+lemma balanced_zero : balanced 𝕜 (0 : set E) := λ a ha, (smul_zero _).subset
 
 end add_comm_monoid
 end semi_normed_ring

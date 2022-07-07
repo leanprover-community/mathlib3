@@ -111,7 +111,7 @@ localized "attribute [instance] finset.has_inv finset.has_neg" in pointwise
 @[simp, to_additive] lemma inv_empty : (∅ : finset α)⁻¹ = ∅ := image_empty _
 @[simp, to_additive] lemma inv_nonempty_iff : s⁻¹.nonempty ↔ s.nonempty := nonempty.image_iff _
 
-alias inv_nonempty_iff ↔ finset.nonempty.inv finset.nonempty.of_inv
+alias inv_nonempty_iff ↔ nonempty.inv nonempty.of_inv
 
 @[to_additive, mono] lemma inv_subset_inv  (h : s ⊆ t) : s⁻¹ ⊆ t⁻¹ := image_subset_image h
 

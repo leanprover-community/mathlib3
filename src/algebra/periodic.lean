@@ -329,7 +329,11 @@ by { rcases a with ⟨_, m, rfl⟩, simp [add_submonoid.vadd_def, add_comm _ x, 
 /-- Lift a periodic function to a function from the quotient group. -/
 def periodic.lift [add_group α] (h : periodic f c) (x : α ⧸ add_subgroup.zmultiples c) : β :=
 quotient.lift_on' x f $
-  λ a b ⟨k, hk⟩, (h.zsmul k _).symm.trans $ congr_arg f $ add_eq_of_eq_neg_add hk
+  λ a b h', (begin
+    rw quotient_add_group.left_rel_apply at h',
+    obtain ⟨k, hk⟩ := h',
+    exact (h.zsmul k _).symm.trans (congr_arg f (add_eq_of_eq_neg_add hk)),
+   end)
 
 @[simp] lemma periodic.lift_coe [add_group α] (h : periodic f c) (a : α) :
   h.lift (a : α ⧸ add_subgroup.zmultiples c) = f a :=

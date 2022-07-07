@@ -1659,7 +1659,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
       refine linear_ordered_add_comm_group.tendsto_nhds.2 (λ ε ε0, _),
       rcases dense_or_discrete 0 ε with (⟨δ, δ0, δε⟩|⟨h₁, h₂⟩),
       { -- If there exists `δ ∈ (0, ε)`, then we choose `δ`-nhd of `a` and `(ε-δ)`-nhd of `b`
-        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
+        filter_upwards [(eventually_abs_sub_lt a δ0).prod_nhds
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
         rw [add_sub_add_comm],
@@ -1670,8 +1670,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         have hε : ∀ {x y}, |x - y| < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },
-        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a ε0)
-          (eventually_abs_sub_lt b ε0)],
+        filter_upwards [(eventually_abs_sub_lt a ε0).prod_nhds (eventually_abs_sub_lt b ε0)],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < ε, hy : |y - b| < ε⟩,
         simpa [hε hx, hε hy] }
     end,

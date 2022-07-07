@@ -23,8 +23,8 @@ See the doc-string for more details.
 
 ##  Implementation details
 
-We start with a goal of the form `f.nat_degree ≤ d`.  Recurse into `f` breaking apart sums and
-products.  Take care of numerals, `C a, X (^ n), monomial a n` separately. -/
+We start with a goal of the form `f.(nat_)degree ≤ d`.  Recurse into `f` breaking apart sums,
+products and powers.  Take care of numerals, `C a, X (^ n), monomial a n` separately. -/
 
 namespace polynomial
 variables {R : Type*} [semiring R] (a : polynomial R)

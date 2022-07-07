@@ -410,6 +410,11 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
 @[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
+/-- A relation isomorphism between equal relations on equal types. -/
+@[simps] protected def cast {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+  (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
+⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
+
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
@@ -440,6 +445,14 @@ f.injective.eq_iff
 
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
+
+instance is_well_order.preimage {α : Type u} (r : α → α → Prop) [is_well_order α r] (f : β ≃ α) :
+  is_well_order β (f ⁻¹'o r) :=
+@rel_embedding.is_well_order _ _ (f ⁻¹'o r) r (rel_iso.preimage f r) _
+
+instance is_well_order.ulift {α : Type u} (r : α → α → Prop) [is_well_order α r] :
+  is_well_order (ulift α) (ulift.down ⁻¹'o r) :=
+is_well_order.preimage r equiv.ulift
 
 /-- A surjective relation embedding is a relation isomorphism. -/
 @[simps apply]

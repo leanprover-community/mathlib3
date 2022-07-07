@@ -71,6 +71,11 @@ instance pi_subtype.can_lift' (ι : Sort*) (α : Sort*) [ne : nonempty α] (p : 
   can_lift (subtype p → α) (ι → α) :=
 pi_subtype.can_lift ι (λ _, α) p
 
+instance subtype.can_lift {α : Sort*} (p : α → Prop) : can_lift α {x // p x} :=
+{ coe := coe,
+  cond := p,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+
 namespace tactic
 
 /--

@@ -80,7 +80,7 @@ begin
   have := imo2019_q4_upper_bound hk h,
   interval_cases n,
   /- n = 1 -/
-  { left, congr, norm_num at h, norm_cast at h, rw [factorial_eq_one] at h, apply antisymm h,
+  { left, congr, norm_num at h, rw [factorial_eq_one] at h, apply antisymm h,
     apply succ_le_of_lt hk },
   /- n = 2 -/
   { right, congr, norm_num [prod_range_succ] at h, norm_cast at h, rw [← factorial_inj],

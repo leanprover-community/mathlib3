@@ -388,3 +388,25 @@ end algebra_to_ring
 { map_mul' := λ a b, rfl,
   map_add' := of_boolalg_symm_diff,
   ..of_boolring.trans of_boolalg }
+
+open bool
+
+instance : boolean_ring bool :=
+{ add := bxor,
+  add_assoc := bxor_assoc,
+  zero := ff,
+  zero_add := ff_bxor,
+  add_zero := bxor_ff,
+  neg := id,
+  sub := bxor,
+  sub_eq_add_neg := λ _ _, rfl,
+  add_left_neg := bxor_self,
+  add_comm := bxor_comm,
+  one := tt,
+  mul := band,
+  mul_assoc := band_assoc,
+  one_mul := tt_band,
+  mul_one := band_tt,
+  left_distrib := band_bxor_distrib_left,
+  right_distrib := band_bxor_distrib_right,
+  mul_self := band_self }

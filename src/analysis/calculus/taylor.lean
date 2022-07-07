@@ -12,17 +12,30 @@ import data.polynomial.basic
 /-!
 # Taylor's theorem
 
+This file defines the Taylor polynomial of a real function `f : ℝ → ℝ`
+and proves Taylor's theorem, which states that if `f` is suffiently smooth
+`f` can be approximated by the Taylor polynomial up to an explicit error term.
+
 ## Main definitions
 
-* `taylor_sum`: The Taylor polynomial
+* `taylor_coeff_within`: the Taylor coefficient using `deriv_within`
+* `taylor_within`: the Taylor polynomial using `deriv_within`
 
 ## Main statements
 
-* `taylor_mean_remainder`: Taylor's theorem with the Lagrange form of the remainder term
+* `taylor_mean_remainder`: Taylor's theorem with the general form of the remainder term
+* `taylor_mean_remainder_lagrange`: Taylor's theorem with the Lagrange remainder
+* `taylor_mean_remainder_cauchy`: Taylor's theorem with the Cauchy remainder
+
+## TODO
+
+* the Peano form of the remainder
+* the integral form of the remainder
+* Generalization to higher dimensions
 
 ## Tags
 
-Foobars, barfoos
+Taylor polynomial, Taylor's theorem
 -/
 
 
@@ -76,6 +89,7 @@ begin
   exact nat.factorial_ne_zero n,
 end
 
+/-- The Taylor polynomial of order zero evaluates to `f x`. -/
 @[simp] lemma taylor_sum_zero {f : ℝ → ℝ} {s : set ℝ} {x₀ x : ℝ} :
   taylor_sum f 0 s x₀ x = f x₀ :=
 begin
@@ -85,6 +99,7 @@ begin
   simp,
 end
 
+/-- Evaluating the Taylor polynomial at `x = x₀` yields `f x`. -/
 @[simp] lemma taylor_sum_self {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
   taylor_sum f n s x₀ x₀ = f x₀ :=
 begin

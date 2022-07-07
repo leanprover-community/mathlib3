@@ -34,7 +34,7 @@ lemma stars_and_bars {α : Type*} [fintype α] (k : ℕ) :
 stars and bars
 -/
 
-open finset fintype function sum
+open finset fintype function sum nat
 
 variables {α β : Type*}
 
@@ -123,14 +123,6 @@ def option_succ_equiv [decidable_eq α] : sym (option α) n.succ ≃ sym α n.su
   end }
 
 end
-
-/-- `multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`.
-That is, it's the number of ways to select `k` items (up to permutation) from `n` items
-with replacement.
-
-This is defined as `nat.choose (n + k - 1) k`. It is related to the cardinality of `sym` in
-`sym.multichoose_eq`. -/
-def multichoose (n k : ℕ) := (n + k - 1).choose k
 
 lemma card_sym_rec (n : ℕ)
   [fintype (sym (option α) n.succ)] [fintype (sym α n.succ)] [fintype (sym (option α) n)] :

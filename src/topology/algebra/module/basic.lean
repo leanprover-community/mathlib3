@@ -905,7 +905,11 @@ lemma smul_right_apply {c : M₁ →L[R] S} {f : M₂} {x : M₁} :
   (smul_right c f : M₁ → M₂) x = c x • f :=
 rfl
 
+#check linear_map.smul_right
+
 end
+
+#exit
 
 section pointwise
 open_locale pointwise
@@ -1010,10 +1014,11 @@ section ring
 variables
 {R : Type*} [ring R] {R₂ : Type*} [ring R₂]
 {M : Type*} [topological_space M] [add_comm_group M]
+{N : Type*} [topological_space N] [add_comm_monoid N]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
 {M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
-[module R M] [module R₂ M₂]
+[module R M] [module R N] [module R₂ M₂]
 {σ₁₂ : R →+* R₂}
 
 section
@@ -1045,15 +1050,15 @@ end
 section
 variables [topological_add_group M₂]
 
-instance : has_neg (M →SL[σ₁₂] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
+instance : has_neg (N →SL[σ₁₂] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
-@[simp] lemma neg_apply (f : M →SL[σ₁₂] M₂) (x : M) : (-f) x = - (f x) := rfl
-@[simp, norm_cast] lemma coe_neg (f : M →SL[σ₁₂] M₂) : (↑(-f) : M →ₛₗ[σ₁₂] M₂) = -f := rfl
-@[norm_cast] lemma coe_neg' (f : M →SL[σ₁₂] M₂) : ⇑(-f) = -f := rfl
+@[simp] lemma neg_apply (f : N →SL[σ₁₂] M₂) (x : N) : (-f) x = - (f x) := rfl
+@[simp, norm_cast] lemma coe_neg (f : N →SL[σ₁₂] M₂) : (↑(-f) : N →ₛₗ[σ₁₂] M₂) = -f := rfl
+@[norm_cast] lemma coe_neg' (f : N →SL[σ₁₂] M₂) : ⇑(-f) = -f := rfl
 
-instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
+instance : has_sub (N →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
-instance : add_comm_group (M →SL[σ₁₂] M₂) :=
+instance : add_comm_group (N →SL[σ₁₂] M₂) :=
 by refine
 { zero := 0,
   add := (+),
@@ -1068,9 +1073,9 @@ by refine
   .. continuous_linear_map.add_comm_monoid, .. };
 intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
 
-lemma sub_apply (f g : M →SL[σ₁₂] M₂) (x : M) : (f - g) x = f x - g x := rfl
-@[simp, norm_cast] lemma coe_sub (f g : M →SL[σ₁₂] M₂) : (↑(f - g) : M →ₛₗ[σ₁₂] M₂) = f - g := rfl
-@[simp, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
+lemma sub_apply (f g : N →SL[σ₁₂] M₂) (x : N) : (f - g) x = f x - g x := rfl
+@[simp, norm_cast] lemma coe_sub (f g : N →SL[σ₁₂] M₂) : (↑(f - g) : N →ₛₗ[σ₁₂] M₂) = f - g := rfl
+@[simp, norm_cast] lemma coe_sub' (f g : N →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
 
 end
 

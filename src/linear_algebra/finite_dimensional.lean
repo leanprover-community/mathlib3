@@ -1828,3 +1828,12 @@ end
 
 end End
 end module
+
+section range_smul_right
+
+lemma smul_right_range_finite_dimensional {W : Type*} [division_ring K] [add_comm_monoid V]
+  [add_comm_group W] [module K V] [module K W] {f : V →ₗ[K] K} {x : W} :
+  finite_dimensional K (f.smul_right x).range :=
+submodule.finite_dimensional_of_le (smul_right_range_le f x)
+
+end range_smul_right

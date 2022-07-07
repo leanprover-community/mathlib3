@@ -897,3 +897,16 @@ by rw [← to_span_nonzero_singleton_one K V x h, linear_equiv.symm_apply_apply]
 end field
 
 end linear_equiv
+
+section range_smul_right
+
+lemma smul_right_range_le [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M]
+  [module R M₂] (f : M →ₗ[R] R) (x : M₂) :
+  (f.smul_right x).range ≤ submodule.span R {x} :=
+begin
+  rw submodule.le_span_singleton_iff,
+  rintros _ ⟨c, rfl⟩,
+  exact ⟨f c, rfl⟩
+end
+
+end range_smul_right

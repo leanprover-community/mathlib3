@@ -825,8 +825,8 @@ end submodule
 namespace submodule
 
 variables [semiring R] [field K] {σ : R →+* K}
-variables [add_comm_group V] [module R V]
-variables [add_comm_group V₂] [module K V₂]
+variables [add_comm_monoid V] [module R V]
+variables [add_comm_monoid V₂] [module K V₂]
 
 lemma comap_smul (f : V →ₛₗ[σ] V₂) (p : submodule K V₂) (a : K) (h : a ≠ 0) :
   p.comap (a • f) = p.comap f :=

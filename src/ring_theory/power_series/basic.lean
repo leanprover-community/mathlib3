@@ -89,7 +89,7 @@ instance {A} [semiring R] [add_comm_monoid A] [module R A] :
   module R (mv_power_series σ A) := pi.module _ _ _
 
 instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
-  [has_scalar R S] [is_scalar_tower R S A] :
+  [has_smul R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (mv_power_series σ A) :=
 pi.is_scalar_tower
 
@@ -155,6 +155,12 @@ lemma coeff_zero_one : coeff R (0 : σ →₀ ℕ) 1 = 1 :=
 coeff_monomial_same 0 1
 
 lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
+
+instance : add_monoid_with_one (mv_power_series σ R) :=
+{ nat_cast := λ n, monomial R 0 n,
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := by simp [nat.cast, monomial_zero_one],
+  one := 1, .. mv_power_series.add_monoid }
 
 instance : has_mul (mv_power_series σ R) :=
 ⟨λ φ ψ n, ∑ p in finsupp.antidiagonal n, coeff R p.1 φ * coeff R p.2 ψ⟩
@@ -244,7 +250,7 @@ instance : semiring (mv_power_series σ R) :=
   zero_mul := mv_power_series.zero_mul,
   left_distrib := mv_power_series.mul_add,
   right_distrib := mv_power_series.add_mul,
-  .. mv_power_series.has_one,
+  .. mv_power_series.add_monoid_with_one,
   .. mv_power_series.has_mul,
   .. mv_power_series.add_comm_monoid }
 
@@ -932,7 +938,7 @@ instance {A} [semiring R] [add_comm_monoid A] [module R A] :
   module R (power_series A) := by apply_instance
 
 instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
-  [has_scalar R S] [is_scalar_tower R S A] :
+  [has_smul R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
 
@@ -1154,8 +1160,7 @@ begin
   { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, mul_zero],
-    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
-      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+    exact ((le_of_add_le_right (finset.nat.mem_antidiagonal.mp hx).le).trans_lt $ not_le.mp h).ne }
 end
 
 lemma coeff_X_pow_mul' (p : power_series R) (n d : ℕ) :
@@ -1167,8 +1172,7 @@ begin
     rw [coeff_X_pow, if_neg, zero_mul],
     have := finset.nat.mem_antidiagonal.mp hx,
     rw add_comm at this,
-    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
-      (le_of_eq this)) (not_le.mp h)) },
+    exact ((le_of_add_le_right this.le).trans_lt $ not_le.mp h).ne }
 end
 
 end
@@ -1283,6 +1287,21 @@ by simp
 @[simp] lemma rescale_one : rescale 1 = ring_hom.id (power_series R) :=
 by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
+
+lemma rescale_mk (f : ℕ → R) (a : R) :
+  rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
+by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
+
+lemma rescale_rescale (f : power_series R) (a b : R) :
+  rescale b (rescale a f) = rescale (a * b) f :=
+begin
+  ext,
+  repeat { rw coeff_rescale, },
+  rw [mul_pow, mul_comm _ (b^n), mul_assoc],
+end
+
+lemma rescale_mul (a b : R) : rescale (a * b) = (rescale b).comp (rescale a) :=
+by { ext, simp [← rescale_rescale], }
 
 section trunc
 

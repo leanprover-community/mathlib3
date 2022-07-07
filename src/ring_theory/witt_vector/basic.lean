@@ -106,6 +106,14 @@ lemma zsmul (z : ℤ) : map_fun f (z • x) = z • map_fun f x := by map_fun_ta
 
 lemma pow (n : ℕ) : map_fun f (x^ n) = map_fun f x ^ n := by map_fun_tac
 
+lemma nat_cast (n : ℕ) : map_fun f (n : 𝕎 R) = n :=
+show map_fun f n.unary_cast = coe n,
+by induction n; simp [*, nat.unary_cast, add, one, zero]; refl
+
+lemma int_cast (n : ℤ) : map_fun f (n : 𝕎 R) = n :=
+show map_fun f n.cast_def = coe n,
+by cases n; simp [*, int.cast_def, add, one, neg, zero, nat_cast]; refl
+
 end map_fun
 
 end witt_vector
@@ -166,6 +174,10 @@ private lemma ghost_fun_one : ghost_fun (1 : 𝕎 R) = 1 := by ghost_fun_tac 1 !
 private lemma ghost_fun_add : ghost_fun (x + y) = ghost_fun x + ghost_fun y :=
 by ghost_fun_tac (X 0 + X 1) ![x.coeff, y.coeff]
 
+private lemma ghost_fun_nat_cast (i : ℕ) : ghost_fun (i : 𝕎 R) = i :=
+show ghost_fun i.unary_cast = _,
+by induction i; simp [*, nat.unary_cast, ghost_fun_zero, ghost_fun_one, ghost_fun_add, -pi.coe_nat]
+
 private lemma ghost_fun_sub : ghost_fun (x - y) = ghost_fun x - ghost_fun y :=
 by ghost_fun_tac (X 0 - X 1) ![x.coeff, y.coeff]
 
@@ -174,6 +186,10 @@ by ghost_fun_tac (X 0 * X 1) ![x.coeff, y.coeff]
 
 private lemma ghost_fun_neg : ghost_fun (-x) = - ghost_fun x :=
 by ghost_fun_tac (-X 0) ![x.coeff]
+
+private lemma ghost_fun_int_cast (i : ℤ) : ghost_fun (i : 𝕎 R) = i :=
+show ghost_fun i.cast_def = _,
+by cases i; simp [*, int.cast_def, ghost_fun_nat_cast, ghost_fun_neg, -pi.coe_nat, -pi.coe_int]
 
 private lemma ghost_fun_nsmul (m : ℕ) : ghost_fun (m • x) = m • ghost_fun x :=
 by ghost_fun_tac (m • X 0) ![x.coeff]
@@ -214,27 +230,28 @@ include hp
 
 local attribute [instance]
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
+by letI : comm_ring (mv_polynomial R ℚ) := mv_polynomial.comm_ring; exact
 (ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring (ghost_fun)
   ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg ghost_fun_sub
-  ghost_fun_nsmul ghost_fun_zsmul ghost_fun_pow
+  ghost_fun_nsmul ghost_fun_zsmul ghost_fun_pow ghost_fun_nat_cast ghost_fun_int_cast
 
 local attribute [instance]
 private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
 (map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
-  (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _)
+  (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _) (map_fun.nat_cast _) (map_fun.int_cast _)
 
 /-- The commutative ring structure on `𝕎 R`. -/
 instance : comm_ring (𝕎 R) :=
 (map_fun.surjective _ $ counit_surjective _).comm_ring (map_fun $ mv_polynomial.counit _)
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
-  (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _)
+  (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _) (map_fun.nat_cast _) (map_fun.int_cast _)
 
 variables {p R}
 
 /-- `witt_vector.map f` is the ring homomorphism `𝕎 R →+* 𝕎 S` naturally induced
 by a ring homomorphism `f : R →+* S`. It acts coefficientwise. -/
-def map (f : R →+* S) : 𝕎 R →+* 𝕎 S :=
+noncomputable! def map (f : R →+* S) : 𝕎 R →+* 𝕎 S :=
 { to_fun := map_fun f,
   map_zero' := map_fun.zero f,
   map_one' := map_fun.one f,
@@ -284,7 +301,7 @@ end invertible
 
 /-- `witt_vector.coeff x 0` as a `ring_hom` -/
 @[simps]
-def constant_coeff : 𝕎 R →+* R :=
+noncomputable! def constant_coeff : 𝕎 R →+* R :=
 { to_fun := λ x, x.coeff 0,
   map_zero' := by simp,
   map_one' := by simp,

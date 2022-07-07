@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid.basic
+import category_theory.monoidal.subcategory
 import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
@@ -12,14 +13,9 @@ import algebra.category.Module.monoidal
 # The category of finite dimensional vector spaces
 
 This introduces `FinVect K`, the category of finite dimensional vector spaces over a field `K`.
-It is implemented as a full subcategory on a subtype of `Module K`.
-We first create the instance as a category, then as a monoidal category and then as a rigid monoidal
-category.
-
-## Future work
-
-* Show that `FinVect K` is a symmetric monoidal category.
-
+It is implemented as a full subcategory on a subtype of `Module K`, which inherits monoidal and
+symmetric structure as `finite_dimensional K` is a monoidal predicate.
+We also provide a right rigid monoidal category instance.
 -/
 noncomputable theory
 
@@ -30,8 +26,14 @@ universes u
 
 variables (K : Type u) [field K]
 
+instance monoidal_predicate_finite_dimensional :
+  monoidal_category.monoidal_predicate (λ V : Module.{u} K, finite_dimensional K V) :=
+{ prop_id' := finite_dimensional.finite_dimensional_self K,
+  prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
+
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category]]
+@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, monoidal_category,
+  symmetric_category]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
@@ -54,12 +56,6 @@ by { dsimp [FinVect], apply_instance, }
 
 instance : full (forget₂ (FinVect K) (Module.{u} K)) :=
 { preimage := λ X Y f, f, }
-
-instance monoidal_category : monoidal_category (FinVect K) :=
-monoidal_category.full_monoidal_subcategory
-  (λ V, finite_dimensional K V)
-  (finite_dimensional.finite_dimensional_self K)
-  (λ X Y hX hY, by exactI finite_dimensional_tensor_product X Y)
 
 variables (V : FinVect K)
 
@@ -112,4 +108,27 @@ instance right_dual : has_right_dual V := ⟨FinVect_dual K V⟩
 
 instance right_rigid_category : right_rigid_category (FinVect K) := { }
 
+variables {K V} (W : FinVect K)
+
+/-- Converts and isomorphism in the category `FinVect` to a `linear_equiv` between the underlying
+vector spaces. -/
+def iso_to_linear_equiv {V W : FinVect K} (i : V ≅ W) : V ≃ₗ[K] W :=
+  ((forget₂ (FinVect.{u} K) (Module.{u} K)).map_iso i).to_linear_equiv
+
+lemma iso.conj_eq_conj {V W : FinVect K} (i : V ≅ W) (f : End V) :
+  iso.conj i f = linear_equiv.conj (iso_to_linear_equiv i) f := rfl
+
 end FinVect
+
+variables {K}
+
+/-- Converts a `linear_equiv` to an isomorphism in the category `FinVect`. -/
+@[simps] def linear_equiv.to_FinVect_iso
+  {V W : Type u} [add_comm_group V] [module K V] [finite_dimensional K V]
+  [add_comm_group W] [module K W] [finite_dimensional K W]
+  (e : V ≃ₗ[K] W) :
+  FinVect.of K V ≅ FinVect.of K W :=
+{ hom := e.to_linear_map,
+  inv := e.symm.to_linear_map,
+  hom_inv_id' := by {ext, exact e.left_inv x},
+  inv_hom_id' := by {ext, exact e.right_inv x} }

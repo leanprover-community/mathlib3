@@ -49,8 +49,6 @@ instance : has_coe_to_fun (α ≃ₜ β) (λ _, α → β) := ⟨λe, e.to_equiv
   ((homeomorph.mk a b c) : α → β) = a :=
 rfl
 
-@[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
-
 /-- Inverse of a homeomorphism. -/
 protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
 { continuous_to_fun  := h.continuous_inv_fun,
@@ -65,6 +63,9 @@ def simps.symm_apply (h : α ≃ₜ β) : β → α := h.symm
 
 initialize_simps_projections homeomorph
   (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+
+@[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
+@[simp] lemma coe_symm_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv.symm = h.symm := rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
 | ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
@@ -445,10 +446,17 @@ def {u} pi_fin_two (α : fin 2 → Type u) [Π i, topological_space (α i)] : (�
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
 -/
-def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+@[simps] def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 { continuous_to_fun := by continuity!,
   continuous_inv_fun := by continuity!,
-  ..e.to_equiv.image s, }
+  to_equiv := e.to_equiv.image s, }
+
+/-- `set.univ α` is homeomorphic to `α`. -/
+@[simps { fully_applied := ff }]
+def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
+{ to_equiv := equiv.set.univ α,
+  continuous_to_fun := continuous_subtype_coe,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_id }
 
 end homeomorph
 

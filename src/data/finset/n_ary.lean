@@ -25,8 +25,8 @@ open function set
 namespace finset
 
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
-  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq δ] [decidable_eq δ']
-  [decidable_eq ε] [decidable_eq ε']
+  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
+  [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε']
   {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
   {a a' : α} {b b' : β} {c : γ}
 
@@ -45,6 +45,11 @@ set.ext $ λ _, mem_image₂
 lemma card_image₂_le (f : α → β → γ) (s : finset α) (t : finset β) :
   (image₂ f s t).card ≤ s.card * t.card :=
 card_image_le.trans_eq $ card_product _ _
+
+lemma card_image₂_iff :
+  (image₂ f s t).card = s.card * t.card ↔
+    ((s : set α) ×ˢ (t : set β) : set (α × β)).inj_on (λ x, f x.1 x.2) :=
+by { rw [←card_product, ←coe_product], exact card_image_iff }
 
 lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :
   (image₂ f s t).card = s.card * t.card :=
@@ -93,8 +98,9 @@ lemma nonempty.of_image₂_right (h : (image₂ f s t).nonempty) : t.nonempty :=
 @[simp] lemma image₂_eq_empty_iff : image₂ f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp_rw [←not_nonempty_iff_eq_empty, image₂_nonempty_iff, not_and_distrib]
 
-@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (f a) := ext $ λ x, by simp
+@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (λ b, f a b) := ext $ λ x, by simp
 @[simp] lemma image₂_singleton_right : image₂ f s {b} = s.image (λ a, f a b) := ext $ λ x, by simp
+lemma image₂_singleton_left' : image₂ f {a} t = t.image (f a) := image₂_singleton_left
 
 lemma image₂_singleton : image₂ f {a} {b} = {f a b} := by simp
 
@@ -133,6 +139,12 @@ begin
   exact ⟨⟨hx, hs⟩, ⟨hy, hs'⟩, insert_subset.2 ⟨mem_image₂.2 ⟨x, y, mem_insert_self _ _,
     mem_insert_self _ _, ha⟩, h.trans $ image₂_subset (subset_insert _ _) $ subset_insert _ _⟩⟩,
 end
+
+lemma bUnion_image_left : s.bUnion (λ a, t.image $ f a) = image₂ f s t :=
+coe_injective $ by { push_cast, exact set.Union_image_left _ }
+
+lemma bUnion_image_right : t.bUnion (λ b, s.image $ λ a, f a b) = image₂ f s t :=
+coe_injective $ by { push_cast, exact set.Union_image_right _ }
 
 /-!
 ### Algebraic replacement rules
@@ -212,6 +224,20 @@ lemma image_image₂_right_comm {f : α → β' → γ} {g : β → β'} {f' : �
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image₂ f s (t.image g) = (image₂ f' s t).image g' :=
 (image_image₂_distrib_right $ λ a b, (h_right_comm a b).symm).symm
+
+/-- The other direction does not hold because of the `s`-`s` cross terms on the RHS. -/
+lemma image₂_distrib_subset_left {γ : Type*} {u : finset γ} {f : α → δ → ε} {g : β → γ → δ}
+  {f₁ : α → β → β'} {f₂ : α → γ → γ'} {g' : β' → γ' → ε}
+  (h_distrib : ∀ a b c, f a (g b c) = g' (f₁ a b) (f₂ a c)) :
+  image₂ f s (image₂ g t u) ⊆ image₂ g' (image₂ f₁ s t) (image₂ f₂ s u) :=
+coe_subset.1 $ by { push_cast, exact set.image2_distrib_subset_left h_distrib }
+
+/-- The other direction does not hold because of the `u`-`u` cross terms on the RHS. -/
+lemma image₂_distrib_subset_right {γ : Type*} {u : finset γ} {f : δ → γ → ε} {g : α → β → δ}
+  {f₁ : α → γ → α'} {f₂ : β → γ → β'} {g' : α' → β' → ε}
+  (h_distrib : ∀ a b c, f (g a b) c = g' (f₁ a c) (f₂ b c)) :
+  image₂ f (image₂ g s t) u ⊆ image₂ g' (image₂ f₁ s u) (image₂ f₂ t u) :=
+coe_subset.1 $ by { push_cast, exact set.image2_distrib_subset_right h_distrib }
 
 lemma image_image₂_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ : β → β'} {g₂ : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g₁ b) (g₂ a)) :

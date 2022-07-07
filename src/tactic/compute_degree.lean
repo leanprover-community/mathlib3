@@ -193,7 +193,7 @@ by compute_degree_le!
 ```
  -/
 meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
-if expos.is_some then compute_degree_le_core tt else compute_degree_le_core ff
+compute_degree_le_core expos.is_some
 
 add_tactic_doc
 { name := "compute_degree_le",

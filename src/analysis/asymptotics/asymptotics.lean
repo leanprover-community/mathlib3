@@ -906,7 +906,7 @@ by simp only [is_o_iff, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto
 @[simp] theorem is_O_one_iff : f =O[l] (λ x, 1 : α → F) ↔ is_bounded_under (≤) l (λ x, ∥f x∥) :=
 by { simp only [is_O_iff, norm_one, mul_one], refl }
 
-alias is_O_one_iff ↔ _ filter.is_bounded_under.is_O_one
+alias is_O_one_iff ↔ _ _root_.filter.is_bounded_under.is_O_one
 
 @[simp] theorem is_o_one_left_iff : (λ x, 1 : α → F) =o[l] f ↔ tendsto (λ x, ∥f x∥) l at_top :=
 calc (λ x, 1 : α → F) =o[l] f ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥(1 : F)∥ ≤ ∥f x∥ :

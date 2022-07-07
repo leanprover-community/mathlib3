@@ -337,6 +337,8 @@ abbreviation dart.fst (d : G.dart) : V := d.fst
 /-- The second vertex for the dart. -/
 abbreviation dart.snd (d : G.dart) : V := d.snd
 
+lemma dart.to_prod_injective : function.injective (dart.to_prod : G.dart → V × V) := dart.ext
+
 instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
 fintype.of_equiv (Σ v, G.neighbor_set v)
 { to_fun := λ s, ⟨(s.fst, s.snd), s.snd.property⟩,

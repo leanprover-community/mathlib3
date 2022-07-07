@@ -680,7 +680,7 @@ instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] :
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
-    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+    (set.to_finite _) ⟨b, le_rfl, ht⟩,
   refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
   by_contra hyt,
   obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,

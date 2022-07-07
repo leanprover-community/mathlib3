@@ -249,7 +249,7 @@ end
 lemma well_founded_gt.finite_of_independent [well_founded_gt α]
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
 begin
-  haveI := (well_founded_gt.finite_of_set_independent ht.set_independent_range).finite,
+  haveI := (well_founded_gt.finite_of_set_independent ht.set_independent_range).to_subtype,
   exact finite.of_injective_finite_range (ht.injective h_ne_bot),
 end
 

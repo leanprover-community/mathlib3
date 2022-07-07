@@ -454,7 +454,7 @@ variables [partial_order α] {s : set α} {a : α}
 theorem finite.is_pwo (h : s.finite) : s.is_pwo :=
 by { rw ← h.coe_to_finset, exact h.to_finset.is_pwo }
 
-@[simp] theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
+@[simp] theorem fintype.is_pwo [fintype α] : s.is_pwo := s.to_finite.is_pwo
 
 @[simp] theorem is_pwo_empty : is_pwo (∅ : set α) := finite_empty.is_pwo
 

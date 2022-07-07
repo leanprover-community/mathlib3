@@ -234,6 +234,9 @@ instance order_top : order_top enat :=
 { top := (⊤),
   le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩ }
 
+lemma eq_zero_iff {x : enat} : x = 0 ↔ x ≤ 0 := eq_bot_iff
+lemma ne_zero_iff {x : enat} : x ≠ 0 ↔ ⊥ < x := bot_lt_iff_ne_bot.symm
+
 lemma dom_of_lt {x y : enat} : x < y → x.dom :=
 enat.cases_on x not_top_lt $ λ _ _, dom_coe _
 
@@ -244,11 +247,17 @@ ne.lt_top (λ h, absurd (congr_arg dom h) $ by simpa only [dom_coe] using true_n
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
 
+lemma not_is_max_coe (x : ℕ) : ¬ is_max (x : enat) :=
+not_is_max_of_lt (coe_lt_top x)
+
 lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃ (n : ℕ), x = n :=
 by simpa only [← some_eq_coe] using part.ne_none_iff
 
 lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
 by classical; exact not_iff_comm.1 part.eq_none_iff'.symm
+
+lemma not_dom_iff_eq_top {x : enat} : ¬ x.dom ↔ x = ⊤ :=
+iff.not_left ne_top_iff_dom.symm
 
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
 ne_of_lt $ lt_of_lt_of_le h le_top

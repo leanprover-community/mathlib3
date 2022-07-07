@@ -143,7 +143,6 @@ end compute_degree
 
 namespace interactive
 open compute_degree
-setup_tactic_parser
 
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.

@@ -154,6 +154,14 @@ instance : has_mem α (multiset α) := ⟨mem⟩
 instance decidable_mem [decidable_eq α] (a : α) (s : multiset α) : decidable (a ∈ s) :=
 quot.rec_on_subsingleton s $ list.decidable_mem a
 
+instance decidable_forall_mem {P : α → Prop} [decidable_pred P] (m : multiset α) :
+  decidable (∀ a ∈ m, P a) :=
+quotient.rec_on_subsingleton m list.decidable_forall_mem
+
+instance decidable_exists_mem {P : α → Prop} [decidable_pred P] (m : multiset α) :
+  decidable (∃ a ∈ m, P a) :=
+quotient.rec_on_subsingleton m list.decidable_exists_mem
+
 @[simp] theorem mem_cons {a b : α} {s : multiset α} : a ∈ b ::ₘ s ↔ a = b ∨ a ∈ s :=
 quot.induction_on s $ λ l, iff.rfl
 

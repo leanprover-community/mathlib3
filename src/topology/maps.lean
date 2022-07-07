@@ -486,7 +486,8 @@ lemma open_embedding.comp {g : β → γ} {f : α → β}
 
 lemma open_embedding.is_open_map_iff {g : β → γ} {f : α → β} (hg : open_embedding g) :
   is_open_map f ↔ is_open_map (g ∘ f) :=
-by simp only [is_open_map_iff_nhds_le, ← @map_map _ _ _ _ f g, ← hg.map_nhds_eq, map_le_map hg.inj]
+by simp only [is_open_map_iff_nhds_le, ← @map_map _ _ _ _ f g, ← hg.map_nhds_eq,
+  map_le_map_iff hg.inj]
 
 lemma open_embedding_iff_open_embedding_compose (f : α → β) {g : β → γ} (hg : open_embedding g) :
   open_embedding (g ∘ f) ↔ open_embedding f :=

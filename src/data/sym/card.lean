@@ -78,19 +78,14 @@ begin
   { intros x y h1 h2,
     rw [multichoose_succ_succ, ←h1, ←h2, add_comm],
     cases x,
-    {
-      simp only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
+    { simp only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
       apply_instance },
-      rw ←card_sum,
-      apply fintype.card_congr,
-
-      have h3 : {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∈ i}
-           ⊕ {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∉ i}
-            ≃ sym (fin x.succ.succ) y.succ,
-      { apply equiv.sum_compl },
-      refine equiv.trans h3.symm _,
-      refine equiv.sum_congr E1 E2 },
+    rw ←card_sum,
+    refine fintype.card_congr (equiv.symm _),
+    apply (equiv.sum_congr E1.symm E2.symm).trans,
+    apply equiv.sum_compl },
 end
+
 
 /-- For any fintype `α` of cardinality `n`, `card (sym α k) = multichoose (card α) k` -/
 lemma card_sym_eq_multichoose (α : Type*) (k : ℕ) [fintype α] [fintype (sym α k)] :

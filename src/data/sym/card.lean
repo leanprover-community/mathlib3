@@ -48,6 +48,29 @@ lemma card_sym_eq_card_sym_fin (α : Type*) (k : ℕ) [fintype α] [fintype (sym
   card (sym α k) = card (sym (fin (card α)) k) :=
 card_congr (equiv_congr (equiv_fin α))
 
+def E1 {x y : ℕ} :
+  {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∈ i} ≃ sym (fin x.succ.succ) y :=
+{ to_fun    := λ s, s.1.erase 0 s.2,
+  inv_fun   := λ s, ⟨cons 0 s, mem_cons_self 0 s⟩,
+  left_inv  := λ s, by simp,
+  right_inv := λ s, by simp }
+
+def E2 {x y : ℕ} :
+  {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∉ i} ≃ sym (fin x.succ) y.succ :=
+{ to_fun    := λ s, map (fin.pred_above 0) s.1,
+  inv_fun   := λ s, ⟨map (fin.succ_above 0) s,
+    (mt mem_map.1) (not_exists.2 (λ t, (not_and.2 (λ _, (fin.succ_above_ne _ t)))))⟩,
+  left_inv  := λ s, by
+  { obtain ⟨s, hs⟩ := s,
+    simp only [fin.zero_succ_above, map_map, comp_app],
+    nth_rewrite_rhs 0 ←(map_id' s),
+    refine sym.map_congr (λ v hv,  _),
+    simp [fin.pred_above_zero (ne_of_mem_of_not_mem hv hs)] },
+  right_inv := λ s, by
+  { simp only [fin.zero_succ_above, map_map, comp_app],
+    nth_rewrite_rhs 0 ←(map_id' s),
+    refine sym.map_congr (λ v hv,  _),
+    rw [←fin.zero_succ_above v, ←fin.cast_succ_zero, fin.pred_above_succ_above 0 v] } }
 
 
 /-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting

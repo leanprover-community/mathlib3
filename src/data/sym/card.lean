@@ -43,14 +43,14 @@ namespace sym
 section
 variables (α) (n : ℕ)
 
-def E1 {x y : ℕ} :
+protected def E1 {x y : ℕ} :
   {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∈ i} ≃ sym (fin x.succ.succ) y :=
 { to_fun    := λ s, s.1.erase 0 s.2,
   inv_fun   := λ s, ⟨cons 0 s, mem_cons_self 0 s⟩,
   left_inv  := λ s, by simp,
   right_inv := λ s, by simp }
 
-def E2 {x y : ℕ} :
+protected def E2 {x y : ℕ} :
   {i : sym (fin x.succ.succ) y.succ // (0 : fin x.succ.succ) ∉ i} ≃ sym (fin x.succ) y.succ :=
 { to_fun    := λ s, map (fin.pred_above 0) s.1,
   inv_fun   := λ s, ⟨map (fin.succ_above 0) s,
@@ -82,7 +82,7 @@ begin
       apply_instance },
     rw ←card_sum,
     refine fintype.card_congr (equiv.symm _),
-    apply (equiv.sum_congr E1.symm E2.symm).trans,
+    apply (equiv.sum_congr sym.E1.symm sym.E2.symm).trans,
     apply equiv.sum_compl },
 end
 

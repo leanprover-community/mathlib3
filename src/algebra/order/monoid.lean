@@ -59,26 +59,21 @@ instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_
 covariant_swap_mul_le_of_covariant_mul_le M
 
 /- This is not an instance, to avoid creating a loop in the type-class system: in a
-`left_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (*) (≤)`
-implies `covariant_class M M (*) (<)` . -/
+`left_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (*) (≤)` implies
+`covariant_class M M (*) (<)`, see `left_cancel_semigroup.covariant_mul_lt_of_covariant_mul_le`. -/
 @[to_additive] lemma has_mul.to_covariant_class_left
   (M : Type*) [has_mul M] [partial_order M] [covariant_class M M (*) (<)] :
   covariant_class M M (*) (≤) :=
-{ elim := λ a b c bc, by
-  { rcases eq_or_lt_of_le bc with rfl | bc,
-    { exact rfl.le },
-    { exact (mul_lt_mul_left' bc a).le } } }
+⟨covariant_le_of_covariant_lt _ _ _ covariant_class.elim⟩
 
 /- This is not an instance, to avoid creating a loop in the type-class system: in a
 `right_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (swap (*)) (<)`
-implies `covariant_class M M (swap (*)) (≤)` . -/
+implies `covariant_class M M (swap (*)) (≤)`, see
+`right_cancel_semigroup.covariant_swap_mul_lt_of_covariant_swap_mul_le`. -/
 @[to_additive] lemma has_mul.to_covariant_class_right
   (M : Type*) [has_mul M] [partial_order M] [covariant_class M M (swap (*)) (<)] :
   covariant_class M M (swap (*)) (≤) :=
-{ elim := λ a b c bc, by
-  { rcases eq_or_lt_of_le bc with rfl | bc,
-    { exact rfl.le },
-    { exact (mul_lt_mul_right' bc a).le } } }
+⟨covariant_le_of_covariant_lt _ _ _ covariant_class.elim⟩
 
 end ordered_instances
 

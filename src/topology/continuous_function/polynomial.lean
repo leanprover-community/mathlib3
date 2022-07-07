@@ -155,7 +155,7 @@ begin
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
         smul_eq_mul, polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
         polynomial.eval_comp, polynomial.to_continuous_map_on_alg_hom_apply,
-        polynomial.to_continuous_map_on_to_fun, polynomial.to_continuous_map_to_fun],
+        polynomial.to_continuous_map_on_apply, polynomial.to_continuous_map_apply],
       convert w ⟨_, _⟩; clear w,
       { -- why does `comm_ring.add` appear here!?
         change x = (Icc_homeo_I a b h).symm ⟨_ + _, _⟩,

@@ -70,8 +70,7 @@ lemma monic.coeff_nat_degree {p : R[X]} (hp : p.monic) : p.coeff p.nat_degree = 
 @[simp] lemma coeff_nat_degree : coeff p (nat_degree p) = leading_coeff p := rfl
 
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
-⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
-  exact support_eq_empty.1 (finset.max_eq_bot.1 h),
+⟨λ h, support_eq_empty.1 (finset.max_eq_bot.1 h),
 λ h, h.symm ▸ rfl⟩
 
 @[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=

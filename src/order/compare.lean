@@ -15,13 +15,24 @@ This file provides basic results about orderings and comparison in linear orders
 
 ## Definitions
 
+### Linear orders
+
 * `cmp_le`: An `ordering` from `≤`.
 * `ordering.compares`: Turns an `ordering` into `<` and `=` propositions.
 * `linear_order_of_compares`: Constructs a `linear_order` instance from the fact that any two
   elements that are not one strictly less than the other either way are equal.
+
+### Preorders
+
+* `preordering`: One of the four outcome classes for comparison on a preorder: less than,
+  equivalent, greater than, incomparable.
+* `precmp`: Compares two values in a `preorder`.
+* `preordering.compares`: Turns an `preordering` into its corresponding proposition.
 -/
 
 variables {α : Type*}
+
+open order_dual
 
 /-! ### Linear orders -/
 
@@ -130,7 +141,7 @@ by cases o₁; cases o₂; exact dec_trivial
 
 end ordering
 
-open ordering order_dual
+open ordering
 
 @[simp] lemma to_dual_compares_to_dual [has_lt α] {a b : α} {o : ordering} :
   compares o (to_dual a) (to_dual b) ↔ compares o b a :=
@@ -147,7 +158,7 @@ lemma ordering.compares.cmp_eq [linear_order α] {a b : α} {o : ordering} (h : 
   cmp a b = o :=
 (cmp_compares a b).inj h
 
-lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
+@[simp] lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
 begin
   unfold cmp cmp_using,
   by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, ordering.swap],
@@ -284,8 +295,11 @@ variable [preorder α]
 | gt     a b := a > b
 | incomp a b := incomp_rel (≤) a b
 
-lemma compares_swap {a b : α} : ∀ {o : preordering}, o.swap.compares a b ↔ o.compares b a :=
-by cases o; simp [antisymm_rel.symm, incomp_rel.symm]
+lemma compares_swap {a b : α} : ∀ {o : preordering}, o.swap.compares a b ↔ o.compares b a
+| lt     := iff.rfl
+| equiv  := and.comm
+| gt     := iff.rfl
+| incomp := and.comm
 
 alias compares_swap ↔ compares.of_swap compares.swap
 
@@ -298,7 +312,7 @@ lemma compares.eq_lt : ∀ {o} {a b : α}, compares o a b → (o = lt ↔ a < b)
 | gt     a b h := ⟨λ h, by injection h, λ h', (lt_asymm h h').elim⟩
 | incomp a b h := ⟨λ h, by injection h, λ h', (h.1 h'.le).elim⟩
 
-lemma compares.eq_equiv : ∀ {o} {a b : α}, compares o a b → (o = equiv ↔ a ≤ b ∧ b ≤ a)
+lemma compares.eq_equiv : ∀ {o} {a b : α}, compares o a b → (o = equiv ↔ antisymm_rel (≤) a b)
 | lt     a b h := ⟨λ h, by injection h, λ h', (h'.2.not_lt h).elim⟩
 | equiv  a b h := ⟨λ _, h, λ _, rfl⟩
 | gt     a b h := ⟨λ h, by injection h, λ h', (h'.1.not_lt h).elim⟩
@@ -307,37 +321,39 @@ lemma compares.eq_equiv : ∀ {o} {a b : α}, compares o a b → (o = equiv ↔ 
 lemma compares.eq_gt {o} {a b : α} (h : compares o a b) : (o = gt ↔ b < a) :=
 swap_eq_iff_eq_swap.symm.trans h.swap.eq_lt
 
-lemma compares.eq_incomp : ∀ {o} {a b : α}, compares o a b → (o = equiv ↔ a ≤ b ∧ b ≤ a)
-| lt     a b h := ⟨λ h, by injection h, λ h', (h'.2.not_lt h).elim⟩
-| equiv  a b h := ⟨λ _, h, λ _, rfl⟩
-| gt     a b h := ⟨λ h, by injection h, λ h', (h'.1.not_lt h).elim⟩
-| incomp a b h := ⟨λ h, by injection h, λ h', (h.1 h'.1).elim⟩
-
+lemma compares.eq_incomp : ∀ {o} {a b : α}, compares o a b → (o = incomp ↔ incomp_rel (≤) a b)
+| lt     a b h := ⟨λ h, by injection h, λ h', (h'.1 $ le_of_lt h).elim⟩
+| equiv  a b h := ⟨λ h, by injection h, λ h', (h'.1 $ h.1).elim⟩
+| gt     a b h := ⟨λ h, by injection h, λ h', (h'.2 $ le_of_lt h).elim⟩
+| incomp a b h := ⟨λ _, h, λ _, rfl⟩
 
 lemma compares.inj {o₁} : ∀ {o₂} {a b : α}, compares o₁ a b → compares o₂ a b → o₁ = o₂
-| lt a b h₁ h₂ := h₁.eq_lt.2 h₂
-| eq a b h₁ h₂ := h₁.eq_eq.2 h₂
-| gt a b h₁ h₂ := h₁.eq_gt.2 h₂
+| lt     a b h₁ h₂ := h₁.eq_lt.2 h₂
+| equiv  a b h₁ h₂ := h₁.eq_equiv.2 h₂
+| gt     a b h₁ h₂ := h₁.eq_gt.2 h₂
+| incomp a b h₁ h₂ := h₁.eq_incomp.2 h₂
 
-lemma compares_iff_of_compares_impl {β : Type*} [linear_order α] [preorder β] {a b : α}
-  {a' b' : β} (h : ∀ {o}, compares o a b → compares o a' b') (o) :
-  compares o a b ↔ compares o a' b' :=
+@[simp] lemma to_dual_compares_to_dual {a b : α} {o : preordering} :
+  compares o (to_dual a) (to_dual b) ↔ compares o b a :=
+by cases o; exact iff.rfl
+
+@[simp] lemma of_dual_compares_of_dual {a b : αᵒᵈ} {o : preordering} :
+  compares o (of_dual a) (of_dual b) ↔ compares o b a :=
+by cases o; exact iff.rfl
+
+variable [@decidable_rel α (≤)]
+
+lemma cmp_compares (a b : α) : (precmp a b).compares a b :=
 begin
-  refine ⟨h, λ ho, _⟩,
-  cases lt_trichotomy a b with hab hab,
-  { change compares ordering.lt a b at hab,
-    rwa [ho.inj (h hab)] },
-  { cases hab with hab hab,
-    { change compares ordering.eq a b at hab,
-      rwa [ho.inj (h hab)] },
-    { change compares ordering.gt a b at hab,
-      rwa [ho.inj (h hab)] } }
+  unfold precmp precmp_using,
+  split_ifs with h₁ h₂ h₂,
+  exacts [⟨h₁, h₂⟩, lt_of_le_not_le h₁ h₂, lt_of_le_not_le h₂ h₁, ⟨h₁, h₂⟩]
 end
 
-lemma swap_or_else (o₁ o₂) : (or_else o₁ o₂).swap = or_else o₁.swap o₂.swap :=
-by cases o₁; try {refl}; cases o₂; refl
+lemma ordering.compares.cmp_eq {a b : α} {o : preordering} (h : o.compares a b) : precmp a b = o :=
+(cmp_compares a b).inj h
 
-lemma or_else_eq_lt (o₁ o₂) : or_else o₁ o₂ = lt ↔ o₁ = lt ∨ (o₁ = eq ∧ o₂ = lt) :=
-by cases o₁; cases o₂; exact dec_trivial
+@[simp] lemma cmp_swap (a b : α) : (precmp a b).swap = precmp b a :=
+by { unfold precmp precmp_using, split_ifs; refl }
 
 end preordering

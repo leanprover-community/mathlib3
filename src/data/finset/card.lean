@@ -57,6 +57,8 @@ alias card_pos ↔ _ nonempty.card_pos
 
 lemma card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 := (not_congr card_eq_zero).2 $ ne_empty_of_mem h
 
+instance decidable_nonempty : decidable (s.nonempty) := decidable_of_iff (0 < s.card) card_pos
+
 @[simp] lemma card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
 
 lemma card_singleton_inter [decidable_eq α] : ({a} ∩ s).card ≤ 1 :=

@@ -25,6 +25,10 @@ example {F} [ring F] {p q : F[X]} (h : p.nat_degree + 1 ≤ q.nat_degree) :
 by compute_degree_le
 
 example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
+  nat_degree (X ^ n - C a * X ^ 10 : F[X]) ≤ 10 :=
+by compute_degree_le
+
+example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
   nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
 by compute_degree_le
 
@@ -38,7 +42,7 @@ end
 
 example {n : ℕ} (h : 1 + n < 11) :
   degree (X + (X * monomial 2 1 + X * X) ^ 2) ≤ 10 :=
-by compute_degree_le!
+by compute_degree_le
 
 example {m s: ℕ} (ms : m ≤ s) (s1 : 1 ≤ s) : nat_degree (C a * X ^ m + X + 5) ≤ s :=
 by compute_degree_le; assumption

@@ -81,7 +81,8 @@ variables {ι : Type*} {v : ι → R} (s : finset ι)
 theorem eq_zero_of_degree_lt_of_eval_index_eq_zero (hvs : set.inj_on v s)
   (degree_f_lt : f.degree < s.card) (eval_f : ∀ i ∈ s, f.eval (v i) = 0) : f = 0 :=
 begin
-  classical, rw ← finset.card_image_of_inj_on hvs at degree_f_lt,
+  classical, 
+  rw ← finset.card_image_of_inj_on hvs at degree_f_lt,
   refine eq_zero_of_degree_lt_of_eval_eq_zero _ degree_f_lt _,
   refine λ x hx, _, rw finset.mem_image at hx, rcases hx with ⟨_, hj, rfl⟩, exact eval_f _ hj
 end
@@ -518,8 +519,8 @@ begin
 end
 
 lemma sum_nodal_weight_mul_inv_sub_ne_zero (hvs : set.inj_on v s)
-  (hx : ∀ i ∈ s, x ≠ v i) (hs : s.nonempty)
-  : ∑ i in s, nodal_weight s v i * (x - v i)⁻¹ ≠ 0 :=
+  (hx : ∀ i ∈ s, x ≠ v i) (hs : s.nonempty) :
+  ∑ i in s, nodal_weight s v i * (x - v i)⁻¹ ≠ 0 :=
 begin
   refine @right_ne_zero_of_mul_eq_one  _ _ _ (eval x (nodal s v)) _ _,
   have H := eval_interpolate_not_at_node 1 hx,

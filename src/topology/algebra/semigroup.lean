@@ -25,7 +25,7 @@ lemma exists_idempotent_of_compact_t2_of_continuous_mul_left {M} [nonempty M] [s
 begin
 /- We apply Zorn's lemma to the poset of nonempty closed subsemigroups of `M`. It will turn out that
 any minimal element is `{m}` for an idempotent `m : M`. -/
-  let S := {N : set M | is_closed N ∧ N.nonempty ∧ ∀ m m' ∈ N, m * m' ∈ N},
+  let S : set (set M) := {N | is_closed N ∧ N.nonempty ∧ ∀ m m' ∈ N, m * m' ∈ N},
   suffices : ∃ N ∈ S, ∀ N' ∈ S, N' ⊆ N → N' = N,
   { rcases this with ⟨N, ⟨N_closed, ⟨m, hm⟩, N_mul⟩, N_minimal⟩,
     use m,
@@ -35,7 +35,7 @@ We first show that every element of `N` is of the form `m' + m`.-/
     { apply N_minimal,
       { refine ⟨(continuous_mul_left m).is_closed_map _ N_closed, ⟨_, ⟨m, hm, rfl⟩⟩, _⟩,
         rintros _ ⟨m'', hm'', rfl⟩ _ ⟨m', hm', rfl⟩,
-        refine ⟨_, N_mul _ (N_mul _ hm'' _ hm) _ hm', mul_assoc _ _ _⟩ },
+        refine ⟨m'' * m * m', N_mul _ (N_mul _ hm'' _ hm) _ hm', mul_assoc _ _ _⟩ },
       { rintros _ ⟨m', hm', rfl⟩,
         exact N_mul _ hm' _ hm } },
 /- In particular, this means that `m' * m = m` for some `m'`. We now use minimality again to show
@@ -51,17 +51,16 @@ that this holds for all `m' ∈ N`. -/
 /- Thus `m * m = m` as desired. -/
     rw ←absorbing_eq_self at hm,
     exact hm.2 },
-  refine zorn_superset _ (λ c hcs hc, ⟨_, ⟨is_closed_sInter $ λ t ht, (hcs ht).1, _,
-    λ m hm m' hm', _⟩, λ s hs, set.sInter_subset_of_mem hs⟩),
+  refine zorn_superset _ (λ c hcs hc, _),
+  refine ⟨⋂₀ c, ⟨is_closed_sInter $ λ t ht, (hcs ht).1, _, λ m hm m' hm', _⟩,
+    λ s hs, set.sInter_subset_of_mem hs⟩,
   { obtain rfl | hcnemp := c.eq_empty_or_nonempty,
     { rw set.sInter_empty, apply set.univ_nonempty },
     convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _
       (set.nonempty_coe_sort.mpr hcnemp) (coe : c → set M) _ _ _ _,
     { simp only [subtype.range_coe_subtype, set.set_of_mem_eq] } ,
     { refine directed_on.directed_coe (is_chain.directed_on hc.symm) },
-    { exact λ i, (hcs i.prop).2.1 },
-    { exact λ i, (hcs i.prop).1.is_compact },
-    { exact λ i, (hcs i.prop).1 } },
+    exacts [λ i, (hcs i.prop).2.1, λ i, (hcs i.prop).1.is_compact, λ i, (hcs i.prop).1] },
   { rw set.mem_sInter,
     exact λ t ht, (hcs ht).2.2 m (set.mem_sInter.mp hm t ht) m' (set.mem_sInter.mp hm' t ht) },
 end

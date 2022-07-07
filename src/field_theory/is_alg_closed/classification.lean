@@ -66,7 +66,7 @@ calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
     rw [lt_aleph_0_iff_finite],
     classical,
     simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map R L)).roots],
-    exact set.finite_mem_finset _,
+    apply_instance
   end)
 ... = #R[X] * ℵ₀ : sum_const' _ _
 ... ≤ max (max (#R[X]) ℵ₀) ℵ₀ : mul_le_max _ _

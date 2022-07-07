@@ -178,7 +178,8 @@ nnnorm_pow_two_pow_of_self_adjoint x.property _
 
 section starₗᵢ
 
-variables [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [normed_star_group E]
+variables [comm_semiring 𝕜] [star_ring 𝕜]
+variables [non_unital_normed_ring E] [star_ring E] [normed_star_group E]
 variables [module 𝕜 E] [star_module 𝕜 E]
 
 variables (𝕜)

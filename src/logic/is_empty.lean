@@ -111,7 +111,7 @@ by simp only [← not_nonempty_iff, classical.nonempty_pi, not_forall]
   is_empty (sigma E) ↔ ∀ a, is_empty (E a) :=
 by simp only [← not_nonempty_iff, nonempty_sigma, not_exists]
 
-@[simp] lemma is_empty_psigma {α} {E : α → Type*} :
+@[simp] lemma is_empty_psigma {α} {E : α → Sort*} :
   is_empty (psigma E) ↔ ∀ a, is_empty (E a) :=
 by simp only [← not_nonempty_iff, nonempty_psigma, not_exists]
 

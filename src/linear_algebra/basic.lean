@@ -823,25 +823,26 @@ end add_comm_group
 end submodule
 
 namespace submodule
-variables [field K]
-variables [add_comm_group V] [module K V]
+
+variables [semiring R] [field K] {σ : R →+* K}
+variables [add_comm_group V] [module R V]
 variables [add_comm_group V₂] [module K V₂]
 
-lemma comap_smul (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) (h : a ≠ 0) :
+lemma comap_smul (f : V →ₛₗ[σ] V₂) (p : submodule K V₂) (a : K) (h : a ≠ 0) :
   p.comap (a • f) = p.comap f :=
 by ext b; simp only [submodule.mem_comap, p.smul_mem_iff h, linear_map.smul_apply]
 
-lemma map_smul (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) (h : a ≠ 0) :
+lemma map_smul [ring_hom_surjective σ] (f : V →ₛₗ[σ] V₂) (p : submodule R V) (a : K) (h : a ≠ 0) :
   p.map (a • f) = p.map f :=
 le_antisymm
   begin rw [map_le_iff_le_comap, comap_smul f _ a h, ← map_le_iff_le_comap], exact le_rfl end
   begin rw [map_le_iff_le_comap, ← comap_smul f _ a h, ← map_le_iff_le_comap], exact le_rfl end
 
-lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
+lemma comap_smul' (f : V →ₛₗ[σ] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
 by classical; by_cases a = 0; simp [h, comap_smul]
 
-lemma map_smul' (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) :
+lemma map_smul' [ring_hom_surjective σ] (f : V →ₛₗ[σ] V₂) (p : submodule R V) (a : K) :
   p.map (a • f) = (⨆ h : a ≠ 0, p.map f) :=
 by classical; by_cases a = 0; simp [h, map_smul]
 

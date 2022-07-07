@@ -29,7 +29,7 @@ variables {α ι : Type*} {β : ι → Type*} [fintype ι] [Π i, decidable_eq (
 variables {γ : ι → Type*} [Π i, decidable_eq (γ i)]
 
 /-- The Hamming distance function to the naturals. -/
-def hamm_dist (x y : Π i, β i) := card {i // x i ≠ y i}
+def hamm_dist (x y : Π i, β i) : ℕ := card {i // x i ≠ y i}
 
 lemma hamm_dist_nonneg {x y : Π i, β i} : 0 ≤ hamm_dist x y := zero_le _
 
@@ -39,9 +39,9 @@ lemma hamm_dist_comp_le_hamm_dist (f : Π i, γ i → β i) {x y : Π i, γ i} :
   hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) ≤ hamm_dist x y :=
 card_subtype_mono _ _ $ λ x H1 H2, H1 $ congr_arg (f x) H2
 
-lemma hamm_dist_comp (f : Π i, γ i → β i) {x y : Π i, γ i} (hf : Π i, injective (f i))
-  : hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) = hamm_dist x y :=
-le_antisymm (hamm_dist_comp_le_hamm_dist  _) (card_subtype_mono _ _ (λ i H1 H2, H1 (hf i H2)))
+lemma hamm_dist_comp (f : Π i, γ i → β i) {x y : Π i, γ i} (hf : Π i, injective (f i)) :
+  hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) = hamm_dist x y :=
+le_antisymm (hamm_dist_comp_le_hamm_dist _) (card_subtype_mono _ _ (λ i H1 H2, H1 (hf i H2)))
 
 lemma hamm_dist_smul_le_hamm_dist [Π i, has_scalar α (β i)] {k : α} {x y : Π i, β i} :
   hamm_dist (k • x) (k • y) ≤ hamm_dist x y :=
@@ -52,8 +52,8 @@ lemma hamm_dist_smul [Π i, has_scalar α (β i)] {k : α} {x y : Π i, β i}
 hamm_dist_comp (λ i, (•) k) hk
 
 @[simp] lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
-by simp_rw [  function.funext_iff, hamm_dist, card_eq_zero_iff,
-              is_empty_iff, subtype.forall, imp_false, not_not]
+by simp_rw [function.funext_iff, hamm_dist, card_eq_zero_iff,
+            is_empty_iff, subtype.forall, imp_false, not_not]
 
 @[simp] lemma hamm_dist_self (x : Π i, β i) : hamm_dist x x = 0 := hamm_dist_eq_zero.mpr rfl
 
@@ -93,7 +93,6 @@ section has_zero
 variables [Π i, has_zero (β i)] [Π i, has_zero (γ i)]
 
 /-- The Hamming weight function to the naturals. -/
-
 def hamm_wt (x : Π i, β i) : ℕ := hamm_dist x 0
 
 lemma hamm_wt_eq (x : Π i, β i) : hamm_wt x = card {i // x i ≠ 0} := rfl
@@ -132,7 +131,7 @@ hamm_wt_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero')
 
 lemma hamm_wt_ne_zero {x : Π i, β i} : hamm_wt x ≠ 0 ↔ x ≠ 0 := hamm_dist_ne_zero
 
-lemma hamm_wt_pos {x : Π i, β i} : 0 < hamm_wt x ↔ x ≠ 0 := hamm_dist_pos
+lemma hamm_wt_pos_iff {x : Π i, β i} : 0 < hamm_wt x ↔ x ≠ 0 := hamm_dist_pos
 
 @[simp] lemma hamm_wt_lt_one {x : Π i, β i} : hamm_wt x < 1 ↔ x = 0 := hamm_dist_lt_one
 
@@ -180,7 +179,7 @@ instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] 
 instance [Π i, add_monoid (β i)] : add_monoid (hamm β) := pi.add_monoid
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (hamm β) := pi.add_comm_monoid
 instance [Π i, add_comm_group (β i)] : add_comm_group (hamm β) := pi.add_comm_group
-instance (α) [semiring α] (β: ι → Type*) [Π i, add_comm_monoid (β i)]
+instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
   [Π i, module α (β i)] : module α (hamm β) := pi.module _ _ _
 
 /-- `to_hamm` is the identity function to the `hamm` of a type.  -/
@@ -204,8 +203,8 @@ variables {α ι : Type*} {β : ι → Type*} [fintype ι] [Π i, decidable_eq (
 
 instance : has_dist (hamm β) := ⟨λ x y, hamm_dist (of_hamm x) (of_hamm y)⟩
 
-@[simp, push_cast] lemma dist_eq_hamm_dist (x y : hamm β) : dist x y =
-  hamm_dist (of_hamm x) (of_hamm y) := rfl
+@[simp, push_cast] lemma dist_eq_hamm_dist (x y : hamm β) :
+  dist x y = hamm_dist (of_hamm x) (of_hamm y) := rfl
 
 instance : pseudo_metric_space (hamm β) :=
 { dist_self           :=  by {push_cast, exact_mod_cast hamm_dist_self},

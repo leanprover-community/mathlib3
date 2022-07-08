@@ -1312,7 +1312,8 @@ lemma exists_rat_pow_btwn_rat_aux (hn : n ≠ 0) (x y : ℝ) (h : x < y) (hy : 0
   ∃ q : ℚ, 0 < q ∧ x < q^n ∧ ↑q^n < y :=
 begin
   have hn' : 0 < (n : ℝ) := by exact_mod_cast hn.bot_lt,
-  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn (rpow_lt_rpow (le_max_left 0 x) (max_lt hy h) $ inv_pos.mpr hn'),
+  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn (rpow_lt_rpow (le_max_left 0 x) (max_lt hy h) $
+    inv_pos.mpr hn'),
   have := rpow_nonneg_of_nonneg (le_max_left 0 x) n⁻¹,
   have hq := this.trans_lt hxq,
   replace hxq := rpow_lt_rpow this hxq hn',

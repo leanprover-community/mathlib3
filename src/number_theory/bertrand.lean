@@ -24,37 +24,6 @@ As in the [Metamath implementation](carneiro2015arithmetic), we rely on some opt
 [Shigenori Tochiori](tochiori_bertrand). In particular we use the fact that `(log x) / x` is
 decreasing for `e ≤ x`.
 
-## Proof Sketch
-
-Here is a description of how the proof works:
-
-Then:
-4^n ≤ 2nCn * (2 * n + 1) (by choose_halfway_is_big)
-= prod (primes ≤ 2n) p^(α n p) * (2n+1)
-= prod (primes ≤ n) p^(α n p) * prod (primes n < p <= 2n) p^α * (2n+1)
-= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) 1 * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by claim 3)
-= prod (primes ≤ 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-= prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p^α
-  * prod (primes n < p ≤ 2n) p^α * (2n+1)
-≤ prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p
-  * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by claim 2)
-≤ prod (primes ≤ sqrt(2n)) p^α * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by a general bound on the primorial)
-≤ prod (primes ≤ sqrt(2n)) (2n) * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by claim 1)
-= (2n)^π (sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-≤ (2n)^(sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-  (by "prime count of x is less than x")
-
-For sufficiently large n, that last product term is > 1.
-Indeed, suppose for contradiction it's equal to 1.
-Then 4^n ≤ (2n)^(sqrt 2n) * 4^(2n/3) * (2n+1)
-so 4^(n/3) ≤ (2n)^(sqrt 2n) (2n+1)
-and this is Clearly False for sufficiently large n.
-
 ## References
 
 * [M. Aigner and G. M. Ziegler _Proofs from THE BOOK_][aigner1999proofs]
@@ -78,7 +47,7 @@ This is not best possible: it actually holds for 464 ≤ x.
 lemma real_main_inequality {x : ℝ} (n_large : (512 : ℝ) ≤ x) :
   x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) ≤ 4 ^ x :=
 begin
-    let f : ℝ → ℝ := λ x, log x + sqrt (2 * x) * log (2 * x) - log 4 / 3 * x,
+  let f : ℝ → ℝ := λ x, log x + sqrt (2 * x) * log (2 * x) - log 4 / 3 * x,
   have hf' : ∀ x, 0 < x → 0 < x * (2 * x) ^ sqrt (2 * x) / 4 ^ (x / 3) :=
   λ x h, div_pos (mul_pos h (rpow_pos_of_pos (mul_pos two_pos h) _)) (rpow_pos_of_pos four_pos _),
   have hf : ∀ x, 0 < x → f x = log (x * (2 * x) ^ sqrt (2 * x) / 4 ^ (x / 3)),
@@ -369,11 +338,11 @@ Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
 lemma bertrand_eventually (n : nat) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
-  -- Assume there is no prime in the range
+  -- Assume there is no prime in the range.
   by_contradiction no_prime,
-  -- If not, then we have the above upper bound on the size of this central binomial coefficient.
-  -- We now couple this bound with a lower bound on the central binomial coefficient, yielding an
-  -- inequality which we have seen is false for large enough n.
+  -- Then we have the above sub-exponential bound on the size of this central binomial coefficient.
+  -- We now couple this bound with an exponential lower bound on the central binomial coefficient,
+  -- yielding an inequality which we have seen is false for large enough n.
   have false_inequality : 4 ^ n < n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3),
   calc 4 ^ n < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
     ... ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3)) :

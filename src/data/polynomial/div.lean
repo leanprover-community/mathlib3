@@ -424,9 +424,9 @@ variable {R}
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
-The algorithm is "compute `p %ₘ q` and compare to `0`". `
+The algorithm is "compute `p %ₘ q` and compare to `0`".
 See `polynomial.mod_by_monic` for the algorithm that computes `%ₘ`.
- -/
+-/
 def decidable_dvd_monic (p : R[X]) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
@@ -442,7 +442,7 @@ begin
 end
 
 /-- The largest power of `X - C a` which divides `p`.
-This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
+This is computable via the divisibility algorithm `polynomial.decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : R[X]) : ℕ :=
 if h0 : p = 0 then 0
 else let I : decidable_pred (λ n : ℕ, ¬(X - C a) ^ (n + 1) ∣ p) :=

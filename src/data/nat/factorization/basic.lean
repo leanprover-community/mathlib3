@@ -389,23 +389,10 @@ lemma set_of_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p 
 begin
   ext i,
   norm_cast,
-  rw finset.mem_filter,
-  simp,
-  intros h,
-  split,
-  {
-    intros h,
-    sorry},
-  {
-    intros h,
-    sorry},
-
-  -- simp only [pp.pow_dvd_iff_le_factorization hn, one_le_iff_ne_zero, set.mem_set_of_eq, coe_filter,
-  --   set.mem_sep_eq, ne.def, coe_Ico, set.mem_Ico, and.congr_left_iff, iff_self_and],
-  -- intros h _,
-  -- refine lt_of_le_of_lt _ hb,
-  -- rw ← pow_le_iff_le_log pp.one_lt (pos_iff_ne_zero.mpr hn),
-  -- exact le_trans (pow_le_pow pp.one_lt.le h) (pow_factorization_le p hn),
+  simp only [finset.mem_filter, set.mem_set_of_eq, mem_Ico, and.congr_left_iff, ←ne.def,
+    one_le_iff_ne_zero, iff_self_and],
+  intro h,
+  simp [lt_of_le_of_lt ((pow_le_iff_le_log pp.one_lt hn.bot_lt).1 (le_of_dvd hn.bot_lt h)) hb],
 end
 
 def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :

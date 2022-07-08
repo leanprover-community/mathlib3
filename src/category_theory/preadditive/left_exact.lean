@@ -66,7 +66,7 @@ instance preserves_binary_products_of_preserves_kernels
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
-variables [has_finite_products C] [has_equalizers C] [has_binary_biproducts C]
+variables  [has_binary_biproducts C]
 
 /--
 A functor between preadditive categories preserves the equalizer of two
@@ -108,7 +108,8 @@ def preserves_equalizers_of_preserves_kernels
 /--
 A functor between preadditive categories which preserves kernels preserves all finite limits.
 -/
-def preserves_finite_limits_of_preserves_kernels [has_zero_object C] [has_zero_object D]
+def preserves_finite_limits_of_preserves_kernels
+  [has_finite_products C] [has_equalizers C] [has_zero_object C] [has_zero_object D]
   [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] : preserves_finite_limits F :=
 begin
   haveI := preserves_equalizers_of_preserves_kernels F,
@@ -151,7 +152,7 @@ instance preserves_binary_coproducts_of_preserves_cokernels
   preserves_colimits_of_shape (discrete walking_pair) F :=
 { preserves_colimit := λ p, preserves_colimit_of_iso_diagram F (diagram_iso_pair p).symm }
 
-variables [has_finite_coproducts C] [has_coequalizers C] [has_binary_biproducts C]
+variables [has_binary_biproducts C]
 
 /--
 A functor between preadditive categoris preserves the coequalizer of two
@@ -194,7 +195,8 @@ def preserves_coequalizers_of_preserves_cokernels
 /--
 A functor between preadditive categories which preserves kernels preserves all finite limits.
 -/
-def preserves_finite_colimits_of_preserves_cokernels [has_zero_object C] [has_zero_object D]
+def preserves_finite_colimits_of_preserves_cokernels
+  [has_finite_coproducts C] [has_coequalizers C] [has_zero_object C] [has_zero_object D]
   [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] : preserves_finite_colimits F :=
 begin
   haveI := preserves_coequalizers_of_preserves_cokernels F,

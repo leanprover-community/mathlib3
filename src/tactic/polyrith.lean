@@ -547,8 +547,7 @@ given to `linear_combination`. If that tactic succeeds, the user is prompted
 to replace the call to `polyrith` with the appropriate call to
 `linear_combination`.
 -/
-meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic format :=
-do
+meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic format := do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
   (eq_names, m, R, args) ← create_args only_on hyps,
   sage_out ← sage_output args,

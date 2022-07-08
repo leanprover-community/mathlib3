@@ -452,13 +452,11 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑'b, f b = f b :=
 (has_sum_single b hf).tsum_eq
 
-lemma tsum_tsum_eq_single (f : β → γ → α) (b : β) (c : γ)
-  (hfb : ∀ (b' : β) (c' : γ), b' ≠ b → f b' c' = 0)
+lemma tsum_tsum_eq_single (f : β → γ → α) (b : β) (c : γ) (hfb : ∀ b' ≠ b, f b' c = 0)
   (hfc : ∀ (b' : β) (c' : γ), c' ≠ c → f b' c' = 0) :
-  ∑' (b' : β) (c' : γ), f b' c' = f b c :=
-calc ∑' (b' : β) (c' : γ), f b' c' = ∑' (c' : γ), f b c' : tsum_eq_single b $ λ b' hb',
-  (tsum_eq_single c $ λ c' hc', hfb b' c' hb').trans (hfb b' c hb')
-... = f b c : tsum_eq_single c (λ c' hc', hfc b c' hc')
+  ∑' b' c', f b' c' = f b c :=
+calc ∑' b' c', f b' c' = ∑' b', f b' c : tsum_congr $ λ b', tsum_eq_single _ (hfc b')
+... = f b c : tsum_eq_single _ hfb
 
 @[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∑' b', (if b' = b then a else 0) = a :=

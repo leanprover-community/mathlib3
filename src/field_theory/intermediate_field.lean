@@ -377,43 +377,45 @@ section tower
 
 /-- Lift an intermediate_field of an intermediate_field -/
 def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
-  map E (val F)
-
-/-- Lift an intermediate_field of an intermediate_field -/
-def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermediate_field K L :=
-{ carrier := E.carrier,
-  zero_mem' := zero_mem E,
-  add_mem' := λ x y (hx : x ∈ E), add_mem hx,
-  neg_mem' := λ x (hx : x ∈ E), neg_mem hx,
-  one_mem' := one_mem E,
-  mul_mem' := λ x y (hx : x ∈ E), mul_mem hx,
-  inv_mem' := λ x (hx : x ∈ E), inv_mem hx,
-  algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K F x) }
+map E (val F)
 
 instance has_lift1 {F : intermediate_field K L} :
   has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift1⟩
 
-instance has_lift2 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field F L) (intermediate_field K L) := ⟨lift2⟩
+section restrict_scalars
+variables (K) [algebra L' L] [is_scalar_tower K L' L]
 
-@[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
-  x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
+/-- Given a scalar tower `K`, `L'`, `L` of fields, reinterpret an `L'`-intermediate-field of `L` an
+as a `K`-intermediate-field. -/
+def restrict_scalars (E : intermediate_field L' L) :
+  intermediate_field K L :=
+{ carrier := E.carrier,
+  ..E.to_subfield,
+  ..E.to_subalgebra.restrict_scalars K }
+
+@[simp] lemma coe_restrict_scalars {E : intermediate_field L' L} :
+  (restrict_scalars K E : set L) = (E : set L) := rfl
+
+@[simp] lemma restrict_scalars_to_subalgebra {E : intermediate_field L' L} :
+  (E.restrict_scalars K).to_subalgebra = E.to_subalgebra.restrict_scalars K :=
+set_like.coe_injective rfl
+
+@[simp] lemma restrict_scalars_to_subfield {E : intermediate_field L' L} :
+  (E.restrict_scalars K).to_subfield = E.to_subfield :=
+set_like.coe_injective rfl
+
+@[simp] lemma mem_restrict_scalars {E : intermediate_field L' L} {x : L} :
+  x ∈ restrict_scalars K E ↔ x ∈ E := iff.rfl
+
+lemma restrict_scalars_injective :
+  function.injective (restrict_scalars K : intermediate_field L' L → intermediate_field K L) :=
+λ U V H, ext $ λ x, by rw [← mem_restrict_scalars K, H, mem_restrict_scalars]
+
+end restrict_scalars
 
 /-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/
 example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
 by apply_instance
-
-lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
-  algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl
-
-instance lift2_tower {F : intermediate_field K L} {E : intermediate_field F L} :
-  is_scalar_tower K F E :=
-E.is_scalar_tower
-
-/-- `lift2` is isomorphic to the original `intermediate_field`. -/
-def lift2_alg_equiv {F : intermediate_field K L} (E : intermediate_field F L) :
-  (↑E : intermediate_field K L) ≃ₐ[K] E :=
-alg_equiv.refl
 
 end tower
 

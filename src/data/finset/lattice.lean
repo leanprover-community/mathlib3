@@ -500,12 +500,12 @@ Exists.imp (λ a, Exists.fst) (@le_sup (with_bot α) _ _ _ _ _ _ h (f b) rfl)
 unbounded) join-semilattice `α`, where `H` is a proof of nonemptiness. If `α` has a bottom element
 you may instead use `finset.sup` which does not require `s` nonempty. -/
 def sup' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
-option.get $ let ⟨b, hb⟩ := H in option.is_some_iff_exists.2 (sup_of_mem f hb)
+with_bot.unbot (s.sup (coe ∘ f)) (by simpa using H)
 
 variables {s : finset β} (H : s.nonempty) (f : β → α)
 
 @[simp] lemma coe_sup' : ((s.sup' H f : α) : with_bot α) = s.sup (coe ∘ f) :=
-by rw [sup', ←with_bot.some_eq_coe, option.some_get]
+by rw [sup', with_bot.coe_unbot]
 
 @[simp] lemma sup'_cons {b : β} {hb : b ∉ s} {h : (cons b s hb).nonempty} :
   (cons b s hb).sup' h f = f b ⊔ s.sup' H f :=
@@ -544,15 +544,15 @@ lemma comp_sup'_eq_sup'_comp [semilattice_sup γ] {s : finset β} (H : s.nonempt
   g (s.sup' H f) = s.sup' H (g ∘ f) :=
 begin
   rw [←with_bot.coe_eq_coe, coe_sup'],
-  let g' : with_bot α → with_bot γ := with_bot.rec_bot_coe ⊥ (λ x, ↑(g x)),
+  let g' := with_bot.map g,
   show g' ↑(s.sup' H f) = s.sup (λ a, g' ↑(f a)),
   rw coe_sup',
   refine comp_sup_eq_sup_comp g' _ rfl,
   intros f₁ f₂,
-  cases f₁,
-  { rw [with_bot.none_eq_bot, bot_sup_eq], exact bot_sup_eq.symm, },
-  { cases f₂, refl,
-    exact congr_arg coe (g_sup f₁ f₂), },
+  refine f₁.rec_bot_coe _ _,
+  { rw [bot_sup_eq], exact bot_sup_eq.symm, },
+  { refine f₂.rec_bot_coe _ _, simp [g'],
+    simp [g', ←with_bot.coe_sup, g_sup] }
 end
 
 lemma sup'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
@@ -580,6 +580,11 @@ begin
   simp only [sup'_le_iff, h₂] { contextual := tt }
 end
 
+@[simp] lemma sup'_map {s : finset γ} {f : γ ↪ β} (g : β → α) (hs : (s.map f).nonempty)
+  (hs': s.nonempty := hs.comap) :
+  (s.map f).sup' hs g = s.sup' hs' (g ∘ f) :=
+by rw [←with_bot.coe_eq_coe, coe_sup', sup_map, coe_sup']
+
 end sup'
 
 section inf'
@@ -593,7 +598,7 @@ lemma inf_of_mem {s : finset β} (f : β → α) {b : β} (h : b ∈ s) :
 unbounded) meet-semilattice `α`, where `H` is a proof of nonemptiness. If `α` has a top element you
 may instead use `finset.inf` which does not require `s` nonempty. -/
 def inf' (s : finset β) (H : s.nonempty) (f : β → α) : α :=
-@sup' αᵒᵈ _ _ s H f
+with_top.untop (s.inf (coe ∘ f)) (by simpa using H)
 
 variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
 
@@ -602,11 +607,11 @@ variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
 
 @[simp] lemma inf'_cons {b : β} {hb : b ∉ s} {h : (cons b s hb).nonempty} :
   (cons b s hb).inf' h f = f b ⊓ s.inf' H f :=
-@sup'_cons αᵒᵈ _ _ _ H f _ _ _
+@sup'_cons αᵒᵈ _ _ _ H f _ _ h
 
 @[simp] lemma inf'_insert [decidable_eq β] {b : β} {h : (insert b s).nonempty} :
   (insert b s).inf' h f = f b ⊓ s.inf' H f :=
-@sup'_insert αᵒᵈ _ _ _ H f _ _ _
+@sup'_insert αᵒᵈ _ _ _ H f _ _ h
 
 @[simp] lemma inf'_singleton {b : β} {h : ({b} : finset β).nonempty} :
   ({b} : finset β).inf' h f = f b := rfl
@@ -614,7 +619,7 @@ variables {s : finset β} (H : s.nonempty) (f : β → α) {a : α} {b : β}
 lemma le_inf' (hs : ∀ b ∈ s, a ≤ f b) : a ≤ s.inf' H f := @sup'_le αᵒᵈ _ _ _ H f _ hs
 lemma inf'_le (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b := @le_sup' αᵒᵈ _ _ _ f _ h
 
-@[simp] lemma inf'_const (a : α) : s.inf' H (λ b, a) = a := @sup'_const αᵒᵈ _ _ _ _ _
+@[simp] lemma inf'_const (a : α) : s.inf' H (λ b, a) = a := @sup'_const αᵒᵈ _ _ _ H _
 
 @[simp] lemma le_inf'_iff : a ≤ s.inf' H f ↔ ∀ b ∈ s, a ≤ f b := @sup'_le_iff αᵒᵈ _ _ _ H f _
 
@@ -639,6 +644,11 @@ lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
 @[congr] lemma inf'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.inf' H f = t.inf' (h₁ ▸ H) g :=
 @sup'_congr αᵒᵈ _ _ _ H _ _ _ h₁ h₂
+
+@[simp] lemma inf'_map {s : finset γ} {f : γ ↪ β} (g : β → α) (hs : (s.map f).nonempty)
+  (hs': s.nonempty := hs.comap) :
+  (s.map f).inf' hs g = s.inf' hs' (g ∘ f) :=
+@sup'_map αᵒᵈ _ _ _ _ _ _ hs hs'
 
 end inf'
 

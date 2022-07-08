@@ -1990,7 +1990,7 @@ eq_of_veq $ multiset.map_cons f a s.val
 @[simp] lemma map_nonempty : (s.map f).nonempty ↔ s.nonempty :=
 by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, map_eq_empty]
 
-alias map_nonempty ↔ _ nonempty.map
+alias map_nonempty ↔ nonempty.comap nonempty.map
 
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _

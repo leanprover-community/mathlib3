@@ -348,8 +348,8 @@ def singleton_monoid_hom : α →* finset α := { ..singleton_mul_hom, ..singlet
   (singleton_monoid_hom : α → finset α) = singleton := rfl
 @[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
 
-/-- The singleton operation as a `monoid_hom`. -/
-@[to_additive "The singleton operation as an `add_monoid_hom`."]
+/-- The coercion from `finset` to `set` as a `monoid_hom`. -/
+@[to_additive "The coercion from `finset` to `set` as an `add_monoid_hom`."]
 def coe_monoid_hom : finset α →* set α :=
 { to_fun := coe,
   map_one' := coe_one,

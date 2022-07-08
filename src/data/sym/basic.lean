@@ -313,3 +313,51 @@ multiset.mem_attach _ _
 coe_injective $ multiset.attach_cons _ _
 
 end sym
+
+section equiv
+
+/-! ### Combinatorial equivalences -/
+
+variables {α : Type*} [decidable_eq α] {n : ℕ}
+open sym
+
+/-- Cast of an element of the symmetric product over `option` based on whether or not
+it contains a `none` -/
+def sym_option_succ_equiv.encode (s : sym (option α) n.succ) : sym (option α) n ⊕ sym α n.succ :=
+if h : none ∈ s
+then sum.inl (s.erase none h)
+else sum.inr (s.attach.map $ λ o,
+  option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h)
+
+/-- Inverse of `sym_option_succ_equiv.decode`. -/
+@[simp]
+def sym_option_succ_equiv.decode : sym (option α) n ⊕ sym α n.succ → sym (option α) n.succ
+| (sum.inl s) := none ::ₛ s
+| (sum.inr s) := s.map embedding.coe_option
+
+/-- The symmetric product over `option` is a disjoint union over simpler symmetric products. -/
+def sym_option_succ_equiv {n : ℕ} :
+  sym (option α) n.succ ≃ sym (option α) n ⊕ sym α n.succ :=
+{ to_fun := sym_option_succ_equiv.encode,
+  inv_fun := sym_option_succ_equiv.decode,
+  left_inv := λ s, begin
+    unfold sym_option_succ_equiv.encode,
+    split_ifs,
+    { exact cons_erase _ },
+    { simp only [sym_option_succ_equiv.decode, map_map, subtype.mk.inj_eq, comp, option.coe_get,
+        embedding.coe_option_apply, subtype.val_eq_coe, map_map],
+      convert s.attach_map_coe, },
+  end,
+  right_inv := begin
+    rintro (s | s),
+    { simp [sym_option_succ_equiv.encode], },
+    { unfold sym_option_succ_equiv.encode,
+      split_ifs,
+      { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
+        exact option.some_ne_none _ ha },
+      { refine map_injective (option.some_injective _) _ _,
+        convert eq.trans _ (sym_option_succ_equiv.decode (sum.inr s)).attach_map_coe,
+        simp } }
+  end }
+
+end equiv

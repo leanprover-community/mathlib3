@@ -128,6 +128,9 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
   s ∈ map m f ↔ m ⁻¹' s ∈ f := iff.rfl
 
+@[simp] lemma map_id (f : ultrafilter α) : f.map id = f := coe_injective map_id
+@[simp] lemma map_id' (f : ultrafilter α) : f.map (λ x, x) = f := map_id _
+
 @[simp] lemma map_map (f : ultrafilter α) (m : α → β) (n : β → γ) :
   (f.map m).map n = f.map (n ∘ m) :=
 coe_injective map_map
@@ -146,8 +149,20 @@ def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   s ∈ u.comap inj large ↔ m '' s ∈ u :=
 mem_comap_iff inj large
 
-@[simp] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
+@[simp, norm_cast] lemma coe_comap {m : α → β} (u : ultrafilter β) (inj : injective m)
   (large : set.range m ∈ u) : (u.comap inj large : filter α) = filter.comap m u := rfl
+
+@[simp] lemma comap_id (f : ultrafilter α) (h₀ : injective (id : α → α) := injective_id)
+  (h₁ : range id ∈ f := by { rw range_id, exact univ_mem}) :
+  f.comap h₀ h₁ = f :=
+coe_injective comap_id
+
+@[simp] lemma comap_comap (f : ultrafilter γ) {m : α → β} {n : β → γ} (inj₀ : injective n)
+  (large₀ : range n ∈ f) (inj₁ : injective m) (large₁ : range m ∈ f.comap inj₀ large₀)
+  (inj₂ : injective (n ∘ m) := inj₀.comp inj₁)
+  (large₂ : range (n ∘ m) ∈ f := by { rw range_comp, exact image_mem_of_mem_comap large₀ large₁ }) :
+  (f.comap inj₀ large₀).comap inj₁ large₁ = f.comap inj₂ large₂ :=
+coe_injective comap_comap
 
 /-- The principal ultrafilter associated to a point `x`. -/
 instance : has_pure ultrafilter :=
@@ -158,13 +173,12 @@ instance : has_pure ultrafilter :=
 @[simp] lemma map_pure (m : α → β) (a : α) : map m (pure a) = pure (m a) := rfl
 
 lemma pure_injective : injective (pure : α → ultrafilter α) :=
-λ a b h, filter.pure_injective $ by convert congr_arg ultrafilter.to_filter h
+λ a b h, filter.pure_injective (congr_arg ultrafilter.to_filter h : _)
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
-lemma eq_principal_of_finite_mem {f : ultrafilter α} {s : set α} (h : s.finite) (h' : s ∈ f) :
-  ∃ x ∈ s, (f : filter α) = pure x :=
+lemma eq_pure_of_finite_mem (h : s.finite) (h' : s ∈ f) : ∃ x ∈ s, (f : filter α) = pure x :=
 begin
   rw ← bUnion_of_singleton s at h',
   rcases (ultrafilter.finite_bUnion_mem_iff h).mp h' with ⟨a, has, haf⟩,
@@ -175,8 +189,8 @@ begin
   rwa [← principal_singleton, le_principal_iff]
 end
 
-lemma eq_principal_of_fintype [fintype α] (f : ultrafilter α) : ∃ a, (f : filter α) = pure a :=
-(eq_principal_of_finite_mem finite_univ univ_mem).imp $ λ a, Exists.some_spec
+lemma eq_pure_of_fintype [fintype α] (f : ultrafilter α) : ∃ a, (f : filter α) = pure a :=
+(eq_pure_of_finite_mem finite_univ univ_mem).imp $ λ a ⟨_, ha⟩, ha
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

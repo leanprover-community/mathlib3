@@ -22,6 +22,7 @@ variables {α : Sort u} {β : Sort v}
 
 instance [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
 instance [unique α] : unique (plift α) := equiv.plift.unique
+instance [nonempty α] : nonempty (plift α) := equiv.plift.nonempty
 instance [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
 instance [is_empty α] : is_empty (plift α) := equiv.plift.is_empty
 
@@ -48,6 +49,7 @@ variables {α : Type u} {β : Type v}
 
 instance [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance [unique α] : unique (ulift α) := equiv.ulift.unique
+instance [nonempty α] : nonempty (ulift α) := equiv.ulift.nonempty
 instance [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance [is_empty α] : is_empty (ulift α) := equiv.ulift.is_empty
 

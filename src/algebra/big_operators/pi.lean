@@ -62,11 +62,11 @@ by { ext a, simp }
 
 lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
   [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
-  (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
+  (H : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
 begin
   ext k,
   rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
-  simp only [w]
+  simp only [H]
 end
 
 /-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in

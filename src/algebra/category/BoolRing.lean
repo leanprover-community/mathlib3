@@ -61,9 +61,9 @@ end BoolRing
                map := λ X Y, bounded_lattice_hom.as_boolring } }
 
 /-- The equivalence between Boolean rings and Boolean algebras. This is actually an isomorphism. -/
-@[simps] def BoolRing_equiv_BoolAlg : BoolRing ≌ BoolAlg :=
-equivalence.mk' (forget₂ BoolRing BoolAlg) (forget₂ BoolAlg BoolRing)
+@[simps functor inverse] def BoolRing_equiv_BoolAlg : BoolRing ≌ BoolAlg :=
+equivalence.mk (forget₂ BoolRing BoolAlg) (forget₂ BoolAlg BoolRing)
   (nat_iso.of_components (λ X, BoolRing.iso.mk $ (ring_equiv.as_boolring_as_boolalg X).symm) $
     λ X Y f, rfl)
   (nat_iso.of_components (λ X, BoolAlg.iso.mk $ order_iso.as_boolalg_as_boolring X) $
-    λ X Y f, rfl) $ by obviously
+    λ X Y f, rfl)

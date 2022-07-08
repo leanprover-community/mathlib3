@@ -39,11 +39,9 @@ Taylor polynomial, Taylor's theorem
 -/
 
 
-open_locale big_operators interval
+open_locale big_operators interval topological_space
 
 variables {𝕜 E F : Type*}
-variables {f : ℝ → ℝ} {n : ℕ} {x₀ x : ℝ}
-
 
 /-- The `k`th coefficient of the Taylor polynomial. -/
 noncomputable
@@ -119,7 +117,7 @@ end
 
 /-- If `f` is `n` times continuous differentiable, then the Taylor polynomial is continuous in the
   second variable. -/
-lemma taylor_sum_continuous_on {f : ℝ → ℝ} {x₀ x : ℝ} (hx : x₀ < x)
+lemma taylor_sum_continuous_on {f : ℝ → ℝ} {x₀ x : ℝ} {n : ℕ} (hx : x₀ < x)
   (hf : cont_diff_on ℝ n f (set.Icc x₀ x)) :
   continuous_on (λ t, taylor_sum f n (set.Icc x₀ x) t x) (set.Icc x₀ x) :=
 begin
@@ -136,7 +134,8 @@ begin
   exact nat.lt_succ_iff.mp hi,
 end
 
-lemma monomial_has_deriv (t x : ℝ) : has_deriv_at (λ y, (x - y)^(n+1)) ((-(n+1) * (x - t)^n)) t :=
+lemma monomial_has_deriv (t x : ℝ) {n : ℕ} :
+  has_deriv_at (λ y, (x - y)^(n+1)) ((-(n+1) * (x - t)^n)) t :=
 begin
   simp_rw sub_eq_neg_add,
   rw [←neg_one_mul, mul_comm (-1 : ℝ), mul_assoc, mul_comm (-1 : ℝ), ←mul_assoc],
@@ -160,11 +159,34 @@ begin
     nat.lt_one_iff],
 end
 
+lemma taylor_coeff_has_deriv {f : ℝ → ℝ} {x y : ℝ} {k : ℕ} {s s' : set ℝ}
+  (hs : unique_diff_within_at ℝ s y) (hs' : s' ∈ 𝓝 y)
+  (hf' : differentiable_on ℝ (iterated_deriv_within (k+1) f s) s') :
+  has_deriv_at (λ t, iterated_deriv_within (k+1) f s t
+    * (x - t)^(k+1) / ((k+1)* k.factorial))
+    (iterated_deriv_within (k+2) f s y * (x - y)^(k+1) / ((k+1)* k.factorial) -
+    iterated_deriv_within (k+1) f s y * (x - y)^k / k.factorial) y :=
+begin
+  have hf'' : has_deriv_at (λ t, iterated_deriv_within (k+1) f s t)
+    (iterated_deriv_within (k+2) f s y) y :=
+  begin
+    convert hf'.has_deriv_at hs',
+    rw @iterated_deriv_within_succ _ _ _ _ _ (k.succ) _ _ _ hs,
+    exact (hf'.differentiable_at hs').deriv_within hs,
+  end,
+  convert (hf''.mul (monomial_has_deriv y x)).div_const ((k+1)* k.factorial),
+  rw [sub_eq_neg_add, add_comm, add_div, add_right_inj, ←neg_one_mul, ←neg_one_mul (↑k+1 : ℝ)],
+  rw [mul_assoc, mul_comm (↑k+1 : ℝ) ((x - y) ^ k), mul_comm (↑k+1 : ℝ), ←mul_assoc, ←mul_assoc],
+  rw mul_div_mul_right,
+  { simp[neg_div] },
+  exact nat.cast_add_one_ne_zero k,
+end
+
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`. -/
-lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ}
+lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ} {n : ℕ}
   (hx : x₀ < x) (ht : t ∈ set.Ioo x₀ x)
   (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
-  (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x)):
+  (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x)) :
   has_deriv_at (λ t', taylor_sum f n (set.Icc x₀ x) t' x)
     ((iterated_deriv_within (n+1) f (set.Icc x₀ x) t) * (x - t)^n /n.factorial) t :=
 begin
@@ -188,31 +210,13 @@ begin
     exact hf.differentiable_on_iterated_deriv_within coe_lt_succ (unique_diff_on_Icc hx),
   end,
   specialize hk (cont_diff_on.of_succ (unique_diff_on_Icc hx) hf) hdiff,
-  have hf'' : has_deriv_at (λ t, iterated_deriv_within (k+1) f (set.Icc x₀ x) t)
-    (iterated_deriv_within (k.succ.succ) f (set.Icc x₀ x) t) t :=
-  begin
-    convert hf'.has_deriv_at (is_open.mem_nhds is_open_Ioo ht),
-    rw @iterated_deriv_within_succ _ _ _ _ _ (k.succ) _ _ _ unique_Icc,
-    exact (hf'.differentiable_at ht').deriv_within unique_Icc,
-  end,
-  have : has_deriv_at (λ t, iterated_deriv_within (k+1) f (set.Icc x₀ x) t
-    * (x - t)^(k+1) / ((k+1)* k.factorial))
-    (iterated_deriv_within (k.succ.succ) f (set.Icc x₀ x) t * (x - t)^(k+1) / ((k+1)* k.factorial) -
-    iterated_deriv_within (k+1) f (set.Icc x₀ x) t * (x - t)^k / k.factorial) t :=
-  begin
-    convert (hf''.mul (monomial_has_deriv t x)).div_const ((k+1)* k.factorial),
-    rw [sub_eq_neg_add, add_comm, add_div, add_right_inj, ←neg_one_mul, ←neg_one_mul (↑k+1 : ℝ)],
-    rw [mul_assoc, mul_comm (↑k+1 : ℝ) ((x - t) ^ k), mul_comm (↑k+1 : ℝ), ←mul_assoc, ←mul_assoc],
-    rw mul_div_mul_right,
-    { simp[neg_div] },
-    exact nat.cast_add_one_ne_zero k,
-  end,
-  convert hk.add this,
+  convert hk.add (taylor_coeff_has_deriv unique_Icc ht' hf'),
   exact (add_sub_cancel'_right _ _).symm,
 end
 
 /-- **Taylor's theorem** with the general mean value form of the remainder. -/
-lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
+lemma taylor_mean_remainder {f g g' : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ}
+  (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x))
   (hx : x₀ < x)
   (gcont : continuous_on g (set.Icc x₀ x))
@@ -233,7 +237,8 @@ begin
 end
 
 /-- **Taylor's theorem** with the Lagrange form of the remainder. -/
-lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
+lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ}
+  (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x))
   (hx : x₀ < x) :
   ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n (set.Icc x₀ x) x₀ x =
@@ -261,7 +266,8 @@ begin
 end
 
 /-- **Taylor's theorem** with the Cauchy form of the remainder. -/
-lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
+lemma taylor_mean_remainder_cauchy {f : ℝ → ℝ} {x x₀ : ℝ} {n : ℕ}
+  (hf : cont_diff_on ℝ n f (set.Icc x₀ x))
   (hf' : differentiable_on ℝ (iterated_deriv_within n f (set.Icc x₀ x)) (set.Ioo x₀ x))
   (hx : x₀ < x) :
   ∃ (x' : ℝ) (hx' : x' ∈ set.Ioo x₀ x), f x - taylor_sum f n (set.Icc x₀ x) x₀ x =

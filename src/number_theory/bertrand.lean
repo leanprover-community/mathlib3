@@ -442,7 +442,7 @@ begin
   -- coefficient.
   { exact bertrand_eventually n h, },
   -- For small `n`, supply a list of primes to cover the initial cases.
-  apply bertrand_initial n n_pos [631, 317, 163, 83, 43, 23, 13, 7, 5, 3],
+  apply bertrand_initial n n_pos [521, 317, 163, 83, 43, 23, 13, 7, 5, 3],
   -- Prove the list has the properties needed:
   { -- The list consists of primes
     intros p hp,

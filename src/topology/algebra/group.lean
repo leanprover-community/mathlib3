@@ -241,7 +241,7 @@ instance multiplicative.has_continuous_inv [h : topological_space H] [has_neg H]
 
 end continuous_inv
 
-section continuous_involutive_inv
+section continuous_inv
 variables [topological_space G] [has_involutive_inv G] [has_continuous_inv G] {s : set G}
 
 @[to_additive] lemma is_compact.inv (hs : is_compact s) : is_compact s⁻¹ :=
@@ -265,11 +265,6 @@ protected def homeomorph.inv (G : Type*) [topological_space G] [has_involutive_i
 
 @[to_additive] lemma inv_closure : ∀ s : set G, (closure s)⁻¹ = closure s⁻¹ :=
 (homeomorph.inv G).preimage_closure
-
-end continuous_involutive_inv
-
-section continuous_inv
-variables {G} [topological_space G] [has_inv G] [has_continuous_inv G] {s : set G}
 
 @[to_additive] lemma is_open.inv (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
 @[to_additive] lemma is_closed.inv (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv

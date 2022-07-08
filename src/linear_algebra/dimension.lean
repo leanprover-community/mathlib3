@@ -71,7 +71,7 @@ in different universes. They should be as general as they can be without
 inserting `cardinal.lift`s. The types `V`, `V'`, ... all live in different universes,
 and `V₁`, `V₂`, ... all live in the same universe.
 
-For those lemmas that do employ `cardinal.lift`, take library
+For those lemmas that do employ `cardinal.lift`, keep library
 note [cardinal comparison in different universes] in mind.
 -/
 

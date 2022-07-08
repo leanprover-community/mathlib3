@@ -245,8 +245,8 @@ protected theorem map_zero : e 0 = 0 := map_zero e
 @[simp] protected theorem map_smulₛₗ (c : k) (x : V) : e (c • x) = c • e x := e.map_smul' c x
 @[simp] protected theorem map_smulG (g : G) (x : V) : e (ρ g x) = ρ₂ g (e x) := e.map_smulG' g x
 
-@[simp] lemma map_sum {ι : Type*} {s : finset ι} (u : ι → V) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
-e.to_rep_hom.map_sum
+@[simp] lemma map_sum {ι : Type*} {s : finset ι} (u : ι → V) :
+  e (∑ i in s, u i) = ∑ i in s, e (u i) := e.to_rep_hom.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : V} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
@@ -271,8 +271,8 @@ symm_bijective.injective $ ext $ λ x, rfl
 
 @[simp] lemma coe_symm_mk
   {to_fun inv_fun map_add map_smul map_smulG left_inv right_inv} :
-  ⇑((⟨to_fun, map_add, map_smul, map_smulG, inv_fun, left_inv, right_inv⟩ : ρ ≃ᵣ ρ₂).symm) = inv_fun :=
-rfl
+  ⇑((⟨to_fun, map_add, map_smul, map_smulG, inv_fun, left_inv, right_inv⟩ :
+  ρ ≃ᵣ ρ₂).symm) = inv_fun := rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective

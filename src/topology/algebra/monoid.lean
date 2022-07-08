@@ -525,7 +525,7 @@ lemma continuous_multiset_prod {f : ι → X → M} (s : multiset ι) :
   (∀ i ∈ s, continuous (f i)) → continuous (λ a, (s.map (λ i, f i a)).prod) :=
 by { rcases s with ⟨l⟩, simpa using continuous_list_prod l }
 
-@[continuity, to_additive]
+@[to_additive]
 lemma continuous_on_multiset_prod {f : ι → X → M} (s : multiset ι) {t : set X} :
   (∀i ∈ s, continuous_on (f i) t) → continuous_on (λ a, (s.map (λ i, f i a)).prod) t :=
 by { rcases s with ⟨l⟩, simpa using continuous_on_list_prod l }
@@ -535,7 +535,7 @@ lemma continuous_finset_prod {f : ι → X → M} (s : finset ι) :
   (∀ i ∈ s, continuous (f i)) → continuous (λ a, ∏ i in s, f i a) :=
 continuous_multiset_prod _
 
-@[continuity, to_additive]
+@[to_additive]
 lemma continuous_on_finset_prod {f : ι → X → M} (s : finset ι) {t : set X} :
   (∀ i ∈ s, continuous_on (f i) t) → continuous_on (λ a, ∏ i in s, f i a) t :=
 continuous_on_multiset_prod _

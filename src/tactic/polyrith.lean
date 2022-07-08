@@ -153,8 +153,9 @@ The following section contains code that can convert an a `poly` object into a `
 /--
 A helper tactic that takes in a `ℕ` and a `(expr × ℕ)`. It succeeds if
 the first `ℕ` can be unified with the second one. -/
-meta def has_val: ℕ → (expr × ℕ) → tactic unit
-| n (_,m) := unify `(n) `(m)
+@[derive decidable_pred]
+meta def has_val : ℕ → (expr × ℕ) → Prop :=
+λ n p, n = p.2
 
 /--
 This can convert a `poly` into a `pexpr` that would evaluate to a polynomial.
@@ -165,11 +166,11 @@ the variables in the `poly` refer to.
 be referring to a polynomial over some other field. As such, the resulting `pexpr` contains
 no typing information.
 -/
-meta def poly.to_pexpr :exmap → poly → tactic pexpr
+meta def poly.to_pexpr : exmap → poly → tactic pexpr
 | _ (poly.const z) := return z.to_pexpr
 | m (poly.var n) :=
   do
-    (e, num) ← m.mfind (has_val n),
+    some (e, num) ← return $ m.find (has_val n) | fail! "unknown variable poly.var {n}",
     return ``(%%e)
 | m (poly.add p q) :=
   do

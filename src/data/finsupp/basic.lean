@@ -751,7 +751,7 @@ lemma apply_eq_of_mem_graph {a : α} {m : M} {f : α →₀ M} (h : prod.mk a m 
 @[simp] lemma not_mem_graph_snd_zero (a : α) (f : α →₀ M) : prod.mk a (0 : M) ∉ f.graph :=
 λ h, (mem_graph_iff.1 h).2.irrefl
 
-lemma graph_injective : injective (@graph α M _) :=
+lemma graph_injective (α M) [has_zero M] : injective (@graph α M _) :=
 λ f g h, begin
   rw finset.ext_iff at h,
   simp only [mem_graph_iff, and.congr_left_iff, prod.forall] at h,

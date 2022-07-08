@@ -45,8 +45,8 @@ open_locale big_operators classical pointwise
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E]
+section has_smul
+variables (𝕜) [has_smul 𝕜 E]
 
 /-- Segments in a vector space. -/
 def segment (x y : E) : set E :=
@@ -93,7 +93,7 @@ lemma open_segment_subset_iff {x y : E} {s : set E} :
 ⟨λ H a b ha hb hab, H ⟨a, b, ha, hb, hab, rfl⟩,
   λ H z ⟨a, b, ha, hb, hab, hz⟩, hz ▸ H a b ha hb hab⟩
 
-end has_scalar
+end has_smul
 
 open_locale convex
 
@@ -519,8 +519,8 @@ variables [ordered_semiring 𝕜]
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E] [has_scalar 𝕜 F] (s : set E)
+section has_smul
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 F] (s : set E)
 
 /-- Convexity of sets. -/
 def convex : Prop :=
@@ -585,7 +585,7 @@ begin
 end
 
 lemma convex_pi {ι : Type*} {E : ι → Type*} [Π i, add_comm_monoid (E i)]
-  [Π i, has_scalar 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
+  [Π i, has_smul 𝕜 (E i)] {s : set ι} {t : Π i, set (E i)} (ht : ∀ i, convex 𝕜 (t i)) :
   convex 𝕜 (s.pi t) :=
 λ x y hx hy a b ha hb hab i hi, ht i (hx i hi) (hy i hi) ha hb hab
 
@@ -609,7 +609,7 @@ begin
   exact (directed_on_iff_directed.1 hdir).convex_Union (λ A, hc A.2),
 end
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] [module 𝕜 F] {s : set E}
@@ -641,6 +641,29 @@ convex_iff_pairwise_pos.mpr (h.pairwise _)
 lemma convex_singleton (c : E) : convex 𝕜 ({c} : set E) :=
 subsingleton_singleton.convex
 
+lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
+begin
+  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
+  refine ⟨a * ap + b * aq, a * bp + b * bq,
+    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
+    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
+  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
+  { simp_rw [add_smul, mul_smul, smul_add],
+    exact add_add_add_comm _ _ _ _ }
+end
+
+lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
+begin
+  rw convex_iff_open_segment_subset,
+  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
+  refine ⟨a * ap + b * aq, a * bp + b * bq,
+    add_pos (mul_pos ha hap) (mul_pos hb haq),
+    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
+  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
+  { simp_rw [add_smul, mul_smul, smul_add],
+    exact add_add_add_comm _ _ _ _ }
+end
+
 lemma convex.linear_image (hs : convex 𝕜 s) (f : E →ₗ[𝕜] F) : convex 𝕜 (f '' s) :=
 begin
   intros x y hx hy a b ha hb hab,
@@ -668,14 +691,10 @@ hs.linear_preimage $ hf.mk' f
 lemma convex.add {t : set E} (hs : convex 𝕜 s) (ht : convex 𝕜 t) : convex 𝕜 (s + t) :=
 by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
 
-lemma convex.translate (hs : convex 𝕜 s) (z : E) : convex 𝕜 ((λ x, z + x) '' s) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  obtain ⟨x', hx', rfl⟩ := mem_image_iff_bex.1 hx,
-  obtain ⟨y', hy', rfl⟩ := mem_image_iff_bex.1 hy,
-  refine ⟨a • x' + b • y', hs hx' hy' ha hb hab, _⟩,
-  rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
-end
+lemma convex.vadd (hs : convex 𝕜 s) (z : E) : convex 𝕜 (z +ᵥ s) :=
+by { simp_rw [←image_vadd, vadd_eq_add, ←singleton_add], exact (convex_singleton _).add hs }
+
+lemma convex.translate (hs : convex 𝕜 s) (z : E) : convex 𝕜 ((λ x, z + x) '' s) := hs.vadd _
 
 /-- The translation of a convex set is also convex. -/
 lemma convex.translate_preimage_right (hs : convex 𝕜 s) (z : E) : convex 𝕜 ((λ x, z + x) ⁻¹' s) :=
@@ -853,32 +872,6 @@ calc
   a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
             ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
-lemma convex.sub {s : set (E × E)} (hs : convex 𝕜 s) : convex 𝕜 ((λ x : E × E, x.1 - x.2) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_sub
-
-lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
-begin
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
-    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
-end
-
-lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
-begin
-  rw convex_iff_open_segment_subset,
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_pos (mul_pos ha hap) (mul_pos hb haq),
-    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
-end
-
 end add_comm_group
 end ordered_semiring
 
@@ -895,10 +888,7 @@ lemma convex.smul_preimage (hs : convex 𝕜 s) (c : 𝕜) : convex 𝕜 ((λ z,
 hs.linear_preimage (linear_map.lsmul _ _ c)
 
 lemma convex.affinity (hs : convex 𝕜 s) (z : E) (c : 𝕜) : convex 𝕜 ((λ x, z + c • x) '' s) :=
-begin
-  have h := (hs.smul c).translate z,
-  rwa [←image_smul, image_image] at h,
-end
+by simpa only [←image_smul, ←image_vadd, image_image] using (hs.smul c).vadd z
 
 end add_comm_monoid
 end ordered_comm_semiring
@@ -907,7 +897,7 @@ section ordered_ring
 variables [ordered_ring 𝕜]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s t : set E}
 
 lemma convex.add_smul_mem (hs : convex 𝕜 s) {x y : E} (hx : x ∈ s) (hy : x + y ∈ s)
   {t : 𝕜} (ht : t ∈ Icc (0 : 𝕜) 1) : x + t • y ∈ s :=
@@ -959,8 +949,7 @@ begin
 end
 
 /-- The image of a convex set under an affine map is convex. -/
-lemma convex.affine_image (f : E →ᵃ[𝕜] F) {s : set E} (hs : convex 𝕜 s) :
-  convex 𝕜 (f '' s) :=
+lemma convex.affine_image (f : E →ᵃ[𝕜] F) (hs : convex 𝕜 s) : convex 𝕜 (f '' s) :=
 begin
   rintro x y ⟨x', ⟨hx', hx'f⟩⟩ ⟨y', ⟨hy', hy'f⟩⟩ a b ha hb hab,
   refine ⟨a • x' + b • y', ⟨hs hx' hy' ha hb hab, _⟩⟩,
@@ -968,10 +957,10 @@ begin
 end
 
 lemma convex.neg (hs : convex 𝕜 s) : convex 𝕜 (-s) :=
-by { rw ←set.image_neg, exact hs.is_linear_image is_linear_map.is_linear_map_neg }
-
-lemma convex.neg_preimage (hs : convex 𝕜 s) : convex 𝕜 ((λ z, -z) ⁻¹' s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg
+
+lemma convex.sub (hs : convex 𝕜 s) (ht : convex 𝕜 t) : convex 𝕜 (s - t) :=
+by { rw sub_eq_add_neg, exact hs.add ht.neg }
 
 end add_comm_group
 end ordered_ring

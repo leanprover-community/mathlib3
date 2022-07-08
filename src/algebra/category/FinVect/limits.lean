@@ -15,6 +15,11 @@ import category_theory.limits.constructions.limits_of_products_and_equalizers
 # `forget₂ (FinVect K) (Module K)` creates all finite limits.
 
 And hence `FinVect K` has all finite limits.
+
+## Future work
+After generalising `FinVect` to allow the ring and the module to live in different universes,
+generalize this construction so we can take limits over smaller diagrams,
+as is done for the other algebraic categories.
 -/
 
 noncomputable theory
@@ -25,10 +30,10 @@ open category_theory.limits
 
 namespace FinVect
 
-variables {J : Type v} [small_category J] [fin_category J]
+variables {J : Type} [small_category J] [fin_category J]
 variables {k : Type v} [field k]
 
-instance {J : Type v} [fintype J] (Z : J → Module.{v} k) [∀ j, finite_dimensional k (Z j)] :
+instance {J : Type} [fintype J] (Z : J → Module.{v} k) [∀ j, finite_dimensional k (Z j)] :
   finite_dimensional k (∏ λ j, Z j : Module.{v} k) :=
 begin
   haveI : finite_dimensional k (Module.of k (Π j, Z j)), { dsimp, apply_instance, },

@@ -35,7 +35,7 @@ begin
     -- there's no specific lemma for ℝ that ∑ x^k/k! sums to exp(x), but it's
     -- true in more general fields, so use that lemma
     rw real.exp_eq_exp_ℝ,
-    exact exp_series_field_has_sum_exp (-1 : ℝ) },
+    exact exp_series_div_has_sum_exp ℝ (-1 : ℝ) },
   intro n,
   rw [← int.cast_coe_nat, num_derangements_sum],
   push_cast,

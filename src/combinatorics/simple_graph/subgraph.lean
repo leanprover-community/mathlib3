@@ -44,7 +44,7 @@ sub-relation of the adjacency relation of the simple graph.
 
 -/
 
-universe u
+universes u v
 
 namespace simple_graph
 
@@ -63,7 +63,7 @@ structure subgraph {V : Type u} (G : simple_graph V) :=
 
 namespace subgraph
 
-variables {V : Type u} {G : simple_graph V}
+variables {V : Type u} {W : Type v} {G : simple_graph V}
 
 protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
 λ v h, G.loopless v (G'.adj_sub h)
@@ -333,33 +333,53 @@ lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
   (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
 by simpa using edge_set_mono h
 
+/-- Graph homomorphisms induce functions between the collections of subgraphs. -/
+@[simps]
+protected def map {G' : simple_graph W} (f : G →g G') (H : G.subgraph) : G'.subgraph :=
+{ verts := f '' H.verts,
+  adj := relation.map H.adj f f,
+  adj_sub := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact f.map_rel (H.adj_sub h) },
+  edge_vert := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact set.mem_image_of_mem _ (H.edge_vert h) },
+  symm := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact ⟨v, u, H.symm h, rfl, rfl⟩ } }
+
+lemma map_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.map f) :=
+begin
+  intros H H' h,
+  split,
+  { intro,
+    simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+    rintro v hv rfl,
+    exact ⟨_, h.1 hv, rfl⟩ },
+  { rintros _ _ ⟨u, v, ha, rfl, rfl⟩,
+    exact ⟨_, _, h.2 ha, rfl, rfl⟩ }
+end
+
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/
-def map {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
+@[simps]
+def inclusion {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
 { to_fun := λ v, ⟨↑v, and.left h v.property⟩,
   map_rel' := λ v w hvw, h.2 hvw }
 
-lemma map.injective {x y : subgraph G} (h : x ≤ y) : function.injective (map h) :=
-λ v w h, by { simp only [map, rel_hom.coe_fn_mk, subtype.mk_eq_mk] at h, exact subtype.ext h }
+lemma inclusion.injective {x y : subgraph G} (h : x ≤ y) : function.injective (inclusion h) :=
+λ v w h, by { simp only [inclusion, rel_hom.coe_fn_mk, subtype.mk_eq_mk] at h, exact subtype.ext h }
 
 /-- There is an induced injective homomorphism of a subgraph of `G` into `G`. -/
-def map_top (x : subgraph G) : x.coe →g G :=
+@[simps]
+protected def hom (x : subgraph G) : x.coe →g G :=
 { to_fun := λ v, v,
   map_rel' := λ v w hvw, x.adj_sub hvw }
 
-lemma map_top.injective {x : subgraph G} : function.injective x.map_top :=
+lemma hom.injective {x : subgraph G} : function.injective x.hom :=
 λ v w h, subtype.ext h
-
-@[simp]
-lemma map_top_to_fun {x : subgraph G} (v : x.verts) : x.map_top v = v := rfl
 
 /-- There is an induced injective homomorphism of a subgraph of `G` as
 a spanning subgraph into `G`. -/
-@[simps] def map_spanning_top (x : subgraph G) : x.spanning_coe →g G :=
+@[simps] def spanning_hom (x : subgraph G) : x.spanning_coe →g G :=
 { to_fun := id,
   map_rel' := λ v w hvw, x.adj_sub hvw }
 
-lemma map_spanning_top.injective {x : subgraph G} : function.injective x.map_spanning_top :=
+lemma spanning_hom.injective {x : subgraph G} : function.injective x.spanning_hom :=
 λ v w h, h
 
 lemma neighbor_set_subset_of_subgraph {x y : subgraph G} (h : x ≤ y) (v : V) :
@@ -517,11 +537,11 @@ spanning_coe_le_of_le (delete_edges_le s)
 
 end delete_edges
 
-/-! ## Induced subgraphs and vertex deletion -/
+/-! ## Induced subgraphs -/
 
-/- Given a subgraph, we can change its vertex set while removing any invalid edges, and
-this leads to induced subgraphs and vertex deletion. See also `simple_graph.induce` for the
-`simple_graph` version, which, unlike for subgraphs, results in a graph with a different type. -/
+/- Given a subgraph, we can change its vertex set while removing any invalid edges, which
+gives induced subgraphs. See also `simple_graph.induce` for the `simple_graph` version, which,
+unlike for subgraphs, results in a graph with a different vertex type. -/
 
 /-- The induced subgraph of a subgraph. The expectation is that `s ⊆ G'.verts` for the usual
 notion of an induced subgraph, but, in general, `s` is taken to be the new vertex set and edges
@@ -544,10 +564,16 @@ lemma induce_mono (hg : G' ≤ G'') (hs : s ⊆ s') : G'.induce s ≤ G''.induce
 begin
   split,
   { simp [hs], },
-  { simp only [induce_adj, true_and, and_imp] {contextual := tt},
+  { simp only [induce_adj, true_and, and_imp] { contextual := tt },
     intros v w hv hw ha,
     exact ⟨hs hv, hs hw, hg.2 ha⟩, },
 end
+
+@[mono]
+lemma induce_mono_left (hg : G' ≤ G'') : G'.induce s ≤ G''.induce s := induce_mono hg (by refl)
+
+@[mono]
+lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce_mono (by refl) hs
 
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
 by ext; simp

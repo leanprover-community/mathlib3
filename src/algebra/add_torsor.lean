@@ -128,7 +128,7 @@ end
 of subtracting them. -/
 @[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1) :=
 begin
-  refine neg_eq_of_add_eq_zero (vadd_right_cancel p1 _),
+  refine neg_eq_of_add_eq_zero_right (vadd_right_cancel p1 _),
   rw [vsub_add_vsub_cancel, vsub_self],
 end
 

@@ -68,6 +68,16 @@ simp only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_asso
   chain R a (l₁ ++ b :: c :: l₂) ↔ chain R a (l₁ ++ [b]) ∧ R b c ∧ chain R c l₂ :=
 by rw [chain_split, chain_cons]
 
+theorem chain_iff_forall₂ :
+  ∀ {a : α} {l : list α}, chain R a l ↔ l = [] ∨ forall₂ R (a :: init l) l
+| a [] := by simp
+| a [b] := by simp [init]
+| a (b :: c :: l) := by simp [@chain_iff_forall₂ b]
+
+theorem chain_append_singleton_iff_forall₂ :
+  chain R a (l ++ [b]) ↔ forall₂ R (a :: l) (l ++ [b]) :=
+by simp [chain_iff_forall₂, init]
+
 theorem chain_map (f : β → α) {b : β} {l : list β} :
   chain R (f b) (map f l) ↔ chain (λ a b : β, R (f a) (f b)) b l :=
 by induction l generalizing b; simp only [map, chain.nil, chain_cons, *]

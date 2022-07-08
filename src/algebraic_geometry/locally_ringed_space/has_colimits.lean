@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.locally_ringed_space
-import algebra.category.CommRing.constructions
+import algebra.category.Ring.constructions
 import algebraic_geometry.open_immersion
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!
 # Colimits of LocallyRingedSpace
 
-We construct the explict coproducts and coequalizers of `LocallyRingedSpace`.
+We construct the explicit coproducts and coequalizers of `LocallyRingedSpace`.
 It then follows that `LocallyRingedSpace` has all colimits, and
 `forget_to_SheafedSpace` preserves them.
 
@@ -70,7 +70,9 @@ def coproduct : LocallyRingedSpace :=
 noncomputable
 def coproduct_cofan : cocone F :=
 { X := coproduct F,
-  ι := { app := λ j, ⟨colimit.ι (F ⋙ forget_to_SheafedSpace) j, infer_instance⟩ } }
+  ι :=
+  { app := λ j, ⟨colimit.ι (F ⋙ forget_to_SheafedSpace) j, infer_instance⟩,
+    naturality' := λ j j' f, by { cases j, cases j', tidy, }, } }
 
 /-- The explicit coproduct cofan constructed in `coproduct_cofan` is indeed a colimit. -/
 noncomputable
@@ -92,7 +94,7 @@ def coproduct_cofan_is_colimit : is_colimit (coproduct_cofan F) :=
   uniq' := λ s f h, subtype.eq (is_colimit.uniq _ (forget_to_SheafedSpace.map_cocone s) f.1
     (λ j, congr_arg subtype.val (h j))) }
 
-instance : has_coproducts LocallyRingedSpace.{u} :=
+instance : has_coproducts.{u} LocallyRingedSpace.{u} :=
 λ ι, ⟨λ F, ⟨⟨⟨_, coproduct_cofan_is_colimit F⟩⟩⟩⟩
 
 noncomputable
@@ -104,7 +106,7 @@ end has_coproducts
 
 section has_coequalizer
 
-variables {X Y : LocallyRingedSpace.{u}} (f g : X ⟶ Y)
+variables {X Y : LocallyRingedSpace.{v}} (f g : X ⟶ Y)
 
 namespace has_coequalizer
 
@@ -278,7 +280,7 @@ instance : has_coequalizers LocallyRingedSpace := has_coequalizers_of_has_colimi
 
 noncomputable
 instance preserves_coequalizer :
-  preserves_colimits_of_shape walking_parallel_pair.{v} forget_to_SheafedSpace.{v} :=
+  preserves_colimits_of_shape walking_parallel_pair forget_to_SheafedSpace.{v} :=
 ⟨λ F, begin
   apply preserves_colimit_of_iso_diagram _ (diagram_iso_parallel_pair F).symm,
   apply preserves_colimit_of_preserves_colimit_cocone (coequalizer_cofork_is_colimit _ _),

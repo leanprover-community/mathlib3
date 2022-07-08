@@ -527,7 +527,7 @@ variables [comm_group α]
 
 @[to_additive] lemma alternating_prod_cons' :
   ∀ (a : α) (l : list α), alternating_prod (a :: l) = a * (alternating_prod l)⁻¹
-| a [] := by rw [alternating_prod_nil, one_inv, mul_one, alternating_prod_singleton]
+| a [] := by rw [alternating_prod_nil, inv_one, mul_one, alternating_prod_singleton]
 | a (b :: l) :=
 by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv, mul_assoc]
 

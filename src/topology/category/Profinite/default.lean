@@ -153,26 +153,29 @@ end Profinite
 
 namespace Profinite
 
+-- TODO the following construction of limits could be generalised
+-- to allow diagrams in lower universes.
+
 /-- An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
 `Top.limit_cone`. -/
 def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.cone F :=
 { X :=
-  { to_CompHaus := (CompHaus.limit_cone (F ⋙ Profinite_to_CompHaus)).X,
+  { to_CompHaus := (CompHaus.limit_cone.{u u} (F ⋙ Profinite_to_CompHaus)).X,
     is_totally_disconnected :=
     begin
       change totally_disconnected_space ↥{u : Π (j : J), (F.obj j) | _},
       exact subtype.totally_disconnected_space,
     end },
-  π := { app := (CompHaus.limit_cone (F ⋙ Profinite_to_CompHaus)).π.app } }
+  π := { app := (CompHaus.limit_cone.{u u} (F ⋙ Profinite_to_CompHaus)).π.app } }
 
 /-- The limit cone `Profinite.limit_cone F` is indeed a limit cone. -/
 def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.is_limit (limit_cone F) :=
-{ lift := λ S, (CompHaus.limit_cone_is_limit (F ⋙ Profinite_to_CompHaus)).lift
+{ lift := λ S, (CompHaus.limit_cone_is_limit.{u u} (F ⋙ Profinite_to_CompHaus)).lift
     (Profinite_to_CompHaus.map_cone S),
   uniq' := λ S m h,
-    (CompHaus.limit_cone_is_limit _).uniq (Profinite_to_CompHaus.map_cone S) _ h }
+    (CompHaus.limit_cone_is_limit.{u u} _).uniq (Profinite_to_CompHaus.map_cone S) _ h }
 
 /-- The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus -/
 def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite_to_CompHaus :=

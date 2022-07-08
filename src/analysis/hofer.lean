@@ -84,7 +84,7 @@ begin
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
   { refine cauchy_seq_of_le_geometric _ ε one_half_lt_one (λ n, _),
-    simpa only [one_div, inv_pow₀] using key₁ n },
+    simpa only [one_div, inv_pow] using key₁ n },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,

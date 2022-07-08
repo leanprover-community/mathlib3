@@ -67,6 +67,14 @@ lemma rel.is_equivalence : equivalence (rel α) := by tidy; apply rel.trans; ass
 
 instance rel.setoid (α : Type u) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
 
+@[simp] lemma rel_iff {x y z w : α} :
+  (x, y) ≈ (z, w) ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
+begin
+  split; intro h,
+  { cases h; simp },
+  { cases h; rw [h.1, h.2], constructor }
+end
+
 end sym2
 
 /--
@@ -111,11 +119,7 @@ by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
-begin
-  split; intro h,
-  { rw quotient.eq at h, cases h; tidy },
-  { cases h; rw [h.1, h.2], rw eq_swap }
-end
+by simp
 
 lemma mk_eq_mk_iff {p q : α × α} :
   ⟦p⟧ = ⟦q⟧ ↔ p = q ∨ p = q.swap :=

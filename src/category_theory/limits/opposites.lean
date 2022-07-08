@@ -275,18 +275,16 @@ begin
   apply_instance
 end
 
-lemma has_finite_coproducts_opposite [has_finite_products C] :
-  has_finite_coproducts Cᵒᵖ :=
-{ out := λ J 𝒟 𝒥, begin
+lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
+{ out := λ J 𝒟, begin
     resetI,
     haveI : has_limits_of_shape (discrete J)ᵒᵖ C :=
       has_limits_of_shape_of_equivalence (discrete.opposite J).symm,
     apply_instance,
   end }
 
-lemma has_finite_products_opposite [has_finite_coproducts C] :
-  has_finite_products Cᵒᵖ :=
-{ out := λ J 𝒟 𝒥, begin
+lemma has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
+{ out := λ J 𝒟, begin
     resetI,
     haveI : has_colimits_of_shape (discrete J)ᵒᵖ C :=
       has_colimits_of_shape_of_equivalence (discrete.opposite J).symm,
@@ -295,15 +293,15 @@ lemma has_finite_products_opposite [has_finite_coproducts C] :
 
 lemma has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
 begin
-  haveI : has_colimits_of_shape walking_parallel_pair.{v₁}ᵒᵖ C :=
-    has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v₁},
+  haveI : has_colimits_of_shape walking_parallel_pairᵒᵖ C :=
+    has_colimits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
 lemma has_coequalizers_opposite [has_equalizers C] : has_coequalizers Cᵒᵖ :=
 begin
-  haveI : has_limits_of_shape walking_parallel_pair.{v₁}ᵒᵖ C :=
-    has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv.{v₁},
+  haveI : has_limits_of_shape walking_parallel_pairᵒᵖ C :=
+    has_limits_of_shape_of_equivalence walking_parallel_pair_op_equiv,
   apply_instance
 end
 
@@ -317,14 +315,14 @@ lemma has_finite_limits_opposite [has_finite_colimits C] :
 
 lemma has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
 begin
-  haveI : has_colimits_of_shape walking_cospan.{v₁}ᵒᵖ C :=
+  haveI : has_colimits_of_shape walking_cospanᵒᵖ C :=
     has_colimits_of_shape_of_equivalence walking_cospan_op_equiv.symm,
   apply has_limits_of_shape_op_of_has_colimits_of_shape,
 end
 
 lemma has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
 begin
-  haveI : has_limits_of_shape walking_span.{v₁}ᵒᵖ C :=
+  haveI : has_limits_of_shape walking_spanᵒᵖ C :=
     has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,
   apply has_colimits_of_shape_op_of_has_limits_of_shape,
 end

@@ -175,10 +175,10 @@ instance : has_add (𝕎 R) :=
 instance : has_sub (𝕎 R) :=
 ⟨λ x y, eval (witt_sub p) ![x, y]⟩
 
-instance has_nat_scalar : has_scalar ℕ (𝕎 R) :=
+instance has_nat_scalar : has_smul ℕ (𝕎 R) :=
 ⟨λ n x, eval (witt_nsmul p n) ![x]⟩
 
-instance has_int_scalar : has_scalar ℤ (𝕎 R) :=
+instance has_int_scalar : has_smul ℤ (𝕎 R) :=
 ⟨λ n x, eval (witt_zsmul p n) ![x]⟩
 
 instance : has_mul (𝕎 R) :=
@@ -189,6 +189,9 @@ instance : has_neg (𝕎 R) :=
 
 instance has_nat_pow : has_pow (𝕎 R) ℕ :=
 ⟨λ x n, eval (witt_pow p n) ![x]⟩
+
+instance : has_nat_cast (𝕎 R) := ⟨nat.unary_cast⟩
+instance : has_int_cast (𝕎 R) := ⟨int.cast_def⟩
 
 end ring_operations
 
@@ -221,7 +224,7 @@ begin
     bind₁_X_right, bind₁_C_right],
   rw [sub_mul, one_mul],
   rw [finset.sum_eq_single 0],
-  { simp only [inv_of_eq_inv, one_mul, inv_pow₀, tsub_zero, ring_hom.map_one, pow_zero],
+  { simp only [inv_of_eq_inv, one_mul, inv_pow, tsub_zero, ring_hom.map_one, pow_zero],
     simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,
@@ -348,11 +351,11 @@ by simp [has_neg.neg, eval, matrix.cons_fin_one]
 
 lemma nsmul_coeff (m : ℕ) (x : 𝕎 R) (n : ℕ) :
   (m • x).coeff n = peval (witt_nsmul p m n) ![x.coeff] :=
-by simp [has_scalar.smul, eval, matrix.cons_fin_one]
+by simp [has_smul.smul, eval, matrix.cons_fin_one]
 
 lemma zsmul_coeff (m : ℤ) (x : 𝕎 R) (n : ℕ) :
   (m • x).coeff n = peval (witt_zsmul p m n) ![x.coeff] :=
-by simp [has_scalar.smul, eval, matrix.cons_fin_one]
+by simp [has_smul.smul, eval, matrix.cons_fin_one]
 
 lemma pow_coeff (m : ℕ) (x : 𝕎 R) (n : ℕ) :
   (x ^ m).coeff n = peval (witt_pow p m n) ![x.coeff] :=

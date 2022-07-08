@@ -110,7 +110,7 @@ begin
   have hεδ := add_pos_of_pos_of_nonneg hε' hδ,
   refine (exists_dist_eq x z (div_nonneg hε $ add_nonneg hε hδ) (div_nonneg hδ $ add_nonneg hε hδ) $
     by rw [←add_div, div_self hεδ.ne']).imp (λ y hy, _),
-  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
+  rw [hy.1, hy.2, div_mul_comm, div_mul_comm ε],
   rw ←div_le_one hεδ at h,
   exact ⟨mul_le_of_le_one_left hδ h, mul_le_of_le_one_left hε h⟩,
 end
@@ -121,7 +121,7 @@ lemma exists_dist_le_lt (hδ : 0 ≤ δ) (hε : 0 < ε) (h : dist x z < ε + δ)
 begin
   refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ) (div_nonneg hδ $ add_nonneg
     hε.le hδ) $ by rw [←add_div, div_self (add_pos_of_pos_of_nonneg hε hδ).ne']).imp (λ y hy, _),
-  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
+  rw [hy.1, hy.2, div_mul_comm, div_mul_comm ε],
   rw ←div_lt_one (add_pos_of_pos_of_nonneg hε hδ) at h,
   exact ⟨mul_le_of_le_one_left hδ h.le, mul_lt_of_lt_one_left hε h⟩,
 end
@@ -141,7 +141,7 @@ lemma exists_dist_lt_lt (hδ : 0 < δ) (hε : 0 < ε) (h : dist x z < ε + δ) :
 begin
   refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ.le) (div_nonneg hδ.le $
     add_nonneg hε.le hδ.le) $ by rw [←add_div, div_self (add_pos hε hδ).ne']).imp (λ y hy, _),
-  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
+  rw [hy.1, hy.2, div_mul_comm, div_mul_comm ε],
   rw ←div_lt_one (add_pos hε hδ) at h,
   exact ⟨mul_lt_of_lt_one_left hδ h, mul_lt_of_lt_one_left hε h⟩,
 end

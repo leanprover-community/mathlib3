@@ -149,7 +149,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
     calc comap (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ((𝓤 α).lift' gen)
           = (𝓤 α).lift'
               (preimage (λ (x : α × α), (pure_cauchy (x.fst), pure_cauchy (x.snd))) ∘ gen) :
-        comap_lift'_eq monotone_gen
+        comap_lift'_eq
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=

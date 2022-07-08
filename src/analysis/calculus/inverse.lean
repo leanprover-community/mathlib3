@@ -141,7 +141,7 @@ begin
 end
 
 alias approximates_linear_on_iff_lipschitz_on_with ↔
-  approximates_linear_on.lipschitz_on_with lipschitz_on_with.approximates_linear_on
+  lipschitz_on_with _root_.lipschitz_on_with.approximates_linear_on
 
 lemma lipschitz_sub (hf : approximates_linear_on f f' s c) :
   lipschitz_with c (λ x : s, f x - f' x) :=

@@ -363,7 +363,7 @@ protected def prod {α β} (s : set α) (t : set β) :
 @subtype_prod_equiv_prod α β s t
 
 /-- The set `set.pi set.univ s` is equivalent to `Π a, s a`. -/
-@[simps] protected def pi {α : Type*} {β : α → Type*} (s : Π a, set (β a)) :
+@[simps] protected def univ_pi {α : Type*} {β : α → Type*} (s : Π a, set (β a)) :
   pi univ s ≃ Π a, s a :=
 { to_fun := λ f a, ⟨(f : Π a, β a) a, f.2 a (mem_univ a)⟩,
   inv_fun := λ f, ⟨λ a, f a, λ a ha, (f a).2⟩,

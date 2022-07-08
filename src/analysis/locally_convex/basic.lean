@@ -42,8 +42,8 @@ variables {𝕜 𝕝 E  : Type*} {ι : Sort*} {κ : ι → Sort*}
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
 
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E]
+section has_smul
+variables (𝕜) [has_smul 𝕜 E]
 
 /-- A set `A` absorbs another set `B` if `B` is contained in all scalings of `A` by elements of
 sufficiently large norm. -/
@@ -167,7 +167,7 @@ variables [has_scalar 𝕝 E] [smul_comm_class 𝕜 𝕝 E]
 lemma balanced.smul (a : 𝕝) (hs : balanced 𝕜 s) : balanced 𝕜 (a • s) :=
 λ b hb, (smul_comm _ _ _).subset.trans $ smul_set_mono $ hs _ hb
 
-end has_scalar
+end has_smul
 
 section module
 variables [add_comm_group E] [module 𝕜 E] {s s₁ s₂ t t₁ t₂ : set E}

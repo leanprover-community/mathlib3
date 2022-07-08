@@ -293,18 +293,15 @@ meta def pow_parser (cont : parser poly) : parser poly := do
 /--
 A parser object that parses `string`s into `poly` objects.
 -/
-meta def poly_parser : parser poly := do
-  ch '(',
-  t ←  var_parser <|> const_fraction_parser <|> add_parser poly_parser
-    <|> sub_parser poly_parser <|> mul_parser poly_parser <|> pow_parser poly_parser,
-  ch ')',
-  return t
+meta def poly_parser : parser poly :=
+ch '('
+  *> (var_parser <|> const_fraction_parser <|> add_parser poly_parser
+    <|> sub_parser poly_parser <|> mul_parser poly_parser <|> pow_parser poly_parser)
+  <* ch ')'
 
 /--A parser object that parses a string (which may contain trailing whitespace) into a poly object-/
-meta def one_of_many_poly_parser : parser poly := do
-  p ← poly_parser,
-  optional $ ch ' ',
-  return p
+meta def one_of_many_poly_parser : parser poly :=
+poly_parser <* optional (ch ' ')
 
 /--checks whether a character is a whitespace character-/
 @[derive decidable]
@@ -351,10 +348,7 @@ and converts them into `poly` objects.
 A tactic that takes an `expr`, and, if it is an equality of the
 form `lhs = rhs`, returns the expr given by `lhs - rhs`-/
 meta def equality_to_left_side : expr → tactic expr
-| `(%%lhs = %%rhs) :=
-  do
-    out_expr ← to_expr ``(%%lhs - %%rhs),
-    return out_expr
+| `(%%lhs = %%rhs) := to_expr ``(%%lhs - %%rhs)
 | e := fail "expression is not an equality"
 
 /--

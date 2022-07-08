@@ -578,6 +578,15 @@ lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
 by ext; simp
 
+@[simp] lemma induce_self_verts : G'.induce G'.verts = G' :=
+begin
+  ext,
+  { simp },
+  { split;
+    simp only [induce_adj, implies_true_iff, and_true] {contextual := tt},
+    exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
+end
+
 end induce
 
 /-- Given a subgraph and a set of vertices, delete all the vertices from the subgraph,
@@ -599,14 +608,7 @@ by simp [and_assoc]
 by ext; simp [not_or_distrib, and_assoc] { contextual := tt }
 
 @[simp] lemma delete_verts_empty : G'.delete_verts ∅ = G' :=
-begin
-  ext,
-  { simp },
-  { split;
-    simp only [delete_verts_adj, and_imp, implies_true_iff, set.mem_empty_eq,
-      not_false_iff, true_and, and_true] { contextual := tt },
-    exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
-end
+by simp [delete_verts]
 
 lemma delete_verts_le : G'.delete_verts s ≤ G' :=
 by split; simp [set.diff_subset]

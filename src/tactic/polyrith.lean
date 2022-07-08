@@ -520,7 +520,7 @@ given to `linear_combination`. If that tactic succeeds, the user is prompted
 to replace the call to `polyrith` with the appropriate call to
 `linear_combination`.
 -/
-meta def tactic.polyrith (only_on : bool) (hyps : list pexpr): tactic unit :=
+meta def tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic format :=
 do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
   (m, p, R) ← parse_target_to_poly,
@@ -530,7 +530,7 @@ do
   let args := to_string (is_trace_enabled_for `polyrith) :: args,
   sage_out ← sage_output args,
   if is_trace_enabled_for `polyrith then
-    trace sage_out
+    return sage_out
   else do
   coeffs_as_poly ← convert_sage_output sage_out,
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
@@ -540,9 +540,7 @@ do
   let components := (eq_names.zip coeffs_as_expr).filter
     $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
-  let cmd : format := "linear_combination " ++ format.nest 2 (format.group expr_string),
-  trace!"Try this: {cmd}"
-
+  return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
 
 /-! # Interactivity -/
 setup_tactic_parser
@@ -584,7 +582,7 @@ by polyrith only [scary c d, h]
 -/
 meta def _root_.tactic.interactive.polyrith (restr : parse (tk "only")?)
   (hyps : parse pexpr_list?) : tactic unit :=
-  tactic.polyrith restr.is_some (hyps.get_or_else [])
+  trace!"Try this: {tactic.polyrith restr.is_some (hyps.get_or_else [])}"
 
 add_tactic_doc
 { name := "polyrith",

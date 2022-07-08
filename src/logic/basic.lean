@@ -1275,6 +1275,7 @@ mt Exists.fst
   (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : Exists q = ∃ h : p', q' (hp.2 h) :=
 propext (exists_prop_congr hq _)
 
+/-- See `is_empty.exists_iff` for the `false` version. -/
 @[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
 exists_prop_of_true _
 
@@ -1290,6 +1291,7 @@ unique_of_exists_unique h py₁ py₂
   (hq : ∀ h, q h ↔ q' h) (hp : p ↔ p') : (∀ h, q h) = ∀ h : p', q' (hp.2 h) :=
 propext (forall_prop_congr hq _)
 
+/-- See `is_empty.forall_iff` for the `false` version. -/
 @[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
 forall_prop_of_true _
 

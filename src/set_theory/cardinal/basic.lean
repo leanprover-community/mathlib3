@@ -140,7 +140,7 @@ quotient.map₂ f $ λ α β ⟨e₁⟩ γ δ ⟨e₂⟩, ⟨hf α β γ δ e₁
 
 /-- The universe lift operation on cardinals. You can specify the universes explicitly with
   `lift.{u v} : cardinal.{v} → cardinal.{max v u}` -/
-@[pp_nodot] def lift (c : cardinal.{v}) : cardinal.{max v u} :=
+def lift (c : cardinal.{v}) : cardinal.{max v u} :=
 map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 
 @[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl

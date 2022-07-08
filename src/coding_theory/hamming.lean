@@ -17,76 +17,96 @@ This is a useful notion in various applications, but in particular it is relevan
 in coding theory, in which it is fundamental for defining the minimum distance of a
 code.
 
-In this file we define `hamm β`, the type synonym of a Pi type with the Hamming
-distance `hamm_dist` and weight `hamm_wt` attached, and the various instances that arise
-from the properties of these definitions.
+In this file we define `hamm_dist` and `hamm_norm`, the Hamming distance and Hamming norm. We also
+define `hamm β`, the type synonym of a Pi type with `hamm_dist` and `hamm_norm` attached, and
+provide instances and API for this type synonym.
 -/
 section hamm_dist_wt
 
-open fintype function
+open finset function
 
 variables {α ι : Type*} {β : ι → Type*} [fintype ι] [Π i, decidable_eq (β i)]
 variables {γ : ι → Type*} [Π i, decidable_eq (γ i)]
 
 /-- The Hamming distance function to the naturals. -/
-def hamm_dist (x y : Π i, β i) : ℕ := card {i // x i ≠ y i}
+def hamm_dist (x y : Π i, β i) : ℕ := (univ.filter (λ i, x i ≠ y i)).card
 
+/-- Corresponds to `dist_self`. -/
+@[simp] lemma hamm_dist_self (x : Π i, β i) : hamm_dist x x = 0 :=
+by { rw [hamm_dist, card_eq_zero, filter_eq_empty_iff], exact λ _ _ H, H rfl }
+
+/-- Corresponds to `dist_nonneg`. -/
 lemma hamm_dist_nonneg {x y : Π i, β i} : 0 ≤ hamm_dist x y := zero_le _
 
-lemma hamm_dist_le_card_fintype {x y : Π i, β i} : hamm_dist x y ≤ card ι := card_subtype_le _
-
-lemma hamm_dist_comp_le_hamm_dist (f : Π i, γ i → β i) {x y : Π i, γ i} :
-  hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) ≤ hamm_dist x y :=
-card_subtype_mono _ _ $ λ x H1 H2, H1 $ congr_arg (f x) H2
-
-lemma hamm_dist_comp (f : Π i, γ i → β i) {x y : Π i, γ i} (hf : Π i, injective (f i)) :
-  hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) = hamm_dist x y :=
-le_antisymm (hamm_dist_comp_le_hamm_dist _) (card_subtype_mono _ _ (λ i H1 H2, H1 (hf i H2)))
-
-lemma hamm_dist_smul_le_hamm_dist [Π i, has_smul α (β i)] {k : α} {x y : Π i, β i} :
-  hamm_dist (k • x) (k • y) ≤ hamm_dist x y :=
-hamm_dist_comp_le_hamm_dist $ λ i, (•) k
-
-lemma hamm_dist_smul [Π i, has_smul α (β i)] {k : α} {x y : Π i, β i}
-  (hk : Π i, is_smul_regular (β i) k) : hamm_dist (k • x) (k • y) = hamm_dist x y :=
-hamm_dist_comp (λ i, (•) k) hk
-
-@[simp] lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
-by simp_rw [function.funext_iff, hamm_dist, card_eq_zero_iff,
-            is_empty_iff, subtype.forall, imp_false, not_not]
-
-@[simp] lemma hamm_dist_self (x : Π i, β i) : hamm_dist x x = 0 := hamm_dist_eq_zero.mpr rfl
-
+/-- Corresponds to `dist_comm`. -/
 lemma hamm_dist_comm (x y : Π i, β i) : hamm_dist x y = hamm_dist y x :=
 by simp_rw [hamm_dist, ne_comm]
 
+/-- Corresponds to `dist_triangle`. -/
 lemma hamm_dist_triangle (x y z : Π i, β i) :
   hamm_dist x z ≤ hamm_dist x y + hamm_dist y z :=
 begin
-  simp_rw hamm_dist,
-  refine le_trans (card_subtype_mono _ _ (λ _ h, _)) (card_subtype_or _ _),
-  by_contra' H, exact h (eq.trans H.1 H.2)
+  classical, simp_rw hamm_dist, refine le_trans (card_mono _) (card_union_le _ _), rw ← filter_or,
+  refine monotone_filter_right _ _, intros i h, by_contra' H, exact h (eq.trans H.1 H.2)
 end
 
-lemma eq_of_hamm_dist_eq_zero (x y : Π i, β i) : hamm_dist x y = 0 → x = y :=
-hamm_dist_eq_zero.mp
+/-- Corresponds to `dist_triangle_left`. -/
+lemma hamm_dist_triangle_left (x y z : Π i, β i) : hamm_dist x y ≤ hamm_dist z x + hamm_dist z y :=
+by { rw hamm_dist_comm z, exact hamm_dist_triangle _ _ _ }
 
+/-- Corresponds to `dist_triangle_right`. -/
+lemma hamm_dist_triangle_right (x y z : Π i, β i) : hamm_dist x y ≤ hamm_dist x z + hamm_dist y z :=
+by { rw hamm_dist_comm y, exact hamm_dist_triangle _ _ _ }
+
+/-- Corresponds to `swap_dist`. -/
+theorem swap_hamm_dist : swap (@hamm_dist _ β _ _) = hamm_dist :=
+by { funext x y, exact hamm_dist_comm _ _ }
+
+/-- Corresponds to `eq_of_hamm_dist_eq_zero`. -/
+lemma eq_of_hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 → x = y :=
+by simp_rw [  hamm_dist, card_eq_zero, filter_eq_empty_iff, not_not,
+              funext_iff,  mem_univ, forall_true_left, imp_self]
+
+/-- Corresponds to `dist_eq_zero`. -/
+@[simp] lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
+⟨eq_of_hamm_dist_eq_zero, (λ H, by {rw H, exact hamm_dist_self _})⟩
+
+/-- Corresponds to `eq_of_zero_eq_dist`. -/
+@[simp] lemma hamm_zero_eq_dist {x y : Π i, β i} : 0 = hamm_dist x y ↔ x = y :=
+by rw [eq_comm, hamm_dist_eq_zero]
+
+/-- Corresponds to `dist_ne_zero`. -/
 lemma hamm_dist_ne_zero {x y : Π i, β i} : hamm_dist x y ≠ 0 ↔ x ≠ y :=
 not_iff_not.mpr hamm_dist_eq_zero
 
+/-- Corresponds to `dist_ne_zero`. -/
 lemma hamm_dist_pos {x y : Π i, β i} : 0 < hamm_dist x y ↔ x ≠ y :=
 by rw [←hamm_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 
 @[simp] lemma hamm_dist_lt_one {x y : Π i, β i} : hamm_dist x y < 1 ↔ x = y :=
 by {rw nat.lt_one_iff, exact hamm_dist_eq_zero}
 
-lemma hamm_dist_eq_zero_iff_forall_eq_zero {x y : Π i, β i} :
-  hamm_dist x y = 0 ↔ ∀ i, x i = y i :=
-by rw [hamm_dist_eq_zero, function.funext_iff]
+lemma hamm_dist_le_card_fintype {x y : Π i, β i} : hamm_dist x y ≤ fintype.card ι := card_le_univ _
 
-lemma hamm_dist_ne_zero_iff_exists_ne_zero {x y : Π i, β i} :
-  hamm_dist x y ≠ 0 ↔ ∃ i, x i ≠ y i :=
-by rw [hamm_dist_ne_zero, function.ne_iff]
+lemma hamm_dist_comp_le_hamm_dist (f : Π i, γ i → β i) {x y : Π i, γ i} :
+  hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) ≤ hamm_dist x y :=
+card_mono (monotone_filter_right _ $ λ i H1 H2, H1 $ congr_arg (f i) H2)
+
+lemma hamm_dist_comp (f : Π i, γ i → β i) {x y : Π i, γ i} (hf : Π i, injective (f i)) :
+  hamm_dist (λ i, f i (x i)) (λ i, f i (y i)) = hamm_dist x y :=
+begin
+  refine le_antisymm (hamm_dist_comp_le_hamm_dist _) _,
+  exact card_mono (monotone_filter_right _ $ λ i H1 H2, H1 $ hf i H2)
+end
+
+lemma hamm_dist_smul_le_hamm_dist [Π i, has_smul α (β i)] {k : α} {x y : Π i, β i} :
+  hamm_dist (k • x) (k • y) ≤ hamm_dist x y :=
+hamm_dist_comp_le_hamm_dist $ λ i, (•) k
+
+/-- Corresponds to `dist_smul` with the discrete norm on `α`. -/
+lemma hamm_dist_smul [Π i, has_smul α (β i)] {k : α} {x y : Π i, β i}
+  (hk : Π i, is_smul_regular (β i) k) : hamm_dist (k • x) (k • y) = hamm_dist x y :=
+hamm_dist_comp (λ i, (•) k) hk
 
 section has_zero
 

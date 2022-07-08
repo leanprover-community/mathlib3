@@ -989,16 +989,25 @@ variables (S M) (Q : Type*) [comm_ring Q] {g : R →+* P} [algebra P Q]
 
 /-- Injectivity of a map descends to the map induced on localizations. -/
 lemma map_injective_of_injective
-  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q]
-  (hM : (M.map g : submonoid P) ≤ non_zero_divisors P) :
+  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q] :
   function.injective (map Q g M.le_comap_map : S → Q) :=
 begin
   rintros x y hxy,
-  obtain ⟨a, b, rfl⟩ := mk'_surjective M x,
-  obtain ⟨c, d, rfl⟩ := mk'_surjective M y,
-  rw [map_mk' _ a b, map_mk' _ c d, mk'_eq_iff_eq] at hxy,
-  refine mk'_eq_iff_eq.2 (congr_arg (algebra_map _ _) (hg _)),
-  convert is_localization.injective _ hM hxy; simp,
+  rw ←sub_eq_zero at ⊢  hxy,
+  rw ← map_sub at hxy,
+  set z := x-y,
+  obtain ⟨a, b, hz⟩ := is_localization.mk'_surjective M z,
+  rw [← hz, is_localization.map_mk', is_localization.mk'_eq_zero_iff] at hxy,
+  cases hxy with m hm,
+  obtain ⟨m', hm'⟩ := m,
+  rw submonoid.mem_map at hm',
+  obtain ⟨n, hn, hnm⟩ :=hm',
+  rw [subtype.coe_mk, ← hnm,  ← map_mul, ← map_zero g] at hm,
+  replace hm := hg hm,
+  rw [←hz, is_localization.mk'_eq_zero_iff],
+  use ⟨n,hn⟩,
+  rw subtype.coe_mk,
+  exact hm,
 end
 
 variables {S Q M}
@@ -1093,10 +1102,9 @@ map_mk' _ _ _
 variables (Rₘ Sₘ)
 
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization. -/
-lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
-  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
+lemma localization_algebra_injective (hRS : function.injective (algebra_map R S)) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) :=
-is_localization.map_injective_of_injective M Rₘ Sₘ hRS hM
+is_localization.map_injective_of_injective M Rₘ Sₘ hRS
 
 end algebra
 

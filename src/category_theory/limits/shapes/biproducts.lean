@@ -1820,7 +1820,7 @@ end
 /-- If `b` is a binary bicone such that `b.inl` is a kernel of `b.snd`, then `b` is a bilimit
     bicone. -/
 def binary_bicone.is_bilimit_of_kernel_inl {X Y : C} (b : binary_bicone X Y)
-  (hb : is_limit (kernel_fork.of_ι _ b.inl_snd)) : b.is_bilimit :=
+  (hb : is_limit b.snd_kernel_fork) : b.is_bilimit :=
 is_binary_bilimit_of_is_limit _ $ binary_fan.is_limit.mk _
   (λ T f g, f ≫ b.inl + g ≫ b.inr) (λ T f g, by simp) (λ T f g, by simp) $ λ T f g m h₁ h₂,
   begin
@@ -1834,7 +1834,7 @@ is_binary_bilimit_of_is_limit _ $ binary_fan.is_limit.mk _
 /-- If `b` is a binary bicone such that `b.inr` is a kernel of `b.fst`, then `b` is a bilimit
     bicone. -/
 def binary_bicone.is_bilimit_of_kernel_inr {X Y : C} (b : binary_bicone X Y)
-  (hb : is_limit (kernel_fork.of_ι _ b.inr_fst)) : b.is_bilimit :=
+  (hb : is_limit b.fst_kernel_fork) : b.is_bilimit :=
 is_binary_bilimit_of_is_limit _ $ binary_fan.is_limit.mk _
   (λ T f g, f ≫ b.inl + g ≫ b.inr) (λ t f g, by simp) (λ t f g, by simp) $ λ T f g m h₁ h₂,
   begin
@@ -1848,7 +1848,7 @@ is_binary_bilimit_of_is_limit _ $ binary_fan.is_limit.mk _
 /-- If `b` is a binary bicone such that `b.fst` is a cokernel of `b.inr`, then `b` is a bilimit
     bicone. -/
 def binary_bicone.is_bilimit_of_cokernel_fst {X Y : C} (b : binary_bicone X Y)
-  (hb : is_colimit (cokernel_cofork.of_π _ b.inr_fst)) : b.is_bilimit :=
+  (hb : is_colimit b.inr_cokernel_cofork) : b.is_bilimit :=
 is_binary_bilimit_of_is_colimit _ $ binary_cofan.is_colimit.mk _
   (λ T f g, b.fst ≫ f + b.snd ≫ g) (λ T f g, by simp) (λ T f g, by simp) $ λ T f g m h₁ h₂,
   begin
@@ -1862,7 +1862,7 @@ is_binary_bilimit_of_is_colimit _ $ binary_cofan.is_colimit.mk _
 /-- If `b` is a binary bicone such that `b.snd` is a cokernel of `b.inl`, then `b` is a bilimit
     bicone. -/
 def binary_bicone.is_bilimit_of_cokernel_snd {X Y : C} (b : binary_bicone X Y)
-  (hb : is_colimit (cokernel_cofork.of_π _ b.inl_snd)) : b.is_bilimit :=
+  (hb : is_colimit b.inl_cokernel_cofork) : b.is_bilimit :=
 is_binary_bilimit_of_is_colimit _ $ binary_cofan.is_colimit.mk _
   (λ T f g, b.fst ≫ f + b.snd ≫ g) (λ T f g, by simp) (λ T f g, by simp) $ λ T f g m h₁ h₂,
   begin

@@ -75,7 +75,7 @@ open real
 A reified version of the `bertrand.main_inequality` below.
 This is not best possible: it actually holds for 464 ≤ x.
 -/
-lemma real_main_inequality {x : ℝ} (n_large : (648 : ℝ) ≤ x) :
+lemma real_main_inequality {x : ℝ} (n_large : (512 : ℝ) ≤ x) :
   x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) ≤ 4 ^ x :=
 begin
     let f : ℝ → ℝ := λ x, log x + sqrt (2 * x) * log (2 * x) - log 4 / 3 * x,

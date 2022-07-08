@@ -780,7 +780,7 @@ out_nonempty_iff_ne_zero.1 h
 
 instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
 
-@[simp] theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
+theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
 (rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
 
 @[simp] theorem type_eq_one_iff_unique [is_well_order α r] : type r = 1 ↔ nonempty (unique α) :=

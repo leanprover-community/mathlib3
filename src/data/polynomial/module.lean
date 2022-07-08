@@ -11,6 +11,9 @@ import ring_theory.finiteness
 
 In this file, we define the polynomial module for an `R`-module `M`, i.e. the `R[X]`-module `M[X]`.
 
+This is defined as an type alias `polynomial_module M := ℕ →₀ M`, since there might be different
+module structures on `ℕ →₀ M` of interest.
+
 -/
 
 universes u v

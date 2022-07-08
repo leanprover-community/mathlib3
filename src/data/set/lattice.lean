@@ -135,16 +135,32 @@ theorem _root_.monotone.inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∩ g x) :=
 hf.inf hg
 
+theorem _root_.monotone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∩ g x) s :=
+hf.inf hg
+
 theorem _root_.antitone.inter [preorder β] {f g : β → set α}
   (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem _root_.antitone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∩ g x) s :=
 hf.inf hg
 
 theorem _root_.monotone.union [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∪ g x) :=
 hf.sup hg
 
+theorem _root_.monotone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∪ g x) s :=
+hf.sup hg
+
 theorem _root_.antitone.union [preorder β] {f g : β → set α}
   (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∪ g x) :=
+hf.sup hg
+
+theorem _root_.antitone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∪ g x) s :=
 hf.sup hg
 
 theorem monotone_set_of [preorder α] {p : α → β → Prop}
@@ -1260,12 +1276,6 @@ end preimage
 
 section prod
 
-theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
-λ a b h, prod_mono (hf h) (hg h)
-
-alias monotone_prod ← monotone.set_prod
-
 lemma prod_Union {s : set α} {t : ι → set β} : s ×ˢ (⋃ i, t i) = ⋃ i, s ×ˢ (t i) := by { ext, simp }
 
 lemma prod_Union₂ {s : set α} {t : Π i, κ i → set β} : s ×ˢ (⋃ i j, t i j) = ⋃ i j, s ×ˢ t i j :=
@@ -1298,7 +1308,6 @@ begin
 end
 
 end prod
-
 
 section image2
 

@@ -165,7 +165,7 @@ lemma map_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n
   (r • A).map f = f r • A.map f :=
 ext $ λ _ _, hf _ _
 
-/-- The scalar action via `has_mul.to_has_opposite_scalar` is transformed by the same map as the
+/-- The scalar action via `has_mul.to_has_opposite_smul` is transformed by the same map as the
 elements of the matrix, when `f` preserves multiplication. -/
 lemma map_op_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
   (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :

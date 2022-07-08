@@ -1454,6 +1454,26 @@ lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} 
   0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
 eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
 
+lemma eventually_le.sup [semilattice_sup β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
+  f₁ ⊔ g₁ ≤ᶠ[l] f₂ ⊔ g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le_sup hfx hgx
+
+lemma eventually_le.sup_le [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : f ≤ᶠ[l] h) (hg : g ≤ᶠ[l] h) :
+  f ⊔ g ≤ᶠ[l] h :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le hfx hgx
+
+lemma eventually_le.le_sup_of_le_left [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : h ≤ᶠ[l] f) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hf] with x hfx using le_sup_of_le_left hfx
+
+lemma eventually_le.le_sup_of_le_right [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hg : h ≤ᶠ[l] g) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hg] with x hgx using le_sup_of_le_right hgx
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 
@@ -1805,27 +1825,27 @@ lemma mem_comap_iff {f : filter β} {m : α → β} (inj : injective m)
   (large : set.range m ∈ f) {S : set α} : S ∈ comap m f ↔ m '' S ∈ f :=
 by rw [← image_mem_map_iff inj, map_comap_of_mem large]
 
-lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y)
-  (h : map m f ≤ map m g) : f ≤ g :=
-λ t ht, by filter_upwards [hsf, h $ image_mem_map (inter_mem hsg ht)]
-using λ _ has ⟨_, ⟨hbs, hb⟩, h⟩, hm _ hbs _ has h ▸ hb
+lemma map_le_map_iff_of_inj_on {l₁ l₂ : filter α} {f : α → β} {s : set α}
+  (h₁ : s ∈ l₁) (h₂ : s ∈ l₂) (hinj : inj_on f s) :
+  map f l₁ ≤ map f l₂ ↔ l₁ ≤ l₂ :=
+⟨λ h t ht, mp_mem h₁ $ mem_of_superset (h $ image_mem_map (inter_mem h₂ ht)) $
+  λ y ⟨x, ⟨hxs, hxt⟩, hxy⟩ hys, hinj hxs hys hxy ▸ hxt, λ h, map_mono h⟩
 
-lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y) :
-  map m f ≤ map m g ↔ f ≤ g :=
-iff.intro (le_of_map_le_map_inj' hsf hsg hm) (λ h, map_mono h)
+lemma map_le_map_iff {f g : filter α} {m : α → β} (hm : injective m) : map m f ≤ map m g ↔ f ≤ g :=
+by rw [map_le_iff_le_comap, comap_map hm]
 
-lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : inj_on m s)
-  (h : map m f = map m g) : f = g :=
-le_antisymm
-  (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
-  (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
+lemma map_eq_map_iff_of_inj_on {f g : filter α} {m : α → β} {s : set α}
+  (hsf : s ∈ f) (hsg : s ∈ g) (hm : inj_on m s) :
+  map m f = map m g ↔ f = g :=
+by simp only [le_antisymm_iff, map_le_map_iff_of_inj_on hsf hsg hm,
+  map_le_map_iff_of_inj_on hsg hsf hm]
 
-lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) (h : map m f = map m g) :
-  f = g :=
-eq_of_map_eq_map_inj' univ_mem univ_mem (hm.inj_on _) h
+lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) :
+  map m f = map m g ↔ f = g :=
+map_eq_map_iff_of_inj_on univ_mem univ_mem (hm.inj_on _)
+
+lemma map_injective {m : α → β} (hm : injective m) : injective (map m) :=
+λ f g, (map_inj hm).1
 
 lemma comap_ne_bot_iff {f : filter β} {m : α → β} : ne_bot (comap m f) ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
 begin

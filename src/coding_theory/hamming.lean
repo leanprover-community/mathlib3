@@ -215,6 +215,10 @@ instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
   to_hamm (x * y) = to_hamm x * to_hamm y := rfl
 @[simp] lemma of_hamm_mul [Π i, has_mul (β i)] {x y : hamm β} :
   of_hamm (x * y) = of_hamm x * of_hamm y := rfl
+@[simp] lemma to_hamm_smul [Π i, has_smul α (β i)] {r : α} {x : Π i, β i} :
+  to_hamm (r • x) = r • to_hamm x := rfl
+@[simp] lemma of_hamm_smul [Π i, has_smul α (β i)] {r : α} {x : hamm β} :
+  of_hamm (r • x) = r • of_hamm x := rfl
 
 end
 

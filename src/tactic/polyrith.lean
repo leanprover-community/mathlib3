@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dhruv Bhatia
 -/
 import tactic.linear_combination
-import data.buffer.parser
+import data.buffer.parser.numeral
 
 /-!
 
@@ -234,35 +234,12 @@ meta def var_parser : parser poly := do
   return (poly.var n)
 
 /--
-A parser object that parses `string`s of the form `"-n"`
-to the appropriate `poly` object representing a negative integer.
-Here, `n` is a natural number
--/
-meta def neg_nat_parser : parser int := do
-  ch '-',
-  n ← nat,
-  return (- n)
-
-/--
-A parser object that parses `string`s of the form `"-n"`
-to the appropriate `poly` object representing a positive integer.
-Here, `n` is a natural number
--/
-meta def nat_as_int_parser : parser int := do
-  n ← nat,
-  return (n)
-
-/--
 A parser object that parses `string`s of the form `"poly.const z"`
 to the appropriate `poly` object representing a rational coefficient.
 Here, `n` is a rational number
 -/
-meta def const_fraction_parser : parser poly := do
-  str "poly.const ",
-  numer ← neg_nat_parser <|> nat_as_int_parser,
-  ch '/',
-  denom ← nat,
-  return (poly.const (numer/denom))
+meta def const_fraction_parser : parser poly :=
+str "poly.const " >> poly.const <$> parser.rat
 
 /--
 A parser object that parses `string`s of the form `"poly.sum p q"`

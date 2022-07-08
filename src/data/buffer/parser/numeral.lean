@@ -116,4 +116,40 @@ do
     (sat (λ c, fromc ≤ c ∧ c.to_nat - fintype.card α < fromc.to_nat)),
   pure $ nat.bin_cast (c.to_nat - fromc.to_nat)
 
+/-! ## Specific numeral types -/
+
+
+/--
+Matches the negation of a natural number.
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+meta def neg_nat : parser int := do
+  ch '-',
+  n ← nat,
+  return (- n)
+
+/--
+Matches a natural number and returns it as an `int`.
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+meta def nat_as_int : parser int := do
+  n ← nat,
+  return (n)
+
+/--
+Matches an integer, like `43` or `-2`.
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+meta def int : parser int :=
+neg_nat <|> nat_as_int
+
+/--
+Matches an rational number, like `43/1` or `-2/3`.
+Requires that the negation is in the numerator,
+and that both a numerator and denominator are provided (e.g. will not match `43`).
+Large numbers may cause performance issues, so don't run this parser on untrusted input.
+-/
+meta def rat : parser rat :=
+(λ x y, ↑x / ↑y) <$> int <*> (ch '/' >> nat)
+
 end parser

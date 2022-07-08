@@ -1272,11 +1272,10 @@ end
 lemma not_dvd_of_between_consec_multiples {n a k : ℕ} (h1 : a * k < n) (h2 : n < a * (k + 1)) :
   ¬ a ∣ n :=
 begin
-  rcases eq_or_ne n 0 with rfl | hn, { cases h1 },
-  rcases a.eq_zero_or_pos with rfl | ha, { simp [hn] },
-  rintros ⟨j,rfl⟩,
-  rw mul_lt_mul_left ha at h1 h2,
-  exact lt_le_antisymm h2 (succ_le_iff.mpr h1),
+  have H := monotone.ne_of_lt_of_lt_nat (covariant.monotone_of_const a) k h1 h2,
+  contrapose! H,
+  rcases H with ⟨d, rfl⟩,
+  simp,
 end
 
 /-- `n` is not divisible by `a` iff it is between `a * k` and `a * (k + 1)` for some `k`. -/

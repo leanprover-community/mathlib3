@@ -250,13 +250,9 @@ section
 variables [fintype ι] [Π i, decidable_eq (β i)]
 
 instance : has_dist (hamm β)    := ⟨λ x y, hamm_dist (of_hamm x) (of_hamm y)⟩
-instance : has_nndist (hamm β) := ⟨λ x y, hamm_dist (of_hamm x) (of_hamm y)⟩
 
 @[simp, push_cast] lemma dist_eq_hamm_dist (x y : hamm β) :
   dist x y = hamm_dist (of_hamm x) (of_hamm y) := rfl
-
-@[simp, push_cast] lemma nndist_eq_hamm_dist (x y : hamm β) :
-  nndist x y = hamm_dist (of_hamm x) (of_hamm y) := rfl
 
 instance : pseudo_metric_space (hamm β) :=
 { dist_self           :=  by { push_cast, exact_mod_cast hamm_dist_self },
@@ -277,9 +273,12 @@ instance : pseudo_metric_space (hamm β) :=
                               exact_mod_cast hamm_dist_le_card_fintype },
   ..hamm.has_dist }
 
+@[simp, push_cast] lemma nndist_eq_hamm_dist (x y : hamm β) :
+  nndist x y = hamm_dist (of_hamm x) (of_hamm y) := rfl
+
 instance : metric_space (hamm β) :=
-{ eq_of_dist_eq_zero  := by { push_cast,
-                              exact_mod_cast @eq_of_hamm_dist_eq_zero _ _ _ _ },
+{ eq_of_dist_eq_zero  :=
+  by { push_cast, exact_mod_cast @eq_of_hamm_dist_eq_zero _ _ _ _ },
   ..hamm.pseudo_metric_space }
 
 instance [Π i, has_zero (β i)] : has_norm (hamm β) := ⟨λ x, hamm_norm (of_hamm x)⟩

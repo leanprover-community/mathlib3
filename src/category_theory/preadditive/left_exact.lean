@@ -7,6 +7,19 @@ import category_theory.abelian.opposite
 import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.limits.preserves.shapes.kernels
 
+/-!
+# Left exactness of functors between preadditive categories
+
+We show that a functor is left exact in the sense that it preserves finite limits, if it
+preserves kernels. The dual result holds for right exact functors and cokernels.
+## Main results
+* We first derive preservation of binary product in the lemma
+  `preserves_binary_products_of_preserves_kernels`,
+* then show the preservation of equalizers in `preserves_equalizer_of_preserves_kernels`,
+* and then derive the preservation of all finite limits with the usual construction.
+
+-/
+
 universes v₁ v₂ u₁ u₂
 
 noncomputable theory

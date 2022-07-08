@@ -78,11 +78,6 @@ begin
   apply invertible_transpose,
 end
 
-lemma LDL.lower_inv_orthogonal₀ {i j : n} (h₀ : i ≠ j) : @inner 𝕜 (n → 𝕜) (inner_product_space.of_matrix hS.transpose).to_has_inner
-    (LDL.lower_inv hS i)
-    (LDL.lower_inv hS j) = 0 :=
-  by apply gram_schmidt_orthogonal _ _ h₀
-
 lemma LDL.lower_inv_orthogonal {i j : n} (h₀ : i ≠ j) :
   ⟪(LDL.lower_inv hS i), Sᵀ.mul_vec (LDL.lower_inv hS j)⟫ = 0 :=
 show @inner 𝕜 (n → 𝕜) (inner_product_space.of_matrix hS.transpose).to_has_inner
@@ -90,16 +85,17 @@ show @inner 𝕜 (n → 𝕜) (inner_product_space.of_matrix hS.transpose).to_ha
     (LDL.lower_inv hS j) = 0,
 by apply gram_schmidt_orthogonal _ _ h₀
 
+/-- The entries of the diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag_entries : n → 𝕜 :=
   λ i, ⟪star (LDL.lower_inv hS i), S.mul_vec (star (LDL.lower_inv hS i))⟫
 
+/-- The diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag : matrix n n 𝕜 := matrix.diagonal (LDL.diag_entries hS)
 
-lemma LDL.orthogonal_basis_triangular [succ_order n] {i j : n} (hij : i < j) :
+lemma LDL.lower_inv_triangular [succ_order n] {i j : n} (hij : i < j) :
   LDL.lower_inv hS i j = 0 :=
 by rw [← @gram_schmidt_triangular 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _
     i j hij (pi.basis_fun 𝕜 n), pi.basis_fun_repr, LDL.lower_inv]
-
 
 lemma ldl_decomposition₀ : LDL.diag hS = LDL.lower_inv hS ⬝ S ⬝ (LDL.lower_inv hS)ᴴ :=
 begin
@@ -121,6 +117,7 @@ begin
     simp only [star_star], }
 end
 
+/-- The lower triangular matrix `L` of the LDL decomposition. -/
 noncomputable def LDL.lower := (LDL.lower_inv hS)⁻¹
 
 theorem ldl_decomposition :

@@ -378,28 +378,19 @@ end
 lemma map_le_iff_le_comap {G' : simple_graph W} (f : G →g G') (H : G.subgraph) (H' : G'.subgraph) :
   H.map f ≤ H' ↔ H ≤ H'.comap f :=
 begin
-  split,
-  { intro h,
-    split,
-    { intro v,
-      simp only [comap_verts, set.mem_preimage],
-      intro hv,
-      exact h.1 ⟨v, hv, rfl⟩, },
-    { intros v w hvw,
-      simp only [H.adj_sub hvw, comap_adj, true_and],
-      exact h.2 ⟨v, w, hvw, rfl, rfl⟩, } },
-  { intro h,
-    split,
-    { intro v,
-      simp,
-      rintro w hw rfl,
-      exact h.1 hw, },
-    { intros v w,
-      simp only [relation.map, map_adj, forall_exists_index, and_imp],
-      rintros u u' hu rfl rfl,
-      have := h.2 hu,
-      simp only [comap_adj] at this,
-      exact this.2, } }
+  refine ⟨λ h, ⟨λ v hv, _, λ v w hvw, _⟩, λ h, ⟨λ v, _, λ v w, _⟩⟩,
+  { simp only [comap_verts, set.mem_preimage],
+    exact h.1 ⟨v, hv, rfl⟩, },
+  { simp only [H.adj_sub hvw, comap_adj, true_and],
+    exact h.2 ⟨v, w, hvw, rfl, rfl⟩, },
+  { simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+    rintro w hw rfl,
+    exact h.1 hw, },
+  { simp only [relation.map, map_adj, forall_exists_index, and_imp],
+    rintros u u' hu rfl rfl,
+    have := h.2 hu,
+    simp only [comap_adj] at this,
+    exact this.2, }
 end
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
@@ -506,14 +497,12 @@ end
 
 /-- Given a subgraph of a subgraph of `G`, construct a subgraph of `G`. -/
 @[reducible]
-protected def coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) : G.subgraph :=
-subgraph.map G'.hom G''
+protected def coe_subgraph {G' : G.subgraph} : G'.coe.subgraph → G.subgraph := subgraph.map G'.hom
 
 /-- Given a subgraph of `G`, restrict it to being a subgraph of another subgraph `G'` by
 taking the portion of `G` that intersects `G'`. -/
 @[reducible]
-protected def restrict {G' : G.subgraph} (G'' : G.subgraph) : G'.coe.subgraph :=
-subgraph.comap G'.hom G''
+protected def restrict {G' : G.subgraph} : G.subgraph → G'.coe.subgraph := subgraph.comap G'.hom
 
 lemma restrict_coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) :
   G''.coe_subgraph.restrict = G'' :=

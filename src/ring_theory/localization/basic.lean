@@ -996,16 +996,12 @@ begin
   intros z hz,
   obtain ⟨a, b, rfl⟩ := mk'_surjective M z,
   rw [map_mk', mk'_eq_zero_iff] at hz,
-  cases hz with m hm,
-  obtain ⟨m', hm'⟩ := m,
+  obtain ⟨⟨m', hm'⟩, hm⟩ := hz,
   rw submonoid.mem_map at hm',
   obtain ⟨n, hn, hnm⟩ := hm',
   rw [subtype.coe_mk, ← hnm,  ← map_mul, ← map_zero g] at hm,
-  replace hm := hg hm,
   rw [mk'_eq_zero_iff],
-  use ⟨n, hn⟩,
-  rw subtype.coe_mk,
-  exact hm,
+  exact ⟨⟨n, hn⟩, hg hm⟩,
 end
 
 variables {S Q M}

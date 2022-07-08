@@ -72,9 +72,6 @@ begin
               one_ne_zero, and_self] },
 end
 
-lemma pos_of_odd (h : odd n) : 0 < n :=
-by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
-
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
 even_iff_two_dvd.symm.not.trans not_even_iff
 

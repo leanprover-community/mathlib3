@@ -107,7 +107,7 @@ def evaluate_in_sage(query: str, format=False) -> str:
     response = requests.post('https://sagecell.sagemath.org/service', data, headers=headers)
     response = json.loads(response.text)
     if response['success']:
-        return response['stdout'] if 'stdout' in response else None
+        return response.get('stdout')
     elif 'execute_reply' in response and 'ename' in response['execute_reply'] and 'evalue' in response['execute_reply']:
         raise EvaluationError(response['execute_reply']['ename'], response['execute_reply']['evalue'])
     else:

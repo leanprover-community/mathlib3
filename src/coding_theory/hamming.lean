@@ -185,9 +185,9 @@ def hamm {ι : Type*} (β : ι → Type*) : Type* := Π i, β i
 
 namespace hamm
 
-section
-
 variables {α ι : Type*} {β : ι → Type*}
+
+/- Defines instances that do not require the distance function. -/
 
 instance [Π i, inhabited (β i)] : inhabited (hamm β) := ⟨λ i, default⟩
 instance [decidable_eq ι] [fintype ι] [Π i, fintype (β i)] : fintype (hamm β) := pi.fintype
@@ -195,6 +195,7 @@ instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)
 := pi.nontrivial
 instance [fintype ι] [Π i, decidable_eq (β i)] : decidable_eq (hamm β) :=
 fintype.decidable_pi_fintype
+
 instance [Π i, has_zero (β i)] : has_zero (hamm β) := pi.has_zero
 instance [Π i, has_one (β i)] : has_one (hamm β) := pi.has_one
 instance [Π i, has_neg (β i)] : has_neg (hamm β) := pi.has_neg
@@ -202,6 +203,7 @@ instance [Π i, has_add (β i)] : has_add (hamm β) := pi.has_add
 instance [Π i, has_sub (β i)] : has_sub (hamm β) := pi.has_sub
 instance [Π i, has_mul (β i)] : has_mul (hamm β) := pi.has_mul
 instance [Π i, has_smul α (β i)] : has_smul α (hamm β) := pi.has_smul
+
 instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] :
   smul_with_zero α (hamm β) := pi.smul_with_zero _
 instance [Π i, add_monoid (β i)] : add_monoid (hamm β) := pi.add_monoid
@@ -209,6 +211,8 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (hamm β) := pi.add_co
 instance [Π i, add_comm_group (β i)] : add_comm_group (hamm β) := pi.add_comm_group
 instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
   [Π i, module α (β i)] : module α (hamm β) := pi.module _ _ _
+
+/- API to/from the type synonym. -/
 
 /-- `to_hamm` is the identity function to the `hamm` of a type.  -/
 @[pattern] def to_hamm : (Π i, β i) ≃ hamm β := equiv.refl _
@@ -246,47 +250,56 @@ instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
 @[simp] lemma of_hamm_smul [Π i, has_smul α (β i)] {r : α} {x : hamm β} :
   of_hamm (r • x) = r • of_hamm x := rfl
 
-end
-
 section
 
-variables {α ι : Type*} {β : ι → Type*} [fintype ι] [Π i, decidable_eq (β i)]
+/- We define the instances relating to norm and dist. -/
 
-instance : has_dist (hamm β) := ⟨λ x y, hamm_dist (of_hamm x) (of_hamm y)⟩
+variables [fintype ι] [Π i, decidable_eq (β i)]
+
+instance : has_dist (hamm β)    := ⟨λ x y, hamm_dist (of_hamm x) (of_hamm y)⟩
+instance : has_nndist (hamm β) := ⟨λ x y, hamm_dist (of_hamm x) (of_hamm y)⟩
 
 @[simp, push_cast] lemma dist_eq_hamm_dist (x y : hamm β) :
   dist x y = hamm_dist (of_hamm x) (of_hamm y) := rfl
 
+@[simp, push_cast] lemma nndist_eq_hamm_dist (x y : hamm β) :
+  nndist x y = hamm_dist (of_hamm x) (of_hamm y) := rfl
+
 instance : pseudo_metric_space (hamm β) :=
-{ dist_self           :=  by {push_cast, exact_mod_cast hamm_dist_self},
-  dist_comm           :=  by {push_cast, exact_mod_cast hamm_dist_comm},
-  dist_triangle       :=  by {push_cast, exact_mod_cast hamm_dist_triangle},
+{ dist_self           :=  by { push_cast, exact_mod_cast hamm_dist_self },
+  dist_comm           :=  by { push_cast, exact_mod_cast hamm_dist_comm },
+  dist_triangle       :=  by { push_cast, exact_mod_cast hamm_dist_triangle },
   to_uniform_space    :=  ⊥,
   uniformity_dist     :=  uniformity_dist_of_mem_uniformity _ _ $ λ s,
-                          by {push_cast, split,
+                          by { push_cast, split,
                           { refine λ hs, ⟨1, zero_lt_one, λ _ _ hab, _⟩,
                             rw_mod_cast [hamm_dist_lt_one] at hab,
                             rw [of_hamm_inj, ← mem_id_rel] at hab, exact hs hab },
                           { rintros ⟨_, hε, hs⟩ ⟨_, _⟩ hab, rw mem_id_rel at hab, rw hab,
-                            refine hs (lt_of_eq_of_lt _ hε), exact_mod_cast hamm_dist_self _ }},
+                            refine hs (lt_of_eq_of_lt _ hε), exact_mod_cast hamm_dist_self _ } },
   to_bornology        :=  ⟨⊥, bot_le⟩,
-  cobounded_sets      :=  by  {ext, push_cast,
+  cobounded_sets      :=  by  { ext, push_cast,
                               refine iff_of_true  (filter.mem_sets.mpr filter.mem_bot)
                                                   ⟨fintype.card ι, λ _ _ _ _, _⟩,
-                              exact_mod_cast hamm_dist_le_card_fintype},
+                              exact_mod_cast hamm_dist_le_card_fintype },
   ..hamm.has_dist }
 
 instance : metric_space (hamm β) :=
-{ eq_of_dist_eq_zero  := by {push_cast, exact_mod_cast eq_of_hamm_dist_eq_zero},
+{ eq_of_dist_eq_zero  := by { push_cast,
+                              exact_mod_cast @eq_of_hamm_dist_eq_zero _ _ _ _ },
   ..hamm.pseudo_metric_space }
 
-instance [Π i, has_zero (β i)] : has_norm (hamm β) := ⟨λ x, hamm_wt (of_hamm x)⟩
+instance [Π i, has_zero (β i)] : has_norm (hamm β) := ⟨λ x, hamm_norm (of_hamm x)⟩
+instance [Π i, has_zero (β i)] : has_nnnorm (hamm β) := ⟨λ x, hamm_norm (of_hamm x)⟩
 
-@[simp, push_cast] lemma norm_eq_hamm_wt [Π i, has_zero (β i)] (x : hamm β) :
-  ∥x∥ = hamm_wt (of_hamm x) := rfl
+@[simp, push_cast] lemma norm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
+  ∥x∥ = hamm_norm (of_hamm x) := rfl
+
+@[simp, push_cast] lemma nnorm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
+  ∥x∥₊ = hamm_norm (of_hamm x) := rfl
 
 instance [Π i, add_comm_group (β i)] : semi_normed_group (hamm β) :=
-{ dist_eq := by {push_cast, exact_mod_cast hamm_dist_eq_hamm_wt_sub}, ..pi.add_comm_group }
+{ dist_eq := by { push_cast, exact_mod_cast hamm_dist_eq_hamm_norm }, ..pi.add_comm_group }
 
 instance [Π i, add_comm_group (β i)] : normed_group (hamm β) := { ..hamm.semi_normed_group }
 

@@ -98,12 +98,11 @@ meta def resolve_sum_step : expr → tactic unit
   | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _ _ _).mpr _)
   | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
     refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
-  | `(- %%f) := refine ``((nat_degree_neg _).le.trans _)
-  | `(X ^ %%n) := refine ``((nat_degree_X_pow_le %%n).trans _)
-  | (app `(⇑(@monomial %%R %%inst %%n)) x) :=
-    refine ``((nat_degree_monomial_le %%x).trans _)
-  | (app `(⇑C) x) := refine ``((nat_degree_C %%x).le.trans (nat.zero_le %%tr))
-  | `(X)  := refine ``(nat_degree_X_le.trans _)
+  | `(- %%f)         := refine ``((nat_degree_neg _).le.trans _)
+  | `(X ^ %%n)       := refine ``((nat_degree_X_pow_le %%n).trans _)
+  | (app `(⇑(@monomial %%R %%inst %%n)) x) := refine ``((nat_degree_monomial_le %%x).trans _)
+  | (app `(⇑C) x)    := refine ``((nat_degree_C %%x).le.trans (nat.zero_le %%tr))
+  | `(X)             := refine ``(nat_degree_X_le.trans _)
   | `(has_zero.zero) := refine ``(nat_degree_zero.le.trans (nat.zero_le _))
   | `(has_one.one)   := refine ``(nat_degree_one.le.trans (nat.zero_le _))
   | `(bit0 %%a)      := refine ``((nat_degree_bit0 %%a).trans _)

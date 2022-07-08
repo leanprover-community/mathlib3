@@ -78,8 +78,7 @@ by rw [eq_div_iff hc, mul_assoc, mul_comm b c, ←mul_assoc, div_mul_cancel a hc
     * (x - x₀) ^ (n + 1) / ((↑n + 1) * ↑(n.factorial)) :=
 begin
   dunfold taylor_sum,
-  rw taylor_polynomial_succ,
-  rw polynomial.eval_add,
+  rw [taylor_polynomial_succ, polynomial.eval_add],
   simp only [add_right_inj, taylor_coeff, polynomial.eval_comp, polynomial.eval_monomial,
     nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one, polynomial.eval_sub,
     polynomial.eval_X, polynomial.eval_C],
@@ -114,9 +113,7 @@ lemma taylor_polynomial_apply {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ x 
 begin
   induction n with k hk,
   { simp },
-  rw taylor_sum_succ,
-  rw finset.sum_range_succ,
-  rw hk,
+  rw [taylor_sum_succ, finset.sum_range_succ, hk],
   simp,
 end
 
@@ -179,27 +176,18 @@ begin
     simp only [iterated_deriv_within_zero] at hf',
     rw iterated_deriv_within_one (unique_diff_on_Icc hx)
       (set.mem_of_subset_of_mem set.Ioo_subset_Icc_self ht),
-    have hft := hf'.differentiable_at ht',
-    rw hft.deriv_within unique_Icc,
-    refine (hf'.differentiable_at ht').has_deriv_at },
-  simp_rw nat.add_succ,
-  simp_rw taylor_sum_succ,
+    rw (hf'.differentiable_at ht').deriv_within unique_Icc,
+    exact (hf'.differentiable_at ht').has_deriv_at },
+  simp_rw [nat.add_succ, taylor_sum_succ],
   simp only [add_zero, nat.factorial_succ, nat.cast_mul, nat.cast_add, nat.cast_one],
-  have h'' : differentiable_on ℝ (iterated_deriv_within k f (set.Icc x₀ x)) (set.Ioo x₀ x) :=
+  have hdiff : differentiable_on ℝ (iterated_deriv_within k f (set.Icc x₀ x)) (set.Ioo x₀ x) :=
   begin
     have coe_lt_succ : (↑k : with_top ℕ) < k.succ :=
     by { rw [with_top.coe_lt_coe], exact lt_add_one k },
-    refine (hf.differentiable_on_iterated_deriv_within coe_lt_succ (unique_diff_on_Icc hx)).mono _,
-    exact set.Ioo_subset_Icc_self,
+    refine differentiable_on.mono _ set.Ioo_subset_Icc_self,
+    exact hf.differentiable_on_iterated_deriv_within coe_lt_succ (unique_diff_on_Icc hx),
   end,
-  specialize hk (cont_diff_on.of_succ (unique_diff_on_Icc hx) hf) h'',
-  have hxt : has_deriv_at (λ t, (x - t)^(k+1)) ((-(k+1) * (x - t)^k)) t :=
-  begin
-    simp_rw sub_eq_neg_add,
-    rw [←neg_one_mul, mul_comm (-1 : ℝ), mul_assoc, mul_comm (-1 : ℝ), ←mul_assoc],
-    convert @has_deriv_at.pow _ _ _ _ _ (k+1) ((has_deriv_at_id t).neg.add_const x),
-    simp only [nat.cast_add, nat.cast_one],
-  end,
+  specialize hk (cont_diff_on.of_succ (unique_diff_on_Icc hx) hf) hdiff,
   have hf'' : has_deriv_at (λ t, iterated_deriv_within (k+1) f (set.Icc x₀ x) t)
     (iterated_deriv_within (k.succ.succ) f (set.Icc x₀ x) t) t :=
   begin
@@ -213,14 +201,8 @@ begin
     iterated_deriv_within (k+1) f (set.Icc x₀ x) t * (x - t)^k / k.factorial) t :=
   begin
     convert (hf''.mul (monomial_has_deriv t x)).div_const ((k+1)* k.factorial),
-    rw sub_eq_neg_add,
-    rw add_comm,
-    rw add_div,
-    rw [add_right_inj],
-    rw [←neg_one_mul, ←neg_one_mul (↑k+1 : ℝ)],
-    rw [mul_assoc, mul_comm (↑k+1 : ℝ) ((x - t) ^ k)],
-    rw [mul_comm (↑k+1 : ℝ)],
-    rw [←mul_assoc, ←mul_assoc],
+    rw [sub_eq_neg_add, add_comm, add_div, add_right_inj, ←neg_one_mul, ←neg_one_mul (↑k+1 : ℝ)],
+    rw [mul_assoc, mul_comm (↑k+1 : ℝ) ((x - t) ^ k), mul_comm (↑k+1 : ℝ), ←mul_assoc, ←mul_assoc],
     rw mul_div_mul_right,
     { simp[neg_div] },
     exact nat.cast_add_one_ne_zero k,
@@ -240,25 +222,14 @@ lemma taylor_mean_remainder {f g g' : ℝ → ℝ} (hf : cont_diff_on ℝ n f (s
   (iterated_deriv_within (n+1) f (set.Icc x₀ x) x') * (x - x')^n /n.factorial * (g x - g x₀) / g' x'
   :=
 begin
-  have tcont : continuous_on (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x) (set.Icc x₀ x) :=
-    taylor_sum_continuous_on hx hf,
-  have tdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x →
-    has_deriv_at (λ (t : ℝ), taylor_sum f n (set.Icc x₀ x) t x)
-    ((λ (t : ℝ), iterated_deriv_within (n + 1) f (set.Icc x₀ x) t
-      * (x - t) ^ n / ↑(n.factorial)) x_1) x_1) :=
-  begin
-    intros y hy,
-    exact taylor_sum_has_deriv hx hy hf hf',
-  end,
   rcases exists_ratio_has_deriv_at_eq_ratio_slope (λ t, taylor_sum f n (set.Icc x₀ x) t x)
-    (λ t, (iterated_deriv_within (n+1) f (set.Icc x₀ x) t) * (x - t)^n /n.factorial) hx tcont tdiff
+    (λ t, (iterated_deriv_within (n+1) f (set.Icc x₀ x) t) * (x - t)^n /n.factorial) hx
+    (taylor_sum_continuous_on hx hf) (λ _ hy, taylor_sum_has_deriv hx hy hf hf')
     g g' gcont gdiff with ⟨y, hy, h⟩,
   use [y, hy],
   simp only [taylor_sum_self] at h,
-  rw mul_comm at h,
-  rw ←div_left_inj' (g'_ne y hy) at h,
-  rw mul_div_cancel _ (g'_ne y hy) at h,
-  rw ←h,
+  rw [mul_comm, ←div_left_inj' (g'_ne y hy), mul_div_cancel _ (g'_ne y hy)] at h,
+  exact h.symm,
 end
 
 /-- **Taylor's theorem** with the Lagrange form of the remainder. -/
@@ -270,41 +241,23 @@ lemma taylor_mean_remainder_lagrange {f : ℝ → ℝ} (hf : cont_diff_on ℝ n 
 begin
   have gcont : continuous_on (λ (t : ℝ), (x - t) ^ (n + 1)) (set.Icc x₀ x) :=
   by { refine continuous.continuous_on _, continuity },
-  have gdiff : (∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x → has_deriv_at (λ (t : ℝ), (x - t) ^ (n + 1))
-    ((λ (t : ℝ), -(↑n + 1) * (x - t) ^ n) x_1) x_1) :=
+  have xy_ne : ∀ (y : ℝ), y ∈ set.Ioo x₀ x → (x - y)^n ≠ 0 :=
   begin
     intros y hy,
-    simp only,
-    exact monomial_has_deriv y x,
-  end,
-  have hg' : ∀ (x_1 : ℝ), x_1 ∈ set.Ioo x₀ x →
-    (λ (x_1 : ℝ), (λ (t : ℝ), -(↑n + 1) * (x - t) ^ n) x_1) x_1 ≠ 0 :=
-  begin
-    intros y hy,
-    simp only,
-    refine mul_ne_zero _ _,
-    { rw neg_ne_zero,
-      exact nat.cast_add_one_ne_zero n },
-    refine pow_ne_zero n _,
-    rw [set.mem_Ioo] at hy,
-    rw sub_ne_zero,
-    exact hy.2.ne.symm,
-  end,
-  rcases taylor_mean_remainder hf hf' hx gcont gdiff hg' with ⟨y, hy, h⟩,
-  use [y, hy],
-  have xy_ne : (x - y)^n ≠ 0 :=
-  begin
     refine pow_ne_zero _ _,
     rw [set.mem_Ioo] at hy,
     rw sub_ne_zero,
     exact hy.2.ne.symm,
   end,
+  have hg' : ∀ (y : ℝ), y ∈ set.Ioo x₀ x → -(↑n + 1) * (x - y) ^ n ≠ 0 :=
+  λ y hy, mul_ne_zero (neg_ne_zero.mpr (nat.cast_add_one_ne_zero n)) (xy_ne y hy),
+  rcases taylor_mean_remainder hf hf' hx gcont (λ y _, monomial_has_deriv y x) hg' with ⟨y, hy, h⟩,
+  use [y, hy],
   simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
-  rw h,
-  rw [neg_div, ←div_neg, neg_mul, neg_neg],
+  rw [h, neg_div, ←div_neg, neg_mul, neg_neg],
   field_simp,
   rw [mul_assoc, mul_comm ((x - y)^n), ←mul_assoc, ←mul_assoc, mul_comm (↑n+1 : ℝ),
-    mul_div_mul_right _ _ xy_ne]
+    mul_div_mul_right _ _ (xy_ne y hy)]
 end
 
 /-- **Taylor's theorem** with the Cauchy form of the remainder. -/

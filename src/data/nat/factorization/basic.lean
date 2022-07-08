@@ -397,10 +397,9 @@ end
 
 def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   fintype {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} :=
-fintype.of_finset ((finset.Ico 1 (nat.find (exists_gt (log p n)))).filter (λ i, p ^ i ∣ n)) $ λ i,
 begin
-  rw set_of_pow_dvd_eq pp hn (nat.find_spec (exists_gt (log p n))),
-  refl,
+  simp only [set_of_pow_dvd_eq pp hn (nat.find_spec (exists_gt (log p n))), coe_filter, coe_Ico],
+  apply set.fintype_sep,
 end
 
 lemma factorization_eq_card_pow_dvd {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :

@@ -65,7 +65,7 @@ by { rw hamm_dist_comm y, exact hamm_dist_triangle _ _ _ }
 theorem swap_hamm_dist : swap (@hamm_dist _ β _ _) = hamm_dist :=
 by { funext x y, exact hamm_dist_comm _ _ }
 
-/-- Corresponds to `eq_of_hamm_dist_eq_zero`. -/
+/-- Corresponds to `eq_of_dist_eq_zero`. -/
 lemma eq_of_hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 → x = y :=
 by simp_rw [  hamm_dist, card_eq_zero, filter_eq_empty_iff, not_not,
               funext_iff,  mem_univ, forall_true_left, imp_self]

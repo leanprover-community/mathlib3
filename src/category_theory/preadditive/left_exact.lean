@@ -5,11 +5,7 @@ Authors: Markus Himmel, Jakob von Raumer
 -/
 import category_theory.abelian.opposite
 import category_theory.limits.constructions.finite_products_of_binary_products
-import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
-import category_theory.adjunction.limits
-import algebra.homology.exact
-import tactic.tfae
 
 universes v₁ v₂ u₁ u₂
 
@@ -24,13 +20,10 @@ namespace category_theory
 namespace functor
 
 variables {C : Type u₁} [category.{v₁} C] [preadditive C]
-  [has_binary_biproducts C] [has_zero_object C]
-  {D : Type u₂} [category.{v₂} D] [preadditive D] [has_zero_object D]
+  {D : Type u₂} [category.{v₂} D] [preadditive D]
   (F : C ⥤ D) [preserves_zero_morphisms F]
 
 section finite_limits
-
-variables [has_finite_products C] [has_equalizers C]
 
 /--
 A functor between preadditive categories which preserves kernels preserves finite products.
@@ -60,8 +53,10 @@ instance preserves_binary_products_of_preserves_kernels
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
+variables [has_finite_products C] [has_equalizers C] [has_binary_biproducts C]
+
 /--
-A functor from a preadditive category into an abelian category preserves the equalizer of two
+A functor between preadditive categories preserves the equalizer of two
 morphisms if it preserves all kernels. -/
 def preserves_equalizer_of_preserves_kernels
   [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
@@ -100,7 +95,7 @@ def preserves_equalizers_of_preserves_kernels
 /--
 A functor between preadditive categories which preserves kernels preserves all finite limits.
 -/
-def preserves_finite_limits_of_preserves_kernels
+def preserves_finite_limits_of_preserves_kernels [has_zero_object C] [has_zero_object D]
   [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] : preserves_finite_limits F :=
 begin
   haveI := preserves_equalizers_of_preserves_kernels F,
@@ -114,8 +109,6 @@ end
 end finite_limits
 
 section finite_colimits
-
-variables [has_finite_coproducts C] [has_coequalizers C]
 
 /--
 A functor between preadditive categories which preserves cokernels preserves finite coproducts.
@@ -145,8 +138,10 @@ instance preserves_binary_coproducts_of_preserves_cokernels
   preserves_colimits_of_shape (discrete walking_pair) F :=
 { preserves_colimit := λ p, preserves_colimit_of_iso_diagram F (diagram_iso_pair p).symm }
 
+variables [has_finite_coproducts C] [has_coequalizers C] [has_binary_biproducts C]
+
 /--
-A functor from a preadditive category into an abelian category preserves the coequalizer of two
+A functor between preadditive categoris preserves the coequalizer of two
 morphisms if it preserves all cokernels. -/
 def preserves_coequalizer_of_preserves_cokernels
   [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C}
@@ -170,8 +165,7 @@ begin
 end
 
 /--
-A functor from a preadditive category into an abelian category preserves all coequalizers if it
-preserves all kernels.
+A functor between preadditive categories preserves all coequalizers if it preserves all kernels.
 -/
 def preserves_coequalizers_of_preserves_cokernels
   [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
@@ -185,10 +179,9 @@ def preserves_coequalizers_of_preserves_cokernels
   end }
 
 /--
-A functor from a preadditive category to an abelian category which preserves kernels preserves
-all finite limits.
+A functor between preadditive categories which preserves kernels preserves all finite limits.
 -/
-def preserves_finite_colimits_of_preserves_cokernels
+def preserves_finite_colimits_of_preserves_cokernels [has_zero_object C] [has_zero_object D]
   [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] : preserves_finite_colimits F :=
 begin
   haveI := preserves_coequalizers_of_preserves_cokernels F,

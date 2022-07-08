@@ -2187,8 +2187,7 @@ by rw [←card_eq_nat, card_type, mk_fin]
 | 0     := by simp
 | (n+1) := by simp [lift_nat_cast n]
 
-@[simp] theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] :
-  type r = fintype.card α :=
+theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
 by rw [←card_eq_nat, card_type, mk_fintype]
 
 end ordinal

@@ -231,6 +231,11 @@ instance subalgebra.normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
   {E : Type*} [normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : normed_ring s :=
 { ..s.semi_normed_ring }
 
+lemma nat.norm_cast_le : ∀ n : ℕ, ∥(n : α)∥ ≤ n * ∥(1 : α)∥
+| 0 := by simp
+| (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
+                  exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
+
 lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
 | [] h := (h rfl).elim
 | [a] _ := by simp
@@ -514,27 +519,17 @@ variables (α) [nondiscrete_normed_field α]
 
 lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_normed_field α›.non_trivial
 
-lemma exists_norm_lt_one : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
-begin
-  rcases exists_one_lt_norm α with ⟨y, hy⟩,
-  refine ⟨y⁻¹, _, _⟩,
-  { simp only [inv_eq_zero, ne.def, norm_pos_iff],
-    rintro rfl,
-    rw norm_zero at hy,
-    exact lt_asymm zero_lt_one hy },
-  { simp [inv_lt_one hy] }
-end
-
 lemma exists_lt_norm (r : ℝ) : ∃ x : α, r < ∥x∥ :=
 let ⟨w, hw⟩ := exists_one_lt_norm α in
 let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
 ⟨w^n, by rwa norm_pow⟩
 
 lemma exists_norm_lt {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
-let ⟨w, hw⟩ := exists_one_lt_norm α in
-let ⟨n, hle, hlt⟩ := exists_mem_Ioc_zpow hr hw in
-⟨w^n, by { rw norm_zpow; exact zpow_pos_of_pos (lt_trans zero_lt_one hw) _},
-by rwa norm_zpow⟩
+let ⟨w, hw⟩ := exists_lt_norm α r⁻¹ in
+⟨w⁻¹, by rwa [← set.mem_Ioo, norm_inv, ← set.mem_inv, set.inv_Ioo_0_left hr]⟩
+
+lemma exists_norm_lt_one : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
+exists_norm_lt α one_pos
 
 variable {α}
 

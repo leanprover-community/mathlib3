@@ -60,6 +60,8 @@ walks, trails, paths, circuits, cycles
 
 -/
 
+open function
+
 universes u v
 
 namespace simple_graph
@@ -1030,6 +1032,15 @@ def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
 /-- A graph is preconnected if every pair of vertices is reachable from one another. -/
 def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
+lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.preconnected) : H.preconnected :=
+hf.forall₂.2 $ λ a b, (hG _ _).map $ walk.map _
+
+lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.preconnected ↔ H.preconnected :=
+⟨preconnected.map e.to_hom e.to_equiv.surjective,
+  preconnected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
+
 /-- A graph is connected if it's preconnected and contains at least one vertex.
 This follows the convention observed by mathlib that something is connected iff it has
 exactly one connected component.
@@ -1043,6 +1054,15 @@ structure connected : Prop :=
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
+
+lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.connected) : H.connected :=
+by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+
+lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.connected ↔ H.connected :=
+⟨connected.map e.to_hom e.to_equiv.surjective,
+  connected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
 
 /-- The quotient of `V` by the `simple_graph.reachable` relation gives the connected
 components of a graph. -/

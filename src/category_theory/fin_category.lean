@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import data.fintype.basic
 import category_theory.discrete_category
 import category_theory.opposites
+import category_theory.category.ulift
 
 /-!
 # Finite categories
@@ -19,7 +20,7 @@ so we have removed these requirements to avoid
 having to supply instances or delay with non-defeq conflicts between instances.
 -/
 
-universes v u
+universes w v u
 open_locale classical
 noncomputable theory
 
@@ -98,5 +99,10 @@ instance fin_category_opposite {J : Type v} [small_category J] [fin_category J] 
   fin_category Jᵒᵖ :=
 { fintype_obj := fintype.of_equiv _ equiv_to_opposite,
   fintype_hom := λ j j', fintype.of_equiv _ (op_equiv j j').symm, }
+
+/-- Applying `ulift` to morphisms and objects of a category preserves finiteness. -/
+instance fin_category_ulift {J : Type v} [small_category J] [fin_category J] :
+  fin_category.{(max w v)} (ulift_hom.{w (max w v)} (ulift.{w v} J)) :=
+{ fintype_obj := ulift.fintype J }
 
 end category_theory

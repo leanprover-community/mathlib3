@@ -175,7 +175,7 @@ begin
   erw [← polynomial.map_dvd_map' (subfield.subtype $ fixed_points.subfield G F),
       minpoly, polynomial.map_to_subring _ (subfield G F).to_subring, prod_X_sub_smul],
   refine fintype.prod_dvd_of_coprime
-    (polynomial.pairwise_coprime_X_sub $ mul_action.injective_of_quotient_stabilizer G x)
+    (polynomial.pairwise_coprime_X_sub_C $ mul_action.injective_of_quotient_stabilizer G x)
     (λ y, quotient_group.induction_on y $ λ g, _),
   rw [polynomial.dvd_iff_is_root, polynomial.is_root.def, mul_action.of_quotient_stabilizer_mk,
       polynomial.eval_smul',
@@ -243,7 +243,7 @@ instance separable : is_separable (fixed_points.subfield G F) F :=
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
 lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
-dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_finset, finset.coe_sort_coe,
+dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_coe_finset, finset.coe_sort_coe,
   cardinal.lift_nat_cast, cardinal.nat_cast_le]
   using cardinal_lift_le_dim_of_linear_independent'
     (linear_independent_smul_of_linear_independent G F hs)

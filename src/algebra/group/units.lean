@@ -398,22 +398,25 @@ noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin
   convert units.mul_inv _,
   simp [h.unit_spec]
 end
+
+/-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
+instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
 
 section monoid
 variables [monoid M] {a b c : M}

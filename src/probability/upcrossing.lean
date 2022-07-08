@@ -47,7 +47,7 @@ We mostly follow the proof from [Kallenberg, *Foundations of modern probability*
 -/
 
 open topological_space filter
-open_locale nnreal ennreal measure_theory probability_theory big_operators
+open_locale nnreal ennreal measure_theory probability_theory big_operators topological_space
 
 namespace measure_theory
 
@@ -228,6 +228,25 @@ begin
   obtain ⟨j, hj₁, hj₂⟩ :=
     (hitting_le_iff_of_lt _ (lt_of_le_of_ne upper_crossing_le h)).1 le_rfl,
   exact stopped_value_hitting_mem ⟨j, ⟨hj₁.1, le_trans hj₁.2 (hitting_le _)⟩, hj₂⟩,
+end
+
+lemma exists_eq_lower_crossing_of_stopped_value_lt (k : ℕ) (hk₁ : k < N) (hk₂ : f k x ≤ a) :
+  ∃ n, lower_crossing a b f N n x = k :=
+begin
+  sorry
+end
+
+lemma exists_eq_upper_crossing_of_stopped_value_gt (k : ℕ) (hk₁ : k < N) (hk₂ : b ≤ f k x) :
+  ∃ n, upper_crossing a b f N n x = k :=
+begin
+  sorry
+end
+
+lemma lower_crossing_lt_of {k : ℕ}
+  (hk₁ : upper_crossing a b f N n x < k) (hk₂ : k < N) (hk : f k x ≤ a) :
+  lower_crossing a b f N n x < N :=
+begin
+  sorry
 end
 
 lemma upper_crossing_lt_lower_crossing (hab : a < b) (hn : lower_crossing a b f N (n + 1) x ≠ N) :
@@ -688,21 +707,40 @@ the upcrossing lemma, `sup N, upcrossing a b f N < ∞ a.e.` implying `f` conver
 everywhere.
 -/
 
-#check cauchy_seq_iff_tendsto
-#check le_nhds_of_Limsup_eq_Liminf
--- #check limsup_
+lemma of_bdd_upcrossing (hab : a < b) (hx : ∃ k, ∀ N, upcrossing a b f N x ≤ k) :
+  ¬((∃ᶠ n in at_top, f n x < a) ∧ (∃ᶠ n in at_top, b < f n x)) :=
+begin
+  obtain ⟨k, hk⟩ := hx,
+  rintro ⟨h₁, h₂⟩,
+  rw frequently_at_top at h₁ h₂,
+  simp_rw [upcrossing] at hk,
+  have hk' : ∀ (N : ℕ), ∀ n, upper_crossing a b f N n x < N → n ≤ k,
+  { intro N,
+    specialize hk N,
+    rwa cSup_le_iff' (upper_crossing_lt_bdd_above hab) at hk },
+  set U : ℕ → ℕ := λ N, upcrossing a b f N x,
+  sorry
+  -- obtain ⟨N₁, hN₁, hN₁'⟩ := h₁ (k + 1),
+  -- obtain ⟨N₂, hN₂, hN₂'⟩ := h₂ N₁,
+  -- specialize hk _ N₂ _,
+  -- obtain ⟨N₂, hN₂, hN₂'⟩ := h₂ (upper_crossing a b f (k + 1) k x),
+  -- obtain ⟨m, hm : upper_crossing a b f (N₂ + 1) m x = N₂⟩ :=
+  --   exists_eq_upper_crossing_lt_of_stopped_value_gt N₂ (nat.lt_succ_self N₂) hN₂',
+  -- specialize hK (N₂ + 1) m (hm.symm ▸ nat.lt_succ_self _),
+  -- rw [ge_iff_le, nat.succ_le_iff] at hN₂,
+  -- refine not_le.2 hN₂ _,
+  -- rw ← hm,
+end
 
-lemma foo {x : α}
+-- #check tendsto_of_no_upcrossings
+
+lemma tendsto_of_bdd_uncrossing {x : α}
   (hf₁ : ∃ R, liminf at_top (λ n, f n x) < R)
   (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x ≤ K) :
-  cauchy_seq (λ n, f n x) :=
+  ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
-  /- A real sequence converges if the limsup coninside with the liminf. Suppose otherwise, then
-  `liminf < limsup` and as ℚ is dense, there exists `a, b : ℚ` such that `liminf ≤ a < b ≤ limsup`.
-  In particular
-  -/
-  sorry,
-  -- rw metric.cauchy_seq_iff,
+  refine tendsto_of_no_upcrossings rat.dense_range_cast _ _ _;
+  { sorry },
 end
 
 end measure_theory

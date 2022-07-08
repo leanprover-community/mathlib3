@@ -113,59 +113,65 @@ section has_zero
 variables [Π i, has_zero (β i)] [Π i, has_zero (γ i)]
 
 /-- The Hamming weight function to the naturals. -/
-def hamm_wt (x : Π i, β i) : ℕ := hamm_dist x 0
+def hamm_norm (x : Π i, β i) : ℕ := hamm_dist x 0
 
-lemma hamm_wt_eq (x : Π i, β i) : hamm_wt x = card {i // x i ≠ 0} := rfl
+/-- Corresponds to `dist_zero_right`. -/
+lemma hamm_dist_zero_right (x : Π i, β i) : hamm_dist x 0 = hamm_norm x := rfl
 
-lemma hamm_wt_eq_hamm_dist_zero (x : Π i, β i) : hamm_wt x = hamm_dist x 0 := rfl
+/-- Corresponds to `dist_zero_left`. -/
+lemma hamm_dist_zero_left : hamm_dist (0 : Π i, β i) = hamm_norm :=
+funext $ λ x, by rw [hamm_dist_comm, hamm_dist_zero_right]
 
-lemma hamm_wt_nonneg {x : Π i, β i} : 0 ≤ hamm_wt x := hamm_dist_nonneg
+/-- Corresponds to `norm_nonneg`. -/
+lemma hamm_norm_nonneg {x : Π i, β i} : 0 ≤ hamm_norm x := hamm_dist_nonneg
 
-lemma hamm_wt_le_card_fintype {x : Π i, β i} : hamm_wt x ≤ card ι := hamm_dist_le_card_fintype
+/-- Corresponds to `norm_zero`. -/
+@[simp] lemma hamm_norm_zero : hamm_norm (0 : Π i, β i) = 0 := hamm_dist_self _
 
-lemma hamm_wt_comp_le_hamm_wt (f : Π i, γ i → β i) {x : Π i, γ i} (hf : Π i, f i 0 = 0) :
-  hamm_wt (λ i, f i (x i)) ≤ hamm_wt x :=
+/-- Corresponds to `norm_eq_zero`. -/
+@[simp] lemma hamm_norm_eq_zero_iff {x : Π i, β i} : hamm_norm x = 0 ↔ x = 0 :=
+hamm_dist_eq_zero
+
+/-- Corresponds to `norm_ne_zero_iff`. -/
+lemma hamm_norm_ne_zero_iff {x : Π i, β i} : hamm_norm x ≠ 0 ↔ x ≠ 0 :=
+hamm_dist_ne_zero
+
+/-- Corresponds to `norm_pos_iff`. -/
+lemma hamm_norm_pos_iff {x : Π i, β i} : 0 < hamm_norm x ↔ x ≠ 0 := hamm_dist_pos
+
+@[simp] lemma hamm_norm_lt_one {x : Π i, β i} : hamm_norm x < 1 ↔ x = 0 := hamm_dist_lt_one
+
+lemma hamm_norm_le_card_fintype {x : Π i, β i} : hamm_norm x ≤ fintype.card ι :=
+hamm_dist_le_card_fintype
+
+lemma hamm_norm_comp_le_hamm_norm (f : Π i, γ i → β i) {x : Π i, γ i} (hf : Π i, f i 0 = 0) :
+  hamm_norm (λ i, f i (x i)) ≤ hamm_norm x :=
 begin
   refine eq.trans_le _ (hamm_dist_comp_le_hamm_dist f),
-  simp_rw [hamm_wt, pi.zero_def, hf],
+  simp_rw [hamm_norm, pi.zero_def, hf],
 end
 
-lemma hamm_wt_comp (f : Π i, γ i → β i) {x : Π i, γ i} (hf₁ : Π i, injective (f i))
-  (hf₂ : Π i, f i 0 = 0) : hamm_wt (λ i, f i (x i)) = hamm_wt x :=
+lemma hamm_norm_comp (f : Π i, γ i → β i) {x : Π i, γ i} (hf₁ : Π i, injective (f i))
+  (hf₂ : Π i, f i 0 = 0) : hamm_norm (λ i, f i (x i)) = hamm_norm x :=
 begin
-  simp_rw hamm_wt_eq_hamm_dist_zero, convert hamm_dist_comp f hf₁,
+  simp_rw ← hamm_dist_zero_right, convert hamm_dist_comp f hf₁,
   simp_rw [pi.zero_apply, hf₂], refl
 end
 
-lemma hamm_wt_smul_le_hamm_wt [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
-  {x : Π i, β i} : hamm_wt (k • x) ≤ hamm_wt x :=
-hamm_wt_comp_le_hamm_wt (λ i (c : β i), k • c) (λ i, by simp_rw smul_zero')
+lemma hamm_norm_smul_le_hamm_norm [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
+  {x : Π i, β i} : hamm_norm (k • x) ≤ hamm_norm x :=
+hamm_norm_comp_le_hamm_norm (λ i (c : β i), k • c) (λ i, by simp_rw smul_zero')
 
-lemma hamm_wt_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
-  (hk : ∀ i, is_smul_regular (β i) k) (x : Π i, β i) : hamm_wt (k • x) = hamm_wt x :=
-hamm_wt_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero')
-
-@[simp] lemma hamm_wt_eq_zero {x : Π i, β i} : hamm_wt x = 0 ↔ x = 0 := hamm_dist_eq_zero
-
-@[simp] lemma hamm_wt_zero : hamm_wt (0 : Π i, β i) = 0 := hamm_dist_self _
-
-lemma hamm_wt_ne_zero {x : Π i, β i} : hamm_wt x ≠ 0 ↔ x ≠ 0 := hamm_dist_ne_zero
-
-lemma hamm_wt_pos_iff {x : Π i, β i} : 0 < hamm_wt x ↔ x ≠ 0 := hamm_dist_pos
-
-@[simp] lemma hamm_wt_lt_one {x : Π i, β i} : hamm_wt x < 1 ↔ x = 0 := hamm_dist_lt_one
-
-lemma hamm_wt_zero_iff_forall_zero {x : Π i, β i} : hamm_wt x = 0 ↔ ∀ i, x i = 0 :=
-hamm_dist_eq_zero_iff_forall_eq_zero
-
-lemma hamm_wt_ne_zero_iff_exists_ne_zero {x : Π i, β i} : hamm_wt x ≠ 0 ↔ ∃ i, x i ≠ 0 :=
-hamm_dist_ne_zero_iff_exists_ne_zero
+lemma hamm_norm_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
+  (hk : ∀ i, is_smul_regular (β i) k) (x : Π i, β i) : hamm_norm (k • x) = hamm_norm x :=
+hamm_norm_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero')
 
 end has_zero
 
-lemma hamm_dist_eq_hamm_wt_sub [Π i, add_group (β i)] (x y : Π i, β i) :
-  hamm_dist x y = hamm_wt (x - y) :=
-by simp_rw [hamm_wt_eq, hamm_dist, pi.sub_apply, sub_ne_zero]
+lemma hamm_dist_eq_hamm_norm [Π i, add_group (β i)] (x y : Π i, β i) :
+  hamm_dist x y = hamm_norm (x - y) :=
+by simp_rw [  ← hamm_dist_zero_right, hamm_dist, pi.sub_apply,
+              pi.zero_apply, sub_ne_zero]
 
 end hamm_dist_wt
 

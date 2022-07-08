@@ -746,34 +746,32 @@ namespace polynomial
 @[priority 100]
 instance {R : Type*} [comm_ring R] [is_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid R[X] :=
-{ well_founded_dvd_not_unit := begin
-    classical,
-    refine rel_hom_class.well_founded (⟨λ (p : R[X]),
-        ((if p = 0 then ⊤ else ↑p.degree : with_top (with_bot ℕ)), p.leading_coeff), _⟩ :
-        dvd_not_unit →r prod.lex (<) dvd_not_unit)
-      (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-        ‹wf_dvd_monoid R›.well_founded_dvd_not_unit),
-    rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
-    rw [polynomial.degree_mul, if_neg ane0],
-    split_ifs with hac,
-    { rw [hac, polynomial.leading_coeff_zero],
-      apply prod.lex.left,
-      exact lt_of_le_of_ne le_top with_top.coe_ne_top },
-    have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
-    simp only [cne0, ane0, polynomial.leading_coeff_mul],
-    by_cases hdeg : c.degree = 0,
-    { simp only [hdeg, add_zero],
-      refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
-      { rwa [ne, polynomial.leading_coeff_eq_zero] },
-      rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
-      use [c.leading_coeff, unit_c],
-      rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
-    { apply prod.lex.left,
-      rw polynomial.degree_eq_nat_degree cne0 at *,
-      rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
-          ← with_bot.coe_add, with_bot.coe_lt_coe],
-      exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
-  end }
+begin
+  classical,
+  refine rel_hom_class.is_well_founded (⟨λ (p : R[X]),
+    ((if p = 0 then ⊤ else ↑p.degree : with_top (with_bot ℕ)), p.leading_coeff), _⟩ :
+    dvd_not_unit →r prod.lex (<) dvd_not_unit),
+  rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
+  rw [polynomial.degree_mul, if_neg ane0],
+  split_ifs with hac,
+  { rw [hac, polynomial.leading_coeff_zero],
+    apply prod.lex.left,
+    exact lt_of_le_of_ne le_top with_top.coe_ne_top },
+  have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
+  simp only [cne0, ane0, polynomial.leading_coeff_mul],
+  by_cases hdeg : c.degree = 0,
+  { simp only [hdeg, add_zero],
+    refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
+    { rwa [ne, polynomial.leading_coeff_eq_zero] },
+    rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
+    use [c.leading_coeff, unit_c],
+    rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
+  { apply prod.lex.left,
+    rw polynomial.degree_eq_nat_degree cne0 at *,
+    rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
+        ← with_bot.coe_add, with_bot.coe_lt_coe],
+    exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
+end
 
 end polynomial
 
@@ -781,15 +779,13 @@ end polynomial
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring R[X] :=
 is_noetherian_ring_iff.2 ⟨assume I : ideal R[X],
-let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
-  (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
-have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,
+let M := well_founded_gt.max (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
+have hm : M ∈ set.range I.leading_coeff_nth := well_founded_gt.max_mem _ _,
 let ⟨N, HN⟩ := hm, ⟨s, hs⟩ := I.is_fg_degree_le N in
 have hm2 : ∀ k, I.leading_coeff_nth k ≤ M := λ k, or.cases_on (le_or_lt k N)
   (λ h, HN ▸ I.leading_coeff_nth_mono h)
   (λ h x hx, classical.by_contradiction $ λ hxm,
-    have ¬M < I.leading_coeff_nth k, by refine well_founded.not_lt_min
-      (well_founded_submodule_gt _ _) _ _ _; exact ⟨k, rfl⟩,
+    have ¬M < I.leading_coeff_nth k, { apply well_founded_gt.not_max_lt, exact ⟨k, rfl⟩ },
     this ⟨HN ▸ I.leading_coeff_nth_mono (le_of_lt h), λ H, hxm (H hx)⟩),
 have hs2 : ∀ {x}, x ∈ I.degree_le N → x ∈ ideal.span (↑s : set R[X]),
 from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx) (ideal.zero_mem _)

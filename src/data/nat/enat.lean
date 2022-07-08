@@ -478,16 +478,15 @@ noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
 
 end with_top_equiv
 
-lemma lt_wf : @well_founded enat (<) :=
-begin
+instance : well_founded_lt enat :=
+⟨begin
   classical,
   change well_founded (λ a b : enat, a < b),
   simp_rw ←to_with_top_lt,
-  exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
-end
+  exact inv_image.wf _ is_well_founded.wf
+end⟩
 
-instance : is_well_order enat (<) := ⟨lt_wf⟩
-instance : has_well_founded enat := ⟨(<), lt_wf⟩
+instance : has_well_founded enat := well_founded_lt.to_has_well_founded
 
 section find
 

@@ -190,8 +190,9 @@ begin
 end
 
 /-- `cut_expand r` is well-founded when `r` is. -/
-theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
-⟨by { letI h := hr.is_irrefl, exact λ s, acc_of_singleton $ λ a _, (hr.apply a).cut_expand }⟩
+instance cut_expand.is_well_founded [is_well_founded α r] : is_well_founded _ (cut_expand r) :=
+⟨⟨λ s, acc_of_singleton $ λ a _, (is_well_founded.apply r a).cut_expand⟩⟩
+
 end hydra
 
 end relation

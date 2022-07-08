@@ -93,6 +93,10 @@ protected theorem well_founded [rel_hom_class F r s] (f : F) :
   ∀ (h : well_founded s), well_founded r
 | ⟨H⟩ := ⟨λ a, rel_hom_class.acc f _ (H _)⟩
 
+protected theorem is_well_founded [rel_hom_class F r s] (f : F) [h : is_well_founded β s] :
+  is_well_founded α r :=
+⟨rel_hom_class.well_founded f h.wf⟩
+
 end rel_hom_class
 
 namespace rel_hom
@@ -159,13 +163,29 @@ injective_of_increasing r s f (λ x y, f.map_rel)
 
 -- TODO: define a `rel_iff_class` so we don't have to do all the `convert` trickery?
 theorem surjective.well_founded_iff {f : α → β} (hf : surjective f)
-  (o : ∀ {a b}, r a b ↔ s (f a) (f b)) : well_founded r ↔ well_founded s :=
+  (r : α → α → Prop) (s : β → β → Prop) (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  well_founded r ↔ well_founded s :=
 iff.intro (begin
   refine rel_hom_class.well_founded (rel_hom.mk _ _ : s →r r),
   { exact classical.some hf.has_right_inverse },
-  intros a b h, apply o.2, convert h,
+  intros a b h, apply (o _ _).2, convert h,
   iterate 2 { apply classical.some_spec hf.has_right_inverse },
-end) (rel_hom_class.well_founded (⟨f, λ _ _, o.1⟩ : r →r s))
+end) (rel_hom_class.well_founded (⟨f, λ _ _, (o _ _).1⟩ : r →r s))
+
+theorem surjective.is_well_founded_iff {f : α → β} (hf : surjective f)
+  (r : α → α → Prop) (s : β → β → Prop) (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  is_well_founded α r ↔ is_well_founded β s :=
+by { rw [is_well_founded_iff, is_well_founded_iff], exact surjective.well_founded_iff hf r s o }
+
+theorem surjective.is_well_founded {f : α → β} (hf : surjective f)
+  (r : α → α → Prop) [h : is_well_founded α r] (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  is_well_founded β s :=
+(surjective.is_well_founded_iff hf r s o).1 h
+
+theorem surjective.is_well_founded' {f : α → β} (hf : surjective f)
+  (s : β → β → Prop) [h : is_well_founded β s] (o : ∀ a b, r a b ↔ s (f a) (f b)) :
+  is_well_founded α r :=
+(surjective.is_well_founded_iff hf r s o).2 h
 
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
@@ -300,6 +320,9 @@ end
 
 protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
+
+protected theorem is_well_founded (f : r ↪r s) [is_well_founded β s] : is_well_founded α r :=
+⟨f.well_founded is_well_founded.wf⟩
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}

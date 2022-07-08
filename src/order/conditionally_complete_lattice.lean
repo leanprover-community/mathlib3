@@ -133,30 +133,31 @@ section
 open_locale classical
 
 /-- A well founded linear order is conditionally complete, with a bottom element. -/
-@[reducible] noncomputable def is_well_order.conditionally_complete_linear_order_bot
-  (α : Type*) [i₁ : linear_order α] [i₂ : order_bot α] [h : is_well_order α (<)] :
+@[reducible] noncomputable def well_founded_lt.conditionally_complete_linear_order_bot
+  (α : Type*) [i₁ : linear_order α] [i₂ : order_bot α] [well_founded_lt α] :
   conditionally_complete_linear_order_bot α :=
-{ Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
+{ Inf := λ s, if hs : s.nonempty then well_founded_lt.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
-    simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s s_ne has),
+    simpa [s_ne] using well_founded_lt.min_le s has,
   end,
   le_cInf := λ s a hs has, begin
     simp only [hs, dif_pos],
-    exact has (h.wf.min_mem s hs),
+    exact has (well_founded_lt.min_mem s hs),
   end,
-  Sup := λ s, if hs : (upper_bounds s).nonempty then h.wf.min _ hs else ⊥,
+  -- Todo (Vi): Change by `well_founded_lt.sup`.
+  Sup := λ s, if hs : (upper_bounds s).nonempty then well_founded_lt.min _ hs else ⊥,
   le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
     simp only [h's, dif_pos],
-    exact h.wf.min_mem _ h's has,
+    exact well_founded_lt.min_mem _ h's has,
   end,
   cSup_le := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
     simp only [h's, dif_pos],
-    simpa using h.wf.not_lt_min _ h's has,
+    simpa using well_founded_lt.min_le _ has,
   end,
-  cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min _ _ $ mem_univ ⊥),
+  cSup_empty := by simpa using eq_bot_iff.2 (well_founded_lt.min_le _ $ mem_univ ⊥),
   ..i₁, ..i₂, ..linear_order.to_lattice }
 
 end
@@ -629,18 +630,20 @@ lemma exists_lt_of_cinfi_lt [nonempty ι] {f : ι → α} (h : infi f < a) : ∃
 @exists_lt_of_lt_csupr αᵒᵈ _ _ _ _ _ h
 
 open function
-variables [is_well_order α (<)]
+variables [well_founded_lt α]
 
-lemma Inf_eq_argmin_on (hs : s.nonempty) : Inf s = argmin_on id (@is_well_order.wf α (<) _) s hs :=
-is_least.cInf_eq ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩
+lemma Inf_eq_argmin_on (hs : s.nonempty) : Inf s = argmin_on id s hs :=
+is_least.cInf_eq ⟨argmin_on_mem _ _ _, λ a ha, argmin_on_le id _ ha⟩
 
 lemma is_least_Inf (hs : s.nonempty) : is_least s (Inf s) :=
-by { rw Inf_eq_argmin_on hs, exact ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩ }
+by { rw Inf_eq_argmin_on hs, exact ⟨argmin_on_mem _ _ _, λ a ha, argmin_on_le id _ ha⟩ }
 
 lemma le_cInf_iff' (hs : s.nonempty) : b ≤ Inf s ↔ b ∈ lower_bounds s :=
 le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
+
+lemma infi_mem [nonempty ι] (f : ι → α) : infi f ∈ range f := Inf_mem (range_nonempty f)
 
 lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
   (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
@@ -697,8 +700,15 @@ theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
 le_cInf_iff ⟨⊥, λ a _, bot_le⟩ ne
 
+theorem le_cinfi_iff' [nonempty ι] {f : ι → α} {a : α} :
+  a ≤ infi f ↔ ∀ i, a ≤ f i :=
+le_cinfi_iff ⟨⊥, λ a _, bot_le⟩
+
 theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
 cInf_le ⟨⊥, λ a _, bot_le⟩ h
+
+theorem cinfi_le' (f : ι → α) (i : ι) : infi f ≤ f i :=
+cinfi_le ⟨⊥, λ a _, bot_le⟩ _
 
 lemma exists_lt_of_lt_cSup' {s : set α} {a : α} (h : a < Sup s) : ∃ b ∈ s, a < b :=
 by { contrapose! h, exact cSup_le' h }

@@ -29,11 +29,9 @@ unique factors
 namespace nat
 
 instance : wf_dvd_monoid ℕ :=
-⟨begin
-  refine rel_hom_class.well_founded
-    (⟨λ (x : ℕ), if x = 0 then (⊤ : with_top ℕ) else x, _⟩ : dvd_not_unit →r (<))
-    (with_top.well_founded_lt nat.lt_wf),
-  intros a b h,
+begin
+  refine rel_hom_class.is_well_founded
+    (⟨λ (x : ℕ), if x = 0 then (⊤ : with_top ℕ) else x, λ a b h, _⟩ : dvd_not_unit →r (<)),
   cases a,
   { exfalso, revert h, simp [dvd_not_unit] },
   cases b,
@@ -42,10 +40,10 @@ instance : wf_dvd_monoid ℕ :=
   simp only [succ_ne_zero, with_top.coe_lt_coe, if_false],
   apply lt_of_le_of_ne (nat.le_of_dvd (nat.succ_pos _) h1) (λ con, h2 _),
   rw con,
-end⟩
+end
 
 instance : unique_factorization_monoid ℕ :=
-⟨λ _, nat.irreducible_iff_prime⟩
+{ irreducible_iff_prime := λ _, nat.irreducible_iff_prime }
 
 end nat
 

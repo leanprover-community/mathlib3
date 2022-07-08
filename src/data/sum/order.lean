@@ -86,8 +86,10 @@ instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕
   | inr a, inr b := (trichotomous_of s a b).imp3 lex.inr (congr_arg _) lex.inr
 end⟩
 
-instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-{ wf := sum.lex_wf is_well_order.wf is_well_order.wf }
+instance [is_well_founded α r] [is_well_founded β s] : is_well_founded (α ⊕ β) (sum.lex r s) :=
+{ wf := sum.lex_wf is_well_founded.wf is_well_founded.wf }
+
+instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) := { }
 
 end lex
 

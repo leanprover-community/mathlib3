@@ -396,10 +396,7 @@ monotonic_sequence_limit_index (f.generalized_eigenspace μ)
 lemma maximal_generalized_eigenspace_eq [h : is_noetherian R M] (f : End R M) (μ : R) :
   maximal_generalized_eigenspace f μ =
   f.generalized_eigenspace μ (maximal_generalized_eigenspace_index f μ) :=
-begin
-  rw is_noetherian_iff_well_founded at h,
-  exact (well_founded.supr_eq_monotonic_sequence_limit h (f.generalized_eigenspace μ) : _),
-end
+well_founded_gt.supr_eq_monotonic_sequence_limit (f.generalized_eigenspace μ)
 
 /-- A generalized eigenvalue for some exponent `k` is also
     a generalized eigenvalue for exponents larger than `k`. -/

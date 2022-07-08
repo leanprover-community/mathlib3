@@ -142,7 +142,6 @@ lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
 λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
 
-
 lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
 λ con, h (single_injective a (con.trans single_eq_zero.symm))
 
@@ -188,7 +187,7 @@ lemma order_le_of_coeff_ne_zero {Γ} [linear_ordered_cancel_add_comm_monoid Γ]
   {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
   x.order ≤ g :=
 le_trans (le_of_eq (order_of_ne (ne_zero_of_coeff_ne_zero h)))
-  (set.is_wf.min_le _ _ ((mem_support _ _).2 h))
+  (set.is_wf.min_le _ ((mem_support _ _).2 h))
 
 @[simp]
 lemma order_single (h : r ≠ 0) : (single a r).order = a :=
@@ -202,7 +201,7 @@ begin
   contrapose! hi,
   rw [←ne.def, ←mem_support] at hi,
   rw [order_of_ne hx],
-  exact set.is_wf.not_lt_min _ _ hi
+  exact set.is_wf.not_lt_min _ hi
 end
 
 end order
@@ -329,9 +328,8 @@ begin
   by_cases hx : x = 0, { simp [hx], },
   by_cases hy : y = 0, { simp [hy], },
   rw [order_of_ne hx, order_of_ne hy, order_of_ne hxy],
-  refine le_trans _ (set.is_wf.min_le_min_of_subset support_add_subset),
+  refine le_trans _ (set.is_wf.min_le_min_of_subset _ _ _ support_add_subset),
   { exact x.is_wf_support.union y.is_wf_support },
-  { exact set.nonempty.mono (set.subset_union_left _ _) (support_nonempty_iff.2 hx) },
   rw set.is_wf.min_union,
 end
 
@@ -811,7 +809,7 @@ begin
     rw [mul_coeff_order_add_order x y],
     exact mul_ne_zero (coeff_order_ne_zero hx) (coeff_order_ne_zero hy) },
   { rw [order_of_ne hx, order_of_ne hy, order_of_ne (mul_ne_zero hx hy), ← set.is_wf.min_add],
-    exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+    exact set.is_wf.min_le_min_of_subset _ _ _ (support_mul_subset_add_support) },
 end
 
 @[simp]
@@ -1005,7 +1003,7 @@ variables [semiring R]
 /-- The ring `hahn_series ℕ R` is isomorphic to `power_series R`. -/
 @[simps] def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
 { to_fun := λ f, power_series.mk f.coeff,
-  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, (nat.lt_wf.is_wf _).is_pwo⟩,
+  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, (well_founded_lt.is_wf _).is_pwo⟩,
   left_inv := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp },
   map_add' := λ f g, by { ext, simp },
@@ -1564,7 +1562,7 @@ def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :
     have hpwo := (is_pwo_Union_support_powers hx),
     by_cases hg : g ∈ ⋃ n : ℕ, {g | (x ^ n).coeff g ≠ 0 },
     swap, { exact set.finite_empty.subset (λ n hn, hg (set.mem_Union.2 ⟨n, hn⟩)) },
-    apply hpwo.is_wf.induction hg,
+    apply set.is_well_founded_on.induction hpwo.is_wf hg,
     intros y ys hy,
     refine ((((add_antidiagonal x.is_pwo_support hpwo y).finite_to_set.bUnion (λ ij hij,
       hy ij.snd _ _)).image nat.succ).union (set.finite_singleton 0)).subset _,

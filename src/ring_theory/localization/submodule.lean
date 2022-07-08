@@ -77,8 +77,8 @@ include M
 
 lemma is_noetherian_ring (h : is_noetherian_ring R) : is_noetherian_ring S :=
 begin
-  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at h ⊢,
-  exact order_embedding.well_founded ((is_localization.order_embedding M S).dual) h
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded],
+  exact (is_localization.order_embedding M S).well_founded_gt
 end
 
 end

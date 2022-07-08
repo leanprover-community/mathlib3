@@ -46,22 +46,21 @@ notation `Πₗ` binders `, ` r:(scoped p, lex (Π i, p i)) := r
 @[simp] lemma to_lex_apply (x : Π i, β i) (i : ι) : to_lex x i = x i := rfl
 @[simp] lemma of_lex_apply (x : lex (Π i, β i)) (i : ι) : of_lex x i = x i := rfl
 
-lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r) :
+instance lex.is_trichotomous [∀ i, is_trichotomous (β i) s] [is_well_founded _ r] :
   is_trichotomous (Π i, β i) (pi.lex r @s) :=
-{ trichotomous := λ a b,
-    begin
-      cases eq_or_ne a b with hab hab,
-      { exact or.inr (or.inl hab) },
-      { rw function.ne_iff at hab,
-        let i := wf.min _ hab,
-        have hri : ∀ j, r j i → a j = b j,
-        { intro j, rw ← not_imp_not,
-          exact λ h', wf.not_lt_min _ _ h' },
-        have hne : a i ≠ b i, from wf.min_mem _ hab,
-        cases trichotomous_of s (a i) (b i) with hi hi,
-        exacts [or.inl ⟨i, hri, hi⟩,
-          or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
-    end }
+⟨λ a b, begin
+  cases eq_or_ne a b with hab hab,
+  { exact or.inr (or.inl hab) },
+  { rw function.ne_iff at hab,
+    let i := is_well_founded.min r _ hab,
+    have hri : ∀ j, r j i → a j = b j,
+    { intro j, rw ← not_imp_not,
+      exact λ h', is_well_founded.not_lt_min _ _ h' },
+    have hne : a i ≠ b i, from is_well_founded.min_mem r _ hab,
+    cases trichotomous_of s (a i) (b i) with hi hi,
+    exacts [or.inl ⟨i, hri, hi⟩,
+      or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
+end⟩
 
 instance [has_lt ι] [Π a, has_lt (β a)] : has_lt (lex (Π i, β i)) := ⟨pi.lex (<) (λ _, (<))⟩
 
@@ -81,34 +80,34 @@ instance [linear_order ι] [Π a, partial_order (β a)] : partial_order (lex (Π
 partial_order_of_SO (<)
 
 /-- `Πₗ i, α i` is a linear order if the original order is well-founded. -/
-noncomputable instance [linear_order ι] [is_well_order ι (<)] [∀ a, linear_order (β a)] :
+noncomputable instance [linear_order ι] [well_founded_lt ι] [∀ a, linear_order (β a)] :
   linear_order (lex (Π i, β i)) :=
 @linear_order_of_STO' (Πₗ i, β i) (<)
-  { to_is_trichotomous := is_trichotomous_lex _ _ is_well_order.wf } (classical.dec_rel _)
+  ({ to_is_trichotomous := lex.is_trichotomous _ _ }) (classical.dec_rel _)
 
-lemma lex.le_of_forall_le [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+lemma lex.le_of_forall_le [linear_order ι] [well_founded_lt ι] [Π a, linear_order (β a)]
   {a b : lex (Π i, β i)} (h : ∀ i, a i ≤ b i) : a ≤ b :=
 le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
 
-lemma lex.le_of_of_lex_le [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+lemma lex.le_of_of_lex_le [linear_order ι] [well_founded_lt ι] [Π a, linear_order (β a)]
   {a b : lex (Π i, β i)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
 lex.le_of_forall_le h
 
-lemma to_lex_monotone [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)] :
+lemma to_lex_monotone [linear_order ι] [well_founded_lt ι] [Π a, linear_order (β a)] :
   monotone (@to_lex (Π i, β i)) :=
 λ _ _, lex.le_of_forall_le
 
-instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+instance [linear_order ι] [well_founded_lt ι] [Π a, linear_order (β a)]
   [Π a, order_bot (β a)] : order_bot (lex (Π a, β a)) :=
 { bot := to_lex ⊥,
   bot_le := λ f, lex.le_of_of_lex_le bot_le }
 
-instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+instance [linear_order ι] [well_founded_lt ι] [Π a, linear_order (β a)]
   [Π a, order_top (β a)] : order_top (lex (Π a, β a)) :=
 { top := to_lex ⊤,
   le_top := λ f, lex.le_of_of_lex_le le_top }
 
-instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+instance [linear_order ι] [well_founded_lt ι] [Π a, linear_order (β a)]
   [Π a, bounded_order (β a)] : bounded_order (lex (Π a, β a)) :=
 { .. pi.lex.order_bot, .. pi.lex.order_top }
 

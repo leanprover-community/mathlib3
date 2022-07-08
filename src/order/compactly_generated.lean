@@ -32,13 +32,13 @@ The main result is that the following four conditions are equivalent for a compl
  * `∀ k, complete_lattice.is_compact_element k`
 
 This is demonstrated by means of the following four lemmas:
- * `complete_lattice.well_founded.is_Sup_finite_compact`
+ * `complete_lattice.is_well_founded.is_Sup_finite_compact`
  * `complete_lattice.is_Sup_finite_compact.is_sup_closed_compact`
  * `complete_lattice.is_sup_closed_compact.well_founded`
  * `complete_lattice.is_Sup_finite_compact_iff_all_elements_compact`
 
  We also show well-founded lattices are compactly generated
- (`complete_lattice.compactly_generated_of_well_founded`).
+ (`complete_lattice.compactly_generated_of_is_well_founded`).
 
 ## References
 - [G. Călugăreanu, *Lattice Concepts of Module Theory*][calugareanu]
@@ -144,20 +144,17 @@ begin
   simpa only [exists_prop],
 end
 
-lemma well_founded.is_Sup_finite_compact (h : well_founded ((>) : α → α → Prop)) :
-  is_Sup_finite_compact α :=
-begin
-  intros s,
-  let p : set α := { x | ∃ (t : finset α), ↑t ⊆ s ∧ t.sup id = x },
-  have hp : p.nonempty, { use [⊥, ∅], simp, },
-  obtain ⟨m, ⟨t, ⟨ht₁, ht₂⟩⟩, hm⟩ := well_founded.well_founded_iff_has_max'.mp h p hp,
-  use t, simp only [ht₁, ht₂, true_and], apply le_antisymm,
-  { apply Sup_le, intros y hy, classical,
-    have hy' : (insert y t).sup id ∈ p,
-    { use insert y t, simp, rw set.insert_subset, exact ⟨hy, ht₁⟩, },
-    have hm' : m ≤ (insert y t).sup id, { rw ← ht₂, exact finset.sup_mono (t.subset_insert y), },
-    rw ← hm _ hy' hm', simp, },
-  { rw [← ht₂, finset.sup_id_eq_Sup], exact Sup_le_Sup ht₁, },
+lemma well_founded_gt.is_Sup_finite_compact [well_founded_gt α] : is_Sup_finite_compact α :=
+λ s, begin
+  obtain ⟨m, ⟨t, ⟨ht₁, rfl⟩⟩, hm⟩ := well_founded_gt.has_max
+    {x | ∃ t : finset α, ↑t ⊆ s ∧ t.sup id = x} ⟨⊥, ∅, by simp⟩,
+  refine ⟨t, ht₁, (Sup_le (λ y hy, _)).antisymm _⟩,
+  { classical,
+    rw eq_of_le_of_not_lt (finset.sup_mono (t.subset_insert y))
+      (hm _ ⟨insert y t, by simp [set.insert_subset, hy, ht₁]⟩),
+    simp },
+  { rw finset.sup_id_eq_Sup,
+    exact Sup_le_Sup ht₁ },
 end
 
 lemma is_Sup_finite_compact.is_sup_closed_compact (h : is_Sup_finite_compact α) :
@@ -170,10 +167,9 @@ begin
   { rw ht₂, exact t.sup_closed_of_sup_closed h ht₁ hsc, },
 end
 
-lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) :
-  well_founded ((>) : α → α → Prop) :=
+lemma is_sup_closed_compact.well_founded (h : is_sup_closed_compact α) : well_founded_gt α :=
 begin
-  refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
+  refine rel_embedding.is_well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
     have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
@@ -200,12 +196,12 @@ begin
 end
 
 lemma well_founded_characterisations :
-  tfae [well_founded ((>) : α → α → Prop),
+  tfae [well_founded_gt α,
         is_Sup_finite_compact α,
         is_sup_closed_compact α,
         ∀ k : α, is_compact_element k] :=
 begin
-  tfae_have : 1 → 2, by { exact well_founded.is_Sup_finite_compact α, },
+  tfae_have : 1 → 2, by { introI h, exact well_founded_gt.is_Sup_finite_compact α, },
   tfae_have : 2 → 3, by { exact is_Sup_finite_compact.is_sup_closed_compact α, },
   tfae_have : 3 → 1, by { exact is_sup_closed_compact.well_founded α, },
   tfae_have : 2 ↔ 4, by { exact is_Sup_finite_compact_iff_all_elements_compact α },
@@ -213,7 +209,7 @@ begin
 end
 
 lemma well_founded_iff_is_Sup_finite_compact :
-  well_founded ((>) : α → α → Prop) ↔ is_Sup_finite_compact α :=
+  well_founded_gt α ↔ is_Sup_finite_compact α :=
 (well_founded_characterisations α).out 0 1
 
 lemma is_Sup_finite_compact_iff_is_sup_closed_compact :
@@ -221,7 +217,7 @@ lemma is_Sup_finite_compact_iff_is_sup_closed_compact :
 (well_founded_characterisations α).out 1 2
 
 lemma is_sup_closed_compact_iff_well_founded :
-  is_sup_closed_compact α ↔ well_founded ((>) : α → α → Prop) :=
+  is_sup_closed_compact α ↔ well_founded_gt α :=
 (well_founded_characterisations α).out 2 0
 
 alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_founded
@@ -229,14 +225,14 @@ alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
 alias is_sup_closed_compact_iff_well_founded ↔ _ _root_.well_founded.is_sup_closed_compact
 
-variables {α}
+variable {α}
 
-lemma well_founded.finite_of_set_independent (h : well_founded ((>) : α → α → Prop))
-  {s : set α} (hs : set_independent s) : s.finite :=
+lemma well_founded_gt.finite_of_set_independent [well_founded_gt α] {s : set α}
+  (hs : set_independent s) : s.finite :=
 begin
   classical,
   refine set.not_infinite.mp (λ contra, _),
-  obtain ⟨t, ht₁, ht₂⟩ := well_founded.is_Sup_finite_compact α h s,
+  obtain ⟨t, ht₁, ht₂⟩ := well_founded_gt.is_Sup_finite_compact α s,
   replace contra : ∃ (x : α), x ∈ s ∧ x ≠ ⊥ ∧ x ∉ t,
   { have : (s \ (insert ⊥ t : finset α)).infinite := contra.diff (finset.finite_to_set _),
     obtain ⟨x, hx₁, hx₂⟩ := this.nonempty,
@@ -250,10 +246,10 @@ begin
   exact le_Sup hx₀,
 end
 
-lemma well_founded.finite_of_independent (hwf : well_founded ((>) : α → α → Prop))
+lemma well_founded_gt.finite_of_independent [well_founded_gt α]
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
 begin
-  haveI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).to_subtype,
+  haveI := (well_founded_gt.finite_of_set_independent ht.set_independent_range).to_subtype,
   exact finite.of_injective_finite_range (ht.injective h_ne_bot),
 end
 
@@ -357,12 +353,11 @@ lemma complete_lattice.independent_sUnion_of_directed {s : set (set α)}
 by rw set.sUnion_eq_Union; exact
   complete_lattice.set_independent_Union_of_directed hs.directed_coe (by simpa using h)
 
-
 end
 
 namespace complete_lattice
 
-lemma compactly_generated_of_well_founded (h : well_founded ((>) : α → α → Prop)) :
+lemma compactly_generated_of_well_founded_gt [h : well_founded_gt α] :
   is_compactly_generated α :=
 begin
   rw [well_founded_iff_is_Sup_finite_compact, is_Sup_finite_compact_iff_all_elements_compact] at h,

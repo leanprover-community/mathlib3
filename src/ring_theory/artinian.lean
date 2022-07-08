@@ -51,22 +51,19 @@ open_locale big_operators pointwise
 `is_artinian R M` is the proposition that `M` is an Artinian `R`-module,
 implemented as the well-foundedness of submodule inclusion.
 -/
-class is_artinian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :=
-(well_founded_submodule_lt [] : well_founded ((<) : submodule R M → submodule R M → Prop))
+@[reducible] def is_artinian (R M) [semiring R] [add_comm_monoid M] [module R M] : Prop :=
+well_founded_lt (submodule R M)
 
 section
 variables {R : Type*} {M : Type*} {P : Type*} {N : Type*}
 variables [ring R] [add_comm_group M] [add_comm_group P] [add_comm_group N]
 variables [module R M] [module R P] [module R N]
-open is_artinian
 include R
 
 theorem is_artinian_of_injective (f : M →ₗ[R] P) (h : function.injective f)
   [is_artinian R P] : is_artinian R M :=
-⟨subrelation.wf
-  (λ A B hAB, show A.map f < B.map f,
-    from submodule.map_strict_mono_of_injective h hAB)
-  (inv_image.wf (submodule.map f) (is_artinian.well_founded_submodule_lt R P))⟩
+subrelation.is_well_founded (inv_image (<) $ submodule.map f) $
+  λ A B hAB, submodule.map_strict_mono_of_injective h hAB
 
 instance is_artinian_submodule' [is_artinian R M] (N : submodule R M) : is_artinian R N :=
 is_artinian_of_injective N.subtype subtype.val_injective
@@ -78,10 +75,9 @@ is_artinian_of_injective (submodule.of_le h) (submodule.of_le_injective h)
 variable (M)
 theorem is_artinian_of_surjective (f : M →ₗ[R] P) (hf : function.surjective f)
   [is_artinian R M] : is_artinian R P :=
-⟨subrelation.wf
-  (λ A B hAB, show A.comap f < B.comap f,
-    from submodule.comap_strict_mono_of_surjective hf hAB)
-  (inv_image.wf (submodule.comap f) (is_artinian.well_founded_submodule_lt _ _))⟩
+subrelation.is_well_founded (inv_image (<) $ submodule.comap f) $
+  (λ A B hAB, submodule.comap_strict_mono_of_surjective hf hAB)
+
 variable {M}
 
 theorem is_artinian_of_linear_equiv (f : M ≃ₗ[R] P)
@@ -95,9 +91,7 @@ theorem is_artinian_of_range_eq_ker
   (hg : function.surjective g)
   (h : f.range = g.ker) :
   is_artinian R N :=
-⟨well_founded_lt_exact_sequence
-  (is_artinian.well_founded_submodule_lt _ _)
-  (is_artinian.well_founded_submodule_lt _ _)
+well_founded_lt_exact_sequence
   f.range
   (submodule.map f)
   (submodule.comap f)
@@ -106,7 +100,7 @@ theorem is_artinian_of_range_eq_ker
   (submodule.gci_map_comap hf)
   (submodule.gi_map_comap hg)
   (by simp [submodule.map_comap_eq, inf_comm])
-  (by simp [submodule.comap_map_eq, h])⟩
+  (by simp [submodule.comap_map_eq, h])
 
 instance is_artinian_prod [is_artinian R M]
   [is_artinian R P] : is_artinian R (M × P) :=
@@ -116,10 +110,6 @@ is_artinian_of_range_eq_ker
   linear_map.inl_injective
   linear_map.snd_surjective
   (linear_map.range_inl R M P)
-
-@[instance, priority 100]
-lemma is_artinian_of_fintype [fintype M] : is_artinian R M :=
-⟨fintype.well_founded_of_trans_of_irrefl _⟩
 
 local attribute [elab_as_eliminator] fintype.induction_empty_option
 
@@ -149,22 +139,22 @@ is_artinian_pi
 
 end
 
-open is_artinian submodule function
+open submodule function
 
 section
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 
 theorem is_artinian_iff_well_founded :
-  is_artinian R M ↔ well_founded ((<) : submodule R M → submodule R M → Prop) :=
-⟨λ h, h.1, is_artinian.mk⟩
+  is_artinian R M ↔ well_founded_lt (submodule R M) :=
+iff.rfl
 
 variables {R M}
 
 lemma is_artinian.finite_of_linear_independent [nontrivial R] [is_artinian R M]
   {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
-    (well_founded_submodule_lt R M)).elim' _),
+  refine classical.by_contradiction (λ hf,
+    (@rel_embedding.no_descending_seq (submodule R M) (<) _ _).elim' _),
   have f : ℕ ↪ s, from set.infinite.nat_embedding s hf,
   have : ∀ n, (coe ∘ f) '' {m | n ≤ m} ⊆ s,
   { rintros n x ⟨y, hy₁, rfl⟩, exact (f y).2 },
@@ -188,20 +178,17 @@ end
 /-- A module is Artinian iff every nonempty set of submodules has a minimal submodule among them.
 -/
 theorem set_has_minimal_iff_artinian :
-  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M') ↔
-  is_artinian R M :=
-by rw [is_artinian_iff_well_founded, well_founded.well_founded_iff_has_min']
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, ¬ I < M') ↔ is_artinian R M :=
+by rw [is_artinian_iff_well_founded, well_founded_lt.is_well_founded_iff_has_min]
 
 theorem is_artinian.set_has_minimal [is_artinian R M] (a : set $ submodule R M) (ha : a.nonempty) :
-  ∃ M' ∈ a, ∀ I ∈ a, I ≤ M' → I = M' :=
+  ∃ M' ∈ a, ∀ I ∈ a, ¬ I < M' :=
 set_has_minimal_iff_artinian.mpr ‹_› a ha
 
 /-- A module is Artinian iff every decreasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_artinian :
-  (∀ (f : ℕ →o (submodule R M)ᵒᵈ), ∃ n, ∀ m, n ≤ m → f n = f m)
-    ↔ is_artinian R M :=
-by rw [is_artinian_iff_well_founded];
-  exact (well_founded.monotone_chain_condition (submodule R M)ᵒᵈ).symm
+  (∀ (f : ℕ →o (submodule R M)ᵒᵈ), ∃ n, ∀ m, n ≤ m → f n = f m) ↔ is_artinian R M :=
+by { rw is_artinian_iff_well_founded, exact well_founded_gt.monotone_chain_condition_iff.symm }
 
 theorem is_artinian.monotone_stabilizes [is_artinian R M] (f : ℕ →o (submodule R M)ᵒᵈ) :
   ∃ n, ∀ m, n ≤ m → f n = f m :=
@@ -210,7 +197,7 @@ monotone_stabilizes_iff_artinian.mpr ‹_› f
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
 lemma is_artinian.induction [is_artinian R M] {P : submodule R M → Prop}
   (hgt : ∀ I, (∀ J < I, P J) → P I) (I : submodule R M) : P I :=
-well_founded.recursion (well_founded_submodule_lt R M) I hgt
+well_founded_lt.induction I hgt
 
 /--
 For any endomorphism of a Artinian module, there is some nontrivial iterate
@@ -302,22 +289,19 @@ end
 
 Strictly speaking, this should be called `is_left_artinian_ring` but we omit the `left_` for
 convenience in the commutative case. For a right Artinian ring, use `is_artinian Rᵐᵒᵖ R`. -/
-class is_artinian_ring (R) [ring R] extends is_artinian R R : Prop
+@[reducible] def is_artinian_ring (R) [ring R] : Prop := is_artinian R R
 
-theorem is_artinian_ring_iff {R} [ring R] : is_artinian_ring R ↔ is_artinian R R :=
-⟨λ h, h.1, @is_artinian_ring.mk _ _⟩
+theorem is_artinian_ring_iff {R} [ring R] : is_artinian_ring R ↔ is_artinian R R := iff.rfl
 
 theorem ring.is_artinian_of_zero_eq_one {R} [ring R] (h01 : (0 : R) = 1) : is_artinian_ring R :=
-by haveI := subsingleton_of_zero_eq_one h01;
-   haveI := fintype.of_subsingleton (0:R); split;
+begin
+  haveI := subsingleton_of_zero_eq_one h01,
+  haveI := fintype.of_subsingleton (0:R),
   apply_instance
+end
 
-theorem is_artinian_of_submodule_of_artinian (R M) [ring R] [add_comm_group M] [module R M]
-  (N : submodule R M) (h : is_artinian R M) : is_artinian R N :=
-by apply_instance
-
-theorem is_artinian_of_quotient_of_artinian (R) [ring R] (M) [add_comm_group M] [module R M]
-  (N : submodule R M) (h : is_artinian R M) : is_artinian R (M ⧸ N) :=
+instance is_artinian_of_quotient_of_artinian (R) [ring R] (M) [add_comm_group M] [module R M]
+  (N : submodule R M) [is_artinian R M] : is_artinian R (M ⧸ N) :=
 is_artinian_of_surjective M (submodule.mkq N) (submodule.quotient.mk_surjective N)
 
 /-- If `M / S / R` is a scalar tower, and `M / R` is Artinian, then `M / S` is
@@ -326,8 +310,8 @@ theorem is_artinian_of_tower (R) {S M} [comm_ring R] [ring S]
   [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
   (h : is_artinian R M) : is_artinian S M :=
 begin
-  rw is_artinian_iff_well_founded at h ⊢,
-  refine (submodule.restrict_scalars_embedding R S M).well_founded h
+  rw is_artinian_iff_well_founded,
+  exact (submodule.restrict_scalars_embedding R S M).well_founded_lt
 end
 
 theorem is_artinian_of_fg_of_artinian {R M} [ring R] [add_comm_group M] [module R M]
@@ -375,8 +359,8 @@ theorem is_artinian_ring_of_surjective (R) [ring R] (S) [ring S]
   (f : R →+* S) (hf : function.surjective f)
   [H : is_artinian_ring R] : is_artinian_ring S :=
 begin
-  rw [is_artinian_ring_iff, is_artinian_iff_well_founded] at H ⊢,
-  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf) H,
+  rw [is_artinian_ring_iff, is_artinian_iff_well_founded],
+  exact (ideal.order_embedding_of_surjective f hf).well_founded_lt
 end
 
 instance is_artinian_ring_range {R} [ring R] {S} [ring S] (f : R →+* S)
@@ -406,19 +390,19 @@ begin
     simpa only [this, top_smul, ideal.zero_eq_bot] using hJ },
   by_contradiction hJ, change J ≠ ⊤ at hJ,
   rcases is_artinian.set_has_minimal {J' : ideal R | J < J'} ⟨⊤, hJ.lt_top⟩
-    with ⟨J', hJJ' : J < J', hJ' : ∀ I, J < I → I ≤ J' → I = J'⟩,
+    with ⟨J', hJJ' : J < J', hJ' : ∀ I, J < I → ¬ I < J'⟩,
   rcases set_like.exists_of_lt hJJ' with ⟨x, hxJ', hxJ⟩,
   obtain rfl : J ⊔ ideal.span {x} = J',
-  { refine hJ' (J ⊔ ideal.span {x}) _ _,
+  { apply eq_of_le_of_not_lt _ (hJ' (J ⊔ ideal.span {x}) _),
+    { exact (sup_le hJJ'.le (span_le.2 (singleton_subset_iff.2 hxJ'))) },
     { rw set_like.lt_iff_le_and_exists,
-      exact ⟨le_sup_left, ⟨x, mem_sup_right (mem_span_singleton_self x), hxJ⟩⟩ },
-    { exact (sup_le hJJ'.le (span_le.2 (singleton_subset_iff.2 hxJ'))) } },
+      exact ⟨le_sup_left, ⟨x, mem_sup_right (mem_span_singleton_self x), hxJ⟩⟩ } },
   have : J ⊔ Jac • ideal.span {x} ≤ J ⊔ ideal.span {x},
     from sup_le_sup_left (smul_le.2 (λ _ _ _, submodule.smul_mem _ _)) _,
   have : Jac * ideal.span {x} ≤ J, --Need version 4 of Nakayamas lemma on Stacks
   { classical, by_contradiction H,
     refine H (smul_sup_le_of_le_smul_of_le_jacobson_bot
-      (fg_span_singleton _) le_rfl (hJ' _ _ this).ge),
+      (fg_span_singleton _) le_rfl (this.eq_of_not_lt (hJ' _ _)).ge),
     exact lt_of_le_of_ne le_sup_left (λ h, H $ h.symm ▸ le_sup_right) },
   have : ideal.span {x} * Jac ^ (n + 1) ≤ ⊥,
     calc ideal.span {x} * Jac ^ (n + 1) = ideal.span {x} * Jac * Jac ^ n :

@@ -412,16 +412,17 @@ protected theorem strict_mono : strict_mono f := λ x y, f.lt_iff_lt.2
 protected theorem acc (a : α) : acc (<) (f a) → acc (<) a :=
 f.lt_embedding.acc a
 
-protected theorem well_founded :
-  well_founded ((<) : β → β → Prop) → well_founded ((<) : α → α → Prop) :=
-f.lt_embedding.well_founded
-
-protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
-f.lt_embedding.is_well_order
+protected theorem well_founded_lt {α β} [preorder α] [preorder β] [well_founded_lt β]
+  (f : α ↪o β) : well_founded_lt α :=
+⟨f.lt_embedding.is_well_founded.wf⟩
 
 /-- An order embedding is also an order embedding between dual orders. -/
 protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
+
+protected theorem well_founded_gt {α β} [preorder α] [preorder β] [well_founded_gt β]
+  (f : α ↪o β) : well_founded_gt α :=
+⟨f.dual.lt_embedding.is_well_founded.wf⟩
 
 /-- A version of `with_bot.map` for order embeddings. -/
 @[simps { fully_applied := ff }]

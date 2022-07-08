@@ -123,9 +123,9 @@ begin
     rwa [exceptional_empty, set.diff_empty], },
   -- We are now set for an infinite descent argument.
   -- Let m be the smallest element of the nonempty set S.
-  let  m     : ℕ                := well_founded.min     nat.lt_wf S S_nonempty,
-  have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_nonempty,
-  have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_nonempty hk,
+  let  m     : ℕ                := well_founded_lt.min S S_nonempty,
+  have m_mem : m ∈ S            := well_founded_lt.min_mem S S_nonempty,
+  have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded_lt.not_lt_min S hk,
   -- It suffices to show that there is point (a,b) with b ∈ S and b < m.
   suffices hp' : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
   { rcases hp' with ⟨p', p'_mem, p'_small⟩, solve_by_elim },

@@ -90,7 +90,6 @@ end
 lemma integrable_exp_neg_mul_sq_iff {b : ℝ} :
   integrable (λ x:ℝ, exp (-b * x^2)) ↔ 0 < b :=
 begin
-  rw iff_iff_implies_and_implies,
   refine ⟨λ h, _, integrable_exp_neg_mul_sq⟩,
   by_contra' hb,
   have : ∫⁻ x:ℝ, 1 ≤ ∫⁻ x:ℝ, ∥exp (-b * x^2)∥₊,

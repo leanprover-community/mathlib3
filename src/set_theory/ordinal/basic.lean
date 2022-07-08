@@ -922,6 +922,8 @@ def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
 localized "notation `ω` := ordinal.omega" in ordinal
 
+@[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm
+
 @[simp] theorem card_omega : card ω = ℵ₀ := rfl
 
 @[simp] theorem lift_omega : lift ω = ω := lift_lift _

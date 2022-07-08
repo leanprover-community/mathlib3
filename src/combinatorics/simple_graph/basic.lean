@@ -1149,21 +1149,6 @@ protected def complete_graph {α β : Type*} (f : α ↪ β) :
   (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
 { map_rel_iff' := by simp, ..f }
 
-/-- Induced graphs embed in the original graph.
-
-Note that if `G.induce s = ⊤` (i.e., if `s` is a clique) then this gives the embedding of a
-complete graph. -/
-@[simps] def induce (s : set V) : G.induce s ↪g G :=
-{ to_fun := coe,
-  inj' := subtype.coe_injective,
-  map_rel_iff' := by simp }
-
-/-- Graphs on a set of vertices embed in their `spanning_coe`. -/
-@[simps] def spanning_coe {s : set V} {G : simple_graph s} : G ↪g G.spanning_coe :=
-{ to_fun := coe,
-  inj' := subtype.coe_injective,
-  map_rel_iff' := by simp }
-
 variables {G'' : simple_graph X}
 
 /-- Composition of graph embeddings. -/

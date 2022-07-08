@@ -119,7 +119,7 @@ open nat
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
-lemma main_inequality {n : ℕ} (n_large : 648 ≤ n) :
+lemma main_inequality {n : ℕ} (n_large : 512 ≤ n) :
   n * (2 * n) ^ (sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@cast_le ℝ,

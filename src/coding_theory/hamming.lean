@@ -282,16 +282,15 @@ instance : metric_space (hamm β) :=
   ..hamm.pseudo_metric_space }
 
 instance [Π i, has_zero (β i)] : has_norm (hamm β) := ⟨λ x, hamm_norm (of_hamm x)⟩
-instance [Π i, has_zero (β i)] : has_nnnorm (hamm β) := ⟨λ x, hamm_norm (of_hamm x)⟩
 
 @[simp, push_cast] lemma norm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
   ∥x∥ = hamm_norm (of_hamm x) := rfl
 
-@[simp, push_cast] lemma nnnorm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
-  ∥x∥₊ = hamm_norm (of_hamm x) := rfl
-
 instance [Π i, add_comm_group (β i)] : semi_normed_group (hamm β) :=
 { dist_eq := by { push_cast, exact_mod_cast hamm_dist_eq_hamm_norm }, ..pi.add_comm_group }
+
+@[simp, push_cast] lemma nnnorm_eq_hamm_norm [Π i, add_comm_group (β i)] (x : hamm β) :
+  ∥x∥₊ = hamm_norm (of_hamm x) := rfl
 
 instance [Π i, add_comm_group (β i)] : normed_group (hamm β) := { ..hamm.semi_normed_group }
 

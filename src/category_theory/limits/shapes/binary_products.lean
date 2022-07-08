@@ -139,6 +139,17 @@ abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app ⟨walkin
 @[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
   s.π.app ⟨walking_pair.right⟩ = s.snd := rfl
 
+/-- A convenient way to show that a binary fan is a limit. -/
+def binary_fan.is_limit.mk {X Y : C} (s : binary_fan X Y)
+  (lift : Π {T : C} (f : T ⟶ X) (g : T ⟶ Y), T ⟶ s.X)
+  (hl₁ : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y), lift f g ≫ s.fst = f)
+  (hl₂ : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y), lift f g ≫ s.snd = g)
+  (uniq : ∀ {T : C} (f : T ⟶ X) (g : T ⟶ Y) (m : T ⟶ s.X) (h₁ : m ≫ s.fst = f)
+    (h₂ : m ≫ s.snd = g), m = lift f g) : is_limit s := is_limit.mk
+  (λ t, lift (binary_fan.fst t) (binary_fan.snd t))
+  (by { rintros t (rfl|rfl), { exact hl₁ _ _ }, { exact hl₂ _ _ } })
+  (λ t m h, uniq _ _ _ (h ⟨walking_pair.left⟩) (h ⟨walking_pair.right⟩))
+
 lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
   {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
 h.hom_ext $ λ j, discrete.rec_on j (λ j, walking_pair.cases_on j h₁ h₂)
@@ -156,6 +167,17 @@ abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app ⟨wa
   s.ι.app ⟨walking_pair.left⟩ = s.inl := rfl
 @[simp] lemma binary_cofan.ι_app_right {X Y : C} (s : binary_cofan X Y) :
   s.ι.app ⟨walking_pair.right⟩ = s.inr := rfl
+
+/-- A convenient way to show that a binary cofan is a colimit. -/
+def binary_cofan.is_colimit.mk {X Y : C} (s : binary_cofan X Y)
+  (desc : Π {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.X ⟶ T)
+  (hd₁ : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.inl ≫ desc f g = f)
+  (hd₂ : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T), s.inr ≫ desc f g = g)
+  (uniq : ∀ {T : C} (f : X ⟶ T) (g : Y ⟶ T) (m : s.X ⟶ T) (h₁ : s.inl ≫ m = f)
+    (h₂ : s.inr ≫ m = g), m = desc f g) : is_colimit s := is_colimit.mk
+    (λ t, desc (binary_cofan.inl t) (binary_cofan.inr t))
+    (by { rintros t (rfl|rfl), { exact hd₁ _ _ }, { exact hd₂ _ _ }})
+    (λ t m h, uniq _ _ _ (h ⟨walking_pair.left⟩) (h ⟨walking_pair.right⟩))
 
 lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
   {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=

@@ -424,6 +424,11 @@ lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
   (hxs : unique_diff_within_at 𝕜 s x) : deriv_within f s x = deriv f x :=
 by { unfold deriv_within deriv, rw h.fderiv_within hxs }
 
+theorem has_deriv_within_at.deriv_eq_zero (hd : has_deriv_within_at f 0 s x)
+  (H : unique_diff_within_at 𝕜 s x) : deriv f x = 0 :=
+(em' (differentiable_at 𝕜 f x)).elim deriv_zero_of_not_differentiable_at $
+  λ h, H.eq_deriv _ h.has_deriv_at.has_deriv_within_at hd
+
 lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
   deriv_within f s x = deriv_within f t x :=
@@ -487,6 +492,10 @@ has_fderiv_within_at.congr_mono h ht hx h₁
 lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
   (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 h.congr_mono hs hx (subset.refl _)
+
+lemma has_deriv_within_at.congr_of_mem (h : has_deriv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : x ∈ s) : has_deriv_within_at f₁ f' s x :=
+h.congr hs (hs _ hx)
 
 lemma has_deriv_within_at.congr_of_eventually_eq (h : has_deriv_within_at f f' s x)
   (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=

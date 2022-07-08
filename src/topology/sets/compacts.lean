@@ -106,12 +106,12 @@ lemma equiv_to_fun_val (f : α ≃ₜ β) (K : compacts α) :
   (compacts.equiv f K).1 = f.symm ⁻¹' K.1 :=
 congr_fun (image_eq_preimage_of_inverse f.left_inv f.right_inv) K.1
 
-/-- The products of two `compacts`, as a `compacts` in the product space. -/
+/-- The product of two `compacts`, as a `compacts` in the product space. -/
 protected def prod (K : compacts α) (L : compacts β) : compacts (α × β) :=
 { carrier := (K : set α) ×ˢ (L : set β),
   compact' := is_compact.prod K.2 L.2 }
 
-lemma coe_prod (K : compacts α) (L : compacts β) :
+@[simp] lemma coe_prod (K : compacts α) (L : compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end compacts
@@ -165,13 +165,13 @@ is_compact_iff_compact_space.1 s.compact
 
 instance to_nonempty {s : nonempty_compacts α} : nonempty s := s.nonempty.to_subtype
 
-/-- The products of two `nonempty_compacts`, as a `nonempty_compacts` in the product space. -/
+/-- The product of two `nonempty_compacts`, as a `nonempty_compacts` in the product space. -/
 protected def prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
   nonempty_compacts (α × β) :=
 { nonempty' := K.nonempty.prod L.nonempty,
   .. K.to_compacts.prod L.to_compacts }
 
-lemma coe_prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
+@[simp] lemma coe_prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end nonempty_compacts
@@ -234,18 +234,17 @@ instance [compact_space α] [nonempty α] : inhabited (positive_compacts α) := 
 instance nonempty' [locally_compact_space α] [nonempty α] : nonempty (positive_compacts α) :=
 nonempty_of_exists $ exists_positive_compacts_subset is_open_univ univ_nonempty
 
-/-- The products of two `positive_compacts`, as a `positive_compacts` in the product space. -/
+/-- The product of two `positive_compacts`, as a `positive_compacts` in the product space. -/
 protected def prod (K : positive_compacts α) (L : positive_compacts β) :
   positive_compacts (α × β) :=
 { interior_nonempty' :=
   begin
-    change (interior ((K : set α) ×ˢ (L : set β))).nonempty,
-    rw interior_prod_eq,
+    simp only [compacts.carrier_eq_coe, compacts.coe_prod, interior_prod_eq],
     exact K.interior_nonempty.prod L.interior_nonempty,
   end,
   .. K.to_compacts.prod L.to_compacts }
 
-lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
+@[simp] lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end positive_compacts
@@ -320,13 +319,13 @@ instance : inhabited (compact_opens α) := ⟨⊥⟩
 @[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
   (s.map f hf hf' : set β) = f '' s := rfl
 
-/-- The products of two `compact_opens`, as a `compact_opens` in the product space. -/
+/-- The product of two `compact_opens`, as a `compact_opens` in the product space. -/
 protected def prod (K : compact_opens α) (L : compact_opens β) :
   compact_opens (α × β) :=
 { open' := K.open.prod L.open,
   .. K.to_compacts.prod L.to_compacts }
 
-lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
+@[simp] lemma coe_prod (K : compact_opens α) (L : compact_opens β) :
   (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
 
 end compact_opens

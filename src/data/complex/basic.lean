@@ -31,6 +31,7 @@ open_locale complex_conjugate
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
+@[simps apply]
 def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,

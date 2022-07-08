@@ -440,6 +440,7 @@ The following section contains code that allows lean to communicate with a pytho
 /--
 This tactic calls python from the command line with the args in `arg_list`.
 The output printed to the console is returned as a `string`.
+It assumes that `python3` is available on the path.
 -/
 meta def sage_output (arg_list : list string := []) : tactic string :=
 let args := ["scripts/polyrith_sage.py"] ++ arg_list in
@@ -565,6 +566,8 @@ is suggested to the user.
   `h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
 
 Note: This tactic only works with a working internet connection.
+It assumes that the user has `python3` installed and available on the path.
+(Test by opening a terminal and executing `python3 --version`.)
 
 Examples:
 

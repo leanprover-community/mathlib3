@@ -42,9 +42,9 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 
 * There is a type of cardinal numbers in every universe level:
   `cardinal.{u} : Type (u + 1)` is the quotient of types in `Type u`.
-  The operation `cardinal.lift` lifts cardinal numbers to a higher level.
-* We enforce a canonical way to compare cardinals in different universes. Namely, to compare
-  `a : cardinal.{u}` and `b : cardinal.{v}`, we compare `lift.{v} a` and `lift.{u} b`.
+  The operation `cardinal.lift` lifts cardinal numbers to a higher level. See library
+  note [cardinal comparison in different universes] for an important rule we enforce regarding usage
+  of this.
 * Cardinal arithmetic specifically for infinite cardinals (like `κ * κ = κ`) is in the file
   `set_theory/cardinal_ordinal.lean`.
 * There is an instance `has_pow cardinal`, but this will only fire if Lean already knows that both
@@ -208,12 +208,17 @@ mk_subtype_le s
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
-/- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal
-`b : cardinal.{v}` is to compare `cardinal.lift.{v} a` with `cardinal.{u} b`. The following theorem
-is stated in seemingly more general terms, as it's used to prove `cardinal.lift_le`. However, given
-the lemmas `cardinal.lift_umax_le`, `cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this
-small generalization is not worth the elaboration problems elsewhere. -/
+/-- The canonical way to compare a cardinal `a : cardinal.{u}` with a cardinal `b : cardinal.{v}` is
+to compare `cardinal.lift.{v} a` with `cardinal.lift.{u} b`.
 
+It might be tempting to be more general and compare `cardinal.lift.{max v w} a` with
+`cardinal.lift.{max u w} b`. However, given the lemmas `cardinal.lift_umax_le`,
+`cardinal.lift_umax_lt`, and `cardinal.lift_umax_eq`, this small generalization is not worth the
+elaboration problems it causes elsewhere. -/
+library_note "cardinal comparison in different universes"
+
+/- This is the sole exception to the rule established previously, as it's used to prove
+`cardinal.lift_le`. -/
 private theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,

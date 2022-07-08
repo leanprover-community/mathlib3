@@ -247,9 +247,9 @@ variables [canonically_ordered_comm_semiring α]
 
 -- TODO: this holds more generally in a `canonically_ordered_add_monoid` if we refactor `odd` to use
 -- either `2 • t` or `t + t` instead of `2 * t`.
-lemma odd.pos  [nontrivial α] : ∀ {n : α}, odd n → 0 < n
-| _ ⟨k, rfl⟩ :=
+lemma odd.pos [nontrivial α] {n : α} (hn : odd n) : 0 < n :=
 begin
+  obtain ⟨k, rfl⟩ := hn,
   rw [pos_iff_ne_zero, ne.def, add_eq_zero_iff, not_and'],
   exact λ h, (one_ne_zero h).elim
 end

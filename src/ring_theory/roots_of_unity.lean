@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.ring_division
-import tactic.zify
-import field_theory.separable
-import algebra.ne_zero
-import ring_theory.integral_domain
-import number_theory.divisors
-import field_theory.finite.basic
-import group_theory.specific_groups.cyclic
 import algebra.char_p.two
+import algebra.ne_zero
+import data.polynomial.ring_division
+import field_theory.finite.basic
+import field_theory.separable
+import group_theory.specific_groups.cyclic
+import number_theory.divisors
+import ring_theory.integral_domain
+import tactic.zify
 
 /-!
 # Roots of unity and primitive roots of unity

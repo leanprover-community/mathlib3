@@ -323,7 +323,7 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful [faith
 end
 
 section
-variables {D : Type u₂} [category.{v₁} D] [abelian D]  -- TODO: Generalize universe level
+variables {D : Type u₂} [category.{v₂} D] [abelian D]
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 /--

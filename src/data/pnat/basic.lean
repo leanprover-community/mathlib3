@@ -68,9 +68,9 @@ open nat
 -/
 
 instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
-
-instance : linear_order ℕ+ :=
-subtype.linear_order _
+instance : linear_order ℕ+ := subtype.linear_order _
+instance : well_founded_lt ℕ+ := subtype.well_founded_lt _
+instance : is_well_order ℕ+ (<) := { }
 
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl

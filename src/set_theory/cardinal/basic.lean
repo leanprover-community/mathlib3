@@ -208,13 +208,9 @@ theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.ou
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{max v w} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
+  lift.{(max v w)} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
-
-theorem _root_.function.embedding.cardinal_lift_mk_le {α : Type u} {β : Type v} (f : α ↪ β) :
-  lift.{max v w} (#α) ≤ lift.{max u w} (#β) :=
-lift_mk_le.{u v w}.2 ⟨f⟩
 
 /-- A variant of `cardinal.lift_mk_le` with specialized universes.
 Because Lean often can not realize it should use this specialization itself,

@@ -175,7 +175,7 @@ structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β 
 infix ` ↪r `:25 := rel_embedding
 
 /-- The induced relation on a subtype is an embedding under the natural inclusion. -/
-definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
+def subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
   ((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
 ⟨embedding.subtype p, λ x y, iff.rfl⟩
 
@@ -303,6 +303,12 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+
+instance (α : Type u) [has_lt α] [well_founded_lt α] (p : α → Prop) : well_founded_lt (subtype p) :=
+(subtype.rel_embedding (<) p).is_well_founded
+
+instance (α : Type u) [has_lt α] [well_founded_gt α] (p : α → Prop) : well_founded_gt (subtype p) :=
+(subtype.rel_embedding (>) p).is_well_founded
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it

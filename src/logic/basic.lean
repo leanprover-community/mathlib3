@@ -1278,10 +1278,6 @@ propext (exists_prop_congr hq _)
 @[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
 exists_prop_of_true _
 
--- This is superceded by `is_empty.exists_iff`.
-private lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
-exists_prop_of_false not_false
-
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
   {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
 unique_of_exists_unique h py₁ py₂
@@ -1296,10 +1292,6 @@ propext (forall_prop_congr hq _)
 
 @[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
 forall_prop_of_true _
-
--- This is superceded by `is_empty.forall_iff`.
-private lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
-forall_prop_of_false not_false
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
   {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)
@@ -1491,14 +1483,17 @@ variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [d
   {a b c : α} {A : P → α} {B : ¬ P → α}
 
 lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c :=
-by by_cases P; simp [*, exists_false_left]
+by by_cases P; simp [*, exists_prop_of_false not_false]
+
 lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
 dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
 
 @[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a :=
-by by_cases P; simp [*, forall_false_left]
+by by_cases P; simp [*, forall_prop_of_false not_false]
+
 @[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b :=
-by by_cases P; simp [*, forall_false_left]
+by by_cases P; simp [*, forall_prop_of_false not_false]
+
 @[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := dite_eq_left_iff
 @[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := dite_eq_right_iff
 

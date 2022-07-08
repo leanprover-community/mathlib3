@@ -748,7 +748,7 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
 type_ne_zero_iff_nonempty.2 h
 
-@[simp] theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
+theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
 theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
@@ -786,8 +786,8 @@ theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 
 @[simp] theorem type_eq_one_iff_unique [is_well_order α r] : type r = 1 ↔ nonempty (unique α) :=
 ⟨λ h, let ⟨s⟩ := type_eq.1 h in ⟨s.to_equiv.unique⟩, λ ⟨h⟩, @type_eq_one_of_unique α r _ h⟩
 
-@[simp] theorem type_punit : type (@empty_relation punit) = 1 := rfl
-@[simp] theorem type_unit : type (@empty_relation unit) = 1 := rfl
+theorem type_punit : type (@empty_relation punit) = 1 := rfl
+theorem type_unit : type (@empty_relation unit) = 1 := rfl
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 

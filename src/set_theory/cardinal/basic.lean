@@ -224,10 +224,6 @@ theorem lift_mk_le' {α : Type u} {β : Type v} :
   lift.{v} (#α) ≤ lift.{u} (#β) ↔ nonempty (α ↪ β) :=
 lift_mk_le.{u v 0}
 
-theorem _root_.function.embedding.cardinal_lift_mk_le' {α : Type u} {β : Type v} (f : α ↪ β) :
-  lift.{v} (#α) ≤ lift.{u} (#β) :=
-lift_mk_le'.2 ⟨f⟩
-
 theorem lift_mk_eq {α : Type u} {β : Type v} :
   lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans

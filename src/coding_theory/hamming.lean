@@ -17,9 +17,12 @@ This is a useful notion in various applications, but in particular it is relevan
 in coding theory, in which it is fundamental for defining the minimum distance of a
 code.
 
-In this file we define `hamm_dist` and `hamm_norm`, the Hamming distance and Hamming norm. We also
-define `hamm β`, the type synonym of a Pi type with `hamm_dist` and `hamm_norm` attached, and
-provide instances and API for this type synonym.
+## Main definitions
+* `hamm_dist x y`: the hamming distance between `x` and `y`, the number of entries which differ
+* `hamm_norm x`: the hamming norm of `x`, the number of non-zero entries
+* `hamm β`: a type synonym for `Π i, β i` with `dist` and `norm` provided by the above
+* `hamm.to_hamm`, `hamm.of_hamm`: functions for casting between `hamm β` and `Π i, β i`
+* `hamm.normed_group`: the hamming norm forms a normed group on `hamm β`
 -/
 section hamm_dist_wt
 

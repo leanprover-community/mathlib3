@@ -437,7 +437,7 @@ it, but no more than twice as large.
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
-  cases lt_or_le 647 n,
+  cases lt_or_le 511 n,
   -- If `n` is large, apply the lemma derived from the inequalities on the central binomial
   -- coefficient.
   { exact bertrand_eventually n h, },

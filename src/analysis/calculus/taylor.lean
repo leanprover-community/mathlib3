@@ -163,10 +163,6 @@ begin
     nat.lt_one_iff],
 end
 
-lemma unique_diff_within_at_Ioo {x₀ x t : ℝ} (ht : t ∈ set.Ioo x₀ x) :
-  unique_diff_within_at ℝ (set.Ioo x₀ x) t :=
-(is_open.unique_diff_within_at is_open_Ioo ht)
-
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`. -/
 lemma taylor_sum_has_deriv {f : ℝ → ℝ} {x x₀ t : ℝ}
   (hx : x₀ < x) (ht : t ∈ set.Ioo x₀ x)

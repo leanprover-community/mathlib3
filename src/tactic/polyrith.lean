@@ -19,9 +19,6 @@ from the local context to use, along with proof terms that might not already be 
 local context. Note: since this tactic uses SageMath via an API call done in Python,
 it can only be used with a working internet connection, and with a local installation of Python.
 
-## Notation
-* This file uses the local notation `exmap` for `list (expr × ℕ)`.
-
 ## Implementation Notes
 
 The tactic `linear_combination` is often used to prove such goals by allowing the user to
@@ -93,16 +90,23 @@ The following section contains code that can convert an `expr` of type `Prop` in
 (provided that it is an equality)
 -/
 
-local notation `exmap` := list (expr × ℕ)
-
 /--
-`poly_form_of_atom red map e` is the atomic case for `poly_form_of_expr`.
-If `e` appears with index `k` in `map`, it returns the singleton sum `poly.var k`.
-Otherwise it updates `map`, adding `e` with index `n`, and returns the singleton `poly.var n`.
+`(vars, p) ← poly_form_of_atom red vars e` is the atomic case for `poly_form_of_expr`.
+If `e` appears with index `k` in `vars`, it returns the singleton sum `p = poly.var k`.
+Otherwise it updates `vars`, adding `e` with index `n`, and returns the singleton `p = poly.var n`.
 -/
-meta def poly_form_of_atom (red : transparency) (m : exmap) (e : expr) : tactic (exmap × poly) :=
-(do (_, k) ← m.find_defeq red e, return (m, poly.var k)) <|>
-(let n := m.length + 1 in return ((e, n)::m, poly.var n))
+meta def poly_form_of_atom (red : transparency) (vars : list expr) (e : expr) :
+  tactic (list expr × poly) :=
+do
+  index_of_e ← vars.mfoldl_with_index
+    (λ n last e', match last with
+    | none := tactic.try_core $ tactic.is_def_eq e e' red >> return n
+    | some k := return k
+    end) none,
+  return (match index_of_e with
+  | some k := (vars, poly.var k)
+  | none   := (vars.concat e, poly.var vars.length)
+  end)
 
 /--
 `poly_form_of_expr red map e` computes the polynomial form of `e`.
@@ -114,7 +118,7 @@ It matches atomic expressions up to reducibility given by `red`.
 Because it matches up to definitional equality, this function must be in the `tactic` monad,
 and forces some functions that call it into `tactic` as well.
 -/
-meta def poly_form_of_expr (red : transparency) : exmap → expr → tactic (exmap × poly)
+meta def poly_form_of_expr (red : transparency) : list expr → expr → tactic (list expr × poly)
 | m `(%%e1 * %%e2) :=
    do (m', comp1) ← poly_form_of_expr m e1,
       (m', comp2) ← poly_form_of_expr m' e2,
@@ -159,18 +163,19 @@ meta def has_val : ℕ → (expr × ℕ) → Prop :=
 
 /--
 This can convert a `poly` into a `pexpr` that would evaluate to a polynomial.
-To do so, it uses an `exmap` that contains information about what atomic expressions
-the variables in the `poly` refer to.
+To do so, it uses a list `m` of expressions, the atomic expressions that appear in the `poly`.
+The index of an expression in this list corresponds to its `poly.var` argument: that is,
+if `e` is the `k`th element of `m`, then it is represented as `poly.var k`.
 
 `poly` objects only contain coefficients from `ℚ`. However, the `poly` object might
 be referring to a polynomial over some other field. As such, the resulting `pexpr` contains
 no typing information.
 -/
-meta def poly.to_pexpr : exmap → poly → tactic pexpr
+meta def poly.to_pexpr : list expr → poly → tactic pexpr
 | _ (poly.const z) := return z.to_pexpr
 | m (poly.var n) :=
   do
-    some (e, num) ← return $ m.find (has_val n) | fail! "unknown variable poly.var {n}",
+    some (e) ← return $ m.nth n | fail! "unknown variable poly.var {n}",
     return ``(%%e)
 | m (poly.add p q) :=
   do
@@ -353,10 +358,9 @@ meta def equality_to_left_side : expr → tactic expr
 
 /--
 A tactic that converts the current target (an equality over
-some field) into a `poly`. The tactic returns an `exmap` containing
-information about the atomic expressions in the target, the `poly`
-itself, and an `expr` representing the field.-/
-meta def parse_target_to_poly : tactic (exmap × poly × expr) :=
+some field) into a `poly`. The tactic returns a list of the atomic expressions in the target,
+the `poly` itself, and an `expr` representing the field.-/
+meta def parse_target_to_poly : tactic (list expr × poly × expr) :=
 do
   e@`(@eq %%R _ _) ← target,
   left_side ← equality_to_left_side e,
@@ -364,13 +368,12 @@ do
   return (m, p, R)
 
 /--
-A function that takes in an `exmap`, a `list poly`, and
+A function that takes in a list of atoms, a `list poly`, and
 an `expr` to be converted to a `poly`. The function carries
-out this conversion, updates the `exmap` with information
-about the new `poly`, and adds the new `poly` to the top
-of the list.
+out this conversion, updates the list of atoms with atoms from the new `poly`,
+and adds the new `poly` to the top of the list of `poly`s.
 -/
-meta def fold_function : (exmap × list poly) → expr → tactic (exmap × list poly)
+meta def fold_function : (list expr × list poly) → expr → tactic (list expr × list poly)
 | (m, poly_list) new_exp :=
 do
   (m', new_poly) ← poly_form_of_expr transparency.reducible m new_exp,
@@ -396,7 +399,8 @@ meta def get_equalities_of_type : expr → list expr → tactic (list expr)
 The prupose of this tactic is to collect all the hypotheses
 and proof terms (specified by the user) that are equalities
 of the same type as the target. It takes in an `expr` representing
-the type, an `exmap` (typically this starts as only containing
+the type, a list of expressions representing the atoms
+(typically this starts as only containing
 information about the target), a `bool` representing whether the
 user used the key word "only", and a `list pexpr` of all the
 hypotheses and proof terms selected by the user.
@@ -409,11 +413,11 @@ and then modify each equality such that everything has been
 moved to the left of the "=" sign.
 
 The tactic returns the names of these hypotheses (as `expr`s),
-an `exmap` updated with information from all these hypotheses,
+a list of atoms updated with information from all these hypotheses,
 and a list of these hypotheses converted into `poly` objects.
 -/
-meta def parse_ctx_to_polys : expr → exmap → bool → list pexpr →
-  tactic (list expr × exmap × list poly)
+meta def parse_ctx_to_polys : expr → list expr → bool → list pexpr →
+  tactic (list expr × list expr × list poly)
 | expt m only_on hyps:=
 do
   hyps ← hyps.mmap $ λ e, i_to_expr e,
@@ -443,14 +447,11 @@ do
   return s
 
 /--
-Given an updated `exmap`, this function returns a list of strings
-of the form `"var n"`, where `n` is a `ℕ` that exists as an index
-in the `exmap`. Essentially, this is a list of all the variable indices
-contained in the `exmap`.
+Given a list of atoms, creates a list of their corresponding variable names
+`["var 0", ..., "var n"]`.
 -/
-meta def get_var_names : exmap → list string
-| [] := []
-| ((e, n) :: tl) := ("var" ++ to_string n) :: (get_var_names tl)
+meta def get_var_names (vars : list expr) : list string :=
+(list.range vars.length).map $ λ n, "var" ++ to_string n
 
 /--
 Given a pair of `expr`s, where one represents the hypothesis/proof term,
@@ -502,9 +503,10 @@ declare_trace polyrith
 The first half of `tactic.polyrith` produces a list of arguments to be sent to Sage.
 -/
 meta def create_args (only_on : bool) (hyps : list pexpr) :
-  tactic (list expr × exmap × expr × list string) := do
+  tactic (list expr × list expr × expr × list string) := do
   (m, p, R) ← parse_target_to_poly,
   (eq_names, m, polys) ← parse_ctx_to_polys R m only_on hyps,
+  -- let m := m.zip (list.range m.length),
   let args := [to_string R, (get_var_names m).to_string,
     (polys.map poly.mk_string).to_string, p.mk_string],
   return $ (eq_names, m, R, to_string (is_trace_enabled_for `polyrith) :: args)
@@ -513,7 +515,7 @@ meta def create_args (only_on : bool) (hyps : list pexpr) :
 The second half of `tactic.polyrith` processes the output from Sage into
 a call to `linear_combination`.
 -/
-meta def process_output (eq_names : list expr) (m : exmap) (R : expr) (sage_out : string) :
+meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : string) :
   tactic format := do
   coeffs_as_poly ← convert_sage_output sage_out,
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
@@ -531,16 +533,16 @@ This is the main body of the `polyrith` tactic. It takes in the following inputs
 * `(hyps : list pexpr)` - the hypotheses/proof terms selecteed by the user
 
 First, the tactic converts the target into a `poly`, and finds out what type it
-is an equality of. (It also fills up an `exmap` with its information). Then, it
+is an equality of. (It also fills up a list of `expr`s with its atoms). Then, it
 collects all the relevant hypotheses/proof terms from the context, and from those
-selected by the user, taking into account whether `only_on` is true. (The `exmap` is
+selected by the user, taking into account whether `only_on` is true. (The list of atoms is
 updated accordingly as well).
 
 This information is used to create a list of args that get used in a call to
 the appropriate python file that executes a grobner basis computation. The
 output of this computation is a `string` representing the certificate. This
 string is parsed into a list of `poly` objects that are then converted into
-`pexpr`s (using the updated `exmap`).
+`pexpr`s (using the updated list of atoms).
 
 the names of the hypotheses, along with the corresponding coefficients are
 given to `linear_combination`. If that tactic succeeds, the user is prompted

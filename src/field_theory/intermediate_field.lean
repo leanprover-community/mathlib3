@@ -18,15 +18,14 @@ i.e. it is a `subfield L` and a `subalgebra K L`.
 
 ## Main definitions
 
- * `intermediate_field K L` : the type of intermediate fields between `K` and `L`.
-
- * `subalgebra.to_intermediate_field`: turns a subalgebra closed under `⁻¹`
-   into an intermediate field
-
- * `subfield.to_intermediate_field`: turns a subfield containing the image of `K`
-   into an intermediate field
-
+* `intermediate_field K L` : the type of intermediate fields between `K` and `L`.
+* `subalgebra.to_intermediate_field`: turns a subalgebra closed under `⁻¹`
+  into an intermediate field
+* `subfield.to_intermediate_field`: turns a subfield containing the image of `K`
+  into an intermediate field
 * `intermediate_field.map`: map an intermediate field along an `alg_hom`
+* `intermediate_field.restrict_scalars`: restrict the scalars of an intermediate field to a smaller
+  field in a tower of fields.
 
 ## Implementation notes
 

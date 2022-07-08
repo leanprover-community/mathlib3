@@ -1197,7 +1197,9 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
+-- enable inferring a regular topological space from a topological group
 local attribute [instance] topological_add_group.regular_space
+-- disable getting a T0-space from a regular as this causes loops
 local attribute [-instance] regular_space.to_t0_space
 
 /-- The sum over the complement of a finset tends to `0` when the finset grows to cover the whole

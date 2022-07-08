@@ -23,7 +23,9 @@ namespace nat
 lemma prod_antidiagonal_succ {n : ℕ} {f : ℕ × ℕ → M} :
   ∏ p in antidiagonal (n + 1), f p = f (0, n + 1) * ∏ p in antidiagonal n, f (p.1 + 1, p.2) :=
 begin
-  rw [antidiagonal_succ, prod_cons, prod_map], refl,
+  rw [antidiagonal_succ, prod_cons, prod_map],
+  simp only [function.embedding.coe_fn_mk, function.embedding.refl_apply,
+    function.embedding.coe_prod_map, finset.prod_congr, prod.map_def, eq_self_iff_true],
 end
 
 lemma sum_antidiagonal_succ {n : ℕ} {f : ℕ × ℕ → N} :
@@ -39,7 +41,7 @@ lemma prod_antidiagonal_succ' {n : ℕ} {f : ℕ × ℕ → M} :
   ∏ p in antidiagonal (n + 1), f p = f (n + 1, 0) * ∏ p in antidiagonal n, f (p.1, p.2 + 1) :=
 begin
   rw [← prod_antidiagonal_swap, prod_antidiagonal_succ, ← prod_antidiagonal_swap],
-  refl
+  simp only [prod.swap_prod_mk, prod.fst_swap, prod.snd_swap],
 end
 
 lemma sum_antidiagonal_succ' {n : ℕ} {f : ℕ × ℕ → N} :

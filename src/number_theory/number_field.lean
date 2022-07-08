@@ -203,8 +203,7 @@ begin
     haveI : fact (irreducible $ minpoly ℚ x) := ⟨minpoly.irreducible hx⟩,
     have hK : (aeval x) (minpoly ℚ x) = 0 := minpoly.aeval _ _,
     have hA : (aeval a) (minpoly ℚ x) = 0,
-    { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],
-      exact ha,
+    { rwa [aeval_def, ←eval_map, ←mem_root_set_iff'],
       refine polynomial.monic.ne_zero _,
       exact polynomial.monic.map (algebra_map ℚ A) (minpoly.monic hx), },
     let ψ : Qx →+* A := by convert adjoin_root.lift (algebra_map ℚ A) a hA,
@@ -215,11 +214,11 @@ begin
       exact number_field.is_algebraic _, },
     let φ := φ₀.to_ring_hom,
     use φ,
-    rw (_ : x = (algebra_map Qx K) (adjoin_root.root (minpoly ℚ x))),
-    { rw (_ : a = ψ (adjoin_root.root (minpoly ℚ x))),
-      refine alg_hom.commutes _ _,
-      exact (adjoin_root.lift_root hA).symm, },
-    exact (adjoin_root.lift_root hK).symm, },
+    calc φ x
+        = φ (algebra_map Qx K (adjoin_root.root (minpoly ℚ x)))
+            : congr_arg φ (adjoin_root.lift_root hK).symm
+    ... = ψ (adjoin_root.root (minpoly ℚ x)) : alg_hom.commutes _ _
+    ... = a : adjoin_root.lift_root hA },
 end
 
 end number_field

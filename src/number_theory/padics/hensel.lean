@@ -318,7 +318,8 @@ end
 private lemma bound : ∀ {ε}, ε > 0 → ∃ N : ℕ, ∀ {n}, n ≥ N → ∥F.derivative.eval a∥ * T^(2^n) < ε :=
 begin
   have := bound' hnorm hnsol,
-  simp [tendsto, nhds] at this,
+  simp only [le_infi₂_iff, tendsto, nhds, set.mem_set_of_eq, le_principal_iff, mem_map,
+    mem_at_top_sets, ge_iff_le, set.mem_preimage, and_imp] at this,
   intros ε hε,
   cases this (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N, intros n hn,
@@ -336,13 +337,8 @@ end
 
 private theorem newton_seq_is_cauchy : is_cau_seq norm newton_seq :=
 begin
-  intros ε hε,
-  cases bound hnorm hnsol hε with N hN,
-  existsi N,
-  intros j hj,
-  apply lt_of_le_of_lt,
-  { apply newton_seq_dist _ _ hj, assumption },
-  { apply hN, exact le_rfl }
+  refine λ ε hε, exists_imp_exists (λ N hN j hj, _) (bound hnorm hnsol hε),
+  exact (newton_seq_dist _ hnsol hj).trans_lt (hN le_rfl),
 end
 
 private def newton_cau_seq : cau_seq ℤ_[p] norm := ⟨_, newton_seq_is_cauchy⟩
@@ -372,11 +368,7 @@ private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative
 tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
-begin
-  rw [soln_dist_to_a, div_lt_iff],
-  { rwa sq at hnorm },
-  { apply deriv_norm_pos, assumption }
-end
+by rwa [soln_dist_to_a, div_lt_iff (deriv_norm_pos hnorm), ←sq]
 
 private lemma eval_soln : F.eval soln = 0 :=
 limit_zero_of_norm_tendsto_zero newton_seq_norm_tendsto_zero

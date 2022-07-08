@@ -79,7 +79,7 @@ begin
   apply_rules [continuous.smul, continuous_const],
   simp_rw deriv_circle_map,
   apply_rules [continuous.mul, (continuous_circle_map 0 R), continuous_const],
-  { apply continuous_circle_map_inv hw },
+  { exact continuous_circle_map_inv hw },
   { apply continuous_on.comp_continuous hf (continuous_circle_map z R),
     exact (λ _, (circle_map_mem_sphere _ hR.le) _) },
 end
@@ -105,9 +105,8 @@ begin
   refine ((continuous_circle_map z R).continuous_on.comp continuous_on_snd (λ _, and.right)).sub
     (continuous_on_id.comp continuous_on_fst (λ _, and.left)),
   simp only [mem_prod, ne.def, and_imp, prod.forall],
-  intros a b ha hb,
-  have ha2 : a ∈ ball z R, by {simp at *, linarith,},
-  exact (sub_ne_zero.2 (circle_map_ne_mem_ball ha2 b)),
+  exact λ a b ha hb, sub_ne_zero_of_ne
+    (circle_map_ne_mem_ball (mem_ball.mpr ((mem_closed_ball.mp ha).trans_lt hr)) b),
 end
 
 lemma continuous_on_abs_circle_transform_bounding_function {R r : ℝ} (hr : r < R) (z : ℂ) :
@@ -121,9 +120,7 @@ begin
     apply_rules [continuous_on.mul, c.comp continuous_on_snd (λ _, and.right), continuous_on_const],
     simp_rw ←inv_pow,
     apply continuous_on_prod_circle_transform_function hr, },
-  refine continuous_abs.continuous_on.comp this _,
-  show maps_to _ _ (⊤ : set ℂ),
-  simp [maps_to],
+  exact continuous_abs.continuous_on.comp this (maps_to_univ _ _),
 end
 
 lemma abs_circle_transform_bounding_function_le {R r : ℝ} (hr : r < R) (hr' : 0 ≤ r) (z : ℂ) :
@@ -135,7 +132,8 @@ begin
   have comp : is_compact (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
   have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
-  simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simp, tauto })),
+  simpa using
+    is_compact.exists_forall_ge comp none (cts.mono $ set.prod_mono subset.rfl $ subset_univ _),
 end
 
 /-- The derivative of a `circle_transform` is locally bounded. -/
@@ -149,27 +147,25 @@ begin
   obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := abs_circle_transform_bounding_function_le hr
     (pos_of_mem_ball hrx).le z,
   let V : ℝ → (ℂ → ℂ) := λ θ w, circle_transform_deriv R z w (λ x, 1) θ,
-  have funccomp : continuous_on (λ r , abs (f r)) (sphere z R),
-  by { have cabs : continuous_on abs ⊤ := by apply continuous_abs.continuous_on,
-    apply cabs.comp (hf), rw maps_to, tauto,},
+  have funccomp : continuous_on (λ r , abs (f r)) (sphere z R) :=
+    continuous_abs.continuous_on.comp hf (maps_to_univ _ _),
   have sbou := is_compact.exists_forall_ge (is_compact_sphere z R)
     (normed_space.sphere_nonempty.2 hR.le) funccomp,
   obtain ⟨X, HX, HX2⟩ := sbou,
-  refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le), _ ⟩,
-  intros y v hv,
+  refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le), λ y v hv, _⟩,
   obtain ⟨y1, hy1, hfun⟩ := periodic.exists_mem_Ico₀
     (circle_transform_deriv_periodic R z v f) real.two_pi_pos y,
-  have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
-    simp [interval_of_le real.two_pi_pos.le]},
+  have hy2: y1 ∈ [0, 2*π],
+  { rw interval_of_le real.two_pi_pos.le,
+    exact Ico_subset_Icc_self hy1 },
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
-   (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1)) (abs_nonneg _) (abs_nonneg _),
-   simp_rw hfun,
-  simp only [circle_transform_bounding_function, circle_transform_deriv, V, norm_eq_abs,
+    (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1)) (abs_nonneg _) (abs_nonneg _),
+  rw hfun,
+  simpa only [circle_transform_bounding_function, circle_transform_deriv, V, norm_eq_abs,
     algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
     ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,
     mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod, mem_closed_ball, and_imp,
-    prod.forall, normed_space.sphere_nonempty, mem_sphere_iff_norm] at *,
-  exact this,
+    prod.forall, normed_space.sphere_nonempty, mem_sphere_iff_norm],
 end
 
 end complex

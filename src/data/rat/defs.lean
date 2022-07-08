@@ -715,10 +715,7 @@ begin
     (int.coe_nat_ne_zero_iff_pos.mpr q.pos)
     (int.coe_nat_ne_zero_iff_pos.mpr  r.pos),
   rw [num_denom, num_denom] at h,
-  rw h,
-  rw mul_comm,
-  apply rat.eq_iff_mul_eq_mul.mp,
-  rw ←mk_eq_div,
+  rw [h, mul_comm, ←rat.eq_iff_mul_eq_mul, ←mk_eq_div],
 end
 
 lemma add_num_denom' (q r : ℚ) :
@@ -738,10 +735,7 @@ begin
     (int.coe_nat_ne_zero_iff_pos.mpr q.pos)
     (int.coe_nat_ne_zero_iff_pos.mpr  r.pos),
   rw [num_denom, num_denom] at h,
-  rw h,
-  rw mul_comm,
-  apply rat.eq_iff_mul_eq_mul.mp,
-  rw ←mk_eq_div,
+  rw [h, mul_comm, ←rat.eq_iff_mul_eq_mul, ←mk_eq_div],
 end
 
 lemma substr_num_denom' (q r : ℚ) :

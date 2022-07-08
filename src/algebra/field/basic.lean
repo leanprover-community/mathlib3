@@ -206,7 +206,7 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 @[field_simps] lemma div_sub_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) - (c / d) = ((a * d) - (b * c)) / (b * d) :=
 begin
-  simp [sub_eq_add_neg],
+  simp only [sub_eq_add_neg],
   rw [neg_eq_neg_one_mul, ← mul_div_assoc, div_add_div _ _ hb hd,
       ← mul_assoc, mul_comm b, mul_assoc, ← neg_eq_neg_one_mul]
 end

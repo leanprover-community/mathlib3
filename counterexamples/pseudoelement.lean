@@ -64,9 +64,8 @@ lemma snd_x_pseudo_eq_snd_y : pseudo_equal _
 begin
   refine ⟨of ℤ ℚ, (of_hom id), 2 • (of_hom id),
     category_struct.id.epi (of ℤ ℚ), _, _⟩,
-  { refine (Module.epi_iff_surjective _).2 (λ a, ⟨(a/2 : ℚ), _⟩),
-    simp only [two_smul, add_apply, of_hom_apply, id_coe, id.def],
-    exact add_halves' (show ℚ, from a) },
+  { refine (Module.epi_iff_surjective _).2 (λ (a : ℚ), ⟨(a / 2 : ℚ), _⟩),
+    simp only [two_smul, add_apply, of_hom_apply, id_coe, id.def, add_halves' a] },
   { dsimp [x, y],
     exact concrete_category.hom_ext _ _ (λ a, by simpa) }
 end

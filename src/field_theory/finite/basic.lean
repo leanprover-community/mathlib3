@@ -524,7 +524,7 @@ end
 /-- In a finite field of odd characteristic, not every element is a square. -/
 lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
 begin
-  -- idea: the squaring map on `F` is not injetive, hence not surjective
+  -- idea: the squaring map on `F` is not injective, hence not surjective
   let sq : F → F := λ x, x ^ 2,
   have h : ¬ function.injective sq,
   { simp only [function.injective, not_forall, exists_prop],
@@ -532,14 +532,10 @@ begin
     split,
     { simp only [sq, one_pow, neg_one_sq], },
     { exact ring.neg_one_ne_one_of_char_ne_two hF, }, },
-  have h₁ := mt (fintype.injective_iff_surjective.mpr) h, -- sq not surjective
-  push_neg at h₁,
-  cases h₁ with a h₁,
-  use a,
-  simp only [is_square, sq, not_exists, ne.def] at h₁ ⊢,
-  intros b hb,
-  rw ← pow_two at hb,
-  exact h₁ b hb.symm,
+  have h₁ : ¬function.surjective sq := mt (fintype.injective_iff_surjective.mpr) h,
+  contrapose! h₁,
+  refine forall_imp _ h₁,
+  simp [is_square, sq, pow_two],
 end
 
 end finite_field

@@ -358,8 +358,10 @@ begin
       ennreal.nat_ne_top, false_and, or_false, not_and],
     intros,
     contradiction },
-  rw [eq_comm, ennreal.eq_div_iff, ennreal.mul_sub, ennreal.mul_div_cancel'],
-  all_goals { simp, try { rintro rfl, rw zero_add at h, exact h.ne.symm } },
+  have : (p + q : ennreal) ≠ 0,
+  { rw [←nat.cast_add, nat.cast_ne_zero],
+    exact h.ne' },
+  rw [eq_comm, ennreal.eq_div_iff this, ennreal.mul_sub, ennreal.mul_div_cancel' this]; simp,
 end
 
 lemma ballot_same (p : ℕ) : cond_count (counted_sequence (p + 1) (p + 1)) stays_positive = 0 :=
@@ -415,13 +417,11 @@ begin
     { simp only [and_imp, exists_imp_distrib],
       rintro l hl rfl t,
       refine ⟨l, ⟨hl, _⟩, rfl⟩,
-      rwa stays_positive_cons_pos at t,
-      norm_num },
+      rwa stays_positive_cons_pos _ zero_lt_one at t },
     { simp only [and_imp, exists_imp_distrib],
       rintro l hl₁ hl₂ rfl,
       refine ⟨⟨_, hl₁, rfl⟩, _⟩,
-      rwa stays_positive_cons_pos,
-      norm_num } },
+      rwa stays_positive_cons_pos _ zero_lt_one } },
   rw [this, count_injective_image],
   exact list.cons_injective,
 end

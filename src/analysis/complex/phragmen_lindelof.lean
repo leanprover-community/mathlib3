@@ -140,13 +140,13 @@ begin
     ⟨(a + b) / 2, (b - a) / 2, by ring, by ring⟩,
   have hab : a - b < a + b, from hza.trans hzb,
   have hb : 0 < b,
-    by simpa only [sub_eq_add_neg, add_lt_add_iff_left, neg_lt_self_iff] using hab,
+  { simpa only [sub_eq_add_neg, add_lt_add_iff_left, neg_lt_self_iff] using hab },
   rw [add_sub_sub_cancel, ← two_mul, div_mul_eq_div_div] at hB,
   have hπb : 0 < π / 2 / b, from div_pos real.pi_div_two_pos hb,
   -- Choose some `c B : ℝ` satisfying `hB`, then choose `max c 0 < d < π / 2 / b`.
   rcases hB with ⟨c, hc, B, hO⟩,
   obtain ⟨d, ⟨hcd, hd₀⟩, hd⟩ : ∃ d, (c < d ∧ 0 < d) ∧ d < π / 2 / b,
-    by simpa only [max_lt_iff] using exists_between (max_lt hc hπb),
+  { simpa only [max_lt_iff] using exists_between (max_lt hc hπb) },
   have hb' : d * b < π / 2, from (lt_div_iff hb).1 hd,
   set aff : ℂ → ℂ := λ w, d * (w - a * I),
   set g : ℝ → ℂ → ℂ := λ ε w, exp (ε * (exp (aff w) + exp (-aff w))),
@@ -285,7 +285,8 @@ lemma vertical_strip (hfd : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
   (hza : a ≤ re z) (hzb : re z ≤ b) :
   ∥f z∥ ≤ C :=
 begin
-  suffices : ∥(λ z, f (z * (-I))) (z * I)∥ ≤ C, by simpa [mul_assoc] using this,
+  suffices : ∥(λ z, f (z * (-I))) (z * I)∥ ≤ C,
+  { simpa [mul_assoc] using this },
   have H : maps_to (λ z, z * (-I)) (im ⁻¹' Ioo a b) (re ⁻¹' Ioo a b),
   { intros z hz, simpa using hz },
   refine horizontal_strip (hfd.comp (differentiable_id.mul_const _).diff_cont_on_cl H)
@@ -689,9 +690,10 @@ begin
     { refine ⟨0, le_rfl, λ y hy, _⟩, rw [h₀ y hy, h₀ 0 le_rfl] },
     push_neg at h₀,
     rcases h₀ with ⟨x₀, hx₀, hne⟩,
-    have hlt : ∥(0 : E)∥ < ∥f x₀∥, by rwa [norm_zero, norm_pos_iff],
+    have hlt : ∥(0 : E)∥ < ∥f x₀∥,
+    { rwa [norm_zero, norm_pos_iff] },
     suffices : ∀ᶠ x : ℝ in cocompact ℝ ⊓ 𝓟 (Ici 0), ∥f x∥ ≤ ∥f x₀∥,
-      by simpa only [exists_prop] using hfc.norm.exists_forall_ge' is_closed_Ici hx₀ this,
+    { simpa only [exists_prop] using hfc.norm.exists_forall_ge' is_closed_Ici hx₀ this },
     rw [real.cocompact_eq, inf_sup_right, (disjoint_at_bot_principal_Ici (0 : ℝ)).eq_bot,
       bot_sup_eq],
     exact (hre.norm.eventually $ ge_mem_nhds hlt).filter_mono inf_le_left },
@@ -742,12 +744,13 @@ begin
   -- Taking the limit as `ε → 0`, we obtain the required inequality.
   suffices : ∀ᶠ ε : ℝ in 𝓝[<] 0, ∥exp (ε * z) • f z∥ ≤ C,
   { refine le_of_tendsto (tendsto.mono_left _ nhds_within_le_nhds) this,
-    apply ((continuous_of_real.mul continuous_const).cexp.smul continuous_const).norm.tendsto',
-    simp, apply_instance },
+    refine
+      ((continuous_of_real.mul continuous_const).cexp.smul continuous_const).norm.tendsto' _ _ _,
+    simp },
   filter_upwards [self_mem_nhds_within] with ε ε₀, change ε < 0 at ε₀,
   set g : ℂ → E := λ z, exp (ε * z) • f z, change ∥g z∥ ≤ C,
-  replace hd : diff_cont_on_cl ℂ g {z : ℂ | 0 < z.re},
-    from (differentiable_id.const_mul _).cexp.diff_cont_on_cl.smul hd,
+  replace hd : diff_cont_on_cl ℂ g {z : ℂ | 0 < z.re} :=
+    (differentiable_id.const_mul _).cexp.diff_cont_on_cl.smul hd,
   have hgn : ∀ z, ∥g z∥ = expR (ε * z.re) * ∥f z∥,
   { intro z, rw [norm_smul, norm_eq_abs, abs_exp, of_real_mul_re] },
   refine right_half_plane_of_tendsto_zero_on_real hd _ _ (λ y, _) hz,
@@ -757,8 +760,8 @@ begin
     refine mul_le_of_le_one_left (norm_nonneg _) (real.exp_le_one_iff.2 _),
     exact mul_nonpos_of_nonpos_of_nonneg ε₀.le (le_of_lt hz) },
   { simp_rw [g, ← of_real_mul, ← of_real_exp, coe_smul],
-    have h₀ : tendsto (λ x : ℝ, expR (ε * x)) at_top (𝓝 0),
-      from real.tendsto_exp_at_bot.comp (tendsto_const_nhds.neg_mul_at_top ε₀ tendsto_id),
+    have h₀ : tendsto (λ x : ℝ, expR (ε * x)) at_top (𝓝 0) :=
+      real.tendsto_exp_at_bot.comp (tendsto_const_nhds.neg_mul_at_top ε₀ tendsto_id),
     exact h₀.zero_smul_is_bounded_under_le hre },
   { rw [hgn, of_real_mul_re, I_re, mul_zero, mul_zero, real.exp_zero, one_mul],
     exact him y }
@@ -843,7 +846,7 @@ lemma eq_on_right_half_plane_of_superexponential_decay {g : ℂ → E}
   eq_on f g {z : ℂ | 0 ≤ z.re} :=
 begin
   suffices : eq_on (f - g) 0 {z : ℂ | 0 ≤ z.re},
-    by simpa only [eq_on, pi.sub_apply, pi.zero_apply, sub_eq_zero] using this,
+  { simpa only [eq_on, pi.sub_apply, pi.zero_apply, sub_eq_zero] using this },
   refine eq_zero_on_right_half_plane_of_superexponential_decay (hfd.sub hgd) _ hre _,
   { set l : filter ℂ := comap abs at_top ⊓ 𝓟 {z : ℂ | 0 < z.re},
     suffices : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → B₁ ≤ B₂ → 0 ≤ B₂ →
@@ -852,8 +855,8 @@ begin
       refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
       refine is_O.sub (hOf.trans $ this _ _ _) (hOg.trans $ this _ _ _); simp },
     intros c₁ c₂ B₁ B₂ hc hB hB₂,
-    have : ∀ᶠ z : ℂ in l, 1 ≤ abs z,
-      from ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
+    have : ∀ᶠ z : ℂ in l, 1 ≤ abs z :=
+      ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
     refine is_O.of_bound 1 (this.mono $ λ z hz, _),
     simp only [real.norm_of_nonneg (real.exp_pos _).le, real.exp_le_exp, one_mul],
     exact mul_le_mul hB (real.rpow_le_rpow_of_exponent_le hz hc)

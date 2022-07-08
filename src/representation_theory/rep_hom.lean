@@ -98,7 +98,8 @@ instance : has_coe_to_fun (ρ →ᵣ ρ₂) (λ _, V → V₂) := ⟨λ f, f⟩
 -- should there be coe to linear_map?
 @[simp] lemma to_fun_eq_coe {f : ρ →ᵣ ρ₂} : f.to_fun = (f : V → V₂) := rfl
 
-@[simp] lemma coe_eq_to_linear_map_coe {f : ρ →ᵣ ρ₂} : (f.to_linear_map : V → V₂) = (f : V → V₂) := rfl
+@[simp] lemma coe_eq_to_linear_map_coe {f : ρ →ᵣ ρ₂} :
+  (f.to_linear_map : V → V₂) = (f : V → V₂) := rfl
 
 @[ext] theorem ext {f g : ρ →ᵣ ρ₂} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
@@ -125,7 +126,8 @@ lemma id_apply (x : V) :
 @[simp, norm_cast] lemma id_coe : ((rep_hom.id : ρ →ᵣ ρ) : V → V) = _root_.id := rfl
 
 section
-theorem rep_hom_is_rep_hom (f : ρ →ᵣ ρ₂) : is_rep_hom ρ ρ₂ f := ⟨f.map_add', f.map_smul', f.map_smulG'⟩
+theorem rep_hom_is_rep_hom (f : ρ →ᵣ ρ₂) : is_rep_hom ρ ρ₂ f :=
+⟨f.map_add', f.map_smul', f.map_smulG'⟩
 
 variables {f f' : ρ →ᵣ ρ₂}
 
@@ -540,7 +542,8 @@ instance _root_.representation.End.semiring : semiring ρ.End :=
   .. _root_.representation.End.monoid,
   .. rep_hom.add_comm_monoid }
 
-instance _root_.representation.End.ring [has_smul ℤ k] [is_scalar_tower ℤ k W₁] : ring (representation.End σ₁) :=
+instance _root_.representation.End.ring [has_smul ℤ k] [is_scalar_tower ℤ k W₁] :
+  ring (representation.End σ₁) :=
 { ..representation.End.semiring, ..rep_hom.add_comm_group }
 
 section

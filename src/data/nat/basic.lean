@@ -1281,8 +1281,8 @@ lemma not_dvd_iff_between_consec_multiples (n : ℕ) {a : ℕ} (ha : 0 < a) :
   (∃ k : ℕ, a * k < n ∧ n < a * (k + 1)) ↔ ¬ a ∣ n :=
 begin
   refine ⟨λ ⟨k, hk1, hk2⟩, not_dvd_of_between_consec_multiples hk1 hk2,
-          λ han, ⟨n/a, ⟨_, lt_mul_div_succ _ ha⟩⟩⟩,
-  exact lt_of_le_of_ne (mul_div_le n a) (mt (dvd.intro (n/a)) han),
+          λ han, ⟨n/a, ⟨lt_of_le_of_ne (mul_div_le n a) _, lt_mul_div_succ _ ha⟩⟩⟩,
+  exact mt (dvd.intro (n/a)) han,
 end
 
 /-- Two natural numbers are equal if and only if they have the same multiples. -/

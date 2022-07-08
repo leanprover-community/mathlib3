@@ -170,8 +170,7 @@ lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
     p ^ ((central_binom n).factorization p) :=
 begin
   apply finset.prod_subset,
-  { -- apply finset.filter_subset_filter,
-    rw [finset.range_subset, add_le_add_iff_right],
+  { rw [finset.range_subset, add_le_add_iff_right],
     apply nat.div_le_of_le_mul,
     linarith, },
   intro x,
@@ -185,7 +184,6 @@ begin
     rw nat.eq_zero_of_le_zero h,
     exact pow_zero x, },
   apply no_prime,
-  -- ⟨x, ⟨hx, ⟨_, x_le_two_mul_n⟩⟩⟩,
   use x,
   cases le_or_gt x n with x_le_n n_lt_x,
   { rw [add_one, succ_le_iff, div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,

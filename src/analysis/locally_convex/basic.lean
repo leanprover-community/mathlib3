@@ -162,7 +162,7 @@ lemma balanced_Inter₂ {f : Π i, κ i → set E} (h : ∀ i j, balanced 𝕜 (
   balanced 𝕜 (⋂ i j, f i j) :=
 balanced_Inter $ λ _, balanced_Inter $ h _
 
-variables [has_scalar 𝕝 E] [smul_comm_class 𝕜 𝕝 E]
+variables [has_smul 𝕝 E] [smul_comm_class 𝕜 𝕝 E]
 
 lemma balanced.smul (a : 𝕝) (hs : balanced 𝕜 s) : balanced 𝕜 (a • s) :=
 λ b hb, (smul_comm _ _ _).subset.trans $ smul_set_mono $ hs _ hb

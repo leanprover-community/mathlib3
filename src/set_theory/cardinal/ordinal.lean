@@ -700,8 +700,8 @@ calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
   [nontrivial β] : #(α →₀ β) = max (lift.{v} (#α)) (lift.{u} (#β)) :=
 begin
   apply le_antisymm,
-  { calc #(α →₀ β) ≤ # (list (α × β)) : mk_le_of_surjective finsupp_of_entries_surjective
-    ... = #(α × β) : by simp
+  { calc #(α →₀ β) ≤ # (finset (α × β)) : mk_le_of_injective (finsupp.graph_injective α β)
+    ... = #(α × β) : mk_finset_of_infinite _
     ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
       by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
   { apply max_le,

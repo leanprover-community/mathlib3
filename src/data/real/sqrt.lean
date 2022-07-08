@@ -340,33 +340,6 @@ open real
 
 variables {α : Type*}
 
-lemma exists_rat_sq_btwn_rat_aux (x y : ℝ) (h : x < y) (hy : 0 < y) :
-  ∃ q : ℚ, 0 < q ∧ x < q^2 ∧ ↑q^2 < y :=
-begin
-  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn
-    (max_lt ((sqrt_lt_sqrt_iff_of_pos hy).2 h) $ sqrt_pos.2 hy),
-  have hq : (0 : ℝ) < q := (le_max_right _ _).trans_lt hxq,
-  refine ⟨q, _, lt_sq_of_sqrt_lt $ (le_max_left _ _).trans_lt hxq, _⟩,
-  { assumption_mod_cast },
-  { rwa [←real.sqrt_lt_sqrt_iff (pow_nonneg hq.le 2), real.sqrt_sq hq.le] }
-end
-
-lemma exists_rat_sq_btwn_rat {x y : ℚ} (h : x < y) (hy : 0 < y) :
-  ∃ q : ℚ, 0 < q ∧ x < q^2 ∧ q^2 < y :=
-by apply_mod_cast exists_rat_sq_btwn_rat_aux x y; assumption
-
-/-- There is a rational square between any two positive elements of an archimedean ordered field. -/
-lemma exists_rat_sq_btwn [linear_ordered_field α] [archimedean α] {x y : α} (h : x < y)
-  (hy : 0 < y) : ∃ q : ℚ, 0 < q ∧ x < q^2 ∧ (q^2 : α) < y :=
-begin
-  obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
-  obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,
-  have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
-  norm_cast at hq₁₂ this,
-  obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_sq_btwn_rat hq₁₂ this,
-  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast
-end
-
 lemma filter.tendsto.sqrt {f : α → ℝ} {l : filter α} {x : ℝ} (h : tendsto f l (𝓝 x)) :
   tendsto (λ x, sqrt (f x)) l (𝓝 (sqrt x)) :=
 (continuous_sqrt.tendsto _).comp h

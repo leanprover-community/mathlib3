@@ -339,8 +339,8 @@ theorem mk_arrow (α : Type u) (β : Type v) : #(α → β) = lift.{u} (#β) ^ l
 mk_congr (equiv.ulift.symm.arrow_congr equiv.ulift.symm)
 
 @[simp] lemma mk_finsupp_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
-  #(α →₀ β) = lift.{u} (#β) ^ lift.{v} (#α) :=
-finsupp.equiv_fun_on_fintype.cardinal_eq.trans (mk_arrow α β)
+  #(α →₀ β) = lift.{u} (#β) ^ fintype.card α :=
+by simpa using finsupp.equiv_fun_on_fintype.cardinal_eq.trans (mk_arrow α β)
 
 @[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
 induction_on₂ a b $ λ α β,

@@ -888,7 +888,7 @@ def pnat_denom (x : ℚ) : ℕ+ := ⟨x.denom, x.pos⟩
 @[simp] lemma mk_pnat_pnat_denom_eq (x : ℚ) : mk_pnat x.num x.pnat_denom = x :=
 by rw [pnat_denom, mk_pnat_eq, num_denom]
 
-lemma pnat_denom_iff_denom {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
+lemma pnat_denom_eq_iff_denom_eq {x : ℚ} {n : ℕ+} : x.pnat_denom = n ↔ x.denom = ↑n :=
 subtype.ext_iff
 
 end pnat_denom

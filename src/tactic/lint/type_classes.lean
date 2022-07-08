@@ -372,11 +372,9 @@ attribute [nolint decidable_classical] dec_em dec_em' not.decidable_imp_symm
 
 /-- Checks whether a declaration is `Prop`-valued and takes a `fintype* _`
 hypothesis that is unused elsewhere in the type.
-In this case, that hypothesis can be replaced with `casesI nonempty_fintype _` in the proof.
-Theorems in the `fintype` namespace are exempt from the check. -/
+In this case, that hypothesis can be replaced with `casesI nonempty_fintype _` in the proof. -/
 meta def linter.fintype_finite_fun (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
-   ff ← pure $ (`fintype).is_prefix_of d.to_name | return none,
    (binders, _) ← get_pi_binders_nondep d.type,
    let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `fintype,
    if deceq_binders.length = 0 then return none

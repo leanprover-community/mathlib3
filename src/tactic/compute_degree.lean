@@ -48,7 +48,7 @@ end polynomial
 
 namespace tactic
 namespace compute_degree
-open expr
+open expr polynomial
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the degree of `e`.  Heuristics for `guess_degree`:
@@ -62,25 +62,25 @@ at guessing the degree of `e`.  Heuristics for `guess_degree`:
 * `f` not as above, guess `f.nat_degree`.
  -/
 meta def guess_degree : expr → tactic expr
-| `(has_zero.zero)         := pure `(0)
-| `(has_one.one)           := pure `(0)
-| `(- %%f)                 := guess_degree f
-| (app `(⇑polynomial.C) x) := pure `(0)
-| `(polynomial.X)          := pure `(1)
-| `(bit0 %%a)              := guess_degree a
-| `(bit1 %%a)              := guess_degree a
-| `(%%a + %%b)             := do [da, db] ← [a, b].mmap guess_degree,
-                              pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a - %%b)             := do [da, db] ← [a, b].mmap guess_degree,
-                              pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a * %%b)             := do [da, db] ← [a, b].mmap guess_degree,
-                              pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
-| `(%%a ^ %%b)             := do da ← guess_degree a,
-                              pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
-| (app `(⇑(polynomial.monomial %%n)) x) := pure n
-| e                        := do `(@polynomial %%R %%inst) ← infer_type e,
-                              pe ← to_expr ``(@polynomial.nat_degree %%R %%inst) tt ff,
-                              pure $ expr.mk_app pe [e]
+| `(has_zero.zero)           := pure `(0)
+| `(has_one.one)             := pure `(0)
+| `(- %%f)                   := guess_degree f
+| (app `(⇑C) x)              := pure `(0)
+| `(X)                       := pure `(1)
+| `(bit0 %%a)                := guess_degree a
+| `(bit1 %%a)                := guess_degree a
+| `(%%a + %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+                                pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
+| `(%%a - %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+                                pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
+| `(%%a * %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+                                pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
+| `(%%a ^ %%b)               := do da ← guess_degree a,
+                                pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
+| (app `(⇑(monomial %%n)) x) := pure n
+| e                          := do `(@polynomial %%R %%inst) ← infer_type e,
+                                pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
+                                pure $ expr.mk_app pe [e]
 
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
@@ -93,23 +93,23 @@ It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 The side-goals produced by `resolve_sum_step` are either again of the same shape `f'.nat_degree ≤ d`
 or of the form `m ≤ n`, where `m n : ℕ`. -/
 meta def resolve_sum_step : expr → tactic unit
-| `(polynomial.nat_degree %%tl ≤ %%tr) := match tl with
-  | `(%%tl1 + %%tl2) := refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 - %%tl2) := refine ``((polynomial.nat_degree_sub_le_iff_left _ _ _).mpr _)
+| `(nat_degree %%tl ≤ %%tr) := match tl with
+  | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
+  | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _ _ _).mpr _)
   | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
-    refine ``(polynomial.nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
-  | `(- %%f) := refine ``((polynomial.nat_degree_neg _).le.trans _)
-  | `(polynomial.X ^ %%n) := refine ``((polynomial.nat_degree_X_pow_le %%n).trans _)
-  | (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
-    refine ``((polynomial.nat_degree_monomial_le %%x).trans _)
-  | (app `(⇑polynomial.C) x) := refine ``((polynomial.nat_degree_C %%x).le.trans (nat.zero_le %%tr))
-  | `(polynomial.X)  := refine ``(polynomial.nat_degree_X_le.trans _)
-  | `(has_zero.zero) := refine ``(polynomial.nat_degree_zero.le.trans (nat.zero_le _))
-  | `(has_one.one)   := refine ``(polynomial.nat_degree_one.le.trans (nat.zero_le _))
-  | `(bit0 %%a)      := refine ``((polynomial.nat_degree_bit0 %%a).trans _)
-  | `(bit1 %%a)      := refine ``((polynomial.nat_degree_bit1 %%a).trans _)
+    refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
+  | `(- %%f) := refine ``((nat_degree_neg _).le.trans _)
+  | `(X ^ %%n) := refine ``((nat_degree_X_pow_le %%n).trans _)
+  | (app `(⇑(@monomial %%R %%inst %%n)) x) :=
+    refine ``((nat_degree_monomial_le %%x).trans _)
+  | (app `(⇑C) x) := refine ``((nat_degree_C %%x).le.trans (nat.zero_le %%tr))
+  | `(X)  := refine ``(nat_degree_X_le.trans _)
+  | `(has_zero.zero) := refine ``(nat_degree_zero.le.trans (nat.zero_le _))
+  | `(has_one.one)   := refine ``(nat_degree_one.le.trans (nat.zero_le _))
+  | `(bit0 %%a)      := refine ``((nat_degree_bit0 %%a).trans _)
+  | `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
   | `(%%tl1 ^ %%n)   := do
-      refine ``(polynomial.nat_degree_pow_le.trans _),
+      refine ``(nat_degree_pow_le.trans _),
       refine ``(dite (%%n = 0) (λ (n0 : %%n = 0),
         (by simp only [n0, zero_mul, zero_le])) (λ (n0 : ¬ %%n = 0), _)),
       refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero ‹_›)).mp _))
@@ -143,7 +143,7 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 end compute_degree
 
 namespace interactive
-open compute_degree
+open compute_degree polynomial
 
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
@@ -152,8 +152,8 @@ If the given degree `d` is smaller than the one that the tactic computes,
 then the tactic suggests the degree that it computed. -/
 meta def compute_degree_le : tactic unit :=
 do t ← target,
-  try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
-  `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
+  try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
+  `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
   expected_deg ← guess_degree tl >>= eval_guessing 0,
   deg_bound ← eval_expr ℕ tr <|> pure expected_deg,

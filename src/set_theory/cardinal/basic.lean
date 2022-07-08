@@ -338,10 +338,6 @@ theorem power_def (α β) : #α ^ #β = #(β → α) := rfl
 theorem mk_arrow (α : Type u) (β : Type v) : #(α → β) = lift.{u} (#β) ^ lift.{v} (#α) :=
 mk_congr (equiv.ulift.symm.arrow_congr equiv.ulift.symm)
 
-@[simp] lemma mk_finsupp_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
-  #(α →₀ β) = lift.{u} (#β) ^ fintype.card α :=
-by simpa using finsupp.equiv_fun_on_fintype.cardinal_eq.trans (mk_arrow α β)
-
 @[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
 induction_on₂ a b $ λ α β,
 mk_congr $ equiv.ulift.trans (equiv.ulift.arrow_congr equiv.ulift).symm
@@ -849,6 +845,10 @@ theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 lemma mk_coe_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
 
 lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α := by simp
+
+@[simp] lemma mk_finsupp_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
+  #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
+by simpa using finsupp.equiv_fun_on_fintype.cardinal_eq.trans (mk_arrow α β)
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 begin

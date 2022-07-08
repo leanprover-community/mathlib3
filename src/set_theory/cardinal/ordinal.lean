@@ -714,8 +714,6 @@ begin
       exact ⟨_, finsupp.single_injective (classical.arbitrary α)⟩ } }
 end
 
-#exit
-
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ #α ^ c :=
 begin

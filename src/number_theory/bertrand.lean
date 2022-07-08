@@ -369,7 +369,7 @@ end bertrand
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
-lemma bertrand_eventually (n : nat) (n_big : 648 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Assume there is no prime in the range
   by_contradiction no_prime,

@@ -317,7 +317,7 @@ begin
   have finrank_K_L : finite_dimensional.finrank K L = B.dim := B.finrank,
   have deg_K_P : (minpoly K B.gen).nat_degree = B.dim := B.nat_degree_minpoly,
   have deg_R_P : P.nat_degree = B.dim,
-  { rw [← deg_K_P, minpoly.gcd_domain_eq_field_fractions K hBint,
+  { rw [← deg_K_P, minpoly.gcd_domain_eq_field_fractions' K hBint,
         (minpoly.monic hBint).nat_degree_map (algebra_map R K)] },
   choose! f hf using hei.is_weakly_eisenstein_at.exists_mem_adjoin_mul_eq_pow_nat_degree_le
     (minpoly.aeval R B.gen) (minpoly.monic hBint),
@@ -359,7 +359,7 @@ begin
   ... = _ : _,
   { simp only [algebra.smul_def, algebra_map_apply R K L, algebra.norm_algebra_map, _root_.map_mul,
       _root_.map_pow, finrank_K_L, power_basis.norm_gen_eq_coeff_zero_minpoly,
-      minpoly.gcd_domain_eq_field_fractions K hBint, coeff_map, ← hn],
+      minpoly.gcd_domain_eq_field_fractions' K hBint, coeff_map, ← hn],
     ring_exp },
   swap, { simp_rw [← smul_sum, ← smul_sub, algebra.smul_def p, algebra_map_apply R K L,
       _root_.map_mul, algebra.norm_algebra_map, finrank_K_L, hr, ← hn] },
@@ -493,7 +493,7 @@ begin
     rw [nat.succ_eq_add_one, add_assoc, ← nat.add_sub_assoc H, ← add_assoc, add_comm (j + 1),
       nat.add_sub_add_left, ← nat.add_sub_assoc, nat.add_sub_add_left, hP,
       ← (minpoly.monic hBint).nat_degree_map  (algebra_map R K),
-      ← minpoly.gcd_domain_eq_field_fractions K hBint, nat_degree_minpoly, hn, nat.sub_one,
+      ← minpoly.gcd_domain_eq_field_fractions' K hBint, nat_degree_minpoly, hn, nat.sub_one,
       nat.pred_succ],
     linarith },
 
@@ -531,7 +531,7 @@ begin
     rw [algebra.smul_def, mul_assoc, ← mul_sub, _root_.map_mul, algebra_map_apply R K L, map_pow,
       algebra.norm_algebra_map, _root_.map_mul, algebra_map_apply R K L, algebra.norm_algebra_map,
       finrank B, ← hr,
-      power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions K hBint,
+      power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions' K hBint,
       coeff_map, show (-1 : K) = algebra_map R K (-1), by simp, ← map_pow, ← map_pow,
       ← _root_.map_mul, ← map_pow, ← _root_.map_mul, ← map_pow, ← _root_.map_mul] at hQ,
 

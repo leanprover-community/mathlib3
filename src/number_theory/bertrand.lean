@@ -123,7 +123,7 @@ lemma main_inequality {n : ℕ} (n_large : 512 ≤ n) :
   n * (2 * n) ^ (sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@cast_le ℝ,
-  have n_large_real : 648 ≤ (n : ℝ),
+  have n_large_real : 512 ≤ (n : ℝ),
   { rw ←@cast_le ℝ at n_large,
     convert n_large, norm_num, },
   have n_pos : 0 < (n : ℝ),

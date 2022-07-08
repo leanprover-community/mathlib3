@@ -9,14 +9,14 @@ import representation_theory.basic
 # Homomorphisms between representations
 
 This file defines homomorphisms between representations `rep_hom` as linear maps that commute with
-the group action on the source and target spaces. Lemmas and definitions follow closely
+the group action on the source and target spaces. Lemmas and definitions closely follow
 `algebra.module.linear_map`.
 
 ## Notations
 
 Since multiple different representations may be defined on the same vector space, the `rep_hom`s are
 written to be from `ρ : representation k G V` to `ρ₂ : representation k G V₂` (denoted `ρ →ᵣ ρ₂`),
-rather than from `V` to `V₂`. This is denoted `ρ →ᵣ ρ₂`
+rather than from `V` to `V₂`.
 
 ## Tags
 

@@ -661,7 +661,7 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
+@[simp] theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
 have H1 : ℵ₀ ≤ #α := aleph_0_le_mk α,
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
 calc  #(list α)
@@ -697,13 +697,15 @@ calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
 set_option pp.universes true
+
 @[simp] lemma mk_finsupp_of_infinite (α : Type u) (β : Type v) [infinite α] [has_zero β]
   [nontrivial β] : #(α →₀ β) = max (lift.{v} (#α)) (lift.{u} (#β)) :=
 begin
   apply le_antisymm,
-  {
-    apply le_max
-  },
+  { calc #(α →₀ β) ≤ # (list (α × β)) : mk_le_of_surjective finsupp_of_entries_surjective
+    ... = #(α × β) : by simp
+    ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
+      by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
   { apply max_le,
     { cases exists_ne (0 : β) with b hb,
       rw [←lift_id (# (α →₀ β)), ←lift_umax.{u v}],

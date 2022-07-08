@@ -71,6 +71,7 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 instance : linear_order ℕ+ := subtype.linear_order _
 instance : well_founded_lt ℕ+ := subtype.well_founded_lt _
 instance : is_well_order ℕ+ (<) := { }
+instance : has_well_founded ℕ+ := well_founded_lt.to_has_well_founded
 
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
@@ -233,8 +234,6 @@ end
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact add_tsub_cancel_of_le h.le }
-
-instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
 
 /-- Strong induction on `ℕ+`. -/
 def strong_induction_on {p : ℕ+ → Sort*} : ∀ (n : ℕ+) (h : ∀ k, (∀ m, m < k → p m) → p k), p n

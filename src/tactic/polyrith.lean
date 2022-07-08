@@ -370,7 +370,7 @@ out this conversion, updates the `exmap` with information
 about the new `poly`, and adds the new `poly` to the top
 of the list.
 -/
-meta def fold_function: (exmap × list poly) → expr → tactic (exmap × list poly)
+meta def fold_function : (exmap × list poly) → expr → tactic (exmap × list poly)
 | (m, poly_list) new_exp :=
 do
   (m', new_poly) ← poly_form_of_expr transparency.reducible m new_exp,
@@ -499,6 +499,33 @@ The following section contains code that allows lean to communicate with a pytho
 declare_trace polyrith
 
 /--
+The first half of `tactic.polyrith` produces a list of arguments to be sent to Sage.
+-/
+meta def create_args (only_on : bool) (hyps : list pexpr) :
+  tactic (list expr × exmap × expr × list string) := do
+  (m, p, R) ← parse_target_to_poly,
+  (eq_names, m, polys) ← parse_ctx_to_polys R m only_on hyps,
+  let args := [to_string R, (get_var_names m).to_string,
+    (polys.map poly.mk_string).to_string, p.mk_string],
+  return $ (eq_names, m, R, to_string (is_trace_enabled_for `polyrith) :: args)
+
+/--
+The second half of `tactic.polyrith` processes the output from Sage into
+a call to `linear_combination`.
+-/
+meta def process_output (eq_names : list expr) (m : exmap) (R : expr) (sage_out : string) :
+  tactic format := do
+  coeffs_as_poly ← convert_sage_output sage_out,
+  coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
+  let eq_names_pexpr := eq_names.map to_pexpr,
+  coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
+  linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr,
+  let components := (eq_names.zip coeffs_as_expr).filter
+    $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
+  expr_string ← components_to_lc_format components,
+  return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
+
+/--
 This is the main body of the `polyrith` tactic. It takes in the following inputs:
 * `(only_on : bool)` - This represents whether the user used the key word "only"
 * `(hyps : list pexpr)` - the hypotheses/proof terms selecteed by the user
@@ -520,27 +547,13 @@ given to `linear_combination`. If that tactic succeeds, the user is prompted
 to replace the call to `polyrith` with the appropriate call to
 `linear_combination`.
 -/
-meta def tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic format :=
+meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic format :=
 do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
-  (m, p, R) ← parse_target_to_poly,
-  (eq_names, m, polys) ← parse_ctx_to_polys R m only_on hyps,
-  let args := [to_string R, (get_var_names m).to_string,
-    (polys.map poly.mk_string).to_string, p.mk_string],
-  let args := to_string (is_trace_enabled_for `polyrith) :: args,
+  (eq_names, m, R, args) ← create_args only_on hyps,
   sage_out ← sage_output args,
-  if is_trace_enabled_for `polyrith then
-    return sage_out
-  else do
-  coeffs_as_poly ← convert_sage_output sage_out,
-  coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
-  let eq_names_pexpr := eq_names.map to_pexpr,
-  coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
-  linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr,
-  let components := (eq_names.zip coeffs_as_expr).filter
-    $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
-  expr_string ← components_to_lc_format components,
-  return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
+  if is_trace_enabled_for `polyrith then return sage_out
+  else process_output eq_names m R sage_out
 
 /-! # Interactivity -/
 setup_tactic_parser

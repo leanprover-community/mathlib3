@@ -33,7 +33,7 @@ countable_iff_exists_injective
 
 lemma countable_subtype_iff {s : set α} : countable s ↔ s.countable := iff.rfl
 
-alias countable_subtype_iff ↔ _ set.countable.to_subtype
+alias countable_subtype_iff ↔ _ countable.to_subtype
 
 lemma countable.of_subtype (s : set α) [countable s] : s.countable := countable_subtype_iff.mp ‹_›
 

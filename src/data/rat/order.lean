@@ -3,7 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.defs
+import algebra.order.field
+import data.rat.basic
 
 /-!
 # Order for Rational Numbers

@@ -197,13 +197,11 @@ instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)
 instance [fintype ι] [Π i, decidable_eq (β i)] : decidable_eq (hamm β) :=
 fintype.decidable_pi_fintype
 
-instance [Π i, has_zero (β i)] : has_zero (hamm β) := pi.has_zero
-instance [Π i, has_one (β i)] : has_one (hamm β) := pi.has_one
-instance [Π i, has_neg (β i)] : has_neg (hamm β) := pi.has_neg
-instance [Π i, has_add (β i)] : has_add (hamm β) := pi.has_add
-instance [Π i, has_sub (β i)] : has_sub (hamm β) := pi.has_sub
-instance [Π i, has_mul (β i)] : has_mul (hamm β) := pi.has_mul
-instance [Π i, has_smul α (β i)] : has_smul α (hamm β) := pi.has_smul
+instance [Π i, has_zero (β i)]    : has_zero (hamm β) := pi.has_zero
+instance [Π i, has_neg (β i)]     : has_neg (hamm β) := pi.has_neg
+instance [Π i, has_add (β i)]     : has_add (hamm β) := pi.has_add
+instance [Π i, has_sub (β i)]     : has_sub (hamm β) := pi.has_sub
+instance [Π i, has_smul α (β i)]  : has_smul α (hamm β) := pi.has_smul
 
 instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] :
   smul_with_zero α (hamm β) := pi.smul_with_zero _
@@ -228,12 +226,10 @@ instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
 @[simp] lemma to_hamm_inj {x y : Π i, β i}    : to_hamm x = to_hamm y ↔ x = y := iff.rfl
 @[simp] lemma of_hamm_inj {x y : hamm β}      : of_hamm x = of_hamm y ↔ x = y := iff.rfl
 
-@[simp] lemma to_hamm_zero [Π i, has_zero (β i)] : to_hamm (0 : Π i, β i) = 0 := rfl
-@[simp] lemma of_hamm_zero [Π i, has_zero (β i)] : of_hamm (0 : hamm β) = 0 := rfl
-@[simp] lemma to_hamm_one [Π i, has_one (β i)] : to_hamm (1 : Π i, β i) = 1 := rfl
-@[simp] lemma of_hamm_one [Π i, has_one (β i)] : of_hamm (1 : hamm β) = 1 := rfl
-@[simp] lemma to_hamm_neg [Π i, has_neg (β i)] {x : Π i, β i} : to_hamm (-x) = - to_hamm x := rfl
-@[simp] lemma of_hamm_neg [Π i, has_neg (β i)] {x : hamm β} : of_hamm (-x)  = - of_hamm x := rfl
+@[simp] lemma to_hamm_zero [Π i, has_zero (β i)]                : to_hamm (0 : Π i, β i) = 0 := rfl
+@[simp] lemma of_hamm_zero [Π i, has_zero (β i)]                : of_hamm (0 : hamm β) = 0 := rfl
+@[simp] lemma to_hamm_neg [Π i, has_neg (β i)] {x : Π i, β i}   : to_hamm (-x) = - to_hamm x := rfl
+@[simp] lemma of_hamm_neg [Π i, has_neg (β i)] {x : hamm β}     : of_hamm (-x)  = - of_hamm x := rfl
 @[simp] lemma to_hamm_add [Π i, has_add (β i)] {x y : Π i, β i} :
   to_hamm (x + y) = to_hamm x + to_hamm y := rfl
 @[simp] lemma of_hamm_add [Π i, has_add (β i)] {x y : hamm β} :
@@ -242,10 +238,6 @@ instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
   to_hamm (x - y) = to_hamm x - to_hamm y := rfl
 @[simp] lemma of_hamm_sub [Π i, has_sub (β i)] {x y : hamm β} :
   of_hamm (x - y) = of_hamm x - of_hamm y := rfl
-@[simp] lemma to_hamm_mul [Π i, has_mul (β i)] {x y : Π i, β i} :
-  to_hamm (x * y) = to_hamm x * to_hamm y := rfl
-@[simp] lemma of_hamm_mul [Π i, has_mul (β i)] {x y : hamm β} :
-  of_hamm (x * y) = of_hamm x * of_hamm y := rfl
 @[simp] lemma to_hamm_smul [Π i, has_smul α (β i)] {r : α} {x : Π i, β i} :
   to_hamm (r • x) = r • to_hamm x := rfl
 @[simp] lemma of_hamm_smul [Π i, has_smul α (β i)] {r : α} {x : hamm β} :

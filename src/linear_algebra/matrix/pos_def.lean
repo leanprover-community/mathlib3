@@ -31,6 +31,8 @@ M.is_hermitian ∧ ∀ x : n → 𝕜, x ≠ 0 → 0 < is_R_or_C.re (dot_product
 
 lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermitian := hM.1
 
+lemma pos_def.transpose {M : matrix n n 𝕜} (hM : M.pos_def) : Mᵀ.pos_def := sorry
+
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :
   M.pos_def :=

@@ -1,7 +1,12 @@
+# This file is part of the `polyrith` tactic in `src/tactic/polyrith.lean`.
+# It interfaces between Lean and the Sage web interface.
+
 import requests
 import json
 import sys
 
+# These functions are used to format the output of Sage for parsing in Lean.
+# They are stored here as a string since they are passed to Sage via the web API.
 polynomial_formatting_functions = '''
 def const_string(const):
     num = str(const)

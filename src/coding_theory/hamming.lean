@@ -71,7 +71,7 @@ by simp_rw [  hamm_dist, card_eq_zero, filter_eq_empty_iff, not_not,
 @[simp] lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
 ⟨eq_of_hamm_dist_eq_zero, (λ H, by {rw H, exact hamm_dist_self _})⟩
 
-/-- Corresponds to `eq_of_zero_eq_dist`. -/
+/-- Corresponds to `zero_eq_dist`. -/
 @[simp] lemma hamm_zero_eq_dist {x y : Π i, β i} : 0 = hamm_dist x y ↔ x = y :=
 by rw [eq_comm, hamm_dist_eq_zero]
 
@@ -79,7 +79,7 @@ by rw [eq_comm, hamm_dist_eq_zero]
 lemma hamm_dist_ne_zero {x y : Π i, β i} : hamm_dist x y ≠ 0 ↔ x ≠ y :=
 not_iff_not.mpr hamm_dist_eq_zero
 
-/-- Corresponds to `dist_ne_zero`. -/
+/-- Corresponds to `dist_pos`. -/
 lemma hamm_dist_pos {x y : Π i, β i} : 0 < hamm_dist x y ↔ x ≠ y :=
 by rw [←hamm_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 
@@ -129,7 +129,7 @@ lemma hamm_norm_nonneg {x : Π i, β i} : 0 ≤ hamm_norm x := hamm_dist_nonneg
 @[simp] lemma hamm_norm_zero : hamm_norm (0 : Π i, β i) = 0 := hamm_dist_self _
 
 /-- Corresponds to `norm_eq_zero`. -/
-@[simp] lemma hamm_norm_eq_zero_iff {x : Π i, β i} : hamm_norm x = 0 ↔ x = 0 :=
+@[simp] lemma hamm_norm_eq_zero {x : Π i, β i} : hamm_norm x = 0 ↔ x = 0 :=
 hamm_dist_eq_zero
 
 /-- Corresponds to `norm_ne_zero_iff`. -/
@@ -177,17 +177,15 @@ end hamm_dist_wt
 
 /-! ### The `hamm` type synonym -/
 
-/--
-Type synonym for a Pi type which we equip with the Hamming metric, adding relevant
-instances as needed.
--/
+/-- Type synonym for a Pi type which inherits the usual algebraic instances, but is equipped with
+the Hamming metric and norm, instead of `pi.normed_group` which uses the sup norm. -/
 def hamm {ι : Type*} (β : ι → Type*) : Type* := Π i, β i
 
 namespace hamm
 
 variables {α ι : Type*} {β : ι → Type*}
 
-/- Defines instances that do not require the distance function. -/
+/-! Instances inherited from normal Pi types. -/
 
 instance [Π i, inhabited (β i)] : inhabited (hamm β) := ⟨λ i, default⟩
 instance [decidable_eq ι] [fintype ι] [Π i, fintype (β i)] : fintype (hamm β) := pi.fintype
@@ -212,7 +210,7 @@ instance [Π i, add_comm_group (β i)] : add_comm_group (hamm β) := pi.add_comm
 instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
   [Π i, module α (β i)] : module α (hamm β) := pi.module _ _ _
 
-/- API to/from the type synonym. -/
+/-! API to/from the type synonym. -/
 
 /-- `to_hamm` is the identity function to the `hamm` of a type.  -/
 @[pattern] def to_hamm : (Π i, β i) ≃ hamm β := equiv.refl _
@@ -252,7 +250,7 @@ instance (α) [semiring α] (β : ι → Type*) [Π i, add_comm_monoid (β i)]
 
 section
 
-/- We define the instances relating to norm and dist. -/
+/-! Instances equipping `hamm` with `hamm_norm` and `hamm_dist`. -/
 
 variables [fintype ι] [Π i, decidable_eq (β i)]
 
@@ -295,7 +293,7 @@ instance [Π i, has_zero (β i)] : has_nnnorm (hamm β) := ⟨λ x, hamm_norm (o
 @[simp, push_cast] lemma norm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
   ∥x∥ = hamm_norm (of_hamm x) := rfl
 
-@[simp, push_cast] lemma nnorm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
+@[simp, push_cast] lemma nnnorm_eq_hamm_norm [Π i, has_zero (β i)] (x : hamm β) :
   ∥x∥₊ = hamm_norm (of_hamm x) := rfl
 
 instance [Π i, add_comm_group (β i)] : semi_normed_group (hamm β) :=

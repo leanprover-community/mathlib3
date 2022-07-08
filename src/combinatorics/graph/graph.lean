@@ -74,6 +74,34 @@ theorem handshake [fintype V] [fintype E]:
   ∑ᶠ (x : V), G.deg x = 2 * (fintype.card E) :=
 by {induction G, exact digraph.handshake G, refl}
 
+-- try setting up mapping to fin 2
+-- how do you choose an orientation?
+
+
+def graph.mk (V : Type u) (E : Type v) (inc : V → E → Prop)
+  (h : ∀ e, nat.card ({x | inc x e}) ∈ ({1,2} : set nat)) : graph V E :=
+  by {
+    classical,
+    have D : digraph V E,
+    have h2 : ∀ e, fintype {x | inc x e},
+    intros e,
+    specialize h e,
+    simp at h,
+
+    --cases h,
+    -- ran into weird error with case split, going to sleep now
+    sorry,
+    sorry,
+    -- maybe have some arbitrary ordering on the vertices to start?
+    -- then we get a natural ordering of vertex pairs
+    -- in list.lean we have a noncomputable ordering on fintype
+    -- need to show fin 2 is fintype (easy)
+    -- then use `_root_.fintype.to_encodable`?
+    -- is this the ordering that i want?
+
+    exact ⟦D⟧,
+  }
+
 /-- structure dart (G : graph V E) extends V × V :=
 (is_adj : G.adj fst snd)-/
 
@@ -84,6 +112,7 @@ structure dart (G : graph V E) : Type (max u v) :=
 (h : G.ends_are e head tail)
 -- lemma saying that dart is same if parts of them are equal etc
 
+-- make G implicit so it's d.reverse or whatever
 def reverse_dart (G : graph V E) (d : G.dart) : G.dart :=
 { head := d.tail,
   tail := d.head,
@@ -206,7 +235,6 @@ begin
   refl,
 end
 
-
 def edges {G : graph V E} (p : G.walk) : list E := list.map dart.e p.darts
 
 def support {G : graph V E} (p : G.walk) : list V := [p.head] ++ list.map dart.head p.darts
@@ -230,6 +258,7 @@ structure is_path {G : graph V E} (p : G.walk) : Prop :=
 (support_nodup : p.support.nodup)
 
 /-- A *circuit* is a nonempty trail beginning and ending at the same vertex. -/
+-- extends path & need to get rid of loops
 structure is_circuit {G : graph V E} (p : G.walk) : Prop :=
 (start_end : p.head = p.tail)
 (ne_nil : p.darts ≠ [])
@@ -239,13 +268,48 @@ is `u` (which appears exactly twice). -/
 structure is_cycle {G : graph V E} (p : G.walk) : Prop :=
 (support_nodup : p.support.tail.nodup)
 
+-- swap cycle and circuit definitions
+-- show that circuit is edge set of 2-regular connected subgraph
+
 end walk
+
+def connected (G : graph V E) : Prop := ∀ u v : V, G.reachable u v
+
+def regular (G : graph V E) (k : ℕ) : Prop := ∀ (v : V), G.deg v = k
 
 lemma is_trail_def {G : graph V E} (p : G.walk) : p.is_trail ↔ p.edges.nodup :=
 ⟨walk.is_trail.edges_nodup, λ h, ⟨h⟩⟩
 
-lemma is_path.mk' {u v : V} {p : G.walk} (h : p.support.nodup) : p.is_path :=
-⟨walk.edges_nodup_of_support_nodup h, h⟩
+-- lemma is_path.mk' {u v : V} {p : G.walk} (h : p.support.nodup) : p.is_path :=
+-- ⟨walk.edges_nodup_of_support_nodup h, h⟩
+
+
+structure subgraph (G : graph V E) :=
+(verts : set V)
+(edges : set E)
+(edge_sub : ∀ {e ∈ edges}, G.ends_set e ⊆ verts)
+
+namespace subgraph
+
+protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
+begin
+  unfold graph,
+  unfold graph at G,
+  have h := G'.edge_sub,
+  have h2 := digraph.is_equivalence G'.verts G'.edges,
+  have h3 := setoid.mk _ h2,
+
+
+  -- need to show edge orientation doesn't matter
+
+  sorry,
+end
+
+def connected (G' : subgraph G) : Prop := G'.coe.connected
+
+end subgraph
+
+
 
 
 end graph

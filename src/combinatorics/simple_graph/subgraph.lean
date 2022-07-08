@@ -582,17 +582,17 @@ end induce
 
 /-- Given a subgraph and a set of vertices, delete all the vertices from the subgraph,
 if present. Any edges indicent to the deleted vertices are deleted as well. -/
-def delete_verts (G' : G.subgraph) (s : set V) : G.subgraph := G'.induce (G'.verts \ s)
+@[reducible] def delete_verts (G' : G.subgraph) (s : set V) : G.subgraph := G'.induce (G'.verts \ s)
 
 section delete_verts
 variables {G' : G.subgraph} {s : set V}
 
-@[simp] lemma delete_verts_verts : (G'.delete_verts s).verts = G'.verts \ s := rfl
+lemma delete_verts_verts : (G'.delete_verts s).verts = G'.verts \ s := rfl
 
-@[simp] lemma delete_verts_adj {u v : V} :
+lemma delete_verts_adj {u v : V} :
   (G'.delete_verts s).adj u v ↔
   u ∈ G'.verts ∧ ¬ u ∈ s ∧ v ∈ G'.verts ∧ ¬ v ∈ s ∧ G'.adj u v :=
-by simp [delete_verts, and_assoc]
+by simp [and_assoc]
 
 @[simp] lemma delete_verts_delete_verts (s s' : set V) :
   (G'.delete_verts s).delete_verts s' = G'.delete_verts (s ∪ s') :=
@@ -611,26 +611,15 @@ end
 lemma delete_verts_le : G'.delete_verts s ≤ G' :=
 by split; simp [set.diff_subset]
 
+@[mono]
 lemma delete_verts_mono {G' G'' : G.subgraph} (h : G' ≤ G'') :
   G'.delete_verts s ≤ G''.delete_verts s :=
-begin
-  split;
-  simp only [delete_verts_verts, delete_verts_adj, and_imp, not_false_iff, true_and]
-    { contextual := tt },
-  { exact set.diff_subset_diff_left h.1, },
-  { intros v w hv hnv hw hnw ha,
-    simp [h.1 hv, h.1 hw, h.2 ha], }
-end
+induce_mono h (set.diff_subset_diff_left h.1)
 
+@[mono]
 lemma delete_verts_anti {s s' : set V} (h : s ⊆ s') :
   G'.delete_verts s' ≤ G'.delete_verts s :=
-begin
-  split;
-  simp [delete_verts_verts, delete_verts_adj, true_and, and_imp, and_true] {contextual := tt},
-  { exact set.diff_subset_diff_right h, },
-  { intros v w hv hnv hw hnw ha,
-    split; intro hs; have := h hs; contradiction, },
-end
+induce_mono (le_refl _) (set.diff_subset_diff_right h)
 
 @[simp] lemma delete_verts_inter_verts_left_eq :
   G'.delete_verts (G'.verts ∩ s) = G'.delete_verts s :=
@@ -639,14 +628,6 @@ by ext; simp [imp_false] { contextual := tt }
 @[simp] lemma delete_verts_inter_verts_set_right_eq :
   G'.delete_verts (s ∩ G'.verts) = G'.delete_verts s :=
 by ext; simp [imp_false] { contextual := tt }
-
-lemma spanning_coe_delete_verts_le (G' : G.subgraph) (s : set V) :
-  (G'.delete_verts s).spanning_coe ≤ G'.spanning_coe :=
-spanning_coe_le_of_le
-begin
-  convert delete_verts_anti (set.empty_subset s),
-  exact delete_verts_empty.symm,
-end
 
 end delete_verts
 

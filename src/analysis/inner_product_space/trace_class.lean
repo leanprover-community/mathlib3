@@ -86,6 +86,29 @@ variables {S R K 𝕜 : Type*} [semiring S] [ring R] [field K] {σₛ : S →+* 
 instance [has_continuous_add F] : has_coe (finite_rank_operator σₛ E F) (E →SL[σₛ] F) :=
 ⟨subtype.val⟩
 
+instance to_fun [has_continuous_add F] :
+  has_coe_to_fun (finite_rank_operator σₛ E F) (λ _, E → F) :=
+⟨λ f, (f : E →SL[σₛ] F).to_fun⟩
+
+@[simp, norm_cast] lemma coe_coe [has_continuous_add F] (f : finite_rank_operator σₛ E F) :
+  ⇑(f : E →SL[σₛ] F) = f := rfl
+
+instance [has_continuous_add F] :
+  continuous_semilinear_map_class (finite_rank_operator σₛ E F) σₛ E F :=
+{ coe := λ f, f,
+  coe_injective' := λ f g hfg, by ext; exact congr_fun hfg x,
+  map_add := λ f, map_add (f : E →SL[σₛ] F),
+  map_smulₛₗ := λ f, map_smulₛₗ (f : E →SL[σₛ] F),
+  map_continuous := λ f, map_continuous (f : E →SL[σₛ] F) }
+
+@[ext] theorem ext [has_continuous_add F] {f g : finite_rank_operator σₛ E F}
+  (h : ∀ x, f x = g x) : f = g :=
+fun_like.ext f g h
+
+theorem ext_iff [has_continuous_add F] {f g : finite_rank_operator σₛ E F} :
+  f = g ↔ ∀ x, f x = g x :=
+fun_like.ext_iff
+
 instance [has_continuous_add F] {f : finite_rank_operator σₛ E F} :
   finite_dimensional K (f : E →SL[σₛ] F).range :=
 f.2
@@ -99,6 +122,22 @@ submodule.add_comm_group _
 instance [has_continuous_add F] : module K (finite_rank_operator σₛ E F) :=
 submodule.module _
 
+@[simp, norm_cast] lemma coe_sum [has_continuous_add F] {ι : Type*} (t : finset ι)
+  (f : ι → finite_rank_operator σₛ E F) :
+  ↑(∑ d in t, f d) = (∑ d in t, f d : E →SL[σₛ] F) :=
+(add_monoid_hom.mk (coe : (finite_rank_operator σₛ E F) → (E →SL[σₛ] F))
+  rfl (λ _ _, rfl)).map_sum _ _
+
+@[simp, norm_cast] lemma coe_sum' [has_continuous_add F] {ι : Type*} (t : finset ι)
+  (f : ι → finite_rank_operator σₛ E F) :
+  ⇑(∑ d in t, f d) = ∑ d in t, f d :=
+by simp only [← coe_coe, coe_sum, continuous_linear_map.coe_sum']
+
+lemma sum_apply [has_continuous_add F] {ι : Type*} (t : finset ι)
+  (f : ι → finite_rank_operator σₛ E F) (b : E) :
+  (∑ d in t, f d) b = ∑ d in t, f d b :=
+by simp only [coe_sum', finset.sum_apply]
+
 def smul_rightf [module K E] [topological_space K] [has_continuous_add F] [has_continuous_smul K F]
   (l : E →L[K] K) (x : F) : (finite_rank_operator (ring_hom.id K) E F) :=
 ⟨l.smul_right x, smul_right_range_finite_dimensional⟩
@@ -108,6 +147,11 @@ def smul_rightfₗ [module K E] [topological_space K] [topological_ring K] [has_
   (E →L[K] K) →ₗ[K] F →ₗ[K] (finite_rank_operator (ring_hom.id K) E F) :=
 ⟨λ f, ⟨smul_rightf f, λ x y, by ext; apply smul_add, λ r x, by ext; apply smul_comm⟩,
   λ f g, by ext; apply add_smul, λ r f, by ext; apply smul_assoc⟩
+
+@[simp] lemma smul_rightfₗ_apply [module K E] [topological_space K] [topological_ring K] [has_continuous_add F]
+  [has_continuous_smul K F] (f : E →L[K] K) (c : F) (x : E) :
+  smul_rightfₗ f c x = f x • c :=
+rfl
 
 variables (𝕜 E G)
 
@@ -128,10 +172,33 @@ noncomputable def dual_tensor_inv (f : finite_rank_operator (ring_hom.id 𝕜) E
   (to_dual_map 𝕜 F (std_orthonormal_basis 𝕜 (f : E →L[𝕜] F).range i)).comp (f : E →L[𝕜] F) ⊗ₜ[𝕜]
   std_orthonormal_basis 𝕜 (f : E →L[𝕜] F).range i
 
+noncomputable def dual_tensor_invₗ :
+  finite_rank_operator (ring_hom.id 𝕜) E F →ₗ[𝕜] (E →L[𝕜] 𝕜) ⊗[𝕜] F :=
+{ to_fun := dual_tensor_inv,
+  map_add' := sorry }
+
 lemma foo (f : finite_rank_operator (ring_hom.id 𝕜) E F) :
   dual_tensor_hom 𝕜 E F (f.dual_tensor_inv) = f :=
 begin
   simp_rw [dual_tensor_inv, map_sum, dual_tensor_hom, uncurry_apply],
+  ext x,
+  simp_rw [sum_apply, smul_rightfₗ_apply],
+  --change ∑ i, to_dual_map 𝕜 F (std_orthonormal_basis 𝕜 (f : E →L[𝕜] F).range i) (f x) •
+  --  (std_orthonormal_basis 𝕜 (f : E →L[𝕜] F).range i : F) = f x,
+  --dsimp,
+  sorry -- This is clearly true x)
+end
+
+lemma bar (f : finite_rank_operator (ring_hom.id 𝕜) E F) :
+  dual_tensor_hom 𝕜 E F (f.dual_tensor_inv) = f :=
+begin
+  simp_rw [dual_tensor_inv, map_sum, dual_tensor_hom, uncurry_apply],
+  ext x,
+  simp_rw [sum_apply, smul_rightfₗ_apply],
+  --change ∑ i, to_dual_map 𝕜 F (std_orthonormal_basis 𝕜 (f : E →L[𝕜] F).range i) (f x) •
+  --  (std_orthonormal_basis 𝕜 (f : E →L[𝕜] F).range i : F) = f x,
+  --dsimp,
+  sorry -- This is clearly true x)
 end
 
 end hilbert_space

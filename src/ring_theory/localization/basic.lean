@@ -993,9 +993,9 @@ lemma map_injective_of_injective
   function.injective (map Q g M.le_comap_map : S → Q) :=
 begin
   rintros x y hxy,
-  rw ←sub_eq_zero at ⊢  hxy,
+  rw ← sub_eq_zero at ⊢ hxy,
   rw ← map_sub at hxy,
-  set z := x-y,
+  set z := x - y,
   obtain ⟨a, b, hz⟩ := is_localization.mk'_surjective M z,
   rw [← hz, is_localization.map_mk', is_localization.mk'_eq_zero_iff] at hxy,
   cases hxy with m hm,
@@ -1004,8 +1004,8 @@ begin
   obtain ⟨n, hn, hnm⟩ :=hm',
   rw [subtype.coe_mk, ← hnm,  ← map_mul, ← map_zero g] at hm,
   replace hm := hg hm,
-  rw [←hz, is_localization.mk'_eq_zero_iff],
-  use ⟨n,hn⟩,
+  rw [← hz, is_localization.mk'_eq_zero_iff],
+  use ⟨n, hn⟩,
   rw subtype.coe_mk,
   exact hm,
 end

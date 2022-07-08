@@ -56,7 +56,7 @@ variables {α β : Type*}
 
 namespace sym
 
-section
+section sym
 variables (α) (n : ℕ)
 
 /--
@@ -122,104 +122,7 @@ lemma card_sym_eq_choose {α : Type*} [fintype α] (k : ℕ) [fintype (sym α k)
   card (sym α k) = (card α + k - 1).choose k :=
 by rw [card_sym_eq_multichoose, nat.multichoose_eq]
 
-
-------------------------------------------------------------------------------------------
--- Original approach, using `option`:
-------------------------------------------------------------------------------------------
-
-/-- The `encode` function produces a `sym α n.succ` if the input doesn't contain `none` by casting
-`option α` to `α`. Otherwise, the function removes an occurrence of `none` from the input and
-produces a `sym (option α) n`. -/
-def encode [decidable_eq α] (s : sym (option α) n.succ) : sym α n.succ ⊕ sym (option α) n :=
-if h : none ∈ s
-then inr (s.erase none h)
-else inl (s.attach.map $ λ o,
-  option.get $ option.ne_none_iff_is_some.1 $ ne_of_mem_of_not_mem o.2 h)
-
-/-- From the output of `encode`, the `decode` function reconstructs the original input. If the
-output contains `n + 1` elements, the original input can be reconstructed by casting `α` back
-to `option α`. Otherwise, an instance of `none` has been removed and the input can be
-reconstructed by adding it back. -/
-def decode : sym α n.succ ⊕ sym (option α) n → sym (option α) n.succ
-| (inl s) := s.map embedding.coe_option
-| (inr s) := none :: s
-
-variables {α n}
-
-@[simp] lemma decode_inl (s : sym α n.succ) : decode α n (inl s) = s.map embedding.coe_option := rfl
-@[simp] lemma decode_inr (s : sym (option α) n) : decode α n (inr s) = none :: s := rfl
-
-variables (α n)
-
-/-- As `encode` and `decode` are inverses of each other, `sym (option α) n.succ` is equivalent
-to `sym α n.succ ⊕ sym (option α) n`. -/
-def option_succ_equiv [decidable_eq α] : sym (option α) n.succ ≃ sym α n.succ ⊕ sym (option α) n :=
-{ to_fun := encode α n,
-  inv_fun := decode α n,
-  left_inv := λ s, begin
-    unfold encode,
-    split_ifs,
-    { exact cons_erase _ },
-    { simp only [decode, map_map, subtype.mk.inj_eq, comp, option.coe_get,
-        embedding.coe_option_apply, subtype.val_eq_coe, map_map],
-      convert s.attach_map_coe, },
-  end,
-  right_inv := begin
-    rintro (s | s),
-    { unfold encode,
-      split_ifs,
-      { obtain ⟨a, _, ha⟩ := multiset.mem_map.mp h,
-        exact option.some_ne_none _ ha },
-      { refine map_injective (option.some_injective _) _ _,
-        convert eq.trans _ (decode α n (inl s)).attach_map_coe,
-        simp } },
-    { exact (dif_pos $ mem_cons_self _ _).trans (congr_arg _ $ erase_cons_head s _ _) }
-  end }
-
-end
-
-lemma card_sym_rec (n : ℕ)
-  [fintype (sym (option α) n.succ)] [fintype (sym α n.succ)] [fintype (sym (option α) n)] :
-  card (sym (option α) n.succ) = card (sym α n.succ) + card (sym (option α) n) :=
-by { classical, simpa only [card_sum.symm] using fintype.card_congr (option_succ_equiv α n) }
-
-lemma multichoose_rec (n k : ℕ) :
-  multichoose n.succ k.succ = multichoose n k.succ + multichoose n.succ k :=
-by simp [multichoose, nat.choose_succ_succ, nat.add_comm, nat.add_succ]
-
-lemma multichoose_eq (α : Type*) [hα : fintype α] (k : ℕ) [fintype (sym α k)] :
-  multichoose (card α) k = card (sym α k) :=
-begin
-  classical,
-  generalize hn : card α + k = n,
-  unfreezingI { induction n with n ih generalizing α k },
-  { unfreezingI { obtain ⟨hn, rfl⟩ := add_eq_zero_iff.mp hn },
-    simp [multichoose, hn], },
-  { have : 0 < card α + k := by convert nat.succ_pos',
-    unfreezingI { cases k },
-    { haveI hne : nonempty α := card_pos_iff.mp this,
-      simp [multichoose], },
-    { obtain (hi|hi) := is_empty_or_nonempty α; haveI := hi,
-      { simp [multichoose, fintype.card_eq_zero], },
-      { haveI : inhabited α := classical.inhabited_of_nonempty (by assumption),
-        obtain ⟨β, βeqv⟩ := equiv.sigma_equiv_option_of_inhabited α,
-        haveI : fintype β := fintype_of_option_equiv βeqv,
-        have βc : card β + k + 1 = n,
-        { simpa [fintype.card_congr βeqv,
-            nat.add_succ, nat.succ_add, add_zero, card_option] using hn },
-        have ih' := ih _ (k + 1) βc,
-        transitivity card (sym (option β) k.succ),
-        { rw [card_sym_rec, ← ih', fintype.card_congr βeqv, card_option, multichoose_rec],
-          have ih'' := ih α k,
-          rw [fintype.card_congr βeqv, card_option] at ih'',
-          specialize ih'' (by simpa [add_comm, add_assoc, add_left_comm] using βc),
-          rw [add_right_inj, ih''],
-          apply fintype.card_congr (sym.equiv_congr βeqv), },
-        { apply fintype.card_congr (sym.equiv_congr βeqv.symm), } } } },
-end
-------------------------------------------------------------------------------------------
-
-
+end sym
 end sym
 
 namespace sym2

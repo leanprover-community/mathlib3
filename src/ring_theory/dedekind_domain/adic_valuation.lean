@@ -257,7 +257,7 @@ begin
   erw [valuation_def, (is_localization.to_localization_map (non_zero_divisors R) K).lift_mk',
     div_eq_mul_inv, mul_eq_mul_left_iff],
   left,
-  rw [units.coe_inv', inv_inj],
+  rw [units.coe_inv, inv_inj],
   refl,
 end
 

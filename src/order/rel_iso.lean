@@ -327,11 +327,11 @@ protected theorem is_well_founded (f : r ↪r s) [is_well_founded β s] : is_wel
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 
-instance (α : Type u) [has_lt α] [well_founded_lt α] (p : α → Prop) : well_founded_lt (subtype p) :=
-(subtype.rel_embedding (<) p).is_well_founded
+instance _root_.subtype.well_founded_lt [has_lt α] [well_founded_lt α] (p : α → Prop) :
+  well_founded_lt (subtype p) := (subtype.rel_embedding (<) p).is_well_founded
 
-instance (α : Type u) [has_lt α] [well_founded_gt α] (p : α → Prop) : well_founded_gt (subtype p) :=
-(subtype.rel_embedding (>) p).is_well_founded
+instance _root_.subtype.well_founded_gt [has_lt α] [well_founded_gt α] (p : α → Prop) :
+  well_founded_gt (subtype p) := (subtype.rel_embedding (>) p).is_well_founded
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it

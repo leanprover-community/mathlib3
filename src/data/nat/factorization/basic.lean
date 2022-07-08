@@ -384,6 +384,38 @@ begin
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
+lemma set_of_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
+  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = (finset.Ico 1 b).filter (λ i, p ^ i ∣ n) :=
+begin
+  ext i,
+  norm_cast,
+  rw finset.mem_filter,
+  simp,
+  intros h,
+  split,
+  {
+    intros h,
+    sorry},
+  {
+    intros h,
+    sorry},
+
+  -- simp only [pp.pow_dvd_iff_le_factorization hn, one_le_iff_ne_zero, set.mem_set_of_eq, coe_filter,
+  --   set.mem_sep_eq, ne.def, coe_Ico, set.mem_Ico, and.congr_left_iff, iff_self_and],
+  -- intros h _,
+  -- refine lt_of_le_of_lt _ hb,
+  -- rw ← pow_le_iff_le_log pp.one_lt (pos_iff_ne_zero.mpr hn),
+  -- exact le_trans (pow_le_pow pp.one_lt.le h) (pow_factorization_le p hn),
+end
+
+def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  fintype {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} :=
+fintype.of_finset ((finset.Ico 1 (nat.find (exists_gt (log p n)))).filter (λ i, p ^ i ∣ n)) $ λ i,
+begin
+  rw set_of_pow_dvd_eq pp hn (nat.find_spec (exists_gt (log p n))),
+  refl,
+end
+
 lemma factorization_eq_card_pow_dvd {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
   n.factorization p = ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n)).card :=
 begin

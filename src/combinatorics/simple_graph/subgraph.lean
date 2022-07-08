@@ -362,6 +362,46 @@ protected def comap {G' : simple_graph W} (f : G →g G') (H : G'.subgraph) : G.
   adj_sub := by { rintros v w ⟨ga, ha⟩, exact ga },
   edge_vert := by { rintros v w ⟨ga, ha⟩, simp [H.edge_vert ha] } }
 
+lemma comap_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.comap f) :=
+begin
+  intros H H' h,
+  split,
+  { intro,
+    simp only [comap_verts, set.mem_preimage],
+    apply h.1, },
+  { intros v w,
+    simp only [comap_adj, and_imp, true_and] { contextual := tt },
+    intro,
+    apply h.2, }
+end
+
+lemma map_le_iff_le_comap {G' : simple_graph W} (f : G →g G') (H : G.subgraph) (H' : G'.subgraph) :
+  H.map f ≤ H' ↔ H ≤ H'.comap f :=
+begin
+  split,
+  { intro h,
+    split,
+    { intro v,
+      simp only [comap_verts, set.mem_preimage],
+      intro hv,
+      exact h.1 ⟨v, hv, rfl⟩, },
+    { intros v w hvw,
+      simp only [H.adj_sub hvw, comap_adj, true_and],
+      exact h.2 ⟨v, w, hvw, rfl, rfl⟩, } },
+  { intro h,
+    split,
+    { intro v,
+      simp,
+      rintro w hw rfl,
+      exact h.1 hw, },
+    { intros v w,
+      simp only [relation.map, map_adj, forall_exists_index, and_imp],
+      rintros u u' hu rfl rfl,
+      have := h.2 hu,
+      simp only [comap_adj] at this,
+      exact this.2, } }
+end
+
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/
 @[simps]
@@ -465,13 +505,13 @@ end
 /-! ## Subgraphs of subgraphs -/
 
 /-- Given a subgraph of a subgraph of `G`, construct a subgraph of `G`. -/
-@[simps]
+@[reducible]
 protected def coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) : G.subgraph :=
 subgraph.map G'.hom G''
 
 /-- Given a subgraph of `G`, restrict it to being a subgraph of another subgraph `G'` by
 taking the portion of `G` that intersects `G'`. -/
-@[simps]
+@[reducible]
 protected def restrict {G' : G.subgraph} (G'' : G.subgraph) : G'.coe.subgraph :=
 subgraph.comap G'.hom G''
 
@@ -480,7 +520,7 @@ lemma restrict_coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) :
 begin
   ext,
   { simp },
-  { simp only [relation.map, restrict_adj, subtype.coe_prop, coe_subgraph_adj, hom_apply,
+  { simp only [relation.map, comap_adj, coe_adj, subtype.coe_prop, hom_apply, map_adj,
       set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right_right,
       subtype.coe_eta, exists_true_left, exists_eq_right, and_iff_right_iff_imp],
     apply G''.adj_sub, }

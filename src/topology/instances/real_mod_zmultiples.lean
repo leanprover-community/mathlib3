@@ -5,6 +5,9 @@ Authors: Alex Kontorovich, Heather Macbeth
 -/
 import topology.algebra.const_mul_action
 import topology.instances.real
+import tactic.linear_combination
+import tactic.congrm
+
 
 /-!
 # The topology on the quotient group `ℝ / a ℤ`
@@ -37,35 +40,36 @@ begin
   simp [real.ball_eq_Ioo, set.finite_Ioo],
 end
 
+-- this exsits in mathlib
+theorem finite.of_fintype {α : set Type*} (h : fintype α) : set.finite α := sorry
+
 
 -- this is the version we actually use
 lemma int.tendsto_zmultiples_hom_cofinite' (a : ℝ) :
   filter.tendsto (coe : zmultiples a → ℝ) filter.cofinite (filter.cocompact ℝ) :=
-sorry
+begin
+  by_cases ha : a = 0,
+  {
+    have : zmultiples a = ⊥,
+    {
+      simp [ha],
+    },
+    rw this,
+    intros K hK,
+    simp [ha, this],
+    apply finite.of_fintype,
+
+  },
+
+  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
+  simp only [filter.tendsto_at_top, filter.eventually_cofinite, not_le, ← metric.mem_ball],
+  change ∀ r : ℝ, ((λ n : ℤ, n • a) ⁻¹' (metric.ball (0 : ℝ) r)).finite,
+  simp [real.ball_eq_Ioo, set.finite_Ioo],
+end
+
+
 
 -- move to `topology.metric_space.basic`
-
-lemma is_compact.finite_inter_zmultiples (a : ℝ) {s : set ℝ} (hs : is_compact s) :
-  ((coe : zmultiples a → ℝ) ⁻¹' s).finite :=
-begin
-  by_cases ha : a = 0,
-  { sorry }, --exact set.finite.inter_of_left (by simp [ha]) s },
-  convert (int.tendsto_zmultiples_hom_cofinite ha hs.compl_mem_cocompact).image (zmultiples_hom ℝ a),
-  dsimp,
-  rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
-  refl,
-end
-
-lemma is_compact.finite_inter_zmultiples' (a : ℝ) {s : set ℝ} (hs : is_compact s) :
-  ((zmultiples a : set ℝ) ∩ s).finite :=
-begin
-  by_cases ha : a = 0,
-  { exact set.finite.inter_of_left (by simp [ha]) s },
-  convert (int.tendsto_zmultiples_hom_cofinite ha hs.compl_mem_cocompact).image (zmultiples_hom ℝ a),
-  dsimp,
-  rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
-  refl,
-end
 
 -- **
 
@@ -77,12 +81,16 @@ instance : properly_discontinuous_vadd (zmultiples a).opposite ℝ :=
       a ((hL.prod hK).image continuous_sub).compl_mem_cocompact,
     convert H,
     ext x,
-    cases x with x hx,
-    change add_opposite.unop x ∈ zmultiples a at hx,
+    rcases x with ⟨(x:ℝ) , (hx : x ∈ zmultiples a)⟩,
     change (_ ≠ ∅) ↔ _,
     simp only [set.image_vadd, set.image_prod, set.image2_sub, compl_compl, set.mem_preimage,
-      coe_mk],
-    sorry,
+      coe_mk, set.ne_empty_iff_nonempty, set.preimage_compl],
+    congrm (∃ ℓ, _),
+    simp only [set.mem_inter_eq, coe_mk, exists_and_distrib_left],
+    rw and_comm,
+    congrm _ ∧ (∃ k, _ ∧ _),
+    change (k + x = ℓ) ↔ _,
+    split; intros hh; linear_combination - hh,
   end }
 
 instance : t2_space (ℝ ⧸ zmultiples a) := t2_space_of_properly_discontinuous_vadd_of_t2_space
@@ -131,3 +139,29 @@ is_compact_Icc.compact_space continuous_quotient_mk $
   baz₁.mono set.Ico_subset_Icc_self (set.subset.refl _)
 
 instance : normal_space (ℝ ⧸ zmultiples a) := normal_of_compact_t2
+
+
+-------------------------
+
+
+lemma is_compact.finite_inter_zmultiples (a : ℝ) {s : set ℝ} (hs : is_compact s) :
+  ((coe : zmultiples a → ℝ) ⁻¹' s).finite :=
+begin
+  by_cases ha : a = 0,
+  { sorry }, --exact set.finite.inter_of_left (by simp [ha]) s },
+  convert (int.tendsto_zmultiples_hom_cofinite ha hs.compl_mem_cocompact).image (zmultiples_hom ℝ a),
+  dsimp,
+  rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
+  refl,
+end
+
+lemma is_compact.finite_inter_zmultiples' (a : ℝ) {s : set ℝ} (hs : is_compact s) :
+  ((zmultiples a : set ℝ) ∩ s).finite :=
+begin
+  by_cases ha : a = 0,
+  { exact set.finite.inter_of_left (by simp [ha]) s },
+  convert (int.tendsto_zmultiples_hom_cofinite ha hs.compl_mem_cocompact).image (zmultiples_hom ℝ a),
+  dsimp,
+  rw [compl_compl,  set.image_preimage_eq_inter_range, set.inter_comm, ← range_zmultiples_hom],
+  refl,
+end

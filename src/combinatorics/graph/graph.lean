@@ -16,9 +16,7 @@ def graph (V : Type u) (E : Type v) :=
 
 namespace graph
 
-
 section basic
-
 
 variables {G : graph V E} {x y z : V} {e f : E}
 
@@ -77,30 +75,85 @@ by {induction G, exact digraph.handshake G, refl}
 -- try setting up mapping to fin 2
 -- how do you choose an orientation?
 
+/-- Noncomputably gives a bijection between `α` and `fin n`, where `nat.card α = n ≠ 0`. This is
+only a very slight variation on `nat.equiv_fin_of_card_pos` but might be useful to PR -/
+noncomputable def nat.equiv_fin_of_card_eq_pos {α : Type u} {n : ℕ} (hn : n ≠ 0)
+  (h : nat.card α = n) : α ≃ fin n :=
+(nat.equiv_fin_of_card_pos (h.substr hn)).trans (fin.cast h)
 
-def graph.mk (V : Type u) (E : Type v) (inc : V → E → Prop)
-  (h : ∀ e, nat.card ({x | inc x e}) ∈ ({1,2} : set nat)) : graph V E :=
-  by {
-    classical,
-    have D : digraph V E,
-    have h2 : ∀ e, fintype {x | inc x e},
-    intros e,
-    specialize h e,
-    simp at h,
+/-- Given a set s known to have size 1 or 2, choose a pair (a,b) with {a,b} = s -/
+noncomputable def choose_ordering {s :  set V} (hs : nat.card s = 1 ∨ nat.card s = 2) :
+  fin 2 → s :=
+if h : (nat.card s = 1)
+  then (λ i, (nat.card_eq_one_iff_unique.mp h).2.some)
+  else (nat.equiv_fin_of_card_eq_pos two_ne_zero ((or_iff_right h).mp hs)).inv_fun
 
-    --cases h,
-    -- ran into weird error with case split, going to sleep now
-    sorry,
-    sorry,
-    -- maybe have some arbitrary ordering on the vertices to start?
-    -- then we get a natural ordering of vertex pairs
-    -- in list.lean we have a noncomputable ordering on fintype
-    -- need to show fin 2 is fintype (easy)
-    -- then use `_root_.fintype.to_encodable`?
-    -- is this the ordering that i want?
+/-- `choose_ordering` does what was just claimed -/
+lemma choose_ordering_works {s : set V} {x : V} (hs : nat.card s = 1 ∨ nat.card s = 2) :
+  x ∈ s ↔ ∃ (i : fin 2), (choose_ordering hs i : V) = x :=
+begin
+  refine ⟨λ h, _, by {rintros ⟨i,rfl⟩, simp}⟩,
+  suffices h₀ : ∃ i, choose_ordering hs i = ⟨x,h⟩, from h₀.imp (λ i hi, subtype.coe_inj.mpr hi),
+  unfold choose_ordering, split_ifs with h',
+    exact ⟨0, @subsingleton.elim s (nat.card_eq_one_iff_unique.mp h').1 _ ⟨x,h⟩⟩,
+  rw equiv.inv_fun_as_coe,
+  exact equiv.surjective _ _,
+end
 
-    exact ⟦D⟧,
-  }
+-- Probably need to clean up some namespace stuff here ; we don't want graph.digraph.mk
+-- Maybe even move these next two declarations to the digraph file.
+
+/-- noncomputably make a digraph from undirected incidence information -/
+def digraph.of_undir {V : Type u} {E : Type v} (u_inc : V → E → Prop)
+  (h : ∀ e, nat.card {x | u_inc x e} = 1 ∨ nat.card {x | u_inc x e} = 2) : digraph V E :=
+{ ends := λ i e, (choose_ordering (h e) i)}
+
+/-- The digraph being built is actually the right thing -/
+@[simp] lemma digraph.of_undir_inc_iff {V : Type u} {E : Type v} (u_inc : V → E → Prop)
+  (h : ∀ e, nat.card {x | u_inc x e} = 1 ∨ nat.card {x | u_inc x e} = 2) {v : V} {e : E}:
+(digraph.of_undir u_inc h).inc v e ↔ u_inc v e :=
+by {show (∃ (i : fin 2), ↑(choose_ordering _ i) = v) ↔ u_inc v e, rw ←choose_ordering_works, refl}
+
+/-- Make a graph from the digraph -/
+def graph.mk {V : Type u} {E : Type v} (inc : V → E → Prop)
+  (h : ∀ e, nat.card {x | inc x e} = 1 ∨ nat.card {x | inc x e} = 2) : graph V E :=
+⟦digraph.of_undir inc h⟧
+
+/-- The graph is the right thing  -/
+@[simp] lemma graph.mk_inc_iff {V : Type u} {E : Type v} (u_inc : V → E → Prop)
+  (h : ∀ e, nat.card {x | u_inc x e} = 1 ∨ nat.card {x | u_inc x e} = 2) {v : V} {e : E} :
+  (graph.mk u_inc h).inc v e ↔ u_inc v e :=
+digraph.of_undir_inc_iff u_inc h
+
+
+--@[simp] lemma digraph
+
+  -- (h : ∀ e, nat.card ({x | inc x e}) ∈ ({1,2} : set nat)) : graph V E :=
+  -- by {
+  --   classical,
+  --   have D : digraph V E,
+  --   have h2 : ∀ e, fintype {x | inc x e},
+  --   intros e,
+  --   specialize h e,
+  --   simp at h,
+
+  --   --cases h,
+  --   -- ran into weird error with case split, going to sleep now
+
+  --   -- the error is because you were trying to use tactics to produce a term that is not in Prop
+
+
+  --   sorry,
+  --   sorry,
+  --   -- maybe have some arbitrary ordering on the vertices to start?
+  --   -- then we get a natural ordering of vertex pairs
+  --   -- in list.lean we have a noncomputable ordering on fintype
+  --   -- need to show fin 2 is fintype (easy)
+  --   -- then use `_root_.fintype.to_encodable`?
+  --   -- is this the ordering that i want?
+
+  --   exact ⟦D⟧,
+  -- }
 
 /-- structure dart (G : graph V E) extends V × V :=
 (is_adj : G.adj fst snd)-/
@@ -128,6 +181,8 @@ lemma reverse_tail_head (G : graph V E) (d : G.dart) : (G.reverse_dart d).head =
   by refl
 
 end basic
+
+section walks
 
 variables (G : graph V E)
 
@@ -239,13 +294,13 @@ def edges {G : graph V E} (p : G.walk) : list E := list.map dart.e p.darts
 
 def support {G : graph V E} (p : G.walk) : list V := [p.head] ++ list.map dart.head p.darts
 
-lemma edges_nodup_of_support_nodup {G : graph V E} {p : G.walk} (h : p.support.nodup) :
-  p.edges.nodup :=
-begin
+-- lemma edges_nodup_of_support_nodup {G : graph V E} {p : G.walk} (h : p.support.nodup) :
+--   p.edges.nodup :=
+-- begin
 
 
-  sorry,
-end
+--   sorry,
+-- end
 
 /-! ### Trails, paths, circuits, cycles -/
 
@@ -273,6 +328,10 @@ structure is_cycle {G : graph V E} (p : G.walk) : Prop :=
 
 end walk
 
+end walks
+
+section conn
+
 def connected (G : graph V E) : Prop := ∀ u v : V, G.reachable u v
 
 def regular (G : graph V E) (k : ℕ) : Prop := ∀ (v : V), G.deg v = k
@@ -289,30 +348,33 @@ structure subgraph (G : graph V E) :=
 (edges : set E)
 (edge_sub : ∀ {e ∈ edges}, G.ends_set e ⊆ verts)
 
-namespace subgraph
+end conn
 
-protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
-begin
-  unfold graph,
-  unfold graph at G,
-  have h := G'.edge_sub,
-  have h2 := digraph.is_equivalence G'.verts G'.edges,
-  have h3 := setoid.mk _ h2,
+--namespace subgraph
 
 
-  -- need to show edge orientation doesn't matter
-
-  sorry,
-end
-
-def connected (G' : subgraph G) : Prop := G'.coe.connected
-
-end subgraph
-
+-- protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
+-- begin
+--   unfold graph,
+--   unfold graph at G,
+--   have h := G'.edge_sub,
+--   have h2 := digraph.is_equivalence G'.verts G'.edges,
+--   have h3 := setoid.mk _ h2,
 
 
+--   -- need to show edge orientation doesn't matter
 
-end graph
+--   sorry,
+-- end
+
+-- def connected (G' : subgraph G) : Prop := G'.coe.connected
+
+--end subgraph
+
+
+
+
+-- end graph
 
 
 
@@ -465,6 +527,4 @@ end graph
 -- by {sorry }
 
 
-
-
--- end walk
+end graph

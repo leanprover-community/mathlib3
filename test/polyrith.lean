@@ -246,10 +246,9 @@ end
 
 
 
-#exit
+/-
 
-
-
+We comment the following tests so that we don't overwhelm the SageCell API.
 
 
 
@@ -400,3 +399,5 @@ begin
   polyrith [h a b, hqc],
   linear_combination 3 * h a b + hqc,
 end
+
+-/

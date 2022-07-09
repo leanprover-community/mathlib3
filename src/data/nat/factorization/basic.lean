@@ -239,6 +239,23 @@ end
 lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorization p ≤ n :=
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
+/-- A crude upper bound on `n.factorization p` -/
+lemma factorization_lt (n p : ℕ) (hn : n ≠ 0): n.factorization p < n :=
+begin
+  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
+  rw ←pow_lt_iff_lt_right pp.two_le,
+  apply lt_of_le_of_lt (pow_factorization_le p hn),
+  exact lt_of_lt_of_le (lt_two_pow n) (pow_le_pow_of_le_left (by linarith) pp.two_le n),
+end
+
+/-- An upper bound on `n.factorization p` -/
+lemma factorization_le_of_le_pow {n p b: ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp] },
+  exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb),
+end
+
 lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
   n / p ^ n.factorization p ≠ 0 :=
 begin
@@ -400,23 +417,6 @@ def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
 begin
   simp only [set_of_pow_dvd_eq pp hn (nat.find_spec (exists_gt (log p n))), coe_filter, coe_Ico],
   apply set.fintype_sep,
-end
-
-/-- A crude upper bound on `n.factorization p` -/
-lemma factorization_lt (n p : ℕ) (hn : n ≠ 0): n.factorization p < n :=
-begin
-  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
-  rw ←pow_lt_iff_lt_right pp.two_le,
-  apply lt_of_le_of_lt (pow_factorization_le p hn),
-  exact lt_of_lt_of_le (lt_two_pow n) (pow_le_pow_of_le_left (by linarith) pp.two_le n),
-end
-
-/-- An upper bound on `n.factorization p` -/
-lemma factorization_le_of_le_pow {n p b: ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
-begin
-  rcases eq_or_ne n 0 with rfl | hn, { simp },
-  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp] },
-  exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb),
 end
 
 lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :

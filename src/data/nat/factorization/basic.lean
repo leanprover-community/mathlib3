@@ -426,10 +426,10 @@ begin
   rw [←nat.add_sub_cancel (n.factorization p) 1, ←card_Ico],
   apply congr_arg card,
   ext,
-  rw [finset.mem_filter, mem_Ico, mem_Ico, lt_succ_iff, pp.pow_dvd_iff_le_factorization hn,
+  simp_rw [finset.mem_filter, mem_Ico, pp.pow_dvd_iff_le_factorization hn, lt_succ_iff,
     and.congr_left_iff, iff_self_and],
-  rintro ha1 -,
-  refine lt_of_le_of_lt ha1 (factorization_lt n p hn),
+  rintro h -,
+  exact lt_of_le_of_lt h (factorization_lt n p hn),
 end
 
 lemma factorization_eq_card_pow_dvd' {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :

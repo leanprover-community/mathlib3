@@ -98,6 +98,14 @@ equivalent to some element of the second family and vice-versa. -/
 def equiv (x y : pSet) : Prop :=
 pSet.rec (λ α z m ⟨β, B⟩, (∀ a, ∃ b, m a (B b)) ∧ (∀ b, ∃ a, m a (B b))) x y
 
+theorem exists_equiv_left : Π {x y : pSet} (h : equiv x y) (i : x.type),
+  ∃ j, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h := h.1
+
+theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
+  ∃ i, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h := h.2
+
 theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
 

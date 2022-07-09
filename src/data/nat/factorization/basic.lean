@@ -402,6 +402,14 @@ begin
   apply set.fintype_sep,
 end
 
+
+lemma factorization_le_of_le_pow {n p b: ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp] },
+  exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb),
+end
+
 lemma factorization_eq_card_pow_dvd {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
   n.factorization p = ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n)).card :=
 begin

@@ -40,7 +40,7 @@ def poly_terms_string(terms):
         return terms[0]
     elif "-" in terms[-1]:
         return f'(poly.sub {poly_terms_string(terms[:-1])} {terms[-1].replace("-", "")})'
-    return f'(poly.sum {poly_terms_string(terms[:-1])} {terms[-1]})'
+    return f'(poly.add {poly_terms_string(terms[:-1])} {terms[-1]})'
 
 def polynomial_to_string(p):
     monomials = p.monomials()

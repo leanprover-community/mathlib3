@@ -247,12 +247,12 @@ meta def const_fraction_parser : parser poly :=
 str "poly.const " >> poly.const <$> parser.rat
 
 /--
-A parser object that parses `string`s of the form `"poly.sum p q"`
+A parser object that parses `string`s of the form `"poly.add p q"`
 to the appropriate `poly` object representing the sum of two `poly`s.
 Here, `p` and `q` are themselves string forms of `poly`s.
 -/
 meta def add_parser (cont : parser poly) : parser poly := do
-  str "poly.sum ",
+  str "poly.add ",
   lhs ← cont,
   ch ' ',
   rhs ← cont,

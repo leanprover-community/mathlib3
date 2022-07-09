@@ -55,7 +55,7 @@ end
 variables {n : Type u} [decidable_eq n] [fintype n]
 variables {α : Type v} [comm_ring α] [star_ring α]
 
-@[simp] lemma mem_unitary_group_iff {A : matrix n n α} :
+lemma mem_unitary_group_iff {A : matrix n n α} :
   A ∈ matrix.unitary_group n α ↔ A * star A = 1 :=
 begin
   refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
@@ -159,7 +159,7 @@ local attribute [instance] star_ring_of_comm
 -/
 abbreviation orthogonal_group := unitary_group n β
 
-@[simp] lemma mem_orthogonal_group_iff {A : matrix n n β} :
+lemma mem_orthogonal_group_iff {A : matrix n n β} :
   A ∈ matrix.orthogonal_group n β ↔ A * star A = 1 :=
 begin
   refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,

@@ -316,9 +316,9 @@ end
 /-- If `s` is balanced, then the Minkowski functional
   is ℂ-homogeneous. -/
 lemma gauge_smul' {s : set E} (hs : balanced 𝕜 s) (r : 𝕜) (x : E) :
-  gauge s (r • x) = ∥r∥ • gauge s x :=
+  gauge s (r • x) = ∥r∥ * gauge s x :=
 begin
-  rw ←gauge_smul_of_nonneg (norm_nonneg r),
+  rw [←smul_eq_mul, ←gauge_smul_of_nonneg (norm_nonneg r)],
   exact gauge_balanced hs _ _,
   apply_instance,
 end
@@ -410,7 +410,7 @@ variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 /-- `gauge s` as a seminorm over is_R_or_C when `s` is balanced, convex and absorbent. -/
 @[simps] def gauge_seminorm' (hs₀ : balanced 𝕜 s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
   seminorm 𝕜 E :=
-seminorm.of (gauge s) (gauge_add_le hs₁ hs₂) (λ r x, by rw [gauge_smul' hs₀, smul_eq_mul])
+seminorm.of (gauge s) (gauge_add_le hs₁ hs₂) (gauge_smul' hs₀)
 
 end is_R_or_C
 

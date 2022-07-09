@@ -926,6 +926,9 @@ def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
 localized "notation `ω` := ordinal.omega" in ordinal
 
+/-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
+@[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm
+
 @[simp] theorem card_omega : card ω = ℵ₀ := rfl
 
 @[simp] theorem lift_omega : lift ω = ω := lift_lift _
@@ -965,8 +968,8 @@ instance : add_monoid_with_one ordinal.{u} :=
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
-@[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
-  [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
+@[simp] theorem type_sum_lex {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] : type (sum.lex r s) = type r + type s := rfl
 
 @[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
 by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]

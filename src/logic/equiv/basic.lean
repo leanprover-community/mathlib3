@@ -684,7 +684,7 @@ end perm
 /-- `bool` is equivalent the sum of two `punit`s. -/
 def bool_equiv_punit_sum_punit : bool ≃ punit.{u+1} ⊕ punit.{v+1} :=
 ⟨λ b, cond b (inr punit.star) (inl punit.star),
- λ s, sum.rec_on s (λ_, ff) (λ_, tt),
+ sum.elim (λ _, ff) (λ _, tt),
  λ b, by cases b; refl,
  λ s, by rcases s with ⟨⟨⟩⟩ | ⟨⟨⟩⟩; refl⟩
 
@@ -1285,6 +1285,10 @@ def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
       ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
       ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
+
+@[simp] lemma bool_prod_equiv_sum_apply {α : Type u} (x : bool × α) :
+  bool_prod_equiv_sum α x = cond x.1 (inr x.2) (inl x.2) :=
+by simp [bool_prod_equiv_sum]
 
 /-- The function type `bool → α` is equivalent to `α × α`. -/
 @[simps] def bool_arrow_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=

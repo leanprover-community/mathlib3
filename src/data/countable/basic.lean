@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.nat.basic
+import data.finite.defs
 
 /-!
 # Countable `Sort*`s and `Type*`s
@@ -54,13 +55,12 @@ protected lemma function.surjective.countable [countable α] {f : α → β} (hf
 lemma countable_iff_exists_surjective [nonempty α] : countable α ↔ ∃ f : ℕ → α, surjective f :=
 ⟨λ ⟨⟨f⟩⟩, ⟨inv_fun f, inv_fun_surjective f.injective⟩, λ ⟨f, hf⟩, hf.countable⟩
 
-protected lemma equiv.countable [countable β] (e : α ≃ β) : countable α := e.injective.countable
+lemma countable.of_equiv (α : Sort*) [countable α] (e : α ≃ β) : countable β := e.symm.injective.countable
 
 lemma equiv.countable_iff (e : α ≃ β) : countable α ↔ countable β :=
-⟨λ h, @equiv.countable _ _ h e.symm, λ h, @equiv.countable _ _ h e⟩
+⟨λ h, @countable.of_equiv _ _ h e, λ h, @countable.of_equiv _ _ h e.symm⟩
 
-instance {β : Type v} [countable β] : countable (ulift.{u} β) :=
-equiv.ulift.injective.countable
+instance {β : Type v} [countable β] : countable (ulift.{u} β) := countable.of_equiv _ equiv.ulift.symm
 
 /-!
 ### Operations on and `Sort*`s
@@ -79,7 +79,7 @@ instance Prop.countable' (p : Prop) : countable p := subsingleton.to_countable
 instance bool.countable : countable bool :=
 ⟨⟨⟨λ b, cond b 0 1, bool.injective_iff.2 nat.one_ne_zero⟩⟩⟩
 
-instance : countable Prop := equiv.Prop_equiv_bool.countable
+instance : countable Prop := countable.of_equiv bool equiv.Prop_equiv_bool.symm
 
 @[priority 500]
 instance [countable α] {p : α → Prop} : countable {x // p x} := subtype.val_injective.countable
@@ -102,6 +102,10 @@ end
 instance [countable α] {r : α → α → Prop} : countable (quot r) := (surjective_quot_mk r).countable
 instance [countable α] {s : setoid α} : countable (quotient s) := quot.countable
 
+@[priority 100]
+instance finite.to_countable [finite α] : countable α :=
+let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α in countable.of_equiv _ e.symm
+
 end sort
 
 /-!
@@ -111,7 +115,7 @@ end sort
 variables {α : Type u} {β : Type v}
 
 instance [countable α] [countable β] : countable (α ⊕ β) :=
-(equiv.psum_equiv_sum α β).symm.countable
+countable.of_equiv _ (equiv.psum_equiv_sum α β)
 
 instance [countable α] : countable (option α) :=
-(equiv.option_equiv_sum_punit α).countable
+countable.of_equiv _ (equiv.option_equiv_sum_punit α).symm

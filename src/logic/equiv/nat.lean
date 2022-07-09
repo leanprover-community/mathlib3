@@ -13,7 +13,7 @@ This file defines some additional constructive equivalences using `encodable` an
 function on `ℕ`.
 -/
 
-open nat
+open nat function
 
 namespace equiv
 
@@ -23,20 +23,21 @@ variables {α : Type*}
 An equivalence between `ℕ × ℕ` and `ℕ`, using the `mkpair` and `unpair` functions in
 `data.nat.pairing`.
 -/
-@[simp] def nat_prod_nat_equiv_nat : ℕ × ℕ ≃ ℕ :=
-⟨λ p, nat.mkpair p.1 p.2,
- nat.unpair,
- λ p, begin cases p, apply nat.unpair_mkpair end,
- nat.mkpair_unpair⟩
+@[simps] def nat_prod_nat_equiv_nat : ℕ × ℕ ≃ ℕ :=
+{ to_fun := uncurry mkpair,
+  inv_fun := unpair,
+  left_inv := λ ⟨m, n⟩, nat.unpair_mkpair m n,
+  right_inv := nat.mkpair_unpair }
 
 /--
 An equivalence between `bool × ℕ` and `ℕ`, by mapping `(tt, x)` to `2 * x + 1` and `(ff, x)` to
 `2 * x`.
 -/
-@[simp] def bool_prod_nat_equiv_nat : bool × ℕ ≃ ℕ :=
-⟨λ ⟨b, n⟩, bit b n, bodd_div2,
- λ ⟨b, n⟩, by simp [bool_prod_nat_equiv_nat._match_1, bodd_bit, div2_bit],
- λ n, by simp [bool_prod_nat_equiv_nat._match_1, bit_decomp]⟩
+@[simps] def bool_prod_nat_equiv_nat : bool × ℕ ≃ ℕ :=
+{ to_fun := uncurry bit,
+  inv_fun := bodd_div2,
+  left_inv := λ ⟨b, n⟩, by simp only [bodd_bit, div2_bit, uncurry_apply_pair, bodd_div2_eq],
+  right_inv := λ n, by simp only [bit_decomp, bodd_div2_eq, uncurry_apply_pair] }
 
 /--
 An equivalence between `ℕ ⊕ ℕ` and `ℕ`, by mapping `(sum.inl x)` to `2 * x` and `(sum.inr x)` to

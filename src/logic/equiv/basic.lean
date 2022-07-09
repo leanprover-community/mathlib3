@@ -1234,15 +1234,19 @@ def sum_arrow_equiv_prod_arrow (α β γ : Type*) : ((α ⊕ β) → γ) ≃ (α
 
 /-- Type product is right distributive with respect to type sum up to an equivalence. -/
 def sum_prod_distrib (α β γ : Sort*) : (α ⊕ β) × γ ≃ (α × γ) ⊕ (β × γ) :=
-⟨λ p, match p with (inl a, c) := inl (a, c) | (inr b, c) := inr (b, c) end,
- λ s, match s with inl q := (inl q.1, q.2) | inr q := (inr q.1, q.2) end,
- λ p, by rcases p with ⟨_ | _, _⟩; refl,
- λ s, by rcases s with ⟨_, _⟩ | ⟨_, _⟩; refl⟩
+⟨λ p, p.1.map (λ x, (x, p.2)) (λ x, (x, p.2)),
+ λ s, s.elim (prod.map inl id) (prod.map inr id),
+ by rintro ⟨_ | _, _⟩; refl,
+ by rintro (⟨_, _⟩ | ⟨_, _⟩); refl⟩
 
 @[simp] theorem sum_prod_distrib_apply_left {α β γ} (a : α) (c : γ) :
    sum_prod_distrib α β γ (sum.inl a, c) = sum.inl (a, c) := rfl
 @[simp] theorem sum_prod_distrib_apply_right {α β γ} (b : β) (c : γ) :
    sum_prod_distrib α β γ (sum.inr b, c) = sum.inr (b, c) := rfl
+@[simp] theorem sum_prod_distrib_symm_apply_left {α β γ} (a : α × γ) :
+  (sum_prod_distrib α β γ).symm (inl a) = (inl a.1, a.2) := rfl
+@[simp] theorem sum_prod_distrib_symm_apply_right {α β γ} (b : β × γ) :
+  (sum_prod_distrib α β γ).symm (inr b) = (inr b.1, b.2) := rfl
 
 /-- Type product is left distributive with respect to type sum up to an equivalence. -/
 def prod_sum_distrib (α β γ : Sort*) : α × (β ⊕ γ) ≃ (α × β) ⊕ (α × γ) :=
@@ -1254,11 +1258,15 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
    prod_sum_distrib α β γ (a, sum.inl b) = sum.inl (a, b) := rfl
 @[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
+@[simp] theorem prod_sum_distrib_symm_apply_left {α β γ} (a : α × β) :
+  (prod_sum_distrib α β γ).symm (inl a) = (a.1, inl a.2) := rfl
+@[simp] theorem prod_sum_distrib_symm_apply_right {α β γ} (a : α × γ) :
+  (prod_sum_distrib α β γ).symm (inr a) = (a.1, inr a.2) := rfl
 
 /-- An indexed sum of disjoint sums of types is equivalent to the sum of the indexed sums. -/
 @[simps] def sigma_sum_distrib {ι : Type*} (α β : ι → Type*) :
   (Σ i, α i ⊕ β i) ≃ (Σ i, α i) ⊕ Σ i, β i :=
-⟨λ p, sum.cases_on p.2 (λ x, sum.inl ⟨_, x⟩) (λ x, sum.inr ⟨_, x⟩),
+⟨λ p, p.2.map (sigma.mk p.1) (sigma.mk p.1),
   sum.elim (sigma.map id (λ _, sum.inl)) (sigma.map id (λ _, sum.inr)),
   λ p, by { rcases p with ⟨i, (a | b)⟩; refl },
   λ p, by { rcases p with (⟨i, a⟩ | ⟨i, b⟩); refl }⟩

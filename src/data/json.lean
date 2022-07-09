@@ -69,8 +69,8 @@ meta instance : non_null_json_serializable ℤ :=
 meta instance : non_null_json_serializable native.float :=
 { to_json := λ f, json.of_float f,
   of_json := λ j, do
-    json.of_int z ← success j | do {
-      json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
+    json.of_int z ← success j | do
+    { json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
       pure f },
     pure z }
 
@@ -121,32 +121,14 @@ meta def list.to_pexpr : ∀ l : list pexpr, pexpr
 | [] := ``([])
 | (x :: xs) := ``(%%x :: %%xs.to_pexpr)
 
-private meta def extract_field (l : list (string × json)) (s : string) :
+meta def extract_field (l : list (string × json)) (s : string) :
   exceptional (json × list (string × json)) :=
-let (p, n) := l.partition (λ x, prod.fst x = "x") in
+let (p, n) := l.partition (λ x, prod.fst x = s) in
 match p with
-| [] := exception (λ _, format!"no {s} field found")
+| [] := exception (λ _, format!"no {s} field , {l}")
 | [x] := pure (x.2, n)
 | x :: xs := exception (λ _, format!"duplicate {s} field")
 end
-
-structure my_type :=
-(x : int)
-(y : bool)
-
--- TODO: how can we generate this?
-meta instance : non_null_json_serializable my_type :=
-{ to_json := λ x, json.object [("x", x.x), ("y", x.y)],
-  of_json := λ j, do
-    json.object p ← pure j | exception (λ _, format!"object expected, got {j.typename}"),
-    (f_x, p) ← extract_field p "x",
-    (f_y, p) ← extract_field p "y",
-    [] ← pure p | exception (λ _, format!"unexpected fields {p.map prod.fst}"),
-    f_x ← of_json int f_x,
-    f_y ← of_json bool f_y,
-    pure (my_type.mk f_x f_y) }
-
-#eval to_json (my_type.mk 27 tt)
 
 @[derive_handler, priority 2000] meta def non_null_json_serializable_handler : derive_handler :=
 instance_derive_handler ``non_null_json_serializable $ do
@@ -158,15 +140,15 @@ instance_derive_handler ``non_null_json_serializable $ do
   refine ``(@non_null_json_serializable.mk _ ⟨λ x, json.object _, λ j, sorry⟩),
   x ← mk_local_def `x e,
 
-  (e : list (option pexpr)) ← fields.mmap (λ f, do {
+  (e : list (option pexpr)) ← fields.mmap (λ f, do
     d ← get_decl (I ++ f),
     let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
     t ← infer_type a,
     s ← infer_type t,
     `(Prop) ← pure s | pure (none : option pexpr),
-    let field := a.mk_app [```(x)],
-
-  }),
+    -- let field := a.mk_app [```(x)],
+    sorry
+  ),
 
   trace_state,
   tactic.trace fields

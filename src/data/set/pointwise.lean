@@ -164,7 +164,8 @@ by { rw ←image_inv, exact (range_comp _ _).symm }
 open mul_opposite
 
 @[to_additive]
-lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ := by simp_rw [←image_inv, image_comm op_inv]
+lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ :=
+by simp_rw [←image_inv, function.semiconj.set_image op_inv s]
 
 end has_involutive_inv
 end inv
@@ -946,7 +947,7 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 @[to_additive]
 instance smul_comm_class_set [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class α β (set γ) :=
-⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+⟨λ _ _, commute.set_image $ smul_comm _ _⟩
 
 @[to_additive]
 instance smul_comm_class_set' [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :

@@ -401,21 +401,22 @@ begin
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
-lemma set_of_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
-  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = (finset.Ico 1 b).filter (λ i, p ^ i ∣ n) :=
+lemma set_of_pow_dvd_eq {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = (finset.Ico 1 n).filter (λ i, p ^ i ∣ n) :=
 begin
   ext i,
   norm_cast,
   simp only [finset.mem_filter, set.mem_set_of_eq, mem_Ico, and.congr_left_iff, ←ne.def,
     one_le_iff_ne_zero, iff_self_and],
-  intro h,
-  simp [lt_of_le_of_lt ((pow_le_iff_le_log pp.one_lt hn.bot_lt).1 (le_of_dvd hn.bot_lt h)) hb],
+  rintro h -,
+  rw ←pow_lt_iff_lt_right pp.two_le,
+  exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self pp.one_lt n),
 end
 
 def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   fintype {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} :=
 begin
-  simp only [set_of_pow_dvd_eq pp hn (nat.find_spec (exists_gt (log p n))), coe_filter, coe_Ico],
+  simp only [set_of_pow_dvd_eq pp hn, coe_filter, coe_Ico],
   apply set.fintype_sep,
 end
 

@@ -119,8 +119,8 @@ instance setoid : setoid pSet :=
 
 /-- A pre-set is a subset of another pre-set if every element of the first family is extensionally
 equivalent to some element of the second family.-/
-protected def subset : pSet → pSet → Prop
-| ⟨α, A⟩ ⟨β, B⟩ := ∀ a, ∃ b, equiv (A a) (B b)
+protected def subset (x y : pSet) : Prop :=
+∀ a, ∃ b, equiv (x.func a) (y.func b)
 
 instance : has_subset pSet := ⟨pSet.subset⟩
 
@@ -140,8 +140,8 @@ theorem subset.congr_right : Π {x y z : pSet}, equiv x y → (z ⊆ x ↔ z ⊆
     λ γβ c, let ⟨b, cb⟩ := γβ c, ⟨a, ab⟩ := βα b in ⟨a, cb.trans (equiv.symm ab)⟩⟩
 
 /-- `x ∈ y` as pre-sets if `x` is extensionally equivalent to a member of the family `y`. -/
-def mem : pSet → pSet → Prop
-| x ⟨β, B⟩ := ∃ b, equiv x (B b)
+def mem (x y : pSet) : Prop := ∃ b, equiv x (y.func b)
+
 instance : has_mem pSet.{u} pSet.{u} := ⟨mem⟩
 
 theorem mem.mk {α: Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
@@ -192,14 +192,6 @@ instance : has_insert pSet pSet := ⟨pSet.insert⟩
 instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
 
 instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
-
-/-- The n-th von Neumann ordinal -/
-def of_nat : ℕ → pSet
-| 0     := ∅
-| (n+1) := pSet.insert (of_nat n) (of_nat n)
-
-/-- The von Neumann ordinal ω -/
-def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
 protected def sep (p : set pSet) : pSet → pSet
@@ -438,17 +430,6 @@ iff.trans mem_insert ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o,
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert $ or_congr iff.rfl mem_singleton
-
-/-- `omega` is the first infinite von Neumann ordinal -/
-def omega : Set := mk omega
-
-@[simp] theorem omega_zero : ∅ ∈ omega :=
-⟨⟨0⟩, equiv.rfl⟩
-
-@[simp] theorem omega_succ {n} : n ∈ omega.{u} → insert n n ∈ omega.{u} :=
-quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩,
-  have Set.insert ⟦x⟧ ⟦x⟧ = Set.insert ⟦of_nat n⟧ ⟦of_nat n⟧, by rw (@quotient.sound pSet _ _ _ h),
-  quotient.exact this⟩)
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
 protected def sep (p : Set → Prop) : Set → Set :=

@@ -824,7 +824,6 @@ lemma mem_le_max {a : α} {s : finset α} (as : a ∈ s) :
   ↑a ≤ s.max :=
 (le_fold_max _).mpr (or.inr ⟨a, as, rfl.le⟩)
 
-
 lemma max_mono {s t : finset α} (st : s ⊆ t) :
   s.max ≤ t.max :=
 begin

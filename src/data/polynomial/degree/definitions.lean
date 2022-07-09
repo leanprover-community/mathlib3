@@ -503,6 +503,15 @@ lemma nat_degree_eq_support_max' (h : p ≠ 0) :
 (le_max' _ _ $ nat_degree_mem_support_of_nonzero h).antisymm $
   max'_le _ _ _ le_nat_degree_of_mem_supp
 
+lemma degree_eq_support_max (p : R[X]) :
+  p.degree = p.support.max :=
+begin
+  by_cases p0 : p = 0,
+  { simp only [p0, polynomial.support_zero, finset.sup_empty, finset.max_empty],
+    refl },
+  { simp [degree_eq_nat_degree p0, nat_degree_eq_support_max' p0, finset.max'] }
+end
+
 lemma nat_degree_C_mul_X_pow_le (a : R) (n : ℕ) : nat_degree (C a * X ^ n) ≤ n :=
 nat_degree_le_iff_degree_le.2 $ degree_C_mul_X_pow_le _ _
 

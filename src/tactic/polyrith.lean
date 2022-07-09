@@ -474,13 +474,6 @@ do
   pure j
 
 /--
-Given a list of atoms, creates a list of their corresponding variable names
-`["var 0", ..., "var n"]`.
--/
-meta def get_var_names (vars : list expr) : list string :=
-(list.range vars.length).map $ λ n, "var" ++ to_string n
-
-/--
 Given a pair of `expr`s, where one represents the hypothesis/proof term,
 and the other representes the coefficient attached to it, this tactic
 creates a string combining the two in the appropriate format for
@@ -534,7 +527,7 @@ meta def create_args (only_on : bool) (hyps : list pexpr) :
   (m, p, R) ← parse_target_to_poly,
   (eq_names, m, polys) ← parse_ctx_to_polys R m only_on hyps,
   -- let m := m.zip (list.range m.length),
-  let args := [to_string R, (get_var_names m).to_string,
+  let args := [to_string R, to_string m.length,
     (polys.map poly.mk_string).to_string, p.mk_string],
   return $ (eq_names, m, R, to_string (is_trace_enabled_for `polyrith) :: args)
 

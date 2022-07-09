@@ -419,7 +419,7 @@ begin
   exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb),
 end
 
-lemma factorization_eq_card_pow_dvd {n p : ℕ} (pp : p.prime) :
+lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
   n.factorization p = ((finset.Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },

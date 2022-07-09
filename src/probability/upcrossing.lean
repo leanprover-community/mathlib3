@@ -553,7 +553,7 @@ begin
   { exact (crossing_eq_crossing_of_upper_crossing_lt hNM h).1 }
 end
 
-lemma upcrossing_lt_upcrossing (hab : a < b) {N₁ N₂ : ℕ}
+lemma upcrossing_lt_upcrossing_of_exists_upcrossing (hab : a < b) {N₁ N₂ : ℕ}
   (hN₁: N ≤ N₁) (hN₁': f N₁ x < a) (hN₂: N₁ ≤ N₂) (hN₂': b < f N₂ x) :
   upcrossing a b f N x < upcrossing a b f (N₂ + 1) x :=
 begin
@@ -798,10 +798,9 @@ begin
     obtain ⟨N₁, hN₁, hN₁'⟩ := h₁ N,
     obtain ⟨N₂, hN₂, hN₂'⟩ := h₂ N₁,
     exact ⟨(N₂ + 1), nat.succ_le_of_lt $ lt_of_le_of_lt hN
-      (upcrossing_lt_upcrossing hab hN₁ hN₁' hN₂ hN₂')⟩ }
+      (upcrossing_lt_upcrossing_of_exists_upcrossing hab hN₁ hN₁' hN₂ hN₂')⟩ }
 end
 
-#check is_bounded_under
 lemma tendsto_of_bdd_uncrossing {x : α}
   (hf₁ : ∃ R, liminf at_top (λ n, f n x) < R)
   (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x < K) :

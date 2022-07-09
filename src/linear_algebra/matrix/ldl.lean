@@ -27,6 +27,17 @@ begin
   exact matrix.invertible_conj_transpose Aᴴ
 end
 
+lemma inv_mul_eq_iff_eq_mul (A B C : matrix n n α) [invertible A]  : A⁻¹ ⬝ B = C ↔ B = A ⬝ C :=
+⟨ λ h, calc B = A ⬝ A⁻¹ ⬝ B : by simp only [mul_inv_of_invertible A, matrix.one_mul]
+    ... = A ⬝ C : by rw [matrix.mul_assoc, h],
+  λ h, calc A⁻¹ ⬝ B = A⁻¹ ⬝ A ⬝ C : by rw [matrix.mul_assoc, h]
+    ... = C : by simp only [inv_mul_of_invertible A, matrix.one_mul]⟩
+
+lemma mul_inv_eq_iff_eq_mul (A B C : matrix n n α) [invertible A]  : B ⬝ A⁻¹ = C ↔ B = C ⬝ A :=
+⟨ λ h, calc B = B ⬝ A⁻¹ ⬝ A : by simp only [matrix.mul_assoc, inv_mul_of_invertible A, matrix.mul_one]
+    ... = C ⬝ A : by rw [h],
+  λ h, calc B ⬝ A⁻¹ = C ⬝ A ⬝ A⁻¹ : by rw [h]
+    ... = C : by simp only [matrix.mul_assoc, mul_inv_of_invertible A, matrix.mul_one]⟩
 
 lemma mul_mul_apply (A B C : matrix n n α) (i j : n) : (A ⬝ B ⬝ C) i j = A i ⬝ᵥ (B.mul_vec (Cᵀ j)) :=
 by { rw matrix.mul_assoc, simpa only [mul_apply, dot_product, mul_vec] }
@@ -59,8 +70,7 @@ noncomputable def LDL.lower_inv : matrix n n 𝕜 :=
   @gram_schmidt
     𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (λ k, pi.basis_fun 𝕜 n k)
 
-
-lemma LDL.lower_inv_eq_gram_schmidt_basis :
+lemma LDL.lower_inv_gram_schmidt_basis :
   LDL.lower_inv hS = ((pi.basis_fun 𝕜 n).to_matrix
     (@gram_schmidt_basis 𝕜 (n → 𝕜) _
     (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)))ᵀ :=
@@ -72,9 +82,10 @@ end
 
 noncomputable instance LDL.invertible_lower_inv : invertible (LDL.lower_inv hS) :=
 begin
-  rw [LDL.lower_inv_eq_gram_schmidt_basis],
+  rw [LDL.lower_inv_gram_schmidt_basis],
   haveI := basis.invertible_to_matrix (pi.basis_fun 𝕜 n)
-    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _ (pi.basis_fun 𝕜 n)),
+    (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose)
+      n _ _ _ (pi.basis_fun 𝕜 n)),
   apply invertible_transpose,
 end
 
@@ -102,35 +113,22 @@ begin
   ext i j,
   by_cases hij : i = j,
   { simpa only [hij, LDL.diag, diagonal_apply_eq, LDL.diag_entries, matrix.mul_assoc, inner,
-      pi.star_apply, is_R_or_C.star_def, star_ring_end_self_apply],
-  },
+      pi.star_apply, is_R_or_C.star_def, star_ring_end_self_apply] },
   { simp only [LDL.diag, hij, diagonal_apply_ne, ne.def, not_false_iff, mul_mul_apply],
-    rw [conj_transpose, transpose_map, transpose_transpose, dot_product_mul_vec],
-    rw [(LDL.lower_inv_orthogonal hS (λ h : j = i, hij h.symm)).symm,
-      ← inner_conj_sym],
-    rw [mul_vec_transpose],
-    show star (dot_product _ _) = _,
-    rw [← star_dot_product_star, dot_product_comm],
-    congr',
-    rw ← is_R_or_C.star_def,
-    unfold star,
-    simp only [star_star], }
+    rw [conj_transpose, transpose_map, transpose_transpose, dot_product_mul_vec,
+      (LDL.lower_inv_orthogonal hS (λ h : j = i, hij h.symm)).symm,
+      ← inner_conj_sym, mul_vec_transpose, euclidean_space.inner_eq_star_dot_product,
+      ← is_R_or_C.star_def, ← star_dot_product_star, dot_product_comm, star_star],
+    refl }
 end
 
 /-- The lower triangular matrix `L` of the LDL decomposition. -/
 noncomputable def LDL.lower := (LDL.lower_inv hS)⁻¹
 
 theorem ldl_decomposition :
-  S = LDL.lower hS ⬝ LDL.diag hS ⬝ (LDL.lower hS)ᴴ :=
+  LDL.lower hS ⬝ LDL.diag hS ⬝ (LDL.lower hS)ᴴ = S :=
 begin
-  haveI : invertible (LDL.lower_inv hS) := LDL.invertible_lower_inv hS,
-  haveI : invertible (LDL.lower_inv hS)ᴴ := invertible_conj_transpose _,
-  have := ldl_decomposition₀ hS,
-  have := congr_arg (λ A, LDL.lower hS ⬝ A) this,
-  have := congr_arg (λ A, A ⬝ (LDL.lower hS)ᴴ) this,
-  simp [LDL.lower, (matrix.mul_assoc _ _ _).symm] at this,
-  have blah := (conj_transpose_nonsing_inv (LDL.lower_inv hS)).symm,
-  simp [(conj_transpose_nonsing_inv (LDL.lower_inv hS)), matrix.mul_assoc] at this,
-  simp [(conj_transpose_nonsing_inv (LDL.lower_inv hS)).symm] at this,
-  simp [matrix.mul_assoc, LDL.lower, (conj_transpose_nonsing_inv (LDL.lower_inv hS)).symm, this]
+  rw [LDL.lower, conj_transpose_nonsing_inv, matrix.mul_assoc,
+    matrix.inv_mul_eq_iff_eq_mul (LDL.lower_inv hS), matrix.mul_inv_eq_iff_eq_mul],
+  exact ldl_decomposition₀ hS,
 end

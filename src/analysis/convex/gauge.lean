@@ -295,23 +295,22 @@ end linear_ordered_field
 
 section is_R_or_C
 
-variables [is_R_or_C 𝕜] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
 lemma gauge_balanced (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) =
   gauge s (∥r∥ • x) :=
 begin
-  have h'' : ∥r∥ • x = (∥r∥ : 𝕜) • x := is_R_or_C.coe_smul' _ _,
-  rw h'',
+  rw @is_R_or_C.coe_smul' 𝕜,
   simp_rw [gauge_def'],
   by_cases h : r = 0,
-  { rw h, simp only [norm_zero, is_R_or_C.of_real_zero]},
+  { rw h, simp only [norm_zero, is_R_or_C.of_real_zero] },
   apply congr_arg _,
   ext r',
   simp only [mem_sep_eq, mem_Ioi, and.congr_right_iff],
   intros hr',
   simp_rw [←smul_assoc, is_R_or_C.coe_smul],
   refine hs.mem_smul_iff _,
-  simp,
+  simp [is_R_or_C.norm_of_real],
 end
 
 /-- If `s` is balanced, then the Minkowski functional
@@ -406,15 +405,12 @@ seminorm.of (gauge s) (gauge_add_le hs₁ hs₂)
   (λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance)
 
 section is_R_or_C
-variables [add_comm_group F] [is_R_or_C 𝕜] [module ℝ F] [module 𝕜 F] [is_scalar_tower ℝ 𝕜 F]
-variables {s' : set F}
+variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
 /-- `gauge s` as a seminorm over is_R_or_C when `s` is balanced, convex and absorbent. -/
-@[simps] def gauge_seminorm' (hs₀ : balanced 𝕜 s') (hs₁ : convex ℝ s') (hs₂ : absorbent ℝ s') :
-  seminorm 𝕜 F :=
-{ to_fun := gauge s',
-  smul' := λ r x, by rw [gauge_smul' hs₀, smul_eq_mul],
-  triangle' := gauge_add_le hs₁ hs₂ }
+@[simps] def gauge_seminorm' (hs₀ : balanced 𝕜 s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
+  seminorm 𝕜 E :=
+seminorm.of (gauge s) (gauge_add_le hs₁ hs₂) (λ r x, by rw [gauge_smul' hs₀, smul_eq_mul])
 
 end is_R_or_C
 

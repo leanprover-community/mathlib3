@@ -1197,6 +1197,7 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
+section loc_instances
 -- enable inferring a regular topological space from a topological group
 local attribute [instance] topological_add_group.regular_space
 -- disable getting a T0-space from a regular as this causes loops
@@ -1298,6 +1299,8 @@ lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.unc
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
+end loc_instances
+
 lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
   has_sum (λ n:ℕ, f(n + 1) + f(-n.succ)) (a - f 0) :=
 begin
@@ -1307,6 +1310,7 @@ begin
   rw hf.unique (h₁.pos_add_zero_add_neg h₂),
   abel,
 end
+
 
 end uniform_group
 

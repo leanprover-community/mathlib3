@@ -413,6 +413,7 @@ begin
   exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self pp.one_lt n),
 end
 
+/-- The set of positive powers of prime `p` that divide non-zero `n` is finite. -/
 def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   fintype {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} :=
 begin

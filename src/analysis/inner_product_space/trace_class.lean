@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.inner_product_space.adjoint
+import analysis.inner_product_space.l2_space
 import linear_algebra.trace
 
 /-!
@@ -48,6 +49,7 @@ local attribute [instance] findim_subspace.finite_dimensional
 namespace continuous_linear_map
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 noncomputable def trace_along (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] :
   (E →L[𝕜] E) →ₗ[𝕜] 𝕜 :=
@@ -63,6 +65,10 @@ noncomputable def trace_along (U : submodule 𝕜 E) [finite_dimensional 𝕜 U]
         smul_hom_class.map_smul],
     refl
   end }
+
+@[simp] lemma trace_along_apply (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] (T : E →L[𝕜] E) :
+  trace_along U T = linear_map.trace 𝕜 U (dom_restrict ((orthogonal_projection U).comp T) U) :=
+rfl
 
 def is_trace_class (T : E →L[𝕜] E) : Prop :=
 ∃ x : 𝕜, tendsto (λ U : findim_subspace 𝕜 E, trace_along (U : submodule 𝕜 E) T) at_top (𝓝 x)
@@ -81,5 +87,18 @@ if h : is_trace_class T then classical.some h else 0
 lemma trace_spec {T : E →L[𝕜] E} (hT : T.is_trace_class) :
   tendsto (λ U : findim_subspace 𝕜 E, trace_along (U : submodule 𝕜 E) T) at_top (𝓝 $ T.trace) :=
 by {rw trace, split_ifs, exact classical.some_spec hT}
+
+lemma is_trace_class.has_sum {ι : Type*} {T : E →L[𝕜] E} (hT : T.is_trace_class)
+  (e : hilbert_basis ι 𝕜 E) :
+has_sum (λ i, ⟪T (e i), e i⟫) T.trace :=
+begin
+  let U : finset ι → findim_subspace 𝕜 E := λ s,
+    ⟨submodule.span 𝕜 (s.image e : set E), finite_dimensional.span_finset 𝕜 _⟩,
+  suffices : tendsto (λ s : finset ι, trace_along (U s : submodule 𝕜 E) T) at_top (𝓝 T.trace),
+  { rw has_sum,
+    convert this,
+    ext s,
+    rw [trace_along_apply], }
+end
 
 end continuous_linear_map

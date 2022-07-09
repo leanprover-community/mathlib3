@@ -101,6 +101,16 @@ equivalent to some element of the second family and vice-versa. -/
 def equiv (x y : pSet) : Prop :=
 pSet.rec (λ α z m ⟨β, B⟩, (∀ a, ∃ b, m a (B b)) ∧ (∀ b, ∃ a, m a (B b))) x y
 
+theorem exists_equiv_left : Π {x y : pSet} (h : equiv x y) (i : x.type),
+  ∃ j, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h :=
+by { cases h with hl, apply hl }
+
+theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
+  ∃ i, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h :=
+by { cases h with _ hr, apply hr }
+
 theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
 
@@ -146,7 +156,7 @@ def mem (x y : pSet) : Prop := ∃ b, equiv x (y.func b)
 
 instance : has_mem pSet.{u} pSet.{u} := ⟨mem⟩
 
-theorem mem.mk {α: Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
+theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
 
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y

@@ -399,14 +399,8 @@ end
 end support
 
 --  #15199
-lemma _root_.polynomial.degree_eq_support_max (p : R[X]) :
-  p.degree = p.support.max :=
-begin
-  by_cases p0 : p = 0,
-  { simp only [p0, polynomial.support_zero, finset.sup_empty, finset.max_empty],
-    refl },
-  { simp [degree_eq_nat_degree p0, nat_degree_eq_support_max' p0, finset.max'] }
-end
+lemma _root_.polynomial.degree_eq_support_max (p : R[X]) : p.degree = p.support.max :=
+rfl
 
 section degrees
 
@@ -427,6 +421,33 @@ dite (f = 0) (λ _, 0) (λ f0, f.support.max' $ support_nonempty_iff.mpr f0)
 
 @[simp] lemma int_degree_zero : int_degree (0 : R[T;T⁻¹]) = 0 := rfl
 
+lemma degree_T_pow [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
+begin
+  rw degree,
+  convert finset.max_singleton,
+  apply subset_antisymm,
+  refine subset_trans (by simp only [map_one, one_mul, finset.subset.refl]) (support_C_mul_T (1 : R) n),
+  simp only [finset.singleton_subset_iff, finsupp.mem_support_iff, ne.def],
+
+  simp only [eq_nat_cast, nat.cast_one, one_mul],
+  intros a ha,
+--  exact ha,
+  simp only [finsupp.mem_support_iff, ne.def],
+
+  exact rfl.le,
+  induction (C a * T n) using laurent_polynomial.induction_on_mul_T with f n,
+--  revert a0,--(λ Q, (λ d, polynomial.degree_C_mul_X_pow d a0))
+  convert @reduce_to_polynomial_of_mul_T R _ _ _ _ _,
+end
+
+lemma degree_single (n : ℤ) (a : R) (a0 : a ≠ 0): (C a * T n).degree = n :=
+begin
+
+  induction (C a * T n) using laurent_polynomial.induction_on_mul_T with f n,
+--  revert a0,--(λ Q, (λ d, polynomial.degree_C_mul_X_pow d a0))
+  convert @reduce_to_polynomial_of_mul_T R _ _ _ _ _,
+end
+
 lemma int_degree_to_laurent_eq_nat_degree {f : R[X]} :
   f.to_laurent.int_degree = f.nat_degree :=
 begin
@@ -446,9 +467,19 @@ lemma degree_to_laurent (f : polynomial R) : f.to_laurent.degree = option.map co
 begin
   by_cases f0 : f = 0,
   { simp only [f0, map_zero, degree_zero, polynomial.degree_zero]; refl },
-  { rw [degree_eq_int_degree, int_degree_to_laurent_eq_nat_degree, degree_eq_nat_degree f0],
+  { rwa [degree_eq_int_degree, int_degree_to_laurent_eq_nat_degree, degree_eq_nat_degree f0],
     { refl },
     { exact f.to_laurent_ne_zero f0 } },
+end
+
+#check degree_C_mul_X_pow
+
+lemma fff (n : ℤ) (a : R) (a0 : a ≠ 0): (C a * T n).degree = n :=
+begin
+
+  induction (C a * T n) using laurent_polynomial.induction_on_mul_T with f n,
+--  revert a0,--(λ Q, (λ d, polynomial.degree_C_mul_X_pow d a0))
+  convert @reduce_to_polynomial_of_mul_T R _ _ _ _ _,
 end
 
 end degrees

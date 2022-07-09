@@ -230,25 +230,6 @@ begin
   exact stopped_value_hitting_mem ⟨j, ⟨hj₁.1, le_trans hj₁.2 (hitting_le _)⟩, hj₂⟩,
 end
 
--- lemma exists_eq_lower_crossing_of_stopped_value_lt (k : ℕ) (hk₁ : k < N) (hk₂ : f k x ≤ a) :
---   ∃ n, lower_crossing a b f N n x = k :=
--- begin
---   sorry
--- end
-
--- lemma exists_eq_upper_crossing_of_stopped_value_gt (k : ℕ) (hk₁ : k < N) (hk₂ : b ≤ f k x) :
---   ∃ n, upper_crossing a b f N n x = k :=
--- begin
---   sorry
--- end
-
--- lemma lower_crossing_lt_of {k : ℕ}
---   (hk₁ : upper_crossing a b f N n x < k) (hk₂ : k < N) (hk : f k x ≤ a) :
---   lower_crossing a b f N n x < N :=
--- begin
---   sorry
--- end
-
 lemma upper_crossing_lt_lower_crossing (hab : a < b) (hn : lower_crossing a b f N (n + 1) x ≠ N) :
   upper_crossing a b f N (n + 1) x < lower_crossing a b f N (n + 1) x :=
 begin

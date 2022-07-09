@@ -1299,8 +1299,6 @@ lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.unc
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
-end loc_instances
-
 lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
   has_sum (λ n:ℕ, f(n + 1) + f(-n.succ)) (a - f 0) :=
 begin
@@ -1311,6 +1309,7 @@ begin
   abel,
 end
 
+end loc_instances
 
 end uniform_group
 

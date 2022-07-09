@@ -402,9 +402,8 @@ end
 /-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/
 @[simps] def gauge_seminorm (hs₀ : ∀ x ∈ s, -x ∈ s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
   seminorm ℝ E :=
-{ to_fun := gauge s,
-  smul' := λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance,
-  triangle' := gauge_add_le hs₁ hs₂ }
+seminorm.of (gauge s) (gauge_add_le hs₁ hs₂)
+  (λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance)
 
 section is_R_or_C
 variables [add_comm_group F] [is_R_or_C 𝕜] [module ℝ F] [module 𝕜 F] [is_scalar_tower ℝ 𝕜 F]

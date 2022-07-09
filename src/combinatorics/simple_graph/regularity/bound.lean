@@ -36,7 +36,7 @@ lemma step_bound_mono : monotone step_bound :=
 lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
 zero_lt_mul_right $ pow_pos (by norm_num) _
 
-alias step_bound_pos_iff ↔ _ szemeredi_regularity.step_bound_pos
+alias step_bound_pos_iff ↔ _ step_bound_pos
 
 variables {α : Type*} [decidable_eq α] [fintype α] {P : finpartition (univ : finset α)}
   {u : finset α} {ε : ℝ}
@@ -83,7 +83,7 @@ by exact_mod_cast
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
-  rw [step_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
+  rw [step_bound, ←nat.div_div_eq_div_mul, ←nat.le_sub_iff_right h, tsub_le_iff_left,
     ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
@@ -130,7 +130,7 @@ lemma hundred_lt_pow_initial_bound_mul {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
 begin
   rw [←rpow_nat_cast 4, ←div_lt_iff (pow_pos hε 5), lt_rpow_iff_log_lt _ zero_lt_four,
     ←div_lt_iff, initial_bound, nat.cast_max, nat.cast_max],
-  { exact lt_max_of_lt_right (lt_max_of_lt_right $ nat.lt_floor_add_one _) },
+  { push_cast, exact lt_max_of_lt_right (lt_max_of_lt_right $ nat.lt_floor_add_one _) },
   { exact log_pos (by norm_num) },
   { exact div_pos (by norm_num) (pow_pos hε 5) }
 end

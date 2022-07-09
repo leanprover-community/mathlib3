@@ -198,6 +198,12 @@ if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`. -/
 protected structure has_basis (l : filter α) (p : ι → Prop) (s : ι → set α) : Prop :=
 (mem_iff' : ∀ (t : set α), t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t)
 
+/-- We say that a filter `l` has a basis in sets satisfying a predicate `p` if each `s ∈ l` includes
+`t ∈ l` satisfying this predicate. Equivalently, `l` has a basis such that all sets of this basis
+satisfy `p`. -/
+def has_basis_in (l : filter α) (p : set α → Prop) : Prop :=
+∀ ⦃s⦄, s ∈ l → ∃ t ∈ l, p t ∧ t ⊆ s
+
 section same_type
 
 variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} {i : ι}
@@ -205,12 +211,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
 
 lemma has_basis_generate (s : set (set α)) :
   (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
-⟨begin
-  intro U,
-  rw mem_generate_iff,
-  apply exists_congr,
-  tauto
-end⟩
+⟨λ U, by simp only [mem_generate_iff, exists_prop, and.assoc, and.left_comm]⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
@@ -285,6 +286,22 @@ by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; re
 protected lemma _root_.filter_basis.has_basis {α : Type*} (B : filter_basis α) :
   has_basis (B.filter) (λ s : set α, s ∈ B) id :=
 ⟨λ t, B.mem_filter_iff⟩
+
+lemma has_basis_in_iff_has_basis {P : set α → Prop} :
+  has_basis_in l P ↔ has_basis l (λ s, s ∈ l ∧ P s) id :=
+begin
+  simp only [has_basis_in, has_basis_iff, exists_prop, id, and_assoc],
+  exact forall_congr (λ s, _),
+
+end
+
+lemma has_basis_in_iff_has_basis {p : set α → Prop} :
+ 
+
+protected lemma has_basis_in.has_basis {p : set α → Prop} (h : l.has_basis_in p) :
+  has_basis l (λ s : set α, s ∈ l ∧ p s) id :=
+⟨λ t, ⟨λ ht, (h ht).imp $ λ s hs, ⟨⟨hs.fst, hs.snd.1⟩, hs.snd.2⟩,
+  _⟩⟩
 
 lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=

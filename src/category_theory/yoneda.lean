@@ -386,7 +386,7 @@ lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X 
   ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
 rfl
 
-local attribute[ext] functor.ext
+local attribute [ext] functor.ext
 
 /-- The curried version of yoneda lemma when `C` is small. -/
 def curried_yoneda_lemma {C : Type u₁} [small_category C] :

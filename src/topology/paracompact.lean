@@ -95,7 +95,7 @@ lemma precise_refinement_set [paracompact_space X] {s : set X} (hs : is_closed s
   (u : ι → set X) (uo : ∀ i, is_open (u i)) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, (∀ i, is_open (v i)) ∧ (s ⊆ ⋃ i, v i) ∧ locally_finite v ∧ (∀ i, v i ⊆ u i) :=
 begin
-  rcases precise_refinement (λ i, option.elim i sᶜ u)
+  rcases precise_refinement (option.elim sᶜ u)
     (option.forall.2 ⟨is_open_compl_iff.2 hs, uo⟩) _ with ⟨v, vo, vc, vf, vu⟩,
   refine ⟨v ∘ some, λ i, vo _, _, vf.comp_injective (option.some_injective _), λ i, vu _⟩,
   { simp only [Union_option, ← compl_subset_iff_union] at vc,
@@ -251,9 +251,8 @@ begin
     exact λ y hyu hyv, huv i ⟨hsub _ hyu, hyv⟩ },
   /- Now we apply the lemma twice: first to `s` and `t`, then to `t` and each point of `s`. -/
   refine ⟨λ s t hs ht hst, this s t hs ht (λ x hx, _)⟩,
-  rcases this t {x} ht is_closed_singleton (λ y hyt, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
+  rcases this t {x} ht is_closed_singleton (λ y hy, _) with ⟨v, u, hv, hu, htv, hxu, huv⟩,
   { exact ⟨u, v, hu, hv, singleton_subset_iff.1 hxu, htv, huv.symm⟩ },
-  { have : x ≠ y, by { rintro rfl, exact hst ⟨hx, hyt⟩ },
-    rcases t2_separation this with ⟨v, u, hv, hu, hxv, hyu, hd⟩,
-    exact ⟨u, v, hu, hv, hyu, singleton_subset_iff.2 hxv, disjoint.symm hd.le⟩ }
+  { simp_rw singleton_subset_iff,
+    exact t2_separation (hst.symm.ne_of_mem hy hx) }
 end

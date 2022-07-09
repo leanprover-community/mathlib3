@@ -21,15 +21,14 @@ valuation from each `X i` to `r i`.
 
 -/
 
-universes u
 open_locale big_operators polynomial
 
 open finset polynomial fintype
 
 namespace mv_polynomial
 
-variables {R : Type u} [comm_semiring R]
-variables (σ : Type u) [fintype σ]
+variables {R : Type*} [comm_semiring R]
+variables (σ : Type*) [fintype σ]
 
 /-- A sum version of Vieta's formula. Viewing `X i` as variables,
 the product of linear terms `λ + X i` is equal to a linear combination of

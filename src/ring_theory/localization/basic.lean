@@ -390,13 +390,13 @@ begin
 end
 
 lemma mul_add_inv_left {g : R →+* P} (h : ∀ y : M, is_unit (g y)) (y : M) (w z₁ z₂ : P) :
-  w * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y)⁻¹ + z₁ = z₂
+  w * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) h y)⁻¹ + z₁ = z₂
     ↔ w + g y * z₁ = g y * z₂ :=
 begin
-  rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y),
+  rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.restrict M) h y),
     mul_assoc, ←mul_add, units.inv_mul_eq_iff_eq_mul, units.inv_mul_cancel_left,
     is_unit.coe_lift_right],
-  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.mrestrict_apply, ring_hom.coe_monoid_hom]
+  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.restrict_apply, ring_hom.coe_monoid_hom]
 end
 
 lemma lift_spec_mul_add {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) (z w w' v) :
@@ -435,7 +435,7 @@ variables {g : R →+* P} (hg : ∀ y : M, is_unit (g y))
 `g : R →* P` such that `g y` is invertible for all `y : M`, the homomorphism induced from
 `S` to `P` maps `f x * (f y)⁻¹` to `g x * (g y)⁻¹` for all `x : R, y ∈ M`. -/
 lemma lift_mk' (x y) :
-  lift hg (mk' S x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) hg y)⁻¹ :=
+  lift hg (mk' S x y) = g x * ↑(is_unit.lift_right (g.to_monoid_hom.restrict M) hg y)⁻¹ :=
 (to_localization_map M S).lift_mk' _ _ _
 
 lemma lift_mk'_spec (x v) (y : M) :
@@ -989,16 +989,19 @@ variables (S M) (Q : Type*) [comm_ring Q] {g : R →+* P} [algebra P Q]
 
 /-- Injectivity of a map descends to the map induced on localizations. -/
 lemma map_injective_of_injective
-  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q]
-  (hM : (M.map g : submonoid P) ≤ non_zero_divisors P) :
+  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q] :
   function.injective (map Q g M.le_comap_map : S → Q) :=
 begin
-  rintros x y hxy,
-  obtain ⟨a, b, rfl⟩ := mk'_surjective M x,
-  obtain ⟨c, d, rfl⟩ := mk'_surjective M y,
-  rw [map_mk' _ a b, map_mk' _ c d, mk'_eq_iff_eq] at hxy,
-  refine mk'_eq_iff_eq.2 (congr_arg (algebra_map _ _) (hg _)),
-  convert is_localization.injective _ hM hxy; simp,
+  rw injective_iff_map_eq_zero,
+  intros z hz,
+  obtain ⟨a, b, rfl⟩ := mk'_surjective M z,
+  rw [map_mk', mk'_eq_zero_iff] at hz,
+  obtain ⟨⟨m', hm'⟩, hm⟩ := hz,
+  rw submonoid.mem_map at hm',
+  obtain ⟨n, hn, hnm⟩ := hm',
+  rw [subtype.coe_mk, ← hnm,  ← map_mul, ← map_zero g] at hm,
+  rw [mk'_eq_zero_iff],
+  exact ⟨⟨n, hn⟩, hg hm⟩,
 end
 
 variables {S Q M}
@@ -1093,10 +1096,9 @@ map_mk' _ _ _
 variables (Rₘ Sₘ)
 
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization. -/
-lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
-  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
+lemma localization_algebra_injective (hRS : function.injective (algebra_map R S)) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) :=
-is_localization.map_injective_of_injective M Rₘ Sₘ hRS hM
+is_localization.map_injective_of_injective M Rₘ Sₘ hRS
 
 end algebra
 

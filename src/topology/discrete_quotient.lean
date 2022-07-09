@@ -309,12 +309,7 @@ begin
     (λ (Q : discrete_quotient X), Q.proj ⁻¹' {Qs _}) (λ A B, _) (λ i, _)
     (λ i,  (fiber_closed _ _).is_compact) (λ i, fiber_closed _ _),
   { refine ⟨x, λ Q, _⟩,
-    specialize hx _ ⟨Q,rfl⟩,
-    dsimp at hx,
-    rcases proj_surjective _ (Qs Q) with ⟨y,hy⟩,
-    rw ← hy at *,
-    rw fiber_eq at hx,
-    exact quotient.sound' (Q.symm y x hx) },
+    exact hx _ ⟨Q,rfl⟩ },
   { refine ⟨A ⊓ B, λ a ha, _, λ a ha, _⟩,
     { dsimp only,
       erw ← compat (A ⊓ B) A inf_le_left,

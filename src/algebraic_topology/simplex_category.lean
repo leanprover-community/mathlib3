@@ -190,7 +190,7 @@ begin
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
   simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
-  dsimp, simp only [if_congr, subtype.mk_lt_mk, dif_ctx_congr],
+  dsimp,
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with two of them by hand.
@@ -212,7 +212,7 @@ begin
   { dsimp [δ, σ, fin.succ_above, fin.pred_above], simpa [fin.pred_above] with push_cast },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
-  dsimp, simp only [if_congr, subtype.mk_lt_mk],
+  dsimp,
   split_ifs; { simp at *; linarith, },
 end
 
@@ -651,7 +651,7 @@ begin
       order_hom.comp_coe, hom.comp, small_category_comp],
     by_cases h' : θ.to_order_hom x ≤ i,
     { simp only [σ, mk_hom, hom.to_order_hom_mk, order_hom.coe_fun_mk],
-      erw fin.pred_above_below (fin.cast_pred i) (θ.to_order_hom x)
+      rw fin.pred_above_below (fin.cast_pred i) (θ.to_order_hom x)
         (by simpa [fin.cast_succ_cast_pred h] using h'),
       erw fin.succ_above_below i, swap,
       { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ],
@@ -688,7 +688,8 @@ lemma eq_id_of_mono {x : simplex_category} (i : x ⟶ x) [mono i] : i = 𝟙 _ :
 begin
   apply eq_id_of_is_iso,
   apply is_iso_of_bijective,
-  erw [fintype.bijective_iff_injective_and_card i.to_order_hom, ← mono_iff_injective,
+  dsimp,
+  rw [fintype.bijective_iff_injective_and_card i.to_order_hom, ← mono_iff_injective,
     eq_self_iff_true, and_true],
   apply_instance,
 end
@@ -697,7 +698,8 @@ lemma eq_id_of_epi {x : simplex_category} (i : x ⟶ x) [epi i] : i = 𝟙 _ :=
 begin
   apply eq_id_of_is_iso,
   apply is_iso_of_bijective,
-  erw [fintype.bijective_iff_surjective_and_card i.to_order_hom, ← epi_iff_surjective,
+  dsimp,
+  rw [fintype.bijective_iff_surjective_and_card i.to_order_hom, ← epi_iff_surjective,
     eq_self_iff_true, and_true],
   apply_instance,
 end
@@ -711,7 +713,7 @@ begin
   use i,
   haveI : epi (σ i ≫ θ') := by { rw ← h, apply_instance, },
   haveI := category_theory.epi_of_epi (σ i) θ',
-  erw [h, eq_id_of_epi θ', category.comp_id],
+  rw [h, eq_id_of_epi θ', category.comp_id],
 end
 
 lemma eq_δ_of_mono {n : ℕ} (θ : mk n ⟶ mk (n+1)) [mono θ] : ∃ (i : fin (n+2)), θ = δ i :=
@@ -723,9 +725,17 @@ begin
   use i,
   haveI : mono (θ' ≫ δ i) := by { rw ← h, apply_instance, },
   haveI := category_theory.mono_of_mono θ' (δ i),
-  erw [h, eq_id_of_mono θ', category.id_comp],
+  rw [h, eq_id_of_mono θ', category.id_comp],
 end
 
 end epi_mono
+
+/-- This functor `simplex_category ⥤ Cat` sends `[n]` (for `n : ℕ`)
+to the category attached to the ordered set `{0, 1, ..., n}` -/
+@[simps obj map]
+def to_Cat : simplex_category ⥤ Cat.{0} :=
+simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder ⋙
+  forget₂ LinearOrder Lattice ⋙ forget₂ Lattice PartialOrder ⋙
+  forget₂ PartialOrder Preorder ⋙ Preorder_to_Cat
 
 end simplex_category

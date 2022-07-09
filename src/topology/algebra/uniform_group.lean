@@ -79,6 +79,26 @@ by simp * at *
 @[to_additive] lemma uniform_continuous_mul : uniform_continuous (λp:α×α, p.1 * p.2) :=
 uniform_continuous_fst.mul uniform_continuous_snd
 
+@[to_additive uniform_continuous.const_nsmul]
+lemma uniform_continuous.pow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℕ, uniform_continuous (λ x, f x ^ n)
+| 0 := by { simp_rw pow_zero, exact uniform_continuous_const }
+| (n + 1) := by { simp_rw pow_succ, exact hf.mul (uniform_continuous.pow_const n) }
+
+@[to_additive uniform_continuous_const_nsmul] lemma uniform_continuous_pow_const (n : ℕ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.pow_const n
+
+@[to_additive uniform_continuous.const_zsmul]
+lemma uniform_continuous.zpow_const [uniform_space β] {f : β → α}
+  (hf : uniform_continuous f) : ∀ n : ℤ, uniform_continuous (λ x, f x ^ n)
+| (n : ℕ) := by { simp_rw zpow_coe_nat, exact hf.pow_const _, }
+| -[1+ n] := by { simp_rw zpow_neg_succ_of_nat, exact (hf.pow_const _).inv }
+
+@[to_additive uniform_continuous_const_zsmul] lemma uniform_continuous_zpow_const (n : ℤ) :
+  uniform_continuous (λx:α, x ^ n) :=
+uniform_continuous_id.zpow_const n
+
 @[priority 10, to_additive]
 instance uniform_group.to_topological_group : topological_group α :=
 { continuous_mul := uniform_continuous_mul.continuous,
@@ -124,6 +144,41 @@ namespace subgroup
   uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val)⟩
 
 end subgroup
+
+section lattice_ops
+
+variables [group β]
+
+@[to_additive] lemma uniform_group_Inf {us : set (uniform_space β)}
+  (h : ∀ u ∈ us, @uniform_group β u _) :
+  @uniform_group β (Inf us) _ :=
+{ uniform_continuous_div := uniform_continuous_Inf_rng (λ u hu, uniform_continuous_Inf_dom₂ hu hu
+  (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
+
+@[to_additive] lemma uniform_group_infi {ι : Sort*} {us' : ι → uniform_space β}
+  (h' : ∀ i, @uniform_group β (us' i) _) :
+  @uniform_group β (⨅ i, us' i) _ :=
+by {rw ← Inf_range, exact uniform_group_Inf (set.forall_range_iff.mpr h')}
+
+@[to_additive] lemma uniform_group_inf {u₁ u₂ : uniform_space β}
+  (h₁ : @uniform_group β u₁ _) (h₂ : @uniform_group β u₂ _) :
+  @uniform_group β (u₁ ⊓ u₂) _ :=
+by {rw inf_eq_infi, refine uniform_group_infi (λ b, _), cases b; assumption}
+
+@[to_additive] lemma uniform_group_comap {γ : Type*} [group γ] {u : uniform_space γ}
+  [uniform_group γ] {F : Type*} [monoid_hom_class F β γ] (f : F) :
+  @uniform_group β (u.comap f) _ :=
+{ uniform_continuous_div :=
+    begin
+      letI : uniform_space β := u.comap f,
+      refine uniform_continuous_comap' _,
+      simp_rw [function.comp, map_div],
+      change uniform_continuous ((λ p : γ × γ, p.1 / p.2) ∘ (prod.map f f)),
+      exact uniform_continuous_div.comp
+        (uniform_continuous_comap.prod_map uniform_continuous_comap),
+    end }
+
+end lattice_ops
 
 section
 variables (α)
@@ -205,7 +260,13 @@ begin
   exact tendsto.comp h tendsto_comap
 end
 
-@[to_additive] lemma uniform_continuous_of_continuous_at_one {hom : Type*}
+/-- A group homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) between
+two uniform groups is uniformly continuous provided that it is continuous at one. See also
+`continuous_of_continuous_at_one`. -/
+@[to_additive "An additive group homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) between two uniform additive groups is uniformly continuous provided that it
+is continuous at zero. See also `continuous_of_continuous_at_zero`."]
+lemma uniform_continuous_of_continuous_at_one {hom : Type*}
   [uniform_space β] [group β] [uniform_group β] [monoid_hom_class hom α β]
   (f : hom) (hf : continuous_at f 1) :
   uniform_continuous f :=
@@ -260,6 +321,26 @@ uniform_continuous_inv.comp_cauchy_seq h
 (𝓝 (1 : α)).basis_sets.uniformity_of_nhds_one_inv_mul_swapped.totally_bounded_iff.trans $
   by simp [← preimage_smul_inv, preimage]
 
+section uniform_convergence
+variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+
+@[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
+  (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
+  (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
+
+@[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
+  (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=
+λ u hu, by simpa using ((uniform_continuous_mul.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
+
+@[to_additive] lemma uniform_cauchy_seq_on.div (hf : uniform_cauchy_seq_on f l s)
+  (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f / f') l s :=
+λ u hu, by simpa using ((uniform_continuous_div.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
+
+end uniform_convergence
 end uniform_group
 
 section topological_comm_group

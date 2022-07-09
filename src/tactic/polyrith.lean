@@ -36,10 +36,10 @@ given to the `linear_combination` tactic, which completes the process by checkin
 ## References
 
 * See the book `Ideals, Varieties, and Algorithms` by David Cox, John Little, and Donal O'Shea
-for the background theory on Groebner bases
+  for the background theory on Groebner bases
 * This code was heavily inspired by the code for the tactic `linarith`, which was written by
-Robert Lewis, who advised me on this project as part of a Computer Science independant study
-at Brown University.
+  Robert Lewis, who advised me on this project as part of a Computer Science independant study
+  at Brown University.
 
 -/
 
@@ -475,7 +475,6 @@ meta def create_args (only_on : bool) (hyps : list pexpr) :
   tactic (list expr × list expr × expr × list string) := do
   (m, p, R) ← parse_target_to_poly,
   (eq_names, m, polys) ← parse_ctx_to_polys R m only_on hyps,
-  -- let m := m.zip (list.range m.length),
   let args := [to_string R, to_string m.length,
     (polys.map poly.mk_string).to_string, p.mk_string],
   return $ (eq_names, m, R, to_string (is_trace_enabled_for `polyrith) :: args)

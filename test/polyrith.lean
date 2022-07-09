@@ -47,12 +47,20 @@ meta def tactic.interactive.test_polyrith (restr : parse (tk "only")?)
   (sage_out : string) (expected_args : list string) (expected_out : string) : tactic unit := do
 tactic.test_polyrith restr.is_some (hyps.get_or_else []) sage_out expected_args expected_out
 
+meta instance : decidable_eq json :=
+begin
+  intros j₁ j₂,
+  letI := json.decidable_eq,
+  cases j₁; cases j₂; simp; apply_instance,
+end
+
 meta def tactic.interactive.test_sage_output (restr : parse (tk "only")?)
   (hyps : parse pexpr_list?) (expected_out : string) : tactic unit := do
+  expected_json ← json.parse expected_out,
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
   (eq_names, m, R, args) ← create_args restr.is_some (hyps.get_or_else []),
   sage_out ← sage_output args,
-  guard (sage_out.popn_back 2 = expected_out) <|>
+  guard (sage_out = expected_json) <|>
     fail!"Expected output from Sage: {expected_out}\nbut produced: {sage_out}"
 
 /--

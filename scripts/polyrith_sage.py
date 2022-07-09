@@ -23,12 +23,13 @@ def create_query(type: str, var_list, eq_list, goal_type):
     https://github.com/sagemath/sage/blob/f8df80820dc7321dc9b18c9644c3b8315999670b/src/sage/rings/polynomial/multi_polynomial_libsingular.pyx#L4472-L4518
     for a description of this method. """
     query = f'''
+import json
 {var_names(var_list)} = {type_str(type)}['{var_names(var_list)}'].gens()
 gens = {eq_list}
 p = {goal_type}
 I = ideal(gens)
 coeffs = p.lift(I)
-print(list(map(polynomial_to_string, coeffs)))
+print(json.dumps(list(map(polynomial_to_string, coeffs))))
 '''
     return query
 
@@ -48,7 +49,7 @@ def evaluate_in_sage(query: str, format=False) -> str:
     response = requests.post('https://sagecell.sagemath.org/service', data, headers=headers)
     response = json.loads(response.text)
     if response['success']:
-        return response.get('stdout')
+        return json.loads(response.get('stdout'))
     elif 'execute_reply' in response and 'ename' in response['execute_reply'] and 'evalue' in response['execute_reply']:
         raise EvaluationError(response['execute_reply']['ename'], response['execute_reply']['evalue'])
     else:
@@ -61,21 +62,27 @@ def main():
     2 - a string representing the base type of the target
     3 - a list of all the variables to be used
     4 - a list of the polynomial hypotheses/proof terms in terms of the variables
-    5 - a single polynomial representing the target'''
+    5 - a single polynomial representing the target
+
+    This returns a json object with format:
+    ```
+    { success: bool,
+      data: Optional[list[str]],
+      trace: Optional[str],
+      error_name: Optional[str],
+      error_value: Optional[str] }
+    ```
+    '''
     command = create_query(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     final_query = polynomial_formatting_functions + "\n" + command
-    if sys.argv[1] == 'tt': # trace enabled
-        print(command)
+    if sys.argv[1] == 'tt': # trace dry run enabled
+        output = dict(success=True, trace=command)
     else:
         try:
-            output = evaluate_in_sage(final_query).replace("'", "")
+            output = dict(success=True, data=evaluate_in_sage(final_query))
         except EvaluationError as e:
-            print(f'%{e.ename}%{e.evalue}')
-        else:
-            output = output.replace(",", "")
-            output = output.replace("[", "").replace("]", "").strip()
-            output += " "
-            print(output)
+            output = dict(success=False, error_name=e.ename, error_value=e.evalue)
+    print(json.dumps(output))
 
 
 if __name__ == "__main__":

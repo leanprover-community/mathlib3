@@ -336,9 +336,35 @@ meta def parser_output_checker : string ⊕ (sage_error ⊕ list poly) → tacti
 A tactic that uses the above defined parsers to convert
 the sage output `string` to a `list poly`
 -/
-meta def convert_sage_output : string → tactic (list poly)
-| s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s)
-  in parser_output_checker sage_stuff)
+meta def convert_sage_output (j : json) : tactic (option (list poly)) :=
+do
+  json.object obj ← pure j | fail!"Must be an object",
+  let obj := rbmap.from_list obj,
+  json.of_bool success ← obj.find "success" | fail!"internal error: missing success field",
+  if success then do
+    do {
+      some t ← pure (obj.find "trace") | skip,
+      json.of_string t ← pure t | fail!"internal error: trace must be a string",
+      tactic.trace t },
+    do {
+      some d ← pure (obj.find "data") | pure none,
+      json.array l ← some d | fail!"internal error: data field must be a string",
+      l ← l.mmap $ λ x, do
+      { json.of_string poly_s ← pure x | fail!"internal error: entries must be strings",
+        pure poly_s },
+      l ← l.mmap $ λ x, match poly_parser.run_string x with
+        | sum.inl s := fail!"internal error: unable to parse polynomial from.\n\n{s}"
+        | sum.inr p := pure p
+        end,
+      pure l}
+  else do
+    json.of_string kind ← obj.find "error_name",
+    json.of_string message ← obj.find "error_value",
+    fail!"polyrith failed to retrieve a solution from Sage! {kind}: {message}"
+
+
+-- | s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s)
+--   in parser_output_checker sage_stuff)
 
 
 /-!
@@ -440,11 +466,12 @@ This tactic calls python from the command line with the args in `arg_list`.
 The output printed to the console is returned as a `string`.
 It assumes that `python3` is available on the path.
 -/
-meta def sage_output (arg_list : list string := []) : tactic string :=
+meta def sage_output (arg_list : list string := []) : tactic json :=
 let args := ["scripts/polyrith_sage.py"] ++ arg_list in
 do
   s ← tactic.unsafe_run_io $ io.cmd { cmd := "python3", args := args},
-  return s
+  some j ← pure (json.parse s) | fail!"Invalid json: {s}",
+  pure j
 
 /--
 Given a list of atoms, creates a list of their corresponding variable names
@@ -515,9 +542,9 @@ meta def create_args (only_on : bool) (hyps : list pexpr) :
 The second half of `tactic.polyrith` processes the output from Sage into
 a call to `linear_combination`.
 -/
-meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : string) :
+meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : json) :
   tactic format := do
-  coeffs_as_poly ← convert_sage_output sage_out,
+  some coeffs_as_poly ← convert_sage_output sage_out | fail!"internal error: No output available",
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
   let eq_names_pexpr := eq_names.map to_pexpr,
   coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
@@ -548,13 +575,18 @@ the names of the hypotheses, along with the corresponding coefficients are
 given to `linear_combination`. If that tactic succeeds, the user is prompted
 to replace the call to `polyrith` with the appropriate call to
 `linear_combination`.
+
+This returns `none` if this was a "dry run" attempt that does not actually invoke sage.
 -/
-meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic format := do
+meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic (option format) :=
+do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
   (eq_names, m, R, args) ← create_args only_on hyps,
   sage_out ← sage_output args,
-  if is_trace_enabled_for `polyrith then return sage_out
-  else process_output eq_names m R sage_out
+  if is_trace_enabled_for `polyrith then do
+    convert_sage_output sage_out,
+    return none
+  else some <$> process_output eq_names m R sage_out
 
 /-! # Interactivity -/
 setup_tactic_parser
@@ -599,7 +631,9 @@ by polyrith only [scary c d, h]
 -/
 meta def _root_.tactic.interactive.polyrith (restr : parse (tk "only")?)
   (hyps : parse pexpr_list?) : tactic unit :=
-  trace!"Try this: {tactic.polyrith restr.is_some (hyps.get_or_else [])}"
+do
+  some f ← tactic.polyrith restr.is_some (hyps.get_or_else []) | skip,
+  trace!"Try this: {f}"
 
 add_tactic_doc
 { name := "polyrith",

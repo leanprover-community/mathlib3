@@ -73,10 +73,7 @@ def const {α : Type u} (a : α) : ∀ n, arity α n
 
 @[simp] theorem const_zero {α : Type u} (a : α) : const a 0 = a := rfl
 @[simp] theorem const_succ {α : Type u} (a : α) (n : ℕ) : const a n.succ = λ _, const a n := rfl
-
-@[simp] theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) :
-  const a n.succ x = const a n :=
-rfl
+theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) : const a n.succ x = const a n := rfl
 
 instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
 ⟨const default _⟩

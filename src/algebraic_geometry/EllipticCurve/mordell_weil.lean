@@ -7,7 +7,7 @@ Authors: David Kurniadi Angdinata
 import algebra.char_p.algebra
 import group_theory.finiteness
 
-import algebraic_geometry.EllipticCurve.kummer
+import algebraic_geometry.EllipticCurve.selmer
 import algebraic_geometry.EllipticCurve.torsion
 
 /-!
@@ -40,9 +40,13 @@ variables (n : ℕ)
 lemma range_le_comap_range : (E⟮F⟯⬝n) ≤ add_subgroup.comap ιₚ E⟮K⟯⬝n :=
 by { rintro _ ⟨Q, rfl⟩, exact ⟨ιₚ Q, (map_nsmul ιₚ n Q).symm⟩ }
 
-/-- The kernel `Φ` of the cokernel map `E(F)/nE(F) → E(K)/nE(K)` induced by `ιₚ : E(F) ↪ E(K)`. -/
+/-- The cokernel map `ι : E(F)/nE(F) → E(K)/nE(K)` induced by `ιₚ : E(F) ↪ E(K)`. -/
+def ι (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : (E⟮F⟯/n) →+ E⟮K⟯/n :=
+quotient_add_group.map _ _ _ $ range_le_comap_range n
+
+/-- The kernel `Φ` of `ι : E(F)/nE(F) → E(K)/nE(K)`. -/
 def Φ (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : add_subgroup E⟮F⟯/n :=
-(quotient_add_group.map _ _ _ $ @range_le_comap_range _ _ _ K _ _ n).ker
+(ι n E K).ker
 
 /-- If `[P] ∈ Φ`, then `ιₚ(P) ∈ nE(K)`. -/
 lemma Φ_mem_range (P : Φ n E K) : ιₚ P.val.out' ∈ E⟮K⟯⬝n :=
@@ -96,9 +100,12 @@ begin
   exact hQ
 end
 
+/-- `Φ` is finite. -/
+instance [invertible (2 : F)] : fintype (Φ 2 E K) := fintype.of_injective (κ 2) $ κ.injective 2
+
 /-- If `E(K)/2E(K)` is finite, then `E(F)/2E(F)` is finite. -/
 def coker_2_of_fg_extension.fintype [invertible (2 : F)] : fintype (E⟮K⟯/2) → fintype E⟮F⟯/2 :=
-λ h, @add_group.fintype_of_ker_of_codom _ _ _ _ h _ $ fintype.of_injective (κ 2) (κ.injective 2)
+λ h, @add_group.fintype_of_ker_of_codom _ _ _ _ h _ Φ.fintype
 
 end reduction
 
@@ -135,13 +142,13 @@ def δ.to_fun : E⟮K⟯ → (Kˣ ⧸ (2⬝Kˣ)) × (Kˣ ⧸ (2⬝Kˣ))
 | 0            := 1
 | (some x y w) :=
 if ha : x = a then
-  (units.mk0 ((a - c) * (a - b)⁻¹) $ mul_ne_zero (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).2.1) $
-    inv_ne_zero $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1,
+  (units.mk0 ((a - c) * (a - b)) $ mul_ne_zero (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).2.1)
+                                               (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1),
   units.mk0 (a - b) $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1)
 else if hb : x = b then
   (units.mk0 (b - a) $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1.symm,
-  units.mk0 ((b - c) * (b - a)⁻¹) $ mul_ne_zero (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).2.2) $
-    inv_ne_zero $ sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1.symm)
+  units.mk0 ((b - c) * (b - a)) $ mul_ne_zero (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).2.2)
+                                              (sub_ne_zero.mpr (ψ₂_x.roots_ne h3).1.symm))
 else
   (units.mk0 (x - a) $ sub_ne_zero.mpr ha, units.mk0 (x - b) $ sub_ne_zero.mpr hb)
 

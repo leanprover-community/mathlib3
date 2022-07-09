@@ -11,7 +11,7 @@ import algebraic_geometry.EllipticCurve.fractional_ideal
 import algebraic_geometry.EllipticCurve.group
 
 /-!
-# Kummer theory lemmas
+# Selmer groups
 -/
 
 noncomputable theory
@@ -119,7 +119,7 @@ end
 /-- The multiplicative valuation of a non-zero element modulo `n`-th powers. -/
 def val_of_ne_zero_mod (p : height_one_spectrum $ 𝓞 K) : Kˣ ⧸ (n⬝Kˣ) →* multiplicative (zmod n) :=
 (int.quotient_zmultiples_nat_equiv_zmod n).to_multiplicative.to_monoid_hom.comp $
-  quotient_group.map (n⬝Kˣ) (add_subgroup.zmultiples (n : ℤ)).to_subgroup (val_of_ne_zero p) $
+  quotient_group.map (n⬝Kˣ) (add_subgroup.zmultiples (n : ℤ)).to_subgroup (val_of_ne_zero p)
 begin
   rintro _ ⟨y, rfl⟩,
   exact ⟨val_of_ne_zero p y, by simpa only [pow_monoid_hom_apply, map_pow, int.to_add_pow]⟩
@@ -174,30 +174,30 @@ instance [fact $ 0 < n] : fintype $ (𝓞 K)ˣ ⧸ (n⬝(𝓞 K)ˣ) :=
 end unit
 
 ----------------------------------------------------------------------------------------------------
-/-! ## The subgroup `K(S, n)` -/
+/-! ## The Selmer group -/
 
-section K_S_n
+section selmer
 
 variables [number_field K] {S S' : finset $ height_one_spectrum $ 𝓞 K} {n : ℕ}
 
-/-- The subgroup `K(S, n) = {b(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ p ∉ S, ord_p(b) ≡ 0 mod n}`. -/
-def K_S_n : subgroup $ Kˣ ⧸ (n⬝Kˣ) :=
+/-- The Selmer group `K(S, n) = {b(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ p ∉ S, ord_p(b) ≡ 0 mod n}`. -/
+def selmer : subgroup $ Kˣ ⧸ (n⬝Kˣ) :=
 { carrier  := {b : Kˣ ⧸ (n⬝Kˣ) | ∀ p ∉ S, val_of_ne_zero_mod p b = 1},
   one_mem' := λ _ _, by rw [map_one],
   mul_mem' := λ _ _ hx hy p hp, by rw [map_mul, hx p hp, hy p hp, one_mul],
   inv_mem' := λ _ hx p hp, by rw [map_inv, hx p hp, inv_one] }
 
-notation K⟮S, n⟯ := @K_S_n K _ _ S n
+notation K⟮S, n⟯ := @selmer K _ _ S n
 
-lemma K_S_n.monotone (hS : S' ≤ S) : K⟮S', n⟯ ≤ K⟮S, n⟯ := λ _ hb p hp, hb p $ mt (@hS p) hp
+lemma selmer.monotone (hS : S' ≤ S) : K⟮S', n⟯ ≤ K⟮S, n⟯ := λ _ hb p hp, hb p $ mt (@hS p) hp
 
-/-- The multiplicative valuation on K_S_n. -/
-def K_S_n.val : K⟮S, n⟯ →* S → multiplicative (zmod n) :=
+/-- The multiplicative valuation on the Selmer group. -/
+def selmer.val : K⟮S, n⟯ →* S → multiplicative (zmod n) :=
 { to_fun   := λ b p, val_of_ne_zero_mod (p : height_one_spectrum $ 𝓞 K) (b : Kˣ ⧸ (n⬝Kˣ)),
   map_one' := funext $ λ p, map_one $ val_of_ne_zero_mod p,
   map_mul' := λ x y, funext $ λ p, map_mul (val_of_ne_zero_mod p) x y }
 
-lemma K_S_n.val_ker : K_S_n.val.ker = K⟮∅, n⟯.subgroup_of K⟮S, n⟯ :=
+lemma selmer.val_ker : selmer.val.ker = K⟮∅, n⟯.subgroup_of K⟮S, n⟯ :=
 begin
   ext ⟨_, hx⟩,
   split,
@@ -209,12 +209,12 @@ begin
 end
 
 /-- A group homomorphism `𝓞ˣ → K(∅, n)`. -/
-def K_0_n.from_unit : (𝓞 K)ˣ →* K⟮∅, n⟯ :=
+def selmer'.from_unit : (𝓞 K)ˣ →* K⟮∅, n⟯ :=
 { to_fun   := λ x, ⟨quotient_group.mk $ ne_zero_of_unit x, λ p _, val_of_unit_mod p x⟩,
   map_one' := rfl,
   map_mul' := λ ⟨⟨_, _⟩, ⟨_, _⟩, _, _⟩ ⟨⟨_, _⟩, ⟨_, _⟩, _, _⟩, rfl }
 
-lemma K_0_n.from_unit_ker [fact $ 0 < n] : (@K_0_n.from_unit K _ _ n).ker = (n⬝(𝓞 K)ˣ) :=
+lemma selmer'.from_unit_ker [fact $ 0 < n] : (@selmer'.from_unit K _ _ n).ker = (n⬝(𝓞 K)ˣ) :=
 begin
   ext ⟨⟨v, hv⟩, ⟨i, hi⟩, _, _⟩,
   split,
@@ -244,7 +244,7 @@ begin
        by rwa [units.ext_iff, pow_monoid_hom_apply, units.coe_pow]⟩) }
 end
 
-lemma K_0_n.val_exists_of_mk (p : height_one_spectrum $ 𝓞 K) {x : Kˣ}
+lemma selmer'.val_exists_of_mk (p : height_one_spectrum $ 𝓞 K) {x : Kˣ}
   (hx : quotient_group.mk x ∈ K⟮∅, n⟯) : ∃ z : ℤ, z * n = -(val_of_ne_zero p x).to_add :=
 begin
   have hp : val_of_ne_zero_mod p x = 1 := hx p (finset.not_mem_empty p),
@@ -254,37 +254,37 @@ begin
   exact ⟨-z, by rwa [neg_mul, neg_inj]⟩
 end
 
-lemma K_0_n.val_support_finite [fact $ 0 < n] {x : Kˣ} (hx : quotient_group.mk x ∈ K⟮∅, n⟯) :
+lemma selmer'.val_support_finite [fact $ 0 < n] {x : Kˣ} (hx : quotient_group.mk x ∈ K⟮∅, n⟯) :
   (function.mul_support $ λ p : height_one_spectrum $ 𝓞 K,
-    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hx).some).finite :=
+    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (selmer'.val_exists_of_mk p hx).some).finite :=
 begin
   apply set.finite.subset (val_of_ne_zero_support_finite x),
   intros p hp,
   change (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add ≠ 1,
-  rw [← (K_0_n.val_exists_of_mk p hx).some_spec],
+  rw [← (selmer'.val_exists_of_mk p hx).some_spec],
   exact not_imp_not.mpr (fractional_ideal.pow_eq_one_of_pow_mul_eq_one _inst_3.elim) hp
 end
 
-lemma K_0_n.val_exists (p : height_one_spectrum $ 𝓞 K) (x : K⟮∅, n⟯) :
+lemma selmer'.val_exists (p : height_one_spectrum $ 𝓞 K) (x : K⟮∅, n⟯) :
   ∃ z : ℤ, z * n = -(val_of_ne_zero p x.val.out').to_add :=
-K_0_n.val_exists_of_mk p $ by simpa only [quotient_group.out_eq'] using x.property
+selmer'.val_exists_of_mk p $ by simpa only [quotient_group.out_eq'] using x.property
 
 /-- A set function `K(∅, n) → Cl(K)`. -/
-def K_0_n.to_class.to_fun (x : K⟮∅, n⟯) : class_group (𝓞 K) K :=
+def selmer'.to_class.to_fun (x : K⟮∅, n⟯) : class_group (𝓞 K) K :=
 quotient_group.mk' (to_principal_ideal (𝓞 K) K).range $ fractional_ideal.units_of_factorization $
-  λ p, (K_0_n.val_exists p x).some
+  λ p, (selmer'.val_exists p x).some
 
 variables [fact $ 0 < n]
 
-@[simp] lemma K_0_n.to_class_of_mk {x : Kˣ} (hx : quotient_group.mk x ∈ K⟮∅, n⟯) :
-  K_0_n.to_class.to_fun ⟨quotient_group.mk x, hx⟩
+@[simp] lemma selmer'.to_class_of_mk {x : Kˣ} (hx : quotient_group.mk x ∈ K⟮∅, n⟯) :
+  selmer'.to_class.to_fun ⟨quotient_group.mk x, hx⟩
     = quotient_group.mk' (to_principal_ideal (𝓞 K) K).range
-      (fractional_ideal.units_of_factorization $ λ p, (K_0_n.val_exists_of_mk p hx).some) :=
+      (fractional_ideal.units_of_factorization $ λ p, (selmer'.val_exists_of_mk p hx).some) :=
 begin
   rcases quotient_group.mk_out'_eq_mul (n⬝Kˣ) x with ⟨⟨_, ⟨z, hz⟩⟩, hy⟩,
   have val : ∀ p : height_one_spectrum $ 𝓞 K,
-    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists p ⟨quotient_group.mk x, hx⟩).some
-      = p.as_ideal ^ (K_0_n.val_exists_of_mk p hx).some
+    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (selmer'.val_exists p ⟨quotient_group.mk x, hx⟩).some
+      = p.as_ideal ^ (selmer'.val_exists_of_mk p hx).some
         * p.as_ideal ^ -(val_of_ne_zero p z).to_add :=
   begin
     intro p,
@@ -292,15 +292,15 @@ begin
           (fractional_ideal.coe_ideal_ne_zero p.ne_bot : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
     congr' 1,
     rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
-        (K_0_n.val_exists p ⟨_, hx⟩).some_spec, subtype.val_eq_coe, subtype.coe_mk, hy, map_mul,
-        to_add_mul, add_mul, (K_0_n.val_exists_of_mk p hx).some_spec, neg_mul, ← int.to_add_pow,
+        (selmer'.val_exists p ⟨_, hx⟩).some_spec, subtype.val_eq_coe, subtype.coe_mk, hy, map_mul,
+        to_add_mul, add_mul, (selmer'.val_exists_of_mk p hx).some_spec, neg_mul, ← int.to_add_pow,
         ← neg_add, neg_inj, add_right_inj],
     simp_rw [← hz],
     exact map_pow (val_of_ne_zero p) z n
   end,
-  rw [K_0_n.to_class.to_fun],
+  rw [selmer'.to_class.to_fun],
   simp_rw [quotient_group.mk'_apply, fractional_ideal.units_of_factorization, val,
-           finprod_mul_distrib (K_0_n.val_support_finite hx) (val_of_ne_zero_support_finite z),
+           finprod_mul_distrib (selmer'.val_support_finite hx) (val_of_ne_zero_support_finite z),
            fractional_ideal.factorization_of_ne_zero],
   rw [units.mk0_mul, quotient_group.coe_mul],
   exact mul_right_eq_self.mpr ((quotient_group.eq_one_iff _).mpr
@@ -308,23 +308,23 @@ begin
 end
 
 /-- A group homomorphism `K(∅, n) → Cl(K)`. -/
-def K_0_n.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
-{ to_fun   := K_0_n.to_class.to_fun,
+def selmer'.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
+{ to_fun   := selmer'.to_class.to_fun,
   map_one' :=
   begin
     have val_one : ∀ p : height_one_spectrum $ 𝓞 K,
-      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p K⟮∅, n⟯.one_mem).some
+      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (selmer'.val_exists_of_mk p K⟮∅, n⟯.one_mem).some
         = 1 :=
     begin
       intro p,
       simp_rw [← zpow_zero (p.as_ideal : fractional_ideal (𝓞 K)⁰ K)],
       congr' 1,
       rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
-          (K_0_n.val_exists_of_mk p K⟮∅, n⟯.one_mem).some_spec, map_one, zero_mul],
+          (selmer'.val_exists_of_mk p K⟮∅, n⟯.one_mem).some_spec, map_one, zero_mul],
       refl
     end,
-    change K_0_n.to_class.to_fun ⟨quotient_group.mk 1, _⟩ = 1,
-    rw [K_0_n.to_class_of_mk, quotient_group.mk'_apply, quotient_group.eq_one_iff,
+    change selmer'.to_class.to_fun ⟨quotient_group.mk 1, _⟩ = 1,
+    rw [selmer'.to_class_of_mk, quotient_group.mk'_apply, quotient_group.eq_one_iff,
         fractional_ideal.units_of_factorization],
     exact ⟨1, by { rw [to_principal_ideal_eq_iff], simp_rw [val_one, finprod_one],
                    exact fractional_ideal.span_singleton_one }⟩
@@ -343,28 +343,28 @@ def K_0_n.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
     have xy_rw : (⟨x, hx⟩ * ⟨y, hy⟩ : K⟮∅, n⟯) = ⟨quotient_group.mk (x.out' * y.out'), hxy⟩ :=
     by { nth_rewrite_lhs 0 [x_rw], nth_rewrite_lhs 0 [y_rw], refl },
     have val_mul : ∀ p : height_one_spectrum $ 𝓞 K,
-      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hxy).some
-        = p.as_ideal ^ (K_0_n.val_exists_of_mk p hx').some
-          * p.as_ideal ^ (K_0_n.val_exists_of_mk p hy').some :=
+      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (selmer'.val_exists_of_mk p hxy).some
+        = p.as_ideal ^ (selmer'.val_exists_of_mk p hx').some
+          * p.as_ideal ^ (selmer'.val_exists_of_mk p hy').some :=
     begin
       intro p,
       rw [← zpow_add₀
             (fractional_ideal.coe_ideal_ne_zero p.ne_bot : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
       congr' 1,
       rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
-          (K_0_n.val_exists_of_mk p hxy).some_spec, map_mul, to_add_mul, neg_add, add_mul,
-          (K_0_n.val_exists_of_mk p hx').some_spec, (K_0_n.val_exists_of_mk p hy').some_spec],
+          (selmer'.val_exists_of_mk p hxy).some_spec, map_mul, to_add_mul, neg_add, add_mul,
+          (selmer'.val_exists_of_mk p hx').some_spec, (selmer'.val_exists_of_mk p hy').some_spec],
     end,
     nth_rewrite_rhs 0 [x_rw],
     nth_rewrite_rhs 0 [y_rw],
     rw [xy_rw],
-    simp_rw [K_0_n.to_class_of_mk, quotient_group.mk'_apply,
+    simp_rw [selmer'.to_class_of_mk, quotient_group.mk'_apply,
              fractional_ideal.units_of_factorization, val_mul,
-             finprod_mul_distrib (K_0_n.val_support_finite hx') (K_0_n.val_support_finite hy')],
+             finprod_mul_distrib (selmer'.val_support_finite hx') (selmer'.val_support_finite hy')],
     rw [units.mk0_mul, quotient_group.coe_mul]
   end }
 
-lemma K_0_n.to_class_ker : (@K_0_n.to_class K _ _ n _).ker = K_0_n.from_unit.range :=
+lemma selmer'.to_class_ker : (@selmer'.to_class K _ _ n _).ker = selmer'.from_unit.range :=
 begin
   ext ⟨x, hx⟩,
   split,
@@ -374,8 +374,8 @@ begin
     rw [to_principal_ideal_eq_iff] at hy,
     apply_fun λ x, x ^ n at hy,
     rw [fractional_ideal.span_singleton_pow, fractional_ideal.units_of_factorization, units.coe_mk0,
-        finprod_pow $ K_0_n.val_support_finite hx] at hy,
-    simp_rw [← zpow_coe_nat, ← zpow_mul₀, (K_0_n.val_exists_of_mk _ hx).some_spec] at hy,
+        finprod_pow $ selmer'.val_support_finite hx] at hy,
+    simp_rw [← zpow_coe_nat, ← zpow_mul₀, (selmer'.val_exists_of_mk _ hx).some_spec] at hy,
     rw [fractional_ideal.factorization_of_ne_zero,
         fractional_ideal.span_singleton_eq_span_singleton] at hy,
     cases hy with y hy,
@@ -392,46 +392,46 @@ begin
     have x_rw : (⟨x, hx⟩ : K⟮∅, n⟯) = ⟨quotient_group.mk $ ne_zero_of_unit y, hx'⟩ :=
     by simp_rw [hy],
     have val_unit : ∀ p : height_one_spectrum $ 𝓞 K,
-      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hx').some = 1 :=
+      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (selmer'.val_exists_of_mk p hx').some = 1 :=
     begin
       intro p,
       simp_rw [← zpow_zero (p.as_ideal : fractional_ideal (𝓞 K)⁰ K)],
       congr' 1,
       rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
-          (K_0_n.val_exists_of_mk p hx').some_spec, val_of_unit, zero_mul],
+          (selmer'.val_exists_of_mk p hx').some_spec, val_of_unit, zero_mul],
       refl
     end,
     rw [x_rw],
-    change K_0_n.to_class.to_fun ⟨quotient_group.mk $ ne_zero_of_unit y, hx'⟩ = 1,
-    rw [K_0_n.to_class_of_mk, fractional_ideal.units_of_factorization],
+    change selmer'.to_class.to_fun ⟨quotient_group.mk $ ne_zero_of_unit y, hx'⟩ = 1,
+    rw [selmer'.to_class_of_mk, fractional_ideal.units_of_factorization],
     simp_rw [val_unit, finprod_one],
     rw [units.mk0_one],
     refl }
 end
 
 /-- `K(∅, n)` is finite. -/
-def K_0_n.fintype : fintype K⟮∅, n⟯ :=
+def selmer'.fintype : fintype K⟮∅, n⟯ :=
 @group.fintype_of_ker_of_codom _ _ _ _ (ring_of_integers.class_group.fintype K) _
 begin
-  rw [K_0_n.to_class_ker],
-  apply fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range K_0_n.from_unit).to_equiv,
-  rw [K_0_n.from_unit_ker],
+  rw [selmer'.to_class_ker],
+  apply fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range selmer'.from_unit).to_equiv,
+  rw [selmer'.from_unit_ker],
   exact has_quotient.quotient.fintype
 end
 
-/-- `K(S, n)` is finite. -/
+/-- The Selmer group is finite. -/
 instance : fintype K⟮S, n⟯ :=
-@group.fintype_of_ker_of_codom _ _ _ _ pi.fintype (@K_S_n.val K _ _ S n) $
-by simpa only [K_S_n.val_ker]
-   using @fintype.of_equiv _ K⟮∅, n⟯ K_0_n.fintype
-         (subgroup.comap_subtype_equiv_of_le $ K_S_n.monotone $ finset.empty_subset S).symm.to_equiv
+@group.fintype_of_ker_of_codom _ _ _ _ pi.fintype (@selmer.val K _ _ S n) $
+by simpa only [selmer.val_ker]
+   using @fintype.of_equiv _ K⟮∅, n⟯ selmer'.fintype
+         (subgroup.comap_subtype_equiv_of_le $ selmer.monotone $ finset.empty_subset S).symm.to_equiv
 
 notation K⟮S, n⟯`²` := (K⟮S, n⟯.prod K⟮S, n⟯).to_add_subgroup
 
 /-- `K(S, n) × K(S, n)` is finite. -/
 instance : fintype K⟮S, n⟯² := fintype.of_equiv _ (subgroup.prod_equiv _ _).symm.to_equiv
 
-end K_S_n
+end selmer
 
 ----------------------------------------------------------------------------------------------------
 

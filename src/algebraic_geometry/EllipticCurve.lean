@@ -74,7 +74,7 @@ lemma disc_is_unit : is_unit E.disc :=
 by { convert units.is_unit E.disc_unit, exact E.disc_unit_eq.symm }
 
 /-- The j-invariant of an elliptic curve. -/
-def j := E.disc_unit.inv
+def j : R := E.disc_unit.inv
   * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3
 
 ----------------------------------------------------------------------------------------------------
@@ -90,11 +90,9 @@ def cov : EllipticCurve R :=
 { a₁           := u.inv * (E.a₁ + 2 * s),
   a₂           := u.inv ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
   a₃           := u.inv ^ 3 * (E.a₃ + r * E.a₁ + 2 * t),
-  a₄           := u.inv ^ 4 * (E.a₄ - s * E.a₃
-                               + 2 * r * E.a₂ - (t + r * s) * E.a₁
+  a₄           := u.inv ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁
                                + 3 * r ^ 2 - 2 * s * t),
-  a₆           := u.inv ^ 6 * (E.a₆ + r * E.a₄
-                               + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃
+  a₆           := u.inv ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃
                                - t ^ 2 - r * t * E.a₁),
   disc_unit    :=
   { val     := u.inv ^ 12 * E.disc_unit.val,

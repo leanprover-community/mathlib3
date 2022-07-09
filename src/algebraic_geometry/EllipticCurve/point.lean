@@ -404,16 +404,14 @@ end add_comm_group
 
 section functoriality
 
-variables (φ : K →ₐ[F] L)
-
 /-- The set function `E(K) → E(L)`. -/
-def point_hom.to_fun : E⟮K⟯ → E⟮L⟯
+def point_hom.to_fun (φ : K →ₐ[F] L) : E⟮K⟯ → E⟮L⟯
 | 0            := 0
 | (some x y w) := some (φ x) (φ y) $
 by { apply_fun φ at w, simp only [map_add, map_mul, map_pow, alg_hom.commutes] at w, exact w }
 
 /-- The group homomorphism `E(K) → E(L)`. -/
-def point_hom : E⟮K⟯ →+ E⟮L⟯ :=
+def point_hom (φ : K →ₐ[F] L) : E⟮K⟯ →+ E⟮L⟯ :=
 { to_fun    := point_hom.to_fun φ,
   map_zero' := rfl,
   map_add'  :=
@@ -430,7 +428,8 @@ def point_hom : E⟮K⟯ →+ E⟮L⟯ :=
   point_hom (L⟶[F]M) (point_hom (K⟶[F]L) P) = point_hom ((L⟶[F]M).comp (K⟶[F]L)) P :=
 by cases P; refl
 
-lemma point_hom.injective : function.injective $ @point_hom _ _ E _ _ _ _ _ _ _ _ φ :=
+lemma point_hom.injective (φ : K →ₐ[F] L) :
+  function.injective $ @point_hom _ _ E _ _ _ _ _ _ _ _ φ :=
 begin
   rintro (_ | _) (_ | _) hPQ,
   any_goals { contradiction },
@@ -463,8 +462,8 @@ end
 /-- `Gal(L/K) ↷ E(L)` is a distributive multiplicative action. -/
 instance : distrib_mul_action (L ≃ₐ[K] L) E⟮L⟯ :=
 { smul      := point_gal,
-  one_smul  := by rintro (_ | _); refl,
-  mul_smul  := λ _ _, by rintro (_ | _); refl,
+  one_smul  := λ P, by cases P; refl,
+  mul_smul  := λ _ _ P, by cases P; refl,
   smul_add  := λ σ,
   begin
     rintro (_ | _) (_ | _),

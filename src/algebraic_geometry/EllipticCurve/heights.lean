@@ -449,7 +449,7 @@ private def height_le_constant.function {C : ℝ} :
 | ⟨0         , _⟩ := none
 | ⟨some x y w, h⟩ := some ⟨(x.num + ⌊C.exp⌋).to_nat, x.denom, if y ≤ 0 then 0 else 1⟩
 
-variables {A B : ℤ} (ha₁ : E.a₁ = 0) (ha₃ : E.a₃ = 0)
+variables (ha₁ : E.a₁ = 0) (ha₃ : E.a₃ = 0)
 
 include ha₁ ha₃
 

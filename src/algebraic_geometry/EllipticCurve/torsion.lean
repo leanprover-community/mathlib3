@@ -63,10 +63,8 @@ end multiplication
 
 section functoriality
 
-variables (φ : K →ₐ[F] L)
-
 /-- The group homomorphism `E(K)[n] → E(L)[n]`. -/
-def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
+def ker_hom (φ : K →ₐ[F] L) : E⟮K⟯[n] →+ E⟮L⟯[n] :=
 { to_fun    := λ ⟨P, hP⟩, ⟨point_hom φ P,
   by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), simpa only [← map_nsmul, hP] }⟩,
   map_zero' := rfl,
@@ -79,7 +77,7 @@ def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
   ker_hom n (L⟶[F]M) (ker_hom n (K⟶[F]L) P) = ker_hom n ((L⟶[F]M).comp (K⟶[F]L)) P :=
 by rcases P with _ | _; refl
 
-lemma ker_hom.injective : function.injective $ @ker_hom n _ _ E _ _ _ _ _ _ _ _ φ :=
+lemma ker_hom.injective (φ : K →ₐ[F] L) : function.injective $ @ker_hom n _ _ E _ _ _ _ _ _ _ _ φ :=
 λ ⟨_, _⟩ ⟨_, _⟩ hPQ, subtype.mk_eq_mk.mpr $ point_hom.injective φ $ subtype.mk_eq_mk.mp hPQ
 
 /-- The canonical inclusion `E(K)[n] ↪ E(L)[n]`. -/
@@ -92,10 +90,8 @@ end functoriality
 
 section galois
 
-variables (σ τ : L ≃ₐ[K] L)
-
 /-- The Galois action `Gal(L/K) ↷ E(L)[n]`. -/
-def ker_gal : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩,
+def ker_gal (σ : L ≃ₐ[K] L) : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩,
 ⟨σ • P, by { change n • P = 0 at hP, change n • σ • P = 0, simpa only [mul_by.map_smul, hP] }⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a scalar action. -/

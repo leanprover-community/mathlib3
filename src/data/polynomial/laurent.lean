@@ -6,6 +6,7 @@ Authors: Damiano Testa
 
 import data.polynomial.algebra_map
 import ring_theory.localization.basic
+import tactic.congrm
 
 /-!  # Laurent polynomials
 
@@ -314,6 +315,13 @@ left_inverse_trunc_to_laurent.injective
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 
+lemma _root_.polynomial.to_laurent_ne_zero (f : R[X])  (f0 : f ≠ 0) :
+  f.to_laurent ≠ 0 :=
+begin
+  refine (map_ne_zero_iff _ _).mpr f0,
+  exact polynomial.to_laurent_injective,
+end
+
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
@@ -355,6 +363,98 @@ begin
   { convert QT _ _,
     simpa using hn }
 end
+
+section support
+
+def fin_to_set (s : finset ℕ) : finset ℤ :=
+s.image coe
+
+--@[simp] lemma support_single (n : ℤ) (a : R) : (single n a : R[T;T⁻¹]).support ⊆ {n} :=
+--begin
+--  sorry
+--end
+
+lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
+by simpa only [← single_eq_C_mul_T] using support_single_subset
+
+@[simp] lemma to_laurent_support (f : R[X]) : f.to_laurent.support = f.support.image coe :=
+begin
+  generalize' hd : f.support = s,
+  revert f,
+  refine finset.induction_on s _ _; clear s,
+  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, finset.image_empty, eq_self_iff_true, implies_true_iff] {contextual := tt} },
+  { intros a s as hf f fs,
+    have : (erase a f).to_laurent.support = finset.image coe s := hf (f.erase a) (by simp only
+      [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
+    rw [← monomial_add_erase f a, finset.image_insert, ← this, map_add,
+      polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
+    { congr,
+      rw [support_eq_singleton'],
+      refine ⟨f.coeff a, polynomial.mem_support_iff.mp _, (single_eq_C_mul_T _ _).symm⟩,
+      simp only [fs, finset.mem_insert, eq_self_iff_true, true_or] },
+    { rw [this],
+      exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
+end
+
+end support
+
+lemma finset.max_eq_max' {α : Type*} [linear_order α] {s : finset α} (s0 : s.nonempty) :
+  s.max = s.max' s0 :=
+by rw [finset.max', with_bot.coe_unbot]
+
+lemma _root_.polynomial.degree_eq_support_max (p : R[X]) :
+  p.degree = p.support.max :=
+begin
+  by_cases p0 : p = 0,
+  { simp only [p0, polynomial.support_zero, finset.sup_empty, finset.max_empty],
+    refl },
+  { rw [degree_eq_nat_degree p0, nat_degree_eq_support_max' p0, finset.max_eq_max'] }
+end
+
+section degrees
+
+open_locale classical
+
+/--  The degree of a Laurent polynomial takes values in `with_bot ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of its support of `f`,
+or `⊥`, if `f = 0`. -/
+def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
+
+/--  The int_degree of a Laurent polynomial takes values in `ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.int_degree` is the maximum of its support of `f`,
+or `0`, if `f = 0`. -/
+def int_degree (f : R[T;T⁻¹]) : ℤ :=
+dite (f = 0) (λ _, 0) (λ f0, f.support.max' $ support_nonempty_iff.mpr f0)
+
+@[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
+
+@[simp] lemma int_degree_zero : int_degree (0 : R[T;T⁻¹]) = 0 := rfl
+
+lemma int_degree_to_laurent_eq_nat_degree {f : R[X]} :
+  f.to_laurent.int_degree = f.nat_degree :=
+begin
+  by_cases f0 : f = 0,
+  { simp only [int_degree, f0, map_zero, dif_pos, nat_degree_zero, nat.cast_zero] },
+  { rw [int_degree, dif_neg, nat_degree_eq_support_max' f0],
+    simp_rw to_laurent_support,
+    refine finset.max'_image nat.mono_cast _ _,
+    exact f.to_laurent_ne_zero f0 }
+end
+
+lemma degree_eq_int_degree {f : R[T;T⁻¹]} (f0 : f ≠ 0) :
+  f.degree = f.int_degree :=
+by simp [degree, int_degree, finset.max', f0]
+
+lemma degree_to_laurent (f : polynomial R) : f.to_laurent.degree = option.map coe f.degree :=
+begin
+  by_cases f0 : f = 0,
+  { simp only [f0, map_zero, degree_zero, polynomial.degree_zero]; refl },
+  { rw [degree_eq_int_degree, int_degree_to_laurent_eq_nat_degree, degree_eq_nat_degree f0],
+    { refl },
+    { exact f.to_laurent_ne_zero f0 } },
+end
+
+end degrees
 
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent

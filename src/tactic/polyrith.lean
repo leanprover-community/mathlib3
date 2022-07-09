@@ -207,26 +207,7 @@ a `poly` object. This is used later on to convert the coefficients given by Sage
 `poly` objects.
 -/
 
-/--
-An error message returned from Sage has a kind and a message.
--/
-@[derive inhabited]
-structure sage_error :=
-(kind : string)
-(message : string)
-
 open parser
-
-/--
-Parse an error message from the output of the polyrith python script.
-The script formats errors as "%{kind}%{message}".
--/
-meta def error_parser : parser sage_error := do
-  ch '%',
-  kind ← many_char1 (sat (≠ '%')),
-  ch '%',
-  msg ← list.as_string <$> many any_char,
-  return ⟨kind, msg⟩
 
 /--
 A parser object that parses `string`s of the form `"poly.var n"`
@@ -303,34 +284,6 @@ ch '('
   *> (var_parser <|> const_fraction_parser <|> add_parser poly_parser
     <|> sub_parser poly_parser <|> mul_parser poly_parser <|> pow_parser poly_parser)
   <* ch ')'
-
-/--A parser object that parses a string (which may contain trailing whitespace) into a poly object-/
-meta def one_of_many_poly_parser : parser poly :=
-poly_parser <* optional (ch ' ')
-
-/--checks whether a character is a whitespace character-/
-@[derive decidable]
-meta def _root_.char.is_whitespace' (c : char) : Prop :=
-c.is_whitespace ∨ c.to_nat = 13
-
-/--removes trailing whitespace from a `string`-/
-meta def remove_trailing_whitespace : string → string
-| s := if s.back.is_whitespace' then remove_trailing_whitespace s.pop_back else s
-
-/--
-A parser object that converts the output of sage (which should be
-formatted as a collection of ``poly`s in `string` form, separated
- by a single space) into a `list poly`
--/
-meta def sage_output_parser : parser (sage_error ⊕ list poly) :=
-(sum.inl <$> error_parser) <|> sum.inr <$> many (one_of_many_poly_parser)
-
-/--A tactic that checks whether `sage_output_parser` worked-/
-meta def parser_output_checker : string ⊕ (sage_error ⊕ list poly) → tactic (list poly)
-| (sum.inl s) := fail!"polyrith failed to parse the output from Sage.\n\n{s}"
-| (sum.inr (sum.inr poly_list)) := return poly_list
-| (sum.inr (sum.inl err))
-  := fail!"polyrith failed to retrieve a solution from Sage! {err.kind}: {err.message}"
 
 /--
 A tactic that uses the above defined parsers to convert

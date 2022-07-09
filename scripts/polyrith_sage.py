@@ -15,9 +15,6 @@ with open(join(dirname(__file__), "polyrith_sage_helper.py"), encoding='utf8') a
 def type_str(type):
     return "QQ"
 
-def var_names(var_list_string):
-    return var_list_string[1:-1].replace(" ", "")
-
 def create_query(type: str, n_vars: int, eq_list, goal_type):
     """ Create a query to invoke Sage's `MPolynomial_libsingular.lift`. See
     https://github.com/sagemath/sage/blob/f8df80820dc7321dc9b18c9644c3b8315999670b/src/sage/rings/polynomial/multi_polynomial_libsingular.pyx#L4472-L4518

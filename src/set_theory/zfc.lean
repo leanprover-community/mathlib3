@@ -205,8 +205,7 @@ def of_nat : ℕ → pSet
 def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
-protected def sep (p : set pSet) : pSet → pSet
-| ⟨α, A⟩ := ⟨{a // p (A a)}, λ x, A x.1⟩
+protected def sep (p : set pSet) (x : pSet) : pSet := ⟨{a // p (x.func a)}, λ y, x.func y.1⟩
 
 instance : has_sep pSet pSet := ⟨pSet.sep⟩
 
@@ -455,15 +454,15 @@ quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩, quotient.exact $
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
 protected def sep (p : Set → Prop) : Set → Set :=
 resp.eval 1 ⟨pSet.sep (λ y, p ⟦y⟧), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
-  ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa ←(@quotient.sound pSet _ _ _ hb)⟩, hb⟩,
-   λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa (@quotient.sound pSet _ _ _ ha)⟩, ha⟩⟩⟩
+  ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa [mk_func, ←(@quotient.sound pSet _ _ _ hb)]⟩, hb⟩,
+   λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa [mk_func, (@quotient.sound pSet _ _ _ ha)]⟩, ha⟩⟩⟩
 
 instance : has_sep Set Set := ⟨Set.sep⟩
 
 @[simp] theorem mem_sep {p : Set.{u} → Prop} {x y : Set.{u}} : y ∈ {y ∈ x | p y} ↔ y ∈ x ∧ p y :=
 quotient.induction_on₂ x y (λ ⟨α, A⟩ y,
   ⟨λ ⟨⟨a, pa⟩, h⟩, ⟨⟨a, h⟩, by rwa (@quotient.sound pSet _ _ _ h)⟩,
-  λ ⟨⟨a, h⟩, pa⟩, ⟨⟨a, by { rw mk_func at h, rwa ←(@quotient.sound pSet _ _ _ h) }⟩, h⟩⟩)
+  λ ⟨⟨a, h⟩, pa⟩, ⟨⟨a, by { rw mk_func at h, rwa [mk_func, ←(@quotient.sound pSet _ _ _ h)] }⟩, h⟩⟩)
 
 /-- The powerset operation, the collection of subsets of a ZFC set -/
 def powerset : Set → Set :=

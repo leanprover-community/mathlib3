@@ -69,13 +69,13 @@ meta instance : non_null_json_serializable ℤ :=
     json.of_int z ← success j | exception (λ _, format!"number expected, got {j.typename}"),
     pure z }
 
--- meta instance : non_null_json_serializable native.float :=
--- { to_json := λ f, json.of_float f,
---   of_json := λ j, do
---     json.of_int z ← success j | do
---     { json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
---       pure f },
---     pure z }
+meta instance : non_null_json_serializable native.float :=
+{ to_json := λ f, json.of_float f,
+  of_json := λ j, do
+    json.of_int z ← success j | do
+    { json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
+      pure f },
+    pure z }
 
 meta instance : non_null_json_serializable bool :=
 { to_json := λ b, json.of_bool b,

@@ -33,12 +33,13 @@ begin
   cases j₁; cases j₂; simp; apply_instance,
 end
 
-meta class json_serializable (α : Type*) :=
+/-- A class to indicate that a type is json serializable -/
+meta class json_serializable (α : Type) :=
 (to_json : α → json)
 (of_json [] : json → exceptional α)
 
 /-- A class for types which never serialize to null -/
-meta class non_null_json_serializable (α : Type*) extends json_serializable α
+meta class non_null_json_serializable (α : Type) extends json_serializable α
 
 export json_serializable (to_json of_json)
 
@@ -117,38 +118,27 @@ meta instance {α} [non_null_json_serializable α] : json_serializable (option �
 
 open tactic expr
 
-meta def list.to_pexpr : ∀ l : list pexpr, pexpr
-| [] := ``([])
-| (x :: xs) := ``(%%x :: %%xs.to_pexpr)
+meta def list.to_expr (t : expr) : ∀ l : list expr, expr
+| [] := `([] : list.{0} %%t)
+| (x :: xs) := `(%%x :: %%xs.to_expr : list.{0} %%t)
 
-meta def extract_field (l : list (string × json)) (s : string) :
-  exceptional (json × list (string × json)) :=
+/-- Begin parsing fields -/
+meta def json_serializable.field_starter (j : json) : exceptional (list (string × json)) :=
+do
+  json.object p ← pure j | exception (λ _, format!"object expected, got {j.typename}"),
+  pure p
+
+/-- Check a field exists and get a parse for it -/
+meta def json_serializable.field_extractor (l : list (string × json)) (s : string) (α : Type*)
+  [json_serializable α] :
+  exceptional (exceptional α × list (string × json)) :=
 let (p, n) := l.partition (λ x, prod.fst x = s) in
 match p with
 | [] := exception (λ _, format!"no {s} field , {l}")
-| [x] := pure (x.2, n)
+| [x] := pure (of_json α x.2, n)
 | x :: xs := exception (λ _, format!"duplicate {s} field")
 end
 
-@[derive_handler, priority 2000] meta def non_null_json_serializable_handler : derive_handler :=
-instance_derive_handler ``non_null_json_serializable $ do
-  intros,
-  `(non_null_json_serializable %%e) ← target >>= whnf,
-  (const I ls, args) ← pure (get_app_fn_args e),
-  env ← get_env,
-  some fields ← pure (env.structure_fields_full I),
-  refine ``(@non_null_json_serializable.mk _ ⟨λ x, json.object _, λ j, sorry⟩),
-  x ← mk_local_def `x e,
-
-  (e : list (option pexpr)) ← fields.mmap (λ f, do
-    d ← get_decl (I ++ f),
-    let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
-    t ← infer_type a,
-    s ← infer_type t,
-    `(Prop) ← pure s | pure (none : option pexpr),
-    -- let field := a.mk_app [```(x)],
-    sorry
-  ),
-
-  trace_state,
-  tactic.trace fields
+/-- Check no fields remain -/
+meta def json_serializable.field_terminator (l : list (string × json)) : exceptional unit :=
+do [] ← pure l | exception (λ _, format!"unexpected fields {l.map prod.fst}"), pure ()

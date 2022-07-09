@@ -135,15 +135,6 @@ lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure α) :
 lemma coe_injective : function.injective (coe : finite_measure α → measure α) :=
 subtype.coe_injective
 
-@[ext] lemma extensionality (μ ν : finite_measure α) :
-  μ = ν ↔ ∀ (s : set α), measurable_set s → μ s = ν s :=
-begin
-  refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
-  intro h,
-  ext1, ext1 s s_mble,
-  simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
-end
-
 /-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
 `(μ : measure α) univ`. -/
 def mass (μ : finite_measure α) : ℝ≥0 := μ univ
@@ -168,6 +159,14 @@ end
 
 lemma mass_nonzero_iff_nonzero (μ : finite_measure α) : μ.mass ≠ 0 ↔ μ ≠ 0 :=
 by simpa [not_iff_not] using mass_zero_iff _
+
+@[ext] lemma extensionality (μ ν : finite_measure α)
+  (h : ∀ (s : set α), measurable_set s → μ s = ν s) :
+  μ = ν :=
+begin
+  ext1, ext1 s s_mble,
+  simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
+end
 
 instance : inhabited (finite_measure α) := ⟨0⟩
 
@@ -650,11 +649,10 @@ def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ
 by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
      finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure], refl, }
 
-@[ext] lemma extensionality (μ ν : probability_measure α) :
-  μ = ν ↔ ∀ (s : set α), measurable_set s → μ s = ν s :=
+@[ext] lemma extensionality (μ ν : probability_measure α)
+  (h : ∀ (s : set α), measurable_set s → μ s = ν s) :
+  μ = ν :=
 begin
-  refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
-  intro h,
   ext1, ext1 s s_mble,
   simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
 end

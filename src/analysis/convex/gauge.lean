@@ -300,7 +300,7 @@ variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 lemma gauge_balanced (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) =
   gauge s (∥r∥ • x) :=
 begin
-  rw is_R_or_C.coe_smul' 𝕜,
+  rw @is_R_or_C.coe_smul' 𝕜,
   simp_rw [gauge_def'],
   by_cases h : r = 0,
   { rw h, simp only [norm_zero, is_R_or_C.of_real_zero] },

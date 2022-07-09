@@ -86,13 +86,10 @@ algebra.algebra_map_eq_smul_one x
 lemma coe_smul (r : ℝ) (z : K) : r • z = (r : K) * z :=
 by rw [is_R_or_C.of_real_alg, ←smul_eq_mul, smul_assoc, smul_eq_mul, one_mul]
 
-variables (K)
-
 lemma coe_smul' [add_comm_group E] [module K E] [module ℝ E] [is_scalar_tower ℝ K E]
   (r : ℝ) (x : E) : r • x = (r : K) • x :=
 by rw [is_R_or_C.of_real_alg, smul_one_smul]
 
-variables {K}
 
 lemma algebra_map_eq_of_real : ⇑(algebra_map ℝ K) = coe := rfl
 

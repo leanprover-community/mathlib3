@@ -90,7 +90,7 @@ namespace pSet
 def func : Π (x : pSet), x.type → pSet
 | ⟨α, A⟩ := A
 
-@[simp] theorem mk_type_func : Π (x : pSet), mk x.type x.func = x
+@[simp] theorem eta : Π (x : pSet), mk x.type x.func = x
 | ⟨α, A⟩ := rfl
 
 /-- Two pre-sets are extensionally equivalent if every element of the first family is extensionally
@@ -227,9 +227,9 @@ theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃
 | ⟨α, A⟩ y :=
   ⟨λ ⟨⟨a, c⟩, (e : equiv y ((A a).func c))⟩,
     have func (A a) c ∈ mk (A a).type (A a).func, from mem.mk (A a).func c,
-    ⟨_, mem.mk _ _, (mem.congr_left e).2 (by rwa mk_type_func at this)⟩,
+    ⟨_, mem.mk _ _, (mem.congr_left e).2 (by rwa eta at this)⟩,
   λ ⟨⟨β, B⟩, ⟨a, (e : equiv (mk β B) (A a))⟩, ⟨b, yb⟩⟩,
-    by { rw ←(mk_type_func (A a)) at e, exact
+    by { rw ←(eta (A a)) at e, exact
     let ⟨βt, tβ⟩ := e, ⟨c, bc⟩ := βt b in ⟨⟨a, c⟩, yb.trans bc⟩ }⟩
 
 /-- The image of a function from pre-sets to pre-sets. -/

@@ -223,7 +223,7 @@ theorem mem_powerset : Π {x y : pSet}, y ∈ powerset x ↔ y ⊆ x
 def Union : pSet → pSet
 | ⟨α, A⟩ := ⟨Σ x, (A x).type, λ ⟨x, y⟩, (A x).func y⟩
 
-theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃ _ : z ∈ x, y ∈ z
+theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z ∈ x, y ∈ z
 | ⟨α, A⟩ y :=
   ⟨λ ⟨⟨a, c⟩, (e : equiv y ((A a).func c))⟩,
     have func (A a) c ∈ mk (A a).type (A a).func, from mem.mk (A a).func c,

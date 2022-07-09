@@ -90,7 +90,7 @@ namespace pSet
 def func : Π (x : pSet), x.type → pSet
 | ⟨α, A⟩ := A
 
-theorem mk_type_func : Π (x : pSet), mk x.type x.func = x
+@[simp] theorem mk_type_func : Π (x : pSet), mk x.type x.func = x
 | ⟨α, A⟩ := rfl
 
 /-- Two pre-sets are extensionally equivalent if every element of the first family is extensionally
@@ -142,6 +142,7 @@ theorem subset.congr_right : Π {x y z : pSet}, equiv x y → (z ⊆ x ↔ z ⊆
 /-- `x ∈ y` as pre-sets if `x` is extensionally equivalent to a member of the family `y`. -/
 def mem : pSet → pSet → Prop
 | x ⟨β, B⟩ := ∃ b, equiv x (B b)
+
 instance : has_mem pSet.{u} pSet.{u} := ⟨mem⟩
 
 theorem mem.mk {α: Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
@@ -175,13 +176,13 @@ equiv_iff_mem.trans set.ext_iff.symm
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 
 /-- The empty pre-set -/
-protected def empty : pSet := ⟨ulift empty, λ e, match e with end⟩
+protected def empty : pSet := ⟨_, pempty.elim⟩
 
 instance : has_emptyc pSet := ⟨pSet.empty⟩
 
 instance : inhabited pSet := ⟨∅⟩
 
-theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := λ e, match e with end
+theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := exists_pempty.1
 
 /-- Insert an element into a pre-set -/
 protected def insert : pSet → pSet → pSet
@@ -201,6 +202,8 @@ def of_nat : ℕ → pSet
 /-- The von Neumann ordinal ω -/
 def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 
+-- Todo (Vi): add general Neumann ordinals.
+
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
 protected def sep (p : set pSet) : pSet → pSet
 | ⟨α, A⟩ := ⟨{a // p (A a)}, λ x, A x.1⟩
@@ -218,7 +221,7 @@ theorem mem_powerset : Π {x y : pSet}, y ∈ powerset x ↔ y ⊆ x
 
 /-- The pre-set union operator -/
 def Union : pSet → pSet
-| ⟨α, A⟩ := ⟨Σx, (A x).type, λ ⟨x, y⟩, (A x).func y⟩
+| ⟨α, A⟩ := ⟨Σ x, (A x).type, λ ⟨x, y⟩, (A x).func y⟩
 
 theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃ _ : z ∈ x, y ∈ z
 | ⟨α, A⟩ y :=
@@ -231,7 +234,7 @@ theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃
 
 /-- The image of a function from pre-sets to pre-sets. -/
 def image (f : pSet.{u} → pSet.{u}) : pSet.{u} → pSet
-| ⟨α, A⟩ := ⟨α, λ a, f (A a)⟩
+| ⟨α, A⟩ := ⟨α, f ∘ A⟩
 
 theorem mem_image {f : pSet.{u} → pSet.{u}} (H : ∀ {x y}, equiv x y → equiv (f x) (f y)) :
   Π {x y : pSet.{u}}, y ∈ image f x ↔ ∃ z ∈ x, equiv y (f z)
@@ -255,7 +258,7 @@ def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
 | (n+1) a b := ∀ x y, equiv x y → arity.equiv (a x) (b y)
 
 lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (arity.const a n)
-| 0 := equiv.rfl
+| 0     := equiv.rfl
 | (n+1) := λ x y h, arity.equiv_const _
 
 /-- `resp n` is the collection of n-ary functions on `pSet` that respect
@@ -273,16 +276,22 @@ def resp.f {n} (f : resp (n+1)) (x : pSet) : resp n :=
 /-- Function equivalence for functions respecting equivalence. See `pSet.arity.equiv`. -/
 def resp.equiv {n} (a b : resp n) : Prop := arity.equiv a.1 b.1
 
-theorem resp.refl {n} (a : resp n) : resp.equiv a a := a.2
+theorem resp.equiv.refl {n} (a : resp n) : resp.equiv a a := a.2
 
-theorem resp.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b → resp.equiv a c
-| 0     a b c hab hcb := hab.euc hcb
+theorem resp.equiv.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b → resp.equiv a c
+| 0     a b c hab hcb := equiv.euc hab hcb
 | (n+1) a b c hab hcb := λ x y h,
-  @resp.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
+  @resp.equiv.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
+
+theorem resp.equiv.symm {n} {a b : resp n} : resp.equiv a b → resp.equiv b a :=
+(resp.equiv.refl b).euc
+
+theorem resp.equiv.trans {n} {x y z : resp n} (h1 : resp.equiv x y) (h2 : resp.equiv y z) :
+  resp.equiv x z :=
+h1.euc h2.symm
 
 instance resp.setoid {n} : setoid (resp n) :=
-⟨resp.equiv, resp.refl, λ x y h, resp.euc (resp.refl y) h,
-  λ x y z h1 h2, resp.euc h1 $ resp.euc (resp.refl z) h2⟩
+⟨resp.equiv, resp.equiv.refl, λ x y, resp.equiv.symm, λ x y z, resp.equiv.trans⟩
 
 end pSet
 
@@ -300,7 +309,7 @@ def eval_aux : Π {n}, {f : resp n → arity Set.{u} n // ∀ (a b : resp n), re
 | (n+1) := let F : resp (n + 1) → arity Set (n + 1) := λ a, @quotient.lift _ _ pSet.setoid
     (λ x, eval_aux.1 (a.f x)) (λ b c h, eval_aux.2 _ _ (a.2 _ _ h)) in
   ⟨F, λ b c h, funext $ @quotient.ind _ _ (λ q, F b q = F c q) $ λ z,
-  eval_aux.2 (resp.f b z) (resp.f c z) (h _ _ (equiv.refl z))⟩
+  eval_aux.2 (resp.f b z) (resp.f c z) (h _ _ (pSet.equiv.refl z))⟩
 
 /-- An equivalence-respecting function yields an n-ary ZFC set function. -/
 def eval (n) : resp n → arity Set.{u} n := eval_aux.1
@@ -313,7 +322,10 @@ end resp
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
 class inductive definable (n) : arity Set.{u} n → Type (u+1)
-| mk (f) : definable (resp.eval _ f)
+| mk (f) : definable (resp.eval n f)
+
+-- Todo (Vi): this shouldn't be a class, since sets have lots of nontrivial equalities between them.
+
 attribute [instance] definable.mk
 
 /-- The evaluation of a function respecting equivalence is definable, by that same function. -/
@@ -357,7 +369,7 @@ open pSet
 /-- Turns a pre-set into a ZFC set. -/
 def mk : pSet → Set := quotient.mk
 
-@[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+@[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
 
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=

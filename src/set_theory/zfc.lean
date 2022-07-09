@@ -210,8 +210,7 @@ protected def sep (p : set pSet) (x : pSet) : pSet := ⟨{a // p (x.func a)}, λ
 instance : has_sep pSet pSet := ⟨pSet.sep⟩
 
 /-- The pre-set powerset operator -/
-def powerset : pSet → pSet
-| ⟨α, A⟩ := ⟨set α, λ p, ⟨{a // p a}, λ x, A x.1⟩⟩
+def powerset (x : pSet) : pSet := ⟨set x.type, λ p, ⟨{a // p a}, λ y, x.func y.1⟩⟩
 
 theorem mem_powerset : Π {x y : pSet}, y ∈ powerset x ↔ y ⊆ x
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ ⟨p, e⟩, (subset.congr_left e).2 $ λ ⟨a, pa⟩, ⟨a, equiv.refl (A a)⟩,
@@ -231,8 +230,7 @@ theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃
     let ⟨βt, tβ⟩ := e, ⟨c, bc⟩ := βt b in ⟨⟨a, c⟩, yb.trans bc⟩ }⟩
 
 /-- The image of a function from pre-sets to pre-sets. -/
-def image (f : pSet.{u} → pSet.{u}) : pSet.{u} → pSet
-| ⟨α, A⟩ := ⟨α, λ a, f (A a)⟩
+def image (f : pSet.{u} → pSet.{u}) (x : pSet.{u}) : pSet := ⟨x.type, f ∘ x.func⟩
 
 theorem mem_image {f : pSet.{u} → pSet.{u}} (H : ∀ {x y}, equiv x y → equiv (f x) (f y)) :
   Π {x y : pSet.{u}}, y ∈ image f x ↔ ∃ z ∈ x, equiv y (f z)

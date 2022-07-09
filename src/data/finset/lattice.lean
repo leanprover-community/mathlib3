@@ -820,6 +820,25 @@ theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max 
 by rcases @le_sup (with_bot α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
+lemma mem_le_max {a : α} {s : finset α} (as : a ∈ s) :
+  ↑a ≤ s.max :=
+(le_fold_max _).mpr (or.inr ⟨a, as, rfl.le⟩)
+
+
+lemma max_mono {s t : finset α} (st : s ⊆ t) :
+  s.max ≤ t.max :=
+begin
+  by_cases s0 : s.nonempty,
+  { obtain ⟨a, as⟩ := nonempty.bex s0,
+    rcases max_of_mem as with ⟨w, sw⟩,
+    exact (le_fold_max _).mpr (or.inr ⟨w, st (mem_of_max sw), sw.le⟩) },
+  { simp [not_nonempty_iff_eq_empty.mp s0] },
+end
+
+lemma max_le (M : α) {s : finset α} (st : ∀ a : α, a ∈ s → a ≤ M) :
+  s.max ≤ M :=
+(fold_max_le _).mpr ⟨bot_le, λ x xs, with_bot.coe_le_coe.mpr (st x xs)⟩
+
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `⊤` otherwise. It belongs to `with_top α`. If you want to get an element of `α`, see
 `s.min'`. -/

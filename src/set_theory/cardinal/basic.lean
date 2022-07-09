@@ -848,7 +848,7 @@ lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α 
 
 @[simp] lemma mk_finsupp_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
-by simpa using finsupp.equiv_fun_on_fintype.cardinal_eq.trans (mk_arrow α β)
+by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 begin

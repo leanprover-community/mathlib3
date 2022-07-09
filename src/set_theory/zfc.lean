@@ -189,6 +189,10 @@ theorem mem_wf : @well_founded pSet (∈) := ⟨λ x, mem_wf_aux $ equiv.refl x�
 
 instance : has_well_founded pSet := ⟨_, mem_wf⟩
 
+instance : is_irrefl pSet (∈) := mem_wf.is_irrefl
+
+theorem mem_irrefl {x : pSet} : x ∉ x := irrefl x
+
 /-- Convert a pre-set to a `set` of pre-sets. -/
 def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 

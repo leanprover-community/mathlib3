@@ -135,6 +135,19 @@ lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure α) :
 lemma coe_injective : function.injective (coe : finite_measure α → measure α) :=
 subtype.coe_injective
 
+@[ext] lemma finite_measure.extensionality (μ ν : finite_measure α) :
+  μ = ν ↔ ∀ (s : set α), measurable_set s → μ s = ν s :=
+begin
+  refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
+  intro h,
+  ext1,
+  ext1 s s_mble,
+  specialize h s s_mble,
+  have h' := congr_arg (coe : ℝ≥0 → ℝ≥0∞) h,
+  repeat {rw finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure at h'},
+  exact h',
+end
+
 /-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
 `(μ : measure α) univ`. -/
 def mass (μ : finite_measure α) : ℝ≥0 := μ univ
@@ -144,6 +157,24 @@ def mass (μ : finite_measure α) : ℝ≥0 := μ univ
 
 instance has_zero : has_zero (finite_measure α) :=
 { zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
+
+@[simp] lemma finite_measure.zero.mass : (0 : finite_measure α).mass = 0 :=
+by simp [finite_measure.mass]
+
+lemma finite_measure.mass_nonzero_iff_nonzero (μ : finite_measure α) :
+  μ.mass ≠ 0 ↔ μ ≠ 0 :=
+begin
+  refine ⟨_, _⟩,
+  { contrapose!,
+    intro hμ,
+    rw hμ,
+    simp, },
+  { contrapose!,
+    assume μ_mass,
+    ext1,
+    apply measure.measure_univ_eq_zero.mp,
+    rwa [← finite_measure.ennreal_mass, ennreal.coe_eq_zero], },
+end
 
 instance : inhabited (finite_measure α) := ⟨0⟩
 
@@ -184,6 +215,11 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_smul
+
+lemma finite_measure.coe_fn_smul_apply [is_scalar_tower R ℝ≥0 ℝ≥0]
+  (c : R) (μ : finite_measure α) (s : set α) :
+  (c • μ) s  = c • (μ s) :=
+by { simp only [finite_measure.coe_fn_smul, pi.smul_apply], }
 
 variables [topological_space α]
 
@@ -228,6 +264,26 @@ begin
   simp only [←ennreal.coe_le_coe, test_against_nn_coe_eq],
   apply lintegral_mono,
   exact λ x, ennreal.coe_mono (f_le_g x),
+end
+
+@[simp] lemma finite_measure.zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) :
+  (0 : finite_measure α).test_against_nn f = 0 :=
+by simp only [finite_measure.test_against_nn, finite_measure.coe_zero,
+              lintegral_zero_measure, ennreal.zero_to_nnreal]
+
+@[simp] lemma finite_measure.zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
+by { funext, simp only [finite_measure.zero.test_against_nn_apply, pi.zero_apply], }
+
+lemma finite_measure.smul_test_against_nn_apply --[is_scalar_tower R ℝ≥0 ℝ≥0]? API hole?
+  (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  (c • μ).test_against_nn f  = c • (μ.test_against_nn f) :=
+begin
+  simp only [finite_measure.test_against_nn, finite_measure.coe_smul, smul_eq_mul ℝ≥0,
+             ← ennreal.smul_to_nnreal],
+  congr,
+  rw [(show c • (μ : measure α) = (c : ℝ≥0∞) • (μ : measure α), by refl),
+      lintegral_smul_measure],
+  refl,
 end
 
 variables [opens_measurable_space α]
@@ -590,6 +646,19 @@ subtype.coe_injective
 
 @[simp] lemma coe_fn_univ (ν : probability_measure α) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
+
+@[ext] lemma probability_measure.extensionality (μ ν : probability_measure α) :
+  μ = ν ↔ ∀ (s : set α), measurable_set s → μ s = ν s :=
+begin
+  refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
+  intro h,
+  ext1,
+  ext1 s s_mble,
+  specialize h s s_mble,
+  have h' := congr_arg (coe : ℝ≥0 → ℝ≥0∞) h,
+  repeat {rw probability_measure.ennreal_coe_fn_eq_coe_fn_to_measure at h'},
+  exact h',
+end
 
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ, infer_instance⟩

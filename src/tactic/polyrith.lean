@@ -316,10 +316,6 @@ do
     fail!"polyrith failed to retrieve a solution from Sage! {kind}: {message}"
 
 
--- | s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s)
---   in parser_output_checker sage_stuff)
-
-
 /-!
 # Parsing context into poly
 

@@ -45,8 +45,7 @@ def evaluate_in_sage(query: str, format=False) -> str:
         query = (f'print({clean_query})')
     data = {'code': query}
     headers = {'content-type': 'application/x-www-form-urlencoded'}
-    response = requests.post('https://sagecell.sagemath.org/service', data, headers=headers)
-    response = json.loads(response.text)
+    response = requests.post('https://sagecell.sagemath.org/service', data, headers=headers).json()
     if response['success']:
         return json.loads(response.get('stdout'))
     elif 'execute_reply' in response and 'ename' in response['execute_reply'] and 'evalue' in response['execute_reply']:

@@ -8,8 +8,10 @@ import algebra.hom.iterate
 import data.int.modeq
 import data.nat.choose.dvd
 import data.nat.choose.sum
+import data.zmod.defs
 import group_theory.order_of_element
 import ring_theory.nilpotent
+
 /-!
 # Characteristic of semirings
 -/

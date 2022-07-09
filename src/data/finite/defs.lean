@@ -36,8 +36,12 @@ in this way to allow there to be `finite` instances for propositions.
 class inductive finite (α : Sort*) : Prop
 | intro {n : ℕ} : α ≃ fin n → finite
 
+
+lemma finite_iff_exists_equiv_fin {α : Sort*} : finite α ↔ ∃ n, nonempty (α ≃ fin n) :=
+⟨λ ⟨e⟩, ⟨_, ⟨e⟩⟩, λ ⟨n, ⟨e⟩⟩, ⟨e⟩⟩
+
 lemma finite.exists_equiv_fin (α : Sort*) [h : finite α] : ∃ (n : ℕ), nonempty (α ≃ fin n) :=
-by { casesI h with n f, exact ⟨n, ⟨f⟩⟩ }
+finite_iff_exists_equiv_fin.mp h
 
 lemma finite.of_equiv (α : Sort*) [h : finite α] (f : α ≃ β) : finite β :=
 by { casesI h with n e, exact finite.intro (f.symm.trans e) }

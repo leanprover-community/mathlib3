@@ -34,7 +34,7 @@ variables [semiring R] {p q r : R[X]}
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
-def degree (p : R[X]) : with_bot ℕ := p.support.sup some
+def degree (p : R[X]) : with_bot ℕ := p.support.sup coe
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
@@ -70,8 +70,7 @@ lemma monic.coeff_nat_degree {p : R[X]} (hp : p.monic) : p.coeff p.nat_degree = 
 @[simp] lemma coeff_nat_degree : coeff p (nat_degree p) = leading_coeff p := rfl
 
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
-⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
-  exact support_eq_empty.1 (max_eq_none.1 h),
+⟨λ h, support_eq_empty.1 (finset.max_eq_bot.1 h),
 λ h, h.symm ▸ rfl⟩
 
 @[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=

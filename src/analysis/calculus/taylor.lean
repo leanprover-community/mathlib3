@@ -56,7 +56,8 @@ def taylor_within (f : ℝ → ℝ) (n : ℕ) (s : set ℝ) (x₀ : ℝ) : polyn
 
 lemma taylor_within_succ {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ : ℝ} :
   taylor_within f (n+1) s x₀ = taylor_within f n s x₀
-  + (polynomial.monomial (n+1) (taylor_coeff_within f (n+1) s x₀)).comp (polynomial.X - polynomial.C x₀) :=
+  + (polynomial.monomial (n+1) (taylor_coeff_within f (n+1) s x₀)).comp
+  (polynomial.X - polynomial.C x₀) :=
 begin
   dunfold taylor_within,
   rw finset.sum_range_succ,
@@ -65,10 +66,9 @@ end
 lemma div_mul_comm' (a b : ℝ) {c : ℝ} (hc : c ≠ 0) : a / c * b = a * b / c :=
 by rw [eq_div_iff hc, mul_assoc, mul_comm b c, ←mul_assoc, div_mul_cancel a hc]
 
-@[simp] lemma taylor_with_eval_succ {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
+@[simp] lemma taylor_within_eval_succ {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
   (taylor_within f (n+1) s x₀).eval x = (taylor_within f n s x₀).eval x
-    + iterated_deriv_within (n + 1) f s x₀
-    * (x - x₀) ^ (n + 1) / ((↑n + 1) * ↑(n.factorial)) :=
+  + iterated_deriv_within (n + 1) f s x₀ * (x - x₀) ^ (n + 1) / ((↑n + 1) * ↑(n.factorial)) :=
 begin
   rw [taylor_within_succ, polynomial.eval_add],
   simp only [add_right_inj, taylor_coeff_within, polynomial.eval_comp, polynomial.eval_monomial,
@@ -98,8 +98,8 @@ begin
   simp [hk]
 end
 
-lemma taylor_within_apply {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} : (taylor_within f n s x₀).eval x =
-  ∑ k in finset.range (n+1), (iterated_deriv_within k f s x₀)
+lemma taylor_within_apply {f : ℝ → ℝ} {n : ℕ} {s : set ℝ} {x₀ x : ℝ} :
+  (taylor_within f n s x₀).eval x = ∑ k in finset.range (n+1), (iterated_deriv_within k f s x₀)
     * (x - x₀)^k / k.factorial :=
 begin
   induction n with k hk,
@@ -127,7 +127,8 @@ begin
   exact nat.lt_succ_iff.mp hi,
 end
 
-lemma monomial_has_deriv (t x : ℝ) {n : ℕ} :
+/-- Helper lemma for calculating the derivative of the monomial that appears in Taylor expansions.-/
+lemma monomial_has_deriv_aux (t x : ℝ) {n : ℕ} :
   has_deriv_at (λ y, (x - y)^(n+1)) ((-(n+1) * (x - t)^n)) t :=
 begin
   simp_rw sub_eq_neg_add,
@@ -167,7 +168,7 @@ begin
     rw @iterated_deriv_within_succ _ _ _ _ _ (k.succ) _ _ _ hs,
     exact (hf'.differentiable_at hs').deriv_within hs,
   end,
-  convert (hf''.mul (monomial_has_deriv y x)).div_const ((k+1)* k.factorial),
+  convert (hf''.mul (monomial_has_deriv_aux y x)).div_const ((k+1)* k.factorial),
   rw [sub_eq_neg_add, add_comm, add_div, add_right_inj, ←neg_one_mul, ←neg_one_mul (↑k+1 : ℝ)],
   rw [mul_assoc, mul_comm (↑k+1 : ℝ) ((x - y) ^ k), mul_comm (↑k+1 : ℝ), ←mul_assoc, ←mul_assoc],
   rw mul_div_mul_right,
@@ -249,7 +250,8 @@ begin
   end,
   have hg' : ∀ (y : ℝ), y ∈ set.Ioo x₀ x → -(↑n + 1) * (x - y) ^ n ≠ 0 :=
   λ y hy, mul_ne_zero (neg_ne_zero.mpr (nat.cast_add_one_ne_zero n)) (xy_ne y hy),
-  rcases taylor_mean_remainder hf hf' hx gcont (λ y _, monomial_has_deriv y x) hg' with ⟨y, hy, h⟩,
+  rcases taylor_mean_remainder hf hf' hx gcont (λ y _, monomial_has_deriv_aux y x) hg'
+    with ⟨y, hy, h⟩,
   use [y, hy],
   simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
   rw [h, neg_div, ←div_neg, neg_mul, neg_neg],

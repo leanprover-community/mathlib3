@@ -34,7 +34,7 @@ variables [semiring R] {p q r : R[X]}
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
-def degree (p : R[X]) : with_bot ℕ := p.support.sup coe
+def degree (p : R[X]) : with_bot ℕ := p.support.max
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
@@ -161,7 +161,7 @@ lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.deg
 with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
-by { rw [degree, ← monomial_zero_left, support_monomial 0 ha, sup_singleton], refl }
+by { rw [degree, ← monomial_zero_left, support_monomial 0 ha], refl }
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
 begin
@@ -558,16 +558,35 @@ begin
   rw [degree_eq_nat_degree hp, degree, support_erase],
   exact λ h, not_mem_erase _ _ (mem_of_max h),
 end
+#check order_bot
+
+lemma finset.mem_le_max {α} [linear_order α] {a : α} {s : finset α} (as : a ∈ s) :
+  ↑a ≤ s.max :=
+(le_fold_max _).mpr (or.inr ⟨a, as, rfl.le⟩)
+
+
+lemma finset.max_mono {α} [linear_order α] {s t : finset α} (st : s ⊆ t) :
+  s.max ≤ t.max :=
+begin
+  by_cases s0 : s.nonempty,
+  { obtain ⟨a, as⟩ := nonempty.bex s0,
+    rcases max_of_mem as with ⟨w, sw⟩,
+    exact (le_fold_max _).mpr (or.inr ⟨w, st (mem_of_max sw), sw.le⟩) },
+  { simp [not_nonempty_iff_eq_empty.mp s0] },
+end
+
+lemma finset.le_max {α} [linear_order α] (M : α) {s : finset α} (st : ∀ a : α, a ∈ s → a ≤ M) :
+  s.max ≤ M :=
+(fold_max_le _).mpr ⟨bot_le, λ x xs, with_bot.coe_le_coe.mpr (st x xs)⟩
 
 lemma degree_update_le (p : R[X]) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin
-  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
-  intros b hb,
-  split_ifs at hb with h,
-  { subst b,
-    exact or.inr le_rfl },
-  { exact or.inl (le_degree_of_ne_zero hb) }
+  simp only [degree, support_update],
+  split_ifs,
+  { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
+  { rw [max_insert, max_comm],
+    exact rfl.le },
 end
 
 lemma degree_sum_le (s : finset ι) (f : ι → R[X]) :
@@ -830,20 +849,24 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
-  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
+by simp [degree_eq_bot.not, ← not_lt, ← not_iff]
+
+lemma coe_le_degree_of_ne_zero (n : ℕ) (h : ↑n ≤ p.degree) : p ≠ 0 :=
+degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans h
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), decidable.of_not_not $ λ H4,
-  have H1 : m ∉ f.support,
-    from λ H2, not_lt_of_ge ((finset.sup_le_iff.1 H) m H2 : ((m : with_bot ℕ) ≤ n)) Hm,
-  H1 $ mem_support_iff.2 H4,
-λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
-  mem_support_iff.1 Hb $ H b $ lt_of_not_ge Hn⟩
+begin
+  refine ⟨λ h m mn, coeff_eq_zero_of_degree_lt (h.trans_lt mn), λ h, _⟩,
+  rcases n with _ | n,
+  { refine (degree_eq_bot.mpr (ext (λ (n : ℕ), h _ (with_bot.bot_lt_coe _)))).le },
+  refine finset.le_max _ (λ a ha, _),
+  contrapose ha,
+  exact not_mem_support_iff.mpr (h _ (with_bot.coe_lt_coe.mpr (not_le.mp ha)))
+end
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=
@@ -851,7 +874,12 @@ begin
   refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
   simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
     with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
-  exact λ h m, mt (h m),
+  intros m,
+  cases n,
+  { simp only [finset.max_eq_bot, with_top.coe_zero, nat.with_bot.lt_zero_iff, support_eq_empty],
+    exact ext (λ a, m _ a.zero_le) },
+  { refine ((degree_le_iff_coeff_zero _ _).mpr _).trans_lt (with_bot.coe_lt_coe.mpr n.lt_succ_self),
+    exact λ a ha, m _ (nat.succ_le_of_lt (with_bot.coe_lt_coe.mp ha)) }
 end
 
 lemma degree_smul_le (a : R) (p : R[X]) : degree (a • p) ≤ degree p :=

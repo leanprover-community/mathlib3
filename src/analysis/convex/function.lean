@@ -30,7 +30,7 @@ a convex set.
 open finset linear_map set
 open_locale big_operators classical convex pointwise
 
-variables {𝕜 E F β ι Q : Type*}
+variables {𝕜 E F β ι : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -105,12 +105,25 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
 ⟨hs, λ x y hx hy, hf.2 (hst hx) (hst hy)⟩
 
 section composition
-variables [has_smul 𝕜 Q] [ordered_add_comm_monoid Q] (t : set β) (g : β → Q)
 
-lemma convex_on.compose (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 t g) (hg' : monotone g)
-  (ht : (range f) ⊆ t) : convex_on 𝕜 s (g ∘ f) :=
-⟨hf.left, λ x y hx hy a b ha hb hsum, (hg' $ hf.right hx hy ha hb hsum).trans $
-  hg.right (range_subset_iff.mp ht x) (range_subset_iff.mp ht y) ha hb hsum⟩
+lemma convex_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
+  {g : β → F} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 (f '' s) g)
+  (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
+⟨hf.left, λ x y hx hy a b ha hb hsum,
+  (hg' (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
+    (hg.left (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)
+    (hf.right hx hy ha hb hsum)).trans $
+  hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum⟩
+
+lemma concave_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
+  {g : β → F} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 (f '' s) g)
+  (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
+⟨hf.left, λ x y hx hy a b ha hb hsum,
+  ge_trans
+    (hg' (hg.left (mem_image_of_mem f hx)
+    (mem_image_of_mem f hy) ha hb hsum) (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
+    (hf.right hx hy ha hb hsum))
+    (hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)⟩
 
 end composition
 end has_smul

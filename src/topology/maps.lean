@@ -494,7 +494,7 @@ lemma open_embedding_iff_open_embedding_compose (f : α → β) {g : β → γ} 
 by simp only [open_embedding_iff_continuous_injective_open, ← hg.is_open_map_iff,
   ← hg.1.continuous_iff, hg.inj.of_comp_iff]
 
-lemma open_embedding_of_open_embedding_compose  (f : α → β) {g : β → γ} (hg : open_embedding g)
+lemma open_embedding_of_open_embedding_compose (f : α → β) {g : β → γ} (hg : open_embedding g)
   (h : open_embedding (g ∘ f)) : open_embedding f :=
 (open_embedding_iff_open_embedding_compose f hg).1 h
 

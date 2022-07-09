@@ -10,6 +10,8 @@ import tactic.core
 
 This file provides helpers for serializing primitive types to json.
 
+`@[derive [json_serializable]]` will make any structure json serializable.
+
 ## Main definitions
 
 * `json_serializable`: a typeclass for objects which serialize to json
@@ -67,13 +69,13 @@ meta instance : non_null_json_serializable ℤ :=
     json.of_int z ← success j | exception (λ _, format!"number expected, got {j.typename}"),
     pure z }
 
-meta instance : non_null_json_serializable native.float :=
-{ to_json := λ f, json.of_float f,
-  of_json := λ j, do
-    json.of_int z ← success j | do
-    { json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
-      pure f },
-    pure z }
+-- meta instance : non_null_json_serializable native.float :=
+-- { to_json := λ f, json.of_float f,
+--   of_json := λ j, do
+--     json.of_int z ← success j | do
+--     { json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
+--       pure f },
+--     pure z }
 
 meta instance : non_null_json_serializable bool :=
 { to_json := λ b, json.of_bool b,
@@ -105,11 +107,20 @@ meta instance {α} [json_serializable α] : json_serializable (rbmap string α) 
 /-! ### Basic coercions -/
 
 meta instance : non_null_json_serializable ℕ :=
-{ to_json := λ n, json.of_int n,
+{ to_json := λ n, to_json (n : ℤ),
   of_json := λ j, do
-    json.of_int z ← success j | exception (λ _, format!"number expected, got {j.typename}"),
-    int.of_nat n ← success z | exception (λ _, format!"must be non-negative"),
+    int.of_nat n ← of_json ℤ j | exception (λ _, format!"must be non-negative"),
     pure n }
+
+meta instance {n : ℕ} : non_null_json_serializable (fin n) :=
+{ to_json := λ i, to_json i.val,
+  of_json := λ j, do
+    i ← of_json ℕ j,
+    if h : i < n then
+      pure ⟨i, h⟩
+    else
+      exception (λ _, format!"must be less than {n}") }
+
 
 /-- Note this only makes sense on types which do not themselves serialize to `null` -/
 meta instance {α} [non_null_json_serializable α] : json_serializable (option α) :=
@@ -129,16 +140,63 @@ do
   pure p
 
 /-- Check a field exists and get a parse for it -/
-meta def json_serializable.field_extractor (l : list (string × json)) (s : string) (α : Type*)
-  [json_serializable α] :
-  exceptional (exceptional α × list (string × json)) :=
+meta def json_serializable.field_get (l : list (string × json)) (s : string) :
+  exceptional (json × list (string × json)) :=
 let (p, n) := l.partition (λ x, prod.fst x = s) in
 match p with
 | [] := exception (λ _, format!"no {s} field , {l}")
-| [x] := pure (of_json α x.2, n)
+| [x] := pure (x.2, n)
 | x :: xs := exception (λ _, format!"duplicate {s} field")
 end
 
 /-- Check no fields remain -/
 meta def json_serializable.field_terminator (l : list (string × json)) : exceptional unit :=
 do [] ← pure l | exception (λ _, format!"unexpected fields {l.map prod.fst}"), pure ()
+
+/-- A derive handler to serialize structures by their fields -/
+@[derive_handler, priority 2000] meta def non_null_json_serializable_handler : derive_handler :=
+instance_derive_handler ``non_null_json_serializable $ do
+  intros,
+  `(non_null_json_serializable %%e) ← target >>= whnf,
+  (const I ls, args) ← pure (get_app_fn_args e),
+  env ← get_env,
+  some fields ← pure (env.structure_fields I) | fail!"Not a structure",
+  refine ``(@non_null_json_serializable.mk %%e ⟨λ x, json.object _,
+    λ j, json_serializable.field_starter j >>= _
+  ⟩),
+  -- the forward direction
+  x ← get_local `x,
+  (e : list (option expr)) ← fields.mmap (λ f, do
+    d ← get_decl (I ++ f),
+    let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
+    t ← infer_type a,
+    s ← infer_type t,
+    `(Prop) ← pure s | pure (none : option expr),
+    let x_e := a.mk_app (args ++ [x]),
+    j ← tactic.mk_app `json_serializable.to_json [x_e],
+    pure (some `((%%`(f.to_string), %%j) : string × json))
+  ),
+  let e := e.reduce_option,
+  tactic.exact (e.to_expr `(string × json)),
+  -- the reverse direction
+  get_local `j >>= tactic.clear,
+  fields.mmap' (λ f, do
+    refine ``(λ p, json_serializable.field_get p %%`(f.to_string) >>= _),
+    tactic.applyc `prod.rec,
+    tactic.intro (`field ++ f),
+    get_local `p >>= tactic.clear),
+  refine ``(λ p, json_serializable.field_terminator p >> _),
+  get_local `p >>= tactic.clear,
+  fields.mmap' (λ f, do
+    field_val ← get_local (`field ++ f),
+    refine ``(of_json _ %%field_val >>= _),
+    rotate 2,
+    tactic.clear field_val,
+    tactic.intro (`field ++ f)),
+  refine ``(pure _),
+  tactic.fconstructor,
+  fields.mmap' (λ f, do
+    field_val ← get_local (`field ++ f),
+    exact field_val),
+  all_goals tactic.apply_instance,
+  skip

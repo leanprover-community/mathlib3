@@ -230,24 +230,24 @@ begin
   exact stopped_value_hitting_mem ⟨j, ⟨hj₁.1, le_trans hj₁.2 (hitting_le _)⟩, hj₂⟩,
 end
 
-lemma exists_eq_lower_crossing_of_stopped_value_lt (k : ℕ) (hk₁ : k < N) (hk₂ : f k x ≤ a) :
-  ∃ n, lower_crossing a b f N n x = k :=
-begin
-  sorry
-end
+-- lemma exists_eq_lower_crossing_of_stopped_value_lt (k : ℕ) (hk₁ : k < N) (hk₂ : f k x ≤ a) :
+--   ∃ n, lower_crossing a b f N n x = k :=
+-- begin
+--   sorry
+-- end
 
-lemma exists_eq_upper_crossing_of_stopped_value_gt (k : ℕ) (hk₁ : k < N) (hk₂ : b ≤ f k x) :
-  ∃ n, upper_crossing a b f N n x = k :=
-begin
-  sorry
-end
+-- lemma exists_eq_upper_crossing_of_stopped_value_gt (k : ℕ) (hk₁ : k < N) (hk₂ : b ≤ f k x) :
+--   ∃ n, upper_crossing a b f N n x = k :=
+-- begin
+--   sorry
+-- end
 
-lemma lower_crossing_lt_of {k : ℕ}
-  (hk₁ : upper_crossing a b f N n x < k) (hk₂ : k < N) (hk : f k x ≤ a) :
-  lower_crossing a b f N n x < N :=
-begin
-  sorry
-end
+-- lemma lower_crossing_lt_of {k : ℕ}
+--   (hk₁ : upper_crossing a b f N n x < k) (hk₂ : k < N) (hk : f k x ≤ a) :
+--   lower_crossing a b f N n x < N :=
+-- begin
+--   sorry
+-- end
 
 lemma upper_crossing_lt_lower_crossing (hab : a < b) (hn : lower_crossing a b f N (n + 1) x ≠ N) :
   upper_crossing a b f N (n + 1) x < lower_crossing a b f N (n + 1) x :=
@@ -500,6 +500,80 @@ begin
   exact hn.ne (upper_crossing_eq_of_bound_le hab hN (not_le.1 hnN).le),
 end
 
+lemma crossing_eq_crossing_of_lower_crossing_lt {M : ℕ} (hNM : N ≤ M)
+  (h : lower_crossing a b f N n x < N) :
+  upper_crossing a b f M n x = upper_crossing a b f N n x ∧
+  lower_crossing a b f M n x = lower_crossing a b f N n x :=
+begin
+  have h' : upper_crossing a b f N n x < N := lt_of_le_of_lt upper_crossing_le_lower_crossing h,
+  induction n with k ih,
+  { simp only [nat.nat_zero_eq_zero, upper_crossing_zero, bot_eq_zero', eq_self_iff_true,
+      lower_crossing_zero, true_and, eq_comm],
+    refine hitting_eq_hitting_of_exists (zero_le _) hNM _,
+    simp only [lower_crossing, hitting_lt_iff] at h,
+    obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ },
+  { specialize ih (lt_of_le_of_lt (lower_crossing_mono (nat.le_succ _)) h)
+      (lt_of_le_of_lt (upper_crossing_mono (nat.le_succ _)) h'),
+    have : upper_crossing a b f M k.succ x = upper_crossing a b f N k.succ x,
+    { simp only [upper_crossing_succ_eq, hitting_lt_iff] at h' ⊢,
+      obtain ⟨j, hj₁, hj₂⟩ := h',
+      rw [eq_comm, ih.2],
+      exact hitting_eq_hitting_of_exists lower_crossing_le hNM ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ },
+    refine ⟨this, _⟩,
+    simp only [lower_crossing, eq_comm, this],
+    refine hitting_eq_hitting_of_exists upper_crossing_le hNM _,
+    rw [lower_crossing, hitting_lt_iff _ le_rfl] at h,
+    swap, { apply_instance },
+    obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩ }
+end
+
+lemma crossing_eq_crossing_of_upper_crossing_lt {M : ℕ} (hNM : N ≤ M)
+  (h : upper_crossing a b f N (n + 1) x < N) :
+  upper_crossing a b f M (n + 1) x = upper_crossing a b f N (n + 1) x ∧
+  lower_crossing a b f M n x = lower_crossing a b f N n x :=
+begin
+  have := (crossing_eq_crossing_of_lower_crossing_lt hNM
+    (lt_of_le_of_lt lower_crossing_le_upper_crossing_succ h)).2,
+  refine ⟨_, this⟩,
+  rw [upper_crossing_succ_eq, upper_crossing_succ_eq, eq_comm, this],
+  refine hitting_eq_hitting_of_exists lower_crossing_le hNM _,
+  simp only [upper_crossing_succ_eq, hitting_lt_iff] at h,
+  obtain ⟨j, hj₁, hj₂⟩ := h,
+  exact ⟨j, ⟨hj₁.1, hj₁.2.le⟩, hj₂⟩
+end
+
+lemma upper_crossing_eq_upper_crossing_of_lt {M : ℕ} (hNM : N ≤ M)
+  (h : upper_crossing a b f N n x < N) :
+  upper_crossing a b f M n x = upper_crossing a b f N n x :=
+begin
+  cases n,
+  { simp },
+  { exact (crossing_eq_crossing_of_upper_crossing_lt hNM h).1 }
+end
+
+lemma upcrossing_lt_upcrossing (hab : a < b) {N₁ N₂ : ℕ}
+  (hN₁: N ≤ N₁) (hN₁': f N₁ x < a) (hN₂: N₁ ≤ N₂) (hN₂': b < f N₂ x) :
+  upcrossing a b f N x < upcrossing a b f (N₂ + 1) x :=
+begin
+  refine lt_of_lt_of_le (nat.lt_succ_self _) (le_cSup (upper_crossing_lt_bdd_above hab) _),
+  rw [set.mem_set_of_eq, upper_crossing_succ_eq, hitting_lt_iff _ le_rfl],
+  swap,
+  { apply_instance },
+  { refine ⟨N₂, ⟨_, nat.lt_succ_self _⟩, hN₂'.le⟩,
+    rw [lower_crossing, hitting_le_iff_of_lt _ (nat.lt_succ_self _)],
+    refine ⟨N₁, ⟨le_trans _ hN₁, hN₂⟩, hN₁'.le⟩,
+    by_cases hN : 0 < N,
+    { have : upper_crossing a b f N (upcrossing a b f N x) x < N :=
+        nat.Sup_mem (upper_crossing_lt_nonempty hN) (upper_crossing_lt_bdd_above hab),
+      rw upper_crossing_eq_upper_crossing_of_lt (hN₁.trans (hN₂.trans $ nat.le_succ _)) this,
+      exact this.le },
+    { rw [not_lt, le_zero_iff] at hN,
+      rw [hN, ← bot_eq_zero, upcrossing_bot, bot_eq_zero, upper_crossing_zero],
+      refl } },
+end
+
 lemma lower_crossing_lt_of_lt_upcrossing
   (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a b f N x) :
   lower_crossing a b f N n x < N :=
@@ -692,7 +766,9 @@ begin
       (integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
-/- We want to show a real sequence `x` converges if
+/-! We will now begin to prove the martingale convergence theorem.
+
+Firstly, we want to show a real sequence `x` converges if
 (a) `limsup |x| < ∞`,
 (b) For all `a < b : ℚ` we have `sup N, upcrossing a b x N < ∞`.
 
@@ -705,42 +781,38 @@ With this lemma and assumping `f` is L¹-bounded, using Fatou's lemma,
 we have `𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
 the upcrossing lemma, `sup N, upcrossing a b f N < ∞ a.e.` implying `f` converges pointwise almost
 everywhere.
+
 -/
 
-lemma of_bdd_upcrossing (hab : a < b) (hx : ∃ k, ∀ N, upcrossing a b f N x ≤ k) :
+lemma of_bdd_upcrossing (hab : a < b) (hx : ∃ k, ∀ N, upcrossing a b f N x < k) :
   ¬((∃ᶠ n in at_top, f n x < a) ∧ (∃ᶠ n in at_top, b < f n x)) :=
 begin
-  obtain ⟨k, hk⟩ := hx,
   rintro ⟨h₁, h₂⟩,
   rw frequently_at_top at h₁ h₂,
-  simp_rw [upcrossing] at hk,
-  have hk' : ∀ (N : ℕ), ∀ n, upper_crossing a b f N n x < N → n ≤ k,
-  { intro N,
-    specialize hk N,
-    rwa cSup_le_iff' (upper_crossing_lt_bdd_above hab) at hk },
-  set U : ℕ → ℕ := λ N, upcrossing a b f N x,
-  sorry
-  -- obtain ⟨N₁, hN₁, hN₁'⟩ := h₁ (k + 1),
-  -- obtain ⟨N₂, hN₂, hN₂'⟩ := h₂ N₁,
-  -- specialize hk _ N₂ _,
-  -- obtain ⟨N₂, hN₂, hN₂'⟩ := h₂ (upper_crossing a b f (k + 1) k x),
-  -- obtain ⟨m, hm : upper_crossing a b f (N₂ + 1) m x = N₂⟩ :=
-  --   exists_eq_upper_crossing_lt_of_stopped_value_gt N₂ (nat.lt_succ_self N₂) hN₂',
-  -- specialize hK (N₂ + 1) m (hm.symm ▸ nat.lt_succ_self _),
-  -- rw [ge_iff_le, nat.succ_le_iff] at hN₂,
-  -- refine not_le.2 hN₂ _,
-  -- rw ← hm,
+  refine not_not.2 hx _,
+  push_neg,
+  intro k,
+  induction k with k ih,
+  { simp only [zero_le', exists_const] },
+  { obtain ⟨N, hN⟩ := ih,
+    obtain ⟨N₁, hN₁, hN₁'⟩ := h₁ N,
+    obtain ⟨N₂, hN₂, hN₂'⟩ := h₂ N₁,
+    exact ⟨(N₂ + 1), nat.succ_le_of_lt $ lt_of_le_of_lt hN
+      (upcrossing_lt_upcrossing hab hN₁ hN₁' hN₂ hN₂')⟩ }
 end
 
--- #check tendsto_of_no_upcrossings
-
+#check is_bounded_under
 lemma tendsto_of_bdd_uncrossing {x : α}
   (hf₁ : ∃ R, liminf at_top (λ n, f n x) < R)
-  (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x ≤ K) :
+  (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x < K) :
   ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
-  refine tendsto_of_no_upcrossings rat.dense_range_cast _ _ _;
+  refine tendsto_of_no_upcrossings rat.dense_range_cast _ _ _,
+  { intros a ha b hb hab,
+    obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
+    exact of_bdd_upcrossing hab (hf₂ a b) },
   { sorry },
+  { sorry }
 end
 
 end measure_theory

@@ -433,20 +433,6 @@ begin
   exact lt_of_le_of_lt h (factorization_lt n p hn),
 end
 
-lemma factorization_eq_card_pow_dvd' {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
-  n.factorization p = ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n)).card :=
-begin
-  rw [←nat.add_sub_cancel (n.factorization p) 1, ←card_Ico],
-  apply congr_arg card,
-  ext,
-  rw [finset.mem_filter, mem_Ico, mem_Ico, lt_succ_iff, pp.pow_dvd_iff_le_factorization hn,
-    and.congr_left_iff, iff_self_and],
-  rintro ha1 -,
-  refine lt_of_le_of_lt _ hb,
-  rw ←pow_le_iff_le_log pp.one_lt hn.bot_lt,
-  exact le_trans (pow_le_pow pp.one_lt.le ha1) (pow_factorization_le p hn),
-end
-
 /-! ### Factorization and coprimes -/
 
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/

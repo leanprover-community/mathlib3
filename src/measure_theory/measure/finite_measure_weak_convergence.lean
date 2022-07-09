@@ -159,22 +159,21 @@ instance has_zero : has_zero (finite_measure α) :=
 { zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
 
 @[simp] lemma finite_measure.zero.mass : (0 : finite_measure α).mass = 0 :=
-by simp [finite_measure.mass]
+by { simp only [finite_measure.mass], refl, }
+
+lemma finite_measure.mass_zero_iff (μ : finite_measure α) :
+  μ.mass = 0 ↔ μ = 0 :=
+begin
+  refine ⟨_, (λ hμ, by simp only [hμ, finite_measure.zero.mass])⟩,
+  intro μ_mass,
+  ext1,
+  apply measure.measure_univ_eq_zero.mp,
+  rwa [← finite_measure.ennreal_mass, ennreal.coe_eq_zero],
+end
 
 lemma finite_measure.mass_nonzero_iff_nonzero (μ : finite_measure α) :
   μ.mass ≠ 0 ↔ μ ≠ 0 :=
-begin
-  refine ⟨_, _⟩,
-  { contrapose!,
-    intro hμ,
-    rw hμ,
-    simp, },
-  { contrapose!,
-    assume μ_mass,
-    ext1,
-    apply measure.measure_univ_eq_zero.mp,
-    rwa [← finite_measure.ennreal_mass, ennreal.coe_eq_zero], },
-end
+by simpa [not_iff_not] using finite_measure.mass_zero_iff _
 
 instance : inhabited (finite_measure α) := ⟨0⟩
 
@@ -647,19 +646,6 @@ subtype.coe_injective
 @[simp] lemma coe_fn_univ (ν : probability_measure α) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
-@[ext] lemma probability_measure.extensionality (μ ν : probability_measure α) :
-  μ = ν ↔ ∀ (s : set α), measurable_set s → μ s = ν s :=
-begin
-  refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
-  intro h,
-  ext1,
-  ext1 s s_mble,
-  specialize h s s_mble,
-  have h' := congr_arg (coe : ℝ≥0 → ℝ≥0∞) h,
-  repeat {rw probability_measure.ennreal_coe_fn_eq_coe_fn_to_measure at h'},
-  exact h',
-end
-
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ, infer_instance⟩
 
@@ -673,6 +659,19 @@ def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ
   (ν s : ℝ≥0∞) = (ν : measure α) s :=
 by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
      finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure], refl, }
+
+@[ext] lemma probability_measure.extensionality (μ ν : probability_measure α) :
+  μ = ν ↔ ∀ (s : set α), measurable_set s → μ s = ν s :=
+begin
+  refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
+  intro h,
+  ext1,
+  ext1 s s_mble,
+  specialize h s s_mble,
+  have h' := congr_arg (coe : ℝ≥0 → ℝ≥0∞) h,
+  repeat {rw probability_measure.ennreal_coe_fn_eq_coe_fn_to_measure at h'},
+  exact h',
+end
 
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ

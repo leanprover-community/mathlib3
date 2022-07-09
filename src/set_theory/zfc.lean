@@ -145,7 +145,7 @@ def mem : pSet → pSet → Prop
 
 instance : has_mem pSet.{u} pSet.{u} := ⟨mem⟩
 
-theorem mem.mk {α: Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
+theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
 
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y

@@ -110,7 +110,8 @@ lemma convex_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
   {g : β → F} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 (f '' s) g)
   (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy a b ha hb hsum,
-  (hg' (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
+  (hg'
+    (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
     (hg.left (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)
     (hf.right hx hy ha hb hsum)).trans $
   hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum⟩
@@ -120,9 +121,10 @@ lemma concave_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
   (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy a b ha hb hsum,
   ge_trans
-    (hg' (hg.left (mem_image_of_mem f hx)
-    (mem_image_of_mem f hy) ha hb hsum) (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
-    (hf.right hx hy ha hb hsum))
+    (hg'
+      (hg.left (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)
+      (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
+      (hf.right hx hy ha hb hsum))
     (hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)⟩
 
 end composition

@@ -398,17 +398,14 @@ end
 
 end support
 
-lemma finset.max_eq_max' {α : Type*} [linear_order α] {s : finset α} (s0 : s.nonempty) :
-  s.max = s.max' s0 :=
-by rw [finset.max', with_bot.coe_unbot]
-
+--  #15199
 lemma _root_.polynomial.degree_eq_support_max (p : R[X]) :
   p.degree = p.support.max :=
 begin
   by_cases p0 : p = 0,
   { simp only [p0, polynomial.support_zero, finset.sup_empty, finset.max_empty],
     refl },
-  { rw [degree_eq_nat_degree p0, nat_degree_eq_support_max' p0, finset.max_eq_max'] }
+  { simp [degree_eq_nat_degree p0, nat_degree_eq_support_max' p0, finset.max'] }
 end
 
 section degrees

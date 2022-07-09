@@ -662,12 +662,9 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 begin
   refine ⟨by { intros h s s_mble, simp_rw h, }, _⟩,
   intro h,
-  ext1,
-  ext1 s s_mble,
-  specialize h s s_mble,
-  have h' := congr_arg (coe : ℝ≥0 → ℝ≥0∞) h,
-  repeat {rw probability_measure.ennreal_coe_fn_eq_coe_fn_to_measure at h'},
-  exact h',
+  ext1, ext1 s s_mble,
+  simpa [probability_measure.ennreal_coe_fn_eq_coe_fn_to_measure]
+    using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
 end
 
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :

@@ -259,15 +259,13 @@ begin
   exact λ x, ennreal.coe_mono (f_le_g x),
 end
 
-@[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) :
-  (0 : finite_measure α).test_against_nn f = 0 :=
+lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) : (0 : finite_measure α).test_against_nn f = 0 :=
 by simp only [test_against_nn, coe_zero, lintegral_zero_measure, ennreal.zero_to_nnreal]
 
 @[simp] lemma zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
 by { funext, simp only [zero.test_against_nn_apply, pi.zero_apply], }
 
-lemma smul_test_against_nn_apply --[is_scalar_tower R ℝ≥0 ℝ≥0]? API hole?
-  (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   (c • μ).test_against_nn f  = c • (μ.test_against_nn f) :=
 begin
   simp only [test_against_nn, coe_smul, smul_eq_mul ℝ≥0, ← ennreal.smul_to_nnreal],

@@ -126,6 +126,9 @@ not_finite_iff_infinite.not_right.symm
 
 lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
 
+instance [infinite α] : is_empty (unique α) :=
+⟨λ h, by { haveI := @unique.fintype α h, exact not_finite α }⟩
+
 @[nolint instance_priority]
 instance finite.prop (p : Prop) : finite p := of_subsingleton
 

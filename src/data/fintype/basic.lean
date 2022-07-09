@@ -1066,12 +1066,12 @@ by rw [←card_unit, card_eq]; exact
   λ ⟨x, hx⟩, ⟨⟨λ _, (), λ _, x, λ _, (hx _).trans (hx _).symm,
     λ _, subsingleton.elim _ _⟩⟩⟩
 
-lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
+@[simp] lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
 by rw [card, finset.card_eq_zero, univ_eq_empty_iff]
 
-lemma card_eq_zero [is_empty α] : card α = 0 := card_eq_zero_iff.2 ‹_›
+@[simp] lemma card_eq_zero [is_empty α] : card α = 0 := card_eq_zero_iff.2 ‹_›
 
-lemma card_eq_one_iff_nonempty_unique : card α = 1 ↔ nonempty (unique α) :=
+@[simp] lemma card_eq_one_iff_nonempty_unique : card α = 1 ↔ nonempty (unique α) :=
 ⟨λ h, let ⟨d, h⟩ := fintype.card_eq_one_iff.mp h in ⟨{ default := d, uniq := h}⟩,
  λ ⟨h⟩, by exactI fintype.card_unique⟩
 

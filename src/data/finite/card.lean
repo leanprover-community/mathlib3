@@ -3,8 +3,9 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+
 import data.finite.basic
-import set_theory.cardinal.finite
+import data.nat.enat
 
 /-!
 
@@ -30,6 +31,54 @@ noncomputable theory
 open_locale classical
 
 variables {α β γ : Type*}
+
+/-! ### Cardinality as an enat -/
+
+namespace enat
+
+/-- The cardinality of a type as an `enat`.-/
+def card (α : Type*) : enat :=
+if h : finite α then @fintype.card α (@fintype.of_finite α h) else ⊤
+
+@[simp] theorem card_eq_fintype_card (α : Type*) [fintype α] : enat.card α = fintype.card α :=
+begin
+  rw [card, dif_pos (finite.of_fintype' α), enat.coe_inj],
+  apply fintype.card_congr' rfl
+end
+
+@[simp] theorem card_eq_top (α : Type*) [h : infinite α] : enat.card α = ⊤ :=
+dif_neg $ not_finite_iff_infinite.2 h
+
+theorem card_eq_zero (α : Type*) [is_empty α] : card α = 0 := by simp
+theorem card_eq_one (α : Type*) [unique α] : card α = 1 := by simp
+theorem card_empty : card empty = 0 := by simp
+theorem card_pempty : card pempty = 0 := by simp
+theorem card_unit : card unit = 1 := by simp
+theorem card_punit : card punit = 1 := by simp
+theorem card_bool : card bool = 2 := by simp
+theorem card_fin (n : ℕ) : card (fin n) = n := by simp
+theorem card_nat : card ℕ = ⊤ := by simp
+theorem card_int : card ℤ = ⊤ := by simp
+theorem card_rat : card ℚ = ⊤ := by simp
+
+@[simp] theorem card_eq_zero_iff : card α = 0 ↔ is_empty α :=
+by casesI fintype_or_infinite α; simp
+
+@[simp] theorem card_eq_one_iff : card α = 1 ↔ nonempty (unique α) :=
+by { casesI fintype_or_infinite α; simp, apply_instance }
+
+@[simp] theorem card_sum (α β : Type*) : card (α ⊕ β) = card α + card β :=
+by casesI fintype_or_infinite α; casesI fintype_or_infinite β; simp
+
+end enat
+
+/-! ### Cardinality as a nat -/
+
+namespace nat
+
+def card (α : Type*) : ℕ := (enat.card α).to_nat 0
+
+end nat
 
 /-- There is (noncomputably) an equivalence between a finite type `α` and `fin (nat.card α)`. -/
 def finite.equiv_fin (α : Type*) [finite α] : α ≃ fin (nat.card α) :=

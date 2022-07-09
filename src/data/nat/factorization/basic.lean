@@ -419,7 +419,20 @@ begin
   exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb),
 end
 
-lemma factorization_eq_card_pow_dvd {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
+lemma factorization_eq_card_pow_dvd {n p : ℕ} (pp : p.prime) :
+  n.factorization p = ((finset.Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  rw [←nat.add_sub_cancel (n.factorization p) 1, ←card_Ico],
+  apply congr_arg card,
+  ext,
+  rw [finset.mem_filter, mem_Ico, mem_Ico, lt_succ_iff, pp.pow_dvd_iff_le_factorization hn,
+    and.congr_left_iff, iff_self_and],
+  rintro ha1 -,
+  refine lt_of_le_of_lt ha1 (factorization_lt n p hn),
+end
+
+lemma factorization_eq_card_pow_dvd' {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : log p n < b) :
   n.factorization p = ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n)).card :=
 begin
   rw [←nat.add_sub_cancel (n.factorization p) 1, ←card_Ico],

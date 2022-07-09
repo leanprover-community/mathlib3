@@ -402,7 +402,16 @@ begin
   apply set.fintype_sep,
 end
 
+/-- A crude upper bound on `n.factorization p` -/
+lemma factorization_lt (n p : ℕ) (hn : n ≠ 0): n.factorization p < n :=
+begin
+  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
+  rw ←pow_lt_iff_lt_right pp.two_le,
+  apply lt_of_le_of_lt (pow_factorization_le p hn),
+  exact lt_of_lt_of_le (lt_two_pow n) (pow_le_pow_of_le_left (by linarith) pp.two_le n),
+end
 
+/-- An upper bound on `n.factorization p` -/
 lemma factorization_le_of_le_pow {n p b: ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },

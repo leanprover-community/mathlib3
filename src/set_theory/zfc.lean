@@ -699,15 +699,13 @@ by simp [funs, is_func]
 instance map_definable_aux (f : Set.{u} → Set.{u}) [H : definable 1 f] :
   definable 1 (λ y, pair y (f y)) :=
 begin
-  let g : resp 1 := ⟨λ x : pSet, ({{x}, {x, (@definable.resp 1 f H).1 x}} : pSet), begin
-    rw arity.equiv_one_iff,
+  refine definable.eq_mk ⟨λ x : pSet, ({{x}, {x, (@definable.resp 1 f H).1 x}} : pSet), _⟩ _,
+  { rw arity.equiv_one_iff,
     intros x y h,
     rw ←Set.eq at h ⊢,
-    simp [h]
-  end⟩,
-  convert definable.mk g,
-  refine funext (λ x, quotient.induction_on x (λ y, _)),
-  simpa
+    simp [h] },
+  { refine funext (λ x, quotient.induction_on x (λ y, _)),
+    simpa }
 end
 
 /-- Graph of a function: `map f x` is the ZFC function which maps `a ∈ x` to `f a` -/

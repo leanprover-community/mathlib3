@@ -303,7 +303,7 @@ by simpa only [uniform_of_fintype, finset.mem_univ, if_true, uniform_of_finset_a
 
 @[simp] lemma support_uniform_of_fintype (α : Type*) [fintype α] [nonempty α] :
   (uniform_of_fintype α).support = ⊤ :=
-set.ext (λ x, by simpa [mem_support_iff] using fintype.card_ne_zero)
+set.ext (λ x, by simp [mem_support_iff])
 
 lemma mem_support_uniform_of_fintype (a : α) : a ∈ (uniform_of_fintype α).support := by simp
 

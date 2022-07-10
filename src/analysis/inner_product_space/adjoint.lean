@@ -145,6 +145,10 @@ begin
   exact ext_inner_right 𝕜 (λ y, by simp only [adjoint_inner_left, h x y])
 end
 
+lemma is_self_adjoint_iff_eq_adjoint (A : E →L[𝕜] E) :
+  is_self_adjoint (A : E →ₗ[𝕜] E) ↔ A = A.adjoint :=
+by simp_rw [is_self_adjoint, coe_coe, ← eq_adjoint_iff]
+
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩

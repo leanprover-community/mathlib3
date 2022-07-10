@@ -35,8 +35,8 @@ import linear_algebra.trace
 Foobars, barfoos
 -/
 
-open linear_map filter submodule set
-open_locale topological_space classical big_operators
+open linear_map filter submodule set inner_product_space is_R_or_C
+open_locale topological_space classical big_operators ennreal nnreal inner_product
 
 abbreviation findim_subspace (R E : Type*) [division_ring R] [add_comm_group E] [module R E] :=
 {U : submodule R E // finite_dimensional R U}
@@ -50,6 +50,8 @@ namespace continuous_linear_map
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
+
+section trace_along
 
 noncomputable def trace_along (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] :
   (E →L[𝕜] E) →ₗ[𝕜] 𝕜 :=
@@ -100,5 +102,58 @@ begin
   --  he.comp _ subtype.coe_injective,
   sorry
 end
+
+end trace_along
+
+section positive
+
+def is_positive (T : E →L[𝕜] E) : Prop :=
+  is_self_adjoint (T : E →ₗ[𝕜] E) ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
+
+lemma is_positive.add [complete_space E] {T S : E →L[𝕜] E} (hT : T.is_positive)
+  (hS : S.is_positive) : (T + S).is_positive :=
+begin
+  rw [is_positive, is_self_adjoint_iff_eq_adjoint] at *,
+  split,
+  { rw [map_add, ← hT.1, ← hS.1] },
+  { intro x,
+    rw [re_apply_inner_self, add_apply, inner_add_left, map_add],
+    exact add_nonneg (hT.2 x) (hS.2 x) }
+end
+
+lemma is_positive.trace_along_eq_re [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+  (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] : trace_along U T = re (trace_along U T) :=
+begin
+  let e : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
+    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
+    (std_orthonormal_basis 𝕜 U).span_eq,
+  rw [trace_along_eq_of_orthonormal_basis _ e, _root_.map_sum, of_real_sum],
+  congr,
+  ext i,
+  rw [← coe_coe, ← hT.1],
+  exact (hT.1.coe_re_apply_inner_self_apply (e i)).symm
+end
+
+lemma is_positive.trace_along_nonneg [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+  (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] : 0 ≤ re (trace_along U T) :=
+begin
+  let e : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
+    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
+    (std_orthonormal_basis 𝕜 U).span_eq,
+  rw [trace_along_eq_of_orthonormal_basis _ e, _root_.map_sum],
+  refine finset.sum_nonneg (λ i _, _),
+  rw [← coe_coe, ← hT.1],
+  exact hT.2 (e i)
+end
+
+noncomputable def is_positive.trace_along_nnreal [complete_space E] (U : submodule 𝕜 E)
+  [finite_dimensional 𝕜 U] {T : E →L[𝕜] E} (hT : T.is_positive) : ℝ≥0 :=
+⟨re $ trace_along U T, hT.trace_along_nonneg U⟩
+
+noncomputable def is_positive.trace [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive) :
+  ℝ≥0∞ :=
+⨆ (U : findim_subspace 𝕜 E), hT.trace_along_nnreal (U : submodule 𝕜 E)
+
+end positive
 
 end continuous_linear_map

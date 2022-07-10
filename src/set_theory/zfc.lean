@@ -704,7 +704,7 @@ begin
     intros x y h,
     rw ←Set.eq at h ⊢,
     simp [h] },
-  { refine funext (λ x, quotient.induction_on x (λ y, _)),
+  { refine funext (λ x, quotient.induction_on x $ λ y, _),
     simpa }
 end
 

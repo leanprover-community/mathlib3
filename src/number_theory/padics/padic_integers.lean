@@ -321,7 +321,7 @@ begin
   { exact_mod_cast hp_prime.1.pos }
 end
 
-lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℝ) ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℚ) ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := @exists_pow_neg_lt p _ ε (by exact_mod_cast hε),
   use k,
@@ -336,10 +336,9 @@ suffices ∥(k : ℚ_[p])∥ < 1 ↔ (p : ℤ) ∣ k, by rwa norm_int_cast_eq_pa
 padic_norm_e.norm_int_lt_one_iff_dvd k
 
 lemma norm_int_le_pow_iff_dvd {k : ℤ} {n : ℕ} :
-  ∥(k : ℤ_[p])∥ ≤ (p : ℤ) ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k :=
-suffices ∥(k : ℚ_[p])∥ ≤ (p : ℤ) ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k,
-by simpa [norm_int_cast_eq_padic_norm],
-padic_norm_e.norm_int_le_pow_iff_dvd _ _
+  ∥(k : ℤ_[p])∥ ≤ p ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k :=
+suffices ∥(k : ℚ_[p])∥ ≤ p ^ (-n : ℤ) ↔ ↑(p ^ n) ∣ k,
+by simpa [norm_int_cast_eq_padic_norm], padic_norm_e.norm_int_le_pow_iff_dvd _ _
 
 /-! ### Valuation on `ℤ_[p]` -/
 

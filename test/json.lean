@@ -18,6 +18,26 @@ run_cmd do
   x ← of_json (my_type tt) j,
   guard (x = ⟨37, 2, tt, rfl⟩)
 
+run_cmd do
+  some j ← pure (json.parse "{\"x\":37,\"f\":2,\"y\":true,\"z\":true}"),
+  tactic.success_if_fail_with_msg (of_json (my_type tt) j) "unexpected fields [z]"
+
+run_cmd do
+  some j ← pure (json.parse "{\"x\":37}"),
+  tactic.success_if_fail_with_msg (of_json (my_type tt) j) "field f is required"
+
+run_cmd do
+  let j := json.object [("x", to_json 37), ("x", to_json 37)],
+  tactic.success_if_fail_with_msg (of_json (my_type tt) j) "duplicate x field"
+
+run_cmd do
+  let j := json.null,
+  tactic.success_if_fail_with_msg (of_json (my_type tt) j) "object expected, got null"
+
+run_cmd do
+  some j ← pure (json.parse "{\"x\":37,\"f\":2,\"y\":false}"),
+  tactic.success_if_fail_with_msg (of_json (my_type tt) j) "condition does not hold"
+
 -- this probably needs https://github.com/leanprover-community/lean/pull/739
 /-
 @[derive [decidable_eq, non_null_json_serializable]]
@@ -51,3 +71,8 @@ run_cmd do
 run_cmd do
   some j ← pure (json.parse "{\"x\":1,\"z\":3}"),
   of_json has_default j
+
+run_cmd do
+  some j ← pure (json.parse "{\"y\":2}"),
+  v ← of_json has_default j,
+  guard (v = {y := 2})

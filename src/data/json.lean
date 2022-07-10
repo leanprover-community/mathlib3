@@ -203,8 +203,7 @@ meta def of_json_helper (struct_name : name) (t : expr) :
   -- allow this partial constructor if `to_expr` allows it
   let struct := pexpr.mk_structure_instance
     ⟨some struct_name, vars.map prod.fst, vars.map prod.snd, []⟩,
-  let p := ``(pure %%struct : exceptional %%t),
-  to_expr p
+  to_expr ``(pure %%struct : exceptional %%t)
 | vars ((fname, some fj) :: js) := do
   -- data fields
   u ← mk_meta_univ,
@@ -213,7 +212,7 @@ meta def of_json_helper (struct_name : name) (t : expr) :
   let new_vars := vars.concat (fname, to_pexpr f_binder),
   with_field ← of_json_helper new_vars js >>= tactic.lambdas [f_binder],
   without_field ← of_json_helper vars js <|>
-    to_expr ``(exception $ λ o, format!"Field {%%`(fname)} is required" : exceptional %%t),
+    to_expr ``(exception $ λ o, format!"field {%%`(fname)} is required" : exceptional %%t),
   to_expr ``(option.mmap (of_json _) %%fj
          >>= option.elim %%without_field %%with_field : exceptional %%t)
 | vars ((fname, none) :: js) :=
@@ -221,7 +220,7 @@ meta def of_json_helper (struct_name : name) (t : expr) :
   of_json_helper vars js <|> do
   { -- otherwise, use decidability
     u ← mk_meta_univ,
-    ft : expr ← mk_meta_var (expr.sort u),
+    ft ← mk_meta_var (expr.sort u),
     f_binder ← mk_local' fname binder_info.default ft,
     let new_vars := vars.concat (fname, to_pexpr f_binder),
     with_field ← of_json_helper new_vars js >>= tactic.lambdas [f_binder],

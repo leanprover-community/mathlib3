@@ -196,7 +196,7 @@ meta def poly.to_pexpr : list expr → poly → tactic pexpr
 | m (poly.pow p n) :=
   do
     p_pexpr ← poly.to_pexpr m p,
-    return ``(%%p_pexpr ^ %%n)
+    return ``(%%p_pexpr ^ %%n.to_pexpr)
 
 
 /-!

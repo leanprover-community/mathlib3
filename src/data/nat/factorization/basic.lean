@@ -404,11 +404,8 @@ lemma set_of_pow_dvd_eq_Icc_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = set.Icc 1 (n.factorization p) :=
 by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization hn] }
 
-/-- The set of positive powers of prime `p` that divide non-zero `n` is finite. -/
-lemma set_of_pow_dvd.finite {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n}.finite :=
-by { rw set_of_pow_dvd_eq_Icc_factorization pp hn, apply set.finite_of_fintype }
-
+/-- The set of positive powers of prime `p` that divide `n` is exactly the set of
+positive natural numbers up to `n.factorization p`. -/
 lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp: prime p) :
   Icc 1 ((n.factorization) p) = (Ico 1 n).filter (λ (i : ℕ), p ^ i ∣ n) :=
 begin

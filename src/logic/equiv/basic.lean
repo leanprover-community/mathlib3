@@ -386,21 +386,27 @@ protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
+/-- Combine two equivalences using `pprod` in the domain and `prod` in the codomain. -/
+@[simps apply symm_apply]
+def pprod_prod {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : pprod α₁ β₁ ≃ α₂ × β₂ :=
+{ to_fun := λ x, (ea x.1, eb x.2),
+  inv_fun := λ x, ⟨ea.symm x.1, eb.symm x.2⟩,
+  left_inv := λ ⟨x, y⟩, by simp,
+  right_inv := λ ⟨x, y⟩, by simp }
+
+/-- Combine two equivalences using `pprod` in the codomain and `prod` in the domain. -/
+@[simps apply symm_apply]
+def prod_pprod {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ × β₁ ≃ pprod α₂ β₂ :=
+(ea.symm.pprod_prod eb.symm).symm
+
 /-- `pprod α β` is equivalent to `α × β` -/
 @[simps apply symm_apply]
-def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
-{ to_fun := λ x, (x.1, x.2),
-  inv_fun := λ x, ⟨x.1, x.2⟩,
-  left_inv := λ ⟨x, y⟩, rfl,
-  right_inv := λ ⟨x, y⟩, rfl }
+def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β := (equiv.refl α).pprod_prod (equiv.refl β)
 
 /-- `pprod α β` is equivalent to `plift α × plift β` -/
 @[simps apply symm_apply]
 def pprod_equiv_prod_plift {α β : Sort*} : pprod α β ≃ plift α × plift β :=
-{ to_fun := λ x, (plift.up x.1, plift.up x.2),
-  inv_fun := λ x, ⟨x.1.down, x.2.down⟩,
-  left_inv := λ ⟨x, y⟩, rfl,
-  right_inv := λ ⟨⟨x⟩, ⟨y⟩⟩, rfl }
+equiv.plift.symm.pprod_prod equiv.plift.symm
 
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
@@ -631,12 +637,20 @@ end
 
 section
 open sum
+
+/-- Combine two `equiv`s using `psum` in the domain and `sum` in the codomain. -/
+def psum_sum {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : psum α₁ β₁ ≃ α₂ ⊕ β₂ :=
+{ to_fun := λ s, psum.cases_on s (inl ∘ ea) (inr ∘ eb),
+  inv_fun := sum.elim (psum.inl ∘ ea.symm) (psum.inr ∘ eb.symm),
+  left_inv := by rintro (x|x); simp,
+  right_inv := by rintro (x|x); dsimp; simp }
+
+/-- Combine two `equiv`s using `sum` in the domain and `psum` in the codomain. -/
+def sum_psum {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ psum α₂ β₂ :=
+(ea.symm.psum_sum eb.symm).symm
+
 /-- `psum` is equivalent to `sum`. -/
-def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β :=
-⟨λ s, psum.cases_on s inl inr,
- λ s, sum.cases_on s psum.inl psum.inr,
- λ s, by cases s; refl,
- λ s, by cases s; refl⟩
+def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β := (equiv.refl α).psum_sum (equiv.refl β)
 
 /-- If `α ≃ α'` and `β ≃ β'`, then `α ⊕ β ≃ α' ⊕ β'`. -/
 @[simps apply]
@@ -1289,14 +1303,11 @@ def sigma_nat_succ (f : ℕ → Type u) :
   by { rintro ⟨(n | n), x⟩; refl }, by { rintro (x | ⟨n, x⟩); refl }⟩
 
 /-- The product `bool × α` is equivalent to `α ⊕ α`. -/
-def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
-calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
-      ...     ≃ (unit × α) ⊕ (unit × α) : sum_prod_distrib _ _ _
-      ...     ≃ α ⊕ α                   : sum_congr (punit_prod _) (punit_prod _)
-
-@[simp] lemma bool_prod_equiv_sum_apply {α : Type u} (x : bool × α) :
-  bool_prod_equiv_sum α x = cond x.1 (inr x.2) (inl x.2) :=
-by simp [bool_prod_equiv_sum]
+@[simps] def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
+{ to_fun := λ p, cond p.1 (inr p.2) (inl p.2),
+  inv_fun := sum.elim (prod.mk ff) (prod.mk tt),
+  left_inv := by rintro ⟨(_|_), _⟩; refl,
+  right_inv := by rintro (_|_); refl }
 
 /-- The function type `bool → α` is equivalent to `α × α`. -/
 @[simps] def bool_arrow_equiv_prod (α : Type u) : (bool → α) ≃ α × α :=
@@ -1311,10 +1322,10 @@ section
 open sum nat
 /-- The set of natural numbers is equivalent to `ℕ ⊕ punit`. -/
 def nat_equiv_nat_sum_punit : ℕ ≃ ℕ ⊕ punit.{u+1} :=
-⟨λ n, match n with zero := inr punit.star | succ a := inl a end,
- λ s, match s with inl n := succ n | inr punit.star := zero end,
- λ n, begin cases n, repeat { refl } end,
- λ s, begin cases s with a u, { refl }, {cases u, { refl }} end⟩
+{ to_fun := λ n, nat.cases_on n (inr punit.star) inl,
+  inv_fun := sum.elim nat.succ (λ _, 0),
+  left_inv := λ n, by cases n; refl,
+  right_inv := by rintro (_|_|_); refl }
 
 /-- `ℕ ⊕ punit` is equivalent to `ℕ`. -/
 def nat_sum_punit_equiv_nat : ℕ ⊕ punit.{u+1} ≃ ℕ :=
@@ -1322,7 +1333,10 @@ nat_equiv_nat_sum_punit.symm
 
 /-- The type of integer numbers is equivalent to `ℕ ⊕ ℕ`. -/
 def int_equiv_nat_sum_nat : ℤ ≃ ℕ ⊕ ℕ :=
-by refine ⟨_, _, _, _⟩; intro z; {cases z; [left, right]; assumption} <|> {cases z; refl}
+{ to_fun := λ z, int.cases_on z inl inr,
+  inv_fun := sum.elim coe int.neg_succ_of_nat,
+  left_inv := by rintro (m|n); refl,
+  right_inv := by rintro (m|n); refl }
 
 end
 

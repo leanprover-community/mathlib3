@@ -43,8 +43,11 @@ An equivalence between `bool × ℕ` and `ℕ`, by mapping `(tt, x)` to `2 * x +
 An equivalence between `ℕ ⊕ ℕ` and `ℕ`, by mapping `(sum.inl x)` to `2 * x` and `(sum.inr x)` to
 `2 * x + 1`.
 -/
-@[simp] def nat_sum_nat_equiv_nat : ℕ ⊕ ℕ ≃ ℕ :=
+@[simps symm_apply] def nat_sum_nat_equiv_nat : ℕ ⊕ ℕ ≃ ℕ :=
 (bool_prod_equiv_sum ℕ).symm.trans bool_prod_nat_equiv_nat
+
+@[simp] lemma nat_sum_nat_equiv_nat_apply : ⇑nat_sum_nat_equiv_nat = sum.elim bit0 bit1 :=
+by ext (x|x); refl
 
 /--
 An equivalence between `ℤ` and `ℕ`, through `ℤ ≃ ℕ ⊕ ℕ` and `ℕ ⊕ ℕ ≃ ℕ`.
@@ -63,9 +66,8 @@ calc α × α ≃ ℕ × ℕ : prod_congr e e
 /--
 An equivalence between `ℕ+` and `ℕ`, by mapping `x` in `ℕ+` to `x - 1` in `ℕ`.
 -/
-def pnat_equiv_nat : ℕ+ ≃ ℕ :=
-⟨λ n, pred n.1, succ_pnat,
-  λ ⟨n, h⟩, by { cases n, cases h, simp [succ_pnat, h] }, λ n, by simp [succ_pnat] ⟩
-
+@[simps] def pnat_equiv_nat : ℕ+ ≃ ℕ :=
+⟨pnat.nat_pred, succ_pnat,
+  λ ⟨n, h⟩, by { cases n, cases h, simp [succ_pnat, h] }, λ n, by simp [succ_pnat]⟩
 
 end equiv

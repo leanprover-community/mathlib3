@@ -61,6 +61,9 @@ def arity (α : Type u) : ℕ → Type u
 | 0     := α
 | (n+1) := α → arity n
 
+@[simp] theorem arity_zero (α : Type u) : arity α 0 = α := rfl
+@[simp] theorem arity_succ (α : Type u) (n : ℕ) : arity α n.succ = (α → arity α n) := rfl
+
 namespace arity
 
 /-- Constant `n`-ary function with value `a`. -/
@@ -68,8 +71,11 @@ def const {α : Type u} (a : α) : ∀ n, arity α n
 | 0     := a
 | (n+1) := λ _, const n
 
-instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
-⟨const default _⟩
+@[simp] theorem const_zero {α : Type u} (a : α) : const a 0 = a := rfl
+@[simp] theorem const_succ {α : Type u} (a : α) (n : ℕ) : const a n.succ = λ _, const a n := rfl
+theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) : const a n.succ x = const a n := rfl
+
+instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) := ⟨const default _⟩
 
 end arity
 
@@ -254,35 +260,20 @@ def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
 | 0     a b := equiv a b
 | (n+1) a b := ∀ x y, equiv x y → arity.equiv (a x) (b y)
 
+@[simp] lemma arity.equiv_zero_iff (a b : pSet) : @arity.equiv 0 a b ↔ equiv a b := iff.rfl
+@[simp] lemma arity.equiv_succ_iff {n : ℕ} (a b : arity pSet n.succ) :
+  arity.equiv a b ↔ ∀ x y, equiv x y → arity.equiv (a x) (b y) :=
+iff.rfl
+
 lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (arity.const a n)
 | 0 := equiv.rfl
 | (n+1) := λ x y h, arity.equiv_const _
 
+@[simp] lemma arity.refl_zero (a : pSet) : @arity.equiv 0 a a := equiv.rfl
+
 /-- `resp n` is the collection of n-ary functions on `pSet` that respect
   equivalence, i.e. when the inputs are equivalent the output is as well. -/
 def resp (n) := {x : arity pSet.{u} n // arity.equiv x x}
-
-instance resp.inhabited {n} : inhabited (resp n) :=
-⟨⟨arity.const default _, arity.equiv_const _⟩⟩
-
-/-- The `n`-ary image of a `(n + 1)`-ary function respecting equivalence as a function respecting
-equivalence. -/
-def resp.f {n} (f : resp (n+1)) (x : pSet) : resp n :=
-⟨f.1 x, f.2 _ _ $ equiv.refl x⟩
-
-/-- Function equivalence for functions respecting equivalence. See `pSet.arity.equiv`. -/
-def resp.equiv {n} (a b : resp n) : Prop := arity.equiv a.1 b.1
-
-theorem resp.refl {n} (a : resp n) : resp.equiv a a := a.2
-
-theorem resp.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b → resp.equiv a c
-| 0     a b c hab hcb := hab.euc hcb
-| (n+1) a b c hab hcb := λ x y h,
-  @resp.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
-
-instance resp.setoid {n} : setoid (resp n) :=
-⟨resp.equiv, resp.refl, λ x y h, resp.euc (resp.refl y) h,
-  λ x y z h1 h2, resp.euc h1 $ resp.euc (resp.refl z) h2⟩
 
 end pSet
 
@@ -290,22 +281,74 @@ end pSet
   quotiented by extensional equivalence. -/
 def Set : Type (u+1) := quotient pSet.setoid.{u}
 
-namespace pSet
+namespace Set
 
+/-- Turns a pre-set into a ZFC set. -/
+def mk : pSet → Set := quotient.mk
+
+@[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
+
+theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound h
+
+end Set
+
+namespace pSet
 namespace resp
+open Set
+
+/-- The equivalence between `pSet` and `resp 0`. -/
+@[simps] def of_pSet : pSet ≃ resp 0 :=
+{ to_fun := λ x, ⟨x, arity.refl_zero x⟩,
+  inv_fun := λ x, x.1,
+  left_inv := λ x, rfl,
+  right_inv := λ x, subtype.eta x _ }
+
+/-- The constant function respects equivalences. -/
+def const (a : pSet) (n : ℕ) : resp n := ⟨arity.const a n, arity.equiv_const n⟩
+
+@[simp] theorem coe_const (a : pSet) (n : ℕ) : (const a n).val = arity.const a n := rfl
+
+instance inhabited {n} : inhabited (resp n) := ⟨const default n⟩
+
+/-- The `n`-ary image of a `(n + 1)`-ary function respecting equivalence as a function respecting
+equivalence. -/
+def f {n} (f : resp (n+1)) (x : pSet) : resp n := ⟨f.1 x, f.2 _ _ $ refl x⟩
+
+@[simp] theorem const_succ_f (n : ℕ) (a x : pSet) : (const a n.succ).f x = const a n := rfl
+
+/-- Function equivalence for functions respecting equivalence. See `pSet.arity.equiv`. -/
+def equiv {n} (a b : resp n) : Prop := arity.equiv a.1 b.1
+
+theorem refl {n} (a : resp n) : resp.equiv a a := a.2
+
+theorem euc : Π {n} {a b c : resp n}, equiv a b → equiv c b → equiv a c
+| 0     a b c hab hcb := hab.euc hcb
+| (n+1) a b c hab hcb := λ x y h,
+  @euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
+
+instance setoid {n} : setoid (resp n) :=
+⟨equiv, refl, λ x y h, euc (refl y) h, λ x y z h1 h2, euc h1 $ euc (refl z) h2⟩
 
 /-- Helper function for `pSet.eval`. -/
 def eval_aux : Π {n}, {f : resp n → arity Set.{u} n // ∀ (a b : resp n), resp.equiv a b → f a = f b}
-| 0     := ⟨λ a, ⟦a.1⟧, λ a b h, quotient.sound h⟩
+| 0     := ⟨λ a, Set.mk a.1, λ a b h, quotient.sound h⟩
 | (n+1) := let F : resp (n + 1) → arity Set (n + 1) := λ a, @quotient.lift _ _ pSet.setoid
     (λ x, eval_aux.1 (a.f x)) (λ b c h, eval_aux.2 _ _ (a.2 _ _ h)) in
   ⟨F, λ b c h, funext $ @quotient.ind _ _ (λ q, F b q = F c q) $ λ z,
   eval_aux.2 (resp.f b z) (resp.f c z) (h _ _ (equiv.refl z))⟩
 
 /-- An equivalence-respecting function yields an n-ary ZFC set function. -/
-def eval (n) : resp n → arity Set.{u} n := eval_aux.1
+def eval {n} : resp n → arity Set.{u} n := eval_aux.1
 
-theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
+@[simp] theorem eval_zero (a : resp 0) : eval a = Set.mk a.1 := rfl
+
+@[simp] theorem eval_succ {n : ℕ} (f : resp n.succ) (x : pSet) :
+  eval f (Set.mk x) = eval (f.f x) :=
+rfl
+
+@[simp] theorem eval_const (a : pSet) : ∀ n : ℕ, (const a n).eval = arity.const ⟦a⟧ n
+| 0     := rfl
+| (n+1) := funext $ λ x, quotient.induction_on x (λ y, eval_const _)
 
 end resp
 
@@ -313,11 +356,11 @@ end resp
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
 class inductive definable (n) : arity Set.{u} n → Type (u+1)
-| mk (f) : definable (resp.eval _ f)
+| mk (f) : definable (resp.eval f)
 attribute [instance] definable.mk
 
 /-- The evaluation of a function respecting equivalence is definable, by that same function. -/
-def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval _ f = s), definable n s
+def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval f = s), definable n s
 | ._ rfl := ⟨f⟩
 
 /-- Turns a definable function into a function that respects equivalence. -/
@@ -325,13 +368,13 @@ def definable.resp {n} : Π (s : arity Set.{u} n) [definable n s], resp n
 | ._ ⟨f⟩ := f
 
 theorem definable.eq {n} :
-  Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval _ = s
+  Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval = s
 | ._ ⟨f⟩ := rfl
 
 end pSet
 
 namespace classical
-open pSet
+open pSet Set
 
 /-- All functions are classically definable. -/
 noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
@@ -342,26 +385,17 @@ noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
     refine definable.eq_mk ⟨λ x : pSet, (@definable.resp _ _ (I ⟦x⟧)).1, _⟩ _,
     { dsimp [arity.equiv],
       introsI x y h,
-      rw @quotient.sound pSet _ _ _ h,
-      exact (definable.resp (F ⟦y⟧)).2 },
+      rw Set.sound h,
+      exact (definable.resp (F $ mk y)).2 },
     refine funext (λ q, quotient.induction_on q $ λ x, _),
-    simp_rw [resp.eval_val, resp.f, subtype.val_eq_coe, subtype.coe_eta],
-    exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧),
+    simp_rw [Set.mk_eq, resp.eval_succ, resp.f, subtype.val_eq_coe, subtype.coe_eta],
+    exact @definable.eq _ (F $ mk x) (I $ mk x),
   end
 
 end classical
 
 namespace Set
 open pSet
-
-/-- Turns a pre-set into a ZFC set. -/
-def mk : pSet → Set := quotient.mk
-
-@[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
-
-@[simp] lemma eval_mk {n f x} :
-  (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
-rfl
 
 /-- The membership relation for ZFC sets is inherited from the membership relation for pre-sets. -/
 def mem : Set → Set → Prop :=
@@ -406,7 +440,7 @@ theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
-resp.eval 2 ⟨pSet.insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+@resp.eval 2 ⟨pSet.insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨λ o, match o with
    | some a := let ⟨b, hb⟩ := αβ a in ⟨some b, hb⟩
    | none := ⟨none, uv⟩
@@ -452,7 +486,7 @@ quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩,
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
 protected def sep (p : Set → Prop) : Set → Set :=
-resp.eval 1 ⟨pSet.sep (λ y, p ⟦y⟧), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+@resp.eval 1 ⟨pSet.sep (λ y, p ⟦y⟧), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa ←(@quotient.sound pSet _ _ _ hb)⟩, hb⟩,
    λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa (@quotient.sound pSet _ _ _ ha)⟩, ha⟩⟩⟩
 
@@ -465,7 +499,7 @@ quotient.induction_on₂ x y (λ ⟨α, A⟩ y,
 
 /-- The powerset operation, the collection of subsets of a ZFC set -/
 def powerset : Set → Set :=
-resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+@resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨λ p, ⟨{b | ∃ a, p a ∧ equiv (A a) (B b)},
     λ ⟨a, pa⟩, let ⟨b, ab⟩ := αβ a in ⟨⟨b, a, pa, ab⟩, ab⟩,
     λ ⟨b, a, pa, ab⟩, ⟨⟨a, pa⟩, ab⟩⟩,
@@ -495,7 +529,7 @@ theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : �
 
 /-- The union operator, the collection of elements of elements of a ZFC set -/
 def Union : Set → Set :=
-resp.eval 1 ⟨pSet.Union, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+@resp.eval 1 ⟨pSet.Union, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨Union_lem A B αβ, λ a, exists.elim (Union_lem B A (λ b,
     exists.elim (βα b) (λ c hc, ⟨c, pSet.equiv.symm hc⟩)) a) (λ b hb, ⟨b, pSet.equiv.symm hb⟩)⟩⟩
 
@@ -553,7 +587,7 @@ ne ⟨z, zx, (eq_empty _).2 (λ w wxz, let ⟨wx, wz⟩ := mem_inter.1 wxz in IH
 /-- The image of a (definable) ZFC set function -/
 def image (f : Set → Set) [H : definable 1 f] : Set → Set :=
 let r := @definable.resp 1 f _ in
-resp.eval 1 ⟨image r.1, λ x y e, mem.ext $ λ z,
+@resp.eval 1 ⟨image r.1, λ x y e, mem.ext $ λ z,
   iff.trans (mem_image r.2) $ iff.trans (by exact
    ⟨λ ⟨w, h1, h2⟩, ⟨w, (mem.congr_right e).1 h1, h2⟩,
     λ ⟨w, h1, h2⟩, ⟨w, (mem.congr_right e).2 h1, h2⟩⟩) $

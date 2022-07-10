@@ -10,29 +10,23 @@ import tactic.core
 
 This file provides helpers for serializing primitive types to json.
 
-`@[derive non_null_json_serializable]` will make any structure json serializable.
+`@[derive non_null_json_serializable]` will make any structure json serializable; for instance,
+```lean
+@[derive non_null_json_serializable]
+structure my_struct :=
+(success : bool)
+(verbose : ℕ := 0)
+(extras : option string := none)
+```
+can parse `{"success": true}` as `my_struct.mk true 0 none`, and reserializing give
+`{"success": true, "verbose": 0, "extras": null}`.
 
 ## Main definitions
 
 * `json_serializable`: a typeclass for objects which serialize to json
 * `json_serializable.to_json x`: convert `x` to json
 * `json_serializable.of_json α j`: read `j` in as an `α`
-
-## TODO
-
-It would be great if `auto_param`s and `opt_param`s could be supported for structures like
-```lean
-@[derive non_null_json_serializable]
-structure foo :=
-(x : ℕ := 2)
-(y : fin x.succ := 0)
-```
-which would happily load from the json literal `{}`,
-
-This ought to be possible by using a different invocation of `pexpr.mk_structure_instance` for every
-field that is present.
 -/
-
 
 open exceptional
 
@@ -198,52 +192,65 @@ do
     pure (f, a.mk_app args) },
   pure (I, ctor, projs)
 
-/-- Make a structure of type `t` using a list of possibly absent fields -/
-meta def mk_struct_opt (t : expr) : structure_instance_info → list (name × pexpr) → tactic pexpr
-| struct [] := do
+meta def of_json_helper (struct_name : name) (t : expr) :
+  Π (vars : list (name × pexpr)) (js : list (name × option expr)), tactic expr
+| vars [] := do
   -- allow this partial constructor if `to_expr` allows it
-  let p := ``(pure %%(pexpr.mk_structure_instance struct) : exceptional %%t),
-  to_expr p,
-  pure p
-| s ((name, val) :: xs) := do
-  ft : expr ← mk_mvar,
-  let vname := `mk ++ name,
-  n_binder ← mk_local' vname binder_info.default ft,
-  let with_field_info : structure_instance_info :=
-    ⟨s.struct, name :: s.field_names, to_pexpr n_binder :: s.field_values, s.sources⟩,
-  with_field ← mk_struct_opt with_field_info xs,
-  let with_field : pexpr := expr.lam vname binder_info.default (to_pexpr ft) with_field,
-  without_field ←
-  (λ ts, match mk_struct_opt s xs ts with
-  | r@(interaction_monad.result.success _ s) := r
-  | (interaction_monad.result.exception _ p s) :=
-    interaction_monad.result.success
-      ``(exception $ λ o, let x := %%`(name) in format!"Field {x} is required" : exceptional %%t)
-      ts
-  end : tactic pexpr),
-  pure ``(option.elim %%without_field %%with_field %%val)
+  let struct := pexpr.mk_structure_instance
+    ⟨some struct_name, vars.map prod.fst, vars.map prod.snd, []⟩,
+  let p := ``(pure %%struct : exceptional %%t),
+  to_expr p
+| vars ((fname, some fj) :: js) := do
+  -- data fields
+  u ← mk_meta_univ,
+  ft : expr ← mk_meta_var (expr.sort u),
+  f_binder ← mk_local' fname binder_info.default ft,
+  let new_vars := vars.concat (fname, to_pexpr f_binder),
+  with_field ← of_json_helper new_vars js >>= tactic.lambdas [f_binder],
+  without_field ← of_json_helper vars js <|>
+    to_expr ``(exception $ λ o, format!"Field {%%`(fname)} is required" : exceptional %%t),
+  to_expr ``(option.mmap (of_json _) %%fj
+         >>= option.elim %%without_field %%with_field : exceptional %%t)
+| vars ((fname, none) :: js) :=
+  -- try a default value
+  of_json_helper vars js
+  <|> do {
+    -- otherwise, use decidability
+    u ← mk_meta_univ,
+    ft : expr ← mk_meta_var (expr.sort u),
+    f_binder ← mk_local' fname binder_info.default ft,
+    let new_vars := vars.concat (fname, to_pexpr f_binder),
+    with_field ← of_json_helper new_vars js >>= tactic.lambdas [f_binder],
+    to_expr ``(dite _ %%with_field (λ _, exception $ λ _, format!"condition does not hold")) }
 
-structure has_def :=
-(fst : nat)
-(snd : nat := 2*fst)
-(thd : fin snd.succ := 0 )
+/-- A derive handler to serialize structures by their fields.
 
-#check ({ fst := 1} : has_def)
+For the following structure:
+```lean
+structure has_default : Type :=
+(x : ℕ := 2)
+(y : fin x.succ := 3 * fin.of_nat x)
+(z : ℕ := 3)
+```
+this generates an `of_json` parser along the lines of
 
-run_cmd do
-  to_expr ``({ fst := 1, thd := 0} : has_def),
-  some o ← pure (pexpr.get_structure_instance_info ``({ fst := 1})) | tactic.trace "oh",
-  tactic.trace o.sources
-
-run_cmd do
-  p ← mk_struct_opt `(has_def)
-    {structure_instance_info . struct := some "has_def", sources:=[], field_names := [],
-    field_values := []} [ (`thd, ``(some 1)), (`snd, ``(none)), (`fst, ``(some 1))],
-  e ← to_expr p,
-  tactic.trace e,
-  pure ()
-
-/-- A derive handler to serialize structures by their fields -/
+```lean
+meta def has_default.of_json (j : json) : exceptional (has_default) :=
+do
+  p ← json_serializable.field_starter j,
+  (f_y, p) ← json_serializable.field_get p "y",
+  (f_z, p) ← json_serializable.field_get p "z",
+  f_y.mmap (of_json _) >>= option.elim
+    (f_z.mmap (of_json _) >>= option.elim
+      (pure {has_default.})
+      (λ z, pure {has_default. z := z})
+    )
+    (λ y, f_z.mmap (of_json _) >>= option.elim
+        (pure {has_default.})
+        (λ z, pure {has_default. y := y, z := z})
+    )
+```
+-/
 @[derive_handler, priority 2000] meta def non_null_json_serializable_handler : derive_handler :=
 instance_derive_handler ``non_null_json_serializable $ do
   intros,
@@ -271,7 +278,6 @@ instance_derive_handler ``non_null_json_serializable $ do
   json_fields ← fields.mmap (λ ⟨f, e⟩, do
     t ← infer_type e,
     s ← infer_type t,
-    tactic.trace e,
     expr.sort (level.succ u) ← pure s | pure (f, none),  -- do nothing for prop fields
     refine ``(λ p, json_serializable.field_get p %%`(f.to_string) >>= _),
     tactic.applyc `prod.rec,
@@ -280,28 +286,5 @@ instance_derive_handler ``non_null_json_serializable $ do
     pure (f, some jf)),
   refine ``(λ p, json_serializable.field_terminator p >> _),
   get_local `p >>= tactic.clear,
-  -- parse fields one by one
-  (fields) ← json_fields.mfoldl (λ (fields : list (name × pexpr)) ⟨f, j⟩, do
-    match j with
-    | none := do
-        focus1 (do
-        {refine ``(dite _ _ (λ _, exception $ λ _, format!"condition does not hold")),
-          rotate_right 1 }),
-        v ← tactic.intro (`field ++ f),
-        pure (
-          (f, ``(some %%v)) :: fields)
-    | some j := do
-        focus1 (do
-        { refine ``(option.mmap (of_json _) %%j >>= _), rotate_right 1 }),
-        tactic.clear j,
-        v ← tactic.intro (`field ++ f),
-        pure (
-          (f, to_pexpr v) :: fields)
-    end) ([]),
-  trace_state,
-  p ← mk_struct_opt e (structure_instance_info.mk (some struct_name) [] [] []) fields,
-  refine p
-  -- exact `(pure %%val : exceptional %%e)
-
-
-#check tactic.focus1
+  ctor ← of_json_helper struct_name e [] json_fields,
+  exact ctor

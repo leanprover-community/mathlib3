@@ -106,6 +106,16 @@ theorem trace_conj (g : M →ₗ[R] M) (f : (M →ₗ[R] M)ˣ) :
   trace R M (↑f * g * ↑f⁻¹) = trace R M g :=
 by { rw trace_mul_comm, simp }
 
+theorem trace_eq_sum_of_basis (f : M →ₗ[R] M) :
+  trace R M f = ∑ i, b.coord i (f $ b i) :=
+begin
+  rw [trace_eq_matrix_trace R b, matrix.trace],
+  congr,
+  ext i,
+  rw [matrix.diag, to_matrix_apply],
+  refl
+end
+
 end
 
 section

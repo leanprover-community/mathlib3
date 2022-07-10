@@ -35,7 +35,7 @@ import linear_algebra.trace
 Foobars, barfoos
 -/
 
-open linear_map filter
+open linear_map filter submodule set
 open_locale topological_space classical
 
 abbreviation findim_subspace (R E : Type*) [division_ring R] [add_comm_group E] [module R E] :=
@@ -93,12 +93,19 @@ lemma is_trace_class.has_sum {ι : Type*} {T : E →L[𝕜] E} (hT : T.is_trace_
 has_sum (λ i, ⟪T (e i), e i⟫) T.trace :=
 begin
   let U : finset ι → findim_subspace 𝕜 E := λ s,
-    ⟨submodule.span 𝕜 (s.image e : set E), finite_dimensional.span_finset 𝕜 _⟩,
+    ⟨span 𝕜 (s.image e : set E), finite_dimensional.span_finset 𝕜 _⟩,
   suffices : tendsto (λ s : finset ι, trace_along (U s : submodule 𝕜 E) T) at_top (𝓝 T.trace),
   { rw has_sum,
     convert this,
     ext s,
-    rw [trace_along_apply], }
+    let e'' : basis s 𝕜 _ := basis.span (e.orthonormal.linear_independent.comp (coe : s → ι)
+      subtype.coe_injective),
+    have : (U s : submodule 𝕜 E) = span 𝕜 (set.range $ e ∘ (coe : s → ι)),
+    { dsimp only [U, subtype.coe_mk],
+      rw [finset.coe_image, set.range_comp, subtype.range_coe],
+      refl },
+    let e' : basis s 𝕜 (U s : submodule 𝕜 E) := e''.map (linear_equiv.of_eq _ _ this.symm),
+    rw [trace_along_apply, trace_eq_matrix_trace 𝕜 e'], }
 end
 
 end continuous_linear_map

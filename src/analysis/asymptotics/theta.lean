@@ -77,8 +77,8 @@ h₁.1.trans_is_o h₂
 @[simp] lemma is_Theta_norm_left : (λ x, ∥f' x∥) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
 @[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ∥g' x∥) ↔ f =Θ[l] g' := by simp [is_Theta]
 
-alias is_Theta_norm_left ↔ asymptotics.is_Theta.of_norm_left asymptotics.is_Theta.norm_left
-alias is_Theta_norm_right ↔ asymptotics.is_Theta.of_norm_right asymptotics.is_Theta.norm_right
+alias is_Theta_norm_left ↔ is_Theta.of_norm_left is_Theta.norm_left
+alias is_Theta_norm_right ↔ is_Theta.of_norm_right is_Theta.norm_right
 
 lemma is_Theta_of_norm_eventually_eq (h : (λ x, ∥f x∥) =ᶠ[l] (λ x, ∥g x∥)) : f =Θ[l] g :=
 ⟨is_O.of_bound 1 $ by simpa only [one_mul] using h.le,
@@ -171,28 +171,24 @@ lemma is_Theta_const_smul_left [normed_space 𝕜 E'] {c : 𝕜} (hc : c ≠ 0) 
   (λ x, c • f' x) =Θ[l] g ↔ f' =Θ[l] g :=
 and_congr (is_O_const_smul_left hc) (is_O_const_smul_right hc)
 
-alias is_Theta_const_smul_left ↔ asymptotics.is_Theta.of_const_smul_left
-  asymptotics.is_Theta.const_smul_left
+alias is_Theta_const_smul_left ↔ is_Theta.of_const_smul_left is_Theta.const_smul_left
 
 lemma is_Theta_const_smul_right [normed_space 𝕜 F'] {c : 𝕜} (hc : c ≠ 0) :
   f =Θ[l] (λ x, c • g' x) ↔ f =Θ[l] g' :=
 and_congr (is_O_const_smul_right hc) (is_O_const_smul_left hc)
 
-alias is_Theta_const_smul_right ↔ asymptotics.is_Theta.of_const_smul_right
-  asymptotics.is_Theta.const_smul_right
+alias is_Theta_const_smul_right ↔ is_Theta.of_const_smul_right is_Theta.const_smul_right
 
 lemma is_Theta_const_mul_left {c : 𝕜} {f : α → 𝕜} (hc : c ≠ 0) :
   (λ x, c * f x) =Θ[l] g ↔ f =Θ[l] g :=
 by simpa only [← smul_eq_mul] using is_Theta_const_smul_left hc
 
-alias is_Theta_const_mul_left ↔ asymptotics.is_Theta.of_const_mul_left
-  asymptotics.is_Theta.const_mul_left
+alias is_Theta_const_mul_left ↔ is_Theta.of_const_mul_left is_Theta.const_mul_left
 
 lemma is_Theta_const_mul_right {c : 𝕜} {g : α → 𝕜} (hc : c ≠ 0) :
   f =Θ[l] (λ x, c * g x) ↔ f =Θ[l] g :=
 by simpa only [← smul_eq_mul] using is_Theta_const_smul_right hc
 
-alias is_Theta_const_mul_right ↔ asymptotics.is_Theta.of_const_mul_right
-  asymptotics.is_Theta.const_mul_right
+alias is_Theta_const_mul_right ↔ is_Theta.of_const_mul_right is_Theta.const_mul_right
 
 end asymptotics

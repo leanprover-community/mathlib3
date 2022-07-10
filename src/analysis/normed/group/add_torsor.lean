@@ -48,6 +48,12 @@ lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_torsor.dist_eq_norm' x y
 
+/-- The distance equals the norm of subtracting two points. In this
+lemma, it is necessary to have `V` as an explicit argument; otherwise
+`rw dist_eq_norm_vsub'` sometimes doesn't work. -/
+lemma dist_eq_norm_vsub' (x y : P) : dist x y = ∥y -ᵥ x∥ :=
+(dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
+
 end
 
 @[simp] lemma dist_vadd_cancel_left (v : V) (x y : P) :

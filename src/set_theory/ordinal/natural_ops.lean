@@ -49,12 +49,8 @@ noncomputable theory
 /-! ### Basic casts between `ordinal` and `nat_ordinal` -/
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
-@[irreducible, derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
+@[derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
 def nat_ordinal : Type* := ordinal
-
-section semireducible
-
-local attribute [semireducible] nat_ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
 @[pattern] def ordinal.to_nat_ordinal : ordinal ≃o nat_ordinal := order_iso.refl _
@@ -111,14 +107,8 @@ namespace ordinal
 @[simp] theorem to_nat_ordinal_min (a b : ordinal) :
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
 
-end ordinal
-
-end semireducible
-
 /-! We place the definitions of `nadd` and `nmul` before actually developing their API, as this
 guarantees we only need to open the `natural_ops` locale once. -/
-
-namespace ordinal
 
 /-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
 as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
@@ -276,10 +266,6 @@ end
 
 end ordinal
 
-section semireducible
-
-local attribute [semireducible] nat_ordinal
-
 namespace nat_ordinal
 
 open ordinal
@@ -381,13 +367,7 @@ theorem nadd_left_comm : ∀ a b c, a ♯ (b ♯ c) = b ♯ (a ♯ c) :=
 theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
 @add_right_comm nat_ordinal _
 
-end ordinal
-
-end semireducible
-
 /-! ### Natural multiplication -/
-
-namespace ordinal
 
 variables {a b c d : ordinal.{u}}
 
@@ -590,10 +570,6 @@ using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.rig
 
 end ordinal
 
-section semireducible
-
-local attribute [semireducible] nat_ordinal
-
 open ordinal
 
 instance : has_mul nat_ordinal := ⟨nmul⟩
@@ -627,8 +603,6 @@ theorem nmul_add_one : ∀ a b, a ⨳ (b + 1) = a ⨳ b ♯ a := nmul_succ
 theorem add_one_nmul : ∀ a b, (a + 1) ⨳ b = a ⨳ b ♯ b := succ_nmul
 
 end ordinal
-
-end semireducible
 
 namespace nat_ordinal
 

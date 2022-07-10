@@ -1604,7 +1604,7 @@ section mul_zero_class
 
 variables [mul_zero_class α]
 
-@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
+@[simp, norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
 decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
 by { simp [*, mul_def], refl }
@@ -1781,7 +1781,7 @@ section mul_zero_class
 
 variables [mul_zero_class α]
 
-@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_bot α) = a * b :=
+@[simp, norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_bot α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
 decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
 by { simp [*, mul_def], refl }

@@ -1387,7 +1387,7 @@ end is_primary
 
 section total
 
-variables (ι : Type*) [decidable_eq ι]
+variables (ι : Type*)
 variables {M : Type*} [add_comm_group M] {R : Type*} [comm_ring R] [module R M] (I : ideal R)
 variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
 

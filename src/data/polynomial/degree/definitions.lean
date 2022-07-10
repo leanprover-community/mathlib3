@@ -161,7 +161,8 @@ lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.deg
 with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
-by { rw [degree, ← monomial_zero_left, support_monomial 0 ha], refl }
+by simp only [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
+    with_top.coe_zero]
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
 begin
@@ -871,13 +872,8 @@ theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
 begin
   refine ⟨λ hf m hm, coeff_eq_zero_of_degree_lt (lt_of_lt_of_le hf (with_bot.coe_le_coe.2 hm)), _⟩,
   simp only [degree, finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
-    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ],
-  intros m,
-  cases n,
-  { simp only [finset.max_eq_bot, with_top.coe_zero, nat.with_bot.lt_zero_iff, support_eq_empty],
-    exact ext (λ a, m _ a.zero_le) },
-  { refine ((degree_le_iff_coeff_zero _ _).mpr _).trans_lt (with_bot.coe_lt_coe.mpr n.lt_succ_self),
-    exact λ a ha, m _ (nat.succ_le_of_lt (with_bot.coe_lt_coe.mp ha)) }
+    with_bot.some_eq_coe, with_bot.coe_lt_coe, ← @not_le ℕ, max_eq_sup_coe],
+  exact λ h m, mt (h m),
 end
 
 lemma degree_smul_le (a : R) (p : R[X]) : degree (a • p) ≤ degree p :=

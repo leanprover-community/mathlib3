@@ -841,9 +841,9 @@ begin
   refine ⟨λ h m mn, coeff_eq_zero_of_degree_lt (h.trans_lt mn), λ h, _⟩,
   rcases n with _ | n,
   { refine (degree_eq_bot.mpr (ext (λ (n : ℕ), h _ (with_bot.bot_lt_coe _)))).le },
-  refine finset.max_le _ (λ a ha, _),
+  refine finset.max_le (λ a ha, _),
   contrapose ha,
-  exact not_mem_support_iff.mpr (h _ (with_bot.coe_lt_coe.mpr (not_le.mp ha)))
+  exact not_mem_support_iff.mpr (h _ (not_le.mp ha))
 end
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :

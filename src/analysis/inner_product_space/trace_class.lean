@@ -110,6 +110,18 @@ section positive
 def is_positive (T : E →L[𝕜] E) : Prop :=
   is_self_adjoint (T : E →ₗ[𝕜] E) ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
 
+lemma is_positive_zero : is_positive (0 : E →L[𝕜] E) :=
+begin
+  split,
+  { exact λ x y, (inner_zero_right : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left : ⟪0, y⟫ = 0) },
+  { intro x,
+    change 0 ≤ re ⟪_, _⟫,
+    rw [zero_apply, inner_zero_left, zero_hom_class.map_zero] }
+end
+
+lemma is_positive_id : is_positive (1 : E →L[𝕜] E) :=
+⟨λ x y, rfl, λ x, inner_self_nonneg⟩
+
 lemma is_positive.add [complete_space E] {T S : E →L[𝕜] E} (hT : T.is_positive)
   (hS : S.is_positive) : (T + S).is_positive :=
 begin
@@ -153,6 +165,21 @@ noncomputable def is_positive.trace_along_nnreal [complete_space E] (U : submodu
 noncomputable def is_positive.trace [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive) :
   ℝ≥0∞ :=
 ⨆ (U : findim_subspace 𝕜 E), hT.trace_along_nnreal (U : submodule 𝕜 E)
+
+lemma key {ι : Type*} [complete_space E] (e : hilbert_basis ι 𝕜 E) {T : E →L[𝕜] E}
+  (hT : T.is_positive) : has_sum (λ i : ι, ennreal.of_real (re ⟪e i, T (e i)⟫)) hT.trace :=
+begin
+  rw ennreal.summable.has_sum_iff,
+  refine le_antisymm _ _,
+  { rw ennreal.tsum_eq_supr_sum,
+    refine supr_mono' (λ J, ⟨⟨span 𝕜 (J.image e : set E), infer_instance⟩, _⟩),
+    change _ ≤ (hT.trace_along_nnreal (span 𝕜 (J.image e : set E)) : ℝ≥0∞),
+    rw [is_positive.trace_along_nnreal, ← ennreal.of_real_eq_coe_nnreal,
+        T.trace_along_span_eq_of_orthonormal e.orthonormal J, _root_.map_sum,
+        ennreal.of_real_sum_of_nonneg sorry], -- easy sorry
+    exact le_rfl },
+  { sorry } -- hard part
+end
 
 end positive
 

@@ -237,10 +237,8 @@ lemma Sup_mono_eq_mono_Sup {R S : Type*}
   Sup (f '' A) = f (Sup A) :=
 f_incr.dual.Inf_image_eq_apply_Inf f_cont A hA
 
-lemma limsup_eq_Inf_Sup {ι R : Type*}
-  [semilattice_sup ι] [nonempty ι]
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) :
+lemma limsup_eq_Inf_Sup
+  {ι R : Type*} [semilattice_sup ι] [nonempty ι] [complete_lattice R] (a : ι → R) :
   at_top.limsup a = Inf ((λ i, Sup (a '' (Ici i))) '' univ) :=
 begin
   refine le_antisymm _ _,
@@ -267,12 +265,10 @@ begin
     exact hj k j_le_k, },
 end
 
-lemma liminf_eq_Sup_Inf {ι R : Type*}
-  [semilattice_sup ι] [nonempty ι]
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) :
+lemma liminf_eq_Sup_Inf
+  {ι R : Type*} [semilattice_sup ι] [nonempty ι] [complete_lattice R] (a : ι → R) :
   at_top.liminf a = Sup ((λ i, Inf (a '' (Ici i))) '' univ) :=
-@limsup_eq_Inf_Sup ι (order_dual R) _ _ _ _ _ a
+@limsup_eq_Inf_Sup ι (order_dual R) _ _ _ a
 
 lemma antitone.liminf_comp_eq_apply_limsup_of_continuous
   {ι R : Type*} [semilattice_sup ι] [nonempty ι]

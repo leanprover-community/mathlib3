@@ -239,7 +239,7 @@ lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorizat
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
 /-- A crude upper bound on `n.factorization p` -/
-lemma factorization_lt (n p : ℕ) (hn : n ≠ 0) : n.factorization p < n :=
+lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < n :=
 begin
   by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
   rw ←pow_lt_iff_lt_right pp.two_le,
@@ -426,7 +426,7 @@ begin
   ext x,
   simp only [mem_Icc, finset.mem_filter, mem_Ico, and_assoc, and.congr_right_iff,
     pp.pow_dvd_iff_le_factorization hn, iff_and_self],
-  exact λ H1 H2, lt_of_le_of_lt H2 (factorization_lt n p hn),
+  exact λ H1 H2, lt_of_le_of_lt H2 (factorization_lt p hn),
 end
 
 lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :

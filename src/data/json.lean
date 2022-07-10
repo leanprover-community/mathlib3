@@ -17,6 +17,20 @@ This file provides helpers for serializing primitive types to json.
 * `json_serializable`: a typeclass for objects which serialize to json
 * `json_serializable.to_json x`: convert `x` to json
 * `json_serializable.of_json α j`: read `j` in as an `α`
+
+## TODO
+
+It would be great if `auto_param`s and `opt_param`s could be supported for structures like
+```lean
+@[derive non_null_json_serializable]
+structure foo :=
+(x : ℕ := 2)
+(y : fin x.succ := 0)
+```
+which would happily load from the json literal `{}`,
+
+This ought to be possible by using a different invocation of `pexpr.mk_structure_instance` for every
+field that is present.
 -/
 
 
@@ -163,7 +177,10 @@ end
 meta def json_serializable.field_terminator (l : list (string × json)) : exceptional unit :=
 do [] ← pure l | exception (λ _, format!"unexpected fields {l.map prod.fst}"), pure ()
 
-meta def get_constructor_and_projections (t : expr) : tactic ((name × expr) × list (name × expr)):=
+/-- ``((c_name, c_fun), [(p_name, p_fun), ...]) ← get_constructor_and_projections `(struct n)``
+gets the names and partial invocations of the constructor and projections of a structure -/
+meta def tactic.get_constructor_and_projections (t : expr) :
+  tactic ((name × expr) × list (name × expr)):=
 do
   (const I ls, args) ← pure (get_app_fn_args t),
   env ← get_env,
@@ -175,8 +192,8 @@ do
   ctor_type ← infer_type ctor.2,
   tt ← pure ctor_type.is_pi | pure (ctor, []),
   some fields ← pure (env.structure_fields I) | fail!"Not a structure",
-  projs ← fields.mmap $ λ f, do {
-    d ← get_decl (I ++ f),
+  projs ← fields.mmap $ λ f, do
+  { d ← get_decl (I ++ f),
     let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
     pure (f, a.mk_app args) },
   pure (ctor, projs)
@@ -186,7 +203,7 @@ do
 instance_derive_handler ``non_null_json_serializable $ do
   intros,
   `(non_null_json_serializable %%e) ← target >>= whnf,
-  ((ctor_name, ctor), fields) ← get_constructor_and_projections e,
+  ((ctor_name, ctor), fields) ← tactic.get_constructor_and_projections e,
   refine ``(@non_null_json_serializable.mk %%e ⟨λ x, json.object _,
     λ j, json_serializable.field_starter j >>= _
   ⟩),

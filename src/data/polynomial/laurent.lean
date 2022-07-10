@@ -418,13 +418,15 @@ begin
   exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),
 end
 
-lemma degree_C (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+@[simp] lemma degree_C {a : R} (a0 : a ≠ 0) : (C a).degree = 0 :=
 begin
-  split_ifs with h h,
-  { simp only [h, map_zero, degree_zero] },
-  { rw [← mul_one (C a), ← T_zero],
-    exact degree_C_mul_T 0 a h }
+  rw [← mul_one (C a), ← T_zero],
+  exact degree_C_mul_T 0 a a0
 end
+
+lemma degree_C_ite (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+by split_ifs with h h;
+  simp only [h, map_zero, degree_zero, degree_C, ne.def, not_false_iff]
 
 end exact_degrees
 

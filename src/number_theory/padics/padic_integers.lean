@@ -307,7 +307,7 @@ namespace padic_int
 variables (p : ℕ) [hp_prime : fact p.prime]
 include hp_prime
 
-lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, p ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℤ) ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
@@ -321,7 +321,7 @@ begin
   { exact_mod_cast hp_prime.1.pos }
 end
 
-lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, p ^ -((k : ℕ) : ℤ) < ε :=
+lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℤ) ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := @exists_pow_neg_lt p _ ε (by exact_mod_cast hε),
   use k,
@@ -335,8 +335,10 @@ lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ (p : ℤ) 
 suffices ∥(k : ℚ_[p])∥ < 1 ↔ (p : ℤ) ∣ k, by rwa norm_int_cast_eq_padic_norm,
 padic_norm_e.norm_int_lt_one_iff_dvd k
 
-lemma norm_int_le_pow_iff_dvd {k : ℤ} {n : ℕ} : ∥(k : ℤ_[p])∥ ≤ p ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k :=
-suffices ∥(k : ℚ_[p])∥ ≤ p ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k, by simpa [norm_int_cast_eq_padic_norm],
+lemma norm_int_le_pow_iff_dvd {k : ℤ} {n : ℕ} :
+  ∥(k : ℤ_[p])∥ ≤ (p : ℤ) ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k :=
+suffices ∥(k : ℚ_[p])∥ ≤ (p : ℤ) ^ (-n : ℤ) ↔ (p ^ n : ℤ) ∣ k,
+by simpa [norm_int_cast_eq_padic_norm],
 padic_norm_e.norm_int_le_pow_iff_dvd _ _
 
 /-! ### Valuation on `ℤ_[p]` -/
@@ -344,7 +346,7 @@ padic_norm_e.norm_int_le_pow_iff_dvd _ _
 /-- `padic_int.valuation` lifts the `p`-adic valuation on `ℚ` to `ℤ_[p]`.  -/
 def valuation (x : ℤ_[p]) := padic.valuation (x : ℚ_[p])
 
-lemma norm_eq_pow_val {x : ℤ_[p]} (hx : x ≠ 0) : ∥x∥ = p ^ -x.valuation :=
+lemma norm_eq_pow_val {x : ℤ_[p]} (hx : x ≠ 0) : ∥x∥ = (p : ℤ) ^ -x.valuation :=
 begin
   convert padic.norm_eq_pow_val _,
   contrapose! hx,

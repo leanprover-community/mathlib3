@@ -127,7 +127,7 @@ end
 A lemma that tells us that, in the case where Bertrand's postulate does not hold, the prime
 factorization of the central binomial coefficent only has factors at most `2 * n / 3 + 1`.
 -/
-lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
+lemma central_binom_factorization_small (n : ℕ) (n_large : 2 < n)
   (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
   central_binom n =
   ∏ p in (finset.range (2 * n / 3 + 1)),
@@ -318,7 +318,7 @@ end bertrand
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
-lemma bertrand_eventually (n : nat) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : ℕ) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Assume there is no prime in the range.
   by_contradiction no_prime,
@@ -383,7 +383,7 @@ end
 Bertrand's Postulate: For any positive natural number, there is a prime which is greater than
 it, but no more than twice as large.
 -/
-theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+theorem bertrand (n : ℕ) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
   cases lt_or_le 511 n,

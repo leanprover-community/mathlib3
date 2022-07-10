@@ -23,23 +23,27 @@ variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α}
 
 Firstly, we want to show a real sequence `x` converges if
 (a) `limsup |x| < ∞`,
-(b) For all `a < b : ℚ` we have `sup N, upcrossing a b x N < ∞`.
+(b) For all `a < b : ℚ` we have `sup N, upcrossing_before a b x N < ∞`.
 
 With this, for all `x` satisfying `limsup |λ n, f n x| < ∞` and
-for all `a < b : ℚ`, `sup N, upcrossing a b f N x < ∞`, we have `λ n, f n x` converges.
+for all `a < b : ℚ`, `sup N, upcrossing_before a b f N x < ∞`, we have `λ n, f n x` converges.
 
 Assuming `f` is L¹-bounded, using Fatou's lemma,
 we have `𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
-the upcrossing lemma, `sup N, upcrossing a b f N < ∞ a.e.` implying `f` converges pointwise almost
+the upcrossing_before lemma, `sup N, upcrossing_before a b f N < ∞ a.e.` implying `f` converges pointwise almost
 everywhere.
 
 -/
 
-/-- If a realization of a stochastic process has bounded upcrossings from below `a` to above `b`,
+/-- If a realization of a stochastic process has bounded upcrossing_befores from below `a` to above `b`,
 then that realization does not frequently visit both below `a` and above `b`. -/
-lemma of_bdd_upcrossing (hab : a < b) (hx : ∃ k, ∀ N, upcrossing a b f N x < k) :
+lemma of_bdd_upcrossing_before (hab : a < b) (hx : ∃ k : ℕ, upcrossing a b f x ≤ k) :
   ¬((∃ᶠ n in at_top, f n x < a) ∧ (∃ᶠ n in at_top, b < f n x)) :=
 begin
+  rw upcrossing_bdd_iff at hx,
+  replace hx : ∃ k, ∀ N, upcrossing_before a b f N x < k,
+  { obtain ⟨k, hk⟩ := hx,
+    exact ⟨k + 1, λ N, lt_of_le_of_lt (hk N) k.lt_succ_self⟩ },
   rintro ⟨h₁, h₂⟩,
   rw frequently_at_top at h₁ h₂,
   refine not_not.2 hx _,
@@ -58,21 +62,30 @@ end
 convergent. -/
 lemma tendsto_of_bdd_uncrossing {x : α}
   (hf₁ : ∃ R, at_top.liminf (λ n, |f n x|) < R)
-  (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x < K) :
+  (hf₂ : ∀ a b : ℚ, ∃ k : ℕ, upcrossing a b f x ≤ k) :
   ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
   refine tendsto_of_no_upcrossings rat.dense_range_cast _ _ _,
   { intros a ha b hb hab,
     obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
-    exact of_bdd_upcrossing hab (hf₂ a b) },
+    exact of_bdd_upcrossing_before hab (hf₂ a b) },
   { sorry },
   { sorry }
 end
 
-lemma submartingale.upcrossing_bdd (hf : submartingale f ℱ μ) :
-  ∀ᵐ x ∂μ, ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x < K :=
+lemma submartingale.upcrossing_before_bdd' (hf : submartingale f ℱ μ) :
+  ∀ᵐ x ∂μ, ∃ k : ℕ, upcrossing a b f x ≤ k :=
 begin
-  suffices : ∀ a b : ℚ, ∀ᵐ x ∂μ, ∃ K, ∀ N, upcrossing a b f N x < K,
+  rw ae_iff,
+  by_contra h, push_neg at h,
+  rw [← pos_iff_ne_zero, set.set_of_forall] at h,
+  sorry
+end
+
+lemma submartingale.upcrossing_before_bdd (hf : submartingale f ℱ μ) :
+  ∀ᵐ x ∂μ, ∀ a b : ℚ, ∃ k : ℕ, upcrossing a b f x ≤ k :=
+begin
+  suffices : ∀ a b : ℚ, ∀ᵐ x ∂μ, ∃ k : ℕ, upcrossing a b f x ≤ k,
   { simp_rw ae_iff at this ⊢,
     push_neg at this ⊢,
     rw set.set_of_exists,
@@ -82,10 +95,7 @@ begin
     exact nonpos_iff_eq_zero.1 ((measure_Union_le _).trans
       (((tsum_eq_zero_iff ennreal.summable).2 (λ b, this a b)).le)) },
   rintro a b,
-  rw ae_iff,
-  by_contra h, push_neg at h,
-  rw [← pos_iff_ne_zero, set.set_of_forall] at h,
-  sorry
+  exact hf.upcrossing_before_bdd',
 end
 
 lemma liminf_at_top_ae_bdd_of_snorm_bdd (hbbd : ∃ R, ∀ n, snorm (f n) 1 μ ≤ R) :
@@ -99,7 +109,7 @@ lemma submartingale.exists_ae_tendsto_of_bdd
   (hf : submartingale f ℱ μ) (hbbd : ∃ R, ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
-  filter_upwards [hf.upcrossing_bdd, liminf_at_top_ae_bdd_of_snorm_bdd hbbd] with x h₁ h₂,
+  filter_upwards [hf.upcrossing_before_bdd, liminf_at_top_ae_bdd_of_snorm_bdd hbbd] with x h₁ h₂,
   exact tendsto_of_bdd_uncrossing h₂ h₁,
 end
 

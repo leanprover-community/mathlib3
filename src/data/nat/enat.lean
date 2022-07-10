@@ -85,8 +85,6 @@ instance : add_monoid_with_one enat :=
 lemma some_eq_coe (n : ℕ) : some n = n := rfl
 
 @[simp] lemma coe_inj {x y : ℕ} : (x : enat) = y ↔ x = y := part.some_inj
-@[simp] lemma coe_eq_zero_iff {x : ℕ} : (x : enat) = 0 ↔ x = 0 := coe_inj
-@[simp] lemma coe_eq_one_iff {x : ℕ} : (x : enat) = 1 ↔ x = 1 := coe_inj
 
 @[simp] lemma dom_coe (x : ℕ) : (x : enat).dom := trivial
 
@@ -248,13 +246,6 @@ lemma top_eq_none : (⊤ : enat) = none := rfl
 ne.lt_top (λ h, absurd (congr_arg dom h) $ by simpa only [dom_coe] using true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
-@[simp] lemma top_ne_coe (x : ℕ) : (⊤ : enat) ≠ x := (coe_ne_top x).symm
-
-@[simp] lemma zero_ne_top : (0 : enat) ≠ ⊤ := coe_ne_top 0
-@[simp] lemma top_ne_zero : (⊤ : enat) ≠ 0 := top_ne_coe 0
-
-@[simp] lemma one_ne_top : (1 : enat) ≠ ⊤ := coe_ne_top 1
-@[simp] lemma top_ne_one : (⊤ : enat) ≠ 1 := top_ne_coe 1
 
 lemma not_is_max_coe (x : ℕ) : ¬ is_max (x : enat) :=
 not_is_max_of_lt (coe_lt_top x)

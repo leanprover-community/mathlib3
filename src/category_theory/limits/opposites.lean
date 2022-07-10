@@ -353,7 +353,7 @@ calc (cospan f g).op ≅ 𝟭 _ ⋙ (cospan f g).op : by refl
 def cospan_op {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
   cospan f.op g.op ≅ walking_span_op_equiv.inverse ⋙ (span f g).op :=
 nat_iso.of_components (by { rintro (_|_|_); refl, })
-(by { rintros (_|_|_) (_|_|_) f; cases f; tidy, })
+  (by { rintros (_|_|_) (_|_|_) f; cases f; tidy, })
 
 /-- The canonical isomorphism relating `(span f g).op` and `cospan f.op g.op` -/
 @[simps]

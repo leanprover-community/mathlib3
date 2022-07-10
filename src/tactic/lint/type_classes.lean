@@ -376,11 +376,11 @@ In this case, that hypothesis can be replaced with `casesI nonempty_fintype _` i
 meta def linter.fintype_finite_fun (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    (binders, _) ← get_pi_binders_nondep d.type,
-   let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `fintype,
-   if deceq_binders.length = 0 then return none
+   let fintype_binders := binders.filter $ λ pr, pr.2.type.is_app_of `fintype,
+   if fintype_binders.length = 0 then return none
    else (λ s, some $ "The following `fintype` hypotheses should be replaced with
                       `casesI nonempty_fintype _` in the proof. " ++ s) <$>
-      print_arguments deceq_binders
+      print_arguments fintype_binders
 
 /-- A linter object for `fintype` vs `finite`. -/
 @[linter] meta def linter.fintype_finite : linter :=

@@ -153,9 +153,9 @@ meta instance {α} [non_null_json_serializable α] : json_serializable (option �
 open tactic expr
 
 /-- Flatten a list of (p)exprs into a (p)expr forming a list of type `list t`. -/
-meta def list.to_expr {elab : bool} (t : expr elab) : list (expr elab) → expr elab
-| [] := expr.app (expr.const `list.nil [level.zero]) t
-| (x :: xs) := (((expr.const `list.cons [level.zero]).app t).app x).app xs.to_expr
+meta def list.to_expr {elab : bool} (t : expr elab) (l : level) : list (expr elab) → expr elab
+| [] := expr.app (expr.const `list.nil [l]) t
+| (x :: xs) := (((expr.const `list.cons [l]).app t).app x).app xs.to_expr
 
 /-- Begin parsing fields -/
 meta def json_serializable.field_starter (j : json) : exceptional (list (string × json)) :=
@@ -218,7 +218,7 @@ instance_derive_handler ``non_null_json_serializable $ do
     j ← tactic.mk_app `json_serializable.to_json [x_e],
     pure (some `((%%`(f.to_string), %%j) : string × json))
   ),
-  tactic.exact (projs.reduce_option.to_expr `(string × json)),
+  tactic.exact (projs.reduce_option.to_expr `(string × json) level.zero),
 
   -- the reverse direction
   get_local `j >>= tactic.clear,

@@ -400,17 +400,6 @@ begin
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
-lemma set_of_pow_dvd_eq {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = (finset.Ico 1 n).filter (λ i, p ^ i ∣ n) :=
-begin
-  ext i,
-  simp only [finset.mem_coe, finset.mem_filter, set.mem_set_of_eq, mem_Ico, and.congr_left_iff,
-    ←ne.def, one_le_iff_ne_zero, iff_self_and],
-  rintro h -,
-  rw ←pow_lt_iff_lt_right pp.two_le,
-  exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self pp.one_lt n),
-end
-
 lemma set_of_pow_dvd_eq_Icc_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = set.Icc 1 (n.factorization p) :=
 by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization hn] }
@@ -419,6 +408,17 @@ by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization
 def set_of_pow_dvd.finite {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n}.finite :=
 by { rw set_of_pow_dvd_eq_Icc_factorization pp hn, apply set.finite_of_fintype }
+
+lemma set_of_pow_dvd_to_finset_eq {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  (set_of_pow_dvd.finite pp hn).to_finset = (Ico 1 n).filter (λ i, p ^ i ∣ n) :=
+begin
+  ext i,
+  simp only [set.finite.mem_to_finset, finset.mem_coe, finset.mem_filter, set.mem_set_of_eq,
+    mem_Ico, and.congr_left_iff, ←ne.def, one_le_iff_ne_zero, iff_self_and],
+  rintro h -,
+  rw ←pow_lt_iff_lt_right pp.two_le,
+  exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self pp.one_lt n),
+end
 
 lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
   n.factorization p = ((finset.Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=

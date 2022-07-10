@@ -329,8 +329,15 @@ protected theorem equiv.euc : Π {n} {a b c : resp n}, equiv a b → equiv c b �
 | (n+1) a b c hab hcb := λ x y h,
   @equiv.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ pSet.equiv.refl y)
 
+protected theorem equiv.symm {n} {a b : resp n} : resp.equiv a b → resp.equiv b a :=
+(resp.equiv.refl b).euc
+
+protected theorem equiv.trans {n} {x y z : resp n} (h1 : resp.equiv x y) (h2 : resp.equiv y z) :
+  resp.equiv x z :=
+h1.euc h2.symm
+
 instance setoid {n} : setoid (resp n) :=
-⟨equiv, equiv.refl, λ x y h, equiv.euc (equiv.refl y) h, λ x y z h1 h2, equiv.euc h1 $ equiv.euc (equiv.refl z) h2⟩
+⟨equiv, equiv.refl, λ x y, equiv.symm, λ x y z, equiv.trans⟩
 
 /-- Helper function for `pSet.eval`. -/
 def eval_aux : Π {n}, {f : resp n → arity Set.{u} n // ∀ (a b : resp n), resp.equiv a b → f a = f b}

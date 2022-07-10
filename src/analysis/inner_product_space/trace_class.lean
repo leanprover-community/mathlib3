@@ -84,7 +84,7 @@ begin
       orthogonal_projection_eq_self_iff.mpr (subtype.coe_prop $ e i)]
 end
 
-lemma trace_along_span_eq [complete_space E] {ι : Type*} (T : E →L[𝕜] E) {e : ι → E}
+lemma trace_along_span_eq_of_orthonormal [complete_space E] {ι : Type*} (T : E →L[𝕜] E) {e : ι → E}
   (he : orthonormal 𝕜 e) (s : finset ι) :
   trace_along (span 𝕜 (s.image e : set E)) T = ∑ i in s, ⟪(e i : E), T (e i)⟫ :=
 begin
@@ -118,9 +118,9 @@ lemma trace_spec {T : E →L[𝕜] E} (hT : T.is_trace_class) :
   tendsto (λ U : findim_subspace 𝕜 E, trace_along (U : submodule 𝕜 E) T) at_top (𝓝 $ T.trace) :=
 by {rw trace, split_ifs, exact classical.some_spec hT}
 
-lemma is_trace_class.has_sum {ι : Type*} {T : E →L[𝕜] E} (hT : T.is_trace_class)
+lemma is_trace_class.has_sum [complete_space E] {ι : Type*} {T : E →L[𝕜] E} (hT : T.is_trace_class)
   (e : hilbert_basis ι 𝕜 E) :
-has_sum (λ i, ⟪T (e i), e i⟫) T.trace :=
+has_sum (λ i, ⟪e i, T (e i)⟫) T.trace :=
 begin
   let U : finset ι → findim_subspace 𝕜 E := λ s,
     ⟨span 𝕜 (s.image e : set E), finite_dimensional.span_finset 𝕜 _⟩,
@@ -128,14 +128,9 @@ begin
   { rw has_sum,
     convert this,
     ext s,
-    let e'' : basis s 𝕜 _ := basis.span (e.orthonormal.linear_independent.comp (coe : s → ι)
-      subtype.coe_injective),
-    have : (U s : submodule 𝕜 E) = span 𝕜 (set.range $ e ∘ (coe : s → ι)),
-    { dsimp only [U, subtype.coe_mk],
-      rw [finset.coe_image, set.range_comp, subtype.range_coe],
-      refl },
-    let e' : basis s 𝕜 (U s : submodule 𝕜 E) := e''.map (linear_equiv.of_eq _ _ this.symm),
-    rw [trace_along_apply, trace_eq_matrix_trace 𝕜 e'], }
+    symmetry,
+    exact T.trace_along_span_eq_of_orthonormal e.orthonormal _ },
+  refine (trace_spec hT).comp _,
 end
 
 end continuous_linear_map

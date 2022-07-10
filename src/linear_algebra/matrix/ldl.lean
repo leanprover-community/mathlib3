@@ -1,5 +1,31 @@
+/-
+Copyright (c) 2022 Alexander Bentkamp. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alexander Bentkamp
+-/
 import analysis.inner_product_space.gram_schmidt_ortho
 import linear_algebra.matrix.pos_def
+
+/-! # LDL decomposition
+
+This file proves the LDL-decomposition of matricies: Any positive definite matrix `S` can be
+decomposed as `S = LDLᴴ` where `L` is a lower-triangular matrix and `D` is a diagonal matrix.
+
+## Main definitions
+
+ * `LDL.lower` is the lower triangular matrix `L`.
+ * `LDL.lower_inv` is the inverse of the lower triangular matrix `L`.
+ * `LDL.diag` is the diagonal matrix `D`.
+
+## Main result
+
+* `ldl_decomposition` states that any positive definite matrix can be decomposed as `LDLᴴ`.
+
+## TODO
+
+* Prove that `LDL.lower` is lower triangular from `LDL.lower_inv_triangular`.
+
+-/
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
   {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]

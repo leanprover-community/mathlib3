@@ -21,8 +21,7 @@ bound for large enough `n`. This proves the result holds for large enough `n`, a
 an explicit list of primes is provided which covers the remaining cases.
 
 As in the [Metamath implementation](carneiro2015arithmetic), we rely on some optimizations from
-[Shigenori Tochiori](tochiori_bertrand). In particular we use the fact that `(log x) / x` is
-decreasing for `e ≤ x`.
+[Shigenori Tochiori](tochiori_bertrand). In particular we use the cleaner bound on the central binomial coefficient given in `nat.four_pow_lt_mul_central_binom`.
 
 ## References
 

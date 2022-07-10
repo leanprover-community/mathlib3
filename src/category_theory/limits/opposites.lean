@@ -429,7 +429,7 @@ lemma unop_inr {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone 
 begin
   change ((_ : limits.cocone _).ι.app _) = _,
   apply quiver.hom.op_inj,
-  tidy,
+  dsimp, simp, dsimp, simp,
   apply category.comp_id,
 end
 

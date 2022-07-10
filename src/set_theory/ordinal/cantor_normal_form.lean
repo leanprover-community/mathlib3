@@ -49,7 +49,7 @@ base-`b` expansion of `o`.
 We special-case `CNF 0 o = []`, `CNF b 0 = []`, and `CNF 1 o = [(0, o)]` for `o ≠ 0`.
 
 `CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
-@[pp_nodot] def CNF (b o : ordinal) : list (ordinal × ordinal) :=
+def CNF (b o : ordinal) : list (ordinal × ordinal) :=
 if b0 : b = 0 then [] else
 CNF_rec b0 [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 

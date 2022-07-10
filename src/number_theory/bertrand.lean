@@ -39,7 +39,6 @@ section real
 
 open real
 
-
 /--
 A reified version of the `bertrand.main_inequality` below.
 This is not best possible: it actually holds for 464 ≤ x.
@@ -255,8 +254,7 @@ central_binom n
         end
 ... ≤ (2 * n) ^ (sqrt (2 * n))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
-          p ^ 1) :
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)), p ^ 1) :
       begin
         refine nat.mul_le_mul_left _ _,
         { refine finset.prod_le_prod'' _,
@@ -270,13 +268,11 @@ central_binom n
               exfalso,
               simp at sqrt_two_n_lt_i,
               exact sqrt_two_n_lt_i, }, },
-          { refine nat.factorization_choose_le_one _,
-            exact (@sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i, }, },
+          { exact nat.factorization_choose_le_one ((@sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i), }, },
       end
 ... ≤ (2 * n) ^ (sqrt (2 * n))
         *
-      (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
-          p ^ 1) :
+      (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime, p ^ 1) :
         begin
           refine nat.mul_le_mul_left _ _,
           refine finset.prod_le_prod_of_subset_of_one_le' (finset.filter_subset _ _) _,
@@ -285,13 +281,12 @@ central_binom n
             { ring_nf, exact h, },
             { have i_zero : i = 0, by linarith,
               simp only [i_zero, true_and, succ_pos',
-                          finset.mem_filter, finset.mem_range] at hyp1,
-              exfalso, exact not_prime_zero hyp1, }, }
+                          finset.mem_filter, finset.mem_range, nat.not_prime_zero] at hyp1,
+              exfalso, exact hyp1, }, }
         end
 ... = (2 * n) ^ (sqrt (2 * n))
         *
-      (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
-          p) : by simp only [pow_one]
+      (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime, p) : by simp only [pow_one]
 ... = (2 * n) ^ (sqrt (2 * n))
         *
       (primorial (2 * n / 3)) : by unfold primorial
@@ -365,7 +360,6 @@ begin
           have hn2 : 2 * n < 2 * plist_tl_hd, exact gt_of_ge_of_gt h_hd h,
           exact lt_of_mul_lt_mul_left' hn2, }, }, }, },
 end
-
 
 /--
 Bertrand's Postulate: For any positive natural number, there is a prime which is greater than

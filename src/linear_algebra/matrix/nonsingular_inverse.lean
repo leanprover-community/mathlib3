@@ -149,6 +149,20 @@ def invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A :=
 def invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
 ⟨B, mul_eq_one_comm.mp h, h⟩
 
+noncomputable lemma invertible_transpose [invertible A] : invertible Aᵀ :=
+begin
+  haveI : invertible Aᵀ.det,
+    by simpa using det_invertible_of_invertible A,
+  exact invertible_of_det_invertible Aᵀ
+end
+
+noncomputable lemma invertible_of_invertible_conj_transpose [star_ring α] [invertible Aᴴ] :
+  invertible A :=
+begin
+  rw ←conj_transpose_conj_transpose A,
+  apply_instance
+end
+
 /-- Given a proof that `A.det` has a constructive inverse, lift `A` to `(matrix n n α)ˣ`-/
 def unit_of_det_invertible [invertible A.det] : (matrix n n α)ˣ :=
 @unit_of_invertible _ _ A (invertible_of_det_invertible A)
@@ -283,6 +297,21 @@ nonsing_inv_mul_cancel_right A B (is_unit_det_of_invertible A)
 @[simp] lemma inv_mul_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
   A⁻¹ ⬝ (A ⬝ B) = B :=
 nonsing_inv_mul_cancel_left A B (is_unit_det_of_invertible A)
+
+lemma inv_mul_eq_iff_eq_mul (A B C : matrix n n α) [invertible A] :
+  A⁻¹ ⬝ B = C ↔ B = A ⬝ C :=
+⟨ λ h, calc B = A ⬝ A⁻¹ ⬝ B : by simp only [mul_inv_of_invertible A, matrix.one_mul]
+    ... = A ⬝ C : by rw [matrix.mul_assoc, h],
+  λ h, calc A⁻¹ ⬝ B = A⁻¹ ⬝ A ⬝ C : by rw [matrix.mul_assoc, h]
+    ... = C : by simp only [inv_mul_of_invertible A, matrix.one_mul]⟩
+
+lemma mul_inv_eq_iff_eq_mul (A B C : matrix n n α) [invertible A] :
+  B ⬝ A⁻¹ = C ↔ B = C ⬝ A :=
+⟨ λ h, calc B = B ⬝ A⁻¹ ⬝ A :
+      by simp only [matrix.mul_assoc, inv_mul_of_invertible A, matrix.mul_one]
+    ... = C ⬝ A : by rw [h],
+  λ h, calc B ⬝ A⁻¹ = C ⬝ A ⬝ A⁻¹ : by rw [h]
+    ... = C : by simp only [matrix.mul_assoc, mul_inv_of_invertible A, matrix.mul_one]⟩
 
 lemma nonsing_inv_cancel_or_zero :
   (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=

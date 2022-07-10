@@ -1,64 +1,12 @@
 import analysis.inner_product_space.gram_schmidt_ortho
 import linear_algebra.matrix.pos_def
 
-namespace matrix
-
-open_locale matrix
-open matrix
-
---TODO: move
-variables {m n α : Type*} [fintype n] [decidable_eq n] (A : matrix n n α) [comm_ring α] [star_ring α]
-
-noncomputable lemma invertible_conj_transpose [invertible A] : invertible Aᴴ :=
-by apply_instance
-
-noncomputable lemma invertible_transpose [invertible A] : invertible Aᵀ :=
-begin
-  haveI : invertible Aᵀ.det, {
-    simp,
-    apply det_invertible_of_invertible,
-  },
-  exact invertible_of_det_invertible Aᵀ
-end
-
-noncomputable lemma invertible_of_invertible_conj_transpose [invertible Aᴴ] : invertible A :=
-begin
-  rw ←conj_transpose_conj_transpose A,
-  exact matrix.invertible_conj_transpose Aᴴ
-end
-
-lemma inv_mul_eq_iff_eq_mul (A B C : matrix n n α) [invertible A]  : A⁻¹ ⬝ B = C ↔ B = A ⬝ C :=
-⟨ λ h, calc B = A ⬝ A⁻¹ ⬝ B : by simp only [mul_inv_of_invertible A, matrix.one_mul]
-    ... = A ⬝ C : by rw [matrix.mul_assoc, h],
-  λ h, calc A⁻¹ ⬝ B = A⁻¹ ⬝ A ⬝ C : by rw [matrix.mul_assoc, h]
-    ... = C : by simp only [inv_mul_of_invertible A, matrix.one_mul]⟩
-
-lemma mul_inv_eq_iff_eq_mul (A B C : matrix n n α) [invertible A]  : B ⬝ A⁻¹ = C ↔ B = C ⬝ A :=
-⟨ λ h, calc B = B ⬝ A⁻¹ ⬝ A : by simp only [matrix.mul_assoc, inv_mul_of_invertible A, matrix.mul_one]
-    ... = C ⬝ A : by rw [h],
-  λ h, calc B ⬝ A⁻¹ = C ⬝ A ⬝ A⁻¹ : by rw [h]
-    ... = C : by simp only [matrix.mul_assoc, mul_inv_of_invertible A, matrix.mul_one]⟩
-
-lemma mul_mul_apply (A B C : matrix n n α) (i j : n) : (A ⬝ B ⬝ C) i j = A i ⬝ᵥ (B.mul_vec (Cᵀ j)) :=
-by { rw matrix.mul_assoc, simpa only [mul_apply, dot_product, mul_vec] }
-
-end matrix
-
-
-namespace basis
-open matrix
-
-variables {ι ι' : Type*} {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M] [module R M]
-noncomputable lemma invertible_to_matrix (b : basis ι R M) (b' : basis ι R M) [decidable_eq ι] [fintype ι]  :
-  invertible (b.to_matrix b') :=
-invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
-
-end basis
-
 variables {𝕜 : Type*} [is_R_or_C 𝕜]
   {n : Type*} [linear_order n] [is_well_order n (<)] [locally_finite_order_bot n]
 
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 (n → 𝕜) (pi_Lp.inner_product_space (λ _, 𝕜)).to_has_inner x y
+local notation `⟪`x`, `y`⟫` :=
+  @inner 𝕜 (n → 𝕜) (pi_Lp.inner_product_space (λ _, 𝕜)).to_has_inner x y
+
 open matrix
 open_locale matrix
 variables {S : matrix n n 𝕜} [fintype n] (hS : S.pos_def)

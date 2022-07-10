@@ -234,6 +234,10 @@ lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
   b.to_matrix b' ⬝ b'.to_matrix b = 1 :=
 by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
+lemma basis.invertible_to_matrix [decidable_eq ι] (b b' : basis ι R M) :
+  invertible (b.to_matrix b') :=
+invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
+
 @[simp]
 lemma basis.to_matrix_reindex
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :

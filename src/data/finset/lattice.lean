@@ -830,15 +830,13 @@ finset.induction_on s (λ _ H, by cases H)
       { exact mem_insert_of_mem (ih h) } }
   end)
 
-lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) :
-  ↑a ≤ s.max :=
+lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) : ↑a ≤ s.max :=
 le_sup_of_mem_set ⟨a, as, rfl⟩
 
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
 with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le
 
-lemma max_mono {s t : finset α} (st : s ⊆ t) :
-  s.max ≤ t.max :=
+lemma max_mono {s t : finset α} (st : s ⊆ t) : s.max ≤ t.max :=
 sup_mono st
 
 lemma max_le {M : with_bot α} {s : finset α} (st : ∀ a : α, a ∈ s → (a : with_bot α) ≤ M) :

@@ -105,7 +105,7 @@ f.to_linear_map.map_smul c x
 @[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ f.norm_map x
 
 protected lemma isometry : isometry f :=
-f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
+add_monoid_hom_class.isometry_of_norm _ (norm_map _)
 
 @[simp] lemma is_complete_image_iff {s : set E} : is_complete (f '' s) ↔ is_complete s :=
 is_complete_image_iff f.isometry.uniform_inducing
@@ -132,6 +132,11 @@ protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
 protected lemma antilipschitz : antilipschitz_with 1 f := f.isometry.antilipschitz
 
 @[continuity] protected lemma continuous : continuous f := f.isometry.continuous
+
+instance : continuous_semilinear_map_class (E →ₛₗᵢ[σ₁₂] E₂) σ₁₂ E E₂ :=
+{ map_smulₛₗ := λ f, f.map_smulₛₗ,
+  map_continuous := λ f, f.continuous,
+  ..linear_isometry.add_monoid_hom_class }
 
 lemma ediam_image (s : set E) : emetric.diam (f '' s) = emetric.diam s :=
 f.isometry.ediam_image s

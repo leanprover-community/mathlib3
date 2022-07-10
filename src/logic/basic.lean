@@ -50,8 +50,8 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 
 instance : decidable_eq empty := λa, a.elim
 
-instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
+instance sort.inhabited : inhabited Sort* := ⟨punit⟩
+instance sort.inhabited' : inhabited default := ⟨punit.star⟩
 
 instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
 instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
@@ -933,6 +933,9 @@ section dependent
 variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
   {ε : Π a b c, δ a b c → Sort*}
 
+lemma pi_congr {β' : α → Sort*} (h : ∀ a, β a = β' a) : (Π a, β a) = Π a, β' a :=
+(funext h : β = β') ▸ rfl
+
 lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∀ a b, p a b) ↔ ∀ a b, q a b :=
 forall_congr $ λ a, forall_congr $ h a
@@ -1147,11 +1150,11 @@ by simp only [exists_unique, and_self, forall_eq', exists_eq']
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
 @[simp] theorem exists_eq_right_right {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a = a') ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_eq_right_right' {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a' = a) ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_apply_eq_apply (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩
@@ -1206,6 +1209,11 @@ by simp [@eq_comm _ a']
 
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
 ⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
+
+lemma exists₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∃ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∃ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+by simp only [@exists_comm (κ₁ _), @exists_comm ι₁]
 
 theorem and.exists {p q : Prop} {f : p ∧ q → Prop} : (∃ h, f h) ↔ ∃ hp hq, f ⟨hp, hq⟩ :=
 ⟨λ ⟨h, H⟩, ⟨h.1, h.2, H⟩, λ ⟨hp, hq, H⟩, ⟨⟨hp, hq⟩, H⟩⟩

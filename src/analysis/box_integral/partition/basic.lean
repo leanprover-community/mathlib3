@@ -376,7 +376,7 @@ lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (pairwise_disjoint : set.pairwise (boxes : set (with_bot (box ι))) disjoint)
   (f : box ι → M) :
   ∑ J in (of_with_bot boxes le_of_mem pairwise_disjoint).boxes, f J =
-    ∑ J in boxes, option.elim J 0 f :=
+    ∑ J in boxes, option.elim 0 f J :=
 finset.sum_erase_none _ _
 
 /-- Restrict a prepartition to a box. -/
@@ -550,7 +550,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 lemma distortion_bUnion (π : prepartition I) (πi : Π J, prepartition J) :
   (π.bUnion πi).distortion = π.boxes.sup (λ J, (πi J).distortion) :=

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
 import linear_algebra.matrix.reindex
 import linear_algebra.matrix.to_lin
+import linear_algebra.matrix.nonsingular_inverse
 
 /-!
 # Bases and matrices
@@ -234,9 +235,9 @@ lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
   b.to_matrix b' ⬝ b'.to_matrix b = 1 :=
 by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
-lemma basis.invertible_to_matrix [decidable_eq ι] (b b' : basis ι R M) :
+lemma basis.invertible_to_matrix [decidable_eq ι] [fintype ι] (b b' : basis ι R₂ M₂) :
   invertible (b.to_matrix b') :=
-invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
+matrix.invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
 
 @[simp]
 lemma basis.to_matrix_reindex

@@ -511,7 +511,7 @@ end
 lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) : ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
 by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
 
-lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ (p : ℤ) ∣ x :=
+lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ (p : ℤ_[p]) ∣ x :=
 begin
   have := norm_le_pow_iff_mem_span_pow x 1,
   rw [ideal.mem_span_singleton, pow_one] at this,

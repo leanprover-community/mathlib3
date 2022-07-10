@@ -59,11 +59,11 @@ equiv.ulift.injective.mul_one_class _ rfl $ λ x y, rfl
 instance mul_zero_one_class [mul_zero_one_class α] : mul_zero_one_class (ulift α) :=
 equiv.ulift.injective.mul_zero_one_class _ rfl rfl $ λ x y, rfl
 
-@[to_additive has_vadd]
-instance has_scalar {β : Type*} [has_scalar α β] : has_scalar α (ulift β) :=
+@[to_additive]
+instance has_smul {β : Type*} [has_smul α β] : has_smul α (ulift β) :=
 ⟨λ n x, up (n • x.down)⟩
 
-@[to_additive has_scalar, to_additive_reorder 1]
+@[to_additive has_smul, to_additive_reorder 1]
 instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
 ⟨λ x n, up (x.down ^ n)⟩
 

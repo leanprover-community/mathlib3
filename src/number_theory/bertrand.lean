@@ -131,12 +131,12 @@ factorization of the central binomial coefficent only has factors at most `2 * n
 -/
 lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
   (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
+  central_binom n =
   ∏ p in (finset.range (2 * n / 3 + 1)),
-    p ^ ((central_binom n).factorization p)
-  =
-  ∏ p in (finset.range (2 * n + 1)),
     p ^ ((central_binom n).factorization p) :=
 begin
+  nth_rewrite 0 ←n.central_binom_factorization_prod_pow,
+  symmetry,
   apply finset.prod_subset,
   { rw [finset.range_subset, add_le_add_iff_right],
     apply nat.div_le_of_le_mul,
@@ -182,11 +182,9 @@ lemma central_binom_le_of_no_bertrand_prime (n : ℕ) (n_big : 2 < n)
       * 4 ^ (2 * n / 3) :=
 calc
 central_binom n
-    = ∏ p in (finset.range (2 * n + 1)),
-        p ^ ((central_binom n).factorization p) : n.central_binom_factorization_prod_pow.symm
-... = (∏ p in (finset.range (2 * n / 3 + 1)),
+    = (∏ p in (finset.range (2 * n / 3 + 1)),
           p ^ ((central_binom n).factorization p)) :
-          (central_binom_factorization_small n (by linarith) no_prime).symm
+          (central_binom_factorization_small n (by linarith) no_prime)
 ... = (∏ p in (finset.range (2 * n / 3 + 1)),
           if p ≤ sqrt (2 * n)
           then p ^ ((central_binom n).factorization p)

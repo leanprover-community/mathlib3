@@ -19,12 +19,12 @@ the limit of the parallel pair `f,0`, as well as the dual result.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C] [has_zero_morphisms C]
-variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables {C : Type u₁} [category.{v₁} C] [has_zero_morphisms C]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_morphisms D]
 variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
 
 namespace category_theory.limits
@@ -48,7 +48,7 @@ begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine fork.ext (iso.refl _) _,
-  simp,
+  simp [fork.ι]
 end
 
 /--
@@ -137,7 +137,10 @@ begin
   refine (is_colimit.precompose_hom_equiv _ _).symm.trans (is_colimit.equiv_iso_colimit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine cofork.ext (iso.refl _) _,
-  simp, dsimp, simp,
+  simp only [cofork.π, iso.refl_hom, id_comp, cocones.precompose_obj_ι,
+    nat_trans.comp_app, parallel_pair.ext_hom_app, functor.map_cocone_ι_app,
+    cofork.of_π_ι_app],
+  apply category.comp_id
 end
 
 /--
@@ -194,13 +197,13 @@ is_colimit.cocone_point_unique_up_to_iso
   (colimit.is_colimit _)
 
 @[simp]
-lemma preserves_cokernel.iso_hom :
+lemma preserves_cokernel.iso_inv :
   (preserves_cokernel.iso G f).inv = cokernel_comparison f G :=
 rfl
 
 instance : is_iso (cokernel_comparison f G) :=
 begin
-  rw ← preserves_cokernel.iso_hom,
+  rw ← preserves_cokernel.iso_inv,
   apply_instance
 end
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import algebra.gcd_monoid.finset
-import number_theory.padics.padic_norm
+import number_theory.padics.padic_val
 
 /-!
 # Basic results about setwise gcds on ℕ

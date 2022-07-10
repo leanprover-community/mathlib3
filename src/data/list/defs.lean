@@ -398,6 +398,13 @@ attribute [simp] forall₂.nil
 
 end forall₂
 
+/-- `l.all₂ p` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction, i.e.
+`list.all₂ p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
+@[simp] def all₂ (p : α → Prop) : list α → Prop
+| []        := true
+| (x :: []) := p x
+| (x :: l)  := p x ∧ all₂ l
+
 /-- Auxiliary definition used to define `transpose`.
   `transpose_aux l L` takes each element of `l` and appends it to the start of
   each element of `L`.

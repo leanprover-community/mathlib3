@@ -8,7 +8,7 @@ import group_theory.quotient_group
 import group_theory.solvable
 import group_theory.p_group
 import group_theory.sylow
-import data.nat.factorization
+import data.nat.factorization.basic
 import tactic.tfae
 
 /-!
@@ -195,8 +195,7 @@ begin
   refine monotone_nat_of_le_succ _,
   intros n x hx y,
   rw [mul_assoc, mul_assoc, ← mul_assoc y x⁻¹ y⁻¹],
-  exact mul_mem (upper_central_series G n) hx
-    (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem _ hx) y),
+  exact mul_mem hx (normal.conj_mem (upper_central_series.subgroup.normal G n) x⁻¹ (inv_mem hx) y)
 end
 
 /-- A group `G` is nilpotent iff there exists an ascending central series which reaches `G` in
@@ -303,8 +302,7 @@ begin
     (@subgroup.inv_mem _ _ _),
   rintros y ⟨z, hz, a, ha⟩,
   rw [← ha, mul_assoc, mul_assoc, ← mul_assoc a z⁻¹ a⁻¹],
-  exact mul_mem (lower_central_series G n) hz
-    (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem _ hz) a),
+  exact mul_mem hz (normal.conj_mem (lower_central_series.subgroup.normal n) z⁻¹ (inv_mem hz) a)
 end
 
 /-- The lower central series of a group is a descending central series. -/

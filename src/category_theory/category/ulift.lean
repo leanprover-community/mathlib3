@@ -5,7 +5,7 @@ Authors: Adam Topaz
 -/
 import category_theory.category.basic
 import category_theory.equivalence
-import category_theory.filtered
+import category_theory.eq_to_hom
 
 /-!
 # Basic API for ulift
@@ -74,12 +74,6 @@ def ulift.equivalence : C ≌ (ulift.{u₂} C) :=
   inv_hom_id' := by {ext, change (𝟙 _) ≫ (𝟙 _) = 𝟙 _, simp} },
   functor_unit_iso_comp' := λ X, by {change (𝟙 X) ≫ (𝟙 X) = 𝟙 X, simp} }
 
-instance [is_filtered C] : is_filtered (ulift.{u₂} C) :=
-is_filtered.of_equivalence ulift.equivalence
-
-instance [is_cofiltered C] : is_cofiltered (ulift.{u₂} C) :=
-is_cofiltered.of_equivalence ulift.equivalence
-
 section ulift_hom
 
 /-- `ulift_hom.{w} C` is an alias for `C`, which is endowed with a category instance
@@ -122,12 +116,6 @@ def ulift_hom.equiv : C ≌ ulift_hom C :=
   unit_iso := nat_iso.of_components (λ A, eq_to_iso rfl) (by tidy),
   counit_iso := nat_iso.of_components (λ A, eq_to_iso rfl) (by tidy) }
 
-instance [is_filtered C] : is_filtered (ulift_hom C) :=
-is_filtered.of_equivalence ulift_hom.equiv
-
-instance [is_cofiltered C] : is_cofiltered (ulift_hom C) :=
-is_cofiltered.of_equivalence ulift_hom.equiv
-
 end ulift_hom
 
 /-- `as_small C` is a small category equivalent to `C`.
@@ -144,7 +132,7 @@ end ulift_hom
 def {w v u} as_small (C : Type u) [category.{v} C] := ulift.{max w v} C
 
 instance : small_category (as_small.{w₁} C) :=
-{ hom := λ X Y, ulift.{(max w₁ u₁)} $ X.down ⟶ Y.down,
+{ hom := λ X Y, ulift.{max w₁ u₁} $ X.down ⟶ Y.down,
   id := λ X, ⟨𝟙 _⟩,
   comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
 
@@ -169,12 +157,6 @@ def as_small.equiv : C ≌ as_small C :=
   counit_iso := nat_iso.of_components (λ X, eq_to_iso $ by { ext, refl }) (by tidy) }
 
 instance [inhabited C] : inhabited (as_small C) := ⟨⟨arbitrary _⟩⟩
-
-instance [is_filtered C] : is_filtered (as_small C) :=
-is_filtered.of_equivalence as_small.equiv
-
-instance [is_cofiltered C] : is_cofiltered (as_small C) :=
-is_cofiltered.of_equivalence as_small.equiv
 
 /-- The equivalence between `C` and `ulift_hom (ulift C)`. -/
 def {v' u' v u} ulift_hom_ulift_category.equiv (C : Type u) [category.{v} C] :

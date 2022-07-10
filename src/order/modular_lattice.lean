@@ -52,7 +52,7 @@ lemma inf_sup_assoc_of_le {x : α} (y : α) {z : α} (h : z ≤ x) :
   (x ⊓ y) ⊔ z = x ⊓ (y ⊔ z) :=
 by rw [inf_comm, sup_comm, ← sup_inf_assoc_of_le y h, inf_comm, sup_comm]
 
-instance : is_modular_lattice (order_dual α) :=
+instance : is_modular_lattice αᵒᵈ :=
 ⟨λ x y z xz, le_of_eq (by { rw [inf_comm, sup_comm, eq_comm, inf_comm, sup_comm],
   convert sup_inf_assoc_of_le (order_dual.of_dual y) (order_dual.dual_le.2 xz) })⟩
 
@@ -60,7 +60,7 @@ variables {x y z : α}
 
 theorem is_modular_lattice.sup_inf_sup_assoc :
   (x ⊔ z) ⊓ (y ⊔ z) = ((x ⊔ z) ⊓ y) ⊔ z :=
-@is_modular_lattice.inf_sup_inf_assoc (order_dual α) _ _ _ _ _
+@is_modular_lattice.inf_sup_inf_assoc αᵒᵈ _ _ _ _ _
 
 theorem eq_of_le_of_inf_le_of_sup_le (hxy : x ≤ y) (hinf : y ⊓ z ≤ x ⊓ z) (hsup : y ⊔ z ≤ x ⊔ z) :
   x = y :=
@@ -81,7 +81,7 @@ lt_of_le_of_ne
     (le_of_eq hsup.symm))
 
 theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z) : x ⊓ z < y ⊓ z :=
-@sup_lt_sup_of_lt_of_inf_le_inf (order_dual α) _ _ _ _ _ hxy hinf
+@sup_lt_sup_of_lt_of_inf_le_inf αᵒᵈ _ _ _ _ _ hxy hinf
 
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Artinian, then `M` is Artinian. -/
@@ -119,9 +119,7 @@ theorem well_founded_gt_exact_sequence
   (hf : ∀ a, f₁ (f₂ a) = a ⊓ K)
   (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
   well_founded ((>) : α → α → Prop) :=
-@well_founded_lt_exact_sequence
-  (order_dual α) _ _ (order_dual γ) (order_dual β) _ _
-  h₂ h₁ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
+@well_founded_lt_exact_sequence αᵒᵈ _ _ γᵒᵈ βᵒᵈ _ _ h₂ h₁ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/
 def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a ⊔ b) :=

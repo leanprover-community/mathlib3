@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.big_operators.finprod
-import topology.urysohns_lemma
+import set_theory.ordinal.basic
+import topology.continuous_function.algebra
 import topology.paracompact
 import topology.shrinking_lemma
-import topology.continuous_function.algebra
-import set_theory.ordinal
+import topology.urysohns_lemma
 
 /-!
 # Continuous partition of unity
@@ -167,7 +167,7 @@ instance : has_coe_to_fun (bump_covering ι X s) (λ _, ι → C(X, ℝ)) := ⟨
 protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
 f.locally_finite'
 
-protected lemma point_finite (x : X) : finite {i | f i x ≠ 0} :=
+protected lemma point_finite (x : X) : {i | f i x ≠ 0}.finite :=
 f.locally_finite.point_finite x
 
 lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x

@@ -52,8 +52,6 @@ instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_
 
 namespace lie_subalgebra
 
-open neg_mem_class
-
 instance : set_like (lie_subalgebra R L) L :=
 { coe := λ L', L',
   coe_injective' := λ L' L'' h, by { rcases L' with ⟨⟨⟩⟩, rcases L'' with ⟨⟨⟩⟩, congr' } }
@@ -76,16 +74,16 @@ section
 variables {R₁ : Type*} [semiring R₁]
 
 /-- A Lie subalgebra inherits module structures from `L`. -/
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : module R₁ L' :=
 L'.to_submodule.module'
 
-instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+instance [has_smul R₁ R] [has_smul R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
   [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
   (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
 L'.to_submodule.is_central_scalar
 
-instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
 L'.to_submodule.is_scalar_tower
 
@@ -97,17 +95,11 @@ instance (L' : lie_subalgebra R L) : lie_algebra R L' :=
 
 variables {R L} (L' : lie_subalgebra R L)
 
-@[simp] lemma zero_mem : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
+@[simp] protected lemma zero_mem : (0 : L) ∈ L' := zero_mem L'
+protected lemma add_mem {x y : L} : x ∈ L' → y ∈ L' → (x + y : L) ∈ L' := add_mem
+protected lemma sub_mem {x y : L} : x ∈ L' → y ∈ L' → (x - y : L) ∈ L' := sub_mem
 
 lemma smul_mem (t : R) {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
-
-lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
-(L' : submodule R L).add_mem hx hy
-
-lemma sub_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x - y : L) ∈ L' :=
-(L' : submodule R L).sub_mem hx hy
-
-@[simp] lemma neg_mem_iff {x : L} : -x ∈ L' ↔ x ∈ L' := L'.to_submodule.neg_mem_iff
 
 lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
 
@@ -385,6 +377,13 @@ instance : add_comm_monoid (lie_subalgebra R L) :=
   zero_add  := λ _, bot_sup_eq,
   add_zero  := λ _, sup_bot_eq,
   add_comm  := λ _ _, sup_comm, }
+
+instance : canonically_ordered_add_monoid (lie_subalgebra R L) :=
+{ add_le_add_left := λ a b, sup_le_sup_left,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
+  ..lie_subalgebra.add_comm_monoid,
+  ..lie_subalgebra.complete_lattice }
 
 @[simp] lemma add_eq_sup : K + K' = K ⊔ K' := rfl
 

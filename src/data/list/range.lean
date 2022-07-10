@@ -148,6 +148,24 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+theorem chain'_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain' r (range n.succ) ↔ ∀ m < n, r m m.succ :=
+begin
+  rw range_succ,
+  induction n with n hn,
+  { simp },
+  { rw range_succ,
+    simp only [append_assoc, singleton_append, chain'_append_cons_cons, chain'_singleton, and_true],
+    rw [hn, forall_lt_succ] }
+end
+
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n a : ℕ) :
+  chain r a (range n.succ) ↔ r a 0 ∧ ∀ m < n, r m m.succ :=
+begin
+  rw [range_succ_eq_map, chain_cons, and.congr_right_iff, ←chain'_range_succ, range_succ_eq_map],
+  exact λ _, iff.rfl
+end
+
 lemma range_add (a : ℕ) :
   ∀ b, range (a + b) = range a ++ (range b).map (λ x, a + x)
 | 0 := by rw [add_zero, range_zero, map_nil, append_nil]

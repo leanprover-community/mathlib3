@@ -98,7 +98,7 @@ instance : has_add R[X] := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg R[X] := ⟨neg⟩
 instance {R : Type u} [ring R] : has_sub R[X] := ⟨λ a b, a + -b⟩
 instance : has_mul R[X] := ⟨mul⟩
-instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S R[X] :=
+instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_smul S R[X] :=
 ⟨λ r p, ⟨r • p.to_finsupp⟩⟩
 @[priority 1]  -- to avoid a bug in the `ring` tactic
 instance has_pow : has_pow R[X] ℕ := { pow := λ p n, npow_rec n p }
@@ -182,17 +182,19 @@ by rw [←of_finsupp_one, of_finsupp_inj]
 
 instance : inhabited R[X] := ⟨0⟩
 
+instance : has_nat_cast R[X] := ⟨λ n, polynomial.of_finsupp n⟩
+
 instance : semiring R[X] :=
 function.injective.semiring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
-  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl)
 
 instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
-  has_faithful_scalar S R[X] :=
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_smul S R] :
+  has_faithful_smul S R[X] :=
 { eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S R[X] :=
@@ -203,7 +205,7 @@ instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [di
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_comm] }⟩
 
-instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
+instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
   [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
 
@@ -229,12 +231,6 @@ def to_finsupp_iso : R[X] ≃+* add_monoid_algebra R ℕ :=
   map_add' := to_finsupp_add }
 
 end add_monoid_algebra
-
-/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `Rᵐᵒᵖ[X]` sending each coefficient of a polynomial
-to the corresponding element of the opposite ring. -/
-@[simps]
-def op_ring_equiv : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
-((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 variable {R}
 
@@ -391,7 +387,6 @@ begin
   simp only [X, ←of_finsupp_single, ←of_finsupp_mul, linear_map.coe_mk],
   ext,
   simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
-  congr; ext; congr,
 end
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
@@ -541,11 +536,39 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ n, linear_map.congr_fu
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : R[X]) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
-lemma support_monomial (n) (a : R) (H : a ≠ 0) : (monomial n a).support = singleton n :=
-by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero H]
+section fewnomials
+
+lemma support_monomial (n) {a : R} (H : a ≠ 0) : (monomial n a).support = singleton n :=
+by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero _ H]
 
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
+
+lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
+by rw [←monomial_eq_C_mul_X, support_monomial n h]
+
+lemma support_C_mul_X_pow' (n : ℕ) (c : R) : (C c * X ^ n).support ⊆ singleton n :=
+begin
+  rw ← monomial_eq_C_mul_X,
+  exact support_monomial' n c,
+end
+
+open finset
+
+lemma support_binomial' (k m : ℕ) (x y : R) : (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
+support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow' m y).trans
+  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_singleton_self m)))))
+
+lemma support_trinomial' (k m n : ℕ) (x y z : R) :
+  (C x * X ^ k + C y * X ^ m + C z * X ^ n).support ⊆ {k, m, n} :=
+support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) ((support_C_mul_X_pow' m y).trans
+  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
+  ((support_C_mul_X_pow' n z).trans (singleton_subset_iff.mpr
+  (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
+
+end fewnomials
 
 lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
@@ -561,7 +584,7 @@ calc monomial n a = monomial n (a * 1) : by simp
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : R[X]).support = singleton n :=
 begin
-  convert support_monomial n 1 H,
+  convert support_monomial n H,
   exact X_pow_eq_monomial n,
 end
 
@@ -575,12 +598,18 @@ begin
   rw [← pow_one X, support_X_pow H 1],
 end
 
-lemma monomial_left_inj {R : Type*} [semiring R] {a : R} (ha : a ≠ 0) {i j : ℕ} :
-  (monomial i a) = (monomial j a) ↔ i = j :=
+lemma monomial_left_inj {a : R} (ha : a ≠ 0) {i j : ℕ} : (monomial i a) = (monomial j a) ↔ i = j :=
 by simp_rw [←of_finsupp_single, finsupp.single_left_inj ha]
 
-lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : R[X]) :
-  (n : R[X]) * p = n • p :=
+lemma binomial_eq_binomial {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :
+  C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  simp_rw [←monomial_eq_C_mul_X, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
+  exact finsupp.single_add_single_eq_single_add_single hu hv,
+end
+
+lemma nat_cast_mul (n : ℕ) (p : R[X]) : (n : R[X]) * p = n • p :=
 (nsmul_eq_mul _ _).symm
 
 /-- Summing the values of a function applied to the coefficients of a polynomial -/
@@ -754,17 +783,19 @@ variables [comm_semiring R]
 instance : comm_semiring R[X] :=
 function.injective.comm_semiring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
-  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl)
 
 end comm_semiring
 
 section ring
 variables [ring R]
 
+instance : has_int_cast R[X] := ⟨λ n, of_finsupp n⟩
+
 instance : ring R[X] :=
 function.injective.ring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul to_finsupp_neg to_finsupp_sub
-  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl) (λ _, rfl)
 
 @[simp] lemma coeff_neg (p : R[X]) (n : ℕ) : coeff (-p) n = -coeff p n :=
 by { rcases p, rw [←of_finsupp_neg, coeff, coeff, finsupp.neg_apply] }
@@ -788,7 +819,7 @@ end ring
 instance [comm_ring R] : comm_ring R[X] :=
 function.injective.comm_ring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul to_finsupp_neg to_finsupp_sub
-  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl) (λ _, rfl)
 
 section nonzero_semiring
 

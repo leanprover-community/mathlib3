@@ -110,7 +110,7 @@ begin
   symmetry,
   rw [div_eq_iff, div_mul_eq_mul_div, one_mul, choose_eq_factorial_div_factorial],
   norm_cast,
-  rw cast_dvd_char_zero,
+  rw cast_div_char_zero,
   { apply factorial_mul_factorial_dvd_factorial (mem_range_succ_iff.1 hx), },
   { apply mem_range_succ_iff.1 hx, },
   { rintros h, apply factorial_ne_zero n, rw cast_eq_zero.1 h, },

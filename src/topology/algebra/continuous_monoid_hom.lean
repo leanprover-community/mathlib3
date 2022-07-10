@@ -170,7 +170,7 @@ mk' mul_monoid_hom continuous_mul
 /-- The continuous homomorphism given by inversion. -/
 @[to_additive "The continuous homomorphism given by negation.", simps]
 def inv : continuous_monoid_hom E E :=
-mk' comm_group.inv_monoid_hom continuous_inv
+mk' inv_monoid_hom continuous_inv
 
 variables {A B C D E}
 
@@ -226,7 +226,7 @@ lemma is_closed_embedding [has_continuous_mul B] [t2_space B] :
     obtain ⟨UV, W, hUV, hW, hfUV, hfW, h⟩ := t2_separation hf2.symm,
     have hB := @continuous_mul B _ _ _,
     obtain ⟨U, V, hU, hV, hfU, hfV, h'⟩ := is_open_prod_iff.mp (hUV.preimage hB) (f x) (f y) hfUV,
-    refine ⟨x, y, U, V, W, hU, hV, hW, ((disjoint_iff.mpr h).mono_left _), ⟨hfU, hfV⟩, hfW⟩,
+    refine ⟨x, y, U, V, W, hU, hV, hW, h.mono_left _, ⟨hfU, hfV⟩, hfW⟩,
     rintros _ ⟨x, y, hx : (x, y).1 ∈ U, hy : (x, y).2 ∈ V, rfl⟩,
     exact h' ⟨hx, hy⟩ },
 end⟩⟩

@@ -34,7 +34,7 @@ to monoid objects.
 
 ## References
 
-See https://stacks.math.columbia.edu/tag/0FFL.
+See <https://stacks.math.columbia.edu/tag/0FFL>.
 -/
 
 open category_theory
@@ -130,7 +130,7 @@ end
 /--
 A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms.
 
-See https://stacks.math.columbia.edu/tag/0FFL.
+See <https://stacks.math.columbia.edu/tag/0FFL>.
 -/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=

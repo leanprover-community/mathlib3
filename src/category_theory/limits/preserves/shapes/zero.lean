@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.limits.preserves.shapes.terminal
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
 
 /-!
 # Preservation of zero objects and zero morphisms
@@ -111,13 +111,13 @@ lemma preserves_zero_morphisms_of_map_zero_object (i : F.obj 0 ≅ 0) : preserve
 
 @[priority 100]
 instance preserves_zero_morphisms_of_preserves_initial_object
-  [preserves_colimit (functor.empty.{v₁} C) F] : preserves_zero_morphisms F :=
+  [preserves_colimit (functor.empty.{0} C) F] : preserves_zero_morphisms F :=
 preserves_zero_morphisms_of_map_zero_object $ (F.map_iso has_zero_object.zero_iso_initial).trans $
   (preserves_initial.iso F).trans has_zero_object.zero_iso_initial.symm
 
 @[priority 100]
 instance preserves_zero_morphisms_of_preserves_terminal_object
-  [preserves_limit (functor.empty.{v₁} C) F] : preserves_zero_morphisms F :=
+  [preserves_limit (functor.empty.{0} C) F] : preserves_zero_morphisms F :=
 preserves_zero_morphisms_of_map_zero_object $ (F.map_iso has_zero_object.zero_iso_terminal).trans $
     (preserves_terminal.iso F).trans has_zero_object.zero_iso_terminal.symm
 

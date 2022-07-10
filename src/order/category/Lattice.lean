@@ -60,8 +60,7 @@ instance has_forget_to_PartialOrder : has_forget₂ Lattice PartialOrder :=
   inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
 
 /-- `order_dual` as a functor. -/
-@[simps] def dual : Lattice ⥤ Lattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, lattice_hom.dual }
+@[simps] def dual : Lattice ⥤ Lattice := { obj := λ X, of Xᵒᵈ, map := λ X Y, lattice_hom.dual }
 
 /-- The equivalence between `Lattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Lattice ≌ Lattice :=

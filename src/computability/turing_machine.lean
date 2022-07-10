@@ -71,7 +71,7 @@ def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
-by rintro ⟨i, rfl⟩ ⟨j, rfl⟩; exact ⟨i+j, by simp [list.repeat_add]⟩
+by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
 
 theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
   blank_extends l l₁ → blank_extends l l₂ →
@@ -302,7 +302,7 @@ structure {u v} pointed_map (Γ : Type u) (Γ' : Type v)
 (f : Γ → Γ') (map_pt' : f default = default)
 
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : inhabited (pointed_map Γ Γ') :=
-⟨⟨λ _, default, rfl⟩⟩
+⟨⟨default, rfl⟩⟩
 
 instance {Γ Γ'} [inhabited Γ] [inhabited Γ'] : has_coe_to_fun (pointed_map Γ Γ') (λ _, Γ → Γ') :=
 ⟨pointed_map.f⟩

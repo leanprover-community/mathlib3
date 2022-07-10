@@ -21,8 +21,8 @@ variables (C : Type u) [category.{v} C]
 /-- Equivalence between two empty categories. -/
 def empty_equivalence : discrete.{w} pempty ≌ discrete.{v} pempty :=
 equivalence.mk
-{ obj := pempty.elim, map := λ x, x.elim }
-{ obj := pempty.elim, map := λ x, x.elim }
+{ obj := pempty.elim ∘ discrete.as, map := λ x, x.as.elim }
+{ obj := pempty.elim ∘ discrete.as, map := λ x, x.as.elim }
 (by tidy) (by tidy)
 
 /-- The canonical functor out of the empty category. -/
@@ -31,7 +31,7 @@ def empty : discrete.{w} pempty ⥤ C := discrete.functor pempty.elim
 variable {C}
 /-- Any two functors out of the empty category are isomorphic. -/
 def empty_ext (F G : discrete.{w} pempty ⥤ C) : F ≅ G :=
-discrete.nat_iso (λ x, pempty.elim x)
+discrete.nat_iso (λ x, x.as.elim)
 
 /--
 Any functor out of the empty category is isomorphic to the canonical functor from the empty
@@ -45,7 +45,7 @@ Any two functors out of the empty category are *equal*. You probably want to use
 `empty_ext` instead of this.
 -/
 lemma empty_ext' (F G : discrete.{w} pempty ⥤ C) : F = G :=
-functor.ext (λ x, x.elim) (λ x _ _, x.elim)
+functor.ext (λ x, x.as.elim) (λ x _ _, x.as.elim)
 
 end functor
 

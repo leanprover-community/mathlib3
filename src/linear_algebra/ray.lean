@@ -42,9 +42,9 @@ namespace same_ray
 
 variables {x y z : M}
 
-lemma zero_left (y : M) : same_ray R 0 y := or.inl rfl
+@[simp] lemma zero_left (y : M) : same_ray R 0 y := or.inl rfl
 
-lemma zero_right (x : M) : same_ray R x 0 := or.inr $ or.inl rfl
+@[simp] lemma zero_right (x : M) : same_ray R x 0 := or.inr $ or.inl rfl
 
 @[nontriviality] lemma of_subsingleton [subsingleton M] (x y : M) : same_ray R x y :=
 by { rw [subsingleton.elim x 0], exact zero_left _ }
@@ -58,6 +58,8 @@ begin
   nontriviality R,
   exact or.inr (or.inr $ ⟨1, 1, zero_lt_one, zero_lt_one, rfl⟩)
 end
+
+protected lemma rfl : same_ray R x x := refl _
 
 /-- `same_ray` is symmetric. -/
 @[symm] lemma symm (h : same_ray R x y) : same_ray R y x :=
@@ -472,24 +474,30 @@ end linear_ordered_comm_ring
 namespace same_ray
 
 variables {R : Type*} [linear_ordered_field R]
-variables {M : Type*} [add_comm_group M] [module R M] {v₁ v₂ : M}
+variables {M : Type*} [add_comm_group M] [module R M] {x y v₁ v₂ : M}
+
+lemma exists_pos_left (h : same_ray R x y) (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∃ r : R, 0 < r ∧ r • x = y :=
+let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h.exists_pos hx hy in
+  ⟨r₂⁻¹ * r₁, mul_pos (inv_pos.2 hr₂) hr₁, by rw [mul_smul, h, inv_smul_smul₀ hr₂.ne']⟩
+
+lemma exists_pos_right (h : same_ray R x y) (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∃ r : R, 0 < r ∧ x = r • y :=
+(h.symm.exists_pos_left hy hx).imp $ λ _, and.imp_right eq.symm
 
 /-- If a vector `v₂` is on the same ray as a nonzero vector `v₁`, then it is equal to `c • v₁` for
 some nonnegative `c`. -/
-lemma exists_right_eq_smul (h : same_ray R v₁ v₂) (h₀ : v₁ ≠ 0) :
-  ∃ c : R, 0 ≤ c ∧ v₂ = c • v₁ :=
+lemma exists_nonneg_left (h : same_ray R x y) (hx : x ≠ 0) : ∃ r : R, 0 ≤ r ∧ r • x = y :=
 begin
-  rcases h.resolve_left h₀ with (rfl|⟨r₁, r₂, hr₁, hr₂, H⟩),
-  { exact ⟨0, le_rfl, (zero_smul _ _).symm⟩ },
-  { refine ⟨r₁ / r₂, div_nonneg hr₁.le hr₂.le, _⟩,
-    rwa [div_eq_inv_mul, mul_smul, H, inv_smul_smul₀ hr₂.ne'] }
+  obtain rfl | hy := eq_or_ne y 0,
+  { exact ⟨0, le_rfl, zero_smul _ _⟩ },
+  { exact (h.exists_pos_left hx hy).imp (λ _, and.imp_left le_of_lt) }
 end
 
 /-- If a vector `v₁` is on the same ray as a nonzero vector `v₂`, then it is equal to `c • v₂` for
 some nonnegative `c`. -/
-lemma exists_left_eq_smul (h : same_ray R v₁ v₂) (h₀ : v₂ ≠ 0) :
-  ∃ c : R, 0 ≤ c ∧ v₁ = c • v₂ :=
-h.symm.exists_right_eq_smul h₀
+lemma exists_nonneg_right (h : same_ray R x y) (hy : y ≠ 0) : ∃ r : R, 0 ≤ r ∧ x = r • y :=
+(h.symm.exists_nonneg_left hy).imp $ λ _, and.imp_right eq.symm
 
 /-- If vectors `v₁` and `v₂` are on the same ray, then for some nonnegative `a b`, `a + b = 1`, we
 have `v₁ = a • (v₁ + v₂)` and `v₂ = b • (v₁ + v₂)`. -/

@@ -314,6 +314,13 @@ left_inverse_trunc_to_laurent.injective
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 
+lemma _root_.polynomial.to_laurent_ne_zero (f : R[X])  (f0 : f ≠ 0) :
+  f.to_laurent ≠ 0 :=
+begin
+  refine (map_ne_zero_iff _ _).mpr f0,
+  exact polynomial.to_laurent_injective,
+end
+
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
@@ -355,6 +362,90 @@ begin
   { convert QT _ _,
     simpa using hn }
 end
+
+section support
+
+lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
+by simpa only [← single_eq_C_mul_T] using support_single_subset
+
+@[simp] lemma to_laurent_support (f : R[X]) : f.to_laurent.support = f.support.image coe :=
+begin
+  generalize' hd : f.support = s,
+  revert f,
+  refine finset.induction_on s _ _; clear s,
+  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, finset.image_empty,
+      eq_self_iff_true, implies_true_iff] {contextual := tt} },
+  { intros a s as hf f fs,
+    have : (erase a f).to_laurent.support = finset.image coe s := hf (f.erase a) (by simp only
+      [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
+    rw [← monomial_add_erase f a, finset.image_insert, ← this, map_add,
+      polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
+    { congr,
+      refine support_eq_singleton'.mpr ⟨f.coeff a, _, (single_eq_C_mul_T _ _).symm⟩,
+      refine polynomial.mem_support_iff.mp _,
+      simp only [fs, finset.mem_insert, eq_self_iff_true, true_or] },
+    { rw this,
+      exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
+end
+
+end support
+
+section degrees
+
+/--  The degree of a Laurent polynomial takes values in `with_bot ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of its support of `f`,
+or `⊥`, if `f = 0`. -/
+def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
+
+@[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
+
+section exact_degrees
+
+open_locale classical
+
+lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
+begin
+  rw degree,
+  convert finset.max_singleton,
+  refine support_eq_singleton.mpr _,
+  simp only [← single_eq_C_mul_T, single_eq_same, a0, ne.def, not_false_iff, eq_self_iff_true,
+    and_self],
+end
+
+lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
+begin
+  rw [← one_mul (T n), ← map_one C],
+  exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),
+end
+
+lemma degree_C (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+begin
+  split_ifs with h h,
+  { simp only [h, map_zero, degree_zero] },
+  { rw [← mul_one (C a), ← T_zero],
+    exact degree_C_mul_T 0 a h }
+end
+
+end exact_degrees
+
+section degree_bounds
+
+lemma degree_C_mul_T_le (n : ℤ) (a : R) : (C a * T n).degree ≤ n :=
+begin
+  by_cases a0 : a = 0,
+  { simp only [a0, map_zero, zero_mul, degree_zero, bot_le] },
+  { exact (degree_C_mul_T n a a0).le }
+end
+
+lemma degree_T_le (n : ℤ) : (T n : R[T;T⁻¹]).degree ≤ n :=
+(le_of_eq (by rw [map_one, one_mul])).trans (degree_C_mul_T_le n (1 : R))
+
+lemma degree_C_le (a : R) : (C a).degree ≤ 0 :=
+(le_of_eq (by rw [T_zero, mul_one])).trans (degree_C_mul_T_le 0 a)
+
+end degree_bounds
+
+end degrees
 
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent

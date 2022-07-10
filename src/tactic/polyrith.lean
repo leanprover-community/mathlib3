@@ -33,6 +33,11 @@ It then calls a Python file that uses the SageMath API to compute the coefficien
 coefficients are then sent back to Lean, which parses them into pexprs. The information is then
 given to the `linear_combination` tactic, which completes the process by checking the certificate.
 
+`polyrith` calls an external python script `scripts/polyrith_sage.py`. Because this is not a Lean
+file, changes to this script may not be noticed during Lean compilation if you have already
+generated olean files. If you are modifying this python script, you likely know what you're doing;
+remember to force recompilation of any files that call `polyrith`.
+
 ## References
 
 * See the book `Ideals, Varieties, and Algorithms` by David Cox, John Little, and Donal O'Shea

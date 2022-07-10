@@ -162,8 +162,8 @@ begin
 
   have := prod_cyclotomic_eq_geom_sum hn' ℤ,
   apply_fun eval 1 at this,
-  rw [eval_geom_sum, one_geom_sum, eval_prod, eq_comm,
-      ←finset.prod_sdiff $ range_pow_padic_val_nat_subset_divisors' p, finset.prod_image] at this,
+  rw [eval_geom_sum, one_geom_sum, eval_prod, eq_comm, ←finset.prod_sdiff $
+        @range_pow_padic_val_nat_subset_divisors' p _ _, finset.prod_image] at this,
   simp_rw [eval_one_cyclotomic_prime_pow, finset.prod_const, finset.card_range, mul_comm] at this,
   rw [←finset.prod_sdiff $ show {n} ⊆ _, from _] at this,
   any_goals {apply_instance},

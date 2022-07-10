@@ -497,13 +497,13 @@ def principal_unit_group : subgroup Kˣ :=
       ← valuation.map_mul, mul_sub_one, ← sub_add_sub_cancel],
     exact A.valuation.map_add _ _,
   end,
-  one_mem' := by { simpa using zero_lt_one₀ },
+  one_mem' := by simpa using zero_lt_one₀,
   inv_mem' := begin
     rintros a ha,
-    rwa [set.mem_set_of_eq, ← mul_one (A.valuation (_)), ← A.valuation.map_one_add_of_lt ha,
-      add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, one_mul,
-      ← neg_sub (a : K), valuation.map_neg, ← add_sub_cancel'_right _ (a : K),
-      A.valuation.map_one_add_of_lt ha, add_sub_cancel'],
+    rw set.mem_set_of_eq,
+    conv {to_lhs, rw [← mul_one (A.valuation _), ← A.valuation.map_one_add_of_lt ha]},
+    rwa [add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, one_mul, ← neg_sub,
+      valuation.map_neg],
   end }
 
 lemma mem_principal_unit_group_iff (x : Kˣ) :
@@ -535,7 +535,7 @@ begin
     { rw [add_eq_zero_iff_eq_neg, inv_eq_iff_inv_eq, inv_neg, inv_one] at h_2,
       simpa only [h_2] using B.neg_mem _ B.one_mem },
     { rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1, ← add_sub_cancel x⁻¹,
-      ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at hx ⊢,
+        ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at hx ⊢,
       simpa only [hx] using @h (units.mk0 (x⁻¹ + 1) h_2) } },
   { rintros h x hx,
     by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
@@ -549,15 +549,15 @@ def principal_unit_group_order_embedding :
   map_rel_iff' := λ A B, principal_unit_group_le_principal_unit_group }
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
-λ a h, by {simpa using A.valuation.map_one_add_of_lt h}
+λ a h, by simpa using A.valuation.map_one_add_of_lt h
 
 lemma mem_principal_unit_group_iff_mem_ker {x : A.unit_group} :
   (x : Kˣ) ∈ A.principal_unit_group ↔
   (A.unit_group_mul_equiv) x ∈ (units.map (local_ring.residue A).to_monoid_hom).ker :=
 begin
-  rw [monoid_hom.mem_ker, ring_hom.to_monoid_hom_eq_coe, units.ext_iff],
+  rw [monoid_hom.mem_ker, units.ext_iff],
   dsimp,
-  let π := ideal.quotient.mk (local_ring.maximal_ideal ↥A), change _ ↔ π _ = _,
+  let π := ideal.quotient.mk (local_ring.maximal_ideal A), change _ ↔ π _ = _,
   rw [← π.map_one, ← sub_eq_zero, ← π.map_sub, ideal.quotient.eq_zero_iff_mem,
     valuation_lt_one_iff],
   simpa,
@@ -594,9 +594,8 @@ begin
       ← submodule.quotient.mk'_eq_mk, quotient.out_eq', units.ne_zero] using
       or_iff_not_imp_right.1 (A.valuation_lt_one_or_eq_one _) h },
   choose y hy using this,
-  refine ⟨y,_⟩,
-  rw [local_ring.residue, ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, hy,
-  quotient.out_eq'],
+  refine ⟨y, by rw [local_ring.residue, ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk,
+    hy, quotient.out_eq'] ⟩,
 end
 
 /-- The quotient of the unit group of `A` by the principal unit group of `A` agrees with

@@ -159,12 +159,6 @@ meta def poly_form_of_expr (red : transparency) : list expr → expr → tactic 
 The following section contains code that can convert an a `poly` object into a `pexpr`.
 -/
 
-/--
-A helper tactic that takes in a `ℕ` and a `(expr × ℕ)`. It succeeds if
-the first `ℕ` can be unified with the second one. -/
-@[derive decidable_pred]
-meta def has_val : ℕ → (expr × ℕ) → Prop :=
-λ n p, n = p.2
 
 /--
 This can convert a `poly` into a `pexpr` that would evaluate to a polynomial.

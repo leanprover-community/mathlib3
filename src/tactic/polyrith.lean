@@ -416,9 +416,9 @@ It assumes that `python3` is available on the path.
 -/
 meta def sage_output (arg_list : list string := []) : tactic json :=
 do
-  path ← (λ s, s ++ "..") <$> tactic.get_mathlib_dir,
-  let args := [path ++ "/scripts/polyrith_sage.py"] ++ arg_list,
-  s ← tactic.unsafe_run_io $ io.cmd { cmd := "python3", args := args},
+  path ← get_mathlib_dir,
+  let args := [path ++ "../scripts/polyrith_sage.py"] ++ arg_list,
+  s ← unsafe_run_io $ io.cmd { cmd := "python3", args := args},
   some j ← pure (json.parse s) | fail!"Invalid json: {s}",
   pure j
 

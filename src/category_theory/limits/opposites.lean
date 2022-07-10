@@ -359,15 +359,13 @@ nat_iso.of_components (by { rintro (_|_|_); refl, })
 @[simps]
 def op_span {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
   (span f g).op ≅ walking_span_op_equiv.functor ⋙ cospan f.op g.op :=
-begin
-  calc (span f g).op ≅ 𝟭 _ ⋙ (span f g).op : by refl
-  ... ≅ (walking_span_op_equiv.functor ⋙ walking_span_op_equiv.inverse) ⋙ (span f g).op :
-    iso_whisker_right walking_span_op_equiv.unit_iso _
-  ... ≅ walking_span_op_equiv.functor ⋙ (walking_span_op_equiv.inverse ⋙ (span f g).op) :
-    functor.associator _ _ _
-  ... ≅ walking_span_op_equiv.functor ⋙ cospan f.op g.op :
-    iso_whisker_left _ (cospan_op f g).symm,
-end
+calc (span f g).op ≅ 𝟭 _ ⋙ (span f g).op : by refl
+... ≅ (walking_span_op_equiv.functor ⋙ walking_span_op_equiv.inverse) ⋙ (span f g).op :
+  iso_whisker_right walking_span_op_equiv.unit_iso _
+... ≅ walking_span_op_equiv.functor ⋙ (walking_span_op_equiv.inverse ⋙ (span f g).op) :
+  functor.associator _ _ _
+... ≅ walking_span_op_equiv.functor ⋙ cospan f.op g.op :
+  iso_whisker_left _ (cospan_op f g).symm
 
 namespace pushout_cocone
 

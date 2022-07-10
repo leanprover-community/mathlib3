@@ -113,13 +113,11 @@ begin
           end
   ... ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
-            have one_le_four : 1 ≤ (4 : ℝ) := by norm_num,
             rw mul_le_mul_left,
-            { refine real.rpow_le_rpow_of_exponent_le one_le_four _,
-              { apply trans cast_div_le,
-                { apply le_of_eq,
-                  simp only [cast_bit0, cast_bit1, cast_one, cast_mul], },
-                { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, }, },
+            { refine real.rpow_le_rpow_of_exponent_le (by norm_num) _,
+              convert cast_div_le,
+              simp only [cast_mul, cast_bit0, cast_one],
+              simp only [cast_bit1, cast_one], },
             { exact mul_pos n_pos (real.rpow_pos_of_pos fact2 _), },
           end
   ... ≤ 4 ^ (n : ℝ) : real_main_inequality n_large_real,

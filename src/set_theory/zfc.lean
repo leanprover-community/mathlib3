@@ -682,19 +682,27 @@ def Class := set Set
 
 namespace Class
 
+/-- The preferred way to convert a set of Sets into a Class. -/
+def of_set : set Set ≃ Class := equiv.refl _
+
+/-- The preferred way to state that a set `x` belongs in a class `A`. -/
+def mem_set (x : Set.{u}) (A : Class.{u}) : Prop := A x
+
+@[simp] theorem apply_iff_mem_set {x : Set.{u}} {A : Class.{u}} : A x ↔ mem_set x A := iff.rfl
+
+@[simp] theorem mem_set_of_set {x : Set} {s : set Set} : mem_set x (of_set s) ↔ x ∈ s := iff.rfl
+
 /-- Coerce a ZFC set into a class -/
-def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}
-instance : has_coe Set Class := ⟨of_Set⟩
+instance : has_coe Set Class := ⟨λ x, {y | y ∈ x}⟩
 
 /-- The universal class -/
 def univ : Class := set.univ
 
 /-- Assert that `A` is a ZFC set satisfying `p` -/
-def to_Set (p : Set.{u} → Prop) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ p x
+def to_Set (p : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ mem_set x p
 
 /-- `A ∈ B` if `A` is a ZFC set which is a member of `B` -/
-protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
-instance : has_mem Class Class := ⟨Class.mem⟩
+instance : has_mem Class Class := ⟨λ A B, to_Set B A⟩
 
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
@@ -715,18 +723,18 @@ notation `⋃` := Union
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
 
-@[simp] theorem to_Set_of_Set (p : Set.{u} → Prop) (x : Set.{u}) : to_Set p x ↔ p x :=
+@[simp] theorem to_Set_of_Set (p : Class.{u}) (x : Set.{u}) : to_Set p x ↔ mem_set x p :=
 ⟨λ ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λ px, ⟨x, rfl, px⟩⟩
 
-@[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ A x :=
+@[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ mem_set x A :=
 to_Set_of_Set _ _
 
-@[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
+@[simp] theorem mem_hom_right (x y : Set.{u}) : mem_set x (y : Class.{u}) ↔ x ∈ y := iff.rfl
 
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
-@[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) :
-  (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
+@[simp] theorem sep_hom (p : Class.{u}) (x : Set.{u}) :
+  (↑{y ∈ x | mem_set y p} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λ y, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
@@ -752,9 +760,9 @@ set.ext $ λ z, by { refine iff.trans _ Set.mem_Union.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
 
 /-- The definite description operator, which is `{x}` if `{a | p a} = {x}` and `∅` otherwise. -/
-def iota (p : Set → Prop) : Class := Union {x | ∀ y, p y ↔ y = x}
+def iota (p : Class) : Class := Union {x | ∀ y, mem_set y p ↔ y = x}
 
-theorem iota_val (p : Set → Prop) (x : Set) (H : ∀ y, p y ↔ y = x) : iota p = ↑x :=
+theorem iota_val (p : Class) (x : Set) (H : ∀ y, mem_set y p ↔ y = x) : iota p = ↑x :=
 set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl),
   λ yx, ⟨_, ⟨x, rfl, H⟩, yx⟩⟩
 
@@ -762,12 +770,14 @@ set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h 
   is a set for any set input, but not constructively so, so there is no
   associated `(Set → Prop) → Set` function. -/
 theorem iota_ex (p) : iota.{u} p ∈ univ.{u} :=
-mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, p y ↔ y = x)
+mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, mem_set y p ↔ y = x)
  (λ ⟨x, h⟩, ⟨x, eq.symm $ iota_val p x h⟩)
  (λ hn, ⟨∅, set.ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/
-def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.pair x y)) A)
+def fval (F A : Class.{u}) : Class.{u} :=
+iota $ of_set {y | to_Set (of_set {x | mem_set (Set.pair x y) F}) A}
+
 infixl `′`:100 := fval
 
 theorem fval_ex (F A : Class.{u}) : F ′ A ∈ univ.{u} := iota_ex _
@@ -779,9 +789,12 @@ namespace Set
 @[simp] theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f]
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
-Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.mem_hom_right, mem_map], exact
-  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw[←fw, wy],
-  λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
+Class.iota_val _ _ $ λ z, begin
+  simp only [Class.mem_hom_right, mem_map, exists_prop, Class.to_Set_of_Set, Class.mem_set_of_set,
+    set.mem_set_of_eq],
+  exact ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw [←fw, wy],
+    λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩
+end
 
 variables (x : Set.{u}) (h : ∅ ∉ x)
 

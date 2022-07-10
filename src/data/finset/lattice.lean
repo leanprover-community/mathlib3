@@ -110,6 +110,20 @@ begin
   simp_rw finset.sup_le_iff,
   exact ⟨λ h c hc b hb, h b hb c hc, λ h b hb c hc, h c hc b hb⟩,
 end
+#where
+lemma le_sup_of_mem [decidable_eq α] {a : α} (as : a ∈ s.image f) :
+  a ≤ s.sup f :=
+begin
+  rcases mem_image.mp as with ⟨w, ws, rfl⟩,
+  exact le_sup ws,
+end
+
+lemma le_sup_of_mem_set {a : α} (as : a ∈ f '' s) :
+  a ≤ s.sup f :=
+begin
+  rcases as with ⟨b, bs, rfl⟩,
+  exact le_sup (mem_coe.mp bs),
+end
 
 @[simp] lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
 (s.attach.sup_map (function.embedding.subtype _) f).symm.trans $ congr_arg _ attach_map_val
@@ -816,27 +830,20 @@ finset.induction_on s (λ _ H, by cases H)
       { exact mem_insert_of_mem (ih h) } }
   end)
 
-theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
-by rcases @le_sup (with_bot α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
-   cases h₂.symm.trans hb; assumption
-
-lemma mem_le_max {a : α} {s : finset α} (as : a ∈ s) :
+lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) :
   ↑a ≤ s.max :=
-(le_fold_max _).mpr (or.inr ⟨a, as, rfl.le⟩)
+le_sup_of_mem_set ⟨a, as, rfl⟩
+
+theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
+with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le
 
 lemma max_mono {s t : finset α} (st : s ⊆ t) :
   s.max ≤ t.max :=
-begin
-  by_cases s0 : s.nonempty,
-  { obtain ⟨a, as⟩ := nonempty.bex s0,
-    rcases max_of_mem as with ⟨w, sw⟩,
-    exact (le_fold_max _).mpr (or.inr ⟨w, st (mem_of_max sw), sw.le⟩) },
-  { simp [not_nonempty_iff_eq_empty.mp s0] },
-end
+sup_mono st
 
-lemma max_le (M : α) {s : finset α} (st : ∀ a : α, a ∈ s → a ≤ M) :
+lemma max_le {M : with_bot α} {s : finset α} (st : ∀ a : α, a ∈ s → (a : with_bot α) ≤ M) :
   s.max ≤ M :=
-(fold_max_le _).mpr ⟨bot_le, λ x xs, with_bot.coe_le_coe.mpr (st x xs)⟩
+(fold_max_le _).mpr ⟨bot_le, λ x xs, st x xs⟩
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `⊤` otherwise. It belongs to `with_top α`. If you want to get an element of `α`, see

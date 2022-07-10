@@ -443,16 +443,10 @@ lemma Ico_filter_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : n 
   (Ico 1 n).filter (λ i, p ^ i ∣ n) = (Icc 1 b).filter (λ i, p ^ i ∣ n) :=
 begin
   ext x,
-  simp only [finset.mem_filter, mem_Ico, mem_Icc, and.congr_left_iff, and.congr_right_iff,
-    ←lt_succ_iff],
-  intros h1 h2,
-  split,
-  {
-    intros h,
-    sorry},
-  {
-    intros h,
-    sorry},
+  simp only [finset.mem_filter, mem_Ico, mem_Icc, and.congr_left_iff, and.congr_right_iff],
+  rintro h1 -,
+  simp [lt_of_pow_dvd_right hn pp.two_le h1,
+    (pow_le_iff_le_right pp.two_le).1 ((le_of_dvd hn.bot_lt h1).trans hb)],
 end
 
 /-! ### Factorization and coprimes -/

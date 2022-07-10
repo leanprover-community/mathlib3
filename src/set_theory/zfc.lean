@@ -694,6 +694,9 @@ by { rw is_proper, simp }
 theorem is_proper.ne_Set {A : Class.{u}} : A.is_proper → ∀ x : Set.{u}, ↑x ≠ A :=
 is_proper_iff_forall.1
 
+theorem is_proper.not_mem {A : Class.{u}} (h : A.is_proper) (B : Class.{u}) : A ∉ B :=
+by { rintro ⟨x, rfl, hx⟩, exact h.ne_Set x rfl }
+
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
 

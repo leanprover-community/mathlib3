@@ -253,6 +253,12 @@ by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "i
 example {c : ℚ} (h1 : 4 * c + 1 = 3 * c - 2) : c = -3 :=
 by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "rat", "1", "[(((4 * var0) + 1) - ((3 * var0) - 2))]", "(var0 - (-1 * 3))"]  "linear_combination h1"
 
+example (z : ℤ) (h1 : z + 1 = 2) (h2 : z + 2 = 2) : (1 : ℤ) = 2 :=
+by test_polyrith  "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 1) - 2), ((var0 + 2) - 2)]", "(1 - 2)"]  "linear_combination h1 - h2"
+
+
+
+
 
 -- We comment the following tests so that we don't overwhelm the SageCell API.
 

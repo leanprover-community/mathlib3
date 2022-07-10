@@ -25,7 +25,7 @@ import json
 P = PolynomialRing(QQ, 'var', {n_vars!r})
 {var_list}, = P.gens()
 gens = {eq_list}
-p = {goal_type}
+p = P{goal_type}
 I = ideal(gens)
 coeffs = p.lift(I)
 print(json.dumps([polynomial_to_string(c) for c in coeffs]))

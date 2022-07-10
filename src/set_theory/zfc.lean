@@ -178,6 +178,7 @@ instance : has_emptyc pSet := ⟨⟨_, pempty.elim⟩⟩
 instance : inhabited pSet := ⟨∅⟩
 
 @[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := exists_pempty.1
+@[simp] theorem empty_subset (x : pSet.{u}) : (∅ : pSet) ⊆ x := λ x, x.elim
 
 /-- Insert an element into a pre-set -/
 instance : has_insert pSet pSet := ⟨λ x y, ⟨option y.type, λ o, option.rec x y.func o⟩⟩
@@ -376,7 +377,7 @@ instance has_subset : has_subset Set := ⟨λ x y, ∀ ⦃z⦄, z ∈ x → z �
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
-@[simp] theorem subset_iff : Π (x y : pSet), mk x ⊆ mk y ↔ x ⊆ y
+@[simp] theorem subset_iff : Π {x y : pSet}, mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ h a, @h ⟦A a⟧ (mem.mk A a),
   λ h z, quotient.induction_on z (λ z ⟨a, za⟩, let ⟨b, ab⟩ := h a in ⟨b, za.trans ab⟩)⟩
 
@@ -392,6 +393,9 @@ instance : inhabited Set := ⟨∅⟩
 
 @[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
 quotient.induction_on x pSet.mem_empty
+
+@[simp] theorem empty_subset (x : Set.{u}) : (∅ : Set) ⊆ x :=
+quotient.induction_on x $ λ y, subset_iff.2 $ pSet.empty_subset y
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 ⟨λ h y, (h.symm ▸ mem_empty y),

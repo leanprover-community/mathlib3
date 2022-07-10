@@ -280,9 +280,8 @@ central_binom n
             cases le_or_gt 1 i,
             { ring_nf, exact h, },
             { have i_zero : i = 0, by linarith,
-              simp only [i_zero, true_and, succ_pos',
-                          finset.mem_filter, finset.mem_range, nat.not_prime_zero] at hyp1,
-              exfalso, exact hyp1, }, }
+              rw [i_zero, finset.mem_filter, finset.mem_range] at hyp1,
+              exfalso, exact nat.not_prime_zero hyp1.right, }, }
         end
 ... = (2 * n) ^ (sqrt (2 * n))
         *

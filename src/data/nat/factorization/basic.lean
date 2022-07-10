@@ -400,13 +400,6 @@ begin
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
--- TODO: Move this to `data/nat/basic`
-lemma lt_of_pow_dvd_right {p i n : ℕ} (hn : n ≠ 0) (hp : 2 ≤ p) (h : p ^ i ∣ n) : i < n :=
-begin
-  rw ←pow_lt_iff_lt_right hp,
-  exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self (succ_le_iff.mp hp) n),
-end
-
 lemma set_of_pow_dvd_eq_Icc_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = set.Icc 1 (n.factorization p) :=
 by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization hn] }

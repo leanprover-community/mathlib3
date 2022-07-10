@@ -111,20 +111,6 @@ begin
   exact ⟨λ h c hc b hb, h b hb c hc, λ h b hb c hc, h c hc b hb⟩,
 end
 
-lemma le_sup_of_mem [decidable_eq α] {a : α} (as : a ∈ s.image f) :
-  a ≤ s.sup f :=
-begin
-  rcases mem_image.mp as with ⟨w, ws, rfl⟩,
-  exact le_sup ws,
-end
-
-lemma le_sup_of_mem_set {a : α} (as : a ∈ f '' s) :
-  a ≤ s.sup f :=
-begin
-  rcases as with ⟨b, bs, rfl⟩,
-  exact le_sup (mem_coe.mp bs),
-end
-
 @[simp] lemma sup_attach (s : finset β) (f : β → α) : s.attach.sup (λ x, f x) = s.sup f :=
 (s.attach.sup_map (function.embedding.subtype _) f).symm.trans $ congr_arg _ attach_map_val
 
@@ -841,7 +827,7 @@ sup_mono st
 
 lemma max_le {M : with_bot α} {s : finset α} (st : ∀ a : α, a ∈ s → (a : with_bot α) ≤ M) :
   s.max ≤ M :=
-(fold_max_le _).mpr ⟨bot_le, λ x xs, st x xs⟩
+sup_le st
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `⊤` otherwise. It belongs to `with_top α`. If you want to get an element of `α`, see

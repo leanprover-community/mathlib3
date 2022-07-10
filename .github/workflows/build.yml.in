@@ -177,7 +177,7 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! IS_SELF_HOSTED }}
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml requests
 
       - name: tests
         run: |

@@ -860,9 +860,18 @@ theorem min_eq_top {s : finset α} : s.min = ⊤ ↔ s = ∅ :=
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, s.min = a → a ∈ s := @mem_of_max αᵒᵈ _ s
 
+lemma min_le_coe_of_mem {a : α} {s : finset α} (as : a ∈ s) : s.min ≤ a :=
+inf_le as
+
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : s.min = a) : a ≤ b :=
-by rcases @inf_le (with_top α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
-   cases h₂.symm.trans hb; assumption
+with_top.coe_le_coe.mp $ h₂.ge.trans (min_le_coe_of_mem h₁)
+
+lemma min_mono {s t : finset α} (st : s ⊆ t) : t.min ≤ s.min :=
+inf_mono st
+
+lemma le_min {m : with_top α} {s : finset α} (st : ∀ a : α, a ∈ s → m ≤ a) :
+  m ≤ s.min :=
+le_inf st
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,

@@ -220,24 +220,24 @@ begin
 end
 
 
-/-
 lemma mem_normalized_factors_factors_equiv_of_mem_normalized_factors [is_domain R]
   [is_dedekind_domain R] [is_domain S] [is_dedekind_domain S] [algebra R S] (pb : power_basis R S)
-  {I : ideal R} (hI : is_maximal I) (J : ideal S)
+  {I : ideal R} (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
+  (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) (J : ideal S)
   (hJ : J ∈ normalized_factors (I.map (algebra_map R S) )) :
   ↑(factors_equiv pb hI ⟨J, dvd_of_mem_normalized_factors hJ⟩) ∈
     normalized_factors (ideal.span
       ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I) ) ) :=
 begin
-  refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors
-    (show I.map (algebra_map R S) ≠ ⊥, from sorry) _ hJ
-        (factors_equiv pb hI).to_equiv _,
+  refine mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors hI' _ hJ
+        (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
+    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }}) _,
   sorry,
   rintros ⟨l, hl⟩ ⟨l', hl'⟩,
-  simp,
-  sorry --should be something like apply find_me_a_name, but deterministic timeout strikes again
-end-/
-/-
+  rw [subtype.coe_mk, subtype.coe_mk],
+  apply find_me_a_name pb hI l l' hl hl',
+end
+
 noncomputable! def normalized_factors_equiv [is_domain R] [is_dedekind_domain R]
   [is_domain S] [is_dedekind_domain S] (pb : power_basis R S)
   (I : ideal R) (hI : is_maximal I) :
@@ -245,10 +245,10 @@ noncomputable! def normalized_factors_equiv [is_domain R] [is_dedekind_domain R]
   {J : ideal (polynomial $ R ⧸ I ) | J ∈ normalized_factors
     (ideal.span ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I))) } :=
 { to_fun := λ j, ⟨factors_equiv pb hI ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩,
-     mem_normalized_factors_factors_equiv_of_mem_normalized_factors pb hI ↑j j.prop ⟩,
+     mem_normalized_factors_factors_equiv_of_mem_normalized_factors pb hI sorry sorry ↑j j.prop ⟩,
   inv_fun := λ j, ⟨(factors_equiv pb hI).symm ⟨↑j, dvd_of_mem_normalized_factors j.prop⟩, sorry⟩,
   left_inv := λ ⟨j, hj⟩, by simp,
-  right_inv := λ ⟨j, hj⟩, by simp } -/
+  right_inv := λ ⟨j, hj⟩, by simp }
 
 open submodule.is_principal
 
@@ -270,15 +270,23 @@ begin
   simpa only [subtype.coe_mk, subtype.mk_eq_mk] using ideal.span_singleton_generator i,
 end
 
+/-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case,
+  stating that the prime factors of `I*S` are in bijection with those of the minimal poly of
+  the generator of `S` over `R`, taken `mod I`-/
 noncomputable def factors_equiv' [is_domain R] [is_dedekind_domain R] [is_domain S]
   [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I) :
- {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
+ {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
     {d : polynomial $ R ⧸ I  | d ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)) }:=
-(ideal_factors_equiv_of_quot_equiv (pb.quotient_equiv_quotient_minpoly_map I)).trans
-  (corr₂ (map I^.quotient.mk (minpoly R pb.gen))).symm
+(normalized_factors_equiv pb I hI).trans (corr₂ (map I^.quotient.mk (minpoly R pb.gen))).symm
 
-
-
+/-- The second hald of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the
+    bijection `factors_equiv'` defined in the first half preserves multiplicities. -/
+theorem multiplicity_factors_equiv'_eq_multiplicity [is_domain R] [is_dedekind_domain R] [is_domain S]
+  [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I)
+  {J : ideal S}  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
+  multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI ⟨J, hJ⟩)
+    (map I^.quotient.mk (minpoly R pb.gen)) :=
+sorry
 /-
 
 

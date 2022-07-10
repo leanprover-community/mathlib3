@@ -822,31 +822,6 @@ end
 
 end is_dedekind_domain
 
-/-
-section WIP
-
-variables (B C : Type*) [is_dedekind_domain A] [comm_ring B] [is_domain B] [is_dedekind_domain B]
-variables {I : ideal A} {J : ideal B} (f : A ⧸ I ≃+* B ⧸ J)
-variables (T : Type*) [comm_ring T] (g : T →+* A) (h : T →+* B)
-
-open unique_factorization_monoid
-open_locale big_operators
-open_locale classical
-
-theorem prod_eq_of_quot_equiv (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
-  {ι : Type*} [fintype ι] (g : ι → ideal A) (hg : ∀ i, g i ∈ normalized_factors I)
-  -- TODO: generalize to `irreducible (g i)`
-  (e : ι → ℕ) (prod_eq : ∏ i, g i ^ e i = I) :
-  ∏ i, ↑(ideal_correspondence hI hJ f ⟨g i, hg i⟩) ^ e i = J := sorry
-
-lemma simp_ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (X : ideal T)
-  (comm : ring_hom.comp ↑f (I^.quotient.mk^.comp g) = J^.quotient.mk^.comp h) (hX) :
-  ↑ (ideal_correspondence hI hJ f ⟨X.map g, hX⟩) = X.map h ⊔ J :=
-sorry
-
-end WIP
--/
-
 section height_one_spectrum
 
 /-!

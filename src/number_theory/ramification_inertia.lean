@@ -39,8 +39,6 @@ We will try to relax the above hypotheses as much as possible.
 
 -/
 
-open_locale big_operators
-open_locale non_zero_divisors
 namespace ideal
 
 universes u v
@@ -159,11 +157,6 @@ begin
     exists_mem_normalized_factors_of_dvd hp0 hPirr (ideal.dvd_iff_le.mpr le),
   rwa [multiset.count_ne_zero, associated_iff_eq.mp P'_eq],
 end
-
-/-lemma is_dedekind_domain.le_pow_ramification_idx [is_domain S] [is_dedekind_domain S]
-  (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (le : map f p ≤ P) :
-  map f p ≤ P ^ ramification_idx f p P :=
-le_pow_ramification_idx_of_ne_zero (is_dedekind_domain.ramification_idx_ne_zero hp0 hP le) -/
 
 end is_dedekind_domain
 

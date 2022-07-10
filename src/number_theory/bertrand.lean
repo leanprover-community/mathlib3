@@ -96,15 +96,11 @@ begin
   { rw ←@cast_le ℝ at n_large,
     convert n_large, norm_num, },
   refine trans (mul_le_mul _ _ _ _) (real_main_inequality n_large_real),
-  {
-    rw mul_le_mul_left,
+  { rw mul_le_mul_left,
     apply real.rpow_le_rpow_of_exponent_le,
     linarith,
-    -- todo find lemma about real sqrt casting
-    have fact2 : 0 < 2 * (n : ℝ) := by linarith,
-    rw [real.le_sqrt (cast_nonneg _) (le_of_lt fact2), ←cast_pow],
-                  calc _ ≤ ↑(2 * n) : cast_le.mpr (sqrt_le' _)
-                    ... = 2 * (n : ℝ) : by norm_num,
+    convert real.nat_sqrt_le_real_sqrt,
+    simp only [cast_mul, cast_bit0, cast_one],
     linarith, },
   { refine real.rpow_le_rpow_of_exponent_le (by norm_num) _,
     convert cast_div_le,

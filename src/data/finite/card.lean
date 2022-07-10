@@ -5,7 +5,6 @@ Authors: Kyle Miller
 -/
 
 import data.finite.basic
-import data.nat.enat
 
 /-!
 
@@ -32,43 +31,46 @@ open_locale classical
 
 variables {α β γ : Type*}
 
-/-! ### Cardinality as an enat -/
+/-! ### Cardinality as a nat with top -/
 
-namespace enat
+namespace nat
 
-/-- The cardinality of a type as an `enat`.-/
-def card (α : Type*) : enat :=
+/-- The cardinality of a type as a `with_top ℕ`.-/
+def card_top (α : Type*) : with_top ℕ :=
 if h : finite α then @fintype.card α (@fintype.of_finite α h) else ⊤
 
-@[simp] theorem card_eq_fintype_card (α : Type*) [fintype α] : enat.card α = fintype.card α :=
+@[simp] theorem card_top_eq_fintype_card (α : Type*) [fintype α] : card_top α = fintype.card α :=
 begin
-  rw [card, dif_pos (finite.of_fintype' α), enat.coe_inj],
+  rw [card_top, dif_pos (finite.of_fintype' α), with_top.coe_eq_coe],
   apply fintype.card_congr' rfl
 end
 
-@[simp] theorem card_eq_top (α : Type*) [h : infinite α] : enat.card α = ⊤ :=
+@[simp] theorem card_top_eq_top (α : Type*) [h : infinite α] : card_top α = ⊤ :=
 dif_neg $ not_finite_iff_infinite.2 h
 
-theorem card_eq_zero (α : Type*) [is_empty α] : card α = 0 := by simp
-theorem card_eq_one (α : Type*) [unique α] : card α = 1 := by simp
-theorem card_empty : card empty = 0 := by simp
-theorem card_pempty : card pempty = 0 := by simp
-theorem card_unit : card unit = 1 := by simp
-theorem card_punit : card punit = 1 := by simp
-theorem card_bool : card bool = 2 := by simp
-theorem card_fin (n : ℕ) : card (fin n) = n := by simp
-theorem card_nat : card ℕ = ⊤ := by simp
-theorem card_int : card ℤ = ⊤ := by simp
-theorem card_rat : card ℚ = ⊤ := by simp
+theorem card_top_eq_zero (α : Type*) [is_empty α] : card_top α = 0 := by simp
+theorem card_top_eq_one (α : Type*) [unique α] : card_top α = 1 := by simp
+theorem card_top_empty : card_top empty = 0 := by simp
+theorem card_top_pempty : card_top pempty = 0 := by simp
+theorem card_top_unit : card_top unit = 1 := by simp
+theorem card_top_punit : card_top punit = 1 := by simp
+@[simp] theorem card_top_bool : card_top bool = 2 := card_top_eq_fintype_card bool
+theorem card_top_fin (n : ℕ) : card_top (fin n) = n := by simp
+theorem card_top_nat : card_top ℕ = ⊤ := by simp
+theorem card_top_int : card_top ℤ = ⊤ := by simp
+theorem card_top_rat : card_top ℚ = ⊤ := by simp
 
-@[simp] theorem card_eq_zero_iff : card α = 0 ↔ is_empty α :=
+@[simp] theorem card_top_eq_zero_iff : card_top α = 0 ↔ is_empty α :=
 by casesI fintype_or_infinite α; simp
 
-@[simp] theorem card_eq_one_iff : card α = 1 ↔ nonempty (unique α) :=
+@[simp] theorem card_top_eq_one_iff : card_top α = 1 ↔ nonempty (unique α) :=
 by { casesI fintype_or_infinite α; simp, apply_instance }
 
-@[simp] theorem card_sum (α β : Type*) : card (α ⊕ β) = card α + card β :=
-by casesI fintype_or_infinite α; casesI fintype_or_infinite β; simp
+@[simp] theorem card_top_sum (α β : Type*) : card_top (α ⊕ β) = card_top α + card_top β :=
+by { casesI fintype_or_infinite α; casesI fintype_or_infinite β; simp,
+rw with_top.coe_add,
+
+}
 
 end enat
 

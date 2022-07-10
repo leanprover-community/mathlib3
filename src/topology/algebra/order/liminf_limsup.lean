@@ -185,3 +185,170 @@ end
 end conditionally_complete_linear_order
 
 end liminf_limsup
+
+section monotone
+
+open set
+
+lemma monotone.Sup_image_le {R S : Type*} [complete_lattice R] [complete_linear_order S]
+  {f : R → S} (f_incr : monotone f) (A : set R) :
+  Sup (f '' A) ≤ f (Sup A) :=
+begin
+  refine Sup_le _,
+  intros x x_in_fA,
+  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
+  by_contra b_gt,
+  have key := (f_incr (le_Sup z_in_A)),
+  rw fz_eq_x at key,
+  exact (lt_self_iff_false x).mp (lt_of_le_of_lt key (not_le.mp b_gt)),
+end
+
+lemma monotone.le_Inf_image {R S : Type*} [complete_semilattice_Inf R] [complete_linear_order S]
+  {f : R → S} (f_incr : monotone f) (A : set R) :
+  f (Inf A) ≤ Inf (f '' A) :=
+begin
+  have := f_incr.dual,
+  refine le_Inf _,
+  intros x x_in_fA,
+  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
+  by_contra b_gt,
+  have key := (f_incr (Inf_le z_in_A)),
+  rw fz_eq_x at key,
+  exact (lt_self_iff_false x).mp (lt_of_lt_of_le (not_le.mp b_gt) key),
+end
+
+lemma antitone.Sup_image_le {R S : Type*} [complete_semilattice_Inf R] [complete_linear_order S]
+  {f : R → S} (f_decr : antitone f) (A : set R) :
+  Sup (f '' A) ≤ f (Inf A) :=
+begin
+  refine Sup_le _,
+  intros x x_in_fA,
+  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
+  by_contra b_gt,
+  have key := (f_decr (Inf_le z_in_A)),
+  rw fz_eq_x at key,
+  exact (lt_self_iff_false x).mp (lt_of_le_of_lt key (not_le.mp b_gt)),
+end
+
+lemma antitone.le_Inf_image {R S : Type*} [complete_semilattice_Sup R] [complete_linear_order S]
+  {f : R → S} (f_decr : antitone f) (A : set R) :
+  f (Sup A) ≤ Inf (f '' A) :=
+begin
+  refine le_Inf _,
+  intros x x_in_fA,
+  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
+  by_contra b_gt,
+  have key := (f_decr (le_Sup z_in_A)),
+  rw fz_eq_x at key,
+  exact (lt_self_iff_false x).mp (lt_of_lt_of_le (not_le.mp b_gt) key),
+end
+
+private lemma continuous_Inf_le_Sup_continuous {R S : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  {f : R → S} (f_cont : continuous f)
+  (A : set R) (hA : A.nonempty):
+  f (Inf A) ≤ Sup (f '' A) :=
+begin
+  refine le_Sup_iff.mpr _,
+  intros b hb,
+  have InfA_mem_clA : Inf A ∈ closure A, from Inf_mem_closure hA,
+  have aux := @continuous.continuous_on _ _ _ _ f (closure A) f_cont,
+  have key := (continuous_on.image_closure aux).trans (closure_mono (show f '' A ⊆ Iic b, from hb)),
+  simpa [closure_Iic] using key (mem_image_of_mem f InfA_mem_clA),
+end
+
+lemma antitone.Sup_image_eq_apply_Inf {R S : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  {f : R → S} (f_decr : antitone f) (f_cont : continuous f)
+  (A : set R) (hA : A.nonempty):
+  Sup (f '' A) = f (Inf A) :=
+le_antisymm (f_decr.Sup_image_le A) (continuous_Inf_le_Sup_continuous f_cont A hA)
+
+lemma antitone.Inf_image_eq_apply_Sup {R S : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  {f : R → S} (f_decr : antitone f) (f_cont : continuous f)
+  (A : set R) (hA : A.nonempty):
+  Inf (f '' A) = f (Sup A) :=
+f_decr.dual.Sup_image_eq_apply_Inf f_cont A hA
+
+lemma monotone.Inf_image_eq_apply_Inf {R S : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  {f : R → S} (f_incr : monotone f) (f_cont : continuous f)
+  (A : set R) (hA : A.nonempty):
+  Inf (f '' A) = f (Inf A) :=
+f_incr.dual_left.Inf_image_eq_apply_Sup f_cont A hA
+
+lemma Sup_mono_eq_mono_Sup {R S : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  {f : R → S} (f_incr : monotone f) (f_cont : continuous f)
+  (A : set R) (hA : A.nonempty):
+  Sup (f '' A) = f (Sup A) :=
+f_incr.dual.Inf_image_eq_apply_Inf f_cont A hA
+
+lemma limsup_eq_Inf_Sup {ι R : Type*}
+  [semilattice_sup ι] [nonempty ι]
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  (a : ι → R) :
+  at_top.limsup a = Inf ((λ i, Sup (a '' (Ici i))) '' univ) :=
+begin
+  refine le_antisymm _ _,
+  { rw limsup_eq,
+    apply Inf_le_Inf,
+    intros x hx,
+    simp only [image_univ, mem_range] at hx,
+    rcases hx with ⟨j, hj⟩,
+    filter_upwards [Ici_mem_at_top j],
+    intros i hij,
+    rw ← hj,
+    exact le_Sup (mem_image_of_mem _ hij), },
+  { rw limsup_eq,
+    apply le_Inf_iff.mpr,
+    intros b hb,
+    simp only [mem_set_of_eq, eventually_at_top] at hb,
+    rcases hb with ⟨j, hj⟩,
+    apply Inf_le_of_le (mem_image_of_mem _ (mem_univ j)),
+    apply Sup_le,
+    intros x hx,
+    simp at hx,
+    rcases hx with ⟨k, j_le_k, ak_eq_x⟩,
+    rw ← ak_eq_x,
+    exact hj k j_le_k, },
+end
+
+lemma liminf_eq_Sup_Inf {ι R : Type*}
+  [semilattice_sup ι] [nonempty ι]
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  (a : ι → R) :
+  at_top.liminf a = Sup ((λ i, Inf (a '' (Ici i))) '' univ) :=
+@limsup_eq_Inf_Sup ι (order_dual R) _ _ _ _ _ a
+
+lemma antitone.liminf_comp_eq_apply_limsup_of_continuous
+  {ι R : Type*} [semilattice_sup ι] [nonempty ι]
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
+  at_top.liminf (f ∘ a) = f (at_top.limsup a) :=
+begin
+  rw [limsup_eq_Inf_Sup, liminf_eq_Sup_Inf,
+      ←f_decr.Sup_image_eq_apply_Inf f_cont _ (nonempty_image_iff.mpr (@univ_nonempty ι _))],
+  apply congr_arg,
+  simp_rw [image_image, function.comp_app, image_univ],
+  apply congr_arg,
+  funext n,
+  rw ← f_decr.Inf_image_eq_apply_Sup f_cont _ (nonempty_image_iff.mpr nonempty_Ici),
+  simp_rw image_image,
+end
+
+lemma antitone.limsup_comp_eq_apply_liminf_of_continuous
+  {ι R : Type*} [semilattice_sup ι] [nonempty ι]
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
+  at_top.limsup (f ∘ a) = f (at_top.liminf a) :=
+@antitone.liminf_comp_eq_apply_limsup_of_continuous ι (order_dual R) _ _ _ _ _
+  a f f_decr.dual f_cont
+
+end monotone

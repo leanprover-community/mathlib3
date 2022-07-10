@@ -24,7 +24,7 @@ We define the subtype of open sets in a topological space.
 
 open filter function order set
 
-variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
+variables {ι α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 
 namespace topological_space
 variable (α)
@@ -86,10 +86,20 @@ lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
-@[simp, norm_cast] lemma coe_inf {U V : opens α} : ((U ⊓ V : opens α) : set α) = U ∩ V := rfl
-@[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
-@[simp] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
-@[simp] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := (@gc α _).l_Sup
+@[simp, norm_cast] lemma coe_inf (s t : opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_sup (s t : opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
+@[simp, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i :=
+(@gc α _).l_Sup
+
+@[simp, norm_cast] lemma coe_finset_sup (f : ι → opens α) (s : finset ι) :
+  (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
+map_finset_sup (⟨⟨coe, coe_sup⟩, coe_bot⟩ : sup_bot_hom (opens α) (set α)) _ _
+
+@[simp, norm_cast] lemma coe_finset_inf (f : ι → opens α) (s : finset ι) :
+  (↑(s.inf f) : set α) = s.inf (coe ∘ f) :=
+map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (opens α) (set α)) _ _
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
@@ -179,20 +189,13 @@ lemma is_compact_element_iff (s : opens α) :
   complete_lattice.is_compact_element s ↔ is_compact (s : set α) :=
 begin
   rw [is_compact_iff_finite_subcover, complete_lattice.is_compact_element_iff],
-  split,
+  refine ⟨_, λ H ι U hU, _⟩,
   { introv H hU hU',
-    let f : ι → opens α := λ i, ⟨U i, hU i⟩,
-    obtain ⟨t, ht⟩ := H ι f (by simpa),
+    obtain ⟨t, ht⟩ := H ι (λ i, ⟨U i, hU i⟩) (by simpa),
     refine ⟨t, set.subset.trans ht _⟩,
-    convert_to t.sup f ≤ @supr (opens α) _ t (λ i, ⟨U i, hU i⟩),
-    { rw [opens.supr_mk, subtype.coe_mk],
-      exact (set.Union_subtype (λ x, x ∈ t) (λ i : t, U i)).symm },
-    rw finset.sup_le_iff,
-    intros b hb,
-    refine le_trans _ (le_supr _ (⟨b, hb⟩ : t)),
-    exact le_of_eq rfl },
-  { intros H ι U hU,
-    obtain ⟨t, ht⟩ := H (λ i, U i) (λ i, (U i).prop)
+    rw [coe_finset_sup, finset.sup_eq_supr],
+    refl },
+  { obtain ⟨t, ht⟩ := H (λ i, U i) (λ i, (U i).prop)
       (by simpa using (show (s : set α) ⊆ ↑(supr U), from hU)),
     refine ⟨t, set.subset.trans ht _⟩,
     simp only [set.Union_subset_iff],

@@ -3,9 +3,9 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import topology.sets.compacts
-import order.order_iso_nat
 import order.compactly_generated
+import order.order_iso_nat
+import topology.sets.compacts
 
 /-!
 # Noetherian space
@@ -184,14 +184,11 @@ begin
   { rw is_preirreducible_iff_closed_union_closed at h₁,
     push_neg at h₁,
     obtain ⟨z₁, z₂, hz₁, hz₂, h, hz₁', hz₂'⟩ := h₁,
-    obtain ⟨S₁, hS₁, hS₁'⟩ :=
-      H (s ⊓ ⟨z₁, hz₁⟩) (lt_of_le_of_ne inf_le_left $ inf_eq_left.not.mpr hz₁'),
-    obtain ⟨S₂, hS₂, hS₂'⟩ :=
-      H (s ⊓ ⟨z₂, hz₂⟩) (lt_of_le_of_ne inf_le_left $ inf_eq_left.not.mpr hz₂'),
-    use S₁ ∪ S₂,
-    split,
-    { rintro ⟨k, hk⟩, cases finset.mem_union.mp hk with h' h', exacts [hS₁ ⟨k, h'⟩, hS₂ ⟨k, h'⟩] },
-    { rw [finset.sup_union, ← hS₁', ← hS₂', ← inf_sup_left, left_eq_inf], exact h } }
+    obtain ⟨S₁, hS₁, hS₁'⟩ := H (s ⊓ ⟨z₁, hz₁⟩) (inf_lt_left.2 hz₁'),
+    obtain ⟨S₂, hS₂, hS₂'⟩ := H (s ⊓ ⟨z₂, hz₂⟩) (inf_lt_left.2 hz₂'),
+    refine ⟨S₁ ∪ S₂, λ k, _, _⟩,
+    { cases finset.mem_union.mp k.2 with h' h', exacts [hS₁ ⟨k, h'⟩, hS₂ ⟨k, h'⟩] },
+    { rwa [finset.sup_union, ← hS₁', ← hS₂', ← inf_sup_left, left_eq_inf] } }
 end
 
 lemma noetherian_space.finite_irreducible_components [noetherian_space α] :
@@ -211,10 +208,7 @@ begin
     { simp only [finset.mem_image, exists_prop, forall_exists_index, and_imp],
       rintro _ z hz rfl,
       exact z.2 },
-    { convert set.subset_univ _,
-      convert (closeds.coe_finset_sup id S).symm using 1,
-      { rw [finset.coe_image, set.sUnion_image], refl },
-      { rw ← hS₂, refl } } },
+    { exact (set.subset_univ _).trans ((congr_arg coe hS₂).trans $ by simp).subset } },
   obtain ⟨s, hs, e⟩ := finset.mem_image.mp hz,
   rw ← e at hz',
   use ⟨s, hs⟩,

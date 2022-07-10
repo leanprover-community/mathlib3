@@ -557,24 +557,6 @@ begin
   exact λ h, not_mem_erase _ _ (mem_of_max h),
 end
 
-lemma finset.mem_le_max {α} [linear_order α] {a : α} {s : finset α} (as : a ∈ s) :
-  ↑a ≤ s.max :=
-(le_fold_max _).mpr (or.inr ⟨a, as, rfl.le⟩)
-
-lemma finset.max_mono {α} [linear_order α] {s t : finset α} (st : s ⊆ t) :
-  s.max ≤ t.max :=
-begin
-  by_cases s0 : s.nonempty,
-  { obtain ⟨a, as⟩ := nonempty.bex s0,
-    rcases max_of_mem as with ⟨w, sw⟩,
-    exact (le_fold_max _).mpr (or.inr ⟨w, st (mem_of_max sw), sw.le⟩) },
-  { simp [not_nonempty_iff_eq_empty.mp s0] },
-end
-
-lemma finset.max_le {α} [linear_order α] (M : α) {s : finset α} (st : ∀ a : α, a ∈ s → a ≤ M) :
-  s.max ≤ M :=
-(fold_max_le _).mpr ⟨bot_le, λ x xs, with_bot.coe_le_coe.mpr (st x xs)⟩
-
 lemma degree_update_le (p : R[X]) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin

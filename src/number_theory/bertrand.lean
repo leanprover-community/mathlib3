@@ -171,7 +171,7 @@ calc
 central_binom n
     = (∏ p in (finset.range (2 * n / 3 + 1)),
           p ^ ((central_binom n).factorization p)) :
-          (central_binom_factorization_small n (by linarith) no_prime)
+          (central_binom_factorization_small n n_big no_prime)
 ... = (∏ p in (finset.range (2 * n / 3 + 1)),
           if p ≤ sqrt (2 * n)
           then p ^ ((central_binom n).factorization p)

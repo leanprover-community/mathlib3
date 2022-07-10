@@ -201,16 +201,40 @@ variables (adj : L ⊣ R)
 
 namespace enough_injectives_of_adjunction
 
+/--
+Since `𝓑` is injective, then `L(A)` has an injective presentation for all `A ∈ 𝓐`,
+i.e. `L(A) → J` where `J` is injective.-/
 def injective_presentation_of_apply (A : 𝓐) :
   injective_presentation (L.obj A) :=
 (nonempty.some (enough_injectives.presentation (L.obj A)))
 
+/--
+Since `L ⊣ R` and `L(A) → J`, then `injective_object_of_adjunction A` is defined to be `R(J)`.
+-/
 def injective_object_of_adjunction (A : 𝓐) : 𝓐 :=
   R.obj $ (injective_presentation_of_apply L A).J
 
 include adj
 variables {L R}
 
+/--
+If `g : X → R(J)` and `f : X → Y` is mono in `𝓐`, then there is an morphism `L(Y) → J`
+See the diagram below:
+
+𝓐                             𝓑
+
+A ---> R(J)                 L(A) -----> J <--------
+      /                                /          |
+     /                                /           |
+    /  g                           by adjunction  |
+   /                                /             |
+  /                                /              |
+X                              L(X)               |
+|                               |                 |
+v                               v                 |
+Y                              L(Y) ---------------
+
+-/
 def to_J_of_injective_presentation_of_apply {A X Y : 𝓐}
   (g : X ⟶ injective_object_of_adjunction L R A)
   (f : X ⟶ Y) [mono f] :
@@ -226,6 +250,25 @@ lemma comp_to_J_of_injective_presentation_of_apply {A X Y : 𝓐}
 let factors := (injective_presentation_of_apply L A).injective.factors in
 (factors ((adj.hom_equiv _ _).symm g) (L.map f)).some_spec
 
+
+/--
+If `g : X → R(J)` and `f : X → Y` is mono in `𝓐`, then there is an morphism `Y → R(J)`
+See the diagram below:
+
+𝓐                                                  𝓑
+
+A ---> R(J) <---                                   L(A) -----> J <--------
+      /        |                                              /          |
+     /         |                                             /           |
+    /  g   by adjunction                                  by adjunction  |
+   /           |                                           /             |
+  /            |                                          /              |
+X              |                                      L(X)               |
+|              |                                       |                 |
+v              |                                       v                 |
+Y --------------                                      L(Y) ---------------
+
+-/
 def injective_object_of_adjunction.factor {A X Y : 𝓐}
   (g: X ⟶ injective_object_of_adjunction L R A)
   (f : X ⟶ Y) [mono f] :
@@ -257,13 +300,16 @@ lemma injective_object_of_adjunction_is_injective (A : 𝓐) :
   ⟨by resetI; exact injective_object_of_adjunction.factor adj g f,
     by apply injective_object_of_adjunction.comp⟩ }
 
+/-- just `R(J)`, rename for better clarity-/
 def of_adjunction.presentation.J (A : 𝓐) : 𝓐 :=
 injective_object_of_adjunction L R A
 
-def of_adjunction.presentation.injective (A : 𝓐) :
+/-- This `R(J)` is injective-/
+instance of_adjunction.presentation.injective (A : 𝓐) :
   injective (of_adjunction.presentation.J adj A) :=
 by apply injective_object_of_adjunction_is_injective adj
 
+/-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono.-/
 def of_adjunction.presentation.f (A : 𝓐) :
   A ⟶ injective_object_of_adjunction L R A :=
 adj.hom_equiv A (injective_presentation_of_apply L A).J (injective_presentation_of_apply L A).f

@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
-import order.filter.bases
+import algebra.order.field
 import data.finset.preimage
 import data.set.intervals.disjoint
+import order.filter.bases
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -895,10 +896,10 @@ lemma tendsto_at_bot_at_bot_iff_of_monotone [nonempty α] [semilattice_inf α] [
 tendsto_at_bot_at_bot.trans $ forall_congr $ λ b, exists_congr $ λ a,
   ⟨λ h, h a (le_refl a), λ h a' ha', le_trans (hf ha') h⟩
 
-alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
-alias tendsto_at_bot_at_bot_of_monotone ← monotone.tendsto_at_bot_at_bot
-alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
-alias tendsto_at_bot_at_bot_iff_of_monotone ← monotone.tendsto_at_bot_at_bot_iff
+alias tendsto_at_top_at_top_of_monotone ← _root_.monotone.tendsto_at_top_at_top
+alias tendsto_at_bot_at_bot_of_monotone ← _root_.monotone.tendsto_at_bot_at_bot
+alias tendsto_at_top_at_top_iff_of_monotone ← _root_.monotone.tendsto_at_top_at_top_iff
+alias tendsto_at_bot_at_bot_iff_of_monotone ← _root_.monotone.tendsto_at_bot_at_bot_iff
 
 lemma comap_embedding_at_top [preorder β] [preorder γ] {e : β → γ}
   (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
@@ -951,7 +952,7 @@ begin
     (λ b' hb', le_trans (finset.singleton_subset_iff.2 hb) (h hb')),
 end
 
-alias tendsto_at_top_finset_of_monotone ← monotone.tendsto_at_top_finset
+alias tendsto_at_top_finset_of_monotone ← _root_.monotone.tendsto_at_top_finset
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
   tendsto (finset.image j) at_top at_top :=
@@ -1211,7 +1212,7 @@ map_at_top_eq_of_gc (λb, b * k + (k - 1)) 1
   (assume a b h, nat.div_le_div_right h)
   (assume a b _,
     calc a / k ≤ b ↔ a / k < b + 1 : by rw [← nat.succ_eq_add_one, nat.lt_succ_iff]
-      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul _ _ hk
+      ... ↔ a < (b + 1) * k : nat.div_lt_iff_lt_mul hk
       ... ↔ _ :
       begin
         cases k,

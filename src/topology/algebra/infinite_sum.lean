@@ -452,6 +452,12 @@ lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   ∑'b, f b = f b :=
 (has_sum_single b hf).tsum_eq
 
+lemma tsum_tsum_eq_single (f : β → γ → α) (b : β) (c : γ) (hfb : ∀ b' ≠ b, f b' c = 0)
+  (hfc : ∀ (b' : β) (c' : γ), c' ≠ c → f b' c' = 0) :
+  ∑' b' c', f b' c' = f b c :=
+calc ∑' b' c', f b' c' = ∑' b', f b' c : tsum_congr $ λ b', tsum_eq_single _ (hfc b')
+... = f b c : tsum_eq_single _ hfb
+
 @[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
@@ -829,6 +835,40 @@ begin
     rw ← summable_nat_add_iff i at hf,
     { exact tsum_eq_zero_of_not_summable hf },
     { apply_instance } }
+end
+
+/-- If `f₀, f₁, f₂, ...` and `g₀, g₁, g₂, ...` are both convergent then so is the `ℤ`-indexed
+sequence: `..., g₂, g₁, g₀, f₀, f₁, f₂, ...`. -/
+lemma has_sum.int_rec {b : α} {f g : ℕ → α} (hf : has_sum f a) (hg : has_sum g b) :
+  @has_sum α _ _ _ (@int.rec (λ _, α) f g : ℤ → α) (a + b) :=
+begin
+  -- note this proof works for any two-case inductive
+  have h₁ : injective (coe : ℕ → ℤ) := @int.of_nat.inj,
+  have h₂ : injective int.neg_succ_of_nat := @int.neg_succ_of_nat.inj,
+  have : is_compl (set.range (coe : ℕ → ℤ)) (set.range int.neg_succ_of_nat),
+  { split,
+    { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
+    { rintros (i | j) h,
+      exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩] } },
+  exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
+end
+
+lemma has_sum.nonneg_add_neg {b : α} {f : ℤ → α}
+  (hnonneg : has_sum (λ n : ℕ, f n) a) (hneg : has_sum (λ (n : ℕ), f (-n.succ)) b) :
+  has_sum f (a + b) :=
+begin
+  simp_rw ← int.neg_succ_of_nat_coe at hneg,
+  convert hnonneg.int_rec hneg using 1,
+  ext (i | j); refl,
+end
+
+lemma has_sum.pos_add_zero_add_neg {b : α} {f : ℤ → α}
+  (hpos : has_sum (λ n:ℕ, f(n + 1)) a) (hneg : has_sum (λ (n : ℕ), f (-n.succ)) b) :
+  has_sum f (a + f 0 + b) :=
+begin
+  have : ∀ g : ℕ → α, has_sum (λ k, g (k + 1)) a → has_sum g (a + g 0),
+  { intros g hg, simpa using (has_sum_nat_add_iff _).mp hg },
+  exact (this (λ n, f n) hpos).nonneg_add_neg hneg,
 end
 
 end subtype
@@ -1260,6 +1300,16 @@ tsum_prod' h h.prod_factor
 lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
+
+lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
+  has_sum (λ n:ℕ, f(n + 1) + f(-n.succ)) (a - f 0) :=
+begin
+  obtain ⟨b₁, h₁⟩ : summable (λ n : ℕ, f(n + 1)) := hf.summable.comp_injective (λ x₁ x₂, by simp),
+  obtain ⟨b₂, h₂⟩ : summable (λ n : ℕ, f(-n.succ)) := hf.summable.comp_injective (λ x₁ x₂, by simp),
+  convert h₁.add h₂,
+  rw hf.unique (h₁.pos_add_zero_add_neg h₂),
+  abel,
+end
 
 end uniform_group
 

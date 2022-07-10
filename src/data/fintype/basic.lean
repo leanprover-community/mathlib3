@@ -98,9 +98,7 @@ fintype.complete x
 lemma eq_univ_iff_forall : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
 lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
-@[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
-by ext; simp
-
+@[simp, norm_cast] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) := by ext; simp
 @[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
 by rw [←coe_univ, coe_inj]
 
@@ -181,6 +179,12 @@ lemma image_univ_of_surjective [fintype β] {f : β → α} (hf : surjective f) 
 eq_univ_of_forall $ hf.forall.2 $ λ _, mem_image_of_mem _ $ mem_univ _
 
 end boolean_algebra
+
+lemma map_univ_of_surjective [fintype β] {f : β ↪ α} (hf : surjective f) : univ.map f = univ :=
+eq_univ_of_forall $ hf.forall.2 $ λ _, mem_map_of_mem _ $ mem_univ _
+
+@[simp] lemma map_univ_equiv [fintype β] (f : β ≃ α) : univ.map f.to_embedding = univ :=
+map_univ_of_surjective f.surjective
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp
@@ -729,6 +733,10 @@ by { ext, simp only [mem_filter, finset.mem_univ, true_and, mem_to_finset] }
 
 end set
 
+@[simp] lemma finset.to_finset_coe (s : finset α) [fintype ↥(s : set α)] :
+  (s : set α).to_finset = s :=
+ext $ λ _, set.mem_to_finset
+
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
 
@@ -996,8 +1004,9 @@ begin
 end
 
 /-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/
-def fintype_of_fintype_ne (a : α) [decidable_pred (= a)] (h : fintype {b // b ≠ a}) : fintype α :=
-fintype.of_equiv _ $ equiv.sum_compl (= a)
+def fintype_of_fintype_ne (a : α) (h : fintype {b // b ≠ a}) : fintype α :=
+fintype.of_bijective (sum.elim (coe : {b // b = a} → α) (coe : {b // b ≠ a} → α)) $
+  by { classical, exact (equiv.sum_compl (= a)).bijective }
 
 section finset
 
@@ -1148,8 +1157,8 @@ have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from injective_iff_
 λ hsurj, by simpa [function.comp] using
   e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
-alias fintype.injective_iff_surjective_of_equiv ↔ function.injective.surjective_of_fintype
-  function.surjective.injective_of_fintype
+alias fintype.injective_iff_surjective_of_equiv ↔ _root_.function.injective.surjective_of_fintype
+  _root_.function.surjective.injective_of_fintype
 
 lemma card_of_bijective {f : α → β} (hf : bijective f) : card α = card β :=
 card_congr (equiv.of_bijective f hf)
@@ -1219,6 +1228,20 @@ finset.subtype.fintype s
 
 @[simp] lemma fintype.card_coe (s : finset α) [fintype s] :
   fintype.card s = s.card := fintype.card_of_finset' s (λ _, iff.rfl)
+
+/-- Noncomputable equivalence between a finset `s` coerced to a type and `fin s.card`. -/
+noncomputable def finset.equiv_fin (s : finset α) : s ≃ fin s.card :=
+fintype.equiv_fin_of_card_eq (fintype.card_coe _)
+
+/-- Noncomputable equivalence between a finset `s` as a fintype and `fin n`, when there is a
+proof that `s.card = n`. -/
+noncomputable def finset.equiv_fin_of_card_eq {s : finset α} {n : ℕ} (h : s.card = n) : s ≃ fin n :=
+fintype.equiv_fin_of_card_eq ((fintype.card_coe _).trans h)
+
+/-- Noncomputable equivalence between two finsets `s` and `t` as fintypes when there is a proof
+that `s.card = t.card`.-/
+noncomputable def finset.equiv_of_card_eq {s t : finset α} (h : s.card = t.card) : s ≃ t :=
+fintype.equiv_of_card_eq ((fintype.card_coe _).trans (h.trans (fintype.card_coe _).symm))
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
@@ -1331,6 +1354,20 @@ lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
 by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
 namespace fintype
+
+/-- Given `fintype α`, `finset_equiv_set` is the equiv between `finset α` and `set α`. (All
+sets on a finite type are finite.) -/
+noncomputable def finset_equiv_set [fintype α] : finset α ≃ set α :=
+{ to_fun := coe,
+  inv_fun := by { classical, exact λ s, s.to_finset },
+  left_inv := λ s, by convert finset.to_finset_coe s,
+  right_inv := λ s, s.coe_to_finset }
+
+@[simp] lemma finset_equiv_set_apply [fintype α] (s : finset α) : finset_equiv_set s = s := rfl
+
+@[simp] lemma finset_equiv_set_symm_apply [fintype α] (s : set α) [fintype s] :
+  finset_equiv_set.symm s = s.to_finset :=
+by convert rfl
 
 lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → β)
   (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=
@@ -1478,7 +1515,7 @@ begin
   intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
 
-theorem card_subtype_mono (p q : α → Prop) (h : p ≤ q)
+theorem fintype.card_subtype_mono (p q : α → Prop) (h : p ≤ q)
   [fintype {x // p x}] [fintype {x // q x}] :
   fintype.card {x // p x} ≤ fintype.card {x // q x} :=
 fintype.card_le_of_embedding (subtype.imp_embedding _ _ h)

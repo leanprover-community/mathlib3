@@ -209,12 +209,30 @@ end⟩
 
 end prod
 
-open function
+open prod
 
-lemma function.injective.prod_map {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
-  injective (prod.map f g) :=
-λ x y h, prod.ext (hf (prod.ext_iff.1 h).1) (hg $ (prod.ext_iff.1 h).2)
+namespace function
+variables {f : α → γ} {g : β → δ} {f₁ : α → β} {g₁ : γ → δ} {f₂ : β → α} {g₂ : δ → γ}
 
-lemma function.surjective.prod_map {f : α → γ} {g : β → δ} (hf : surjective f) (hg : surjective g) :
-  surjective (prod.map f g) :=
+lemma injective.prod_map (hf : injective f) (hg : injective g) : injective (map f g) :=
+λ x y h, ext (hf (ext_iff.1 h).1) (hg $ (ext_iff.1 h).2)
+
+lemma surjective.prod_map (hf : surjective f) (hg : surjective g) : surjective (map f g) :=
 λ p, let ⟨x, hx⟩ := hf p.1 in let ⟨y, hy⟩ := hg p.2 in ⟨(x, y), prod.ext hx hy⟩
+
+lemma bijective.prod_map (hf : bijective f) (hg : bijective g) : bijective (map f g) :=
+⟨hf.1.prod_map hg.1, hf.2.prod_map hg.2⟩
+
+lemma left_inverse.prod_map (hf : left_inverse f₁ f₂) (hg : left_inverse g₁ g₂) :
+  left_inverse (map f₁ g₁) (map f₂ g₂) :=
+λ a, by rw [prod.map_map, hf.comp_eq_id, hg.comp_eq_id, map_id, id]
+
+lemma right_inverse.prod_map :
+  right_inverse f₁ f₂ → right_inverse g₁ g₂ → right_inverse (map f₁ g₁) (map f₂ g₂) :=
+left_inverse.prod_map
+
+lemma involutive.prod_map {f : α → α} {g : β → β} :
+  involutive f → involutive g → involutive (map f g) :=
+left_inverse.prod_map
+
+end function

@@ -529,6 +529,10 @@ instance [has_repr α] : has_repr (with_bot α) :=
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance : has_bot (with_bot α) := ⟨none⟩
 
+meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_bot α)
+| ⊥ := `(⊥)
+| (a : α) := `(coe : α → with_bot α).subst `(a)
+
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
@@ -542,6 +546,18 @@ lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rf
 def rec_bot_coe {C : with_bot α → Sort*} (h₁ : C ⊥) (h₂ : Π (a : α), C a) :
   Π (n : with_bot α), C n :=
 option.rec h₁ h₂
+
+@[simp] lemma rec_bot_coe_bot {C : with_bot α → Sort*} (d : C ⊥) (f : Π (a : α), C a) :
+  @rec_bot_coe _ C d f ⊥ = d := rfl
+@[simp] lemma rec_bot_coe_coe {C : with_bot α → Sort*} (d : C ⊥) (f : Π (a : α), C a)
+  (x : α) : @rec_bot_coe _ C d f ↑x = f x := rfl
+
+/-- Specialization of `option.get_or_else` to values in `with_bot α` that respects API boundaries.
+-/
+def unbot' (d : α) (x : with_bot α) : α := rec_bot_coe d id x
+
+@[simp] lemma unbot'_bot {α} (d : α) : unbot' d ⊥ = d := rfl
+@[simp] lemma unbot'_coe {α} (d x : α) : unbot' d x = x := rfl
 
 @[norm_cast] lemma coe_eq_coe : (a : with_bot α) = b ↔ a = b := option.some_inj
 
@@ -816,6 +832,10 @@ instance [has_repr α] : has_repr (with_top α) :=
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance : has_top (with_top α) := ⟨none⟩
 
+meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_top α)
+| ⊤ := `(⊤)
+| (a : α) := `(coe : α → with_top α).subst `(a)
+
 instance : inhabited (with_top α) := ⟨⊤⟩
 
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
@@ -829,6 +849,18 @@ lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rf
 def rec_top_coe {C : with_top α → Sort*} (h₁ : C ⊤) (h₂ : Π (a : α), C a) :
   Π (n : with_top α), C n :=
 option.rec h₁ h₂
+
+@[simp] lemma rec_top_coe_top {C : with_top α → Sort*} (d : C ⊤) (f : Π (a : α), C a) :
+  @rec_top_coe _ C d f ⊤ = d := rfl
+@[simp] lemma rec_top_coe_coe {C : with_top α → Sort*} (d : C ⊤) (f : Π (a : α), C a)
+  (x : α) : @rec_top_coe _ C d f ↑x = f x := rfl
+
+/-- Specialization of `option.get_or_else` to values in `with_top α` that respects API boundaries.
+-/
+def untop' (d : α) (x : with_top α) : α := rec_top_coe d id x
+
+@[simp] lemma untop'_top {α} (d : α) : untop' d ⊤ = d := rfl
+@[simp] lemma untop'_coe {α} (d x : α) : untop' d x = x := rfl
 
 @[norm_cast] lemma coe_eq_coe : (a : with_top α) = b ↔ a = b := option.some_inj
 

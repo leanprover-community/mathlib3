@@ -23,7 +23,7 @@ def create_query(type: str, n_vars: int, eq_list, goal_type):
     query = f'''
 import json
 P = PolynomialRing(QQ, 'var', {n_vars!r})
-{var_list}, = P.gens()
+[{var_list}] = P.gens()
 gens = {eq_list}
 p = P{goal_type}
 I = ideal(gens)

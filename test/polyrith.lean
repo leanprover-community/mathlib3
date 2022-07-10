@@ -240,24 +240,18 @@ by test_polyrith  "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K
 
 example {x : ℤ} (h1 : x + 4 = 2) : x = -2 :=
 by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 4) - 2)]", "(var0 - (-1 * 2))"]  "linear_combination h1"
--- by polyrith
 
 example {w : ℚ} (h1 : 3 * w + 1 = 4) : w = 1 :=
 by test_polyrith  "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * h1"
--- by polyrith
 
 example {x : ℤ} (h1 : 2 * x + 3 = x) : x = -3 :=
 by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[(((2 * var0) + 3) - var0)]", "(var0 - (-1 * 3))"]  "linear_combination h1"
--- by polyrith
 
 example {c : ℚ} (h1 : 4 * c + 1 = 3 * c - 2) : c = -3 :=
 by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "rat", "1", "[(((4 * var0) + 1) - ((3 * var0) - 2))]", "(var0 - (-1 * 3))"]  "linear_combination h1"
 
 example (z : ℤ) (h1 : z + 1 = 2) (h2 : z + 2 = 2) : (1 : ℤ) = 2 :=
 by test_polyrith  "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 1) - 2), ((var0 + 2) - 2)]", "(1 - 2)"]  "linear_combination h1 - h2"
-
-
-
 
 
 -- We comment the following tests so that we don't overwhelm the SageCell API.

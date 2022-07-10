@@ -15,8 +15,7 @@ such that `a ≤ b` and `b ≤ a`.
 
 ## Main declarations
 
-* `order.indistinguishable`: We say that `a` and `b` are order indistinguishable when `a ≤ b` and
-  `b ≤ a`.
+* `order.indistinguishable`: `a` and `b` are order-indistinguishable if `a ≤ b` and `b ≤ a`.
 * `antisymmetrization α`: The quotient of `α` by `order.indistinguishable`. Even when `α` is just
   a preorder, `antisymmetrization α` is a partial order.
 -/
@@ -26,52 +25,65 @@ open function order_dual
 variables {α β : Type*}
 
 namespace order
-section relation
+section has_le
+variables [has_le α] {a b : α}
 
 /-- `order.indistinguishable a b` means that `a ≤ b` and `b ≤ a`. -/
-def indistinguishable [has_le α] (a b : α) : Prop := a ≤ b ∧ b ≤ a
+def indistinguishable (a b : α) : Prop := a ≤ b ∧ b ≤ a
 
-@[refl] lemma indistinguishable_refl [preorder α] (a : α) : indistinguishable a a :=
-⟨refl _, refl _⟩
+@[symm] lemma indistinguishable.symm : indistinguishable a b → indistinguishable b a := and.symm
 
-instance [preorder α] : is_refl α indistinguishable := ⟨indistinguishable_refl⟩
+instance : is_symm α indistinguishable := ⟨λ a b h, h.symm⟩
 
-@[symm] lemma indistinguishable.symm [has_le α] {a b : α} :
-  indistinguishable a b → indistinguishable b a := and.symm
+instance indistinguishable.decidable_rel [@decidable_rel α (≤)] :
+  @decidable_rel α (indistinguishable) := λ _ _, and.decidable
 
-instance [has_le α] : is_symm α indistinguishable := ⟨λ a b h, h.symm⟩
+end has_le
 
-@[trans] lemma indistinguishable.trans [preorder α] {a b c : α}
-  (hab : indistinguishable a b) (hbc : indistinguishable b c) : indistinguishable a c :=
+section preorder
+variables [preorder α] [preorder β] {f : α → β} {a b c : α}
+
+@[refl] lemma indistinguishable_refl (a : α) : indistinguishable a a := ⟨le_rfl, le_rfl⟩
+lemma indistinguishable_rfl : indistinguishable a a := indistinguishable_refl _
+
+@[trans] lemma indistinguishable.trans (hab : indistinguishable a b) (hbc : indistinguishable b c) :
+  indistinguishable a c :=
 ⟨hab.1.trans hbc.1, hbc.2.trans hab.2⟩
 
-instance [preorder α] : is_trans α indistinguishable := ⟨λ a b c h, h.trans⟩
+instance : is_refl α indistinguishable := ⟨indistinguishable_refl⟩
+instance : is_trans α indistinguishable := ⟨λ a b c h, h.trans⟩
 
-instance [has_le α] [@decidable_rel α (≤)] : decidable_rel (@indistinguishable α _) :=
-λ _ _, and.decidable
+lemma indistinguishable.image (hf : monotone f) (h : indistinguishable a b) :
+  indistinguishable (f a) (f b) :=
+⟨hf h.1, hf h.2⟩
+
+variables (α)
+
+/-- `order.indistinguishable` as an equivalence relation. -/
+@[simps] def indistinguishable.setoid : setoid α :=
+⟨@indistinguishable α _, indistinguishable_refl, λ _ _, symm, λ _ _ _, trans⟩
+
+end preorder
 
 @[simp] lemma indistinguishable_iff_eq [partial_order α] {a b : α} :
   indistinguishable a b ↔ a = b := antisymm_iff
 
 alias indistinguishable_iff_eq ↔ indistinguishable.eq _
 
-end relation
+attribute [protected] indistinguishable.eq
+
 end order
+
+open order
 
 section preorder
 variables (α) [preorder α]
-
-/-- The antisymmetrization relation as an equivalence relation. -/
-@[simps] def order.indistinguishable.setoid : setoid α :=
-⟨@order.indistinguishable α _, order.indistinguishable_refl, λ _ _ h, h.symm, λ _ _ _ h, h.trans⟩
-
-open order
 
 /-- The partial order derived from a preorder by making pairwise comparable elements equal. This is
 the quotient by `λ a b, a ≤ b ∧ b ≤ a`. -/
 def antisymmetrization : Type* := quotient $ order.indistinguishable.setoid α
 
-variables {α}
+variables {α} [preorder β] {a b : α}
 
 /-- Turn an element into its antisymmetrization. -/
 def to_antisymmetrization : α → antisymmetrization α := quotient.mk'
@@ -93,12 +105,6 @@ quotient.induction_on' a h
 
 @[simp] lemma to_antisymmetrization_of_antisymmetrization (a : antisymmetrization α) :
   to_antisymmetrization (of_antisymmetrization a) = a := quotient.out_eq' _
-
-variables [preorder β] {a b : α}
-
-lemma order.indistinguishable.image {a b : α} (h : indistinguishable a b)
-  {f : α → β} (hf : monotone f) : indistinguishable (f a) (f b) :=
-⟨hf h.1, hf h.2⟩
 
 instance : partial_order (antisymmetrization α) :=
 { le := λ a b, quotient.lift_on₂' a b (≤) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,

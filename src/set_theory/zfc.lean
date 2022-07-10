@@ -682,8 +682,17 @@ def to_Set (p : Set.{u} → Prop) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ 
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
-theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
+@[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+/-- A proper class is one that isn't equal to the coercion of any set. -/
+def is_proper (A : Class.{u}) : Prop := A ∉ univ.{u}
+
+theorem is_proper_iff_forall {A : Class.{u}} : A.is_proper ↔ ∀ x : Set.{u}, ↑x ≠ A :=
+by { rw is_proper, simp }
+
+theorem is_proper.ne_Set {A : Class.{u}} : A.is_proper → ∀ x : Set.{u}, ↑x ≠ A :=
+is_proper_iff_forall.1
 
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}

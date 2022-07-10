@@ -48,6 +48,18 @@ end
 @[simp] theorem card_top_eq_top (α : Type*) [h : infinite α] : card_top α = ⊤ :=
 dif_neg $ not_finite_iff_infinite.2 h
 
+theorem card_top_congr (e : α ≃ β) : card_top α = card_top β :=
+begin
+  casesI fintype_or_infinite α,
+  { haveI := fintype.of_equiv α e,
+    rw [card_top_eq_fintype_card, card_top_eq_fintype_card, with_top.coe_eq_coe],
+    exact fintype.card_congr e },
+  { haveI := infinite.of_injective e e.injective,
+    simp }
+end
+
+alias card_top_congr ← _root_.equiv.card_top_eq
+
 theorem card_top_eq_zero (α : Type*) [is_empty α] : card_top α = 0 := by simp
 theorem card_top_eq_one (α : Type*) [unique α] : card_top α = 1 := by simp
 theorem card_top_empty : card_top empty = 0 := by simp
@@ -58,7 +70,9 @@ theorem card_top_punit : card_top punit = 1 := by simp
 theorem card_top_fin (n : ℕ) : card_top (fin n) = n := by simp
 theorem card_top_nat : card_top ℕ = ⊤ := by simp
 theorem card_top_int : card_top ℤ = ⊤ := by simp
-theorem card_top_rat : card_top ℚ = ⊤ := by simp
+
+theorem card_top_eq_of_equiv_fin {n} (e : α ≃ fin n) : card_top α = n :=
+by simpa using e.card_top_eq
 
 @[simp] theorem card_top_eq_zero_iff : card_top α = 0 ↔ is_empty α :=
 by casesI fintype_or_infinite α; simp
@@ -67,18 +81,52 @@ by casesI fintype_or_infinite α; simp
 by { casesI fintype_or_infinite α; simp, apply_instance }
 
 @[simp] theorem card_top_sum (α β : Type*) : card_top (α ⊕ β) = card_top α + card_top β :=
-by { casesI fintype_or_infinite α; casesI fintype_or_infinite β; simp,
-rw with_top.coe_add,
+by { casesI fintype_or_infinite α; casesI fintype_or_infinite β; simp [with_top.coe_add] }
 
-}
-
-end enat
+@[simp] theorem card_top_prod (α β : Type*) : card_top (α × β) = card_top α * card_top β :=
+begin
+  casesI fintype_or_infinite α;
+  casesI fintype_or_infinite β,
+  { simp [with_top.coe_mul] },
+  { casesI is_empty_or_nonempty α,
+    { simp [with_top.coe_zero] },
+    { simp } },
+  { casesI is_empty_or_nonempty β,
+    { simp [with_top.coe_zero] },
+    { simp } },
+  { simp }
+end
 
 /-! ### Cardinality as a nat -/
 
-namespace nat
+/-- The cardinality of a type as a natural numbers. Infinite types are mapped to `0`. -/
+def card (α : Type*) : ℕ := (card_top α).untop' 0
 
-def card (α : Type*) : ℕ := (enat.card α).to_nat 0
+@[simp] theorem card_eq_fintype_card (α : Type*) [fintype α] : card α = fintype.card α :=
+by { rw card, simp }
+
+@[simp] theorem card_top_eq_card (α : Type*) [finite α] : card_top α = card α :=
+by { rw card, haveI := fintype.of_finite α, simp }
+
+@[simp] theorem card_eq_zero_of_infinite (α : Type*) [h : infinite α] : card α = 0 :=
+by { rw card, simp }
+
+theorem card_congr (e : α ≃ β) : card α = card β := by rw [card, card, e.card_top_eq]
+
+alias card_congr ← _root_.equiv.card_eq
+
+theorem card_eq_zero_of_empty (α : Type*) [is_empty α] : card α = 0 := by simp
+theorem card_eq_one (α : Type*) [unique α] : card α = 1 := by simp
+theorem card_empty : card empty = 0 := by simp
+theorem card_pempty : card pempty = 0 := by simp
+theorem card_unit : card unit = 1 := by simp
+theorem card_punit : card punit = 1 := by simp
+theorem card_bool : card bool = 2 := by simp
+theorem card_fin (n : ℕ) : card (fin n) = n := by simp
+theorem card_nat : card ℕ = 0 := by simp
+theorem card_int : card ℤ = 0 := by simp
+
+theorem card_eq_of_equiv_fin {n} (e : α ≃ fin n) : card α = n := by simpa using e.card_eq
 
 end nat
 
@@ -86,7 +134,7 @@ end nat
 def finite.equiv_fin (α : Type*) [finite α] : α ≃ fin (nat.card α) :=
 begin
   have := (finite.exists_equiv_fin α).some_spec.some,
-  rwa nat.card_eq_of_equiv_fin this,
+  rwa nat.card_eq_of_equiv_fin this
 end
 
 /-- Similar to `finite.equiv_fin` but with control over the term used for the cardinality. -/
@@ -102,8 +150,7 @@ begin
   { simp [*, not_finite_iff_infinite.mpr h] },
 end
 
-lemma finite.card_pos_iff [finite α] :
-  0 < nat.card α ↔ nonempty α :=
+lemma finite.card_pos_iff [finite α] : 0 < nat.card α ↔ nonempty α :=
 begin
   haveI := fintype.of_finite α,
   simp only [nat.card_eq_fintype_card],
@@ -143,7 +190,10 @@ by { haveI := fintype.of_finite α, haveI := fintype.of_surjective f hf,
 lemma card_eq_zero_iff [finite α] : nat.card α = 0 ↔ is_empty α :=
 by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
 
-lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
+@[simp] theorem card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
+by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
+
+@[simp] theorem card_prod [finite α] [finite β] : nat.card (α × β) = nat.card α * nat.card β :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
 
 end finite

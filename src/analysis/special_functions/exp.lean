@@ -131,6 +131,9 @@ namespace real
 
 variables {x y z : ℝ}
 
+lemma exp_half (x : ℝ) : exp (x / 2) = sqrt (exp x) :=
+by rw [eq_comm, sqrt_eq_iff_sq_eq, sq, ← exp_add, add_halves]; exact (exp_pos _).le
+
 /-- The real exponential function tends to `+∞` at `+∞`. -/
 lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin
@@ -256,32 +259,64 @@ by rw [← tendsto_map'_iff, map_exp_at_top]
 @[simp] lemma map_exp_at_bot : map exp at_bot = 𝓝[>] 0 :=
 by rw [← coe_comp_exp_order_iso, ← filter.map_map, exp_order_iso.map_at_bot, ← map_coe_Ioi_at_bot]
 
-lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[>] 0) = at_bot :=
+@[simp] lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[>] 0) = at_bot :=
 by rw [← map_exp_at_bot, comap_map exp_injective]
 
 lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
+@[simp] lemma comap_exp_nhds_zero : comap exp (𝓝 0) = at_bot :=
+(comap_nhds_within_range exp 0).symm.trans $ by simp
+
 lemma is_o_pow_exp_at_top {n : ℕ} : (λ x, x^n) =o[at_top] real.exp :=
 by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
   using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
+
+/-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
+from below under `f`. -/
+@[simp] lemma is_O_one_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
+  (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x)) ↔ is_bounded_under (≥) l f :=
+calc (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x))
+    ↔ ∃ b : ℝ, 0 < b ∧ ∀ᶠ x in l, b ≤ exp (f x) :
+  iff.trans (is_O_const_left_iff_pos_le_norm one_ne_zero) $ by simp only [norm_eq_abs, abs_exp]
+... ↔ is_bounded_under (≥) l (λ x, exp_order_iso (f x)) :
+  by simp only [is_bounded_under, is_bounded, eventually_map, set_coe.exists, ge_iff_le,
+    ← subtype.coe_le_coe, exists_prop, coe_exp_order_iso_apply, subtype.coe_mk, set.mem_Ioi]
+... ↔ is_bounded_under (≥) l f :
+  exp_order_iso.monotone.is_bounded_under_ge_comp exp_order_iso.tendsto_at_bot
 
 end real
 
 namespace complex
 
+lemma comap_exp_comap_abs_at_top : comap exp (comap abs at_top) = comap re at_top :=
+calc comap exp (comap abs at_top) = comap re (comap real.exp at_top) :
+  by simp only [comap_comap, (∘), abs_exp]
+... = comap re at_top : by rw [real.comap_exp_at_top]
+
+lemma comap_exp_nhds_zero : comap exp (𝓝 0) = comap re at_bot :=
+calc comap exp (𝓝 0) = comap re (comap real.exp (𝓝 0)) :
+  by simp only [comap_comap, ← comap_abs_nhds_zero, (∘), abs_exp]
+... = comap re at_bot : by rw [real.comap_exp_nhds_zero]
+
+lemma comap_exp_nhds_within_zero : comap exp (𝓝[≠] 0) = comap re at_bot :=
+have exp ⁻¹' {0}ᶜ = univ, from eq_univ_of_forall exp_ne_zero,
+by simp [nhds_within, comap_exp_nhds_zero, this]
+
+lemma tendsto_exp_nhds_zero_iff {α : Type*} {l : filter α} {f : α → ℂ} :
+  tendsto (λ x, exp (f x)) l (𝓝 0) ↔ tendsto (λ x, re (f x)) l at_bot :=
+by rw [← tendsto_comap_iff, comap_exp_nhds_zero, tendsto_comap_iff]
+
 /-- `complex.abs (complex.exp z) → ∞` as `complex.re z → ∞`. TODO: use `bornology.cobounded`. -/
 lemma tendsto_exp_comap_re_at_top : tendsto exp (comap re at_top) (comap abs at_top) :=
-by simpa only [tendsto_comap_iff, (∘), abs_exp] using real.tendsto_exp_at_top.comp tendsto_comap
+comap_exp_comap_abs_at_top ▸ tendsto_comap
 
 /-- `complex.exp z → 0` as `complex.re z → -∞`.-/
 lemma tendsto_exp_comap_re_at_bot : tendsto exp (comap re at_bot) (𝓝 0) :=
-tendsto_zero_iff_norm_tendsto_zero.2 $
-  by simpa only [norm_eq_abs, abs_exp] using real.tendsto_exp_at_bot.comp tendsto_comap
+comap_exp_nhds_zero ▸ tendsto_comap
 
 lemma tendsto_exp_comap_re_at_bot_nhds_within : tendsto exp (comap re at_bot) (𝓝[≠] 0) :=
-tendsto_inf.2 ⟨tendsto_exp_comap_re_at_bot,
-  tendsto_principal.2 $ eventually_of_forall $ exp_ne_zero⟩
+comap_exp_nhds_within_zero ▸ tendsto_comap
 
 end complex

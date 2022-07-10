@@ -27,7 +27,7 @@ these are the Unicode "square with quill" brackets rather than the usual square 
     `x`, `y` in a Lie algebra or the commutator of two elements `x` and `y` in a group.
 
   2. for certain actions of one structure on another, like the action `⁅x, m⁆` of an element `x`
-    of a Lie algebra on an element `m` in one of its modules (analogous to `has_scalar` in the
+    of a Lie algebra on an element `m` in one of its modules (analogous to `has_smul` in the
     associative setting).
 
   3. for binary operations on substructures, like the commutator `⁅H, K⁆` of two subgroups `H` and

@@ -28,7 +28,7 @@ example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} 
 
 noncomputable theory
 open set measure_theory
-open_locale ennreal
+open_locale ennreal measure_theory
 
 variables {α : Type*} {mα : measurable_space α} {μ : measure α} {f g : α → ℝ≥0∞} {X Y : α → ℝ}
 
@@ -39,7 +39,7 @@ namespace probability_theory
   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator {Mf mα : measurable_space α}
   {μ : measure α} (hMf : Mf ≤ mα) (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
-  (h_ind : indep_sets Mf.measurable_set' {T} μ) (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) :
+  (h_ind : indep_sets {s | measurable_set[Mf] s} {T} μ) (h_meas_f : measurable[Mf] f) :
   ∫⁻ a, f a * T.indicator (λ _, c) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, T.indicator (λ _, c) a ∂μ :=
 begin
   revert f,
@@ -79,7 +79,7 @@ end
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   {Mf Mg mα : measurable_space α} {μ : measure α}
   (hMf : Mf ≤ mα) (hMg : Mg ≤ mα) (h_ind : indep Mf Mg μ)
-  (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) (h_meas_g : @measurable α ℝ≥0∞ Mg _ g) :
+  (h_meas_f : measurable[Mf] f) (h_meas_g : measurable[Mg] g) :
   ∫⁻ a, f a * g a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 begin
   revert g,

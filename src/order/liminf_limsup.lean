@@ -85,6 +85,14 @@ lemma is_bounded_under.mono {f g : filter β} {u : β → α} (h : f ≤ g) :
   g.is_bounded_under r u → f.is_bounded_under r u :=
 λ hg, hg.mono (map_mono h)
 
+lemma is_bounded_under.mono_le [preorder β] {l : filter α} {u v : α → β}
+  (hu : is_bounded_under (≤) l u) (hv : v ≤ᶠ[l] u) : is_bounded_under (≤) l v :=
+hu.imp $ λ b hb, (eventually_map.1 hb).mp $ hv.mono $ λ x, le_trans
+
+lemma is_bounded_under.mono_ge [preorder β] {l : filter α} {u v : α → β}
+  (hu : is_bounded_under (≥) l u) (hv : u ≤ᶠ[l] v) : is_bounded_under (≥) l v :=
+@is_bounded_under.mono_le α βᵒᵈ _ _ _ _ hu hv
+
 lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
@@ -195,17 +203,48 @@ lemma is_bounded_le_of_top [preorder α] [order_top α] {f : filter α} : f.is_b
 lemma is_bounded_ge_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_bounded (≥) :=
 ⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
-lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
+@[simp] lemma _root_.order_iso.is_bounded_under_le_comp [preorder α] [preorder β] (e : α ≃o β)
+  {l : filter γ} {u : γ → α} :
+  is_bounded_under (≤) l (λ x, e (u x)) ↔ is_bounded_under (≤) l u :=
+e.surjective.exists.trans $ exists_congr $ λ a, by simp only [eventually_map, e.le_iff_le]
+
+@[simp] lemma _root_.order_iso.is_bounded_under_ge_comp [preorder α] [preorder β] (e : α ≃o β)
+  {l : filter γ} {u : γ → α} :
+  is_bounded_under (≥) l (λ x, e (u x)) ↔ is_bounded_under (≥) l u :=
+e.dual.is_bounded_under_le_comp
+
+@[simp, to_additive]
+lemma is_bounded_under_le_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
+  is_bounded_under (≤) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≥) l u :=
+(order_iso.inv α).is_bounded_under_ge_comp
+
+@[simp, to_additive]
+lemma is_bounded_under_ge_inv [ordered_comm_group α] {l : filter β} {u : β → α} :
+  is_bounded_under (≥) l (λ x, (u x)⁻¹) ↔ is_bounded_under (≤) l u :=
+(order_iso.inv α).is_bounded_under_le_comp
+
+lemma is_bounded_under.sup [semilattice_sup α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≤ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≤ bv)⟩ :=
   ⟨bu ⊔ bv, show ∀ᶠ x in f, u x ⊔ v x ≤ bu ⊔ bv,
     by filter_upwards [hu, hv] with _ using sup_le_sup⟩
 
-lemma is_bounded_under_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
-  f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a)
-| ⟨bu, (hu : ∀ᶠ x in f, u x ≥ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≥ bv)⟩ :=
-  ⟨bu ⊓ bv, show ∀ᶠ x in f, u x ⊓ v x ≥ bu ⊓ bv,
-    by filter_upwards [hu, hv] with _ using inf_le_inf⟩
+@[simp] lemma is_bounded_under_le_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
+  f.is_bounded_under (≤) (λ a, u a ⊔ v a) ↔ f.is_bounded_under (≤) u ∧ f.is_bounded_under (≤) v :=
+⟨λ h, ⟨h.mono_le $ eventually_of_forall $ λ _, le_sup_left,
+  h.mono_le $ eventually_of_forall $ λ _, le_sup_right⟩, λ h, h.1.sup h.2⟩
+
+lemma is_bounded_under.inf [semilattice_inf α] {f : filter β} {u v : β → α} :
+  f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a) :=
+@is_bounded_under.sup αᵒᵈ β _ _ _ _
+
+@[simp] lemma is_bounded_under_ge_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
+  f.is_bounded_under (≥) (λ a, u a ⊓ v a) ↔ f.is_bounded_under (≥) u ∧ f.is_bounded_under (≥) v :=
+@is_bounded_under_le_sup αᵒᵈ _ _ _ _ _
+
+lemma is_bounded_under_le_abs [linear_ordered_add_comm_group α] {f : filter β} {u : β → α} :
+  f.is_bounded_under (≤) (λ a, |u a|) ↔ f.is_bounded_under (≤) u ∧ f.is_bounded_under (≥) u :=
+is_bounded_under_le_sup.trans $ and_congr iff.rfl is_bounded_under_le_neg
 
 /-- Filters are automatically bounded or cobounded in complete lattices. To use the same statements
 in complete and conditionally complete lattices but let automation fill automatically the

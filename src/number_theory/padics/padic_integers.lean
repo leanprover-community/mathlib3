@@ -144,10 +144,10 @@ intros; try { refl }; ext; simp; ring
 
 @[simp, norm_cast] lemma coe_coe_int : ∀ z : ℤ, ((z : ℤ_[p]) : ℚ_[p]) = z
 | (int.of_nat n) := by simp
-| -[1 + n] := by simp
+| -[1+n] := by simp
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
-def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
+def coe.ring_hom : ℤ_[p] →+* ℚ_[p] :=
 { to_fun := (coe : ℤ_[p] → ℚ_[p]),
   map_zero' := rfl,
   map_one' := rfl,
@@ -238,7 +238,7 @@ instance is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero],
   abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
-  abv_mul := λ _ _, by simp only [norm_def, padic_norm_e.mul, padic_int.coe_mul]}
+  abv_mul := λ _ _, by simp only [norm_def, padic_norm_e.mul, padic_int.coe_mul] }
 
 variables {p}
 
@@ -258,8 +258,7 @@ variables {p : ℕ} [fact p.prime]
 lemma norm_le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
 
-@[simp] lemma norm_mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
-by simp [norm_def]
+@[simp] lemma norm_mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ := by simp [norm_def]
 
 @[simp] lemma norm_pow (z : ℤ_[p]) : ∀ n : ℕ, ∥z ^ n∥ = ∥z∥ ^ n
 | 0 := by simp
@@ -271,35 +270,27 @@ theorem nonarchimedean : ∀ q r : ℤ_[p], ∥q + r∥ ≤ max (∥q∥) (∥r�
 theorem norm_add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q + r∥ = max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.add_eq_max_of_ne
 
-lemma norm_eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
-  (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
-by_contradiction $ λ hne,
-  not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_right) h
+lemma norm_eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]} (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
+by_contradiction $ λ hne, not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_right) h
 
 lemma norm_eq_of_norm_add_lt_left {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
-by_contradiction $ λ hne,
-  not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_left) h
+by_contradiction $ λ hne, not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_left) h
 
-@[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(z : ℚ_[p])∥ = ∥z∥ :=
-by simp [norm_def]
+@[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(z : ℚ_[p])∥ = ∥z∥ := by simp [norm_def]
 
-lemma norm_int_cast_eq_padic_norm (z : ℤ) : ∥(z : ℤ_[p])∥ = ∥(z : ℚ_[p])∥ :=
-by simp [norm_def]
+lemma norm_int_cast_eq_padic_norm (z : ℤ) : ∥(z : ℤ_[p])∥ = ∥(z : ℚ_[p])∥ := by simp [norm_def]
 
-@[simp] lemma norm_eq_padic_norm {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
-  @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
+@[simp] lemma norm_eq_padic_norm {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) : @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
 
 @[simp] lemma norm_p : ∥(p : ℤ_[p])∥ = p⁻¹ :=
 show ∥((p : ℤ_[p]) : ℚ_[p])∥ = p⁻¹, by exact_mod_cast padic_norm_e.norm_p
 
 @[simp] lemma norm_p_pow (n : ℕ) : ∥(p : ℤ_[p]) ^ n∥ = p ^ (-n : ℤ) :=
-show ∥((p ^ n : ℤ_[p]) : ℚ_[p])∥ = p ^ (-n : ℤ),
-by { convert padic_norm_e.norm_p_pow n, simp }
+show ∥((p ^ n : ℤ_[p]) : ℚ_[p])∥ = p ^ (-n : ℤ), by { convert padic_norm_e.norm_p_pow n, simp }
 
 private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) : cau_seq ℚ_[p] (λ a, ∥a∥) :=
-⟨ λ n, f n,
-  λ _ hε, by simpa [norm, norm_def] using f.cauchy hε ⟩
+⟨ λ n, f n, λ _ hε, by simpa [norm, norm_def] using f.cauchy hε ⟩
 
 variables (p)
 
@@ -307,8 +298,7 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
 ⟨ λ f,
   have hqn : ∥cau_seq.lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
     from padic_norm_e_lim_le zero_lt_one (λ _, norm_le_one _),
-  ⟨ ⟨_, hqn⟩,
-    λ ε, by simpa [norm, norm_def] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
+  ⟨⟨_, hqn⟩, λ ε, by simpa [norm, norm_def] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
 
 end padic_int
 
@@ -317,8 +307,7 @@ namespace padic_int
 variables (p : ℕ) [hp_prime : fact p.prime]
 include hp_prime
 
-lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) :
-  ∃ k : ℕ, p ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, p ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
@@ -332,8 +321,7 @@ begin
   { exact_mod_cast hp_prime.1.pos }
 end
 
-lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) :
-  ∃ k : ℕ, p ^ -((k : ℕ) : ℤ) < ε :=
+lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, p ^ -((k : ℕ) : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := @exists_pow_neg_lt p _ ε (by exact_mod_cast hε),
   use k,
@@ -356,22 +344,18 @@ padic_norm_e.norm_int_le_pow_iff_dvd _ _
 /-- `padic_int.valuation` lifts the `p`-adic valuation on `ℚ` to `ℤ_[p]`.  -/
 def valuation (x : ℤ_[p]) := padic.valuation (x : ℚ_[p])
 
-lemma norm_eq_pow_val {x : ℤ_[p]} (hx : x ≠ 0) :
-  ∥x∥ = p ^ -x.valuation :=
+lemma norm_eq_pow_val {x : ℤ_[p]} (hx : x ≠ 0) : ∥x∥ = p ^ -x.valuation :=
 begin
   convert padic.norm_eq_pow_val _,
   contrapose! hx,
   exact subtype.val_injective hx
 end
 
-@[simp] lemma valuation_zero : valuation (0 : ℤ_[p]) = 0 :=
-padic.valuation_zero
+@[simp] lemma valuation_zero : valuation (0 : ℤ_[p]) = 0 := padic.valuation_zero
 
-@[simp] lemma valuation_one : valuation (1 : ℤ_[p]) = 0 :=
-padic.valuation_one
+@[simp] lemma valuation_one : valuation (1 : ℤ_[p]) = 0 := padic.valuation_one
 
-@[simp] lemma valuation_p : valuation (p : ℤ_[p]) = 1 :=
-by simp [valuation, -cast_eq_of_rat_of_nat]
+@[simp] lemma valuation_p : valuation (p : ℤ_[p]) = 1 := by simp [valuation, -cast_eq_of_rat_of_nat]
 
 lemma valuation_nonneg (x : ℤ_[p]) : 0 ≤ x.valuation :=
 begin
@@ -381,7 +365,7 @@ begin
   rw [← neg_nonpos, ← (zpow_strict_mono h).le_iff_le],
   show (p : ℝ) ^ -valuation x ≤ p ^ 0,
   rw [← norm_eq_pow_val hx],
-  simpa using x.property,
+  simpa using x.property
 end
 
 @[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
@@ -398,7 +382,7 @@ begin
       ← zpow_add₀, ← neg_add, zpow_inj, neg_inj] at this,
   { exact_mod_cast hp_prime.1.pos },
   { exact_mod_cast hp_prime.1.ne_one },
-  { exact_mod_cast hp_prime.1.ne_zero },
+  { exact_mod_cast hp_prime.1.ne_zero }
 end
 
 section units
@@ -415,11 +399,10 @@ lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
     rw [norm_eq_padic_norm] at h,
     rw dif_pos h,
     apply subtype.ext_iff_val.2,
-    simp [mul_inv_cancel hk],
+    simp [mul_inv_cancel hk]
   end
 
-lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 :=
-by rw [mul_comm, mul_inv hz]
+lemma inv_mul {z : ℤ_[p]} (hz : ∥z∥ = 1) : z.inv * z = 1 := by rw [mul_comm, mul_inv hz]
 
 lemma is_unit_iff {z : ℤ_[p]} : is_unit z ↔ ∥z∥ = 1 :=
 ⟨λ h, begin
@@ -433,8 +416,8 @@ lemma norm_lt_one_add {z1 z2 : ℤ_[p]} (hz1 : ∥z1∥ < 1) (hz2 : ∥z2∥ < 1
 lt_of_le_of_lt (nonarchimedean _ _) (max_lt hz1 hz2)
 
 lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
-calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
-           ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (norm_le_one _) (norm_nonneg _) hz2
+calc ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
+          ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (norm_le_one _) (norm_nonneg _) hz2
 
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [norm_le_one z, nonunits, is_unit_iff]
@@ -443,12 +426,9 @@ by rw lt_iff_le_and_ne; simp [norm_le_one z, nonunits, is_unit_iff]
 def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : ℤ_[p]ˣ :=
 let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
 
-@[simp]
-lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u :=
-rfl
+@[simp] lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u := rfl
 
-@[simp] lemma norm_units (u : ℤ_[p]ˣ) : ∥(u : ℤ_[p])∥ = 1 :=
-is_unit_iff.mp $ by simp
+@[simp] lemma norm_units (u : ℤ_[p]ˣ) : ∥(u : ℤ_[p])∥ = 1 := is_unit_iff.mp $ by simp
 
 /-- `unit_coeff hx` is the unit `u` in the unique representation `x = u * p ^ n`.
   See `unit_coeff_spec`. -/
@@ -460,7 +440,7 @@ by simp [hx, nat.zpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuat
 mk_units hu
 
 @[simp] lemma unit_coeff_coe {x : ℤ_[p]} (hx : x ≠ 0) :
-  (unit_coeff hx : ℚ_[p]) = x * p ^ (-x.valuation) := rfl
+  (unit_coeff hx : ℚ_[p]) = x * p ^ -x.valuation := rfl
 
 lemma unit_coeff_spec {x : ℤ_[p]} (hx : x ≠ 0) :
   x = (unit_coeff hx : ℤ_[p]) * p ^ int.nat_abs (valuation x) :=
@@ -472,7 +452,7 @@ begin
     { simp },
     { exact_mod_cast hp_prime.1.ne_zero } },
   convert repr using 2,
-  rw [← zpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
+  rw [← zpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)]
 end
 
 end units
@@ -492,7 +472,7 @@ begin
   rw [inv_le_inv (aux _) (aux _)],
   have : p ^ n ≤ p ^ k ↔ n ≤ k := (strict_mono_pow hp_prime.1.one_lt).le_iff_le,
   rw [← this],
-  norm_cast,
+  norm_cast
 end
 
 lemma mem_span_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
@@ -519,17 +499,15 @@ begin
   { subst hx,
     simp only [norm_zero, zpow_neg, zpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
     exact_mod_cast nat.zero_le _ },
-  rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
+  rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx]
 end
 
-lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) :
-  ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
+lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) : ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
   rw norm_def, exact padic.norm_le_pow_iff_norm_lt_pow_add_one _ _,
 end
 
-lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) :
-  ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
+lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) : ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
 by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
 
 lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ (p : ℤ) ∣ x :=
@@ -537,7 +515,7 @@ begin
   have := norm_le_pow_iff_mem_span_pow x 1,
   rw [ideal.mem_span_singleton, pow_one] at this,
   rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
-  simp only [zpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
+  simp only [zpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add]
 end
 
 @[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ (p : ℤ) ^ n ∣ a :=

@@ -399,6 +399,16 @@ def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
 
 @[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
 
+@[simp] lemma degree_eq_bot_iff {f : R[T;T⁻¹]} : f.degree = ⊥ ↔ f = 0 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h, degree_zero]⟩,
+  rw [degree, finset.max_eq_sup_with_bot] at h,
+  ext n,
+  refine not_not.mp (λ f0, _),
+  simp_rw [finset.sup_eq_bot_iff, finsupp.mem_support_iff, ne.def, with_bot.coe_ne_bot] at h,
+  exact h n f0,
+end
+
 section exact_degrees
 
 open_locale classical

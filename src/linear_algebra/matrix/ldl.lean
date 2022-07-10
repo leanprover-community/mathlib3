@@ -77,7 +77,7 @@ noncomputable def LDL.diag_entries : n → 𝕜 :=
 /-- The diagonal matrix `D` of the LDL decomposition. -/
 noncomputable def LDL.diag : matrix n n 𝕜 := matrix.diagonal (LDL.diag_entries hS)
 
-lemma LDL.lower_inv_triangular [succ_order n] {i j : n} (hij : i < j) :
+lemma LDL.lower_inv_triangular {i j : n} (hij : i < j) :
   LDL.lower_inv hS i j = 0 :=
 by rw [← @gram_schmidt_triangular 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose) n _ _ _
     i j hij (pi.basis_fun 𝕜 n), pi.basis_fun_repr, LDL.lower_inv]

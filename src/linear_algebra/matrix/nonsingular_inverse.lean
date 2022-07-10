@@ -149,14 +149,23 @@ def invertible_of_left_inverse (h : B ⬝ A = 1) : invertible A :=
 def invertible_of_right_inverse (h : A ⬝ B = 1) : invertible A :=
 ⟨B, mul_eq_one_comm.mp h, h⟩
 
-noncomputable lemma invertible_transpose [invertible A] : invertible Aᵀ :=
+/-- The transpose of an invertible matrix is invertible. -/
+instance invertible_transpose [invertible A] : invertible Aᵀ :=
 begin
   haveI : invertible Aᵀ.det,
     by simpa using det_invertible_of_invertible A,
   exact invertible_of_det_invertible Aᵀ
 end
 
-noncomputable lemma invertible_of_invertible_conj_transpose [star_ring α] [invertible Aᴴ] :
+/-- A matrix is invertible if the transpose is invertible. -/
+def invertible__of_invertible_transpose [invertible Aᵀ] : invertible A :=
+begin
+  rw ←transpose_transpose A,
+  apply_instance
+end
+
+/-- A matrix is invertible if the conjugate transpose is invertible. -/
+def invertible_of_invertible_conj_transpose [star_ring α] [invertible Aᴴ] :
   invertible A :=
 begin
   rw ←conj_transpose_conj_transpose A,

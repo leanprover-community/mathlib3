@@ -348,7 +348,7 @@ rfl
 
 @[simp] theorem eval_const (a : pSet) : ∀ n : ℕ, (const a n).eval = arity.const ⟦a⟧ n
 | 0     := rfl
-| (n+1) := funext $ λ x, quotient.induction_on x (λ y, eval_const _)
+| (n+1) := funext $ λ x, quotient.induction_on x $ λ y, eval_const _
 
 end resp
 

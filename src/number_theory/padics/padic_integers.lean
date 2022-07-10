@@ -370,11 +370,11 @@ begin
 end
 
 @[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
-  (p ^ n * c).valuation = n + c.valuation :=
+  (p ^ n * c : ℤ_[p]).valuation = n + c.valuation :=
 begin
-  have : ∥p ^ n * c∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
+  have : ∥(p ^ n * c : ℤ_[p])∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
   { exact norm_mul _ _ },
-  have aux : p ^ n * c ≠ 0,
+  have aux : (p ^ n * c : ℤ_[p]) ≠ 0,
   { contrapose! hc, rw mul_eq_zero at hc, cases hc,
     { refine (hp_prime.1.ne_zero _).elim,
       exact_mod_cast (pow_eq_zero hc) },

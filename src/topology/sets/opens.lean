@@ -185,7 +185,7 @@ begin
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
 end
 
-lemma is_compact_element_iff (s : opens α) :
+@[simp] lemma is_compact_element_iff (s : opens α) :
   complete_lattice.is_compact_element s ↔ is_compact (s : set α) :=
 begin
   rw [is_compact_iff_finite_subcover, complete_lattice.is_compact_element_iff],

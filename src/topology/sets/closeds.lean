@@ -71,7 +71,7 @@ map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (closeds α) (se
 end closeds
 
 /-- The complement of a closed set as an open set. -/
-@[simps] def closeds.compl (s : closeds α) : opens α := ⟨sᶜ, s.2.1⟩
+@[simps] def closeds.compl (s : closeds α) : opens α := ⟨sᶜ, s.2.is_open_compl⟩
 
 /-- The complement of an open set as a closed set. -/
 @[simps] def opens.compl (s : opens α) : closeds α := ⟨sᶜ, s.2.is_closed_compl⟩

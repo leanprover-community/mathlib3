@@ -73,7 +73,7 @@ example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 @[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
   (ρ : representation k G V) : fdRep k G :=
-⟨(FinVect.of k V).obj, ρ⟩
+⟨FinVect.of k V, ρ⟩
 
 instance : has_forget₂ (fdRep k G) (Rep k G) :=
 { forget₂ := (forget₂ (FinVect k) (Module k)).map_Action (Mon.of G), }

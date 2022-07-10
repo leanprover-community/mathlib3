@@ -433,6 +433,22 @@ begin
   exact lt_of_le_of_lt h (factorization_lt n p hn),
 end
 
+lemma Ico_filter_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : n ≤ p ^ b):
+  (Ico 1 n).filter (λ i, p ^ i ∣ n) = (Icc 1 b).filter (λ i, p ^ i ∣ n) :=
+begin
+  ext x,
+  simp only [finset.mem_filter, mem_Ico, mem_Icc, and.congr_left_iff, and.congr_right_iff,
+    ←lt_succ_iff],
+  intros h1 h2,
+  split,
+  {
+    intros h,
+    sorry},
+  {
+    intros h,
+    sorry},
+end
+
 /-! ### Factorization and coprimes -/
 
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/

@@ -406,7 +406,7 @@ by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization
 
 /-- The set of positive powers of prime `p` that divide `n` is exactly the set of
 positive natural numbers up to `n.factorization p`. -/
-lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp: prime p) :
+lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp : prime p) :
   Icc 1 ((n.factorization) p) = (Ico 1 n).filter (λ (i : ℕ), p ^ i ∣ n) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },

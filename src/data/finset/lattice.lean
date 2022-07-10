@@ -110,7 +110,7 @@ begin
   simp_rw finset.sup_le_iff,
   exact ⟨λ h c hc b hb, h b hb c hc, λ h b hb c hc, h c hc b hb⟩,
 end
-#where
+
 lemma le_sup_of_mem [decidable_eq α] {a : α} (as : a ∈ s.image f) :
   a ≤ s.sup f :=
 begin

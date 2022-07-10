@@ -831,7 +831,7 @@ finset.induction_on s (λ _ H, by cases H)
   end)
 
 lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) : ↑a ≤ s.max :=
-le_sup_of_mem_set ⟨a, as, rfl⟩
+le_sup as
 
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
 with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le

@@ -319,6 +319,8 @@ instance inhabited {n} : inhabited (resp n) := ⟨const default n⟩
 equivalence. -/
 def f {n} (f : resp (n+1)) (x : pSet) : resp n := ⟨f.1 x, f.2 _ _ $ refl x⟩
 
+@[simp] theorem f_val {n} (f : resp (n+1)) (x : pSet) : (f.f x).1 = f.1 x := rfl
+
 @[simp] theorem const_succ_f (n : ℕ) (a x : pSet) : (const a n.succ).f x = const a n := rfl
 
 /-- Function equivalence for functions respecting equivalence. See `pSet.arity.equiv`. -/
@@ -384,7 +386,7 @@ def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval f = s), de
 def definable.resp {n} : Π (s : arity Set.{u} n) [definable n s], resp n
 | ._ ⟨f⟩ := f
 
-theorem definable.eq {n} :
+@[simp] theorem definable.eq {n} :
   Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval = s
 | ._ ⟨f⟩ := rfl
 
@@ -471,6 +473,10 @@ instance : has_insert Set Set := ⟨Set.insert⟩
 instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
 
 instance : is_lawful_singleton Set Set := ⟨λ x, rfl⟩
+
+@[simp] theorem mk_singleton (x : pSet) : mk {x} = {mk x} := rfl
+
+@[simp] theorem mk_insert (x y : pSet) : mk (insert x y) = insert (mk x) (mk y) := rfl
 
 @[simp] theorem mem_insert {x y z : Set.{u}} : x ∈ insert y z ↔ x = y ∨ x ∈ z :=
 quotient.induction_on₃ x y z
@@ -686,9 +692,24 @@ def funs (x y : Set.{u}) : Set.{u} :=
 by simp [funs, is_func]
 
 -- TODO(Mario): Prove this computably
-noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] :
+instance map_definable_aux (f : Set.{u} → Set.{u}) [H : definable 1 f] :
   definable 1 (λ y, pair y (f y)) :=
-@classical.all_definable 1 _
+begin
+resetI,
+  let h := λ x : pSet, ({{x}, {x, (@definable.resp 1 f H).1 x}} : pSet),
+  let H : resp 1 := ⟨h, sorry⟩,
+  convert definable.mk H,
+  funext x,
+  apply quotient.induction_on x,
+  intro y,
+  simp [pair, has_insert.insert],
+  congr,
+  have := mk_insert y {(@definable.resp 1 f _).1 y},
+  rw subtype.val_eq_coe at this,
+  rw this,
+
+
+end
 
 /-- Graph of a function: `map f x` is the ZFC function which maps `a ∈ x` to `f a` -/
 noncomputable def map (f : Set → Set) [H : definable 1 f] : Set → Set :=

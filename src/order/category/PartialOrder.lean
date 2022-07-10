@@ -63,7 +63,7 @@ lemma PartialOrder_dual_comp_forget_to_Preorder :
 
 /-- `antisymmetrization` as a functor. It is the free functor. -/
 def Preorder_to_PartialOrder : Preorder.{u} ⥤ PartialOrder :=
-{ obj := λ X, PartialOrder.of (antisymmetrization X (≤)),
+{ obj := λ X, PartialOrder.of (antisymmetrization X),
   map := λ X Y f, f.antisymmetrization,
   map_id' := λ X,
     by { ext, exact quotient.induction_on' x (λ x, quotient.map'_mk' _ (λ a b, id) _) },
@@ -76,9 +76,9 @@ def Preorder_to_PartialOrder_forget_adjunction :
   Preorder_to_PartialOrder.{u} ⊣ forget₂ PartialOrder Preorder :=
 adjunction.mk_of_hom_equiv
   { hom_equiv := λ X Y, { to_fun := λ f,
-      ⟨f ∘ to_antisymmetrization (≤), f.mono.comp to_antisymmetrization_mono⟩,
-    inv_fun := λ f, ⟨λ a, quotient.lift_on' a f $ λ a b h, (antisymm_rel.image h f.mono).eq, λ a b,
-      quotient.induction_on₂' a b $ λ a b h, f.mono h⟩,
+      ⟨f ∘ to_antisymmetrization, f.mono.comp to_antisymmetrization_mono⟩,
+    inv_fun := λ f, ⟨λ a, quotient.lift_on' a f $ λ a b h, (indistinguishable.image h f.mono).eq,
+      λ a b, quotient.induction_on₂' a b $ λ a b h, f.mono h⟩,
     left_inv := λ f, order_hom.ext _ _ $ funext $ λ x, quotient.induction_on' x $ λ x, rfl,
     right_inv := λ f, order_hom.ext _ _ $ funext $ λ x, rfl },
   hom_equiv_naturality_left_symm' := λ X Y Z f g,

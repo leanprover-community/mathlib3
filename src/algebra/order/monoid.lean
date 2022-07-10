@@ -857,9 +857,9 @@ variables [has_add α] {a b c d : with_top α} {x y : α}
 
 instance : has_add (with_top α) := ⟨λ o₁ o₂, o₁.bind $ λ a, o₂.map $ (+) a⟩
 
-@[norm_cast] lemma coe_add : ((x + y : α) : with_top α) = x + y := rfl
-@[norm_cast] lemma coe_bit0 : ((bit0 x : α) : with_top α) = bit0 x := rfl
-@[norm_cast] lemma coe_bit1 [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a := rfl
+@[simp, norm_cast] lemma coe_add : ((x + y : α) : with_top α) = x + y := rfl
+@[simp, norm_cast] lemma coe_bit0 : ((bit0 x : α) : with_top α) = bit0 x := rfl
+@[simp, norm_cast] lemma coe_bit1 [has_one α] {a : α} : ((bit1 a : α) : with_top α) = bit1 a := rfl
 
 @[simp] lemma top_add (a : with_top α) : ⊤ + a = ⊤ := rfl
 @[simp] lemma add_top (a : with_top α) : a + ⊤ = ⊤ := by cases a; refl

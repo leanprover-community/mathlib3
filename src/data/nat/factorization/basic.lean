@@ -416,12 +416,9 @@ lemma set_of_pow_dvd_eq_Icc_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠
 by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization hn] }
 
 /-- The set of positive powers of prime `p` that divide non-zero `n` is finite. -/
-def set_of_pow_dvd.fintype {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  fintype {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} :=
-begin
-  simp only [set_of_pow_dvd_eq pp hn, coe_filter, coe_Ico],
-  apply set.fintype_sep,
-end
+def set_of_pow_dvd.finite {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n}.finite :=
+by { rw set_of_pow_dvd_eq_Icc_factorization pp hn, apply set.finite_of_fintype }
 
 lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
   n.factorization p = ((finset.Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=

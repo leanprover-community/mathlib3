@@ -475,8 +475,7 @@ begin
     is_localization.is_domain_localization (le_non_zero_divisors_of_no_zero_divisors hM'),
   suffices : (⊥ : ideal (localization M')).is_maximal,
   { rw le_antisymm bot_le (comap_bot_le_of_injective _ (is_localization.map_injective_of_injective
-      M (localization M) (localization M')
-      quotient_map_injective (le_non_zero_divisors_of_no_zero_divisors hM'))),
+      M (localization M) (localization M') quotient_map_injective )),
     refine is_maximal_comap_of_is_integral_of_is_maximal' _ _ ⊥ this,
     apply is_integral_is_localization_polynomial_quotient P _ (submodule.coe_mem m) },
   rw (map_bot.symm : (⊥ : ideal (localization M')) =

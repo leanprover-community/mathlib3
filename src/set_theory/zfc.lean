@@ -278,7 +278,8 @@ def resp.equiv {n} (a b : resp n) : Prop := arity.equiv a.1 b.1
 
 protected theorem resp.equiv.refl {n} (a : resp n) : resp.equiv a a := a.2
 
-protected theorem resp.equiv.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b → resp.equiv a c
+protected theorem resp.equiv.euc : Π {n} {a b c : resp n},
+  resp.equiv a b → resp.equiv c b → resp.equiv a c
 | 0     a b c hab hcb := equiv.euc hab hcb
 | (n+1) a b c hab hcb := λ x y h,
   @resp.equiv.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
@@ -286,8 +287,8 @@ protected theorem resp.equiv.euc : Π {n} {a b c : resp n}, resp.equiv a b → r
 protected theorem resp.equiv.symm {n} {a b : resp n} : resp.equiv a b → resp.equiv b a :=
 (resp.equiv.refl b).euc
 
-protected theorem resp.equiv.trans {n} {x y z : resp n} (h1 : resp.equiv x y) (h2 : resp.equiv y z) :
-  resp.equiv x z :=
+protected theorem resp.equiv.trans {n} {x y z : resp n}
+  (h1 : resp.equiv x y) (h2 : resp.equiv y z) : resp.equiv x z :=
 h1.euc h2.symm
 
 instance resp.setoid {n} : setoid (resp n) :=

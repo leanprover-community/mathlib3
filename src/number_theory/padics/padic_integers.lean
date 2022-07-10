@@ -463,7 +463,7 @@ section norm_le_iff
 /-! ### Various characterizations of open unit balls -/
 
 lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
-  ∥x∥ ≤ p ^ (-n : ℤ) ↔ n ≤ x.valuation :=
+  ∥x∥ ≤ p ^ (-n : ℤ) ↔ (n : ℤ) ≤ x.valuation :=
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
@@ -477,7 +477,7 @@ begin
 end
 
 lemma mem_span_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
-  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ n ≤ x.valuation :=
+  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ (n : ℤ) ≤ x.valuation :=
 begin
   rw [ideal.mem_span_singleton],
   split,

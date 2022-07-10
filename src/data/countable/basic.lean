@@ -92,7 +92,7 @@ instance [countable α] [countable β] : countable (pprod α β) :=
 countable.of_equiv (plift α × plift β) (equiv.plift.prod_pprod equiv.plift)
 
 instance [countable α] [Π a, countable (π a)] : countable (psigma π) :=
-countable.of_equiv _ (equiv.psigma_equiv_sigma_plift π).symm
+countable.of_equiv (Σ a : plift α, plift (π a.down)) (equiv.psigma_equiv_sigma_plift π).symm
 
 instance [finite α] [Π a, countable (π a)] : countable (Π a, π a) :=
 begin

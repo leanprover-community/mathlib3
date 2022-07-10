@@ -366,14 +366,6 @@ end
 
 section support
 
-def fin_to_set (s : finset ℕ) : finset ℤ :=
-s.image coe
-
---@[simp] lemma support_single (n : ℤ) (a : R) : (single n a : R[T;T⁻¹]).support ⊆ {n} :=
---begin
---  sorry
---end
-
 lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
 by simpa only [← single_eq_C_mul_T] using support_single_subset
 

@@ -201,6 +201,7 @@ do
 /-- Make a structure of type `t` using a list of possibly absent fields -/
 meta def mk_struct_opt (t : expr) : structure_instance_info → list (name × pexpr) → tactic pexpr
 | struct [] := do
+  -- allow this partial constructor if `to_expr` allows it
   let p := ``(pure %%(pexpr.mk_structure_instance struct) : exceptional %%t),
   to_expr p,
   pure p
@@ -217,7 +218,8 @@ meta def mk_struct_opt (t : expr) : structure_instance_info → list (name × pe
   | r@(interaction_monad.result.success _ s) := r
   | (interaction_monad.result.exception _ p s) :=
     interaction_monad.result.success
-      ``(exception $ λ o, let x := %%`(name) in format!"Field {x} is required" : exceptional %%t) ts
+      ``(exception $ λ o, let x := %%`(name) in format!"Field {x} is required" : exceptional %%t)
+      ts
   end : tactic pexpr),
   pure ``(option.elim %%without_field %%with_field %%val)
 
@@ -282,25 +284,24 @@ instance_derive_handler ``non_null_json_serializable $ do
   (fields) ← json_fields.mfoldl (λ (fields : list (name × pexpr)) ⟨f, j⟩, do
     match j with
     | none := do
-        focus1 (
-          do {refine ``(dite _ _ (λ _, exception $ λ _, format!"condition does not hold")),
+        focus1 (do
+        {refine ``(dite _ _ (λ _, exception $ λ _, format!"condition does not hold")),
           rotate_right 1 }),
         v ← tactic.intro (`field ++ f),
         pure (
           (f, ``(some %%v)) :: fields)
     | some j := do
-        focus1 (do {refine ``(option.mmap (of_json _) %%j >>= _), rotate_right 1 }),
+        focus1 (do
+        { refine ``(option.mmap (of_json _) %%j >>= _), rotate_right 1 }),
         tactic.clear j,
-        trace_state,
-        trace "about to intro",
         v ← tactic.intro (`field ++ f),
-        trace_state,
         pure (
           (f, to_pexpr v) :: fields)
     end) ([]),
+  trace_state,
   p ← mk_struct_opt e (structure_instance_info.mk (some struct_name) [] [] []) fields,
   refine p
   -- exact `(pure %%val : exceptional %%e)
 
 
-#check tactic.focus
+#check tactic.focus1

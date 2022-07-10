@@ -30,11 +30,34 @@ run_cmd do
   some j ← pure (json.parse "{}"),
   of_json (@no_fields 37) j
 
-@[derive [decidable_eq, non_null_json_serializable]]
+-- @[derive [decidable_eq, non_null_json_serializable]]
 structure has_default : Type :=
-(x : ℕ)
+(x : ℕ := 2)
 (y : fin x.succ := 3 * fin.of_nat x)
-(z : ℕ := 2)
+(z : ℕ := 3)
+
+open exceptional
+
+-- This is what we need to generate
+meta def has_default.of_json (j : json) : exceptional (has_default) :=
+do
+  p ← json_serializable.field_starter j,
+  (f_y, p) ← json_serializable.field_get p "y",
+  (f_z, p) ← json_serializable.field_get p "z",
+  f_y.mmap (of_json _) >>= option.elim
+    (f_z.mmap (of_json _) >>= option.elim
+      (pure {has_default.})
+      (λ z, pure {has_default. z := z})
+    )
+    (λ y, f_z.mmap (of_json _) >>= option.elim
+        (pure {has_default.})
+        (λ z, pure {has_default. y := y, z := z})
+    )
+
+run_cmd do
+  e ← has_default.of_json (json.object []),
+  tactic.trace e.z
+
 
 run_cmd do
   expr.macro m [e, l] ← pure ``({x := 10, z := 30} : has_default),

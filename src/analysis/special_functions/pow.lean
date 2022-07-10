@@ -824,6 +824,15 @@ lemma continuous_at_rpow (p : ℝ × ℝ) (h : p.1 ≠ 0 ∨ 0 < p.2) :
   continuous_at (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
 h.elim (λ h, continuous_at_rpow_of_ne p h) (λ h, continuous_at_rpow_of_pos p h)
 
+lemma continuous_at_rpow_const (x : ℝ) (q : ℝ) (h : x ≠ 0 ∨ 0 < q) :
+  continuous_at (λ (x : ℝ), x ^ q) x :=
+begin
+  change continuous_at ((λ p : ℝ × ℝ, p.1 ^ p.2) ∘ (λ y : ℝ, (y, q))) x,
+  apply continuous_at.comp,
+  { exact continuous_at_rpow (x, q) h },
+  { exact (continuous_id'.prod_mk continuous_const).continuous_at }
+end
+
 end real
 
 section

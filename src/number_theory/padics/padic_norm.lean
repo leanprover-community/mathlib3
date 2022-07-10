@@ -41,18 +41,17 @@ p-adic, p adic, padic, norm, valuation
 If `q ≠ 0`, the p-adic norm of a rational `q` is `p ^ (-(padic_val_rat p q))`.
 If `q = 0`, the p-adic norm of `q` is 0.
 -/
-def padic_norm (p : ℕ) (q : ℚ) : ℚ :=
-if q = 0 then 0 else (↑p : ℚ) ^ (-(padic_val_rat p q))
+def padic_norm (p : ℕ) (q : ℚ) : ℚ := if q = 0 then 0 else (p : ℚ) ^ -padic_val_rat p q
 
 namespace padic_norm
 
 section padic_norm
 open padic_val_rat
-variables (p : ℕ)
+variables {p : ℕ}
 
 /-- Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`. -/
 @[simp] protected lemma eq_zpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
-  padic_norm p q = p ^ (-(padic_val_rat p q)) :=
+  padic_norm p q = p ^ -padic_val_rat p q :=
 by simp [hq, padic_norm]
 
 /-- The p-adic norm is nonnegative. -/
@@ -84,7 +83,7 @@ The p-adic norm of `p` is `1/p` if `p` is prime.
 
 See also `padic_norm.padic_norm_p` for a version that assumes `1 < p`.
 -/
-@[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
+@[simp] lemma padic_norm_p_of_prime {p : ℕ} [fact p.prime] : padic_norm p p = 1 / p :=
 padic_norm_p $ nat.prime.one_lt (fact.out _)
 
 /-- The p-adic norm of `q` is `1` if `q` is prime and not equal to `p`. -/
@@ -113,7 +112,7 @@ The p-adic norm of `p` is less than 1 if `p` is prime.
 
 See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`.
 -/
-lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
+lemma padic_norm_p_lt_one_of_prime {p : ℕ} [fact p.prime] : padic_norm p p < 1 :=
 padic_norm_p_lt_one $ nat.prime.one_lt (fact.out _)
 
 /-- `padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`. -/
@@ -131,7 +130,7 @@ include hp
 /-- If `q ≠ 0`, then `padic_norm p q ≠ 0`. -/
 protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
 begin
-  rw padic_norm.eq_zpow_of_nonzero p hq,
+  rw padic_norm.eq_zpow_of_nonzero hq,
   apply zpow_ne_zero_of_ne_zero,
   exact_mod_cast ne_of_gt hp.1.pos
 end
@@ -154,16 +153,16 @@ else if hr : r = 0 then
   by simp [hr]
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
-  have (↑p : ℚ) ≠ 0, by simp [hp.1.ne_zero],
+  have (p : ℚ) ≠ 0, by simp [hp.1.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, zpow_add₀ this, mul_comm]
 
 /-- The p-adic norm respects division. -/
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else
-eq_div_of_mul_eq (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
+eq_div_of_mul_eq (padic_norm.nonzero hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
 /-- The p-adic norm of an integer is at most 1. -/
-protected theorem of_int (z : ℤ) : padic_norm p ↑z ≤ 1 :=
+protected theorem of_int (z : ℤ) : padic_norm p z ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one] else
 begin
   unfold padic_norm,
@@ -177,8 +176,8 @@ end
 
 private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_val_rat p r) :
   padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) :=
-have hnqp : padic_norm p q ≥ 0, from padic_norm.nonneg _ _,
-have hnrp : padic_norm p r ≥ 0, from padic_norm.nonneg _ _,
+have hnqp : padic_norm p q ≥ 0, from padic_norm.nonneg _,
+have hnrp : padic_norm p r ≥ 0, from padic_norm.nonneg _,
 if hq : q = 0 then
   by simp [hq, max_eq_right hnrp, le_max_right]
 else if hr : r = 0 then
@@ -207,8 +206,8 @@ the norm of `q`.
 protected theorem nonarchimedean {q r : ℚ} :
   padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) :=
 begin
-    wlog hle := le_total (padic_val_rat p q) (padic_val_rat p r) using [q r],
-    exact nonarchimedean_aux p hle
+  wlog hle := le_total (padic_val_rat p q) (padic_val_rat p r) using [q r],
+  exact nonarchimedean_aux hle
 end
 
 /--
@@ -216,16 +215,16 @@ The p-adic norm respects the triangle inequality: the norm of `p + q` is at most
 plus the norm of `q`.
 -/
 theorem triangle_ineq (q r : ℚ) : padic_norm p (q + r) ≤ padic_norm p q + padic_norm p r :=
-calc padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) : padic_norm.nonarchimedean p
+calc padic_norm p (q + r) ≤ max (padic_norm p q) (padic_norm p r) : padic_norm.nonarchimedean
                        ... ≤ padic_norm p q + padic_norm p r :
-                         max_le_add_of_nonneg (padic_norm.nonneg p _) (padic_norm.nonneg p _)
+                         max_le_add_of_nonneg (padic_norm.nonneg _) (padic_norm.nonneg _)
 
 /--
 The p-adic norm of a difference is at most the max of each component. Restates the archimedean
 property of the p-adic norm.
 -/
 protected theorem sub {q r : ℚ} : padic_norm p (q - r) ≤ max (padic_norm p q) (padic_norm p r) :=
-by rw [sub_eq_add_neg, ←padic_norm.neg p r]; apply padic_norm.nonarchimedean
+by rw [sub_eq_add_neg, ←padic_norm.neg r]; apply padic_norm.nonarchimedean
 
 /--
 If the p-adic norms of `q` and `r` are different, then the norm of `q + r` is equal to the max of
@@ -238,7 +237,7 @@ begin
   have hlt : padic_norm p r < padic_norm p q, from lt_of_le_of_ne hle hne.symm,
   have : padic_norm p q ≤ max (padic_norm p (q + r)) (padic_norm p r), from calc
    padic_norm p q = padic_norm p (q + r - r) : by congr; ring
-               ... ≤ max (padic_norm p (q + r)) (padic_norm p (-r)) : padic_norm.nonarchimedean p
+               ... ≤ max (padic_norm p (q + r)) (padic_norm p (-r)) : padic_norm.nonarchimedean
                ... = max (padic_norm p (q + r)) (padic_norm p r) : by simp,
   have hnge : padic_norm p r ≤ padic_norm p (q + r),
   { apply le_of_not_gt,
@@ -248,9 +247,8 @@ begin
     assumption },
   have : padic_norm p q ≤ padic_norm p (q + r), by rwa [max_eq_left hnge] at this,
   apply _root_.le_antisymm,
-  { apply padic_norm.nonarchimedean p },
-  { rw max_eq_left_of_lt hlt,
-    assumption }
+  { apply padic_norm.nonarchimedean },
+  { rwa max_eq_left_of_lt hlt }
 end
 
 /--
@@ -258,24 +256,16 @@ The p-adic norm is an absolute value: positive-definite and multiplicative, sati
 inequality.
 -/
 instance : is_absolute_value (padic_norm p) :=
-{ abv_nonneg := padic_norm.nonneg p,
-  abv_eq_zero :=
-    begin
-      intros,
-      constructor; intro,
-      { apply zero_of_padic_norm_eq_zero p, assumption },
-      { simp [*] }
-    end,
-  abv_add := padic_norm.triangle_ineq p,
-  abv_mul := padic_norm.mul p }
+{ abv_nonneg := padic_norm.nonneg,
+  abv_eq_zero := λ _, ⟨zero_of_padic_norm_eq_zero, λ hx, by simpa only [hx]⟩,
+  abv_add := padic_norm.triangle_ineq,
+  abv_mul := padic_norm.mul }
 
-variable {p}
-
-lemma dvd_iff_norm_le {n : ℕ} {z : ℤ} : ↑(p^n) ∣ z ↔ padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
+lemma dvd_iff_norm_le {n : ℕ} {z : ℤ} : ((p ^ n : ℕ) : ℤ) ∣ z ↔ padic_norm p z ≤ p ^ (-n : ℤ) :=
 begin
   unfold padic_norm, split_ifs with hz,
   { norm_cast at hz,
-    have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
+    have : 0 ≤ (p ^ n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
     simp [hz, this] },
   { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int,
       padic_val_int.of_ne_one_ne_zero hp.1.ne_one _],
@@ -287,4 +277,5 @@ begin
 end
 
 end padic_norm
+
 end padic_norm

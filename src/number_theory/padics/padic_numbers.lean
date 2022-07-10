@@ -88,8 +88,8 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     from lt_max_iff.2 (or.inl this),
   begin
     by_contradiction hne,
-    rw ←padic_norm.neg p (f m) at hne,
-    have hnam := add_eq_max_of_ne p hne,
+    rw ←padic_norm.neg (f m) at hne,
+    have hnam := add_eq_max_of_ne hne,
     rw [padic_norm.neg, max_comm] at hnam,
     rw [←hnam, sub_eq_add_neg, add_comm] at this,
     apply _root_.lt_irrefl _ this
@@ -295,7 +295,7 @@ else
 lemma norm_values_discrete (a : padic_seq p) (ha : ¬ a ≈ 0) :
   (∃ (z : ℤ), a.norm = ↑p ^ (-z)) :=
 let ⟨k, hk, hk'⟩ := norm_eq_norm_app_of_nonzero ha in
-by simpa [hk] using padic_norm.values_discrete p hk'
+by simpa [hk] using padic_norm.values_discrete hk'
 
 lemma norm_one : norm (1 : padic_seq p) = 1 :=
 have h1 : ¬ (1 : padic_seq p) ≈ 0, from one_not_equiv_zero _,
@@ -314,8 +314,8 @@ begin
   have hN' := hN _ hi,
   padic_index_simp [N, hf, hg] at hN' h hlt,
   have hpne : padic_norm p (f i) ≠ padic_norm p (-(g i)),
-    by rwa [ ←padic_norm.neg p (g i)] at h,
-  let hpnem := add_eq_max_of_ne p hpne,
+    by rwa [← padic_norm.neg (g i)] at h,
+  let hpnem := add_eq_max_of_ne hpne,
   have hpeq : padic_norm p ((f - g) i) = max (padic_norm p (f i)) (padic_norm p (g i)),
   { rwa padic_norm.neg at hpnem },
   rw [hpeq, max_eq_left_of_lt hlt] at hN',
@@ -423,7 +423,7 @@ else
 begin
   unfold norm at ⊢ hfgne, split_ifs at ⊢ hfgne,
   padic_index_simp [hfg, hf, hg] at ⊢ hfgne,
-  exact padic_norm.add_eq_max_of_ne p hfgne
+  exact padic_norm.add_eq_max_of_ne hfgne
 end
 
 end embedding
@@ -863,7 +863,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
-      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat, neg_sub,
+      rw [padic_norm.eq_zpow_of_nonzero hnz', padic_val_rat, neg_sub,
         padic_val_nat.eq_zero_of_not_dvd hq],
       norm_cast,
       rw [zero_sub, zpow_neg, zpow_coe_nat],
@@ -915,7 +915,7 @@ begin
   have : (p : ℝ) ^ (-n : ℤ) = ↑((p ^ (-n : ℤ) : ℚ)), {simp},
   rw [show (k : ℚ_[p]) = ((k : ℚ) : ℚ_[p]), by norm_cast, eq_padic_norm, this],
   norm_cast,
-  rw padic_norm.dvd_iff_norm_le,
+  rw ←padic_norm.dvd_iff_norm_le,
 end
 
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}

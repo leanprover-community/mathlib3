@@ -98,20 +98,20 @@ equivalent to some element of the second family and vice-versa. -/
 def equiv (x y : pSet) : Prop :=
 pSet.rec (λ α z m ⟨β, B⟩, (∀ a, ∃ b, m a (B b)) ∧ (∀ b, ∃ a, m a (B b))) x y
 
-theorem equiv.refl (x) : equiv x x :=
+protected theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
 
-theorem equiv.rfl : ∀ {x}, equiv x x := equiv.refl
+protected theorem equiv.rfl : ∀ {x}, equiv x x := equiv.refl
 
-theorem equiv.euc {x} : Π {y z}, equiv x y → equiv z y → equiv x z :=
+protected theorem equiv.euc {x} : Π {y z}, equiv x y → equiv z y → equiv x z :=
 pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, βα⟩ ⟨γβ, βγ⟩,
 ⟨λ a, let ⟨b, ab⟩ := αβ a, ⟨c, bc⟩ := βγ b in ⟨c, IH a ab bc⟩,
   λ c, let ⟨b, cb⟩ := γβ c, ⟨a, ba⟩ := βα b in ⟨a, IH a ba cb⟩⟩
 
-theorem equiv.symm {x y} : equiv x y → equiv y x :=
+protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
-theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
+protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
 instance setoid : setoid pSet :=
@@ -276,17 +276,17 @@ def resp.f {n} (f : resp (n+1)) (x : pSet) : resp n :=
 /-- Function equivalence for functions respecting equivalence. See `pSet.arity.equiv`. -/
 def resp.equiv {n} (a b : resp n) : Prop := arity.equiv a.1 b.1
 
-theorem resp.equiv.refl {n} (a : resp n) : resp.equiv a a := a.2
+protected theorem resp.equiv.refl {n} (a : resp n) : resp.equiv a a := a.2
 
-theorem resp.equiv.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b → resp.equiv a c
+protected theorem resp.equiv.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b → resp.equiv a c
 | 0     a b c hab hcb := equiv.euc hab hcb
 | (n+1) a b c hab hcb := λ x y h,
   @resp.equiv.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
 
-theorem resp.equiv.symm {n} {a b : resp n} : resp.equiv a b → resp.equiv b a :=
+protected theorem resp.equiv.symm {n} {a b : resp n} : resp.equiv a b → resp.equiv b a :=
 (resp.equiv.refl b).euc
 
-theorem resp.equiv.trans {n} {x y z : resp n} (h1 : resp.equiv x y) (h2 : resp.equiv y z) :
+protected theorem resp.equiv.trans {n} {x y z : resp n} (h1 : resp.equiv x y) (h2 : resp.equiv y z) :
   resp.equiv x z :=
 h1.euc h2.symm
 

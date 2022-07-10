@@ -1045,9 +1045,9 @@ section add_monoid
 
 variables [add_monoid M]
 
-/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_nat_scalar : has_scalar ℕ (α →₀ M) :=
+instance has_nat_scalar : has_smul ℕ (α →₀ M) :=
 ⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
 
 instance : add_monoid (α →₀ M) :=
@@ -1112,9 +1112,9 @@ instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_z
 @[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+/-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_int_scalar [add_group G] : has_scalar ℤ (α →₀ G) :=
+instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
 instance [add_group G] : add_group (α →₀ G) :=
@@ -1122,6 +1122,15 @@ fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+lemma single_add_single_eq_single_add_single [add_comm_monoid M]
+  {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
+  single k u + single l v = single m u + single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
+  exact pi.single_add_single_eq_single_add_single hu hv,
+end
 
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
@@ -1396,6 +1405,8 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+@[to_additive "For disjoint `f1` and `f2`, and function `g`, the sum of the sums of `g`
+over `f1` and `f2` equals the sum of `g` over `f1 + f2`"]
 lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
   (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
@@ -2411,10 +2422,10 @@ variables [monoid G] [mul_action G α] [add_comm_monoid M]
 
 This is not an instance as it would conflict with the action on the range.
 See the `instance_diamonds` test for examples of such conflicts. -/
-def comap_has_scalar : has_scalar G (α →₀ M) :=
+def comap_has_smul : has_smul G (α →₀ M) :=
 { smul := λ g, map_domain ((•) g) }
 
-local attribute [instance] comap_has_scalar
+local attribute [instance] comap_has_smul
 
 lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) f := rfl
 
@@ -2422,7 +2433,7 @@ lemma comap_smul_def (g : G) (f : α →₀ M) : g • f = map_domain ((•) g) 
   g • single a b = single (g • a) b :=
 map_domain_single
 
-/-- `finsupp.comap_has_scalar` is multiplicative -/
+/-- `finsupp.comap_has_smul` is multiplicative -/
 def comap_mul_action : mul_action G (α →₀ M) :=
 { one_smul := λ f, by  rw [comap_smul_def, one_smul_eq_id, map_domain_id],
   mul_smul := λ g g' f, by rw [comap_smul_def, comap_smul_def, comap_smul_def, ←comp_smul_left,
@@ -2430,7 +2441,7 @@ def comap_mul_action : mul_action G (α →₀ M) :=
 
 local attribute [instance] comap_mul_action
 
-/-- `finsupp.comap_has_scalar` is distributive -/
+/-- `finsupp.comap_has_smul` is distributive -/
 def comap_distrib_mul_action :
   distrib_mul_action G (α →₀ M) :=
 { smul_zero := λ g, by { ext, dsimp [(•)], simp, },
@@ -2441,9 +2452,9 @@ end
 section
 variables [group G] [mul_action G α] [add_comm_monoid M]
 
-local attribute [instance] comap_has_scalar comap_mul_action comap_distrib_mul_action
+local attribute [instance] comap_has_smul comap_mul_action comap_distrib_mul_action
 
-/-- When `G` is a group, `finsupp.comap_has_scalar` acts by precomposition with the action of `g⁻¹`.
+/-- When `G` is a group, `finsupp.comap_has_smul` acts by precomposition with the action of `g⁻¹`.
 -/
 @[simp] lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
   (g • f) a = f (g⁻¹ • a) :=
@@ -2455,7 +2466,7 @@ end
 end
 
 section
-instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_scalar R (α →₀ M) :=
+instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_smul R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
 /-!
@@ -2487,7 +2498,7 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
 instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]
-  [has_scalar R S] [is_scalar_tower R S M] :
+  [has_smul R S] [is_scalar_tower R S M] :
   is_scalar_tower R S (α →₀ M) :=
 { smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
 
@@ -2818,4 +2829,16 @@ int.cast_prod _ _
 int.cast_sum _ _
 
 end int
+
+namespace rat
+
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
+cast_sum _ _
+
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
+cast_prod _ _
+
+end rat
 end cast_finsupp

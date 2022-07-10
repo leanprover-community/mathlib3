@@ -43,7 +43,8 @@ variables {x : α} {S : set α} (h : is_generic_point x S)
 include h
 
 lemma is_generic_point.specializes {y : α} (h' : y ∈ S) :
-  x ⤳ y := by rwa ← h.def at h'
+  x ⤳ y :=
+specializes_iff_mem_closure.2 $ h.def.symm ▸ h'
 
 lemma is_generic_point.mem : x ∈ S :=
 h.def ▸ subset_closure (set.mem_singleton x)
@@ -55,7 +56,7 @@ lemma is_generic_point.is_irreducible : is_irreducible S :=
 h.def ▸ is_irreducible_singleton.closure
 
 lemma is_generic_point.eq [t0_space α] {y : α} (h' : is_generic_point y S) : x = y :=
-specializes_antisymm _ _ (h.specializes h'.mem) (h'.specializes h.mem)
+((h.specializes h'.mem).antisymm (h'.specializes h.mem)).eq
 
 lemma is_generic_point.mem_open_set_iff
   {U : set α} (hU : is_open U) : x ∈ U ↔ (S ∩ U).nonempty :=

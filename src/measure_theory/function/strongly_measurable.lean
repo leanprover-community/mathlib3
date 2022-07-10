@@ -331,23 +331,23 @@ protected lemma div [has_div β] [has_continuous_div β]
 ⟨λ n, hf.approx n / hg.approx n, λ x, (hf.tendsto_approx x).div' (hg.tendsto_approx x)⟩
 
 @[to_additive]
-protected lemma smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} {g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ x, f x • g x) :=
 continuous_smul.comp_strongly_measurable (hf.prod_mk hg)
 
-protected lemma const_smul {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (c • f) :=
 ⟨λ n, c • (hf.approx n), λ x, (hf.tendsto_approx x).const_smul c⟩
 
-protected lemma const_smul' {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul' {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (λ x, c • (f x)) :=
 hf.const_smul c
 
 @[to_additive]
-protected lemma smul_const {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul_const {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} (hf : strongly_measurable f) (c : β) :
   strongly_measurable (λ x, f x • c) :=
 continuous_smul.comp_strongly_measurable (hf.prod_mk strongly_measurable_const)
@@ -463,7 +463,7 @@ begin
   have : is_separable (closure (⋃ n, range (hf.approx n))) :=
     (is_separable_Union (λ n, (simple_func.finite_range (hf.approx n)).is_separable)).closure,
   apply this.mono,
-  rintros - ⟨x, rfl⟩,
+  rintros _ ⟨x, rfl⟩,
   apply mem_closure_of_tendsto (hf.tendsto_approx x),
   apply eventually_of_forall (λ n, _),
   apply mem_Union_of_mem n,
@@ -595,7 +595,7 @@ begin
     have : is_separable (closure (⋃ i, range (f (v i)))) :=
       (is_separable_Union (λ i, (hf (v i)).is_separable_range)).closure,
     apply this.mono,
-    rintros - ⟨x, rfl⟩,
+    rintros _ ⟨x, rfl⟩,
     rw [tendsto_pi_nhds] at lim,
     apply mem_closure_of_tendsto ((lim x).comp hv),
     apply eventually_of_forall (λ n, _),
@@ -1143,23 +1143,23 @@ protected lemma div [group β] [topological_group β]
   hf.ae_eq_mk.div hg.ae_eq_mk⟩
 
 @[to_additive]
-protected lemma smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} {g : α → β} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ x, f x • g x) μ :=
 continuous_smul.comp_ae_strongly_measurable (hf.prod_mk hg)
 
-protected lemma const_smul {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (c • f) μ :=
 ⟨c • hf.mk f, hf.strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩
 
-protected lemma const_smul' {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+protected lemma const_smul' {𝕜} [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (λ x, c • (f x)) μ :=
 hf.const_smul c
 
 @[to_additive]
-protected lemma smul_const {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma smul_const {𝕜} [topological_space 𝕜] [has_smul 𝕜 β] [has_continuous_smul 𝕜 β]
   {f : α → 𝕜} (hf : ae_strongly_measurable f μ) (c : β) :
   ae_strongly_measurable (λ x, f x • c) μ :=
 continuous_smul.comp_ae_strongly_measurable (hf.prod_mk ae_strongly_measurable_const)
@@ -1786,7 +1786,7 @@ begin
     { have : is_separable (⋃ (i : (t_sf n).range), range (u i)) :=
         is_separable_Union (λ i, (h i).is_separable_range),
       apply this.mono,
-      rintros - ⟨⟨i, x⟩, rfl⟩,
+      rintros _ ⟨⟨i, x⟩, rfl⟩,
       simp only [mem_Union, mem_range],
       exact ⟨i, x, rfl⟩ } },
   have : (λ p : ι × α, u (t_sf n p.fst) p.snd)

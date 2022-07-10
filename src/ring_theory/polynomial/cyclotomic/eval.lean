@@ -136,7 +136,7 @@ lemma cyclotomic_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx :
   0 ≤ eval x (cyclotomic n R) :=
 (cyclotomic_pos_and_nonneg n x).2 hx
 
-lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [comm_ring R] {n : ℕ}
+lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [ring R] {n : ℕ}
   (h : ∀ {p : ℕ}, p.prime → ∀ k : ℕ, p ^ k ≠ n) : eval 1 (cyclotomic n R) = 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn',
@@ -155,8 +155,7 @@ begin
   have hpn : p ∣ n,
   { apply hpe.trans,
     nth_rewrite 1 ←int.nat_abs_of_nat n,
-    rw [int.nat_abs_dvd_iff_dvd, ←int.nat_cast_eq_coe_nat,
-        ←one_geom_sum, ←eval_geom_sum, ←prod_cyclotomic_eq_geom_sum hn'],
+    rw [int.nat_abs_dvd_iff_dvd, ←one_geom_sum, ←eval_geom_sum, ←prod_cyclotomic_eq_geom_sum hn'],
     apply eval_dvd,
     apply finset.dvd_prod_of_mem,
     simpa using and.intro hn'.ne' hn.ne' },
@@ -175,7 +174,6 @@ begin
   rw [←int.nat_abs_of_nat p, int.nat_abs_dvd_iff_dvd] at hpe,
   obtain ⟨t, ht⟩ := hpe,
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,
-  simp only [int.nat_cast_eq_coe_nat] at *,
   have : (p ^ (padic_val_nat p n) * p : ℤ) ∣ n := ⟨_, this⟩,
   simp only [←pow_succ', ←int.nat_abs_dvd_iff_dvd, int.nat_abs_of_nat, int.nat_abs_pow] at this,
   exact pow_succ_padic_val_nat_not_dvd hn' this,

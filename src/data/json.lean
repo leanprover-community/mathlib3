@@ -10,7 +10,7 @@ import tactic.core
 
 This file provides helpers for serializing primitive types to json.
 
-`@[derive [json_serializable]]` will make any structure json serializable.
+`@[derive non_null_json_serializable]` will make any structure json serializable.
 
 ## Main definitions
 
@@ -121,6 +121,15 @@ meta instance {n : ℕ} : non_null_json_serializable (fin n) :=
     else
       exception (λ _, format!"must be less than {n}") }
 
+meta instance {α : Type} [json_serializable α] (p : α → Prop) [decidable_pred p] :
+  json_serializable (subtype p) :=
+{ to_json := λ x, to_json (x : α),
+  of_json := λ j, do
+    i ← of_json α j,
+    if h : p i then
+      pure (subtype.mk i h)
+    else
+      exception (λ _, format!"condition does not hold") }
 
 /-- Note this only makes sense on types which do not themselves serialize to `null` -/
 meta instance {α} [non_null_json_serializable α] : json_serializable (option α) :=
@@ -129,9 +138,10 @@ meta instance {α} [non_null_json_serializable α] : json_serializable (option �
 
 open tactic expr
 
-meta def list.to_expr (t : expr) : ∀ l : list expr, expr
-| [] := `([] : list.{0} %%t)
-| (x :: xs) := `(%%x :: %%xs.to_expr : list.{0} %%t)
+/-- Flatten a list of (p)exprs into a (p)expr forming a list of type `list t`. -/
+meta def list.to_expr {elab : bool} (t : expr elab) : list (expr elab) → expr elab
+| [] := expr.app (expr.const `list.nil [level.zero]) t
+| (x :: xs) := (((expr.const `list.cons [level.zero]).app t).app x).app xs.to_expr
 
 /-- Begin parsing fields -/
 meta def json_serializable.field_starter (j : json) : exceptional (list (string × json)) :=
@@ -139,12 +149,12 @@ do
   json.object p ← pure j | exception (λ _, format!"object expected, got {j.typename}"),
   pure p
 
-/-- Check a field exists and get a parse for it -/
+/-- Check a field exists and is unique -/
 meta def json_serializable.field_get (l : list (string × json)) (s : string) :
   exceptional (json × list (string × json)) :=
 let (p, n) := l.partition (λ x, prod.fst x = s) in
 match p with
-| [] := exception (λ _, format!"no {s} field , {l}")
+| [] := exception (λ _, format!"no {s} field, {l}")
 | [x] := pure (x.2, n)
 | x :: xs := exception (λ _, format!"duplicate {s} field")
 end
@@ -153,50 +163,71 @@ end
 meta def json_serializable.field_terminator (l : list (string × json)) : exceptional unit :=
 do [] ← pure l | exception (λ _, format!"unexpected fields {l.map prod.fst}"), pure ()
 
+meta def get_constructor_and_projections (t : expr) : tactic ((name × expr) × list (name × expr)):=
+do
+  (const I ls, args) ← pure (get_app_fn_args t),
+  env ← get_env,
+  [ctor] ← pure (env.constructors_of I),
+  ctor ← do
+  { d ← get_decl ctor,
+    let a := @expr.const tt ctor $ d.univ_params.map level.param,
+    pure (ctor, a.mk_app args) },
+  ctor_type ← infer_type ctor.2,
+  tt ← pure ctor_type.is_pi | pure (ctor, []),
+  some fields ← pure (env.structure_fields I) | fail!"Not a structure",
+  projs ← fields.mmap $ λ f, do {
+    d ← get_decl (I ++ f),
+    let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
+    pure (f, a.mk_app args) },
+  pure (ctor, projs)
+
 /-- A derive handler to serialize structures by their fields -/
 @[derive_handler, priority 2000] meta def non_null_json_serializable_handler : derive_handler :=
 instance_derive_handler ``non_null_json_serializable $ do
   intros,
   `(non_null_json_serializable %%e) ← target >>= whnf,
-  (const I ls, args) ← pure (get_app_fn_args e),
-  env ← get_env,
-  some fields ← pure (env.structure_fields I) | fail!"Not a structure",
+  ((ctor_name, ctor), fields) ← get_constructor_and_projections e,
   refine ``(@non_null_json_serializable.mk %%e ⟨λ x, json.object _,
     λ j, json_serializable.field_starter j >>= _
   ⟩),
   -- the forward direction
   x ← get_local `x,
-  (e : list (option expr)) ← fields.mmap (λ f, do
-    d ← get_decl (I ++ f),
-    let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
-    t ← infer_type a,
+  (projs : list (option expr)) ← fields.mmap (λ ⟨f, a⟩, do
+    let x_e := a.app x,
+    t ← infer_type x_e,
     s ← infer_type t,
-    `(Prop) ← pure s | pure (none : option expr),
-    let x_e := a.mk_app (args ++ [x]),
+    expr.sort (level.succ u) ← pure s | pure (none : option expr),
+    level.zero ← pure u | fail!"Only Type 0 is supported",
     j ← tactic.mk_app `json_serializable.to_json [x_e],
     pure (some `((%%`(f.to_string), %%j) : string × json))
   ),
-  let e := e.reduce_option,
-  tactic.exact (e.to_expr `(string × json)),
+  tactic.exact (projs.reduce_option.to_expr `(string × json)),
+
   -- the reverse direction
   get_local `j >>= tactic.clear,
-  fields.mmap' (λ f, do
+  -- check fields are present
+  json_fields ← fields.mmap (λ ⟨f, e⟩, do
+    t ← infer_type e,
+    s ← infer_type t,
+    expr.sort (level.succ u) ← pure s | pure (f, none),  -- do nothing for prop fields
     refine ``(λ p, json_serializable.field_get p %%`(f.to_string) >>= _),
     tactic.applyc `prod.rec,
-    tactic.intro (`field ++ f),
-    get_local `p >>= tactic.clear),
+    get_local `p >>= tactic.clear,
+    jf ← tactic.intro (`field ++ f),
+    pure (f, some jf)),
   refine ``(λ p, json_serializable.field_terminator p >> _),
   get_local `p >>= tactic.clear,
-  fields.mmap' (λ f, do
-    field_val ← get_local (`field ++ f),
-    refine ``(of_json _ %%field_val >>= _),
-    rotate 2,
-    tactic.clear field_val,
-    tactic.intro (`field ++ f)),
-  refine ``(pure _),
-  tactic.fconstructor,
-  fields.mmap' (λ f, do
-    field_val ← get_local (`field ++ f),
-    exact field_val),
-  all_goals tactic.apply_instance,
-  skip
+  -- parse fields one by one
+  val ← json_fields.mfoldl (λ (ctor : expr) ⟨f, j⟩, do
+    expr.pi name bi typ body ← infer_type ctor | fail!"Expected pi type",
+    expr.sort s ← infer_type typ,
+    match s with
+    | level.zero := do
+        refine ``(dite %%typ _ (λ _, exception $ λ _, format!"condition does not hold"))
+    | _ := do
+        some j ← pure j,
+        refine ``(of_json %%typ %%j >>= _),
+        tactic.clear j
+    end,
+    ctor.app <$> tactic.intro (`field ++ f)) ctor,
+  exact `(pure %%val : exceptional %%e)

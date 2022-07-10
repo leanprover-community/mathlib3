@@ -16,7 +16,7 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators topol
 
 namespace measure_theory
 
-variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α}
+variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α} {ℱ : filtration ℕ m0}
 variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α}
 
 /-! We will now begin to prove the martingale convergence theorem.
@@ -28,9 +28,7 @@ Firstly, we want to show a real sequence `x` converges if
 With this, for all `x` satisfying `limsup |λ n, f n x| < ∞` and
 for all `a < b : ℚ`, `sup N, upcrossing a b f N x < ∞`, we have `λ n, f n x` converges.
 
-Now, we want another lemma which states if `𝔼[|X|] < ∞` then `|X| < ∞ a.e.`.
-
-With this lemma and assumping `f` is L¹-bounded, using Fatou's lemma,
+Assuming `f` is L¹-bounded, using Fatou's lemma,
 we have `𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
 the upcrossing lemma, `sup N, upcrossing a b f N < ∞ a.e.` implying `f` converges pointwise almost
 everywhere.
@@ -59,7 +57,7 @@ end
 /-- A realization of a stochastic process with bounded upcrossings and bounded limit infimums is
 convergent. -/
 lemma tendsto_of_bdd_uncrossing {x : α}
-  (hf₁ : ∃ R, liminf at_top (λ n, f n x) < R)
+  (hf₁ : ∃ R, at_top.liminf (λ n, |f n x|) < R)
   (hf₂ : ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x < K) :
   ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
@@ -71,5 +69,48 @@ begin
   { sorry }
 end
 
+lemma submartingale.upcrossing_bdd (hf : submartingale f ℱ μ) :
+  ∀ᵐ x ∂μ, ∀ a b : ℚ, ∃ K, ∀ N, upcrossing a b f N x < K :=
+begin
+  suffices : ∀ a b : ℚ, ∀ᵐ x ∂μ, ∃ K, ∀ N, upcrossing a b f N x < K,
+  { simp_rw ae_iff at this ⊢,
+    push_neg at this ⊢,
+    rw set.set_of_exists,
+    refine nonpos_iff_eq_zero.1 ((measure_Union_le _).trans
+      (((tsum_eq_zero_iff ennreal.summable).2 (λ a, _)).le)),
+    rw set.set_of_exists,
+    exact nonpos_iff_eq_zero.1 ((measure_Union_le _).trans
+      (((tsum_eq_zero_iff ennreal.summable).2 (λ b, this a b)).le)) },
+  rintro a b,
+  rw ae_iff,
+  by_contra h, push_neg at h,
+  rw [← pos_iff_ne_zero, set.set_of_forall] at h,
+  sorry
+end
+
+lemma liminf_at_top_ae_bdd_of_snorm_bdd (hbbd : ∃ R, ∀ n, snorm (f n) 1 μ ≤ R) :
+  ∀ᵐ x ∂μ, ∃ R, at_top.liminf (λ n, |f n x|) < R :=
+begin
+  sorry
+end
+
+/-- An L¹-bounded submartingale converges almost everywhere. -/
+lemma submartingale.exists_ae_tendsto_of_bdd
+  (hf : submartingale f ℱ μ) (hbbd : ∃ R, ∀ n, snorm (f n) 1 μ ≤ R) :
+  ∀ᵐ x ∂μ, ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+begin
+  filter_upwards [hf.upcrossing_bdd, liminf_at_top_ae_bdd_of_snorm_bdd hbbd] with x h₁ h₂,
+  exact tendsto_of_bdd_uncrossing h₂ h₁,
+end
+
+/-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
+almost everywhere to a L¹ random variable. -/
+lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd
+  (hf : submartingale f ℱ μ) (hbbd : ∃ R, ∀ n, snorm (f n) 1 μ ≤ R) :
+  ∃ g : α → ℝ, mem_ℒp g 1 μ ∧
+  ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
+begin
+  sorry
+end
 
 end measure_theory

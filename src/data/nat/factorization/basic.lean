@@ -404,9 +404,8 @@ lemma set_of_pow_dvd_eq {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = (finset.Ico 1 n).filter (λ i, p ^ i ∣ n) :=
 begin
   ext i,
-  norm_cast,
-  simp only [finset.mem_filter, set.mem_set_of_eq, mem_Ico, and.congr_left_iff, ←ne.def,
-    one_le_iff_ne_zero, iff_self_and],
+  simp only [finset.mem_coe, finset.mem_filter, set.mem_set_of_eq, mem_Ico, and.congr_left_iff,
+    ←ne.def, one_le_iff_ne_zero, iff_self_and],
   rintro h -,
   rw ←pow_lt_iff_lt_right pp.two_le,
   exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self pp.one_lt n),

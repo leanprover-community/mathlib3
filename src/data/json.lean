@@ -74,7 +74,9 @@ meta instance : non_null_json_serializable string :=
 meta instance : non_null_json_serializable ℤ :=
 { to_json := λ z, json.of_int z,
   of_json := λ j, do
-    json.of_int z ← success j | exception (λ _, format!"number expected, got {j.typename}"),
+    json.of_int z ← success j | do
+    { json.of_float f ← success j | exception (λ _, format!"number expected, got {j.typename}"),
+      exception (λ _, format!"number must be integral") },
     pure z }
 
 meta instance : non_null_json_serializable native.float :=

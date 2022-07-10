@@ -1,6 +1,19 @@
 import data.json
 import data.int.basic
 
+run_cmd do
+  let j := json.of_int 2,
+  z ← of_json native.float j,
+  guard (z = 2)
+
+run_cmd do
+  j ← json.parse "2.0",
+  tactic.success_if_fail_with_msg (of_json ℤ j) "number must be integral"
+
+run_cmd do
+  let j := json.of_int (-1),
+  tactic.success_if_fail_with_msg (of_json ℕ j) "must be non-negative"
+
 @[derive [decidable_eq, non_null_json_serializable]]
 structure my_type (yval : bool) :=
 (x : nat)

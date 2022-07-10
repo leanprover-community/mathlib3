@@ -45,15 +45,6 @@ given to the `linear_combination` tactic, which completes the process by checkin
 
 open tactic native
 
-meta def tactic.get_mathlib_root : tactic string :=
-do
-  e ← tactic.get_env,
-  some p ← pure (e.decl_olean `tactic.get_mathlib_root) |
-    fail!"Cannot call tactic.get_mathlib_src from this file",
-  ("polyrith.lean" :: "tactic" :: "src" :: parts) ←
-    pure (p.split $ (= '/')).reverse | fail!"Bad path: {p}",
-  pure (string.intercalate "/" parts.reverse)
-
 namespace polyrith
 
 /-! # Poly Datatype-/
@@ -426,7 +417,7 @@ It assumes that `python3` is available on the path.
 -/
 meta def sage_output (arg_list : list string := []) : tactic json :=
 do
-  path ← tactic.get_mathlib_root,
+  path ← (λ s, s ++ "..") <$> tactic.get_mathlib_dir,
   let args := [path ++ "/scripts/polyrith_sage.py"] ++ arg_list,
   s ← tactic.unsafe_run_io $ io.cmd { cmd := "python3", args := args},
   some j ← pure (json.parse s) | fail!"Invalid json: {s}",

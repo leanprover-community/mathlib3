@@ -578,11 +578,11 @@ lemma finset.max_le {α} [linear_order α] (M : α) {s : finset α} (st : ∀ a 
 lemma degree_update_le (p : R[X]) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin
-  simp only [degree, support_update],
+  rw [degree, support_update],
   split_ifs,
   { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
   { rw [max_insert, max_comm],
-    exact rfl.le },
+    exact rfl.le }
 end
 
 lemma degree_sum_le (s : finset ι) (f : ι → R[X]) :

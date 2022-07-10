@@ -295,12 +295,12 @@ do
   let obj := rbmap.from_list obj,
   json.of_bool success ← obj.find "success" | fail!"internal error: missing success field",
   if success then do
-    do {
-      some t ← pure (obj.find "trace") | skip,
+    do
+    { some t ← pure (obj.find "trace") | skip,
       json.of_string t ← pure t | fail!"internal error: trace must be a string",
       tactic.trace t },
-    do {
-      some d ← pure (obj.find "data") | pure none,
+    do
+    { some d ← pure (obj.find "data") | pure none,
       json.array l ← some d | fail!"internal error: data field must be a string",
       l ← l.mmap $ λ x, do
       { json.of_string poly_s ← pure x | fail!"internal error: entries must be strings",
@@ -309,7 +309,7 @@ do
         | sum.inl s := fail!"internal error: unable to parse polynomial from.\n\n{s}"
         | sum.inr p := pure p
         end,
-      pure l}
+      pure l }
   else do
     json.of_string kind ← obj.find "error_name",
     json.of_string message ← obj.find "error_value",

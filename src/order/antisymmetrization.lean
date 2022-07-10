@@ -96,8 +96,8 @@ quotient.induction_on' a h
 
 variables [preorder β] {a b : α}
 
-lemma indistinguishable.image {a b : α} (h : indistinguishable a b) {f : α → β} (hf : monotone f) :
-  indistinguishable (f a) (f b) :=
+lemma order.indistinguishable.image {a b : α} (h : indistinguishable a b)
+  {f : α → β} (hf : monotone f) : indistinguishable (f a) (f b) :=
 ⟨hf h.1, hf h.2⟩
 
 instance : partial_order (antisymmetrization α) :=
@@ -113,7 +113,7 @@ instance : partial_order (antisymmetrization α) :=
 instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
   linear_order (antisymmetrization α) :=
 { le_total := λ a b, quotient.induction_on₂' a b $ total_of (≤),
-  decidable_eq := @quotient.decidable_eq _ (order.indistinguishable.setoid _)
+  decidable_eq := @quotient.decidable_eq _ (indistinguishable.setoid _)
     indistinguishable.decidable_rel,
   decidable_le := λ _ _, quotient.lift_on₂'.decidable _ _ _ _,
   decidable_lt := λ _ _, quotient.lift_on₂'.decidable _ _ _ _,

@@ -260,8 +260,13 @@ def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
 | (n+1) a b := ∀ x y, equiv x y → arity.equiv (a x) (b y)
 
 @[simp] lemma arity.equiv_zero_iff (a b : pSet) : @arity.equiv 0 a b ↔ equiv a b := iff.rfl
+
 @[simp] lemma arity.equiv_succ_iff {n : ℕ} (a b : arity pSet n.succ) :
   arity.equiv a b ↔ ∀ x y, equiv x y → arity.equiv (a x) (b y) :=
+iff.rfl
+
+@[simp] lemma arity.equiv_one_iff (a b : pSet → pSet) :
+  @arity.equiv 1 a b ↔ ∀ x y, equiv x y → equiv (a x) (b y) :=
 iff.rfl
 
 lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (arity.const a n)
@@ -273,6 +278,8 @@ lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (a
 /-- `resp n` is the collection of n-ary functions on `pSet` that respect
   equivalence, i.e. when the inputs are equivalent the output is as well. -/
 def resp (n) := {x : arity pSet.{u} n // arity.equiv x x}
+
+instance (n) : has_coe (resp n) (arity pSet.{u} n) := coe_subtype
 
 end pSet
 
@@ -288,6 +295,8 @@ def mk : pSet → Set := quotient.mk
 @[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
 
 theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound h
+
+theorem eq {x y : pSet} : mk x = mk y ↔ pSet.equiv x y := quotient.eq
 
 end Set
 
@@ -381,6 +390,10 @@ def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval f = s), de
 /-- Turns a definable function into a function that respects equivalence. -/
 def definable.resp {n} : Π (s : arity Set.{u} n) [definable n s], resp n
 | ._ ⟨f⟩ := f
+
+@[simp] theorem definable.resp_one_apply : Π (f : Set.{u} → Set.{u}) [H : definable 1 f] (x : pSet),
+  Set.mk ((↑(@definable.resp 1 f H) : arity pSet 1) x) = f (Set.mk x)
+| ._ ⟨g⟩ x := rfl
 
 @[simp] theorem definable.eq {n} :
   Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval = s
@@ -687,29 +700,22 @@ def funs (x y : Set.{u}) : Set.{u} :=
 @[simp] theorem mem_funs {x y f : Set.{u}} : f ∈ funs x y ↔ is_func x y f :=
 by simp [funs, is_func]
 
--- TODO(Mario): Prove this computably
 instance map_definable_aux (f : Set.{u} → Set.{u}) [H : definable 1 f] :
   definable 1 (λ y, pair y (f y)) :=
 begin
-resetI,
-  let h := λ x : pSet, ({{x}, {x, (@definable.resp 1 f H).1 x}} : pSet),
-  let H : resp 1 := ⟨h, sorry⟩,
-  convert definable.mk H,
-  funext x,
-  apply quotient.induction_on x,
-  intro y,
-  simp [pair],
-  congr,
-  have := mk_insert y {(@definable.resp 1 f _).1 y},
-  rw subtype.val_eq_coe at this,
-  rw this,
-
-
+  let g : resp 1 := ⟨λ x : pSet, ({{x}, {x, (@definable.resp 1 f H).1 x}} : pSet), begin
+    rw arity.equiv_one_iff,
+    intros x y h,
+    rw ←Set.eq at h ⊢,
+    simp [h]
+  end⟩,
+  convert definable.mk g,
+  refine funext (λ x, quotient.induction_on x (λ y, _)),
+  simpa
 end
 
 /-- Graph of a function: `map f x` is the ZFC function which maps `a ∈ x` to `f a` -/
-noncomputable def map (f : Set → Set) [H : definable 1 f] : Set → Set :=
-image (λ y, pair y (f y))
+def map (f : Set → Set) [H : definable 1 f] : Set → Set := image (λ y, pair y (f y))
 
 @[simp] theorem mem_map {f : Set → Set} [H : definable 1 f] {x y : Set} :
   y ∈ map f x ↔ ∃ z ∈ x, pair z (f z) = y :=

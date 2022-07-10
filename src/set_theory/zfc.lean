@@ -299,12 +299,14 @@ namespace pSet
 namespace resp
 open Set
 
-/-- The equivalence between `pSet` and `resp 0`. -/
-@[simps] def of_pSet : pSet ≃ resp 0 :=
-{ to_fun := λ x, ⟨x, arity.refl_zero x⟩,
-  inv_fun := λ x, x.1,
-  left_inv := λ x, rfl,
-  right_inv := λ x, subtype.eta x _ }
+theorem prop {n} (x : resp n) : arity.equiv x.1 x.1 := x.2
+
+/-- The equivalence between `resp 0` and `pSet`. -/
+@[simps] def to_pSet : resp 0 ≃ pSet :=
+{ to_fun := λ x, x.1,
+  inv_fun := λ x, ⟨x, arity.refl_zero x⟩,
+  left_inv := λ x, subtype.eta x _,
+  right_inv := λ x, rfl }
 
 /-- The constant function respects equivalences. -/
 def const (a : pSet) (n : ℕ) : resp n := ⟨arity.const a n, arity.equiv_const n⟩
@@ -355,6 +357,8 @@ def eval {n} : resp n → arity Set.{u} n := eval_aux.1
 @[simp] theorem eval_succ {n : ℕ} (f : resp n.succ) (x : pSet) :
   eval f (Set.mk x) = eval (f.f x) :=
 rfl
+
+@[simp] theorem eval_to_pSet_symm (x : pSet) : eval (to_pSet.symm x) = Set.mk x := rfl
 
 @[simp] theorem eval_const (a : pSet) : ∀ n : ℕ, (const a n).eval = arity.const ⟦a⟧ n
 | 0     := rfl

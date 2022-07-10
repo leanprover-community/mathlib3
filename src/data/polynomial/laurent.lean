@@ -412,13 +412,17 @@ begin
     and_self],
 end
 
+lemma degree_C_mul_T_ite (n : ℤ) (a : R) : (C a * T n).degree = ite (a = 0) ⊥ n :=
+by split_ifs with h h;
+  simp only [h, map_zero, zero_mul, degree_zero, degree_C_mul_T, ne.def, not_false_iff]
+
 lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
 begin
   rw [← one_mul (T n), ← map_one C],
   exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),
 end
 
-@[simp] lemma degree_C {a : R} (a0 : a ≠ 0) : (C a).degree = 0 :=
+lemma degree_C {a : R} (a0 : a ≠ 0) : (C a).degree = 0 :=
 begin
   rw [← mul_one (C a), ← T_zero],
   exact degree_C_mul_T 0 a a0

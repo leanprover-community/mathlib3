@@ -192,6 +192,11 @@ do
     pure (f, a.mk_app args) },
   pure (I, ctor, projs)
 
+/-- Generate an expression that builds a term of type `t` (which is itself a parametrization of
+the structure `struct_name`) using the expressions resolving to parsed fields in `vars` and the
+expressions resolving to unparsed `option json` objects in `js`. This can handled
+dependently-typed and defaulted (via `:=` which for structures is not the same as `opt_param`)
+fields. -/
 meta def of_json_helper (struct_name : name) (t : expr) :
   Π (vars : list (name × pexpr)) (js : list (name × option expr)), tactic expr
 | vars [] := do
@@ -213,9 +218,8 @@ meta def of_json_helper (struct_name : name) (t : expr) :
          >>= option.elim %%without_field %%with_field : exceptional %%t)
 | vars ((fname, none) :: js) :=
   -- try a default value
-  of_json_helper vars js
-  <|> do {
-    -- otherwise, use decidability
+  of_json_helper vars js <|> do
+  { -- otherwise, use decidability
     u ← mk_meta_univ,
     ft : expr ← mk_meta_var (expr.sort u),
     f_binder ← mk_local' fname binder_info.default ft,

@@ -307,7 +307,7 @@ namespace padic_int
 variables (p : ℕ) [hp_prime : fact p.prime]
 include hp_prime
 
-lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℤ) ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt {ε : ℝ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℝ) ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
@@ -321,7 +321,7 @@ begin
   { exact_mod_cast hp_prime.1.pos }
 end
 
-lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℤ) ^ -(k : ℤ) < ε :=
+lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : 0 < ε) : ∃ k : ℕ, (p : ℝ) ^ -(k : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := @exists_pow_neg_lt p _ ε (by exact_mod_cast hε),
   use k,

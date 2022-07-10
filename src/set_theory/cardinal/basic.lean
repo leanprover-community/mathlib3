@@ -1165,7 +1165,7 @@ end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/
-def to_enat : cardinal →+ enat :=
+def to_nat_top : cardinal →+ with_top ℕ :=
 { to_fun := λ c, if c < ℵ₀ then c.to_nat else ⊤,
   map_zero' := by simp [if_pos (zero_lt_one.trans one_lt_aleph_0)],
   map_add' := λ x y, begin
@@ -1175,33 +1175,33 @@ def to_enat : cardinal →+ enat :=
       { obtain ⟨y0, rfl⟩ := lt_aleph_0.1 hy,
         simp only [add_lt_aleph_0 hx hy, hx, hy, to_nat_cast, if_true],
         rw [← nat.cast_add, to_nat_cast, nat.cast_add] },
-      { rw [if_neg hy, if_neg, enat.add_top],
+      { rw [if_neg hy, if_neg, with_top.add_top],
         contrapose! hy,
         apply le_add_self.trans_lt hy } },
-    { rw [if_neg hx, if_neg, enat.top_add],
+    { rw [if_neg hx, if_neg, with_top.top_add],
       contrapose! hx,
       apply le_self_add.trans_lt hx },
   end }
 
-lemma to_enat_apply_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : c.to_enat = c.to_nat :=
+lemma to_nat_top_apply_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : c.to_nat_top = c.to_nat :=
 if_pos h
 
-lemma to_enat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_enat = ⊤ :=
+lemma to_nat_top_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_nat_top = ⊤ :=
 if_neg h.not_lt
 
-@[simp] lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
-by rw [to_enat_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
+@[simp] lemma to_nat_top_cast (n : ℕ) : cardinal.to_nat_top n = n :=
+by rw [to_nat_top_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
 
-@[simp] lemma mk_to_enat_of_infinite [h : infinite α] : (#α).to_enat = ⊤ :=
-to_enat_apply_of_aleph_0_le (infinite_iff.1 h)
+@[simp] lemma mk_to_nat_top_of_infinite [h : infinite α] : (#α).to_nat_top = ⊤ :=
+to_nat_top_apply_of_aleph_0_le (infinite_iff.1 h)
 
-@[simp] theorem aleph_0_to_enat : to_enat ℵ₀ = ⊤ :=
-to_enat_apply_of_aleph_0_le le_rfl
+@[simp] theorem aleph_0_to_nat_top : to_nat_top ℵ₀ = ⊤ :=
+to_nat_top_apply_of_aleph_0_le le_rfl
 
-lemma to_enat_surjective : surjective to_enat :=
-λ x, enat.cases_on x ⟨ℵ₀, to_enat_apply_of_aleph_0_le le_rfl⟩ $ λ n, ⟨n, to_enat_cast n⟩
+lemma to_nat_top_surjective : surjective to_nat_top :=
+λ x, with_top.rec_top_coe ⟨ℵ₀, aleph_0_to_nat_top⟩ (λ n, ⟨n, to_nat_top_cast n⟩) x
 
-lemma mk_to_enat_eq_coe_card [fintype α] : (#α).to_enat = fintype.card α :=
+lemma mk_to_nat_top_eq_coe_card [fintype α] : (#α).to_nat_top = fintype.card α :=
 by simp
 
 lemma mk_int : #ℤ = ℵ₀ := mk_denumerable ℤ

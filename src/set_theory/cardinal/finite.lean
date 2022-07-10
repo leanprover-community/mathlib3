@@ -12,9 +12,8 @@ import set_theory.cardinal.basic
 
 * `nat.card α` is the cardinality of `α` as a natural number.
   If `α` is infinite, `nat.card α = 0`.
-* `enat.card α` is the cardinality of `α` as an extended natural number.
-  If `α` is infinite, `enat.card α = ⊤`.
-
+* `nat.card_top α` is the cardinality of `α` as an extended natural number (`with_top ℕ`).
+  If `α` is infinite, `nat.card_top α = ⊤`.
 -/
 
 open cardinal
@@ -77,18 +76,14 @@ card_congr equiv.ulift
 @[simp] lemma card_plift (α : Type*) : nat.card (plift α) = nat.card α :=
 card_congr equiv.plift
 
+/-- `nat.card_top α` is the cardinality of `α` as an extended natural number (`with_top ℕ`).
+  If `α` is infinite, `nat.card_top α = ⊤`. -/
+def card_top (α : Type*) : with_top ℕ := (mk α).to_nat_top
+
+@[simp] lemma card_top_eq_coe_fintype_card [fintype α] : card_top α = fintype.card α :=
+mk_to_nat_top_eq_coe_card
+
+@[simp] lemma card_top_eq_top_of_infinite [infinite α] : card_top α = ⊤ :=
+mk_to_nat_top_of_infinite
+
 end nat
-
-namespace enat
-
-/-- `enat.card α` is the cardinality of `α` as an extended natural number.
-  If `α` is infinite, `enat.card α = ⊤`. -/
-def card (α : Type*) : enat := (mk α).to_enat
-
-@[simp]
-lemma card_eq_coe_fintype_card [fintype α] : card α = fintype.card α := mk_to_enat_eq_coe_card
-
-@[simp]
-lemma card_eq_top_of_infinite [infinite α] : card α = ⊤ := mk_to_enat_of_infinite
-
-end enat

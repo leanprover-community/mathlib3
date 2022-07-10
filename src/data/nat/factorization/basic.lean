@@ -409,16 +409,6 @@ lemma set_of_pow_dvd.finite {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n}.finite :=
 by { rw set_of_pow_dvd_eq_Icc_factorization pp hn, apply set.finite_of_fintype }
 
-lemma set_of_pow_dvd_to_finset_eq {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
-  (set_of_pow_dvd.finite pp hn).to_finset = (Ico 1 n).filter (λ i, p ^ i ∣ n) :=
-begin
-  ext i,
-  simp only [set.finite.mem_to_finset, finset.mem_coe, finset.mem_filter, set.mem_set_of_eq,
-    mem_Ico, and.congr_left_iff, ←ne.def, one_le_iff_ne_zero, iff_self_and],
-  rintro h -,
-  exact lt_of_pow_dvd_right hn pp.two_le h,
-end
-
 lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp: prime p) :
   Icc 1 ((n.factorization) p) = (Ico 1 n).filter (λ (i : ℕ), p ^ i ∣ n) :=
 begin

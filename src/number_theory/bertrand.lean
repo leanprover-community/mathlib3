@@ -91,36 +91,33 @@ lemma main_inequality {n : ℕ} (n_large : 512 ≤ n) :
   n * (2 * n) ^ (sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@cast_le ℝ,
+  simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ←real.rpow_nat_cast],
   have n_large_real : 512 ≤ (n : ℝ),
   { rw ←@cast_le ℝ at n_large,
     convert n_large, norm_num, },
-  have n_pos : 0 < (n : ℝ),
-  { rw ←cast_zero, norm_num, linarith, },
+  refine trans _ (real_main_inequality n_large_real),
+  apply mul_le_mul,
+  rw mul_le_mul_left,
+  apply real.rpow_le_rpow_of_exponent_le,
+  linarith,
   have fact2 : 0 < 2 * (n : ℝ) := by linarith,
-  simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ←real.rpow_nat_cast],
-  calc
-  (n : ℝ) * (2 * (n : ℝ)) ^ (sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
-      ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
-          begin
-            rw [mul_le_mul_right, mul_le_mul_left n_pos],
-            { apply real.rpow_le_rpow_of_exponent_le,
-              { linarith, },
-              { rw [real.le_sqrt (cast_nonneg _) (le_of_lt fact2), ←cast_pow],
+  rw [real.le_sqrt (cast_nonneg _) (le_of_lt fact2), ←cast_pow],
                 calc _ ≤ ↑(2 * n) : cast_le.mpr (sqrt_le' _)
-                  ... = 2 * (n : ℝ) : by norm_num, }, },
-            { apply real.rpow_pos_of_pos,
-              norm_num, },
-          end
-  ... ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
-          begin
-            rw mul_le_mul_left,
-            { refine real.rpow_le_rpow_of_exponent_le (by norm_num) _,
-              convert cast_div_le,
-              simp only [cast_mul, cast_bit0, cast_one],
-              simp only [cast_bit1, cast_one], },
-            { exact mul_pos n_pos (real.rpow_pos_of_pos fact2 _), },
-          end
-  ... ≤ 4 ^ (n : ℝ) : real_main_inequality n_large_real,
+                  ... = 2 * (n : ℝ) : by norm_num,
+  linarith,
+  apply real.rpow_le_rpow_of_exponent_le,
+  norm_num,
+  convert cast_div_le,
+  simp only [cast_mul, cast_bit0, cast_one],
+  simp only [cast_bit1, cast_one],
+  apply le_of_lt,
+  apply real.rpow_pos_of_pos,
+  norm_num,
+  apply mul_nonneg,
+  linarith,
+  apply le_of_lt,
+  apply real.rpow_pos_of_pos,
+  linarith,
 end
 
 /--

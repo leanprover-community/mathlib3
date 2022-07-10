@@ -375,11 +375,11 @@ variables {S}
 section tower
 
 /-- Lift an intermediate_field of an intermediate_field -/
-def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
+def lift {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
 map E (val F)
 
-instance has_lift1 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift1⟩
+instance has_lift {F : intermediate_field K L} :
+  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift⟩
 
 section restrict_scalars
 variables (K) [algebra L' L] [is_scalar_tower K L' L]

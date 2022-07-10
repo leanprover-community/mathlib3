@@ -419,18 +419,19 @@ begin
   exact lt_of_pow_dvd_right hn pp.two_le h,
 end
 
-lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
-  n.factorization p = ((finset.Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=
+lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp: prime p) :
+  Icc 1 ((n.factorization) p) = (Ico 1 n).filter (λ (i : ℕ), p ^ i ∣ n) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
-  rw [←nat.add_sub_cancel (n.factorization p) 1, ←card_Ico],
-  apply congr_arg card,
-  ext,
-  simp_rw [finset.mem_filter, mem_Ico, pp.pow_dvd_iff_le_factorization hn, lt_succ_iff,
-    and.congr_left_iff, iff_self_and],
-  rintro h -,
-  exact lt_of_le_of_lt h (factorization_lt n p hn),
+  ext x,
+  simp only [mem_Icc, finset.mem_filter, mem_Ico, and_assoc, and.congr_right_iff,
+    pp.pow_dvd_iff_le_factorization hn, iff_and_self],
+  exact λ H1 H2, lt_of_le_of_lt H2 (factorization_lt n p hn),
 end
+
+lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
+  n.factorization p = ((Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=
+by simp [←Icc_factorization_eq_pow_dvd n pp]
 
 lemma Ico_filter_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : n ≤ p ^ b):
   (Ico 1 n).filter (λ i, p ^ i ∣ n) = (Icc 1 b).filter (λ i, p ^ i ∣ n) :=

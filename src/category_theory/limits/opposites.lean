@@ -341,14 +341,12 @@ nat_iso.of_components (by { rintro (_|_|_); refl, })
 @[simps]
 def op_cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
   (cospan f g).op ≅ walking_cospan_op_equiv.functor ⋙ span f.op g.op :=
-begin
-  calc (cospan f g).op ≅ 𝟭 _ ⋙ (cospan f g).op : by refl
-  ... ≅ (walking_cospan_op_equiv.functor ⋙ walking_cospan_op_equiv.inverse) ⋙ (cospan f g).op :
-    iso_whisker_right walking_cospan_op_equiv.unit_iso _
-  ... ≅ walking_cospan_op_equiv.functor ⋙ (walking_cospan_op_equiv.inverse ⋙ (cospan f g).op) :
-    functor.associator _ _ _
-  ... ≅ walking_cospan_op_equiv.functor ⋙ span f.op g.op : iso_whisker_left _ (span_op f g).symm,
-end
+calc (cospan f g).op ≅ 𝟭 _ ⋙ (cospan f g).op : by refl
+... ≅ (walking_cospan_op_equiv.functor ⋙ walking_cospan_op_equiv.inverse) ⋙ (cospan f g).op :
+  iso_whisker_right walking_cospan_op_equiv.unit_iso _
+... ≅ walking_cospan_op_equiv.functor ⋙ (walking_cospan_op_equiv.inverse ⋙ (cospan f g).op) :
+  functor.associator _ _ _
+... ≅ walking_cospan_op_equiv.functor ⋙ span f.op g.op : iso_whisker_left _ (span_op f g).symm
 
 /-- The canonical isomorphism relating `cospan f.op g.op` and `(span f g).op` -/
 @[simps]

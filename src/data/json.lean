@@ -17,6 +17,20 @@ This file provides helpers for serializing primitive types to json.
 * `json_serializable`: a typeclass for objects which serialize to json
 * `json_serializable.to_json x`: convert `x` to json
 * `json_serializable.of_json α j`: read `j` in as an `α`
+
+## TODO
+
+It would be great if `auto_param`s and `opt_param`s could be supported for structures like
+```lean
+@[derive non_null_json_serializable]
+structure foo :=
+(x : ℕ := 2)
+(y : fin x.succ := 0)
+```
+which would happily load from the json literal `{}`,
+
+This ought to be possible by using a different invocation of `pexpr.mk_structure_instance` for every
+field that is present.
 -/
 
 
@@ -139,9 +153,9 @@ meta instance {α} [non_null_json_serializable α] : json_serializable (option �
 open tactic expr
 
 /-- Flatten a list of (p)exprs into a (p)expr forming a list of type `list t`. -/
-meta def list.to_expr {elab : bool} (t : expr elab) : list (expr elab) → expr elab
-| [] := expr.app (expr.const `list.nil [level.zero]) t
-| (x :: xs) := (((expr.const `list.cons [level.zero]).app t).app x).app xs.to_expr
+meta def list.to_expr {elab : bool} (t : expr elab) (l : level) : list (expr elab) → expr elab
+| [] := expr.app (expr.const `list.nil [l]) t
+| (x :: xs) := (((expr.const `list.cons [l]).app t).app x).app xs.to_expr
 
 /-- Begin parsing fields -/
 meta def json_serializable.field_starter (j : json) : exceptional (list (string × json)) :=
@@ -163,6 +177,8 @@ end
 meta def json_serializable.field_terminator (l : list (string × json)) : exceptional unit :=
 do [] ← pure l | exception (λ _, format!"unexpected fields {l.map prod.fst}"), pure ()
 
+/-- ``((c_name, c_fun), [(p_name, p_fun), ...]) ← get_constructor_and_projections `(struct n)``
+gets the names and partial invocations of the constructor and projections of a structure -/
 meta def get_constructor_and_projections (t : expr) :
   tactic (name × (name × expr) × list (name × expr)):=
 do
@@ -176,8 +192,8 @@ do
   ctor_type ← infer_type ctor.2,
   tt ← pure ctor_type.is_pi | pure (I, ctor, []),
   some fields ← pure (env.structure_fields I) | fail!"Not a structure",
-  projs ← fields.mmap $ λ f, do {
-    d ← get_decl (I ++ f),
+  projs ← fields.mmap $ λ f, do
+  { d ← get_decl (I ++ f),
     let a := @expr.const tt (I ++ f) $ d.univ_params.map level.param,
     pure (f, a.mk_app args) },
   pure (I, ctor, projs)
@@ -245,7 +261,7 @@ instance_derive_handler ``non_null_json_serializable $ do
     j ← tactic.mk_app `json_serializable.to_json [x_e],
     pure (some `((%%`(f.to_string), %%j) : string × json))
   ),
-  tactic.exact (projs.reduce_option.to_expr `(string × json)),
+  tactic.exact (projs.reduce_option.to_expr `(string × json) level.zero),
 
   -- the reverse direction
   get_local `j >>= tactic.clear,

@@ -48,10 +48,6 @@ Then the rest is usual set theory.
 
 To avoid confusion between the Lean `set` and the ZFC `Set`, docstrings in this file refer to them
 respectively as "`set`" and "ZFC set".
-
-## TODO
-
-Prove `Set.map_definable_aux` computably.
 -/
 
 universes u v

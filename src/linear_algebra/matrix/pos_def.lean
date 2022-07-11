@@ -7,15 +7,13 @@ import linear_algebra.matrix.spectrum
 import linear_algebra.quadratic_form.basic
 
 /-! # Positive Definite Matrices
-
-This file defines positive definite matrices and connects this notion to positive definiteness of
-quadratic forms.
-
+This file defines positive (semi)definite matrices and connects the notion to positive definiteness
+of quadratic forms.
 ## Main definition
-
- * `matrix.pos_def` : a matrix `M : matrix n n R` is positive definite if it is hermitian
-   and `xᴴMx` is greater than zero for all nonzero `x`.
-
+ * `matrix.pos_def` : a matrix `M : matrix n n R` is positive definite if it is hermitian and `xᴴMx`
+   is greater than zero for all nonzero `x`.
+ * `matrix.pos_semidef` : a matrix `M : matrix n n R` is positive semidefinite if it is hermitian
+   and `xᴴMx` is nonnegative for all `x`.
 -/
 
 namespace matrix
@@ -28,6 +26,11 @@ open_locale matrix
    and `xᴴMx` is greater than zero for all nonzero `x`. -/
 def pos_def (M : matrix n n R) :=
 M.is_hermitian ∧ ∀ x : n → R, x ≠ 0 → 0 < dot_product (star x) (M.mul_vec x)
+
+/-- A matrix `M : matrix n n R` is positive semidefinite if it is hermitian
+   and `xᴴMx` is nonnegative for all `x`. -/
+def pos_semidef (M : matrix n n R) :=
+M.is_hermitian ∧ ∀ x : n → R, 0 ≤ dot_product (star x) (M.mul_vec x)
 
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :

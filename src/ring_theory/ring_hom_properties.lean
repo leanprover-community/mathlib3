@@ -11,12 +11,12 @@ import ring_theory.localization.away
 # Properties of ring homomorphisms
 
 We provide the basic framework for talking about properties of ring homomorphisms.
-The following meta-properties are defined
+The following meta-properties of predicates on ring homomorphisms are defined
 
-* `respects_iso`: `P` respects isomorphisms if `P f → P (e ≫ f)` and `P f → P (f ≫ e)`, where
+* `ring_hom.respects_iso`: `P` respects isomorphisms if `P f → P (e ≫ f)` and `P f → P (f ≫ e)`, where
   `e` is an isomorphism.
-* `stable_under_composition`: `P` is stable under composition if `P f → P g → P (f ≫ g)`.
-* `stable_under_base_change`: `P` is stable under base change if `P (S ⟶ Y) → P (X ⟶ X ⊗[S] Y)`.
+* `ring_hom.stable_under_composition`: `P` is stable under composition if `P f → P g → P (f ≫ g)`.
+* `ring_hom.stable_under_base_change`: `P` is stable under base change if `P (S ⟶ Y) → P (X ⟶ X ⊗[S] Y)`.
 
 -/
 

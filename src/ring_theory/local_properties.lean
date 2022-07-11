@@ -122,8 +122,8 @@ def ring_hom.of_localization_span_target : Prop :=
   (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
   by exactI P f
 
-/-- A property `P` of ring homs satisfies `of_localization_maximal` if
-  if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideal `m`. -/
+/-- A property `P` of ring homs satisfies `of_localization_prime` if
+  if `P` holds for `R` whenever `P` holds for `Rₘ` for all prime ideals `p`. -/
 def ring_hom.of_localization_prime : Prop :=
 ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
   by exactI (∀ (J : ideal S) (hJ : J.is_prime),
@@ -580,7 +580,7 @@ begin
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
   convert ha₂.symm,
   { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-    algebra.smul_def, submonoid.coe_pow], refl },
+      algebra.smul_def, submonoid_class.coe_pow], refl },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 

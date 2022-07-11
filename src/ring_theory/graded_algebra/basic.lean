@@ -166,7 +166,8 @@ lemma graded_algebra.mem_support_iff [decidable_eq A] (r : A) (i : ι) :
   i ∈ (decompose 𝒜 r).support ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
 dfinsupp.mem_support_iff.trans submodule.coe_eq_zero.not.symm
 
-lemma graded_algebra.proj_homogeneous_mul [cancel_add_monoid ι] {a b : A} {i j : ι}
+lemma graded_algebra.proj_homogeneous_mul (add_left_cancel : ∀ {i j k : ι}, i + j = i + k → j = k)
+  {a b : A} {i j : ι}
   (a_mem : a ∈ 𝒜 i) (hb : graded_algebra.proj 𝒜 j b ≠ 0) :
   graded_algebra.proj 𝒜 (i + j) (a * b) = a * graded_algebra.proj 𝒜 j b :=
 begin
@@ -214,7 +215,7 @@ begin
         ext; dsimp only,
         { exact ha1, },
         { erw ha1 at ha3,
-          linarith, }, },
+          convert add_left_cancel ha3, }, },
       { erw [finset.mem_singleton, prod.ext_iff] at ha,
         rcases ha with ⟨ha1, ha2⟩,
         dsimp only at ha1 ha2,

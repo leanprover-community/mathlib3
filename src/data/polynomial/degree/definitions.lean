@@ -559,12 +559,11 @@ end
 lemma degree_update_le (p : R[X]) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin
-  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
-  intros b hb,
-  split_ifs at hb with h,
-  { subst b,
-    exact or.inr le_rfl },
-  { exact or.inl (le_degree_of_ne_zero hb) }
+  rw [degree, support_update],
+  split_ifs,
+  { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
+  { rw [sup_insert, max_comm],
+    exact rfl.le },
 end
 
 lemma degree_sum_le (s : finset ι) (f : ι → R[X]) :

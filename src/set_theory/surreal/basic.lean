@@ -43,8 +43,7 @@ One can also map all the ordinals into the surreals!
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
-local infix ` ⧏ `:50 := pgame.lf
+open_locale pgame
 
 open relation
 

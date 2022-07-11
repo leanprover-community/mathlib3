@@ -9,12 +9,11 @@ variables {n : Type*} [fintype n] [decidable_eq n] {R : Type*} [comm_ring R]
 variables (A B C D : matrix n n R) (x y u v: n → R)
 
 localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
-localized "infix ` ᵛ⬝ `:73 := vec_mul" in matrix
-localized "infix ` ⬝ᵛ `:74 := mul_vec" in matrix
 
 lemma schur_complement_eq {A : matrix n n R} (hA : A.is_symm) [invertible A] :
-(x ⊕ᵥ y) ᵛ⬝ from_blocks A B Bᵀ D ⬝ᵥ (x ⊕ᵥ y) =
-  (x + A⁻¹ ⬝ B ⬝ᵛ y) ᵛ⬝ A ⬝ᵥ (x + A⁻¹ ⬝ B ⬝ᵛ y) + y ᵛ⬝ (D - Bᵀ ⬝ A⁻¹ ⬝ B) ⬝ᵥ y :=
+vec_mul (x ⊕ᵥ y) (from_blocks A B Bᵀ D) ⬝ᵥ (x ⊕ᵥ y) =
+  vec_mul (x + (A⁻¹ ⬝ B).mul_vec y) A ⬝ᵥ (x + (A⁻¹ ⬝ B).mul_vec y) +
+    vec_mul y (D - Bᵀ ⬝ A⁻¹ ⬝ B) ⬝ᵥ y :=
 begin
   simp [from_blocks_mul_vec, vec_mul_from_blocks, add_vec_mul, dot_product_mul_vec,
     vec_mul_sub, matrix.mul_assoc, vec_mul_mul_vec, hA.eq, transpose_nonsing_inv],
@@ -31,8 +30,8 @@ variables {n : Type*} [fintype n] [decidable_eq n] {R : Type*} [ordered_comm_rin
 
 variables (A B C D : matrix n n R) (x y u v: n → R)
 
-def pos_def := ∀ x, x ≠ 0 → 0 < x ᵛ⬝ A ⬝ᵥ x
-def pos_semidef := ∀ x, 0 ≤ x ᵛ⬝ A ⬝ᵥ x
+def pos_def := ∀ x, x ≠ 0 → 0 < vec_mul x A ⬝ᵥ x
+def pos_semidef := ∀ x, 0 ≤ vec_mul x A ⬝ᵥ x
 
 lemma pos_semidef_of_pos_def (hA : A.pos_def) : A.pos_semidef :=
 begin
@@ -48,7 +47,7 @@ begin
   split,
   { intros h x,
     unfold pos_def at *,
-    have := h (- (A⁻¹ ⬝ B ⬝ᵛ x) ⊕ᵥ x),
+    have := h (- ((A⁻¹ ⬝ B).mul_vec x) ⊕ᵥ x),
     rw [schur_complement_eq _ _ _ _ hAsymm, neg_add_self, dot_product_zero, zero_add] at this,
     exact this },
   { intros h x,

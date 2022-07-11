@@ -9,6 +9,27 @@ import data.finsupp.basic
 /-!
 
 # Sums of collections of finsupp, and their support
+This file provides results about the `finsupp.support` of sums of collections of `finsupp`,
+including sums of `list`, `multiset`, and `finset`.
+
+The support of the sum is a subset of the union of the supports:
+* `list.support_sum_subset`
+* `multiset.support_sum_subset`
+* `finset.support_sum_subset`
+
+The support of the sum of pairwise disjoint finsupps is equal to the union of the supports
+* `list.support_sum_eq`
+* `multiset.support_sum_eq`
+* `finset.support_sum_eq`
+
+Member in support of the indexed union over an finset iff member of support of member of the finset:
+* `finset.mem_sup_support_iff`
+
+## Implementation
+
+This file proves side results about the equivalence of `list.pairwise` and `set.pairwise`
+over lists and the finsets one cam form from them. As a specialization of this,
+the same is proven for `set.pairwise_disjoint`.
 
 -/
 

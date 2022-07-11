@@ -715,7 +715,7 @@ def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
 def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
 
 /-- The union of a class is the class of all members of ZFC sets in the class -/
-def Union (x : Class) : Class := of_set $ set.sUnion (Class_to_Cong x)
+def Union (x : Class) : Class := of_set $ set.sUnion $ Class_to_Cong x
 notation `⋃` := Union
 
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=

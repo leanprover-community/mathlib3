@@ -91,7 +91,7 @@ by simp_rw [prod_univ_succ, cons_zero, cons_succ]
   ∏ i, f i = f 0 :=
 by simp
 
-@[to_additive] theorem prod_univ_two [comm_monoid β] (f : fin 2 → β) :
+@[simp, to_additive] theorem prod_univ_two [comm_monoid β] (f : fin 2 → β) :
   ∏ i, f i = f 0 * f 1 :=
 by simp [prod_univ_succ]
 

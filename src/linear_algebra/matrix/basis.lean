@@ -235,6 +235,7 @@ lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
   b.to_matrix b' ⬝ b'.to_matrix b = 1 :=
 by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
+/-- A matrix whose columns form a basis `b'`, expressed w.r.t. a basis `b`, is invertible. -/
 def basis.invertible_to_matrix [decidable_eq ι] [fintype ι] (b b' : basis ι R₂ M₂) :
   invertible (b.to_matrix b') :=
 matrix.invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)

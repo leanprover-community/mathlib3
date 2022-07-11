@@ -10,7 +10,8 @@ import data.finite.defs
 # Finite types
 
 In this file we prove some theorems about `finite` and provide some instances. This typeclass is a
-`Prop`-valued counterpart of the typeclass `fintype`.
+`Prop`-valued counterpart of the typeclass `fintype`. See more details in the file where `finite` is
+defined.
 
 ## Main definitions
 
@@ -35,7 +36,6 @@ consider writing automation to create these "lowered" instances.
 ## Tags
 
 finiteness, finite types
-
 -/
 
 noncomputable theory

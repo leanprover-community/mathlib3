@@ -365,8 +365,11 @@ section support
 lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
 by simpa only [← single_eq_C_mul_T] using support_single_subset
 
-@[simp] lemma to_laurent_support (f : R[X]) : f.to_laurent.support = f.support.image coe :=
+@[simp] lemma to_laurent_support (f : R[X]) :
+  f.to_laurent.support = f.support.map (nat.cast_embedding) :=
 begin
+  rw (show (f.support.map nat.cast_embedding = f.support.image (coe : ℕ → ℤ)), by
+  { ext, simp only [finset.mem_map, nat.cast_embedding_apply, finset.mem_image] }),
   generalize' hd : f.support = s,
   revert f,
   refine finset.induction_on s _ _; clear s,

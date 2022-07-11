@@ -144,6 +144,13 @@ def T (n : ℤ) : R[T;T⁻¹] := single n 1
 @[simp]
 lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
 
+@[simp] lemma coeff_T (m n : ℤ) : (T n : R[T;T⁻¹]) m = ite (m = n) 1 0 :=
+begin
+  split_ifs with h h,
+  { simp only [h, T, single_eq_same] },
+  { simp only [T, single_eq_of_ne (ne_comm.mp h)] }
+end
+
 lemma T_add (m n : ℤ) : (T (m + n) : R[T;T⁻¹]) = T m * T n :=
 by { convert single_mul_single.symm, simp [T] }
 
@@ -414,15 +421,6 @@ dite (f = 0) (λ _, 0) (λ f0, f.support.max' $ support_nonempty_iff.mpr f0)
 
 @[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
 
-@[simp] lemma int_degree_zero : int_degree (0 : R[T;T⁻¹]) = 0 := rfl
-
-@[simp] lemma coeff_T (m n : ℤ) : (T n : R[T;T⁻¹]) m = ite (m = n) 1 0 :=
-begin
-  split_ifs with h h,
-  { simp only [h, T, single_eq_same] },
-  { simp only [T, single_eq_of_ne (ne_comm.mp h)] }
-end
-
 @[simp] lemma degree_eq_bot_iff {f : R[T;T⁻¹]} : f.degree = ⊥ ↔ f = 0 :=
 begin
   refine ⟨λ h, _, λ h, by rw [h, degree_zero]⟩,
@@ -432,6 +430,8 @@ begin
   simp_rw [finset.sup_eq_bot_iff, finsupp.mem_support_iff, ne.def, with_bot.coe_ne_bot] at h,
   exact h n f0,
 end
+
+@[simp] lemma int_degree_zero : int_degree (0 : R[T;T⁻¹]) = 0 := rfl
 
 section exact_degrees
 

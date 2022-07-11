@@ -873,4 +873,3 @@ begin
   rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
   exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
 end
-#lint

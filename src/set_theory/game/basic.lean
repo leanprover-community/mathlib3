@@ -186,7 +186,7 @@ equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j)) =
-  xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
+  xL i * mk yl yr yL yR + mk xl xr xL xR * yL j - xL i * yL j :=
 rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
@@ -196,7 +196,7 @@ by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j)) =
-  xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
+  xR i * mk yl yr yL yR + mk xl xr xL xR * yR j - xR i * yR j :=
 rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
@@ -206,7 +206,7 @@ by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j)) =
-  xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
+  xL i * mk yl yr yL yR + mk xl xr xL xR * yR j - xL i * yR j :=
 rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
@@ -216,7 +216,7 @@ by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j)) =
-  xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
+  xR i * mk yl yr yL yR + mk xl xr xL xR * yL j - xR i * yL j :=
 rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
@@ -226,22 +226,22 @@ by { cases x, cases y, refl }
 
 @[simp] lemma mk_neg_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (- (mk xl xr xL xR * mk yl yr yL yR)).move_left (sum.inl (i, j)) =
-  - (xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j) :=
+  - (xL i * mk yl yr yL yR + mk xl xr xL xR * yR j - xL i * yR j) :=
 rfl
 
 @[simp] lemma mk_neg_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (- (mk xl xr xL xR * mk yl yr yL yR)).move_left (sum.inr (i, j)) =
-  - (xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j) :=
+  - (xR i * mk yl yr yL yR + mk xl xr xL xR * yL j - xR i * yL j) :=
 rfl
 
 @[simp] lemma mk_neg_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (- (mk xl xr xL xR * mk yl yr yL yR)).move_right (sum.inl (i, j)) =
-  - (xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j) :=
+  - (xL i * mk yl yr yL yR + mk xl xr xL xR * yL j - xL i * yL j) :=
 rfl
 
 @[simp] lemma mk_neg_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (- (mk xl xr xL xR * mk yl yr yL yR)).move_right (sum.inr (i, j)) =
-  - (xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j) :=
+  - (xR i * mk yl yr yL yR + mk xl xr xL xR * yR j - xR i * yR j) :=
 rfl
 
 lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}

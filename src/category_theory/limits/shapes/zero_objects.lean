@@ -132,7 +132,7 @@ class has_zero_object : Prop :=
 (zero : ∃ X : C, is_zero X)
 
 instance has_zero_object_punit : has_zero_object (discrete punit) :=
-{ zero := ⟨punit.star, by tidy, by tidy⟩, }
+{ zero := ⟨⟨⟨⟩⟩, by tidy, by tidy⟩, }
 
 section
 

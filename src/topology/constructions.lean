@@ -126,19 +126,15 @@ instance : topological_space (cofinite_topology α) :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,
   is_open_inter := λ s t, begin
-    classical,
     rintros hs ht ⟨x, hxs, hxt⟩,
-    haveI := set.finite.fintype (hs ⟨x, hxs⟩),
-    haveI := set.finite.fintype (ht ⟨x, hxt⟩),
     rw compl_inter,
-    exact set.finite.intro (sᶜ.fintype_union tᶜ),
+    exact (hs ⟨x, hxs⟩).union (ht ⟨x, hxt⟩),
   end,
   is_open_sUnion := begin
     rintros s h ⟨x, t, hts, hzt⟩,
     rw set.compl_sUnion,
-    apply set.finite.sInter _ (h t hts ⟨x, hzt⟩),
-    simp [hts]
-    end }
+    exact set.finite.sInter (mem_image_of_mem _ hts) (h t hts ⟨x, hzt⟩),
+  end }
 
 lemma is_open_iff {s : set (cofinite_topology α)} :
   is_open s ↔ (s.nonempty → (sᶜ).finite) := iff.rfl
@@ -389,9 +385,14 @@ lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
   s ×ˢ t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
 by rw [nhds_prod_eq, prod_mem_prod_iff]
 
-lemma prod_is_open.mem_nhds {s : set α} {t : set β} {a : α} {b : β}
+lemma prod_mem_nhds {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : s ×ˢ t ∈ 𝓝 (a, b) :=
 prod_mem_nhds_iff.2 ⟨ha, hb⟩
+
+lemma filter.eventually.prod_nhds {p : α → Prop} {q : β → Prop} {a : α} {b : β}
+  (ha : ∀ᶠ x in 𝓝 a, p x) (hb : ∀ᶠ y in 𝓝 b, q y) :
+  ∀ᶠ z : α × β in 𝓝 (a, b), p z.1 ∧ q z.2 :=
+prod_mem_nhds ha hb
 
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
@@ -764,6 +765,9 @@ lemma continuous_at_subtype_coe {p : α → Prop} {a : subtype p} :
   continuous_at (coe : subtype p → α) a :=
 continuous_iff_continuous_at.mp continuous_subtype_coe _
 
+lemma subtype.dense_iff {s : set α} {t : set s} : dense t ↔ s ⊆ closure (coe '' t) :=
+by { rw [inducing_coe.dense_iff, set_coe.forall], refl }
+
 lemma map_nhds_subtype_coe_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
   map (coe : subtype p → α) (𝓝 ⟨a, ha⟩) = 𝓝 a :=
 map_nhds_induced_of_mem $ by simpa only [subtype.coe_mk, subtype.range_coe] using h
@@ -948,7 +952,7 @@ lemma continuous.fin_insert_nth {n} {π : fin (n + 1) → Type*} [Π i, topologi
 continuous_iff_continuous_at.2 $ λ a, hf.continuous_at.fin_insert_nth i hg.continuous_at
 
 lemma is_open_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
-  (hi : finite i) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
+  (hi : i.finite) (hs : ∀a∈i, is_open (s a)) : is_open (pi i s) :=
 by rw [pi_def]; exact (is_open_bInter hi $ assume a ha, (hs _ ha).preimage (continuous_apply _))
 
 lemma is_closed_set_pi [∀a, topological_space (π a)] {i : set ι} {s : Πa, set (π a)}
@@ -962,7 +966,7 @@ lemma mem_nhds_of_pi_mem_nhds {ι : Type*} {α : ι → Type*} [Π (i : ι), top
 by { rw nhds_pi at hs, exact mem_of_pi_mem_pi hs hi }
 
 lemma set_pi_mem_nhds [Π a, topological_space (π a)] {i : set ι} {s : Π a, set (π a)}
-  {x : Π a, π a} (hi : finite i) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
+  {x : Π a, π a} (hi : i.finite) (hs : ∀ a ∈ i, s a ∈ 𝓝 (x a)) :
   pi i s ∈ 𝓝 x :=
 by { rw [pi_def, bInter_mem hi], exact λ a ha, (continuous_apply a).continuous_at (hs a ha) }
 

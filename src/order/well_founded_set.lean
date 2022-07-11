@@ -146,15 +146,15 @@ begin
   classical,
   rw [is_wf_iff_no_descending_seq] at *,
   rintros f fst,
-  have h : infinite (f ⁻¹' s) ∨ infinite (f ⁻¹' t),
-  { have h : infinite (univ : set ℕ) := infinite_univ,
+  have h : (f ⁻¹' s).infinite ∨ (f ⁻¹' t).infinite,
+  { have h : (univ : set ℕ).infinite := infinite_univ,
     have hpre : f ⁻¹' (s ∪ t) = set.univ,
     { rw [← image_univ, image_subset_iff, univ_subset_iff] at fst,
       exact fst },
     rw preimage_union at hpre,
     rw ← hpre at h,
-    rw [infinite, infinite],
-    rw infinite at h,
+    rw [set.infinite, set.infinite],
+    rw set.infinite at h,
     contrapose! h,
     exact finite.union h.1 h.2, },
   rw [← infinite_coe_iff, ← infinite_coe_iff] at h,
@@ -355,15 +355,15 @@ begin
   classical,
   rw [is_pwo_iff_exists_monotone_subseq] at *,
   rintros f fst,
-  have h : infinite (f ⁻¹' s) ∨ infinite (f ⁻¹' t),
-  { have h : infinite (univ : set ℕ) := infinite_univ,
+  have h : (f ⁻¹' s).infinite ∨ (f ⁻¹' t).infinite,
+  { have h : (univ : set ℕ).infinite := infinite_univ,
     have hpre : f ⁻¹' (s ∪ t) = set.univ,
     { rw [← image_univ, image_subset_iff, univ_subset_iff] at fst,
       exact fst },
     rw preimage_union at hpre,
     rw ← hpre at h,
-    rw [infinite, infinite],
-    rw infinite at h,
+    rw [set.infinite, set.infinite],
+    rw set.infinite at h,
     contrapose! h,
     exact finite.union h.1 h.2, },
   rw [← infinite_coe_iff, ← infinite_coe_iff] at h,
@@ -440,7 +440,7 @@ begin
 end
 
 @[simp]
-theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
+theorem fintype.is_pwo [fintype α] : s.is_pwo := s.to_finite.is_pwo
 
 @[simp]
 theorem is_pwo_empty : is_pwo (∅ : set α) :=

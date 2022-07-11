@@ -15,11 +15,12 @@ This file contains basics about the separable degree of a polynomial.
 
 ## Main results
 
-- `is_separable_contraction`: is the condition that `g(x^(q^m)) = f(x)` for some `m : ℕ`
+- `is_separable_contraction`: is the condition that, for `g` a separable polynomial, we have that
+   `g(x^(q^m)) = f(x)` for some `m : ℕ`.
 - `has_separable_contraction`: the condition of having a separable contraction
 - `has_separable_contraction.degree`: the separable degree, defined as the degree of some
   separable contraction
-- `irreducible_has_separable_contraction`: any irreducible polynomial can be contracted
+- `irreducible.has_separable_contraction`: any irreducible polynomial can be contracted
   to a separable polynomial
 - `has_separable_contraction.dvd_degree'`: the degree of a separable contraction divides the degree,
   in function of the exponential characteristic of the field
@@ -90,8 +91,8 @@ variables (q : ℕ) {f : F[X]} (hf : has_separable_contraction q f)
 
 /-- Every irreducible polynomial can be contracted to a separable polynomial.
 https://stacks.math.columbia.edu/tag/09H0 -/
-lemma irreducible_has_separable_contraction (q : ℕ) [hF : exp_char F q]
-  (f : F[X]) [irred : irreducible f] : has_separable_contraction q f :=
+lemma _root_.irreducible.has_separable_contraction (q : ℕ) [hF : exp_char F q]
+  (f : F[X]) (irred : irreducible f) : has_separable_contraction q f :=
 begin
   casesI hF,
   { exact ⟨f, irred.separable, ⟨0, by rw [pow_zero, expand_one]⟩⟩ },

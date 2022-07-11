@@ -182,16 +182,15 @@ noncomputable def is_positive.trace [complete_space E] {T : E →L[𝕜] E} (hT 
 lemma key {ι : Type*} [complete_space E] (e : hilbert_basis ι 𝕜 E) {T : E →L[𝕜] E}
   (hT : T.is_positive) : has_sum (λ i : ι, ennreal.of_real (re ⟪e i, T (e i)⟫)) hT.trace :=
 begin
-  rw ennreal.summable.has_sum_iff,
+  rw [ennreal.summable.has_sum_iff, ennreal.tsum_eq_supr_sum],
   refine le_antisymm _ _,
-  { rw ennreal.tsum_eq_supr_sum,
-    refine supr_mono' (λ J, ⟨⟨span 𝕜 (J.image e : set E), infer_instance⟩, _⟩),
+  { refine supr_mono' (λ J, ⟨⟨span 𝕜 (J.image e : set E), infer_instance⟩, _⟩),
     change _ ≤ (hT.trace_along_nnreal (span 𝕜 (J.image e : set E)) : ℝ≥0∞),
     rw [is_positive.trace_along_nnreal, ← ennreal.of_real_eq_coe_nnreal,
         T.trace_along_span_eq_of_orthonormal e.orthonormal J, _root_.map_sum,
         ennreal.of_real_sum_of_nonneg sorry], -- easy sorry
     exact le_rfl },
-  { sorry } -- hard part
+  { refine supr_mono' (λ U, sorry) } -- hard part
 end
 
 end positive

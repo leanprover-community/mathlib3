@@ -253,7 +253,7 @@ end
 -/
 def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f_deg)) :=
 ⟨carrier f_deg x, carrier_ne_top f_deg x, λ x1 x2 hx12, begin
-  haveI : decidable_eq (away f) := classical.dec_eq _,
+  classical,
   rcases ⟨x1, x2⟩ with ⟨⟨x1, hx1⟩, ⟨x2, hx2⟩⟩,
   induction x1 using localization.induction_on with data_x1,
   induction x2 using localization.induction_on with data_x2,

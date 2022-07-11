@@ -310,6 +310,7 @@ theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := (zero_mul_relabelling x).equ
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
 
+/-- `-x * y` and `-(x * y)` have the same moves. -/
 def neg_mul_relabelling : Π (x y : pgame.{u}), -x * y ≡r -(x * y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
   refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
@@ -324,6 +325,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 @[simp] theorem quot_neg_mul (x y : pgame) : ⟦-x * y⟧ = -⟦x * y⟧ :=
 quot.sound (neg_mul_relabelling x y).equiv
 
+/-- `x * -y` and `-(x * y)` have the same moves. -/
 def mul_neg_relabelling (x y : pgame) : x * -y ≡r -(x * y) :=
 (mul_comm_relabelling x _).trans $
   (neg_mul_relabelling _ x).trans (mul_comm_relabelling y x).neg_congr

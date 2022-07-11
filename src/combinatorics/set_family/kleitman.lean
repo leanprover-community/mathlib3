@@ -37,43 +37,21 @@ lemma sdiff_eq_inter_compl (s t : finset α) : s \ t = s ∩ tᶜ := sdiff_eq
 
 end finset
 
-section tsub
-variables {α : Type*}
-
-open function
-
-lemma add_tsub_add_le_tsub_right [preorder α] [add_comm_semigroup α] [has_sub α]
-  [covariant_class α α (+) (≤)] [has_ordered_sub α] (a b c : α) : a + c - (b + c) ≤ a - b :=
-by { rw [tsub_le_iff_left, add_right_comm], exact add_le_add_right le_add_tsub c }
-
-/-- See `tsub_add_eq_add_tsub` for the equality. -/
-lemma tsub_add_le_right_comm {α : Type*} [preorder α] [add_comm_semigroup α] [has_sub α]
-  [covariant_class α α (+) (≤)][has_ordered_sub α] {a b c : α} : a + b - c ≤ a - c + b :=
-by { rw [add_comm, add_comm _ b], exact add_tsub_le_assoc }
-
-end tsub
-
 open finset fintype (card)
 
 instance {α : Type*} [nonempty α] : nontrivial (set α) := ⟨⟨∅, set.univ, set.empty_ne_univ⟩⟩
 
-instance {α : Type*} [nonempty α] : nontrivial (list α) :=
-⟨⟨[classical.arbitrary _], ∅, list.cons_ne_nil _ _⟩⟩
-
-instance {α : Type*} [nonempty α] : nontrivial (multiset α) :=
-⟨⟨{classical.arbitrary _}, 0, multiset.singleton_ne_zero _⟩⟩
-
 instance {α : Type*} [nonempty α] : nontrivial (finset α) :=
-⟨⟨{classical.arbitrary _}, ∅, singleton_ne_empty _⟩⟩
+nonempty.elim ‹_› $ λ a, ⟨⟨{a}, ∅, singleton_ne_empty _⟩⟩
 
 instance {α : Type*} [is_empty α] : unique (finset α) :=
 { default := ∅,
   uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
 
-variables {ι α : Type*} [fintype α] [decidable_eq α]
+variables {ι α : Type*} [fintype α] [decidable_eq α] [nonempty α]
 
 /-- **Kleitman's theorem**. -/
-lemma finset.card_bUnion_le_of_intersecting [nonempty α] (s : finset ι) (ℱ : ι → finset (finset α))
+lemma finset.card_bUnion_le_of_intersecting (s : finset ι) (ℱ : ι → finset (finset α))
   (hℱ : ∀ i ∈ s, (ℱ i : set (finset α)).intersecting) :
   (s.bUnion ℱ).card ≤ 2 ^ card α - 2 ^ (card α - s.card) :=
 begin

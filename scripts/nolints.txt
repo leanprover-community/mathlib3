@@ -999,6 +999,9 @@ apply_nolint filter.mem_infi_of_fintype fintype_finite
 -- order/filter/cofinite.lean
 apply_nolint filter.Coprod_cofinite fintype_finite
 
+-- order/filter/ultrafilter.lean
+apply_nolint ultrafilter.eq_pure_of_fintype fintype_finite
+
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 

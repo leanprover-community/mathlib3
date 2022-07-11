@@ -675,7 +675,11 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 
 end Set
 
-/-- The collection of all classes. A class is defined as a `set` of ZFC sets. -/
+/-- The collection of all classes.
+
+We define `Class` as `set Set`, as this allows us to get many instances automatically. However, in
+practice, we treat it as `Set → Prop`. This means, the preferred way to state that `x : Set` belongs
+to `A : Class` is to write `A x`. -/
 @[derive [has_subset, has_sep Set, has_emptyc, inhabited, has_insert Set, has_union, has_inter,
   has_compl, has_sdiff]]
 def Class := set Set
@@ -689,10 +693,10 @@ instance : has_coe Set Class := ⟨of_Set⟩
 /-- The universal class -/
 def univ : Class := set.univ
 
-/-- Assert that `A` is a ZFC set satisfying `p` -/
-def to_Set (p : Set.{u} → Prop) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ p x
+/-- Assert that `A` is a ZFC set satisfying `B` -/
+def to_Set (p : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ p x
 
-/-- `A ∈ B` if `A` is a ZFC set which is a member of `B` -/
+/-- `A ∈ B` if `A` is a ZFC set which satisfies `B` -/
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
@@ -715,7 +719,7 @@ notation `⋃` := Union
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
 
-@[simp] theorem to_Set_of_Set (p : Set.{u} → Prop) (x : Set.{u}) : to_Set p x ↔ p x :=
+@[simp] theorem to_Set_of_Set (p : Class.{u}) (x : Set.{u}) : to_Set p x ↔ p x :=
 ⟨λ ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λ px, ⟨x, rfl, px⟩⟩
 
 @[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ A x :=
@@ -725,7 +729,7 @@ to_Set_of_Set _ _
 
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
-@[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) :
+@[simp] theorem sep_hom (p : Class.{u}) (x : Set.{u}) :
   (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λ y, Set.mem_sep
 
@@ -751,19 +755,19 @@ set.ext $ λ z, iff.symm Set.mem_powerset
 set.ext $ λ z, by { refine iff.trans _ Set.mem_Union.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
 
-/-- The definite description operator, which is `{x}` if `{a | p a} = {x}` and `∅` otherwise. -/
-def iota (p : Set → Prop) : Class := Union {x | ∀ y, p y ↔ y = x}
+/-- The definite description operator, which is `{x}` if `{b | A b} = {x}` and `∅` otherwise. -/
+def iota (A : Class) : Class := Union {x | ∀ y, A y ↔ y = x}
 
-theorem iota_val (p : Set → Prop) (x : Set) (H : ∀ y, p y ↔ y = x) : iota p = ↑x :=
+theorem iota_val (A : Class) (x : Set) (H : ∀ y, A y ↔ y = x) : iota A = ↑x :=
 set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl),
   λ yx, ⟨_, ⟨x, rfl, H⟩, yx⟩⟩
 
 /-- Unlike the other set constructors, the `iota` definite descriptor
   is a set for any set input, but not constructively so, so there is no
-  associated `(Set → Prop) → Set` function. -/
-theorem iota_ex (p) : iota.{u} p ∈ univ.{u} :=
-mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, p y ↔ y = x)
- (λ ⟨x, h⟩, ⟨x, eq.symm $ iota_val p x h⟩)
+  associated `Class → Set` function. -/
+theorem iota_ex (A) : iota.{u} A ∈ univ.{u} :=
+mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, A y ↔ y = x)
+ (λ ⟨x, h⟩, ⟨x, eq.symm $ iota_val A x h⟩)
  (λ hn, ⟨∅, set.ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/

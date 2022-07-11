@@ -617,8 +617,6 @@ by { ext; cases i; simp only [prod_apply_inl_fst, sum.elim_inl, linear_map.inl_a
                               prod_apply_inr_fst, sum.elim_inr, linear_map.inr_apply,
                               prod_apply_inl_snd, prod_apply_inr_snd, comp_app] }
 
-/- For the specific case of `R × R`, see also `basis.fin_two_prod` below. -/
-
 end prod
 
 section no_zero_smul_divisors

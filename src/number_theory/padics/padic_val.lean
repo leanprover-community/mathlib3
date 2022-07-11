@@ -9,7 +9,7 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
-import data.nat.factorization
+import data.nat.factorization.basic
 
 /-!
 # p-adic Valuation
@@ -216,6 +216,10 @@ begin
   { exfalso,
     apply h ⟨(hp.out).ne_one, hn⟩, }
 end
+
+lemma padic_val_nat_def' {n p : ℕ} (hp : p ≠ 1) (hn : 0 < n) :
+  ↑(padic_val_nat p n) = multiplicity p n :=
+by simp [padic_val_nat, hp, hn]
 
 @[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
 by simp [padic_val_nat_def (fact.out p.prime).pos]
@@ -449,15 +453,11 @@ begin
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
-lemma pow_padic_val_nat_dvd {p n : ℕ} [fact (nat.prime p)] : p ^ (padic_val_nat p n) ∣ n :=
+lemma pow_padic_val_nat_dvd {p n : ℕ} : p ^ (padic_val_nat p n) ∣ n :=
 begin
-  cases nat.eq_zero_or_pos n with hn hn,
-  { rw hn, exact dvd_zero (p ^ padic_val_nat p 0) },
-  { rw multiplicity.pow_dvd_iff_le_multiplicity,
-    apply le_of_eq,
-    rw padic_val_nat_def hn,
-    { apply enat.coe_get },
-    { apply_instance } }
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  rcases eq_or_ne p 1 with rfl | hp, { simp },
+  rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption,
 end
 
 lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :
@@ -539,7 +539,7 @@ begin
     simp [padic_val_nat_eq_factorization] }
 end
 
-lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :
+lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
   (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=
 begin
   intros t ht,

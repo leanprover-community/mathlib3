@@ -103,7 +103,8 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P := map₂_
 lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
 begin
   dsimp [has_mul.mul],
-  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid, map₂],
+  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid _ N,
+    map₂],
   rw supr_to_add_submonoid,
   refl,
 end
@@ -304,6 +305,7 @@ instance : semiring (submodule R A) :=
   mul_zero      := mul_bot,
   left_distrib  := mul_sup,
   right_distrib := sup_mul,
+  ..add_monoid_with_one.unary,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.has_one,
   ..submodule.has_mul }

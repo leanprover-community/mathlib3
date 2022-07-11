@@ -221,7 +221,7 @@ begin
     rw [eq₁, le_add_iff_nonneg_right] at this,
     have eq₂ : θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)=θ*(θ*∥w-v∥^2-2*inner(u-v)(w-v)), ring,
     rw eq₂ at this,
-    have := le_of_sub_nonneg (nonneg_of_mul_nonneg_left this hθ₁),
+    have := le_of_sub_nonneg (nonneg_of_mul_nonneg_right this hθ₁),
     exact this,
   by_cases hq : q = 0,
   { rw hq at this,
@@ -771,6 +771,23 @@ lemma orthogonal_projection_mem_subspace_orthogonal_precomplement_eq_zero
   orthogonal_projection Kᗮ v = 0 :=
 orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (K.le_orthogonal_orthogonal hv)
 
+/-- The orthogonal complement satisfies `Kᗮᗮᗮ = Kᗮ`. -/
+lemma submodule.triorthogonal_eq_orthogonal [complete_space E] : Kᗮᗮᗮ = Kᗮ :=
+begin
+  rw Kᗮ.orthogonal_orthogonal_eq_closure,
+  exact K.is_closed_orthogonal.submodule_topological_closure_eq,
+end
+
+/-- The closure of `K` is the full space iff `Kᗮ` is trivial. -/
+lemma submodule.topological_closure_eq_top_iff [complete_space E] :
+  K.topological_closure = ⊤ ↔ Kᗮ = ⊥ :=
+begin
+  rw ←submodule.orthogonal_orthogonal_eq_closure,
+  split; intro h,
+  { rw [←submodule.triorthogonal_eq_orthogonal, h, submodule.top_orthogonal_eq_bot] },
+  { rw [h, submodule.bot_orthogonal_eq_top] }
+end
+
 /-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg
   [complete_space E] {v : E} (hv : v ∈ K) :
@@ -1078,13 +1095,13 @@ begin
       have : e ≠ 0 := hv.ne_zero ⟨e, hev⟩,
       contradiction },
     -- put this together with `v` to provide a candidate orthonormal basis for the whole space
-    refine ⟨v.insert e, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
-    { -- show that the elements of `v.insert e` have unit length
+    refine ⟨insert e v, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
+    { -- show that the elements of `insert e v` have unit length
       rintros ⟨a, ha'⟩,
       cases eq_or_mem_of_mem_insert ha' with ha ha,
       { simp [ha, he] },
       { exact hv.1 ⟨a, ha⟩ } },
-    { -- show that the elements of `v.insert e` are orthogonal
+    { -- show that the elements of `insert e v` are orthogonal
       have h_end : ∀ a ∈ v, ⟪a, e⟫ = 0,
       { intros a ha,
         exact he' a (submodule.subset_span ha) },

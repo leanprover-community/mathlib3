@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.vector_bundle
+import topology.vector_bundle.basic
 import geometry.manifold.smooth_manifold_with_corners
 import data.set.prod
 

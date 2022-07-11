@@ -320,6 +320,24 @@ begin
     simp only [mul_assoc, C_mul_monomial, eval_monomial], }
 end
 
+/-- A reformulation of the expansion of (1 + y)^d:
+$$(d + 1) (1 + y)^d - (d + 1)y^d = \sum_{i = 0}^d {d + 1 \choose i} \cdot i \cdot y^{i - 1}.$$
+-/
+lemma eval_monomial_one_add_sub [comm_ring S] (d : ℕ) (y : S) :
+  eval (1 + y) (monomial d (d + 1 : S)) - eval y (monomial d (d + 1 : S)) =
+  ∑ (x_1 : ℕ) in range (d + 1), ↑((d + 1).choose x_1) * (↑x_1 * y ^ (x_1 - 1)) :=
+begin
+  have cast_succ : (d + 1 : S) = ((d.succ : ℕ) : S),
+  { simp only [nat.cast_succ], },
+  rw [cast_succ, eval_monomial, eval_monomial, add_comm, add_pow],
+  conv_lhs { congr, congr, skip, apply_congr, skip, rw [one_pow, mul_one, mul_comm], },
+  rw [sum_range_succ, mul_add, nat.choose_self, nat.cast_one, one_mul, add_sub_cancel, mul_sum,
+    sum_range_succ', nat.cast_zero, zero_mul, mul_zero, add_zero],
+  apply sum_congr rfl (λ y hy, _),
+  rw [←mul_assoc, ←mul_assoc, ←nat.cast_mul, nat.succ_mul_choose_eq,
+    nat.cast_mul, nat.add_sub_cancel],
+end
+
 /-- `polynomial.eval` as linear map -/
 @[simps] def leval {R : Type*} [semiring R] (r : R) : R[X] →ₗ[R] R :=
 { to_fun := λ f, f.eval r,
@@ -455,10 +473,6 @@ by rw [←C_eq_nat_cast, C_mul_comp, C_eq_nat_cast]
 
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : R[X]) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
-
-lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset R[X]) (p : R[X]) :
-  s.prod.comp p = (s.map (λ q : R[X], q.comp p)).prod :=
-(s.prod_hom (monoid_hom.mk (λ q : R[X], q.comp p) one_comp (λ q r, mul_comp q r p))).symm
 
 @[simp] lemma pow_comp {R : Type*} [comm_semiring R] (p q : R[X]) (n : ℕ) :
   (p^n).comp q = (p.comp q)^n :=
@@ -781,6 +795,10 @@ end
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=
 eval₂_ring_hom C
 
+@[simp] lemma coe_comp_ring_hom (q : R[X]) : (comp_ring_hom q : R[X] → R[X]) = λ p, comp p q := rfl
+
+lemma coe_comp_ring_hom_apply (p q : R[X]) : (comp_ring_hom q : R[X] → R[X]) p = comp p q := rfl
+
 lemma root_mul_left_of_is_root (p : R[X]) {q : R[X]} :
   is_root q a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, mul_zero]
@@ -818,6 +836,18 @@ lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → R[X]) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
 (eval_ring_hom x).map_prod _ _
 
+lemma list_prod_comp (l : list R[X]) (q : R[X]) :
+  l.prod.comp q = (l.map (λ p : R[X], p.comp q)).prod :=
+map_list_prod (comp_ring_hom q) _
+
+lemma multiset_prod_comp (s : multiset R[X]) (q : R[X]) :
+  s.prod.comp q = (s.map (λ p : R[X], p.comp q)).prod :=
+map_multiset_prod (comp_ring_hom q) _
+
+lemma prod_comp {ι : Type*} (s : finset ι) (p : ι → R[X]) (q : R[X]) :
+  (∏ j in s, p j).comp q = ∏ j in s, (p j).comp q :=
+map_prod (comp_ring_hom q) _ _
+
 lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   (s : finset ι) (p : ι → R[X]) (x : R) :
   is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
@@ -844,13 +874,19 @@ section map
 lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
   x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
 
-lemma support_map_subset [semiring R] [comm_semiring S] (f : R →+* S) (p : R[X]) :
+lemma support_map_subset [semiring R] [semiring S] (f : R →+* S) (p : R[X]) :
   (map f p).support ⊆ p.support :=
 begin
   intros x,
   contrapose!,
   simp { contextual := tt },
 end
+
+lemma support_map_of_injective [semiring R] [semiring S]
+  (p : R[X]) {f : R →+* S} (hf : function.injective f) :
+  (map f p).support = p.support :=
+by simp_rw [finset.ext_iff, mem_support_iff, coeff_map,
+  ←map_zero f, hf.ne_iff, iff_self, forall_const]
 
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 

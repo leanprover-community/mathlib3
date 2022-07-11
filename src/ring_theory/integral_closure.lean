@@ -154,7 +154,7 @@ theorem is_integral_iff_is_integral_closure_finite {r : A} :
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    refine ⟨_, set.finite_mem_finset _, p.restriction, monic_restriction.2 hmp, _⟩,
+    refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
     erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr

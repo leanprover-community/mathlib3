@@ -120,7 +120,8 @@ begin
   revert hm,
   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
   { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
-    rw [← exists_lt_and_lt_iff_not_dvd _ (pos_iff_ne_zero.mpr hp.ne_zero)], rw [mem_Ico] at hm,
+    rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
+    rw [mem_Ico] at hm,
     exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
   simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
     add_assoc], intro h,
@@ -194,7 +195,7 @@ lemma multiplicity_le_multiplicity_choose_add {p : ℕ} (hp : p.prime) : ∀ (n 
   multiplicity p n ≤ multiplicity p (choose n k) + multiplicity p k
 | _     0     := by simp
 | 0     (_+1) := by simp
-| (n+1) (k+1) := 
+| (n+1) (k+1) :=
 begin
   rw ← hp.multiplicity_mul,
   refine multiplicity_le_multiplicity_of_dvd_right _,

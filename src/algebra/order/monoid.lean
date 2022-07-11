@@ -120,6 +120,14 @@ lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_cl
   [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
 add_nonneg zero_le_one zero_le_one
 
+lemma zero_le_three [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 3 :=
+add_nonneg zero_le_two zero_le_one
+
+lemma zero_le_four [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 4 :=
+add_nonneg zero_le_two zero_le_two
+
 lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
   [covariant_class α α (+) (≤)] : (1 : α) ≤ 2 :=
 calc 1 = 1 + 0 : (add_zero 1).symm

@@ -887,19 +887,24 @@ le_inf st
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
 taking values in `with_top α`. -/
 def min' (s : finset α) (H : s.nonempty) : α :=
-with_top.untop s.min $ mt min_eq_top.1 H.ne_empty
+inf' s H id
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
 taking values in `with_bot α`. -/
 def max' (s : finset α) (H : s.nonempty) : α :=
-with_bot.unbot s.max $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := max_of_mem hk in by simp [hb]
+sup' s H id
 
 variables (s : finset α) (H : s.nonempty) {x : α}
 
-theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
+theorem min'_mem : s.min' H ∈ s :=
+begin
+  refine inf'_mem (↑s : set α) _ _ _ _ _,
+  { intros x hx y hy,
+    cases le_total x y with h h;
+    simpa [inf_eq_left.mpr, inf_eq_right.mpr, h] },
+  { simp }
+end
 
 theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x :=
 min_le_of_mem H2 (with_top.coe_untop _ _).symm
@@ -916,7 +921,14 @@ le_is_glb_iff (is_least_min' s H).is_glb
   ({a} : finset α).min' (singleton_nonempty _) = a :=
 by simp [min']
 
-theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
+theorem max'_mem : s.max' H ∈ s :=
+begin
+  refine sup'_mem (↑s : set α) _ _ _ _ _,
+  { intros x hx y hy,
+    cases le_total x y with h h;
+    simpa [sup_eq_left.mpr, sup_eq_right.mpr, h] },
+  { simp }
+end
 
 theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ :=
 le_max_of_mem H2 (with_bot.coe_unbot _ _).symm

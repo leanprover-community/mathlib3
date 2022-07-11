@@ -114,6 +114,8 @@ begin
     exact ⟨g', e⟩ }
 end
 
+/-- For a formally smooth `R`-algebra `A` and a map `f : A →ₐ[R] B ⧸ I` with `I` square-zero,
+this is an arbitrary lift `A →ₐ[R] B`. -/
 noncomputable
 def formally_smooth.lift (h : formally_smooth R A) (I : ideal B)
   (hI : is_nilpotent I) (g : A →ₐ[R] B ⧸ I) : A →ₐ[R] B :=

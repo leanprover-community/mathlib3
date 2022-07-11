@@ -823,6 +823,16 @@ begin
       exact this (list.length_map _ _).symm ha } }
 end
 
+theorem is_option_neg {x y : pgame} : is_option x (-y) ↔ is_option (-x) y :=
+begin
+  rw [is_option_iff, is_option_iff, or_comm],
+  cases y, apply or_congr;
+  { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
+end
+
+@[simp] theorem is_option_neg_neg {x y : pgame} : is_option (-x) (-y) ↔ is_option x y :=
+by rw [is_option_neg, neg_neg]
+
 theorem left_moves_neg : ∀ x : pgame, (-x).left_moves = x.right_moves
 | ⟨_, _, _, _⟩ := rfl
 

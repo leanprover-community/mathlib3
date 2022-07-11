@@ -30,6 +30,10 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
   by `S`.
 * `localized_module.is_module` : `localized_module M S` is a `localization S`-module.
 
+## Future work
+
+ * Rework the definition of `localization` for monoids and rings to coincide with `localized_module`.
+ * Define a characteristic predicate for the localized module.
 -/
 
 

@@ -296,13 +296,14 @@ forward map is continuous.
 lemma preimage_eq (a : A) (n : ℕ)
   (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ A⁰_ f_deg) :
   to_fun 𝒜 f_deg ⁻¹'
-      (sbo (⟨mk a ⟨f ^ n, ⟨_, rfl⟩⟩, a_mem_degree_zero⟩ : A⁰_ f_deg)).1
+      ((sbo (⟨mk a ⟨f ^ n, ⟨_, rfl⟩⟩, a_mem_degree_zero⟩ : A⁰_ f_deg)) :
+        set (prime_spectrum {x // x ∈ A⁰_ f_deg}))
   = {x | x.1 ∈ (pbo f) ⊓ (pbo a)} :=
 begin
   classical,
   ext1 y, split; intros hy,
   { refine ⟨y.2, _⟩,
-    rw [set.mem_preimage, subtype.val_eq_coe, opens.mem_coe, prime_spectrum.mem_basic_open] at hy,
+    rw [set.mem_preimage, opens.mem_coe, prime_spectrum.mem_basic_open] at hy,
     rw projective_spectrum.mem_coe_basic_open,
     intro a_mem_y,
     apply hy,
@@ -313,7 +314,7 @@ begin
   { change y.1 ∈ _ at hy,
     rcases hy with ⟨hy1, hy2⟩,
     rw projective_spectrum.mem_coe_basic_open at hy1 hy2,
-    rw [set.mem_preimage, to_fun, subtype.val_eq_coe, opens.mem_coe, prime_spectrum.mem_basic_open],
+    rw [set.mem_preimage, to_fun, opens.mem_coe, prime_spectrum.mem_basic_open],
     intro rid,
     rcases mem_carrier.clear_denominator f_deg _ rid with ⟨c, N, acd, eq1⟩,
     rw [algebra.smul_def] at eq1,

@@ -142,6 +142,9 @@ instance : has_coe_to_fun (top_hom α β) (λ _, α → β) := fun_like.has_coe_
 
 @[simp] lemma to_fun_eq_coe {f : top_hom α β} : f.to_fun = (f : α → β) := rfl
 
+-- this must come after the coe_to_fun definition
+initialize_simps_projections top_hom (to_fun → apply)
+
 @[ext] lemma ext {f g : top_hom α β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
 /-- Copy of a `top_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
@@ -255,6 +258,9 @@ directly. -/
 instance : has_coe_to_fun (bot_hom α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : bot_hom α β} : f.to_fun = (f : α → β) := rfl
+
+-- this must come after the coe_to_fun definition
+initialize_simps_projections bot_hom (to_fun → apply)
 
 @[ext] lemma ext {f g : bot_hom α β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 

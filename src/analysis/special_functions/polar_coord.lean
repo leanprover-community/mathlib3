@@ -99,7 +99,7 @@ lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :
     (matrix.to_lin (basis.fin_two_prod ℝ) (basis.fin_two_prod ℝ)
       ![![cos p.2, -p.1 * sin p.2], ![sin p.2, p.1 * cos p.2]]).to_continuous_linear_map p :=
 begin
-  rw continuous_linear_map.to_lin_prod_continuous_linear_map,
+  rw matrix.to_lin_fin_two_prod_to_continuous_linear_map,
   convert has_fderiv_at.prod
     (has_fderiv_at_fst.mul ((has_deriv_at_cos p.2).comp_has_fderiv_at p has_fderiv_at_snd))
     (has_fderiv_at_fst.mul ((has_deriv_at_sin p.2).comp_has_fderiv_at p has_fderiv_at_snd)) using 2;

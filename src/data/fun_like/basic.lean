@@ -198,3 +198,14 @@ congr_arg _ h₂
 end fun_like
 
 end non_dependent
+
+namespace function
+
+variables {F G α : Sort*} {β : α → Sort*} [fun_like G α β] {e : F → G}
+
+/-- A type is a `fun_like` if it admits an injective map to a type that is a `fun_like`. -/
+protected def injective.fun_like (he : function.injective e) : fun_like F α β :=
+{ coe := λ f a, e f a,
+  coe_injective' := λ _ _ h, he (fun_like.ext' h) }
+
+end function

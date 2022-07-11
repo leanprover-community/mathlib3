@@ -409,3 +409,13 @@ begin
 end
 
 end ring_equiv
+
+namespace equiv
+
+variables {F G α' : Sort*} {β' : α' → Sort*} (e : F ≃ G)
+
+/-- Transfer `fun_like` across an `equiv` -/
+protected def fun_like [fun_like G α' β'] : fun_like F α' β' :=
+e.injective.fun_like
+
+end equiv

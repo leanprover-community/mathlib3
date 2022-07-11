@@ -47,7 +47,7 @@ variables (M : Type v) [add_comm_monoid M] [module R M]
 /--The equivalence relation on `M × S` where `(m1, s1) ≈ (m2, s2)` if and only if
 for some (u : S), u * (s2 • m1 - s1 • m2) = 0-/
 def r : (M × S) → (M × S) → Prop
-| ⟨m1, s1⟩, ⟨m2, s2⟩ := ∃ (u : S), u • s1 • m2 = u • s2 • m1
+| ⟨m1, s1⟩ ⟨m2, s2⟩ := ∃ (u : S), u • s1 • m2 = u • s2 • m1
 
 lemma r.is_equiv : is_equiv _ (r S M) :=
 { refl := λ ⟨m, s⟩, ⟨1, by rw [one_smul]⟩,

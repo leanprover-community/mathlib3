@@ -816,9 +816,18 @@ finset.induction_on s (λ _ H, by cases H)
       { exact mem_insert_of_mem (ih h) } }
   end)
 
+lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) : ↑a ≤ s.max :=
+le_sup as
+
 theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
-by rcases @le_sup (with_bot α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
-   cases h₂.symm.trans hb; assumption
+with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le
+
+lemma max_mono {s t : finset α} (st : s ⊆ t) : s.max ≤ t.max :=
+sup_mono st
+
+lemma max_le {M : with_bot α} {s : finset α} (st : ∀ a : α, a ∈ s → (a : with_bot α) ≤ M) :
+  s.max ≤ M :=
+sup_le st
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `⊤` otherwise. It belongs to `with_top α`. If you want to get an element of `α`, see
@@ -851,9 +860,18 @@ theorem min_eq_top {s : finset α} : s.min = ⊤ ↔ s = ∅ :=
 
 theorem mem_of_min {s : finset α} : ∀ {a : α}, s.min = a → a ∈ s := @mem_of_max αᵒᵈ _ s
 
+lemma min_le_coe_of_mem {a : α} {s : finset α} (as : a ∈ s) : s.min ≤ a :=
+inf_le as
+
 theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : s.min = a) : a ≤ b :=
-by rcases @inf_le (with_top α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
-   cases h₂.symm.trans hb; assumption
+with_top.coe_le_coe.mp $ h₂.ge.trans (min_le_coe_of_mem h₁)
+
+lemma min_mono {s t : finset α} (st : s ⊆ t) : t.min ≤ s.min :=
+inf_mono st
+
+lemma le_min {m : with_top α} {s : finset α} (st : ∀ a : α, a ∈ s → m ≤ a) :
+  m ≤ s.min :=
+le_inf st
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,

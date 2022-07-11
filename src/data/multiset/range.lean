@@ -18,7 +18,7 @@ namespace multiset
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
-@[simp] theorem coe_range (n : ℕ) : ↑(list.range n) = range n := rfl
+theorem coe_range (n : ℕ) : ↑(list.range n) = range n := rfl
 
 @[simp] theorem range_zero : range 0 = 0 := rfl
 

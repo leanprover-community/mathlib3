@@ -793,13 +793,6 @@ instance : comm_semiring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
   .. localization.comm_monoid_with_zero M }
 
-lemma mk_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
-  mk (s.sum f) b = s.sum (λ i, mk (f i) b) :=
-by classical; exact finset.induction_on s (by simp only [finset.sum_empty, mk_zero]) begin
-  intros i s h ih,
-  rw [finset.sum_insert h, ←add_mk_self, ih, finset.sum_insert h],
-end
-
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],

@@ -18,7 +18,7 @@ Note that, as opposed to the one family case, not all maximal unions of `k` fami
 
 ## Main declarations
 
-* `card_bUnion_le_of_intersecting`: Kleitman's theorem.
+* `finset.card_bUnion_le_of_intersecting`: Kleitman's theorem.
 
 ## References
 
@@ -73,7 +73,7 @@ instance {α : Type*} [is_empty α] : unique (finset α) :=
 variables {ι α : Type*} [fintype α] [decidable_eq α]
 
 /-- **Kleitman's theorem**. -/
-lemma card_bUnion_le_of_intersecting [nonempty α] (s : finset ι) (ℱ : ι → finset (finset α))
+lemma finset.card_bUnion_le_of_intersecting [nonempty α] (s : finset ι) (ℱ : ι → finset (finset α))
   (hℱ : ∀ i ∈ s, (ℱ i : set (finset α)).intersecting) :
   (s.bUnion ℱ).card ≤ 2 ^ card α - 2 ^ (card α - s.card) :=
 begin

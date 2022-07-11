@@ -473,7 +473,7 @@ begin
       ←mul_assoc, ←zpow_one_add, int.cast_add, int.cast_neg, int.cast_one, int_cast_cast,
       cast_id', id.def, ←sub_eq_neg_add, cast_sub_one, add_sub_cancel'_right],
   by_cases hk : k = 0,
-  { rw [if_pos hk, if_pos hk, int.nat_cast_eq_coe_nat, zpow_coe_nat] },
+  { rw [if_pos hk, if_pos hk, zpow_coe_nat] },
   { rw [if_neg hk, if_neg hk] },
 end
 

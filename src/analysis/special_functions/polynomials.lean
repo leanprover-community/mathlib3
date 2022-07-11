@@ -152,7 +152,7 @@ begin
       exact bot_lt_iff_ne_bot.2 (λ hQ', hQ (degree_eq_bot.1 hQ')) },
     { exact absurd (leading_coeff_eq_zero.1 hQ0) hQ } },
   { have := (is_equivalent_at_top_div P Q).tendsto_nhds h,
-    rw tendsto_const_mul_zpow_at_top_zero_iff hPQ at this,
+    rw tendsto_const_mul_zpow_at_top_nhds_iff hPQ at this,
     cases this with h h,
     { exact absurd h.2 hPQ },
     { rw [sub_lt_iff_lt_add, zero_add, int.coe_nat_lt] at h,

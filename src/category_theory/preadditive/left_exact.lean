@@ -39,7 +39,8 @@ variables {C : Type u₁} [category.{v₁} C] [preadditive C]
 section finite_limits
 
 /--
-A functor between preadditive categories which preserves kernels preserves finite products.
+A functor between preadditive categories which preserves kernels preserves that an
+arbitrary binary fan is a limit.
 -/
 def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y)
   [preserves_limit (parallel_pair π₂ 0) F] (i : is_limit (binary_fan.mk π₁ π₂)) :
@@ -53,6 +54,7 @@ begin
       (is_limit_map_cone_fork_equiv' F _ (is_limit_of_preserves F hf))).is_limit
 end
 
+/-- A kernel preserving functor between preadditive categories preserves any pair being a limit. -/
 def preserves_binary_product_of_preserves_kernels
   [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C} :
   preserves_limit (pair X Y) F :=
@@ -63,6 +65,7 @@ def preserves_binary_product_of_preserves_kernels
 
 local attribute [instance] preserves_binary_product_of_preserves_kernels
 
+/-- A kernel preserving functor between preadditive categories preserves binary products. -/
 def preserves_binary_products_of_preserves_kernels
   [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
   preserves_limits_of_shape (discrete walking_pair) F :=
@@ -144,6 +147,8 @@ begin
       (is_colimit_map_cocone_cofork_equiv' F _ (is_colimit_of_preserves F hf))).is_colimit
 end
 
+/-- A cokernel preserving functor between preadditive categories preserves any pair being
+a colimit. -/
 def preserves_coproduct_of_preserves_cokernels
   [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C} :
   preserves_colimit (pair X Y) F :=
@@ -154,6 +159,7 @@ def preserves_coproduct_of_preserves_cokernels
 
 local attribute [instance] preserves_coproduct_of_preserves_cokernels
 
+/-- A cokernel preserving functor between preadditive categories preserves binary coproducts. -/
 def preserves_binary_coproducts_of_preserves_cokernels
   [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
   preserves_colimits_of_shape (discrete walking_pair) F :=

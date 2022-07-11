@@ -91,16 +91,29 @@ lemma trace_along_span_eq_of_orthonormal [complete_space E] {ι : Type*} (T : E 
   (he : orthonormal 𝕜 e) (s : finset ι) :
   trace_along (span 𝕜 (s.image e : set E)) T = ∑ i in s, ⟪(e i : E), T (e i)⟫ :=
 begin
-  let e'' : basis s 𝕜 _ := basis.span (he.linear_independent.comp (coe : s → ι)
-    subtype.coe_injective),
   have : span 𝕜 (s.image e : set E) = span 𝕜 (set.range $ e ∘ (coe : s → ι)),
   { rw [finset.coe_image, set.range_comp, subtype.range_coe],
     refl },
-  let e' : basis s 𝕜 (span 𝕜 (s.image e : set E)) := e''.map (linear_equiv.of_eq _ _ this.symm),
-  --have eq : ∀ i : s, (e'' i : E) = e' i := λ i, rfl,
-  --have : orthonormal 𝕜 (he.linear_independent.comp (coe : s → ι) subtype.coe_injective) :=
-  --  he.comp _ subtype.coe_injective,
-  sorry
+  haveI : finite_dimensional 𝕜 (span 𝕜 (set.range $ e ∘ (coe : s → ι))),
+  { rw [← this],
+    apply_instance },
+  simp_rw this,
+  let e' : basis s 𝕜 _ := basis.span (he.linear_independent.comp (coe : s → ι)
+    subtype.coe_injective),
+  have heq : ∀ i : s, (e' i : E) = e i :=
+    λ i, by simp only [e', basis.span, function.comp_app, basis.coe_mk, submodule.coe_mk],
+  have hortho : orthonormal 𝕜 e',
+  { split,
+    { intro i,
+      rw [coe_norm, heq i],
+      exact he.1 i },
+    { intros i j hij,
+      rw [coe_inner, heq i, heq j],
+      exact he.2 (subtype.coe_injective.ne hij) } },
+  let e'' := orthonormal_basis.mk hortho e'.span_eq,
+  have heq' : ∀ i : s, (e'' i : E) = e i :=
+    λ i, by simp only [orthonormal_basis.coe_mk, heq i],
+  simp_rw [T.trace_along_eq_of_orthonormal_basis e'', heq', s.sum_coe_sort (λ i, ⟪e i, T (e i)⟫)]
 end
 
 end trace_along

@@ -707,12 +707,15 @@ instance : has_mem Class Class := ⟨λ A B, to_Set B A⟩
 @[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
 
-@[simp] theorem coe_mem_univ (x : Set.{u}) : ↑x ∈ univ.{u} := mem_univ.2 ⟨x, rfl⟩
+@[simp] theorem coe_mem_univ (x : Set.{u}) : mem_set x univ.{u} := set.mem_univ x
 
 /-- A proper class is one that isn't equal to the coercion of any set. -/
 def is_proper (A : Class.{u}) : Prop := A ∉ univ.{u}
 
 theorem is_proper_iff_forall {A : Class.{u}} : A.is_proper ↔ ∀ x : Set.{u}, ↑x ≠ A :=
+by { rw is_proper, simp }
+
+theorem not_is_proper_iff_mem_univ {A : Class.{u}} : ¬ A.is_proper ↔ A ∈ univ.{u} :=
 by { rw is_proper, simp }
 
 theorem is_proper.ne_Set {A : Class.{u}} : A.is_proper → ∀ x : Set.{u}, ↑x ≠ A :=
@@ -721,7 +724,7 @@ is_proper_iff_forall.1
 theorem is_proper.not_mem {A : Class.{u}} (h : A.is_proper) (B : Class.{u}) : A ∉ B :=
 by { rintro ⟨x, rfl, hx⟩, exact h.ne_Set x rfl }
 
-theorem not_is_proper_coe (x : Set.{u}) : ¬(x : Class.{u}).is_proper := λ h, h.ne_Set x rfl
+theorem not_is_proper_coe (x : Set.{u}) : ¬ (x : Class.{u}).is_proper := λ h, h.ne_Set x rfl
 
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
@@ -790,6 +793,9 @@ mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, mem_set y p ↔ y = x)
  (λ ⟨x, h⟩, ⟨x, eq.symm $ iota_val p x h⟩)
  (λ hn, ⟨∅, set.ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
+theorem not_iota_is_proper (p) : ¬ (iota.{u} p).is_proper :=
+not_is_proper_iff_mem_univ.2 $ iota_ex p
+
 /-- Function value -/
 def fval (F A : Class.{u}) : Class.{u} :=
 iota $ of_set {y | A ∈ of_set {x | mem_set (Set.pair x y) F}}
@@ -797,6 +803,9 @@ iota $ of_set {y | A ∈ of_set {x | mem_set (Set.pair x y) F}}
 infixl `′`:100 := fval
 
 theorem fval_ex (F A : Class.{u}) : F ′ A ∈ univ.{u} := iota_ex _
+
+theorem not_fval_is_proper (F A : Class.{u}) : ¬ (F ′ A).is_proper :=
+not_is_proper_iff_mem_univ.2 $ fval_ex F A
 
 end Class
 

@@ -688,8 +688,6 @@ def of_set : set Set ≃ Class := equiv.refl _
 /-- The preferred way to state that a set `x` belongs in a class `A`. -/
 def mem_set (x : Set.{u}) (A : Class.{u}) : Prop := A x
 
-@[simp] theorem apply_iff_mem_set {x : Set.{u}} {A : Class.{u}} : A x ↔ mem_set x A := iff.rfl
-
 @[simp] theorem mem_set_of_set {x : Set} {s : set Set} : mem_set x (of_set s) ↔ x ∈ s := iff.rfl
 
 /-- Coerce a ZFC set into a class -/

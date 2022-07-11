@@ -370,17 +370,17 @@ and non-classical logic. It makes little sense to make all these lemmas classica
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
 attribute [nolint decidable_classical] dec_em dec_em' not.decidable_imp_symm
 
-/-- Checks whether a declaration is `Prop`-valued and takes a `fintype* _`
+/-- Checks whether a declaration is `Prop`-valued and takes a `fintype _`
 hypothesis that is unused elsewhere in the type.
 In this case, that hypothesis can be replaced with `casesI nonempty_fintype _` in the proof. -/
 meta def linter.fintype_finite_fun (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    (binders, _) ← get_pi_binders_nondep d.type,
-   let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `fintype,
-   if deceq_binders.length = 0 then return none
+   let fintype_binders := binders.filter $ λ pr, pr.2.type.is_app_of `fintype,
+   if fintype_binders.length = 0 then return none
    else (λ s, some $ "The following `fintype` hypotheses should be replaced with
                       `casesI nonempty_fintype _` in the proof. " ++ s) <$>
-      print_arguments deceq_binders
+      print_arguments fintype_binders
 
 /-- A linter object for `fintype` vs `finite`. -/
 @[linter] meta def linter.fintype_finite : linter :=

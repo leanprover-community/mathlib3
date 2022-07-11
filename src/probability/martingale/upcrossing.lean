@@ -795,7 +795,7 @@ begin
     add_zero, add_zero],
 end
 
-lemma adapted.upcrossing_before_measurable (hf : adapted ℱ f) (hab : a < b) :
+lemma adapted.measurable_upcrossing_before (hf : adapted ℱ f) (hab : a < b) :
   measurable (upcrossing_before a b f N) :=
 begin
   by_cases hN : N = 0,
@@ -810,7 +810,7 @@ begin
       ℱ.le N _ (hf.is_stopping_time_upper_crossing.measurable_set_lt_of_pred N)) },
 end
 
-lemma adapted.upcrossing_before_integrable [is_finite_measure μ]
+lemma adapted.integrable_upcrossing_before [is_finite_measure μ]
   (hf : adapted ℱ f) (hab : a < b) :
   integrable (λ x, (upcrossing_before a b f N x : ℝ)) μ :=
 begin
@@ -839,13 +839,34 @@ begin
     exact or.inr (measure_lt_top _ _) },
 end
 
+/-- The number of upcrossings of a realization of a stochastic process (`upcrossing` takes value
+in `ℝ≥0∞` and so is allowed to be `∞`). -/
 noncomputable def upcrossing [preorder ι] [order_bot ι] [has_Inf ι]
   (a b : ℝ) (f : ι → α → ℝ) (x : α) : ℝ≥0∞ :=
 ⨆ N, (upcrossing_before a b f N x : ℝ≥0∞)
 
-lemma upcrossing_bdd_iff :
-  (∃ k : ℕ, upcrossing a b f x ≤ k) ↔ ∃ k, ∀ N, upcrossing_before a b f N x ≤ k :=
-by simp_rw [upcrossing, supr_le_iff, ennreal.coe_nat_le_coe_nat]
+lemma adapted.measurable_upcrossing (hf : adapted ℱ f) (hab : a < b) :
+  measurable (upcrossing a b f) :=
+measurable_supr (λ N, measurable_from_top.comp (hf.measurable_upcrossing_before hab))
+
+lemma upcrossing_lt_top_iff :
+  upcrossing a b f x < ∞ ↔ ∃ k, ∀ N, upcrossing_before a b f N x ≤ k :=
+begin
+  have : upcrossing a b f x < ⊤ ↔ ∃ k : ℝ≥0, upcrossing a b f x ≤ k,
+  { split,
+    { intro h,
+      lift upcrossing a b f x to ℝ≥0 using h.ne with r hr,
+      exact ⟨r, le_rfl⟩ },
+    { rintro ⟨k, hk⟩,
+      exact lt_of_le_of_lt hk ennreal.coe_lt_top } },
+  simp_rw [this, upcrossing, supr_le_iff],
+  split; rintro ⟨k, hk⟩,
+  { obtain ⟨m, hm⟩ := exists_nat_ge k,
+    refine ⟨m, λ N, ennreal.coe_nat_le_coe_nat.1 ((hk N).trans _)⟩,
+    rwa [← ennreal.coe_nat, ennreal.coe_le_coe] },
+  { refine ⟨k, λ N, _⟩,
+    simp only [ennreal.coe_nat, ennreal.coe_nat_le_coe_nat, hk N] }
+end
 
 lemma submartingale.mul_integral_upcrossing_le_integral_pos_part [is_finite_measure μ]
   (hf : submartingale f ℱ μ) :
@@ -868,9 +889,9 @@ begin
       { simp_rw [nnreal.coe_nat_cast],
         exact (ennreal.of_real_le_of_real
           (hf.mul_integral_upcrossing_before_le_integral_pos_part a b N)).trans (le_supr _ N) },
-      { simp only [nnreal.coe_nat_cast, hf.adapted.upcrossing_before_integrable hab] } },
+      { simp only [nnreal.coe_nat_cast, hf.adapted.integrable_upcrossing_before hab] } },
     { refine λ n, measurable_from_top.comp_ae_measurable
-        (hf.adapted.upcrossing_before_measurable  hab).ae_measurable },
+        (hf.adapted.measurable_upcrossing_before  hab).ae_measurable },
     { refine eventually_of_forall (λ x N M hNM, _),
       rw ennreal.coe_nat_le_coe_nat,
       exact upcrossing_before_mono hab hNM x } },

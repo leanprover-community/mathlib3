@@ -488,8 +488,12 @@ begin
   { simp only [int_degree, f0, map_zero, dif_pos, nat_degree_zero, nat.cast_zero] },
   { rw [int_degree, dif_neg, nat_degree_eq_support_max' f0],
     simp_rw to_laurent_support,
-    refine finset.max'_image nat.mono_cast _ _,
-    exact f.to_laurent_ne_zero f0 }
+    convert finset.max'_image _ _ _,
+    { ext,
+      simp only [finset.mem_map, nat.cast_embedding_apply, finset.mem_image] },
+    { exact nat.mono_cast },
+    { exact (finset.nonempty.image_iff _).mpr (nonempty_support_iff.mpr f0) },
+    { exact polynomial.to_laurent_ne_zero.mp f0 } }
 end
 
 lemma degree_eq_int_degree {f : R[T;T⁻¹]} (f0 : f ≠ 0) :
@@ -502,7 +506,7 @@ begin
   { simp only [f0, map_zero, degree_zero, polynomial.degree_zero]; refl },
   { rwa [degree_eq_int_degree, int_degree_to_laurent_eq_nat_degree, degree_eq_nat_degree f0],
     { refl },
-    { exact f.to_laurent_ne_zero f0 } }
+    { exact polynomial.to_laurent_ne_zero.mp f0 } }
 end
 
 end degrees

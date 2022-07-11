@@ -5,6 +5,9 @@ Authors: Markus Himmel
 -/
 import category_theory.balanced
 import category_theory.limits.opposites
+import category_theory.subobject.factor_thru
+import category_theory.subobject.lattice
+import category_theory.subobject.well_powered
 import data.set.opposite
 
 /-!
@@ -235,6 +238,45 @@ lemma is_codetecting_empty_of_groupoid [∀ {X Y : C} (f : X ⟶ Y), is_iso f] :
 λ X Y f hf, infer_instance
 
 end empty
+
+section well_powered
+
+namespace subobject
+
+lemma eq_of_le_of_is_detecting {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C} (P Q : subobject X)
+  (h₁ : P ≤ Q) (h₂ : ∀ (G ∈ 𝒢) (f : G ⟶ X), Q.factors f → P.factors f) : P = Q :=
+begin
+  suffices : is_iso (subobject.of_le _ _ h₁),
+  { exactI le_antisymm h₁ (subobject.le_of_comm (inv (subobject.of_le _ _ h₁)) (by simp)) },
+  refine h𝒢 _ (λ G hG f, _),
+  have : P.factors (f ≫ Q.arrow) := h₂ _ hG _ ((subobject.factors_iff _ _).2 ⟨_, rfl⟩),
+  refine ⟨subobject.factor_thru _ _ this, _, λ g (hg : g ≫ _ = f), _⟩,
+  { simp only [← cancel_mono Q.arrow, category.assoc, subobject.of_le_arrow,
+      subobject.factor_thru_arrow] },
+  { simp only [← cancel_mono (subobject.of_le _ _ h₁), ← cancel_mono Q.arrow, hg,
+      category.assoc, subobject.of_le_arrow, subobject.factor_thru_arrow] }
+end
+
+lemma inf_eq_of_is_detecting [has_pullbacks C] {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C}
+  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) (f : G ⟶ X), P.factors f → Q.factors f) : P ⊓ Q = P :=
+eq_of_le_of_is_detecting h𝒢 _ _ _root_.inf_le_left
+  (λ G hG f hf, (subobject.inf_factors _).2 ⟨hf, h _ hG _ hf⟩)
+
+lemma eq_of_is_detecting [has_pullbacks C] {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C}
+  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) (f : G ⟶ X), P.factors f ↔ Q.factors f) : P = Q :=
+calc P = P ⊓ Q : eq.symm $ inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG f).1 hf
+   ... = Q ⊓ P : inf_comm
+   ... = Q     : inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG f).2 hf
+
+end subobject
+
+/-- A category with pullbacks and a small detecting set is well-powered. -/
+lemma well_powered_of_is_detecting [has_pullbacks C] {𝒢 : set C} [small.{v} 𝒢]
+  (h𝒢 : is_detecting 𝒢) : well_powered C :=
+⟨λ X, @small_of_injective _ _ _ (λ P : subobject X, { f : Σ G : 𝒢, G.1 ⟶ X | P.factors f.2 }) $
+  λ P Q h, subobject.eq_of_is_detecting h𝒢 _ _ (by simpa [set.ext_iff] using h)⟩
+
+end well_powered
 
 /-- We say that `G` is a separator if the functor `C(G, -)` is faithful. -/
 def is_separator (G : C) : Prop :=

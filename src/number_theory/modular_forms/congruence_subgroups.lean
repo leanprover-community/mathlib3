@@ -65,22 +65,23 @@ begin
   convert (mat_mul_expl A.1 B.1),
 end
 
-
-def red_map (N : ℕ) : ℤ →+* (zmod N) := int.cast_ring_hom _
-
-def SL_mod_map (N : ℕ) : SL(2, ℤ) →* SL(2, (zmod N)) := map (red_map N)
-
+/--The reduction mod `(N : ℕ)` map on `SL(2,ℤ)`. -/
+def SL_reduction_mod_map (N : ℕ) : SL(2, ℤ) →* SL(2, (zmod N)) := map (int.cast_ring_hom (zmod N))
 
 @[simp]
-lemma sl_map_val (N : ℕ) (γ : SL(2, ℤ)) : ∀ i j, ↑ₘ(SL_mod_map N γ) i j = ((↑ₘγ i j) : zmod N) :=
+lemma SL_reduction_mod_map_val (N : ℕ) (γ : SL(2, ℤ)) : ∀ i j, ↑ₘ(SL_reduction_mod_map N γ) i j =
+  ((↑ₘγ i j) : zmod N) :=
 begin
   intros i j,
   refl,
 end
 
-def Gamma_N (N : ℕ) : subgroup SL(2, ℤ) := (SL_mod_map N).ker
+/--The full level `N` congruence subgroup of `SL(2,ℤ)` of matrices that reduce to the identity
+modulo `N`.-/
+def Gamma_N (N : ℕ) : subgroup SL(2, ℤ) := (SL_reduction_mod_map N).ker
 
-lemma Gamma_N_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma_N N) ↔ (SL_mod_map N γ) = 1 := iff.rfl
+lemma Gamma_N_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma_N N) ↔ (SL_reduction_mod_map N γ) = 1 :=
+iff.rfl
 
 @[simp]
 lemma Gamma_N_mem (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma_N N) ↔ ((↑ₘγ 0 0) : zmod N) = 1 ∧
@@ -89,17 +90,19 @@ begin
   rw Gamma_N_mem',
   split,
   { intro h,
-    simp [←(sl_map_val N γ), h] },
+    simp [←(SL_reduction_mod_map_val N γ), h] },
   { intro h,
     ext,
-    rw sl_map_val N γ,
+    rw SL_reduction_mod_map_val N γ,
     fin_cases i; fin_cases j,
     all_goals {simp_rw h, refl} }
 end
 
-lemma Gamma_N_normal (N : ℕ) : subgroup.normal (Gamma_N N) := (SL_mod_map N).normal_ker
+lemma Gamma_N_normal (N : ℕ) : subgroup.normal (Gamma_N N) := (SL_reduction_mod_map N).normal_ker
 
-def is_congruence_subgroup (Γ : subgroup SL(2, ℤ)) : Prop := ∃ (N : ℕ), (Gamma_N N) ≤ Γ
+/--A congruence subgroup is a subgroup of `SL(2,ℤ)` which contains some `Gamma_N N` for some
+`(N : ℕ+)`. -/
+def is_congruence_subgroup (Γ : subgroup SL(2, ℤ)) : Prop := ∃ (N : ℕ+), (Gamma_N N) ≤ Γ
 
 lemma is_congruence_subgroup_trans (H K : subgroup SL(2, ℤ)) (h: H ≤ K)
   (h2 : is_congruence_subgroup H) : is_congruence_subgroup K :=
@@ -108,11 +111,13 @@ begin
   refine ⟨N, le_trans hN h⟩,
 end
 
-lemma Gamma_N_is_cong_sub (N : ℕ) : is_congruence_subgroup (Gamma_N N) :=
+lemma Gamma_N_is_cong_sub (N : ℕ+) : is_congruence_subgroup (Gamma_N N) :=
 begin
   refine ⟨N, by {simp only [le_refl]}⟩,
 end
 
+/--The congruence subgroup of `SL(2,ℤ)` of matrices whose lower left-hand entry reduces to zero
+modulo `N`. -/
 def Gamma0_N (N : ℕ) : subgroup SL(2, ℤ) :=
 { carrier := { g : SL(2, ℤ) | (↑ₘg 1 0 : zmod N) = 0 },
   one_mem' := by { simp },
@@ -140,6 +145,8 @@ begin
   simp,
 end
 
+/--The group homomorphism from `Gamma0_N` to `zmod N` given by mapping a matrix to its lower
+right-hand entry. -/
 def Gamma_0_map (N : ℕ): (Gamma0_N N) →* (zmod N) :=
 { to_fun := λ g, (↑ₘg 1 1 : zmod N),
   map_one' := by { simp, },
@@ -152,6 +159,8 @@ def Gamma_0_map (N : ℕ): (Gamma0_N N) →* (zmod N) :=
   rw ha,
   simp,} }
 
+/--The congruence subgroup `Gamma1_N` (as a subgroup of `Gamma0_N`) of matrices whose bottom
+row is congruent to `(0,1)` modulo `N`.-/
 def Gamma1_N' (N : ℕ) : subgroup (Gamma0_N N) := (Gamma_0_map N).ker
 
 @[simp]
@@ -178,10 +187,10 @@ begin
   exact ha.2.1,
 end
 
-def Gamma1_map (N : ℕ) : (Gamma1_N' N) →* SL(2, ℤ) :=
-((Gamma0_N N).subtype).comp (Gamma1_N' N).subtype
-
-def Gamma1_N (N : ℕ) : subgroup SL(2, ℤ) := subgroup.map (Gamma1_map N) ⊤
+/--The congruence subgroup `Gamma1_N` of `SL(2,ℤ)` consisting of matrices whose bottom
+row is congruent to `(0,1)` modulo `N`. -/
+def Gamma1_N (N : ℕ) : subgroup SL(2, ℤ) := subgroup.map
+(((Gamma0_N N).subtype).comp (Gamma1_N' N).subtype) ⊤
 
 @[simp]
 lemma Gamma1_N_mem (N : ℕ) (A : SL(2, ℤ)) : A ∈ (Gamma1_N N) ↔
@@ -189,7 +198,7 @@ lemma Gamma1_N_mem (N : ℕ) (A : SL(2, ℤ)) : A ∈ (Gamma1_N N) ↔
 begin
   split,
   { intro ha,
-    simp_rw [Gamma1_N, subgroup.mem_map, Gamma1_map] at ha,
+    simp_rw [Gamma1_N, subgroup.mem_map] at ha,
     simp at ha,
     obtain ⟨⟨x, hx⟩, hxx⟩ := ha,
     rw Gamma1_to_Gamma0_mem at hx,
@@ -203,7 +212,6 @@ begin
         int.coe_cast_ring_hom, map_apply],
       exact ha,},
     refine ⟨(⟨ (⟨A , hA⟩ : Gamma0_N N), HA ⟩ : (( Gamma1_N' N ) : subgroup (Gamma0_N N))), _⟩,
-    rw Gamma1_map,
     simp }
 end
 
@@ -215,7 +223,7 @@ begin
   exact HA.2.2,
 end
 
-lemma Gamma1_N_is_congruence (N : ℕ) : is_congruence_subgroup (Gamma1_N N) :=
+lemma Gamma1_N_is_congruence (N : ℕ+) : is_congruence_subgroup (Gamma1_N N) :=
 begin
   refine ⟨N, _⟩,
   intros A hA,
@@ -223,7 +231,7 @@ begin
   simp only [hA, eq_self_iff_true, and_self],
 end
 
-lemma Gamma0_N_is_congruence (N : ℕ) : is_congruence_subgroup (Gamma0_N N) :=
+lemma Gamma0_N_is_congruence (N : ℕ+) : is_congruence_subgroup (Gamma0_N N) :=
 begin
   apply is_congruence_subgroup_trans _ _ (Gamma1_in_Gamma0 N) (Gamma1_N_is_congruence N),
 end

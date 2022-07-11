@@ -174,8 +174,8 @@ begin
   by_cases INEQ : a = 0,
   rw [INEQ, zero_mul, zero_mul, linear_map.map_zero],
 
-  rw [graded_algebra.proj_apply, show direct_sum.decompose 𝒜 (a * b) (i + j) = direct_sum.decompose_alg_equiv _ _ _, from rfl,
-    alg_equiv.map_mul, direct_sum.coe_mul_apply],
+  rw [graded_algebra.proj_apply, show direct_sum.decompose 𝒜 (a * b) (i + j) =
+    direct_sum.decompose_alg_equiv _ _ _, from rfl, alg_equiv.map_mul, direct_sum.coe_mul_apply],
 
   have set_eq1 : (direct_sum.decompose_alg_equiv 𝒜 a).support = {i},
     { ext1, split; intros hx,
@@ -187,7 +187,8 @@ begin
         symmetry,
         exact hx, },
       { rw finset.mem_singleton at hx,
-        rw [hx, dfinsupp.mem_support_iff, show direct_sum.decompose_alg_equiv 𝒜 a i = direct_sum.decompose 𝒜 a i, from rfl],
+        rw [hx, dfinsupp.mem_support_iff, show direct_sum.decompose_alg_equiv 𝒜 a i =
+          direct_sum.decompose 𝒜 a i, from rfl],
         intros r,
         have := direct_sum.decompose_of_mem_same 𝒜 a_mem,
         rw r at this,

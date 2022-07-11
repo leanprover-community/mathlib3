@@ -14,8 +14,6 @@ import data.finsupp.basic
 
 variables {ι M : Type*} [decidable_eq ι]
 
-open_locale big_operators
-
 lemma list.support_sum_subset [add_monoid M] [decidable_eq (ι →₀ M)] (l : list (ι →₀ M)) :
   l.sum.support ⊆ finset.sup l.to_finset finsupp.support :=
 begin
@@ -37,7 +35,7 @@ end
 lemma finset.support_sum_subset [add_comm_monoid M]
   (s : finset (ι →₀ M)) :
   (s.sum id).support ⊆ finset.sup s finsupp.support :=
-by { classical, convert multiset.support_sum_subset s.1; simp }
+by { classical, convert multiset.support_sum_subset s.1; simp [finset.sum_val] }
 
 lemma list.mem_foldr_sup_support_iff [has_zero M] {l : list (ι →₀ M)} {x : ι} :
   x ∈ (l.map finsupp.support).foldr (⊔) ∅ ↔ ∃ (f : ι →₀ M) (hf : f ∈ l), x ∈ f.support :=
@@ -137,7 +135,7 @@ lemma finset.support_sum_eq [add_comm_monoid M] (s : finset (ι →₀ M))
 begin
   classical,
   convert multiset.support_sum_eq s.1 _,
-  { simp },
+  { exact (finset.sum_val _).symm },
   { simp },
   { obtain ⟨l, hl, hn⟩ : ∃ (l : list (ι →₀ M)), l.to_finset = s ∧ l.nodup,
     { refine ⟨s.to_list, _, finset.nodup_to_list _⟩,

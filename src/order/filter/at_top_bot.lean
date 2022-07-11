@@ -664,10 +664,10 @@ lemma tendsto_at_bot_add_const_right (C : β) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x + C) l at_bot :=
 @tendsto_at_top_add_const_right _ βᵒᵈ _ _ _ C hf
 
-@[simp] lemma map_neg_at_bot : map (has_neg.neg : β → β) at_bot = at_top :=
+lemma map_neg_at_bot : map (has_neg.neg : β → β) at_bot = at_top :=
 (order_iso.neg β).map_at_bot
 
-@[simp] lemma map_neg_at_top : map (has_neg.neg : β → β) at_top = at_bot :=
+lemma map_neg_at_top : map (has_neg.neg : β → β) at_top = at_bot :=
 (order_iso.neg β).map_at_top
 
 @[simp] lemma comap_neg_at_bot : comap (has_neg.neg : β → β) at_bot = at_top :=

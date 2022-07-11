@@ -32,7 +32,7 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
 
 ## Future work
 
- * Rework the definition of `localization` for monoids and rings to coincide with `localized_module`.
+ * Redefine `localization` for monoids and rings to coincide with `localized_module`.
  * Define a characteristic predicate for the localized module.
 -/
 

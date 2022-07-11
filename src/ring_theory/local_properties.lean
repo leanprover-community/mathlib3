@@ -135,7 +135,7 @@ structure ring_hom.property_is_local : Prop :=
 (localization_preserves : ring_hom.localization_preserves @P)
 (of_localization_span_target : ring_hom.of_localization_span_target @P)
 (stable_under_composition : ring_hom.stable_under_composition @P)
-holds_for_localization_away : ring_hom.holds_for_localization_away @P)
+(holds_for_localization_away : ring_hom.holds_for_localization_away @P)
 
 lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=

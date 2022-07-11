@@ -338,7 +338,7 @@ lemma nonempty.left (h : (s ∩ t).nonempty) : s.nonempty := h.imp $ λ _, and.l
 
 lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.right
 
-@[simp] lemma inter_nonempty : (s ∩ t).nonempty ↔ ∃ x, x ∈ s ∧ x ∈ t := iff.rfl
+lemma inter_nonempty : (s ∩ t).nonempty ↔ ∃ x, x ∈ s ∧ x ∈ t := iff.rfl
 
 lemma inter_nonempty_iff_exists_left : (s ∩ t).nonempty ↔ ∃ x ∈ s, x ∈ t :=
 by simp_rw [inter_nonempty, exists_prop]

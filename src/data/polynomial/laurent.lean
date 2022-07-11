@@ -314,12 +314,9 @@ left_inverse_trunc_to_laurent.injective
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 
-lemma _root_.polynomial.to_laurent_ne_zero (f : R[X])  (f0 : f ≠ 0) :
-  f.to_laurent ≠ 0 :=
-begin
-  refine (map_ne_zero_iff _ _).mpr f0,
-  exact polynomial.to_laurent_injective,
-end
+lemma _root_.polynomial.to_laurent_ne_zero {f : R[X]} :
+  f ≠ 0 ↔ f.to_laurent ≠ 0 :=
+(map_ne_zero_iff _ (by exact polynomial.to_laurent_injective)).symm
 
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=

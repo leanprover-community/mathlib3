@@ -776,7 +776,7 @@ mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, mem_set y p ↔ y = x)
 
 /-- Function value -/
 def fval (F A : Class.{u}) : Class.{u} :=
-iota $ of_set {y | to_Set (of_set {x | mem_set (Set.pair x y) F}) A}
+iota $ of_set {y | A ∈ of_set {x | mem_set (Set.pair x y) F}}
 
 infixl `′`:100 := fval
 
@@ -790,7 +790,7 @@ namespace Set
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
 Class.iota_val _ _ $ λ z, begin
-  simp only [Class.mem_hom_right, mem_map, exists_prop, Class.to_Set_of_Set, Class.mem_set_of_set,
+  simp only [Class.mem_hom_right, mem_map, exists_prop, Class.mem_hom_left, Class.mem_set_of_set,
     set.mem_set_of_eq],
   exact ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw [←fw, wy],
     λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩

@@ -71,6 +71,9 @@ lemma map_neg {X Y : C} {f : X ⟶ Y} : F.map (-f) = - F.map f :=
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 (F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_sub _ _
 
+lemma map_nsmul {X Y : C} {f : X ⟶ Y} {n : ℕ} : F.map (n • f) = n • F.map f :=
+(F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_nsmul _ _
+
 -- You can alternatively just use `functor.map_smul` here, with an explicit `(r : ℤ)` argument.
 lemma map_zsmul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
 (F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_zsmul _ _

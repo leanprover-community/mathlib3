@@ -42,53 +42,6 @@ archimedean. We also construct the natural map from a `linear_ordered_field` to 
 reals, conditionally complete, ordered field, uniqueness
 -/
 
-section move
-variables {F α β : Type*}
-
-open function set
-open_locale pointwise
-
-lemma lt_of_mul_self_lt_mul_self [linear_ordered_semiring α] {a b : α} (hb : 0 ≤ b) :
-  a * a < b * b → a < b :=
-by { simp_rw ←sq, exact lt_of_pow_lt_pow _ hb }
-
-noncomputable theory
-open real
-
-lemma lt_sq_of_sqrt_lt {x y : ℝ} (h : sqrt x < y) : x < y ^ 2 :=
-by { have hy := x.sqrt_nonneg.trans_lt h,
-  rwa [←sqrt_lt_sqrt_iff_of_pos (sq_pos_of_pos hy), sqrt_sq hy.le] }
-
-/- TODO does this follow from `intermediate_value_Icc`? -/
-lemma exists_rat_sq_btwn_rat_aux (x y : ℝ) (h : x < y) (hy : 0 < y) :
-  ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ ↑q^2 < y :=
-begin
-  rw ←sqrt_lt_sqrt_iff_of_pos hy at h,
-  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn h,
-  have hq : (0 : ℝ) ≤ q := x.sqrt_nonneg.trans hxq.le,
-  refine ⟨q, _, lt_sq_of_sqrt_lt hxq, _⟩,
-  { assumption_mod_cast },
-  { rwa [←real.sqrt_lt_sqrt_iff (pow_nonneg hq 2), real.sqrt_sq hq] }
-end
-
-lemma exists_rat_sq_btwn_rat {x y : ℚ} (h : x < y) (hy : 0 < y) :
-  ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ q^2 < y :=
-by apply_mod_cast exists_rat_sq_btwn_rat_aux x y; assumption
-
-/-- There is a rational square between any two positive elements of an archimedean ordered field. -/
-lemma exists_rat_sq_btwn [linear_ordered_field α] [archimedean α] {x y : α} (h : x < y)
-  (hy : 0 < y) : ∃ q : ℚ, 0 ≤ q ∧ x < q^2 ∧ (q^2 : α) < y :=
-begin
-  obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
-  obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,
-  have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
-  norm_cast at hq₁₂ this,
-  obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_sq_btwn_rat hq₁₂ this,
-  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast
-end
-
-end move
-
 variables {F α β γ : Type*}
 
 noncomputable theory
@@ -271,11 +224,11 @@ lemma le_induced_map_mul_self_of_mem_cut_map (ha : 0 < a) (b : β) (hb : b ∈ c
   b ≤ induced_map α β a * induced_map α β a :=
 begin
   obtain ⟨q, hb, rfl⟩ := hb,
-  obtain ⟨q', hq', hqq', hqa⟩ := exists_rat_sq_btwn hb (mul_self_pos.2 ha.ne'),
+  obtain ⟨q', hq', hqq', hqa⟩ := exists_rat_pow_btwn two_ne_zero hb (mul_self_pos.2 ha.ne'),
   transitivity (q' : β)^2,
   exact_mod_cast hqq'.le,
   rw pow_two at ⊢ hqa,
-  exact mul_self_le_mul_self (by exact_mod_cast hq') (le_cSup (cut_map_bdd_above β a) $
+  exact mul_self_le_mul_self (by exact_mod_cast hq'.le) (le_cSup (cut_map_bdd_above β a) $
     coe_mem_cut_map_iff.2 $ lt_of_mul_self_lt_mul_self ha.le hqa),
 end
 
@@ -288,13 +241,13 @@ begin
   { refine ⟨0, _, hb⟩,
     rw [←rat.cast_zero, coe_mem_cut_map_iff, rat.cast_zero],
     exact mul_self_pos.2 ha.ne' },
-  obtain ⟨q, hq, hbq, hqa⟩ := exists_rat_sq_btwn hba (hb.trans_lt hba),
+  obtain ⟨q, hq, hbq, hqa⟩ := exists_rat_pow_btwn two_ne_zero hba (hb.trans_lt hba),
   rw ←cast_pow at hbq,
   refine ⟨(q^2 : ℚ), coe_mem_cut_map_iff.2 _, hbq⟩,
   rw pow_two at ⊢ hqa,
   push_cast,
   obtain ⟨q', hq', hqa'⟩ := lt_induced_map_iff.1 (lt_of_mul_self_lt_mul_self _ hqa),
-  exact mul_self_lt_mul_self (by assumption_mod_cast) (hqa'.trans' $ by assumption_mod_cast),
+  exact mul_self_lt_mul_self (by exact_mod_cast hq.le) (hqa'.trans' $ by assumption_mod_cast),
   exact induced_map_nonneg ha.le,
 end
 

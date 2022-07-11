@@ -12,8 +12,8 @@ import set_theory.cardinal.basic
 
 * `nat.card α` is the cardinality of `α` as a natural number.
   If `α` is infinite, `nat.card α = 0`.
-* `part_enat.card α` is the cardinality of `α` as an extended natural number (`part
-  ` implementation). If `α` is infinite, `part_enat.card α = ⊤`.
+* `part_enat.card α` is the cardinality of `α` as an extended natural number
+  (`part ℕ` implementation). If `α` is infinite, `part_enat.card α = ⊤`.
 -/
 
 open cardinal

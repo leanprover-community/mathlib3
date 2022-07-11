@@ -201,9 +201,6 @@ jobs:
         if: ${{ ! 1 }}
         run: python3 -m pip install --upgrade pip pyyaml requests
 
-      - name: install Python requests dependency
-        run: python3 -m pip install --upgrade requests
-
       - name: tests
         run: |
           set -o pipefail

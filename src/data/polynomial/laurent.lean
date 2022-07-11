@@ -550,15 +550,17 @@ begin
   exact PQ hP _,
 end
 
-lemma finset.fold_max_add (n : with_bot ℤ) (s : finset ℤ) :
-  finset.fold max ⊥ (λ (x : ℤ), ↑x + n) s = finset.fold max ⊥ coe s + n :=
+lemma finset.fold_max_add {α β} [linear_order β] (f : α → β) [decidable_eq α] [has_add β]
+ [covariant_class β β (function.swap (+)) (≤)]
+ (n : with_bot β) (s : finset α) :
+  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
 by apply s.induction_on;
   simp [max_add_add_right] {contextual := tt}
 
 lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
   (f * T n).degree = f.degree + n :=
-by simpa only [degree, support_mul_T, finset.max, finset.fold_map, function.comp_app,
-    add_right_embedding_apply, with_bot.coe_add] using finset.fold_max_add _ _
+by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
+  using finset.fold_max_add coe ↑n f.support
 
 
 lemma option.map_id_coe_le (a b : with_bot ℕ) :

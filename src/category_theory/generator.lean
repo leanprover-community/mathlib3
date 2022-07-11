@@ -244,29 +244,27 @@ section well_powered
 namespace subobject
 
 lemma eq_of_le_of_is_detecting {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C} (P Q : subobject X)
-  (h₁ : P ≤ Q) (h₂ : ∀ (G ∈ 𝒢) (f : G ⟶ X), Q.factors f → P.factors f) : P = Q :=
+  (h₁ : P ≤ Q) (h₂ : ∀ (G ∈ 𝒢) {f : G ⟶ X}, Q.factors f → P.factors f) : P = Q :=
 begin
-  suffices : is_iso (subobject.of_le _ _ h₁),
-  { exactI le_antisymm h₁ (subobject.le_of_comm (inv (subobject.of_le _ _ h₁)) (by simp)) },
+  suffices : is_iso (of_le _ _ h₁),
+  { exactI le_antisymm h₁ (le_of_comm (inv (of_le _ _ h₁)) (by simp)) },
   refine h𝒢 _ (λ G hG f, _),
-  have : P.factors (f ≫ Q.arrow) := h₂ _ hG _ ((subobject.factors_iff _ _).2 ⟨_, rfl⟩),
-  refine ⟨subobject.factor_thru _ _ this, _, λ g (hg : g ≫ _ = f), _⟩,
-  { simp only [← cancel_mono Q.arrow, category.assoc, subobject.of_le_arrow,
-      subobject.factor_thru_arrow] },
+  have : P.factors (f ≫ Q.arrow) := h₂ _ hG ((factors_iff _ _).2 ⟨_, rfl⟩),
+  refine ⟨factor_thru _ _ this, _, λ g (hg : g ≫ _ = f), _⟩,
+  { simp only [← cancel_mono Q.arrow, category.assoc, of_le_arrow, factor_thru_arrow] },
   { simp only [← cancel_mono (subobject.of_le _ _ h₁), ← cancel_mono Q.arrow, hg,
-      category.assoc, subobject.of_le_arrow, subobject.factor_thru_arrow] }
+      category.assoc, of_le_arrow, factor_thru_arrow] }
 end
 
 lemma inf_eq_of_is_detecting [has_pullbacks C] {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C}
-  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) (f : G ⟶ X), P.factors f → Q.factors f) : P ⊓ Q = P :=
-eq_of_le_of_is_detecting h𝒢 _ _ _root_.inf_le_left
-  (λ G hG f hf, (subobject.inf_factors _).2 ⟨hf, h _ hG _ hf⟩)
+  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) {f : G ⟶ X}, P.factors f → Q.factors f) : P ⊓ Q = P :=
+eq_of_le_of_is_detecting h𝒢 _ _ _root_.inf_le_left (λ G hG f hf, (inf_factors _).2 ⟨hf, h _ hG hf⟩)
 
 lemma eq_of_is_detecting [has_pullbacks C] {𝒢 : set C} (h𝒢 : is_detecting 𝒢) {X : C}
-  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) (f : G ⟶ X), P.factors f ↔ Q.factors f) : P = Q :=
-calc P = P ⊓ Q : eq.symm $ inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG f).1 hf
+  (P Q : subobject X) (h : ∀ (G ∈ 𝒢) {f : G ⟶ X}, P.factors f ↔ Q.factors f) : P = Q :=
+calc P = P ⊓ Q : eq.symm $ inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG).1 hf
    ... = Q ⊓ P : inf_comm
-   ... = Q     : inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG f).2 hf
+   ... = Q     : inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h G hG).2 hf
 
 end subobject
 

@@ -92,20 +92,11 @@ lemma main_inequality {n : ℕ} (n_large : 512 ≤ n) :
 begin
   rw ←@cast_le ℝ,
   simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ←real.rpow_nat_cast],
-  have n_large_real : 512 ≤ (n : ℝ),
-  { rw ←@cast_le ℝ at n_large,
-    convert n_large, norm_num, },
+  have n_large_real : 512 ≤ (n : ℝ) := le_trans (by norm_num) (cast_le.mpr n_large),
   refine trans (mul_le_mul _ _ _ _) (real_main_inequality n_large_real),
-  { rw mul_le_mul_left,
-    apply real.rpow_le_rpow_of_exponent_le,
-    linarith,
-    convert real.nat_sqrt_le_real_sqrt,
-    simp only [cast_mul, cast_bit0, cast_one],
-    linarith, },
-  { refine real.rpow_le_rpow_of_exponent_le (by norm_num) _,
-    convert cast_div_le,
-    simp only [cast_mul, cast_bit0, cast_one],
-    simp only [cast_bit1, cast_one], },
+  { exact (mul_le_mul_left (by linarith)).mpr (real.rpow_le_rpow_of_exponent_le (by linarith)
+    (real.nat_sqrt_le_real_sqrt.trans (by norm_cast))) },
+  { exact real.rpow_le_rpow_of_exponent_le (by norm_num) (cast_div_le.trans (by norm_cast)) },
   { exact le_of_lt (real.rpow_pos_of_pos (by norm_num) _), },
   { refine mul_nonneg (by linarith) (le_of_lt (real.rpow_pos_of_pos (by linarith) _)), },
 end
@@ -120,22 +111,15 @@ lemma central_binom_factorization_small (n : ℕ) (n_large : 2 < n)
   ∏ p in (finset.range (2 * n / 3 + 1)),
     p ^ ((central_binom n).factorization p) :=
 begin
-  nth_rewrite 0 ←n.central_binom_factorization_prod_pow,
-  symmetry,
-  apply finset.prod_subset,
-  { rw [finset.range_subset, add_le_add_iff_right],
-    apply nat.div_le_of_le_mul,
-    linarith, },
-  intros x hx h2x,
-  rw [finset.mem_range] at hx h2x,
-  rw lt_succ_iff at hx,
-  rw [not_lt, add_one, succ_le_iff, div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
-  contrapose! no_prime with h,
-  refine ⟨x, _, _, hx⟩,
-  { contrapose! h,
-    rw [factorization_eq_zero_of_non_prime n.central_binom h, pow_zero], },
-  { contrapose! h,
-    rw [factorization_central_binom_of_two_mul_self_lt_three_mul n_large h h2x, pow_zero], },
+  refine ((finset.prod_subset (finset.range_subset.mpr (add_le_add_right (nat.div_le_self
+    (2 * n) 3) 1)) (λ x hx h2x, _)).trans n.central_binom_factorization_prod_pow).symm,
+  rw [finset.mem_range, lt_succ_iff] at hx h2x,
+  rw [not_le, div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
+  replace no_prime := not_exists.mp no_prime x,
+  rw [←and_assoc, not_and', not_and_distrib, not_lt] at no_prime,
+  cases no_prime hx with h h,
+  { rw [factorization_eq_zero_of_non_prime n.central_binom h, pow_zero] },
+  { rw [factorization_central_binom_of_two_mul_self_lt_three_mul n_large h h2x, pow_zero] },
 end
 
 /--

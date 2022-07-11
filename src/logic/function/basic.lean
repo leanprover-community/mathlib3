@@ -298,6 +298,14 @@ theorem left_inverse.right_inverse_of_surjective {f : α → β} {g : β → α}
   right_inverse f g :=
 λ x, let ⟨y, hy⟩ := hg x in hy ▸ congr_arg g (h y)
 
+lemma right_inverse.left_inverse_of_surjective {f : α → β} {g : β → α} :
+  right_inverse f g → surjective f → left_inverse f g :=
+left_inverse.right_inverse_of_surjective
+
+lemma right_inverse.left_inverse_of_injective {f : α → β} {g : β → α} :
+  right_inverse f g → injective g → left_inverse f g :=
+left_inverse.right_inverse_of_injective
+
 theorem left_inverse.eq_right_inverse {f : α → β} {g₁ g₂ : β → α} (h₁ : left_inverse g₁ f)
   (h₂ : right_inverse g₂ f) :
   g₁ = g₂ :=

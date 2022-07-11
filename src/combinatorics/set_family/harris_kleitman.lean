@@ -16,9 +16,10 @@ correlate in the uniform measure.
 
 ## Main declarations
 
-* `finset.non_member_slice`: `𝒜.non_member_slice a` is the subfamily of sets not containing `a`.
-* `finset.member_slice`: `𝒜.member_slice a` is the image of the subfamily of sets containing `a`
-  under removing `a`.
+* `finset.non_member_subfamily`: `𝒜.non_member_subfamily a` is the subfamily of sets not containing
+  `a`.
+* `finset.member_subfamily`: `𝒜.member_subfamily a` is the image of the subfamily of sets
+  containing `a` under removing `a`.
 * `is_lower_set.le_card_inter_finset`: One form of the Harris-Kleitman inequality.
 
 ## References
@@ -26,125 +27,48 @@ correlate in the uniform measure.
 * [D. J. Kleitman, *Families of non-disjoint subsets*][kleitman1966]
 -/
 
-section rearrangement
-variables {α : Type*}
-
-/-
-TODO: The assumptions are all over the place because of the algebraic order hierarchy weirdness.
-* `mul_add_mul_le_mul_add_mul_aux` ought to prove `mul_add_mul_le_mul_add_mul'` but it doesn't
-  because `canonically_ordered_comm_semiring` doesn't imply `ordered_semiring`.
-* The situation for `mul_add_mul_lt_mul_add_mul'` is worse because we don't have the typeclasses to
-  express the correct lemma, so we are restricted to `ℕ`.
-
-Possibly, both lemmas are true without `∃ e, b = a + e` and `∃ f, d = c + f`, in which case the
-above is nonsense.
--/
-
-lemma mul_add_mul_le_mul_add_mul_aux [ordered_semiring α] {a b c d : α} (hb : ∃ e, b = a + e)
-  (hd : ∃ f, d = c + f) (hab : a ≤ b) (hcd : c ≤ d) :
-  a * d + b * c ≤ a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := hb,
-  obtain ⟨d, rfl⟩ := hd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_le_add_left (mul_le_mul_of_nonneg_right hab $ (le_add_iff_nonneg_right _).1 hcd) _,
-end
-
-lemma mul_add_mul_lt_mul_add_mul_aux [ordered_semiring α] {a b c d : α} (hb : ∃ e, b = a + e)
-  (hd : ∃ f, d = c + f) (hab : a < b) (hcd : c < d) :
-  a * d + b * c < a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := hb,
-  obtain ⟨d, rfl⟩ := hd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_lt_add_left (mul_lt_mul_of_pos_right hab $ (lt_add_iff_pos_right _).1 hcd) _,
-end
-
-lemma mul_add_mul_le_mul_add_mul [ordered_ring α] {a b c d : α} :
-  a ≤ b → c ≤ d → a * d + b * c ≤ a * c + b * d :=
-mul_add_mul_le_mul_add_mul_aux ⟨_, (add_sub_cancel'_right _ _).symm⟩
-  ⟨_, (add_sub_cancel'_right _ _).symm⟩
-
-lemma mul_add_mul_lt_mul_add_mul [ordered_ring α] {a b c d : α} :
-  a < b → c < d → a * d + b * c < a * c + b * d :=
-mul_add_mul_lt_mul_add_mul_aux ⟨_, (add_sub_cancel'_right _ _).symm⟩
-  ⟨_, (add_sub_cancel'_right _ _).symm⟩
-
-lemma mul_add_mul_le_mul_add_mul' [canonically_ordered_comm_semiring α] {a b c d : α} (hab : a ≤ b)
-  (hcd : c ≤ d) : a * d + b * c ≤ a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := le_iff_exists_add.1 hab,
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 hcd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_le_add_left (mul_le_mul_right' hab _) _,
-end
-
-lemma mul_add_mul_lt_mul_add_mul' {a b c d : ℕ} (hab : a < b) (hcd : c < d) :
-  a * d + b * c < a * c + b * d :=
-mul_add_mul_lt_mul_add_mul_aux (le_iff_exists_add.1 hab.le) (le_iff_exists_add.1 hcd.le) hab hcd
-
-end rearrangement
-
 open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] {𝒜 ℬ : finset (finset α)} {s : finset α} {a : α}
 
 namespace finset
 
-lemma erase_inj_on' (a : α) : {s : finset α | a ∈ s}.inj_on (λ s, erase s a) :=
-λ s hs t ht (h : s.erase a =  _), by rw [←insert_erase hs, ←insert_erase ht, h]
-
-lemma subset_insert_iff_of_not_mem {s t : finset α} {a : α} (h : a ∉ s) : s ⊆ insert a t ↔ s ⊆ t :=
-by rw [subset_insert_iff, erase_eq_of_not_mem h]
-
-lemma filter_inter_distrib (p : α → Prop) [decidable_pred p] (s t : finset α) :
-  (s ∩ t).filter p = s.filter p ∩ t.filter p :=
-by { ext, simp only [mem_filter, mem_inter], exact and_and_distrib_right _ _ _ }
-
-lemma image_inter_of_inj_on {β : Type*} [decidable_eq β] {f : α → β} (s t : finset α)
-  (hf : set.inj_on f (s ∪ t)) :
-  (s ∩ t).image f = s.image f ∩ t.image f :=
-(image_inter_subset _ _ _).antisymm $ λ x, begin
-  simp only [mem_inter, mem_image],
-  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
-  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
-end
-
 /-- ELements of `𝒜` that do not contain `a`. -/
-def non_member_slice (𝒜 : finset (finset α)) (a : α) : finset (finset α) := 𝒜.filter $ λ s, a ∉ s
+def non_member_subfamily (𝒜 : finset (finset α)) (a : α) : finset (finset α) :=
+𝒜.filter $ λ s, a ∉ s
 
-/-- Image of the eLements of `𝒜` which contain `a` under removing `a`. Finsets that do not contain
+/-- Image of the elements of `𝒜` which contain `a` under removing `a`. Finsets that do not contain
 `a` such that `insert a s ∈ 𝒜`. -/
-def member_slice (𝒜 : finset (finset α)) (a : α) : finset (finset α) :=
+def member_subfamily (𝒜 : finset (finset α)) (a : α) : finset (finset α) :=
 (𝒜.filter $ λ s, a ∈ s).image $ λ s, erase s a
 
-@[simp] lemma mem_non_member_slice : s ∈ 𝒜.non_member_slice a ↔ s ∈ 𝒜 ∧ a ∉ s := mem_filter
-@[simp] lemma mem_member_slice : s ∈ 𝒜.member_slice a ↔ insert a s ∈ 𝒜 ∧ a ∉ s :=
+@[simp] lemma mem_non_member_subfamily : s ∈ 𝒜.non_member_subfamily a ↔ s ∈ 𝒜 ∧ a ∉ s := mem_filter
+@[simp] lemma mem_member_subfamily : s ∈ 𝒜.member_subfamily a ↔ insert a s ∈ 𝒜 ∧ a ∉ s :=
 begin
-  simp_rw [member_slice, mem_image, mem_filter],
+  simp_rw [member_subfamily, mem_image, mem_filter],
   refine ⟨_, λ h, ⟨insert a s, ⟨h.1, mem_insert_self _ _⟩, erase_insert h.2⟩⟩,
   rintro ⟨s, hs, rfl⟩,
   rw insert_erase hs.2,
   exact ⟨hs.1, not_mem_erase _ _⟩,
 end
 
-lemma non_member_slice_inter (𝒜 ℬ : finset (finset α)) (a : α) :
-  (𝒜 ∩ ℬ).non_member_slice a = 𝒜.non_member_slice a ∩ ℬ.non_member_slice a :=
+lemma non_member_subfamily_inter (𝒜 ℬ : finset (finset α)) (a : α) :
+  (𝒜 ∩ ℬ).non_member_subfamily a = 𝒜.non_member_subfamily a ∩ ℬ.non_member_subfamily a :=
 filter_inter_distrib _ _ _
 
-lemma member_slice_inter (𝒜 ℬ : finset (finset α)) (a : α) :
-  (𝒜 ∩ ℬ).member_slice a = 𝒜.member_slice a ∩ ℬ.member_slice a :=
+lemma member_subfamily_inter (𝒜 ℬ : finset (finset α)) (a : α) :
+  (𝒜 ∩ ℬ).member_subfamily a = 𝒜.member_subfamily a ∩ ℬ.member_subfamily a :=
 begin
-  unfold member_slice,
+  unfold member_subfamily,
   rw [filter_inter_distrib, image_inter_of_inj_on _ _ ((erase_inj_on' _).mono _)],
   rw [←coe_union, ←filter_union, coe_filter],
   exact set.inter_subset_right _ _,
 end
 
-lemma card_member_slice_add_card_non_member_slice (𝒜 : finset (finset α)) (a : α) :
-  (𝒜.member_slice a).card + (𝒜.non_member_slice a).card = 𝒜.card :=
+lemma card_member_subfamily_add_card_non_member_subfamily (𝒜 : finset (finset α)) (a : α) :
+  (𝒜.member_subfamily a).card + (𝒜.non_member_subfamily a).card = 𝒜.card :=
 begin
-  rw [member_slice, non_member_slice, card_image_of_inj_on,
+  rw [member_subfamily, non_member_subfamily, card_image_of_inj_on,
     filter_card_add_filter_neg_card_eq_card],
   exact (erase_inj_on' _).mono (λ s hs, (mem_filter.1 hs).2),
 end
@@ -153,21 +77,23 @@ end finset
 
 open finset
 
-lemma is_lower_set.non_member_slice (h : is_lower_set (𝒜 : set (finset α))) :
-  is_lower_set (𝒜.non_member_slice a : set (finset α)) :=
-by { intros s t hts, simp_rw [mem_coe, mem_non_member_slice], exact and.imp (h hts) (mt $ @hts _) }
+lemma is_lower_set.non_member_subfamily (h : is_lower_set (𝒜 : set (finset α))) :
+  is_lower_set (𝒜.non_member_subfamily a : set (finset α)) :=
+λ s t hts, by { simp_rw [mem_coe, mem_non_member_subfamily], exact and.imp (h hts) (mt $ @hts _) }
 
-lemma is_lower_set.member_slice (h : is_lower_set (𝒜 : set (finset α))) :
-  is_lower_set (𝒜.member_slice a : set (finset α)) :=
+lemma is_lower_set.member_subfamily (h : is_lower_set (𝒜 : set (finset α))) :
+  is_lower_set (𝒜.member_subfamily a : set (finset α)) :=
 begin
   rintro s t hts,
-  simp_rw [mem_coe, mem_member_slice],
+  simp_rw [mem_coe, mem_member_subfamily],
   exact and.imp (h $ insert_subset_insert _ hts) (mt $ @hts _),
 end
 
-lemma is_lower_set.member_slice_subset_non_member_slice (h : is_lower_set (𝒜 : set (finset α))) :
-  𝒜.member_slice a ⊆ 𝒜.non_member_slice a :=
-λ s, by { rw [mem_member_slice, mem_non_member_slice], exact and.imp_left (h $ subset_insert _ _) }
+lemma is_lower_set.member_subfamily_subset_non_member_subfamily
+  (h : is_lower_set (𝒜 : set (finset α))) :
+  𝒜.member_subfamily a ⊆ 𝒜.non_member_subfamily a :=
+λ s, by { rw [mem_member_subfamily, mem_non_member_subfamily],
+  exact and.imp_left (h $ subset_insert _ _) }
 
 /-- **Harris-Kleitman inequality**: Any two lower sets of finsets correlate. -/
 lemma is_lower_set.le_card_inter_finset'
@@ -182,25 +108,27 @@ begin
     obtain rfl | rfl := hℬs,
     { simp only [card_empty, inter_empty, mul_zero, zero_mul] },
     { simp only [card_empty, pow_zero, inter_singleton_of_mem, mem_singleton, card_singleton] } },
-  rw [card_insert_of_not_mem hs, ←card_member_slice_add_card_non_member_slice 𝒜 a,
-    ←card_member_slice_add_card_non_member_slice ℬ a, add_mul, mul_add, mul_add, add_comm (_ * _), add_add_add_comm],
-  refine (add_le_add_right (mul_add_mul_le_mul_add_mul'
-    (card_le_of_subset h𝒜.member_slice_subset_non_member_slice) $
-    card_le_of_subset hℬ.member_slice_subset_non_member_slice) _).trans _,
+  rw [card_insert_of_not_mem hs, ←card_member_subfamily_add_card_non_member_subfamily 𝒜 a,
+    ←card_member_subfamily_add_card_non_member_subfamily ℬ a, add_mul, mul_add, mul_add,
+    add_comm (_ * _), add_add_add_comm],
+  refine (add_le_add_right (mul_add_mul_le_mul_add_mul
+    (card_le_of_subset h𝒜.member_subfamily_subset_non_member_subfamily) $
+    card_le_of_subset hℬ.member_subfamily_subset_non_member_subfamily) _).trans _,
   rw [←two_mul, pow_succ, mul_assoc],
-  have h₀ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.non_member_slice a, t ⊆ s,
+  have h₀ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.non_member_subfamily a,
+    t ⊆ s,
   { rintro 𝒞 h𝒞 t ht,
-    rw mem_non_member_slice at ht,
+    rw mem_non_member_subfamily at ht,
     exact (subset_insert_iff_of_not_mem ht.2).1 (h𝒞 _ ht.1) },
-  have h₁ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.member_slice a, t ⊆ s,
+  have h₁ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.member_subfamily a, t ⊆ s,
   { rintro 𝒞 h𝒞 t ht,
-    rw mem_member_slice at ht,
+    rw mem_member_subfamily at ht,
     exact (subset_insert_iff_of_not_mem ht.2).1 ((subset_insert _ _).trans $ h𝒞 _ ht.1) },
   refine mul_le_mul_left' _ _,
-  refine (add_le_add (ih (h𝒜.member_slice) (hℬ.member_slice) (h₁ _ h𝒜s) $ h₁ _ hℬs) $
-    ih (h𝒜.non_member_slice) (hℬ.non_member_slice) (h₀ _ h𝒜s) $ h₀ _ hℬs).trans_eq _,
-  rw [←mul_add, ←member_slice_inter, ←non_member_slice_inter,
-    card_member_slice_add_card_non_member_slice],
+  refine (add_le_add (ih (h𝒜.member_subfamily) (hℬ.member_subfamily) (h₁ _ h𝒜s) $ h₁ _ hℬs) $
+    ih (h𝒜.non_member_subfamily) (hℬ.non_member_subfamily) (h₀ _ h𝒜s) $ h₀ _ hℬs).trans_eq _,
+  rw [←mul_add, ←member_subfamily_inter, ←non_member_subfamily_inter,
+    card_member_subfamily_add_card_non_member_subfamily],
 end
 
 variables [fintype α]

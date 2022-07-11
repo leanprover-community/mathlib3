@@ -32,6 +32,8 @@ In a strictly convex space, we prove
 - `norm_add_lt_of_not_same_ray`, `same_ray_iff_norm_add`, `dist_add_dist_eq_iff`:
   the triangle inequality `dist x y + dist y z ≤ dist x z` is a strict inequality unless `y` belongs
   to the segment `[x -[ℝ] z]`.
+- `isometry.affine_isometry_of_strict_convex_space`: an isometry of `normed_add_torsor`s for real
+  normed spaces, strictly convex in the case of the codomain, is an affine isometry.
 
 We also provide several lemmas that can be used as alternative constructors for `strict_convex ℝ E`:
 
@@ -238,3 +240,65 @@ lemma norm_midpoint_lt_iff (h : ∥x∥ = ∥y∥) : ∥(1/2 : ℝ) • (x + y)�
 by rw [norm_smul, real.norm_of_nonneg (one_div_nonneg.2 zero_le_two), ←inv_eq_one_div,
     ←div_eq_inv_mul, div_lt_iff (@zero_lt_two ℝ _ _), mul_two, ←not_same_ray_iff_of_norm_eq h,
     not_same_ray_iff_norm_add_lt, h]
+
+variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {PF : Type*} {PE : Type*} [metric_space PF] [metric_space PE]
+variables [normed_add_torsor F PF] [normed_add_torsor E PE]
+
+include E
+
+lemma eq_line_map_of_dist_eq_mul_of_dist_eq_mul {x y z : PE} (hxy : dist x y = r * dist x z)
+  (hyz : dist y z = (1 - r) * dist x z) :
+  y = affine_map.line_map x z r :=
+begin
+  have : y -ᵥ x ∈ [(0 : E) -[ℝ] z -ᵥ x],
+  { rw [← dist_add_dist_eq_iff, dist_zero_left, dist_vsub_cancel_right, ← dist_eq_norm_vsub',
+      ← dist_eq_norm_vsub', hxy, hyz, ← add_mul, add_sub_cancel'_right, one_mul] },
+  rcases eq_or_ne x z with rfl|hne,
+  { obtain rfl : y = x, by simpa,
+    simp },
+  { rw [← dist_ne_zero] at hne,
+    rcases this with ⟨a, b, ha, hb, hab, H⟩,
+    rw [smul_zero, zero_add] at H,
+    have H' := congr_arg norm H,
+    rw [norm_smul, real.norm_of_nonneg hb, ← dist_eq_norm_vsub', ← dist_eq_norm_vsub', hxy,
+      mul_left_inj' hne] at H',
+    rw [affine_map.line_map_apply, ← H', H, vsub_vadd] },
+end
+
+lemma eq_midpoint_of_dist_eq_half {x y z : PE} (hx : dist x y = dist x z / 2)
+  (hy : dist y z = dist x z / 2) : y = midpoint ℝ x z :=
+begin
+  apply eq_line_map_of_dist_eq_mul_of_dist_eq_mul,
+  { rwa [inv_of_eq_inv, ← div_eq_inv_mul] },
+  { rwa [inv_of_eq_inv, ← one_div, sub_half, one_div, ← div_eq_inv_mul] }
+end
+
+namespace isometry
+
+include F
+
+/-- An isometry of `normed_add_torsor`s for real normed spaces, strictly convex in the case of
+the codomain, is an affine isometry.  Unlike Mazur-Ulam, this does not require the isometry to
+be surjective.  -/
+noncomputable def affine_isometry_of_strict_convex_space {f : PF → PE} (hi : isometry f) :
+  PF →ᵃⁱ[ℝ] PE :=
+{ norm_map := λ x, by simp [affine_map.of_map_midpoint, ←dist_eq_norm_vsub E, hi.dist_eq],
+  ..affine_map.of_map_midpoint f (λ x y, begin
+    apply eq_midpoint_of_dist_eq_half,
+    { rw [hi.dist_eq, hi.dist_eq, dist_left_midpoint, real.norm_of_nonneg zero_le_two,
+        div_eq_inv_mul] },
+    { rw [hi.dist_eq, hi.dist_eq, dist_midpoint_right, real.norm_of_nonneg zero_le_two,
+        div_eq_inv_mul] },
+  end) hi.continuous }
+
+@[simp] lemma coe_affine_isometry_of_strict_convex_space {f : PF → PE} (hi : isometry f) :
+  ⇑(hi.affine_isometry_of_strict_convex_space) = f :=
+rfl
+
+@[simp] lemma affine_isometry_of_strict_convex_space_apply {f : PF → PE} (hi : isometry f)
+  (p : PF) :
+  hi.affine_isometry_of_strict_convex_space p = f p :=
+rfl
+
+end isometry

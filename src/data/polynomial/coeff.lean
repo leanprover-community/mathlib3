@@ -134,6 +134,41 @@ lemma coeff_X_pow_self (n : ℕ) :
   coeff (X^n : R[X]) n = 1 :=
 by simp [coeff_X_pow]
 
+section fewnomials
+
+open finset
+
+lemma support_binomial {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (C x * X ^ k + C y * X ^ m).support = {k, m} :=
+begin
+  apply subset_antisymm (support_binomial' k m x y),
+  simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
+    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm, if_neg hkm.symm,
+    mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
+end
+
+lemma support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
+  (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support = {k, m, n} :=
+begin
+  apply subset_antisymm (support_trinomial' k m n x y z),
+  simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
+    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm.ne, if_neg hkm.ne', if_neg hmn.ne,
+    if_neg hmn.ne', if_neg (hkm.trans hmn).ne, if_neg (hkm.trans hmn).ne',
+    mul_zero, add_zero, zero_add, ne.def, hx, hy, hz, and_self, not_false_iff],
+end
+
+lemma card_support_binomial {k m : ℕ} (h : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (C x * X ^ k + C y * X ^ m).support.card = 2 :=
+by rw [support_binomial h hx hy, card_insert_of_not_mem (mt mem_singleton.mp h), card_singleton]
+
+lemma card_support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
+  (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support.card = 3 :=
+by rw [support_trinomial hkm hmn hx hy hz, card_insert_of_not_mem
+  (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
+  card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton]
+
+end fewnomials
+
 @[simp]
 theorem coeff_mul_X_pow (p : R[X]) (n d : ℕ) :
   coeff (p * polynomial.X ^ n) (d + n) = coeff p d :=
@@ -156,8 +191,7 @@ begin
   { rw [← tsub_add_cancel_of_le h, coeff_mul_X_pow, add_tsub_cancel_right] },
   { refine (coeff_mul _ _ _).trans (finset.sum_eq_zero (λ x hx, _)),
     rw [coeff_X_pow, if_neg, mul_zero],
-    exact ne_of_lt (lt_of_le_of_lt (nat.le_of_add_le_right
-      (le_of_eq (finset.nat.mem_antidiagonal.mp hx))) (not_le.mp h)) },
+    exact ((le_of_add_le_right (finset.nat.mem_antidiagonal.mp hx).le).trans_lt $ not_le.mp h).ne }
 end
 
 lemma coeff_X_pow_mul' (p : R[X]) (n d : ℕ) :

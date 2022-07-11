@@ -361,4 +361,78 @@ variables {K} (A : valuation_subring K)
 lemma valuation_subring_valuation : A.valuation.valuation_subring = A :=
 by { ext, rw ← A.valuation_le_one_iff, refl }
 
+section unit_group
+
+/-- The unit group of a valuation subring, as a subgroup of `Kˣ`. -/
+def unit_group : subgroup Kˣ :=
+(A.valuation.to_monoid_with_zero_hom.to_monoid_hom.comp (units.coe_hom K)).ker
+
+lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
+
+lemma unit_group_injective : function.injective (unit_group : valuation_subring K → subgroup _) :=
+λ A B h, begin
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_eq_one],
+  rw set_like.ext_iff at h,
+  intros x,
+  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
+  exact h (units.mk0 x hx)
+end
+
+lemma eq_iff_unit_group {A B : valuation_subring K} :
+  A = B ↔ A.unit_group = B.unit_group :=
+unit_group_injective.eq_iff.symm
+
+/-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
+def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
+{ to_fun := λ x,
+  { val := ⟨x, mem_of_valuation_le_one A _ x.prop.le⟩,
+    inv := ⟨↑(x⁻¹), mem_of_valuation_le_one _ _ (x⁻¹).prop.le⟩,
+    val_inv := subtype.ext (units.mul_inv x),
+    inv_val := subtype.ext (units.inv_mul x) },
+  inv_fun := λ x, ⟨units.map A.subtype.to_monoid_hom x, A.valuation_unit x⟩,
+  left_inv := λ a, by { ext, refl },
+  right_inv := λ a, by { ext, refl },
+  map_mul' := λ a b, by { ext, refl } }
+
+@[simp]
+lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
+  (A.unit_group_mul_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
+  (A.unit_group_mul_equiv.symm a : K) = a := rfl
+
+lemma unit_group_le_unit_group {A B : valuation_subring K} :
+  A.unit_group ≤ B.unit_group ↔ A ≤ B :=
+begin
+  split,
+  { rintros h x hx,
+    rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
+    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    by_cases h_2 : 1 + x = 0,
+      { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
+    cases hx,
+    { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
+      simpa using B.add_mem _ _
+        (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B))
+        (B.neg_mem _ B.one_mem) },
+    { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
+      refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) } },
+  { rintros h x (hx : A.valuation x = 1),
+    apply_fun A.map_of_le B h at hx,
+    simpa using hx }
+end
+
+/-- The map on valuation subrings to their unit groups is an order embedding. -/
+def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
+{ to_fun := λ A, A.unit_group,
+  inj' := unit_group_injective,
+  map_rel_iff' := λ A B, unit_group_le_unit_group }
+
+lemma unit_group_strict_mono : strict_mono (unit_group : valuation_subring K → subgroup _) :=
+unit_group_order_embedding.strict_mono
+
+end unit_group
+
 end valuation_subring

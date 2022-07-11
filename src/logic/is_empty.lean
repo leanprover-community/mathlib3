@@ -116,6 +116,9 @@ by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
 @[simp] lemma is_empty_psum {α β} : is_empty (psum α β) ↔ is_empty α ∧ is_empty β :=
 by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
 
+lemma well_founded_of_empty {α} [is_empty α] (r : α → α → Prop) : well_founded r :=
+⟨is_empty_elim⟩ 
+
 variables (α)
 
 lemma is_empty_or_nonempty : is_empty α ∨ nonempty α :=

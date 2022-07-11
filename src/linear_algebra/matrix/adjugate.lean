@@ -220,7 +220,7 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end

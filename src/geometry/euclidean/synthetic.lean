@@ -41,7 +41,7 @@ class incidence_geometry :=
 (rightangle : real)
 (area : point → point → point → real)
 
---(P1 : ∀ (S: set point), ∃ (a : point), a∉ S) --Does not work for S= everything. What to do?
+(more_pts : ∀ (S : set point), S.finite → ∃ (a : point), a ∉ S)
 --(P2 : ∀ (L :  line), ∃ (a : point), online a L) -- NEVER USED
 (pt_B_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b a c) -- old (P3)
 (pt_extension_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b c a)
@@ -171,7 +171,8 @@ class incidence_geometry :=
 
 (angle_zero_iff_online : ∀ {a b c : point}, ∀ {L : line}, a ≠ b → a ≠ c → online a L → online b L →
   (online c L ∧ ¬B b a c ↔ angle b a c = 0))--better reformulation?
-(angle_add_iff_sameside : ∀ {a b c d : point}, ∀ {L M : line}, online a L → online b L → online a M → online c M →
+(angle_add_iff_sameside : ∀ {a b c d : point}, ∀ {L M : line}, online a L → online b L → online a M
+  → online c M →
   a ≠ b → a ≠ c → ¬online d M → ¬online d L → L ≠ M →
   (angle b a c = angle b a d + angle d a c ↔ sameside b d M ∧ sameside c d L))
 (angle_eq_iff_rightangle : ∀ {a b c d : point}, ∀ {L : line}, online a L → online b L → B a c b → ¬online d L →
@@ -221,6 +222,7 @@ instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
   angle := sorry,
   rightangle := sorry,
   area := sorry,
+  more_pts := sorry,
   pt_B_of_ne := begin
     intros p1 p2 p1_ne_p2,
     use ((1:ℝ) / 2) • (p1+p2),
@@ -309,6 +311,8 @@ include AxA
 -------------------------------------------------- API --------------------------------------------'
 local notation `|`x`|` := abs x
 
+theorem dist_pos_iff_ne {a b : point} : 0 < dist a b ↔ a ≠ b := sorry
+
 theorem flip1 {a b c d : point} (abcd : dist a b = dist c d) : dist b a = dist c d :=
   by rwa dist_symm a b at abcd
 theorem flip2 {a b c d : point} (abcd : dist a b = dist c d) : dist a b = dist d c :=
@@ -331,7 +335,7 @@ theorem Beasy (a b : point) : ¬B a b a ∧ ¬B a a b :=
 --  ⟨λ Baba, (ne_23_of_B Baba) rfl, λ Baab, (ne_12_of_B Baab) rfl⟩
 -/
 
-theorem exists_line_of_B {a b c : point} (Babc : B a b c) :
+theorem line_of_B {a b c : point} (Babc : B a b c) :
   ∃ (L : line), online a L ∧ online b L ∧ online c L ∧ a ≠ b ∧ b ≠ c ∧ c ≠ a :=
 begin
   rcases line_of_ne (ne_12_of_B Babc) with ⟨L, aL, bL⟩,
@@ -343,7 +347,7 @@ theorem not_B_symm {a b c : point} (Babc : ¬B a b c) : ¬B c b a := λ Bcba, Ba
 theorem Bbcd_or_Bbdc_of_Babc_Babd {a b c d : point} (cd : c ≠ d) (Babc : B a b c) (Babd : B a b d) :
   B b c d ∨ B b d c :=
 begin
-  rcases exists_line_of_B Babc with ⟨L, aL, bL, cL, ab, bc, ca⟩,
+  rcases line_of_B Babc with ⟨L, aL, bL, cL, ab, bc, ca⟩,
   cases B_of_three_online_ne bL cL (online_3_of_B Babd aL bL) bc (ne_23_of_B Babd) cd,
   left, assumption, cases h, exfalso, exact (not_B324_of_B123_B124 Babc Babd) h, right, exact h, --again
 end
@@ -352,7 +356,7 @@ end
 theorem Beasy6 {a b c d : point} (bc : b ≠ c) (Babd : B a b d) (Bacd : B a c d) :
   B a b c ∨ B a c b :=
 begin
-  rcases exists_line_of_B Babd with ⟨L, aL, bL, dL, nq⟩,
+  rcases line_of_B Babd with ⟨L, aL, bL, dL, nq⟩,
   cases B_of_three_online_ne aL bL (online_2_of_B Bacd aL dL) nq.1 (ne_12_of_B Bacd) bc, left, exact h, cases h, exfalso,
   exact (not_B_of_B (B124_of_B123_B234 (Bsymm h) Babd)) Bacd, right, exact h,
 end
@@ -360,7 +364,7 @@ end
 
 theorem Bbcd_of_Babc_Bacd {a b c d : point} (Babc : B a b c) (Bacd : B a c d) : B b c d :=
 begin
-  rcases exists_line_of_B Babc with ⟨L, aL, bL, cL, nq⟩,
+  rcases line_of_B Babc with ⟨L, aL, bL, cL, nq⟩,
   have bd : b ≠ d,
   { intro bd,
     rw bd at Babc,
@@ -955,7 +959,7 @@ begin
     ⟨d, Bbda, bdac⟩,
   have dbcacb : angle a c b = angle d b c := by linarith [angle_extensionmod1 bc Bbda],
   have eq := sas (flip2 bdac).symm (dist_symm c b) dbcacb,
-  rcases exists_line_of_B Bbda with ⟨L, bL, dL, aL, bd, da, ab⟩,
+  rcases line_of_B Bbda with ⟨L, bL, dL, aL, bd, da, ab⟩,
   have asplit := (area_add_iff_B ab.symm da.symm bd.symm bL aL dL (isosidelem ab bc ca aL bL ang Bbac)).1
     Bbda,
   have key : area b c a + area d a c = area b c a :=
@@ -1024,7 +1028,7 @@ begin
     online b L → online c M → b ≠ c := λ a b c L M ab ac LM aL aM bL cM bc,
      LM (line_unique_of_pts ab aL bL aM (by rwa bc.symm at cM)),
   rcases bisline (this _ _ _ _ _ ab ac LM aL aM bL cM) with ⟨d, Bbdc, len⟩,
-  rcases exists_line_of_B Bbdc with ⟨N, bN, dN, cN, bd, dc, cb⟩,
+  rcases line_of_B Bbdc with ⟨N, bN, dN, cN, bd, dc, cb⟩,
   have dM : ¬online d M := λ dM, LM (line_unique_of_pts ab aL bL aM (by rwa (line_unique_of_pts dc.symm cN dN cM dM) at bN)),
   have dL : ¬online d L := λ dL, LM (line_unique_of_pts ac aL (by rwa (line_unique_of_pts bd bN dN bL dL) at cN) aM cM),
   refine ⟨d, (sss abeqac (flip2 len) rfl).2.1, sameside23_of_B123_online1_not_online2 (Bsymm Bbdc) cM dM, sameside23_of_B123_online1_not_online2 Bbdc bL dL, Bbdc⟩,
@@ -1041,7 +1045,7 @@ begin
   have key := bisangiso (ne_13_of_B Babd) (ne_13_of_B Bace) LM aL (online_3_of_B Babd aL bL) aM
     (online_3_of_B Bace aM cM) len,
   rcases key with ⟨f, ang, ss1, ss2, Bdfe⟩,
-  rcases exists_line_of_B Bdfe with ⟨N, dN, fN, eN, df, fe, ed⟩,
+  rcases line_of_B Bdfe with ⟨N, dN, fN, eN, df, fe, ed⟩,
   have af : a ≠ f := λ af, LM ((rfl.congr (eq.symm (line_unique_of_pts (ne_13_of_B Babd) aL (online_3_of_B Babd aL bL)
     (by rwa af.symm at fN) dN))).mp (line_unique_of_pts (ne_13_of_B Bace) aM (online_3_of_B Bace aM cM)
     (by rwa af.symm at fN) eN)).symm,
@@ -1209,7 +1213,7 @@ end
 theorem vertang {a b c d e : point} {L : line} (cL : online c L) (dL : online d L)
   (aL : ¬online a L) (Bced : B c e d) (Baeb : B a e b) : angle b e c = angle d e a :=
 begin
-  rcases exists_line_of_B Baeb with ⟨N, aN, eN, bN, nq⟩,
+  rcases line_of_B Baeb with ⟨N, aN, eN, bN, nq⟩,
   have dN : ¬online d N := λ dN,
     ((by rwa (line_unique_of_pts (ne_23_of_B Bced) (online_2_of_B Bced cL dL) dL eN dN) at aL) : ¬online a N) aN,
   have bL : ¬online b L := λ bL,
@@ -1232,12 +1236,12 @@ begin
   have cf : c ≠ f := λ cf, aL (online_3_of_B Bcea cL (online_2_of_B Bbef bL (by rwa cf at cL))),
   have afL := sameside_trans (sameside23_of_B123_online1_not_online2 Bcea cL (λ eL, aL ((online_3_of_B Bcea) cL eL)))
     (sameside23_of_B123_online1_not_online2 Bbef bL (λ eL, aL ((online_3_of_B Bcea) cL eL))),
-  rcases exists_line_of_B Bbef with ⟨M, bM, eM, fM, nq⟩,
+  rcases line_of_B Bbef with ⟨M, bM, eM, fM, nq⟩,
   have cM : ¬online c M := λ cM,
     ((by rwa ← (line_unique_of_pts (ne_12_of_B Bbcd) bM cM bL cL) at aL) : ¬online a M) (online_3_of_B Bcea cM eM),
   have ang := vertang bM fM cM Bbef Bcea,
   have ang2 := (sas (flip2 len2) (flip1 len) (by linarith [angle_symm be ba])).2.2,
-  rcases exists_line_of_B Bcea with ⟨N, cN, eN, aN, nq1⟩,
+  rcases line_of_B Bcea with ⟨N, cN, eN, aN, nq1⟩,
   have fN : ¬online f N := λ fN,
     aL (by rwa (line_unique_of_pts (ne_12_of_B Bbcd) (online_3_of_B (Bsymm Bbef) fN eN) cN bL cL) at aN),
   have bN : ¬online b N := λ bN, fN (online_3_of_B Bbef bN eN),
@@ -1263,7 +1267,7 @@ begin
   have gb : g ≠ b := λ gb, aL (online_3_of_B (Bsymm Bacg) (by rwa ← gb at bL) (online_2_of_B Bbcd bL dL)),
   have := aflipboth (ne_23_of_B Bacg).symm gb (ne_23_of_B Bbcd).symm (neq_of_online_offline dL aL)
     (vertang bL dL aL Bbcd Bacg),
-  rcases exists_line_of_B Bacg with ⟨N, aN, cN, gN, nq⟩,
+  rcases line_of_B Bacg with ⟨N, aN, cN, gN, nq⟩,
   linarith [extang (λ bN, aL (by rwa line_unique_of_pts (ne_12_of_B Bbcd) bN cN bL (online_2_of_B Bbcd bL dL) at aN)) aN gN Bacg],
 end
 
@@ -1272,7 +1276,7 @@ end
   (aL : ¬online a L) (len : dist a b < dist a c) : angle b c a < angle a b c :=
 begin
   rcases excor3 (neq_of_online_offline bL aL).symm len with ⟨d, Badc, len2⟩,
-  rcases exists_line_of_B Badc with ⟨M, aM, dM, cM, nq⟩,
+  rcases line_of_B Badc with ⟨M, aM, dM, cM, nq⟩,
   have ang := extangcor (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)) cM aM (Bsymm Badc),
   have db : d ≠ b := neq_of_online_offline dM (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)),
   have LM : L ≠ M := λ LM, aL (by rwa LM.symm at aM),
@@ -1410,7 +1414,7 @@ begin
     { intro gM,
       have := (area_zero_iff_online bM cM bc).mpr gM,
       exact (mt (area_zero_iff_online eL fL ef).mp dL) (by rwa (area_eq_of_SSS side sasc.1 (flip1 len2)) at this), },
-    rcases exists_line_of_B Bbga with ⟨O, bO, gO, aO, nq⟩,
+    rcases line_of_B Bbga with ⟨O, bO, gO, aO, nq⟩,
     have gN : ¬online g N := λ gN, (lines_neq_of_online_offline gN gM) (line_unique_of_pts bc (by rwa (line_unique_of_pts nq.2.1 gO aO gN aN) at
       bO : online b N) cN bM cM),
     have key := angle_add_iff_samesidemprmod ac.symm bc.symm cN aN cM bM (sameside_symm (sameside23_of_B123_online1_not_online2 Bbga bM gM))
@@ -2339,4 +2343,181 @@ begin
   have := quadarea (ne_12_of_B (Bsymm Bbmc)) (ne_12_of_B (Bsymm Bdle)) cL mL eP lP mX lX' (sameside_symm mcP)
     (paraeasy2 par5).2.2.2.2.2.2 (paraeasy2 par3).2.2.2.2.2.1,
   linarith [area_invariant b c f, area_invariant c b k, area_invariant l d b, area_invariant l b d, area_invariant l m b, area_invariant b l m],
+end
+
+
+--- AK playing around with Steiner-Lehmus Theorem
+
+def colinear (a b c : point) : Prop := ∃ (L : line), online a L ∧ online b L ∧ online c L
+
+-- API
+lemma colinear_iff {a b c : point} :
+  colinear a b c ↔ (∃ L, online a L ∧ online b L ∧ online c L) := by refl
+
+lemma colinear_of_B {a b c : point} (Babc : B a b c) : colinear a b c :=
+begin
+  obtain ⟨L, aL, bL, cL, -⟩ := line_of_B Babc,
+  exact ⟨L, aL, bL, cL⟩,
+end
+
+lemma colinear.symm_23 {a b c : point} (h : colinear a b c) : colinear a c b :=
+begin
+  obtain ⟨L, aL, bL, cL⟩ := h,
+  exact ⟨L, aL, cL, bL⟩,
+end
+
+lemma colinear.perm {a b c : point} (h : colinear a b c) : colinear b c a :=
+begin
+  obtain ⟨L, aL, bL, cL⟩ := h,
+  exact ⟨L, bL, cL, aL⟩,
+end
+
+-- change axiom line_of_ne ! There is a line whether they're equal or not...
+lemma line_of_pts (a b : point) : ∃ (L : line), online a L ∧ online b L :=
+begin
+  by_cases h : a ≠ b,
+  { exact line_of_ne h, },
+  obtain ⟨c, hc⟩  := more_pts {a} (by simp),
+  simp only [set.mem_singleton_iff] at hc,
+  obtain ⟨L, -, aL⟩ := line_of_ne hc,
+  simp only [not_not] at h,
+  rw ←h,
+  exact ⟨L, aL, aL⟩,
+end
+
+lemma colinear_of_eq_12 (a b : point) : colinear a a b :=
+begin
+  obtain ⟨L, aL, bL⟩ := line_of_pts a b,
+  exact ⟨L, aL, aL, bL⟩,
+end
+
+lemma colinear_of_eq_23 (a b : point) : colinear a b b :=
+begin
+  obtain ⟨L, aL, bL⟩ := line_of_pts a b,
+  exact ⟨L, aL, bL, bL⟩,
+end
+
+lemma colinear_of_eq_13 (a b : point) : colinear a b a :=
+begin
+  obtain ⟨L, aL, bL⟩ := line_of_pts a b,
+  exact ⟨L, aL, bL, aL⟩,
+end
+
+lemma ne_12_of_not_colinear {a b c : point} (h : ¬ colinear a b c) : a ≠ b :=
+begin
+  intros hab,
+  rw hab at h,
+  exact h (colinear_of_eq_12 b c),
+end
+
+lemma ne_23_of_not_colinear {a b c : point} (h : ¬ colinear a b c) : b ≠ c :=
+begin
+  intros hbc,
+  rw hbc at h,
+  exact h (colinear_of_eq_23 a c),
+end
+
+lemma ne_13_of_not_colinear {a b c : point} (h : ¬ colinear a b c) : a ≠ c :=
+begin
+  intros hac,
+  rw hac at h,
+  exact h (colinear_of_eq_13 c b),
+end
+
+lemma offline_of_not_colinear {a b c : point} {L : line} (habc : ¬ colinear a b c)
+  (bL : online b L) (cL : online c L) : ¬ online a L :=
+begin
+  intros aL,
+  have : colinear a b c,
+  { rw colinear_iff,
+    refine ⟨L, aL, bL, cL⟩, },
+  exact habc this,
+end
+
+-- Proofs
+
+theorem isosceles_of_equal_angles {a b c : point} (habc : ¬ colinear a b c)
+  (h : angle a b c = angle a c b) : dist a b = dist a c :=
+begin
+  refine isoside _ (ne_12_of_not_colinear habc) (ne_23_of_not_colinear habc)
+    (ne_13_of_not_colinear habc).symm h,
+  intros Bbac,
+  obtain ⟨L, bL, aL, cL, -⟩ := line_of_B Bbac,
+  exact habc ⟨L, aL, bL, cL⟩,
+end
+
+lemma B_of_greater_angle {a b c d : point} {Lab : line} (habc : ¬ colinear a b c)
+  (hbcd: colinear b c d) (aL : online a Lab) (bL : online b Lab) (adL : sameside a d Lab)
+  (h : angle b a c < angle b a d) : B b c d :=
+begin
+  have := area_add_iff_B,
+  repeat {sorry},
+end
+
+-- base angles differ → angle bisectors differ. Proof in Coxeter (by H.G. Forder)
+lemma steiner_lehmus_prep {a b c y z : point} (habc : ¬ colinear a b c) (Bazb : B a z b)
+  (Bayc : B a y c) (hb : angle a b y = angle y b c) (hc : angle a c z = angle z c b)
+  (b_le_c : angle a b c < angle a c b) :
+  dist c z < dist b y :=
+begin
+  have a_ne_b := ne_12_of_not_colinear habc,
+  have a_ne_c := ne_13_of_not_colinear habc,
+  have b_ne_c := ne_23_of_not_colinear habc,
+  have b_ne_y : b ≠ y,
+  { intros hby,
+    rw ←hby at Bayc,
+    exact habc (colinear_of_B Bayc), },
+  have c_ne_z : c ≠ z,
+  { intros hcz,
+    rw ←hcz at Bazb,
+    exact habc (colinear_of_B Bazb).symm_23, },
+  obtain ⟨Lab, aL, bL⟩ := line_of_ne (a_ne_b),
+  have y_not_on_Lab : ¬ online y Lab := sorry,
+  obtain ⟨Mcz, cM, zM⟩ := line_of_ne (c_ne_z),
+  have a_not_on_Mcz : ¬ online a Mcz := sorry,
+  have : ∃ u : point, B a u z ∧ angle u c z = angle u b y,
+  {
+    obtain ⟨f, hf⟩ := angcopy c_ne_z a_ne_b.symm bL aL y_not_on_Lab cM zM a_not_on_Mcz,
+    by_cases hf_on_ab : online f Lab,
+    {
+      use f,
+      sorry,
+    },
+    sorry,
+  },
+  obtain ⟨u, Bauz, angle_ucz_uby⟩ := this,
+  have : ∃ v : point, B u v b ∧ dist b v = dist u c,
+  {
+    sorry,
+  },
+  obtain ⟨v, Buvb, bv_eq_uc⟩ := this,
+  have : ∃ w, B b w y ∧ angle b c w = angle b u c,
+  {
+    sorry,
+  },
+  obtain ⟨w, Bbwy, angle_bcw_buc⟩ := this,
+  have : dist b w = dist c z,
+  {
+    sorry,
+  },
+  calc dist c z = dist b w : this.symm
+  ... < dist b y : _,
+  have := dist_sum_of_B Bbwy,
+  have := dist_pos_iff_ne.mpr (ne_23_of_B Bbwy),
+  linarith,
+end
+
+#exit
+
+-- angle bisectors are equal → isosceles
+theorem steiner_lehmus {a b c y z : point} (hbc : b ≠ c) (Bazb : B a z b) (Bayc : B a y c)
+  (hb : angle a b y = angle y b c) (hc : angle a c z = angle z c b) (h : dist b y = dist c z) :
+  dist a b = dist a c :=
+begin
+  suffices angle_bc : angle a b c = angle a c b,
+  { exact isosceles_of_equal_angles (ne_13_of_B Bazb) (ne_13_of_B Bayc) hbc angle_bc, },
+  by_contra b_ne_c,
+  wlog b_le_c : angle a b c < angle a c b using [b c y z, c b z y],
+  { exact ne.lt_or_lt b_ne_c, },
+  { exact (steiner_lehmus_prep hbc Bazb Bayc hb hc b_le_c).ne h.symm, },
 end

@@ -239,11 +239,11 @@ begin
 end
 
 lemma antitone.limsup_comp_eq_apply_liminf_of_continuous
-  {ι R : Type*} [semilattice_sup ι] [nonempty ι]
+  {ι R : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
   (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
-  at_top.limsup (f ∘ a) = f (at_top.liminf a) :=
-@antitone.liminf_comp_eq_apply_limsup_of_continuous ι (order_dual R) _ _ _ _ _
+  F.limsup (f ∘ a) = f (F.liminf a) :=
+@antitone.liminf_comp_eq_apply_limsup_of_continuous ι (order_dual R) F _ _ _ _
   a f f_decr.dual f_cont
 
 end monotone

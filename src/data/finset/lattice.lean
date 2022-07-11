@@ -549,10 +549,11 @@ begin
   rw coe_sup',
   refine comp_sup_eq_sup_comp g' _ rfl,
   intros f₁ f₂,
-  refine f₁.rec_bot_coe _ _,
+  induction f₁ using with_bot.rec_bot_coe,
   { rw [bot_sup_eq], exact bot_sup_eq.symm, },
-  { refine f₂.rec_bot_coe _ _, simp [g'],
-    simp [g', ←with_bot.coe_sup, g_sup] }
+  { induction f₂ using with_bot.rec_bot_coe,
+    { simp [g'] },
+    { simp [g', ←with_bot.coe_sup, g_sup] } }
 end
 
 lemma sup'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
@@ -897,14 +898,7 @@ sup' s H id
 
 variables (s : finset α) (H : s.nonempty) {x : α}
 
-theorem min'_mem : s.min' H ∈ s :=
-begin
-  refine inf'_mem (↑s : set α) _ _ _ _ _,
-  { intros x hx y hy,
-    cases le_total x y with h h;
-    simpa [inf_eq_left.mpr, inf_eq_right.mpr, h] },
-  { simp }
-end
+theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min', finset.min]
 
 theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x :=
 min_le_of_mem H2 (with_top.coe_untop _ _).symm
@@ -921,14 +915,7 @@ le_is_glb_iff (is_least_min' s H).is_glb
   ({a} : finset α).min' (singleton_nonempty _) = a :=
 by simp [min']
 
-theorem max'_mem : s.max' H ∈ s :=
-begin
-  refine sup'_mem (↑s : set α) _ _ _ _ _,
-  { intros x hx y hy,
-    cases le_total x y with h h;
-    simpa [sup_eq_left.mpr, sup_eq_right.mpr, h] },
-  { simp }
-end
+theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max', finset.max]
 
 theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ :=
 le_max_of_mem H2 (with_bot.coe_unbot _ _).symm

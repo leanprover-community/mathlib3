@@ -678,8 +678,8 @@ end Set
 /-- The collection of all classes.
 
 We define `Class` as `set Set`, as this allows us to get many instances automatically. However, in
-practice, we treat it as `Set → Prop`. This means, the preferred way to state that `x : Set` belongs
-to `A : Class` is to write `A x`. -/
+practice, we treat it as (the definitionally equal) `Set → Prop`. This means, the preferred way to
+state that `x : Set` belongs to `A : Class` is to write `A x`. -/
 @[derive [has_subset, has_sep Set, has_emptyc, inhabited, has_insert Set, has_union, has_inter,
   has_compl, has_sdiff]]
 def Class := set Set
@@ -694,7 +694,7 @@ instance : has_coe Set Class := ⟨of_Set⟩
 def univ : Class := set.univ
 
 /-- Assert that `A` is a ZFC set satisfying `B` -/
-def to_Set (p : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ p x
+def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 
 /-- `A ∈ B` if `A` is a ZFC set which satisfies `B` -/
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
@@ -719,7 +719,7 @@ notation `⋃` := Union
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
 
-@[simp] theorem to_Set_of_Set (p : Class.{u}) (x : Set.{u}) : to_Set p x ↔ p x :=
+@[simp] theorem to_Set_of_Set (A : Class.{u}) (x : Set.{u}) : to_Set A x ↔ A x :=
 ⟨λ ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λ px, ⟨x, rfl, px⟩⟩
 
 @[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ A x :=

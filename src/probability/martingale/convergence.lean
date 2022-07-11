@@ -19,7 +19,9 @@ namespace measure_theory
 variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α} {ℱ : filtration ℕ m0}
 variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α}
 
-/-! We will now begin to prove the martingale convergence theorem.
+/-!
+
+We will now begin to prove the martingale convergence theorem.
 
 Firstly, we want to show a real sequence `x` converges if
 (a) `limsup |x| < ∞`,
@@ -30,12 +32,12 @@ for all `a < b : ℚ`, `sup N, upcrossing_before a b f N x < ∞`, we have `λ n
 
 Assuming `f` is L¹-bounded, using Fatou's lemma,
 we have `𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
-the upcrossing_before lemma, `sup N, upcrossing_before a b f N < ∞ a.e.` implying `f` converges pointwise almost
-everywhere.
+the upcrossing_before lemma, `sup N, upcrossing_before a b f N < ∞ a.e.` implying `f` converges
+pointwise almost everywhere.
 
 -/
 
-/-- If a realization of a stochastic process has bounded upcrossing_befores from below `a` to above `b`,
+/-- If a realization of a stochastic process has bounded upcrossing from below `a` to above `b`,
 then that realization does not frequently visit both below `a` and above `b`. -/
 lemma not_frequently_of_upcrossing_lt_top (hab : a < b) (hx : upcrossing a b f x < ∞) :
   ¬((∃ᶠ n in at_top, f n x < a) ∧ (∃ᶠ n in at_top, b < f n x)) :=
@@ -58,19 +60,31 @@ begin
       (upcrossing_lt_upcrossing_of_exists_upcrossing hab hN₁ hN₁' hN₂ hN₂')⟩ }
 end
 
+lemma upcrossing_eq_top_of_frequently (hab : a < b)
+  (h₁ : ∃ᶠ n in at_top, f n x < a) (h₂ : ∃ᶠ n in at_top, b < f n x) :
+  upcrossing a b f x = ∞ :=
+begin
+  sorry,
+end
+
 /-- A realization of a stochastic process with bounded upcrossings and bounded limit infimums is
 convergent. -/
-lemma tendsto_of_bdd_uncrossing {x : α}
-  (hf₁ : ∃ R, at_top.liminf (λ n, |f n x|) < R)
+lemma tendsto_of_uncrossing_lt_top {x : α}
+  (hf₁ : at_top.liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞)
   (hf₂ : ∀ a b : ℚ, a < b → upcrossing a b f x < ∞) :
   ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
-  refine tendsto_of_no_upcrossings rat.dense_range_cast _ _ _,
-  { intros a ha b hb hab,
-    obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
-    exact not_frequently_of_upcrossing_lt_top hab (hf₂ a b (rat.cast_lt.1 hab)) },
-  { sorry },
-  { sorry }
+  by_cases h : is_bounded_under (≤) at_top (λ n, |f n x|),
+  { rw is_bounded_under_le_abs at h,
+    refine tendsto_of_no_upcrossings rat.dense_range_cast _ h.1 h.2,
+    { intros a ha b hb hab,
+      obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
+      exact not_frequently_of_upcrossing_lt_top hab (hf₂ a b (rat.cast_lt.1 hab)) } },
+  { -- if `(|f n x|)` is not bounded then either `f n x → ±∞` or `limsup f n x = ∞` and
+    -- `liminf f n x = -∞`. The first case contradicts `liminf |f n x| < ∞` which the second
+    -- case contradicts finite upcrossings.
+    sorry,
+  }
 end
 
 /-- An L¹-bounded submartingale has bounded upcrossings almost everywhere. -/
@@ -131,7 +145,7 @@ begin
 end
 
 lemma liminf_at_top_ae_bdd_of_snorm_bdd (hbbd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∀ᵐ x ∂μ, ∃ R, at_top.liminf (λ n, |f n x|) < R :=
+  ∀ᵐ x ∂μ, at_top.liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
 begin
   sorry
 end
@@ -143,7 +157,7 @@ lemma submartingale.exists_ae_tendsto_of_bdd [is_finite_measure μ]
 begin
   filter_upwards [hf.upcrossing_ae_lt_top hbdd,
     liminf_at_top_ae_bdd_of_snorm_bdd hbdd] with x h₁ h₂,
-  exact tendsto_of_bdd_uncrossing h₂ h₁,
+  exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges

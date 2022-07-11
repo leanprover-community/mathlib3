@@ -5,7 +5,6 @@ Authors: Markus Himmel
 -/
 import category_theory.balanced
 import category_theory.limits.opposites
-import category_theory.subobject.factor_thru
 import category_theory.subobject.lattice
 import category_theory.subobject.well_powered
 import data.set.opposite

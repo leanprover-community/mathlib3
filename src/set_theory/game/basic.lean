@@ -315,10 +315,10 @@ def neg_mul_relabelling : Π (x y : pgame.{u}), -x * y ≡r -(x * y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
   refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
   rintro (⟨i, j⟩ | ⟨i, j⟩);
-  { dsimp,
-    apply ((neg_add_relabelling _ _).trans _).symm,
-    apply ((neg_add_relabelling _ _).trans (relabelling.add_congr _ _)).sub_congr;
-    exact (neg_mul_relabelling _ _).symm }
+  dsimp;
+  apply ((neg_add_relabelling _ _).trans _).symm;
+  apply ((neg_add_relabelling _ _).trans (relabelling.add_congr _ _)).sub_congr;
+  exact (neg_mul_relabelling _ _).symm
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

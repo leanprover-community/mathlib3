@@ -150,11 +150,11 @@ lemma degree_zero_part.num_mem {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A�
 x.2.some_spec.some.2
 
 lemma degree_zero_part.eq {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) :
-  x.1 = mk (degree_zero_part.num x) ⟨f^(degree_zero_part.deg x), ⟨_, rfl⟩⟩ :=
+  (x : away f) = mk (degree_zero_part.num x) ⟨f^(degree_zero_part.deg x), ⟨_, rfl⟩⟩ :=
 x.2.some_spec.some_spec
 
-lemma degree_zero_part.mul_val {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
-  (x * y).1 = x.1 * y.1 := rfl
+lemma degree_zero_part.coe_mul {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
+  (↑(x * y) : away f) = x * y := rfl
 
 end
 
@@ -184,7 +184,7 @@ ideal.comap (algebra_map (A⁰_ f_deg) (away f))
 
 lemma mem_carrier_iff (z : A⁰_ f_deg) :
   z ∈ carrier f_deg x ↔
-  z.1 ∈ ideal.span (algebra_map A (away f) '' x.1.as_homogeneous_ideal) :=
+  ↑z ∈ ideal.span (algebra_map A (away f) '' x.1.as_homogeneous_ideal) :=
 iff.rfl
 
 lemma mem_carrier.clear_denominator [decidable_eq (away f)]
@@ -192,7 +192,7 @@ lemma mem_carrier.clear_denominator [decidable_eq (away f)]
   ∃ (c : algebra_map A (away f) '' x.1.as_homogeneous_ideal →₀ away f)
     (N : ℕ)
     (acd : Π y ∈ c.support.image c, A),
-    f ^ N • z.1 =
+    f ^ N • ↑z =
     algebra_map A (away f) (∑ i in c.support.attach,
       acd (c i) (finset.mem_image.mpr ⟨i, ⟨i.2, rfl⟩⟩) * classical.some i.1.2) :=
 begin
@@ -235,7 +235,7 @@ begin
   classical,
   contrapose! eq_top,
   obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
-  rw [algebra.smul_def, subtype.val_eq_coe, subring.coe_one, mul_one] at eq1,
+  rw [algebra.smul_def, subring.coe_one, mul_one] at eq1,
   change localization.mk (f ^ N) 1 = mk (∑ _, _) 1 at eq1,
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
@@ -250,7 +250,7 @@ end
 /--The function between the basic open set `D(f)` in `Proj` to the corresponding basic open set in
 `Spec A⁰_f`. This is bundled into a continuous map in `Top_component.forward`.
 -/
-def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
+def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f_deg)) :=
 ⟨carrier f_deg x, carrier_ne_top f_deg x, λ x1 x2 hx12, begin
   haveI : decidable_eq (away f) := classical.dec_eq _,
   rcases ⟨x1, x2⟩ with ⟨⟨x1, hx1⟩, ⟨x2, hx2⟩⟩,
@@ -258,10 +258,10 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
   induction x2 using localization.induction_on with data_x2,
   rcases ⟨data_x1, data_x2⟩ with ⟨⟨a1, _, ⟨n1, rfl⟩⟩, ⟨a2, _, ⟨n2, rfl⟩⟩⟩,
   rcases mem_carrier.clear_denominator f_deg x hx12 with ⟨c, N, acd, eq1⟩,
-  simp only [degree_zero_part.mul_val, localization.mk_mul, mul_one, algebra.smul_def] at eq1,
-  change localization.mk (f ^ N) 1 * mk _ (⟨f ^ n1 * f ^ n2, _⟩) = mk (∑ _, _) _ at eq1,
-  rw [mk_mul, one_mul] at eq1,
-  simp only [mk_mul, mk_eq_mk', is_localization.eq] at eq1,
+  simp only [degree_zero_part.coe_mul, algebra.smul_def] at eq1,
+  change localization.mk (f ^ N) 1 * (mk _ _ * mk _ _) = mk (∑ _, _) _ at eq1,
+  simp only [localization.mk_mul, one_mul] at eq1,
+  simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   rw [submonoid.coe_one, mul_one] at eq1,
   simp only [← subtype.val_eq_coe, submonoid.coe_mul] at eq1,
@@ -298,7 +298,7 @@ lemma preimage_eq (a : A) (n : ℕ)
       (sbo (⟨mk a ⟨f ^ n, ⟨_, rfl⟩⟩, a_mem_degree_zero⟩ : A⁰_ f_deg)).1
   = {x | x.1 ∈ (pbo f) ⊓ (pbo a)} :=
 begin
-  haveI : decidable_eq (away f) := classical.dec_eq _,
+  classical,
   ext1 y, split; intros hy,
   { refine ⟨y.2, _⟩,
     rw [set.mem_preimage, subtype.val_eq_coe, opens.mem_coe, prime_spectrum.mem_basic_open] at hy,

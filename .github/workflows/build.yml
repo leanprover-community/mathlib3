@@ -89,6 +89,8 @@ jobs:
           leanpkg configure
           echo "::set-output name=started::true"
           ls -lh src/algebra/order/field.olean
+          lean --json -T100000 --make src/algebra/order/field.lean | python3 scripts/detect_errors.py
+          ls -lh src/algebra/order/field.olean
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
           ls -lh src/algebra/order/field.olean
           lean --json -T100000 --make src | python3 scripts/detect_errors.py

@@ -38,6 +38,13 @@ file, changes to this script may not be noticed during Lean compilation if you h
 generated olean files. If you are modifying this python script, you likely know what you're doing;
 remember to force recompilation of any files that call `polyrith`.
 
+## Future work
+
+* Give Sage more information about the specific ring being used for the coefficients. For now,
+  we always use ℚ (or `QQ` in Sage).
+* Handle `•` terms.
+* Support local Sage installations.
+
 ## References
 
 * See the book `Ideals, Varieties, and Algorithms` by David Cox, John Little, and Donal O'Shea

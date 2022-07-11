@@ -1,5 +1,6 @@
 import linear_algebra.matrix.symmetric
 import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.pos_def
 
 namespace matrix
 

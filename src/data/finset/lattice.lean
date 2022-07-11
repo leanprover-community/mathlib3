@@ -28,7 +28,7 @@ def sup (s : finset β) (f : β → α) : α := s.fold (⊔) ⊥ f
 
 variables {s s₁ s₂ : finset β} {f g : β → α}
 
-lemma sup_def : s.sup f = (s.1.map f).sup := rfl
+lemma sup_def : s.sup f = (s.1.map f).sup :=
 
 @[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
 fold_empty
@@ -581,7 +581,7 @@ begin
 end
 
 @[simp] lemma sup'_map {s : finset γ} {f : γ ↪ β} (g : β → α) (hs : (s.map f).nonempty)
-  (hs': s.nonempty := hs.comap) :
+  (hs': s.nonempty := finset.map_nonempty.mp hs) :
   (s.map f).sup' hs g = s.sup' hs' (g ∘ f) :=
 by rw [←with_bot.coe_eq_coe, coe_sup', sup_map, coe_sup']
 
@@ -646,7 +646,7 @@ lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
 @sup'_congr αᵒᵈ _ _ _ H _ _ _ h₁ h₂
 
 @[simp] lemma inf'_map {s : finset γ} {f : γ ↪ β} (g : β → α) (hs : (s.map f).nonempty)
-  (hs': s.nonempty := hs.comap) :
+  (hs': s.nonempty := finset.map_nonempty.mp hs) :
   (s.map f).inf' hs g = s.inf' hs' (g ∘ f) :=
 @sup'_map αᵒᵈ _ _ _ _ _ _ hs hs'
 

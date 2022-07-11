@@ -379,6 +379,10 @@ begin
   exact support_single_ne_zero _ a0,
 end
 
+lemma support_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
+  (f * T n).support = f.support.map (add_right_embedding n) :=
+support_mul_single f 1 (by simp) n
+
 @[simp] lemma to_laurent_support (f : R[X]) :
   f.to_laurent.support = f.support.map nat.cast_embedding :=
 begin
@@ -507,6 +511,185 @@ begin
   { rwa [degree_eq_int_degree, int_degree_to_laurent_eq_nat_degree, degree_eq_nat_degree f0],
     { refl },
     { exact polynomial.to_laurent_ne_zero.mp f0 } }
+end
+
+instance : can_lift (with_bot ℤ) ℕ :=
+{ coe := coe,
+  cond := ((≤) 0),
+  prf := begin
+    rintro (⟨⟩ | x) h,
+    { exact (not_lt.mpr h (with_bot.bot_lt_coe _)).elim },
+    { lift x to ℕ using with_bot.coe_le_coe.mp h,
+      exact ⟨_, rfl⟩ }
+    end }
+
+/-
+lemma reduce_to_polynomial_of_mul_T' (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
+  (P : R[X] → Prop)
+  (hP : ∀ (f : R[X]), P f)
+  (QT : ∀ f, Q (f * T 1) → Q f)
+  (PQ : ∀ f, P f → Q f.to_laurent) :
+  Q f :=
+begin
+  induction f using laurent_polynomial.induction_on_mul_T with f n,
+  induction n with n hn,
+  { simpa using PQ _ (hP _) },
+  { convert QT _ _,
+    simpa using hn }
+end
+-/
+
+lemma reduce_to_polynomial_of_mul_T''' (f : R[T;T⁻¹])
+  {Q : R[T;T⁻¹] → Prop}
+  (P : R[X] → Prop)
+  (hP : ∀ {f}, P f)
+  (PQ : ∀ {f}, P f → ∀ (n : ℕ), Q (f.to_laurent * T (- n))) :
+  Q f :=
+begin
+  induction f using laurent_polynomial.induction_on_mul_T with f n,
+  exact PQ hP _,
+end
+
+lemma finset.fold_max_add (n : with_bot ℤ) (s : finset ℤ) :
+  finset.fold max ⊥ (λ (x : ℤ), ↑x + n) s = finset.fold max ⊥ coe s + n :=
+by apply s.induction_on;
+  simp [max_add_add_right] {contextual := tt}
+
+lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
+  (f * T n).degree = f.degree + n :=
+by simpa only [degree, support_mul_T, finset.max, finset.fold_map, function.comp_app,
+    add_right_embedding_apply, with_bot.coe_add] using finset.fold_max_add _ _
+
+
+lemma option.map_id_coe_le (a b : with_bot ℕ) :
+  (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
+begin
+  rcases a with _ | a,
+  { simp },
+  { rcases b with _ | b,
+    { rw [option.map_some', id.def, option.map_none', ← not_iff_not, not_le, not_le],
+      simp only [with_bot.none_lt_some] },
+    { simp } }
+end
+
+lemma _root_.with_bot.eq_bot_or_coe {α} (n : with_bot α) : n = ⊥ ∨ ∃ m : α, n = m :=
+begin
+  rcases n with _ | a,
+  { exact or.inl rfl },
+  { exact or.inr ⟨_, rfl⟩ }
+end
+
+lemma option.map_coe_add {a b : with_bot ℕ} :
+  (id (option.map coe (a + b : with_bot ℕ)) : with_bot ℤ) ≤ option.map coe a + option.map coe b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact (with_bot.bot_add _).ge },
+  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
+    { exact (with_bot.add_bot _).ge },
+    { exact rfl.le } },
+end
+
+@[to_additive]
+lemma mul_le_cancellable_of_mul_eq_one {α} [monoid α] [has_le α] [covariant_class α α (*) (≤)]
+  (a b : α) (ba : b * a = 1) :
+  mul_le_cancellable a :=
+begin
+  intros x y xy,
+  rw [← one_mul x, ← one_mul y, ← ba, mul_assoc, mul_assoc],
+  exact mul_le_mul_left' xy _,
+end
+
+@[to_additive]
+lemma units.mul_le_cancellable {α} [monoid α] [has_le α] [covariant_class α α (*) (≤)] (u : αˣ) :
+  mul_le_cancellable (u : α) :=
+mul_le_cancellable_of_mul_eq_one _ u.inv (units.inv_mul _)
+
+/-
+lemma with_bot.add_le_cancellable (n : ℕ) :
+  add_le_cancellable (n : with_bot ℕ) :=
+begin
+  rintros (_ | x) (_ | y) hn,
+  { exact rfl.le },
+  { exact with_bot.none_le },
+  { refine (not_lt.mpr hn (_ : ↑n + ⊥ < ↑(n + x))).elim,
+    simp only [with_bot.add_bot, with_bot.bot_lt_coe] },
+  { sorry }
+end
+-/
+
+lemma with_bot.add_coe_neg_le_iff (a : with_bot ℤ) (b : ℤ) (c : with_bot ℤ) :
+  a + (-b : ℤ) ≤ c ↔ a ≤ c + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { simp },
+  rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+  { simp only [le_bot_iff, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, with_bot.coe_ne_bot,
+      iff_false, not_false_iff] },
+  { norm_cast,
+    rw ← sub_eq_add_neg,
+    exact sub_le_iff_le_add }
+end
+
+lemma with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
+  ∃ (a' : with_bot A), a = a' + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact ⟨_, (with_bot.bot_add _).symm⟩ },
+  { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
+end
+
+lemma with_bot.add_coe_neg_eq_iff {A} [add_comm_group A]
+  (a : with_bot A) (b : A) (c : with_bot A) :
+  a + (-b : A) = c ↔ a = c + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { rw [with_bot.bot_add, iff.comm, eq_comm, ← with_bot.add_eq_bot.symm, eq_comm],
+    simp },
+  { rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+    { simp only [with_bot.coe_ne_bot, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, iff_false,
+        not_false_iff] },
+    { norm_cast,
+      rw ← sub_eq_add_neg,
+      exact sub_eq_iff_eq_add } }
+end
+
+lemma degree_mul_aux (d : with_bot ℕ) (e : with_bot ℤ) (f : R[X]) (g : R[T;T⁻¹])
+  (fd : f.degree ≤ d) (ge : g.degree ≤ e) :
+  (polynomial.to_laurent f * g).degree ≤ option.map coe d + e :=
+begin
+  revert ge e,
+  apply reduce_to_polynomial_of_mul_T''' g (λ p, (f * p).degree ≤ d + p.degree); clear g,
+  { exact λ p, (degree_mul_le _ _).trans (add_le_add fd rfl.le) },
+  intros g hfg n e h,
+  rw [← mul_assoc, ← map_mul, degree_mul_T, degree_to_laurent],
+  refine (with_bot.add_coe_neg_le_iff _ _ _).mpr _,
+  refine ((option.map_id_coe_le _ _).mpr hfg).trans _,
+  refine option.map_coe_add.trans _,
+  rw add_assoc,
+  refine add_le_add_left _ _,
+  rw [degree_mul_T, degree_to_laurent] at h,
+  exact (with_bot.add_coe_neg_le_iff _ _ _).mp h,
+end
+
+lemma degree_mul {d e : with_bot ℤ} (f g : R[T;T⁻¹]) (df : f.degree ≤ d) (eg : g.degree ≤ e) :
+  (f * g).degree ≤ d + e :=
+begin
+  revert df eg g d e,
+  apply reduce_to_polynomial_of_mul_T f; clear f,
+  { intros f e d g fd eg,
+    rw degree_to_laurent at fd,
+    exact (degree_mul_aux f.degree _ _ _ rfl.le eg).trans (add_le_add fd rfl.le) },
+  { intros f hf d e g fd eg,
+    rcases with_bot.eq_add e 1 with ⟨e', rfl⟩,
+    have : (f * T 1 * (g * T (- 1))).degree ≤ (d + 1) + e',
+    { refine hf (g * T (-1)) _ _ ;
+      rw degree_mul_T,
+      { exact add_le_add_right fd (1 : with_bot ℤ) },
+      { exact (with_bot.add_coe_neg_le_iff _ _ _).mpr eg } },
+    convert this using 1,
+    { rw [mul_assoc, T_mul, mul_assoc, ← T_add, neg_add_self, T_zero, mul_one] },
+    { rw [add_comm e', add_assoc],
+      refl } }
 end
 
 end degrees

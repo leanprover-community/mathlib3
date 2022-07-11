@@ -20,7 +20,7 @@ ideal `I`, we may furthermore obtain a matrix representation whose entries fall 
 This is used to conclue the Calyley-Hamilton theorem for f.g. modules over arbitrary rings.
 -/
 
-variables {ι : Type*} [decidable_eq ι] [fintype ι]
+variables {ι : Type*} [fintype ι]
 variables {M : Type*} [add_comm_group M] (R : Type*) [comm_ring R] [module R M] (I : ideal R)
 variables (v : ι → M) (hv : submodule.span R (set.range v) = ⊤)
 
@@ -28,13 +28,13 @@ open_locale big_operators
 
 /-- Matrices, being endomorphisms of `ι → R`, acts on `(ι → R) →ₗ[R] M`, and takes the projection
 to a `(ι → R) →ₗ[R] M`.  -/
-def pi_to_module.from_matrix : matrix ι ι R →ₗ[R] (ι → R) →ₗ[R] M :=
+def pi_to_module.from_matrix [decidable_eq ι] : matrix ι ι R →ₗ[R] (ι → R) →ₗ[R] M :=
 (linear_map.llcomp R _ _ _ (fintype.total ι M R v)).comp alg_equiv_matrix'.symm.to_linear_map
 
-lemma pi_to_module.from_matrix_apply (A : matrix ι ι R) (w : ι → R) :
+lemma pi_to_module.from_matrix_apply [decidable_eq ι] (A : matrix ι ι R) (w : ι → R) :
   pi_to_module.from_matrix R v A w = fintype.total ι M R v (A.mul_vec w) := rfl
 
-lemma pi_to_module.from_matrix_apply_single_one (A : matrix ι ι R) (i : ι) :
+lemma pi_to_module.from_matrix_apply_single_one [decidable_eq ι] (A : matrix ι ι R) (i : ι) :
   pi_to_module.from_matrix R v A (pi.single i 1) = ∑ (x : ι), A x i • v x :=
 begin
   rw [pi_to_module.from_matrix_apply, fintype.total_apply, matrix.mul_vec_single],
@@ -49,7 +49,7 @@ linear_map.lcomp _ _ (fintype.total ι M R v)
 lemma pi_to_module.from_End_apply (f : module.End R M) (w : ι → R) :
   pi_to_module.from_End R v f w = f (fintype.total ι M R v w) := rfl
 
-lemma pi_to_module.from_End_apply_single_one (f : module.End R M) (i : ι) :
+lemma pi_to_module.from_End_apply_single_one [decidable_eq ι] (f : module.End R M) (i : ι) :
   pi_to_module.from_End R v f (pi.single i 1) = f (v i) :=
 begin
   rw pi_to_module.from_End_apply,
@@ -68,7 +68,9 @@ begin
   exact (linear_map.congr_fun e m : _)
 end
 
-variables {R}
+section
+
+variables {R} [decidable_eq ι]
 
 /-- We say that a matrix represents an endomorphism of `M` if the matrix acting on `ι → R` is
 equal to `f ` via the projection `(ι → R) →ₗ[R] M` given by a fixed (spanning) set.  -/
@@ -146,8 +148,6 @@ lemma matrix_represents.eq {A : matrix ι ι R} {f f' : module.End R M}
   (h : matrix_represents v A f) (h' : matrix_represents v A f') : f = f' :=
 pi_to_module.from_End_injective R v hv (h.symm.trans h')
 
-variables [decidable_eq ι]
-
 variables (v R)
 
 /-- The subalgebra of `matrix ι ι R` that consists of matrices that actually represents
@@ -205,6 +205,8 @@ begin
   obtain ⟨M, e, -⟩ := matrix.is_representation.to_End_exists_mem_ideal R v hv f ⊤ _,
   exact ⟨M, e⟩,
   simp,
+end
+
 end
 
 /--

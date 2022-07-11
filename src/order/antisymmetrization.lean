@@ -53,7 +53,7 @@ lemma indistinguishable_rfl : indistinguishable a a := indistinguishable_refl _
 instance : is_refl α indistinguishable := ⟨indistinguishable_refl⟩
 instance : is_trans α indistinguishable := ⟨λ a b c h, h.trans⟩
 
-lemma indistinguishable.image (hf : monotone f) (h : indistinguishable a b) :
+lemma indistinguishable.image (h : indistinguishable a b) (hf : monotone f) :
   indistinguishable (f a) (f b) :=
 ⟨hf h.1, hf h.2⟩
 

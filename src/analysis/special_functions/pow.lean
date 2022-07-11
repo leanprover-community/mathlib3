@@ -1314,6 +1314,43 @@ end
 
 end nnreal
 
+namespace real
+variables {n : ℕ}
+
+lemma exists_rat_pow_btwn_rat_aux (hn : n ≠ 0) (x y : ℝ) (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ ↑q^n < y :=
+begin
+  have hn' : 0 < (n : ℝ) := by exact_mod_cast hn.bot_lt,
+  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn (rpow_lt_rpow (le_max_left 0 x) (max_lt hy h) $
+    inv_pos.mpr hn'),
+  have := rpow_nonneg_of_nonneg (le_max_left 0 x) n⁻¹,
+  have hq := this.trans_lt hxq,
+  replace hxq := rpow_lt_rpow this hxq hn',
+  replace hqy := rpow_lt_rpow hq.le hqy hn',
+  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn.bot_lt] at hxq hqy,
+  exact ⟨q, by exact_mod_cast hq, (le_max_right _ _).trans_lt hxq, hqy⟩,
+  { exact le_max_left _ _ },
+  { exact hy.le }
+end
+
+lemma exists_rat_pow_btwn_rat (hn : n ≠ 0) {x y : ℚ} (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ q^n < y :=
+by apply_mod_cast exists_rat_pow_btwn_rat_aux hn x y; assumption
+
+/-- There is a rational power between any two positive elements of an archimedean ordered field. -/
+lemma exists_rat_pow_btwn {α : Type*} [linear_ordered_field α] [archimedean α] (hn : n ≠ 0)
+  {x y : α} (h : x < y) (hy : 0 < y) : ∃ q : ℚ, 0 < q ∧ x < q^n ∧ (q^n : α) < y :=
+begin
+  obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
+  obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,
+  have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
+  norm_cast at hq₁₂ this,
+  obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_pow_btwn_rat hn hq₁₂ this,
+  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast,
+end
+
+end real
+
 open filter
 
 lemma filter.tendsto.nnrpow {α : Type*} {f : filter α} {u : α → ℝ≥0} {v : α → ℝ} {x : ℝ≥0} {y : ℝ}

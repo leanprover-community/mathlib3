@@ -119,7 +119,7 @@ noncomputable def nadd : ordinal → ordinal → ordinal
   (blsub.{u u} b $ λ b' h, nadd a b')
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-local infix ` ♯ `:65 := nadd
+localized "infix ` ♯ `:65 := ordinal.nadd" in natural_ops
 
 theorem nadd_def (a b : ordinal) : a ♯ b = max
   (blsub.{u u} a $ λ a' h, a' ♯ b)
@@ -269,6 +269,8 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
   add_comm := nadd_comm,
   ..nat_ordinal.linear_order }
 
+instance : add_monoid_with_one nat_ordinal := add_monoid_with_one.unary
+
 @[simp] theorem add_one_eq_succ : ∀ a : nat_ordinal, a + 1 = succ a := nadd_one
 
 @[simp] theorem to_ordinal_cast_nat (n : ℕ) : to_ordinal n = n :=
@@ -284,9 +286,9 @@ end nat_ordinal
 
 open nat_ordinal
 
-namespace ordinal
+open_locale natural_ops
 
-local infix ` ♯ `:65 := nadd
+namespace ordinal
 
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
 by { rw ←to_ordinal_cast_nat n, refl }

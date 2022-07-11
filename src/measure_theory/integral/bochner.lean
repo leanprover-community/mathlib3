@@ -636,7 +636,7 @@ lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - int
 map_sub integral_clm f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
-map_smul (integral_clm' 𝕜) c f
+show (integral_clm' 𝕜) (c • f) = c • (integral_clm' 𝕜) f, from map_smul (integral_clm' 𝕜) c f
 
 local notation `Integral` := @integral_clm α E _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
@@ -1137,7 +1137,7 @@ begin
   by_cases hfm : ae_strongly_measurable f μ,
   { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
-    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+    simpa [abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
   { rw [integral_non_ae_strongly_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end

@@ -25,9 +25,7 @@ universe u
 
 open pgame
 
-local infix ` ≈ ` := equiv
-local infix ` ⧏ `:50 := lf
-local infix ` ♯ `:65 := ordinal.nadd
+open_locale natural_ops pgame
 
 namespace ordinal
 
@@ -85,7 +83,7 @@ begin
 end
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
+⟨to_pgame_le h.le, to_pgame_lf h⟩ 
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩

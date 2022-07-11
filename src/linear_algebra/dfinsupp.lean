@@ -443,10 +443,13 @@ lemma independent_iff_dfinsupp_sum_add_hom_injective (p : ι → add_subgroup N)
 ⟨independent.dfinsupp_sum_add_hom_injective, independent_of_dfinsupp_sum_add_hom_injective' p⟩
 
 omit dec_ι
+
 /-- If a family of submodules is `independent`, then a choice of nonzero vector from each submodule
-forms a linearly independent family. -/
+forms a linearly independent family.
+
+See also `complete_lattice.independent.linear_independent'`. -/
 lemma independent.linear_independent [no_zero_smul_divisors R N] (p : ι → submodule R N)
-  (hp : complete_lattice.independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
+  (hp : independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
   linear_independent R v :=
 begin
   classical,
@@ -462,6 +465,12 @@ begin
   have : l i • v i = a i := rfl,
   simp [this, ha],
 end
+
+lemma independent_iff_linear_independent_of_ne_zero [no_zero_smul_divisors R N] {v : ι → N}
+  (h_ne_zero : ∀ i, v i ≠ 0) :
+  independent (λ i, R ∙ v i) ↔ linear_independent R v :=
+⟨λ hv, hv.linear_independent _ (λ i, submodule.mem_span_singleton_self $ v i) h_ne_zero,
+ λ hv, hv.independent_span_singleton⟩
 
 end ring
 

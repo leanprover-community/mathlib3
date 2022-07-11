@@ -275,6 +275,28 @@ end
 lemma prim_part_dvd (p : R[X]) : p.prim_part ∣ p :=
 dvd.intro_left (C p.content) p.eq_C_content_mul_prim_part.symm
 
+lemma aeval_prim_part_eq_zero {S : Type*} [ring S] [is_domain S] [algebra R S]
+  [no_zero_smul_divisors R S] {p : R[X]} {s : S} (hpzero : p ≠ 0) (hp : aeval s p = 0) :
+  aeval s p.prim_part = 0 :=
+begin
+  rw [eq_C_content_mul_prim_part p, map_mul, aeval_C] at hp,
+  have hcont : p.content ≠ 0 := λ h, hpzero (content_eq_zero_iff.1 h),
+  replace hcont := function.injective.ne (no_zero_smul_divisors.algebra_map_injective R S) hcont,
+  rw [map_zero] at hcont,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero hcont hp
+end
+
+lemma eval₂_prim_part_eq_zero {S : Type*} [comm_ring S] [is_domain S] {f : R →+* S}
+  (hinj : function.injective f) {p : R[X]} {s : S} (hpzero : p ≠ 0)
+  (hp : eval₂ f s p = 0) : eval₂ f s p.prim_part = 0 :=
+begin
+  rw [eq_C_content_mul_prim_part p, eval₂_mul, eval₂_C] at hp,
+  have hcont : p.content ≠ 0 := λ h, hpzero (content_eq_zero_iff.1 h),
+  replace hcont := function.injective.ne hinj hcont,
+  rw [map_zero] at hcont,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero hcont hp
+end
+
 end prim_part
 
 lemma gcd_content_eq_of_dvd_sub {a : R} {p q : R[X]} (h : C a ∣ p - q) :

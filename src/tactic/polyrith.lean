@@ -214,14 +214,12 @@ to the appropriate `poly` object representing a variable.
 Here, `n` is a natural number
 -/
 meta def var_parser : parser poly := do
-  str "poly.var ",
-  n ← nat,
-  return (poly.var n)
+str "poly.var " >> poly.var <$> parser.nat
 
 /--
-A parser object that parses `string`s of the form `"poly.const z"`
+A parser object that parses `string`s of the form `"poly.const r"`
 to the appropriate `poly` object representing a rational coefficient.
-Here, `n` is a rational number
+Here, `r` is a rational number
 -/
 meta def const_fraction_parser : parser poly :=
 str "poly.const " >> poly.const <$> parser.rat
@@ -231,36 +229,24 @@ A parser object that parses `string`s of the form `"poly.add p q"`
 to the appropriate `poly` object representing the sum of two `poly`s.
 Here, `p` and `q` are themselves string forms of `poly`s.
 -/
-meta def add_parser (cont : parser poly) : parser poly := do
-  str "poly.add ",
-  lhs ← cont,
-  ch ' ',
-  rhs ← cont,
-  return (poly.add lhs rhs)
+meta def add_parser (cont : parser poly) : parser poly :=
+str "poly.add " >> poly.add <$> cont <*> (ch ' ' >> cont)
 
 /--
 A parser object that parses `string`s of the form `"poly.sub p q"`
 to the appropriate `poly` object representing the subtraction of two `poly`s.
 Here, `p` and `q` are themselves string forms of `poly`s.
 -/
-meta def sub_parser (cont : parser poly) : parser poly := do
-  str "poly.sub ",
-  lhs ← cont,
-  ch ' ',
-  rhs ← cont,
-  return (poly.sub lhs rhs)
+meta def sub_parser (cont : parser poly) : parser poly :=
+str "poly.sub " >> poly.sub <$> cont <*> (ch ' ' >> cont)
 
 /--
 A parser object that parses `string`s of the form `"poly.mul p q"`
 to the appropriate `poly` object representing the product of two `poly`s.
 Here, `p` and `q` are themselves string forms of `poly`s.
 -/
-meta def mul_parser (cont : parser poly) : parser poly := do
-  str "poly.mul ",
-  lhs ← cont,
-  ch ' ',
-  rhs ← cont,
-  return (poly.mul lhs rhs)
+meta def mul_parser (cont : parser poly) : parser poly :=
+str "poly.mul " >> poly.mul <$> cont <*> (ch ' ' >> cont)
 
 /--
 A parser object that parses `string`s of the form `"poly.pow p n"`
@@ -268,12 +254,8 @@ to the appropriate `poly` object representing a `poly` raised to the
 power of a natural number. Here, `p` is the string form of a `poly`
 and `n` is a natural number.
 -/
-meta def pow_parser (cont : parser poly) : parser poly := do
-  str "poly.pow ",
-  base ← cont,
-  ch ' ',
-  n ← nat,
-  return (poly.pow base n)
+meta def pow_parser (cont : parser poly) : parser poly :=
+str "poly.pow " >> poly.pow <$> cont <*> (ch ' ' >> nat)
 
 /--
 A parser object that parses `string`s into `poly` objects.

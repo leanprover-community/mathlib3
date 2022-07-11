@@ -852,8 +852,8 @@ empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
-⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
-  by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
+is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $
+  by rw [sup_principal, union_compl_self, principal_univ]
 
 theorem mem_inf_principal' {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ tᶜ ∪ s ∈ f :=

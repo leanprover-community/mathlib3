@@ -12,7 +12,7 @@ import linear_algebra.isomorphisms
 
 # Formally étale morphisms
 
-An `R` algebra `A` is formally étale (resp. unramified, smooth) if for every `R`-algebera,
+An `R` algebra `A` is formally étale (resp. unramified, smooth) if for every `R`-algebra,
 every square-zero ideal `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists
 exactly (resp. at most, at least) one lift `A →ₐ[R] B`.
 
@@ -33,19 +33,19 @@ variables {B : Type u} [comm_ring B] [algebra R B] (I : ideal B)
 
 include R A
 
-/-- An `R` algebra `A` is formally unramified if for every `R`-algebera, every square-zero ideal
+/-- An `R` algebra `A` is formally unramified if for every `R`-algebra, every square-zero ideal
 `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists at most one lift `A →ₐ[R] B`. -/
 def formally_unramified : Prop :=
 ∀ ⦃B : Type u⦄ [comm_ring B], by exactI ∀ [algebra R B] (I : ideal B) (hI : I ^ 2 = ⊥), by exactI
   function.injective ((ideal.quotient.mkₐ R I).comp : (A →ₐ[R] B) → (A →ₐ[R] B ⧸ I))
 
-/-- An `R` algebra `A` is formally smooth if for every `R`-algebera, every square-zero ideal
+/-- An `R` algebra `A` is formally smooth if for every `R`-algebra, every square-zero ideal
 `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists at least one lift `A →ₐ[R] B`. -/
 def formally_smooth : Prop :=
 ∀ ⦃B : Type u⦄ [comm_ring B], by exactI ∀ [algebra R B] (I : ideal B) (hI : I ^ 2 = ⊥), by exactI
   function.surjective ((ideal.quotient.mkₐ R I).comp : (A →ₐ[R] B) → (A →ₐ[R] B ⧸ I))
 
-/-- An `R` algebra `A` is formally étale if for every `R`-algebera, every square-zero ideal
+/-- An `R` algebra `A` is formally étale if for every `R`-algebra, every square-zero ideal
 `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists exactly one lift `A →ₐ[R] B`. -/
 def formally_etale : Prop :=
 ∀ ⦃B : Type u⦄ [comm_ring B], by exactI ∀ [algebra R B] (I : ideal B) (hI : I ^ 2 = ⊥), by exactI

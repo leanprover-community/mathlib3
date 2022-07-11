@@ -247,7 +247,7 @@ end
 end ordered_ring
 
 section linear_ordered_semiring
-variable [linear_ordered_semiring R] {a b : R}
+variables [linear_ordered_semiring R] {a b : R}
 
 lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ 1 ↔ a ≤ 1 :=
 begin

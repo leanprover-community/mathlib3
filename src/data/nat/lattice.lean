@@ -50,6 +50,9 @@ end
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
 by { rw Inf_eq_zero, right, refl }
 
+@[simp] lemma infi_of_empty {ι : Sort*} [is_empty ι] (f : ι → ℕ) : infi f = 0 :=
+by rw [infi_of_empty', Inf_empty]
+
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
 
@@ -110,6 +113,9 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   end,
   .. (infer_instance : order_bot ℕ), .. (linear_order.to_lattice : lattice ℕ),
   .. (infer_instance : linear_order ℕ) }
+
+lemma Sup_mem {s : set ℕ} (h₁ : s.nonempty) (h₂ : bdd_above s) : Sup s ∈ s :=
+let ⟨k, hk⟩ := h₂ in h₁.cSup_mem ((finite_le_nat k).subset hk)
 
 lemma Inf_add {n : ℕ} {p : ℕ → Prop} (hn : n ≤ Inf {m | p m}) :
   Inf {m | p (m + n)} + n = Inf {m | p m} :=

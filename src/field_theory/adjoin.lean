@@ -372,7 +372,7 @@ begin
   { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
 
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly F α,
-  haveI := minpoly.irreducible hα,
+  haveI := fact.mk (minpoly.irreducible hα),
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
     refine inv_eq_of_mul_eq_one_right _,
@@ -408,7 +408,7 @@ adjoin_simple_eq_bot_iff.mpr (one_mem ⊥)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 @[simp] lemma adjoin_nat (n : ℕ) : F⟮(n : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
+adjoin_simple_eq_bot_iff.mpr (coe_nat_mem ⊥ n)
 
 section adjoin_dim
 open finite_dimensional module
@@ -512,7 +512,7 @@ alg_equiv.of_bijective
   (adjoin_root.lift_hom (minpoly F α) (adjoin_simple.gen F α) (aeval_gen_minpoly F α))
   (begin
     set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
-    haveI := minpoly.irreducible h,
+    haveI := fact.mk (minpoly.irreducible h),
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),

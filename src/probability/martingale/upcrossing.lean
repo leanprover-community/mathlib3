@@ -810,16 +810,33 @@ begin
       ℱ.le N _ (hf.is_stopping_time_upper_crossing.measurable_set_lt_of_pred N)) },
 end
 
-lemma submartingale.upcrossing_before_integrable [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (hab : a < b) :
+lemma adapted.upcrossing_before_integrable [is_finite_measure μ]
+  (hf : adapted ℱ f) (hab : a < b) :
   integrable (λ x, (upcrossing_before a b f N x : ℝ)) μ :=
 begin
-  refine ⟨(measurable_from_top.comp
-    (hf.adapted.upcrossing_before_measurable hab)).ae_strongly_measurable, _⟩,
-  rw has_finite_integral,
-  have := hf.mul_integral_upcrossing_before_le_integral_pos_part a b N,
-  rw ← le_div_iff' (sub_pos.2 hab) at this,
-  sorry,
+  by_cases hN : N = 0,
+  { rw [hN, upcrossing_before_zero'],
+    simp only [pi.zero_apply, nat.cast_zero, integrable_zero] },
+  { have h₁ : upcrossing_before a b f N =
+      λ x, ∑ i in finset.Ico 1 (N + 1), {n | upper_crossing a b f N n x < N}.indicator 1 i,
+    { ext x,
+      exact upcrossing_before_eq_sum (zero_lt_iff.2 hN) hab },
+    rw h₁,
+    simp only [nat.cast_sum],
+    refine integrable_finset_sum _ (λ i hi, _),
+    have h₂ : ∀ x, (({n | upper_crossing a b f N n x < N}.indicator 1 i : ℕ) : ℝ) =
+      {x | upper_crossing a b f N i x < N}.indicator 1 x,
+    { intro x,
+      by_cases i ∈ {n : ℕ | upper_crossing a b f N n x < N},
+      { rw [set.indicator_of_mem h, set.indicator_of_mem, pi.one_apply, pi.one_apply, nat.cast_one],
+        exact h },
+      { rw [set.indicator_of_not_mem h, set.indicator_of_not_mem, nat.cast_zero],
+        exact h } },
+    simp_rw [h₂],
+    rw [integrable_indicator_iff (ℱ.le N _
+      (hf.is_stopping_time_upper_crossing.measurable_set_lt_of_pred N)),
+      pi.one_def, integrable_on_const],
+    exact or.inr (measure_lt_top _ _) },
 end
 
 noncomputable def upcrossing [preorder ι] [order_bot ι] [has_Inf ι]
@@ -851,7 +868,7 @@ begin
       { simp_rw [nnreal.coe_nat_cast],
         exact (ennreal.of_real_le_of_real
           (hf.mul_integral_upcrossing_before_le_integral_pos_part a b N)).trans (le_supr _ N) },
-      { simp only [nnreal.coe_nat_cast, hf.upcrossing_before_integrable hab] } },
+      { simp only [nnreal.coe_nat_cast, hf.adapted.upcrossing_before_integrable hab] } },
     { refine λ n, measurable_from_top.comp_ae_measurable
         (hf.adapted.upcrossing_before_measurable  hab).ae_measurable },
     { refine eventually_of_forall (λ x N M hNM, _),

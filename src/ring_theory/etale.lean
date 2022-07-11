@@ -87,8 +87,9 @@ begin
     rwa [ideal.quotient.eq, ← map_sub, ideal.mem_quotient_iff_mem hIJ, ← ideal.quotient.eq] },
 end
 
-lemma formally_unramified.ext (h : formally_unramified R A) (hI : is_nilpotent I) {g₁ g₂ : A →ₐ[R] B}
-  (H : ∀ x, ideal.quotient.mk I (g₁ x) = ideal.quotient.mk I (g₂ x)) : g₁ = g₂ :=
+lemma formally_unramified.ext (h : formally_unramified R A) (hI : is_nilpotent I)
+  {g₁ g₂ : A →ₐ[R] B} (H : ∀ x, ideal.quotient.mk I (g₁ x) = ideal.quotient.mk I (g₂ x)) :
+  g₁ = g₂ :=
 h.lift_unique I hI g₁ g₂ (alg_hom.ext H)
 
 lemma formally_smooth.exists_lift (h : formally_smooth R A) (I : ideal B)

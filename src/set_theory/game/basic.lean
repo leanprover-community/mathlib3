@@ -400,37 +400,33 @@ quotient.exact $ quot_right_distrib _ _ _
 @[simp] theorem quot_right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
 by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_distrib, quot_neg_mul] }
 
-@[simp] theorem quot_mul_one : Π (x : pgame), ⟦x * 1⟧ = ⟦x⟧
-| (mk xl xr xL xR) :=
-begin
-  let x := mk xl xr xL xR,
-  refine quot_eq_of_mk_quot_eq _ _ _ _,
-  { fsplit,
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { rintro i,  exact sum.inl(i, punit.star) },
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
-    { rintro i, refl } },
-  { fsplit,
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { rintro i,  exact sum.inr(i, punit.star) },
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
-    { rintro i, refl } },
-  { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩),
-    change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
-    simp [quot_mul_one] },
-  { rintro i,
-    change ⟦xR i * 1 + x * 0 - xR i * 0⟧ = ⟦xR i⟧,
-    simp [quot_mul_one] }
+/-- `x * 1` has the same moves as `x`. -/
+def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
+| ⟨xl, xr, xL, xR⟩ := begin
+  unfold has_one.one,
+  refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),
+    (equiv.empty_sum _ _).trans (equiv.prod_punit _), _, _⟩;
+  try { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) }; try { intro i };
+  dsimp;
+  apply (relabelling.sub_congr (relabelling.refl _) (mul_zero_relabelling _)).trans;
+  rw sub_zero;
+  exact (add_zero_relabelling _).trans (((mul_one_relabelling _).add_congr
+    (mul_zero_relabelling _)).trans $ add_zero_relabelling _)
 end
 
-/-- `x * 1` is equivalent to `x`. -/
-theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one _
+@[simp] theorem quot_mul_one (x : pgame) : ⟦x * 1⟧ = ⟦x⟧ := quot.sound $ mul_one_relabelling x
 
-@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ :=
-by rw [quot_mul_comm, quot_mul_one x]
+/-- `x * 1` is equivalent to `x`. -/
+theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one x
+
+/-- `1 * x` has the same moves as `x`. -/
+def one_mul_relabelling (x : pgame) : 1 * x ≡r x :=
+(mul_comm_relabelling 1 x).trans $ mul_one_relabelling x
+
+@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ := quot.sound $ one_mul_relabelling x
 
 /-- `1 * x` is equivalent to `x`. -/
-theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul _
+theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul x
 
 theorem quot_mul_assoc : Π (x y z : pgame), ⟦x * y * z⟧ = ⟦x * (y * z)⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=

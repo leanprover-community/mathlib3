@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Dhruv Bhatia. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Dhruv Bhatia
+Authors: Dhruv Bhatia, Eric Wieser
 -/
 import tactic.linear_combination
 import data.buffer.parser.numeral
@@ -257,19 +257,16 @@ and `n` is a natural number.
 meta def pow_parser (cont : parser poly) : parser poly :=
 str "poly.pow " >> poly.pow <$> cont <*> (ch ' ' >> nat)
 
-/--
-A parser object that parses `string`s into `poly` objects.
--/
+/-- A parser for `poly` that uses an s-essresion style formats such as
+`(poly.add (poly.var 0) (poly.const 1)`. -/
 meta def poly_parser : parser poly :=
 ch '('
   *> (var_parser <|> const_fraction_parser <|> add_parser poly_parser
     <|> sub_parser poly_parser <|> mul_parser poly_parser <|> pow_parser poly_parser)
   <* ch ')'
 
-/--
-A tactic that uses the above defined parsers to convert
-the sage output `string` to a `list poly`
--/
+/-- Parse the json output from `scripts/polyrith.py` into either an error message, a list of `poly`
+objects, or `none` if only trace output was requested. -/
 meta def convert_sage_output (j : json) : tactic (option (list poly)) :=
 do
   json.object obj ← pure j | fail!"Must be an object",
@@ -305,17 +302,14 @@ from the context (and from the list of hypotheses and proof terms specified by t
 and converts them into `poly` objects.
 -/
 
-/--
-A tactic that takes an `expr`, and, if it is an equality of the
-form `lhs = rhs`, returns the expr given by `lhs - rhs`-/
+/-- Convert an expression of the form `lhs = rhs` into the form `lhs - rhs` -/
 meta def equality_to_left_side : expr → tactic expr
 | `(%%lhs = %%rhs) := to_expr ``(%%lhs - %%rhs)
 | e := fail "expression is not an equality"
 
-/--
-A tactic that converts the current target (an equality over
-some field) into a `poly`. The tactic returns a list of the atomic expressions in the target,
-the `poly` itself, and an `expr` representing the field.-/
+/-- `(vars, poly, typ) ← parse_target_to_poly` interprets the current target (an equality over
+some field) into a `poly`. The result is a list of the atomic expressions in the target,
+the `poly` itself, and an `expr` representing the type of the field. -/
 meta def parse_target_to_poly : tactic (list expr × poly × expr) :=
 do
   e@`(@eq %%R _ _) ← target,
@@ -323,36 +317,14 @@ do
   (m, p) ← poly_form_of_expr transparency.reducible [] left_side,
   return (m, p, R)
 
-/--
-A function that takes in a list of atoms, a `list poly`, and
-an `expr` to be converted to a `poly`. The function carries
-out this conversion, updates the list of atoms with atoms from the new `poly`,
-and adds the new `poly` to the top of the list of `poly`s.
--/
-meta def fold_function : (list expr × list poly) → expr → tactic (list expr × list poly)
-| (m, poly_list) new_exp :=
-do
-  (m', new_poly) ← poly_form_of_expr transparency.reducible m new_exp,
-  return (m', poly_list ++ [new_poly])
+/-- Filter `l` to the elements which are equalities of type `expt`. -/
+meta def get_equalities_of_type (expt : expr) (l : list expr) : tactic (list expr) :=
+l.mfilter $ λ h_eq, succeeds $ do
+  `(@eq %%R _ _) ← infer_type h_eq,
+  unify expt R
 
 /--
-A tactic that takes in two `expr`s, and returns a `bool`.
-The first `expr` represents a type. If the second `expr` is an
-equality of this type, it returns true. If not, it returns false.
--/
-meta def is_eq_of_type : expr → expr → tactic bool
-| expt h_eq := (do `(@eq %%R _ _) ← infer_type h_eq, unify expt R, return tt) <|> return ff
-
-/--
-A tactic that takes in an `expr` representing a type,
-and a `list expr`. the tactic returns the sublist of those
-`expr`s that are equalities of that type.
--/
-meta def get_equalities_of_type : expr → list expr → tactic (list expr)
-| expt l := l.mfilter (is_eq_of_type expt)
-
-/--
-The prupose of this tactic is to collect all the hypotheses
+The purpose of this tactic is to collect all the hypotheses
 and proof terms (specified by the user) that are equalities
 of the same type as the target. It takes in an `expr` representing
 the type, a list of expressions representing the atoms
@@ -376,12 +348,17 @@ meta def parse_ctx_to_polys : expr → list expr → bool → list pexpr →
   tactic (list expr × list expr × list poly)
 | expt m only_on hyps:=
 do
-  hyps ← hyps.mmap $ λ e, i_to_expr e,
+  hyps ← hyps.mmap i_to_expr,
   hyps ← if only_on then return hyps else (++ hyps) <$> local_context,
   eq_names ← get_equalities_of_type expt hyps,
   eqs ← eq_names.mmap infer_type,
   eqs_to_left ← eqs.mmap equality_to_left_side,
-  (m, poly_list) ← mfoldl (fold_function) (m, []) eqs_to_left,
+  -- convert the expressions to polynomials, tracking the variables in `m`
+  (m, poly_list) ← eqs_to_left.mfoldl (λ (s : _ × list poly) new_exp, do
+    { let (m, poly_list) := s,
+      (m', new_poly) ← poly_form_of_expr transparency.reducible m new_exp,
+      return (m', poly_list ++ [new_poly]) })
+    (m, []),
   return (eq_names, m, poly_list)
 
 
@@ -477,10 +454,12 @@ meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_
   expr_string ← components_to_lc_format components,
   return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
 
+/-- Tactic for the special case when no hypotheses are available. -/
 meta def no_hypotheses_case : tactic (option format) :=
 (do `[ring], return $ some "ring") <|>
   fail "polyrith did not find any relevant hypotheses and the goal is not provable by ring"
 
+/-- Tactic for the special case when there are no variables. -/
 meta def no_variables_case : tactic (option format) :=
 (do `[ring], return $ some "ring") <|>
   fail "polyrith did not find any variables and the goal is not provable by ring"
@@ -536,17 +515,17 @@ is suggested to the user.
 * `polyrith only [h1, h2, h3, t1, t2, t3]` will use only local hypotheses
   `h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
 
-Nots:
+Notes:
 * This tactic only works with a working internet connection, since it calls Sage
   using the SageCell web API at <https://sagecell.sagemath.org/>.
   Many thanks to the Sage team and organization for allowing this use.
 * This tactic assumes that the user has `python3` installed and available on the path.
   (Test by opening a terminal and executing `python3 --version`.)
-  It also assumes that the `requests` library is installed: `python3 -m pip install requests`
+  It also assumes that the `requests` library is installed: `python3 -m pip install requests`.
 
 Examples:
 
-```
+```lean
 example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 by polyrith

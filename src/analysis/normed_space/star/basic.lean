@@ -55,7 +55,9 @@ def star_normed_group_hom : normed_group_hom E E :=
 
 /-- The `star` map in a normed star group is an isometry -/
 lemma star_isometry : isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm norm_star
+show isometry star_add_equiv,
+by exact add_monoid_hom_class.isometry_of_norm star_add_equiv
+    (show ∀ x, ∥x⋆∥ = ∥x∥, from norm_star)
 
 @[priority 100]
 instance normed_star_group.to_has_continuous_star : has_continuous_star E :=
@@ -176,7 +178,8 @@ nnnorm_pow_two_pow_of_self_adjoint x.property _
 
 section starₗᵢ
 
-variables [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [normed_star_group E]
+variables [comm_semiring 𝕜] [star_ring 𝕜]
+variables [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
 variables [module 𝕜 E] [star_module 𝕜 E]
 
 variables (𝕜)

@@ -73,6 +73,9 @@ instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_f
 
 @[simp] lemma to_fun_eq_coe {f : C(α, β)} : f.to_fun = (f : α → β) := rfl
 
+-- this must come after the coe_to_fun definition
+initialize_simps_projections continuous_map (to_fun → apply)
+
 @[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 
 /-- Copy of a `continuous_map` with a new `to_fun` equal to the old one. Useful to fix definitional

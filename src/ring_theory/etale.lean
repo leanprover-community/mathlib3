@@ -17,7 +17,7 @@ every square-zero ideal `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exist
 exactly (resp. at most, at least) one lift `A →ₐ[R] B`.
 
 We show that the property extends onto nilpotent ideals, and that these properties are stable
-under `R`-algebra homomorphisms, compositions, and base-changes.
+under `R`-algebra homomorphisms and compositions.
 
 -/
 
@@ -217,59 +217,5 @@ formally_etale.iff_unramified_and_smooth.mpr
   ⟨h.to_unramified.comp h'.to_unramified, h.to_smooth.comp h'.to_smooth⟩
 
 end comp
-
-section base_change
-
-open_locale tensor_product
-
-variables {R : Type u} [comm_semiring R]
-variables {A : Type u} [semiring A] [algebra R A]
-variables (B : Type u) [comm_semiring B] [algebra R B]
-
-
-lemma formally_unramified.base_change (h : formally_unramified R A) :
-  formally_unramified B (B ⊗[R] A) :=
-begin
-  introsI C _ _ I hI f₁ f₂ e,
-  letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
-  haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
-  apply alg_hom.restrict_scalars_injective R,
-  apply tensor_product.ext,
-  any_goals { apply_instance },
-  intros b a,
-  have : b ⊗ₜ[R] a = b • (1 ⊗ₜ a), by { rw [tensor_product.smul_tmul', smul_eq_mul, mul_one] },
-  rw [this, alg_hom.restrict_scalars_apply, alg_hom.restrict_scalars_apply, map_smul, map_smul],
-  congr' 1,
-  change ((f₁.restrict_scalars R).comp tensor_product.include_right) a =
-    ((f₂.restrict_scalars R).comp tensor_product.include_right) a,
-  congr' 1,
-  apply h.ext I ⟨2, hI⟩,
-  intro x,
-  exact alg_hom.congr_fun e (1 ⊗ₜ x)
-end
-
-lemma formally_smooth.base_change (h : formally_smooth R A) :
-  formally_smooth B (B ⊗[R] A) :=
-begin
-  introsI C _ _ I hI f,
-  letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
-  haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
-  refine ⟨tensor_product.product_left_algebra_map (algebra.of_id B C) _, _⟩,
-  { exact h.lift I ⟨2, hI⟩ ((f.restrict_scalars R).comp tensor_product.include_right) },
-  { apply alg_hom.restrict_scalars_injective R,
-    apply tensor_product.ext,
-    any_goals { apply_instance },
-    intros b a,
-    suffices : algebra_map B _ b * f (1 ⊗ₜ[R] a) = f (b ⊗ₜ[R] a),
-    { simpa [algebra.of_id_apply] },
-    rw [← algebra.smul_def, ← map_smul, tensor_product.smul_tmul', smul_eq_mul, mul_one] },
-end
-
-lemma formally_etale.base_change (h : formally_etale R A) :
-  formally_etale B (B ⊗[R] A) :=
-formally_etale.iff_unramified_and_smooth.mpr
-  ⟨h.to_unramified.base_change B, h.to_smooth.base_change B⟩
-
-end base_change
 
 end algebra

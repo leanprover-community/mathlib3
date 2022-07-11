@@ -219,49 +219,13 @@ lemma _root_.filter.liminf_eq_Sup_Inf
   F.liminf a = Sup ((λ I, Inf (a '' I)) '' F.sets) :=
 @filter.limsup_eq_Inf_Sup ι (order_dual R) _ _ a
 
-/- lemma limsup_eq_Inf_Sup
-  {ι R : Type*} [semilattice_sup ι] [nonempty ι] [complete_lattice R] (a : ι → R) :
-  at_top.limsup a = Inf ((λ i, Sup (a '' (Ici i))) '' univ) :=
-begin
-  refine le_antisymm _ _,
-  { rw limsup_eq,
-    apply Inf_le_Inf,
-    intros x hx,
-    simp only [image_univ, mem_range] at hx,
-    rcases hx with ⟨j, hj⟩,
-    filter_upwards [Ici_mem_at_top j],
-    intros i hij,
-    rw ← hj,
-    exact le_Sup (mem_image_of_mem _ hij), },
-  { rw limsup_eq,
-    apply le_Inf_iff.mpr,
-    intros b hb,
-    simp only [mem_set_of_eq, eventually_at_top] at hb,
-    rcases hb with ⟨j, hj⟩,
-    apply Inf_le_of_le (mem_image_of_mem _ (mem_univ j)),
-    apply Sup_le,
-    intros x hx,
-    simp at hx,
-    rcases hx with ⟨k, j_le_k, ak_eq_x⟩,
-    rw ← ak_eq_x,
-    exact hj k j_le_k, },
-end
-
-lemma liminf_eq_Sup_Inf
-  {ι R : Type*} [semilattice_sup ι] [nonempty ι] [complete_lattice R] (a : ι → R) :
-  at_top.liminf a = Sup ((λ i, Inf (a '' (Ici i))) '' univ) :=
-@limsup_eq_Inf_Sup ι (order_dual R) _ _ _ a
- -/
-
 lemma antitone.liminf_comp_eq_apply_limsup_of_continuous
   {ι R : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
   (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
   F.liminf (f ∘ a) = f (F.limsup a) :=
 begin
-  rw filter.limsup_eq_Inf_Sup,
-  rw filter.liminf_eq_Sup_Inf,
-  rw ←f_decr.Sup_image_eq_apply_Inf f_cont,
+  rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf, ←f_decr.Sup_image_eq_apply_Inf f_cont],
   { apply congr_arg,
     simp only [image_image, function.comp_app],
     refine subset_antisymm _ _;
@@ -272,24 +236,6 @@ begin
       rw [← hI, ← f_decr.Inf_image_eq_apply_Sup f_cont _ _, image_image],
       exact nonempty_image_iff.mpr (ne_bot.nonempty_of_mem ‹ne_bot F› I_mem_F), }, },
   { refine nonempty_image_iff.mpr nonempty_of_nonempty_subtype, },
-end
-
-lemma antitone.liminf_comp_eq_apply_limsup_of_continuous'
-  {ι R : Type*} [semilattice_sup ι] [nonempty ι]
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
-  at_top.liminf (f ∘ a) = f (at_top.limsup a) :=
-begin
-  --rw @limsup_eq_infi_supr R ι _ at_top a,
-  --rw @liminf_eq_supr_infi R ι _ at_top (f ∘ a),
-  rw [limsup_eq_Inf_Sup, liminf_eq_Sup_Inf,
-      ←f_decr.Sup_image_eq_apply_Inf f_cont _ (nonempty_image_iff.mpr (@univ_nonempty ι _))],
-  apply congr_arg,
-  simp_rw [image_image, function.comp_app, image_univ],
-  apply congr_arg,
-  funext n,
-  rw ← f_decr.Inf_image_eq_apply_Sup f_cont _ (nonempty_image_iff.mpr nonempty_Ici),
-  simp_rw image_image,
 end
 
 lemma antitone.limsup_comp_eq_apply_liminf_of_continuous

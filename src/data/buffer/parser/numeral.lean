@@ -118,30 +118,12 @@ do
 
 /-! ## Specific numeral types -/
 
-
-/--
-Matches the negation of a natural number.
-Large numbers may cause performance issues, so don't run this parser on untrusted input.
--/
-meta def neg_nat : parser int := do
-  ch '-',
-  n ← nat,
-  return (- n)
-
-/--
-Matches a natural number and returns it as an `int`.
-Large numbers may cause performance issues, so don't run this parser on untrusted input.
--/
-meta def nat_as_int : parser int := do
-  n ← nat,
-  return (n)
-
 /--
 Matches an integer, like `43` or `-2`.
 Large numbers may cause performance issues, so don't run this parser on untrusted input.
 -/
 meta def int : parser int :=
-neg_nat <|> nat_as_int
+(coe <$> nat) <|> (ch '-' >> has_neg.neg <$> coe <$> nat)
 
 /--
 Matches an rational number, like `43/1` or `-2/3`.

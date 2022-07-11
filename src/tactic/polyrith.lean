@@ -52,25 +52,28 @@ open tactic native
 
 namespace polyrith
 
-/-! # Poly Datatype-/
+/-! # Poly Datatype -/
 
 /--
 A datatype representing the semantics of multivariable polynomials.
 Each `poly` can be converted into a string.
 -/
+@[derive decidable_eq]
 inductive poly
-| const: ℚ → poly
-| var: ℕ → poly
-| add: poly → poly → poly
-| sub: poly → poly → poly
-| mul: poly → poly → poly
+| const : ℚ → poly
+| var : ℕ → poly
+| add : poly → poly → poly
+| sub : poly → poly → poly
+| mul : poly → poly → poly
 | pow : poly → ℕ → poly
 
 /--
 This converts a poly object into a string representing it. The string
 maintains the semantic structure of the poly object.
--/
 
+The output of this function must be valid Python syntax, and it assumes the variables `varN` from
+`scripts/polyrith.py.`
+-/
 meta def poly.mk_string : poly → string
 | (poly.const z) := to_string z
 | (poly.var n) := "var" ++ to_string n
@@ -344,9 +347,8 @@ The tactic returns the names of these hypotheses (as `expr`s),
 a list of atoms updated with information from all these hypotheses,
 and a list of these hypotheses converted into `poly` objects.
 -/
-meta def parse_ctx_to_polys : expr → list expr → bool → list pexpr →
-  tactic (list expr × list expr × list poly)
-| expt m only_on hyps:=
+meta def parse_ctx_to_polys (expt : expr) (m : list expr) (only_on : bool) (hyps : list pexpr) :
+  tactic (list expr × list expr × list poly) :=
 do
   hyps ← hyps.mmap i_to_expr,
   hyps ← if only_on then return hyps else (++ hyps) <$> local_context,
@@ -360,7 +362,6 @@ do
       return (m', poly_list ++ [new_poly]) })
     (m, []),
   return (eq_names, m, poly_list)
-
 
 /-!
 # Connecting with Python

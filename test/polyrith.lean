@@ -106,7 +106,7 @@ end tactic
 example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 begin
-  test_sage_output  "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}",
+  test_sage_output "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}",
   linear_combination h1 - 2 * h2
 end
 
@@ -114,7 +114,7 @@ example (w x y z : ℝ) (h1 : x + 2.1*y + 2*z = 2) (h2 : x + 8*z + 5*w = -6.5)
     (h3 : x + y + 5*z + 5*w = 3) :
   x + 2.2*y + 2*z - 5*w = -8.5 :=
 begin
-  test_sage_output  "{\"data\":[\"(poly.const 2/1)\",\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}",
+  test_sage_output "{\"data\":[\"(poly.const 2/1)\",\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}",
   linear_combination 2 * h1 + h2 - 2 * h3
 end
 
@@ -122,60 +122,60 @@ end
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "(((3 * var0) + (2 * var1)) - 10)"]  "linear_combination h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "(((3 * var0) + (2 * var1)) - 10)"]  "linear_combination h1"
 
 example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "rat", "2", "[(((var0 * var1) + (2 * var0)) - 1), (var0 - var1)]", "((var0 * var1) - (((-1 * 2) * var1) + 1))"]  "linear_combination h1 - 2 * h2"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "rat", "2", "[(((var0 * var1) + (2 * var0)) - 1), (var0 - var1)]", "((var0 * var1) - (((-1 * 2) * var1) + 1))"]  "linear_combination h1 - 2 * h2"
 
 example (x y : ℝ) (h1 : x + 2 = -3) (h2 : y = 10) :
   -y + 2*x + 4 = -16 :=
-by test_polyrith  "{\"data\":[\"(poly.const 2/1)\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "real", "2", "[((var1 + 2) - (-1 * 3)), (var0 - 10)]", "((((-1 * var0) + (2 * var1)) + 4) - (-1 * 16))"]  "linear_combination 2 * h1 - h2"
+by test_polyrith "{\"data\":[\"(poly.const 2/1)\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "real", "2", "[((var1 + 2) - (-1 * 3)), (var0 - 10)]", "((((-1 * var0) + (2 * var1)) + 4) - (-1 * 16))"]  "linear_combination 2 * h1 - h2"
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :
   -3*x - 3*y - 4*z = 2 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "real", "3", "[(((var0 + (2 * var1)) - var2) - 4), ((((2 * var0) + var1) + var2) - (-1 * 2)), (((var0 + (2 * var1)) + var2) - 2)]", "(((((-1 * 3) * var0) - (3 * var1)) - (4 * var2)) - 2)"]  "linear_combination ha - hb - 2 * hc"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "real", "3", "[(((var0 + (2 * var1)) - var2) - 4), ((((2 * var0) + var1) + var2) - (-1 * 2)), (((var0 + (2 * var1)) + var2) - 2)]", "(((((-1 * 3) * var0) - (3 * var1)) - (4 * var2)) - 2)"]  "linear_combination ha - hb - 2 * hc"
 
 example (w x y z : ℝ) (h1 : x + 2.1*y + 2*z = 2) (h2 : x + 8*z + 5*w = -6.5)
     (h3 : x + y + 5*z + 5*w = 3) :
   x + 2.2*y + 2*z - 5*w = -8.5 :=
-by test_polyrith  "{\"data\":[\"(poly.const 2/1)\",\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "real", "4", "[(((var0 + (21/10 * var1)) + (2 * var2)) - 2), (((var0 + (8 * var2)) + (5 * var3)) - (-1 * 13/2)), ((((var0 + var1) + (5 * var2)) + (5 * var3)) - 3)]", "((((var0 + (11/5 * var1)) + (2 * var2)) - (5 * var3)) - (-1 * 17/2))"]  "linear_combination 2 * h1 + h2 - 2 * h3"
+by test_polyrith "{\"data\":[\"(poly.const 2/1)\",\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "real", "4", "[(((var0 + (21/10 * var1)) + (2 * var2)) - 2), (((var0 + (8 * var2)) + (5 * var3)) - (-1 * 13/2)), ((((var0 + var1) + (5 * var2)) + (5 * var3)) - 3)]", "((((var0 + (11/5 * var1)) + (2 * var2)) - (5 * var3)) - (-1 * 17/2))"]  "linear_combination 2 * h1 + h2 - 2 * h3"
 
 example (a b c d : ℚ) (h1 : a = 4) (h2 : 3 = b) (h3 : c*3 = d) (h4 : -d = a) :
   2*a - 3 + 9*c + 3*d = 8 - b + 3*d - 3*a :=
-by test_polyrith  "{\"data\":[\"(poly.const 2/1)\",\"(poly.const -1/1)\",\"(poly.const 3/1)\",\"(poly.const -3/1)\"],\"success\":true}" ["ff", "rat", "4", "[(var0 - 4), (3 - var3), ((var1 * 3) - var2), ((-1 * var2) - var0)]", "(((((2 * var0) - 3) + (9 * var1)) + (3 * var2)) - (((8 - var3) + (3 * var2)) - (3 * var0)))"]  "linear_combination 2 * h1 - h2 + 3 * h3 - 3 * h4"
+by test_polyrith "{\"data\":[\"(poly.const 2/1)\",\"(poly.const -1/1)\",\"(poly.const 3/1)\",\"(poly.const -3/1)\"],\"success\":true}" ["ff", "rat", "4", "[(var0 - 4), (3 - var3), ((var1 * 3) - var2), ((-1 * var2) - var0)]", "(((((2 * var0) - 3) + (9 * var1)) + (3 * var2)) - (((8 - var3) + (3 * var2)) - (3 * var0)))"]  "linear_combination 2 * h1 - h2 + 3 * h3 - 3 * h4"
 
 /-! ### Case with ambiguous identifiers-/
 
 example («def evil» y : ℤ) (h1 : 3*«def evil» + 2*y = 10):
   3*«def evil» + 2*y = 10 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "(((3 * var0) + (2 * var1)) - 10)"]  "linear_combination h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "(((3 * var0) + (2 * var1)) - 10)"]  "linear_combination h1"
 
 example («¥» y : ℤ) (h1 : 3*«¥» + 2*y = 10):
   «¥» * (3*«¥» + 2*y) = 10 * «¥» :=
-by test_polyrith  "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 0))\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "((var0 * ((3 * var0) + (2 * var1))) - (10 * var0))"]  "linear_combination 1 * «¥» * h1"
+by test_polyrith "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 0))\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "((var0 * ((3 * var0) + (2 * var1))) - (10 * var0))"]  "linear_combination 1 * «¥» * h1"
 
 /-! ### Cases with arbitrary coefficients -/
 
 example (a b : ℤ) (h : a = b) :
   a * a = a * b :=
-by test_polyrith  "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 0))\"],\"success\":true}" ["ff", "int", "2", "[(var0 - var1)]", "((var0 * var0) - (var0 * var1))"]  "linear_combination 1 * a * h"
+by test_polyrith "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 0))\"],\"success\":true}" ["ff", "int", "2", "[(var0 - var1)]", "((var0 * var0) - (var0 * var1))"]  "linear_combination 1 * a * h"
 
 example (a b c : ℤ) (h : a = b) :
   a * c = b * c :=
-by test_polyrith  "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 1))\"],\"success\":true}" ["ff", "int", "3", "[(var0 - var2)]", "((var0 * var1) - (var2 * var1))"]  "linear_combination 1 * c * h"
+by test_polyrith "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 1))\"],\"success\":true}" ["ff", "int", "3", "[(var0 - var2)]", "((var0 * var1) - (var2 * var1))"]  "linear_combination 1 * c * h"
 
 example (a b c : ℤ) (h1 : a = b) (h2 : b = 1) :
   c * a + b = c * b + 1 :=
-by test_polyrith  "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 0))\",\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "3", "[(var1 - var2), (var2 - 1)]", "(((var0 * var1) + var2) - ((var0 * var2) + 1))"]  "linear_combination 1 * c * h1 + h2"
+by test_polyrith "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 0))\",\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "3", "[(var1 - var2), (var2 - 1)]", "(((var0 * var1) + var2) - ((var0 * var2) + 1))"]  "linear_combination 1 * c * h1 + h2"
 
 example (x y : ℚ) (h1 : x + y = 3) (h2 : 3*x = 7) :
   x*x*y + y*x*y + 6*x = 3*x*y + 14 :=
-by test_polyrith  "{\"data\":[\"(poly.mul (poly.mul (poly.const 1/1) (poly.var 0)) (poly.var 1))\",\"(poly.const 2/1)\"],\"success\":true}" ["ff", "rat", "2", "[((var0 + var1) - 3), ((3 * var0) - 7)]", "(((((var0 * var0) * var1) + ((var1 * var0) * var1)) + (6 * var0)) - (((3 * var0) * var1) + 14))"]  "linear_combination 1 * x * y * h1 + 2 * h2"
+by test_polyrith "{\"data\":[\"(poly.mul (poly.mul (poly.const 1/1) (poly.var 0)) (poly.var 1))\",\"(poly.const 2/1)\"],\"success\":true}" ["ff", "rat", "2", "[((var0 + var1) - 3), ((3 * var0) - 7)]", "(((((var0 * var0) * var1) + ((var1 * var0) * var1)) + (6 * var0)) - (((3 * var0) * var1) + 14))"]  "linear_combination 1 * x * y * h1 + 2 * h2"
 
 example (x y z w : ℚ) (hzw : z = w) : x*z + 2*y*z = x*w + 2*y*w :=
-by test_polyrith  "{\"data\":[\"(poly.add (poly.mul (poly.const 1/1) (poly.var 0)) (poly.mul (poly.const 2/1) (poly.var 2)))\"],\"success\":true}" ["ff", "rat", "4", "[(var1 - var3)]", "(((var0 * var1) + ((2 * var2) * var1)) - ((var0 * var3) + ((2 * var2) * var3)))"]  "linear_combination (1 * x + 2 * y) * hzw"
+by test_polyrith "{\"data\":[\"(poly.add (poly.mul (poly.const 1/1) (poly.var 0)) (poly.mul (poly.const 2/1) (poly.var 2)))\"],\"success\":true}" ["ff", "rat", "4", "[(var1 - var3)]", "(((var0 * var1) + ((2 * var2) * var1)) - ((var0 * var3) + ((2 * var2) * var3)))"]  "linear_combination (1 * x + 2 * y) * hzw"
 
 /-! ### Cases with non-hypothesis inputs/input restrictions -/
 
@@ -202,7 +202,7 @@ by test_polyrith [bad a, bad (b^2)] "{\"data\":[\"(poly.const 1/1)\",\"(poly.mul
 
 example {α} [h : comm_ring α] {a b c d e f : α} (h1 : a*d = b*c) (h2 : c*f = e*d) :
   c * (a*f - b*e) = 0 :=
-by test_polyrith  "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 4))\",\"(poly.mul (poly.const 1/1) (poly.var 1))\"],\"success\":true}" ["ff", "α", "6", "[((var1 * var5) - (var3 * var0)), ((var0 * var2) - (var4 * var5))]", "((var0 * ((var1 * var2) - (var3 * var4))) - 0)"]  "linear_combination 1 * e * h1 + 1 * a * h2"
+by test_polyrith "{\"data\":[\"(poly.mul (poly.const 1/1) (poly.var 4))\",\"(poly.mul (poly.const 1/1) (poly.var 1))\"],\"success\":true}" ["ff", "α", "6", "[((var1 * var5) - (var3 * var0)), ((var0 * var2) - (var4 * var5))]", "((var0 * ((var1 * var2) - (var3 * var4))) - 0)"]  "linear_combination 1 * e * h1 + 1 * a * h2"
 
 example {K : Type*} [field K] [invertible 2] [invertible 3]
   {ω p q r s t x: K} (hp_nonzero : p ≠ 0) (hr : r ^ 2 = q ^ 2 + p ^ 3) (hs3 : s ^ 3 = q + r)
@@ -212,11 +212,11 @@ example {K : Type*} [field K] [invertible 2] [invertible 3]
 begin
   have hs_nonzero : s ≠ 0,
   { contrapose! hp_nonzero with hs_nonzero,
-    test_polyrith  "{\"data\":[\"(poly.const 0/1)\",\"(poly.const 0/1)\",\"(poly.const -1/1)\",\"(poly.const 0/1)\",\"(poly.mul (poly.const 1/1) (poly.var 4))\"],\"success\":true}" ["ff", "K", "6", "[((var1 ^ 2) - ((var2 ^ 2) + (var0 ^ 3))), ((var3 ^ 3) - (var2 + var1)), ((var4 * var3) - var0), (((1 + var5) + (var5 ^ 2)) - 0), (var3 - 0)]", "(var0 - 0)"]  "linear_combination -ht + 1 * t * hs_nonzero" },
+    test_polyrith "{\"data\":[\"(poly.const 0/1)\",\"(poly.const 0/1)\",\"(poly.const -1/1)\",\"(poly.const 0/1)\",\"(poly.mul (poly.const 1/1) (poly.var 4))\"],\"success\":true}" ["ff", "K", "6", "[((var1 ^ 2) - ((var2 ^ 2) + (var0 ^ 3))), ((var3 ^ 3) - (var2 + var1)), ((var4 * var3) - var0), (((1 + var5) + (var5 ^ 2)) - 0), (var3 - 0)]", "(var0 - 0)"]  "linear_combination -ht + 1 * t * hs_nonzero" },
   have H' : 2 * q = s ^ 3 - t ^ 3,
   { rw ← mul_left_inj' (pow_ne_zero 3 hs_nonzero),
-    test_polyrith  "{\"data\":[\"(poly.const -1/1)\",\"(poly.add (poly.add (poly.mul (poly.const -1/1) (poly.pow (poly.var 1) 3)) (poly.mul (poly.const 1/1) (poly.var 0))) (poly.mul (poly.const -1/1) (poly.var 3)))\",\"(poly.add (poly.add (poly.mul (poly.mul (poly.const 1/1) (poly.pow (poly.var 1) 2)) (poly.pow (poly.var 2) 2)) (poly.mul (poly.mul (poly.mul (poly.const 1/1) (poly.var 1)) (poly.var 2)) (poly.var 4))) (poly.mul (poly.const 1/1) (poly.pow (poly.var 4) 2)))\",\"(poly.const 0/1)\"],\"success\":true}" ["ff", "K", "6", "[((var3 ^ 2) - ((var0 ^ 2) + (var4 ^ 3))), ((var1 ^ 3) - (var0 + var3)), ((var2 * var1) - var4), (((1 + var5) + (var5 ^ 2)) - 0)]", "(((2 * var0) * (var1 ^ 3)) - (((var1 ^ 3) - (var2 ^ 3)) * (var1 ^ 3)))"]  "linear_combination -hr + ((-1) * s ^ 3 + 1 * q + (-1) * r) * hs3 + (1 * s ^ 2 * t ^ 2 + 1 * s * t * p + 1 * p ^ 2) * ht" },
-test_polyrith  "{\"data\":[\"(poly.const 0/1)\",\"(poly.const 0/1)\",\"(poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.mul (poly.mul (poly.const 1/1) (poly.var 0)) (poly.pow (poly.var 5) 4)) (poly.mul (poly.mul (poly.const -1/1) (poly.var 3)) (poly.pow (poly.var 5) 4))) (poly.mul (poly.mul (poly.const 1/1) (poly.var 4)) (poly.pow (poly.var 5) 4))) (poly.mul (poly.mul (poly.const -1/1) (poly.var 3)) (poly.pow (poly.var 5) 3))) (poly.mul (poly.mul (poly.const 1/1) (poly.var 4)) (poly.pow (poly.var 5) 3))) (poly.mul (poly.mul (poly.const 3/1) (poly.var 0)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const -1/1) (poly.var 3)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const 1/1) (poly.var 4)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const 2/1) (poly.var 0)) (poly.var 5)))\",\"(poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 0)) (poly.pow (poly.var 3) 2)) (poly.var 5)) (poly.mul (poly.mul (poly.const 1/1) (poly.pow (poly.var 3) 3)) (poly.var 5))) (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 0)) (poly.pow (poly.var 4) 2)) (poly.var 5))) (poly.mul (poly.mul (poly.const -1/1) (poly.pow (poly.var 4) 3)) (poly.var 5))) (poly.mul (poly.mul (poly.mul (poly.const 1/1) (poly.var 0)) (poly.var 1)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 1)) (poly.var 3)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.mul (poly.const 1/1) (poly.var 1)) (poly.var 4)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const 1/1) (poly.pow (poly.var 0) 2)) (poly.var 3))) (poly.mul (poly.const -1/1) (poly.pow (poly.var 3) 3))) (poly.mul (poly.mul (poly.const -1/1) (poly.pow (poly.var 0) 2)) (poly.var 4))) (poly.mul (poly.const 1/1) (poly.pow (poly.var 4) 3))) (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 0)) (poly.var 1)) (poly.var 5))) (poly.mul (poly.mul (poly.const 3/1) (poly.var 0)) (poly.var 1)))\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "K", "7", "[((var6 ^ 2) - ((var2 ^ 2) + (var1 ^ 3))), ((var3 ^ 3) - (var2 + var6)), ((var4 * var3) - var1), (((1 + var5) + (var5 ^ 2)) - 0), ((2 * var2) - ((var3 ^ 3) - (var4 ^ 3)))]", "((((var0 ^ 3) + ((3 * var1) * var0)) - (2 * var2)) - (((var0 - (var3 - var4)) * (var0 - ((var3 * var5) - (var4 * (var5 ^ 2))))) * (var0 - ((var3 * (var5 ^ 2)) - (var4 * var5)))))"]  "linear_combination (1 * x * ω ^ 4 + (-1) * s * ω ^ 4 + 1 * t * ω ^ 4 + (-1) * s * ω ^ 3 + 1 * t * ω ^ 3 +
+    test_polyrith "{\"data\":[\"(poly.const -1/1)\",\"(poly.add (poly.add (poly.mul (poly.const -1/1) (poly.pow (poly.var 1) 3)) (poly.mul (poly.const 1/1) (poly.var 0))) (poly.mul (poly.const -1/1) (poly.var 3)))\",\"(poly.add (poly.add (poly.mul (poly.mul (poly.const 1/1) (poly.pow (poly.var 1) 2)) (poly.pow (poly.var 2) 2)) (poly.mul (poly.mul (poly.mul (poly.const 1/1) (poly.var 1)) (poly.var 2)) (poly.var 4))) (poly.mul (poly.const 1/1) (poly.pow (poly.var 4) 2)))\",\"(poly.const 0/1)\"],\"success\":true}" ["ff", "K", "6", "[((var3 ^ 2) - ((var0 ^ 2) + (var4 ^ 3))), ((var1 ^ 3) - (var0 + var3)), ((var2 * var1) - var4), (((1 + var5) + (var5 ^ 2)) - 0)]", "(((2 * var0) * (var1 ^ 3)) - (((var1 ^ 3) - (var2 ^ 3)) * (var1 ^ 3)))"]  "linear_combination -hr + ((-1) * s ^ 3 + 1 * q + (-1) * r) * hs3 + (1 * s ^ 2 * t ^ 2 + 1 * s * t * p + 1 * p ^ 2) * ht" },
+test_polyrith "{\"data\":[\"(poly.const 0/1)\",\"(poly.const 0/1)\",\"(poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.mul (poly.mul (poly.const 1/1) (poly.var 0)) (poly.pow (poly.var 5) 4)) (poly.mul (poly.mul (poly.const -1/1) (poly.var 3)) (poly.pow (poly.var 5) 4))) (poly.mul (poly.mul (poly.const 1/1) (poly.var 4)) (poly.pow (poly.var 5) 4))) (poly.mul (poly.mul (poly.const -1/1) (poly.var 3)) (poly.pow (poly.var 5) 3))) (poly.mul (poly.mul (poly.const 1/1) (poly.var 4)) (poly.pow (poly.var 5) 3))) (poly.mul (poly.mul (poly.const 3/1) (poly.var 0)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const -1/1) (poly.var 3)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const 1/1) (poly.var 4)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const 2/1) (poly.var 0)) (poly.var 5)))\",\"(poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.add (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 0)) (poly.pow (poly.var 3) 2)) (poly.var 5)) (poly.mul (poly.mul (poly.const 1/1) (poly.pow (poly.var 3) 3)) (poly.var 5))) (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 0)) (poly.pow (poly.var 4) 2)) (poly.var 5))) (poly.mul (poly.mul (poly.const -1/1) (poly.pow (poly.var 4) 3)) (poly.var 5))) (poly.mul (poly.mul (poly.mul (poly.const 1/1) (poly.var 0)) (poly.var 1)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 1)) (poly.var 3)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.mul (poly.const 1/1) (poly.var 1)) (poly.var 4)) (poly.pow (poly.var 5) 2))) (poly.mul (poly.mul (poly.const 1/1) (poly.pow (poly.var 0) 2)) (poly.var 3))) (poly.mul (poly.const -1/1) (poly.pow (poly.var 3) 3))) (poly.mul (poly.mul (poly.const -1/1) (poly.pow (poly.var 0) 2)) (poly.var 4))) (poly.mul (poly.const 1/1) (poly.pow (poly.var 4) 3))) (poly.mul (poly.mul (poly.mul (poly.const -1/1) (poly.var 0)) (poly.var 1)) (poly.var 5))) (poly.mul (poly.mul (poly.const 3/1) (poly.var 0)) (poly.var 1)))\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "K", "7", "[((var6 ^ 2) - ((var2 ^ 2) + (var1 ^ 3))), ((var3 ^ 3) - (var2 + var6)), ((var4 * var3) - var1), (((1 + var5) + (var5 ^ 2)) - 0), ((2 * var2) - ((var3 ^ 3) - (var4 ^ 3)))]", "((((var0 ^ 3) + ((3 * var1) * var0)) - (2 * var2)) - (((var0 - (var3 - var4)) * (var0 - ((var3 * var5) - (var4 * (var5 ^ 2))))) * (var0 - ((var3 * (var5 ^ 2)) - (var4 * var5)))))"]  "linear_combination (1 * x * ω ^ 4 + (-1) * s * ω ^ 4 + 1 * t * ω ^ 4 + (-1) * s * ω ^ 3 + 1 * t * ω ^ 3 +
           3 * x * ω ^ 2 +
         (-1) * s * ω ^ 2 +
       1 * t * ω ^ 2 +
@@ -236,22 +236,22 @@ end
 /-! ## Degenerate cases -/
 
 example {K : Type*} [field K] [char_zero K] {s : K} (hs : 3 * s + 1 = 4) : s = 1 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * hs"
+by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * hs"
 
 example {x : ℤ} (h1 : x + 4 = 2) : x = -2 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 4) - 2)]", "(var0 - (-1 * 2))"]  "linear_combination h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 4) - 2)]", "(var0 - (-1 * 2))"]  "linear_combination h1"
 
 example {w : ℚ} (h1 : 3 * w + 1 = 4) : w = 1 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * h1"
 
 example {x : ℤ} (h1 : 2 * x + 3 = x) : x = -3 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[(((2 * var0) + 3) - var0)]", "(var0 - (-1 * 3))"]  "linear_combination h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[(((2 * var0) + 3) - var0)]", "(var0 - (-1 * 3))"]  "linear_combination h1"
 
 example {c : ℚ} (h1 : 4 * c + 1 = 3 * c - 2) : c = -3 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "rat", "1", "[(((4 * var0) + 1) - ((3 * var0) - 2))]", "(var0 - (-1 * 3))"]  "linear_combination h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "rat", "1", "[(((4 * var0) + 1) - ((3 * var0) - 2))]", "(var0 - (-1 * 3))"]  "linear_combination h1"
 
 example (z : ℤ) (h1 : z + 1 = 2) (h2 : z + 2 = 2) : (1 : ℤ) = 2 :=
-by test_polyrith  "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 1) - 2), ((var0 + 2) - 2)]", "(1 - 2)"]  "linear_combination h1 - h2"
+by test_polyrith "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 1) - 2), ((var0 + 2) - 2)]", "(1 - 2)"]  "linear_combination h1 - h2"
 
 
 -- We comment the following tests so that we don't overwhelm the SageCell API.

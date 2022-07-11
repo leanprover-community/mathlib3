@@ -22,10 +22,10 @@ def create_query(type: str, n_vars: int, eq_list, goal_type):
     var_list = ", ".join([f"var{i}" for i in range(n_vars)])
     query = f'''
 import json
-P = PolynomialRing(QQ, 'var', {n_vars!r})
+P = PolynomialRing({type_str(type)}, 'var', {n_vars!r})
 [{var_list}] = P.gens()
 gens = {eq_list}
-p = P{goal_type}
+p = P({goal_type})
 I = ideal(gens)
 coeffs = p.lift(I)
 print(json.dumps([polynomial_to_string(c) for c in coeffs]))
@@ -39,10 +39,7 @@ class EvaluationError(Exception):
         self.message = message
         super().__init__(self.message)
 
-def evaluate_in_sage(query: str, format=False) -> str:
-    if format:
-        clean_query = query
-        query = (f'print({clean_query})')
+def evaluate_in_sage(query: str) -> str:
     data = {'code': query}
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     response = requests.post('https://sagecell.sagemath.org/service', data, headers=headers).json()

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Jujian Zhang
 -/
 import category_theory.preadditive.additive_functor
 import category_theory.abelian.basic

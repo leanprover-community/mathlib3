@@ -827,20 +827,20 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
-  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
+by simp [degree_eq_bot.not, ← not_lt, ← not_iff]
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), decidable.of_not_not $ λ H4,
-  have H1 : m ∉ f.support,
-    from λ H2, not_lt_of_ge ((finset.sup_le_iff.1 H) m H2 : ((m : with_bot ℕ) ≤ n)) Hm,
-  H1 $ mem_support_iff.2 H4,
-λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
-  mem_support_iff.1 Hb $ H b $ lt_of_not_ge Hn⟩
+begin
+  refine ⟨λ h m mn, coeff_eq_zero_of_degree_lt (h.trans_lt mn), λ h, _⟩,
+  rcases n with _ | n,
+  { exact (degree_eq_bot.mpr (ext (λ (n : ℕ), h _ (with_bot.bot_lt_coe _)))).le },
+  refine finset.max_le (λ a ha, not_not.mp (λ ha0, not_not.mpr ha _)),
+  exact not_mem_support_iff.mpr (h _ (not_le.mp ha0))
+end
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=

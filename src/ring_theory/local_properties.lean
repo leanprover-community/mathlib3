@@ -104,9 +104,9 @@ def ring_hom.of_localization_span :=
     (s : set R) (hs : by exactI ideal.span s = ⊤)
     (H : by exactI (∀ (r : s), P (localization.away_map f r))), by exactI P f
 
-/-- A property `P` of ring homs satisfies `ring_hom.localization_away_is`
+/-- A property `P` of ring homs satisfies `ring_hom.holds_for_localization_away`
  if `P` holds for each localization map `R →+* Rᵣ`. -/
-def ring_hom.localization_away_is : Prop :=
+def ring_hom.holds_for_localization_away : Prop :=
 ∀ ⦃R : Type u⦄ (S : Type u) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
   [by exactI is_localization.away r S], by exactI P (algebra_map R S)
 
@@ -135,7 +135,7 @@ structure ring_hom.property_is_local : Prop :=
 (localization_preserves : ring_hom.localization_preserves @P)
 (of_localization_span_target : ring_hom.of_localization_span_target @P)
 (stable_under_composition : ring_hom.stable_under_composition @P)
-(localization_away_is : ring_hom.localization_away_is @P)
+holds_for_localization_away : ring_hom.holds_for_localization_away @P)
 
 lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
@@ -159,7 +159,7 @@ begin
   introv,
   resetI,
   letI := e.to_ring_hom.to_algebra,
-  apply_with hP.localization_away_is { instances := ff },
+  apply_with hP.holds_for_localization_away { instances := ff },
   apply is_localization.away_of_is_unit_of_bijective _ is_unit_one,
   exact e.bijective
 end
@@ -186,7 +186,7 @@ begin
   apply hP.of_localization_span_target _ _ hs,
   rintro ⟨_, r, hr, rfl⟩,
   have := hs' ⟨r, hr⟩,
-  convert hP.stable_under_composition _ _ (hP.localization_away_is (localization.away r) r)
+  convert hP.stable_under_composition _ _ (hP.holds_for_localization_away (localization.away r) r)
     (hs' ⟨r, hr⟩) using 1,
   exact (is_localization.map_comp _).symm
 end

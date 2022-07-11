@@ -868,7 +868,7 @@ begin
   { rintro rfl,
     simpa only [pow_zero, not_tendsto_const_at_top] using h },
   { rcases ((h.eventually_gt_at_top 0).and (eventually_ge_at_top 0)).exists with ⟨k, hck, hk⟩,
-    exact pos_of_mul_pos_right hck (pow_nonneg hk _) },
+    exact pos_of_mul_pos_left hck (pow_nonneg hk _) },
 end
 
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}

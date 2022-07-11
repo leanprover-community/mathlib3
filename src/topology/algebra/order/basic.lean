@@ -2073,7 +2073,7 @@ end
 
 -- TODO: With a different proof, this could be possibly generalised to only require a
 -- `linear_ordered_semifield` instance, which would also remove the need for the
--- `nnreal` instance of `topological_division_ring`.
+-- `nnreal` instance of `has_continuous_inv₀`.
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
 { continuous_at_inv₀ :=

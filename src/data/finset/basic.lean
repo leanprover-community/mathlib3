@@ -166,12 +166,6 @@ theorem mem_def {a : α} {s : finset α} : a ∈ s ↔ a ∈ s.1 := iff.rfl
 instance decidable_mem [h : decidable_eq α] (a : α) (s : finset α) : decidable (a ∈ s) :=
 multiset.decidable_mem _ _
 
-instance decidable_forall_mem {P : α → Prop} [decidable_pred P] (s : finset α) :
-  decidable (∀ a ∈ s, P a) := s.val.decidable_forall_mem
-
-instance decidable_exists_mem {P : α → Prop} [decidable_pred P] (s : finset α) :
-  decidable (∃ a ∈ s, P a) := s.val.decidable_exists_mem
-
 /-! ### set coercion -/
 
 /-- Convert a finset to a set in the natural way. -/

@@ -1261,7 +1261,7 @@ sometimes Lean fails to unify different instances while trying to apply the depe
 e.g., `ι → ℝ`.
 -/
 
-variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+variables {ι : Type*} {π : ι → Type*} [finite ι] [Π i, linear_order (π i)]
   [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
 
 lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
@@ -1277,7 +1277,7 @@ lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
 pi_Ici_mem_nhds ha
 
 lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
-pi_univ_Icc a b ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+pi_univ_Icc a b ▸ set_pi_mem_nhds finite_univ (λ i _, Icc_mem_nhds (ha _) (hb _))
 
 lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
 pi_Icc_mem_nhds ha hb

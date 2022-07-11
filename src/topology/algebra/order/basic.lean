@@ -2071,6 +2071,9 @@ begin
     { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
 
+-- TODO: With a different proof, this could be possibly generalised to only require a
+-- hypothetical `linear_ordered_semifield`, which would also remove the need for the
+-- `nnreal` instance of `topological_division_ring`.
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
 { continuous_at_inv₀ :=

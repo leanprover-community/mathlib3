@@ -34,17 +34,23 @@ open sets in `Proj`, more specifically:
 2. We prove that for any `f : A`, `Proj.T | (pbo f)` is homeomorphic to `Spec.T A⁰_f`:
   - forward direction `to_Spec`:
     for any `x : pbo f`, i.e. a relevant homogeneous prime ideal `x`, send it to
-    `x ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is prime, the proof
-    is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function is continuous is found in
-    `Proj_iso_Spec_Top_component.to_Spec`
+    `x ∩ span {g / 1 | g ∈ A}` (see `Proj_iso_Spec_Top_component.to_Spec.carrier`). This ideal is
+    prime, the proof is in `Proj_iso_Spec_Top_component.to_Spec.to_fun`. The fact that this function
+    is continuous is found in `Proj_iso_Spec_Top_component.to_Spec`
   - backward direction `from_Spec`:
-    for any `q : Spec A⁰_f`, we sent it to `{a | forall i, aᵢ^m/f^i ∈ q}`; we need this to be a homogeneous prime ideal that is relavent.
-    * This is in fact an ideal, the proof can be found in `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal`;
-    * This ideal is also homogeneous, the proof can be found in `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal.homogeneous`;
-    * This ideal is relavent, the proof can be found in `Proj_iso_Spec_Top_component.from_Spec.carrier.relavent`;
-    * This ideal is prime, the proof can be found in `Proj_iso_Spec_Top_component.from_Spec.carrier.prime`.
-    Hence we have a well defined function `Spec.T A⁰_f → Proj.T | (pbo f)`, this function is called `Proj_iso_Spec_Top_component.from_Spec.to_fun`.
-    But to prove the continuity of this function, we need to prove `from_Spec ∘ to_Spec` and `to_Spec ∘ from_Spec` are both identities.
+    for any `q : Spec A⁰_f`, we sent it to `{a | forall i, aᵢ^m/f^i ∈ q}`; we need this to be a
+    homogeneous prime ideal that is relavent.
+    * This is in fact an ideal, the proof can be found in
+      `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal`;
+    * This ideal is also homogeneous, the proof can be found in
+      `Proj_iso_Spec_Top_component.from_Spec.carrier.as_ideal.homogeneous`;
+    * This ideal is relavent, the proof can be found in
+      `Proj_iso_Spec_Top_component.from_Spec.carrier.relavent`;
+    * This ideal is prime, the proof can be found in
+      `Proj_iso_Spec_Top_component.from_Spec.carrier.prime`.
+    Hence we have a well defined function `Spec.T A⁰_f → Proj.T | (pbo f)`, this function is called
+    `Proj_iso_Spec_Top_component.from_Spec.to_fun`. But to prove the continuity of this function,
+    we need to prove `from_Spec ∘ to_Spec` and `to_Spec ∘ from_Spec` are both identities (TBC).
 
 ## Main Definitions and Statements
 
@@ -162,6 +168,15 @@ x.2.some_spec.some_spec
 
 lemma degree_zero_part.coe_mul {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
   (↑(x * y) : away f) = x * y := rfl
+
+lemma degree_zero_part.coe_sum {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) {ι : Type*}
+  (s : finset ι) (g : ι → A⁰_ f_deg) :
+  (↑(∑ i in s, g i) : away f) = ∑ i in s, (g i : away f) :=
+begin
+  classical,
+  induction s using finset.induction_on with i s hi ih;
+  simp,
+end
 
 end
 
@@ -369,17 +384,21 @@ end
 
 namespace from_Spec
 
-open graded_algebra finset (hiding mk_zero)
+open graded_algebra set_like finset (hiding mk_zero)
 variable {𝒜}
 
 variables {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
 
 /--The underlying set-/
 def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
-{a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1}
+{a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩,
+      ⟨i, ⟨_, by exact graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
 
 lemma mem_carrier_iff (q : Spec.T (A⁰_ f_deg)) (a : A) :
-  a ∈ carrier q ↔ ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 := iff.rfl
+  a ∈ carrier q ↔
+  ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩,
+      ⟨i, ⟨_, by exact graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 :=
+iff.rfl
 
 lemma carrier.zero_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   (0 : A) ∈ carrier q := λ i,
@@ -391,13 +410,16 @@ lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A}
 begin
   rw carrier at ha hb ⊢,
   intro i,
-  set α := (⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+  set α := (⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
+    ⟨i, ⟨_, by exact graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
   suffices : α * α ∈ q.1,
   { cases q.2.mem_or_mem this, assumption, assumption },
   { rw show α * α =
     ⟨mk ((proj 𝒜 i (a + b))^(2*m)) ⟨f^(2*i), ⟨_, rfl⟩⟩,
       ⟨2 * i, ⟨_, by { rw show m * (2 * i) = (2 * m) * i, by ring, exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _) }⟩, rfl⟩⟩,
-    { rw [subtype.ext_iff_val, degree_zero_part.mul_val, mk_mul],
+    { rw [subtype.ext_iff, degree_zero_part.coe_mul],
+      change localization.mk _ _ * mk _ _ = mk _ _,
+      rw [mk_mul],
       congr' 1,
       { rw [two_mul, pow_add] },
       { simp only [subtype.ext_iff, submonoid.coe_mul, ← subtype.val_eq_coe, two_mul, pow_add],
@@ -432,7 +454,11 @@ begin
                   have mem2 : (proj 𝒜 i) b ^ (2 * m - j.1) ∈ 𝒜 ((2*m-j.1) * i),
                   { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _) },
                   have mem3 : ((2 * m).choose j.1 : A) ∈ 𝒜 0,
-                  { exact set_like.graded_monoid.nat_mem _ _, },
+                  { refine (show ∀ (n : ℕ), (n : A) ∈ 𝒜 0, from nat.rec _ _) _,
+                    { simp only [nat.cast_zero, submodule.zero_mem], },
+                    { intros n hn,
+                      simp only [nat.succ_eq_add_one, nat.cast_add, nat.cast_one],
+                      exact submodule.add_mem _ hn graded_monoid.one_mem, }, },
                   rw show m * (2 * i) = ((j.1*i) + (2*m-j.1)*i + 0),
                   { zify,
                     rw [show (↑(2 * m - j.1) : ℤ) = 2 * m - j.1,
@@ -442,7 +468,13 @@ begin
                   apply set_like.graded_monoid.mul_mem _ mem3,
                   apply set_like.graded_monoid.mul_mem mem1 mem2,
                 end⟩, rfl⟩⟩
-            : by simp only [subtype.ext_iff_val, degree_zero_part.sum_val, localization.mk_sum],
+            : begin
+                rw [subtype.ext_iff, degree_zero_part.coe_sum],
+                change localization.mk _ _ = ∑ _, mk _ _,
+                sorry
+                -- rw [localization.mk_sum],
+                -- simp only [degree_zero_part.coe_sum, localization.mk_sum],
+              end,
       clear' s s' ss' eq1,
       apply ideal.sum_mem,
       intros k hk,
@@ -629,11 +661,11 @@ begin
                 (⟨mk ((proj 𝒜 (i-n) x)^m) ⟨f^(i-n), ⟨_, rfl⟩⟩, begin
                   refine ⟨i-n, ⟨(proj 𝒜 (i-n) x)^m, _⟩, rfl⟩,
                   dsimp only,
-                  exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _),
+                  exact graded_monoid.pow_mem _ (submodule.coe_mem _),
                 end⟩ : A⁰_ f_deg)
               : begin
-                rw [subtype.ext_iff_val, degree_zero_part.mul_val],
-                dsimp only,
+                rw [subtype.ext_iff, degree_zero_part.coe_mul],
+                change localization.mk _ _ = mk _ _ * mk _ _,
                 rw [localization.mk_mul],
                 congr',
                 dsimp only,

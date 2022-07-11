@@ -240,7 +240,7 @@ begin
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   erw [mul_one, mul_one] at eq1,
-  simp only [← subtype.val_eq_coe] at eq1,
+  change f^_ * f^_ = _ * f^_ at eq1,
   refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
     (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
   generalize_proofs h,
@@ -264,7 +264,7 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f_deg)) :=
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   rw [submonoid.coe_one, mul_one] at eq1,
-  simp only [← subtype.val_eq_coe, submonoid.coe_mul] at eq1,
+  change _ * _ * f^_ = _ * (f^_ * f^_) * f^_ at eq1,
 
   rcases x.1.is_prime.mem_or_mem (show a1 * a2 * f ^ N * f ^ M ∈ _, from _) with h1|rid2,
   rcases x.1.is_prime.mem_or_mem h1 with h1|rid1,

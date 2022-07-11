@@ -213,11 +213,11 @@ begin
   refl
 end
 
-lemma no_intersection :
-  (x.1.as_homogeneous_ideal.to_ideal ∩ submonoid.powers f : set A) = ∅ :=
+lemma disjoint :
+  (disjoint (x.1.as_homogeneous_ideal.to_ideal : set A) (submonoid.powers f : set A)) :=
 begin
   by_contra rid,
-  rw [←ne.def, set.ne_empty_iff_nonempty] at rid,
+  rw [set.not_disjoint_iff] at rid,
   choose g hg using rid,
   obtain ⟨hg1, ⟨k, rfl⟩⟩ := hg,
   by_cases k_ineq : 0 < k,
@@ -231,7 +231,7 @@ end
 lemma carrier_ne_top :
   carrier f_deg x ≠ ⊤ :=
 begin
-  have eq_top := no_intersection x,
+  have eq_top := disjoint x,
   classical,
   contrapose! eq_top,
   obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator _ x ((ideal.eq_top_iff_one _).mp eq_top),
@@ -241,7 +241,8 @@ begin
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   erw [mul_one, mul_one] at eq1,
   change f^_ * f^_ = _ * f^_ at eq1,
-  refine set.ne_empty_iff_nonempty.mpr ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
+  rw set.not_disjoint_iff_nonempty_inter,
+  refine ⟨f^N * f^M, eq1.symm ▸ mul_mem_right _ _
     (sum_mem _ (λ i hi, mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
   generalize_proofs h,
   exact (classical.some_spec h).1,

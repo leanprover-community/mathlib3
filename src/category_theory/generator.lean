@@ -406,4 +406,8 @@ begin
     rwa [is_iso_iff_bijective, function.bijective_iff_exists_unique] }
 end
 
+lemma well_powered_of_is_detector [has_pullbacks C] (G : C) (hG : is_detector G) :
+  well_powered C :=
+well_powered_of_is_detecting hG
+
 end category_theory

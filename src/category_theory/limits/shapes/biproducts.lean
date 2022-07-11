@@ -1648,11 +1648,11 @@ def binary_bicone.of_limit_cone {X Y : C} {t : cone (pair X Y)} (ht : is_limit t
 
 lemma inl_of_is_limit {X Y : C} {t : binary_bicone X Y} (ht : is_limit t.to_cone) :
   t.inl = ht.lift (binary_fan.mk (𝟙 X) 0) :=
-ht.hom_ext $ λ j, by { rw ht.fac, rcases j with ⟨⟨⟩⟩; simp }
+by apply ht.uniq (binary_fan.mk (𝟙 X) 0); rintro ⟨⟨⟩⟩; dsimp; simp
 
 lemma inr_of_is_limit {X Y : C} {t : binary_bicone X Y} (ht : is_limit t.to_cone) :
   t.inr = ht.lift (binary_fan.mk 0 (𝟙 Y)) :=
-ht.hom_ext $ λ j, by { rw ht.fac, rcases j with ⟨⟨⟩⟩; simp }
+by apply ht.uniq (binary_fan.mk 0 (𝟙 Y)); rintro ⟨⟨⟩⟩; dsimp; simp
 
 /-- In a preadditive category, any binary bicone which is a limit cone is in fact a bilimit
     bicone. -/
@@ -1691,17 +1691,15 @@ def binary_bicone.of_colimit_cocone {X Y : C} {t : cocone (pair X Y)} (ht : is_c
 lemma fst_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_cocone) :
   t.fst = ht.desc (binary_cofan.mk (𝟙 X) 0) :=
 begin
-  refine ht.hom_ext (λ j, _),
-  rw ht.fac,
-  rcases j with ⟨⟨⟩⟩; dsimp; simp
+  apply ht.uniq (binary_cofan.mk (𝟙 X) 0),
+  rintro ⟨⟨⟩⟩; dsimp; simp
 end
 
 lemma snd_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_cocone) :
   t.snd = ht.desc (binary_cofan.mk 0 (𝟙 Y)) :=
 begin
-  refine ht.hom_ext (λ j, _),
-  rw ht.fac,
-  rcases j with ⟨⟨⟩⟩; dsimp; simp
+  apply ht.uniq (binary_cofan.mk 0 (𝟙 Y)),
+  rintro ⟨⟨⟩⟩; dsimp; simp
 end
 
 /-- In a preadditive category, any binary bicone which is a colimit cocone is in fact a

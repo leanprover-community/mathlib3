@@ -60,7 +60,7 @@ begin
   haveI := basis.invertible_to_matrix (pi.basis_fun 𝕜 n)
     (@gram_schmidt_basis 𝕜 (n → 𝕜) _ (inner_product_space.of_matrix hS.transpose)
       n _ _ _ (pi.basis_fun 𝕜 n)),
-  apply invertible_transpose,
+  apply_instance
 end
 
 lemma LDL.lower_inv_orthogonal {i j : n} (h₀ : i ≠ j) :

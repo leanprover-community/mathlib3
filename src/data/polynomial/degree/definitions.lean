@@ -827,7 +827,8 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-by simp [degree_eq_bot.not, ← not_lt, ← not_iff]
+⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
+  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
 
 lemma coe_le_degree_of_ne_zero (n : ℕ) (h : ↑n ≤ p.degree) : p ≠ 0 :=
 degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans h

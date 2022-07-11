@@ -21,9 +21,10 @@ In this file, we provide the proofs of various local properties.
 ## Naming Conventions
 
 * `localization_P` : `P` holds for `S⁻¹R` if `P` holds for `R`.
-* `P_of_localization_maximal` : `P` holds for `R` if `P` holds for `Aₘ` for all maximal `m`.
+* `P_of_localization_maximal` : `P` holds for `R` if `P` holds for `Rₘ` for all maximal `m`.
+* `P_of_localization_prime` : `P` holds for `R` if `P` holds for `Rₘ` for all prime `m`.
 * `P_of_localization_span` : `P` holds for `R` if given a spanning set `{fᵢ}`, `P` holds for all
-  `A_{fᵢ}`.
+  `R_{fᵢ}`.
 
 ## Main results
 
@@ -112,10 +113,7 @@ def ring_hom.holds_for_localization_away : Prop :=
 
 /-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
 if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spans `S` such that
-`P` holds for `R →+* Sᵣ`.
-
-Note that this is equivalent to `ring_hom.of_localization_span` via
-`ring_hom.of_localization_span_iff_finite`, but this is easier to prove. -/
+`P` holds for `R →+* Sᵣ`. -/
 def ring_hom.of_localization_span_target : Prop :=
 ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
   (s : set S) (hs : by exactI ideal.span s = ⊤)

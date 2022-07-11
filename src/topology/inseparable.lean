@@ -19,7 +19,7 @@ In this file we define
 
 * `inseparable_setoid X`: same relation, as a `setoid`;
 
-* `separation_quotient X`: the quotient of `X` by its `inseparable_setoid`.
+* `kolmogorov_quotient X`: the quotient of `X` by its `inseparable_setoid`.
 
 We also prove various basic properties of the relation `inseparable`.
 
@@ -251,14 +251,14 @@ lemma is_open.not_inseparable (hs : is_open s) (hx : x ∈ s) (hy : y ∉ s) : �
 λ h, hy $ (h.mem_open_iff hs).1 hx
 
 /-!
-### Separation quotient
+### Kolmogorov (separation) quotient
 
 In this section we define the quotient of a topological space by the `inseparable` relation.
 -/
 
 variable (X)
 
-/-- A `setoid` version of `inseparable`, used to define the `separation_quotient`. -/
+/-- A `setoid` version of `inseparable`, used to define the `kolmogorov_quotient`. -/
 def inseparable_setoid : setoid X :=
 { r := (~),
   .. setoid.comap 𝓝 ⊥ }
@@ -266,32 +266,32 @@ def inseparable_setoid : setoid X :=
 /-- The quotient of a topological space by its `inseparable_setoid`. This quotient is guaranteed to
 be a T₀ space. -/
 @[derive topological_space]
-def separation_quotient := quotient (inseparable_setoid X)
+def kolmogorov_quotient := quotient (inseparable_setoid X)
 
 variable {X}
 
-namespace separation_quotient
+namespace kolmogorov_quotient
 
 /-- The natural map from a topological space to its separation quotient. -/
-def mk : X → separation_quotient X := quotient.mk'
+def mk : X → kolmogorov_quotient X := quotient.mk'
 
-lemma quotient_map_mk : quotient_map (mk : X → separation_quotient X) :=
+lemma quotient_map_mk : quotient_map (mk : X → kolmogorov_quotient X) :=
 quotient_map_quot_mk
 
-lemma continuous_mk : continuous (mk : X → separation_quotient X) :=
+lemma continuous_mk : continuous (mk : X → kolmogorov_quotient X) :=
 continuous_quot_mk
 
 @[simp] lemma mk_eq_mk : mk x = mk y ↔ x ~ y := quotient.eq'
 
-lemma surjective_mk : surjective (mk : X → separation_quotient X) :=
+lemma surjective_mk : surjective (mk : X → kolmogorov_quotient X) :=
 surjective_quot_mk _
 
-@[simp] lemma range_mk : range (mk : X → separation_quotient X) = univ :=
+@[simp] lemma range_mk : range (mk : X → kolmogorov_quotient X) = univ :=
 surjective_mk.range_eq
 
-instance [nonempty X] : nonempty (separation_quotient X) := nonempty.map mk ‹_›
-instance [inhabited X] : inhabited (separation_quotient X) := ⟨mk default⟩
-instance [subsingleton X] : subsingleton (separation_quotient X) := surjective_mk.subsingleton
+instance [nonempty X] : nonempty (kolmogorov_quotient X) := nonempty.map mk ‹_›
+instance [inhabited X] : inhabited (kolmogorov_quotient X) := ⟨mk default⟩
+instance [subsingleton X] : subsingleton (kolmogorov_quotient X) := surjective_mk.subsingleton
 
 lemma preimage_image_mk_open (hs : is_open s) : mk ⁻¹' (mk '' s) = s :=
 begin
@@ -300,7 +300,7 @@ begin
   exact ((mk_eq_mk.1 hxy).mem_open_iff hs).1 hys
 end
 
-lemma is_open_map_mk : is_open_map (mk : X → separation_quotient X) :=
+lemma is_open_map_mk : is_open_map (mk : X → kolmogorov_quotient X) :=
 λ s hs, quotient_map_mk.is_open_preimage.1 $ by rwa preimage_image_mk_open hs
 
 lemma preimage_image_mk_closed (hs : is_closed s) : mk ⁻¹' (mk '' s) = s :=
@@ -310,14 +310,14 @@ begin
   exact ((mk_eq_mk.1 hxy).mem_closed_iff hs).1 hys
 end
 
-lemma inducing_mk : inducing (mk : X → separation_quotient X) :=
+lemma inducing_mk : inducing (mk : X → kolmogorov_quotient X) :=
 ⟨le_antisymm (continuous_iff_le_induced.1 continuous_mk)
   (λ s hs, ⟨mk '' s, is_open_map_mk s hs, preimage_image_mk_open hs⟩)⟩
 
-lemma is_closed_map_mk : is_closed_map (mk : X → separation_quotient X) :=
+lemma is_closed_map_mk : is_closed_map (mk : X → kolmogorov_quotient X) :=
 inducing_mk.is_closed_map $ by { rw [range_mk], exact is_closed_univ }
 
 lemma map_mk_nhds : map mk (𝓝 x) = 𝓝 (mk x) :=
 by rw [inducing_mk.nhds_eq_comap, map_comap_of_surjective surjective_mk]
 
-end separation_quotient
+end kolmogorov_quotient

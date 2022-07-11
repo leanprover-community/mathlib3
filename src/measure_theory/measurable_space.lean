@@ -204,7 +204,7 @@ end
 
 lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
   measurable f :=
-λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
+λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
 end typeclass_measurable_space
 
@@ -1351,7 +1351,7 @@ begin
 end
 
 alias principal_is_measurably_generated_iff ↔
-  _ measurable_set.principal_is_measurably_generated
+  _ _root_.measurable_set.principal_is_measurably_generated
 
 instance infi_is_measurably_generated {f : ι → filter α} [∀ i, is_measurably_generated (f i)] :
   is_measurably_generated (⨅ i, f i) :=

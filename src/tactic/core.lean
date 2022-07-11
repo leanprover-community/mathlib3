@@ -1403,9 +1403,11 @@ add_tactic_doc
 This function deserves a C++ implementation in core lean, and will fail if it is not called from
 the body of a command (i.e. anywhere else that the `lean.parser` monad can be invoked). -/
 meta def get_current_namespace : lean.parser name :=
-do n ← tactic.mk_user_fresh_name,
+do env ← get_env,
+   n ← tactic.mk_user_fresh_name,
    emit_code_here $ sformat!"def {n} := ()",
    nfull ← tactic.resolve_constant n,
+   set_env env,
    return $ nfull.get_nth_prefix n.components.length
 
 /-- `get_variables` returns a list of existing variable names, along with their types and binder

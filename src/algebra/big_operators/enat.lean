@@ -7,16 +7,16 @@ import algebra.big_operators.basic
 import data.nat.enat
 
 /-!
-# Big operators in `enat`
+# Big operators in `part_enat`
 
-A simple lemma about sums in `enat`.
+A simple lemma about sums in `part_enat`.
 -/
 open_locale big_operators
 variables {α : Type*}
 
 namespace finset
 lemma sum_nat_coe_enat (s : finset α) (f : α → ℕ) :
-  (∑ x in s, (f x : enat)) = (∑ x  in s, f x : ℕ) :=
-(enat.coe_hom.map_sum _ _).symm
+  (∑ x in s, (f x : part_enat)) = (∑ x  in s, f x : ℕ) :=
+(part_enat.coe_hom.map_sum _ _).symm
 
 end finset

@@ -372,9 +372,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (submodule.orthogonal_bilin (K ∙ x) B) :=
-{ inf_le_bot := eq_bot_iff.1 $
-    (span_singleton_inf_orthogonal_eq_bot B x hx),
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot B x hx,
+  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 

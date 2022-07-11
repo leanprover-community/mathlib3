@@ -61,13 +61,8 @@ calc #L ≤ #(Σ p : R[X], { x : L // x ∈ (p.map (algebra_map R L)).roots }) :
   cardinal_mk_le_sigma_polynomial R L halg
 ... = cardinal.sum (λ p : R[X], #{ x : L | x ∈ (p.map (algebra_map R L)).roots }) :
   by rw ← mk_sigma; refl
-... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) : sum_le_sum _ _
-  (λ p, le_of_lt begin
-    rw [lt_aleph_0_iff_finite],
-    classical,
-    simp only [← @multiset.mem_to_finset _ _ _ (p.map (algebra_map R L)).roots],
-    exact set.finite_mem_finset _,
-  end)
+... ≤ cardinal.sum.{u u} (λ p : R[X], ℵ₀) :
+  sum_le_sum _ _ $ λ p, (multiset.finite_to_set _).lt_aleph_0.le
 ... = #R[X] * ℵ₀ : sum_const' _ _
 ... ≤ max (max (#R[X]) ℵ₀) ℵ₀ : mul_le_max _ _
 ... ≤ max (max (max (#R) ℵ₀) ℵ₀) ℵ₀ :
@@ -192,9 +187,9 @@ begin
       from ring_hom.injective _) with t ht,
   have : #s = #t,
   { rw [← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ hs
-      (lt_aleph_0_of_fintype (zmod p)).le hK,
+      (lt_aleph_0_of_finite (zmod p)).le hK,
         ← cardinal_eq_cardinal_transcendence_basis_of_aleph_0_lt _ ht
-      (lt_aleph_0_of_fintype (zmod p)).le, hKL],
+      (lt_aleph_0_of_finite (zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩

@@ -101,6 +101,20 @@ begin
   apply h.has_trivial_blocks', exact hB,
 end
 
+lemma is_preprimitive.on_subsingleton [has_scalar G X] [nonempty G] [subsingleton X] : is_preprimitive G X :=
+begin
+  haveI : is_pretransitive G X,
+  { apply is_pretransitive.mk,
+    intros x y,
+    use classical.arbitrary G,
+    rw eq_iff_true_of_subsingleton ,
+    trivial },
+  apply is_preprimitive.mk,
+  intros B hB,
+  apply or.intro_left,
+  exact set.subsingleton_of_subsingleton,
+end
+
 variables [group G] [mul_action G X]
 
 open_locale big_operators pointwise
@@ -144,6 +158,46 @@ begin
     rw is_trivial_block_of_block_iff g,
     refine H (g • B) _ (is_block_of_block g hB),
     use b, exact ⟨hb, hg⟩ }
+end
+
+/-- If the action is not trivial, then the trivial blocks condition implies preprimitivity
+(pretransitivity is automatic) (based condition) -/
+lemma is_preprimitive.mk_mem' (a : X) (ha : a ∉ fixed_points G X)
+  (H : ∀ (B : set X) (haB : a ∈ B) (hB : is_block G B), is_trivial_block B) :
+  is_preprimitive G X :=
+begin
+  haveI : is_pretransitive G X,
+  { apply is_pretransitive.mk_base a,
+    cases H (orbit G a) (mem_orbit_self a) (is_block_of_orbit a) with H H,
+    { exfalso, apply ha,
+      rw set.subsingleton_iff_singleton (mem_orbit_self a) at H ,
+      simp only [mem_fixed_points], intro g,
+      rw ← set.mem_singleton_iff, rw ← H,
+      exact mem_orbit a g },
+    { intro x, rw [← mul_action.mem_orbit_iff, H], exact set.mem_univ x } },
+  apply is_preprimitive.mk,
+  intros B hB,
+  cases set.eq_empty_or_nonempty B,
+  { apply or.intro_left, rw h, exact set.subsingleton_empty },
+  { obtain ⟨b, hb⟩ := h,
+    obtain ⟨g, hg⟩ := exists_smul_eq G b a,
+    rw is_trivial_block_of_block_iff g,
+    refine H (g • B) _ (is_block_of_block g hB),
+    use b, exact ⟨hb, hg⟩ }
+end
+
+/-- If the action is not trivial, then the trivial blocks condition implies preprimitivity
+(pretransitivity is automatic) -/
+lemma is_preprimitive.mk' (Hnt:  fixed_points G X ≠ ⊤)
+  (H : ∀ (B : set X) (hB : is_block G B), is_trivial_block B) :
+  is_preprimitive G X :=
+begin
+  have : ∃ (a : X),  a ∉ fixed_points G X,
+  { by_contradiction, push_neg at h, apply Hnt, rw eq_top_iff,
+    intros a _, exact h a },
+  obtain ⟨a, ha⟩ := this,
+  apply is_preprimitive.mk_mem' a ha,
+  intros B _, exact H B,
 end
 
 end primitive
@@ -309,12 +363,12 @@ end
 theorem maximal_stabilizer_iff_preprimitive [htGX : is_pretransitive G X] [hnX : nontrivial X]
   (a : X) : (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
 begin
-  let s := stabilizer_block_equiv htGX a,
+  let s := stabilizer_block_equiv a,
   rw is_preprimitive_iff_is_simple_order_blocks G a,
   rw subgroup.is_maximal_def,
   rw ← set.is_simple_order_Ici_iff_is_coatom,
   simp only [is_simple_order_iff_is_coatom_bot],
-  rw ← order_iso.is_coatom_iff (stabilizer_block_equiv htGX a) _,
+  rw ← order_iso.is_coatom_iff (stabilizer_block_equiv a) a,
   rw order_iso.map_bot,
 end
 

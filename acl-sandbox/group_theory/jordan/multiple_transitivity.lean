@@ -21,6 +21,8 @@ import set_theory.cardinal.finite
 import group_theory.index
 import group_theory.group_action.embedding
 import group_theory.specific_groups.alternating
+import group_theory.perm.list
+import group_theory.perm.cycle.concrete
 import .index_normal
 
 /-
@@ -813,13 +815,15 @@ begin
   cases le_or_gt (enat.card α) 1 with hα hα,
   -- Trivial case where subsingleton α
   { rw enat.card_le_one_iff_subsingleton at hα,
+    resetI,
+    apply is_preprimitive.on_subsingleton,/-
     haveI : is_pretransitive M α,
     { apply is_pretransitive.mk,
       intros x y, use 1, exact subsingleton_iff.mp hα _ _ },
     apply is_preprimitive.mk,
     { intros B hB,
       apply or.intro_left,
-      exact @set.subsingleton_of_subsingleton _ hα B } },
+      exact @set.subsingleton_of_subsingleton _ hα B } -/ },
   -- Important case : 2 ≤ #α
   let hα' := id hα, rw gt_iff_lt at hα',
   rw [← cast_one, ← enat.succ_le_iff] at hα',
@@ -920,6 +924,20 @@ begin
   exact embedding_like.injective y,
   exact embedding_like.injective x,
 end
+
+theorem equiv.perm.is_preprimitive :
+  is_preprimitive (equiv.perm α) α :=
+begin
+  cases subsingleton_or_nontrivial α; resetI,
+  exact is_preprimitive.on_subsingleton,
+  apply is_preprimitive_of_two_pretransitive,
+  apply is_multiply_pretransitive_of_higher,
+  apply equiv_perm_is_fully_pretransitive,
+  rw ← fintype.one_lt_card_iff_nontrivial at h,
+  exact h,
+  apply le_of_eq, rw enat.of_fintype,
+end
+
 
 variable {α}
 lemma aux_lt_iff_lt_or_eq {m n : ℕ} (hmn : m < n) : (m < n - 1) ∨ (m = n - 1) :=
@@ -1252,6 +1270,70 @@ begin
   simp only [finset.coe_sort_coe, fintype.card_coe],
   exact hs.right,
 end
+
+/- Unfortunately, the alternating group on 2 letters does not act primitively,
+TODO : add case of 3 letters -/
+/-- The alternating group on 4 letters or more acts primitively -/
+theorem alternating_group.is_preprimitive (h : 4 ≤ fintype.card α):
+  is_preprimitive (alternating_group α) α :=
+begin
+  apply is_preprimitive_of_two_pretransitive,
+  apply is_multiply_pretransitive_of_higher,
+  apply alternating_group_is_fully_minus_two_pretransitive,
+  apply le_trans _ (nat.sub_le_sub_right h 2), norm_num,
+  simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le]
+end
+
+lemma alternating_group.is_pretransitive (h : 3 ≤ fintype.card α) :
+  is_pretransitive (alternating_group α) α :=
+begin
+  rw is_pretransitive_iff_is_one_pretransitive,
+  apply is_multiply_pretransitive_of_higher,
+  exact alternating_group_is_fully_minus_two_pretransitive α,
+  apply le_trans _ (nat.sub_le_sub_right h 2), norm_num,
+  simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le]
+end
+
+/- lemma alternating_group.is_pretransitive' (h : 3 ≤ fintype.card α) :
+  is_pretransitive (alternating_group α) α :=
+begin
+  classical,
+  apply is_pretransitive.mk,
+  intros x y,
+  cases em (y = x) with hxy hxy,
+  use 1, rw [hxy, one_smul],
+  suffices : nonempty(finset.erase (finset.erase finset.univ x) y),
+  obtain ⟨z, hz⟩ := this,
+  simp only [finset.mem_erase, ne.def, finset.mem_univ, and_true] at hz,
+  let g := [x,y,z].form_perm,
+  suffices : [x,y,z].nodup,
+  use g,
+  rw equiv.perm.mem_alternating_group,
+  apply equiv.perm.is_three_cycle.sign,
+  rw ← card_support_eq_three_iff ,
+  rw list.support_form_perm_of_nodup _ this _,
+  rw list.to_finset_card_of_nodup this,
+  simp only [list.length],
+  intros t ht, simpa only [and_false] using ht,
+  change g • x = y,
+  simp only [equiv.perm.smul_def],
+  rw list.form_perm_apply_head x y _ this,
+  -- nodup
+  simp only [list.nodup_cons, list.mem_cons_iff, list.mem_singleton, list.not_mem_nil,
+    not_false_iff, list.nodup_nil, and_true, not_or_distrib],
+  split, split,
+  exact ne_comm.mp hxy, exact ne_comm.mp hz.right, exact ne_comm.mp hz.left,
+  { rw ← fintype.card_pos_iff ,
+    simp only [fintype.card_coe],
+    rw finset.card_erase_of_mem, rw finset.card_erase_of_mem,
+    rw nat.sub_sub,
+    refine lt_of_lt_of_le _ (nat.sub_le_sub_right h _),
+    norm_num,
+    exact finset.mem_univ x,
+    simp only [finset.mem_erase, ne.def, finset.mem_univ, and_true],
+    exact hxy },
+end
+ -/
 
 end finite
 

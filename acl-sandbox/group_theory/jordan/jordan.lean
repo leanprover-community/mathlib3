@@ -48,6 +48,22 @@ an adequate induction lemma)
 open mul_action
 open_locale pointwise
 
+section permutation_groups
+
+variables {α : Type*} [decidable_eq α]
+theorem equiv.perm.is_preprimitive : is_preprimitive (equiv.perm α) α :=
+begin
+  cases subsingleton_or_nontrivial α,
+  -- trivial case
+  sorry,
+  -- nontrivial case
+  apply is_preprimitive_of_two_pretransitive,
+  apply is_multiply_pretransitive_of_higher,
+
+end
+
+
+end permutation_groups
 
 /-- A pretransitivity criterion -/
 lemma is_pretransitive_of_fixing_subgroup_inter {α : Type*} {G : Type*} [group G] [mul_action G α]

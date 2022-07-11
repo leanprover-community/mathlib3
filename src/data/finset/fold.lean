@@ -232,7 +232,7 @@ fold_op_rel_iff_or $ λ x y z, lt_max_iff
 
 lemma fold_max_add [has_add β] [covariant_class β β (function.swap (+)) (≤)]
  (n : with_bot β) (s : finset α) :
-  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
+  s.fold max ⊥ (λ (x : α), ↑(f x) + n) = s.fold max ⊥ (coe ∘ f) + n :=
 by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
 
 end order

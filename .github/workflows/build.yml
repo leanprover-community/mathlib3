@@ -88,18 +88,12 @@ jobs:
         run: |
           leanpkg configure
           echo "::set-output name=started::true"
-          ls -lh src/algebra/order/field.olean
-          lean --json -T100000 --make src/algebra/order/field.lean | python3 scripts/detect_errors.py
-          ls -lh src/algebra/order/field.olean
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
-          ls -lh src/algebra/order/field.olean
           lean --json -T100000 --make src | python3 scripts/detect_errors.py
-          ls -lh src/algebra/order/field.olean
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && steps.build.outputs.started == 'true'
         run: |
-          ls -lh src/algebra/order/field.olean
           archive_name="$(git rev-parse HEAD).tar.gz"
           find src/ -name "*.olean" -o -name ".noisy_files" | tar czf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false

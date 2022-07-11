@@ -365,25 +365,27 @@ section support
 lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
 by simpa only [← single_eq_C_mul_T] using support_single_subset
 
+lemma support_C_mul_T_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
+begin
+  rw ← single_eq_C_mul_T,
+  exact support_single_ne_zero _ a0,
+end
+
 @[simp] lemma to_laurent_support (f : R[X]) :
   f.to_laurent.support = f.support.map nat.cast_embedding :=
 begin
-  rw (show (f.support.map nat.cast_embedding = f.support.image (coe : ℕ → ℤ)), by
-  { ext, simp only [finset.mem_map, nat.cast_embedding_apply, finset.mem_image] }),
   generalize' hd : f.support = s,
   revert f,
   refine finset.induction_on s _ _; clear s,
-  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, finset.image_empty,
-      eq_self_iff_true, implies_true_iff] {contextual := tt} },
+  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, eq_self_iff_true,
+      implies_true_iff, finset.map_empty] {contextual := tt} },
   { intros a s as hf f fs,
-    have : (erase a f).to_laurent.support = finset.image coe s := hf (f.erase a) (by simp only
+    have : (erase a f).to_laurent.support = s.map nat.cast_embedding := hf (f.erase a) (by simp only
       [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
-    rw [← monomial_add_erase f a, finset.image_insert, ← this, map_add,
+    rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
       polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
     { congr,
-      refine support_eq_singleton'.mpr ⟨f.coeff a, _, (single_eq_C_mul_T _ _).symm⟩,
-      refine polynomial.mem_support_iff.mp _,
-      simp only [fs, finset.mem_insert, eq_self_iff_true, true_or] },
+      exact support_C_mul_T_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
     { rw this,
       exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
 end

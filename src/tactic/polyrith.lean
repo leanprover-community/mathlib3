@@ -38,7 +38,7 @@ file, changes to this script may not be noticed during Lean compilation if you h
 generated olean files. If you are modifying this python script, you likely know what you're doing;
 remember to force recompilation of any files that call `polyrith`.
 
-## Future work
+## TODO
 
 * Give Sage more information about the specific ring being used for the coefficients. For now,
   we always use ℚ (or `QQ` in Sage).
@@ -47,8 +47,8 @@ remember to force recompilation of any files that call `polyrith`.
 
 ## References
 
-* See the book `Ideals, Varieties, and Algorithms` by David Cox, John Little, and Donal O'Shea
-  for the background theory on Groebner bases
+* See the book [*Ideals, Varieties, and Algorithms*][coxlittleOshea1997] by David Cox, John Little,
+  and Donal O'Shea for the background theory on Groebner bases
 * This code was heavily inspired by the code for the tactic `linarith`, which was written by
   Robert Lewis, who advised me on this project as part of a Computer Science independant study
   at Brown University.

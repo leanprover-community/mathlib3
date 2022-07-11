@@ -868,8 +868,8 @@ begin
     simp only [ennreal.coe_nat, ennreal.coe_nat_le_coe_nat, hk N] }
 end
 
-lemma submartingale.mul_integral_upcrossing_le_integral_pos_part [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) :
+lemma submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part [is_finite_measure μ]
+  (a b : ℝ) (hf : submartingale f ℱ μ) :
   ennreal.of_real (b - a) * ∫⁻ x, upcrossing a b f x ∂μ ≤
   ⨆ N, ∫⁻ x, ennreal.of_real ((f N x - a)⁺) ∂μ :=
 begin

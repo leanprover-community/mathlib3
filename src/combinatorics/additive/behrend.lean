@@ -137,7 +137,7 @@ lemma add_salem_spencer_sphere : add_salem_spencer (sphere n d k : set (fin n �
 begin
   set f : (fin n → ℕ) →+ euclidean_space ℝ (fin n) :=
   { to_fun := λ f, (coe : ℕ → ℝ) ∘ f,
-    map_zero' := rfl,
+    map_zero' := funext $ λ _, cast_zero,
     map_add' := λ _ _, funext $ λ _, cast_add _ _ },
   refine add_salem_spencer.of_image (f.to_add_freiman_hom (sphere n d k) 2) _ _,
   { exact cast_injective.comp_left.inj_on _ },

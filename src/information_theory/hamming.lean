@@ -25,7 +25,7 @@ code.
 `Π i, β i`.
 * `hamming.normed_group`: the Hamming norm forms a normed group on `hamming β`.
 -/
-section hamming_dist_wt
+section hamming_dist_norm
 
 open finset function
 
@@ -181,7 +181,7 @@ lemma hamming_dist_eq_hamming_norm [Π i, add_group (β i)] (x y : Π i, β i) :
 by simp_rw [  ← hamming_dist_zero_right, hamming_dist, pi.sub_apply,
               pi.zero_apply, sub_ne_zero]
 
-end hamming_dist_wt
+end hamming_dist_norm
 
 /-! ### The `hamming` type synonym -/
 

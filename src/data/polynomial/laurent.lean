@@ -315,12 +315,9 @@ left_inverse_trunc_to_laurent.injective
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 
-lemma _root_.polynomial.to_laurent_ne_zero (f : R[X])  (f0 : f ≠ 0) :
-  f.to_laurent ≠ 0 :=
-begin
-  refine (map_ne_zero_iff _ _).mpr f0,
-  exact polynomial.to_laurent_injective,
-end
+lemma _root_.polynomial.to_laurent_ne_zero {f : R[X]} :
+  f ≠ 0 ↔ f.to_laurent ≠ 0 :=
+(map_ne_zero_iff _ (by exact polynomial.to_laurent_injective)).symm
 
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
@@ -369,22 +366,28 @@ section support
 lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
 by simpa only [← single_eq_C_mul_T] using support_single_subset
 
-@[simp] lemma to_laurent_support (f : R[X]) : f.to_laurent.support = f.support.image coe :=
+lemma support_C_mul_T_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
+begin
+  rw ← single_eq_C_mul_T,
+  exact support_single_ne_zero _ a0,
+end
+
+@[simp] lemma to_laurent_support (f : R[X]) :
+  f.to_laurent.support = f.support.map nat.cast_embedding :=
 begin
   generalize' hd : f.support = s,
   revert f,
   refine finset.induction_on s _ _; clear s,
-  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, finset.image_empty, eq_self_iff_true, implies_true_iff] {contextual := tt} },
+  { simp only [polynomial.support_eq_empty, map_zero, finsupp.support_zero, eq_self_iff_true,
+      implies_true_iff, finset.map_empty] {contextual := tt} },
   { intros a s as hf f fs,
-    have : (erase a f).to_laurent.support = finset.image coe s := hf (f.erase a) (by simp only
+    have : (erase a f).to_laurent.support = s.map nat.cast_embedding := hf (f.erase a) (by simp only
       [fs, finset.erase_eq_of_not_mem as, polynomial.support_erase, finset.erase_insert_eq_erase]),
-    rw [← monomial_add_erase f a, finset.image_insert, ← this, map_add,
+    rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
       polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
     { congr,
-      rw [support_eq_singleton'],
-      refine ⟨f.coeff a, polynomial.mem_support_iff.mp _, (single_eq_C_mul_T _ _).symm⟩,
-      simp only [fs, finset.mem_insert, eq_self_iff_true, true_or] },
-    { rw [this],
+      exact support_C_mul_T_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
+    { rw this,
       exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
 end
 
@@ -420,7 +423,19 @@ begin
   { simp only [T, single_eq_of_ne (ne_comm.mp h)] }
 end
 
+@[simp] lemma degree_eq_bot_iff {f : R[T;T⁻¹]} : f.degree = ⊥ ↔ f = 0 :=
+begin
+  refine ⟨λ h, _, λ h, by rw [h, degree_zero]⟩,
+  rw [degree, finset.max_eq_sup_with_bot] at h,
+  ext n,
+  refine not_not.mp (λ f0, _),
+  simp_rw [finset.sup_eq_bot_iff, finsupp.mem_support_iff, ne.def, with_bot.coe_ne_bot] at h,
+  exact h n f0,
+end
+
 section exact_degrees
+
+open_locale classical
 
 lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
 begin
@@ -437,13 +452,15 @@ begin
   exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),
 end
 
-lemma degree_C (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+lemma degree_C {a : R} (a0 : a ≠ 0) : (C a).degree = 0 :=
 begin
-  split_ifs with h h,
-  { simp only [h, map_zero, degree_zero] },
-  { rw [← mul_one (C a), ← T_zero],
-    exact degree_C_mul_T 0 a h }
+  rw [← mul_one (C a), ← T_zero],
+  exact degree_C_mul_T 0 a a0
 end
+
+lemma degree_C_ite (a : R) : (C a).degree = ite (a = 0) ⊥ 0 :=
+by split_ifs with h h;
+  simp only [h, map_zero, degree_zero, degree_C, ne.def, not_false_iff]
 
 end exact_degrees
 

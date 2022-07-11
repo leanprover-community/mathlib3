@@ -38,7 +38,7 @@ open_locale big_operators
 
 /-- `holor_index ds` is the type of valid index tuples used to identify an entry of a holor
 of dimensions `ds`. -/
-def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
+def holor_index (ds : list ℕ) : Type := {is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
 variables {ds₁ ds₂ ds₃ : list ℕ}
@@ -80,7 +80,7 @@ lemma drop_drop :
 end holor_index
 
 /-- Holor (indexed collections of tensor coefficients) -/
-def holor (α : Type u) (ds:list ℕ) := holor_index ds → α
+def holor (α : Type u) (ds : list ℕ) := holor_index ds → α
 
 namespace holor
 

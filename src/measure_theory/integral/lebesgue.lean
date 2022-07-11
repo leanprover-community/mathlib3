@@ -1978,7 +1978,7 @@ lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 lintegral_Union₀ (λ i, (hm i).null_measurable_set) hd.ae_disjoint f
 
-lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : countable t)
+lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : t.countable)
   (hm : ∀ i ∈ t, null_measurable_set (s i) μ)
   (hd : t.pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
@@ -1987,7 +1987,7 @@ begin
   rw [bUnion_eq_Union, lintegral_Union₀ (set_coe.forall'.1 hm) (hd.subtype _ _)]
 end
 
-lemma lintegral_bUnion {t : set β} {s : β → set α} (ht : countable t)
+lemma lintegral_bUnion {t : set β} {s : β → set α} (ht : t.countable)
   (hm : ∀ i ∈ t, measurable_set (s i)) (hd : t.pairwise_disjoint s) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
 lintegral_bUnion₀ ht (λ i hi, (hm i hi).null_measurable_set) hd.ae_disjoint f
@@ -2182,7 +2182,7 @@ lemma lintegral_singleton [measurable_singleton_class α] (f : α → ℝ≥0∞
 by simp only [restrict_singleton, lintegral_smul_measure, lintegral_dirac, mul_comm]
 
 lemma lintegral_countable [measurable_singleton_class α] (f : α → ℝ≥0∞) {s : set α}
-  (hs : countable s) :
+  (hs : s.countable) :
   ∫⁻ a in s, f a ∂μ = ∑' a : s, f a * μ {(a : α)} :=
 calc ∫⁻ a in s, f a ∂μ = ∫⁻ a in ⋃ x ∈ s, {x}, f a ∂μ : by rw [bUnion_of_singleton]
 ... = ∑' a : s, ∫⁻ x in {a}, f x ∂μ :

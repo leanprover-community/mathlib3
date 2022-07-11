@@ -463,7 +463,7 @@ begin
   have : is_separable (closure (⋃ n, range (hf.approx n))) :=
     (is_separable_Union (λ n, (simple_func.finite_range (hf.approx n)).is_separable)).closure,
   apply this.mono,
-  rintros - ⟨x, rfl⟩,
+  rintros _ ⟨x, rfl⟩,
   apply mem_closure_of_tendsto (hf.tendsto_approx x),
   apply eventually_of_forall (λ n, _),
   apply mem_Union_of_mem n,
@@ -595,7 +595,7 @@ begin
     have : is_separable (closure (⋃ i, range (f (v i)))) :=
       (is_separable_Union (λ i, (hf (v i)).is_separable_range)).closure,
     apply this.mono,
-    rintros - ⟨x, rfl⟩,
+    rintros _ ⟨x, rfl⟩,
     rw [tendsto_pi_nhds] at lim,
     apply mem_closure_of_tendsto ((lim x).comp hv),
     apply eventually_of_forall (λ n, _),
@@ -1786,7 +1786,7 @@ begin
     { have : is_separable (⋃ (i : (t_sf n).range), range (u i)) :=
         is_separable_Union (λ i, (h i).is_separable_range),
       apply this.mono,
-      rintros - ⟨⟨i, x⟩, rfl⟩,
+      rintros _ ⟨⟨i, x⟩, rfl⟩,
       simp only [mem_Union, mem_range],
       exact ⟨i, x, rfl⟩ } },
   have : (λ p : ι × α, u (t_sf n p.fst) p.snd)

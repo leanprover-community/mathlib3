@@ -269,6 +269,12 @@ begin
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
+instance linear_map.continuous_linear_map_class_of_finite_dimensional
+  [t2_space E] [finite_dimensional 𝕜 E] :
+  continuous_linear_map_class (E →ₗ[𝕜] F') 𝕜 E F' :=
+{ map_continuous := λ f, f.continuous_of_finite_dimensional,
+  ..linear_map.semilinear_map_class }
+
 /-- In finite dimensions over a non-discrete complete normed field, the canonical identification
 (in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
 This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field

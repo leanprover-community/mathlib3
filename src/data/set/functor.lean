@@ -30,14 +30,12 @@ instance : monad.{u} set :=
 @[simp] lemma pure_def (a : α) : (pure a : set α) = {a} := rfl
 
 instance : is_lawful_monad set :=
-{ pure_bind             := λ α β x f, by simp,
-  bind_assoc            := λ α β γ s f g, set.ext $ λ a,
-    by simp [exists_and_distrib_right.symm, -exists_and_distrib_right,
-             exists_and_distrib_left.symm, -exists_and_distrib_left, and_assoc];
-       exact exists_swap,
-  id_map                := λ α, id_map,
-  bind_pure_comp_eq_map := λ α β f s, set.ext $ by simp [set.image, eq_comm],
-  bind_map_eq_seq       := λ α β s t, by simp [seq_def] }
+{ id_map                := λ α, image_id,
+  comp_map              := λ α β γ f g s, image_comp _ _ _,
+  pure_bind             := λ α β, bUnion_singleton,
+  bind_assoc            := λ α β γ s f g, by simp only [bind_def, bUnion_Union],
+  bind_pure_comp_eq_map := λ α β f s, (image_eq_Union _ _).symm,
+  bind_map_eq_seq       := λ α β s t, seq_def.symm }
 
 instance : is_comm_applicative (set : Type u → Type u) :=
 ⟨ λ α β s t, prod_image_seq_comm s t ⟩

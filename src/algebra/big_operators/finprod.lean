@@ -785,7 +785,7 @@ begin
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
   { simp only [finprod_mem_coe_finset, finprod_eq_prod_of_fintype] },
-  { exact λ x _ y _ hxy, finset.disjoint_iff_disjoint_coe.2 (h x y hxy) }
+  { exact λ x _ y _ hxy, finset.disjoint_coe.1 (h x y hxy) }
 end
 
 /-- Given a family of sets `t : ι → set α`, a finite set `I` in the index type such that all sets

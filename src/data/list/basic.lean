@@ -1381,12 +1381,10 @@ begin
   exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)
 end
 
-lemma nth_le_eq_iff {α : Type}
-  {l : list α} {n : ℕ} {x : α} {h} : l.nth_le n h = x ↔ l.nth n = some x :=
+lemma nth_le_eq_iff {l : list α} {n : ℕ} {x : α} {h} : l.nth_le n h = x ↔ l.nth n = some x :=
 by { rw nth_eq_some, tauto }
 
-lemma some_nth_le_eq {α : Type}
-  {l : list α} {n : ℕ} {h} : some (l.nth_le n h) = l.nth n :=
+lemma some_nth_le_eq {l : list α} {n : ℕ} {h} : some (l.nth_le n h) = l.nth n :=
 by { symmetry, rw nth_eq_some, tauto }
 
 lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
@@ -1562,8 +1560,7 @@ lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.leng
 | (n+1) []       h := (nat.not_succ_le_zero _ h).elim
 | (n+1) (a'::as) h := begin
   dsimp [list.insert_nth],
-  erw [list.mem_cons_iff, mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
-    ← or.assoc, or_comm (a = a'), or.assoc]
+  erw [mem_insert_nth (nat.le_of_succ_le_succ h), ← or.assoc, or_comm (a = a'), or.assoc]
 end
 
 lemma inj_on_insert_nth_index_of_not_mem (l : list α) (x : α) (hx : x ∉ l) :

@@ -95,7 +95,7 @@ lemma precise_refinement_set [paracompact_space X] {s : set X} (hs : is_closed s
   (u : ι → set X) (uo : ∀ i, is_open (u i)) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, (∀ i, is_open (v i)) ∧ (s ⊆ ⋃ i, v i) ∧ locally_finite v ∧ (∀ i, v i ⊆ u i) :=
 begin
-  rcases precise_refinement (λ i, option.elim i sᶜ u)
+  rcases precise_refinement (option.elim sᶜ u)
     (option.forall.2 ⟨is_open_compl_iff.2 hs, uo⟩) _ with ⟨v, vo, vc, vf, vu⟩,
   refine ⟨v ∘ some, λ i, vo _, _, vf.comp_injective (option.some_injective _), λ i, vu _⟩,
   { simp only [Union_option, ← compl_subset_iff_union] at vc,

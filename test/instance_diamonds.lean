@@ -10,6 +10,7 @@ import group_theory.group_action.prod
 import group_theory.group_action.units
 import data.complex.module
 import ring_theory.algebraic
+import data.zmod.basic
 
 /-! # Tests that instances do not form diamonds -/
 
@@ -170,3 +171,17 @@ example [comm_semiring R] [nontrivial R] :
 rfl
 
 end polynomial
+
+/-! ## `zmod` instances -/
+section zmod
+
+variables {p : ℕ} [fact p.prime]
+
+example : @euclidean_domain.to_comm_ring _ (@field.to_euclidean_domain _ (zmod.field p)) =
+  zmod.comm_ring p :=
+rfl
+
+example (n : ℕ) : zmod.comm_ring (n + 1) = fin.comm_ring n := rfl
+example : zmod.comm_ring 0 = int.comm_ring := rfl
+
+end zmod

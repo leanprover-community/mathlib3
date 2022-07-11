@@ -192,7 +192,7 @@ calc module.rank K (R σ K) =
   ... = #(σ → {n // n < fintype.card K}) :
     (@equiv.subtype_pi_equiv_pi σ (λ_, ℕ) (λs n, n < fintype.card K)).cardinal_eq
   ... = #(σ → fin (fintype.card K)) :
-    (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
+    (equiv.arrow_congr (equiv.refl σ) (equiv.refl _)).cardinal_eq
   ... = #(σ → K) :
     (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
   ... = fintype.card (σ → K) : cardinal.mk_fintype _

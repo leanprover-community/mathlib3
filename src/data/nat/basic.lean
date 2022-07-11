@@ -27,7 +27,7 @@ universes u v
 instance : nontrivial ℕ :=
 ⟨⟨0, 1, nat.zero_ne_one⟩⟩
 
-instance : comm_semiring nat :=
+instance : comm_semiring ℕ :=
 { add            := nat.add,
   add_assoc      := nat.add_assoc,
   zero           := nat.zero,
@@ -44,6 +44,9 @@ instance : comm_semiring nat :=
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm,
+  nat_cast       := id,
+  nat_cast_zero  := rfl,
+  nat_cast_succ  := λ n, rfl,
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
   nsmul_succ'    := λ n x,
@@ -90,8 +93,8 @@ instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+{ exists_add_of_le := λ a b h, (nat.le.dest h).imp $ λ _, eq.symm,
+  le_self_add := nat.le_add_right,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   .. nat.nontrivial,
   .. nat.order_bot,
@@ -371,7 +374,7 @@ lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
-  rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],
+  rw [← lt_succ_iff, div_lt_iff_lt_mul n0, succ_mul, mul_comm],
   cases n, {cases n0},
   exact lt_succ_iff,
 end
@@ -747,6 +750,27 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+/-- Given a predicate on two naturals `P : ℕ → ℕ → Prop`, `P a b` is true for all `a < b` if
+`P (a + 1) (a + 1)` is true for all `a`, `P 0 (b + 1)` is true for all `b` and for all
+`a < b`, `P (a + 1) b` is true and `P a (b + 1)` is true implies `P (a + 1) (b + 1)` is true. -/
+@[elab_as_eliminator]
+lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a + 1) (a + 1)) (hb : ∀ b, P 0 (b + 1))
+  (hd : ∀ a b, a < b → P (a + 1) b → P a (b + 1) → P (a + 1) (b + 1)) :
+  ∀ a b, a < b → P a b
+| 0 (b + 1) h := hb _
+| (a + 1) (b + 1) h :=
+begin
+  apply hd _ _ ((add_lt_add_iff_right _).1 h),
+  { have : a + 1 = b ∨ a + 1 < b,
+    { rwa [← le_iff_eq_or_lt, ← nat.lt_succ_iff] },
+    rcases this with rfl | _,
+    { exact ha _ },
+    apply diag_induction (a + 1) b this },
+  apply diag_induction a (b + 1),
+  apply lt_of_le_of_lt (nat.le_succ _) h,
+end
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]
@@ -808,13 +832,13 @@ lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
-le_div_iff_mul_le x y k0
+le_div_iff_mul_le k0
 
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
-by rw [le_div_iff_mul_le _ _ hb, one_mul]
+by rw [le_div_iff_mul_le hb, one_mul]
 
 lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=
 lt_iff_lt_of_le_iff_le $ one_le_div_iff hb
@@ -840,7 +864,7 @@ lt_of_mul_lt_mul_left
   (nat.zero_le n)
 
 lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
-lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le _ _ w).2
+lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le w).2
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
@@ -856,7 +880,7 @@ eq_zero_of_mul_le hb $
 
 lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
+else (nat.le_div_iff_mul_le (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact nat.mul_le_mul_left _ (nat.div_mul_le_self _ _))
 
 lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
@@ -903,7 +927,7 @@ by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
 
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
 begin
-  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul hb],
   exact nat.lt_succ_self _,
 end
 
@@ -1191,7 +1215,7 @@ nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
-(nat.le_div_iff_mul_le _ _ h₂).2 $
+(nat.le_div_iff_mul_le h₂).2 $
   le_trans (nat.mul_le_mul_left _ h₁) (div_mul_le_self _ _)
 
 lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=
@@ -1267,6 +1291,15 @@ lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 
 lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
 by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
+
+lemma mul_add_mod (a b c : ℕ) : (a * b + c) % b = c % b :=
+by simp [nat.add_mod]
+
+lemma mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
+by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
+
+lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
+by { cases n; simp [(nat.succ_ne_self _).symm] }
 
 /-! ### `find` -/
 section find
@@ -1458,6 +1491,14 @@ by unfold bodd div2; cases bodd_div2 n; refl
 ⟨@nat.bit1_inj n 0, λ h, by subst h⟩
 @[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
 ⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
+
+theorem bit_add : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit ff n + bit b m
+| tt := bit1_add
+| ff := bit0_add
+
+theorem bit_add' : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit b n + bit ff m
+| tt := bit1_add'
+| ff := bit0_add
 
 protected theorem bit0_le {n m : ℕ} (h : n ≤ m) : bit0 n ≤ bit0 m :=
 add_le_add h h

@@ -389,14 +389,13 @@ partial_order.lift to_germ to_germ_injective
 section lattice
 
 section sup
-variables [semilattice_sup β] [measurable_space β] [second_countable_topology β]
-  [pseudo_metrizable_space β] [borel_space β] [has_measurable_sup₂ β]
+variables [semilattice_sup β] [has_continuous_sup β]
 
 instance : has_sup (α →ₘ[μ] β) :=
-{ sup := λ f g, ae_eq_fun.comp₂_measurable (⊔) measurable_sup f g }
+{ sup := λ f g, ae_eq_fun.comp₂ (⊔) continuous_sup f g }
 
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x :=
-coe_fn_comp₂_measurable _ _ _ _
+coe_fn_comp₂ _ _ _ _
 
 protected lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g] with _ ha, rw ha, exact le_sup_left, }
@@ -415,14 +414,13 @@ end
 end sup
 
 section inf
-variables [semilattice_inf β] [measurable_space β] [second_countable_topology β]
-  [pseudo_metrizable_space β] [borel_space β] [has_measurable_inf₂ β]
+variables [semilattice_inf β] [has_continuous_inf β]
 
 instance : has_inf (α →ₘ[μ] β) :=
-{ inf := λ f g, ae_eq_fun.comp₂_measurable (⊓) measurable_inf f g }
+{ inf := λ f g, ae_eq_fun.comp₂ (⊓) continuous_inf f g }
 
 lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x :=
-coe_fn_comp₂_measurable _ _ _ _
+coe_fn_comp₂ _ _ _ _
 
 protected lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g] with _ ha, rw ha, exact inf_le_left, }
@@ -440,9 +438,7 @@ end
 
 end inf
 
-instance [lattice β] [measurable_space β] [second_countable_topology β]
-  [pseudo_metrizable_space β] [borel_space β]
-  [has_measurable_sup₂ β] [has_measurable_inf₂ β] : lattice (α →ₘ[μ] β) :=
+instance [lattice β] [topological_lattice β] : lattice (α →ₘ[μ] β) :=
 { sup           := has_sup.sup,
   le_sup_left   := ae_eq_fun.le_sup_left,
   le_sup_right  := ae_eq_fun.le_sup_right,
@@ -678,6 +674,20 @@ induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add_left' hf.ae_measurabl
 
 lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
+
+section abs
+
+lemma coe_fn_abs {β} [topological_space β] [lattice β] [topological_lattice β]
+  [add_group β] [topological_add_group β]
+  (f : α →ₘ[μ] β) :
+  ⇑|f| =ᵐ[μ] λ x, |f x| :=
+begin
+  simp_rw abs_eq_sup_neg,
+  filter_upwards [ae_eq_fun.coe_fn_sup f (-f), ae_eq_fun.coe_fn_neg f] with x hx_sup hx_neg,
+  rw [hx_sup, hx_neg, pi.neg_apply],
+end
+
+end abs
 
 section pos_part
 

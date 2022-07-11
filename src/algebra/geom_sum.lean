@@ -361,7 +361,7 @@ calc
 lemma nat.geom_sum_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in range n, a/b^i ≤ a * b/(b - 1) :=
 begin
-  refine (nat.le_div_iff_mul_le _ _ $ tsub_pos_of_lt hb).2 _,
+  refine (nat.le_div_iff_mul_le $ tsub_pos_of_lt hb).2 _,
   cases n,
   { rw [sum_range_zero, zero_mul],
     exact nat.zero_le _ },
@@ -373,7 +373,7 @@ lemma nat.geom_sum_Ico_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in Ico 1 n, a/b^i ≤ a/(b - 1) :=
 begin
   cases n,
-  { rw [Ico_eq_empty_of_le (@zero_le_one ℕ _ _ _ _), sum_empty],
+  { rw [Ico_eq_empty_of_le (zero_le_one' ℕ), sum_empty],
     exact nat.zero_le _ },
   rw ←add_le_add_iff_left a,
   calc

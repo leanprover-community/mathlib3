@@ -42,7 +42,8 @@ intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
 by refine
-{ .. punit.comm_group,
+{ nat_cast := λ _, punit.star,
+  .. punit.comm_group,
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
@@ -99,7 +100,7 @@ intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 
 instance : canonically_ordered_add_monoid punit :=
 by refine
-{ le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
+{ exists_add_of_le := λ _ _ _, ⟨star, subsingleton.elim _ _⟩,
   .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 

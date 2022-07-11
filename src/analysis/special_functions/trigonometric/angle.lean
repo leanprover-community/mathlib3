@@ -19,17 +19,18 @@ noncomputable theory
 namespace real
 
 /-- The type of angles -/
+@[derive [add_comm_group, topological_space, topological_add_group]]
 def angle : Type :=
 ℝ ⧸ (add_subgroup.zmultiples (2 * π))
 
 namespace angle
 
-instance angle.add_comm_group : add_comm_group angle :=
-quotient_add_group.add_comm_group _
-
 instance : inhabited angle := ⟨0⟩
 
 instance : has_coe ℝ angle := ⟨quotient_add_group.mk' _⟩
+
+@[continuity] lemma continuous_coe : continuous (coe : ℝ → angle) :=
+continuous_quotient_mk
 
 /-- Coercion `ℝ → angle` as an additive homomorphism. -/
 def coe_hom : ℝ →+ angle := quotient_add_group.mk' _
@@ -46,6 +47,8 @@ quotient.induction_on' θ h
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+lemma coe_nsmul (n : ℕ) (x : ℝ) : ↑(n • x : ℝ) = (n • ↑x : angle) := rfl
+lemma coe_zsmul (z : ℤ) (x : ℝ) : ↑(z • x : ℝ) = (z • ↑x : angle) := rfl
 
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n • (↑x : angle) :=
@@ -149,11 +152,17 @@ def sin (θ : angle) : ℝ := sin_periodic.lift θ
 @[simp] lemma sin_coe (x : ℝ) : sin (x : angle) = real.sin x :=
 rfl
 
+@[continuity] lemma continuous_sin : continuous sin :=
+continuous_quotient_lift_on' _ real.continuous_sin
+
 /-- The cosine of a `real.angle`. -/
 def cos (θ : angle) : ℝ := cos_periodic.lift θ
 
 @[simp] lemma cos_coe (x : ℝ) : cos (x : angle) = real.cos x :=
 rfl
+
+@[continuity] lemma continuous_cos : continuous cos :=
+continuous_quotient_lift_on' _ real.continuous_cos
 
 end angle
 

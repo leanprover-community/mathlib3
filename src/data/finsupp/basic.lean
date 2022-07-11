@@ -1123,6 +1123,15 @@ fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
+lemma single_add_single_eq_single_add_single [add_comm_monoid M]
+  {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
+  single k u + single l v = single m u + single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
+  exact pi.single_add_single_eq_single_add_single hu hv,
+end
+
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
 multiset.induction_on s (single_zero _) $ λ a s ih,
@@ -1396,6 +1405,8 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 
 /-- For disjoint `f1` and `f2`, and function `g`, the product of the products of `g`
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
+@[to_additive "For disjoint `f1` and `f2`, and function `g`, the sum of the sums of `g`
+over `f1` and `f2` equals the sum of `g` over `f1 + f2`"]
 lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
   (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
@@ -2818,4 +2829,16 @@ int.cast_prod _ _
 int.cast_sum _ _
 
 end int
+
+namespace rat
+
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
+cast_sum _ _
+
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
+cast_prod _ _
+
+end rat
 end cast_finsupp

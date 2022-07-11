@@ -144,7 +144,7 @@ end
 theorem fintype.linear_independent_iff' [fintype ι] :
   linear_independent R v ↔
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
-by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
+by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]; skip
 
 lemma fintype.not_linear_independent_iff [fintype ι] :
   ¬linear_independent R v ↔ ∃ g : ι → R, (∑ i, g i • v i) = 0 ∧ (∃ i, g i ≠ 0) :=
@@ -617,7 +617,8 @@ begin
     ∑ i in s.preimage sum.inr (sum.inr_injective.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
   { rw [finset.sum_preimage', finset.sum_preimage', ← finset.sum_union, ← finset.filter_or],
     { simpa only [← mem_union, range_inl_union_range_inr, mem_univ, finset.filter_true] },
-    { exact finset.disjoint_filter.2 (λ x hx, disjoint_left.1 is_compl_range_inl_range_inr.1) } },
+    { exact finset.disjoint_filter.2
+        (λ x _ hx, disjoint_left.1 is_compl_range_inl_range_inr.1 hx) } },
   { rw ← eq_neg_iff_add_eq_zero at this,
     rw [disjoint_def'] at hlr,
     have A := hlr _ (sum_mem $ λ i hi, _) _ (neg_mem $ sum_mem $ λ i hi, _) this,

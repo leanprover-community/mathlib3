@@ -54,7 +54,14 @@ eventually_lift'_iff monotone_powerset
 lemma eventually_small_sets' {p : set α → Prop} (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in l.small_sets, p s) ↔ ∃ s ∈ l, p s :=
 eventually_small_sets.trans $ exists₂_congr $ λ s hsf,
-  ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+  ⟨λ H, H s subset.rfl, λ hs t ht, hp ht hs⟩
+
+lemma frequently_small_sets {p : set α → Prop} :
+  (∃ᶠ s in l.small_sets, p s) ↔ ∀ t ∈ l, ∃ s ⊆ t, p s :=
+l.has_basis_small_sets.frequently_iff
+
+lemma frequently_small_sets_mem (l : filter α) : ∃ᶠ s in l.small_sets, s ∈ l :=
+frequently_small_sets.2 $ λ t ht, ⟨t, subset.rfl, ht⟩
 
 lemma has_antitone_basis.tendsto_small_sets {ι} [preorder ι] {s : ι → set α}
   (hl : l.has_antitone_basis s) : tendsto s at_top l.small_sets :=

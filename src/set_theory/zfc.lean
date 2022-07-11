@@ -755,7 +755,7 @@ set.ext $ λ z, iff.symm Set.mem_powerset
 set.ext $ λ z, by { refine iff.trans _ Set.mem_Union.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
 
-/-- The definite description operator, which is `{x}` if `{b | A b} = {x}` and `∅` otherwise. -/
+/-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := Union {x | ∀ y, A y ↔ y = x}
 
 theorem iota_val (A : Class) (x : Set) (H : ∀ y, A y ↔ y = x) : iota A = ↑x :=

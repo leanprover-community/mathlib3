@@ -522,8 +522,10 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := refl x
 theorem equiv_refl (x) : x ≈ x := refl x
+
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+protected theorem equiv_comm {x y} : x ≈ y ↔ y ≈ x := comm
 
 theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
@@ -570,16 +572,16 @@ lt_congr hx equiv_rfl
 theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
 lt_congr equiv_rfl hy
 
-theorem lf_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x ⧏ y ∨ x ≈ y :=
-or_iff_not_imp_left.2 $ λ h', ⟨h, pgame.not_lf.1 h'⟩
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+and_or_distrib_left.mp ⟨h, (em $ y ≤ x).swap.imp_left pgame.not_le.1⟩
 
 theorem lf_or_equiv_or_gf (x y : pgame) : x ⧏ y ∨ x ≈ y ∨ y ⧏ x :=
 begin
   by_cases h : x ⧏ y,
   { exact or.inl h },
   { right,
-    cases (lf_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
-    { exact or.inr h' },
+    cases (lt_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
+    { exact or.inr h'.lf },
     { exact or.inl h'.symm } }
 end
 
@@ -832,6 +834,16 @@ begin
       { rintros m n rfl b c rfl, refl },
       exact this (list.length_map _ _).symm ha } }
 end
+
+theorem is_option_neg {x y : pgame} : is_option x (-y) ↔ is_option (-x) y :=
+begin
+  rw [is_option_iff, is_option_iff, or_comm],
+  cases y, apply or_congr;
+  { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
+end
+
+@[simp] theorem is_option_neg_neg {x y : pgame} : is_option (-x) (-y) ↔ is_option x y :=
+by rw [is_option_neg, neg_neg]
 
 theorem left_moves_neg : ∀ x : pgame, (-x).left_moves = x.right_moves
 | ⟨_, _, _, _⟩ := rfl

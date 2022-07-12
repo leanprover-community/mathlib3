@@ -95,7 +95,7 @@ begin
   have n_large_real : 512 ≤ (n : ℝ) := le_trans (by norm_num) (cast_le.mpr n_large),
   refine trans (mul_le_mul _ _ _ _) (real_main_inequality n_large_real),
   { exact (mul_le_mul_left (by linarith)).mpr (real.rpow_le_rpow_of_exponent_le (by linarith)
-    (real.nat_sqrt_le_real_sqrt.trans (by norm_cast))) },
+      (real.nat_sqrt_le_real_sqrt.trans (by norm_cast))) },
   { exact real.rpow_le_rpow_of_exponent_le (by norm_num) (cast_div_le.trans (by norm_cast)) },
   { exact le_of_lt (real.rpow_pos_of_pos (by norm_num) _), },
   { refine mul_nonneg (by linarith) (le_of_lt (real.rpow_pos_of_pos (by linarith) _)), },
@@ -136,146 +136,28 @@ lemma central_binom_le_of_no_bertrand_prime (n : ℕ) (n_big : 2 < n)
   central_binom n
     ≤ (2 * n) ^ (sqrt (2 * n))
       * 4 ^ (2 * n / 3) :=
-calc
-central_binom n
-    = (∏ p in (finset.range (2 * n / 3 + 1)),
-          p ^ ((central_binom n).factorization p)) :
-          (central_binom_factorization_small n n_big no_prime)
-... = (∏ p in (finset.range (2 * n / 3 + 1)),
-          if p ≤ sqrt (2 * n)
-          then p ^ ((central_binom n).factorization p)
-          else p ^ ((central_binom n).factorization p)) : by simp only [if_t_t]
-... = (∏ p in ((finset.range (2 * n / 3 + 1))).filter (≤ sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p))
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (λ p, ¬p ≤ sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) : finset.prod_ite _ _
-... = (∏ p in ((finset.range (2 * n / 3 + 1))).filter (≤ sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p))
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) :
-        by simp only [not_le, finset.filter_congr_decidable]
-... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p))
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) :
-        begin
-          congr' 1,
-          symmetry,
-          refine finset.prod_subset
-                  (finset.filter_subset_filter _ (finset.filter_subset nat.prime _)) _,
-          simp only [finset.mem_filter, finset.mem_range, finset.mem_Ico],
-          intros x hx hx',
-          have not_prime_x : ¬ nat.prime x, tauto,
-          simp [not_prime_x],
-        end
-... ≤ (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n)), 2 * n)
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) :
-        begin
-          refine (nat.mul_le_mul_right _ _),
-          refine (finset.prod_le_prod'' _),
-          intros i hyp,
-          exact pow_factorization_choose_le (by linarith),
-        end
-... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n))).card
-      *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) : by simp only [finset.prod_const]
-... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ^ 2 < 2 * n)).card
-      *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) :
-        begin
-          congr' 3,
-          ext1,
-          simp only [and_imp, finset.mem_filter, finset.mem_range, and.congr_right_iff],
-          intros a_small a_prime,
-          rw [le_sqrt', le_iff_eq_or_lt, or_iff_right_iff_imp],
-          intro a_sq_even,
-          exfalso,
-          have a_even := even_two_mul n,
-          rw [←a_sq_even, even_pow, nat.prime.even_iff a_prime] at a_even,
-          rw a_even.left at a_sq_even,
-          norm_num at a_sq_even,
-          linarith,
-        end
-... ≤ (2 * n) ^ (sqrt (2 * n))
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) :
-        begin
-          refine (nat.mul_le_mul_right _ _),
-          refine pow_le_pow (by linarith) _,
-          have : (finset.Ico 1 (sqrt (2 * n) + 1)).card = sqrt (2 * n) := by simp,
-          rw ←this,
-          clear this,
-          apply finset.card_mono,
-          rw [finset.le_eq_subset, finset.subset_iff],
-          simp only [and_imp, finset.mem_filter, finset.mem_range, finset.mem_Ico],
-          intros x _ x_prime h,
-          split,
-          { exact le_of_lt (nat.prime.one_lt x_prime), },
-          { rw [lt_succ_iff, le_sqrt'],
-            exact le_of_lt h, },
-        end
-... = (2 * n) ^ (sqrt (2 * n))
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
-          p ^ ((central_binom n).factorization p)) :
-        begin
-          congr' 1,
-          symmetry,
-          refine finset.prod_subset
-                  (finset.filter_subset_filter _ (finset.filter_subset nat.prime _)) _,
-          simp only [finset.mem_filter, finset.mem_range, finset.mem_Ico],
-          intros x hx hx',
-          have not_prime_x : ¬ nat.prime x, tauto,
-          simp [not_prime_x],
-        end
-... ≤ (2 * n) ^ (sqrt (2 * n))
-        *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)), p ^ 1) :
-      begin
-        refine nat.mul_le_mul_left _ _,
-        { refine finset.prod_le_prod'' _,
-          simp only [finset.mem_filter, finset.mem_range],
-          rintros i ⟨hi, sqrt_two_n_lt_i⟩,
-          refine pow_le_pow _ _,
-          { cases le_or_gt 1 i,
-            { exact h, },
-            { have i_zero : i = 0, by linarith,
-              rw i_zero at *,
-              exfalso,
-              simp at sqrt_two_n_lt_i,
-              exact sqrt_two_n_lt_i, }, },
-          { exact nat.factorization_choose_le_one ((@sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i), }, },
-      end
-... ≤ (2 * n) ^ (sqrt (2 * n))
-        *
-      (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime, p ^ 1) :
-        begin
-          refine nat.mul_le_mul_left _ _,
-          refine finset.prod_le_prod_of_subset_of_one_le' (finset.filter_subset _ _) _,
-          { intros i hyp1 hyp2,
-            cases le_or_gt 1 i,
-            { ring_nf, exact h, },
-            { have i_zero : i = 0, by linarith,
-              rw [i_zero, finset.mem_filter, finset.mem_range] at hyp1,
-              exfalso, exact nat.not_prime_zero hyp1.right, }, }
-        end
-... = (2 * n) ^ (sqrt (2 * n))
-        *
-      (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime, p) : by simp only [pow_one]
-... = (2 * n) ^ (sqrt (2 * n))
-        *
-      (primorial (2 * n / 3)) : by unfold primorial
-... ≤ (2 * n) ^ (sqrt (2 * n))
-        *
-      4 ^ (2 * n / 3) : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3))
+begin
+  rw [central_binom_factorization_small n n_big no_prime, ←finset.prod_filter_of_ne (λ p hp h, _),
+    ←finset.prod_filter_mul_prod_filter_not ((finset.range _).filter nat.prime) (≤ sqrt (2 * n))],
+  swap,
+  { contrapose! h,
+    rw [factorization_eq_zero_of_non_prime n.central_binom h, pow_zero] },
+  simp only [not_le, ←gt_iff_lt],
+  refine mul_le_mul' _ (le_trans _ (primorial_le_4_pow (2 * n / 3))),
+  { apply (finset.prod_le_prod'' (λ p hp, show p ^ n.central_binom.factorization p ≤ 2 * n,
+      from pow_factorization_choose_le (by linarith))).trans,
+    have : (finset.Icc 1 (sqrt (2 * n))).card = sqrt (2 * n),
+    { rw [card_Icc, add_tsub_cancel_right] },
+    rw [finset.prod_const, ←this],
+    refine pow_le_pow (by linarith) (finset.card_le_of_subset _),
+    simp only [finset.subset_iff, finset.mem_filter, this],
+    exact λ x hx, finset.mem_Icc.mpr ⟨hx.1.2.one_lt.le, hx.2⟩ },
+  { refine (finset.prod_le_prod' (λ p hp, _)).trans (finset.prod_le_prod_of_subset_of_one_le'
+      (finset.filter_subset _ _) (λ p hp _, (finset.mem_filter.mp hp).2.one_lt.le)),
+    rw [finset.mem_filter, finset.mem_filter] at hp,
+    refine (pow_le_pow hp.1.2.one_lt.le _).trans (pow_one p).le,
+    exact nat.factorization_choose_le_one (sqrt_lt'.mp hp.2) },
+end
 
 end nat
 

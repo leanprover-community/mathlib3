@@ -522,8 +522,10 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := refl x
 theorem equiv_refl (x) : x ≈ x := refl x
+
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+protected theorem equiv_comm {x y} : x ≈ y ↔ y ≈ x := comm
 
 theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 

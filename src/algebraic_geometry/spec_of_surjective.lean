@@ -37,21 +37,33 @@ lemma comap_inducing_of_surjective (hf : surjective f) : inducing (f ^*) :=
 
 -- prime_spectrum.comap_injective_of_surjective,
 
-lemma image_of_spec_of_surjective : set.range (f ^*) = prime_spectrum.zero_locus (ker f) :=
-   begin
-    ext x,
+lemma image_of_spec_of_surjective (hf : surjective f) :
+    set.range (f ^*) = prime_spectrum.zero_locus (ker f) :=
+begin
+    ext p, rw [set.mem_range, mem_zero_locus],
     split,
     { rintro ⟨p, rfl⟩ a ha,
-      simp,
-      -- need to use: linear_algebra.quotient.mk_eq_zero
-      sorry,},
+      simp only [ideal.mem_comap, set_like.mem_coe, comap_as_ideal],
+      rw (mem_ker _).mp ha, exact zero_mem _, },
+    { intro h_ker_p,
+      use ideal.map f p.as_ideal,
+      apply ideal.map_is_prime_of_surjective hf h_ker_p,
+      ext x,
+      change f x ∈ p.as_ideal.map f ↔ _,
+      rw ideal.mem_map_iff_of_surjective _ hf,
+      split,
+      { rintros ⟨x', ⟨hx', heq⟩⟩,
+        rw (by ring : x = x' + (x - x')),
+        apply p.as_ideal.add_mem hx',
+        apply h_ker_p ((mem_ker _).mpr _),
+        rw [map_sub, heq, sub_self], },
+      intro hx, exact ⟨x, hx, rfl⟩,
+    },
+end
 
-    { sorry, }
-   end
-
-lemma is_closed_spec_of_surjective : is_closed (set.range (f ^*)) :=
+lemma is_closed_spec_of_surjective (hf : surjective f) : is_closed (set.range (f ^*)) :=
     begin
-        rw image_of_spec_of_surjective,
+        rw image_of_spec_of_surjective _ hf,
         exact is_closed_zero_locus ↑(ker f),
     end
 
@@ -60,8 +72,8 @@ lemma closed_embedding_of_spec_of_surjective (hf : surjective f) : closed_embedd
     begin
         split, split,
         exact comap_inducing_of_surjective f hf,
-        exact prime_spectrum.comap_injective_of_surjective f hf,
-        exact is_closed_spec_of_surjective f,
+        exact comap_injective_of_surjective f hf,
+        exact is_closed_spec_of_surjective f hf,
     end
 
 end spec_of_surjective

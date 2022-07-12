@@ -331,7 +331,7 @@ protected def nonempty (s : finset α) : Prop := ∃ x : α, x ∈ s
 
 @[simp] lemma nonempty_coe_sort {s : finset α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
-alias coe_nonempty ↔ _ finset.nonempty.to_set
+alias coe_nonempty ↔ _ nonempty.to_set
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x : α, x ∈ s := h
 
@@ -1921,6 +1921,15 @@ lemma map_comm {β'} {f : β ↪ γ} {g : α ↪ β} {f' : α ↪ β'} {g' : β'
   (s.map g).map f = (s.map f').map g' :=
 by simp_rw [map_map, embedding.trans, function.comp, h_comm]
 
+lemma _root_.function.semiconj.finset_map {f : α ↪ β} {ga : α ↪ α} {gb : β ↪ β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (map f) (map ga) (map gb) :=
+λ s, map_comm h
+
+lemma _root_.function.commute.finset_map {f g : α ↪ α} (h : function.commute f g) :
+  function.commute (map f) (map g) :=
+h.finset_map
+
 @[simp] theorem map_subset_map {s₁ s₂ : finset α} : s₁.map f ⊆ s₂.map f ↔ s₁ ⊆ s₂ :=
 ⟨λ h x xs, (mem_map' _).1 $ h $ (mem_map' f).2 xs,
  λ h, by simp [subset_def, map_subset_map h]⟩
@@ -1981,7 +1990,7 @@ eq_of_veq $ multiset.map_cons f a s.val
 @[simp] lemma map_nonempty : (s.map f).nonempty ↔ s.nonempty :=
 by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, map_eq_empty]
 
-alias map_nonempty ↔ _ finset.nonempty.map
+alias map_nonempty ↔ _ nonempty.map
 
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
@@ -2094,6 +2103,16 @@ lemma image_comm {β'} [decidable_eq β'] [decidable_eq γ] {f : β → γ} {g :
   {f' : α → β'} {g' : β' → γ} (h_comm : ∀ a, f (g a) = g' (f' a)) :
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, comp, h_comm]
+
+lemma _root_.function.semiconj.finset_image [decidable_eq α] {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (image f) (image ga) (image gb) :=
+λ s, image_comm h
+
+lemma _root_.function.commute.finset_image [decidable_eq α] {f g : α → α}
+  (h : function.commute f g) :
+  function.commute (image f) (image g) :=
+h.finset_image
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
 by simp only [subset_def, image_val, subset_dedup', dedup_subset',

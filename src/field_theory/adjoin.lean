@@ -372,7 +372,7 @@ begin
   { rw [h, inv_zero], exact subalgebra.zero_mem (algebra.adjoin F {α}) },
 
   let ϕ := alg_equiv.adjoin_singleton_equiv_adjoin_root_minpoly F α,
-  haveI := minpoly.irreducible hα,
+  haveI := fact.mk (minpoly.irreducible hα),
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
     refine inv_eq_of_mul_eq_one_right _,
@@ -512,7 +512,7 @@ alg_equiv.of_bijective
   (adjoin_root.lift_hom (minpoly F α) (adjoin_simple.gen F α) (aeval_gen_minpoly F α))
   (begin
     set f := adjoin_root.lift _ _ (aeval_gen_minpoly F α : _),
-    haveI := minpoly.irreducible h,
+    haveI := fact.mk (minpoly.irreducible h),
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
@@ -598,8 +598,7 @@ lemma fg_adjoin_finset (t : finset E) : (adjoin F (↑t : set E)).fg :=
 ⟨t, rfl⟩
 
 theorem fg_def {S : intermediate_field F E} : S.fg ↔ ∃ t : set E, set.finite t ∧ adjoin F t = S :=
-⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
- λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+iff.symm set.exists_finite_iff_finset
 
 theorem fg_bot : (⊥ : intermediate_field F E).fg :=
 ⟨∅, adjoin_empty F E⟩

@@ -239,7 +239,7 @@ lemma add [has_add β] [has_continuous_add β] (hu : adapted f u) (hv : adapted 
 lemma neg [add_group β] [topological_add_group β] (hu : adapted f u) : adapted f (-u) :=
 λ i, (hu i).neg
 
-lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+lemma smul [has_smul ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 

@@ -1158,7 +1158,7 @@ begin
   exact comap_mono hu
 end
 
-lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
+lemma uniform_continuous_iff {α β} {uα : uniform_space α} {uβ : uniform_space β} {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
 filter.map_le_iff_le_comap
 
@@ -1221,6 +1221,49 @@ end
 lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 rfl
+
+section uniform_continuous_infi
+
+lemma uniform_continuous_inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ u₃ : uniform_space β}
+  (h₁ : @@uniform_continuous u₁ u₂ f) (h₂ : @@uniform_continuous u₁ u₃ f) :
+  @@uniform_continuous u₁ (u₂ ⊓ u₃) f :=
+tendsto_inf.mpr ⟨h₁, h₂⟩
+
+lemma uniform_continuous_inf_dom_left {f : α → β} {u₁ u₂ : uniform_space α} {u₃ : uniform_space β}
+  (hf : @@uniform_continuous u₁ u₃ f) : @@uniform_continuous (u₁ ⊓ u₂) u₃ f :=
+tendsto_inf_left hf
+
+lemma uniform_continuous_inf_dom_right {f : α → β} {u₁ u₂ : uniform_space α} {u₃ : uniform_space β}
+  (hf : @@uniform_continuous u₂ u₃ f) : @@uniform_continuous (u₁ ⊓ u₂) u₃ f :=
+tendsto_inf_right hf
+
+lemma uniform_continuous_Inf_dom {f : α → β} {u₁ : set (uniform_space α)} {u₂ : uniform_space β}
+  {u : uniform_space α} (h₁ : u ∈ u₁) (hf : @@uniform_continuous u u₂ f) :
+  @@uniform_continuous (Inf u₁) u₂ f :=
+begin
+  rw [uniform_continuous, Inf_eq_infi', infi_uniformity'],
+  exact tendsto_infi' ⟨u, h₁⟩ hf
+end
+
+lemma uniform_continuous_Inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ : set (uniform_space β)}
+  (h : ∀u∈u₂, @@uniform_continuous u₁ u f) : @@uniform_continuous u₁ (Inf u₂) f :=
+begin
+  rw [uniform_continuous, Inf_eq_infi', infi_uniformity'],
+  exact tendsto_infi.mpr (λ ⟨u, hu⟩, h u hu)
+end
+
+lemma uniform_continuous_infi_dom {f : α → β} {u₁ : ι → uniform_space α} {u₂ : uniform_space β}
+  {i : ι} (hf : @@uniform_continuous (u₁ i) u₂ f) : @@uniform_continuous (infi u₁) u₂ f :=
+begin
+  rw [uniform_continuous, infi_uniformity'],
+  exact tendsto_infi' i hf
+end
+
+lemma uniform_continuous_infi_rng {f : α → β} {u₁ : uniform_space α} {u₂ : ι → uniform_space β}
+  (h : ∀i, @@uniform_continuous u₁ (u₂ i) f) : @@uniform_continuous u₁ (infi u₂) f :=
+by rwa [uniform_continuous, infi_uniformity', tendsto_infi]
+
+end uniform_continuous_infi
 
 /-- A uniform space with the discrete uniformity has the discrete topology. -/
 lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
@@ -1388,6 +1431,51 @@ lemma uniform_continuous.prod_map [uniform_space δ] {f : α → γ} {g : β →
 lemma to_topological_space_prod {α} {β} [u : uniform_space α] [v : uniform_space β] :
   @uniform_space.to_topological_space (α × β) prod.uniform_space =
     @prod.topological_space α β u.to_topological_space v.to_topological_space := rfl
+
+/-- A version of `uniform_continuous_inf_dom_left` for binary functions -/
+lemma uniform_continuous_inf_dom_left₂ {α β γ} {f : α → β → γ}
+  {ua1 ua2 : uniform_space α} {ub1 ub2 : uniform_space β} {uc1 : uniform_space γ}
+  (h : by haveI := ua1; haveI := ub1; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
+  by haveI := ua1 ⊓ ua2; haveI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
+begin
+  -- proof essentially copied from ``continuous_inf_dom_left₂`
+  have ha := @uniform_continuous_inf_dom_left _ _ id ua1 ua2 ua1 (@uniform_continuous_id _ (id _)),
+  have hb := @uniform_continuous_inf_dom_left _ _ id ub1 ub2 ub1 (@uniform_continuous_id _ (id _)),
+  have h_unif_cont_id := @uniform_continuous.prod_map _ _ _ _ (
+    ua1 ⊓ ua2) (ub1 ⊓ ub2) ua1 ub1 _ _ ha hb,
+  exact @uniform_continuous.comp _ _ _ (id _) (id _) _ _ _ h h_unif_cont_id,
+end
+
+/-- A version of `uniform_continuous_inf_dom_right` for binary functions -/
+lemma uniform_continuous_inf_dom_right₂ {α β γ} {f : α → β → γ}
+  {ua1 ua2 : uniform_space α} {ub1 ub2 : uniform_space β} {uc1 : uniform_space γ}
+  (h : by haveI := ua2; haveI := ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
+  by haveI := ua1 ⊓ ua2; haveI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
+begin
+  -- proof essentially copied from ``continuous_inf_dom_right₂`
+  have ha := @uniform_continuous_inf_dom_right _ _ id ua1 ua2 ua2 (@uniform_continuous_id _ (id _)),
+  have hb := @uniform_continuous_inf_dom_right _ _ id ub1 ub2 ub2 (@uniform_continuous_id _ (id _)),
+  have h_unif_cont_id := @uniform_continuous.prod_map _ _ _ _
+    (ua1 ⊓ ua2) (ub1 ⊓ ub2) ua2 ub2  _ _ ha hb,
+  exact @uniform_continuous.comp _ _ _ (id _) (id _) _ _ _ h h_unif_cont_id,
+end
+
+/-- A version of `uniform_continuous_Inf_dom` for binary functions -/
+lemma uniform_continuous_Inf_dom₂ {α β γ} {f : α → β → γ}
+  {uas : set (uniform_space α)} {ubs : set (uniform_space β)}
+  {ua : uniform_space α} {ub : uniform_space β} {uc : uniform_space γ}
+  (ha : ua ∈ uas) (hb : ub ∈ ubs)
+  (hf : uniform_continuous (λ p : α × β, f p.1 p.2)):
+  by haveI := Inf uas; haveI := Inf ubs;
+    exact @uniform_continuous _ _ _ uc (λ p : α × β, f p.1 p.2) :=
+begin
+  -- proof essentially copied from ``continuous_Inf_dom`
+  let t : uniform_space (α × β) := prod.uniform_space,
+  have ha := uniform_continuous_Inf_dom ha uniform_continuous_id,
+  have hb := uniform_continuous_Inf_dom hb uniform_continuous_id,
+  have h_unif_cont_id := @uniform_continuous.prod_map _ _ _ _ (Inf uas) (Inf ubs) ua ub _ _ ha hb,
+  exact @uniform_continuous.comp _ _ _ (id _) (id _) _ _ _ hf h_unif_cont_id,
+end
 
 end prod
 

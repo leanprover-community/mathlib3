@@ -832,7 +832,7 @@ end
 ⟨λ ⟨a, ae⟩, m.eq_zero_or_pos.elim
   (λm0, by simp [m0] at ae; simp [ae, m0])
   (λm0l, by
-  { cases eq_coe_of_zero_le (@nonneg_of_mul_nonneg_left ℤ _ m a
+  { cases eq_coe_of_zero_le (@nonneg_of_mul_nonneg_right ℤ _ m a
       (by simp [ae.symm]) (by simpa using m0l)) with k e,
     subst a, exact ⟨k, int.coe_nat_inj ae⟩ }),
  λ ⟨k, e⟩, dvd.intro k $ by rw [e, int.coe_nat_mul]⟩

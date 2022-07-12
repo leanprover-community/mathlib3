@@ -583,7 +583,7 @@ by rw [disjoint.comm, disjoint_principal_right]
   disjoint (𝓟 s) (𝓟 t) ↔ disjoint s t :=
 by simp [←subset_compl_iff_disjoint_left]
 
-alias disjoint_principal_principal ↔ _ disjoint.filter_principal
+alias disjoint_principal_principal ↔ _ _root_.disjoint.filter_principal
 
 @[simp] lemma disjoint_pure_pure {x y : α} :
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
@@ -779,6 +779,16 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 (hla.comap prod.fst).sup (hlb.comap prod.snd)
 
 end two_types
+
+lemma map_sigma_mk_comap {π : α → Type*} {π' : β → Type*} {f : α → β}
+  (hf : function.injective f) (g : Π a, π a → π' (f a)) (a : α) (l : filter (π' (f a))) :
+  map (sigma.mk a) (comap (g a) l) = comap (sigma.map f g) (map (sigma.mk (f a)) l) :=
+begin
+  refine (((basis_sets _).comap _).map _).eq_of_same_basis _,
+  convert ((basis_sets _).map _).comap _,
+  ext1 s,
+  apply image_sigma_mk_preimage_sigma_map hf
+end
 
 end filter
 

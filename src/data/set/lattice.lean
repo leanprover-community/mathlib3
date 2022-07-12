@@ -1518,9 +1518,9 @@ lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
-by simp [set.not_disjoint_iff, set.nonempty_def]
+not_disjoint_iff
 
-alias not_disjoint_iff_nonempty_inter ↔ _ set.nonempty.not_disjoint
+alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 
 lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
 (em _).imp_right not_disjoint_iff_nonempty_inter.mp

@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
 import analysis.special_functions.pow_deriv
+import analysis.special_functions.sqrt
 
 /-!
 # Collection of convex functions
@@ -42,7 +43,7 @@ lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
 lemma even.convex_on_pow {n : ℕ} (hn : even n) : convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
-  apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
+  apply convex_on_univ_of_deriv2_nonneg (differentiable_pow n),
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
     obtain ⟨k, hk⟩ := (hn.tsub $ even_bit0 _).exists_two_nsmul _,
@@ -54,7 +55,7 @@ end
 lemma even.strict_convex_on_pow {n : ℕ} (hn : even n) (h : n ≠ 0) :
   strict_convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
-  apply strict_mono.strict_convex_on_univ_of_deriv differentiable_pow,
+  apply strict_mono.strict_convex_on_univ_of_deriv (differentiable_pow n),
   rw deriv_pow',
   replace h := nat.pos_of_ne_zero h,
   exact strict_mono.const_mul (odd.strict_mono_pow $ nat.even.sub_odd h hn $ nat.odd_iff.2 rfl)
@@ -65,7 +66,7 @@ end
 lemma convex_on_pow (n : ℕ) : convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on
-    differentiable_on_pow,
+    (differentiable_on_pow n),
   { simp only [deriv_pow'], exact (@differentiable_on_pow ℝ _ _ _).const_mul (n : ℝ) },
   { intros x hx,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub],
@@ -76,7 +77,7 @@ end
 lemma strict_convex_on_pow {n : ℕ} (hn : 2 ≤ n) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _)
-    differentiable_on_pow,
+    (differentiable_on_pow n),
   rw [deriv_pow', interior_Ici],
   exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
     nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
@@ -208,45 +209,49 @@ end
 
 section sqrt_mul_log
 
-lemma deriv_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
-  deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
+lemma has_deriv_at_sqrt_mul_log {x : ℝ} (hx : x ≠ 0) :
+  has_deriv_at (λ x, sqrt x * log x) ((2 + log x) / (2 * sqrt x)) x :=
 begin
-  simp only [sqrt_eq_rpow],
-  refine (deriv_mul (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at
-    (differentiable_at_log hx.ne')).trans _,
-  rw [deriv_rpow_const (or.inl hx.ne'), deriv_log, add_comm],
-  simp only [div_eq_mul_inv, mul_inv, ←rpow_neg hx.le, ←rpow_neg_one x, ←rpow_add hx],
-  rw [add_mul, mul_comm (log x), ←mul_assoc],
-  norm_num,
+  convert (has_deriv_at_sqrt hx).mul (has_deriv_at_log hx),
+  rw [add_div, div_mul_right (sqrt x) two_ne_zero, ←div_eq_mul_inv, sqrt_div_self',
+      add_comm, div_eq_mul_one_div, mul_comm],
 end
 
-lemma deriv2_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
+lemma deriv_sqrt_mul_log (x : ℝ) : deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
+begin
+  cases lt_or_le 0 x with hx hx,
+  { exact (has_deriv_at_sqrt_mul_log hx.ne').deriv },
+  { rw [sqrt_eq_zero_of_nonpos hx, mul_zero, div_zero],
+    refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 x hx),
+    refine (has_deriv_within_at_const x _ 0).congr_of_mem (λ x hx, _) hx,
+    rw [sqrt_eq_zero_of_nonpos hx, zero_mul] },
+end
+
+lemma deriv_sqrt_mul_log' : deriv (λ x, sqrt x * log x) = λ x, (2 + log x) / (2 * sqrt x) :=
+funext deriv_sqrt_mul_log
+
+lemma deriv2_sqrt_mul_log (x : ℝ) :
   deriv^[2] (λ x, sqrt x * log x) x = -log x / (4 * sqrt x ^ 3) :=
 begin
-  let h := (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at,
-  rw [function.iterate_succ, function.iterate_one, function.comp_app,
-      ←deriv_within_of_open is_open_Ioi (set.mem_Ioi.mpr hx)],
-  refine (deriv_within_congr (unique_diff_on_Ioi 0 x hx) deriv_sqrt_mul_log
-    (deriv_sqrt_mul_log x hx)).trans _,
-  simp only [sqrt_eq_rpow],
-  rw [deriv_within_of_open is_open_Ioi (set.mem_Ioi.mpr hx),
-      deriv_div ((differentiable_at_log hx.ne').const_add 2) (h.const_mul 2)
-      (ne_of_gt (mul_pos two_pos (rpow_pos_of_pos hx 0.5))), deriv_const_add, deriv_log,
-      deriv_const_mul 2 h, deriv_rpow_const (or.inl hx.ne'), one_div, mul_comm x⁻¹, mul_assoc,
-      mul_inv_cancel_left₀ (show (2 : ℝ) ≠ (0 : ℝ), from two_ne_zero), ←div_eq_mul_inv,
-      ←rpow_sub_one hx.ne', ←sub_mul, sub_add_cancel', mul_pow, ←div_div_eq_mul_div, ←mul_div],
-    simp only [mul_pow, pow_succ, pow_zero, mul_one, ←rpow_add hx, ←rpow_sub hx],
-    norm_num,
+  simp only [nat.iterate, deriv_sqrt_mul_log'],
+  cases le_or_lt x 0 with hx hx,
+  { rw [sqrt_eq_zero_of_nonpos hx, zero_pow zero_lt_three, mul_zero, div_zero],
+    refine has_deriv_within_at.deriv_eq_zero _ (unique_diff_on_Iic 0 x hx),
+    refine (has_deriv_within_at_const _ _ 0).congr_of_mem (λ x hx, _) hx,
+    rw [sqrt_eq_zero_of_nonpos hx, mul_zero, div_zero] },
+  { have h₀ : sqrt x ≠ 0, from sqrt_ne_zero'.2 hx,
+    convert (((has_deriv_at_log hx.ne').const_add 2).div
+      ((has_deriv_at_sqrt hx.ne').const_mul 2) $ mul_ne_zero two_ne_zero h₀).deriv using 1,
+    nth_rewrite 2 [← mul_self_sqrt hx.le],
+    field_simp, ring },
 end
 
 lemma strict_concave_on_sqrt_mul_log_Ioi : strict_concave_on ℝ (set.Ioi 1) (λ x, sqrt x * log x) :=
 begin
-  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 1) is_open_Ioi
-    (λ x hx, differentiable_within_at_of_deriv_within_ne_zero _) (λ x hx, _),
-  { rw [deriv_within_of_open is_open_Ioi hx, deriv_sqrt_mul_log x (zero_lt_one.trans hx)],
-    refine div_ne_zero _ (mul_ne_zero two_ne_zero (sqrt_ne_zero'.mpr (zero_lt_one.trans hx))),
-    linarith [log_pos hx] },
-  { rw deriv2_sqrt_mul_log x (zero_lt_one.trans hx),
+  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 1) is_open_Ioi (λ x hx, _) (λ x hx, _),
+  { have h₀ : x ≠ 0, from (one_pos.trans hx.out).ne',
+    exact (has_deriv_at_sqrt_mul_log h₀).differentiable_at.differentiable_within_at },
+  { rw [deriv2_sqrt_mul_log x],
     exact div_neg_of_neg_of_pos (neg_neg_of_pos (log_pos hx))
       (mul_pos four_pos (pow_pos (sqrt_pos.mpr (zero_lt_one.trans hx)) 3)) },
 end

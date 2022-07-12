@@ -1393,7 +1393,7 @@ namespace ordinal
 @[simp] theorem card_univ : card univ = cardinal.univ := rfl
 
 @[simp] theorem nat_le_card {o} {n : ℕ} : (n : cardinal) ≤ card o ↔ (n : ordinal) ≤ o :=
-⟨λ h, by rwa [←cardinal.ord_le, cardinal.ord_nat] at h, λ h, card_nat n ▸ card_le_card h⟩
+by rw [← cardinal.ord_le, cardinal.ord_nat]
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
 by { rw [←succ_le_iff, ←succ_le_iff, ←nat_succ, nat_le_card], refl }

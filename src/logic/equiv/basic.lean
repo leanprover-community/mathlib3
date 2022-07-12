@@ -405,12 +405,14 @@ def pprod_congr {δ : Sort z} (e₁ : α ≃ β) (e₂ : γ ≃ δ) : pprod α �
 
 /-- Combine two equivalences using `pprod` in the domain and `prod` in the codomain. -/
 @[simps apply symm_apply]
-def pprod_prod {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : pprod α₁ β₁ ≃ α₂ × β₂ :=
+def pprod_prod {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) :
+  pprod α₁ β₁ ≃ α₂ × β₂ :=
 (ea.pprod_congr eb).trans pprod_equiv_prod
 
 /-- Combine two equivalences using `pprod` in the codomain and `prod` in the domain. -/
 @[simps apply symm_apply]
-def prod_pprod {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ × β₁ ≃ pprod α₂ β₂ :=
+def prod_pprod {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) :
+  α₁ × β₁ ≃ pprod α₂ β₂ :=
 (ea.symm.pprod_prod eb.symm).symm
 
 /-- `pprod α β` is equivalent to `plift α × plift β` -/

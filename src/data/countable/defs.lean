@@ -10,6 +10,9 @@ import data.finite.defs
 
 In this file we define a typeclass saying that a given `Sort*` is countable. See also `encodable`
 for a version that singles out a specific encoding of elements of `α` by natural numbers.
+
+This file also provides a few instances of this typeclass. More instances can be found in other
+files.
 -/
 
 open function
@@ -42,12 +45,14 @@ let ⟨f, hf⟩ := exists_injective_nat α in ⟨inv_fun f, inv_fun_surjective h
 lemma countable_iff_exists_surjective [nonempty α] : countable α ↔ ∃ f : ℕ → α, surjective f :=
 ⟨@exists_surjective_nat _ _, λ ⟨f, hf⟩, hf.countable⟩
 
-lemma countable.of_equiv (α : Sort*) [countable α] (e : α ≃ β) : countable β := e.symm.injective.countable
+lemma countable.of_equiv (α : Sort*) [countable α] (e : α ≃ β) : countable β :=
+e.symm.injective.countable
 
 lemma equiv.countable_iff (e : α ≃ β) : countable α ↔ countable β :=
 ⟨λ h, @countable.of_equiv _ _ h e, λ h, @countable.of_equiv _ _ h e.symm⟩
 
-instance {β : Type v} [countable β] : countable (ulift.{u} β) := countable.of_equiv _ equiv.ulift.symm
+instance {β : Type v} [countable β] : countable (ulift.{u} β) :=
+countable.of_equiv _ equiv.ulift.symm
 
 /-!
 ### Operations on `Sort*`s

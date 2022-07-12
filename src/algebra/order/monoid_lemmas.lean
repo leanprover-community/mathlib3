@@ -994,8 +994,9 @@ lemma monotone.mul_strict_mono' [covariant_class α α (*) (<)] [covariant_class
 /--  The product of a monotone function and a strictly monotone function is strictly monotone. -/
 @[to_additive add_strict_mono
 "The sum of a monotone function and a strictly monotone function is strictly monotone."]
-lemma monotone_on.mul_strict_mono' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
-  {f g : β → α} (hf : monotone_on f s) (hg : strict_mono_on g s) :
+lemma monotone_on.mul_strict_mono' [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (≤)] {f g : β → α}
+  (hf : monotone_on f s) (hg : strict_mono_on g s) :
   strict_mono_on (λ x, f x * g x) s :=
 λ x hx y hy h, mul_lt_mul_of_le_of_lt (hf hx hy h.le) (hg hx hy  h)
 
@@ -1010,8 +1011,9 @@ lemma antitone.mul_strict_anti' [covariant_class α α (*) (<)] [covariant_class
 /--  The product of a antitone function and a strictly antitone function is strictly antitone. -/
 @[to_additive add_strict_anti
 "The sum of a antitone function and a strictly antitone function is strictly antitone."]
-lemma antitone_on.mul_strict_anti' [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
-  {f g : β → α} (hf : antitone_on f s) (hg : strict_anti_on g s) :
+lemma antitone_on.mul_strict_anti' [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (≤)] {f g : β → α}
+  (hf : antitone_on f s) (hg : strict_anti_on g s) :
   strict_anti_on (λ x, f x * g x) s :=
 λ x hx y hy h, mul_lt_mul_of_le_of_lt (hf hx hy h.le) (hg hx hy  h)
 

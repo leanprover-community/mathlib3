@@ -147,7 +147,7 @@ instance : has_coe_to_fun (composition_series X) (λ x, fin (x.length + 1) → X
 
 instance [inhabited X] : inhabited (composition_series X) :=
 ⟨{ length := 0,
-   series := λ _, default,
+   series := default,
    step' := λ x, x.elim0 }⟩
 
 variables {X}

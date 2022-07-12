@@ -136,13 +136,8 @@ instance tsub : has_sub (ι →₀ α) := ⟨zip_with (λ m n, m - n) (tsub_self
 instance : has_ordered_sub (ι →₀ α) := ⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
 instance : canonically_ordered_add_monoid (ι →₀ α) :=
-{ le_iff_exists_add := λ f g, begin
-      refine ⟨λ h, ⟨g - f, _⟩, _⟩,
-      { ext x,
-        exact (add_tsub_cancel_of_le $ h x).symm },
-      { rintro ⟨g, rfl⟩ x,
-        exact self_le_add_right (f x) (g x) }
-    end,
+{ exists_add_of_le := λ f g h, ⟨g - f, ext $ λ x, (add_tsub_cancel_of_le $ h x).symm⟩,
+  le_self_add := λ f g x, le_self_add,
  .. finsupp.order_bot,
  .. finsupp.ordered_add_comm_monoid }
 

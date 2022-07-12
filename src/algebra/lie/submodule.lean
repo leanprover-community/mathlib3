@@ -124,13 +124,13 @@ instance : lie_ring_module L N :=
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   module S N :=
 N.to_submodule.module'
 
 instance : module R N := N.to_submodule.module
 
-instance {S : Type*} [semiring S] [has_scalar S R] [has_scalar Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
+instance {S : Type*} [semiring S] [has_smul S R] [has_smul Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
   [is_scalar_tower S R M] [is_scalar_tower Sᵐᵒᵖ R M] [is_central_scalar S M] :
   is_central_scalar S N :=
 N.to_submodule.is_central_scalar
@@ -555,6 +555,10 @@ lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
 submodule.mem_map
 
 @[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
+
+lemma comap_incl_eq_top : N₂.comap N.incl = ⊤ ↔ N ≤ N₂ :=
+by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_submodule_comap,
+  lie_submodule.incl_coe, lie_submodule.top_coe_submodule, submodule.comap_subtype_eq_top]
 
 end lie_submodule
 

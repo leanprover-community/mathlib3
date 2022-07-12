@@ -286,7 +286,7 @@ lemma iff_ideal_total :
   valuation_ring R ↔ is_total (ideal R) (≤) :=
 begin
   classical,
-  refine ⟨λ _, by exactI ⟨le_total⟩, λ H, (iff_dvd_total R).mpr ⟨λ a b, _⟩⟩,
+  refine ⟨λ _, by exactI ⟨le_total⟩, λ H, iff_dvd_total.mpr ⟨λ a b, _⟩⟩,
   have := @is_total.total _ _ H (ideal.span {a}) (ideal.span {b}),
   simp_rw ideal.span_singleton_le_span_singleton at this,
   exact this.symm
@@ -295,7 +295,7 @@ end
 variable {R}
 
 lemma dvd_total [h : valuation_ring R] (x y : R) : x ∣ y ∨ y ∣ x :=
-@@is_total.total _ ((iff_dvd_total R).mp h) x y
+@@is_total.total _ (iff_dvd_total.mp h) x y
 
 lemma unique_irreducible [valuation_ring R] ⦃p q : R⦄
   (hp : irreducible p) (hq : irreducible q) : associated p q :=

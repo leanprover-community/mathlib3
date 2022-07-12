@@ -13,42 +13,27 @@ open prime_spectrum
 
 namespace spec_of_surjective
 
-variables {R S : CommRing}
-variables (f : R →+* S)
+variables {R S : CommRing} (f : R →+* S)
 
 postfix ` ^* ` : 80 := prime_spectrum.comap
 
-example {X Y : Type} (f : X -> Y) (hf : surjective f) (A B : set Y) :
-f ⁻¹' A ⊆ f ⁻¹' B -> A ⊆ B :=
-begin
-exact (surjective.preimage_subset_preimage_iff hf).mp
-end
-
 lemma comap_inducing_of_surjective (hf : surjective f) : inducing (f ^*) :=
-    begin
-    constructor,
-    rw topological_space_eq_iff,
+⟨begin
+    simp_rw [topological_space_eq_iff,
+             ← is_closed_compl_iff,
+             is_closed_induced_iff],
     intro U,
-    simp_rw ← is_closed_compl_iff,
     generalize : Uᶜ = Z,
     split,
-    {
-        rw [is_closed_induced_iff, is_closed_iff_zero_locus],
-        rintro ⟨F, hF⟩, rw hF,
+    {   rw is_closed_iff_zero_locus,
+        rintro ⟨F, rfl⟩,
         use zero_locus (f ⁻¹' F),
-        split,
-        rw is_closed_iff_zero_locus,
-        use f ⁻¹' F,
-        ext p, simp,
-        apply (surjective.preimage_subset_preimage_iff hf),
-    },
-    {
-        rw is_closed_induced_iff,
-        rintro ⟨C, ⟨hC1, hC2⟩⟩,
-        subst hC2,
-        exact hC1.preimage (comap f).continuous,
-    },
-    end
+        exact ⟨(is_closed_iff_zero_locus _).mpr ⟨f ⁻¹' F, rfl⟩,
+               by rw [preimage_comap_zero_locus,
+                      surjective.image_preimage hf]⟩, },
+    {   rintro ⟨C, ⟨hC1, rfl⟩⟩,
+        exact hC1.preimage (comap f).continuous, },
+    end⟩
 
 -- prime_spectrum.comap_injective_of_surjective,
 

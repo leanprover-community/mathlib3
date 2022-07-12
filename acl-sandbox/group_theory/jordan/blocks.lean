@@ -23,7 +23,7 @@ import .maximal_subgroups
 
 /-! # Blocks
 
-Given `has_scalar G X`, an action of a group `G` on a type `X`, we define
+Given `has_smul G X`, an action of a group `G` on a type `X`, we define
 
 - the predicate `is_block G B` states that `B : set X` is a block,
 which means that the sets `g • B`, for `g ∈ G` form a partition of `X`.
@@ -36,15 +36,15 @@ open_locale big_operators pointwise
 
 namespace mul_action
 
-section has_scalar
+section has_smul
 
-variables (G : Type*) {X : Type*} [has_scalar G X]
+variables (G : Type*) {X : Type*} [has_smul G X]
 
 -- Change terminology : is_fully_invariant ?
 /-- A fixed block is a fully invariant subset -/
 def is_fixed_block (B : set X) := ∀ (g : G), g • B = B
 
-/-- An invariant block is a set which is stable under has_scalar -/
+/-- An invariant block is a set which is stable under has_smul -/
 def is_invariant_block (B : set X) := ∀ (g : G), g • B ≤ B
 
 /-- A trivial block is a subsingleton or ⊤ (it is not necessarily a block…)-/
@@ -127,7 +127,7 @@ begin
   { obtain ⟨a, ha⟩ := h, rw ha, apply singleton_is_block }
 end
 
-end has_scalar
+end has_smul
 
 section group
 
@@ -260,7 +260,7 @@ begin
     rw [← equivariant_map.preimage_smul_setₑ, heq] },
   { apply or.intro_right,
     rw ← equivariant_map.preimage_smul_setₑ,
-    apply set.disjoint_preimage, exact hdis }
+    apply disjoint.preimage, exact hdis, }
 end
 
 lemma is_block_image {H Y: Type*} [group H] [mul_action H Y]
@@ -616,6 +616,7 @@ begin
   apply smul_orbit,
 end
 
+variable (G)
 /-- Order equivalence between blocks in X containing a point a
  and subgroups of G containing the stabilizer of a (Wielandt, th. 7.5)-/
 def stabilizer_block_equiv [htGX : is_pretransitive G X] (a : X) :

@@ -20,8 +20,8 @@ This generalizes the notion defined as `mul_action_hom` in `group_action.lean`.
 
 We define :
 
-* `equivariant_map φ α β`, `α →ₑ[φ] β` : an equivariant map between to `has_scalar`.
-This means that `φ : M → N` is a map, `has_scalar M α`, `has_scalar N β` and `f : α →ₑ[φ] β`
+* `equivariant_map φ α β`, `α →ₑ[φ] β` : an equivariant map between to `has_smul`.
+This means that `φ : M → N` is a map, `has_smul M α`, `has_smul N β` and `f : α →ₑ[φ] β`
 satisfies `f(m • a) = φ(m) • f(a)`.
 
 * composition of such maps, identities, inverses when possible
@@ -42,7 +42,7 @@ then one has to rewrite the rest of `group_action.lean`
 
 /-- Equivariant maps -/
 structure equivariant_map {M N : Type*} (φ : M → N)
-  (α : Type*) (β : Type*) [has_scalar M α] [has_scalar N β] :=
+  (α : Type*) (β : Type*) [has_smul M α] [has_smul N β] :=
 (to_fun : α → β)
 (map_smul' : ∀ (m : M) (a : α), to_fun (m • a) = φ(m) • to_fun (a))
 
@@ -50,7 +50,7 @@ notation α ` →ₑ[`:25 φ:25 `] `:0 β:0 := equivariant_map φ α β
 notation α ` →[`:25 M:25 `] `:0 β:0 := equivariant_map (@id M) α β
 
 /-- Equivariant maps (unbundled version) -/
-structure is_equivariant_map {M N α β: Type*} [has_scalar M α] [has_scalar N β] (φ : M → N) (f : α → β) : Prop :=
+structure is_equivariant_map {M N α β: Type*} [has_smul M α] [has_smul N β] (φ : M → N) (f : α → β) : Prop :=
 (map_smul : ∀ (m : M) (a : α), f(m • a) = φ(m) • f(a))
 
 -- ACL : I don't understand this, and this does not work as intended!
@@ -58,19 +58,19 @@ structure is_equivariant_map {M N α β: Type*} [has_scalar M α] [has_scalar N 
 You should declare an instance of this typeclass when you extend `equivariant_map`.
 -/
 class equivariant_map_class (F : Type*) (α β : out_param $ Type*)
-  (M N : Type*) (φ : M → N) [has_scalar M α] [has_scalar N β]
+  (M N : Type*) (φ : M → N) [has_smul M α] [has_smul N β]
   extends fun_like F α (λ _, β) :=
 (map_smul : ∀ (f : F) (m : M) (a : α), f (m • a) = φ(m) • f(a))
 
 /-- Predicate stating that a map is equivariant -/
-theorem is_equivariant {α β M N : Type*} {φ : M → N} [has_scalar M α] [has_scalar N β]
+theorem is_equivariant {α β M N : Type*} {φ : M → N} [has_smul M α] [has_smul N β]
   (f : α →ₑ[φ] β) : is_equivariant_map φ f.to_fun := ⟨f.map_smul'⟩
 
 namespace equivariant_map
 
-section has_scalar
+section has_smul
 
-variables {α β M N : Type*} {φ : M → N} [has_scalar M α] [has_scalar N β]
+variables {α β M N : Type*} {φ : M → N} [has_smul M α] [has_smul N β]
 
 /-- The map on scalars underlying an equivariant map -/
 def to_scalar_map (f : α →ₑ[φ] β) := φ
@@ -141,7 +141,7 @@ variables {M}
 section composition
 
 /-- Composition of two equivariant maps. -/
-variables {P γ : Type*}  [has_scalar P γ] {ψ : N → P}
+variables {P γ : Type*}  [has_smul P γ] {ψ : N → P}
 
 /-- Composition of equivariant maps -/
 def comp (g : β →ₑ[ψ] γ) (f : α →ₑ[φ] β) : α →ₑ[ψ ∘ φ] γ :=
@@ -159,7 +159,7 @@ ext $ λ x, by rw [of_eq_apply, comp_apply, id_apply]
   (f.comp (equivariant_map.id M)).of_eq (function.comp.right_id φ) = f :=
 ext $ λ x, by rw [of_eq_apply, comp_apply, id_apply]
 
-variables {Q δ : Type*} [has_scalar Q δ] {χ : P → Q}
+variables {Q δ : Type*} [has_smul Q δ] {χ : P → Q}
 @[simp] lemma comp_assoc (h : γ →ₑ[χ] δ) (g : β →ₑ[ψ] γ) (f : α →ₑ[φ] β) :
   h.comp (g.comp f) = (h.comp g).comp f := ext $ λ x, rfl
 
@@ -226,7 +226,7 @@ begin
   intros a _, rw f.map_smul'
 end
 
-variables {β₁ : Type*} [has_scalar M β₁] {f₁ : α →[M] β₁}
+variables {β₁ : Type*} [has_smul M β₁] {f₁ : α →[M] β₁}
 
 lemma image_smul_set (m : M) (s : set α) :
   f₁ '' (m • s) = m • f₁ '' s :=
@@ -269,7 +269,7 @@ preimage_smul_setₑ' hmα hmβ t
 
 end pointwise
 
-end has_scalar
+end has_smul
 
 section group
 

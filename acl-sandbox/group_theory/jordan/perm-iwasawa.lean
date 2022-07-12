@@ -1095,7 +1095,7 @@ begin
  -- simp at hx',
   intro hx',
   let h' := set_like.coe_eq_coe.mpr hx',
-  simp only [has_scalar.subpair_apply, pair.is_def, sub_mul_action.coe_smul_of_tower] at h',
+  simp only [has_smul.subpair_apply, pair.is_def, sub_mul_action.coe_smul_of_tower] at h',
   have hc1 : g • a ∈ {g • c, g • a} := is_in_subpair_right ,
   rw h' at hc1, simp only [perm.smul_def] at hc1 ha,
   cases is_in_subpair_iff.mp hc1 with hh1 hh2,
@@ -1117,7 +1117,7 @@ begin
   let g := equiv.swap a c,
   have g_ab_ne_ab : g • { a, b} ≠ { a, b} ,
   { intro h,
-    rw has_scalar.subpair_apply g a b at h,
+    rw has_smul.subpair_apply g a b at h,
     have : c = g • a ,
       simp only  [swap_apply_left, perm.smul_def],
     have : c = a ∨ c = b,
@@ -1154,7 +1154,7 @@ begin
   rw mem_stabilizer_iff,
   /- change swap a b ∈ { x : perm α | x • ({a, b} : set α) = {a, b} },
   rw set.mem_set_of_eq, -/
-  rw has_scalar.subpair_apply,
+  rw has_smul.subpair_apply,
   simp only [swap_apply_left, perm.smul_def, swap_apply_right],
   exact subpair_symm  , -- b a
 end
@@ -1173,7 +1173,7 @@ begin
     (set.ssubset_iff_of_subset hH').mp hH,
 
   have h_ab : h • ({a, b} : set α) = {h • a, h • b} :=
-    has_scalar.subpair_apply h a b,
+    has_smul.subpair_apply h a b,
 
   have h_ab_ne_ab : h • ({a, b} : set α) ≠ {a, b},
   { intro _,
@@ -1328,7 +1328,7 @@ apply_eq_iff_eq] at hc,
   have tH : swap (h • a) (h • c) ∈ H,
   { apply  hH',
     simp only [mem_stabilizer_iff],
-    rw has_scalar.subpair_apply,
+    rw has_smul.subpair_apply,
     rw ta, rw tb },
 
   have tconj : h * (swap a c) * h⁻¹ = swap (h • a) (h • c),
@@ -1395,7 +1395,7 @@ begin
     rw ← swap_mul_swap_mul_swap hca.symm ha.symm,
     have hcx : swap c x ∈ H,
     { apply  hH,
-      simp only [mem_stabilizer_iff, has_scalar.subpair_apply,perm.smul_def],
+      simp only [mem_stabilizer_iff, has_smul.subpair_apply,perm.smul_def],
       rw equiv.swap_apply_of_ne_of_ne hca.symm ha.symm,
       rw equiv.swap_apply_of_ne_of_ne hcb.symm hb.symm },
     apply subgroup.mul_mem H _ hcx,
@@ -1707,7 +1707,7 @@ end
 def pair.apply_eq (g : perm α) (x : action_on_pairs_of (perm α) α) :
   (g • x : set α) = { g • ((pair.lift x).1) , g • ((pair.lift x).2) } :=
 begin
-  rw ← has_scalar.subpair_apply,
+  rw ← has_smul.subpair_apply,
   rw pair.lift.spec x,
  end
 
@@ -1904,8 +1904,8 @@ begin
   let hg' := subgroup.mem_top (⟨g,hg⟩ : alternating_group α),
   rw ← h at hg',
   rw @mem_stabilizer_iff (alternating_group α) _ _ _ _ _ at hg',
-  unfold has_scalar.smul at hg',
-  simp only [perm.smul_def, submonoid.coe_subtype, has_scalar.comp.smul, subgroup.coe_mk] at hg',
+  unfold has_smul.smul at hg',
+  simp only [perm.smul_def, submonoid.coe_subtype, has_smul.comp.smul, subgroup.coe_mk] at hg',
   apply hb, rw ← hg',
   rw finset.mem_image,
   use a, apply and.intro ha,

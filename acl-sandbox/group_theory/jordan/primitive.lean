@@ -5,6 +5,17 @@ Authors: Antoine Chambert-Loir
 -/
 
 
+
+import .for_mathlib.stabilizer
+import .for_mathlib.pretransitive
+import .for_mathlib.set
+import .equivariant_map
+import .sub_mul_actions
+import .for_mathlib.partitions
+import .maximal_subgroups
+import .for_mathlib.commutators
+import .blocks
+
 import data.setoid.partition
 import group_theory.group_action.basic
 import group_theory.group_action.sub_mul_action
@@ -17,16 +28,10 @@ import group_theory.quotient_group
 import data.set.pointwise
 import data.nat.prime
 import data.fintype.basic
+import data.fintype.card
+
 import algebra.big_operators.order
-import .for_mathlib.stabilizer
-import .for_mathlib.pretransitive
-import .for_mathlib.set
-import .equivariant_map
-import .sub_mul_actions
-import .for_mathlib.partitions
-import .maximal_subgroups
-import .for_mathlib.commutators
-import .blocks
+
 
 
 /-!
@@ -35,7 +40,7 @@ import .blocks
 ## Definitions
 
 - The structure `is_preprimitive G X` that says that the action of a type `G`
-on a type `T` (defined by an instance `has_scalar G X`) is *preprimitive*, namely,
+on a type `T` (defined by an instance `has_smul G X`) is *preprimitive*, namely,
 it is pretransitive and the only blocks are ⊤ and subsingletons.
 (The pretransitivity assumption is essentially trivial, because orbits are blocks,
 unless the action itself is trivial.)
@@ -90,18 +95,19 @@ variables (G : Type*) (X : Type*)
 -- Note : if the action is degenerate, singletons may not be blocks.
 /-- An action is preprimitive if it is pretransitive and
 the only blocks are the trivial ones -/
-class is_preprimitive [has_scalar G X]
+class is_preprimitive [has_smul G X]
 extends is_pretransitive G X : Prop :=
 (has_trivial_blocks' : ∀ {B : set X}, (is_block G B) → is_trivial_block B)
 
 variables {G X}
-lemma is_preprimitive.has_trivial_blocks [has_scalar G X] (h : is_preprimitive G X) {B : set X}
+lemma is_preprimitive.has_trivial_blocks [has_smul G X] (h : is_preprimitive G X) {B : set X}
   (hB : is_block G B) : B.subsingleton ∨ B = ⊤ :=
 begin
   apply h.has_trivial_blocks', exact hB,
 end
 
-lemma is_preprimitive.on_subsingleton [has_scalar G X] [nonempty G] [subsingleton X] : is_preprimitive G X :=
+lemma is_preprimitive.on_subsingleton [has_smul G X] [nonempty G] [subsingleton X] :
+  is_preprimitive G X :=
 begin
   haveI : is_pretransitive G X,
   { apply is_pretransitive.mk,
@@ -113,6 +119,19 @@ begin
   intros B hB,
   apply or.intro_left,
   exact set.subsingleton_of_subsingleton,
+end
+
+lemma is_trivial_block.of_card_le_2 [fintype X] (hX : fintype.card X ≤ 2) (B : set X) :
+  is_trivial_block B :=
+begin
+  classical,
+  cases le_or_lt (fintype.card B) 1 with h1 h1,
+  { apply or.intro_left,
+    rw [← set.subsingleton_coe,  ← fintype.card_le_one_iff_subsingleton],
+    exact h1 },
+  { apply or.intro_right,
+    rw [set.top_eq_univ, ← set_fintype_card_eq_univ_iff],
+    exact le_antisymm (set_fintype_card_le_univ B) (le_trans hX h1), },
 end
 
 variables [group G] [mul_action G X]
@@ -363,12 +382,12 @@ end
 theorem maximal_stabilizer_iff_preprimitive [htGX : is_pretransitive G X] [hnX : nontrivial X]
   (a : X) : (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
 begin
-  let s := stabilizer_block_equiv a,
+--  let s := stabilizer_block_equiv a,
   rw is_preprimitive_iff_is_simple_order_blocks G a,
   rw subgroup.is_maximal_def,
   rw ← set.is_simple_order_Ici_iff_is_coatom,
   simp only [is_simple_order_iff_is_coatom_bot],
-  rw ← order_iso.is_coatom_iff (stabilizer_block_equiv a) a,
+  rw ← order_iso.is_coatom_iff (stabilizer_block_equiv G a),
   rw order_iso.map_bot,
 end
 
@@ -528,7 +547,7 @@ begin
   { apply or.intro_left, rw ← set.subsingleton_coe, exact hB' },
   apply or.intro_right,
   have : B.nonempty, rw ← set.nonempty_coe_sort, exact @nontrivial.to_nonempty _ hB',
-  cases (nat.dvd_prime hp).mp (card_of_block_divides hGX hB this),
+  cases (nat.dvd_prime hp).mp (card_of_block_divides hB this),
   { exfalso,
     rw ← fintype.one_lt_card_iff_nontrivial at hB',
     exact ne_of_lt hB' h.symm },
@@ -566,14 +585,14 @@ begin
   -- fintype.card (set.range f) ≤ fintype.card (set.range (λ g, g • B))
   apply lt_of_mul_lt_mul_right',
   apply lt_of_le_of_lt _ hf',
-  rw ← card_of_block_mul_card_of_orbit_of htβ hB hB_ne,
+  rw ← card_of_block_mul_card_of_orbit_of hB hB_ne,
   apply nat.mul_le_mul_left _,
 
   -- We reduce to proving that
   -- fintype.card (set.range f ∩ g • B)) ≤ 1 for every g
   simp only [← set.to_finset_card],
   rw setoid.is_partition.card_set_eq_sum_parts (set.range f)
-      (is_block_system.of_block htβ hB hB_ne).left,
+      (is_block_system.of_block hB hB_ne).left,
   rw finset.card_eq_sum_ones,
   refine finset.sum_le_sum _,
   intros t ht,
@@ -595,7 +614,7 @@ begin
 
   -- We will prove that B is large, which will contradict the assumption that it is not ⊤
   apply hB_ne_top,
-  apply is_top_of_large_block htβ hB,
+  apply is_top_of_large_block hB,
 
   -- It remains to show that 2 * fintype.card B > fintype.card β
   apply lt_of_lt_of_le hf',
@@ -606,7 +625,6 @@ begin
   refine le_trans _ (le_trans (set.card_le_of_subset h') _),
   all_goals { apply le_of_eq, apply fintype.card_congr', refl }
 end
-
 
 /-- Theorem of Rudio (Wielandt, 1964, Th. 8.1) -/
 theorem rudio (hpGX : is_preprimitive M α)
@@ -623,7 +641,7 @@ begin
   have ha : a ∈ B,
   { rw set.mem_Inter, intro g, simp only [set.mem_Inter, imp_self] },
   -- B is a block hence is a trivial block
-  cases hpGX.has_trivial_blocks (is_block.of_subset hpGX.to_is_pretransitive a A hfA) with hyp hyp,
+  cases hpGX.has_trivial_blocks (is_block.of_subset a A hfA) with hyp hyp,
   { -- B.subsingleton
     apply set.subsingleton.eq_singleton_of_mem hyp,
     rw set.mem_Inter, intro g, simp only [set.mem_Inter, imp_self] },

@@ -19,7 +19,7 @@ open_locale pointwise
 
 namespace sub_mul_action
 
-variables {H G X : Type*} [has_scalar G X]
+variables {H G X : Type*} [has_smul G X]
 
 def inclusion (Y : sub_mul_action G X) : Y →[G] X := {
 to_fun := coe,
@@ -122,12 +122,12 @@ section Actions_on_subsets
 open_locale pointwise
 
 section scalar
-variables {G : Type*} {X : Type*} [has_scalar G X]
+variables {G : Type*} {X : Type*} [has_smul G X]
 
 /- Remove subpairs
 /-- If G acts on X, explicit action on subpairs of X -/
 @[simp]
-def has_scalar.subpair_apply (g : G) (x y : X) :
+def has_smul.subpair_apply (g : G) (x y : X) :
   g • ({x,y} : set X) = {g • x, g • y} :=
 begin
   change (λ w, g • w) '' {x, y} = {g • x, g • y},
@@ -136,7 +136,7 @@ end
 -/
 
 /-- If G acts on X, then G acts on lists of X -/
-instance : has_scalar G (list X) := { smul := λ g s, list.map (λ x, g • x) s }
+instance : has_smul G (list X) := { smul := λ g s, list.map (λ x, g • x) s }
 
 lemma smul_take (l : list X) (n : ℕ) (g : G) :
   (g • l).take n = g • l.take n :=
@@ -179,7 +179,7 @@ end
 -- Useless : in data.finset.pointwise
 /-
 /-- If G acts on X, then G acts on finite subsets of X -/
-instance [decidable_eq X] : has_scalar G (finset X) :=
+instance [decidable_eq X] : has_smul G (finset X) :=
 { smul := λ g s, finset.image (λ x, g • x) s }
 -/
 
@@ -259,7 +259,7 @@ end,
 }
 
 
-/- Use has_scalar.subpair_apply
+/- Use has_smul.subpair_apply
 /-- If a monoid G acts on X, it acts on subpairs of X -/
 def action_on_subpairs_of_apply : -- {G : Type*} [monoid G] {X : Type*} [mul_action G X] :
   ∀ (g : G) (x y : X), g • ({x,y} : set X) = {g • x, g • y} :=

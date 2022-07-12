@@ -67,7 +67,7 @@ namespace mul_action
 section transitivity
 
 section monoid
-/- It would be better do have it for has_scalar
+/- It would be better do have it for has_smul
 but the instance does not automatically transfer to subtypes -/
 variables {M α : Type*} [monoid M] [mul_action M α]
 
@@ -1271,19 +1271,7 @@ begin
   exact hs.right,
 end
 
-/- Unfortunately, the alternating group on 2 letters does not act primitively,
-TODO : add case of 3 letters -/
-/-- The alternating group on 4 letters or more acts primitively -/
-theorem alternating_group.is_preprimitive (h : 4 ≤ fintype.card α):
-  is_preprimitive (alternating_group α) α :=
-begin
-  apply is_preprimitive_of_two_pretransitive,
-  apply is_multiply_pretransitive_of_higher,
-  apply alternating_group_is_fully_minus_two_pretransitive,
-  apply le_trans _ (nat.sub_le_sub_right h 2), norm_num,
-  simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le]
-end
-
+/-- The alternating group on 3 letters or more acts primitively -/
 lemma alternating_group.is_pretransitive (h : 3 ≤ fintype.card α) :
   is_pretransitive (alternating_group α) α :=
 begin
@@ -1292,6 +1280,104 @@ begin
   exact alternating_group_is_fully_minus_two_pretransitive α,
   apply le_trans _ (nat.sub_le_sub_right h 2), norm_num,
   simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le]
+end
+
+/- This lemma proves the trivial blocks property even if the action is not preprimitive
+because it is not pretransitive (for fintype.card α ≤ 2)-/
+lemma alternating_group.has_trivial_blocks (B : set α) (hB : is_block (alternating_group α) B):
+  is_trivial_block B :=
+begin
+  cases le_or_lt (fintype.card α) 2 with h2 h2,
+  { exact is_trivial_block.of_card_le_2 h2 B },
+  cases le_or_lt (fintype.card α) 3 with h3 h4,
+  { have h3' : fintype.card α = 3 := le_antisymm h3 h2,
+    cases le_or_lt (fintype.card B) 1 with h1 h2,
+    { apply or.intro_left,
+      rw [← set.subsingleton_coe,  ← fintype.card_le_one_iff_subsingleton],
+      exact h1 },
+    { apply or.intro_right,
+      rw [fintype.one_lt_card_iff] at h2,
+      -- using h2, get a ≠ b in B
+      obtain ⟨⟨a, ha⟩, ⟨b, hb⟩, hab⟩ := h2,
+      simp only [ne.def, subtype.mk_eq_mk] at hab,
+      -- using h3', get c ≠ a, b
+      have : ∃ (c : α), c ∉ {a, b},
+      { by_contradiction,
+        push_neg at h,
+        have : ({a, b} : finset α) = finset.univ,
+        { ext c, split,
+          intro hc, exact finset.mem_univ c,
+          intro _, exact h c, },
+        rw lt_iff_not_ge at h2, apply h2, rw ge_iff_le,
+        rw ← finset.card_eq_iff_eq_univ at this,
+        rw ← this,
+        rw finset.card_doubleton hab, },
+      obtain ⟨c, hc⟩ := this,
+      simp only [finset.mem_insert, finset.mem_singleton, not_or_distrib] at hc,
+      suffices : ({a, b, c} : finset α) = finset.univ,
+      rw eq_top_iff,
+      rw [set.top_eq_univ, ← finset.coe_univ, ← this],
+      intros x hx,
+      simp only [finset.coe_insert, finset.coe_singleton, set.mem_insert_iff, set.mem_singleton_iff] at hx,
+      cases hx with hxa hx,
+      rw hxa, exact ha,
+      cases hx with hxb hxc,
+      rw hxb, exact hb,
+      rw hxc,
+
+      -- get a three_cycle g = c[a,b,c]
+      let g : alternating_group α := ⟨(equiv.swap a b) * (equiv.swap c b), -- cycle [a,b,c]
+      begin
+        rw equiv.perm.mem_alternating_group,
+        rw equiv.perm.sign_mul,
+        rw equiv.perm.sign_swap  hab,
+        rw equiv.perm.sign_swap hc.right,
+        simp only [int.units_mul_self],
+      end ⟩ ,
+      suffices : g • B = B,
+      rw ← this,
+      use b,
+      apply and.intro hb,
+      change ((equiv.swap a b) * (equiv.swap c b)) • b = c,
+      simp only [equiv.perm.smul_def, equiv.perm.coe_mul, function.comp_app],
+      rw equiv.swap_apply_right,
+      rw equiv.swap_apply_of_ne_of_ne hc.left hc.right,
+
+      -- g • B = B
+      rw is_block.mk_mem at hB,
+      apply hB g a ha,
+      change ((equiv.swap a b) * (equiv.swap c b)) • a ∈ B,
+      simp only [equiv.perm.smul_def, equiv.perm.coe_mul, function.comp_app],
+      rw equiv.swap_apply_of_ne_of_ne (ne_comm.mp hc.left) hab,
+      rw equiv.swap_apply_left,
+      exact hb,
+
+      -- {a, b, c} = finset.univ
+      rw [← finset.card_eq_iff_eq_univ, h3'],
+      rw finset.card_insert_of_not_mem,
+      rw finset.card_doubleton (ne_comm.mp hc.right),
+      simp only [finset.mem_insert, finset.mem_singleton, not_or_distrib],
+      apply and.intro hab,
+      exact ne_comm.mp hc.left, } },
+
+  -- 4 ≤ fintype.card α
+  change 4 ≤ fintype.card α at h4,
+  suffices : is_preprimitive (alternating_group α) α,
+  exact this.has_trivial_blocks hB,
+  apply is_preprimitive_of_two_pretransitive,
+  apply is_multiply_pretransitive_of_higher,
+  apply alternating_group_is_fully_minus_two_pretransitive,
+  apply le_trans _ (nat.sub_le_sub_right h4 2), norm_num,
+  simp only [enat.of_fintype, enat.coe_le_coe, nat.sub_le],
+end
+
+/-- The alternating group on 3 letters or more acts primitively -/
+theorem alternating_group.is_preprimitive (h : 3 ≤ fintype.card α):
+  is_preprimitive (alternating_group α) α :=
+begin
+  haveI := alternating_group.is_pretransitive h,
+  apply is_preprimitive.mk,
+  exact alternating_group.has_trivial_blocks
 end
 
 /- lemma alternating_group.is_pretransitive' (h : 3 ≤ fintype.card α) :

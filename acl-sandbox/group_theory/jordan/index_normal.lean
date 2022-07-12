@@ -171,11 +171,12 @@ begin
   haveI : fintype (G⧸H),
   { refine fintype_of_not_infinite _,
     introI h,
-    apply ne_zero.ne 2,
+    suffices : 2 ≠ 0, apply this,
     rw ← hH,
     unfold subgroup.index,
     unfold nat.card,
-    rw cardinal.mk_to_nat_of_infinite },
+    rw cardinal.mk_to_nat_of_infinite,
+    exact two_ne_zero, },
   let f := (mul_action.to_perm_hom G (G ⧸ H)),
   suffices : f.ker = H,
   { rw ← this, refine monoid_hom.normal_ker f, },
@@ -216,7 +217,6 @@ begin
   exact (subgroup.normal_core_le H),
   rw hH, exact two_pos
 end
-
 
 variable {α}
 -- I don't know why this stuff is not there !

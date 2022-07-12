@@ -10,6 +10,8 @@ import group_theory.group_action.fixing_subgroup
 
 import .equivariant_map
 
+import tactic.group
+
 /-!
 # Complements on sub_mul_actions
 -/
@@ -38,8 +40,9 @@ namespace sub_mul_action
 
 section inclusion
 
-variables {M N α : Type*} [has_scalar M α]
+variables {M N α : Type*} [has_smul M α]
 
+/-- The inclusion of a sub_mul_action into the ambient set, as an equivariant map -/
 def inclusion (s : sub_mul_action M α) : s →[M] α := {
 to_fun := coe,
 map_smul' := λ g y, rfl }
@@ -54,13 +57,13 @@ section complements
 variables (M : Type*) [group M] {α : Type*} [mul_action M α]
 
 /-- Action on the complement of an invariant subset -/
-def sub_mul_action.of_compl (s : sub_mul_action M α) : sub_mul_action M α := {
+def of_compl (s : sub_mul_action M α) : sub_mul_action M α := {
 carrier := sᶜ,
 smul_mem' := λ g x,
   by simp only [set_like.mem_coe, set.mem_compl_eq, sub_mul_action.smul_mem_iff', imp_self] }
 
-lemma sub_mul_action.of_compl_def (s : sub_mul_action M α) :
-  (sub_mul_action.of_compl M s).carrier = sᶜ := rfl
+lemma of_compl_def (s : sub_mul_action M α) :
+  (of_compl M s).carrier = sᶜ := rfl
 
 /-- Action of stabilizer of a point on the complement -/
 def of_stabilizer (a : α) : sub_mul_action (stabilizer M a) α := {
@@ -166,6 +169,7 @@ section equivariant_map
 
 variables (M : Type*) [group M] {α : Type*} [mul_action M α]
 
+/-- The equivariant map from the sub_mul_action_of stabilizer into the ambient type -/
 def sub_mul_action_of_stabilizer_inclusion (a : α):
   (sub_mul_action.of_stabilizer M a) →[stabilizer M a] α := {
 to_fun := λ x, ↑x,
@@ -177,7 +181,11 @@ to_fun := λ x, ↑x,
 map_smul' := λ g x, rfl }
  -/
 
+
 variable (α)
+
+/-- The identity map of the sub_mul_action of the fixing_subgroup
+of the empty set into the ambient set, as an equivariant map -/
 def sub_mul_action.of_fixing_subgroup_empty_map :
   let φ := (fixing_subgroup M (∅ : set α)).subtype in
   sub_mul_action.of_fixing_subgroup M (∅ : set α) →ₑ[φ] α := {
@@ -208,6 +216,8 @@ end
 
 variable {α}
 
+/-- The identity map of fixing subgroup of stabilizer
+into the fixing subgroup of the extended set, as an equivariant map -/
 def sub_mul_action.of_fixing_subgroup_of_stabilizer.map
   (a : α) (s : set (sub_mul_action.of_stabilizer M a)) :
   let φ : fixing_subgroup M (insert a (coe '' s : set α)) → fixing_subgroup (stabilizer M a) s :=
@@ -299,7 +309,7 @@ begin
     simp only [subtype.coe_mk, ← smul_smul],
     rw inv_smul_eq_iff,
     simpa only [subtype.coe_mk] using hh ⟨_, set.smul_mem_smul_set hx⟩,
-    group,  },
+    group, },
   { rintro ⟨k, hk, rfl⟩,
     rintro ⟨x, hx⟩,
     simp only [mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, subtype.coe_mk, ← smul_smul],
@@ -307,6 +317,8 @@ begin
     exact hk ⟨_, set.mem_smul_set_iff_inv_smul_mem.mp hx⟩ }
 end
 
+/-- Conjugation induces an equivariant map between the sub_mul_action of
+the fixing subgroup of a subset and that of a translate -/
 def sub_mul_action.of_fixing_subgroup.conj_map {s t : set α} {g : M} (hst : g • s = t) :
   let φ : fixing_subgroup M s → fixing_subgroup M t :=
 λ ⟨m, hm⟩, ⟨(mul_aut.conj g) m,
@@ -348,7 +360,8 @@ begin
     rw [← mul_smul, mul_inv_self, one_smul] }
 end
 
-
+/-- Conjugation induces an equivariant map between the sub_mul_action of
+the stabilizer of a pint and that of its translate -/
 def sub_mul_action.of_stabilizer.conj_map {a b : α} {g : M} (hab : g • a = b) :
 let φ : stabilizer M a → stabilizer M b := λ ⟨m, hm⟩, ⟨(mul_aut.conj g) m,
 begin
@@ -372,7 +385,7 @@ begin
   simp only [mul_aut.conj_apply, mul_smul, inv_smul_smul],
 end }
 
-def sub_mul_action.of_stabilizer.conj_map_bijective {a b : α} {g : M} (hab : g • a = b) :
+lemma sub_mul_action.of_stabilizer.conj_map_bijective {a b : α} {g : M} (hab : g • a = b) :
   function.bijective (sub_mul_action.of_stabilizer.conj_map M hab) :=
 begin
   split,
@@ -388,7 +401,9 @@ begin
     simp only [smul_inv_smul] }
 end
 
-
+/-- The identity between the iterated sub_mul_action of the fixing_subgroups
+and the sub_mul_action of the fixing_subgroup of the union,
+as an equivariant map -/
 def sub_mul_action.of_fixing_subgroup_union.map (s t : set α) :
 let φ : fixing_subgroup M (s ∪ t) →
   fixing_subgroup (fixing_subgroup M s) (coe ⁻¹' t : set (sub_mul_action.of_fixing_subgroup M s)) :=
@@ -465,12 +480,13 @@ begin
   { rintro ⟨x, hx⟩, use x, refl },
 end
 
+/-- The identity between the sub_mul_action of fixing_subgroups
+of equal sets, as an equivariant map -/
 def sub_mul_action.of_fixing_subgroup_of_eq.map {s t : set α} (hst : s = t) :
 let φ: fixing_subgroup M s → fixing_subgroup M t :=  λ ⟨m, hm⟩, ⟨m, begin rw ← hst, exact hm end⟩
 in sub_mul_action.of_fixing_subgroup M s →ₑ[φ] sub_mul_action.of_fixing_subgroup M t := {
 to_fun := λ ⟨x, hx⟩, ⟨x, begin rw ← hst, exact hx end⟩,
 map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩, rfl }
-
 
 lemma sub_mul_action.of_fixing_subgroup_of_eq.map_def {s t : set α} (hst : s = t) :
   ∀ (x : α) (hx : x ∈ sub_mul_action.of_fixing_subgroup M s),
@@ -509,6 +525,8 @@ end
 
 
 end equivariant_map
+
+#lint
 
 #exit
 

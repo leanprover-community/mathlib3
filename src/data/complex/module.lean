@@ -84,11 +84,11 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
 { smul := (•),
   -- this creates a diamond with `complex.module`, but we're forced to choose between creating the
   -- diamond here and creating it with `to_real`
-  to_has_opposite_scalar := ⟨λ r x, x * ↑(algebra_map R ℝ r.unop)⟩,
+  to_has_opposite_smul := ⟨λ r x, x * ↑(algebra_map R ℝ r.unop)⟩,
   smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
   op_smul_def' := λ x r, by refl,
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
-  to_has_opposite_smul (algebra_map R ℝ) }
+  ..complex.of_real.comp (algebra_map R ℝ) }
 
 instance : star_module ℝ ℂ :=
 ⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩

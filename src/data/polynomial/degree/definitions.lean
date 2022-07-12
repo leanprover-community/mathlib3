@@ -563,7 +563,7 @@ begin
   split_ifs,
   { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
   { rw [sup_insert, max_comm],
-    exact rfl.le },
+    exact le_rfl },
 end
 
 lemma degree_sum_le (s : finset ι) (f : ι → R[X]) :
@@ -826,20 +826,14 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-by simp [degree_eq_bot.not, ← not_lt, ← not_iff]
+by simp [degree_eq_bot, ← not_lt]
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-begin
-  refine ⟨λ h m mn, coeff_eq_zero_of_degree_lt (h.trans_lt mn), λ h, _⟩,
-  rcases n with _ | n,
-  { exact (degree_eq_bot.mpr (ext (λ (n : ℕ), h _ (with_bot.bot_lt_coe _)))).le },
-  refine finset.max_le (λ a ha, not_not.mp (λ ha0, not_not.mpr ha _)),
-  exact not_mem_support_iff.mpr (h _ (not_le.mp ha0))
-end
+by simp only [degree, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le, not_imp_comm]
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=

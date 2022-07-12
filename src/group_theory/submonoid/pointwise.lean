@@ -402,6 +402,36 @@ by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
 end non_unital_non_assoc_semiring
 
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring R]
+
+/-- `add_submonoid.has_pointwise_neg` distributes over multiplication.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def has_distrib_neg : has_distrib_neg (add_submonoid R) :=
+{ neg := has_neg.neg,
+  neg_mul := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [add_submonoid.mem_neg, ←neg_mul] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
+  end,
+  mul_neg := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [add_submonoid.mem_neg, ←mul_neg] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
+  end,
+  ..add_submonoid.has_involutive_neg }
+
+localized "attribute [instance] add_submonoid.has_distrib_neg" in pointwise
+
+end non_unital_non_assoc_ring
+
 section non_assoc_semiring
 variables [non_assoc_semiring R]
 
@@ -419,7 +449,6 @@ variables [non_unital_semiring R]
 instance : semigroup (add_submonoid R) :=
 { mul := (*),
   mul_assoc := λ M N P,
-    -- copied from `submodule.mul_assoc`
     le_antisymm (mul_le.2 $ λ mn hmn p hp,
       suffices M * N ≤ (M * (N * P)).comap (add_monoid_hom.mul_right p), from this hmn,
       mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from

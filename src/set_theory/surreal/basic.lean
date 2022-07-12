@@ -229,13 +229,10 @@ end pgame
 
 open pgame
 
-/-- The equivalence on numeric pre-games. -/
-instance surreal.setoid : setoid numeric := by apply_instance
-
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
 the order becomes a total order. -/
-def surreal := quotient surreal.setoid
+def surreal := quotient (by apply_instance : setoid numeric)
 
 namespace surreal
 

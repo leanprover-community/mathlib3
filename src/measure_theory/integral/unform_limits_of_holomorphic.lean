@@ -269,7 +269,7 @@ begin
   have hF'_meas : ae_strongly_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) ,
   by {simp_rw F', simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
   apply circle_integral_transform_deriv_ae_measurable R hR z x hx f hf},
-  have BOU := circle_transform_deriv_bound  hR hx hf,
+  have BOU := circle_transform_deriv_bound hR hx hf,
   obtain ⟨bound, ε, hε ,h_ball, h_boun⟩:= BOU,
   have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε , ∥F' y t∥ ≤ bound,
   by {simp_rw F', apply eventually_of_forall,

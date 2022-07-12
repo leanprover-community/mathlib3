@@ -70,7 +70,7 @@ begin
   { ext w,
     simp only [degree_eq_degree, nat.odd_iff_not_even, set.mem_set_of_eq, set.mem_insert_iff,
       set.mem_singleton_iff],
-    cases w; simp [degree_eq_degree], },
+    cases w; simp, },
   have h := h.card_odd_degree,
   simp_rw [this] at h,
   norm_num at h,

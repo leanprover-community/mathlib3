@@ -585,6 +585,70 @@ begin
     exact is_localization.comap_map_of_is_prime_disjoint M S _ x.2 h }
 end
 
+section spec_of_surjective
+/- The comap of a surjective ring homomorphism is a closed embedding between the prime spectra. -/
+
+open function
+open ring_hom
+
+lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
+{ induced := begin
+    simp_rw [topological_space_eq_iff,
+             ← is_closed_compl_iff,
+             is_closed_induced_iff],
+    intro U,
+    generalize : Uᶜ = Z,
+    split,
+    {   rw is_closed_iff_zero_locus,
+        rintro ⟨F, rfl⟩,
+        use zero_locus (f ⁻¹' F),
+        exact ⟨(is_closed_iff_zero_locus _).mpr ⟨f ⁻¹' F, rfl⟩,
+               by rw [preimage_comap_zero_locus,
+                      surjective.image_preimage hf]⟩, },
+    {   rintro ⟨C, ⟨hC1, rfl⟩⟩,
+        exact hC1.preimage (comap f).continuous, },
+  end
+}
+
+lemma image_of_spec_of_surjective (hf : surjective f) :
+    set.range (comap f) = prime_spectrum.zero_locus (ker f) :=
+begin
+    ext p, rw [set.mem_range, mem_zero_locus],
+    split,
+    { rintro ⟨p, rfl⟩ a ha,
+      simp only [ideal.mem_comap, set_like.mem_coe, comap_as_ideal],
+      rw (mem_ker _).mp ha, exact zero_mem _, },
+    { intro h_ker_p,
+      use ideal.map f p.as_ideal,
+      apply ideal.map_is_prime_of_surjective hf h_ker_p,
+      ext x,
+      change f x ∈ p.as_ideal.map f ↔ _,
+      rw ideal.mem_map_iff_of_surjective _ hf,
+      split,
+      { rintros ⟨x', ⟨hx', heq⟩⟩,
+        rw (by ring : x = x' + (x - x')),
+        apply p.as_ideal.add_mem hx',
+        apply h_ker_p ((mem_ker _).mpr _),
+        rw [map_sub, heq, sub_self], },
+      intro hx, exact ⟨x, hx, rfl⟩,
+    },
+end
+
+lemma is_closed_spec_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
+    begin
+        rw image_of_spec_of_surjective _ f hf,
+        exact is_closed_zero_locus ↑(ker f),
+    end
+
+lemma closed_embedding_of_spec_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
+{
+    induced := (comap_inducing_of_surjective S f hf).induced,
+    inj := comap_injective_of_surjective f hf,
+    closed_range := is_closed_spec_of_surjective S f hf
+}
+
+end spec_of_surjective
+
 end comap
 
 section basic_open
@@ -784,3 +848,5 @@ by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
 (is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring
+
+#lint

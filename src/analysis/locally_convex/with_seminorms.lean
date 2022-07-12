@@ -532,18 +532,20 @@ section vonN_bornology_eq_metric
 
 variables (𝕜 E) [nondiscrete_normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E]
 
-lemma normed_space.is_vonN_bounded_ball (r : ℝ) :
+namespace normed_space
+
+lemma is_vonN_bounded_ball (r : ℝ) :
   bornology.is_vonN_bounded 𝕜 (metric.ball (0 : E) r) :=
 begin
   rw [metric.nhds_basis_ball.is_vonN_bounded_basis_iff, ← ball_norm_seminorm 𝕜 E],
   exact λ ε hε, (norm_seminorm 𝕜 E).ball_zero_absorbs_ball_zero hε
 end
 
-lemma normed_space.is_vonN_bounded_closed_ball (r : ℝ) :
+lemma is_vonN_bounded_closed_ball (r : ℝ) :
   bornology.is_vonN_bounded 𝕜 (metric.closed_ball (0 : E) r) :=
-(normed_space.is_vonN_bounded_ball 𝕜 E (r+1)).subset (metric.closed_ball_subset_ball $ by linarith)
+(is_vonN_bounded_ball 𝕜 E (r+1)).subset (metric.closed_ball_subset_ball $ by linarith)
 
-lemma normed_space.is_vonN_bounded_iff (s : set E) :
+lemma is_vonN_bounded_iff (s : set E) :
   bornology.is_vonN_bounded 𝕜 s ↔ bornology.is_bounded s :=
 begin
   rw [← metric.bounded_iff_is_bounded, metric.bounded_iff_subset_ball (0 : E)],
@@ -555,41 +557,43 @@ begin
     rw [← ball_norm_seminorm 𝕜 E, smul_ball_zero (hρ.trans ha),
         ball_norm_seminorm, mul_one] at hρball,
     exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
-  { exact λ ⟨C, hC⟩, (normed_space.is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
+  { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
 
-lemma normed_space.vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = infer_instance :=
+lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = infer_instance :=
 begin
   rw bornology.ext_iff_is_bounded,
   intro s,
   rw bornology.is_bounded_iff_is_vonN_bounded,
-  exact normed_space.is_vonN_bounded_iff 𝕜 E s
+  exact is_vonN_bounded_iff 𝕜 E s
 end
 
-lemma normed_space.is_bounded_iff_subset_smul_ball {s : set E} :
+lemma is_bounded_iff_subset_smul_ball {s : set E} :
   bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.ball 0 1 :=
 begin
-  rw ← normed_space.is_vonN_bounded_iff 𝕜,
+  rw ← is_vonN_bounded_iff 𝕜,
   split,
   { intros h,
     rcases h (metric.ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
     rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
     exact ⟨a, hρball a ha.le⟩ },
   { rintros ⟨a, ha⟩,
-    exact ((normed_space.is_vonN_bounded_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
+    exact ((is_vonN_bounded_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
 end
 
-lemma normed_space.is_bounded_iff_subset_smul_closed_ball {s : set E} :
+lemma is_bounded_iff_subset_smul_closed_ball {s : set E} :
   bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.closed_ball 0 1 :=
 begin
-  rw ← normed_space.is_vonN_bounded_iff 𝕜,
+  rw ← is_vonN_bounded_iff 𝕜,
   split,
   { intros h,
     rcases h (metric.closed_ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
     rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
     exact ⟨a, hρball a ha.le⟩ },
   { rintros ⟨a, ha⟩,
-    exact ((normed_space.is_vonN_bounded_closed_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
+    exact ((is_vonN_bounded_closed_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
 end
+
+end normed_space
 
 end vonN_bornology_eq_metric

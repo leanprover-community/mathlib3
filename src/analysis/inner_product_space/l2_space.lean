@@ -400,15 +400,14 @@ begin
   simp [← linear_map.span_singleton_eq_range, ← submodule.span_Union],
 end
 
-lemma _root_.orthonormal.linear_isometry_equiv_symm_apply_single_one
-  (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) (h i) :
+lemma _root_.orthonormal.linear_isometry_equiv_symm_apply_single_one (h i) :
   (hv.orthogonal_family.linear_isometry_equiv h).symm (lp.single 2 i 1) = v i :=
 by rw [orthogonal_family.linear_isometry_equiv_symm_apply_single,
   linear_isometry.to_span_singleton_apply, one_smul]
 
 @[simp] protected lemma coe_mk (hsp : (span 𝕜 (set.range v)).topological_closure = ⊤) :
   ⇑(hilbert_basis.mk hv hsp) = v :=
-funext (hv.linear_isometry_equiv_symm_apply_single_one hsp _)
+funext (orthonormal.linear_isometry_equiv_symm_apply_single_one hv _)
 
 /-- An orthonormal family of vectors whose span has trivial orthogonal complement is a Hilbert
 basis. -/

@@ -22,7 +22,7 @@ This file proves properties of the Schur complement `D - C A⁻¹ B` of a block 
 namespace matrix
 
 open_locale matrix
-variables {n : Type*} [fintype n] [decidable_eq n] {R : Type*} [comm_ring R] [star_ring R]
+variables {n : Type*} {R : Type*} [comm_ring R] [star_ring R]
 
 variables (A B C D : matrix n n R) (x y u v: n → R)
 
@@ -31,7 +31,8 @@ localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
 lemma star_sum_elim : star (x ⊕ᵥ y)  = (star x ⊕ᵥ star y) :=
 by { ext x, cases x; simp }
 
-lemma schur_complement_eq {A : matrix n n R} (hA : A.is_hermitian) [invertible A] :
+lemma schur_complement_eq [fintype n] [decidable_eq n] {A : matrix n n R} [invertible A]
+  (hA : A.is_hermitian) :
 vec_mul (star (x ⊕ᵥ y)) (from_blocks A B Bᴴ D) ⬝ᵥ (x ⊕ᵥ y) =
   vec_mul (star (x + (A⁻¹ ⬝ B).mul_vec y)) A ⬝ᵥ (x + (A⁻¹ ⬝ B).mul_vec y) +
     vec_mul (star y) (D - Bᴴ ⬝ A⁻¹ ⬝ B) ⬝ᵥ y :=
@@ -47,11 +48,11 @@ end matrix
 namespace matrix
 
 open_locale matrix
-variables {n : Type*} [fintype n] [decidable_eq n] {R : Type*} [ordered_comm_ring R] [star_ring R]
+variables {n : Type*} [fintype n] {R : Type*} [ordered_comm_ring R] [star_ring R]
 
 variables {A : matrix n n R} (B C D : matrix n n R) (x y u v: n → R)
 
-lemma schur_complement_is_hermitian_iff (hA : A.is_hermitian) :
+lemma schur_complement_is_hermitian_iff [decidable_eq n] (hA : A.is_hermitian) :
   (from_blocks A B Bᴴ D).is_hermitian ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).is_hermitian :=
 begin
   have hBAB : (Bᴴ ⬝ A⁻¹ ⬝ B).is_hermitian,
@@ -67,7 +68,7 @@ begin
     apply is_hermitian.add h hBAB }
 end
 
-lemma schur_complement_pos_semidef_iff [invertible A] (hA : A.pos_def) :
+lemma schur_complement_pos_semidef_iff [decidable_eq n] [invertible A] (hA : A.pos_def) :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).pos_semidef :=
 begin
   rw [pos_semidef, schur_complement_is_hermitian_iff _ _ hA.1],

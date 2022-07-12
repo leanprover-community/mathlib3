@@ -55,7 +55,7 @@ lemma is_hermitian_transpose_mul_self [fintype n] (A : matrix n n α) :
   (Aᴴ ⬝ A).is_hermitian :=
 by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
 
-lemma is_hermitian_mul_mul [fintype m] [fintype n] {A : matrix m m α} (B : matrix m n α)
+lemma is_hermitian_mul_mul [fintype m] {A : matrix m m α} (B : matrix m n α)
   (hA : A.is_hermitian) : (Bᴴ ⬝ A ⬝ B).is_hermitian :=
 by simp only [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose, hA.eq,
   matrix.mul_assoc]

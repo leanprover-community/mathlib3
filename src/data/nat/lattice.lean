@@ -12,7 +12,7 @@ import order.conditionally_complete_lattice
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;
-* define a `complete_linear_order` structure on `enat`;
+* define a `complete_linear_order` structure on `part_enat`;
 * prove a few lemmas about `supr`/`infi`/`set.Union`/`set.Inter` and natural numbers.
 -/
 
@@ -185,18 +185,18 @@ nat.infi_lt_succ' u n
 
 end set
 
-namespace enat
+namespace part_enat
 open_locale classical
 
-noncomputable instance : complete_linear_order enat :=
+noncomputable instance : complete_linear_order part_enat :=
 { inf := (⊓),
   sup := (⊔),
   top := ⊤,
   bot := ⊥,
   le := (≤),
   lt := (<),
-  .. enat.lattice,
+  .. part_enat.lattice,
   .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
-  .. enat.linear_order, }
+  .. part_enat.linear_order, }
 
-end enat
+end part_enat

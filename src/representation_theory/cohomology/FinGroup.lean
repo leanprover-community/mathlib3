@@ -1,4 +1,3 @@
-#exit
 import algebra.category.Group.limits
 import category_theory.Fintype
 -- a file that is definitely not long for this world.

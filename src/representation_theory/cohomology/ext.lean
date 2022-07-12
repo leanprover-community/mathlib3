@@ -3,7 +3,7 @@ Copyright (c) 2021 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-#exit
+
 import representation_theory.cohomology.std_resn
 import representation_theory.cohomology.cochain_succ
 import category_theory.abelian.ext

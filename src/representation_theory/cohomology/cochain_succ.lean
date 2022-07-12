@@ -3,7 +3,7 @@ Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-#exit
+
 import group_theory.group_action.basic
 import data.fin_simplicial_complex
 import group_theory.free_abelian_group
@@ -15,7 +15,10 @@ import representation_theory.cohomology.std_resn
 namespace group_cohomology
 
 universes v u
+example (n : ℕ) : (n + 1) + 1 = n + (1 + 1) := rfl
 
+#check chain_complex
+#check int.add_sub_cancel
 def homog_cochain {k : Type*} [comm_ring k] {G : Type*} [group G] {V : Type*} [add_comm_group V]
   [module k V] (ρ : representation k G V) (n : ℕ) :
   submodule k ((fin n → G) → V) :=

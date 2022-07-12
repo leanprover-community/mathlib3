@@ -1,4 +1,3 @@
-#exit
 import representation_theory.cohomology.morestuff
 import representation_theory.cohomology.sles
 import representation_theory.cohomology.hmmmm
@@ -23,7 +22,7 @@ abbreviation abs_gal := kˢ ≃ₐ[k] (kˢ)
 
 variables (A : Type u) [topological_space A] [discrete_topology A] [add_comm_group A]
   [distrib_mul_action (abs_gal k) A] [has_continuous_smul (abs_gal k) A]
-
+#exit
 abbreviation gal_coh (n : ℕ) := (cochain_cx (abs_gal k) A).homology n
 
 abbreviation gal_invariants := invariants (abs_gal k) A

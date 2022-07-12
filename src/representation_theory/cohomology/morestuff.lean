@@ -1,4 +1,3 @@
-#exit
 import field_theory.galois
 import linear_algebra.linear_independent
 universes v u
@@ -24,17 +23,19 @@ variables (M : Type u) [add_comm_group M] [distrib_mul_action G M]
 
 open_locale big_operators
 
+
+-- Given `f: Gal(L/K) → Lˣ`, the sum `∑ f(φ) • φ` for `φ ∈ Gal(L/K)`, as a function `L → L`.
 noncomputable def aux (f : (L ≃ₐ[K] L) → Lˣ) : L → L :=
 finsupp.total (L ≃ₐ[K] L) (L → L) L (λ φ, φ.to_alg_hom)
   (finsupp.equiv_fun_on_fintype.symm (λ φ, (f φ : L)))
 
-lemma hmmm (f : (L ≃ₐ[K] L) → Lˣ) : aux K L f ≠ 0 :=
+lemma aux_ne_zero (f : (L ≃ₐ[K] L) → Lˣ) : aux K L f ≠ 0 :=
 begin
-  have hh := linear_independent_iff.1 (helper K L) (finsupp.equiv_fun_on_fintype.symm
-    (λ φ, (f φ : L))),
+  have h := linear_independent_iff.1 (helper K L)
+    (finsupp.equiv_fun_on_fintype.symm (λ φ, (f φ : L))),
   intro H,
-  specialize hh H,
-  have hm := finsupp.ext_iff.1 hh 1,
+  specialize h H,
+  have hm := finsupp.ext_iff.1 h 1,
   dsimp at hm,
   exact units.ne_zero (f 1) hm,
 end
@@ -46,9 +47,9 @@ theorem hilbert90 (f : (L ≃ₐ[K] L) → Lˣ)
   ∃ β : Lˣ, ∀ g : (L ≃ₐ[K] L), f g = β * (units.map (g.to_alg_hom : L →* L) β)⁻¹ :=
 begin
   obtain ⟨z, hz⟩ : ∃ z, aux K L f z ≠ 0, from
-    not_forall.1 (λ H, hmmm K L f $ funext $ λ x, H x),
-  use units.mk0 (aux K L f z) hz,
-  intro g,
+    not_forall.1 (λ H, aux_ne_zero K L f $ funext $ λ x, H x),
+  use units.mk0 (aux K L f z) hz, /- let β = (∑ f(φ) • φ)(z) for some `z` making the RHS nonzero -/
+  intro g, -- let `g ∈ Gal(L/K)`
   rw eq_mul_inv_iff_mul_eq,
   ext,
   simp only [alg_equiv.to_alg_hom_eq_coe, units.coe_mul,
@@ -62,18 +63,20 @@ begin
     algebra.id.smul_eq_mul],
   rw alg_equiv.map_sum,
   simp only [alg_equiv.map_mul],
-  have ugh : ∀ g h, ((f (g * h))⁻¹ : L) * (f g : L) ≠ 0 :=
+  /- Trivialities taking the goal to `f(g) * (∑ g(f(φ)) * g(φ(z))) = ∑ f(φ) * φ(z)`-/
+  have H : ∀ g h, ((f (g * h))⁻¹ : L) * (f g : L) ≠ 0 :=
   λ g h, by simp,
-  simp only [mul_assoc, mul_eq_one_iff_eq_inv₀ (ugh _ _)] at hf,
-  simp only [hf],
+  simp only [mul_assoc, mul_eq_one_iff_eq_inv₀ (H _ _)] at hf,
+  simp only [hf], -- use the hypothesis that `f` is a 1-cocycle
   rw finset.mul_sum,
   simp only [←mul_assoc],
-  simp only [mul_inv₀, mul_comm _ (f g : L)⁻¹, inv_inv],
+  simp only [mul_inv_rev, mul_comm _ (f g : L)⁻¹, inv_inv],
   simp only [←units.coe_inv' _, units.mul_inv_cancel_left _],
   show ∑ (x : L ≃ₐ[K] L), _ * (g * x) z = _,
+  /- The goal is now `∑ f(g * φ) * (g * φ)(z) = ∑ f(φ) * φ(z)`; we apply the fact that we are summing the same function over different permutations of the same finite set. -/
   refine @finset.sum_bij _ (L ≃ₐ[K] L) (L ≃ₐ[K] L) _ finset.univ finset.univ
    _ _ (λ i ih, g * i) (λ i ih, finset.mem_univ _)
-   (by intros; refl) _ _,
+   (by intros; refl) _ _, --
   { intros a b ha hb hab,
     exact (mul_right_inj _).1 hab },
   { intros,

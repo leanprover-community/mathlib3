@@ -1,14 +1,13 @@
-#exit
 import representation_theory.cohomology.wabagoosa
+import representation_theory.cohomology.invariants
 -- ("short long exact sequence")
 universes v u
 
-variables {k : Type*} [comm_ring k] {G : Type*} [group G]
+variables {k : Type u} [comm_ring k] {G : Type u} [group G]
 noncomputable theory
 
 namespace stuff
 
-#exit
 def one_cocycles_map {M N : Type*} [add_comm_group M] [add_comm_group N]
   [module k M] [module k N] (ρ : representation k G M) (τ : representation k G N)
   (f : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) f) :
@@ -22,30 +21,25 @@ begin
   --abel,
 end
 
-variables {M N : Type*} [add_comm_group M] [add_comm_group N]
+section hm
+
+variables {M N : Type u} [add_comm_group M] [add_comm_group N]
   [module k M] [module k N] (ρ : representation k G M) (τ : representation k G N)
   (f : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) f)
 
-#check cohomology_map ρ τ
-
-#exit
-def firstcoh_map {M N : Type*} [add_comm_group M] [add_comm_group N]
-  [module k M] [module k N] (ρ : representation k G M) (τ : representation k G N)
-  (f : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) f) :
+def firstcoh_map (hp : pair τ ρ (monoid_hom.id G) f) :
   firstcoh ρ →ₗ[k] firstcoh τ :=
 ((first_iso τ).to_linear_map.comp (cohomology_map _ _ f hp 1)).comp (first_iso ρ).symm.to_linear_map
 
-lemma firstcoh_map_apply {M N : Type*} [add_comm_group M] [add_comm_group N]
-  [module k M] [module k N] (ρ : representation k G M) (τ : representation k G N)
-  (f : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) f) (x : one_cocycles ρ) (g : G) :
-  firstcoh_map _ _ f hp x = quotient.mk' (one_cocycles_map _ _ f hp x) := sorry
+lemma firstcoh_map_apply (hp : pair τ ρ (monoid_hom.id G) f) (x : one_cocycles ρ) (g : G) :
+  firstcoh_map _ _ f hp (quotient.mk' x) = quotient.mk' (one_cocycles_map _ _ f hp x) := sorry
 
+end hm
+
+#exit
 -- here we go...
-variables {M N P : Type*} [add_comm_group M] [add_comm_group N] [add_comm_group P]
-  [module k M] [module k N] [module k P] (ρ : representation k G M)
-  (τ : representation k G N) (σ : representation k G P)
-  (f : M →ₗ[k] N) (g : N →ₗ[k] P)
-  (hf : pair τ ρ (monoid_hom.id G) f) (hg : pair σ τ (monoid_hom.id G) g)
+variables {M N P : Rep k G} (f : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) f)
+  (g : N →ₗ[k] P) (hpf : pair τ ρ (monoid_hom.id G) f) (hpg : pair σ τ (monoid_hom.id G) g)
   (hf : f.ker = ⊥) (hfg : g.ker = f.range) (hg : g.range = ⊤)
 
 -- i cba, these shouldn't exist. not sure which hyps i need

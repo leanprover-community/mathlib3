@@ -3,7 +3,7 @@ Copyright (c) 2022 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-#exit
+
 import representation_theory.Rep
 import representation_theory.basic
 
@@ -62,25 +62,15 @@ variables (k : Type*) [comm_semiring k] (G : Type*) [monoid G] (H : Type*) [mul_
   map_one' := by { ext x y, dsimp, simp },
   map_mul' := λ x y, by { ext z w, simp [mul_smul] }}
 
-def of_module (V : Type*) [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V] : representation k G V :=
-{ to_fun := λ g, linear_map.lsmul_of_scalar_tower k (monoid_algebra k G) V (monoid_algebra.of k G g),
-  map_one' := by ext; exact one_smul _ _,
-  map_mul' := by intros; rw map_mul; ext; exact mul_smul _ _ _ }
-
 variables {k G}
-@[simp] lemma of_module_apply {V : Type*} [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V] (g : G) (x : V) :
-  of_module k G V g x = monoid_algebra.of k G g • x := rfl
 
-lemma as_algebra_hom_of_module_eq {V : Type*} [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V] (g : monoid_algebra k G) (x : V) :
-  as_algebra_hom (representation.of_module k G V) g x = g • x :=
+lemma as_algebra_hom_of_module_eq {V : Type*} [add_comm_monoid V] [module k V]
+  [module (monoid_algebra k G) V] [is_scalar_tower k (monoid_algebra k G) V]
+  (g : monoid_algebra k G) (x : V) :
+  as_algebra_hom (representation.of_module' V) g x = g • x :=
 begin
-  rw [as_algebra_hom_def, monoid_algebra.lift_apply, linear_map.finsupp_sum_apply, finsupp.sum],
-  conv_rhs {rw [←finsupp.sum_single g, finsupp.sum, finset.sum_smul] },
-  refine finset.sum_congr rfl (λ x hx, _),
-  simp [←smul_assoc],
+  unfold representation.of_module',
+  simp only [as_algebra_hom_def, equiv.apply_symm_apply, algebra.lsmul_coe],
 end
 
 end representation
@@ -91,10 +81,6 @@ variables (k G : Type u) [comm_ring k] [monoid G] (H : Type u) [mul_action G H]
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G.` -/
 abbreviation of_mul_action : Rep k G := Rep.of (representation.of_mul_action k G H)
-
-abbreviation of_module (V : Type u) [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
-  [is_scalar_tower k (monoid_algebra k G) V] : Rep k G :=
-  Rep.of (representation.of_module.{u u u u} k G V)
 
 variables {k G} {n : ℕ}
 
@@ -140,9 +126,17 @@ end
 
 private lemma to_tensor_aux_comm (g : G) (x : fin (n + 1) → G) :
   to_tensor_aux k G n (representation.of_mul_action k G (fin (n + 1) → G) g (finsupp.single x 1))
-  = tensor_product.map (representation.of_module.{u u u u} k G (monoid_algebra k G) g) 1
+  = tensor_product.map (representation.left_regular k G g) 1
     (to_tensor_aux k G n (finsupp.single x 1)) :=
-by simp [to_tensor_aux_single, mul_assoc, inv_mul_cancel_left]
+begin
+  rw to_tensor_aux_single,
+  simp only [representation.left_regular_def, representation.of_mul_action_apply,
+    lmap_domain_apply, map_domain_single, monoid_algebra.lift_symm_apply, fin.coe_eq_cast_succ,
+    tensor_product.map_tmul, algebra.lsmul_coe, smul_eq_mul, monoid_algebra.single_mul_single,
+    mul_one, linear_map.one_apply],
+  rw to_tensor_aux_single,
+  simp only [mul_assoc, inv_mul_cancel_left, pi.smul_apply, smul_eq_mul, fin.coe_eq_cast_succ, mul_inv_rev]
+end
 
 variables (k G n)
 set_option pp.universes true
@@ -150,7 +144,8 @@ set_option pp.universes true
 /-- A hom of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
 `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)` -/
-def to_tensor : of_mul_action k G (fin (n + 1) → G) ⟶ Rep.of_module k G (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k)) :=
+def to_tensor : of_mul_action k G (fin (n + 1) → G) ⟶
+  Rep.of ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k))) :=
 { hom := to_tensor_aux k G n,
   comm' := λ g, by ext; exact to_tensor_aux_comm _ _ }
 
@@ -178,8 +173,8 @@ private lemma of_tensor_aux_single (g : G) (m : k) (x : (fin n → G) →₀ k) 
 by simp [of_tensor_aux, finsupp.sum_single_index, finsupp.smul_sum, mul_comm m]
 
 private lemma of_tensor_aux_comm (g h : G) (x : fin n → G) :
-  of_tensor_aux k G n (tensor_product.map (representation.of_module.{u u u u} k G (monoid_algebra k G) g)
-    (1 : module.End k ((fin n → G) →₀ k)) (finsupp.single h (1 : k) ⊗ₜ finsupp.single x (1 : k)))
+  of_tensor_aux k G n (tensor_product.map (representation.left_regular k G g)
+    1 (finsupp.single h (1 : k) ⊗ₜ finsupp.single x (1 : k)))
   = representation.of_mul_action k G (fin (n + 1) → G) g (of_tensor_aux k G n
     (finsupp.single h 1 ⊗ₜ finsupp.single x 1)) :=
 begin
@@ -193,7 +188,7 @@ variables (k G n)
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) to `k[Gⁿ⁺¹]` sending `g ⊗ (g₁, ..., gₙ)` to
 `(g, gg₁, gg₁g₂, ..., gg₁...gₙ)` -/
 def of_tensor :
-  Rep.of_module k G (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k))
+  Rep.of ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k)))
     ⟶ of_mul_action k G (fin (n + 1) → G) :=
 { hom := of_tensor_aux k G n,
   comm' := λ g, by { ext, congr' 1, exact (of_tensor_aux_comm _ _ _) }}
@@ -209,7 +204,6 @@ lemma of_tensor_single' (g : finsupp G k) (x : fin n → G) (r : k) :
   (of_tensor k G n).hom (g ⊗ₜ finsupp.single x r) =
     finsupp.lift _ k G (λ a, finsupp.single (a • to_prod x) r) g :=
 by simp [of_tensor, of_tensor_aux]
-#exit
 
 lemma equiv_tensor_left_inv_aux (f : fin (n + 1) → G) :
   f 0 • to_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
@@ -276,7 +270,7 @@ variables (k G n)
 
 /-- A `k[G]`-linear isomorphism `k[Gⁿ⁺¹] ≅ k[G] ⊗ₖ k[Gⁿ]` -/
 def equiv_tensor : (of_mul_action k G (fin (n + 1) → G))
-  ≅ Rep.of_module k G (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k)) :=
+  ≅ Rep.of ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k))) :=
 Action.mk_iso (linear_equiv.to_Module_iso
 { inv_fun := of_tensor_aux k G n,
   left_inv := equiv_tensor_left_inv,
@@ -406,7 +400,7 @@ noncomputable def tensor_product_basis : basis ι R (R ⊗[k] M) :=
     right_inv := basis_right_inv R b, .. to_basis R b } }
 
 end
-#check representation.as_module_module'
+
 namespace Rep
 #check linear_map.lsmul
 open_locale tensor_product
@@ -429,7 +423,7 @@ begin
     simp only [alg_hom.map_smul, w, ring_hom.id_apply,
       linear_map.smul_apply, linear_map.map_smulₛₗ, smul_assoc], }
 end-/
-
+/-
 lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
   {V W : Type*} [add_comm_group V] [add_comm_group W] [module k V] [module k W]
   (ρ : G →* V →ₗ[k] V) (σ : G →* W →ₗ[k] W)
@@ -456,7 +450,7 @@ def as_linear_map_right {k : Type*} [comm_ring k] {G : Type*} [group G] {V : Typ
 { to_fun := f.hom,
   map_add' := f.hom.map_add,
   map_smul' := λ r x, by erw [←as_algebra_hom_of_module_eq r, to_Module_monoid_algebra_map_aux
-    _ _ _ f.comm]; refl }
+    _ _ _ f.comm]; refl }-/
 
 /-def as_linear_map_left {k : Type u} [comm_ring k] {G : Type u} [group G]
   {V : Rep k G} {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
@@ -470,7 +464,7 @@ def as_linear_map_right {k : Type*} [comm_ring k] {G : Type*} [group G] {V : Typ
   end }-/
 
 set_option profiler true
-def hom_to_linear_map {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V]
+/-def hom_to_linear_map {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V]
   [module k W] (ρ : representation k G V) (τ : representation k G W)
   (f : Rep.of ρ ⟶ Rep.of τ) :
   ρ.as_module →ₗ[monoid_algebra k G] τ.as_module :=
@@ -482,30 +476,70 @@ def hom_to_linear_map' {V W : Rep k G} (f : V ⟶ W) :
   representation.as_module V.ρ →ₗ[monoid_algebra k G] representation.as_module W.ρ :=
 { to_fun := f.hom,
   map_add' := f.hom.map_add,
-  map_smul' := to_Module_monoid_algebra_map_aux _ _ f.hom f.comm }
+  map_smul' := to_Module_monoid_algebra_map_aux _ _ f.hom f.comm }-/
+def iso_to_linear_equiv' {V W : Type*} [add_comm_group V] [add_comm_group W] [module k V] [module k W]
+  (ρ : representation k G V) (τ : representation k G W) (f : Rep.of ρ ≅ Rep.of τ) :
+  ρ.as_module ≃ₗ[monoid_algebra k G] τ.as_module :=
+{ inv_fun := to_Module_monoid_algebra_map f.inv,
+  left_inv := f.hom_inv_id_apply,
+  right_inv := f.inv_hom_id_apply, ..to_Module_monoid_algebra_map f.hom }
 
 def iso_to_linear_equiv {V W : Rep k G} (f : V ≅ W) :
   representation.as_module V.ρ ≃ₗ[monoid_algebra k G] representation.as_module W.ρ :=
-{ inv_fun := hom_to_linear_map' f.inv,
+{ inv_fun := to_Module_monoid_algebra_map f.inv,
   left_inv := f.hom_inv_id_apply,
-  right_inv := f.inv_hom_id_apply, ..hom_to_linear_map' f.hom }
+  right_inv := f.inv_hom_id_apply, ..to_Module_monoid_algebra_map f.hom }
 
-def as_linear_equiv_right {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+
+/-def as_linear_equiv_right {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] {W : Rep k G} (f : Rep.of_module k G V ≅ W) :
   V ≃ₗ[monoid_algebra k G] representation.as_module W.ρ :=
 { inv_fun := f.inv.hom,
   left_inv := f.hom_inv_id_apply,
-  right_inv := f.inv_hom_id_apply, ..as_linear_map_right.{u u} f.hom }
+  right_inv := f.inv_hom_id_apply, ..as_linear_map_right.{u u} f.hom }-/
 
 variables (k G n)
 
+#exit
+def basis_aux : monoid_algebra k G ⊗[k] ((fin n → G) →₀ k) ≃ₗ[monoid_algebra k G]
+  ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k))).as_module :=
+linear_equiv.refl _ _
+set_option pp.universes true
+
+def ugh {V : Type u} [add_comm_group V] [module k V] (ρ : representation k G V) :
+  representation.as_module (Rep.of ρ).ρ ≃ₗ[monoid_algebra k G] ρ.as_module :=
+linear_equiv.refl _ _
+
+#check (Rep.of ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k)))).ρ.as_module
+def fucksake : ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k))).as_module
+≃ₗ[monoid_algebra k G] (Rep.of ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k)))).ρ.as_module :=
+linear_equiv.refl _ _
+#check linear_equiv.trans
+def fucksake3 := iso_to_linear_equiv' ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k))) (representation.of_mul_action k G (fin (n + 1) → G)) (equiv_tensor k G n).symm
+#check fucksake3 k G n
+#check basis_aux k G n
+#check linear_equiv.trans
+
+def willscream : monoid_algebra.{u u} k G ⊗[k] ((fin n → G) →₀ k) ≃ₗ[monoid_algebra.{u u} k G]
+  representation.as_module.{u u} (representation.of_mul_action.{u u u} k G (fin (n + 1) → G)) :=
+@linear_equiv.trans.{u u u u u u} (monoid_algebra.{u u} k G) _ _ _ _ (representation.as_module.{u u}
+  (representation.of_mul_action.{u u u} k G (fin (n + 1) → G))) _ _ _ _ _ _ _ _ _
+  (ring_hom.id _) (ring_hom.id _) (ring_hom.id _)
+  (ring_hom.id _) (ring_hom.id _) (ring_hom.id _)
+  ring_hom_comp_triple.ids ring_hom_comp_triple.ids
+  ring_hom_inv_pair.ids ring_hom_inv_pair.ids ring_hom_inv_pair.ids
+  ring_hom_inv_pair.ids ring_hom_inv_pair.ids ring_hom_inv_pair.ids
+ (basis_aux.{u} k G n) (fucksake3.{u} k G n)
+#exit
+#check (basis_aux k G n).trans $ iso_to_linear_equiv' ((representation.left_regular k G).tprod (1 : representation k G ((fin n → G) →₀ k)))
+(representation.of_mul_action k G (fin (n + 1) → G)) (equiv_tensor k G n).symm
 noncomputable def monoid_algebra_basis :
   basis (fin n → G) (monoid_algebra k G)
     (representation.as_module (of_mul_action k G (fin (n + 1) → G)).ρ) :=
 @basis.map (fin n → G) (monoid_algebra k G) (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k))
   (representation.as_module (of_mul_action k G (fin (n + 1) → G)).ρ) _ _ _ _ _
   (@tensor_product_basis k _ (monoid_algebra k G) _ _ ((fin n → G) →₀ k) _ _
-  (fin n → G) (⟨linear_equiv.refl k _⟩)) (as_linear_equiv_right $ (equiv_tensor k G n).symm)
+  (fin n → G) (⟨linear_equiv.refl k _⟩)) _ --((basis_aux k G n).symm.trans $ iso_to_linear_equiv $ (equiv_tensor k G n).symm)
 
 instance : module.free (monoid_algebra k G)
   (representation.as_module (of_mul_action k G (fin (n + 1) → G)).ρ) :=

@@ -3,7 +3,7 @@ Copyright (c) 2021 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-#exit
+
 import representation_theory.cohomology.group_ring
 import algebra.category.Module.projective
 import category_theory.preadditive.projective_resolution
@@ -12,6 +12,7 @@ import algebra.category.Group.abelian
 import data.fin_simplicial_complex
 import algebra.homology.exact
 import algebra.homology.augment
+import representation_theory.Rep
 import representation_theory.cohomology.lemmas
 
 /-! Showing `... → k[G²] → k[G]` is a projective resolution of the trivial `k[G]`-module `k`. -/
@@ -99,71 +100,6 @@ finset.sum_bij (λ a ha, (a : ℕ)) (λ a ha, finset.mem_range.2 a.2) (λ a ha, 
      finsupp.mem_support_iff.2 (is_unit.ne_zero
       (is_unit.pow _ (is_unit.neg is_unit_one))), rfl⟩)
 
-lemma wtf {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} (f : α → β)
-  (g : β → γ) (h : γ → δ) :
-  (h ∘ g) ∘ f = h ∘ (g ∘ f) :=
-rfl
-/-
-lemma fml {i j l : ℕ} (hj : i = j + 1) (hl : j = l + 1) (c : fin i → G) :
-  finsupp. (fin j → G) k _ (d_aux k hl) (d_aux k hj c) = 0 :=
-begin
-  rw finsupp.lift_apply,
-  have := @finsupp.sum_of_support_subset _ _ _ _ _ (d_aux k hj c)
-    (finset.image (λ l : ℕ, c ∘ fin.delta hj l) (finset.range i)) sorry
-    (λ (x : fin j → G) (r : k), r • d_aux k hl x) sorry,
-  rw this,
-  rw finset.sum_image,
-  dsimp,
-  simp only [d_aux_eq],
-  simp only [finset.smul_sum],
-  simp only [finsupp.smul_single'],
-  rw ←finset.sum_product',
-  simp only [←d_aux_eq],
-  refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
-  { intros pq hpq,
-    unfold invo,
-    split_ifs,
-    { rw wtf, rw wtf,
-      erw fin.delta_comm,
-      rw add_eq_zero_iff_eq_neg,
-      rw ←finsupp.single_neg,
-      congr' 2,
-      simp [fin.delta_comm_apply hl hj h, mul_comm, pow_succ]
-     },
-    { cases pq with p q,
-      cases p, { push_neg at h, cases h },
-      simp only [nat.pred_succ, pow_succ],
-      push_neg at h,
-      have hqp : q ≤ p := nat.lt_succ_iff.mp h,
-      simp_rw fin.delta_comm_apply.symm hk hj hqp,
-      simp [mul_comm ((-1 : ℤ) ^ p)]}},
-  { rintros ⟨p, q⟩ h _ hfalse,
-    rw prod.ext_iff at hfalse,
-    rcases hfalse with ⟨h1, h2⟩,
-    dsimp at *,
-    unfold invo at *,
-    split_ifs at *,
-    { subst h1,revert h_1,
-      apply nat.not_succ_le_self },
-    { exact h_1 (h1 ▸ le_refl _) } },
-  { rintro ⟨p, q⟩ hpqrange,
-    unfold invo,
-    simp only [hk, hj, finset.mem_product, finset.mem_range] at ⊢ hpqrange,
-    split_ifs,
-      { exact ⟨nat.add_lt_add_right hpqrange.2 _, lt_of_le_of_lt h hpqrange.2⟩ },
-      { cases p,
-        { exact false.elim (h (zero_le _))},
-        { exact ⟨lt_trans hpqrange.2 (nat.lt_succ_self _), (add_lt_add_iff_right 1).1 hpqrange.1⟩}}},
-  { intros,
-    exact invo_invo _ },
-  simp only [d_aux_eq],
-  unfold finsupp.sum,
-end-/
-/-lemma thefuck {α : Type*} {R : Type*} {M : Type*} [comm_ring R] [add_comm_group M]
-  [module R M] (v :  α → M) :
-  finsupp.lift M R α v = finsupp.total α M R v :=
-rfl-/
-
 theorem d_squared_of {i j l : ℕ} (hj : i = j + 1) (hl : j = l + 1) (c : fin i → G) (r : k) :
   ((d k G hl).hom ((d k G hj).hom $ finsupp.single c r)) = 0 :=
 begin
@@ -174,8 +110,8 @@ begin
   refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
   { intros pq hpq,
     unfold invo,
-    rw [add_eq_zero_iff_eq_neg, ←finsupp.single_neg, wtf],
-    conv_rhs {rw wtf},
+    rw [add_eq_zero_iff_eq_neg, ←finsupp.single_neg, function.comp.assoc],
+    conv_rhs {rw function.comp.assoc},
     split_ifs,
     all_goals {congr' 2},
     any_goals {ext, dsimp},
@@ -227,6 +163,14 @@ end
 
 variables (k G)
 
+--probably unsustainable, disagrees with Scott's definition
+abbreviation Left_reg : Rep k G :=
+Rep.of (representation.of_module' (monoid_algebra k G))
+
+lemma Left_reg_apply (g : G) (x : Left_reg k G) :
+  (Left_reg k G).ρ g x = (monoid_algebra.of k G g * (x : monoid_algebra k G) : monoid_algebra k G) :=
+  rfl
+
 abbreviation Trivial : Rep k G :=
 Rep.of representation.trivial
 
@@ -262,10 +206,21 @@ begin
       exact finsupp.mem_support_iff.2 H }}
 end
 
-variables (k G)
+variables {k G}
+def uhmm {V W : Type*} [add_comm_group V] [add_comm_group W] [module k V] [module k W]
+  (ρ : representation k G V) (τ : representation k G W) (f : V →ₗ[k] W) :
+  Rep.of ρ →ₗ[k] Rep.of τ :=
+f
 
+#exit
+variables (k G)
+set_option pp.universes true
 /-- The hom `k[G] → k` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
-def coeff_sum : Rep.of_module k G (monoid_algebra k G) ⟶ Trivial k G :=
+def coeff_sum : @Rep.of k G _ _ _ _ _ (representation.of_module' (monoid_algebra k G)) ⟶ Trivial k G :=
+{ hom := uhmm (representation.of_module' (monoid_algebra k G)) (@representation.trivial k G _ _)
+   (monoid_algebra.lift k G k 1).to_linear_map,
+  comm' := _ }
+#exit
 { comm' := λ g, linear_map.ext (λ x, @coeff_sum_comm k _ (by assumption) G _ g x),
  hom := (finsupp.total G (Trivial k G) k (λ g, (1 : k)))}
 
@@ -340,7 +295,7 @@ end
 
 
 variables (k G)
-
+#exit
 /-- The hom `... → ℤ[G²] → ℤ[G]` → `... → 0 → ℤ → 0 → ...` which is `coeff_sum` at 0
   and 0 everywhere else. -/
 def std_resn_π : std_resn_complex k G ⟶ ((chain_complex.single₀

@@ -3,11 +3,11 @@ Copyright (c) 2020 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Calle Sönne
 -/
-#exit
+
 import topology.category.Profinite
 import algebra.category.Group.limits
 import topology.algebra.continuous_monoid_hom
-import representation_theory.cohomology.probablywastingmytime
+import representation_theory.cohomology.FinGroup
 import
 /-!
 # The category of Profinite Groups

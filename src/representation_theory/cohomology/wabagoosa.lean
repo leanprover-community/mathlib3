@@ -1,4 +1,3 @@
-#exit
 import representation_theory.cohomology.shenyang
 import representation_theory.invariants
 import representation_theory.cohomology.one_cocycles

@@ -1,4 +1,3 @@
-#exit
 import topology.category.Profinite.as_limit
 import representation_theory.cohomology.sles
 
@@ -30,13 +29,56 @@ end
 
 variables {k G V}
 
+instance : has_continuous_const_smul k V :=
+⟨λ r, continuous_of_discrete_topology⟩
+
+lemma continuous_ρ_apply (g : G) : continuous (ρ g) := continuous_of_discrete_topology
+
+#check continuous_apply_apply
+#check continuous_pi
+/-
+(λ (g : fin (n + 1) → G), ⇑(⇑ρ (g 0)) (⇑((cts_cochain k G V n).subtype)
+  x (λ (i : fin n), g (⇑(fin.add_nat 1) i))))
+
+
+g ↦ ρ(g 0) (f x (λ i, g(stuff)))
+-/
+
+#check continuous
+#check is_locally_constant.of_discrete
+lemma dsffsd (f : G → V) (hf : ∀ x : V, is_open (f ⁻¹' {x})) : continuous f :=
+begin
+
+ refine (is_locally_constant.iff_continuous f).mp _,
+ unfold is_locally_constant,
+ intro s,
+
+ exact is_locally_constant.of_discrete _,
+
+end
+
+#check continuous_discre
 def d_of_cts (n : ℕ) : cts_cochain k G V n →ₗ[k] cts_cochain k G V (n + 1) :=
 ((cochain.d ρ n).comp (cts_cochain k G V n).subtype).cod_restrict _ $
-λ x, continuous.add sorry sorry
-/-(continuous.smul (continuous_apply _) (continuous.comp x.2
+λ x, continuous.add (
+  begin
+
+    refine @continuous.comp₂ _ _ _ _ _ _ _ _
+    (λ g, ρ g.1 $ (cts_cochain k G V n).subtype x g.2) _ (λ g : fin (n + 1) → G, g 0)
+    (continuous_apply 0) _ _,
+--    (λ g : fin (n + 1) → G, (g 0, (λ i : fin n, g (fin.add_nat 1 i)))) _ _,
+    refine continuous.prod_map _ _,
+
+  end
+) (continuous_finset_sum _
+  (λ i H, continuous.const_smul (continuous.comp x.2 (continuous_F G n
+    (⟨i, finset.mem_range.1 H⟩ : fin (n + 1)))) _))
+--(continuous.smul (continuous_apply _) (continuous.comp x.2 _)) _
+
+#exit
   (continuous_pi (λ i, continuous_apply _)))) (continuous_finset_sum _ (λ i H,
   continuous.const_smul (continuous.comp x.2 (continuous_F k G V n
-    (⟨i, finset.mem_range.1 H⟩ : fin (n + 1)))) _))-/
+    (⟨i, finset.mem_range.1 H⟩ : fin (n + 1)))) _))
 
 lemma d_of_cts_square_zero (n : ℕ) :
   (d_of_cts ρ (n + 1)).comp (d_of_cts ρ n) = 0 :=
@@ -52,7 +94,7 @@ by ext1; exact d_to_fun_square_zero _ _
 def cts_cochain_cx : cochain_complex (Module k) ℕ :=
 cochain_complex.of (λ n, Module.of k $ cts_cochain k G V n) (λ n, d_of_cts ρ n)
   (λ n, by { ext1, ext1, exact d_to_fun_square_zero _ _ })
-monoid_algebra Gⁿ k
+
 noncomputable abbreviation cts_coh (n : ℕ) := (cts_cochain_cx ρ).homology n
 
 variables (k) {H : Type u} [topological_space H] [group H] [topological_group H]
@@ -80,7 +122,7 @@ begin
   ext1, ext1,
   exact linear_map.ext_iff.1 (pair_chain_map_aux_comm ρ τ f φ hp n) x,
 end
-.
+
 def cts_pair_chain_map (f : G →* H) (hf : continuous f) (φ : W →ₗ[k] V) (hp : pair ρ τ f φ) :
   cts_cochain_cx τ ⟶ cts_cochain_cx ρ :=
 { f := λ i, cts_pair_chain_map_aux k f hf φ i,

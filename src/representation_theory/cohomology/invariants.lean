@@ -1,4 +1,3 @@
-#exit
 import representation_theory.invariants
 import representation_theory.cohomology.shenyang
 import representation_theory.cohomology.op_complex
@@ -17,11 +16,11 @@ instance fucksake (M : Rep k G) : has_coe (invariants M.ρ) M :=
 ⟨λ x, x.1⟩
 
 lemma Rep.comm_apply {M N : Rep k G} (f : M ⟶ N) (g : G) (x : M) :
-  f.hom ((M.ρ g).as_hom x) = (N.ρ g).as_hom (f.hom x) :=
+  f.hom (M.ρ g x) = N.ρ g (f.hom x) :=
 linear_map.ext_iff.1 (f.comm _) _
 
 lemma Rep.mem_invariants {M : Rep k G} (x : M) :
-  x ∈ invariants M.ρ ↔ ∀ g : G, (M.ρ g).as_hom x = x := iff.rfl
+  x ∈ invariants M.ρ ↔ ∀ g : G, M.ρ g x = x := iff.rfl
 
 def invariants_map {M N : Rep k G} (f : M ⟶ N) :
   invariants M.ρ →ₗ[k] invariants N.ρ :=

@@ -1,4 +1,3 @@
-#exit
 import representation_theory.cohomology.hmmmm
 import topology.category.Profinite.as_limit
 namespace stuff
@@ -31,6 +30,7 @@ abbreviation coh_lim := @module.direct_limit k _ (open_normal G) _ _
  (λ U, (cochain_cx (inf_rep ρ (U : subgroup G))).homology n) (λ n, by apply_instance)
  (λ n, by apply_instance) (λ S T hST, coh_lim_aux ρ n _ _ hST)
 
+#exit
 --#check homology.desc
 def fdjgfd (U : open_normal G) (x : (cochain.d (inf_rep ρ (U : subgroup G)) n).ker) :
   (d_of_cts ρ n).ker :=

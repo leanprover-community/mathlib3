@@ -1,9 +1,8 @@
-#exit
 import topology.category.Profinite.as_limit
 import tactic.transport
 import group_theory.quotient_group
 import topology.algebra.open_subgroup
-import representation_theory.cohomology.imdumbasfuck
+import representation_theory.cohomology.ProfiniteGroup
 
 universes v u
 
@@ -129,19 +128,20 @@ begin
     erw [← hx, discrete_quotient.fiber_eq],
     apply i.equiv.1 },
 end
-#check preserves_limit
-/- Forget G is a limit -/
+
 lemma eq_of_proj_eq {x y : G} (h : ∀ Q : discrete_quotient_group G, Q.proj x = Q.proj y) : x = y :=
 begin
-  intro h,
-  change x ∈ ({y} : set X),
-  rw totally_disconnected_space_iff_connected_component_singleton at disc,
-  rw [← disc y, connected_component_eq_Inter_clopen],
-  rintros U ⟨⟨U, hU1, hU2⟩, rfl⟩,
-  replace h : _ ∨ _ := quotient.exact' (h (of_clopen hU1)),
-  tauto,
+  refine discrete_quotient.eq_of_proj_eq _, -- suffices to show `x = y` in all set-theoretic discrete quotients
+  intro Q,
+  suffices : ∃ Q₁ : discrete_quotient_group G, Q₁.to_discrete_quotient ≤ Q,
+  begin
+    cases this with Q₁ hQ₁,
+    simp only [←discrete_quotient.of_le_proj_apply hQ₁],
+    congr' 1,
+    exact h Q₁,
+  end,
+  sorry,
 end
-
 
 end discrete_quotient_group
 namespace ProfiniteGroup
@@ -166,17 +166,14 @@ instance is_iso_as_limit_cone_lift :
 is_iso_of_bij _
 begin
   refine ⟨λ a b, _, λ a, _⟩,
-  { intro h, sorry,
-    refine discrete_quotient.eq_of_proj_eq (λ S, _),
-    /-apply_fun (λ f : (limit_cone X.diagram).X, f.val S) at h,
-    exact h-/
-     },
+  { intro h, sorry },
   { obtain ⟨b, hb⟩ := discrete_quotient_group.exists_of_compat
       (λ S, a.val S) (λ _ _ h, a.prop (hom_of_le h)),
     refine ⟨b, _⟩,
     ext S : 3,
     apply hb },
 end
+#exit
 
 /--
 The isomorphism between `X` and the explicit limit of `X.diagram`,

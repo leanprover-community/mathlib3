@@ -96,11 +96,6 @@ lemma unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y 
   (p : comm_sq f g h i) : comm_sq i.unop h.unop g.unop f.unop :=
 ⟨by simp only [← unop_comp, p.w]⟩
 
-lemma flip_op (p : comm_sq f g h i) : p.flip.op = p.op.flip := rfl
-
-lemma flip_unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
-  (p : comm_sq f g h i) : p.flip.unop = p.unop.flip := rfl
-
 /-- The pushout cocone in the opposite category associated to the cone of
 a commutative square identifies to the cocone of the flipped commutative square in
 the opposite category -/

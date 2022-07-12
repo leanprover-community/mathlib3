@@ -173,13 +173,8 @@ begin
   -- Then we have the above sub-exponential bound on the size of this central binomial coefficient.
   -- We now couple this bound with an exponential lower bound on the central binomial coefficient,
   -- yielding an inequality which we have seen is false for large enough n.
-  have false_inequality : 4 ^ n < n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3),
-  calc 4 ^ n < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
-    ... ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3)) :
-          nat.mul_le_mul_of_nonneg_left
-            (bertrand.central_binom_le_of_no_bertrand_prime n (by linarith) no_prime)
-    ... = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
-  exact not_le_of_lt false_inequality (bertrand.main_inequality n_big),
+  linarith [bertrand.main_inequality n_big, nat.four_pow_lt_mul_central_binom n (by linarith),
+    mul_le_mul_left' (bertrand.central_binom_le_of_no_bertrand_prime n (by linarith) no_prime) n],
 end
 
 /--

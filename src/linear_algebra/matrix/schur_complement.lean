@@ -11,11 +11,14 @@ import linear_algebra.matrix.pos_def
 
 This file proves properties of the Schur complement `D - C A⁻¹ B` of a block matrix `[A B; C D]`.
 
+The determinant of a block matrix in terms of the Schur complement is expressed in the lemmas
+`matrix.det_from_blocks₁₁` and `matrix.det_from_blocks₂₂` in the file
+`linear_algebra.matrix.nonsingular_inverse`.
+
 ## Main result
 
- * `matrix.schur_complement_pos_semidef_iff` :
-  If a matrix `A` is positive definite, then
-  `[A B; Bᴴ D]` is postive semidefinite if and only if `D - Bᴴ A⁻¹ B` is postive semidefinite.
+ * `matrix.schur_complement_pos_semidef_iff` : If a matrix `A` is positive definite, then `[A B; Bᴴ
+  D]` is postive semidefinite if and only if `D - Bᴴ A⁻¹ B` is postive semidefinite.
 
 -/
 

@@ -4,8 +4,27 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import logic.hydra
 import set_theory.zfc.basic
+
+/-!
+# Von Neumann ordinals
+
+This file works towards the development of von Neumann ordinals, i.e. transitive sets, well-ordered
+under `∈`. We currently only have an initial development of transitive sets.
+
+Further development can be found on the branch `von_neumann_v2`.
+
+## Definitions
+
+- `Set.is_transitive` means that every element of a set is a subset.
+
+## Todo
+
+- Define von Neumann ordinals.
+- Define the basic arithmetic operations on ordinals from a purely set-theoretic perspective.
+- Prove the equivalences between these definitions and those provided in
+  `set_theory/ordinal/arithmetic.lean`.
+-/
 
 namespace Set
 

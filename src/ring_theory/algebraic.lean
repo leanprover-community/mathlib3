@@ -328,7 +328,7 @@ variables {R} {S}
 
 local attribute [instance] polynomial.has_smul_pi polynomial.has_smul_pi'
 local attribute [instance] polynomial.has_op_smul_pi polynomial.has_op_smul_pi'
-has_op_smulhas_op_smul
+
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_smul R' S']
   (p : R'[X]) (f : R' → S') (x : R') :
   (p • f) x = eval x p • f x := rfl

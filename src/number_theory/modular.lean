@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import analysis.matrix
 
@@ -194,9 +194,8 @@ theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
 begin
   let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
-  { simp only [continuous_pi_iff, fin.forall_fin_two],
-    have : ∀ c : ℝ, continuous (λ x : ℝ, c) := λ c, continuous_const,
-    exact ⟨⟨continuous_id, @this (-1 : ℤ)⟩, ⟨this (cd 0), this (cd 1)⟩⟩ },
+  { simp only [continuous_pi_iff, fin.forall_fin_two, mB, continuous_const, continuous_id',
+      cons_val_zero, cons_val_one, and_self ] },
   refine filter.tendsto.of_tendsto_comp _ (comap_cocompact_le hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
     λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
@@ -236,7 +235,7 @@ lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (hg 
     + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
   have nonZ1 : (p 0 : ℂ) ^ 2 + (p 1) ^ 2 ≠ 0 := by exact_mod_cast hp.sq_add_sq_ne_zero,
-  have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, hp.ne_zero ((@int.cast_injective ℝ _ _ _).comp_left h),
+  have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, hp.ne_zero (by ext i; simpa using congr_fun h i),
   have nonZ2 : (p 0 : ℂ) * z + p 1 ≠ 0 := by simpa using linear_ne_zero _ z this,
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),

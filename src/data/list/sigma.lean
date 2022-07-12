@@ -303,7 +303,7 @@ begin
     { subst a', exact ⟨rfl, heq_of_eq $ nd.eq_of_mk_mem h h'⟩ },
     { refl } },
   { rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, dsimp [option.guard], split_ifs,
-    { subst a₁, rintro ⟨⟩, simp }, { rintro ⟨⟩ } },
+    { exact id }, { rintro ⟨⟩ } },
 end
 
 theorem keys_kreplace (a : α) (b : β a) : ∀ l : list (sigma β),

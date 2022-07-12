@@ -181,6 +181,71 @@ protected lemma tendsto_approx {m : measurable_space α} (hf : strongly_measurab
   ∀ x, tendsto (λ n, hf.approx n x) at_top (𝓝 (f x)) :=
 hf.some_spec
 
+/-- Similar to `strongly_measurable.approx`, but enforces that the norm of every function in the
+sequence is less than `c` everywhere. If `f` has norm a.e. bounded by `c`, this sequence of simple
+functions verifies `∀ᵐ x ∂μ, tendsto (λ n, hf.approx_bounded n x) at_top (𝓝 (f x))`. -/
+noncomputable
+def approx_bounded {m : measurable_space α}
+  [has_norm β] [has_smul ℝ β] (hf : strongly_measurable f) (c : ℝ) :
+  ℕ → simple_func α β :=
+λ n, (hf.approx n).map (λ x, (min 1 (c / ∥x∥)) • x)
+
+lemma tendsto_approx_bounded {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+  {m m0 : measurable_space α} {μ : measure α}
+  (hf : strongly_measurable[m] f) {c : ℝ}
+  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  ∀ᵐ x ∂μ, tendsto (λ n, hf.approx_bounded c n x) at_top (𝓝 (f x)) :=
+begin
+  filter_upwards [eventually_of_forall hf.tendsto_approx, hf_bound] with x h_tendsto hf_bound,
+  simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
+  by_cases hfx0 : ∥f x∥ = 0,
+  { rw norm_eq_zero at hfx0,
+    rw hfx0 at h_tendsto ⊢,
+    have h_tendsto_norm : tendsto (λ n, ∥hf.approx n x∥) at_top (𝓝 0),
+    { convert h_tendsto.norm,
+      rw norm_zero, },
+    refine squeeze_zero_norm (λ n, _) h_tendsto_norm,
+    calc ∥min 1 (c / ∥hf.approx n x∥) • hf.approx n x∥
+        = ∥min 1 (c / ∥hf.approx n x∥)∥ * ∥hf.approx n x∥ : norm_smul _ _
+    ... ≤ ∥(1 : ℝ)∥ * ∥hf.approx n x∥ :
+      begin
+        refine mul_le_mul_of_nonneg_right _ (norm_nonneg _),
+        rw [norm_one, real.norm_of_nonneg],
+        { exact min_le_left _ _, },
+        { exact le_min zero_le_one
+            (div_nonneg ((norm_nonneg _).trans hf_bound) (norm_nonneg _)), },
+      end
+    ... = ∥hf.approx n x∥ : by rw [norm_one, one_mul], },
+  rw ← one_smul ℝ (f x),
+  refine tendsto.smul _ h_tendsto,
+  have : min 1 (c / ∥f x∥) = 1,
+  { rw [min_eq_left_iff, one_le_div (lt_of_le_of_ne (norm_nonneg _) (ne.symm hfx0))],
+    exact hf_bound, },
+  nth_rewrite 0 this.symm,
+  refine tendsto.min tendsto_const_nhds _,
+  refine tendsto.div tendsto_const_nhds h_tendsto.norm hfx0,
+end
+
+lemma bound_approx_bounded {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+  {m m0 : measurable_space α} {μ : measure α} {c : ℝ}
+  (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
+  ∥hf.approx_bounded c n x∥ ≤ c :=
+begin
+  simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],
+  refine (norm_smul _ _).le.trans _,
+  by_cases h0 : ∥hf.approx n x∥ = 0,
+  { simp only [h0, div_zero, min_eq_right, zero_le_one, norm_zero, mul_zero],
+    exact hc, },
+  cases le_total (∥hf.approx n x∥) c,
+  { rw min_eq_left _,
+    { simpa only [norm_one, one_mul] using h, },
+    { rwa one_le_div (lt_of_le_of_ne (norm_nonneg _) (ne.symm h0)), }, },
+  { rw min_eq_right _,
+    { rw [norm_div, norm_norm, mul_comm, mul_div, div_eq_mul_inv, mul_comm, ← mul_assoc,
+        inv_mul_cancel h0, one_mul, real.norm_of_nonneg hc], },
+    { rwa div_le_one (lt_of_le_of_ne (norm_nonneg _) (ne.symm h0)), }, },
+end
+
 end basic_properties_in_any_topological_space
 
 lemma fin_strongly_measurable_of_set_sigma_finite [topological_space β] [has_zero β]

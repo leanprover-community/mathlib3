@@ -2145,6 +2145,50 @@ begin
     ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
 end
 
+/-- **Lebesgue dominated convergence theorem**: sufficient conditions under which almost
+  everywhere convergence of a sequence of functions implies the convergence of their image by
+  `condexp_L1`. -/
+lemma tendsto_condexp_L1_of_dominated_convergence (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  {fs : ℕ → α → F'} {f : α → F'} (bound_fs : α → ℝ)
+  (hfs_meas : ∀ n, ae_strongly_measurable (fs n) μ) (h_int_bound_fs : integrable bound_fs μ)
+  (hfs_bound : ∀ n, ∀ᵐ x ∂μ, ∥fs n x∥ ≤ bound_fs x)
+  (hfs : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x))) :
+  tendsto (λ n, condexp_L1 hm μ (fs n)) at_top (𝓝 (condexp_L1 hm μ f)) :=
+tendsto_set_to_fun_of_dominated_convergence _ bound_fs hfs_meas h_int_bound_fs hfs_bound hfs
+
+/-- If two sequences of functions are almost everywhere equal at each step, converge and verify
+dominated convergence hypotheses, then the conditional expectations of their limits are a.e.
+equal. -/
+lemma tendsto_condexp_unique (fs gs : ℕ → α → F') (f g : α → F')
+  (hfs_int : ∀ n, integrable (fs n) μ) (hgs_int : ∀ n, integrable (gs n) μ)
+  (hfs : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)))
+  (hgs : ∀ᵐ x ∂μ, tendsto (λ n, gs n x) at_top (𝓝 (g x)))
+  (bound_fs : α → ℝ) (h_int_bound_fs : integrable bound_fs μ)
+  (bound_gs : α → ℝ) (h_int_bound_gs : integrable bound_gs μ)
+  (hfs_bound : ∀ n, ∀ᵐ x ∂μ, ∥fs n x∥ ≤ bound_fs x)
+  (hgs_bound : ∀ n, ∀ᵐ x ∂μ, ∥gs n x∥ ≤ bound_gs x)
+  (hfg : ∀ n, μ[fs n | m] =ᵐ[μ] μ[gs n | m]) :
+  μ[f | m] =ᵐ[μ] μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0, swap, { simp_rw condexp_of_not_le hm, },
+  by_cases hμm : sigma_finite (μ.trim hm), swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
+  haveI : sigma_finite (μ.trim hm) := hμm,
+  refine (condexp_ae_eq_condexp_L1 hm f).trans ((condexp_ae_eq_condexp_L1 hm g).trans _).symm,
+  rw ← Lp.ext_iff,
+  have hn_eq : ∀ n, condexp_L1 hm μ (gs n) = condexp_L1 hm μ (fs n),
+  { intros n,
+    ext1,
+    refine (condexp_ae_eq_condexp_L1 hm (gs n)).symm.trans ((hfg n).symm.trans _),
+    exact (condexp_ae_eq_condexp_L1 hm (fs n)), },
+  have hcond_fs : tendsto (λ n, condexp_L1 hm μ (fs n)) at_top (𝓝 (condexp_L1 hm μ f)),
+    from tendsto_condexp_L1_of_dominated_convergence hm _ (λ n, (hfs_int n).1) h_int_bound_fs
+       hfs_bound hfs,
+  have hcond_gs : tendsto (λ n, condexp_L1 hm μ (gs n)) at_top (𝓝 (condexp_L1 hm μ g)),
+    from tendsto_condexp_L1_of_dominated_convergence hm _ (λ n, (hgs_int n).1) h_int_bound_gs
+       hgs_bound hgs,
+  exact tendsto_nhds_unique_of_eventually_eq hcond_gs hcond_fs (eventually_of_forall hn_eq),
+end
+
 section real
 
 lemma rn_deriv_ae_eq_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)] {f : α → ℝ}

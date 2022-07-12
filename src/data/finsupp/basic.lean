@@ -728,7 +728,8 @@ section graph
 
 variable [has_zero M]
 
-/-- The graph of a finitely supported function is the finset of input and output pairs. -/
+/-- The graph of a finitely supported function over its support, i.e. the finset of input and output
+pairs with non-zero outputs. -/
 def graph (f : α →₀ M) : finset (α × M) :=
 f.support.map ⟨λ a, prod.mk a (f a), λ x y h, (prod.mk.inj h).1⟩
 

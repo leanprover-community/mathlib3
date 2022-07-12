@@ -244,6 +244,11 @@ quotient.lift_on' x (orbit α) $ λ _ _, mul_action.orbit_eq_iff.2
 lemma orbit_rel.quotient.orbit_mk (b : β) :
   orbit_rel.quotient.orbit (quotient.mk' b : orbit_rel.quotient α β) = orbit α b := rfl
 
+@[to_additive]
+lemma orbit_rel.quotient.mem_orbit {b : β} {x : orbit_rel.quotient α β} :
+  b ∈ x.orbit ↔ quotient.mk' b = x :=
+by { induction x using quotient.induction_on', rw quotient.eq', refl }
+
 /-- Note that `hφ = quotient.out_eq'` is a useful choice here. -/
 @[to_additive "Note that `hφ = quotient.out_eq'` is a useful choice here."]
 lemma orbit_rel.quotient.orbit_eq_orbit_out (x : orbit_rel.quotient α β)
@@ -272,10 +277,8 @@ def self_equiv_sigma_orbits' : β ≃ Σ ω : Ω, ω.orbit :=
 calc  β
     ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_fiber_equiv quotient.mk').symm
 ... ≃ Σ (ω : Ω), ω.orbit :
-        equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
-          λ x, by {
-            induction ω using quotient.induction_on',
-            exact quotient.eq' })
+        equiv.sigma_congr_right $ λ ω, equiv.subtype_equiv_right $ λ x,
+          orbit_rel.quotient.mem_orbit.symm
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action. -/
 @[to_additive "Decomposition of a type `X` as a disjoint union of its orbits under an additive group

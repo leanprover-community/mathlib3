@@ -17,6 +17,17 @@ open path continuous_map
 
 open_locale unit_interval
 
+namespace path
+
+variables (X : Type u) [topological_space X]
+
+instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
+
+instance (x y : X) : topological_space (path x y) := topological_space.induced
+  (coe : _ → C(I, X)) (by {apply_instance})
+
+end path
+
 namespace H_space
 
 class H_space (X : Type u) [topological_space X]  :=
@@ -38,7 +49,7 @@ class H_space (X : Type u) [topological_space X]  :=
 notation ` ∨ `:65 := H_space.Hmul
 
 instance topological_group_H_space (G : Type u) [topological_space G] [group G]
-  [topological_group G]: H_space G :=
+  [topological_group G] : H_space G :=
 { Hmul := function.uncurry has_mul.mul,
   e := 1,
   cont' := continuous_mul,
@@ -74,47 +85,52 @@ example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compac
 begin
   let f:= continuous_map.uncurry ⟨g, hg⟩,
   exact f.2,
-  -- library_search,
-  -- have g₁ : C(Y,Z → X) := ⟨g, hg⟩,
-  -- have φ := @continuous_uncurry Y Z X _ _ _ _ _,
-  -- let g₁ : C(Y,C(Z,X)) := ⟨(λ y, g y), hg⟩,
 end
 
-lemma continuous_to_loop_space_iff (Y : Type u) [topological_space Y] (g : Y → Ω x) :
-  continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
+-- lemma continuous_to_loop_space_iff (Y : Type u) [topological_space Y] (g : Y → Ω x) :
+--   continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
+-- begin
+--   let g₁ : Y → C(I,X) := λ y, g y,
+--   split,
+--   { intro h,
+--     have hg₁ : continuous g₁,
+--     { convert h.subtype_coe,
+--       ext t,
+--       refl },
+--     have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
+--     exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
+--   { intro h,
+
+--     suffices hg₁ : continuous g₁,
+--     sorry,
+--     apply continuous_of_continuous_uncurry,
+--     dsimp [function.uncurry],
+--     -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
+--     -- suggest,
+--     -- library_search,
+--     -- continuity,
+--     -- simp,
+--     -- convert h using 0,
+--   },
+-- end
+
+abbreviation new_loop_space (x : X) := path x x
+
+instance (x : X) : topological_space (new_loop_space x) := infer_instance
+
+-- instance (x : X) : has_coe (new_loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
+
+instance loop_space_is_H_space (x : X) : H_space (new_loop_space x) :=
+{ Hmul :=
 begin
-  let g₁ : Y → C(I,X) := λ y, g y,
-  split,
-  { intro h,
-    have hg₁ : continuous g₁,
-    { convert h.subtype_coe,
-      ext t,
-      refl },
-    have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
-    exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
-  { intro h,
-
-    suffices hg₁ : continuous g₁,
-    sorry,
-    apply continuous_of_continuous_uncurry,
-    dsimp [function.uncurry],
-    -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
-    -- suggest,
-    -- library_search,
-    -- continuity,
-    -- simp,
-    -- convert h using 0,
-  },
-end
-
-
--- instance loop_space_is_H_space (x : X) : H_space (loop_space x) :=
--- { Hmul := sorry,
---   e := sorry,
---   cont' := sorry,
---   Hmul_e_e := sorry,
---   left_Hmul_e := sorry,
---   right_Hmul_e := sorry}
+  intro ρ,
+  -- let θ := ρ.1.trans ρ.2,
+end,
+  e := sorry,
+  cont' := sorry,
+  Hmul_e_e := sorry,
+  left_Hmul_e := sorry,
+  right_Hmul_e := sorry}
 
 
 end H_space

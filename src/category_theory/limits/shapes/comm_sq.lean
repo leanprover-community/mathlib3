@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
+import category_theory.limits.opposites
 
 /-!
 # Pullback and pushout squares
@@ -85,6 +86,46 @@ The (not necessarily limiting) `pushout_cocone f g` implicit in the statement
 that we have `comm_sq f g h i`.
 -/
 def cocone (s : comm_sq f g h i) : pushout_cocone f g := pushout_cocone.mk _ _ s.w
+
+/-- The commutative square in the opposite category associated to a commutative square. -/
+lemma op (p : comm_sq f g h i) : comm_sq i.op h.op g.op f.op :=
+⟨by simp only [← op_comp, p.w]⟩
+
+/-- The commutative square associated to a commutative square in the opposite category. -/
+lemma unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+  (p : comm_sq f g h i) : comm_sq i.unop h.unop g.unop f.unop :=
+⟨by simp only [← unop_comp, p.w]⟩
+
+lemma flip_op (p : comm_sq f g h i) : p.flip.op = p.op.flip := rfl
+
+lemma flip_unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+  (p : comm_sq f g h i) : p.flip.unop = p.unop.flip := rfl
+
+/-- The pushout cocone in the opposite category associated to the cone of
+a commutative square identifies to the cocone of the flipped commutative square in
+the opposite category -/
+def cone_op (p : comm_sq f g h i) : p.cone.op ≅ p.flip.op.cocone :=
+pushout_cocone.ext (iso.refl _) (by tidy) (by tidy)
+
+/-- The pullback cone in the opposite category associated to the cocone of
+a commutative square identifies to the cone of the flipped commutative square in
+the opposite category -/
+def cocone_op (p : comm_sq f g h i) : p.cocone.op ≅ p.flip.op.cone :=
+pullback_cone.ext (iso.refl _) (by tidy) (by tidy)
+
+/-- The pushout cocone obtained from the pullback cone associated to a
+commutative square in the opposite category identifies to the cocone associated
+to the flipped square. -/
+def cone_unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+  (p : comm_sq f g h i) : p.cone.unop ≅ p.flip.unop.cocone :=
+pushout_cocone.ext (iso.refl _) (by tidy) (by tidy)
+
+/-- The pullback cone obtained from the pushout cone associated to a
+commutative square in the opposite category identifies to the cone associated
+to the flipped square. -/
+def cocone_unop {W X Y Z : Cᵒᵖ} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+  (p : comm_sq f g h i) : p.cocone.unop ≅ p.flip.unop.cone :=
+pullback_cone.ext (iso.refl _) (by tidy) (by tidy)
 
 end comm_sq
 
@@ -357,6 +398,17 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
   is_pullback h₁₁ v₁₁ v₁₂ h₂₁ :=
 (of_bot s.flip p.symm t.flip).flip
 
+lemma op (h : is_pullback fst snd f g) : is_pushout g.op f.op snd.op fst.op :=
+is_pushout.of_is_colimit (is_colimit.of_iso_colimit
+  (limits.pullback_cone.is_limit_equiv_is_colimit_op h.flip.cone h.flip.is_limit)
+  h.to_comm_sq.flip.cone_op)
+
+lemma unop {P X Y Z : Cᵒᵖ} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
+  (h : is_pullback fst snd f g) : is_pushout g.unop f.unop snd.unop fst.unop :=
+is_pushout.of_is_colimit (is_colimit.of_iso_colimit
+  (limits.pullback_cone.is_limit_equiv_is_colimit_unop h.flip.cone h.flip.is_limit)
+  h.to_comm_sq.flip.cone_unop)
+
 end is_pullback
 
 namespace is_pushout
@@ -428,6 +480,17 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
   (t : is_pushout h₁₁ v₁₁ v₁₂ h₂₁) :
   is_pushout h₁₂ v₁₂ v₁₃ h₂₂ :=
 (of_bot s.flip p.symm t.flip).flip
+
+lemma op (h : is_pushout f g inl inr) : is_pullback inr.op inl.op g.op f.op :=
+is_pullback.of_is_limit (is_limit.of_iso_limit
+  (limits.pushout_cocone.is_colimit_equiv_is_limit_op h.flip.cocone h.flip.is_colimit)
+  h.to_comm_sq.flip.cocone_op)
+
+lemma unop {Z X Y P : Cᵒᵖ} {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P}
+  (h : is_pushout f g inl inr) : is_pullback inr.unop inl.unop g.unop f.unop :=
+is_pullback.of_is_limit (is_limit.of_iso_limit
+  (limits.pushout_cocone.is_colimit_equiv_is_limit_unop h.flip.cocone h.flip.is_colimit)
+  h.to_comm_sq.flip.cocone_unop)
 
 end is_pushout
 

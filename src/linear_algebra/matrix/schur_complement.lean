@@ -70,7 +70,7 @@ lemma is_hermitian.from_blocks₁₁ [fintype m] [decidable_eq m]
 begin
   have hBAB : (Bᴴ ⬝ A⁻¹ ⬝ B).is_hermitian,
   { apply is_hermitian_conj_transpose_mul_mul,
-    apply is_hermitian_nonsingular_inv hA },
+    apply hA.inv },
   rw [is_hermitian_from_blocks_iff],
   split,
   { intro h,
@@ -88,7 +88,7 @@ lemma is_hermitian.from_blocks₂₂ [fintype n] [decidable_eq n]
 begin
   have hBDB : (B ⬝ D⁻¹ ⬝ Bᴴ).is_hermitian,
   { apply is_hermitian_mul_mul_conj_transpose,
-    apply is_hermitian_nonsingular_inv hD },
+    apply hD.inv },
   rw [is_hermitian_from_blocks_iff],
   split,
   { intro h,

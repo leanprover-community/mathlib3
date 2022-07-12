@@ -844,5 +844,3 @@ by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
 (is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring
-
-#lint

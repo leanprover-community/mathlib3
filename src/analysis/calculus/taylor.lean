@@ -146,11 +146,11 @@ begin
   cases h,
   split; intros m hm,
   { refine h_left m (hm.trans _),
-    rw [←with_top.coe_one, ←with_top.coe_add, with_top.coe_le_coe, le_add_iff_nonneg_right],
-    exact zero_le' },
+    norm_cast,
+    exact nat.le_succ n },
   refine h_right m (hm.trans _),
-  rw [←with_top.coe_one, ←with_top.coe_add, with_top.coe_lt_coe, lt_add_iff_pos_right,
-    nat.lt_one_iff],
+  norm_cast,
+  exact lt_add_one n,
 end
 
 lemma taylor_coeff_within_has_deriv {f : ℝ → ℝ} {x y : ℝ} {k : ℕ} {s s' : set ℝ}
@@ -169,11 +169,8 @@ begin
     exact (hf'.differentiable_at hs').deriv_within hs,
   end,
   convert (hf''.mul (monomial_has_deriv_aux y x)).div_const ((k+1)* k.factorial),
-  rw [sub_eq_neg_add, add_comm, add_div, add_right_inj, ←neg_one_mul, ←neg_one_mul (↑k+1 : ℝ)],
-  rw [mul_assoc, mul_comm (↑k+1 : ℝ) ((x - y) ^ k), mul_comm (↑k+1 : ℝ), ←mul_assoc, ←mul_assoc],
-  rw mul_div_mul_right,
-  { simp[neg_div] },
-  exact nat.cast_add_one_ne_zero k,
+  field_simp[nat.cast_add_one_ne_zero k, nat.factorial_ne_zero k],
+  ring,
 end
 
 /-- Calculate the derivative of the Taylor polynomial with respect to `x₀`. -/
@@ -255,9 +252,8 @@ begin
   use [y, hy],
   simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
   rw [h, neg_div, ←div_neg, neg_mul, neg_neg],
-  field_simp,
-  rw [mul_assoc, mul_comm ((x - y)^n), ←mul_assoc, ←mul_assoc, mul_comm (↑n+1 : ℝ),
-    mul_div_mul_right _ _ (xy_ne y hy)]
+  field_simp [nat.cast_add_one_ne_zero n, nat.factorial_ne_zero n, xy_ne y hy],
+  ring,
 end
 
 /-- **Taylor's theorem** with the Cauchy form of the remainder. -/

@@ -177,6 +177,10 @@ lemma is_hermitian_inv [fintype m] [decidable_eq m] (A : matrix m m α) [inverti
   (A⁻¹).is_hermitian ↔ A.is_hermitian :=
 ⟨λ h, by {rw [← inv_inv_of_invertible A], exact is_hermitian.inv h }, is_hermitian.inv⟩
 
+lemma is_hermitian.adjugate [fintype m] [decidable_eq m] {A : matrix m m α}
+  (hA : A.is_hermitian) : A.adjugate.is_hermitian :=
+by simp [is_hermitian, adjugate_conj_transpose, hA.eq]
+
 end comm_ring
 
 section is_R_or_C

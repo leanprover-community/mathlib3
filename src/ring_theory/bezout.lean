@@ -35,14 +35,13 @@ variables {R}
 instance span_pair_is_principal [is_bezout R] (x y : R) :
   (ideal.span {x, y} : ideal R).is_principal :=
 by { classical, exact is_principal_of_fg (ideal.span {x, y}) ⟨{x, y}, by simp⟩ }
-export is_bezout (span_pair_is_principal)
 
 lemma iff_span_pair_is_principal :
   is_bezout R ↔ (∀ x y : R, (ideal.span {x, y} : ideal R).is_principal) :=
 begin
   classical,
   split,
-  { introsI H x y, apply span_pair_is_principal },
+  { introsI H x y, apply_instance },
   { intro H,
     constructor,
     apply submodule.fg_induction,
@@ -71,12 +70,12 @@ lemma gcd_dvd_right (x y : R) : gcd x y ∣ y :=
 lemma dvd_gcd {x y z : R} (hx : z ∣ x) (hy : z ∣ y) : z ∣ gcd x y :=
 begin
   rw [← ideal.span_singleton_le_span_singleton] at hx hy ⊢,
-  rw [gcd_prop, ideal.span_insert, sup_le_iff],
+  rw [span_gcd, ideal.span_insert, sup_le_iff],
   exact ⟨hx, hy⟩
 end
 
 lemma gcd_eq_sum (x y : R) : ∃ a b : R, a * x + b * y = gcd x y :=
-ideal.mem_span_pair.mp (by { rw ← gcd_prop, apply ideal.subset_span, simp })
+ideal.mem_span_pair.mp (by { rw ← span_gcd, apply ideal.subset_span, simp })
 
 variable (R)
 
@@ -100,7 +99,7 @@ begin
   obtain ⟨⟨x, rfl⟩, ⟨y, rfl⟩⟩ := ⟨hf x, hf y⟩,
   use f (gcd x y),
   transitivity ideal.map f (ideal.span {gcd x y}),
-  { rw [gcd_prop, ideal.map_span, set.image_insert_eq, set.image_singleton] },
+  { rw [span_gcd, ideal.map_span, set.image_insert_eq, set.image_singleton] },
   { rw [ideal.map_span, set.image_singleton], refl }
 end
 

@@ -58,6 +58,9 @@ namespace set
 def well_founded_on (s : set α) (r : α → α → Prop) : Prop :=
 well_founded (λ (a : s) (b : s), r a b)
 
+@[simp] lemma well_founded_on_empty (r : α → α → Prop) : well_founded_on ∅ r :=
+well_founded_of_empty _
+
 lemma well_founded_on_iff {s : set α} {r : α → α → Prop} :
   s.well_founded_on r ↔ well_founded (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
 begin

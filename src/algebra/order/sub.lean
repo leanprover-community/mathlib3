@@ -11,7 +11,7 @@ This file proves lemmas relating (truncated) subtraction with an order. We provi
 `has_ordered_sub` stating that `a - b ≤ c ↔ a ≤ c + b`.
 
 The subtraction discussed here could both be normal subtraction in an additive group or truncated
-subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `enat`, `ennreal`, ...)
+subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `part_enat`, `ennreal`, ...)
 
 ## Implementation details
 
@@ -438,6 +438,9 @@ end
 
 lemma tsub_tsub_tsub_cancel_right (h : c ≤ b) : (a - c) - (b - c) = a - b :=
 by rw [tsub_tsub, add_tsub_cancel_of_le h]
+
+lemma tsub_lt_of_lt (h : a < b) : a - c < b :=
+lt_of_le_of_lt tsub_le_self h
 
 /-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 

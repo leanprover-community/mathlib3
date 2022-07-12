@@ -306,7 +306,7 @@ variables {s t : multiset α} {a : α}
 
 lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
 
-alias subset_of_le ← multiset.le.subset
+alias subset_of_le ← le.subset
 
 lemma mem_of_le (h : s ≤ t) : a ∈ s → a ∈ t := mem_of_subset (subset_of_le h)
 
@@ -436,6 +436,9 @@ instance : canonically_ordered_add_monoid (multiset α) :=
     let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
   ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
+
+/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
+@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]
@@ -1411,6 +1414,10 @@ begin
   { rw [filter_cons_of_pos _ h, singleton_add] },
   { rw [filter_cons_of_neg _ h, zero_add] },
 end
+
+lemma filter_singleton {a : α} (p : α → Prop) [decidable_pred p] :
+  filter p {a} = if p a then {a} else ∅ :=
+by simp only [singleton, filter_cons, filter_zero, add_zero, empty_eq_zero]
 
 lemma filter_nsmul (s : multiset α) (n : ℕ) :
   filter p (n • s) = n • filter p s :=

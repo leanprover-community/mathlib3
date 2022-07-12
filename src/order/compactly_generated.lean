@@ -9,7 +9,7 @@ import order.order_iso_nat
 import order.sup_indep
 import order.zorn
 import data.finset.order
-import data.finite.basic
+import data.finite.default
 
 /-!
 # Compactness properties for complete lattices
@@ -227,7 +227,9 @@ lemma is_sup_closed_compact_iff_well_founded :
 alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_founded
 alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
-alias is_sup_closed_compact_iff_well_founded ↔ _ well_founded.is_sup_closed_compact
+alias is_sup_closed_compact_iff_well_founded ↔ _ _root_.well_founded.is_sup_closed_compact
+
+variables {α}
 
 variables {α}
 
@@ -253,10 +255,8 @@ end
 lemma well_founded.finite_of_independent (hwf : well_founded ((>) : α → α → Prop))
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
 begin
-  suffices : (set.range t).finite,
-  { haveI : finite (set.range t) := finite.of_fintype this.fintype,
-    exact finite.of_equiv (set.range t) (equiv.of_injective _ (ht.injective h_ne_bot)).symm, },
-  exact well_founded.finite_of_set_independent hwf ht.set_indepdent_range,
+  haveI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).to_subtype,
+  exact finite.of_injective_finite_range (ht.injective h_ne_bot),
 end
 
 end complete_lattice
@@ -442,9 +442,7 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
-  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
-    rw [← h, Sup_le_iff],
-    intros a ha,
+  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, h.symm.trans_le $ Sup_le_iff.2 $ λ a ha, _⟩,
     rw ← inf_eq_left,
     refine (ha.le_iff.mp inf_le_left).resolve_left (λ con, ha.1 _),
     rw [eq_bot_iff, ← con],

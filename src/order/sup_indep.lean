@@ -133,8 +133,8 @@ lemma sup_indep_iff_pairwise_disjoint : s.sup_indep f ↔ (s : set ι).pairwise_
 ⟨sup_indep.pairwise_disjoint, λ hs t ht i hi hit,
   disjoint_sup_right.2 $ λ j hj, hs hi (ht hj) (ne_of_mem_of_not_mem hj hit).symm⟩
 
-alias sup_indep_iff_pairwise_disjoint ↔ finset.sup_indep.pairwise_disjoint
-  set.pairwise_disjoint.sup_indep
+alias sup_indep_iff_pairwise_disjoint ↔ sup_indep.pairwise_disjoint
+  _root_.set.pairwise_disjoint.sup_indep
 
 /-- Bind operation for `sup_indep`. -/
 lemma sup_indep.sup [decidable_eq ι] {s : finset ι'} {g : ι' → finset ι} {f : ι → α}
@@ -260,16 +260,16 @@ lemma independent.mono
 
 /-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
-lemma independent.comp
-  (f : ι' → ι) (hf : injective f) :
-  independent $ t ∘ f :=
+lemma independent.comp {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent t) (hf : injective f) :
+  independent (t ∘ f) :=
 λ i, (ht (f i)).mono_right $ begin
   refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
   exact supr_const_mono hf.ne,
 end
 
-lemma independent.comp'
-  {f : ι' → ι} (hf : surjective f) (ht : independent $ t ∘ f) :
+lemma independent.comp' {ι ι' : Sort*}
+  {t : ι → α} {f : ι' → ι} (ht : independent $ t ∘ f) (hf : surjective f) :
   independent t :=
 begin
   intros i,
@@ -278,7 +278,7 @@ begin
   exact (ht i').mono_right (bsupr_mono $ λ j' hij, mt (congr_arg f) hij),
 end
 
-lemma independent.set_indepdent_range (ht : independent t) :
+lemma independent.set_independent_range (ht : independent t) :
   set_independent $ range t :=
 begin
   rw set_independent_iff,
@@ -372,7 +372,7 @@ lemma set_independent_iff_pairwise_disjoint {s : set α} :
 ⟨set_independent.pairwise_disjoint, λ hs i hi, disjoint_Sup_iff.2 $ λ j hj,
   hs hi hj.1 $ ne.symm hj.2⟩
 
-alias set_independent_iff_pairwise_disjoint ↔ _ set.pairwise_disjoint.set_independent
+alias set_independent_iff_pairwise_disjoint ↔ _ _root_.set.pairwise_disjoint.set_independent
 
 lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
 ⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,

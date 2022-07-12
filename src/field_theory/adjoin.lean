@@ -598,8 +598,7 @@ lemma fg_adjoin_finset (t : finset E) : (adjoin F (↑t : set E)).fg :=
 ⟨t, rfl⟩
 
 theorem fg_def {S : intermediate_field F E} : S.fg ↔ ∃ t : set E, set.finite t ∧ adjoin F t = S :=
-⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
- λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+iff.symm set.exists_finite_iff_finset
 
 theorem fg_bot : (⊥ : intermediate_field F E).fg :=
 ⟨∅, adjoin_empty F E⟩

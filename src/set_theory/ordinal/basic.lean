@@ -590,16 +590,6 @@ begin
   cases quotient.out α, cases quotient.out β, exact classical.choice
 end
 
-/-- Given two ordinals `α = β`, then `rel_iso_out α β` is the order isomorphism between two
-model types for `α` and `β`. -/
-def rel_iso_out {α β : ordinal} (h : α = β) :
-  ((<) : α.out.α → α.out.α → Prop) ≃r ((<) : β.out.α → β.out.α → Prop) :=
-begin
-  change α.out.r ≃r β.out.r,
-  rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
-  cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
-end
-
 theorem typein_lt_type (r : α → α → Prop) [is_well_order α r] (a : α) : typein r a < type r :=
 ⟨principal_seg.of_element _ _⟩
 
@@ -758,6 +748,9 @@ theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonemp
 theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
 type_ne_zero_iff_nonempty.2 h
 
+@[simp] theorem type_pempty : type (@empty_relation pempty) = 0 := rfl
+theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
+
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
@@ -787,8 +780,14 @@ out_nonempty_iff_ne_zero.1 h
 
 instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
 
-theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
-quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
+@[simp] theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
+(rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
+
+@[simp] theorem type_eq_one_iff_unique [is_well_order α r] : type r = 1 ↔ nonempty (unique α) :=
+⟨λ h, let ⟨s⟩ := type_eq.1 h in ⟨s.to_equiv.unique⟩, λ ⟨h⟩, @type_eq_one_of_unique α r _ h⟩
+
+@[simp] theorem type_punit : type (@empty_relation punit) = 1 := rfl
+@[simp] theorem type_unit : type (@empty_relation unit) = 1 := rfl
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 
@@ -876,13 +875,8 @@ by simp only [le_antisymm_iff, lift_le]
 @[simp] theorem lift_lt {a b : ordinal} : lift a < lift b ↔ a < b :=
 by simp only [lt_iff_le_not_le, lift_le]
 
-@[simp] theorem lift_zero : lift 0 = 0 := (rel_iso.rel_iso_of_is_empty _ _).ordinal_type_eq
-
-@[simp] theorem lift_one : lift 1 = 1 :=
-quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
-
-theorem one_eq_lift_type_unit : 1 = lift.{u} (@type unit empty_relation _) :=
-by rw [← one_eq_type_unit, lift_one]
+@[simp] theorem lift_zero : lift 0 = 0 := type_eq_zero_of_empty _
+@[simp] theorem lift_one : lift 1 = 1 := type_eq_one_of_unique _
 
 @[simp] theorem lift_card (a) : (card a).lift = card (lift a) :=
 induction_on a $ λ α r _, rfl
@@ -932,6 +926,9 @@ def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
 localized "notation `ω` := ordinal.omega" in ordinal
 
+/-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
+@[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm
+
 @[simp] theorem card_omega : card ω = ℵ₀ := rfl
 
 @[simp] theorem lift_omega : lift ω = ω := lift_lift _
@@ -971,8 +968,8 @@ instance : add_monoid_with_one ordinal.{u} :=
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
-@[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
-  [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
+@[simp] theorem type_sum_lex {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] : type (sum.lex r s) = type r + type s := rfl
 
 @[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
 by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]

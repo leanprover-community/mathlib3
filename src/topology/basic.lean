@@ -1191,7 +1191,7 @@ lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x
   {b | x ∈ f b}.finite :=
 let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
-lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
+lemma locally_finite_of_finite [finite β] (f : β → set α) : locally_finite f :=
 assume x, ⟨univ, univ_mem, to_finite _⟩
 
 lemma locally_finite.subset

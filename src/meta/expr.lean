@@ -21,9 +21,6 @@ open tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
-@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
-⟨λ b, pexpr.of_expr (reflect b)⟩
-
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -154,6 +151,19 @@ def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
+ignored.
+```
+append_namespace `a.b `c.d = `a.b.c.d
+append_namespace `a.b `_root_.c.d = `c.d
+```
+-/
+meta def append_namespace (ns : name) : name → name
+| (mk_string s anonymous) := if s = "_root_" then anonymous else mk_string s ns
+| (mk_string s p)         := mk_string s (append_namespace p)
+| (mk_numeral n p)        := mk_numeral n (append_namespace p)
+| anonymous               := ns
 
 /--
 Constructs a (non-simple) name from a string.

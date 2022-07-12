@@ -121,7 +121,7 @@ end semiring
 begin
   induction n with k hk,
   { simp },
-  { simp only [geom_sum_succ', nat.even_succ, hk],
+  { simp only [geom_sum_succ', nat.even_add_one, hk],
     split_ifs,
     { rw [h.neg_one_pow, add_zero] },
     { rw [(nat.odd_iff_not_even.2 h).neg_one_pow, neg_add_self] } }
@@ -361,7 +361,7 @@ calc
 lemma nat.geom_sum_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in range n, a/b^i ≤ a * b/(b - 1) :=
 begin
-  refine (nat.le_div_iff_mul_le _ _ $ tsub_pos_of_lt hb).2 _,
+  refine (nat.le_div_iff_mul_le $ tsub_pos_of_lt hb).2 _,
   cases n,
   { rw [sum_range_zero, zero_mul],
     exact nat.zero_le _ },
@@ -424,7 +424,7 @@ begin
   { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,
   intros n hn ihn,
-  simp only [nat.even_succ, geom_sum_succ],
+  simp only [nat.even_add_one, geom_sum_succ],
   by_cases hn' : even n,
   { rw [if_pos hn'] at ihn, rw [if_neg, lt_add_iff_pos_left],
     exact mul_pos_of_neg_of_neg hx0 ihn, exact not_not_intro hn', },

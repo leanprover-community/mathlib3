@@ -22,7 +22,7 @@ Further development can be found on the branch `von_neumann_v2`.
 
 - Define von Neumann ordinals.
 - Define the basic arithmetic operations on ordinals from a purely set-theoretic perspective.
-- Prove the equivalence between these definitions and those provided in
+- Prove the equivalences between these definitions and those provided in
   `set_theory/ordinal/arithmetic.lean`.
 -/
 

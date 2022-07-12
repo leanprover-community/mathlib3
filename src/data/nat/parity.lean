@@ -210,7 +210,7 @@ by rw [←nat.bit1_eq_bit1, bit1, bit0_eq_two_mul, nat.two_mul_div_two_add_one_o
 @[simp] lemma bit0_div_bit0 : bit0 n / bit0 m = n / m :=
 by rw [bit0_eq_two_mul m, ←nat.div_div_eq_div_mul, bit0_div_two]
 
-@[simp] lemma nat.bit1_div_bit0 : bit1 n / bit0 m = n / m :=
+@[simp] lemma bit1_div_bit0 : bit1 n / bit0 m = n / m :=
 by rw [bit0_eq_two_mul, ←nat.div_div_eq_div_mul, bit1_div_two]
 
 -- Here are examples of how `parity_simps` can be used with `nat`.

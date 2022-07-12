@@ -75,6 +75,31 @@ by {induction G, exact digraph.handshake G, refl}
 -- try setting up mapping to fin 2
 -- how do you choose an orientation?
 
+lemma edges_card (G : graph V E) :
+  ∀ (e : E), nat.card (G.ends_set e) = 1 ∨ nat.card (G.ends_set e) = 2 :=
+begin
+-- having two different definitions for the ends sets is not great
+-- not easy to move between ends_set and ends_finset
+  intros e,
+  induction G,
+  have h2 := G.card_ends_finset_le_two e,
+  have h3 := G.card_ends_finset_pos e,
+  rw le_iff_eq_or_lt at h2,
+  cases h2 with h2 h1,
+  right,
+  rw G.ends_set_eq_ends_finset at h2,
+-- this induction thing makes it hard to move between digraphs and graphs
+-- when i do induction G it replaces it with graph (quot.mk setoid.r G), not a digraph
+-- so i can't use digraph lemmas here
+  rw ← h2,
+  simp,
+
+
+  sorry,
+  sorry,
+  refl,
+end
+
 /-- Noncomputably gives a bijection between `α` and `fin n`, where `nat.card α = n ≠ 0`. This is
 only a very slight variation on `nat.equiv_fin_of_card_pos` but might be useful to PR -/
 noncomputable def nat.equiv_fin_of_card_eq_pos {α : Type u} {n : ℕ} (hn : n ≠ 0)
@@ -350,11 +375,14 @@ structure subgraph (G : graph V E) :=
 
 end conn
 
---namespace subgraph
+namespace subgraph
 
 
--- protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
--- begin
+protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
+begin
+  apply graph.mk (λ v : G'.verts, λ e : G'.edges, G.inc v e),
+  simp,
+  sorry,
 --   unfold graph,
 --   unfold graph at G,
 --   have h := G'.edge_sub,
@@ -365,11 +393,11 @@ end conn
 --   -- need to show edge orientation doesn't matter
 
 --   sorry,
--- end
+end
 
 -- def connected (G' : subgraph G) : Prop := G'.coe.connected
 
---end subgraph
+end subgraph
 
 
 

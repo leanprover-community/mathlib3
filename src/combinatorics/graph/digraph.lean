@@ -44,6 +44,54 @@ def ends_set (G : digraph V E) (e : E) : set V :=
 def ends_finset (G : digraph V E) (e : E) : finset V :=
   {G.ends 0 e, G.ends 1 e}
 
+lemma ends_finset_eq_ends_set (G : digraph V E) (e : E) :
+  ↑(G.ends_finset e) = G.ends_set e :=
+begin
+  ext x;
+  rw ends_finset,
+  rw ends_set,
+  refine ⟨_, _⟩,
+  intros h,
+  simp at h,
+  simp,
+  cases h with h0 h1,
+  use 0,
+  rw h0,
+  use 1,
+  rw h1,
+  intros h,
+  simp,
+  unfold inc at h,
+  simp at h,
+  cases h with i h,
+  have h2 := fin.fin_two_eq_zero_or_one i,
+  cases h2 with h0 h1,
+  left,
+  rw h0 at h,
+  rw h,
+  right,
+  rw h1 at h,
+  rw h,
+end
+
+instance fintype_ends_set : fintype (G.ends_set e) :=
+begin
+  apply fintype.of_finset (G.ends_finset e),
+  intros x,
+  rw ← ends_finset_eq_ends_set,
+  simp,
+end
+
+lemma ends_set_eq_ends_finset (G : digraph V E) (e : E) :
+  G.ends_finset e = (G.ends_set e).to_finset :=
+begin
+  -- some funky typeclass stuff happening here :(
+  ext x;
+  simp,
+  rw ← ends_finset_eq_ends_set,
+  simp,
+end
+
 def dir_edge_nhd (G : digraph V E) (i : fin 2) (x : V) : set E :=
   {e : E | G.ends i e = x}
 

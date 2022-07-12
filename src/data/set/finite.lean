@@ -340,6 +340,33 @@ end fintype_instances
 
 end set
 
+/-! ### Finset -/
+
+namespace finset
+
+/-- Gives a `set.finite` for the `finset` coerced to a `set`.
+This is a wrapper around `set.to_finite`. -/
+lemma finite_to_set (s : finset α) : (s : set α).finite := set.to_finite _
+
+@[simp] lemma finite_to_set_to_finset (s : finset α) : s.finite_to_set.to_finset = s :=
+by { ext, rw [set.finite.mem_to_finset, mem_coe] }
+
+end finset
+
+namespace multiset
+
+lemma finite_to_set (s : multiset α) : {x | x ∈ s}.finite :=
+by { classical, simpa only [← multiset.mem_to_finset] using s.to_finset.finite_to_set }
+
+@[simp] lemma finite_to_set_to_finset [decidable_eq α] (s : multiset α) :
+  s.finite_to_set.to_finset = s.to_finset :=
+by { ext x, simp }
+
+end multiset
+
+lemma list.finite_to_set (l : list α) : {x | x ∈ l}.finite :=
+(show multiset α, from ⟦l⟧).finite_to_set
+
 /-! ### Finite instances
 
 There is seemingly some overlap between the following instances and the `fintype` instances
@@ -585,7 +612,7 @@ h.induction_on finite_empty finite_singleton
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
-  λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
+  λ ⟨s, hs⟩, ⟨s, s.finite_to_set, hs⟩⟩
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : a.finite) : {b | b ⊆ a}.finite :=
@@ -601,13 +628,13 @@ begin
   lift t to Π d, finset (κ d) using ht,
   classical,
   rw ← fintype.coe_pi_finset,
-  apply finite_mem_finset
+  apply finset.finite_to_set
 end
 
 /-- A finite union of finsets is finite. -/
 lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
   (⋃ a, (f a : set β)).finite :=
-by { rw ← bUnion_range, exact h.bUnion (λ y hy, finite_mem_finset y) }
+by { rw ← bUnion_range, exact h.bUnion (λ y hy, y.finite_to_set) }
 
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : (range f).finite)
   (hg : (range g).finite) : (range (λ x, if p x then f x else g x)).finite :=
@@ -1035,13 +1062,9 @@ lemma Union_univ_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι
   (⋃ j : ι', pi univ (λ i, s i j)) = pi univ (λ i, ⋃ j, s i j) :=
 Union_pi_of_monotone finite_univ (λ i _, hs i)
 
-lemma range_find_greatest_subset {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ}:
-  range (λ x, nat.find_greatest (P x) b) ⊆ ↑(finset.range (b + 1)) :=
-by { rw range_subset_iff, intro x, simp [nat.lt_succ_iff, nat.find_greatest_le] }
-
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   (range (λ x, nat.find_greatest (P x) b)).finite :=
-(finite_mem_finset (finset.range (b + 1))).subset range_find_greatest_subset
+(finite_le_nat b).subset $ range_subset_iff.2 $ λ x, nat.find_greatest_le _
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
   s.nonempty → ∃ a ∈ s, ∀ a' ∈ s, f a ≤ f a' → f a = f a' :=
@@ -1116,12 +1139,12 @@ namespace finset
 /-- A finset is bounded above. -/
 protected lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) :
   bdd_above (↑s : set α) :=
-(set.finite_mem_finset s).bdd_above
+s.finite_to_set.bdd_above
 
 /-- A finset is bounded below. -/
 protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
   bdd_below (↑s : set α) :=
-(set.finite_mem_finset s).bdd_below
+s.finite_to_set.bdd_below
 
 end finset
 
@@ -1149,17 +1172,3 @@ begin
   { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
   { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
 end
-
-/-! ### Finset -/
-
-namespace finset
-
-/-- Gives a `set.finite` for the `finset` coerced to a `set`.
-This is a wrapper around `set.to_finite`. -/
-lemma finite_to_set (s : finset α) : (s : set α).finite := set.finite_mem_finset s
-
-@[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
-  s.finite_to_set.to_finset = s :=
-by { ext, rw [set.finite.mem_to_finset, mem_coe] }
-
-end finset

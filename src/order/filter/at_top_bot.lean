@@ -807,7 +807,7 @@ begin
   refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_top, eventually_at_top] at h,
   have : 0 < c := let ⟨x, hx⟩ := h 1 in
-    pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
+    pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
     (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
   refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
   obtain ⟨x, hx⟩ := h (c + 1),
@@ -826,7 +826,7 @@ begin
   refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_bot, eventually_at_top] at h,
   have : c < 0 := let ⟨x, hx⟩ := h (-1) in
-    neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
+    neg_of_mul_neg_left ((hx (max x 1) $ le_max_left x 1).trans_lt $ by simp [zero_lt_one])
     (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
   refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
   obtain ⟨x, hx⟩ := h (c - 1),

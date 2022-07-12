@@ -68,7 +68,7 @@ variables {C : Type u} [category.{v} C]
 An open immersion of PresheafedSpaces is an open embedding `f : X ⟶ U ⊆ Y` of the underlying
 spaces, such that the sheaf map `Y(V) ⟶ f _* X(V)` is an iso for each `V ⊆ U`.
 -/
-class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
+class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
 (base_open : open_embedding f.base)
 (c_iso : ∀ U : opens X, is_iso (f.c.app (op (base_open.is_open_map.functor.obj U))))
 
@@ -77,7 +77,7 @@ A morphism of SheafedSpaces is an open immersion if it is an open immersion as a
 of PresheafedSpaces
 -/
 abbreviation SheafedSpace.is_open_immersion
-  [has_products C] {X Y : SheafedSpace C} (f : X ⟶ Y) : Prop :=
+  [has_products.{v} C] {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
 PresheafedSpace.is_open_immersion f
 
 /--
@@ -104,16 +104,10 @@ attribute [instance] is_open_immersion.c_iso
 
 section
 
-variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
+variables {X Y : PresheafedSpace.{v} C} {f : X ⟶ Y} (H : is_open_immersion f)
 
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
 abbreviation open_functor := H.base_open.is_open_map.functor
-
-/-
-We want to keep `eq_to_hom`s in the form of `F.map (eq_to_hom _)` so that the lemmas about
-naturality can be applied.
--/
-local attribute [-simp] eq_to_hom_map eq_to_iso_map
 
 /-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
 @[simps] noncomputable
@@ -234,12 +228,12 @@ by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 by { erw ← category.assoc, rw [is_iso.comp_inv_eq, f.c.naturality], congr }
 
 /-- An isomorphism is an open immersion. -/
-instance of_iso {X Y : PresheafedSpace C} (H : X ≅ Y) : is_open_immersion H.hom :=
+instance of_iso {X Y : PresheafedSpace.{v} C} (H : X ≅ Y) : is_open_immersion H.hom :=
 { base_open := (Top.homeo_of_iso ((forget C).map_iso H)).open_embedding,
   c_iso := λ _, infer_instance }
 
 @[priority 100]
-instance of_is_iso {X Y : PresheafedSpace C} (f : X ⟶ Y) [is_iso f] : is_open_immersion f :=
+instance of_is_iso {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y) [is_iso f] : is_open_immersion f :=
 algebraic_geometry.PresheafedSpace.is_open_immersion.of_iso (as_iso f)
 
 instance of_restrict {X : Top} (Y : PresheafedSpace C) {f : X ⟶ Y.carrier}
@@ -295,7 +289,7 @@ section pullback
 
 noncomputable theory
 
-variables {X Y Z : PresheafedSpace C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
+variables {X Y Z : PresheafedSpace.{v} C} (f : X ⟶ Z) [hf : is_open_immersion f] (g : Y ⟶ Z)
 
 include hf
 
@@ -394,7 +388,7 @@ begin
     rw ← is_iso.comp_inv_eq at this,
     reassoc! this,
     erw [← this, hf.inv_app_app_assoc, s.fst.c.naturality_assoc],
-    simpa },
+    simpa [eq_to_hom_map], },
   { change pullback.lift _ _ _ ≫ pullback.fst = _,
     simp }
 end
@@ -532,7 +526,7 @@ open category_theory.limits.walking_cospan
 
 section to_SheafedSpace
 
-variables [has_products C] {X : PresheafedSpace C} (Y : SheafedSpace C)
+variables [has_products.{v} C] {X : PresheafedSpace.{v} C} (Y : SheafedSpace C)
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
 
 include H
@@ -565,14 +559,14 @@ instance to_SheafedSpace_is_open_immersion :
 
 omit H
 
-@[simp] lemma SheafedSpace_to_SheafedSpace {X Y : SheafedSpace C} (f : X ⟶ Y)
+@[simp] lemma SheafedSpace_to_SheafedSpace {X Y : SheafedSpace.{v} C} (f : X ⟶ Y)
   [is_open_immersion f] : to_SheafedSpace Y f = X := by unfreezingI { cases X, refl }
 
 end to_SheafedSpace
 
 section to_LocallyRingedSpace
 
-variables {X : PresheafedSpace CommRing.{u}} (Y : LocallyRingedSpace.{u})
+variables {X : PresheafedSpace.{u} CommRing.{u}} (Y : LocallyRingedSpace.{u})
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
 
 include H
@@ -614,10 +608,10 @@ end PresheafedSpace.is_open_immersion
 
 namespace SheafedSpace.is_open_immersion
 
-variables [has_products C]
+variables [has_products.{v} C]
 
 @[priority 100]
-instance of_is_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+instance of_is_iso {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) [is_iso f] :
   SheafedSpace.is_open_immersion f :=
 @@PresheafedSpace.is_open_immersion.of_is_iso _ f
 (SheafedSpace.forget_to_PresheafedSpace.map_is_iso _)
@@ -636,8 +630,8 @@ include H
 local notation `forget` := SheafedSpace.forget_to_PresheafedSpace
 open category_theory.limits.walking_cospan
 
-instance : mono f := faithful_reflects_mono forget
-  (show @mono (PresheafedSpace C) _ _ _ f, by apply_instance)
+instance : mono f :=
+forget .mono_of_mono_map (show @mono (PresheafedSpace C) _ _ _ f, by apply_instance)
 
 instance forget_map_is_open_immersion :
   PresheafedSpace.is_open_immersion (forget .map f) := ⟨H.base_open, H.c_iso⟩
@@ -868,8 +862,7 @@ instance comp (g : Z ⟶ Y) [LocallyRingedSpace.is_open_immersion g] :
   LocallyRingedSpace.is_open_immersion (f ≫ g) := PresheafedSpace.is_open_immersion.comp f.1 g.1
 
 instance mono : mono f :=
-faithful_reflects_mono (LocallyRingedSpace.forget_to_SheafedSpace)
-  (show mono f.1, by apply_instance)
+LocallyRingedSpace.forget_to_SheafedSpace.mono_of_mono_map (show mono f.1, by apply_instance)
 
 instance : SheafedSpace.is_open_immersion (LocallyRingedSpace.forget_to_SheafedSpace.map f) := H
 
@@ -1324,7 +1317,7 @@ namespace PresheafedSpace.is_open_immersion
 
 section to_Scheme
 
-variables {X : PresheafedSpace CommRing.{u}} (Y : Scheme.{u})
+variables {X : PresheafedSpace.{u} CommRing.{u}} (Y : Scheme.{u})
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : PresheafedSpace.is_open_immersion f]
 
 include H
@@ -1411,8 +1404,7 @@ include H
 local notation `forget` := Scheme.forget_to_LocallyRingedSpace
 
 instance mono : mono f :=
-faithful_reflects_mono (induced_functor _)
-  (show @mono LocallyRingedSpace _ _ _ f, by apply_instance)
+(induced_functor _).mono_of_mono_map (show @mono LocallyRingedSpace _ _ _ f, by apply_instance)
 
 instance forget_map_is_open_immersion : LocallyRingedSpace.is_open_immersion (forget .map f) :=
 ⟨H.base_open, H.c_iso⟩
@@ -1521,7 +1513,7 @@ lemma lift_uniq (H' : set.range g.1.base ⊆ set.range f.1.base) (l : Y ⟶ X)
   (hl : l ≫ f = g) : l = lift f g H' :=
 LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
 
-/-- Two open immersions with equal range is isomorphic. -/
+/-- Two open immersions with equal range are isomorphic. -/
 @[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.1.base = set.range g.1.base) :
   X ≅ Y :=
 { hom := lift g f (le_of_eq e),

@@ -42,7 +42,7 @@ namespace Top.presheaf
 open category_theory topological_space Top category_theory.limits opposite
 open Top.presheaf.sheaf_condition_equalizer_products
 
-variables {C : Type u} [category.{v} C] [has_products C]
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
 variables {X : Top.{v}} (F : presheaf C X)
 
 /--
@@ -213,7 +213,10 @@ fork.mk_hom (F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op)
 instance is_iso_postcompose_diagram_fork_hom_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
   is_iso (postcompose_diagram_fork_hom F U R hR).hom :=
-begin rw postcompose_diagram_fork_hom_hom, apply eq_to_hom.is_iso, end
+begin
+  rw [postcompose_diagram_fork_hom_hom, eq_to_hom_map],
+  apply eq_to_hom.is_iso,
+end
 
 instance is_iso_postcompose_diagram_fork_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
@@ -521,7 +524,7 @@ namespace Top.sheaf
 
 open category_theory topological_space Top opposite
 
-variables {C : Type u} [category.{v} C] [limits.has_products C]
+variables {C : Type u} [category.{v} C] [limits.has_products.{v} C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 

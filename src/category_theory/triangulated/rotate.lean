@@ -151,7 +151,7 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
   end,
   comm₃' := begin
     dsimp,
-    simp only [discrete.functor_map_id, id_comp, opaque_eq_to_iso_inv, μ_inv_naturality,
+    simp only [discrete.functor_map_id, id_comp, μ_inv_naturality,
       category.assoc, nat_trans.id_app, unit_of_tensor_iso_unit_inv_app],
     erw ε_naturality_assoc,
     rw comm₂_assoc
@@ -190,8 +190,8 @@ def to_inv_rotate_rotate (T : triangle C) : T ⟶ (inv_rotate C).obj ((rotate C)
     comm₃' := begin
       dsimp,
       simp only [ε_app_obj, eq_to_iso.hom, discrete.functor_map_id, id_comp, eq_to_iso.inv,
-        opaque_eq_to_iso_inv, category.assoc, obj_μ_inv_app, functor.map_comp, nat_trans.id_app,
-        obj_ε_app, unit_of_tensor_iso_unit_inv_app],
+        category.assoc, obj_μ_inv_app, functor.map_comp, nat_trans.id_app, obj_ε_app,
+        unit_of_tensor_iso_unit_inv_app],
       erw μ_inv_hom_app_assoc,
       refl
     end }
@@ -207,8 +207,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate C ⋙ inv_rotate C :=
     introv, ext,
     { dsimp,
       simp only [nat_iso.cancel_nat_iso_inv_right_assoc, discrete.functor_map_id, id_comp,
-        opaque_eq_to_iso_inv, μ_inv_naturality, assoc, nat_trans.id_app,
-        unit_of_tensor_iso_unit_inv_app],
+        μ_inv_naturality, assoc, nat_trans.id_app, unit_of_tensor_iso_unit_inv_app],
       erw ε_naturality },
     { dsimp, rw [comp_id, id_comp] },
     { dsimp, rw [comp_id, id_comp] },
@@ -306,7 +305,7 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ inv_rotate C ⋙ rotate C :=
     { dsimp, rw [comp_id, id_comp] },
     { dsimp, rw [comp_id, id_comp] },
     { dsimp,
-      rw [add_neg_equiv_counit_iso_inv, eq_to_hom_refl, id_comp],
+      rw [add_neg_equiv_counit_iso_inv, eq_to_hom_map, eq_to_hom_refl, id_comp],
       simp only [nat_trans.comp_app, assoc],
       erw [μ_inv_naturality, ε_naturality_assoc] },
   end }

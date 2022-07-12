@@ -636,7 +636,7 @@ lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - int
 map_sub integral_clm f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
-map_smul (integral_clm' 𝕜) c f
+show (integral_clm' 𝕜) (c • f) = c • (integral_clm' 𝕜) f, from map_smul (integral_clm' 𝕜) c f
 
 local notation `Integral` := @integral_clm α E _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
@@ -1137,7 +1137,7 @@ begin
   by_cases hfm : ae_strongly_measurable f μ,
   { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
-    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+    simpa [abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
   { rw [integral_non_ae_strongly_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end
@@ -1402,6 +1402,36 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
+lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
+  (hf_int : integrable f μ) (ε : ℝ) :
+  ε * (μ {x | ε ≤ f x}).to_real ≤ ∫ x, f x ∂μ :=
+begin
+  cases lt_or_le ε 0 with hε hε,
+  { exact (mul_nonpos_of_nonpos_of_nonneg hε.le ennreal.to_real_nonneg).trans
+      (integral_nonneg hf_nonneg), },
+  rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, hf_nonneg x))
+    hf_int.ae_strongly_measurable, ← ennreal.to_real_of_real hε, ← ennreal.to_real_mul],
+  have : {x : α | (ennreal.of_real ε).to_real ≤ f x}
+    = {x : α | ennreal.of_real ε ≤ (λ x, ennreal.of_real (f x)) x},
+  { ext1 x,
+    rw [set.mem_set_of_eq, set.mem_set_of_eq, ← ennreal.to_real_of_real (hf_nonneg x)],
+    exact ennreal.to_real_le_to_real ennreal.of_real_ne_top ennreal.of_real_ne_top, },
+  rw this,
+  have h_meas : ae_measurable (λ x, ennreal.of_real (f x)) μ,
+    from measurable_id'.ennreal_of_real.comp_ae_measurable hf_int.ae_measurable,
+  have h_mul_meas_le := @mul_meas_ge_le_lintegral₀ _ _ μ _ h_meas (ennreal.of_real ε),
+  rw ennreal.to_real_le_to_real _ _,
+  { exact h_mul_meas_le, },
+  { simp only [ne.def, with_top.mul_eq_top_iff, ennreal.of_real_eq_zero, not_le,
+      ennreal.of_real_ne_top, false_and, or_false, not_and],
+    exact λ _, measure_ne_top _ _, },
+  { have h_lt_top : ∫⁻ a, ∥f a∥₊ ∂μ < ∞ := hf_int.has_finite_integral,
+    simp_rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs] at h_lt_top,
+    convert h_lt_top.ne,
+    ext1 x,
+    rw abs_of_nonneg (hf_nonneg x), },
+end
+
 end properties
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
@@ -1500,7 +1530,7 @@ lemma ae_eq_trim_iff [topological_space γ] [metrizable_space γ]
 ⟨ae_eq_of_ae_eq_trim, ae_eq_trim_of_strongly_measurable hm hf hg⟩
 
 lemma ae_le_trim_of_strongly_measurable
-  [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [pseudo_metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g)
   (hfg : f ≤ᵐ[μ] g) :
   f ≤ᵐ[μ.trim hm] g :=
@@ -1510,7 +1540,7 @@ begin
 end
 
 lemma ae_le_trim_iff
-  [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [pseudo_metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
   f ≤ᵐ[μ.trim hm] g ↔ f ≤ᵐ[μ] g :=
 ⟨ae_le_of_ae_le_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩

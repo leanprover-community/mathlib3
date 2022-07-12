@@ -153,7 +153,7 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
 { default := indiscrete ha.1,
   uniq := λ P, begin
     have h : ∀ b ∈ P.parts, b = a,
-    { exact λ b hb, (eq_bot_or_eq_of_le_atom ha $ P.le hb).resolve_left (P.ne_bot hb) },
+    { exact λ b hb, (ha.le_iff.mp $ P.le hb).resolve_left (P.ne_bot hb) },
     ext b,
     refine iff.trans ⟨h b, _⟩ mem_singleton.symm,
     rintro rfl,
@@ -372,18 +372,23 @@ card_insert_of_not_mem $ λ h, hb $ hab.symm.eq_bot_of_le $ P.le h
 end distrib_lattice
 
 section generalized_boolean_algebra
-variables [generalized_boolean_algebra α] [decidable_eq α] {a : α} (P : finpartition a)
+variables [generalized_boolean_algebra α] [decidable_eq α] {a b c : α} (P : finpartition a)
 
 /-- Restricts a finpartition to avoid a given element. -/
 @[simps] def avoid (b : α) : finpartition (a \ b) :=
 of_erase
   (P.parts.image (\ b))
   (P.disjoint.image_finset_of_le $ λ a, sdiff_le).sup_indep
-  (begin
-    rw [sup_image, comp.left_id, finset.sup_sdiff_right],
-    congr,
-    exact P.sup_parts,
-  end)
+  (by rw [sup_image, comp.left_id, finset.sup_sdiff_right, ←id_def, P.sup_parts])
+
+@[simp] lemma mem_avoid : c ∈ (P.avoid b).parts ↔ ∃ d ∈ P.parts, ¬ d ≤ b ∧ d \ b = c :=
+begin
+  simp only [avoid, of_erase_parts, mem_erase, ne.def, mem_image, exists_prop,
+    ←exists_and_distrib_left, @and.left_comm (c ≠ ⊥)],
+  refine exists_congr (λ d, and_congr_right' $ and_congr_left _),
+  rintro rfl,
+  rw sdiff_eq_bot_iff,
+end
 
 end generalized_boolean_algebra
 end finpartition

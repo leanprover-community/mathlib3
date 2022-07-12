@@ -25,8 +25,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
   This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
+- `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+- `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -422,6 +422,9 @@ p.mod_two_eq_zero_or_one.imp_left
 
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
+
+lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
 
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=

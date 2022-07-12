@@ -124,7 +124,7 @@ begin
     simp },
   -- we will use countably many linear maps. Select these from all the derivatives since the
   -- space of linear maps is second-countable
-  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, countable T ∧
+  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, T.countable ∧
     (⋃ x ∈ T, ball (f' (x : E)) (r (f' x))) = ⋃ (x : s), ball (f' x) (r (f' x)) :=
     topological_space.is_open_Union_countable _ (λ x, is_open_ball),
   -- fix a sequence `u` of positive reals tending to zero.
@@ -220,7 +220,7 @@ begin
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
         exact false.elim z.2 },
-      { exact (nonempty_coe_sort _).2 hT } },
+      { exact nonempty_coe_sort.2 hT } },
     inhabit (ℕ × T × ℕ),
     exact ⟨_, encodable.surjective_decode_iget _⟩ },
   -- these sets `t q = K n z p` will do
@@ -891,10 +891,7 @@ begin
       rw ← this,
     end
   ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :
-    begin
-      rw lintegral_add' (ae_measurable_of_real_abs_det_fderiv_within μ hs hf') ae_measurable_const,
-      simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter],
-    end
+    by simp only [lintegral_add_right' _ ae_measurable_const, set_lintegral_const]
 end
 
 lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
@@ -1034,11 +1031,10 @@ begin
                       ennreal.of_real_coe_nnreal]
     end
   ... = ∑' n, (ennreal.of_real (|(A n).det|) * μ (s ∩ t n) + ε * μ (s ∩ t n)) :
-    by simp only [measurable_const, lintegral_const, lintegral_add, measurable_set.univ,
-                  eq_self_iff_true, measure.restrict_apply, univ_inter]
+    by simp only [set_lintegral_const, lintegral_add_right _ measurable_const]
   ... ≤ ∑' n, ((μ (f '' (s ∩ t n)) + ε * μ (s ∩ t n)) + ε * μ (s ∩ t n)) :
     begin
-      refine ennreal.tsum_le_tsum (λ n, add_le_add _ le_rfl),
+      refine ennreal.tsum_le_tsum (λ n, add_le_add_right _ _),
       exact (hδ (A n)).2.2 _ _ (ht n),
     end
   ... = μ (f '' s) + 2 * ε * μ s :
@@ -1247,5 +1243,17 @@ begin
   conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
   refl
 end
+
+theorem integral_target_eq_integral_abs_det_fderiv_smul [complete_space F]
+  {f : local_homeomorph E E} (hf' : ∀ x ∈ f.source, has_fderiv_at f (f' x) x) (g : E → F) :
+  ∫ x in f.target, g x ∂μ = ∫ x in f.source, |(f' x).det| • g (f x) ∂μ :=
+begin
+  have : f '' f.source = f.target := local_equiv.image_source_eq_target f.to_local_equiv,
+  rw ← this,
+  apply integral_image_eq_integral_abs_det_fderiv_smul μ f.open_source.measurable_set _ f.inj_on,
+  assume x hx,
+  exact (hf' x hx).has_fderiv_within_at
+end
+
 
 end measure_theory

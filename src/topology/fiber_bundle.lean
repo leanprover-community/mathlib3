@@ -300,6 +300,11 @@ instance : has_coe_to_fun (trivialization F proj) (λ _, Z → B × F) := ⟨λ 
 instance : has_coe (trivialization F proj) (pretrivialization F proj) :=
 ⟨to_pretrivialization⟩
 
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization F proj, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← local_homeomorph.to_local_equiv_injective.eq_iff], exact id }
+
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
 protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx

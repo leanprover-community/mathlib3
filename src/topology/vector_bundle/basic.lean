@@ -261,6 +261,11 @@ e.linear' b hb
 
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
 
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization R F E, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← topological_fiber_bundle.trivialization.to_pretrivialization_injective.eq_iff], exact id }
+
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = x.proj := e.proj_to_fun x ex
 lemma mem_source : x ∈ e.source ↔ x.proj ∈ e.base_set := by rw [e.source_eq, mem_preimage]

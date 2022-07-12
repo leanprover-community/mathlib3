@@ -195,7 +195,9 @@ instance : has_emptyc pSet := ⟨pSet.empty⟩
 
 instance : inhabited pSet := ⟨∅⟩
 
-theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := λ e, match e with end
+@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := λ e, match e with end
+
+@[simp] theorem empty_to_set : to_set ∅ = ∅ := by simp [to_set]
 
 /-- Insert an element into a pre-set -/
 protected def insert : pSet → pSet → pSet
@@ -413,6 +415,8 @@ instance : inhabited Set := ⟨∅⟩
 
 @[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
 quotient.induction_on x pSet.mem_empty
+
+@[simp] theorem empty_to_set : to_set ∅ = ∅ := by simp [to_set]
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 ⟨λ h y, (h.symm ▸ mem_empty y),

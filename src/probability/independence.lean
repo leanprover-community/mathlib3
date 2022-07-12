@@ -485,30 +485,29 @@ lemma Indep_fun_iff_measure_inter_preimage_eq_mul {ι : Type*} {β : ι → Type
     ↔ ∀ (S : finset ι) {sets : Π i : ι, set (β i)} (H : ∀ i, i ∈ S → measurable_set[m i] (sets i)),
       μ (⋂ i ∈ S, (f i) ⁻¹' (sets i)) = ∏ i in S, μ ((f i) ⁻¹' (sets i)) :=
 begin
-  split; intro h,
-  { refine λ S sets h_meas, h _ (λ i hi_mem, ⟨sets i, h_meas i hi_mem, rfl⟩), },
-  { rintros S setsα h_meas,
-    let setsβ : (Π i : ι, set (β i)) := λ i,
-      dite (i ∈ S) (λ hi_mem, (h_meas i hi_mem).some) (λ _, set.univ),
-    have h_measβ : ∀ i ∈ S, measurable_set[m i] (setsβ i),
-    { intros i hi_mem,
-      simp_rw [setsβ, dif_pos hi_mem],
-      exact (h_meas i hi_mem).some_spec.1, },
-    have h_preim : ∀ i ∈ S, setsα i = (f i) ⁻¹' (setsβ i),
-    { intros i hi_mem,
-      simp_rw [setsβ, dif_pos hi_mem],
-      exact (h_meas i hi_mem).some_spec.2.symm, },
-    have h_left_eq : μ (⋂ i ∈ S, setsα i) = μ (⋂ i ∈ S, (f i) ⁻¹' (setsβ i)),
-    { congr' with i x,
-      simp only [set.mem_Inter],
-      split; intros h hi_mem; specialize h hi_mem,
-      { rwa h_preim i hi_mem at h, },
-      { rwa h_preim i hi_mem, }, },
-    have h_right_eq : (∏ i in S, μ (setsα i)) = ∏ i in S, μ ((f i) ⁻¹' (setsβ i)),
-    { refine finset.prod_congr rfl (λ i hi_mem, _),
-      rw h_preim i hi_mem, },
-    rw [h_left_eq, h_right_eq],
-    exact h S h_measβ, },
+  refine ⟨λ h S sets h_meas, h _ (λ i hi_mem, ⟨sets i, h_meas i hi_mem, rfl⟩), _⟩,
+  intros h S setsα h_meas,
+  let setsβ : (Π i : ι, set (β i)) := λ i,
+    dite (i ∈ S) (λ hi_mem, (h_meas i hi_mem).some) (λ _, set.univ),
+  have h_measβ : ∀ i ∈ S, measurable_set[m i] (setsβ i),
+  { intros i hi_mem,
+    simp_rw [setsβ, dif_pos hi_mem],
+    exact (h_meas i hi_mem).some_spec.1, },
+  have h_preim : ∀ i ∈ S, setsα i = (f i) ⁻¹' (setsβ i),
+  { intros i hi_mem,
+    simp_rw [setsβ, dif_pos hi_mem],
+    exact (h_meas i hi_mem).some_spec.2.symm, },
+  have h_left_eq : μ (⋂ i ∈ S, setsα i) = μ (⋂ i ∈ S, (f i) ⁻¹' (setsβ i)),
+  { congr' with i x,
+    simp only [set.mem_Inter],
+    split; intros h hi_mem; specialize h hi_mem,
+    { rwa h_preim i hi_mem at h, },
+    { rwa h_preim i hi_mem, }, },
+  have h_right_eq : (∏ i in S, μ (setsα i)) = ∏ i in S, μ ((f i) ⁻¹' (setsβ i)),
+  { refine finset.prod_congr rfl (λ i hi_mem, _),
+    rw h_preim i hi_mem, },
+  rw [h_left_eq, h_right_eq],
+  exact h S h_measβ,
 end
 
 lemma indep_fun_iff_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}
@@ -543,7 +542,7 @@ begin
   { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
 end
 
-/-- If `f` is a family of mutually independent random variables (`Indep_fun m f μ`) and `S,T` are
+/-- If `f` is a family of mutually independent random variables (`Indep_fun m f μ`) and `S, T` are
 two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
 tuple `(f i)_i` for `i ∈ T`. -/
 lemma Indep_fun.indep_fun_finset [is_probability_measure μ]

@@ -1772,6 +1772,47 @@ begin
   { rw [finset.sum_insert hat, finset.prod_insert hat, multiset.prod_add, ih] }
 end
 
+lemma disjoint_list_sum_right {α : Type*} {a : multiset α} {l : list (multiset α)}
+  (h : ∀ b ∈ l, multiset.disjoint a b) :
+  multiset.disjoint a l.sum :=
+begin
+  induction l with b bs ih,
+  { exact (zero_disjoint _).symm },
+  { rw [list.sum_cons, disjoint_add_right],
+    exact ⟨h _ (list.mem_cons_self _ _), ih $ λ b hb, h _ $ list.mem_cons_of_mem _ hb⟩ }
+end
+
+lemma disjoint_sum_right {α : Type*} {a : multiset α} {i : multiset (multiset α)} :
+  (∀ b ∈ i, multiset.disjoint a b) → multiset.disjoint a i.sum :=
+  quotient.induction_on i $ λ l h, begin
+    rw [quot_mk_to_coe, multiset.coe_sum],
+    exact disjoint_list_sum_right h,
+  end
+
+lemma disjoint_finset_sum_right {α β : Type*} {i : finset β} {f : β → multiset α} {a : β}
+  (h : ∀ b ∈ i, multiset.disjoint (f a) (f b)) :
+  multiset.disjoint (f a) (∑ x in i, f x) :=
+disjoint_sum_right $ by simpa using h
+
+lemma finset_sum_le_of_le_of_disjoint {α β : Type*} {T : multiset α} {i : finset β}
+  {f : β → multiset α}
+  (h1 : ∀ x ∈ i, f x ≤ T) (h2 : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
+  ∑ x in i, f x ≤ T :=
+begin
+  classical,
+  induction i using finset.induction_on with z i hz hr,
+  { simp only [finset.sum_empty, zero_le], },
+  rw finset.sum_insert hz,
+  apply add_le_of_le_of_disjoint,
+  { exact h1 z (finset.mem_insert_self z i) },
+  { exact hr
+    (λ x hx, h1 x (finset.mem_insert_of_mem hx))
+    (λ x hx y hy hxy, h2 x (finset.mem_insert_of_mem hx) y (finset.mem_insert_of_mem hy) hxy), },
+  { exact disjoint_finset_sum_right
+    (λ x hx, h2 z (finset.mem_insert_self z i) x (finset.mem_insert_of_mem hx)
+      (by {contrapose! hx, simp [←hx, hz], } : z ≠ x)), }
+end
+
 end multiset
 
 namespace nat

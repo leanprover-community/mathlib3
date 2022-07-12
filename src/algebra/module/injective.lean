@@ -75,19 +75,18 @@ lemma module.injective_module_of_injective_object
 lemma module.injective_iff_injective_object :
   module.injective.{u v} R Q ↔ category_theory.injective.{max u v} (⟨Q⟩ : Module.{max u v} R) :=
 ⟨λ h, @@module.injective_object_of_injective_module R _ Q _ _ h,
-  λ h, @@module.injective_module_of_injective_object R _ Q _ _ h⟩
+ λ h, @@module.injective_module_of_injective_object R _ Q _ _ h⟩
 
 /--An `R`-module `Q` satisfies Baer's criterion if any `R`-linear map from an `ideal R` extends to
 an `R`-linear map `R ⟶ Q`-/
 def module.Baer : Prop := ∀ (I : ideal R) (g : I →ₗ[R] Q), ∃ (g' : R →ₗ[R] Q),
   ∀ (x : R) (mem : x ∈ I), g' x = g ⟨x, mem⟩
 
-namespace Baer
+namespace module.Baer
 
 variables {R} {M N : Type (max u v)} [add_comm_group M] [add_comm_group N]
 variables [module R M] [module R N] {i : M →ₗ[R] N} (hi : function.injective i) (f : M →ₗ[R] Q)
 variable {Q}
-include hi
 
 /-- If we view `M` as a submodule of `N` via the injective linear map `i : M ↪ N`, then a submodule
 between `M` and `N` is a submodule `N'` of `N`. To prove Baer's criterion, we need to consider
@@ -185,19 +184,11 @@ lemma submodule_le_of_extension_of_le {a b : extension_of hi f} (le1 : a ≤ b) 
 
 lemma directed_on_of_chain {c : set (extension_of hi f)} (hchain : is_chain (≤) c) :
   directed_on (≤) $ (λ x : extension_of hi f, x.to_submodule) '' c :=
-begin
-  rw directed_on_iff_directed,
-  rintros ⟨_, ⟨a, a_mem, rfl⟩⟩ ⟨_, ⟨b, b_mem, rfl⟩⟩,
-  by_cases eq1 : a = b,
-  { exact ⟨⟨a.to_submodule, ⟨_, a_mem, rfl⟩⟩, le_refl _, by convert (le_refl _)⟩ },
-  { exact or.elim (hchain a_mem b_mem eq1)
-      (λ h, ⟨⟨b.to_submodule, ⟨_, b_mem, rfl⟩⟩, submodule_le_of_extension_of_le h, le_refl _⟩)
-      (λ h, ⟨⟨a.to_submodule, ⟨_, a_mem, rfl⟩⟩, le_refl _, submodule_le_of_extension_of_le h⟩)}
-end
+directed_on_iff_directed.mpr $ (chain_submodule_of_chain_extension_of hchain).directed
 
 lemma nonempty_of_extension_of {c : set (extension_of hi f)} (hnonempty : c.nonempty) :
   ((λ x : extension_of hi f, x.to_submodule) '' c).nonempty :=
-⟨hnonempty.some.to_submodule, ⟨_, hnonempty.some_spec, rfl⟩⟩
+hnonempty.image _
 
 /--For a nonempty chain of extensions of `f`, if `y` is in the supremum of underlying submodules of
 the extensions in chain, then `y` is at least one of the underlying submodule in that chain.
@@ -408,18 +399,7 @@ variables (hi f)
 /--the ideal `I = {r | r • y ∈ N}`-/
 def extension_of_max_adjoin.ideal (y : N) :
   ideal R :=
-{ carrier := {r | r • y ∈ (extension_of_max hi f).to_submodule},
-  add_mem' := λ a b (ha : a • y ∈ _) (hb : b • y ∈ _), begin
-    change (a + b) • _ ∈ _,
-    rw [add_smul],
-    exact submodule.add_mem _ ha hb,
-  end,
-  smul_mem' := λ c x (hx : x • y ∈ _), begin
-    change (_ • _) • _ ∈ _,
-    rw [smul_eq_mul, mul_smul],
-    exact submodule.smul_mem _ _ hx,
-  end,
-  zero_mem' := by simp }
+(extension_of_max hi f).to_submodule.comap (linear_map.id.smul_right y)
 
 /--A linear map `I ⟶ Q` by `x ↦ f' (x • y)` where `f'` is the maximal extension-/
 def extension_of_max_adjoin.ideal_to (y : N) :
@@ -431,21 +411,16 @@ def extension_of_max_adjoin.ideal_to (y : N) :
     exact congr_arg _ (subtype.ext_val (mul_smul _ _ _)),
   end }
 
-lemma extension_of_max_adjoin.aux2 (h : module.Baer R Q) (y : N) :
-  ∃ (g' : R →ₗ[R] Q), ∀ (x : R) (mem : x ∈ extension_of_max_adjoin.ideal hi f y),
-    g' x = extension_of_max_adjoin.ideal_to hi f y ⟨x, mem⟩ :=
-h (extension_of_max_adjoin.ideal hi f y) (extension_of_max_adjoin.ideal_to hi f y)
-
 /-- Since we assumed `Q` being Baer, the linear map `x ↦ f' (x • y) : I ⟶ Q` extends to `R ⟶ Q`,
 call this extended map `φ`-/
 def extension_of_max_adjoin.extend_ideal_to (h : module.Baer R Q) (y : N) : R →ₗ[R] Q :=
-(extension_of_max_adjoin.aux2 hi f h y).some
+(h (extension_of_max_adjoin.ideal hi f y) (extension_of_max_adjoin.ideal_to hi f y)).some
 
 lemma extension_of_max_adjoin.extend_ideal_to_is_extension (h : module.Baer R Q) (y : N) :
   ∀ (x : R) (mem : x ∈ extension_of_max_adjoin.ideal hi f y),
   extension_of_max_adjoin.extend_ideal_to hi f h y x =
   extension_of_max_adjoin.ideal_to hi f y ⟨x, mem⟩ :=
-(extension_of_max_adjoin.aux2 hi f h y).some_spec
+(h (extension_of_max_adjoin.ideal hi f y) (extension_of_max_adjoin.ideal_to hi f y)).some_spec
 
 lemma extension_of_max_adjoin.extend_ideal_to_wd' (h : module.Baer R Q) {y : N} (r : R)
   (eq1 : r • y = 0) :
@@ -571,7 +546,7 @@ begin
 end
 
 omit hi
-theorem criterion (h : module.Baer R Q) :
+protected theorem injective (h : module.Baer R Q) :
   module.injective R Q :=
 { out := λ X Y ins1 ins2 ins3 ins4 i hi f, begin
   resetI,

@@ -15,7 +15,9 @@ between them has no Eulerian trail.
 
 namespace konigsberg
 
-@[derive [decidable_eq, fintype]]
+/-- The vertices for the Königsberg graph; four vertices for the bodies of land and seven
+vertices for the bridges. -/
+@[derive [decidable_eq, fintype], nolint has_inhabited_instance]
 inductive verts : Type
 | V1 | V2 | V3 | V4 -- The islands and mainlands
 | B1 | B2 | B3 | B4 | B5 | B6 | B7 -- The bridges

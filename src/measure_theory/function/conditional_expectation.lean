@@ -2420,7 +2420,12 @@ begin
   let fs := hf.approx_bounded c,
   have hfs_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)),
     from hf.tendsto_approx_bounded hf_bound,
-  have hc : 0 ≤ c, sorry,
+  by_cases hμ : μ = 0,
+  { simp only [hμ, ae_zero], },
+  haveI : μ.ae.ne_bot, by simp only [hμ, ae_ne_bot, ne.def, not_false_iff],
+  have hc : 0 ≤ c,
+  { have h_exists : ∃ x, ∥f x∥ ≤ c := eventually.exists hf_bound,
+    exact (norm_nonneg _).trans h_exists.some_spec, },
   have hfs_bound : ∀ n x, ∥fs n x∥ ≤ c := hf.norm_approx_bounded_le hc,
   have hn_eq : ∀ n, μ[fs n * g | m] =ᵐ[μ] fs n * μ[g | m],
     from λ n, condexp_strongly_measurable_simple_func_mul hm _ hg,
@@ -2528,12 +2533,12 @@ begin
   { constructor,
     rw measure.restrict_apply_univ,
     exact h_finite n, },
-  refine condexp_measurable_mul_of_bound hm (hf.indicator (h_meas n)) hg.integrable_on n _,
+  refine condexp_strongly_measurable_mul_of_bound hm (hf.indicator (h_meas n)) hg.integrable_on n _,
   refine eventually_of_forall (λ x, _),
   by_cases hxs : x ∈ sets n,
   { simp only [hxs, set.indicator_of_mem],
     exact hxs.2, },
-  { simp only [hxs, set.indicator_of_not_mem, not_false_iff, norm_zero, nat.cast_nonneg], },
+  { simp only [hxs, set.indicator_of_not_mem, not_false_iff, _root_.norm_zero, nat.cast_nonneg], },
 end
 
 end pull_out

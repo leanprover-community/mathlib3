@@ -52,8 +52,6 @@ namespace inner_product_space
 
 /-! ### Self-adjoint operators -/
 
-namespace inner_product_space
-
 /-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
 def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
@@ -145,8 +143,6 @@ begin
 end
 
 end complex
-
-end inner_product_space
 
 namespace continuous_linear_map
 

@@ -2278,4 +2278,3 @@ end
 
 end orthogonal
 
-end inner_product_space

@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Violeta Hernández Palacios
+-/
+
 import set_theory.zfc.basic
 
 namespace Set
@@ -48,13 +54,17 @@ instance : has_le Ordinal := ⟨subrel (⊆) _⟩
 
 instance : has_zero Ordinal := ⟨⟨∅, empty_is_ordinal⟩⟩
 
-instance (x : Ordinal) : is_well_order x.1.to_set (subrel (∈) _) := x.2.is_well_order
+instance Ordinal.is_well_order_to_set (x : Ordinal) : is_well_order x.1.to_set (subrel (∈) _) :=
+x.2.is_well_order
 
-instance (x : Ordinal) : is_well_order {y // y < x} (<) :=
+instance Ordinal.subtype_is_well_order (x : Ordinal) : is_well_order {y // y < x} (<) :=
 begin
   apply @rel_embedding.is_well_order _ x.1.to_set _ (subrel (∈) _),
   exact ⟨⟨λ a, ⟨a.1.1, a.2⟩, λ a b, by simp [subtype.coe_inj]⟩, λ a b, by simpa⟩
 end
+
+/-- **Transfinite induction** on ordinals amounts to saying `<` is well-founded. -/
+theorem Ordinal.lt_wf : @well_founded Ordinal (<) := (subrel.rel_embedding _ _).well_founded mem_wf
 
 /-- The successor of an ordinal `x` is `x ∪ {x}`. -/
 def succ (x : Set) : Set := insert x x
@@ -73,7 +83,8 @@ sorry
 
 example {x : Set} (h : x.is_ordinal) : is_well_order x.succ.to_set (subrel (∈) _) :=
 begin
-  -- We need to prove is_well_order α (<) → is_well_order (with_top α) (<).
+haveI := with_top.is_well_order,
+  apply (foo h).is_well_order,
 end
 
 theorem is_ordinal.succ {x : Set} (hx : x.is_ordinal) : x.succ.is_ordinal :=

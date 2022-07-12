@@ -52,6 +52,22 @@ instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domai
 
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
+@[ext] lemma ext {f g : linear_pmap R E F} (domain_eq : f.domain = g.domain)
+  (to_fun_eq : ∀ x, f.to_fun x = g.to_fun ⟨x, domain_eq ▸ x.2⟩) :
+  f = g :=
+begin
+  rcases f with ⟨df, f⟩,
+  rcases g with ⟨dg, g⟩,
+  dsimp at domain_eq,
+  subst domain_eq,
+  suffices : f = g,
+  { subst this },
+  { ext,
+    convert to_fun_eq x,
+    rw subtype.ext_iff,
+    refl, },
+end
+
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
 

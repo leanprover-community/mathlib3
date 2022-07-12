@@ -85,78 +85,88 @@ def module.Baer : Prop := ∀ (I : ideal R) (g : I →ₗ[R] Q), ∃ (g' : R →
 namespace module.Baer
 
 variables {R} {M N : Type (max u v)} [add_comm_group M] [add_comm_group N]
-variables [module R M] [module R N] {i : M →ₗ[R] N} (hi : function.injective i) (f : M →ₗ[R] Q)
+variables [module R M] [module R N] (i : M →ₗ[R] N) (f : M →ₗ[R] Q)
 variable {Q}
 
 /-- If we view `M` as a submodule of `N` via the injective linear map `i : M ↪ N`, then a submodule
 between `M` and `N` is a submodule `N'` of `N`. To prove Baer's criterion, we need to consider
 pairs of `(N', f')` such that `M ≤ N' ≤ N` and `f'` extends `f`. -/
-structure extension_of extends submodule R N :=
-(le : i.range ≤ to_submodule)
-(extension : to_submodule →ₗ[R] Q)
-(is_extension: ∀ (m : M), f m = extension ⟨i m, le ⟨m, rfl⟩⟩)
+structure extension_of extends linear_pmap R N Q :=
+-- (le : i.range ≤ to_submodule)
+(le : i.range ≤ domain)
+-- (extension : to_submodule →ₗ[R] Q)
+-- (is_extension: ∀ (m : M), f m = extension ⟨i m, le ⟨m, rfl⟩⟩)
+(is_extension: ∀ (m : M), f m = to_fun ⟨i m, le ⟨m, rfl⟩⟩)
 
 @[ext]
-lemma ext (a b : extension_of hi f) (submodule_eq : a.to_submodule = b.to_submodule)
-  (extension_eq : ∀ x, a.extension x = b.extension ⟨x.1, submodule_eq ▸ x.2⟩) :
+lemma extension_of.ext' {a b : extension_of i f}
+  (domain_eq : a.domain = b.domain)
+  (to_fun_eq : ∀ x, a.to_fun x = b.to_fun ⟨x.1, domain_eq ▸ x.2⟩) :
   a = b :=
 begin
-  rcases a with ⟨a, a_le, e1, _⟩,
-  rcases b with ⟨b, b_le, e2, _⟩,
+  rcases a with ⟨a', a_le, e1⟩,
+  rcases b with ⟨b', b_le, e2⟩,
   dsimp only at *,
-  subst' submodule_eq,
+  -- domain_eq,
+  ext,
+  subst' domain_eq,
   have : e1 = e2,
   { ext z, exact eq.trans (extension_eq z) (congr_arg e2 (subtype.ext_val rfl)) },
   subst this,
 end
 
-lemma ext_iff (a b : extension_of hi f) :
-  a = b ↔ ∃ (submodule_eq : a.to_submodule = b.to_submodule),
-    ∀ x, a.extension x = b.extension ⟨x.1, submodule_eq ▸ x.2⟩ :=
-⟨λ r, r ▸ ⟨rfl, λ x, congr_arg a.extension $ subtype.ext_val rfl⟩,
-  λ ⟨h1, h2⟩, Baer.ext _ _ a b h1 h2⟩
+#exit
+-- lemma ext_iff (a b : extension_of i f) :
+--   a = b ↔ ∃ (submodule_eq : a.to_submodule = b.to_submodule),
+--     ∀ x, a.extension x = b.extension ⟨x.1, submodule_eq ▸ x.2⟩ :=
+-- ⟨λ r, r ▸ ⟨rfl, λ x, congr_arg a.extension $ subtype.ext_val rfl⟩,
+--   λ ⟨h1, h2⟩, ext _ _ a b h1 h2⟩
 
-instance : has_bot (extension_of hi f) :=
+variables (hi : function.injective i)
+
+include hi
+protected def has_bot : has_bot (extension_of i f) :=
 { bot :=
-  { to_submodule := i.range,
+  { domain := i.range,
+    to_fun :=
+    { to_fun := λ x, f x.2.some,
+      map_add' := λ x y, begin
+        have eq1  : _ + _ = (x + y).1 := congr_arg2 (+) x.2.some_spec y.2.some_spec,
+        rw [← map_add, ← (x + y).2.some_spec] at eq1,
+        rw [← hi eq1, map_add],
+      end,
+      map_smul' := λ r x, begin
+        have eq1 : r • _ = (r • x).1 := congr_arg ((•) r) x.2.some_spec,
+        rw [← linear_map.map_smul, ← (r • x).2.some_spec] at eq1,
+        rw [ring_hom.id_apply, ← hi eq1, linear_map.map_smul],
+      end },
     le := le_refl _,
-    extension :=
-      { to_fun := λ x, f x.2.some,
-        map_add' := λ x y, begin
-          have eq1  : _ + _ = (x + y).1 := congr_arg2 (+) x.2.some_spec y.2.some_spec,
-          rw [← map_add, ← (x + y).2.some_spec] at eq1,
-          rw [← hi eq1, map_add],
-        end,
-        map_smul' := λ r x, begin
-          have eq1 : r • _ = (r • x).1 := congr_arg ((•) r) x.2.some_spec,
-          rw [← linear_map.map_smul, ← (r • x).2.some_spec] at eq1,
-          rw [ring_hom.id_apply, ← hi eq1, linear_map.map_smul],
-        end },
     is_extension := λ m, begin
       simp only [linear_map.coe_mk],
       erw hi (⟨i m, ⟨_, rfl⟩⟩ : i.range).2.some_spec,
     end } }
 
-instance : inhabited (extension_of hi f) := ⟨⊥⟩
+instance : inhabited (extension_of i f) := ⟨(module.Baer.has_bot _ f hi).bot⟩
 
+omit hi
 /--
 We order the extensions by `(M1, e1) ≤ (M2, e2)` if and only if `M1 ≤ M2` and `e2` extends `e1`.
 -/
-instance : has_le (extension_of hi f) :=
+instance : has_le (extension_of i f) :=
 { le := λ X1 X2, nonempty
-    Σ' (h : X1.to_submodule ≤ X2.to_submodule),
-      ∀ (m : X1.to_submodule), X2.extension ⟨m, h m.2⟩ = X1.extension m }
+    Σ' (h : X1.domain ≤ X2.domain),
+      ∀ (m : X1.domain), X2.to_fun ⟨m, h m.2⟩ = X1.to_fun m }
 
-instance : partial_order (extension_of hi f) :=
+instance : partial_order (extension_of i f) :=
 { le := (≤),
   le_refl := λ a, nonempty.intro
     ⟨le_refl _, λ _, congr_arg _ (subtype.ext_val rfl) ⟩,
   le_antisymm := λ a b ⟨⟨le_ab, hab⟩⟩ ⟨⟨le_ba, hba⟩⟩,
-    let m_eq : a.to_submodule = b.to_submodule := (le_antisymm le_ab le_ba) in
-    ext _ _ _ _ m_eq (λ x, by convert hba ⟨x, m_eq ▸ x.2⟩; rw subtype.ext_iff_val; refl),
+    have m_eq : a.domain = b.domain := (le_antisymm le_ab le_ba),
+    a.ext _ $ _,
   le_trans := λ a b c ⟨⟨le_ab, hab⟩⟩ ⟨⟨le_bc, hbc⟩⟩, nonempty.intro
     ⟨le_trans le_ab le_bc, λ z, by rw [← hab z, ← hbc ⟨z, le_ab z.2⟩]; refl⟩ }
-
+#exit
 variables {R i hi f}
 lemma directed_on' {c : set (extension_of hi f)} (hchain : is_chain (≤) c) :
   directed_on (≤) c := directed_on_iff_directed.mpr $ is_chain.directed hchain
@@ -563,4 +573,4 @@ protected theorem injective (h : module.Baer R Q) :
   exact ((extension_of_max hi f).is_extension x).symm,
 end }
 
-end Baer
+end module.Baer

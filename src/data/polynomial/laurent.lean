@@ -73,6 +73,65 @@ open_locale polynomial big_operators
 open polynomial add_monoid_algebra finsupp
 noncomputable theory
 
+section not_about_laurent_polynomials
+
+lemma finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
+ [covariant_class β β (function.swap (+)) (≤)]
+ (n : with_bot β) (s : finset α) :
+  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
+by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
+
+lemma with_bot.map_id_coe_le (a b : with_bot ℕ) :
+  (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
+begin
+  rcases a with _ | a,
+  { simp },
+  { rcases b with _ | b,
+    { rw [option.map_some', id.def, option.map_none', ← not_iff_not, not_le, not_le],
+      simp only [with_bot.none_lt_some] },
+    { simp } }
+end
+
+lemma with_bot.eq_bot_or_coe {α} (n : with_bot α) : n = ⊥ ∨ ∃ m : α, n = m :=
+begin
+  rcases n with _ | a,
+  { exact or.inl rfl },
+  { exact or.inr ⟨_, rfl⟩ }
+end
+
+lemma with_bot.map_coe_add {a b : with_bot ℕ} :
+  (id (option.map coe (a + b : with_bot ℕ)) : with_bot ℤ) ≤ option.map coe a + option.map coe b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact (with_bot.bot_add _).ge },
+  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
+    { exact (with_bot.add_bot _).ge },
+    { exact rfl.le } },
+end
+
+lemma with_bot.add_coe_neg_le_iff (a : with_bot ℤ) (b : ℤ) (c : with_bot ℤ) :
+  a + (-b : ℤ) ≤ c ↔ a ≤ c + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { simp },
+  rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+  { simp only [le_bot_iff, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, with_bot.coe_ne_bot,
+      iff_false, not_false_iff] },
+  { norm_cast,
+    rw ← sub_eq_add_neg,
+    exact sub_le_iff_le_add }
+end
+
+lemma with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
+  ∃ (a' : with_bot A), a = a' + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact ⟨_, (with_bot.bot_add _).symm⟩ },
+  { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
+end
+
+end not_about_laurent_polynomials
+
 variables {R : Type*}
 
 /--  The semiring of Laurent polynomials with coefficients in the semiring `R`.
@@ -522,61 +581,6 @@ lemma reduce_to_polynomial_of_mul_T''' (f : R[T;T⁻¹])
 begin
   induction f using laurent_polynomial.induction_on_mul_T with f n,
   exact PQ hP _,
-end
-
-lemma _root_.finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
- [covariant_class β β (function.swap (+)) (≤)]
- (n : with_bot β) (s : finset α) :
-  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
-by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
-
-lemma _root_.with_bot.map_id_coe_le (a b : with_bot ℕ) :
-  (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
-begin
-  rcases a with _ | a,
-  { simp },
-  { rcases b with _ | b,
-    { rw [option.map_some', id.def, option.map_none', ← not_iff_not, not_le, not_le],
-      simp only [with_bot.none_lt_some] },
-    { simp } }
-end
-
-lemma _root_.with_bot.eq_bot_or_coe {α} (n : with_bot α) : n = ⊥ ∨ ∃ m : α, n = m :=
-begin
-  rcases n with _ | a,
-  { exact or.inl rfl },
-  { exact or.inr ⟨_, rfl⟩ }
-end
-
-lemma _root_.with_bot.map_coe_add {a b : with_bot ℕ} :
-  (id (option.map coe (a + b : with_bot ℕ)) : with_bot ℤ) ≤ option.map coe a + option.map coe b :=
-begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact (with_bot.bot_add _).ge },
-  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
-    { exact (with_bot.add_bot _).ge },
-    { exact rfl.le } },
-end
-
-lemma _root_.with_bot.add_coe_neg_le_iff (a : with_bot ℤ) (b : ℤ) (c : with_bot ℤ) :
-  a + (-b : ℤ) ≤ c ↔ a ≤ c + b :=
-begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { simp },
-  rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
-  { simp only [le_bot_iff, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, with_bot.coe_ne_bot,
-      iff_false, not_false_iff] },
-  { norm_cast,
-    rw ← sub_eq_add_neg,
-    exact sub_le_iff_le_add }
-end
-
-lemma _root_.with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
-  ∃ (a' : with_bot A), a = a' + b :=
-begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact ⟨_, (with_bot.bot_add _).symm⟩ },
-  { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
 end
 
 lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) : (f * T n).degree = f.degree + n :=

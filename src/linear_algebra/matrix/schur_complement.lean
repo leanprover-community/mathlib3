@@ -1,6 +1,23 @@
+/-
+Copyright (c) 2022 Alexander Bentkamp. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alexander Bentkamp, Jeremy Avigad, Johan Commelin
+-/
 import linear_algebra.matrix.symmetric
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.pos_def
+
+/-! # Schur complement
+
+This file proves properties of the Schur complement `D - C A⁻¹ B` of a block matrix `[A B; C D]`.
+
+## Main result
+
+ * `matrix.schur_complement_pos_semidef_iff` :
+  If a matrix `A` is positive definite, then
+  `[A B; Bᴴ D]` is postive semidefinite if and only if `D - Bᴴ A⁻¹ B` is postive semidefinite.
+
+-/
 
 namespace matrix
 
@@ -50,7 +67,7 @@ begin
     apply is_hermitian.add h hBAB }
 end
 
-lemma schur_complement_pos_def [invertible A] (hA : A.pos_def) :
+lemma schur_complement_pos_semidef_iff [invertible A] (hA : A.pos_def) :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).pos_semidef :=
 begin
   rw [pos_semidef, schur_complement_is_hermitian_iff _ _ hA.1],

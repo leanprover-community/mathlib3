@@ -530,10 +530,6 @@ lemma _root_.finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_
   finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
 by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
 
-lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) : (f * T n).degree = f.degree + n :=
-by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
-  using finset.fold_max_add coe ↑n f.support
-
 lemma _root_.with_bot.map_id_coe_le (a b : with_bot ℕ) :
   (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
 begin
@@ -582,6 +578,10 @@ begin
   { exact ⟨_, (with_bot.bot_add _).symm⟩ },
   { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
 end
+
+lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) : (f * T n).degree = f.degree + n :=
+by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
+  using finset.fold_max_add coe ↑n f.support
 
 lemma degree_mul_aux (d : with_bot ℕ) (e : with_bot ℤ) (f : R[X]) (g : R[T;T⁻¹])
   (fd : f.degree ≤ d) (ge : g.degree ≤ e) :

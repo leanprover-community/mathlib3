@@ -49,7 +49,7 @@ variables {n : Type*} [fintype n] {R : Type*} [ordered_comm_ring R] [star_ring R
 
 variables {A : matrix n n R} (B C D : matrix n n R) (x y u v: n → R)
 
-lemma schur_complement_is_hermitian_iff [decidable_eq n] (hA : A.is_hermitian) :
+lemma is_hermitian.from_blocks₁₁ [decidable_eq n] (hA : A.is_hermitian) :
   (from_blocks A B Bᴴ D).is_hermitian ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).is_hermitian :=
 begin
   have hBAB : (Bᴴ ⬝ A⁻¹ ⬝ B).is_hermitian,
@@ -65,10 +65,10 @@ begin
     apply is_hermitian.add h hBAB }
 end
 
-lemma schur_complement_pos_semidef_iff [decidable_eq n] [invertible A] (hA : A.pos_def) :
+lemma pos_semidef.from_blocks₁₁ [decidable_eq n] [invertible A] (hA : A.pos_def) :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (D - Bᴴ ⬝ A⁻¹ ⬝ B).pos_semidef :=
 begin
-  rw [pos_semidef, schur_complement_is_hermitian_iff _ _ hA.1],
+  rw [pos_semidef, is_hermitian.from_blocks₁₁ _ _ hA.1],
   split,
   { refine λ h, ⟨h.1, λ x, _⟩,
     have := h.2 (- ((A⁻¹ ⬝ B).mul_vec x) ⊕ᵥ x),

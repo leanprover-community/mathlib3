@@ -36,7 +36,7 @@ variables [monoid G]
 
 /-- The character of a representation `V : fdRep k G` is the function associating to `g : G` the
 trace of the linear map `V.ρ g`.-/
-@[simp] def character (V : fdRep k G) (g : G) := linear_map.trace k V (V.ρ g)
+def character (V : fdRep k G) (g : G) := linear_map.trace k V (V.ρ g)
 
 lemma char_mul_comm (V : fdRep k G) (g : G) (h : G) : V.character (h * g) = V.character (g * h) :=
 by simp only [trace_mul_comm, character, map_mul]
@@ -74,7 +74,7 @@ variables [fintype G] [invertible (fintype.card G : k)]
 
 theorem average_char_eq_finrank_invariants (V : fdRep k G) :
   ⅟(fintype.card G : k) • ∑ g : G, V.character g = finrank k (invariants V.ρ) :=
-by { rw ←(is_proj_average_map V.ρ).trace, simp [group_algebra.average, _root_.map_sum], }
+by { rw ←(is_proj_average_map V.ρ).trace, simp [character, group_algebra.average, _root_.map_sum], }
 
 end group
 

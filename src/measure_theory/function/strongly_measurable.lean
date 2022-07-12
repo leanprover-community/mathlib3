@@ -226,7 +226,7 @@ begin
   refine tendsto.div tendsto_const_nhds h_tendsto.norm hfx0,
 end
 
-lemma bound_approx_bounded {β} {f : α → β} [normed_group β] [normed_space ℝ β]
+lemma norm_approx_bounded_le {β} {f : α → β} [normed_group β] [normed_space ℝ β]
   {m m0 : measurable_space α} {μ : measure α} {c : ℝ}
   (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
   ∥hf.approx_bounded c n x∥ ≤ c :=

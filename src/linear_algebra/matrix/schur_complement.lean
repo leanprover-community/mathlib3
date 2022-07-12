@@ -82,7 +82,7 @@ begin
     rw [dot_product_mul_vec, ← sum.elim_comp_inl_inr x, schur_complement_eq B D _ _ hA.1],
     apply le_add_of_nonneg_of_le,
     { rw ← dot_product_mul_vec,
-      apply (pos_semidef_of_pos_def hA).2, },
+      apply hA.pos_semidef.2, },
     { rw ← dot_product_mul_vec, apply h.2 } }
 end
 

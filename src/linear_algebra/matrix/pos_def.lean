@@ -32,7 +32,7 @@ M.is_hermitian ∧ ∀ x : n → R, x ≠ 0 → 0 < dot_product (star x) (M.mul_
 def pos_semidef (M : matrix n n R) :=
 M.is_hermitian ∧ ∀ x : n → R, 0 ≤ dot_product (star x) (M.mul_vec x)
 
-lemma pos_semidef_of_pos_def {M : matrix n n R} (hM : M.pos_def) : M.pos_semidef :=
+lemma pos_def.pos_semidef {M : matrix n n R} (hM : M.pos_def) : M.pos_semidef :=
 begin
   refine ⟨hM.1, _⟩,
   intros x,

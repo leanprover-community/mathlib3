@@ -176,22 +176,22 @@ end⟩
 theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀ {w : pSet.{u}}, x ∈ w ↔ y ∈ w)
 | x y h ⟨α, A⟩ := ⟨λ ⟨a, ha⟩, ⟨a, h.symm.trans ha⟩, λ ⟨a, ha⟩, ⟨a, h.trans ha⟩⟩
 
-theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
-| ⟨α, A⟩ ⟨β, B⟩ H := acc.intro _ begin
+private theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
+| ⟨α, A⟩ ⟨β, B⟩ H := ⟨_, begin
   rintros ⟨γ, C⟩ ⟨b, hc⟩,
   cases exists_equiv_right H b with a ha,
-  have := ha.trans hc.symm,
-  dsimp at this,
-  exact mem_wf_aux this
-end
+  have H := ha.trans hc.symm,
+  rw mk_func at H,
+  exact mem_wf_aux H
+end⟩
 
 theorem mem_wf : @well_founded pSet (∈) := ⟨λ x, mem_wf_aux $ equiv.refl x⟩
 
 instance : has_well_founded pSet := ⟨_, mem_wf⟩
+instance : is_asymm pSet (∈) := mem_wf.is_asymm
 
-instance : is_irrefl pSet (∈) := mem_wf.is_irrefl
-
-theorem mem_irrefl {x : pSet} : x ∉ x := irrefl x
+theorem mem_asymm {x y : pSet} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : pSet) : x ∉ x := irrefl x
 
 /-- Convert a pre-set to a `set` of pre-sets. -/
 def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
@@ -575,9 +575,10 @@ theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
 
 instance : has_well_founded Set := ⟨_, mem_wf⟩
 
-instance : is_irrefl Set (∈) := mem_wf.is_irrefl
+instance : is_asymm Set (∈) := mem_wf.is_asymm
 
-theorem mem_irrefl {x : Set} : x ∉ x := irrefl x
+theorem mem_asymm {x y : Set} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : Set) : x ∉ x := irrefl x
 
 theorem regularity (x : Set.{u}) (h : x ≠ ∅) : ∃ y ∈ x, x ∩ y = ∅ :=
 classical.by_contradiction $ λ ne, h $ (eq_empty x).2 $ λ y,

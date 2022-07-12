@@ -28,9 +28,6 @@ variables (A B C D : matrix n n R) (x y u v: n → R)
 
 localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
 
-lemma star_sum_elim : star (x ⊕ᵥ y)  = (star x ⊕ᵥ star y) :=
-by { ext x, cases x; simp }
-
 lemma schur_complement_eq [fintype n] [decidable_eq n] {A : matrix n n R} [invertible A]
   (hA : A.is_hermitian) :
 vec_mul (star (x ⊕ᵥ y)) (from_blocks A B Bᴴ D) ⬝ᵥ (x ⊕ᵥ y) =

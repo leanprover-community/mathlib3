@@ -69,43 +69,42 @@ notation ` Ω ` := loop_space
 
 variable (x : X)
 
-
--- lemma loop.continuous_eval : (γ : Ω x) (t : I) : continuous (λ x, γ t) :=
--- example : locally_compact_space I := infer_instance
-
-
-
-
+example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compact_space Y]
+[locally_compact_space Z] (g : Y → C(Z, X)) (hg : continuous g) : continuous (λ p : Y × Z, g p.fst p.snd) :=
+begin
+  let f:= continuous_map.uncurry ⟨g, hg⟩,
+  exact f.2,
+  -- library_search,
+  -- have g₁ : C(Y,Z → X) := ⟨g, hg⟩,
+  -- have φ := @continuous_uncurry Y Z X _ _ _ _ _,
+  -- let g₁ : C(Y,C(Z,X)) := ⟨(λ y, g y), hg⟩,
+end
 
 lemma continuous_to_loop_space_iff (Y : Type u) [topological_space Y] (g : Y → Ω x) :
   continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
 begin
-sorry;{
+  let g₁ : Y → C(I,X) := λ y, g y,
   split,
-  -- {
-    intro h,
-    -- suffices hh : continuous (λ p : I × Y, g y t),
-    have := continuous_uncurry,
-    let f := λ t, λ y, g y t,
-    have hf : continuous f, sorry,
-    let G₀ : (Y → C(I, X)) := (λ y, (g y).1),
-    have hG₀ : continuous G₀, sorry,
-    let G : C(Y, C(I, X)) := ⟨G₀, hG₀⟩,
-    have h_unc := @continuous_of_continuous_uncurry Y I X _ _ _ G _,
-    have h1 := @continuous_map.continuous_curry,
-    refine continuous_pi (λ (t : I), _),
-    have hprod:= @continuous.prod.mk I C(I, X) _ _ t,
-    -- have hprodu := @continuous_uncurry_of_continious
+  { intro h,
+    have hg₁ : continuous g₁,
+    { convert h.subtype_coe,
+      ext t,
+      refl },
+    have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
+    exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
+  { intro h,
 
-    -- continuity,
-    -- continuit
-    -- simp [continuous.comp],
+    suffices hg₁ : continuous g₁,
+    sorry,
+    apply continuous_of_continuous_uncurry,
+    dsimp [function.uncurry],
+    -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
     -- suggest,
-    -- ext x,
-    -- have h_cur := @continuous_uncurry_of_continuous Y I X _ _ _ _ G,-- (λ t : I, λ y : Y, g y t),
-
-  -- },
-}
+    -- library_search,
+    -- continuity,
+    -- simp,
+    -- convert h using 0,
+  },
 end
 
 

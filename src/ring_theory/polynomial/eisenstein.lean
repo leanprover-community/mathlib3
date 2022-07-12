@@ -156,6 +156,15 @@ end
 
 end comm_ring
 
+lemma _root_.scale_roots.is_weakly_eisenstein_at {R : Type*} [comm_ring R] (p : R[X]) {x : R}
+  {P : ideal R} (hP : x ∈ P) : (scale_roots p x).is_weakly_eisenstein_at P :=
+begin
+  refine ⟨λ i hi, _⟩,
+  rw coeff_scale_roots,
+  rw [nat_degree_scale_roots, ← tsub_pos_iff_lt] at hi,
+  exact ideal.mul_mem_left _ _ (ideal.pow_mem_of_mem P hP _ hi)
+end
+
 end is_weakly_eisenstein_at
 
 namespace is_eisenstein_at

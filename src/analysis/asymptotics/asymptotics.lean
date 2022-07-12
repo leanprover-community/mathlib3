@@ -903,11 +903,10 @@ theorem is_o_const_iff_is_o_one {c : F''} (hc : c ≠ 0) :
 by simp only [is_o_iff, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
   metric.mem_closed_ball, dist_zero_right]
 
-@[simp] theorem is_O_one_iff [has_one F] [norm_one_class F] :
-  f =O[l] (λ x, 1 : α → F) ↔ is_bounded_under (≤) l (λ x, ∥f x∥) :=
+@[simp] theorem is_O_one_iff : f =O[l] (λ x, 1 : α → F) ↔ is_bounded_under (≤) l (λ x, ∥f x∥) :=
 by { simp only [is_O_iff, norm_one, mul_one], refl }
 
-alias is_O_one_iff ↔ _ filter.is_bounded_under.is_O_one
+alias is_O_one_iff ↔ _ _root_.filter.is_bounded_under.is_O_one
 
 @[simp] theorem is_o_one_left_iff : (λ x, 1 : α → F) =o[l] f ↔ tendsto (λ x, ∥f x∥) l at_top :=
 calc (λ x, 1 : α → F) =o[l] f ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥(1 : F)∥ ≤ ∥f x∥ :
@@ -963,7 +962,8 @@ theorem is_O_iff_is_bounded_under_le_div (h : ∀ᶠ x in l, g'' x ≠ 0) :
   f =O[l] g'' ↔ is_bounded_under (≤) l (λ x, ∥f x∥ / ∥g'' x∥) :=
 begin
   simp only [is_O_iff, is_bounded_under, is_bounded, eventually_map],
-  exact exists_congr (λ c, eventually_congr $ h.mono $ λ x hx, (div_le_iff $ norm_pos_iff.2 hx).symm),
+  exact exists_congr (λ c, eventually_congr $ h.mono $
+    λ x hx, (div_le_iff $ norm_pos_iff.2 hx).symm)
 end
 
 /-- `(λ x, c) =O[l] f` if and only if `f` is bounded away from zero. -/

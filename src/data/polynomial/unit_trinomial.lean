@@ -107,8 +107,8 @@ end semiring
 variables (p q : ℤ[X])
 
 /-- A unit trinomial is a trinomial with unit coefficients. -/
-def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : ℤ}
-  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = trinomial k m n u v w
+def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : units ℤ},
+  p = trinomial k m n u v w
 
 variables {p q}
 
@@ -116,15 +116,15 @@ namespace is_unit_trinomial
 
 lemma not_is_unit (hp : p.is_unit_trinomial) : ¬ is_unit p :=
 begin
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  exact λ h, ne_zero_of_lt hmn ((trinomial_nat_degree hkm hmn hw.ne_zero).symm.trans
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, rfl⟩ := hp,
+  exact λ h, ne_zero_of_lt hmn ((trinomial_nat_degree hkm hmn w.ne_zero).symm.trans
     (nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit h))),
 end
 
 lemma card_support_eq_three (hp : p.is_unit_trinomial) : p.support.card = 3 :=
 begin
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  exact card_support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, rfl⟩ := hp,
+  exact card_support_trinomial hkm hmn u.ne_zero v.ne_zero w.ne_zero,
 end
 
 lemma ne_zero (hp : p.is_unit_trinomial) : p ≠ 0 :=
@@ -136,13 +136,13 @@ end
 lemma coeff_is_unit (hp : p.is_unit_trinomial) {k : ℕ} (hk : k ∈ p.support) :
   is_unit (p.coeff k) :=
 begin
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  have := support_trinomial' k m n u v w hk,
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, rfl⟩ := hp,
+  have := support_trinomial' k m n ↑u ↑v ↑w hk,
   rw [mem_insert, mem_insert, mem_singleton] at this,
   rcases this with rfl | rfl | rfl,
-  { rwa trinomial_trailing_coeff' hkm hmn },
-  { rwa trinomial_middle_coeff hkm hmn },
-  { rwa trinomial_leading_coeff' hkm hmn },
+  { refine ⟨u, by rw trinomial_trailing_coeff' hkm hmn⟩ },
+  { refine ⟨v, by rw trinomial_middle_coeff hkm hmn⟩ },
+  { refine ⟨w, by rw trinomial_leading_coeff' hkm hmn⟩ },
 end
 
 lemma leading_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.leading_coeff :=
@@ -167,7 +167,7 @@ begin
   rw [if_neg hkm.ne', if_neg hmn.ne] at hy,
   rw [if_neg (hkm.trans hmn).ne', if_neg hmn.ne'] at hz,
   simp_rw [mul_zero, zero_add, add_zero] at hx hy hz,
-  exact ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
+  exact ⟨k, m, n, hkm, hmn, hx.unit, hy.unit, hz.unit, rfl⟩,
 end
 
 lemma is_unit_trinomial_iff' : p.is_unit_trinomial ↔ (p * p.mirror).coeff
@@ -176,12 +176,12 @@ begin
   rw [nat_degree_mul_mirror, nat_trailing_degree_mul_mirror, ←mul_add,
       nat.mul_div_right _ zero_lt_two, coeff_mul_mirror],
   refine ⟨_, λ hp, _⟩,
-  { rintros ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩,
-    rw [sum_def, trinomial_support hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
+  { rintros ⟨k, m, n, hkm, hmn, u, v, w, rfl⟩,
+    rw [sum_def, trinomial_support hkm hmn u.ne_zero v.ne_zero w.ne_zero,
       sum_insert (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
       sum_insert (mt mem_singleton.mp hmn.ne), sum_singleton, trinomial_leading_coeff' hkm hmn,
       trinomial_middle_coeff hkm hmn, trinomial_trailing_coeff' hkm hmn],
-    simp only [hu, hv, hw, int.is_unit_sq, bit0, bit1, add_assoc] },
+    simp_rw [←units.coe_pow, int.units_sq, units.coe_one, ←add_assoc, bit1, bit0] },
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one_of_sq_le_three ((single_le_sum
       (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le) (mem_support_iff.mp hk),
@@ -196,20 +196,20 @@ by rw [is_unit_trinomial_iff', is_unit_trinomial_iff', h]
 
 namespace is_unit_trinomial
 
-lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n)
-  (hu : is_unit u) (hw : is_unit w) (hp : p = trinomial k m n u v w) :
-  C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
+lemma irreducible_aux1 {k m n : ℕ} (hkm : k < m) (hmn : m < n) (u v w : units ℤ)
+  (hp : p = trinomial k m n u v w) :
+  C ↑v * (C ↑u * X ^ (m + n) + C ↑w * X ^ (n - m + k + n)) =
     ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
 begin
   have key : n - m + k < n := by rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn.le],
-  rw [hp, trinomial_mirror hkm hmn hu.ne_zero hw.ne_zero],
+  rw [hp, trinomial_mirror hkm hmn u.ne_zero w.ne_zero],
   simp_rw [trinomial_def, ←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
     to_finsupp_add, to_finsupp_monomial, finsupp.filter_add],
   rw [finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_neg,
       finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_pos,
       finsupp.filter_single_of_neg, finsupp.filter_single_of_pos, finsupp.filter_single_of_neg],
   { simp only [add_zero, zero_add, of_finsupp_add, of_finsupp_single],
-    rw [C_mul_monomial, C_mul_monomial, mul_comm v w, add_comm (n - m + k) n] },
+    rw [C_mul_monomial, C_mul_monomial, mul_comm ↑v ↑w, add_comm (n - m + k) n] },
   { exact λ h, h.2.ne rfl },
   { refine ⟨_, add_lt_add_left key n⟩,
     rwa [add_comm, add_lt_add_iff_left, lt_add_iff_pos_left, tsub_pos_iff_lt] },
@@ -226,9 +226,9 @@ begin
   { exact λ h, asymm ((add_lt_add_iff_left k).mp h.1) (hkm.trans hmn) },
 end
 
-lemma irreducible_aux2 {k m m' n : ℕ} {u v w : ℤ}
+lemma irreducible_aux2 {k m m' n : ℕ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
-  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
+  (u v w : units ℤ)
   (hp : p = trinomial k m n u v w) (hq : q = trinomial k m' n u v w)
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
@@ -236,15 +236,15 @@ begin
   let f : polynomial ℤ → polynomial ℤ :=
   λ p, ⟨finsupp.filter (set.Ioo (k + n) (n + n)) p.to_finsupp⟩,
   replace h := congr_arg f h,
-  replace h := (irreducible_aux1 hkm hmn hu hw hp).trans h,
-  replace h := h.trans (irreducible_aux1 hkm' hmn' hu hw hq).symm,
-  rw (is_unit_C.mpr hv).mul_right_inj at h,
-  rw binomial_eq_binomial hu.ne_zero hw.ne_zero at h,
-  simp only [add_left_inj] at h,
+  replace h := (irreducible_aux1 hkm hmn u v w hp).trans h,
+  replace h := h.trans (irreducible_aux1 hkm' hmn' u v w hq).symm,
+  rw (is_unit_C.mpr v.is_unit).mul_right_inj at h,
+  rw binomial_eq_binomial u.ne_zero w.ne_zero at h,
+  simp only [add_left_inj, units.eq_iff] at h,
   rcases h with ⟨rfl, -⟩ | ⟨rfl, rfl, h⟩ | ⟨-, hm, hm'⟩,
   { exact or.inl (hq.trans hp.symm) },
   { refine or.inr _,
-    rw [←trinomial_mirror hkm' hmn' hu.ne_zero hw.ne_zero, eq_comm, mirror_eq_iff] at hp,
+    rw [←trinomial_mirror hkm' hmn' u.ne_zero u.ne_zero, eq_comm, mirror_eq_iff] at hp,
     exact hq.trans hp },
   { suffices : m = m',
     { rw this at hp,
@@ -256,35 +256,36 @@ begin
     exact hmn.le.trans (nat.le_add_right n k) },
 end
 
-lemma irreducible_aux3 {k m m' n : ℕ} {u v w x z : ℤ}
-  (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
-  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) (hx : is_unit x) (hz : is_unit z)
+lemma irreducible_aux3 {k m m' n : ℕ}
+  (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n) (u v w x z : units ℤ)
   (hp : p = trinomial k m n u v w) (hq : q = trinomial k m' n x v z)
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
   have hmul := congr_arg leading_coeff h,
   rw [leading_coeff_mul, leading_coeff_mul, mirror_leading_coeff, mirror_leading_coeff, hp, hq,
-      trinomial_leading_coeff hkm hmn hw.ne_zero, trinomial_leading_coeff hkm' hmn' hz.ne_zero,
-      trinomial_trailing_coeff hkm hmn hu.ne_zero,
-      trinomial_trailing_coeff hkm' hmn' hx.ne_zero] at hmul,
+      trinomial_leading_coeff hkm hmn w.ne_zero, trinomial_leading_coeff hkm' hmn' z.ne_zero,
+      trinomial_trailing_coeff hkm hmn u.ne_zero,
+      trinomial_trailing_coeff hkm' hmn' x.ne_zero] at hmul,
 
   have hadd := congr_arg (eval 1) h,
   rw [eval_mul, eval_mul, mirror_eval_one, mirror_eval_one, ←sq, ←sq, hp, hq] at hadd,
   simp only [eval_add, eval_C_mul, eval_pow, eval_X, one_pow, mul_one, trinomial_def] at hadd,
-  rw [add_assoc, add_assoc, add_comm u, add_comm x, add_assoc, add_assoc] at hadd,
-  simp only [add_sq', add_assoc, add_right_inj, int.is_unit_sq, hu, hv, hw, hx, hz] at hadd,
+  rw [add_assoc, add_assoc, add_comm ↑u, add_comm ↑x, add_assoc, add_assoc] at hadd,
+  simp only [add_sq', add_assoc, add_right_inj, ←units.coe_pow, int.units_sq] at hadd,
   rw [mul_assoc, hmul, ←mul_assoc, add_right_inj,
-      mul_right_inj' (show 2 * v ≠ 0, from mul_ne_zero two_ne_zero hv.ne_zero)] at hadd,
+      mul_right_inj' (show 2 * (v : ℤ) ≠ 0, from mul_ne_zero two_ne_zero v.ne_zero)] at hadd,
+  replace hadd := (int.is_unit_add_is_unit_eq_is_unit_add_is_unit w.is_unit u.is_unit
+    z.is_unit x.is_unit).mp hadd,
+  simp only [units.eq_iff] at hadd,
 
-  rcases (int.is_unit_add_is_unit_eq_is_unit_add_is_unit hw hu hz hx).mp hadd with
-    ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
-  { exact irreducible_aux2 hkm hmn hkm' hmn' hu hv hw hp hq h },
-  { rw [←mirror_inj, trinomial_mirror hkm' hmn' hw.ne_zero hu.ne_zero] at hq,
+  rcases hadd with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
+  { exact irreducible_aux2 hkm hmn hkm' hmn' u v w hp hq h },
+  { rw [←mirror_inj, trinomial_mirror hkm' hmn' w.ne_zero u.ne_zero] at hq,
     rw [mul_comm q, ←q.mirror_mirror, q.mirror.mirror_mirror] at h,
     rw [←mirror_inj, or_comm, ←mirror_eq_iff],
     exact irreducible_aux2 hkm hmn (lt_add_of_pos_left k (tsub_pos_of_lt hmn'))
-      ((lt_tsub_iff_right).mp ((tsub_lt_tsub_iff_left_of_le hmn'.le).mpr hkm')) hu hv hw hp hq h },
+      ((lt_tsub_iff_right).mp ((tsub_lt_tsub_iff_left_of_le hmn'.le).mpr hkm')) u v w hp hq h },
 end
 
 lemma irreducible_of_coprime (hp : p.is_unit_trinomial)
@@ -293,27 +294,29 @@ lemma irreducible_of_coprime (hp : p.is_unit_trinomial)
 begin
   refine irreducible_of_mirror hp.not_is_unit (λ q hpq, _) h,
   have hq : is_unit_trinomial q := (is_unit_trinomial_iff'' hpq).mp hp,
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, hp⟩ := hp,
-  obtain ⟨k', m', n', hkm', hmn', x, y, z, hx, hy, hz, hq⟩ := hq,
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hp⟩ := hp,
+  obtain ⟨k', m', n', hkm', hmn', x, y, z, hq⟩ := hq,
   have hk : k = k',
   { rw [←mul_right_inj' (show 2 ≠ 0, from two_ne_zero),
-      ←trinomial_nat_trailing_degree hkm hmn hu.ne_zero, ←hp, ←nat_trailing_degree_mul_mirror, hpq,
-      nat_trailing_degree_mul_mirror, hq, trinomial_nat_trailing_degree hkm' hmn' hx.ne_zero] },
+      ←trinomial_nat_trailing_degree hkm hmn u.ne_zero, ←hp, ←nat_trailing_degree_mul_mirror, hpq,
+      nat_trailing_degree_mul_mirror, hq, trinomial_nat_trailing_degree hkm' hmn' x.ne_zero] },
   have hn : n = n',
   { rw [←mul_right_inj' (show 2 ≠ 0, from two_ne_zero),
-      ←trinomial_nat_degree hkm hmn hw.ne_zero, ←hp, ←nat_degree_mul_mirror, hpq,
-      nat_degree_mul_mirror, hq, trinomial_nat_degree hkm' hmn' hz.ne_zero] },
+      ←trinomial_nat_degree hkm hmn w.ne_zero, ←hp, ←nat_degree_mul_mirror, hpq,
+      nat_degree_mul_mirror, hq, trinomial_nat_degree hkm' hmn' z.ne_zero] },
   subst hk,
   subst hn,
-  rcases eq_or_eq_neg_of_sq_eq_sq y v
-    ((int.is_unit_sq hy).trans (int.is_unit_sq hv).symm) with rfl | rfl,
-  { rcases irreducible_aux3 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
-    { exact or.inl rfl },
-    { exact or.inr (or.inr (or.inl rfl)) } },
-  { rw trinomial_def at hp,
+  rcases eq_or_eq_neg_of_sq_eq_sq ↑y ↑v
+    ((int.is_unit_sq y.is_unit).trans (int.is_unit_sq v.is_unit).symm) with h1 | h1,
+  { rw h1 at *,
+    rcases irreducible_aux3 hkm hmn hkm' hmn' u v w x z hp hq hpq with h2 | h2,
+    { exact or.inl h2 },
+    { exact or.inr (or.inr (or.inl h2)) } },
+  { rw h1 at *,
+    rw trinomial_def at hp,
     rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
     rw [←neg_mul_neg, ←mirror_neg] at hpq,
-    rcases irreducible_aux3 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq hpq with rfl | rfl,
+    rcases irreducible_aux3 hkm hmn hkm' hmn' (-u) (-v) (-w) x z hp hq hpq with rfl | rfl,
     { exact or.inr (or.inl rfl) },
     { exact or.inr (or.inr (or.inr p.mirror_neg)) } },
 end

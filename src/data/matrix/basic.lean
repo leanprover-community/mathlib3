@@ -18,6 +18,10 @@ import data.fintype.card
 
 This file defines basic properties of matrices.
 
+Matrices with rows indexed by `m`, columns indexed by `n`, and entries of type `α` are represented
+with `matrix m n α`. For the typical approach of counting rows and columns,
+`matrix (fin m) (fin n) α` can be used.
+
 ## Notation
 
 The locale `matrix` gives the following notation:
@@ -26,6 +30,13 @@ The locale `matrix` gives the following notation:
 * `⬝` for `matrix.mul`
 * `ᵀ` for `matrix.transpose`
 * `ᴴ` for `matrix.conj_transpose`
+
+## Implementation notes
+
+For convenience, `matrix m n α` is defined as `m → n → α`, as this allows elements of the matrix
+to be accessed with `A i j`. However, it is not advisable to _construct_ matrices using terms of the
+form `λ i j, _` or even `(λ i j, _ : matrix m n α)`, as these are not recognized by lean as having
+the right type. Instead, `matrix.of` should be used.
 
 ## TODO
 
@@ -57,7 +68,17 @@ ext_iff.mp
 
 end ext
 
-/-- Cast a function into a matrix -/
+/-- Cast a function into a matrix.
+
+The two sides of the equivalence are definitionally equal types. We want to use an explicit cast
+to distinguish the types because `matrix` has different instances to pi types (such as `pi.has_mul`,
+which performs elementwise multiplication, vs `matrix.has_mul`).
+
+If you are defining a matrix, in terms of its entries, either use `of (λ i j, _)`, or use pattern
+matching in a definition as `| i j := _` (which can only be unfolded when fully-applied). The
+purpose of this approach is to ensure that terms of the form `(λ i j, _) * (λ i j, _)` do not
+appear, as the type of `*` can be misleading.
+-/
 def of : (m → n → α) ≃ matrix m n α := equiv.refl _
 @[simp] lemma of_apply (f : m → n → α) (i j) : of f i j = f i j := rfl
 @[simp] lemma of_symm_apply (f : matrix m n α) (i j) : of.symm f i j = f i j := rfl

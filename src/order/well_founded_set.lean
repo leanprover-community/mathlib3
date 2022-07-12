@@ -58,6 +58,8 @@ namespace set
 def well_founded_on (s : set α) (r : α → α → Prop) : Prop :=
 well_founded (λ (a : s) (b : s), r a b)
 
+lemma well_founded_on_empty (r : α → α → Prop) : well_founded_on ∅ r := well_founded_of_empty _
+
 lemma well_founded_on_iff {s : set α} {r : α → α → Prop} :
   s.well_founded_on r ↔ well_founded (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
 begin
@@ -114,6 +116,8 @@ variables [has_lt α]
 
 /-- `s.is_wf` indicates that `<` is well-founded when restricted to `s`. -/
 def is_wf (s : set α) : Prop := well_founded_on s (<)
+
+lemma is_wf_empty : is_wf (∅ : set α) := well_founded_of_empty _
 
 lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
 by simp [is_wf, well_founded_on_iff]
@@ -179,10 +183,19 @@ namespace set
 def partially_well_ordered_on (s) (r : α → α → Prop) : Prop :=
   ∀ (f : ℕ → α), range f ⊆ s → ∃ (m n : ℕ), m < n ∧ r (f m) (f n)
 
+theorem partially_well_ordered_on_empty (r : α → α → Prop) :
+  partially_well_ordered_on (∅ : set α) r :=
+λ f h, begin
+  rw subset_empty_iff at h,
+  exact ((range_nonempty f).ne_empty h).elim
+end
+
 /-- A subset of a preorder is partially well-ordered when any infinite sequence contains
   a monotone subsequence of length 2 (or equivalently, an infinite monotone subsequence). -/
 def is_pwo [preorder α] (s) : Prop :=
 partially_well_ordered_on s ((≤) : α → α → Prop)
+
+theorem is_pwo_empty [preorder α] : is_pwo (∅ : set α) := partially_well_ordered_on_empty _
 
 theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   (ht : t.partially_well_ordered_on r) (hsub : s ⊆ t) :

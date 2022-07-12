@@ -403,7 +403,7 @@ begin
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) := (
     (submodule.fg_iff_finite_dimensional _).1
-      (fg_adjoin_of_finite (set.finite_mem_finset s) H3)).of_subalgebra_to_submodule,
+      (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
   have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
@@ -435,10 +435,16 @@ section splitting_field
 def factor (f : K[X]) : K[X] :=
 if H : ∃ g, irreducible g ∧ g ∣ f then classical.some H else X
 
-instance irreducible_factor (f : K[X]) : irreducible (factor f) :=
+lemma irreducible_factor (f : K[X]) : irreducible (factor f) :=
 begin
   rw factor, split_ifs with H, { exact (classical.some_spec H).1 }, { exact irreducible_X }
 end
+
+/-- See note [fact non-instances]. -/
+lemma fact_irreducible_factor (f : K[X]) : fact (irreducible (factor f)) :=
+⟨irreducible_factor f⟩
+
+local attribute [instance] fact_irreducible_factor
 
 theorem factor_dvd_of_not_is_unit {f : K[X]} (hf1 : ¬is_unit f) : factor f ∣ f :=
 begin
@@ -519,7 +525,7 @@ nat.rec_on n (λ R K _ _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f hfn, by exactI ih R (nat_degree_remove_factor' hfn)
 
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
-  [comm_semiring R₁] [comm_semiring R₂] [has_scalar R₁ R₂] [field K],
+  [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],
   by exactI Π [is_scalar_tower R₁ R₂ K] {f : K[X]} (hfn : f.nat_degree = n),
     is_scalar_tower R₁ R₂ (splitting_field_aux n f hfn) :=
@@ -741,7 +747,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
 
 theorem finite_dimensional (f : K[X]) [is_splitting_field K L f] : finite_dimensional K L :=
 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
-  fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
+  fg_adjoin_of_finite (finset.finite_to_set _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
   else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $

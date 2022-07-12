@@ -49,7 +49,8 @@ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 @[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]
 
-@[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n := cast_coe_int n
+@[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
+by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
 (cast_of_int _).trans int.cast_zero
@@ -75,7 +76,7 @@ begin
   { intro d0,
     have dd := denom_dvd a b,
     cases (show (d:ℤ) ∣ b, by rwa e at dd) with k ke,
-    have : (b:α) = (d:α) * (k:α), {rw [ke, int.cast_mul], refl},
+    have : (b:α) = (d:α) * (k:α), {rw [ke, int.cast_mul, int.cast_coe_nat]},
     rw [d0, zero_mul] at this, contradiction },
   rw [num_denom'] at e,
   have := congr_arg (coe : ℤ → α) ((mk_eq b0' $ ne_of_gt $ int.coe_nat_pos.2 h).1 e),
@@ -88,8 +89,8 @@ end
 @[norm_cast] theorem cast_add_of_ne_zero : ∀ {m n : ℚ},
   (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m + n : ℚ) : α) = m + n
 | ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := λ (d₁0 : (d₁:α) ≠ 0) (d₂0 : (d₂:α) ≠ 0), begin
-  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 rfl),
-  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 rfl),
+  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 nat.cast_zero),
+  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 nat.cast_zero),
   rw [num_denom', num_denom', add_def d₁0' d₂0'],
   suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
@@ -112,8 +113,8 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
 @[norm_cast] theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
   (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m * n : ℚ) : α) = m * n
 | ⟨n₁, d₁, h₁, c₁⟩ ⟨n₂, d₂, h₂, c₂⟩ := λ (d₁0 : (d₁:α) ≠ 0) (d₂0 : (d₂:α) ≠ 0), begin
-  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 rfl),
-  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 rfl),
+  have d₁0' : (d₁:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₁0; exact d₁0 nat.cast_zero),
+  have d₂0' : (d₂:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d₂0; exact d₂0 nat.cast_zero),
   rw [num_denom', num_denom', mul_def d₁0' d₂0'],
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
@@ -132,15 +133,15 @@ end
 @[simp] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 begin
   cases n,
-  { exact cast_inv_nat _ },
+  { simp [cast_inv_nat] },
   { simp only [int.cast_neg_succ_of_nat, ← nat.cast_succ, cast_neg, inv_neg, cast_inv_nat] }
 end
 
 @[norm_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
   (n.num : α) ≠ 0 → (n.denom : α) ≠ 0 → ((n⁻¹ : ℚ) : α) = n⁻¹
 | ⟨n, d, h, c⟩ := λ (n0 : (n:α) ≠ 0) (d0 : (d:α) ≠ 0), begin
-  have n0' : (n:ℤ) ≠ 0 := λ e, by rw e at n0; exact n0 rfl,
-  have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 rfl),
+  have n0' : (n:ℤ) ≠ 0 := λ e, by rw e at n0; exact n0 int.cast_zero,
+  have d0' : (d:ℤ) ≠ 0 := int.coe_nat_ne_zero.2 (λ e, by rw e at d0; exact d0 nat.cast_zero),
   rw [num_denom', inv_def],
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, inv_div];
   simp [n0, d0]
@@ -168,7 +169,7 @@ by rw [division_def, cast_mul_of_ne_zero md (mt this nn), cast_inv_of_ne_zero nn
   rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero] at h; simp [d₁0, d₂0] at h ⊢,
   rwa [eq_div_iff_mul_eq d₂a, division_def, mul_assoc, (d₁.cast_commute (d₂:α)).inv_left₀.eq,
     ← mul_assoc, ← division_def, eq_comm, eq_div_iff_mul_eq d₁a, eq_comm,
-    ← int.cast_coe_nat, ← int.cast_mul, ← int.cast_coe_nat, ← int.cast_mul,
+    ← int.cast_coe_nat d₁, ← int.cast_mul, ← int.cast_coe_nat d₂, ← int.cast_mul,
     int.cast_inj, ← mk_eq (int.coe_nat_ne_zero.2 d₁0) (int.coe_nat_ne_zero.2 d₂0)] at h
 end
 

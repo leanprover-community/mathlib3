@@ -672,7 +672,8 @@ lemma has_fderiv_at_filter.is_O_sub_rev (hf : has_fderiv_at_filter f f' x L) {C}
   (hf' : antilipschitz_with C f') :
   (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
 have (λ x', x' - x) =O[L] (λ x', f' (x' - x)),
-  from is_O_iff.2 ⟨C, eventually_of_forall $ λ x', f'.to_linear_map.bound_of_antilipschitz hf' _⟩,
+  from is_O_iff.2 ⟨C, eventually_of_forall $ λ x',
+    add_monoid_hom_class.bound_of_antilipschitz f' hf' _⟩,
 (this.trans (hf.trans_is_O this).right_is_O_add).congr (λ _, rfl) (λ _, sub_add_cancel _ _)
 
 end continuous
@@ -2856,7 +2857,7 @@ begin
   symmetry,
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto_congr (λ x', _),
   have : ∥x' - x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
-  simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
+  simp [norm_smul, abs_of_nonneg this]
 end
 
 lemma has_fderiv_at.lim_real (hf : has_fderiv_at f f' x) (v : E) :

@@ -317,7 +317,7 @@ begin
   refine this.inter_Inter_nonempty (cl_prehaar K₀) (λ s, is_closed_closure) (λ t, _),
   let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
   have h1V₀ : is_open V₀,
-  { apply is_open_bInter, apply finite_mem_finset, rintro ⟨V, hV⟩ h2V, exact hV.1 },
+  { apply is_open_bInter, apply finset.finite_to_set, rintro ⟨V, hV⟩ h2V, exact hV.1 },
   have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
   refine ⟨prehaar K₀ V₀, _⟩,
   split,
@@ -727,6 +727,14 @@ end
 calc μ (s⁻¹) = measure.map (has_inv.inv) μ s :
   ((homeomorph.inv G).to_measurable_equiv.map_apply s).symm
 ... = μ s : by rw map_haar_inv
+
+@[to_additive]
+lemma measure_preserving_inv
+  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
+  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
+  (μ : measure G) [is_haar_measure μ] :
+  measure_preserving has_inv.inv μ μ :=
+⟨measurable_inv, map_haar_inv μ⟩
 
 end measure
 end measure_theory

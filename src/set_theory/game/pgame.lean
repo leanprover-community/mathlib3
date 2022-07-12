@@ -565,7 +565,7 @@ theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y�
 lt_congr equiv_rfl hy
 
 theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
-by { by_cases h' : y ≤ x, exacts [or.inr ⟨h, h'⟩, or.inl ⟨h, pgame.not_le.1 h'⟩] }
+and_or_distrib_left.mp ⟨h, (em $ y ≤ x).swap.imp_left pgame.not_le.1⟩
 
 theorem lf_or_equiv_or_gf (x y : pgame) : x ⧏ y ∨ x ≈ y ∨ y ⧏ x :=
 begin

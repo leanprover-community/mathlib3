@@ -270,7 +270,7 @@ end
 
 section
 
-variables (R : Type*) [comm_ring R] [is_domain R] {K : Type*}
+variables {R : Type*} [comm_ring R] [is_domain R] {K : Type*}
 variables [field K] [algebra R K] [is_fraction_ring R K]
 
 lemma iff_dvd_total :
@@ -336,9 +336,9 @@ iff_exists_algebra_map_eq.mp h x
 
 end
 
-lemma of_surjective {R S : Type*} [comm_ring R] [is_domain R]
+lemma _root_.function.surjective.valuation_ring {R S : Type*} [comm_ring R] [is_domain R]
   [valuation_ring R] [comm_ring S] [is_domain S] (f : R →+* S) (hf : function.surjective f) :
-    valuation_ring S :=
+  valuation_ring S :=
 ⟨λ a b, begin
   obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨hf a, hf b⟩,
   obtain ⟨c, rfl|rfl⟩ := valuation_ring.cond a b,

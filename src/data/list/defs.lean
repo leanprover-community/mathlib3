@@ -77,7 +77,7 @@ def nthd (d : α) : Π (l : list α) (n : ℕ), α
 
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-@[simp] def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.

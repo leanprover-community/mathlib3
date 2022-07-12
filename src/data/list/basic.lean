@@ -3935,12 +3935,12 @@ lemma inth_eq_default {n : ℕ} (hn : l.length ≤ n) : l.inth n = default := nt
 
 lemma nthd_default_eq_inth : l.nthd default = l.inth := rfl
 
-lemma inth_append (l l' : list α) (d : α) (n : ℕ) (h : n < l.length)
+lemma inth_append (l l' : list α) (n : ℕ) (h : n < l.length)
   (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :
   (l ++ l').inth n = l.inth n :=
 nthd_append _ _ _ _ h
 
-lemma inth_append_right (l l' : list α) (d : α) (n : ℕ) (h : l.length ≤ n) :
+lemma inth_append_right (l l' : list α) (n : ℕ) (h : l.length ≤ n) :
   (l ++ l').inth n = l'.inth (n - l.length) :=
 nthd_append_right _ _ _ _ h
 

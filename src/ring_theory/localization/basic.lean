@@ -793,37 +793,24 @@ instance : comm_semiring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
   .. localization.comm_monoid_with_zero M }
 
+/--For any given denominator `b : M`, the map `a ↦ a / b` is an `add_monoid_hom` from `R` to
+  `localization M`-/
+def mk_add_monoid_hom (b : M) : R →+ localization M :=
+{ to_fun := flip mk b,
+  map_zero' := mk_zero _,
+  map_add' := λ x y, (add_mk_self _ _ _).symm }
+
 lemma mk_finset_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
   mk (s.sum f) b = s.sum (λ i, mk (f i) b) :=
-by classical; exact finset.induction_on s (by simp only [finset.sum_empty, mk_zero]) (λ i s h ih,
-  by rw [finset.sum_insert h, finset.sum_insert h, ←add_mk_self, ih])
+(mk_add_monoid_hom b).map_sum f s
 
 lemma mk_list_sum (l : list R) (b : M) :
   mk l.sum b = (l.map $ flip mk b).sum :=
-list.rec (by simp only [list.sum_nil, list.map_nil, mk_zero])
-  (λ r rs h, by rw [list.sum_cons, ←add_mk_self, list.map_cons, list.sum_cons, h]; refl) l
-
-
-lemma mk_list_sum' (l : list R) (b : M) :
-  mk l.sum b = l.foldr (λ r x, mk r b + x) 0 :=
-list.rec (by simp only [list.sum_nil, list.foldr_nil, mk_zero])
-  (λ r rs h, by rw [list.sum_cons, ←add_mk_self, list.foldr_cons, h]) l
+(mk_add_monoid_hom b).map_list_sum l
 
 lemma mk_multiset_sum (l : multiset R) (b : M) :
   mk l.sum b = (l.map $ flip mk b).sum :=
-begin
-  induction l using multiset.induction with r l h,
-  { simp [mk_zero], },
-  { rw [multiset.sum_cons, ←add_mk_self, multiset.map_cons, multiset.sum_cons, h], refl, },
-end
-
-lemma mk_multiset_sum' (l : multiset R) (b : M) :
-  mk l.sum b = l.foldr (λ r x, mk r b + x) (λ r r' x, by dsimp only; ring) 0 :=
-begin
-  induction l using multiset.induction with r l h,
-  { simp [mk_zero] },
-  { rw [multiset.sum_cons, ←add_mk_self, multiset.foldr_cons, h] },
-end
+(mk_add_monoid_hom b).map_multiset_sum l
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=

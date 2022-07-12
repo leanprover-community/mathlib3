@@ -31,25 +31,32 @@ open finset
 
 section semiring
 
-variables {R : Type*} [semiring R] {k m n : ℕ} {u v w : R}
+variables {R : Type*} [semiring R] (k m n : ℕ) (u v w : R)
+
+/-- Shorthand for a trinomial -/
+noncomputable def trinomial := C u * X ^ k + C v * X ^ m + C w * X ^ n
+
+lemma trinomial_def : trinomial k m n u v w = C u * X ^ k + C v * X ^ m + C w * X ^ n := rfl
+
+variables {k m n u v w}
 
 lemma trinomial_leading_coeff' (hkm : k < m) (hmn : m < n) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff n = w :=
-by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
-  if_neg (hkm.trans hmn).ne', if_neg hmn.ne', if_pos rfl, zero_add, zero_add]
+  (trinomial k m n u v w).coeff n = w :=
+by rw [trinomial_def, coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
+  coeff_C_mul_X_pow, if_neg (hkm.trans hmn).ne', if_neg hmn.ne', if_pos rfl, zero_add, zero_add]
 
 lemma trinomial_middle_coeff (hkm : k < m) (hmn : m < n) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff m = v :=
-by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
-  if_neg hkm.ne', if_pos rfl, if_neg hmn.ne, zero_add, add_zero]
+  (trinomial k m n u v w).coeff m = v :=
+by rw [trinomial_def, coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
+  coeff_C_mul_X_pow, if_neg hkm.ne', if_pos rfl, if_neg hmn.ne, zero_add, add_zero]
 
 lemma trinomial_trailing_coeff' (hkm : k < m) (hmn : m < n) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff k = u :=
-by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
-  if_pos rfl, if_neg hkm.ne, if_neg (hkm.trans hmn).ne, add_zero, add_zero]
+  (trinomial k m n u v w).coeff k = u :=
+by rw [trinomial_def, coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
+  coeff_C_mul_X_pow, if_pos rfl, if_neg hkm.ne, if_neg (hkm.trans hmn).ne, add_zero, add_zero]
 
 lemma trinomial_nat_degree (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).nat_degree = n :=
+  (trinomial k m n u v w).nat_degree = n :=
 begin
   refine nat_degree_eq_of_degree_eq_some (le_antisymm (sup_le (λ i h, _))
     (le_degree_of_ne_zero (by rwa trinomial_leading_coeff' hkm hmn))),
@@ -62,7 +69,7 @@ begin
 end
 
 lemma trinomial_nat_trailing_degree (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).nat_trailing_degree = k :=
+  (trinomial k m n u v w).nat_trailing_degree = k :=
 begin
   refine nat_trailing_degree_eq_of_trailing_degree_eq_some (le_antisymm (le_inf (λ i h, _))
     (le_trailing_degree_of_ne_zero (by rwa trinomial_trailing_coeff' hkm hmn))).symm,
@@ -75,21 +82,25 @@ begin
 end
 
 lemma trinomial_leading_coeff (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).leading_coeff = w :=
+  (trinomial k m n u v w).leading_coeff = w :=
 by rw [leading_coeff, trinomial_nat_degree hkm hmn hw, trinomial_leading_coeff' hkm hmn]
 
 lemma trinomial_trailing_coeff (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).trailing_coeff = u :=
+  (trinomial k m n u v w).trailing_coeff = u :=
 by rw [trailing_coeff, trinomial_nat_trailing_degree hkm hmn hu, trinomial_trailing_coeff' hkm hmn]
 
 lemma trinomial_mirror (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hw : w ≠ 0) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).mirror =
-    C w * X ^ k + C v * X ^ (n - m + k) + C u * X ^ n :=
+  (trinomial k m n u v w).mirror = trinomial k (n - m + k) n w v u :=
 by rw [mirror, trinomial_nat_trailing_degree hkm hmn hu, reverse, trinomial_nat_degree hkm hmn hw,
-  reflect_add, reflect_add, reflect_C_mul_X_pow, reflect_C_mul_X_pow, reflect_C_mul_X_pow,
-  rev_at_le (hkm.trans hmn).le, rev_at_le hmn.le, rev_at_le le_rfl, add_mul, add_mul, mul_assoc,
-  mul_assoc, mul_assoc, ←pow_add, ←pow_add, ←pow_add, nat.sub_add_cancel (hkm.trans hmn).le,
-  nat.sub_self, zero_add, add_comm, add_assoc, add_comm (C u * X ^ n)]
+  trinomial_def, reflect_add, reflect_add, reflect_C_mul_X_pow, reflect_C_mul_X_pow,
+  reflect_C_mul_X_pow, rev_at_le (hkm.trans hmn).le, rev_at_le hmn.le, rev_at_le le_rfl,
+  add_mul, add_mul, mul_assoc, mul_assoc, mul_assoc, ←pow_add, ←pow_add, ←pow_add,
+  nat.sub_add_cancel (hkm.trans hmn).le, nat.sub_self, zero_add, add_comm, add_comm (C u * X ^ n),
+  ←add_assoc, ←trinomial_def]
+
+lemma trinomial_support (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hv : v ≠ 0) (hw : w ≠ 0) :
+  (trinomial k m n u v w).support = {k, m, n} :=
+support_trinomial hkm hmn hu hv hw
 
 end semiring
 
@@ -97,7 +108,7 @@ variables (p q : ℤ[X])
 
 /-- A unit trinomial is a trinomial with unit coefficients. -/
 def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : ℤ}
-  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = C u * X ^ k + C v * X ^ m + C w * X ^ n
+  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = trinomial k m n u v w
 
 variables {p q}
 
@@ -166,7 +177,7 @@ begin
       nat.mul_div_right _ zero_lt_two, coeff_mul_mirror],
   refine ⟨_, λ hp, _⟩,
   { rintros ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩,
-    rw [sum_def, support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
+    rw [sum_def, trinomial_support hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
       sum_insert (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
       sum_insert (mt mem_singleton.mp hmn.ne), sum_singleton, trinomial_leading_coeff' hkm hmn,
       trinomial_middle_coeff hkm hmn, trinomial_trailing_coeff' hkm hmn],
@@ -185,16 +196,14 @@ by rw [is_unit_trinomial_iff', is_unit_trinomial_iff', h]
 
 namespace is_unit_trinomial
 
-lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ}
-  (hkm : k < m) (hmn : m < n)
-  (hu : is_unit u) (hw : is_unit w)
-  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :
+lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n)
+  (hu : is_unit u) (hw : is_unit w) (hp : p = trinomial k m n u v w) :
   C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
     ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
 begin
   have key : n - m + k < n := by rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn.le],
   rw [hp, trinomial_mirror hkm hmn hu.ne_zero hw.ne_zero],
-  simp_rw [←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
+  simp_rw [trinomial_def, ←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
     to_finsupp_add, to_finsupp_monomial, finsupp.filter_add],
   rw [finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_neg,
       finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_pos,
@@ -220,8 +229,7 @@ end
 lemma irreducible_aux2 {k m m' n : ℕ} {u v w : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
-  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
-  (hq : q = C u * X ^ k + C v * X ^ m' + C w * X ^ n)
+  (hp : p = trinomial k m n u v w) (hq : q = trinomial k m' n u v w)
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
@@ -251,8 +259,7 @@ end
 lemma irreducible_aux3 {k m m' n : ℕ} {u v w x z : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) (hx : is_unit x) (hz : is_unit z)
-  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
-  (hq : q = C x * X ^ k + C v * X ^ m' + C z * X ^ n)
+  (hp : p = trinomial k m n u v w) (hq : q = trinomial k m' n x v z)
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
@@ -264,7 +271,7 @@ begin
 
   have hadd := congr_arg (eval 1) h,
   rw [eval_mul, eval_mul, mirror_eval_one, mirror_eval_one, ←sq, ←sq, hp, hq] at hadd,
-  simp only [eval_add, eval_C_mul, eval_pow, eval_X, one_pow, mul_one] at hadd,
+  simp only [eval_add, eval_C_mul, eval_pow, eval_X, one_pow, mul_one, trinomial_def] at hadd,
   rw [add_assoc, add_assoc, add_comm u, add_comm x, add_assoc, add_assoc] at hadd,
   simp only [add_sq', add_assoc, add_right_inj, int.is_unit_sq, hu, hv, hw, hx, hz] at hadd,
   rw [mul_assoc, hmul, ←mul_assoc, add_right_inj,
@@ -303,7 +310,8 @@ begin
   { rcases irreducible_aux3 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
     { exact or.inl rfl },
     { exact or.inr (or.inr (or.inl rfl)) } },
-  { rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
+  { rw trinomial_def at hp,
+    rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
     rw [←neg_mul_neg, ←mirror_neg] at hpq,
     rcases irreducible_aux3 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq hpq with rfl | rfl,
     { exact or.inr (or.inl rfl) },

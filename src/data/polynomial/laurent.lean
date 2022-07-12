@@ -81,17 +81,10 @@ lemma finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
   finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
 by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
 
-lemma with_bot.map_id_coe_le (a b : with_bot ℕ) :
-  (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
-begin
-  rcases a with _ | a,
-  { simp },
-  { rcases b with _ | b,
-    { rw [option.map_some', id.def, option.map_none', ← not_iff_not, not_le, not_le],
-      simp only [with_bot.none_lt_some] },
-    { simp } }
-end
-
+/--  Similar to `eq_or_ne a ⊥`, except that
+* it does not leak into `option` in the `⊥` case, preserving `with_bot`;
+* it gives a coercion in the `ne` case.
+-/
 lemma with_bot.eq_bot_or_coe {α} (n : with_bot α) : n = ⊥ ∨ ∃ m : α, n = m :=
 begin
   rcases n with _ | a,
@@ -99,27 +92,48 @@ begin
   { exact or.inr ⟨_, rfl⟩ }
 end
 
-lemma with_bot.map_coe_add {a b : with_bot ℕ} :
-  (id (option.map coe (a + b : with_bot ℕ)) : with_bot ℤ) ≤ option.map coe a + option.map coe b :=
+lemma ppp {α} [partial_order α] (a : α) :
+  ¬(a : with_bot α) ≤ ⊥ :=
+with_bot.not_coe_le_bot a
+
+lemma with_bot.map_fn_le_iff {α β} [preorder α] [linear_order β] (f : α → β)
+  (a b : with_bot α) (coe_mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
+  a.map f ≤ b.map f ↔ a ≤ b :=
 begin
   rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact (with_bot.bot_add _).ge },
+  { simp },
   { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
-    { exact (with_bot.add_bot _).ge },
-    { exact rfl.le } },
+    { suffices : ¬(a : with_bot α) ≤ ⊥, { simpa },
+      exact with_bot.not_coe_le_bot a },
+    { simpa using coe_mono_iff } }
 end
 
-lemma with_bot.add_coe_neg_le_iff (a : with_bot ℤ) (b : ℤ) (c : with_bot ℤ) :
-  a + (-b : ℤ) ≤ c ↔ a ≤ c + b :=
+/-  It is not `to_additive` of `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have
+a multiplication. -/
+lemma with_bot.map_add_of_add_hom {α β F} [has_add α] [has_add β] [add_hom_class F α β] (f : F)
+  (a b : with_bot α) :
+  (a + b).map f = a.map f + b.map f :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact (with_bot.bot_add _).symm },
+  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
+    { exact (with_bot.add_bot _).symm },
+    { rw [with_bot.map_coe, with_bot.map_coe, ← with_bot.coe_add (f a), ← map_add],
+      refl } },
+end
+
+lemma with_bot.add_coe_neg_le_iff {α} [add_group α] [preorder α]
+  [covariant_class α α (function.swap (+)) (≤)]
+  (a : with_bot α) (b : α) (c : with_bot α) :
+  a + (-b : α) ≤ c ↔ a ≤ c + b :=
 begin
   rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
   { simp },
   rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
-  { simp only [le_bot_iff, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, with_bot.coe_ne_bot,
-      iff_false, not_false_iff] },
+  { simp only [with_bot.not_coe_le_bot, with_bot.bot_add, iff_false, ← with_bot.coe_add,
+      not_false_iff] },
   { norm_cast,
-    rw ← sub_eq_add_neg,
-    exact sub_le_iff_le_add }
+    rw [← sub_eq_add_neg, sub_le_iff_le_add] }
 end
 
 lemma with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
@@ -563,7 +577,7 @@ lemma degree_eq_int_degree {f : R[T;T⁻¹]} (f0 : f ≠ 0) :
 by simp [degree, int_degree, finset.max', f0]
 
 lemma _root_.polynomial.degree_to_laurent (f : R[X]) :
-  f.to_laurent.degree = option.map coe f.degree :=
+  f.to_laurent.degree = with_bot.map coe f.degree :=
 begin
   by_cases f0 : f = 0,
   { simp only [f0, map_zero, degree_zero, polynomial.degree_zero]; refl },
@@ -589,7 +603,7 @@ by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
 
 lemma degree_mul_aux (d : with_bot ℕ) (e : with_bot ℤ) (f : R[X]) (g : R[T;T⁻¹])
   (fd : f.degree ≤ d) (ge : g.degree ≤ e) :
-  (polynomial.to_laurent f * g).degree ≤ option.map coe d + e :=
+  (polynomial.to_laurent f * g).degree ≤ with_bot.map coe d + e :=
 begin
   revert ge e,
   apply g.reduce_to_polynomial_of_mul_T''' (λ p, (f * p).degree ≤ d + p.degree); clear g,
@@ -597,8 +611,8 @@ begin
   { intros g hfg n e h,
     rw [← mul_assoc, ← map_mul, degree_mul_T, (f * g).degree_to_laurent],
     refine (with_bot.add_coe_neg_le_iff _ _ _).mpr _,
-    refine ((with_bot.map_id_coe_le _ _).mpr hfg).trans _,
-    refine with_bot.map_coe_add.trans _,
+    refine ((with_bot.map_fn_le_iff _ _ _ (by simp)).mpr hfg).trans _,
+    refine (with_bot.map_add_of_add_hom (nat.cast_add_monoid_hom ℤ) _ _).le.trans _,
     rw add_assoc,
     refine add_le_add_left _ _,
     rw [degree_mul_T, g.degree_to_laurent] at h,

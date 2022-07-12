@@ -3895,6 +3895,28 @@ begin
     simp [IH] }
 end
 
+lemma nthd_append (l l' : list α) (d : α) (n : ℕ) (h : n < l.length)
+  (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :
+  (l ++ l').nthd d n = l.nthd d n :=
+by rw [nthd_eq_nth_le _ _ h', nth_le_append h' h, nthd_eq_nth_le]
+
+lemma nthd_append_right (l l' : list α) (d : α) (n : ℕ) (h : l.length ≤ n) :
+  (l ++ l').nthd d n = l'.nthd d (n - l.length) :=
+begin
+  cases lt_or_le _ _ with h' h',
+  { rw [nthd_eq_nth_le _ _ h', nth_le_append_right h h', nthd_eq_nth_le] },
+  { rw [nthd_eq_default _ _ h', nthd_eq_default],
+    rwa [le_tsub_iff_left h, ←length_append] }
+end
+
+lemma nthd_eq_get_or_else_nth (n : ℕ) :
+  l.nthd d n = (l.nth n).get_or_else d :=
+begin
+  cases lt_or_le _ _ with h h,
+  { rw [nthd_eq_nth_le _ _ h, nth_le_nth h, option.get_or_else_some] },
+  { rw [nthd_eq_default _ _ h, nth_eq_none_iff.mpr h, option.get_or_else_none] }
+end
+
 end nthd
 
 section inth
@@ -3911,14 +3933,20 @@ lemma inth_eq_nth_le {n : ℕ} (hn : n < l.length) : l.inth n = l.nth_le n hn :=
 
 lemma inth_eq_default {n : ℕ} (hn : l.length ≤ n) : l.inth n = default := nthd_eq_default _ _ hn
 
-lemma nthd_default_eq_inth :
-  l.nthd default = l.inth :=
-begin
-  funext n,
-  cases lt_or_le n l.length with hn hn,
-  { rw [nthd_eq_nth_le _ _ hn, inth_eq_nth_le _ hn] },
-  { rw [nthd_eq_default _ _ hn, inth_eq_default _ hn] }
-end
+lemma nthd_default_eq_inth : l.nthd default = l.inth := rfl
+
+lemma inth_append (l l' : list α) (d : α) (n : ℕ) (h : n < l.length)
+  (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :
+  (l ++ l').inth n = l.inth n :=
+nthd_append _ _ _ _ h
+
+lemma inth_append_right (l l' : list α) (d : α) (n : ℕ) (h : l.length ≤ n) :
+  (l ++ l').inth n = l'.inth (n - l.length) :=
+nthd_append_right _ _ _ _ h
+
+lemma inth_eq_iget_nth (n : ℕ) :
+  l.inth n = (l.nth n).iget :=
+by rw [←nthd_default_eq_inth, nthd_eq_get_or_else_nth, option.get_or_else_default_eq_iget]
 
 end inth
 

@@ -238,11 +238,13 @@ theorem list_blank.exists_cons {Γ} [inhabited Γ] (l : list_blank Γ) :
 def list_blank.nth {Γ} [inhabited Γ] (l : list_blank Γ) (n : ℕ) : Γ :=
 l.lift_on (λ l, list.inth l n) begin
   rintro l _ ⟨i, rfl⟩,
-  simp only [list.inth],
-  cases lt_or_le _ _ with h h, {rw list.nth_append h},
-  rw list.nth_len_le h,
-  cases le_or_lt _ _ with h₂ h₂, {rw list.nth_len_le h₂},
-  rw [list.nth_le_nth h₂, list.nth_le_append_right h, list.nth_le_repeat]
+  simp only,
+  cases lt_or_le _ _ with h h,
+  { rw [list.inth_eq_nth_le _ h, list.inth_eq_nth_le _ (h.trans_le _), list.nth_le_append],
+    simp },
+  rw list.inth_eq_default _ h,
+  cases le_or_lt _ _ with h₂ h₂, {rw list.inth_eq_default _ h₂},
+  rw [list.inth_eq_nth_le _ h₂, list.nth_le_append_right h, list.nth_le_repeat]
 end
 
 @[simp] theorem list_blank.nth_mk {Γ} [inhabited Γ] (l : list Γ) (n : ℕ) :
@@ -270,12 +272,12 @@ begin
   refine quotient.sound' (or.inl ⟨l₂.length - l₁.length, _⟩),
   refine list.ext_le _ (λ i h h₂, eq.symm _),
   { simp only [add_tsub_cancel_of_le h, list.length_append, list.length_repeat] },
-  simp at H,
+  simp only [list_blank.nth_mk] at H,
   cases lt_or_le i l₁.length with h' h',
-  { simpa only [list.nth_le_append _ h',
-      list.nth_le_nth h, list.nth_le_nth h', option.iget] using H i },
-  { simpa only [list.nth_le_append_right h', list.nth_le_repeat,
-      list.nth_le_nth h, list.nth_len_le h', option.iget] using H i },
+  { simp only [list.nth_le_append _ h', list.nth_le_nth h, list.nth_le_nth h',
+               ←list.inth_eq_nth_le _ h, ←list.inth_eq_nth_le _ h', H] },
+  { simp only [list.nth_le_append_right h', list.nth_le_repeat, list.nth_le_nth h,
+               list.nth_len_le h', ←list.inth_eq_default _ h', H, list.inth_eq_nth_le _ h] }
 end
 
 /-- Apply a function to a value stored at the nth position of the list. -/
@@ -353,8 +355,13 @@ end
 @[simp] theorem list_blank.nth_map {Γ Γ'} [inhabited Γ] [inhabited Γ']
   (f : pointed_map Γ Γ') (l : list_blank Γ) (n : ℕ) : (l.map f).nth n = f (l.nth n) :=
 l.induction_on begin
-  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk, list.inth],
-  cases l.nth n, {exact f.2.symm}, {refl}
+  intro l, simp only [list.nth_map, list_blank.map_mk, list_blank.nth_mk],
+  cases lt_or_le n l.length with h h,
+  { rw [list.inth_eq_nth_le _ h, ←list.nth_le_map f, list.inth_eq_nth_le],
+    rwa list.length_map },
+  { rw [list.inth_eq_default _ h, list.inth_eq_default, f.2.symm],
+    { refl },
+    { rwa list.length_map } },
 end
 
 /-- The `i`-th projection as a pointed map. -/
@@ -2002,7 +2009,7 @@ theorem stk_nth_val {K : Type*} {Γ : K → Type*} {L : list_blank (∀ k, optio
   (hL : list_blank.map (proj k) L = list_blank.mk (list.map some S).reverse) :
   L.nth n k = S.reverse.nth n :=
 begin
-  rw [← proj_map_nth, hL, ← list.map_reverse, list_blank.nth_mk, list.inth, list.nth_map],
+  rw [← proj_map_nth, hL, ← list.map_reverse, list_blank.nth_mk],
   cases S.reverse.nth n; refl
 end
 

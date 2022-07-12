@@ -729,8 +729,8 @@ begin
   ring
 end
 
-@[simp] lemma det_fin_two_mk (a b c d : R) :
-  matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
+@[simp] lemma det_fin_two_of (a b c d : R) :
+  matrix.det (of ![![a, b], ![c, d]]) = a * d - b * c :=
 det_fin_two _
 
 /-- Determinant of 3x3 matrix -/

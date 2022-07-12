@@ -231,8 +231,6 @@ alias is_sup_closed_compact_iff_well_founded ↔ _ _root_.well_founded.is_sup_cl
 
 variables {α}
 
-variables {α}
-
 lemma well_founded.finite_of_set_independent (h : well_founded ((>) : α → α → Prop))
   {s : set α} (hs : set_independent s) : s.finite :=
 begin

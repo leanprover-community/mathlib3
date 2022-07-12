@@ -321,6 +321,10 @@ begin
     { exact or.inr (or.inr (or.inr p.mirror_neg)) } },
 end
 
+lemma irreducible_of_is_coprime (hp : p.is_unit_trinomial) (h : is_coprime p p.mirror) :
+  irreducible p :=
+irreducible_of_coprime hp (λ q, h.is_unit_of_dvd')
+
 end is_unit_trinomial
 
 end polynomial

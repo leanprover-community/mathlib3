@@ -817,20 +817,32 @@ lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ {x y : α} (f : ultrafilter α), ↑f ≤ 𝓝 x → ↑f ≤ 𝓝 y → x = y :=
 t2_iff_nhds.trans $ by simp only [←exists_ultrafilter_iff, and_imp, le_inf_iff, exists_imp_distrib]
 
-lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
+lemma t2_is_closed_function_diagonal [t2_space α] [topological_space β] {f : β → α}
+  (hf : continuous f): is_closed (prod.map f f ⁻¹' diagonal α) :=
 begin
   refine is_closed_iff_cluster_pt.mpr _,
-  rintro ⟨a₁, a₂⟩ h,
-  refine eq_of_nhds_ne_bot ⟨λ this : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h.ne _⟩,
-  obtain ⟨t₁, (ht₁ : t₁ ∈ 𝓝 a₁), t₂, (ht₂ : t₂ ∈ 𝓝 a₂), (h' : t₁ ∩ t₂ = ∅)⟩ :=
-    inf_eq_bot_iff.1 this,
+  rintro ⟨ a₁, a₂ ⟩ h,
+  refine eq_of_nhds_ne_bot ⟨ λ this : 𝓝 (f a₁) ⊓ 𝓝 (f a₂) = ⊥, h.ne _⟩,
+  obtain ⟨ t₁, (ht₁ : t₁ ∈ 𝓝 (f a₁)), t₂, (ht₂ : t₂ ∈ 𝓝 (f a₂)), (h' : t₁ ∩ t₂ = ∅)⟩ :=
+    inf_eq_bot_iff.mp this,
+  obtain ha₁ := continuous_at.preimage_mem_nhds ((continuous_iff_continuous_at.mp hf) a₁) ht₁,
+  obtain ha₂ := continuous_at.preimage_mem_nhds ((continuous_iff_continuous_at.mp hf) a₂) ht₂,
   rw [inf_principal_eq_bot, nhds_prod_eq],
-  apply mem_of_superset (prod_mem_prod ht₁ ht₂),
-  rintro ⟨x, y⟩ ⟨x_in, y_in⟩ (heq : x = y),
-  rw ← heq at *,
-  have : x ∈ t₁ ∩ t₂ := ⟨x_in, y_in⟩,
-  rwa h' at this
+  apply mem_of_superset (prod_mem_prod ha₁ ha₂),
+  rintro ⟨x, y⟩ ⟨x_in, y_in⟩ (heq : f x = f y),
+  apply not_mem_empty x,
+  rw ← @preimage_empty _ _ f,
+  rw ← h',
+  rw preimage_inter,
+  split,
+  { exact x_in },
+  { rw mem_preimage,
+    rw heq,
+    exact y_in }
 end
+
+lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
+t2_is_closed_function_diagonal continuous_id
 
 lemma t2_iff_is_closed_diagonal : t2_space α ↔ is_closed (diagonal α) :=
 begin

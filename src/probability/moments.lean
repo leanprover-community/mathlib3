@@ -211,66 +211,6 @@ begin
   exact log_mul (mgf_pos' hμ h_int_X).ne' (mgf_pos' hμ h_int_Y).ne',
 end
 
-/-- **Chernoff bound** on the upper tail of a real random variable. -/
-lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
-  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
-  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε) * mgf X μ t :=
-begin
-  cases ht.eq_or_lt with ht_zero_eq ht_pos,
-  { rw ht_zero_eq.symm,
-    simp only [neg_zero', zero_mul, exp_zero, mgf_zero', one_mul],
-    rw ennreal.to_real_le_to_real (measure_ne_top μ _) (measure_ne_top μ _),
-    exact measure_mono (set.subset_univ _), },
-  calc (μ {ω | ε ≤ X ω}).to_real
-      = (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real :
-    begin
-      congr' with ω,
-      simp only [exp_le_exp, eq_iff_iff],
-      exact ⟨λ h, mul_le_mul_of_nonneg_left h ht_pos.le, λ h, le_of_mul_le_mul_left h ht_pos⟩,
-    end
-  ... ≤ (exp (t * ε))⁻¹ * μ[λ ω, exp (t * X ω)] :
-    begin
-      have : exp (t * ε) * (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real
-          ≤ μ[λ ω, exp (t * X ω)],
-        from mul_meas_ge_le_integral_of_nonneg (λ x, (exp_pos _).le) h_int _,
-      rwa [mul_comm (exp (t * ε))⁻¹, ← div_eq_mul_inv, le_div_iff' (exp_pos _)],
-    end
-  ... = exp (- t * ε) * mgf X μ t : by { rw [neg_mul, exp_neg], refl, },
-end
-
-/-- **Chernoff bound** on the lower tail of a real random variable. -/
-lemma measure_le_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
-  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
-  (μ {ω | X ω ≤ ε}).to_real ≤ exp (- t * ε) * mgf X μ t :=
-begin
-  rw [← neg_neg t, ← mgf_neg, neg_neg, ← neg_mul_neg (-t)],
-  refine eq.trans_le _ (measure_ge_le_exp_mul_mgf (-ε) (neg_nonneg.mpr ht) _),
-  { congr' with ω,
-    simp only [pi.neg_apply, neg_le_neg_iff], },
-  { simp_rw [pi.neg_apply, neg_mul_neg],
-    exact h_int, },
-end
-
-/-- **Chernoff bound** on the upper tail of a real random variable. -/
-lemma measure_ge_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
-  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
-  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε + cgf X μ t) :=
-begin
-  refine (measure_ge_le_exp_mul_mgf ε ht h_int).trans _,
-  rw exp_add,
-  exact mul_le_mul le_rfl (le_exp_log _) mgf_nonneg (exp_pos _).le,
-end
-
-/-- **Chernoff bound** on the lower tail of a real random variable. -/
-lemma measure_le_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
-  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
-  (μ {ω | X ω ≤ ε}).to_real ≤ exp (- t * ε + cgf X μ t) :=
-begin
-  refine (measure_le_le_exp_mul_mgf ε ht h_int).trans _,
-  rw exp_add,
-  exact mul_le_mul le_rfl (le_exp_log _) mgf_nonneg (exp_pos _).le,
-end
-
 lemma indep_fun.integrable_exp_mul_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
   (h_int_Y : integrable (λ ω, real.exp (t * Y ω)) μ) :
@@ -330,36 +270,35 @@ end
 
 /-- **Chernoff bound** on the upper tail of a real random variable. -/
 lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
-  (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
-  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε) * mgf X μ t :=
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε) * mgf X μ t :=
 begin
-  rw le_iff_eq_or_lt at ht,
-  cases ht with ht_zero_eq ht_pos,
+  cases ht.eq_or_lt with ht_zero_eq ht_pos,
   { rw ht_zero_eq.symm,
-    simp only [neg_zero', zero_mul, real.exp_zero, mgf_zero', one_mul],
+    simp only [neg_zero', zero_mul, exp_zero, mgf_zero', one_mul],
     rw ennreal.to_real_le_to_real (measure_ne_top μ _) (measure_ne_top μ _),
     exact measure_mono (set.subset_univ _), },
   calc (μ {ω | ε ≤ X ω}).to_real
-      = (μ {ω | real.exp (t * ε) ≤ real.exp (t * X ω)}).to_real :
+      = (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real :
     begin
       congr' with ω,
-      simp only [real.exp_le_exp, eq_iff_iff],
+      simp only [exp_le_exp, eq_iff_iff],
       exact ⟨λ h, mul_le_mul_of_nonneg_left h ht_pos.le, λ h, le_of_mul_le_mul_left h ht_pos⟩,
     end
-  ... ≤ (real.exp (t * ε))⁻¹ * μ[λ ω, real.exp (t * X ω)] :
+  ... ≤ (exp (t * ε))⁻¹ * μ[λ ω, exp (t * X ω)] :
     begin
-      have : real.exp (t * ε) * (μ {ω | real.exp (t * ε) ≤ real.exp (t * X ω)}).to_real
-          ≤ μ[λ ω, real.exp (t * X ω)],
-        from mul_meas_ge_le_integral_of_nonneg (λ x, (real.exp_pos _).le) h_int _,
-      rwa [mul_comm (real.exp (t * ε))⁻¹, ← div_eq_mul_inv, le_div_iff' (real.exp_pos _)],
+      have : exp (t * ε) * (μ {ω | exp (t * ε) ≤ exp (t * X ω)}).to_real
+          ≤ μ[λ ω, exp (t * X ω)],
+        from mul_meas_ge_le_integral_of_nonneg (λ x, (exp_pos _).le) h_int _,
+      rwa [mul_comm (exp (t * ε))⁻¹, ← div_eq_mul_inv, le_div_iff' (exp_pos _)],
     end
-  ... = real.exp(- t * ε) * mgf X μ t : by { rw [neg_mul, real.exp_neg], refl, },
+  ... = exp (- t * ε) * mgf X μ t : by { rw [neg_mul, exp_neg], refl, },
 end
 
 /-- **Chernoff bound** on the lower tail of a real random variable. -/
 lemma measure_le_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
-  (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
-  (μ {ω | X ω ≤ ε}).to_real ≤ real.exp(- t * ε) * mgf X μ t :=
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | X ω ≤ ε}).to_real ≤ exp (- t * ε) * mgf X μ t :=
 begin
   rw [← neg_neg t, ← mgf_neg, neg_neg, ← neg_mul_neg (-t)],
   refine eq.trans_le _ (measure_ge_le_exp_mul_mgf (-ε) (neg_nonneg.mpr ht) _),
@@ -371,22 +310,22 @@ end
 
 /-- **Chernoff bound** on the upper tail of a real random variable. -/
 lemma measure_ge_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
-  (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
-  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε + cgf X μ t) :=
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε + cgf X μ t) :=
 begin
   refine (measure_ge_le_exp_mul_mgf ε ht h_int).trans _,
-  rw real.exp_add,
-  exact mul_le_mul le_rfl (real.le_exp_log _) mgf_nonneg (real.exp_pos _).le,
+  rw exp_add,
+  exact mul_le_mul le_rfl (le_exp_log _) mgf_nonneg (exp_pos _).le,
 end
 
 /-- **Chernoff bound** on the lower tail of a real random variable. -/
 lemma measure_le_le_exp_cgf [is_finite_measure μ] (ε : ℝ) (ht : t ≤ 0)
-  (h_int : integrable (λ ω, real.exp (t * X ω)) μ) :
-  (μ {ω | X ω ≤ ε}).to_real ≤ real.exp(- t * ε + cgf X μ t) :=
+  (h_int : integrable (λ ω, exp (t * X ω)) μ) :
+  (μ {ω | X ω ≤ ε}).to_real ≤ exp (- t * ε + cgf X μ t) :=
 begin
   refine (measure_le_le_exp_mul_mgf ε ht h_int).trans _,
-  rw real.exp_add,
-  exact mul_le_mul le_rfl (real.le_exp_log _) mgf_nonneg (real.exp_pos _).le,
+  rw exp_add,
+  exact mul_le_mul le_rfl (le_exp_log _) mgf_nonneg (exp_pos _).le,
 end
 
 end moment_generating_function

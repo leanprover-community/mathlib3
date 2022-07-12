@@ -12,7 +12,7 @@ import ring_theory.nakayama
 
 # Rees algebra
 
-The Rees algebra of an ideal `I` is the subalgebra `R[It]` of `R[X]` defined as `R[It] = ⨁ₙ Iⁿ tⁿ`.
+The Rees algebra of an ideal `I` is the subalgebra `R[It]` of `R[t]` defined as `R[It] = ⨁ₙ Iⁿ tⁿ`.
 This is used to prove the Artin-Rees lemma, and will potentially enable us to calculate some
 blowup in the future.
 
@@ -33,7 +33,7 @@ open polynomial
 open_locale polynomial big_operators
 
 /-- The Rees algebra of an ideal `I`, defined as the subalgebra of `R[X]` whose `i`-th coefficient
-falls in `I ^ n`. -/
+falls in `I ^ i`. -/
 def rees_algebra : subalgebra R R[X] :=
 { carrier := { f | ∀ i, f.coeff i ∈ I ^ i },
   mul_mem' := λ f g hf hg i, begin

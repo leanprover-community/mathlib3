@@ -765,6 +765,14 @@ begin
   exact mk_mem_graph _ (hsup ▸ hx)
 end
 
+@[simp] lemma graph_inj {f g : α →₀ M} : f.graph = g.graph ↔ f = g :=
+(graph_injective α M).eq_iff
+
+@[simp] lemma graph_zero : graph (0 : α →₀ M) = ∅ := by simp [graph]
+
+@[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
+(graph_injective α M).eq_iff' graph_zero
+
 end graph
 
 /-!

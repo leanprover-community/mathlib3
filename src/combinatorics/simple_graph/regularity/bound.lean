@@ -36,7 +36,7 @@ lemma step_bound_mono : monotone step_bound :=
 lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
 zero_lt_mul_right $ pow_pos (by norm_num) _
 
-alias step_bound_pos_iff ↔ _ szemeredi_regularity.step_bound_pos
+alias step_bound_pos_iff ↔ _ step_bound_pos
 
 variables {α : Type*} [decidable_eq α] [fintype α] {P : finpartition (univ : finset α)}
   {u : finset α} {ε : ℝ}
@@ -57,7 +57,7 @@ lemma one_le_m_coe [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card
 nat.one_le_cast.2 $ m_pos hPα
 
 lemma eps_pow_five_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε^5 :=
-pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
+pos_of_mul_pos_right ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
 
 lemma eps_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε :=
 pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε
@@ -83,7 +83,7 @@ by exact_mod_cast
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
-  rw [step_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
+  rw [step_bound, ←nat.div_div_eq_div_mul, ←nat.le_sub_iff_right h, tsub_le_iff_left,
     ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end

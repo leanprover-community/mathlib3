@@ -221,9 +221,8 @@ end
 begin
   refine induction_on o _,
   introsI α r _,
-  cases lift_type r with _ e, rw e,
   apply le_antisymm,
-  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
+  { refine le_cof_type.2 (λ S H, _),
     have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
     { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
       exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },
@@ -597,7 +596,7 @@ begin
     rw [e, ord_nat] at this,
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
-    { rw [← nat_cast_succ, cof_succ] at this,
+    { rw [nat_cast_succ, cof_succ] at this,
       rw [← this, cof_eq_one_iff_is_succ] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }

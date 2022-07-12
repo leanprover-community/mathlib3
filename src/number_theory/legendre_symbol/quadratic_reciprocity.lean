@@ -308,8 +308,8 @@ lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2
   is_square (q : zmod p) ↔ is_square (p : zmod q) :=
 if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
-  from (dvd_iff_mod_eq_zero _ _).1
-    (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $
+  from dvd_iff_mod_eq_zero.1
+    (dvd_mul_of_dvd_left (dvd_iff_mod_eq_zero.2 $
     by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _),
 begin
   have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp1, norm_num at hp1, },

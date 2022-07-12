@@ -21,17 +21,17 @@ The file does not contain any lemmas except for
 
 For basic lemmas about these classes see `algebra.group.basic`.
 
-We also introduce notation classes `has_scalar` and `has_vadd` for multiplicative and additive
+We also introduce notation classes `has_smul` and `has_vadd` for multiplicative and additive
 actions and register the following instances:
 
 - `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`;
-- `has_scalar ℕ M` for additive monoids `M`, and `has_scalar ℤ G` for additive groups `G`.
+- `has_smul ℕ M` for additive monoids `M`, and `has_smul ℤ G` for additive groups `G`.
 
 ## Notation
 
 - `+`, `-`, `*`, `/`, `^` : the usual arithmetic operations; the underlying functions are
   `has_add.add`, `has_neg.neg`/`has_sub.sub`, `has_mul.mul`, `has_div.div`, and `has_pow.pow`.
-- `a • b` is used as notation for `has_scalar.smul a b`.
+- `a • b` is used as notation for `has_smul.smul a b`.
 - `a +ᵥ b` is used as notation for `has_vadd.vadd a b`.
 
 -/
@@ -45,17 +45,17 @@ class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 class has_vsub (G : out_param Type*) (P : Type*) := (vsub : P → P → G)
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[ext, to_additive has_vadd]
-class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
+@[ext, to_additive]
+class has_smul (M : Type*) (α : Type*) := (smul : M → α → α)
 
 infix ` +ᵥ `:65 := has_vadd.vadd
 infix ` -ᵥ `:65 := has_vsub.vsub
-infixr ` • `:73 := has_scalar.smul
+infixr ` • `:73 := has_smul.smul
 
 attribute [to_additive_reorder 1] has_pow
 attribute [to_additive_reorder 1 4] has_pow.pow
-attribute [to_additive has_scalar] has_pow
-attribute [to_additive has_scalar.smul] has_pow.pow
+attribute [to_additive has_smul] has_pow
+attribute [to_additive has_smul.smul] has_pow.pow
 
 set_option old_structure_cmd true
 
@@ -354,12 +354,12 @@ goes for linear maps, tensor products, and so on (and even for `ℕ` itself).
 
 To solve this issue, we embed an `ℕ`-action in the definition of an `add_monoid` (which is by
 default equal to the naive action `a + ... + a`, but can be adjusted when needed), and declare
-a `has_scalar ℕ α` instance using this action. See Note [forgetful inheritance] for more
+a `has_smul ℕ α` instance using this action. See Note [forgetful inheritance] for more
 explanations on this pattern.
 
 For example, when we define `polynomial R`, then we declare the `ℕ`-action to be by multiplication
 on each coefficient (using the `ℕ`-action on `R` that comes from the fact that `R` is
-an `add_monoid`). In this way, the two natural `has_scalar ℕ (polynomial ℕ)` instances are defeq.
+an `add_monoid`). In this way, the two natural `has_smul ℕ (polynomial ℕ)` instances are defeq.
 
 The tactic `to_additive` transfers definitions and results from multiplicative monoids to additive
 monoids. To work, it has to map fields to fields. This means that we should also add corresponding
@@ -392,10 +392,10 @@ class monoid (M : Type u) extends semigroup M, mul_one_class M :=
 
 instance monoid.has_pow {M : Type*} [monoid M] : has_pow M ℕ := ⟨λ x n, monoid.npow n x⟩
 
-instance add_monoid.has_scalar_nat {M : Type*} [add_monoid M] : has_scalar ℕ M :=
+instance add_monoid.has_smul_nat {M : Type*} [add_monoid M] : has_smul ℕ M :=
 ⟨add_monoid.nsmul⟩
 
-attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
+attribute [to_additive add_monoid.has_smul_nat] monoid.has_pow
 
 section
 
@@ -616,10 +616,10 @@ attribute [to_additive sub_neg_monoid] div_inv_monoid
 instance div_inv_monoid.has_pow {M} [div_inv_monoid M] : has_pow M ℤ :=
 ⟨λ x n, div_inv_monoid.zpow n x⟩
 
-instance sub_neg_monoid.has_scalar_int {M} [sub_neg_monoid M] : has_scalar ℤ M :=
+instance sub_neg_monoid.has_smul_int {M} [sub_neg_monoid M] : has_smul ℤ M :=
 ⟨sub_neg_monoid.zsmul⟩
 
-attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
+attribute [to_additive sub_neg_monoid.has_smul_int] div_inv_monoid.has_pow
 
 section div_inv_monoid
 variables [div_inv_monoid G] {a b : G}

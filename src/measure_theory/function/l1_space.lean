@@ -344,12 +344,12 @@ section pos_part
 
 lemma has_finite_integral.max_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, max (f a) 0) μ :=
-hf.mono $ eventually_of_forall $ λ x, by simp [real.norm_eq_abs, abs_le, abs_nonneg, le_abs_self]
+hf.mono $ eventually_of_forall $ λ x, by simp [abs_le, le_abs_self]
 
 lemma has_finite_integral.min_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, min (f a) 0) μ :=
 hf.mono $ eventually_of_forall $ λ x,
-  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
+  by simp [abs_le, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
 
 end pos_part
 
@@ -687,7 +687,7 @@ begin
   refine lt_of_le_of_lt _ ((has_finite_integral_iff_norm _).1 hf.has_finite_integral),
   apply lintegral_mono,
   assume x,
-  simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
+  simp [ennreal.of_real_le_of_real, abs_le, le_abs_self],
 end
 
 lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :
@@ -902,6 +902,16 @@ integrable.mul_const h c
 lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x / c) μ :=
 by simp_rw [div_eq_mul_inv, h.mul_const]
+
+lemma integrable.bdd_mul' {f g : α → ℝ} {c : ℝ} (hg : integrable g μ)
+  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
+  filter_upwards [hf_bound] with x hx,
+  rw [pi.smul_apply, smul_eq_mul],
+  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
+end
 
 end normed_space
 

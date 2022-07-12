@@ -128,7 +128,7 @@ begin
   rw [hx1, hx2],
 end
 
-lemma const_smul [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
+lemma const_smul [has_smul 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (c : 𝕜) (hf : ae_strongly_measurable' m f μ) :
   ae_strongly_measurable' m (c • f) μ :=
 begin
@@ -1322,6 +1322,15 @@ begin
   simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
 
+lemma set_integral_condexp_L2_indicator (hs : measurable_set[m] s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) :
+  ∫ x in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ))) x ∂μ = (μ (t ∩ s)).to_real :=
+calc ∫ x in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ))) x ∂μ
+    = ∫ x in s, indicator_const_Lp 2 ht hμt (1 : ℝ) x ∂μ :
+      @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
+... = (μ (t ∩ s)).to_real • 1 : set_integral_indicator_const_Lp (hm s hs) ht hμt (1 : ℝ)
+... = (μ (t ∩ s)).to_real : by rw [smul_eq_mul, mul_one]
+
 lemma set_integral_condexp_ind_smul (hs : measurable_set[m] s) (ht : measurable_set t)
   (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : G') :
   ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ = (μ (t ∩ s)).to_real • x :=
@@ -1330,11 +1339,43 @@ calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
   set_integral_congr_ae (hm s hs) ((condexp_ind_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
 ... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
   integral_smul_const _ x
-... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
-  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ hm
-    (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
 ... = (μ (t ∩ s)).to_real • x :
-  by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
+  by rw set_integral_condexp_L2_indicator hs ht hμs hμt
+
+lemma condexp_L2_indicator_nonneg (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  [sigma_finite (μ.trim hm)] :
+  0 ≤ᵐ[μ] condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
+begin
+  have h : ae_strongly_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
+    from ae_strongly_measurable'_condexp_L2 _ _,
+  refine eventually_le.trans_eq _ h.ae_eq_mk.symm,
+  refine @ae_le_of_ae_le_trim _ _ _ _ _ _ hm _ _ _,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite _ _,
+  { intros t ht hμt,
+    refine @integrable.integrable_on _ _ m _ _ _ _ _,
+    refine integrable.trim hm _ _,
+    { rw integrable_congr h.ae_eq_mk.symm,
+      exact integrable_condexp_L2_indicator hm hs hμs _, },
+    { exact h.strongly_measurable_mk, }, },
+  { intros t ht hμt,
+    rw ← set_integral_trim hm h.strongly_measurable_mk ht,
+    have h_ae : ∀ᵐ x ∂μ, x ∈ t → h.mk _ x = condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) x,
+    { filter_upwards [h.ae_eq_mk] with x hx,
+      exact λ _, hx.symm, },
+    rw [set_integral_congr_ae (hm t ht) h_ae,
+      set_integral_condexp_L2_indicator ht hs ((le_trim hm).trans_lt hμt).ne hμs],
+    exact ennreal.to_real_nonneg, },
+end
+
+lemma condexp_ind_smul_nonneg {E} [normed_lattice_add_comm_group E] [normed_space ℝ E]
+  [ordered_smul ℝ E] [sigma_finite (μ.trim hm)]
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) (hx : 0 ≤ x) :
+  0 ≤ᵐ[μ] condexp_ind_smul hm hs hμs x :=
+begin
+  refine eventually_le.trans_eq _ (condexp_ind_smul_ae_eq_smul hm hs hμs x).symm,
+  filter_upwards [condexp_L2_indicator_nonneg hm hs hμs] with a ha,
+  exact smul_nonneg ha hx,
+end
 
 end condexp_ind_smul
 
@@ -1628,6 +1669,15 @@ begin
   by_cases hx_mem : x ∈ s; simp [hx_mem],
 end
 
+lemma condexp_ind_nonneg {E} [normed_lattice_add_comm_group E] [normed_space ℝ E] [ordered_smul ℝ E]
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) (hx : 0 ≤ x) :
+  0 ≤ condexp_ind hm μ s x :=
+begin
+  rw ← coe_fn_le,
+  refine eventually_le.trans_eq _ (condexp_ind_ae_eq_condexp_ind_smul hm hs hμs x).symm,
+  exact (coe_fn_zero E 1 μ).trans_le (condexp_ind_smul_nonneg hs hμs x hx),
+end
+
 end condexp_ind
 
 section condexp_L1
@@ -1834,6 +1884,17 @@ begin
   refine eventually_eq.trans _ (integrable.coe_fn_to_L1 hfi),
   rw condexp_L1_clm_of_ae_strongly_measurable',
   exact ae_strongly_measurable'.congr hfm (integrable.coe_fn_to_L1 hfi).symm,
+end
+
+lemma condexp_L1_mono {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f g : α → E}
+  (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  condexp_L1 hm μ f ≤ᵐ[μ] condexp_L1 hm μ g :=
+begin
+  rw coe_fn_le,
+  have h_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x : E, 0 ≤ x → 0 ≤ condexp_ind hm μ s x,
+    from λ s hs hμs x hx, condexp_ind_nonneg hs hμs.ne x hx,
+  exact set_to_fun_mono (dominated_fin_meas_additive_condexp_ind E hm μ) h_nonneg hf hg hfg,
 end
 
 end condexp_L1
@@ -2071,6 +2132,63 @@ begin
   { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
 end
 
+lemma condexp_mono {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f g : α → E} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  μ[f | m] ≤ᵐ[μ] μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0,
+  swap, { simp_rw condexp_of_not_le hm, },
+  by_cases hμm : sigma_finite (μ.trim hm),
+  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
+  haveI : sigma_finite (μ.trim hm) := hμm,
+  exact (condexp_ae_eq_condexp_L1 hm _).trans_le
+    ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
+end
+
+/-- **Lebesgue dominated convergence theorem**: sufficient conditions under which almost
+  everywhere convergence of a sequence of functions implies the convergence of their image by
+  `condexp_L1`. -/
+lemma tendsto_condexp_L1_of_dominated_convergence (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
+  {fs : ℕ → α → F'} {f : α → F'} (bound_fs : α → ℝ)
+  (hfs_meas : ∀ n, ae_strongly_measurable (fs n) μ) (h_int_bound_fs : integrable bound_fs μ)
+  (hfs_bound : ∀ n, ∀ᵐ x ∂μ, ∥fs n x∥ ≤ bound_fs x)
+  (hfs : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x))) :
+  tendsto (λ n, condexp_L1 hm μ (fs n)) at_top (𝓝 (condexp_L1 hm μ f)) :=
+tendsto_set_to_fun_of_dominated_convergence _ bound_fs hfs_meas h_int_bound_fs hfs_bound hfs
+
+/-- If two sequences of functions are almost everywhere equal at each step, converge and verify
+dominated convergence hypotheses, then the conditional expectations of their limits are a.e.
+equal. -/
+lemma tendsto_condexp_unique (fs gs : ℕ → α → F') (f g : α → F')
+  (hfs_int : ∀ n, integrable (fs n) μ) (hgs_int : ∀ n, integrable (gs n) μ)
+  (hfs : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)))
+  (hgs : ∀ᵐ x ∂μ, tendsto (λ n, gs n x) at_top (𝓝 (g x)))
+  (bound_fs : α → ℝ) (h_int_bound_fs : integrable bound_fs μ)
+  (bound_gs : α → ℝ) (h_int_bound_gs : integrable bound_gs μ)
+  (hfs_bound : ∀ n, ∀ᵐ x ∂μ, ∥fs n x∥ ≤ bound_fs x)
+  (hgs_bound : ∀ n, ∀ᵐ x ∂μ, ∥gs n x∥ ≤ bound_gs x)
+  (hfg : ∀ n, μ[fs n | m] =ᵐ[μ] μ[gs n | m]) :
+  μ[f | m] =ᵐ[μ] μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0, swap, { simp_rw condexp_of_not_le hm, },
+  by_cases hμm : sigma_finite (μ.trim hm), swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
+  haveI : sigma_finite (μ.trim hm) := hμm,
+  refine (condexp_ae_eq_condexp_L1 hm f).trans ((condexp_ae_eq_condexp_L1 hm g).trans _).symm,
+  rw ← Lp.ext_iff,
+  have hn_eq : ∀ n, condexp_L1 hm μ (gs n) = condexp_L1 hm μ (fs n),
+  { intros n,
+    ext1,
+    refine (condexp_ae_eq_condexp_L1 hm (gs n)).symm.trans ((hfg n).symm.trans _),
+    exact (condexp_ae_eq_condexp_L1 hm (fs n)), },
+  have hcond_fs : tendsto (λ n, condexp_L1 hm μ (fs n)) at_top (𝓝 (condexp_L1 hm μ f)),
+    from tendsto_condexp_L1_of_dominated_convergence hm _ (λ n, (hfs_int n).1) h_int_bound_fs
+       hfs_bound hfs,
+  have hcond_gs : tendsto (λ n, condexp_L1 hm μ (gs n)) at_top (𝓝 (condexp_L1 hm μ g)),
+    from tendsto_condexp_L1_of_dominated_convergence hm _ (λ n, (hgs_int n).1) h_int_bound_gs
+       hgs_bound hgs,
+  exact tendsto_nhds_unique_of_eventually_eq hcond_gs hcond_fs (eventually_of_forall hn_eq),
+end
+
 section real
 
 lemma rn_deriv_ae_eq_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)] {f : α → ℝ}
@@ -2261,6 +2379,170 @@ begin
 end
 
 end indicator
+
+section pull_out
+-- TODO: this section could be generalized beyond multiplication, to any bounded bilinear map.
+
+/-- Auxiliary lemma for `condexp_measurable_mul`. -/
+lemma condexp_strongly_measurable_simple_func_mul (hm : m ≤ m0)
+  (f : @simple_func α m ℝ) {g : α → ℝ} (hg : integrable g μ) :
+  μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
+begin
+  have : ∀ s c (f : α → ℝ), set.indicator s (function.const α c) * f = s.indicator (c • f),
+  { intros s c f,
+    ext1 x,
+    by_cases hx : x ∈ s,
+    { simp only [hx, pi.mul_apply, set.indicator_of_mem, pi.smul_apply, algebra.id.smul_eq_mul] },
+    { simp only [hx, pi.mul_apply, set.indicator_of_not_mem, not_false_iff, zero_mul], }, },
+  refine @simple_func.induction _ _ m _ _ (λ c s hs, _) (λ g₁ g₂ h_disj h_eq₁ h_eq₂, _) f,
+  { simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
+      simple_func.coe_zero, set.piecewise_eq_indicator],
+    rw [this, this],
+    refine (condexp_indicator (hg.smul c) hs).trans _,
+    filter_upwards [@condexp_smul α ℝ ℝ _ _ _ _ _ m m0 μ c g] with x hx,
+    classical,
+    simp_rw [set.indicator_apply, hx], },
+  { have h_add := @simple_func.coe_add _ _ m _ g₁ g₂,
+    calc μ[⇑(g₁ + g₂) * g|m] =ᵐ[μ] μ[(⇑g₁ + ⇑g₂) * g|m] :
+      by { refine condexp_congr_ae (eventually_eq.mul _ eventually_eq.rfl), rw h_add, }
+    ... =ᵐ[μ] μ[⇑g₁ * g|m] + μ[⇑g₂ * g|m] :
+      by { rw add_mul, exact condexp_add (hg.simple_func_mul' hm _) (hg.simple_func_mul' hm _), }
+    ... =ᵐ[μ] ⇑g₁ * μ[g|m] + ⇑g₂ * μ[g|m] : eventually_eq.add h_eq₁ h_eq₂
+    ... =ᵐ[μ] ⇑(g₁ + g₂) * μ[g|m] : by rw [h_add, add_mul], },
+end
+
+/-- Auxiliary lemma for `condexp_measurable_mul`. Do not use. -/
+lemma condexp_strongly_measurable_mul_of_bound (hm : m ≤ m0) [is_finite_measure μ]
+  {f g : α → ℝ} (hf : strongly_measurable[m] f) (hg : integrable g μ) (c : ℝ)
+  (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
+  μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
+begin
+  let fs := hf.approx_bounded c,
+  have hfs_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)),
+    from hf.tendsto_approx_bounded hf_bound,
+  by_cases hμ : μ = 0,
+  { simp only [hμ, ae_zero], },
+  haveI : μ.ae.ne_bot, by simp only [hμ, ae_ne_bot, ne.def, not_false_iff],
+  have hc : 0 ≤ c,
+  { have h_exists : ∃ x, ∥f x∥ ≤ c := eventually.exists hf_bound,
+    exact (norm_nonneg _).trans h_exists.some_spec, },
+  have hfs_bound : ∀ n x, ∥fs n x∥ ≤ c := hf.norm_approx_bounded_le hc,
+  have hn_eq : ∀ n, μ[fs n * g | m] =ᵐ[μ] fs n * μ[g | m],
+    from λ n, condexp_strongly_measurable_simple_func_mul hm _ hg,
+  have : μ[f * μ[g|m]|m] = f * μ[g|m],
+  { refine condexp_of_strongly_measurable hm (hf.mul strongly_measurable_condexp) _,
+    exact integrable_condexp.bdd_mul' ((hf.mono hm).ae_strongly_measurable) hf_bound, },
+  rw ← this,
+  refine tendsto_condexp_unique (λ n x, fs n x * g x) (λ n x, fs n x * μ[g|m] x) (f * g)
+    (f * μ[g|m]) _ _ _ _ (λ x, c * ∥g x∥) _ (λ x, c * ∥μ[g|m] x∥) _ _ _ _,
+  { exact λ n, hg.bdd_mul'
+      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
+      (eventually_of_forall (hfs_bound n)), },
+  { exact λ n, integrable_condexp.bdd_mul'
+      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
+      (eventually_of_forall (hfs_bound n)), },
+  { filter_upwards [hfs_tendsto] with x hx,
+    rw pi.mul_apply,
+    exact tendsto.mul hx tendsto_const_nhds, },
+  { filter_upwards [hfs_tendsto] with x hx,
+    rw pi.mul_apply,
+    exact tendsto.mul hx tendsto_const_nhds, },
+  { exact hg.norm.const_mul c, },
+  { exact integrable_condexp.norm.const_mul c, },
+  { refine λ n, eventually_of_forall (λ x, _),
+    exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right (hfs_bound n x) (norm_nonneg _)), },
+  { refine λ n, eventually_of_forall (λ x, _),
+    exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right (hfs_bound n x) (norm_nonneg _)), },
+  { intros n,
+    simp_rw ← pi.mul_apply,
+    refine (condexp_strongly_measurable_simple_func_mul hm _ hg).trans _,
+    rw condexp_of_strongly_measurable hm
+      ((simple_func.strongly_measurable _).mul strongly_measurable_condexp) _,
+    { apply_instance, },
+    { apply_instance, },
+    exact integrable_condexp.bdd_mul'
+      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
+      (eventually_of_forall (hfs_bound n)), },
+end
+
+/-- Pull-out property of the conditional expectation. -/
+lemma condexp_strongly_measurable_mul {f g : α → ℝ} (hf : strongly_measurable[m] f)
+  (hfg : integrable (f * g) μ) (hg : integrable g μ) :
+  μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0, swap, { simp_rw condexp_of_not_le hm, rw mul_zero, },
+  by_cases hμm : sigma_finite (μ.trim hm),
+  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, rw mul_zero, },
+  haveI : sigma_finite (μ.trim hm) := hμm,
+
+  -- here we basically prove that a strongly_measurable function is sigma-integrable when the
+  -- measure is sigma-finite, but sigma-integrability is not defined in mathlib.
+  -- sigma-integrable = there exists spanning measurable sets on which the function is integrable.
+  -- `condexp` could be extended to those functions.
+  let sigma_finite_sets := spanning_sets (μ.trim hm),
+  let norm_sets := λ (n : ℕ), {x | ∥f x∥ ≤ n},
+  have norm_sets_spanning : (⋃ n, norm_sets n) = set.univ,
+  { ext1 x, simp only [set.mem_Union, set.mem_set_of_eq, set.mem_univ, iff_true],
+    exact ⟨⌈∥f x∥⌉₊, nat.le_ceil (∥f x∥)⟩, },
+  let sets := λ n, sigma_finite_sets n ∩ norm_sets n,
+  have h_meas : ∀ n, measurable_set[m] (sets n),
+  { refine λ n, measurable_set.inter _ _,
+    { exact measurable_spanning_sets (μ.trim hm) n, },
+    { exact hf.norm.measurable_set_le strongly_measurable_const, }, },
+  have h_univ : (⋃ n, sets n) = set.univ,
+  { have : (⋃ i, sigma_finite_sets i ∩ norm_sets i)
+      = (⋃ i, sigma_finite_sets i) ∩ (⋃ i, norm_sets i),
+    { refine set.Union_inter_of_monotone (monotone_spanning_sets (μ.trim hm)) (λ i j hij x, _),
+      simp only [norm_sets, set.mem_set_of_eq],
+      refine λ hif, hif.trans _,
+      exact_mod_cast hij, },
+    rw [this, norm_sets_spanning, Union_spanning_sets (μ.trim hm), set.inter_univ], },
+  have h_finite : ∀ n, μ (sets n) < ∞,
+  { refine λ n, (measure_mono (set.inter_subset_left _ _)).trans_lt _,
+    exact (le_trim hm).trans_lt (measure_spanning_sets_lt_top (μ.trim hm) n), },
+  have h_int : ∀ n, integrable_on f (sets n) μ,
+  { intro n,
+    have h_int_cst : integrable_on (λ x, (n : ℝ)) (sets n) μ,
+    { rw integrable_on_const,
+      exact or.inr (h_finite n), },
+    refine integrable.mono' h_int_cst ((hf.mono hm).ae_strongly_measurable.restrict) _,
+    rw ae_restrict_iff' (hm _ (h_meas n)),
+    exact eventually_of_forall (λ x hx, hx.2), },
+
+  suffices : ∀ n, ∀ᵐ x ∂μ, x ∈ sets n → μ[f * g|m] x = f x * μ[g|m] x,
+  { rw ← ae_all_iff at this,
+    filter_upwards [this] with x hx,
+    rw pi.mul_apply,
+    obtain ⟨i, hi⟩ : ∃ i, x ∈ sets i,
+    { have h_mem : x ∈ ⋃ i, sets i,
+      { rw h_univ, exact set.mem_univ _, },
+      simpa using h_mem, },
+    exact hx i hi, },
+  refine λ n, ae_imp_of_ae_restrict _,
+  suffices : (μ.restrict (sets n))[f * g | m]
+    =ᵐ[μ.restrict (sets n)] f * (μ.restrict (sets n))[g | m],
+  { simp_rw ← pi.mul_apply,
+    refine (condexp_restrict_ae_eq_restrict hm (h_meas n) hfg).symm.trans _,
+    exact this.trans (eventually_eq.rfl.mul (condexp_restrict_ae_eq_restrict hm (h_meas n) hg)), },
+  suffices : (μ.restrict (sets n))[((sets n).indicator f) * g | m]
+    =ᵐ[μ.restrict (sets n)] ((sets n).indicator f) * (μ.restrict (sets n))[g | m],
+  { refine eventually_eq.trans _ (this.trans _),
+    { exact condexp_congr_ae
+        ((indicator_ae_eq_restrict (hm _ (h_meas n))).symm.mul eventually_eq.rfl), },
+    { exact (indicator_ae_eq_restrict (hm _ (h_meas n))).mul eventually_eq.rfl, }, },
+  haveI : is_finite_measure (μ.restrict (sets n)),
+  { constructor,
+    rw measure.restrict_apply_univ,
+    exact h_finite n, },
+  refine condexp_strongly_measurable_mul_of_bound hm (hf.indicator (h_meas n)) hg.integrable_on n _,
+  refine eventually_of_forall (λ x, _),
+  by_cases hxs : x ∈ sets n,
+  { simp only [hxs, set.indicator_of_mem],
+    exact hxs.2, },
+  { simp only [hxs, set.indicator_of_not_mem, not_false_iff, _root_.norm_zero, nat.cast_nonneg], },
+end
+
+end pull_out
 
 end condexp
 

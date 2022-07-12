@@ -448,6 +448,14 @@ lemma set_integral_mono_set (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ.restr
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 integral_mono_measure (measure.restrict_mono_ae hst) hf hfi
 
+lemma set_integral_ge_of_const_le {c : ℝ} (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (hf : ∀ x ∈ s, c ≤ f x) (hfint : integrable_on (λ (x : α), f x) s μ) :
+  c * (μ s).to_real ≤ ∫ x in s, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← set_integral_const c],
+  exact set_integral_mono_on (integrable_on_const.2 (or.inr hμs.lt_top)) hfint hs hf,
+end
+
 end mono
 
 section nonneg
@@ -990,3 +998,31 @@ begin
 end
 
 end thickened_indicator
+
+section bilinear_map
+namespace measure_theory
+
+variables {f : β → ℝ} {m m0 : measurable_space β} {μ : measure β}
+
+lemma integrable.simple_func_mul (g : simple_func β ℝ) (hf : integrable f μ) :
+  integrable (g * f) μ :=
+begin
+  refine simple_func.induction (λ c s hs, _) (λ g₁ g₂ h_disj h_int₁ h_int₂,
+    (h_int₁.add h_int₂).congr (by rw [simple_func.coe_add, add_mul])) g,
+  simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
+    simple_func.coe_zero, set.piecewise_eq_indicator],
+  have : set.indicator s (function.const β c) * f = s.indicator (c • f),
+  { ext1 x,
+    by_cases hx : x ∈ s,
+    { simp only [hx, pi.mul_apply, set.indicator_of_mem, pi.smul_apply, algebra.id.smul_eq_mul] },
+    { simp only [hx, pi.mul_apply, set.indicator_of_not_mem, not_false_iff, zero_mul], }, },
+  rw [this, integrable_indicator_iff hs],
+  exact (hf.smul c).integrable_on,
+end
+
+lemma integrable.simple_func_mul' (hm : m ≤ m0) (g : @simple_func β m ℝ) (hf : integrable f μ) :
+  integrable (g * f) μ :=
+by { rw ← simple_func.coe_to_larger_space_eq hm g, exact hf.simple_func_mul (g.to_larger_space hm) }
+
+end measure_theory
+end bilinear_map

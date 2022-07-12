@@ -12,6 +12,8 @@ import set_theory.zfc.basic
 This file works towards the development of von Neumann ordinals, i.e. transitive sets, well-ordered
 under `∈`. We currently only have an initial development of transitive sets.
 
+Further development can be found on the branch `von_neumann_v2`.
+
 ## Definitions
 
 - `Set.is_transitive` means that every element of a set is a subset.

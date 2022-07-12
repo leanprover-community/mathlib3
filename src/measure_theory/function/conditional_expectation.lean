@@ -2465,6 +2465,7 @@ begin
       (eventually_of_forall (hfs_bound n)), },
 end
 
+/-- Pull-out property of the conditional expectation. -/
 lemma condexp_strongly_measurable_mul {f g : α → ℝ} (hf : strongly_measurable[m] f)
   (hfg : integrable (f * g) μ) (hg : integrable g μ) :
   μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=

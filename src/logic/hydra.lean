@@ -36,7 +36,7 @@ namespace relation
 
 variables {α β : Type*}
 
-section two_rels
+section aux_rels
 variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
 
 /-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
@@ -68,8 +68,8 @@ variables (rα rβ)
   of `α` and `β`: the player is free to choose one of the games and make a move in it,
   while leaving the other game unchanged. -/
 inductive game_add : α × β → α × β → Prop
-| fst {a' a b} : rα a' a → game_add (a',b) (a,b)
-| snd {a b' b} : rβ b' b → game_add (a,b') (a,b)
+| fst {a' a b} : rα a' a → game_add (a', b) (a, b)
+| snd {a b' b} : rβ b' b → game_add (a, b') (a, b)
 
 /-- `game_add` is a `subrelation` of `prod.lex`. -/
 lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
@@ -83,6 +83,17 @@ lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add r
 end
 
 variables {rα rβ}
+
+@[simp] lemma game_add_swap_swap : ∀ (a b : α × β),
+  game_add rβ rα a.swap b.swap ↔ game_add rα rβ a b :=
+begin
+  rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
+  split,
+  all_goals
+  { rintro (⟨_, _, _, rb⟩ | ⟨_, _, _, ra⟩),
+    { exact game_add.snd rb },
+    { exact game_add.fst ra } }
+end
 
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
   accessible under `relation.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
@@ -100,7 +111,41 @@ end
 lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
 
-end two_rels
+/-- The relation `game_add r r a b ∨ game_add r r a.swap b`, which is well-founded when `r` is. -/
+def game_add_swap (r : α → α → Prop) (a b : α × α) : Prop :=
+game_add r r a b ∨ game_add r r a.swap b
+
+variable {r : α → α → Prop}
+
+theorem game_add.swap {a b} : game_add r r a b → game_add_swap r a b := or.inl
+
+theorem game_add.swap_left {a b} (h : game_add r r a b) : game_add_swap r a.swap b :=
+or.inr $ by rwa prod.swap_swap
+
+theorem game_add.swap_right {a b} (h : game_add r r a b) : game_add_swap r a b.swap :=
+or.inr $ by rwa game_add_swap_swap
+
+/-- `game_add` is a `subrelation` of `game_add_swap`. -/
+lemma game_add_swap_le_game_add : game_add r r ≤ game_add_swap r := λ a b, game_add.swap
+
+private lemma game_add_swap_aux {a b} (ha : acc r a) (hb : acc r b) :
+  acc (game_add_swap r) (a, b) ∧ acc (game_add_swap r) (b, a) :=
+begin
+  induction ha with a ha iha generalizing b,
+  induction hb with b hb ihb,
+  split; split; rintros ⟨c, d⟩ ((⟨_, _, _, rc⟩ | ⟨_, _, _, rd⟩) | (⟨_, _, _, rd⟩ | ⟨_, _, _, rc⟩)),
+  exacts [(iha c rc ⟨b, hb⟩).1, (ihb d rd).1, (iha d rd ⟨b, hb⟩).2, (ihb c rc).2,
+    (ihb c rc).2, (iha d rd ⟨b, hb⟩).2, (ihb d rd).1, (iha c rc ⟨b, hb⟩).1]
+end
+
+lemma _root_.acc.game_add_swap {a b} (ha : acc r a) (hb : acc r b) : acc (game_add_swap r) (a, b) :=
+(game_add_swap_aux ha hb).1
+
+/-- The `game_add_swap` relation is well-founded. -/
+lemma _root_.well_founded.game_add_swap (h : well_founded r) :
+  well_founded (game_add_swap r) := ⟨λ ⟨a, b⟩, (h.apply a).game_add_swap (h.apply b)⟩
+
+end aux_rels
 
 section hydra
 open game_add multiset

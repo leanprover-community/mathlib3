@@ -46,6 +46,30 @@ end
 @[simp] theorem empty_is_ordinal : is_ordinal ∅ :=
 ⟨by { rw empty_to_set, apply_instance }, λ y, by simp⟩
 
+theorem is_ordinal.subset_of_mem_or_eq {x y : Set} (h : y.is_ordinal) :
+  x ∈ y ∨ x = y → x ⊆ y :=
+begin
+  rintro (hx | rfl),
+  { exact h.subset_of_mem hx },
+  { exact subset_rfl }
+end
+
+theorem is_ordinal.subset_iff_mem_or_eq {x y : Set} (hx : x.is_ordinal) (hy : y.is_ordinal) :
+  x ⊆ y ↔ x ∈ y ∨ x = y :=
+⟨begin
+  suffices : ∀ a : Set × Set, a.1.is_ordinal → a.2.is_ordinal → a.1 ⊆ a.2 → a.1 ∈ a.2 ∨ a.1 = a.2,
+  { exact this (x, y) hx hy },
+  intro a,
+  apply (well_founded.game_add_swap mem_wf).induction a, clear hx hy x y,
+  rintros ⟨x, y⟩ IH h₁ h₂ Hxy,
+  dsimp at *,
+  by_cases Hyx : y ⊆ x,
+  { exact or.inr (subset_antisymm Hxy Hyx) },
+  let m := mem_wf.min (x.to_set \ y.to_set) (set.nonempty_diff.2 (begin
+    simp,
+  end)),
+end, hy.subset_of_mem_or_eq⟩
+
 /-- The subtype of von Neumann ordinals. See `ordinal` for the preferred, type-theoretic formulation
 of ordinals. -/
 def Ordinal : Type* := subtype is_ordinal

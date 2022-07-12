@@ -629,10 +629,11 @@ begin
   refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
   simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
     pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
-  refine eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
+  exact eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
     (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_strongly_measurable_mul (hξ _)
-    (((hf.integrable _).sub (hf.integrable _)).bdd_mul ((hf.integrable _).sub (hf.integrable _))
-    hξ.strongly_measurable.ae_strongly_measurable (hξbdd _))).symm.le,
+    (((hf.integrable _).sub (hf.integrable _)).bdd_mul
+      hξ.strongly_measurable.ae_strongly_measurable (hξbdd _))
+    ((hf.integrable _).sub (hf.integrable _))).symm.le,
 end
 
 /-- Given a discrete submartingale `f` and a predicatable process `ξ` (i.e. `ξ (n + 1)` is adapted)
@@ -643,7 +644,6 @@ lemma submartingale.sum_mul_sub' [is_finite_measure μ] {ξ f : ℕ → α → �
   (hbdd : ∃ R, ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
   submartingale (λ n : ℕ, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)) 𝒢 μ :=
 let ⟨R, hR⟩ := hbdd in hf.sum_mul_sub hξ ⟨R, λ n, hR _⟩ (λ n, hnonneg _)
-section maximal
 
 end nat
 

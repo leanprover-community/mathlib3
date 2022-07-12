@@ -240,7 +240,7 @@ namespace adapted
   adapted f (-u) :=
 λ i, (hu i).neg
 
-@[protected] lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+@[protected] lemma smul [has_smul ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 

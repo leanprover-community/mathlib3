@@ -86,18 +86,6 @@ multiplicity_self (prime_iff.mp hp).not_unit hp.ne_zero
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
 multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
 
-lemma Ioc_filter_dvd_card_eq_div (n p : ℕ) :
-  ((Ioc 0 n).filter (λ x, p ∣ x)).card = n / p :=
-begin
-  induction n with n IH, { simp },
-  -- TODO: Golf away `h1` after Yaël PRs a lemma asserting this
-  have h1 : Ioc 0 n.succ = insert n.succ (Ioc 0 n), {
-    rcases n.eq_zero_or_pos with rfl | hn, { simp },
-    simp_rw [←Ico_succ_succ, Ico_insert_right (succ_le_succ hn.le), Ico_succ_right] },
-  simp [nat.succ_div, add_ite, add_zero, h1, filter_insert, apply_ite card,
-    card_insert_eq_ite, IH, mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
-end
-
 /-- **Legendre's Theorem**
 
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed

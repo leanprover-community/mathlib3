@@ -6,6 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
+import data.nat.interval
 
 /-!
 # Prime factorizations
@@ -525,6 +526,29 @@ begin
   { intros a b _ _ hab ha hb,
     rw [h_mult a b hab, ha, hb, factorization_mul_of_coprime hab, ←prod_add_index_of_disjoint],
     convert (factorization_disjoint_of_coprime hab) },
+end
+
+/-! ### Lemmas about factorizations of particular functions -/
+
+/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
+lemma card_multiples (n p : ℕ) : card ((finset.range n).filter (λ e, p ∣ e + 1)) = n / p :=
+begin
+  induction n with n hn, { simp },
+  simp [nat.succ_div, add_ite, add_zero, finset.range_succ, filter_insert, apply_ite card,
+    card_insert_of_not_mem, hn],
+end
+
+/-- Exactly `n / p` naturals in `(0, n]` are multiples of `p`. -/
+lemma Ioc_filter_dvd_card_eq_div (n p : ℕ) :
+  ((Ioc 0 n).filter (λ x, p ∣ x)).card = n / p :=
+begin
+  induction n with n IH, { simp },
+  -- TODO: Golf away `h1` after Yaël PRs a lemma asserting this
+  have h1 : Ioc 0 n.succ = insert n.succ (Ioc 0 n), {
+    rcases n.eq_zero_or_pos with rfl | hn, { simp },
+    simp_rw [←Ico_succ_succ, Ico_insert_right (succ_le_succ hn.le), Ico_succ_right] },
+  simp [nat.succ_div, add_ite, add_zero, h1, filter_insert, apply_ite card,
+    card_insert_eq_ite, IH, finset.mem_filter, mem_Ioc, not_le.2 (lt_add_one n)],
 end
 
 end nat

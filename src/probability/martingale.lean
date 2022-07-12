@@ -488,6 +488,8 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 ⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
  submartingale_of_expected_stopped_value_mono hadp hint⟩
 
+section maximal
+
 open finset
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]

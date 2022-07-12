@@ -60,11 +60,35 @@ begin
       (upcrossing_lt_upcrossing_of_exists_upcrossing hab hN₁ hN₁' hN₂ hN₂')⟩ }
 end
 
-lemma upcrossing_eq_top_of_frequently (hab : a < b)
+lemma upcrossing_eq_top_of_frequently_lt (hab : a < b)
   (h₁ : ∃ᶠ n in at_top, f n x < a) (h₂ : ∃ᶠ n in at_top, b < f n x) :
   upcrossing a b f x = ∞ :=
 begin
   sorry,
+end
+
+lemma exists_frequently_lt_of_liminf_ne_top
+  {x : ℕ → ℝ} (hx : at_top.liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  ∃ R, ∃ᶠ n in at_top, x n < R :=
+begin
+  by_contra h,
+  simp_rw [not_exists, not_frequently, not_lt, eventually_at_top] at h,
+  refine hx (ennreal.eq_top_of_forall_nnreal_le $ λ r, _),
+  obtain ⟨N, hN⟩ := h r,
+  exact le_Liminf_of_le (by is_bounded_default) (eventually_at_top.2
+    ⟨N, λ n hn, ennreal.coe_le_coe.2 $ nnreal.coe_le_coe.1 $ (hN n hn).trans (le_abs_self _)⟩),
+end
+
+lemma foo (hf : at_top.liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞)
+  (hbdd : ¬ is_bounded_under (≤) at_top (λ n, |f n x|)) :
+  ∃ a b : ℚ, a < b ∧ (∃ᶠ n in at_top, f n x < a) ∧ (∃ᶠ n in at_top, ↑b < f n x) :=
+begin
+  rw [is_bounded_under_le_abs, not_and_distrib] at hbdd,
+  obtain hbdd | hbdd := hbdd,
+  { obtain ⟨n, hn⟩ := exists_nat_gt (at_top.liminf (λ n, f n x)),
+    sorry,
+  },
+  { sorry }
 end
 
 /-- A realization of a stochastic process with bounded upcrossings and bounded limit infimums is
@@ -80,8 +104,8 @@ begin
     { intros a ha b hb hab,
       obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
       exact not_frequently_of_upcrossing_lt_top hab (hf₂ a b (rat.cast_lt.1 hab)) } },
-  { -- if `(|f n x|)` is not bounded then either `f n x → ±∞` or `limsup f n x = ∞` and
-    -- `liminf f n x = -∞`. The first case contradicts `liminf |f n x| < ∞` which the second
+  { -- if `(|f n x|)` is not bounded then either `f n x → ±∞` or (`limsup f n x = ∞` or
+    -- `liminf f n x = -∞`). The first case contradicts `liminf |f n x| < ∞` while the second
     -- case contradicts finite upcrossings.
     sorry,
   }
@@ -117,8 +141,7 @@ begin
       { rw lattice_ordered_comm_group.pos_of_nonpos _ (not_le.1 hnonneg).le,
         exact norm_nonneg _ },
       { simp only [ne.def, ennreal.coe_ne_top, not_false_iff] } },
-    { simp only [hab, ne.def, ennreal.of_real_eq_zero, sub_nonpos, not_le] },
-     },
+    { simp only [hab, ne.def, ennreal.of_real_eq_zero, sub_nonpos, not_le] } },
   { simp only [hab, ne.def, ennreal.of_real_eq_zero, sub_nonpos, not_le, true_or]},
   { simp only [ne.def, ennreal.of_real_ne_top, not_false_iff, true_or] }
 end

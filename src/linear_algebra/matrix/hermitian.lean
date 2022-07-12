@@ -169,9 +169,13 @@ section comm_ring
 
 variables [comm_ring α] [star_ring α]
 
-lemma is_hermitian_nonsingular_inv [fintype m] [decidable_eq m] {A : matrix m m α}
+lemma is_hermitian.inv [fintype m] [decidable_eq m] {A : matrix m m α}
   (hA : A.is_hermitian) : A⁻¹.is_hermitian :=
 by simp [is_hermitian, conj_transpose_nonsing_inv, hA.eq]
+
+lemma is_hermitian_inv [fintype m] [decidable_eq m] (A : matrix m m α) [invertible A]:
+  (A⁻¹).is_hermitian ↔ A.is_hermitian :=
+⟨λ h, by {rw [← inv_inv_of_invertible A], exact is_hermitian.inv h }, is_hermitian.inv⟩
 
 end comm_ring
 

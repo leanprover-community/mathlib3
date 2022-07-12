@@ -571,17 +571,20 @@ resp.eval 1 ⟨pSet.Union, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 
 notation `⋃` := Union
 
-@[simp] theorem mem_Union {x y : Set.{u}} : y ∈ Union x ↔ ∃ z ∈ x, y ∈ z :=
+@[simp] theorem mem_Union {x y : Set.{u}} : y ∈ ⋃ x ↔ ∃ z ∈ x, y ∈ z :=
 quotient.induction_on₂ x y (λ x y, iff.trans mem_Union
   ⟨λ ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ ⟨z, h⟩, quotient.induction_on z (λ z h, ⟨z, h⟩) h⟩)
 
-@[simp] theorem Union_singleton {x : Set.{u}} : Union {x} = x :=
+theorem mem_Union_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃ x :=
+mem_Union.2 ⟨z, hz, hy⟩
+
+@[simp] theorem Union_singleton {x : Set.{u}} : ⋃ {x} = x :=
 ext $ λ y, by simp_rw [mem_Union, exists_prop, mem_singleton, exists_eq_left]
 
 theorem singleton_inj {x y : Set.{u}} (H : ({x} : Set) = {y}) : x = y :=
 let this := congr_arg Union H in by rwa [Union_singleton, Union_singleton] at this
 
-@[simp] theorem Union_to_set (x : Set.{u}) : (Union x).to_set = ⋃₀ (to_set '' x.to_set) :=
+@[simp] theorem Union_to_set (x : Set.{u}) : (⋃ x).to_set = ⋃₀ (to_set '' x.to_set) :=
 by { ext, simp }
 
 /-- The binary union operation -/

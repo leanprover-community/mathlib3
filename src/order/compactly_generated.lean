@@ -253,7 +253,7 @@ end
 lemma well_founded.finite_of_independent (hwf : well_founded ((>) : α → α → Prop))
   {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
 begin
-  haveI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).finite,
+  haveI := (well_founded.finite_of_set_independent hwf ht.set_independent_range).to_subtype,
   exact finite.of_injective_finite_range (ht.injective h_ne_bot),
 end
 
@@ -440,9 +440,7 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
 ⟨λ b, begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
-  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
-    rw [← h, Sup_le_iff],
-    intros a ha,
+  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, h.symm.trans_le $ Sup_le_iff.2 $ λ a ha, _⟩,
     rw ← inf_eq_left,
     refine (ha.le_iff.mp inf_le_left).resolve_left (λ con, ha.1 _),
     rw [eq_bot_iff, ← con],

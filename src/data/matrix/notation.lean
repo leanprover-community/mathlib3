@@ -61,7 +61,6 @@ open lean
 open lean.parser
 open interactive
 open interactive.types
-)
 
 /-- Parse the entries of a matrix -/
 meta def entry_parser {α : Type} (p : parser α) :

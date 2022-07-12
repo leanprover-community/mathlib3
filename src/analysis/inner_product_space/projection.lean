@@ -879,6 +879,11 @@ begin
       (submodule.coe_mem (orthogonal_projection Kᗮ u))],
 end
 
+/-- The orthogonal projection is self-adjoint. -/
+lemma orthogonal_projection_is_self_adjoint [complete_space E] [complete_space K] :
+  inner_product_space.is_self_adjoint (K.subtypeL ∘L orthogonal_projection K : E →ₗ[𝕜] E):=
+inner_orthogonal_projection_left_eq_right K
+
 open finite_dimensional
 
 /-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`

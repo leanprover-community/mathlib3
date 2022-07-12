@@ -149,6 +149,9 @@ lemma is_self_adjoint_iff_eq_adjoint (A : E →L[𝕜] E) :
   is_self_adjoint (A : E →ₗ[𝕜] E) ↔ A = A.adjoint :=
 by simp_rw [is_self_adjoint, coe_coe, ← eq_adjoint_iff]
 
+lemma _root_.inner_product_space.is_self_adjoint.eq_adjoint {A : E →L[𝕜] E} (hA : is_self_adjoint (A : E →ₗ[𝕜] E)) : A = A† :=
+by rwa is_self_adjoint_iff_eq_adjoint at hA
+
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩

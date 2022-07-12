@@ -91,8 +91,8 @@ end gcd
 
 local attribute [instance] to_gcd_domain
 
-lemma of_surjective {S : Type v} [comm_ring S] (f : R →+* S) (hf : function.surjective f)
-  [is_bezout R] : is_bezout S :=
+lemma _root_.function.surjective.is_bezout {S : Type v} [comm_ring S] (f : R →+* S)
+  (hf : function.surjective f) [is_bezout R] : is_bezout S :=
 begin
   rw iff_span_pair_is_principal,
   intros x y,

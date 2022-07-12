@@ -228,9 +228,10 @@ set.disjoint_iff_inter_eq_empty.symm.trans disjoint_image_image_iff
 
 variables (α β)
 
-/-- The quotient by `mul_action.orbit_rel`, defined to enable dot notation. -/
-@[reducible, to_additive "The quotient by `mul_action.orbit_rel`, defined to enable dot notation."]
-def orbit_rel.quotient := (quotient $ orbit_rel α β)
+/-- The quotient by `mul_action.orbit_rel`, given a name to enable dot notation. -/
+@[reducible, to_additive "The quotient by `mul_action.orbit_rel`, given a name to enable dot
+notation."]
+def orbit_rel.quotient : Type* := quotient $ orbit_rel α β
 
 variables {α β}
 

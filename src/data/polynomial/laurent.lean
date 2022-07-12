@@ -6,7 +6,7 @@ Authors: Damiano Testa
 
 import data.polynomial.algebra_map
 import ring_theory.localization.basic
-import tactic.congrm
+import algebra.tropical.basic
 
 /-!  # Laurent polynomials
 
@@ -504,7 +504,8 @@ lemma degree_eq_int_degree {f : R[T;T⁻¹]} (f0 : f ≠ 0) :
   f.degree = f.int_degree :=
 by simp [degree, int_degree, finset.max', f0]
 
-lemma degree_to_laurent (f : R[X]) : f.to_laurent.degree = option.map coe f.degree :=
+lemma _root_.polynomial.degree_to_laurent (f : R[X]) :
+  f.to_laurent.degree = option.map coe f.degree :=
 begin
   by_cases f0 : f = 0,
   { simp only [f0, map_zero, degree_zero, polynomial.degree_zero]; refl },
@@ -513,6 +514,121 @@ begin
     { exact polynomial.to_laurent_ne_zero.mp f0 } }
 end
 
+lemma reduce_to_polynomial_of_mul_T''' (f : R[T;T⁻¹])
+  {Q : R[T;T⁻¹] → Prop}
+  (P : R[X] → Prop)
+  (hP : ∀ {f}, P f)
+  (PQ : ∀ {f}, P f → ∀ (n : ℕ), Q (f.to_laurent * T (- n))) :
+  Q f :=
+begin
+  induction f using laurent_polynomial.induction_on_mul_T with f n,
+  exact PQ hP _,
+end
+
+lemma _root_.finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
+ [covariant_class β β (function.swap (+)) (≤)]
+ (n : with_bot β) (s : finset α) :
+  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
+by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
+
+lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) : (f * T n).degree = f.degree + n :=
+by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
+  using finset.fold_max_add coe ↑n f.support
+
+lemma _root_.with_bot.map_id_coe_le (a b : with_bot ℕ) :
+  (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
+begin
+  rcases a with _ | a,
+  { simp },
+  { rcases b with _ | b,
+    { rw [option.map_some', id.def, option.map_none', ← not_iff_not, not_le, not_le],
+      simp only [with_bot.none_lt_some] },
+    { simp } }
+end
+
+lemma _root_.with_bot.eq_bot_or_coe {α} (n : with_bot α) : n = ⊥ ∨ ∃ m : α, n = m :=
+begin
+  rcases n with _ | a,
+  { exact or.inl rfl },
+  { exact or.inr ⟨_, rfl⟩ }
+end
+
+lemma _root_.with_bot.map_coe_add {a b : with_bot ℕ} :
+  (id (option.map coe (a + b : with_bot ℕ)) : with_bot ℤ) ≤ option.map coe a + option.map coe b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact (with_bot.bot_add _).ge },
+  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
+    { exact (with_bot.add_bot _).ge },
+    { exact rfl.le } },
+end
+
+lemma _root_.with_bot.add_coe_neg_le_iff (a : with_bot ℤ) (b : ℤ) (c : with_bot ℤ) :
+  a + (-b : ℤ) ≤ c ↔ a ≤ c + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { simp },
+  rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+  { simp only [le_bot_iff, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, with_bot.coe_ne_bot,
+      iff_false, not_false_iff] },
+  { norm_cast,
+    rw ← sub_eq_add_neg,
+    exact sub_le_iff_le_add }
+end
+
+lemma _root_.with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
+  ∃ (a' : with_bot A), a = a' + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact ⟨_, (with_bot.bot_add _).symm⟩ },
+  { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
+end
+
+lemma degree_mul_aux (d : with_bot ℕ) (e : with_bot ℤ) (f : R[X]) (g : R[T;T⁻¹])
+  (fd : f.degree ≤ d) (ge : g.degree ≤ e) :
+  (polynomial.to_laurent f * g).degree ≤ option.map coe d + e :=
+begin
+  revert ge e,
+  apply g.reduce_to_polynomial_of_mul_T''' (λ p, (f * p).degree ≤ d + p.degree); clear g,
+  { exact λ p, (degree_mul_le _ _).trans (add_le_add fd rfl.le) },
+  { intros g hfg n e h,
+    rw [← mul_assoc, ← map_mul, degree_mul_T, (f * g).degree_to_laurent],
+    refine (with_bot.add_coe_neg_le_iff _ _ _).mpr _,
+    refine ((with_bot.map_id_coe_le _ _).mpr hfg).trans _,
+    refine with_bot.map_coe_add.trans _,
+    rw add_assoc,
+    refine add_le_add_left _ _,
+    rw [degree_mul_T, g.degree_to_laurent] at h,
+    exact (with_bot.add_coe_neg_le_iff _ _ _).mp h }
+end
+
+lemma degree_mul {d e : with_bot ℤ} (f g : R[T;T⁻¹]) (df : f.degree ≤ d) (eg : g.degree ≤ e) :
+  (f * g).degree ≤ d + e :=
+begin
+  revert df eg g d e,
+  apply f.reduce_to_polynomial_of_mul_T; clear f,
+  { intros f e d g fd eg,
+    rw f.degree_to_laurent at fd,
+    exact (degree_mul_aux f.degree _ _ _ rfl.le eg).trans (add_le_add fd rfl.le) },
+  { intros f hf d e g fd eg,
+    rcases e.eq_add 1 with ⟨e', rfl⟩,
+    have : (f * T 1 * (g * T (- 1))).degree ≤ (d + 1) + e',
+    { refine hf (g * T (-1)) _ _ ;
+      rw degree_mul_T,
+      { exact add_le_add_right fd (1 : with_bot ℤ) },
+      { exact (with_bot.add_coe_neg_le_iff _ _ _).mpr eg } },
+    convert this using 1,
+    { rw [mul_assoc, T_mul, mul_assoc, ← T_add, neg_add_self, T_zero, mul_one] },
+    { rw [add_comm e', add_assoc],
+      refl } }
+end
+
+lemma degree_mul_le (f g : R[T;T⁻¹]) : (f * g).degree ≤ f.degree + g.degree :=
+degree_mul _ _ rfl.le rfl.le
+
+end degrees
+
+#exit
 instance : can_lift (with_bot ℤ) ℕ :=
 { coe := coe,
   cond := ((≤) 0),
@@ -538,58 +654,6 @@ begin
     simpa using hn }
 end
 -/
-
-lemma reduce_to_polynomial_of_mul_T''' (f : R[T;T⁻¹])
-  {Q : R[T;T⁻¹] → Prop}
-  (P : R[X] → Prop)
-  (hP : ∀ {f}, P f)
-  (PQ : ∀ {f}, P f → ∀ (n : ℕ), Q (f.to_laurent * T (- n))) :
-  Q f :=
-begin
-  induction f using laurent_polynomial.induction_on_mul_T with f n,
-  exact PQ hP _,
-end
-
-lemma finset.fold_max_add {α β} [linear_order β] (f : α → β) [decidable_eq α] [has_add β]
- [covariant_class β β (function.swap (+)) (≤)]
- (n : with_bot β) (s : finset α) :
-  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
-by apply s.induction_on;
-  simp [max_add_add_right] {contextual := tt}
-
-lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
-  (f * T n).degree = f.degree + n :=
-by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
-  using finset.fold_max_add coe ↑n f.support
-
-
-lemma option.map_id_coe_le (a b : with_bot ℕ) :
-  (id (option.map coe a) : with_bot ℤ) ≤ option.map coe b ↔ a ≤ b :=
-begin
-  rcases a with _ | a,
-  { simp },
-  { rcases b with _ | b,
-    { rw [option.map_some', id.def, option.map_none', ← not_iff_not, not_le, not_le],
-      simp only [with_bot.none_lt_some] },
-    { simp } }
-end
-
-lemma _root_.with_bot.eq_bot_or_coe {α} (n : with_bot α) : n = ⊥ ∨ ∃ m : α, n = m :=
-begin
-  rcases n with _ | a,
-  { exact or.inl rfl },
-  { exact or.inr ⟨_, rfl⟩ }
-end
-
-lemma option.map_coe_add {a b : with_bot ℕ} :
-  (id (option.map coe (a + b : with_bot ℕ)) : with_bot ℤ) ≤ option.map coe a + option.map coe b :=
-begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact (with_bot.bot_add _).ge },
-  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
-    { exact (with_bot.add_bot _).ge },
-    { exact rfl.le } },
-end
 
 @[to_additive]
 lemma mul_le_cancellable_of_mul_eq_one {α} [monoid α] [has_le α] [covariant_class α α (*) (≤)]
@@ -618,29 +682,74 @@ begin
   { sorry }
 end
 -/
+open multiplicative
 
-lemma with_bot.add_coe_neg_le_iff (a : with_bot ℤ) (b : ℤ) (c : with_bot ℤ) :
-  a + (-b : ℤ) ≤ c ↔ a ≤ c + b :=
+def to_val : with_bot ℤ → with_zero (multiplicative ℤ)
+| ⊥        := 0
+| (some z) := of_add z
+
+attribute [reducible] with_zero
+def of_val : with_zero (multiplicative ℤ) → with_bot ℤ
+| 0        := ⊥
+| (some z) := to_add z
+attribute [irreducible] with_zero
+#eval of_val (of_add (5 : ℤ) * of_add (4-20 : ℤ))
+class pn (R V : Type*) [has_add R] [has_mul R] [has_add V] [linear_order V] (v : R → V) : Prop :=
+(add_le_add : ∀ {f g}, v (f + g) ≤ max (v f) (v g))
+(mul_le_mul : ∀ {f g}, v (f * g) ≤ v f + v g)
+
+instance : pn R[X] (with_bot ℕ) polynomial.degree :=
+{ add_le_add := degree_add_le,
+  mul_le_mul := degree_mul_le }
+
+instance : pn R[T;T⁻¹] (with_bot ℤ) degree :=
+{ add_le_add := degree_add_le,
+  mul_le_mul := degree_mul_le }
+
+lemma _root_.with_bot.div_le_iff_le_mul {α} [comm_group α] [linear_order α]
+  [covariant_class α α (*) (≤)] (a : with_zero α) (b : α) (c : with_zero α) :
+  a / b ≤ c ↔ a ≤ c * b :=
 begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { simp },
-  rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
-  { simp only [le_bot_iff, with_bot.coe_add_eq_bot_iff, with_bot.bot_add, with_bot.coe_ne_bot,
-      iff_false, not_false_iff] },
-  { norm_cast,
-    rw ← sub_eq_add_neg,
-    exact sub_le_iff_le_add }
+  rcases eq_or_ne a 0 with rfl | a0,
+  { simp [with_zero.zero_le] },
+  rcases with_zero.ne_zero_iff_exists.mp a0 with ⟨a, rfl⟩,
+  rcases eq_or_ne c 0 with rfl | c0,
+  simp [← not_lt, with_zero.zero_lt_coe, ← with_zero.coe_div],
+  rcases with_zero.ne_zero_iff_exists.mp c0 with ⟨c, rfl⟩,
+  norm_cast,
+  exact div_le_iff_le_mul,
 end
 
-lemma with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
-  ∃ (a' : with_bot A), a = a' + b :=
+/-
+lemma _root_.with_bot.add_coe_neg_le_iff {α} [add_comm_group α] [linear_order α]
+  [covariant_class α α (+) (≤)] [covariant_class α α (function.swap (+)) (≤)] (a : with_zero (multiplicative α)) (b : (multiplicative α))
+  (c : with_zero (multiplicative α)) :
+  a / b ≤ c ↔ a ≤ c * b :=
 begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact ⟨_, (with_bot.bot_add _).symm⟩ },
-  { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
-end
+  rcases eq_or_ne a 0 with rfl | a0,
+  { simp [with_zero.zero_le] },
+  rcases with_zero.ne_zero_iff_exists.mp a0 with ⟨a, rfl⟩,
+  rcases eq_or_ne c 0 with rfl | c0,
+  simp [← not_lt, with_zero.zero_lt_coe, ← with_zero.coe_div],
+  rcases with_zero.ne_zero_iff_exists.mp c0 with ⟨c, rfl⟩,
+  norm_cast,
+  exact div_le_iff_le_mul,
 
-lemma with_bot.add_coe_neg_eq_iff {A} [add_comm_group A]
+
+  convert sub_le_iff_le_add,
+  rcases a.eq_bot_or_coe with rfl | ⟨a, ha⟩,
+  simp [with_zero.zero_le],
+  simp [sub_le_iff_le_add'],
+  refine ⟨λ h, _, λ h, _⟩,
+
+  sorry,
+  sorry;library_search,
+  exact with_zero.zero_le _,
+  sorry
+end
+-/
+
+lemma _root_.with_bot.add_coe_neg_eq_iff {A} [add_comm_group A]
   (a : with_bot A) (b : A) (c : with_bot A) :
   a + (-b : A) = c ↔ a = c + b :=
 begin
@@ -655,46 +764,61 @@ begin
       exact sub_eq_iff_eq_add } }
 end
 
-lemma degree_mul_aux (d : with_bot ℕ) (e : with_bot ℤ) (f : R[X]) (g : R[T;T⁻¹])
-  (fd : f.degree ≤ d) (ge : g.degree ≤ e) :
-  (polynomial.to_laurent f * g).degree ≤ option.map coe d + e :=
-begin
-  revert ge e,
-  apply reduce_to_polynomial_of_mul_T''' g (λ p, (f * p).degree ≤ d + p.degree); clear g,
-  { exact λ p, (degree_mul_le _ _).trans (add_le_add fd rfl.le) },
-  intros g hfg n e h,
-  rw [← mul_assoc, ← map_mul, degree_mul_T, degree_to_laurent],
-  refine (with_bot.add_coe_neg_le_iff _ _ _).mpr _,
-  refine ((option.map_id_coe_le _ _).mpr hfg).trans _,
-  refine option.map_coe_add.trans _,
-  rw add_assoc,
-  refine add_le_add_left _ _,
-  rw [degree_mul_T, degree_to_laurent] at h,
-  exact (with_bot.add_coe_neg_le_iff _ _ _).mp h,
-end
+def _root_.with_bot.neg {α} [has_neg α] : with_bot α → with_bot α
+| (some a) := some (- a)
+| none     := none
 
-lemma degree_mul {d e : with_bot ℤ} (f g : R[T;T⁻¹]) (df : f.degree ≤ d) (eg : g.degree ≤ e) :
-  (f * g).degree ≤ d + e :=
-begin
-  revert df eg g d e,
-  apply reduce_to_polynomial_of_mul_T f; clear f,
-  { intros f e d g fd eg,
-    rw degree_to_laurent at fd,
-    exact (degree_mul_aux f.degree _ _ _ rfl.le eg).trans (add_le_add fd rfl.le) },
-  { intros f hf d e g fd eg,
-    rcases with_bot.eq_add e 1 with ⟨e', rfl⟩,
-    have : (f * T 1 * (g * T (- 1))).degree ≤ (d + 1) + e',
-    { refine hf (g * T (-1)) _ _ ;
-      rw degree_mul_T,
-      { exact add_le_add_right fd (1 : with_bot ℤ) },
-      { exact (with_bot.add_coe_neg_le_iff _ _ _).mpr eg } },
-    convert this using 1,
-    { rw [mul_assoc, T_mul, mul_assoc, ← T_add, neg_add_self, T_zero, mul_one] },
-    { rw [add_comm e', add_assoc],
-      refl } }
-end
+@[simp]
+def _root_.with_bot.neg_bot {α} [has_neg α] : (with_bot.neg ⊥ : with_bot α) = ⊥ :=
+rfl
 
-end degrees
+@[simp]
+def _root_.with_bot.neg_coe {α} [has_neg α] (a : α) : (with_bot.neg (a : with_bot α)) = (-a : α) :=
+rfl
+
+def _root_.with_bot.neg_neg {α} [has_involutive_neg α] (a : with_bot α) :
+  (with_bot.neg (with_bot.neg a)) = a :=
+by rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩;
+  simp only [with_bot.neg_bot, with_bot.neg_coe, neg_neg]
+
+instance {α} [add_comm_group α] : sub_neg_monoid (with_bot α) :=
+{ neg := with_bot.neg,
+  ..(infer_instance : add_comm_monoid (with_bot α)) }
+
+instance {α} [comm_group α] : comm_group_with_zero (with_zero α) :=
+by refine with_zero.comm_group_with_zero
+
+instance {α} [add_comm_group α] : subtraction_comm_monoid (with_bot α) :=
+{ neg_neg := λ a, by {
+    rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+    refl,
+
+},
+  neg_add_rev := _,
+  neg_eq_of_add := _,
+  add_comm := add_comm,
+  ..(infer_instance : sub_neg_monoid (with_bot α)) }
+
+instance {α} [add_comm_group α] : comm_group_with_zero (multiplicative (with_bot α)) :=
+{ zero := none,
+  zero_mul := with_bot.bot_add,
+  mul_comm := mul_comm,
+  mul_zero := with_bot.add_bot,
+  inv := with_bot.neg,
+  exists_pair_ne := ⟨_, ((0 : α) : with_bot α), with_bot.bot_ne_coe⟩,
+  inv_zero := rfl,
+  mul_inv_cancel := λ a a0, by {
+    rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+    { exact (a0 rfl).elim },
+    {
+
+    }
+  },
+  ..(infer_instance : div_inv_monoid (multiplicative (with_bot α))) }
+--  ..(infer_instance : comm_monoid (multiplicative (with_bot α))) }
+--subtraction_comm_monoid
+--instance {α} [add_comm_group α] : comm_group_ α := by apply_instance
+
 
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent

@@ -64,13 +64,30 @@ def rees_algebra : subalgebra R R[X] :=
 lemma mem_rees_algebra_iff (f : R[X]) :
   f ∈ rees_algebra I ↔ ∀ i, f.coeff i ∈ I ^ i := iff.rfl
 
+lemma mem_rees_algebra_iff_support (f : R[X]) :
+  f ∈ rees_algebra I ↔ ∀ i ∈ f.support, f.coeff i ∈ I ^ i :=
+begin
+  apply forall_congr,
+  intro a,
+  rw [mem_support_iff, iff.comm, imp_iff_right_iff, ne.def, ← imp_iff_not_or],
+  exact λ e, e.symm ▸ (I ^ a).zero_mem
+end
+
 lemma rees_algebra.monomial_mem {I : ideal R} {i : ℕ} {r : R} :
   monomial i r ∈ rees_algebra I ↔ r ∈ I ^ i :=
+by simp [mem_rees_algebra_iff_support, coeff_monomial, ← imp_iff_not_or] { contextual := tt }
+
+lemma monomial_mem_adjoin_monomial {I : ideal R} {n : ℕ} {r : R} (hr : r ∈ I ^ n) :
+  monomial n r ∈ algebra.adjoin R (submodule.map (monomial 1) I : set R[X]) :=
 begin
-  dsimp [mem_rees_algebra_iff, monomial, monomial_fun],
-  simp_rw finsupp.single_apply,
-  exact ⟨λ H, by simpa using H i, λ h j,
-    by { split_ifs with h', { rwa ← h' }, { exact ideal.zero_mem _ } }⟩,
+  induction n with n hn generalizing r,
+  { exact subalgebra.algebra_map_mem _ _ },
+  { rw pow_succ at hr,
+    apply submodule.smul_induction_on hr,
+    { intros r hr s hs,
+      rw [nat.succ_eq_one_add, smul_eq_mul, ← monomial_mul_monomial],
+      exact subalgebra.mul_mem _ (algebra.subset_adjoin (set.mem_image_of_mem _ hr)) (hn hs) },
+    { intros x y hx hy, rw monomial_add, exact subalgebra.add_mem _ hx hy } }
 end
 
 lemma adjoin_monomial_eq_rees_algebra :
@@ -84,18 +101,7 @@ begin
     rw p.as_sum_support,
     apply subalgebra.sum_mem _ _,
     rintros i -,
-    specialize hp i,
-    revert hp,
-    generalize : p.coeff i = r,
-    induction i with i hi generalizing r,
-    { intro _, exact subalgebra.algebra_map_mem _ _ },
-    { intro h,
-      rw pow_succ at h,
-      apply submodule.smul_induction_on h,
-      { intros r hr s hs,
-        rw [nat.succ_eq_one_add, smul_eq_mul, ← monomial_mul_monomial],
-        exact subalgebra.mul_mem _ (algebra.subset_adjoin (set.mem_image_of_mem _ hr)) (hi s hs) },
-      { intros x y hx hy, rw monomial_add, exact subalgebra.add_mem _ hx hy } } }
+    exact monomial_mem_adjoin_monomial (hp i) }
 end
 
 variables {I}

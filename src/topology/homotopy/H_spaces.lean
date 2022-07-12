@@ -76,8 +76,6 @@ instance (x : X) : topological_space (loop_space x) := by {exact subtype.topolog
 
 instance (x : X) : has_coe (loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
 
-notation ` Ω ` := loop_space
-
 variable (x : X)
 
 example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compact_space Y]
@@ -116,42 +114,80 @@ end
 
 abbreviation new_loop_space (x : X) := path x x
 
-instance (x : X) : topological_space (new_loop_space x) := infer_instance
+notation ` Ω ` := new_loop_space
+
+instance (x : X) : topological_space (Ω x) := infer_instance
 
 
-lemma continuous_to_new_loop_space_iff {Y : Type u} [topological_space Y]
-  {g : Y → new_loop_space x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) := sorry
+lemma continuous_to_loop_space_iff {Y : Type u} [topological_space Y]
+  {g : Y → Ω x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) := sorry
 
-example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X) (hf : continuous f)
-: continuous (λ p : Y × Z, f p.1) := continuous.fst' hf
+-- example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X) (hf : continuous f)
+-- : continuous (λ p : Y × Z, f p.1) := continuous.fst' hf
 
-example (Y Z : Type u) [topological_space Y] [topological_space Z] :
-  (X × Y) × Z ≃ₜ X × (Y × Z) := homeomorph.prod_assoc X Y Z
+-- example (Y Z : Type u) [topological_space Y] [topological_space Z] :
+--   (X × Y) × Z ≃ₜ X × (Y × Z) := homeomorph.prod_assoc X Y Z
 
 def I₀ := {t : I | t.1 ≤ 1/2}
 
-lemma univ_eq_union_halves (α : Type u) : (set.univ : set (α × I)) =
+lemma univ_eq_union_halves' (α : Type u) : (set.univ : set (α × I)) =
   ((set.univ : set α) ×ˢ I₀) ∪ ((set.univ : set α) ×ˢ I₀ᶜ) :=  by {ext, simp only [set.mem_union_eq,
    set.mem_prod, set.mem_univ, true_and, set.mem_compl_eq], tauto}
 
--- example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y × Z → X)
--- (hY : ∀ z, continuous (λ y, f (y, z))) (hZ : ∀ y, continuous (λ z, f (y, z))) : continuous f :=
--- begin
---   -- have := is_open_p
---   -- suggest,
--- end
+lemma univ_eq_union_halves (α : Type u) : ((set.univ : set α) ×ˢ I₀) ∪ ((set.univ : set α) ×ˢ I₀ᶜ)
+  = (set.univ : set (α × I)) :=  by {ext, simp only [set.mem_union_eq, set.mem_prod, set.mem_univ,
+    true_and, set.mem_compl_eq], tauto}
 
-instance loop_space_is_H_space (x : X) : H_space (new_loop_space x) :=
+lemma continuous_of_restricts_union {α β : Type u} [topological_space α] [topological_space β]
+  {s t : set α} {f : α → β} (H : s ∪ t = set.univ) (hs : continuous (s.restrict f))
+  (ht : continuous (t.restrict f)) : continuous f := sorry --it should be a iff if it lands in `mathlib`
+
+lemma continuous_triple_prod_assoc {α β γ δ : Type u} [topological_space α] [topological_space β]
+  [topological_space γ] [topological_space δ] (f : (α × β) × γ → δ) : continuous f ↔
+    continuous (f ∘ (homeomorph.prod_assoc α β γ).symm.1) :=
+begin
+  split,
+  {refine λ (h : continuous f), h.comp _,
+    simp only [homeomorph.coe_to_equiv, homeomorph.comp_continuous_iff],
+    exact continuous_id},
+  { refine λ (h : continuous (f ∘ ⇑((homeomorph.prod_assoc α β γ).symm.to_equiv))), _,
+    simp only [*, homeomorph.coe_to_equiv, homeomorph.comp_continuous_iff'] at * },
+end
+
+lemma continuous_triple_prod_swap {α β γ δ : Type u} [topological_space α] [topological_space β]
+  [topological_space γ] [topological_space δ] (f : (α × β) × γ → δ) : continuous f ↔
+    continuous (f ∘ (homeomorph.prod_comm _ _).symm.1) :=
+begin
+  sorry,
+end
+
+example (α β : Type u) [inhabited α] (f : α → β) : (∃ b, f = (function.const α b)) ↔ (∀ x y : α, f x = f y) :=
+begin
+  split,
+  { rintro ⟨b, hb⟩,
+    intros x y,
+    rw hb },
+  { intro h,
+    use f (default : α),
+    ext,
+    rw h }
+end
+
+instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
   cont' :=
   begin
-    sorry;{
-    apply (continuous_to_new_loop_space_iff x).mpr,
+    apply (continuous_to_loop_space_iff x).mpr,
+    apply continuous_of_restricts_union (univ_eq_union_halves _),
+    { sorry,
+
+    },
+
     rw continuous_iff_continuous_at,
     intro w,
     rw ← continuous_within_at_univ,
-    rw univ_eq_union_halves ((new_loop_space x) × (new_loop_space x)),
+    rw univ_eq_union_halves' ((Ω x) × (Ω x)),
     -- rw h,
     apply continuous_within_at_union.mpr,
     split,
@@ -171,7 +207,7 @@ instance loop_space_is_H_space (x : X) : H_space (new_loop_space x) :=
 
     },
   -- sorry,
-    },
+    -- },
   end,
   Hmul_e_e := sorry,
   left_Hmul_e := sorry,

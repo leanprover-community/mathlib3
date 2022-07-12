@@ -276,11 +276,11 @@ lemma map_nat_degree_eq_nat_degree {S F : Type*} [semiring S]
 
 open_locale big_operators
 
-lemma card_support_eq' {n : ℕ} (k : fin n → ℕ) (x : fin n → R) (hk : strict_mono k)
+lemma card_support_eq' {n : ℕ} (k : fin n → ℕ) (x : fin n → R) (hk : function.injective k)
   (hx : ∀ i, x i ≠ 0) :  (∑ i, C (x i) * X ^ k i).support.card = n :=
 begin
   suffices : (∑ i, C (x i) * X ^ k i).support = finset.image k finset.univ,
-  { rw [this, finset.univ.card_image_of_injective (hk.injective), card_fin] },
+  { rw [this, finset.univ.card_image_of_injective hk, card_fin] },
   simp_rw [finset.ext_iff, mem_support_iff, finset_sum_coeff, coeff_C_mul, coeff_X_pow,
     mul_ite, mul_zero, mul_one, mem_image, mem_univ, exists_true_left],
   refine λ i, ⟨λ h, _, _⟩,
@@ -289,7 +289,7 @@ begin
   { rintros ⟨j, hj⟩,
     rw sum_eq_single_of_mem j (finset.mem_univ j),
     { exact ne_of_eq_of_ne (if_pos hj.symm) (hx j) },
-    { exact λ m hm hmj, if_neg (λ h, hmj.symm (hk.injective (hj.trans h))) } },
+    { exact λ m hm hmj, if_neg (λ h, hmj.symm (hk (hj.trans h))) } },
 end
 
 lemma card_support_eq {n : ℕ} : f.support.card = n ↔ ∃ (k : fin n → ℕ) (x : fin n → R)
@@ -341,8 +341,10 @@ begin
         rw [←hf, function.extend_apply', function.extend_apply', erase_lead_add_C_mul_X_pow],
         all_goals { exact H } } } },
   { rintros ⟨k, x, hk, hx, rfl⟩,
-    exact card_support_eq' k x hk hx },
+    exact card_support_eq' k x hk.injective hx },
 end
+
+#exit
 
 lemma card_support_eq_one : f.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), f = C x * X ^ k :=
 begin
@@ -380,5 +382,7 @@ begin
   { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
     exact card_support_trinomial hkm hmn hx hy hz },
 end
+
+#exit
 
 end polynomial

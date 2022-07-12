@@ -128,27 +128,50 @@ example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X)
 example (Y Z : Type u) [topological_space Y] [topological_space Z] :
   (X × Y) × Z ≃ₜ X × (Y × Z) := homeomorph.prod_assoc X Y Z
 
+def I₀ := {t : I | t.1 ≤ 1/2}
+
+lemma univ_eq_union_halves (α : Type u) : (set.univ : set (α × I)) =
+  ((set.univ : set α) ×ˢ I₀) ∪ ((set.univ : set α) ×ˢ I₀ᶜ) :=  by {ext, simp only [set.mem_union_eq,
+   set.mem_prod, set.mem_univ, true_and, set.mem_compl_eq], tauto}
+
+-- example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y × Z → X)
+-- (hY : ∀ z, continuous (λ y, f (y, z))) (hZ : ∀ y, continuous (λ z, f (y, z))) : continuous f :=
+-- begin
+--   -- have := is_open_p
+--   -- suggest,
+-- end
+
 instance loop_space_is_H_space (x : X) : H_space (new_loop_space x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
   cont' :=
   begin
+    sorry;{
     apply (continuous_to_new_loop_space_iff x).mpr,
     rw continuous_iff_continuous_at,
     intro w,
     rw ← continuous_within_at_univ,
-    let I₀ := {t : I | t.1 ≤ 1/2},
-    let S := ((set.univ : set (new_loop_space x)) ×ˢ (set.univ : set (new_loop_space x))) ×ˢ I₀,
-    let T := ((set.univ : set (new_loop_space x)) ×ˢ (set.univ : set (new_loop_space x))) ×ˢ I₀ᶜ,
-    have h : set.univ = S ∪ T,sorry,
-    rw h,
+    rw univ_eq_union_halves ((new_loop_space x) × (new_loop_space x)),
+    -- rw h,
     apply continuous_within_at_union.mpr,
     split,
-    { sorry,
+    {
+
+
+      -- have H := @continuous_within_at_snd ((new_loop_space x) × (new_loop_space x)) I _ _
+      --   (set.univ ×ˢ I₀) w,
+      -- have := @continuous_within_at.comp ((new_loop_space x × new_loop_space x) × I) _ X _ _ _,
+      -- let ψ := (λ p : ((new_loop_space x × new_loop_space x) × I), ((path.trans p.fst.fst p.fst.snd).1).1),
+    -- { have := continuous_within_at.comp' continuous_within_at_snd _,
+    --simp [path.trans],
+      -- by_cases hw : w.2.1 ≤ 2⁻¹,
+      -- simp_rw if_pos,
+
+      -- apply
 
     },
-  sorry,
-
+  -- sorry,
+    },
   end,
   Hmul_e_e := sorry,
   left_Hmul_e := sorry,

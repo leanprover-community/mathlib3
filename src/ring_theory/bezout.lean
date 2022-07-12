@@ -32,9 +32,10 @@ namespace is_bezout
 
 variables {R}
 
-lemma span_pair_is_principal [is_bezout R] (x y : R) :
+instance span_pair_is_principal [is_bezout R] (x y : R) :
   (ideal.span {x, y} : ideal R).is_principal :=
 by { classical, exact is_principal_of_fg (ideal.span {x, y}) ⟨{x, y}, by simp⟩ }
+export is_bezout (span_pair_is_principal)
 
 lemma iff_span_pair_is_principal :
   is_bezout R ↔ (∀ x y : R, (ideal.span {x, y} : ideal R).is_principal) :=
@@ -55,18 +56,17 @@ variable [is_bezout R]
 
 /-- The gcd of two elements in a bezout domain. -/
 noncomputable
-def gcd (x y : R) : R := (span_pair_is_principal x y).1.some
+def gcd (x y : R) : R :=
+submodule.is_principal.generator (ideal.span {x, y})
 
-lemma gcd_prop (x y : R) : (ideal.span {gcd x y} : ideal R) = ideal.span {x, y} :=
-(span_pair_is_principal x y).1.some_spec.symm
+lemma span_gcd (x y : R) : (ideal.span {gcd x y} : ideal R) = ideal.span {x, y} :=
+ideal.span_singleton_generator _
 
 lemma gcd_dvd_left (x y : R) : gcd x y ∣ x :=
-ideal.span_singleton_le_span_singleton.mp
-  (by { rw gcd_prop, apply ideal.span_mono, simp })
+(submodule.is_principal.mem_iff_generator_dvd _).mp (ideal.subset_span (by simp))
 
 lemma gcd_dvd_right (x y : R) : gcd x y ∣ y :=
-ideal.span_singleton_le_span_singleton.mp
-  (by { rw gcd_prop, apply ideal.span_mono, simp })
+(submodule.is_principal.mem_iff_generator_dvd _).mp (ideal.subset_span (by simp))
 
 lemma dvd_gcd {x y z : R} (hx : z ∣ x) (hy : z ∣ y) : z ∣ gcd x y :=
 begin

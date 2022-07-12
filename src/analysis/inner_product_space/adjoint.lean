@@ -47,8 +47,6 @@ variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-namespace inner_product_space
-
 
 /-! ### Self-adjoint operators -/
 
@@ -56,11 +54,18 @@ namespace inner_product_space
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
 def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
+section real
+
+variables {E' : Type*} [inner_product_space ℝ E']
+
+-- Todo: Generalize this to `is_R_or_C`.
 /-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
 `bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_bilin_form (T : F →ₗ[ℝ] F) :
+lemma is_self_adjoint_iff_bilin_form (T : E' →ₗ[ℝ] E') :
   is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
 by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+
+end real
 
 lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
@@ -143,6 +148,8 @@ begin
 end
 
 end complex
+
+/-! ### Adjoint operator -/
 
 namespace continuous_linear_map
 

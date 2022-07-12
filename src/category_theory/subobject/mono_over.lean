@@ -388,7 +388,7 @@ end
 /-- `exists` is adjoint to `pullback` when images exist -/
 def exists_pullback_adj (f : X ⟶ Y) [has_pullbacks C] : «exists» f ⊣ pullback f :=
 adjunction.restrict_fully_faithful (forget X) (𝟭 _)
-  ((over.map_pullback_adj f).comp _ _ image_forget_adj)
+  ((over.map_pullback_adj f).comp image_forget_adj)
   (iso.refl _)
   (iso.refl _)
 

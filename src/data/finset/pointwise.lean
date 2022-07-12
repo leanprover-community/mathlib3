@@ -50,7 +50,7 @@ pointwise subtraction
 -/
 
 open function
-open_locale pointwise
+open_locale big_operators pointwise
 
 variables {F α β γ : Type*}
 
@@ -348,13 +348,22 @@ def singleton_monoid_hom : α →* finset α := { ..singleton_mul_hom, ..singlet
   (singleton_monoid_hom : α → finset α) = singleton := rfl
 @[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
 
+/-- The coercion from `finset` to `set` as a `monoid_hom`. -/
+@[to_additive "The coercion from `finset` to `set` as an `add_monoid_hom`."]
+def coe_monoid_hom : finset α →* set α :=
+{ to_fun := coe,
+  map_one' := coe_one,
+  map_mul' := coe_mul }
+
+@[simp, to_additive] lemma coe_coe_monoid_hom : (coe_monoid_hom : finset α → set α) = coe := rfl
+@[simp, to_additive] lemma coe_monoid_hom_apply (s : finset α) : coe_monoid_hom s = s := rfl
+
 end mul_one_class
 
 section monoid
 variables [monoid α] {s t : finset α} {a : α} {m n : ℕ}
 
-@[simp, to_additive]
-lemma coe_pow (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
+@[simp, norm_cast, to_additive] lemma coe_pow (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
 begin
   change ↑(npow_rec n s) = _,
   induction n with n ih,
@@ -405,10 +414,22 @@ is_unit.map (singleton_monoid_hom : α →* finset α)
 
 end monoid
 
+section comm_monoid
+variables [comm_monoid α]
+
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "]
-protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
+protected def comm_monoid : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
+
+localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid" in pointwise
+
+@[simp, norm_cast, to_additive]
+lemma coe_prod {ι : Type*} (s : finset ι) (f : ι → finset α) :
+  (↑(∏ i in s, f i) : set α) = ∏ i in s, f i :=
+map_prod (coe_monoid_hom : finset α →* set α) _ _
+
+end comm_monoid
 
 open_locale pointwise
 
@@ -456,9 +477,8 @@ coe_injective.division_comm_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe
 protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (finset α) :=
 coe_injective.has_distrib_neg _ coe_neg coe_mul
 
-localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.division_monoid
-  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid
-  finset.has_distrib_neg" in pointwise
+localized "attribute [instance] finset.division_monoid finset.subtraction_monoid
+  finset.division_comm_monoid finset.subtraction_comm_monoid finset.has_distrib_neg" in pointwise
 
 section distrib
 variables [distrib α] (s t u : finset α)
@@ -775,7 +795,7 @@ variables [decidable_eq γ]
 @[to_additive]
 instance smul_comm_class_finset [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class α β (finset γ) :=
-⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+⟨λ _ _, commute.finset_image $ smul_comm _ _⟩
 
 @[to_additive]
 instance smul_comm_class_finset' [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :

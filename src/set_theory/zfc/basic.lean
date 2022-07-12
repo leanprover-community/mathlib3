@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import order.well_founded
 
 /-!
 # A model of ZFC
@@ -138,6 +139,15 @@ instance setoid : setoid pSet :=
 equivalent to some element of the second family.-/
 instance : has_subset pSet := ⟨λ x y, ∀ a, ∃ b, equiv (x.func a) (y.func b)⟩
 
+instance : is_refl pSet (⊆) := ⟨λ x a, ⟨a, equiv.refl _⟩⟩
+
+instance : is_trans pSet (⊆) :=
+⟨λ x y z hxy hyz a, begin
+  cases hxy a with b hb,
+  cases hyz b with c hc,
+  exact ⟨c, hb.trans hc⟩
+end⟩
+
 theorem equiv.ext : Π (x y : pSet), equiv x y ↔ (x ⊆ y ∧ y ⊆ x)
 | ⟨α, A⟩ ⟨β, B⟩ :=
   ⟨λ ⟨αβ, βα⟩, ⟨αβ, λ b, let ⟨a, h⟩ := βα b in ⟨a, equiv.symm h⟩⟩,
@@ -176,6 +186,24 @@ end⟩
 
 theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀ {w : pSet.{u}}, x ∈ w ↔ y ∈ w)
 | x y h ⟨α, A⟩ := ⟨λ ⟨a, ha⟩, ⟨a, h.symm.trans ha⟩, λ ⟨a, ha⟩, ⟨a, h.trans ha⟩⟩
+
+theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
+| ⟨α, A⟩ ⟨β, B⟩ H := acc.intro _ begin
+  rintros ⟨γ, C⟩ ⟨b, hc⟩,
+  cases exists_equiv_right H b with a ha,
+  have := ha.trans hc.symm,
+  dsimp at this,
+  exact mem_wf_aux this
+end
+
+theorem mem_wf : @well_founded pSet (∈) := ⟨λ x, mem_wf_aux $ equiv.refl x⟩
+
+instance : has_well_founded pSet := ⟨_, mem_wf⟩
+
+instance : is_asymm pSet (∈) := mem_wf.is_asymm
+
+theorem mem_irrefl {x : pSet} : x ∉ x := irrefl x
+theorem mem_asymm {x y : pSet} : x ∈ y → y ∉ x := asymm
 
 /-- Convert a pre-set to a `set` of pre-sets. -/
 def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
@@ -404,6 +432,9 @@ instance has_subset : has_subset Set := ⟨λ x y, ∀ ⦃z⦄, z ∈ x → z �
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
+instance : is_refl Set (⊆) := ⟨λ x a, id⟩
+instance : is_trans Set (⊆) := ⟨λ x y z hxy hyz a ha, hyz (hxy ha)⟩
+
 @[simp] theorem subset_iff : Π (x y : pSet), mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ h a, @h ⟦A a⟧ (mem.mk A a),
   λ h z, quotient.induction_on z (λ z ⟨a, za⟩, let ⟨b, ab⟩ := h a in ⟨b, za.trans ab⟩)⟩
@@ -415,6 +446,8 @@ quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧
 
 theorem ext_iff {x y : Set.{u}} : x = y ↔ (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) :=
 ⟨λ h, by simp [h], ext⟩
+
+instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @hba c⟩⟩
 
 @[simp] theorem to_set_inj {x y : Set} : x.to_set = y.to_set ↔ x = y :=
 by simp_rw [ext_iff, ←mem_to_set, ←set.ext_iff]
@@ -575,10 +608,20 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+/-- Induction on the `∈` relation. -/
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
 quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
 show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
 quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ ha), exact IH a })
+
+theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
+
+instance : has_well_founded Set := ⟨_, mem_wf⟩
+
+instance : is_asymm Set (∈) := mem_wf.is_asymm
+
+theorem mem_irrefl {x : Set} : x ∉ x := irrefl x
+theorem mem_asymm {x y : Set} : x ∈ y → y ∉ x := asymm
 
 theorem regularity (x : Set.{u}) (h : x ≠ ∅) : ∃ y ∈ x, x ∩ y = ∅ :=
 classical.by_contradiction $ λ ne, h $ (eq_empty x).2 $ λ y,

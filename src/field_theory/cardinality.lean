@@ -3,13 +3,14 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import ring_theory.localization.cardinality
-import set_theory.cardinal_divisibility
-import field_theory.finite.galois_field
-import data.equiv.transfer_instance
 import algebra.ring.ulift
 import data.mv_polynomial.cardinal
 import data.rat.denumerable
+import field_theory.finite.galois_field
+import logic.equiv.transfer_instance
+import ring_theory.localization.cardinality
+import set_theory.cardinal.divisibility
+import data.nat.factorization.prime_pow
 
 /-!
 # Cardinality of Fields
@@ -55,7 +56,7 @@ end
 
 lemma fintype.not_is_field_of_card_not_prime_pow {α} [fintype α] [ring α] :
   ¬ is_prime_pow (‖α‖) → ¬ is_field α :=
-mt $ λ h, fintype.nonempty_field_iff.mp ⟨h.to_field α⟩
+mt $ λ h, fintype.nonempty_field_iff.mp ⟨h.to_field⟩
 
 /-- Any infinite type can be endowed a field structure. -/
 lemma infinite.nonempty_field {α : Type u} [infinite α] : nonempty (field α) :=
@@ -77,7 +78,7 @@ begin
   rw cardinal.is_prime_pow_iff,
   casesI fintype_or_infinite α with h h,
   { simpa only [cardinal.mk_fintype, nat.cast_inj, exists_eq_left',
-        (cardinal.nat_lt_omega _).not_le, false_or]
+        (cardinal.nat_lt_aleph_0 _).not_le, false_or]
       using fintype.nonempty_field_iff },
   { simpa only [← cardinal.infinite_iff, h, true_or, iff_true]
       using infinite.nonempty_field },

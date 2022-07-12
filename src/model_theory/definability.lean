@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import data.fintype.basic
-import model_theory.terms_and_formulas
+import logic.equiv.fintype
+import model_theory.semantics
 
 /-!
 # Definable Sets
@@ -22,7 +22,9 @@ set `s` of a finite cartesian power of `M` is definable with parameters in `A`.
   algebra of subsets of `α → M` defined by formulas with parameters in `A`.
 
 ## Main Results
-* `L.definable_set A α` forms a `boolean_algebra`.
+* `L.definable_set A α` forms a `boolean_algebra`
+* `set.definable.image_comp` shows that definability is closed under projections in finite
+  dimensions.
 
 -/
 
@@ -42,6 +44,34 @@ def definable (s : set (α → M)) : Prop :=
 ∃ (φ : L[[A]].formula α), s = set_of φ.realize
 
 variables {L} {A} {B : set M} {s : set (α → M)}
+
+lemma definable.map_expansion {L' : first_order.language} [L'.Structure M] (h : A.definable L s)
+  (φ : L →ᴸ L') [φ.is_expansion_on M] :
+  A.definable L' s :=
+begin
+  obtain ⟨ψ, rfl⟩ := h,
+  refine ⟨(φ.add_constants A).on_formula ψ, _⟩,
+  ext x,
+  simp only [mem_set_of_eq, Lhom.realize_on_formula],
+end
+
+lemma empty_definable_iff :
+  (∅ : set M).definable L s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
+begin
+  rw [definable, equiv.exists_congr_left (Lequiv.add_empty_constants L (∅ : set M)).on_formula],
+  simp,
+end
+
+lemma definable_iff_empty_definable_with_params :
+  A.definable L s ↔ (∅ : set M).definable (L[[A]]) s :=
+empty_definable_iff.symm
+
+lemma definable.mono (hAs : A.definable L s) (hAB : A ⊆ B) :
+  B.definable L s :=
+begin
+  rw [definable_iff_empty_definable_with_params] at *,
+  exact hAs.map_expansion (L.Lhom_with_constants_map (set.inclusion hAB)),
+end
 
 @[simp]
 lemma definable_empty : A.definable L (∅ : set (α → M)) :=
@@ -144,10 +174,79 @@ begin
   rw image_eq_preimage_of_inverse,
   { intro i,
     ext b,
-    simp },
+    simp only [function.comp_app, equiv.apply_symm_apply], },
   { intro i,
     ext a,
     simp }
+end
+
+lemma fin.coe_cast_add_zero {m : ℕ} : (fin.cast_add 0 : fin m → fin (m + 0)) = id :=
+funext (λ _, fin.ext rfl)
+
+/-- This lemma is only intended as a helper for `definable.image_comp. -/
+lemma definable.image_comp_sum_inl_fin (m : ℕ) {s : set ((α ⊕ fin m) → M)}
+  (h : A.definable L s) :
+  A.definable L ((λ g : (α ⊕ fin m) → M, g ∘ sum.inl) '' s) :=
+begin
+  obtain ⟨φ, rfl⟩ := h,
+  refine ⟨(bounded_formula.relabel id φ).exs, _⟩,
+  ext x,
+  simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs,
+    bounded_formula.realize_relabel, function.comp.right_id, fin.coe_cast_add_zero],
+  split,
+  { rintro ⟨y, hy, rfl⟩,
+    exact ⟨y ∘ sum.inr,
+      (congr (congr rfl (sum.elim_comp_inl_inr y).symm) (funext fin_zero_elim)).mp hy⟩ },
+  { rintro ⟨y, hy⟩,
+    exact ⟨sum.elim x y, (congr rfl (funext fin_zero_elim)).mp hy, sum.elim_comp_inl _ _⟩, },
+end
+
+/-- Shows that definability is closed under finite projections. -/
+lemma definable.image_comp_embedding {s : set (β → M)} (h : A.definable L s)
+  (f : α ↪ β) [fintype β] :
+  A.definable L ((λ g : β → M, g ∘ f) '' s) :=
+begin
+  classical,
+  refine (congr rfl (ext (λ x, _))).mp (((h.image_comp_equiv
+    (equiv.set.sum_compl (range f))).image_comp_equiv (equiv.sum_congr
+    (equiv.of_injective f f.injective) (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _),
+  simp only [mem_preimage, mem_image, exists_exists_and_eq_and],
+  refine exists_congr (λ y, and_congr_right (λ ys, eq.congr_left (funext (λ a, _)))),
+  simp,
+end
+
+/-- Shows that definability is closed under finite projections. -/
+lemma definable.image_comp {s : set (β → M)} (h : A.definable L s)
+  (f : α → β) [fintype α] [fintype β] :
+  A.definable L ((λ g : β → M, g ∘ f) '' s) :=
+begin
+  classical,
+  have h := (((h.image_comp_equiv (equiv.set.sum_compl (range f))).image_comp_equiv
+    (equiv.sum_congr (_root_.equiv.refl _)
+    (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _).preimage_comp (range_splitting f),
+  have h' : A.definable L ({ x : α → M |
+    ∀ a, x a = x (range_splitting f (range_factorization f a))}),
+  { have h' : ∀ a, A.definable L {x : α → M | x a =
+      x (range_splitting f (range_factorization f a))},
+    { refine λ a, ⟨(var a).equal (var (range_splitting f (range_factorization f a))), ext _⟩,
+      simp, },
+    refine (congr rfl (ext _)).mp (definable_finset_bInter h' finset.univ),
+    simp },
+  refine (congr rfl (ext (λ x, _))).mp (h.inter h'),
+  simp only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
+    exists_exists_and_eq_and, mem_set_of_eq],
+  split,
+  { rintro ⟨⟨y, ys, hy⟩, hx⟩,
+    refine ⟨y, ys, _⟩,
+    ext a,
+    rw [hx a, ← function.comp_apply x, ← hy],
+    simp, },
+  { rintro ⟨y, ys, rfl⟩,
+    refine ⟨⟨y, ys, _⟩, λ a, _⟩,
+    { ext,
+      simp [set.apply_range_splitting f] },
+    { rw [function.comp_apply, function.comp_apply, apply_range_splitting f,
+        range_factorization_coe], }}
 end
 
 variables (L) {M} (A)

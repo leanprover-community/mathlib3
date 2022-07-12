@@ -112,6 +112,14 @@ coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
 instance : add_right_cancel_semigroup ℕ+ :=
 coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
+/-- The order isomorphism between ℕ and ℕ+ given by `succ`. -/
+@[simps] def succ_order_iso : ℕ ≃o ℕ+ :=
+{ to_fun := λ n, ⟨_, succ_pos n⟩,
+  inv_fun := λ n, pred (n : ℕ),
+  left_inv := pred_succ,
+  right_inv := λ ⟨x, hx⟩, by simpa using succ_pred_eq_of_pos hx,
+  map_rel_iff' := @succ_le_succ_iff }
+
 @[priority 10]
 instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
 ⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩
@@ -224,11 +232,10 @@ instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a - b : ℕ)⟩
 
 theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (b < a) (a - b : ℕ) 1 :=
 begin
-  change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
-    ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
+  change (to_pnat' _ : ℕ) = ite _ _ _,
   split_ifs with h,
   { exact to_pnat'_coe (tsub_pos_of_lt h) },
-  { rw [tsub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
+  { rw tsub_eq_zero_iff_le.mpr (le_of_not_gt h : (a : ℕ) ≤ b), refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=

@@ -24,7 +24,7 @@ Show that the map induced on stalks by `to_sheafify` is the inverse of `stalk_to
 
 Show sheafification is a functor from presheaves to sheaves,
 and that it is the left adjoint of the forgetful functor,
-following https://stacks.math.columbia.edu/tag/007X.
+following <https://stacks.math.columbia.edu/tag/007X>.
 -/
 
 universes v

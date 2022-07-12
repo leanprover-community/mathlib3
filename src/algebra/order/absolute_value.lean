@@ -22,7 +22,7 @@ This file defines a bundled type of absolute values `absolute_value R S`.
 /-- `absolute_value R S` is the type of absolute values on `R` mapping to `S`:
 the maps that preserve `*`, are nonnegative, positive definite and satisfy the triangle equality. -/
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
-  extends mul_hom R S :=
+  extends R →ₙ* S :=
 (nonneg' : ∀ x, 0 ≤ to_fun x)
 (eq_zero' : ∀ x, to_fun x = 0 ↔ x = 0)
 (add_le' : ∀ x y, to_fun (x + y) ≤ to_fun x + to_fun y)

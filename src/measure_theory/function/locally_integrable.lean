@@ -25,7 +25,7 @@ open_locale topological_space interval
 
 variables {X Y E : Type*} [measurable_space X] [topological_space X]
 variables [measurable_space Y] [topological_space Y]
-variables [normed_group E] [measurable_space E] {f : X → E} {μ : measure X}
+variables [normed_group E] {f : X → E} {μ : measure X}
 
 namespace measure_theory
 
@@ -37,11 +37,12 @@ def locally_integrable (f : X → E) (μ : measure X . volume_tac) : Prop :=
 lemma integrable.locally_integrable (hf : integrable f μ) : locally_integrable f μ :=
 λ K hK, hf.integrable_on
 
-lemma locally_integrable.ae_measurable [sigma_compact_space X] (hf : locally_integrable f μ) :
-  ae_measurable f μ :=
+lemma locally_integrable.ae_strongly_measurable [sigma_compact_space X]
+  (hf : locally_integrable f μ) :
+  ae_strongly_measurable f μ :=
 begin
-  rw [← @restrict_univ _ _ μ, ← Union_compact_covering, ae_measurable_Union_iff],
-  exact λ i, (hf $ is_compact_compact_covering X i).ae_measurable
+  rw [← @restrict_univ _ _ μ, ← Union_compact_covering, ae_strongly_measurable_Union_iff],
+  exact λ i, (hf $ is_compact_compact_covering X i).ae_strongly_measurable
 end
 
 lemma locally_integrable_iff [locally_compact_space X] :
@@ -69,7 +70,8 @@ begin
   { filter_upwards [ae_restrict_mem hA] with x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
     apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (abs_nonneg _), },
-  exact mem_ℒp.of_le_mul hg (hg.ae_measurable.mul ((hg'.mono hAK).ae_measurable hA)) this,
+  exact mem_ℒp.of_le_mul hg (hg.ae_strongly_measurable.ae_measurable.mul
+    ((hg'.mono hAK).ae_measurable hA)).ae_strongly_measurable this,
 end
 
 lemma integrable_on.mul_continuous_on [t2_space X]
@@ -102,14 +104,18 @@ is_compact.induction_on hK integrable_on_empty (λ s t hst ht, ht.mono_set hst)
 
 section borel
 
-variables [opens_measurable_space X] [t2_space X] [borel_space E] [is_locally_finite_measure μ]
+variables [opens_measurable_space X] [metrizable_space X] [is_locally_finite_measure μ]
 variables {K : set X} {a b : X}
 
-/-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any
+/-- A function `f` continuous on a compact set `K` is integrable on this set with respect to any
 locally finite measure. -/
 lemma continuous_on.integrable_on_compact (hK : is_compact K) (hf : continuous_on f K) :
   integrable_on f K μ :=
-hK.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hK.measurable_set hx
+begin
+  letI := metrizable_space_metric X,
+  apply hK.integrable_on_of_nhds_within (λ x hx, _),
+  exact hf.integrable_at_nhds_within_of_is_separable hK.measurable_set hK.is_separable hx,
+end
 
 /-- A continuous function `f` is locally integrable with respect to any locally finite measure. -/
 lemma continuous.locally_integrable (hf : continuous f) : locally_integrable f μ :=
@@ -149,7 +155,7 @@ end borel
 
 section monotone
 
-variables [borel_space X] [borel_space E]
+variables [borel_space X] [metrizable_space X]
   [conditionally_complete_linear_order X] [conditionally_complete_linear_order E]
   [order_topology X] [order_topology E] [second_countable_topology E]
   [is_locally_finite_measure μ] {s : set X}
@@ -157,6 +163,7 @@ variables [borel_space X] [borel_space E]
 lemma monotone_on.integrable_on_compact (hs : is_compact s) (hmono : monotone_on f s) :
   integrable_on f s μ :=
 begin
+  borelize E,
   obtain rfl | h := s.eq_empty_or_nonempty,
   { exact integrable_on_empty },
   have hbelow : bdd_below (f '' s) :=
@@ -165,20 +172,20 @@ begin
     ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
   have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
   rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
-  exact integrable.mono' (continuous_const.locally_integrable hs)
-    (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
+  refine integrable.mono' (continuous_const.locally_integrable hs)
+    (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono).ae_strongly_measurable
     ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
       λ y hy, hC (f y) (mem_image_of_mem f hy)),
 end
 
 lemma antitone_on.integrable_on_compact (hs : is_compact s) (hanti : antitone_on f s) :
   integrable_on f s μ :=
-@monotone_on.integrable_on_compact X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hs hanti
+hanti.dual_right.integrable_on_compact hs
 
 lemma monotone.locally_integrable (hmono : monotone f) : locally_integrable f μ :=
-λ s hs, monotone_on.integrable_on_compact hs (λ x y _ _ hxy, hmono hxy)
+λ s hs, (hmono.monotone_on _).integrable_on_compact hs
 
 lemma antitone.locally_integrable (hanti : antitone f) : locally_integrable f μ :=
-@monotone.locally_integrable X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ _ hanti
+hanti.dual_right.locally_integrable
 
 end monotone

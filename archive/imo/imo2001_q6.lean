@@ -6,7 +6,7 @@ Authors: Sara Díaz Real
 import data.int.basic
 import algebra.associated
 import tactic.linarith
-import tactic.ring
+import tactic.linear_combination
 
 /-!
 # IMO 2001 Q6
@@ -31,22 +31,15 @@ begin
   -- the key step is to show that `a*c + b*d` divides the product `(a*b + c*d) * (a*d + b*c)`
   have dvd_mul : a*c + b*d ∣ (a*b + c*d) * (a*d + b*c),
   { use b^2 + b*d + d^2,
-    have equivalent_sums : a^2 - a*c + c^2 = b^2 + b*d + d^2,
-    { ring_nf at h, nlinarith only [h], },
-    calc  (a * b + c * d) * (a * d + b * c)
-        = a*c * (b^2 + b*d + d^2) + b*d * (a^2 - a*c + c^2) : by ring
-    ... = a*c * (b^2 + b*d + d^2) + b*d * (b^2 + b*d + d^2) : by rw equivalent_sums
-    ... = (a * c + b * d) * (b ^ 2 + b * d + d ^ 2)         : by ring, },
+    linear_combination b*d*h },
   -- since `a*b + c*d` is prime (by assumption), it must divide `a*c + b*d` or `a*d + b*c`
   obtain (h1 : a*b + c*d ∣ a*c + b*d) | (h2 : a*c + b*d ∣ a*d + b*c) :=
     h0.left_dvd_or_dvd_right_of_dvd_mul dvd_mul,
   -- in both cases, we derive a contradiction
   { have aux : 0 < a*c + b*d,         { nlinarith only [ha, hb, hc, hd] },
     have : a*b + c*d ≤ a*c + b*d,     { from int.le_of_dvd aux h1 },
-    have : ¬ (a*b + c*d ≤ a*c + b*d), { nlinarith only [hba, hcb, hdc, h] },
-    contradiction, },
+    nlinarith only [hba, hcb, hdc, h, this] },
   { have aux : 0 < a*d + b*c,         { nlinarith only [ha, hb, hc, hd] },
     have : a*c + b*d ≤ a*d + b*c,     { from int.le_of_dvd aux h2 },
-    have : ¬ (a*c + b*d ≤ a*d + b*c), { nlinarith only [hba, hdc, h] },
-    contradiction, },
+    nlinarith only [hba, hdc, h, this] },
 end

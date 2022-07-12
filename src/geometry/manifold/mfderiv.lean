@@ -1253,7 +1253,7 @@ begin
   rotate, { apply_instance },
   simp only [continuous_linear_map.coe_coe, basic_smooth_vector_bundle_core.chart, h,
     tangent_bundle_core, basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
-    chart_at] with mfld_simps,
+    chart_at, sigma.mk.inj_iff] with mfld_simps,
 end
 
 end charts

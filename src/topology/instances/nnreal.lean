@@ -16,7 +16,7 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_ring ℝ≥0`
+* `topological_semiring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
@@ -52,7 +52,7 @@ open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_ring ℝ≥0 :=
+instance : topological_semiring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -67,7 +67,7 @@ section coe
 variable {α : Type*}
 open filter finset
 
-lemma continuous_of_real : continuous real.to_nnreal :=
+lemma _root_.continuous_real_to_nnreal : continuous real.to_nnreal :=
 continuous_subtype_mk _ $ continuous_id.max continuous_const
 
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
@@ -91,9 +91,9 @@ lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 
-lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
+lemma tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
-(continuous_of_real.tendsto _).comp h
+(continuous_real_to_nnreal.tendsto _).comp h
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
@@ -118,13 +118,13 @@ instance : has_continuous_smul ℝ≥0 ℝ :=
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp only [has_sum, coe_sum.symm, tendsto_coe]
 
-lemma has_sum_of_real_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
+lemma has_sum_real_to_nnreal_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
   has_sum (λ n, real.to_nnreal (f n)) (real.to_nnreal (∑' n, f n)) :=
 begin
   have h_sum : (λ s, ∑ b in s, real.to_nnreal (f b)) = λ s, real.to_nnreal (∑ b in s, f b),
     from funext (λ _, (real.to_nnreal_sum_of_nonneg (λ n _, hf_nonneg n)).symm),
   simp_rw [has_sum, h_sum],
-  exact tendsto_of_real hf.has_sum,
+  exact tendsto_real_to_nnreal hf.has_sum,
 end
 
 @[norm_cast] lemma summable_coe {f : α → ℝ≥0} : summable (λa, (f a : ℝ)) ↔ summable f :=
@@ -187,9 +187,7 @@ by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
 
 lemma infi_real_pos_eq_infi_nnreal_pos [complete_lattice α] {f : ℝ → α} :
   (⨅ (n : ℝ) (h : 0 < n), f n) = (⨅ (n : ℝ≥0) (h : 0 < n), f n) :=
-le_antisymm
-  (infi_le_infi2 $ assume r, ⟨r, infi_le_infi $ assume hr, le_rfl⟩)
-  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, hr.le⟩ $ infi_le _ hr)
+le_antisymm (infi_mono' $ λ r, ⟨r, le_rfl⟩) (infi₂_mono' $ λ r hr, ⟨⟨r, hr.le⟩, hr, le_rfl⟩)
 
 end coe
 
@@ -198,7 +196,7 @@ lemma tendsto_cofinite_zero_of_summable {α} {f : α → ℝ≥0} (hf : summable
 begin
   have h_f_coe : f = λ n, real.to_nnreal (f n : ℝ), from funext (λ n, real.to_nnreal_coe.symm),
   rw [h_f_coe, ← @real.to_nnreal_coe 0],
-  exact tendsto_of_real ((summable_coe.mpr hf).tendsto_cofinite_zero),
+  exact tendsto_real_to_nnreal ((summable_coe.mpr hf).tendsto_cofinite_zero),
 end
 
 lemma tendsto_at_top_zero_of_summable {f : ℕ → ℝ≥0} (hf : summable f) :

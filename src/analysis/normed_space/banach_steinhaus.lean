@@ -69,7 +69,7 @@ begin
   ... ≤ (m + m : ℕ) * (∥y∥ / (ε / ∥k∥))
       : le_mul_of_one_le_right (nat.cast_nonneg _)
           ((one_le_div $ div_pos ε_pos (zero_lt_one.trans hk)).2 le_y)
-  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div' _ _ _).symm,
+  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div _ _ _).symm,
 end
 
 open_locale ennreal
@@ -119,7 +119,7 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
       cases banach_steinhaus h_point_bdd with C' hC',
       /- show the uniform bound from `banach_steinhaus` is a norm bound of the limit map
          by allowing "an `ε` of room." -/
-      refine linear_map.continuous_of_bound (linear_map_of_tendsto _ _ h) C'
+      refine add_monoid_hom_class.continuous_of_bound (linear_map_of_tendsto _ _ h) C'
         (λ x, le_of_forall_pos_lt_add (λ ε ε_pos, _)),
       cases metric.tendsto_at_top.mp (tendsto_pi_nhds.mp h x) ε ε_pos with n hn,
       have lt_ε : ∥g n x - f x∥ < ε, by {rw ←dist_eq_norm, exact hn n (le_refl n)},

@@ -180,18 +180,23 @@ instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
   begin
     apply (continuous_to_loop_space_iff x).mpr,
     apply continuous_of_restricts_union (univ_eq_union_halves _),
-    { sorry,
+    { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
+      have hφ: continuous φ, sorry,
+      sorry,
+      -- convert hφ,
+      -- refl,
 
     },
+    sorry,
 
-    rw continuous_iff_continuous_at,
-    intro w,
-    rw ← continuous_within_at_univ,
-    rw univ_eq_union_halves' ((Ω x) × (Ω x)),
-    -- rw h,
-    apply continuous_within_at_union.mpr,
-    split,
-    {
+    -- rw continuous_iff_continuous_at,
+    -- intro w,
+    -- rw ← continuous_within_at_univ,
+    -- rw univ_eq_union_halves' ((Ω x) × (Ω x)),
+    -- -- rw h,
+    -- apply continuous_within_at_union.mpr,
+    -- split,
+    -- {
 
 
       -- have H := @continuous_within_at_snd ((new_loop_space x) × (new_loop_space x)) I _ _
@@ -205,7 +210,7 @@ instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
 
       -- apply
 
-    },
+    -- },
   -- sorry,
     -- },
   end,

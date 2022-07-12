@@ -118,16 +118,38 @@ abbreviation new_loop_space (x : X) := path x x
 
 instance (x : X) : topological_space (new_loop_space x) := infer_instance
 
--- instance (x : X) : has_coe (new_loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
+
+lemma continuous_to_new_loop_space_iff {Y : Type u} [topological_space Y]
+  {g : Y → new_loop_space x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) := sorry
+
+example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X) (hf : continuous f)
+: continuous (λ p : Y × Z, f p.1) := continuous.fst' hf
+
+example (Y Z : Type u) [topological_space Y] [topological_space Z] :
+  (X × Y) × Z ≃ₜ X × (Y × Z) := homeomorph.prod_assoc X Y Z
 
 instance loop_space_is_H_space (x : X) : H_space (new_loop_space x) :=
-{ Hmul :=
-begin
-  intro ρ,
-  -- let θ := ρ.1.trans ρ.2,
-end,
-  e := sorry,
-  cont' := sorry,
+{ Hmul := λ ρ, ρ.1.trans ρ.2,
+  e := refl _,
+  cont' :=
+  begin
+    apply (continuous_to_new_loop_space_iff x).mpr,
+    rw continuous_iff_continuous_at,
+    intro w,
+    rw ← continuous_within_at_univ,
+    let I₀ := {t : I | t.1 ≤ 1/2},
+    let S := ((set.univ : set (new_loop_space x)) ×ˢ (set.univ : set (new_loop_space x))) ×ˢ I₀,
+    let T := ((set.univ : set (new_loop_space x)) ×ˢ (set.univ : set (new_loop_space x))) ×ˢ I₀ᶜ,
+    have h : set.univ = S ∪ T,sorry,
+    rw h,
+    apply continuous_within_at_union.mpr,
+    split,
+    { sorry,
+
+    },
+  sorry,
+
+  end,
   Hmul_e_e := sorry,
   left_Hmul_e := sorry,
   right_Hmul_e := sorry}

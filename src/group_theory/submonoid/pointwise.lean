@@ -415,7 +415,7 @@ protected def has_distrib_neg : has_distrib_neg (add_submonoid R) :=
       (mul_le.2 $ λ m hm n hn, _)
       ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
     simp only [add_submonoid.mem_neg, ←neg_mul] at *,
-    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul hm hn },
     { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
   end,
   mul_neg := λ x y, begin

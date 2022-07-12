@@ -60,6 +60,8 @@ walks, trails, paths, circuits, cycles
 
 -/
 
+open function
+
 universes u v
 
 namespace simple_graph
@@ -360,6 +362,10 @@ by induction p; simp [*]
   p.reverse.darts = (p.darts.map dart.symm).reverse :=
 by induction p; simp [*, sym2.eq_swap]
 
+lemma mem_darts_reverse {u v : V} {d : G.dart} {p : G.walk u v} :
+  d ∈ p.reverse.darts ↔ d.symm ∈ p.darts :=
+by simp
+
 lemma cons_map_snd_darts {u v : V} (p : G.walk u v) :
   u :: p.darts.map dart.snd = p.support :=
 by induction p; simp! [*]
@@ -406,16 +412,11 @@ lemma dart_fst_mem_support_of_mem_darts :
   { exact or.inr (dart_fst_mem_support_of_mem_darts _ hd), },
 end
 
-lemma dart_snd_mem_support_of_mem_darts :
-  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.snd ∈ p.support
-| u v (cons h p') d hd := begin
-  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
-  rcases hd with (rfl|hd),
-  { simp },
-  { exact or.inr (dart_snd_mem_support_of_mem_darts _ hd), },
-end
+lemma dart_snd_mem_support_of_mem_darts {u v : V} (p : G.walk u v) {d : G.dart} (h : d ∈ p.darts) :
+  d.snd ∈ p.support :=
+by simpa using p.reverse.dart_fst_mem_support_of_mem_darts (by simp [h] : d.symm ∈ p.reverse.darts)
 
-lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+lemma fst_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
   t ∈ p.support :=
 begin
   obtain ⟨d, hd, he⟩ := list.mem_map.mp he,
@@ -424,6 +425,10 @@ begin
   { exact dart_fst_mem_support_of_mem_darts _ hd, },
   { exact dart_snd_mem_support_of_mem_darts _ hd, },
 end
+
+lemma snd_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+  u ∈ p.support :=
+by { rw sym2.eq_swap at he, exact p.fst_mem_support_of_mem_edges he }
 
 lemma darts_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
   p.darts.nodup :=
@@ -440,7 +445,7 @@ begin
   induction p,
   { simp, },
   { simp only [edges_cons, support_cons, list.nodup_cons] at h ⊢,
-    exact ⟨λ h', h.1 (mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
+    exact ⟨λ h', h.1 (fst_mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
 /-! ### Trails, paths, circuits, cycles -/
@@ -539,6 +544,9 @@ begin
   rw reverse_append at h,
   apply h.of_append_left,
 end
+
+@[simp] lemma is_cycle.not_of_nil {u : V} : ¬ (nil : G.walk u u).is_cycle :=
+λ h, h.ne_nil rfl
 
 /-! ### Walk decompositions -/
 
@@ -1030,19 +1038,37 @@ def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
 /-- A graph is preconnected if every pair of vertices is reachable from one another. -/
 def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
+lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.preconnected) : H.preconnected :=
+hf.forall₂.2 $ λ a b, (hG _ _).map $ walk.map _
+
+lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.preconnected ↔ H.preconnected :=
+⟨preconnected.map e.to_hom e.to_equiv.surjective,
+  preconnected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
+
 /-- A graph is connected if it's preconnected and contains at least one vertex.
 This follows the convention observed by mathlib that something is connected iff it has
 exactly one connected component.
 
 There is a `has_coe_to_fun` instance so that `h u v` can be used instead
 of `h.preconnected u v`. -/
-@[protect_proj]
+@[protect_proj, mk_iff]
 structure connected : Prop :=
 (preconnected : G.preconnected)
 [nonempty : nonempty V]
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
+
+lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.connected) : H.connected :=
+by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+
+lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.connected ↔ H.connected :=
+⟨connected.map e.to_hom e.to_equiv.surjective,
+  connected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
 
 /-- The quotient of `V` by the `simple_graph.reachable` relation gives the connected
 components of a graph. -/

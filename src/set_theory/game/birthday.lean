@@ -27,9 +27,9 @@ universe u
 
 open ordinal
 
-namespace pgame
+open_locale pgame
 
-local infix ` ≡r `:50 := relabelling
+namespace pgame
 
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
 birthdays of its left and right games. It may be thought as the "step" in which a certain game is

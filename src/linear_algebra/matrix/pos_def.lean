@@ -32,6 +32,15 @@ M.is_hermitian ∧ ∀ x : n → R, x ≠ 0 → 0 < dot_product (star x) (M.mul_
 def pos_semidef (M : matrix n n R) :=
 M.is_hermitian ∧ ∀ x : n → R, 0 ≤ dot_product (star x) (M.mul_vec x)
 
+lemma pos_semidef_of_pos_def {M : matrix n n R} (hM : M.pos_def) : M.pos_semidef :=
+begin
+  refine ⟨hM.1, _⟩,
+  intros x,
+  by_cases hx : x = 0,
+  { simp only [hx, zero_dot_product, star_zero] },
+  { exact le_of_lt (hM.2 x hx) }
+end
+
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :
   M.pos_def :=

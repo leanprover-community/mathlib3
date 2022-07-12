@@ -55,6 +55,11 @@ lemma is_hermitian_transpose_mul_self [fintype n] (A : matrix n n α) :
   (Aᴴ ⬝ A).is_hermitian :=
 by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
 
+lemma is_hermitian_mul_mul [fintype m] [fintype n] {A : matrix m m α} (B : matrix m n α)
+  (hA : A.is_hermitian) : (Bᴴ ⬝ A ⬝ B).is_hermitian :=
+by simp only [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose, hA.eq,
+  matrix.mul_assoc]
+
 lemma is_hermitian_add_transpose_self (A : matrix n n α) :
   (A + Aᴴ).is_hermitian :=
 by simp [is_hermitian, add_comm]
@@ -67,7 +72,6 @@ by simp [is_hermitian, add_comm]
   (0 : matrix n n α).is_hermitian :=
 conj_transpose_zero
 
--- TODO: move
 lemma conj_transpose_map {A : matrix n n α} (f : α → β) (hf : f ∘ star = star ∘ f) :
   Aᴴ.map f = (A.map f)ᴴ :=
 by rw [conj_transpose, conj_transpose, ←transpose_map, map_map, map_map, hf]
@@ -145,6 +149,16 @@ variables [ring α] [star_ring α] [ring β] [star_ring β]
 (conj_transpose_sub _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
 end ring
+
+section comm_ring
+
+variables [comm_ring α] [star_ring α]
+
+lemma is_hermitian_nonsingular_inv [fintype m] [decidable_eq m] {A : matrix m m α}
+  (hA : A.is_hermitian) : A⁻¹.is_hermitian :=
+by simp [is_hermitian, conj_transpose_nonsing_inv, hA.eq]
+
+end comm_ring
 
 section is_R_or_C
 

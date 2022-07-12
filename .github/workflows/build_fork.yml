@@ -197,7 +197,7 @@ jobs:
 
       - name: install Python dependencies
         if: ${{ ! 0 }}
-        run: python3 -m pip install --upgrade pip pyyaml
+        run: python3 -m pip install --upgrade pip pyyaml requests
 
       - name: tests
         run: |

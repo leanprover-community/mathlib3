@@ -55,8 +55,13 @@ lemma is_hermitian_transpose_mul_self [fintype n] (A : matrix n n α) :
   (Aᴴ ⬝ A).is_hermitian :=
 by rw [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose]
 
-lemma is_hermitian_mul_mul [fintype m] {A : matrix m m α} (B : matrix m n α)
+lemma is_hermitian_conj_transpose_mul_mul [fintype m] {A : matrix m m α} (B : matrix m n α)
   (hA : A.is_hermitian) : (Bᴴ ⬝ A ⬝ B).is_hermitian :=
+by simp only [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose, hA.eq,
+  matrix.mul_assoc]
+
+lemma is_hermitian_mul_mul_conj_transpose [fintype m] {A : matrix m m α} (B : matrix n m α)
+  (hA : A.is_hermitian) : (B ⬝ A ⬝ Bᴴ).is_hermitian :=
 by simp only [is_hermitian, conj_transpose_mul, conj_transpose_conj_transpose, hA.eq,
   matrix.mul_assoc]
 
@@ -85,9 +90,19 @@ by {refine (conj_transpose_map f hf).symm.trans _, rw h.eq }
   Aᵀ.is_hermitian :=
 by { rw [is_hermitian, conj_transpose, transpose_map], congr, exact h }
 
+lemma is_hermitian_transpose_iff (A : matrix n n α) :
+  Aᵀ.is_hermitian ↔ A.is_hermitian :=
+⟨by { intro h, rw [← transpose_transpose A], exact is_hermitian.transpose h },
+  is_hermitian.transpose⟩
+
 @[simp] lemma is_hermitian.conj_transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᴴ.is_hermitian :=
 h.transpose.map _ rfl
+
+lemma is_hermitian_conj_transpose_iff (A : matrix n n α) :
+  Aᴴ.is_hermitian ↔ A.is_hermitian :=
+⟨by { intro h, rw [← conj_transpose_conj_transpose A], exact is_hermitian.conj_transpose h },
+  is_hermitian.conj_transpose⟩
 
 @[simp] lemma is_hermitian.add {A B : matrix n n α} (hA : A.is_hermitian) (hB : B.is_hermitian) :
   (A + B).is_hermitian :=

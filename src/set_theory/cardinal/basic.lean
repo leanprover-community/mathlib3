@@ -212,10 +212,6 @@ theorem lift_mk_le {α : Type u} {β : Type v} :
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
-theorem _root_.function.embedding.cardinal_lift_mk_le {α : Type u} {β : Type v} (f : α ↪ β) :
-  lift.{max v w} (#α) ≤ lift.{max u w} (#β) :=
-lift_mk_le.{u v w}.2 ⟨f⟩
-
 /-- A variant of `cardinal.lift_mk_le` with specialized universes.
 Because Lean often can not realize it should use this specialization itself,
 we provide this statement separately so you don't have to solve the specialization problem either.

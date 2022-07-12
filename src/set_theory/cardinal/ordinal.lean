@@ -704,14 +704,12 @@ begin
     ... = #(α × β) : mk_finset_of_infinite _
     ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
       by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
-  { apply max_le,
+  { apply max_le;
+    rw [←lift_id (# (α →₀ β)), ←lift_umax],
     { cases exists_ne (0 : β) with b hb,
-      rw [←lift_id (# (α →₀ β)), ←lift_umax.{u v}],
-      apply embedding.cardinal_lift_mk_le.{u (max u v) v},
-      exact ⟨_, finsupp.single_left_injective hb⟩ },
-    { rw [←lift_id (# (α →₀ β)), ←lift_umax.{v u}],
-      apply embedding.cardinal_lift_mk_le.{v (max u v) u},
-      exact ⟨_, finsupp.single_injective (classical.arbitrary α)⟩ } }
+      exact lift_mk_le.{u (max u v) v}.2 ⟨⟨_, finsupp.single_left_injective hb⟩⟩ },
+    { inhabit α,
+      exact lift_mk_le.{v (max u v) u}.2 ⟨⟨_, finsupp.single_injective default⟩⟩ } }
 end
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :

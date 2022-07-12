@@ -245,7 +245,7 @@ section canonically_ordered_comm_semiring
 
 variables [canonically_ordered_comm_semiring α]
 
--- TODO: this holds more generally in a `canonically_ordered_add_monoid` if we refactor `odd` to use
+-- this holds more generally in a `canonically_ordered_add_monoid` if we refactor `odd` to use
 -- either `2 • t` or `t + t` instead of `2 * t`.
 lemma odd.pos [nontrivial α] {n : α} (hn : odd n) : 0 < n :=
 begin

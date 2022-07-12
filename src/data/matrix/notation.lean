@@ -54,25 +54,14 @@ meta instance matrix.reflect [reflected_univ.{u}] [reflected_univ.{u_1}] [reflec
   [h : has_reflect (m' → n' → α)] : has_reflect (matrix m' n' α) :=
 λ m, (by reflect_name : reflected _ @id.{(max u_1 u_2 u) + 1}).subst₂
   ((by reflect_name : reflected _ @matrix.{u_1 u_2 u}).subst₃ `(_) `(_) `(_)) $
-  by {dunfold matrix, exact h m}
+  by { dunfold matrix, exact h m }
 
 section parser
 open lean
 open lean.parser
 open interactive
 open interactive.types
-
-/-- A version of `sep_by` that allows trailing delimiters, but requires at least one item -/
-private meta def sep_by' {α : Type} : parser unit → parser α → parser (list α)
-| s p := do
-  fst ← p,
-  some () ← optional s | pure [fst],
-  some rest ← optional (sep_by' s p) | pure [fst],
-  pure (fst :: rest)
-
-/-- A version of `many` that requires at least one -/
-private meta def at_least_one {α : Type} (p : parser α) : parser (list α) :=
-list.cons <$> p <*> (many p)
+)
 
 /-- Parse the entries of a matrix -/
 meta def entry_parser {α : Type} (p : parser α) :
@@ -82,8 +71,8 @@ do
   -- zero rows.
   let p : parser (list (list α) ⊕ ℕ) :=
     (sum.inl <$> (
-      at_least_one (pure [] <* tk ";") <|> -- empty rows
-      (sep_by' (tk ";") $ sep_by' (tk ",") p)) <|>
+      (pure [] <* tk ";").repeat_at_least 1 <|> -- empty rows
+      (sep_by_trailing (tk ";") $ sep_by_trailing (tk ",") p)) <|>
     (sum.inr <$> list.length <$> many (tk ","))), -- empty columns
   which ← p,
   match which with
@@ -100,8 +89,8 @@ do
     pure ⟨0, n, fin_zero_elim⟩
   end
 
--- Lean can't find this instance without some help. We only need it open in type, and it is a
--- massive amount of effort to make it universe-polymorphic.
+-- Lean can't find this instance without some help. We only need it available in `Type 0`, and it is
+-- a massive amount of effort to make it universe-polymorphic.
 @[instance] meta def sigma_sigma_fin_matrix_has_reflect {α : Type}
   [has_reflect α] [reflected _ α] :
   has_reflect (Σ (m n : ℕ), fin m → fin n → α) :=

@@ -594,6 +594,17 @@ lemma matrix.to_lin_alg_equiv_mul (A B : matrix n n R) :
   (matrix.to_lin_alg_equiv v₁ A).comp (matrix.to_lin_alg_equiv v₁ B) :=
 by convert matrix.to_lin_mul v₁ v₁ v₁ A B
 
+@[simp] lemma matrix.to_lin_fin_two_prod_apply (a b c d : R) (x : R × R) :
+  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) ![![a, b], ![c, d]] x =
+    (a * x.fst + b * x.snd, c * x.fst + d * x.snd) :=
+by simp [matrix.to_lin_apply, matrix.mul_vec, matrix.dot_product]
+
+lemma matrix.to_lin_fin_two_prod (a b c d : R) :
+  matrix.to_lin (basis.fin_two_prod R) (basis.fin_two_prod R) ![![a, b], ![c, d]] =
+    (a • linear_map.fst R R R + b • linear_map.snd R R R).prod
+    (c • linear_map.fst R R R + d • linear_map.snd R R R) :=
+linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _
+
 end to_matrix
 
 namespace algebra

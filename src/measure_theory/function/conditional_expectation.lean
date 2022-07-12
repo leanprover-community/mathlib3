@@ -2385,7 +2385,7 @@ section pull_out
 
 /-- Auxiliary lemma for `condexp_measurable_mul`. -/
 lemma condexp_strongly_measurable_simple_func_mul (hm : m ≤ m0)
-  (f : @simple_func α m ℝ) (hg : integrable g μ) :
+  (f : @simple_func α m ℝ) {g : α → ℝ} (hg : integrable g μ) :
   μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
 begin
   have : ∀ s c (f : α → ℝ), set.indicator s (function.const α c) * f = s.indicator (c • f),
@@ -2413,27 +2413,29 @@ end
 
 /-- Auxiliary lemma for `condexp_measurable_mul`. Do not use. -/
 lemma condexp_strongly_measurable_mul_of_bound (hm : m ≤ m0) [is_finite_measure μ]
-  {f : α → ℝ} (hf : strongly_measurable[m] f) (hg : integrable g μ) (c : ℝ)
+  {f g : α → ℝ} (hf : strongly_measurable[m] f) (hg : integrable g μ) (c : ℝ)
   (hf_bound : ∀ᵐ x ∂μ, ∥f x∥ ≤ c) :
   μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
 begin
   let fs := hf.approx_bounded c,
   have hfs_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, fs n x) at_top (𝓝 (f x)),
     from hf.tendsto_approx_bounded hf_bound,
-  have hfs_bound : ∀ n, ∀ᵐ x ∂μ, ∥fs n x∥ ≤ c := hf.bound_approx_bounded hf_bound,
+  have hc : 0 ≤ c, sorry,
+  have hfs_bound : ∀ n x, ∥fs n x∥ ≤ c := hf.norm_approx_bounded_le hc,
   have hn_eq : ∀ n, μ[fs n * g | m] =ᵐ[μ] fs n * μ[g | m],
-    from λ n, condexp_measurable_simple_func_mul hm _ hg,
+    from λ n, condexp_strongly_measurable_simple_func_mul hm _ hg,
   have : μ[f * μ[g|m]|m] = f * μ[g|m],
   { refine condexp_of_strongly_measurable hm (hf.mul strongly_measurable_condexp) _,
-    exact integrable_condexp.mul_of_le_const hf_bound
-      ((hf.mono hm).ae_strongly_measurable), },
+    exact integrable_condexp.bdd_mul' ((hf.mono hm).ae_strongly_measurable) hf_bound, },
   rw ← this,
   refine tendsto_condexp_unique (λ n x, fs n x * g x) (λ n x, fs n x * μ[g|m] x) (f * g)
     (f * μ[g|m]) _ _ _ _ (λ x, c * ∥g x∥) _ (λ x, c * ∥μ[g|m] x∥) _ _ _ _,
-  { exact λ n, hg.mul_of_le_const (hfs_bound n)
-      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable, },
-  { exact λ n, integrable_condexp.mul_of_le_const (hfs_bound n)
-      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable, },
+  { exact λ n, hg.bdd_mul'
+      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
+      (eventually_of_forall (hfs_bound n)), },
+  { exact λ n, integrable_condexp.bdd_mul'
+      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
+      (eventually_of_forall (hfs_bound n)), },
   { filter_upwards [hfs_tendsto] with x hx,
     rw pi.mul_apply,
     exact tendsto.mul hx tendsto_const_nhds, },
@@ -2442,24 +2444,23 @@ begin
     exact tendsto.mul hx tendsto_const_nhds, },
   { exact hg.norm.const_mul c, },
   { exact integrable_condexp.norm.const_mul c, },
-  { intros n,
-    filter_upwards [hfs_bound n] with x hx,
-    exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)), },
-  { intros n,
-    filter_upwards [hfs_bound n] with x hx,
-    exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)), },
+  { refine λ n, eventually_of_forall (λ x, _),
+    exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right (hfs_bound n x) (norm_nonneg _)), },
+  { refine λ n, eventually_of_forall (λ x, _),
+    exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right (hfs_bound n x) (norm_nonneg _)), },
   { intros n,
     simp_rw ← pi.mul_apply,
-    refine (condexp_measurable_simple_func_mul hm _ hg).trans _,
+    refine (condexp_strongly_measurable_simple_func_mul hm _ hg).trans _,
     rw condexp_of_strongly_measurable hm
       ((simple_func.strongly_measurable _).mul strongly_measurable_condexp) _,
     { apply_instance, },
     { apply_instance, },
-    exact integrable_condexp.mul_of_le_const (hfs_bound n)
-      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable, },
+    exact integrable_condexp.bdd_mul'
+      ((simple_func.strongly_measurable (fs n)).mono hm).ae_strongly_measurable
+      (eventually_of_forall (hfs_bound n)), },
 end
 
-lemma condexp_strongly_measurable_mul (hf : strongly_measurable[m] f)
+lemma condexp_strongly_measurable_mul {f g : α → ℝ} (hf : strongly_measurable[m] f)
   (hfg : integrable (f * g) μ) (hg : integrable g μ) :
   μ[f * g | m] =ᵐ[μ] f * μ[g | m] :=
 begin

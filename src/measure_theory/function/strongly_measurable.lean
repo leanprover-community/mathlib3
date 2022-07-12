@@ -227,8 +227,7 @@ begin
 end
 
 lemma norm_approx_bounded_le {β} {f : α → β} [normed_group β] [normed_space ℝ β]
-  {m m0 : measurable_space α} {μ : measure α} {c : ℝ}
-  (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
+  {m : measurable_space α}{c : ℝ} (hf : strongly_measurable[m] f) (hc : 0 ≤ c) (n : ℕ) (x : α) :
   ∥hf.approx_bounded c n x∥ ≤ c :=
 begin
   simp only [strongly_measurable.approx_bounded, simple_func.coe_map, function.comp_app],

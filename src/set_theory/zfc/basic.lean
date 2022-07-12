@@ -441,6 +441,9 @@ instance : is_trans Set (⊆) := ⟨λ x y z hxy hyz a ha, hyz (hxy ha)⟩
 
 theorem mem_of_mem_of_subset {x y z : Set} (hx : x ∈ y) (hy : y ⊆ z) : x ∈ z := hy hx
 
+@[simp] theorem subset_to_set_iff {x y : Set} : x.to_set ⊆ y.to_set ↔ x ⊆ y :=
+by { ext, simp }
+
 @[ext] theorem ext {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) → x = y :=
 quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧)))
 

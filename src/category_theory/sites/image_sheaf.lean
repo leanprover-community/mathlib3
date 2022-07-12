@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Andrew Yang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Andrew Yang
+-/
 import category_theory.elementwise
 import category_theory.sites.compatible_sheafification
 
@@ -5,16 +10,13 @@ import category_theory.sites.compatible_sheafification
 
 # Image sheaf
 
+We define the image presheaf of morphisms of presheaves, and upgrade it into a sheaf when the target
+is.
+
 ## Main definitions
 
+- `image_presheaf` : The image presheaf for a morphism between presheaves of types.
 - `image_sheaf` : The image sheaf for a morphism between sheaves of types.
-- `is_surjective` : A morphism of presheaves valued in a concrete category is surjective if
-  every section in the target is locally in the set-theoretic image,
-  i.e. the image sheaf coincides with the target.
-
-## Main results
-
-- `to_sheafify_is_surjective` : `to_sheafify` is surjective.
 
 -/
 
@@ -144,129 +146,5 @@ faithful_reflects_mono (Sheaf_to_presheaf J _)
   (show mono (image_presheaf_ι J f.1), by apply_instance)
 
 end sheaf
-
-local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
-
-section surjective
-
-variable (J)
-
-universes w' v' u'
-
-variables {A : Type u'} [category.{v'} A] [concrete_category.{w'} A]
-
-/-- A morphism of presheaves `f : F ⟶ G` is surjective if every section of `G` is locally in the
-image of `f`. -/
-def is_surjective {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) : Prop :=
-∀ (U : C) (s : G.obj (op U)),
-  ∃ (S : sieve U) (H : S ∈ J U) (x : Π {V : C} (i : V ⟶ U) (h : S i), F.obj (op V)),
-    ∀ {V : C} (i : V ⟶ U) (h : S i), G.map i.op s = f.app (op V) (x i h)
-
-lemma is_surjective_iff_image_presheaf_ι_is_iso {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) :
-  is_surjective J f ↔ is_iso (image_presheaf_ι J (whisker_right f (forget A))) :=
-begin
-  split,
-  { intro H,
-    apply nat_iso.is_iso_of_is_iso_app _,
-    intro U,
-    rw is_iso_iff_bijective,
-    exact ⟨subtype.coe_injective, λ s, ⟨⟨_, H (unop U) s⟩, rfl⟩⟩ },
-  { introsI H U s,
-    obtain ⟨s, rfl⟩ := ((is_iso_iff_bijective ((J.image_presheaf_ι
-      (whisker_right f (forget A))).app $ op U)).mp infer_instance).2 s,
-    exact s.prop }
-end
-
-lemma is_surjective_iff_whisker_forget {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) :
-  is_surjective J f ↔ is_surjective J (whisker_right f (forget A)) :=
-begin
-  rw [is_surjective_iff_image_presheaf_ι_is_iso, is_surjective_iff_image_presheaf_ι_is_iso],
-  refl,
-end
-
-lemma is_surjective_of_surjective {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G)
-  (H : ∀ U, function.surjective (f.app U)) : is_surjective J f :=
-begin
-  intros U s,
-  obtain ⟨t, rfl⟩ := H _ s,
-  exact ⟨_, J.top_mem _, λ _ i _, F.map i.op t, λ _ i _,
-    by simpa only [comp_apply] using (concrete_category.congr_hom (f.naturality i.op) t).symm⟩,
-end
-
-lemma is_surjective_of_iso {F G : Cᵒᵖ ⥤ A} (f : F ⟶ G) [is_iso f] : is_surjective J f :=
-begin
-  apply is_surjective_of_surjective,
-  intro U,
-  apply function.bijective.surjective,
-  rw ← is_iso_iff_bijective,
-  apply_instance
-end
-
-lemma is_surjective.comp {F₁ F₂ F₃ : Cᵒᵖ ⥤ A} {f₁ : F₁ ⟶ F₂} {f₂ : F₂ ⟶ F₃}
-  (h₁ : is_surjective J f₁) (h₂ : is_surjective J f₂) : is_surjective J (f₁ ≫ f₂) :=
-begin
-  intros U s,
-  obtain ⟨S, hS, x, hx⟩ := h₂ _ s,
-  have := λ ⦃V⦄ ⦃i : V ⟶ U⦄ (h : S i), h₁ _ (x i h),
-  choose S' hS' x' hx',
-  have := λ {V} {i : V ⟶ U} (hi : sieve.bind S S' i), hi,
-  choose W i₁ i₂ hi₂ h₁ h₂,
-  refine ⟨_, J.bind_covering hS hS', λ V i hi, x' (hi₂ hi) _ (h₁ hi), _⟩,
-  intros V i hi,
-  simpa [← h₂ hi, hx _ (hi₂ hi), ← hx', -nat_trans.naturality] using
-    (concrete_category.congr_hom (f₂.naturality (i₁ hi).op) (x _ (hi₂ hi))).symm,
-end
-
-end surjective
-
-section
-
-variables {F G : Cᵒᵖ ⥤ Type (max u v)} (f : F ⟶ G)
-
-/-- If `G` is a sheaf, then we may lift `F ⟶ image_presheaf J f` to the sheafification of `F`. -/
-noncomputable
-abbreviation sheafification_to_image_presheaf (hG : presieve.is_sheaf J G) :
-    J.sheafify F ⟶ image_presheaf J f :=
-J.sheafify_lift (to_image_presheaf J f)
-  ((is_sheaf_iff_is_sheaf_of_type J _).mpr $ image_presheaf_is_sheaf J f hG)
-
-variable (F)
-
-/-- The image of `F` in `J.sheafify F` is isomorphic to the sheafification. -/
-noncomputable
-def sheafification_iso_image_presheaf : J.sheafify F ≅ image_presheaf J (J.to_sheafify F) :=
-{ hom := sheafification_to_image_presheaf _ _
-    ((is_sheaf_iff_is_sheaf_of_type J _).mp $ J.sheafify_is_sheaf _),
-  inv := image_presheaf_ι _ _,
-  hom_inv_id' := J.sheafify_hom_ext _ _ (J.sheafify_is_sheaf _) (by simp),
-  inv_hom_id' := begin
-    rw [← cancel_mono (image_presheaf_ι J $ J.to_sheafify F), category.id_comp, category.assoc],
-    refine eq.trans _ (category.comp_id _),
-    congr' 1,
-    exact J.sheafify_hom_ext _ _ (J.sheafify_is_sheaf _) (by simp),
-  end }
-
--- We need to sheafify
-variables {A : Type w} [category.{max u v} A]
-  [concrete_category.{max u v} A]
-  [∀ (X : C), limits.has_colimits_of_shape (J.cover X)ᵒᵖ A]
-  [∀ (P : Cᵒᵖ ⥤ A) (X : C) (S : J.cover X), limits.has_multiequalizer (S.index P)]
-  [Π (X : C) (W : J.cover X) (P : Cᵒᵖ ⥤ A),
-    limits.preserves_limit (W.index P).multicospan (forget A)]
-  [Π (X : C), limits.preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget A)]
-  [∀ (α β : Type (max u v)) (fst snd : β → α),
-    limits.has_limits_of_shape (limits.walking_multicospan fst snd) A]
-
-lemma to_sheafify_is_surjective (F : Cᵒᵖ ⥤ A) :
-  is_surjective J (J.to_sheafify F) :=
-begin
-  rw [is_surjective_iff_whisker_forget, ← to_sheafify_comp_sheafify_comp_iso_inv],
-  apply is_surjective.comp,
-  { rw is_surjective_iff_image_presheaf_ι_is_iso,
-    exact is_iso.of_iso_inv (sheafification_iso_image_presheaf J (F ⋙ forget A)) },
-  { exact is_surjective_of_iso _ _ }
-end
-
-end
 
 end category_theory.grothendieck_topology

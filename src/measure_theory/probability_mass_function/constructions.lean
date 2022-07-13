@@ -101,6 +101,17 @@ by simp
 
 end seq
 
+instance : is_lawful_functor pmf :=
+{ map_const_eq := λ α β, rfl,
+  id_map := λ α, bind_pure,
+  comp_map := λ α β γ g h x, (map_comp _ _ _).symm }
+
+instance : is_lawful_monad pmf :=
+{ bind_pure_comp_eq_map := λ α β f x, rfl,
+  bind_map_eq_seq := λ α β f x, rfl,
+  pure_bind := λ α β x f, pure_bind f x,
+  bind_assoc := λ α β γ, bind_bind }
+
 section of_finset
 
 /-- Given a finset `s` and a function `f : α → ℝ≥0` with sum `1` on `s`,

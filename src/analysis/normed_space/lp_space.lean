@@ -650,11 +650,7 @@ instance : has_star (lp E p) :=
 
 @[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
 
-instance : has_involutive_star (lp E p) := {star_involutive := λ x,
-begin
-ext i,
-simp,
-end }
+instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
 
 instance : star_add_monoid (lp E p) := {star_add :=
 λ f g, by ext i ; simp only [star_add_monoid.star_add, lp.coe_fn_add, add_left_inj, pi.add_apply,
@@ -674,12 +670,7 @@ instance : star_add_monoid (lp E p) := {star_add :=
 variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
 variables [Πi, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
-instance : star_module 𝕜 (lp E p) := { star_smul :=
-begin
-intros i f,
-ext,
-simp only [lp.star_apply, lp.coe_fn_smul, pi.smul_apply, star_smul],
-end }
+instance : star_module 𝕜 (lp E p) := ⟨ by {intros _ _, ext, simp } ⟩
 
 end normed_star_group
 
@@ -750,15 +741,15 @@ apply le_antisymm,
       rw [cstar_ring.norm_star_mul_self, ←sq],
       refine sq_le_sq' _ _,
       { linarith [norm_nonneg (f i), norm_nonneg f] },
-      { refine lp.norm_apply_le_norm ennreal.top_ne_zero _ _,}, },
+      { exact lp.norm_apply_le_norm ennreal.top_ne_zero _ _,}, },
 { rw ←sq,
   rw ←real.le_sqrt (norm_nonneg _) (norm_nonneg _),
-  refine lp.norm_le_of_forall_le _ _,
-  exact ∥star f * f∥.sqrt_nonneg,
+  refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) _,
       intro i,
       rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
-      refine lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
-end }
+      exact lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
+end
+}
 
 end star_ring
 

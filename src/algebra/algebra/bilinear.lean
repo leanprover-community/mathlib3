@@ -117,7 +117,7 @@ def _root_.algebra.lmul : A →ₐ[R] (End R A) :=
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },
   commutes' := by { intro r, ext a, exact (algebra.smul_def r a).symm, },
-  .. (linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm) }
+  .. (linear_map.mul R A) }
 
 variables {R A}
 

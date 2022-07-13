@@ -604,15 +604,14 @@ end
 
 end maximal
 
-lemma submartingale.sum_mul_sub [is_finite_measure μ] {ξ f : ℕ → α → ℝ}
+lemma submartingale.sum_mul_sub [is_finite_measure μ] {R : ℝ} {ξ f : ℕ → α → ℝ}
   (hf : submartingale f 𝒢 μ) (hξ : adapted 𝒢 ξ)
-  (hbdd : ∃ R, ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
+  (hbdd : ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
   submartingale (λ n : ℕ, ∑ k in finset.range n, ξ k * (f (k + 1) - f k)) 𝒢 μ :=
 begin
   have hξbdd : ∀ i, ∃ (C : ℝ), ∀ (x : α), |ξ i x| ≤ C,
-  { obtain ⟨C, hC⟩ := hbdd,
-    intro i,
-    refine ⟨C, λ x, abs_le.2 ⟨le_trans (neg_le.1 (le_trans _ (hC 0 x))) (hnonneg _ _), hC _ _⟩⟩,
+  { intro i,
+    refine ⟨R, λ x, abs_le.2 ⟨le_trans (neg_le.1 (le_trans _ (hbdd 0 x))) (hnonneg _ _), hbdd _ _⟩⟩,
     rw neg_zero,
     exact hnonneg 0 x },
   have hint : ∀ m, integrable (∑ k in finset.range m, ξ k * (f (k + 1) - f k)) μ :=
@@ -639,11 +638,11 @@ end
 /-- Given a discrete submartingale `f` and a predicatable process `ξ` (i.e. `ξ (n + 1)` is adapted)
 the process defined by `λ n, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)` is also a
 submartingale. -/
-lemma submartingale.sum_mul_sub' [is_finite_measure μ] {ξ f : ℕ → α → ℝ}
+lemma submartingale.sum_mul_sub' [is_finite_measure μ] {R : ℝ} {ξ f : ℕ → α → ℝ}
   (hf : submartingale f 𝒢 μ) (hξ : adapted 𝒢 (λ n, ξ (n + 1)))
-  (hbdd : ∃ R, ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
+  (hbdd : ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
   submartingale (λ n : ℕ, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)) 𝒢 μ :=
-let ⟨R, hR⟩ := hbdd in hf.sum_mul_sub hξ ⟨R, λ n, hR _⟩ (λ n, hnonneg _)
+hf.sum_mul_sub hξ (λ n, hbdd _) (λ n, hnonneg _)
 
 end nat
 

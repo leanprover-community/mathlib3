@@ -31,11 +31,11 @@ variables (R A : Type*) [comm_semiring R] [non_unital_non_assoc_semiring A]
 A weaker version of this for semirings exists as `add_monoid_hom.mul`. -/
 def mul : A →ₗ[R] A →ₗ[R] A := linear_map.mk₂ R (*) add_mul smul_mul_assoc mul_add mul_smul_comm
 
-variables {A}
-
 /-- The multiplication map on a non-unital algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
 def mul' : A ⊗[R] A →ₗ[R] A :=
 tensor_product.lift (mul R A)
+
+variables {A}
 
 /-- The multiplication on the left in a non-unital algebra is a linear map. -/
 def mul_left (a : A) : A →ₗ[R] A := mul R A a

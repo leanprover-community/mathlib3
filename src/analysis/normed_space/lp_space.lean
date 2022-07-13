@@ -654,8 +654,7 @@ instance : has_involutive_star (lp E p) := {star_involutive := λ x,
 begin
 ext i,
 simp,
-end
-}
+end }
 
 instance : star_add_monoid (lp E p) := {star_add :=
 λ f g, by ext i ; simp only [star_add_monoid.star_add, lp.coe_fn_add, add_left_inj, pi.add_apply,
@@ -680,8 +679,7 @@ begin
 intros i f,
 ext,
 simp only [lp.star_apply, lp.coe_fn_smul, pi.smul_apply, star_smul],
-end
-}
+end }
 
 end normed_star_group
 
@@ -712,7 +710,7 @@ function.injective.non_unital_ring lp.has_coe_to_fun.coe (subtype.coe_injective)
   (λ _ _, rfl) (λ _ _,rfl)
 
 instance : non_unital_normed_ring (lp B ∞) :=
-{ norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
+  { norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
     (λ i, calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le _ _
     ...                    ≤ ∥f∥ * ∥g∥
     : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
@@ -760,8 +758,7 @@ apply le_antisymm,
       intro i,
       rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
       refine lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
-end
-}
+end }
 
 end star_ring
 

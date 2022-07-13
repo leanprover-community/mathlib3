@@ -111,18 +111,33 @@ end
 lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
 
+def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
+  (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
+  C a b :=
+@well_founded.fix (α × β) (λ x, C x.1 x.2) _ (hα.game_add hβ)
+  (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) ⟨a, b⟩
+
+lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
+  (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
+  game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
+by { rw [game_add.fix, well_founded.fix_eq], refl }
+
+lemma game_add.induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
+  (∀ a₁ b₁, (∀ a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
+game_add.fix
+
 /-- The relation `game_add r r a b ∨ game_add r r a.swap b`, which is well-founded when `r` is. -/
 def game_add_swap (r : α → α → Prop) (a b : α × α) : Prop :=
 game_add r r a b ∨ game_add r r a.swap b
 
 variable {r : α → α → Prop}
 
-theorem game_add.swap {a b} : game_add r r a b → game_add_swap r a b := or.inl
+lemma game_add.swap {a b} : game_add r r a b → game_add_swap r a b := or.inl
 
-theorem game_add.swap_left {a b} (h : game_add r r a b) : game_add_swap r a.swap b :=
+lemma game_add.swap_left {a b} (h : game_add r r a b) : game_add_swap r a.swap b :=
 or.inr $ by rwa prod.swap_swap
 
-theorem game_add.swap_right {a b} (h : game_add r r a b) : game_add_swap r a b.swap :=
+lemma game_add.swap_right {a b} (h : game_add r r a b) : game_add_swap r a b.swap :=
 or.inr $ by rwa game_add_swap_swap
 
 /-- `game_add` is a `subrelation` of `game_add_swap`. -/
@@ -144,6 +159,21 @@ lemma _root_.acc.game_add_swap {a b} (ha : acc r a) (hb : acc r b) : acc (game_a
 /-- The `game_add_swap` relation is well-founded. -/
 lemma _root_.well_founded.game_add_swap (h : well_founded r) :
   well_founded (game_add_swap r) := ⟨λ ⟨a, b⟩, (h.apply a).game_add_swap (h.apply b)⟩
+
+def game_add_swap.fix {C : α → α → Sort*} (hr : well_founded r)
+  (IH : Π a₁ b₁, (Π a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a b : α) :
+  C a b :=
+@well_founded.fix (α × α) (λ x, C x.1 x.2) _ hr.game_add_swap
+  (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) ⟨a, b⟩
+
+lemma game_add_swap.fix_eq {C : α → α → Sort*} (hr : well_founded r)
+  (IH : Π a₁ b₁, (Π a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a b : α) :
+  game_add_swap.fix hr IH a b = IH a b (λ a' b' h, game_add_swap.fix hr IH a' b') :=
+by { rw [game_add_swap.fix, well_founded.fix_eq], refl }
+
+lemma game_add_swap.induction {C : α → α → Prop} : well_founded r →
+  (∀ a₁ b₁, (∀ a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
+game_add_swap.fix
 
 end aux_rels
 

@@ -6,15 +6,17 @@ Authors: Yaël Dillies
 import group_theory.group_action.defs
 
 /-!
-# Sum instances for additive and multiplicative actions
+# Option instances for additive and multiplicative actions
 
-This file defines instances for additive and multiplicative actions on the binary `sum` type.
+This file defines instances for additive and multiplicative actions on `option` type. Scalar
+multiplication is defined by `a • some b = some (a • b)` and `a • none = none`.
 
 ## See also
 
 * `group_theory.group_action.pi`
 * `group_theory.group_action.prod`
 * `group_theory.group_action.sigma`
+* `group_theory.group_action.sum`
 -/
 
 variables {M N P α β γ : Type*}
@@ -35,7 +37,7 @@ instance [is_scalar_tower α β γ] : is_scalar_tower α β (option γ) :=
 
 @[to_additive] instance {α β γ : Type*} [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class α β (option γ) :=
-⟨λ a b x, by { cases x, exacts [rfl, congr_arg some (smul_comm _ _ _)] }⟩
+⟨λ a b, function.commute.option_map $ smul_comm _ _⟩
 
 instance [has_smul αᵐᵒᵖ β] [is_central_scalar α β] : is_central_scalar α (option β) :=
 ⟨λ a x, by { cases x, exacts [rfl, congr_arg some (op_smul_eq_smul _ _)] }⟩

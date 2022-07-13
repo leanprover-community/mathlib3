@@ -656,18 +656,18 @@ instance : star_add_monoid (lp E p) := {star_add :=
 λ f g, by ext i ; simp only [star_add_monoid.star_add, lp.coe_fn_add, add_left_inj, pi.add_apply,
   lp.star_apply, eq_self_iff_true]}
 
- instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) := { norm_star :=
- begin
- intro f,
- rcases p.trichotomy with h | h | h,
- { unfreezingI { subst h },
-   exfalso,
-   have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
-   norm_num at this,},
- { unfreezingI { subst h },
-   simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
- { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star]}
- end }
+instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
+{ norm_star := λ f,
+  begin
+    rcases p.trichotomy with h | h | h,
+    { unfreezingI { subst h },
+      exfalso,
+      have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
+      norm_num at this,},
+    { unfreezingI { subst h },
+      simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
+    { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
+  end }
 
 variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
 variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]

@@ -7,7 +7,19 @@ import probability.martingale.upcrossing
 
 /-!
 
-# Maringale convergence theorems
+# Martingale convergence theorems
+
+The martingale convergence theorems are a collection of theorems characterizing the convergence
+of a martingale provided it satisfy some boundedness conditions. In particular, we have proved the
+almost everywhere martingale convergence theorem which states that, given a L¹-bounded
+submartingale adapted to the filtration `ℱ`, it converges almost everywhere to an integrable
+function which is measurable with respect to the σ-algebra `⨆ n, ℱ n`.
+
+## Main results
+
+* `measure_theory.submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd`: a L¹-bounded submartingale
+  adapted to the filtration `ℱ` converges almost everywhere to an integrable function which is
+  measurable with respect to the σ-algebra `⨆ n, ℱ n`.
 
 -/
 
@@ -21,19 +33,35 @@ variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α} {R
 
 /-!
 
-We will now begin to prove the martingale convergence theorem.
+We will now prove almost everywhere the martingale convergence theorem.
 
-Firstly, we want to show a real sequence `x` converges if
+The a.e. martingale convergence theorem states: if `f` is a L¹-bounded `ℱ`-submartingale, then
+it converges almost everywhere to a integrable function which is measurable with respect to
+the σ-algebra `ℱ∞ := ⨆ n, ℱ n`.
+
+Mathematically, we proceed by first noting that a real sequence `x` converges if
 (a) `limsup |x| < ∞`,
-(b) For all `a < b : ℚ` we have `sup N, upcrossing_before a b x N < ∞`.
+(b) For all `a < b : ℚ` we have `upcrossing a b f x < ∞`.
+Thus, for all `x` satisfying `limsup |λ n, f n x| < ∞` and for all
+`a < b : ℚ`, `upcrossing a b f x < ∞`, we have `(f n x)ₙ` converges.
 
-With this, for all `x` satisfying `limsup |λ n, f n x| < ∞` and
-for all `a < b : ℚ`, `sup N, upcrossing_before a b f N x ≠ ∞`, we have `λ n, f n x` converges.
-
-Assuming `f` is L¹-bounded, using Fatou's lemma,
-we have `𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
-the upcrossing_before lemma, `sup N, upcrossing_before a b f N ≠ ∞ a.e.` implying `f` converges
+Hence, assuming `f` is L¹-bounded, using Fatou's lemma, we have
+`𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
+the upcrossing estimate, `upcrossing a b f N < ∞ a.e.` and so, `f` converges
 pointwise almost everywhere.
+
+Thus, denoting `g` the a.e. limit of `f`, `g` is `ℱ∞`-measurable as for all `n`,
+`f n` is `ℱ n`-measurable and `ℱ n ≤ ℱ∞`. Finally, `g` is also integrable as
+`|g| ≤ liminf |f n|` so `𝔼[|g|] ≤ 𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` as required.
+
+Implementation wise, a previous PR has given us `tendsto_of_no_upcrossings` which showed that
+a bounded sequence converges if it does not visit below `a` and above `b` infinitely often
+for all `a, b ∈ s` for some dense set `s`. So, we may skip the first step provided we can prove
+that the realizations are bounded almost everywhere. Indeed, suppose `(|f n x|)ₙ` is not bounded,
+then either `f n x → ±∞` or one of `limsup f n x` or `liminf f n x` equals `±∞` while the other
+is finite. But the first case contradicts `liminf |f n x| < ∞` while the second
+case contradicts finite upcrossings and so, `(|f n x|)ₙ` is bounded if `limsup |x| < ∞` and
+`upcrossing a b f x < ∞` which is precisely the assumptions we have.
 
 -/
 
@@ -140,10 +168,7 @@ begin
     { intros a ha b hb hab,
       obtain ⟨⟨a, rfl⟩, ⟨b, rfl⟩⟩ := ⟨ha, hb⟩,
       exact not_frequently_of_upcrossing_lt_top hab (hf₂ a b (rat.cast_lt.1 hab)).ne } },
-  { -- if `(|f n x|)` is not bounded then either `f n x → ±∞` or (`limsup f n x = ∞` or
-    -- `liminf f n x = -∞`). The first case contradicts `liminf |f n x| ≠ ∞` while the second
-    -- case contradicts finite upcrossings.
-    obtain ⟨a, b, hab, h₁, h₂⟩ := exists_upcrossings_of_not_bounded_under hf₁.ne h,
+  { obtain ⟨a, b, hab, h₁, h₂⟩ := exists_upcrossings_of_not_bounded_under hf₁.ne h,
     exact false.elim ((hf₂ a b hab).ne
       (upcrossing_eq_top_of_frequently_lt (rat.cast_lt.2 hab) h₁ h₂)) }
 end
@@ -226,6 +251,8 @@ begin
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end
 
+section PRed
+
 lemma metric.cauchy_seq_iff'' {α β : Type*}
   [pseudo_metric_space α] [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ K : ℕ, ∃ N, ∀ n ≥ N, dist (u n) (u N) < (K + 1)⁻¹ :=
@@ -260,6 +287,8 @@ begin
   { simp only [hNn, ge_iff_le, forall_false_left, set.set_of_true, measurable_set.univ] }
 end
 
+end PRed
+
 lemma submartingale.exists_ae_trim_tendsto_of_bdd
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ x ∂(μ.trim (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _) : (⨆ n, ℱ n) ≤ m0)),
@@ -272,7 +301,7 @@ begin
 end
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
-almost everywhere to a L¹ random variable. -/
+almost everywhere to a L¹-function which is measurable with respect to `⨆ n, ℱ n`. -/
 lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∃ g : α → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧

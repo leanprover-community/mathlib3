@@ -28,8 +28,10 @@ convergence theorems.
   one might think of the `upcrossing_strat` as the strategy of buying 1 share whenever the process
   crosses below `a` for the first time after selling and selling 1 share whenever the process
   crosses above `b` for the first time after buying.
-* `measure_theory.upcrossing_before a b f N`: is the number of times `f` crosses from below `a` to above
-  `b` before time `N`.
+* `measure_theory.upcrossing_before a b f N`: is the number of times `f` crosses from below `a` to
+  above `b` before time `N`.
+* `measure_theory.upcrossing a b f`: is the number of times `f` crosses from below `a` to above
+  `b`. This takes value in `ℝ≥0∞` and so is allowed to be `∞`.
 
 ## Main results
 
@@ -37,8 +39,10 @@ convergence theorems.
   whenever the process it is associated to is adapted.
 * `measure_theory.adapted.is_stopping_time_lower_crossing`: `lower_crossing` is a stopping time
   whenever the process it is associated to is adapted.
-* `measure_theory.submartingale.mul_integral_upcrossing_before_le_integral_pos_part`: Doob's upcrossing
-  estimate.
+* `measure_theory.submartingale.mul_integral_upcrossing_before_le_integral_pos_part`: Doob's
+  upcrossing estimate.
+* `measure_theory.submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part`: the inequality
+  obtained by taking the supremum on both sides of Doob's upcrossing estimate.
 
 ### References
 
@@ -868,6 +872,7 @@ begin
     simp only [ennreal.coe_nat, ennreal.coe_nat_le_coe_nat, hk N] }
 end
 
+/-- A variant of Doob's upcrossing estimate obtained by taking the supremum on both sides. -/
 lemma submartingale.mul_lintegral_upcrossing_le_lintegral_pos_part [is_finite_measure μ]
   (a b : ℝ) (hf : submartingale f ℱ μ) :
   ennreal.of_real (b - a) * ∫⁻ x, upcrossing a b f x ∂μ ≤

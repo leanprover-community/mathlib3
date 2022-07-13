@@ -9,10 +9,9 @@ import tactic.ring
 /-!
 
 # linear_combination Tactic
-
 In this file, the `linear_combination` tactic is created.  This tactic, which
-works over `ring`s, attempts to prove the target by creating and applying a
-linear combination of a list of equalities.  This file also includes a
+works over `ring`s, attempts to simplify the target by creating a linear combination
+  of a list of equalities and subtracting it from the target.  This file also includes a
 definition for `linear_combination_config`.  A `linear_combination_config`
 object can be passed into the tactic, allowing the user to specify a
 normalization tactic.
@@ -24,8 +23,7 @@ given coefficients.  Then, it subtracts the right side of the weighted sum
 from the left side so that the right side equals 0, and it does the same with
 the target.  Afterwards, it sets the goal to be the equality between the
 lefthand side of the new goal and the lefthand side of the new weighted sum.
-Lastly, it uses a normalization tactic to see if the weighted sum is equal
-to the target.
+Lastly, calls a normalization tactic on this target.
 
 ## References
 
@@ -286,11 +284,11 @@ when config.normalize config.normalization_tactic
 
 
 /--
-This is a tactic that attempts to prove the target by creating and applying a
-  linear combination of a list of equalities.  (If the `normalize` field of the
+This is a tactic that attempts to simplify the target by creating a linear combination
+  of a list of equalities and subtracting it from the target.
+  (If the `normalize` field of the
   configuration is set to ff, then the tactic will simply set the user up to
-  prove their target using the linear combination instead of attempting to
-  finish the proof.)
+  prove their target using the linear combination instead of normalizing the subtraction.)
 
 Note: The left and right sides of all the equalities should have the same
   ring type, and the coefficients should also have this type.  There must be
@@ -347,13 +345,13 @@ section interactive_mode
 setup_tactic_parser
 
 /--
-`linear_combination` attempts to prove the target by creating and applying a
-  linear combination of a list of equalities.  The tactic will create a linear
+`linear_combination` attempts to simplify the target by creating a linear combination
+  of a list of equalities and subtracting it from the target.
+  The tactic will create a linear
   combination by adding the equalities together from left to right, so the order
   of the input hypotheses does matter.  If the `normalize` field of the
   configuration is set to false, then the tactic will simply set the user up to
-  prove their target using the linear combination instead of attempting to
-  finish the proof.
+  prove their target using the linear combination instead of normalizing the subtraction.
 
 Note: The left and right sides of all the equalities should have the same
   type, and the coefficients should also have this type.  There must be
@@ -371,7 +369,7 @@ Note: The left and right sides of all the equalities should have the same
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config.  In the standard configuration,
       `normalize` is set to tt (meaning this tactic is set to use
-      normalization), and `normalization_tactic` is set to  `ring1`.
+      normalization), and `normalization_tactic` is set to  `ring_nf SOP`.
 
 Example Usage:
 ```
@@ -382,6 +380,13 @@ by linear_combination 1*h1 - 2*h2
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 by linear_combination h1 - 2*h2
+
+example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+  x*y = -2*y + 1 :=
+begin
+ linear_combination -2*h2,
+ /- Goal: x * y + x * 2 - 1 = 0 -/
+end
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :

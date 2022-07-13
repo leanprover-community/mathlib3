@@ -197,18 +197,12 @@ end
 
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) ≥ t}`. -/
-
---TODO: The assumption `(p_large : 0 < p)` should suffice, but the assumptions of
---`interval_integral.interval_integrable_rpow` and `interval_integral.integral_rpow`
---are too stringent to apply here.
 theorem lintegral_rpow_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
-  (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ} (p_large : 1 < p) :
+  (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ} (p_pos: 0 < p) :
   ∫⁻ ω, ennreal.of_real ((f ω)^p) ∂μ
     = (ennreal.of_real p) * ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) * ennreal.of_real (t^(p-1)) :=
 begin
-  have p_pos : 0 < p := zero_le_one.trans_lt p_large,
   have one_lt_p : -1 < p - 1 := by linarith,
-  have p_sub_one: 0 ≤ p - 1 := by linarith,
   have obs : ∀ (x : ℝ), (∫ (t : ℝ) in 0..x, t^(p-1)) = x^p / p,
   { intros x,
     rw integral_rpow (or.inl one_lt_p),
@@ -220,7 +214,7 @@ begin
     rw g_def,
     exact real.rpow_nonneg_of_nonneg (mem_Ioi.mp t_pos).le (p - 1), },
   have g_intble : ∀ t > 0, interval_integrable g volume 0 t,
-    from λ _ _, interval_integral.interval_integrable_rpow (or.inl p_sub_one),
+    from λ _ _, interval_integral.interval_integrable_rpow' one_lt_p,
   have key := lintegral_comp_eq_lintegral_meas_le_mul μ f_nn f_mble g_intble g_nn,
   simp_rw [g_def] at key,
   rw [← key, ← lintegral_const_mul (ennreal.of_real p)]; simp_rw obs,

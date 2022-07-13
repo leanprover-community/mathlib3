@@ -43,7 +43,7 @@ the exponents. -/
 variables [has_add A]
 variables [has_add B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
 
-lemma degree_mul_le (D : A → B) (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
+lemma sup_support_mul_le (D : A → B) (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
   (f g : add_monoid_algebra R A) :
   (f * g).support.sup D ≤ f.support.sup D + g.support.sup D :=
 begin

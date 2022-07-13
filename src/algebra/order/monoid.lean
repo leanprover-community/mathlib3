@@ -138,6 +138,12 @@ lemma one_le_two' [has_le α] [has_one α] [add_zero_class α] [zero_le_one_clas
 calc 1 = 0 + 1 : (zero_add 1).symm
    ... ≤ 1 + 1 : add_le_add_right zero_le_one _
 
+@[simp] lemma zero_lt_one [mul_zero_one_class α] [nontrivial α] [partial_order α]
+  [zero_le_one_class α] : (0 : α) < 1 :=
+zero_le_one.lt_of_ne zero_ne_one
+
+alias zero_lt_one ← one_pos
+
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=

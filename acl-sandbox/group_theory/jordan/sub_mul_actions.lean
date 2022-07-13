@@ -143,9 +143,8 @@ begin
 
       let t : set α := insert a (coe '' s),
       suffices : ↑y ∈ t,
-      { rw ← set_like.coe_eq_coe,
-        conv_rhs { rw ← hm ↑y this},
-        refl },
+      { rw [← set_like.coe_eq_coe, sub_mul_action.coe_smul],
+        apply hm ↑y this, },
       apply set.mem_insert_of_mem,
       use ⟨y, hy, rfl⟩,
       refl } } ,

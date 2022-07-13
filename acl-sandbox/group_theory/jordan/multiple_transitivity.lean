@@ -687,6 +687,26 @@ begin
     apply is_zero_pretransitive }
 end
 
+lemma remaining_transitivity' (s : set α) [fintype s]
+  (m n : ℕ)
+  (hn : (n : enat) ≤ enat.card α)
+  (hmn : m + fintype.card s ≤ n)
+  (h : is_multiply_pretransitive M α n) :
+  is_multiply_pretransitive
+    (fixing_subgroup M s)
+    (sub_mul_action.of_fixing_subgroup M s) m :=
+begin
+  let d := fintype.card s,
+  rw ← nat.add_sub_cancel m d,
+  apply remaining_transitivity,
+  exact enat.of_fintype ↥s,
+  apply is_multiply_pretransitive_of_higher,
+  exact h,
+  exact hmn,
+  exact hn,
+end
+
+
 private
 lemma index_of_fixing_subgroup_of_multiply_pretransitive_aux (k : ℕ) [fintype α]
     (hmk : is_multiply_pretransitive M α k)
@@ -925,6 +945,7 @@ begin
   exact embedding_like.injective x,
 end
 
+/-- The action of the permutation group of α on α is preprimitive -/
 theorem equiv.perm.is_preprimitive :
   is_preprimitive (equiv.perm α) α :=
 begin

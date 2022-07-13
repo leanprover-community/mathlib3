@@ -10,6 +10,9 @@ import group_theory.group_action.sub_mul_action
 -- import group_theory.perm.concrete_cycle
 import order.minimal
 import .primitive
+import .multiple_transitivity
+-- import .sub_mul_actions
+
 import .jordan
 
 open_locale pointwise
@@ -306,66 +309,403 @@ end
 
 open_locale classical
 
-lemma equiv.perm.is_maximal_stab (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
-  (hα : fintype.card ≠ 2 * fintype.card ↥s) : subgroup.is_maximal (stabilizer (equiv.perm α) s) :=
+lemma set.subset_of_eq {α : Type*} {s t : set α} (h : s = t) : s ⊆ t := h ▸ set.subset.refl _
+
+lemma le_stabilizer_iff (G : Type*) [group G] [mul_action G α] (s : set α) (H : subgroup G) :
+  H ≤ stabilizer G s ↔ ∀ g ∈ H, g • s ⊆ s :=
 begin
-split,
-split,
-rw ← lt_top_iff_ne_top,
+  split,
+  { intros hyp g hg,
+    apply set.subset_of_eq,
+    rw ← mem_stabilizer_iff,
+    exact hyp hg, },
+  intro hyp,
+  intros g hg,
+  rw mem_stabilizer_iff,
+  apply subset_antisymm,
+  exact hyp g hg,
+  intros x hx, use g⁻¹ • x, split,
+  apply hyp g⁻¹ (inv_mem hg),
+  simp only [set.smul_mem_smul_set_iff, hx],
+  simp only [smul_inv_smul],
+end
 
-have stab_lt_top : stabilizer (equiv.perm α) s < ⊤,
-  { rw lt_top_iff_ne_top,
-    obtain ⟨a, ha⟩ := h0,
-    obtain ⟨b, hb⟩ := h1,
-    intro h,
-    rw set.mem_compl_iff at hb, apply hb,
-    have hg : equiv.swap a b ∈ stabilizer (equiv.perm α) s,
-    { rw h, apply subgroup.mem_top },
-    rw mem_stabilizer_iff at hg,
-    rw ← hg,
-    rw set.mem_smul_set,
-    use a, use ha, apply equiv.swap_apply_left },
-  exact stab_lt_top,
+lemma is_pretransitive.of_partition (G : Type*) [group G] [mul_action G α] (s : set α) :
+  (∀ (a ∈ s) (b ∈ s), ∃ (g : G), g • a = b) →
+  (∀ (a ∈ sᶜ) (b ∈ sᶜ), ∃ (g : G), g • a = b) →
+  (stabilizer G s ≠ ⊤) →
+  -- (∃ (a b : α) (g : G), a ∈ s ∧ b ∈ sᶜ ∧ g • a = b) →
+  is_pretransitive G α :=
+begin
+  intros hs hs' hG,
+  suffices hss' : (∃ (a b : α) (g : G), a ∈ s ∧ b ∈ sᶜ ∧ g • a = b),
+  obtain ⟨a, b, g, ha, hb, hgab⟩ := hss',
+  apply is_pretransitive.mk_base a,
+  intro x,
+  cases em (x ∈ s) with hx hx',
+  exact hs a ha x hx,
+  rw ← set.mem_compl_iff at hx',
+  obtain ⟨k, hk⟩ := hs' b hb x hx',
+  use k * g,
+  rw [mul_action.mul_smul, hgab, hk],
+  --
+  by_contradiction hyp,
+  push_neg at hyp,
+  apply hG,
+  rw eq_top_iff,
+  rw le_stabilizer_iff ,
+  intros g _,
+  rintros b ⟨a, ha, hgab⟩,
+  by_contradiction hb,
+  exact hyp a b g ha (set.mem_compl hb) hgab,
+end
 
-  intros G hG,
+lemma swap_mem_stabilizer {a b : α} {s : set α} (ha : a ∈ s) (hb : b ∈ s) :
+  equiv.swap a b ∈ stabilizer (equiv.perm α) s :=
+begin
+  suffices : (equiv.swap a b) • s ⊆ s,
+  { rw mem_stabilizer_iff,
+    apply set.subset.antisymm,
+    exact this,
+    exact set.subset_set_smul_iff.mpr this, },
+  rintros _ ⟨x, hx, rfl⟩,
+  simp only [equiv.perm.smul_def],
+  cases em (x = a) with hxa hxa',
+  rw [hxa, equiv.swap_apply_left], exact hb,
+  cases em (x = b) with hxb hxb',
+  rw [hxb, equiv.swap_apply_right], exact ha,
+  rw equiv.swap_apply_of_ne_of_ne hxa' hxb', exact hx,
+end
+
+lemma moves_in (G : subgroup (equiv.perm α)) (t : set α) (hGt : stabilizer (equiv.perm α) t < G) :
+  ∀ (a ∈ t) (b ∈ t), ∃ (g : G), g • a = b :=
+begin
+  intros a ha b hb,
+  use equiv.swap a b,
+  apply le_of_lt hGt,
+  apply swap_mem_stabilizer ha hb,
+  change (equiv.swap a b) • a = b,
+  simp only [equiv.perm.smul_def],
+  rw equiv.swap_apply_left,
+end
+
+lemma ne_one_of_is_swap {f : equiv.perm α} (hf : f.is_swap) : f ≠ 1 :=
+begin
+  intro h1,
+  obtain ⟨x, y, hxy, h⟩ := hf,
+  rw h1 at h, apply hxy,
+  rw ← equiv.swap_apply_left x y, rw ← h,
+  simp only [equiv.perm.coe_one, id.def],
+end
+
+lemma swap_is_swap_iff {a b : α} : (equiv.swap a b).is_swap ↔ a ≠ b :=
+begin
+  split,
+  { intros h hab,
+    suffices : equiv.swap a b ≠ 1,
+    { apply this,
+      rw [← hab, equiv.swap_self],
+      ext x, simp only [equiv.coe_refl, equiv.perm.coe_one], },
+    exact ne_one_of_is_swap h, },
+  { intro h, use a, use b, exact ⟨h, rfl⟩, },
+end
+
+lemma fintype.card_add_compl (s : set α) : fintype.card s + fintype.card (sᶜ : set α) = fintype.card α :=
+begin
+  rw fintype.card_compl_set ,
+  rw add_comm,
+  rw nat.sub_add_cancel,
+  exact set_fintype_card_le_univ s,
+end
+
+open_locale pointwise
+
+example (s : finset α) (g : equiv.perm α) : (g • s).card  = s.card :=
+begin
+  change (finset.image (λ x, g • x)  s).card = _,
+  rw finset.card_image_of_injective _ (mul_action.injective g),
+end
+
+example (s : set α) (g : equiv.perm α) : fintype.card (g • s : set α)  = fintype.card s :=
+begin
+  rw ← set.coe_to_finset s,
+  simp only [← set.to_finset_card],
+  change ((λ x, g • x) '' ↑(s.to_finset)).to_finset.card = _,
+  simp_rw ← finset.coe_image ,
+  simp only [finset.to_finset_coe],
+  rw finset.card_image_of_injective _ (mul_action.injective g),
+end
+
+example (s t : set α) (hst : s ⊆ t) : fintype.card s ≤ fintype.card t :=
+begin
+  exact set.card_le_of_subset hst,
+end
+
+#check nat.add_lt_add_left
+
+lemma nat.add_lt_of_le_lt (a b c d : ℕ) (hab : a ≤ c) (hbd : b < d) : a + b < c + d :=
+begin
+apply nat.lt_of_lt_of_le,
+apply nat.add_lt_add_left _ a, use d, exact hbd,
+apply nat.add_le_add_right hab d,
+end
+
+lemma fixing_subgroup_le_stabilizer (s : set α) : fixing_subgroup (equiv.perm α) s ≤ stabilizer (equiv.perm α) s :=
+begin
+  intros k hk,
+  rw mem_fixing_subgroup_iff at hk,
+  rw mem_stabilizer_iff,
+  change (λ x, k • x) '' s = s,
+  conv_rhs { rw ← set.image_id s},
+  apply set.image_congr ,
+  simp only [id.def],
+  exact hk,
+end
+
+lemma extracted_goal {α : Type u_1}
+  [decidable_eq α]
+  [fintype α]
+  (s : set α)
+  (h0 : s.nonempty)
+  (h1 : sᶜ.nonempty)
+  (hα : fintype.card ↥s < fintype.card ↥sᶜ)
+  (G : subgroup (equiv.perm α))
+  (hG : stabilizer (equiv.perm α) s < G)
+  (this : ∀ (t : set α),
+            1 < fintype.card ↥t →
+            (∃ (g : equiv.perm α),
+               g.is_swap ∧ g ∈ stabilizer (equiv.perm α) t))
+  (g : equiv.perm α)
+  (hg_swap : g.is_swap)
+  (hg : g ∈ G)
+  (_inst : is_pretransitive ↥G α)
+  {B : set α}
+  (hB : is_block ↥G B)
+  (hB' : ¬B.subsingleton)
+  (hB_ne_sc : B ≠ sᶜ)
+  (hB_not_le_sc : ¬B ⊆ sᶜ)
+  (a : α)
+  (ha : a ∈ B)
+  (ha' : a ∈ s)
+  (hB_not_le_s : ¬B ⊆ s)
+  (b : α)
+  (hb : b ∈ B)
+  (hb' : b ∈ sᶜ) :
+  sᶜ ⊆ B :=
+begin
+  intros x hx',
+  suffices : ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
+  obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
+  suffices : k • B = B,
+  rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
+  exact hb,
+  { -- k • B = B,
+    apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
+    { rw set.not_disjoint_iff_nonempty_inter,
+      change (k • B ∩ B).nonempty,
+      use a,
+      split,
+        rw mem_fixing_subgroup_iff at hk,
+        rw ← hk a ha',
+        exact set.smul_mem_smul_set ha,
+        exact ha, },
+    { -- ↑k ∈ G
+      apply le_of_lt hG,
+      exact fixing_subgroup_le_stabilizer s hk, } },
+  { -- ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
+    suffices : is_pretransitive (fixing_subgroup (equiv.perm α) s)
+      (sub_mul_action.of_fixing_subgroup (equiv.perm α) s),
+    resetI,
+    obtain ⟨k, hk⟩ := exists_smul_eq (fixing_subgroup (equiv.perm α) s)
+      (⟨b, hb'⟩ : sub_mul_action.of_fixing_subgroup (equiv.perm α) s)
+      ⟨x, hx'⟩,
+    use k,
+    rw [← subtype.coe_inj, sub_mul_action.coe_smul] at hk,
+    exact hk,
+    -- is_pretransitive …
+    rw is_pretransitive_iff_is_one_pretransitive,
+    apply remaining_transitivity',
+    { apply le_of_eq, rw enat.of_fintype α },
+    { rw add_comm,
+    rw ← fintype.card_add_compl s,
+    simp only [add_le_add_iff_left],
+    change 0 < _,
+    rw fintype.card_pos_iff ,
+    simp only [set.nonempty_coe_sort],
+    exact h1,  },
+    exact equiv_perm_is_fully_pretransitive α,  },
+
+
 
 end
 
-lemma nat.finset_is_preprimitive_of (h_one_lt : 1 < n) (hn : n < fintype.card α)
-  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (equiv.perm α) (n.finset α) :=
+
+
+lemma equiv.perm.is_maximal_stab' (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
+  (hα : fintype.card s < fintype.card (sᶜ : set α)) : subgroup.is_maximal (stabilizer (equiv.perm α) s) :=
 begin
-  classical,
-  haveI : nontrivial α,
-  { rw ← fintype.one_lt_card_iff_nontrivial,
-    exact lt_trans h_one_lt hn },
-  haveI ht : is_pretransitive (equiv.perm α) (n.finset α) := nat.finset_is_pretransitive,
-  haveI : nontrivial (n.finset α) :=
-    nat.finset_nontrivial (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
-  obtain ⟨s : n.finset α⟩ := nontrivial.to_nonempty,
-  have hs : (s : finset α).card = n := s.prop,
-  rw ← maximal_stabilizer_iff_preprimitive (equiv.perm α) s,
   split,
   split,
+  -- stabilizer (equiv.perm α) s ≠ ⊤
   rw ← lt_top_iff_ne_top,
   have stab_lt_top : stabilizer (equiv.perm α) s < ⊤,
-  { rw lt_top_iff_ne_top,
-    obtain ⟨a, ha : a ∈ ↑s⟩ := finset.nonempty.bex
-    (begin rw [← finset.card_pos, hs], exact lt_trans (nat.lt_succ_self 0) h_one_lt, end),
-      obtain ⟨b : α, hb : b ∈ (s : finset α)ᶜ⟩ := finset.nonempty.bex (begin
-        rw [← finset.card_compl_lt_iff_nonempty (↑s)ᶜ, compl_compl, hs], exact hn,
-        apply_instance, end),
+    { rw lt_top_iff_ne_top,
+      obtain ⟨a, ha⟩ := h0,
+      obtain ⟨b, hb⟩ := h1,
       intro h,
-      rw finset.mem_compl at hb, apply hb,
+      rw set.mem_compl_iff at hb, apply hb,
       have hg : equiv.swap a b ∈ stabilizer (equiv.perm α) s,
       { rw h, apply subgroup.mem_top },
       rw mem_stabilizer_iff at hg,
       rw ← hg,
-      change b ∈ finset.image (equiv.swap a b) s,
-      rw finset.mem_image,
+      rw set.mem_smul_set,
       use a, use ha, apply equiv.swap_apply_left },
-  exact stab_lt_top,
+    exact stab_lt_top,
 
-  intros G hG,
+    -- ∀ (G : subgroup (equiv.perm α)), stabilizer (equiv.perm α) s < b) → b = ⊤
+    intros G hG,
+
+    have : ∀ (t : set α), 1 < fintype.card t →
+      ∃ (g : equiv.perm α), g.is_swap ∧ g ∈ (stabilizer (equiv.perm α) t),
+    { intros t ht,
+      obtain ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩ := fintype.exists_pair_of_one_lt_card ht,
+      simp only [ne.def, subtype.mk_eq_mk] at h,
+      use equiv.swap a b,
+      split,
+      rw swap_is_swap_iff, exact h,
+      apply swap_mem_stabilizer ha hb, },
+    have : ∃ (g : equiv.perm α), g.is_swap ∧ g ∈ G,
+    { cases lt_or_le 1 (fintype.card s) with h1 h1',
+      { obtain ⟨g, hg, hg'⟩ := this s h1,
+        use g, apply and.intro hg,
+        exact le_of_lt hG hg',  },
+      { obtain ⟨g, hg, hg'⟩ := this sᶜ _,
+        use g, apply and.intro hg,
+        rw stabilizer_compl at hg', exact le_of_lt hG hg',
+        rw lt_iff_not_le, intro h1c',
+        have hs1 : fintype.card s = 1,
+        { apply le_antisymm h1',
+          change 0 < fintype.card s,
+          rw fintype.card_pos_iff , exact set.nonempty_coe_sort.mpr h0, },
+        have hsc1 : fintype.card (sᶜ : set α) = 1,
+        { apply le_antisymm,
+          convert h1c',
+          change 0 < _,
+          rw [fintype.card_pos_iff, set.nonempty_coe_sort],
+          exact h1, },
+       rw [hs1, hsc1] at hα,
+       apply lt_irrefl 1,
+       exact hα, } },
+    obtain ⟨g, hg_swap, hg⟩ := this,
+    apply jordan_swap _ g hg_swap hg,
+
+    haveI : is_pretransitive G α,
+    { apply is_pretransitive.of_partition G s,
+      { apply moves_in, exact hG, },
+      { apply moves_in, rw stabilizer_compl, exact hG, },
+      { intro h,
+        apply lt_irrefl G, apply lt_of_le_of_lt _ hG,
+        --  G ≤ stabilizer (equiv.perm α) s,
+        intros g hg,
+        rw mem_stabilizer_iff,
+        rw ← subgroup.coe_mk G g hg,
+        change (⟨g, hg⟩ : ↥G) • s = s,
+        rw ← mem_stabilizer_iff,
+        change _ ∈ stabilizer ↥G s,
+        rw h, exact subgroup.mem_top ⟨g, hg⟩, }, },
+    { apply is_preprimitive.mk,
+      intros B hB,
+      unfold is_trivial_block,
+
+      rw or_iff_not_imp_left ,
+      intro hB',
+
+      have hB_ne_sc : B ≠ sᶜ, sorry,
+      have hB_not_le_sc : ¬(B ⊆ sᶜ), sorry,
+      obtain ⟨a, ha, ha'⟩ := set.not_subset_iff_exists_mem_not_mem.mp hB_not_le_sc,
+      rw set.not_mem_compl_iff at ha',
+
+      have hB_not_le_s : ¬(B ⊆ s), sorry,
+      obtain ⟨b, hb, hb'⟩ := set.not_subset_iff_exists_mem_not_mem.mp hB_not_le_s,
+      rw ← set.mem_compl_iff at hb',
+
+      have hsc_le_B : sᶜ ⊆ B,
+      { extract_goal,
+
+        intros x hx',
+        suffices : ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
+        obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
+        suffices : k • B = B,
+        rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
+        exact hb,
+        { -- k • B = B,
+          apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
+          rw set.not_disjoint_iff_nonempty_inter,
+          change (k • B ∩ B).nonempty,
+
+          refine set.nonempty.mono _ _,
+
+        sorry,
+        -- ↑k ∈ G
+        sorry },
+        { -- ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
+          sorry, }, },
+
+      -- Conclusion of the proof : B = ⊤
+      rw eq_top_iff,
+      intros x _,
+      obtain ⟨b, hb⟩ := h1,
+      obtain ⟨⟨g, hg⟩, hgbx : g • b = x⟩ := exists_smul_eq G b x,
+      suffices : g • B = B,
+      { rw [← hgbx, ← this, set.smul_mem_smul_set_iff],
+        exact hsc_le_B hb, },
+      -- g • B = B,
+      apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨g, hg⟩),
+      rw set.not_disjoint_iff_nonempty_inter,
+      change (g • B ∩ B).nonempty,
+      apply aux_pigeonhole,
+
+      -- card B + card (g • B) = card B + card B
+      -- ... ≥ card sᶜ + card sᶜ
+      -- ... > card s + card s ᶜ = card α
+      rw ← fintype.card_add_compl s,
+      apply nat.lt_of_lt_of_le,
+      { apply nat.add_lt_add_right _ (fintype.card (sᶜ : set α)),
+        use (fintype.card (sᶜ : set α)),
+        exact hα, },
+      apply nat.add_le_add,
+      { apply le_trans (set.card_le_of_subset hsc_le_B),
+        apply le_of_eq,
+        rw ← set.coe_to_finset B,
+        simp only [← set.to_finset_card],
+        change _ = ((λ x, g • x) '' ↑(B.to_finset)).to_finset.card,
+        simp_rw ← finset.coe_image ,
+        simp only [finset.to_finset_coe],
+        rw finset.card_image_of_injective _ (mul_action.injective g) },
+      exact set.card_le_of_subset hsc_le_B,
+
+ },
+
+end
+
+lemma equiv.perm.is_maximal_stab (s : set α) (h0 : s.nonempty) (h1 : sᶜ.nonempty)
+  (hα : fintype.card α ≠ 2 * fintype.card ↥s) : subgroup.is_maximal (stabilizer (equiv.perm α) s) :=
+begin
+  cases nat.lt_trichotomy (fintype.card s) (fintype.card (sᶜ : set α)) with hs hs',
+  { exact equiv.perm.is_maximal_stab' s h0 h1 hs, },
+  cases hs' with hs hs,
+  { exfalso, apply hα,
+    rw [← fintype.card_add_compl s, ← hs, ← two_mul], },
+  { rw ← compl_compl s at h0,
+    rw ← stabilizer_compl,
+    apply equiv.perm.is_maximal_stab' sᶜ h1 h0,
+    simp_rw compl_compl s,
+    convert hs },
+end
+
+  /-
+
+
   rw [← hs, finset.one_lt_card_iff] at h_one_lt,
   obtain ⟨a, b, has, hbs, hab⟩ := h_one_lt,
   have hg : equiv.swap a b ∈ G,
@@ -548,9 +888,43 @@ begin
       rw ← equiv.perm.of_subtype_apply_of_mem k hx,
       refl } },
  -/
+  apply_instance, -/
+
+lemma nat.finset_is_preprimitive_of (h_one_lt : 1 < n) (hn : n < fintype.card α)
+  (hα : fintype.card α ≠ 2 * n) : is_preprimitive (equiv.perm α) (n.finset α) :=
+begin
+  classical,
+  haveI : nontrivial α,
+  { rw ← fintype.one_lt_card_iff_nontrivial,
+    exact lt_trans h_one_lt hn },
+  haveI ht : is_pretransitive (equiv.perm α) (n.finset α) := nat.finset_is_pretransitive,
+  haveI : nontrivial (n.finset α) :=
+    nat.finset_nontrivial (lt_trans (nat.lt_succ_self 0) h_one_lt) hn,
+  obtain ⟨sn : n.finset α⟩ := nontrivial.to_nonempty,
+  let s := sn.val,
+  let hs : s.card = n := sn.prop,
+  -- have hs : (s : finset α).card = n := s.prop,
+  rw ← maximal_stabilizer_iff_preprimitive (equiv.perm α) sn,
+  have : stabilizer (equiv.perm α) sn = stabilizer (equiv.perm α) (s : set α),
+  { ext g,
+    simp only [mem_stabilizer_iff],
+    rw ← subtype.coe_inj,
+    change g • s = s ↔ _,
+    rw [← finset.coe_smul_finset, ← finset.coe_inj], },
+  rw this,
+  apply equiv.perm.is_maximal_stab (s : set α),
+  { simp only [finset.coe_nonempty, ← finset.card_pos, hs],
+    apply lt_trans one_pos h_one_lt, },
+  { simp only [← finset.coe_compl, finset.coe_nonempty, ← finset.card_compl_lt_iff_nonempty,
+      compl_compl, hs],
+    exact hn, },
+  { simp only [finset.coe_sort_coe, fintype.card_coe, hs],
+    exact hα, },
   apply_instance,
 end
 
+
+#lint
 
 
 #exit

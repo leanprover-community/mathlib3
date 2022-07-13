@@ -6,6 +6,7 @@ Authors: Antoine Chambert-Loir
 
 import .primitive
 import .multiple_primitivity
+
 import group_theory.perm.support
 import group_theory.index
 import group_theory.specific_groups.alternating
@@ -48,22 +49,6 @@ an adequate induction lemma)
 open mul_action
 open_locale pointwise
 
-section permutation_groups
-
-variables {α : Type*} [decidable_eq α]
-theorem equiv.perm.is_preprimitive : is_preprimitive (equiv.perm α) α :=
-begin
-  cases subsingleton_or_nontrivial α,
-  -- trivial case
-  sorry,
-  -- nontrivial case
-  apply is_preprimitive_of_two_pretransitive,
-  apply is_multiply_pretransitive_of_higher,
-
-end
-
-
-end permutation_groups
 
 /-- A pretransitivity criterion -/
 lemma is_pretransitive_of_fixing_subgroup_inter {α : Type*} {G : Type*} [group G] [mul_action G α]
@@ -425,7 +410,7 @@ begin
 
     -- apply rudio to get g ∈ G such that a ∈ g • s, b ∉ g • s
     obtain ⟨g, hga, hgb⟩ :=
-      rudio hG s (set.finite.of_fintype s) hs_nonempty hs_ne_top a b hab,
+      rudio hG s (set.to_finite s) hs_nonempty hs_ne_top a b hab,
 
     have : ((s.to_finset)ᶜ ∩ (g • s.to_finset)ᶜ).nonempty,
     { rw ← finset.card_compl_lt_iff_nonempty,
@@ -487,7 +472,7 @@ begin
     -- is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup t).carrier) α 2
     refine hrec m hmn hG _ htm' ht_trans,
     -- htm does not suffice (because of different hidden instances on fintype)
-    rw ← htm, apply fintype.card_congr', refl },
+    convert htm, },
   { -- 2 * s.card ≥ fintype.card α
 
     have : nontrivial (sᶜ : set α),
@@ -509,7 +494,7 @@ begin
 
     -- apply rudio to get g ∈ G such that a ∈ g • sᶜ, b ∉ g • sᶜ
     obtain ⟨g, hga, hgb⟩ :=
-      rudio hG sᶜ (set.finite.of_fintype sᶜ) hsc_ne hsc_ne_top a b hab,
+      rudio hG sᶜ (set.to_finite sᶜ) hsc_ne hsc_ne_top a b hab,
 
     let t := s ∩ (g • s),
     have hbt : b ∉ t,
@@ -593,7 +578,9 @@ begin
     -- is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup t).carrier) α 2
     refine hrec m hmn hG _ htm' ht_trans,
     -- htm does not work, because of different hidden fintype instances
-      rw ← htm, apply fintype.card_congr', refl }
+      rw ← htm, apply fintype.card_congr', refl },
+
+
 end
 
 
@@ -658,7 +645,7 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
 
     -- apply rudio to get g ∈ G such that a ∈ g • s, b ∉ g • s
     obtain ⟨g, hga, hgb⟩ :=
-      rudio hG s (set.finite.of_fintype s) hs_nonempty hs_ne_top a b hab,
+      rudio hG s (set.to_finite s) hs_nonempty hs_ne_top a b hab,
 
     have : ((s.to_finset)ᶜ ∩ (g • s.to_finset)ᶜ).nonempty,
     { rw ← finset.card_compl_lt_iff_nonempty,
@@ -742,7 +729,7 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
 
     -- apply rudio to get g ∈ G such that a ∈ g • sᶜ, b ∉ g • sᶜ
     obtain ⟨g, hga, hgb⟩ :=
-      rudio hG sᶜ (set.finite.of_fintype sᶜ) hsc_ne hsc_ne_top a b hab,
+      rudio hG sᶜ (set.to_finite sᶜ) hsc_ne hsc_ne_top a b hab,
 
     let t := s ∩ (g • s),
     have hat' : a ∉ s ∪ g • s,

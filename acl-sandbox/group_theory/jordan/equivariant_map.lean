@@ -107,7 +107,7 @@ initialize_simps_projections equivariant_map (to_fun → apply)
   ((equivariant_map.mk f h : α →ₑ[φ] β) : α → β) = f := rfl
 
 /- Why does this not work ?
-theorem coe_injective : @injective (α →ₑ[φ] β) (α → β) coe_fn :=
+theorem coe_injective : @function.injective (α →ₑ[φ] β) (α → β) coe_fn :=
 fun_like.coe_injective
 
 protected lemma congr_arg {x x' : α} {f : α →ₑ[φ] β} : x = x' → f x = f x' :=

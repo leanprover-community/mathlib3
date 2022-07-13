@@ -263,16 +263,16 @@ lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le hb ha)
 
 lemma inv_lt_one (ha : 1 < a) : a⁻¹ < 1 :=
-by rwa [inv_lt ((@zero_lt_one α _ _).trans ha) zero_lt_one, inv_one]
+inv_lt_of_inv_lt one_pos $ by rwa [inv_one]
 
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
-by rwa [lt_inv (@zero_lt_one α _ _) h₁, inv_one]
+by rwa [lt_inv (@zero_lt_one' α _) h₁, inv_one]
 
 lemma inv_le_one (ha : 1 ≤ a) : a⁻¹ ≤ 1 :=
-by rwa [inv_le ((@zero_lt_one α _ _).trans_le ha) zero_lt_one, inv_one]
+by rwa [inv_le ((@zero_lt_one' α _).trans_le ha) zero_lt_one, inv_one]
 
 lemma one_le_inv (h₁ : 0 < a) (h₂ : a ≤ 1) : 1 ≤ a⁻¹ :=
-by rwa [le_inv (@zero_lt_one α _ _) h₁, inv_one]
+by rwa [le_inv (@zero_lt_one' α _) h₁, inv_one]
 
 lemma inv_lt_one_iff_of_pos (h₀ : 0 < a) : a⁻¹ < 1 ↔ 1 < a :=
 ⟨λ h₁, inv_inv a ▸ one_lt_inv (inv_pos.2 h₀) h₁, inv_lt_one⟩
@@ -419,10 +419,10 @@ lemma one_div_lt_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a < 1 / b ↔ b < a :=
 div_lt_div_left zero_lt_one ha hb
 
 lemma one_lt_one_div (h1 : 0 < a) (h2 : a < 1) : 1 < 1 / a :=
-by rwa [lt_one_div (@zero_lt_one α _ _) h1, one_div_one]
+by rwa [lt_one_div (@zero_lt_one' α _) h1, one_div_one]
 
 lemma one_le_one_div (h1 : 0 < a) (h2 : a ≤ 1) : 1 ≤ 1 / a :=
-by rwa [le_one_div (@zero_lt_one α _ _) h1, one_div_one]
+by rwa [le_one_div (@zero_lt_one' α _) h1, one_div_one]
 
 /-!
 ### Results about halving.

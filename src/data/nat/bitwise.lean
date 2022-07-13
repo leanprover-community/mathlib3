@@ -78,7 +78,7 @@ begin
     rw [test_bit_succ, zero_test_bit] },
   { obtain ⟨k, ⟨hk, hk'⟩⟩ := hn h',
     refine ⟨k + 1, ⟨by rw [test_bit_succ, hk], λ j hj, _⟩⟩,
-    obtain ⟨j', rfl⟩ := exists_eq_succ_of_ne_zero (show j ≠ 0, by linarith),
+    obtain ⟨j', rfl⟩ := exists_eq_succ_of_ne_zero hj.ne_bot,
     exact (test_bit_succ _ _ _).trans (hk' _ (lt_of_succ_lt_succ hj)) }
 end
 

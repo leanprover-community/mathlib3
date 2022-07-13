@@ -790,7 +790,6 @@ begin
       rw [← sub_eq_add_neg, sub_le_iff_le_add] } }
 end
 
-
 end preorder
 
 end comm_group

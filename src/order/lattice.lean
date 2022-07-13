@@ -20,9 +20,6 @@ of `sup` over `inf`, on the left or on the right.
 
 ## Main declarations
 
-* `has_sup`: type class for the `⊔` notation
-* `has_inf`: type class for the `⊓` notation
-
 * `semilattice_sup`: a type class for join semilattices
 * `semilattice_sup.mk'`: an alternative constructor for `semilattice_sup` via proofs that `⊔` is
   commutative, associative and idempotent.
@@ -67,14 +64,6 @@ section
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-
-/-- Typeclass for the `⊔` (`\lub`) notation -/
-@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
-/-- Typeclass for the `⊓` (`\glb`) notation -/
-@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
-
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
 
 /-!
 ### Join-semilattices

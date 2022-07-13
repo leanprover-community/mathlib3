@@ -10,8 +10,8 @@ import data.multiset.lattice
 Let `R` be a semiring and let `A` be a `semilattice_sup`.
 
 For an element `f : add_monoid_algebra R A`, this file defines
-* the degree `f.degree` taking values in `with_bot A`,
-* the trailing degree `f.trailing_degree` taking values in `with_top A`.
+* `add_monoid_algebra.degree`: the degree taking values in `with_bot A`,
+* `add_monoid_algebra.trailing_degree`: the trailing degree taking values in `with_top A`.
 If the grading type `A` is a linearly ordered additive monoid, then this notions of degree
 coincide with the standard one:
 * the degree is the maximum of the exponents of the monomials that appear with non-zero

@@ -273,33 +273,33 @@ localized "infix ` ⧏ `:50 := pgame.lf" in pgame
 @[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := iff.rfl
 @[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_not
 theorem _root_.has_le.le.not_gf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
-theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
+theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := id
+
+/-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
+theorem le_iff_forall_lf {x y : pgame} :
+  x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
+by { unfold has_le.le, rw game_add_swap.fix_eq, refl }
 
 /-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
   mk xl xr xL xR ≤ mk yl yr yL yR ↔
   (∀ i, xL i ⧏ mk yl yr yL yR) ∧ ∀ j, mk xl xr xL xR ⧏ yR j :=
-by { unfold has_le.le, rw game_add_swap.fix_eq, refl }
-
-/-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
-theorem le_iff_forall_lf {x y : pgame} :
-  x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
-by { cases x, cases y, exact mk_le_mk }
+le_iff_forall_lf
 
 theorem le_of_forall_lf {x y : pgame} (h₁ : ∀ i, x.move_left i ⧏ y) (h₂ : ∀ j, x ⧏ y.move_right j) :
   x ≤ y :=
 le_iff_forall_lf.2 ⟨h₁, h₂⟩
 
+/-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
+theorem lf_iff_exists_le {x y : pgame} :
+  x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
+by { rw [lf, le_iff_forall_lf, not_and_distrib], simp }
+
 /-- Definition of `x ⧏ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lf_mk {xl xr xL xR yl yr yL yR} :
   mk xl xr xL xR ⧏ mk yl yr yL yR ↔
   (∃ i, mk xl xr xL xR ≤ yL i) ∨ ∃ j, xR j ≤ mk yl yr yL yR :=
-by { rw [lf, mk_le_mk, not_and_distrib], simp }
-
-/-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
-theorem lf_iff_exists_le {x y : pgame} :
-  x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
-by { cases x, cases y, exact mk_lf_mk }
+lf_iff_exists_le
 
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }

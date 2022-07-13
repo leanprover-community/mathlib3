@@ -58,7 +58,7 @@ lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
-lemma pmf.apply_eq_one_iff {A : Type} (p : pmf A) (a : A) :
+lemma apply_eq_one_iff {A : Type} (p : pmf A) (a : A) :
   p a = 1 ↔ p.support = {a} :=
 begin
   refine ⟨λ h, set.eq_of_subset_of_subset _ _, λ h, le_antisymm (pmf.coe_le_one p a) (le_of_eq _)⟩,

@@ -349,10 +349,10 @@ begin
   fin_cases i with [0, 1]; fin_cases j with [0, 1];
   simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
     fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
 end
 
-@[simp] lemma adjugate_fin_two' (a b c d : α) :
+@[simp] lemma adjugate_fin_two_of (a b c d : α) :
   adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
 adjugate_fin_two _
 

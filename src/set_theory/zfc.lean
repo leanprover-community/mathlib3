@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import logic.small
 
 /-!
 # A model of ZFC
@@ -160,6 +161,9 @@ instance : has_mem pSet.{u} pSet.{u} := ⟨mem⟩
 
 theorem mem.mk {α: Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
+
+theorem func_mem (x : pSet) (i : x.type) : x.func i ∈ x :=
+by { cases x, apply mem.mk }
 
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y
 | ⟨α, A⟩ ⟨β, B⟩ h := ⟨λ a, (h (A a)).1 (mem.mk A a),
@@ -373,6 +377,8 @@ def mk : pSet → Set := quotient.mk
 
 @[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
 
+@[simp] theorem mk_out : ∀ x : Set, mk x.out = x := quotient.out_eq
+
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
 rfl
@@ -386,6 +392,17 @@ instance : has_mem Set Set := ⟨mem⟩
 
 /-- Convert a ZFC set into a `set` of ZFC sets -/
 def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
+
+instance small_to_set (x : Set) : small x.to_set :=
+quotient.induction_on x $ λ a, begin
+  let f : a.type → (mk a).to_set := λ i, ⟨mk $ a.func i, func_mem a i⟩,
+  suffices : function.surjective f,
+  { exact small_of_surjective this },
+  rintro ⟨b, hb⟩,
+  change b ∈ mk a at hb,
+
+
+end
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
 protected def subset (x y : Set.{u}) :=

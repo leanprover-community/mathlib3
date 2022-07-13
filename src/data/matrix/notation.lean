@@ -29,11 +29,11 @@ already appears in the input.
 ## Notations
 
 This file provide notation `!![a, b; c, d]` for matrices, which corresponds to
-`![![a, b], ![c, d]]`.
+`matrix.of ![![a, b], ![c, d]]`.
 A parser for `a, b; c, d`-style strings is provided as `matrix.entry_parser`, while
 `matrix.notation` provides the hook for the `!!` notation.
 Note that in lean 3 the pretty-printer will not show `!!` notation, instead showing the version
-with `![![...`.
+with `of ![![...]]`.
 
 ## Examples
 

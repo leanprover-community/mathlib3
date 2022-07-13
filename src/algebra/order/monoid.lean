@@ -1001,8 +1001,7 @@ protected lemma add_lt_add_of_lt_of_le [preorder α] [covariant_class α α (+) 
   [covariant_class α α (swap (+)) (<)] (hc : c ≠ ⊤) (hab : a < b) (hcd : c ≤ d) : a + c < b + d :=
 (with_top.add_lt_add_right hc hab).trans_le $ add_le_add_left hcd _
 
-/-  It is not `to_additive` of `with_top.map_mul_of_mul_hom`, since `with_top` does not have
-a multiplication. -/
+/-  There is no `with_top.map_mul_of_mul_hom`, since `with_top` does not have a multiplication. -/
 protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_top α) :
   (a + b).map f = a.map f + b.map f :=
 begin
@@ -1188,6 +1187,7 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 @[simp] lemma add_coe_eq_bot_iff : a + y = ⊥ ↔ a = ⊥ := with_top.add_coe_eq_top_iff
 @[simp] lemma coe_add_eq_bot_iff : ↑x + b = ⊥ ↔ b = ⊥ := with_top.coe_add_eq_top_iff
 
+/-  There is no `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have a multiplication. -/
 protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_bot α) :
   (a + b).map f = a.map f + b.map f :=
 with_top.map_add f a b

@@ -176,10 +176,11 @@ hamming_norm_comp (λ i (c : β i), k • c) hk (λ i, by simp_rw smul_zero')
 
 end has_zero
 
+/-- Corresponds to `dist_eq_norm`. -/
 lemma hamming_dist_eq_hamming_norm [Π i, add_group (β i)] (x y : Π i, β i) :
   hamming_dist x y = hamming_norm (x - y) :=
-by simp_rw [  ← hamming_dist_zero_right, hamming_dist, pi.sub_apply,
-              pi.zero_apply, sub_ne_zero]
+by simp_rw [← hamming_dist_zero_right, hamming_dist, pi.sub_apply,
+            pi.zero_apply, sub_ne_zero]
 
 end hamming_dist_norm
 
@@ -197,7 +198,7 @@ variables {α ι : Type*} {β : ι → Type*}
 
 instance [Π i, inhabited (β i)] : inhabited (hamming β) := ⟨λ i, default⟩
 instance [decidable_eq ι] [fintype ι] [Π i, fintype (β i)] : fintype (hamming β) := pi.fintype
-instance [inhabited ι] [inst : ∀ i, nonempty (β i)] [nontrivial (β default)] :
+instance [inhabited ι] [∀ i, nonempty (β i)] [nontrivial (β default)] :
   nontrivial (hamming β) := pi.nontrivial
 instance [fintype ι] [Π i, decidable_eq (β i)] : decidable_eq (hamming β) :=
 fintype.decidable_pi_fintype
@@ -256,28 +257,36 @@ section
 
 variables [fintype ι] [Π i, decidable_eq (β i)]
 
-instance : has_dist (hamming β)    := ⟨λ x y, hamming_dist (of_hamming x) (of_hamming y)⟩
+instance : has_dist (hamming β) := ⟨λ x y, hamming_dist (of_hamming x) (of_hamming y)⟩
 
 @[simp, push_cast] lemma dist_eq_hamming_dist (x y : hamming β) :
   dist x y = hamming_dist (of_hamming x) (of_hamming y) := rfl
 
 instance : pseudo_metric_space (hamming β) :=
-{ dist_self           :=  by { push_cast, exact_mod_cast hamming_dist_self },
-  dist_comm           :=  by { push_cast, exact_mod_cast hamming_dist_comm },
-  dist_triangle       :=  by { push_cast, exact_mod_cast hamming_dist_triangle },
-  to_uniform_space    :=  ⊥,
-  uniformity_dist     :=  uniformity_dist_of_mem_uniformity _ _ $ λ s,
-                          by { push_cast, split,
-                          { refine λ hs, ⟨1, zero_lt_one, λ _ _ hab, _⟩,
-                            rw_mod_cast [hamming_dist_lt_one] at hab,
-                            rw [of_hamming_inj, ← mem_id_rel] at hab, exact hs hab },
-                          { rintros ⟨_, hε, hs⟩ ⟨_, _⟩ hab, rw mem_id_rel at hab, rw hab,
-                            refine hs (lt_of_eq_of_lt _ hε), exact_mod_cast hamming_dist_self _ } },
-  to_bornology        :=  ⟨⊥, bot_le⟩,
-  cobounded_sets      :=  by  { ext, push_cast,
-                              refine iff_of_true  (filter.mem_sets.mpr filter.mem_bot)
-                                                  ⟨fintype.card ι, λ _ _ _ _, _⟩,
-                              exact_mod_cast hamming_dist_le_card_fintype },
+{ dist_self        := by { push_cast, exact_mod_cast hamming_dist_self },
+  dist_comm        := by { push_cast, exact_mod_cast hamming_dist_comm },
+  dist_triangle    := by { push_cast, exact_mod_cast hamming_dist_triangle },
+  to_uniform_space := ⊥,
+  uniformity_dist  := uniformity_dist_of_mem_uniformity _ _ $ λ s, begin
+    push_cast,
+    split,
+    { refine λ hs, ⟨1, zero_lt_one, λ _ _ hab, _⟩,
+      rw_mod_cast [hamming_dist_lt_one] at hab,
+      rw [of_hamming_inj, ← mem_id_rel] at hab,
+      exact hs hab },
+    { rintros ⟨_, hε, hs⟩ ⟨_, _⟩ hab,
+      rw mem_id_rel at hab,
+      rw hab,
+      refine hs (lt_of_eq_of_lt _ hε),
+      exact_mod_cast hamming_dist_self _ }
+  end,
+  to_bornology     := ⟨⊥, bot_le⟩,
+  cobounded_sets   := begin
+    ext,
+    push_cast,
+    refine iff_of_true (filter.mem_sets.mpr filter.mem_bot) ⟨fintype.card ι, λ _ _ _ _, _⟩,
+    exact_mod_cast hamming_dist_le_card_fintype
+  end,
   ..hamming.has_dist }
 
 @[simp, push_cast] lemma nndist_eq_hamming_dist (x y : hamming β) :

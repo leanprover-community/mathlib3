@@ -48,6 +48,12 @@ by { rw exp_log_eq_abs hx.ne', exact abs_of_pos hx }
 lemma exp_log_of_neg (hx : x < 0) : exp (log x) = -x :=
 by { rw exp_log_eq_abs (ne_of_lt hx), exact abs_of_neg hx }
 
+lemma le_exp_log (x : ℝ) : x ≤ exp (log x) :=
+begin
+  by_cases h_zero : x = 0,
+  { rw [h_zero, log, dif_pos rfl, exp_zero], exact zero_le_one, },
+  { rw exp_log_eq_abs h_zero, exact le_abs_self _, },
+end
 @[simp] lemma log_exp (x : ℝ) : log (exp x) = x :=
 exp_injective $ exp_log (exp_pos x)
 

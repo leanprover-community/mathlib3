@@ -110,7 +110,7 @@ variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D
 variables (i : D ⥤ C)
 
 lemma reflective_products [has_finite_products C] [reflective i] : has_finite_products D :=
-⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
+⟨λ J 𝒥, by exactI has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
 
@@ -124,7 +124,7 @@ This is the converse of `preserves_binary_products_of_exponential_ideal`.
 -/
 @[priority 10]
 instance exponential_ideal_of_preserves_binary_products
-  [preserves_limits_of_shape (discrete.{v₁} walking_pair) (left_adjoint i)] :
+  [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
   exponential_ideal i :=
 begin
   let ir := adjunction.of_right_adjoint i,
@@ -164,7 +164,7 @@ def cartesian_closed_of_reflective : cartesian_closed D :=
           apply nat_iso.of_components _ _,
           { intro X,
             haveI :=
-              adjunction.right_adjoint_preserves_limits.{v₁ v₁} (adjunction.of_right_adjoint i),
+              adjunction.right_adjoint_preserves_limits.{0 0} (adjunction.of_right_adjoint i),
             apply as_iso (prod_comparison i B X) },
           { intros X Y f,
             dsimp,
@@ -212,6 +212,7 @@ calc _ ≃ (A ⨯ B ⟶ i.obj X) :
      begin
        apply iso.hom_congr _ (iso.refl _),
        haveI : preserves_limits i := (adjunction.of_right_adjoint i).right_adjoint_preserves_limits,
+       haveI := preserves_smallest_limits_of_preserves_limits i,
        exact (preserves_limit_pair.iso _ _ _).symm,
      end
    ... ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :
@@ -274,11 +275,11 @@ noncomputable def preserves_binary_products_of_exponential_ideal :
 /--
 If a reflective subcategory is an exponential ideal, then the reflector preserves finite products.
 -/
-noncomputable def preserves_finite_products_of_exponential_ideal (J : Type*) [fintype J] :
+noncomputable def preserves_finite_products_of_exponential_ideal (J : Type) [fintype J] :
   preserves_limits_of_shape (discrete J) (left_adjoint i) :=
 begin
   letI := preserves_binary_products_of_exponential_ideal i,
-  letI := left_adjoint_preserves_terminal_of_reflective.{v₁} i,
+  letI := left_adjoint_preserves_terminal_of_reflective.{0} i,
   apply preserves_finite_products_of_preserves_binary_and_terminal (left_adjoint i) J,
 end
 

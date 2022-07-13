@@ -136,10 +136,7 @@ instance : has_neg (unitary R) :=
 @[norm_cast] lemma coe_neg (U : unitary R) : ↑(-U) = (-U : R) := rfl
 
 instance : has_distrib_neg (unitary R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ U, subtype.ext $ neg_neg _,
-  neg_mul := λ U₁ U₂, subtype.ext $ neg_mul _ _,
-  mul_neg := λ U₁ U₂, subtype.ext $ mul_neg _ _ }
+subtype.coe_injective.has_distrib_neg _ coe_neg (unitary R).coe_mul
 
 end ring
 

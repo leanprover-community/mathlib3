@@ -90,7 +90,7 @@ variables (ι M)
 * for each point `x ∈ s` there exists `i` such that `f i =ᶠ[𝓝 x] 1`;
   in other words, `x` belongs to the interior of `{y | f i y = 1}`;
 
-If `M` is a finite dimensional real manifold which is a sigma-compact Hausdorff topological space,
+If `M` is a finite dimensional real manifold which is a `σ`-compact Hausdorff topological space,
 then for every covering `U : M → set M`, `∀ x, U x ∈ 𝓝 x`, there exists a `smooth_bump_covering`
 subordinate to `U`, see `smooth_bump_covering.exists_is_subordinate`.
 
@@ -157,8 +157,7 @@ def is_subordinate (f : smooth_partition_of_unity ι I M s) (U : ι → set M) :
   f.to_partition_of_unity.is_subordinate U ↔ f.is_subordinate U :=
 iff.rfl
 
-alias is_subordinate_to_partition_of_unity ↔
-  _ smooth_partition_of_unity.is_subordinate.to_partition_of_unity
+alias is_subordinate_to_partition_of_unity ↔ _ is_subordinate.to_partition_of_unity
 
 end smooth_partition_of_unity
 
@@ -242,7 +241,7 @@ lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] (hs : is_closed
 begin
   -- First we deduce some missing instances
   haveI : locally_compact_space H := I.locally_compact,
-  haveI : locally_compact_space M := charted_space.locally_compact H,
+  haveI : locally_compact_space M := charted_space.locally_compact H M,
   haveI : normal_space M := normal_of_paracompact_t2,
   -- Next we choose a covering by supports of smooth bump functions
   have hB := λ x hx, smooth_bump_function.nhds_basis_support I (hU x hx),
@@ -314,8 +313,7 @@ def to_bump_covering : bump_covering ι M s :=
   f.to_bump_covering.is_subordinate (λ i, U (f.c i)) ↔ f.is_subordinate U :=
 iff.rfl
 
-alias is_subordinate_to_bump_covering ↔
-  _ smooth_bump_covering.is_subordinate.to_bump_covering
+alias is_subordinate_to_bump_covering ↔ _ is_subordinate.to_bump_covering
 
 /-- Every `smooth_bump_covering` defines a smooth partition of unity. -/
 def to_smooth_partition_of_unity : smooth_partition_of_unity ι I M s :=
@@ -401,7 +399,7 @@ lemma exists_is_subordinate {s : set M} (hs : is_closed s) (U : ι → set M) (h
   ∃ f : smooth_partition_of_unity ι I M s, f.is_subordinate U :=
 begin
   haveI : locally_compact_space H := I.locally_compact,
-  haveI : locally_compact_space M := charted_space.locally_compact H,
+  haveI : locally_compact_space M := charted_space.locally_compact H M,
   haveI : normal_space M := normal_of_paracompact_t2,
   rcases bump_covering.exists_is_subordinate_of_prop (smooth I 𝓘(ℝ)) _ hs U ho hU
     with ⟨f, hf, hfU⟩,

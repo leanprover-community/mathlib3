@@ -97,7 +97,7 @@ by simp
 lemma coe_bind_apply (b : β) : (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
 eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
-@[simp] lemma pure_bind (a : α) : (pure a).bind f = f a :=
+@[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
   assume b a', by split_ifs; simp; subst h; simp,
 by ext b; simp [this]
@@ -164,7 +164,6 @@ end bind
 instance : monad pmf :=
 { pure := λ A a, pure a,
   bind := λ A B pa pb, pa.bind pb }
-
 
 section bind_on_support
 
@@ -307,9 +306,10 @@ calc (p.bind_on_support f).to_outer_measure s
   ... = ∑' (a : α), ↑(p a) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :
     tsum_congr (λ a, congr_arg (has_mul.mul ↑(p a)) begin
       split_ifs with h h,
-      { exact ennreal.tsum_eq_zero.mpr (λ x,
-          (by simp [g, h] : (0 : ℝ≥0∞) = ↑(g a x)) ▸ (if_t_t (x ∈ s) 0)) },
-      { simp [to_outer_measure_apply, g, h, set.indicator_apply] }
+      { refine ennreal.tsum_eq_zero.mpr (λ x, _),
+        simp only [g, h, dif_pos],
+        apply if_t_t },
+      { simp only [to_outer_measure_apply, g, h, set.indicator_apply, not_false_iff, dif_neg] }
     end)
 
 /-- The measure of a set under `p.bind_on_support f` is the sum over `a : α`

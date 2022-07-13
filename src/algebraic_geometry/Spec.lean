@@ -95,7 +95,7 @@ begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
   { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
-  simpa,
+  simpa [eq_to_hom_map],
 end
 
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
@@ -115,7 +115,7 @@ Spec, as a contravariant functor from commutative rings to sheafed spaces.
 /--
 Spec, as a contravariant functor from commutative rings to presheafed spaces.
 -/
-def Spec.to_PresheafedSpace : CommRingᵒᵖ ⥤ PresheafedSpace CommRing :=
+def Spec.to_PresheafedSpace : CommRingᵒᵖ ⥤ PresheafedSpace.{u} CommRing.{u} :=
   Spec.to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace
 
 @[simp] lemma Spec.to_PresheafedSpace_obj (R : CommRingᵒᵖ) :
@@ -194,10 +194,10 @@ begin
   -- *locally* ringed spaces, i.e. that the induced map on the stalks is a local ring homomorphism.
   rw ← local_ring_hom_comp_stalk_iso_apply at ha,
   replace ha := (stalk_iso S p).hom.is_unit_map ha,
-  rw coe_inv_hom_id at ha,
+  rw iso.inv_hom_id_apply at ha,
   replace ha := is_local_ring_hom.map_nonunit _ ha,
   convert ring_hom.is_unit_map (stalk_iso R (prime_spectrum.comap f p)).inv ha,
-  rw coe_hom_inv_id,
+  rw iso.hom_inv_id_apply,
 end
 
 @[simp] lemma Spec.LocallyRingedSpace_map_id (R : CommRing) :

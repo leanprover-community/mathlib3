@@ -497,27 +497,17 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
-/-- If a topological space admits an atlas with locally compact charts, then the space itself
-is locally compact. -/
-lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
-begin
-  have : ∀ (x : M), (𝓝 x).has_basis
-      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
-      (λ s, (chart_at H x).symm '' s),
-  { intro x,
-    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
-    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
-      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
-  refine locally_compact_space_of_has_basis this _,
-  rintro x s ⟨h₁, h₂, h₃⟩,
-  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
-end
+lemma chart_source_mem_nhds (x : M) : (chart_at H x).source ∈ 𝓝 x :=
+(chart_at H x).open_source.mem_nhds $ mem_chart_source H x
+
+lemma chart_target_mem_nhds (x : M) : (chart_at H x).target ∈ 𝓝 (chart_at H x x) :=
+(chart_at H x).open_target.mem_nhds $ mem_chart_target H x
 
 open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
   {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
-  (hsc : countable s) :
+  (hsc : s.countable) :
   second_countable_topology M :=
 begin
   haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
@@ -531,10 +521,27 @@ lemma charted_space.second_countable_of_sigma_compact [second_countable_topology
   [sigma_compact_space M] :
   second_countable_topology M :=
 begin
-  obtain ⟨s, hsc, hsU⟩ : ∃ s, countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
-    countable_cover_nhds_of_sigma_compact
-      (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
+  obtain ⟨s, hsc, hsU⟩ : ∃ s, set.countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
+    countable_cover_nhds_of_sigma_compact (λ x : M, chart_source_mem_nhds H x),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
+end
+
+variable (M)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (chart_target_mem_nhds H x)).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
 end
 
 end

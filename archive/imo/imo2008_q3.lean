@@ -56,7 +56,7 @@ begin
     { use (p:ℤ) - 4 * n + 4 * x,
       have hcast₁ : (k:ℤ) = p - 2 * n, { assumption_mod_cast },
       have hcast₂ : (n:ℤ) ^ 2 + 1 = p * x, { assumption_mod_cast },
-      linear_combination (hcast₁, (k:ℤ) + p - 2 * n) (hcast₂, 4) },
+      linear_combination ((k:ℤ) + p - 2 * n)*hcast₁ + 4*hcast₂ },
     assumption_mod_cast },
 
   have hnat₆ : k ^ 2 + 4 ≥ p := nat.le_of_dvd (k ^ 2 + 3).succ_pos hnat₅,

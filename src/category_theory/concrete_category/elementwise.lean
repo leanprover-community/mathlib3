@@ -17,6 +17,3 @@ attribute [elementwise]
   cone.w limit.lift_π limit.w cocone.w colimit.ι_desc colimit.w
   kernel.lift_ι cokernel.π_desc
   kernel.condition cokernel.condition
-  -- Note that the elementwise forms of `iso.hom_inv_id` and `iso.inv_hom_id` are already
-  -- provided as `category_theory.coe_hom_inv_id` and `category_theory.coe_inv_hom_id`.
-  is_iso.hom_inv_id is_iso.inv_hom_id

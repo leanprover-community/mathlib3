@@ -356,7 +356,7 @@ end
 
 end is_unit_trinomial
 
-lemma selmer_coprime_lemma (n : ℕ) (z : ℂ) : ¬ (z ^ n = z + 1 ∧ z ^ n + z ^ 2 = 0) :=
+lemma selmer_irreducible_aux (n : ℕ) (z : ℂ) : ¬ (z ^ n = z + 1 ∧ z ^ n + z ^ 2 = 0) :=
 begin
   rintros ⟨h1, h2⟩,
   replace h3 : z ^ 3 = 1,
@@ -384,7 +384,7 @@ begin
   rw hp,
   apply is_unit_trinomial.irreducible_of_coprime' ⟨0, 1, n, zero_lt_one, hn, -1, -1, 1, rfl⟩,
   rintros z ⟨h1, h2⟩,
-  apply selmer_coprime_lemma n z,
+  apply selmer_irreducible_aux n z,
   rw [trinomial_mirror zero_lt_one hn (-1 : ℤˣ).ne_zero (1 : ℤˣ).ne_zero] at h2,
   simp_rw [trinomial, aeval_add, aeval_mul, aeval_X_pow, aeval_C] at h1 h2,
   simp_rw [units.coe_neg, units.coe_one, map_neg, map_one] at h1 h2,

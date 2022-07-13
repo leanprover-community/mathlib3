@@ -267,11 +267,6 @@ def subring.topological_closure (S : subring α) : subring α :=
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
 
-instance subring.topological_closure_topological_ring (s : subring α) :
-  topological_ring (s.topological_closure) :=
-{ ..s.to_add_subgroup.topological_closure_topological_add_group,
-  ..s.to_submonoid.topological_closure_has_continuous_mul }
-
 lemma subring.subring_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
 

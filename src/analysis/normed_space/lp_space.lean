@@ -650,12 +650,7 @@ instance : has_star (lp E p) :=
 
 @[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
 
-instance : has_involutive_star (lp E p) := {star_involutive := λ x,
-begin
-ext i,
-simp,
-end
-}
+instance : has_involutive_star (lp E p) := {star_involutive := λ x, by ext, simp }
 
 instance : star_add_monoid (lp E p) := {star_add :=
 λ f g, by ext i ; simp only [star_add_monoid.star_add, lp.coe_fn_add, add_left_inj, pi.add_apply,

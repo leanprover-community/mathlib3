@@ -101,6 +101,18 @@ begin
     { exact set.mem_insert_of_mem _ (h_pi s hs t ht hst), }, },
 end
 
+lemma is_pi_system.comap {α β} {S : set (set β)} (h_pi : is_pi_system S) (f : α → β) :
+  is_pi_system {s : set α | ∃ t ∈ S, f ⁻¹' t = s} :=
+begin
+  rintros _ ⟨s, hs_mem, rfl⟩ _ ⟨t, ht_mem, rfl⟩ hst,
+  rw ← set.preimage_inter at hst ⊢,
+  refine ⟨s ∩ t, h_pi s hs_mem t ht_mem _, rfl⟩,
+  by_contra,
+  rw set.not_nonempty_iff_eq_empty at h,
+  rw h at hst,
+  simpa using hst,
+end
+
 section order
 
 variables {α : Type*} {ι ι' : Sort*} [linear_order α]

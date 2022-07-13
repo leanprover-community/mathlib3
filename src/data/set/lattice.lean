@@ -135,16 +135,32 @@ theorem _root_.monotone.inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∩ g x) :=
 hf.inf hg
 
+theorem _root_.monotone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∩ g x) s :=
+hf.inf hg
+
 theorem _root_.antitone.inter [preorder β] {f g : β → set α}
   (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem _root_.antitone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∩ g x) s :=
 hf.inf hg
 
 theorem _root_.monotone.union [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∪ g x) :=
 hf.sup hg
 
+theorem _root_.monotone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∪ g x) s :=
+hf.sup hg
+
 theorem _root_.antitone.union [preorder β] {f g : β → set α}
   (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∪ g x) :=
+hf.sup hg
+
+theorem _root_.antitone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∪ g x) s :=
 hf.sup hg
 
 theorem monotone_set_of [preorder α] {p : α → β → Prop}
@@ -898,6 +914,9 @@ set.ext $ by simp
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
 by simp [set.ext_iff]
 
+theorem Union_eq_range_psigma (s : ι → set β) : (⋃ i, s i) = range (λ a : Σ' i, s i, a.2) :=
+by simp [set.ext_iff]
+
 theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
   (⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s)) = s :=
 begin
@@ -1260,12 +1279,6 @@ end preimage
 
 section prod
 
-theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
-λ a b h, prod_mono (hf h) (hg h)
-
-alias monotone_prod ← monotone.set_prod
-
 lemma prod_Union {s : set α} {t : ι → set β} : s ×ˢ (⋃ i, t i) = ⋃ i, s ×ˢ (t i) := by { ext, simp }
 
 lemma prod_Union₂ {s : set α} {t : Π i, κ i → set β} : s ×ˢ (⋃ i j, t i j) = ⋃ i j, s ×ˢ t i j :=
@@ -1298,7 +1311,6 @@ begin
 end
 
 end prod
-
 
 section image2
 
@@ -1509,9 +1521,9 @@ lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
-by simp [set.not_disjoint_iff, set.nonempty_def]
+not_disjoint_iff
 
-alias not_disjoint_iff_nonempty_inter ↔ _ set.nonempty.not_disjoint
+alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 
 lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
 (em _).imp_right not_disjoint_iff_nonempty_inter.mp
@@ -1547,6 +1559,22 @@ supr_disjoint_iff
 @[simp] theorem disjoint_Union_right {ι : Sort*} {s : ι → set α} :
   disjoint t (⋃ i, s i) ↔ ∀ i, disjoint t (s i) :=
 disjoint_supr_iff
+
+@[simp] lemma disjoint_Union₂_left {s : Π i, κ i → set α} {t : set α} :
+  disjoint (⋃ i j, s i j) t ↔ ∀ i j, disjoint (s i j) t :=
+supr₂_disjoint_iff
+
+@[simp] lemma disjoint_Union₂_right {s : set α} {t : Π i, κ i → set α} :
+  disjoint s (⋃ i j, t i j) ↔ ∀ i j, disjoint s (t i j) :=
+disjoint_supr₂_iff
+
+@[simp] lemma disjoint_sUnion_left {S : set (set α)} {t : set α} :
+  disjoint (⋃₀ S) t ↔ ∀ s ∈ S, disjoint s t :=
+Sup_disjoint_iff
+
+@[simp] lemma disjoint_sUnion_right {s : set α} {S : set (set α)} :
+  disjoint s (⋃₀ S) ↔ ∀ t ∈ S, disjoint s t :=
+disjoint_Sup_iff
 
 theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
 disjoint_iff.2 (inter_diff_self _ _)
@@ -1606,14 +1634,6 @@ lemma preimage_eq_empty_iff {s : set β} : f ⁻¹' s = ∅ ↔ disjoint s (rang
     rw ← hx at hy,
     exact h x hy,
   end, preimage_eq_empty⟩
-
-lemma disjoint_iff_subset_compl_right :
-  disjoint s t ↔ s ⊆ tᶜ :=
-disjoint_left
-
-lemma disjoint_iff_subset_compl_left :
-  disjoint s t ↔ t ⊆ sᶜ :=
-disjoint_right
 
 lemma _root_.disjoint.image {s t u : set α} {f : α → β} (h : disjoint s t) (hf : inj_on f u)
   (hs : s ⊆ u) (ht : t ⊆ u) : disjoint (f '' s) (f '' t) :=

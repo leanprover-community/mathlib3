@@ -255,6 +255,26 @@ set.ext $ λ a,
 
 @[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
 
+section mono
+
+variables [preorder α] {f : α → set β} {g : α → set γ}
+
+theorem _root_.monotone.set_prod (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ×ˢ g x) :=
+λ a b h, prod_mono (hf h) (hg h)
+
+theorem _root_.antitone.set_prod (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ×ˢ g x) :=
+λ a b h, prod_mono (hf h) (hg h)
+
+theorem _root_.monotone_on.set_prod (hf : monotone_on f s) (hg : monotone_on g s) :
+  monotone_on (λ x, f x ×ˢ g x) s :=
+λ a ha b hb h, prod_mono (hf ha hb h) (hg ha hb h)
+
+theorem _root_.antitone_on.set_prod (hf : antitone_on f s) (hg : antitone_on g s) :
+  antitone_on (λ x, f x ×ˢ g x) s :=
+λ a ha b hb h, prod_mono (hf ha hb h) (hg ha hb h)
+
+end mono
+
 end prod
 
 /-! ### Diagonal -/
@@ -265,7 +285,9 @@ variables {α : Type*} {s t : set α}
 /-- `diagonal α` is the set of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
-@[simp] lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
+lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
+
+@[simp] lemma mem_diagonal_iff {x : α × α} : x ∈ diagonal α ↔ x.1 = x.2 := iff.rfl
 
 lemma preimage_coe_coe_diagonal (s : set α) : (prod.map coe coe) ⁻¹' (diagonal α) = diagonal s :=
 by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
@@ -273,7 +295,7 @@ by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 lemma diagonal_eq_range : diagonal α = range (λ x, (x, x)) :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
-lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
+@[simp] lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
 subset_compl_comm.trans $ by simp_rw [diagonal_eq_range, range_subset_iff,
   disjoint_left, mem_compl_iff, prod_mk_mem_set_prod_eq, not_and]
 

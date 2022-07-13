@@ -449,7 +449,7 @@ end
 
 lemma roots_multiset_prod (m : multiset R[X]) :
   (0 : R[X]) ∉ m → m.prod.roots = m.bind roots :=
-by { rcases m with ⟨L⟩, simpa only [coe_prod, quot_mk_to_coe''] using roots_list_prod L }
+by { rcases m with ⟨L⟩, simpa only [multiset.coe_prod, quot_mk_to_coe''] using roots_list_prod L }
 
 lemma roots_prod {ι : Type*} (f : ι → R[X]) (s : finset ι) :
   s.prod f ≠ 0 → (s.prod f).roots = s.val.bind (λ i, roots (f i)) :=
@@ -655,7 +655,7 @@ finset_coe.fintype _
 
 lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
-set.finite_of_fintype _
+set.to_finite _
 
 theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
   [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :

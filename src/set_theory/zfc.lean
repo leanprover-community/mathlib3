@@ -384,10 +384,11 @@ quotient.induction_on x $ λ a, begin
   let f : a.type → (mk a).to_set := λ i, ⟨mk $ a.func i, func_mem a i⟩,
   suffices : function.surjective f,
   { exact small_of_surjective this },
-  rintro ⟨b, hb⟩,
-  change b ∈ mk a at hb,
-
-
+  rintro ⟨y, hb⟩,
+  revert hb,
+  refine quotient.induction_on y (λ b, _),
+  rintro ⟨i, h⟩,
+  exact ⟨i, subtype.coe_injective (quotient.sound h.symm)⟩
 end
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/

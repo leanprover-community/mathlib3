@@ -597,13 +597,14 @@ end
   are taken within the same set. This lemma assumes `x ∈ s`. -/
 lemma cont_diff_within_at_succ_iff_has_fderiv_within_at_of_mem {n : ℕ} (hx : x ∈ s) :
   cont_diff_within_at 𝕜 (n + 1 : ℕ) f s x
-  ↔ ∃ u ∈ 𝓝[insert x s] x, u ⊆ insert x s ∧ ∃ f' : E → E →L[𝕜] F,
+  ↔ ∃ u ∈ 𝓝[s] x, u ⊆ s ∧ ∃ f' : E → E →L[𝕜] F,
     (∀ x ∈ u, has_fderiv_within_at f (f' x) s x) ∧ cont_diff_within_at 𝕜 n f' s x :=
 begin
-  refine ⟨λ hf, hf.has_fderiv_within_at_nhds, _⟩,
+  split,
+  { intro hf, simpa only [insert_eq_of_mem hx] using hf.has_fderiv_within_at_nhds },
   rw [cont_diff_within_at_succ_iff_has_fderiv_within_at, insert_eq_of_mem hx],
   rintro ⟨u, hu, hus, f', huf', hf'⟩,
-  exact ⟨u, hu, f', λ y hy, (huf' y hy).mono hus, hf'.mono hus⟩,
+  exact ⟨u, hu, f', λ y hy, (huf' y hy).mono hus, hf'.mono hus⟩
 end
 
 /-! ### Smooth functions within a set -/

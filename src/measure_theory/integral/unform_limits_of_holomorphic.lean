@@ -48,11 +48,10 @@ begin
 end
 
 lemma ae_circle_transform_has_deriv_at (R : ℝ) (z : ℂ) (hR : 0 < R) (f : ℂ → ℂ) :
-  ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball z R,
+  ∀ (t : ℝ), t ∈  [0, (2 * π)] → ∀ y ∈ ball z R,
   has_deriv_at (λ y, (circle_transform R z y f) t)
   ((circle_transform_deriv R z y f) t) y :=
 begin
-  apply eventually_of_forall,
   intros y hy x hx,
   simp only [circle_transform, circle_transform_deriv, algebra.id.smul_eq_mul,
   ←mul_assoc, deriv_circle_map],
@@ -126,12 +125,13 @@ begin
   has_deriv_at (λ y, F y t) (F' y t) y,
   by {simp_rw [F, F', circle_transform, circle_transform_deriv],
   have := ae_circle_transform_has_deriv_at R z hR f,
+  apply eventually_of_forall,
   simp_rw [circle_transform, circle_transform_deriv] at this,
-  rw filter.eventually_iff_exists_mem at *,
-  obtain ⟨ S , hS, HH⟩ := this,
-  refine ⟨S , hS, _ ⟩,
-  intros y hSy hy x hx,
-  apply HH y hSy hy x (h_ball hx),},
+  intros y hy x hx,
+  rw (interval_oc_of_le real.two_pi_pos.le) at hy,
+  have hy2 : y ∈ [0, 2*π], by {convert (Ioc_subset_Icc_self hy),
+    simp [interval_of_le real.two_pi_pos.le]},
+  apply this y hy2 x (h_ball hx),},
   have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le
   hε hF_meas hF_int hF'_meas h_bound bound_integrable h_diff,
   simp only [F, has_deriv_at, has_deriv_at_filter, has_fderiv_within_at, mem_ball, zero_lt_mul_left,

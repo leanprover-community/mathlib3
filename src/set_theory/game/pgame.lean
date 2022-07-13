@@ -572,16 +572,16 @@ lt_congr hx equiv_rfl
 theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
 lt_congr equiv_rfl hy
 
-theorem lf_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x ⧏ y ∨ x ≈ y :=
-or_iff_not_imp_left.2 $ λ h', ⟨h, pgame.not_lf.1 h'⟩
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+and_or_distrib_left.mp ⟨h, (em $ y ≤ x).swap.imp_left pgame.not_le.1⟩
 
 theorem lf_or_equiv_or_gf (x y : pgame) : x ⧏ y ∨ x ≈ y ∨ y ⧏ x :=
 begin
   by_cases h : x ⧏ y,
   { exact or.inl h },
   { right,
-    cases (lf_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
-    { exact or.inr h' },
+    cases (lt_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
+    { exact or.inr h'.lf },
     { exact or.inl h'.symm } }
 end
 

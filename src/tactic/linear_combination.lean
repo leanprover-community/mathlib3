@@ -58,6 +58,8 @@ lemma replace_eq_expr {α} [h : has_zero α] {x y : α} (h1 : x = 0) (h2 : y = x
   y = 0 :=
 by rwa h2
 
+lemma eq_zero_of_sub_eq_zero {α} [add_group α] {x y : α} (h : y = 0) (h2 : x - y = 0) : x = 0 :=
+by rwa [h, sub_zero] at h2
 
 /-! ### Configuration -/
 
@@ -72,7 +74,7 @@ checking if the weighted sum is equivalent to the goal (when `normalize` is `tt`
 -/
 meta structure linear_combination_config : Type :=
 (normalize : bool := tt)
-(normalization_tactic : tactic unit := `[ring1])
+(normalization_tactic : tactic unit := `[ring_nf SOP])
 
 
 /-! ### Part 1: Multiplying Equations by Constants and Adding Them Together -/
@@ -249,6 +251,7 @@ do
 
 
 /--
+UPDATE
 This tactic changes the goal to be that the lefthand side of the target is
   equal to the lefthand side of the given expression.  For example,
   if `hsum_on_left` is `5*x - 5*y = 0`, and the target is `-5*y + 5*x = 0`, this
@@ -263,8 +266,8 @@ This tactic only should be used when the target's type an equality whose
 
 * Output: N/A
 -/
-meta def set_goal_to_hleft_eq_tleft (hsum_on_left : expr) : tactic unit :=
-do to_expr ``(replace_eq_expr %%hsum_on_left) >>= apply, skip
+meta def set_goal_to_hleft_sub_tleft (hsum_on_left : expr) : tactic unit :=
+do to_expr ``(eq_zero_of_sub_eq_zero %%hsum_on_left) >>= apply, skip
 
 /--
 This tactic attempts to prove the goal by normalizing the target if the
@@ -276,7 +279,7 @@ This tactic attempts to prove the goal by normalizing the target if the
 
 * Output: N/A
 -/
-meta def prove_equal_if_desired (config : linear_combination_config) :
+meta def normalize_if_desired (config : linear_combination_config) :
   tactic unit :=
 when config.normalize config.normalization_tactic
 
@@ -314,8 +317,8 @@ do
   hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
-  set_goal_to_hleft_eq_tleft hsum_on_left,
-  prove_equal_if_desired config
+  set_goal_to_hleft_sub_tleft hsum_on_left,
+  normalize_if_desired config
 
 /-- `mk_mul [p₀, p₁, ..., pₙ]` produces the pexpr `p₀ * p₁ * ... * pₙ`. -/
 meta def mk_mul : list pexpr → pexpr

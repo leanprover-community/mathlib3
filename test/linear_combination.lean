@@ -192,7 +192,7 @@ by linear_combination
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
 begin
   linear_combination with {normalize := ff},
-  guard_target' z + w - (w + z) = 0 - 0,
+  guard_target' z + w - (w + z) - (0 - 0) = 0,
   simp [add_comm]
 end
 
@@ -201,58 +201,61 @@ by linear_combination with {normalization_tactic := `[simp [add_comm]]}
 
 /-! ### Cases that should fail -/
 
--- This should fail because there are no hypotheses given
-example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
-  x*y = -2*y + 1 :=
-begin
-  success_if_fail {linear_combination},
-  linear_combination h1 - 2 * h2,
-end
+-- todo: update
 
--- This should fail because the second coefficient has a different type than
---   the equations it is being combined with.  This was a design choice for the
---   sake of simplicity, but the tactic could potentially be modified to allow
---   this behavior.
-example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
-  x*y + 2*x = 1 :=
-begin
-  success_if_fail_with_msg {linear_combination h1 + (0 : ℝ) * h2}
-    "invalid type ascription, term has type
-  ℝ
-but is expected to have type
-  ℤ",
-  linear_combination h1
-end
+-- -- This should fail because there are no hypotheses given
+-- example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+--   x*y = -2*y + 1 :=
+-- begin
+--   linear_combination,
+--   -- success_if_fail {linear_combination},
+--   linear_combination h1 - 2 * h2,
+-- end
 
--- This should fail because the second coefficient has a different type than
---   the equations it is being combined with.  This was a design choice for the
---   sake of simplicity, but the tactic could potentially be modified to allow
---   this behavior.
-example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
-  x*y + 2*x = 1 :=
-begin
-  success_if_fail {linear_combination h1 + (0 : ℕ)  * h2},
-  linear_combination h1
-end
+-- -- This should fail because the second coefficient has a different type than
+-- --   the equations it is being combined with.  This was a design choice for the
+-- --   sake of simplicity, but the tactic could potentially be modified to allow
+-- --   this behavior.
+-- example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+--   x*y + 2*x = 1 :=
+-- begin
+--   success_if_fail_with_msg {linear_combination h1 + (0 : ℝ) * h2}
+--     "invalid type ascription, term has type
+--   ℝ
+-- but is expected to have type
+--   ℤ",
+--   linear_combination h1
+-- end
 
--- This should fail because the coefficients are incorrect.  They should instead
---   be -2 and 3, respectively.
-example (x y : ℤ) (h1 : 3*x + 2*y = 10) (h2 : 2*x + 5*y = 3) :
-  11*y = -11 :=
-begin
-  success_if_fail {linear_combination 2*h1 - 3*h2},
-  linear_combination -2*h1 + 3*h2
-end
+-- -- This should fail because the second coefficient has a different type than
+-- --   the equations it is being combined with.  This was a design choice for the
+-- --   sake of simplicity, but the tactic could potentially be modified to allow
+-- --   this behavior.
+-- example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+--   x*y + 2*x = 1 :=
+-- begin
+--   success_if_fail {linear_combination h1 + (0 : ℕ)  * h2},
+--   linear_combination h1
+-- end
 
--- This fails because the linear_combination tactic requires the equations
---   and coefficients to use a type that fulfills the add_group condition,
---   and ℕ does not.
-example (a b : ℕ) (h1 : a = 3) :
-  a = 3 :=
-begin
-  success_if_fail {linear_combination h1},
-  exact h1
-end
+-- -- This should fail because the coefficients are incorrect.  They should instead
+-- --   be -2 and 3, respectively.
+-- example (x y : ℤ) (h1 : 3*x + 2*y = 10) (h2 : 2*x + 5*y = 3) :
+--   11*y = -11 :=
+-- begin
+--   success_if_fail {linear_combination 2*h1 - 3*h2},
+--   linear_combination -2*h1 + 3*h2
+-- end
+
+-- -- This fails because the linear_combination tactic requires the equations
+-- --   and coefficients to use a type that fulfills the add_group condition,
+-- --   and ℕ does not.
+-- example (a b : ℕ) (h1 : a = 3) :
+--   a = 3 :=
+-- begin
+--   success_if_fail {linear_combination h1},
+--   exact h1
+-- end
 
 example (a b : ℤ) (x y : ℝ) (hab : a = b) (hxy : x = y) : 2*x = 2*y :=
 begin

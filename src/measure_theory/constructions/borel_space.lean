@@ -1496,7 +1496,8 @@ begin
   exact h's.closure_eq.symm
 end
 
-lemma measurable_set_exists_tendsto_at_top {ι : Type*}
+/-- The set of points for which a measurable sequence of functions converges is measurable. -/
+@[measurability] lemma measurable_set_exists_tendsto_at_top {ι : Type*}
   [second_countable_topology β] [complete_space β] [nonempty ι] [encodable ι] [semilattice_sup ι]
   {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
   measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=

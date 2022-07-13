@@ -108,9 +108,9 @@ instance : is_lawful_functor pmf :=
 
 instance : is_lawful_monad pmf :=
 { bind_pure_comp_eq_map := λ α β f x, rfl,
+  bind_map_eq_seq := λ α β f x, rfl,
   pure_bind := λ α β, pure_bind,
-  bind_assoc := λ α β γ, bind_bind,
-  bind_map_eq_seq := λ α β f x, rfl }
+  bind_assoc := λ α β γ, bind_bind }
 
 section of_finset
 

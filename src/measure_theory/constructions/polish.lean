@@ -580,10 +580,11 @@ begin
   { rwa inj_on_iff_injective at f_inj }
 end
 
-variables [measurable_space γ] [borel_space γ]
+
+variables [measurable_space γ] [hγb : borel_space γ]
 {β : Type*} [tβ : topological_space β] [t2_space β] [measurable_space β] [borel_space β]
 {s : set γ} {f : γ → β}
-include tβ
+include tβ hγb
 
 /-- The Lusin-Souslin theorem: if `s` is Borel-measurable in a Polish space, then its image under
 a continuous injective map is also Borel-measurable. -/
@@ -678,6 +679,34 @@ begin
   -- therefore, its image under the measurable embedding `id` is also measurable for `tγ`.
   convert E.measurable_set_image.2 M,
   simp only [id.def, image_id'],
+end
+
+omit hγb
+
+/-- The set of points for which a measurable sequence of functions converges is measurable. -/
+@[measurability] lemma measurable_set_exists_tendsto_at_top
+  [hγ : opens_measurable_space γ] [nonempty ι] [encodable ι] [semilattice_sup ι]
+  {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
+  measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
+begin
+  haveI := upgrade_polish_space γ,
+  simp_rw ← @cauchy_map_iff_exists_tendsto _ _ (upgrade_polish_space γ).to_uniform_space
+    (upgrade_polish_space γ).to_complete_space,
+  change measurable_set {x | @cauchy_seq _ _ (upgrade_polish_space γ).to_uniform_space _
+    (λ n, f n x)},
+  simp_rw @metric.cauchy_seq_iff'' _ _ (upgrade_polish_space γ).to_pseudo_metric_space,
+  rw set.set_of_forall,
+  refine measurable_set.Inter (λ K, _),
+  rw set.set_of_exists,
+  refine measurable_set.Union (λ N, _),
+  rw set.set_of_forall,
+  refine measurable_set.Inter (λ n, _),
+  by_cases hNn : N ≤ n,
+  { simp only [hNn, ge_iff_le, forall_true_left],
+    exact measurable_set_lt ((@measurable.dist _ _
+      (upgrade_polish_space γ).to_pseudo_metric_space _ hγ _
+      (upgrade_polish_space γ).to_second_countable_topology _ _ (hf n) (hf N))) measurable_const },
+  { simp only [hNn, ge_iff_le, is_empty.forall_iff, set_of_true, measurable_set.univ], }
 end
 
 end measure_theory

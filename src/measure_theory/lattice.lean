@@ -28,7 +28,7 @@ measurable function, lattice operation
 
 -/
 
-open measure_theory filter set
+open measure_theory
 
 /-- We say that a type `has_measurable_sup` if `((⊔) c)` and `(⊔ c)` are measurable functions.
 For a typeclass assuming measurability of `uncurry (⊔)` see `has_measurable_sup₂`. -/

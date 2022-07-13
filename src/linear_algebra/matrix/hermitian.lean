@@ -70,7 +70,7 @@ conj_transpose_zero
 @[simp] lemma is_hermitian.map {A : matrix n n α} (h : A.is_hermitian) (f : α → β)
   (hf : function.semiconj f star star) :
   (A.map f).is_hermitian :=
-by { refine (conj_transpose_map f hf).symm.trans _, rw h.eq }
+(conj_transpose_map f hf).symm.trans $ h.eq.symm ▸ rfl
 
 @[simp] lemma is_hermitian.transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᵀ.is_hermitian :=
@@ -78,7 +78,7 @@ by { rw [is_hermitian, conj_transpose, transpose_map], congr, exact h }
 
 @[simp] lemma is_hermitian.conj_transpose {A : matrix n n α} (h : A.is_hermitian) :
   Aᴴ.is_hermitian :=
-h.transpose.map _ rfl
+h.transpose.map _ $ λ _, rfl
 
 @[simp] lemma is_hermitian.add {A B : matrix n n α} (hA : A.is_hermitian) (hB : B.is_hermitian) :
   (A + B).is_hermitian :=

@@ -169,7 +169,6 @@ meta def poly_form_of_expr (red : transparency) : list expr → expr → tactic 
 The following section contains code that can convert an a `poly` object into a `pexpr`.
 -/
 
-#check expr.is_app_of
 
 /--
 This can convert a `poly` into a `pexpr` that would evaluate to a polynomial.

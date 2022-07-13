@@ -18,12 +18,12 @@ example {a a' b b' c c' d d' : β} :
 by simp
 
 example {a a' b b' c c' d d' : α} :
-  ![![a, b], ![c, d]] ⬝ ![![a', b'], ![c', d']] =
-    ![![a * a' + b * c', a * b' + b * d'], ![c * a' + d * c', c * b' + d * d']] :=
+  of ![![a, b], ![c, d]] ⬝ of ![![a', b'], ![c', d']] =
+    of ![![a * a' + b * c', a * b' + b * d'], ![c * a' + d * c', c * b' + d * d']] :=
 by simp
 
 example {a b c d x y : α} :
-  mul_vec ![![a, b], ![c, d]] ![x, y] = ![a * x + b * y, c * x + d * y] :=
+  mul_vec (of ![![a, b], ![c, d]]) ![x, y] = ![a * x + b * y, c * x + d * y] :=
 by simp
 
 example {a b c d : α} : minor ![![a, b], ![c, d]] ![1, 0] ![0] = ![![c], ![a]] :=
@@ -58,7 +58,7 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 37 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
 
 example {α : Type*} [comm_ring α] {a b c d : α} :
-  matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
+  matrix.det (of ![![a, b], ![c, d]]) = a * d - b * c :=
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   /-
@@ -71,7 +71,7 @@ begin
 end
 
 example {α : Type*} [comm_ring α] {a b c d e f g h i : α} :
-        matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
+        matrix.det (of ![![a, b, c], ![d, e, f], ![g, h, i]]) =
           a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],

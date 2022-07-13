@@ -117,11 +117,11 @@ protected lemma bUnion_decode₂ [encodable ι] ⦃f : ι → set α⦄ (h : ∀
   (n : ℕ) : null_measurable_set (⋃ b ∈ encodable.decode₂ ι n, f b) μ :=
 measurable_set.bUnion_decode₂ h n
 
-protected lemma bUnion {f : ι → set α} {s : set ι} (hs : countable s)
+protected lemma bUnion {f : ι → set α} {s : set ι} (hs : s.countable)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋃ b ∈ s, f b) μ :=
 measurable_set.bUnion hs h
 
-protected lemma sUnion {s : set (set α)} (hs : countable s) (h : ∀ t ∈ s, null_measurable_set t μ) :
+protected lemma sUnion {s : set (set α)} (hs : s.countable) (h : ∀ t ∈ s, null_measurable_set t μ) :
   null_measurable_set (⋃₀ s) μ :=
 by { rw sUnion_eq_bUnion, exact measurable_set.bUnion hs h }
 
@@ -137,11 +137,11 @@ protected lemma Inter [encodable ι] {f : ι → set α} (h : ∀ i, null_measur
   null_measurable_set (⋂ i, f i) μ :=
 measurable_set.Inter h
 
-protected lemma bInter {f : β → set α} {s : set β} (hs : countable s)
+protected lemma bInter {f : β → set α} {s : set β} (hs : s.countable)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 measurable_set.bInter hs h
 
-protected lemma sInter {s : set (set α)} (hs : countable s) (h : ∀ t ∈ s, null_measurable_set t μ) :
+protected lemma sInter {s : set (set α)} (hs : s.countable) (h : ∀ t ∈ s, null_measurable_set t μ) :
   null_measurable_set (⋂₀ s) μ :=
 measurable_set.sInter hs h
 
@@ -308,7 +308,7 @@ measurable_set_insert
 lemma null_measurable_set_eq {a : α} : null_measurable_set {x | x = a} μ :=
 null_measurable_set_singleton a
 
-protected lemma _root_.set.finite.null_measurable_set (hs : finite s) : null_measurable_set s μ :=
+protected lemma _root_.set.finite.null_measurable_set (hs : s.finite) : null_measurable_set s μ :=
 finite.measurable_set hs
 
 protected lemma _root_.finset.null_measurable_set (s : finset α) : null_measurable_set ↑s μ :=
@@ -316,7 +316,7 @@ finset.measurable_set s
 
 end measurable_singleton_class
 
-lemma _root_.set.finite.null_measurable_set_bUnion {f : ι → set α} {s : set ι} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_bUnion {f : ι → set α} {s : set ι} (hs : s.finite)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   null_measurable_set (⋃ b ∈ s, f b) μ :=
 finite.measurable_set_bUnion hs h
@@ -326,12 +326,12 @@ lemma _root_.finset.null_measurable_set_bUnion {f : ι → set α} (s : finset �
   null_measurable_set (⋃ b ∈ s, f b) μ :=
 finset.measurable_set_bUnion s h
 
-lemma _root_.set.finite.null_measurable_set_sUnion {s : set (set α)} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_sUnion {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, null_measurable_set t μ) :
   null_measurable_set (⋃₀ s) μ :=
 finite.measurable_set_sUnion hs h
 
-lemma _root_.set.finite.null_measurable_set_bInter {f : ι → set α} {s : set ι} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_bInter {f : ι → set α} {s : set ι} (hs : s.finite)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 finite.measurable_set_bInter hs h
 
@@ -339,7 +339,7 @@ lemma _root_.finset.null_measurable_set_bInter {f : ι → set α} (s : finset �
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 s.finite_to_set.null_measurable_set_bInter h
 
-lemma _root_.set.finite.null_measurable_set_sInter {s : set (set α)} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_sInter {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, null_measurable_set t μ) : null_measurable_set (⋂₀ s) μ :=
 null_measurable_set.sInter hs.countable h
 

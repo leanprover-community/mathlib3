@@ -7,6 +7,7 @@ import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
+import analysis.normed_space.banach
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -1071,6 +1072,23 @@ begin
   simp only [sq, ← mul_div_right_comm, ← add_div]
 end
 
+/-- Formula for the distance between the images of two nonzero points under an inversion with center
+zero. See also `euclidean_geometry.dist_inversion_inversion` for inversions around a general
+point. -/
+lemma dist_div_norm_sq_smul {x y : F} (hx : x ≠ 0) (hy : y ≠ 0) (R : ℝ) :
+  dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y) = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :=
+have hx' : ∥x∥ ≠ 0, from norm_ne_zero_iff.2 hx,
+have hy' : ∥y∥ ≠ 0, from norm_ne_zero_iff.2 hy,
+calc dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y)
+    = sqrt (∥(R / ∥x∥) ^ 2 • x - (R / ∥y∥) ^ 2 • y∥^2) :
+  by rw [dist_eq_norm, sqrt_sq (norm_nonneg _)]
+... = sqrt ((R ^ 2 / (∥x∥ * ∥y∥)) ^ 2 * ∥x - y∥ ^ 2) :
+  congr_arg sqrt $ by { field_simp [sq, norm_sub_mul_self_real, norm_smul, real_inner_smul_left,
+    inner_smul_right, real.norm_of_nonneg (mul_self_nonneg _)], ring }
+... = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :
+  by rw [sqrt_mul (sq_nonneg _), sqrt_sq (norm_nonneg _),
+    sqrt_sq (div_nonneg (sq_nonneg _) (mul_nonneg (norm_nonneg _) (norm_nonneg _))), dist_eq_norm]
+
 @[priority 100] -- See note [lower instance priority]
 instance inner_product_space.to_uniform_convex_space : uniform_convex_space F :=
 ⟨λ ε hε, begin
@@ -1935,9 +1953,8 @@ begin
     have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
     simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
-    { rw ← hV.norm_sq_diff_sum,
-      apply sq_lt_sq,
-      rw [_root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
+    { rw [← hV.norm_sq_diff_sum, sq_lt_sq,
+        _root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
@@ -2283,6 +2300,33 @@ by rw [hT x y, inner_conj_sym]
   (x y : E) :
   ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
+
+/-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
+  it is automatically continuous. -/
+lemma is_self_adjoint.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) :
+  continuous T :=
+begin
+  -- We prove it by using the closed graph theorem
+  refine T.continuous_of_seq_closed_graph (λ u x y hu hTu, _),
+  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  have hlhs : ∀ k : ℕ, ⟪T (u k) - T x, y - T x⟫ = ⟪u k - x, T (y - T x)⟫ :=
+  by { intro k, rw [←T.map_sub, hT] },
+  refine tendsto_nhds_unique ((hTu.sub_const _).inner tendsto_const_nhds) _,
+  simp_rw hlhs,
+  rw ←@inner_zero_left 𝕜 E _ _ (T (y - T x)),
+  refine filter.tendsto.inner _ tendsto_const_nhds,
+  rw ←sub_self x,
+  exact hu.sub_const _,
+end
+
+/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
+  defined symmetric operator.-/
+def is_self_adjoint.clm [complete_space E] {T : E →ₗ[𝕜] E}
+  (hT : is_self_adjoint T) : E →L[𝕜] E :=
+⟨T, hT.continuous⟩
+
+lemma is_self_adjoint.clm_apply [complete_space E] {T : E →ₗ[𝕜] E}
+  (hT : is_self_adjoint T) {x : E} : hT.clm x = T x := rfl
 
 /-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
 @[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply

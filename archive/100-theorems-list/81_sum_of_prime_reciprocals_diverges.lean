@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Manuel Candales
 -/
 import topology.instances.ennreal
-import algebra.squarefree
+import data.nat.squarefree
 
 /-!
 # Divergence of the Prime Reciprocal Series

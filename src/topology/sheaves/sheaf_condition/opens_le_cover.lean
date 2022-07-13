@@ -317,7 +317,7 @@ end
 
 end
 
-variable [has_products C]
+variable [has_products.{v} C]
 
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yaël Dillies
 -/
 import order.complete_lattice
+import order.directed
 
 /-!
 # Frames, completely distributive lattices and Boolean algebras
@@ -105,11 +106,35 @@ by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
 lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
 by simpa only [disjoint.comm] using supr_disjoint_iff
 
+lemma supr₂_disjoint_iff {f : Π i, κ i → α} :
+  disjoint (⨆ i j, f i j) a ↔ ∀ i j, disjoint (f i j) a :=
+by simp_rw supr_disjoint_iff
+
+lemma disjoint_supr₂_iff {f : Π i, κ i → α} :
+  disjoint a (⨆ i j, f i j) ↔ ∀ i j, disjoint a (f i j) :=
+by simp_rw disjoint_supr_iff
+
 lemma Sup_disjoint_iff {s : set α} : disjoint (Sup s) a ↔ ∀ b ∈ s, disjoint b a :=
 by simp only [disjoint_iff, Sup_inf_eq, supr_eq_bot]
 
 lemma disjoint_Sup_iff {s : set α} : disjoint a (Sup s) ↔ ∀ b ∈ s, disjoint a b :=
 by simpa only [disjoint.comm] using Sup_disjoint_iff
+
+lemma supr_inf_of_monotone {ι : Type*} [preorder ι] [is_directed ι (≤)] {f g : ι → α}
+  (hf : monotone f) (hg : monotone g) :
+  (⨆ i, f i ⊓ g i) = (⨆ i, f i) ⊓ (⨆ i, g i) :=
+begin
+  refine (le_supr_inf_supr f g).antisymm _,
+  rw [supr_inf_supr],
+  refine supr_mono' (λ i, _),
+  rcases directed_of (≤) i.1 i.2 with ⟨j, h₁, h₂⟩,
+  exact ⟨j, inf_le_inf (hf h₁) (hg h₂)⟩
+end
+
+lemma supr_inf_of_antitone {ι : Type*} [preorder ι] [is_directed ι (swap (≤))] {f g : ι → α}
+  (hf : antitone f) (hg : antitone g) :
+  (⨆ i, f i ⊓ g i) = (⨆ i, f i) ⊓ (⨆ i, g i) :=
+@supr_inf_of_monotone α _ ιᵒᵈ _ _ f g hf.dual_left hg.dual_left
 
 instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame (Π i, π i) :=
 { inf_Sup_le_supr_inf := λ a s i,
@@ -147,6 +172,16 @@ lemma binfi_sup_binfi {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set
 
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
 @Sup_inf_Sup αᵒᵈ _ _ _
+
+lemma infi_sup_of_monotone {ι : Type*} [preorder ι] [is_directed ι (swap (≤))] {f g : ι → α}
+  (hf : monotone f) (hg : monotone g) :
+  (⨅ i, f i ⊔ g i) = (⨅ i, f i) ⊔ (⨅ i, g i) :=
+supr_inf_of_antitone hf.dual_right hg.dual_right
+
+lemma infi_sup_of_antitone {ι : Type*} [preorder ι] [is_directed ι (≤)] {f g : ι → α}
+  (hf : antitone f) (hg : antitone g) :
+  (⨅ i, f i ⊔ g i) = (⨅ i, f i) ⊔ (⨅ i, g i) :=
+supr_inf_of_monotone hf.dual_right hg.dual_right
 
 instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : coframe (Π i, π i) :=
 { Inf := Inf,

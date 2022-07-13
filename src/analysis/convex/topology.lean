@@ -213,7 +213,7 @@ variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- Convex hull of a finite set is compact. -/
-lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :
+lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
@@ -223,7 +223,7 @@ begin
 end
 
 /-- Convex hull of a finite set is closed. -/
-lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) :
+lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : s.finite) :
   is_closed (convex_hull ℝ s) :=
 hs.compact_convex_hull.is_closed
 

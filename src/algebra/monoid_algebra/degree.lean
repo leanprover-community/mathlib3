@@ -30,20 +30,13 @@ open_locale classical
 
 variables {R A B : Type*} [semiring R]
 
-section degree
-variables [semilattice_sup B] [order_bot B]
-
-/--  Let `R` be a semiring, let `A` be a `semilattice_sup`, and let `f : R[A]` be an
-an element of `add_monoid_algebra R A`.  The degree of `f` takes values in `with_bot A` and
-it is the supremum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not.
-
-If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
-the exponents. -/
+section general_results_assuming_semilattice_sup
 
 variables [has_add A]
-variables [has_add B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+variables [semilattice_sup B] [order_bot B] [has_add B]
+  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
 
-lemma sup_support_mul_le (D : A → B) (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
+lemma sup_support_mul_le {D : A → B} (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
   (f g : add_monoid_algebra R A) :
   (f * g).support.sup D ≤ f.support.sup D + g.support.sup D :=
 begin
@@ -54,46 +47,28 @@ begin
   exact finset.le_sup ‹_›,
 end
 
-end degree
+end general_results_assuming_semilattice_sup
 
-section trailing_degree
-variables [semilattice_inf B] [order_top B]
-
-/--  Let `R` be a semiring, let `A` be a `semilattice_inf`, and let `f : R[A]` be an
-an element of `add_monoid_algebra R A`.  The trailing degree of `f` takes values in `with_top A`
-and it is the infimum of the support of `f` or `⊤`, depending on whether `f` is non-zero or not.
-
-If `A` has a linear order, then this notion coincides with the usual one, using the minimum of
-the exponents. -/
-def trailing_degree (D : A → B) (f : add_monoid_algebra R A) : B :=
-f.support.inf D
-
-variables [has_add A]
-variables [has_add B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-
-lemma le_trailing_degree_mul (D : A → B) (Dm : ∀ {a b}, D a + D b ≤ D (a + b))
-  (f g : add_monoid_algebra R A) :
-  f.trailing_degree D + g.trailing_degree D ≤ (f * g).trailing_degree D :=
-@degree_mul_le _ Aᵒᵈ Bᵒᵈ _ _ _ _ _ _ _ _ (λ a b, Dm) _ _
-
-end trailing_degree
-
-/-  This section is here only to show the relationship to the "standard" degree. -/
-section old_degrees
+section degrees
 
 section degree
 
 variables [semilattice_sup A]
 
-/--  The old degree. -/
-def old_degree (f : add_monoid_algebra R A) : with_bot A :=
+/--  Let `R` be a semiring, let `A` be a `semilattice_sup`, and let `f : R[A]` be an
+an element of `add_monoid_algebra R A`.  The degree of `f` takes values in `with_bot A` and
+it is the supremum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not.
+
+If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
+the exponents. -/
+def degree (f : add_monoid_algebra R A) : with_bot A :=
 f.support.sup coe
 
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
 variables (f g : add_monoid_algebra R A)
 
-example : (f * g).old_degree ≤ f.old_degree + g.old_degree :=
-degree_mul_le (coe : A → with_bot A) (λ a b, (with_bot.coe_add _ _).le) f g
+lemma degree_mul_le : (f * g).degree ≤ f.degree + g.degree :=
+sup_support_mul_le (λ a b, (with_bot.coe_add _ _).le) f g
 
 end degree
 
@@ -101,21 +76,24 @@ section trailing_degree
 
 variables [semilattice_inf A]
 
-/--  The old trailing degree. -/
-def old_trailing_degree (f : add_monoid_algebra R A) : with_top A :=
+/--  Let `R` be a semiring, let `A` be a `semilattice_inf`, and let `f : R[A]` be an
+an element of `add_monoid_algebra R A`.  The trailing degree of `f` takes values in `with_top A`
+and it is the infimum of the support of `f` or `⊤`, depending on whether `f` is non-zero or not.
+
+If `A` has a linear order, then this notion coincides with the usual one, using the minimum of
+the exponents. -/
+def trailing_degree (f : add_monoid_algebra R A) : with_top A :=
 f.support.inf coe
 
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
   (f g : add_monoid_algebra R A)
 
-example : f.trailing_degree (coe : A → with_bot A) = f.old_trailing_degree :=
-rfl
-
-example : f.old_trailing_degree + g.old_trailing_degree ≤ (f * g).old_trailing_degree :=
-le_trailing_degree_mul _ (λ a b, (with_bot.coe_add _ _).le) f g
+lemma le_trailing_degree_mul :
+  f.trailing_degree + g.trailing_degree ≤ (f * g).trailing_degree :=
+sup_support_mul_le (λ a b : Aᵒᵈ, (with_bot.coe_add _ _).le) _ _
 
 end trailing_degree
 
-end old_degrees
+end degrees
 
 end add_monoid_algebra

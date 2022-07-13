@@ -629,6 +629,62 @@ end
 
 end normed_space
 
+section normed_star_group
+
+variables [Π (i : α), star_add_monoid (E i)] [Π i, normed_star_group (E i)]
+
+lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
+(hf : mem_ℓp f p) : mem_ℓp (star f) p :=
+begin
+  rcases p.trichotomy with rfl | rfl | hp,
+  { apply mem_ℓp_zero,
+    simp [hf.finite_dsupport] },
+  { apply mem_ℓp_infty,
+    simpa using hf.bdd_above },
+  { apply mem_ℓp_gen,
+    simpa using hf.summable hp },
+end
+
+instance : has_star (lp E p) :=
+{ star := λ f, ⟨(star f : Π i, E i) , f.property.star_mem ⟩}
+
+@[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
+
+instance : has_involutive_star (lp E p) := {star_involutive := λ x,
+begin
+ext i,
+simp,
+end
+}
+
+instance : star_add_monoid (lp E p) := {star_add :=
+λ f g, by ext i ; simp only [star_add_monoid.star_add, lp.coe_fn_add, add_left_inj, pi.add_apply,
+  lp.star_apply, eq_self_iff_true]}
+
+ instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) := { norm_star :=
+ begin
+ intro f,
+ rcases p.trichotomy with h | h | h,
+ { unfreezingI { subst h }, exfalso,
+   have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
+   norm_num at this,},
+ { unfreezingI { subst h }, simp only [lp.norm_eq_csupr, lp.star_apply, norm_star]},
+ { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star]}
+ end }
+
+variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
+variables [Πi, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+
+instance : star_module 𝕜 (lp E p) := { star_smul :=
+begin
+intros i f,
+ext,
+simp only [lp.star_apply, lp.coe_fn_smul, pi.smul_apply, star_smul],
+end
+}
+
+end normed_star_group
+
 section non_unital_normed_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
@@ -674,6 +730,40 @@ instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space �
   [Π i, smul_comm_class 𝕜 (B i) (B i)] :
   smul_comm_class 𝕜 (lp B ∞) (lp B ∞) :=
 ⟨λ r f g, lp.ext $ smul_comm r ⇑f ⇑g⟩
+
+section star_ring
+
+variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
+
+instance : star_ring (lp B ∞) :=
+{ star_mul := λ f g, by {ext, simp only [lp.star_apply, infty_coe_fn_mul, pi.mul_apply, star_mul]},
+  .. (show star_add_monoid (lp B ∞),
+      by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
+
+instance [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
+{ norm_star_mul_self :=
+begin
+intro f,
+apply le_antisymm,
+{     rw ←sq,
+      apply lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥),
+      dsimp [lp.star_apply],
+      intro i,
+      rw [cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f i), norm_nonneg f] },
+      { refine lp.norm_apply_le_norm ennreal.top_ne_zero _ _,}, },
+{ rw ←sq,
+  rw ←real.le_sqrt (norm_nonneg _) (norm_nonneg _),
+  refine lp.norm_le_of_forall_le _ _,
+  exact ∥star f * f∥.sqrt_nonneg,
+      intro i,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      refine lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
+end
+}
+
+end star_ring
 
 end non_unital_normed_ring
 

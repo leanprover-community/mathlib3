@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.zfc.basic
+import logic.hydra
 
 /-!
 # Von Neumann ordinals
@@ -30,12 +31,16 @@ universe u
 
 variables {x y z w : Set.{u}}
 
+open relation
+
 namespace Set
 
 /-! ### Transitive sets -/
 
 /-- A transitive set is one where every element is a subset. -/
 def is_transitive (x : Set) : Prop := ∀ y ∈ x, y ⊆ x
+
+@[simp] theorem empty_is_transitive : is_transitive ∅ := λ y hy, (mem_empty y hy).elim
 
 theorem is_transitive.subset_of_mem (h : x.is_transitive) : y ∈ x → y ⊆ x := h y
 
@@ -107,62 +112,64 @@ begin
   exact ⟨λ z hz a ha, hx.mem_trans' ha hz hy, by apply_instance, by apply_instance⟩
 end
 
-theorem subset_of_mem_or_eq (h : y.is_ordinal) : x ∈ y ∨ x = y → x ⊆ y :=
+theorem subset_of_eq_or_mem (h : y.is_ordinal) : x = y ∨ x ∈ y → x ⊆ y :=
 begin
-  rintro (hx | rfl),
-  { exact h.subset_of_mem hx },
-  { exact subset_rfl }
+  rintro (rfl | hx),
+  { exact subset_rfl },
+  { exact h.subset_of_mem hx }
 end
+
+theorem subset_iff_eq_or_mem (hx : x.is_ordinal) (hy : y.is_ordinal) : x ⊆ y ↔ x = y ∨ x ∈ y :=
+⟨begin
+  revert hx hy,
+  apply game_add_swap.induction mem_wf _ x y,
+  intros x y IH hx hy hxy,
+  by_cases hyx : y ⊆ x,
+  { exact or.inl (subset_antisymm hxy hyx) },
+  let m := mem_wf.min (y.to_set \ x.to_set) (set.nonempty_diff.2 hyx),
+  have hm : m ∈ y.to_set \ x.to_set := mem_wf.min_mem _ _,
+  have hmy : m ∈ y := set.mem_of_mem_diff hm,
+  have hmx : m ⊆ x,
+  { intros z hzm,
+    by_contra hzx,
+    exact mem_wf.not_lt_min (y.to_set \ x.to_set) _ ⟨hy.mem_trans hzm hmy, hzx⟩ hzm },
+  cases IH m x (game_add.snd hmy).swap_mk_left (hy.mem hmy) hx hmx with H H,
+  { right, rwa ←H },
+  { exact (set.not_mem_of_mem_diff hm H).elim }
+end, hy.subset_of_eq_or_mem⟩
+
+alias subset_iff_eq_or_mem ↔ eq_or_mem_of_subset _
+
+theorem mem_of_subset_of_mem (h : x.is_ordinal) (hz : z.is_ordinal) (hx : x ⊆ y) (hy : y ∈ z) :
+  x ∈ z :=
+begin
+  rcases h.eq_or_mem_of_subset (hz.mem hy) hx with rfl | hx,
+  { exact hy },
+  { exact hz.mem_trans hx hy }
+end
+
+theorem not_mem_iff_subset (hx : x.is_ordinal) (hy : y.is_ordinal) : ¬ y ∈ x ↔ x ⊆ y :=
+⟨begin
+  revert hx hy,
+  apply game_add_swap.induction mem_wf _ x y,
+  intros x y IH hx hy hyx z hzx,
+  by_contra hzy,
+  exact hyx (mem_of_subset_of_mem hy hx
+    (IH y z (game_add.fst hzx).swap_mk_left hy (hx.mem hzx) hzy) hzx),
+end, λ hxy hyx, mem_irrefl (hxy hyx)⟩
 
 end is_ordinal
 
-theorem is_transitive.is_ordinal (h : x.is_transitive) (H : ∀ y : Set, y ∈ x → y.is_ordinal) :
+/-theorem is_transitive.is_ordinal (h : x.is_transitive) (H : ∀ y : Set, y ∈ x → y.is_ordinal) :
   x.is_ordinal :=
 ⟨h, ⟨begin
   rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ hab hbc,
-  
 
-end⟩, ⟨sorry⟩⟩
 
-theorem is_ordinal.subset_iff_mem_or_eq {x y : Set} (hx : x.is_ordinal) (hy : y.is_ordinal) :
-  x ⊆ y ↔ x ∈ y ∨ x = y :=
-⟨begin
-  suffices : ∀ a : Set × Set, a.1.is_ordinal → a.2.is_ordinal → a.1 ⊆ a.2 → a.1 ∈ a.2 ∨ a.1 = a.2,
-  { exact this (x, y) hx hy },
-  intro a,
-  apply (well_founded.game_add_swap mem_wf).induction a, clear hx hy x y,
-  rintros ⟨x, y⟩ IH h₁ h₂ Hxy,
-  dsimp at *,
-  by_cases Hyx : y ⊆ x,
-  { exact or.inr (subset_antisymm Hxy Hyx) },
-  let m := mem_wf.min (x.to_set \ y.to_set) (set.nonempty_diff.2 (begin
-    simp,
-  end)),
-end, hy.subset_of_mem_or_eq⟩
+end⟩, ⟨sorry⟩⟩-/
 
 @[simp] theorem empty_is_ordinal : is_ordinal ∅ :=
-⟨by { rw empty_to_set, apply_instance }, λ y, by simp⟩
-
-/-- The subtype of von Neumann ordinals. See `ordinal` for the preferred, type-theoretic formulation
-of ordinals. -/
-def Ordinal : Type* := subtype is_ordinal
-
-instance : has_lt Ordinal := ⟨subrel (∈) _⟩
-instance : has_le Ordinal := ⟨subrel (⊆) _⟩
-
-instance : has_zero Ordinal := ⟨⟨∅, empty_is_ordinal⟩⟩
-
-instance Ordinal.is_well_order_to_set (x : Ordinal) : is_well_order x.1.to_set (subrel (∈) _) :=
-x.2.is_well_order
-
-instance Ordinal.subtype_is_well_order (x : Ordinal) : is_well_order {y // y < x} (<) :=
-begin
-  apply @rel_embedding.is_well_order _ x.1.to_set _ (subrel (∈) _),
-  exact ⟨⟨λ a, ⟨a.1.1, a.2⟩, λ a b, by simp [subtype.coe_inj]⟩, λ a b, by simpa⟩
-end
-
-/-- **Transfinite induction** on ordinals amounts to saying `<` is well-founded. -/
-theorem Ordinal.lt_wf : @well_founded Ordinal (<) := (subrel.rel_embedding _ _).well_founded mem_wf
+⟨empty_is_transitive, by { rw empty_to_set, split; apply_instance }⟩
 
 /-- The successor of an ordinal `x` is `x ∪ {x}`. -/
 def succ (x : Set) : Set := insert x x
@@ -175,7 +182,10 @@ theorem mem_succ_self (x : Set) : x ∈ succ x := mem_succ_iff.2 $ or.inl rfl
 
 @[simp] theorem succ_to_set (x : Set) : x.succ.to_set = insert x x.to_set := by simp [succ]
 
-def foo {x : Set} (h : x.is_ordinal) :
+theorem subset_iff_mem_succ (hx : x.is_ordinal) (hy : y.is_ordinal) : x ⊆ y ↔ x ∈ succ y :=
+by rw [mem_succ_iff, hx.subset_iff_eq_or_mem hy]
+
+/-def foo {x : Set} (h : x.is_ordinal) :
   subrel (∈) x.succ.to_set ↪r @has_lt.lt (with_top {y : Ordinal // y < ⟨x, h⟩}) _ :=
 sorry
 
@@ -183,9 +193,9 @@ example {x : Set} (h : x.is_ordinal) : is_well_order x.succ.to_set (subrel (∈)
 begin
 haveI := with_top.is_well_order,
   apply (foo h).is_well_order,
-end
+end-/
 
-theorem is_ordinal.succ {x : Set} (hx : x.is_ordinal) : x.succ.is_ordinal :=
+/-theorem is_ordinal.succ {x : Set} (hx : x.is_ordinal) : x.succ.is_ordinal :=
 begin
   refine ⟨λ y hy z hz, _, _⟩,
   { exact
@@ -220,11 +230,11 @@ begin
   { rcases mem_succ_iff.1 hy with rfl | hy,
     { exact mem_succ_of_mem hz },
     { exact mem_succ_of_mem (hx.mem_trans hz hy) } }
-end
+end-/
 
 
 
-instance : partial_order Ordinal :=
+/-instance : partial_order Ordinal :=
 { le_refl := λ x, subset_refl x.1,
   le_trans := λ x y z, @subset_trans Set _ _ x.1 y.1 z.1,
   lt_iff_le_not_le := λ x y, begin
@@ -232,12 +242,28 @@ instance : partial_order Ordinal :=
 
   end,
   le_antisymm := λ x y hx hy, by simpa [subtype.coe_inj] using @subset_antisymm _ _ x.1 y.1 _ hx hy,
-  ..Ordinal.has_lt, ..Ordinal.has_le }
+  ..Ordinal.has_lt, ..Ordinal.has_le }-/
 
-theorem is_ordinal.eq_or_mem_of_subset {x y : Set} (hx : x.is_ordinal) (hy : y.is_ordinal)
-  (h : x ⊆ y) : x = y ∨ x ∈ y :=
+
+/-- The subtype of von Neumann ordinals. See `ordinal` for the preferred, type-theoretic formulation
+of ordinals. -/
+def Ordinal : Type* := subtype is_ordinal
+
+instance : has_lt Ordinal := ⟨subrel (∈) _⟩
+instance : has_le Ordinal := ⟨subrel (⊆) _⟩
+
+instance : has_zero Ordinal := ⟨⟨∅, empty_is_ordinal⟩⟩
+
+instance Ordinal.is_well_order_to_set (x : Ordinal) : is_well_order x.1.to_set (subrel (∈) _) :=
+x.2.is_well_order
+
+instance Ordinal.subtype_is_well_order (x : Ordinal) : is_well_order {y // y < x} (<) :=
 begin
-
+  apply @rel_embedding.is_well_order _ x.1.to_set _ (subrel (∈) _),
+  exact ⟨⟨λ a, ⟨a.1.1, a.2⟩, λ a b, by simp [subtype.coe_inj]⟩, λ a b, by simpa⟩
 end
+
+/-- **Transfinite induction** on ordinals amounts to saying `<` is well-founded. -/
+theorem Ordinal.lt_wf : @well_founded Ordinal (<) := (subrel.rel_embedding _ _).well_founded mem_wf
 
 end Set

@@ -159,27 +159,27 @@ ideal.ext $ λ _, is_nilpotent_iff_eq_zero
 
 end comm_semiring
 
-namespace algebra
+namespace linear_map
 
 variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
 
-@[simp] lemma is_nilpotent_lmul_left_iff (a : A) :
-  is_nilpotent (lmul_left R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_left_iff (a : A) :
+  is_nilpotent (mul_left R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_left_eq_zero_iff, pow_lmul_left] at ⊢ hn;
+  simp only [mul_left_eq_zero_iff, pow_mul_left] at ⊢ hn;
   exact hn,
 end
 
-@[simp] lemma is_nilpotent_lmul_right_iff (a : A) :
-  is_nilpotent (lmul_right R a) ↔ is_nilpotent a :=
+@[simp] lemma is_nilpotent_mul_right_iff (a : A) :
+  is_nilpotent (mul_right R a) ↔ is_nilpotent a :=
 begin
   split; rintros ⟨n, hn⟩; use n;
-  simp only [lmul_right_eq_zero_iff, pow_lmul_right] at ⊢ hn;
+  simp only [mul_right_eq_zero_iff, pow_mul_right] at ⊢ hn;
   exact hn,
 end
 
-end algebra
+end linear_map
 
 namespace module.End
 

@@ -50,7 +50,7 @@ The definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the trace for left multiplication (`algebra.left_mul_matrix`,
-i.e. `algebra.lmul_left`).
+i.e. `linear_map.mul_left`).
 For now, the definitions assume `S` is commutative, so the choice doesn't matter anyway.
 
 ## References

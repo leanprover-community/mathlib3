@@ -94,7 +94,7 @@ by rw [←map_equiv_eq_comap_symm, map_op_one]
 
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
-instance : has_mul (submodule R A) := ⟨submodule.map₂ (algebra.lmul R A).to_linear_map⟩
+instance : has_mul (submodule R A) := ⟨submodule.map₂ $ linear_map.mul R A⟩
 
 theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N := apply_mem_map₂ _ hm hn
 
@@ -103,7 +103,7 @@ theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P := map₂_
 lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
 begin
   dsimp [has_mul.mul],
-  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid _ N,
+  simp_rw [←linear_map.mul_left_to_add_monoid_hom R, linear_map.mul_left, ←map_to_add_submonoid _ N,
     map₂],
   rw supr_to_add_submonoid,
   refl,
@@ -137,11 +137,11 @@ variables {R}
 variables (M N P Q)
 protected theorem mul_assoc : (M * N) * P = M * (N * P) :=
 le_antisymm (mul_le.2 $ λ mn hmn p hp,
-  suffices M * N ≤ (M * (N * P)).comap (algebra.lmul_right R p), from this hmn,
+  suffices M * N ≤ (M * (N * P)).comap (linear_map.mul_right R p), from this hmn,
   mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
   (mul_assoc m n p).symm ▸ mul_mem_mul hm (mul_mem_mul hn hp))
 (mul_le.2 $ λ m hm np hnp,
-  suffices N * P ≤ (M * N * P).comap (algebra.lmul_left R m), from this hnp,
+  suffices N * P ≤ (M * N * P).comap (linear_map.mul_left R m), from this hnp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
 
@@ -169,12 +169,12 @@ theorem mul_sup : M * (N ⊔ P) = M * N ⊔ M * P := map₂_sup_right _ _ _ _
 theorem sup_mul : (M ⊔ N) * P = M * P ⊔ N * P := map₂_sup_left _ _ _ _
 
 lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
-image2_subset_map₂ (algebra.lmul R A).to_linear_map M N
+image2_subset_map₂ (linear_map.mul R A) M N
 
 protected lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)
-    = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
+    = ⨆ (i : M), (N.map (linear_map.mul R A i)).map f.to_linear_map : map_supr _ _
 ... = map f.to_linear_map M * map f.to_linear_map N  :
   begin
     apply congr_arg Sup,
@@ -494,7 +494,7 @@ lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down �
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A).up • M = M.map (lmul_left _ a) :=
+  ({a} : set A).up • M = M.map (linear_map.lmul_left _ a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,

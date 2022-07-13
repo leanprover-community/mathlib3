@@ -322,7 +322,7 @@ rel.preimage_union _ s t
 lemma preimage_univ : f.preimage set.univ = f.dom :=
 by ext; simp [mem_preimage, mem_dom]
 
-lemma pfun.coe_preimage (s : set β) (f : α → β) : (f : α →. β).preimage s = f ⁻¹' s :=
+lemma coe_preimage (f : α → β) (s : set β) : (f : α →. β).preimage s = f ⁻¹' s :=
 by ext; simp
 
 /-- Core of a set `s : set β` with respect to a partial function `f : α →. β`. Set of all `a : α`

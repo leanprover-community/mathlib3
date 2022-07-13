@@ -940,11 +940,6 @@ begin
     simp only [h, ennreal.top_to_nnreal, A] }
 end
 
-lemma sum_le_tsum {f : β → ℝ≥0} (hf : summable f) (s : finset β) :
-  ∑ x in s, f x ≤ ∑' x, f x :=
-by simpa only [← ennreal.coe_le_coe, ennreal.coe_tsum hf, ennreal.coe_finset_sum]
-  using ennreal.sum_le_tsum s
-
 /-- Comparison test of convergence of `ℝ≥0`-valued series. -/
 lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=

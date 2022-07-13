@@ -67,7 +67,7 @@ begin
     calc 1 < p a + p a' : lt_add_of_le_of_pos (le_of_eq h.symm)
         (lt_of_le_of_ne (nnreal.coe_nonneg $ p a') (ha'.symm))
       ... ≤ ∑ x in {a, a'}, p x : by rw [finset.sum_insert this, finset.sum_singleton]
-      ... ≤ ∑' (x : A), p x : nnreal.sum_le_tsum p.summable_coe {a, a'} },
+      ... ≤ ∑' (x : A), p x : sum_le_tsum {a, a'} (λ _ _, nnreal.coe_nonneg _) p.summable_coe },
   { intros a' ha',
     rw [set.mem_singleton_iff.1 ha', pmf.mem_support_iff, h],
     exact one_ne_zero },

@@ -1498,7 +1498,7 @@ end
 
 /-- The set of points for which a measurable sequence of functions converges is measurable. -/
 @[measurability] lemma measurable_set_exists_tendsto_at_top {ι : Type*}
-  [second_countable_topology β] [complete_space β] [nonempty ι] [encodable ι] [semilattice_sup ι]
+  [second_countable_topology α] [complete_space α] [nonempty ι] [encodable ι] [semilattice_sup ι]
   {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
   measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
 begin
@@ -1514,7 +1514,7 @@ begin
   by_cases hNn : N ≤ n,
   { simp only [hNn, ge_iff_le, forall_true_left],
     exact measurable_set_lt (measurable.dist (hf n) (hf N)) measurable_const },
-  { simp only [hNn, ge_iff_le, forall_false_left, set.set_of_true, measurable_set.univ] }
+  { simp only [hNn, ge_iff_le, is_empty.forall_iff, set_of_true, measurable_set.univ], }
 end
 
 end pseudo_metric_space

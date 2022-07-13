@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.basic
-import order.lexicographic
 
 /-!
 # Orders on a sum type
@@ -214,12 +213,10 @@ end⟩, ⟨λ a b h, begin
 end⟩⟩, λ h, @sum.densely_ordered _ _ _ _ h.1 h.2⟩
 
 @[simp] lemma swap_le_swap_iff [has_le α] [has_le β] {a b : α ⊕ β} : a.swap ≤ b.swap ↔ a ≤ b :=
-by cases a; cases b;
-  simp only [swap, inr_le_inr_iff, inl_le_inl_iff, not_inl_le_inr, not_inr_le_inl]
+lift_rel_swap_iff
 
 @[simp] lemma swap_lt_swap_iff [has_lt α] [has_lt β] {a b : α ⊕ β} : a.swap < b.swap ↔ a < b :=
-by cases a; cases b;
-  simp only [swap, inr_lt_inr_iff, inl_lt_inl_iff, not_inl_lt_inr, not_inr_lt_inl]
+lift_rel_swap_iff
 
 end disjoint
 
@@ -438,8 +435,7 @@ rfl
 @[simp] lemma sum_assoc_symm_apply_inr_inr : (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is distributive over `⊕` up to an order isomorphism. -/
-def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] :
-  order_dual (α ⊕ β) ≃o order_dual α ⊕ order_dual β :=
+def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ β)ᵒᵈ ≃o αᵒᵈ ⊕ βᵒᵈ :=
 { map_rel_iff' := begin
   rintro (a | a) (b | b),
   { change inl (to_dual a) ≤ inl (to_dual b) ↔ to_dual (inl a) ≤ to_dual (inl b),
@@ -501,8 +497,7 @@ def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α �
   (sum_lex_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
-def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] :
-  order_dual (α ⊕ₗ β) ≃o order_dual β ⊕ₗ order_dual α :=
+def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ₗ β)ᵒᵈ ≃o βᵒᵈ ⊕ₗ αᵒᵈ :=
 { map_rel_iff' := begin
   rintro (a | a) (b | b), simp,
   { change to_lex (inr $ to_dual a) ≤ to_lex (inr $ to_dual b) ↔

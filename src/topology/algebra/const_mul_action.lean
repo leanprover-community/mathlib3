@@ -3,6 +3,7 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
+import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 /-!
@@ -43,7 +44,7 @@ local attribute [instance] mul_action.orbit_rel
 is continuous in the second argument. We use the same class for all kinds of multiplicative
 actions, including (semi)modules and algebras.
 -/
-class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_scalar Γ T]
+class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_smul Γ T]
  : Prop :=
 (continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
 
@@ -63,8 +64,8 @@ export has_continuous_const_vadd (continuous_const_vadd)
 
 variables {M α β : Type*}
 
-section has_scalar
-variables [topological_space α] [has_scalar M α] [has_continuous_const_smul M α]
+section has_smul
+variables [topological_space α] [has_smul M α] [has_continuous_const_smul M α]
 
 @[to_additive]
 lemma filter.tendsto.const_smul {f : β → α} {l : filter β} {a : α} (hf : tendsto f l (𝓝 a))
@@ -95,21 +96,25 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
 (continuous_const_smul _).comp hg
 
 /-- If a scalar is central, then its right action is continuous when its left action is. -/
-instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
+instance has_continuous_const_smul.op [has_smul Mᵐᵒᵖ α] [is_central_scalar M α] :
   has_continuous_const_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
 
+@[to_additive] instance mul_opposite.has_continuous_const_smul :
+  has_continuous_const_smul M αᵐᵒᵖ :=
+⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
+
 @[to_additive]
-instance [has_scalar M β] [has_continuous_const_smul M β] :
+instance [has_smul M β] [has_continuous_const_smul M β] :
   has_continuous_const_smul M (α × β) :=
 ⟨λ _, (continuous_fst.const_smul _).prod_mk (continuous_snd.const_smul _)⟩
 
 @[to_additive]
-instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)]
+instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_smul M (γ i)]
   [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
 ⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
 
-end has_scalar
+end has_smul
 
 section monoid
 
@@ -164,8 +169,7 @@ by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
 
 /-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
-@[to_additive] def homeomorph.smul {G : Type*} [group G]
-  [mul_action G α] [has_continuous_const_smul G α] (γ : G) : α ≃ₜ α :=
+@[to_additive] def homeomorph.smul (γ : G) : α ≃ₜ α :=
 { to_equiv := mul_action.to_perm γ,
   continuous_to_fun  := continuous_const_smul γ,
   continuous_inv_fun := continuous_const_smul γ⁻¹ }
@@ -187,6 +191,12 @@ lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
 
 @[to_additive] lemma is_closed.smul {s : set α} (hs : is_closed s) (c : G) : is_closed (c • s) :=
 is_closed_map_smul c s hs
+
+@[to_additive] lemma closure_smul (c : G) (s : set α) : closure (c • s) = c • closure s :=
+((homeomorph.smul c).image_closure s).symm
+
+@[to_additive] lemma interior_smul (c : G) (s : set α) : interior (c • s) = c • interior s :=
+((homeomorph.smul c).image_interior s).symm
 
 end group
 
@@ -231,12 +241,27 @@ is_open_map_smul₀ hc s hs
 lemma interior_smul₀ {c : G₀} (hc : c ≠ 0) (s : set α) : interior (c • s) = c • interior s :=
 ((homeomorph.smul_of_ne_zero c hc).image_interior s).symm
 
+lemma closure_smul₀ {E} [has_zero E] [mul_action_with_zero G₀ E] [topological_space E]
+  [t1_space E] [has_continuous_const_smul G₀ E] (c : G₀) (s : set E) :
+  closure (c • s) = c • closure s :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { rcases eq_empty_or_nonempty s with rfl|hs,
+    { simp },
+    { rw [zero_smul_set hs, zero_smul_set hs.closure], exact closure_singleton } },
+  { exact ((homeomorph.smul_of_ne_zero c hc).image_closure s).symm }
+end
+
 /-- `smul` is a closed map in the second argument.
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
 normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dimension`. -/
 lemma is_closed_map_smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_closed_map
+
+lemma is_closed.smul_of_ne_zero {c : G₀} {s : set α} (hs : is_closed s) (hc : c ≠ 0) :
+  is_closed (c • s) :=
+is_closed_map_smul_of_ne_zero hc s hs
 
 /-- `smul` is a closed map in the second argument.
 
@@ -250,6 +275,11 @@ begin
   { simp only [zero_smul], exact is_closed_map_const },
   { exact (homeomorph.smul_of_ne_zero c hne).is_closed_map },
 end
+
+lemma is_closed.smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M] [topological_space M]
+  [t1_space M] [module 𝕜 M] [has_continuous_const_smul 𝕜 M] (c : 𝕜) {s : set M} (hs : is_closed s) :
+  is_closed (c • s) :=
+is_closed_map_smul₀ c s hs
 
 end group_with_zero
 
@@ -292,7 +322,7 @@ is properly discontinuous, that is, for any pair of compact sets `K, L` in `T`, 
 `γ:Γ` move `K` to have nontrivial intersection with `L`.
 -/
 class properly_discontinuous_smul (Γ : Type*) (T : Type*) [topological_space T]
-  [has_scalar Γ T] : Prop :=
+  [has_smul Γ T] : Prop :=
 (finite_disjoint_inter_image : ∀ {K L : set T}, is_compact K → is_compact L →
   set.finite {γ : Γ | (((•) γ) '' K) ∩ L ≠ ∅ })
 
@@ -313,7 +343,7 @@ variables {Γ : Type*} [group Γ] {T : Type*} [topological_space T] [mul_action 
 -/
 @[priority 100, to_additive] instance fintype.properly_discontinuous_smul [fintype Γ] :
   properly_discontinuous_smul Γ T :=
-{ finite_disjoint_inter_image := λ _ _ _ _, set.finite.of_fintype _}
+{ finite_disjoint_inter_image := λ _ _ _ _, set.to_finite _}
 
 export properly_discontinuous_smul (finite_disjoint_inter_image)
 
@@ -339,7 +369,7 @@ begin
   let f : T → Q := quotient.mk,
   have f_op : is_open_map f := is_open_map_quotient_mk_mul,
   rintros ⟨x₀⟩ ⟨y₀⟩ (hxy : f x₀ ≠ f y₀),
-  show ∃ (U ∈ 𝓝 (f x₀)) (V ∈ 𝓝 (f y₀)), U ∩ V = ∅,
+  show ∃ (U ∈ 𝓝 (f x₀)) (V ∈ 𝓝 (f y₀)), _,
   have hx₀y₀ : x₀ ≠ y₀ := ne_of_apply_ne _ hxy,
   have hγx₀y₀ : ∀ γ : Γ, γ • x₀ ≠ y₀ := not_exists.mp (mt quotient.sound hxy.symm : _),
   obtain ⟨K₀, L₀, K₀_in, L₀_in, hK₀, hL₀, hK₀L₀⟩ := t2_separation_compact_nhds hx₀y₀,
@@ -355,14 +385,53 @@ begin
     exact (continuous_const_smul _).continuous_at (hu γ) },
   have V_nhds : f '' V₀ ∈ 𝓝 (f y₀),
     from f_op.image_mem_nhds (inter_mem ((bInter_mem bad_Γ_finite).mpr $ λ γ hγ, hv γ) L₀_in),
-  refine ⟨f '' U₀, U_nhds, f '' V₀, V_nhds, _⟩,
-  rw mul_action.image_inter_image_iff,
+  refine ⟨f '' U₀, U_nhds, f '' V₀, V_nhds, mul_action.disjoint_image_image_iff.2 _⟩,
   rintros x ⟨x_in_U₀₀, x_in_K₀⟩ γ,
   by_cases H : γ ∈ bad_Γ_set,
-  { rintros ⟨h, -⟩,
-    exact eq_empty_iff_forall_not_mem.mp (u_v_disjoint γ) (γ • x)
-      ⟨(mem_Inter₂.mp x_in_U₀₀ γ H : _), mem_Inter₂.mp h γ H⟩ },
+  { exact λ h, u_v_disjoint γ ⟨mem_Inter₂.mp x_in_U₀₀ γ H, mem_Inter₂.mp h.1 γ H⟩ },
   { rintros ⟨-, h'⟩,
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
+
+section nhds
+
+section mul_action
+
+variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ α]
+  [topological_space α] [has_continuous_const_smul G₀ α]
+
+/-- Scalar multiplication preserves neighborhoods. -/
+lemma set_smul_mem_nhds_smul {c : G₀} {s : set α} {x : α} (hs : s ∈ 𝓝 x) (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (c • x : α) :=
+begin
+  rw mem_nhds_iff at hs ⊢,
+  obtain ⟨U, hs', hU, hU'⟩ := hs,
+  exact ⟨c • U, set.smul_set_mono hs', hU.smul₀ hc, set.smul_mem_smul_set hU'⟩,
+end
+
+lemma set_smul_mem_nhds_smul_iff {c : G₀} {s : set α} {x : α} (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (c • x : α) ↔ s ∈ 𝓝 x :=
+begin
+  refine ⟨λ h, _, λ h, set_smul_mem_nhds_smul h hc⟩,
+  rw [←inv_smul_smul₀ hc x, ←inv_smul_smul₀ hc s],
+  exact set_smul_mem_nhds_smul h (inv_ne_zero hc),
+end
+
+end mul_action
+
+section distrib_mul_action
+
+variables {G₀ : Type*} [group_with_zero G₀] [add_monoid α] [distrib_mul_action G₀ α]
+  [topological_space α] [has_continuous_const_smul G₀ α]
+
+lemma set_smul_mem_nhds_zero_iff {s : set α} {c : G₀} (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (0 : α) ↔ s ∈ 𝓝 (0 : α) :=
+begin
+  refine iff.trans _ (set_smul_mem_nhds_smul_iff hc),
+  rw smul_zero,
+end
+
+end distrib_mul_action
+
+end nhds

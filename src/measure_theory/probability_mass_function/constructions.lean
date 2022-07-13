@@ -173,7 +173,8 @@ section of_multiset
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λ a, s.count a / s.card,
   have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
-    by simp [div_eq_inv_mul, finset.mul_sum.symm, (nat.cast_sum _ _).symm, hs],
+  { simp only [div_eq_inv_mul, ← finset.mul_sum, ← nat.cast_sum, multiset.to_finset_sum_count_eq],
+    rw [inv_mul_cancel], simp [hs] },
   have ∑ a in s.to_finset, (s.count a : ℝ≥0) / s.card = 1,
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin
@@ -358,15 +359,11 @@ by rw [filter, normalize_apply]
 lemma filter_apply_eq_zero_of_not_mem {a : α} (ha : a ∉ s) : (p.filter s h) a = 0 :=
 by rw [filter_apply, set.indicator_apply_eq_zero.mpr (λ ha', absurd ha' ha), zero_mul]
 
-@[simp] lemma support_filter : (p.filter s h).support = s ∩ p.support:=
-begin
-  refine set.ext (λ a, _),
-  rw [mem_support_iff, filter_apply, mul_ne_zero_iff, set.indicator_eq_zero_iff],
-  exact ⟨λ ha, ha.1, λ ha, ⟨ha, inv_ne_zero (nnreal.tsum_indicator_ne_zero p.2.summable h)⟩⟩
-end
+lemma mem_support_filter_iff {a : α} : a ∈ (p.filter s h).support ↔ a ∈ s ∧ a ∈ p.support :=
+(mem_support_normalize_iff _ _).trans set.indicator_apply_ne_zero
 
-lemma mem_support_filter_iff (a : α) : a ∈ (p.filter s h).support ↔ a ∈ s ∧ a ∈ p.support :=
-by simp
+@[simp] lemma support_filter : (p.filter s h).support = s ∩ p.support:=
+set.ext $ λ x, (mem_support_filter_iff _)
 
 lemma filter_apply_eq_zero_iff (a : α) : (p.filter s h) a = 0 ↔ a ∉ s ∨ a ∉ p.support :=
 by erw [apply_eq_zero_iff, support_filter, set.mem_inter_iff, not_and_distrib]

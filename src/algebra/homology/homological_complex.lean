@@ -35,7 +35,7 @@ Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
 
 universes v u
 
-open category_theory category_theory.limits
+open category_theory category_theory.category category_theory.limits
 
 variables {ι : Type*}
 variables (V : Type u) [category.{v} V] [has_zero_morphisms V]
@@ -72,6 +72,21 @@ begin
     { exact C.d_comp_d' i j k hij hjk },
     { rw [C.shape j k hjk, comp_zero] } },
   { rw [C.shape i j hij, zero_comp] }
+end
+
+lemma ext {C₁ C₂ : homological_complex V c} (h_X : C₁.X = C₂.X)
+  (h_d : ∀ (i j : ι), c.rel i j → C₁.d i j ≫ eq_to_hom (congr_fun h_X j) =
+    eq_to_hom (congr_fun h_X i) ≫ C₂.d i j) : C₁ = C₂ :=
+begin
+  cases C₁,
+  cases C₂,
+  dsimp at h_X,
+  subst h_X,
+  simp only [true_and, eq_self_iff_true, heq_iff_eq],
+  ext i j,
+  by_cases hij : c.rel i j,
+  { simpa only [id_comp, eq_to_hom_refl, comp_id] using h_d i j hij, },
+  { rw [C₁_shape' i j hij, C₂_shape' i j hij], }
 end
 
 end homological_complex
@@ -176,6 +191,12 @@ end
   (f ≫ g).f i = f.f i ≫ g.f i :=
 rfl
 
+@[simp]
+lemma eq_to_hom_f {C₁ C₂ : homological_complex V c} (h : C₁ = C₂) (n : ι) :
+  homological_complex.hom.f (eq_to_hom h) n =
+  eq_to_hom (congr_fun (congr_arg homological_complex.X h) n) :=
+by { subst h, refl, }
+
 -- We'll use this later to show that `homological_complex V c` is preadditive when `V` is.
 lemma hom_f_injective {C₁ C₂ : homological_complex V c} :
   function.injective (λ f : hom C₁ C₂, f.f) :=
@@ -189,14 +210,18 @@ instance : has_zero_morphisms (homological_complex V c) :=
 
 open_locale zero_object
 
-instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
-{ zero :=
-  { X := λ i, 0,
-    d := λ i j, 0 },
-  unique_from := λ C, ⟨⟨0⟩, λ f, by ext⟩,
-  unique_to := λ C, ⟨⟨0⟩, λ f, by ext⟩ }
+/-- The zero complex -/
+noncomputable def zero [has_zero_object V] : homological_complex V c :=
+{ X := λ i, 0, d := λ i j, 0 }
 
-instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
+lemma is_zero_zero [has_zero_object V] : is_zero (zero : homological_complex V c) :=
+by { refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩; ext, }
+
+instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
+⟨⟨zero, is_zero_zero⟩⟩
+
+noncomputable
+instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨zero⟩
 
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i
@@ -478,7 +503,7 @@ begin
   refl,
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
 begin
@@ -487,7 +512,7 @@ begin
   { simp [d_from_eq _ w, next_eq _ w] }
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 begin

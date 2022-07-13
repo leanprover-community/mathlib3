@@ -3,7 +3,7 @@ Copyright (c) 2022 Jeoff Lee. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeoff Lee
 -/
-import tactic.basic
+import tactic.linear_combination
 import ring_theory.roots_of_unity
 import ring_theory.polynomial.cyclotomic.basic
 
@@ -12,7 +12,7 @@ import ring_theory.polynomial.cyclotomic.basic
 
 This file proves Theorem 37 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
-In this file, we give the solutions to the cubic equation `a * x^3 + b * x^2 + c * x + d = 0` 
+In this file, we give the solutions to the cubic equation `a * x^3 + b * x^2 + c * x + d = 0`
 over a field `K` that has characteristic neither 2 nor 3, that has a third primitive root of
 unity, and in which certain other quantities admit square and cube roots.
 
@@ -22,7 +22,7 @@ This is based on the [Cardano's Formula](https://en.wikipedia.org/wiki/Cubic_equ
 
 - `cubic_eq_zero_iff` : gives the roots of the cubic equation
 where the discriminant `p = 3 * a * c - b^2` is nonzero.
-- `cubic_eq_zero_iff_of_p_eq_zero` : gives the roots of the cubic equation 
+- `cubic_eq_zero_iff_of_p_eq_zero` : gives the roots of the cubic equation
 where the discriminant equals zero.
 
 ## References
@@ -46,7 +46,7 @@ variables {ω p q r s t : K}
 
 lemma cube_root_of_unity_sum (hω : is_primitive_root ω 3) : 1 + ω + ω^2 = 0 :=
 begin
-  convert is_root_cyclotomic (nat.succ_pos _) hω,
+  convert hω.is_root_cyclotomic (nat.succ_pos _),
   rw [cyclotomic_eq_geom_sum nat.prime_three, eval_geom_sum],
   simp only [geom_sum_succ, geom_sum_zero],
   ring,
@@ -68,26 +68,19 @@ begin
   have h₁ : ∀ x a₁ a₂ a₃ : K, x = a₁ ∨ x = a₂ ∨ x = a₃ ↔ (x - a₁) * (x - a₂) * (x - a₃) = 0,
   { intros, simp only [mul_eq_zero, sub_eq_zero, or.assoc] },
   rw h₁,
-  suffices : x ^ 3 + 3 * p * x - 2 * q
-    = (x - (s - t)) * (x - (s * ω - t * ω^2)) * (x - (s * ω^2 - t * ω)),
-  { rw this, },
-  have hc : s^3 - t^3 = 2 * q,
-  { have : s ≠ 0 := λ h, by { apply hp_nonzero, rw [h, mul_zero] at ht, exact ht.symm },
-    have h_nonzero: q + r ≠ 0 := by { rw ← hs3, exact pow_ne_zero _ this },
-    have hp3 : p^3 = r^2 - q^2 := by { rw hr, ring },
-    calc    s^3 - t^3
-          = s^3 - p^3/s^3 : by { rw [← ht], field_simp, ring }
-      ... = (q+r) - (r^2-q^2)/(q+r) : by rw [hs3, hp3]
-      ... = (q+r) + (q-r) * ((q+r) / (q+r)) : by ring
-      ... = 2 * q : by { rw div_self h_nonzero, ring } },
-  symmetry,
-  calc (x - (s - t)) * (x - (s * ω - t * ω^2)) * (x - (s * ω^2 - t * ω))
-      = x^3 - (s-t) * (1+ω+ω^2) * x^2
-        + ((s^2+t^2)*ω*(1+ω+ω^2) - s*t*(-3 + 3*(1+ω+ω^2) + ω*(ω^3-1))) * x
-        - (s^3-t^3)*ω^3 + s*t*(s-t)*ω^2*(1+ω+ω^2) : by ring
-  ... = x^3 + 3*(t*s)*x - (s^3-t^3)
-    : by { rw [hω.pow_eq_one, cube_root_of_unity_sum hω], ring }
-  ... = x^3 + 3*p*x - 2*q : by rw [ht, hc]
+  refine eq.congr _ rfl,
+  have hs_nonzero : s ≠ 0,
+  { contrapose! hp_nonzero with hs_nonzero,
+    linear_combination -1*ht + t*hs_nonzero },
+  rw ← mul_left_inj' (pow_ne_zero 3 hs_nonzero),
+  have H := cube_root_of_unity_sum hω,
+  linear_combination
+    hr +
+    (- q + r + s ^ 3) * hs3 -
+    (3 * x * s ^ 3 + (t * s) ^ 2 + (t * s) * p + p ^ 2) * ht +
+    ((x ^ 2 * (s - t) + x * (- ω * (s ^ 2 + t ^ 2) + s * t * (3 + ω ^ 2 - ω))
+        - (-(s ^ 3 - t ^ 3) * (ω - 1) + s^2 * t * ω ^ 2 - s * t^2 * ω ^ 2)) * s ^ 3) * H,
+
 end
 
 /-- Roots of a monic cubic whose discriminant is nonzero. -/

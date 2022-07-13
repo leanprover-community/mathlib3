@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import number_theory.zsqrtd.basic
 import data.complex.basic
 import ring_theory.principal_ideal_domain
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Gaussian integers
 
@@ -37,6 +37,7 @@ and definitions about `zsqrtd` can easily be used.
 
 open zsqrtd complex
 
+/-- The Gaussian integers, defined as `ℤ√(-1)`. -/
 @[reducible] def gaussian_int : Type := zsqrtd (-1)
 
 local notation `ℤ[i]` := gaussian_int
@@ -95,7 +96,7 @@ by rw [← @int.cast_inj ℝ _ _ _]; simp
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne.def, eq_comm, norm_eq_zero]; simp [norm_nonneg]
 
-@[simp] lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
+lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
 int.nat_abs_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nat_cast_nat_abs_norm {α : Type*} [ring α]
@@ -106,12 +107,9 @@ lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
   x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
 int.coe_nat_inj $ begin simp, simp [norm] end
 
-protected def div (x y : ℤ[i]) : ℤ[i] :=
-let n := (rat.of_int (norm y))⁻¹ in let c := y.conj in
-⟨round (rat.of_int (x * c).re * n : ℚ),
- round (rat.of_int (x * c).im * n : ℚ)⟩
-
-instance : has_div ℤ[i] := ⟨gaussian_int.div⟩
+instance : has_div ℤ[i] :=
+⟨λ x y, let n := (rat.of_int (norm y))⁻¹, c := y.conj in
+  ⟨round (rat.of_int (x * c).re * n : ℚ), round (rat.of_int (x * c).im * n : ℚ)⟩⟩
 
 lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * conj y).re / norm y : ℚ),
   round ((x * conj y).im / norm y : ℚ)⟩ :=
@@ -149,9 +147,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
       simpa using abs_sub_round (x / y : ℂ).im)
   ... < 1 : by simp [norm_sq]; norm_num
 
-protected def mod (x y : ℤ[i]) : ℤ[i] := x - y * (x / y)
-
-instance : has_mod ℤ[i] := ⟨gaussian_int.mod⟩
+instance : has_mod ℤ[i] := ⟨λ x y, x - y * (x / y)⟩
 
 lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 
@@ -209,13 +205,14 @@ hp.1.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).2 $
+    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff p).2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
       { refine ⟨k.val, k.val_lt, zmod.nat_cast_zmod_val k⟩ },
       have hpk : p ∣ k ^ 2 + 1,
-        by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
+        by { rw [pow_two, ← char_p.cast_eq_zero_iff (zmod p) p, nat.cast_add, nat.cast_mul,
+                 nat.cast_one, ← hk, add_left_neg], },
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
         by simp [sq, zsqrtd.ext],
       have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,
@@ -266,7 +263,7 @@ lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
   let ⟨a, b, hab⟩ := sq_add_sq_of_nat_prime_of_not_irreducible p hpi in
-have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
+have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod p 4, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/

@@ -71,12 +71,11 @@ structure ProjectiveResolution (Z : C) :=
 (complex : chain_complex C ℕ)
 (π : homological_complex.hom complex ((chain_complex.single₀ C).obj Z))
 (projective : ∀ n, projective (complex.X n) . tactic.apply_instance)
-(exact₀ : exact (complex.d 1 0) (π.f 0) . tactic.apply_instance)
-(exact : ∀ n, exact (complex.d (n+2) (n+1)) (complex.d (n+1) n) . tactic.apply_instance)
+(exact₀ : exact (complex.d 1 0) (π.f 0))
+(exact : ∀ n, exact (complex.d (n+2) (n+1)) (complex.d (n+1) n))
 (epi : epi (π.f 0) . tactic.apply_instance)
 
-attribute [instance] ProjectiveResolution.projective ProjectiveResolution.exact₀
-  ProjectiveResolution.exact ProjectiveResolution.epi
+attribute [instance] ProjectiveResolution.projective ProjectiveResolution.epi
 
 /--
 An object admits a projective resolution.
@@ -108,6 +107,14 @@ begin
   dsimp, refl,
 end
 
+@[simp] lemma complex_d_comp_π_f_zero {Z : C} (P : ProjectiveResolution Z) :
+  P.complex.d 1 0 ≫ P.π.f 0 = 0 :=
+P.exact₀.w
+
+@[simp] lemma complex_d_succ_comp {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
+  P.complex.d (n + 2) (n + 1) ≫ P.complex.d (n + 1) n = 0 :=
+(P.exact _).w
+
 instance {Z : C} (P : ProjectiveResolution Z) (n : ℕ) : category_theory.epi (P.π.f n) :=
 by cases n; apply_instance
 
@@ -120,8 +127,8 @@ def self (Z : C) [category_theory.projective Z] : ProjectiveResolution Z :=
     { dsimp, apply_instance, },
     { dsimp, apply_instance, },
   end,
-  exact₀ := by { dsimp, apply_instance, },
-  exact := λ n, by { dsimp, apply_instance, },
+  exact₀ := by { dsimp, exact exact_zero_mono _ },
+  exact := λ n, by { dsimp, exact exact_of_zero _ _ },
   epi := by { dsimp, apply_instance, }, }
 
 /-- Auxiliary construction for `lift`. -/
@@ -132,7 +139,8 @@ factor_thru (P.π.f 0 ≫ f) (Q.π.f 0)
 /-- Auxiliary construction for `lift`. -/
 def lift_f_one {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   P.complex.X 1 ⟶ Q.complex.X 1 :=
-exact.lift (P.complex.d 1 0 ≫ lift_f_zero f P Q) (Q.complex.d 1 0) (Q.π.f 0) (by simp [lift_f_zero])
+exact.lift (P.complex.d 1 0 ≫ lift_f_zero f P Q) (Q.complex.d 1 0) (Q.π.f 0) Q.exact₀
+  (by simp [lift_f_zero, P.exact₀.w_assoc])
 
 /-- Auxiliary lemma for `lift`. -/
 @[simp] lemma lift_f_one_zero_comm
@@ -150,32 +158,24 @@ def lift_f_succ {Y Z : C} (P : ProjectiveResolution Y) (Q : ProjectiveResolution
   Σ' g'' : P.complex.X (n+2) ⟶ Q.complex.X (n+2),
     g'' ≫ Q.complex.d (n+2) (n+1) = P.complex.d (n+2) (n+1) ≫ g' :=
 ⟨exact.lift
-  (P.complex.d (n+2) (n+1) ≫ g') ((Q.complex.d (n+2) (n+1))) (Q.complex.d (n+1) n) (by simp [w]),
-  (by simp)⟩
+  (P.complex.d (n+2) (n+1) ≫ g') ((Q.complex.d (n+2) (n+1))) (Q.complex.d (n+1) n) (Q.exact _)
+  (by simp [w]), (by simp)⟩
 
 /-- A morphism in `C` lifts to a chain map between projective resolutions. -/
 def lift {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   P.complex ⟶ Q.complex :=
-begin
-  fapply chain_complex.mk_hom,
-  apply lift_f_zero f,
-  apply lift_f_one f,
-  apply lift_f_one_zero_comm f,
-  rintro n ⟨g, g', w⟩,
-  exact lift_f_succ P Q n g g' w,
-end
+chain_complex.mk_hom _ _ (lift_f_zero f _ _) (lift_f_one f _ _) (lift_f_one_zero_comm f _ _)
+  (λ n ⟨g, g', w⟩, lift_f_succ P Q n g g' w)
 
-/-- The resolution maps interwine the lift of a morphism and that morphism. -/
+/-- The resolution maps intertwine the lift of a morphism and that morphism. -/
 @[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f :=
 begin
   ext n,
-  rcases n with (_|_|n),
-  { dsimp [lift, lift_f_zero], simp, },
-  { dsimp [lift, lift_f_one], simp, },
-  { dsimp, simp, },
+  rcases n with (_|_|n);
+  { dsimp [lift, lift_f_zero, lift_f_one], simp, }
 end
 
 -- Now that we've checked this property of the lift,
@@ -194,7 +194,7 @@ variables [has_zero_object C] [preadditive C] [has_equalizers C] [has_images C]
 def lift_homotopy_zero_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (f : P.complex ⟶ Q.complex)
   (comm : f ≫ Q.π = 0) : P.complex.X 0 ⟶ Q.complex.X 1 :=
-exact.lift (f.f 0) (Q.complex.d 1 0) (Q.π.f 0)
+exact.lift (f.f 0) (Q.complex.d 1 0) (Q.π.f 0) Q.exact₀
   (congr_fun (congr_arg homological_complex.hom.f comm) 0)
 
 /-- An auxiliary definition for `lift_homotopy_zero`. -/
@@ -203,7 +203,7 @@ def lift_homotopy_zero_one {Y Z : C} {P : ProjectiveResolution Y} {Q : Projectiv
   (comm : f ≫ Q.π = 0) : P.complex.X 1 ⟶ Q.complex.X 2 :=
 exact.lift
   (f.f 1 - P.complex.d 1 0 ≫ lift_homotopy_zero_zero f comm) (Q.complex.d 2 1) (Q.complex.d 1 0)
-  (by simp [lift_homotopy_zero_zero])
+  (Q.exact _) (by simp [lift_homotopy_zero_zero])
 
 /-- An auxiliary definition for `lift_homotopy_zero`. -/
 def lift_homotopy_zero_succ {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
@@ -213,24 +213,16 @@ def lift_homotopy_zero_succ {Y Z : C} {P : ProjectiveResolution Y} {Q : Projecti
   P.complex.X (n + 2) ⟶ Q.complex.X (n + 3) :=
 exact.lift
   (f.f (n+2) - P.complex.d (n+2) (n+1) ≫ g') (Q.complex.d (n+3) (n+2)) (Q.complex.d (n+2) (n+1))
-  (by simp [w])
+  (Q.exact _) (by simp [w])
 
 /-- Any lift of the zero morphism is homotopic to zero. -/
 def lift_homotopy_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (f : P.complex ⟶ Q.complex)
   (comm : f ≫ Q.π = 0) :
   homotopy f 0 :=
-begin
-  fapply homotopy.mk_inductive,
-  { exact lift_homotopy_zero_zero f comm, },
-  { simp [lift_homotopy_zero_zero], },
-  { exact lift_homotopy_zero_one f comm, },
-  { simp [lift_homotopy_zero_one], },
-  { rintro n ⟨g, g', w⟩,
-    fsplit,
-    { exact lift_homotopy_zero_succ f n g g' w, },
-    { simp [lift_homotopy_zero_succ, w], }, }
-end
+homotopy.mk_inductive _ (lift_homotopy_zero_zero f comm) (by simp [lift_homotopy_zero_zero])
+  (lift_homotopy_zero_one f comm) (by simp [lift_homotopy_zero_one])
+  (λ n ⟨g, g', w⟩, ⟨lift_homotopy_zero_succ f n g g' w, by simp [lift_homotopy_zero_succ, w]⟩)
 
 /-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
@@ -238,11 +230,7 @@ def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : Proj
   (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f)
   (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f) :
   homotopy g h :=
-begin
-  apply homotopy.equiv_sub_zero.inv_fun,
-  apply lift_homotopy_zero,
-  simp [g_comm, h_comm],
-end
+homotopy.equiv_sub_zero.inv_fun (lift_homotopy_zero _ (by simp [g_comm, h_comm]))
 
 /-- The lift of the identity morphism is homotopic to the identity chain map. -/
 def lift_id_homotopy (X : C) (P : ProjectiveResolution X) :

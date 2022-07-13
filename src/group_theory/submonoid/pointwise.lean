@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
+import data.set.pointwise
 import group_theory.submonoid.operations
-import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -34,6 +34,8 @@ on `set`s.
 
 -/
 
+open set
+
 variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
 variables [monoid M] [add_monoid A]
 
@@ -48,7 +50,7 @@ open_locale pointwise
 protected def has_inv : has_inv (submonoid G):=
 { inv := λ S,
   { carrier := (S : set G)⁻¹,
-    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw one_inv, exact S.one_mem },
+    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw inv_one, exact S.one_mem },
     mul_mem' := λ a b (ha : a⁻¹ ∈ S) (hb : b⁻¹ ∈ S), show (a * b)⁻¹ ∈ S,
       by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
 
@@ -59,10 +61,8 @@ open_locale pointwise
 
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
-@[to_additive]
-instance : has_involutive_inv (submonoid G) :=
-{ inv := has_inv.inv,
-  inv_inv := λ S, set_like.coe_injective $ inv_inv _ }
+@[to_additive] instance : has_involutive_inv (submonoid G) :=
+set_like.coe_injective.has_involutive_inv _ $ λ _, rfl
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
@@ -95,7 +95,7 @@ lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
 
 @[simp, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
-set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ one_inv
+set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ inv_one
 
 @[simp, to_additive]
 lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=
@@ -120,10 +120,11 @@ variables [monoid α] [mul_distrib_mul_action α M]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (submonoid M) :=
-{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ _ a),
-  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+{ smul := λ a S, S.map (mul_distrib_mul_action.to_monoid_End _ M a),
+  one_smul := λ S, by { ext, simp, },
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : monoid.End M, S.map f) (monoid_hom.map_mul _ _ _)).trans
+      (S.map_map _ _).symm,}
 
 localized "attribute [instance] submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise
@@ -139,7 +140,7 @@ lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
 
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : monoid.End M, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -218,10 +219,12 @@ variables [monoid α] [distrib_mul_action α A]
 
 This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_mul_action : mul_action α (add_submonoid A) :=
-{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ _ a),
-  one_smul := λ S, (congr_arg (λ f, S.map f) (monoid_hom.map_one _)).trans S.map_id,
+{ smul := λ a S, S.map (distrib_mul_action.to_add_monoid_End _ A a),
+  one_smul := λ S, (congr_arg (λ f : add_monoid.End A, S.map f)
+    (monoid_hom.map_one _)).trans S.map_id,
   mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (monoid_hom.map_mul _ _ _)).trans (S.map_map _ _).symm,}
+    (congr_arg (λ f : add_monoid.End A, S.map f) (monoid_hom.map_mul _ _ _)).trans
+      (S.map_map _ _).symm,}
 
 localized "attribute [instance] add_submonoid.pointwise_mul_action" in pointwise
 open_locale pointwise
@@ -233,7 +236,8 @@ lemma smul_mem_pointwise_smul (m : A) (a : α) (S : add_submonoid A) : m ∈ S �
 
 instance pointwise_central_scalar [distrib_mul_action αᵐᵒᵖ A] [is_central_scalar α A] :
   is_central_scalar α (add_submonoid A) :=
-⟨λ a S, congr_arg (λ f, S.map f) $ add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+⟨λ a S, congr_arg (λ f : add_monoid.End A, S.map f) $
+  add_monoid_hom.ext $ by exact op_smul_eq_smul _⟩
 
 end monoid
 
@@ -329,7 +333,7 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
   {C : R → Prop} {r : R} (hr : r ∈ M * N)
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-(@mul_le _ _ _ _ ⟨C, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _), ha⟩).2 hm hr
+(@mul_le _ _ _ _ ⟨C, ha, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _)⟩).2 hm hr
 
 open_locale pointwise
 
@@ -340,11 +344,12 @@ begin
   apply le_antisymm,
   { rw mul_le, intros a ha b hb,
     apply closure_induction ha,
-    work_on_goal 0 { intros, apply closure_induction hb,
-      work_on_goal 0 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
+    work_on_goal 1 { intros, apply closure_induction hb,
+      work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+      solve_by_elim [add_mem _ _, zero_mem _]
+        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
 end

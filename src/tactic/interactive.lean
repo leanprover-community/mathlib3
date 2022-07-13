@@ -28,7 +28,7 @@ meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
   λ s, match _root_.try_for max (tac s) with
   | some r := r
-  | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
+  | none   := (tactic.trace "try_for timeout, using sorry" >> tactic.admit) s
   end
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
@@ -87,7 +87,7 @@ non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-i
 @[inline] protected meta def id (tac : itactic) : tactic unit := tac
 
 /--
-`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+`work_on_goal n { tac }` creates a block scope for the `n`-goal,
 and does not require that the goal be solved at the end
 (any remaining subgoals are inserted back into the list of goals).
 
@@ -96,16 +96,17 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2
+work_on_goal 3
 { dsimp,
   simp },
 refl
 ````
 
-See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+See also `id { tac }`, which is equivalent to `work_on_goal 1 { tac }`.
 -/
 meta def work_on_goal : parse small_nat → itactic → tactic unit
-| n t := do
+| 0 t := fail "work_on_goal failed: goals are 1-indexed"
+| (n+1) t := do
   goals ← get_goals,
   let earlier_goals := goals.take n,
   let later_goals := goals.drop (n+1),
@@ -185,8 +186,12 @@ add_tactic_doc
   decl_names := [`tactic.interactive.replace],
   tags       := ["context management"] }
 
-/-- Make every proposition in the context decidable. -/
-meta def classical := tactic.classical
+/-- Make every proposition in the context decidable.
+
+`classical!` does this more aggressively, such that even if a decidable instance is already
+available for a specific proposition, the noncomputable one will be used instead. -/
+meta def classical (bang : parse $ (tk "!")?) :=
+tactic.classical bang.is_some
 
 add_tactic_doc
 { name       := "classical",
@@ -203,6 +208,7 @@ private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
 @[nolint def_lemma]
+noncomputable
 lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
@@ -412,6 +418,28 @@ meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
 
+/--
+`guard_hyp_mod_implicit h : t` fails if the type of the hypothesis `h`
+is not definitionally equal to `t` modulo none transparency
+(i.e., unifying the implicit arguments modulo semireducible transparency).
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_mod_implicit (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit := do
+h ← get_local n >>= infer_type >>= instantiate_mvars,
+e ← to_expr p,
+is_def_eq h e transparency.none
+
+/--
+`guard_target_mod_implicit t` fails if the target of the main goal
+is not definitionally equal to `t` modulo none transparency
+(i.e., unifying the implicit arguments modulo semireducible transparency).
+We use this tactic for writing tests.
+-/
+meta def guard_target_mod_implicit (p : parse texpr) : tactic unit := do
+tgt ← target,
+e ← to_expr p,
+is_def_eq tgt e transparency.none
+
 /-- Test that `t` is the tag of the main goal. -/
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
@@ -482,16 +510,14 @@ add_tactic_doc
   inherit_description_from := `tactic.interactive.refine_struct }
 
 /--
-`apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
+`apply_rules hs with attrs n` applies the list of lemmas `hs` and all lemmas tagged with an
+attribute from the list `attrs`, as well as the `assumption` tactic on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
 `n` is optional, equal to 50 by default.
 You can pass an `apply_cfg` option argument as `apply_rules hs n opt`.
 (A typical usage would be with `apply_rules hs n { md := reducible })`,
 which asks `apply_rules` to not unfold `semireducible` definitions (i.e. most)
 when checking if a lemma matches the goal.)
-
-`hs` can contain user attributes: in this case all theorems with this
-attribute are added to the list of rules.
 
 For instance:
 
@@ -508,13 +534,14 @@ a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
 -- any of the following lines solve the goal:
 add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
 by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-by apply_rules [mono_rules]
-by apply_rules mono_rules
+by apply_rules with mono_rules
+by apply_rules [add_le_add] with mono_rules
 ```
 -/
-meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) (opt : apply_cfg := {}) :
+meta def apply_rules (args : parse opt_pexpr_list) (attrs : parse with_ident_list)
+  (n : nat := 50) (opt : apply_cfg := {}) :
   tactic unit :=
-tactic.apply_rules hs n opt
+tactic.apply_rules args attrs n opt
 
 add_tactic_doc
 { name       := "apply_rules",
@@ -801,7 +828,7 @@ end
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") *> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
-do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
+do tp ← i_to_expr $ let t := tp.get_or_else pexpr.mk_placeholder in ``(%%t : Sort*),
    pv ← to_expr ``(%%pv : %%tp),
    tp ← instantiate_mvars tp,
    definev a tp pv,

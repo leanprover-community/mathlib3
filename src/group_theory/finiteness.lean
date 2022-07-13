@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import data.set.finite
 import data.finset
+import group_theory.quotient_group
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -100,6 +101,10 @@ monoid.fg_iff_add_fg.1 ‹_›
 instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicative N) :=
 add_monoid.fg_iff_mul_fg.1 ‹_›
 
+@[to_additive, priority 100]
+instance monoid.fg_of_fintype [fintype M] : monoid.fg M :=
+⟨⟨finset.univ, by rw finset.coe_univ; exact submonoid.closure_univ⟩⟩
+
 end monoid
 
 @[to_additive]
@@ -143,11 +148,16 @@ begin
 end
 
 @[to_additive]
+instance monoid.fg_range {M' : Type*} [monoid M'] [monoid.fg M] (f : M →* M') :
+  monoid.fg f.mrange :=
+monoid.fg_of_surjective f.mrange_restrict f.mrange_restrict_surjective
+
+@[to_additive add_submonoid.multiples_fg]
 lemma submonoid.powers_fg (r : M) : (submonoid.powers r).fg :=
 ⟨{r}, (finset.coe_singleton r).symm ▸ (submonoid.powers_eq_closure r).symm⟩
 
-@[to_additive]
-instance (r : M) : monoid.fg (submonoid.powers r) :=
+@[to_additive add_monoid.multiples_fg]
+instance monoid.powers_fg (r : M) : monoid.fg (submonoid.powers r) :=
 (monoid.fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
 
 /-! ### Groups and subgroups -/
@@ -230,6 +240,10 @@ lemma group.fg_iff : group.fg G ↔
   ∃ S : set G, subgroup.closure S = (⊤ : subgroup G) ∧ S.finite :=
 ⟨λ h, (subgroup.fg_iff ⊤).1 h.out, λ h, ⟨(subgroup.fg_iff ⊤).2 h⟩⟩
 
+@[to_additive] lemma group.fg_iff' :
+  group.fg G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
+group.fg_def.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
+
 /-- A group is finitely generated if and only if it is finitely generated as a monoid. -/
 @[to_additive add_group.fg_iff_add_monoid.fg "An additive group is finitely generated if and only
 if it is finitely generated as an additive monoid."]
@@ -249,4 +263,43 @@ group_fg.iff_add_fg.1 ‹_›
 instance group.fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H) :=
 add_group.fg_iff_mul_fg.1 ‹_›
 
+@[to_additive, priority 100]
+instance group.fg_of_fintype [fintype G] : group.fg G :=
+⟨⟨finset.univ, by rw finset.coe_univ; exact subgroup.closure_univ⟩⟩
+
+@[to_additive]
+lemma group.fg_of_surjective {G' : Type*} [group G'] [hG : group.fg G] {f : G →* G'}
+  (hf : function.surjective f) : group.fg G' :=
+group.fg_iff_monoid.fg.mpr $ @monoid.fg_of_surjective G _ G' _ (group.fg_iff_monoid.fg.mp hG) f hf
+
+@[to_additive]
+instance group.fg_range {G' : Type*} [group G'] [group.fg G] (f : G →* G') : group.fg f.range :=
+group.fg_of_surjective f.range_restrict_surjective
+
+variables (G)
+
+/-- The minimum number of generators of a group. -/
+@[to_additive "The minimum number of generators of an additive group"]
+def group.rank [h : group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :=
+nat.find (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_spec [h : group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
+  ∃ S : finset G, S.card = group.rank G ∧ subgroup.closure (S : set G) = ⊤ :=
+nat.find_spec (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_le [group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
+  {S : finset G} (hS : subgroup.closure (S : set G) = ⊤) : group.rank G ≤ S.card :=
+nat.find_le ⟨S, rfl, hS⟩
+
 end group
+
+section quotient_group
+
+@[to_additive]
+instance quotient_group.fg [group.fg G] (N : subgroup G) [subgroup.normal N] : group.fg $ G ⧸ N :=
+group.fg_of_surjective $ quotient_group.mk'_surjective N
+
+end quotient_group

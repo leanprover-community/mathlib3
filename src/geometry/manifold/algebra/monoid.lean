@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.times_cont_mdiff_map
+import geometry.manifold.cont_mdiff_map
 
 /-!
 # Smooth monoid
@@ -133,11 +133,11 @@ open_locale lie_group
 
 @[simp] lemma L_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑳 I (g * h) = (𝑳 I g).comp (𝑳 I h) :=
-by { ext, simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
+by { ext, simp only [cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
 
 @[simp] lemma R_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
-by { ext, simp only [times_cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
+by { ext, simp only [cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
 
 section
 
@@ -240,13 +240,8 @@ lemma smooth_finprod {ι} {f : ι → M → G} (h : ∀ i, smooth I' I (f i))
   smooth I' I (λ x, ∏ᶠ i, f i x) :=
 begin
   intro x,
-  rcases hfin x with ⟨U, hxU, hUf⟩,
-  have : smooth_at I' I (λ x, ∏ i in hUf.to_finset, f i x) x,
-    from smooth_finset_prod (λ i hi, h i) x,
-  refine this.congr_of_eventually_eq (mem_of_superset hxU $ λ y hy, _),
-  refine finprod_eq_prod_of_mul_support_subset _ (λ i hi, _),
-  rw [hUf.coe_to_finset],
-  exact ⟨y, hi, hy⟩
+  rcases finprod_eventually_eq_prod hfin x with ⟨s, hs⟩,
+  exact (smooth_finset_prod (λ i hi, h i) x).congr_of_eventually_eq hs,
 end
 
 @[to_additive]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import ring_theory.integral_closure
-import ring_theory.localization
+import ring_theory.localization.integral
 
 /-!
 # Integrally closed rings

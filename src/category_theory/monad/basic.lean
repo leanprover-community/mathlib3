@@ -3,9 +3,21 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
-import category_theory.functor_category
-import category_theory.fully_faithful
-import category_theory.reflects_isomorphisms
+import category_theory.functor.category
+import category_theory.functor.fully_faithful
+import category_theory.functor.reflects_isomorphisms
+
+/-!
+# Monads
+
+We construct the categories of monads and comonads, and their forgetful functors to endofunctors.
+
+(Note that these are the category theorist's monads, not the programmers monads.
+For the translation, see the file `category_theory.monad.types`.)
+
+For the fact that monads are "just" monoids in the category of endofunctors, see the file
+`category_theory.monad.equiv_mon`.
+-/
 
 namespace category_theory
 open category

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.types
-import category_theory.currying
+import category_theory.functor.currying
 import category_theory.limits.functor_category
 
 /-!
@@ -22,7 +22,7 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v₂ v u
+universes v u
 
 open category_theory
 

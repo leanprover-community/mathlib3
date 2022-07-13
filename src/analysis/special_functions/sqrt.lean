@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.calculus.times_cont_diff
+import analysis.calculus.cont_diff
 
 /-!
 # Smoothness of `real.sqrt`
@@ -38,27 +38,27 @@ noncomputable def sq_local_homeomorph : local_homeomorph ℝ ℝ :=
   continuous_inv_fun := continuous_on_id.sqrt }
 
 lemma deriv_sqrt_aux {x : ℝ} (hx : x ≠ 0) :
-  has_strict_deriv_at sqrt (1 / (2 * sqrt x)) x ∧ ∀ n, times_cont_diff_at ℝ n sqrt x :=
+  has_strict_deriv_at sqrt (1 / (2 * sqrt x)) x ∧ ∀ n, cont_diff_at ℝ n sqrt x :=
 begin
   cases hx.lt_or_lt with hx hx,
   { rw [sqrt_eq_zero_of_nonpos hx.le, mul_zero, div_zero],
     have : sqrt =ᶠ[𝓝 x] (λ _, 0) := (gt_mem_nhds hx).mono (λ x hx, sqrt_eq_zero_of_nonpos hx.le),
     exact ⟨(has_strict_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq this.symm,
-      λ n, times_cont_diff_at_const.congr_of_eventually_eq this⟩ },
+      λ n, cont_diff_at_const.congr_of_eventually_eq this⟩ },
   { have : ↑2 * sqrt x ^ (2 - 1) ≠ 0, by simp [(sqrt_pos.2 hx).ne', @two_ne_zero ℝ],
     split,
     { simpa using sq_local_homeomorph.has_strict_deriv_at_symm hx this
         (has_strict_deriv_at_pow 2 _) },
-    { exact λ n, sq_local_homeomorph.times_cont_diff_at_symm_deriv this hx
-        (has_deriv_at_pow 2 (sqrt x)) (times_cont_diff_at_id.pow 2) } }
+    { exact λ n, sq_local_homeomorph.cont_diff_at_symm_deriv this hx
+        (has_deriv_at_pow 2 (sqrt x)) (cont_diff_at_id.pow 2) } }
 end
 
 lemma has_strict_deriv_at_sqrt {x : ℝ} (hx : x ≠ 0) :
   has_strict_deriv_at sqrt (1 / (2 * sqrt x)) x :=
 (deriv_sqrt_aux hx).1
 
-lemma times_cont_diff_at_sqrt {x : ℝ} {n : with_top ℕ} (hx : x ≠ 0) :
-  times_cont_diff_at ℝ n sqrt x :=
+lemma cont_diff_at_sqrt {x : ℝ} {n : with_top ℕ} (hx : x ≠ 0) :
+  cont_diff_at ℝ n sqrt x :=
 (deriv_sqrt_aux hx).2 n
 
 lemma has_deriv_at_sqrt {x : ℝ} (hx : x ≠ 0) : has_deriv_at sqrt (1 / (2 * sqrt x)) x :=
@@ -138,20 +138,20 @@ lemma fderiv_within_sqrt (hf : differentiable_within_at ℝ f s x) (hx : f x ≠
   fderiv ℝ (λx, sqrt (f x)) x = (1 / (2 * sqrt (f x))) • fderiv ℝ f x :=
 (hf.has_fderiv_at.sqrt hx).fderiv
 
-lemma times_cont_diff_at.sqrt (hf : times_cont_diff_at ℝ n f x) (hx : f x ≠ 0) :
-  times_cont_diff_at ℝ n (λ y, sqrt (f y)) x :=
-(times_cont_diff_at_sqrt hx).comp x hf
+lemma cont_diff_at.sqrt (hf : cont_diff_at ℝ n f x) (hx : f x ≠ 0) :
+  cont_diff_at ℝ n (λ y, sqrt (f y)) x :=
+(cont_diff_at_sqrt hx).comp x hf
 
-lemma times_cont_diff_within_at.sqrt (hf : times_cont_diff_within_at ℝ n f s x) (hx : f x ≠ 0) :
-  times_cont_diff_within_at ℝ n (λ y, sqrt (f y)) s x :=
-(times_cont_diff_at_sqrt hx).comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.sqrt (hf : cont_diff_within_at ℝ n f s x) (hx : f x ≠ 0) :
+  cont_diff_within_at ℝ n (λ y, sqrt (f y)) s x :=
+(cont_diff_at_sqrt hx).comp_cont_diff_within_at x hf
 
-lemma times_cont_diff_on.sqrt (hf : times_cont_diff_on ℝ n f s) (hs : ∀ x ∈ s, f x ≠ 0) :
-  times_cont_diff_on ℝ n (λ y, sqrt (f y)) s :=
+lemma cont_diff_on.sqrt (hf : cont_diff_on ℝ n f s) (hs : ∀ x ∈ s, f x ≠ 0) :
+  cont_diff_on ℝ n (λ y, sqrt (f y)) s :=
 λ x hx, (hf x hx).sqrt (hs x hx)
 
-lemma times_cont_diff.sqrt (hf : times_cont_diff ℝ n f) (h : ∀ x, f x ≠ 0) :
-  times_cont_diff ℝ n (λ y, sqrt (f y)) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x, (hf.times_cont_diff_at.sqrt (h x))
+lemma cont_diff.sqrt (hf : cont_diff ℝ n f) (h : ∀ x, f x ≠ 0) :
+  cont_diff ℝ n (λ y, sqrt (f y)) :=
+cont_diff_iff_cont_diff_at.2 $ λ x, (hf.cont_diff_at.sqrt (h x))
 
 end fderiv

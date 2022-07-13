@@ -65,6 +65,8 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' :=
   by { intros, ext, refl} }
 
+instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
+
 /--
 As an example, we now give a high-powered proof that
 the monomorphisms in `AddCommGroup` are just the injective functions.
@@ -72,9 +74,7 @@ the monomorphisms in `AddCommGroup` are just the injective functions.
 (This proof works in all universes.)
 -/
 example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
-(mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
-
-instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
+(mono_iff_injective f).1 (show mono ((forget AddCommGroup.{u}).map f), by apply_instance)
 
 end AddCommGroup
 

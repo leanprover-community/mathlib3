@@ -34,16 +34,16 @@ class vadd_invariant_measure (M α : Type*) [has_vadd M α] {_ : measurable_spac
 /-- A measure `μ : measure α` is invariant under a multiplicative action of `M` on `α` if for any
 measurable set `s : set α` and `c : M`, the measure of its preimage under `λ x, c • x` is equal to
 the measure of `s`. -/
-@[to_additive] class smul_invariant_measure (M α : Type*) [has_scalar M α] {_ : measurable_space α}
+@[to_additive] class smul_invariant_measure (M α : Type*) [has_smul M α] {_ : measurable_space α}
   (μ : measure α) : Prop :=
 (measure_preimage_smul [] : ∀ (c : M) ⦃s : set α⦄, measurable_set s → μ ((λ x, c • x) ⁻¹' s) = μ s)
 
 namespace smul_invariant_measure
 
-@[to_additive] instance zero [measurable_space α] [has_scalar M α] : smul_invariant_measure M α 0 :=
+@[to_additive] instance zero [measurable_space α] [has_smul M α] : smul_invariant_measure M α 0 :=
 ⟨λ _ _ _, rfl⟩
 
-variables [has_scalar M α] {m : measurable_space α} {μ ν : measure α}
+variables [has_smul M α] {m : measurable_space α} {μ ν : measure α}
 
 @[to_additive] instance add [smul_invariant_measure M α μ] [smul_invariant_measure M α ν] :
   smul_invariant_measure M α (μ + ν) :=
@@ -129,9 +129,16 @@ variables {G} [smul_invariant_measure G α μ]
 @[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
+variable {μ}
+
+@[to_additive] lemma null_measurable_set.smul {s} (hs : null_measurable_set s μ) (c : G) :
+  null_measurable_set (c • s) μ :=
+by simpa only [← preimage_smul_inv]
+  using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
+
 section is_minimal
 
-variables (G) {μ} [topological_space α] [has_continuous_const_smul G α] [mul_action.is_minimal G α]
+variables (G) [topological_space α] [has_continuous_const_smul G α] [mul_action.is_minimal G α]
   {K U : set α}
 
 /-- If measure `μ` is invariant under a group action and is nonzero on a compact set `K`, then it is

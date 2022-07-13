@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import algebra.category.Module.epi_mono
+import category_theory.limits.concrete_category
 
 /-!
 # The concrete (co)kernels in the category of modules are (co)kernels in the categorical sense.
@@ -11,7 +12,6 @@ import algebra.category.Module.epi_mono
 
 open category_theory
 open category_theory.limits
-open category_theory.limits.walking_parallel_pair
 
 universes u v
 
@@ -32,10 +32,7 @@ fork.is_limit.mk _
     by { rw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
       has_zero_morphisms.comp_zero (fork.ι s) N], refl }))
   (λ s, linear_map.subtype_comp_cod_restrict _ _ _)
-  (λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
-    have h₁ : (m ≫ (kernel_cone f).π.app zero).to_fun = (s.π.app zero).to_fun,
-      by { congr, exact h zero },
-    by convert @congr_fun _ _ _ _ h₁ x )
+  (λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 (by simpa [←h]))
 
 /-- The cokernel cocone induced by the projection onto the quotient. -/
 def cokernel_cocone : cokernel_cofork f :=
@@ -50,7 +47,7 @@ cofork.is_colimit.mk _
   begin
     haveI : epi (as_hom f.range.mkq) := (epi_iff_range_eq_top _).mpr (submodule.range_mkq _),
     apply (cancel_epi (as_hom f.range.mkq)).1,
-    convert h walking_parallel_pair.one,
+    convert h,
     exact submodule.liftq_mkq _ _ _
   end)
 end
@@ -86,7 +83,7 @@ limit.iso_limit_cone_inv_π _ _
 
 @[simp, elementwise] lemma kernel_iso_ker_hom_ker_subtype :
   (kernel_iso_ker f).hom ≫ f.ker.subtype = kernel.ι f :=
-is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) zero
+is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) walking_parallel_pair.zero
 
 /--
 The categorical cokernel of a morphism in `Module`
@@ -105,5 +102,9 @@ by { convert colimit.iso_colimit_cocone_ι_hom _ _; refl, }
 @[simp, elementwise] lemma range_mkq_cokernel_iso_range_quotient_inv :
   ↿f.range.mkq ≫ (cokernel_iso_range_quotient f).inv = cokernel.π f :=
 by { convert colimit.iso_colimit_cocone_ι_inv ⟨_, cokernel_is_colimit f⟩ _; refl, }
+
+lemma cokernel_π_ext {M N : Module.{u} R} (f : M ⟶ N) {x y : N} (m : M) (w : x = y + f m) :
+  cokernel.π f x = cokernel.π f y :=
+by { subst w, simp, }
 
 end Module

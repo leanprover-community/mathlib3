@@ -67,7 +67,7 @@ lemma two_block_triangular_det (M : matrix m m R) (p : m → Prop) [decidable_pr
   M.det = (to_square_block_prop M p).det * (to_square_block_prop M (λ i, ¬p i)).det :=
 begin
   rw det_to_block M p,
-  convert upper_two_block_triangular_det (to_block M p p) (to_block M p (λ j, ¬p j))
+  convert det_from_blocks_zero₂₁ (to_block M p p) (to_block M p (λ j, ¬p j))
     (to_block M (λ j, ¬p j) (λ j, ¬p j)),
   ext,
   exact h ↑i i.2 ↑j j.2

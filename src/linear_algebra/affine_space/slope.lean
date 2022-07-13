@@ -34,7 +34,7 @@ lemma slope_fun_def (f : k → PE) : slope f = λ a b, (b - a)⁻¹ • (f b -�
 omit E
 
 lemma slope_def_field (f : k → k) (a b : k) : slope f a b = (f b - f a) / (b - a) :=
-div_eq_inv_mul.symm
+(div_eq_inv_mul _ _).symm
 
 @[simp] lemma slope_same (f : k → PE) (a : k) : (slope f a a : E) = 0 :=
 by rw [slope, sub_self, inv_zero, zero_smul]
@@ -66,6 +66,16 @@ by simp [slope, inv_smul_smul₀ (sub_ne_zero.2 h.symm)]
 
 lemma eq_of_slope_eq_zero {f : k → PE} {a b : k} (h : slope f a b = (0:E)) : f a = f b :=
 by rw [← sub_smul_slope_vadd f a b, h, smul_zero, zero_vadd]
+
+lemma affine_map.slope_comp {F PF : Type*} [add_comm_group F] [module k F] [add_torsor F PF]
+  (f : PE →ᵃ[k] PF) (g : k → PE) (a b : k) :
+  slope (f ∘ g) a b = f.linear (slope g a b) :=
+by simp only [slope, (∘), f.linear.map_smul, f.linear_map_vsub]
+
+lemma linear_map.slope_comp {F : Type*} [add_comm_group F] [module k F]
+  (f : E →ₗ[k] F) (g : k → E) (a b : k) :
+  slope (f ∘ g) a b = f (slope g a b) :=
+f.to_affine_map.slope_comp g a b
 
 lemma slope_comm (f : k → PE) (a b : k) : slope f a b = slope f b a :=
 by rw [slope, slope, ← neg_vsub_eq_vsub_rev, smul_neg, ← neg_smul, neg_inv, neg_sub]

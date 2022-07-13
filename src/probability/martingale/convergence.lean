@@ -226,29 +226,81 @@ begin
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end
 
+lemma metric.cauchy_seq_iff'' {α β : Type*}
+  [pseudo_metric_space α] [nonempty β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ ∀ K : ℕ, ∃ N, ∀ n ≥ N, dist (u n) (u N) < (K + 1)⁻¹ :=
+begin
+  rw metric.cauchy_seq_iff',
+  refine ⟨λ h K, h (K + 1)⁻¹ (inv_pos.2 K.cast_add_one_pos), λ h ε hε, _⟩,
+  obtain ⟨K, hK⟩ := exists_nat_gt ε⁻¹,
+  obtain ⟨N, hN⟩ := h K,
+  refine ⟨N, λ n hn, lt_of_lt_of_le (hN n hn) _⟩,
+  rw [inv_le (K.cast_add_one_pos : (0 : ℝ) < K + 1) hε, ← nat.cast_one, ← nat.cast_add],
+  exact hK.le.trans (nat.cast_le.2 K.le_succ),
+end
+
+lemma measurable_set_exists_tendsto_at_top {α β ι : Type*} {m0 : measurable_space α}
+  [measurable_space β] [pseudo_metric_space β] [opens_measurable_space β]
+  [second_countable_topology β] [complete_space β] [nonempty ι] [semilattice_sup ι] [encodable ι]
+  {f : ι → α → β} (hf : ∀ i, measurable (f i)) :
+  measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
+begin
+  simp_rw ← cauchy_map_iff_exists_tendsto,
+  change measurable_set {x | cauchy_seq (λ n, f n x)},
+  simp_rw metric.cauchy_seq_iff'',
+  rw set.set_of_forall,
+  refine measurable_set.Inter (λ K, _),
+  rw set.set_of_exists,
+  refine measurable_set.Union (λ N, _),
+  rw set.set_of_forall,
+  refine measurable_set.Inter (λ n, _),
+  by_cases hNn : N ≤ n,
+  { simp only [hNn, ge_iff_le, forall_true_left],
+    exact measurable_set_lt (measurable.dist (hf n) (hf N)) measurable_const },
+  { simp only [hNn, ge_iff_le, forall_false_left, set.set_of_true, measurable_set.univ] }
+end
+
+lemma submartingale.exists_ae_trim_tendsto_of_bdd [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hbdd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
+  ∀ᵐ x ∂(μ.trim (Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _) : (⨆ n, ℱ n) ≤ m0)),
+    ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+begin
+  rw [ae_iff, trim_measurable_set_eq],
+  { exact hf.exists_ae_tendsto_of_bdd hbdd },
+  { exact measurable_set.compl (measurable_set_exists_tendsto_at_top (λ n,
+      ((hf.strongly_measurable n).measurable.mono (le_Sup ⟨n, rfl⟩) le_rfl))) }
+end
+
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
 almost everywhere to a L¹ random variable. -/
 lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
-  ∃ g : α → ℝ, mem_ℒp g 1 μ ∧
+  ∃ g : α → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧
   ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
 begin
   classical,
-  set g : α → ℝ := λ x, if h : ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) then h.some else 0 with hgd,
-  have hg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
-  { filter_upwards [hf.exists_ae_tendsto_of_bdd hbdd] with x hx,
-    simp_rw [hgd, dif_pos hx],
+  set g' : α → ℝ := λ x, if h : ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) then h.some else 0,
+  have hle : (⨆ n, ℱ n) ≤ m0 := Sup_le (λ m ⟨n, hn⟩, hn ▸ ℱ.le _),
+  have hg' : ∀ᵐ x ∂(μ.trim hle), tendsto (λ n, f n x) at_top (𝓝 (g' x)),
+  { filter_upwards [hf.exists_ae_trim_tendsto_of_bdd hbdd] with x hx,
+    simp_rw [g', dif_pos hx],
     exact hx.some_spec },
-  have hgmeas : ae_strongly_measurable g μ :=
-    ae_measurable.ae_strongly_measurable (ae_measurable_of_tendsto_metrizable_ae'
-      (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_measurable) hg),
-  refine ⟨g, ⟨hgmeas, _⟩, hg⟩,
-  { obtain ⟨R, hR⟩ := hbdd,
-    refine lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm
-      (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_strongly_measurable)
-      g hg) (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞)),
-    simp_rw [liminf_eq, eventually_at_top],
-    exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hR _)) }
+  have hg'm : @ae_strongly_measurable _ _ _ (⨆ n, ℱ n) g' (μ.trim hle) :=
+    (@ae_measurable_of_tendsto_metrizable_ae' _ _ (⨆ n, ℱ n) _ _ _ _ _ _ _
+      (λ n, ((hf.strongly_measurable n).measurable.mono
+      (le_Sup ⟨n, rfl⟩ : ℱ n ≤ ⨆ n, ℱ n) le_rfl).ae_measurable) hg').ae_strongly_measurable,
+  obtain ⟨g, hgm, hae⟩ := hg'm,
+  have hg : ∀ᵐ x ∂μ.trim hle, tendsto (λ n, f n x) at_top (𝓝 (g x)),
+  { filter_upwards [hae, hg'] with x hx hg'x,
+    exact hx ▸ hg'x },
+  obtain ⟨R, hR⟩ := hbdd,
+  refine ⟨g, ⟨(hgm.mono hle).ae_strongly_measurable, _⟩, hgm,
+    measure_eq_zero_of_trim_eq_zero hle hg⟩,
+  refine lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm
+    (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_strongly_measurable)
+    g (measure_eq_zero_of_trim_eq_zero hle hg)) (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞)),
+  simp_rw [liminf_eq, eventually_at_top],
+  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hR _)),
 end
 
 end measure_theory

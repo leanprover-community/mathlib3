@@ -51,7 +51,7 @@ science*][vershynin2018high]
 -/
 
 
-open measure_theory filter finset
+open measure_theory filter finset real
 
 noncomputable theory
 
@@ -66,25 +66,25 @@ include m
 /-- A random variable has a sub-Gaussian cumulant generating function if this function is defined
 on `ℝ` and verifies `cgf X μ t ≤ c * t^2 / 2` for some real `c` and all `t ∈ ℝ`. -/
 def subgaussian_cgf (X : Ω → ℝ) (μ : measure Ω) (c : ℝ) : Prop :=
-∀ t, integrable (λ ω, real.exp (t * X ω)) μ ∧ cgf X μ t ≤ c * t^2 / 2
+∀ t, integrable (λ ω, exp (t * X ω)) μ ∧ cgf X μ t ≤ c * t^2 / 2
 
 lemma subgaussian_cgf.cgf_le (h : subgaussian_cgf X μ c) (t : ℝ) : cgf X μ t ≤ c * t^2 / 2 :=
 (h t).2
 
 lemma subgaussian_cgf.integrable_exp_mul (h : subgaussian_cgf X μ c) (t : ℝ) :
-  integrable (λ ω, real.exp (t * X ω)) μ := (h t).1
+  integrable (λ ω, exp (t * X ω)) μ := (h t).1
 
 lemma subgaussian_cgf.mgf_le (h : subgaussian_cgf X μ c) (t : ℝ) :
-  mgf X μ t ≤ real.exp (c * t^2 / 2) :=
-calc mgf X μ t ≤ real.exp (cgf X μ t) : real.le_exp_log _
-... ≤ real.exp (c * t^2 / 2) : real.exp_monotone (h.cgf_le t)
+  mgf X μ t ≤ exp (c * t^2 / 2) :=
+calc mgf X μ t ≤ .exp (cgf X μ t) : le_exp_log _
+... ≤ exp (c * t^2 / 2) : exp_monotone (h.cgf_le t)
 
 lemma subgaussian_cgf_zero [is_probability_measure μ] (hc : 0 ≤ c) : subgaussian_cgf 0 μ c :=
 begin
   refine λ t, ⟨_, _⟩,
-  { simp only [pi.zero_apply, mul_zero, real.exp_zero],
+  { simp only [pi.zero_apply, mul_zero, exp_zero],
     exact integrable_const _, },
-  { simp only [cgf_zero_fun, measure_univ, ennreal.one_to_real, real.log_one],
+  { simp only [cgf_zero_fun, measure_univ, ennreal.one_to_real, log_one],
     exact div_nonneg (mul_nonneg hc (sq_nonneg _)) zero_le_two, },
 end
 
@@ -125,11 +125,11 @@ end
 
 lemma subgaussian_cgf.measure_ge_le [is_finite_measure μ]
   (h : subgaussian_cgf X μ c) (hc : 0 < c) (hε : 0 ≤ ε) :
-  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
+  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- ε^2 / (2*c)) :=
 begin
-  have h_le_t : ∀ t : ℝ, 0 ≤ t → (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- t * ε + c * t^2 / 2),
+  have h_le_t : ∀ t : ℝ, 0 ≤ t → (μ {ω | ε ≤ X ω}).to_real ≤ exp (- t * ε + c * t^2 / 2),
   { refine λ t ht, (measure_ge_le_exp_cgf ε ht (h.integrable_exp_mul t)).trans _,
-    exact real.exp_monotone (add_le_add le_rfl (h.cgf_le t)), },
+    exact exp_monotone (add_le_add le_rfl (h.cgf_le t)), },
   refine (h_le_t (ε / c) (div_nonneg hε hc.le)).trans_eq _,
   congr,
   rw [div_pow, pow_two c, mul_div, mul_div_mul_comm, div_self hc.ne', one_mul, neg_mul,
@@ -139,12 +139,12 @@ end
 
 lemma subgaussian_cgf.prob_ge_le [is_probability_measure μ]
   (h : subgaussian_cgf X μ c) (hε : 0 ≤ ε) :
-  (μ {ω | ε ≤ X ω}).to_real ≤ real.exp(- ε^2 / (2*c)) :=
+  (μ {ω | ε ≤ X ω}).to_real ≤ exp (- ε^2 / (2*c)) :=
 begin
   cases lt_or_le 0 c with hc hc,
   { exact h.measure_ge_le hc hε, },
-  suffices : 1 ≤ real.exp (-ε ^ 2 / (2 * c)), from to_real_prob_le_one.trans this,
-  rw real.one_le_exp_iff,
+  suffices : 1 ≤ exp (-ε ^ 2 / (2 * c)), from to_real_prob_le_one.trans this,
+  rw one_le_exp_iff,
   exact div_nonneg_of_nonpos (neg_nonpos_of_nonneg (sq_nonneg _))
     (mul_nonpos_of_nonneg_of_nonpos zero_le_two hc),
 end
@@ -158,7 +158,7 @@ lemma Indep_fun.prob_sum_ge_le_of_subgaussian_cgf'
   (h_indep : Indep_fun (λ i, infer_instance) Xs μ) {c : ι → ℝ}
   (h_meas : ∀ i, measurable (Xs i))
   {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (Xs i) μ (c i)) (hε : 0 ≤ ε) :
-  (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ real.exp(- ε^2 / (2 * (∑ i in s, c i))) :=
+  (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ exp (- ε^2 / (2 * (∑ i in s, c i))) :=
 begin
   simp_rw ← finset.sum_apply,
   exact (h_indep.subgaussian_cgf_sum h_meas h_subg).prob_ge_le hε,
@@ -168,36 +168,36 @@ end
 lemma Indep_fun.prob_sum_ge_le_of_subgaussian_cgf
   (h_indep : Indep_fun (λ i, infer_instance) Xs μ) (h_meas : ∀ i, measurable (Xs i))
   {s : finset ι} (h_subg : ∀ i ∈ s, subgaussian_cgf (Xs i) μ c) (hε : 0 ≤ ε) :
-  (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * (card s))) :=
+  (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real ≤ exp (- ε^2 / (2 * c * (card s))) :=
 calc (μ {ω | ε ≤ ∑ i in s, Xs i ω}).to_real
-    ≤ real.exp(- ε^2 / (2 * (∑ i in s, c))) :
+    ≤ exp (- ε^2 / (2 * (∑ i in s, c))) :
       h_indep.prob_sum_ge_le_of_subgaussian_cgf' h_meas h_subg hε
-... = real.exp(- ε^2 / (2 * c * (card s))) :
+... = exp (- ε^2 / (2 * c * (card s))) :
     by { rw mul_assoc, congr, rw [sum_const, nsmul_eq_mul, mul_comm c], }
 
 /-- **Hoeffding's inequality** for independent sub-Gaussian random variables. -/
 lemma Indep_fun.prob_sum_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → ℝ}
   (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :
-  (μ {ω | ε ≤ ∑ i in finset.range n, X i ω}).to_real ≤ real.exp(- ε^2 / (2 * c * n)) :=
+  (μ {ω | ε ≤ ∑ i in finset.range n, X i ω}).to_real ≤ exp (- ε^2 / (2 * c * n)) :=
 begin
   cases n,
-  { simp only [range_zero, sum_empty, nat.cast_zero, mul_zero, div_zero, real.exp_zero],
+  { simp only [range_zero, sum_empty, nat.cast_zero, mul_zero, div_zero, exp_zero],
     exact to_real_prob_le_one, },
   calc (μ {ω | ε ≤ ∑ i in finset.range n.succ, X i ω}).to_real
-      ≤ real.exp(- ε^2 / (2 * c * (card (finset.range n.succ)))) :
+      ≤ exp (- ε^2 / (2 * c * (card (finset.range n.succ)))) :
         h_indep.prob_sum_ge_le_of_subgaussian_cgf h_meas (λ i _, h_subg i) hε
-  ... = real.exp(- ε^2 / (2 * c * n.succ)) : by rw card_range
+  ... = exp (- ε^2 / (2 * c * n.succ)) : by rw card_range
 end
 
 /-- **Hoeffding's inequality** for independent sub-Gaussian random variables. -/
 lemma Indep_fun.prob_mean_range_ge_le_of_subgaussian_cgf {X : ℕ → Ω → ℝ}
   (h_indep : Indep_fun (λ i, infer_instance) X μ) (h_meas : ∀ i, measurable (X i))
   (h_subg : ∀ i, subgaussian_cgf (X i) μ c) (hε : 0 ≤ ε) (n : ℕ) :
-  (μ {ω | ε ≤ (∑ i in finset.range n, X i ω) / n}).to_real ≤ real.exp(- n * ε^2 / (2 * c)) :=
+  (μ {ω | ε ≤ (∑ i in finset.range n, X i ω) / n}).to_real ≤ exp (- n * ε^2 / (2 * c)) :=
 begin
   cases n,
-  { simp only [range_zero, sum_empty, nat.cast_zero, neg_zero', zero_mul, zero_div, real.exp_zero],
+  { simp only [range_zero, sum_empty, nat.cast_zero, neg_zero', zero_mul, zero_div, exp_zero],
     exact to_real_prob_le_one, },
   have h_nε : 0 ≤ ↑n.succ * ε := mul_nonneg (nat.cast_nonneg _) hε,
   have h := h_indep.prob_sum_range_ge_le_of_subgaussian_cgf h_meas h_subg h_nε n.succ,

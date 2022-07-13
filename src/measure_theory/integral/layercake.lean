@@ -159,9 +159,8 @@ lemma _root_.ae_measurable.exists_measurable_nonneg {α β} {m : measurable_spac
   ∃ (G : α → β), measurable G ∧ g =ᵐ[μ] G ∧ 0 ≤ G :=
 begin
   rcases hg with ⟨G₁, mble_G₁, g_eq_G₁⟩,
-  refine ⟨λ a, 0 ⊔ (G₁ a), measurable_const.sup mble_G₁, _, λ a, le_sup_left⟩,
+  refine ⟨λ a, 0 ⊔ (G₁ a), measurable_const.sup mble_G₁, eventually_eq.symm _, λ a, le_sup_left⟩,
   filter_upwards [g_nn, g_eq_G₁] with a ga_nn ga_eq,
-  symmetry,
   rw [← ga_eq, sup_eq_right],
   exact ga_nn,
 end

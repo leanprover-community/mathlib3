@@ -170,8 +170,8 @@ We denote it by `R[T;T⁻¹]`.
 The ring homomorphism `C : R →+* R[T;T⁻¹]` includes `R` as the constant polynomials. -/
 abbreviation laurent_polynomial (R : Type*) [semiring R] := add_monoid_algebra R ℤ
 
-local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
-
+localized "notation R`[T;T⁻¹]`:9000 := laurent_polynomial R" in laurent_polynomial
+--localized "notation `↟` f : 1024 := Module.as_hom f" in Module
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
 def polynomial.to_laurent [semiring R] : R[X] →+* R[T;T⁻¹] :=
@@ -506,6 +506,19 @@ If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of 
 or `⊥`, if `f = 0`. -/
 def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
 
+lemma degree_mul_le (f g : R[T;T⁻¹]) : (f * g).degree ≤ f.degree + g.degree :=
+begin
+  refine (finset.fold_max_le _).mpr ⟨bot_le, λ d ds, _⟩,
+  obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
+  { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop] using f.support_mul g ds },
+  refine (with_bot.coe_add _ _).le.trans (add_le_add _ _);
+  exact (finset.coe_le_max_of_mem ‹_›),
+end
+
+lemma degree_mul {d e : with_bot ℤ} (f g : R[T;T⁻¹]) (df : f.degree ≤ d) (eg : g.degree ≤ e) :
+  (f * g).degree ≤ d + e :=
+(degree_mul_le _ _).trans (add_le_add df eg)
+
 /--  The int_degree of a Laurent polynomial takes values in `ℤ`.
 If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.int_degree` is the maximum of its support of `f`,
 or `0`, if `f = 0`. -/
@@ -617,48 +630,6 @@ end
 lemma degree_mul_T (f : R[T;T⁻¹]) (n : ℤ) : (f * T n).degree = f.degree + n :=
 by simpa only [degree, support_mul_T, finset.max, finset.sup_map]
   using finset.fold_max_add coe ↑n f.support
-
-lemma degree_mul_aux (d : with_bot ℕ) (e : with_bot ℤ) (f : R[X]) (g : R[T;T⁻¹])
-  (fd : f.degree ≤ d) (ge : g.degree ≤ e) :
-  (polynomial.to_laurent f * g).degree ≤ with_bot.map coe d + e :=
-begin
-  revert ge e,
-  apply g.reduce_to_polynomial_of_mul_T''' (λ p, (f * p).degree ≤ d + p.degree); clear g,
-  { exact λ p, (degree_mul_le _ _).trans (add_le_add fd rfl.le) },
-  { intros g hfg n e h,
-    rw [← mul_assoc, ← map_mul, degree_mul_T, (f * g).degree_to_laurent],
-    refine (with_bot.add_coe_neg_le_iff _ _ _).mpr _,
-    refine ((with_bot.map_fn_le_iff _ _ _ (by simp)).mpr hfg).trans _,
-    refine (with_bot.map_add_of_add_hom (nat.cast_add_monoid_hom ℤ) _ _).le.trans _,
-    rw add_assoc,
-    refine add_le_add_left _ _,
-    rw [degree_mul_T, g.degree_to_laurent] at h,
-    exact (with_bot.add_coe_neg_le_iff _ _ _).mp h }
-end
-
-lemma degree_mul {d e : with_bot ℤ} (f g : R[T;T⁻¹]) (df : f.degree ≤ d) (eg : g.degree ≤ e) :
-  (f * g).degree ≤ d + e :=
-begin
-  revert df eg g d e,
-  apply f.reduce_to_polynomial_of_mul_T; clear f,
-  { intros f e d g fd eg,
-    rw f.degree_to_laurent at fd,
-    exact (degree_mul_aux f.degree _ _ _ rfl.le eg).trans (add_le_add fd rfl.le) },
-  { intros f hf d e g fd eg,
-    rcases e.exists_eq_add 1 with ⟨e', rfl⟩,
-    have : (f * T 1 * (g * T (- 1))).degree ≤ (d + 1) + e',
-    { refine hf (g * T (-1)) _ _ ;
-      rw degree_mul_T,
-      { exact add_le_add_right fd (1 : with_bot ℤ) },
-      { exact (with_bot.add_coe_neg_le_iff _ _ _).mpr eg } },
-    convert this using 1,
-    { rw [mul_assoc, T_mul, mul_assoc, ← T_add, neg_add_self, T_zero, mul_one] },
-    { rw [add_comm e', add_assoc],
-      refl } }
-end
-
-lemma degree_mul_le (f g : R[T;T⁻¹]) : (f * g).degree ≤ f.degree + g.degree :=
-degree_mul _ _ rfl.le rfl.le
 
 end degrees
 

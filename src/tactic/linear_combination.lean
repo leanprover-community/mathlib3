@@ -251,13 +251,12 @@ do
 
 
 /--
-UPDATE
-This tactic changes the goal to be that the lefthand side of the target is
-  equal to the lefthand side of the given expression.  For example,
+This tactic changes the goal to be that the lefthand side of the target minus the
+  lefthand side of the given expression is equal to 0.  For example,
   if `hsum_on_left` is `5*x - 5*y = 0`, and the target is `-5*y + 5*x = 0`, this
-  tactic will change the target to be `-5*y + 5*x = 5*x - 5*y`.
+  tactic will change the target to be `-5*y + 5*x - (5*x - 5*y) = 0`.
 
-This tactic only should be used when the target's type an equality whose
+This tactic only should be used when the target's type is an equality whose
   right side is 0.
 
 * Input:

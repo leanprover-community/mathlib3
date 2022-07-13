@@ -28,7 +28,7 @@ measurable function, lattice operation
 
 -/
 
-open measure_theory
+open measure_theory filter set
 
 /-- We say that a type `has_measurable_sup` if `((⊔) c)` and `(⊔ c)` are measurable functions.
 For a typeclass assuming measurability of `uncurry (⊔)` see `has_measurable_sup₂`. -/
@@ -197,3 +197,36 @@ include m
 end measurable_inf₂
 
 end inf
+
+lemma ae_measurable_Ioi_of_forall_Ioc {β} {mβ : measurable_space β}
+  [linear_order α] [(at_top : filter α).is_countably_generated] {x : α} {g : α → β}
+  (g_meas : ∀ t > x, ae_measurable g (μ.restrict (Ioc x t))) :
+  ae_measurable g (μ.restrict (Ioi x)) :=
+begin
+  haveI : nonempty α := ⟨x⟩,
+  haveI : (at_top : filter α).ne_bot := at_top_ne_bot,
+  obtain ⟨u, hu_tendsto⟩ := exists_seq_tendsto (at_top : filter α),
+  have Ioi_eq_Union : Ioi x = ⋃ n : ℕ, Ioc x (u n),
+  { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
+    rw tendsto_at_top_at_top at hu_tendsto,
+    exact λ y _, ⟨(hu_tendsto y).some, (hu_tendsto y).some_spec (hu_tendsto y).some le_rfl⟩, },
+  rw [Ioi_eq_Union, ae_measurable_Union_iff],
+  intros n,
+  cases lt_or_le x (u n),
+  { exact g_meas (u n) h, },
+  { rw Ioc_eq_empty (not_lt.mpr h),
+    simp only [measure.restrict_empty],
+    exact ae_measurable_zero_measure, },
+end
+
+lemma ae_measurable.exists_measurable_nonneg {β}
+  [semilattice_sup β] [has_zero β] {mβ : measurable_space β} [has_measurable_sup₂ β] {g : α → β}
+  (hg : ae_measurable g μ) (g_nn : ∀ᵐ t ∂μ, 0 ≤ g t) :
+  ∃ (G : α → β), measurable G ∧ g =ᵐ[μ] G ∧ 0 ≤ G :=
+begin
+  rcases hg with ⟨G₁, mble_G₁, g_eq_G₁⟩,
+  refine ⟨λ a, 0 ⊔ (G₁ a), measurable_const.sup mble_G₁, eventually_eq.symm _, λ a, le_sup_left⟩,
+  filter_upwards [g_nn, g_eq_G₁] with a ga_nn ga_eq,
+  rw [← ga_eq, sup_eq_right],
+  exact ga_nn,
+end

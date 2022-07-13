@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import order.succ_pred.basic
-import set_theory.zfc.basic
 import logic.hydra
+import order.succ_pred.basic
+import set_theory.ordinal.arithmetic
+import set_theory.zfc.basic
 
 /-!
 # Von Neumann ordinals
@@ -318,8 +319,7 @@ theorem Ordinal.lt_wf : @well_founded Ordinal (<) := (subrel.rel_embedding _ _).
 
 instance Ordinal.is_well_order : @is_well_order Ordinal (<) := ⟨Ordinal.lt_wf⟩
 
-instance : no_top_order Ordinal :=
-⟨λ x, ⟨⟨_, x.2.succ⟩, (@not_le Ordinal _ _ _).2 $ mem_succ_self x.1⟩⟩
+instance : no_max_order Ordinal := ⟨λ x, ⟨⟨_, x.2.succ⟩, mem_succ_self x.1⟩⟩
 
 instance : succ_order Ordinal := succ_order.of_succ_le_iff_of_le_lt_succ
   (λ x, ⟨_, x.2.succ⟩) (λ x y, x.2.succ_subset_iff_mem y.2) (λ x y, (x.2.mem_succ_iff_subset y.2).1)
@@ -329,3 +329,123 @@ instance : has_one Ordinal := ⟨order.succ 0⟩
 end Ordinal
 
 end Set
+
+/-! ### Convert between ordinals -/
+
+namespace ordinal
+
+variables {a b c o : ordinal.{u}}
+
+/-- Converts an ordinal to a pre-Set. Compare with `ordinal.to_pgame`. -/
+noncomputable! def to_pSet : ordinal → pSet
+| o := ⟨o.out.α, λ i, let hwf := typein_lt_self i in to_pSet (typein (<) i)⟩
+using_well_founded { dec_tac := `[assumption] }
+
+theorem to_pSet_def (o : ordinal) : o.to_pSet = ⟨o.out.α, to_pSet ∘ typein (<)⟩ := by rw to_pSet
+
+@[simp] theorem to_pSet_type (o : ordinal) : o.to_pSet.type = o.out.α := by { rw to_pSet_def, refl }
+
+/-- Converts an ordinal less than `o` into a member of the type for the `pSet` corresponding to `o`,
+and vice versa. -/
+noncomputable def to_type_to_pSet : set.Iio o ≃ o.to_pSet.type :=
+(enum_iso_out o).to_equiv.trans $ (equiv.cast $ to_pSet_type o).symm
+
+@[simp] theorem to_type_to_pSet_symm_lt (i : o.to_pSet.type) : ↑(to_type_to_pSet.symm i) < o :=
+(to_type_to_pSet.symm i).prop
+
+theorem to_pSet_func_heq : o.to_pSet.func == λ x : o.out.α, (typein (<) x).to_pSet :=
+by { rw to_pSet, refl }
+
+@[simp] theorem to_pSet_func' (i) : o.to_pSet.func i = (to_type_to_pSet.symm i).val.to_pSet :=
+(congr_heq to_pSet_func_heq.symm (cast_heq _ i)).symm
+
+theorem to_pSet_func (i) : o.to_pSet.func (to_type_to_pSet i) = i.val.to_pSet := by simp
+
+instance is_empty_zero_to_pSet_type : is_empty (to_pSet 0).type :=
+by { rw to_pSet_type, apply_instance }
+
+@[simp] theorem mem_to_pSet_iff {x : pSet} : x ∈ o.to_pSet ↔ ∃ a < o, pSet.equiv x a.to_pSet :=
+begin
+  split,
+  { rintro ⟨b, h⟩,
+    refine ⟨_, to_type_to_pSet_symm_lt b, _⟩,
+    simpa using h },
+  { rintro ⟨a, ha, h⟩,
+    use to_type_to_pSet ⟨a, ha⟩,
+    simpa using h }
+end
+
+theorem mem_to_pSet_of_lt (h : a < b) : a.to_pSet ∈ b.to_pSet :=
+mem_to_pSet_iff.2 ⟨a, h, pSet.equiv.refl _⟩
+
+theorem subset_to_pSet_of_le (h : a ≤ b) : a.to_pSet ⊆ b.to_pSet :=
+begin
+  rcases eq_or_lt_of_le h with rfl | h,
+  { exact subset_rfl },
+  { refine λ i, ⟨to_type_to_pSet ⟨(to_type_to_pSet.symm i).1,
+      (to_type_to_pSet_symm_lt i).trans h⟩, _⟩,
+    simp }
+end
+
+/-- Converts an ordinal to a Set. -/
+noncomputable def to_Set (o : ordinal) : Set := Set.mk o.to_pSet
+
+theorem mem_to_Set_of_lt : a < b → a.to_Set ∈ b.to_Set := mem_to_pSet_of_lt
+
+theorem subset_to_Set_of_le : a ≤ b → a.to_Set ⊆ b.to_Set :=
+by simpa [to_Set] using subset_to_pSet_of_le
+
+@[simp] theorem to_Set_mem_iff : a.to_Set ∈ b.to_Set ↔ a < b :=
+⟨λ h, by { by_contra' h', exact Set.mem_irrefl (subset_to_Set_of_le h' h) }, mem_to_Set_of_lt⟩
+
+@[simp] theorem to_Set_subset_iff : a.to_Set ⊆ b.to_Set ↔ a ≤ b :=
+⟨λ h, by { by_contra' h', exact Set.mem_irrefl (h (mem_to_Set_of_lt h')) }, subset_to_Set_of_le⟩
+
+@[simp] theorem mem_to_Set_iff : x ∈ o.to_Set ↔ ∃ a < o, x = a.to_Set :=
+by { rw [←quotient.out_eq x, to_Set, Set.mk_eq, Set.mk_mem_iff, mem_to_pSet_iff], simpa [←Set.eq] }
+
+theorem to_Set_is_ordinal (o : ordinal) : o.to_Set.is_ordinal :=
+begin
+  induction o using ordinal.induction with o IH,
+  refine ⟨λ a ha b hb, _, λ a b c hab hbc hco, _⟩,
+  { rcases mem_to_Set_iff.1 ha with ⟨c, hc, rfl⟩,
+    exact Set.mem_of_mem_of_subset hb (subset_to_Set_of_le hc.le) },
+  { rcases mem_to_Set_iff.1 hco with ⟨d, hd, rfl⟩,
+    exact (IH d hd).mem_trans hab hbc }
+end
+
+theorem zero_to_pSet : pSet.equiv (to_pSet 0) ∅ := pSet.equiv.equiv_of_is_empty _ _
+
+@[simp] theorem zero_to_Set : to_Set 0 = ∅ := quotient.sound zero_to_pSet
+
+@[simp] theorem succ_to_Set (o : ordinal) : (order.succ o).to_Set = o.to_Set.succ :=
+begin
+  ext x,
+  simp only [mem_to_Set_iff, order.lt_succ_iff, exists_prop, Set.mem_succ_iff],
+  split,
+  { rintro ⟨a, ha, rfl⟩,
+    rcases eq_or_lt_of_le ha with rfl | ha,
+    { exact or.inl rfl },
+    { exact or.inr ⟨a, ha, rfl⟩ } },
+  { rintro (rfl | ⟨a, ha, rfl⟩),
+    { exact ⟨o, le_rfl, rfl⟩ },
+    { exact ⟨a, ha.le, rfl⟩ } }
+end
+
+/-- Converts an ordinal to a von Neumann ordinal. -/
+noncomputable def to_Ordinal (o : ordinal) : Set.Ordinal := ⟨_, o.to_Set_is_ordinal⟩
+
+@[simp] theorem to_Ordinal_lt_iff : a.to_Ordinal < b.to_Ordinal ↔ a < b := to_Set_mem_iff
+@[simp] theorem to_Ordinal_le_iff : a.to_Ordinal ≤ b.to_Ordinal ↔ a ≤ b := to_Set_subset_iff
+
+theorem to_Ordinal_strict_mono : strict_mono to_Ordinal := λ a b, to_Ordinal_lt_iff.2
+
+@[simp] theorem zero_to_Ordinal : to_Ordinal 0 = 0 := subtype.coe_injective zero_to_Set
+
+@[simp] theorem succ_to_Ordinal (o : ordinal) :
+  (order.succ o).to_Ordinal = order.succ o.to_Ordinal :=
+subtype.coe_injective $ succ_to_Set o
+
+@[simp] theorem one_to_Ordinal : to_Ordinal 1 = 1 := by simpa using succ_to_Ordinal 0
+
+end ordinal

@@ -11,18 +11,23 @@ import logic.hydra
 /-!
 # Von Neumann ordinals
 
-This file works towards the development of von Neumann ordinals, i.e. transitive sets, well-ordered
-under `∈`. We currently only have an initial development of transitive sets.
-
-Further development can be found on the branch `von_neumann_v2`.
+This file develops the theory of von Neumann ordinals: transitive sets, well-ordered under `∈`.
 
 ## Definitions
 
-- `Set.is_transitive` means that every element of a set is a subset.
+- `Set.is_transitive`: every element of a set is a subset.
+- `Set.is_ordinal`: a set is transitive, and transitive under `∈`.
+- `Ordinal`: the subtype of ordinal `Set`s.
+
+## Main results
+
+- `is_ordinal_iff_well_founded`: proves our simple characterization of von Neumann sets to be
+  equivalent with the usual characterization.
+- `Ordinal.lt_wf`: transfinite induction on ordinals.
+- `Ordinal.linear_order`: ordinals form a linear order.
 
 ## Todo
 
-- Define von Neumann ordinals.
 - Define the basic arithmetic operations on ordinals from a purely set-theoretic perspective.
 - Prove the equivalences between these definitions and those provided in
   `set_theory/ordinal/arithmetic.lean`.
@@ -50,10 +55,20 @@ theorem is_transitive_iff_mem_trans : z.is_transitive ↔ ∀ {x y : Set}, x ∈
 
 alias is_transitive_iff_mem_trans ↔ is_transitive.mem_trans _
 
-theorem is_transitive.Union (h : x.is_transitive) : (⋃ x).is_transitive :=
+protected theorem is_transitive.inter (hx : x.is_transitive) (hy : y.is_transitive) :
+  (x ∩ y).is_transitive :=
+λ z hz w hw, by { rw mem_inter at hz ⊢, exact ⟨hx.mem_trans hw hz.1, hy.mem_trans hw hz.2⟩ }
+
+protected theorem is_transitive.Union (h : x.is_transitive) : (⋃ x).is_transitive :=
 λ y hy z hz, begin
   rcases mem_Union.1 hy with ⟨w, hw, hw'⟩,
   exact mem_Union_of_mem hz (h.mem_trans hw' hw)
+end
+
+theorem is_transitive.Union' (H : ∀ y ∈ x, is_transitive y) : (⋃ x).is_transitive :=
+λ y hy z hz, begin
+  rcases mem_Union.1 hy with ⟨w, hw, hw'⟩,
+  exact mem_Union_of_mem ((H w hw).mem_trans hz hw') hw
 end
 
 theorem is_transitive_iff_Union_subset : x.is_transitive ↔ ⋃ x ⊆ x :=
@@ -67,7 +82,7 @@ theorem is_transitive_iff_subset_powerset : x.is_transitive ↔ x ⊆ powerset x
 
 alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 
-/-! ### Ordinals -/
+/-! ### Ordinals as sets -/
 
 /-- A set `x` is a von Neumann ordinal when it's a transitive set, that's transitive under `∈`. We
 prove that this further implies that `x` is well-ordered under `∈`. -/
@@ -83,6 +98,20 @@ theorem mem_trans (h : z.is_ordinal) : x ∈ y → y ∈ z → x ∈ z := h.is_t
 
 theorem mem_trans' (hx : x.is_ordinal) : y ∈ z → z ∈ w → w ∈ x → y ∈ w := hx.2 y z w
 
+protected theorem Union (H : ∀ y ∈ x, is_ordinal y) : (Union x).is_ordinal :=
+begin
+  refine ⟨is_transitive.Union' $ λ y hy, (H y hy).is_transitive, λ y z w hyz hzw hwx, _⟩,
+  { rcases mem_Union.1 hwx with ⟨v, hvx, hwv⟩,
+    exact (H v hvx).mem_trans' hyz hzw hwv }
+end
+
+protected theorem union (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∪ y).is_ordinal :=
+is_ordinal.Union $ λ z hz, by { rcases mem_pair.1 hz with rfl | rfl, assumption' }
+
+protected theorem inter (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∩ y).is_ordinal :=
+⟨hx.is_transitive.inter hy.is_transitive, λ z w v hzw hwv hv,
+  hx.mem_trans' hzw hwv (mem_inter.1 hv).1⟩
+
 protected theorem is_trans (h : x.is_ordinal) : is_trans x.to_set (subrel (∈) _) :=
 ⟨λ a b c hab hbc, h.mem_trans' hab hbc c.2⟩
 
@@ -91,7 +120,7 @@ theorem _root_.is_ordinal_iff_is_trans : x.is_ordinal ↔
 ⟨λ h, ⟨h.is_transitive, h.is_trans⟩, λ ⟨h₁, ⟨h₂⟩⟩, ⟨h₁, λ y z w hyz hzw hwx,
   let hzx := h₁.mem_trans hzw hwx in h₂ ⟨y, h₁.mem_trans hyz hzx⟩ ⟨z, hzx⟩ ⟨w, hwx⟩ hyz hzw⟩⟩
 
-/-- A relation embedding between a smaller and larger ordinal. -/
+/-- A relation embedding between a smaller and a larger ordinal. -/
 protected def rel_embedding (hx : x.is_ordinal) (hy : y ∈ x) :
   subrel (∈) y.to_set ↪r subrel (∈) x.to_set :=
 ⟨⟨λ b, ⟨b.1, hx.subset_of_mem hy b.2⟩, λ a b, by simp [subtype.coe_inj]⟩, λ a b, by simp⟩
@@ -181,16 +210,16 @@ end is_ordinal
 /-- Our definition of von Neumann ordinals is equivalent to the standard one. -/
 theorem is_ordinal_iff_is_well_order : x.is_ordinal ↔
   x.is_transitive ∧ is_well_order x.to_set (subrel (∈) _) :=
-⟨λ h, ⟨h.is_transitive, h.is_well_order⟩, begin
-  rintro ⟨h₁, h₂⟩,
-  haveI := h₂,
-  exact is_ordinal_iff_is_trans.2 ⟨h₁, by apply_instance⟩
-end⟩
+⟨λ h, ⟨h.is_transitive, h.is_well_order⟩, λ ⟨h₁, h₂⟩, is_ordinal_iff_is_trans.2 $
+  by { haveI := h₂, exact ⟨h₁, by apply_instance⟩ }⟩
+
+theorem is_transitive.is_ordinal (h : x.is_transitive) (H : ∀ y ∈ x, is_ordinal y) : x.is_ordinal :=
+⟨h, λ y z w hyz hzw hwx, (H w hwx).mem_trans hyz hzw⟩
 
 @[simp] theorem empty_is_ordinal : is_ordinal ∅ :=
 ⟨empty_is_transitive, λ y z w _ _ H, (mem_empty w H).elim⟩
 
-/-- The successor of an ordinal `x` is `x ∪ {x}`. -/
+/-- The successor of an ordinal `x` is `{x} ∪ x`. -/
 def succ (x : Set) : Set := insert x x
 
 @[simp] theorem mem_succ_iff {x y : Set} : y ∈ succ x ↔ y = x ∨ y ∈ x := by simp [succ]
@@ -222,9 +251,21 @@ theorem is_ordinal.succ_subset_iff_mem (hx : x.is_ordinal) (hy : y.is_ordinal) :
 by rw [←not_iff_not, hx.succ.not_subset_iff_mem hy, hx.not_mem_iff_subset hy,
   hy.mem_succ_iff_subset hx]
 
+/-! ### Subtype of ordinals -/
+
 /-- The subtype of von Neumann ordinals. See `ordinal` for the preferred, type-theoretic formulation
 of ordinals. -/
 def Ordinal : Type* := subtype is_ordinal
+
+namespace Ordinal
+
+instance : has_coe Ordinal.{u} Set.{u} := coe_subtype
+
+def mk (h : x.is_ordinal) : Ordinal := ⟨x, h⟩
+
+@[simp] theorem mk_eq (h : x.is_ordinal) : (⟨x, h⟩ : Ordinal) = mk h := rfl
+@[simp] theorem val_eq_coe (x : Ordinal) : x.val = x := rfl
+@[simp] theorem coe_mk (h : x.is_ordinal) : ↑(mk h) = x := rfl
 
 instance : partial_order Ordinal :=
 { le := subrel (⊆) _,
@@ -234,13 +275,38 @@ instance : partial_order Ordinal :=
   lt_iff_le_not_le := λ x y, x.2.mem_iff_subset_not_subset y.2,
   le_antisymm := λ x y hx hy, by simpa [subtype.coe_inj] using subset_antisymm hx hy }
 
+@[simp] theorem mk_lt_mk (hx : x.is_ordinal) (hy : y.is_ordinal) : mk hx < mk hy ↔ x ∈ y := iff.rfl
+@[simp] theorem mk_le_mk (hx : x.is_ordinal) (hy : y.is_ordinal) : mk hx ≤ mk hy ↔ x ⊆ y := iff.rfl
+
+@[simp] theorem coe_mem_coe {x y : Ordinal.{u}} : (x : Set.{u}) ∈ (y : Set.{u}) ↔ x < y :=
+iff.rfl
+@[simp] theorem coe_subset_coe {x y : Ordinal.{u}} : (x : Set.{u}) ⊆ (y : Set.{u}) ↔ x ≤ y :=
+iff.rfl
+
 noncomputable instance : linear_order Ordinal :=
-{ le_total := λ x y, x.2.subset_total y.2,
+{ max := λ x y, ⟨x.1 ∪ y.1, x.2.union y.2⟩,
+  max_def := begin
+    ext x y z,
+    cases x.2.mem_or_subset y.2 with h h,
+    { simp only [val_eq_coe, coe_mem_coe] at h,
+      have : x ≤ y := h.le,
+      simpa [max_default, h, not_le_of_gt h] using @this z },
+    { simp only [val_eq_coe, coe_subset_coe] at h,
+      simpa [max_default, h] using @h z }
+  end,
+  min := λ x y, ⟨x.1 ∩ y.1, x.2.inter y.2⟩,
+  min_def := begin
+    ext x y z,
+    cases y.2.mem_or_subset x.2 with h h,
+    { simp only [val_eq_coe, coe_mem_coe] at h,
+      have : y ≤ x := h.le,
+      simpa [min_default, h, not_le_of_gt h] using @this z },
+    { simp only [val_eq_coe, coe_subset_coe] at h,
+      simpa [min_default, h] using @h z },
+  end,
+  le_total := λ x y, x.2.subset_total y.2,
   decidable_le := classical.dec_rel _,
   ..Ordinal.partial_order }
-
-instance : has_lt Ordinal := ⟨subrel (∈) _⟩
-instance : has_le Ordinal := ⟨subrel (⊆) _⟩
 
 instance : has_zero Ordinal := ⟨⟨∅, empty_is_ordinal⟩⟩
 
@@ -259,5 +325,7 @@ instance : succ_order Ordinal := succ_order.of_succ_le_iff_of_le_lt_succ
   (λ x, ⟨_, x.2.succ⟩) (λ x y, x.2.succ_subset_iff_mem y.2) (λ x y, (x.2.mem_succ_iff_subset y.2).1)
 
 instance : has_one Ordinal := ⟨order.succ 0⟩
+
+end Ordinal
 
 end Set

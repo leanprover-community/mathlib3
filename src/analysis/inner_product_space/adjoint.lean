@@ -40,13 +40,14 @@ adjoint
 -/
 
 noncomputable theory
-open inner_product_space continuous_linear_map is_R_or_C
+open is_R_or_C
 open_locale complex_conjugate
 
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
+namespace inner_product_space
 
 /-! ### Self-adjoint operators -/
 
@@ -149,7 +150,11 @@ end
 
 end complex
 
+end inner_product_space
+
 /-! ### Adjoint operator -/
+
+open inner_product_space
 
 namespace continuous_linear_map
 
@@ -411,11 +416,11 @@ lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint 
 
 /-- The Gram operator T†T is a positive operator. -/
 lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
-  0 ≤ is_R_or_C.re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
+  0 ≤ re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
   linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
 
 @[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
-  is_R_or_C.im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
+  im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
     linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 
 end linear_map

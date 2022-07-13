@@ -75,11 +75,15 @@ noncomputable theory
 
 section not_about_laurent_polynomials
 
-lemma finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
+namespace finset
+
+lemma fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
   [covariant_class β β (function.swap (+)) (≤)]
   (n : with_bot β) (s : finset α) :
-  finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
+  s.fold max ⊥ (λ (x : α), ↑(f x) + n) = s.fold max ⊥ (coe ∘ f) + n :=
 by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
+
+end finset
 
 namespace with_bot
 
@@ -466,7 +470,7 @@ end
 
 lemma support_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
   (f * T n).support = f.support.map (add_right_embedding n) :=
-support_mul_single f 1 (by simp) n
+f.support_mul_single 1 (by simp) n
 
 @[simp] lemma to_laurent_support (f : R[X]) :
   f.to_laurent.support = f.support.map nat.cast_embedding :=

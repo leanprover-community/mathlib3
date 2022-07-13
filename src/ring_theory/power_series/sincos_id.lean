@@ -179,8 +179,13 @@ begin
     -- Now we need to invoke the definition of cos
     rw [cos, coeff_mk],
     rw if_pos,
-    --apply if_pos,
-    rw [],
+    rw [bit0_div_two],
+    unfold exp,
+    rw [coeff_mk, neg_pow, mul_div_assoc, one_pow, map_mul, map_pow, map_neg, map_one],
+    exact even_bit0 r,
+    norm_num,
+    --simp only [ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
+
 
 
 
@@ -207,7 +212,7 @@ end
 
 example (r : ℕ ) : (bit0 r)/2 =r :=
 begin
-  sorry
+  exact bit0_div_two,
 end
 
 example (r : ℕ ) : ite (even (bit0 r)) 5 7 = 5 :=

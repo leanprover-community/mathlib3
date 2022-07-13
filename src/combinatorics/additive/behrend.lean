@@ -79,7 +79,7 @@ lemma norm_of_mem_sphere {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
 begin
   rw euclidean_space.norm_eq,
   dsimp,
-  simp_rw [norm_coe_nat, ←cast_pow, ←cast_sum, (mem_filter.1 hx).2],
+  simp_rw [abs_cast, ←cast_pow, ←cast_sum, (mem_filter.1 hx).2],
 end
 
 lemma sphere_subset_preimage_metric_sphere :

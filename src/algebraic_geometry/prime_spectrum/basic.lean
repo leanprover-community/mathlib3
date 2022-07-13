@@ -586,31 +586,22 @@ begin
 end
 
 section spec_of_surjective
-/- The comap of a surjective ring homomorphism is a closed embedding between the prime spectra. -/
+/-! The comap of a surjective ring homomorphism is a closed embedding between the prime spectra. -/
 
-open function
-open ring_hom
+open function ring_hom
 
 lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
 { induced := begin
-    simp_rw [topological_space_eq_iff,
-             ← is_closed_compl_iff,
-             is_closed_induced_iff],
-    intro U,
-    generalize : Uᶜ = Z,
-    split,
-    {   rw is_closed_iff_zero_locus,
-        rintro ⟨F, rfl⟩,
-        use zero_locus (f ⁻¹' F),
-        exact ⟨(is_closed_iff_zero_locus _).mpr ⟨f ⁻¹' F, rfl⟩,
-               by rw [preimage_comap_zero_locus,
-                      surjective.image_preimage hf]⟩, },
-    {   rintro ⟨C, ⟨hC1, rfl⟩⟩,
-        exact hC1.preimage (comap f).continuous, },
+    simp_rw [topological_space_eq_iff, ←is_closed_compl_iff, is_closed_induced_iff,
+      is_closed_iff_zero_locus],
+    refine λ s, ⟨λ ⟨F, hF⟩, ⟨zero_locus (f ⁻¹' F), ⟨f ⁻¹' F, rfl⟩,
+      by rw [preimage_comap_zero_locus, surjective.image_preimage hf, hF]⟩, _⟩,
+    rintros ⟨-, ⟨F, rfl⟩, hF⟩,
+    exact ⟨f '' F, hF.symm.trans (preimage_comap_zero_locus f F)⟩,
   end }
 
-lemma image_of_spec_of_surjective (hf : surjective f) :
-    set.range (comap f) = prime_spectrum.zero_locus (ker f) :=
+lemma range_comap_of_surjective (hf : surjective f) :
+    set.range (comap f) = zero_locus (ker f) :=
 begin
   ext p, rw [set.mem_range, mem_zero_locus],
   split,
@@ -632,13 +623,13 @@ begin
     intro hx, exact ⟨x, hx, rfl⟩, },
 end
 
-lemma is_closed_spec_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
+lemma is_closed_range_comap_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
 begin
   rw image_of_spec_of_surjective _ f hf,
   exact is_closed_zero_locus ↑(ker f),
 end
 
-lemma closed_embedding_of_spec_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
+lemma closed_embedding_comap_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
 { induced := (comap_inducing_of_surjective S f hf).induced,
   inj := comap_injective_of_surjective f hf,
   closed_range := is_closed_spec_of_surjective S f hf }

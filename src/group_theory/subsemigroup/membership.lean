@@ -9,7 +9,7 @@ import group_theory.subsemigroup.operations
 # Subsemigroups: membership criteria
 
 In this file we prove various facts about membership in a subsemigroup.
-The intent it to mimic `group_theory/submonoid/membership`, but currently this file is mostly a
+The intent is to mimic `group_theory/submonoid/membership`, but currently this file is mostly a
 stub and only provides rudimentary support.
 
 * `mem_supr_of_directed`, `coe_supr_of_directed`, `mem_Sup_of_directed_on`,

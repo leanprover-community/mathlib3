@@ -777,105 +777,122 @@ section max_min
 variables [linear_order α]
 
 /-- Let `s` be a finset in a linear order. Then `s.max` is the maximum of `s` if `s` is not empty,
-and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
+and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element of `α`, see
 `s.max'`. -/
-protected def max : finset α → option α :=
-fold (option.lift_or_get max) none some
+protected def max (s : finset α) : with_bot α :=
+sup s coe
 
 theorem max_eq_sup_with_bot (s : finset α) :
-  s.max = @sup (with_bot α) α _ _ s some := rfl
+  s.max = sup s coe := rfl
 
-@[simp] theorem max_empty : (∅ : finset α).max = none := rfl
+@[simp] theorem max_empty : (∅ : finset α).max = ⊥ := rfl
 
 @[simp] theorem max_insert {a : α} {s : finset α} :
-  (insert a s).max = option.lift_or_get max (some a) s.max := fold_insert_idem
+  (insert a s).max = max a s.max := fold_insert_idem
 
-@[simp] theorem max_singleton {a : α} : finset.max {a} = some a :=
+@[simp] theorem max_singleton {a : α} : finset.max {a} = (a : with_bot α) :=
 by { rw [← insert_emptyc_eq], exact max_insert }
 
-theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
+theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ (b : α), s.max = b :=
 (@le_sup (with_bot α) _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
-theorem max_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.max :=
+theorem max_of_nonempty {s : finset α} (h : s.nonempty) : ∃ (a : α), s.max = a :=
 let ⟨a, ha⟩ := h in max_of_mem ha
 
-theorem max_eq_none {s : finset α} : s.max = none ↔ s = ∅ :=
+theorem max_eq_bot {s : finset α} : s.max = ⊥ ↔ s = ∅ :=
 ⟨λ h, s.eq_empty_or_nonempty.elim id
   (λ H, let ⟨a, ha⟩ := max_of_nonempty H in by rw h at ha; cases ha),
   λ h, h.symm ▸ max_empty⟩
 
-theorem mem_of_max {s : finset α} : ∀ {a : α}, a ∈ s.max → a ∈ s :=
+theorem mem_of_max {s : finset α} : ∀ {a : α}, s.max = a → a ∈ s :=
 finset.induction_on s (λ _ H, by cases H)
-  (λ b s _ (ih : ∀ {a}, a ∈ s.max → a ∈ s) a (h : a ∈ (insert b s).max),
+  (λ b s _ (ih : ∀ {a : α}, s.max = a → a ∈ s) a (h : (insert b s).max = a),
   begin
     by_cases p : b = a,
     { induction p, exact mem_insert_self b s },
-    { cases option.lift_or_get_choice max_choice (some b) s.max with q q;
+    { cases max_choice ↑b s.max with q q;
       rw [max_insert, q] at h,
       { cases h, cases p rfl },
       { exact mem_insert_of_mem (ih h) } }
   end)
 
-theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ s.max) : a ≤ b :=
-by rcases @le_sup (with_bot α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
-   cases h₂.symm.trans hb; assumption
+lemma coe_le_max_of_mem {a : α} {s : finset α} (as : a ∈ s) : ↑a ≤ s.max :=
+le_sup as
+
+theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : s.max = b) : a ≤ b :=
+with_bot.coe_le_coe.mp $ (coe_le_max_of_mem h₁).trans h₂.le
+
+lemma max_mono {s t : finset α} (st : s ⊆ t) : s.max ≤ t.max :=
+sup_mono st
+
+lemma max_le {M : with_bot α} {s : finset α} (st : ∀ a : α, a ∈ s → (a : with_bot α) ≤ M) :
+  s.max ≤ M :=
+sup_le st
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
-and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
+and `⊤` otherwise. It belongs to `with_top α`. If you want to get an element of `α`, see
 `s.min'`. -/
-protected def min : finset α → option α :=
-fold (option.lift_or_get min) none some
+protected def min (s : finset α) : with_top α :=
+inf s coe
 
 theorem min_eq_inf_with_top (s : finset α) :
-  s.min = @inf (with_top α) α _ _ s some := rfl
+  s.min = inf s coe := rfl
 
-@[simp] theorem min_empty : (∅ : finset α).min = none := rfl
+@[simp] theorem min_empty : (∅ : finset α).min = ⊤ := rfl
 
 @[simp] theorem min_insert {a : α} {s : finset α} :
-  (insert a s).min = option.lift_or_get min (some a) s.min :=
+  (insert a s).min = min ↑a s.min :=
 fold_insert_idem
 
-@[simp] theorem min_singleton {a : α} : finset.min {a} = some a :=
+@[simp] theorem min_singleton {a : α} : finset.min {a} = (a : with_top α) :=
 by { rw ← insert_emptyc_eq, exact min_insert }
 
-theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
+theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b : α, s.min = b :=
 (@inf_le (with_top α) _ _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
 
-theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a, a ∈ s.min :=
+theorem min_of_nonempty {s : finset α} (h : s.nonempty) : ∃ a : α, s.min = a :=
 let ⟨a, ha⟩ := h in min_of_mem ha
 
-theorem min_eq_none {s : finset α} : s.min = none ↔ s = ∅ :=
+theorem min_eq_top {s : finset α} : s.min = ⊤ ↔ s = ∅ :=
 ⟨λ h, s.eq_empty_or_nonempty.elim id
   (λ H, let ⟨a, ha⟩ := min_of_nonempty H in by rw h at ha; cases ha),
   λ h, h.symm ▸ min_empty⟩
 
-theorem mem_of_min {s : finset α} : ∀ {a : α}, a ∈ s.min → a ∈ s := @mem_of_max αᵒᵈ _ s
+theorem mem_of_min {s : finset α} : ∀ {a : α}, s.min = a → a ∈ s := @mem_of_max αᵒᵈ _ s
 
-theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : a ∈ s.min) : a ≤ b :=
-by rcases @inf_le (with_top α) _ _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
-   cases h₂.symm.trans hb; assumption
+lemma min_le_coe_of_mem {a : α} {s : finset α} (as : a ∈ s) : s.min ≤ a :=
+inf_le as
+
+theorem min_le_of_mem {s : finset α} {a b : α} (h₁ : b ∈ s) (h₂ : s.min = a) : a ≤ b :=
+with_top.coe_le_coe.mp $ h₂.ge.trans (min_le_coe_of_mem h₁)
+
+lemma min_mono {s t : finset α} (st : s ⊆ t) : t.min ≤ s.min :=
+inf_mono st
+
+lemma le_min {m : with_top α} {s : finset α} (st : ∀ a : α, a ∈ s → m ≤ a) :
+  m ≤ s.min :=
+le_inf st
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
-taking values in `option α`. -/
+taking values in `with_top α`. -/
 def min' (s : finset α) (H : s.nonempty) : α :=
-@option.get _ s.min $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
+with_top.untop s.min $ mt min_eq_top.1 H.ne_empty
 
 /-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
-taking values in `option α`. -/
+taking values in `with_bot α`. -/
 def max' (s : finset α) (H : s.nonempty) : α :=
-@option.get _ s.max $
+with_bot.unbot s.max $
   let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := max_of_mem hk in by simp at hb; simp [hb]
+  let ⟨b, hb⟩ := max_of_mem hk in by simp [hb]
 
 variables (s : finset α) (H : s.nonempty) {x : α}
 
 theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
 
-theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x := min_le_of_mem H2 $ option.get_mem _
+theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x :=
+min_le_of_mem H2 (with_top.coe_untop _ _).symm
 
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
@@ -891,7 +908,8 @@ by simp [min']
 
 theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
 
-theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ := le_max_of_mem H2 $ option.get_mem _
+theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ :=
+le_max_of_mem H2 (with_bot.coe_unbot _ _).symm
 
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
 

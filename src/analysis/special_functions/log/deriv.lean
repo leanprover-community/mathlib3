@@ -230,7 +230,7 @@ begin
       have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
       simp [F, this] },
     apply convex.norm_image_sub_le_of_norm_deriv_le this B (convex_Icc _ _) _ _,
-    { simpa using abs_nonneg x },
+    { simp },
     { simp [le_abs_self x, neg_le.mp (neg_le_abs_self x)] } },
   -- fourth step: conclude by massaging the inequality of the third step
   simpa [F, norm_eq_abs, div_mul_eq_mul_div, pow_succ'] using C

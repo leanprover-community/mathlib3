@@ -1,6 +1,7 @@
 import ring_theory.power_series.well_known
 import ring_theory.power_series.sincos_id
 import data.complex.basic
+import combinatorics.catalan
 
 open complex
 open ring_hom
@@ -21,13 +22,15 @@ namespace power_series
 
 example : 2 • exp ℂ = exp ℂ + exp ℂ := two_smul ℕ (exp ℂ)
 
+variables (A A' : Type*) [field A]  [algebra ℚ A]
 
 example : cos ℂ = (2:ℂ)⁻¹ • (rescale I (exp ℂ) + rescale (-I) (exp ℂ)) :=
 begin
   ext1 n,
   rw [map_smul, map_add, coeff_rescale, coeff_rescale, neg_pow I, mul_assoc, ← one_add_mul],
   cases nat.even_or_odd n with neven nodd,
-  { unfold even at neven,
+  { --Even
+    unfold even at neven,
     cases neven with r hr,
     rw hr,
     rw ← bit0,
@@ -52,12 +55,6 @@ begin
     rw map_one,
     apply even_bit0,
     norm_num,
-    --[←bit0, I_pow_bit0, neg_pow_bit0, one_pow, sub_self, zero_mul, smul_zero, coeff_sin_bit0]
-    --rw [two_mul, ←bit0, ←bit1, neg_pow_bit1, one_pow, sub_neg_eq_add, ←bit0],
-    --rw [I_pow_bit1, mul_comm ((-1) ^ k) I, mul_assoc, ←mul_assoc, smul_eq_mul,
-    --    inv_mul_cancel_left₀, coeff_sin_bit1],
-    --exact mul_ne_zero two_ne_zero' I_ne_zero
-    --sorry,
   },
   {
     --Odd
@@ -78,5 +75,30 @@ begin
     }
 end
 
+
+
+def maclaurin_sqrt_one_add_x : power_series A :=
+  mk $ λ n, algebra_map ℚ A ((-1)^(n+1)*(n+1)*(catalan n)*(4^n * 2^(n-1))⁻¹)
+
+example (A: Type*) [field A] [algebra ℚ A] : (maclaurin_sqrt_one_add_x A)*(maclaurin_sqrt_one_add_x A) = 1+X :=
+begin
+  ext1 n,
+  rcases lt_trichotomy n 1 with a | b | c,
+  {
+    sorry,
+  },
+  {
+    rw b,
+    rw coeff_mul,
+    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+    rw sum_range_succ,
+    rw sum_range_one,
+    simp only [coeff_zero_eq_constant_coeff, tsub_zero,
+      map_add, coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
+  },
+  {
+    sorry,
+  },
+end
 
 end power_series

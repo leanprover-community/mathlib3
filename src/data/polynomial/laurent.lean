@@ -87,54 +87,6 @@ end finset
 
 namespace with_bot
 
-lemma map_fn_le_iff {α β} [preorder α] [linear_order β] (f : α → β)
-  (a b : with_bot α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
-  a.map f ≤ b.map f ↔ a ≤ b :=
-begin
-  induction a using with_bot.rec_bot_coe,
-  { simp },
-  { induction b using with_bot.rec_bot_coe,
-    { suffices : ¬(a : with_bot α) ≤ ⊥, { simpa },
-      exact not_coe_le_bot a },
-    { simpa using mono_iff } }
-end
-
-/-  It is not `to_additive` of `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have
-a multiplication. -/
-lemma map_add_of_add_hom {α β F} [has_add α] [has_add β] [add_hom_class F α β] (f : F)
-  (a b : with_bot α) :
-  (a + b).map f = a.map f + b.map f :=
-begin
-  induction a using with_bot.rec_bot_coe,
-  { exact (bot_add _).symm },
-  { induction b using with_bot.rec_bot_coe,
-    { exact (add_bot _).symm },
-    { rw [map_coe, map_coe, ← coe_add (f a), ← map_add],
-      refl } },
-end
-
-lemma exists_eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
-  ∃ (a' : with_bot A), a = a' + b :=
-begin
-  induction a using with_bot.rec_bot_coe,
-  { exact ⟨_, (bot_add _).symm⟩ },
-  { exact ⟨(a - b : A), coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
-end
-
-lemma add_coe_neg_le_iff {α} [add_group α] [preorder α]
-  [covariant_class α α (function.swap (+)) (≤)]
-  (a : with_bot α) (b : α) (c : with_bot α) :
-  a + (-b : α) ≤ c ↔ a ≤ c + b :=
-begin
-  induction a using with_bot.rec_bot_coe,
-  { simp },
-  { induction c using with_bot.rec_bot_coe,
-    { simp only [with_bot.not_coe_le_bot, bot_add, iff_false, ← coe_add,
-        not_false_iff] },
-    { norm_cast,
-      rw [← sub_eq_add_neg, sub_le_iff_le_add] } }
-end
-
 --  probably not a good idea, to avoid interfering with `±∞`.
 /--  If a Type `α` has a negation, then `with_bot α` inherits one as well. -/
 def neg {α} [has_neg α] : with_bot α → with_bot α
@@ -515,10 +467,6 @@ begin
   exact (finset.coe_le_max_of_mem ‹_›),
 end
 
-lemma degree_mul {d e : with_bot ℤ} (f g : R[T;T⁻¹]) (df : f.degree ≤ d) (eg : g.degree ≤ e) :
-  (f * g).degree ≤ d + e :=
-(degree_mul_le _ _).trans (add_le_add df eg)
-
 /--  The int_degree of a Laurent polynomial takes values in `ℤ`.
 If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.int_degree` is the maximum of its support of `f`,
 or `0`, if `f = 0`. -/
@@ -538,6 +486,12 @@ begin
 end
 
 @[simp] lemma int_degree_zero : int_degree (0 : R[T;T⁻¹]) = 0 := rfl
+
+/-  TODO:
+lemma degree_mul' {f g : R[T;T⁻¹]} (fg : f f.int_degree * g g.int_degree ≠ 0) :
+  (f * g).int_degree = f.int_degree * g.int_degree :=
+sorry
+-/
 
 section exact_degrees
 

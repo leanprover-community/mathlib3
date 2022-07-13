@@ -384,8 +384,8 @@ instance has_lift {F : intermediate_field K L} :
 section restrict_scalars
 variables (K) [algebra L' L] [is_scalar_tower K L' L]
 
-/-- Given a scalar tower `K`, `L'`, `L` of fields, reinterpret an `L'`-intermediate-field of `L` an
-as a `K`-intermediate-field. -/
+/-- Given a tower `L / ↥E / L' / K` of field extensions, where `E` is an `L'`-intermediate field of
+`L`, reinterpret `E` as a `K`-intermediate field of `L`. -/
 def restrict_scalars (E : intermediate_field L' L) :
   intermediate_field K L :=
 { carrier := E.carrier,

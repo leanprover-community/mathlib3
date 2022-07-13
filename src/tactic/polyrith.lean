@@ -169,6 +169,7 @@ meta def poly_form_of_expr (red : transparency) : list expr → expr → tactic 
 The following section contains code that can convert an a `poly` object into a `pexpr`.
 -/
 
+#check expr.is_app_of
 
 /--
 This can convert a `poly` into a `pexpr` that would evaluate to a polynomial.
@@ -201,12 +202,11 @@ meta def poly.to_pexpr : list expr → poly → tactic pexpr
   do
     p_pexpr ← poly.to_pexpr m p,
     q_pexpr ← poly.to_pexpr m q,
-    return ``(%%p_pexpr * %%q_pexpr)
+    return $ if p_pexpr = ``(1) then q_pexpr else ``(%%p_pexpr * %%q_pexpr)
 | m (poly.pow p n) :=
   do
     p_pexpr ← poly.to_pexpr m p,
     return ``(%%p_pexpr ^ %%n.to_pexpr)
-
 
 /-!
 # Parsing SageMath output into a poly

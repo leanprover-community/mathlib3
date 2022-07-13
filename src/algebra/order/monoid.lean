@@ -1188,8 +1188,7 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 @[simp] lemma add_coe_eq_bot_iff : a + y = ⊥ ↔ a = ⊥ := with_top.add_coe_eq_top_iff
 @[simp] lemma coe_add_eq_bot_iff : ↑x + b = ⊥ ↔ b = ⊥ := with_top.coe_add_eq_top_iff
 
-protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F)
-  (a b : with_bot α) :
+protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_bot α) :
   (a + b).map f = a.map f + b.map f :=
 with_top.map_add f a b
 

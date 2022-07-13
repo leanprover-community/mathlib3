@@ -332,10 +332,10 @@ variables {F} {E} {p : F[X]}
 lemma of_separable_splitting_field_aux
   [hFE : finite_dimensional F E]
   [sp : p.is_splitting_field F E] (hp : p.separable)
-  (K : Type*) [field K] [algebra F K] [algebra K E]
-  [is_scalar_tower F K E] [finite_dimensional F K]
-  {x : E}
-  (hx : x ∈ (p.map (algebra_map F E)).roots) :
+  (K : Type*) [field K] [algebra F K] [algebra K E] [is_scalar_tower F K E]
+  {x : E} (hx : x ∈ (p.map (algebra_map F E)).roots)
+  -- these are both implied by `hFE`, but as they carry data this makes the lemma more general
+  [fintype (K →ₐ[F] E)] [fintype (K⟮x⟯.restrict_scalars F →ₐ[F] E)] :
   fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin

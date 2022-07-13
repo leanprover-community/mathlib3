@@ -68,10 +68,9 @@ alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 
 /-! ### Ordinals -/
 
-/-- A set `x` is a von Neumann ordinal when it's a transitive set, that's transitive and
-trichotomous under `∈`. Note that this further implies that `x` is well-ordered under `∈`. -/
-def is_ordinal (x : Set) : Prop :=
-x.is_transitive ∧ is_trans x.to_set (subrel (∈) _) ∧ is_trichotomous x.to_set (subrel (∈) _)
+/-- A set `x` is a von Neumann ordinal when it's a transitive set, that's transitive under `∈`. We
+prove that this further implies that `x` is well-ordered under `∈`. -/
+def is_ordinal (x : Set) : Prop := x.is_transitive ∧ is_trans x.to_set (subrel (∈) _)
 
 namespace is_ordinal
 
@@ -81,35 +80,21 @@ theorem subset_of_mem (h : x.is_ordinal) : y ∈ x → y ⊆ x := h.is_transitiv
 
 theorem mem_trans (h : z.is_ordinal) : x ∈ y → y ∈ z → x ∈ z := h.is_transitive.mem_trans
 
-protected theorem is_trans (h : x.is_ordinal) : is_trans x.to_set (subrel (∈) _) := h.2.1
+protected theorem is_trans (h : x.is_ordinal) : is_trans x.to_set (subrel (∈) _) := h.2
 
 theorem mem_trans' (hx : x.is_ordinal) (hy : y ∈ z) (hz : z ∈ w) (hw : w ∈ x) : y ∈ w :=
 let H := hx.is_trans.trans, hz' := hx.mem_trans hz hw in
   H ⟨y, hx.mem_trans hy hz'⟩ ⟨z, hz'⟩ ⟨w, hw⟩ hy hz
 
-protected theorem is_trichotomous (h : x.is_ordinal) : is_trichotomous x.to_set (subrel (∈) _) :=
-h.2.2
-
-theorem mem_trichotomous (hx : x.is_ordinal) (hy : y ∈ x) (hz : z ∈ x) : y ∈ z ∨ y = z ∨ z ∈ y :=
-begin
-  haveI := hx.is_trichotomous,
-  simpa using @trichotomous x.to_set (subrel (∈) _) _ ⟨y, hy⟩ ⟨z, hz⟩
-end
-
-protected theorem is_well_order (h : x.is_ordinal) : is_well_order x.to_set (subrel (∈) _) :=
-{ wf := (subrel.rel_embedding _ _).well_founded mem_wf,
-  ..h.is_trans, ..h.is_trichotomous }
-
-/-- A relation embedding between an element of an ordinal, and the ordinal itself. -/
 protected def rel_embedding (hx : x.is_ordinal) (hy : y ∈ x) :
   subrel (∈) y.to_set ↪r subrel (∈) x.to_set :=
 ⟨⟨λ b, ⟨b.1, hx.subset_of_mem hy b.2⟩, λ a b, by simp [subtype.coe_inj]⟩, λ a b, by simp⟩
 
 protected theorem mem (hx : x.is_ordinal) (hy : y ∈ x) : y.is_ordinal :=
 begin
-  haveI := hx.is_well_order,
-  haveI := (hx.rel_embedding hy).is_well_order,
-  exact ⟨λ z hz a ha, hx.mem_trans' ha hz hy, by apply_instance, by apply_instance⟩
+  haveI := hx.is_trans,
+  haveI := (hx.rel_embedding hy).is_trans,
+  exact ⟨λ z hz a ha, hx.mem_trans' ha hz hy, by apply_instance⟩
 end
 
 theorem subset_of_eq_or_mem (h : y.is_ordinal) : x = y ∨ x ∈ y → x ⊆ y :=
@@ -148,28 +133,35 @@ begin
   { exact hz.mem_trans hx hy }
 end
 
-theorem not_mem_iff_subset (hx : x.is_ordinal) (hy : y.is_ordinal) : ¬ y ∈ x ↔ x ⊆ y :=
+theorem not_mem_iff_subset (hx : x.is_ordinal) (hy : y.is_ordinal) : ¬ x ∈ y ↔ y ⊆ x :=
 ⟨begin
   revert hx hy,
   apply game_add_swap.induction mem_wf _ x y,
-  intros x y IH hx hy hyx z hzx,
-  by_contra hzy,
-  exact hyx (mem_of_subset_of_mem hy hx
-    (IH y z (game_add.fst hzx).swap_mk_left hy (hx.mem hzx) hzy) hzx),
+  intros x y IH hx hy hyx z hzy,
+  by_contra hzx,
+  exact hyx (mem_of_subset_of_mem hx hy
+    (IH z x (game_add.snd hzy).swap_mk_left (hy.mem hzy) hx hzx) hzy),
 end, λ hxy hyx, mem_irrefl (hxy hyx)⟩
+
+theorem mem_trichotomous (hx : x.is_ordinal) (hy : y.is_ordinal) : x ∈ y ∨ x = y ∨ y ∈ x :=
+begin
+  by_cases h : x ∈ y,
+  { exact or.inl h},
+  { right,
+    rwa [not_mem_iff_subset hx hy, subset_iff_eq_or_mem hy hx, eq_comm] at h }
+end
+
+protected theorem is_trichotomous (h : x.is_ordinal) : is_trichotomous x.to_set (subrel (∈) _) :=
+⟨λ ⟨a, ha⟩ ⟨b, hb⟩, by simpa using mem_trichotomous (h.mem ha) (h.mem hb)⟩
+
+protected theorem is_well_order (h : x.is_ordinal) : is_well_order x.to_set (subrel (∈) _) :=
+{ wf := (subrel.rel_embedding _ _).well_founded mem_wf,
+  ..h.is_trans, ..h.is_trichotomous }
 
 end is_ordinal
 
-/-theorem is_transitive.is_ordinal (h : x.is_transitive) (H : ∀ y : Set, y ∈ x → y.is_ordinal) :
-  x.is_ordinal :=
-⟨h, ⟨begin
-  rintros ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩ hab hbc,
-
-
-end⟩, ⟨sorry⟩⟩-/
-
 @[simp] theorem empty_is_ordinal : is_ordinal ∅ :=
-⟨empty_is_transitive, by { rw empty_to_set, split; apply_instance }⟩
+⟨empty_is_transitive, by { rw empty_to_set, apply_instance }⟩
 
 /-- The successor of an ordinal `x` is `x ∪ {x}`. -/
 def succ (x : Set) : Set := insert x x

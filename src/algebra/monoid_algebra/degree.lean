@@ -18,13 +18,13 @@ degrees. -/
 namespace add_monoid_algebra
 open_locale classical
 
-variables {R A : Type*} [semiring R] [semilattice_sup A] [order_bot A]
+variables {R A : Type*} [semiring R] [semilattice_sup A]
 
 /--  Let `R` be a semiring, let `A` be a Type with a linear order, and let `f : R[A]` be an
 an element of `add_monoid_algebra R A`.  The degree of `f` takes values in `with_bot A` and
 it is the maximum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not. -/
-def degree (f : add_monoid_algebra R A) : A :=
-f.support.sup id
+def degree (f : add_monoid_algebra R A) : with_bot A :=
+f.support.sup coe
 
 section degree
 
@@ -33,7 +33,7 @@ variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (f
 lemma degree_mul_le (f g : add_monoid_algebra R A) :
   (f * g).degree ≤ f.degree + g.degree :=
 begin
-  refine (finset.fold_sup_le _).mpr ⟨bot_le, λ d ds, _⟩,
+  refine (finset.sup_le _), --.mpr ⟨bot_le, λ d ds, _⟩,
   obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
   { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop] using f.support_mul g ds },
   refine (add_le_add _ _),

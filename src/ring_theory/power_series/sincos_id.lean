@@ -171,8 +171,19 @@ begin
   {--n even
     unfold even at neven,
     cases neven with r hr,
-    rw [hr],
-    sorry
+    rw hr,
+    clear hr,
+    rw [← bit0,neg_pow_bit0,one_pow, ← mul_two, mul_comm (1:ℂ ) _, mul_one, I_pow_bit0],
+    -- we need to bring the 1/2 •  inside to cancel with the 2
+    rw [smul_eq_mul, inv_mul_cancel_left₀],
+    -- Now we need to invoke the definition of cos
+    rw [cos, coeff_mk],
+    rw if_pos,
+    --apply if_pos,
+    rw [],
+
+
+
   },
   {--n odd
     rcases nodd with ⟨r, rfl⟩,
@@ -182,18 +193,38 @@ begin
     --We need to show that (coeff ℂ (bit1 r)) cos ℂ is, in fact, equal to zero.  This is
     --pretty clear from the definition, since the odd degree terms of cos are zero.
     unfold cos,
-    rw [],
-
+    rw [coeff_mk ],
+    apply if_neg,
+    exact nat.not_even_bit1 r,
   }
 
 end
 
 #eval bit1 20.  --41
 #eval bit0 3.   -- 6
+#check if_neg.
+
+
+example (r : ℕ ) : (bit0 r)/2 =r :=
+begin
+  sorry
+end
+
+example (r : ℕ ) : ite (even (bit0 r)) 5 7 = 5 :=
+begin
+  refine if_pos _,
+  exact even_bit0 r,
+end
+
+example (a b :ℂ ) : a • b = a * b :=
+begin
+  exact smul_eq_mul ℂ,
+end
 
 example (a b :ℂ ) : a -a = 0:=
 begin
-  suggest,
+  --suggest
+  exact add_neg_self a,
 end
 
 

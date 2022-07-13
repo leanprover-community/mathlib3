@@ -76,8 +76,8 @@ noncomputable theory
 section not_about_laurent_polynomials
 
 lemma finset.fold_max_add {α β} [linear_order β] (f : α → β) [has_add β]
- [covariant_class β β (function.swap (+)) (≤)]
- (n : with_bot β) (s : finset α) :
+  [covariant_class β β (function.swap (+)) (≤)]
+  (n : with_bot β) (s : finset α) :
   finset.fold max ⊥ (λ (x : α), ↑(f x) + n) s = finset.fold max ⊥ (coe ∘ f) s + n :=
 by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
 
@@ -92,12 +92,8 @@ begin
   { exact or.inr ⟨_, rfl⟩ }
 end
 
-lemma ppp {α} [partial_order α] (a : α) :
-  ¬(a : with_bot α) ≤ ⊥ :=
-with_bot.not_coe_le_bot a
-
 lemma with_bot.map_fn_le_iff {α β} [preorder α] [linear_order β] (f : α → β)
-  (a b : with_bot α) (coe_mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
+  (a b : with_bot α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   a.map f ≤ b.map f ↔ a ≤ b :=
 begin
   rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
@@ -105,7 +101,7 @@ begin
   { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
     { suffices : ¬(a : with_bot α) ≤ ⊥, { simpa },
       exact with_bot.not_coe_le_bot a },
-    { simpa using coe_mono_iff } }
+    { simpa using mono_iff } }
 end
 
 /-  It is not `to_additive` of `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have
@@ -115,7 +111,7 @@ lemma with_bot.map_add_of_add_hom {α β F} [has_add α] [has_add β] [add_hom_c
   (a + b).map f = a.map f + b.map f :=
 begin
   rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact (with_bot.bot_add _).symm },
+  { exact (b.map f).bot_add.symm },
   { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
     { exact (with_bot.add_bot _).symm },
     { rw [with_bot.map_coe, with_bot.map_coe, ← with_bot.coe_add (f a), ← map_add],
@@ -129,14 +125,38 @@ lemma with_bot.add_coe_neg_le_iff {α} [add_group α] [preorder α]
 begin
   rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
   { simp },
-  rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
-  { simp only [with_bot.not_coe_le_bot, with_bot.bot_add, iff_false, ← with_bot.coe_add,
-      not_false_iff] },
-  { norm_cast,
-    rw [← sub_eq_add_neg, sub_le_iff_le_add] }
+  { rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+    { simp only [with_bot.not_coe_le_bot, with_bot.bot_add, iff_false, ← with_bot.coe_add,
+        not_false_iff] },
+    { norm_cast,
+      rw [← sub_eq_add_neg, sub_le_iff_le_add] } }
 end
 
-lemma with_bot.eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
+lemma with_bot.exists_eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
+  ∃ (a' : with_bot A), a = a' + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { exact ⟨_, (with_bot.bot_add _).symm⟩ },
+  { exact ⟨(a - b : A), with_bot.coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
+end
+
+--  probably not a good idea, to avoid interfering with `±∞`.
+/--  If a Type `α` has a negation, then `with_bot α` inherits one as well. -/
+def with_bot.neg {α} [has_neg α] : with_bot α → with_bot α
+| ⊥ := ⊥
+| (some a) := some (-a)
+
+instance {α} [has_neg α] : has_neg (with_bot α) := ⟨with_bot.neg⟩
+
+@[simp] lemma with_bot.neg_bot {α} [has_neg α] : (- ⊥ : with_bot α) = ⊥ := rfl
+@[simp] lemma with_bot.neg_coe {α} [has_neg α] (a : α) :
+  (- a : with_bot α) = ((- a : α) : with_bot α) := rfl
+
+instance {α} [has_involutive_neg α] : has_involutive_neg (with_bot α) :=
+{ neg_neg := λ x, by rcases x.eq_bot_or_coe with rfl | ⟨x, rfl⟩; simp,
+  ..(infer_instance : has_neg (with_bot α)) }
+
+lemma with_bot.add_neg_canceleq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
   ∃ (a' : with_bot A), a = a' + b :=
 begin
   rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
@@ -628,7 +648,7 @@ begin
     rw f.degree_to_laurent at fd,
     exact (degree_mul_aux f.degree _ _ _ rfl.le eg).trans (add_le_add fd rfl.le) },
   { intros f hf d e g fd eg,
-    rcases e.eq_add 1 with ⟨e', rfl⟩,
+    rcases e.exists_eq_add 1 with ⟨e', rfl⟩,
     have : (f * T 1 * (g * T (- 1))).degree ≤ (d + 1) + e',
     { refine hf (g * T (-1)) _ _ ;
       rw degree_mul_T,

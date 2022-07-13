@@ -634,7 +634,7 @@ section normed_star_group
 variables [Π (i : α), star_add_monoid (E i)] [Π i, normed_star_group (E i)]
 
 lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
-(hf : mem_ℓp f p) : mem_ℓp (star f) p :=
+  (hf : mem_ℓp f p) : mem_ℓp (star f) p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
@@ -660,17 +660,19 @@ instance : star_add_monoid (lp E p) := {star_add :=
  begin
  intro f,
  rcases p.trichotomy with h | h | h,
- { unfreezingI { subst h }, exfalso,
+ { unfreezingI { subst h },
+   exfalso,
    have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
    norm_num at this,},
- { unfreezingI { subst h }, simp only [lp.norm_eq_csupr, lp.star_apply, norm_star]},
+ { unfreezingI { subst h },
+   simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
  { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star]}
  end }
 
 variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
-variables [Πi, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
+variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
-instance : star_module 𝕜 (lp E p) := ⟨ by {intros _ _, ext, simp } ⟩
+instance : star_module 𝕜 (lp E p) := ⟨by {intros _ _, ext, simp}⟩
 
 end normed_star_group
 
@@ -701,7 +703,7 @@ function.injective.non_unital_ring lp.has_coe_to_fun.coe (subtype.coe_injective)
   (λ _ _, rfl) (λ _ _,rfl)
 
 instance : non_unital_normed_ring (lp B ∞) :=
-  { norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
+{ norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
     (λ i, calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le _ _
     ...                    ≤ ∥f∥ * ∥g∥
     : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
@@ -730,23 +732,20 @@ instance : star_ring (lp B ∞) :=
       by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
 
 instance [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
-{ norm_star_mul_self :=
-begin
-intro f,
-apply le_antisymm,
-{     rw ←sq,
+{ norm_star_mul_self := λ f,
+  begin
+    apply le_antisymm,
+    { rw ←sq,
       refine lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥) (λ i, _),
       simp only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
       refine sq_le_sq' _ _,
       { linarith [norm_nonneg (f i), norm_nonneg f] },
       { exact lp.norm_apply_le_norm ennreal.top_ne_zero _ _,}, },
-{ rw ←sq,
-  rw ←real.le_sqrt (norm_nonneg _) (norm_nonneg _),
-  refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) _,
-      intro i,
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _)],
+      refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) (λ i, _),
       rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
       exact lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
-end }
+  end }
 
 end star_ring
 

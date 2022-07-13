@@ -1177,7 +1177,7 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 
 /-  It is not `to_additive` of `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have
 a multiplication. -/
-lemma map_add_of_add_hom {α β F} [has_add α] [has_add β] [add_hom_class F α β] (f : F)
+protected lemma map_add {α β F} [has_add α] [has_add β] [add_hom_class F α β] (f : F)
   (a b : with_bot α) :
   (a + b).map f = a.map f + b.map f :=
 begin

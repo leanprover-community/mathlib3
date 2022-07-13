@@ -23,7 +23,7 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 * `int.floor a`: Greatest integer `z` such that `z ≤ a`.
 * `int.ceil a`: Least integer `z` such that `a ≤ z`.
 * `int.fract a`: Fractional part of `a`, defined as `a - floor a`.
-* `round a`: Nearest integer to `a`. It rounds halves up.
+* `round a`: Nearest integer to `a`. It rounds halves towards infinity.
 
 ## Notations
 

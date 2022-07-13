@@ -48,8 +48,7 @@ begin
 end
 
 lemma ae_circle_transform_has_deriv_at (R : ℝ) (z : ℂ) (hR : 0 < R) (f : ℂ → ℂ) :
-  ∀ (t : ℝ), t ∈  [0, (2 * π)] → ∀ y ∈ ball z R,
-  has_deriv_at (λ y, (circle_transform R z y f) t)
+  ∀ (t : ℝ), t ∈  [0, (2 * π)] → ∀ y ∈ ball z R, has_deriv_at (λ y, (circle_transform R z y f) t)
   ((circle_transform_deriv R z y f) t) y :=
 begin
   intros y hy x hx,
@@ -77,7 +76,7 @@ begin
     (measurable_set_interval_oc),
 end
 
-lemma circle_transform_Interval_integrable (R : ℝ) (hR: 0 < R)
+lemma circle_transform_interval_integrable (R : ℝ) (hR: 0 < R)
  (z x : ℂ) (hx : x ∈ ball z R) (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
  interval_integrable ((λ w, (λ θ, (circle_transform R z w f θ))) x) volume 0 (2 * π) :=
 begin
@@ -105,33 +104,33 @@ begin
   set F : ℂ → ℝ → ℂ := λ w, (λ θ, (circle_transform R z w f θ)),
   set F' : ℂ → ℝ → ℂ := λ w, circle_transform_deriv R z w f,
   have hF_meas : ∀ᶠ y in 𝓝 x, ae_strongly_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
-  by {simp_rw F, simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
-  apply circle_transform_ae_measurable R hR z x hx f hf},
+    by {simp_rw F, simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
+    apply circle_transform_ae_measurable R hR z x hx f hf},
   have hF_int : interval_integrable (F x) volume 0 (2 * π),
-  by {simp_rw F, apply circle_transform_Interval_integrable R hR z x hx f hf},
+    by {simp_rw F, apply circle_transform_interval_integrable R hR z x hx f hf},
   have hF'_meas : ae_strongly_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) ,
-  by {simp_rw F', simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
-  apply circle_integral_transform_deriv_ae_measurable R hR z x hx f hf},
+    by {simp_rw F', simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
+    apply circle_integral_transform_deriv_ae_measurable R hR z x hx f hf},
   have BOU := circle_transform_deriv_bound hR hx hf,
   obtain ⟨bound, ε, hε ,h_ball, h_boun⟩:= BOU,
   have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε , ∥F' y t∥ ≤ bound,
-  by {simp_rw F',
-  apply eventually_of_forall,
-  intros v hv,
-  apply h_boun,},
+    by {simp_rw F',
+    apply eventually_of_forall,
+    intros v hv,
+    apply h_boun,},
   have bound_integrable : interval_integrable (λ _, bound) volume 0 (2 * π) ,
-  by {apply _root_.interval_integrable_const, },
+    by {apply _root_.interval_integrable_const, },
   have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε,
   has_deriv_at (λ y, F y t) (F' y t) y,
-  by {simp_rw [F, F', circle_transform, circle_transform_deriv],
-  have := ae_circle_transform_has_deriv_at R z hR f,
-  apply eventually_of_forall,
-  simp_rw [circle_transform, circle_transform_deriv] at this,
-  intros y hy x hx,
-  rw (interval_oc_of_le real.two_pi_pos.le) at hy,
-  have hy2 : y ∈ [0, 2*π], by {convert (Ioc_subset_Icc_self hy),
-    simp [interval_of_le real.two_pi_pos.le]},
-  apply this y hy2 x (h_ball hx),},
+    by {simp_rw [F, F', circle_transform, circle_transform_deriv],
+    have := ae_circle_transform_has_deriv_at R z hR f,
+    apply eventually_of_forall,
+    simp_rw [circle_transform, circle_transform_deriv] at this,
+    intros y hy x hx,
+    rw (interval_oc_of_le real.two_pi_pos.le) at hy,
+    have hy2 : y ∈ [0, 2*π], by {convert (Ioc_subset_Icc_self hy),
+      simp [interval_of_le real.two_pi_pos.le]},
+    apply this y hy2 x (h_ball hx),},
   have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le
   hε hF_meas hF_int hF'_meas h_bound bound_integrable h_diff,
   simp only [F, has_deriv_at, has_deriv_at_filter, has_fderiv_within_at, mem_ball, zero_lt_mul_left,

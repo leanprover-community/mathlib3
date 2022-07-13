@@ -263,6 +263,9 @@ with_bot.coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe [preorder α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
 with_bot.coe_le_coe
 
+lemma coe_le_iff [preorder α] {a : α} {b : with_zero α} : ↑a ≤ b ↔ ∃ c : α, b = c ∧ a ≤ c :=
+with_bot.coe_le_iff
+
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
@@ -274,7 +277,7 @@ begin
   refine ⟨λ a b c hbc, _⟩,
   induction a using with_zero.rec_zero_coe, { exact zero_le _ },
   induction b using with_zero.rec_zero_coe, { exact zero_le _ },
-  rcases with_bot.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
+  rcases with_zero.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
   rw [← coe_mul, ← coe_mul, coe_le_coe],
   exact mul_le_mul_left' hbc' a
 end
@@ -317,7 +320,7 @@ begin
     { rw [add_zero] },
     { rw [← coe_add, coe_le_coe],
       exact le_add_of_nonneg_right (h _) } },
-  { rcases with_bot.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
+  { rcases with_zero.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
     rw [← coe_add, ← coe_add, coe_le_coe],
     exact add_le_add_left hbc' a }
 end
@@ -453,14 +456,12 @@ end
 
 instance with_zero.has_exists_add_of_le {α} [has_add α] [preorder α] [has_exists_add_of_le α] :
   has_exists_add_of_le (with_zero α) :=
-⟨λ a b, begin
-  apply with_zero.cases_on a,
-  { exact λ _, ⟨b, (zero_add b).symm⟩ },
-  apply with_zero.cases_on b,
-  { exact λ b' h, (with_bot.not_coe_le_bot _ h).elim },
-  rintro a' b' h,
-  obtain ⟨c, rfl⟩ := exists_add_of_le (with_zero.coe_le_coe.1 h),
-  exact ⟨c, rfl⟩,
+⟨λ a b h, begin
+  induction a using with_zero.cases_on,
+  { exact ⟨b, (zero_add b).symm⟩ },
+  rcases with_zero.coe_le_iff.1 h with ⟨b, rfl, h'⟩,
+  rcases exists_add_of_le h' with ⟨c, rfl⟩,
+  exact ⟨c, rfl⟩
 end⟩
 
 -- This instance looks absurd: a monoid already has a zero
@@ -862,7 +863,7 @@ trans eq_comm coe_eq_one
 @[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
 
 instance [has_zero α] [has_le α] [zero_le_one_class α] : zero_le_one_class (with_top α) :=
-⟨some_le_some.2 zero_le_one⟩
+⟨coe_le_coe.2 zero_le_one⟩
 
 end has_one
 
@@ -918,8 +919,8 @@ end⟩
 instance contravariant_class_add_lt [has_lt α] [contravariant_class α α (+) (<)] :
   contravariant_class (with_top α) (with_top α) (+) (<) :=
 ⟨λ a b c h, begin
-  induction a using with_top.rec_top_coe, { exact (not_none_lt _ h).elim },
-  induction b using with_top.rec_top_coe, { exact (not_none_lt _ h).elim },
+  induction a using with_top.rec_top_coe, { exact (not_top_lt _ h).elim },
+  induction b using with_top.rec_top_coe, { exact (not_top_lt _ h).elim },
   induction c using with_top.rec_top_coe,
   { exact coe_lt_top _ },
   { exact coe_lt_coe.2 (lt_of_add_lt_add_left $ coe_lt_coe.1 h) }
@@ -928,7 +929,7 @@ end⟩
 instance contravariant_class_swap_add_lt [has_lt α] [contravariant_class α α (swap (+)) (<)] :
   contravariant_class (with_top α) (with_top α) (swap (+)) (<) :=
 ⟨λ a b c h, begin
-  cases a; cases b; try { exact (not_none_lt _ h).elim },
+  cases a; cases b; try { exact (not_top_lt _ h).elim },
   cases c,
   { exact coe_lt_top _ },
   { exact coe_lt_coe.2 (lt_of_add_lt_add_right $ coe_lt_coe.1 h) }
@@ -1139,7 +1140,7 @@ instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_co
 
 instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
   zero_le_one_class (with_bot α) :=
-⟨some_le_some.2 zero_le_one⟩
+⟨coe_le_coe.2 zero_le_one⟩
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 @[to_additive]

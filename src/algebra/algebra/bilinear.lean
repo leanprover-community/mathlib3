@@ -79,7 +79,7 @@ variables (R A : Type*) [comm_semiring R] [non_unital_semiring A]
 
 /-- The multiplication in a non-unital algebra is a bilinear map.
 
-A weaker version of this for non-associative exists as `add_monoid_hom.mul`. -/
+A weaker version of this for non-unital non-associative algebras exists as `linear_map.mul`. -/
 def _root_.non_unital_alg_hom.lmul : A →ₙₐ[R] (End R A) :=
 { map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },

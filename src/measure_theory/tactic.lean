@@ -59,9 +59,7 @@ attribute [measurability]
   measurable_set.const
   measurable_set.insert
   measurable_set_eq
-  set.finite.measurable_set
   finset.measurable_set
-  set.countable.measurable_set
   measurable_space.measurable_set_top
 
 namespace tactic

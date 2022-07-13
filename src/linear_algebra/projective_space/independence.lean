@@ -30,60 +30,53 @@ ambient vector space. Similarly for the definition of dependence.
 -/
 
 
-variables {K V : Type*} [field K] [add_comm_group V] [module K V]
+variables {ι K V : Type*} [field K] [add_comm_group V] [module K V] {f : ι → ℙ K V}
 
 namespace projectivization
 
 /-- A linearly independent family of nonzero vectors gives an independent family of points
-in the projective space. -/
-inductive independent {ι : Type*} : (ι → ℙ K V) → Prop
+in projective space. -/
+inductive independent : (ι → ℙ K V) → Prop
 | mk (f : ι → V) (hf : ∀ i : ι, f i ≠ 0) (hl : linear_independent K f) :
     independent (λ i, mk K (f i) (hf i))
 
-/-- A family of points in a projective space are independent if and only if their
-representatives are linearly independent. -/
-lemma independent_iff (ι : Type*) (f : ι → (ℙ K V)) : independent f ↔
-  linear_independent K (projectivization.rep ∘ f) :=
+/-- A family of points in a projective space is independent if and only if the representative
+vectors determined by the family are linearly independent. -/
+lemma independent_iff : independent f ↔ linear_independent K (projectivization.rep ∘ f) :=
 begin
-  split,
-  { rintro h, induction h with ff hff hh,
+  refine ⟨λ h, _, λ h, _⟩,
+  { induction h with ff hff hh,
     choose a ha using λ (i : ι), exists_smul_eq_mk_rep K (ff i) (hff i),
     convert hh.units_smul a,
     ext i, exact (ha i).symm },
-  { intro h,
-    convert independent.mk _ _ h,
+  { convert independent.mk _ _ h,
     { ext, simp only [mk_rep] },
     { intro i, apply rep_nonzero } }
 end
 
-/-- A definition of the independence of a family of points in projective space wherein the family
-is independent if and only if the family of submodules the points determine is independent. -/
-def independent' {ι : Type*} (f : ι → ℙ K V) := complete_lattice.independent $ λ i, (f i).submodule
-
-/-- The lattice theoretic definition of independence and the inductive definition of independence
-of a family of points in projective space are equivalent. -/
-lemma independent_iff_independent' {ι : Type*} (f : ι → ℙ K V) : independent f ↔ independent' f :=
+/-- A family of points in projective space is independent if and only if the family of
+submodules which the points determine is independent in the lattice-theoretic sense. -/
+lemma independent_iff_complete_lattice_independent :
+  independent f ↔ (complete_lattice.independent $ λ i, (f i).submodule) :=
 begin
-  unfold independent', split; intro h,
-  { cases h with f hf hi,
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨f, hf, hi⟩,
     simpa [submodule_mk, complete_lattice.independent_iff_linear_independent_of_ne_zero hf] },
   { rw independent_iff,
-    refine complete_lattice.independent.linear_independent (projectivization.submodule ∘ f) h _ _,
-    { intro i, rw [function.comp_app projectivization.submodule f i, submodule_eq],
-      exact submodule.mem_span_singleton_self ((f i).rep) },
-    { intro i, rw function.comp_app, exact rep_nonzero (f i) } },
+    refine h.linear_independent (projectivization.submodule ∘ f) (λ i, _) (λ i, _),
+    { simpa only [function.comp_app, submodule_eq] using submodule.mem_span_singleton_self _, },
+    { exact rep_nonzero (f i) } },
 end
 
 /-- A linearly dependent family of nonzero vectors gives a dependent family of points
-in the projective space. -/
-inductive dependent {ι : Type*} : (ι → ℙ K V) → Prop
+in projective space. -/
+inductive dependent : (ι → ℙ K V) → Prop
 | mk (f : ι → V) (hf : ∀ i : ι, f i ≠ 0) (h : ¬linear_independent K f) :
     dependent (λ i, mk K (f i) (hf i))
 
 /-- A family of points in a projective space is dependent if and only if their
 representatives are linearly dependent. -/
-lemma dependent_iff (ι : Type*) (f : ι → (ℙ K V)) : dependent f ↔
-  ¬ linear_independent K (projectivization.rep ∘ f) :=
+lemma dependent_iff : dependent f ↔ ¬ linear_independent K (projectivization.rep ∘ f) :=
 begin
   split,
   { rw ← independent_iff,
@@ -99,15 +92,12 @@ begin
 end
 
 /-- Dependence is the negation of independence. -/
-lemma dependent_iff_not_independent {ι : Type*} (f : ι → ℙ K V) :
-  dependent f ↔ ¬ independent f :=
-by { rw [dependent_iff, independent_iff] }
+lemma dependent_iff_not_independent : dependent f ↔ ¬ independent f :=
+by rw [dependent_iff, independent_iff]
 
 /-- Independence is the negation of dependence. -/
-lemma independent_iff_not_dependent {ι : Type*} (f : ι → ℙ K V) :
-  independent f ↔ ¬ dependent f :=
-by { rw [dependent_iff, independent_iff, not_not] }
-
+lemma independent_iff_not_dependent : independent f ↔ ¬ dependent f :=
+by rw [dependent_iff, independent_iff, not_not]
 
 /-- Two points in a projective space are dependent if and only if they are equal. -/
 @[simp] lemma pair_dependent_iff_eq (u v : ℙ K V) : dependent ![u, v] ↔ u = v :=
@@ -122,6 +112,6 @@ end
 
 /-- Two points in a projective space are independent if and only if the points are not equal. -/
 @[simp] lemma pair_independent_iff_neq (u v : ℙ K V) : (independent ![u, v]) ↔ u ≠ v :=
-by { rw [independent_iff_not_dependent, pair_dependent_iff_eq u v] }
+by rw [independent_iff_not_dependent, pair_dependent_iff_eq u v]
 
 end projectivization

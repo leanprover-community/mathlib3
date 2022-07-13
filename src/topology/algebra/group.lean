@@ -501,6 +501,11 @@ variables {G}
 { to_has_continuous_mul := hf.has_continuous_mul _,
   to_has_continuous_inv := hf.has_continuous_inv (map_inv f) }
 
+@[to_additive] protected lemma topological_group_induced {F : Type*} [group H]
+  [monoid_hom_class F H G] (f : F) :
+  @topological_group H (induced f ‹_›) _ :=
+by { letI := induced f ‹_›, exact inducing.topological_group f ⟨rfl⟩  }
+
 namespace subgroup
 
 @[to_additive] instance (S : subgroup G) : topological_group S :=

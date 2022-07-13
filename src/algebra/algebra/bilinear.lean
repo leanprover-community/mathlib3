@@ -47,12 +47,10 @@ def mul_right (a : A) : A →ₗ[R] A := (mul R A).flip a
 def mul_left_right (ab : A × A) : A →ₗ[R] A := (mul_right R ab.snd).comp (mul_left R ab.fst)
 
 @[simp] lemma mul_left_to_add_monoid_hom (a : A) :
-  (mul_left R a : A →+ A) = add_monoid_hom.mul_left a :=
-fun_like.coe_injective rfl
+  (mul_left R a : A →+ A) = add_monoid_hom.mul_left a := rfl
 
 @[simp] lemma mul_right_to_add_monoid_hom (a : A) :
-  (mul_right R a : A →+ A) = add_monoid_hom.mul_right a :=
-fun_like.coe_injective rfl
+  (mul_right R a : A →+ A) = add_monoid_hom.mul_right a := rfl
 
 variables {R}
 

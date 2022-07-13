@@ -73,13 +73,7 @@ variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (f
 
 lemma le_trailing_degree_mul (f g : add_monoid_algebra R A) :
   f.trailing_degree + g.trailing_degree ≤ (f * g).trailing_degree :=
-begin
-  refine (finset.le_inf (λ d ds, _)),
-  obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
-  { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop] using f.support_mul g ds },
-  refine (add_le_add _ _).trans (with_bot.coe_add _ _).ge;
-  exact finset.inf_le ‹_›,
-end
+@degree_mul_le _ Aᵒᵈ _ _ _ _ _ _ _
 
 end trailing_degree
 

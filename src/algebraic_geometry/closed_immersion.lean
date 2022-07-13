@@ -1,16 +1,60 @@
 import topology.sheaves.functors
+import topology.sheaves.presheaf
 import algebraic_geometry.Scheme
 
-universe u
+universes w v u
 
 /- Formalizing the equivalence of (2) and (4) in
    https://stacks.math.columbia.edu/tag/01QN -/
 
 noncomputable theory
 
+section locally_surjective
+
+open category_theory
+open topological_space
+open opposite
+
+variables {C : Type u} [category.{v} C] [concrete_category C]
+   {X : Top.{w}}
+
+def sections (ℱ : X.presheaf C) (U : opens X) :=
+   (forget C).obj (ℱ.obj (op U))
+
+infix ` on ` : 80 := sections
+
+variables {ℱ : X.presheaf C} {𝒢 : X.presheaf C}
+
+def is_cover_of {U : opens X} {ι : Type} {V : ι → opens X}
+   (sub : Π i, V i ⟶ U) := U ≤ supr V
+
+structure Cover (U : opens X) :=
+   (ι : Type)
+   (V : ι → opens X)
+   (sub : Π i, V i ⟶ U)
+   (covers : U ≤ supr V)
+
+def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
+   ∀ (U : opens X) (t : 𝒢 on U),
+   ∃ (𝒱 : Cover U)
+     (s : Π (i : 𝒱.ι), ℱ on (𝒱.V i)),
+     ∀ (i : 𝒱.ι),
+begin
+  have tᵢ := (forget C).map (𝒢.map (𝒱.sub i).op) t,
+  have Tsᵢ := T.app,
+  -- finishing stating tᵢ = Tsᵢ
+end
+     --∀ i, ℱ.map (s i) = 𝒢.map (𝒱.sub i).op t
+
+
+
+
+end locally_surjective
+
 namespace algebraic_geometry
 
 variables {X Y : Scheme.{u}} (f : X ⟶ Y)
+
 
 
 

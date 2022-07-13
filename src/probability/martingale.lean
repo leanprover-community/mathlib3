@@ -609,11 +609,8 @@ lemma submartingale.sum_mul_sub [is_finite_measure μ] {R : ℝ} {ξ f : ℕ →
   (hbdd : ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
   submartingale (λ n : ℕ, ∑ k in finset.range n, ξ k * (f (k + 1) - f k)) 𝒢 μ :=
 begin
-  have hξbdd : ∀ i, ∃ (C : ℝ), ∀ (x : α), |ξ i x| ≤ C,
-  { intro i,
-    refine ⟨R, λ x, abs_le.2 ⟨le_trans (neg_le.1 (le_trans _ (hbdd 0 x))) (hnonneg _ _), hbdd _ _⟩⟩,
-    rw neg_zero,
-    exact hnonneg 0 x },
+  have hξbdd : ∀ i, ∃ (C : ℝ), ∀ (x : α), |ξ i x| ≤ C :=
+    λ i, ⟨R, λ x, (abs_of_nonneg (hnonneg i x)).trans_le (hbdd i x)⟩,
   have hint : ∀ m, integrable (∑ k in finset.range m, ξ k * (f (k + 1) - f k)) μ :=
     λ m, integrable_finset_sum' _
       (λ i hi, integrable.bdd_mul ((hf.integrable _).sub (hf.integrable _))

@@ -140,6 +140,14 @@ or.inr $ by rwa prod.swap_swap
 lemma game_add.swap_right {a b} (h : game_add r r a b) : game_add_swap r a b.swap :=
 or.inr $ by rwa game_add_swap_swap
 
+lemma game_add.swap_mk_left {a b c d} : game_add r r (a, b) (c, d) →
+  game_add_swap r (b, a) (c, d) :=
+@game_add.swap_left α r (a, b) (c, d)
+
+lemma game_add.swap_mk_right {a b c d} : game_add r r (a, b) (c, d) →
+  game_add_swap r (a, b) (d, c) :=
+@game_add.swap_right α r (a, b) (c, d)
+
 /-- `game_add` is a `subrelation` of `game_add_swap`. -/
 lemma game_add_swap_le_game_add : game_add r r ≤ game_add_swap r := λ a b, game_add.swap
 

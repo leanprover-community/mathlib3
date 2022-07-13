@@ -90,12 +90,15 @@ inductive pSet : Type (u+1)
 namespace pSet
 
 /-- The underlying type of a pre-set -/
-@[nolint has_inhabited_instance] def type : pSet → Type u
+def type : pSet → Type u
 | ⟨α, A⟩ := α
 
 /-- The underlying pre-set family of a pre-set -/
 def func : Π (x : pSet), x.type → pSet
 | ⟨α, A⟩ := A
+
+@[simp] theorem mk_type (α A) : type ⟨α, A⟩ = α := rfl
+@[simp] theorem mk_func (α A) : func ⟨α, A⟩ = A := rfl
 
 theorem mk_type_func : Π (x : pSet), mk x.type x.func = x
 | ⟨α, A⟩ := rfl
@@ -134,10 +137,7 @@ instance setoid : setoid pSet :=
 
 /-- A pre-set is a subset of another pre-set if every element of the first family is extensionally
 equivalent to some element of the second family.-/
-protected def subset : pSet → pSet → Prop
-| ⟨α, A⟩ ⟨β, B⟩ := ∀ a, ∃ b, equiv (A a) (B b)
-
-instance : has_subset pSet := ⟨pSet.subset⟩
+instance : has_subset pSet := ⟨λ x y, ∀ a, ∃ b, equiv (x.func a) (y.func b)⟩
 
 theorem equiv.ext : Π (x y : pSet), equiv x y ↔ (x ⊆ y ∧ y ⊆ x)
 | ⟨α, A⟩ ⟨β, B⟩ :=
@@ -155,9 +155,7 @@ theorem subset.congr_right : Π {x y z : pSet}, equiv x y → (z ⊆ x ↔ z ⊆
     λ γβ c, let ⟨b, cb⟩ := γβ c, ⟨a, ab⟩ := βα b in ⟨a, cb.trans (equiv.symm ab)⟩⟩
 
 /-- `x ∈ y` as pre-sets if `x` is extensionally equivalent to a member of the family `y`. -/
-def mem : pSet → pSet → Prop
-| x ⟨β, B⟩ := ∃ b, equiv x (B b)
-instance : has_mem pSet.{u} pSet.{u} := ⟨mem⟩
+instance : has_mem pSet.{u} pSet.{u} := ⟨λ x y, ∃ b, equiv x (y.func b)⟩
 
 theorem mem.mk {α: Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
@@ -193,41 +191,34 @@ equiv_iff_mem.trans set.ext_iff.symm
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 
 /-- The empty pre-set -/
-protected def empty : pSet := ⟨ulift empty, λ e, match e with end⟩
-
-instance : has_emptyc pSet := ⟨pSet.empty⟩
+instance : has_emptyc pSet := ⟨⟨ulift empty, λ e, match e with end⟩⟩
 
 instance : inhabited pSet := ⟨∅⟩
 
 theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := λ e, match e with end
 
 /-- Insert an element into a pre-set -/
-protected def insert : pSet → pSet → pSet
-| u ⟨α, A⟩ := ⟨option α, λ o, option.rec u A o⟩
-
-instance : has_insert pSet pSet := ⟨pSet.insert⟩
+instance : has_insert pSet pSet := ⟨λ x y, ⟨option y.type, λ o, option.rec x y.func o⟩⟩
 
 instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
 
 instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
 
+instance (x y : pSet) : inhabited (insert x y).type := option.inhabited _
+
 /-- The n-th von Neumann ordinal -/
 def of_nat : ℕ → pSet
 | 0     := ∅
-| (n+1) := pSet.insert (of_nat n) (of_nat n)
+| (n+1) := insert (of_nat n) (of_nat n)
 
 /-- The von Neumann ordinal ω -/
 def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
-protected def sep (p : set pSet) : pSet → pSet
-| ⟨α, A⟩ := ⟨{a // p (A a)}, λ x, A x.1⟩
-
-instance : has_sep pSet pSet := ⟨pSet.sep⟩
+instance : has_sep pSet pSet := ⟨λ p x, ⟨{a // p (x.func a)}, λ y, x.func y.1⟩⟩
 
 /-- The pre-set powerset operator -/
-def powerset : pSet → pSet
-| ⟨α, A⟩ := ⟨set α, λ p, ⟨{a // p a}, λ x, A x.1⟩⟩
+def powerset (x : pSet) : pSet := ⟨set x.type, λ p, ⟨{a // p a}, λ y, x.func y.1⟩⟩
 
 theorem mem_powerset : Π {x y : pSet}, y ∈ powerset x ↔ y ⊆ x
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ ⟨p, e⟩, (subset.congr_left e).2 $ λ ⟨a, pa⟩, ⟨a, equiv.refl (A a)⟩,
@@ -235,8 +226,7 @@ theorem mem_powerset : Π {x y : pSet}, y ∈ powerset x ↔ y ⊆ x
     λ ⟨a, b, ba⟩, ⟨b, ba⟩⟩⟩
 
 /-- The pre-set union operator -/
-def Union : pSet → pSet
-| ⟨α, A⟩ := ⟨Σx, (A x).type, λ ⟨x, y⟩, (A x).func y⟩
+def Union (a : pSet) : pSet := ⟨Σ x, (a.func x).type, λ ⟨x, y⟩, (a.func x).func y⟩
 
 theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃ _ : z ∈ x, y ∈ z
 | ⟨α, A⟩ y :=
@@ -248,8 +238,7 @@ theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z : pSet.{u}, ∃
     let ⟨βt, tβ⟩ := e, ⟨c, bc⟩ := βt b in ⟨⟨a, c⟩, yb.trans bc⟩ }⟩
 
 /-- The image of a function from pre-sets to pre-sets. -/
-def image (f : pSet.{u} → pSet.{u}) : pSet.{u} → pSet
-| ⟨α, A⟩ := ⟨α, λ a, f (A a)⟩
+def image (f : pSet.{u} → pSet.{u}) (x : pSet.{u}) : pSet := ⟨x.type, f ∘ x.func⟩
 
 theorem mem_image {f : pSet.{u} → pSet.{u}} (H : ∀ {x y}, equiv x y → equiv (f x) (f y)) :
   Π {x y : pSet.{u}}, y ∈ image f x ↔ ∃ z ∈ x, equiv y (f z)
@@ -384,11 +373,8 @@ def mk : pSet → Set := quotient.mk
 rfl
 
 /-- The membership relation for ZFC sets is inherited from the membership relation for pre-sets. -/
-def mem : Set → Set → Prop :=
-quotient.lift₂ pSet.mem
-  (λ x y x' y' hx hy, propext ((mem.congr_left hx).trans (mem.congr_right hy)))
-
-instance : has_mem Set Set := ⟨mem⟩
+instance : has_mem Set Set := ⟨quotient.lift₂ (∈) $
+  λ x y x' y' hx hy, propext ((@mem.congr_left x x' hx _).trans $ mem.congr_right hy)⟩
 
 /-- Convert a ZFC set into a `set` of ZFC sets -/
 def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
@@ -405,11 +391,7 @@ quotient.induction_on x $ λ a, begin
 end
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
-protected def subset (x y : Set.{u}) :=
-∀ ⦃z⦄, z ∈ x → z ∈ y
-
-instance has_subset : has_subset Set :=
-⟨Set.subset⟩
+instance has_subset : has_subset Set := ⟨λ x y, ∀ ⦃z⦄, z ∈ x → z ∈ y⟩
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
@@ -424,8 +406,7 @@ theorem ext_iff {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) ↔ x =
 ⟨ext, λ h, by simp [h]⟩
 
 /-- The empty ZFC set -/
-def empty : Set := mk ∅
-instance : has_emptyc Set := ⟨empty⟩
+instance : has_emptyc Set := ⟨mk ∅⟩
 instance : inhabited Set := ⟨∅⟩
 
 @[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
@@ -436,17 +417,15 @@ theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (mem_empty _)⟩)⟩
 
 /-- `insert x y` is the set `{x} ∪ y` -/
-protected def insert : Set → Set → Set :=
-resp.eval 2 ⟨pSet.insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+instance : has_insert Set Set :=
+⟨resp.eval 2 ⟨insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨λ o, match o with
    | some a := let ⟨b, hb⟩ := αβ a in ⟨some b, hb⟩
    | none := ⟨none, uv⟩
    end, λ o, match o with
    | some b := let ⟨a, ha⟩ := βα b in ⟨some a, ha⟩
    | none := ⟨none, uv⟩
-   end⟩⟩
-
-instance : has_insert Set Set := ⟨Set.insert⟩
+   end⟩⟩⟩
 
 instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
 
@@ -477,22 +456,20 @@ def omega : Set := mk omega
 ⟨⟨0⟩, equiv.rfl⟩
 
 @[simp] theorem omega_succ {n} : n ∈ omega.{u} → insert n n ∈ omega.{u} :=
-quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩,
-  have Set.insert ⟦x⟧ ⟦x⟧ = Set.insert ⟦of_nat n⟧ ⟦of_nat n⟧, by rw (@quotient.sound pSet _ _ _ h),
-  quotient.exact this⟩)
+quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩, quotient.exact $
+  show @has_insert.insert Set Set _ ⟦x⟧ ⟦x⟧ = @has_insert.insert Set Set _ ⟦of_nat n⟧ ⟦of_nat n⟧,
+  by { rw (@quotient.sound pSet _ _ _ h), refl }⟩)
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
-protected def sep (p : Set → Prop) : Set → Set :=
-resp.eval 1 ⟨pSet.sep (λ y, p ⟦y⟧), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
-  ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa ←(@quotient.sound pSet _ _ _ hb)⟩, hb⟩,
-   λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa (@quotient.sound pSet _ _ _ ha)⟩, ha⟩⟩⟩
-
-instance : has_sep Set Set := ⟨Set.sep⟩
+instance : has_sep Set Set :=
+⟨λ p, resp.eval 1 ⟨has_sep.sep (λ y, p ⟦y⟧), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+  ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa [mk_func, ←(@quotient.sound pSet _ _ _ hb)]⟩, hb⟩,
+   λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa [mk_func, (@quotient.sound pSet _ _ _ ha)]⟩, ha⟩⟩⟩⟩
 
 @[simp] theorem mem_sep {p : Set.{u} → Prop} {x y : Set.{u}} : y ∈ {y ∈ x | p y} ↔ y ∈ x ∧ p y :=
 quotient.induction_on₂ x y (λ ⟨α, A⟩ y,
-  ⟨λ ⟨⟨a, pa⟩, h⟩, ⟨⟨a, h⟩, by { rw (@quotient.sound pSet _ _ _ h), exact pa }⟩,
-  λ ⟨⟨a, h⟩, pa⟩, ⟨⟨a, by { rw ←(@quotient.sound pSet _ _ _ h), exact pa }⟩, h⟩⟩)
+  ⟨λ ⟨⟨a, pa⟩, h⟩, ⟨⟨a, h⟩, by rwa (@quotient.sound pSet _ _ _ h)⟩,
+  λ ⟨⟨a, h⟩, pa⟩, ⟨⟨a, by { rw mk_func at h, rwa [mk_func, ←(@quotient.sound pSet _ _ _ h)] }⟩, h⟩⟩)
 
 /-- The powerset operation, the collection of subsets of a ZFC set -/
 def powerset : Set → Set :=
@@ -521,7 +498,7 @@ theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : �
     let c : type (A a) := c, ⟨d, hd⟩ := γδ (by rwa ea at c) in
     have pSet.equiv ((A a).func c) ((B b).func (eq.rec d (eq.symm eb))), from
     match A a, B b, ea, eb, c, d, hd with ._, ._, rfl, rfl, x, y, hd := hd end,
-    ⟨⟨b, eq.rec d (eq.symm eb)⟩, this⟩
+    ⟨⟨b, by { rw mk_func, exact eq.rec d (eq.symm eb) }⟩, this⟩
   end
 
 /-- The union operator, the collection of elements of elements of a ZFC set -/
@@ -543,17 +520,13 @@ theorem singleton_inj {x y : Set.{u}} (H : ({x} : Set) = {y}) : x = y :=
 let this := congr_arg Union H in by rwa [Union_singleton, Union_singleton] at this
 
 /-- The binary union operation -/
-protected def union (x y : Set.{u}) : Set.{u} := ⋃ {x, y}
+instance : has_union Set := ⟨λ x y, ⋃ {x, y}⟩
 
 /-- The binary intersection operation -/
-protected def inter (x y : Set.{u}) : Set.{u} := {z ∈ x | z ∈ y}
+instance : has_inter Set := ⟨λ x y, {z ∈ x | z ∈ y}⟩
 
 /-- The set difference operation -/
-protected def diff (x y : Set.{u}) : Set.{u} := {z ∈ x | z ∉ y}
-
-instance : has_union Set := ⟨Set.union⟩
-instance : has_inter Set := ⟨Set.inter⟩
-instance : has_sdiff Set := ⟨Set.diff⟩
+instance : has_sdiff Set := ⟨λ x y, {z ∈ x | z ∉ y}⟩
 
 @[simp] theorem mem_union {x y z : Set.{u}} : z ∈ x ∪ y ↔ z ∈ x ∨ z ∈ y :=
 iff.trans mem_Union

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.monoid_algebra.basic
-import data.multiset.lattice
+
 /-!  #  Degree of an `add_monoid_algebra`
 
 Let `R` be a semiring and let `A` be a `semilattice_sup`.

@@ -39,15 +39,13 @@ it is the supremum of the support of `f` or `⊥`, depending on whether `f` is n
 
 If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
 the exponents. -/
-def degree (D : A → B) (f : add_monoid_algebra R A) : B :=
-f.support.sup D
 
 variables [has_add A]
 variables [has_add B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
 
 lemma degree_mul_le (D : A → B) (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
   (f g : add_monoid_algebra R A) :
-  (f * g).degree D ≤ f.degree D + g.degree D :=
+  (f * g).support.sup D ≤ f.support.sup D + g.support.sup D :=
 begin
   refine (finset.sup_le (λ d ds, _)),
   obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
@@ -73,7 +71,7 @@ f.support.inf D
 variables [has_add A]
 variables [has_add B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
 
-lemma trailing_degree_mul_le (D : A → B) (Dm : ∀ {a b}, D a + D b ≤ D (a + b))
+lemma le_trailing_degree_mul (D : A → B) (Dm : ∀ {a b}, D a + D b ≤ D (a + b))
   (f g : add_monoid_algebra R A) :
   f.trailing_degree D + g.trailing_degree D ≤ (f * g).trailing_degree D :=
 @degree_mul_le _ Aᵒᵈ Bᵒᵈ _ _ _ _ _ _ _ _ (λ a b, Dm) _ _
@@ -93,9 +91,6 @@ f.support.sup coe
 
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
 variables (f g : add_monoid_algebra R A)
-
-example : f.degree (coe : A → with_bot A) = f.old_degree :=
-rfl
 
 example : (f * g).old_degree ≤ f.old_degree + g.old_degree :=
 degree_mul_le (coe : A → with_bot A) (λ a b, (with_bot.coe_add _ _).le) f g
@@ -117,7 +112,7 @@ example : f.trailing_degree (coe : A → with_bot A) = f.old_trailing_degree :=
 rfl
 
 example : f.old_trailing_degree + g.old_trailing_degree ≤ (f * g).old_trailing_degree :=
-trailing_degree_mul_le _ (λ a b, (with_bot.coe_add _ _).le) f g
+le_trailing_degree_mul _ (λ a b, (with_bot.coe_add _ _).le) f g
 
 end trailing_degree
 

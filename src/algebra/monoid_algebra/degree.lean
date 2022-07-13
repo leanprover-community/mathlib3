@@ -35,7 +35,11 @@ variables [semilattice_sup A]
 
 /--  Let `R` be a semiring, let `A` be a Type with a linear order, and let `f : R[A]` be an
 an element of `add_monoid_algebra R A`.  The degree of `f` takes values in `with_bot A` and
-it is the maximum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not. -/
+it is the supremum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not.
+
+If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
+the exponents.
+ -/
 def degree (f : add_monoid_algebra R A) : with_bot A :=
 f.support.sup coe
 
@@ -59,7 +63,11 @@ variables [semilattice_inf A]
 
 /--  Let `R` be a semiring, let `A` be a Type with a linear order, and let `f : R[A]` be an
 an element of `add_monoid_algebra R A`.  The trailing degree of `f` takes values in `with_top A`
-and it is the minimum of the support of `f` or `⊤`, depending on whether `f` is non-zero or not. -/
+and it is the infimum of the support of `f` or `⊤`, depending on whether `f` is non-zero or not.
+
+If `A` has a linear order, then this notion coincides with the usual one, using the minimum of
+the exponents.
+ -/
 def trailing_degree (f : add_monoid_algebra R A) : with_top A :=
 f.support.inf coe
 

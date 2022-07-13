@@ -86,13 +86,10 @@ variables {rα rβ}
 
 @[simp] lemma game_add_swap_swap : ∀ (a b : α × β),
   game_add rβ rα a.swap b.swap ↔ game_add rα rβ a b :=
-begin
-  rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
-  split,
-  all_goals
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, begin
+  split;
   { rintro (⟨_, _, _, rb⟩ | ⟨_, _, _, ra⟩),
-    { exact game_add.snd rb },
-    { exact game_add.fst ra } }
+    exacts [game_add.snd rb, game_add.fst ra] }
 end
 
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is

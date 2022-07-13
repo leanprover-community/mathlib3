@@ -22,8 +22,8 @@ archimedean. We also construct the natural map from a `linear_ordered_field` to 
 
 * `conditionally_complete_linear_ordered_field`: A field satisfying the standard axiomatization of
   the real numbers, being a Dedekind complete and linear ordered field.
-* `rat.induced_map`: A (unique) map from any archimedean linear ordered field to a conditionally
-  complete linear ordered field. Various bundlings are available.
+* `linear_ordered_field.induced_map`: A (unique) map from any archimedean linear ordered field to a
+  conditionally complete linear ordered field. Various bundlings are available.
 
 ## Main results
 
@@ -46,7 +46,7 @@ variables {F α β γ : Type*}
 
 noncomputable theory
 
-open function real set
+open function rat real set
 open_locale classical pointwise
 
 set_option old_structure_cmd true
@@ -73,7 +73,7 @@ end
 instance : conditionally_complete_linear_ordered_field ℝ :=
 { ..real.linear_ordered_field, ..real.conditionally_complete_linear_order }
 
-namespace rat
+namespace linear_ordered_field
 
 /-!
 ### Rational cut map
@@ -311,4 +311,4 @@ fields. -/
 instance : unique (β ≃+*o γ) := unique_of_subsingleton $ induced_order_ring_iso β γ
 
 end induced_map
-end rat
+end linear_ordered_field

@@ -76,7 +76,7 @@ lemma subgaussian_cgf.integrable_exp_mul (h : subgaussian_cgf X μ c) (t : ℝ) 
 
 lemma subgaussian_cgf.mgf_le (h : subgaussian_cgf X μ c) (t : ℝ) :
   mgf X μ t ≤ exp (c * t^2 / 2) :=
-calc mgf X μ t ≤ .exp (cgf X μ t) : le_exp_log _
+calc mgf X μ t ≤ exp (cgf X μ t) : le_exp_log _
 ... ≤ exp (c * t^2 / 2) : exp_monotone (h.cgf_le t)
 
 lemma subgaussian_cgf_zero [is_probability_measure μ] (hc : 0 ≤ c) : subgaussian_cgf 0 μ c :=

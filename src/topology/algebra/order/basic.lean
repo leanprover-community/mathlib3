@@ -1083,7 +1083,7 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
-instance order_topology.regular_space : regular_space α :=
+instance order_topology.t3_space : t3_space α :=
 { regular := assume s a hs ha,
     have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,

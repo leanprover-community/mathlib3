@@ -179,16 +179,6 @@ lemma fold_sup_bot_singleton [decidable_eq α] (s : finset α) :
   finset.fold (⊔) ⊥ singleton s = s :=
 fold_union_empty_singleton s
 
-lemma fold_sup_le [semilattice_sup β] (c : β) :
-  finset.fold (⊔) b f s ≤ c ↔ b ≤ c ∧ ∀ (x : α), x ∈ s → f x ≤ c :=
-begin
-  show _ ≥ _ ↔ _,
-  apply fold_op_rel_iff_and,
-  intros x y z,
-  show _ ≤ _ ↔ _,
-  exact sup_le_iff
-end
-
 section order
 variables [linear_order β] (c : β)
 

@@ -33,12 +33,11 @@ variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (f
 lemma degree_mul_le (f g : add_monoid_algebra R A) :
   (f * g).degree ≤ f.degree + g.degree :=
 begin
-  refine (finset.sup_le _), --.mpr ⟨bot_le, λ d ds, _⟩,
+  refine (finset.sup_le (λ d ds, _)),
   obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
   { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop] using f.support_mul g ds },
-  refine (add_le_add _ _),
-  exact finset.le_sup af,
-  exact finset.le_sup bg,
+  refine (with_bot.coe_add _ _).le.trans (add_le_add _ _);
+  exact finset.le_sup ‹_›,
 end
 
 end degree

@@ -747,7 +747,7 @@ apply le_antisymm,
   refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) _,
       intro i,
       rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
-      refine lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
+      exact lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
 end
 }
 

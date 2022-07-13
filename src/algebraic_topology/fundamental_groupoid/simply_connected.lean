@@ -64,3 +64,25 @@ instance of_contractible (Y : Type*) [topological_space Y] [contractible_space Y
     fundamental_groupoid.punit_equiv_discrete_punit⟩, }
 
 end simply_connected_space
+
+local attribute [instance] path.homotopic.setoid
+
+/-- A space is simply connected iff it is path connected, and there is at most one path
+  up to homotopy between any two points. -/
+lemma simply_connected_iff_paths_homotopic {Y : Type*} [topological_space Y] :
+  simply_connected_space Y ↔ (path_connected_space Y) ∧
+  (∀ x y : Y, subsingleton (path.homotopic.quotient x y)) :=
+⟨by { introI, split; apply_instance, },
+λ h, begin
+  casesI h, rw simply_connected_iff_unique_homotopic,
+  exact ⟨infer_instance, λ x y, ⟨unique_of_subsingleton ⟦path_connected_space.some_path x y⟧⟩⟩,
+end⟩
+
+/-- Another version of `simply_connected_iff_paths_homotopic` -/
+lemma simply_connected_iff_paths_homotopic' {Y : Type*} [topological_space Y] :
+  simply_connected_space Y ↔ (path_connected_space Y) ∧
+  (∀ {x y : Y} (p₁ p₂ : path x y), path.homotopic p₁ p₂) :=
+begin
+  convert simply_connected_iff_paths_homotopic,
+  simp [path.homotopic.quotient, setoid.eq_top_iff], refl,
+end

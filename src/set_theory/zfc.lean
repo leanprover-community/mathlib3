@@ -366,8 +366,6 @@ def mk : pSet → Set := quotient.mk
 
 @[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
 
-@[simp] theorem mk_out : ∀ x : Set, mk x.out = x := quotient.out_eq
-
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
 rfl

@@ -41,7 +41,7 @@ variables {A}
 def mul_left (a : A) : A →ₗ[R] A := mul R A a
 
 /-- The multiplication on the right in an algebra is a linear map. -/
-def mul_right (a : A) : A →ₗ[R] A := (mul R A).to_distrib_mul_action_hom.to_linear_map.flip a
+def mul_right (a : A) : A →ₗ[R] A := (mul R A).flip a
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/
 def mul_left_right (ab : A × A) : A →ₗ[R] A := (mul_right R ab.snd).comp (mul_left R ab.fst)
@@ -62,8 +62,7 @@ variables {R}
 @[simp] lemma mul_left_right_apply (a b x : A) : mul_left_right R (a, b) x = a * x * b := rfl
 
 @[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b :=
-by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply', coe_coe,
-  distrib_mul_action_hom.coe_to_linear_map, non_unital_alg_hom.coe_to_distrib_mul_action_hom]
+by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply']
 
 @[simp] lemma mul_left_zero_eq_zero :
   mul_left R (0 : A) = 0 :=
@@ -71,7 +70,7 @@ by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply', coe_coe,
 
 @[simp] lemma mul_right_zero_eq_zero :
   mul_right R (0 : A) = 0 :=
-(mul R A).to_distrib_mul_action_hom.to_linear_map.flip.map_zero
+(mul R A).flip.map_zero
 
 end non_unital_non_assoc
 

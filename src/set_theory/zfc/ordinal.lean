@@ -326,6 +326,23 @@ instance : succ_order Ordinal := succ_order.of_succ_le_iff_of_le_lt_succ
 
 instance : has_one Ordinal := ⟨order.succ 0⟩
 
+/-- For an `Ordinal` in universe `u`, returns a corresponding type. -/
+def to_type (x : Ordinal.{u}) : Type u := shrink x.1.to_set
+
+instance (x : Ordinal) : has_lt x.to_type :=
+⟨order.preimage (subtype.val ∘ (equiv_shrink x.1.to_set).symm) (∈)⟩
+
+instance (x : Ordinal) : has_le x.to_type :=
+⟨order.preimage (subtype.val ∘ (equiv_shrink x.1.to_set).symm) (⊆)⟩
+
+theorem Ordinal.to_type_lt_wf (x : Ordinal) : @well_founded x.to_type (<) :=
+sorry
+
+instance (x : Ordinal) : @is_well_order x.to_type (<) := ⟨Ordinal.to_type_lt_wf⟩
+
+def to_ordinal (x : Ordinal) : ordinal :=
+@ordinal.type x.to_type (<) _
+
 end Ordinal
 
 end Set

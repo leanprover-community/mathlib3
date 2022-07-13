@@ -36,15 +36,17 @@ class H_space (X : Type u) [topological_space X]  :=
 (cont' : continuous Hmul)
 (Hmul_e_e : Hmul (e, e) = e)
 (left_Hmul_e : ∀ x : X,
-  @continuous_map.homotopy_rel (X) (X) _ _
-  ⟨(λ x : X, Hmul (e, x)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
-  ⟨(λ x : X, Hmul (e, x)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
+  continuous_map.homotopy_rel
+  ⟨(λ a : X, Hmul (e, a)), (continuous.comp cont' (continuous_const.prod_mk continuous_id'))⟩
+  ⟨id, continuous_id'⟩
   {e})
 (right_Hmul_e : ∀ x : X,
-  @continuous_map.homotopy_rel (X) (X) _ _
+  continuous_map.homotopy_rel
   ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont'(continuous_id'.prod_mk continuous_const))⟩
-  ⟨(λ x : X, Hmul (x, e)), (continuous.comp cont'(continuous_id'.prod_mk continuous_const))⟩
+  ⟨id, continuous_id'⟩
   {e})
+
+-- #check @H_space.mk
 
 notation ` ∨ `:65 := H_space.Hmul
 
@@ -54,8 +56,11 @@ instance topological_group_H_space (G : Type u) [topological_space G] [group G]
   e := 1,
   cont' := continuous_mul,
   Hmul_e_e := by {simp only [function.uncurry_apply_pair, mul_one]},
-  left_Hmul_e := λ _, continuous_map.homotopy_rel.refl _ _ ,
-  right_Hmul_e := λ _, continuous_map.homotopy_rel.refl _ _ }
+  left_Hmul_e := λ _, by {simp only [function.uncurry_apply_pair, one_mul],
+    exact continuous_map.homotopy_rel.refl _ _ },
+  right_Hmul_e := λ _, by {simp only [function.uncurry_apply_pair, mul_one],
+    exact continuous_map.homotopy_rel.refl _ _ },
+}
 
 @[simp]
 lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] :

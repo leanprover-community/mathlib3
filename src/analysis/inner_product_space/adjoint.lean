@@ -47,39 +47,39 @@ variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-namespace inner_product_space
+namespace linear_map
 
-/-! ### Self-adjoint operators -/
+/-! ### Symmetric operators -/
 
-/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
+/-- A (not necessarily bounded) operator on an inner product space is symmetric, if for all
 `x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
-def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
+def is_symmetric (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
 
 section real
 
 variables {E' : Type*} [inner_product_space ℝ E']
 
 -- Todo: Generalize this to `is_R_or_C`.
-/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
+/-- An operator `T` on a `ℝ`-inner product space is symmetric if and only if it is
 `bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_bilin_form (T : E' →ₗ[ℝ] E') :
-  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+lemma is_symmetric_iff_bilin_form (T : E' →ₗ[ℝ] E') :
+  is_symmetric T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
+by simp [is_symmetric, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
 
 end real
 
-lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
+lemma is_symmetric.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_symmetric T) (x y : E) :
   conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
 by rw [hT x y, inner_conj_sym]
 
-@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
+@[simp] lemma is_symmetric.apply_clm {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E))
   (x y : E) :
   ⟪T x, y⟫ = ⟪x, T y⟫ :=
 hT x y
 
 /-- The **Hellinger--Toeplitz theorem**: if a symmetric operator is defined everywhere, then
   it is automatically continuous. -/
-lemma is_self_adjoint.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) :
+lemma is_symmetric.continuous [complete_space E] {T : E →ₗ[𝕜] E} (hT : is_symmetric T) :
   continuous T :=
 begin
   -- We prove it by using the closed graph theorem
@@ -95,18 +95,9 @@ begin
   exact hu.sub_const _,
 end
 
-/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
-  defined symmetric operator.-/
-def is_self_adjoint.clm [complete_space E] {T : E →ₗ[𝕜] E}
-  (hT : is_self_adjoint T) : E →L[𝕜] E :=
-⟨T, hT.continuous⟩
-
-lemma is_self_adjoint.clm_apply [complete_space E] {T : E →ₗ[𝕜] E}
-  (hT : is_self_adjoint T) {x : E} : hT.clm x = T x := rfl
-
 /-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
-@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
-  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
+@[simp] lemma is_symmetric.coe_re_apply_inner_self_apply
+  {T : E →L[𝕜] E} (hT : is_symmetric (T : E →ₗ[𝕜] E)) (x : E) :
   (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
 begin
   suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
@@ -118,9 +109,9 @@ end
 
 /-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
 self-adjoint. -/
-lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric T)
   {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  is_self_adjoint (T.restrict hV) :=
+  is_symmetric (T.restrict hV) :=
 λ v w, hT v w
 
 section complex
@@ -130,12 +121,12 @@ variables {V : Type*}
 
 /-- A linear operator on a complex inner product space is self-adjoint precisely when
 `⟪T v, v⟫_ℂ` is real for all v.-/
-lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
-  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
+lemma is_symmetric_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
+  is_symmetric T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
 begin
   split,
   { intros hT v,
-    apply is_self_adjoint.conj_inner_sym hT },
+    apply is_symmetric.conj_inner_sym hT },
   { intros h x y,
     nth_rewrite 1 ← inner_conj_sym,
     nth_rewrite 1 inner_map_polarization,
@@ -150,7 +141,7 @@ end
 
 end complex
 
-end inner_product_space
+end linear_map
 
 /-! ### Adjoint operator -/
 
@@ -296,7 +287,63 @@ lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
 
 end real
 
+/-- A (not necessarily bounded) operator `A` on an inner product space is self-adjoint iff
+  `A` is equal to its adjoint. -/
+def is_self_adjoint (A : E →L[𝕜] E) : Prop := A.adjoint = A
+
+lemma is_self_adjoint_iff {A : E →L[𝕜] E} : A.is_self_adjoint ↔
+  A.adjoint = A := iff.rfl
+
+namespace is_self_adjoint
+
+lemma is_symmetric {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
+  (A : E →ₗ[𝕜] E).is_symmetric :=
+begin
+  intros x y,
+  norm_cast,
+  rw [←adjoint_inner_right, is_self_adjoint_iff.mp hA],
+end
+
+end is_self_adjoint
+
+lemma is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
+  A.is_self_adjoint ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
+begin
+  refine ⟨λ hA, hA.is_symmetric, λ hA, _⟩,
+  ext,
+  refine inner_product_space.ext_inner_right 𝕜 _,
+  intros y,
+  rw A.adjoint_inner_left,
+  specialize hA x y,
+  rw coe_coe at hA,
+  exact hA.symm,
+end
+
 end continuous_linear_map
+
+namespace linear_map
+
+variables [complete_space E]
+variables {T : E →ₗ[𝕜] E}
+
+/-- The **Hellinger--Toeplitz theorem**: Construct a self-adjoint operator from an everywhere
+  defined symmetric operator.-/
+def is_symmetric.clm (hT : is_symmetric T) : E →L[𝕜] E :=
+⟨T, hT.continuous⟩
+
+lemma coe_is_symmetric (hT : is_symmetric T) : (hT.clm : E →ₗ[𝕜] E) = T := rfl
+
+lemma is_symmetric.clm_apply (hT : is_symmetric T) {x : E} : hT.clm x = T x := rfl
+
+lemma is_symmetric.clm_is_self_adjoint (hT : is_symmetric T) :
+  hT.clm.is_self_adjoint :=
+begin
+  rw continuous_linear_map.is_self_adjoint_iff_is_symmetric,
+  rw coe_is_symmetric,
+  exact hT,
+end
+
+end linear_map
 
 namespace linear_map
 
@@ -383,9 +430,9 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
-lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
-  is_self_adjoint A ↔ A = A.adjoint :=
-by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
+lemma is_symmetric_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
+  is_symmetric A ↔ A = A.adjoint :=
+by rw [is_symmetric, ← linear_map.eq_adjoint_iff]
 
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
@@ -410,7 +457,7 @@ lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
 end real
 
 /-- The Gram operator T†T is self-adjoint. -/
-lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
+lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_symmetric (T.adjoint * T) :=
 λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
   linear_map.adjoint_inner_right]
 

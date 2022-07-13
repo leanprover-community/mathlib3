@@ -1083,7 +1083,7 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
-instance order_topology.regular_space : regular_space α :=
+instance order_topology.t3_space : t3_space α :=
 { regular := assume s a hs ha,
     have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
@@ -1261,7 +1261,7 @@ sometimes Lean fails to unify different instances while trying to apply the depe
 e.g., `ι → ℝ`.
 -/
 
-variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+variables {ι : Type*} {π : ι → Type*} [finite ι] [Π i, linear_order (π i)]
   [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
 
 lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
@@ -1277,7 +1277,7 @@ lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
 pi_Ici_mem_nhds ha
 
 lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
-pi_univ_Icc a b ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+pi_univ_Icc a b ▸ set_pi_mem_nhds finite_univ (λ i _, Icc_mem_nhds (ha _) (hb _))
 
 lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
 pi_Icc_mem_nhds ha hb

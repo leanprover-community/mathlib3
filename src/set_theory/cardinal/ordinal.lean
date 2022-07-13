@@ -222,8 +222,8 @@ aleph_0_pos.trans_le (aleph_0_le_aleph o)
 @[simp] theorem aleph_to_nat (o : ordinal) : (aleph o).to_nat = 0 :=
 to_nat_apply_of_aleph_0_le $ aleph_0_le_aleph o
 
-@[simp] theorem aleph_to_enat (o : ordinal) : (aleph o).to_enat = ⊤ :=
-to_enat_apply_of_aleph_0_le $ aleph_0_le_aleph o
+@[simp] theorem aleph_to_part_enat (o : ordinal) : (aleph o).to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le $ aleph_0_le_aleph o
 
 instance nonempty_out_aleph (o : ordinal) : nonempty (aleph o).ord.out.α :=
 begin

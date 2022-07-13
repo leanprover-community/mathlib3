@@ -26,8 +26,7 @@ This file defines the predicate `separated`, and common separation axioms
   there is two disjoint open sets, one containing `x`, and the other `y`.
 * `t2_5_space`: A T₂.₅/Urysohn space is a space where, for every two points `x ≠ y`,
   there is two open sets, one containing `x`, and the other `y`, whose closures are disjoint.
-* `regular_space`: A T₃ space (sometimes referred to as regular, but authors vary on
-  whether this includes T₂; `mathlib` does), is one where given any closed `C` and `x ∉ C`,
+* `t3_space`: A T₃ space, is one where given any closed `C` and `x ∉ C`,
   there is disjoint open sets containing `x` and `C` respectively. In `mathlib`, T₃ implies T₂.₅.
 * `normal_space`: A T₄ space (sometimes referred to as normal, but authors vary on
   whether this includes T₂; `mathlib` does), is one where given two disjoint closed sets,
@@ -1251,44 +1250,43 @@ by rw [is_irreducible, is_preirreducible_iff_subsingleton,
 
 end separation
 
-section regularity
+section t3
 
-/-- A T₃ space, also known as a regular space (although this condition sometimes
-  omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
+/-- A T₃ space is a T₀ space in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
-class regular_space (α : Type u) [topological_space α] extends t0_space α : Prop :=
+class t3_space (α : Type u) [topological_space α] extends t0_space α : Prop :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 @[priority 100] -- see Note [lower instance priority]
-instance regular_space.t1_space [regular_space α] : t1_space α :=
+instance t3_space.t1_space [t3_space α] : t1_space α :=
 begin
   rw t1_space_iff_exists_open,
   intros x y hxy,
   obtain ⟨U, hU, h⟩ := exists_is_open_xor_mem hxy,
   cases h,
   { exact ⟨U, hU, h⟩ },
-  { obtain ⟨R, hR, hh⟩ := regular_space.regular (is_closed_compl_iff.mpr hU) (not_not.mpr h.1),
+  { obtain ⟨R, hR, hh⟩ := t3_space.regular (is_closed_compl_iff.mpr hU) (not_not.mpr h.1),
     obtain ⟨V, hV, hhh⟩ := mem_nhds_iff.1 (filter.inf_principal_eq_bot.1 hh.2),
     exact ⟨R, hR, hh.1 (mem_compl h.2), hV hhh.2⟩ }
 end
 
-lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
+lemma nhds_is_closed [t3_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃ t ∈ 𝓝 a, t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_iff.mp h in
 have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
-  from regular_space.regular h₂.is_closed_compl (not_not_intro h₃),
+  from t3_space.regular h₂.is_closed_compl (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,
   mem_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
 
-lemma closed_nhds_basis [regular_space α] (a : α) :
+lemma closed_nhds_basis [t3_space α] (a : α) :
   (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_closed s) id :=
 ⟨λ t, ⟨λ t_in, let ⟨s, s_in, h_st, h⟩ := nhds_is_closed t_in in ⟨s, ⟨s_in, h⟩, h_st⟩,
        λ ⟨s, ⟨s_in, hs⟩, hst⟩, mem_of_superset s_in hst⟩⟩
 
-lemma topological_space.is_topological_basis.exists_closure_subset [regular_space α]
+lemma topological_space.is_topological_basis.exists_closure_subset [t3_space α]
   {B : set (set α)} (hB : topological_space.is_topological_basis B) {a : α} {s : set α}
   (h : s ∈ 𝓝 a) :
   ∃ t ∈ B, a ∈ t ∧ closure t ⊆ s :=
@@ -1298,33 +1296,33 @@ begin
   exact ⟨u, huB, hau, (closure_minimal hut htc).trans hts⟩
 end
 
-lemma topological_space.is_topological_basis.nhds_basis_closure [regular_space α]
+lemma topological_space.is_topological_basis.nhds_basis_closure [t3_space α]
   {B : set (set α)} (hB : topological_space.is_topological_basis B) (a : α) :
   (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ s ∈ B) closure :=
 ⟨λ s, ⟨λ h, let ⟨t, htB, hat, hts⟩ := hB.exists_closure_subset h in ⟨t, ⟨hat, htB⟩, hts⟩,
   λ ⟨t, ⟨hat, htB⟩, hts⟩, mem_of_superset (hB.mem_nhds htB hat) (subset_closure.trans hts)⟩⟩
 
-protected lemma embedding.regular_space [topological_space β] [regular_space β] {f : α → β}
-  (hf : embedding f) : regular_space α :=
+protected lemma embedding.t3_space [topological_space β] [t3_space β] {f : α → β}
+  (hf : embedding f) : t3_space α :=
 { to_t0_space := hf.t0_space,
   regular :=
   begin
     intros s a hs ha,
     rcases hf.to_inducing.is_closed_iff.1 hs with ⟨s, hs', rfl⟩,
-    rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
+    rcases t3_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
     refine ⟨f ⁻¹' t, ht.preimage hf.continuous, preimage_mono hst, _⟩,
     rw [nhds_within, hf.to_inducing.nhds_eq_comap, ← comap_principal, ← comap_inf,
         ← nhds_within, hat, comap_bot]
   end }
 
-instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
-embedding_subtype_coe.regular_space
+instance subtype.t3_space [t3_space α] {p : α → Prop} : t3_space (subtype p) :=
+embedding_subtype_coe.t3_space
 
 variable (α)
 @[priority 100] -- see Note [lower instance priority]
-instance regular_space.t2_space [regular_space α] : t2_space α :=
+instance t3_space.t2_space [t3_space α] : t2_space α :=
 ⟨λ x y hxy,
-let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
+let ⟨s, hs, hys, hxs⟩ := t3_space.regular is_closed_singleton
     (mt mem_singleton_iff.1 hxy),
   ⟨t, hxt, u, hsu, htu⟩ := empty_mem_iff_bot.2 hxs,
   ⟨v, hvt, hv, hxv⟩ := mem_nhds_iff.1 hxt in
@@ -1332,11 +1330,11 @@ let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
   (disjoint_iff_inter_eq_empty.2 htu.symm).mono hvt hsu⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance regular_space.t2_5_space [regular_space α] : t2_5_space α :=
+instance t3_space.t2_5_space [t3_space α] : t2_5_space α :=
 ⟨λ x y hxy,
 let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_separation hxy,
   hxcV := not_not.mpr (interior_maximal hUV.subset_compl_right hU hh_1),
-  ⟨R, hR, hh⟩ := regular_space.regular is_closed_closure (by rwa closure_eq_compl_interior_compl),
+  ⟨R, hR, hh⟩ := t3_space.regular is_closed_closure (by rwa closure_eq_compl_interior_compl),
   ⟨A, hA, hhh⟩ := mem_nhds_iff.1 (filter.inf_principal_eq_bot.1 hh.2) in
 ⟨A, V, hhh.1, hV, disjoint_compl_left.mono_left ((closure_minimal hA hR.is_closed_compl).trans $
   compl_subset_compl.mpr hh.1), hhh.2, hh_2⟩⟩
@@ -1345,7 +1343,7 @@ variable {α}
 
 /-- Given two points `x ≠ y`, we can find neighbourhoods `x ∈ V₁ ⊆ U₁` and `y ∈ V₂ ⊆ U₂`,
 with the `Vₖ` closed and the `Uₖ` open, such that the `Uₖ` are disjoint. -/
-lemma disjoint_nested_nhds [regular_space α] {x y : α} (h : x ≠ y) :
+lemma disjoint_nested_nhds [t3_space α] {x y : α} (h : x ≠ y) :
   ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
   V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ disjoint U₁ U₂ :=
 begin
@@ -1358,10 +1356,10 @@ begin
 end
 
 /--
-In a locally compact regular space, given a compact set `K` inside an open set `U`, we can find a
+In a locally compact T₃ space, given a compact set `K` inside an open set `U`, we can find a
 compact set `K'` between these sets: `K` is inside the interior of `K'` and `K' ⊆ U`.
 -/
-lemma exists_compact_between [locally_compact_space α] [regular_space α]
+lemma exists_compact_between [locally_compact_space α] [t3_space α]
   {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ K', is_compact K' ∧ K ⊆ interior K' ∧ K' ⊆ U :=
 begin
@@ -1383,7 +1381,7 @@ end
 In a locally compact regular space, given a compact set `K` inside an open set `U`, we can find a
 open set `V` between these sets with compact closure: `K ⊆ V` and the closure of `V` is inside `U`.
 -/
-lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [regular_space α]
+lemma exists_open_between_and_is_compact_closure [locally_compact_space α] [t3_space α]
   {K U : set α} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
   ∃ V, is_open V ∧ K ⊆ V ∧ closure V ⊆ U ∧ is_compact (closure V) :=
 begin
@@ -1393,7 +1391,7 @@ begin
     compact_closure_of_subset_compact hV interior_subset⟩,
 end
 
-end regularity
+end t3
 
 section normality
 
@@ -1422,7 +1420,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance normal_space.regular_space [normal_space α] : regular_space α :=
+instance normal_space.t3_space [normal_space α] : t3_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ :=
     normal_separation hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ mem_of_eq_of_mem (eq_of_mem_singleton hy).symm hx) in
@@ -1449,9 +1447,9 @@ protected lemma closed_embedding.normal_space [topological_space β] [normal_spa
 
 variable (α)
 
-/-- A regular topological space with second countable topology is a normal space.
+/-- A T₃ topological space with second countable topology is a normal space.
 This lemma is not an instance to avoid a loop. -/
-lemma normal_space_of_regular_second_countable [second_countable_topology α] [regular_space α] :
+lemma normal_space_of_t3_second_countable [second_countable_topology α] [t3_space α] :
   normal_space α :=
 begin
   have key : ∀ {s t : set α}, is_closed t → disjoint s t →
@@ -1558,7 +1556,7 @@ begin
   rw [←not_disjoint_iff_nonempty_inter, imp_not_comm, not_forall] at H1,
   cases H1 (disjoint_compl_left_iff_subset.2 $ hab.trans $ union_subset_union hau hbv) with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
-  { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
+  { exact is_clopen_bInter_finset (λ Z hZ, Z.2.1) },
   { exact mem_Inter₂.2 (λ Z hZ, Z.2.2) },
   { rwa [←disjoint_compl_left_iff_subset, disjoint_iff_inter_eq_empty, ←not_nonempty_iff_eq_empty] }
 end
@@ -1724,7 +1722,7 @@ begin
     swap, { exact λ Z, Z.2.1.2 },
     -- This clopen and its complement will separate the connected components of `a` and `b`
     set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i),
-    have hU : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
+    have hU : is_clopen U := is_clopen_bInter_finset (λ i j, i.2.1),
     exact ⟨U, coe '' U, hU, ha, subset_Inter₂ (λ Z _, Z.2.1.connected_component_subset Z.2.2),
       (connected_components_preimage_image U).symm ▸ hU.bUnion_connected_component_eq⟩ },
   rw connected_components.quotient_map_coe.is_clopen_preimage at hU,

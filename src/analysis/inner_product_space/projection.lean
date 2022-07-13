@@ -221,7 +221,7 @@ begin
     rw [eq₁, le_add_iff_nonneg_right] at this,
     have eq₂ : θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)=θ*(θ*∥w-v∥^2-2*inner(u-v)(w-v)), ring,
     rw eq₂ at this,
-    have := le_of_sub_nonneg (nonneg_of_mul_nonneg_left this hθ₁),
+    have := le_of_sub_nonneg (nonneg_of_mul_nonneg_right this hθ₁),
     exact this,
   by_cases hq : q = 0,
   { rw hq at this,

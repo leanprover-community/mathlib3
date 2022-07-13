@@ -216,7 +216,7 @@ def of_nat : ℕ → pSet
 /-- The von Neumann ordinal ω -/
 def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 
--- Todo (Vi): add general Neumann ordinals.
+-- Todo (vihdzp): add general Neumann ordinals.
 
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
 protected def sep (p : set pSet) : pSet → pSet
@@ -339,7 +339,7 @@ end resp
 class inductive definable (n) : arity Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval n f)
 
--- Todo (Vi): this shouldn't be a class, since sets have lots of nontrivial equalities between them.
+-- Todo (vihdzp): this shouldn't be a class, since sets have lots of nontrivial equalities between them.
 
 attribute [instance] definable.mk
 

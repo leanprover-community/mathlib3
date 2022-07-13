@@ -44,7 +44,7 @@ layer cake representation, Cavalieri's principle, tail probability formula
 
 noncomputable theory
 open_locale ennreal measure_theory
-open set measure_theory filter topological_space
+open set measure_theory filter
 
 /-! ### Layercake theorem -/
 section layercake
@@ -133,13 +133,12 @@ begin
 end
 
 lemma ae_measurable_Ioi_of_forall_Ioc {α β} {m : measurable_space α} {μ : measure α}
-  {mβ : measurable_space β} [linear_order α] [topological_space α] [first_countable_topology α]
-  [no_max_order α] [densely_ordered α] [order_topology α] [(at_top : filter α).ne_bot]
-  [(at_top : filter α).is_countably_generated]
-  {x t : α} {g : α → β}
-  (g_meas : ∀ t > x, ae_measurable g (μ.restrict (Ioc x t))) :
+  {mβ : measurable_space β} [linear_order α] [(at_top : filter α).is_countably_generated]
+  {x : α} {g : α → β} (g_meas : ∀ t > x, ae_measurable g (μ.restrict (Ioc x t))) :
   ae_measurable g (μ.restrict (Ioi x)) :=
 begin
+  haveI : nonempty α := ⟨x⟩,
+  haveI : (at_top : filter α).ne_bot := at_top_ne_bot,
   obtain ⟨u, hu_tendsto⟩ := exists_seq_tendsto (at_top : filter α),
   have Ioi_eq_Union : Ioi x = ⋃ n : ℕ, Ioc x (u n),
   { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
@@ -152,12 +151,6 @@ begin
   { rw Ioc_eq_empty (not_lt.mpr h),
     simp only [measure.restrict_empty],
     exact ae_measurable_zero_measure, },
-  by_cases n = 0,
-  { simp only [h, nat.cast_zero, Ioc_self,
-               measure.restrict_empty, _root_.ae_measurable_zero_measure], },
-  { refine g_meas n _,
-    rw [gt_iff_lt, nat.cast_pos],
-    exact lt_of_le_of_ne (zero_le _) (ne.symm h), },
 end
 
 lemma _root_.ae_measurable.exists_measurable_nonneg {μ : measure ℝ}

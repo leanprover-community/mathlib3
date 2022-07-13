@@ -32,7 +32,8 @@ universes u1 u2 u3
 
 variables {R M N : Type*}
 variables [comm_ring R] [add_comm_group M] [add_comm_group N]
-variables [module R M] [module R N]
+variables [module R M] [module Rᵐᵒᵖ M] [module R N] [module Rᵐᵒᵖ N]
+variables [is_central_scalar R M] [is_central_scalar R N]
 variables (Q : quadratic_form R M)
 
 namespace clifford_algebra

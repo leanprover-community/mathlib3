@@ -180,12 +180,14 @@ This is the intermediate field version of `subalgebra.top_equiv`. -/
 @[simp] lemma top_equiv_symm_apply_coe (a : E) :
   ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a := rfl
 
-@[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=
-by { ext, rw [mem_lift2, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
+@[simp] lemma restrict_scalars_bot_eq_self (K : intermediate_field F E) :
+  (⊥ : intermediate_field K E).restrict_scalars _ = K :=
+by { ext, rw [mem_restrict_scalars, mem_bot], exact set.ext_iff.mp subtype.range_coe x }
 
-@[simp] lemma coe_top_eq_top (K : intermediate_field F E) :
-  ↑(⊤ : intermediate_field K E) = (⊤ : intermediate_field F E) :=
-set_like.ext_iff.mpr $ λ _, mem_lift2.trans (iff_of_true mem_top mem_top)
+@[simp] lemma restrict_scalars_top {K : Type*} [field K] [algebra K E] [algebra K F]
+  [is_scalar_tower K F E] :
+  (⊤ : intermediate_field F E).restrict_scalars K = ⊤ :=
+rfl
 
 end lattice
 
@@ -251,7 +253,8 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
   λ ⟨hF, hS⟩, subfield.closure_le.mpr (set.union_subset hF hS)⟩
 
 /-- `F[S][T] = F[S ∪ T]` -/
-lemma adjoin_adjoin_left (T : set E) : ↑(adjoin (adjoin F S) T) = adjoin F (S ∪ T) :=
+lemma adjoin_adjoin_left (T : set E) :
+  (adjoin (adjoin F S) T).restrict_scalars _ = adjoin F (S ∪ T) :=
 begin
   rw set_like.ext'_iff,
   change ↑(adjoin (adjoin F S) T) = _,
@@ -273,7 +276,7 @@ le_antisymm
 
 /-- `F[S][T] = F[T][S]` -/
 lemma adjoin_adjoin_comm (T : set E) :
-  ↑(adjoin (adjoin F S) T) = (↑(adjoin (adjoin F T) S) : (intermediate_field F E)) :=
+  (adjoin (adjoin F S) T).restrict_scalars F = (adjoin (adjoin F T) S).restrict_scalars F :=
 by rw [adjoin_adjoin_left, adjoin_adjoin_left, set.union_comm]
 
 lemma adjoin_map {E' : Type*} [field E'] [algebra F E'] (f : E →ₐ[F] E') :
@@ -356,10 +359,10 @@ by { conv_rhs { rw ← adjoin_simple.algebra_map_gen F α },
      rw is_integral_algebra_map_iff (algebra_map F⟮α⟯ E).injective,
      apply_instance }
 
-lemma adjoin_simple_adjoin_simple (β : E) : ↑F⟮α⟯⟮β⟯ = F⟮α, β⟯ :=
+lemma adjoin_simple_adjoin_simple (β : E) : F⟮α⟯⟮β⟯.restrict_scalars F = F⟮α, β⟯ :=
 adjoin_adjoin_left _ _ _
 
-lemma adjoin_simple_comm (β : E) : ↑F⟮α⟯⟮β⟯ = (↑F⟮β⟯⟮α⟯ : intermediate_field F E) :=
+lemma adjoin_simple_comm (β : E) : F⟮α⟯⟮β⟯.restrict_scalars F = F⟮β⟯⟮α⟯.restrict_scalars F :=
 adjoin_adjoin_comm _ _ _
 
 -- TODO: develop the API for `subalgebra.is_field_of_algebraic` so it can be used here
@@ -615,7 +618,8 @@ lemma fg_of_noetherian (S : intermediate_field F E)
 S.fg_of_fg_to_subalgebra S.to_subalgebra.fg_of_noetherian
 
 lemma induction_on_adjoin_finset (S : finset E) (P : intermediate_field F E → Prop) (base : P ⊥)
-  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P ↑K⟮x⟯) : P (adjoin F ↑S) :=
+  (ih : ∀ (K : intermediate_field F E) (x ∈ S), P K → P (K⟮x⟯.restrict_scalars F)) :
+  P (adjoin F ↑S) :=
 begin
   apply finset.induction_on' S,
   { exact base },
@@ -625,7 +629,7 @@ begin
 end
 
 lemma induction_on_adjoin_fg (P : intermediate_field F E → Prop)
-  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F))
   (K : intermediate_field F E) (hK : K.fg) : P K :=
 begin
   obtain ⟨S, rfl⟩ := hK,
@@ -633,7 +637,7 @@ begin
 end
 
 lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field F E → Prop)
-  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯)
+  (base : P ⊥) (ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F))
   (K : intermediate_field F E) : P K :=
 begin
   letI : is_noetherian F E := is_noetherian.iff_fg.2 infer_instance,
@@ -765,7 +769,7 @@ let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
   splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero h1))
   ((splits_map_iff _ _).mpr (by {convert h2, exact ring_hom.ext (λ y, x.2.commutes y)}))
   (minpoly.dvd_map_of_is_scalar_tower _ _ _) in
-⟨↑x.1⟮s⟯, (@alg_hom_equiv_sigma F x.1 (↑x.1⟮s⟯ : intermediate_field F E) K _ _ _ _ _ _ _
+⟨x.1⟮s⟯.restrict_scalars F, (@alg_hom_equiv_sigma F x.1 (x.1⟮s⟯.restrict_scalars F) K _ _ _ _ _ _ _
   (intermediate_field.algebra x.1⟮s⟯) (is_scalar_tower.of_algebra_map_eq (λ _, rfl))).inv_fun
   ⟨x.2, (@alg_hom_adjoin_integral_equiv x.1 _ E _ _ s K _ x.2.to_ring_hom.to_algebra
   h3).inv_fun ⟨root_of_splits x.2.to_ring_hom key (ne_of_gt (minpoly.degree_pos h3)), by

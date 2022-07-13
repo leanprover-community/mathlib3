@@ -39,13 +39,11 @@ def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
    ∃ (𝒱 : Cover U)
      (s : Π (i : 𝒱.ι), ℱ on (𝒱.V i)),
      ∀ (i : 𝒱.ι),
-begin
-  have tᵢ := (forget C).map (𝒢.map (𝒱.sub i).op) t,
-  have Tsᵢ := T.app,
-  -- finishing stating tᵢ = Tsᵢ
-end
-     --∀ i, ℱ.map (s i) = 𝒢.map (𝒱.sub i).op t
-
+   (forget C).map (T.app (op (𝒱.V i))) (s i) =
+   (forget C).map (𝒢.map (𝒱.sub i).op) t
+-- tᵢ := (forget C).map (𝒢.map (𝒱.sub i).op) t,
+-- Tsᵢ := (forget C).map (T.app (op (𝒱.V i))) (s i),
+-- then Tsᵢ = tᵢ
 
 
 
@@ -63,7 +61,7 @@ variables {X Y : Scheme.{u}} (f : X ⟶ Y)
 
 structure is_closed_immersion (f : X ⟶ Y) : Prop :=
     (is_closed_embedding_base : closed_embedding f.val.base)
-    (is_surjective_on_sections : surjective (f.val.c))
+    (is_surjective_on_sections : is_locally_surjective (f.val.c))
 
 
 

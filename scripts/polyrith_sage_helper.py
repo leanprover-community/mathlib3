@@ -1,8 +1,6 @@
 # this file will be run by the remote sage server, so should not import local files.
 from functools import reduce
 from typing import Optional
-import dataclasses
-
 from attr import dataclass
 from sage.rings.polynomial.polydict import ETuple
 

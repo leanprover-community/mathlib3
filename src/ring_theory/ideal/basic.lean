@@ -583,7 +583,7 @@ instance : fintype $ right_ideal K :=
 { elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
   complete := λ I, by simp [right_ideal.eq_bot_or_top], }
 
-@[simp] lemma card_of_division_ring : fintype.card (ideal K) = 2 := rfl
+@[simp] lemma card_of_division_ring : fintype.card (right_ideal K) = 2 := rfl
 
 end right_ideal
 

@@ -93,7 +93,7 @@ do
 @[instance] meta def sigma_sigma_fin_matrix_has_reflect {α : Type}
   [has_reflect α] [reflected _ α] :
   has_reflect (Σ (m n : ℕ), fin m → fin n → α) :=
-@sigma.reflect.{0 0} _ _ ℕ (λ m, Σ n, matrix (fin m) (fin n) α) _ _ _ $ λ i,
+@sigma.reflect.{0 0} _ _ ℕ (λ m, Σ n, fin m → fin n → α) _ _ _ $ λ i,
   @sigma.reflect.{0 0} _ _ ℕ _ _ _ _ (λ j, infer_instance)
 
 /-- `!![a, b; c, d]` notation for matrices indexed by `fin m` and `fin n`. See the module docstring
@@ -103,14 +103,8 @@ meta def «notation» (_ : parse $ tk "!![")
   (val : parse (entry_parser (parser.pexpr 1) <* tk "]")) : parser pexpr :=
 do
   let ⟨m, n, entries⟩ := val,
-  -- TODO: introduce a `matrix.of : (fin m → fin n → α) ≃ matrix m n α` and use it here, to ensure
-  -- the notation is actually notation for `matrix` and not just pi types.
-  if m = 0 then
-    -- handle this specially to ensure that `n` appears in the result type, as it cannot be
-    -- inferred.
-    pure ``(@vec_empty (fin %%`(n) → (_ : Type _)))
-  else
-    pure (pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries))
+  let entry_vals := pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries),
+  pure (``(@matrix.of (fin %%m) (fin %%n) _).app entry_vals)
 
 end parser
 

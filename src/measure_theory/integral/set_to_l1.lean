@@ -156,7 +156,7 @@ lemma map_Union_fin_meas_set_eq_sum (T : set α → β) (T_empty : T ∅ = 0)
 begin
   revert hSp h_disj,
   refine finset.induction_on sι _ _,
-  { simp only [finset.not_mem_empty, forall_false_left, Union_false, Union_empty, sum_empty,
+  { simp only [finset.not_mem_empty, is_empty.forall_iff, Union_false, Union_empty, sum_empty,
     forall_2_true_iff, implies_true_iff, forall_true_left, not_false_iff, T_empty], },
   intros a s has h hps h_disj,
   rw [finset.sum_insert has, ← h],

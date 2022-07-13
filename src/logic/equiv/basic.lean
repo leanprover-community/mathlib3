@@ -696,7 +696,7 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
  λ b, b, λ p, by simp, λ b, by simp⟩
 
 /-- Sum of types is commutative up to an equivalence. -/
-@[simps apply]
+@[simps apply {fully_applied := ff}]
 def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 

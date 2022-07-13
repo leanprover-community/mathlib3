@@ -83,7 +83,7 @@ variables (R A : Type*) [comm_semiring R] [non_unital_semiring A]
 /-- The multiplication in a non-unital algebra is a bilinear map.
 
 A weaker version of this for non-associative exists as `add_monoid_hom.mul`. -/
-def _root_.non_unital_alg_hom.mul : A →ₙₐ[R] (End R A) :=
+def _root_.non_unital_alg_hom.lmul : A →ₙₐ[R] (End R A) :=
 { map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },
   .. (mul R A) }
@@ -91,7 +91,7 @@ def _root_.non_unital_alg_hom.mul : A →ₙₐ[R] (End R A) :=
 variables {R A}
 
 @[simp]
-lemma _root_.non_unital_alg_hom.coe_mul_eq_mul : ⇑(non_unital_alg_hom.mul R A) = mul R A := rfl
+lemma _root_.non_unital_alg_hom.coe_lmul_eq_mul : ⇑(non_unital_alg_hom.lmul R A) = mul R A := rfl
 
 lemma commute_mul_left_right (a b : A) :
   commute (mul_left R a) (mul_right R b) :=
@@ -115,7 +115,7 @@ variables (R A : Type*) [comm_semiring R] [semiring A] [algebra R A]
 the algebra.
 
 A weaker version of this for non-unital algebras exists as `non_unital_alg_hom.mul`. -/
-def _root_.algebra.mul : A →ₐ[R] (End R A) :=
+def _root_.algebra.lmul : A →ₐ[R] (End R A) :=
 { map_one' := by { ext a, exact one_mul a },
   map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },
@@ -124,7 +124,7 @@ def _root_.algebra.mul : A →ₐ[R] (End R A) :=
 
 variables {R A}
 
-@[simp] lemma _root_.algebra.coe_mul_eq_mul : ⇑(algebra.mul R A) = mul R A := rfl
+@[simp] lemma _root_.algebra.coe_lmul_eq_mul : ⇑(algebra.lmul R A) = mul R A := rfl
 
 @[simp] lemma mul_left_eq_zero_iff (a : A) :
   mul_left R a = 0 ↔ a = 0 :=
@@ -150,12 +150,12 @@ by { ext, simp only [linear_map.id_coe, mul_one, id.def, mul_right_apply] }
 
 @[simp] lemma pow_mul_left (a : A) (n : ℕ) :
   (mul_left R a) ^ n = mul_left R (a ^ n) :=
-by simpa only [mul_left, ←algebra.coe_mul_eq_mul] using ((algebra.mul R A).map_pow a n).symm
+by simpa only [mul_left, ←algebra.coe_lmul_eq_mul] using ((algebra.lmul R A).map_pow a n).symm
 
 @[simp] lemma pow_mul_right (a : A) (n : ℕ) :
   (mul_right R a) ^ n = mul_right R (a ^ n) :=
 begin
-  simp only [mul_right, ←algebra.coe_mul_eq_mul],
+  simp only [mul_right, ←algebra.coe_lmul_eq_mul],
   exact linear_map.coe_injective
     (((mul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)),
 end

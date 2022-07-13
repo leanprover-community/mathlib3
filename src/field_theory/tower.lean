@@ -70,6 +70,8 @@ of_fintype_basis $ b.smul c
 /-- In a tower of field extensions `L / K / F`, if `L / F` is finite, so is `K / F`.
 
 (In fact, it suffices that `L` is a nontrivial ring.)
+
+Note this cannot be an instance as Lean cannot infer `L`.
 -/
 theorem left (L : Type*) [ring L] [nontrivial L]
   [algebra F L] [algebra K L] [is_scalar_tower F K L]

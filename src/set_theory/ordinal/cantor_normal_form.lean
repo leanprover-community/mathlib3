@@ -47,7 +47,7 @@ by rw [CNF_rec, dif_neg o0]
     base-`b` expansion of `o`.
 
     `CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
-def CNF (b o : ordinal) : list (ordinal × ordinal) :=
+@[pp_nodot] def CNF (b o : ordinal) : list (ordinal × ordinal) :=
 if b0 : b = 0 then [] else
 CNF_rec b0 [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 

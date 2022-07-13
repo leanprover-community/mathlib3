@@ -112,7 +112,7 @@ lemma measure_mem_eq (h : ident_distrib f g μ ν) {s : set γ} (hs : measurable
 by rw [← measure.map_apply_of_ae_measurable h.ae_measurable_fst hs,
   ← measure.map_apply_of_ae_measurable h.ae_measurable_snd hs, h.map_eq]
 
-alias measure_mem_eq ← probability_theory.ident_distrib.measure_preimage_eq
+alias measure_mem_eq ← measure_preimage_eq
 
 lemma ae_snd (h : ident_distrib f g μ ν) {p : γ → Prop}
   (pmeas : measurable_set {x | p x}) (hp : ∀ᵐ x ∂μ, p (f x)) :

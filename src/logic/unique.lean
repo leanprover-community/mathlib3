@@ -164,17 +164,22 @@ namespace function
 
 variable {f : α → β}
 
-/-- If the domain of a surjective function is a singleton,
-then the codomain is a singleton as well. -/
-protected def surjective.unique (hf : surjective f) [unique α] : unique β :=
-{ default := f default,
-  uniq := λ b, let ⟨a, ha⟩ := hf b in ha ▸ congr_arg f (unique.eq_default _) }
-
 /-- If the codomain of an injective function is a subsingleton, then the domain
 is a subsingleton as well. -/
 protected lemma injective.subsingleton (hf : injective f) [subsingleton β] :
   subsingleton α :=
 ⟨λ x y, hf $ subsingleton.elim _ _⟩
+
+/-- If the domain of a surjective function is a subsingleton, then the codomain is a subsingleton as
+well. -/
+protected lemma surjective.subsingleton [subsingleton α] (hf : surjective f) :
+  subsingleton β :=
+⟨hf.forall₂.2 $ λ x y, congr_arg f $ subsingleton.elim x y⟩
+
+/-- If the domain of a surjective function is a singleton,
+then the codomain is a singleton as well. -/
+protected def surjective.unique (hf : surjective f) [unique α] : unique β :=
+@unique.mk' _ ⟨f default⟩ hf.subsingleton
 
 /-- If `α` is inhabited and admits an injective map to a subsingleton type, then `α` is `unique`. -/
 protected def injective.unique [inhabited α] [subsingleton β] (hf : injective f) : unique α :=

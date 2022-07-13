@@ -57,10 +57,12 @@ instance : add_comm_group_with_one game :=
 instance : inhabited game := ⟨0⟩
 
 instance : partial_order game :=
-{ le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
+{ le := quotient.lift₂ (≤) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
   le_refl := by { rintro ⟨x⟩, exact le_refl x },
   le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
-  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
+  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ },
+  lt := quotient.lift₂ (<) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy)),
+  lt_iff_le_not_le := by { rintro ⟨x⟩ ⟨y⟩, exact @lt_iff_le_not_le _ _ x y }, }
 
 /-- The less or fuzzy relation on games.
 
@@ -138,11 +140,7 @@ theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (hl : ∀ (i : x.left_moves), ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
   (hr : ∀ (j : y.right_moves), ⟦x.move_right (R.symm j)⟧ = ⟦y.move_right j⟧) :
   ⟦x⟧ = ⟦y⟧ :=
-begin
-  simp only [quotient.eq] at hl hr,
-  apply quotient.sound,
-  apply equiv_of_mk_equiv L R hl hr,
-end
+by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv L R hl hr) }
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.

@@ -109,7 +109,7 @@ abs_of_nonneg (cast_nonneg a)
 lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) : (m : α) ∣ (n : α) :=
 map_dvd (nat.cast_ring_hom α) h
 
-alias coe_nat_dvd ← has_dvd.dvd.nat_cast
+alias coe_nat_dvd ← _root_.has_dvd.dvd.nat_cast
 
 end nat
 

@@ -617,7 +617,8 @@ begin
     ∑ i in s.preimage sum.inr (sum.inr_injective.inj_on _), (λ x, g x • v x) (sum.inr i) = 0,
   { rw [finset.sum_preimage', finset.sum_preimage', ← finset.sum_union, ← finset.filter_or],
     { simpa only [← mem_union, range_inl_union_range_inr, mem_univ, finset.filter_true] },
-    { exact finset.disjoint_filter.2 (λ x hx, disjoint_left.1 is_compl_range_inl_range_inr.1) } },
+    { exact finset.disjoint_filter.2
+        (λ x _ hx, disjoint_left.1 is_compl_range_inl_range_inr.1 hx) } },
   { rw ← eq_neg_iff_add_eq_zero at this,
     rw [disjoint_def'] at hlr,
     have A := hlr _ (sum_mem $ λ i hi, _) _ (neg_mem $ sum_mem $ λ i hi, _) this,
@@ -789,6 +790,20 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
     simp [hij] },
   { simp [hl] }
 end⟩
+
+/-- See also `complete_lattice.independent_iff_linear_independent_of_ne_zero`. -/
+lemma linear_independent.independent_span_singleton (hv : linear_independent R v) :
+  complete_lattice.independent $ λ i, R ∙ v i :=
+begin
+  refine complete_lattice.independent_def.mp (λ i m hm, (mem_bot R).mpr _),
+  simp only [mem_inf, mem_span_singleton, supr_subtype', ← span_range_eq_supr] at hm,
+  obtain ⟨⟨r, rfl⟩, hm⟩ := hm,
+  suffices : r = 0, { simp [this], },
+  apply linear_independent_iff_not_smul_mem_span.mp hv i,
+  convert hm,
+  ext,
+  simp,
+end
 
 variable (R)
 

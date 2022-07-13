@@ -44,7 +44,7 @@ layer cake representation, Cavalieri's principle, tail probability formula
 
 noncomputable theory
 open_locale ennreal measure_theory
-open set measure_theory filter
+open set measure_theory filter topological_space
 
 /-! ### Layercake theorem -/
 section layercake
@@ -132,15 +132,26 @@ begin
   exact (ennreal.measurable_of_real.comp (g_mble.comp measurable_snd)).ae_measurable.indicator mble,
 end
 
-lemma ae_measurable_Ioi_of_forall_Ioc
-  (g_meas : ∀ t > 0, ae_measurable g (volume.restrict (Ioc 0 t))) :
-  ae_measurable g (volume.restrict (Ioi 0)) :=
+lemma ae_measurable_Ioi_of_forall_Ioc {α β} {m : measurable_space α} {μ : measure α}
+  {mβ : measurable_space β} [linear_order α] [topological_space α] [first_countable_topology α]
+  [no_max_order α] [densely_ordered α] [order_topology α] [(at_top : filter α).ne_bot]
+  [(at_top : filter α).is_countably_generated]
+  {x t : α} {g : α → β}
+  (g_meas : ∀ t > x, ae_measurable g (μ.restrict (Ioc x t))) :
+  ae_measurable g (μ.restrict (Ioi x)) :=
 begin
-  have Ioi_eq_Union : Ioi 0 = ⋃ n : ℕ, Ioc 0 (n : ℝ),
+  obtain ⟨u, hu_tendsto⟩ := exists_seq_tendsto (at_top : filter α),
+  have Ioi_eq_Union : Ioi x = ⋃ n : ℕ, Ioc x (u n),
   { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
-    exact λ x _, exists_nat_ge x, },
+    rw tendsto_at_top_at_top at hu_tendsto,
+    exact λ y _, ⟨(hu_tendsto y).some, (hu_tendsto y).some_spec (hu_tendsto y).some le_rfl⟩, },
   rw [Ioi_eq_Union, ae_measurable_Union_iff],
   intros n,
+  cases lt_or_le x (u n),
+  { exact g_meas (u n) h, },
+  { rw Ioc_eq_empty (not_lt.mpr h),
+    simp only [measure.restrict_empty],
+    exact ae_measurable_zero_measure, },
   by_cases n = 0,
   { simp only [h, nat.cast_zero, Ioc_self,
                measure.restrict_empty, _root_.ae_measurable_zero_measure], },

@@ -104,7 +104,7 @@ instance : has_coe_to_fun (evenly_covered_pt f hx) (λ ι, f ⁻¹' {x} × U →
 lemma is_open_map : is_open_map ϕ :=
 ϕ.to_evenly_covered_set.is_open_map
 
-/-- The homeomorphism from `f ⁻¹' U` to `I × U` -/
+/-- The homeomorphism from `f ⁻¹' U` to `f ⁻¹' {x} × U` -/
 def symm : f ⁻¹' U ≃ₜ f ⁻¹' {x} × U :=
 ϕ.to_evenly_covered_set.symm
 

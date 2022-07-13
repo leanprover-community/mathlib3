@@ -547,15 +547,6 @@ option.rec h₁ h₂
 @[simp] lemma rec_bot_coe_coe {C : with_bot α → Sort*} (d : C ⊥) (f : Π (a : α), C a)
   (x : α) : @rec_bot_coe _ C d f ↑x = f x := rfl
 
-/--  Similar to `eq_or_ne a ⊥`, except that it stays within `with_bot` and does not leak into
-`option`. -/
-lemma eq_bot_or_coe {α : Type*} : ∀ n : with_bot α, n = ⊥ ∨ ∃ m : α, n = m :=
-begin
-  refine with_bot.rec_bot_coe _ _,
-  { exact or.inl rfl },
-  { exact λ a, or.inr ⟨a, rfl⟩ }
-end
-
 /-- Specialization of `option.get_or_else` to values in `with_bot α` that respects API boundaries.
 -/
 def unbot' (d : α) (x : with_bot α) : α := rec_bot_coe d id x
@@ -679,10 +670,10 @@ lemma map_fn_le_iff {α β} [preorder α] [linear_order β] (f : α → β)
   (a b : with_bot α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   a.map f ≤ b.map f ↔ a ≤ b :=
 begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  induction a using with_bot.rec_bot_coe,
   { simp },
-  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
-    { simp [with_bot.not_coe_le_bot a], },
+  { induction b using with_bot.rec_bot_coe,
+    { simp [not_coe_le_bot a] },
     { simpa using mono_iff } }
 end
 

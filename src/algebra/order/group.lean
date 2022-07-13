@@ -781,9 +781,9 @@ lemma with_bot.add_coe_neg_le_iff {α} [add_group α] [preorder α]
   (a : with_bot α) (b : α) (c : with_bot α) :
   a + (-b : α) ≤ c ↔ a ≤ c + b :=
 begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  induction a using with_bot.rec_bot_coe,
   { simp },
-  { rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+  { induction c using with_bot.rec_bot_coe,
     { simp only [with_bot.not_coe_le_bot, with_bot.bot_add, iff_false, ← with_bot.coe_add,
         not_false_iff] },
     { norm_cast,

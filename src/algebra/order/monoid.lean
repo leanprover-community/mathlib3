@@ -1177,13 +1177,13 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 
 /-  It is not `to_additive` of `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have
 a multiplication. -/
-lemma map_add_of_add_hom {β F} [has_add β] [add_hom_class F α β] (f : F)
+lemma map_add_of_add_hom {α β F} [has_add α] [has_add β] [add_hom_class F α β] (f : F)
   (a b : with_bot α) :
   (a + b).map f = a.map f + b.map f :=
 begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
-  { exact (b.map f).bot_add.symm },
-  { rcases b.eq_bot_or_coe with rfl | ⟨b, rfl⟩,
+  induction a using with_bot.rec_bot_coe,
+  { exact (bot_add _).symm },
+  { induction b using with_bot.rec_bot_coe,
     { exact (add_bot _).symm },
     { rw [map_coe, map_coe, ← coe_add (f a), ← map_add],
       refl } },
@@ -1192,7 +1192,7 @@ end
 lemma exists_eq_add {A} [add_comm_group A] (a : with_bot A) (b : A) :
   ∃ (a' : with_bot A), a = a' + b :=
 begin
-  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  induction a using with_bot.rec_bot_coe,
   { exact ⟨_, (bot_add _).symm⟩ },
   { exact ⟨(a - b : A), coe_eq_coe.mpr (sub_add_cancel a b).symm⟩ }
 end

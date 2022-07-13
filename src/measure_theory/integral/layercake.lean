@@ -120,7 +120,7 @@ begin
               = {p : α × ℝ | p.2 ∈ Ioc 0 (f p.1)}.indicator (λ p, ennreal.of_real (g p.2)),
   { funext p,
     cases p,
-    dsimp,
+    rw function.uncurry_apply_pair,
     by_cases p_snd ∈ Ioc 0 (f p_fst),
     { have h' : (p_fst, p_snd) ∈ {p : α × ℝ | p.snd ∈ Ioc 0 (f p.fst)} := h,
       rw [set.indicator_of_mem h', set.indicator_of_mem h], },
@@ -207,10 +207,11 @@ theorem lintegral_rpow_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite 
     = (ennreal.of_real p) * ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) * ennreal.of_real (t^(p-1)) :=
 begin
   have p_pos : 0 < p := zero_le_one.trans_lt p_large,
-  have p_sub_one : 0 ≤ p - 1 := by linarith,
+  have one_lt_p : -1 < p - 1 := by linarith,
+  have p_sub_one: 0 ≤ p - 1 := by linarith,
   have obs : ∀ (x : ℝ), (∫ (t : ℝ) in 0..x, t^(p-1)) = x^p / p,
   { intros x,
-    rw integral_rpow (or.inl p_sub_one),
+    rw integral_rpow (or.inl one_lt_p),
     simp [real.zero_rpow p_pos.ne.symm], },
   set g := λ (t : ℝ), t^(p-1) with g_def,
   have g_nn : ∀ᵐ t ∂(volume.restrict (Ioi (0 : ℝ))), 0 ≤ g t,

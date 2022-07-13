@@ -748,8 +748,7 @@ apply le_antisymm,
       intro i,
       rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
       exact lp.norm_apply_le_norm ennreal.top_ne_zero ((star f) * f) i,}
-end
-}
+end }
 
 end star_ring
 

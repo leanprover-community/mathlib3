@@ -224,7 +224,9 @@ instance : has_emptyc pSet := ⟨⟨_, pempty.elim⟩⟩
 
 instance : inhabited pSet := ⟨∅⟩
 
-@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := exists_pempty.1
+instance : is_empty (type ∅) := pempty.is_empty
+
+@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 @[simp] theorem empty_to_set : to_set ∅ = ∅ := by simp [to_set]
 
@@ -236,16 +238,6 @@ instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
 instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
 
 instance (x y : pSet) : inhabited (insert x y).type := option.inhabited _
-
-/-- The n-th von Neumann ordinal -/
-def of_nat : ℕ → pSet
-| 0     := ∅
-| (n+1) := insert (of_nat n) (of_nat n)
-
-/-- The von Neumann ordinal ω -/
-def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
-
--- Todo (Vi): add general Neumann ordinals.
 
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
 instance : has_sep pSet pSet := ⟨λ p x, ⟨{a // p (x.func a)}, λ y, x.func y.1⟩⟩
@@ -506,17 +498,6 @@ by { ext, simp }
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert $ or_congr iff.rfl mem_singleton
-
-/-- `omega` is the first infinite von Neumann ordinal -/
-def omega : Set := mk omega
-
-@[simp] theorem omega_zero : ∅ ∈ omega :=
-⟨⟨0⟩, equiv.rfl⟩
-
-@[simp] theorem omega_succ {n} : n ∈ omega.{u} → insert n n ∈ omega.{u} :=
-quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩, quotient.exact $
-  show @has_insert.insert Set Set _ ⟦x⟧ ⟦x⟧ = @has_insert.insert Set Set _ ⟦of_nat n⟧ ⟦of_nat n⟧,
-  by { rw (@quotient.sound pSet _ _ _ h), refl }⟩)
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
 instance : has_sep Set Set :=

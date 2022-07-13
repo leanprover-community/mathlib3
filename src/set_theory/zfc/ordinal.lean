@@ -334,7 +334,7 @@ end Set
 
 namespace ordinal
 
-variables {a b c o : ordinal.{u}}
+variables {a b o : ordinal.{u}}
 
 /-- Converts an ordinal to a pre-Set. Compare with `ordinal.to_pgame`. -/
 noncomputable! def to_pSet : ordinal → pSet

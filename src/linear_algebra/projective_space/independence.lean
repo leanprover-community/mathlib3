@@ -44,8 +44,8 @@ inductive independent : (ι → ℙ K V) → Prop
 vectors determined by the family are linearly independent. -/
 lemma independent_iff : independent f ↔ linear_independent K (projectivization.rep ∘ f) :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { induction h with ff hff hh,
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨ff, hff, hh⟩,
     choose a ha using λ (i : ι), exists_smul_eq_mk_rep K (ff i) (hff i),
     convert hh.units_smul a,
     ext i, exact (ha i).symm },
@@ -78,17 +78,16 @@ inductive dependent : (ι → ℙ K V) → Prop
 representatives are linearly dependent. -/
 lemma dependent_iff : dependent f ↔ ¬ linear_independent K (projectivization.rep ∘ f) :=
 begin
-  split,
-  { rw ← independent_iff,
-    intros h1, induction h1 with ff hff hh1,
-    contrapose! hh1, rw independent_iff at hh1,
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨ff, hff, hh1⟩,
+    contrapose! hh1,
     choose a ha using λ (i : ι), exists_smul_eq_mk_rep K (ff i) (hff i),
     convert hh1.units_smul a⁻¹,
-    ext i, simp only [← ha, inv_smul_smul, pi.smul_apply', pi.inv_apply, function.comp_app] },
-  { intro h,
-    convert dependent.mk _ _ h,
-    { ext, simp only [mk_rep] },
-    { intro i, apply rep_nonzero } }
+    ext i,
+    simp only [← ha, inv_smul_smul, pi.smul_apply', pi.inv_apply, function.comp_app] },
+  { convert dependent.mk _ _ h,
+    { ext i, simp only [mk_rep] },
+    { exact λ i, rep_nonzero (f i) } }
 end
 
 /-- Dependence is the negation of independence. -/
@@ -97,10 +96,10 @@ by rw [dependent_iff, independent_iff]
 
 /-- Independence is the negation of dependence. -/
 lemma independent_iff_not_dependent : independent f ↔ ¬ dependent f :=
-by rw [dependent_iff, independent_iff, not_not]
+by rw [dependent_iff_not_independent, not_not]
 
 /-- Two points in a projective space are dependent if and only if they are equal. -/
-@[simp] lemma pair_dependent_iff_eq (u v : ℙ K V) : dependent ![u, v] ↔ u = v :=
+@[simp] lemma dependent_pair_iff_eq (u v : ℙ K V) : dependent ![u, v] ↔ u = v :=
 begin
   simp_rw [dependent_iff_not_independent, independent_iff, linear_independent_fin2,
     function.comp_app, matrix.cons_val_one, matrix.head_cons,
@@ -111,7 +110,7 @@ begin
 end
 
 /-- Two points in a projective space are independent if and only if the points are not equal. -/
-@[simp] lemma pair_independent_iff_neq (u v : ℙ K V) : (independent ![u, v]) ↔ u ≠ v :=
-by rw [independent_iff_not_dependent, pair_dependent_iff_eq u v]
+@[simp] lemma independent_pair_iff_neq (u v : ℙ K V) : independent ![u, v] ↔ u ≠ v :=
+by rw [independent_iff_not_dependent, dependent_pair_iff_eq u v]
 
 end projectivization

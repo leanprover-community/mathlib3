@@ -30,7 +30,7 @@ lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
 
 lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ≥0)⁻¹) at_top (𝓝 0) :=
-by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
+by { rw ← nnreal.tendsto_coe, exact tendsto_inverse_at_top_nhds_0_nat }
 
 lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : ℝ≥0) :
   tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
@@ -539,7 +539,7 @@ end
 
 lemma tendsto_nat_floor_div_at_top :
   tendsto (λ x, (⌊x⌋₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _)
+by simpa using tendsto_nat_floor_mul_div_at_top (zero_le_one' R)
 
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
   tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
@@ -558,6 +558,6 @@ end
 
 lemma tendsto_nat_ceil_div_at_top :
   tendsto (λ x, (⌈x⌉₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _)
+by simpa using tendsto_nat_ceil_mul_div_at_top (zero_le_one' R)
 
 end

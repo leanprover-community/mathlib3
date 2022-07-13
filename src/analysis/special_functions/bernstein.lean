@@ -3,6 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.order.field
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
 
@@ -162,6 +163,8 @@ The modulus of (uniform) continuity for `f`, chosen so `|f x - f y| < ε/2` when
 -/
 def δ (f : C(I, ℝ)) (ε : ℝ) (h : 0 < ε) : ℝ := f.modulus (ε/2) (half_pos h)
 
+lemma δ_pos {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} : 0 < δ f ε h := f.modulus_pos
+
 /--
 The set of points `k` so `k/n` is within `δ` of `x`.
 -/
@@ -188,12 +191,8 @@ lemma le_of_mem_S_compl
   (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
-  field_simp,
-  erw [le_div_iff (pow_pos f.modulus_pos 2), one_mul],
-  apply sq_le_sq,
-  rw abs_eq_self.mpr (le_of_lt f.modulus_pos),
-  rw [dist_comm] at m,
-  exact m,
+  erw [zpow_neg, ← div_eq_inv_mul, one_le_div (pow_pos δ_pos 2), sq_le_sq, abs_of_pos δ_pos],
+  rwa [dist_comm] at m
 end
 
 end bernstein_approximation

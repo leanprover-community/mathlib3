@@ -286,8 +286,8 @@ begin
   have hN3 : nat.card G ≠ 0,
   { rw ← N.card_mul_index,
     exact mul_ne_zero hN1 hN2 },
-  haveI := (cardinal.lt_omega_iff_fintype.mp
-    (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hN3))).some,
+  haveI := (cardinal.lt_aleph_0_iff_fintype.mp
+    (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hN3))).some,
   rw nat.card_eq_fintype_card at hN,
   exact exists_right_complement'_of_coprime_of_fintype hN,
 end

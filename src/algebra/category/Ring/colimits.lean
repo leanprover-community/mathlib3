@@ -127,14 +127,10 @@ The underlying type of the colimit of a diagram in `CommRing`.
 @[derive inhabited]
 def colimit_type : Type v := quotient (colimit_setoid F)
 
-instance : comm_ring (colimit_type F) :=
+instance : add_group (colimit_type F) :=
 { zero :=
   begin
     exact quot.mk _ zero
-  end,
-  one :=
-  begin
-    exact quot.mk _ one
   end,
   neg :=
   begin
@@ -163,6 +159,55 @@ instance : comm_ring (colimit_type F) :=
       { exact relation.add_1 _ _ _ r },
       { refl } },
   end,
+  zero_add := λ x,
+  begin
+    induction x,
+    dsimp,
+    apply quot.sound,
+    apply relation.zero_add,
+    refl,
+  end,
+  add_zero := λ x,
+  begin
+    induction x,
+    dsimp,
+    apply quot.sound,
+    apply relation.add_zero,
+    refl,
+  end,
+  add_left_neg := λ x,
+  begin
+    induction x,
+    dsimp,
+    apply quot.sound,
+    apply relation.add_left_neg,
+    refl,
+  end,
+  add_assoc := λ x y z,
+  begin
+    induction x,
+    induction y,
+    induction z,
+    dsimp,
+    apply quot.sound,
+    apply relation.add_assoc,
+    refl,
+    refl,
+    refl,
+  end }
+
+instance : add_group_with_one (colimit_type F) :=
+{ one :=
+  begin
+    exact quot.mk _ one
+  end,
+  .. colimit_type.add_group F }
+
+instance : comm_ring (colimit_type F) :=
+{ one :=
+  begin
+    exact quot.mk _ one
+  end,
   mul :=
   begin
     fapply @quot.lift _ _ ((colimit_type F) → (colimit_type F)),
@@ -181,22 +226,6 @@ instance : comm_ring (colimit_type F) :=
       { exact relation.mul_1 _ _ _ r },
       { refl } },
   end,
-  zero_add := λ x,
-  begin
-    induction x,
-    dsimp,
-    apply quot.sound,
-    apply relation.zero_add,
-    refl,
-  end,
-  add_zero := λ x,
-  begin
-    induction x,
-    dsimp,
-    apply quot.sound,
-    apply relation.add_zero,
-    refl,
-  end,
   one_mul := λ x,
   begin
     induction x,
@@ -211,14 +240,6 @@ instance : comm_ring (colimit_type F) :=
     dsimp,
     apply quot.sound,
     apply relation.mul_one,
-    refl,
-  end,
-  add_left_neg := λ x,
-  begin
-    induction x,
-    dsimp,
-    apply quot.sound,
-    apply relation.add_left_neg,
     refl,
   end,
   add_comm := λ x y,
@@ -288,7 +309,8 @@ instance : comm_ring (colimit_type F) :=
     refl,
     refl,
     refl,
-  end, }
+  end,
+  .. colimit_type.add_group_with_one F }
 
 @[simp] lemma quot_zero : quot.mk setoid.r zero = (0 : colimit_type F) := rfl
 @[simp] lemma quot_one : quot.mk setoid.r one = (1 : colimit_type F) := rfl

@@ -152,7 +152,7 @@ end
 /-- **Maximum modulus principle**: if `f : E → F` is complex differentiable on a set `s`, the norm
 of `f` takes it maximum on `s` at `z` and `w` is a point such that the closed ball with center `z`
 and radius `dist w z` is included in `s`, then `∥f w∥ = ∥f z∥`. -/
-lemma norm_eq_norm_of_is_max_on_of_closed_ball_subset {f : E → F} {s : set E} {z w : E}
+lemma norm_eq_norm_of_is_max_on_of_ball_subset {f : E → F} {s : set E} {z w : E}
   (hd : diff_cont_on_cl ℂ f s) (hz : is_max_on (norm ∘ f) s z) (hsub : ball z (dist w z) ⊆ s) :
   ∥f w∥ = ∥f z∥ :=
 norm_eq_on_closed_ball_of_is_max_on (hd.mono hsub) (hz.on_subset hsub) (mem_closed_ball.2 le_rfl)
@@ -196,7 +196,7 @@ begin
   have : interior U ≠ univ, from ne_top_of_le_ne_top hc.ne_univ interior_subset_closure,
   rcases exists_mem_frontier_inf_dist_compl_eq_dist hwU this with ⟨z, hzU, hzw⟩,
   refine ⟨z, frontier_interior_subset hzU, λ x hx, (mem_set_of_eq.mp $ hle hx).trans_eq _⟩,
-  refine (norm_eq_norm_of_is_max_on_of_closed_ball_subset hd (hle.on_subset subset_closure) _).symm,
+  refine (norm_eq_norm_of_is_max_on_of_ball_subset hd (hle.on_subset subset_closure) _).symm,
   rw [dist_comm, ← hzw],
   exact ball_inf_dist_compl_subset.trans interior_subset
 end

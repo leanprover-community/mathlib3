@@ -55,8 +55,8 @@ variables
 instance : has_coe (ρ ≃ᵣ ρ₂) (ρ →ᵣ ρ₂) := ⟨to_rep_hom⟩
 instance : has_coe_to_fun (ρ ≃ᵣ ρ₂) (λ _, V → V₂) := ⟨to_fun⟩
 
-@[simp] lemma coe_mk {to_fun inv_fun map_add map_smul map_smulG left_inv right_inv} :
-  ⇑(⟨to_fun, map_add, map_smul, map_smulG, inv_fun, left_inv, right_inv⟩ : ρ ≃ᵣ ρ₂) = to_fun :=
+@[simp] lemma coe_mk {to_fun inv_fun map_add map_smul map_action left_inv right_inv} :
+  ⇑(⟨to_fun, map_add, map_smul, map_action, inv_fun, left_inv, right_inv⟩ : ρ ≃ᵣ ρ₂) = to_fun :=
 rfl
 
 @[nolint doc_blame]
@@ -81,7 +81,7 @@ instance : rep_hom_class (ρ ≃ᵣ ρ₂) ρ ρ₂ :=
   coe_injective' := λ f g h, to_rep_hom_injective (fun_like.coe_injective h),
   map_add := map_add',
   map_smulₛₗ := map_smul',
-  map_smulG := map_smulG' }
+  map_action := map_action' }
 
 lemma coe_injective :
   @injective (ρ ≃ᵣ ρ₂) (V → V₂) coe_fn :=
@@ -243,7 +243,7 @@ lemma comp_coe (f : ρ ≃ᵣ ρ₂) (f' : ρ₂ ≃ᵣ ρ₃) :
 protected theorem map_add (a b : V) : e (a + b) = e a + e b := map_add e a b
 protected theorem map_zero : e 0 = 0 := map_zero e
 @[simp] protected theorem map_smulₛₗ (c : k) (x : V) : e (c • x) = c • e x := e.map_smul' c x
-@[simp] protected theorem map_smulG (g : G) (x : V) : e (ρ g x) = ρ₂ g (e x) := e.map_smulG' g x
+@[simp] protected theorem map_action (g : G) (x : V) : e (ρ g x) = ρ₂ g (e x) := e.map_action' g x
 
 @[simp] lemma map_sum {ι : Type*} {s : finset ι} (u : ι → V) :
   e (∑ i in s, u i) = ∑ i in s, e (u i) := e.to_rep_hom.map_sum
@@ -270,8 +270,8 @@ symm_bijective.injective $ ext $ λ x, rfl
     ..(⟨e, h₁, h₂, h₃, f, h₄, h₅⟩ : ρ ≃ᵣ ρ₂).symm } := rfl
 
 @[simp] lemma coe_symm_mk
-  {to_fun inv_fun map_add map_smul map_smulG left_inv right_inv} :
-  ⇑((⟨to_fun, map_add, map_smul, map_smulG, inv_fun, left_inv, right_inv⟩ :
+  {to_fun inv_fun map_add map_smul map_action left_inv right_inv} :
+  ⇑((⟨to_fun, map_add, map_smul, map_action, inv_fun, left_inv, right_inv⟩ :
   ρ ≃ᵣ ρ₂).symm) = inv_fun := rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
@@ -326,21 +326,3 @@ end automorphisms
 end add_comm_monoid
 
 end rep_equiv
-
-namespace representation
-
--- comp_hom.to_linear_equiv
-
-end representation
-
-namespace distrib_mul_action
-
---
-
-end distrib_mul_action
-
-namespace add_equiv
-
---
-
-end add_equiv

@@ -37,14 +37,14 @@ structure is_rep_hom
   (f : V → V₂) : Prop :=
 (map_add : ∀ x y, f (x + y) = f x + f y)
 (map_smul : ∀ (c : k) x, f (c • x) = c • f x)
-(map_smulG : ∀ (g : G) x, f (ρ g x) = ρ₂ g (f x))
+(map_action : ∀ (g : G) x, f (ρ g x) = ρ₂ g (f x))
 
 /-- Bundled homomorphism between representations -/
 structure rep_hom
   {k G V V₂ : Type*} [comm_semiring k] [monoid G]
   [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
   (ρ : representation k G V) (ρ₂ : representation k G V₂) extends V →ₗ[k] V₂ :=
-(map_smulG' : ∀ (g : G) (x : V), to_fun (ρ g x) = ρ₂ g (to_fun x))
+(map_action' : ∀ (g : G) (x : V), to_fun (ρ g x) = ρ₂ g (to_fun x))
 
 /-- The `linear_map` underlying a `rep_hom`. -/
 add_decl_doc rep_hom.to_linear_map
@@ -58,11 +58,11 @@ class rep_hom_class (F : Type*) {k G V V₂ : out_param Type*} [comm_semiring k]
   [add_comm_monoid V] [module k V] [add_comm_monoid V₂] [module k V₂]
   (ρ : representation k G V) (ρ₂ : representation k G V₂)
   extends semilinear_map_class F (ring_hom.id k) V V₂ :=
-(map_smulG : ∀ (f : F) (g : G) (x : V), f (ρ g x) = ρ₂ g (f x))
+(map_action : ∀ (f : F) (g : G) (x : V), f (ρ g x) = ρ₂ g (f x))
 
 attribute [nolint dangerous_instance] rep_hom_class.to_semilinear_map_class
 
-export rep_hom_class (map_smulG)
+export rep_hom_class (map_action)
 
 namespace rep_hom_class
 
@@ -89,7 +89,7 @@ instance : rep_hom_class (ρ →ᵣ ρ₂) ρ ρ₂ :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_add := rep_hom.map_add',
   map_smulₛₗ := rep_hom.map_smul',
-  map_smulG := rep_hom.map_smulG' }
+  map_action := rep_hom.map_action' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly.
@@ -109,7 +109,7 @@ protected def copy (f : ρ →ᵣ ρ₂) (f' : V → V₂) (h : f' = ⇑f) : ρ 
 { to_fun := f',
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul',
-  map_smulG' := h.symm ▸ f.map_smulG' }
+  map_action' := h.symm ▸ f.map_action' }
 
 @[simp] lemma coe_mk (f : V → V₂) (h₁ h₂ h₃) :
   ((rep_hom.mk f h₁ h₂ h₃ : ρ →ᵣ ρ₂) : V → V₂) = f := rfl
@@ -117,7 +117,7 @@ protected def copy (f : ρ →ᵣ ρ₂) (f' : V → V₂) (h : f' = ⇑f) : ρ 
 /-- Identity map as a `rep_hom` -/
 def id : ρ →ᵣ ρ :=
 { to_fun := id,
-  map_smulG' := by simp,
+  map_action' := by simp,
   ..linear_map.id }
 
 lemma id_apply (x : V) :
@@ -127,7 +127,7 @@ lemma id_apply (x : V) :
 
 section
 theorem rep_hom_is_rep_hom (f : ρ →ᵣ ρ₂) : is_rep_hom ρ ρ₂ f :=
-⟨f.map_add', f.map_smul', f.map_smulG'⟩
+⟨f.map_add', f.map_smul', f.map_action'⟩
 
 variables {f f' : ρ →ᵣ ρ₂}
 
@@ -151,7 +151,7 @@ variables (f f')
 protected lemma map_add (x y : V) : f (x + y) = f x + f y := map_add f x y
 protected lemma map_zero : f 0 = 0 := map_zero f
 protected lemma map_smul (c : k) (x : V) : f (c • x) = c • f x := map_smul f c x
-protected lemma map_smulG (g : G) (x : V) : f (ρ g x) = ρ₂ g (f x) := map_smulG f g x
+protected lemma map_action (g : G) (x : V) : f (ρ g x) = ρ₂ g (f x) := map_action f g x
 
 @[simp] lemma map_eq_zero_iff (h : function.injective f) {x : V} : f x = 0 ↔ x = 0 :=
 ⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
@@ -160,27 +160,10 @@ section pointwise
 open_locale pointwise
 
 @[simp] lemma image_smul_set (c : k) (s : set V) :
-  f '' (c • s) = c • f '' s :=
-begin
-  apply set.subset.antisymm,
-  { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
-    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smul _ _).symm ⟩ },
-  { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
-    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smul _ _⟩ }
-end
+  f '' (c • s) = c • f '' s := f.to_linear_map.image_smul_set c s
 
 lemma preimage_smul_set {c : k} (hc : is_unit c) (s : set V₂) :
-  f ⁻¹' (c • s) = c • f ⁻¹' s :=
-begin
-  apply set.subset.antisymm,
-  { rintros x ⟨y, ys, hy⟩,
-    refine ⟨(hc.unit.inv : k) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ f, ← map_mul,
-        is_unit.coe_inv_mul, one_smul, map_one, ys, ring_hom.id_apply] },
-    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
-  { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨f y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ f]⟩ }
-end
+  f ⁻¹' (c • s) = c • f ⁻¹' s := f.to_linear_map.preimage_smul_set hc s
 
 end pointwise
 
@@ -206,7 +189,7 @@ variables
 /-- Composition of two rep_hom's is a rep_hom -/
 def comp : ρ →ᵣ ρ₃ :=
 { to_fun := f₂ ∘ f,
-  map_smulG' := λ g x, by rw [comp_app, comp_app, map_smulG, map_smulG],
+  map_action' := λ g x, by rw [comp_app, comp_app, map_action, map_action],
   ..linear_map.comp f₂.to_linear_map f.to_linear_map }
 
 infixr ` ∘ᵣ `:80 := rep_hom.comp
@@ -239,7 +222,7 @@ def inverse
   (f : ρ →ᵣ ρ₂) (f' : V₂ → V) (h₁ : left_inverse f' f) (h₂ : right_inverse f' f) :
   ρ₂ →ᵣ ρ := by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 { to_fun := f',
-  map_smulG' := λ g x, by {rw [←h₁ (ρ g (f' x)), map_smulG], simp [h₂]},
+  map_action' := λ g x, by {rw [←h₁ (ρ g (f' x)), map_action], simp [h₂]},
   ..linear_map.inverse f.to_linear_map f' h₁ h₂ }
 
 end add_comm_monoid
@@ -276,7 +259,7 @@ variables
 
 /-- Convert an `is_rep_hom` predicate to a `rep_hom` -/
 def mk' (f : V → V₂) (H : is_rep_hom ρ ρ₂ f) : ρ →ᵣ ρ₂ :=
-{ to_fun := f, map_add' := H.1, map_smul' := H.2, map_smulG' := H.3 }
+{ to_fun := f, map_add' := H.1, map_smul' := H.2, map_action' := H.3 }
 
 @[simp] theorem mk'_apply {f : V → V₂} (H : is_rep_hom ρ ρ₂ f) (x : V) :
   mk' f H x = f x := rfl
@@ -289,14 +272,6 @@ begin
     rw [←mul_smul, mul_comm, mul_smul] },
   { intros _ _,
     rw [linear_map.map_smulₛₗ, ring_hom.id_apply] }
-end
-
-lemma is_rep_hom_smulG_one :
-  is_rep_hom ρ ρ (λ (z : V), ρ 1 z) :=
-begin
-  refine is_rep_hom.mk _ _ _;
-  { intros _ _,
-    simp only [map_one, linear_map.one_apply] }
 end
 
 variables {f : V → V₂} (rh : is_rep_hom ρ ρ₂ f)
@@ -353,8 +328,8 @@ instance : has_smul k' (ρ →ᵣ ρ₂) :=
             f.map_add, smul_add, pi.smul_apply, pi.smul_apply],
           map_smul' := λ c x, by rw [pi.smul_apply,
             f.map_smul, ring_hom.id_apply, pi.smul_apply, ←smul_comm],
-          map_smulG' := λ g x, by rw [pi.smul_apply,
-            f.map_smulG, pi.smul_apply, linear_map.map_smul_of_tower] }⟩
+          map_action' := λ g x, by rw [pi.smul_apply,
+            f.map_action, pi.smul_apply, linear_map.map_smul_of_tower] }⟩
 
 @[simp] lemma smul_apply (a : k) (f : ρ →ᵣ ρ₂) (x : V) : (a • f) x = a • f x := rfl
 
@@ -381,7 +356,7 @@ variables
 
 /-- The constant 0 map is a rep_hom. -/
 instance : has_zero (ρ →ᵣ ρ₂) :=
-⟨{ to_fun := 0, map_add' := by simp, map_smul' := by simp, map_smulG' := by simp }⟩
+⟨{ to_fun := 0, map_add' := by simp, map_smul' := by simp, map_action' := by simp }⟩
 
 @[simp] lemma zero_apply (x : V) : (0 : ρ →ᵣ ρ₂) x = 0 := rfl
 
@@ -400,7 +375,7 @@ instance : has_add (ρ →ᵣ ρ₂) :=
 ⟨λ f g, { to_fun := f + g,
           map_add' := by simp [add_comm, add_left_comm],
           map_smul' := by simp [smul_add],
-          map_smulG' := by simp [map_smulG] }⟩
+          map_action' := by simp [map_action] }⟩
 
 @[simp] lemma add_apply (f g : ρ →ᵣ ρ₂) (x : V) : (f + g) x = f x + g x := rfl
 
@@ -418,7 +393,7 @@ fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 /-- The negation of a rep_hom is a rep_hom. -/
 instance : has_neg (ρ →ᵣ σ₂) :=
 ⟨λ f, { to_fun := -f, map_add' := by simp [add_comm], map_smul' := by simp,
-      map_smulG' := by simp [map_smulG] }⟩
+      map_action' := by simp [map_action] }⟩
 
 @[simp] lemma neg_apply (f : ρ →ᵣ σ₂) (x : V) : (- f) x = - f x := rfl
 
@@ -432,7 +407,7 @@ instance : has_sub (ρ →ᵣ σ₂) :=
 ⟨λ f g, { to_fun := f - g,
           map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],
           map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub],
-          map_smulG' := λ g x, by simp [pi.sub_apply, map_smulG] }⟩
+          map_action' := λ g x, by simp [pi.sub_apply, map_action] }⟩
 
 @[simp] lemma sub_apply (f g : ρ →ᵣ σ₂) (x : V) : (f - g) x = f x - g x := rfl
 

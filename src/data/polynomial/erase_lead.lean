@@ -372,6 +372,4 @@ begin
     exact card_support_trinomial hkm hmn hx hy hz },
 end
 
-#exit
-
 end polynomial

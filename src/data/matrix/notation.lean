@@ -104,7 +104,7 @@ meta def «notation» (_ : parse $ tk "!![")
 do
   let ⟨m, n, entries⟩ := val,
   let entry_vals := pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries),
-  pure (``(@matrix.of (fin %%m) (fin %%n) _).app entry_vals)
+  pure (``(@matrix.of (fin %%`(m)) (fin %%`(n)) _).app entry_vals)
 
 end parser
 

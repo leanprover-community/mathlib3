@@ -12,24 +12,35 @@ open_locale matrix
 /-! Test that the dimensions are inferred correctly, even for empty matrices -/
 section dimensions
 
-def get_dims {m n : ℕ} (f : fin m → fin n → ℕ) : ℕ × ℕ := (m, n)
+set_option pp.universes true
+set_option pp.all true
 
-run_cmd guard $ get_dims !![]   = (0, 0)
-run_cmd guard $ get_dims !![;]  = (1, 0)
-run_cmd guard $ get_dims !![;;] = (2, 0)
-run_cmd guard $ get_dims !![,]  = (0, 1)
-run_cmd guard $ get_dims !![,,] = (0, 2)
-run_cmd guard $ get_dims !![1]  = (1, 1)
-run_cmd guard $ get_dims !![1,] = (1, 1)
-run_cmd guard $ get_dims !![1;] = (1, 1)
+meta def get_dims (e : pexpr) : tactic (expr × expr) :=
+do
+  elem_t ← tactic.mk_meta_var (expr.sort level.zero.succ),
+  e ← tactic.to_expr ``(%%e : matrix _ _ %%elem_t) tt ff,
+  t ← tactic.infer_type e,
+  `(matrix.{0 0 0} (fin %%m) (fin %%n) %%elem_t) ← tactic.infer_type e,
+  return (m, n)
+
+-- we test equality of expressions here to ensure that we have `2` and not `1.succ` in the type
+run_cmd do d ← get_dims ``(!![]),        guard $ d = (`(0), `(0))
+run_cmd do d ← get_dims ``(!![;]),       guard $ d = (`(1), `(0))
+run_cmd do d ← get_dims ``(!![;;]),      guard $ d = (`(2), `(0))
+run_cmd do d ← get_dims ``(!![,]),       guard $ d = (`(0), `(1))
+run_cmd do d ← get_dims ``(!![,,]),      guard $ d = (`(0), `(2))
+run_cmd do d ← get_dims ``(!![1]),       guard $ d = (`(1), `(1))
+run_cmd do d ← get_dims ``(!![1,]),      guard $ d = (`(1), `(1))
+run_cmd do d ← get_dims ``(!![1;]),      guard $ d = (`(1), `(1))
+run_cmd do d ← get_dims ``(!![1,2;3,4]), guard $ d = (`(2), `(2))
 
 end dimensions
 
-run_cmd guard $ (!![1;2])       = ![![1], ![2]]
-run_cmd guard $ (!![1,3])       = ![![1,3]]
-run_cmd guard $ (!![1,2;3,4])   = ![![1,2], ![3,4]]
-run_cmd guard $ (!![1,2;3,4;])  = ![![1,2], ![3,4]]
-run_cmd guard $ (!![1,2,;3,4,]) = ![![1,2], ![3,4]]
+run_cmd guard $ (!![1;2])       = of ![![1], ![2]]
+run_cmd guard $ (!![1,3])       = of ![![1,3]]
+run_cmd guard $ (!![1,2;3,4])   = of ![![1,2], ![3,4]]
+run_cmd guard $ (!![1,2;3,4;])  = of ![![1,2], ![3,4]]
+run_cmd guard $ (!![1,2,;3,4,]) = of ![![1,2], ![3,4]]
 
 example {a a' b b' c c' d d' : α} :
   !![a, b; c, d] + !![a', b'; c', d'] = !![a + a', b + b'; c + c', d + d'] :=

@@ -1310,6 +1310,22 @@ theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
 
+/-- A variation of `metric.cauchy_seq_iff'` where we only check the Cauchy condition for
+countably many bounds.
+
+This is useful whenever we want to show measurability of a set related to Cauchy sequences. -/
+lemma metric.cauchy_seq_iff'' {u : β → α} :
+  cauchy_seq u ↔ ∀ K : ℕ, ∃ N, ∀ n ≥ N, dist (u n) (u N) < (K + 1)⁻¹ :=
+begin
+  rw metric.cauchy_seq_iff',
+  refine ⟨λ h K, h (K + 1)⁻¹ (inv_pos.2 K.cast_add_one_pos), λ h ε hε, _⟩,
+  obtain ⟨K, hK⟩ := exists_nat_gt ε⁻¹,
+  obtain ⟨N, hN⟩ := h K,
+  refine ⟨N, λ n hn, lt_of_lt_of_le (hN n hn) _⟩,
+  rw [inv_le (K.cast_add_one_pos : (0 : ℝ) < K + 1) hε, ← nat.cast_one, ← nat.cast_add],
+  exact hK.le.trans (nat.cast_le.2 K.le_succ),
+end
+
 /-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
 the distance between all its elements is uniformly, arbitrarily small -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]

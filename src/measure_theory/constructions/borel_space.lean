@@ -1496,6 +1496,26 @@ begin
   exact h's.closure_eq.symm
 end
 
+lemma measurable_set_exists_tendsto_at_top {ι : Type*}
+  [second_countable_topology β] [complete_space β] [nonempty ι] [encodable ι] [semilattice_sup ι]
+  {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
+  measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
+begin
+  simp_rw ← cauchy_map_iff_exists_tendsto,
+  change measurable_set {x | cauchy_seq (λ n, f n x)},
+  simp_rw metric.cauchy_seq_iff'',
+  rw set.set_of_forall,
+  refine measurable_set.Inter (λ K, _),
+  rw set.set_of_exists,
+  refine measurable_set.Union (λ N, _),
+  rw set.set_of_forall,
+  refine measurable_set.Inter (λ n, _),
+  by_cases hNn : N ≤ n,
+  { simp only [hNn, ge_iff_le, forall_true_left],
+    exact measurable_set_lt (measurable.dist (hf n) (hf N)) measurable_const },
+  { simp only [hNn, ge_iff_le, forall_false_left, set.set_of_true, measurable_set.univ] }
+end
+
 end pseudo_metric_space
 
 /-- Given a compact set in a proper space, the measure of its `r`-closed thickenings converges to

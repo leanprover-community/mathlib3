@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
-import data.matrix.notation
 
 /-!
 # Finite dimensional topological vector spaces over complete fields
@@ -373,7 +372,7 @@ rfl
 
 lemma _root_.matrix.to_lin_fin_two_prod_to_continuous_linear_map (a b c d : 𝕜) :
   (matrix.to_lin (basis.fin_two_prod 𝕜) (basis.fin_two_prod 𝕜)
-      !![a, b; c, d].to_continuous_linear_map =
+      !![a, b; c, d]).to_continuous_linear_map =
   (a • continuous_linear_map.fst 𝕜 𝕜 𝕜 + b • continuous_linear_map.snd 𝕜 𝕜 𝕜).prod
   (c • continuous_linear_map.fst 𝕜 𝕜 𝕜 + d • continuous_linear_map.snd 𝕜 𝕜 𝕜) :=
 continuous_linear_map.ext $ matrix.to_lin_fin_two_prod_apply _ _ _ _

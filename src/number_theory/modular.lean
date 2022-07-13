@@ -95,7 +95,7 @@ lemma bottom_row_surj {R : Type*} [comm_ring R] :
     {cd | is_coprime (cd 0) (cd 1)} :=
 begin
   rintros cd ⟨b₀, a, gcd_eqn⟩,
-  let A := ![![a, -b₀], cd],
+  let A := of ![![a, -b₀], cd],
   have det_A_1 : det A = 1,
   { convert gcd_eqn,
     simp [A, det_fin_two, (by ring : a * (cd 1) + b₀ * (cd 0) = b₀ * (cd 0) + a * (cd 1))] },
@@ -192,7 +192,7 @@ theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   tendsto (λ g : {g : SL(2, ℤ) // ↑ₘg 1 = cd}, lc_row0 cd ↑(↑g : SL(2, ℝ)))
     cofinite (cocompact ℝ) :=
 begin
-  let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
+  let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, of ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
   { simp only [continuous_pi_iff, fin.forall_fin_two, mB, continuous_const, continuous_id',
       cons_val_zero, cons_val_one, and_self ] },
@@ -307,18 +307,18 @@ begin
 end
 
 /-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T : SL(2,ℤ) := ⟨![![1, 1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
+def T : SL(2,ℤ) := ⟨!![1, 1; 0, 1]], by norm_num [matrix.det_fin_two]⟩
 
 /-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
-def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]⟩
+def S : SL(2,ℤ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two]⟩
 
-lemma coe_S : ↑ₘS = ![![0, -1], ![1, 0]] := rfl
+lemma coe_S : ↑ₘS = !![0, -1; 1, 0] := rfl
 
-lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
+lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
 
-lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] := by simp [coe_inv, coe_T, adjugate_fin_two]
+lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
 
-lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
+lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
   induction n using int.induction_on with n h n h,
   { ext i j, fin_cases i; fin_cases j;

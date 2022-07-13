@@ -15,7 +15,7 @@ This file includes `simp` lemmas for applying operations in `data.matrix.basic` 
 of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
 `data.fin.vec_notation`.
 
-This also provides the new notation `!![a, b; c, d] = ![![a, b], ![c, d]]`.
+This also provides the new notation `!![a, b; c, d] = matrix.of ![![a, b], ![c, d]]`.
 This notation also works for empty matrices; `!![,,,] : matrix (fin 0) (fin 3)` and
 `!![;;;] : matrix (fin 3) (fin 0)`.
 

@@ -342,7 +342,7 @@ end
 adjugate_subsingleton A
 
 lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
-  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+  adjugate A = !![A 1 1, -A 0 1; -A 1 0, A 0 0] :=
 begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
@@ -353,7 +353,7 @@ begin
 end
 
 @[simp] lemma adjugate_fin_two' (a b c d : α) :
-  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+  adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
 adjugate_fin_two _
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=

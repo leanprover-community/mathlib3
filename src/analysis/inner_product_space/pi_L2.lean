@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Sébastien Gouëzel, Heather Macbeth
 -/
 import analysis.inner_product_space.projection
+import linear_algebra.finite_dimensional
 import analysis.normed_space.pi_Lp
 
 /-!
@@ -240,12 +241,8 @@ by { classical, congr, simp, }
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
-begin
-  classical,
-  rw [← b.repr_symm_single i, linear_isometry_equiv.apply_symm_apply],
-  congr,
-  simp,
-end
+-- (linear_isometry_equiv.apply_symm_apply _ _).symm
+by { classical, convert linear_isometry_equiv.apply_symm_apply _ _, simp, }
 
 protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
   b.repr v i = ⟪b i, v⟫ :=
@@ -490,12 +487,6 @@ lemma direct_sum.submodule_is_internal.collected_orthonormal_basis_mem [decidabl
 by simp [direct_sum.submodule_is_internal.collected_orthonormal_basis]
 
 variables [finite_dimensional 𝕜 E]
-
--- move this
-lemma _root_.linear_independent.finite {K : Type*} {V : Type*} [division_ring K] [add_comm_group V]
-  [module K V] [finite_dimensional K V] {b : set V} (h : linear_independent K (λ (x:b), (x:V))) :
-  b.finite :=
-cardinal.lt_omega_iff_finite.mp (finite_dimensional.lt_omega_of_linear_independent h)
 
 /-- In a finite-dimensional `inner_product_space`, any orthonormal subset can be extended to an
 orthonormal basis. -/

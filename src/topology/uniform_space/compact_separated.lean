@@ -121,7 +121,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
       apply this,
       apply diag_subset,
       simp [h] },
-    -- Since γ is compact and Hausdorff, it is normal, hence regular.
+    -- Since γ is compact and Hausdorff, it is normal, hence T₃.
     haveI : normal_space γ := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.

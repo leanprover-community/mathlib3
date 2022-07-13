@@ -2026,11 +2026,11 @@ begin
   exact continuous_quot_mk.comp continuous_smul
 end
 
-instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
-  regular_space (M ⧸ S) :=
+instance t3_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
+  t3_space (M ⧸ S) :=
 begin
   letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
-  exact S.to_add_subgroup.regular_quotient_of_is_closed
+  exact S.to_add_subgroup.t3_quotient_of_is_closed
 end
 
 end submodule

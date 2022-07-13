@@ -17,12 +17,6 @@ def power_to_string(var: int, pow: int) -> str:
         return var_s
     return mk_app("poly.pow", var_s, str(pow))
 
-def combine_terms(s: str, t: str) -> str:
-    if t[0] == '-':
-        return mk_app("poly.sub", s, t[1:])
-    else:
-        return mk_app("poly.add", s, t)
-
 @dataclass
 class MonomForm:
     pos_form: str
@@ -44,7 +38,6 @@ def sum_to_string(terms: list[MonomForm]) -> str:
     else:
         first_form = first.neg_form if first.neg_form is not None else first.pos_form
         return sum_to_string_aux(first_form, terms)
-
 
 def monomial_to_string(etuple: ETuple, coeff: QQ) -> MonomForm:
     etuple = list(etuple.sparse_iter())

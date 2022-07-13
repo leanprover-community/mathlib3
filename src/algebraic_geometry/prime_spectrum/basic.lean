@@ -625,14 +625,14 @@ end
 
 lemma is_closed_range_comap_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=
 begin
-  rw image_of_spec_of_surjective _ f hf,
+  rw range_comap_of_surjective _ f hf,
   exact is_closed_zero_locus ↑(ker f),
 end
 
 lemma closed_embedding_comap_of_surjective (hf : surjective f) : closed_embedding (comap f) :=
 { induced := (comap_inducing_of_surjective S f hf).induced,
   inj := comap_injective_of_surjective f hf,
-  closed_range := is_closed_spec_of_surjective S f hf }
+  closed_range := is_closed_range_comap_of_surjective S f hf }
 
 end spec_of_surjective
 

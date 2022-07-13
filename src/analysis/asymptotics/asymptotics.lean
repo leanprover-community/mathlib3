@@ -143,14 +143,10 @@ theorem is_o.is_O (hgf : f =o[l] g) : f =O[l] g := hgf.is_O_with.is_O
 
 lemma is_O.is_O_with : f =O[l] g → ∃ c : ℝ, is_O_with c l f g := is_O_iff_is_O_with.1
 
-theorem is_O_with.weaken' (h : is_O_with c l f g) (hg : ∀ᶠ x in l, 0 ≤ ∥g x∥) (hc : c ≤ c') :
-  is_O_with c' l f g :=
-is_O_with.of_bound $ hg.mp $ h.bound.mono $ λ x hx hx',
-calc ∥f x∥ ≤ c * ∥g x∥ : hx
-... ≤ _ : mul_le_mul_of_nonneg_right hc hx'
-
 theorem is_O_with.weaken (h : is_O_with c l f g') (hc : c ≤ c') : is_O_with c' l f g' :=
-h.weaken' (eventually_of_forall $ λ _, norm_nonneg _) hc
+is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
+calc ∥f x∥ ≤ c * ∥g' x∥ : hx
+... ≤ _ : mul_le_mul_of_nonneg_right hc (norm_nonneg _)
 
 theorem is_O_with.exists_pos (h : is_O_with c l f g') :
   ∃ c' (H : 0 < c'), is_O_with c' l f g' :=
@@ -166,13 +162,6 @@ let ⟨c, cpos, hc⟩ := h.exists_pos in ⟨c, le_of_lt cpos, hc⟩
 theorem is_O.exists_nonneg (h : f =O[l] g') :
   ∃ c (H : 0 ≤ c), is_O_with c l f g' :=
 let ⟨c, hc⟩ := h.is_O_with in hc.exists_nonneg
-
-theorem is_O_with.nonneg_imp (h : is_O_with c l f g) (hc : 0 < c) :
-  ∀ᶠ x in l, 0 ≤ ∥f x∥ → 0 ≤ ∥g x∥ :=
-h.bound.mono $ λ x hle hf, nonneg_of_mul_nonneg_left (hf.trans hle) hc
-
-theorem is_o.nonneg_imp (h : f =o[l] g) : ∀ᶠ x in l, 0 ≤ ∥f x∥ → 0 ≤ ∥g x∥ :=
-h.is_O_with.nonneg_imp one_pos
 
 /-- `f = O(g)` if and only if `is_O_with c f g` for all sufficiently large `c`. -/
 lemma is_O_iff_eventually_is_O_with : f =O[l] g' ↔ ∀ᶠ c in at_top, is_O_with c l f g' :=
@@ -192,30 +181,32 @@ flip Exists₂.imp h.exists_pos $ λ c hc h,
 lemma is_O_with_inv (hc : 0 < c) : is_O_with c⁻¹ l f g ↔ ∀ᶠ x in l, c * ∥f x∥ ≤ ∥g x∥ :=
 by simp only [is_O_with, ← div_eq_inv_mul, le_div_iff' hc]
 
-lemma is_o_iff_nat_mul_le'' (h₀ : ∀ᶠ x in l, 0 ≤ ∥f x∥ ∨ 0 ≤ ∥g x∥) :
+-- We prove this lemma with strange assumptions to get two lemmas below automatically
+lemma is_o_iff_nat_mul_le_aux (h₀ : (∀ x, 0 ≤ ∥f x∥) ∨ ∀ x, 0 ≤ ∥g x∥) :
   f =o[l] g ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f x∥ ≤ ∥g x∥ :=
 begin
   split,
   { rintro H (_|n),
-    { filter_upwards [h₀, H.nonneg_imp] with x h₀ h₀',
-      rw [or_iff_right_of_imp h₀'] at h₀,
-      rwa [nat.cast_zero, zero_mul] },
+    { refine (H.def one_pos).mono (λ x h₀', _),
+      rw [nat.cast_zero, zero_mul],
+      refine h₀.elim (λ hf, (hf x).trans _) (λ hg, hg x),
+      rwa one_mul at h₀' },
     { have : (0 : ℝ) < n.succ, from nat.cast_pos.2 n.succ_pos,
       exact (is_O_with_inv this).1 (H.def' $ inv_pos.2 this) } },
-  { refine λ H, is_o_iff_forall_is_O_with.2 (λ ε ε0, _),
+  { refine λ H, is_o_iff.2 (λ ε ε0, _),
     rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
     have hn₀ : (0 : ℝ) < n, from (inv_pos.2 ε0).trans hn,
-    have := (is_O_with_inv hn₀).2 (H n),
-    refine this.weaken' _ (inv_le_of_inv_le ε0 hn.le),
-    filter_upwards [this.nonneg_imp (inv_pos.2 hn₀), h₀] with x hx₀ hx₀',
-    rwa [or_iff_right_of_imp hx₀] at hx₀' }
+    refine ((is_O_with_inv hn₀).2 (H n)).bound.mono (λ x hfg, _),
+    refine hfg.trans (mul_le_mul_of_nonneg_right (inv_le_of_inv_le ε0 hn.le) _),
+    refine h₀.elim (λ hf, nonneg_of_mul_nonneg_right ((hf x).trans hfg) _) (λ h, h x),
+    exact inv_pos.2 hn₀ }
 end
 
 lemma is_o_iff_nat_mul_le : f =o[l] g' ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f x∥ ≤ ∥g' x∥ :=
-is_o_iff_nat_mul_le'' $ eventually_of_forall $ λ x, or.inr (norm_nonneg _)
+is_o_iff_nat_mul_le_aux (or.inr $ λ x, norm_nonneg _)
 
 lemma is_o_iff_nat_mul_le' : f' =o[l] g ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f' x∥ ≤ ∥g x∥ :=
-is_o_iff_nat_mul_le'' $ eventually_of_forall $ λ x, or.inl (norm_nonneg _)
+is_o_iff_nat_mul_le_aux (or.inl $ λ x, norm_nonneg _)
 
 /-! ### Subsingleton -/
 
@@ -910,7 +901,7 @@ alias is_O_one_iff ↔ _ _root_.filter.is_bounded_under.is_O_one
 
 @[simp] theorem is_o_one_left_iff : (λ x, 1 : α → F) =o[l] f ↔ tendsto (λ x, ∥f x∥) l at_top :=
 calc (λ x, 1 : α → F) =o[l] f ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥(1 : F)∥ ≤ ∥f x∥ :
-  is_o_iff_nat_mul_le'' $ by simp
+  is_o_iff_nat_mul_le_aux $ or.inl $ λ x, by simp only [norm_one, zero_le_one]
 ... ↔ ∀ n : ℕ, true → ∀ᶠ x in l, ∥f x∥ ∈ Ici (n : ℝ) :
   by simp only [norm_one, mul_one, true_implies_iff, mem_Ici]
 ... ↔ tendsto (λ x, ∥f x∥) l at_top : at_top_countable_basis_of_archimedean.1.tendsto_right_iff.symm

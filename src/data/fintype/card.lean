@@ -197,6 +197,19 @@ begin
 end
 
 @[to_additive]
+lemma prod_fin_succ_eq_prod_fin_mul [comm_monoid β] {n : ℕ}
+  (f : fin (n + 1) → β) : ∏ i, f i = (∏ (i : fin n), f (i + 1)) * f 0 :=
+begin
+  refine trans (finset.prod_eq_prod_diff_singleton_mul (finset.mem_univ 0) _) _,
+  congr' 1,
+  let g : Π (a : fin (n + 1)), a ∈ (finset.univ \ {0} : finset (fin (n + 1))) → fin n :=
+    λ a ha, a.pred (finset.not_mem_singleton.1 (finset.mem_sdiff.1 ha).2),
+  exact finset.prod_bij g (λ _ _, finset.mem_univ _) (λ b _, by simp) (λ i j _ _, fin.pred_inj.1)
+    (λ b _, ⟨b.succ, finset.mem_sdiff.2 ⟨finset.mem_univ b.succ, (finset.not_mem_singleton.2
+      (ne.symm (ne_of_lt $ fin.succ_pos b)))⟩, symm (fin.pred_succ b)⟩),
+end
+
+@[to_additive]
 lemma finset.prod_to_finset_eq_subtype {M : Type*} [comm_monoid M] [fintype α]
   (p : α → Prop) [decidable_pred p] (f : α → M) :
     ∏ a in {x | p x}.to_finset, f a = ∏ a : subtype p, f a :=

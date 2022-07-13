@@ -53,7 +53,7 @@ begin
     nat.mod_add_div n k, add_comm, add_lt_add_iff_right],
   apply (nat.mod_lt n hk).trans_le,
   have : 1 ≤ n / k,
-  { rwa [nat.le_div_iff_mul_le _ _ hk, one_mul] },
+  { rwa [nat.le_div_iff_mul_le hk, one_mul] },
   simpa using nat.mul_le_mul_left k this,
 end
 
@@ -101,10 +101,6 @@ end
 
 end linear_ordered_field
 
-lemma disjoint.eq_bot_of_ge [semilattice_inf α] [order_bot α] {a b : α} (hab : disjoint a b)
-  (h : b ≤ a) : b = ⊥ :=
-hab.symm.eq_bot_of_le h
-
 lemma sum_mul_sq_le_sq_mul_sq (s : finset α) (f g : α → ℝ) :
   (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * ∑ i in s, (g i)^2 :=
 begin
@@ -120,18 +116,8 @@ begin
     rw [←h', sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h'' i hi])],
     simp },
   rw ←sub_nonneg,
-  apply nonneg_of_mul_nonneg_right h h',
+  exact nonneg_of_mul_nonneg_left h h',
 end
-
-@[simp, norm_cast]
-lemma rat.cast_sum [division_ring α] [char_zero α] (s : finset ι) (f : ι → ℚ) :
-  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
-map_sum (rat.cast_hom α) f s
-
-@[simp, norm_cast]
-lemma rat.cast_prod [field α] [char_zero α] (s : finset ι) (f : ι → ℚ) :
-  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
-map_prod (rat.cast_hom α) f s
 
 lemma chebyshev' (s : finset α) (f : α → ℝ) :
   (∑ (i : α) in s, f i) ^ 2 ≤ (∑ (i : α) in s, f i ^ 2) * s.card :=

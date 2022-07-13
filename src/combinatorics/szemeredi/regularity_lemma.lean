@@ -55,7 +55,7 @@ begin
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }
       ... < ε ^ 5 / 4 * (⌊4 / ε ^ 5⌋₊ + 1)
           : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (nat.lt_floor_add_one _)
-      ... ≤ (P.energy G : ℝ) : hPenergy
+      ... ≤ (P.energy G : ℝ) : by rwa ←nat.cast_add_one
       ... ≤ 1 : by exact_mod_cast P.energy_le_one G },
   intro i,
   induction i with i ih,

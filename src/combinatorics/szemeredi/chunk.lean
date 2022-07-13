@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.regularity.bound
+import combinatorics.simple_graph.regularity.equitabilise
 import combinatorics.simple_graph.regularity.uniform
 import .atomise
-import .equitabilise
 import .prereqs
 
 /-!
@@ -40,7 +40,7 @@ lemma bUnion_star_subset_nonuniform_witness :
   (hP.star G ε hU V).bUnion id ⊆ G.nonuniform_witness ε U V :=
 bUnion_subset_iff_forall_subset.2 $ λ A hA, (mem_filter.1 hA).2
 
-variables {hP G ε hU V}
+variables {hP G ε hU V} {𝒜 : finset (finset α)} {s : finset α}
 
 lemma star_subset_chunk_increment : hP.star G ε hU V ⊆ (hP.chunk_increment G ε hU).parts :=
 filter_subset _ _
@@ -82,8 +82,8 @@ begin
   intros B hB,
   rw [finpartition.is_equipartition.chunk_increment],
   split_ifs with h₁,
-  { convert card_parts_equitabilise_subset_le (card_aux₁ h₁) hB },
-  { convert card_parts_equitabilise_subset_le (card_aux₂ hP hU h₁) hB }
+  { convert card_parts_equitabilise_subset_le _ (card_aux₁ h₁) hB },
+  { convert card_parts_equitabilise_subset_le _ (card_aux₂ hP hU h₁) hB }
 end
 
 lemma one_sub_eps_mul_card_nonuniform_witness_le_card_star (hV : V ∈ P.parts) (hUV : U ≠ V)
@@ -100,8 +100,8 @@ begin
       ... = 4^P.parts.card * m/U.card : by norm_num
       ... ≤ 1 : div_le_one_of_le (pow_mul_m_le_card_part hP hU) (nat.cast_nonneg _)
       ... ≤ 2^P.parts.card * ε^2 / 10 : begin
-              refine (one_le_sq_iff (div_nonneg (mul_nonneg (pow_nonneg (@zero_le_two ℝ _) _) $
-                sq_nonneg _) $ by norm_num)).1 _,
+              refine (one_le_sq_iff (div_nonneg (mul_nonneg (pow_nonneg
+                (@zero_le_two ℝ _ _ _ _ _) _) $ sq_nonneg _) $ by norm_num)).1 _,
               rw [div_pow, mul_pow, pow_right_comm, ←pow_mul ε,
                 one_le_div (sq_pos_of_ne_zero (10 : ℝ) $ by norm_num)],
               calc
@@ -150,54 +150,51 @@ lemma card_chunk_increment (hm : m ≠ 0) : (hP.chunk_increment G ε hU).parts.c
 begin
   rw finpartition.is_equipartition.chunk_increment,
   split_ifs,
-  { rw [card_parts_equitabilise hm, nat.sub_add_cancel],
+  { rw [card_parts_equitabilise _ _ hm, nat.sub_add_cancel],
     exact le_of_lt a_add_one_le_four_pow_parts_card },
-  { rw [card_parts_equitabilise hm, nat.sub_add_cancel a_add_one_le_four_pow_parts_card] }
+  { rw [card_parts_equitabilise _ _ hm, nat.sub_add_cancel a_add_one_le_four_pow_parts_card] }
 end
 
-lemma card_eq_of_mem_parts_chunk_increment {A : finset α}
-  (hA : A ∈ (hP.chunk_increment G ε hU).parts) :
-  A.card = m ∨ A.card = m + 1 :=
+lemma card_eq_of_mem_parts_chunk_increment (hs : s ∈ (hP.chunk_increment G ε hU).parts) :
+  s.card = m ∨ s.card = m + 1 :=
 begin
-  rw [finpartition.is_equipartition.chunk_increment] at hA,
-  split_ifs at hA;
-  apply card_eq_of_mem_parts_equitabilise _ hA,
+  rw [finpartition.is_equipartition.chunk_increment] at hs,
+  split_ifs at hs; exact card_eq_of_mem_parts_equitabilise hs,
 end
 
-lemma m_le_card_of_mem_chunk_increment_parts {A : finset α}
-  (hA : A ∈ (hP.chunk_increment G ε hU).parts) : m ≤ A.card :=
-(card_eq_of_mem_parts_chunk_increment hA).elim ge_of_eq (λ i, by simp [i])
+lemma m_le_card_of_mem_chunk_increment_parts (hs : s ∈ (hP.chunk_increment G ε hU).parts) :
+  m ≤ s.card :=
+(card_eq_of_mem_parts_chunk_increment hs).elim ge_of_eq (λ i, by simp [i])
 
-lemma card_le_m_add_one_of_mem_chunk_increment_parts {A : finset α}
-  (hA : A ∈ (hP.chunk_increment G ε hU).parts) : A.card ≤ m + 1 :=
-(card_eq_of_mem_parts_chunk_increment hA).elim (λ i, by simp [i]) (λ i, i.le)
+lemma card_le_m_add_one_of_mem_chunk_increment_parts
+  (hs : s ∈ (hP.chunk_increment G ε hU).parts) : s.card ≤ m + 1 :=
+(card_eq_of_mem_parts_chunk_increment hs).elim (λ i, by simp [i]) (λ i, i.le)
 
 lemma card_bUnion_star_le_m_add_one_card_star_mul :
   (((hP.star G ε hU V).bUnion id).card : ℝ) ≤ (hP.star G ε hU V).card * (m + 1) :=
 by exact_mod_cast (card_bUnion_le_card_mul _ _ _ $ λ s hs,
   card_le_m_add_one_of_mem_chunk_increment_parts $ star_subset_chunk_increment hs)
 
-lemma le_sum_card_subset_chunk_increment_parts {A : finset (finset α)}
-  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
-  (A.card : ℝ) * u.card * (m/(m+1)) ≤ (A.sup id).card :=
+lemma le_sum_card_subset_chunk_increment_parts (h𝒜 : 𝒜 ⊆ (hP.chunk_increment G ε hU).parts)
+  (hs : s ∈ 𝒜) : (𝒜.card : ℝ) * s.card * (m/(m+1)) ≤ (𝒜.sup id).card :=
 begin
   rw [mul_div_assoc', div_le_iff coe_m_add_one_pos, mul_right_comm],
   refine mul_le_mul _ _ (nat.cast_nonneg _) (nat.cast_nonneg _),
-  { rw [←(of_subset _ hA rfl).sum_card_parts, of_subset_parts, ←nat.cast_mul, nat.cast_le],
-    exact card_nsmul_le_sum _ _ _ (λ x hx, m_le_card_of_mem_chunk_increment_parts (hA hx)) },
-  { exact_mod_cast card_le_m_add_one_of_mem_chunk_increment_parts (hA hu) }
+  { rw [←(of_subset _ h𝒜 rfl).sum_card_parts, of_subset_parts, ←nat.cast_mul, nat.cast_le],
+    exact card_nsmul_le_sum _ _ _ (λ x hx, m_le_card_of_mem_chunk_increment_parts (h𝒜 hx)) },
+  { exact_mod_cast card_le_m_add_one_of_mem_chunk_increment_parts (h𝒜 hs) }
 end
 
-lemma sum_card_subset_chunk_increment_parts_le (m_pos : (0 : ℝ) < m) {A : finset (finset α)}
-  (hA : A ⊆ (hP.chunk_increment G ε hU).parts) {u : finset α} (hu : u ∈ A) :
-  ((A.sup id).card : ℝ) ≤ (A.card * u.card) * ((m+1)/m) :=
+lemma sum_card_subset_chunk_increment_parts_le (m_pos : (0 : ℝ) < m)
+  (h𝒜 : 𝒜 ⊆ (hP.chunk_increment G ε hU).parts) (hs : s ∈ 𝒜) :
+  ((𝒜.sup id).card : ℝ) ≤ (𝒜.card * s.card) * ((m+1)/m) :=
 begin
   rw [sup_eq_bUnion, mul_div_assoc', le_div_iff m_pos, mul_right_comm],
   refine mul_le_mul _ _ (nat.cast_nonneg _) (by exact_mod_cast nat.zero_le _),
   { norm_cast,
     refine card_bUnion_le_card_mul _ _ _ (λ x hx, _),
-    apply card_le_m_add_one_of_mem_chunk_increment_parts (hA hx) },
-  { exact_mod_cast m_le_card_of_mem_chunk_increment_parts (hA hu) }
+    apply card_le_m_add_one_of_mem_chunk_increment_parts (h𝒜 hx) },
+  { exact_mod_cast m_le_card_of_mem_chunk_increment_parts (h𝒜 hs) }
 end
 
 lemma one_sub_le_m_div_m_add_one_sq [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)

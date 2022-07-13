@@ -51,7 +51,7 @@ lemma triangle_free_far.nonpos (h₀ : G.triangle_free_far ε) (h₁ : G.clique_
 begin
   have := h₀ le_rfl h₁,
   rw sub_self at this,
-  exact nonpos_of_mul_nonpos_right this (nat.cast_pos.2 $ sq_pos_of_pos fintype.card_pos),
+  exact nonpos_of_mul_nonpos_left this (nat.cast_pos.2 $ sq_pos_of_pos fintype.card_pos),
 end
 
 lemma clique_free.not_triangle_free_far (hG : G.clique_free 3) (hε : 0 < ε) :

@@ -207,8 +207,7 @@ end
 def trivial_triangles (N : ℕ) (s : finset (ℕ × ℕ)) : finset (fin N × fin N × fin (2 * N)) :=
 univ.filter (λ xyz, (↑xyz.1, ↑xyz.2.1) ∈ s ∧ (xyz.1 : ℕ) + xyz.2.1 = xyz.2.2)
 
-lemma trivial_triangles_mem :
-  ∀ x ∈ trivial_triangles N s, explicit_triangles s N x :=
+lemma trivial_triangles_mem : ∀ x ∈ trivial_triangles N s, explicit_triangles s N x :=
 λ ⟨h, v, k⟩ t,
 begin
   simp only [trivial_triangles, true_and, mem_filter, mem_univ] at t,
@@ -404,14 +403,14 @@ begin
     rw [nat.cast_mul, nat.cast_two, mul_pow, ←mul_assoc, nat.cast_mul],
     norm_num,
     rw [sq, ←mul_assoc, mul_comm _ (s.card : ℝ)],
-    apply mul_le_mul_of_nonneg_right hAcard (nat.cast_nonneg _) },
+    exact mul_le_mul_of_nonneg_right hAcard (nat.cast_nonneg _) },
   obtain ⟨x, y, k, hk, xy, xky, xyk⟩ :=
     hn₀ _ (hn.trans (nat.le_mul_of_pos_left zero_lt_two)) B (filter_subset _ _) this,
   refine ⟨y - (x + k), k, hk, (mem_filter.1 xky).2.2, _, _⟩,
   { rw [←nat.sub_add_comm (mem_filter.1 xky).2.1, nat.add_sub_add_right],
-    apply (mem_filter.1 xy).2.2 },
+    exact (mem_filter.1 xy).2.2 },
   { rw [←nat.sub_add_comm (mem_filter.1 xky).2.1, two_mul, ←add_assoc, nat.add_sub_add_right],
-    apply (mem_filter.1 xyk).2.2 },
+    exact (mem_filter.1 xyk).2.2 },
 end
 
 lemma roth' (δ : ℝ) (hδ : 0 < δ) :
@@ -425,10 +424,9 @@ end
 
 open asymptotics filter
 
-lemma roth_asymptotic : is_o (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+lemma roth_asymptotic : is_o at_top (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) :=
 begin
-  rw is_o_iff,
-  intros δ hδ,
+  refine is_o_iff.2 (λ δ hδ, _),
   rw eventually_at_top,
   obtain ⟨n₀, hn₀⟩ := roth' δ hδ,
   refine ⟨n₀, λ n hn, _⟩,

@@ -68,9 +68,10 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-instance (s : subalgebra R A) : topological_semiring s := s.to_subsemiring.topological_semiring
+instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
+s.to_subsemiring.topological_semiring
 
-instance subalgebra.topological_algebra [topological_space R] [has_continuous_smul R A]
+instance subalgebra.has_continuous_smul [topological_space R] [has_continuous_smul R A]
   (s : subalgebra R A) :
   has_continuous_smul R s :=
 s.to_submodule.has_continuous_smul

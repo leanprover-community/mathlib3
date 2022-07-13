@@ -61,7 +61,7 @@ variables {R}
 @[simp] lemma mul_right_apply (a b : A) : mul_right R a b = b * a := rfl
 @[simp] lemma mul_left_right_apply (a b x : A) : mul_left_right R (a, b) x = a * x * b := rfl
 
-@[simp] lemma mul'_apply {a b : A} : mul' R (a ⊗ₜ b) = a * b :=
+@[simp] lemma mul'_apply {a b : A} : mul' R A (a ⊗ₜ b) = a * b :=
 by simp only [linear_map.mul', tensor_product.lift.tmul, mul_apply', coe_coe,
   distrib_mul_action_hom.coe_to_linear_map, non_unital_alg_hom.coe_to_distrib_mul_action_hom]
 

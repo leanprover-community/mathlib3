@@ -228,12 +228,27 @@ end
 
 /-- **Almost everywhere martingale convergence theorem**: An L¹-bounded submartingale converges
 almost everywhere to a L¹ random variable. -/
-lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd
-  (hf : submartingale f ℱ μ) (hbbd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
+lemma submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hbdd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
   ∃ g : α → ℝ, mem_ℒp g 1 μ ∧
   ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
 begin
-  sorry
+  classical,
+  set g : α → ℝ := λ x, if h : ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) then h.some else 0 with hgd,
+  have hg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)),
+  { filter_upwards [hf.exists_ae_tendsto_of_bdd hbdd] with x hx,
+    simp_rw [hgd, dif_pos hx],
+    exact hx.some_spec },
+  have hgmeas : ae_strongly_measurable g μ :=
+    ae_measurable.ae_strongly_measurable (ae_measurable_of_tendsto_metrizable_ae'
+      (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_measurable) hg),
+  refine ⟨g, ⟨hgmeas, _⟩, hg⟩,
+  { obtain ⟨R, hR⟩ := hbdd,
+    refine lt_of_le_of_lt (Lp.snorm_lim_le_liminf_snorm
+      (λ n, ((hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl).ae_strongly_measurable)
+      g hg) (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞)),
+    simp_rw [liminf_eq, eventually_at_top],
+    exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hR _)) }
 end
 
 end measure_theory

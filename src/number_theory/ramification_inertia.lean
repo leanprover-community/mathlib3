@@ -790,7 +790,7 @@ open_locale big_operators
 
 /-- The **fundamental identity** of ramification index `e` and inertia degree `f`:
 for `P` ranging over the primes lying over `p`, `∑ P, e P * f P = [Frac(S) : Frac(R)]`;
-if `Frac(S) : Frac(R)` is a finite extension, `p` is maximal
+here `S` is a finite `R`-module (and thus `Frac(S) : Frac(R)` is a finite extension), `p` is maximal
 here `S` is a finite `R`-module (and thus `Frac(S) : Frac(R)` is a finite extension), `p` is maximal
 -/
 theorem sum_ramification_inertia (K L : Type*) [field K] [field L]

@@ -148,10 +148,10 @@ theorem lintegral_comp_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite 
   ∫⁻ ω, ennreal.of_real (∫ t in 0 .. f ω, g t) ∂μ
     = ∫⁻ t in Ioi 0, μ {a : α | t ≤ f a} * ennreal.of_real (g t) :=
 begin
-  have ex_G : ∃ (G : ℝ → ℝ), measurable G ∧ g =ᵐ[volume.restrict (Ioi 0)] G ∧ 0 ≤ G,
+  have ex_G : ∃ (G : ℝ → ℝ), measurable G ∧ 0 ≤ G ∧ g =ᵐ[volume.restrict (Ioi 0)] G,
   { refine ae_measurable.exists_measurable_nonneg _ g_nn,
     exact ae_measurable_Ioi_of_forall_Ioc (λ t ht, (g_intble t ht).1.1.ae_measurable), },
-  rcases ex_G with ⟨G, G_mble, g_eq_G, G_nn⟩,
+  rcases ex_G with ⟨G, G_mble, G_nn, g_eq_G⟩,
   have g_eq_G_on : ∀ t, g =ᵐ[volume.restrict (Ioc 0 t)] G,
     from λ t, ae_mono (measure.restrict_mono Ioc_subset_Ioi_self le_rfl) g_eq_G,
   have G_intble : ∀ t > 0, interval_integrable G volume 0 t,

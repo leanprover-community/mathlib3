@@ -184,6 +184,14 @@ begin
     simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
 end
 
+lemma exists_measurable_nonneg {β} [preorder β] [has_zero β] {mβ : measurable_space β} {f : α → β}
+  (hf : ae_measurable f μ) (f_nn : ∀ᵐ t ∂μ, 0 ≤ f t) :
+  ∃ g, measurable g ∧ 0 ≤ g ∧ f =ᵐ[μ] g :=
+begin
+  obtain ⟨G, hG_meas, hG_mem, hG_ae_eq⟩ := hf.exists_ae_eq_range_subset f_nn ⟨0, le_rfl⟩,
+  exact ⟨G, hG_meas, λ x, hG_mem (mem_range_self x), hG_ae_eq⟩,
+end
+
 lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} :
   ae_measurable (cod_restrict f s hfs) μ :=
 begin

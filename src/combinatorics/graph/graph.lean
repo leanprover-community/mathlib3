@@ -93,11 +93,15 @@ begin
 -- so i can't use digraph lemmas here
   rw ← h2,
   simp,
+  rw ends_set,
+  simp only [nat.card_eq_fintype_card, fintype.card_of_finset],
 
-
-  sorry,
-  sorry,
-  refl,
+  left,
+  have h4 : (G.ends_finset e).card = 1,
+  omega,
+  rw ends_set,
+  rw ← h4,
+  simp,
 end
 
 /-- Noncomputably gives a bijection between `α` and `fin n`, where `nat.card α = n ≠ 0`. This is
@@ -382,6 +386,7 @@ protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
 begin
   apply graph.mk (λ v : G'.verts, λ e : G'.edges, G.inc v e),
   simp,
+  intros x h,
   sorry,
 --   unfold graph,
 --   unfold graph at G,

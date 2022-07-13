@@ -65,25 +65,29 @@ endowed with the convolution product.
 structure monoid_algebra := of_dfinsupp ::
 (to_dfinsupp : Π₀ (g : G), k)
 
-def monoid_algebra.of_dfinsupp_equiv : monoid_algebra k G ≃ Π₀ (g : G), k :=
+def monoid_algebra.to_dfinsupp_equiv : monoid_algebra k G ≃ Π₀ (g : G), k :=
 { to_fun := monoid_algebra.to_dfinsupp,
   inv_fun := monoid_algebra.of_dfinsupp,
   left_inv := λ ⟨_⟩, by simp,
   right_inv := λ x, by simp }
 
 instance : add_comm_monoid (monoid_algebra k G) :=
-@equiv.add_comm_monoid _ _ (monoid_algebra.of_dfinsupp_equiv k G)
+@equiv.add_comm_monoid _ _ (monoid_algebra.to_dfinsupp_equiv k G)
   (@dfinsupp.add_comm_monoid G (λ _, k) _)
--- equiv.add_comm_monoid (equiv.refl (Π₀ (g : G), k)).symm
--- (equiv.refl _).add_com
--- @dfinsupp.add_comm_monoid G (λ _, k) _
 
 instance monoid_algebra.fun_like : fun_like (monoid_algebra k G) G (λ _, k) :=
-@equiv.fun_like _ _ (monoid_algebra.of_dfinsupp_equiv k G)
-  (@dfinsupp.add_comm_monoid G (λ _, k) _)
+(monoid_algebra.to_dfinsupp_equiv k G).fun_like
 
 instance : has_coe_to_fun (monoid_algebra k G) (λ _, G → k) :=
-dfinsupp.has_coe_to_fun
+fun_like.has_coe_to_fun
+
+def monoid_algebra.to_dfinsupp_add_equiv :
+  @add_equiv (monoid_algebra k G) (Π₀ (g : G), k) _
+  (@add_semigroup.to_has_add _
+  (@add_monoid.to_add_semigroup _
+  (@add_comm_monoid.to_add_monoid _ (@dfinsupp.add_comm_monoid G (λ _, k) _)))) :=
+{ map_add' := λ _ _, rfl
+  ..(monoid_algebra.to_dfinsupp_equiv k G) }
 
 end
 
@@ -101,10 +105,11 @@ and the range of either `f` or `g` is in center of `R`, then the result is a rin
 `R` is a `k`-algebra and `f = algebra_map k R`, then the result is an algebra homomorphism called
 `monoid_algebra.lift`. -/
 def lift_nc [decidable_eq G] (f : k →+ R) (g : G → R) : monoid_algebra k G →+ R :=
-lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g x)).comp f)
+(lift_add_hom (λ x : G, (add_monoid_hom.mul_right (g x)).comp f)).comp
+  (monoid_algebra.to_dfinsupp_add_equiv k G)
 
 @[simp] lemma lift_nc_single [decidable_eq G] (f : k →+ R) (g : G → R) (a : G) (b : k) :
-  lift_nc f g (single a b) = f b * g a :=
+  lift_nc f g (monoid_algebra.of_dfinsupp (single a b)) = f b * g a :=
 lift_add_hom_apply_single _ _ _
 
 end
@@ -117,10 +122,14 @@ variables [semiring k] [Π (x : k), decidable (x ≠ 0)] [has_mul G] [decidable_
   whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
   such that `x * y = a`. (Think of the group ring of a group.) -/
 instance : has_mul (monoid_algebra k G) :=
-⟨λf g, f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)⟩
+⟨λf g, ((to_dfinsupp_add_equiv k G) f).sum $ λa₁ b₁,
+  (to_dfinsupp_add_equiv k G g).sum $ λa₂ b₂,
+  (to_dfinsupp_add_equiv k G).symm (single (a₁ * a₂) (b₁ * b₂))⟩
 
 lemma mul_def {f g : monoid_algebra k G} :
-  f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ * a₂) (b₁ * b₂)) :=
+  f * g = ((to_dfinsupp_add_equiv k G) f).sum (λa₁ b₁,
+    (to_dfinsupp_add_equiv k G g).sum $ λa₂ b₂,
+    (to_dfinsupp_add_equiv k G).symm (single (a₁ * a₂) (b₁ * b₂))) :=
 rfl
 
 instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
@@ -133,7 +142,10 @@ instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
     funext,
     funext,
     convert (@sum_add_index G _ (λ _, k) _ _ _ _ _ _ _ _ _),
-    {  },
+    { simp only [mul_zero, single_zero],
+      intro,
+      convert map_zero (to_dfinsupp_add_equiv k G).symm, -- can't solve TC
+    },
     {  },
     -- simp only [mul_def, sum_add_index, mul_add, mul_zero,
     -- single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
@@ -143,7 +155,7 @@ instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
     sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
-  .. dfinsupp.add_comm_monoid }
+  .. monoid_algebra.add_comm_monoid k G }
 
 #exit
 

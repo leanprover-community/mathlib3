@@ -13,6 +13,40 @@ universe u
 
 noncomputable theory
 
+namespace continuous_map
+
+lemma continuous_to_C_iff_uncurry (X Y Z : Type u) [topological_space X] [topological_space Y]
+[locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
+  continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
+(λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
+
+lemma continuous_to_C_iff_curry (X Y Z : Type u) [topological_space X] [topological_space Y]
+[locally_compact_space X] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
+  continuous g ↔ continuous (λ x y, g x y) :=  --iff.intro
+-- (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
+begin
+  sorry;
+  {
+  split,
+  { intro h,
+    -- have := function.curry_uncurry (λ x y, g x y),
+    -- rw ← this,
+    apply continuous_pi _,
+    have φ  := (@homeomorph.curry X Y Z _ _ _ _ _).symm,
+    let G : C(X, C(Y,Z)) := ⟨g, h⟩,
+    let F := φ.1.1 G,
+
+    intro y,
+    -- exact h,
+    -- have := continuous_uncurry,
+    -- apply continuous_pi (λ (i : Y), _),
+
+  },
+  },
+end
+
+end continuous_map
+
 open path continuous_map
 
 open_locale unit_interval
@@ -30,6 +64,8 @@ end path
 
 namespace H_space
 
+open path
+
 class H_space (X : Type u) [topological_space X]  :=
 (Hmul : X × X → X)
 (e : X)
@@ -46,7 +82,6 @@ class H_space (X : Type u) [topological_space X]  :=
   ⟨id, continuous_id'⟩
   {e})
 
--- #check @H_space.mk
 
 notation ` ∨ `:65 := H_space.Hmul
 
@@ -81,8 +116,6 @@ instance (x : X) : topological_space (loop_space x) := by {exact subtype.topolog
 
 instance (x : X) : has_coe (loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
 
-variable (x : X)
-
 example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compact_space Y]
 [locally_compact_space Z] (g : Y → C(Z, X)) (hg : continuous g) : continuous (λ p : Y × Z, g p.fst p.snd) :=
 begin
@@ -90,42 +123,55 @@ begin
   exact f.2,
 end
 
--- lemma continuous_to_loop_space_iff (Y : Type u) [topological_space Y] (g : Y → Ω x) :
---   continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
--- begin
---   let g₁ : Y → C(I,X) := λ y, g y,
---   split,
---   { intro h,
---     have hg₁ : continuous g₁,
---     { convert h.subtype_coe,
---       ext t,
---       refl },
---     have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
---     exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
---   { intro h,
-
---     suffices hg₁ : continuous g₁,
---     sorry,
---     apply continuous_of_continuous_uncurry,
---     dsimp [function.uncurry],
---     -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
---     -- suggest,
---     -- library_search,
---     -- continuity,
---     -- simp,
---     -- convert h using 0,
---   },
--- end
-
 abbreviation new_loop_space (x : X) := path x x
 
 notation ` Ω ` := new_loop_space
 
 instance (x : X) : topological_space (Ω x) := infer_instance
 
+variable (x : X)
 
-lemma continuous_to_loop_space_iff {Y : Type u} [topological_space Y]
-  {g : Y → Ω x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) := sorry
+lemma continuous_to_loop_space_iff_uncurry (Y : Type u) [topological_space Y] (g : Y → Ω x) :
+  continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
+begin
+  -- have := @continuous_map.continuous_uncurry_of_continuous Y I X _ _ _ _,
+  -- split,
+  -- sorry,
+  -- intro h,
+  -- apply this,
+  -- have := this h,
+sorry;{
+  let g₁ : Y → C(I,X) := λ y, g y,
+  split,
+  { intro h,
+    have hg₁ : continuous g₁, sorry,
+    -- { convert h.subtype_coe,
+    --   ext t,
+    --   refl },
+    have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
+    exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
+  { intro h,
+
+    suffices hg₁ : continuous g₁,
+    sorry,
+    apply continuous_of_continuous_uncurry,
+    dsimp [function.uncurry],
+    -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
+    -- suggest,
+    -- library_search,
+    -- continuity,
+    -- simp,
+    -- convert h using 0,
+  },
+}
+end
+
+
+lemma continuous_to_loop_space_iff_curry {Y : Type u} [topological_space Y]
+  {g : Y → Ω x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
+  begin
+    sorry
+  end
 
 -- example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X) (hf : continuous f)
 -- : continuous (λ p : Y × Z, f p.1) := continuous.fst' hf
@@ -183,7 +229,7 @@ instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
   e := refl _,
   cont' :=
   begin
-    apply (continuous_to_loop_space_iff x).mpr,
+    apply (continuous_to_loop_space_iff_curry x).mpr,
     apply continuous_of_restricts_union (univ_eq_union_halves _),
     { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
       have hφ: continuous φ, sorry,

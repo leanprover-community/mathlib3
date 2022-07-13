@@ -171,7 +171,6 @@ instance : has_pure ultrafilter :=
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 @[simp] lemma coe_pure (a : α) : ↑(pure a : ultrafilter α) = (pure a : filter α) := rfl
 @[simp] lemma map_pure (m : α → β) (a : α) : map m (pure a) = pure (m a) := rfl
-
 @[simp] lemma comap_pure {m : α → β} (a : α) (inj : injective m) (large) :
   comap (pure $ m a) inj large = pure a :=
 coe_injective $ comap_pure.trans $

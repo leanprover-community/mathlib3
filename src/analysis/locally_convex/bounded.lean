@@ -164,7 +164,7 @@ section uniform_add_group
 
 variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-variables [regular_space E]
+variables [t3_space E]
 
 lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
   bornology.is_vonN_bounded 𝕜 s :=

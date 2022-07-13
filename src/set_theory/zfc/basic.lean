@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import logic.small
 import order.well_founded
 
 /-!
@@ -176,6 +177,9 @@ theorem mem_def {x y : pSet} : x ∈ y ↔ ∃ b, equiv x (y.func b) := iff.rfl
 
 theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
+
+theorem func_mem (x : pSet) (i : x.type) : x.func i ∈ x :=
+by { cases x, apply mem.mk }
 
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y
 | ⟨α, A⟩ ⟨β, B⟩ h := ⟨λ a, (h (A a)).1 (mem.mk A a),
@@ -428,6 +432,18 @@ instance : has_mem Set Set := ⟨quotient.lift₂ (∈) $
 def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
 
 @[simp] theorem mem_to_set (a u : Set.{u}) : a ∈ u.to_set ↔ a ∈ u := iff.rfl
+
+instance small_to_set (x : Set) : small x.to_set :=
+quotient.induction_on x $ λ a, begin
+  let f : a.type → (mk a).to_set := λ i, ⟨mk $ a.func i, func_mem a i⟩,
+  suffices : function.surjective f,
+  { exact small_of_surjective this },
+  rintro ⟨y, hb⟩,
+  revert hb,
+  refine quotient.induction_on y (λ b, _),
+  rintro ⟨i, h⟩,
+  exact ⟨i, subtype.coe_injective (quotient.sound h.symm)⟩
+end
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
 instance has_subset : has_subset Set := ⟨λ x y, ∀ ⦃z⦄, z ∈ x → z ∈ y⟩

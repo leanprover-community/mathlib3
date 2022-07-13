@@ -940,7 +940,7 @@ begin
     simp only [h, ennreal.top_to_nnreal, A] }
 end
 
-lemma nnreal.sum_le_tsum {f : β → ℝ≥0} (hf : summable f) (s : finset β) :
+lemma sum_le_tsum {f : β → ℝ≥0} (hf : summable f) (s : finset β) :
   ∑ x in s, f x ≤ ∑' x, f x :=
 by simpa only [← ennreal.coe_le_coe, ennreal.coe_tsum hf, ennreal.coe_finset_sum]
   using ennreal.sum_le_tsum s

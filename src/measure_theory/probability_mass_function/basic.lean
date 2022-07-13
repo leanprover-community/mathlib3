@@ -58,6 +58,25 @@ lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
+lemma pmf.apply_eq_one_iff {A : Type} (p : pmf A) (a : A) :
+  p a = 1 ↔ p.support = {a} :=
+begin
+  refine ⟨λ h, set.eq_of_subset_of_subset _ _, λ h, le_antisymm (pmf.coe_le_one p a) (le_of_eq _)⟩,
+  { refine λ a' ha', by_contradiction (λ h', false.elim (ne_of_gt _ p.tsum_coe)),
+    have : a ∉ {a'} := finset.not_mem_singleton.2 (ne.symm h'),
+    calc 1 < p a + p a' : lt_add_of_le_of_pos (le_of_eq h.symm)
+        (lt_of_le_of_ne (nnreal.coe_nonneg $ p a') (ha'.symm))
+      ... ≤ ∑ x in {a, a'}, p x : by rw [finset.sum_insert this, finset.sum_singleton]
+      ... ≤ ∑' (x : A), p x : nnreal.sum_le_tsum p.summable_coe {a, a'} },
+  { intros a' ha',
+    rw [set.mem_singleton_iff.1 ha', pmf.mem_support_iff, h],
+    exact one_ne_zero },
+  { refine trans (p.tsum_coe).symm (trans (tsum_congr $ λ a', _) (tsum_ite_eq a _)),
+    split_ifs with haa',
+    { rw haa' },
+    { rwa [pmf.apply_eq_zero_iff p, h, set.mem_singleton_iff] } }
+end
+
 section outer_measure
 
 open measure_theory measure_theory.outer_measure

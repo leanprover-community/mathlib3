@@ -216,8 +216,6 @@ def of_nat : ℕ → pSet
 /-- The von Neumann ordinal ω -/
 def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 
--- Todo (vihdzp): add general Neumann ordinals.
-
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
 protected def sep (p : set pSet) : pSet → pSet
 | ⟨α, A⟩ := ⟨{a // p (A a)}, λ x, A x.1⟩
@@ -338,8 +336,6 @@ end resp
   condition for functions that have a computable image. -/
 class inductive definable (n) : arity Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval n f)
-
--- Todo (vihdzp): this shouldn't be a class, since sets have lots of nontrivial equalities between them.
 
 attribute [instance] definable.mk
 

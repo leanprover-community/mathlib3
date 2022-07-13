@@ -97,7 +97,7 @@ by simp
 lemma coe_bind_apply (b : β) : (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
 eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
-@[simp] lemma pure_bind (a : α) : (pure a).bind f = f a :=
+@[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
   assume b a', by split_ifs; simp; subst h; simp,
 by ext b; simp [this]
@@ -164,17 +164,6 @@ end bind
 instance : monad pmf :=
 { pure := λ A a, pure a,
   bind := λ A B pa pb, pa.bind pb }
-
--- instance : is_lawful_functor pmf :=
--- { map_const_eq := λ α β, rfl,
---   id_map := λ α x, pmf.bind_pure x,
---   comp_map := λ α β γ g h x, by simp only [functor.map, bind_bind, pure_bind] }
-
--- instance : is_lawful_monad pmf :=
--- { bind_pure_comp_eq_map := λ α β f x, rfl,
---   bind_map_eq_seq := λ α β f x, rfl,
---   pure_bind := λ α β f x, pmf.pure_bind x f,
---   bind_assoc := λ α β γ x f g, pmf.bind_bind x f g }
 
 section bind_on_support
 

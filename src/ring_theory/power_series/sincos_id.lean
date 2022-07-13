@@ -166,7 +166,7 @@ theorem cos_id : (cos ℂ) =  (2: ℂ  )⁻¹ • (rescale I (exp ℂ) + rescale
 begin
   ext1 n,
   rw [map_smul, map_add, coeff_rescale, coeff_rescale,neg_pow I, mul_assoc, ← one_add_mul],
-  --rcases n.even_or_odd with (⟨k, rfl⟩ | ⟨k, rfl⟩),
+  --rcases n.even_or_odd with (⟨k, rfl⟩ | ⟨k, rfl⟩), -- a big shortcut
   cases nat.even_or_odd n with neven nodd,
   {--n even
     unfold even at neven,
@@ -176,11 +176,41 @@ begin
   },
   {--n odd
     rcases nodd with ⟨r, rfl⟩,
-    rw [two_mul,← bit0,← bit1,neg_pow_bit1, one_pow, ],
+    --rw [two_mul,← bit0,← bit1,neg_pow_bit1, one_pow, (_ : (1 : ℂ) + (-1 : ℂ) = 1 - 1)],
+    rw [two_mul,← bit0,← bit1,neg_pow_bit1, one_pow, add_neg_self, zero_mul, smul_zero],
+    --We have now shown that the odd coeff should be zero.  Next apply def of cos series
+    --We need to show that (coeff ℂ (bit1 r)) cos ℂ is, in fact, equal to zero.  This is
+    --pretty clear from the definition, since the odd degree terms of cos are zero.
+    unfold cos,
+    rw [],
 
   }
 
 end
+
+#eval bit1 20.  --41
+#eval bit0 3.   -- 6
+
+example (a b :ℂ ) : a -a = 0:=
+begin
+  suggest,
+end
+
+
+example : sin ℂ = (2 * I)⁻¹ • (rescale I (exp ℂ) - rescale (-I) (exp ℂ)) :=
+begin
+  ext1 n,
+  rw [map_smul, map_sub, coeff_rescale, coeff_rescale, neg_pow I, mul_assoc, ←one_sub_mul],
+  rcases n.even_or_odd with (⟨k, rfl⟩ | ⟨k, rfl⟩),
+  { rw [←bit0, I_pow_bit0, neg_pow_bit0, one_pow, sub_self, zero_mul, smul_zero, coeff_sin_bit0] },
+  { rw [two_mul, ←bit0, ←bit1, neg_pow_bit1, one_pow, sub_neg_eq_add, ←bit0],
+    rw [I_pow_bit1, mul_comm ((-1) ^ k) I, mul_assoc, ←mul_assoc, smul_eq_mul,
+        inv_mul_cancel_left₀, coeff_sin_bit1],
+    exact mul_ne_zero two_ne_zero' I_ne_zero },
+end
+
+
+
 
 
 #check sin_id

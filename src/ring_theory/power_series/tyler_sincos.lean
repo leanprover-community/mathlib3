@@ -84,19 +84,27 @@ example (A: Type*) [field A] [algebra ℚ A] :
       (maclaurin_sqrt_one_add_x A)*(maclaurin_sqrt_one_add_x A) = 1+X :=
 begin
   ext1 n,
-  rcases lt_trichotomy n 1 with a | nis1 | c,
+  rw coeff_mul,
+  rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+  rw sum_range_succ,
+  rcases lt_trichotomy n 1 with a | b | c,
   {-- n=0 case
     sorry,
+  /-
+    rw lt_one_iff at a,
+    subst a,
+    rw range_zero,
+    rw finset.sum_empty,
+    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
+      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
+    simp only [map_add, coeff_one, coeff_X],
+    simp only [←map_mul, ←map_add],
+    norm_num,
+    -/
   },
   {
-    rw nis1,
-    --unfold maclaurin_sqrt_one_add_x,
-    rw coeff_mul,
-    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    rw sum_range_succ,
+    rw b,
     rw sum_range_one,
-    --rw coeff_mk,
-    --squeeze_simp [],
     simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
       coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
     simp only [map_add, coeff_one, coeff_X],
@@ -142,7 +150,17 @@ begin
 
   },
   {
-    sorry,
+    induction c with k hk,
+    rw sum_range_succ,
+    rw sum_range_one,
+    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
+      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
+    simp only [map_add, coeff_one, coeff_X],
+    simp only [←map_mul, ←map_add],
+    --rw [if_neg, if_neg, zero_add], -- ←map_one (algebra_map ℚ A), (algebra_map ℚ A).injective.eq_iff],
+    --norm_num,
+    --rw catalan_two,
+    --norm_num,
   },
 end
 

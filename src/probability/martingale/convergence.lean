@@ -37,8 +37,8 @@ pointwise almost everywhere.
 
 -/
 
-/-- If a realization of a stochastic process has bounded upcrossing from below `a` to above `b`,
-then that realization does not frequently visit both below `a` and above `b`. -/
+/-- If a stochastic process has bounded upcrossing from below `a` to above `b`,
+then it does not frequently visit both below `a` and above `b`. -/
 lemma not_frequently_of_upcrossing_lt_top (hab : a < b) (hx : upcrossing a b f x ≠ ∞) :
   ¬((∃ᶠ n in at_top, f n x < a) ∧ (∃ᶠ n in at_top, b < f n x)) :=
 begin
@@ -60,12 +60,12 @@ begin
       (upcrossing_lt_upcrossing_of_exists_upcrossing hab hN₁ hN₁' hN₂ hN₂')⟩ }
 end
 
+/-- A stochastic process that frequently visits below `a` and above `b` have infinite
+upcrossings. -/
 lemma upcrossing_eq_top_of_frequently_lt (hab : a < b)
   (h₁ : ∃ᶠ n in at_top, f n x < a) (h₂ : ∃ᶠ n in at_top, b < f n x) :
   upcrossing a b f x = ∞ :=
-begin
-  sorry,
-end
+classical.by_contradiction (λ h, not_frequently_of_upcrossing_lt_top hab h ⟨h₁, h₂⟩)
 
 lemma exists_frequently_lt_of_liminf_ne_top
   {x : ℕ → ℝ} (hx : at_top.liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
@@ -204,10 +204,16 @@ begin
   exact hf.upcrossing_ae_lt_top' hbdd (rat.cast_lt.2 hab),
 end
 
-lemma liminf_at_top_ae_bdd_of_snorm_bdd (hbbd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
+lemma liminf_at_top_ae_bdd_of_snorm_bdd
+  (hfmeas : ∀ n, measurable (f n)) (hbdd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ x ∂μ, at_top.liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
 begin
-  sorry
+  obtain ⟨R, hR⟩ := hbdd,
+  refine ae_lt_top (measurable_liminf (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal))
+    (lt_of_le_of_lt (lintegral_liminf_le (λ n, (hfmeas n).nnnorm.coe_nnreal_ennreal))
+    (lt_of_le_of_lt _ (ennreal.coe_lt_top : ↑R < ∞))).ne,
+  simp_rw [← snorm_one_eq_lintegral_nnnorm, liminf_eq, eventually_at_top],
+  exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hR _)),
 end
 
 /-- An L¹-bounded submartingale converges almost everywhere. -/
@@ -215,8 +221,8 @@ lemma submartingale.exists_ae_tendsto_of_bdd [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hbdd : ∃ R : ℝ≥0, ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ x ∂μ, ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
-  filter_upwards [hf.upcrossing_ae_lt_top hbdd,
-    liminf_at_top_ae_bdd_of_snorm_bdd hbdd] with x h₁ h₂,
+  filter_upwards [hf.upcrossing_ae_lt_top hbdd, liminf_at_top_ae_bdd_of_snorm_bdd
+    (λ n, (hf.strongly_measurable n).measurable.mono (ℱ.le n) le_rfl) hbdd] with x h₁ h₂,
   exact tendsto_of_uncrossing_lt_top h₂ h₁,
 end
 

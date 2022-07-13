@@ -259,9 +259,9 @@ instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 /-- The less or equal relation on pre-games.
 
 If `0 ≤ x`, then Left can win `x` as the second player. -/
-instance : has_le pgame := ⟨game_add_swap.fix wf_is_option $ λ x y IH,
-  (∀ i, ¬ IH y (x.move_left i) (game_add.snd $ is_option.move_left i).swap_mk_right) ∧
-  (∀ j, ¬ IH (y.move_right j) x (game_add.fst $ is_option.move_right j).swap_mk_right)⟩
+instance : has_le pgame := ⟨game_add_swap.fix wf_is_option $ λ x y le,
+  (∀ i, ¬ le y (x.move_left i) (game_add.snd $ is_option.move_left i).swap_mk_right) ∧
+  (∀ j, ¬ le (y.move_right j) x (game_add.fst $ is_option.move_right j).swap_mk_right)⟩
 
 /-- The less or fuzzy relation on pre-games.
 

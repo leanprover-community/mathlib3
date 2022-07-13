@@ -688,6 +688,124 @@ end probability_measure -- namespace
 
 end probability_measure -- section
 
+section limsup_closed_le_and_le_liminf_open
+/-! ### Portmanteau: limsup condition for closed sets iff liminf condition for open sets
+
+In this section we prove that for a sequence of Borel probability measures on a topological space
+and its candidate limit measure, the following two conditions are equivalent:
+  (C) For any closed set `F` in `α` the limsup of the measures of `F` is at most the limit
+      measure of `F`.
+  (O) For any open set `G` in `α` the liminf of the measures of `G` is at least the limit
+      measure of `G`.
+Either of these will later be shown to be equivalent to the weak convergence of the sequence
+of measures.
+-/
+
+lemma ennreal.antitone_const_sub {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) :
+  antitone (λ (x : ℝ≥0∞), c - x) :=
+λ x y hxy, tsub_le_tsub rfl.le hxy
+
+lemma ennreal.continuous_const_sub {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) :
+  continuous (λ (x : ℝ≥0∞), c - x) :=
+ennreal.continuous_sub_left c_ne_top
+
+variables {α : Type*} [measurable_space α]
+
+lemma is_probability_measure.le_measure_compl_liminf_of_limsup_measure_le
+  {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
+  [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
+  {E : set α} (E_mble : measurable_set E)
+  (h : L.limsup (λ i, (μs i : measure α) E) ≤ (μ : measure α) E) :
+  (μ : measure α) Eᶜ ≤ L.liminf (λ i, (μs i : measure α) Eᶜ) :=
+begin
+  by_cases L_bot : L = ⊥,
+  { simp only [L_bot, le_top,
+      (show liminf ⊥ (λ i, μs i Eᶜ) = ⊤, by simp only [liminf, filter.map_bot, Liminf_bot])], },
+  have meas_Ec : μ Eᶜ = 1 - μ E,
+  { simpa only [measure_univ] using measure_compl E_mble (measure_lt_top μ E).ne, },
+  have meas_i_Ec : ∀ i, μs i Eᶜ = 1 - μs i E,
+  { intro i,
+    simpa only [measure_univ] using measure_compl E_mble (measure_lt_top (μs i) E).ne, },
+  simp_rw [meas_Ec, meas_i_Ec],
+  have obs : L.liminf (λ (i : ι), 1 - μs i E) = L.liminf ((λ x, 1 - x) ∘ (λ (i : ι), μs i E)),
+    by refl,
+  rw obs,
+  rw antitone.liminf_comp_eq_apply_limsup_of_continuous _
+    (ennreal.antitone_const_sub ennreal.one_ne_top)
+    (ennreal.continuous_const_sub ennreal.one_ne_top),
+  swap, { exact {ne' := L_bot}, },
+  exact ennreal.antitone_const_sub ennreal.one_ne_top h,
+end
+
+lemma is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
+  {ι : Type*} {L : filter ι} {μ : probability_measure α} {μs : ι → probability_measure α}
+  {E : set α} (E_mble : measurable_set E)
+  (h : L.limsup (λ i, (μs i : measure α) Eᶜ) ≤ (μ : measure α) Eᶜ) :
+  (μ : measure α) E ≤ L.liminf (λ i, (μs i : measure α) E) :=
+compl_compl E ▸ (is_probability_measure.le_measure_compl_liminf_of_limsup_measure_le
+                (measurable_set.compl E_mble) h)
+
+lemma is_probability_measure.limsup_measure_compl_le_of_le_liminf_measure
+  {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
+  [is_probability_measure μ] [∀ i, is_probability_measure (μs i)]
+  {E : set α} (E_mble : measurable_set E)
+  (h : (μ : measure α) E ≤ L.liminf (λ i, (μs i : measure α) E)) :
+  L.limsup (λ i, (μs i : measure α) Eᶜ) ≤ (μ : measure α) Eᶜ :=
+begin
+  by_cases L_bot : L = ⊥,
+  { simp only [L_bot, bot_le,
+      (show limsup ⊥ (λ i, μs i Eᶜ) = ⊥, by simp only [limsup, filter.map_bot, Limsup_bot])], },
+  have meas_Ec : μ Eᶜ = 1 - μ E,
+  { simpa only [measure_univ] using measure_compl E_mble (measure_lt_top μ E).ne, },
+  have meas_i_Ec : ∀ i, μs i Eᶜ = 1 - μs i E,
+  { intro i,
+    simpa only [measure_univ] using measure_compl E_mble (measure_lt_top (μs i) E).ne, },
+  simp_rw [meas_Ec, meas_i_Ec],
+  have obs : L.limsup (λ (i : ι), 1 - μs i E) = L.limsup ((λ x, 1 - x) ∘ (λ (i : ι), μs i E)),
+    by refl,
+  rw obs,
+  rw antitone.limsup_comp_eq_apply_liminf_of_continuous _
+    (ennreal.antitone_const_sub ennreal.one_ne_top)
+    (ennreal.continuous_const_sub ennreal.one_ne_top),
+  swap, { exact {ne' := L_bot}, },
+  exact ennreal.antitone_const_sub ennreal.one_ne_top h,
+end
+
+lemma is_probability_measure.limsup_measure_le_of_le_liminf_measure_compl
+  {ι : Type*} {L : filter ι} {μ : probability_measure α} {μs : ι → probability_measure α}
+  {E : set α} (E_mble : measurable_set E)
+  (h : (μ : measure α) Eᶜ ≤ L.liminf (λ i, (μs i : measure α) Eᶜ)) :
+  L.limsup (λ i, (μs i : measure α) E) ≤ (μ : measure α) E :=
+compl_compl E ▸ (is_probability_measure.limsup_measure_compl_le_of_le_liminf_measure
+                (measurable_set.compl E_mble) h)
+
+variables [topological_space α] [opens_measurable_space α]
+
+/-- One pair of implications of the portmanteau theorem:
+For a sequence of Borel probability measures, the following two are equivalent:
+
+(C) The limsup of the measures of any closed set is at most the measure of the closed set
+under a candidate limit measure.
+
+(O) The liminf of the measures of any open set is at least the measure of the open set
+under a candidate limit measure.
+-/
+lemma probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge
+  {ι : Type*} {L : filter ι} {μ : probability_measure α} {μs : ι → probability_measure α} :
+  (∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F)
+    ↔ (∀ G, is_open G → (μ : measure α) G ≤ L.liminf (λ i, (μs i : measure α) G)) :=
+begin
+  split,
+  { intros h G G_open,
+    exact is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
+          G_open.measurable_set (h Gᶜ (is_closed_compl_iff.mpr G_open)), },
+  { intros h F F_closed,
+    exact is_probability_measure.limsup_measure_le_of_le_liminf_measure_compl
+          F_closed.measurable_set (h Fᶜ (is_open_compl_iff.mpr F_closed)), },
+end
+
+end limsup_closed_le_and_le_liminf_open -- section
+
 section convergence_implies_limsup_closed_le
 /-! ### Portmanteau implication: weak convergence implies a limsup condition for closed sets
 

@@ -16,8 +16,6 @@ in order to avoid importing `linear_algebra.bilinear_map` and
 `linear_algebra.tensor_product` unnecessarily.
 -/
 
-universes u v w
-
 open_locale tensor_product
 open module
 
@@ -58,7 +56,6 @@ fun_like.coe_injective rfl
 
 variables {R}
 
--- this needs renamed, is this why it was called `lmul` before?
 @[simp] lemma mul_apply' (a b : A) : mul R A a b = a * b := rfl
 @[simp] lemma mul_left_apply (a b : A) : mul_left R a b = a * b := rfl
 @[simp] lemma mul_right_apply (a b : A) : mul_right R a b = b * a := rfl
@@ -89,7 +86,12 @@ A weaker version of this for non-associative exists as `add_monoid_hom.mul`. -/
 def _root_.non_unital_alg_hom.mul : A →ₙₐ[R] (End R A) :=
 { map_mul' := by { intros a b, ext c, exact mul_assoc a b c },
   map_zero' := by { ext a, exact zero_mul a },
-  .. (linear_map.mul R A) }
+  .. (mul R A) }
+
+variables {R A}
+
+@[simp]
+lemma _root_.non_unital_alg_hom.coe_mul_eq_mul : ⇑(non_unital_alg_hom.mul R A) = mul R A := rfl
 
 lemma commute_mul_left_right (a b : A) :
   commute (mul_left R a) (mul_right R b) :=
@@ -97,11 +99,11 @@ by { ext c, exact (mul_assoc a c b).symm, }
 
 @[simp] lemma mul_left_mul (a b : A) :
   mul_left R (a * b) = (mul_left R a).comp (mul_left R b) :=
-by { ext, simp only [mul_left_apply, linear_map.comp_apply, mul_assoc] }
+by { ext, simp only [mul_left_apply, comp_apply, mul_assoc] }
 
 @[simp] lemma mul_right_mul (a b : A) :
   mul_right R (a * b) = (mul_right R b).comp (mul_right R a) :=
-by { ext, simp only [mul_right_apply, linear_map.comp_apply, mul_assoc] }
+by { ext, simp only [mul_right_apply, comp_apply, mul_assoc] }
 
 end non_unital
 
@@ -123,8 +125,6 @@ def _root_.algebra.mul : A →ₐ[R] (End R A) :=
 variables {R A}
 
 @[simp] lemma _root_.algebra.coe_mul_eq_mul : ⇑(algebra.mul R A) = mul R A := rfl
-
-@[simp] lemma _root_.algebra.mul_apply (p q : A) : mul R A p q = p * q := rfl
 
 @[simp] lemma mul_left_eq_zero_iff (a : A) :
   mul_left R a = 0 ↔ a = 0 :=

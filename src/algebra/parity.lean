@@ -250,8 +250,7 @@ variables [canonically_ordered_comm_semiring α]
 lemma odd.pos [nontrivial α] {n : α} (hn : odd n) : 0 < n :=
 begin
   obtain ⟨k, rfl⟩ := hn,
-  rw [pos_iff_ne_zero, ne.def, add_eq_zero_iff, not_and'],
-  exact λ h, (one_ne_zero h).elim
+  exact add_pos_iff.2 (or.inr one_pos)
 end
 
 end canonically_ordered_comm_semiring

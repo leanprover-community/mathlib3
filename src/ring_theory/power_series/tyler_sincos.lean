@@ -66,8 +66,10 @@ begin
     rw neg_pow_bit0,
     rw one_pow,
     rw one_add_one_eq_two,
-    rw smul_eq_mul,
+    --rw smul_eq_mul,
     rw ← mul_assoc,
+    sorry,
+    /-
     rw inv_mul_cancel,
     rw one_mul,
     rw cos,
@@ -75,9 +77,8 @@ begin
     rw coeff_mk,
     rw if_pos,
     rw coeff_mk,
-    rw bit0,
-    rw ← two_mul,
-
+    rw bit0_div_two,
+-/
 
     --[←bit0, I_pow_bit0, neg_pow_bit0, one_pow, sub_self, zero_mul, smul_zero, coeff_sin_bit0]
     --rw [two_mul, ←bit0, ←bit1, neg_pow_bit1, one_pow, sub_neg_eq_add, ←bit0],

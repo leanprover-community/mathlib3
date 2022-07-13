@@ -7,6 +7,7 @@ Authors: Thomas Browning
 import analysis.complex.polynomial
 import data.polynomial.mirror
 import ring_theory.roots_of_unity
+import tactic.polyrith
 
 /-!
 # Unit Trinomials
@@ -332,19 +333,18 @@ lemma irreducible_of_coprime' (hp : is_unit_trinomial p)
 begin
   refine hp.irreducible_of_coprime (λ q hq hq', _),
   suffices : ¬ (0 < q.nat_degree),
-  { rw [not_lt, nat.le_zero_iff] at this,
-    rw [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this],
-    rcases hq with ⟨p, rfl⟩,
-    apply is_unit_of_mul_is_unit_left,
-    rw [←leading_coeff, ←leading_coeff_mul],
-    exact hp.leading_coeff_is_unit },
+  { rcases hq with ⟨p, rfl⟩,
+    replace hp := hp.leading_coeff_is_unit,
+    rw leading_coeff_mul at hp,
+    replace hp := is_unit_of_mul_is_unit_left hp,
+    rw [not_lt, nat.le_zero_iff] at this,
+    rwa [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this] },
   intro hq'',
-  have inj : function.injective (algebra_map ℤ ℂ) := (algebra_map ℤ ℂ).injective_int,
-  rw [nat_degree_pos_iff_degree_pos, ←degree_map_eq_of_injective inj] at hq'',
+  rw nat_degree_pos_iff_degree_pos at hq'',
+  rw ← degree_map_eq_of_injective (algebra_map ℤ ℂ).injective_int at hq'',
   cases complex.exists_root hq'' with z hz,
-  apply h z,
   rw [is_root, eval_map, ←aeval_def] at hz,
-  split,
+  refine h z ⟨_, _⟩,
   { cases hq with g' hg',
     rw [hg', aeval_mul, hz, zero_mul] },
   { cases hq' with g' hg',
@@ -359,31 +359,18 @@ end is_unit_trinomial
 lemma selmer_coprime_lemma (n : ℕ) (z : ℂ) : ¬ (z ^ n = z + 1 ∧ z ^ n + z ^ 2 = 0) :=
 begin
   rintros ⟨h1, h2⟩,
-  rw h1 at h2,
-  have h3 : (z - 1) * (z + 1 + z ^ 2) = 0,
-  { rw [h2, mul_zero] },
   replace h3 : z ^ 3 = 1,
-  { rw [←sub_eq_zero, ←h3],
-    ring },
+  { linear_combination (1 - z - z ^ 2 - z ^ n) * h1 + (z ^ n - 2) * h2 }, -- thanks polyrith!
   have key : z ^ n = 1 ∨ z ^ n = z ∨ z ^ n = z ^ 2,
   { rw [←nat.mod_add_div n 3, pow_add, pow_mul, h3, one_pow, mul_one],
     have : n % 3 < 3 := nat.mod_lt n zero_lt_three,
-    interval_cases n % 3,
-    all_goals { rw h },
-    { exact or.inl (pow_zero z) },
-    { exact or.inr (or.inl (pow_one z)) },
-    { exact or.inr (or.inr rfl) } },
-  have z_ne_zero : z ≠ 0,
-  { intro h,
-    rw [h, zero_pow (zero_lt_three)] at h3,
-    exact zero_ne_one h3 },
+    interval_cases n % 3; simp only [h, pow_zero, pow_one, eq_self_iff_true, or_true, true_or] },
+  have z_ne_zero : z ≠ 0 :=
+  λ h, zero_ne_one ((zero_pow zero_lt_three).symm.trans (show (0 : ℂ) ^ 3 = 1, from h ▸ h3)),
   rcases key with key | key | key,
-  { rw [key, self_eq_add_left] at h1,
-    exact z_ne_zero h1 },
-  { rw [key, self_eq_add_right] at h1,
-    exact one_ne_zero h1 },
-  { rw [←key, h1, add_self_eq_zero, ←h1] at h2,
-    exact z_ne_zero (pow_eq_zero h2) },
+  { exact z_ne_zero (by rwa [key, self_eq_add_left] at h1) },
+  { exact one_ne_zero (by rwa [key, self_eq_add_right] at h1) },
+  { exact z_ne_zero (pow_eq_zero (by rwa [key, add_self_eq_zero] at h2)) },
 end
 
 lemma selmer_irreducible {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : polynomial ℤ) :=
@@ -397,17 +384,15 @@ begin
   rw hp,
   apply is_unit_trinomial.irreducible_of_coprime' ⟨0, 1, n, zero_lt_one, hn, -1, -1, 1, rfl⟩,
   rintros z ⟨h1, h2⟩,
+  apply selmer_coprime_lemma n z,
   rw [trinomial_mirror zero_lt_one hn (-1 : ℤˣ).ne_zero (1 : ℤˣ).ne_zero] at h2,
   simp_rw [trinomial, aeval_add, aeval_mul, aeval_X_pow, aeval_C] at h1 h2,
-  simp_rw [units.coe_neg, units.coe_one, map_neg, map_one, neg_mul, one_mul] at h1 h2,
-  simp only [pow_zero, pow_one, add_zero] at h1 h2,
-  rw add_assoc at h1,
-  simp only [neg_add_eq_sub, ←sub_eq_add_neg] at h1 h2,
-  rw [sub_sub, sub_eq_zero] at h1,
-  rw [sub_sub, sub_eq_zero, h1, ←add_assoc, self_eq_add_left] at h2,
-  replace h2 : z ^ n + z ^ 2 = 0,
-  { rw [←nat.sub_add_cancel (le_of_lt hn), pow_succ, pow_two, ←mul_add, h2, mul_zero] },
-  exact selmer_coprime_lemma n z ⟨h1, h2⟩,
+  simp_rw [units.coe_neg, units.coe_one, map_neg, map_one] at h1 h2,
+  replace h1 : z ^ n = z + 1 := by linear_combination h1,
+  replace h2 := mul_eq_zero_of_left h2 z,
+  rw [add_mul, add_mul, add_zero, mul_assoc (-1 : ℂ), ←pow_succ', nat.sub_add_cancel hn.le] at h2,
+  rw h1 at h2 ⊢,
+  exact ⟨rfl, by linear_combination -h2⟩,
 end
 
 lemma selmer_irreducible' {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : polynomial ℚ) :=
@@ -420,7 +405,7 @@ begin
   have hn : 1 < n := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn0, hn1⟩,
   have h := (is_primitive.int.irreducible_iff_irreducible_map_cast _).mp (selmer_irreducible hn1),
   { rwa [polynomial.map_sub, polynomial.map_sub, polynomial.map_pow, polynomial.map_one,
-      polynomial.map_X] at h, },
+      polynomial.map_X] at h },
   { apply monic.is_primitive,
     rw hp,
     exact trinomial_leading_coeff zero_lt_one hn one_ne_zero },

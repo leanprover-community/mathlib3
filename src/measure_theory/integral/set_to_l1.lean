@@ -156,7 +156,7 @@ lemma map_Union_fin_meas_set_eq_sum (T : set α → β) (T_empty : T ∅ = 0)
 begin
   revert hSp h_disj,
   refine finset.induction_on sι _ _,
-  { simp only [finset.not_mem_empty, forall_false_left, Union_false, Union_empty, sum_empty,
+  { simp only [finset.not_mem_empty, is_empty.forall_iff, Union_false, Union_empty, sum_empty,
     forall_2_true_iff, implies_true_iff, forall_true_left, not_false_iff, T_empty], },
   intros a s has h hps h_disj,
   rw [finset.sum_insert has, ← h],
@@ -673,9 +673,7 @@ lemma set_to_simple_func_const (T : set α → F →L[ℝ] F') (hT_empty : T ∅
   simple_func.set_to_simple_func T (simple_func.const α x) = T univ x :=
 begin
   casesI hα : is_empty_or_nonempty α,
-  { have h_univ_empty : (univ : set α) = ∅,
-    { haveI : unique (set α) := unique_empty,
-      exact subsingleton.elim (univ : set α) (∅ : set α), },
+  { have h_univ_empty : (univ : set α) = ∅, from subsingleton.elim _ _,
     rw [h_univ_empty, hT_empty],
     simp only [set_to_simple_func, continuous_linear_map.zero_apply, sum_empty,
       range_eq_empty_of_is_empty], },

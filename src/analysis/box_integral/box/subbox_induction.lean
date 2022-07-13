@@ -127,7 +127,7 @@ begin
     from λ m, nat.rec_on m hpI (λ m, by simpa only [J_succ] using hs (J m) (hJle m)),
   have hJsub : ∀ m i, (J m).upper i - (J m).lower i = (I.upper i - I.lower i) / 2 ^ m,
   { intros m i, induction m with m ihm, { simp [J] },
-    simp only [pow_succ', J_succ, upper_sub_lower_split_center_box, ihm, div_div_eq_div_mul] },
+    simp only [pow_succ', J_succ, upper_sub_lower_split_center_box, ihm, div_div] },
   have h0 : J 0 = I, from rfl,
   -- Now we clear unneeded assumptions
   clear_value J, clear hpI hs J_succ s,

@@ -134,9 +134,9 @@ include dec_𝕜
 
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
 an internal direct sum decomposition of `E`. -/
-lemma direct_sum_submodule_is_internal :
-  direct_sum.submodule_is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
-hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
+lemma direct_sum_is_internal :
+  direct_sum.is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
+hT.orthogonal_family_eigenspaces'.is_internal_iff.mpr
   hT.orthogonal_supr_eigenspaces_eq_bot'
 
 section version1
@@ -144,12 +144,12 @@ section version1
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some
 self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
-hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
+hT.direct_sum_is_internal.isometry_L2_of_orthogonal_family
   hT.orthogonal_family_eigenspaces'
 
 @[simp] lemma diagonalization_symm_apply (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
   hT.diagonalization.symm w = ∑ μ, w μ :=
-hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+hT.direct_sum_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.orthogonal_family_eigenspaces' w
 
 /-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
@@ -180,10 +180,10 @@ finite-dimensional inner product space `E`.
 TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
 eigenvalue. -/
 noncomputable def eigenvector_basis : basis (fin n) 𝕜 E :=
-hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis hn
+hT.direct_sum_is_internal.subordinate_orthonormal_basis hn
 
 lemma eigenvector_basis_orthonormal : orthonormal 𝕜 (hT.eigenvector_basis hn) :=
-hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_orthonormal hn
+hT.direct_sum_is_internal.subordinate_orthonormal_basis_orthonormal hn
   hT.orthogonal_family_eigenspaces'
 
 /-- The sequence of real eigenvalues associated to the standard orthonormal basis of eigenvectors
@@ -191,17 +191,17 @@ for a self-adjoint operator `T` on `E`.
 
 TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
 noncomputable def eigenvalues (i : fin n) : ℝ :=
-@is_R_or_C.re 𝕜 _ $ hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i
+@is_R_or_C.re 𝕜 _ $ hT.direct_sum_is_internal.subordinate_orthonormal_basis_index hn i
 
 lemma has_eigenvector_eigenvector_basis (i : fin n) :
   has_eigenvector T (hT.eigenvalues hn i) (hT.eigenvector_basis hn i) :=
 begin
   let v : E := hT.eigenvector_basis hn i,
-  let μ : 𝕜 := hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i,
+  let μ : 𝕜 := hT.direct_sum_is_internal.subordinate_orthonormal_basis_index hn i,
   change has_eigenvector T (is_R_or_C.re μ) v,
   have key : has_eigenvector T μ v,
   { have H₁ : v ∈ eigenspace T μ,
-    { exact hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_subordinate hn i },
+    { exact hT.direct_sum_is_internal.subordinate_orthonormal_basis_subordinate hn i },
     have H₂ : v ≠ 0 := (hT.eigenvector_basis_orthonormal hn).ne_zero i,
     exact ⟨H₁, H₂⟩ },
   have re_μ : ↑(is_R_or_C.re μ) = μ,

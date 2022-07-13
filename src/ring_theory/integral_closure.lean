@@ -154,7 +154,7 @@ theorem is_integral_iff_is_integral_closure_finite {r : A} :
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    refine ⟨_, set.finite_mem_finset _, p.restriction, monic_restriction.2 hmp, _⟩,
+    refine ⟨_, finset.finite_to_set _, p.restriction, monic_restriction.2 hmp, _⟩,
     erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
@@ -255,7 +255,7 @@ begin
     zero_mem' := (span S₀ (insert 1 ↑y : set A)).zero_mem,
     add_mem' := λ _ _, (span S₀ (insert 1 ↑y : set A)).add_mem,
     neg_mem' := λ _, (span S₀ (insert 1 ↑y : set A)).neg_mem },
-  have : S₁ = (algebra.adjoin S₀ (↑y : set A)).to_subring,
+  have : S₁ = subalgebra.to_subring (algebra.adjoin S₀ (↑y : set A)),
   { ext z,
     suffices : z ∈ span ↥S₀ (insert 1 ↑y : set A) ↔
       z ∈ (algebra.adjoin ↥S₀ (y : set A)).to_submodule,
@@ -876,7 +876,7 @@ begin
   exact ⟨y, subtype.ext_iff.mp hy⟩,
 end
 
-lemma is_integral.is_field_iff_is_field
+lemma algebra.is_integral.is_field_iff_is_field
   {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S] [algebra R S]
   (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
   is_field R ↔ is_field S :=

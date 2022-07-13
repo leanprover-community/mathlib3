@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import group_theory.group_action.conj_act
-import group_theory.quotient_group
+import group_theory.group_action.quotient
 import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open
@@ -476,7 +476,7 @@ variable (G)
 
 @[to_additive]
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
-((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
+((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds inv_one)
 
 /-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
 @[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
@@ -586,7 +586,7 @@ end
   [topological_group G] {g : G} (hg : g ∈ connected_component (1 : G)) :
   g⁻¹ ∈ connected_component (1 : G) :=
 begin
-  rw ← one_inv,
+  rw ← inv_one,
   exact continuous.image_connected_component_subset continuous_inv _
     ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
 end
@@ -624,6 +624,20 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 (homeomorph.mul_left x).map_nhds_eq y
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
+
+/-- A monoid homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) from a
+topological group to a topological monoid is continuous provided that it is continuous at one. See
+also `uniform_continuous_of_continuous_at_one`. -/
+@[to_additive "An additive monoid homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) from an additive topological group to an additive topological monoid is
+continuous provided that it is continuous at zero. See also
+`uniform_continuous_of_continuous_at_zero`."]
+lemma continuous_of_continuous_at_one {M hom : Type*} [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] [monoid_hom_class hom G M] (f : hom) (hf : continuous_at f 1) :
+  continuous f :=
+continuous_iff_continuous_at.2 $ λ x,
+  by simpa only [continuous_at, ← map_mul_left_nhds_one x, tendsto_map'_iff, (∘),
+    map_mul, map_one, mul_one] using hf.tendsto.const_mul (f x)
 
 @[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
@@ -923,8 +937,8 @@ begin
 end
 
 @[to_additive] lemma is_open.closure_mul (ht : is_open t) (s : set α) : closure s * t = s * t :=
-by rw [←inv_inv (closure s * t), set.mul_inv_rev, inv_closure, ht.inv.mul_closure, set.mul_inv_rev,
-  inv_inv, inv_inv]
+by rw [←inv_inv (closure s * t), mul_inv_rev, inv_closure, ht.inv.mul_closure, mul_inv_rev, inv_inv,
+  inv_inv]
 
 @[to_additive] lemma is_open.div_closure (hs : is_open s) (t : set α) : s / closure t = s / t :=
 by simp_rw [div_eq_mul_inv, inv_closure, hs.mul_closure]
@@ -955,7 +969,7 @@ lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
 
 @[to_additive]
-lemma topological_group.regular_space [t1_space G] : regular_space G :=
+lemma topological_group.t3_space [t1_space G] : t3_space G :=
 ⟨assume s a hs ha,
  let f := λ p : G × G, p.1 * (p.2)⁻¹ in
  have hf : continuous f := continuous_fst.mul continuous_snd.inv,
@@ -975,15 +989,15 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
 
 @[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G :=
-@regular_space.t2_space G _ (topological_group.regular_space G)
+@t3_space.t2_space G _ (topological_group.t3_space G)
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-instance subgroup.regular_quotient_of_is_closed
-  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
+instance subgroup.t3_quotient_of_is_closed
+  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : t3_space (G ⧸ S) :=
 begin
-  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
+  suffices : t1_space (G ⧸ S), { exact @topological_group.t3_space _ _ _ _ this, },
   have hS : is_closed (S : set G) := infer_instance,
   rw ← quotient_group.ker_mk S at hS,
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),

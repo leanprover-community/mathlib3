@@ -122,12 +122,12 @@ begin
   exact tendsto_id
 end
 
-lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤} : set ereal).compl :=
+lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤}ᶜ : set ereal) :=
 λ a ha, continuous_at.continuous_within_at (tendsto_to_real
   (by { simp [not_or_distrib] at ha, exact ha.2 }) (by { simp [not_or_distrib] at ha, exact ha.1 }))
 
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
-def ne_bot_top_homeomorph_real : ({⊥, ⊤} : set ereal).compl ≃ₜ ℝ :=
+def ne_bot_top_homeomorph_real : ({⊥, ⊤}ᶜ : set ereal) ≃ₜ ℝ :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
   continuous_inv_fun := continuous_subtype_mk _ continuous_coe_real_ereal,
   .. ne_top_bot_equiv_real }

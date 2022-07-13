@@ -25,7 +25,7 @@ equiv.equiv_pempty _
 
 /-- Equivalence between `fin 1` and `unit`. -/
 def fin_one_equiv : fin 1 ≃ unit :=
-equiv_punit_of_unique
+equiv.equiv_punit _
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=
@@ -226,6 +226,12 @@ def order_iso.pi_fin_succ_above_iso {n : ℕ} (α : fin (n + 1) → Type u) [Π 
 { to_equiv := equiv.pi_fin_succ_above_equiv α i,
   map_rel_iff' := λ f g, i.forall_iff_succ_above.symm }
 
+/-- Equivalence between `fin (n + 1) → β` and `β × (fin n → β)`. -/
+@[simps { fully_applied := ff}]
+def equiv.pi_fin_succ (n : ℕ) (β : Type u) :
+  (fin (n+1) → β) ≃ β × (fin n → β) :=
+equiv.pi_fin_succ_above_equiv (λ _, β) 0
+
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def fin_sum_fin_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := sum.elim (fin.cast_add n) (fin.nat_add m),
@@ -246,6 +252,10 @@ fin_sum_fin_equiv.symm_apply_apply (sum.inl x)
 @[simp] lemma fin_sum_fin_equiv_symm_apply_nat_add (x : fin n) :
   fin_sum_fin_equiv.symm (fin.nat_add m x) = sum.inr x :=
 fin_sum_fin_equiv.symm_apply_apply (sum.inr x)
+
+@[simp] lemma fin_sum_fin_equiv_symm_last :
+  fin_sum_fin_equiv.symm (fin.last n) = sum.inr 0 :=
+fin_sum_fin_equiv_symm_apply_nat_add 0
 
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=

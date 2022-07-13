@@ -97,7 +97,9 @@ begin
   simp_rw ← multicoequalizer.ι_sigma_π 𝖣 .diagram,
   rw ← (homeo_of_iso (multicoequalizer.iso_coequalizer 𝖣 .diagram).symm).is_open_preimage,
   rw [coequalizer_is_open_iff, colimit_is_open_iff.{u}],
-  refl
+  split,
+  { intros h j, exact h ⟨j⟩, },
+  { intros h j, cases j, exact h j, },
 end
 
 lemma ι_jointly_surjective (x : 𝖣 .glued) : ∃ i (y : D.U i), 𝖣 .ι i y = x :=
@@ -182,7 +184,7 @@ begin
     generalize : (sigma_iso_sigma.{u} D.V).hom x = x',
     obtain ⟨⟨i,j⟩,y⟩ := x',
     unfold inv_image multispan_index.fst_sigma_map multispan_index.snd_sigma_map,
-    simp only [opens.inclusion_to_fun, Top.comp_app, sigma_iso_sigma_inv_apply,
+    simp only [opens.inclusion_apply, Top.comp_app, sigma_iso_sigma_inv_apply,
       category_theory.limits.colimit.ι_desc_apply, cofan.mk_ι_app,
       sigma_iso_sigma_hom_ι_apply, continuous_map.to_fun_eq_coe],
     erw [sigma_iso_sigma_hom_ι_apply, sigma_iso_sigma_hom_ι_apply],

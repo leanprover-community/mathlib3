@@ -689,12 +689,10 @@ omit hγb
   {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
   measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
 begin
-  haveI := upgrade_polish_space γ,
-  simp_rw ← @cauchy_map_iff_exists_tendsto _ _ (upgrade_polish_space γ).to_uniform_space
-    (upgrade_polish_space γ).to_complete_space,
-  change measurable_set {x | @cauchy_seq _ _ (upgrade_polish_space γ).to_uniform_space _
-    (λ n, f n x)},
-  simp_rw @metric.cauchy_seq_iff'' _ _ (upgrade_polish_space γ).to_pseudo_metric_space,
+  letI := upgrade_polish_space γ,
+  simp_rw ← cauchy_map_iff_exists_tendsto,
+  change measurable_set {x | cauchy_seq (λ n, f n x)},
+  simp_rw metric.cauchy_seq_iff'',
   rw set.set_of_forall,
   refine measurable_set.Inter (λ K, _),
   rw set.set_of_exists,
@@ -703,9 +701,7 @@ begin
   refine measurable_set.Inter (λ n, _),
   by_cases hNn : N ≤ n,
   { simp only [hNn, ge_iff_le, forall_true_left],
-    exact measurable_set_lt ((@measurable.dist _ _
-      (upgrade_polish_space γ).to_pseudo_metric_space _ hγ _
-      (upgrade_polish_space γ).to_second_countable_topology _ _ (hf n) (hf N))) measurable_const },
+    exact measurable_set_lt (measurable.dist (hf n) (hf N)) measurable_const },
   { simp only [hNn, ge_iff_le, is_empty.forall_iff, set_of_true, measurable_set.univ], }
 end
 

@@ -670,13 +670,7 @@ instance : star_add_monoid (lp E p) := {star_add :=
 variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
 variables [Πi, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
-instance : star_module 𝕜 (lp E p) := { star_smul :=
-begin
-intros i f,
-ext,
-simp only [lp.star_apply, lp.coe_fn_smul, pi.smul_apply, star_smul],
-end
-}
+instance : star_module 𝕜 (lp E p) := ⟨ by {intros _ _, ext, simp } ⟩
 
 end normed_star_group
 

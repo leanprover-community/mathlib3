@@ -775,6 +775,22 @@ begin
   exact mul_lt_mul_of_lt_of_lt hab hcd
 end
 
+--  Sould this lemma move somewhere else?  Where?
+lemma with_bot.add_coe_neg_le_iff {α} [add_group α] [preorder α]
+  [covariant_class α α (function.swap (+)) (≤)]
+  (a : with_bot α) (b : α) (c : with_bot α) :
+  a + (-b : α) ≤ c ↔ a ≤ c + b :=
+begin
+  rcases a.eq_bot_or_coe with rfl | ⟨a, rfl⟩,
+  { simp },
+  { rcases c.eq_bot_or_coe with rfl | ⟨c, rfl⟩,
+    { simp only [with_bot.not_coe_le_bot, with_bot.bot_add, iff_false, ← with_bot.coe_add,
+        not_false_iff] },
+    { norm_cast,
+      rw [← sub_eq_add_neg, sub_le_iff_le_add] } }
+end
+
+
 end preorder
 
 end comm_group

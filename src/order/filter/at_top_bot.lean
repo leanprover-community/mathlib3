@@ -807,7 +807,7 @@ begin
   refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_top, eventually_at_top] at h,
   have : 0 < c := let ⟨x, hx⟩ := h 1 in
-    pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
+    pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
     (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
   refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
   obtain ⟨x, hx⟩ := h (c + 1),
@@ -826,7 +826,7 @@ begin
   refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_bot, eventually_at_top] at h,
   have : c < 0 := let ⟨x, hx⟩ := h (-1) in
-    neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
+    neg_of_mul_neg_left ((hx (max x 1) $ le_max_left x 1).trans_lt $ by simp [zero_lt_one])
     (pow_nonneg (le_trans zero_le_one (le_max_right x 1)) n),
   refine ⟨nat.succ_le_iff.mp (lt_of_le_of_ne (zero_le n) (ne.symm (λ hn, _))), this⟩,
   obtain ⟨x, hx⟩ := h (c - 1),
@@ -896,10 +896,10 @@ lemma tendsto_at_bot_at_bot_iff_of_monotone [nonempty α] [semilattice_inf α] [
 tendsto_at_bot_at_bot.trans $ forall_congr $ λ b, exists_congr $ λ a,
   ⟨λ h, h a (le_refl a), λ h a' ha', le_trans (hf ha') h⟩
 
-alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
-alias tendsto_at_bot_at_bot_of_monotone ← monotone.tendsto_at_bot_at_bot
-alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_iff
-alias tendsto_at_bot_at_bot_iff_of_monotone ← monotone.tendsto_at_bot_at_bot_iff
+alias tendsto_at_top_at_top_of_monotone ← _root_.monotone.tendsto_at_top_at_top
+alias tendsto_at_bot_at_bot_of_monotone ← _root_.monotone.tendsto_at_bot_at_bot
+alias tendsto_at_top_at_top_iff_of_monotone ← _root_.monotone.tendsto_at_top_at_top_iff
+alias tendsto_at_bot_at_bot_iff_of_monotone ← _root_.monotone.tendsto_at_bot_at_bot_iff
 
 lemma comap_embedding_at_top [preorder β] [preorder γ] {e : β → γ}
   (hm : ∀b₁ b₂, e b₁ ≤ e b₂ ↔ b₁ ≤ b₂) (hu : ∀c, ∃b, c ≤ e b) :
@@ -952,7 +952,7 @@ begin
     (λ b' hb', le_trans (finset.singleton_subset_iff.2 hb) (h hb')),
 end
 
-alias tendsto_at_top_finset_of_monotone ← monotone.tendsto_at_top_finset
+alias tendsto_at_top_finset_of_monotone ← _root_.monotone.tendsto_at_top_finset
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
   tendsto (finset.image j) at_top at_top :=

@@ -35,8 +35,8 @@ dimensions. -/
 @[pp_nodot]
 def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   matrix (n ⊕ o) (l ⊕ m) α :=
-sum.elim (λ i, sum.elim (A i) (B i))
-         (λ i, sum.elim (C i) (D i))
+of $ sum.elim (λ i, sum.elim (A i) (B i))
+              (λ i, sum.elim (C i) (D i))
 
 @[simp] lemma from_blocks_apply₁₁
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : l) :
@@ -61,22 +61,22 @@ rfl
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top left" submatrix. -/
 def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
-λ i j, M (sum.inl i) (sum.inl j)
+of $ λ i j, M (sum.inl i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "top right" submatrix. -/
 def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
-λ i j, M (sum.inl i) (sum.inr j)
+of $ λ i j, M (sum.inl i) (sum.inr j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom left" submatrix. -/
 def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
-λ i j, M (sum.inr i) (sum.inl j)
+of $ λ i j, M (sum.inr i) (sum.inl j)
 
 /-- Given a matrix whose row and column indexes are sum types, we can extract the corresponding
 "bottom right" submatrix. -/
 def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
-λ i j, M (sum.inr i) (sum.inr j)
+of $ λ i j, M (sum.inr i) (sum.inr j)
 
 lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
   from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=
@@ -161,7 +161,7 @@ def to_square_block_prop (M : matrix m m α) (p : m → Prop) :
 @[simp] lemma to_square_block_prop_def (M : matrix m m α) (p : m → Prop) :
   to_square_block_prop M p = λ i j, M ↑i ↑j := rfl
 
-lemma from_blocks_smul [has_scalar R α]
+lemma from_blocks_smul [has_smul R α]
   (x : R) (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   x • (from_blocks A B C D) = from_blocks (x • A) (x • B) (x • C) (x • D) :=
 begin
@@ -187,7 +187,7 @@ lemma from_blocks_multiply [fintype l] [fintype m] [non_unital_non_assoc_semirin
 begin
   ext i j, rcases i; rcases j;
   simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
-    pi.add_apply],
+    pi.add_apply, of_apply],
 end
 
 lemma from_blocks_mul_vec [fintype l] [fintype m] [non_unital_non_assoc_semiring α]

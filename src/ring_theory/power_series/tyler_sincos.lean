@@ -84,12 +84,26 @@ example (A: Type*) [field A] [algebra ℚ A] :
       (maclaurin_sqrt_one_add_x A)*(maclaurin_sqrt_one_add_x A) = 1+X :=
 begin
   ext1 n,
-  rcases lt_trichotomy n 1 with a | nis1 | c,
+  rcases lt_trichotomy n 1 with niszero | rfl | c,
   {-- n=0 case
-    sorry,
+    rw lt_one_iff at niszero,
+    subst niszero,
+    --rw niszero,
+    rw coeff_mul,
+    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+    rw sum_range_one,
+    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
+      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
+    simp only [map_add, coeff_one, coeff_X],--compute coeff on RHS
+    simp only [←map_mul, ←map_add],--pull out algebra map
+    rw [if_pos rfl, if_neg nat.zero_ne_one, add_zero, ← map_one (algebra_map ℚ A)],
+    --now, we can get rid of the algebra maps, since equality holds only if
+    --arguments match
+    rw [(algebra_map ℚ A).injective.eq_iff],
+    norm_num,
   },
-  {
-    rw nis1,
+  {--n = 1
+    --rw nis1,
     --unfold maclaurin_sqrt_one_add_x,
     rw coeff_mul,
     rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
@@ -131,7 +145,7 @@ begin
     have idea : (4:A) = 0 ↔ (1 : A) = 0,
     {
       calc
-        4 = 0 ↔ 4 * 4⁻¹ = 0 * 4⁻¹ : sorry
+        4 = 0 ↔ 4 * 4⁻¹ = 0 * 4⁻¹ : sorry--FLAW: this assumed 4≠ 0, which was the goal
           ... ↔ 1 = 0             : sorry,
     }
 
@@ -141,8 +155,8 @@ begin
 
 
   },
-  {
-    sorry,
+  { -- n > 1
+    sorry
   },
 end
 

@@ -52,6 +52,7 @@ begin
       rw two_mul,
     },
     rw idea,
+    rw [],
     simp only [mul_inv_rev, inv_I, neg_mul, coeff_smul,
       map_sub, coeff_rescale, coeff_exp,
         one_div, algebra.id.smul_eq_mul],
@@ -112,7 +113,8 @@ begin
     --rw ← factorial_succ,
     have really : 1/2 = 0,
     {
-      apply nat.div_def,--wow
+      refl,
+      --apply nat.div_def,--wow
     },
     have aux : (2 * k + 1) / 2 = k,
     {
@@ -158,9 +160,28 @@ begin
 
     --rw mul_inv I 2,
   },
+end
 
+theorem cos_id : (cos ℂ) =  (2: ℂ  )⁻¹ • (rescale I (exp ℂ) + rescale (-I) (exp ℂ ) ) :=
+begin
+  ext1 n,
+  rw [map_smul, map_add, coeff_rescale, coeff_rescale,neg_pow I, mul_assoc, ← one_add_mul],
+  --rcases n.even_or_odd with (⟨k, rfl⟩ | ⟨k, rfl⟩),
+  cases nat.even_or_odd n with neven nodd,
+  {--n even
+    unfold even at neven,
+    cases neven with r hr,
+    rw [hr],
+    sorry
+  },
+  {--n odd
+    rcases nodd with ⟨r, rfl⟩,
+    rw [two_mul,← bit0,← bit1,neg_pow_bit1, one_pow, ],
+
+  }
 
 end
+
 
 #check sin_id
 

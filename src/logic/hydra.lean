@@ -111,6 +111,7 @@ end
 lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
   well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
 
+/-- Recursion on the well-founded `game_add` relation. -/
 def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   C a b :=
@@ -122,6 +123,7 @@ lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : 
   game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
 by { rw [game_add.fix, well_founded.fix_eq], refl }
 
+/-- Induction on the well-founded `game_add` relation. -/
 lemma game_add.induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
   (∀ a₁ b₁, (∀ a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
 game_add.fix
@@ -168,6 +170,7 @@ lemma _root_.acc.game_add_swap {a b} (ha : acc r a) (hb : acc r b) : acc (game_a
 lemma _root_.well_founded.game_add_swap (h : well_founded r) :
   well_founded (game_add_swap r) := ⟨λ ⟨a, b⟩, (h.apply a).game_add_swap (h.apply b)⟩
 
+/-- Recursion on the well-founded `game_add_swap` relation. -/
 def game_add_swap.fix {C : α → α → Sort*} (hr : well_founded r)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a b : α) :
   C a b :=
@@ -179,6 +182,7 @@ lemma game_add_swap.fix_eq {C : α → α → Sort*} (hr : well_founded r)
   game_add_swap.fix hr IH a b = IH a b (λ a' b' h, game_add_swap.fix hr IH a' b') :=
 by { rw [game_add_swap.fix, well_founded.fix_eq], refl }
 
+/-- Induction on the well-founded `game_add_swap` relation. -/
 lemma game_add_swap.induction {C : α → α → Prop} : well_founded r →
   (∀ a₁ b₁, (∀ a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
 game_add_swap.fix

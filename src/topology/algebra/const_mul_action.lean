@@ -343,7 +343,7 @@ variables {Γ : Type*} [group Γ] {T : Type*} [topological_space T] [mul_action 
 -/
 @[priority 100, to_additive] instance fintype.properly_discontinuous_smul [fintype Γ] :
   properly_discontinuous_smul Γ T :=
-{ finite_disjoint_inter_image := λ _ _ _ _, set.finite.of_fintype _}
+{ finite_disjoint_inter_image := λ _ _ _ _, set.to_finite _}
 
 export properly_discontinuous_smul (finite_disjoint_inter_image)
 

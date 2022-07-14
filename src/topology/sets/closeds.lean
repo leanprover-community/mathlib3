@@ -17,9 +17,9 @@ For a topological space `α`,
 * `clopens α`: The type of clopen sets.
 -/
 
-open set
+open order order_dual set
 
-variables {α β : Type*} [topological_space α] [topological_space β]
+variables {ι : Sort*} {α β : Type*} [topological_space α] [topological_space β]
 
 namespace topological_space
 
@@ -43,14 +43,30 @@ lemma closed (s : closeds α) : is_closed (s : set α) := s.closed'
 
 @[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 
-instance : has_sup (closeds α) := ⟨λ s t, ⟨s ∪ t, s.closed.union t.closed⟩⟩
-instance : has_inf (closeds α) := ⟨λ s t, ⟨s ∩ t, s.closed.inter t.closed⟩⟩
-instance : has_top (closeds α) := ⟨⟨univ, is_closed_univ⟩⟩
-instance : has_bot (closeds α) := ⟨⟨∅, is_closed_empty⟩⟩
+/-- The closure of a set, as an element of `closeds`. -/
+protected def closure (s : set α) : closeds α := ⟨closure s, is_closed_closure⟩
 
-instance : distrib_lattice (closeds α) :=
-set_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
-instance : bounded_order (closeds α) := bounded_order.lift (coe : _ → set α) (λ _ _, id) rfl rfl
+lemma gc : galois_connection closeds.closure (coe : closeds α → set α) :=
+λ s U, ⟨subset_closure.trans, λ h, closure_minimal h U.closed⟩
+
+/-- The galois coinsertion between sets and opens. -/
+def gi : galois_insertion (@closeds.closure α _) coe :=
+{ choice := λ s hs, ⟨s, closure_eq_iff_is_closed.1 $ hs.antisymm subset_closure⟩,
+  gc := gc,
+  le_l_u := λ _, subset_closure,
+  choice_eq := λ s hs, set_like.coe_injective $ subset_closure.antisymm hs }
+
+instance : complete_lattice (closeds α) :=
+complete_lattice.copy (galois_insertion.lift_complete_lattice gi)
+/- le  -/ _ rfl
+/- top -/ ⟨univ, is_closed_univ⟩ rfl
+/- bot -/ ⟨∅, is_closed_empty⟩ (set_like.coe_injective closure_empty.symm)
+/- sup -/ (λ s t, ⟨s ∪ t, s.2.union t.2⟩)
+  (funext $ λ s, funext $ λ t, set_like.coe_injective (s.2.union t.2).closure_eq.symm)
+/- inf -/ (λ s t, ⟨s ∩ t, s.2.inter t.2⟩) rfl
+/- Sup -/ _ rfl
+/- Inf -/ (λ S, ⟨⋂ s ∈ S, ↑s, is_closed_bInter $ λ s _, s.2⟩)
+  (funext $ λ S, set_like.coe_injective Inf_image.symm)
 
 /-- The type of closed sets is inhabited, with default element the empty set. -/
 instance : inhabited (closeds α) := ⟨⊥⟩
@@ -59,6 +75,30 @@ instance : inhabited (closeds α) := ⟨⊥⟩
 @[simp] lemma coe_inf (s t : closeds α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
 @[simp] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
 @[simp] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
+@[simp] lemma coe_Inf {S : set (closeds α)} : (↑(Inf S) : set α) = ⋂ i ∈ S, ↑i := rfl
+
+lemma infi_def (s : ι → closeds α) : (⨅ i, s i) = ⟨⋂ i, s i, is_closed_Inter $ λ i, (s i).2⟩ :=
+by { ext, simp only [infi, coe_Inf, bInter_range], refl }
+
+@[simp] lemma infi_mk (s : ι → set α) (h : ∀ i, is_closed (s i)) :
+  (⨅ i, ⟨s i, h i⟩ : closeds α) = ⟨⋂ i, s i, is_closed_Inter h⟩ :=
+by simp [infi_def]
+
+@[simp, norm_cast] lemma coe_infi (s : ι → closeds α) :
+  ((⨅ i, s i : closeds α) : set α) = ⋂ i, s i :=
+by simp [infi_def]
+
+@[simp] lemma mem_infi {x : α} {s : ι → closeds α} : x ∈ infi s ↔ ∀ i, x ∈ s i :=
+by simp [←set_like.mem_coe]
+
+@[simp] lemma mem_Inf {S : set (closeds α)} {x : α} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s :=
+by simp_rw [Inf_eq_infi, mem_infi]
+
+instance : coframe (closeds α) :=
+{ Inf := Inf,
+  infi_sup_le_sup_Inf := λ a s,
+    (set_like.coe_injective $ by simp only [coe_sup, coe_infi, coe_Inf, set.inter_Union₂]).le,
+  ..closeds.complete_lattice }
 
 end closeds
 

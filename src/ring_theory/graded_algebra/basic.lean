@@ -110,7 +110,7 @@ open direct_sum dfinsupp finset function
 lemma direct_sum.decompose_mul_add_of_left_mem {ι σ A}
   [decidable_eq ι] [add_left_cancel_monoid ι] [semiring A]
   [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
-  {i : ι} (a : 𝒜 i) {b : A} {j : ι} :
+  {i j : ι} (a : 𝒜 i) {b : A} :
   decompose 𝒜 (↑a * b) (i + j) =
     @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ a (decompose 𝒜 b j) :=
 subtype.ext $ or.elim (em (a = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ, begin
@@ -118,6 +118,21 @@ subtype.ext $ or.elim (em (a = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ, begin
   simp_rw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a INEQ, singleton_product,
     map_filter, sum_map, comp, embedding.coe_fn_mk, add_left_cancel_iff, filter_eq'],
   refine dite (decompose 𝒜 b j = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
+  erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
+  refl,
+end
+
+lemma direct_sum.decompose_mul_add_of_right_mem {ι σ A}
+  [decidable_eq ι] [add_right_cancel_monoid ι] [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
+  {i j : ι} {a : A} (b : 𝒜 j) :
+  decompose 𝒜 (a * ↑b) (i + j) =
+    @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ (decompose 𝒜 a i) b :=
+subtype.ext $ or.elim (em (b = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ, begin
+  classical,
+  simp_rw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ j b INEQ, product_singleton,
+    map_filter, sum_map, comp, embedding.coe_fn_mk, add_right_cancel_iff, filter_eq'],
+  refine dite (decompose 𝒜 a i = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
   erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
   refl,
 end

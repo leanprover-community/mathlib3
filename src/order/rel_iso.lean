@@ -340,13 +340,25 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
-/-- `sum.inl` as a relation embedding. -/
+/-- `sum.inl` as a relation embedding into `sum.lift_rel r s`. -/
+@[simps] def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lift_rel r s :=
+{ to_fun := sum.inl,
+  inj' := sum.inl_injective,
+  map_rel_iff' := λ a b, sum.lift_rel_inl_inl }
+
+/-- `sum.inr` as a relation embedding into `sum.lift_rel r s`. -/
+@[simps] def sum_lift_rel_inr (r : α → α → Prop) (s : β → β → Prop) : s ↪r sum.lift_rel r s :=
+{ to_fun := sum.inr,
+  inj' := sum.inr_injective,
+  map_rel_iff' := λ a b, sum.lift_rel_inr_inr }
+
+/-- `sum.inl` as a relation embedding into `sum.lex r s`. -/
 @[simps] def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lex r s :=
 { to_fun := sum.inl,
   inj' := sum.inl_injective,
   map_rel_iff' := λ a b, sum.lex_inl_inl }
 
-/-- `sum.inr` as a relation embedding. -/
+/-- `sum.inr` as a relation embedding into `sum.lex r s`. -/
 @[simps] def sum_lex_inr (r : α → α → Prop) (s : β → β → Prop) : s ↪r sum.lex r s :=
 { to_fun := sum.inr,
   inj' := sum.inr_injective,

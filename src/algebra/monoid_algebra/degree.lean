@@ -28,7 +28,7 @@ Currently, the only results are
 variables {R A B : Type*} [semilattice_sup B] [order_bot B]
 
 namespace add_monoid_algebra
-open_locale classical
+open_locale classical big_operators
 
 section general_results_assuming_semilattice_sup
 
@@ -96,14 +96,14 @@ begin
   exact sup_support_list_prod_le D0 Dm F,
 end
 
-lemma sup_support_finset_prod_le
+lemma sup_support_finset_prod_le {ι : Type*}
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
-  (F : finset (add_monoid_algebra R A)) :
-  (finset.prod F id).support.sup D ≤ finset.sum F (λ f, f.support.sup D) :=
+  (s : finset ι) (f : ι → add_monoid_algebra R A):
+  (∏ i in s, f i).support.sup D ≤ ∑ i in s, (f i).support.sup D :=
 begin
-  rcases F with ⟨F, hF⟩,
-  rw [finset.prod_mk, multiset.map_id],
-  exact sup_support_multiset_prod_le D0 Dm F,
+  refine (sup_support_multiset_prod_le D0 Dm _).trans (le_of_eq _),
+  simp only [multiset.map_map, function.comp_app],
+  refl,
 end
 
 end general_results_assuming_semilattice_sup
@@ -122,6 +122,7 @@ it is the supremum of the support of `f` or `⊥`, depending on whether `f` is n
 
 If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
 the exponents. -/
+@[reducible]
 def degree (f : add_monoid_algebra R A) : with_bot A :=
 f.support.sup coe
 

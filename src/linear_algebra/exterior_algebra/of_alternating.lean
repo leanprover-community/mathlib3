@@ -25,12 +25,23 @@ import linear_algebra.exterior_algebra.basic
 
 variables {R M N N' : Type*}
 variables [comm_ring R] [add_comm_group M] [add_comm_group N] [add_comm_group N']
-variables [module R M] [module R N] [module R N']
+variables [module R M] [module Rᵐᵒᵖ M] [is_central_scalar R M]
+variables [module R N] [module Rᵐᵒᵖ N] [is_central_scalar R N] [module R N']
 
 -- This instance can't be found where it's needed if we don't remind lean that it exists.
 instance alternating_map.module_add_comm_group {ι : Type*} [decidable_eq ι] :
   module R (alternating_map R M N ι) :=
 by apply_instance
+
+instance alternating_map.op_module_add_comm_group {ι : Type*} [decidable_eq ι] :
+  module Rᵐᵒᵖ (alternating_map R M N ι) :=
+by apply_instance
+
+instance alternating_map.is_central_scalar_add_comm_group {ι : Type*} [decidable_eq ι] :
+  is_central_scalar R (alternating_map R M N ι) :=
+by apply_instance
+
+#exit
 
 namespace exterior_algebra
 open clifford_algebra (hiding ι)

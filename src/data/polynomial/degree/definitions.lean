@@ -41,8 +41,8 @@ variables [semiring R] {p q r : R[X]}
 `degree 0 = ⊥`. -/
 def degree (p : R[X]) : with_bot ℕ := p.support.max
 
-lemma degree_eq_deg (p : R[X]) :
-  p.degree = add_monoid_algebra.degree (to_finsupp_iso R p) :=
+lemma degree_eq_max_degree (p : R[X]) :
+  p.degree = add_monoid_algebra.max_degree (to_finsupp_iso R p) :=
 by { rcases p, refl }
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
@@ -618,7 +618,7 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
   ... ≤ _ : by rw [sup_insert, sup_eq_max]; exact max_le_max le_rfl ih
 
 lemma degree_mul_le (p q : R[X]) : degree (p * q) ≤ degree p + degree q :=
-by simpa only [degree_eq_deg, map_mul] using add_monoid_algebra.degree_mul_le _ _
+by simpa only [degree_eq_max_degree, map_mul] using add_monoid_algebra.max_degree_mul_le _ _
 
 lemma degree_pow_le (p : R[X]) : ∀ (n : ℕ), degree (p ^ n) ≤ n • (degree p)
 | 0     := by rw [pow_zero, zero_nsmul]; exact degree_one_le

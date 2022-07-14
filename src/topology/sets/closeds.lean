@@ -97,7 +97,7 @@ by simp_rw [Inf_eq_infi, mem_infi]
 instance : coframe (closeds α) :=
 { Inf := Inf,
   infi_sup_le_sup_Inf := λ a s,
-    (set_like.coe_injective $ by simp only [coe_sup, coe_infi, coe_Inf, set.inter_Union₂]).le,
+    (set_like.coe_injective $ by simp only [coe_sup, coe_infi, coe_Inf, set.union_Inter₂]).le,
   ..closeds.complete_lattice }
 
 end closeds

@@ -397,9 +397,6 @@ def restrict_scalars (E : intermediate_field L' L) :
 @[simp] lemma coe_restrict_scalars {E : intermediate_field L' L} :
   (restrict_scalars K E : set L) = (E : set L) := rfl
 
-@[simp] lemma mem_restrict_scalars {E : intermediate_field L' L} {x : L} :
-  x ∈ restrict_scalars K E ↔ x ∈ E := iff.rfl
-
 @[simp] lemma coe_sort_restrict_scalars (E : intermediate_field L' L) :
   ↥(restrict_scalars K E) = ↥E := rfl
 

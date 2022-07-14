@@ -229,7 +229,7 @@ open_locale pointwise
 
 lemma Gamma_cong_eq_self (N : ℕ) (g : conj_act SL(2, ℤ)) : g • (Gamma N) = (Gamma N) :=
 begin
-  apply conj_act_normal (Gamma_normal N),
+  apply subgroup.conj_act_normal (Gamma_normal N),
 end
 
 lemma subgroup_conj_covariant (g : conj_act SL(2, ℤ)) (Γ_1 Γ_2 : subgroup SL(2, ℤ))

@@ -103,7 +103,7 @@ dfinsupp.mem_support_iff.trans add_submonoid_class.coe_eq_zero.not.symm
 
 end graded_ring
 
-section add_left_cancel_monoid
+section add_cancel_monoid
 
 open direct_sum dfinsupp finset function
 
@@ -137,7 +137,7 @@ subtype.ext $ or.elim (em (b = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ, begin
   refl,
 end
 
-end add_left_cancel_monoid
+end add_cancel_monoid
 
 section graded_algebra
 variables [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]

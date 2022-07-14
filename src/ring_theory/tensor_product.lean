@@ -398,6 +398,8 @@ instance left_algebra : algebra S (A ⊗[R] B) :=
   .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
   .. (by apply_instance : module S (A ⊗[R] B)) }.
 
+instance : algebra R (A ⊗[R] B) := infer_instance
+
 @[simp]
 lemma algebra_map_apply (r : S) :
   (algebra_map S (A ⊗[R] B)) r = ((algebra_map S A) r) ⊗ₜ 1 := rfl

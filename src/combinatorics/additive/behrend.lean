@@ -304,11 +304,10 @@ end
 
 lemma exp_neg_two_mul_le {x : ℝ} (hx : 0 < x) : exp (-2 * x) < exp (2 - ⌈x⌉₊) / ⌈x⌉₊ :=
 begin
-  have i := ceil_lt_add_one hx.le,
-  have h₁ : 0 < ⌈x⌉₊, by rwa [lt_ceil, cast_zero],
+  have h₁ := ceil_lt_add_one hx.le,
   have h₂ : 1 - x ≤ 2 - ⌈x⌉₊,
   { rw le_sub_iff_add_le,
-    apply (add_le_add_left i.le _).trans_eq,
+    apply (add_le_add_left h₁.le _).trans_eq,
     rw [←add_assoc, sub_add_cancel],
     refl },
   have h₃ : exp (-(x+1)) ≤ 1 / (x + 1),
@@ -316,12 +315,12 @@ begin
     refine one_div_le_one_div_of_le (add_pos hx zero_lt_one) _,
     apply le_trans _ (add_one_le_exp_of_nonneg $ add_nonneg hx.le zero_le_one),
     exact le_add_of_nonneg_right zero_le_one },
-  refine lt_of_le_of_lt _ (div_lt_div_of_lt_left (exp_pos _) (cast_pos.2 h₁) i),
+  refine lt_of_le_of_lt _ (div_lt_div_of_lt_left (exp_pos _) (cast_pos.2 $ ceil_pos.2 hx) h₁),
   refine le_trans _ (div_le_div_of_le_of_nonneg (exp_le_exp.2 h₂) $ add_nonneg hx.le zero_le_one),
   rw [le_div_iff (add_pos hx zero_lt_one), ←le_div_iff' (exp_pos _), ←exp_sub, neg_mul,
     sub_neg_eq_add, two_mul, sub_add_add_cancel, add_comm _ x],
   refine le_trans _ (add_one_le_exp_of_nonneg $ add_nonneg hx.le zero_le_one),
-  exact le_add_of_nonneg_right zero_le_one
+  exact le_add_of_nonneg_right zero_le_one,
 end
 
 lemma div_lt_floor {x : ℝ} (hx : 2 / (1 - 2 / exp 1) ≤ x) : x / exp 1 < (⌊x/2⌋₊ : ℝ) :=

@@ -658,13 +658,11 @@ instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ 
 instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
 { norm_star := λ f,
   begin
-    rcases p.trichotomy with h | h | h,
-    { unfreezingI { subst h },
-      exfalso,
+    unfreezingI { rcases p.trichotomy with rfl | rfl | h },
+    { exfalso,
       have := ennreal.to_real_mono ennreal.zero_ne_top hp.elim,
       norm_num at this,},
-    { unfreezingI { subst h },
-      simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
+    { simp only [lp.norm_eq_csupr, lp.star_apply, norm_star] },
     { simp only [lp.norm_eq_tsum_rpow h, lp.star_apply, norm_star] }
   end }
 

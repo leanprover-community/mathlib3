@@ -22,13 +22,8 @@ class MonomForm:
     pos_form: str
     neg_form: Optional[str] = None
 
-def sum_to_string_aux(old: str, rest: list[MonomForm]) -> str:
-    try:
-        nxt = next(rest)
-    except StopIteration:
-        return old
-    s = mk_app("poly.sub" if nxt.neg_form is not None else "poly.add", old, nxt.pos_form)
-    return sum_to_string_aux(s, rest)
+def sum_to_string_aux(old: str, nxt: MonomForm) -> str:
+    return mk_app("poly.sub" if nxt.neg_form is not None else "poly.add", old, nxt.pos_form)
 
 def sum_to_string(terms: list[MonomForm]) -> str:
     try:
@@ -37,7 +32,7 @@ def sum_to_string(terms: list[MonomForm]) -> str:
         return const_to_string(QQ(0))
     else:
         first_form = first.neg_form if first.neg_form is not None else first.pos_form
-        return sum_to_string_aux(first_form, terms)
+        return reduce(sum_to_string_aux, terms, first_form)
 
 def monomial_to_string(etuple: ETuple, coeff: QQ) -> MonomForm:
     etuple = list(etuple.sparse_iter())

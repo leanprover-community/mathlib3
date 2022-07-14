@@ -100,3 +100,6 @@ end
 
 lemma not_same_ray_iff_of_norm_eq (h : ∥x∥ = ∥y∥) : ¬ same_ray ℝ x y ↔ x ≠ y :=
 (same_ray_iff_of_norm_eq h).not
+
+lemma same_ray.eq_of_norm_eq (h : same_ray ℝ x y) (hn : ∥x∥ = ∥y∥) : x = y :=
+(same_ray_iff_of_norm_eq hn).mp h

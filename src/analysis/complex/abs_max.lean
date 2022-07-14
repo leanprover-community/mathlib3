@@ -171,6 +171,50 @@ begin
     (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
 end
 
+section strict_convex
+
+variables [strict_convex_space ℝ F]
+
+lemma eq_of_is_max_on_of_ball_subset {f : E → F} {s : set E} {z w : E} (hd : diff_cont_on_cl ℂ f s)
+  (hz : is_max_on (norm ∘ f) s z) (hsub : ball z (dist w z) ⊆ s) :
+  f w = f z :=
+begin
+  /- We apply `norm_eq_norm_of_is_max_on_of_ball_subset` twice, for `f` and for `λ x, f x + f z`.
+  Then we have `∥f w∥ = ∥f z∥` and `∥f w + f z∥ = ∥f z + f z∥`, thus
+  `∥f w + f z∥ = ∥f w∥ + ∥f z∥`. This is only possible if `f w = f z`, see
+  `eq_of_norm_eq_of_norm_add_eq` above. -/
+  have H₁ : ∥f w∥ = ∥f z∥, from norm_eq_norm_of_is_max_on_of_ball_subset hd hz hsub,
+  have H₂ : ∥f w + f z∥ = ∥f z + f z∥,
+  { apply norm_eq_norm_of_is_max_on_of_ball_subset (hd.add_const (f z)) _ hsub,
+    intros x hx,
+    calc ∥f x + f z∥ ≤ ∥f x∥ + ∥f z∥ : norm_add_le _ _
+    ... ≤ ∥f z∥ + ∥f z∥ : add_le_add (hz hx) le_rfl
+    ... = ∥f z + f z∥ : same_ray.rfl.norm_add.symm },
+  apply eq_of_norm_eq_of_norm_add_eq H₁,
+  simp only [H₂, same_ray.rfl.norm_add, H₁]
+end
+
+lemma eq_on_closed_ball_of_is_max_on_norm {f : E → F} {z : E} {r : ℝ}
+  (hd : diff_cont_on_cl ℂ f (ball z r)) (hz : is_max_on (norm ∘ f) (ball z r) z) :
+  eq_on f (const E (f z)) (closed_ball z r) :=
+λ x hx, eq_of_is_max_on_of_ball_subset hd hz $ ball_subset_ball hx
+
+/-- **Maximum modulus principle**: if `f : E → F` is complex differentiable in a neighborhood of `c`
+and the norm `∥f z∥` has a local maximum at `c`, then `f` is locally constant in a neighborhood
+of `c`. -/
+lemma eventually_eq_of_is_local_max_norm {f : E → F} {c : E}
+  (hd : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_max (norm ∘ f) c) :
+  ∀ᶠ y in 𝓝 c, f y = f c :=
+begin
+  rcases nhds_basis_closed_ball.eventually_iff.1 (hd.and hc) with ⟨r, hr₀, hr⟩,
+  exact nhds_basis_closed_ball.eventually_iff.2 ⟨r, hr₀, eq_on_closed_ball_of_is_max_on_norm
+    (differentiable_on.diff_cont_on_cl $
+      λ x hx, (hr $ closure_ball_subset_closed_ball hx).1.differentiable_within_at)
+    (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
+end
+
+end strict_convex
+
 lemma is_open_set_of_mem_nhds_and_is_max_on_norm {f : E → F} {s : set E}
   (hd : differentiable_on ℂ f s) :
   is_open {z | s ∈ 𝓝 z ∧ is_max_on (norm ∘ f) s z} :=

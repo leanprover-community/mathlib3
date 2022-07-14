@@ -16,6 +16,8 @@ variables (𝕜 : Type u) (A : Type v)
 
 -- should we just implement this as a subtype of `(A →L[𝕜] A) × (A →L[𝕜] A)`?
 -- I think not because it just makes the linear maps harder to access.
+-- although then we would need only one set of `simp` lemmas.
+-- What the hell is going on with `continuous_linear_map` and `prod` in structures?
 @[ext]
 structure double_centralizer : Type v :=
 (left : A →L[𝕜] A)
@@ -87,6 +89,8 @@ noncomputable def cast (a : A) : 𝓜(𝕜, A) :=
 { left := continuous_linear_map.lmul' 𝕜 A a,
   right := continuous_linear_map.lmul_right' 𝕜 A a,
   central := λ x y, mul_assoc _ _ _ }
+
+variables {𝕜 A}
 
 noncomputable instance : has_coe A 𝓜(𝕜, A) :=
 { coe := double_centralizer.cast 𝕜 A }

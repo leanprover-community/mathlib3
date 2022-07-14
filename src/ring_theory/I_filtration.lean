@@ -111,10 +111,10 @@ instance : has_bot (I.filtration M) := ⟨I.trivial_filtration ⊥⟩
 @[simp] lemma top_N : (⊤ : I.filtration M).N = ⊤ := rfl
 @[simp] lemma bot_N : (⊥ : I.filtration M).N = ⊥ := rfl
 
-@[simp] lemma supr_N {ι : Type*} (f : ι → I.filtration M) : (supr f).N = ⨆ i, (f i).N :=
+@[simp] lemma supr_N {ι : Sort*} (f : ι → I.filtration M) : (supr f).N = ⨆ i, (f i).N :=
 congr_arg Sup (set.range_comp _ _).symm
 
-@[simp] lemma infi_N {ι : Type*} (f : ι → I.filtration M) : (infi f).N = ⨅ i, (f i).N :=
+@[simp] lemma infi_N {ι : Sort*} (f : ι → I.filtration M) : (infi f).N = ⨅ i, (f i).N :=
 congr_arg Inf (set.range_comp _ _).symm
 
 instance : complete_lattice (I.filtration M) :=

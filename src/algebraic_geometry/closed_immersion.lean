@@ -35,8 +35,8 @@ Closed immersion between presheafed spaces are morphisms `f : X ⟶ Y`, such tha
 class PresheafedSpace.is_closed_immersion [concrete_category C] [has_colimits C]
   {X Y : PresheafedSpace C} (f : X ⟶ Y) : Prop :=
 (base_closed : closed_embedding f.base)
-(c_surj : ∀ x : X, function.surjective $ (forget C).map
-  ((Top.presheaf.stalk_functor _ $ f.base x).map f.c))
+(c_surj : ∀ y : Y, function.surjective $ (forget C).map
+  ((Top.presheaf.stalk_functor _ $ y).map f.c))
 
 instance PresheafedSpace.is_closed_immersion.id [concrete_category C] [has_colimits C]
   {X : PresheafedSpace C} :

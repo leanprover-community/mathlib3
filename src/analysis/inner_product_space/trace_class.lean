@@ -53,24 +53,21 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 section trace_along
 
+noncomputable abbreviation conj_proj [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
+  [complete_space U] : E →L[𝕜] E :=
+(U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L orthogonal_projection U)
+
 noncomputable def trace_along (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] :
   (E →L[𝕜] E) →ₗ[𝕜] 𝕜 :=
-{ to_fun := λ T, linear_map.trace 𝕜 U (dom_restrict ((orthogonal_projection U).comp T) U),
-  map_add' := λ S T,
-  begin
-    rw [comp_add, coe_add, dom_restrict, linear_map.add_comp, map_add],
-    refl
-  end,
-  map_smul' := λ c T,
-  begin
-    rw [comp_smul, coe_smul, dom_restrict, linear_map.smul_comp,
-        smul_hom_class.map_smul],
-    refl
-  end }
+linear_map.trace 𝕜 U ∘ₗ (coe_lm 𝕜) ∘ₗ
+  (compL 𝕜 U E U (orthogonal_projection U) : (U →L[𝕜] E) →ₗ[𝕜] (U →L[𝕜] U)) ∘ₗ
+  ((compL 𝕜 U E E).flip U.subtypeL : (E →L[𝕜] E) →ₗ[𝕜] (U →L[𝕜] E))
 
 @[simp] lemma trace_along_apply (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] (T : E →L[𝕜] E) :
   trace_along U T = linear_map.trace 𝕜 U (dom_restrict ((orthogonal_projection U).comp T) U) :=
 rfl
+
+-- make the finite dimensional version for `linear_map.trace`
 
 -- Why is `complete_space E` needed ?
 lemma trace_along_eq_of_orthonormal_basis [complete_space E] {ι : Type*} [fintype ι]
@@ -87,21 +84,59 @@ begin
       orthogonal_projection_eq_self_iff.mpr (subtype.coe_prop $ e i)]
 end
 
-#check hilbert_basis.repr
+--lemma has_sum_trace_along_of_hilbert_basis' [complete_space E] {ι : Type*}
+--  {U : submodule 𝕜 E} [finite_dimensional 𝕜 U] (T : E →L[𝕜] E)
+--  (e : hilbert_basis ι 𝕜 E) :
+--  has_sum (λ i, ⟪(e i : E), T (e i)⟫) (trace_along U T) :=
+--begin
+--  let f : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
+--    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
+--    (std_orthonormal_basis 𝕜 U).span_eq,
+--  rw trace_along_eq_of_orthonormal_basis T f,
+--  have key : ∀ a, has_sum (λ i, ⟪e i, f a⟫ • e i) (f a),
+--  { intro a,
+--    have := e.has_sum_repr (f a),
+--    simpa only [hilbert_basis.repr_apply_apply] using this },
+--  conv {congr, skip, congr, skip, funext,
+--        rw [(key _).tsum_eq.symm, ← innerSL_apply, T.map_tsum (key _).summable,
+--            (innerSL _).map_tsum ((key _).summable.mapL T)], },
+--  sorry,
+--  --have : ∀ a, has_sum (λ i, innerSL $ ⟪e i, f a⟫ • e i) (innerSL $ (f a : E)) :=
+--  --  λ a, (this a).mapL _,
+--  --have : ∀ j, has_sum (λ i, ⟪e.repr (f j) i, T (e.repr (f j) i)⟫) ⟪(f j : E), T (f j)⟫
+--  --refine has_sum_sum,
+--end
+
+#check orthogonal_projection
 
 lemma has_sum_trace_along_of_hilbert_basis [complete_space E] {ι : Type*}
   {U : submodule 𝕜 E} [finite_dimensional 𝕜 U] (T : E →L[𝕜] E)
-  (e : hilbert_basis ι 𝕜 (U : submodule 𝕜 E)) :
-  has_sum (λ i, ⟪(e i : E), T (e i)⟫) (trace_along U T) :=
+  (e : hilbert_basis ι 𝕜 E) :
+  has_sum (λ i, ⟪(e i : E), (conj_proj T U) (e i)⟫) (trace_along U T) :=
 begin
   let f : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
     orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
     (std_orthonormal_basis 𝕜 U).span_eq,
   rw trace_along_eq_of_orthonormal_basis T f,
+  have : ∀ a, has_sum (λ i, ⟪(f a : E), e i⟫ * ⟪e i, T (f a)⟫) ⟪(f a : E), T (f a)⟫ :=
+    λ a, e.has_sum_inner_mul_inner _ _,
+  convert has_sum_sum (λ a (_ : a ∈ finset.univ), this a),
+  ext i,
+  change ⟪e i, orthogonal_projection U (T (orthogonal_projection U $ e i))⟫ = _,
+  rw ← inner_orthogonal_projection_left_eq_right,
+  --nth_rewrite 0 ← orthogonal_projection_mem_subspace_eq_self (orthogonal_projection U (e i)),
   sorry,
+  --have : ∀ a, has_sum (λ i, innerSL $ ⟪e i, f a⟫ • e i) (innerSL $ (f a : E)) :=
+  --  λ a, (this a).mapL _,
   --have : ∀ j, has_sum (λ i, ⟪e.repr (f j) i, T (e.repr (f j) i)⟫) ⟪(f j : E), T (f j)⟫
   --refine has_sum_sum,
 end
+
+lemma foo [complete_space E] {ι : Type*} {e : ι → E}
+  (he : orthonormal 𝕜 e) (s : finset ι) :
+  (span 𝕜 (s.image e : set E)).subtypeL ∘L orthogonal_projection (span 𝕜 (s.image e : set E)) =
+  ∑ i in s, (𝕜 ∙ e i).subtypeL ∘L orthogonal_projection (𝕜 ∙ e i) :=
+sorry
 
 lemma trace_along_span_eq_of_orthonormal [complete_space E] {ι : Type*} (T : E →L[𝕜] E) {e : ι → E}
   (he : orthonormal 𝕜 e) (s : finset ι) :
@@ -195,7 +230,7 @@ end
 
 lemma is_positive.conj_proj [complete_space E] (U : submodule 𝕜 E) {T : E →L[𝕜] E}
   (hT : T.is_positive) [complete_space U] :
-  (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L orthogonal_projection U).is_positive :=
+  (conj_proj T U).is_positive :=
 begin
   have := hT.conj (U.subtypeL ∘L orthogonal_projection U),
   rwa ← (orthogonal_projection_is_self_adjoint U).eq_adjoint at this
@@ -224,6 +259,21 @@ begin
   refine finset.sum_nonneg (λ i _, _),
   rw [← coe_coe, ← hT.1],
   exact hT.2 (e i)
+end
+
+lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+  (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [complete_space V] :
+    re (trace_along U (conj_proj T V)) ≤
+    re (trace_along U T) :=
+begin
+
+  --have : T = U.subtypeL ∘L orthogonal_projection U ∘L T
+  --  + Uᗮ.subtypeL ∘L orthogonal_projection Uᗮ ∘L T,
+  --{ ext, exact eq_sum_orthogonal_projection_self_orthogonal_complement _ _ },
+  --apply_fun (λ x, re (trace_along U x)) at this,
+  --rw [map_add, map_add] at this,
+  --rw this,
+  --exact le_add_of_nonneg_right ((hT.proj_comp Uᗮ).trace_along_nonneg U),
 end
 
 noncomputable def is_positive.trace_along_nnreal [complete_space E] (U : submodule 𝕜 E)
@@ -261,7 +311,10 @@ begin
     suffices : tendsto (λ J : finset ι, (hT.conj_proj (V J)).trace_along_ennreal U) at_top
       (𝓝 $ hT.trace_along_ennreal U),
     { refine le_of_tendsto_of_tendsto' this ennreal.summable.has_sum (λ J, _),
-      have := (hT.conj_proj (V J)).trace_along_ennreal U ≤  } } -- hard part
+      calc (hT.conj_proj (V J)).trace_along_ennreal U
+          ≤ (hT.conj_proj (V J)).trace : le_supr _ U
+      ... = ∑' i, ennreal.of_real (re ⟪e i, T (e i)⟫) : by {  }
+      ... ≤ _ : sorry, } } -- hard part
 end
 
 end positive

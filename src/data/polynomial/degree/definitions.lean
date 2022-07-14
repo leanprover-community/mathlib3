@@ -7,6 +7,7 @@ import data.fintype.big_operators
 import data.nat.with_bot
 import data.polynomial.monomial
 import data.polynomial.coeff
+import algebra.monoid_algebra.degree
 
 /-!
 # Theory of univariate polynomials
@@ -39,6 +40,10 @@ variables [semiring R] {p q r : R[X]}
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
 def degree (p : R[X]) : with_bot ℕ := p.support.max
+
+lemma degree_eq_deg (p : R[X]) :
+  p.degree = add_monoid_algebra.degree (to_finsupp_iso R p) :=
+by { rcases p, refl }
 
 lemma degree_lt_wf : well_founded (λp q : R[X], degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
@@ -198,9 +203,7 @@ by rw [← C_1]; exact degree_C_le
 @[simp] lemma nat_degree_C (a : R) : nat_degree (C a) = 0 :=
 begin
   by_cases ha : a = 0,
-  { have : C a = 0, { rw [ha, C_0] },
-    rw [nat_degree, degree_eq_bot.2 this],
-    refl },
+  { rw [ha, map_zero, nat_degree_zero] },
   { rw [nat_degree, degree_C ha], refl }
 end
 
@@ -615,21 +618,7 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
   ... ≤ _ : by rw [sup_insert, sup_eq_max]; exact max_le_max le_rfl ih
 
 lemma degree_mul_le (p q : R[X]) : degree (p * q) ≤ degree p + degree q :=
-calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :
-    begin
-      simp only [← C_mul_X_pow_eq_monomial.symm],
-      convert degree_sum_le _ _,
-      exact mul_eq_sum_sum
-    end
-  ... ≤ p.support.sup (λi, q.support.sup (λj, degree (C (coeff p i * coeff q j) * X ^ (i + j)))) :
-    finset.sup_mono_fun (assume i hi,  degree_sum_le _ _)
-  ... ≤ degree p + degree q :
-    begin
-      refine finset.sup_le (λ a ha, finset.sup_le (λ b hb, le_trans (degree_C_mul_X_pow_le _ _) _)),
-      rw [with_bot.coe_add],
-      rw mem_support_iff at ha hb,
-      exact add_le_add (le_degree_of_ne_zero ha) (le_degree_of_ne_zero hb)
-    end
+by simpa only [degree_eq_deg, map_mul] using add_monoid_algebra.degree_mul_le _ _
 
 lemma degree_pow_le (p : R[X]) : ∀ (n : ℕ), degree (p ^ n) ≤ n • (degree p)
 | 0     := by rw [pow_zero, zero_nsmul]; exact degree_one_le

@@ -1,7 +1,7 @@
 import topology.sheaves.presheaf
 import algebraic_geometry.Scheme
 
-universes w v u
+universes w u v
 
 /- Formalizing the equivalence of (2) and (4) in
    https://stacks.math.columbia.edu/tag/01QN -/
@@ -16,8 +16,12 @@ open opposite
 
 section locally_surjective
 
+set_option pp.universes true
+
 /-! Let C be a concrete category, X a topological space. -/
-variables {C : Type u} [category.{v} C] [concrete_category C] {X : Top.{v}}
+variables {C : Type u} [category.{v} C]
+   [concrete_category.{v} C]
+   {X : Top.{v}}
 
 /-! Let ℱ, 𝒢 : (opens X)ᵒᵖ -> C be C-valued presheaves on X. -/
 variables {ℱ : X.presheaf C} {𝒢 : X.presheaf C}
@@ -49,7 +53,7 @@ def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
    ∃ (V : opens X) (ι : V ⟶ U) (hxV : x ∈ V) (s : Γ_ ℱ V),
    T _* s = t |_ ι
 
--- locally surjective on stalks?
+section surjective_on_stalks
 
 variables [category_theory.limits.has_colimits C]
 
@@ -71,6 +75,8 @@ surjective is for all the induced maps on stalks to be surjective. -/
 def is_surjective_on_stalks (T : ℱ ⟶ 𝒢) :=
    ∀ (x : X), function.surjective (T _ₛₜ x)
 
+variable [category_theory.limits.preserves_filtered_colimits (forget C)]
+
 lemma locally_surjective_iff_surjective_on_stalks (T : ℱ ⟶ 𝒢) :
    is_locally_surjective T ↔ is_surjective_on_stalks T :=
 begin
@@ -89,8 +95,34 @@ begin
     ⟨s, V⟩. Then use V ∩ U (since that is in U) and s ∈ Γ ℱ (V ∩ U).
     We then have s |_ V ∩ U = t |_ V ∩ U.
   -/
-    sorry, },
+    intros U t x hxU,
+    set t_x := (forget C).map (𝒢.germ ⟨x, hxU⟩) t with ht_x,
+    obtain ⟨s_x, hs_x : (T _ₛₜ x) s_x = t_x⟩ := hT x t_x,
+    obtain ⟨V, hxV, s, rfl⟩ := ℱ.germ_exist x s_x,
+   --  -- rfl : ℱ.germ x s = s_x
+    have key_W := 𝒢.germ_eq x hxV hxU (T _* s) t
+      (by {
+         convert hs_x,
+         symmetry,
+         exact Top.presheaf.stalk_functor_map_germ_apply
+            V ⟨x, hxV⟩ T s, }),
+   obtain ⟨W, hxW, hWV, hWU, h_eq⟩ := key_W,
+   refine ⟨W, hWU, hxW, ⟨s |_ hWV, _⟩⟩,
+   convert h_eq,
+
+   -- horrible screaming from beyond the universe
+   change (((forget C).map _) ≫ ((forget C).map (T.app _))) s =
+   (((forget C).map (T.app _)) ≫ ((forget C).map _)) s,
+
+   rw ← (forget C).map_comp,
+   rw ← (forget C).map_comp,
+   rw T.naturality hWV.op,
+},
 end
+
+-- change _ = ((forget C).map _ ≫ (forget C).map _) t,
+
+end surjective_on_stalks
 
 end locally_surjective
 

@@ -25,38 +25,6 @@ local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 open matrix.special_linear_group matrix
 
-lemma SL2_inv_det_expl (A : SL(2,ℤ)) : det ![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]] = 1 :=
-begin
-  rw matrix.det_fin_two,
-  simp only [subtype.val_eq_coe, cons_val_zero, cons_val_one, head_cons, mul_neg, neg_mul, neg_neg],
-  have := A.2,
-  rw matrix.det_fin_two at this,
-  rw mul_comm,
-  convert this,
-end
-
-lemma SL2_inv_expl (A : SL(2, ℤ)) : A⁻¹ = ⟨![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]],
-    SL2_inv_det_expl A⟩ :=
-begin
-ext,
-  have := matrix.adjugate_fin_two A.1,
-  simp only [subtype.val_eq_coe] at this,
-  rw [coe_inv, this],
-  refl,
-end
-
-lemma mat_two_mul_expl {R : Type*} [comm_ring R] (A B : matrix (fin 2) (fin 2) R) :
-  (A * B) 0 0 = A 0 0 * B 0 0 + A 0 1 * B 1 0 ∧
-  (A * B) 0 1 = A 0 0 * B 0 1 + A 0 1 * B 1 1 ∧
-  (A * B) 1 0 = A 1 0 * B 0 0 + A 1 1 * B 1 0 ∧
-  (A * B) 1 1 = A 1 0 * B 0 1 + A 1 1 * B 1 1 :=
-begin
-  split, work_on_goal 2 {split}, work_on_goal 3 {split},
-  all_goals {simp only [matrix.mul_eq_mul],
-  rw [matrix.mul_apply, finset.sum_fin_eq_sum_range, finset.sum_range_succ, finset.sum_range_succ],
-  simp},
-end
-
 /--The reduction mod `(N : ℕ)` map on `SL(2,ℤ)`. -/
 def SL_reduction_mod_hom (N : ℕ) : SL(2, ℤ) →* SL(2, (zmod N)) := map (int.cast_ring_hom (zmod N))
 
@@ -101,7 +69,8 @@ end
 lemma Gamma_zero_bot : (Gamma 0) = ⊥ :=
 begin
   ext,
-  simp,
+  simp only [Gamma_mem, coe_coe, coe_matrix_coe, int.coe_cast_ring_hom, map_apply, int.cast_id,
+    subgroup.mem_bot],
   split,
   intro h,
   ext,
@@ -111,24 +80,7 @@ begin
   exact h.2.2.1,
   exact h.2.2.2,
   intro h,
-  rw h,
-  simp,
-end
-
-/--A congruence subgroup is a subgroup of `SL(2,ℤ)` which contains some `Gamma N` for some
-`(N : ℕ+)`. -/
-def is_congruence_subgroup (Γ : subgroup SL(2, ℤ)) : Prop := ∃ (N : ℕ+), (Gamma N) ≤ Γ
-
-lemma is_congruence_subgroup_trans (H K : subgroup SL(2, ℤ)) (h: H ≤ K)
-  (h2 : is_congruence_subgroup H) : is_congruence_subgroup K :=
-begin
-  obtain ⟨N , hN⟩ := h2,
-  refine ⟨N, le_trans hN h⟩,
-end
-
-lemma Gamma_is_cong_sub (N : ℕ+) : is_congruence_subgroup (Gamma N) :=
-begin
-  refine ⟨N, by {simp only [le_refl]}⟩,
+  simp [h],
 end
 
 /--The congruence subgroup of `SL(2,ℤ)` of matrices whose lower left-hand entry reduces to zero
@@ -238,6 +190,24 @@ begin
   exact HA.2.2,
 end
 
+section congruence_subgroup
+
+/--A congruence subgroup is a subgroup of `SL(2,ℤ)` which contains some `Gamma N` for some
+`(N : ℕ+)`. -/
+def is_congruence_subgroup (Γ : subgroup SL(2, ℤ)) : Prop := ∃ (N : ℕ+), (Gamma N) ≤ Γ
+
+lemma is_congruence_subgroup_trans (H K : subgroup SL(2, ℤ)) (h: H ≤ K)
+  (h2 : is_congruence_subgroup H) : is_congruence_subgroup K :=
+begin
+  obtain ⟨N , hN⟩ := h2,
+  refine ⟨N, le_trans hN h⟩,
+end
+
+lemma Gamma_is_cong_sub (N : ℕ+) : is_congruence_subgroup (Gamma N) :=
+begin
+  refine ⟨N, by {simp only [le_refl]}⟩,
+end
+
 lemma Gamma1_is_congruence (N : ℕ+) : is_congruence_subgroup (Gamma1 N) :=
 begin
   refine ⟨N, _⟩,
@@ -251,30 +221,11 @@ begin
   apply is_congruence_subgroup_trans _ _ (Gamma1_in_Gamma0 N) (Gamma1_is_congruence N),
 end
 
+end congruence_subgroup
+
 section conjugation
 
 open_locale pointwise
-
-lemma conj_act_normal {G : Type*} [group G] {H : subgroup G} (hH : H.normal ) (g : conj_act G) :
-  g • H = H :=
-begin
-  ext,
-  split,
-  intro h,
-  have := hH.conj_mem (g⁻¹ • x) _ (conj_act.of_conj_act g),
-  rw subgroup.mem_pointwise_smul_iff_inv_smul_mem at h,
-  dsimp at *,
-  rw conj_act.smul_def at *,
-  simp only [conj_act.of_conj_act_inv, conj_act.of_conj_act_to_conj_act, inv_inv] at *,
-  convert this,
-  simp only [←mul_assoc, mul_right_inv, one_mul, mul_inv_cancel_right],
-  rw subgroup.mem_pointwise_smul_iff_inv_smul_mem at h,
-  exact h,
-  intro h,
-  rw [subgroup.mem_pointwise_smul_iff_inv_smul_mem, conj_act.smul_def],
-  apply hH.conj_mem,
-  exact h,
-end
 
 lemma Gamma_cong_eq_self (N : ℕ) (g : conj_act SL(2, ℤ)) : g • (Gamma N) = (Gamma N) :=
 begin

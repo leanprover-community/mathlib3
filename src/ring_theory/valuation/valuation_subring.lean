@@ -72,9 +72,9 @@ instance : valuation_ring A :=
     by_cases (b : K) = 0, { use 0, left, ext, simp [h] },
     by_cases (a : K) = 0, { use 0, right, ext, simp [h] },
     cases A.mem_or_inv_mem (a/b) with hh hh,
-    { use ⟨a/b,hh⟩, right, ext, field_simp, ring },
+    { use ⟨a/b, hh⟩, right, ext, field_simp, ring },
     { rw (show (a/b : K)⁻¹ = b/a, by field_simp) at hh,
-      use ⟨b/a,hh⟩, left, ext, field_simp, ring },
+      use ⟨b/a, hh⟩, left, ext, field_simp, ring },
   end }
 
 instance : algebra A K :=
@@ -84,16 +84,16 @@ show algebra A.to_subring K, by apply_instance
 lemma algebra_map_apply (a : A) : algebra_map A K a = a := rfl
 
 instance : is_fraction_ring A K :=
-{ map_units := λ ⟨y,hy⟩,
+{ map_units := λ ⟨y, hy⟩,
     (units.mk0 (y : K) (λ c, non_zero_divisors.ne_zero hy $ subtype.ext c)).is_unit,
   surj := λ z, begin
-    by_cases z = 0, { use (0,1), simp [h] },
+    by_cases z = 0, { use (0, 1), simp [h] },
     cases A.mem_or_inv_mem z with hh hh,
-    { use (⟨z,hh⟩,1), simp },
-    { refine ⟨⟨1,⟨⟨_,hh⟩,_⟩⟩, mul_inv_cancel h⟩,
+    { use (⟨z, hh⟩, 1), simp },
+    { refine ⟨⟨1, ⟨⟨_, hh⟩, _⟩⟩, mul_inv_cancel h⟩,
       exact mem_non_zero_divisors_iff_ne_zero.2 (λ c, h (inv_eq_zero.mp (congr_arg coe c))) },
   end,
-  eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c,h⟩,
+  eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
     congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
 /-- The value group of the valuation associated to `A`. -/
@@ -106,13 +106,13 @@ def valuation : valuation K A.value_group := valuation_ring.valuation A K
 instance inhabited_value_group : inhabited A.value_group := ⟨A.valuation 0⟩
 
 lemma valuation_le_one (a : A) : A.valuation a ≤ 1 :=
-(valuation_ring.mem_integer_iff A K _).2 ⟨a,rfl⟩
+(valuation_ring.mem_integer_iff A K _).2 ⟨a, rfl⟩
 
 lemma mem_of_valuation_le_one (x : K) (h : A.valuation x ≤ 1) : x ∈ A :=
-let ⟨a,ha⟩ := (valuation_ring.mem_integer_iff A K x).1 h in ha ▸ a.2
+let ⟨a, ha⟩ := (valuation_ring.mem_integer_iff A K x).1 h in ha ▸ a.2
 
 lemma valuation_le_one_iff (x : K) : A.valuation x ≤ 1 ↔ x ∈ A :=
-⟨mem_of_valuation_le_one _ _, λ ha, A.valuation_le_one ⟨x,ha⟩⟩
+⟨mem_of_valuation_le_one _ _, λ ha, A.valuation_le_one ⟨x, ha⟩⟩
 
 lemma valuation_eq_iff (x y : K) : A.valuation x = A.valuation y ↔
   ∃ a : Aˣ, (a : K) * y = x := quotient.eq'
@@ -179,7 +179,7 @@ subring.subtype R.to_subring
 /-- The canonical map on value groups induced by a coarsening of valuation rings. -/
 def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
   R.value_group →*₀ S.value_group :=
-{ to_fun := quotient.map' id $ λ x y ⟨u,hu⟩, ⟨units.map (R.inclusion S h).to_monoid_hom u, hu⟩,
+{ to_fun := quotient.map' id $ λ x y ⟨u, hu⟩, ⟨units.map (R.inclusion S h).to_monoid_hom u, hu⟩,
   map_zero' := rfl,
   map_one' := rfl,
   map_mul' := by { rintro ⟨⟩ ⟨⟩, refl } }
@@ -187,7 +187,7 @@ def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
 @[mono]
 lemma monotone_map_of_le (R S : valuation_subring K) (h : R ≤ S) :
   monotone (R.map_of_le S h) :=
-by { rintros ⟨⟩ ⟨⟩ ⟨a,ha⟩, exact ⟨R.inclusion S h a, ha⟩ }
+by { rintros ⟨⟩ ⟨⟩ ⟨a, ha⟩, exact ⟨R.inclusion S h a, ha⟩ }
 
 @[simp]
 lemma map_of_le_comp_valuation (R S : valuation_subring K) (h : R ≤ S) :
@@ -209,7 +209,7 @@ def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
 of_le A (localization.subalgebra.of_field K P.prime_compl $
   le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
-  λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
+  λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   algebra A (A.of_prime P) := subalgebra.algebra _
@@ -223,7 +223,7 @@ by apply localization.subalgebra.is_localization_of_field K
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
-λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
+λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 lemma of_prime_valuation_eq_one_iff_mem_prime_compl
   (A : valuation_subring K)
@@ -243,7 +243,7 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   of_prime R (ideal_of_le R S h) = S :=
 begin
   ext x, split,
-  { rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
+  { rintro ⟨a, r, hr, rfl⟩, apply mul_mem, { exact h a.2 },
     { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
       { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
       { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
@@ -255,7 +255,7 @@ begin
     { use [1, x⁻¹, hr], split,
       { change (⟨x⁻¹, h hr⟩ : S) ∉ nonunits S,
         erw [mem_nonunits_iff, not_not],
-        apply is_unit_of_mul_eq_one _ (⟨x,hx⟩ : S),
+        apply is_unit_of_mul_eq_one _ (⟨x, hx⟩ : S),
         ext, field_simp },
       { field_simp } } },
 end
@@ -461,8 +461,8 @@ nonunits_injective.eq_iff.symm
 
 /-- `A.nonunits` agrees with the maximal ideal of `A`. -/
 def nonunits_equiv_maximal_ideal : A.nonunits ≃ local_ring.maximal_ideal A :=
-{ to_fun := λ a, ⟨⟨a,(A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩,(A.valuation_lt_one_iff _).2 a.2⟩,
-  inv_fun := λ a, ⟨a,(A.valuation_lt_one_iff _).1 a.2⟩,
+{ to_fun := λ a, ⟨⟨a, (A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩, (A.valuation_lt_one_iff _).2 a.2⟩,
+  inv_fun := λ a, ⟨a, (A.valuation_lt_one_iff _).1 a.2⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl } }
 

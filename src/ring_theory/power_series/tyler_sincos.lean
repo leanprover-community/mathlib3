@@ -1,5 +1,4 @@
 import ring_theory.power_series.well_known
-import ring_theory.power_series.sincos_id
 import data.complex.basic
 import combinatorics.catalan
 
@@ -84,33 +83,27 @@ example (A: Type*) [field A] [algebra ℚ A] :
       (maclaurin_sqrt_one_add_x A)*(maclaurin_sqrt_one_add_x A) = 1+X :=
 begin
   ext1 n,
-  rcases lt_trichotomy n 1 with niszero | rfl | c,
+  rw coeff_mul,
+  rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+  rw sum_range_succ,
+  rcases lt_trichotomy n 1 with a | b | c,
   {-- n=0 case
-    rw lt_one_iff at niszero,
-    subst niszero,
-    --rw niszero,
-    rw coeff_mul,
-    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    rw sum_range_one,
+    sorry,
+  /-
+    rw lt_one_iff at a,
+    subst a,
+    rw range_zero,
+    rw finset.sum_empty,
     simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
       coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
-    simp only [map_add, coeff_one, coeff_X],--compute coeff on RHS
-    simp only [←map_mul, ←map_add],--pull out algebra map
-    rw [if_pos rfl, if_neg nat.zero_ne_one, add_zero, ← map_one (algebra_map ℚ A)],
-    --now, we can get rid of the algebra maps, since equality holds only if
-    --arguments match
-    rw [(algebra_map ℚ A).injective.eq_iff],
+    simp only [map_add, coeff_one, coeff_X],
+    simp only [←map_mul, ←map_add],
     norm_num,
+    -/
   },
-  {--n = 1
-    --rw nis1,
-    --unfold maclaurin_sqrt_one_add_x,
-    rw coeff_mul,
-    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    rw sum_range_succ,
+  {
+    rw b,
     rw sum_range_one,
-    --rw coeff_mk,
-    --squeeze_simp [],
     simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
       coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
     simp only [map_add, coeff_one, coeff_X],
@@ -145,7 +138,7 @@ begin
     have idea : (4:A) = 0 ↔ (1 : A) = 0,
     {
       calc
-        4 = 0 ↔ 4 * 4⁻¹ = 0 * 4⁻¹ : sorry--FLAW: this assumed 4≠ 0, which was the goal
+        4 = 0 ↔ 4 * 4⁻¹ = 0 * 4⁻¹ : sorry
           ... ↔ 1 = 0             : sorry,
     }
 
@@ -155,8 +148,21 @@ begin
 
 
   },
-  { -- n > 1
-    sorry
+  {
+    induction c with k hk,
+    rw sum_range_succ,
+    rw sum_range_one,
+    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
+      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
+    simp only [map_add, coeff_one, coeff_X],
+    simp only [←map_mul, ←map_add],
+    rw [if_neg, if_neg, zero_add], -- ←map_one (algebra_map ℚ A), (algebra_map ℚ A).injective.eq_iff],
+    rw [ ← map_zero (algebra_map ℚ A),   (algebra_map ℚ A).injective.eq_iff],
+    norm_num,
+    rw catalan_two,
+    norm_num,
+    exact of_to_bool_ff rfl,
+    exact two_ne_zero,
   },
 end
 

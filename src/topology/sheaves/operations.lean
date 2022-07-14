@@ -87,6 +87,9 @@ def submonoid_presheaf_of_stalk (S : ∀ x : X, submonoid (F.stalk x)) :
     exact hs _,
   end }
 
+noncomputable
+instance : inhabited F.submonoid_presheaf := ⟨F.submonoid_presheaf_of_stalk (λ _, ⊥)⟩
+
 /-- The localization of a presheaf of `CommRing`s at locally non-zero-divisor sections. -/
 noncomputable
 def total_quotient_presheaf : X.presheaf CommRing.{w} :=

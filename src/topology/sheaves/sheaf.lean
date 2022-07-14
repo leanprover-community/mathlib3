@@ -51,7 +51,7 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {C : Type u} [category.{v} C]
 variables {X : Top.{w}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
@@ -71,8 +71,7 @@ presheaf.is_sheaf (opens.grothendieck_topology X) F
 The presheaf valued in `unit` over any topological space is a sheaf.
 -/
 lemma is_sheaf_unit (F : presheaf (category_theory.discrete unit) X) : F.is_sheaf :=
-sorry
--- λ ι U, ⟨punit_cone_is_limit⟩
+λ x U S hS x hx, ⟨eq_to_hom (subsingleton.elim _ _), by tidy, by tidy⟩
 
 lemma is_sheaf_iso_iff {F G : presheaf C X} (α : F ≅ G) : F.is_sheaf ↔ G.is_sheaf :=
 presheaf.is_sheaf_of_iso_iff α
@@ -93,6 +92,13 @@ satisfying the sheaf condition.
 -/
 @[derive category]
 def sheaf : Type (max u v w) := Sheaf (opens.grothendieck_topology X) C
+
+variables {C X}
+
+/-- The underlying presheaf of a sheaf -/
+abbreviation sheaf.presheaf (F : X.sheaf C) : Top.presheaf C X := F.1
+
+variables (C X)
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=

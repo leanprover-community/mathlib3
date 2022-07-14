@@ -1,4 +1,5 @@
 import topology.sheaves.presheaf
+import topology.sheaves.stalks
 import algebraic_geometry.Scheme
 
 universes w v u
@@ -17,7 +18,7 @@ open opposite
 section locally_surjective
 
 /-! Let C be a concrete category, X a topological space. -/
-variables {C : Type u} [category.{v} C] [concrete_category C] {X : Top.{v}}
+variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}
 
 /-! Let ℱ, 𝒢 : (opens X)ᵒᵖ -> C be C-valued presheaves on X. -/
 variables {ℱ : X.presheaf C} {𝒢 : X.presheaf C}
@@ -52,6 +53,7 @@ def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
 -- locally surjective on stalks?
 
 variables [category_theory.limits.has_colimits C]
+variables [category_theory.limits.preserves_filtered_colimits (forget C)]
 
 /-! When (x : X) is a point, we introduce the notation "Γₛₜ ℱ x" for
 the (underlying object of) the stalk of ℱ at x. -/
@@ -71,6 +73,7 @@ surjective is for all the induced maps on stalks to be surjective. -/
 def is_surjective_on_stalks (T : ℱ ⟶ 𝒢) :=
    ∀ (x : X), function.surjective (T _ₛₜ x)
 
+
 lemma locally_surjective_iff_surjective_on_stalks (T : ℱ ⟶ 𝒢) :
    is_locally_surjective T ↔ is_surjective_on_stalks T :=
 begin
@@ -78,10 +81,34 @@ begin
   { /- human proof:
     Let g ∈ Γₛₜ 𝒢 x be a germ. Represent it on an open set U ⊆ X
     as ⟨t, U⟩. By local surjectivity, pass to a smaller open set V
-    on which there exists s ∈ Γ ℱ V mapping to t |_ V.
+    on which there exists s ∈ Γ_ ℱ V mapping to t |_ V.
     Then the germ of s maps to g.
     -/
-    sorry, },
+    -- Let g ∈ Γₛₜ 𝒢 x be a germ.
+    intros x g,
+    -- Represent it on an open set U ⊆ X as ⟨t, U⟩.
+    rcases 𝒢.germ_exist x g with ⟨U, hxU, t, rfl⟩,
+    -- By local surjectivity, pass to a smaller open set V
+    -- on which there exists s ∈ Γ_ ℱ V mapping to t |_ V.
+    rcases hT U t x hxU with ⟨V, ι, hxV, s, h_eq⟩,
+    -- Then the germ of s maps to g.
+    use (forget C).map (ℱ.germ ⟨x, hxV⟩) s,
+    have key := Top.presheaf.stalk_functor_map_germ_apply V ⟨x, hxV⟩ T s,
+    convert key,
+    clear key,
+
+    change ((forget C).map (T.app (op V)) s) = _ at h_eq,
+    change _ = (forget C).map _ ((forget C).map _ _),
+
+    rw h_eq,
+    change _ = (forget C).map _ ((forget C).map _ _),
+    change _ = ((forget C).map _ ≫ (forget C).map _) _,
+    rw ← (forget C).map_comp,
+    congr,
+    rw 𝒢.germ_res,
+    congr,
+    },
+
   { /-
     Let U be an open set, t ∈ Γ ℱ U a section, x ∈ U a point.
     By surjectivity on stalks, the germ of t is the image of

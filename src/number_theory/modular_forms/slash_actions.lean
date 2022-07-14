@@ -27,7 +27,7 @@ local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /--A general version of the slash action of the space of modular forms.-/
 class slash_action (β : Type*) (G : Type*) (α : Type*) (γ : Type*) [group G] [ring α]
-  [has_scalar γ α] :=
+  [has_smul γ α] :=
 (map : β → G → α → α)
 (mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
 (one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
@@ -37,7 +37,7 @@ class slash_action (β : Type*) (G : Type*) (α : Type*) (γ : Type*) [group G] 
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {γ : Type*}
-  [group G] [ring α] [has_scalar γ α] [group H] [slash_action β G α γ] (h : H →* G) :
+  [group G] [ring α] [has_smul γ α] [group H] [slash_action β G α γ] (h : H →* G) :
   slash_action β H α γ:=
 { map := (λ k g a, slash_action.map γ k (h(g)) a),
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },

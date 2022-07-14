@@ -133,7 +133,7 @@ Here we adpot a constructive approach where we ask an explicit `root : A → α 
 * `root a 0 = 1` for all `a ∈ A`
 * `(root a n)ⁿ = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
 -/
-@[to_additive]
+@[to_additive add_monoid.divisible_by]
 class rootable_by :=
 (root : A → α → A)
 (root_zero : ∀ a, root a 0 = 1)

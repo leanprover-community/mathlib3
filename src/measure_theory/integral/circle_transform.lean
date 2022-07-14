@@ -335,8 +335,8 @@ begin
     (circle_transform_integrable hR z F_cts w).has_finite_integral.norm⟩,
 end
 
-lemma abs_sub_add_cancel_bound (x : ℂ) (r : ℝ) (h : ∃ (b : ℂ), complex.abs (x - b) + complex.abs(b) ≤ r) :
-  complex.abs(x) ≤ r :=
+lemma abs_sub_add_cancel_bound (x : ℂ) (r : ℝ)
+  (h : ∃ (b : ℂ), complex.abs (x - b) + complex.abs(b) ≤ r) : complex.abs(x) ≤ r :=
 begin
   obtain ⟨b, hb⟩ := h,
   rw ←sub_add_cancel x b,

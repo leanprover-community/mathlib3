@@ -653,9 +653,7 @@ instance : has_star (lp E p) :=
 
 instance : has_involutive_star (lp E p) := { star_involutive := λ x, by {ext, simp} }
 
-instance : star_add_monoid (lp E p) := {star_add :=
-λ f g, by ext i ; simp only [star_add_monoid.star_add, lp.coe_fn_add, add_left_inj, pi.add_apply,
-  lp.star_apply, eq_self_iff_true]}
+instance : star_add_monoid (lp E p) := { star_add := λ f g, ext $ star_add _ _ }
 
 instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
 { norm_star := λ f,

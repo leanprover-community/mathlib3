@@ -177,7 +177,7 @@ section
 
 def fn_has_ub (f : ℝ → ℝ) := ∃ a, fn_ub f a
 
-variables {f g : ℝ → ℝ}
+-- variables {f g : ℝ → ℝ}
 
 
 
@@ -198,7 +198,8 @@ end
 
 section
 
-variable {f : ℝ → ℝ}
+--
+--variable {f : ℝ → ℝ}
 
 example (h : ∀ a, ∃ x, f x > a) : ¬ fn_has_ub f :=
 begin
@@ -524,4 +525,4 @@ theorem converges_to_unique {s : ℕ → ℝ} {a b : ℝ}
   a = b :=
 sorry
 
-
+end

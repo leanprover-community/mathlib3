@@ -801,7 +801,7 @@ def mk_add_monoid_hom (b : M) : R →+ localization M :=
   map_zero' := mk_zero _,
   map_add' := λ x y, (add_mk_self _ _ _).symm }
 
-lemma mk_finset_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
+lemma mk_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
   mk (s.sum f) b = s.sum (λ i, mk (f i) b) :=
 (mk_add_monoid_hom b).map_sum f s
 
@@ -810,7 +810,7 @@ lemma mk_list_sum (l : list R) (b : M) :
 (mk_add_monoid_hom b).map_list_sum l
 
 lemma mk_multiset_sum (l : multiset R) (b : M) :
-  mk l.sum b = (l.map $ flip mk b).sum :=
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
 (mk_add_monoid_hom b).map_multiset_sum l
 
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :

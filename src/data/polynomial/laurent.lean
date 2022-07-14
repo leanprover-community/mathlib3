@@ -371,7 +371,10 @@ begin
   exact support_single_ne_zero _ a0,
 end
 
-@[simp] lemma to_laurent_support (f : R[X]) :
+/--  The support of a polynomial `f` is a finset in `ℕ`.  The lemma `to_laurent_support f`
+shows that the support of `f.to_laurent` is the same finset, but viewed in `ℤ` under the natural
+inclusion `ℕ ↪ ℤ`. -/
+lemma to_laurent_support (f : R[X]) :
   f.to_laurent.support = f.support.map nat.cast_embedding :=
 begin
   generalize' hd : f.support = s,

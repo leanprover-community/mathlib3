@@ -270,7 +270,7 @@ for a fixed pure tensor in the first argument,
 as an `R`-linear map.
 -/
 def mul_aux (a₁ : A) (b₁ : B) : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) :=
-tensor_product.map (lmul_left R a₁) (lmul_left R b₁)
+tensor_product.map (linear_map.mul_left R a₁) (linear_map.mul_left R b₁)
 
 @[simp]
 lemma mul_aux_apply (a₁ a₂ : A) (b₁ b₂ : B) :
@@ -758,7 +758,7 @@ variables {R}
 
 lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = linear_map.mul' R S := rfl
 
-@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := lmul'_apply
+@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := linear_map.mul'_apply
 
 @[simp]
 lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=

@@ -118,15 +118,8 @@ congr_arg Sup (set.range_comp _ _).symm
 congr_arg Inf (set.range_comp _ _).symm
 
 instance : complete_lattice (I.filtration M) :=
-begin
-  apply function.injective.complete_lattice ideal.filtration.N ideal.filtration.ext,
-  { intros, refl },
-  { intros, refl },
-  { intros, exact Sup_image },
-  { intros, exact Inf_image },
-  { refl },
-  { refl }
-end
+function.injective.complete_lattice ideal.filtration.N ideal.filtration.ext
+  sup_N inf_N (λ _, Sup_image) (λ _, Inf_image) top_N bot_N
 
 instance : inhabited (I.filtration M) := ⟨⊥⟩
 

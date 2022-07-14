@@ -103,6 +103,37 @@ dfinsupp.mem_support_iff.trans add_submonoid_class.coe_eq_zero.not.symm
 
 end graded_ring
 
+section add_left_cancel_monoid
+
+open direct_sum
+
+lemma direct_sum.decompose_mul_add_of_left_mem {ι σ A}
+  [decidable_eq ι] [add_left_cancel_monoid ι] [semiring A]
+  [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
+  {i : ι} (a : 𝒜 i) {b : A} {j : ι} :
+  decompose 𝒜 (↑a * b) (i + j) =
+    @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ a (decompose 𝒜 b j) :=
+begin
+  ext,
+  dsimp,
+  classical,
+  by_cases INEQ : a = 0,
+  { rw [INEQ, add_submonoid_class.coe_zero, zero_mul, zero_mul, decompose_zero, zero_apply,
+      add_submonoid_class.coe_zero], },
+
+  simp_rw [decompose_mul, direct_sum.coe_mul_apply, decompose_coe, direct_sum.support_of _ i a INEQ,
+    finset.singleton_product, finset.map_filter, finset.sum_map, function.comp,
+    function.embedding.coe_fn_mk],
+  dsimp,
+  simp_rw [direct_sum.of_eq_same, ←finset.mul_sum, add_right_inj, finset.filter_eq'],
+  by_cases hb : decompose 𝒜 b j = 0,
+  { rw [if_neg (dfinsupp.not_mem_support_iff.mpr hb), finset.sum_empty, hb,
+      add_submonoid_class.coe_zero] },
+  { rw [if_pos (dfinsupp.mem_support_iff.mpr hb), finset.sum_singleton] }
+end
+
+end add_left_cancel_monoid
+
 section graded_algebra
 variables [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
@@ -165,70 +196,6 @@ by rw [graded_algebra.proj_apply, decompose_symm_of, equiv.apply_symm_apply]
 lemma graded_algebra.mem_support_iff [decidable_eq A] (r : A) (i : ι) :
   i ∈ (decompose 𝒜 r).support ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
 dfinsupp.mem_support_iff.trans submodule.coe_eq_zero.not.symm
-
-lemma graded_algebra.proj_homogeneous_mul (add_left_cancel : ∀ {i j k : ι}, i + j = i + k → j = k)
-  {a b : A} {i j : ι}
-  (a_mem : a ∈ 𝒜 i) (hb : graded_algebra.proj 𝒜 j b ≠ 0) :
-  graded_algebra.proj 𝒜 (i + j) (a * b) = a * graded_algebra.proj 𝒜 j b :=
-begin
-  classical,
-  by_cases INEQ : a = 0,
-  rw [INEQ, zero_mul, zero_mul, linear_map.map_zero],
-
-  rw [graded_algebra.proj_apply, show direct_sum.decompose 𝒜 (a * b) (i + j) =
-    direct_sum.decompose_alg_equiv _ _ _, from rfl, alg_equiv.map_mul, direct_sum.coe_mul_apply],
-
-  have set_eq1 : (direct_sum.decompose_alg_equiv 𝒜 a).support = {i},
-    { ext1, split; intros hx,
-      { erw graded_algebra.mem_support_iff at hx,
-        erw finset.mem_singleton,
-        contrapose hx,
-        erw [not_not, graded_algebra.proj_apply, direct_sum.decompose_of_mem_ne],
-        exact a_mem,
-        symmetry,
-        exact hx, },
-      { rw finset.mem_singleton at hx,
-        rw [hx, dfinsupp.mem_support_iff, show direct_sum.decompose_alg_equiv 𝒜 a i =
-          direct_sum.decompose 𝒜 a i, from rfl],
-        intros r,
-        have := direct_sum.decompose_of_mem_same 𝒜 a_mem,
-        rw r at this,
-        apply INEQ,
-        rw ←this,
-        refl, }, },
-    rw [set_eq1],
-    have set_eq2 : finset.filter
-          (λ z : ι × ι, z.1 + z.2 = i + j)
-          (finset.product
-            {i}
-            ((direct_sum.decompose_alg_equiv 𝒜 b).support)) =
-      {(i, j)},
-    { ext1 x, rcases x with ⟨n1, n2⟩,
-      split; intros ha,
-      { erw finset.mem_filter at ha,
-        rcases ha with ⟨ha1, ha3⟩,
-        erw finset.mem_product at ha1,
-        rcases ha1 with ⟨ha1, ha2⟩,
-        dsimp only at ha1 ha2 ha3,
-        erw finset.mem_singleton at ha1,
-        erw finset.mem_singleton,
-        ext; dsimp only,
-        { exact ha1, },
-        { erw ha1 at ha3,
-          convert add_left_cancel ha3, }, },
-      { erw [finset.mem_singleton, prod.ext_iff] at ha,
-        rcases ha with ⟨ha1, ha2⟩,
-        dsimp only at ha1 ha2,
-        erw [ha1, ha2, finset.mem_filter, finset.mem_product, finset.mem_singleton],
-        refine ⟨⟨rfl, _⟩, rfl⟩,
-        dsimp only,
-        erw graded_algebra.mem_support_iff,
-        exact hb, }, },
-    rw [set_eq2, finset.sum_singleton],
-    dsimp only,
-    erw [direct_sum.decompose_of_mem_same 𝒜, ←graded_algebra.proj_apply],
-    exact a_mem,
-end
 
 end graded_algebra
 

@@ -165,7 +165,7 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_zero' := rfl,
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one.symm,
-      map_mul' := λ x y, linear_map.mul'_apply.symm,
+      map_mul' := λ x y, (@linear_map.mul'_apply R _ _ _ _ _ _ x y).symm,
       commutes' := λ r, rfl } }) (by { intros, refl }), }.
 
 /--

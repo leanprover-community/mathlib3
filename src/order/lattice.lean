@@ -32,8 +32,6 @@ of `sup` over `inf`, on the left or on the right.
   commutative, associative and satisfy a pair of "absorption laws".
 
 * `distrib_lattice`: a type class for distributive lattices.
-* `distrib_lattice.of_inf_sup_le`: Alternative constructor for `distrib_lattice` using the dual
-  distributive law.
 
 ## Notations
 
@@ -555,7 +553,8 @@ end lattice
 equivalent distributive properties (of `sup` over `inf` or `inf` over `sup`,
 on the left or right).
 
-The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`.
+The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`. To prove distributivity
+from the dual law, use `distrib_lattice.of_inf_sup_le`.
 
 A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
@@ -607,13 +606,12 @@ le_antisymm
 
 end distrib_lattice
 
-/-- Prove distributivity of a lattice using the dual distributive law. -/
+/-- Prove distributivity of an existing lattice from the dual distributive law. -/
 @[reducible] -- See note [reducible non-instances]
 def distrib_lattice.of_inf_sup_le [lattice α]
   (inf_sup_le : ∀ a b c : α, a ⊓ (b ⊔ c) ≤ (a ⊓ b) ⊔ (a ⊓ c)) : distrib_lattice α :=
 { ..‹lattice α›,
-  ..@order_dual.distrib_lattice αᵒᵈ
-    { le_sup_inf := λ a b c, inf_sup_le _ _ _, ..order_dual.lattice _ } }
+  ..@order_dual.distrib_lattice αᵒᵈ { le_sup_inf := inf_sup_le, ..order_dual.lattice _ } }
 
 /-!
 ### Lattices derived from linear orders

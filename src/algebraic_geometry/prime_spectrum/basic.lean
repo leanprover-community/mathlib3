@@ -628,35 +628,12 @@ begin
       { intro hx, exact ⟨x, hx, rfl⟩, }, }, }
 end
 
-lemma range_comap_of_surjective' (hf : surjective f) :
+lemma range_comap_of_surjective (hf : surjective f) :
   set.range (comap f) = zero_locus (ker f) :=
 begin
   rw ← set.image_univ,
   convert image_comap_eq_comap _ _ hf _,
   rw zero_locus_bot,
-end
-
-lemma range_comap_of_surjective (hf : surjective f) :
-    set.range (comap f) = zero_locus (ker f) :=
-begin
-  ext p, rw [set.mem_range, mem_zero_locus],
-  split,
-  { rintro ⟨p, rfl⟩ a ha,
-    simp only [ideal.mem_comap, set_like.mem_coe, comap_as_ideal],
-    rw (mem_ker _).mp ha, exact zero_mem _, },
-  { intro h_ker_p,
-    use ideal.map f p.as_ideal,
-    apply ideal.map_is_prime_of_surjective hf h_ker_p,
-    ext x,
-    change f x ∈ p.as_ideal.map f ↔ _,
-    rw ideal.mem_map_iff_of_surjective _ hf,
-    split,
-    { rintros ⟨x', ⟨hx', heq⟩⟩,
-      rw (by ring : x = x' + (x - x')),
-      apply p.as_ideal.add_mem hx',
-      apply h_ker_p ((mem_ker _).mpr _),
-      rw [map_sub, heq, sub_self], },
-    intro hx, exact ⟨x, hx, rfl⟩, },
 end
 
 lemma is_closed_range_comap_of_surjective (hf : surjective f) : is_closed (set.range (comap f)) :=

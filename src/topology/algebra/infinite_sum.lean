@@ -1203,6 +1203,7 @@ begin
     exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
+section loc_instances
 -- enable inferring a T3-topological space from a topological group
 local attribute [instance] topological_add_group.t3_space
 -- disable getting a T0-space from a T3-space as this causes loops
@@ -1313,6 +1314,8 @@ begin
   rw hf.unique (h₁.pos_add_zero_add_neg h₂),
   abel,
 end
+
+end loc_instances
 
 end uniform_group
 

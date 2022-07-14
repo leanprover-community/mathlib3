@@ -356,6 +356,17 @@ begin
     simpa using hn }
 end
 
+section degrees
+
+/--  The degree of a Laurent polynomial takes values in `with_bot ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of its support of `f`,
+or `⊥`, if `f = 0`. -/
+def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
+
+@[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
+
+end degrees
+
 instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent
 
@@ -399,7 +410,7 @@ lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T
       exact ⟨1, rfl⟩ },
     { rintro ⟨⟨h, hX⟩, h⟩,
       rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
-      exact mul_X_pow_injective n (by simpa only [X_pow_mul] using h) }
+      exact mul_X_pow_injective n (by simpa only [X_pow_mul]) }
   end }
 
 end comm_semiring

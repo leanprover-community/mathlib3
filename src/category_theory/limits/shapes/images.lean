@@ -795,7 +795,7 @@ instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks
 
 end has_strong_epi_images
 
-variables [has_strong_epi_mono_factorisations.{v} C]
+variables [has_strong_epi_mono_factorisations C]
 variables {X Y : C} {f : X ⟶ Y}
 
 /--

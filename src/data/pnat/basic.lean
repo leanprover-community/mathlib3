@@ -112,6 +112,14 @@ coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
 instance : add_right_cancel_semigroup ℕ+ :=
 coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
+/-- The order isomorphism between ℕ and ℕ+ given by `succ`. -/
+@[simps] def succ_order_iso : ℕ ≃o ℕ+ :=
+{ to_fun := λ n, ⟨_, succ_pos n⟩,
+  inv_fun := λ n, pred (n : ℕ),
+  left_inv := pred_succ,
+  right_inv := λ ⟨x, hx⟩, by simpa using succ_pred_eq_of_pos hx,
+  map_rel_iff' := @succ_le_succ_iff }
+
 @[priority 10]
 instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
 ⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩

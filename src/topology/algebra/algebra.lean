@@ -55,8 +55,14 @@ end topological_algebra
 section topological_algebra
 variables {R : Type*} [comm_semiring R]
 variables {A : Type u} [topological_space A]
-variables [semiring A]
-variables [algebra R A] [topological_semiring A]
+variables [semiring A] [algebra R A]
+
+instance subalgebra.has_continuous_smul [topological_space R] [has_continuous_smul R A]
+  (s : subalgebra R A) :
+  has_continuous_smul R s :=
+s.to_submodule.has_continuous_smul
+
+variables [topological_semiring A]
 
 /-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
 def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
@@ -70,11 +76,6 @@ rfl
 
 instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
 s.to_subsemiring.topological_semiring
-
-instance subalgebra.has_continuous_smul [topological_space R] [has_continuous_smul R A]
-  (s : subalgebra R A) :
-  has_continuous_smul R s :=
-s.to_submodule.has_continuous_smul
 
 lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=

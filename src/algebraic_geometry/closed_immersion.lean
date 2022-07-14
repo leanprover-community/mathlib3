@@ -65,13 +65,37 @@ structure is_closed_immersion {X Y : LocallyRingedSpace.{u}} (f : X ⟶ Y) : Pro
     (is_closed_embedding_base : closed_embedding f.val.base)
     (is_locally_surjective : is_locally_surjective (f ^#))
 
-variables (y : Y) (U : open_nhds y)
+variables (U : opens Y)
 
 -- U as a LocallyRingedSpace
-def U_as_LRS (y : Y) (U : open_nhds y) : LocallyRingedSpace := Y.restrict U.open_embedding
+def U_as_LRS : LocallyRingedSpace := Y.restrict U.open_embedding
 
 -- The inclusion morphism U ⟶ Y as a map of LocallyRingedSpaces
-def U_to_Y (y : Y) (U : open_nhds y) : U_as_LRS y U ⟶ Y := Y.of_restrict U.open_embedding
+def U_to_Y : U_as_LRS U ⟶ Y := Y.of_restrict U.open_embedding
+
+def f_inv_U : opens X := (opens.map (f.val.base)).obj U
+
+def f_inv_U_as_LRS : LocallyRingedSpace :=
+   X.restrict (f_inv_U f U).open_embedding
+
+def f_inv_U_to_X : (f_inv_U_as_LRS f U) ⟶ X :=
+   X.of_restrict (f_inv_U f U).open_embedding
+
+def f_inv_U_to_Y : (f_inv_U_as_LRS f U) ⟶ Y :=
+   f_inv_U_to_X f U ≫ f
+
+-- try using open_immersion.lift? f : X ⟶ Y 𝒪_Y ⟶ f_* 𝒪_X
+
+example {X Y : Top.{v}} {f : X ⟶ Y} (U : opens Y) : opens X :=
+begin
+   exact f.comap U,
+end
+
+-- f⁻¹ U → U
+
+def stuff : X ⟶ Y :=
+{ val := _,
+  property := _ }
 
 -- how do we define the subscheme f⁻¹ U ⊆ X and the morphism f⁻¹ U ⟶ U?
 

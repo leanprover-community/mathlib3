@@ -442,7 +442,7 @@ def nonunits : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
   mul_mem' := λ a b ha hb, by { simpa using mul_lt_mul₀ ha hb } }
 
-lemma mem_nonunits_iff (x : K) : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.refl _
+lemma mem_nonunits_iff {x : K} : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.refl _
 
 lemma nonunits_injective :
   function.injective (nonunits : valuation_subring K → subsemigroup _) :=
@@ -471,7 +471,7 @@ theorem coe_mem_nonunits_iff {a : A} :
 by simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff, valuation_lt_one_iff]
 
 lemma nonunits_subset : (A.nonunits : set K) ⊆ A :=
-λ a ha, (A.valuation_le_one_iff _).mp ((A.mem_nonunits_iff _).mp ha).le
+λ a ha, (A.valuation_le_one_iff _).mp (A.mem_nonunits_iff.mp ha).le
 
  /-- The elements of `A.nonunits` are those of the maximal ideal of `A`.
 

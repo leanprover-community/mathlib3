@@ -178,9 +178,9 @@ instance : has_neg 𝓜(𝕜, A) :=
     central := sorry } }
 
 @[simp]
-lemma neg_left (a : 𝓜(𝕜, A)) : -a.left = -(a.left) := rfl
+lemma neg_left (a : 𝓜(𝕜, A)) : (-a).left = -a.left := rfl
 @[simp]
-lemma neg_right (a : 𝓜(𝕜, A)) : -a.right = -(a.right) := rfl
+lemma neg_right (a : 𝓜(𝕜, A)) : (-a).right = -a.right := rfl
 
 instance : has_sub 𝓜(𝕜, A) :=
 { sub := λ a b,
@@ -192,6 +192,28 @@ instance : has_sub 𝓜(𝕜, A) :=
 lemma sub_left (a b : 𝓜(𝕜, A)) : (a - b).left = a.left - b.left := rfl
 @[simp]
 lemma sub_right (a b : 𝓜(𝕜, A)) : (a - b).right = a.right - b.right := rfl
+
+instance : add_comm_group 𝓜(𝕜, A) :=
+{ add := (+),
+  add_assoc := λ a b c, by {ext; exact add_assoc _ _ _},
+  zero := 0,
+  zero_add := λ a, by {ext; exact zero_add _},
+  add_zero := λ a, by {ext; exact add_zero _},
+  neg := λ x, -x,
+  sub := λ x y,  x - y,
+  sub_eq_add_neg := λ a b, by {ext; exact sub_eq_add_neg _ _},
+  add_left_neg := λ a, by {ext; exact add_left_neg _},
+  add_comm := λ a b, by {ext; exact add_comm _ _} }
+
+instance : ring 𝓜(𝕜, A) :=
+{ one := 1,
+  mul := λ x y, x * y,
+  mul_assoc := λ a b c, by {ext; simp only [left_mul, right_mul, continuous_linear_map.coe_comp']},
+  one_mul := λ a, by {ext; simp only [left_mul, one_left, right_mul, one_right, continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.one_apply]},
+  mul_one := λ a, by {ext; simp only [left_mul, one_left, right_mul, one_right, continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.one_apply]},
+  left_distrib := sorry,
+  right_distrib := sorry,
+  .. double_centralizer.add_comm_group }
 
 -- this might already require `A` to be a `cstar_ring`, for otherwise I don't think we'll be able
 -- to prove `norm_right` below.

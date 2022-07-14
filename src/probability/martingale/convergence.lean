@@ -427,6 +427,17 @@ begin
     hmeas hg₁ hbdd.2.1 (tendsto_in_measure_of_tendsto_ae hmeas htends)⟩,
 end
 
+lemma integrable.snorm_condexp_le_mul_norm
+  {m : measurable_space α} {f : α → ℝ} (hf : integrable f μ) (hm : m ≤ m0) :
+  snorm (μ[f | m]) 1 μ ≤
+    ennreal.of_real (∥@condexp_L1_clm _ ℝ _ _ _ _ _ hm μ _∥ * ∥hf.to_L1 _∥) :=
+begin
+  refine le_trans _ (ennreal.of_real_le_of_real (continuous_linear_map.le_op_norm _ _)),
+  rw [ennreal.le_of_real_iff_to_real_le
+    (mem_ℒp_one_iff_integrable.2 integrable_condexp).snorm_lt_top.ne (norm_nonneg _),
+    snorm_congr_ae (condexp_ae_eq_condexp_L1_clm hm hf), ← Lp.norm_def]
+end
+
 /-- If a martingale `f` adapted to `ℱ` converges in L¹ to `g`, then for all `n`, `f n` is almost
 everywhere equal to `𝔼[g | ℱ n]`. -/
 lemma martingale.eq_condexp_lim_of_tendsto_snorm
@@ -438,14 +449,8 @@ begin
     (strongly_measurable_condexp.mono (ℱ.le _))).ae_strongly_measurable) one_ne_zero],
   have ht : tendsto (λ m, snorm (μ[f m - g | ℱ n]) 1 μ) at_top (𝓝 0),
   { have hint : ∀ m, integrable (f m - g) μ := λ m, (hf.integrable m).sub (hgℒ1.integrable le_rfl),
-    have hle : (λ m, snorm (μ[f m - g | ℱ n]) 1 μ) ≤
-      λ m, ennreal.of_real (∥@condexp_L1_clm _ ℝ _ _ _ _ _ (ℱ.le n) μ _∥ * ∥(hint m).to_L1 _∥),
-    { intro m,
-      refine le_trans _ (ennreal.of_real_le_of_real (continuous_linear_map.le_op_norm _ _)),
-      rw [ennreal.le_of_real_iff_to_real_le
-        (mem_ℒp_one_iff_integrable.2 integrable_condexp).snorm_lt_top.ne (norm_nonneg _),
-        snorm_congr_ae (condexp_ae_eq_condexp_L1_clm (ℱ.le n) (hint m)), ← Lp.norm_def] },
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ m, zero_le _) hle,
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ m, zero_le _)
+      (λ m, (hint m).snorm_condexp_le_mul_norm (ℱ.le _)),
     rw [← ennreal.of_real_zero,
       ((mul_zero _).symm : 0 = ∥@condexp_L1_clm _ ℝ _ _ _ _ _ (ℱ.le n) μ _∥ * (0 : ℝ))],
     refine ennreal.tendsto_of_real (tendsto_const_nhds.mul _),
@@ -475,6 +480,24 @@ lemma martingale.exists_mem_ℒ1_tendsto_snorm
 let ⟨g, hg₁, hg₂, hg₃⟩ := hf.submartingale.exists_mem_ℒ1_tendsto_snorm hbdd in
   ⟨g, hg₁, hg₂, λ n, hf.eq_condexp_lim_of_tendsto_snorm hg₁ hg₃ n, hg₃⟩
 
+#check martingale_condexp
+#check unif_integrable
 
+/-- Part 3 of the **L¹ martingale convergnce theorem**: TODO. -/
+lemma martingale_condexp_uniform_integrable
+  {g : α → ℝ} (hg : mem_ℒp g 1 μ) :
+  uniform_integrable (λ n, μ[g | ℱ n]) 1 μ :=
+begin
+  refine uniform_integrable_of le_rfl ennreal.one_ne_top
+    (λ n, strongly_measurable_condexp.mono (ℱ.le n)) (λ ε hε, _),
+  obtain ⟨δ, hδ, h⟩ := hg.snorm_indicator_le μ le_rfl ennreal.one_ne_top hε,
+  set C := (⟨δ, hδ.le⟩ : ℝ≥0)⁻¹ * (μ set.univ).to_nnreal,
+  sorry,
+end
+
+/-
+Uniform boundedness in Lᵖ → uniform integrability.
+https://math.stackexchange.com/questions/729217/uniform-lp-bound-on-finite-measure-implies-uniform-integrability
+-/
 
 end measure_theory

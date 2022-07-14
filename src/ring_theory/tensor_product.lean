@@ -384,22 +384,25 @@ instance left_algebra : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
     apply tensor_product.induction_on x,
-    { simp },
-    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul] },
-    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'] },
+    { simp, },
+    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul], },
+    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'], },
   end,
   smul_def' := λ r x,
   begin
     apply tensor_product.induction_on x,
-    { simp [smul_zero] },
+    { simp [smul_zero], },
     { intros a b, dsimp, rw [tensor_product.smul_tmul', algebra.smul_def r a, _root_.one_mul] },
-    { intros, dsimp, simp [smul_add, mul_add, *] },
+    { intros, dsimp, simp [smul_add, mul_add, *], },
   end,
   .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
-  .. (by apply_instance : module S (A ⊗[R] B)) }
+  .. (by apply_instance : module S (A ⊗[R] B)) }.
 
-@[simp] lemma algebra_map_apply (x : S) :
-  algebra_map S (A ⊗[R] B) x = (algebra_map S A x) ⊗ₜ 1 := rfl
+@[simp]
+lemma algebra_map_apply (r : S) :
+  (algebra_map S (A ⊗[R] B)) r = ((algebra_map S A) r) ⊗ₜ 1 := rfl
+
+instance : is_scalar_tower R S (A ⊗[R] B) := ⟨λ a b c, by simp⟩
 
 variables {C : Type v₃} [semiring C] [algebra R C]
 
@@ -412,14 +415,10 @@ begin
   simp [H],
 end
 
-/-- The algebra morphism `A →ₐ[S] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
-def include_left : A →ₐ[S] A ⊗[R] B :=
-{ to_fun := λ a, a ⊗ₜ 1,
-  map_zero' := by simp,
-  map_add' := by simp [add_tmul],
-  map_one' := rfl,
-  map_mul' := by simp,
-  commutes' := by simp, }
+/-- The algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
+def include_left : A →ₐ[R] A ⊗[R] B :=
+{ commutes' := by simp,
+  ..include_left_ring_hom }
 
 @[simp]
 lemma include_left_apply (a : A) : (include_left : A →ₐ[R] A ⊗[R] B) a = a ⊗ₜ 1 := rfl
@@ -775,7 +774,8 @@ def product_map : A ⊗[R] B →ₐ[R] S := (lmul' R).comp (tensor_product.map f
 @[simp] lemma product_map_apply_tmul (a : A) (b : B) : product_map f g (a ⊗ₜ b) = f a * g b :=
 by { unfold product_map lmul', simp }
 
-lemma product_map_left_apply (a : A) : product_map f g (include_left a) = f a := by simp
+lemma product_map_left_apply (a : A) :
+  product_map f g ((include_left : A →ₐ[R] A ⊗ B) a) = f a := by simp
 
 @[simp] lemma product_map_left : (product_map f g).comp include_left = f := alg_hom.ext $ by simp
 

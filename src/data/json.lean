@@ -36,13 +36,6 @@ meta instance : has_orelse exceptional :=
   | exception msg := g
   end }
 
-meta instance : decidable_eq json :=
-begin
-  intros j₁ j₂,
-  letI := json.decidable_eq,
-  cases j₁; cases j₂; simp; apply_instance,
-end
-
 /-- A class to indicate that a type is json serializable -/
 meta class json_serializable (α : Type) :=
 (to_json : α → json)

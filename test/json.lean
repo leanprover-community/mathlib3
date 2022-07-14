@@ -51,8 +51,6 @@ run_cmd do
   some j ← pure (json.parse "{\"x\":37,\"f\":2,\"y\":false}"),
   tactic.success_if_fail_with_msg (of_json (my_type tt) j) "condition does not hold"
 
--- this probably needs https://github.com/leanprover-community/lean/pull/739
-/-
 @[derive [decidable_eq, non_null_json_serializable]]
 structure no_fields (n : ℕ) : Type
 
@@ -64,7 +62,6 @@ run_cmd do
 run_cmd do
   some j ← pure (json.parse "{}"),
   of_json (@no_fields 37) j
--/
 
 @[derive [decidable_eq, non_null_json_serializable]]
 structure has_default : Type :=

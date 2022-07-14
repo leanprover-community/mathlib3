@@ -95,10 +95,9 @@ variables {𝕜 A}
 noncomputable instance : has_coe A 𝓜(𝕜, A) :=
 { coe := double_centralizer.cast 𝕜 A }
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul' 𝕜 A a := rfl
-
-@[simp]
+@[simp, norm_cast]
 lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right' 𝕜 A a := rfl
 
 instance : has_add 𝓜(𝕜, A) :=
@@ -108,10 +107,9 @@ instance : has_add 𝓜(𝕜, A) :=
     central := sorry } }
 
 @[simp]
-lemma left_add (a b : 𝓜(𝕜, A)) : (a + b).left = a.left + b.left := rfl
-
+lemma add_left (a b : 𝓜(𝕜, A)) : ⇑(a + b).left = a.left + b.left := rfl
 @[simp]
-lemma right_add (a b : 𝓜(𝕜, A)) : (a + b).right = a.right + b.right := rfl
+lemma add_right (a b : 𝓜(𝕜, A)) : ⇑(a + b).right = a.right + b.right := rfl
 
 instance : has_mul 𝓜(𝕜, A) :=
 { mul := λ a b,
@@ -120,16 +118,20 @@ instance : has_mul 𝓜(𝕜, A) :=
     central := sorry } }
 
 @[simp]
-lemma left_mul (a b : 𝓜(𝕜, A)) : (a * b).left = a.left.comp b.left := rfl
-
+lemma mul_left (a b : 𝓜(𝕜, A)) : ⇑(a * b).left = a.left ∘ b.left := rfl
 @[simp]
-lemma right_mul (a b : 𝓜(𝕜, A)) : (a * b).right = b.right.comp a.right := rfl
+lemma mul_right (a b : 𝓜(𝕜, A)) : ⇑(a * b).right = b.right ∘ a.right := rfl
 
 instance : has_smul 𝕜 𝓜(𝕜, A) :=
 { smul := λ k a,
   { left := k • a.left,
     right := k • a.right,
     central := sorry } }
+
+@[simp]
+lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : ⇑(k • a).left = k • a.left := rfl
+@[simp]
+lemma smul_right (k : 𝕜) (a : 𝓜(𝕜, A)) : ⇑(k • a).right = k • a.right := rfl
 
 instance : has_zero 𝓜(𝕜, A) :=
 { zero :=
@@ -155,25 +157,18 @@ lemma one_right : (1 : 𝓜(𝕜, A)).right = 1 := rfl
 
 variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
 
--- gross: for some reason `starₗᵢ` expects a `[normed_ring A]`
-#check @starₗᵢ 𝕜 A _ _
-
-
 instance : has_star 𝓜(𝕜, A) :=
 { star := λ a,
-  { left := ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp
-      (a.right.comp ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A)),
-    right := ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp
-      (a.left.comp ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A)),
+  { left := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.right).comp
+      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
+    right := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.left).comp
+      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
     central := sorry } }
 
 @[simp]
-lemma star_left (a : 𝓜(𝕜, A)) : (star a).left = ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp
-  (a.right.comp ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A)) := rfl
-
+lemma star_left (a : 𝓜(𝕜, A)) : ⇑(star a).left = star ∘ a.right ∘ star := rfl
 @[simp]
-lemma star_right (a : 𝓜(𝕜, A)) : (star a).right = ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp
-  (a.left.comp ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A)) := rfl
+lemma star_right (a : 𝓜(𝕜, A)) : ⇑(star a).right = star ∘ a.left ∘ star := rfl
 
 instance : has_neg 𝓜(𝕜, A) :=
 { neg := λ a,
@@ -182,9 +177,9 @@ instance : has_neg 𝓜(𝕜, A) :=
     central := sorry } }
 
 @[simp]
-lemma neg_left (a : 𝓜(𝕜, A)) : (-a).left = -a.left := rfl
+lemma neg_left (a : 𝓜(𝕜, A)) : ⇑(-a).left = -a.left := rfl
 @[simp]
-lemma neg_right (a : 𝓜(𝕜, A)) : (-a).right = -a.right := rfl
+lemma neg_right (a : 𝓜(𝕜, A)) : ⇑(-a).right = -a.right := rfl
 
 instance : has_sub 𝓜(𝕜, A) :=
 { sub := λ a b,
@@ -193,9 +188,9 @@ instance : has_sub 𝓜(𝕜, A) :=
   central := sorry } }
 
 @[simp]
-lemma sub_left (a b : 𝓜(𝕜, A)) : (a - b).left = a.left - b.left := rfl
+lemma sub_left (a b : 𝓜(𝕜, A)) : ⇑(a - b).left = a.left - b.left := rfl
 @[simp]
-lemma sub_right (a b : 𝓜(𝕜, A)) : (a - b).right = a.right - b.right := rfl
+lemma sub_right (a b : 𝓜(𝕜, A)) : ⇑(a - b).right = a.right - b.right := rfl
 
 instance : add_comm_group 𝓜(𝕜, A) :=
 { add := (+),
@@ -208,6 +203,14 @@ instance : add_comm_group 𝓜(𝕜, A) :=
   sub_eq_add_neg := λ a b, by {ext; exact sub_eq_add_neg _ _},
   add_left_neg := λ a, by {ext; exact add_left_neg _},
   add_comm := λ a b, by {ext; exact add_comm _ _} }
+
+instance : star_add_monoid 𝓜(𝕜, A) :=
+{ star_involutive := λ x,
+  begin
+    simp,
+  end,
+  star_add := sorry,
+  .. double_centralizer.has_star }
 
 instance : ring 𝓜(𝕜, A) :=
 { one := 1,

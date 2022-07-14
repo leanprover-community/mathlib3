@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import topology.sheaves.sheaf_condition.equalizer_products
 import category_theory.full_subcategory
 import category_theory.limits.unit
+import category_theory.sites.sheaf
+import category_theory.sites.spaces
 
 /-!
 # Sheaves
@@ -63,24 +65,23 @@ is the equalizer of the two morphisms
 `∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
 -/
 def is_sheaf (F : presheaf.{w v u} C X) : Prop :=
-∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
+presheaf.is_sheaf (opens.grothendieck_topology X) F
 
 /--
 The presheaf valued in `unit` over any topological space is a sheaf.
 -/
 lemma is_sheaf_unit (F : presheaf (category_theory.discrete unit) X) : F.is_sheaf :=
-λ ι U, ⟨punit_cone_is_limit⟩
+sorry
+-- λ ι U, ⟨punit_cone_is_limit⟩
+
+lemma is_sheaf_iso_iff {F G : presheaf C X} (α : F ≅ G) : F.is_sheaf ↔ G.is_sheaf :=
+presheaf.is_sheaf_of_iso_iff α
 
 /--
 Transfer the sheaf condition across an isomorphism of presheaves.
 -/
 lemma is_sheaf_of_iso {F G : presheaf C X} (α : F ≅ G) (h : F.is_sheaf) : G.is_sheaf :=
-λ ι U, ⟨is_limit.of_iso_limit
-  ((is_limit.postcompose_inv_equiv _ _).symm (h U).some)
-  (sheaf_condition_equalizer_products.fork.iso_of_iso U α.symm).symm⟩
-
-lemma is_sheaf_iso_iff {F G : presheaf C X} (α : F ≅ G) : F.is_sheaf ↔ G.is_sheaf :=
-⟨(λ h, is_sheaf_of_iso α h), (λ h, is_sheaf_of_iso α.symm h)⟩
+(is_sheaf_iso_iff α).1 h
 
 end presheaf
 
@@ -91,7 +92,7 @@ A `sheaf C X` is a presheaf of objects from `C` over a (bundled) topological spa
 satisfying the sheaf condition.
 -/
 @[derive category]
-def sheaf : Type (max u v w) := { F : presheaf C X // F.is_sheaf }
+def sheaf : Type (max u v w) := Sheaf (opens.grothendieck_topology X) C
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=
@@ -104,11 +105,11 @@ The forgetful functor from sheaves to presheaves.
 -/
 @[derive [full, faithful]]
 def forget : Top.sheaf C X ⥤ Top.presheaf C X :=
-full_subcategory_inclusion presheaf.is_sheaf
+Sheaf_to_presheaf _ _
 
-@[simp] lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).app t = 𝟙 _ := rfl
+@[simp] lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).1.app t = 𝟙 _ := rfl
 @[simp] lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
-  (f ≫ g).app t = f.app t ≫ g.app t := rfl
+  (f ≫ g).1.app t = f.1.app t ≫ g.1.app t := rfl
 
 end sheaf
 

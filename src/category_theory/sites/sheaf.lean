@@ -206,6 +206,10 @@ lemma is_sheaf.hom_ext {A : Type u₂} [category.{max v₁ u₁} A]
   e₁ = e₂ :=
 (hP _ _ S.condition).is_separated_for.ext (λ Y f hf, h ⟨Y,f,hf⟩)
 
+lemma is_sheaf_of_iso_iff {P P' : Cᵒᵖ ⥤ A} (e : P ≅ P') : is_sheaf J P ↔ is_sheaf J P' :=
+forall_congr $ λ a, ⟨presieve.is_sheaf_iso J (iso_whisker_right e _),
+  presieve.is_sheaf_iso J (iso_whisker_right e.symm _)⟩
+
 variable (J)
 
 end presheaf

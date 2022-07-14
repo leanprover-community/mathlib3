@@ -252,6 +252,15 @@ end open_embedding
 
 end sheaf_condition_equalizer_products
 
+/--
+The sheaf condition for a `F : presheaf C X` requires that the morphism
+`F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
+is the equalizer of the two morphisms
+`∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+-/
+def is_sheaf_equalizer_products (F : presheaf.{v' v u} C X) : Prop :=
+∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
+
 end presheaf
 
 end Top

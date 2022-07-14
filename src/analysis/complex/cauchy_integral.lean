@@ -160,7 +160,7 @@ integral of `f` over the boundary of the rectangle is equal to the integral of
 $2i\frac{\partial f}{\partial \bar z}=i\frac{\partial f}{\partial x}-\frac{\partial f}{\partial y}$
 over the rectangle. -/
 lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
-  (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ) (s : set ℂ) (hs : countable s)
+  (f' : ℂ → ℂ →L[ℝ] E) (z w : ℂ) (s : set ℂ) (hs : s.countable)
   (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
   (Hd : ∀ x ∈ (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im)) \ s,
     has_fderiv_at f (f' x) x)
@@ -234,7 +234,7 @@ over the boundary of a rectangle equals zero. More precisely, if `f` is continuo
 rectangle and is complex differentiable at all but countably many points of the corresponding open
 rectangle, then its integral over the boundary of the rectangle equals zero. -/
 lemma integral_boundary_rect_eq_zero_of_differentiable_on_off_countable (f : ℂ → E)
-  (z w : ℂ) (s : set ℂ) (hs : countable s) (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
+  (z w : ℂ) (s : set ℂ) (hs : s.countable) (Hc : continuous_on f ([z.re, w.re] ×ℂ [z.im, w.im]))
   (Hd : ∀ x ∈ (Ioo (min z.re w.re) (max z.re w.re) ×ℂ Ioo (min z.im w.im) (max z.im w.im)) \ s,
     differentiable_at ℂ f x) :
   (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I)) +
@@ -276,7 +276,7 @@ differentiable at all but countably many points of its interior, then the integr
 `f z / (z - c)` (formally, `(z - c)⁻¹ • f z`) over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are
 equal to each other. -/
 lemma circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
-  {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
+  {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : s.countable)
   (hc : continuous_on f (closed_ball c R \ ball c r))
   (hd : ∀ z ∈ ball c R \ closed_ball c r \ s, differentiable_at ℂ f z) :
   ∮ z in C(c, R), (z - c)⁻¹ • f z = ∮ z in C(c, r), (z - c)⁻¹ • f z :=
@@ -296,7 +296,7 @@ begin
   set R := [a, b] ×ℂ [0, 2 * π],
   set g : ℂ → ℂ := (+) c ∘ exp,
   have hdg : differentiable ℂ g := differentiable_exp.const_add _,
-  replace hs : countable (g ⁻¹' s) := (hs.preimage (add_right_injective c)).preimage_cexp,
+  replace hs : (g ⁻¹' s).countable := (hs.preimage (add_right_injective c)).preimage_cexp,
   have h_maps : maps_to g R A,
   { rintro z ⟨h, -⟩, simpa [dist_eq, g, abs_exp, hle] using h.symm },
   replace hc : continuous_on (f ∘ g) R, from hc.comp hdg.continuous.continuous_on h_maps,
@@ -314,7 +314,7 @@ end
 its interior, then the integrals of `f` over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are equal
 to each other. -/
 lemma circle_integral_eq_of_differentiable_on_annulus_off_countable
-  {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : countable s)
+  {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : s.countable)
   (hc : continuous_on f (closed_ball c R \ ball c r))
   (hd : ∀ z ∈ ball c R \ closed_ball c r \ s, differentiable_at ℂ f z) :
   ∮ z in C(c, R), f z = ∮ z in C(c, r), f z :=
@@ -331,7 +331,7 @@ punctured closed disc of radius `R`, is differentiable at all but countably many
 interior of this disc, and has a limit `y` at the center of the disc, then the integral
 $\oint_{∥z-c∥=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
 lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto
-  {c : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : countable s)
+  {c : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : s.countable)
   (hc : continuous_on f (closed_ball c R \ {c}))
   (hd : ∀ z ∈ ball c R \ {c} \ s, differentiable_at ℂ f z) (hy : tendsto f (𝓝[{c}ᶜ] c) (𝓝 y)) :
   ∮ z in C(c, R), (z - c)⁻¹ • f z = (2 * π * I : ℂ) • y :=
@@ -386,7 +386,7 @@ end
 on a closed disc of radius `R` and is complex differentiable at all but countably many points of its
 interior, then the integral $\oint_{|z-c|=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
 lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 < R)
-  {f : ℂ → E} {c : ℂ} {s : set ℂ} (hs : countable s)
+  {f : ℂ → E} {c : ℂ} {s : set ℂ} (hs : s.countable)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
   ∮ z in C(c, R), (z - c)⁻¹ • f z = (2 * π * I : ℂ) • f c :=
 circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto h0 hs
@@ -397,7 +397,7 @@ circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendst
 `{z | ∥z - c∥ ≤ R}` and is complex differentiable at all but countably many points of its interior,
 then the integral $\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
 lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
-  {c : ℂ} {s : set ℂ} (hs : countable s) (hc : continuous_on f (closed_ball c R))
+  {c : ℂ} {s : set ℂ} (hs : s.countable) (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
   ∮ z in C(c, R), f z = 0 :=
 begin
@@ -415,13 +415,13 @@ end
 `complex.circle_integral_sub_inv_smul_of_differentiable_on_off_countable`. This lemma assumes
 `w ∉ s` while the main lemma drops this assumption. -/
 lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable_aux {R : ℝ} {c w : ℂ}
-  {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R \ s)
+  {f : ℂ → E} {s : set ℂ} (hs : s.countable) (hw : w ∈ ball c R \ s)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 begin
   have hR : 0 < R := dist_nonneg.trans_lt hw.1,
   set F : ℂ → E := dslope f w,
-  have hws : countable (insert w s) := hs.insert _,
+  have hws : (insert w s).countable := hs.insert w,
   have hnhds : closed_ball c R ∈ 𝓝 w, from closed_ball_mem_nhds_of_mem hw.1,
   have hcF : continuous_on F (closed_ball c R),
     from (continuous_on_dslope $ closed_ball_mem_nhds_of_mem hw.1).2 ⟨hc, hd _ hw⟩,
@@ -448,7 +448,7 @@ complex differentiable at all but countably many points of its interior, then fo
 interior we have $\frac{1}{2πi}\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=f(w)$.
 -/
 lemma two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
-  {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R)
+  {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : s.countable) (hw : w ∈ ball c R)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :
   (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - w)⁻¹ • f z = f w :=
 begin
@@ -475,7 +475,7 @@ begin
     with ⟨l, u, hlu₀, hlu_sub⟩,
   obtain ⟨x, hx⟩ : (Ioo l u \ g ⁻¹' s).nonempty,
   { refine nonempty_diff.2 (λ hsub, _),
-    have : countable (Ioo l u),
+    have : (Ioo l u).countable,
       from (hs.preimage ((add_right_injective w).comp of_real_injective)).mono hsub,
     rw [← cardinal.mk_set_le_aleph_0, cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
     exact this.not_lt cardinal.aleph_0_lt_continuum },
@@ -487,7 +487,7 @@ complex differentiable at all but countably many points of its interior, then fo
 interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$.
 -/
 lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
-  {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : countable s) (hw : w ∈ ball c R)
+  {R : ℝ} {c w : ℂ} {f : ℂ → E} {s : set ℂ} (hs : s.countable) (hw : w ∈ ball c R)
   (hc : continuous_on f (closed_ball c R)) (hd : ∀ x ∈ ball c R \ s, differentiable_at ℂ f x) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 by { rw [← two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
@@ -514,7 +514,7 @@ complex differentiable at all but countably many points of its interior, then fo
 interior we have $\oint_{|z-c|=R}\frac{f(z)}{z-w}dz=2\pi i\,f(w)$.
 -/
 lemma circle_integral_div_sub_of_differentiable_on_off_countable {R : ℝ} {c w : ℂ} {s : set ℂ}
-  (hs : countable s) (hw : w ∈ ball c R) {f : ℂ → ℂ} (hc : continuous_on f (closed_ball c R))
+  (hs : s.countable) (hw : w ∈ ball c R) {f : ℂ → ℂ} (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) :
   ∮ z in C(c, R), f z / (z - w) = 2 * π * I * f w :=
 by simpa only [smul_eq_mul, div_eq_inv_mul]
@@ -524,7 +524,7 @@ by simpa only [smul_eq_mul, div_eq_inv_mul]
 but countably many points of the corresponding open ball, then it is analytic on the open ball with
 coefficients of the power series given by Cauchy integral formulas. -/
 lemma has_fpower_series_on_ball_of_differentiable_off_countable {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
-  {s : set ℂ} (hs : countable s) (hc : continuous_on f (closed_ball c R))
+  {s : set ℂ} (hs : s.countable) (hc : continuous_on f (closed_ball c R))
   (hd : ∀ z ∈ ball c R \ s, differentiable_at ℂ f z) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
 { r_le := le_radius_cauchy_power_series _ _ _,

@@ -428,7 +428,7 @@ lemma degree_C_mul_T_ite (n : ℤ) (a : R) : (C a * T n).degree = ite (a = 0) �
 by split_ifs with h h;
   simp only [h, map_zero, zero_mul, degree_zero, degree_C_mul_T, ne.def, not_false_iff]
 
-lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
+@[simp] lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
 begin
   rw [← one_mul (T n), ← map_one C],
   exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),

@@ -48,9 +48,6 @@ instance zero_subsingleton : subsingleton (vector α 0) :=
 @[simp] theorem cons_tail (a : α) : ∀ (v : vector α n), (a ::ᵥ v).tail = v
 | ⟨_, _⟩ := rfl
 
-lemma exists_eq_cons (v : vector α n.succ) : ∃ (a : α) (as : vector α n), v = a ::ᵥ as :=
-⟨v.head, v.tail, symm $ vector.cons_head_tail v⟩
-
 @[simp] theorem to_list_of_fn : ∀ {n} (f : fin n → α), to_list (of_fn f) = list.of_fn f
 | 0     f := rfl
 | (n+1) f := by rw [of_fn, list.of_fn_succ, to_list_cons, to_list_of_fn]

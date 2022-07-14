@@ -166,13 +166,11 @@ namespace vector
 lemma sum_ite_eq_nth_eq_count [decidable_eq α] [add_comm_monoid_with_one β] {n : ℕ}
   (a : α) (v : vector α n) : ∑ i, ite (a = v.nth i) (1 : β) 0 = ↑(v.to_list.count a) :=
 begin
-  induction n with n hn,
-  { simp [vector.eq_nil v] },
-  { obtain ⟨x, xs, hxs⟩ := v.exists_eq_cons,
-    suffices : ite (x = a) (1 : β) 0 + xs.to_list.count a =
-      ite (x = a) ((xs.to_list.count a) + 1) (xs.to_list.count a),
-    by simpa [hxs, hn xs, fin.sum_univ_succ, list.count_cons, @eq_comm _ a x] using this,
-    split_ifs; simp [add_comm (1 : β)] }
+  refine vector.induction_on v (sum_empty.trans ((congr_arg coe $
+    (list.count_nil a).symm).trans nat.cast_zero).symm) (λ n' x xs hxs, _),
+  simp only [fin.sum_univ_succ, nth_cons_zero, to_list_cons, list.count_cons, ite_add,
+    add_comm (1 : β), nth_cons_succ, zero_add, nat.cast_ite, nat.cast_succ],
+  congr; exact hxs,
 end
 
 end vector

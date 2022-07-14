@@ -346,10 +346,36 @@ begin
       sub_eq_neg_add] },
 end
 
-variables {z}
+lemma T_pow_mul_apply_one (n : ℤ) (g) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
+by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
+
+lemma T_mul_apply_one (g) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
+by rw [← T_pow_mul_apply_one 1 g, zpow_one]
 
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
+
+lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
+by rw [upper_half_plane.re, coe_T_zpow_smul_eq, complex.add_re, complex.int_cast_re,
+  upper_half_plane.coe_re]
+
+lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
+by rw [upper_half_plane.im, coe_T_zpow_smul_eq, complex.add_im, complex.int_cast_im, add_zero,
+  upper_half_plane.coe_im]
+
+lemma re_T_smul : (T • z).re = z.re + 1 :=
+by simpa using re_T_zpow_smul z 1
+
+lemma im_T_smul : (T • z).im = z.im :=
+by simpa using im_T_zpow_smul z 1
+
+lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 :=
+by simpa using re_T_zpow_smul z (-1)
+
+lemma im_T_inv_smul : (T⁻¹ • z).im = z.im :=
+by simpa using im_T_zpow_smul z (-1)
+
+variables {z}
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
 lemma exists_eq_T_zpow_of_c_eq_zero (hc : ↑ₘg 1 0 = 0) :
@@ -375,14 +401,10 @@ begin
   have hg := g.det_coe.symm,
   replace hg : ↑ₘg 0 1 = ↑ₘg 0 0 * ↑ₘg 1 1 - 1, { rw [det_fin_two, hc] at hg, linarith, },
   refine subtype.ext _,
-  simp only [coe_mul, coe_T_zpow, coe_S, cons_mul, empty_mul, equiv.symm_apply_apply,
-    cons_vec_mul_cons, empty_vec_mul, smul_zero, zero_smul, one_smul, zero_add, add_zero, smul_cons,
-    smul_empty, cons_add_cons, empty_add_empty],
-  simp,
-  apply matrix.special_linear_group.ext, rintro i, rintro j,
-  congr' 1,
-  ext i j, fin_cases i; fin_cases j,
-  -- simp [coe_S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ, hg, hc],
+  conv_lhs { rw matrix.eta_fin_two ↑ₘg },
+  rw [hc, hg],
+  simp only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
+  congrm !![_, _; _, _]; ring
 end
 
 /-- If `1 < |z|`, then `|S • z| < 1`. -/
@@ -442,7 +464,7 @@ begin
   { rwa [← int.cast_abs, ← int.cast_one, int.cast_lt, int.abs_lt_one_iff] at this, },
   have h₁ := hz.2,
   have h₂ := hg.2,
-  rw [← coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re] at h₂,
+  rw [re_T_zpow_smul] at h₂,
   calc |(n : ℝ)| ≤ |z.re| + |z.re + (n : ℝ)| : abs_add' (n : ℝ) z.re
              ... < 1/2 + 1/2 : add_lt_add h₁ h₂
              ... = 1 : add_halves 1,
@@ -472,12 +494,9 @@ begin
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T * g, by simp [T, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re + 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [T] },
+      refine ⟨T * g, (T_mul_apply_one _).symm, _⟩,
+      rw [mul_action.mul_smul, re_T_smul],
+      cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith },
     { contrapose! hg',
       refine ⟨T⁻¹ * g, by simp [coe_T_inv, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
       rw mul_action.mul_smul,

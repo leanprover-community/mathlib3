@@ -31,18 +31,16 @@ into this problem, you may find the lemmas `exists_ordinal_move_left_eq` and `ex
 useful.
 
 -/
-universes u
 
-/-- `ordinal.out'` has the sole purpose of making `nim` computable. It performs the same job as
-  `quotient.out` but is specific to ordinals. -/
-def ordinal.out' (o : ordinal) : Well_order :=
-⟨o.out.α, (<), o.out.wo⟩
+noncomputable theory
+
+universe u
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
-def nim : ordinal → pgame
-| O₁ := let f := λ O₂, have hwf : ordinal.typein O₁.out'.r O₂ < O₁ := ordinal.typein_lt_self O₂,
-          nim (ordinal.typein O₁.out'.r O₂) in ⟨O₁.out'.α, O₁.out'.α, f, f⟩
+noncomputable! def nim : ordinal → pgame
+| O₁ := let f := λ O₂, have hwf : ordinal.typein O₁.out.r O₂ < O₁ := ordinal.typein_lt_self O₂,
+          nim (ordinal.typein O₁.out.r O₂) in ⟨O₁.out.α, O₁.out.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -67,10 +65,10 @@ by { rw nim_def, exact ordinal.is_empty_out_zero }
 instance : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-noncomputable instance : unique (nim 1).left_moves :=
+instance : unique (nim 1).left_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
-noncomputable instance : unique (nim 1).right_moves :=
+instance : unique (nim 1).right_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
@@ -79,7 +77,7 @@ def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 @[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : nim 1 ≡r star :=
+def nim_one_relabelling : nim 1 ≡r star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i, _, λ j, _⟩,
@@ -110,11 +108,11 @@ lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, 
 by { rw nim_def, refl }
 
 /-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
-noncomputable def to_left_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).left_moves :=
+def to_left_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).left_moves :=
 (enum_iso_out O).to_equiv.trans (equiv.cast (left_moves_nim O).symm)
 
 /-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
-noncomputable def to_right_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).right_moves :=
+def to_right_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).right_moves :=
 (enum_iso_out O).to_equiv.trans (equiv.cast (right_moves_nim O).symm)
 
 @[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :

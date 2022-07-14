@@ -385,7 +385,7 @@ begin
     rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
       polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
     { congr,
-      exact support_C_mul_T_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
+      exact support_C_mul_T_of_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
     { rw this,
       exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
 end

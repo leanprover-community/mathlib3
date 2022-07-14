@@ -25,7 +25,7 @@ class MonomForm:
 def sum_to_string_aux(old: str, nxt: MonomForm) -> str:
     return mk_app("poly.sub" if nxt.neg_form is not None else "poly.add", old, nxt.pos_form)
 
-def sum_to_string(terms: list[MonomForm]) -> str:
+def sum_to_string(terms: Iterator[MonomForm]) -> str:
     try:
         first = next(terms)
     except StopIteration:

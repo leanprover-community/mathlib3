@@ -40,6 +40,8 @@ variables {x y z w : Set.{u}}
 
 open relation
 
+local attribute [simp] subtype.coe_inj
+
 namespace Set
 
 /-! ### Transitive sets -/
@@ -124,7 +126,7 @@ theorem _root_.is_ordinal_iff_is_trans : x.is_ordinal ↔
 /-- A relation embedding between a smaller and a larger ordinal. -/
 protected def rel_embedding (hx : x.is_ordinal) (hy : y ∈ x) :
   subrel (∈) y.to_set ↪r subrel (∈) x.to_set :=
-⟨⟨λ b, ⟨b.1, hx.subset_of_mem hy b.2⟩, λ a b, by simp [subtype.coe_inj]⟩, λ a b, by simp⟩
+⟨⟨λ b, ⟨b.1, hx.subset_of_mem hy b.2⟩, λ a b, by simp⟩, λ a b, by simp⟩
 
 protected theorem mem (hx : x.is_ordinal) (hy : y ∈ x) : y.is_ordinal :=
 begin
@@ -262,11 +264,18 @@ namespace Ordinal
 
 instance : has_coe Ordinal.{u} Set.{u} := coe_subtype
 
-def mk (h : x.is_ordinal) : Ordinal := ⟨x, h⟩
+/-- Builds an Ordinal from an ordinal Set. -/
+def mk (x : Set) (h : x.is_ordinal) : Ordinal := ⟨x, h⟩
 
-@[simp] theorem mk_eq (h : x.is_ordinal) : (⟨x, h⟩ : Ordinal) = mk h := rfl
+@[simp] theorem mk_eq (h : x.is_ordinal) : (⟨x, h⟩ : Ordinal) = mk x h := rfl
 @[simp] theorem val_eq_coe (x : Ordinal) : x.val = x := rfl
-@[simp] theorem coe_mk (h : x.is_ordinal) : ↑(mk h) = x := rfl
+@[simp] theorem coe_mk (h : x.is_ordinal) : ↑(mk x h) = x := rfl
+
+@[simp] theorem mk_inj (hx : x.is_ordinal) (hy : y.is_ordinal) : mk x hx = mk y hy ↔ x = y :=
+subtype.mk_eq_mk
+
+@[simp] theorem eta (x : Ordinal.{u}) (h : is_ordinal (x : Set.{u})) : mk ↑x h = x :=
+subtype.eta _ _
 
 instance : partial_order Ordinal :=
 { le := subrel (⊆) _,
@@ -274,10 +283,12 @@ instance : partial_order Ordinal :=
   le_refl := λ x, subset_refl x.1,
   le_trans := λ x y z, @subset_trans Set _ _ x.1 y.1 z.1,
   lt_iff_le_not_le := λ x y, x.2.mem_iff_subset_not_subset y.2,
-  le_antisymm := λ x y hx hy, by simpa [subtype.coe_inj] using subset_antisymm hx hy }
+  le_antisymm := λ x y hx hy, by simpa using subset_antisymm hx hy }
 
-@[simp] theorem mk_lt_mk (hx : x.is_ordinal) (hy : y.is_ordinal) : mk hx < mk hy ↔ x ∈ y := iff.rfl
-@[simp] theorem mk_le_mk (hx : x.is_ordinal) (hy : y.is_ordinal) : mk hx ≤ mk hy ↔ x ⊆ y := iff.rfl
+@[simp] theorem mk_lt_mk (hx : x.is_ordinal) (hy : y.is_ordinal) : mk x hx < mk y hy ↔ x ∈ y :=
+iff.rfl
+@[simp] theorem mk_le_mk (hx : x.is_ordinal) (hy : y.is_ordinal) : mk x hx ≤ mk y hy ↔ x ⊆ y :=
+iff.rfl
 
 @[simp] theorem coe_mem_coe {x y : Ordinal.{u}} : (x : Set.{u}) ∈ (y : Set.{u}) ↔ x < y :=
 iff.rfl
@@ -310,14 +321,20 @@ noncomputable instance : linear_order Ordinal :=
   ..Ordinal.partial_order }
 
 instance : has_zero Ordinal := ⟨⟨∅, empty_is_ordinal⟩⟩
+instance : inhabited Ordinal := ⟨0⟩
+instance : order_bot Ordinal := ⟨0, λ x, empty_subset _⟩
 
-instance Ordinal.is_well_order_to_set (x : Ordinal) : is_well_order x.1.to_set (subrel (∈) _) :=
+theorem zero_le (x : Ordinal) : 0 ≤ x := bot_le
+theorem not_lt_zero (x : Ordinal) : ¬ x < 0 := not_lt_bot
+@[simp] theorem le_zero_iff {x : Ordinal} : x ≤ 0 ↔ x = 0 := le_bot_iff
+
+instance is_well_order_to_set (x : Ordinal) : is_well_order x.1.to_set (subrel (∈) _) :=
 x.2.is_well_order
 
 /-- **Transfinite induction** on ordinals amounts to saying `<` is well-founded. -/
-theorem Ordinal.lt_wf : @well_founded Ordinal (<) := (subrel.rel_embedding _ _).well_founded mem_wf
+theorem lt_wf : @well_founded Ordinal (<) := (subrel.rel_embedding _ _).well_founded mem_wf
 
-instance Ordinal.is_well_order : @is_well_order Ordinal (<) := ⟨Ordinal.lt_wf⟩
+instance is_well_order : @is_well_order Ordinal (<) := ⟨Ordinal.lt_wf⟩
 
 instance : no_max_order Ordinal := ⟨λ x, ⟨⟨_, x.2.succ⟩, mem_succ_self x.1⟩⟩
 
@@ -326,22 +343,99 @@ instance : succ_order Ordinal := succ_order.of_succ_le_iff_of_le_lt_succ
 
 instance : has_one Ordinal := ⟨order.succ 0⟩
 
+theorem zero_lt_one : (0 : Ordinal) < 1 := order.lt_succ 0
+
+@[simp] theorem lt_one_iff_zero {x : Ordinal} : x < 1 ↔ x = 0 := order.lt_succ_iff.trans le_zero_iff
+
+instance : zero_le_one_class Ordinal := ⟨zero_lt_one.le⟩
+
 /-- For an `Ordinal` in universe `u`, returns a corresponding type. -/
 def to_type (x : Ordinal.{u}) : Type u := shrink x.1.to_set
 
-instance (x : Ordinal) : has_lt x.to_type :=
-⟨order.preimage (subtype.val ∘ (equiv_shrink x.1.to_set).symm) (∈)⟩
+/-- The equivalence between an Ordinal and its corresponding type. -/
+noncomputable def equiv_to_type {x : Ordinal.{u}} : set.Iio x ≃ x.to_type :=
+{ to_fun := λ a, equiv_shrink x.1.to_set ⟨a, by simpa using a.2⟩,
+  inv_fun := λ i, let H := ((equiv_shrink x.1.to_set).symm i).2 in ⟨⟨_, x.2.mem H⟩, H⟩,
+  left_inv := λ a, by simp,
+  right_inv := λ i, by simp }
 
-instance (x : Ordinal) : has_le x.to_type :=
-⟨order.preimage (subtype.val ∘ (equiv_shrink x.1.to_set).symm) (⊆)⟩
+instance Iio_zero_is_empty : is_empty (set.Iio (0 : Ordinal)) := ⟨λ x, not_lt_zero _ x.2⟩
+instance is_empty_zero_to_type : is_empty (to_type 0) := equiv_to_type.symm.is_empty
 
-theorem Ordinal.to_type_lt_wf (x : Ordinal) : @well_founded x.to_type (<) :=
-sorry
+instance Iio_one_unique : unique (set.Iio (1 : Ordinal)) :=
+{ default := ⟨0, zero_lt_one⟩,
+  uniq := λ ⟨a, ha⟩, by simpa using ha }
 
-instance (x : Ordinal) : @is_well_order x.to_type (<) := ⟨Ordinal.to_type_lt_wf⟩
+noncomputable instance unique_one_to_type : unique (to_type 1) := equiv_to_type.symm.unique
 
-def to_ordinal (x : Ordinal) : ordinal :=
-@ordinal.type x.to_type (<) _
+instance to_type_lt (x : Ordinal) : has_lt x.to_type := ⟨equiv_to_type.symm ⁻¹'o (<)⟩
+instance to_type_le (x : Ordinal) : has_le x.to_type := ⟨equiv_to_type.symm ⁻¹'o (≤)⟩
+
+/-- The order isomorphism between an Ordinal and its corresponding type. -/
+noncomputable def order_iso_to_type {x : Ordinal.{u}} : set.Iio x ≃o x.to_type :=
+⟨equiv_to_type, by { unfold has_le.le, simp }⟩
+
+@[simp] theorem order_iso_to_type_symm_lt {x : Ordinal.{u}} (i : x.to_type) :
+  ↑(order_iso_to_type.symm i) < x :=
+(order_iso_to_type.symm i).2
+
+instance to_type_partial_order (x : Ordinal) : partial_order x.to_type :=
+{ le_refl := λ a, subset_rfl,
+  le_trans := λ a b c, @le_trans Ordinal _ _ _ _,
+  lt_iff_le_not_le := λ a b, @lt_iff_le_not_le Ordinal _ _ _,
+  le_antisymm := λ a b hab hba, by simpa using @le_antisymm Ordinal _ _ _ hab hba,
+  ..Ordinal.to_type_lt x, ..Ordinal.to_type_le x }
+
+noncomputable instance to_type_linear_order (x : Ordinal) : linear_order x.to_type :=
+{ le_total := λ a b, @le_total Ordinal _ (equiv_to_type.symm a).1 (equiv_to_type.symm b),
+  decidable_le := classical.dec_rel _,
+  ..Ordinal.to_type_partial_order x }
+
+-- TODO: instance for general subtypes
+instance subtype.is_well_order {α : Type*} (p : α → Prop) [has_lt α] [is_well_order α (<)] :
+  @is_well_order (subtype p) (<) :=
+(subtype.rel_embedding _ _).is_well_order
+
+theorem to_type_lt_wf (x : Ordinal) : @well_founded x.to_type (<) := is_well_order.wf
+
+/-- Converts a von Neumann ordinal to a type-theoretic ordinal: namely, its order type under `∈`. -/
+def to_ordinal (x : Ordinal) : ordinal := @ordinal.type x.to_type (<) _
+
+@[simp] theorem zero_to_ordinal : to_ordinal 0 = 0 := ordinal.type_eq_zero_of_empty _
+@[simp] theorem one_to_ordinal : to_ordinal 1 = 1 := ordinal.type_eq_one_of_unique _
+
+/-- An ordinal's type is a principal segment of a larger ordinal. -/
+noncomputable def to_type_principal_seg {x y : Ordinal} (h : x < y) :
+  principal_seg (@has_lt.lt x.to_type _) (@has_lt.lt y.to_type _) :=
+{ to_fun := λ i, order_iso_to_type ⟨_, lt_trans (order_iso_to_type.symm i).2 h⟩,
+  inj' := λ i j, by simp,
+  map_rel_iff' := λ i j, by simp,
+  top := order_iso_to_type ⟨x, h⟩,
+  down := λ i, begin
+    simp only [subtype.val_eq_coe, function.embedding.coe_fn_mk, rel_embedding.coe_fn_mk],
+    split,
+    { intro hi,
+      refine ⟨order_iso_to_type ⟨(order_iso_to_type.symm i).1, _⟩, _⟩,
+      { rw ←(@order_iso_to_type y).symm.lt_iff_lt at hi,
+        simpa using hi },
+      { simp } },
+    { rintro ⟨a, rfl⟩,
+      simp }
+  end }
+
+theorem to_ordinal_strict_mono : strict_mono to_ordinal :=
+λ a b h, by { rw [to_ordinal, to_ordinal, ordinal.type_lt_iff], exact ⟨to_type_principal_seg h⟩ }
+
+theorem to_ordinal_injective : function.injective to_ordinal := to_ordinal_strict_mono.injective
+
+@[simp] theorem to_ordinal_le_iff {x y : Ordinal} : x.to_ordinal ≤ y.to_ordinal ↔ x ≤ y :=
+to_ordinal_strict_mono.le_iff_le
+
+@[simp] theorem to_ordinal_lt_iff {x y : Ordinal} : x.to_ordinal < y.to_ordinal ↔ x < y :=
+to_ordinal_strict_mono.lt_iff_lt
+
+@[simp] theorem to_ordinal_inj {x y : Ordinal} : x.to_ordinal = y.to_ordinal ↔ x = y :=
+to_ordinal_injective.eq_iff
 
 end Ordinal
 
@@ -418,7 +512,10 @@ by simpa [to_Set] using subset_to_pSet_of_le
 @[simp] theorem to_Set_subset_iff : a.to_Set ⊆ b.to_Set ↔ a ≤ b :=
 ⟨λ h, by { by_contra' h', exact Set.mem_irrefl (h (mem_to_Set_of_lt h')) }, subset_to_Set_of_le⟩
 
-@[simp] theorem mem_to_Set_iff : x ∈ o.to_Set ↔ ∃ a < o, x = a.to_Set :=
+@[simp] theorem to_Set_inj : a.to_Set = b.to_Set ↔ a = b :=
+by rw [subset_antisymm_iff, le_antisymm_iff, to_Set_subset_iff, to_Set_subset_iff]
+
+theorem mem_to_Set_iff : x ∈ o.to_Set ↔ ∃ a < o, x = a.to_Set :=
 by { rw [←quotient.out_eq x, to_Set, Set.mk_eq, Set.mk_mem_iff, mem_to_pSet_iff], simpa [←Set.eq] }
 
 theorem to_Set_is_ordinal (o : ordinal) : o.to_Set.is_ordinal :=
@@ -452,10 +549,31 @@ end
 /-- Converts an ordinal to a von Neumann ordinal. -/
 noncomputable def to_Ordinal (o : ordinal) : Set.Ordinal := ⟨_, o.to_Set_is_ordinal⟩
 
+@[simp] theorem coe_to_Ordinal (o : ordinal) : ↑o.to_Ordinal = o.to_Set := rfl
+
 @[simp] theorem to_Ordinal_lt_iff : a.to_Ordinal < b.to_Ordinal ↔ a < b := to_Set_mem_iff
 @[simp] theorem to_Ordinal_le_iff : a.to_Ordinal ≤ b.to_Ordinal ↔ a ≤ b := to_Set_subset_iff
 
 theorem to_Ordinal_strict_mono : strict_mono to_Ordinal := λ a b, to_Ordinal_lt_iff.2
+theorem to_Ordinal_injective : function.injective to_Ordinal := to_Ordinal_strict_mono.injective
+
+@[simp] theorem to_Ordinal_inj : a.to_Ordinal = b.to_Ordinal ↔ a = b := to_Ordinal_injective.eq_iff
+
+theorem lt_to_Ordinal_iff : ∀ {x : Set.Ordinal}, x < a.to_Ordinal ↔ ∃ b < a, x = b.to_Ordinal :=
+λ ⟨x, hx⟩, by simp [to_Ordinal, mem_to_Set_iff]
+
+/-- The order isomorphism between ordinals less than `a`, and von Neumann ordinals less than
+`a.to_Ordinal`. -/
+noncomputable def order_iso_Iio_to_Ordinal : set.Iio a ≃o set.Iio a.to_Ordinal :=
+⟨equiv.of_bijective (λ x, ⟨x.1.to_Ordinal, by simpa using x.2⟩) begin
+  refine ⟨λ a b, _, _⟩,
+  { simp },
+  { rintro ⟨a, ha⟩,
+    simp only [set.mem_Iio, subtype.mk_eq_mk, set_coe.exists, exists_prop],
+    rcases lt_to_Ordinal_iff.1 ha with ⟨b, hb, rfl⟩,
+    exact ⟨b, hb, rfl⟩ }
+end,
+by { rintros ⟨a, ha⟩ ⟨b, hb⟩, simp }⟩
 
 @[simp] theorem zero_to_Ordinal : to_Ordinal 0 = 0 := subtype.coe_injective zero_to_Set
 
@@ -464,5 +582,22 @@ theorem to_Ordinal_strict_mono : strict_mono to_Ordinal := λ a b, to_Ordinal_lt
 subtype.coe_injective $ succ_to_Set o
 
 @[simp] theorem one_to_Ordinal : to_Ordinal 1 = 1 := by simpa using succ_to_Ordinal 0
+
+/-- The order isomorphism between `o.to_Ordinal.to_type` and `o.out.α`. -/
+noncomputable def to_Ordinal_to_type_order_iso {o : ordinal} : o.to_Ordinal.to_type ≃o o.out.α :=
+Set.Ordinal.order_iso_to_type.symm.trans $ order_iso_Iio_to_Ordinal.symm.trans $ enum_iso_out o
+
+@[simp] theorem to_Ordinal_to_ordinal (o : ordinal) : o.to_Ordinal.to_ordinal = o :=
+by simpa using (@to_Ordinal_to_type_order_iso o).to_rel_iso_lt.ordinal_type_eq
+
+theorem _root_.Set.Ordinal.to_ordinal_to_Ordinal (x : Set.Ordinal) : x.to_ordinal.to_Ordinal = x :=
+by rw [←Set.Ordinal.to_ordinal_inj, to_Ordinal_to_ordinal]
+
+/-- The equivalence between ordinals and von Neumann ordinals. -/
+@[simps] noncomputable def order_iso_Ordinal : ordinal ≃ Set.Ordinal :=
+{ to_fun := to_Ordinal,
+  inv_fun := Set.Ordinal.to_ordinal,
+  left_inv := to_Ordinal_to_ordinal,
+  right_inv := Set.Ordinal.to_ordinal_to_Ordinal }
 
 end ordinal

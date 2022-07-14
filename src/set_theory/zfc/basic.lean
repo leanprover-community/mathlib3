@@ -242,6 +242,8 @@ instance : is_empty (type ∅) := pempty.is_empty
 
 @[simp] theorem empty_to_set : to_set ∅ = ∅ := by simp [to_set]
 
+@[simp] theorem empty_subset (x : pSet) : ∅ ⊆ x := λ x, x.elim
+
 /-- Insert an element into a pre-set -/
 instance : has_insert pSet pSet := ⟨λ x y, ⟨option y.type, λ o, option.rec x y.func o⟩⟩
 
@@ -481,6 +483,8 @@ instance : inhabited Set := ⟨∅⟩
 quotient.induction_on x pSet.mem_empty
 
 @[simp] theorem empty_to_set : to_set ∅ = ∅ := by simp [to_set]
+
+@[simp] theorem empty_subset (x : Set) : ∅ ⊆ x := λ x hx, (mem_empty x hx).elim
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 ⟨λ h y, (h.symm ▸ mem_empty y),

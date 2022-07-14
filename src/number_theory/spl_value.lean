@@ -553,30 +553,6 @@ begin
   { apply fact.out, },
 end-/
 
-noncomputable abbreviation rev_coe {n : ℕ} (a : (zmod (p^n))ˣ) : ℤ_[p]ˣ :=
-begin
-  by_cases hn : n ≠ 0,
-  { apply is_unit.unit,
-    swap, exact (a : ℤ_[p]),
-    change is_unit ↑(a : zmod (p^n)),
-    rw ← zmod.nat_cast_val _,
-    apply is_unit_padic_of_is_unit_zmod,
-    have c := units.map (zmod.cast_hom (dvd_pow (dvd_refl p) hn) (zmod p)).to_monoid_hom,
-    { rw zmod.nat_cast_val _,
-      rw ← zmod.cast_hom_apply _,
-      swap 3, { refine zmod.char_p _, },
-      swap, { apply dvd_pow (dvd_rfl) hn, },
-      rw ← ring_hom.coe_monoid_hom,
-      rw ← ring_hom.to_monoid_hom_eq_coe,
-      rw ← units.coe_map ((zmod.cast_hom (dvd_pow (dvd_refl p) hn) (zmod p)).to_monoid_hom) _,
-      apply units.is_unit,
-      apply fact_iff.2,
-      apply pow_pos (nat.prime.pos infer_instance), apply fact.out, },
-    { apply (nat.coprime_pow_right_iff (nat.pos_of_ne_zero hn) _ _).1,
-      apply zmod.val_coe_unit_coprime, },
-    { apply fact_iff.2 (pow_pos (nat.prime.pos (fact.out _)) _), assumption, }, },
-    { exact 1, },
-end
 
 /-abbreviation rev_coe' {n : ℕ} (a : (zmod (p^n))ˣ) : ℤ_[p]ˣ :=
 begin
@@ -587,7 +563,7 @@ end
 -- this map cannot exist because for K →+*L, char_p K ↔ char_p L!
 -/
 
-example (f : C((zmod d)ˣ × ℤ_[p]ˣ, R)) : continuous (ind_fn' p d R f) :=
+/-example (f : C((zmod d)ˣ × ℤ_[p]ˣ, R)) : continuous (ind_fn' p d R f) :=
 begin
   delta ind_fn',
   rw continuous_iff_continuous_at,
@@ -596,9 +572,9 @@ begin
   {sorry, },
   rw metric.continuous_iff,
   refine inducing.continuous _,
-end
+end-/
 
-example : pseudo_metric_space ((zmod d)ˣ × ℤ_[p]ˣ) :=
+/-example : pseudo_metric_space ((zmod d)ˣ × ℤ_[p]ˣ) :=
 begin
   refine pseudo_metric_space.induced _ _,
   { exact (zmod d) × ℤ_[p], },
@@ -653,6 +629,32 @@ begin
   rw metric.tendsto_at_top,
 end
 -- can we use cont_ind_fn in any way?
+-/
+
+noncomputable abbreviation rev_coe {n : ℕ} (a : (zmod (p^n))ˣ) : ℤ_[p]ˣ :=
+begin
+  by_cases hn : n ≠ 0,
+  { apply is_unit.unit,
+    swap, exact (a : ℤ_[p]),
+    change is_unit ↑(a : zmod (p^n)),
+    rw ← zmod.nat_cast_val _,
+    apply is_unit_padic_of_is_unit_zmod,
+    have c := units.map (zmod.cast_hom (dvd_pow (dvd_refl p) hn) (zmod p)).to_monoid_hom,
+    { rw zmod.nat_cast_val _,
+      rw ← zmod.cast_hom_apply _,
+      swap 3, { refine zmod.char_p _, },
+      swap, { apply dvd_pow (dvd_rfl) hn, },
+      rw ← ring_hom.coe_monoid_hom,
+      rw ← ring_hom.to_monoid_hom_eq_coe,
+      rw ← units.coe_map ((zmod.cast_hom (dvd_pow (dvd_refl p) hn) (zmod p)).to_monoid_hom) _,
+      apply units.is_unit,
+      apply fact_iff.2,
+      apply pow_pos (nat.prime.pos infer_instance), apply fact.out, },
+    { apply (nat.coprime_pow_right_iff (nat.pos_of_ne_zero hn) _ _).1,
+      apply zmod.val_coe_unit_coprime, },
+    { apply fact_iff.2 (pow_pos (nat.prime.pos (fact.out _)) _), assumption, }, },
+    { exact 1, },
+end
 
 lemma lets_see : @padic_int.lift p _ ℤ_[p] _ (λ k, padic_int.to_zmod_pow k)
   (λ k₁ k₂ hk, by {simp only [padic_int.zmod_cast_comp_to_zmod_pow]}) = ring_hom.id ℤ_[p] :=
@@ -847,10 +849,18 @@ begin
 
   sorry
 end
-#exit
+
+/-- Gives the equivalence (ℤ/(m * n)ℤ)ˣ ≃* (ℤ/mℤ)ˣ × (ℤ/nℤ)ˣ -/
+abbreviation units.chinese_remainder {m n : ℕ} (h : m.coprime n) :
+  (zmod (m * n))ˣ ≃* (zmod m)ˣ × (zmod n)ˣ :=
+mul_equiv.trans (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv) mul_equiv.prod_units
+
 lemma fn_eq_sum_char_fn (f : C((zmod d)ˣ × ℤ_[p]ˣ, R)) : filter.tendsto
-  (λ n : ℕ, ∑ a : (zmod d)ˣ × (zmod (p^n))ˣ, (f (a.1, rev_coe p a.2) •
-  locally_constant.char_fn R (is_clopen_units_clopen_from p d n a)  : C((zmod d)ˣ × ℤ_[p]ˣ, R)))
+  (λ j : ℕ, ∑ a : (zmod (d * (p^j)))ˣ, (f (units.map (@zmod.cast_hom (d * p^j) _ (dvd_mul_right _ _)
+     (zmod d) _ (zmod.char_p d)).to_monoid_hom a,
+     rev_coe p (units.map (@zmod.cast_hom (d * p^j) _ (dvd_mul_left _ _) (zmod (p^j)) _ _).to_monoid_hom a)) •
+     (locally_constant.char_fn R (is_clopen_units_clopen_from p d j
+     ((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) a)))  : C((zmod d)ˣ × ℤ_[p]ˣ, R)))
   (filter.at_top) (nhds f) :=
 begin
 /-  simp_rw [shh p d R f],
@@ -912,7 +922,7 @@ end
     obtain ⟨w, wT, hw⟩ := finset_clopen_prop ε f y, },
   --simp only [ring_hom.to_monoid_hom_eq_coe, ge_iff_le,
   --  locally_constant.to_continuous_map_linear_map_apply],
--/
+
   simp_rw [shh' p d R f],
 
   simp only [ring_hom.to_monoid_hom_eq_coe],
@@ -988,13 +998,13 @@ end
   intros ε hε,
   simp_rw [dist_eq_norm', continuous_map.norm_eq_supr_norm],
   rw continuous_iff
-  have cont := (@metric.continuous_iff _ _ _ _ f).1 (continuous_map.continuous f) _ ε hε,
+  have cont := (@metric.continuous_iff _ _ _ _ f).1 (continuous_map.continuous f) _ ε hε,-/
   -- convert_to ∃ (N : ℕ), ∀ (n : ℕ), n > N → ∥f - (∑ (a : (zmod d)ˣ × (zmod (p ^ n))ˣ),
   --   f (a.fst, rev_coe p _ a.snd) • (locally_constant.char_fn R (is_clopen_units_clopen_from p d n a))) ∥ < ε,
   --simp_rw dif_pos _,
   -- conv { congr, funext, find ∥f - dite (_ ≠ 0) (λ (h : _ ≠ 0), ∑ (a : (zmod d)ˣ × (zmod (p ^ _))ˣ),
   --         f (a.fst, rev_coe p h a.snd) • ↑(locally_constant.char_fn R _)) (λ (h : ¬_ ≠ 0), 0)∥ {apply_congr dif_pos _}, },
-  sorry
+  sorry,
 end
 -- work with tendsto instead of lim, it is easier because the other implication in the iff
 -- statement is hard
@@ -1024,12 +1034,128 @@ begin
   rw integral_loc_const_eval, simp,
 end
 
+lemma locally_constant.to_continuous_map_smul (f : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) (r : R) :
+  ((r • f : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) : C((zmod d)ˣ × ℤ_[p]ˣ, R)) = r • (f : C((zmod d)ˣ × ℤ_[p]ˣ, R)) :=
+begin
+  ext,
+  simp only [locally_constant.coe_continuous_map, locally_constant.coe_smul,
+    continuous_map.coe_smul],
+end
+
+--v imp, make a lemma!
+example (f : (zmod d) → locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) (a : ((zmod d)ˣ × ℤ_[p]ˣ)) :
+  (∑ (i : zmod d), f i) a = (∑ (i : zmod d), f i a) :=
+begin
+  rw [← locally_constant.coe_fn_add_monoid_hom_apply, add_monoid_hom.map_sum
+    (@locally_constant.coe_fn_add_monoid_hom ((zmod d)ˣ × ℤ_[p]ˣ) R _ _) f (finset.univ),
+    finset.sum_apply],
+  simp_rw locally_constant.coe_fn_add_monoid_hom_apply,
+end
+
+example (f : (zmod d) → locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) :
+  ∑ (i : zmod d), (f i : C(((zmod d)ˣ × ℤ_[p]ˣ), R)) = (∑ (i : zmod d), f i : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) :=
+begin
+  symmetry,
+  ext,
+  rw continuous_map.coe_sum,
+  rw locally_constant.coe_continuous_map,
+  rw finset.sum_apply,
+  conv_rhs { congr, skip, funext, rw locally_constant.coe_continuous_map, },
+  rw [← locally_constant.coe_fn_add_monoid_hom_apply, add_monoid_hom.map_sum
+    (@locally_constant.coe_fn_add_monoid_hom ((zmod d)ˣ × ℤ_[p]ˣ) R _ _) f (finset.univ),
+    finset.sum_apply],
+  simp_rw locally_constant.coe_fn_add_monoid_hom_apply,
+end
+
 noncomputable abbreviation used_map (n : ℕ) : C((zmod d)ˣ × ℤ_[p]ˣ, R) :=
 ⟨(units.coe_hom R) ∘ (χ * teichmuller_character_mod_p_change_level p d R m) ∘
   ((units.map (zmod.chinese_remainder (nat.coprime_pow_spl p d m hd)).symm.to_monoid_hom) ∘
   (mul_equiv.prod_units.symm)) ∘ prod.map (monoid_hom.id (zmod d)ˣ)
   (units.map ↑(@padic_int.to_zmod_pow p _ m)) * ((neg_pow' p d R (n - 1)).to_monoid_hom),
   by { simp, apply cont_paLf', }⟩
+
+lemma bernoulli_measure'_eval_char_fn [normed_algebra ℚ R] [norm_one_class R] (n : ℕ)
+  (a : (zmod d)ˣ × (zmod (p^n))ˣ) :
+  (bernoulli_measure' p d R hc hc' hd na).val (locally_constant.char_fn R
+  (is_clopen_units_clopen_from p d n a)) =
+  (algebra_map ℚ R (E_c p d hc n ((zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).inv_fun
+  ((a.1 : zmod d), (a.2 : zmod (p^n))))) ) := sorry
+
+example {X : Type*} [topological_space X] [t2_space X] [add_comm_monoid X] [has_continuous_add X]
+  (f g : ℕ → X) :
+  lim filter.at_top (λ x : ℕ, f x + g x) = lim filter.at_top (λ x : ℕ, f x) + lim filter.at_top (λ x : ℕ, g x) :=
+by { --change lim filter.at_top ((λ (x : ℕ), f x) + (λ x : ℕ, g x)) = _, simp only,
+  rw @filter.tendsto.lim_eq _ _ _ _ (lim filter.at_top f + lim filter.at_top g) filter.at_top _ _ _,
+  { exact filter.at_top_ne_bot, },
+  { apply filter.tendsto.add,
+    any_goals { simp, apply tendsto_nhds_lim, sorry, }, }, }
+
+lemma U [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
+  filter.tendsto (λ j : ℕ, ∑ (x : (zmod (d * p ^ j))ˣ),
+  (used_map p d R m hd χ n) ((units.map (zmod.cast_hom (dvd_mul_right d (p^j)) (zmod d)).to_monoid_hom) x,
+  rev_coe p ((units.map (zmod.cast_hom (dvd_mul_left (p^j) d) (zmod (p ^ j))).to_monoid_hom) x)) •
+  (algebra_map ℚ R) (int.fract (↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d j hd)).inv_fun
+  (↑(((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) x).fst), ↑(((units.chinese_remainder
+  (nat.coprime_pow_spl p d j hd)) x).snd))).val) / (↑d * ↑p ^ j))))
+  -- ∑ (x : (zmod d)ˣ × (zmod (p ^ j))ˣ),
+  -- (used_map p d R m hd χ n) (x.fst, rev_coe p x.snd) • (algebra_map ℚ R)
+  -- (int.fract (↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).inv_fun
+  -- (↑(x.fst), ↑(x.snd))).val) / (↑d * ↑p ^ j))))
+  filter.at_top (nhds ((1 - asso_dirichlet_character (dirichlet_character.mul χ
+  ((teichmuller_character_mod_p_change_level p d R m)^n)) (p) * p^(n - 1) ) *
+  (general_bernoulli_number (dirichlet_character.mul χ
+  ((teichmuller_character_mod_p_change_level p d R m)^n)) n)) ) := sorry
+
+/-lemma V_1 [normed_algebra ℚ R] [norm_one_class R] (n j : ℕ) : ∑ (x : (zmod d)ˣ × (zmod (p ^ j))ˣ),
+  (used_map p d R m hd χ n) (x.fst, rev_coe p x.snd) • (algebra_map ℚ R) (↑c * int.fract
+  (↑((((c : zmod (d * p^(2 * n))) : zmod (d * p^n)))⁻¹ * (zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).inv_fun
+  (↑(x.fst), ↑(x.snd))) / (↑d * ↑p ^ j)))-/
+
+lemma V [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
+  filter.tendsto (λ j : ℕ, ∑ (x : (zmod (d * p ^ j))ˣ), (used_map p d R m hd χ n)
+  ((units.map (zmod.cast_hom (dvd_mul_right d (p^j)) (zmod d)).to_monoid_hom) x,
+  rev_coe p ((units.map (zmod.cast_hom (dvd_mul_left (p^j) d) (zmod (p ^ j))).to_monoid_hom) x)) •
+  (algebra_map ℚ R) (int.fract (↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d j hd)).inv_fun
+  (↑(((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) x).fst),
+  ↑(((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) x).snd))).val) / (↑d * ↑p ^ j))))
+  -- ∑ (x : (zmod d)ˣ × (zmod (p ^ j))ˣ),
+  -- (used_map p d R m hd χ n) (x.fst, rev_coe p x.snd) • (algebra_map ℚ R) (↑c * int.fract
+  -- (↑((((c : zmod (d * p^(2 * n))) : zmod (d * p^n)))⁻¹ * (zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).inv_fun
+  -- (↑(x.fst), ↑(x.snd))) / (↑d * ↑p ^ j))))
+  filter.at_top (nhds (( algebra_map ℚ R ((n - 1) / n) + (algebra_map ℚ R (1 / n)) *
+  asso_dirichlet_character (dirichlet_character.mul χ
+  ((teichmuller_character_mod_p_change_level p d R m)^n)) (c) * c^n ) * ((1 -
+  asso_dirichlet_character (dirichlet_character.mul χ
+  ((teichmuller_character_mod_p_change_level p d R m)^n)) (p) * p^(n - 1) ) *
+  (general_bernoulli_number (dirichlet_character.mul χ
+  ((teichmuller_character_mod_p_change_level p d R m)^n)) n))) ) :=
+begin
+  rw metric.tendsto_at_top,
+  intros ε hε,
+  simp_rw dist_eq_norm,
+  refine ⟨1, λ x hx, _⟩,
+  conv { congr, congr, conv { congr, apply_congr, skip, rw int.fract_eq_self.2 _, skip,
+  apply_congr zero_le_and_lt_one, }, },
+  simp_rw int.fract_eq_self.2 _,
+  sorry,
+end
+
+lemma W [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
+  filter.tendsto (λ j : ℕ, ∑ (x : (zmod (d * p ^ j))ˣ), (used_map p d R m hd χ n)
+  ((units.map (zmod.cast_hom (dvd_mul_right d (p^j)) (zmod d)).to_monoid_hom) x,
+  rev_coe p ((units.map (zmod.cast_hom (dvd_mul_left (p^j) d) (zmod (p ^ j))).to_monoid_hom) x)) •
+  (algebra_map ℚ R) ((↑c - 1) / 2))
+  -- ∑ (x : (zmod d)ˣ × (zmod (p ^ j))ˣ),
+  -- (used_map p d R m hd χ n) (x.fst, rev_coe p x.snd) • (algebra_map ℚ R) ((↑c - 1) / 2))
+  filter.at_top (nhds 0) :=
+begin
+  rw metric.tendsto_at_top, intros ε hε,
+  refine ⟨1, λ n hn, _⟩,
+  rw dist_eq_norm,
+  rw sub_zero, simp_rw smul_eq_mul R, simp_rw ← finset.sum_mul,
+
+  sorry
+end
 
 theorem p_adic_L_function_eval_neg_int [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
    (n : R) * (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) =
@@ -1043,12 +1169,47 @@ theorem p_adic_L_function_eval_neg_int [normed_algebra ℚ R] [norm_one_class R]
 begin
   --symmetry,
 --  rw ← eq_div_iff_mul_eq',
-  delta p_adic_L_function', --simp,
-  delta measure.integral, simp,
+  delta p_adic_L_function',
+  --change (n : R) * (measure.integral (bernoulli_measure' p d R hc hc' hd na))
+   --(used_map p d R m hd χ n) = _, --simp,
+  delta measure.integral,
+  simp only [monoid_hom.coe_comp, ring_hom.to_monoid_hom_eq_coe, mul_equiv.coe_to_monoid_hom,
+    monoid_hom.coe_prod_map, continuous_linear_map.coe_mk', linear_map.coe_mk, neg_sub,
+    monoid_hom.coe_mk],
   delta dense_inducing.extend,
-  have := filter.tendsto.lim_eq (trying p d R hd hc hc' na (used_map p d R m hd χ n) _ _),
-  swap 3, { convert fn_eq_sum_char_fn p d R _, },
+  --change (n : R) * lim (filter.comap (inclusion ((zmod d)ˣ × ℤ_[p]ˣ) R)
+  --  (nhds (used_map p d R m hd χ n))) ((bernoulli_measure' p d R hc hc' hd na).val).to_fun = _,
+  have := (trying p d R hd hc hc' na (used_map p d R m hd χ n) _ _),
+  -- add filter.tendsto.lim_eq later
+  swap 2, { refine λ j : ℕ, ∑ (a : (zmod (d * p^j))ˣ),
+     (used_map p d R m hd χ n) (units.map (@zmod.cast_hom (d * p^j) _ (dvd_mul_right _ _)
+     (zmod d) _ (zmod.char_p d)).to_monoid_hom a,
+     rev_coe p (units.map (@zmod.cast_hom (d * p^j) _ (dvd_mul_left _ _) (zmod (p^j)) _ _).to_monoid_hom a)) •
+     (locally_constant.char_fn R (is_clopen_units_clopen_from p d j
+     ((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) a))), },
+    -- refine λ j : ℕ, ∑ (a : (zmod d)ˣ × (zmod (p ^ j))ˣ),
+    -- (used_map p d R m hd χ n) (a.fst, rev_coe p a.snd) • (locally_constant.char_fn R
+    -- (is_clopen_units_clopen_from p d j a)), },
+  swap, { convert fn_eq_sum_char_fn p d R hd _, ext,
+  --rw locally_constant.coe_continuous_map,
+  --convert finset.sum_apply' a,
+  simp_rw ← locally_constant.to_continuous_map_smul p d R _ _,
+  rw continuous_map.coe_sum,
+  rw locally_constant.coe_continuous_map,
+  rw finset.sum_apply,
+  conv_rhs { congr, skip, funext, rw locally_constant.coe_continuous_map, },
+  rw [← locally_constant.coe_fn_add_monoid_hom_apply, add_monoid_hom.map_sum
+    (@locally_constant.coe_fn_add_monoid_hom ((zmod d)ˣ × ℤ_[p]ˣ) R _ _) _ (finset.univ),
+    finset.sum_apply],
+  simp_rw locally_constant.coe_fn_add_monoid_hom_apply, },
   --rw filter.lim_eq_iff _,
+  conv at this { congr, funext, rw linear_map.map_sum,
+    conv { apply_congr, skip, rw linear_map.map_smul, rw bernoulli_measure'_eval_char_fn, rw E_c,
+    simp only, --rw alg_hom.map_add,
+    rw map_add, rw map_sub, rw smul_add, rw smul_sub, }, rw finset.sum_add_distrib,
+    rw finset.sum_sub_distrib, },
+
+
   sorry,
 end
 

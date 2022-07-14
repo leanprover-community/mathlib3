@@ -600,6 +600,25 @@ lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
     exact ⟨f '' F, hF.symm.trans (preimage_comap_zero_locus f F)⟩,
   end }
 
+
+lemma direct_image_of_zero_locus (hf : surjective f) (I : ideal S) :
+  comap f '' zero_locus I = zero_locus (I.comap f) :=
+begin
+  ext p, simp only [set.mem_image, mem_zero_locus, set_like.coe_subset_coe],
+  split,
+  { rintro ⟨x, hx, rfl : comap f x = p⟩ a ha, exact hx ha, },
+  { intro h_I_p,
+  use ideal.map f p.as_ideal,
+  exact ideal.map_is_prime_of_surjective hf ((ideal.comap_mono bot_le).trans h_I_p),
+  split,
+  { intros x hx,
+  rw ideal.mem_map_iff_of_surjective _ hf,
+  obtain ⟨x', rfl : f x' = x⟩ := hf x,
+  exact ⟨x', h_I_p hx, rfl⟩, },
+  { sorry, }
+  },
+end
+
 lemma range_comap_of_surjective (hf : surjective f) :
     set.range (comap f) = zero_locus (ker f) :=
 begin

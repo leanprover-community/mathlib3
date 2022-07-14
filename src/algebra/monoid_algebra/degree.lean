@@ -91,9 +91,8 @@ lemma sup_support_multiset_prod_le
   (F : multiset (add_monoid_algebra R A)) :
   F.prod.support.sup D ≤ (F.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum :=
 begin
-  induction F using quot.induction_on,
-  rw [multiset.quot_mk_to_coe'', multiset.coe_map, multiset.coe_sum, multiset.coe_prod],
-  exact sup_support_list_prod_le D0 Dm F,
+  rw ← F.prod_to_list,
+  exact (sup_support_list_prod_le D0 Dm F.to_list).trans (F.to_list_map_sum _).le,
 end
 
 lemma sup_support_finset_prod_le

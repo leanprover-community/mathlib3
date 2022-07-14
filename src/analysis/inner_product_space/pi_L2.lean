@@ -227,11 +227,10 @@ instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
 @[simp] lemma coe_of_repr [decidable_eq ι] (e : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 ι) :
   ⇑(orthonormal_basis.of_repr e) = λ i, e.symm (euclidean_space.single i (1 : 𝕜)) :=
 begin
-  rw [coe_fn],
-  simp only [has_coe_to_fun.coe],
-  ext,
+  rw coe_fn,
+  unfold has_coe_to_fun.coe,
+  funext,
   congr,
-  ext,
   simp only [eq_iff_true_of_subsingleton],
 end
 
@@ -241,7 +240,6 @@ by { classical, congr, simp, }
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
--- (linear_isometry_equiv.apply_symm_apply _ _).symm
 by { classical, convert linear_isometry_equiv.apply_symm_apply _ _, simp, }
 
 protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
@@ -258,10 +256,8 @@ begin
   classical,
   rw orthonormal_iff_ite,
   intros i j,
-  rw [← b.repr.inner_map_map (b i) (b j), b.repr_self i, b.repr_self j],
-  rw euclidean_space.inner_single_left,
-  rw euclidean_space.single_apply,
-  simp only [mul_boole, map_one],
+  rw [← b.repr.inner_map_map (b i) (b j), b.repr_self i, b.repr_self j,
+    euclidean_space.inner_single_left, euclidean_space.single_apply, map_one, one_mul],
 end
 
 /-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
@@ -274,7 +270,6 @@ begin
   change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
   ext j,
   rw basis.coe_of_equiv_fun,
-  simp only [orthonormal_basis.repr_symm_single],
   congr,
 end
 
@@ -283,8 +278,8 @@ end
 begin
   change (basis.of_equiv_fun b.repr.to_linear_equiv).equiv_fun = b.repr.to_linear_equiv,
   ext x j,
-  simp only [basis.of_equiv_fun_repr_apply, eq_self_iff_true,
-    linear_isometry_equiv.coe_to_linear_equiv, basis.equiv_fun_apply],
+  simp only [basis.of_equiv_fun_repr_apply, linear_isometry_equiv.coe_to_linear_equiv,
+    basis.equiv_fun_apply],
 end
 
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
@@ -384,15 +379,6 @@ funext (b.reindex_apply e)
   ((b.reindex e).repr x) i' = (b.repr x) (e.symm i') :=
 by { classical,
   rw [orthonormal_basis.repr_apply_apply, b.repr_apply_apply, orthonormal_basis.coe_reindex] }
-
-protected lemma coe_reindex_repr
-  (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) :
-  ((b.reindex e).repr x) = of_euclidean_space (b.repr x) ∘ (e.symm) :=
-begin
-  funext i,
-  rw [b.reindex_repr, function.comp_app],
-  congr,
-end
 
 end orthonormal_basis
 
@@ -583,7 +569,7 @@ local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
 /-- Given a natural number `n` one less than the `finrank` of a finite-dimensional inner product
 space, there exists an isometry from the orthogonal complement of a nonzero singleton to
 `euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.from_orthogonal_span_singleton
+def orthonormal_basis.from_orthogonal_span_singleton
   (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
   orthonormal_basis (fin n) 𝕜 (𝕜 ∙ v)ᗮ :=
 (fin_std_orthonormal_basis (finrank_orthogonal_span_singleton hv))

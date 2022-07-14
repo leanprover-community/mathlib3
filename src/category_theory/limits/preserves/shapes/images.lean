@@ -38,10 +38,9 @@ If a functor preserves span and cospan, then it preserves images.
 let aux1 : strong_epi_mono_factorisation (L.map f) :=
 { I := L.obj (limits.image f),
   m := L.map $ limits.image.ι _,
-  m_mono := infer_instance,
+  m_mono := preserves_mono_of_preserves_limit _ _,
   e := L.map $ factor_thru_image _,
-  e_strong_epi := @@strong_epi_of_epi _ _ _ $
-    @@category_theory.preserves_epi _ _ L _ _ _,
+  e_strong_epi := @@strong_epi_of_epi _ _ _ $ preserves_epi_of_preserves_colimit L _,
   fac' := by rw [←L.map_comp, limits.image.fac] } in
 is_image.iso_ext (image.is_image (L.map f)) aux1.to_mono_is_image
 

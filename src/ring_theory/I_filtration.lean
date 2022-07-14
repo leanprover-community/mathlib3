@@ -172,14 +172,14 @@ begin
   rw [add_comm, tsub_add_cancel_of_le hn],
 end
 
-lemma stable.exists_forall_le (e : F.N 0 = F'.N 0) :
+lemma stable.exists_forall_le (e : F.N 0 ≤ F'.N 0) :
   ∃ n₀, ∀ n, F.N (n + n₀) ≤ F'.N n :=
 begin
   obtain ⟨n₀, hF⟩ := h,
   use n₀,
   intro n,
   induction n with n hn,
-  { rw ← e, apply F.antitone, simp },
+  { refine (F.antitone _).trans e, simp },
   { rw [nat.succ_eq_one_add, add_assoc, add_comm, add_comm 1 n, ← hF],
     exact (submodule.smul_mono_right hn).trans (F'.smul_le _),
     simp },
@@ -188,8 +188,8 @@ end
 lemma stable.bounded_difference (h' : F'.stable) (e : F.N 0 = F'.N 0) :
   ∃ n₀, ∀ n, F.N (n + n₀) ≤ F'.N n ∧ F'.N (n + n₀) ≤ F.N n :=
 begin
-  obtain ⟨n₁, h₁⟩ := h.exists_forall_le e,
-  obtain ⟨n₂, h₂⟩ := h'.exists_forall_le e.symm,
+  obtain ⟨n₁, h₁⟩ := h.exists_forall_le (le_of_eq e),
+  obtain ⟨n₂, h₂⟩ := h'.exists_forall_le (le_of_eq e.symm),
   use max n₁ n₂,
   intro n,
   refine ⟨(F.antitone _).trans (h₁ n), (F'.antitone _).trans (h₂ n)⟩; simp

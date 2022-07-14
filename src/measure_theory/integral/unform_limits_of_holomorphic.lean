@@ -47,11 +47,11 @@ begin
   interval_integral.integral_smul, zero_add],
 end
 
-lemma ae_circle_transform_has_deriv_at (R : ℝ) (z : ℂ) (hR : 0 < R) (f : ℂ → ℂ) :
-  ∀ (t : ℝ), t ∈  [0, (2 * π)] → ∀ y ∈ ball z R, has_deriv_at (λ y, (circle_transform R z y f) t)
+lemma circle_transform_has_deriv_at (R : ℝ) (z : ℂ) (f : ℂ → ℂ) :
+  ∀ (t : ℝ) y ∈ ball z R, has_deriv_at (λ y, (circle_transform R z y f) t)
   ((circle_transform_deriv R z y f) t) y :=
 begin
-  intros y hy x hx,
+  intros y x hx,
   simp only [circle_transform, circle_transform_deriv, algebra.id.smul_eq_mul,
   ←mul_assoc, deriv_circle_map],
   apply_rules [has_deriv_at.mul_const, has_deriv_at.const_mul],
@@ -97,7 +97,7 @@ lemma circle_integral_differentiable_on (R : ℝ) (hR: 0 < R) (z : ℂ)
   (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
   differentiable_on ℂ (circle_integral_form R z f) (ball z R) :=
 begin
-  simp_rw [circle_integral_form,  ←circle_transform_circle_int R z _ f],
+  simp_rw [circle_integral_form, ←circle_transform_circle_int R z _ f],
   simp_rw [differentiable_on, differentiable_within_at],
   intros x hx,
   have h4R: 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
@@ -123,14 +123,14 @@ begin
   have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε,
   has_deriv_at (λ y, F y t) (F' y t) y,
     by {simp_rw [F, F', circle_transform, circle_transform_deriv],
-    have := ae_circle_transform_has_deriv_at R z hR f,
+    have := circle_transform_has_deriv_at R z f,
     apply eventually_of_forall,
     simp_rw [circle_transform, circle_transform_deriv] at this,
     intros y hy x hx,
     rw (interval_oc_of_le real.two_pi_pos.le) at hy,
     have hy2 : y ∈ [0, 2*π], by {convert (Ioc_subset_Icc_self hy),
       simp [interval_of_le real.two_pi_pos.le]},
-    apply this y hy2 x (h_ball hx),},
+    apply this y x (h_ball hx),},
   have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le
   hε hF_meas hF_int hF'_meas h_bound bound_integrable h_diff,
   simp only [F, has_deriv_at, has_deriv_at_filter, has_fderiv_within_at, mem_ball, zero_lt_mul_left,
@@ -195,7 +195,7 @@ begin
   have mapsto : maps_to (circle_transform R z ↑w F) [0, 2 * π] (⊤ : set ℂ),
   by {simp only [preimage_univ, top_eq_univ, subset_univ, maps_to_univ],},
   apply continuous_on.interval_integrable (continuous_on.comp ( (continuous_abs.continuous_on))
- (continuous_circle_transform hR  F_cts w.property).continuous_on mapsto),
+ (continuous_circle_transform hR F_cts w.property).continuous_on mapsto),
  exact real.locally_finite_volume,
 end
 
@@ -222,7 +222,8 @@ begin
   by {simp only [r, norm_eq_abs, abs_mul, abs_inv, abs_two, abs_of_real, abs_I, mul_one,
   abs_circle_map_zero],
   apply mul_pos (mul_pos (inv_pos.2 (mul_pos two_pos (_root_.abs_pos.2 real.pi_ne_zero)))
-  (_root_.abs_pos_of_pos hR)) (inv_pos.2 (abs_pos.2 (sub_ne_zero.2 (circle_map_ne_mem_ball w.2 y)))),},
+  (_root_.abs_pos_of_pos hR)) (inv_pos.2 (abs_pos.2
+    (sub_ne_zero.2 (circle_map_ne_mem_ball w.2 y)))),},
   let e := (∥ r ∥)⁻¹ * (ε/2),
   have he : 0 < e, by {simp_rw e, apply mul_pos (inv_pos.2 hr) (div_pos hε two_pos) },
   obtain ⟨a, ha⟩ := (hlim e he),

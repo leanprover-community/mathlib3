@@ -72,10 +72,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (n : ℝ≥0) : n.val = n := rfl
 
-instance : can_lift ℝ ℝ≥0 :=
-{ coe := coe,
-  cond := λ r, 0 ≤ r,
-  prf := λ x hx, ⟨⟨x, hx⟩, rfl⟩ }
+instance : can_lift ℝ ℝ≥0 := subtype.can_lift _
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
 
@@ -159,15 +156,15 @@ mul_action.comp_hom M to_real_hom.to_monoid_hom
 lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ) • x := rfl
 
-instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_scalar M N]
+instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_smul M N]
   [is_scalar_tower ℝ M N] : is_scalar_tower ℝ≥0 M N :=
 { smul_assoc := λ r, (smul_assoc (r : ℝ) : _)}
 
-instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ N] [has_smul M N]
   [smul_comm_class ℝ M N] : smul_comm_class ℝ≥0 M N :=
 { smul_comm := λ r, (smul_comm (r : ℝ) : _)}
 
-instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_scalar M N]
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ N] [has_smul M N]
   [smul_comm_class M ℝ N] : smul_comm_class M ℝ≥0 N :=
 { smul_comm := λ m r, (smul_comm m (r : ℝ) : _)}
 
@@ -364,13 +361,6 @@ begin
   exact h _ ((lt_add_iff_pos_right b).1 hxb)
 end
 
--- TODO: generalize to some ordered add_monoids, based on #6145
-lemma le_of_add_le_left {a b c : ℝ≥0} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, exact (le_add_iff_nonneg_right _).mpr zero_le' }
-
-lemma le_of_add_le_right {a b c : ℝ≥0} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, exact (le_add_iff_nonneg_left _).mpr zero_le' }
-
 lemma lt_iff_exists_rat_btwn (a b : ℝ≥0) :
   a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ real.to_nnreal q < b) :=
 iff.intro
@@ -489,13 +479,17 @@ begin
       contradiction } }
 end
 
-@[simp] lemma to_nnreal_bit0 {r : ℝ} (hr : 0 ≤ r) :
-  real.to_nnreal (bit0 r) = bit0 (real.to_nnreal r) :=
-real.to_nnreal_add hr hr
+@[simp] lemma to_nnreal_bit0 (r : ℝ) : real.to_nnreal (bit0 r) = bit0 (real.to_nnreal r) :=
+begin
+  cases le_total r 0 with hr hr,
+  { rw [to_nnreal_of_nonpos hr, to_nnreal_of_nonpos, bit0_zero],
+    exact add_nonpos hr hr },
+  { exact to_nnreal_add hr hr }
+end
 
 @[simp] lemma to_nnreal_bit1 {r : ℝ} (hr : 0 ≤ r) :
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
-(real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [to_nnreal_one, bit1, hr])
+(real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
 
 end to_nnreal
 

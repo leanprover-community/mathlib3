@@ -726,7 +726,7 @@ section star_ring
 variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
 
 instance : star_ring (lp B ∞) :=
-{ star_mul := λ f g, by {ext, simp only [lp.star_apply, infty_coe_fn_mul, pi.mul_apply, star_mul]},
+{ star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,
   .. (show star_add_monoid (lp B ∞),
       by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
 

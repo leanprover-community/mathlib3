@@ -374,7 +374,23 @@ $$
 where the inequality is due to the conditional Jensen's inequality. Thus, taking $m \to \infty$
 provides the almost everywhere equality.
 
-(c) TODO.
+Finally, to prove (c), we define $f_n := \mathbb{E}[h \mid \mathcal{F}_n]$. It is clear that
+$(f_n)_n$ is a martingale by the tower property for conditional expectations and so it suffices to
+show $(f_n)_n$ is uniformly integrable in the probability sense. Indeed, as a single function is
+uniformly integrable in the measure theory sense, for all $\epsilon > 0$, there exists some
+$\delta > 0$ such that for all measurable set $A$ with $\mu(A) < δ$, we have
+$\mathbb{E}|h|\mathbf{1}_A < \epsilon$. So, since for sufficently large $\lambda$, by the Markov
+inequality, we have for all $n$,
+$$
+  \mu(|f_n| \ge \lambda) \le \lambda^{-1}\mathbb{E}|f_n| \le \lambda^{-1}\mathbb|g| < \delta,
+$$
+we have for sufficently large $\lambda$, for all $n$,
+$$
+  \mathbb{E}|f_n|\mathbf{1}_{|f_n| \ge \lambda} \le
+    \mathbb|g|\mathbf{1}_{|f_n| \ge \lambda} < \epsilon
+$$
+where the first inequality follows as $|f_n| \le \mathbb{E}[|g| \mid \mathcal{F}_n]$ by the
+conditional Jensen's inequality.
 
 -/
 

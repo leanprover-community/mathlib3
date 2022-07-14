@@ -340,7 +340,7 @@ by simpa using T_pow_mul_apply_one 1 g
 @[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
 by simpa using T_pow_mul_apply_one (-1) g
 
-@[simp] lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
+lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
 @[simp] lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=

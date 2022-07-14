@@ -1019,9 +1019,9 @@ lemma tendsto_ae_map {f : α → β} (hf : ae_measurable f μ) : tendsto f μ.ae
 
 omit m0
 
-/-- Pullback of a `measure`. If `f` sends each `measurable` set to a `measurable` set, then for each
-measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
-def comap [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
+/-- Pullback of a `measure` as a linear map. If `f` sends each `measurable` set to a `measurable`
+set, then for each measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
+def comapₗ [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
 if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
@@ -1032,13 +1032,119 @@ if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   end
 else 0
 
+lemma comapₗ_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = μ (f '' s) :=
+begin
+  rw [comapₗ, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
+  exact ⟨hfi, hf⟩
+end
+
+lemma le_caratheodory_comap_to_outer_measure [mα : measurable_space α] (f : α → β) (μ : measure β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ) :
+  mα ≤ (outer_measure.comap f μ.to_outer_measure).caratheodory :=
+begin
+  intros s hs t,
+  simp_rw [outer_measure.comap_apply, coe_to_outer_measure, ← image_inter hfi, image_diff hfi],
+  let fs' := to_measurable μ (f '' s),
+  have : μ (f '' t) = μ (f '' t ∩ fs') + μ (f '' t \ fs'),
+    from le_to_outer_measure_caratheodory _ _ (measurable_set_to_measurable _ _) _,
+  rw this,
+  congr' 1,
+  { refine measure_congr ((hf s hs).to_measurable_ae_eq.mono (λ x hx, _)),
+    rw eq_iff_iff at hx ⊢,
+    change x ∈ (f '' t ∩ fs') ↔ x ∈ (f '' t ∩ f '' s),
+    change x ∈ fs' ↔ x ∈ f '' s at hx,
+    simp_rw [set.mem_inter_iff, hx], },
+  { refine measure_congr ((hf s hs).to_measurable_ae_eq.mono (λ x hx, _)),
+    rw eq_iff_iff at hx ⊢,
+    change x ∈ (f '' t \ fs') ↔ x ∈ (f '' t \ f '' s),
+    change x ∈ fs' ↔ x ∈ f '' s at hx,
+    simp_rw [set.mem_diff, hx], },
+end
+
+def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :=
+if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s) μ
+then (outer_measure.comap f μ.to_outer_measure).to_measure
+  (le_caratheodory_comap_to_outer_measure f μ hf.1 hf.2)
+else 0
+
+lemma comap_apply₀ {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (μ : measure β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → null_measurable_set (f '' s) μ)
+  (hs : measurable_set s) :
+  comap f μ s = μ (f '' s) :=
+by { rw [comap, dif_pos], exacts [to_measure_apply _ _ hs, ⟨hfi, hf⟩], }
+
 lemma comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
   comap f μ s = μ (f '' s) :=
+comap_apply₀ f μ hfi (λ s hs, (hf s hs).null_measurable_set) hs
+
+lemma comap_eq_comapₗ {β} [measurable_space α] {mβ : measurable_space β} (f : α → β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → measurable_set (f '' s))
+  (μ : measure β) (hs : measurable_set s) :
+  comap f μ s = comapₗ f μ s :=
+by { rw [comap_apply f hfi hf μ hs, comapₗ_apply f hfi hf μ hs], }
+
+
+section Yael's_application
+variables {V : Type*} [measure_space V] {p : V → Prop}
+
+instance subtype.measure_space : measure_space (subtype p) :=
+{ volume := measure.comap subtype.val volume,
+  ..subtype.measurable_space }
+
+lemma generate_from_induction (p : set α → Prop) {C : set (set α)}
+  (hC : ∀ t ∈ C, p t) (h_empty : p ∅) (h_compl : ∀ t, p t → p tᶜ)
+  (h_Union : ∀ f : ℕ → set α, (∀ n, p (f n)) → p (⋃ i, f i))
+  {s : set α} (hs : measurable_set[generate_from C] s) :
+  p s :=
+by { induction hs, exacts [hC _ hs_H, h_empty, h_compl _ hs_ih, h_Union hs_f hs_ih], }
+
+lemma subtype.volume_univ {s : set V} (hs : null_measurable_set s) [nonempty V] :
+  volume (univ : set s) = volume s :=
 begin
-  rw [comap, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
-  exact ⟨hfi, hf⟩
+  change comap subtype.val volume univ = volume s,
+  rw comap_apply₀ _ _ _ _ measurable_set.univ,
+  { congr, simp only [subtype.val_eq_coe, image_univ, subtype.range_coe_subtype, set_of_mem_eq], },
+  { exact subtype.coe_injective, },
+  { intros t ht,
+    change measurable_set t at ht,
+    rw [subtype.measurable_space, comap_eq_generate_from] at ht,
+    refine @generate_from_induction s
+      (λ t : set {x // x ∈ s}, null_measurable_set (subtype.val '' t) volume) _ _ _ _ _ t ht,
+    { intros t' ht',
+      obtain ⟨s', hs', hs'_eq⟩ := ht',
+      rw ← hs'_eq,
+      have : (subtype.val : s → V) = coe,
+      { ext1 x, refl, },
+      rw this,
+      simp only [subtype.image_preimage_coe],
+      exact hs'.null_measurable_set.inter hs, },
+    { simp only [image_empty, null_measurable_set_empty], },
+    { intros t' ht',
+      have : subtype.val '' t'ᶜ = s \ (subtype.val '' t'),
+      { ext1 x,
+        simp only [subtype.val_eq_coe, mem_image, mem_compl_eq, subtype.exists,
+          subtype.coe_mk, exists_and_distrib_right, exists_eq_right, mem_diff, not_exists],
+        split; intro h,
+        { obtain ⟨hxs, hxt'⟩ := h,
+          exact ⟨hxs, λ _, hxt'⟩, },
+        { exact ⟨h.1, h.2 h.1⟩, }, },
+      rw this,
+      exact hs.diff ht', },
+    { intros f hf,
+      have : (subtype.val '' ⋃ (i : ℕ), f i) = ⋃ (i : ℕ), subtype.val '' f i,
+      { ext1 x,
+        simp only [subtype.val_eq_coe, mem_image, mem_Union, subtype.exists, subtype.coe_mk,
+          exists_and_distrib_right, exists_eq_right],
+        split; rintro ⟨a, b, c⟩; exact ⟨b, a, c⟩, },
+      rw this,
+      exact null_measurable_set.Union hf, }, },
 end
+
+end Yael's_application
+
 
 /-! ### Restricting a measure -/
 

@@ -365,7 +365,7 @@ section support
 lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
 by simpa only [← single_eq_C_mul_T] using support_single_subset
 
-lemma support_C_mul_T_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
+lemma support_C_mul_T_of_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
 begin
   rw ← single_eq_C_mul_T,
   exact support_single_ne_zero _ a0,

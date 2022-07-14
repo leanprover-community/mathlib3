@@ -105,7 +105,7 @@ end graded_ring
 
 section add_left_cancel_monoid
 
-open direct_sum
+open direct_sum dfinsupp finset function
 
 lemma direct_sum.decompose_mul_add_of_left_mem {ι σ A}
   [decidable_eq ι] [add_left_cancel_monoid ι] [semiring A]
@@ -113,23 +113,13 @@ lemma direct_sum.decompose_mul_add_of_left_mem {ι σ A}
   {i : ι} (a : 𝒜 i) {b : A} {j : ι} :
   decompose 𝒜 (↑a * b) (i + j) =
     @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ a (decompose 𝒜 b j) :=
-begin
-  ext,
-  dsimp,
+subtype.ext $ or.elim (em (a = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ, begin
   classical,
-  by_cases INEQ : a = 0,
-  { rw [INEQ, add_submonoid_class.coe_zero, zero_mul, zero_mul, decompose_zero, zero_apply,
-      add_submonoid_class.coe_zero], },
-
-  simp_rw [decompose_mul, direct_sum.coe_mul_apply, decompose_coe, direct_sum.support_of _ i a INEQ,
-    finset.singleton_product, finset.map_filter, finset.sum_map, function.comp,
-    function.embedding.coe_fn_mk],
-  dsimp,
-  simp_rw [direct_sum.of_eq_same, ←finset.mul_sum, add_right_inj, finset.filter_eq'],
-  by_cases hb : decompose 𝒜 b j = 0,
-  { rw [if_neg (dfinsupp.not_mem_support_iff.mpr hb), finset.sum_empty, hb,
-      add_submonoid_class.coe_zero] },
-  { rw [if_pos (dfinsupp.mem_support_iff.mpr hb), finset.sum_singleton] }
+  simp_rw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a INEQ, singleton_product,
+    map_filter, sum_map, comp, embedding.coe_fn_mk, add_left_cancel_iff, filter_eq'],
+  refine dite (decompose 𝒜 b j = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
+  erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
+  refl,
 end
 
 end add_left_cancel_monoid

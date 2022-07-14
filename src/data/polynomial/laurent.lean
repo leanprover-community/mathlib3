@@ -415,7 +415,7 @@ section exact_degrees
 
 open_locale classical
 
-lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
+@[simp] lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
 begin
   rw degree,
   convert finset.max_singleton,

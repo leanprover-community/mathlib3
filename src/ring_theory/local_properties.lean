@@ -290,7 +290,7 @@ lemma localization_preserves_surjective :
 begin
   introv R H x,
   resetI,
-  obtain ⟨x, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective (M.map (f : R →* S)) x,
+  obtain ⟨x, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective (M.map f) x,
   obtain ⟨y, rfl⟩ := H x,
   use is_localization.mk' R' y ⟨s, hs⟩,
   rw is_localization.map_mk',

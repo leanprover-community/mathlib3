@@ -459,30 +459,39 @@ lemma eq_iff_nonunits {A B : valuation_subring K} :
   A = B ↔ A.nonunits = B.nonunits :=
 nonunits_injective.eq_iff.symm
 
-/-- `A.nonunits` agrees with the maximal ideal of `A`. -/
-def nonunits_equiv_maximal_ideal : A.nonunits ≃ local_ring.maximal_ideal A :=
-{ to_fun := λ a, ⟨⟨a, (A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩, (A.valuation_lt_one_iff _).2 a.2⟩,
-  inv_fun := λ a, ⟨a, (A.valuation_lt_one_iff _).1 a.2⟩,
-  left_inv := λ a, by { ext, refl },
-  right_inv := λ a, by { ext, refl } }
+variables {A}
 
-@[simp]
-lemma coe_nonunits_equiv_maximal_ideal_apply (a : A.nonunits) :
-  (A.nonunits_equiv_maximal_ideal a : K) = a := rfl
+ /-- The elements of `A.nonunits` are those of the maximal ideal of `A` after coercion to `K`.
 
-@[simp]
-lemma coe_nonunits_equiv_maximal_ideal_symm_apply (a : local_ring.maximal_ideal A) :
-  (A.nonunits_equiv_maximal_ideal.symm a : K) = a := rfl
+See also `mem_nonunits_iff_exists_mem_maximal_ideal`, which gets rid of the coercion to `K`,
+at the expense of a more complicated right hand side.
+ -/
+theorem coe_mem_nonunits_iff {a : A} :
+  ((a : K) ∈ A.nonunits) ↔ a ∈ local_ring.maximal_ideal A :=
+by simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff, valuation_lt_one_iff]
 
-@[simp]
-lemma nonunits_equiv_maximal_ideal_map_mul (a b : A.nonunits) :
-  A.nonunits_equiv_maximal_ideal (a * b) =
-  (A.nonunits_equiv_maximal_ideal a : A) • A.nonunits_equiv_maximal_ideal b := rfl
+lemma nonunits_subset : (A.nonunits : set K) ⊆ A :=
+λ a ha, (A.valuation_le_one_iff _).mp ((A.mem_nonunits_iff _).mp ha).le
 
-@[simp]
-lemma nonunits_equiv_maximal_ideal_symm_map_smul (a b : local_ring.maximal_ideal A) :
-  A.nonunits_equiv_maximal_ideal.symm ((a : A) • b) =
-  A.nonunits_equiv_maximal_ideal.symm a * A.nonunits_equiv_maximal_ideal.symm b := rfl
+ /-- The elements of `A.nonunits` are those of the maximal ideal of `A`.
+
+See also `coe_mem_nonunits_iff`, which has a simpler right hand side but requires the element
+to be in `A` already.
+ -/
+theorem mem_nonunits_iff_exists_mem_maximal_ideal {a : K} :
+  a ∈ A.nonunits ↔ ∃ ha, (⟨a, ha⟩ : A) ∈ local_ring.maximal_ideal A :=
+⟨λ h, ⟨nonunits_subset h, coe_mem_nonunits_iff.mp h⟩,
+ λ ⟨ha, h⟩, coe_mem_nonunits_iff.mpr h⟩
+
+ /-- `A.nonunits` agrees with the maximal ideal of `A`, after taking its image in `K`. -/
+theorem image_maximal_ideal : (coe : A → K) '' local_ring.maximal_ideal A = A.nonunits :=
+begin
+  ext a,
+  simp only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
+  split,
+  { rintros ⟨⟨a, ha⟩, h, rfl⟩, exact ⟨ha, h⟩ },
+  { rintros ⟨ha, h⟩, exact ⟨⟨a, ha⟩, h, rfl⟩ }
+end
 
 end nonunits
 

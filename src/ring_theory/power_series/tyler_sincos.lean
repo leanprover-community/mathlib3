@@ -160,6 +160,119 @@ begin
   },
 end
 
+def catalan_power_series (A : Type*) [semiring A]: power_series A :=
+  mk $ λ n, catalan n
+
+#check catalan_power_series.
+#check power_series.
+#print power_series.
+
+lemma one_has_no_higher_terms (A : Type*) [semiring A] (n: ℕ ) (h: n > 0): (coeff A n) 1 = 0 :=
+begin
+  simp,
+  intro nis0,
+  exfalso,
+  linarith,
+end
+#check one_has_no_higher_terms.
+
+
+
+theorem square_pow_series_catalan  (A : Type*) [semiring A]:
+      1+ X* (catalan_power_series A)*(catalan_power_series A)=
+      catalan_power_series A  :=
+begin
+  ext n,
+  rcases nat.eq_zero_or_pos n with rfl | npos,
+  {--n=0
+    rw [map_add, coeff_mul],
+    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+    rw sum_range_one,
+    rw coeff_mul,
+    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+    simp only,
+    rw sum_range_one,
+    unfold catalan_power_series,
+    rw coeff_mk,
+    rw [coeff_one, if_pos rfl, catalan_zero, coeff_zero_X],
+    norm_num,
+  },
+  {--n≥ 1 case
+    rw [map_add, coeff_mul],
+    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+    rw [one_has_no_higher_terms A n npos,zero_add],
+    simp only,
+    -- we need to take care of the first term separately
+    --rw sum_range,
+    rw sum_range_succ', --pulls of first term
+    simp only [coeff_succ_X_mul, coeff_zero_eq_constant_coeff,
+        map_mul, constant_coeff_X, zero_mul, add_zero],
+    --rw coeff_succ_X_mul ,--could not get it to work on its own.  Hmm.
+    unfold catalan_power_series,
+    simp only [coeff_mk],
+    apply symm,
+    have midea : ∃ m, n = succ m,
+    {
+      induction n with k hk,
+      exfalso,
+      linarith,
+      use k,
+    },
+    cases midea with m hm,
+
+    rw hm,
+    nth_rewrite 0 succ_eq_add_one,
+    --apply catalan_succ,
+    rw [catalan],
+    simp only [cast_sum, cast_mul, succ_sub_succ_eq_sub],
+    rw sum_range,--Holy cow, why did this work???
+  },
+end
+#check square_pow_series_catalan
+
+
+example (n :ℕ ) (h: n ≥ 1): ∃ m, n = succ m :=
+begin
+  induction n with k hk,
+  exfalso,
+  linarith,
+  use k,
+end
+
+example (A : Type*) [semiring A] (a b : A  ) : a=b ↔ b=a :=
+begin
+  apply comm,
+end
+
+example (A : Type*) [semiring A] (k : ℕ ): ((coeff A k) (X * catalan_power_series A)) =
+(coeff A k)
+
+example (a b: ℕ ) (h: a< b ) :( b > a) :=
+begin
+  exact h,
+end
+
+/- Kaenchin Fodder for the proof above
+    rw coeff_mul,
+    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
+    rw sum_range_succ,
+    rw sum_range_one,
+    --rw coeff_mk,
+    --squeeze_simp [],
+    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
+      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
+    simp only [map_add, coeff_one, coeff_X],
+    simp only [←map_mul, ←map_add],
+    rw [if_neg, if_pos, zero_add, ←map_one (algebra_map ℚ A),
+        (algebra_map ℚ A).injective.eq_iff],
+    norm_num,
+    refl,
+    exact one_ne_zero,
+-/
+
+
+#check nat.eq_zero_or_pos
+
 example  (A: Type*) [field A] (a : A) (ha : a ≠ 0) :  a*a⁻¹ = 1 :=
 begin
   --suggest,--library_search,

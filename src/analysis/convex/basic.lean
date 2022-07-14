@@ -641,6 +641,29 @@ convex_iff_pairwise_pos.mpr (h.pairwise _)
 lemma convex_singleton (c : E) : convex 𝕜 ({c} : set E) :=
 subsingleton_singleton.convex
 
+lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
+begin
+  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
+  refine ⟨a * ap + b * aq, a * bp + b * bq,
+    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
+    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
+  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
+  { simp_rw [add_smul, mul_smul, smul_add],
+    exact add_add_add_comm _ _ _ _ }
+end
+
+lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
+begin
+  rw convex_iff_open_segment_subset,
+  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
+  refine ⟨a * ap + b * aq, a * bp + b * bq,
+    add_pos (mul_pos ha hap) (mul_pos hb haq),
+    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
+  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
+  { simp_rw [add_smul, mul_smul, smul_add],
+    exact add_add_add_comm _ _ _ _ }
+end
+
 lemma convex.linear_image (hs : convex 𝕜 s) (f : E →ₗ[𝕜] F) : convex 𝕜 (f '' s) :=
 begin
   intros x y hx hy a b ha hb hab,
@@ -848,29 +871,6 @@ lemma convex.combo_eq_vadd {a b : 𝕜} {x y : E} (h : a + b = 1) :
 calc
   a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
             ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
-
-lemma convex_segment (x y : E) : convex 𝕜 [x -[𝕜] y] :=
-begin
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ a b ha hb hab,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_nonneg (mul_nonneg ha hap) (mul_nonneg hb haq),
-    add_nonneg (mul_nonneg ha hbp) (mul_nonneg hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
-end
-
-lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
-begin
-  rw convex_iff_open_segment_subset,
-  rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine ⟨a * ap + b * aq, a * bp + b * bq,
-    add_pos (mul_pos ha hap) (mul_pos hb haq),
-    add_pos (mul_pos ha hbp) (mul_pos hb hbq), _, _⟩,
-  { rw [add_add_add_comm, ←mul_add, ←mul_add, habp, habq, mul_one, mul_one, hab] },
-  { simp_rw [add_smul, mul_smul, smul_add],
-    exact add_add_add_comm _ _ _ _ }
-end
 
 end add_comm_group
 end ordered_semiring

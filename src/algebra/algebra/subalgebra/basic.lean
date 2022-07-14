@@ -1078,8 +1078,8 @@ variables {R : Type*} [ring R]
 
 /-- A subring is a `ℤ`-subalgebra. -/
 def subalgebra_of_subring (S : subring R) : subalgebra ℤ R :=
-{ algebra_map_mem' := λ i, int.induction_on i S.zero_mem
-  (λ i ih, S.add_mem ih S.one_mem)
+{ algebra_map_mem' := λ i, int.induction_on i (by simpa using S.zero_mem)
+  (λ i ih, by simpa using S.add_mem ih S.one_mem)
   (λ i ih, show ((-i - 1 : ℤ) : R) ∈ S, by { rw [int.cast_sub, int.cast_one],
     exact S.sub_mem ih S.one_mem }),
   .. S }

@@ -2438,7 +2438,7 @@ then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.set %%user_attr_const %%c_name default %%persistent) <|>
+    ``(user_attribute.set %%user_attr_const %%`(c_name) default %%`(persistent)) <|>
     fail! ("Cannot set attribute @[{attr_name}].\n" ++
       "The corresponding user attribute {user_attr_nm} " ++
       "has a parameter without a default value.\n" ++

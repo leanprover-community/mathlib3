@@ -151,7 +151,7 @@ by rw [← T_add, sub_eq_add_neg]
 
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
-by rw [T, T, single_pow n, one_pow, nsmul_eq_mul, int.nat_cast_eq_coe_nat]
+by rw [T, T, single_pow n, one_pow, nsmul_eq_mul]
 
 /-- The `simp` version of `mul_assoc`, in the presence of `T`'s. -/
 @[simp]
@@ -336,7 +336,7 @@ end
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
   rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, T_sub,
-    ← mul_assoc, int.nat_cast_eq_coe_nat, ← hf],
+    ← mul_assoc, ← hf],
   exact Qf,
 end
 

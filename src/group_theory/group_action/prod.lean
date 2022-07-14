@@ -16,6 +16,12 @@ scalar multiplication as a homomorphism from `α × β` to `β`.
 
 * `smul_mul_hom`/`smul_monoid_hom`: Scalar multiplication bundled as a multiplicative/monoid
   homomorphism.
+
+## See also
+
+* `group_theory.group_action.pi`
+* `group_theory.group_action.sigma`
+* `group_theory.group_action.sum`
 -/
 
 variables {M N P α β : Type*}

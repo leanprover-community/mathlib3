@@ -195,7 +195,7 @@ lemma exists_measurable_superset_iff_measure_eq_zero :
 theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
 μ.to_outer_measure.Union _
 
-lemma measure_bUnion_le {s : set β} (hs : countable s) (f : β → set α) :
+lemma measure_bUnion_le {s : set β} (hs : s.countable) (f : β → set α) :
   μ (⋃ b ∈ s, f b) ≤ ∑' p : s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
@@ -230,11 +230,11 @@ lemma measure_Union_null [encodable β] {s : β → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff
 
-lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
+lemma measure_bUnion_null_iff {s : set ι} (hs : s.countable) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
 μ.to_outer_measure.bUnion_null_iff hs
 
-lemma measure_sUnion_null_iff {S : set (set α)} (hS : countable S) :
+lemma measure_sUnion_null_iff {S : set (set α)} (hS : S.countable) :
   μ (⋃₀ S) = 0 ↔ ∀ s ∈ S, μ s = 0 :=
 μ.to_outer_measure.sUnion_null_iff hS
 
@@ -335,7 +335,7 @@ lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
   (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
 eventually_countable_forall
 
-lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+lemma ae_ball_iff {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :
   (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
 eventually_countable_ball hS
 

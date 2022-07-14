@@ -68,8 +68,14 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 @[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
 @[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
+@[to_additive order_dual.subtraction_monoid]
+instance [h : division_monoid α] : division_monoid αᵒᵈ := h
+@[to_additive order_dual.subtraction_comm_monoid]
+instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
 @[to_additive] instance [h : group α] : group αᵒᵈ := h
 @[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }

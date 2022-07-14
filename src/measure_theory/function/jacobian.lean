@@ -124,7 +124,7 @@ begin
     simp },
   -- we will use countably many linear maps. Select these from all the derivatives since the
   -- space of linear maps is second-countable
-  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, countable T ∧
+  obtain ⟨T, T_count, hT⟩ : ∃ T : set s, T.countable ∧
     (⋃ x ∈ T, ball (f' (x : E)) (r (f' x))) = ⋃ (x : s), ball (f' x) (r (f' x)) :=
     topological_space.is_open_Union_countable _ (λ x, is_open_ball),
   -- fix a sequence `u` of positive reals tending to zero.

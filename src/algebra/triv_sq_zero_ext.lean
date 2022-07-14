@@ -66,6 +66,9 @@ x.1
 def snd (x : tsze R M) : M :=
 x.2
 
+@[simp] lemma fst_mk (r : R) (m : M) : fst (r, m) = r := rfl
+@[simp] lemma snd_mk (r : R) (m : M) : snd (r, m) = m := rfl
+
 @[ext] lemma ext {x y : tsze R M} (h1 : x.fst = y.fst) (h2 : x.snd = y.snd) : x = y :=
 prod.ext h1 h2
 
@@ -303,6 +306,13 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : mul_one_class (tsz
   .. triv_sq_zero_ext.has_one,
   .. triv_sq_zero_ext.has_mul }
 
+instance [add_monoid_with_one R] [add_monoid M] : add_monoid_with_one (tsze R M) :=
+{ nat_cast := λ n, (n, 0),
+  nat_cast_zero := by simp [nat.cast],
+  nat_cast_succ := λ _, by ext; simp [nat.cast],
+  .. triv_sq_zero_ext.add_monoid,
+  .. triv_sq_zero_ext.has_one }
+
 instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsze R M) :=
 { zero_mul := λ x, ext (zero_mul x.1) $ show (0 : R) • x.2 + x.1 • 0 = 0,
     by rw [zero_smul, zero_add, smul_zero],
@@ -316,6 +326,7 @@ instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsz
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2),
     by simp_rw [add_smul, smul_add, add_add_add_comm],
+  .. triv_sq_zero_ext.add_monoid_with_one,
   .. triv_sq_zero_ext.mul_one_class,
   .. triv_sq_zero_ext.add_comm_monoid }
 

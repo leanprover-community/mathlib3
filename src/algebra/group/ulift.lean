@@ -3,6 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.int.cast.defs
 import algebra.hom.equiv
 
 /-!
@@ -70,6 +71,12 @@ instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
 instance monoid [monoid α] : monoid (ulift α) :=
 equiv.ulift.injective.monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance add_monoid_with_one [add_monoid_with_one α] : add_monoid_with_one (ulift α) :=
+{ nat_cast := λ n, ⟨n⟩,
+  nat_cast_zero := congr_arg ulift.up nat.cast_zero,
+  nat_cast_succ := λ n, congr_arg ulift.up (nat.cast_succ _),
+  .. ulift.has_one, .. ulift.add_monoid }
+
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
 equiv.ulift.injective.comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
@@ -89,6 +96,12 @@ equiv.ulift.injective.div_inv_monoid _ rfl (λ _ _, rfl) (λ _, rfl)
 instance group [group α] : group (ulift α) :=
 equiv.ulift.injective.group _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance add_group_with_one [add_group_with_one α] : add_group_with_one (ulift α) :=
+{ int_cast := λ n, ⟨n⟩,
+  int_cast_of_nat := λ n, congr_arg ulift.up (int.cast_of_nat _),
+  int_cast_neg_succ_of_nat := λ n, congr_arg ulift.up (int.cast_neg_succ_of_nat _),
+  .. ulift.add_monoid_with_one, .. ulift.add_group }
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=

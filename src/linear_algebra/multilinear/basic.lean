@@ -540,6 +540,16 @@ end
 
 end apply_sum
 
+/-- Restrict the codomain of a multilinear map to a submodule.
+
+This is the multilinear version of `linear_map.cod_restrict`. -/
+@[simps]
+def cod_restrict (f : multilinear_map R M₁ M₂) (p : submodule R M₂) (h : ∀ v, f v ∈ p) :
+  multilinear_map R M₁ p :=
+{ to_fun := λ v, ⟨f v, h v⟩,
+  map_add' := λ v i x y, subtype.ext $ multilinear_map.map_add _ _ _ _ _,
+  map_smul' := λ v i c x, subtype.ext $ multilinear_map.map_smul _ _ _ _ _ }
+
 section restrict_scalar
 
 variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), module A (M₁ i)]
@@ -619,8 +629,23 @@ def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M
 @[simp] lemma coe_comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
   ⇑(g.comp_multilinear_map f) = g ∘ f := rfl
 
+@[simp]
 lemma comp_multilinear_map_apply (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) (m : Π i, M₁ i) :
   g.comp_multilinear_map f m = g (f m) := rfl
+
+/-- The multilinear version of `linear_map.subtype_comp_cod_restrict` -/
+@[simp]
+lemma subtype_comp_multilinear_map_cod_restrict (f : multilinear_map R M₁ M₂) (p : submodule R M₂)
+  (h) : p.subtype.comp_multilinear_map (f.cod_restrict p h) = f :=
+multilinear_map.ext $ λ v, rfl
+
+/-- The multilinear version of `linear_map.comp_cod_restrict` -/
+@[simp]
+lemma comp_multilinear_map_cod_restrict (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂)
+  (p : submodule R M₃) (h) :
+  (g.cod_restrict p h).comp_multilinear_map f =
+    (g.comp_multilinear_map f).cod_restrict p (λ v, h (f v)):=
+multilinear_map.ext $ λ v, rfl
 
 variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
 

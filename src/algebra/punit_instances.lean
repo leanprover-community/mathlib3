@@ -42,7 +42,8 @@ intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
 by refine
-{ .. punit.comm_group,
+{ nat_cast := λ _, punit.star,
+  .. punit.comm_group,
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _

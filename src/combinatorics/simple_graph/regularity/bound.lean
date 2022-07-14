@@ -130,7 +130,7 @@ lemma hundred_lt_pow_initial_bound_mul {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
 begin
   rw [←rpow_nat_cast 4, ←div_lt_iff (pow_pos hε 5), lt_rpow_iff_log_lt _ zero_lt_four,
     ←div_lt_iff, initial_bound, nat.cast_max, nat.cast_max],
-  { exact lt_max_of_lt_right (lt_max_of_lt_right $ nat.lt_floor_add_one _) },
+  { push_cast, exact lt_max_of_lt_right (lt_max_of_lt_right $ nat.lt_floor_add_one _) },
   { exact log_pos (by norm_num) },
   { exact div_pos (by norm_num) (pow_pos hε 5) }
 end

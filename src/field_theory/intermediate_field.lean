@@ -174,6 +174,9 @@ protected lemma coe_pow (x : S) (n : ℕ) : (↑(x ^ n) : L) = ↑x ^ n := submo
 
 end inherited_lemmas
 
+lemma coe_nat_mem (n : ℕ) : (n : L) ∈ S :=
+by simpa using coe_int_mem S n
+
 end intermediate_field
 
 /-- Turn a subalgebra closed under inverses into an intermediate field -/
@@ -326,6 +329,27 @@ begin
     refine ⟨P, hPmo, _⟩,
     rw [← aeval_def, aeval_coe, aeval_def, hProot, add_submonoid_class.coe_zero] },
 end
+
+/-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.
+
+This is the intermediate field version of `subalgebra.inclusion`. -/
+def inclusion {E F : intermediate_field K L} (hEF : E ≤ F) : E →ₐ[K] F :=
+subalgebra.inclusion hEF
+
+lemma inclusion_injective {E F : intermediate_field K L} (hEF : E ≤ F) :
+  function.injective (inclusion hEF) :=
+subalgebra.inclusion_injective hEF
+
+@[simp] lemma inclusion_self {E : intermediate_field K L}:
+  inclusion (le_refl E) = alg_hom.id K E :=
+subalgebra.inclusion_self
+
+@[simp] lemma inclusion_inclusion {E F G : intermediate_field K L} (hEF : E ≤ F) (hFG : F ≤ G)
+  (x : E) : inclusion hFG (inclusion hEF x) = inclusion (le_trans hEF hFG) x :=
+subalgebra.inclusion_inclusion hEF hFG x
+
+@[simp] lemma coe_inclusion {E F : intermediate_field K L} (hEF : E ≤ F) (e : E) :
+  (inclusion hEF e : L) = e := rfl
 
 variables {S}
 

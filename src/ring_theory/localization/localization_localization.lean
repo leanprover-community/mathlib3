@@ -168,8 +168,8 @@ map, then `(M⁻¹R)ₚ` is isomorphic (as an `R`-algebra) to the localization o
 -/
 noncomputable
 def localization_localization_at_prime_iso_localization (p : ideal (localization M)) [p.is_prime] :
-  localization.at_prime (p.comap (algebra_map R _)) ≃ₐ[R] localization.at_prime p :=
-is_localization.alg_equiv (p.comap (algebra_map R _)).prime_compl _ _
+  localization.at_prime (p.comap (algebra_map R (localization M))) ≃ₐ[R] localization.at_prime p :=
+is_localization.alg_equiv (p.comap (algebra_map R (localization M))).prime_compl _ _
 
 end
 

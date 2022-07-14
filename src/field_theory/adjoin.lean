@@ -408,7 +408,7 @@ adjoin_simple_eq_bot_iff.mpr (one_mem ⊥)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 @[simp] lemma adjoin_nat (n : ℕ) : F⟮(n : E)⟯ = ⊥ :=
-adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
+adjoin_simple_eq_bot_iff.mpr (coe_nat_mem ⊥ n)
 
 section adjoin_dim
 open finite_dimensional module

@@ -1440,6 +1440,20 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
+lemma eventually_le.mul_le_mul [ordered_semiring β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) (hg₀ : 0 ≤ᶠ[l] g₁) (hf₀ : 0 ≤ᶠ[l] f₂) :
+  f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
+by filter_upwards [hf, hg, hg₀, hf₀] with x using mul_le_mul
+
+lemma eventually_le.mul_nonneg [ordered_semiring β] {l : filter α} {f g : α → β}
+  (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) :
+  0 ≤ᶠ[l] f * g :=
+by filter_upwards [hf, hg] with x using mul_nonneg
+
+lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} :
+  0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
+eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 
@@ -2306,16 +2320,13 @@ theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter 
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ → tendsto f₂ l₁ l₂ :=
 (tendsto_congr h).1
 
-lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
-by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
+lemma tendsto_id' {x y : filter α} : tendsto id x y ↔ x ≤ y := iff.rfl
 
-lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
+lemma tendsto_id {x : filter α} : tendsto id x x := le_refl x
 
 lemma tendsto.comp {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
   (hg : tendsto g y z) (hf : tendsto f x y) : tendsto (g ∘ f) x z :=
-calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
-  ... ≤ map g y : map_mono hf
-  ... ≤ z : hg
+λ s hs, hf (hg hs)
 
 lemma tendsto.mono_left {f : α → β} {x y : filter α} {z : filter β}
   (hx : tendsto f x z) (h : y ≤ x) : tendsto f y z :=

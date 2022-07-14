@@ -415,6 +415,9 @@ begin
   simp [h.unit_spec]
 end
 
+/-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
+instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
+
 section monoid
 variables [monoid M] {a b c : M}
 

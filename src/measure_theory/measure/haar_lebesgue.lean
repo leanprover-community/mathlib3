@@ -445,7 +445,7 @@ begin
   have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
     (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
-    exact ennreal.tendsto_of_real ((tendsto_id' nhds_within_le_nhds).pow _) },
+    exact ennreal.tendsto_of_real ((tendsto_id'.2 nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
   refine le_of_tendsto A _,
   refine mem_nhds_within_Iio_iff_exists_Ioo_subset.2 ⟨(0 : ℝ), by simp, λ r hr, _⟩,

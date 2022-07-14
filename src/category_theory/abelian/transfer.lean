@@ -137,7 +137,6 @@ end
 local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
 
 -- The account of this proof in the Stacks project omits this calculation.
--- Happily it's little effort: our `[ext]` and `[simp]` lemmas only need a little guidance.
 lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :
   (coimage_iso_image F G i adj f).hom = abelian.coimage_image_comparison f :=
 begin

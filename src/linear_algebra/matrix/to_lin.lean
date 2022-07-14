@@ -609,7 +609,7 @@ open algebra
 
 lemma to_matrix_lmul' (x : S) (i j) :
   linear_map.to_matrix b b (lmul R S x) i j = b.repr (x * b j) i :=
-by rw [linear_map.to_matrix_apply', lmul_apply]
+by simp only [linear_map.to_matrix_apply', coe_lmul_eq_mul, linear_map.mul_apply']
 
 @[simp] lemma to_matrix_lsmul (x : R) (i j) :
   linear_map.to_matrix b b (algebra.lsmul R S x) i j = if i = j then x else 0 :=
@@ -625,7 +625,7 @@ This definition is useful for doing (more) explicit computations with `linear_ma
 such as the trace form or norm map for algebras.
 -/
 noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
-{ to_fun := λ x, (linear_map.mul_left R x).to_matrix b b,
+{ to_fun := λ x, linear_map.to_matrix b b (algebra.lmul R S x),
   map_zero' := by rw [alg_hom.map_zero, linear_equiv.map_zero],
   map_one' := by rw [alg_hom.map_one, linear_map.to_matrix_one],
   map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
@@ -647,12 +647,12 @@ lemma left_mul_matrix_mul_vec_repr (x y : S) :
 (linear_map.mul_left R x).to_matrix_mul_vec_repr b b y
 
 @[simp] lemma to_matrix_lmul_eq (x : S) :
-  (linear_map.mul_left R x).to_matrix b b = left_mul_matrix b x :=
+  linear_map.to_matrix b b (linear_map.mul_left R x) = left_mul_matrix b x :=
 rfl
 
 lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
-λ x x' h, calc x = linear_map.mul_left R x 1 : (mul_one x).symm
-             ... = linear_map.mul_left R x' 1 : by rw (linear_map.to_matrix b b).injective h
+λ x x' h, calc x = algebra.lmul R S x 1 : (mul_one x).symm
+             ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix b b).injective h
              ... = x' : mul_one x'
 
 variable [fintype n]
@@ -661,8 +661,8 @@ lemma smul_left_mul_matrix (x) (ik jk) :
   left_mul_matrix (b.smul c) x ik jk =
     left_mul_matrix b (left_mul_matrix c x ik.2 jk.2) ik.1 jk.1 :=
 by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, mul_comm, basis.smul_apply,
-              basis.smul_repr, finsupp.smul_apply, linear_map.mul_left_apply, id.smul_eq_mul,
-              linear_equiv.map_smul, mul_smul_comm]
+  basis.smul_repr, finsupp.smul_apply, id.smul_eq_mul, linear_equiv.map_smul, mul_smul_comm,
+  coe_lmul_eq_mul, linear_map.mul_apply']
 
 lemma smul_left_mul_matrix_algebra_map (x : S) :
   left_mul_matrix (b.smul c) (algebra_map _ _ x) = block_diagonal (λ k, left_mul_matrix b x) :=

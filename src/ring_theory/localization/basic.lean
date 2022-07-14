@@ -795,6 +795,7 @@ instance : comm_semiring (localization M) :=
 
 /--For any given denominator `b : M`, the map `a ↦ a / b` is an `add_monoid_hom` from `R` to
   `localization M`-/
+@[simps]
 def mk_add_monoid_hom (b : M) : R →+ localization M :=
 { to_fun := flip mk b,
   map_zero' := mk_zero _,
@@ -805,7 +806,7 @@ lemma mk_finset_sum {ι : Type*} (f : ι → R) (s : finset ι) (b : M) :
 (mk_add_monoid_hom b).map_sum f s
 
 lemma mk_list_sum (l : list R) (b : M) :
-  mk l.sum b = (l.map $ flip mk b).sum :=
+  mk l.sum b = (l.map $ λ a, mk a b).sum :=
 (mk_add_monoid_hom b).map_list_sum l
 
 lemma mk_multiset_sum (l : multiset R) (b : M) :

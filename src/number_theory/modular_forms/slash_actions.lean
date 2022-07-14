@@ -37,7 +37,7 @@ class slash_action (β : Type*) (G : Type*) (α : Type*) (γ : Type*) [group G] 
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} {γ : Type*}
-  [group G] [ring α] [has_scalar γ α] [group H] [slash_action β G α γ] (h : H →* G) :
+  [group G] [ring α] [has_smul γ α] [group H] [slash_action β G α γ] (h : H →* G) :
   slash_action β H α γ:=
 { map := (λ k g a, slash_action.map γ k (h(g)) a),
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },

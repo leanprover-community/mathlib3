@@ -4,7 +4,7 @@ import linear_algebra.matrix.determinant
 
 open_locale matrix
 
-variables {l : Type*}
+variables {R l : Type*}
 
 open lie_algebra.symplectic
 
@@ -33,6 +33,11 @@ begin
   exact even_add_self n,
   norm_num,
 end
+
+variables [comm_ring R]
+
+/-- The matrix defining the canonical skew-symmetric bilinear form. -/
+def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
 
 @[simp] lemma J_transpose : (J l ℝ)ᵀ = - (J l ℝ) :=
 begin

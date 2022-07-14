@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simple_graph.regularity.bound
 import combinatorics.simple_graph.regularity.equitabilise
 import combinatorics.simple_graph.regularity.uniform
-import .atomise
 import .prereqs
 
 /-!
@@ -56,7 +55,7 @@ begin
       (λ B, B ⊆ G.nonuniform_witness ε U V ∧ B.nonempty)).bUnion
       (λ B, B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id),
   { intros x hx,
-    rw [←union_of_atoms' (G.nonuniform_witness ε U V) hX (G.nonuniform_witness_subset h₂),
+    rw [←bUnion_filter_atomise hX (G.nonuniform_witness_subset h₂),
       finpartition.is_equipartition.star, mem_sdiff, mem_bUnion] at hx,
     simp only [not_exists, mem_bUnion, and_imp, filter_congr_decidable, exists_prop, mem_filter,
       not_and, mem_sdiff, id.def, mem_sdiff] at hx ⊢,
@@ -69,7 +68,7 @@ begin
       ≤ 2 ^ (P.parts.card - 1) * m,
   { rw sum_const_nat,
     { apply nat.mul_le_mul_right,
-      have t := partial_atomise (G.nonuniform_witness ε U V) hX,
+      have t := card_filter_atomise_le hX,
       rw filter_congr_decidable at t,
       apply t.trans (pow_le_pow (by norm_num) (nat.sub_le_sub_right _ _)),
       apply card_image_le.trans (card_le_of_subset (filter_subset _ _)) },

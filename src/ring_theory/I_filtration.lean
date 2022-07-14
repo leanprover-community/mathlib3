@@ -29,14 +29,16 @@ open_locale polynomial big_operators
 /-- An `I`-filtration on the module `M` is a sequence of decreasing submodules `N i` such that
 `I • N ≤ I (i + 1)`. Note that we do not require the filtration to start from `⊤`. -/
 @[ext]
-structure I_filtration (M : Type u) [add_comm_group M] [module R M] :=
+structure ideal.filtration (M : Type u) [add_comm_group M] [module R M] :=
 (N : ℕ → submodule R M)
 (mono : ∀ i, N (i + 1) ≤ N i)
 (smul_le : ∀ i, I • N i ≤ N (i + 1))
 
-variables (F : I_filtration I M) {I}
+variables (F F' : I.filtration M) {I}
 
-lemma I_filtration.pow_smul_le (i j : ℕ) : I ^ i • F.N j ≤ F.N (i + j) :=
+namespace ideal.filtration
+
+lemma pow_smul_le (i j : ℕ) : I ^ i • F.N j ≤ F.N (i + j) :=
 begin
   induction i,
   { simp },
@@ -44,23 +46,28 @@ begin
     exact (submodule.smul_mono_right i_ih).trans (F.smul_le _) }
 end
 
-lemma I_filtration.pow_smul_le_pow_smul (i j k : ℕ) : I ^ (i + k) • F.N j ≤ I ^ k • F.N (i + j) :=
+lemma pow_smul_le_pow_smul (i j k : ℕ) : I ^ (i + k) • F.N j ≤ I ^ k • F.N (i + j) :=
 by { rw [add_comm, pow_add, mul_smul], exact submodule.smul_mono_right (F.pow_smul_le i j) }
 
-lemma I_filtration.antitone (F : I_filtration I M) : antitone F.N :=
+protected
+lemma antitone : antitone F.N :=
 antitone_nat_of_succ_le F.mono
 
 /-- The trivial `I`-filtration of `N`. -/
-def trivial_I_filtration (I : ideal R) (N : submodule R M) :
-  I_filtration I M :=
+@[simps]
+def _root_.ideal.trivial_filtration (I : ideal R) (N : submodule R M) : I.filtration M :=
 { N := λ i, N,
   mono := λ i, le_of_eq rfl,
   smul_le := λ i, submodule.smul_le_right }
 
-/-- The `Sup` of a family of `I_filtration`s is an `I_filtration`. -/
-@[simps]
-def I_filtration.Sup (S : set (I_filtration I M)) : I_filtration I M :=
-{ N := Sup (I_filtration.N '' S),
+/-- The `sup` of two `I.filtration`s is an `I.filtration`. -/
+instance : has_sup (I.filtration M) :=
+⟨λ F F', ⟨F.N ⊔ F'.N, λ i, sup_le_sup (F.mono i) (F'.mono i),
+    λ i, (le_of_eq (submodule.smul_sup _ _ _)).trans $ sup_le_sup (F.smul_le i) (F'.smul_le i)⟩⟩
+
+/-- The `Sup` of a family of `I.filtration`s is an `I.filtration`. -/
+instance : has_Sup (I.filtration M) := ⟨λ S,
+{ N := Sup (ideal.filtration.N '' S),
   mono := λ i, begin
     apply Sup_le_Sup_of_forall_exists_le _,
     rintros _ ⟨⟨_, F, hF, rfl⟩, rfl⟩,
@@ -71,12 +78,16 @@ def I_filtration.Sup (S : set (I_filtration I M)) : I_filtration I M :=
     apply supr_mono _,
     rintro ⟨_, F, hF, rfl⟩,
     exact F.smul_le i,
-  end }
+  end }⟩
 
-/-- The `Inf` of a family of `I_filtration`s is an `I_filtration`. -/
-@[simps]
-def I_filtration.Inf (S : set (I_filtration I M)) : I_filtration I M :=
-{ N := Inf (I_filtration.N '' S),
+/-- The `inf` of two `I.filtration`s is an `I.filtration`. -/
+instance : has_inf (I.filtration M) :=
+⟨λ F F', ⟨F.N ⊓ F'.N, λ i, inf_le_inf (F.mono i) (F'.mono i),
+    λ i, (submodule.smul_inf_le _ _ _).trans $ inf_le_inf (F.smul_le i) (F'.smul_le i)⟩⟩
+
+/-- The `Inf` of a family of `I.filtration`s is an `I.filtration`. -/
+instance : has_Inf (I.filtration M) := ⟨λ S,
+{ N := Inf (ideal.filtration.N '' S),
   mono := λ i, begin
     apply Inf_le_Inf_of_forall_exists_le _,
     rintros _ ⟨⟨_, F, hF, rfl⟩, rfl⟩,
@@ -88,52 +99,58 @@ def I_filtration.Inf (S : set (I_filtration I M)) : I_filtration I M :=
     apply infi_mono _,
     rintro ⟨_, F, hF, rfl⟩,
     exact F.smul_le i,
-  end }
+  end }⟩
 
-instance : partial_order (I_filtration I M) := partial_order.lift I_filtration.N I_filtration.ext
+instance : has_top (I.filtration M) := ⟨I.trivial_filtration ⊤⟩
+instance : has_bot (I.filtration M) := ⟨I.trivial_filtration ⊥⟩
 
-instance : complete_lattice (I_filtration I M) :=
-{ sup := λ F F', ⟨F.N ⊔ F'.N, λ i, sup_le_sup (F.mono i) (F'.mono i),
-    λ i, (le_of_eq (submodule.smul_sup _ _ _)).trans $ sup_le_sup (F.smul_le i) (F'.smul_le i)⟩,
-  le_sup_left := λ a b i, le_sup_left,
-  le_sup_right := λ a b i, le_sup_right,
-  sup_le := λ a b c i j x, sup_le (i x) (j x),
-  inf := λ F F', ⟨F.N ⊓ F'.N, λ i, inf_le_inf (F.mono i) (F'.mono i),
-    λ i, (submodule.smul_inf_le _ _ _).trans $ inf_le_inf (F.smul_le i) (F'.smul_le i)⟩,
-  inf_le_left := λ a b i, inf_le_left,
-  inf_le_right := λ a b i, inf_le_right,
-  le_inf := λ a b c i j x, le_inf (i x) (j x),
-  Sup := I_filtration.Sup,
-  le_Sup := λ s F hF i, le_Sup ⟨⟨_, F, hF, rfl⟩, rfl⟩,
-  Sup_le := λ s F hF i, Sup_le (by { rintros _ ⟨⟨_, F', hF', rfl⟩, rfl⟩, exact hF F' hF' i }),
-  Inf := I_filtration.Inf,
-  Inf_le := λ s F hF i, Inf_le ⟨⟨_, F, hF, rfl⟩, rfl⟩,
-  le_Inf := λ s F hF i, le_Inf (by { rintros _ ⟨⟨_, F', hF', rfl⟩, rfl⟩, exact hF F' hF' i }),
-  top := trivial_I_filtration I ⊤,
-  bot := trivial_I_filtration I ⊥,
-  le_top := λ x i, le_top,
-  bot_le := λ x i, bot_le,
-  ..(show partial_order (I_filtration I M), by apply_instance) }
+@[simp] lemma sup_N : (F ⊔ F').N = F.N ⊔ F'.N := rfl
+@[simp] lemma Sup_N (S : set (I.filtration M)) : (Sup S).N = Sup (ideal.filtration.N '' S) := rfl
+@[simp] lemma inf_N : (F ⊓ F').N = F.N ⊓ F'.N := rfl
+@[simp] lemma Inf_N (S : set (I.filtration M)) : (Inf S).N = Inf (ideal.filtration.N '' S) := rfl
+@[simp] lemma top_N : (⊤ : I.filtration M).N = ⊤ := rfl
+@[simp] lemma bot_N : (⊥ : I.filtration M).N = ⊥ := rfl
 
-instance : inhabited (I_filtration I M) := ⟨⊥⟩
+@[simp] lemma supr_N {ι : Type*} (f : ι → I.filtration M) : (supr f).N = ⨆ i, (f i).N :=
+congr_arg Sup (set.range_comp _ _).symm
+
+@[simp] lemma infi_N {ι : Type*} (f : ι → I.filtration M) : (infi f).N = ⨅ i, (f i).N :=
+congr_arg Inf (set.range_comp _ _).symm
+
+instance : complete_lattice (I.filtration M) :=
+begin
+  apply function.injective.complete_lattice ideal.filtration.N ideal.filtration.ext,
+  { intros, refl },
+  { intros, refl },
+  { intros, exact Sup_image },
+  { intros, exact Inf_image },
+  { refl },
+  { refl }
+end
+
+instance : inhabited (I.filtration M) := ⟨⊥⟩
 
 /-- An `I` filtration is stable if `I • F.N n = F.N (n+1)` for large enough `n`. -/
-def I_filtration.stable : Prop :=
+def stable : Prop :=
 ∃ n₀, ∀ n ≥ n₀, I • F.N n = F.N (n + 1)
 
 /-- The trivial stable `I`-filtration of `N`. -/
 @[simps]
-def stable_I_filtration (I : ideal R) (N : submodule R M) :
-  I_filtration I M :=
+def _root_.ideal.stable_filtration (I : ideal R) (N : submodule R M) :
+  I.filtration M :=
 { N := λ i, I ^ i • N,
   mono := λ i, by { rw [add_comm, pow_add, mul_smul], exact submodule.smul_le_right },
   smul_le := λ i, by { rw [add_comm, pow_add, mul_smul, pow_one], exact le_refl _ } }
 
-lemma stable_I_filtration.stable (I : ideal R) (N : submodule R M) :
-  (stable_I_filtration I N).stable :=
+lemma _root_.ideal.stable_filtration_stable (I : ideal R) (N : submodule R M) :
+  (I.stable_filtration N).stable :=
 by { use 0, intros n _, dsimp, rw [add_comm, pow_add, mul_smul, pow_one] }
 
-lemma I_filtration.stable.exists_pow_smul_eq {F : I_filtration I M} (h : F.stable) :
+variables {F F'} (h : F.stable)
+
+include h
+
+lemma stable.exists_pow_smul_eq :
   ∃ n₀, ∀ k, F.N (n₀ + k) = I ^ k • F.N n₀ :=
 begin
   obtain ⟨n₀, hn⟩ := h,
@@ -145,7 +162,7 @@ begin
     linarith }
 end
 
-lemma I_filtration.stable.exists_pow_smul_eq_of_ge {F : I_filtration I M} (h : F.stable) :
+lemma stable.exists_pow_smul_eq_of_ge :
   ∃ n₀, ∀ n ≥ n₀, F.N n = I ^ (n - n₀) • F.N n₀ :=
 begin
   obtain ⟨n₀, hn₀⟩ := h.exists_pow_smul_eq,
@@ -155,8 +172,7 @@ begin
   rw [add_comm, tsub_add_cancel_of_le hn],
 end
 
-lemma I_filtration.stable.exists_forall_le {F F' : I_filtration I M}
-  (h : F.stable) (e : F.N 0 = F'.N 0) :
+lemma stable.exists_forall_le (e : F.N 0 = F'.N 0) :
   ∃ n₀, ∀ n, F.N (n + n₀) ≤ F'.N n :=
 begin
   obtain ⟨n₀, hF⟩ := h,
@@ -169,8 +185,7 @@ begin
     simp },
 end
 
-lemma I_filtration.stable.bounded_difference {F F' : I_filtration I M}
-  (h : F.stable) (h' : F'.stable) (e : F.N 0 = F'.N 0) :
+lemma stable.bounded_difference (h' : F'.stable) (e : F.N 0 = F'.N 0) :
   ∃ n₀, ∀ n, F.N (n + n₀) ≤ F'.N n ∧ F'.N (n + n₀) ≤ F.N n :=
 begin
   obtain ⟨n₁, h₁⟩ := h.exists_forall_le e,
@@ -179,3 +194,5 @@ begin
   intro n,
   refine ⟨(F.antitone _).trans (h₁ n), (F'.antitone _).trans (h₂ n)⟩; simp
 end
+
+end ideal.filtration

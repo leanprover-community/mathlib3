@@ -366,7 +366,6 @@ end
   ⇑(orthonormal_basis.mk_of_orthogonal_eq_bot hon hsp) = v :=
 orthonormal_basis.coe_mk hon _
 
-variable {ι' : Type*}
 variables [fintype ι']
 
 /-- `b.reindex (e : ι ≃ ι')` is an `orthonormal_basis` indexed by `ι'` -/
@@ -470,21 +469,21 @@ variables {A : ι → submodule 𝕜 E}
 /-- Given an internal direct sum decomposition of a module `M`, and an orthonormal basis for each
 of the components of the direct sum, the disjoint union of these orthonormal bases is an
 orthonormal basis for `M`. -/
-noncomputable def direct_sum.submodule_is_internal.collected_orthonormal_basis
+noncomputable def direct_sum.is_internal.collected_orthonormal_basis
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, A i) _ (λ i, (A i).subtypeₗᵢ))
-  [decidable_eq ι] (hV_sum : direct_sum.submodule_is_internal (λ i, A i)) {α : ι → Type*}
+  [decidable_eq ι] (hV_sum : direct_sum.is_internal (λ i, A i)) {α : ι → Type*}
   [Π i, fintype (α i)] (v_family : Π i, orthonormal_basis (α i) 𝕜 (A i)) :
   orthonormal_basis (Σ i, α i) 𝕜 E :=
 (hV_sum.collected_basis (λ i, (v_family i).to_basis)).to_orthonormal_basis $
 by simpa using hV.orthonormal_sigma_orthonormal
   (show (∀ i, orthonormal 𝕜 (v_family i).to_basis), by simp)
 
-lemma direct_sum.submodule_is_internal.collected_orthonormal_basis_mem [decidable_eq ι]
-  (h : direct_sum.submodule_is_internal A) {α : ι → Type*}
+lemma direct_sum.is_internal.collected_orthonormal_basis_mem [decidable_eq ι]
+  (h : direct_sum.is_internal A) {α : ι → Type*}
   [Π i, fintype (α i)] (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, A i) _ (λ i, (A i).subtypeₗᵢ))
   (v : Π i, orthonormal_basis (α i) 𝕜 (A i)) (a : Σ i, α i) :
   h.collected_orthonormal_basis hV v a ∈ A a.1 :=
-by simp [direct_sum.submodule_is_internal.collected_orthonormal_basis]
+by simp [direct_sum.is_internal.collected_orthonormal_basis]
 
 variables [finite_dimensional 𝕜 E]
 
@@ -536,11 +535,11 @@ by rw [← finrank_eq_card_basis (std_orthonormal_basis 𝕜 E).to_basis, hn],
 section subordinate_orthonormal_basis
 open direct_sum
 variables {n : ℕ} (hn : finrank 𝕜 E = n) [decidable_eq ι]
-  {V : ι → submodule 𝕜 E} (hV : submodule_is_internal V)
+  {V : ι → submodule 𝕜 E} (hV : is_internal V)
 
 /-- Exhibit a bijection between `fin n` and the index set of a certain basis of an `n`-dimensional
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
-@[irreducible] def direct_sum.submodule_is_internal.sigma_orthonormal_basis_index_equiv
+@[irreducible] def direct_sum.is_internal.sigma_orthonormal_basis_index_equiv
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
 let b := hV.collected_orthonormal_basis hV' (λ i, (std_orthonormal_basis 𝕜 (V i))) in
@@ -548,7 +547,7 @@ fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b.to_ba
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
-@[irreducible] def direct_sum.submodule_is_internal.subordinate_orthonormal_basis
+@[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   orthonormal_basis (fin n) 𝕜 E :=
 ((hV.collected_orthonormal_basis hV' (λ i, (std_orthonormal_basis 𝕜 (V i)))).reindex
@@ -557,22 +556,22 @@ sum has an orthonormal basis indexed by `fin n` and subordinate to that direct s
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
 provides the mapping by which it is subordinate. -/
-def direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index
+def direct_sum.is_internal.subordinate_orthonormal_basis_index
   (a : fin n) (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) : ι :=
 ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a).1
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is subordinate to
 the `orthogonal_family` in question. -/
-lemma direct_sum.submodule_is_internal.subordinate_orthonormal_basis_subordinate
+lemma direct_sum.is_internal.subordinate_orthonormal_basis_subordinate
   (a : fin n) (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   (hV.subordinate_orthonormal_basis hn hV' a) ∈
   V (hV.subordinate_orthonormal_basis_index hn a hV') :=
-by simpa only [direct_sum.submodule_is_internal.subordinate_orthonormal_basis,
+by simpa only [direct_sum.is_internal.subordinate_orthonormal_basis,
   orthonormal_basis.coe_reindex]
   using hV.collected_orthonormal_basis_mem hV' (λ i, (std_orthonormal_basis 𝕜 (V i)))
     ((hV.sigma_orthonormal_basis_index_equiv hn hV').symm a)
 
-attribute [irreducible] direct_sum.submodule_is_internal.subordinate_orthonormal_basis_index
+attribute [irreducible] direct_sum.is_internal.subordinate_orthonormal_basis_index
 
 end subordinate_orthonormal_basis
 
@@ -615,10 +614,8 @@ begin
       ...               = finrank 𝕜 Sᗮ : by simp only
         [← S.finrank_add_finrank_orthogonal, add_tsub_cancel_left]
       ...               = d : dim_S_perp,
-    let BS := ((fin_std_orthonormal_basis dim_S_perp).to_orthonormal_basis
-      (fin_std_orthonormal_basis_orthonormal dim_S_perp)),
-    let BLS := ((fin_std_orthonormal_basis dim_LS_perp).to_orthonormal_basis
-      (fin_std_orthonormal_basis_orthonormal dim_LS_perp)),
+    let BS := (fin_std_orthonormal_basis dim_S_perp),
+    let BLS := (fin_std_orthonormal_basis dim_LS_perp),
     exact BS.repr.trans BLS.repr.symm },
   let L3 := (LS)ᗮ.subtypeₗᵢ.comp E.to_linear_isometry,
   -- Project onto S and Sᗮ

@@ -34,7 +34,7 @@ structure I_filtration (M : Type u) [add_comm_group M] [module R M] :=
 (mono : ∀ i, N (i + 1) ≤ N i)
 (smul_le : ∀ i, I • N i ≤ N (i + 1))
 
-variable (F : I_filtration I M) {I}
+variables (F : I_filtration I M) {I}
 
 lemma I_filtration.pow_smul_le (i j : ℕ) : I ^ i • F.N j ≤ F.N (i + j) :=
 begin

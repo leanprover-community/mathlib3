@@ -171,28 +171,28 @@ end
 structure is_modular_form_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) : Prop :=
   (hol : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
   (transf : f ∈ weakly_modular_submodule k Γ)
-  (infinity : ∀ (A : SL(2,ℤ)), is_bound_at_inf (f ∣[k, A]))
+  (infinity : ∀ (A : SL(2,ℤ)), is_bound_at_infty (f ∣[k, A]))
 
 /-- A function `f : ℍ → ℂ` is a cusp form of weight `k ∈ ℤ` and of level `Γ` if it is holomorphic,
  weakly modular, and zero at infinity -/
 structure is_cusp_form_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) : Prop :=
   (hol : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
   (transf : f ∈ weakly_modular_submodule k Γ)
-  (infinity : ∀ (A : SL(2,ℤ)), is_zero_at_inf (f ∣[k, A]))
+  (infinity : ∀ (A : SL(2,ℤ)), is_zero_at_infty (f ∣[k, A]))
 
 /-- The zero modular form is a cusp form-/
 lemma zero_cusp_form : is_cusp_form_of_weight_and_level k Γ 0 :=
 { hol := by {apply mdifferentiable_zero,},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by { intro A,
-    convert zero_form_is_zero_at_inf,
-    apply slash_action.mul_zero, } }
+    rw slash_action.mul_zero,
+    apply zero_at_infty_submodule.zero_mem, } }
 
 lemma is_modular_form_of_weight_and_level_of_is_cusp_form_of_weight_and_level {f : ℍ → ℂ}
   (h : is_cusp_form_of_weight_and_level k Γ f) : is_modular_form_of_weight_and_level k Γ f :=
 { hol := h.1,
   transf := h.2,
-  infinity := λ (A : SL(2,ℤ)), is_zero_at_inf_is_bound _ (h.3 A), }
+  infinity := λ (A : SL(2,ℤ)), by {apply filter.zero_at_filter_is_bounded_at_filter _ _ (h.3 A)} }
 
  /-- The zero modular form is a modular form-/
 lemma zero_mod_form : is_modular_form_of_weight_and_level k Γ 0 :=
@@ -259,7 +259,7 @@ section const_mod_form
 def const_one_form : ℍ → ℂ := 1
 
 /-- The constant function is bounded at infinity -/
-lemma const_one_form_is_bound : is_bound_at_inf const_one_form :=
+lemma const_one_form_is_bound : is_bound_at_infty const_one_form :=
   @asymptotics.is_O_const_const _ _ ℂ _ _ 1 _ one_ne_zero _
 
 /-- The constant function 1 is invariant under any subgroup of SL2Z -/

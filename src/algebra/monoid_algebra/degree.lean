@@ -38,8 +38,7 @@ variables [semiring R]
 
 section add_only
 
-variables [has_add A]
-variables [has_add B]
+variables [has_add A] [has_add B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
 
 lemma sup_support_mul_le {D : A → B} (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
@@ -93,8 +92,7 @@ lemma sup_support_multiset_prod_le
   F.prod.support.sup D ≤ (F.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum :=
 begin
   rw ← F.prod_to_list,
-  refine (sup_support_list_prod_le D0 Dm F.to_list).trans (le_of_eq _),
-  exact (F.to_list_map_sum _),
+  exact (sup_support_list_prod_le D0 Dm F.to_list).trans (F.to_list_map_sum _).le,
 end
 
 lemma sup_support_finset_prod_le

@@ -183,7 +183,7 @@ begin
     exact impartial.add_self (nim O₁) }
 end
 
-@[simp] lemma nim_add_fuzzy_zero_iff_ne (O₁ O₂ : ordinal) : nim O₁ + nim O₂ ∥ 0 ↔ O₁ ≠ O₂ :=
+@[simp] lemma nim_add_fuzzy_zero_iff (O₁ O₂ : ordinal) : nim O₁ + nim O₂ ∥ 0 ↔ O₁ ≠ O₂ :=
 by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, nim_add_equiv_zero_iff]
 
 @[simp] lemma nim_equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
@@ -211,7 +211,7 @@ begin
   { intro i₁,
     rw add_move_left_inl,
     apply (fuzzy_congr_left (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm)).1,
-    rw nim_add_fuzzy_zero_iff_ne,
+    rw nim_add_fuzzy_zero_iff, 
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
     have h := ordinal.ne_mex _,

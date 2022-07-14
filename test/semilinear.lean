@@ -3,7 +3,7 @@ Copyright (c) 2021 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Heather Macbeth
 -/
-import data.equiv.module
+import algebra.module.equiv
 import data.real.basic
 
 /-!

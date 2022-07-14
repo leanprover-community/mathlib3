@@ -47,6 +47,34 @@ better browsing interface, and to participate in the discussions, we strongly
 suggest joining the chat. Questions from users at all levels of expertise are
 welcomed.
 
+## Contributing
+
+The complete documentation for contributing to ``mathlib`` is located
+[on the community guide contribute to mathlib](https://leanprover-community.github.io/contribute/index.html)
+
+The process is different from other projects where one should not fork the repository.
+Instead write permission for non-master branches should be requested on [Zulip](https://leanprover.zulipchat.com)
+by introducing yourself, providing your GitHub handle and what contribution you are planning on doing.
+
+### Guidelines
+
+Mathlib has the following guidelines and conventions that must be followed
+
+ - The [style guide](https://leanprover-community.github.io/contribute/style.html)
+ - A guide on the [naming convention](https://leanprover-community.github.io/contribute/naming.html)
+ - The [documentation style](https://leanprover-community.github.io/contribute/doc.html)
+ - The [commit naming conventions](https://github.com/leanprover-community/lean/blob/master/doc/commit_convention.md)
+
+Note: the title of a PR should follow the commit naming convention.
+
+### Using ``leanproject`` to contribute
+
+Running the ``leanproject get -b mathlib:shiny_lemma`` command will create a new worktree ``mathlib_shiny_lemma``
+with a local branch called ``shiny_lemma`` which has a copy of mathlib to work on.
+
+``leanproject build`` will check that nothing broke.
+Be warned that this will take some time if a fundamental file was changed.
+
 ## Maintainers:
 
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics

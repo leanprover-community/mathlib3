@@ -12,7 +12,7 @@ import tactic.monotonicity.basic
 In this file we define `lattice.imp` (notation: `a ⇒ₒ b`) and `lattice.biimp` (notation: `a ⇔ₒ b`)
 to be the implication and equivalence as operations on a boolean algebra. More precisely, we put
 `a ⇒ₒ b = aᶜ ⊔ b` and `a ⇔ₒ b = (a ⇒ₒ b) ⊓ (b ⇒ₒ a)`. Equivalently, `a ⇒ₒ b = (a \ b)ᶜ` and
-`a ⇔ₒ b = (a Δ b)ᶜ`. For propositions these operations are equal to the usual implication and `iff`.
+`a ⇔ₒ b = (a ∆ b)ᶜ`. For propositions these operations are equal to the usual implication and `iff`.
 -/
 
 variables {α β : Type*}
@@ -84,10 +84,10 @@ by simp [biimp, ← le_antisymm_iff]
 
 lemma biimp_symm : a ≤ (b ⇔ₒ c) ↔ a ≤ (c ⇔ₒ b) := by rw biimp_comm
 
-lemma compl_symm_diff (a b : α) : (a Δ b)ᶜ = a ⇔ₒ b :=
+lemma compl_symm_diff (a b : α) : (a ∆ b)ᶜ = a ⇔ₒ b :=
 by simp only [biimp, imp, symm_diff, sdiff_eq, compl_sup, compl_inf, compl_compl]
 
-lemma compl_biimp (a b : α) : (a ⇔ₒ b)ᶜ = a Δ b := by rw [← compl_symm_diff, compl_compl]
+lemma compl_biimp (a b : α) : (a ⇔ₒ b)ᶜ = a ∆ b := by rw [← compl_symm_diff, compl_compl]
 
 @[simp] lemma compl_biimp_compl : aᶜ ⇔ₒ bᶜ = a ⇔ₒ b := by simp [biimp, inf_comm]
 

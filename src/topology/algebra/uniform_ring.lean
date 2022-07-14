@@ -98,6 +98,7 @@ instance : ring (completion α) :=
         (continuous.mul continuous_fst (continuous_snd.comp continuous_snd))
         (continuous.mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, add_mul]),
+  .. add_monoid_with_one.unary,
   ..completion.add_comm_group, ..completion.has_mul α, ..completion.has_one α }
 
 /-- The map from a uniform ring to its completion, as a ring homomorphism. -/
@@ -157,7 +158,8 @@ namespace uniform_space
 variables {α : Type*}
 lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
-setoid.ext $ assume x y, add_group_separation_rel x y
+setoid.ext $ λ x y, (add_group_separation_rel x y).trans $
+  iff.trans (by refl) (submodule.quotient_rel_r_def _).symm
 
 lemma ring_sep_quot
   (α : Type u) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
@@ -170,7 +172,8 @@ corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) ≃ (α ⧸ (⊥ : ideal α).closure) :=
-quotient.congr_right $ assume x y, add_group_separation_rel x y
+quotient.congr_right $ λ x y, (add_group_separation_rel x y).trans $
+  iff.trans (by refl) (submodule.quotient_rel_r_def _).symm
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/
 instance comm_ring [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :

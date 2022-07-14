@@ -416,7 +416,7 @@ Some common uses:
 * If you define a new homomorphism-like structure (like `mul_hom`) you can just run
   `initialize_simps_projections` after defining the `has_coe_to_fun` instance
   ```
-    instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (mul_hom M N) := ...
+    instance {mM : has_mul M} {mN : has_mul N} : has_coe_to_fun (M →ₙ* N) := ...
     initialize_simps_projections mul_hom (to_fun → apply)
   ```
   This will generate `foo_apply` lemmas for each declaration `foo`.

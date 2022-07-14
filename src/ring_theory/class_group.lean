@@ -96,13 +96,6 @@ noncomputable def class_group.mk0 [is_dedekind_domain R] :
 
 variables {K}
 
-lemma quotient_group.mk'_eq_mk' {G : Type*} [group G] {N : subgroup G} [hN : N.normal] {x y : G} :
-  quotient_group.mk' N x = quotient_group.mk' N y ↔ ∃ z ∈ N, x * z = y :=
-(@quotient.eq _ (quotient_group.left_rel _) _ _).trans
-  ⟨λ (h : x⁻¹ * y ∈ N), ⟨_, h, by rw [← mul_assoc, mul_right_inv, one_mul]⟩,
-   λ ⟨z, z_mem, eq_y⟩,
-     by { rw ← eq_y, show x⁻¹ * (x * z) ∈ N, rwa [← mul_assoc, mul_left_inv, one_mul] }⟩
-
 lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I J : (ideal R)⁰} :
   class_group.mk0 K I = class_group.mk0 K J ↔
     ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
@@ -148,10 +141,10 @@ begin
   have fa_ne_zero : (algebra_map R K) a ≠ 0 :=
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors a_ne_zero',
   refine ⟨⟨{ carrier := { x | (algebra_map R K a)⁻¹ * algebra_map R K x ∈ I.1 }, .. }, _⟩, _⟩,
-  { simp only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
-    exact submodule.zero_mem I },
   { simp only [ring_hom.map_add, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add],
     exact λ _ _ ha hb, submodule.add_mem I ha hb },
+  { simp only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
+    exact submodule.zero_mem I },
   { intros c _ hb,
     simp only [smul_eq_mul, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add,
                mul_left_comm ((algebra_map R K) a)⁻¹],
@@ -164,6 +157,8 @@ begin
     rwa [ring_hom.map_mul, ← mul_assoc, inv_mul_cancel fa_ne_zero, one_mul] },
   { symmetry,
     apply quotient.sound,
+    change setoid.r _ _,
+    rw quotient_group.left_rel_apply,
     refine ⟨units.mk0 (algebra_map R K a) fa_ne_zero, _⟩,
     apply @mul_left_cancel _ _ I,
     rw [← mul_assoc, mul_right_inv, one_mul, eq_comm, mul_comm I],

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yaël Dillies, Bhavik Mehta
 -/
 import data.finset.lattice
+import data.set.sigma
 
 /-!
 # Finite sets in a sigma type
@@ -33,11 +34,15 @@ section sigma
 variables {α : ι → Type*} {β : Type*} (s s₁ s₂ : finset ι) (t t₁ t₂ : Π i, finset (α i))
 
 /-- `s.sigma t` is the finset of dependent pairs `⟨i, a⟩` such that `i ∈ s` and `a ∈ t i`. -/
-protected def sigma : finset (Σ i, α i) := ⟨_, nodup_sigma s.2 (λ i, (t i).2)⟩
+protected def sigma : finset (Σ i, α i) := ⟨_, s.nodup.sigma $ λ i, (t i).nodup⟩
 
 variables {s s₁ s₂ t t₁ t₂}
 
 @[simp] lemma mem_sigma {a : Σ i, α i} : a ∈ s.sigma t ↔ a.1 ∈ s ∧ a.2 ∈ t a.1 := mem_sigma
+
+@[simp, norm_cast] lemma coe_sigma (s : finset ι) (t : Π i, finset (α i)) :
+  (s.sigma t : set (Σ i, α i)) = (s : set ι).sigma (λ i, t i) :=
+set.ext $ λ _, mem_sigma
 
 @[simp] lemma sigma_nonempty : (s.sigma t).nonempty ↔ ∃ i ∈ s, (t i).nonempty :=
 by simp [finset.nonempty]
@@ -66,7 +71,7 @@ end
 
 lemma inf_sigma [semilattice_inf β] [order_top β] :
   (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma _ _ (order_dual β) _ _ _ _ _
+@sup_sigma _ _ βᵒᵈ _ _ _ _ _
 
 end sigma
 

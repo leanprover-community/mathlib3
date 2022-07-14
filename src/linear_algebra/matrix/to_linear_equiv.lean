@@ -126,7 +126,7 @@ begin
 end
 
 lemma exists_mul_vec_eq_zero_iff' {A : Type*} (K : Type*) [decidable_eq n]
-  [comm_ring A] [is_domain A]
+  [comm_ring A] [nontrivial A]
   [field K] [algebra A K] [is_fraction_ring A K]
   {M : matrix n n A} :
   (∃ (v ≠ 0), M.mul_vec v = 0) ↔ M.det = 0 :=
@@ -149,7 +149,7 @@ begin
     { have := congr_arg (algebra_map A K) (congr_fun h i),
       rw [hf, subtype.coe_mk, pi.zero_apply, ring_hom.map_zero, algebra.smul_def,
           mul_eq_zero, is_fraction_ring.to_map_eq_zero_iff] at this,
-      exact this.resolve_left (mem_non_zero_divisors_iff_ne_zero.mp hb), },
+      exact this.resolve_left (non_zero_divisors.ne_zero hb), },
     { ext i,
       refine is_fraction_ring.injective A K _,
       calc algebra_map A K (M.mul_vec (λ (i : n), f (v i) _) i)
@@ -188,8 +188,7 @@ begin
     simpa only [dot_product_mul_vec, dot_product_single, mul_one] using hv (pi.single i 1) }
 end
 
-alias nondegenerate_iff_det_ne_zero ↔
-  matrix.nondegenerate.det_ne_zero matrix.nondegenerate.of_det_ne_zero
+alias nondegenerate_iff_det_ne_zero ↔ nondegenerate.det_ne_zero nondegenerate.of_det_ne_zero
 
 end nondegenerate
 

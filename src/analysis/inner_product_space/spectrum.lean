@@ -134,9 +134,9 @@ include dec_𝕜
 
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
 an internal direct sum decomposition of `E`. -/
-lemma direct_sum_submodule_is_internal :
-  direct_sum.submodule_is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
-hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
+lemma direct_sum_is_internal :
+  direct_sum.is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
+hT.orthogonal_family_eigenspaces'.is_internal_iff.mpr
   hT.orthogonal_supr_eigenspaces_eq_bot'
 
 section version1
@@ -144,12 +144,12 @@ section version1
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some
 self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
-hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
+hT.direct_sum_is_internal.isometry_L2_of_orthogonal_family
   hT.orthogonal_family_eigenspaces'
 
 @[simp] lemma diagonalization_symm_apply (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
   hT.diagonalization.symm w = ∑ μ, w μ :=
-hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+hT.direct_sum_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.orthogonal_family_eigenspaces' w
 
 /-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
@@ -210,6 +210,9 @@ begin
     exact hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector key) },
   simpa [re_μ] using key,
 end
+
+lemma has_eigenvalue_eigenvalues (i : fin n) : has_eigenvalue T (hT.eigenvalues hn i) :=
+    module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
 
 attribute [irreducible] eigenvector_basis eigenvalues
 

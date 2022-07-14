@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.set
+import data.vector.basic
 
 /-!
 # Small types
@@ -47,22 +47,25 @@ nonempty.some (classical.some_spec (@small.equiv_small α _))
 
 @[priority 100]
 instance small_self (α : Type v) : small.{v} α :=
-small.mk' (equiv.refl _)
+small.mk' $ equiv.refl α
+
+theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
+let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
+
+theorem small_lift (α : Type u) [hα : small.{v} α] : small.{max v w} α :=
+let ⟨⟨γ, ⟨f⟩⟩⟩ := hα in small.mk' $ f.trans equiv.ulift.symm
 
 @[priority 100]
 instance small_max (α : Type v) : small.{max w v} α :=
-small.mk' equiv.ulift.{w}.symm
+small_lift.{v w} α
 
-instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
-small.mk' equiv.ulift
+instance small_ulift (α : Type u) [small.{v} α] : small.{v} (ulift.{w} α) :=
+small_map equiv.ulift
 
 theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 
 section
 open_locale classical
-
-theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
-let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
 
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 ⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩
@@ -77,6 +80,10 @@ small_map (equiv.of_injective f hf)
 theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] {f : α → β}
   (hf : function.surjective f) : small.{u} β :=
 small_of_injective (function.injective_surj_inv hf)
+
+theorem small_subset {α : Type v} {s t : set α} (hts : t ⊆ s) [small.{u} s] : small.{u} t :=
+let f : t → s := λ x, ⟨x, hts x.prop⟩ in
+  @small_of_injective _ _ _ f (λ x y hxy, subtype.ext (subtype.mk.inj hxy))
 
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
@@ -124,5 +131,16 @@ theorem not_small_type : ¬ small.{u} (Type (max u v))
 | ⟨⟨S, ⟨e⟩⟩⟩ := @function.cantor_injective (Σ α, e.symm α)
   (λ a, ⟨_, cast (e.3 _).symm a⟩)
   (λ a b e, (cast_inj _).1 $ eq_of_heq (sigma.mk.inj e).2)
+
+instance small_vector {α : Type v} {n : ℕ} [small.{u} α] :
+  small.{u} (vector α n) :=
+small_of_injective (equiv.vector_equiv_fin α n).injective
+
+instance small_list {α : Type v} [small.{u} α] :
+  small.{u} (list α) :=
+begin
+  let e : (Σ n, vector α n) ≃ list α := equiv.sigma_fiber_equiv list.length,
+  exact small_of_surjective e.surjective,
+end
 
 end

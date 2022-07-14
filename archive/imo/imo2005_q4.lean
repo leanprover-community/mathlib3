@@ -9,7 +9,7 @@ import field_theory.finite.basic
 # IMO 2005 Q4
 
 Problem: Determine all positive integers relatively prime to all the terms of the infinite sequence
-`a n = 2 ^ n + 3 ^ n + 6 ^ n − 1`, for `n ≥ 1`.
+`a n = 2 ^ n + 3 ^ n + 6 ^ n - 1`, for `n ≥ 1`.
 
 This is quite an easy problem, in which the key point is a modular arithmetic calculation with
 the sequence `a n` relative to an arbitrary prime.

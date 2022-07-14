@@ -43,14 +43,12 @@ class has_continuous_sup (L : Type*) [topological_space L] [has_sup L] : Prop :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.has_continuous_sup
-  (L : Type*) [topological_space L] [has_inf L] [has_continuous_inf L] :
-  has_continuous_sup (order_dual L) :=
+  (L : Type*) [topological_space L] [has_inf L] [has_continuous_inf L] : has_continuous_sup Lᵒᵈ :=
 { continuous_sup := @has_continuous_inf.continuous_inf L _ _ _ }
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.has_continuous_inf
-  (L : Type*) [topological_space L] [has_sup L] [has_continuous_sup L] :
-  has_continuous_inf (order_dual L) :=
+  (L : Type*) [topological_space L] [has_sup L] [has_continuous_sup L] : has_continuous_inf Lᵒᵈ :=
 { continuous_inf := @has_continuous_sup.continuous_sup L _ _ _ }
 
 /--
@@ -63,7 +61,7 @@ class topological_lattice (L : Type*) [topological_space L] [lattice L]
 @[priority 100] -- see Note [lower instance priority]
 instance order_dual.topological_lattice
   (L : Type*) [topological_space L] [lattice L] [topological_lattice L] :
-  topological_lattice (order_dual L) := {}
+  topological_lattice Lᵒᵈ := {}
 
 variables {L : Type*} [topological_space L]
 variables {X : Type*} [topological_space X]

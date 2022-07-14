@@ -5,7 +5,7 @@ Authors: Thomas Browning
 -/
 
 import group_theory.quotient_group
-import set_theory.fincard
+import set_theory.cardinal.finite
 
 /-!
 # Index of a Subgroup
@@ -55,8 +55,9 @@ noncomputable def relindex : ℕ :=
 begin
   letI := quotient_group.left_rel H,
   letI := quotient_group.left_rel (H.comap f),
-  have key : ∀ x y : G', setoid.r x y ↔ setoid.r (f x) (f y) :=
-  λ x y, iff_of_eq (congr_arg (∈ H) (by rw [f.map_mul, f.map_inv])),
+  have key : ∀ x y : G', setoid.r x y ↔ setoid.r (f x) (f y),
+  { simp only [quotient_group.left_rel_apply],
+    exact λ x y, iff_of_eq (congr_arg (∈ H) (by rw [f.map_mul, f.map_inv])) },
   refine cardinal.to_nat_congr (equiv.of_bijective (quotient.map' f (λ x y, (key x y).mp)) ⟨_, _⟩),
   { simp_rw [←quotient.eq'] at key,
     refine quotient.ind' (λ x, _),
@@ -74,12 +75,16 @@ eq.trans (congr_arg index (by refl))
 
 variables {H K L}
 
-@[to_additive] lemma relindex_mul_index (h : H ≤ K) : H.relindex K * K.index = H.index :=
+@[to_additive relindex_mul_index] lemma relindex_mul_index (h : H ≤ K) :
+  H.relindex K * K.index = H.index :=
 ((mul_comm _ _).trans (cardinal.to_nat_mul _ _).symm).trans
   (congr_arg cardinal.to_nat (equiv.cardinal_eq (quotient_equiv_prod_of_le h))).symm
 
 @[to_additive] lemma index_dvd_of_le (h : H ≤ K) : K.index ∣ H.index :=
 dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
+
+@[to_additive] lemma relindex_dvd_index_of_le (h : H ≤ K) : H.relindex K ∣ H.index :=
+dvd_of_mul_right_eq K.index (relindex_mul_index h)
 
 @[to_additive] lemma relindex_subgroup_of (hKL : K ≤ L) :
   (H.subgroup_of L).relindex (K.subgroup_of L) = H.relindex K :=
@@ -87,36 +92,40 @@ dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
 
 variables (H K L)
 
-@[to_additive] lemma relindex_mul_relindex (hHK : H ≤ K) (hKL : K ≤ L) :
+@[to_additive relindex_mul_relindex] lemma relindex_mul_relindex (hHK : H ≤ K) (hKL : K ≤ L) :
   H.relindex K * K.relindex L = H.relindex L :=
 begin
   rw [←relindex_subgroup_of hKL],
   exact relindex_mul_index (λ x hx, hHK hx),
 end
 
-lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
+@[to_additive] lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
 begin
   rw [←subgroup_of_map_subtype, relindex, relindex, subgroup_of, comap_map_eq_self_of_injective],
   exact subtype.coe_injective,
 end
 
-lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
+@[to_additive] lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
 by rw [inf_comm, inf_relindex_right]
 
+@[to_additive relindex_inf_mul_relindex]
 lemma relindex_inf_mul_relindex : H.relindex (K ⊓ L) * K.relindex L = (H ⊓ K).relindex L :=
 by rw [←inf_relindex_right H (K ⊓ L), ←inf_relindex_right K L, ←inf_relindex_right (H ⊓ K) L,
   inf_assoc, relindex_mul_relindex (H ⊓ (K ⊓ L)) (K ⊓ L) L inf_le_right inf_le_right]
 
+@[to_additive]
 lemma inf_relindex_eq_relindex_sup [K.normal] : (H ⊓ K).relindex H = K.relindex (H ⊔ K) :=
 cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
 
-lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
+@[to_additive] lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
 by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
+
+@[to_additive] lemma relindex_dvd_index_of_normal [H.normal] : H.relindex K ∣ H.index :=
+(relindex_eq_relindex_sup K H).symm ▸ relindex_dvd_index_of_le le_sup_right
 
 variables {H K}
 
-lemma relindex_dvd_of_le_left (hHK : H ≤ K) :
-  K.relindex L ∣ H.relindex L :=
+@[to_additive] lemma relindex_dvd_of_le_left (hHK : H ≤ K) : K.relindex L ∣ H.relindex L :=
 begin
   apply dvd_of_mul_left_eq ((H ⊓ L).relindex (K ⊓ L)),
   rw [←inf_relindex_right H L, ←inf_relindex_right K L],
@@ -195,27 +204,70 @@ end
 
 variables {H K L}
 
+@[to_additive]
 lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
-by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
-  (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
+eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 
+@[to_additive]
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
-cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _
-  ((cardinal.cast_to_nat_of_lt_omega h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
+cardinal.to_nat_apply_of_aleph_0_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _
+  ((cardinal.cast_to_nat_of_lt_aleph_0 h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
     (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le)
 
-lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
+@[to_additive] lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) :
+  K.relindex L ≤ H.relindex L :=
+nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)
+
+@[to_additive] lemma relindex_le_of_le_right (hKL : K ≤ L) (hHL : H.relindex L ≠ 0) :
+  H.relindex K ≤ H.relindex L :=
+cardinal.to_nat_le_of_le_of_lt_aleph_0 (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hHL))
+  (cardinal.mk_le_of_injective (quotient_subgroup_of_embedding_of_le H hKL).2)
+
+@[to_additive] lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=
 λ h, mul_ne_zero (mt (relindex_eq_zero_of_le_right (show K ⊓ L ≤ K, from inf_le_left)) hHK) hKL
   ((relindex_inf_mul_relindex H K L).trans (relindex_eq_zero_of_le_left inf_le_left h))
 
-@[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
+@[to_additive] lemma relindex_inf_ne_zero (hH : H.relindex L ≠ 0) (hK : K.relindex L ≠ 0) :
+  (H ⊓ K).relindex L ≠ 0 :=
+begin
+  replace hH : H.relindex (K ⊓ L) ≠ 0 := mt (relindex_eq_zero_of_le_right inf_le_right) hH,
+  rw ← inf_relindex_right at hH hK ⊢,
+  rw inf_assoc,
+  exact relindex_ne_zero_trans hH hK,
+end
+
+@[to_additive] lemma index_inf_ne_zero (hH : H.index ≠ 0) (hK : K.index ≠ 0) : (H ⊓ K).index ≠ 0 :=
+begin
+  rw ← relindex_top_right at hH hK ⊢,
+  exact relindex_inf_ne_zero hH hK,
+end
+
+@[to_additive] lemma relindex_inf_le : (H ⊓ K).relindex L ≤ H.relindex L * K.relindex L :=
+begin
+  by_cases h : H.relindex L = 0,
+  { exact (le_of_eq (relindex_eq_zero_of_le_left (by exact inf_le_left) h)).trans (zero_le _) },
+  rw [←inf_relindex_right, inf_assoc, ←relindex_mul_relindex _ _ L inf_le_right inf_le_right,
+      inf_relindex_right, inf_relindex_right],
+  exact mul_le_mul_right' (relindex_le_of_le_right inf_le_right h) (K.relindex L),
+end
+
+@[to_additive] lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
+by simp_rw [←relindex_top_right, relindex_inf_le]
+
+@[simp, to_additive index_eq_one] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
-lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
+@[to_additive] lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
 by { rw index_eq_card, exact fintype.card_ne_zero }
 
+/-- Finite index implies finite quotient. -/
+@[to_additive "Finite index implies finite quotient."]
+noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸ H) :=
+(cardinal.lt_aleph_0_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hH))).some
+
+@[to_additive one_lt_index_of_ne_top]
 lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 

@@ -240,13 +240,8 @@ lemma smooth_finprod {ι} {f : ι → M → G} (h : ∀ i, smooth I' I (f i))
   smooth I' I (λ x, ∏ᶠ i, f i x) :=
 begin
   intro x,
-  rcases hfin x with ⟨U, hxU, hUf⟩,
-  have : smooth_at I' I (λ x, ∏ i in hUf.to_finset, f i x) x,
-    from smooth_finset_prod (λ i hi, h i) x,
-  refine this.congr_of_eventually_eq (mem_of_superset hxU $ λ y hy, _),
-  refine finprod_eq_prod_of_mul_support_subset _ (λ i hi, _),
-  rw [hUf.coe_to_finset],
-  exact ⟨y, hi, hy⟩
+  rcases finprod_eventually_eq_prod hfin x with ⟨s, hs⟩,
+  exact (smooth_finset_prod (λ i hi, h i) x).congr_of_eventually_eq hs,
 end
 
 @[to_additive]

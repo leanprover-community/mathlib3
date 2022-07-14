@@ -247,7 +247,7 @@ variables (R L)
 instance of_abelian_is_solvable [is_lie_abelian L] : is_solvable R L :=
 begin
   use 1,
-  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self],
+  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv],
   apply_instance,
 end
 

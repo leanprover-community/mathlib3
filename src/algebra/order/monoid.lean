@@ -1002,7 +1002,7 @@ protected lemma add_lt_add_of_lt_of_le [preorder α] [covariant_class α α (+) 
 (with_top.add_lt_add_right hc hab).trans_le $ add_le_add_left hcd _
 
 /-  There is no `with_top.map_mul_of_mul_hom`, since `with_top` does not have a multiplication. -/
-protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_top α) :
+@[simp] protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_top α) :
   (a + b).map f = a.map f + b.map f :=
 begin
   induction a using with_top.rec_top_coe,
@@ -1124,11 +1124,7 @@ protected def _root_.one_hom.with_top_map {M N : Type*} [has_one M] [has_one N] 
   {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
   add_hom (with_top M) (with_top N) :=
 { to_fun := with_top.map f,
-  map_add' := λ x y, match x, y with
-    ⊤, y := by rw [top_add, map_top, top_add],
-    x, ⊤ := by rw [add_top, map_top, add_top],
-    (x : M), (y : M) := by simp only [← coe_add, map_coe, map_add]
-  end }
+  map_add' := with_top.map_add f }
 
 /-- A version of `with_top.map` for `add_monoid_hom`s. -/
 @[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_top_map
@@ -1188,9 +1184,30 @@ lemma add_eq_coe : a + b = x ↔ ∃ (a' b' : α), ↑a' = a ∧ ↑b' = b ∧ a
 @[simp] lemma coe_add_eq_bot_iff : ↑x + b = ⊥ ↔ b = ⊥ := with_top.coe_add_eq_top_iff
 
 /-  There is no `with_bot.map_mul_of_mul_hom`, since `with_bot` does not have a multiplication. -/
-protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_bot α) :
+@[simp] protected lemma map_add {F} [has_add β] [add_hom_class F α β] (f : F) (a b : with_bot α) :
   (a + b).map f = a.map f + b.map f :=
 with_top.map_add f a b
+
+/-- A version of `with_bot.map` for `one_hom`s. -/
+@[to_additive "A version of `with_bot.map` for `zero_hom`s", simps { fully_applied := ff }]
+protected def _root_.one_hom.with_bot_map {M N : Type*} [has_one M] [has_one N] (f : one_hom M N) :
+  one_hom (with_bot M) (with_bot N) :=
+{ to_fun := with_bot.map f,
+  map_one' := by rw [with_bot.map_one, map_one, coe_one] }
+
+/-- A version of `with_bot.map` for `add_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_hom.with_bot_map
+  {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
+  add_hom (with_bot M) (with_bot N) :=
+{ to_fun := with_bot.map f,
+  map_add' := with_bot.map_add f }
+
+/-- A version of `with_bot.map` for `add_monoid_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_bot_map
+  {M N : Type*} [add_zero_class M] [add_zero_class N] (f : M →+ N) :
+  with_bot M →+ with_bot N :=
+{ to_fun := with_bot.map f,
+  .. f.to_zero_hom.with_bot_map, .. f.to_add_hom.with_bot_map }
 
 variables [preorder α]
 

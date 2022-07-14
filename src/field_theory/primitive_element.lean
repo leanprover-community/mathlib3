@@ -6,6 +6,7 @@ Authors: Thomas Browning, Patrick Lutz
 
 import field_theory.adjoin
 import field_theory.is_alg_closed.basic
+import field_theory.fixed
 import field_theory.separable
 import ring_theory.integral_domain
 
@@ -202,3 +203,13 @@ pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 end separable_assumption
 
 end field
+
+@[simp] lemma alg_hom.card (F E K : Type*) [field F] [field E] [field K] [is_alg_closed K]
+  [algebra F E] [finite_dimensional F E] [is_separable F E] [algebra F K] :
+  fintype.card (E →ₐ[F] K) = finrank F E :=
+begin
+  convert (alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
+    (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
+    (power_basis.finrank _).symm,
+  apply_instance,
+end

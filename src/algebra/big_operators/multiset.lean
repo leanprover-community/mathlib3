@@ -49,11 +49,6 @@ begin
   rw coe_prod,
 end
 
-@[to_additive]
-lemma to_list_map_prod {ι : Type*} (s : multiset ι) (f : ι → α) :
-  (s.to_list.map f).prod = (s.map f).prod :=
-by rw [← coe_prod, ← coe_map, s.coe_to_list]
-
 @[simp, to_additive] lemma prod_zero : @prod α _ 0 = 1 := rfl
 
 @[simp, to_additive]

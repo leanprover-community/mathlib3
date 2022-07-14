@@ -181,7 +181,7 @@ by test_polyrith "{\"data\":[\"(poly.add (poly.mul (poly.const 1/1) (poly.var 0)
 
 example (a b : ℝ) (ha : 2*a = 4) (hab : 2*b = a - b) (hignore : 3 = a + b) :
   b = 2 / 3 :=
-by test_polyrith only [ha, hab] "{\"data\":[\"(poly.const 1/6)\",\"(poly.const 1/3)\"],\"success\":true}" ["ff", "real", "2", "[((2 * var1) - 4), ((2 * var0) - (var1 - var0))]", "(var0 - 2/3)"]  "linear_combination 1 / 6 * ha + 1 / 3 * hab"
+by test_polyrith only [ha, hab] "{\"data\":[\"(poly.const 1/6)\",\"(poly.const 1/3)\"],\"success\":true}" ["ff", "real", "2", "[((2 * var1) - 4), ((2 * var0) - (var1 - var0))]", "(var0 - 2/3)"]  "linear_combination ha / 6 + hab / 3"
 
 constant term : ∀ a b : ℚ, a + b = 0
 
@@ -236,13 +236,13 @@ end
 /-! ## Degenerate cases -/
 
 example {K : Type*} [field K] [char_zero K] {s : K} (hs : 3 * s + 1 = 4) : s = 1 :=
-by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * hs"
+by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "K", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination hs / 3"
 
 example {x : ℤ} (h1 : x + 4 = 2) : x = -2 :=
 by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[((var0 + 4) - 2)]", "(var0 - (-1 * 2))"]  "linear_combination h1"
 
 example {w : ℚ} (h1 : 3 * w + 1 = 4) : w = 1 :=
-by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination 1 / 3 * h1"
+by test_polyrith "{\"data\":[\"(poly.const 1/3)\"],\"success\":true}" ["ff", "rat", "1", "[(((3 * var0) + 1) - 4)]", "(var0 - 1)"]  "linear_combination h1 / 3"
 
 example {x : ℤ} (h1 : 2 * x + 3 = x) : x = -3 :=
 by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "1", "[(((2 * var0) + 3) - var0)]", "(var0 - (-1 * 3))"]  "linear_combination h1"

@@ -32,10 +32,11 @@ We also give the two most common applications of the layer cake formula
 
 ## Main results
 
- * `lintegral_comp_eq_lintegral_meas_le_mul`: The general layer cake formula with Lebesgue
-   integrals.
- * `lintegral_eq_lintegral_meas_le`: The most common special case of the layer cake formula, which
-   states that for a nonnegative function f we have ∫ f(ω) ∂μ(ω) = ∫ μ {ω | f(ω) ≥ t} dt .
+ * `measure_theory.lintegral_comp_eq_lintegral_meas_le_mul`: The general layer cake formula with
+  Lebesgue integrals.
+ * `measure_theory.lintegral_eq_lintegral_meas_le`: The most common special case of the layer cake
+  formula, which states that for a nonnegative function f we have
+  ∫ f(ω) ∂μ(ω) = ∫ μ {ω | f(ω) ≥ t} dt .
 
 ## Tags
 
@@ -52,13 +53,14 @@ section layercake
 namespace measure_theory
 
 variables {α : Type*} [measurable_space α] {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
+  (μ : measure α) [sigma_finite μ]
 
 /-- An auxiliary version of the layer cake theorem (Cavalieri's principle, tail probability
 formula), with a measurability assumption that would also essentially follow from the
 integrability assumptions.
 
-See `measure_theory.layercake` for the main formulation of the layer cake theorem. -/
-lemma lintegral_comp_eq_lintegral_meas_le_mul_of_measurable (μ : measure α) [sigma_finite μ]
+See `measure_theory.lintegral_comp_eq_lintegral_meas_le_mul` for the main formulation of the layer cake theorem. -/
+lemma lintegral_comp_eq_lintegral_meas_le_mul_of_measurable
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
   (g_mble : measurable g) (g_nn : ∀ t > 0, 0 ≤ g t) :
@@ -141,7 +143,7 @@ the integral over the positive real line of the "tail measures" `μ {ω | f(ω) 
 weighted by `g`.
 
 Roughly speaking, the statement is: `∫⁻ (G ∘ f) ∂μ = ∫⁻ t in 0 .. ∞, g(t) * μ {ω | f(ω) ≥ t}`. -/
-theorem lintegral_comp_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
+theorem lintegral_comp_eq_lintegral_meas_le_mul
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
   (g_nn : ∀ᵐ t ∂(volume.restrict (Ioi 0)), 0 ≤ g t) :
@@ -174,11 +176,39 @@ begin
     G_intble G_mble (λ t t_pos, G_nn t),
 end
 
+theorem integral_comp_eq_integral_meas_le_mul
+  (f_mble : measurable f) (fint : integrable f μ)
+  (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
+  (g_nn : ∀ᵐ t ∂(volume.restrict (Ioi 0)), 0 ≤ g t) :
+  ∫ ω, (∫ t in 0 .. f ω, g t) ∂μ
+    = ∫ t in Ioi 0, ennreal.to_real (μ {a : α | t ≤ f a}) * (g t) :=
+begin
+  rw integral_eq_lintegral_of_nonneg_ae,
+  rw lintegral_comp_eq_lintegral_meas_le_mul,
+  rw integral_eq_lintegral_of_nonneg_ae,
+  sorry,
+  -- { congr, ext x,
+  --   by_cases μ {a | x ≤ f a} = ∞,
+  --   { simp only [h, option.mem_def, ennreal.some_eq_coe, ennreal.top_to_real, zero_mul,
+  --       ennreal.of_real_zero, ennreal.zero_eq_coe],
+  --     rw ennreal.top_mul,
+  --     split_ifs,
+  --     { simp only [ennreal.zero_eq_coe] },
+  --     { simp,
+
+  --     }
+
+  --   },
+    -- rw ennreal.of_real_mul,
+    -- rw ennreal.of_real_to_real,
+  }
+end
+
 /-- The standard case of the layer cake formula / Cavalieri's principle / tail probability formula:
 
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f ∂μ = ∫⁻ t in 0 .. ∞, μ {ω | f(ω) ≥ t}`. -/
-theorem lintegral_eq_lintegral_meas_le (μ : measure α) [sigma_finite μ]
+theorem lintegral_eq_lintegral_meas_le
   (f_nn : 0 ≤ f) (f_mble : measurable f) :
   ∫⁻ ω, ennreal.of_real (f ω) ∂μ = ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) :=
 begin
@@ -197,7 +227,7 @@ end
 
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) ≥ t}`. -/
-theorem lintegral_rpow_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
+theorem lintegral_rpow_eq_lintegral_meas_le_mul
   (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ} (p_pos: 0 < p) :
   ∫⁻ ω, ennreal.of_real ((f ω)^p) ∂μ
     = (ennreal.of_real p) * ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) * ennreal.of_real (t^(p-1)) :=

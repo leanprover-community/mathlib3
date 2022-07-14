@@ -90,7 +90,6 @@ lemma coe_smul' [add_comm_group E] [module K E] [module ℝ E] [is_scalar_tower 
   (r : ℝ) (x : E) : r • x = (r : K) • x :=
 by rw [is_R_or_C.of_real_alg, smul_one_smul]
 
-
 lemma algebra_map_eq_of_real : ⇑(algebra_map ℝ K) = coe := rfl
 
 @[simp, is_R_or_C_simps] lemma re_add_im (z : K) : ((re z) : K) + (im z) * I = z :=
@@ -707,9 +706,9 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-variables (K) (E) [normed_group E] [normed_space K E]
+variables (K E) [normed_group E] [normed_space K E]
 
-/-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
+/-- A finite dimensional vector space over an `is_R_or_C` is a proper metric space.
 
 This is not an instance because it would cause a search for `finite_dimensional ?x E` before
 `is_R_or_C ?x`. -/

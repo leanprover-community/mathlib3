@@ -93,8 +93,8 @@ meta def tactic.interactive.create_polyrith_test (restr : parse (tk "only")?)
     (λ s c, s ++ (if c = '"' then "\\\"" else to_string c)),
   let argstring := format_string_list args,
   let onl := if restr.is_some then "only " else "",
-  let hyps := if hyps = [] then "" else to_string hyps,
-  trace!"test_polyrith {onl}{hyps} \"{sage_out}\" {argstring}  \"{out}\""
+  let hyps := if hyps = [] then "" else to_string hyps ++ " ",
+  trace!"test_polyrith {onl}{hyps}\"{sage_out}\" {argstring}  \"{out}\""
 
 
 end tactic

@@ -663,7 +663,7 @@ begin
   have := H _ (h.2 _ (typein_lt_type s b)),
   rw mul_succ at this,
   have := ((add_lt_add_iff_left _).2 (typein_lt_type _ a)).trans_le this,
-  refine ((rel_embedding.of_monotone (λ a, _) (λ a b, _)).ordinal_type_le).trans_lt this,
+  refine (rel_embedding.of_monotone (λ a, _) (λ a b, _)).ordinal_type_le.trans_lt this,
   { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,

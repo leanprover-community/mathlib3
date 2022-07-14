@@ -37,8 +37,8 @@ any `b' < b` also belongs to the range). The type of these embeddings from `r` t
 `initial_seg r s`, and denoted by `r ≼i s`.
 -/
 
-variables {α : Type*} {β : Type*} {γ : Type*}
-  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
+variables {α β γ δ : Type*}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} {u : δ → δ → Prop}
 
 open function
 
@@ -142,13 +142,28 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 
 @[simp] theorem cod_restrict_apply (p) (f : r ≼i s) (H a) : cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
-/-- `sum.inl` as an initial segment into `sum.lift_rel r s`. -/
+/-- `sum.inl` as an initial segment between `sum.lift_rel` relations. -/
 def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lift_rel r s :=
 ⟨rel_embedding.sum_lift_rel_inl r s,
   by { rintros a (a' | b), exacts [λ _, ⟨_, rfl⟩, false.elim ∘ sum.not_lift_rel_inr_inl] }⟩
 
 @[simp] theorem sum_lift_rel_inl_apply (r : α → α → Prop) (s : β → β → Prop) (a) :
   sum_lift_rel_inl r s a = sum.inl a := rfl
+
+/-- `sum.map` as an initial segment into `sum.lift_rel r s`. -/
+def sum_lift_rel_map (f : r ≃r s) (g : t ≼i u) : sum.lift_rel r t ≼i sum.lift_rel s u :=
+⟨rel_embedding.sum_lift_rel_map f g,
+  begin
+    rintros (a | c) (b | d),
+    { refine λ h, ⟨sum.inl (f.symm b), _⟩,
+      simp },
+    { simp },
+    { simp },
+    { simpa using g.init c d },
+  end⟩
+
+@[simp] theorem sum_lift_rel_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
+  sum_lift_rel_map f g a = sum.map f g a := rfl
 
 /-- `sum.inl` as an initial segment into `sum.lex r s`. -/
 def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
@@ -157,6 +172,33 @@ def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.l
 
 @[simp] theorem sum_lex_inl_apply (r : α → α → Prop) (s : β → β → Prop) (a) :
   sum_lex_inl r s a = sum.inl a := rfl
+
+/-- `sum.map` as an initial segment between `sum.lex` relations. -/
+def sum_lex_map (f : r ≃r s) (g : t ≼i u) : sum.lex r t ≼i sum.lex s u :=
+⟨rel_embedding.sum_lex_map f g,
+  begin
+    have H : ∀ b, ∃ a, f a = b := λ b, ⟨f.symm b, by simp⟩,
+    rintros (a | c) (b | d),
+    { simp [H] },
+    { simp },
+    { simp [H] },
+    { simpa using g.init c d },
+  end⟩
+
+@[simp] theorem sum_lex_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
+  sum_lex_map f g a = sum.map f g a := rfl
+
+/-- `λ b, prod.mk a b` as an initial segment. -/
+@[simps] def prod_lex_mk (s : β → β → Prop) {a : α} (H : ∀ a', ¬ r a' a) : s ≼i prod.lex r s :=
+⟨rel_embedding.prod_lex_mk_left s (H a),
+  begin
+    rintros b ⟨a', b'⟩,
+    simp only [prod.lex_def, rel_embedding.prod_lex_mk_left_apply, prod.mk.inj_iff,
+      exists_eq_right],
+    rintro (h | ⟨rfl, -⟩),
+    { exact (H a' h).elim },
+    { exact rfl }
+  end⟩
 
 end initial_seg
 

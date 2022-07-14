@@ -369,41 +369,37 @@ begin
 end
 
 
-/--
-The algebra map `R →+* (A ⊗[R] B)` giving `A ⊗[R] B` the structure of an `R`-algebra.
--/
-def tensor_algebra_map : R →+* (A ⊗[R] B) :=
-{ to_fun := λ r, algebra_map R A r ⊗ₜ[R] 1,
-  map_one' := by { simp, refl },
-  map_mul' := by simp,
-  map_zero' := by simp [zero_tmul],
-  map_add' := by simp [add_tmul], }
+/-- The ring morphism `A →+* A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
+@[simps]
+def include_left_ring_hom : A →+* A ⊗[R] B :=
+{ to_fun := λ a, a ⊗ₜ 1,
+  map_zero' := by simp,
+  map_add' := by simp [add_tmul],
+  map_one' := rfl,
+  map_mul' := by simp }
 
-instance : algebra R (A ⊗[R] B) :=
+variables {S : Type*} [comm_semiring S] [algebra R S] [algebra S A] [is_scalar_tower R S A]
+
+instance left_algebra : algebra S (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
     apply tensor_product.induction_on x,
-    { simp, },
-    { intros a b, simp [tensor_algebra_map, algebra.commutes], },
-    { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], },
+    { simp },
+    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul] },
+    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'] },
   end,
   smul_def' := λ r x,
   begin
     apply tensor_product.induction_on x,
-    { simp [smul_zero], },
-    { intros a b,
-      rw [tensor_algebra_map, ←tmul_smul, ←smul_tmul, algebra.smul_def r a],
-      simp, },
-    { intros, dsimp, simp [smul_add, mul_add, *], },
+    { simp [smul_zero] },
+    { intros a b, dsimp, rw [tensor_product.smul_tmul', algebra.smul_def r a, _root_.one_mul] },
+    { intros, dsimp, simp [smul_add, mul_add, *] },
   end,
-  .. tensor_algebra_map,
-  .. (by apply_instance : module R (A ⊗[R] B)) }.
+  .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
+  .. (by apply_instance : module S (A ⊗[R] B)) }
 
-/-- This could be proved using the simp lemma `left_algebra.algebra_map_apply`. -/
-lemma algebra_map_apply (r : R) :
-  (algebra_map R (A ⊗[R] B)) r = ((algebra_map R A) r) ⊗ₜ[R] 1 := rfl
-
-local attribute [simp] algebra_map_apply
+@[simp] lemma algebra_map_apply (x : S) :
+  algebra_map S (A ⊗[R] B) x = (algebra_map S A x) ⊗ₜ 1 := rfl
 
 variables {C : Type v₃} [semiring C] [algebra R C]
 
@@ -416,8 +412,8 @@ begin
   simp [H],
 end
 
-/-- The algebra morphism `A →ₐ[R] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
-def include_left : A →ₐ[R] A ⊗[R] B :=
+/-- The algebra morphism `A →ₐ[S] A ⊗[R] B` sending `a` to `a ⊗ₜ 1`. -/
+def include_left : A →ₐ[S] A ⊗[R] B :=
 { to_fun := λ a, a ⊗ₜ 1,
   map_zero' := by simp,
   map_add' := by simp [add_tmul],
@@ -484,34 +480,6 @@ instance : comm_ring (A ⊗[R] B) :=
   .. (by apply_instance : ring (A ⊗[R] B)) }.
 
 end comm_ring
-
-section left_algebra
-
-variables {R A A' B : Type*} [comm_semiring R] [comm_semiring A] [semiring A'] [semiring B]
-variables [algebra R A] [algebra R A'] [algebra A A'] [is_scalar_tower R A A'] [algebra R B]
-
-instance left_algebra : algebra A (A' ⊗[R] B) :=
-{ commutes' := λ r x,
-  begin
-    apply tensor_product.induction_on x,
-    { simp },
-    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul] },
-    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'] },
-  end,
-  smul_def' := λ r x,
-  begin
-    apply tensor_product.induction_on x,
-    { simp [smul_zero] },
-    { intros a b, dsimp, rw [tensor_product.smul_tmul', algebra.smul_def r a, _root_.one_mul] },
-    { intros, dsimp, simp [smul_add, mul_add, *] },
-  end,
-  .. tensor_product.include_left.to_ring_hom.comp (algebra_map A A'),
-  .. (by apply_instance : module A (A' ⊗[R] B)) }
-
-@[simp] lemma left_algebra.algebra_map_apply (x : A) :
-  algebra_map A (A' ⊗[R] B) x = (algebra_map A A' x) ⊗ₜ 1 := rfl
-
-end left_algebra
 
 /--
 Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`

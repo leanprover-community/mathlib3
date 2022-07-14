@@ -306,8 +306,9 @@ begin
   { simp [hn], },
   by_cases hm : m = 0,
   { simpa [hm] using hp, },
-  rw [←enat.coe_get (finite_iff_dom.1 $ finite_prime_left (prime_of_normalized_factor p hp) hm),
-    ←pow_dvd_iff_le_multiplicity],
+  rw [← part_enat.coe_get
+    (finite_iff_dom.1 $ finite_prime_left (prime_of_normalized_factor p hp) hm),
+    ← pow_dvd_iff_le_multiplicity],
   exact pow_image_of_prime_by_factor_order_iso_dvd hn hp d (pow_multiplicity_dvd _),
 end
 

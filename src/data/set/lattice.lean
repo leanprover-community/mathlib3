@@ -914,6 +914,9 @@ set.ext $ by simp
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
 by simp [set.ext_iff]
 
+theorem Union_eq_range_psigma (s : ι → set β) : (⋃ i, s i) = range (λ a : Σ' i, s i, a.2) :=
+by simp [set.ext_iff]
+
 theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :
   (⋃ i, sigma.mk i '' (sigma.mk i ⁻¹' s)) = s :=
 begin
@@ -1518,7 +1521,7 @@ lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
-by simp [set.not_disjoint_iff, set.nonempty_def]
+not_disjoint_iff
 
 alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 

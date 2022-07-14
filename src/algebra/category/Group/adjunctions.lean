@@ -120,6 +120,7 @@ adjunction.mk_of_hom_equiv
 end abelianization
 
 /-- The functor taking a monoid to its subgroup of units. -/
+@[simps]
 def Mon.units : Mon.{u} ⥤ Group.{u} :=
 { obj := λ R, Group.of Rˣ,
   map := λ R S f, Group.of_hom $ units.map f,
@@ -146,6 +147,7 @@ instance : is_right_adjoint Mon.units.{u} :=
 ⟨_, Group.forget₂_Mon_adj⟩
 
 /-- The functor taking a monoid to its subgroup of units. -/
+@[simps]
 def CommMon.units : CommMon.{u} ⥤ CommGroup.{u} :=
 { obj := λ R, CommGroup.of Rˣ,
   map := λ R S f, CommGroup.of_hom $ units.map f,

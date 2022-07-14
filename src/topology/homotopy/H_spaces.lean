@@ -13,45 +13,45 @@ universe u
 
 noncomputable theory
 
+open_locale unit_interval
+
 namespace continuous_map
 
-lemma continuous_to_C_iff_uncurry (X Y Z : Type u) [topological_space X] [topological_space Y]
-[locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
+lemma continuous_to_C_iff_uncurry {X Y Z : Type u} [topological_space X] [topological_space Y]
+[locally_compact_space Y] [topological_space Z] {g : X → C(Y, Z)} :
   continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
 (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
 
-lemma continuous_to_C_iff_curry (X Y Z : Type u) [topological_space X] [topological_space Y]
-[locally_compact_space X] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
-  continuous g ↔ continuous (λ x y, g x y) :=  --iff.intro
--- (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
-begin
-  sorry;
-  {
-  split,
-  { intro h,
-    -- have := function.curry_uncurry (λ x y, g x y),
-    -- rw ← this,
-    apply continuous_pi _,
-    have φ  := (@homeomorph.curry X Y Z _ _ _ _ _).symm,
-    let G : C(X, C(Y,Z)) := ⟨g, h⟩,
-    let F := φ.1.1 G,
+-- lemma continuous_to_C_iff_curry (X Y Z : Type u) [topological_space X] [topological_space Y]
+-- [locally_compact_space X] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
+--   continuous g ↔ continuous (λ x y, g x y) :=  --iff.intro
+-- -- (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
+-- begin
+--   sorry;
+--   {
+--   split,
+--   { intro h,
+--     -- have := function.curry_uncurry (λ x y, g x y),
+--     -- rw ← this,
+--     apply continuous_pi _,
+--     have φ  := (@homeomorph.curry X Y Z _ _ _ _ _).symm,
+--     let G : C(X, C(Y,Z)) := ⟨g, h⟩,
+--     let F := φ.1.1 G,
 
-    intro y,
-    -- exact h,
-    -- have := continuous_uncurry,
-    -- apply continuous_pi (λ (i : Y), _),
+--     intro y,
+--     -- exact h,
+--     -- have := continuous_uncurry,
+--     -- apply continuous_pi (λ (i : Y), _),
 
-  },
-  },
-end
+--   },
+--   },
+-- end
 
 end continuous_map
 
-open path continuous_map
-
-open_locale unit_interval
-
 namespace path
+
+open continuous_map
 
 variables (X : Type u) [topological_space X]
 
@@ -64,7 +64,7 @@ end path
 
 namespace H_space
 
-open path
+open path continuous_map
 
 class H_space (X : Type u) [topological_space X]  :=
 (Hmul : X × X → X)
@@ -110,61 +110,89 @@ lemma Hmul_e {G : Type u} [topological_space G] [group G] [topological_group G] 
 
 variables {X : Type u} [topological_space X]
 
-def loop_space (x : X) : Type u := {f : C(I, X) // f 0 = x ∧ f 1 = x}
+-- def loop_space (x : X) : Type u := {f : C(I, X) // f 0 = x ∧ f 1 = x}
 
-instance (x : X) : topological_space (loop_space x) := by {exact subtype.topological_space}
+-- instance (x : X) : topological_space (loop_space x) := by {exact subtype.topological_space}
 
-instance (x : X) : has_coe (loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
+-- instance (x : X) : has_coe (loop_space x) C(I, X) := {coe := λ g, ⟨g.1⟩}
 
-example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compact_space Y]
-[locally_compact_space Z] (g : Y → C(Z, X)) (hg : continuous g) : continuous (λ p : Y × Z, g p.fst p.snd) :=
-begin
-  let f:= continuous_map.uncurry ⟨g, hg⟩,
-  exact f.2,
-end
+-- example (Y Z : Type) [topological_space Y] [topological_space Z] [locally_compact_space Y]
+-- [locally_compact_space Z] (g : Y → C(Z, X)) (hg : continuous g) : continuous (λ p : Y × Z, g p.fst p.snd) :=
+-- begin
+--   let f:= continuous_map.uncurry ⟨g, hg⟩,
+--   exact f.2,
+-- end
 
-abbreviation new_loop_space (x : X) := path x x
+abbreviation loop_space (x : X) := path x x
 
-notation ` Ω ` := new_loop_space
+notation ` Ω ` := loop_space
 
 instance (x : X) : topological_space (Ω x) := infer_instance
 
+instance (x : X) : has_coe (Ω x) C(I, X) := {coe := λ g, ⟨g.1⟩}
+
+@[ext]
+lemma ext_loop (x : X) (γ γ' : Ω x) : γ = γ' ↔ (∀ t, γ t = γ' t) :=
+begin
+  split;
+  intro h,
+  { simp only [h, eq_self_iff_true, forall_const] },
+  { rw [← function.funext_iff] at h, exact path.ext h }
+end
+
+example (x : X) : has_coe_to_fun (Ω x) (λ _, I → X) := infer_instance
+
+variable (f : ℕ → ℕ)
+#check (coe ∘ f : ℕ → ℝ)
+
+-- example (Y : Type u) [topological_space Y] (x  :X) (f : Y → Ω x) : true =
+-- begin
+--  let := (↑f : Y → C(I,X)),
+-- end
+
 variable (x : X)
 
-lemma continuous_to_loop_space_iff_uncurry (Y : Type u) [topological_space Y] (g : Y → Ω x) :
-  continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
+lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y]
+[locally_compact_space Y] {g : Y → Ω x} :
+  continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
 begin
+  convert continuous_to_C_iff_uncurry using 0,
+end
+
+-- lemma continuous_to_loop_space_iff_uncurry (Y : Type u) [topological_space Y] (g : Y → Ω x) :
+--   continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
+-- begin
   -- have := @continuous_map.continuous_uncurry_of_continuous Y I X _ _ _ _,
   -- split,
   -- sorry,
   -- intro h,
   -- apply this,
   -- have := this h,
-sorry;{
-  let g₁ : Y → C(I,X) := λ y, g y,
-  split,
-  { intro h,
-    have hg₁ : continuous g₁, sorry,
-    -- { convert h.subtype_coe,
-    --   ext t,
-    --   refl },
-    have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
-    exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
-  { intro h,
+-- sorry;{
+--   let g₁ : Y → C(I,X) := λ y, g y,
+--   split,
+--   { intro h,
+--     have hg₁ : continuous g₁, sorry,
+--     -- { convert h.subtype_coe,
+--     --   ext t,
+--     --   refl },
+--     have H := continuous_uncurry_of_continuous ⟨g₁, hg₁⟩,
+--     exact continuous_pi (λ _, continuous.comp H (continuous_id'.prod_mk continuous_const)), },
+--   { intro h,
 
-    suffices hg₁ : continuous g₁,
-    sorry,
-    apply continuous_of_continuous_uncurry,
-    dsimp [function.uncurry],
-    -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
-    -- suggest,
-    -- library_search,
-    -- continuity,
-    -- simp,
-    -- convert h using 0,
-  },
-}
-end
+--     suffices hg₁ : continuous g₁,
+--     sorry,
+--     apply continuous_of_continuous_uncurry,
+--     dsimp [function.uncurry],
+--     -- exact continuous_pi (λ (t : I), continuous.comp h (continuous_id'.prod_mk continuous_const)),
+--     -- suggest,
+--     -- library_search,
+--     -- continuity,
+--     -- simp,
+--     -- convert h using 0,
+--   },
+-- }
+-- end
 
 
 lemma continuous_to_loop_space_iff_curry {Y : Type u} [topological_space Y]

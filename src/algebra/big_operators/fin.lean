@@ -161,6 +161,22 @@ end partial_prod
 
 end fin
 
+namespace vector
+
+lemma sum_ite_eq_nth_eq_count [decidable_eq α] [add_comm_monoid_with_one β] {n : ℕ}
+  (a : α) (v : vector α n) : ∑ i, ite (a = v.nth i) (1 : β) 0 = ↑(v.to_list.count a) :=
+begin
+  induction n with n hn,
+  { simp [vector.eq_nil v] },
+  { obtain ⟨x, xs, hxs⟩ := v.exists_eq_cons,
+    suffices : ite (x = a) (1 : β) 0 + xs.to_list.count a =
+      ite (x = a) ((xs.to_list.count a) + 1) (xs.to_list.count a),
+    by simpa [hxs, hn xs, fin.sum_univ_succ, list.count_cons, @eq_comm _ a x] using this,
+    split_ifs; simp [add_comm (1 : β)] }
+end
+
+end vector
+
 namespace list
 
 section comm_monoid
@@ -202,18 +218,6 @@ begin
   { rw [take_all_of_le (le_of_eq (length_of_fn f))] },
   { have : ∀ (j : fin n), (j : ℕ) < n := λ j, j.is_lt,
     simp [this] }
-end
-
-lemma vector.sum_ite_eq_nth_eq_count [decidable_eq α] [add_comm_monoid_with_one β] {n : ℕ}
-  (a : α) (v : vector α n) : ∑ i, ite (a = v.nth i) (1 : β) 0 = ↑(v.to_list.count a) :=
-begin
-  induction n with n hn,
-  { simp [vector.eq_nil v] },
-  { obtain ⟨x, xs, hxs⟩ := v.exists_eq_cons,
-    suffices : ite (x = a) (1 : β) 0 + xs.to_list.count a =
-      ite (x = a) ((xs.to_list.count a) + 1) (xs.to_list.count a),
-    by simpa [hxs, hn xs, fin.sum_univ_succ, list.count_cons, @eq_comm _ a x] using this,
-    split_ifs; simp [add_comm (1 : β)] }
 end
 
 end comm_monoid

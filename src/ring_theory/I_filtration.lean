@@ -12,30 +12,9 @@ import ring_theory.finiteness
 
 /-!
 
-# Maximal length of chains
+# `I`-filtrations of modules
 
-This file contains lemmas to work with the maximal length of strictly ascending finite
-Nuences (chains) in a partially ordered set.
-
-## Main definition
-
-- `sup_chain_length α`: The maximal length of chains in `α`.
-- `chain_height a`: The maximal length of chains in `α` that start from `a : α`
-  (not including `a` itself).
-
-They are both valued in `enat`, and equal `⊤ : enat` when the lengths are unbounded.
-
-## Main results
-
-- `exists_chain_of_le_length`: For each `n : ℕ` such that `n ≤ chain_height a`, there exists a
-  chain of length `n` starting from `a`.
-- `chain_height_eq_one_iff`: An element has height zero iff it is minimal.
-- `chain_height_le_of_lt`: If `a < b`, then `chain_height b + 1 ≤ chain_height a`. This implies that
-  `chain_height` is decreasing (`chain_height_antitone`).
-- `sup_chain_length_eq_sup_chain_height`: `sup_chain_length` is the supremum of all the heights.
-- `sup_chain_length_dual`: The maximal length of a poset and is dual is the same.
-- `chain_height_add_chain_height_dual_le`: The sum of the height of the same element in `α` and
-  `αᵒᵈ` is bounded by `sup_chain_length`.
+This file contains the definitions and basic results around (stable) `I`-filtrations of modules.
 
 -/
 
@@ -55,9 +34,7 @@ structure I_filtration (M : Type u) [add_comm_group M] [module R M] :=
 (mono : ∀ i, N (i + 1) ≤ N i)
 (smul_le : ∀ i, I • N i ≤ N (i + 1))
 
-variable (F : I_filtration I M)
-
-variables {I}
+variable (F : I_filtration I M) {I}
 
 lemma I_filtration.pow_smul_le (i j : ℕ) : I ^ i • F.N j ≤ F.N (i + j) :=
 begin
@@ -78,24 +55,12 @@ begin
   { intros n _ e', exact (F.mono _).trans e' }
 end
 
-lemma submodule.smul_supr {ι : Type*} {I : ideal R} {t : ι → submodule R M} :
-  I • supr t = ⨆ i, I • t i :=
-submodule.map₂_supr_right _ _ _
-
-lemma submodule.smul_infi_le {ι : Type*} {I : ideal R} {t : ι → submodule R M} :
-  I • infi t ≤ ⨅ i, I • t i :=
-le_infi (λ i, submodule.smul_mono_right (infi_le _ _))
-
-variables (I)
-
 /-- The trivial `I`-filtration of `N`. -/
-def trivial_I_filtration (N : submodule R M) :
+def trivial_I_filtration (I : ideal R) (N : submodule R M) :
   I_filtration I M :=
 { N := λ i, N,
   mono := λ i, le_of_eq rfl,
   smul_le := λ i, submodule.smul_le_right }
-
-variables {I}
 
 /-- The `Sup` of a family of `I_filtration`s is an `I_filtration`. -/
 @[simps]

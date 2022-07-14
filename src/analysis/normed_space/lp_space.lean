@@ -646,7 +646,7 @@ begin
 end
 
 instance : has_star (lp E p) :=
-{ star := λ f, ⟨(star f : Π i, E i) , f.property.star_mem ⟩}
+{ star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
 
 @[simp] lemma coe_fn_star (f : lp E p) : ⇑(star f) = star f := rfl
 @[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl

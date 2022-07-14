@@ -1268,7 +1268,7 @@ let ⟨r, _, e⟩ := ord_eq α in begin
   { cases h with f,
     have g := rel_embedding.preimage f s,
     haveI := rel_embedding.is_well_order g,
-    exact le_trans (ord_le_type _) (g.ordinal_type_le) }
+    exact le_trans (ord_le_type _) g.ordinal_type_le }
 end
 
 theorem lt_ord {c o} : o < ord c ↔ o.card < c :=

@@ -291,7 +291,7 @@ begin
     ext a,
     have := ((not_le.mp n0).trans_le (int.coe_zero_le a)).ne',
     simp only [coeff, comap_domain_apply, int.of_nat_eq_coe, coeff_zero, single_apply_eq_zero, this,
-      forall_false_left] }
+      is_empty.forall_iff] }
 end
 
 @[simp] lemma left_inverse_trunc_to_laurent :
@@ -360,7 +360,7 @@ instance : module R[X] R[T;T⁻¹] :=
 module.comp_hom _ polynomial.to_laurent
 
 instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
-{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+{ smul_assoc := λ x y z, by simp only [has_smul.smul, has_smul.comp.smul, map_mul, mul_assoc] }
 
 end semiring
 

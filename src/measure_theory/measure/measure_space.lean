@@ -1032,7 +1032,8 @@ if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   end
 else 0
 
-lemma comapₗ_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (hfi : injective f)
+lemma comapₗ_apply {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (hfi : injective f)
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
   comapₗ f μ s = μ (f '' s) :=
 begin
@@ -1063,6 +1064,8 @@ begin
     simp_rw [set.mem_diff, hx], },
 end
 
+/-- Pullback of a `measure`. If `f` sends each measurable set to a null-measurable set,
+then for each measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
 def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :=
 if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s) μ
 then (outer_measure.comap f μ.to_outer_measure).to_measure

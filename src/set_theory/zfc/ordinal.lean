@@ -590,7 +590,8 @@ Set.Ordinal.order_iso_to_type.symm.trans $ order_iso_Iio_to_Ordinal.symm.trans $
 @[simp] theorem to_Ordinal_to_ordinal (o : ordinal) : o.to_Ordinal.to_ordinal = o :=
 by simpa using (@to_Ordinal_to_type_order_iso o).to_rel_iso_lt.ordinal_type_eq
 
-theorem _root_.Set.Ordinal.to_ordinal_to_Ordinal (x : Set.Ordinal) : x.to_ordinal.to_Ordinal = x :=
+@[simp] theorem _root_.Set.Ordinal.to_ordinal_to_Ordinal (x : Set.Ordinal) :
+  x.to_ordinal.to_Ordinal = x :=
 by rw [←Set.Ordinal.to_ordinal_inj, to_Ordinal_to_ordinal]
 
 /-- The order equivalence between ordinals and von Neumann ordinals. -/

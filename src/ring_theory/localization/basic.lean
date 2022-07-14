@@ -797,7 +797,7 @@ instance : comm_semiring (localization M) :=
   `localization M`-/
 @[simps]
 def mk_add_monoid_hom (b : M) : R →+ localization M :=
-{ to_fun := flip mk b,
+{ to_fun := λ a, mk a b,
   map_zero' := mk_zero _,
   map_add' := λ x y, (add_mk_self _ _ _).symm }
 

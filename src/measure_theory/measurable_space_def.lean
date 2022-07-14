@@ -306,7 +306,8 @@ lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s
   @measurable_set _ (generate_from s) t :=
 generate_measurable.basic t ht
 
-lemma generate_from_induction (p : set α → Prop) {C : set (set α)}
+@[elab_as_eliminator]
+lemma generate_from_induction (p : set α → Prop) (C : set (set α))
   (hC : ∀ t ∈ C, p t) (h_empty : p ∅) (h_compl : ∀ t, p t → p tᶜ)
   (h_Union : ∀ f : ℕ → set α, (∀ n, p (f n)) → p (⋃ i, f i))
   {s : set α} (hs : measurable_set[generate_from C] s) :

@@ -593,11 +593,12 @@ by simpa using (@to_Ordinal_to_type_order_iso o).to_rel_iso_lt.ordinal_type_eq
 theorem _root_.Set.Ordinal.to_ordinal_to_Ordinal (x : Set.Ordinal) : x.to_ordinal.to_Ordinal = x :=
 by rw [←Set.Ordinal.to_ordinal_inj, to_Ordinal_to_ordinal]
 
-/-- The equivalence between ordinals and von Neumann ordinals. -/
-@[simps] noncomputable def order_iso_Ordinal : ordinal ≃ Set.Ordinal :=
+/-- The order equivalence between ordinals and von Neumann ordinals. -/
+@[simps] noncomputable def order_iso_Ordinal : ordinal ≃o Set.Ordinal :=
 { to_fun := to_Ordinal,
   inv_fun := Set.Ordinal.to_ordinal,
   left_inv := to_Ordinal_to_ordinal,
-  right_inv := Set.Ordinal.to_ordinal_to_Ordinal }
+  right_inv := Set.Ordinal.to_ordinal_to_Ordinal,
+  map_rel_iff' := λ i j, by simp }
 
 end ordinal

@@ -295,10 +295,11 @@ on `L ≃ₐ[K] L`. Then the restriction map `(L ≃ₐ[K] L) → (E →ₐ[K] L
 ultrafilter on `E →ₐ[K] L`. Since `E →ₐ[K] L` is a finite set, this ultrafilter is principal. The
 element of `E →ₐ[K] L` generating this principal ultrafilter is `f.alg_hom h_findim`, where
 `h_findim : finite_dimensional K E`. -/
-protected noncomputable def ultrafilter.generator_of_pushforward (h_findim : finite_dimensional K E)
+protected noncomputable def ultrafilter.generator_of_pushforward
+  {E : Type*} [field E] [algebra K E] [algebra E L] [is_scalar_tower K E L] [finite_dimensional K E]
   (f : ultrafilter (L →ₐ[K] L)) : E →ₐ[K] L :=
 classical.some $ ultrafilter.eq_pure_of_fintype $
-  f.map $ λ σ, σ.comp $ intermediate_field.val _
+  f.map $ λ σ, σ.comp $ is_scalar_tower.to_alg_hom K E L
 
 /-- Let `f` be an ultrafilter on `L ≃ₐ[K] L`. For an intermediate field `E` of `L/K`, there is a
   natural restriction map `(L ≃ₐ[K] L) → (E →ₐ[K] L)`. Moreover, this restriction map gives

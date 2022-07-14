@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.martingale.upcrossing
+import measure_theory.function.uniform_integrable
 
 /-!
 
@@ -32,6 +33,8 @@ variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α} {ℱ : fi
 variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ} {n m : ℕ} {x : α} {R : ℝ≥0}
 
 /-!
+
+### Almost everywhere martingale convergence theorem
 
 We will now prove almost everywhere the martingale convergence theorem.
 
@@ -329,6 +332,66 @@ begin
     hgm, measure_eq_zero_of_trim_eq_zero hle hg⟩,
   simp_rw [liminf_eq, eventually_at_top],
   exact Sup_le (λ b ⟨a, ha⟩, (ha a le_rfl).trans (hbdd _)),
+end
+
+/-!
+
+### L¹ martingale convergence theorem
+
+We will now prove the L¹ martingale convergence theorems.
+
+The L¹ martingale convergence theorem states that:
+(a) if `f` is a uniformly integrable (in the probability sense) submartingale adapted to the
+  filtration `ℱ`, it converges in L¹ to an integrable function `g` which is measurable with
+  respect to `ℱ∞ := ⨆ n, ℱ n` and
+(b) if `f` is actually a martingale, `f n = 𝔼[g | ℱ n]` almost everywhere.
+(c) Finally, if `h` is integrable and measurable with respect to `ℱ∞`, `(𝔼[h | ℱ n])ₙ` is a
+  uniformly integrable martingale which converges to `h` almost everywhere and in L¹.
+
+The proof is quite simple. (a) follows directly from the a.e. martingale convergence theorem
+and the Vitali convergence theorem. Mathematically, one first have to observe that uniform
+integrability implies uniform boundedness in L¹. Indeed, if
+$$
+  \lim_{\lambda \to \infty} \sup_{n \ge 0} \mathbb{E}(|f_n|\mathbf{1}_{\{|f_n| > \lambda\}}) = 0,
+$$
+then there exists some $\lambda$ such that
+$\sup_{n \ge 0} \mathbb{E}(|f_n|\mathbf{1}_{\{|f_n| > \lambda\}}) \le 1$. So,
+$$
+  \sup_{n \ge 0} \mathbb{E}|f_n| \le
+    \sup_{n \ge 0} \mathbb{E}|f_n|\mathbf{1}_{\{|f_n| \le \lambda\}} +
+    \sup_{n \ge 0} \mathbb{E}|f_n|\mathbf{1}_{\{|f_n| > \lambda\}} \le
+    \lambda \mu(\Omega) + 1 < \infty.
+$$
+However, by the very definition we used for uniform integrability in the probability sense,
+uniform integrability in Lean directly requires L¹ boundedness and so the above is unnecessary.
+
+(b) follows since give $n$, we have for all $m \ge n$,
+$$
+  \|f_n - \mathbb{E}[g \mid \mathcal{F}_n]\|_1 =
+    \|\mathbb{E}[f_m \mid \mathcal{F}_n] - \mathbb{E}[g \mid \mathcal{F}_n]\|_1 =
+    \|\mathbb{E}[f_m - g \mid \mathcal{F}_n]\|_1 \le \|f_m - g\|_1
+$$
+where the inequality is due to the conditional Jensen's inequality. Thus, taking $m \to \infty$
+provides the almost everywhere equality.
+
+(c) TODO.
+
+-/
+
+/-- Part 1 of the **L¹ martingale convergence theorem**: a uniformly integrable submartingale
+adapted to the filtration `ℱ` converges in L¹ to an integrable function which is measurable
+with respect to the σ-algebra `⨆ n, ℱ n`. -/
+lemma submartingale.exists_mem_ℒ1_tendsto_snorm
+  (hf : submartingale f ℱ μ) (hbdd : uniform_integrable f 1 μ) :
+  ∃ g : α → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧
+  tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0) :=
+begin
+  obtain ⟨R, hR⟩ := hbdd.2.2,
+  obtain ⟨g, hg₁, hg₂, htends⟩ := hf.exists_mem_ℒ1_ae_tendsto_of_bdd hR,
+  have hmeas : ∀ n, ae_strongly_measurable (f n) μ :=
+    λ n, ((hf.strongly_measurable n).mono (ℱ.le _)).ae_strongly_measurable,
+  exact ⟨g, hg₁, hg₂, tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
+    hmeas hg₁ hbdd.2.1 (tendsto_in_measure_of_tendsto_ae hmeas htends)⟩,
 end
 
 end measure_theory

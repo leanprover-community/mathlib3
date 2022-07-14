@@ -49,9 +49,6 @@ def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
    ∃ (V : opens X) (ι : V ⟶ U) (hxV : x ∈ V) (s : Γ_ ℱ V),
    T _* s = t |_ ι
 
-def sharp {X Y : PresheafedSpace.{u} C} (f : PresheafedSpace.hom X Y) := f.c
-postfix `^#` : 80 := sharp
-
 end locally_surjective
 
 section closed_immersion
@@ -59,11 +56,39 @@ section closed_immersion
 /-! A map between schemes is a closed immersion if the underlying map is a closed embedding of topological spaces, and the pullback natural transformation f_* is locally surjective.
    See item (4) in https://stacks.math.columbia.edu/tag/01QO. -/
 
--- variables {X Y : Scheme.{u}} (f : X ⟶ Y)
+variables {X Y : LocallyRingedSpace.{u}} (f : X ⟶ Y)
 
-structure is_closed_immersion {X Y : Scheme.{u}} (f : X ⟶ Y) : Prop :=
+notation `𝒪_` := LocallyRingedSpace.presheaf
+notation f `^#` : 80 := f.val.c
+
+structure is_closed_immersion {X Y : LocallyRingedSpace.{u}} (f : X ⟶ Y) : Prop :=
     (is_closed_embedding_base : closed_embedding f.val.base)
-    (is_locally_surjective : is_locally_surjective f.val.c)
+    (is_locally_surjective : is_locally_surjective (f ^#))
+
+variables (y : Y) (U : open_nhds y)
+
+-- U as a LocallyRingedSpace
+def U_as_LRS (y : Y) (U : open_nhds y) : LocallyRingedSpace := Y.restrict U.open_embedding
+
+-- The inclusion morphism U ⟶ Y as a map of LocallyRingedSpaces
+def U_to_Y (y : Y) (U : open_nhds y) : U_as_LRS y U ⟶ Y := Y.of_restrict U.open_embedding
+
+-- how do we define the subscheme f⁻¹ U ⊆ X and the morphism f⁻¹ U ⟶ U?
+
+-- idea: Use continuity of the map of spaces to produce f⁻¹ U as an open *subset*
+-- then restrict X to f⁻¹ U the same way as above (might need some massaging using
+-- the "open_nhds" predicate)
+-- Then build the inclusion morphism f ⁻¹ U ⟶ X and compose with X ⟶ Y
+-- idea (for the map): I think there is a coercion lemma that says, if
+-- the image lands in an open subscheme, you can convert the map to have that
+-- codomain.
+
+-- lemma is_closed_immersion_of_locally
+--    {X Y : LocallyRingedSpace.{u}} (f : X ⟶ Y)
+--    (h : ∀ (y : Y) (U : open_nhds y),
+--       @is_closed_immersion _ (Y.restrict U.open_embedding)
+
+
 
 end closed_immersion
 

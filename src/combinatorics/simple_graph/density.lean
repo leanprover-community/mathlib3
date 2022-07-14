@@ -21,6 +21,7 @@ Between two finsets of vertices,
 -/
 
 open finset
+open_locale big_operators
 
 variables {ι κ α β : Type*}
 
@@ -94,6 +95,27 @@ lemma interedges_bUnion (s : finset ι) (t : finset κ) (f : ι → finset α) (
   interedges r (s.bUnion f) (t.bUnion g) =
     (s.product t).bUnion (λ ab, interedges r (f ab.1) (g ab.2)) :=
 by simp_rw [product_bUnion, interedges_bUnion_left, interedges_bUnion_right]
+
+lemma card_interedges_finpartition_left (P : finpartition s) (t : finset β) :
+  (interedges r s t).card = ∑ a in P.parts, (interedges r a t).card :=
+begin
+  simp_rw [←P.bUnion_parts, interedges_bUnion_left, id.def],
+  rw card_bUnion,
+  exact λ x hx y hy h, interedges_disjoint_left r (P.disjoint hx hy h) _,
+end
+
+lemma card_interedges_finpartition_right (s : finset α) (P : finpartition t) :
+  (interedges r s t).card = ∑ b in P.parts, (interedges r s b).card :=
+begin
+  simp_rw [←P.bUnion_parts, interedges_bUnion_right, id],
+  rw card_bUnion,
+  exact λ x hx y hy h, interedges_disjoint_right r _ (P.disjoint hx hy h),
+end
+
+lemma card_interedges_finpartition (P : finpartition s) (Q : finpartition t) :
+  (interedges r s t).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
+by simp_rw [card_interedges_finpartition_left _ P, card_interedges_finpartition_right _ _ Q,
+  sum_product]
 
 end decidable_eq
 

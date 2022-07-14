@@ -240,18 +240,6 @@ begin
     exact smul_mem_smul_set hx }
 end
 
-/-- In textbooks, this is the homogeneity of the Minkowksi functional. -/
-lemma gauge_smul [module α E] [is_scalar_tower α ℝ (set E)] {s : set E}
-  (symmetric : ∀ x ∈ s, -x ∈ s) (r : α) (x : E) :
-  gauge s (r • x) = abs r • gauge s x :=
-begin
-  rw ←gauge_smul_of_nonneg (abs_nonneg r),
-  obtain h | h := abs_choice r,
-  { rw h },
-  { rw [h, neg_smul, gauge_neg symmetric] },
-  { apply_instance }
-end
-
 lemma gauge_smul_left_of_nonneg [mul_action_with_zero α E] [smul_comm_class α ℝ ℝ]
   [is_scalar_tower α ℝ ℝ] [is_scalar_tower α ℝ E] {s : set E} {a : α} (ha : 0 ≤ a) :
   gauge (a • s) = a⁻¹ • gauge s :=
@@ -294,34 +282,22 @@ end
 end linear_ordered_field
 
 section is_R_or_C
-
 variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
-lemma gauge_balanced (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) =
-  gauge s (∥r∥ • x) :=
+lemma gauge_norm_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (∥r∥ • x) = gauge s (r • x) :=
 begin
   rw @is_R_or_C.coe_smul' 𝕜,
-  simp_rw [gauge_def'],
-  by_cases h : r = 0,
-  { rw h, simp only [norm_zero, is_R_or_C.of_real_zero] },
-  apply congr_arg _,
-  ext r',
-  simp only [mem_sep_eq, mem_Ioi, and.congr_right_iff],
-  intros hr',
-  simp_rw [←smul_assoc, is_R_or_C.coe_smul],
-  refine hs.mem_smul_iff _,
-  simp [is_R_or_C.norm_of_real],
+  obtain rfl | hr := eq_or_ne r 0,
+  { simp only [norm_zero, is_R_or_C.of_real_zero] },
+  unfold gauge,
+  congr' with θ,
+  refine and_congr_right (λ hθ, (hs.smul _).mem_smul_iff _),
+  rw [is_R_or_C.norm_of_real, norm_norm],
 end
 
-/-- If `s` is balanced, then the Minkowski functional
-  is ℂ-homogeneous. -/
-lemma gauge_smul' {s : set E} (hs : balanced 𝕜 s) (r : 𝕜) (x : E) :
-  gauge s (r • x) = ∥r∥ * gauge s x :=
-begin
-  rw [←smul_eq_mul, ←gauge_smul_of_nonneg (norm_nonneg r)],
-  exact gauge_balanced hs _ _,
-  apply_instance,
-end
+/-- If `s` is balanced, then the Minkowski functional is ℂ-homogeneous. -/
+lemma gauge_smul (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) = ∥r∥ * gauge s x :=
+by { rw [←smul_eq_mul, ←gauge_smul_of_nonneg (norm_nonneg r), gauge_norm_smul hs], apply_instance }
 
 end is_R_or_C
 
@@ -398,34 +374,22 @@ begin
     mul_inv_cancel hb.ne', ←smul_add, one_div, ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
 end
 
-/-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/
-@[simps] def gauge_seminorm (hs₀ : ∀ x ∈ s, -x ∈ s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
-  seminorm ℝ E :=
-seminorm.of (gauge s) (gauge_add_le hs₁ hs₂)
-  (λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance)
-
 section is_R_or_C
 variables [is_R_or_C 𝕜] [module 𝕜 E] [is_scalar_tower ℝ 𝕜 E]
 
-/-- `gauge s` as a seminorm over is_R_or_C when `s` is balanced, convex and absorbent. -/
-@[simps] def gauge_seminorm' (hs₀ : balanced 𝕜 s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
+/-- `gauge s` as a seminorm when `s` is  balanced, convex and absorbent. -/
+@[simps] def gauge_seminorm (hs₀ : balanced 𝕜 s)  (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
   seminorm 𝕜 E :=
-seminorm.of (gauge s) (gauge_add_le hs₁ hs₂) (gauge_smul' hs₀)
+seminorm.of (gauge s) (gauge_add_le hs₁ hs₂) (gauge_smul hs₀)
 
-end is_R_or_C
-
-section gauge_seminorm
-variables {hs₀ : ∀ x ∈ s, -x ∈ s} {hs₁ : convex ℝ s} {hs₂ : absorbent ℝ s}
-
-section topological_space
-variables [topological_space E] [has_continuous_smul ℝ E]
+variables {hs₀ : balanced 𝕜 s} {hs₁ : convex ℝ s} {hs₂ : absorbent ℝ s} [topological_space E]
+  [has_continuous_smul ℝ E]
 
 lemma gauge_seminorm_lt_one_of_open (hs : is_open s) {x : E} (hx : x ∈ s) :
   gauge_seminorm hs₀ hs₁ hs₂ x < 1 :=
 gauge_lt_one_of_mem_of_open hs₁ hs₂.zero_mem hs hx
 
-end topological_space
-end gauge_seminorm
+end is_R_or_C
 
 /-- Any seminorm arises as the gauge of its unit ball. -/
 @[simp] protected lemma seminorm.gauge_ball (p : seminorm ℝ E) : gauge (p.ball 0 1) = p :=
@@ -453,7 +417,7 @@ begin
 end
 
 lemma seminorm.gauge_seminorm_ball (p : seminorm ℝ E) :
-  gauge_seminorm (λ x, p.symmetric_ball_zero 1) (p.convex_ball 0 1)
+  gauge_seminorm (p.balanced_ball_zero 1) (p.convex_ball 0 1)
     (p.absorbent_ball_zero zero_lt_one) = p := fun_like.coe_injective p.gauge_ball
 
 end add_comm_group

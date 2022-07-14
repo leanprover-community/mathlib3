@@ -456,8 +456,8 @@ lemma equiv_restricts_to_alg_hom_of_finite_dimensional (h_int : algebra.is_integ
 alg_hom.ext (ultrafilter.glued_generators_of_pushforwards_function_spec' h_int f h_findim)
 
 lemma ultrafilter_converges_to_glued_equiv (h_int : algebra.is_integral K L)
-  (f : ultrafilter (L ≃ₐ[K] L)) : (f : filter (L ≃ₐ[K] L)) ≤ nhds
-  (ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int
+  (f : ultrafilter (L ≃ₐ[K] L)) : (f : filter (L ≃ₐ[K] L)) ≤
+  𝓝 (ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int
   (f.map (λ (σ : L ≃ₐ[K] L), σ.to_alg_hom))) :=
 begin
   let σ := ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int (f.map (λ (e : L ≃ₐ[K] L),

@@ -5,27 +5,26 @@ Authors: Damiano Testa
 -/
 import algebra.monoid_algebra.basic
 
-/-!  #  Degree of an `add_monoid_algebra`
+/-!  #  Max-degree and min-degree of an `add_monoid_algebra`
 
 Let `R` be a semiring and let `A` be a `semilattice_sup`.
 
 For an element `f : add_monoid_algebra R A`, this file defines
-* `add_monoid_algebra.degree`: the degree taking values in `with_bot A`,
-* `add_monoid_algebra.trailing_degree`: the trailing degree taking values in `with_top A`.
-If the grading type `A` is a linearly ordered additive monoid, then this notions of degree
+* `add_monoid_algebra.max_degree`: the max-degree taking values in `with_bot A`,
+* `add_monoid_algebra.min_degree`: the min-degree taking values in `with_top A`.
+If the grading type `A` is a linearly ordered additive monoid, then these two notions of degree
 coincide with the standard one:
-* the degree is the maximum of the exponents of the monomials that appear with non-zero
+* the max-degree is the maximum of the exponents of the monomials that appear with non-zero
   coefficient in `f`, or `⊥`, if `f = 0`;
-* the trailing degree is the minimum of the exponents of the monomials that appear with non-zero
+* the min-degree is the minimum of the exponents of the monomials that appear with non-zero
   coefficient in `f`, or `⊤`, if `f = 0`.
 
 Currently, the only results are
-* `degree_mul_le` -- the degree of a product is at most the sum of the degrees,
-*  `le_trailing_degree_mul` -- the trailing degree of a product is at least the sum of the
-  trailing degrees.
+* `max_degree_mul_le` -- the max-degree of a product is at most the sum of the max-degrees,
+* `le_min_degree_mul` -- the min-degree of a product is at least the sum of the min-degrees.
 -/
 
-variables {R A B : Type*} [semilattice_sup B] [order_bot B]
+variables {R A B ι : Type*} [semilattice_sup B] [order_bot B]
 
 namespace add_monoid_algebra
 open_locale classical big_operators
@@ -96,7 +95,7 @@ begin
   exact sup_support_list_prod_le D0 Dm F,
 end
 
-lemma sup_support_finset_prod_le {ι : Type*}
+lemma sup_support_finset_prod_le
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
   (s : finset ι) (f : ι → add_monoid_algebra R A):
   (∏ i in s, f i).support.sup D ≤ ∑ i in s, (f i).support.sup D :=
@@ -112,49 +111,48 @@ section degrees
 
 variables [semiring R]
 
-section degree
+section max_degree
 
 variables [semilattice_sup A]
 
 /--  Let `R` be a semiring, let `A` be a `semilattice_sup`, and let `f : R[A]` be an
-an element of `add_monoid_algebra R A`.  The degree of `f` takes values in `with_bot A` and
-it is the supremum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not.
+an element of `add_monoid_algebra R A`.  The max-degree of `f` takes values in `with_bot A`
+and it is the supremum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not.
 
 If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
 the exponents. -/
-@[reducible]
-def degree (f : add_monoid_algebra R A) : with_bot A :=
+@[reducible] def max_degree (f : add_monoid_algebra R A) : with_bot A :=
 f.support.sup coe
 
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
 variables (f g : add_monoid_algebra R A)
 
-lemma degree_mul_le : (f * g).degree ≤ f.degree + g.degree :=
+lemma max_degree_mul_le : (f * g).max_degree ≤ f.max_degree + g.max_degree :=
 sup_support_mul_le (λ a b, (with_bot.coe_add _ _).le) f g
 
-end degree
+end max_degree
 
-section trailing_degree
+section min_degree
 
 variables [semilattice_inf A]
 
 /--  Let `R` be a semiring, let `A` be a `semilattice_inf`, and let `f : R[A]` be an
-an element of `add_monoid_algebra R A`.  The trailing degree of `f` takes values in `with_top A`
+an element of `add_monoid_algebra R A`.  The min-degree of `f` takes values in `with_top A`
 and it is the infimum of the support of `f` or `⊤`, depending on whether `f` is non-zero or not.
 
 If `A` has a linear order, then this notion coincides with the usual one, using the minimum of
 the exponents. -/
-def trailing_degree (f : add_monoid_algebra R A) : with_top A :=
+@[reducible] def min_degree (f : add_monoid_algebra R A) : with_top A :=
 f.support.inf coe
 
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
   (f g : add_monoid_algebra R A)
 
-lemma le_trailing_degree_mul :
-  f.trailing_degree + g.trailing_degree ≤ (f * g).trailing_degree :=
+lemma le_min_degree_mul :
+  f.min_degree + g.min_degree ≤ (f * g).min_degree :=
 sup_support_mul_le (λ a b : Aᵒᵈ, (with_bot.coe_add _ _).le) _ _
 
-end trailing_degree
+end min_degree
 
 end degrees
 

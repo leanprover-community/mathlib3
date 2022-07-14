@@ -37,15 +37,14 @@ any `b' < b` also belongs to the range). The type of these embeddings from `r` t
 `initial_seg r s`, and denoted by `r ≼i s`.
 -/
 
-/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order
-embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
-range of `f`. -/
-
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
 open function
 
+/-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order
+embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
+range of `f`. -/
 @[nolint has_inhabited_instance]
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (init : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)

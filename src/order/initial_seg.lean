@@ -142,13 +142,21 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 
 @[simp] theorem cod_restrict_apply (p) (f : r ≼i s) (H a) : cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
-/-- Initial segment embedding of an order `r` into the disjoint union of `r` and `s`. -/
-def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
-⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl⟩,
-  λ a b, by cases b; [exact λ _, ⟨_, rfl⟩, exact false.elim ∘ sum.lex_inr_inl]⟩
+/-- `sum.inl` as an initial segment into `sum.lift_rel r s`. -/
+def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lift_rel r s :=
+⟨rel_embedding.sum_lift_rel_inl r s,
+  by { rintros a (a' | b), exacts [λ _, ⟨_, rfl⟩, false.elim ∘ sum.not_lift_rel_inr_inl] }⟩
 
-@[simp] theorem le_add_apply (r : α → α → Prop) (s : β → β → Prop)
-  (a) : le_add r s a = sum.inl a := rfl
+@[simp] theorem sum_lift_rel_inl_apply (r : α → α → Prop) (s : β → β → Prop) (a) :
+  sum_lift_rel_inl r s a = sum.inl a := rfl
+
+/-- `sum.inl` as an initial segment into `sum.lex r s`. -/
+def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
+⟨rel_embedding.sum_lex_inl r s,
+  by { rintros a (a' | b), exacts [λ _, ⟨_, rfl⟩, false.elim ∘ sum.lex_inr_inl] }⟩
+
+@[simp] theorem sum_lex_inl_apply (r : α → α → Prop) (s : β → β → Prop) (a) :
+  sum_lex_inl r s a = sum.inl a := rfl
 
 end initial_seg
 

@@ -352,6 +352,12 @@ end
   inj' := sum.inr_injective,
   map_rel_iff' := λ a b, sum.lift_rel_inr_inr }
 
+/-- `sum.map` as a relation embedding between `sum.lift_rel` relations. -/
+@[simps] def sum_lift_rel_map (f : r ↪r s) (g : t ↪r u) : sum.lift_rel r t ↪r sum.lift_rel s u :=
+{ to_fun := sum.map f g,
+  inj' := f.injective.sum_map g.injective,
+  map_rel_iff' := by { rintro (a | b) (c | d); simp [f.map_rel_iff, g.map_rel_iff] } }
+
 /-- `sum.inl` as a relation embedding into `sum.lex r s`. -/
 @[simps] def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lex r s :=
 { to_fun := sum.inl,
@@ -364,7 +370,7 @@ end
   inj' := sum.inr_injective,
   map_rel_iff' := λ a b, sum.lex_inr_inr }
 
-/-- `sum.map` as a relation embedding. -/
+/-- `sum.map` as a relation embedding between `sum.lex` relations. -/
 @[simps] def sum_lex_map (f : r ↪r s) (g : t ↪r u) : sum.lex r t ↪r sum.lex s u :=
 { to_fun := sum.map f g,
   inj' := f.injective.sum_map g.injective,

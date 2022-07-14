@@ -48,12 +48,7 @@ lemma I_filtration.pow_smul_le_pow_smul (i j k : ℕ) : I ^ (i + k) • F.N j �
 by { rw [add_comm, pow_add, mul_smul], exact submodule.smul_mono_right (F.pow_smul_le i j) }
 
 lemma I_filtration.antitone (F : I_filtration I M) : antitone F.N :=
-begin
-  intros i j e,
-  refine nat.le_induction _ _ _ e,
-  { exact le_refl _ },
-  { intros n _ e', exact (F.mono _).trans e' }
-end
+antitone_nat_of_succ_le F.mono
 
 /-- The trivial `I`-filtration of `N`. -/
 def trivial_I_filtration (I : ideal R) (N : submodule R M) :

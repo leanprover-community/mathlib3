@@ -42,29 +42,37 @@ The a.e. martingale convergence theorem states: if `f` is a L¹-bounded `ℱ`-su
 it converges almost everywhere to a integrable function which is measurable with respect to
 the σ-algebra `ℱ∞ := ⨆ n, ℱ n`.
 
-Mathematically, we proceed by first noting that a real sequence `x` converges if
-(a) `limsup |x| < ∞`,
-(b) For all `a < b : ℚ` we have `upcrossing a b f x < ∞`.
-Thus, for all `x` satisfying `limsup |λ n, f n x| < ∞` and for all
-`a < b : ℚ`, `upcrossing a b f x < ∞`, we have `(f n x)ₙ` converges.
+Mathematically, we proceed by first noting that a real sequence $(x_n)$ converges if
+(a) $\limsup_{n \to \infty} |x_n| < \infty$, (b) for all $a < b \in \mathbb{Q}$ we have the
+number of upcrossings of $(x_n)$ from below $a$ to above $b$ is finite.
+Thus, for all $x$ satisfying $\limsup_{n \to \infty} |f_n(x)| < \infty$ and the number of
+upcrossings of $(f_n(x))$ from below $a$ to above $b$ is finite for all $a < b \in \mathbb{Q}$,
+we have $(f_n(x))$ is convergent.
 
-Hence, assuming `f` is L¹-bounded, using Fatou's lemma, we have
-`𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` implying `limsup |f| < ∞ a.e`. Furthermore, by
-the upcrossing estimate, `upcrossing a b f N < ∞ a.e.` and so, `f` converges
-pointwise almost everywhere.
+Hence, assuming $(f_n)$ is L¹-bounded, using Fatou's lemma, we have
+$$
+  \mathbb{E] \limsup_{n \to \infty} |f_n| \le \limsup_{n \to \infty} \mathbb{E}|f_n| < \infty
+$$
+implying $\limsup_{n \to \infty} |f_n| < \infty$ a.e. Furthermore, by the upcrossing estimate,
+the number of upcrossings is finite almost everywhere implying $f$ converges pointwise almost
+everywhere.
 
-Thus, denoting `g` the a.e. limit of `f`, `g` is `ℱ∞`-measurable as for all `n`,
-`f n` is `ℱ n`-measurable and `ℱ n ≤ ℱ∞`. Finally, `g` is also integrable as
-`|g| ≤ liminf |f n|` so `𝔼[|g|] ≤ 𝔼[limsup |f|] ≤ limsup 𝔼[|f|] < ∞` as required.
+Thus, denoting $g$ the a.e. limit of $(f_n)$, $g$ is $\mathcal{F}_\infty$-measurable as for all
+$n$, $f_n$ is $\mathcal{F}_n$-measurable and $\mathcal{F}_n \le \mathcal{F}_\infty$. Finally, $g$
+is integrable as $|g| \le \liminf_{n \to \infty} |f_n|$ so
+$$
+  \mathbb{E}|g| \le \mathbb{E} \limsup_{n \to \infty} |f_n| \le
+    \limsup_{n \to \infty} \mathbb{E}|f_n| < \infty
+$$
+as required.
 
 Implementation wise, a previous PR has given us `tendsto_of_no_upcrossings` which showed that
-a bounded sequence converges if it does not visit below `a` and above `b` infinitely often
-for all `a, b ∈ s` for some dense set `s`. So, we may skip the first step provided we can prove
-that the realizations are bounded almost everywhere. Indeed, suppose `(|f n x|)ₙ` is not bounded,
-then either `f n x → ±∞` or one of `limsup f n x` or `liminf f n x` equals `±∞` while the other
-is finite. But the first case contradicts `liminf |f n x| < ∞` while the second
-case contradicts finite upcrossings and so, `(|f n x|)ₙ` is bounded if `limsup |x| < ∞` and
-`upcrossing a b f x < ∞` which is precisely the assumptions we have.
+a bounded sequence converges if it does not visit below $a$ and above $b$ infinitely often
+for all $a, b ∈ s$ for some dense set $s$. So, we may skip the first step provided we can prove
+that the realizations are bounded almost everywhere. Indeed, suppose $(|f_n(x)|)$ is not bounded,
+then either $f_n(x) \to \pm \infty$ or one of $\limsup f_n(x)$ or $\liminf f_n(x)$ equals
+$\pm \infty$ while the other is finite. But the first case contradicts $\liminf |f_n(x)| < \infty$
+while the second case contradicts finite upcrossings.
 
 -/
 
@@ -466,5 +474,7 @@ lemma martingale.exists_mem_ℒ1_tendsto_snorm
   tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0) :=
 let ⟨g, hg₁, hg₂, hg₃⟩ := hf.submartingale.exists_mem_ℒ1_tendsto_snorm hbdd in
   ⟨g, hg₁, hg₂, λ n, hf.eq_condexp_lim_of_tendsto_snorm hg₁ hg₃ n, hg₃⟩
+
+
 
 end measure_theory

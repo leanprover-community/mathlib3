@@ -25,12 +25,16 @@ Currently, the only results are
   trailing degrees.
 -/
 
+variables {R A B : Type*} [semilattice_sup B] [order_bot B]
+
 namespace add_monoid_algebra
 open_locale classical
 
-variables {R A B : Type*} [semiring R]
-
 section general_results_assuming_semilattice_sup
+
+section semiring
+
+variables [semiring R]
 
 section add_only
 
@@ -47,18 +51,11 @@ begin
   refine Dm.trans (add_le_add _ _);
   exact finset.le_sup ‹_›,
 end
+
 end add_only
 
-variables [semilattice_sup B] [order_bot B]
-
-lemma supo {R A B : Type*} [semilattice_sup B] [semiring R] [has_zero A] [has_zero B]
-  {D : A → B} (D0 : D 0 ≤ 0) (b : A) (hb : b ∈ (1 : add_monoid_algebra R A).support) :
-  D b ≤ 0 :=
-by rwa [finset.mem_singleton.mp (finsupp.support_single_subset hb)]
---  exact λ a ha, by simpa [finset.mem_singleton.mp (finsupp.support_single_subset ha)]
-
-lemma sup_support_list_prod_le [add_monoid A]
-  [add_monoid B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+lemma sup_support_list_prod_le [add_monoid A] [add_monoid B]
+  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b) :
   ∀ F : list (add_monoid_algebra R A),
     F.prod.support.sup D ≤ (F.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum
@@ -71,28 +68,25 @@ lemma sup_support_list_prod_le [add_monoid A]
     exact (sup_support_mul_le Dm _ _).trans (add_le_add_left (sup_support_list_prod_le _) _)
   end
 
-lemma cons {A B : Type*} [comm_monoid B]
-  (f : A → B) (a : A) (s : multiset A) :
-  (list.map f (a ::ₘ s).to_list).prod = f a * (multiset.map f s).prod :=
-begin
-  rw ← multiset.prod_to_list,
-  rw multiset.add
-  --library_search,
-  admit,
-end
+end semiring
 
-@[to_additive]
-lemma _root_.multiset.to_list_map_prod {ι A : Type*} [comm_monoid A]
-  (s : multiset ι) (f : ι → A) :
-  (s.to_list.map f).prod = (s.map f).prod :=
-begin
-  rw ← multiset.prod_to_list,
-  apply finset.prod_congr
-  sorry
-end
-
-lemma sup_support_multiset_prod_le {R} [comm_semiring R] [add_comm_monoid A] [add_comm_monoid B]
+lemma sup_support_pow_le [comm_semiring R] [add_monoid A] [add_monoid B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b) (n : ℕ)
+  (f : add_monoid_algebra R A) :
+  (f ^ n).support.sup D ≤ n • (f.support.sup D) :=
+begin
+  induction n with n hn,
+  { simp only [pow_zero, zero_smul, finset.sup_le_iff],
+    exact λ a ha, by rwa finset.mem_singleton.mp (finsupp.support_single_subset ha) },
+  { rw [pow_succ, succ_nsmul],
+    exact (sup_support_mul_le Dm _ _).trans (add_le_add rfl.le hn) }
+end
+
+variables [comm_semiring R] [add_comm_monoid A] [add_comm_monoid B]
+  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+
+lemma sup_support_multiset_prod_le
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
   (F : multiset (add_monoid_algebra R A)) :
   F.prod.support.sup D ≤ (F.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum :=
@@ -102,49 +96,21 @@ begin
   exact sup_support_list_prod_le D0 Dm F,
 end
 
-lemma sup_support_multiset_prod_le {R} [comm_semiring R] [add_comm_monoid A] [add_comm_monoid B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+lemma sup_support_finset_prod_le
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
-  (F : multiset (add_monoid_algebra R A)) :
-  F.prod.support.sup D ≤ (F.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum :=
-begin
-  apply F.induction_on,
-  { rw [multiset.prod_zero, multiset.map_zero, multiset.sum_zero, finset.sup_le_iff],
-    exact λ a ha, by rwa [finset.mem_singleton.mp (finsupp.support_single_subset ha)] },
-  { simp only [finset.sup_le_iff, multiset.prod_cons, multiset.map_cons, multiset.sum_cons],
-    intros f F hF a ha,
-    obtain ⟨c, cf, b, bg, rfl⟩ : ∃ c, c ∈ f.support ∧ ∃ b, b ∈ F.prod.support ∧ a = c + b,
-    { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop]
-        using f.support_mul F.prod ha },
-    exact (Dm _ _).trans (add_le_add (finset.le_sup cf) (hF _ bg)) }
-end
-
-lemma sup_support_finset_prod_le {R} [comm_semiring R] [add_comm_monoid A] [add_comm_monoid B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
-  (s : finset \io) (f : \io → add_monoid_algebra R A):
-  (\prod i in s, f i).support.sup D ≤ \sum i in s, (f i).support.sup D :=
+  (F : finset (add_monoid_algebra R A)) :
+  (finset.prod F id).support.sup D ≤ finset.sum F (λ f, f.support.sup D) :=
 begin
   rcases F with ⟨F, hF⟩,
   rw [finset.prod_mk, multiset.map_id],
   exact sup_support_multiset_prod_le D0 Dm F,
 end
 
-lemma sup_support_pow_le {R} [comm_semiring R] [add_monoid A] [add_monoid B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b) (n : ℕ)
-  (f : add_monoid_algebra R A) :
-  (f ^ n).support.sup D ≤ n • (f.support.sup D) :=
-begin
-  induction n with n hn,
-  { simpa only [pow_zero, zero_smul, finset.sup_le_iff] using supo D0 },
-  { rw [pow_succ, succ_nsmul],
-    exact (sup_support_mul_le Dm _ _).trans (add_le_add rfl.le hn) }
-end
-
 end general_results_assuming_semilattice_sup
 
 section degrees
+
+variables [semiring R]
 
 section degree
 
@@ -156,7 +122,6 @@ it is the supremum of the support of `f` or `⊥`, depending on whether `f` is n
 
 If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
 the exponents. -/
-@[reducible]
 def degree (f : add_monoid_algebra R A) : with_bot A :=
 f.support.sup coe
 

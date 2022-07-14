@@ -591,7 +591,7 @@ end adjoin_integral_element
 
 section induction
 
-variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+variables {F E K : Type*} [field F] [field E] [field K] [algebra F E] [algebra F K]
 
 /-- An intermediate field `S` is finitely generated if there exists `t : finset E` such that
 `intermediate_field.adjoin F t = S`. -/
@@ -642,6 +642,20 @@ lemma induction_on_adjoin [fd : finite_dimensional F E] (P : intermediate_field 
 begin
   letI : is_noetherian F E := is_noetherian.iff_fg.2 infer_instance,
   exact induction_on_adjoin_fg P base ih K K.fg_of_noetherian
+end
+
+instance alg_hom.finite_of_finite_dimensional [finite_dimensional F E] : finite (E →ₐ[F] K) :=
+begin
+  suffices : finite ((⊤ : intermediate_field F E) →ₐ[F] K),
+  { exactI finite.of_equiv _ (intermediate_field.top_equiv.arrow_congr alg_equiv.refl) },
+  apply intermediate_field.induction_on_adjoin (λ L : intermediate_field F E, finite (L →ₐ[F] K)),
+  { haveI : subsingleton (F →ₐ[F] K) := alg_hom.subsingleton,
+    exact finite.of_equiv _ ((intermediate_field.bot_equiv F E).symm.arrow_congr alg_equiv.refl) },
+  { intros L x hL,
+    haveI := λ f : L →ₐ[F] K, @intermediate_field.fintype_of_alg_hom_adjoin_integral
+      L _ E _ _ x K _ f.to_ring_hom.to_algebra (algebra.is_integral_of_finite L E x),
+    exact finite.of_equiv _ (@alg_hom_equiv_sigma F L L⟮x⟯ K _ _ _ _ _ _ _ _
+      L⟮x⟯.is_scalar_tower).symm },
 end
 
 end induction

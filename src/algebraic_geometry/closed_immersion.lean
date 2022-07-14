@@ -53,36 +53,39 @@ end locally_surjective
 
 section closed_immersion
 
-/-! A map between schemes is a closed immersion if the underlying map is a closed embedding of topological spaces, and the pullback natural transformation f_* is locally surjective.
-   See item (4) in https://stacks.math.columbia.edu/tag/01QO. -/
-
+/-! Let X and Y be locally ringed spaces, and f : X ⟶ Y a map. -/
 variables {X Y : LocallyRingedSpace.{u}} (f : X ⟶ Y)
 
+/-! The presheaf associated to X is denoted 𝒪_X, and the pull-back component of f
+    is denoted by f^# : f_*(𝒪_Y) -> 𝒪_X. -/
 notation `𝒪_` := LocallyRingedSpace.presheaf
 notation f `^#` : 80 := f.val.c
+
+/-! A map between schemes is a closed immersion if the underlying map is a closed embedding of
+topological spaces, and the pullback natural transformation f^# is locally surjective.
+   See item (4) in https://stacks.math.columbia.edu/tag/01QO. -/
 
 structure is_closed_immersion {X Y : LocallyRingedSpace.{u}} (f : X ⟶ Y) : Prop :=
     (is_closed_embedding_base : closed_embedding f.val.base)
     (is_locally_surjective : is_locally_surjective (f ^#))
 
+/-! Let U ⊆ Y be an open subset of the base of Y. It gives rise to a locally ringed space
+that we denote by Uʳ, and the inclusion morphism U ⟶ Y gives rise to a map of LocallyRingedSpaces. -/
 variables (U : opens Y)
 
--- U as a LocallyRingedSpace
-def U_as_LRS : LocallyRingedSpace := Y.restrict U.open_embedding
+def LRS_of_open (U : opens Y) : LocallyRingedSpace := Y.restrict U.open_embedding
+local notation U `ʳ` := LRS_of_open U
 
--- The inclusion morphism U ⟶ Y as a map of LocallyRingedSpaces
-def U_to_Y : U_as_LRS U ⟶ Y := Y.of_restrict U.open_embedding
+def morphism_of_open (U : opens Y) : Uʳ ⟶ Y := Y.of_restrict U.open_embedding
 
-def f_inv_U : opens X := (opens.map (f.val.base)).obj U
+/-! The inverse image of U is an open set of X, that we denote f ₒ⁻¹ U. -/
+def inv (f : X ⟶ Y) (U : opens Y) : opens X := (opens.map (f.val.base)).obj U
 
-def f_inv_U_as_LRS : LocallyRingedSpace :=
-   X.restrict (f_inv_U f U).open_embedding
+local infix `ₒ⁻¹` : 80 := inv
 
-def f_inv_U_to_X : (f_inv_U_as_LRS f U) ⟶ X :=
-   X.of_restrict (f_inv_U f U).open_embedding
+def f_inv_U_to_X : (f ₒ⁻¹ U)ʳ ⟶ X := morphism_of_open (f ₒ⁻¹ U)
 
-def f_inv_U_to_Y : (f_inv_U_as_LRS f U) ⟶ Y :=
-   f_inv_U_to_X f U ≫ f
+def f_inv_U_to_Y : (f ₒ⁻¹ U)ʳ ⟶ Y := f_inv_U_to_X f U ≫ f
 
 -- try using open_immersion.lift? f : X ⟶ Y 𝒪_Y ⟶ f_* 𝒪_X
 
@@ -93,9 +96,9 @@ end
 
 -- f⁻¹ U → U
 
-def stuff : X ⟶ Y :=
-{ val := _,
-  property := _ }
+-- def stuff : X ⟶ Y :=
+-- { val := _,
+--   property := _ }
 
 -- how do we define the subscheme f⁻¹ U ⊆ X and the morphism f⁻¹ U ⟶ U?
 

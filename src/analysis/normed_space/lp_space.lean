@@ -671,7 +671,7 @@ instance [hp : fact (1 ≤ p)] : normed_star_group (lp E p) :=
 variables {𝕜 : Type*} [has_star 𝕜] [normed_field 𝕜]
 variables [Π i, normed_space 𝕜 (E i)] [Π i, star_module 𝕜 (E i)]
 
-instance : star_module 𝕜 (lp E p) := ⟨by {intros _ _, ext, simp}⟩
+instance : star_module 𝕜 (lp E p) := { star_smul := λ r f, ext $ star_smul _ _ }
 
 end normed_star_group
 

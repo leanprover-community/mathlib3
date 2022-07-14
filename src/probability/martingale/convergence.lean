@@ -480,8 +480,36 @@ lemma martingale.exists_mem_ℒ1_tendsto_snorm
 let ⟨g, hg₁, hg₂, hg₃⟩ := hf.submartingale.exists_mem_ℒ1_tendsto_snorm hbdd in
   ⟨g, hg₁, hg₂, λ n, hf.eq_condexp_lim_of_tendsto_snorm hg₁ hg₃ n, hg₃⟩
 
-#check martingale_condexp
-#check unif_integrable
+lemma integrable.snorm_one_condexp_le_snorm {m : measurable_space α}
+  {f : α → ℝ} (hf : integrable f μ) (hm : m ≤ m0) :
+  snorm (μ[f | m]) 1 μ ≤ snorm f 1 μ :=
+calc snorm (μ[f | m]) 1 μ ≤ snorm (μ[|f| | m]) 1 μ :
+begin
+  refine snorm_mono_ae _,
+  filter_upwards [@condexp_mono _ m0 _ m _ _ _ hf hf.abs
+      (@ae_of_all _ m0 _ μ (λ x, le_abs_self (f x) : ∀ x, f x ≤ |f x|)),
+    eventually_le.trans (condexp_neg f).symm.le
+      (@condexp_mono _ m0 _ m _ _ _ hf.neg hf.abs
+      (@ae_of_all _ m0 _ μ (λ x, neg_le_abs_self (f x) : ∀ x, -f x ≤ |f x|)))] with x hx₁ hx₂,
+  exact abs_le_abs hx₁ hx₂,
+end
+  ... = snorm f 1 μ :
+begin
+  rw [snorm_one_eq_lintegral_nnnorm, snorm_one_eq_lintegral_nnnorm,
+    ← ennreal.to_real_eq_to_real (ne_of_lt integrable_condexp.2) (ne_of_lt hf.2),
+    ← integral_norm_eq_lintegral_nnnorm
+      (strongly_measurable_condexp.mono hm).ae_strongly_measurable,
+    ← integral_norm_eq_lintegral_nnnorm hf.1],
+  simp_rw [real.norm_eq_abs],
+  rw ← @integral_condexp _ _ _ _ _ m m0 μ _ hm _ hf.abs,
+  refine integral_congr_ae _,
+  have : (λ x, (0 : ℝ)) ≤ᵐ[μ] μ[|f| | m],
+  { rw ← @condexp_const _ _ _ _ _ _ _ μ hm (0 : ℝ),
+    exact condexp_mono (integrable_zero _ _ _) hf.abs
+      (@ae_of_all _ m0 _ μ (λ x, abs_nonneg (f x) : ∀ x, 0 ≤ |f x|)) },
+  filter_upwards [this] with x hx,
+  exact abs_eq_self.2 hx,
+end
 
 /-- Part 3 of the **L¹ martingale convergnce theorem**: TODO. -/
 lemma martingale_condexp_uniform_integrable
@@ -491,13 +519,20 @@ begin
   refine uniform_integrable_of le_rfl ennreal.one_ne_top
     (λ n, strongly_measurable_condexp.mono (ℱ.le n)) (λ ε hε, _),
   obtain ⟨δ, hδ, h⟩ := hg.snorm_indicator_le μ le_rfl ennreal.one_ne_top hε,
-  set C := (⟨δ, hδ.le⟩ : ℝ≥0)⁻¹ * (μ set.univ).to_nnreal,
+  set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (μ set.univ).to_nnreal,
+  have : ∀ n, μ {x : α | C ≤ ∥μ[g | ℱ n] x∥₊} ≤ ennreal.of_real δ,
+  { intro n,
+    have := mul_meas_ge_le_pow_snorm' μ one_ne_zero ennreal.one_ne_top
+      ((@strongly_measurable_condexp _ _ _ _ _ (ℱ n) _ μ g).mono
+        (ℱ.le n)).ae_strongly_measurable C,
+    simp only [ennreal.coe_mul, ennreal.one_to_real, ennreal.rpow_one] at this,
+
+  },
   sorry,
 end
 
 /-
-Uniform boundedness in Lᵖ → uniform integrability.
-https://math.stackexchange.com/questions/729217/uniform-lp-bound-on-finite-measure-implies-uniform-integrability
+Uniform boundedness in Lᵖ → uniform integrability so do we really need Doob's Lᵖ inequality?
 -/
 
 end measure_theory

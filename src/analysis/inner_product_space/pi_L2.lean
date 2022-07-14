@@ -166,6 +166,24 @@ end
 
 /-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
 all other coordinates. -/
+def euclidean_space.projₗ [decidable_eq ι] (i : ι) :
+  euclidean_space 𝕜 ι →ₗ[𝕜] 𝕜 :=
+(linear_map.proj i).comp (pi_Lp.linear_equiv 2 𝕜 (λ i : ι, 𝕜) : euclidean_space 𝕜 ι →ₗ[𝕜] ι → 𝕜)
+
+/-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
+all other coordinates. -/
+def euclidean_space.proj [decidable_eq ι] (i : ι) :
+  euclidean_space 𝕜 ι →L[𝕜] 𝕜 :=
+⟨euclidean_space.projₗ i, continuous_apply i⟩
+
+@[simp] lemma euclidean_space.coe_proj [decidable_eq ι] (i : ι) :
+  ⇑(euclidean_space.proj i : euclidean_space 𝕜 ι →L[𝕜] 𝕜) = function.eval i := rfl
+
+lemma euclidean_space.proj_apply [decidable_eq ι] (i : ι) (b : euclidean_space 𝕜 ι) :
+  (euclidean_space.proj i : euclidean_space 𝕜 ι →L[𝕜] 𝕜) b = b i := rfl
+
+/-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
+all other coordinates. -/
 def euclidean_space.single [decidable_eq ι] (i : ι) (a : 𝕜) :
   euclidean_space 𝕜 ι :=
 (pi_Lp.equiv _ _).symm (pi.single i a)

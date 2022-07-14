@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.inner_product_space.basic
+import analysis.inner_product_space.pi_L2
 import analysis.special_functions.sqrt
 
 /-!
@@ -240,3 +240,101 @@ lemma differentiable_on.dist (hf : differentiable_on ℝ f s) (hg : differentiab
   (hne : ∀ x ∈ s, f x ≠ g x) :
   differentiable_on ℝ (λ y, dist (f y) (g y)) s :=
 λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
+
+section pi_like
+
+open continuous_linear_map
+
+#where
+
+variables {H : Type*} [normed_group H] [normed_space 𝕜 H] {ι : Type*} [fintype ι] {t : set H}
+  {y : H}
+
+lemma differentiable_within_at_euclidean {f : H → euclidean_space 𝕜 ι} :
+  differentiable_within_at 𝕜 f t y ↔ ∀ i, differentiable_within_at 𝕜 (λ x, f x i) t y :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_differentiable_within_at_iff, differentiable_within_at_pi],
+  refl
+end
+
+lemma differentiable_at_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι} :
+  differentiable_at 𝕜 f y ↔ ∀ i, differentiable_at 𝕜 (λ x, f x i) y :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_differentiable_at_iff, differentiable_at_pi],
+  refl
+end
+
+lemma differentiable_on_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι} :
+  differentiable_on 𝕜 f t ↔ ∀ i, differentiable_on 𝕜 (λ x, f x i) t :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_differentiable_on_iff, differentiable_on_pi],
+  refl
+end
+
+lemma differentiable_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι} :
+  differentiable 𝕜 f ↔ ∀ i, differentiable 𝕜 (λ x, f x i) :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_differentiable_iff, differentiable_pi],
+  refl
+end
+
+lemma has_strict_fderiv_at_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι}
+  {f' : H →L[𝕜] euclidean_space 𝕜 ι} :
+  has_strict_fderiv_at f f' y ↔ ∀ i, has_strict_fderiv_at (λ x, f x i)
+    (euclidean_space.proj i ∘L f') y :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_has_strict_fderiv_at_iff, has_strict_fderiv_at_pi'],
+  refl
+end
+
+lemma has_fderiv_within_at_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι}
+  {f' : H →L[𝕜] euclidean_space 𝕜 ι} :
+  has_fderiv_within_at f f' t y ↔ ∀ i, has_fderiv_within_at (λ x, f x i)
+    (euclidean_space.proj i ∘L f') t y :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_has_fderiv_within_at_iff, has_fderiv_within_at_pi'],
+  refl
+end
+
+lemma cont_diff_within_at_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι}
+  {n : with_top ℕ} :
+  cont_diff_within_at 𝕜 n f t y ↔ ∀ i, cont_diff_within_at 𝕜 n (λ x, f x i) t y :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_cont_diff_within_at_iff, cont_diff_within_at_pi],
+  refl
+end
+
+lemma cont_diff_at_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι}
+  {n : with_top ℕ} :
+  cont_diff_at 𝕜 n f y ↔ ∀ i, cont_diff_at 𝕜 n (λ x, f x i) y :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_cont_diff_at_iff, cont_diff_at_pi],
+  refl
+end
+
+lemma cont_diff_on_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι}
+  {n : with_top ℕ} :
+  cont_diff_on 𝕜 n f t ↔ ∀ i, cont_diff_on 𝕜 n (λ x, f x i) t :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_cont_diff_on_iff, cont_diff_on_pi],
+  refl
+end
+
+lemma cont_diff_euclidean {ι : Type*} [fintype ι] {f : H → euclidean_space 𝕜 ι} {n : with_top ℕ} :
+  cont_diff 𝕜 n f ↔ ∀ i, cont_diff 𝕜 n (λ x, f x i) :=
+begin
+  let φ : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := (linear_equiv.refl _ _).to_continuous_linear_equiv,
+  rw [← φ.comp_cont_diff_iff, cont_diff_pi],
+  refl
+end
+
+end pi_like

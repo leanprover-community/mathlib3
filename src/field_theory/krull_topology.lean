@@ -429,8 +429,8 @@ begin
   exact ⟨a, hay⟩,
 end
 
-lemma ultrafilter.glued_generators_of_pushforwards_alg_hom_bijection (h_int : algebra.is_integral
-  K L) (f : ultrafilter (L →ₐ[K] L)) : function.bijective
+lemma ultrafilter.glued_generators_of_pushforwards_alg_hom_bijection
+  (h_int : algebra.is_integral K L) (f : ultrafilter (L →ₐ[K] L)) : function.bijective
   (ultrafilter.glued_generators_of_pushforwards_alg_hom f h_int) :=
 ⟨ultrafilter.glued_generators_of_pushforwards_alg_hom_injective h_int f,
   ultrafilter.glued_generators_of_pushforwards_alg_hom_surjective h_int f⟩
@@ -474,8 +474,8 @@ begin
       mem_pure, mem_singleton_iff, ←equiv_restricts_to_alg_hom_of_finite_dimensional],
 end
 
-lemma krull_topology_compact (h_int : algebra.is_integral K L) : is_compact (set.univ : set
-  (L ≃ₐ[K] L)) :=
+lemma krull_topology_compact (h_int : algebra.is_integral K L) :
+  is_compact (set.univ : set (L ≃ₐ[K] L)) :=
 is_compact_iff_ultrafilter_le_nhds.2 (λ f _,
   ⟨ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int (f.map alg_equiv.to_alg_hom),
   set.mem_univ _, ultrafilter_converges_to_glued_equiv h_int f⟩)

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import algebra.direct_sum.ring
-import algebra.direct_sum.module
 import ring_theory.noetherian
 import ring_theory.rees_algebra
 import ring_theory.finiteness
@@ -163,6 +161,14 @@ begin
   intros n hn,
   convert hn₀ (n - n₀),
   rw [add_comm, tsub_add_cancel_of_le hn],
+end
+
+lemma stable_iff_exists_pow_smul_eq_of_ge :
+  F.stable ↔ ∃ n₀, ∀ n ≥ n₀, F.N n = I ^ (n - n₀) • F.N n₀ :=
+begin
+  refine ⟨stable.exists_pow_smul_eq_of_ge, λ h, ⟨h.some, λ n hn, _⟩⟩,
+  rw [h.some_spec n hn, h.some_spec (n+1) (by linarith), smul_smul, ← pow_succ,
+    tsub_add_eq_add_tsub hn],
 end
 
 lemma stable.exists_forall_le (e : F.N 0 ≤ F'.N 0) :

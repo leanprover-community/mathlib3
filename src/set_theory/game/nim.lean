@@ -39,9 +39,9 @@ universe u
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
 noncomputable! def nim : ordinal → pgame
-| O₁ := let f := λ O₂, have hwf : ordinal.typein O₁.out.r O₂ < O₁ := ordinal.typein_lt_self O₂,
-          nim (ordinal.typein O₁.out.r O₂) in ⟨O₁.out.α, O₁.out.α, f, f⟩
-using_well_founded { dec_tac := tactic.assumption }
+| O₁ := let f := λ O₂, have hwf : ordinal.typein (<) O₂ < O₁ := ordinal.typein_lt_self O₂,
+          nim (ordinal.typein (<) O₂) in ⟨O₁.out.α, O₁.out.α, f, f⟩
+using_well_founded { dec_tac := `[assumption] }
 
 namespace pgame
 
@@ -57,7 +57,7 @@ open ordinal
 lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂))
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
-by { rw nim, refl }
+by rw nim
 
 instance : is_empty (nim 0).left_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }

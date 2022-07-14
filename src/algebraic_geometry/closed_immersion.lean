@@ -17,7 +17,7 @@ open opposite
 section locally_surjective
 
 /-! Let C be a concrete category, X a topological space. -/
-variables {C : Type u} [category.{v} C] [concrete_category C] {X : Top.{w}}
+variables {C : Type u} [category.{v} C] [concrete_category C] {X : Top.{v}}
 
 /-! Let ℱ, 𝒢 : (opens X)ᵒᵖ -> C be C-valued presheaves on X. -/
 variables {ℱ : X.presheaf C} {𝒢 : X.presheaf C}
@@ -48,6 +48,49 @@ def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
    ∀ (U : opens X) (t : Γ_ 𝒢 U) (x : X) (hx : x ∈ U),
    ∃ (V : opens X) (ι : V ⟶ U) (hxV : x ∈ V) (s : Γ_ ℱ V),
    T _* s = t |_ ι
+
+-- locally surjective on stalks?
+
+variables [category_theory.limits.has_colimits C]
+
+/-! When (x : X) is a point, we introduce the notation "Γₛₜ ℱ x" for
+the (underlying object of) the stalk of ℱ at x. -/
+def stalk_set (ℱ : X.presheaf C) (x : X) :=
+   (forget C).obj (ℱ.stalk x)
+local notation `Γₛₜ` : 80 := stalk_set
+
+/-! When (T : ℱ ⟶ 𝒢) is a map of presheaves, we introduce the notation
+ "T _ₛₜ x" for the induced map of (underlying objects of) stalks. -/
+def map_on_stalks (T : ℱ ⟶ 𝒢) (x : X) :
+   Γₛₜ ℱ x ⟶ Γₛₜ 𝒢 x :=
+   (forget C).map ((Top.presheaf.stalk_functor C x).map T)
+local infix `_ₛₜ` : 80 := map_on_stalks
+
+/-! An equivalent condition for a map of presheaves to be locally
+surjective is for all the induced maps on stalks to be surjective. -/
+def is_surjective_on_stalks (T : ℱ ⟶ 𝒢) :=
+   ∀ (x : X), function.surjective (T _ₛₜ x)
+
+lemma locally_surjective_iff_surjective_on_stalks (T : ℱ ⟶ 𝒢) :
+   is_locally_surjective T ↔ is_surjective_on_stalks T :=
+begin
+  split; intro hT,
+  { /- human proof:
+    Let g ∈ Γₛₜ 𝒢 x be a germ. Represent it on an open set U ⊆ X
+    as ⟨t, U⟩. By local surjectivity, pass to a smaller open set V
+    on which there exists s ∈ Γ ℱ V mapping to t |_ V.
+    Then the germ of s maps to g.
+    -/
+    sorry, },
+  { /-
+    Let U be an open set, t ∈ Γ ℱ U a section, x ∈ U a point.
+    By surjectivity on stalks, the germ of t is the image of
+    some germ f ∈ Γₛₜ ℱ x. Represent f on some open set V ⊆ X as
+    ⟨s, V⟩. Then use V ∩ U (since that is in U) and s ∈ Γ ℱ (V ∩ U).
+    We then have s |_ V ∩ U = t |_ V ∩ U.
+  -/
+    sorry, },
+end
 
 end locally_surjective
 
@@ -89,10 +132,10 @@ def f_inv_U_to_Y : (f ₒ⁻¹ U)ʳ ⟶ Y := f_inv_U_to_X f U ≫ f
 
 -- try using open_immersion.lift? f : X ⟶ Y 𝒪_Y ⟶ f_* 𝒪_X
 
-example {X Y : Top.{v}} {f : X ⟶ Y} (U : opens Y) : opens X :=
-begin
-   exact f.comap U,
-end
+-- example {X Y : Top.{v}} {f : X ⟶ Y} (U : opens Y) : opens X :=
+-- begin
+--    exact f.comap U,
+-- end
 
 -- f⁻¹ U → U
 

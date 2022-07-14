@@ -297,7 +297,7 @@ element of `E →ₐ[K] L` generating this principal ultrafilter is `f.alg_hom h
 `h_findim : finite_dimensional K E`. -/
 protected noncomputable def ultrafilter.generator_of_pushforward (h_findim : finite_dimensional K E)
   (f : ultrafilter (L →ₐ[K] L)) : E →ₐ[K] L :=
-classical.some $ ultrafilter.eq_principal_of_fintype _ $
+classical.some $ ultrafilter.eq_pure_of_fintype $
   f.map $ λ σ, σ.comp $ intermediate_field.val _
 
 /-- Let `f` be an ultrafilter on `L ≃ₐ[K] L`. For an intermediate field `E` of `L/K`, there is a
@@ -307,7 +307,7 @@ classical.some $ ultrafilter.eq_principal_of_fintype _ $
 lemma ultrafilter.generator_of_pushforward_spec (h_findim : finite_dimensional K E)
   (f : ultrafilter (L →ₐ[K] L)) : f.map (λ σ : L →ₐ[K] L, σ.comp $ intermediate_field.val E) =
   pure (f.generator_of_pushforward h_findim) :=
-coe_injective $ classical.some_spec $ ultrafilter.eq_principal_of_fintype _ _
+coe_injective $ classical.some_spec $ ultrafilter.eq_pure_of_fintype _
 
 lemma ultrafilter.generator_of_pushforward_comp_inclusion (f : ultrafilter (L →ₐ[K] L))
   (hE : finite_dimensional K E) (hF : finite_dimensional K F) (hEF : E ≤ F) :

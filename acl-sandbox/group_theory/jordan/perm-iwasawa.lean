@@ -19,6 +19,88 @@ open_locale pointwise
 
 open mul_action
 
+section equivariant_maps
+open_locale classical pointwise
+
+
+def equivariant_map.inclusion' (α : Type*) [decidable_eq α] (s : set α):
+  s →ₑ[λ u : equiv.perm s, (⟨u.of_subtype,
+begin
+  rw mem_fixing_subgroup_iff,
+  intros x hx,
+  rw set.mem_compl_iff at hx,
+  simp only [equiv.perm.smul_def],
+  rw equiv.perm.of_subtype_apply_of_not_mem,
+  exact hx,
+end⟩ : fixing_subgroup (equiv.perm α) sᶜ)]
+    sub_mul_action.of_fixing_subgroup (equiv.perm α) sᶜ := {
+to_fun := λ x, ⟨x,
+begin
+  rw [sub_mul_action.of_fixing_subgroup.mem_iff, set.not_mem_compl_iff],
+  exact x.prop,
+end⟩,
+map_smul' := λ g x,
+begin
+  simp only [← subtype.coe_inj, sub_mul_action.coe_smul, equiv.perm.smul_def, sub_mul_action.coe_mk],
+  change _ = (equiv.perm.of_subtype g) • ↑x,
+  simp only [equiv.perm.smul_def, equiv.perm.of_subtype_apply_coe],
+end }
+
+instance foo (G : Type*) [group G] {α : Type*} [mul_action G α] (s : set α) :
+  has_smul (stabilizer G s) s := {
+smul := λ ⟨g, hg⟩ ⟨x, hx⟩, (⟨g • x,
+begin
+ rw mem_stabilizer_iff at hg, rw ← hg,
+ exact set.smul_mem_smul_set hx,
+end⟩ : s) }
+
+def foobar (G : Type*) [group G] {α : Type*} [mul_action G α] (s : set α) :
+  (stabilizer G s) →* equiv.perm s := {
+to_fun := λ (g : stabilizer G s), ({
+  to_fun := λ x, ⟨g • x,
+  begin
+    convert set.smul_mem_smul_set x.prop,
+    apply symm,
+    exact mem_stabilizer_iff.mp g.prop,
+  end⟩,
+  inv_fun := λ x, ⟨g⁻¹ • x,
+  begin
+    convert set.smul_mem_smul_set x.prop,
+    apply symm,
+    exact mem_stabilizer_iff.mp (g⁻¹).prop,
+  end⟩,
+  left_inv :=
+  begin
+    unfold function.left_inverse,
+    rintro ⟨x, hx⟩,
+    simp only [subtype.coe_mk, inv_smul_smul],
+  end,
+  right_inv :=
+  begin
+    unfold function.right_inverse,
+    rintro ⟨x, hx⟩,
+    simp only [subtype.coe_mk, smul_inv_smul],
+  end, } : equiv.perm s),
+map_one' :=
+begin
+  ext,
+  simp only [one_smul, subtype.coe_eta, equiv.coe_fn_mk, equiv.perm.coe_one, id.def],
+end,
+map_mul' := λ ⟨g, hg⟩ ⟨k, hk⟩,
+begin
+  ext,
+  simp only [subtype.coe_mk, submonoid.mk_mul_mk, equiv.coe_fn_mk, equiv.perm.coe_mul],
+  change (g * k) • ↑x = g • k • ↑x,
+  rw mul_action.mul_smul,
+end }
+
+def equivariant_map.inclusion (G : Type*) [group G] {α : Type*} [mul_action G α] (s : set α) :
+  s →[stabilizer G s] α := {
+to_fun := λ x, x,
+map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩ , rfl }
+
+
+end equivariant_maps
 
 section action_on_finsets
 
@@ -426,7 +508,7 @@ begin
   rw finset.card_image_of_injective _ (mul_action.injective g),
 end
 
-example (s : set α) (g : equiv.perm α) : fintype.card (g • s : set α)  = fintype.card s :=
+lemma card_smul_eq (s : set α) (g : equiv.perm α) : fintype.card (g • s : set α)  = fintype.card s :=
 begin
   rw ← set.coe_to_finset s,
   simp only [← set.to_finset_card],
@@ -462,7 +544,7 @@ begin
   exact hk,
 end
 
-lemma extracted_goal {α : Type u_1}
+example {α : Type u_1}
   [decidable_eq α]
   [fintype α]
   (s : set α)
@@ -471,72 +553,13 @@ lemma extracted_goal {α : Type u_1}
   (hα : fintype.card ↥s < fintype.card ↥sᶜ)
   (G : subgroup (equiv.perm α))
   (hG : stabilizer (equiv.perm α) s < G)
-  (this : ∀ (t : set α),
-            1 < fintype.card ↥t →
-            (∃ (g : equiv.perm α),
-               g.is_swap ∧ g ∈ stabilizer (equiv.perm α) t))
-  (g : equiv.perm α)
-  (hg_swap : g.is_swap)
-  (hg : g ∈ G)
   (_inst : is_pretransitive ↥G α)
-  {B : set α}
-  (hB : is_block ↥G B)
-  (hB' : ¬B.subsingleton)
-  (hB_ne_sc : B ≠ sᶜ)
-  (hB_not_le_sc : ¬B ⊆ sᶜ)
-  (a : α)
-  (ha : a ∈ B)
-  (ha' : a ∈ s)
-  (hB_not_le_s : ¬B ⊆ s)
-  (b : α)
-  (hb : b ∈ B)
-  (hb' : b ∈ sᶜ) :
-  sᶜ ⊆ B :=
+  (hB_ne_sc : ∀ (B : set α), is_block ↥G B → ¬B = sᶜ) :
+  ∀ (B : set α), is_block ↥G B → ¬B ⊆ sᶜ :=
 begin
-  intros x hx',
-  suffices : ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
-  obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
-  suffices : k • B = B,
-  rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
-  exact hb,
-  { -- k • B = B,
-    apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
-    { rw set.not_disjoint_iff_nonempty_inter,
-      change (k • B ∩ B).nonempty,
-      use a,
-      split,
-        rw mem_fixing_subgroup_iff at hk,
-        rw ← hk a ha',
-        exact set.smul_mem_smul_set ha,
-        exact ha, },
-    { -- ↑k ∈ G
-      apply le_of_lt hG,
-      exact fixing_subgroup_le_stabilizer s hk, } },
-  { -- ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
-    suffices : is_pretransitive (fixing_subgroup (equiv.perm α) s)
-      (sub_mul_action.of_fixing_subgroup (equiv.perm α) s),
-    resetI,
-    obtain ⟨k, hk⟩ := exists_smul_eq (fixing_subgroup (equiv.perm α) s)
-      (⟨b, hb'⟩ : sub_mul_action.of_fixing_subgroup (equiv.perm α) s)
-      ⟨x, hx'⟩,
-    use k,
-    rw [← subtype.coe_inj, sub_mul_action.coe_smul] at hk,
-    exact hk,
-    -- is_pretransitive …
-    rw is_pretransitive_iff_is_one_pretransitive,
-    apply remaining_transitivity',
-    { apply le_of_eq, rw enat.of_fintype α },
-    { rw add_comm,
-    rw ← fintype.card_add_compl s,
-    simp only [add_le_add_iff_left],
-    change 0 < _,
-    rw fintype.card_pos_iff ,
-    simp only [set.nonempty_coe_sort],
-    exact h1,  },
-    exact equiv_perm_is_fully_pretransitive α,  },
+  intros B hB hB_le_sc,
 
-
-
+  admit,
 end
 
 
@@ -614,42 +637,94 @@ begin
         change _ ∈ stabilizer ↥G s,
         rw h, exact subgroup.mem_top ⟨g, hg⟩, }, },
     { apply is_preprimitive.mk,
+
+      -- In the equality case, fintype.card s = fintype.card sᶜ,
+      -- it is possible that B = sᶜ, then G is the wreath product,
+      -- case (b) of the O'Nan-Scott classification
+      have hB_ne_sc : ∀ (B : set α) (hB : is_block G B), ¬(B = sᶜ),
+      { intros B hB hBsc,
+        obtain ⟨b, hb⟩ := h1, rw ← hBsc at hb,
+        obtain ⟨a, ha⟩ := h0,
+        obtain ⟨k, hk⟩ := exists_smul_eq G b a,
+        suffices : fintype.card (B : set α) ≤ fintype.card s,
+        { apply nat.lt_irrefl (fintype.card B),
+          apply lt_of_le_of_lt this,
+          simp_rw hBsc, exact hα, },
+        rw ← card_smul_eq B k,
+        apply set.card_le_of_subset ,
+        change k • B ⊆ s,
+        rw [← set.disjoint_compl_right_iff_subset, ← hBsc],
+        apply or_iff_not_imp_left.mp (is_block.def_one.mp hB k),
+        intro h,
+        apply set.not_mem_empty a,
+        rw ← set.inter_compl_self s,
+        split,
+          exact ha,
+          rw [← hk, ← hBsc, ← h, set.smul_mem_smul_set_iff], exact hb },
+
+      have hB_not_le_sc : ∀ (B : set α) (hB : is_block G B), ¬(B ⊆ sᶜ),
+      { extract_goal,
+
+        intros B hB hB_le_sc,
+
+      sorry,},
+
       intros B hB,
       unfold is_trivial_block,
 
       rw or_iff_not_imp_left ,
       intro hB',
 
-      have hB_ne_sc : B ≠ sᶜ, sorry,
-      have hB_not_le_sc : ¬(B ⊆ sᶜ), sorry,
       obtain ⟨a, ha, ha'⟩ := set.not_subset_iff_exists_mem_not_mem.mp hB_not_le_sc,
       rw set.not_mem_compl_iff at ha',
 
-      have hB_not_le_s : ¬(B ⊆ s), sorry,
+      have hB_not_le_s : ¬(B ⊆ s),
+      { sorry, },
       obtain ⟨b, hb, hb'⟩ := set.not_subset_iff_exists_mem_not_mem.mp hB_not_le_s,
       rw ← set.mem_compl_iff at hb',
 
       have hsc_le_B : sᶜ ⊆ B,
-      { extract_goal,
-
-        intros x hx',
-        suffices : ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
-        obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
-        suffices : k • B = B,
-        rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
-        exact hb,
-        { -- k • B = B,
-          apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
-          rw set.not_disjoint_iff_nonempty_inter,
-          change (k • B ∩ B).nonempty,
-
-          refine set.nonempty.mono _ _,
-
-        sorry,
-        -- ↑k ∈ G
-        sorry },
-        { -- ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
-          sorry, }, },
+      {   intros x hx',
+          suffices : ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
+          obtain ⟨⟨k, hk⟩, hkbx : k • b = x⟩ := this,
+          suffices : k • B = B,
+          rw [← hkbx, ← this, set.smul_mem_smul_set_iff],
+          exact hb,
+          { -- k • B = B,
+            apply or_iff_not_imp_right.mp (is_block.def_one.mp hB ⟨k, _⟩),
+            { rw set.not_disjoint_iff_nonempty_inter,
+              change (k • B ∩ B).nonempty,
+              use a,
+              split,
+                rw mem_fixing_subgroup_iff at hk,
+                rw ← hk a ha',
+                exact set.smul_mem_smul_set ha,
+                exact ha, },
+            { -- ↑k ∈ G
+              apply le_of_lt hG,
+              exact fixing_subgroup_le_stabilizer s hk, } },
+          { -- ∃ (k : fixing_subgroup (equiv.perm α) s), k • b = x,
+            suffices : is_pretransitive (fixing_subgroup (equiv.perm α) s)
+              (sub_mul_action.of_fixing_subgroup (equiv.perm α) s),
+            resetI,
+            obtain ⟨k, hk⟩ := exists_smul_eq (fixing_subgroup (equiv.perm α) s)
+              (⟨b, hb'⟩ : sub_mul_action.of_fixing_subgroup (equiv.perm α) s)
+              ⟨x, hx'⟩,
+            use k,
+            rw [← subtype.coe_inj, sub_mul_action.coe_smul] at hk,
+            exact hk,
+            -- is_pretransitive …
+            rw is_pretransitive_iff_is_one_pretransitive,
+            apply remaining_transitivity',
+            rw enat.of_fintype α,
+            { rw add_comm,
+              rw ← fintype.card_add_compl s,
+              simp only [add_le_add_iff_left],
+              change 0 < _,
+              rw fintype.card_pos_iff ,
+              simp only [set.nonempty_coe_sort],
+              exact h1,  },
+            exact equiv_perm_is_fully_pretransitive α, }, },
 
       -- Conclusion of the proof : B = ⊤
       rw eq_top_iff,

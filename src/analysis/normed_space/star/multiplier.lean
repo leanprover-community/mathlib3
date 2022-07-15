@@ -1,5 +1,7 @@
 import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
+import data.real.sqrt
+import analysis.special_functions.pow
 
 /-!
 Define the multiplier algebra of a C∗-algebra as the algebra of double centralizers.
@@ -308,13 +310,17 @@ noncomputable instance : has_norm 𝓜(𝕜, A) :=
 { norm := λ a, ∥a.left∥ }
 
 open_locale nnreal
+open nnreal
 variables [cstar_ring A]
 
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
-lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ :=
+lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := sorry
+lemma norm_left_eq_right (a : 𝓜(𝕜, A)) : ∥a.left∥ = ∥a.right∥ :=
       begin
+      have h0 : ∀ f : A →L[𝕜] A, ∀ C : ℝ≥0, (∀ b : A, ∥f b∥₊ ^ 2 ≤ C * ∥f b∥₊ * ∥b∥₊ ^ 2) → ∥f∥₊ ≤ C,
+      { sorry },
       have h1 : ∀ b, ∥ a.left b ∥₊ ^ 2 ≤  ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊ ^ 2,
-      { intros b,
+      sorry { intros b,
 
             calc ∥ a.left b ∥₊ ^ 2 = ∥ a.left b ∥₊ * ∥ a.left b ∥₊ : by ring
             ...                   = ∥ star (a.left b) * (a.left b) ∥₊  : (cstar_ring.nnnorm_star_mul_self).symm
@@ -330,14 +336,14 @@ lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ :=
                                                                           apply a.left.le_op_nnnorm,
                                                                           end
             ...                 = ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊ ^ 2 : by ring, } ,
-            have h2 : ∀ b, ∥ a.left b ∥ ^ 2 ≤  ∥ a.right ∥ * ∥ a.left ∥ * ∥ b ∥ ^ 2 :=
-                                        begin
-                                        intro b,
-                                        have h2 := h1 b,
-                                        exact_mod_cast nnreal.coe_mono h2,
-                                        end,
-      sorry
+        sorry  {  replace h1 := λ b, sqrt_le_sqrt_iff.mpr (h1 b),
+            simp only [sqrt_sq, sqrt_mul] at h1,
+            have h2 := div_le_of_le_mul (a.left.op_nnnorm_le_bound _ h1),
+            have h3 := rpow_le_rpow h2 (by exact_mod_cast zero_le (2 : ℕ) : 0 ≤ (2 : ℝ)),
+            simp only [rpow_two, div_pow, sq_sqrt] at h3,
+            simp only [sq, mul_self_div_self] at h3, },
       end
+
 noncomputable instance : metric_space 𝓜(𝕜, A) :=
 { dist := λ a b, ∥a - b∥,
   dist_self := λ x, by { simpa only [sub_self, norm_left] using norm_zero },
@@ -373,7 +379,9 @@ instance : cstar_ring 𝓜(𝕜, A) :=
 { norm_star_mul_self := λ a,
   begin
     simp only [norm_left],
-    change ∥(star a).left * a.left∥ = ∥a.left∥ * ∥a.left∥,
+    change ∥(((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.right).comp
+      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A) * a.left∥ = ∥a.left∥ * ∥a.left∥,
+
     sorry,
   end }
 

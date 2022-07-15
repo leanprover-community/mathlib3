@@ -490,7 +490,7 @@ open category_theory topological_space Top opposite
 
 variables {C : Type u} [category.{v} C] [limits.has_products.{v} C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
-variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
+variables (F : X.presheaf C) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 
 /-- The empty component of a sheaf is terminal -/
 def is_terminal_of_empty (F : sheaf C X) : limits.is_terminal (F.val.obj (op ∅)) :=

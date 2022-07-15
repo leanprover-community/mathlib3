@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.shapes.products
-import topology.sheaves.sheaf
+import topology.sheaves.sheaf_condition.sites
 
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.
@@ -129,6 +129,8 @@ In fact we prove a stronger version with arbitrary complete target category.
 lemma is_sheaf_iff_is_sheaf_comp :
   presheaf.is_sheaf F ↔ presheaf.is_sheaf (F ⋙ G) :=
 begin
+  rw [presheaf.is_sheaf_iff_is_sheaf_equalizer_products,
+    presheaf.is_sheaf_iff_is_sheaf_equalizer_products],
   split,
   { intros S ι U,
     -- We have that the sheaf condition fork for `F` is a limit fork,

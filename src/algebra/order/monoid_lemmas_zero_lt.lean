@@ -329,12 +329,12 @@ lemma mul_pos_mono_rev.to_mul_pos_strict_mono [mul_pos_mono_rev α] : mul_pos_st
 ⟨λ x a b h, lt_of_not_le $ λ h', h.not_le (le_of_mul_le_mul_right' h' x.prop)⟩
 
 lemma pos_mul_strict_mono_iff_pos_mul_mono_rev : pos_mul_strict_mono α ↔ pos_mul_mono_rev α :=
-⟨ @zero_lt.pos_mul_strict_mono.to_pos_mul_mono_rev _ _ _ _,
-          @pos_mul_mono_rev.to_pos_mul_strict_mono _ _ _ _⟩
+⟨@zero_lt.pos_mul_strict_mono.to_pos_mul_mono_rev _ _ _ _,
+         @pos_mul_mono_rev.to_pos_mul_strict_mono _ _ _ _⟩
 
 lemma mul_pos_strict_mono_iff_mul_pos_mono_rev : mul_pos_strict_mono α ↔ mul_pos_mono_rev α :=
-⟨ @zero_lt.mul_pos_strict_mono.to_mul_pos_mono_rev _ _ _ _,
-          @mul_pos_mono_rev.to_mul_pos_strict_mono _ _ _ _⟩
+⟨@zero_lt.mul_pos_strict_mono.to_mul_pos_mono_rev _ _ _ _,
+         @mul_pos_mono_rev.to_mul_pos_strict_mono _ _ _ _⟩
 
 lemma pos_mul_reflect_lt.to_pos_mul_mono [pos_mul_reflect_lt α] : pos_mul_mono α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (lt_of_mul_lt_mul_left' h' x.prop)⟩
@@ -1054,16 +1054,16 @@ lemma pos_mul_reflect_lt.to_pos_mul_mono_rev [pos_mul_reflect_lt α] : pos_mul_m
                             (λ h', (lt_of_mul_lt_mul_left' h' x.2).le)⟩
 
 lemma pos_mul_mono_rev_iff_pos_mul_reflect_lt : pos_mul_mono_rev α ↔ pos_mul_reflect_lt α :=
-⟨ @zero_lt.pos_mul_mono_rev.to_pos_mul_reflect_lt α _ _ _,
-  @pos_mul_reflect_lt.to_pos_mul_mono_rev α _ _ ⟩
+⟨@zero_lt.pos_mul_mono_rev.to_pos_mul_reflect_lt α _ _ _,
+ @pos_mul_reflect_lt.to_pos_mul_mono_rev α _ _⟩
 
 lemma mul_pos_reflect_lt.to_mul_pos_mono_rev [mul_pos_reflect_lt α] : mul_pos_mono_rev α :=
 ⟨λ x a b h, h.eq_or_lt.elim (le_of_eq ∘ mul_right_cancel₀ x.2.ne.symm)
-                            (λ h', (lt_of_mul_lt_mul_right' h' x.2).le) ⟩
+                            (λ h', (lt_of_mul_lt_mul_right' h' x.2).le)⟩
 
 lemma mul_pos_mono_rev_iff_mul_pos_reflect_lt : mul_pos_mono_rev α ↔ mul_pos_reflect_lt α :=
-⟨ @zero_lt.mul_pos_mono_rev.to_mul_pos_reflect_lt α _ _ _,
-  @mul_pos_reflect_lt.to_mul_pos_mono_rev α _ _ ⟩
+⟨@zero_lt.mul_pos_mono_rev.to_mul_pos_reflect_lt α _ _ _,
+ @mul_pos_reflect_lt.to_mul_pos_mono_rev α _ _⟩
 
 end partial_order
 

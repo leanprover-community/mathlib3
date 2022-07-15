@@ -701,14 +701,6 @@ Either of these will later be shown to be equivalent to the weak convergence of 
 of measures.
 -/
 
-lemma ennreal.antitone_const_sub {c : ℝ≥0∞} :
-  antitone (λ (x : ℝ≥0∞), c - x) :=
-λ x y hxy, tsub_le_tsub rfl.le hxy
-
-lemma ennreal.continuous_const_sub {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) :
-  continuous (λ (x : ℝ≥0∞), c - x) :=
-ennreal.continuous_sub_left c_ne_top
-
 variables {α : Type*} [measurable_space α]
 
 lemma is_probability_measure.le_measure_compl_liminf_of_limsup_measure_le
@@ -731,7 +723,7 @@ begin
     by refl,
   rw obs,
   rw antitone.liminf_comp_eq_apply_limsup_of_continuous _
-    ennreal.antitone_const_sub (ennreal.continuous_const_sub ennreal.one_ne_top),
+    ennreal.antitone_const_sub (ennreal.continuous_sub_left ennreal.one_ne_top),
   swap, { exact {ne' := L_bot}, },
   exact ennreal.antitone_const_sub h,
 end
@@ -765,7 +757,7 @@ begin
     by refl,
   rw obs,
   rw antitone.limsup_comp_eq_apply_liminf_of_continuous _
-    ennreal.antitone_const_sub (ennreal.continuous_const_sub ennreal.one_ne_top),
+    ennreal.antitone_const_sub (ennreal.continuous_sub_left ennreal.one_ne_top),
   swap, { exact {ne' := L_bot}, },
   exact ennreal.antitone_const_sub h,
 end
@@ -805,32 +797,11 @@ begin
           F_closed.measurable_set (h Fᶜ (is_open_compl_iff.mpr F_closed)), },
 end
 
-/-- One pair of implications of the portmanteau theorem:
-For a sequence of Borel probability measures, the following two are equivalent:
-
-(C) The limsup of the measures of any closed set is at most the measure of the closed set
-under a candidate limit measure.
-
-(O) The liminf of the measures of any open set is at least the measure of the open set
-under a candidate limit measure.
--/
-lemma probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge
-  {ι : Type*} {L : filter ι} {μ : probability_measure α} {μs : ι → probability_measure α} :
-  (∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F)
-    ↔ (∀ G, is_open G → (μ : measure α) G ≤ L.liminf (λ i, (μs i : measure α) G)) :=
-is_probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge
-
 end limsup_closed_le_and_le_liminf_open -- section
 
 section le_limsup_open_implies_tendsto_borel
 
 variables {α : Type*} [measurable_space α]
-
-/- lemma old_interior_ae_eq_of_null_frontier {μ : measure α} {s₁ s₀ : set α}
-  (h : μ (s₁ \ s₀) = 0) : interior s =ᵐ[μ] s :=
-interior_subset.eventually_le.antisymm $
-  subset_closure.eventually_le.trans (ae_le_set.2 h)
- -/
 
 lemma tendsto_measure_of_le_liminf_measure_of_limsup_measure_le
   {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
@@ -998,6 +969,37 @@ begin
   rw limsup_const,
   apply le_trans (add_le_add (hM M rfl.le).le (le_refl (ε/2 : ℝ≥0∞))),
   simp only [add_assoc, ennreal.add_halves, le_refl],
+end
+
+/-- One implication of the portmanteau theorem:
+Weak convergence of probability measures implies that the limsup of the measures of any closed
+set is at most the measure of the closed set under the limit probability measure.
+-/
+lemma probability_measure.limsup_measure_closed_le_of_tendsto
+  {α ι : Type*} {L : filter ι}
+  [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  {μ : probability_measure α} {μs : ι → probability_measure α}
+  (μs_lim : tendsto μs L (𝓝 μ)) {F : set α} (F_closed : is_closed F) :
+  L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F :=
+by apply finite_measure.limsup_measure_closed_le_of_tendsto
+         ((probability_measure.tendsto_nhds_iff_to_finite_measures_tendsto_nhds L).mp μs_lim)
+         F_closed
+
+/-- One implication of the portmanteau theorem:
+Weak convergence of probability measures implies that the liminf of the measures of any open set
+is at least the measure of the open set under the limit probability measure.
+-/
+lemma probability_measure.le_liminf_measure_open_of_tendsto
+  {α ι : Type*} {L : filter ι}
+  [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  {μ : probability_measure α} {μs : ι → probability_measure α}
+  (μs_lim : tendsto μs L (𝓝 μ)) {G : set α} (G_open : is_open G) :
+  (μ : measure α) G ≤ L.liminf (λ i, (μs i : measure α) G) :=
+begin
+  have h_closeds : ∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F,
+    from λ F F_closed, probability_measure.limsup_measure_closed_le_of_tendsto μs_lim F_closed,
+  exact is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
+        G_open.measurable_set (h_closeds _ (is_closed_compl_iff.mpr G_open)),
 end
 
 end convergence_implies_limsup_closed_le --section

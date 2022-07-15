@@ -88,6 +88,8 @@ instance monoidal_category : monoidal_category Pointed.{u} :=
   left_unitor := λ X, iso.mk (equiv.punit_prod _) rfl,
   right_unitor := λ X, iso.mk (equiv.prod_punit _) rfl }
 
+@[simp] lemma point_tensor (X Y : Pointed) : (X ⊗ Y).point = (X.point, Y.point) := rfl
+
 end Pointed
 
 /-- `option` as a functor from types to pointed types. This is the free functor. -/

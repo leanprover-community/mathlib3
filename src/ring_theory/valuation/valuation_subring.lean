@@ -440,7 +440,7 @@ section nonunits
 /-- The nonunits of a valuation subring, as a subsemigroup of `K`-/
 def nonunits : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
-  mul_mem' := λ a b ha hb, by { simpa using mul_lt_mul₀ ha hb } }
+  mul_mem' := λ a b ha hb, (mul_lt_mul₀ ha hb).trans_eq $ mul_one _ }
 
 lemma mem_nonunits_iff {x : K} : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.refl _
 
@@ -450,14 +450,11 @@ lemma nonunits_injective :
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
     ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
   rw set_like.ext_iff at h,
-  intros x,
-  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_lt_one₀] },
-  exact h (units.mk0 x hx)
+  exact set_like.ext_iff.1 h
 end
 
-lemma eq_iff_nonunits {A B : valuation_subring K} :
-  A = B ↔ A.nonunits = B.nonunits :=
-nonunits_injective.eq_iff.symm
+lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
+nonunits_injective.eq_iff
 
 variables {A}
 
@@ -466,12 +463,13 @@ variables {A}
 See also `mem_nonunits_iff_exists_mem_maximal_ideal`, which gets rid of the coercion to `K`,
 at the expense of a more complicated right hand side.
  -/
-theorem coe_mem_nonunits_iff {a : A} :
-  ((a : K) ∈ A.nonunits) ↔ a ∈ local_ring.maximal_ideal A :=
-by simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff, valuation_lt_one_iff]
+theorem coe_mem_nonunits_iff {a : A} : (a : K) ∈ A.nonunits ↔ a ∈ local_ring.maximal_ideal A :=
+(valuation_lt_one_iff _ _).symm
 
-lemma nonunits_subset : (A.nonunits : set K) ⊆ A :=
+lemma nonunits_le : A.nonunits ≤ A.to_subring.to_submonoid.to_subsemigroup :=
 λ a ha, (A.valuation_le_one_iff _).mp (A.mem_nonunits_iff.mp ha).le
+
+lemma nonunits_subset : (A.nonunits : set K) ⊆ A := nonunits_le
 
  /-- The elements of `A.nonunits` are those of the maximal ideal of `A`.
 
@@ -488,9 +486,8 @@ theorem image_maximal_ideal : (coe : A → K) '' local_ring.maximal_ideal A = A.
 begin
   ext a,
   simp only [set.mem_image, set_like.mem_coe, mem_nonunits_iff_exists_mem_maximal_ideal],
-  split,
-  { rintros ⟨⟨a, ha⟩, h, rfl⟩, exact ⟨ha, h⟩ },
-  { rintros ⟨ha, h⟩, exact ⟨⟨a, ha⟩, h, rfl⟩ }
+  erw subtype.exists,
+  simp_rw [subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
 end
 
 end nonunits

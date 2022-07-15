@@ -471,11 +471,11 @@ lemma is_equiv_tfae
   [linear_ordered_comm_group_with_zero Γ'₀]
   {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
-  [ v.is_equiv v'
-  , ∀ {x}, v x ≤ 1 ↔ v' x ≤ 1
-  , ∀ {x}, v x = 1 ↔ v' x = 1
-  , ∀ {x}, v x < 1 ↔ v' x < 1
-  , ∀ {x}, v (x-1) < 1 ↔ v' (x-1) < 1].tfae :=
+  [v.is_equiv v',
+   ∀ {x}, v x ≤ 1 ↔ v' x ≤ 1,
+   ∀ {x}, v x = 1 ↔ v' x = 1,
+   ∀ {x}, v x < 1 ↔ v' x < 1,
+   ∀ {x}, v (x-1) < 1 ↔ v' (x-1) < 1].tfae :=
 begin
   tfae_have : 1 ↔ 2, { apply is_equiv_iff_val_le_one },
   tfae_have : 1 ↔ 3, { apply is_equiv_iff_val_eq_one },

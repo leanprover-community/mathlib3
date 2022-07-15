@@ -339,9 +339,7 @@ end
 
 /-- An order embedding from an empty type. -/
 def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
-{ to_fun := is_empty_elim,
-  inj' := is_empty_elim,
-  map_rel_iff' := is_empty_elim }
+⟨embedding.of_is_empty, is_empty_elim⟩
 
 end rel_embedding
 

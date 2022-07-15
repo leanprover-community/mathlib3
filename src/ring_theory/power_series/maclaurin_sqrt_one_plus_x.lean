@@ -1,6 +1,8 @@
 import ring_theory.power_series.well_known
+import ring_theory.power_series.sincos_id
 import data.complex.basic
 import combinatorics.catalan
+import tactic.ring_exp
 
 open complex
 open ring_hom
@@ -8,7 +10,7 @@ open finset nat
 
 namespace power_series
 
-variables (A A' : Type*) [field A]  [algebra ℚ A]
+variables (A A' : Type*) [field A]  [algebra ℚ A] [char_zero A]
 
 def sqrt_one_add_X : power_series A :=
   mk $ λ n, algebra_map ℚ A ((-1)^(n+1)*(n+1)*(catalan n)*(4^n * (2*n-1))⁻¹)
@@ -181,9 +183,12 @@ lemma rescale_X_eq_C_mul_X (A:Type*) (a:A) [comm_semiring A]: rescale a X = C A 
   end
 
 
-theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra ℚ A]:
+theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra ℚ A] [char_zero A]:
   (sqrt_one_add_X A)^2 = 1+X :=
   begin
+    have h2 : (2 : A) ≠ 0 := two_ne_zero',
+    have h4 : (4 : A) ≠ 0,
+      { convert (mul_ne_zero h2 h2), norm_num },
     rw ←  sqrt_one_add_X_catalan,
     have l1: (2 : power_series A) = C A 2,
     {
@@ -198,17 +203,17 @@ theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra
     have l2: X = - C A 4 * rescale ((-4 : A)⁻¹) X,
     {
       rw rescale_X_eq_C_mul_X,
-
-      rw bit0,
-      rw bit0,
-      rw map_add,
-      rw map_add,
-      rw ← two_mul,
-      rw ← two_mul,
+      rw ← mul_assoc,
+      rw neg_mul,
+      rw ← map_mul,
+      rw inv_neg,
+      rw mul_neg,
+      rw mul_inv_cancel,
+      rw map_neg,
       rw map_one,
-      rw mul_one,
-      rw ext_iff,
-      sorry
+      rw neg_neg,
+      rw one_mul,
+      apply h4,
     },
     nth_rewrite 0 l2,
     rw mul_assoc,
@@ -247,15 +252,13 @@ theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra
     rw sq,
     rw sq,
     have l4: (((2 * 2)⁻¹ * ((-4) * -4) * (-4)⁻¹):A) = (-1:A),
-    { have : (-16 : A) ≠ 0 :=
-      {
-        sorry,
+    { have : (16 : A) ≠ 0,
+      { convert (mul_ne_zero h4 h4),
+        norm_num,
       },
-      --field_simp,
-      --norm_num,
-      --field_simp [this],
-      sorry,
-      },
+      field_simp,
+      norm_num,
+    },
     rw l4,
     rw map_neg,
     rw add_assoc,
@@ -272,6 +275,8 @@ theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra
     rw ← l3,
     rw one_mul,
     rw one_mul,
+    norm_num,
+    exact h2,
   end
 
 #check mul_add

@@ -666,16 +666,11 @@ instance [partial_order α] : partial_order (with_bot α) :=
   end,
   .. with_bot.preorder }
 
-lemma map_le_iff [preorder α] [preorder β] (f : α → β)
-  (a b : with_bot α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
-  a.map f ≤ b.map f ↔ a ≤ b :=
-begin
-  induction a using with_bot.rec_bot_coe,
-  { simp only [map_bot, bot_le]},
-  { induction b using with_bot.rec_bot_coe,
-    { simp only [map_coe, map_bot, coe_ne_bot, not_coe_le_bot _] },
-    { simpa using mono_iff } }
-end
+lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
+  ∀ (a b : with_bot α), a.map f ≤ b.map f ↔ a ≤ b
+| ⊥       _       := by simp only [map_bot, bot_le]
+| (a : α) ⊥       := by simp only [map_coe, map_bot, coe_ne_bot, not_coe_le_bot _]
+| (a : α) (b : α) := by simpa using mono_iff
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -982,13 +977,7 @@ instance [partial_order α] : partial_order (with_top α) :=
 lemma map_le_iff {α β} [preorder α] [preorder β] (f : α → β)
   (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   a.map f ≤ b.map f ↔ a ≤ b :=
-begin
-  induction b using with_top.rec_top_coe,
-  { simp },
-  { induction a using with_top.rec_top_coe,
-    { simp only [map_coe, map_top, coe_ne_top, not_top_le_coe _] },
-    { simpa using mono_iff } }
-end
+@with_bot.map_le_iff αᵒᵈ βᵒᵈ _ _ f (λ a b, mono_iff) b a
 
 instance [semilattice_inf α] : semilattice_inf (with_top α) :=
 { inf          := option.lift_or_get (⊓),

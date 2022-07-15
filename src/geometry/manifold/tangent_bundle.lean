@@ -192,6 +192,7 @@ by { simp only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
+@[simps chart_at (lemmas_only)]
 instance to_charted_space :
   charted_space (model_prod H F) Z.to_topological_vector_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart he},

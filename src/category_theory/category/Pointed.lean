@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import category_theory.concrete_category.basic
+import category_theory.monoidal.category
 
 /-!
 # The category of pointed types
@@ -78,6 +79,14 @@ between them. -/
   inv := ⟨e.symm, e.symm_apply_eq.2 he.symm⟩,
   hom_inv_id' := Pointed.hom.ext _ _ e.symm_comp_self,
   inv_hom_id' := Pointed.hom.ext _ _ e.self_comp_symm }
+
+instance monoidal_category : monoidal_category Pointed.{u} :=
+{ tensor_obj := λ X Y, ⟨X × Y, (X.point, Y.point)⟩,
+  tensor_hom := λ W X Y Z f g, ⟨prod.map f.to_fun g.to_fun, prod.ext f.map_point g.map_point⟩,
+  tensor_unit := ⟨punit, punit.star⟩,
+  associator := λ X Y Z, iso.mk (equiv.prod_assoc _ _ _) rfl,
+  left_unitor := λ X, iso.mk (equiv.punit_prod _) rfl,
+  right_unitor := λ X, iso.mk (equiv.prod_punit _) rfl }
 
 end Pointed
 

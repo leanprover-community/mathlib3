@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import category_theory.category.Pointed
+import category_theory.monoidal.category
 import data.pfun
 
 /-!
@@ -59,6 +60,26 @@ instance large_category : large_category.{u} PartialFun :=
   inv := e.symm,
   hom_inv_id' := (pfun.coe_comp _ _).symm.trans $ congr_arg coe e.symm_comp_self,
   inv_hom_id' := (pfun.coe_comp _ _).symm.trans $ congr_arg coe e.self_comp_symm }
+
+namespace monoidal_category
+
+
+
+end monoidal_category
+
+instance monoidal_category : monoidal_category PartialFun :=
+{ tensor_obj := prod,
+  tensor_hom := λ _ _ _ _, pfun.prod,
+  tensor_id' := λ _ _, pfun.prod_id_id,
+  tensor_comp' := λ _ _ _ _ _ _ _ _ _ _, pfun.prod_comp_comp _ _ _ _,
+  tensor_unit := punit,
+  associator := λ _ _ _, iso.mk $ equiv.prod_assoc _ _ _,
+  associator_naturality' := _,
+  left_unitor := λ _, iso.mk $ equiv.punit_prod _,
+  right_unitor := λ _, iso.mk $ equiv.prod_punit _,
+  right_unitor_naturality' := _,
+  pentagon' := _,
+  triangle' := _ }
 
 end PartialFun
 

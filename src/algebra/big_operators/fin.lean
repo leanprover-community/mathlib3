@@ -163,15 +163,21 @@ end fin
 
 namespace vector
 
-lemma sum_ite_eq_nth_eq_count [decidable_eq α] [add_comm_monoid_with_one β] {n : ℕ}
-  (a : α) (v : vector α n) : ∑ i, ite (a = v.nth i) (1 : β) 0 = ↑(v.to_list.count a) :=
+variables {n : ℕ} (a : α) (v : vector α n)
+
+lemma sum_filter_eq_nth_eq_count [decidable_eq α] :
+  ∑ i in univ.filter (λ i, a = v.nth i), 1 = v.to_list.count a :=
 begin
-  refine vector.induction_on v (sum_empty.trans ((congr_arg coe $
-    (list.count_nil a).symm).trans nat.cast_zero).symm) (λ n' x xs hxs, _),
+  refine (finset.sum_filter _ _).trans (vector.induction_on v (sum_empty.trans ((congr_arg coe $
+    (list.count_nil a).symm).trans nat.cast_zero).symm) (λ n' x xs hxs, _)),
   simp only [fin.sum_univ_succ, nth_cons_zero, to_list_cons, list.count_cons, ite_add,
-    add_comm (1 : β), nth_cons_succ, zero_add, nat.cast_ite, nat.cast_succ],
+    add_comm 1, nth_cons_succ, zero_add, nat.succ_eq_add_one, @eq_comm _ x a],
   congr; exact hxs,
 end
+
+lemma card_filter_univ_eq_nth_eq_count [decidable_eq α] :
+  (univ.filter $ λ i, a = v.nth i).card = v.to_list.count a :=
+((finset.sum_const 1).trans (by simp)).symm.trans (sum_filter_eq_nth_eq_count a v)
 
 end vector
 

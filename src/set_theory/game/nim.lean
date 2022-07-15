@@ -183,10 +183,10 @@ begin
     exact impartial.add_self (nim o₁) }
 end
 
-@[simp] lemma nim_add_fuzzy_zero_iff (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
+@[simp] lemma nim_add_fuzzy_zero_iff {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
 by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, nim_add_equiv_zero_iff]
 
-@[simp] lemma nim_equiv_iff_eq (o₁ o₂ : ordinal) : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=
+@[simp] lemma nim_equiv_iff_eq {o₁ o₂ : ordinal} : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=
 by rw [impartial.equiv_iff_add_equiv_zero, nim_add_equiv_zero_iff]
 
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the

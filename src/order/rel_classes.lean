@@ -621,3 +621,6 @@ instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒ
 
 instance : well_founded_lt ℕ := ⟨nat.lt_wf⟩
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+
+instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
+instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

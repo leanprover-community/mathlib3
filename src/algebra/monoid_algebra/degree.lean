@@ -5,7 +5,8 @@ Authors: Damiano Testa
 -/
 import algebra.monoid_algebra.basic
 
-/-!  #  Max-degree and min-degree of an `add_monoid_algebra`
+/-!
+# Max-degree and min-degree of an `add_monoid_algebra`
 
 Let `R` be a semiring and let `A` be a `semilattice_sup`.
 
@@ -26,7 +27,8 @@ The main results are
   the min-degree of a product is at least the sum of the min-degrees,
 * `add_monoid_algebra.max_degree_add_le`:
   the max-degree of a sum is at most the sup of the max-degrees,
-* `le_min_degree_add`: the min-degree of a sum is at least the inf of the min-degrees.
+* `add_monoid_algebra.le_min_degree_add`:
+  the min-degree of a sum is at least the inf of the min-degrees.
 
 ## Implementation notes
 
@@ -88,7 +90,7 @@ begin
   exact finset.le_sup ‹_›,
 end
 
-lemma le_inf_degree_mul [semilattice_inf B] [order_top B]
+lemma le_inf_support_mul [semilattice_inf B] [order_top B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   {D : A → B} (Dm : ∀ {a b}, D a + D b ≤ D (a + b))
   (f g : add_monoid_algebra R A) :
@@ -112,7 +114,7 @@ lemma sup_support_list_prod_le [add_monoid A] [add_monoid B] [semilattice_sup B]
     exact (sup_support_mul_le Dm _ _).trans (add_le_add_left (sup_support_list_prod_le _) _)
   end
 
-lemma list_prod_le_sup_support_sum [add_monoid A] [add_monoid B] [semilattice_inf B] [order_top B]
+lemma le_inf_support_sum [add_monoid A] [add_monoid B] [semilattice_inf B] [order_top B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)] {D : A → B}
   (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b)) (l : list (add_monoid_algebra R A)) :
   (l.map (λ f : add_monoid_algebra R A, f.support.inf D)).sum ≤ l.prod.support.inf D :=
@@ -130,7 +132,7 @@ begin
   rw list.map_repeat,
 end
 
-lemma nsmul_inf_support_le_pow [add_monoid A] [add_monoid B] [semilattice_inf B] [order_top B]
+lemma le_inf_support_pow [add_monoid A] [add_monoid B] [semilattice_inf B] [order_top B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   {D : A → B} (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b)) (n : ℕ)
   (f : add_monoid_algebra R A) :
@@ -153,7 +155,7 @@ begin
   exact sup_support_list_prod_le D0 Dm F,
 end
 
-lemma multiset_map_inf_support_sum_le [semilattice_inf B] [order_top B]
+lemma le_inf_support_multiset_prod [semilattice_inf B] [order_top B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   {D : A → B} (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b))
   (F : multiset (add_monoid_algebra R A)) :

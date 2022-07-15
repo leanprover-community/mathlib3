@@ -21,6 +21,8 @@ variables {C : Type u} [category.{v} C] [abelian C]
 
 namespace category_theory.abelian
 
+/-- In an abelian category, taking kernels and cokernels induces an order isomorphism between
+    the subobjects and the quotient objects of an object. -/
 def order_iso (X : C) : subobject X ≃o (subobject (op X))ᵒᵈ :=
 { to_fun := subobject.lift (λ A f hf, subobject.mk (cokernel.π f).op)
   begin
@@ -81,5 +83,8 @@ def order_iso (X : C) : subobject X ≃o (subobject (op X))ᵒᵈ :=
       rw [← subobject.of_mk_le_mk_comp h, category.assoc, cokernel.condition, comp_zero] },
     { refine quiver.hom.unop_inj (cokernel.π_desc _ _ _) }
   end }
+
+instance well_powered_opposite [well_powered C] : well_powered Cᵒᵖ :=
+{ subobject_small := λ X, (small_congr (order_iso (unop X)).to_equiv).1 infer_instance }
 
 end category_theory.abelian

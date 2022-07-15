@@ -549,13 +549,13 @@ end⟩
   @order_iso_punit_sum_lex α _ ⊥ = sum.inl punit.star := rfl
 
 @[simp] theorem order_iso_punit_sum_lex_coe (a : α) :
-  @order_iso_punit_sum_lex α _ a = sum.inr a := rfl
+  order_iso_punit_sum_lex (↑a) = sum.inr a := rfl
 
 @[simp] theorem order_iso_punit_sum_lex_symm_inl (x : punit) :
   (@order_iso_punit_sum_lex α _).symm (sum.inl x) = ⊥ := rfl
 
 @[simp] theorem order_iso_punit_sum_lex_symm_inr (a : α) :
-  (@order_iso_punit_sum_lex α _).symm (sum.inr a) = a := rfl
+  order_iso_punit_sum_lex.symm (sum.inr a) = a := rfl
 
 end with_bot
 
@@ -577,12 +577,12 @@ end⟩
   @order_iso_sum_lex_punit α _ ⊤ = sum.inr punit.star := rfl
 
 @[simp] theorem order_iso_sum_lex_punit_coe (a : α) :
-  @order_iso_sum_lex_punit α _ a = sum.inl a := rfl
+  order_iso_sum_lex_punit (↑a) = sum.inl a := rfl
 
 @[simp] theorem order_iso_sum_lex_punit_symm_inr (x : punit) :
   (@order_iso_sum_lex_punit α _).symm (sum.inr x) = ⊤ := rfl
 
 @[simp] theorem order_iso_sum_lex_punit_symm_inl (a : α) :
-  (@order_iso_sum_lex_punit α _).symm (sum.inl a) = a := rfl
+  order_iso_sum_lex_punit.symm (sum.inl a) = a := rfl
 
 end with_top

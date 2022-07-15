@@ -323,11 +323,12 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 This function has two arguments: `h_nil` handles the base case on `C nil`,
 and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`.
 
-This can be used as `induction v using vector.induction`. -/
-@[elab_as_eliminator] def induction {C : Π {n : ℕ}, vector α n → Sort*}
+This can be used as `induction v using vector.induction_on`. -/
+@[elab_as_eliminator] def induction_on {C : Π {n : ℕ}, vector α n → Sort*}
+  {n : ℕ} (v : vector α n)
   (h_nil : C nil)
-  (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w))
-  {n : ℕ} (v : vector α n) : C v :=
+  (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
+  C v :=
 begin
   induction n with n ih generalizing v,
   { rcases v with ⟨_|⟨-,-⟩,-|-⟩,
@@ -339,15 +340,7 @@ begin
 end
 
 -- check that the above works with `induction ... using`
-example (v : vector α n) : true := by induction v using vector.induction; trivial
-
-/-- A version of `vector.induction` that takes `v` first. -/
-@[elab_as_eliminator, reducible] def induction_on {C : Π {n : ℕ}, vector α n → Sort*}
-  (v : vector α n)
-  (h_nil : C nil)
-  (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
-    C v :=
-induction h_nil @h_cons v
+example (v : vector α n) : true := by induction v using vector.induction_on; trivial
 
 variables {β γ : Type*}
 

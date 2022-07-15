@@ -865,8 +865,7 @@ begin
     exact (intermediate_field.bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
   { intros _ s _ _ hs,
     rw supr_insert,
-    haveI : finite_dimensional K (⨆ i ∈ s, t i : intermediate_field K L) := hs,
-    apply intermediate_field.finite_dimensional_sup },
+    exactI intermediate_field.finite_dimensional_sup _ _ },
 end
 
 end supremum

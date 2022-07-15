@@ -638,6 +638,10 @@ protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embed
 @[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
 e.to_order_embedding.lt_iff_lt
 
+/-- Converts an `order_iso` into a `rel_iso (<) (<)`. -/
+def to_rel_iso_lt (e : α ≃o β): ((<) : α → α → Prop) ≃r ((<) : β → β → Prop) :=
+⟨e.to_equiv, λ _ _, lt_iff_lt e⟩
+
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)

@@ -319,19 +319,6 @@ lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
 
 lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
 
--- lemma coe_T_pow (n : ℕ) : ↑ₘ(T ^ n) = !![1, (n : ℤ); 0, 1] :=
--- begin
---   induction n with n ih,
---   { ext i j, fin_cases i; fin_cases j;
---     simp only [pow_zero, coe_one, int.coe_nat_zero, of_apply]; refl },
---   { rw [pow_succ, coe_mul, ih, coe_T],
---     ext i j, fin_cases i; fin_cases j;
---     simp [matrix.mul_apply, fin.sum_univ_succ, add_comm (1 : ℤ)], },
---   -- { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv],
---   --   ext i j, fin_cases i; fin_cases j;
---   --   simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
--- end
-
 lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
   induction n using int.induction_on with n h n h,

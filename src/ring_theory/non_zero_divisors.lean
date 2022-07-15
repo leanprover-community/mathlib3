@@ -32,7 +32,45 @@ def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
 
 localized "notation R`⁰`:9000 := non_zero_divisors R" in non_zero_divisors
 
-variables {M M' M₁ : Type*} [monoid_with_zero M] [monoid_with_zero M'] [comm_monoid_with_zero M₁]
+variables {M M' M₁ R R' F : Type*} [monoid_with_zero M] [monoid_with_zero M']
+  [comm_monoid_with_zero M₁] [ring R] [comm_ring R']
+
+lemma mem_non_zero_divisors_iff {r : M} : r ∈ M⁰ ↔ ∀ x, x * r = 0 → x = 0 := iff.rfl
+
+lemma mul_right_mem_non_zero_divisors_eq_zero_iff {x r : M} (hr : r ∈ M⁰) :
+  x * r = 0 ↔ x = 0 :=
+⟨hr _, by simp {contextual := tt}⟩
+
+@[simp] lemma mul_right_coe_non_zero_divisors_eq_zero_iff {x : M} {c : M⁰} :
+  x * c = 0 ↔ x = 0 :=
+mul_right_mem_non_zero_divisors_eq_zero_iff c.prop
+
+lemma mul_left_mem_non_zero_divisors_eq_zero_iff {r x : M₁} (hr : r ∈ M₁⁰) :
+  r * x = 0 ↔ x = 0 :=
+by rw [mul_comm, mul_right_mem_non_zero_divisors_eq_zero_iff hr]
+
+@[simp] lemma mul_left_coe_non_zero_divisors_eq_zero_iff {c : M₁⁰} {x : M₁} :
+  (c : M₁) * x = 0 ↔ x = 0 :=
+mul_left_mem_non_zero_divisors_eq_zero_iff c.prop
+
+lemma mul_cancel_right_mem_non_zero_divisor {x y r : R} (hr : r ∈ R⁰) :
+  x * r = y * r ↔ x = y :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←sub_eq_zero, ←mul_right_mem_non_zero_divisors_eq_zero_iff hr, sub_mul, h, sub_self]
+end
+
+lemma mul_cancel_right_coe_non_zero_divisor {x y : R} {c : R⁰} :
+  x * c = y * c ↔ x = y :=
+mul_cancel_right_mem_non_zero_divisor c.prop
+
+@[simp] lemma mul_cancel_left_mem_non_zero_divisor {x y r : R'} (hr : r ∈ R'⁰) :
+  r * x = r * y ↔ x = y :=
+by simp_rw [mul_comm r, mul_cancel_right_mem_non_zero_divisor hr]
+
+lemma mul_cancel_left_coe_non_zero_divisor {x y : R'} {c : R'⁰} :
+  (c : R') * x = c * y ↔ x = y :=
+mul_cancel_left_mem_non_zero_divisor c.prop
 
 lemma non_zero_divisors.ne_zero [nontrivial M] {x} (hx : x ∈ M⁰) : x ≠ 0 :=
 λ h, one_ne_zero (hx _ $ (one_mul _).trans h)
@@ -54,6 +92,11 @@ begin
     rw [mul_assoc, hx] },
 end
 
+lemma is_unit_of_mem_non_zero_divisors {G₀ : Type*} [group_with_zero G₀]
+  {x : G₀} (hx : x ∈ non_zero_divisors G₀) : is_unit x :=
+⟨⟨x, x⁻¹, mul_inv_cancel (non_zero_divisors.ne_zero hx),
+  inv_mul_cancel (non_zero_divisors.ne_zero hx)⟩, rfl⟩
+
 lemma eq_zero_of_ne_zero_of_mul_right_eq_zero [no_zero_divisors M]
   {x y : M} (hnx : x ≠ 0) (hxy : y * x = 0) : y = 0 :=
 or.resolve_right (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
@@ -62,32 +105,21 @@ lemma eq_zero_of_ne_zero_of_mul_left_eq_zero [no_zero_divisors M]
   {x y : M} (hnx : x ≠ 0) (hxy : x * y = 0) : y = 0 :=
 or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
 
+lemma mem_non_zero_divisors_of_ne_zero [no_zero_divisors M] {x : M} (hx : x ≠ 0) : x ∈ M⁰ :=
+λ _, eq_zero_of_ne_zero_of_mul_right_eq_zero hx
+
 lemma mem_non_zero_divisors_iff_ne_zero [no_zero_divisors M] [nontrivial M] {x : M} :
   x ∈ M⁰ ↔ x ≠ 0 :=
-⟨non_zero_divisors.ne_zero, λ hnx z, eq_zero_of_ne_zero_of_mul_right_eq_zero hnx⟩
+⟨non_zero_divisors.ne_zero, mem_non_zero_divisors_of_ne_zero⟩
 
-lemma monoid_with_zero_hom.map_ne_zero_of_mem_non_zero_divisors [nontrivial M]
-  (g : monoid_with_zero_hom M M') (hg : function.injective g)
-  {x : M} (h : x ∈ M⁰) : g x ≠ 0 :=
-λ h0, one_ne_zero (h 1 ((one_mul x).symm ▸ (hg (trans h0 g.map_zero.symm))))
+lemma map_ne_zero_of_mem_non_zero_divisors [nontrivial M] [zero_hom_class F M M']
+  (g : F) (hg : function.injective (g : M → M')) {x : M} (h : x ∈ M⁰) : g x ≠ 0 :=
+λ h0, one_ne_zero (h 1 ((one_mul x).symm ▸ (hg (trans h0 (map_zero g).symm))))
 
-lemma ring_hom.map_ne_zero_of_mem_non_zero_divisors {R R' : Type*} [semiring R] [semiring R']
-  [nontrivial R]
-  (g : R →+* R') (hg : function.injective g)
-  {x : R} (h : x ∈ R⁰) : g x ≠ 0 :=
-g.to_monoid_with_zero_hom.map_ne_zero_of_mem_non_zero_divisors hg h
-
-lemma monoid_with_zero_hom.map_mem_non_zero_divisors [nontrivial M] [no_zero_divisors M']
-  (g : monoid_with_zero_hom M M') (hg : function.injective g)
-  {x : M} (h : x ∈ M⁰) : g x ∈ M'⁰ :=
+lemma map_mem_non_zero_divisors [nontrivial M] [no_zero_divisors M'] [zero_hom_class F M M']
+  (g : F) (hg : function.injective g) {x : M} (h : x ∈ M⁰) : g x ∈ M'⁰ :=
 λ z hz, eq_zero_of_ne_zero_of_mul_right_eq_zero
-  (g.map_ne_zero_of_mem_non_zero_divisors hg h) hz
-
-lemma ring_hom.map_mem_non_zero_divisors {R R' : Type*} [semiring R] [semiring R']
-  [nontrivial R] [no_zero_divisors R']
-  (g : R →+* R') (hg : function.injective g)
-  {x : R} (h : x ∈ R⁰) : g x ∈ R'⁰ :=
-g.to_monoid_with_zero_hom.map_mem_non_zero_divisors hg h
+  (map_ne_zero_of_mem_non_zero_divisors g hg h) hz
 
 lemma le_non_zero_divisors_of_no_zero_divisors [no_zero_divisors M] {S : submonoid M}
   (hS : (0 : M) ∉ S) : S ≤ M⁰ :=
@@ -98,18 +130,19 @@ lemma powers_le_non_zero_divisors_of_no_zero_divisors [no_zero_divisors M]
   {a : M} (ha : a ≠ 0) : submonoid.powers a ≤ M⁰ :=
 le_non_zero_divisors_of_no_zero_divisors (λ h, absurd (h.rec_on (λ _ hn, pow_eq_zero hn)) ha)
 
-lemma monoid_with_zero_hom.map_le_non_zero_divisors_of_injective
-  [nontrivial M] [no_zero_divisors M']
-  (f : monoid_with_zero_hom M M') (hf : function.injective f)
-  {S : submonoid M} (hS : S ≤ M⁰) : S.map ↑f ≤ M'⁰ :=
-le_non_zero_divisors_of_no_zero_divisors (λ h, let ⟨x, hx, hx0⟩ := h in
-  zero_ne_one (hS (hf (trans hx0 (f.map_zero.symm)) ▸ hx : 0 ∈ S) 1 (mul_zero 1)).symm)
+lemma map_le_non_zero_divisors_of_injective [no_zero_divisors M']
+  [monoid_with_zero_hom_class F M M'] (f : F) (hf : function.injective f) {S : submonoid M}
+  (hS : S ≤ M⁰) : S.map f ≤ M'⁰ :=
+begin
+  casesI subsingleton_or_nontrivial M,
+  { simp [subsingleton.elim S ⊥] },
+  { exact le_non_zero_divisors_of_no_zero_divisors (λ h, let ⟨x, hx, hx0⟩ := h in
+      zero_ne_one (hS (hf (trans hx0 ((map_zero f).symm)) ▸ hx : 0 ∈ S) 1 (mul_zero 1)).symm) }
+end
 
-lemma ring_hom.map_le_non_zero_divisors_of_injective {R R' : Type*} [semiring R] [semiring R']
-  [nontrivial R] [no_zero_divisors R']
-  (f : R →+* R') (hf : function.injective f)
-  {S : submonoid R} (hS : S ≤ R⁰) : S.map ↑f ≤ R'⁰ :=
-f.to_monoid_with_zero_hom.map_le_non_zero_divisors_of_injective hf hS
+lemma non_zero_divisors_le_comap_non_zero_divisors_of_injective [no_zero_divisors M']
+  [monoid_with_zero_hom_class F M M'] (f : F) (hf : function.injective f) : M⁰ ≤ M'⁰.comap f :=
+submonoid.le_comap_of_map_le _ (map_le_non_zero_divisors_of_injective _ hf le_rfl)
 
 lemma prod_zero_iff_exists_zero [no_zero_divisors M₁] [nontrivial M₁]
   {s : multiset M₁} : s.prod = 0 ↔ ∃ (r : M₁) (hr : r ∈ s), r = 0 :=

@@ -3,9 +3,8 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.affine_space.affine_equiv
-import linear_algebra.tensor_product
 import data.set.intervals.unordered_interval
+import linear_algebra.affine_space.affine_equiv
 
 /-!
 # Affine spaces
@@ -344,8 +343,8 @@ begin
 end
 
 /-- Two affine subspaces are equal if they have the same points. -/
-@[ext] lemma ext {s1 s2 : affine_subspace k P} (h : (s1 : set P) = s2) : s1 = s2 :=
-begin
+@[ext] lemma coe_injective : function.injective (coe : affine_subspace k P → set P) :=
+λ s1 s2 h, begin
   cases s1,
   cases s2,
   congr,
@@ -354,7 +353,7 @@ end
 
 @[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
   (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
-⟨ext, by tidy⟩
+⟨λ h, coe_injective h, by tidy⟩
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/
@@ -547,15 +546,15 @@ instance : complete_lattice (affine_subspace k P) :=
   bot_le := λ _ _, false.elim,
   Sup := λ s, affine_span k (⋃ s' ∈ s, (s' : set P)),
   Inf := λ s, mk (⋂ s' ∈ s, (s' : set P))
-                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_bInter_iff.2 $ λ s2 hs2,
-                   s2.smul_vsub_vadd_mem c (set.mem_bInter_iff.1 hp1 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp2 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp3 s2 hs2)),
+                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_Inter₂.2 $ λ s2 hs2, begin
+                   rw set.mem_Inter₂ at *,
+                   exact s2.smul_vsub_vadd_mem c (hp1 s2 hs2) (hp2 s2 hs2) (hp3 s2 hs2)
+                 end),
   le_Sup := λ _ _ h, set.subset.trans (set.subset_bUnion_of_mem h) (subset_span_points k _),
-  Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.bUnion_subset h),
+  Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.Union₂_subset h),
   Inf_le := λ _ _, set.bInter_subset_of_mem,
-  le_Inf := λ _ _, set.subset_bInter,
-  .. partial_order.lift (coe : affine_subspace k P → set P) (λ _ _, ext) }
+  le_Inf := λ _ _, set.subset_Inter₂,
+  .. partial_order.lift (coe : affine_subspace k P → set P) coe_injective }
 
 instance : inhabited (affine_subspace k P) := ⟨⊤⟩
 
@@ -602,7 +601,7 @@ variables (k V)
 /-- The affine span is the `Inf` of subspaces containing the given
 points. -/
 lemma affine_span_eq_Inf (s : set P) : affine_span k s = Inf {s' | s ⊆ s'} :=
-le_antisymm (span_points_subset_coe_of_subset_coe (set.subset_bInter (λ _ h, h)))
+le_antisymm (span_points_subset_coe_of_subset_coe $ set.subset_Inter₂ $ λ _, id)
             (Inf_le (subset_span_points k _))
 
 variables (P)
@@ -752,6 +751,18 @@ variables (P)
 by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule.span_empty]
 
 variables {k V P}
+
+@[simp] lemma coe_eq_bot_iff (Q : affine_subspace k P) : (Q : set P) = ∅ ↔ Q = ⊥ :=
+coe_injective.eq_iff' (bot_coe _ _ _)
+
+@[simp] lemma coe_eq_univ_iff (Q : affine_subspace k P) : (Q : set P) = univ ↔ Q = ⊤ :=
+coe_injective.eq_iff' (top_coe _ _ _)
+
+lemma nonempty_iff_ne_bot (Q : affine_subspace k P) : (Q : set P).nonempty ↔ Q ≠ ⊥ :=
+by { rw ← ne_empty_iff_nonempty, exact not_congr Q.coe_eq_bot_iff }
+
+lemma eq_bot_or_nonempty (Q : affine_subspace k P) : Q = ⊥ ∨ (Q : set P).nonempty :=
+by { rw nonempty_iff_ne_bot, apply eq_or_ne }
 
 lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
   (h₂ : affine_span k s = ⊤) : subsingleton P :=
@@ -1193,12 +1204,15 @@ end
 
 end affine_subspace
 
-section maps
+section map_comap
 
-variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
+variables {k V₁ P₁ V₂ P₂ V₃ P₃ : Type*} [ring k]
 variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
 variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
+variables [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
 include V₁ V₂
+
+section
 
 variables (f : P₁ →ᵃ[k] P₂)
 
@@ -1215,14 +1229,30 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
     begin
       rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
       use t • (p₁ -ᵥ p₂) +ᵥ p₃,
-      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simp [this], },
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 
-@[simp] lemma map_coe (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+@[simp] lemma coe_map (s : affine_subspace k P₁) : (s.map f : set P₂) = f '' s := rfl
+
+@[simp] lemma mem_map {f : P₁ →ᵃ[k] P₂} {x : P₂} {s : affine_subspace k P₁} :
+  x ∈ s.map f ↔ ∃ y ∈ s, f y = x := mem_image_iff_bex
 
 @[simp] lemma map_bot : (⊥ : affine_subspace k P₁).map f = ⊥ :=
-by { rw ← ext_iff, exact image_empty f, }
+coe_injective $ image_empty f
+
+omit V₂
+
+@[simp] lemma map_id (s : affine_subspace k P₁) : s.map (affine_map.id k P₁) = s :=
+coe_injective $ image_id _
+
+include V₂ V₃
+
+lemma map_map (s : affine_subspace k P₁) (f : P₁ →ᵃ[k] P₂) (g : P₂ →ᵃ[k] P₃) :
+  (s.map f).map g = s.map (g.comp f) :=
+coe_injective $ image_image _ _ _
+
+omit V₃
 
 @[simp] lemma map_direction (s : affine_subspace k P₁) :
   (s.map f).direction = s.direction.map f.linear :=
@@ -1255,7 +1285,9 @@ by rw [← affine_subspace.map_span, h, map_top_of_surjective f hf]
 
 end affine_map
 
-lemma affine_equiv.span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
+namespace affine_equiv
+
+lemma span_eq_top_iff {s : set P₁} (e : P₁ ≃ᵃ[k] P₂) :
   affine_span k s = ⊤ ↔ affine_span k (e '' s) = ⊤ :=
 begin
   refine ⟨(e : P₁ →ᵃ[k] P₂).span_eq_top_of_surjective e.surjective, _⟩,
@@ -1265,4 +1297,76 @@ begin
   exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
 end
 
-end maps
+end affine_equiv
+
+end
+
+namespace affine_subspace
+
+/-- The preimage of an affine subspace under an affine map as an affine subspace. -/
+def comap (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) : affine_subspace k P₁ :=
+{ carrier := f ⁻¹' s,
+  smul_vsub_vadd_mem := λ t p₁ p₂ p₃ (hp₁ : f p₁ ∈ s) (hp₂ : f p₂ ∈ s) (hp₃ : f p₃ ∈ s),
+    show f _ ∈ s, begin
+      rw [affine_map.map_vadd, linear_map.map_smul, affine_map.linear_map_vsub],
+      apply s.smul_vsub_vadd_mem _ hp₁ hp₂ hp₃,
+    end }
+
+@[simp] lemma coe_comap (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) :
+  (s.comap f : set P₁) = f ⁻¹' ↑s := rfl
+
+@[simp] lemma mem_comap {f : P₁ →ᵃ[k] P₂} {x : P₁} {s : affine_subspace k P₂} :
+  x ∈ s.comap f ↔ f x ∈ s := iff.rfl
+
+lemma comap_mono {f : P₁ →ᵃ[k] P₂} {s t : affine_subspace k P₂} : s ≤ t → s.comap f ≤ t.comap f :=
+preimage_mono
+
+@[simp] lemma comap_top {f : P₁ →ᵃ[k] P₂} : (⊤ : affine_subspace k P₂).comap f = ⊤ :=
+by { rw ← ext_iff, exact preimage_univ, }
+
+omit V₂
+
+@[simp] lemma comap_id (s : affine_subspace k P₁) : s.comap (affine_map.id k P₁) = s :=
+coe_injective rfl
+
+include V₂ V₃
+
+lemma comap_comap (s : affine_subspace k P₃) (f : P₁ →ᵃ[k] P₂) (g : P₂ →ᵃ[k] P₃) :
+  (s.comap g).comap f = s.comap (g.comp f) :=
+coe_injective rfl
+
+omit V₃
+
+-- lemmas about map and comap derived from the galois connection
+
+lemma map_le_iff_le_comap {f : P₁ →ᵃ[k] P₂} {s : affine_subspace k P₁} {t : affine_subspace k P₂} :
+  s.map f ≤ t ↔ s ≤ t.comap f :=
+image_subset_iff
+
+lemma gc_map_comap (f : P₁ →ᵃ[k] P₂) : galois_connection (map f) (comap f) :=
+λ _ _, map_le_iff_le_comap
+
+lemma map_comap_le (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₂) : (s.comap f).map f ≤ s :=
+(gc_map_comap f).l_u_le _
+
+lemma le_comap_map (f : P₁ →ᵃ[k] P₂) (s : affine_subspace k P₁) : s ≤ (s.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+lemma map_sup (s t : affine_subspace k P₁) (f : P₁ →ᵃ[k] P₂) : (s ⊔ t).map f = s.map f ⊔ t.map f :=
+(gc_map_comap f).l_sup
+
+lemma map_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₁) :
+  (supr s).map f = ⨆ i, (s i).map f :=
+(gc_map_comap f).l_supr
+
+lemma comap_inf (s t : affine_subspace k P₂) (f : P₁ →ᵃ[k] P₂) :
+  (s ⊓ t).comap f = s.comap f ⊓ t.comap f :=
+(gc_map_comap f).u_inf
+
+lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subspace k P₂) :
+  (infi s).comap f = ⨅ i, (s i).comap f :=
+(gc_map_comap f).u_infi
+
+end affine_subspace
+
+end map_comap

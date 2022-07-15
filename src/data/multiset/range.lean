@@ -18,6 +18,8 @@ namespace multiset
   that is, the set `{0, 1, ..., n-1}`. -/
 def range (n : ℕ) : multiset ℕ := range n
 
+theorem coe_range (n : ℕ) : ↑(list.range n) = range n := rfl
+
 @[simp] theorem range_zero : range 0 = 0 := rfl
 
 @[simp] theorem range_succ (n : ℕ) : range (succ n) = n ::ₘ range n :=
@@ -32,5 +34,20 @@ theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subs
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
 
 theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := list.self_mem_range_succ n
+
+lemma range_add (a b : ℕ) : range (a + b) = range a + (range b).map (λ x, a + x) :=
+congr_arg coe (list.range_add _ _)
+
+lemma range_disjoint_map_add (a : ℕ) (m : multiset ℕ) :
+  (range a).disjoint (m.map (λ x, a + x)) :=
+begin
+  intros x hxa hxb,
+  rw [range, mem_coe, list.mem_range] at hxa,
+  obtain ⟨c, _, rfl⟩ := mem_map.1 hxb,
+  exact (self_le_add_right _ _).not_lt hxa,
+end
+
+lemma range_add_eq_union (a b : ℕ) : range (a + b) = range a ∪ (range b).map (λ x, a + x) :=
+by { rw [range_add, add_eq_union_iff_disjoint], apply range_disjoint_map_add }
 
 end multiset

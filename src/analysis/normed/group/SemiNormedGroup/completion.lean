@@ -34,7 +34,7 @@ noncomputable theory
 
 universe u
 
-open uniform_space opposite category_theory normed_group_hom
+open uniform_space mul_opposite category_theory normed_group_hom
 
 namespace SemiNormedGroup
 
@@ -79,13 +79,12 @@ add_monoid_hom.mk' (category_theory.functor.map Completion) $ λ f g,
 instance : preadditive SemiNormedGroup.{u} :=
 { hom_group := λ P Q, infer_instance,
   add_comp' := by { intros, ext,
-    simp only [normed_group_hom.add_apply, category_theory.comp_apply, normed_group_hom.map_add] },
+    simp only [normed_group_hom.add_apply, category_theory.comp_apply, map_add] },
   comp_add' := by { intros, ext,
-    simp only [normed_group_hom.add_apply, category_theory.comp_apply, normed_group_hom.map_add] } }
+    simp only [normed_group_hom.add_apply, category_theory.comp_apply, map_add] } }
 
 instance : functor.additive Completion :=
-{ map_zero' := Completion.map_zero,
-  map_add' := λ X Y, (Completion.map_hom _ _).map_add }
+{ map_add' := λ X Y, (Completion.map_hom _ _).map_add }
 
 /-- Given a normed group hom `f : V → W` with `W` complete, this provides a lift of `f` to
 the completion of `V`. The lemmas `lift_unique` and `lift_comp_incl` provide the api for the

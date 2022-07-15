@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov
 -/
-import data.finset
 import data.fintype.basic
 import algebra.geom_sum
 
@@ -32,9 +31,14 @@ fixed size. If the size is 3, colex on ℕ starts
 * `sum_two_pow_le_iff_lt`: colex for α = ℕ is the same as binary
   (this also proves binary expansions are unique)
 
-## Notation
-We define `<` and `≤` to denote colex ordering, useful in particular when
-multiple orderings are available in context.
+## See also
+
+Related files are:
+* `data.list.lex`: Lexicographic order on lists.
+* `data.pi.lex`: Lexicographic order on `Πₗ i, α i`.
+* `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
+* `data.sigma.order`: Lexicographic order on `Σ i, α i`.
+* `data.prod.lex`: Lexicographic order on `α × β`.
 
 ## Tags
 colex, colexicographic, binary
@@ -68,7 +72,7 @@ lemma colex.eq_iff (A B : finset α) :
 
 /--
 `A` is less than `B` in the colex ordering if the largest thing that's not in both sets is in B.
-In other words, max (A Δ B) ∈ B (if the maximum exists).
+In other words, `max (A ∆ B) ∈ B` (if the maximum exists).
 -/
 instance [has_lt α] : has_lt (finset.colex α) :=
 ⟨λ (A B : finset α), ∃ (k : α), (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B⟩
@@ -90,7 +94,7 @@ lemma nat.sum_two_pow_lt {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A →
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
   have z := geom_sum_mul_add 1 k,
-  rw [geom_sum, mul_one, one_add_one_eq_two] at z,
+  rw [mul_one, one_add_one_eq_two] at z,
   rw ← z,
   apply nat.lt_succ_self,
 end
@@ -109,8 +113,8 @@ begin
   rintro ⟨k, z, ka, _⟩,
   refine ⟨f k, λ x hx, _, _, k, ‹k ∈ B›, rfl⟩,
   { split,
-    any_goals {
-      rintro ⟨x', hx', rfl⟩,
+    any_goals
+    { rintro ⟨x', hx', rfl⟩,
       refine ⟨x', _, rfl⟩,
       rwa ← z _ <|> rwa z _,
       rwa strict_mono.lt_iff_lt h₁ at hx } },
@@ -128,24 +132,20 @@ instance [has_lt α] : is_irrefl (finset.colex α) (<) :=
 ⟨λ A h, exists.elim h (λ _ ⟨_,a,b⟩, a b)⟩
 
 @[trans]
-lemma lt_trans [linear_order α] {a b c : finset.colex α} :
-  a < b → b < c → a < c :=
+lemma lt_trans [linear_order α] {a b c : finset.colex α} : a < b → b < c → a < c :=
 begin
   rintros ⟨k₁, k₁z, notinA, inB⟩ ⟨k₂, k₂z, notinB, inC⟩,
   cases lt_or_gt_of_ne (ne_of_mem_of_not_mem inB notinB),
-  { refine ⟨k₂, _, by rwa k₁z h, inC⟩,
-    intros x hx,
+  { refine ⟨k₂, λ x hx, _, by rwa k₁z h, inC⟩,
     rw ← k₂z hx,
     apply k₁z (trans h hx) },
-  { refine ⟨k₁, _, notinA, by rwa ← k₂z h⟩,
-    intros x hx,
+  { refine ⟨k₁, λ x hx, _, notinA, by rwa ← k₂z h⟩,
     rw k₁z hx,
     apply k₂z (trans h hx) }
 end
 
 @[trans]
-lemma le_trans [linear_order α] (a b c : finset.colex α) :
-  a ≤ b → b ≤ c → a ≤ c :=
+lemma le_trans [linear_order α] (a b c : finset.colex α) : a ≤ b → b ≤ c → a ≤ c :=
 λ AB BC, AB.elim (λ k, BC.elim (λ t, or.inl (lt_trans k t)) (λ t, t ▸ AB)) (λ k, k.symm ▸ BC)
 
 instance [linear_order α] : is_trans (finset.colex α) (<) := ⟨λ _ _ _, colex.lt_trans⟩
@@ -351,22 +351,19 @@ def to_colex_rel_hom [linear_order α] :
 
 instance [linear_order α] : order_bot (finset.colex α) :=
 { bot := (∅ : finset α).to_colex,
-  bot_le := λ x, empty_to_colex_le,
-  ..(by apply_instance : partial_order (finset.colex α)) }
+  bot_le := λ x, empty_to_colex_le }
 
-instance [linear_order α] : semilattice_inf_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
+instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
+{ top := finset.univ.to_colex,
+  le_top := λ x, colex_le_of_subset (subset_univ _) }
+
+instance [linear_order α] : lattice (finset.colex α) :=
+{ ..(by apply_instance : semilattice_sup (finset.colex α)),
   ..(by apply_instance : semilattice_inf (finset.colex α)) }
 
-instance [linear_order α] : semilattice_sup_bot (finset.colex α) :=
-{ ..finset.colex.order_bot,
-  ..(by apply_instance : semilattice_sup (finset.colex α)) }
-
-instance [linear_order α] [fintype α] : bounded_lattice (finset.colex α) :=
-{ top := finset.univ.to_colex,
-  le_top := λ x, colex_le_of_subset (subset_univ _),
-  ..(by apply_instance : semilattice_sup (finset.colex α)),
-  ..(by apply_instance : semilattice_inf_bot (finset.colex α)) }
+instance [linear_order α] [fintype α] : bounded_order (finset.colex α) :=
+{ ..(by apply_instance : order_top (finset.colex α)),
+  ..(by apply_instance : order_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

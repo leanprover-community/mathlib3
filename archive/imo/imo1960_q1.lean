@@ -73,7 +73,7 @@ begin
   refine ⟨by ring, λ m l p, _⟩,
   obtain ⟨h₁, ⟨m, rfl⟩, h₂⟩ := id p,
   by_cases h : 11 * m < c * 11, { exact H _ h p },
-  have : m = c, {linarith}, subst m,
+  obtain rfl : m = c := by linarith,
   rw [nat.mul_div_cancel_left _ (by norm_num : 11 > 0), mul_comm] at h₂,
   refine (H' h₂).imp _ _; {rintro rfl, norm_num}
 end
@@ -85,8 +85,8 @@ H.2 _ (by linarith [lt_1000 ppn]) ppn
 lemma right_direction {n : ℕ} : problem_predicate n → solution_predicate n :=
 begin
   have := search_up_to_start,
-  iterate 82 {
-    replace := search_up_to_step this (by norm_num1; refl) (by norm_num1; refl)
+  iterate 82
+  { replace := search_up_to_step this (by norm_num1; refl) (by norm_num1; refl)
       (by norm_num1; refl) dec_trivial },
   exact search_up_to_end this
 end

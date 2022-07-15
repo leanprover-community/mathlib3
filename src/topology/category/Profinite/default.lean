@@ -96,7 +96,6 @@ def Profinite.to_Top : Profinite ⥤ Top := forget₂ _ _
 rfl
 
 section Profinite
-local attribute [instance] connected_component_setoid
 
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
@@ -118,13 +117,11 @@ spaces in compact Hausdorff spaces.
 -/
 def Profinite.to_CompHaus_equivalence (X : CompHaus.{u}) (Y : Profinite.{u}) :
   (CompHaus.to_Profinite_obj X ⟶ Y) ≃ (X ⟶ Profinite_to_CompHaus.obj Y) :=
-{ to_fun := λ f,
-  { to_fun := f.1 ∘ quotient.mk,
-    continuous_to_fun := continuous.comp f.2 (continuous_quotient_mk) },
+{ to_fun := λ f, f.comp ⟨quotient.mk', continuous_quotient_mk⟩,
   inv_fun := λ g,
     { to_fun := continuous.connected_components_lift g.2,
       continuous_to_fun := continuous.connected_components_lift_continuous g.2},
-  left_inv := λ f, continuous_map.ext $ λ x, quotient.induction_on x $ λ a, rfl,
+  left_inv := λ f, continuous_map.ext $ connected_components.surjective_coe.forall.2 $ λ a, rfl,
   right_inv := λ f, continuous_map.ext $ λ x, rfl }
 
 /--
@@ -156,26 +153,29 @@ end Profinite
 
 namespace Profinite
 
+-- TODO the following construction of limits could be generalised
+-- to allow diagrams in lower universes.
+
 /-- An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
 `Top.limit_cone`. -/
 def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.cone F :=
 { X :=
-  { to_CompHaus := (CompHaus.limit_cone (F ⋙ Profinite_to_CompHaus)).X,
+  { to_CompHaus := (CompHaus.limit_cone.{u u} (F ⋙ Profinite_to_CompHaus)).X,
     is_totally_disconnected :=
     begin
       change totally_disconnected_space ↥{u : Π (j : J), (F.obj j) | _},
       exact subtype.totally_disconnected_space,
     end },
-  π := { app := (CompHaus.limit_cone (F ⋙ Profinite_to_CompHaus)).π.app } }
+  π := { app := (CompHaus.limit_cone.{u u} (F ⋙ Profinite_to_CompHaus)).π.app } }
 
 /-- The limit cone `Profinite.limit_cone F` is indeed a limit cone. -/
 def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.is_limit (limit_cone F) :=
-{ lift := λ S, (CompHaus.limit_cone_is_limit (F ⋙ Profinite_to_CompHaus)).lift
+{ lift := λ S, (CompHaus.limit_cone_is_limit.{u u} (F ⋙ Profinite_to_CompHaus)).lift
     (Profinite_to_CompHaus.map_cone S),
   uniq' := λ S m h,
-    (CompHaus.limit_cone_is_limit _).uniq (Profinite_to_CompHaus.map_cone S) _ h }
+    (CompHaus.limit_cone_is_limit.{u u} _).uniq (Profinite_to_CompHaus.map_cone S) _ h }
 
 /-- The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus -/
 def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite_to_CompHaus :=
@@ -280,7 +280,7 @@ begin
     rw if_pos hyV at H,
     exact top_ne_bot H },
   { rw ← category_theory.epi_iff_surjective,
-    apply faithful_reflects_epi (forget Profinite) },
+    apply (forget Profinite).epi_of_epi_map }
 end
 
 lemma mono_iff_injective {X Y : Profinite.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
@@ -291,7 +291,7 @@ begin
     haveI : mono (Profinite_to_CompHaus.map f) := infer_instance,
     rwa ← CompHaus.mono_iff_injective },
   { rw ← category_theory.mono_iff_injective,
-    apply faithful_reflects_mono (forget Profinite) }
+    apply (forget Profinite).mono_of_mono_map }
 end
 
 end Profinite

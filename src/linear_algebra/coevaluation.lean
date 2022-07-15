@@ -3,11 +3,9 @@ Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
-import linear_algebra.dual
-import linear_algebra.finsupp_vector_space
-import linear_algebra.finite_dimensional
 import linear_algebra.contraction
-import linear_algebra.tensor_product_basis
+import linear_algebra.finite_dimensional
+import linear_algebra.dual
 
 /-!
 # The coevaluation map on finite dimensional vector spaces

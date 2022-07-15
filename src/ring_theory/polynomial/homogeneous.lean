@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Eric Wieser
 -/
 
-import data.mv_polynomial
-import algebra.algebra.operations
+import algebra.direct_sum.internal
+import algebra.graded_monoid
 import data.fintype.card
-import algebra.direct_sum.algebra
+import data.mv_polynomial.variables
 
 /-!
 # Homogeneous polynomials
@@ -44,7 +44,7 @@ def is_homogeneous [comm_semiring R] (φ : mv_polynomial σ R) (n : ℕ) :=
 variables (σ R)
 
 /-- The submodule of homogeneous `mv_polynomial`s of degree `n`. -/
-noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
+def homogeneous_submodule [comm_semiring R] (n : ℕ) :
   submodule R (mv_polynomial σ R) :=
 { carrier := { x | x.is_homogeneous n },
   smul_mem' := λ r a ha c hc, begin
@@ -122,6 +122,15 @@ begin
 end
 variables (σ) {R}
 
+lemma is_homogeneous_of_total_degree_zero {p : mv_polynomial σ R} (hp : p.total_degree = 0) :
+  is_homogeneous p 0 :=
+begin
+  erw [total_degree, finset.sup_eq_bot_iff] at hp,
+  -- we have to do this in two steps to stop simp changing bot to zero
+  simp_rw [mem_support_iff] at hp,
+  exact hp,
+end
+
 lemma is_homogeneous_C (r : R) :
   is_homogeneous (C r : mv_polynomial σ R) 0 :=
 begin
@@ -143,7 +152,7 @@ lemma is_homogeneous_X (i : σ) :
   is_homogeneous (X i : mv_polynomial σ R) 1 :=
 begin
   apply is_homogeneous_monomial,
-  simp only [finsupp.support_single_ne_zero one_ne_zero, finset.sum_singleton],
+  simp only [finsupp.support_single_ne_zero _ one_ne_zero, finset.sum_singleton],
   exact finsupp.single_eq_same
 end
 
@@ -209,11 +218,10 @@ end
 /--
 The homogeneous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`
 and `direct_sum.algebra`. -/
-noncomputable instance homogeneous_submodule.gcomm_semiring :
-  direct_sum.gcomm_semiring (λ i, homogeneous_submodule σ R i) :=
-direct_sum.gcomm_semiring.of_submodules _
-  (is_homogeneous_one σ R)
-  (λ i j hi hj, is_homogeneous.mul hi.prop hj.prop)
+instance homogeneous_submodule.gcomm_semiring :
+  set_like.graded_monoid (homogeneous_submodule σ R) :=
+{ one_mem := is_homogeneous_one σ R,
+  mul_mem := λ i j xi xj, is_homogeneous.mul}
 
 open_locale direct_sum
 noncomputable example : comm_semiring (⨁ i, homogeneous_submodule σ R i) := infer_instance
@@ -235,7 +243,7 @@ def homogeneous_component [comm_semiring R] (n : ℕ) :
 
 section homogeneous_component
 open finset
-variables [comm_semiring R] (n : ℕ) (φ : mv_polynomial σ R)
+variables [comm_semiring R] (n : ℕ) (φ ψ : mv_polynomial σ R)
 
 lemma coeff_homogeneous_component (d : σ →₀ ℕ) :
   coeff d (homogeneous_component n φ) = if ∑ i in d.support, d i = n then coeff d φ else 0 :=
@@ -254,6 +262,7 @@ begin
   rw [coeff_homogeneous_component, if_neg hd]
 end
 
+@[simp]
 lemma homogeneous_component_zero : homogeneous_component 0 φ = C (coeff 0 φ) :=
 begin
   ext1 d,
@@ -264,6 +273,11 @@ begin
     simp only [finsupp.ext_iff, finsupp.zero_apply] at hd,
     simp [hd] }
 end
+
+@[simp]
+lemma homogeneous_component_C_mul (n : ℕ) (r : R) :
+  homogeneous_component n (C r * φ) = C r * homogeneous_component n φ :=
+by simp only [C_mul', linear_map.map_smul]
 
 lemma homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support → ∑ i in d.support, d i ≠ n) :
   homogeneous_component n φ = 0 :=
@@ -289,6 +303,23 @@ begin
   suffices : φ.total_degree < d.support.sum d → 0 = coeff d φ,
     by simpa [coeff_sum, coeff_homogeneous_component],
   exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm
+end
+
+lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)
+  (p : mv_polynomial σ R) (h : p ∈ homogeneous_submodule σ R n) :
+  homogeneous_component m p = if m = n then p else 0 :=
+begin
+  simp only [mem_homogeneous_submodule] at h,
+  ext x,
+  rw coeff_homogeneous_component,
+  by_cases zero_coeff : coeff x p = 0,
+  { split_ifs,
+    all_goals { simp only [zero_coeff, coeff_zero], }, },
+  { rw h zero_coeff,
+    simp only [show n = m ↔ m = n, from eq_comm],
+    split_ifs with h1,
+    { refl },
+    { simp only [coeff_zero] } }
 end
 
 end homogeneous_component

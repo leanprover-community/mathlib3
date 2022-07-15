@@ -173,8 +173,8 @@ meta def funext (c : old_conv unit) : old_conv unit :=
   guard (r = `eq),
   (expr.lam n bi d b) ← return lhs,
   let aux_type := expr.pi n bi d (expr.const `true []),
-  (result, _) ← solve_aux aux_type $ do {
-    x ← intro1,
+  (result, _) ← solve_aux aux_type $ do
+  { x ← intro1,
     c_result ← c r (b.instantiate_var x),
     let rhs  := expr.lam n bi d (c_result.rhs.abstract x),
     match c_result.proof : _ → tactic (old_conv_result unit) with

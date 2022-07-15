@@ -3,9 +3,8 @@ Copyright (c) 2020 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import data.polynomial.ring_division
+import data.polynomial.eval
 import linear_algebra.dimension
-import algebra.polynomial.big_operators
 
 /-!
 # Linear recurrence
@@ -38,14 +37,14 @@ properties of eigenvalues and eigenvectors.
 
 noncomputable theory
 open finset
-open_locale big_operators
+open_locale big_operators polynomial
 
 /-- A "linear recurrence relation" over a commutative semiring is given by its
   order `n` and `n` coefficients. -/
 structure linear_recurrence (α : Type*) [comm_semiring α] := (order : ℕ) (coeffs : fin order → α)
 
 instance (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
-⟨⟨0, default _⟩⟩
+⟨⟨0, default⟩⟩
 
 namespace linear_recurrence
 
@@ -184,7 +183,7 @@ variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
 /-- The characteristic polynomial of `E` is
 `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
-def char_poly : polynomial α :=
+def char_poly : α[X] :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
 /-- The geometric sequence `q^n` is a solution of `E` iff

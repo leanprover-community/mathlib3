@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 -/
 import order.filter.filter_product
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Construction of the hyperreal numbers as an ultraproduct of real sequences.
@@ -48,7 +48,7 @@ coe_lt_coe
 @[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
 begin
   convert const_abs x,
-  apply lattice_of_linear_order_eq_filter_germ_lattice,
+  apply linear_order.to_lattice_eq_filter_germ_lattice,
 end
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
@@ -67,7 +67,7 @@ localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv₀ _ _ ω
+lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
 
 lemma epsilon_pos : 0 < ε :=
 suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
@@ -89,7 +89,7 @@ theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, 0 < r → of_seq f < (r : ℝ*) :=
 begin
-  simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def] at hf ⊢,
+  simp only [metric.tendsto_at_top, real.dist_eq, sub_zero, lt_def] at hf ⊢,
   intros r hr, cases hf r hr with N hf',
   have hs : {i : ℕ | f i < r}ᶜ ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
@@ -170,10 +170,10 @@ have HR₁ : S.nonempty :=
 have HR₂ : bdd_above S :=
   ⟨ r₂, λ y hy, le_of_lt (coe_lt_coe.1 (lt_of_lt_of_le hy (not_lt.mp hr₂))) ⟩,
 λ δ hδ,
-  ⟨ lt_of_not_ge' $ λ c,
+  ⟨ lt_of_not_le $ λ c,
       have hc : ∀ y ∈ S, y ≤ R - δ := λ y hy, coe_le_coe.1 $ le_of_lt $ lt_of_lt_of_le hy c,
       not_lt_of_le (cSup_le HR₁ hc) $ sub_lt_self R hδ,
-    lt_of_not_ge' $ λ c,
+    lt_of_not_le $ λ c,
       have hc : ↑(R + δ / 2) < x :=
         lt_of_lt_of_le (add_lt_add_left (coe_lt_coe.2 (half_lt_self hδ)) R) c,
       not_lt_of_le (le_cSup HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
@@ -662,14 +662,14 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ 0 < x) :=
-by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv₀]
+by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv]
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv₀]
+by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv]
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv₀]
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv]
 
 /-!
 ### `st` stuff that requires infinitesimal machinery
@@ -687,7 +687,7 @@ lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → i
 have H : _ := exists_st_of_not_infinite $ not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi,
 Exists.cases_on H $ λ s hs,
 have H' : is_st 1 (r * s) := mul_inv_cancel h ▸ is_st_mul hxr hs,
-have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,
+have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one_right (eq_of_is_st_real H').symm,
 H'' ▸ hs
 
 lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ :=

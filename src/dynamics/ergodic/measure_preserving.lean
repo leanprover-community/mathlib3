@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Measure preserving maps
@@ -42,15 +42,42 @@ structure measure_preserving (f : α → β) (μa : measure α . volume_tac)
 (measurable : measurable f)
 (map_eq : map f μa = μb)
 
+protected lemma _root_.measurable.measure_preserving {f : α → β}
+  (h : measurable f) (μa : measure α) :
+  measure_preserving f μa (map f μa) :=
+⟨h, rfl⟩
+
 namespace measure_preserving
 
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
 ⟨measurable_id, map_id⟩
 
-lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
+protected lemma ae_measurable {f : α → β} (hf : measure_preserving f μa μb) :
+  ae_measurable f μa :=
+hf.1.ae_measurable
+
+lemma symm (e : α ≃ᵐ β) {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
   by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
+
+lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s : set β}
+  (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.measurable hs]⟩
+
+lemma restrict_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (h₂ : measurable_embedding f) (s : set β) :
+  measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+⟨hf.measurable, by rw [← hf.map_eq, h₂.restrict_map]⟩
+
+lemma restrict_image_emb {f : α → β} (hf : measure_preserving f μa μb) (h₂ : measurable_embedding f)
+  (s : set α) : measure_preserving f (μa.restrict s) (μb.restrict (f '' s)) :=
+by simpa only [preimage_image_eq _ h₂.injective] using hf.restrict_preimage_emb h₂ (f '' s)
+
+lemma ae_measurable_comp_iff {f : α → β} (hf : measure_preserving f μa μb)
+  (h₂ : measurable_embedding f) {g : β → γ} :
+  ae_measurable (g ∘ f) μa ↔ ae_measurable g μb :=
+by rw [← hf.map_eq, h₂.ae_measurable_map_iff]
 
 protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preserving f μa μb) :
   quasi_measure_preserving f μa μb :=
@@ -63,12 +90,17 @@ lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
-sigma_finite.of_map μa hf.1 (by rwa hf.map_eq)
+sigma_finite.of_map μa hf.ae_measurable (by rwa hf.map_eq)
 
 lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   {s : set β} (hs : measurable_set s) :
   μa (f ⁻¹' s) = μb s :=
 by rw [← hf.map_eq, map_apply hf.1 hs]
+
+lemma measure_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (hfe : measurable_embedding f) (s : set β) :
+  μa (f ⁻¹' s) = μb s :=
+by rw [← hf.map_eq, hfe.map_apply]
 
 protected lemma iterate {f : α → α} (hf : measure_preserving f μa μa) :
   ∀ n, measure_preserving (f^[n]) μa μa

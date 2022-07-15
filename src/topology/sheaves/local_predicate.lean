@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import topology.sheaves.sheaf_of_functions
 import topology.sheaves.stalks
+import topology.local_homeomorph
 import topology.sheaves.sheaf_condition.unique_gluing
 
 /-!
@@ -265,11 +266,11 @@ begin
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
-  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective' tU,
-  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective' tV,
+  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := jointly_surjective'.{v v} tU,
+  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := jointly_surjective'.{v v} tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    simp only [stalk_to_fiber, types.colimit.ι_desc_apply] at h,
+    simp only [stalk_to_fiber, types.colimit.ι_desc_apply'] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.

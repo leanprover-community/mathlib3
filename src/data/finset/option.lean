@@ -3,8 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Mario Carneiro, Sean Leather
 -/
-import data.finset.basic
-import order.preorder_hom
+import data.finset.card
+import order.hom.basic
 
 /-!
 # Finite sets in `option α`
@@ -54,7 +54,7 @@ order_embedding.of_map_le_iff (λ s, cons none (s.map embedding.some) $ by simp)
   cons_subset_cons.trans map_subset_map
 
 /-⟨none ::ₘ s.1.map some, multiset.nodup_cons.2
-  ⟨by simp, multiset.nodup_map (λ a b, option.some.inj) s.2⟩⟩-/
+  ⟨by simp, s.nodup.map $ λ a b, option.some.inj⟩⟩-/
 
 @[simp] theorem mem_insert_none {s : finset α} : ∀ {o : option α},
   o ∈ s.insert_none ↔ ∀ a ∈ o, a ∈ s
@@ -69,8 +69,8 @@ by simp [insert_none]
 
 /-- Given `s : finset (option α)`, `s.erase_none : finset α` is the set of `x : α` such that
 `some x ∈ s`. -/
-def erase_none : finset (option α) →ₘ finset α :=
-(finset.map_embedding (equiv.option_is_some_equiv α).to_embedding).to_preorder_hom.comp
+def erase_none : finset (option α) →o finset α :=
+(finset.map_embedding (equiv.option_is_some_equiv α).to_embedding).to_order_hom.comp
   ⟨finset.subtype _, subtype_mono⟩
 
 @[simp] lemma mem_erase_none {s : finset (option α)} {x : α} :

@@ -300,9 +300,9 @@ The categorical cokernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical quotient.
 -/
 noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
-  cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
+  cokernel f ≅ AddCommGroup.of (H ⧸ (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
-    (by { ext, apply quotient.sound, fsplit, exact -x,
+    (by { ext, apply quotient.sound, apply left_rel_apply.mpr, fsplit, exact -x,
           simp only [add_zero, add_monoid_hom.map_neg], }),
   inv := quotient_add_group.lift _ (cokernel.π f)
     (by { intros x H_1, cases H_1, induction H_1_h,

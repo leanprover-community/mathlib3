@@ -3,7 +3,6 @@ Copyright (c) 2021 Lu-Ming Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lu-Ming Zhang
 -/
-import data.matrix.notation
 import linear_algebra.matrix.trace
 
 /-!
@@ -66,11 +65,11 @@ ext $ λ _ _, right_distrib _ _ _
 /- scalar multiplication -/
 section scalar
 
-@[simp] lemma smul_hadamard [has_mul α] [has_scalar R α] [is_scalar_tower R α α] (k : R) :
+@[simp] lemma smul_hadamard [has_mul α] [has_smul R α] [is_scalar_tower R α α] (k : R) :
   (k • A) ⊙ B = k • A ⊙ B :=
 ext $ λ _ _, smul_mul_assoc _ _ _
 
-@[simp] lemma hadamard_smul [has_mul α] [has_scalar R α] [smul_comm_class R α α] (k : R):
+@[simp] lemma hadamard_smul [has_mul α] [has_smul R α] [smul_comm_class R α α] (k : R):
   A ⊙ (k • B) = k • A ⊙ B :=
 ext $ λ _ _, mul_smul_comm _ _ _
 
@@ -116,11 +115,11 @@ section trace
 variables [fintype m] [fintype n]
 variables (R) [semiring α] [semiring R] [module R α]
 
-lemma sum_hadamard_eq : ∑ (i : m) (j : n), (A ⊙ B) i j = trace m R α (A ⬝ Bᵀ) :=
+lemma sum_hadamard_eq : ∑ (i : m) (j : n), (A ⊙ B) i j = trace (A ⬝ Bᵀ) :=
 rfl
 
 lemma dot_product_vec_mul_hadamard [decidable_eq m] [decidable_eq n] (v : m → α) (w : n → α) :
-  dot_product (vec_mul v (A ⊙ B)) w = trace m R α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
+  dot_product (vec_mul v (A ⊙ B)) w = trace (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
 begin
   rw [←sum_hadamard_eq, finset.sum_comm],
   simp [dot_product, vec_mul, finset.sum_mul, mul_assoc],

@@ -3,10 +3,10 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
-import category_theory.preadditive.projective
-import algebra.category.Module.abelian
-import linear_algebra.finsupp_vector_space
+import algebra.category.Module.epi_mono
 import algebra.module.projective
+import category_theory.preadditive.projective
+import linear_algebra.finsupp_vector_space
 
 /-!
 # The category of `R`-modules has enough projectives.
@@ -37,7 +37,7 @@ begin
 end
 
 namespace Module
-variables {R : Type u} [ring R] {M : Module.{(max u v)} R}
+variables {R : Type u} [ring R] {M : Module.{max u v} R}
 
 /-- Modules that have a basis are projective. -/
 -- We transport the corresponding result from `module.projective`.

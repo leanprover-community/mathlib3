@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.single
-import algebra.homology.exact
 import tactic.linarith
 
 /-!
 # Augmentation and truncation of `ℕ`-indexed (co)chain complexes.
 -/
+
+noncomputable theory
 
 open category_theory
 open category_theory.limits
@@ -102,8 +103,8 @@ def truncate_augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.
 { hom :=
   { f := λ i, 𝟙 _, },
   inv :=
-  { f := λ i, by { cases i; exact 𝟙 _, },
-    comm' := λ i j, by { cases i; cases j; { dsimp, simp, }, }, },
+  { f := λ i, by { exact 𝟙 _, },
+    comm' := λ i j, by { cases j; { dsimp, simp, }, }, },
   hom_inv_id' := by { ext i, cases i; { dsimp, simp, }, },
   inv_hom_id' := by { ext i, cases i; { dsimp, simp, }, }, }.
 
@@ -113,7 +114,7 @@ def truncate_augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.
 @[simp] lemma truncate_augment_inv_f
   (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫ f = 0) (i : ℕ) :
   (truncate_augment C f w).inv.f i = 𝟙 ((truncate.obj (augment C f w)).X i) :=
-by { cases i; refl, }
+rfl
 
 @[simp] lemma chain_complex_d_succ_succ_zero (C : chain_complex V ℕ) (i : ℕ) :
   C.d (i+2) 0 = 0 :=
@@ -231,7 +232,7 @@ def augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d
 @[simp] lemma augment_d_succ_succ
   (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d 0 1 = 0) (i j : ℕ) :
   (augment C f w).d (i+1) (j+1) = C.d i j :=
-by { dsimp [augment], rcases i with _|i, refl, refl, }
+rfl
 
 /--
 Truncating an augmented cochain complex is isomorphic (with components the identity)
@@ -242,8 +243,8 @@ def truncate_augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : 
 { hom :=
   { f := λ i, 𝟙 _, },
   inv :=
-  { f := λ i, by { cases i; exact 𝟙 _, },
-    comm' := λ i j, by { cases i; cases j; { dsimp, simp, }, }, },
+  { f := λ i, by { exact 𝟙 _, },
+    comm' := λ i j, by { cases j; { dsimp, simp, }, }, },
   hom_inv_id' := by { ext i, cases i; { dsimp, simp, }, },
   inv_hom_id' := by { ext i, cases i; { dsimp, simp, }, }, }.
 
@@ -253,7 +254,7 @@ def truncate_augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : 
 @[simp] lemma truncate_augment_inv_f
   (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d 0 1 = 0) (i : ℕ) :
   (truncate_augment C f w).inv.f i = 𝟙 ((truncate.obj (augment C f w)).X i) :=
-by { cases i; refl, }
+rfl
 
 @[simp] lemma cochain_complex_d_succ_succ_zero (C : cochain_complex V ℕ) (i : ℕ) :
   C.d 0 (i+2) = 0 :=

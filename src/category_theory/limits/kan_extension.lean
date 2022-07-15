@@ -3,10 +3,9 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Adam Topaz
 -/
+import category_theory.limits.shapes.terminal
 import category_theory.punit
 import category_theory.structured_arrow
-import category_theory.limits.functor_category
-import category_theory.limits.shapes.terminal
 
 /-!
 
@@ -35,10 +34,10 @@ namespace category_theory
 
 open limits
 
-universes v u₁ u₂ u₃
+universes v v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {S : Type v} {L : Type u₂} {D : Type u₃}
-variables [category.{v} S] [category.{v} L] [category.{v} D]
+variables {S : Type u₁} {L : Type u₂} {D : Type u₃}
+variables [category.{v₁} S] [category.{v₂} L] [category.{v₃} D]
 variables (ι : S ⥤ L)
 
 namespace Ran
@@ -121,7 +120,7 @@ def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
     simp only [nat_trans.naturality_assoc, loc_map],
     erw limit.pre_π,
     congr,
-    cases j,
+    rcases j with ⟨⟨⟩, _, _⟩,
     tidy,
   end,
   right_inv := by tidy }
@@ -254,7 +253,7 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
     change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (costructured_arrow.map _) = _,
     rw colimit.ι_pre,
     congr,
-    cases j,
+    rcases j with ⟨_, ⟨⟩, _⟩,
     tidy,
   end,
   right_inv := by tidy }

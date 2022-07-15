@@ -37,8 +37,8 @@ let simp_at lc (close_tac : tactic unit) := focus1 $
 match tgt with
 | none := get_local `this >> simp_at [some `this, none] assumption <|> simp_at [none] assumption
 | some e := focus1 $ do
-  e ← i_to_expr e <|> do {
-    ty ← target,
+  e ← i_to_expr e <|> do
+  { ty ← target,
     -- for positional error messages, we don't care about the result
     e ← i_to_expr_strict ``(%%e : %%ty),
     pty ← pp ty, ptgt ← pp e,

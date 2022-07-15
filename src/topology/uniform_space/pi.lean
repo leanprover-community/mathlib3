@@ -51,8 +51,7 @@ instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i
     exact cauchy_iff_exists_le_nhds.1 key },
   choose x hx using this,
   use x,
-  rw [nhds_pi, le_infi_iff],
-  exact λ i, map_le_iff_le_comap.mp (hx i),
+  rwa [nhds_pi, le_pi],
 end⟩
 
 instance Pi.separated [∀ i, separated_space (α i)] : separated_space (Π i, α i) :=

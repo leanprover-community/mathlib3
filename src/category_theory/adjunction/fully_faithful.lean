@@ -7,6 +7,20 @@ import category_theory.adjunction.basic
 import category_theory.conj
 import category_theory.yoneda
 
+/-!
+# Adjoints of fully faithful functors
+
+A left adjoint is fully faithful, if and only if the unit is an isomorphism
+(and similarly for right adjoints and the counit).
+
+`adjunction.restrict_fully_faithful` shows that an adjunction can be restricted along fully faithful
+inclusions.
+
+## Future work
+
+The statements from Riehl 4.5.13 for adjoints which are either full, or faithful.
+-/
+
 open category_theory
 
 namespace category_theory
@@ -45,7 +59,7 @@ instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunct
 /--
 If the right adjoint is fully faithful, then the counit is an isomorphism.
 
-See https://stacks.math.columbia.edu/tag/07RB (we only prove the forward direction!)
+See <https://stacks.math.columbia.edu/tag/07RB> (we only prove the forward direction!)
 -/
 instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjunction.counit h) :=
 @nat_iso.is_iso_of_is_iso_app _ _ _ _ _ _ (adjunction.counit h) $ λ X,
@@ -107,7 +121,6 @@ noncomputable
 def R_full_of_counit_is_iso [is_iso h.counit] : full R :=
 { preimage := λ X Y f, inv (h.counit.app X) ≫ (h.hom_equiv (R.obj X) Y).symm f }
 
-
 /-- If the counit is an isomorphism, then the right adjoint is faithful-/
 lemma R_faithful_of_counit_is_iso [is_iso h.counit] : faithful R :=
 { map_injective' := λ X Y f g H,
@@ -115,6 +128,42 @@ lemma R_faithful_of_counit_is_iso [is_iso h.counit] : faithful R :=
     rw ←(h.hom_equiv (R.obj X) Y).symm.apply_eq_iff_eq at H,
     simpa using inv (h.counit.app X) ≫= H,
   end }
+
+instance whisker_left_counit_iso_of_L_fully_faithful
+  [full L] [faithful L] : is_iso (whisker_left L h.counit) :=
+begin
+  have := h.left_triangle,
+  rw ←is_iso.eq_inv_comp at this,
+  rw this,
+  apply_instance
+end
+
+instance whisker_right_counit_iso_of_L_fully_faithful
+  [full L] [faithful L] : is_iso (whisker_right h.counit R) :=
+begin
+  have := h.right_triangle,
+  rw ←is_iso.eq_inv_comp at this,
+  rw this,
+  apply_instance
+end
+
+instance whisker_left_unit_iso_of_R_fully_faithful
+  [full R] [faithful R] : is_iso (whisker_left R h.unit) :=
+begin
+  have := h.right_triangle,
+  rw ←is_iso.eq_comp_inv at this,
+  rw this,
+  apply_instance
+end
+
+instance whisker_right_unit_iso_of_R_fully_faithful
+  [full R] [faithful R] : is_iso (whisker_right h.unit L) :=
+begin
+  have := h.left_triangle,
+  rw ←is_iso.eq_comp_inv at this,
+  rw this,
+  apply_instance
+end
 
 -- TODO also do the statements from Riehl 4.5.13 for full and faithful separately?
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann
 -/
 import data.seq.seq
-import algebra.field
+import algebra.field.basic
 /-!
 # Basic Definitions/Theorems for Continued Fractions
 
@@ -108,7 +108,7 @@ namespace generalized_continued_fraction
 def of_integer (a : α) : generalized_continued_fraction α :=
 ⟨a, seq.nil⟩
 
-instance [inhabited α] : inhabited (generalized_continued_fraction α) := ⟨of_integer (default _)⟩
+instance [inhabited α] : inhabited (generalized_continued_fraction α) := ⟨of_integer default⟩
 
 /-- Returns the sequence of partial numerators `aᵢ` of `g`. -/
 def partial_numerators (g : generalized_continued_fraction α) : seq α :=

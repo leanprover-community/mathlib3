@@ -67,6 +67,11 @@ def weighted_vsub_of_point (p : ι → P) (b : P) : (ι → k) →ₗ[k] V :=
   s.weighted_vsub_of_point p b w = ∑ i in s, w i • (p i -ᵥ b) :=
 by simp [weighted_vsub_of_point, linear_map.sum_apply]
 
+/-- The value of `weighted_vsub_of_point`, where the given points are equal. -/
+@[simp] lemma weighted_vsub_of_point_apply_const (w : ι → k) (p : P) (b : P) :
+  s.weighted_vsub_of_point (λ _, p) b w = (∑ i in s, w i) • (p -ᵥ b) :=
+by rw [weighted_vsub_of_point_apply, sum_smul]
+
 /-- Given a family of points, if we use a member of the family as a base point, the
 `weighted_vsub_of_point` does not depend on the value of the weights at this point. -/
 lemma weighted_vsub_of_point_eq_of_weights_eq
@@ -88,8 +93,8 @@ lemma weighted_vsub_of_point_eq_of_sum_eq_zero (w : ι → k) (p : ι → P) (h 
 begin
   apply eq_of_sub_eq_zero,
   rw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←sum_sub_distrib],
-  conv_lhs {
-    congr,
+  conv_lhs
+  { congr,
     skip,
     funext,
     rw [←smul_sub, vsub_sub_vsub_cancel_left] },
@@ -105,8 +110,8 @@ begin
   erw [weighted_vsub_of_point_apply, weighted_vsub_of_point_apply, ←@vsub_eq_zero_iff_eq V,
        vadd_vsub_assoc, vsub_vadd_eq_vsub_sub, ←add_sub_assoc, add_comm, add_sub_assoc,
        ←sum_sub_distrib],
-  conv_lhs {
-    congr,
+  conv_lhs
+  { congr,
     skip,
     congr,
     skip,
@@ -155,6 +160,25 @@ begin
   exact finset.sum_map _ _ _
 end
 
+/-- A weighted sum of pairwise subtractions, expressed as a subtraction of two
+`weighted_vsub_of_point` expressions. -/
+lemma sum_smul_vsub_eq_weighted_vsub_of_point_sub (w : ι → k) (p₁ p₂ : ι → P) (b : P) :
+  ∑ i in s, w i • (p₁ i -ᵥ p₂ i) =
+    s.weighted_vsub_of_point p₁ b w - s.weighted_vsub_of_point p₂ b w :=
+by simp_rw [weighted_vsub_of_point_apply, ←sum_sub_distrib, ←smul_sub, vsub_sub_vsub_cancel_right]
+
+/-- A weighted sum of pairwise subtractions, where the point on the right is constant,
+expressed as a subtraction involving a `weighted_vsub_of_point` expression. -/
+lemma sum_smul_vsub_const_eq_weighted_vsub_of_point_sub (w : ι → k) (p₁ : ι → P) (p₂ b : P) :
+  ∑ i in s, w i • (p₁ i -ᵥ p₂) = s.weighted_vsub_of_point p₁ b w - (∑ i in s, w i) • (p₂ -ᵥ b) :=
+by rw [sum_smul_vsub_eq_weighted_vsub_of_point_sub, weighted_vsub_of_point_apply_const]
+
+/-- A weighted sum of pairwise subtractions, where the point on the left is constant,
+expressed as a subtraction involving a `weighted_vsub_of_point` expression. -/
+lemma sum_smul_const_vsub_eq_sub_weighted_vsub_of_point (w : ι → k) (p₂ : ι → P) (p₁ b : P) :
+  ∑ i in s, w i • (p₁ -ᵥ p₂ i) = (∑ i in s, w i) • (p₁ -ᵥ b) - s.weighted_vsub_of_point p₂ b w :=
+by rw [sum_smul_vsub_eq_weighted_vsub_of_point_sub, weighted_vsub_of_point_apply_const]
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, as a linear map on the weights.  This is
 intended to be used when the sum of the weights is 0; that condition
@@ -178,6 +202,12 @@ lemma weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero (w : ι → k) (p :
     (h : ∑ i in s, w i = 0) (b : P) : s.weighted_vsub p w = s.weighted_vsub_of_point p b w :=
 s.weighted_vsub_of_point_eq_of_sum_eq_zero w p h _ _
 
+/-- The value of `weighted_vsub`, where the given points are equal and the sum of the weights
+is 0. -/
+@[simp] lemma weighted_vsub_apply_const (w : ι → k) (p : P) (h : ∑ i in s, w i = 0) :
+  s.weighted_vsub (λ _, p) w = 0 :=
+by rw [weighted_vsub, weighted_vsub_of_point_apply_const, h, zero_smul]
+
 /-- The `weighted_vsub` for an empty set is 0. -/
 @[simp] lemma weighted_vsub_empty (w : ι → k) (p : ι → P) :
   (∅ : finset ι).weighted_vsub p w = (0:V) :=
@@ -195,6 +225,26 @@ original `finset`. -/
 lemma weighted_vsub_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
   (s₂.map e).weighted_vsub p w = s₂.weighted_vsub (p ∘ e) (w ∘ e) :=
 s₂.weighted_vsub_of_point_map _ _ _ _
+
+/-- A weighted sum of pairwise subtractions, expressed as a subtraction of two `weighted_vsub`
+expressions. -/
+lemma sum_smul_vsub_eq_weighted_vsub_sub (w : ι → k) (p₁ p₂ : ι → P) :
+  ∑ i in s, w i • (p₁ i -ᵥ p₂ i) = s.weighted_vsub p₁ w - s.weighted_vsub p₂ w :=
+s.sum_smul_vsub_eq_weighted_vsub_of_point_sub _ _ _ _
+
+/-- A weighted sum of pairwise subtractions, where the point on the right is constant and the
+sum of the weights is 0. -/
+lemma sum_smul_vsub_const_eq_weighted_vsub (w : ι → k) (p₁ : ι → P) (p₂ : P)
+  (h : ∑ i in s, w i = 0) :
+  ∑ i in s, w i • (p₁ i -ᵥ p₂) = s.weighted_vsub p₁ w :=
+by rw [sum_smul_vsub_eq_weighted_vsub_sub, s.weighted_vsub_apply_const _ _ h, sub_zero]
+
+/-- A weighted sum of pairwise subtractions, where the point on the left is constant and the
+sum of the weights is 0. -/
+lemma sum_smul_const_vsub_eq_neg_weighted_vsub (w : ι → k) (p₂ : ι → P) (p₁ : P)
+  (h : ∑ i in s, w i = 0) :
+  ∑ i in s, w i • (p₁ -ᵥ p₂ i) = -s.weighted_vsub p₂ w :=
+by rw [sum_smul_vsub_eq_weighted_vsub_sub, s.weighted_vsub_apply_const _ _ h, zero_sub]
 
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, added to that base point, as an affine map on
@@ -225,6 +275,11 @@ lemma affine_combination_apply (w : ι → k) (p : ι → P) :
   s.affine_combination p w =
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty) :=
 rfl
+
+/-- The value of `affine_combination`, where the given points are equal. -/
+@[simp] lemma affine_combination_apply_const (w : ι → k) (p : P) (h : ∑ i in s, w i = 1) :
+  s.affine_combination (λ _, p) w = p :=
+by rw [affine_combination_apply, s.weighted_vsub_of_point_apply_const, h, one_smul, vsub_vadd]
 
 /-- `affine_combination` gives the sum with any base point, when the
 sum of the weights is 1. -/
@@ -263,6 +318,13 @@ by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_in
   univ_eq_attach, attach_image_coe]
 
 omit S
+
+/-- Viewing a module as an affine space modelled on itself, a `weighted_vsub` is just a linear
+combination. -/
+@[simp] lemma weighted_vsub_eq_linear_combination
+  {ι} (s : finset ι) {w : ι → k} {p : ι → V} (hw : s.sum w = 0) :
+  s.weighted_vsub p w = ∑ i in s, w i • p i :=
+by simp [s.weighted_vsub_apply, vsub_eq_sub, smul_sub, ← finset.sum_smul, hw]
 
 /-- Viewing a module as an affine space modelled on itself, affine combinations are just linear
 combinations. -/
@@ -304,6 +366,29 @@ affine combination with the same points and weights over the original
 lemma affine_combination_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
   (s₂.map e).affine_combination p w = s₂.affine_combination (p ∘ e) (w ∘ e) :=
 by simp_rw [affine_combination_apply, weighted_vsub_of_point_map]
+
+/-- A weighted sum of pairwise subtractions, expressed as a subtraction of two `affine_combination`
+expressions. -/
+lemma sum_smul_vsub_eq_affine_combination_vsub (w : ι → k) (p₁ p₂ : ι → P) :
+  ∑ i in s, w i • (p₁ i -ᵥ p₂ i) = s.affine_combination p₁ w -ᵥ s.affine_combination p₂ w :=
+begin
+  simp_rw [affine_combination_apply, vadd_vsub_vadd_cancel_right],
+  exact s.sum_smul_vsub_eq_weighted_vsub_of_point_sub _ _ _ _
+end
+
+/-- A weighted sum of pairwise subtractions, where the point on the right is constant and the
+sum of the weights is 1. -/
+lemma sum_smul_vsub_const_eq_affine_combination_vsub (w : ι → k) (p₁ : ι → P) (p₂ : P)
+  (h : ∑ i in s, w i = 1) :
+  ∑ i in s, w i • (p₁ i -ᵥ p₂) = s.affine_combination p₁ w -ᵥ p₂ :=
+by rw [sum_smul_vsub_eq_affine_combination_vsub, affine_combination_apply_const _ _ _ h]
+
+/-- A weighted sum of pairwise subtractions, where the point on the left is constant and the
+sum of the weights is 1. -/
+lemma sum_smul_const_vsub_eq_vsub_affine_combination (w : ι → k) (p₂ : ι → P) (p₁ : P)
+  (h : ∑ i in s, w i = 1) :
+  ∑ i in s, w i • (p₁ -ᵥ p₂ i) = p₁ -ᵥ s.affine_combination p₂ w :=
+by rw [sum_smul_vsub_eq_affine_combination_vsub, affine_combination_apply_const _ _ _ h]
 
 variables {V}
 
@@ -453,7 +538,7 @@ by simp [centroid_def, affine_combination_apply]
 
 /-- The centroid of two points, expressed directly as adding a vector
 to a point. -/
-lemma centroid_insert_singleton [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
+lemma centroid_pair [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
   ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
 begin
   by_cases h : i₁ = i₂,
@@ -465,17 +550,16 @@ begin
     rw [centroid_def,
         affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
           (sum_centroid_weights_eq_one_of_cast_card_ne_zero _ hc) (p i₁)],
-    simp [h],
-    norm_num }
+    simp [h] }
 end
 
 /-- The centroid of two points indexed by `fin 2`, expressed directly
 as adding a vector to the first point. -/
-lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
+lemma centroid_pair_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
   rw univ_fin2,
-  convert centroid_insert_singleton k p 0 1
+  convert centroid_pair k p 0 1
 end
 
 /-- A centroid, over the image of an embedding, equals a centroid with
@@ -563,7 +647,7 @@ begin
       exact (hf' i).1 },
     { intro hx,
       use [⟨p x, hps.symm ▸ set.mem_image_of_mem _ hx⟩, mem_univ _],
-      refine hi _ _ (hf' _).1 hx _,
+      refine hi _ (hf' _).1 _ hx _,
       rw (hf' _).2,
       refl } },
   rw [←hu, centroid_map],
@@ -724,9 +808,7 @@ begin
   obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span h,
   refine ⟨(s : set ι).indicator w, _, finset.affine_combination_indicator_subset w p s.subset_univ⟩,
   simp only [finset.mem_coe, set.indicator_apply, ← hw],
-  convert fintype.sum_extend_by_zero s w,
-  ext i,
-  congr,
+  rw fintype.sum_extend_by_zero s w,
 end
 
 variables (k V)

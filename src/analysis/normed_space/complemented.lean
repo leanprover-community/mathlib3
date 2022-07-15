@@ -121,7 +121,7 @@ lemma closed_complemented_iff_has_closed_compl : p.closed_complemented ↔
   λ ⟨hp, ⟨q, hq, hpq⟩⟩, closed_complemented_of_closed_compl hpq hp hq⟩
 
 lemma closed_complemented_of_quotient_finite_dimensional [complete_space 𝕜]
-  [finite_dimensional 𝕜 p.quotient] (hp : is_closed (p : set E)) :
+  [finite_dimensional 𝕜 (E ⧸ p)] (hp : is_closed (p : set E)) :
   p.closed_complemented :=
 begin
   obtain ⟨q, hq⟩ : ∃ q, is_compl p q := p.exists_is_compl,

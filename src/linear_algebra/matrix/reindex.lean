@@ -86,8 +86,8 @@ variables [semiring R] [semiring A] [module R A]
 
 lemma reindex_linear_equiv_mul [fintype n] [fintype n']
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n A) (N : matrix n o A) :
-  reindex_linear_equiv R A eₘ eₒ (M ⬝ N) =
-    reindex_linear_equiv R A eₘ eₙ M ⬝ reindex_linear_equiv R A eₙ eₒ N :=
+  reindex_linear_equiv R A eₘ eₙ M ⬝ reindex_linear_equiv R A eₙ eₒ N =
+    reindex_linear_equiv R A eₘ eₒ (M ⬝ N) :=
 minor_mul_equiv M N _ _ _
 
 lemma mul_reindex_linear_equiv_one [fintype n] [fintype o] [decidable_eq o] (e₁ : o ≃ n)
@@ -107,7 +107,7 @@ a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equiv
 -/
 def reindex_alg_equiv (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
-  map_mul'  := reindex_linear_equiv_mul R R e e e,
+  map_mul'  := λ a b, (reindex_linear_equiv_mul R R e e e a b).symm,
   commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, minor_smul],
   ..(reindex_linear_equiv R R e e) }
 

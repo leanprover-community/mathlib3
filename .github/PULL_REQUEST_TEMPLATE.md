@@ -5,6 +5,11 @@
 PR is merged. Please leave a blank newline before the `---`, otherwise
 GitHub will format the text above it as a title.
 
+To indicate co-authors, include lines at the bottom of the commit message 
+(that is, before the `---`) using the following format:
+
+Co-authored-by: Author Name <author@email.com>
+
 Any other comments you want to keep out of the PR commit should go
 below the `---`, and placed outside this HTML comment, or else they
 will be invisible to reviewers.

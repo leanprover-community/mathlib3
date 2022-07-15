@@ -5,7 +5,7 @@ Authors: Louis Carlin, Mario Carneiro
 -/
 
 import data.int.basic
-import algebra.field
+import algebra.field.basic
 
 /-!
 # Euclidean domains
@@ -177,6 +177,31 @@ begin
   { subst hz, rw [div_zero, div_zero, mul_zero] },
   rcases h with ⟨p, rfl⟩,
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
+end
+
+@[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
+lemma div_one (p : R) : p / 1 = p :=
+(euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
+
+lemma div_dvd_of_dvd {p q : R} (hpq : q ∣ p) :
+  p / q ∣ p :=
+begin
+  by_cases hq : q = 0,
+  { rw [hq, zero_dvd_iff] at hpq,
+    rw hpq,
+    exact dvd_zero _ },
+  use q,
+  rw [mul_comm, ← euclidean_domain.mul_div_assoc _ hpq, mul_comm,
+      euclidean_domain.mul_div_cancel _ hq]
+end
+
+lemma dvd_div_of_mul_dvd {a b c : R} (h : a * b ∣ c) : b ∣ c / a :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [div_zero, dvd_zero] },
+  rcases h with ⟨d, rfl⟩,
+  refine ⟨d, _⟩,
+  rw [mul_assoc, mul_div_cancel_left _ ha]
 end
 
 section
@@ -397,6 +422,30 @@ begin
 end
 
 end lcm
+
+section div
+
+lemma mul_div_mul_cancel {a b c : R} (ha : a ≠ 0) (hcb : c ∣ b) :
+  a * b / (a * c) = b / c :=
+begin
+  by_cases hc : c = 0, { simp [hc] },
+  refine eq_div_of_mul_eq_right hc (mul_left_cancel₀ ha _),
+  rw [← mul_assoc, ← mul_div_assoc _ (mul_dvd_mul_left a hcb),
+         mul_div_cancel_left _ (mul_ne_zero ha hc)]
+end
+
+lemma mul_div_mul_comm_of_dvd_dvd {a b c d : R} (hac : c ∣ a) (hbd : d ∣ b) :
+  a * b / (c * d) = a / c * (b / d) :=
+begin
+  rcases eq_or_ne c 0 with rfl | hc0, { simp },
+  rcases eq_or_ne d 0 with rfl | hd0, { simp },
+  obtain ⟨k1, rfl⟩ := hac,
+  obtain ⟨k2, rfl⟩ := hbd,
+  rw [mul_div_cancel_left _ hc0, mul_div_cancel_left _ hd0, mul_mul_mul_comm,
+    mul_div_cancel_left _ (mul_ne_zero hc0 hd0)],
+end
+
+end div
 
 end euclidean_domain
 

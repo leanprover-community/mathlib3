@@ -5,8 +5,6 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.group
-import algebra.group_with_zero
-import algebra.group_with_zero.power
 import tactic.abel
 
 /-!
@@ -36,7 +34,7 @@ variables {α : Type*}
 variables {a b c d x y z : α}
 
 instance [linear_ordered_add_comm_monoid_with_top α] :
-  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
+  linear_ordered_comm_monoid_with_zero (multiplicative αᵒᵈ) :=
 { zero := multiplicative.of_add (⊤ : α),
   zero_mul := top_add,
   mul_zero := add_top,
@@ -45,12 +43,116 @@ instance [linear_ordered_add_comm_monoid_with_top α] :
   ..multiplicative.linear_order }
 
 instance [linear_ordered_add_comm_group_with_top α] :
-  linear_ordered_comm_group_with_zero (multiplicative (order_dual α)) :=
+  linear_ordered_comm_group_with_zero (multiplicative αᵒᵈ) :=
 { inv_zero := linear_ordered_add_comm_group_with_top.neg_top,
   mul_inv_cancel := linear_ordered_add_comm_group_with_top.add_neg_cancel,
   ..multiplicative.div_inv_monoid,
   ..multiplicative.linear_ordered_comm_monoid_with_zero,
   ..multiplicative.nontrivial }
+
+section monoid
+variable [monoid α]
+
+section preorder
+variable [preorder α]
+
+section left
+variable [covariant_class α α (*) (≤)]
+
+lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : α}, 1 ≤ x → 1 ≤ x^n
+| 0       x _ := (pow_zero x).symm.le
+| (n + 1) x H := calc 1 ≤ x          : H
+                    ... = x * 1      : (mul_one x).symm
+                    ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
+                    ... = x ^ n.succ : (pow_succ x n).symm
+
+end left
+
+section right
+variable [covariant_class α α (function.swap (*)) (≤)]
+
+lemma right.one_le_pow_of_le {x : α} (H : 1 ≤ x) :
+  ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero _).symm.le
+| (n + 1) := calc 1 ≤ x          : H
+                ... = 1 * x      : (one_mul x).symm
+                ... ≤ x ^ n * x  : mul_le_mul_right' right.one_le_pow_of_le x
+                ... = x ^ n.succ : (pow_succ' x n).symm
+
+lemma right.pow_le_one_of_le {x : α} (H : x ≤ 1) :
+  ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := calc x ^ n.succ = x ^ n * x : pow_succ' x n
+                         ... ≤ 1 * x     : mul_le_mul_right' right.pow_le_one_of_le x
+                         ... = x         : one_mul x
+                         ... ≤ 1         : H
+
+end right
+
+lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+  {x y : α} (H : x ≤ y) :
+  ∀ {n : ℕ} , x^n ≤ y^n
+| 0       := (pow_zero _).le.trans (pow_zero _).symm.le
+| (n + 1) := calc  x ^ n.succ = x * x ^ n  : pow_succ x n
+                          ... ≤ y * x ^ n  : mul_le_mul_right' H (x ^ n)
+                          ... ≤ y * y ^ n  : mul_le_mul_left' pow_le_pow_of_le y
+                          ... = y ^ n.succ : (pow_succ y n).symm
+
+lemma left.pow_lt_one_of_lt [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
+  calc x ^ (n + 1) = x * x ^ n : pow_succ x n
+               ... < x * 1     : mul_lt_mul_left' hn x
+               ... = x         : mul_one x
+               ... < 1         : H
+end
+
+lemma left.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
+  [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp (λ k, not_le.mpr H (by
+  { haveI := has_mul.to_covariant_class_left α,
+    exact left.one_le_pow_of_le k})), left.pow_lt_one_of_lt n0⟩
+
+lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α}
+  (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.le_induction ((pow_one _).le.trans_lt H) (λ n n1 hn, _) _ (nat.succ_le_iff.mpr n0),
+  calc x ^ (n + 1) = x ^ n * x : pow_succ' x n
+               ... < 1 * x     : mul_lt_mul_right' hn x
+               ... = x         : one_mul x
+               ... < 1         : H
+end
+
+lemma right.pow_lt_one_iff {α: Type*} [monoid α] [linear_order α]
+  [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α} (n0 : 0 < n) :
+  x^n < 1 ↔ x < 1 :=
+⟨λ H, not_le.mp (λ k, not_le.mpr H (by
+  { haveI := has_mul.to_covariant_class_right α,
+    exact right.one_le_pow_of_le k})), right.pow_lt_one_of_lt n0⟩
+
+end preorder
+
+section left_right
+variables [linear_order α]
+  [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+
+end left_right
+
+end monoid
+instance [linear_ordered_comm_monoid α] :
+  linear_ordered_comm_monoid_with_zero (with_zero α) :=
+{ mul_le_mul_left := λ x y, mul_le_mul_left',
+  zero_le_one     := with_zero.zero_le _,
+  ..with_zero.linear_order,
+  ..with_zero.comm_monoid_with_zero }
+
+instance [linear_ordered_comm_group α] :
+  linear_ordered_comm_group_with_zero (with_zero α) :=
+{ ..with_zero.linear_ordered_comm_monoid_with_zero,
+  ..with_zero.comm_group_with_zero }
 
 section linear_ordered_comm_monoid
 
@@ -63,27 +165,25 @@ The following facts are true more generally in a (linearly) ordered commutative 
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
-  [has_zero β] [has_one β] [has_mul β]
+  [has_zero β] [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_monoid_with_zero β :=
 { zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
     linear_ordered_comm_monoid_with_zero.zero_le_one],
-  ..linear_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_monoid_with_zero f zero one mul }
-
-lemma zero_le_one' : (0 : α) ≤ 1 :=
-linear_ordered_comm_monoid_with_zero.zero_le_one
+  ..linear_order.lift f hf hsup hinf,
+  ..hf.ordered_comm_monoid f one mul npow,
+  ..hf.comm_monoid_with_zero f zero one mul npow }
 
 @[simp] lemma zero_le' : 0 ≤ a :=
-by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
+by simpa only [mul_zero, mul_one] using mul_le_mul_left' zero_le_one a
 
 @[simp] lemma not_lt_zero' : ¬a < 0 :=
 not_lt_of_le zero_le'
 
 @[simp] lemma le_zero_iff : a ≤ 0 ↔ a = 0 :=
-⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_refl _⟩
+⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_rfl⟩
 
 lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 ⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩
@@ -94,7 +194,7 @@ lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 lemma pow_pos_iff [no_zero_divisors α] {n : ℕ} (hn : 0 < n) : 0 < a ^ n ↔ 0 < a :=
 by simp_rw [zero_lt_iff, pow_ne_zero_iff hn]
 
-instance : linear_ordered_add_comm_monoid_with_top (additive (order_dual α)) :=
+instance : linear_ordered_add_comm_monoid_with_top (additive αᵒᵈ) :=
 { top := (0 : α),
   top_add' := λ a, (zero_mul a : (0 : α) * a = 0),
   le_top := λ _, zero_le',
@@ -106,7 +206,7 @@ end linear_ordered_comm_monoid
 variables [linear_ordered_comm_group_with_zero α]
 
 lemma zero_lt_one₀ : (0 : α) < 1 :=
-lt_of_le_of_ne zero_le_one' zero_ne_one
+lt_of_le_of_ne zero_le_one zero_ne_one
 
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
 by simpa only [mul_inv_cancel_right₀ h] using (mul_le_mul_right' hab c⁻¹)
@@ -114,8 +214,18 @@ by simpa only [mul_inv_cancel_right₀ h] using (mul_le_mul_right' hab c⁻¹)
 lemma le_mul_inv_of_mul_le (h : c ≠ 0) (hab : a * c ≤ b) : a ≤ b * c⁻¹ :=
 le_of_le_mul_right h (by simpa [h] using hab)
 
-lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
-le_of_le_mul_right h (by simpa [h] using hab)
+lemma mul_inv_le_of_le_mul (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
+begin
+  by_cases h : c = 0,
+  { simp [h], },
+  { exact le_of_le_mul_right h (by simpa [h] using hab), },
+end
+
+lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
+⟨λ h, inv_inv c ▸ mul_inv_le_of_le_mul h, le_mul_inv_of_mul_le hc⟩
+
+lemma mul_inv_le_iff₀ (hc : c ≠ 0) : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
+⟨λ h, inv_inv c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul⟩
 
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
@@ -125,7 +235,7 @@ show (units.mk0 a ha) * (units.mk0 b hb)⁻¹ ≤ (units.mk0 c hc) * (units.mk0 
   (units.mk0 a ha) * (units.mk0 d hd) ≤ (units.mk0 c hc) * (units.mk0 b hb),
 from mul_inv_le_mul_inv_iff'
 
-@[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
+@[simp] lemma units.zero_lt (u : αˣ) : (0 : α) < u :=
 zero_lt_iff.2 $ u.ne_zero
 
 lemma mul_lt_mul_of_lt_of_le₀ (hab : a ≤ b) (hb : b ≠ 0) (hcd : c < d) : a * c < b * d :=
@@ -139,8 +249,7 @@ lemma mul_lt_mul₀ (hab : a < b) (hcd : c < d) : a * c < b * d :=
 mul_lt_mul_of_lt_of_le₀ hab.le (ne_zero_of_lt hab) hcd
 
 lemma mul_inv_lt_of_lt_mul₀ (h : x < y * z) : x * z⁻¹ < y :=
-have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
-by { contrapose! h, simpa only [inv_inv₀] using mul_inv_le_of_le_mul (inv_ne_zero hz) h }
+by { contrapose! h, simpa only [inv_inv] using mul_inv_le_of_le_mul h }
 
 lemma inv_mul_lt_of_lt_mul₀ (h : x < y * z) : y⁻¹ * x < z :=
 by { rw mul_comm at *, exact mul_inv_lt_of_lt_mul₀ h }
@@ -171,7 +280,47 @@ begin
   simpa [inv_mul_cancel_left₀ ha, inv_mul_cancel_left₀ (ne_of_gt hc)] using this,
 end
 
-instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
+lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
+⟨le_of_le_mul_right hc, λ hab, mul_le_mul_right' hab _⟩
+
+lemma mul_le_mul_left₀ (ha : a ≠ 0) : a * b ≤ a * c ↔ b ≤ c :=
+by {simp only [mul_comm a], exact mul_le_mul_right₀ ha }
+
+lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
+
+lemma div_le_div_left₀ (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) : a/b ≤ a/c ↔ c ≤ b :=
+by simp only [div_eq_mul_inv, mul_le_mul_left₀ ha, inv_le_inv₀ hb hc]
+
+lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
+by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
+
+lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
+by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
+
+/-- `equiv.mul_left₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
+
+Note that `order_iso.mul_left₀` refers to the `linear_ordered_field` version. -/
+@[simps apply to_equiv {simp_rhs := tt}]
+def order_iso.mul_left₀' {a : α} (ha : a ≠ 0) : α ≃o α :=
+{ map_rel_iff' := λ x y,  mul_le_mul_left₀ ha, ..equiv.mul_left₀ a ha }
+
+lemma order_iso.mul_left₀'_symm {a : α} (ha : a ≠ 0) :
+  (order_iso.mul_left₀' ha).symm = order_iso.mul_left₀' (inv_ne_zero ha) :=
+by { ext, refl }
+
+/-- `equiv.mul_right₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
+
+Note that `order_iso.mul_right₀` refers to the `linear_ordered_field` version. -/
+@[simps apply to_equiv {simp_rhs := tt}]
+def order_iso.mul_right₀' {a : α} (ha : a ≠ 0) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right₀ ha, ..equiv.mul_right₀ a ha }
+
+lemma order_iso.mul_right₀'_symm {a : α} (ha : a ≠ 0) :
+  (order_iso.mul_right₀' ha).symm = order_iso.mul_right₀' (inv_ne_zero ha) :=
+by { ext, refl }
+
+instance : linear_ordered_add_comm_group_with_top (additive αᵒᵈ) :=
 { neg_top := inv_zero,
   add_neg_cancel := λ a ha, mul_inv_cancel ha,
   ..additive.sub_neg_monoid,

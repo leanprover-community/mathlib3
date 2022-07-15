@@ -7,6 +7,7 @@ import data.vector
 import data.list.nodup
 import data.list.of_fn
 import control.applicative
+import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
@@ -18,12 +19,12 @@ variables {n : ℕ}
 namespace vector
 variables {α : Type*}
 
-infixr `::ᵥ`:67  := vector.cons
+infixr ` ::ᵥ `:67  := vector.cons
 
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
-⟨of_fn (λ _, default α)⟩
+⟨of_fn default⟩
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective
@@ -87,6 +88,10 @@ begin
   change nth ⟨l, eq.refl _⟩ with λ i, nth ⟨l, rfl⟩ i,
   simpa only [to_list_of_fn] using list.of_fn_nth_le _
 end
+
+/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
+def _root_.equiv.vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
+⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
 
 theorem nth_tail (x : vector α n) (i) :
   x.tail.nth i = x.nth ⟨i.1 + 1, lt_tsub_iff_right.mp i.2⟩ :=
@@ -191,8 +196,8 @@ lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
 begin
   have : 0 = v.to_list.length - 1 - n,
-    { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
-                 list.length_reverse] },
+  { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
+               list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
   simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
   rw list.nth_le_reverse,
@@ -316,9 +321,11 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 /-- Define `C v` by induction on `v : vector α n`.
 
 This function has two arguments: `h_nil` handles the base case on `C nil`,
-and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`. -/
+and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`.
+
+This can be used as `induction v using vector.induction_on`. -/
 @[elab_as_eliminator] def induction_on {C : Π {n : ℕ}, vector α n → Sort*}
-  (v : vector α n)
+  {n : ℕ} (v : vector α n)
   (h_nil : C nil)
   (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
     C v :=
@@ -331,6 +338,9 @@ begin
     apply @h_cons n _ ⟨v, (add_left_inj 1).mp v_property⟩,
     apply ih, }
 end
+
+-- check that the above works with `induction ... using`
+example (v : vector α n) : true := by induction v using vector.induction_on; trivial
 
 variables {β γ : Type*}
 
@@ -465,7 +475,7 @@ lemma prod_update_nth [monoid α] (v : vector α n) (i : fin n) (a : α) :
 begin
   refine (list.prod_update_nth v.to_list i a).trans _,
   have : ↑i < v.to_list.length := lt_of_lt_of_le i.2 (le_of_eq v.2.symm),
-  simp [this],
+  simp * at *
 end
 
 @[to_additive]
@@ -559,5 +569,11 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   naturality := @vector.naturality n,
   id_map := by intros; cases x; simp! [(<$>)],
   comp_map := by intros; cases x; simp! [(<$>)] }
+
+meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
+  has_reflect (vector α n) :=
+λ v, @vector.induction_on α (λ n, reflected _) n v
+  ((by reflect_name : reflected _ @vector.nil.{u}).subst `(α))
+  (λ n x xs ih, (by reflect_name : reflected _ @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
 
 end vector

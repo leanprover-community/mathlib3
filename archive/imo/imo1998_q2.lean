@@ -18,20 +18,20 @@ two judges, their ratings coincide for at most `k` contestants. Prove that `k / 
 ## Solution
 The problem asks us to think about triples consisting of a contestant and two judges whose ratings
 agree for that contestant. We thus consider the subset `A ⊆ C × JJ` of all such incidences of
-agreement, where `C` and `J` are the sets of contestants and judges, and `JJ = J × J − {(j, j)}`. We
+agreement, where `C` and `J` are the sets of contestants and judges, and `JJ = J × J - {(j, j)}`. We
 have natural maps: `left : A → C` and `right: A → JJ`. We count the elements of `A` in two ways: as
 the sum of the cardinalities of the fibres of `left` and as the sum of the cardinalities of the
 fibres of `right`. We obtain an upper bound on the cardinality of `A` from the count for `right`,
 and a lower bound from the count for `left`. These two bounds combine to the required result.
 
 First consider the map `right : A → JJ`. Since the size of any fibre over a point in JJ is bounded
-by `k` and since `|JJ| = b^2 - b`, we obtain the upper bound: `|A| ≤ k(b^2−b)`.
+by `k` and since `|JJ| = b^2 - b`, we obtain the upper bound: `|A| ≤ k(b^2-b)`.
 
 Now consider the map `left : A → C`. The fibre over a given contestant `c ∈ C` is the set of
 ordered pairs of (distinct) judges who agree about `c`. We seek to bound the cardinality of this
 fibre from below. Minimum agreement for a contestant occurs when the judges' ratings are split as
 evenly as possible. Since `b` is odd, this occurs when they are divided into groups of size
-`(b−1)/2` and `(b+1)/2`. This corresponds to a fibre of cardinality `(b-1)^2/2` and so we obtain
+`(b-1)/2` and `(b+1)/2`. This corresponds to a fibre of cardinality `(b-1)^2/2` and so we obtain
 the lower bound: `a(b-1)^2/2 ≤ |A|`.
 
 Rearranging gives the result.
@@ -142,7 +142,7 @@ begin
   have h' : (x + y) * (x + y) = 4*z*z + 4*z + 1, { rw h, ring, },
   rw [← add_sq_add_sq_sub, h', add_le_add_iff_left],
   suffices : 0 < (x - y) * (x - y), { apply int.add_one_le_of_lt this, },
-  apply mul_self_pos, rw sub_ne_zero, apply int.ne_of_odd_add ⟨z, h⟩,
+  rw [mul_self_pos, sub_ne_zero], apply int.ne_of_odd_add ⟨z, h⟩,
 end
 
 section
@@ -201,7 +201,7 @@ theorem imo1998_q2 [fintype J] [fintype C]
   (hk : ∀ (p : judge_pair J), p.distinct → (agreed_contestants r p).card ≤ k) :
   (b - 1) / (2 * b) ≤ k / a :=
 begin
-  rw clear_denominators ha (nat.odd_gt_zero hb),
+  rw clear_denominators ha hb.pos,
   obtain ⟨z, hz⟩ := hb, rw hz at hJ, rw hz,
   have h := le_trans (A_card_lower_bound r hJ) (A_card_upper_bound r hk),
   rw [hC, hJ] at h,

@@ -3,7 +3,7 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.list.basic
+import data.list.join
 
 /-!
 # Permutations of a list
@@ -96,8 +96,8 @@ end
 lemma map_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : list α → β) :
   (permutations_aux2 t ts [] ys id).2.map f = (permutations_aux2 t ts [] ys f).2 :=
 begin
-  convert map_permutations_aux2' id _ _ _ _ _ _ _ _; simp only [map_id, id.def],
-  exact (λ _, rfl)
+  rw [map_permutations_aux2' id, map_id, map_id], refl,
+  simp
 end
 
 /-- An expository lemma to show how all of `ts`, `r`, and `f` can be eliminated from
@@ -141,9 +141,9 @@ begin
   { simp {contextual := tt} },
   rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
       by funext; simp, mem_cons_iff, ih], split,
-  { rintro (e | ⟨l₁, l₂, l0, ye, _⟩),
-    { subst l', exact ⟨[], y::ys, by simp⟩ },
-    { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
+  { rintro (rfl | ⟨l₁, l₂, l0, rfl, rfl⟩),
+    { exact ⟨[], y::ys, by simp⟩ },
+    { exact ⟨y::l₁, l₂, l0, by simp⟩ } },
   { rintro ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
     { simp [ye] },
     { simp only [cons_append] at ye, rcases ye with ⟨rfl, rfl⟩,

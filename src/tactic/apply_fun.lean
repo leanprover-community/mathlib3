@@ -13,8 +13,8 @@ of the form `a = b` or `a ≤ b`, replacing the type of `hyp` with `f a = f b` o
 this fact is passed as the optional argument `mono_lem`, or the `mono` tactic can prove it.
 -/
 meta def apply_fun_to_hyp (e : pexpr) (mono_lem : option pexpr) (hyp : expr) : tactic unit :=
-do {
-  t ← infer_type hyp,
+do
+{ t ← infer_type hyp >>= instantiate_mvars,
   prf ← match t with
   | `(%%l = %%r) := do
       ltp ← infer_type l,
@@ -42,8 +42,7 @@ do {
   clear hyp,
   hyp ← note hyp.local_pp_name none prf,
   -- let's try to force β-reduction at `h`
-  try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true }
-}
+  try $ tactic.dsimp_hyp hyp simp_lemmas.mk [] { eta := false, beta := true } }
 
 /--
 Attempt to "apply" a function `f` represented by the argument `e : pexpr` to the goal.

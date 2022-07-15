@@ -1,5 +1,6 @@
+import algebra.hom.group
+import data.sum.basic
 import tactic.simps
-import algebra.group.hom
 
 universes v u w
 -- set_option trace.simps.verbose true

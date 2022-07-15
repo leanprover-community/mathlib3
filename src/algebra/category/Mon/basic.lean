@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.concrete_category.bundled_hom
-import category_theory.concrete_category.reflects_isomorphisms
 import algebra.punit_instances
-import tactic.elementwise
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
@@ -64,6 +63,9 @@ add_decl_doc AddMon.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddMon`. -/
 add_decl_doc AddMon.of_hom
 
+@[simp] lemma of_hom_apply {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
+
 @[to_additive]
 instance : inhabited Mon :=
 -- The default instance for `monoid punit` is derived via `punit.comm_ring`,
@@ -114,6 +116,9 @@ instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
+
+@[to_additive] instance : has_coe CommMon.{u} Mon.{u} :=
+{ coe := (forget₂ CommMon Mon).obj, }
 
 end CommMon
 

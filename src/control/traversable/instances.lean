@@ -3,9 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import control.traversable.lemmas
+import control.applicative
 import data.list.forall2
-import data.set.lattice
+import data.set.functor
 
 /-!
 # Traversable instances
@@ -60,8 +60,7 @@ variables [applicative F] [applicative G]
 section
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-open applicative functor
-open list (cons)
+open applicative functor list
 
 protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=

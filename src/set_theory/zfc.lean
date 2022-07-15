@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.set.basic
+import data.set.lattice
 
 /-!
 # A model of ZFC
@@ -61,6 +61,9 @@ def arity (α : Type u) : ℕ → Type u
 | 0     := α
 | (n+1) := α → arity n
 
+@[simp] theorem arity_zero (α : Type u) : arity α 0 = α := rfl
+@[simp] theorem arity_succ (α : Type u) (n : ℕ) : arity α n.succ = (α → arity α n) := rfl
+
 namespace arity
 
 /-- Constant `n`-ary function with value `a`. -/
@@ -68,8 +71,11 @@ def const {α : Type u} (a : α) : ∀ n, arity α n
 | 0     := a
 | (n+1) := λ _, const n
 
-instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
-⟨const (default _) _⟩
+@[simp] theorem const_zero {α : Type u} (a : α) : const a 0 = a := rfl
+@[simp] theorem const_succ {α : Type u} (a : α) (n : ℕ) : const a n.succ = λ _, const a n := rfl
+theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) : const a n.succ x = const a n := rfl
+
+instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) := ⟨const default _⟩
 
 end arity
 
@@ -83,7 +89,7 @@ inductive pSet : Type (u+1)
 namespace pSet
 
 /-- The underlying type of a pre-set -/
-def type : pSet → Type u
+@[nolint has_inhabited_instance] def type : pSet → Type u
 | ⟨α, A⟩ := α
 
 /-- The underlying pre-set family of a pre-set -/
@@ -97,6 +103,14 @@ theorem mk_type_func : Π (x : pSet), mk x.type x.func = x
 equivalent to some element of the second family and vice-versa. -/
 def equiv (x y : pSet) : Prop :=
 pSet.rec (λ α z m ⟨β, B⟩, (∀ a, ∃ b, m a (B b)) ∧ (∀ b, ∃ a, m a (B b))) x y
+
+theorem exists_equiv_left : Π {x y : pSet} (h : equiv x y) (i : x.type),
+  ∃ j, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h := h.1
+
+theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
+  ∃ i, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h := h.2
 
 theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
@@ -263,7 +277,7 @@ lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (a
 def resp (n) := {x : arity pSet.{u} n // arity.equiv x x}
 
 instance resp.inhabited {n} : inhabited (resp n) :=
-⟨⟨arity.const (default _) _, arity.equiv_const _⟩⟩
+⟨⟨arity.const default _, arity.equiv_const _⟩⟩
 
 /-- The `n`-ary image of a `(n + 1)`-ary function respecting equivalence as a function respecting
 equivalence. -/
@@ -357,7 +371,11 @@ open pSet
 /-- Turns a pre-set into a ZFC set. -/
 def mk : pSet → Set := quotient.mk
 
-@[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+@[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
+@[simp] theorem mk_out : ∀ x : Set, mk x.out = x := quotient.out_eq
+theorem eq {x y : pSet} : mk x = mk y ↔ equiv x y := quotient.eq
+theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound h
+theorem exact {x y : pSet} : mk x = mk y → pSet.equiv x y := quotient.exact
 
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
@@ -587,31 +605,27 @@ begin
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
-theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' := begin
+theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' :=
+begin
   have ae := ext_iff.2 H,
-  simp [pair] at ae,
-  have : x = x',
+  simp only [pair, mem_pair] at ae,
+  obtain rfl : x = x',
   { cases (ae {x}).1 (by simp) with h h,
     { exact singleton_inj h },
     { have m : x' ∈ ({x} : Set),
-      { rw h, simp },
-      simp at m, simp [*] } },
-  subst x',
-  have he : y = x → y = y',
-  { intro yx, subst y,
+      { simp [h] },
+      rw mem_singleton.mp m } },
+  have he : x = y → y = y',
+  { rintro rfl,
     cases (ae {x, y'}).2 (by simp only [eq_self_iff_true, or_true]) with xy'x xy'xx,
     { rw [eq_comm, ←mem_singleton, ←xy'x, mem_pair],
       exact or.inr rfl },
-    { have yxx := (ext_iff.2 xy'xx y').1 (by simp),
-      simp at yxx, subst y' } },
-  have xyxy' := (ae {x, y}).1 (by simp),
-  cases xyxy' with xyx xyy',
-  { have yx := (ext_iff.2 xyx y).1 (by simp),
-    simp at yx, simp [he yx] },
-  { have yxy' := (ext_iff.2 xyy' y).1 (by simp),
-    simp at yxy',
-    cases yxy' with yx yy',
-    { simp [he yx] },
+    { simpa [eq_comm] using (ext_iff.2 xy'xx y').1 (by simp) } },
+  obtain xyx | xyy' := (ae {x, y}).1 (by simp),
+  { obtain rfl := mem_singleton.mp ((ext_iff.2 xyx y).1 $ by simp),
+    simp [he rfl] },
+  { obtain rfl | yy' := mem_pair.mp ((ext_iff.2 xyy' y).1 $ by simp),
+    { simp [he rfl] },
     { simp [yy'] } }
 end
 
@@ -666,19 +680,11 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 end Set
 
 /-- The collection of all classes. A class is defined as a `set` of ZFC sets. -/
+@[derive [has_subset, has_sep Set, has_emptyc, inhabited, has_insert Set, has_union, has_inter,
+  has_compl, has_sdiff]]
 def Class := set Set
 
 namespace Class
-
-instance : has_subset Class     := ⟨set.subset⟩
-instance : has_sep Set Class    := ⟨set.sep⟩
-instance : has_emptyc Class     := ⟨λ a, false⟩
-instance : inhabited Class      := ⟨∅⟩
-instance : has_insert Set Class := ⟨set.insert⟩
-instance : has_union Class      := ⟨set.union⟩
-instance : has_inter Class      := ⟨set.inter⟩
-instance : has_neg Class        := ⟨set.compl⟩
-instance : has_sdiff Class      := ⟨set.diff⟩
 
 /-- Coerce a ZFC set into a class -/
 def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}

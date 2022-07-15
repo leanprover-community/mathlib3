@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.basic
 import category_theory.conj
-import category_theory.yoneda
 
 /-!
 # Mate of natural transformations
@@ -192,6 +191,21 @@ begin
   simp only [id_comp, comp_id],
   rw [←adj₃.unit_naturality_assoc, ←R₃.map_comp, g.naturality_assoc, L₂.map_comp, assoc,
     adj₂.counit_naturality, adj₂.left_triangle_components_assoc, assoc],
+end
+
+lemma transfer_nat_trans_self_adjunction_id {L R : C ⥤ C} (adj : L ⊣ R) (f : 𝟭 C ⟶ L) (X : C) :
+  (transfer_nat_trans_self adj adjunction.id f).app X = f.app (R.obj X) ≫ adj.counit.app X :=
+begin
+  dsimp [transfer_nat_trans_self, transfer_nat_trans, adjunction.id],
+  simp only [comp_id, id_comp],
+end
+
+lemma transfer_nat_trans_self_adjunction_id_symm {L R : C ⥤ C} (adj : L ⊣ R) (g : R ⟶ 𝟭 C)
+  (X : C) : ((transfer_nat_trans_self adj adjunction.id).symm g).app X =
+  adj.unit.app X ≫ (g.app (L.obj X)) :=
+begin
+  dsimp [transfer_nat_trans_self, transfer_nat_trans, adjunction.id],
+  simp only [comp_id, id_comp],
 end
 
 lemma transfer_nat_trans_self_symm_comp (f g) :

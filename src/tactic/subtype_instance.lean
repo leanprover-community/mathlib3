@@ -6,7 +6,7 @@ Authors: Simon Hudon
 Provides a `subtype_instance` tactic which builds instances for algebraic substructures
 (sub-groups, sub-rings...).
 -/
-import data.string.basic
+import tactic.basic
 open tactic expr name list
 
 namespace tactic
@@ -24,7 +24,7 @@ do
   field ← get_current_field,
   b ← target >>= is_prop,
   if b then  do
-    `[simp [subtype.ext_iff_val], dsimp [set.set_coe_eq_subtype]],
+    `[simp [subtype.ext_iff_val], dsimp [set.coe_eq_subtype]],
     intros,
     applyc field; assumption
   else do

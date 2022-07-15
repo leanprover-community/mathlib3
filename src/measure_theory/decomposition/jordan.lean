@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.decomposition.signed_hahn
+import measure_theory.measure.mutually_singular
 
 /-!
 # Jordan decomposition
@@ -19,7 +20,7 @@ is useful for the Lebesgue decomposition theorem.
 
 * `measure_theory.jordan_decomposition`: a Jordan decomposition of a measurable space is a
   pair of mutually singular finite measures. We say `j` is a Jordan decomposition of a signed
-  meausre `s` if `s = j.pos_part - j.neg_part`.
+  measure `s` if `s = j.pos_part - j.neg_part`.
 * `measure_theory.signed_measure.to_jordan_decomposition`: the Jordan decomposition of a
   signed measure.
 * `measure_theory.signed_measure.to_jordan_decomposition_equiv`: is the `equiv` between
@@ -63,19 +64,20 @@ open measure vector_measure
 variable (j : jordan_decomposition α)
 
 instance : has_zero (jordan_decomposition α) :=
-{ zero := ⟨0, 0, mutually_singular.zero⟩ }
+{ zero := ⟨0, 0, mutually_singular.zero_right⟩ }
 
 instance : inhabited (jordan_decomposition α) :=
 { default := 0 }
 
-instance : has_neg (jordan_decomposition α) :=
-{ neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩ }
+instance : has_involutive_neg (jordan_decomposition α) :=
+{ neg := λ j, ⟨j.neg_part, j.pos_part, j.mutually_singular.symm⟩,
+  neg_neg := λ j, jordan_decomposition.ext _ _ rfl rfl }
 
-instance : has_scalar ℝ≥0 (jordan_decomposition α) :=
+instance : has_smul ℝ≥0 (jordan_decomposition α) :=
 { smul := λ r j, ⟨r • j.pos_part, r • j.neg_part,
     mutually_singular.smul _ (mutually_singular.smul _ j.mutually_singular.symm).symm⟩ }
 
-instance has_scalar_real : has_scalar ℝ (jordan_decomposition α) :=
+instance has_smul_real : has_smul ℝ (jordan_decomposition α) :=
 { smul := λ r j, if hr : 0 ≤ r then r.to_nnreal • j else - ((-r).to_nnreal • j) }
 
 @[simp] lemma zero_pos_part : (0 : jordan_decomposition α).pos_part = 0 := rfl
@@ -257,7 +259,7 @@ end
 between the two sets. -/
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v)
-  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
+  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u ∆ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
 begin
   rw restrict_le_restrict_iff at hsu hsv,
@@ -274,7 +276,7 @@ end
 between the two sets. -/
 lemma of_diff_eq_zero_of_symm_diff_eq_zero_negative
   (hu : measurable_set u) (hv : measurable_set v)
-  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
+  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u ∆ v) = 0) :
   s (u \ v) = 0 ∧ s (v \ u) = 0 :=
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
@@ -286,10 +288,10 @@ end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_positive
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
-  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u Δ v) = 0) :
+  (hsu : 0 ≤[u] s) (hsv : 0 ≤[v] s) (hs : s (u ∆ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
-  have hwuv : s ((w ∩ u) Δ (w ∩ v)) = 0,
+  have hwuv : s ((w ∩ u) ∆ (w ∩ v)) = 0,
   { refine subset_positive_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
       (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
     { exact symm_diff_le_sup u v },
@@ -306,7 +308,7 @@ end
 
 lemma of_inter_eq_of_symm_diff_eq_zero_negative
   (hu : measurable_set u) (hv : measurable_set v) (hw : measurable_set w)
-  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u Δ v) = 0) :
+  (hsu : s ≤[u] 0) (hsv : s ≤[v] 0) (hs : s (u ∆ v) = 0) :
   s (w ∩ u) = s (w ∩ v) :=
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
@@ -368,7 +370,6 @@ begin
           (hS₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
     { refine set.disjoint_of_subset_left (set.inter_subset_right _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-    { exact hi.inter hS₁ },
     { exact hi.inter hS₁.compl } },
   have hμ₂ : (j₂.pos_part i).to_real = j₂.to_signed_measure (i ∩ Tᶜ),
   { rw [to_signed_measure, to_signed_measure_sub_apply (hi.inter hT₁.compl),
@@ -380,7 +381,6 @@ begin
           (hT₄ ▸ measure_mono (set.inter_subset_right _ _)), zero_add],
     { exact set.disjoint_of_subset_left (set.inter_subset_right _ _)
         (set.disjoint_of_subset_right (set.inter_subset_right _ _) disjoint_compl_right) },
-    { exact hi.inter hT₁ },
     { exact hi.inter hT₁.compl } },
   -- since the two signed measures associated with the Jordan decompositions are the same,
   -- and the symmetric difference of the Hahn decompositions have measure zero, the result follows
@@ -556,7 +556,7 @@ end
 lemma total_variation_mutually_singular_iff (s : signed_measure α) (μ : measure α) :
   s.total_variation ⊥ₘ μ ↔
   s.to_jordan_decomposition.pos_part ⊥ₘ μ ∧ s.to_jordan_decomposition.neg_part ⊥ₘ μ :=
-measure.mutually_singular.add_iff
+measure.mutually_singular.add_left_iff
 
 end signed_measure
 

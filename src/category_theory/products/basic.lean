@@ -33,7 +33,7 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 /--
 `prod C D` gives the cartesian product of two categories.
 
-See https://stacks.math.columbia.edu/tag/001K.
+See <https://stacks.math.columbia.edu/tag/001K>.
 -/
 @[simps {not_recursive := []}] -- the generates simp lemmas like `id_fst` and `comp_snd`
 instance prod : category.{max v₁ v₂} (C × D) :=
@@ -45,6 +45,31 @@ instance prod : category.{max v₁ v₂} (C × D) :=
 @[simp] lemma prod_id (X : C) (Y : D) : 𝟙 (X, Y) = (𝟙 X, 𝟙 Y) := rfl
 @[simp] lemma prod_comp {P Q R : C} {S T U : D} (f : (P, S) ⟶ (Q, T)) (g : (Q, T) ⟶ (R, U)) :
   f ≫ g = (f.1 ≫ g.1, f.2 ≫ g.2) := rfl
+
+lemma is_iso_prod_iff {P Q : C} {S T : D} {f : (P, S) ⟶ (Q, T)} :
+  is_iso f ↔ is_iso f.1 ∧ is_iso f.2 :=
+begin
+  split,
+  { rintros ⟨g, hfg, hgf⟩,
+    simp at hfg hgf,
+    rcases hfg with ⟨hfg₁, hfg₂⟩,
+    rcases hgf with ⟨hgf₁, hgf₂⟩,
+    exact ⟨⟨⟨g.1, hfg₁, hgf₁⟩⟩, ⟨⟨g.2, hfg₂, hgf₂⟩⟩⟩ },
+  { rintros ⟨⟨g₁, hfg₁, hgf₁⟩, ⟨g₂, hfg₂, hgf₂⟩⟩,
+    dsimp at hfg₁ hgf₁ hfg₂ hgf₂,
+    refine ⟨⟨(g₁, g₂), _, _⟩⟩; { simp; split; assumption } }
+end
+
+section
+variables {C D}
+
+/-- Construct an isomorphism in `C × D` out of two isomorphisms in `C` and `D`. -/
+@[simps]
+def iso.prod {P Q : C} {S T : D} (f : P ≅ Q) (g : S ≅ T) : (P, S) ≅ (Q, T) :=
+{ hom := (f.hom, g.hom),
+  inv := (f.inv, g.inv), }
+
+end
 
 end
 
@@ -159,6 +184,23 @@ namespace functor
 /- Because of limitations in Lean 3's handling of notations, we do not setup a notation `F × G`.
    You can use `F.prod G` as a "poor man's infix", or just write `functor.prod F G`. -/
 
+/-- Similar to `prod`, but both functors start from the same category `A` -/
+@[simps] def prod' (F : A ⥤ B) (G : A ⥤ C) : A ⥤ (B × C) :=
+{ obj := λ a, (F.obj a, G.obj a),
+  map := λ x y f, (F.map f, G.map f), }
+
+section
+variable (C)
+
+/-- The diagonal functor. -/
+def diag : C ⥤ C × C := (𝟭 C).prod' (𝟭 C)
+
+@[simp] lemma diag_obj (X : C) : (diag C).obj X = (X, X) := rfl
+
+@[simp] lemma diag_map {X Y : C} (f : X ⟶ Y) : (diag C).map f = (f, f) := rfl
+
+end
+
 end functor
 
 namespace nat_trans
@@ -178,5 +220,11 @@ namespace nat_trans
    use instead `α.prod β` or `nat_trans.prod α β`. -/
 
 end nat_trans
+
+/-- `F.flip` composed with evaluation is the same as evaluating `F`. -/
+@[simps]
+def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
+  F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
+nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
 
 end category_theory

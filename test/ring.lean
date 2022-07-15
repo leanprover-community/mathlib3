@@ -1,5 +1,6 @@
 import tactic.ring
 import data.real.basic
+import algebra.parity
 
 example (x y : ℕ) : x + y = y + x := by ring
 example (x y : ℕ) : x + y + y = 2 * y + x := by ring
@@ -35,6 +36,19 @@ begin
   ring
 end
 
+example {A : ℤ} (f : ℤ → ℤ) : f 0 = f (A - A) := by ring_nf
+example {A : ℤ} (f : ℤ → ℤ) : f 0 = f (A + -A) := by ring_nf
+
+example {a b c : ℝ} (h : 0 < a ^ 4 + b ^ 4 + c ^ 4) :
+  a ^ 4 / (a ^ 4 + b ^ 4 + c ^ 4) +
+  b ^ 4 / (b ^ 4 + c ^ 4 + a ^ 4) +
+  c ^ 4 / (c ^ 4 + a ^ 4 + b ^ 4)
+  = 1 :=
+begin
+  ring_nf at ⊢ h,
+  field_simp [h.ne'],
+end
+
 example (a b c d x y : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) :
   a + b / x - c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x - c) / x) :=
 begin
@@ -53,3 +67,31 @@ end
 
 -- this proof style is not recommended practice
 example (A B : ℕ) (H : B * A = 2) : A * B = 2 := by {ring_nf, exact H}
+
+example (a : ℤ) : odd ((2 * a + 1) ^ 2) :=
+begin
+  use 2 * a ^ 2 + 2 * a,
+  ring_nf,
+end
+
+example {x y : ℝ}
+  (hxy : -y ^ 2 + x ^ 2 = -(5 * y) + 5 * x) :
+  x ^ 2 - y ^ 2 = 5 * x - 5 * y :=
+begin
+  ring_nf at hxy ⊢,
+  exact hxy
+end
+
+example {α} [field α] {x y : α}
+  (h : 0 = (1 - x) ^ 2 * (x * (2 ^ 2 * y ^ 2 + 4 * (1 - x) ^ 2))) :
+  0 = x * ((2 ^ 2 * y ^ 2 + 4 * (1 - x) ^ 2) * (1 - x) ^ 2) :=
+by transitivity; [exact h, ring]
+
+-- `ring_nf` should descend into the subexpressions `x * -a` and `-a * x`:
+example {a x : ℚ} : x * -a = - a * x := by ring_nf
+
+example (f : ℤ → ℤ) (a b : ℤ) : f (2 * a + b) + b = b + f (b + a + a) :=
+begin
+  success_if_fail {{ ring_nf {recursive := ff} }},
+  ring_nf
+end

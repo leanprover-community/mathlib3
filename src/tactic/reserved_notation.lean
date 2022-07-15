@@ -47,9 +47,17 @@ reserve notation `to`
 -- used in `tactic/rcases.lean`
 precedence `?`:max
 
+-- used in `tactic/induction.lean`
+precedence `fixing`:0
+
 -- used in `order/lattice.lean`
-reserve infixl ` ⊓ `:70
-reserve infixl ` ⊔ `:65
+-- These priorities are chosen to be above `+`, `∑`, and `∏`, but below `*`. There is no particular
+-- reason for this choice.
+reserve infixl ` ⊓ `:69
+reserve infixl ` ⊔ `:68
 
 -- used in `algebra/module/linear_map.lean`
 reserve infix ` ≃ₗ `:25
+
+-- used in `data/matrix/notation.lean`
+reserve  notation `!![`

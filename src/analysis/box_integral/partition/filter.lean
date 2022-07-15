@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.partition.subbox_induction
-import analysis.box_integral.partition.additive
+import analysis.box_integral.partition.split
 
 /-!
 # Filters used in box-based integrals
@@ -23,7 +23,7 @@ assumptions.
 Finally, for each set of parameters `l : box_integral.integration_params` and a rectangular box
 `I : box_integral.box ι`, we define several `filter`s that will be used either in the definition of
 the corresponding integral, or in the proofs of its properties. We equip
-`box_integral.integration_params` with a `bounded_lattice` structure such that larger
+`box_integral.integration_params` with a `bounded_order` structure such that larger
 `integration_params` produce larger filters.
 
 ## Main definitions
@@ -193,7 +193,7 @@ variables {l l₁ l₂ : integration_params}
 namespace integration_params
 
 /-- Auxiliary equivalence with a product type used to lift an order. -/
-def equiv_prod : integration_params ≃ bool × order_dual bool × order_dual bool :=
+def equiv_prod : integration_params ≃ bool × boolᵒᵈ × boolᵒᵈ :=
 { to_fun := λ l, ⟨l.1, order_dual.to_dual l.2, order_dual.to_dual l.3⟩,
   inv_fun := λ l, ⟨l.1, order_dual.of_dual l.2.1, order_dual.of_dual l.2.2⟩,
   left_inv := λ ⟨a, b, c⟩, rfl,
@@ -202,12 +202,12 @@ def equiv_prod : integration_params ≃ bool × order_dual bool × order_dual bo
 instance : partial_order integration_params :=
 partial_order.lift equiv_prod equiv_prod.injective
 
-/-- Auxiliary `order_iso` with a product type used to lift a `bounded_lattice` structure. -/
-def iso_prod : integration_params ≃o bool × order_dual bool × order_dual bool :=
+/-- Auxiliary `order_iso` with a product type used to lift a `bounded_order` structure. -/
+def iso_prod : integration_params ≃o bool × boolᵒᵈ × boolᵒᵈ :=
 ⟨equiv_prod, λ ⟨x, y, z⟩, iff.rfl⟩
 
-instance : bounded_lattice integration_params :=
-iso_prod.symm.to_galois_insertion.lift_bounded_lattice
+instance : bounded_order integration_params :=
+iso_prod.symm.to_galois_insertion.lift_bounded_order
 
 /-- The value `⊥` (`bRiemann = ff`, `bHenstock = tt`, `bDistortion = tt`) corresponds to a
 generalization of the Henstock integral such that the Divergence theorem holds true without
@@ -386,17 +386,17 @@ lemma r_cond.min {ι : Type*} {r₁ r₂ : (ι → ℝ) → Ioi (0 : ℝ)} (h₁
 
 @[mono] lemma to_filter_distortion_mono (I : box ι) (h : l₁ ≤ l₂) (hc : c₁ ≤ c₂) :
   l₁.to_filter_distortion I c₁ ≤ l₂.to_filter_distortion I c₂ :=
-infi_le_infi $ λ r, infi_le_infi2 $ λ hr,
+infi_mono $ λ r, infi_mono' $ λ hr,
   ⟨hr.mono h, principal_mono.2 $ λ _, mem_base_set.mono I h hc (λ _ _, le_rfl)⟩
 
 @[mono] lemma to_filter_mono (I : box ι) {l₁ l₂ : integration_params} (h : l₁ ≤ l₂) :
   l₁.to_filter I ≤ l₂.to_filter I :=
-supr_le_supr $ λ c, to_filter_distortion_mono I h le_rfl
+supr_mono $ λ c, to_filter_distortion_mono I h le_rfl
 
 @[mono] lemma to_filter_Union_mono (I : box ι) {l₁ l₂ : integration_params} (h : l₁ ≤ l₂)
   (π₀ : prepartition I) :
   l₁.to_filter_Union I π₀ ≤ l₂.to_filter_Union I π₀ :=
-supr_le_supr $ λ c, inf_le_inf_right _ $ to_filter_distortion_mono _ h le_rfl
+supr_mono $ λ c, inf_le_inf_right _ $ to_filter_distortion_mono _ h le_rfl
 
 lemma to_filter_Union_congr (I : box ι) (l : integration_params) {π₁ π₂ : prepartition I}
   (h : π₁.Union = π₂.Union) : l.to_filter_Union I π₁ = l.to_filter_Union I π₂ :=

@@ -3,10 +3,11 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.monotonicity.basic
 import algebra.order.ring
+import data.nat.basic
 import data.set.lattice
-import order.bounds
+import order.directed
+import tactic.monotonicity.basic
 
 variables {α : Type*}
 
@@ -70,8 +71,8 @@ end
 open set
 
 attribute [mono] inter_subset_inter union_subset_union
-                 sUnion_mono bUnion_mono sInter_subset_sInter bInter_mono
-                 image_subset preimage_mono prod_mono monotone_prod seq_mono
+                 sUnion_mono Union₂_mono sInter_subset_sInter Inter₂_mono
+                 image_subset preimage_mono prod_mono monotone.set_prod seq_mono
                  image2_subset order_embedding.monotone
 attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
                  upper_bounds_mono_mem  lower_bounds_mono_mem

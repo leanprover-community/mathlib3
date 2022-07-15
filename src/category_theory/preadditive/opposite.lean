@@ -5,7 +5,7 @@ Authors: Scott Morrison, Adam Topaz
 -/
 import category_theory.preadditive
 import category_theory.preadditive.additive_functor
-import data.equiv.transfer_instance
+import logic.equiv.transfer_instance
 
 /-!
 # If `C` is preadditive, `Cᵒᵖ` has a natural preadditive structure.
@@ -24,6 +24,12 @@ instance : preadditive Cᵒᵖ :=
     congr_arg quiver.hom.op (preadditive.comp_add _ _ _ g.unop f.unop f'.unop),
   comp_add' := λ X Y Z f g g',
     congr_arg quiver.hom.op (preadditive.add_comp _ _ _ g.unop g'.unop f.unop), }
+
+instance module_End_left {X : Cᵒᵖ} {Y : C} : module (End X) (unop X ⟶ Y) :=
+{ smul_add := λ r f g, preadditive.comp_add _ _ _ _ _ _,
+  smul_zero := λ r, limits.comp_zero,
+  add_smul := λ r s f, preadditive.add_comp _ _ _ _ _ _,
+  zero_smul := λ f, limits.zero_comp }
 
 @[simp] lemma unop_zero (X Y : Cᵒᵖ) : (0 : X ⟶ Y).unop = 0 := rfl
 @[simp] lemma unop_add {X Y : Cᵒᵖ} (f g : X ⟶ Y) : (f + g).unop = f.unop + g.unop := rfl

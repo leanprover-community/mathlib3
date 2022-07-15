@@ -10,11 +10,11 @@ namespace local_cache
 
 namespace internal
 
-variables {α : Type} [reflected α] [has_reflect α]
+variables {α : Type} [reflected _ α] [has_reflect α]
 
 meta def mk_full_namespace (ns : name) : name := `local_cache ++ ns
 
-meta def save_data (dn : name) (a : α) [reflected a] : tactic unit :=
+meta def save_data (dn : name) (a : α) [reflected _ a] : tactic unit :=
 tactic.add_decl $ mk_definition dn [] (reflect α) (reflect a)
 
 meta def load_data (dn : name) : tactic α :=
@@ -26,11 +26,11 @@ meta def poke_data (dn : name) : tactic bool :=
 do e ← tactic.get_env,
    return (e.get dn).to_bool
 
-meta def run_once_under_name {α : Type} [reflected α] [has_reflect α] (t : tactic α)
+meta def run_once_under_name {α : Type} [reflected _ α] [has_reflect α] (t : tactic α)
   (cache_name : name) : tactic α :=
 do load_data cache_name <|>
-   do {
-     a ← t,
+   do
+   { a ← t,
      save_data cache_name a,
      return a }
 
@@ -190,7 +190,8 @@ meta def clear (ns : name) (s : cache_scope := block_local) : tactic unit :=
 s.clear ns
 
 /-- Gets the (optionally present) value-in-cache for `ns`. -/
-meta def get (ns : name) (α : Type) [reflected α] [has_reflect α] (s : cache_scope := block_local) :
+meta def get (ns : name) (α : Type) [reflected _ α] [has_reflect α]
+  (s : cache_scope := block_local) :
   tactic (option α) :=
 do dn ← some <$> s.try_get_name ns <|> return none,
    match dn with
@@ -217,7 +218,7 @@ open local_cache local_cache.internal
 
     If `α` is just `unit`, this means we just run `t` once each tactic
     block. -/
-meta def run_once {α : Type} [reflected α] [has_reflect α] (ns : name) (t : tactic α)
+meta def run_once {α : Type} [reflected  _ α] [has_reflect α] (ns : name) (t : tactic α)
   (s : cache_scope := cache_scope.block_local) : tactic α :=
 s.get_name ns >>= run_once_under_name t
 

@@ -54,7 +54,7 @@ noncomputable theory
 
 variables (R : Type u) (X : Type v) [comm_ring R]
 
-/-- We save characters by using Bourbaki's name `lib` (as in «libre») for
+/- We save characters by using Bourbaki's name `lib` (as in «libre») for
 `free_non_unital_non_assoc_algebra` in this file. -/
 local notation `lib` := free_non_unital_non_assoc_algebra
 local notation `lib.lift` := free_non_unital_non_assoc_algebra.lift
@@ -69,18 +69,32 @@ the free Lie algebra. -/
 inductive rel : lib R X → lib R X → Prop
 | lie_self (a : lib R X) : rel (a * a) 0
 | leibniz_lie (a b c : lib R X) : rel (a * (b * c)) (((a * b) * c) + (b * (a * c)))
-| smul (t : R) (a b : lib R X) : rel a b → rel (t • a) (t • b)
-| add_right (a b c : lib R X) : rel a b → rel (a + c) (b + c)
-| mul_left (a b c : lib R X) : rel b c → rel (a * b) (a * c)
-| mul_right (a b c : lib R X) : rel a b → rel (a * c) (b * c)
+| smul (t : R) {a b : lib R X} : rel a b → rel (t • a) (t • b)
+| add_right {a b : lib R X} (c : lib R X) : rel a b → rel (a + c) (b + c)
+| mul_left (a : lib R X) {b c : lib R X} : rel b c → rel (a * b) (a * c)
+| mul_right {a b : lib R X} (c : lib R X) : rel a b → rel (a * c) (b * c)
 
 variables {R X}
 
-lemma rel.add_left (a b c : lib R X) (h : rel R X b c) : rel R X (a + b) (a + c) :=
-by { rw [add_comm _ b, add_comm _ c], exact rel.add_right _ _ _ h, }
+lemma rel.add_left (a : lib R X) {b c : lib R X} (h : rel R X b c) : rel R X (a + b) (a + c) :=
+by { rw [add_comm _ b, add_comm _ c], exact h.add_right _, }
 
-lemma rel.neg (a b : lib R X) (h : rel R X a b) : rel R X (-a) (-b) :=
-h.smul (-1) _ _
+lemma rel.neg {a b : lib R X} (h : rel R X a b) : rel R X (-a) (-b) :=
+by simpa only [neg_one_smul] using h.smul (-1)
+
+lemma rel.sub_left (a : lib R X) {b c : lib R X} (h : rel R X b c) : rel R X (a - b) (a - c) :=
+by simpa only [sub_eq_add_neg] using h.neg.add_left a
+
+lemma rel.sub_right {a b : lib R X} (c : lib R X) (h : rel R X a b) : rel R X (a - c) (b - c) :=
+by simpa only [sub_eq_add_neg] using h.add_right (-c)
+
+lemma rel.smul_of_tower {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+  (t : S) (a b : lib R X)
+  (h : rel R X a b) : rel R X (t • a) (t • b) :=
+begin
+  rw [←smul_one_smul R t a, ←smul_one_smul R t b],
+  exact h.smul _,
+end
 
 end free_lie_algebra
 
@@ -90,29 +104,46 @@ def free_lie_algebra := quot (free_lie_algebra.rel R X)
 
 namespace free_lie_algebra
 
-instance : add_comm_group (free_lie_algebra R X) :=
-{ add            := quot.map₂ (+) rel.add_left rel.add_right,
-  add_comm       := by { rintros ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw add_comm, },
-  add_assoc      := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_assoc, },
-  zero           := quot.mk _ 0,
-  zero_add       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw zero_add, },
-  add_zero       := by { rintros ⟨a⟩, change quot.mk _ _ = _, rw add_zero, },
-  neg            := quot.map has_neg.neg rel.neg,
-  add_left_neg   := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _ , rw add_left_neg, } }
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
+  has_smul S (free_lie_algebra R X) :=
+{ smul := λ t, quot.map ((•) t) (rel.smul_of_tower t) }
 
-instance : module R (free_lie_algebra R X) :=
-{ smul      := λ t, quot.map ((•) t) (rel.smul t),
-  one_smul  := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw one_smul, },
-  mul_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw mul_smul, },
-  add_smul  := by { rintros t₁ t₂ ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw add_smul, },
-  smul_add  := by { rintros t ⟨a⟩ ⟨b⟩, change quot.mk _ _ = quot.mk _ _, rw smul_add, },
-  zero_smul := by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, rw zero_smul, },
-  smul_zero := λ t, by { change quot.mk _ _ = quot.mk _ _, rw smul_zero, }, }
+instance {S : Type*} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
+  [is_scalar_tower S R R] [is_central_scalar S R] :
+  is_central_scalar S (free_lie_algebra R X) :=
+{ op_smul_eq_smul := λ t, quot.ind $ by exact λ a, congr_arg (quot.mk _) (op_smul_eq_smul t a) }
+
+instance : has_zero (free_lie_algebra R X) :=
+{ zero := quot.mk _ 0 }
+
+instance : has_add (free_lie_algebra R X) :=
+{ add := quot.map₂ (+) (λ _ _ _, rel.add_left _) (λ _ _ _, rel.add_right _) }
+
+instance : has_neg (free_lie_algebra R X) :=
+{ neg := quot.map has_neg.neg (λ _ _, rel.neg) }
+
+instance : has_sub (free_lie_algebra R X) :=
+{ sub := quot.map₂ has_sub.sub (λ _ _ _, rel.sub_left _) (λ _ _ _, rel.sub_right _) }
+
+instance : add_group (free_lie_algebra R X) :=
+function.surjective.add_group (quot.mk _) (surjective_quot_mk _)
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance : add_comm_semigroup (free_lie_algebra R X) :=
+function.surjective.add_comm_semigroup (quot.mk _) (surjective_quot_mk _) (λ _ _, rfl)
+
+instance : add_comm_group (free_lie_algebra R X) :=
+{ ..free_lie_algebra.add_group R X,
+  ..free_lie_algebra.add_comm_semigroup R X }
+
+instance {S : Type*} [semiring S] [module S R] [is_scalar_tower S R R] :
+  module S (free_lie_algebra R X) :=
+function.surjective.module S ⟨quot.mk _, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) (λ _ _, rfl)
 
 /-- Note that here we turn the `has_mul` coming from the `non_unital_non_assoc_semiring` structure
 on `lib R X` into a `has_bracket` on `free_lie_algebra`. -/
 instance : lie_ring (free_lie_algebra R X) :=
-{ bracket     := quot.map₂ (*) rel.mul_left rel.mul_right,
+{ bracket     := quot.map₂ (*) (λ _ _ _, rel.mul_left _) (λ _ _ _, rel.mul_right _),
   add_lie     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw add_mul, },
   lie_add     := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, change quot.mk _ _ = quot.mk _ _, rw mul_add, },
   lie_self    := by { rintros ⟨a⟩, exact quot.sound (rel.lie_self a), },
@@ -170,7 +201,7 @@ begin
 end
 
 /-- The quotient map as a `non_unital_alg_hom`. -/
-def mk : non_unital_alg_hom R (lib R X) (free_lie_algebra R X) :=
+def mk : lib R X →ₙₐ[R] free_lie_algebra R X :=
 { to_fun    := quot.mk (rel R X),
   map_smul' := λ t a, rfl,
   map_zero' := rfl,

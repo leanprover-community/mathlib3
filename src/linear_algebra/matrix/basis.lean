@@ -38,7 +38,8 @@ open_locale matrix
 section basis_to_matrix
 
 variables {ι ι' κ κ' : Type*}
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
+variables {R₂ M₂ : Type*} [comm_ring R₂] [add_comm_group M₂] [module R₂ M₂]
 
 open function matrix
 
@@ -61,6 +62,11 @@ lemma to_matrix_eq_to_matrix_constr [fintype ι] [decidable_eq ι] (v : ι → M
   e.to_matrix v = linear_map.to_matrix e e (e.constr ℕ v) :=
 by { ext, rw [basis.to_matrix_apply, linear_map.to_matrix_apply, basis.constr_basis] }
 
+-- TODO (maybe) Adjust the definition of `basis.to_matrix` to eliminate the transpose.
+lemma coe_pi_basis_fun.to_matrix_eq_transpose [fintype ι] :
+  ((pi.basis_fun R ι).to_matrix : matrix ι ι R → matrix ι ι R) = matrix.transpose :=
+by { ext M i j, refl, }
+
 @[simp] lemma to_matrix_self [decidable_eq ι] : e.to_matrix e = 1 :=
 begin
   rw basis.to_matrix,
@@ -78,8 +84,33 @@ begin
   { rw update_noteq h },
 end
 
+/-- The basis constructed by `units_smul` has vectors given by a diagonal matrix. -/
+@[simp] lemma to_matrix_units_smul [decidable_eq ι] (e : basis ι R₂ M₂) (w : ι → R₂ˣ) :
+  e.to_matrix (e.units_smul w) = diagonal (coe ∘ w) :=
+begin
+  ext i j,
+  by_cases h : i = j,
+  { simp [h, to_matrix_apply, units_smul_apply, units.smul_def] },
+  { simp [h, to_matrix_apply, units_smul_apply, units.smul_def, ne.symm h] }
+end
+
+/-- The basis constructed by `is_unit_smul` has vectors given by a diagonal matrix. -/
+@[simp] lemma to_matrix_is_unit_smul [decidable_eq ι] (e : basis ι R₂ M₂) {w : ι → R₂}
+  (hw : ∀ i, is_unit (w i)) :
+  e.to_matrix (e.is_unit_smul hw) = diagonal w :=
+e.to_matrix_units_smul _
+
 @[simp] lemma sum_to_matrix_smul_self [fintype ι] : ∑ (i : ι), e.to_matrix v i j • e i = v j :=
 by simp_rw [e.to_matrix_apply, e.sum_repr]
+
+lemma to_matrix_map_vec_mul {S : Type*} [ring S] [algebra R S] [fintype ι]
+  (b : basis ι R S) (v : ι' → S) :
+  ((b.to_matrix v).map $ algebra_map R S).vec_mul b = v :=
+begin
+  ext i,
+  simp_rw [vec_mul, dot_product, matrix.map_apply, ← algebra.commutes, ← algebra.smul_def,
+    sum_to_matrix_smul_self],
+end
 
 @[simp] lemma to_lin_to_matrix [fintype ι] [fintype ι'] [decidable_eq ι'] (v : basis ι' R M) :
   matrix.to_lin v e (e.to_matrix v) = id :=
@@ -118,7 +149,7 @@ end basis
 
 section mul_linear_map_to_matrix
 
-variables {N : Type*} [add_comm_group N] [module R N]
+variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (b : basis ι R M) (b' : basis ι' R M) (c : basis κ R N) (c' : basis κ' R N)
 variables (f : M →ₗ[R] N)
 
@@ -145,6 +176,32 @@ lemma basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix
   [decidable_eq ι] [decidable_eq ι'] :
   c.to_matrix c' ⬝ linear_map.to_matrix b' c' f ⬝ b'.to_matrix b = linear_map.to_matrix b c f :=
 by rw [basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_basis_to_matrix]
+
+lemma basis_to_matrix_mul [decidable_eq κ]
+    (b₁ : basis ι R M) (b₂ : basis ι' R M) (b₃ : basis κ R N) (A : matrix ι' κ R) :
+  b₁.to_matrix b₂ ⬝ A = linear_map.to_matrix b₃ b₁ (to_lin b₃ b₂ A) :=
+begin
+  have := basis_to_matrix_mul_linear_map_to_matrix b₃ b₁ b₂ (matrix.to_lin b₃ b₂ A),
+  rwa [linear_map.to_matrix_to_lin] at this
+end
+
+lemma mul_basis_to_matrix [decidable_eq ι] [decidable_eq ι']
+    (b₁ : basis ι R M) (b₂ : basis ι' R M) (b₃ : basis κ R N) (A : matrix κ ι R) :
+  A ⬝ b₁.to_matrix b₂ = linear_map.to_matrix b₂ b₃ (to_lin b₁ b₃ A) :=
+begin
+  have := linear_map_to_matrix_mul_basis_to_matrix b₂ b₁ b₃ (matrix.to_lin b₁ b₃ A),
+  rwa [linear_map.to_matrix_to_lin] at this
+end
+
+lemma basis_to_matrix_basis_fun_mul (b : basis ι R (ι → R)) (A : matrix ι ι R) :
+  b.to_matrix (pi.basis_fun R ι) ⬝ A = of (λ i j, b.repr (Aᵀ j) i) :=
+begin
+  classical,
+  simp only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
+  ext i j,
+  rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply,
+    matrix.mul_vec_std_basis_apply, matrix.of_apply]
+end
 
 /-- A generalization of `linear_map.to_matrix_id`. -/
 @[simp] lemma linear_map.to_matrix_id_eq_basis_to_matrix [decidable_eq ι] :

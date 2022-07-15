@@ -34,7 +34,8 @@ have hxsuby : even (x - y), by simpa [sq] with parity_simps,
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
-  by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
+  by { rw even_iff_two_dvd at hxsuby hxaddy,
+    rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy] }
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
   by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
@@ -45,7 +46,7 @@ let ⟨a, b, hab⟩ := zmod.sq_add_sq p (-1) in
 have hab' : (p : ℤ) ∣ a.val_min_abs ^ 2 + b.val_min_abs ^ 2 + 1,
   from (char_p.int_cast_eq_zero_iff (zmod p) p _).1 $ by simpa [eq_neg_iff_add_eq_zero] using hab,
 let ⟨k, hk⟩ := hab' in
-have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
+have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_right
   (by rw ← hk; exact (add_nonneg (add_nonneg (sq_nonneg _) (sq_nonneg _)) zero_le_one))
   (int.coe_nat_pos.2 hp.1.pos),
 ⟨a.val_min_abs, b.val_min_abs, k.nat_abs,
@@ -60,7 +61,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
           (add_le_add
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
-          (le_refl _)
+          le_rfl
       ... < (p / 2) ^ 2 + (p / 2)^ 2 + (p % 2)^2 + ((2 * (p / 2)^2 + (4 * (p / 2) * (p % 2)))) :
         by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2
@@ -99,7 +100,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← int.sq_add_sq_of_two_mul_sq_add_sq hy.symm,
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
-    { conv_rhs { rw ← σ.sum_comp } },
+    { conv_rhs { rw ←equiv.sum_comp σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0 ::ₘ 1 ::ₘ 2 ::ₘ 3 ::ₘ 0, from dec_trivial,
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
@@ -119,13 +120,13 @@ by haveI hm0 : _root_.fact (0 < m) := ⟨(nat.find_spec hm).snd.1⟩; exact
 have hmp : m < p, from (nat.find_spec hm).fst,
 m.mod_two_eq_zero_or_one.elim
   (λ hm2 : m % 2 = 0,
-    let ⟨k, hk⟩ := (nat.dvd_iff_mod_eq_zero _ _).2 hm2 in
+    let ⟨k, hk⟩ := nat.dvd_iff_mod_eq_zero.2 hm2 in
     have hk0 : 0 < k, from nat.pos_of_ne_zero $ λ _, by { simp [*, lt_irrefl] at * },
     have hkm : k < m, { rw [hk, two_mul], exact (lt_add_iff_pos_left _).2 hk0 },
     false.elim $ nat.find_min hm hkm ⟨lt_trans hkm hmp, hk0,
       sum_four_squares_of_two_mul_sum_four_squares
         (show a^2 + b^2 + c^2 + d^2 = 2 * (k * p),
-          by { rw [habcd, hk, int.coe_nat_mul, mul_assoc], simp })⟩)
+          by { rw [habcd, hk, int.coe_nat_mul, mul_assoc], norm_num })⟩)
   (λ hm2 : m % 2 = 1,
     if hm1 : m = 1 then ⟨a, b, c, d, by simp only [hm1, habcd, int.coe_nat_one, one_mul]⟩
     else
@@ -168,7 +169,8 @@ m.mod_two_eq_zero_or_one.elim
           from int.coe_nat_dvd.1 ⟨ma^2 + mb^2 + mc^2 + md^2,
             (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0.1)).1 $
               by { rw [← habcd, hma, hmb, hmc, hmd], ring }⟩,
-        (hp.1.2 _ hmdvdp).elim hm1 (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
+        (hp.1.eq_one_or_self_of_dvd _ hmdvdp).elim hm1
+        (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
         from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { rw [← hwxyz0], simp, ring },
       have haxbwczdy : ((m : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
@@ -179,7 +181,7 @@ m.mod_two_eq_zero_or_one.elim
         from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
       let ⟨s, hs⟩ := hawbxcydz, ⟨t, ht⟩ := haxbwczdy, ⟨u, hu⟩ := haybzcwdx, ⟨v, hv⟩ := hazbycxdw in
       have hn_nonneg : 0 ≤ n,
-        from nonneg_of_mul_nonneg_left
+        from nonneg_of_mul_nonneg_right
           (by { erw [← hn], repeat {try {refine add_nonneg _ _}, try {exact sq_nonneg _}} })
           (int.coe_nat_pos.2 hm0.1),
       have hnm : n.nat_abs < m,

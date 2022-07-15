@@ -3,6 +3,7 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
+import logic.relation
 import order.galois_connection
 
 /-!
@@ -36,6 +37,8 @@ variables {α : Type*} {β : Type*}
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 
+instance setoid.decidable_rel (r : setoid α) [h : decidable_rel r.r] : decidable_rel r.rel := h
+
 /-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
 lemma quotient.eq_rel {r : setoid α} {x y} :
   (quotient.mk' x : quotient r) = quotient.mk' y ↔ r.rel x y := quotient.eq
@@ -67,7 +70,7 @@ lemma comm' (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
 
 /-- The kernel of a function is an equivalence relation. -/
 def ker (f : α → β) : setoid α :=
-⟨λ x y, f x = f y, ⟨λ _, rfl, λ _ _ h, h.symm, λ _ _ _ h, h.trans⟩⟩
+⟨(=) on f, eq_equivalence.comap f⟩
 
 /-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
@@ -225,7 +228,7 @@ open function
     of equivalence relations on α. -/
 theorem injective_iff_ker_bot (f : α → β) :
   injective f ↔ ker f = ⊥ :=
-(@eq_bot_iff (setoid α) _ (ker f)).symm
+(@eq_bot_iff (setoid α) _ _ (ker f)).symm
 
 /-- The elements related to x ∈ α by the kernel of f are those in the preimage of f(x) under f. -/
 lemma ker_iff_mem_preimage {f : α → β} {x y} : (ker f).rel x y ↔ x ∈ f ⁻¹' {f y} :=
@@ -315,9 +318,12 @@ lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
 by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 
 /-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
-    relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
+relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'.
+
+See note [reducible non-instances]. -/
+@[reducible]
 def comap (f : α → β) (r : setoid β) : setoid α :=
-⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
+⟨r.rel on f, r.iseqv.comap _⟩
 
 lemma comap_rel (f : α → β) (r : setoid β) (x y : α) : (comap f r).rel x y ↔ r.rel (f x) (f y) :=
 iff.rfl

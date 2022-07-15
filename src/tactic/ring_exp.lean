@@ -1194,6 +1194,8 @@ Normalized expressions might have the form `a^1 * 1 + 0`,
 since the dummy operations reduce special cases in pattern-matching.
 Humans prefer to read `a` instead.
 This tactic gets rid of the dummy additions, multiplications and exponentiations.
+
+Returns a normalized expression `e'` and a proof that `e.pretty = e'`.
 -/
 meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
 | sum pps@(ex.sum pps_i p (ex.zero _)) := do
@@ -1211,7 +1213,7 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
 | prod pps@(ex.prod pps_i p (ex.coeff _ ⟨⟨-1, 1, _, _⟩⟩)) := do
   ctx ← get_context,
   match ctx.info_b.ring_instance with
-  | none := prod.mk pps.pretty <$> pps.proof_term
+  | none := prod.mk pps.pretty <$> lift (mk_eq_refl pps.pretty)
   | (some ringi) := do
     (p_p, p_pf) ← p.simple,
     prod.mk
@@ -1234,7 +1236,7 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
   prod.mk
     <$> mk_pow [p_p, ps_p]
     <*> mk_app_csr ``exp_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf]
-| et ps := prod.mk ps.pretty <$> ps.proof_term
+| et ps := prod.mk ps.pretty <$> lift (mk_eq_refl ps.pretty)
 
 /--
 Performs a lookup of the atom `a` in the list of known atoms,

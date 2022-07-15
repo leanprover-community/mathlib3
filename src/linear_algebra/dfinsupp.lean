@@ -111,11 +111,11 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
 @[simps]
 def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
-{ to_fun := λ F, {
-    to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
+{ to_fun := λ F,
+  { to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
     map_add' := (lift_add_hom (λ i, (F i).to_add_monoid_hom)).map_add,
-    map_smul' := λ c f, by {
-      dsimp,
+    map_smul' := λ c f, by
+    { dsimp,
       apply dfinsupp.induction f,
       { rw [smul_zero, add_monoid_hom.map_zero, smul_zero] },
       { intros a b f ha hb hf,
@@ -173,6 +173,15 @@ lemma map_range.linear_map_comp (f : Π i, β₁ i →ₗ[R] β₂ i) (f₂ : Π
     (map_range.linear_map f).comp (map_range.linear_map f₂) :=
 linear_map.ext $ map_range_comp (λ i x, f i x) (λ i x, f₂ i x) _ _ _
 
+include dec_ι
+lemma sum_map_range_index.linear_map
+  [Π (i : ι) (x : β₁ i), decidable (x ≠ 0)] [Π (i : ι) (x : β₂ i), decidable (x ≠ 0)]
+  {f : Π i, β₁ i →ₗ[R] β₂ i} {h : Π i, β₂ i →ₗ[R] N} {l : Π₀ i, β₁ i} :
+  dfinsupp.lsum ℕ h (map_range.linear_map f l) = dfinsupp.lsum ℕ (λ i, (h i).comp (f i)) l :=
+by simpa [dfinsupp.sum_add_hom_apply] using
+  @sum_map_range_index ι N _ _ _ _ _ _ _ _ (λ i, f i) (λ i, by simp) l (λ i, h i) (λ i, by simp)
+omit dec_ι
+
 /-- `dfinsupp.map_range.linear_map` as an `linear_equiv`. -/
 @[simps apply]
 def map_range.linear_equiv (e : Π i, β₁ i ≃ₗ[R] β₂ i) : (Π₀ i, β₁ i) ≃ₗ[R] (Π₀ i, β₂ i) :=
@@ -220,12 +229,12 @@ open dfinsupp
 lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
   [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
   (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
-S.to_add_submonoid.dfinsupp_sum_mem f g h
+dfinsupp_sum_mem S f g h
 
 lemma dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
   (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
   dfinsupp.sum_add_hom g f ∈ S :=
-S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h
+dfinsupp_sum_add_hom_mem S f g h
 
 /-- The supremum of a family of submodules is equal to the range of `dfinsupp.lsum`; that is
 every element in the `supr` can be produced from taking a finite number of non-zero elements
@@ -251,9 +260,7 @@ lemma bsupr_eq_range_dfinsupp_lsum (p : ι → Prop)
     ((dfinsupp.lsum ℕ (λ i, (S i).subtype)).comp (dfinsupp.filter_linear_map R _ p)).range :=
 begin
   apply le_antisymm,
-  { apply bsupr_le _,
-    intros i hi y hy,
-    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+  { refine supr₂_le (λ i hi y hy, ⟨dfinsupp.single i ⟨y, hy⟩, _⟩),
     rw [linear_map.comp_apply, filter_linear_map_apply, filter_single_pos _ _ hi],
     exact dfinsupp.sum_add_hom_single _ _ _, },
   { rintros x ⟨v, rfl⟩,
@@ -283,6 +290,30 @@ lemma mem_bsupr_iff_exists_dfinsupp (p : ι → Prop) [decidable_pred p] (S : ι
   x ∈ (⨆ i (h : p i), S i) ↔
     ∃ f : Π₀ i, S i, dfinsupp.lsum ℕ (λ i, (S i).subtype) (f.filter p) = x :=
 set_like.ext_iff.mp (bsupr_eq_range_dfinsupp_lsum p S) x
+
+open_locale big_operators
+omit dec_ι
+lemma mem_supr_finset_iff_exists_sum {s : finset ι} (p : ι → submodule R N) (a : N) :
+  a ∈ (⨆ i ∈ s, p i) ↔ ∃ μ : Π i, p i, ∑ i in s, (μ i : N) = a :=
+begin
+  classical,
+  rw submodule.mem_supr_iff_exists_dfinsupp',
+  split; rintro ⟨μ, hμ⟩,
+  { use λ i, ⟨μ i, (supr_const_le : _ ≤ p i) (coe_mem $ μ i)⟩,
+    rw ← hμ, symmetry, apply finset.sum_subset,
+    { intro x, contrapose, intro hx,
+      rw [mem_support_iff, not_ne_iff],
+      ext, rw [coe_zero, ← mem_bot R], convert coe_mem (μ x),
+      symmetry, exact supr_neg hx },
+    { intros x _ hx, rw [mem_support_iff, not_ne_iff] at hx, rw hx, refl } },
+  { refine ⟨dfinsupp.mk s _, _⟩,
+    { rintro ⟨i, hi⟩, refine ⟨μ i, _⟩,
+      rw supr_pos, { exact coe_mem _ }, { exact hi } },
+    simp only [dfinsupp.sum],
+    rw [finset.sum_subset support_mk_subset, ← hμ],
+    exact finset.sum_congr rfl (λ x hx, congr_arg coe $ mk_of_mem hx),
+    { intros x _ hx, rw [mem_support_iff, not_ne_iff] at hx, rw hx, refl } }
+end
 
 end submodule
 
@@ -324,6 +355,16 @@ begin
   simpa [eq_comm] using this,
 end
 
+/- If `dfinsupp.sum_add_hom` applied with `add_submonoid.subtype` is injective then the additive
+submonoids are independent. -/
+lemma independent_of_dfinsupp_sum_add_hom_injective (p : ι → add_submonoid N)
+  (h : function.injective (sum_add_hom (λ i, (p i).subtype))) :
+  independent p :=
+begin
+  rw ←independent_map_order_iso_iff (add_submonoid.to_nat_submodule : add_submonoid N ≃o _),
+  exact independent_of_dfinsupp_lsum_injective _ h,
+end
+
 /-- Combining `dfinsupp.lsum` with `linear_map.to_span_singleton` is the same as `finsupp.total` -/
 lemma lsum_comp_map_range_to_span_singleton
   [Π (m : R), decidable (m ≠ 0)]
@@ -339,6 +380,17 @@ end semiring
 
 section ring
 variables [ring R] [add_comm_group N] [module R N]
+
+
+/- If `dfinsupp.sum_add_hom` applied with `add_submonoid.subtype` is injective then the additive
+subgroups are independent. -/
+lemma independent_of_dfinsupp_sum_add_hom_injective' (p : ι → add_subgroup N)
+  (h : function.injective (sum_add_hom (λ i, (p i).subtype))) :
+  independent p :=
+begin
+  rw ←independent_map_order_iso_iff (add_subgroup.to_int_submodule : add_subgroup N ≃o _),
+  exact independent_of_dfinsupp_lsum_injective _ h,
+end
 
 /-- The canonical map out of a direct sum of a family of submodules is injective when the submodules
 are `complete_lattice.independent`.
@@ -366,6 +418,15 @@ begin
     add_eq_zero_iff_eq_neg, ←submodule.coe_neg] at hm,
 end
 
+/-- The canonical map out of a direct sum of a family of additive subgroups is injective when the
+additive subgroups are `complete_lattice.independent`. -/
+lemma independent.dfinsupp_sum_add_hom_injective {p : ι → add_subgroup N}
+  (h : independent p) : function.injective (sum_add_hom (λ i, (p i).subtype)) :=
+begin
+  rw ←independent_map_order_iso_iff (add_subgroup.to_int_submodule : add_subgroup N ≃o _) at h,
+  exact h.dfinsupp_lsum_injective,
+end
+
 /-- A family of submodules over an additive group are independent if and only iff `dfinsupp.lsum`
 applied with `submodule.subtype` is injective.
 
@@ -375,11 +436,20 @@ lemma independent_iff_dfinsupp_lsum_injective (p : ι → submodule R N) :
   independent p ↔ function.injective (lsum ℕ (λ i, (p i).subtype)) :=
 ⟨independent.dfinsupp_lsum_injective, independent_of_dfinsupp_lsum_injective p⟩
 
+/-- A family of additive subgroups over an additive group are independent if and only if
+`dfinsupp.sum_add_hom` applied with `add_subgroup.subtype` is injective. -/
+lemma independent_iff_dfinsupp_sum_add_hom_injective (p : ι → add_subgroup N) :
+  independent p ↔ function.injective (sum_add_hom (λ i, (p i).subtype)) :=
+⟨independent.dfinsupp_sum_add_hom_injective, independent_of_dfinsupp_sum_add_hom_injective' p⟩
+
 omit dec_ι
+
 /-- If a family of submodules is `independent`, then a choice of nonzero vector from each submodule
-forms a linearly independent family. -/
+forms a linearly independent family.
+
+See also `complete_lattice.independent.linear_independent'`. -/
 lemma independent.linear_independent [no_zero_smul_divisors R N] (p : ι → submodule R N)
-  (hp : complete_lattice.independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
+  (hp : independent p) {v : ι → N} (hv : ∀ i, v i ∈ p i) (hv' : ∀ i, v i ≠ 0) :
   linear_independent R v :=
 begin
   classical,
@@ -395,6 +465,12 @@ begin
   have : l i • v i = a i := rfl,
   simp [this, ha],
 end
+
+lemma independent_iff_linear_independent_of_ne_zero [no_zero_smul_divisors R N] {v : ι → N}
+  (h_ne_zero : ∀ i, v i ≠ 0) :
+  independent (λ i, R ∙ v i) ↔ linear_independent R v :=
+⟨λ hv, hv.linear_independent _ (λ i, submodule.mem_span_singleton_self $ v i) h_ne_zero,
+ λ hv, hv.independent_span_singleton⟩
 
 end ring
 

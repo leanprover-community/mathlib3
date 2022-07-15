@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf_condition.equalizer_products
 import category_theory.full_subcategory
+import category_theory.limits.unit
 
 /-!
 # Sheaves
@@ -36,7 +37,7 @@ for those `V : opens X` such that `V ≤ U i` for some `i`.
 
 -/
 
-universes v u
+universes w v u
 
 noncomputable theory
 
@@ -48,8 +49,8 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
 
@@ -61,13 +62,13 @@ The sheaf condition for a `F : presheaf C X` requires that the morphism
 is the equalizer of the two morphisms
 `∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
 -/
-def is_sheaf (F : presheaf C X) : Prop :=
+def is_sheaf (F : presheaf.{w v u} C X) : Prop :=
 ∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
 
 /--
-The presheaf valued in `punit` over any topological space is a sheaf.
+The presheaf valued in `unit` over any topological space is a sheaf.
 -/
-lemma is_sheaf_punit (F : presheaf (category_theory.discrete punit) X) : F.is_sheaf :=
+lemma is_sheaf_unit (F : presheaf (category_theory.discrete unit) X) : F.is_sheaf :=
 λ ι U, ⟨punit_cone_is_limit⟩
 
 /--
@@ -90,11 +91,11 @@ A `sheaf C X` is a presheaf of objects from `C` over a (bundled) topological spa
 satisfying the sheaf condition.
 -/
 @[derive category]
-def sheaf : Type (max u v) := { F : presheaf C X // F.is_sheaf }
+def sheaf : Type (max u v w) := { F : presheaf C X // F.is_sheaf }
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=
-⟨⟨functor.star _, presheaf.is_sheaf_punit _⟩⟩
+⟨⟨functor.star _, presheaf.is_sheaf_unit _⟩⟩
 
 namespace sheaf
 
@@ -104,6 +105,10 @@ The forgetful functor from sheaves to presheaves.
 @[derive [full, faithful]]
 def forget : Top.sheaf C X ⥤ Top.presheaf C X :=
 full_subcategory_inclusion presheaf.is_sheaf
+
+@[simp] lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).app t = 𝟙 _ := rfl
+@[simp] lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
+  (f ≫ g).app t = f.app t ≫ g.app t := rfl
 
 end sheaf
 

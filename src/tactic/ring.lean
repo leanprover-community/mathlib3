@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.norm_num
-import data.int.range
 
 /-!
 # `ring`
@@ -432,6 +431,17 @@ do c ← get_cache,
   return (xadd' c (const α1 1) (e, i) (`(1), 1) (const α0 0),
     c.cs_app ``horner_atom [e])
 
+/-- Evaluate `a` where `a` is an atom. -/
+meta def eval_norm_atom (norm_atom : expr → tactic (expr × expr))
+  (e : expr) : ring_m (horner_expr × expr) :=
+do o ← lift $ try_core (guard (e.get_app_args.length > 0) >> norm_atom e),
+  match o with
+  | none := eval_atom e
+  | some (e', p) := do
+    (e₂, p₂) ← eval_atom e',
+    prod.mk e₂ <$> lift (mk_eq_trans p p₂)
+  end
+
 lemma subst_into_pow {α} [monoid α] (l r tl tr t)
   (prl : (l : α) = tl) (prr : (r : ℕ) = tr) (prt : tl ^ tr = t) : l ^ r = t :=
 by rw [prl, prr, prt]
@@ -446,7 +456,7 @@ by rw [div_eq_mul_inv, h]
 
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
-meta def eval : expr → ring_m (horner_expr × expr)
+meta def eval (norm_atom : expr → tactic (expr × expr)) : expr → ring_m (horner_expr × expr)
 | `(%%e₁ + %%e₂) := do
   (e₁', p₁) ← eval e₁,
   (e₂', p₂) ← eval e₂,
@@ -461,7 +471,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
       (e', p) ← eval e,
       p' ← ic_lift $ λ ic, ic.mk_app ``unfold_sub [e₁, e₂, e', p],
       return (e', p'))
-    (eval_atom e)
+    (eval_norm_atom norm_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,
@@ -476,7 +486,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
 | e@`(has_inv.inv %%_) := (do
     (e', p) ← lift $ norm_num.derive e <|> refl_conv e,
     n ← lift $ e'.to_rat,
-    return (const e' n, p)) <|> eval_atom e
+    return (const e' n, p)) <|> eval_norm_atom norm_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
   (succeeds (do
     inst' ← ic_lift $ λ ic, ic.mk_app ``div_inv_monoid.to_has_div [],
@@ -487,7 +497,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     (e', p) ← eval e,
     p' ← ic_lift $ λ ic, ic.mk_app ``unfold_div [e₁, e₂, e', p],
     return (e', p'))
-  (eval_atom e)
+  (eval_norm_atom norm_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
   (e₂', p₂) ← lift $ norm_num.derive e₂ <|> refl_conv e₂,
   match e₂'.to_nat, P with
@@ -496,18 +506,18 @@ meta def eval : expr → ring_m (horner_expr × expr)
     (e', p') ← eval_pow e₁' (e₂, k),
     p ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     return (e', p)
-  | _, _ := eval_atom e
+  | _, _ := eval_norm_atom norm_atom e
   end
 | e := match e.to_nat with
   | some n := (const e (rat.of_int n)).refl_conv
-  | none := eval_atom e
+  | none := eval_norm_atom norm_atom e
   end
 
 /-- Evaluate a ring expression `e` recursively to normal form, together with a proof of
 equality. -/
 meta def eval' (red : transparency) (atoms : ref (buffer expr))
-  (e : expr) : tactic (expr × expr) :=
-ring_m.run' red atoms e $ do (e', p) ← eval e, return (e', p)
+  (norm_atom : expr → tactic (expr × expr)) (e : expr) : tactic (expr × expr) :=
+ring_m.run' red atoms e $ do (e', p) ← eval norm_atom e, return (e', p)
 
 theorem horner_def' {α} [comm_semiring α] (a x n b) : @horner α _ a x n b = x ^ n * a + b :=
 by simp [horner, mul_comm]
@@ -535,10 +545,69 @@ form so that you can see why it failed. This setting adjusts the resulting form:
     This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
   * `SOP` means sum of products form, expanding everything to monomials.
     This results in terms like `3 * x ^ 3 * y + x + y`. -/
-@[derive has_reflect]
+@[derive [has_reflect, decidable_eq]]
 inductive normalize_mode | raw | SOP | horner
 
 instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
+
+/-- A `ring`-based normalization simplifier that rewrites ring expressions into the specified mode.
+See `normalize`. This version takes a list of atoms to persist across multiple calls.
+
+* `atoms`: a mutable reference containing the atom set from the previous call
+* `red`: the reducibility setting to use when comparing atoms for defeq
+* `mode`: the normalization style (see `normalize_mode`)
+* `recursive`: if true, atoms will be reduced recursively using `normalize'`
+* `e`: the expression to normalize
+* `inner`: This should be set to `ff`. It is used internally to disable normalization
+  at the top level when called from `eval` in order to prevent an infinite loop
+  `eval' -> eval_atom -> normalize' -> eval'` when called on something that can't
+  be simplified like `x`.
+-/
+meta def normalize' (atoms : ref (buffer expr))
+  (red : transparency) (mode := normalize_mode.horner) (recursive := tt) :
+  expr → opt_param _ ff → tactic (expr × expr)
+| e inner := do
+  pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
+  let lemmas := match mode with
+  | normalize_mode.SOP :=
+    [``horner_def', ``add_zero, ``mul_one, ``mul_add, ``mul_sub,
+    ``mul_assoc_rev, ``pow_add_rev, ``pow_add_rev_right,
+    ``mul_neg, ``add_neg_eq_sub]
+  | normalize_mode.horner :=
+    [``horner.equations._eqn_1, ``add_zero, ``one_mul, ``pow_one,
+    ``neg_mul, ``add_neg_eq_sub]
+  | _ := []
+  end,
+  lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
+  trans_conv
+    (λ e, do
+      guard (mode ≠ normalize_mode.raw),
+      (e', pr, _) ← simplify simp_lemmas.mk [] e,
+      pure (e', pr))
+    (λ e, do
+      a ← read_ref atoms,
+      let norm_rec := if recursive then λ e, normalize' e tt else λ _, failed,
+      (a, e', pr) ← ext_simplify_core a {}
+        simp_lemmas.mk (λ _, failed) (λ a _ _ p e, do
+          guard (inner → p.is_some),
+          write_ref atoms a,
+          (new_e, pr) ← eval' red atoms norm_rec e,
+          (new_e, pr) ← match mode with
+          | normalize_mode.raw := λ _, pure (new_e, pr)
+          | normalize_mode.horner := trans_conv (λ _, pure (new_e, pr))
+            (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf))
+          | normalize_mode.SOP :=
+            trans_conv (λ _, pure (new_e, pr)) $
+            trans_conv (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf)) $
+            simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
+          end e,
+          guard (¬ new_e =ₐ e),
+          a ← read_ref atoms,
+          pure (a, new_e, some pr, ff))
+        (λ _ _ _ _ _, failed) `eq e,
+      write_ref atoms a,
+      pure (e', pr))
+    e
 
 /-- A `ring`-based normalization simplifier that rewrites ring expressions into the specified mode.
 
@@ -550,36 +619,15 @@ instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
     This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
   * `SOP` means sum of products form, expanding everything to monomials.
     This results in terms like `3 * x ^ 3 * y + x + y`. -/
-meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) :
-  tactic (expr × expr) :=
-using_new_ref mk_buffer $ λ atoms, do
-pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
-let lemmas := match mode with
-| normalize_mode.SOP :=
-  [``horner_def', ``add_zero, ``mul_one, ``mul_add, ``mul_sub,
-   ``mul_assoc_rev, ``pow_add_rev, ``pow_add_rev_right,
-   ``mul_neg_eq_neg_mul_symm, ``add_neg_eq_sub]
-| normalize_mode.horner :=
-  [``horner.equations._eqn_1, ``add_zero, ``one_mul, ``pow_one,
-   ``neg_mul_eq_neg_mul_symm, ``add_neg_eq_sub]
-| _ := []
-end,
-lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
-(_, e', pr) ← ext_simplify_core () {}
-  simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
-    (new_e, pr) ← match mode with
-    | normalize_mode.raw := eval' red atoms
-    | normalize_mode.horner := trans_conv (eval' red atoms)
-                                 (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf))
-    | normalize_mode.SOP :=
-      trans_conv (eval' red atoms) $
-      trans_conv (λ e, do (e', prf, _) ← simplify lemmas [] e, return (e', prf)) $
-      simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
-    end e,
-    guard (¬ new_e =ₐ e),
-    return ((), new_e, some pr, ff))
-   (λ _ _ _ _ _, failed) `eq e,
-return (e', pr)
+meta def normalize (red : transparency) (mode := normalize_mode.horner)
+  (recursive := tt) (e : expr) : tactic (expr × expr) :=
+using_new_ref mk_buffer $ λ atoms, normalize' atoms red mode recursive e
+
+/-- Configuration for `ring_nf`.
+
+  * `recursive`: if true, atoms inside ring expressions will be reduced recursively
+-/
+@[derive inhabited] structure ring_nf_cfg := (recursive := tt)
 
 end ring
 
@@ -594,9 +642,9 @@ setup_tactic_parser
   that is provable by the axioms of commutative (semi)rings. -/
 meta def ring1 (red : parse (tk "!")?) : tactic unit :=
 let transp := if red.is_some then semireducible else reducible in
-do `(%%e₁ = %%e₂) ← target,
+do `(%%e₁ = %%e₂) ← target >>= instantiate_mvars,
   ((e₁', p₁), (e₂', p₂)) ← ring_m.run transp e₁ $
-    prod.mk <$> eval e₁ <*> eval e₂,
+    prod.mk <$> eval (λ _, failed) e₁ <*> eval (λ _, failed) e₂,
   is_def_eq e₁' e₂',
   p ← mk_eq_symm p₂ >>= mk_eq_trans p₁,
   tactic.exact p
@@ -607,10 +655,10 @@ do `(%%e₁ = %%e₂) ← target,
 meta def ring.mode : lean.parser ring.normalize_mode :=
 with_desc "(SOP|raw|horner)?" $
 do mode ← ident?, match mode with
-| none         := return ring.normalize_mode.horner
-| some `horner := return ring.normalize_mode.horner
-| some `SOP    := return ring.normalize_mode.SOP
-| some `raw    := return ring.normalize_mode.raw
+| none         := pure ring.normalize_mode.horner
+| some `horner := pure ring.normalize_mode.horner
+| some `SOP    := pure ring.normalize_mode.SOP
+| some `raw    := pure ring.normalize_mode.raw
 | _            := failed
 end
 
@@ -619,12 +667,13 @@ which rewrites all ring expressions into a normal form. When writing a normal fo
 `ring_nf SOP` will use sum-of-products form instead of horner form.
 `ring_nf!` will use a more aggressive reducibility setting to identify atoms.
 -/
-meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) :
-  tactic unit :=
+meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location)
+  (cfg : ring_nf_cfg := {}) : tactic unit :=
 do ns ← loc.get_locals,
    let transp := if red.is_some then semireducible else reducible,
-   tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal
-      | fail "ring_nf failed to simplify",
+   tt ← using_new_ref mk_buffer $ λ atoms,
+     tactic.replace_at (normalize' atoms transp SOP cfg.recursive) ns loc.include_goal
+   | fail "ring_nf failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
 
 /-- Tactic for solving equations in the language of *commutative* (semi)rings.
@@ -664,9 +713,10 @@ local postfix `?`:9001 := optional
 /--
 Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.
 -/
-meta def ring_nf (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode) : conv unit :=
+meta def ring_nf (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode)
+  (cfg : ring.ring_nf_cfg := {}) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
-replace_lhs (normalize transp SOP)
+replace_lhs (normalize transp SOP cfg.recursive)
 <|> fail "ring_nf failed to simplify"
 
 /--

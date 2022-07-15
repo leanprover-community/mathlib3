@@ -450,7 +450,7 @@ noncomputable instance quotient.algebra_quotient_pow_ramification_idx :
   algebra (R ⧸ p) (S ⧸ (P ^ e)) :=
 quotient.algebra_quotient_of_le_comap (ideal.map_le_iff_le_comap.mp le_pow_ramification_idx)
 
-@[simp] lemma ideal.quotient.algebra_map_quotient_pow_ramification_idx (x : R) :
+@[simp] lemma quotient.algebra_map_quotient_pow_ramification_idx (x : R) :
   algebra_map (R ⧸ p) (S ⧸ P ^ e) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
 rfl
 
@@ -468,7 +468,7 @@ quotient.algebra_quotient_of_le_comap (le_comap_of_ramification_idx_ne_zero hfp.
 -- In this file, the value for `f` can be inferred.
 local attribute [instance] ideal.quotient.algebra_quotient_of_ramification_idx_ne_zero
 
-@[simp] lemma ideal.quotient.algebra_map_quotient_of_ramification_idx_ne_zero (x : R) :
+@[simp] lemma quotient.algebra_map_quotient_of_ramification_idx_ne_zero (x : R) :
   algebra_map (R ⧸ p) (S ⧸ P) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
 rfl
 

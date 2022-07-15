@@ -6,6 +6,14 @@ Authors: Andrew Yang
 import ring_theory.local_properties
 import ring_theory.localization.inv_submonoid
 
+/-!
+
+# The meta properties of finite-type ring homomorphisms.
+
+The main result is `ring_hom.finite_is_local`.
+
+-/
+
 namespace ring_hom
 
 open_locale pointwise

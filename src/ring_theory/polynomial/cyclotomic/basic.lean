@@ -950,6 +950,7 @@ begin
   { have hpos := nat.mul_pos hzero hp.pos,
     have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
     rw [cyclotomic_eq_minpoly hprim hpos],
+    letI alg' := algebra_int ℂ, -- this avoids a mismatch between synthesized and inferred instances
     refine minpoly.gcd_domain_dvd (hprim.is_integral hpos)
       ((cyclotomic.monic n ℤ).expand hp.pos).ne_zero _,
     rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval,

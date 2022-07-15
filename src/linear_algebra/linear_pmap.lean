@@ -486,12 +486,12 @@ noncomputable
 def val_from_graph {g : submodule R (E × F)}
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
   (ha : a ∈ g.map (linear_map.fst R E F)) : F :=
-classical.some (exists_of_exists_unique (exists_unique_from_graph hg ha))
+(exists_of_exists_unique (exists_unique_from_graph hg ha)).some
 
-lemma val_mem_from_graph {g : submodule R (E × F)}
+lemma val_from_graph_mem {g : submodule R (E × F)}
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) {a : E}
   (ha : a ∈ g.map (linear_map.fst R E F)) : (a, val_from_graph hg ha) ∈ g :=
-classical.some_spec (exists_of_exists_unique (exists_unique_from_graph hg ha))
+(exists_of_exists_unique (exists_unique_from_graph hg ha)).some_spec
 
 /-- Define a `linear_pmap` from its graph. -/
 noncomputable
@@ -502,15 +502,15 @@ def to_linear_pmap (g : submodule R (E × F))
   { to_fun := λ x, val_from_graph hg x.2,
     map_add' := λ v w, begin
       have hadd := (g.map (linear_map.fst R E F)).add_mem v.2 w.2,
-      have hvw := val_mem_from_graph hg hadd,
-      have hvw' := g.add_mem (val_mem_from_graph hg v.2) (val_mem_from_graph hg w.2),
+      have hvw := val_from_graph_mem hg hadd,
+      have hvw' := g.add_mem (val_from_graph_mem hg v.2) (val_from_graph_mem hg w.2),
       rw [prod.mk_add_mk] at hvw',
       exact (exists_unique_from_graph hg hadd).unique hvw hvw',
     end,
     map_smul' := λ a v, begin
       have hsmul := (g.map (linear_map.fst R E F)).smul_mem a v.2,
-      have hav := val_mem_from_graph hg hsmul,
-      have hav' := g.smul_mem a (val_mem_from_graph hg v.2),
+      have hav := val_from_graph_mem hg hsmul,
+      have hav' := g.smul_mem a (val_from_graph_mem hg v.2),
       rw [prod.smul_mk] at hav',
       exact (exists_unique_from_graph hg hsmul).unique hav hav',
     end } }
@@ -518,7 +518,7 @@ def to_linear_pmap (g : submodule R (E × F))
 lemma mem_graph_to_linear_pmap (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0)
   (x : g.map (linear_map.fst R E F)) : (x.val, g.to_linear_pmap hg x) ∈ g :=
-val_mem_from_graph hg x.2
+val_from_graph_mem hg x.2
 
 @[simp] lemma to_linear_pmap_graph_eq (g : submodule R (E × F))
   (hg : ∀ (x : E × F) (hx : x ∈ g) (hx' : x.fst = 0), x.snd = 0) :
@@ -540,7 +540,7 @@ begin
     exact ⟨x_snd, hx⟩,
   end,
   refine ⟨⟨x_fst, hx_fst⟩, subtype.coe_mk x_fst hx_fst, _⟩,
-  exact (exists_unique_from_graph hg hx_fst).unique (val_mem_from_graph hg hx_fst) hx,
+  exact (exists_unique_from_graph hg hx_fst).unique (val_from_graph_mem hg hx_fst) hx,
 end
 
 end submodule_to_linear_pmap

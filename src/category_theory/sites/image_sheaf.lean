@@ -145,7 +145,7 @@ begin
 end
 
 instance : mono (image_sheaf_ι f) :=
-faithful_reflects_mono (Sheaf_to_presheaf J _)
+(Sheaf_to_presheaf J _).mono_of_mono_map
   (show mono (image_presheaf_ι J f.1), by apply_instance)
 
 end sheaf

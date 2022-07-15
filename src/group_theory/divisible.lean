@@ -77,22 +77,6 @@ class divisible_by :=
 (div_zero : ∀ a, div a 0 = 0)
 (div_cancel : ∀ {n : α} (a : A), n ≠ 0 → n • (div a n) = a)
 
--- lemma smul_surj_of_divisible_by [divisible_by A α] {n : α} (hn : n ≠ 0) :
---   function.surjective ((•) n : A → A) :=
--- λ x, ⟨divisible_by.div x n, divisible_by.div_cancel _ hn⟩
-
--- /--
--- An `add_monoid A` is `α`-divisible iff `n • _` is a surjective function, i.e. the constructive
--- version implies the textbook approach.
--- -/
--- noncomputable def divisible_by_of_smul_surj
---   [Π (n : α), decidable (n = 0)]
---   (H : ∀ {n : α}, n ≠ 0 → function.surjective ((•) n : A → A)) :
---   divisible_by A α :=
--- { div := λ a n, dite (n = 0) (λ _, 0) (λ hn, (H hn a).some),
---   div_zero := λ _, dif_pos rfl,
---   div_cancel := λ n a hn, by rw [dif_neg hn, (H hn a).some_spec] }
-
 section pi
 
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_scalar β (B i)]
@@ -101,11 +85,6 @@ instance has_scalar_pi : has_scalar β (Π i, B i) :=
 { smul := λ n x i, n • (x i) }
 
 variables [has_zero β] [Π (i : ι), add_monoid (B i)] [Π i, divisible_by (B i) β]
-
--- instance divsible_by_pi : divisible_by (Π i, B i) β :=
--- { div := λ x n i, (divisible_by.div (x i) n),
---   div_zero := λ x, funext $ λ i, divisible_by.div_zero _,
---   div_cancel := λ n x hn, funext $ λ i, divisible_by.div_cancel _ hn }
 
 end pi
 
@@ -133,7 +112,11 @@ Here we adpot a constructive approach where we ask an explicit `root : A → α 
 * `root a 0 = 1` for all `a ∈ A`
 * `(root a n)ⁿ = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
 -/
-@[to_additive add_monoid.divisible_by]
+@[to_additive add_monoid.divisible_by
+"An `add_monoid A` is `α`-divisible iff `n • x = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
+Here we adpot a constructive approach where we ask an explicit `div : A → α → A` function such that
+* `div a 0 = 0` for all `a ∈ A`
+* `n • div a n = a` for all `n ≠ 0 ∈ α` and `a ∈ A`."]
 class rootable_by :=
 (root : A → α → A)
 (root_zero : ∀ a, root a 0 = 1)
@@ -148,7 +131,9 @@ lemma pow_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
 A `monoid A` is `α`-rootable iff the `pow _ n` function is surjective, i.e. the constructive version
 implies the textbook approach.
 -/
-@[to_additive]
+@[to_additive add_monoid.divisible_by_of_div_surj
+"An `add_monoid A` is `α`-divisible iff `n • _` is a surjective function, i.e. the constructive
+version implies the textbook approach."]
 noncomputable def rootable_by_of_pow_surj
   [Π (n : α), decidable (n = 0)]
   (H : ∀ {n : α}, n ≠ 0 → function.surjective ((flip (^)) n : A → A)) :
@@ -237,7 +222,8 @@ variables (A : Type*) [group A]
 /--
 A group is `ℤ`-rootable if it is `ℕ`-rootable.
 -/
-@[to_additive]
+@[to_additive add_group.divisible_by_int_of_divisible_by_nat
+"An add group is `ℤ`-divisible if it is `ℕ`-divisible."]
 def rootable_by_int_of_rootable_by_nat [rootable_by A ℕ] :
   rootable_by A ℤ :=
 { root := λ a z, match z with
@@ -258,10 +244,10 @@ def rootable_by_int_of_rootable_by_nat [rootable_by A ℕ] :
       norm_num, }
   end}
 
-/--
-A group is `ℤ`-rootable if it is `ℕ`-rootable
+/--A group is `ℕ`-rootable if it is `ℤ`-rootable
 -/
-@[to_additive]
+@[to_additive add_group.divisible_by_nat_of_divisible_by_int
+"An add group is `ℕ`-divisible if it `ℤ`-divisible."]
 def rootable_by_nat_of_rootable_by_int [rootable_by A ℤ] :
   rootable_by A ℕ :=
 { root := λ a n, rootable_by.root a (n : ℤ),
@@ -285,7 +271,8 @@ variables (A : Type*) [comm_group A] (B : subgroup A)
 /--
 Any quotient group of a rootable group is rootable.
 -/
-@[to_additive]
+@[to_additive add_comm_group.divisible_by_quotient
+"Any quotient group of a divisible group is divisible"]
 noncomputable def rootable_by_quotient [rootable_by A ℕ] : rootable_by (A ⧸ B) ℕ :=
 rootable_by_of_pow_surj _ _ $ λ n hn x, quotient.induction_on' x $ λ a,
   ⟨quotient.mk' (rootable_by.root a n),
@@ -300,7 +287,8 @@ variables {A B : Type*} [comm_group A] [comm_group B] [rootable_by A ℕ] (f : A
 /--
 If `f : A → B` is a surjective homomorphism and `A` is rootable, then `B` is also rootable.
 -/
-@[to_additive]
+@[to_additive add_comm_group.divisible_by_of_surj
+"If `f : A → B` is a surjective homomorphism and `A` is divisble, then `B` is also divisible."]
 noncomputable def rootable_by_of_surj (hf : function.surjective f) : rootable_by B ℕ :=
 rootable_by_of_pow_surj _ _ $ λ n hn x,
   ⟨f $ rootable_by.root (hf x).some n, (by rw [←f.map_pow (rootable_by.root (hf x).some n) n,

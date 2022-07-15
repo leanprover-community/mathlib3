@@ -692,7 +692,7 @@ lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
 by simp only [ext_chart_at_source, mem_chart_source]
 
 lemma ext_chart_at_to_inv :
-  (ext_chart_at I x).symm ((ext_chart_at I x) x) = x :=
+  (ext_chart_at I x).symm (ext_chart_at I x x) = x :=
 (ext_chart_at I x).left_inv (mem_ext_chart_source I x)
 
 lemma ext_chart_at_source_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
@@ -719,10 +719,10 @@ begin
 end
 
 lemma ext_chart_at_continuous_at' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
-  continuous_at (ext_chart_at I x) x' :=
+  continuous_at ext_chart_at I x x' :=
 (ext_chart_at_continuous_on I x).continuous_at $ ext_chart_at_source_mem_nhds' I x h
 
-lemma ext_chart_at_continuous_at : continuous_at (ext_chart_at I x) x :=
+lemma ext_chart_at_continuous_at : continuous_at ext_chart_at I x x :=
 ext_chart_at_continuous_at' _ _ (mem_ext_chart_source I x)
 
 lemma ext_chart_at_continuous_on_symm :
@@ -762,8 +762,8 @@ lemma nhds_within_ext_chart_target_eq' {y : M} (hy : y ∈ (ext_chart_at I x).so
   nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within' _ _ hy)
 
 lemma nhds_within_ext_chart_target_eq :
-  𝓝[(ext_chart_at I x).target] ((ext_chart_at I x) x) =
-  𝓝[range I] ((ext_chart_at I x) x) :=
+  𝓝[(ext_chart_at I x).target] (ext_chart_at I x x) =
+  𝓝[range I] (ext_chart_at I x x) :=
 nhds_within_ext_chart_target_eq' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_continuous_at_symm'' {y : E} (h : y ∈ (ext_chart_at I x).target) :
@@ -775,7 +775,7 @@ lemma ext_chart_continuous_at_symm' {x' : M} (h : x' ∈ (ext_chart_at I x).sour
 ext_chart_continuous_at_symm'' I _ $ (ext_chart_at I x).map_source h
 
 lemma ext_chart_continuous_at_symm :
-  continuous_at (ext_chart_at I x).symm ((ext_chart_at I x) x) :=
+  continuous_at (ext_chart_at I x).symm (ext_chart_at I x x) :=
 ext_chart_continuous_at_symm' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_continuous_on_symm :
@@ -846,20 +846,20 @@ in the source is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source)
   (ht : t ∈ 𝓝[s] x') :
   (ext_chart_at I x).symm ⁻¹' t ∈
-    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x') :=
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x') :=
 by rwa [← ext_chart_at_symm_map_nhds_within' I x h, mem_map] at ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
 base point is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ 𝓝[s] x) :
   (ext_chart_at I x).symm ⁻¹' t ∈
-    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x) :=
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x) :=
 ext_chart_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
 is a neighborhood of the preimage. -/
 lemma ext_chart_preimage_mem_nhds (ht : t ∈ 𝓝 x) :
-  (ext_chart_at I x).symm ⁻¹' t ∈ 𝓝 ((ext_chart_at I x) x) :=
+  (ext_chart_at I x).symm ⁻¹' t ∈ 𝓝 (ext_chart_at I x x) :=
 begin
   apply (ext_chart_continuous_at_symm I x).preimage_mem_nhds,
   rwa (ext_chart_at I x).left_inv (mem_ext_chart_source _ _)
@@ -871,6 +871,16 @@ lemma ext_chart_preimage_inter_eq :
   ((ext_chart_at I x).symm ⁻¹' (s ∩ t) ∩ range I)
   = ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
 by mfld_set_tac
+
+lemma ext_chart_image_mem_nhds_within' {x' : M} (hx' : x' ∈ (ext_chart_at I x).source) : range (ext_chart_at I x) ∈
+  𝓝[range I] (ext_chart_at I x x') :=
+sorry
+
+lemma ext_chart_image_mem_nhds_within : range (ext_chart_at I x) ∈
+  𝓝[range I] (ext_chart_at I x x) :=
+sorry
+
+-- ⇑(ext_chart_at I x) '' t ∈ 𝓝[⇑(ext_chart_at I x) '' s] ⇑(ext_chart_at I x) x
 
 end extended_charts
 

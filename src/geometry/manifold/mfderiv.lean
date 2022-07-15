@@ -121,7 +121,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Predicate ensuring that, at a point and within a set, a function can have at most one
 derivative. This is expressed using the preferred chart at the considered point. -/
 def unique_mdiff_within_at (s : set M) (x : M) : Prop :=
-unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x)
+unique_diff_within_at 𝕜 (ext_chart_at I x '' s) (ext_chart_at I x x)
 
 /-- Predicate ensuring that, at all points of a set, a function can have at most one derivative. -/
 def unique_mdiff_on (s : set M) : Prop :=
@@ -143,7 +143,7 @@ this would not mean anything relevant. -/
 def mdifferentiable_within_at (f : M → M') (s : set M) (x : M) : Prop :=
 continuous_within_at f s x ∧
 differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
-  ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x)
+  (ext_chart_at I x '' s) (ext_chart_at I x x)
 
 /-- `mdifferentiable_at I I' f x` indicates that the function `f` between manifolds
 has a derivative at the point `x`.
@@ -191,7 +191,7 @@ def has_mfderiv_within_at (f : M → M') (s : set M) (x : M)
   (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) : Prop :=
 continuous_within_at f s x ∧
 has_fderiv_within_at (written_in_ext_chart_at I I' x f : E → E') f'
-  ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x)
+  (ext_chart_at I x '' s) (ext_chart_at I x x)
 
 /-- `has_mfderiv_at I I' f x f'` indicates that the function `f` between manifolds
 has, at the point `x`, the derivative `f'`. Here, `f'` is a continuous linear
@@ -213,7 +213,7 @@ tangent space at `f x`. -/
 def mfderiv_within (f : M → M') (s : set M) (x : M) :
   tangent_space I x →L[𝕜] tangent_space I' (f x) :=
 if h : mdifferentiable_within_at I I' f s x then
-(fderiv_within 𝕜 (written_in_ext_chart_at I I' x f) ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
+(fderiv_within 𝕜 (written_in_ext_chart_at I I' x f) (ext_chart_at I x '' s)
   (ext_chart_at I x x) : _)
 else 0
 
@@ -258,23 +258,38 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 lemma unique_mdiff_within_at_univ : unique_mdiff_within_at I univ x :=
 begin
   unfold unique_mdiff_within_at,
-  simp only [preimage_univ, univ_inter],
-  exact I.unique_diff _ (mem_range_self _)
+  simp_rw [image_univ],
+  refine (I.unique_diff _ (mem_range_self _)).mono_nhds _,
+  rw [nhds_within_le_iff],
+  exact ext_chart_image_mem_nhds_within I x,
 end
 variable {I}
 
-lemma unique_mdiff_within_at_iff {s : set M} {x : M} :
+lemma unique_mdiff_within_at_iff_inter_range {s : set M} {x : M} :
   unique_mdiff_within_at I s x ↔
   unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ (ext_chart_at I x).target)
   (ext_chart_at I x x) :=
 begin
   apply unique_diff_within_at_congr,
+  sorry
+end
+
+lemma unique_mdiff_within_at_iff_inter_target {s : set M} {x : M} :
+  unique_mdiff_within_at I s x ↔
+  unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
+  (ext_chart_at I x x) :=
+begin
+  rw [unique_mdiff_within_at_iff_inter_range, unique_diff_within_at_congr],
   rw [nhds_within_inter, nhds_within_inter, nhds_within_ext_chart_target_eq]
 end
 
 lemma unique_mdiff_within_at.mono (h : unique_mdiff_within_at I s x) (st : s ⊆ t) :
   unique_mdiff_within_at I t x :=
-unique_diff_within_at.mono h $ inter_subset_inter (preimage_mono st) (subset.refl _)
+unique_diff_within_at.mono h $ image_subset _ st
+
+lemma unique_mdiff_within_at.mono_of_mem (h : unique_mdiff_within_at I s x) (st : t ∈ 𝓝[s] x) :
+  unique_mdiff_within_at I t x :=
+unique_diff_within_at.mono_nhds h $ nhds_within_le_iff.mpr _
 
 lemma unique_mdiff_within_at.inter' (hs : unique_mdiff_within_at I s x) (ht : t ∈ 𝓝[s] x) :
   unique_mdiff_within_at I (s ∩ t) x :=
@@ -336,12 +351,8 @@ lemma mdifferentiable_within_at_iff {f : M → M'} {s : set M} {x : M} :
   mdifferentiable_within_at I I' f s x ↔
   continuous_within_at f s x ∧
   differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
-    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' s) (ext_chart_at I x x) :=
-begin
-  refine and_congr iff.rfl (exists_congr $ λ f', _),
-  rw [inter_comm],
-  simp only [has_fderiv_within_at, nhds_within_inter, nhds_within_ext_chart_target_eq]
-end
+    (ext_chart_at I x '' s) (ext_chart_at I x x) :=
+iff.rfl
 
 include Is I's
 
@@ -355,12 +366,11 @@ by simp only [mfderiv, h, dif_neg, not_false_iff]
 
 theorem has_mfderiv_within_at.mono (h : has_mfderiv_within_at I I' f t x f') (hst : s ⊆ t) :
   has_mfderiv_within_at I I' f s x f' :=
-⟨ continuous_within_at.mono h.1 hst,
-  has_fderiv_within_at.mono h.2 (inter_subset_inter (preimage_mono hst) (subset.refl _)) ⟩
+⟨ continuous_within_at.mono h.1 hst, has_fderiv_within_at.mono h.2 (image_subset _ hst) ⟩
 
 theorem has_mfderiv_at.has_mfderiv_within_at
   (h : has_mfderiv_at I I' f x f') : has_mfderiv_within_at I I' f s x f' :=
-⟨ continuous_at.continuous_within_at h.1, has_fderiv_within_at.mono h.2 (inter_subset_right _ _) ⟩
+⟨ continuous_at.continuous_within_at h.1, has_fderiv_within_at.mono h.2 _ ⟩
 
 lemma has_mfderiv_within_at.mdifferentiable_within_at (h : has_mfderiv_within_at I I' f s x f') :
   mdifferentiable_within_at I I' f s x :=
@@ -426,7 +436,7 @@ end
 
 lemma mdifferentiable_within_at.mfderiv_within (h : mdifferentiable_within_at I I' f s x) :
   (mfderiv_within I I' f s x) =
-  fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
+  fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) (ext_chart_at I x '' s)
   (ext_chart_at I x x) :=
 by simp only [mfderiv_within, h, dif_pos]
 
@@ -607,7 +617,7 @@ begin
   refine ⟨continuous_within_at.congr_of_eventually_eq h.1 h₁ hx, _⟩,
   apply has_fderiv_within_at.congr_of_eventually_eq h.2,
   { have : (ext_chart_at I x).symm ⁻¹' {y | f₁ y = f y} ∈
-      𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)  :=
+      𝓝[ext_chart_at I x '' s] (ext_chart_at I x x)  :=
       ext_chart_preimage_mem_nhds_within I x h₁,
     apply filter.mem_of_superset this (λy, _),
     simp only [hx] with mfld_simps {contextual := tt} },
@@ -715,7 +725,7 @@ omit Is I's
 lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
   {y | written_in_ext_chart_at I I'' x (g ∘ f) y
        = ((written_in_ext_chart_at I' I'' (f x) g) ∘ (written_in_ext_chart_at I I' x f)) y}
-  ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)  :=
+  ∈ 𝓝[ext_chart_at I x '' s] (ext_chart_at I x x)  :=
 begin
   apply @filter.mem_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
@@ -739,7 +749,7 @@ begin
     ((ext_chart_at I x).symm ⁻¹' s ∩ range (I))
     (ext_chart_at I x x),
   { have : (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x)).source)
-    ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)  :=
+    ∈ 𝓝[ext_chart_at I x '' s] (ext_chart_at I x x)  :=
       (ext_chart_preimage_mem_nhds_within I x
         (hf.1.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
     unfold has_mfderiv_within_at at *,

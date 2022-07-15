@@ -1283,7 +1283,7 @@ theorem gcd_to_nat_aux : ∀ {n} {a b : num},
   refine add_le_add_left (nat.mul_le_mul_left _
     (le_trans (le_of_lt (nat.mod_lt _ (pos_num.cast_pos _))) _)) _,
   suffices : 1 ≤ _, simpa using nat.mul_le_mul_left (pos a) this,
-  rw [nat.le_div_iff_mul_le _ _ a.cast_pos, one_mul],
+  rw [nat.le_div_iff_mul_le a.cast_pos, one_mul],
   exact le_to_nat.2 ab
 end
 

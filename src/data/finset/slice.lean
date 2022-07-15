@@ -47,7 +47,7 @@ lemma sized_union : (s ∪ t).sized n ↔ s.sized n ∧ t.sized n :=
 ⟨λ hs, ⟨hs.mono $ subset_union_left _ _, hs.mono $ subset_union_right _ _⟩,
   λ hs a ha, ha.elim (λ h, hs.1 h) $ λ h, hs.2 h⟩
 
-alias sized_union ↔ _ set.sized.union
+alias sized_union ↔ _ sized.union
 
 --TODO: A `forall_Union` lemma would be handy here.
 @[simp] lemma sized_Union {f : ι → set α} : (⋃ i, f i).sized n ↔ ∀ i, (f i).sized n :=
@@ -114,7 +114,7 @@ variables [fintype α] {𝒜 : finset (finset α)} {s : finset α} {n : ℕ}
 lemma subset_powerset_len_univ_iff : 𝒜 ⊆ powerset_len n univ ↔ (𝒜 : set (finset α)).sized n :=
 forall_congr $ λ s, by rw [mem_powerset_len_univ_iff, finset.grade, mem_coe]
 
-alias subset_powerset_len_univ_iff  ↔ _ set.sized.subset_powerset_len_univ
+alias subset_powerset_len_univ_iff  ↔ _ _root_.set.sized.subset_powerset_len_univ
 
 lemma _root_.set.sized.card_le (h𝒜 : (𝒜 : set (finset α)).sized n) :
   card 𝒜 ≤ (fintype.card α).choose n :=

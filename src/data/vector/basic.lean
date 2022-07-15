@@ -572,7 +572,7 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
 
 meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
   has_reflect (vector α n) :=
-λ v, @vector.induction_on n α (λ n, reflected _) v
+λ v, @vector.induction_on α (λ n, reflected _) n v
   ((by reflect_name : reflected _ @vector.nil.{u}).subst `(α))
   (λ n x xs ih, (by reflect_name : reflected _ @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
 

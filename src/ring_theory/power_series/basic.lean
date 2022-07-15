@@ -1421,7 +1421,7 @@ end ring
 section comm_ring
 variables {A : Type*} [comm_ring A]
 
-lemma rescale_X (a : A) : rescale a X = C A a * X :=
+@[simp] lemma rescale_X (a : A) : rescale a X = C A a * X :=
 begin
   ext,
   simp only [coeff_rescale, coeff_C_mul, coeff_X],

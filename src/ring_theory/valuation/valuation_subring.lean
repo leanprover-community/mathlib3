@@ -449,8 +449,7 @@ lemma nonunits_injective :
 λ A B h, begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
     ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
-  rw set_like.ext_iff at h,
-  exact set_like.ext_iff.1 h
+  exact set_like.ext_iff.1 h,
 end
 
 lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=

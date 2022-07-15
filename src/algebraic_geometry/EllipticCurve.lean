@@ -86,6 +86,11 @@ def b4 : R := 2*E.a4 + E.a1*E.a3
 def b6 : R := E.a3^2 + 4*E.a6
 /-- The `b_8` coefficient of an elliptic curve. -/
 def b8 : R := E.b2*E.a6 - E.a1*E.a3*E.a4 + E.a2*E.a3^2 - E.a4^2
+/-- The `c_4` coefficient of an elliptic curve. -/
+def c4 : R := E.b2^2 - 24*E.b4
+
+theorem c4_def : E.c4 = E.a1^4 + 8*E.a1^2*E.a2 + 16*E.a2^2 - 24*E.a1*E.a3 - 48*E.a4 :=
+by { unfold c4 b2 b4, ring }
 
 /-- The discriminant of an elliptic curve. Sometimes only defined up to sign in the literature;
   we choose the sign used by the LMFDB. See
@@ -102,6 +107,6 @@ begin
 end
 
 /-- The j-invariant of an elliptic curve. -/
-def j := (E.a1^4 + 8*E.a1^2*E.a2 + 16*E.a2^2 - 24*E.a1*E.a3 - 48*E.a4)^3 /ₚ E.disc_unit
+def j := E.c4^3 /ₚ E.disc_unit
 
 end EllipticCurve

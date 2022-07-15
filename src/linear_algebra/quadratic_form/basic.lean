@@ -142,6 +142,9 @@ variables (Q)
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_coe : Q.to_fun = ⇑Q := rfl
 
+-- this must come after the coe_to_fun definition
+initialize_simps_projections quadratic_form (to_fun → apply)
+
 variables {Q}
 
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H

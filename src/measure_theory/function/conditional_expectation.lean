@@ -1322,6 +1322,15 @@ begin
   simp only [coe_fn_coe_base, submodule.coe_zero, continuous_linear_map.map_zero],
 end
 
+lemma set_integral_condexp_L2_indicator (hs : measurable_set[m] s) (ht : measurable_set t)
+  (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) :
+  ∫ x in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ))) x ∂μ = (μ (t ∩ s)).to_real :=
+calc ∫ x in s, (condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ))) x ∂μ
+    = ∫ x in s, indicator_const_Lp 2 ht hμt (1 : ℝ) x ∂μ :
+      @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
+... = (μ (t ∩ s)).to_real • 1 : set_integral_indicator_const_Lp (hm s hs) ht hμt (1 : ℝ)
+... = (μ (t ∩ s)).to_real : by rw [smul_eq_mul, mul_one]
+
 lemma set_integral_condexp_ind_smul (hs : measurable_set[m] s) (ht : measurable_set t)
   (hμs : μ s ≠ ∞) (hμt : μ t ≠ ∞) (x : G') :
   ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ = (μ (t ∩ s)).to_real • x :=
@@ -1330,11 +1339,43 @@ calc ∫ a in s, (condexp_ind_smul hm ht hμt x) a ∂μ
   set_integral_congr_ae (hm s hs) ((condexp_ind_smul_ae_eq_smul hm ht hμt x).mono (λ x hx hxs, hx))
 ... = (∫ a in s, condexp_L2 ℝ hm (indicator_const_Lp 2 ht hμt (1 : ℝ)) a ∂μ) • x :
   integral_smul_const _ x
-... = (∫ a in s, indicator_const_Lp 2 ht hμt (1 : ℝ) a ∂μ) • x :
-  by rw @integral_condexp_L2_eq α _ ℝ _ _ _ _ _ _ _ _ hm
-    (indicator_const_Lp 2 ht hμt (1 : ℝ)) hs hμs
 ... = (μ (t ∩ s)).to_real • x :
-  by rw [set_integral_indicator_const_Lp (hm s hs), smul_assoc, one_smul]
+  by rw set_integral_condexp_L2_indicator hs ht hμs hμt
+
+lemma condexp_L2_indicator_nonneg (hm : m ≤ m0) (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  [sigma_finite (μ.trim hm)] :
+  0 ≤ᵐ[μ] condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) :=
+begin
+  have h : ae_strongly_measurable' m (condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ))) μ,
+    from ae_strongly_measurable'_condexp_L2 _ _,
+  refine eventually_le.trans_eq _ h.ae_eq_mk.symm,
+  refine @ae_le_of_ae_le_trim _ _ _ _ _ _ hm _ _ _,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_sigma_finite _ _,
+  { intros t ht hμt,
+    refine @integrable.integrable_on _ _ m _ _ _ _ _,
+    refine integrable.trim hm _ _,
+    { rw integrable_congr h.ae_eq_mk.symm,
+      exact integrable_condexp_L2_indicator hm hs hμs _, },
+    { exact h.strongly_measurable_mk, }, },
+  { intros t ht hμt,
+    rw ← set_integral_trim hm h.strongly_measurable_mk ht,
+    have h_ae : ∀ᵐ x ∂μ, x ∈ t → h.mk _ x = condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) x,
+    { filter_upwards [h.ae_eq_mk] with x hx,
+      exact λ _, hx.symm, },
+    rw [set_integral_congr_ae (hm t ht) h_ae,
+      set_integral_condexp_L2_indicator ht hs ((le_trim hm).trans_lt hμt).ne hμs],
+    exact ennreal.to_real_nonneg, },
+end
+
+lemma condexp_ind_smul_nonneg {E} [normed_lattice_add_comm_group E] [normed_space ℝ E]
+  [ordered_smul ℝ E] [sigma_finite (μ.trim hm)]
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) (hx : 0 ≤ x) :
+  0 ≤ᵐ[μ] condexp_ind_smul hm hs hμs x :=
+begin
+  refine eventually_le.trans_eq _ (condexp_ind_smul_ae_eq_smul hm hs hμs x).symm,
+  filter_upwards [condexp_L2_indicator_nonneg hm hs hμs] with a ha,
+  exact smul_nonneg ha hx,
+end
 
 end condexp_ind_smul
 
@@ -1628,6 +1669,15 @@ begin
   by_cases hx_mem : x ∈ s; simp [hx_mem],
 end
 
+lemma condexp_ind_nonneg {E} [normed_lattice_add_comm_group E] [normed_space ℝ E] [ordered_smul ℝ E]
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) (hx : 0 ≤ x) :
+  0 ≤ condexp_ind hm μ s x :=
+begin
+  rw ← coe_fn_le,
+  refine eventually_le.trans_eq _ (condexp_ind_ae_eq_condexp_ind_smul hm hs hμs x).symm,
+  exact (coe_fn_zero E 1 μ).trans_le (condexp_ind_smul_nonneg hs hμs x hx),
+end
+
 end condexp_ind
 
 section condexp_L1
@@ -1834,6 +1884,17 @@ begin
   refine eventually_eq.trans _ (integrable.coe_fn_to_L1 hfi),
   rw condexp_L1_clm_of_ae_strongly_measurable',
   exact ae_strongly_measurable'.congr hfm (integrable.coe_fn_to_L1 hfi).symm,
+end
+
+lemma condexp_L1_mono {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f g : α → E}
+  (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  condexp_L1 hm μ f ≤ᵐ[μ] condexp_L1 hm μ g :=
+begin
+  rw coe_fn_le,
+  have h_nonneg : ∀ s, measurable_set s → μ s < ∞ → ∀ x : E, 0 ≤ x → 0 ≤ condexp_ind hm μ s x,
+    from λ s hs hμs x hx, condexp_ind_nonneg hs hμs.ne x hx,
+  exact set_to_fun_mono (dominated_fin_meas_additive_condexp_ind E hm μ) h_nonneg hf hg hfg,
 end
 
 end condexp_L1
@@ -2069,6 +2130,19 @@ begin
   by_cases hf : integrable f μ,
   { rw [set_integral_condexp (hm₁₂.trans hm₂) hf hs, set_integral_condexp hm₂ hf (hm₁₂ s hs)], },
   { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },
+end
+
+lemma condexp_mono {E} [normed_lattice_add_comm_group E] [complete_space E] [normed_space ℝ E]
+  [ordered_smul ℝ E] {f g : α → E} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  μ[f | m] ≤ᵐ[μ] μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0,
+  swap, { simp_rw condexp_of_not_le hm, },
+  by_cases hμm : sigma_finite (μ.trim hm),
+  swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
+  haveI : sigma_finite (μ.trim hm) := hμm,
+  exact (condexp_ae_eq_condexp_L1 hm _).trans_le
+    ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
 end
 
 section real

@@ -167,7 +167,7 @@ end
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K (V ⧸ S) :=
-finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
+module.finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
 
@@ -1298,7 +1298,7 @@ variable {K}
 lemma finrank_span_le_card (s : set V) [fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
-  haveI := span_of_finite K (set.finite_of_fintype s),
+  haveI := span_of_finite K s.to_finite,
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,
@@ -1323,7 +1323,7 @@ lemma finrank_span_set_eq_card (s : set V) [fintype s]
   (hs : linear_independent K (coe : s → V)) :
   finrank K (span K s) = s.to_finset.card :=
 begin
-  haveI := span_of_finite K (set.finite_of_fintype s),
+  haveI := span_of_finite K s.to_finite,
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,

@@ -376,26 +376,13 @@ uniform integrability in Lean directly requires L¹ boundedness and so the above
 (b) follows since given $n$, we have for all $m \ge n$,
 $$
   \|f_n - \mathbb{E}[g \mid \mathcal{F}_n]\|_1 =
-    \|\mathbb{E}[f_m \mid \mathcal{F}_n] - \mathbb{E}[g \mid \mathcal{F}_n]\|_1 =
-    \|\mathbb{E}[f_m - g \mid \mathcal{F}_n]\|_1 \le \|f_m - g\|_1
+    \|\mathbb{E}[f_m - g \mid \mathcal{F}_n]\|_1 \le \|\|f_m - g\|_1.
 $$
-where the inequality is due to the conditional Jensen's inequality. Thus, taking $m \to \infty$
-provides the almost everywhere equality.
-
-At the time of writting, we don't have the conditional Jensen's inequality yet. To avoid this,
-we observe that as a function, the conditional expectation of a continuous linear functional and
-thus, have bounded norm. Hence, if $f_n \to g$ in L¹, we have
-$$
-  \|\mathbb{E}[f_n - g \mid \mathcal{F}_n]\|_1 \le
-    \|\mathbb{E}[\cdot \mid \mathcal{F}_n]\| \|f_n - g\|_1 \to 0
-$$
-as $n \to \infty$.
-
-**TODO**: make part (c) more accurate.
+Thus, taking $m \to \infty$ provides the almost everywhere equality.
 
 Finally, to prove (c), we define $f_n := \mathbb{E}[h \mid \mathcal{F}_n]$. It is clear that
-$(f_n)_n$ is a martingale by the tower property for conditional expectations and so it suffices to
-show $(f_n)_n$ is uniformly integrable in the probability sense. Indeed, as a single function is
+$(f_n)_n$ is a martingale by the tower property for conditional expectations. Furthermore,
+$(f_n)_n$ is uniformly integrable in the probability sense. Indeed, as a single function is
 uniformly integrable in the measure theory sense, for all $\epsilon > 0$, there exists some
 $\delta > 0$ such that for all measurable set $A$ with $\mu(A) < δ$, we have
 $\mathbb{E}|h|\mathbf{1}_A < \epsilon$. So, since for sufficently large $\lambda$, by the Markov
@@ -406,10 +393,20 @@ $$
 we have for sufficently large $\lambda$, for all $n$,
 $$
   \mathbb{E}|f_n|\mathbf{1}_{|f_n| \ge \lambda} \le
-    \mathbb|g|\mathbf{1}_{|f_n| \ge \lambda} < \epsilon
+    \mathbb|g|\mathbf{1}_{|f_n| \ge \lambda} < \epsilon,
 $$
-where the first inequality follows as $|f_n| \le \mathbb{E}[|g| \mid \mathcal{F}_n]$ by the
-conditional Jensen's inequality.
+implying $(f_n)_n$ is uniformly integrable. Now, to prove $f_n \to h$ almost everywhere and in
+L¹, it suffices to show that $h = g$ almost everywhere where $g$ is the almost everywhere and L¹
+limit of $(f_n)_n$ from part (b) of the theorem. By noting that, for all $s \in \mathcal{F}_n$,
+we have
+$$
+  \mathbb{E}g\mathbf{1}_s = \mathbb{E}[\mathbb{E}[g \mid \mathcal{F}_n]\mathbf{1}_s] =
+    \mathbb{E}[\mathbb{E}[h \mid \mathcal{F}_n]\mathbf{1}_s] = \mathbb{E}h\mathbf{1}_s
+$$
+where $\mathbb{E}[g \mid \mathcal{F}_n = \mathbb{E}[h \mid \mathcal{F}_n]$ almost everywhere
+by part (b); the equality also holds for all $s \in \mathcal{F}_\infty$ by Dynkin's theorem.
+Thus, as both $h$ and $g$ are $\mathcal{F}_\infty$-measurable, $h = g$ almost everywhere as
+required.
 
 -/
 
@@ -429,60 +426,6 @@ begin
   exact ⟨g, hg₁, hg₂, tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
     hmeas hg₁ hunif.2.1 (tendsto_in_measure_of_tendsto_ae hmeas htends), htends⟩,
 end
-
-lemma integrable.snorm_condexp_le_mul_norm
-  {m : measurable_space α} {f : α → ℝ} (hf : integrable f μ) (hm : m ≤ m0) :
-  snorm (μ[f | m]) 1 μ ≤
-    ennreal.of_real (∥@condexp_L1_clm _ ℝ _ _ _ _ _ hm μ _∥ * ∥hf.to_L1 _∥) :=
-begin
-  refine le_trans _ (ennreal.of_real_le_of_real (continuous_linear_map.le_op_norm _ _)),
-  rw [ennreal.le_of_real_iff_to_real_le
-    (mem_ℒp_one_iff_integrable.2 integrable_condexp).snorm_lt_top.ne (norm_nonneg _),
-    snorm_congr_ae (condexp_ae_eq_condexp_L1_clm hm hf), ← Lp.norm_def]
-end
-
-/-- If a martingale `f` adapted to `ℱ` converges in L¹ to `g`, then for all `n`, `f n` is almost
-everywhere equal to `𝔼[g | ℱ n]`. -/
-lemma martingale.eq_condexp_lim_of_tendsto_snorm
-  (hf : martingale f ℱ μ) {g : α → ℝ} (hgℒ1 : mem_ℒp g 1 μ)
-  (hgtends : tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0)) (n : ℕ) :
-  f n =ᵐ[μ] μ[g | ℱ n] :=
-begin
-  rw [← sub_ae_eq_zero, ← snorm_eq_zero_iff ((((hf.strongly_measurable n).mono (ℱ.le _)).sub
-    (strongly_measurable_condexp.mono (ℱ.le _))).ae_strongly_measurable) one_ne_zero],
-  have ht : tendsto (λ m, snorm (μ[f m - g | ℱ n]) 1 μ) at_top (𝓝 0),
-  { have hint : ∀ m, integrable (f m - g) μ := λ m, (hf.integrable m).sub (hgℒ1.integrable le_rfl),
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ m, zero_le _)
-      (λ m, (hint m).snorm_condexp_le_mul_norm (ℱ.le _)),
-    rw [← ennreal.of_real_zero,
-      ((mul_zero _).symm : 0 = ∥@condexp_L1_clm _ ℝ _ _ _ _ _ (ℱ.le n) μ _∥ * (0 : ℝ))],
-    refine ennreal.tendsto_of_real (tendsto_const_nhds.mul _),
-    rw [← ennreal.tendsto_to_real_iff
-      (λ m, (mem_ℒp.snorm_lt_top $ mem_ℒp_one_iff_integrable.2 $ hint m).ne)
-      ennreal.zero_ne_top, ennreal.zero_to_real] at hgtends,
-    convert hgtends,
-    ext m,
-    rw ← Lp.norm_to_Lp,
-    refl },
-  have hev : ∀ m ≥ n, snorm (μ[f m - g | ℱ n]) 1 μ = snorm (f n - μ[g | ℱ n]) 1 μ,
-  { refine λ m hm, snorm_congr_ae
-      ((condexp_sub (hf.integrable m) (hgℒ1.integrable le_rfl)).trans _),
-    filter_upwards [hf.2 n m hm] with x hx,
-    simp only [hx, pi.sub_apply] },
-  exact tendsto_nhds_unique (tendsto_at_top_of_eventually_const hev) ht,
-end
-
-/-- Part b of the **L¹ martingale convergence theorem**: a uniformly integrable martingale `f`
-adapted to the filtration `ℱ` converges a.e. and in L¹ to some integrable function `g` which is
-measurable with respect to the σ-algebra `⨆ n, ℱ n`. Furthermore, for all `n`, `f n` is almost
-everywhere equal to `𝔼[g | ℱ n]`. -/
-lemma martingale.exists_mem_ℒ1_tendsto_snorm
-  (hf : martingale f ℱ μ) (hbdd : uniform_integrable f 1 μ) :
-  ∃ g : α → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧ (∀ n, f n =ᵐ[μ] μ[g | ℱ n]) ∧
-  tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0) ∧
-  ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
-let ⟨g, hg₁, hg₂, hg₃, hg₄⟩ := hf.submartingale.exists_mem_ℒ1_tendsto_snorm hbdd in
-  ⟨g, hg₁, hg₂, λ n, hf.eq_condexp_lim_of_tendsto_snorm hg₁ hg₃ n, hg₃, hg₄⟩
 
 lemma integrable.snorm_one_condexp_le_snorm {m : measurable_space α}
   {f : α → ℝ} (hf : integrable f μ) (hm : m ≤ m0) :
@@ -514,6 +457,39 @@ begin
   filter_upwards [this] with x hx,
   exact abs_eq_self.2 hx,
 end
+
+/-- If a martingale `f` adapted to `ℱ` converges in L¹ to `g`, then for all `n`, `f n` is almost
+everywhere equal to `𝔼[g | ℱ n]`. -/
+lemma martingale.eq_condexp_lim_of_tendsto_snorm
+  (hf : martingale f ℱ μ) {g : α → ℝ} (hgℒ1 : mem_ℒp g 1 μ)
+  (hgtends : tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0)) (n : ℕ) :
+  f n =ᵐ[μ] μ[g | ℱ n] :=
+begin
+  rw [← sub_ae_eq_zero, ← snorm_eq_zero_iff ((((hf.strongly_measurable n).mono (ℱ.le _)).sub
+    (strongly_measurable_condexp.mono (ℱ.le _))).ae_strongly_measurable) one_ne_zero],
+  have ht : tendsto (λ m, snorm (μ[f m - g | ℱ n]) 1 μ) at_top (𝓝 0),
+  { have hint : ∀ m, integrable (f m - g) μ := λ m, (hf.integrable m).sub (hgℒ1.integrable le_rfl),
+    exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hgtends (λ m, zero_le _)
+      (λ m, (hint m).snorm_one_condexp_le_snorm (ℱ.le _)) },
+  have hev : ∀ m ≥ n, snorm (μ[f m - g | ℱ n]) 1 μ = snorm (f n - μ[g | ℱ n]) 1 μ,
+  { refine λ m hm, snorm_congr_ae
+      ((condexp_sub (hf.integrable m) (hgℒ1.integrable le_rfl)).trans _),
+    filter_upwards [hf.2 n m hm] with x hx,
+    simp only [hx, pi.sub_apply] },
+  exact tendsto_nhds_unique (tendsto_at_top_of_eventually_const hev) ht,
+end
+
+/-- Part b of the **L¹ martingale convergence theorem**: a uniformly integrable martingale `f`
+adapted to the filtration `ℱ` converges a.e. and in L¹ to some integrable function `g` which is
+measurable with respect to the σ-algebra `⨆ n, ℱ n`. Furthermore, for all `n`, `f n` is almost
+everywhere equal to `𝔼[g | ℱ n]`. -/
+lemma martingale.exists_mem_ℒ1_tendsto_snorm
+  (hf : martingale f ℱ μ) (hbdd : uniform_integrable f 1 μ) :
+  ∃ g : α → ℝ, mem_ℒp g 1 μ ∧ strongly_measurable[⨆ n, ℱ n] g ∧ (∀ n, f n =ᵐ[μ] μ[g | ℱ n]) ∧
+  tendsto (λ n, snorm (f n - g) 1 μ) at_top (𝓝 0) ∧
+  ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
+let ⟨g, hg₁, hg₂, hg₃, hg₄⟩ := hf.submartingale.exists_mem_ℒ1_tendsto_snorm hbdd in
+  ⟨g, hg₁, hg₂, λ n, hf.eq_condexp_lim_of_tendsto_snorm hg₁ hg₃ n, hg₃, hg₄⟩
 
 /-- Given a integrable function `g`, the conditional expectations of `g` is uniformly
 integrable. -/

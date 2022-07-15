@@ -111,9 +111,24 @@ def ring_hom.holds_for_localization_away : Prop :=
 ∀ ⦃R : Type u⦄ (S : Type u) [comm_ring R] [comm_ring S] [by exactI algebra R S] (r : R)
   [by exactI is_localization.away r S], by exactI P (algebra_map R S)
 
-/-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_finite_span_target`
 if `P` holds for `R →+* S` whenever there exists a finite set `{ r }` that spans `S` such that
-`P` holds for `R →+* Sᵣ`. -/
+`P` holds for `R →+* Sᵣ`.
+
+Note that this is equivalent to `ring_hom.of_localization_span_target` via
+`ring_hom.of_localization_span_target_iff_finite`, but this is easier to prove. -/
+def ring_hom.of_localization_finite_span_target : Prop :=
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
+  (s : finset S) (hs : by exactI ideal.span (s : set S) = ⊤)
+  (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
+  by exactI P f
+
+/-- A property `P` of ring homs satisfies `ring_hom.of_localization_span_target`
+if `P` holds for `R →+* S` whenever there exists a set `{ r }` that spans `S` such that
+`P` holds for `R →+* Sᵣ`.
+
+Note that this is equivalent to `ring_hom.of_localization_finite_span_target` via
+`ring_hom.of_localization_span_target_iff_finite`, but this has less restrictions when applying. -/
 def ring_hom.of_localization_span_target : Prop :=
 ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S)
   (s : set S) (hs : by exactI ideal.span s = ⊤)
@@ -139,6 +154,19 @@ lemma ring_hom.of_localization_span_iff_finite :
   ring_hom.of_localization_span @P ↔ ring_hom.of_localization_finite_span @P :=
 begin
   delta ring_hom.of_localization_span ring_hom.of_localization_finite_span,
+  apply forall₅_congr, -- TODO: Using `refine` here breaks `resetI`.
+  introsI,
+  split,
+  { intros h s, exact h s },
+  { intros h s hs hs',
+    obtain ⟨s', h₁, h₂⟩ := (ideal.span_eq_top_iff_finite s).mp hs,
+    exact h s' h₂ (λ x, hs' ⟨_, h₁ x.prop⟩) }
+end
+
+lemma ring_hom.of_localization_span_target_iff_finite :
+  ring_hom.of_localization_span_target @P ↔ ring_hom.of_localization_finite_span_target @P :=
+begin
+  delta ring_hom.of_localization_span_target ring_hom.of_localization_finite_span_target,
   apply forall₅_congr, -- TODO: Using `refine` here breaks `resetI`.
   introsI,
   split,

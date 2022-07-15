@@ -18,9 +18,9 @@ lemma neg_one_transpose : (-1 : matrix l l ℝ)ᵀ = -1 := by rw [transpose_neg,
 lemma pm_one_unit {S : Type*} [ring S] {x : S} (h : x = 1 ∨ x = -1) : is_unit x :=
 begin
   cases h,
-  {simp only [h, is_unit_one],},
+  { simp only [h, is_unit_one] },
   { use -1,
-    simp only [h, units.coe_neg_one]}
+    simp only [h, units.coe_neg_one] }
 end
 
 lemma minus_powers (n : ℕ) : (-1 : ℝ)^(n + n) = 1 :=
@@ -65,17 +65,8 @@ begin
     simp only [fintype.card_sum, det_one, mul_one],
     rw minus_powers,
   },
-  have H2 : (det (J l ℝ))^2 = 1 := by {
-    unfold pow, -- MP: What to do with these?
-    unfold monoid.npow,
-    unfold ring.npow,
-    unfold comm_ring.npow,
-    unfold npow_rec,
-    rw mul_one,
-    exact H,
-  } ,
-  rw ←sq_eq_one_iff,
-  exact H2,
+  rw [←sq_eq_one_iff, pow_two],
+  exact H,
 end
 
 lemma J_det_unit : is_unit (det (J l ℝ)) := pm_one_unit (J_det l)

@@ -9,6 +9,9 @@ import data.rel
 /-!
 # Partial functions
 
+def pfun.prod (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
+  λ x, ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩
+
 This file defines partial functions. Partial functions are like functions, except they can also be
 "undefined" on some inputs. We define them as functions `α → part β`.
 
@@ -447,5 +450,15 @@ ext $ λ _ _, by simp only [comp_apply, part.bind_comp]
 -- This can't be `simp`
 lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →. γ) = (g : β →. γ).comp f :=
 ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
+
+/-- Product of partial functions. -/
+protected def prod (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
+λ x, ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩
+
+@[simp] lemma dom_prod (f : α →. γ) (g : β →. δ) :
+  (f.prod g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
+
+@[simp] lemma get_prod (f : α →. γ) (g : β →. δ) {x : α × β} (h) :
+  (f.prod g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
 
 end pfun

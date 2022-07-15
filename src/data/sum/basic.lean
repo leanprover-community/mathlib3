@@ -286,7 +286,7 @@ instance [decidable_rel r] [decidable_rel s] : decidable_rel (lex r s)
 protected lemma lift_rel.lex {a b : α ⊕ β} (h : lift_rel r s a b) : lex r s a b :=
 by { cases h, exacts [lex.inl ‹_›, lex.inr ‹_›] }
 
-lemma lift_rel_le_lex : subrelation (lift_rel r s) (lex r s) := λ a b, lift_rel.lex
+lemma lift_rel_subrelation_lex : subrelation (lift_rel r s) (lex r s) := λ a b, lift_rel.lex
 
 lemma lex.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b) (h : lex r₁ s₁ x y) :
   lex r₂ s₂ x y :=

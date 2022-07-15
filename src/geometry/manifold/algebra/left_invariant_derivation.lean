@@ -135,7 +135,7 @@ instance has_op_scalar : has_smul 𝕜ᵐᵒᵖ (left_invariant_derivation I G) 
 { smul := λ r X, ⟨r • X, λ g, begin
     induction r using mul_opposite.rec,
     rw op_smul_eq_smul,
-    exacthas_op_smul_invariant'' _,
+    exact (r • X).left_invariant'' _,
   end⟩ }
 
 variables (r X)

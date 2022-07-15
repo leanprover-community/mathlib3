@@ -701,7 +701,7 @@ Either of these will later be shown to be equivalent to the weak convergence of 
 of measures.
 -/
 
-lemma ennreal.antitone_const_sub {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) :
+lemma ennreal.antitone_const_sub {c : ℝ≥0∞} :
   antitone (λ (x : ℝ≥0∞), c - x) :=
 λ x y hxy, tsub_le_tsub rfl.le hxy
 
@@ -731,10 +731,9 @@ begin
     by refl,
   rw obs,
   rw antitone.liminf_comp_eq_apply_limsup_of_continuous _
-    (ennreal.antitone_const_sub ennreal.one_ne_top)
-    (ennreal.continuous_const_sub ennreal.one_ne_top),
+    ennreal.antitone_const_sub (ennreal.continuous_const_sub ennreal.one_ne_top),
   swap, { exact {ne' := L_bot}, },
-  exact ennreal.antitone_const_sub ennreal.one_ne_top h,
+  exact ennreal.antitone_const_sub h,
 end
 
 lemma is_probability_measure.le_measure_liminf_of_limsup_measure_compl_le
@@ -766,10 +765,9 @@ begin
     by refl,
   rw obs,
   rw antitone.limsup_comp_eq_apply_liminf_of_continuous _
-    (ennreal.antitone_const_sub ennreal.one_ne_top)
-    (ennreal.continuous_const_sub ennreal.one_ne_top),
+    ennreal.antitone_const_sub (ennreal.continuous_const_sub ennreal.one_ne_top),
   swap, { exact {ne' := L_bot}, },
-  exact ennreal.antitone_const_sub ennreal.one_ne_top h,
+  exact ennreal.antitone_const_sub h,
 end
 
 lemma is_probability_measure.limsup_measure_le_of_le_liminf_measure_compl
@@ -827,9 +825,44 @@ end limsup_closed_le_and_le_liminf_open -- section
 section le_limsup_open_implies_tendsto_borel
 
 variables {α : Type*} [measurable_space α]
+
+/- lemma old_interior_ae_eq_of_null_frontier {μ : measure α} {s₁ s₀ : set α}
+  (h : μ (s₁ \ s₀) = 0) : interior s =ᵐ[μ] s :=
+interior_subset.eventually_le.antisymm $
+  subset_closure.eventually_le.trans (ae_le_set.2 h)
+ -/
+
+lemma tendsto_measure_of_le_liminf_measure_of_limsup_measure_le
+  {ι : Type*} {L : filter ι} {μ : measure α} {μs : ι → measure α}
+  {E₀ E E₁ : set α} (E₀_subset : E₀ ⊆ E) (subset_E₁ : E ⊆ E₁) (nulldiff : μ (E₁ \ E₀) = 0)
+  (h_E₀ : (μ : measure α) E₀ ≤ L.liminf (λ i, (μs i : measure α) E₀))
+  (h_E₁ : L.limsup (λ i, (μs i : measure α) E₁) ≤ (μ : measure α) E₁) :
+  L.tendsto (λ i, (μs i : measure α) E) (𝓝 (μ E)) :=
+begin
+  apply tendsto_of_le_liminf_of_limsup_le,
+  { have E₀_ae_eq_E : E₀ =ᵐ[μ] E,
+      from eventually_le.antisymm E₀_subset.eventually_le
+            (subset_E₁.eventually_le.trans (ae_le_set.mpr nulldiff)),
+    calc  μ(E)
+        = μ(E₀)                      : measure_congr E₀_ae_eq_E.symm
+    ... ≤ L.liminf (λ i, μs i E₀)    : h_E₀
+    ... ≤ L.liminf (λ i, μs i E)     : _,
+    { refine liminf_le_liminf (eventually_of_forall (λ _, measure_mono E₀_subset)) _,
+      apply_auto_param, }, },
+  { have E_ae_eq_E₁ : E =ᵐ[μ] E₁,
+      from eventually_le.antisymm subset_E₁.eventually_le
+            ((ae_le_set.mpr nulldiff).trans E₀_subset.eventually_le),
+    calc  L.limsup (λ i, μs i E)
+        ≤ L.limsup (λ i, μs i E₁)    : _
+    ... ≤ μ E₁                       : h_E₁
+    ... = μ E                        : measure_congr E_ae_eq_E₁.symm,
+    { refine limsup_le_limsup (eventually_of_forall (λ _, measure_mono subset_E₁)) _,
+      apply_auto_param, }, },
+end
+
 variables [topological_space α] [opens_measurable_space α]
 
-/-- One implications of the portmanteau theorem:
+/-- One implication of the portmanteau theorem:
 For a sequence of Borel probability measures, if the liminf of the measures of any open set is at
 least the measure of the open set under a candidate limit measure, then for any set whose
 boundary carries no probability mass under the candidate limit measure, the its measures under the
@@ -844,21 +877,9 @@ lemma is_probability_measure.tendsto_measure_of_null_frontier
 begin
   have h_closeds : ∀ F, is_closed F → L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F,
     from is_probability_measure.limsup_measure_closed_le_iff_liminf_measure_open_ge.mpr h_opens,
-  set Ecl := closure E with hEcl,
-  set Eint := interior E with hEint,
-  have ineqs_Eint_le_E : ∀ i, μs i Eint ≤ μs i E := λ _, measure_mono interior_subset,
-  apply tendsto_of_le_liminf_of_limsup_le,
-  { calc μ(E) = μ(Eint)              : by rw @measure_interior_of_null_frontier α _ _ μ E E_nullbdry
-    ... ≤ L.liminf (λ i, μs i Eint)  : h_opens Eint (show is_open Eint, from is_open_interior)
-    ... ≤ L.liminf (λ i, μs i E)     : _,
-    { refine liminf_le_liminf (eventually_of_forall (λ _, measure_mono interior_subset)) _,
-      apply_auto_param, }, },
-  { calc L.limsup (λ i, μs i E)
-        ≤ L.limsup (λ i, μs i Ecl)   : _
-    ... ≤ μ Ecl                      : h_closeds Ecl (show is_closed Ecl, from is_closed_closure)
-    ... = μ(E)                       : by rw @measure_closure_of_null_frontier α _ _ μ E E_nullbdry,
-    { refine limsup_le_limsup (eventually_of_forall (λ _, measure_mono subset_closure)) _,
-      apply_auto_param, }, },
+  exact tendsto_measure_of_le_liminf_measure_of_limsup_measure_le
+        interior_subset subset_closure E_nullbdry
+        (h_opens _ is_open_interior) (h_closeds _ is_closed_closure),
 end
 
 end le_limsup_open_implies_tendsto_borel --section

@@ -595,7 +595,7 @@ begin
     by simp_rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul],
   rw [← e, this] at hx₁,
   replace hx₁ := congr_arg (algebra.adjoin R) hx₁,
-  obtain ⟨n, hn⟩ := algebra.pow_smul_mem_adjoin_smul _ y' (s : set S') hx,
+  obtain ⟨n, hn⟩ := algebra.pow_smul_mem_adjoin_smul y' (s : set S') hx,
   specialize hn n (le_of_eq rfl),
   erw [hx₁, ← g.map_smul, ← g.map_adjoin] at hn,
   obtain ⟨x', hx', hx''⟩ := hn,

@@ -114,6 +114,13 @@ lemma is_symmetric.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_symmetric 
   is_symmetric (T.restrict hV) :=
 λ v w, hT v w
 
+lemma is_symmetric.restrict_to_R_is_symmetric {T : E →ₗ[𝕜] E} (hT : T.is_symmetric) :
+  @linear_map.is_symmetric ℝ E _ (inner_product_space.is_R_or_C_to_real 𝕜 E)
+  (@linear_map.restrict_scalars ℝ 𝕜 _ _ _ _ _ _
+    (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module
+    (inner_product_space.is_R_or_C_to_real 𝕜 E).to_module _ _ _ T) :=
+λ x y, by simp [hT x y, real_inner_eq_re_inner, linear_map.coe_restrict_scalars_eq_coe]
+
 section complex
 
 variables {V : Type*}
@@ -286,6 +293,8 @@ lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
   coe_coe]
 
 end real
+
+/-! ### Self-adjoint operators -/
 
 /-- A (not necessarily bounded) operator `A` on an inner product space is self-adjoint iff
   `A` is equal to its adjoint. -/

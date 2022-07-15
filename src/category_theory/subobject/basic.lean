@@ -98,6 +98,52 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+section
+local attribute [ext] category_theory.comma
+
+
+lemma ind {X : C} (p : subobject X → Prop)
+  (h : ∀ {A : C} (f : A ⟶ X) [mono f], by exactI p (subobject.mk f)) (P : subobject X) : p P :=
+begin
+  apply quotient.induction_on',
+  intro a,
+  convert h a.arrow,
+  ext; refl
+end
+
+lemma ind₂ {X : C} (p : subobject X → subobject X → Prop)
+  (h : ∀ {A B : C} (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g],
+    by exactI p (subobject.mk f) (subobject.mk g)) (P Q : subobject X)
+ : p P Q :=
+begin
+  apply quotient.induction_on₂',
+  intros a b,
+  convert h a.arrow b.arrow,
+  { ext; refl },
+  { ext; refl }
+end
+
+def lift {α : Sort*} {X : C} (F : Π ⦃A : C⦄ (f : A ⟶ X) [mono f], α)
+  (h : ∀ ⦃A B : C⦄ (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g] (i : A ≅ B),
+    i.hom ≫ g = f → by exactI F f = F g) : subobject X → α :=
+λ P, quotient.lift_on' P (λ m, by exactI F m.arrow)
+begin
+  rintros m n ⟨i⟩,
+  refine h m.arrow n.arrow _ _,
+  { exact (over.forget X).map_iso ((mono_over.forget X).map_iso i) },
+  { exact over.w i.hom }
+end
+
+@[simp]
+lemma lift_mk {α : Sort*} {X : C} (F : Π ⦃A : C⦄ (f : A ⟶ X) [mono f], α)
+  (h : ∀ ⦃A B : C⦄ (f : A ⟶ X) (g : B ⟶ X) [mono f] [mono g] (i : A ≅ B),
+    i.hom ≫ g = f → by exactI F f = F g) {A : C} (f : A ⟶ X) [mono f] :
+  by exactI (lift F h (subobject.mk f)) = F f :=
+rfl
+
+
+end
+
 /-- The category of subobjects is equivalent to the `mono_over` category. It is more convenient to
 use the former due to the partial order instance, but oftentimes it is easier to define structures
 on the latter. -/

@@ -61,7 +61,7 @@ def pfun (α β : Type*) := α → part β
 infixr ` →. `:25 := pfun
 
 namespace pfun
-variables {α β γ δ : Type*}
+variables {α β γ δ ε ι : Type*}
 
 instance : inhabited (α →. β) := ⟨λ a, part.none⟩
 
@@ -458,7 +458,20 @@ protected def prod (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
 @[simp] lemma dom_prod (f : α →. γ) (g : β →. δ) :
   (f.prod g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
 
-@[simp] lemma get_prod (f : α →. γ) (g : β →. δ) {x : α × β} (h) :
+@[simp] lemma get_prod (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
   (f.prod g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
+
+@[simp] lemma prod_apply (f : α →. γ) (g : β →. δ) (x : α × β) :
+  f.prod g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
+
+@[simp] lemma mem_prod {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
+  y ∈ f.prod g x ↔ ∃ h : (f.prod g x).dom, ((f x.1).get h.1, (g x.2).get h.2) = y := iff.rfl
+
+@[simp] lemma prod_id_id : (pfun.id α).prod (pfun.id β) = pfun.id _ :=
+ext $ λ _ _, by simp [eq_comm]
+
+@[simp] lemma prod_comp_comp (f₁ : α →. β) (f₂ : β →. γ) (g₁ : δ →. ε) (g₂ : ε →. ι) :
+  (f₂.comp f₁).prod (g₂.comp g₁) = (f₂.prod g₂).comp (f₁.prod g₁) :=
+ext $ λ _ _, by tidy
 
 end pfun

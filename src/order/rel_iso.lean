@@ -393,6 +393,12 @@ end
 { to_fun := prod.map f g,
   inj' := f.injective.prod_map g.injective,
   map_rel_iff' := λ a b, by simp [prod.lex_def, f.map_rel_iff, g.map_rel_iff] }
+  
+/-- An order embedding from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
+{ to_fun := is_empty_elim,
+  inj' := is_empty_elim,
+  map_rel_iff' := is_empty_elim }
 
 end rel_embedding
 

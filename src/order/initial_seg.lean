@@ -27,6 +27,10 @@ These notations belong to the `initial_seg` locale.
 
 * `r ≼i s`: the type of initial segment embeddings of `r` into `s`.
 * `r ≺i s`: the type of principal segment embeddings of `r` into `s`.
+
+## Todo
+
+Train `simps` so that it can automatically generate simp lemmas for initial and principal segments.
 -/
 
 /-!
@@ -188,7 +192,7 @@ def sum_lex_map (f : r ≃r s) (g : t ≼i u) : sum.lex r t ≼i sum.lex s u :=
 @[simp] theorem sum_lex_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
   sum_lex_map f g a = sum.map f g a := rfl
 
-/-- `λ b, prod.mk a b` as an initial segment. -/
+/-- `λ b, prod.mk a b` as an initial segment. You must provide a minimal element `a` under `r`. -/
 @[simps] def prod_lex_mk (s : β → β → Prop) {a : α} (H : ∀ a', ¬ r a' a) : s ≼i prod.lex r s :=
 ⟨rel_embedding.prod_lex_mk_left s (H a),
   begin
@@ -349,6 +353,50 @@ theorem cod_restrict_apply (p) (f : r ≺i s) (H H₂ a) : cod_restrict p f H H�
 
 @[simp]
 theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂).top = ⟨f.top, H₂⟩ := rfl
+
+/-- `sum.inl` as a principal segment. You must provide a minimal element `b` under `s`. -/
+def sum_lex_inl (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) : r ≺i sum.lex r s :=
+{ top := sum.inr b,
+  down := by rintro (a | b'); simp [H],
+  ..rel_embedding.sum_lex_inl r s }
+
+@[simp] theorem sum_lex_inl_apply (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) (a) :
+  sum_lex_inl r H a = sum.inl a := rfl
+
+@[simp] theorem sum_lex_top (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) :
+  (sum_lex_inl r H).top = sum.inr b := rfl
+
+/-- `sum.map` as a principal segment. -/
+def sum_lex_map (f : r ≃r s) (g : t ≺i u) : sum.lex r t ≺i sum.lex s u :=
+{ top := sum.inr g.top,
+  down := begin
+    rintro (b | d),
+    { simp [(⟨f.symm b, by simp⟩ : ∃ a, f a = b)] },
+    { simp [g.down] }
+  end,
+  ..rel_embedding.sum_lex_map ↑f ↑g }
+
+@[simp] theorem sum_lex_map_apply (f : r ≃r s) (g : t ≺i u) (a) :
+  sum_lex_map f g a = sum.map f g a := rfl
+
+@[simp] theorem sum_lex_map_top (f : r ≃r s) (g : t ≺i u) :
+  (sum_lex_map f g).top = sum.inr g.top := rfl
+
+/-- `λ b, prod.mk a b` as an initial segment. You must provide the least and next least elements
+`a₀` and `a₁` under `r`, as well as a minimal element `b` under `s`. -/
+def prod_lex_mk {a₀ a₁ : α} {b : β}
+  (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) : s ≺i prod.lex r s :=
+{ top := (a₁, b),
+  down := λ ⟨a', b'⟩, by simp [prod.lex_def, Hb, Ha₁],
+  ..rel_embedding.prod_lex_mk_left s Ha₀ }
+
+@[simp] theorem prod_lex_mk_apply {a₀ a₁ : α} {b : β}
+  (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) (b') :
+  prod_lex_mk Ha₀ Ha₁ Hb b' = (a₀, b') := rfl
+
+@[simp] theorem prod_lex_mk_top {a₀ a₁ : α} {b : β}
+  (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) :
+  (prod_lex_mk Ha₀ Ha₁ Hb).top = (a₁, b) := rfl
 
 end principal_seg
 

@@ -1004,8 +1004,9 @@ begin
 end
 
 /-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/
-def fintype_of_fintype_ne (a : α) [decidable_pred (= a)] (h : fintype {b // b ≠ a}) : fintype α :=
-fintype.of_equiv _ $ equiv.sum_compl (= a)
+def fintype_of_fintype_ne (a : α) (h : fintype {b // b ≠ a}) : fintype α :=
+fintype.of_bijective (sum.elim (coe : {b // b = a} → α) (coe : {b // b ≠ a} → α)) $
+  by { classical, exact (equiv.sum_compl (= a)).bijective }
 
 section finset
 
@@ -1404,6 +1405,18 @@ lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ 
   pi_finset t₁ ⊆ pi_finset t₂ :=
 λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
 
+@[simp] lemma pi_finset_empty [nonempty α] : pi_finset (λ _, ∅ : Π i, finset (δ i)) = ∅ :=
+eq_empty_of_forall_not_mem $ λ _, by simp
+
+@[simp] lemma pi_finset_singleton (f : Π i, δ i) :
+  pi_finset (λ i, {f i} : Π i, finset (δ i)) = {f} :=
+ext $ λ _, by simp only [function.funext_iff, fintype.mem_pi_finset, mem_singleton]
+
+lemma pi_finset_subsingleton {f : Π i, finset (δ i)}
+  (hf : ∀ i, (f i : set (δ i)).subsingleton) :
+  (fintype.pi_finset f : set (Π i, δ i)).subsingleton :=
+λ a ha b hb, funext $ λ i, hf _ (mem_pi_finset.1 ha _) (mem_pi_finset.1 hb _)
+
 lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
   (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
@@ -1514,7 +1527,7 @@ begin
   intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
 
-theorem card_subtype_mono (p q : α → Prop) (h : p ≤ q)
+theorem fintype.card_subtype_mono (p q : α → Prop) (h : p ≤ q)
   [fintype {x // p x}] [fintype {x // q x}] :
   fintype.card {x // p x} ≤ fintype.card {x // q x} :=
 fintype.card_le_of_embedding (subtype.imp_embedding _ _ h)

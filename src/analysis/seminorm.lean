@@ -311,7 +311,7 @@ have h: 0 ≤ 2 * f x, from
 calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
 ...    ≤ f x + f (-x)  : add_le _ _
 ...    = 2 * f x : by rw [neg.of_smul smul, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two
+nonneg_of_mul_nonneg_right h zero_lt_two
 
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
 `semi_norm_ring 𝕜`. -/

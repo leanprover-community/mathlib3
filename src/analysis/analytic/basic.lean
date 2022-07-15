@@ -222,7 +222,7 @@ in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
 lemma le_radius_of_tendsto (p : formal_multilinear_series 𝕜 E F) {l : ℝ}
   (h : tendsto (λ n, ∥p n∥ * r^n) at_top (𝓝 l)) : ↑r ≤ p.radius :=
-p.le_radius_of_is_O (is_O_one_of_tendsto _ h)
+p.le_radius_of_is_O (h.is_O_one _)
 
 lemma le_radius_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=

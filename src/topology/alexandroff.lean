@@ -325,12 +325,32 @@ lemma dense_embedding_coe [noncompact_space X] :
   dense_embedding (coe : X → alexandroff X) :=
 { dense := dense_range_coe, .. open_embedding_coe }
 
+@[simp] lemma specializes_coe {x y : X} : (x : alexandroff X) ⤳ y ↔ x ⤳ y :=
+open_embedding_coe.to_inducing.specializes_iff
+
+@[simp] lemma inseparable_coe {x y : X} : inseparable (x : alexandroff X) y ↔ inseparable x y :=
+open_embedding_coe.to_inducing.inseparable_iff
+
+lemma not_specializes_infty_coe {x : X} : ¬specializes ∞ (x : alexandroff X) :=
+is_closed_infty.not_specializes rfl (coe_ne_infty x)
+
+lemma not_inseparable_infty_coe {x : X} : ¬inseparable ∞ (x : alexandroff X) :=
+λ h, not_specializes_infty_coe h.specializes
+
+lemma not_inseparable_coe_infty {x : X} : ¬inseparable (x : alexandroff X) ∞ :=
+λ h, not_specializes_infty_coe h.specializes'
+
+lemma inseparable_iff {x y : alexandroff X} :
+  inseparable x y ↔ x = ∞ ∧ y = ∞ ∨ ∃ x' : X, x = x' ∧ ∃ y' : X, y = y' ∧ inseparable x' y' :=
+by induction x using alexandroff.rec; induction y using alexandroff.rec;
+  simp [not_inseparable_infty_coe, not_inseparable_coe_infty, coe_eq_coe]
+
 /-!
 ### Compactness and separation properties
 
 In this section we prove that `alexandroff X` is a compact space; it is a T₀ (resp., T₁) space if
 the original space satisfies the same separation axiom. If the original space is a locally compact
-Hausdorff space, then `alexandroff X` is a normal (hence, regular and Hausdorff) space.
+Hausdorff space, then `alexandroff X` is a normal (hence, T₃ and Hausdorff) space.
 
 Finally, if the original space `X` is *not* compact and is a preconnected space, then
 `alexandroff X` is a connected space.
@@ -351,13 +371,8 @@ instance : compact_space (alexandroff X) :=
 instance [t0_space X] : t0_space (alexandroff X) :=
 begin
   refine ⟨λ x y hxy, _⟩,
-  induction x using alexandroff.rec; induction y using alexandroff.rec,
-  { exact (hxy rfl).elim },
-  { use {∞}ᶜ, simp [is_closed_infty] },
-  { use {∞}ᶜ, simp [is_closed_infty] },
-  { rcases t0_space.t0 x y (mt coe_eq_coe.mpr hxy) with ⟨U, hUo, hU⟩,
-    refine ⟨coe '' U, is_open_image_coe.2 hUo, _⟩,
-    simpa [coe_eq_coe] }
+  rcases inseparable_iff.1 hxy with ⟨rfl, rfl⟩|⟨x, rfl, y, rfl, h⟩,
+  exacts [rfl, congr_arg coe h.eq]
 end
 
 /-- The one point compactification of a `t1_space` space is a `t1_space`. -/
@@ -366,7 +381,7 @@ instance [t1_space X] : t1_space (alexandroff X) :=
   begin
     induction z using alexandroff.rec,
     { exact is_closed_infty },
-    { simp only [← image_singleton, is_closed_image_coe],
+    { rw [← image_singleton, is_closed_image_coe],
       exact ⟨is_closed_singleton, is_compact_singleton⟩ }
   end }
 

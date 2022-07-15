@@ -19,9 +19,11 @@ coincide with the standard one:
 * the min-degree is the minimum of the exponents of the monomials that appear with non-zero
   coefficient in `f`, or `⊤`, if `f = 0`.
 
-Currently, the only results are
+The main results are
 * `max_degree_mul_le` -- the max-degree of a product is at most the sum of the max-degrees,
-* `le_min_degree_mul` -- the min-degree of a product is at least the sum of the min-degrees.
+* `le_min_degree_mul` -- the min-degree of a product is at least the sum of the min-degrees,
+* `max_degree_add_le` -- the max-degree of a sum is at most the sup of the max-degrees,
+* `le_min_degree_add` -- the min-degree of a sum is at least the inf of the min-degrees.
 
 ## Implementation notes
 
@@ -50,6 +52,15 @@ section semiring
 variables [semiring R]
 
 section add_only
+
+lemma sup_support_add_le (D : A → B) (f g : add_monoid_algebra R A) :
+  (f + g).support.sup D ≤ (f.support.sup D) ⊔ (g.support.sup D) :=
+begin
+  refine (finset.sup_le (λ d ds, _)),
+  cases finset.mem_union.mp (finsupp.support_add ds) with df dg,
+  { exact (finset.le_sup df).trans le_sup_left },
+  { exact (finset.le_sup dg).trans le_sup_right }
+end
 
 variables [has_add A] [has_add B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
@@ -144,6 +155,9 @@ variables (f g : add_monoid_algebra R A)
 lemma max_degree_mul_le : (f * g).max_degree ≤ f.max_degree + g.max_degree :=
 sup_support_mul_le (λ a b, (with_bot.coe_add _ _).le) f g
 
+lemma max_degree_add_le : (f + g).max_degree ≤ f.max_degree ⊔ g.max_degree :=
+sup_support_add_le coe f g
+
 end max_degree
 
 section min_degree
@@ -162,9 +176,11 @@ f.support.inf coe
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
   (f g : add_monoid_algebra R A)
 
-lemma le_min_degree_mul :
-  f.min_degree + g.min_degree ≤ (f * g).min_degree :=
+lemma le_min_degree_mul : f.min_degree + g.min_degree ≤ (f * g).min_degree :=
 sup_support_mul_le (λ a b : Aᵒᵈ, (with_bot.coe_add _ _).le) _ _
+
+lemma le_min_degree_add : f.min_degree ⊓ g.min_degree ≤ (f + g).min_degree :=
+sup_support_add_le (coe : Aᵒᵈ → with_bot Aᵒᵈ) f g
 
 end min_degree
 

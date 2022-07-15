@@ -70,24 +70,6 @@ variables {α n}
 
 lemma mem_slice_grade (a : α) : a ∈ slice α (grade 𝕆 a) := mem_slice_iff.2 rfl
 
-/-- A constructor for a locally finite order from intervals that are "too big". -/
-@[reducible] -- See note [reducible non-instances]
-def locally_finite_order.of_decidable_le_lt [decidable_rel ((≤) : α → α → Prop)]
-  [decidable_rel ((<) : α → α → Prop)] (Icc Ico Ioc Ioo : α → α → finset α)
-  (hIcc : ∀ ⦃a b x⦄, a ≤ x → x ≤ b → x ∈ Icc a b)
-  (hIco : ∀ ⦃a b x⦄, a ≤ x → x < b → x ∈ Ico a b)
-  (hIoc : ∀ ⦃a b x⦄, a < x → x ≤ b → x ∈ Ioc a b)
-  (hIoo : ∀ ⦃a b x⦄, a < x → x < b → x ∈ Ioo a b) :
-  locally_finite_order α :=
-{ finset_Icc := λ a b, (Icc a b).filter (λ x, a ≤ x ∧ x ≤ b),
-  finset_Ico := λ a b, (Ico a b).filter (λ x, a ≤ x ∧ x < b),
-  finset_Ioc := λ a b, (Ioc a b).filter (λ x, a < x ∧ x ≤ b),
-  finset_Ioo := λ a b, (Ioo a b).filter (λ x, a < x ∧ x < b),
-  finset_mem_Icc := _,
-  finset_mem_Ico := _,
-  finset_mem_Ioc := _,
-  finset_mem_Ioo := _ }
-
 variables (α n)
 
 lemma slice_sized : (slice α n : set α).sized n := λ a, mem_slice_iff.1
@@ -222,6 +204,6 @@ instance : slice_order ℕ (α × β) :=
     sorry
     -- have := (nat.antidiagonal n).image (prod.map (slice α) $ slice β),
   end,
-  mem_slice := _ }
+  mem_slice := sorry }
 
 end prod

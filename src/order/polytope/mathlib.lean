@@ -22,12 +22,7 @@ variables {ι α β : Type*} {σ : ι → Type*}
 
 section order_dual
 open order_dual
-variables {a b : order_dual α}
-
-@[simp] lemma to_dual_top [has_top α] : to_dual (⊤ : α) = ⊥ := rfl
-@[simp] lemma to_dual_bot [has_bot α] : to_dual (⊥ : α) = ⊤ := rfl
-@[simp] lemma of_dual_top [has_bot α] : of_dual (⊤ : order_dual α) = ⊥ := rfl
-@[simp] lemma of_dual_bot [has_top α] : of_dual (⊥ : order_dual α) = ⊤ := rfl
+variables {a b : αᵒᵈ}
 
 variables [preorder α] [locally_finite_order α]
 
@@ -49,6 +44,51 @@ by rw [Ioc_eq, card_map]
 by rw [Ioo_eq, card_map]
 
 end order_dual
+
+section
+variables [preorder α]
+
+/-- A constructor for a locally finite order from intervals that are "too big". -/
+@[reducible] -- See note [reducible non-instances]
+def locally_finite_order.of_decidable_le_lt [decidable_rel ((≤) : α → α → Prop)]
+  [decidable_rel ((<) : α → α → Prop)] (Icc Ico Ioc Ioo : α → α → finset α)
+  (hIcc : ∀ ⦃a b x⦄, a ≤ x → x ≤ b → x ∈ Icc a b)
+  (hIco : ∀ ⦃a b x⦄, a ≤ x → x < b → x ∈ Ico a b)
+  (hIoc : ∀ ⦃a b x⦄, a < x → x ≤ b → x ∈ Ioc a b)
+  (hIoo : ∀ ⦃a b x⦄, a < x → x < b → x ∈ Ioo a b) :
+  locally_finite_order α :=
+{ finset_Icc := λ a b, (Icc a b).filter (λ x, a ≤ x ∧ x ≤ b),
+  finset_Ico := λ a b, (Ico a b).filter (λ x, a ≤ x ∧ x < b),
+  finset_Ioc := λ a b, (Ioc a b).filter (λ x, a < x ∧ x ≤ b),
+  finset_Ioo := λ a b, (Ioo a b).filter (λ x, a < x ∧ x < b),
+  finset_mem_Icc := by simpa using hIcc,
+  finset_mem_Ico := by simpa using hIco,
+  finset_mem_Ioc := by simpa using hIoc,
+  finset_mem_Ioo := by simpa using hIoo }
+
+/-- A constructor for a locally finite order from intervals that are "too big". -/
+@[reducible] -- See note [reducible non-instances]
+def locally_finite_order_bot.of_decidable_le_lt [decidable_rel ((≤) : α → α → Prop)]
+  [decidable_rel ((<) : α → α → Prop)] (Iic Iio : α → finset α)
+  (hIic : ∀ ⦃b x⦄, x ≤ b → x ∈ Iic b) (hIio : ∀ ⦃b x⦄, x < b → x ∈ Iio b) :
+  locally_finite_order_bot α :=
+{ finset_Iic := λ b, (Iic b).filter (λ x, x ≤ b),
+  finset_Iio := λ b, (Iio b).filter (λ x, x < b),
+  finset_mem_Iic := by simpa using hIic,
+  finset_mem_Iio := by simpa using hIio }
+
+/-- A constructor for a locally finite order from intervals that are "too big". -/
+@[reducible] -- See note [reducible non-instances]
+def locally_finite_order_top.of_decidable_le_lt [decidable_rel ((≤) : α → α → Prop)]
+  [decidable_rel ((<) : α → α → Prop)] (Ici Ioi : α → finset α)
+  (hIci : ∀ ⦃a x⦄, a ≤ x → x ∈ Ici a) (hIoi : ∀ ⦃a x⦄, a < x → x ∈ Ioi a) :
+  locally_finite_order_top α :=
+{ finset_Ici := λ a, (Ici a).filter (λ x, a ≤ x),
+  finset_Ioi := λ a, (Ioi a).filter (λ x, a < x),
+  finset_mem_Ici := by simpa using hIci,
+  finset_mem_Ioi := by simpa using hIoi }
+
+end
 
 lemma is_chain_singleton (r : α → α → Prop) (a : α) : is_chain r {a} := set.pairwise_singleton _ _
 
@@ -119,89 +159,6 @@ lemma covby.tsub_right (hab : a ≤ b) (h : b ⋖ c) : b - a ⋖ c - a :=
   h.2 ((tsub_lt_iff_left $ hab).1 hb) (lt_tsub_iff_left.1 hc)⟩
 
 end
-
-namespace prod
-variables [partial_order α] [order_bot α] [partial_order β] [order_bot β] {a a' : α} {b b' : β}
-  {x y : α × β}
-
-@[simp] lemma swap_le_swap_iff : x.swap ≤ y.swap ↔ x ≤ y := and_comm _ _
-
-@[simp] lemma swap_lt_swap_iff : x.swap < y.swap ↔ x < y :=
-lt_iff_lt_of_le_iff_le' swap_le_swap_iff swap_le_swap_iff
-
-@[simp] lemma swap_covby_swap_iff : x.swap ⋖ y.swap ↔ x ⋖ y :=
-apply_covby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
-
-lemma mk_le_mk_iff_left : (a, b) ≤ (a', b) ↔ a ≤ a' := and_iff_left le_rfl
-lemma mk_le_mk_iff_right : (a, b) ≤ (a, b') ↔ b ≤ b' := and_iff_right le_rfl
-
-lemma mk_lt_mk_iff_left : (a, b) < (a', b) ↔ a < a' :=
-lt_iff_lt_of_le_iff_le' mk_le_mk_iff_left mk_le_mk_iff_left
-
-lemma mk_lt_mk_iff_right : (a, b) < (a, b') ↔ b < b' :=
-lt_iff_lt_of_le_iff_le' mk_le_mk_iff_right mk_le_mk_iff_right
-
-lemma fst_eq_or_snd_eq_of_covby : (a, b) ⋖ (a', b') → a = a' ∨ b = b' :=
-begin
-  contrapose,
-  push_neg,
-  rintros ⟨ha, hb⟩ hcov,
-  have h₁ : (a, b) < (a', b)   := mk_lt_mk.mpr (or.inl ⟨ha.le_iff_lt.mp hcov.1.1.1, le_rfl⟩),
-  have h₂ : (a', b) < (a', b') := mk_lt_mk.mpr (or.inr ⟨le_rfl, hb.le_iff_lt.mp hcov.1.1.2⟩),
-  exact hcov.2 h₁ h₂
-end
-
-lemma mk_covby_mk_iff_left : (a, b) ⋖ (a', b) ↔ a ⋖ a' :=
-begin
-  split;
-  rintro ⟨hcov_left, hcov_right⟩;
-  split;
-  [ { skip },
-    { intros c hac hca',
-      apply @hcov_right (c, b) },
-    { skip },
-    { rintros ⟨c₁, c₂⟩ h h',
-      apply @hcov_right c₁;
-      have : c₂ = b := le_antisymm h'.1.2 h.1.2;
-      rw this at *, } ];
-  rw mk_lt_mk_iff_left at *;
-  assumption,
-end
-
-lemma mk_covby_mk_iff_right : (a, b) ⋖ (a, b') ↔ b ⋖ b' :=
-swap_covby_swap_iff.trans mk_covby_mk_iff_left
-
-lemma mk_covby_mk_iff : (a, b) ⋖ (a', b') ↔ a ⋖ a' ∧ b = b' ∨ a = a' ∧ b ⋖ b' :=
-begin
-  split,
-  { intro hcov,
-    cases fst_eq_or_snd_eq_of_covby hcov with heq heq;
-    rw [heq, eq_self_iff_true] at *,
-    { rw [mk_covby_mk_iff_right] at *,
-      tauto },
-    { rw mk_covby_mk_iff_left at *,
-      tauto } },
-  { intro h,
-    rcases h with ⟨acov, beq⟩ | ⟨aeq, bcov⟩,
-    { rw beq at *,
-      exact mk_covby_mk_iff_left.mpr acov },
-    { rw aeq at *,
-      exact mk_covby_mk_iff_right.mpr bcov } }
-end
-
-lemma _root_.is_min.prod_mk (ha : is_min a) (hb : is_min b) : is_min (a, b) :=
-λ c hc, ⟨ha hc.1, hb hc.2⟩
-
-lemma _root_.is_min.fst (hx : is_min x) : is_min x.1 :=
-λ c hc, (hx ((and_iff_left le_rfl).2 hc : (c, x.2) ≤ x)).1
-
-lemma _root_.is_min.snd (hx : is_min x) : is_min x.2 :=
-λ c hc, (hx ((and_iff_right le_rfl).2 hc : (x.1, c) ≤ x)).2
-
-lemma is_min_iff : is_min x ↔ is_min x.1 ∧ is_min x.2 :=
-⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
-
-end prod
 
 namespace pi
 variables [Π i, preorder (σ i)] {a : Π i, σ i}

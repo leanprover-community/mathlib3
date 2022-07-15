@@ -63,8 +63,8 @@ variables (α)
 
 -- instance order_dual.diamond_order [partial_order α] [bounded_order α] [locally_finite_order α]
 --   [diamond_order α n] :
---   diamond_order (order_dual α) n :=
--- { diamond := λ a b hab (h : grade (order_dual ℕ) b = grade _ a + 2), begin
+--   diamond_order αᵒᵈ n :=
+-- { diamond := λ a b hab (h : grade ℕᵒᵈ b = grade _ a + 2), begin
 --     rw [card_Ioo, hab.of_dual.card_Ioo],
 --     rw [grade_of_dual, grade_of_dual, ←grade_top_dual, ←nat.sub_add_comm (grade_le_grade_top _),
 --       h, add_tsub_add_eq_tsub_right],

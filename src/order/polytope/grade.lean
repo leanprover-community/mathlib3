@@ -317,7 +317,7 @@ instance [grade_order ℕ α] [grade_order ℕ β] : grade_order ℕ (α × β) 
   end,
   covby_grade := λ a b h, match mk_covby_mk_iff.1 h with
     | or.inl ⟨h₁, h₂⟩ := by { rw h₂, exact (h₁.grade _).add_right' _ }
-    | or.inr ⟨h₁, h₂⟩ := by { rw h₁, exact (h₂.grade _).add_left' _ }
+    | or.inr ⟨h₁, h₂⟩ := by { rw h₂, exact (h₁.grade _).add_left' _ }
     end }
 
 instance [grade_min_order ℕ α] [grade_min_order ℕ β] : grade_min_order ℕ (α × β) :=
@@ -351,7 +351,7 @@ instance [Π i, grade_order ℕ (σ i)] : grade_order ℕ (Π i, σ i) :=
 
 instance [Π i, grade_min_order ℕ (σ i)] : grade_min_order ℕ (Π i, σ i) :=
 { is_min_grade := λ a ha, begin
-    change is_min (finset.sum _ _),
+    dsimp [grade_order.grade],
     rw sum_eq_zero (λ _ _, _),
     exact is_min_bot,
     exact ((ha.apply' _).grade _).eq_bot,
@@ -366,13 +366,55 @@ end pi
 
 /-! #### Lexicographical sum of two graded orders -/
 
+section
+variables [preorder α] [preorder β]
+
+open sum
+
+/-- `sum.inl` as an order embedding. -/
+@[simps] protected def order_embedding.inl : α ↪o α ⊕ β :=
+{ to_fun := inl,
+  inj' := inl_injective,
+  map_rel_iff' := λ _ _, inl_le_inl_iff }
+
+/-- `sum.inr` as an order embedding. -/
+@[simps] protected def order_embedding.inr : β ↪o α ⊕ β :=
+{ to_fun := inr,
+  inj' := inr_injective,
+  map_rel_iff' := λ _ _, inr_le_inr_iff }
+
+end
+
 namespace sum
-variables [preorder 𝕆] [preorder α] [preorder β]
+variables [preorder 𝕆] [preorder α] [preorder β] {a a₁ a₂ : α} {b b₁ b₂ : β} {x y : α ⊕ β}
+
+@[simp] lemma inl_covby_inl : (inl a₁ : α ⊕ β) ⋖ inl a₂ ↔ a₁ ⋖ a₂ :=
+begin
+  refine ⟨covby.of_image (order_embedding.inl : _ ↪o α ⊕ β), _⟩,
+  sorry
+end
+
+@[simp] lemma inr_covby_inr : (inr b₁ : α ⊕ β) ⋖ inr b₂ ↔ b₁ ⋖ b₂ :=
+begin
+  refine ⟨covby.of_image (order_embedding.inr : _ ↪o α ⊕ β), _⟩,
+  sorry
+end
+
+@[simp] lemma not_inl_covby_inr : ¬ inl a ⋖ inr b := λ h, not_inl_lt_inr h.lt
+@[simp] lemma not_inr_covby_inl : ¬ inr a ⋖ inl b := λ h, not_inr_lt_inl h.lt
+
+lemma covby_iff :
+  x ⋖ y ↔
+    (∃ a₁ a₂, a₁ ⋖ a₂ ∧ x = inl a₁ ∧ y = inl a₂) ∨ ∃ b₁ b₂, b₁ ⋖ b₂ ∧ x = inr b₁ ∧ y = inr b₂ :=
+by cases x; cases y; simp
 
 instance [grade_order 𝕆 α] [grade_order 𝕆 β] : grade_order 𝕆 (α ⊕ β) :=
 { grade := sum.elim (grade 𝕆) (grade 𝕆),
   grade_strict_mono := grade_strict_mono.sum_elim grade_strict_mono,
-  covby_grade := sorry }
+  covby_grade := λ x y, begin
+    rw covby_iff,
+    rintro (⟨a₁, a₂, h, rfl, rfl⟩ | ⟨b₁, b₂, h, rfl, rfl⟩); exact h.grade _,
+  end }
 
 instance [grade_min_order 𝕆 α] [grade_min_order 𝕆 β] : grade_min_order 𝕆 (α ⊕ β) :=
 { is_min_grade := λ x hx, begin
@@ -393,7 +435,7 @@ instance [grade_max_order 𝕆 α] [grade_max_order 𝕆 β] : grade_max_order �
 instance [grade_bounded_order 𝕆 α] [grade_bounded_order 𝕆 β] : grade_bounded_order 𝕆 (α ⊕ β) :=
 { ..sum.grade_min_order, ..sum.grade_max_order }
 
-variables (a : α) (b : β) [grade_order 𝕆 α] [grade_order 𝕆 β]
+variables (a b) [grade_order 𝕆 α] [grade_order 𝕆 β]
 
 @[simp] lemma grade_inl : grade 𝕆 (sum.inl a : α ⊕ β) = grade 𝕆 a := rfl
 @[simp] lemma grade_inr : grade 𝕆 (sum.inr b : α ⊕ β) = grade 𝕆 b := rfl

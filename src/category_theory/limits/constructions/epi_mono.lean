@@ -35,11 +35,7 @@ end
 
 @[priority 100]
 instance preserves_monomorphisms_of_preserves_limits_of_shape
-<<<<<<< HEAD
-  [preserves_limits_of_shape walking_cospan.{v₁} F] : F.preserves_monomorphisms :=
-=======
   [preserves_limits_of_shape walking_cospan F] : F.preserves_monomorphisms :=
->>>>>>> origin/master
 { preserves := λ X Y f hf, by exactI preserves_mono_of_preserves_limit F f }
 
 /-- If `F` reflects pullbacks, then it reflects monomorphisms. -/

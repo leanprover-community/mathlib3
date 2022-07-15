@@ -5,7 +5,6 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
 import probability.hitting_time
-import measure_theory.function.uniform_integrable
 
 /-!
 # Martingales

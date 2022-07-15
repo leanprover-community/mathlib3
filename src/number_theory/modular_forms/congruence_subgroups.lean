@@ -75,10 +75,7 @@ begin
   intro h,
   ext,
   fin_cases i; fin_cases j,
-  exact h.1,
-  exact h.2.1,
-  exact h.2.2.1,
-  exact h.2.2.2,
+  any_goals {simp [h]},
   intro h,
   simp [h],
 end

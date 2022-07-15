@@ -83,26 +83,25 @@ end
 lemma exists_convex_convex_compl_subset (hs : convex 𝕜 s) (ht : convex 𝕜 t) (hst : disjoint s t) :
   ∃ C : set E, convex 𝕜 C ∧ convex 𝕜 Cᶜ ∧ s ⊆ C ∧ t ⊆ Cᶜ :=
 begin
-  let S : set (set E) := {C | convex 𝕜 C ∧ C ⊆ tᶜ},
+  let S : set (set E) := {C | convex 𝕜 C ∧ disjoint C t},
   obtain ⟨C, hC, hsC, hCmax⟩ := zorn_subset_nonempty S
     (λ c hcS hc ⟨t, ht⟩, ⟨⋃₀ c, ⟨hc.directed_on.convex_sUnion (λ s hs, (hcS hs).1),
-    sUnion_subset (λ C hC, (hcS hC).2)⟩, λ s, subset_sUnion_of_mem⟩) s
-    ⟨hs, disjoint_iff_subset_compl_right.1 hst⟩,
+     disjoint_sUnion_left.2 $ λ c hc, (hcS hc).2⟩, λ s, subset_sUnion_of_mem⟩) s ⟨hs, hst⟩,
   refine ⟨C, hC.1, convex_iff_segment_subset.2 $ λ x y hx hy z hz hzC, _, hsC,
-    subset_compl_comm.1 hC.2⟩,
+     hC.2.subset_compl_left⟩,
   suffices h : ∀ c ∈ Cᶜ, ∃ a ∈ C, (segment 𝕜 c a ∩ t).nonempty,
   { obtain ⟨p, hp, u, hu, hut⟩ := h x hx,
     obtain ⟨q, hq, v, hv, hvt⟩ := h y hy,
-    refine not_disjoint_segment_convex_hull_triple hz hu hv ((disjoint_iff_subset_compl_left.2
-      hC.2).mono (ht.segment_subset hut hvt) $ convex_hull_min _ hC.1),
+    refine not_disjoint_segment_convex_hull_triple hz hu hv
+      (hC.2.symm.mono (ht.segment_subset hut hvt) $ convex_hull_min _ hC.1),
     simp [insert_subset, hp, hq, singleton_subset_iff.2 hzC] },
   rintro c hc,
   by_contra' h,
-  suffices h : convex_hull 𝕜 (insert c C) ⊆ tᶜ,
+  suffices h : disjoint (convex_hull 𝕜 (insert c C)) t,
   { rw ←hCmax _ ⟨convex_convex_hull _ _, h⟩
       ((subset_insert _ _).trans $ subset_convex_hull _ _) at hc,
     exact hc (subset_convex_hull _ _ $ mem_insert _ _) },
   rw [convex_hull_insert ⟨z, hzC⟩, convex_join_singleton_left],
-  refine Union₂_subset (λ a ha b hb hbt, h a _ ⟨b, hb, hbt⟩),
+  refine disjoint_Union₂_left.2 (λ a ha b hb, h a _ ⟨b, hb⟩),
   rwa ←hC.1.convex_hull_eq,
 end

@@ -131,7 +131,7 @@ subtype.coe_injective.ordered_comm_semiring coe
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] [set_like S R]
   [subsemiring_class S R] : linear_ordered_semiring s :=
 subtype.coe_injective.linear_ordered_semiring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
@@ -349,7 +349,7 @@ subtype.coe_injective.ordered_comm_semiring coe
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
   linear_ordered_semiring s :=
 subtype.coe_injective.linear_ordered_semiring coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
@@ -985,27 +985,27 @@ section non_assoc_semiring
 variables [non_assoc_semiring R']
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
-instance [has_scalar R' α] (S : subsemiring R') : has_scalar S α := S.to_submonoid.has_scalar
+instance [has_smul R' α] (S : subsemiring R') : has_smul S α := S.to_submonoid.has_smul
 
-lemma smul_def [has_scalar R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
+lemma smul_def [has_smul R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
 
 instance smul_comm_class_left
-  [has_scalar R' β] [has_scalar α β] [smul_comm_class R' α β] (S : subsemiring R') :
+  [has_smul R' β] [has_smul α β] [smul_comm_class R' α β] (S : subsemiring R') :
   smul_comm_class S α β :=
 S.to_submonoid.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [has_scalar R' β] [smul_comm_class α R' β] (S : subsemiring R') :
+  [has_smul α β] [has_smul R' β] [smul_comm_class α R' β] (S : subsemiring R') :
   smul_comm_class α S β :=
 S.to_submonoid.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
-instance [has_scalar α β] [has_scalar R' α] [has_scalar R' β] [is_scalar_tower R' α β]
+instance [has_smul α β] [has_smul R' α] [has_smul R' β] [is_scalar_tower R' α β]
   (S : subsemiring R') :
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [has_scalar R' α] [has_faithful_smul R' α] (S : subsemiring R') :
+instance [has_smul R' α] [has_faithful_smul R' α] (S : subsemiring R') :
   has_faithful_smul S α :=
 S.to_submonoid.has_faithful_smul
 

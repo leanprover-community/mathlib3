@@ -41,20 +41,20 @@ variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}
 /-! Let ℱ, 𝒢 : (opens X)ᵒᵖ ⥤ C be C-valued presheaves on X. -/
 variables {ℱ : X.presheaf C} {𝒢 : X.presheaf C}
 
-/-! When U is an object of C, we introduce the notation "Γ_ ℱ U" for
-the image under ℱ of the object U, viewed as an object of (opens X)ᵒᵖ. -/
+/-! When U is an open set, we introduce the notation "Γ_ ℱ U"
+for the set of sections of ℱ over U. -/
 def sections_of_presheaf_on_open (ℱ : X.presheaf C) (U : opens X) :=
   (forget C).obj (ℱ.obj (op U))
 local notation `Γ_` : 80 := sections_of_presheaf_on_open
 
 /-! When i : V ⟶ U is an inclusion of an open set V into an open set U,
-and s ∈ Γ_ ℱ U, we write s|_i for the restriction of s to V. -/
+and s ∈ Γ_ ℱ U, we write "s|_i" for the restriction of s to V. -/
 def restrict_along {ℱ : X.presheaf C} {U : opens X} {V : opens X}
   (s : Γ_ ℱ U) (i : V ⟶ U) : Γ_ ℱ V := (forget C).map (ℱ.map i.op) s
 local infix `|_` : 80 := restrict_along
 
 /-! When T : ℱ ⟶ 𝒢 is a natural transformation, and s ∈ Γ_ ℱ U, we
-write T_* s for the image of s under the map T_U : Γ_ ℱ U ⟶ Γ_ 𝒢 U. -/
+write "T _* s" for the image of s under the map T_U : Γ_ ℱ U ⟶ Γ_ 𝒢 U. -/
 def map_on_sections {U : opens X} (T : ℱ ⟶ 𝒢) (s : Γ_ ℱ U) :
   Γ_ 𝒢 U := (forget C).map (T.app (op U)) s
 local infix ` _* ` : 80 := map_on_sections
@@ -78,14 +78,14 @@ def stalk_set (ℱ : X.presheaf C) (x : X) :=
   (forget C).obj (ℱ.stalk x)
 local notation `Γₛₜ` : 80 := stalk_set
 
-/-! When (T : ℱ ⟶ 𝒢) is a map of presheaves, we introduce the notation
- "T _ₛₜ x" for the induced map of (underlying objects of) stalks. -/
+/-! When (T : ℱ ⟶ 𝒢) is a map of presheaves, we introduce the notation "T _ₛₜ x"
+for the induced map of (underlying objects of) stalks. -/
 def map_on_stalks (T : ℱ ⟶ 𝒢) (x : X) :
   Γₛₜ ℱ x ⟶ Γₛₜ 𝒢 x := (forget C).map ((Top.presheaf.stalk_functor C x).map T)
 local infix `_ₛₜ` : 80 := map_on_stalks
 
-/-! An equivalent condition for a map of presheaves to be locally
-surjective is for all the induced maps on stalks to be surjective. -/
+/-! An equivalent condition for a map of presheaves to be locally surjective
+is for all the induced maps on stalks to be surjective. -/
 def is_surjective_on_stalks (T : ℱ ⟶ 𝒢) :=
   ∀ (x : X), function.surjective (T _ₛₜ x)
 

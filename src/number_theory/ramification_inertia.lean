@@ -472,6 +472,8 @@ local attribute [instance] ideal.quotient.algebra_quotient_of_ramification_idx_n
   algebra_map (R ⧸ p) (S ⧸ P) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
 rfl
 
+omit hfp
+
 /-- The inclusion `(P^(i + 1) / P^e) ⊂ (P^i / P^e)`. -/
 @[simps]
 def pow_quot_succ_inclusion (i : ℕ) :
@@ -510,6 +512,8 @@ lemma quotient_to_quotient_range_pow_quot_succ_aux_mk (i : ℕ) (a : S) (a_mem :
     submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
 by apply quotient.map'_mk'
 
+include hfp
+
 /-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`. -/
 noncomputable def quotient_to_quotient_range_pow_quot_succ (i : ℕ) (a : S) (a_mem : a ∈ P^i) :
   S ⧸ P →ₗ[R ⧸ p] (_ ⧸ (pow_quot_succ_inclusion f p P i).range) :=
@@ -530,7 +534,6 @@ end, map_smul' := begin
              ideal.quotient.mk_eq_mk, submodule.coe_smul_of_tower,
              ideal.quotient.algebra_map_quotient_pow_ramification_idx]
 end }
-
 
 lemma quotient_to_quotient_range_pow_quot_succ_mk (i : ℕ)
   (a : S) (a_mem : a ∈ P^i) (x : S) :

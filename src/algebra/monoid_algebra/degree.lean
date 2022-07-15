@@ -174,7 +174,8 @@ the exponents. -/
 @[reducible] def min_degree (f : add_monoid_algebra R A) : with_top A :=
 f.support.inf coe
 
-lemma le_min_degree_add (f g : add_monoid_algebra R A) : f.min_degree ⊓ g.min_degree ≤ (f + g).min_degree :=
+lemma le_min_degree_add (f g : add_monoid_algebra R A) :
+  f.min_degree ⊓ g.min_degree ≤ (f + g).min_degree :=
 sup_support_add_le (coe : Aᵒᵈ → with_bot Aᵒᵈ) f g
 
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]

@@ -21,14 +21,8 @@ variables {α : Type*}
 
 namespace well_founded
 
-theorem not_gt_of_lt {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
-  ∀ ⦃a b⦄, r a b → ¬ r b a
-| a := λ b hab hba, not_gt_of_lt hba hab
-using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
-                     dec_tac := tactic.assumption }
-
 protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
-⟨h.not_gt_of_lt⟩
+⟨h.asymmetric⟩
 
 instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
 has_well_founded.wf.is_asymm

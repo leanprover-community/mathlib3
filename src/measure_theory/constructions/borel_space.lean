@@ -804,7 +804,7 @@ instance topological_group.has_measurable_inv [group γ] [topological_group γ] 
 @[priority 100]
 instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
-  [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [opens_measurable_space M] [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
 ⟨λ c, (continuous_const_smul _).measurable,
   λ y, (continuous_id.smul continuous_const).measurable⟩
@@ -899,7 +899,7 @@ instance has_continuous_sub.has_measurable_sub₂ [second_countable_topology γ]
 instance has_continuous_smul.has_measurable_smul₂ {M α} [topological_space M]
   [second_countable_topology M] [measurable_space M] [opens_measurable_space M]
   [topological_space α] [second_countable_topology α] [measurable_space α]
-  [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul₂ M α :=
 ⟨continuous_smul.measurable⟩
 
@@ -1575,7 +1575,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
   set_mem := λ n,
     begin
       simp only [mem_Union, mem_singleton_iff],
-      refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
+      refine ⟨-(n + 1 : ℕ), n + 1, _, by simp⟩, -- TODO: norm_cast fails here?
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
   finite := λ n, measure_Ioo_lt_top,

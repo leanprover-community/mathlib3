@@ -159,7 +159,7 @@ variables [add_monoid β] [has_continuous_add β] (f g : C₀(α, β))
 | 0 := by rw [nsmul_rec, zero_smul, coe_zero]
 | (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
-instance has_nat_scalar : has_scalar ℕ C₀(α, β) :=
+instance has_nat_scalar : has_smul ℕ C₀(α, β) :=
 ⟨λ n f, ⟨n • f, by simpa [coe_nsmul_rec] using zero_at_infty (nsmul_rec n f)⟩⟩
 
 instance : add_monoid C₀(α, β) :=
@@ -190,7 +190,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 | (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
 | -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
-instance has_int_scalar : has_scalar ℤ C₀(α, β) :=
+instance has_int_scalar : has_smul ℤ C₀(α, β) :=
 ⟨λ n f, ⟨n • f, by simpa using zero_at_infty (zsmul_rec n f)⟩⟩
 
 instance : add_group C₀(α, β) :=
@@ -202,7 +202,7 @@ instance [add_comm_group β] [topological_add_group β] : add_comm_group C₀(α
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
-  [has_continuous_const_smul R β] : has_scalar R C₀(α, β) :=
+  [has_continuous_const_smul R β] : has_smul R C₀(α, β) :=
 ⟨λ r f, ⟨r • f, by simpa [smul_zero] using (zero_at_infty f).const_smul r⟩⟩
 
 @[simp] lemma coe_smul [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]

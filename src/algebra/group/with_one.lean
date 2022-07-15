@@ -393,6 +393,17 @@ end group
 instance [comm_group α] : comm_group_with_zero (with_zero α) :=
 { .. with_zero.group_with_zero, .. with_zero.comm_monoid_with_zero }
 
+instance [add_monoid_with_one α] : add_monoid_with_one (with_zero α) :=
+{ nat_cast := λ n, if n = 0 then 0 else (n.cast : α),
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, begin
+    cases n,
+    show (((1 : ℕ) : α) : with_zero α) = 0 + 1, by rw [nat.cast_one, coe_one, zero_add],
+    show (((n + 2 : ℕ) : α) : with_zero α) = ((n + 1 : ℕ) : α) + 1,
+    by rw [nat.cast_succ, coe_add, coe_one],
+  end,
+  .. with_zero.add_monoid, ..with_zero.has_one }
+
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin
     cases a with a, {refl},
@@ -405,6 +416,7 @@ instance [semiring α] : semiring (with_zero α) :=
     cases a with a; cases b with b; try {refl},
     exact congr_arg some (right_distrib _ _ _)
   end,
+  ..with_zero.add_monoid_with_one,
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
   ..with_zero.monoid_with_zero }

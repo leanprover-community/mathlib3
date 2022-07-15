@@ -156,9 +156,6 @@ begin
   rwa [← ennreal_mass, ennreal.coe_eq_zero],
 end
 
-@[simp] lemma mass_nonzero_iff_nonzero (μ : finite_measure α) : μ.mass ≠ 0 ↔ μ ≠ 0 :=
-by simpa [not_iff_not] using mass_zero_iff _
-
 @[ext] lemma extensionality (μ ν : finite_measure α)
   (h : ∀ (s : set α), measurable_set s → μ s = ν s) :
   μ = ν :=
@@ -257,10 +254,11 @@ begin
   exact λ x, ennreal.coe_mono (f_le_g x),
 end
 
-@[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) : (0 : finite_measure α).test_against_nn f = 0 :=
+@[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) :
+  (0 : finite_measure α).test_against_nn f = 0 :=
 by simp only [test_against_nn, coe_zero, lintegral_zero_measure, ennreal.zero_to_nnreal]
 
-@[simp] lemma zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
+lemma zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
 by { funext, simp only [zero.test_against_nn_apply, pi.zero_apply], }
 
 @[simp] lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :

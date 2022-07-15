@@ -26,8 +26,9 @@ type synonym.
 * `α ⊕ₗ β`:  The linear sum of `α` and `β`.
 -/
 
-namespace sum
 variables {α β γ δ : Type*}
+
+namespace sum
 
 /-! ### Unbundled relation classes -/
 
@@ -413,7 +414,7 @@ end sum
 open order_dual sum
 
 namespace order_iso
-variables {α β γ : Type*} [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
+variables [has_le α] [has_le β] [has_le γ] (a : α) (b : β) (c : γ)
 
 /-- `equiv.sum_comm` promoted to an order isomorphism. -/
 @[simps apply] def sum_comm (α β : Type*) [has_le α] [has_le β] : α ⊕ β ≃o β ⊕ α :=
@@ -527,9 +528,7 @@ end,
 
 end order_iso
 
-
-
-variables {α : Type*} [has_le α]
+variable [has_le α]
 
 namespace with_bot
 

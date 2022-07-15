@@ -308,7 +308,8 @@ end
 lemma is_sheaf_iff_is_sheaf_opens_le_cover :
   F.is_sheaf ↔ F.is_sheaf_opens_le_cover :=
 begin
-  rw presheaf.is_sheaf_iff_is_limit, split,
+  refine (presheaf.is_sheaf_iff_is_limit _ _).trans _,
+  split,
   { intros h ι U, rw (is_limit_opens_le_equiv_generate₁ F U rfl).nonempty_congr,
     apply h, apply presieve_of_covering.mem_grothendieck_topology },
   { intros h Y S, rw ← sieve.generate_sieve S, intro hS,

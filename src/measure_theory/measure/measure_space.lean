@@ -1019,6 +1019,31 @@ lemma tendsto_ae_map {f : α → β} (hf : ae_measurable f μ) : tendsto f μ.ae
 
 omit m0
 
+/-- Pullback of a `measure` as a linear map. If `f` sends each measurable set to a measurable
+set, then for each measurable set `s` we have `comapₗ f μ s = μ (f '' s)`.
+
+If the linearity is not needed, please use `comap` instead, which works for a larger class of
+functions. -/
+def comapₗ [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0∞] measure α :=
+if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
+  lift_linear (outer_measure.comap f) $ λ μ s hs t,
+  begin
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
+      image_diff hf.1],
+    apply le_to_outer_measure_caratheodory,
+    exact hf.2 s hs
+  end
+else 0
+
+lemma comapₗ_apply {β} [measurable_space α] {mβ : measurable_space β}
+  (f : α → β) (hfi : injective f)
+  (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = μ (f '' s) :=
+begin
+  rw [comapₗ, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
+  exact ⟨hfi, hf⟩
+end
+
 /-- Pullback of a `measure`. If `f` sends each measurable set to a null-measurable set,
 then for each measurable set `s` we have `comap f μ s = μ (f '' s)`. -/
 def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :=
@@ -1044,6 +1069,12 @@ lemma comap_apply {β} [measurable_space α] {mβ : measurable_space β} (f : α
   (hf : ∀ s, measurable_set s → measurable_set (f '' s)) (μ : measure β) (hs : measurable_set s) :
   comap f μ s = μ (f '' s) :=
 comap_apply₀ f μ hfi (λ s hs, (hf s hs).null_measurable_set) hs.null_measurable_set
+
+lemma comapₗ_eq_comap {β} [measurable_space α] {mβ : measurable_space β} (f : α → β)
+  (hfi : injective f) (hf : ∀ s, measurable_set s → measurable_set (f '' s))
+  (μ : measure β) (hs : measurable_set s) :
+  comapₗ f μ s = comap f μ s :=
+(comapₗ_apply f hfi hf μ hs).trans (comap_apply f hfi hf μ hs).symm
 
 /-! ### Restricting a measure -/
 

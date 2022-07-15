@@ -414,17 +414,16 @@ section support
 lemma support_C_mul_T (a : R) (n : ℤ) : (C a * T n).support ⊆ {n} :=
 by simpa only [← single_eq_C_mul_T] using support_single_subset
 
-lemma support_C_mul_T_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
+lemma support_C_mul_T_of_ne_zero {a : R} (a0 : a ≠ 0) (n : ℤ) : (C a * T n).support = {n} :=
 begin
   rw ← single_eq_C_mul_T,
   exact support_single_ne_zero _ a0,
 end
 
-lemma support_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
-  (f * T n).support = f.support.map (add_right_embedding n) :=
-f.support_mul_single 1 (by simp) n
-
-@[simp] lemma to_laurent_support (f : R[X]) :
+/--  The support of a polynomial `f` is a finset in `ℕ`.  The lemma `to_laurent_support f`
+shows that the support of `f.to_laurent` is the same finset, but viewed in `ℤ` under the natural
+inclusion `ℕ ↪ ℤ`. -/
+lemma to_laurent_support (f : R[X]) :
   f.to_laurent.support = f.support.map nat.cast_embedding :=
 begin
   generalize' hd : f.support = s,
@@ -438,7 +437,7 @@ begin
     rw [← monomial_add_erase f a, finset.map_insert, ← this, map_add,
       polynomial.to_laurent_C_mul_T, support_add_eq, finset.insert_eq],
     { congr,
-      exact support_C_mul_T_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
+      exact support_C_mul_T_of_ne_zero (polynomial.mem_support_iff.mp (by simp [fs])) _ },
     { rw this,
       exact disjoint.mono_left (support_C_mul_T _ _) (by simpa) } }
 end
@@ -497,7 +496,7 @@ section exact_degrees
 
 open_locale classical
 
-lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
+@[simp] lemma degree_C_mul_T (n : ℤ) (a : R) (a0 : a ≠ 0) : (C a * T n).degree = n :=
 begin
   rw degree,
   convert finset.max_singleton,
@@ -506,7 +505,11 @@ begin
     and_self],
 end
 
-lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
+lemma degree_C_mul_T_ite (n : ℤ) (a : R) : (C a * T n).degree = ite (a = 0) ⊥ n :=
+by split_ifs with h h;
+  simp only [h, map_zero, zero_mul, degree_zero, degree_C_mul_T, ne.def, not_false_iff]
+
+@[simp] lemma degree_T [nontrivial R] (n : ℤ) : (T n : R[T;T⁻¹]).degree = n :=
 begin
   rw [← one_mul (T n), ← map_one C],
   exact degree_C_mul_T n 1 (one_ne_zero : (1 : R) ≠ 0),

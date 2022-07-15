@@ -20,14 +20,14 @@ coincide with the standard one:
   coefficient in `f`, or `⊤`, if `f = 0`.
 
 The main results are
-* `max_degree_mul_le` -- the max-degree of a product is at most the sum of the max-degrees,
-* `le_min_degree_mul` -- the min-degree of a product is at least the sum of the min-degrees,
-* `max_degree_add_le` -- the max-degree of a sum is at most the sup of the max-degrees,
-* `le_min_degree_add` -- the min-degree of a sum is at least the inf of the min-degrees.
+* `add_monoid_algebra.max_degree_mul_le`: the max-degree of a product is at most the sum of the max-degrees,
+* `add_monoid_algebra.le_min_degree_mul`: the min-degree of a product is at least the sum of the min-degrees,
+* `add_monoid_algebra.max_degree_add_le`: the max-degree of a sum is at most the sup of the max-degrees,
+* `le_min_degree_add`: the min-degree of a sum is at least the inf of the min-degrees.
 
 ## Implementation notes
 
-The current plan is to state and prove lemmas about `finset.support_sup` with a "generic"
+The current plan is to state and prove lemmas about `finset.sup (finsupp.support f) D` with a "generic"
 degree/weight function `D` from the grading Type `A` to a somewhat ordered Type `B`.
 
 Next, the general lemmas get specialized twice:
@@ -44,6 +44,9 @@ variables {R A B ι : Type*} [semilattice_sup B] [order_bot B]
 
 namespace add_monoid_algebra
 open_locale classical big_operators
+
+
+/-! ### Results about the `finset.sup` and `finset.inf` of `finsupp.support` -/
 
 section general_results_assuming_semilattice_sup
 
@@ -100,11 +103,9 @@ lemma sup_support_pow_le [comm_semiring R] [add_monoid A] [add_monoid B]
   (f : add_monoid_algebra R A) :
   (f ^ n).support.sup D ≤ n • (f.support.sup D) :=
 begin
-  induction n with n hn,
-  { simp only [pow_zero, zero_smul, finset.sup_le_iff],
-    exact λ a ha, by rwa finset.mem_singleton.mp (finsupp.support_single_subset ha) },
-  { rw [pow_succ, succ_nsmul],
-    exact (sup_support_mul_le Dm _ _).trans (add_le_add rfl.le hn) }
+  rw [← list.prod_repeat, ←list.sum_repeat],
+  refine (sup_support_list_prod_le D0 Dm _).trans_eq _,
+  rw list.map_repeat,
 end
 
 variables [comm_semiring R] [add_comm_monoid A] [add_comm_monoid B]
@@ -124,13 +125,14 @@ lemma sup_support_finset_prod_le
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
   (s : finset ι) (f : ι → add_monoid_algebra R A):
   (∏ i in s, f i).support.sup D ≤ ∑ i in s, (f i).support.sup D :=
-begin
-  refine (sup_support_multiset_prod_le D0 Dm _).trans (le_of_eq _),
-  simp only [multiset.map_map, function.comp_app],
-  refl,
-end
+(sup_support_multiset_prod_le D0 Dm _).trans_eq $ congr_arg _ $ multiset.map_map _ _ _
 
 end general_results_assuming_semilattice_sup
+
+
+/-! ### Shorthands for special cases
+
+Note that these definitions are reducible, in order to make it easier to apply the more generic lemmas above -/
 
 section degrees
 

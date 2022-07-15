@@ -304,7 +304,7 @@ corners `I.prod I'` on `(E × E', model_prod H H')`. This appears in particular 
 structure on the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on
 `(E × E, H × E)`. See note [Manifold type tags] for explanation about `model_prod H H'`
 vs `H × H'`. -/
-@[simps] def model_with_corners.prod
+@[simps (lemmas_only)] def model_with_corners.prod
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H)

@@ -343,17 +343,16 @@ by simpa using T_pow_mul_apply_one (-1) g
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
-@[simp] lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
+lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
 by rw [←coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re]
 
-@[simp] lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
+lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
 by rw [←coe_im, coe_T_zpow_smul_eq, add_im, int_cast_im, add_zero, coe_im]
 
-@[simp] lemma re_T_smul : (T • z).re = z.re + 1 := by simpa using re_T_zpow_smul z 1
-@[simp] lemma im_T_smul : (T • z).im = z.im := by simpa using im_T_zpow_smul z 1
-
-@[simp] lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 := by simpa using re_T_zpow_smul z (-1)
-@[simp] lemma im_T_inv_smul : (T⁻¹ • z).im = z.im := by simpa using im_T_zpow_smul z (-1)
+lemma re_T_smul : (T • z).re = z.re + 1 := by simpa using re_T_zpow_smul z 1
+lemma im_T_smul : (T • z).im = z.im := by simpa using im_T_zpow_smul z 1
+lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 := by simpa using re_T_zpow_smul z (-1)
+lemma im_T_inv_smul : (T⁻¹ • z).im = z.im := by simpa using im_T_zpow_smul z (-1)
 
 variables {z}
 

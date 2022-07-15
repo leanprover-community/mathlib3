@@ -45,7 +45,8 @@ namespace pointed_smooth_map
 instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ (λ _, M → 𝕜) :=
 cont_mdiff_map.has_coe_to_fun
 instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_ring
-instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.algebra
+-- times out without the `show`
+instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := show algebra 𝕜 C^∞⟮I, M; 𝕜⟯, from smooth_map.algebra
 instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯⟨x⟩ := ⟨0⟩
 instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := algebra.id C^∞⟮I, M; 𝕜⟯
 instance {x : M} : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := is_scalar_tower.right

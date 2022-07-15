@@ -106,8 +106,9 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
 
 section composition
 
-lemma convex_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
-  {g : β → F} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 (f '' s) g)
+variables [has_smul 𝕜 F] [ordered_add_comm_monoid F]
+
+lemma convex_on.comp {g : β → F} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 (f '' s) g)
   (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy a b ha hb hsum,
   (hg'
@@ -116,8 +117,7 @@ lemma convex_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
     (hf.right hx hy ha hb hsum)).trans $
   hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum⟩
 
-lemma concave_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
-  {g : β → F} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 (f '' s) g)
+lemma concave_on.comp {g : β → F} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 (f '' s) g)
   (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy a b ha hb hsum,
   ge_trans
@@ -126,6 +126,27 @@ lemma concave_on.comp [has_smul 𝕜 F] [ordered_add_comm_monoid F]
       (mem_image_of_mem f $ hf.left hx hy ha hb hsum)
       (hf.right hx hy ha hb hsum))
     (hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)⟩
+
+lemma strict_convex_on.comp {g : β → F} (hf : strict_convex_on 𝕜 s f) (hf' : inj_on f s)
+  (hg : strict_convex_on 𝕜 (f '' s) g) (hg' : strict_mono_on g (f '' s)) :
+  strict_convex_on 𝕜 s (g ∘ f) :=
+⟨hf.left, λ x y hx hy hne a b ha hb hsum,
+  (hg'
+    (mem_image_of_mem f $ hf.left hx hy (le_of_lt ha) (le_of_lt hb) hsum)
+    (hg.left (mem_image_of_mem f hx) (mem_image_of_mem f hy) (le_of_lt ha) (le_of_lt hb) hsum)
+    (hf.right hx hy hne ha hb hsum)).trans $
+  hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hne) ha hb hsum⟩
+
+lemma strict_concave_on.comp {g : β → F} (hf : strict_concave_on 𝕜 s f) (hf' : inj_on f s)
+  (hg : strict_concave_on 𝕜 (f '' s) g) (hg' : strict_mono_on g (f '' s)) :
+  strict_concave_on 𝕜 s (g ∘ f) :=
+⟨hf.left, λ x y hx hy hne a b ha hb hsum,
+  gt_trans
+    (hg'
+      (hg.left (mem_image_of_mem f hx) (mem_image_of_mem f hy) (le_of_lt ha) (le_of_lt hb) hsum)
+      (mem_image_of_mem f $ hf.left hx hy (le_of_lt ha) (le_of_lt hb) hsum)
+      (hf.right hx hy hne ha hb hsum))
+    (hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hne) ha hb hsum)⟩
 
 end composition
 end has_smul

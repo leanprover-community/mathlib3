@@ -143,189 +143,45 @@ function.injective.semilattice_inf extension_of.to_linear_pmap
     linear_pmap.ext rfl $ λ x, rfl
 
 variables {R i f}
-lemma chain_submodule_of_chain_extension_of
+
+lemma chain_linear_pmap_of_chain_extension_of
   {c : set (extension_of i f)} (hchain : is_chain (≤) c) :
-  (is_chain (≤) $ (λ x : extension_of i f, x.domain) '' c) :=
+  (is_chain (≤) $ (λ x : extension_of i f, x.to_linear_pmap) '' c) :=
 begin
-  rintro _ ⟨a, a_mem, rfl⟩ _ ⟨b, b_mem, rfl⟩ (neq : a.domain ≠ b.domain),
-  rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with ⟨⟨le1, -⟩⟩ | ⟨⟨le1, -⟩⟩;
-  tauto,
-end
-
-lemma submodule_le_of_extension_of_le {a b : extension_of i f} (le1 : a ≤ b) :
-  a.domain ≤ b.domain := le1.left
-
-lemma directed_on_of_chain {c : set (extension_of i f)} (hchain : is_chain (≤) c) :
-  directed_on (≤) $ (λ x : extension_of i f, x.domain) '' c :=
-directed_on_iff_directed.mpr $ (chain_submodule_of_chain_extension_of hchain).directed
-
-lemma nonempty_of_extension_of {c : set (extension_of i f)} (hnonempty : c.nonempty) :
-  ((λ x : extension_of i f, x.domain) '' c).nonempty :=
-hnonempty.image _
-
-/--For a nonempty chain of extensions of `f`, if `y` is in the supremum of underlying submodules of
-the extensions in chain, then `y` is at least one of the underlying submodule in that chain.
-`pick_submodule` picks that submodule-/
-def pick_submodule {c : set (extension_of i f)} (hchain : is_chain (≤) c)
-  (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of i f, x.domain) '' c)) :
-  submodule R N :=
-((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
-  (directed_on_of_chain hchain)).mp y.2).some
-
-lemma pick_submodule_mem_image {c : set (extension_of i f)} (hchain : is_chain (≤) c)
-  (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of i f, x.domain) '' c)) :
-  pick_submodule hchain hnonempty y ∈ ((λ x : extension_of i f, x.domain) '' c) :=
-((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
-  (directed_on_of_chain hchain)).mp y.2).some_spec.some
-
-/--The submodule picked by `pick_submodule` is the underlying submodule of an element in the chain,
-i.e. underlying submodule of some `extension_of f`, `pick_extension_of` picks that extension.
--/
-def pick_extension_of {c : set (extension_of i f)} (hchain : is_chain (≤) c)
-  (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of i f, x.domain) '' c)) :
-  extension_of i f :=
-((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
-  (directed_on_of_chain hchain)).mp y.2).some_spec.some.some
-
-lemma pick_extension_of_mem {c : set (extension_of i f)} (hchain : is_chain (≤) c)
-  (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of i f, x.domain) '' c)) :
-  pick_extension_of hchain hnonempty y ∈ c :=
-((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
-  (directed_on_of_chain hchain)).mp y.2).some_spec.some.some_spec.1
-
-lemma pick_extension_of_to_submodule_mem
-  {c : set (extension_of i f)} (hchain : is_chain (≤) c)
-  (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of i f, x.domain) '' c)) :
-  y.1 ∈ (pick_extension_of hchain hnonempty y).domain :=
-begin
-  unfold pick_extension_of,
-  generalize_proofs h mem1,
-  convert h.some_spec.some_spec,
-  exact mem1.some_spec.2,
-end
-
-lemma pick_submodule_mem {c : set (extension_of i f)} (hchain : is_chain (≤) c)
-  (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of i f, x.domain) '' c)) :
-  y.1 ∈ pick_submodule hchain hnonempty y :=
-((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
-  (directed_on_of_chain hchain)).mp y.2).some_spec.some_spec
-
-/--Every nonempty chain of `extension_of` f has a maximal element, i.e. a pair of `(N', f')`, where
-all underlying submodule is submodule of `M'` and `f'` extends all functions. `max_extension` is
-this maximal function, it is defined by taking union of all functions in the chain.
--/
-def extension_of.max_extension {c : set (extension_of i f)}
-  (hchain : is_chain (≤) c) (hnonempty : c.nonempty) :
-  Sup ((λ x : extension_of i f, x.domain) '' c) → Q :=
-λ y, (pick_extension_of hchain hnonempty y).to_fun
-  ⟨y.1, by apply pick_extension_of_to_submodule_mem⟩
-
-lemma extension_of.max_extension_property {c : set (extension_of i f)}
-  (hchain : is_chain (≤) c) (hnonempty : c.nonempty)
-  (x : Sup ((λ x : extension_of i f, x.domain) '' c))
-  {γ : extension_of i f} (mem1 : γ ∈ c)
-  (mem2 : ↑x ∈ γ.domain) :
-  extension_of.max_extension hchain hnonempty x = γ.to_fun ⟨x, mem2⟩ :=
-begin
-  unfold extension_of.max_extension,
-  generalize_proofs mem3,
-  by_cases eq_ineq : pick_extension_of hchain hnonempty x = γ,
-  { rw extension_of.ext_iff at eq_ineq,
-    rcases eq_ineq with ⟨h1, h2⟩,
-    convert h2 _, },
-  { rcases hchain (pick_extension_of_mem hchain hnonempty x) mem1 eq_ineq with ⟨⟨_, h1⟩⟩|⟨⟨_, h1⟩⟩;
-    erw @h1 ⟨x.1, mem3⟩ ⟨x, mem2⟩ (by refl) <|> erw @h1 ⟨x, mem2⟩ ⟨x.1, mem3⟩ (by refl);
-    congr, },
-end
-
-lemma extension_of.max_extension.map_add {c : set (extension_of i f)}
-  (hchain : is_chain (≤) c) (hnonempty : c.nonempty) (y1 y2):
-  extension_of.max_extension hchain hnonempty (y1 + y2) =
-  extension_of.max_extension hchain hnonempty y1 +
-  extension_of.max_extension hchain hnonempty y2 :=
-begin
-  have mem_y1 := pick_extension_of_to_submodule_mem hchain hnonempty y1,
-  have mem_y2 := pick_extension_of_to_submodule_mem hchain hnonempty y2,
-  have mem_add :=  pick_extension_of_to_submodule_mem hchain hnonempty (y1 + y2),
-  rw extension_of.max_extension_property hchain hnonempty y1
-    (pick_submodule_mem_image hchain hnonempty y1).some_spec.1 mem_y1,
-  rw extension_of.max_extension_property hchain hnonempty y2
-    (pick_submodule_mem_image hchain hnonempty y2).some_spec.1 mem_y2,
-  rw extension_of.max_extension_property hchain hnonempty _
-    (pick_submodule_mem_image hchain hnonempty _).some_spec.1
-    (by convert mem_add : ↑(y1 + y2) ∈
-      (pick_extension_of hchain hnonempty (y1 + y2)).to_linear_pmap.domain),
-  generalize_proofs hadd hy1 hy2,
-  have := is_chain.exists3 hchain hadd.some_spec.1 hy1.some_spec.1 hy2.some_spec.1,
-  rcases this with ⟨X, hX, ⟨h10, h11⟩, ⟨h20, h21⟩, ⟨h30, h31⟩⟩,
-  specialize @h21 ⟨y1, mem_y1⟩ ⟨y1, h20 mem_y1⟩ (by refl),
-  specialize @h31 ⟨y2, mem_y2⟩ ⟨y2, h30 mem_y2⟩ (by refl),
-  have := congr_arg2 (+) h21 h31,
-  erw [this, ←map_add, @h11 ⟨y1 + y2, mem_add⟩ (⟨y1, h20 mem_y1⟩ + ⟨y2, h30 mem_y2⟩) (by refl)],
-  congr,
-end
-
-lemma extension_of.max_extension.map_smul {c : set (extension_of i f)}
-  (hchain : is_chain (≤) c) (hnonempty : c.nonempty) (r : R) (y):
-  extension_of.max_extension hchain hnonempty (r • y) =
-  r • extension_of.max_extension hchain hnonempty y :=
-begin
-  have mem_y := pick_extension_of_to_submodule_mem hchain hnonempty y,
-  have mem_smul := pick_extension_of_to_submodule_mem hchain hnonempty (r • y),
-  rw extension_of.max_extension_property hchain hnonempty y
-    (pick_submodule_mem_image hchain hnonempty y).some_spec.1 mem_y,
-  rw extension_of.max_extension_property hchain hnonempty (r • y)
-    (pick_submodule_mem_image hchain hnonempty (r • y)).some_spec.1 mem_smul,
-  generalize_proofs inst hsmul hy,
-  rcases (directed_on_iff_directed.mpr (is_chain.directed hchain) : directed_on (≤) c) _
-    hsmul.some_spec.1 _ hy.some_spec.1 with
-    ⟨X, hX, ⟨h10, h1⟩, ⟨h20, h2⟩⟩,
-  erw [@h1 ⟨r • y, mem_smul⟩ ⟨r • y, h10 mem_smul⟩ (by refl),
-    @h2 ⟨y, mem_y⟩ ⟨y, h20 mem_y⟩ (by refl), ←linear_map.map_smul],
-  congr,
+  rintro _ ⟨a, a_mem, rfl⟩ _ ⟨b, b_mem, rfl⟩ neq,
+  rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with ⟨⟨le1, le2⟩⟩ | ⟨⟨le1, le2⟩⟩,
+  { left, exact ⟨le1, le2⟩, },
+  { right, exact ⟨le1, le2⟩, },
 end
 
 /--The maximal element of every nonempty chain of `extension_of` f-/
 def extension_of.max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) :
   extension_of i f :=
-{ domain := Sup ((λ x : extension_of i f, x.domain) '' c),
-  le := begin
-    cases hnonempty with j hj,
-    exact le_trans j.le (le_Sup ⟨j, hj, rfl⟩),
-  end,
-  to_fun :=
-  { to_fun := extension_of.max_extension hchain hnonempty,
-    map_add' := extension_of.max_extension.map_add hchain hnonempty,
-    map_smul' := extension_of.max_extension.map_smul hchain hnonempty },
+{ le := le_trans hnonempty.some.le $ (linear_pmap.le_Sup _ $ begin
+    rw set.mem_image,
+    exact ⟨hnonempty.some, hnonempty.some_spec, rfl⟩,
+  end).1,
   is_extension := λ m, begin
+    refine eq.trans (hnonempty.some.is_extension m) _,
     dsimp,
-    generalize_proofs im_mem,
-    change _ = (pick_submodule_mem_image hchain hnonempty ⟨i m, im_mem⟩).some.to_fun _,
-    generalize_proofs mem_image mem_submodule,
-    rw (Exists.some mem_image).is_extension m,
-    congr,
-  end }
+    symmetry,
+    generalize_proofs _ h0 h1,
+    erw linear_pmap.Sup_apply
+      (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) begin
+        rw set.mem_image,
+        exact ⟨hnonempty.some, hnonempty.some_spec, rfl⟩,
+      end ⟨i m, h1⟩,
+  end,
+  ..linear_pmap.Sup (extension_of.to_linear_pmap '' c)
+    (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) }
 
 lemma extension_of.le_max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (a : extension_of i f) (ha : a ∈ c) :
   a ≤ extension_of.max hchain hnonempty :=
-begin
-  unfold extension_of.max extension_of.max_extension,
-  refine ⟨le_Sup ⟨a, ha, rfl⟩, _⟩,
-  dsimp at *,
-  intros x y h,
-  generalize_proofs mem1,
-  by_cases eq_ineq : pick_extension_of hchain hnonempty y = a,
-  { rcases (extension_of.ext_iff i f _ _).mp eq_ineq with ⟨h1, h2⟩,
-    erw h2 ⟨y, _⟩,
-    congr,
-    ext,
-    exact h, },
-  { rcases hchain (pick_extension_of_mem hchain hnonempty _) ha eq_ineq with
-      ⟨⟨le1, h1⟩⟩|⟨le1, h1⟩,
-    symmetry,
-    all_goals { convert h1 _; exact h.symm <|> exact h }, },
+linear_pmap.le_Sup (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) begin
+  rw set.mem_image,
+  exact ⟨a, ha, rfl⟩,
 end
 
 lemma extension_of.aux1 : ∀ (c : set (extension_of i f)),

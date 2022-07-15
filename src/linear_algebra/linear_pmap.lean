@@ -391,6 +391,15 @@ le_of_eq_locus_ge $ Sup_le $ λ _ ⟨f, hf, eq⟩, eq ▸
 have f ≤ (linear_pmap.Sup c hc) ⊓ g, from le_inf (linear_pmap.le_Sup _ hf) (hg f hf),
 this.1
 
+protected lemma Sup_apply {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
+  {l : linear_pmap R E F} (hl : l ∈ c) (x : l.domain) :
+  (linear_pmap.Sup c hc) ⟨x, (linear_pmap.le_Sup hc hl).1 x.2⟩ = l x :=
+begin
+  symmetry,
+  apply (classical.some_spec (Sup_aux c hc) hl).2,
+  refl,
+end
+
 end linear_pmap
 
 namespace linear_map

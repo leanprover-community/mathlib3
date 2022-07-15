@@ -142,6 +142,10 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
+lemma set_integral_indicator (ht : measurable_set t) :
+  ∫ x in s, t.indicator f x ∂μ = ∫ x in s ∩ t, f x ∂μ :=
+by rw [integral_indicator ht, measure.restrict_restrict ht, set.inter_comm]
+
 lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
   {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
   ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
@@ -447,6 +451,14 @@ lemma set_integral_mono_set (hfi : integrable_on f t μ) (hf : 0 ≤ᵐ[μ.restr
   (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 integral_mono_measure (measure.restrict_mono_ae hst) hf hfi
+
+lemma set_integral_ge_of_const_le {c : ℝ} (hs : measurable_set s) (hμs : μ s ≠ ∞)
+  (hf : ∀ x ∈ s, c ≤ f x) (hfint : integrable_on (λ (x : α), f x) s μ) :
+  c * (μ s).to_real ≤ ∫ x in s, f x ∂μ :=
+begin
+  rw [mul_comm, ← smul_eq_mul, ← set_integral_const c],
+  exact set_integral_mono_on (integrable_on_const.2 (or.inr hμs.lt_top)) hfint hs hf,
+end
 
 end mono
 

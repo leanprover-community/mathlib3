@@ -563,7 +563,7 @@ begin
   rw [degree, support_update],
   split_ifs,
   { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
-  { rw [sup_insert, max_comm],
+  { rw [max_insert, max_comm],
     exact le_rfl },
 end
 
@@ -837,7 +837,8 @@ by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-by simp only [degree, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le, not_imp_comm]
+by simp only [degree, finset.max, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le,
+    not_imp_comm]
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=

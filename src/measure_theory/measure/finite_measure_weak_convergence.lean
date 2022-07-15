@@ -148,16 +148,15 @@ instance has_zero : has_zero (finite_measure α) :=
 @[simp] lemma zero.mass : (0 : finite_measure α).mass = 0 :=
 by { simp only [mass], refl, }
 
-lemma mass_zero_iff (μ : finite_measure α) : μ.mass = 0 ↔ μ = 0 :=
+@[simp] lemma mass_zero_iff (μ : finite_measure α) : μ.mass = 0 ↔ μ = 0 :=
 begin
-  refine ⟨_, (λ hμ, by simp only [hμ, zero.mass])⟩,
-  intro μ_mass,
+  refine ⟨λ μ_mass, _, (λ hμ, by simp only [hμ, zero.mass])⟩,
   ext1,
   apply measure.measure_univ_eq_zero.mp,
   rwa [← ennreal_mass, ennreal.coe_eq_zero],
 end
 
-lemma mass_nonzero_iff_nonzero (μ : finite_measure α) : μ.mass ≠ 0 ↔ μ ≠ 0 :=
+@[simp] lemma mass_nonzero_iff_nonzero (μ : finite_measure α) : μ.mass ≠ 0 ↔ μ ≠ 0 :=
 by simpa [not_iff_not] using mass_zero_iff _
 
 @[ext] lemma extensionality (μ ν : finite_measure α)
@@ -208,7 +207,7 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
 function.injective.module _ coe_add_monoid_hom coe_injective coe_smul
 
-lemma coe_fn_smul_apply [is_scalar_tower R ℝ≥0 ℝ≥0]
+@[simp] lemma coe_fn_smul_apply [is_scalar_tower R ℝ≥0 ℝ≥0]
   (c : R) (μ : finite_measure α) (s : set α) :
   (c • μ) s  = c • (μ s) :=
 by { simp only [coe_fn_smul, pi.smul_apply], }
@@ -258,13 +257,13 @@ begin
   exact λ x, ennreal.coe_mono (f_le_g x),
 end
 
-lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) : (0 : finite_measure α).test_against_nn f = 0 :=
+@[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) : (0 : finite_measure α).test_against_nn f = 0 :=
 by simp only [test_against_nn, coe_zero, lintegral_zero_measure, ennreal.zero_to_nnreal]
 
 @[simp] lemma zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
 by { funext, simp only [zero.test_against_nn_apply, pi.zero_apply], }
 
-lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+@[simp] lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   (c • μ).test_against_nn f  = c • (μ.test_against_nn f) :=
 begin
   simp only [test_against_nn, coe_smul, smul_eq_mul ℝ≥0, ← ennreal.smul_to_nnreal],

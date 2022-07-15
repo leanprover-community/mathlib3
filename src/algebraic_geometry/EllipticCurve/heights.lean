@@ -19,9 +19,6 @@ open_locale big_operators classical
 ----------------------------------------------------------------------------------------------------
 /-! ## Lemmas -/
 
-lemma int.coe_nat_max {m n : ℕ} : ((max m n : ℕ) : ℤ) = max m n :=
-by simpa only [← int.nat_cast_eq_coe_nat] using nat.cast_max
-
 lemma zero_le_three {α : Type} [ordered_semiring α] : (0 : α) ≤ 3 :=
 add_nonneg zero_le_two zero_le_one
 
@@ -115,7 +112,7 @@ end
 lemma eq_zero_iff :
   padic_val_rat p q = 0 ↔ padic_val_int p q.num = 0 ∧ padic_val_nat p q.denom = 0 :=
 begin
-  rw [padic_val_rat, sub_eq_zero, int.coe_nat_inj'],
+  rw [padic_val_rat, sub_eq_zero, nat.cast_inj],
   split,
   { intro hq,
     cases num_or_denom_eq_zero p q,
@@ -128,7 +125,7 @@ end
 lemma eq_num.tfae : tfae [padic_val_rat p q = padic_val_int p q.num,
   padic_val_nat p q.denom = 0, 0 ≤ padic_val_rat p q] :=
 begin
-  rw [padic_val_rat, sub_eq_self, int.coe_nat_eq_zero, sub_nonneg, int.coe_nat_le],
+  rw [padic_val_rat, sub_eq_self, nat.cast_eq_zero, sub_nonneg, nat.cast_le],
   tfae_have : 1 ↔ 2,
   { refl },
   tfae_have : 2 → 3,
@@ -172,7 +169,7 @@ end
 lemma eq_denom.tfae : tfae [padic_val_rat p q = -padic_val_nat p q.denom,
   padic_val_int p q.num = 0, padic_val_rat p q ≤ 0] :=
 begin
-  rw [padic_val_rat, sub_eq_neg_self, int.coe_nat_eq_zero, sub_nonpos, int.coe_nat_le],
+  rw [padic_val_rat, sub_eq_neg_self, nat.cast_eq_zero, sub_nonpos, nat.cast_le],
   tfae_have : 1 ↔ 2,
   { refl },
   tfae_have : 2 → 3,
@@ -234,7 +231,7 @@ begin
   apply_fun padic_val_rat p at w,
   by_cases hx3Ax : x ^ 3 + A * x = 0,
   { rw [padic_val_rat.pow p hy, hx3Ax, zero_add, padic_val_rat.of_int] at w,
-    exact (mul_nonneg_iff_right_nonneg_of_pos two_pos).mp (w.symm ▸ int.coe_nat_nonneg _) },
+    exact (mul_nonneg_iff_right_nonneg_of_pos two_pos).mp (w.symm ▸ nat.cast_nonneg _) },
   have hx : x ≠ 0 :=
   begin
     rintro rfl,
@@ -248,14 +245,14 @@ begin
   begin
     by_cases hA : (A : ℚ) = 0,
     { rw [hA, zero_mul, padic_val_rat.zero] },
-    { simpa only [padic_val_rat.mul p hA hx, padic_val_rat.of_int]
-      using add_nonneg (int.coe_nat_nonneg _) hpx }
+    { rw [padic_val_rat.mul p hA hx, padic_val_rat.of_int],
+      exact add_nonneg (nat.cast_nonneg _) hpx }
   end,
   have hpB : 0 ≤ padic_val_rat p B :=
   begin
     by_cases hB : (B : ℚ) = 0,
     { rw [hB, padic_val_rat.zero] },
-    { simpa only [padic_val_rat.of_int] using int.coe_nat_nonneg _ }
+    { simpa only [padic_val_rat.of_int] using nat.cast_nonneg _ }
   end,
   have hpy2 : 0 ≤ padic_val_rat p (x ^ 3 + A * x + B) :=
   le_trans' (padic_val_rat.min_le_padic_val_rat_add p hx3AxB)
@@ -273,9 +270,9 @@ begin
     intro hx3Ax,
     rw [add_eq_zero_iff_eq_neg] at hx3Ax,
     have hA : (A : ℚ) ≠ 0 := λ hA, by { rw [hA, zero_mul] at hx3Ax, exact hx (pow_eq_zero hx3Ax) },
-    have hpA : 0 ≤ (padic_val_int p A : ℤ) := int.coe_nat_nonneg _,
+    have hpA : 0 ≤ (padic_val_int p A : ℤ) := nat.cast_nonneg _,
     apply_fun padic_val_rat p at hx3Ax,
-    rw [padic_val_rat.pow p hx, int.coe_nat_succ, add_mul, one_mul, padic_val_rat.neg,
+    rw [padic_val_rat.pow p hx, nat.cast_succ, add_mul, one_mul, padic_val_rat.neg,
         padic_val_rat.mul p hA hx, add_right_cancel_iff, padic_val_rat.of_int] at hx3Ax,
     rw [← hx3Ax] at hpA,
     exact not_lt_of_le (nonneg_of_mul_nonneg_left hpA two_pos) hpx
@@ -286,16 +283,16 @@ begin
     rw [padic_val_rat.pow p hx],
     by_cases hA : (A : ℚ) = 0,
     { simpa only [hA, zero_mul, padic_val_rat.zero] using mul_neg_of_pos_of_neg three_pos hpx },
-    rw [int.coe_nat_succ, add_mul, one_mul, padic_val_rat.mul p hA hx, add_lt_add_iff_right,
+    rw [nat.cast_succ, add_mul, one_mul, padic_val_rat.mul p hA hx, add_lt_add_iff_right,
         padic_val_rat.of_int],
-    exact lt_of_lt_of_le (mul_neg_of_pos_of_neg two_pos hpx) (int.coe_nat_nonneg _)
+    exact lt_of_lt_of_le (mul_neg_of_pos_of_neg two_pos hpx) (nat.cast_nonneg _)
   end,
   have hx3AxB : x ^ 3 + A * x + B ≠ 0 :=
   begin
     intro hx3AxB,
     rw [add_eq_zero_iff_eq_neg] at hx3AxB,
     have hB : (B : ℚ) ≠ 0 := λ hB, by { rw [hB] at hx3AxB, exact hx3Ax hx3AxB },
-    have hpB : 0 ≤ (padic_val_int p B : ℤ) := int.coe_nat_nonneg _,
+    have hpB : 0 ≤ (padic_val_int p B : ℤ) := nat.cast_nonneg _,
     apply_fun padic_val_rat p at hx3AxB,
     rw [hpx3Ax, padic_val_rat.pow p hx, padic_val_rat.neg, padic_val_rat.of_int] at hx3AxB,
     rw [← hx3AxB] at hpB,
@@ -309,7 +306,7 @@ begin
     by_cases hB : (B : ℚ) = 0,
     { simpa only [hB, padic_val_rat.zero] using mul_neg_of_pos_of_neg three_pos hpx },
     rw [padic_val_rat.of_int],
-    exact lt_of_lt_of_le (mul_neg_of_pos_of_neg three_pos hpx) (int.coe_nat_nonneg _)
+    exact lt_of_lt_of_le (mul_neg_of_pos_of_neg three_pos hpx) (nat.cast_nonneg _)
   end,
   have hy : y ≠ 0 := ne_zero_pow two_ne_zero (w.symm ▸ hx3AxB),
   apply_fun padic_val_rat p at w,
@@ -427,7 +424,7 @@ def height : E⟮ℚ⟯ → ℝ
 rfl
 
 lemma height_pos' (x : ℚ) : 0 < max (|x.num|) (|x.denom|) :=
-lt_max_of_lt_right $ abs_pos_of_pos $ int.coe_nat_pos.mpr x.pos
+lt_max_of_lt_right $ abs_pos_of_pos $ nat.cast_pos.mpr x.pos
 
 lemma height_pos (x : ℚ) : (0 : ℝ) < max (|x.num|) (|x.denom|) :=
 by simpa only [← @int.cast_pos ℝ] with push_cast using height_pos' x
@@ -474,8 +471,8 @@ begin
           int.to_nat_of_nonneg hn'.1, int.of_nat_eq_coe, int.to_nat_of_nonneg hn'.2,
           add_right_cancel_iff] at hnn,
       { exact hnn },
-      all_goals { rw [nat.lt_add_one_iff, int.to_nat_le, int.coe_nat_mul, ← int.nat_cast_eq_coe_nat,
-                      nat.cast_two, nat.cast_floor_eq_int_floor $ le_of_lt $ C.exp_pos, two_mul,
+      all_goals { rw [nat.lt_add_one_iff, int.to_nat_le, nat.cast_mul, nat.cast_two,
+                      nat.cast_floor_eq_int_floor $ le_of_lt $ C.exp_pos, two_mul,
                       add_le_add_iff_right] },
       { exact hn.2 },
       { exact hn.1 }
@@ -662,7 +659,7 @@ begin
       split_ifs with hx hy,
       { by_cases hxy : ((y - y') * (x - x')⁻¹) ^ 2 - x - x' = 0,
         { rw [height_some, hxy, rat.num_zero, int.cast_zero, abs_zero, rat.denom_zero, nat.cast_one,
-              abs_one, max_eq_right $ @zero_le_one ℝ _, real.log_one],
+              abs_one, max_eq_right $ @zero_le_one ℝ _ _ _ _, real.log_one],
           exact le_add_of_nonneg_of_le (mul_nonneg zero_le_two $ height_nonneg _)
             (le_max_of_le_left $ height_nonneg _) },
         rcases padic_val_point.denom sw with ⟨d, hxd, hyd⟩,
@@ -707,10 +704,10 @@ begin
           rw [hxd, nat.cast_pow],
           calc (|(((y - y') * (x - x')⁻¹) ^ 2 - x - x').denom| : ℝ)
                 ≤ (|(x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2| : ℤ) :
-                  by simpa only [← int.cast_coe_nat, ← int.cast_abs, int.cast_le,
-                                 add_rw sw sw' hxd hyd hxd' hyd' hx]
-                     using int.le_of_dvd (abs_pos.mpr $ pow_ne_zero 2 $ xd_ne_zero hxd hxd' hx)
-                       ((abs_dvd_abs _ _).mpr $ rat.denom_dvd _ _)
+                  by { rw [← int.cast_coe_nat, ← int.cast_abs, int.cast_le,
+                           add_rw sw sw' hxd hyd hxd' hyd' hx],
+                       exact int.le_of_dvd (abs_pos.mpr $ pow_ne_zero 2 $ xd_ne_zero hxd hxd' hx)
+                         ((abs_dvd_abs _ _).mpr $ rat.denom_dvd _ _) }
             ... ≤ |x.num ^ 2 * C₅ d' - x.num * d ^ 2 * C₆ x' d' + (d ^ 2) ^ 2 * C₇ x'| :
                   le_of_eq $ by { push_cast [C₅, C₆, C₇], congr' 1, ring1 }
             ... ≤ |x.num| ^ 2 * |C₅ d'| + |x.num| * |d ^ 2| * |C₆ x' d'| + |d ^ 2| ^ 2 * |C₇ x'| :
@@ -839,7 +836,8 @@ private lemma Δab_le :
             * max (|F A B a b|) (|G A B a b|)) :=
 begin
   rw [← Δab_rw.1, ← Δab_rw.2, max_mul_of_nonneg _ _ $ le_max_of_le_left $ abs_nonneg $ F A B a b,
-      mul_max_of_nonneg _ _ zero_le_two, max_comm],
+      mul_max_of_nonneg, max_comm],
+  any_goals { exact zero_le_two },
   apply max_le_max,
   all_goals { apply le_trans (abs_sub _ _),
               rw [abs_mul, abs_mul, two_mul],
@@ -924,8 +922,8 @@ private lemma FG_le (w : y ^ 2 = x ^ 3 + A * x + B) (hy : 2 * y ≠ 0) :
     ≤ max (|(rat.mk (F A B x.num x.denom) $ G A B x.num x.denom).num|)
         (|(rat.mk (F A B x.num x.denom) $ G A B x.num x.denom).denom|) * |4 * Δ A B| :=
 begin
-  simp only [int.abs_eq_nat_abs, ← int.coe_nat_max],
-  rw [← int.coe_nat_mul, int.coe_nat_le, ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $
+  simp only [int.abs_eq_nat_abs, ← nat.cast_max],
+  rw [← nat.cast_mul, nat.cast_le, ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $
         int.gcd_dvd_left _ $ G A B x.num x.denom, ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $
         int.gcd_dvd_right (F A B x.num x.denom) $ G _ _ _ _, ← max_mul_of_nonneg, rat.num_mk,
       int.nat_abs_div _ _ $ dvd_mul_of_dvd_right (int.gcd_dvd_left _ _) _,
@@ -939,9 +937,8 @@ lemma exists_constant_le_height_dbl :
   ∃ C : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (EllipticCurve.dbl P) + C :=
 begin
   existsi [max (4 * finset.max'
-                (finset.image (λ p : E⟮ℚ⟯[2], height p.val)
-                  (set.finite.of_fintype set.univ).to_finset)
-                (by simp only [finset.nonempty.image_iff, set.finite.to_finset.nonempty,
+                (finset.image (λ p : E⟮ℚ⟯[2], height p.val) (set.to_finite set.univ).to_finset)
+                (by simp only [finset.nonempty.image_iff, set.finite.nonempty_to_finset,
                                set.univ_nonempty])) $
            real.log (2 * C A B : ℤ)],
   rintro (_ | ⟨x, y, w⟩),
@@ -962,8 +959,9 @@ begin
       refine le_trans _ (add_le_add_left (le_max_right _ _) _),
       rw [height_some, ← real.log_pow, real.log_le_iff_le_exp $ pow_pos (height_pos _) 4,
           ← int.cast_coe_nat, ← int.cast_abs, ← int.cast_abs, ← int.cast_max, ← int.cast_pow,
-          real.exp_add, height_some, real.exp_log $ height_pos _, dbl_rw sw hy, ← int.cast_coe_nat,
-          ← int.cast_abs, ← int.cast_abs, ← int.cast_max, real.exp_log, ← int.cast_mul, int.cast_le,
+          real.exp_add, height_some, real.exp_log $ height_pos _, dbl_rw sw hy,
+          ← int.cast_coe_nat $ rat.denom $ rat.mk _ _, ← int.cast_abs, ← int.cast_abs,
+          ← int.cast_max, real.exp_log, ← int.cast_mul, int.cast_le,
           ← mul_le_mul_left $ pow_pos (height_pos' _) 3, ← pow_add,
           max_pow (abs_nonneg x.num) $ abs_nonneg _, pow_abs, pow_abs, mul_comm, mul_assoc,
           mul_assoc, mul_comm, ← mul_le_mul_left $ abs_pos.mpr $ Δ_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆,

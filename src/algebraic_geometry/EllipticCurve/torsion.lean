@@ -95,7 +95,7 @@ def ker_gal (σ : L ≃ₐ[K] L) : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩
 ⟨σ • P, by { change n • P = 0 at hP, change n • σ • P = 0, simpa only [mul_by.map_smul, hP] }⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a scalar action. -/
-instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n⟩
+instance : has_smul (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a multiplicative action. -/
 instance : mul_action (L ≃ₐ[K] L) E⟮L⟯[n] :=

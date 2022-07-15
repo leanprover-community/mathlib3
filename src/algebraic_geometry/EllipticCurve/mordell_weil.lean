@@ -5,7 +5,6 @@ Authors: David Kurniadi Angdinata
 -/
 
 import algebra.char_p.algebra
-import group_theory.finiteness
 
 import algebraic_geometry.EllipticCurve.selmer
 import algebraic_geometry.EllipticCurve.torsion
@@ -77,27 +76,24 @@ end⟩
 /-- `κ` is injective. -/
 lemma κ.injective : function.injective $ @κ _ _ E K _ _ n _ _ :=
 begin
-  intros P₁_ P₂_ hP_,
-  let P₁ := P₁_.val.out',
-  let P₂ := P₂_.val.out',
-  have hP₁ : ∃ Q₁ : E⟮K⟯, n • Q₁ = ιₚ P₁ := Φ_mem_range n P₁_,
-  have hP₂ : ∃ Q₂ : E⟮K⟯, n • Q₂ = ιₚ P₂ := Φ_mem_range n P₂_,
-  have hP : hP₁.some - hP₂.some ∈ (ιₚ : E⟮F⟯ →+ E⟮K⟯).range :=
+  intros P₁ P₂ hP,
+  have hP₁ : ∃ Q₁ : E⟮K⟯, n • Q₁ = ιₚ P₁.val.out' := Φ_mem_range n P₁,
+  have hP₂ : ∃ Q₂ : E⟮K⟯, n • Q₂ = ιₚ P₂.val.out' := Φ_mem_range n P₂,
+  have hQ : hP₁.some - hP₂.some ∈ (ιₚ : E⟮F⟯ →+ E⟮K⟯).range :=
   begin
     rw [← point_gal.fixed.eq],
     intro σ,
     rw [smul_sub, sub_eq_sub_iff_sub_eq_sub],
-    injection (congr_fun hP_) σ
+    injection (congr_fun hP) σ
   end,
-  cases hP with Q hQ,
+  cases hQ with Q hQ,
   apply_fun ((•) n) at hQ,
   rw [smul_sub, hP₁.some_spec, hP₂.some_spec] at hQ,
-  rw [← P₁_.eta P₁_.property, ← P₂_.eta P₂_.property, subtype.mk_eq_mk, ← quotient.out_equiv_out],
-  change ∃ S : E⟮F⟯, n • S = -P₁ + P₂,
-  existsi [-Q],
+  rw [← P₁.eta P₁.property, ← P₂.eta P₂.property, subtype.mk_eq_mk, ← quotient.out_equiv_out],
+  existsi [(⟨n • Q, ⟨Q, rfl⟩⟩ : E⟮F⟯⬝n)],
+  change _ + n • Q = _,
   apply_fun (ιₚ : E⟮F⟯ →+ E⟮K⟯) using point_hom.injective,
-  rw [← neg_inj, ← map_neg, smul_neg, neg_neg, map_nsmul, ← map_neg, neg_add', neg_neg, map_sub],
-  exact hQ
+  rwa [map_add, ← eq_sub_iff_add_eq', map_nsmul]
 end
 
 /-- `Φ` is finite. -/

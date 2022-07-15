@@ -491,7 +491,7 @@ begin
     cases P with x y w,
     { apply add_subgroup.zero_mem },
     { change ∀ σ : L ≃ₐ[K] L, σ • some x y w = some x y w at hP,
-      simp only [has_scalar.smul, point_gal, forall_and_distrib] at hP,
+      simp only [has_smul.smul, point_gal, forall_and_distrib] at hP,
       have hx : x ∈ intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) := λ σ, hP.left σ,
       have hy : y ∈ intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) := λ σ, hP.right σ,
       rw [((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9, intermediate_field.mem_bot] at hx hy,
@@ -515,7 +515,7 @@ begin
         have hy' : y ∈ set.range (K↑L) := exists.intro y' hy,
         rw [← intermediate_field.mem_bot, ← ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9]
           at hx' hy',
-        simp only [has_scalar.smul, point_gal],
+        simp only [has_smul.smul, point_gal],
         exact ⟨hx' ⟨σ, subgroup.mem_top σ⟩, hy' ⟨σ, subgroup.mem_top σ⟩⟩ } } }
 end
 

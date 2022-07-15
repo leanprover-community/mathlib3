@@ -46,8 +46,8 @@ begin
   rcases nat.exists_eq_succ_of_ne_zero (ne_zero_of_lt hn) with ⟨m, rfl⟩,
   induction z using int.induction_on with w _ w _,
   { rwa [← zero_mul] },
-  all_goals { rw [zpow_mul₀'] at hI },
-  any_goals { rw [← neg_add', zpow_neg₀, inv_eq_one] at hI ⊢ },
+  all_goals { rw [zpow_mul'] at hI },
+  any_goals { rw [← neg_add', zpow_neg, inv_eq_one] at hI ⊢ },
   all_goals { rw [zpow_coe_nat, ← fractional_ideal.coe_ideal_pow] at hI,
               rw [int.coe_nat_add_one_out, zpow_coe_nat, ← fractional_ideal.coe_ideal_pow,
                   fractional_ideal.coe_ideal_eq_one_iff, ideal.one_eq_top, ideal.eq_top_iff_one]
@@ -72,6 +72,8 @@ namespace number_field
 
 ----------------------------------------------------------------------------------------------------
 /-! ## Primes and valuations -/
+
+local attribute [semireducible] mul_opposite
 
 section valuation
 
@@ -147,21 +149,22 @@ begin
   rw [val_of_ne_zero, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom, mul_equiv.map_eq_one_iff,
       units.map, monoid_hom.mk'_apply, units.ext_iff, eq_iff_le_not_lt],
   split,
-  { exact p.valuation_le_one ⟨v, hv⟩ },
+  { change p.valuation v ≤ 1,
+    convert p.valuation_le_one ⟨v, hv⟩ },
   { injection vi with hvi,
     apply_fun p.valuation at hvi,
     rw [map_one, map_mul] at hvi,
     change ¬p.valuation v < 1,
     rw [not_lt, ← hvi],
     nth_rewrite_rhs 0 [← mul_one $ p.valuation v],
-    exact @with_zero.mul_le_mul_left _ _ _
-      ⟨group.covariant_iff_contravariant.mpr contravariant_class.elim⟩ _ _
-      (p.valuation_le_one ⟨i, hi⟩) _ }
+    rw [mul_le_mul_left₀ $ left_ne_zero_of_mul_eq_one hvi],
+    convert p.valuation_le_one ⟨i, hi⟩ }
 end
 
 @[simp] lemma val_of_unit_mod (p : height_one_spectrum $ 𝓞 K) (x : (𝓞 K)ˣ) :
   val_of_ne_zero_mod p (ne_zero_of_unit x) = (0 : zmod n) :=
-by simpa only [val_of_ne_zero_mod, monoid_hom.comp_apply, quotient_group.map_coe, val_of_unit]
+by simpa only [val_of_ne_zero_mod, monoid_hom.comp_apply, quotient_group.map_coe, val_of_unit,
+               quotient_group.coe_one, map_one]
 
 -- Input : finite generation of unit group or Dirichlet's unit theorem
 /-- `𝓞ˣ` is finitely generated. -/
@@ -229,7 +232,7 @@ begin
     cases is_integrally_closed.exists_algebra_map_eq_of_pow_mem _inst_3.elim hi with i' hi',
     existsi [(⟨v', i', _, _⟩ : (𝓞 K)ˣ)],
     { rw [units.ext_iff, subtype.ext_iff, pow_monoid_hom_apply, units.coe_pow, subalgebra.coe_pow],
-      simp_rw [units.coe_zpow₀, zpow_coe_nat],
+      simp_rw [units.coe_zpow, zpow_coe_nat],
       exact congr_arg (flip (^) n) hv' },
     all_goals { apply_fun (algebra_map (𝓞 K) K),
                 any_goals { exact λ ⟨_, _⟩ ⟨_, _⟩, subtype.mk_eq_mk.mpr },
@@ -375,7 +378,7 @@ begin
     apply_fun λ x, x ^ n at hy,
     rw [fractional_ideal.span_singleton_pow, fractional_ideal.units_of_factorization, units.coe_mk0,
         finprod_pow $ selmer'.val_support_finite hx] at hy,
-    simp_rw [← zpow_coe_nat, ← zpow_mul₀, (selmer'.val_exists_of_mk _ hx).some_spec] at hy,
+    simp_rw [← zpow_coe_nat, ← zpow_mul, (selmer'.val_exists_of_mk _ hx).some_spec] at hy,
     rw [fractional_ideal.factorization_of_ne_zero,
         fractional_ideal.span_singleton_eq_span_singleton] at hy,
     cases hy with y hy,
@@ -384,8 +387,8 @@ begin
     change (⟨quotient_group.mk' (n⬝Kˣ) (⟨v, i, _, _⟩ : Kˣ), _⟩ : K⟮∅, n⟯) = _,
     simp only,
     rw [← quotient_group.out_eq' x],
-    exact quotient_group.mk'_eq_mk'.mpr
-      ⟨y ^ (n : ℤ), ⟨y, rfl⟩, by rwa [units.ext_iff, units.coe_mul, units.coe_zpow₀]⟩ },
+    exact (quotient_group.mk'_eq_mk' _).mpr
+      ⟨y ^ (n : ℤ), ⟨y, rfl⟩, by rwa [units.ext_iff, units.coe_mul, units.coe_zpow]⟩ },
   { rintro ⟨y, hy⟩,
     injection hy with hy,
     have hx' : quotient_group.mk (ne_zero_of_unit y) ∈ K⟮∅, n⟯ := by rwa [hy],
@@ -424,7 +427,8 @@ instance : fintype K⟮S, n⟯ :=
 @group.fintype_of_ker_of_codom _ _ _ _ pi.fintype (@selmer.val K _ _ S n) $
 by simpa only [selmer.val_ker]
    using @fintype.of_equiv _ K⟮∅, n⟯ selmer'.fintype
-         (subgroup.comap_subtype_equiv_of_le $ selmer.monotone $ finset.empty_subset S).symm.to_equiv
+         (subgroup.comap_subtype_equiv_of_le $ selmer.monotone $
+          finset.empty_subset S).symm.to_equiv
 
 notation K⟮S, n⟯`²` := (K⟮S, n⟯.prod K⟮S, n⟯).to_add_subgroup
 

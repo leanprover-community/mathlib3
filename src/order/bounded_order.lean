@@ -974,7 +974,7 @@ instance [partial_order α] : partial_order (with_top α) :=
   end,
   .. with_top.preorder }
 
-lemma map_le_iff {α β} [preorder α] [preorder β] (f : α → β)
+lemma map_le_iff [preorder α] [preorder β] (f : α → β)
   (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   a.map f ≤ b.map f ↔ a ≤ b :=
 @with_bot.map_le_iff αᵒᵈ βᵒᵈ _ _ f (λ a b, mono_iff) b a

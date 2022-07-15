@@ -285,17 +285,38 @@ end ident_distrib
 
 section uniform_integrable
 
-variables {E : Type*} [measurable_space E] [normed_group E] {μ : measure α} [is_finite_measure μ]
+variables {E : Type*} [measurable_space E] [normed_group E] [borel_space E]
+  {μ : measure α} [is_finite_measure μ]
 
 lemma uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
-  {p : ℝ≥0∞} (hp₀ : 1 ≤ p) (hp₁ : p ≠ ∞)
-  (hfmeas : ∀ i, strongly_measurable (f i)) (hf : ∀ i j, ident_distrib (f i) (f j) μ μ) :
-  uniform_integrable f p μ :=
+  (hfmeas : ∀ i, strongly_measurable (f i)) (hfint : ∀ i, mem_ℒp (f i) 1 μ)
+  (hf : ∀ i j, ident_distrib (f i) (f j) μ μ) :
+  uniform_integrable f 1 μ :=
 begin
-  refine uniform_integrable_of hp₀ hp₁ hfmeas (λ ε hε, _),
+  classical,
+  refine uniform_integrable_of le_rfl ennreal.one_ne_top hfmeas (λ ε hε, _),
   by_cases hι : nonempty ι,
   swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
-  sorry
+  obtain ⟨C, hC₁, hC₂⟩ := (hfint hι.some).snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
+  have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} :=
+    λ i, measurable_set_le measurable_const (hfmeas _).measurable.nnnorm,
+  refine ⟨⟨C, hC₁.le⟩, λ i, le_trans (le_of_eq _) hC₂⟩,
+  have hid : ident_distrib (λ x, ∥f i x∥₊) (λ x, ∥f hι.some x∥₊) μ μ :=
+    (hf i hι.some).comp measurable_nnnorm,
+  have hpre : ∀ i, {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} =
+    (λ x, ∥f i x∥₊) ⁻¹' set.Ici (⟨C, hC₁.le⟩ : ℝ≥0),
+  { intro i,
+    ext x,
+    simp },
+  rw [snorm_one_eq_lintegral_nnnorm, snorm_one_eq_lintegral_nnnorm],
+  simp_rw [nnnorm_indicator_eq_indicator_nnnorm, ennreal.coe_indicator],
+  rw [lintegral_indicator _ (hmeas _), hpre i,
+    ← set_lintegral_map measurable_set_Ici measurable_coe_nnreal_ennreal
+      (hfmeas _).nnnorm.measurable, hid.map_eq,
+    set_lintegral_map measurable_set_Ici measurable_coe_nnreal_ennreal
+      (hfmeas _).nnnorm.measurable, ← hpre hι.some],
+  simp_rw [← @nnreal.coe_le_coe ⟨C, hC₁.le⟩, subtype.coe_mk, coe_nnnorm],
+  rw [lintegral_indicator _ (measurable_set_le measurable_const (hfmeas _).norm.measurable)],
 end
 
 end uniform_integrable

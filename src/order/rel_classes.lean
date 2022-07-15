@@ -239,7 +239,7 @@ theorem fix_eq {C : α → Sort*} (F : Π (x : α), (Π (y : α), r y x → C y)
 wf.fix_eq F
 
 /-- Derive a `has_well_founded` instance from an `is_well_founded` instance. -/
-def to_has_well_founded : has_well_founded α := ⟨r, is_well_order.wf⟩
+def to_has_well_founded : has_well_founded α := ⟨r, is_well_founded.wf⟩
 
 end is_well_founded
 
@@ -251,7 +251,7 @@ using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_founded.is_asymm (r : α → α → Prop) [is_well_founded α r] : is_asymm α r :=
-⟨is_well_order.wf.asymmetric⟩
+⟨is_well_founded.wf.asymmetric⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_founded.is_irrefl (r : α → α → Prop) [is_well_founded α r] : is_irrefl α r :=
@@ -376,7 +376,7 @@ instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well
 
 instance prod.lex.is_well_founded [is_well_founded α r] [is_well_founded β s] :
   is_well_founded (α × β) (prod.lex r s) :=
-⟨prod.lex_wf is_well_order.wf is_well_order.wf⟩
+⟨prod.lex_wf is_well_founded.wf is_well_founded.wf⟩
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
@@ -404,13 +404,13 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
 
 instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
   is_well_founded _ (inv_image r f) :=
-⟨inv_image.wf f is_well_order.wf⟩
+⟨inv_image.wf f is_well_founded.wf⟩
 
 instance measure.is_well_founded (f : α → ℕ) : is_well_founded _ (measure f) := ⟨measure_wf f⟩
 
 theorem subrelation.is_well_founded (r : α → α → Prop) [is_well_founded α r] {s : α → α → Prop}
   (h : subrelation s r) : is_well_founded α s :=
-⟨h.wf is_well_order.wf⟩
+⟨h.wf is_well_founded.wf⟩
 
 namespace set
 

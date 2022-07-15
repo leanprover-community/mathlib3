@@ -776,6 +776,77 @@ end
 
 end graph
 
+/-! ### Declarations about `of_list_pairs` -/
+
+section of_list_pairs
+
+variable [has_zero M]
+
+/-- Builds a finitely supported function from the list of input and output pairs. Only the first
+pair with a given input is considered. This can be used to build a left inverse to `finsupp.graph`.
+-/
+noncomputable def of_list_pairs : list (α × M) → α →₀ M
+| []       := 0
+| (c :: l) := update (of_list_pairs l) c.1 c.2
+
+@[simp] lemma of_list_pairs_nil : of_list_pairs ([] : list (α × M)) = 0 := rfl
+
+@[simp] lemma of_list_pairs_cons (c : α × M) (l : list (α × M)) :
+  of_list_pairs (c :: l) = update (of_list_pairs l) c.1 c.2 :=
+by rw of_list_pairs
+
+lemma of_list_pairs_cons_mk (a : α) (m : M) (l : list (α × M)) :
+  of_list_pairs ((a, m) :: l) = update (of_list_pairs l) a m :=
+by rw of_list_pairs
+
+/-- If no first entry in the list `l` equals `a`, then `of_list_pairs l a = 0`. -/
+lemma of_list_pairs_apply_zero_of_not_mem (l : list (α × M)) {a : α} (H : ∀ m, (a, m) ∉ l) :
+  of_list_pairs l a = 0 :=
+begin
+  induction l with c l IH,
+  { simp },
+  { cases c with a' m,
+    have H' := list.ne_of_not_mem_cons (H m),
+    rw [ne.def, prod.mk.inj_iff, eq_self_iff_true, and_true] at H',
+    simpa [function.update, H'] using IH (λ x, list.not_mem_of_not_mem_cons (H _)) }
+end
+
+/-- If `(a, m)` belongs in `l`, and no other entry starting in `a` does, then
+`of_list_pairs l a = m`. -/
+lemma of_list_pairs_apply_eq_of_nodup (l : list (α × M)) {a : α} {m : M} (h : (a, m) ∈ l)
+  (H : ∀ m', (a, m') ∈ l → m' = m) : of_list_pairs l a = m :=
+begin
+  induction l with c l IH,
+  { exact (list.not_mem_nil _ h).elim },
+  { cases c with a' m',
+    simp only [function.update, of_list_pairs_cons, coe_update, eq_rec_constant, dite_eq_ite],
+    cases h,
+    { rw prod.mk.inj_iff at h,
+      simpa [h.1] using h.2.symm },
+    { rcases eq_or_ne a a' with rfl | ha,
+      { rw [eq_self_iff_true, if_true],
+        exact H _ (l.mem_cons_self _) },
+      { simp only [ha, if_false],
+        exact IH h (λ m'' hm, H _ (list.mem_cons_of_mem _ hm)) } } }
+end
+
+@[simp] lemma of_list_pairs_graph (f : α →₀ M) : of_list_pairs f.graph.to_list = f :=
+begin
+  ext,
+  by_cases h : f a = 0,
+  { rw h,
+    apply of_list_pairs_apply_zero_of_not_mem,
+    simpa using h },
+  { apply of_list_pairs_apply_eq_of_nodup,
+    { simpa using h },
+    { simp } }
+end
+
+lemma of_list_pairs_surjective : surjective (@of_list_pairs α M _) :=
+λ f, ⟨_, of_list_pairs_graph f⟩
+
+end of_list_pairs
+
 /-!
 ### Declarations about `sum` and `prod`
 

@@ -803,7 +803,7 @@ variables [algebra R S] [algebra A S] [is_scalar_tower R A S]
 
 /-- If `A`, `B` are `R`-algebras, `A'` is an `A`-algebra, then the product map of `f : A' →ₐ[A] S`
 and `g : B →ₐ[R] S` is an `A`-algebra homomorphism. -/
-@[simps] def product_left_algebra_map (f : A' →ₐ[A] S) (g : B →ₐ[R] S) : A' ⊗[R] B →ₐ[A] S :=
+@[simps] def product_left_alg_hom (f : A' →ₐ[A] S) (g : B →ₐ[R] S) : A' ⊗[R] B →ₐ[A] S :=
 { commutes' := λ r, by { dsimp, simp },
   ..(product_map (f.restrict_scalars R) g).to_ring_hom }
 

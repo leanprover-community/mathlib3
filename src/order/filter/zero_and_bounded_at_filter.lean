@@ -73,7 +73,8 @@ def bounded_filter_subalgebra {α : Type*} {β : Type*} [normed_field β] (l : f
 begin
   apply submodule.to_subalgebra,
   work_on_goal 3 {use bounded_filter_submodule l},
-  work_on_goal 2 { by {intros f g hf hg, by simpa using hf.mul hg,},},
+  work_on_goal 2 { by {intros f g hf hg, have := hf.mul hg,
+    simp only [pi.one_apply, mul_one, norm_mul] at this, convert this, },},
   simpa using (asymptotics.is_O_const_mul_self (1 :β) (1 : α → β) l),
 end
 

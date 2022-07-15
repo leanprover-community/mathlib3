@@ -421,6 +421,16 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.mul_zero_class,
   ..with_zero.monoid_with_zero }
 
+/-- Any group is isomorphic to the units of itself adjoined with `0`. -/
+@[simps] def units_with_zero_equiv (α : Type*) [group α] : (with_zero α)ˣ ≃* α :=
+{ to_fun    := λ a, option.get $ option.ne_none_iff_is_some.1 a.ne_zero,
+  inv_fun   := λ a,
+    ⟨a, a⁻¹, mul_inv_cancel with_zero.coe_ne_zero, inv_mul_cancel with_zero.coe_ne_zero⟩,
+  left_inv  := λ _, units.ext $ option.coe_get _,
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _,
+    with_zero.coe_inj.mp $ by simp only [units.coe_mul, option.coe_get, with_zero.coe_mul] }
+
 attribute [irreducible] with_zero
 
 end with_zero

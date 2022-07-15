@@ -30,6 +30,7 @@ and the subspaces of the projective space, which is given by taking the span of 
 projective space and the submodules of the underlying vector space.
 -/
 
+
 variables (K V : Type*) [field K] [add_comm_group V] [module K V]
 
 namespace projectivization

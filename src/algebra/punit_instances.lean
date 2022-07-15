@@ -157,6 +157,8 @@ variables {α : Type*} [has_le α]
 
 namespace with_bot
 
+/-- `with_bot α` is order-isomorphic to `punit ⊕ₗ α`, by sending `⊥` to `punit.star` and `↑a` to
+`a`. -/
 def order_iso_punit_sum_lex : with_bot α ≃o punit ⊕ₗ α :=
 ⟨(equiv.option_equiv_sum_punit α).trans $ (equiv.sum_comm _ _).trans to_lex,
 begin
@@ -183,6 +185,8 @@ end with_bot
 
 namespace with_top
 
+/-- `with_top α` is order-isomorphic to `α ⊕ₗ punit`, by sending `⊤` to `punit.star` and `↑a` to
+`a`. -/
 def order_iso_sum_lex_punit : with_top α ≃o α ⊕ₗ punit :=
 ⟨(equiv.option_equiv_sum_punit α).trans to_lex,
 begin

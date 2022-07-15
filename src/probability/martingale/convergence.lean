@@ -544,7 +544,7 @@ let ⟨g, hg₁, hg₂, hg₃, hg₄⟩ := hf.submartingale.exists_mem_ℒ1_tend
 
 /-- Part c of the **L¹ martingale convergnce theorem**: Given a integrable function `g` which
 is measurable with respect to `⨆ n, ℱ n` where `ℱ` is a filtration, the martingale defined by
-`μ[g | ℱ n]` converges almost everywhere to `g`.
+`𝔼[g | ℱ n]` converges almost everywhere to `g`.
 
 This martingale also converges to `g` in L¹ and this result is provided by
 `measure_theory.mem_ℒp.condexp_tendsto_snorm` -/
@@ -600,7 +600,7 @@ end
 
 /-- Part c of the **L¹ martingale convergnce theorem**: Given a integrable function `g` which
 is measurable with respect to `⨆ n, ℱ n` where `ℱ` is a filtration, the martingale defined by
-`μ[g | ℱ n]` converges in L¹ to `g`.
+`𝔼[g | ℱ n]` converges in L¹ to `g`.
 
 This martingale also converges to `g` almost everywhere and this result is provided by
 `measure_theory.mem_ℒp.condexp_tendsto_ae` -/

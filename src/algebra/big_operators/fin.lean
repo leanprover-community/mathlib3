@@ -165,56 +165,9 @@ namespace vector
 
 variables {n : ℕ} (a : α) (v : vector α n)
 
-theorem filter_disj_union (s : finset α) (t : finset α) (h : ∀ (a : α), a ∈ s → a ∉ t)
-  (p : α → Prop) [decidable_pred p] :
-  filter p (disj_union s t h) = (filter p s).disj_union (filter p t)
-    (λ a hs ht, h a (mem_of_mem_filter _ hs) (mem_of_mem_filter _ ht)) :=
-eq_of_veq $ multiset.filter_add _ _ _
-
-lemma card_filter_univ_fin (p : (fin n.succ) → Prop) [decidable_pred p] :
-  (univ.filter p).card = (ite (p 0) 1 0) + (univ.filter (λ i, p (fin.succ i))).card :=
-begin
-  let s : finset (fin n.succ) := (univ.map ⟨fin.succ, fin.succ_injective n⟩),
-  have : ∀ (a : fin n.succ), a ∈ ({0} : finset (fin n.succ)) → a ∉ s := sorry,
-  calc (filter p univ).card
-    = (filter p (disj_union {0} s this)).card : begin
-      congr,
-      exact finset.ext (λ x, by simpa [@eq_comm _ x] using fin.eq_zero_or_eq_succ x),
-    end
-    ... = ite (p 0) 1 0 + (filter p s).card : begin
-
-    end
-    ... =  ite (p 0) 1 0 + (filter (p ∘ fin.succ) univ).card : begin
-      congr' 1,
-      simp only [s],
-      rw [finset.map_filter],
-      rw [finset.card_map],
-      refl,
-    end
-
-end
-
-lemma card_filter_univ_eq_nth_eq_count [decidable_eq α] :
-  (univ.filter $ λ i, a = v.nth i).card = v.to_list.count a :=
-begin
-  refine vector.induction_on v _ _,
-  { simp, },
-  {
-    intros n' x xs hxs,
-    rw [test],
-    simpa [hxs, list.count_cons'] using add_comm _ _,
-  }
-end
-
 lemma sum_filter_eq_nth_eq_count [decidable_eq α] :
   ∑ i in univ.filter (λ i, a = v.nth i), 1 = v.to_list.count a :=
-begin
-  refine (finset.sum_filter _ _).trans (vector.induction_on v (sum_empty.trans ((congr_arg coe $
-    (list.count_nil a).symm).trans nat.cast_zero).symm) (λ n' x xs hxs, _)),
-  simp only [fin.sum_univ_succ, nth_cons_zero, to_list_cons, list.count_cons, ite_add,
-    add_comm 1, nth_cons_succ, zero_add, nat.succ_eq_add_one, @eq_comm _ x a],
-  congr; exact hxs,
-end
+trans (by rw [sum_const, nsmul_one, nat.cast_id]) (fin.card_filter_univ_eq_nth_eq_count a v)
 
 end vector
 

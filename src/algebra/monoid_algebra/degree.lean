@@ -149,14 +149,15 @@ the exponents. -/
 @[reducible] def max_degree (f : add_monoid_algebra R A) : with_bot A :=
 f.support.sup coe
 
+lemma max_degree_add_le (f g : add_monoid_algebra R A) :
+  (f + g).max_degree ≤ f.max_degree ⊔ g.max_degree :=
+sup_support_add_le coe f g
+
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
 variables (f g : add_monoid_algebra R A)
 
 lemma max_degree_mul_le : (f * g).max_degree ≤ f.max_degree + g.max_degree :=
 sup_support_mul_le (λ a b, (with_bot.coe_add _ _).le) f g
-
-lemma max_degree_add_le : (f + g).max_degree ≤ f.max_degree ⊔ g.max_degree :=
-sup_support_add_le coe f g
 
 end max_degree
 
@@ -173,14 +174,14 @@ the exponents. -/
 @[reducible] def min_degree (f : add_monoid_algebra R A) : with_top A :=
 f.support.inf coe
 
+lemma le_min_degree_add (f g : add_monoid_algebra R A) : f.min_degree ⊓ g.min_degree ≤ (f + g).min_degree :=
+sup_support_add_le (coe : Aᵒᵈ → with_bot Aᵒᵈ) f g
+
 variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
   (f g : add_monoid_algebra R A)
 
 lemma le_min_degree_mul : f.min_degree + g.min_degree ≤ (f * g).min_degree :=
 sup_support_mul_le (λ a b : Aᵒᵈ, (with_bot.coe_add _ _).le) _ _
-
-lemma le_min_degree_add : f.min_degree ⊓ g.min_degree ≤ (f + g).min_degree :=
-sup_support_add_le (coe : Aᵒᵈ → with_bot Aᵒᵈ) f g
 
 end min_degree
 

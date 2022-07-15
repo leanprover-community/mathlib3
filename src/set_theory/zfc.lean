@@ -406,6 +406,8 @@ quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧
 theorem ext_iff {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) ↔ x = y :=
 ⟨ext, λ h, by simp [h]⟩
 
+instance : is_extensional Set (∈) := ⟨@ext⟩ 
+
 /-- The empty ZFC set -/
 def empty : Set := mk ∅
 instance : has_emptyc Set := ⟨empty⟩

@@ -10,9 +10,9 @@ import data.finset.lattice
 -/
 
 namespace finset
-open multiset
+open function multiset
 
-variables {α : Type*}
+variables {α : Type*} {s t : finset α}
 
 /-! ### powerset -/
 section powerset
@@ -26,6 +26,10 @@ def powerset (s : finset α) : finset (finset α) :=
 by cases s; simp only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];
   rw ← val_le_iff
 
+@[simp, norm_cast] lemma coe_powerset (s : finset α) :
+  (s.powerset : set (finset α)) = coe ⁻¹' (s : set α).powerset :=
+by { ext, simp }
+
 @[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
 mem_powerset.2 (empty_subset _)
 
@@ -34,9 +38,16 @@ mem_powerset.2 (subset.refl _)
 
 @[simp] lemma powerset_empty : finset.powerset (∅ : finset α) = {∅} := rfl
 
+lemma powerset_nonempty (s : finset α) : s.powerset.nonempty := ⟨∅, empty_mem_powerset _⟩
+
 @[simp] theorem powerset_mono {s t : finset α} : powerset s ⊆ powerset t ↔ s ⊆ t :=
 ⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),
  λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
+
+lemma powerset_injective : injective (powerset : finset α → finset (finset α)) :=
+λ s t h, (powerset_mono.1 h.subset').antisymm $ powerset_mono.1 h.superset
+
+@[simp] lemma powerset_inj : powerset s = powerset t ↔ s = t := powerset_injective.eq_iff
 
 /-- **Number of Subsets of a Set** -/
 @[simp] theorem card_powerset (s : finset α) :

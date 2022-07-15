@@ -279,9 +279,6 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 (wf : well_founded r)
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_well_order.is_strict_total_order' (r : α → α → Prop) [is_well_order α r] :
-  is_strict_total_order' α r := {}
-@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order α r := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
@@ -296,6 +293,9 @@ instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] :
   is_irrefl α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
+  is_asymm α r := by apply_instance
 
 namespace well_founded_lt
 variables [has_lt α] [well_founded_lt α]
@@ -391,7 +391,7 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
       end
     end,
   irrefl := λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
-    [exact irrefl _ h, exact irrefl _ h],
+     [exact irrefl _ h, exact irrefl _ h],
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,

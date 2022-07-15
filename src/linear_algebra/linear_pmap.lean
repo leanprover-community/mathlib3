@@ -60,12 +60,11 @@ begin
   rcases g with ⟨dg, g⟩,
   dsimp at domain_eq,
   subst domain_eq,
-  suffices : f = g,
-  { subst this },
-  { ext,
-    convert to_fun_eq x,
-    rw subtype.ext_iff,
-    refl, },
+  congr,
+  ext,
+  convert to_fun_eq x,
+  ext,
+  refl,
 end
 
 lemma ext_iff {f g : linear_pmap R E F} :

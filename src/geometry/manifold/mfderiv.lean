@@ -62,7 +62,7 @@ model space `H` in the model vector space `E`, the charts taking values in `E` a
 charts of the manifold, but those ones composed with `I`, called extended charts. We define
 `written_in_ext_chart I I' x f` for the function `f` written in the preferred extended charts.  Then
 the manifold derivative of `f`, at `x`, is just the usual derivative of `written_in_ext_chart I I' x
-f`, at the point `(ext_chart_at I x) x`.
+f`, at the point `ext_chart_at I x x`.
 
 There is a subtelty with respect to continuity: if the function is not continuous, then the image
 of a small open set around `x` will not be contained in the source of the preferred chart around
@@ -120,17 +120,17 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- Predicate ensuring that, at a point and within a set, a function can have at most one
 derivative. This is expressed using the preferred chart at the considered point. -/
-def unique_mdiff_within_at (s : set M) (x : M) :=
-unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ((ext_chart_at I x) x)
+def unique_mdiff_within_at (s : set M) (x : M) : Prop :=
+unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x)
 
 /-- Predicate ensuring that, at all points of a set, a function can have at most one derivative. -/
-def unique_mdiff_on (s : set M) :=
-∀x∈s, unique_mdiff_within_at I s x
+def unique_mdiff_on (s : set M) : Prop :=
+∀ x ∈ s, unique_mdiff_within_at I s x
 
 /-- Conjugating a function to write it in the preferred charts around `x`. The manifold derivative
 of `f` will just be the derivative of this conjugated function. -/
 @[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
-(ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm
+ext_chart_at I' (f x) ∘ f ∘ (ext_chart_at I x).symm
 
 /-- `mdifferentiable_within_at I I' f s x` indicates that the function `f` between manifolds
 has a derivative at the point `x` within the set `s`.
@@ -140,10 +140,10 @@ We require continuity in the definition, as otherwise points close to `x` in `s`
 `f` outside of the chart domain around `f x`. Then the chart could do anything to the image points,
 and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
 this would not mean anything relevant. -/
-def mdifferentiable_within_at (f : M → M') (s : set M) (x : M) :=
+def mdifferentiable_within_at (f : M → M') (s : set M) (x : M) : Prop :=
 continuous_within_at f s x ∧
 differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
-  ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ((ext_chart_at I x) x)
+  ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x)
 
 /-- `mdifferentiable_at I I' f x` indicates that the function `f` between manifolds
 has a derivative at the point `x`.
@@ -153,25 +153,25 @@ We require continuity in the definition, as otherwise points close to `x` could 
 `f` outside of the chart domain around `f x`. Then the chart could do anything to the image points,
 and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
 this would not mean anything relevant. -/
-def mdifferentiable_at (f : M → M') (x : M) :=
+def mdifferentiable_at (f : M → M') (x : M) : Prop :=
 continuous_at f x ∧
 differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f) (range I)
-  ((ext_chart_at I x) x)
+  (ext_chart_at I x x)
 
 /-- `mdifferentiable_on I I' f s` indicates that the function `f` between manifolds
 has a derivative within `s` at all points of `s`.
 This is a generalization of `differentiable_on` to manifolds. -/
-def mdifferentiable_on (f : M → M') (s : set M) :=
+def mdifferentiable_on (f : M → M') (s : set M) : Prop :=
 ∀x ∈ s, mdifferentiable_within_at I I' f s x
 
 /-- `mdifferentiable I I' f` indicates that the function `f` between manifolds
 has a derivative everywhere.
 This is a generalization of `differentiable` to manifolds. -/
-def mdifferentiable (f : M → M') :=
+def mdifferentiable (f : M → M') : Prop :=
 ∀x, mdifferentiable_at I I' f x
 
 /-- Prop registering if a local homeomorphism is a local diffeomorphism on its source -/
-def local_homeomorph.mdifferentiable (f : local_homeomorph M M') :=
+def local_homeomorph.mdifferentiable (f : local_homeomorph M M') : Prop :=
 (mdifferentiable_on I I' f f.source) ∧ (mdifferentiable_on I' I f.symm f.target)
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
@@ -188,10 +188,10 @@ We require continuity in the definition, as otherwise points close to `x` in `s`
 and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
 this would not mean anything relevant. -/
 def has_mfderiv_within_at (f : M → M') (s : set M) (x : M)
-  (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) :=
+  (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) : Prop :=
 continuous_within_at f s x ∧
 has_fderiv_within_at (written_in_ext_chart_at I I' x f : E → E') f'
-  ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ((ext_chart_at I x) x)
+  ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x)
 
 /-- `has_mfderiv_at I I' f x f'` indicates that the function `f` between manifolds
 has, at the point `x`, the derivative `f'`. Here, `f'` is a continuous linear
@@ -202,10 +202,10 @@ We require continuity in the definition, as otherwise points close to `x` `s` co
 and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
 this would not mean anything relevant. -/
 def has_mfderiv_at (f : M → M') (x : M)
-  (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) :=
+  (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) : Prop :=
 continuous_at f x ∧
 has_fderiv_within_at (written_in_ext_chart_at I I' x f : E → E') f' (range I)
-  ((ext_chart_at I x) x)
+  (ext_chart_at I x x)
 
 /-- Let `f` be a function between two smooth manifolds. Then `mfderiv_within I I' f s x` is the
 derivative of `f` at `x` within `s`, as a continuous linear map from the tangent space at `x` to the
@@ -214,7 +214,7 @@ def mfderiv_within (f : M → M') (s : set M) (x : M) :
   tangent_space I x →L[𝕜] tangent_space I' (f x) :=
 if h : mdifferentiable_within_at I I' f s x then
 (fderiv_within 𝕜 (written_in_ext_chart_at I I' x f) ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
-  ((ext_chart_at I x) x) : _)
+  (ext_chart_at I x x) : _)
 else 0
 
 /-- Let `f` be a function between two smooth manifolds. Then `mfderiv I I' f x` is the derivative of
@@ -223,7 +223,7 @@ else 0
 def mfderiv (f : M → M') (x : M) : tangent_space I x →L[𝕜] tangent_space I' (f x) :=
 if h : mdifferentiable_at I I' f x then
 (fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : E → E') (range I)
-  ((ext_chart_at I x) x) : _)
+  (ext_chart_at I x x) : _)
 else 0
 
 /-- The derivative within a set, as a map between the tangent bundles -/
@@ -266,7 +266,7 @@ variable {I}
 lemma unique_mdiff_within_at_iff {s : set M} {x : M} :
   unique_mdiff_within_at I s x ↔
   unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ (ext_chart_at I x).target)
-  ((ext_chart_at I x) x) :=
+  (ext_chart_at I x x) :=
 begin
   apply unique_diff_within_at_congr,
   rw [nhds_within_inter, nhds_within_inter, nhds_within_ext_chart_target_eq]
@@ -336,7 +336,7 @@ lemma mdifferentiable_within_at_iff {f : M → M'} {s : set M} {x : M} :
   mdifferentiable_within_at I I' f s x ↔
   continuous_within_at f s x ∧
   differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
-    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' s) ((ext_chart_at I x) x) :=
+    ((ext_chart_at I x).target ∩ (ext_chart_at I x).symm ⁻¹' s) (ext_chart_at I x x) :=
 begin
   refine and_congr iff.rfl (exists_congr $ λ f', _),
   rw [inter_comm],
@@ -427,7 +427,7 @@ end
 lemma mdifferentiable_within_at.mfderiv_within (h : mdifferentiable_within_at I I' f s x) :
   (mfderiv_within I I' f s x) =
   fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
-  ((ext_chart_at I x) x) :=
+  (ext_chart_at I x x) :=
 by simp only [mfderiv_within, h, dif_pos]
 
 lemma mdifferentiable_at.has_mfderiv_at (h : mdifferentiable_at I I' f x) :
@@ -440,7 +440,7 @@ end
 
 lemma mdifferentiable_at.mfderiv (h : mdifferentiable_at I I' f x) :
   (mfderiv I I' f x) =
-  fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) (range I) ((ext_chart_at I x) x) :=
+  fderiv_within 𝕜 (written_in_ext_chart_at I I' x f : _) (range I) (ext_chart_at I x x) :=
 by simp only [mfderiv, h, dif_pos]
 
 lemma has_mfderiv_at.mfderiv (h : has_mfderiv_at I I' f x f') :
@@ -607,7 +607,7 @@ begin
   refine ⟨continuous_within_at.congr_of_eventually_eq h.1 h₁ hx, _⟩,
   apply has_fderiv_within_at.congr_of_eventually_eq h.2,
   { have : (ext_chart_at I x).symm ⁻¹' {y | f₁ y = f y} ∈
-      𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
+      𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)  :=
       ext_chart_preimage_mem_nhds_within I x h₁,
     apply filter.mem_of_superset this (λy, _),
     simp only [hx] with mfld_simps {contextual := tt} },
@@ -715,7 +715,7 @@ omit Is I's
 lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
   {y | written_in_ext_chart_at I I'' x (g ∘ f) y
        = ((written_in_ext_chart_at I' I'' (f x) g) ∘ (written_in_ext_chart_at I I' x f)) y}
-  ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
+  ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)  :=
 begin
   apply @filter.mem_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
@@ -737,18 +737,18 @@ begin
        (written_in_ext_chart_at I I' x f))
     (continuous_linear_map.comp g' f' : E →L[𝕜] E'')
     ((ext_chart_at I x).symm ⁻¹' s ∩ range (I))
-    ((ext_chart_at I x) x),
+    (ext_chart_at I x x),
   { have : (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x)).source)
-    ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
+    ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] (ext_chart_at I x x)  :=
       (ext_chart_preimage_mem_nhds_within I x
         (hf.1.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
     unfold has_mfderiv_within_at at *,
     rw [← has_fderiv_within_at_inter' this, ← ext_chart_preimage_inter_eq] at hf ⊢,
-    have : written_in_ext_chart_at I I' x f ((ext_chart_at I x) x)
+    have : written_in_ext_chart_at I I' x f (ext_chart_at I x x)
         = (ext_chart_at I' (f x)) (f x),
       by simp only with mfld_simps,
     rw ← this at hg,
-    apply has_fderiv_within_at.comp ((ext_chart_at I x) x) hg.2 hf.2 _,
+    apply has_fderiv_within_at.comp (ext_chart_at I x x) hg.2 hf.2 _,
     assume y hy,
     simp only with mfld_simps at hy,
     have : f (((chart_at H x).symm : H → M) (I.symm y)) ∈ u := hst hy.1.1,
@@ -1039,8 +1039,8 @@ lemma has_mfderiv_at_id (x : M) :
   has_mfderiv_at I I (@_root_.id M) x (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 begin
   refine ⟨continuous_id.continuous_at, _⟩,
-  have : ∀ᶠ y in 𝓝[range I] ((ext_chart_at I x) x),
-    ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
+  have : ∀ᶠ y in 𝓝[range I] (ext_chart_at I x x),
+    (ext_chart_at I x ∘ (ext_chart_at I x).symm) y = id y,
   { apply filter.mem_of_superset (ext_chart_at_target_mem_nhds_within I x),
     mfld_set_tac },
   apply has_fderiv_within_at.congr_of_eventually_eq (has_fderiv_within_at_id _ _) this,
@@ -1473,7 +1473,7 @@ begin
   have key : unique_diff_within_at 𝕜
     (G '' (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target))
     (G (F z)) := D₂.unique_diff_within_at B C,
-  have : G (F z) = (ext_chart_at I' x) x, by { dsimp [G, F], simp only [hx.1] with mfld_simps },
+  have : G (F z) = ext_chart_at I' x x, by { dsimp [G, F], simp only [hx.1] with mfld_simps },
   rw this at key,
   apply key.mono,
   show G '' (F.symm ⁻¹' (s ∩ (e.source ∩ e ⁻¹' ((ext_chart_at I' x).source))) ∩ F.target) ⊆

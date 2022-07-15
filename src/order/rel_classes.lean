@@ -114,8 +114,8 @@ end
 lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
 
 /-- In a trichotomous irreflexive order, every element is determined by the set of predecessors. -/
-lemma is_extensional_of_trichotomous_of_irrefl [is_trichotomous α r] [is_irrefl α r] {a b : α}
-  (H : ∀ x, r x a ↔ r x b) : a = b :=
+lemma extensional_of_trichotomous_of_irrefl (r : α → α → Prop) [is_trichotomous α r] [is_irrefl α r]
+  {a b : α} (H : ∀ x, r x a ↔ r x b) : a = b :=
 ((@trichotomous _ r _ a b)
   .resolve_left $ mt (H _).2 $ irrefl a)
   .resolve_right $ mt (H _).1 $ irrefl b

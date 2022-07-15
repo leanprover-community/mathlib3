@@ -122,6 +122,11 @@ lemma mul_left (a b : 𝓜(𝕜, A)) : ⇑(a * b).left = a.left ∘ b.left := rf
 @[simp]
 lemma mul_right (a b : 𝓜(𝕜, A)) : ⇑(a * b).right = b.right ∘ a.right := rfl
 
+@[simp]
+lemma mul_left_apply (a b : 𝓜(𝕜, A)) (c : A) : (a * b).left c = a.left (b.left c) := rfl
+@[simp]
+lemma mul_right_apply (a b : 𝓜(𝕜, A)) (c : A) : (a * b).right c = b.right (a.right c) := rfl
+
 instance : has_smul 𝕜 𝓜(𝕜, A) :=
 { smul := λ k a,
   { left := k • a.left,
@@ -166,9 +171,9 @@ instance : has_star 𝓜(𝕜, A) :=
     central := sorry } }
 
 @[simp]
-lemma star_left (a : 𝓜(𝕜, A)) : ⇑(star a).left = star ∘ a.right ∘ star := rfl
+lemma star_left (a : 𝓜(𝕜, A)) (b : A) : (star a).left b = star (a.right (star b)) := rfl
 @[simp]
-lemma star_right (a : 𝓜(𝕜, A)) : ⇑(star a).right = star ∘ a.left ∘ star := rfl
+lemma star_right (a : 𝓜(𝕜, A)) (b : A) : (star a).right b = star (a.left (star b)) := rfl
 
 instance : has_neg 𝓜(𝕜, A) :=
 { neg := λ a,
@@ -202,25 +207,56 @@ instance : add_comm_group 𝓜(𝕜, A) :=
   sub := λ x y,  x - y,
   sub_eq_add_neg := λ a b, by {ext; exact sub_eq_add_neg _ _},
   add_left_neg := λ a, by {ext; exact add_left_neg _},
-  add_comm := λ a b, by {ext; exact add_comm _ _} }
+  add_comm := λ a b, by {ext; exact add_comm _ _}, }
 
 instance : star_add_monoid 𝓜(𝕜, A) :=
-{ star_involutive := λ x,
-  begin
-    simp,
-  end,
-  star_add := sorry,
+{ star_involutive := λ x, by {ext; simp},
+  star_add := λ x y, by {ext; simp},
   .. double_centralizer.has_star }
 
 instance : ring 𝓜(𝕜, A) :=
 { one := 1,
   mul := λ x y, x * y,
-  mul_assoc := λ a b c, by {ext; simp only [left_mul, right_mul, continuous_linear_map.coe_comp']},
-  one_mul := λ a, by {ext; simp only [left_mul, one_left, right_mul, one_right, continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.one_apply]},
-  mul_one := λ a, by {ext; simp only [left_mul, one_left, right_mul, one_right, continuous_linear_map.coe_comp', function.comp_app, continuous_linear_map.one_apply]},
-  left_distrib := sorry,
-  right_distrib := sorry,
+  mul_assoc := λ a b c, by {ext; simp only [mul_left, mul_right], },
+  one_mul := λ a, by {ext; simp only [mul_left_apply, one_left, mul_right_apply, one_right, continuous_linear_map.one_apply]},
+  mul_one := λ a, by {ext; simp only [mul_left_apply, one_left, mul_right_apply, one_right, continuous_linear_map.one_apply]},
+  left_distrib := λ a b c,
+  begin
+    ext,
+    { rw [mul_left, add_left, add_left],
+      simp only [function.comp_app, pi.add_apply, map_add, mul_left] },
+    { rw [mul_right, add_right, add_right],
+      simp only [function.comp_app, pi.add_apply, mul_right] }
+  end,
+  right_distrib := λ a b c,
+  begin
+    ext,
+    { rw [mul_left, add_left, add_left],
+      simp only [function.comp_app, pi.add_apply, map_add, mul_left] },
+    { change (c.right * (a.right + b.right)) x = ((c.right * a.right) + (c.right * b.right)) x,
+      rw mul_add, }
+  end,
   .. double_centralizer.add_comm_group }
+
+instance : star_ring 𝓜(𝕜, A) :=
+{ star_mul := λ a b, by {ext; simp only [star_left, star_right, mul_right, mul_left,
+    function.comp_apply, star_star]},
+  .. double_centralizer.star_add_monoid }
+
+instance : module 𝕜 𝓜(𝕜, A) :=
+{ smul := λ k a, k • a,
+  one_smul := λ a, by {ext; simp only [smul_left, smul_right, one_smul],},
+  mul_smul := λ k₁ k₂ a, by {ext; exact mul_smul _ _ _},
+  smul_add := λ k a b, by {ext; exact smul_add _ _ _},
+  smul_zero := λ k, by {ext; exact smul_zero _},
+  add_smul := λ k₁ k₂ a, by {ext; exact add_smul _ _ _},
+  zero_smul := λ a, by {ext; simp only [smul_left, one_smul, smul_right, smul_add, smul_zero,
+    pi.smul_apply, zero_smul, zero_left, zero_right, continuous_linear_map.zero_apply,
+    eq_self_iff_true, pi.zero_apply]} }
+
+instance : star_module 𝕜 𝓜(𝕜, A) :=
+{ star_smul := λ k a, by {ext; exact star_smul _ _},
+  .. double_centralizer.star_add_monoid }
 
 -- this might already require `A` to be a `cstar_ring`, for otherwise I don't think we'll be able
 -- to prove `norm_right` below.
@@ -228,6 +264,58 @@ noncomputable instance : has_norm 𝓜(𝕜, A) :=
 { norm := λ a, ∥a.left∥ }
 
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
+-- Can't get that it is a `normed_star_group` without this.
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := sorry -- this uses the cstar property
 
+noncomputable instance : metric_space 𝓜(𝕜, A) :=
+{ dist := λ a b, ∥a - b∥,
+  dist_self := λ x, by { simpa only [sub_self, norm_left] using norm_zero },
+  dist_comm := λ x y, dist_comm x.left y.left,
+  dist_triangle := λ x y z, dist_triangle x.left y.left z.left,
+  eq_of_dist_eq_zero := λ x y h₁,
+  begin
+    change ∥(x - y).left∥ = 0 at h₁,
+    have h₂ := h₁,
+    rw [←norm_left, norm_right] at h₂,
+    ext1,
+    exact (@eq_of_dist_eq_zero _ _ x.left y.left h₁),
+    exact (@eq_of_dist_eq_zero _ _ x.right y.right h₂),
+  end }
+
+noncomputable instance : normed_group 𝓜(𝕜, A) :=
+{ dist_eq := λ x y, rfl,
+  .. double_centralizer.add_comm_group,
+  .. double_centralizer.has_norm,
+  .. double_centralizer.metric_space }
+
+
+instance : normed_space 𝕜 𝓜(𝕜, A) :=
+{ norm_smul_le := λ k a, (norm_smul k a.left).le,
+  .. double_centralizer.module }
+
+noncomputable instance : normed_ring 𝓜(𝕜, A) :=
+{ norm_mul := λ a b, norm_mul_le a.left b.left,
+  .. double_centralizer.ring,
+  .. double_centralizer.normed_group }
+
+variables [cstar_ring A]
+instance : cstar_ring 𝓜(𝕜, A) :=
+{ norm_star_mul_self := λ a,
+  begin
+    simp only [norm_left],
+    change ∥(star a).left * a.left∥ = ∥a.left∥ * ∥a.left∥,
+  end }
+
 end double_centralizer
+
+/-
+∥a.left b∥ ^ 2 = ∥(a.left b)⋆ * (a.left b)∥
+...            = ∥(a.left b)⋆ * (a.left b)∥
+              = ∥a.right (a.left b)⋆ * b∥
+               ≤ ∥a.right (a.left b)⋆∥ * ∥b∥
+               ≤ ∥a.right∥ * ∥(a.left b)⋆∥ * ∥b∥
+               ≤  ∥a.right∥ * ∥a.left b∥ * ∥b∥
+              ≤   ∥a.right∥ * ∥a.left∥ * ∥b∥ ^ 2
+
+∥a.left b∥ ≤ (∥a.right∥ * ∥a.left∥ * ∥b∥ ^ 2).sqrt
+-/

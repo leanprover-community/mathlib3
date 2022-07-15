@@ -163,7 +163,6 @@ lemma is_integral_closure.is_noetherian [is_integrally_closed A] [is_noetherian_
 begin
   haveI := classical.dec_eq L,
   obtain ⟨s, b, hb_int⟩ := finite_dimensional.exists_is_basis_integral A K L,
-  -- rw is_noetherian_ring_iff,
   let b' := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
   letI := is_noetherian_span_of_finite A (set.finite_range b'),
   let f : C →ₗ[A] submodule.span A (set.range b') :=

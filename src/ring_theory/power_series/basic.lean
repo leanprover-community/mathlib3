@@ -1429,7 +1429,7 @@ begin
   simp [h],
 end
 
-@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
 by rw [rescale_X, map_neg, map_one, neg_one_mul]
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/

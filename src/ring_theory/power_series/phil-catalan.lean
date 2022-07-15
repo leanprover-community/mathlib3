@@ -18,7 +18,7 @@ namespace power_series
 #check rescale
 #check I
 #check I^2
-#check two_mul
+#check two_mul.
 
 
 example : 2 • exp ℂ = exp ℂ + exp ℂ := two_smul ℕ (exp ℂ)
@@ -78,7 +78,7 @@ end
 
 
 
-def maclaurin_sqrt_one_add_x : power_series A :=
+def sqrt_one_add_X : power_series A :=
   mk $ λ n, algebra_map ℚ A ((-1)^(n+1)*(n+1)*(catalan n)*(4^n * (2*n-1))⁻¹)
 
 def catalan_power_series (A : Type*) [semiring A]: power_series A :=
@@ -151,6 +151,18 @@ begin
 end
 #check square_pow_series_catalan.
 
+
+theorem sq_catalan_pow_series'  (A : Type*) [ring A]:
+      X*(catalan_power_series A)^2=
+      (catalan_power_series A)-1  :=
+  begin
+    nth_rewrite 1 ← square_pow_series_catalan,
+    rw pow_two,
+    rw mul_assoc,
+    simp only [add_sub_cancel'],
+  end
+
+
 lemma catalan_descent_lemma (n : ℕ ) :
 (((n.succ) + 1) * ((catalan n.succ) * (1 / (4 ^ n.succ * (2 * (n.succ) - 1)))):ℚ)
 =
@@ -197,14 +209,7 @@ begin
   rw factorial,
   rw factorial,
   rw factorial,
-/-  have two_ns_pos : 0< 2*n.succ,
-  {
-    rw two_mul,
-    rw add_succ,
-    exact succ_pos (n.succ+ n),
-  },
-  rw ← mul_factorial_pred (two_ns_pos),
-  rw nat.div_mul_cancel,-/
+
 
   --push casts
   rw nat.cast_mul,
@@ -275,7 +280,7 @@ begin
   left,
   rw mul_comm,
 
-  ---Now entering the easy goals spawned by the above---
+  ---Now entering the "easy" goals spawned by the above---
   --showing n+1 divides 2n choose n; a fact about the Catalan Numbers!
   {
     rw ← succ_mul_catalan_eq_central_binom,
@@ -333,7 +338,7 @@ begin
     linarith,
   },
 end
---End of Catalan Descent.  Holy Cow!!
+--End of Catalan Descent.
 
 example (a b : ℚ) (h: b≠ 0): a/b = a *b⁻¹:=
 begin
@@ -346,15 +351,13 @@ begin
 end
 
 --NOTE: This one is finally proved, though it has a new hypothesis.
---TODO: figure out whether we want the smul version like this, or the one below
 lemma before_squaring (A: Type*) [field A] [algebra ℚ A] [char_zero A] :
-maclaurin_sqrt_one_add_x A = (1/(2:A))•(X*(rescale (-4⁻¹) (catalan_power_series A))) + 1 :=
+sqrt_one_add_X A = (1/(2:A))•(X*(rescale (-4⁻¹) (catalan_power_series A))) + 1 :=
 begin
   ext,
   cases n,
   {--n equals zero case
-    --simp only [coeff_zero_eq_constant_coeff, one_div, map_add, constant_coeff_one],
-    rw [maclaurin_sqrt_one_add_x,coeff_mk],
+    rw [sqrt_one_add_X,coeff_mk],
     rw [catalan_power_series],
     simp only [zero_add, pow_one, cast_zero, neg_mul, catalan_zero, cast_one, pow_zero, mul_zero, zero_sub, one_mul, map_neg,
   one_div, map_add, constant_coeff_one],
@@ -364,15 +367,13 @@ begin
     rw ring_hom.map_inv,
     simp only [map_neg, map_one],
     rw [inv_neg,neg_neg],
-    simp,--simp only [inv_one, eq_self_iff_true],
+    simp,--simp only [inv_one, eq_self_iff_true],--squeeze failed here, oddly
   },
   {-- n.succ case
     rw succ_eq_add_one,
     simp only [one_div, map_add, coeff_smul, coeff_succ_X_mul, coeff_rescale, coeff_one, succ_ne_zero, if_false, add_zero],
-    rw [maclaurin_sqrt_one_add_x, coeff_mk],
+    rw [sqrt_one_add_X, coeff_mk],
     rw [mul_assoc, mul_assoc],
-    --rw mul_inv_rev,
-    --rw ← inv_div_left,
     rw ← one_div,
     rw catalan_descent_lemma,
     rw catalan_power_series,
@@ -393,110 +394,36 @@ begin
     field_simp,
     ring,
     --norm_cast,
-
-
-    --maybe start here. HMMM
-    /-
-    cases (even_or_odd n),
-    --n even case
-    rw ← succ_eq_add_one,
-    rw pow_succ,
-    rcases h with ⟨ r, rfl ⟩,
-    rw ← bit0,
-    rw ← bit1,
-    rw neg_pow_bit1,
-    rw one_pow,
-    rw neg_mul,
-    rw one_mul,
-    rw neg_neg,
-    rw one_mul,
-    rw [bit1],
-    simp only [neg_pow_bit0, inv_pow],
-    rw [mul_comm,← mul_assoc,← mul_assoc],
-    have catalan_nzero : catalan (bit0 r) ≠ 0,
-    {
-      cases r,
-      simp only [catalan_zero, ne.def, nat.one_ne_zero, not_false_iff],
-      rw succ_eq_add_one,
-      rw bit0,
-      rw ← add_assoc,
-      rw catalan,
-      simp only [ne.def, sum_eq_zero_iff, mem_univ, nat.mul_eq_zero, forall_true_left, not_forall],
-      use 1,
-      push_neg,
-      ---need to show that a catalan number is not usually zero.  Hmm.without
-      sorry,
-    },-/
-
-    --apply mul_right_cancel₀ (catalan_nzero),
-
-
-
-
   },
 end
 
 
---This is the exact version that Tyler is using.
---Can it follow from befone_squaring ??
-lemma before_squaring_orig (A: Type*) [field A] [algebra ℚ A] :
-maclaurin_sqrt_one_add_x A = 1+ 2⁻¹*X*(rescale (-4⁻¹) (catalan_power_series A)) :=
+--This is the exact version that Tyler is using; it follows from above.
+lemma sqrt_one_add_X_catalan (A: Type*) [field A] [algebra ℚ A] [char_zero A] :
+sqrt_one_add_X A = 1+ 2⁻¹*X*(rescale ((-4:A)⁻¹) (catalan_power_series A)) :=
 begin
-  ext,
-  cases n,
-  {--n equals zero case
-    sorry,
-  },
-  {-- n.succ case
-    rw succ_eq_add_one,
-    rw mul_assoc,
-    rw [maclaurin_sqrt_one_add_x, coeff_mk],
-    rw [mul_assoc, mul_assoc],
-    --rw mul_inv_rev,
-    --rw ← inv_div_left,
-    rw ← one_div,
-    rw catalan_descent_lemma,
-    rw map_add,
-    rw coeff_succ_X_mul,
-    --rw ← one_div,
-    --Wow--2⁻¹ is actually a _power_ series.  That is weird.
-    rw coeff_mul,
-    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    --HERE: it seem like having 2⁻¹ be a power series is messing things up.
-    simp only [map_mul, map_pow, map_neg, map_one,
-      coeff_rescale, coeff_one, succ_ne_zero, if_false, add_zero],
-    rw catalan_power_series,
-    simp,
-    sorry,
+  --idea use before_squaring lemma
+  ext n,
+  have l1: (2 : power_series A) = C A 2,
+    {
+      rw map_bit0,
+      rw map_one,
+    },
 
-    --rw constant_coeff_inv_of_unit,
-    --rw is_unit_constant_coeff,
-
-
-
-    --rw map_mul,
-    --rw map_pow,
-    --simp only [map_mul, map_pow, map_neg, map_one, coeff_one, succ_ne_zero, if_false, add_zero],
-    --rw catalan_power_series,
-    --rw ← smul_eq_mul,
-    --rw ← map_smul,
-    --rw coeff_rescale,
-    --rw coeff_mk,
-    --rw map_smul,
-    --rw ← eq_X_mul_shift_add_const,
-    --rw coeff_rescale,
-    --rw catalan_power_series,
-    --rw ← mul_assoc (↑(n.succ) + 1),--why did this not work?
-    --nth_rewrite 1 ← mul_assoc,
-   -- simp_rw catalan_eq_central_binom_div,
-  },
-
-  --nth_rewrite 1 ← mul_assoc,
-  --rw succ_mul_central_binom_succ,
-
-  --rw succ_mul_catalan_eq_central_binom,
+  rw map_add,
+  --say 2⁻¹ is a constant
+  rw [l1, C_inv],
+  rw mul_assoc,
+  rw ← smul_eq_C_mul,
+  rw coeff_smul,
+  rw before_squaring,--here is the main point.
+  rw division_def,
+  rw one_mul,
+  rw map_add,
+  rw add_comm,
+  rw inv_neg,
+  simp only [coeff_smul],
 end
-
 
 example (n :ℕ ) (h: n ≥ 1): ∃ m, n = succ m :=
 begin
@@ -518,8 +445,6 @@ begin
   exact h,
 end
 
-
-
 #check nat.eq_zero_or_pos.
 
 example  (A: Type*) [field A] (a : A) (ha : a ≠ 0) :  a*a⁻¹ = 1 :=
@@ -532,121 +457,137 @@ begin
   refine one_ne_zero,
 end
 
-lemma rescale_X (R : Type*) [comm_semiring R] (f : power_series R) (a : R) (n : ℕ) :
-  coeff R n (rescale a X) = a^n * coeff R n X :=
-
 --lemma rescale_X (A : Type*) [semiring A] (φ : power_series A): r
-
-
-theorem square_power_series_is_one_add_X (A: Type*) [field A] [algebra ℚ A] [char_zero A]:
-      (maclaurin_sqrt_one_add_x A)*(maclaurin_sqrt_one_add_x A) = 1+X :=
-begin
-  ext1 n,
-  --rcases lt_trichotomy n 1 with niszero | rfl | c,
-  cases n with nsucc,
-  {-- n=0 case
-    --rw lt_one_iff at niszero,
-    --subst niszero,
-    --rw niszero,
-    rw coeff_mul,
-    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    rw sum_range_one,
-    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
-      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
-    simp only [map_add, coeff_one, coeff_X],--compute coeff on RHS
-    simp only [←map_mul, ←map_add],--pull out algebra map
-    rw [if_pos rfl, if_neg nat.zero_ne_one, add_zero, ← map_one (algebra_map ℚ A)],
-    --now, we can get rid of the algebra maps, since equality holds only if
-    --arguments match
-    rw [(algebra_map ℚ A).injective.eq_iff],
-    norm_num,
-  },
-  {-- n.succ case
-    rw before_squaring,
-    rw [mul_add,add_mul,one_mul,mul_one],
-    rw [map_add,map_add,map_add],
-    rw [coeff_smul,smul_eq_mul],
-    rw smul_eq_C_mul,
-    rw [mul_assoc],
-    rw [← smul_eq_C_mul,coeff_smul],
-    nth_rewrite 0 mul_comm,
-    rw [mul_assoc,mul_assoc,← smul_eq_C_mul,coeff_smul,smul_eq_mul,smul_eq_mul],
-    rw [coeff_succ_X_mul],
-    nth_rewrite 2 mul_comm,
-    rw [mul_assoc,coeff_succ_X_mul],
-    --try to apply the catalan lemma
-    rw [coeff_rescale,← map_mul, ← mul_assoc],
-    have h : 1/(2:A) *(1/(2:A))= 1/4,
+lemma rescale_X_eq_C_mul_X (A:Type*) (a:A) [comm_semiring A]: rescale a X = C A a * X :=
+  begin
+    ext1 n,
+    rw X_eq,
+    rw monomial_eq_mk,
+    simp only [coeff_rescale, coeff_C_mul],
+    rcases lt_trichotomy n 1 with a | b | c,
     {
+      have n0 : n = 0,
+        {
+          exact lt_one_iff.mp a,
+        },
+      rw n0,
+      rw coeff_mk,
+      rw if_neg,
+      norm_num,
+      apply zero_ne_one,
+    },
+    {
+      rw b,
+      rw coeff_mk,
+      rw if_pos,
+      norm_num,
+      refl,
+    },
+    {
+      rw coeff_mk,
+      rw if_neg,
+      norm_num,
+      exact ne_of_gt c,
+    },
+  end
+
+--MAIN RESULT!
+
+theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra ℚ A] [char_zero A]:
+  (sqrt_one_add_X A)^2 = 1+X :=
+  begin
+    have h2 : (2 : A) ≠ 0 := two_ne_zero',
+    have h4 : (4 : A) ≠ 0,
+      { convert (mul_ne_zero h2 h2), norm_num },
+    rw sqrt_one_add_X_catalan,
+    have l1: (2 : power_series A) = C A 2,
+    {
+      rw map_bit0,
+      rw map_one,
+     },
+    have l3: (1 : power_series A) = C A 1,
+    {
+      rw map_one,
+    },
+    rw [l1, C_inv],
+    have l2: X = - C A 4 * rescale ((-4 : A)⁻¹) X,
+    {
+      rw rescale_X_eq_C_mul_X,
+      rw ← mul_assoc,
+      rw neg_mul,
+      rw ← map_mul,
+      rw inv_neg,
+      rw mul_neg,
+      rw mul_inv_cancel,
+      rw map_neg,
+      rw map_one,
+      rw neg_neg,
+      rw one_mul,
+      apply h4,
+    },
+    nth_rewrite 0 l2,
+    rw mul_assoc,
+    rw mul_assoc,
+    rw ← map_mul,
+    rw add_sq,
+    rw mul_pow,
+    rw mul_pow,
+    rw ← map_pow,
+    rw ← map_pow,
+    rw mul_pow,
+    rw sq X,
+    rw mul_assoc X,
+    rw sq_catalan_pow_series',
+    rw map_mul,
+    rw map_mul,
+    rw map_sub,
+    rw map_one,
+    rw rescale_X_eq_C_mul_X,
+    rw one_pow,
+    rw mul_one,
+    rw ← map_neg,
+    rw l1,
+    rw l3,
+    --rw map_add,
+    --rw map_add,
+    rw ← map_pow,
+    simp only [← mul_assoc],
+    simp only [← map_mul],
+    rw mul_sub,
+    --rw map_sub,
+    rw inv_pow,
+    rw mul_inv_cancel,
+    rw one_mul,
+    rw mul_inv_cancel,
+    rw sq,
+    rw sq,
+    have l4: (((2 * 2)⁻¹ * ((-4) * -4) * (-4)⁻¹):A) = (-1:A),
+    { have : (16 : A) ≠ 0,
+      { convert (mul_ne_zero h4 h4),
+        norm_num,
+      },
       field_simp,
       norm_num,
     },
-    rw h,
-    rw [division_def,one_mul,← smul_eq_mul,← coeff_smul,smul_eq_C_mul],
-
-
-
-
-    nth_rewrite 2 mul_comm,
-
-
-
-    --rw nis1,
-    --unfold maclaurin_sqrt_one_add_x,
-    /-rw coeff_mul,
-    rw nat.sum_antidiagonal_eq_sum_range_succ_mk,
-    rw sum_range_succ,
-    rw sum_range_one,
-    --rw coeff_mk,
-    --squeeze_simp [],
-    simp only [coeff_mk, maclaurin_sqrt_one_add_x, tsub_zero,
-      coeff_one, nat.one_ne_zero, if_false, coeff_one_X, zero_add],
-    simp only [map_add, coeff_one, coeff_X],
-    simp only [←map_mul, ←map_add],
-    rw [if_neg, if_pos, zero_add, ←map_one (algebra_map ℚ A),
-        (algebra_map ℚ A).injective.eq_iff],
+    rw l4,
+    rw map_neg,
+    rw add_assoc,
+    rw add_sub,
+    rw neg_mul,
+    rw neg_mul,
+    rw add_neg_self,
+    rw neg_mul,
+    rw sub_eq_add_neg,
+    rw neg_neg,
+    rw zero_add,
+    rw mul_assoc,
+    rw mul_comm X _,
+    rw ← l3,
+    rw one_mul,
+    rw one_mul,
     norm_num,
-    refl,
-    exact one_ne_zero,-/
-
-    /-all_goals { sorry },
-
-    norm_num,
-    simp only [ring_hom.map_inv, pow_one, cast_zero, zero_add, neg_mul, mul_one, catalan_zero, cast_one, pow_zero, mul_zero,
-  zero_sub, mul_neg, one_mul, map_neg, map_one, neg_one_sq, catalan_one, mul_inv_rev, map_mul, map_add, map_sub,
-  map_bit0],-- from     squeeze_simp [ring_hom.map_inv],--squeeze it!
-    norm_num,
-    rw [← two_mul, ← mul_assoc],
-    norm_num,
-    rw ← inv_eq_one_div,
-    rw mul_inv_cancel,
-    have h1 : algebra_map ℚ A (4 : ℚ) = 4 := by simp only [map_bit0, map_one],
-    have h2 : algebra_map ℚ A (0 : ℚ) = 0 := by simp only [map_zero],
-    rw [←h1, ←h2],
-    have : (13 : ℚ) ≠ (0 : ℚ),
-    { norm_num, },
-    exact (algebra_map ℚ A).injective.ne four_ne_zero,
-    exact four_ne_zero,
-    intro fouriszero,
-
-    have key := four_ne_zero,
-    have idea : (4:A) = 0 ↔ (1 : A) = 0,
-    {
-      calc
-        4 = 0 ↔ 4 * 4⁻¹ = 0 * 4⁻¹ : sorry--FLAW: this assumed 4≠ 0, which was the goal
-          ... ↔ 1 = 0             : sorry,
-    }
-
-    sorry,
-    --rw mul_inv_self,
-    -/
-
-
-  },
-end
-
-
-
-
+    exact h2,
+  end
+--Hooray!
 
 end power_series

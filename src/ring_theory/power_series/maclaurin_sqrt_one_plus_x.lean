@@ -279,7 +279,7 @@ theorem sq_power_series_sqrt_one_add_X_eq_one_add_X (A:Type*) [field A] [algebra
     exact h2,
   end
 
-#check mul_add
+#check mul_add.
 
 
 

@@ -34,9 +34,9 @@ variables (K V : Type*) [field K] [add_comm_group V] [module K V]
 
 namespace projectivization
 
-/-- A subspace of projective space is a structure consisting of a set of points such that if two
-nonzero vectors determine points which are in the set, and the sum of the two vectors is nonzero,
-then the point determined by the sum of the two vectors is also in the set. -/
+/-- A subspace of projective space is a structure consisting of a set of points such that:
+If two nonzero vectors determine points which are in the set, and the sum of the two vectors is
+nonzero, then the point determined by the sum is also in the set. -/
 @[ext] structure subspace :=
 (carrier : set (ℙ K V))
 (mem_add' (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : v + w ≠ 0) :
@@ -58,7 +58,6 @@ lemma mem_add (T : subspace K V) (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : 
   projectivization.mk K (v + w) (hvw) ∈ T :=
   T.mem_add' v w hv hw hvw
 
-
 /-- The span of a set of points in projective space is defined inductively to be the set of points
 which contains the original set, and contains all points determined by the (nonzero) sum of two
 nonzero vectors, each of which determine points in the span. -/
@@ -74,7 +73,7 @@ def span (S : set (ℙ K V)) : subspace K V :=
   mem_add' := λ v w hv hw hvw,
     span_carrier.mem_add v w hv hw hvw }
 
-/- The span of a set of points contains the set of points. -/
+/-- The span of a set of points contains the set of points. -/
 lemma subset_span (S : set (ℙ K V)) : S ⊆ span S := λ x hx, span_carrier.of _ hx
 
 /-- The span of a subspace is the subspace. -/
@@ -104,6 +103,9 @@ def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
 instance has_top : has_top (subspace K V) :=
 ⟨⟨⊤, λ _ _ _ _ _ _ _, trivial⟩⟩
 
+instance subspace_inhabited : inhabited (subspace K V) :=
+{ default := ⊤ }
+
 /-- The empty set is the bottom of the lattice of subspaces. -/
 instance has_bot : has_bot (subspace K V) :=
 ⟨⟨⊥, λ v w hv hw hvw h, h.elim⟩⟩
@@ -124,26 +126,26 @@ end⟩⟩
 instance : complete_lattice (subspace K V) :=
 { sup := λ A B, Inf { E | A ≤ E ∧ B ≤ E },
   le_sup_left := begin
-    rintros A B x hx E ⟨E,hE,rfl⟩,
+    rintros A B x hx E ⟨E, hE, rfl⟩,
     exact hE.1 hx,
   end,
   le_sup_right := begin
-    rintros A B x hx E ⟨E,hE,rfl⟩,
+    rintros A B x hx E ⟨E, hE, rfl⟩,
     exact hE.2 hx,
   end,
-  sup_le := λ A B C h1 h2 x hx, hx C ⟨C,⟨h1,h2⟩, rfl⟩,
+  sup_le := λ A B C h1 h2 x hx, hx C ⟨C, ⟨h1, h2⟩, rfl⟩,
   inf_le_left := λ A B x hx, by exact hx.1,
   inf_le_right := λ A B x hx, by exact hx.2,
   le_inf := λ A B C h1 h2 x hx, ⟨h1 hx, h2 hx⟩,
   Sup := λ A, Inf { E | ∀ U ∈ A, U ≤ E },
   le_Sup := begin
-    rintros S A hA x hx E ⟨E,hE,rfl⟩,
+    rintros S A hA x hx E ⟨E, hE, rfl⟩,
     exact hE _ hA hx,
   end,
   Sup_le := λ S A hA x hx, hx A ⟨A, hA, rfl⟩,
   Inf_le := λ S A hA x hx, by exact hx _ ⟨A, hA, rfl⟩,
   le_Inf := begin
-    rintros S A hA x hx E ⟨E,hE,rfl⟩,
+    rintros S A hA x hx E ⟨E, hE, rfl⟩,
     exact hA _ hE hx,
   end,
   le_top := λ E x hx, trivial,

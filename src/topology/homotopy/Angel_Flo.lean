@@ -25,15 +25,18 @@ class H_space (G : Type*) [topological_space G] :=
 lemma top_group_is_H_space (G : Type*) [topological_space G] [group G][topological_group G] : H_space G :=
 begin
 fconstructor,
-{ exact function.uncurry has_mul.mul,
-}
-,
+{ exact function.uncurry has_mul.mul, },
+{ exact has_one.one, },
+{ simp, },
+{ exact has_continuous_mul.continuous_mul, },
 {
- exact has_one.one,
-}
-,
+  intro g,
+  simp,
+  exact continuous_map.homotopy_rel.refl ⟨id, continuous_id'⟩  {has_one.one},
+},
 {
-  sorry,
-}
-
+  intro g,
+  simp,
+  exact continuous_map.homotopy_rel.refl ⟨id, continuous_id'⟩  {has_one.one},
+},
 end

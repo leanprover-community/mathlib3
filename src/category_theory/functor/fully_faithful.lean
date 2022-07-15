@@ -11,13 +11,18 @@ import logic.equiv.basic
 
 We define typeclasses `full` and `faithful`, decorating functors.
 
-Use `F.map_injective` to retrieve the fact that `F.map` is injective when `[faithful F]`,
-and `F.preimage` to obtain preimages of morphisms when `[full F]`.
+## Main definitions and results
+* Use `F.map_injective` to retrieve the fact that `F.map` is injective when `[faithful F]`.
+* Similarly, `F.map_surjective` states that `F.map` is surjective when `[full F]`.
+* Use `F.preimage` to obtain preimages of morphisms when `[full F]`.
+* We prove some basic "cancellation" lemmas for full and/or faithful functors, as well as a
+  construction for "dividing" a functor by a faithful functor, see `faithful.div`.
+* `full F` carries data, so definitional properties of the preimage can be used when using
+  `F.preimage`. To obtain an instance of `full F` non-constructively, you can use `full_of_exists`
+  and `full_of_surjective`.
 
-We prove some basic "cancellation" lemmas for full and/or faithful functors.
-
-See `category_theory.equivalence` for the fact that a functor is an equivalence if and only if
-it is fully faithful and essentially surjective.
+See `category_theory.equivalence.of_fully_faithful_ess_surj` for the fact that a functor is an
+equivalence if and only if it is fully faithful and essentially surjective.
 
 -/
 

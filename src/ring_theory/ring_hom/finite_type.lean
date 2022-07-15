@@ -181,7 +181,7 @@ begin
   { intro r,
     rw [finset.coe_union, finset.coe_union, finset.coe_bUnion],
     -- Since all `sᵢ` and denominators of `t r` are in the algebra, it suffices to show that the
-    -- image of `x` in `Sᵣ` falls in the `R`-algebra-span of `t r`, which is of course true.
+    -- image of `x` in `Sᵣ` falls in the `R`-adjoin of `t r`, which is of course true.
     obtain ⟨⟨_, n₂, rfl⟩, hn₂⟩ := is_localization.exists_smul_mem_of_mem_adjoin
       (submonoid.powers (r : S)) x (t r)
       (algebra.adjoin R _) _ _ _,

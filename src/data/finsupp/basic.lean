@@ -841,8 +841,12 @@ begin
     { simp } }
 end
 
+/-- `of_list_pairs` is a left inverse of `to_list ∘ graph`. -/
+lemma left_inverse_of_list_pairs_graph : left_inverse of_list_pairs (to_list ∘ (@graph α M _)) :=
+of_list_pairs_graph
+
 lemma of_list_pairs_surjective : surjective (@of_list_pairs α M _) :=
-λ f, ⟨_, of_list_pairs_graph f⟩
+left_inverse_of_list_pairs_graph.surjective
 
 end of_list_pairs
 

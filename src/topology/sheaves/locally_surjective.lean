@@ -1,6 +1,11 @@
+/-
+Copyright (c) 2022 Sam van Gool and Jake Levinson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sam van Gool and Jake Levinson
+-/
+
 import topology.sheaves.presheaf
 import topology.sheaves.stalks
-import algebraic_geometry.Scheme
 
 universes v u
 
@@ -29,8 +34,6 @@ open topological_space
 open opposite
 
 section locally_surjective
-
-set_option pp.universes true
 
 /-! Let C be a concrete category, X a topological space. -/
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}

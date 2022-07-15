@@ -9,6 +9,7 @@ import data.matrix.dmatrix
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
 import algebra.lie.skew_adjoint
+import linear_algebra.symplectic_group
 
 /-!
 # Classical Lie algebras

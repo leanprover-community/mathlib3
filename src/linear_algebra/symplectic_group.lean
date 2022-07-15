@@ -1,13 +1,9 @@
-import algebra.lie.classical
 import data.real.basic
-import linear_algebra.matrix.determinant
+import linear_algebra.matrix.nonsingular_inverse
 
 open_locale matrix
 
-variables {R l : Type*}
-
-open lie_algebra.symplectic
-
+variables {l R : Type*}
 
 section J_matrix_lemmas
 
@@ -34,7 +30,7 @@ begin
   norm_num,
 end
 
-variables [comm_ring R]
+variables (R) [comm_ring R]
 
 /-- The matrix defining the canonical skew-symmetric bilinear form. -/
 def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
@@ -95,8 +91,7 @@ end J_matrix_lemmas
 
 
 
-
-open lie_algebra.symplectic matrix
+open matrix
 
 variables (l) [decidable_eq l] [fintype l]
 
@@ -144,8 +139,9 @@ variables (A B : symplectic_group l)
 
 @[simp] lemma one_apply : ⇑(1 : symplectic_group l) = (1 : matrix (l ⊕ l) (l ⊕ l)  ℝ) := rfl
 
-lemma mul_mem {A B : matrix (l ⊕ l) (l ⊕ l) ℝ} (hA : A ∈ symplectic_group l) (hB : B ∈ symplectic_group l) :
-A ⬝ B ∈ symplectic_group l :=
+lemma mul_mem {A B : matrix (l ⊕ l) (l ⊕ l) ℝ}
+  (hA : A ∈ symplectic_group l) (hB : B ∈ symplectic_group l) :
+  A ⬝ B ∈ symplectic_group l :=
 submonoid.mul_mem _ hA hB
 
 end coe_lemmas
@@ -217,8 +213,10 @@ begin
   calc Aᵀ ⬝ J l ℝ ⬝ A
       = - Aᵀ ⬝ (J l ℝ)⁻¹ ⬝ A  : by {rw J_inv, simp}
   ... = - Aᵀ ⬝ (A ⬝ J l ℝ ⬝ Aᵀ)⁻¹ ⬝ A : by rw hA
-  ... = - (Aᵀ ⬝ (Aᵀ⁻¹ ⬝ (J l ℝ)⁻¹)) ⬝ A⁻¹ ⬝ A : by simp only [matrix.mul_inv_rev, matrix.mul_assoc, matrix.neg_mul]
-  ... = - (J l ℝ)⁻¹ : by rw [mul_nonsing_inv_cancel_left _ _ huAT, nonsing_inv_mul_cancel_right _ _ huA]
+  ... = - (Aᵀ ⬝ (Aᵀ⁻¹ ⬝ (J l ℝ)⁻¹)) ⬝ A⁻¹ ⬝ A : by simp only [matrix.mul_inv_rev,
+                                                              matrix.mul_assoc, matrix.neg_mul]
+  ... = - (J l ℝ)⁻¹ : by rw [mul_nonsing_inv_cancel_left _ _ huAT,
+                             nonsing_inv_mul_cancel_right _ _ huA]
   ... = (J l ℝ) : by simp [J_inv]
 end
 
@@ -239,7 +237,8 @@ instance : has_inv (symplectic_group l) := {
     mul_mem (mul_mem (neg_mem $ J_mem l) $ transpose_mem A.2) $ J_mem _⟩,
 }
 
-@[simp] lemma coe_inv (A : symplectic_group l): (↑(A⁻¹) : matrix _ _ _) = - (J l ℝ) ⬝ Aᵀ ⬝ (J l ℝ) := rfl
+@[simp] lemma coe_inv (A : symplectic_group l): (↑(A⁻¹) : matrix _ _ _) = - (J l ℝ) ⬝ Aᵀ ⬝ (J l ℝ)
+  := rfl
 
 @[simp] lemma inv_apply (A : symplectic_group l): ⇑(A⁻¹) = - (J l ℝ) ⬝ Aᵀ ⬝ (J l ℝ) := rfl
 

@@ -420,6 +420,10 @@ begin
   exact support_single_ne_zero _ a0,
 end
 
+lemma support_mul_T (f : R[T;T⁻¹]) (n : ℤ) :
+  (f * T n).support = f.support.map (add_right_embedding n) :=
+f.support_mul_single 1 (by simp) n
+
 /--  The support of a polynomial `f` is a finset in `ℕ`.  The lemma `to_laurent_support f`
 shows that the support of `f.to_laurent` is the same finset, but viewed in `ℤ` under the natural
 inclusion `ℕ ↪ ℤ`. -/

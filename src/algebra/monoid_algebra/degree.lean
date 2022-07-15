@@ -45,7 +45,7 @@ To see this in action, you can look at the triple
 `(sup_support_mul_le, max_degree_mul_le, le_min_degree_mul)`.
 -/
 
-variables {R A B ι : Type*}
+variables {R A T B ι : Type*} [semilattice_sup B] [order_bot B] [semilattice_inf T] [order_top T]
 
 namespace add_monoid_algebra
 open_locale classical big_operators
@@ -58,9 +58,10 @@ section semiring
 
 variables [semiring R]
 
-lemma sup_support_add_le [semilattice_sup B] [order_bot B]
-  (D : A → B) (f g : add_monoid_algebra R A) :
-  (f + g).support.sup D ≤ (f.support.sup D) ⊔ (g.support.sup D) :=
+section explicit_Ds
+variables (DB : A → B) (DT : A → T) (f g : add_monoid_algebra R A)
+
+lemma sup_support_add_le : (f + g).support.sup DB ≤ (f.support.sup DB) ⊔ (g.support.sup DB) :=
 begin
   refine (finset.sup_le (λ d ds, _)),
   cases finset.mem_union.mp (finsupp.support_add ds) with df dg,
@@ -68,117 +69,115 @@ begin
   { exact (finset.le_sup dg).trans le_sup_right }
 end
 
-lemma le_inf_degree_add [semilattice_inf B] [order_top B]
-  (D : A → B) (f g : add_monoid_algebra R A) :
-  f.support.inf D ⊓ g.support.inf D ≤ (f + g).support.inf D :=
-sup_support_add_le (λ a : A, order_dual.to_dual (D a)) f g
+lemma le_inf_degree_add : f.support.inf DT ⊓ g.support.inf DT ≤ (f + g).support.inf DT :=
+sup_support_add_le (λ a : A, order_dual.to_dual (DT a)) f g
 
 section add_only
 
-variables [has_add A] [has_add B]
-
-lemma sup_support_mul_le [semilattice_sup B] [order_bot B]
+variables [has_add A] [has_add B] [has_add T]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (Dm : ∀ {a b}, D (a + b) ≤ D a + D b)
+  [covariant_class T T (+) (≤)] [covariant_class T T (function.swap (+)) (≤)]
+
+lemma sup_support_mul_le {DB : A → B} (DBm : ∀ {a b}, DB (a + b) ≤ DB a + DB b)
   (f g : add_monoid_algebra R A) :
-  (f * g).support.sup D ≤ f.support.sup D + g.support.sup D :=
+  (f * g).support.sup DB ≤ f.support.sup DB + g.support.sup DB :=
 begin
   refine (finset.sup_le (λ d ds, _)),
   obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
   { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop] using f.support_mul g ds },
-  refine Dm.trans (add_le_add _ _);
+  refine DBm.trans (add_le_add _ _);
   exact finset.le_sup ‹_›,
 end
 
-lemma le_inf_support_mul [semilattice_inf B] [order_top B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (Dm : ∀ {a b}, D a + D b ≤ D (a + b))
+lemma le_inf_support_mul {DT : A → T} (DTm : ∀ {a b}, DT a + DT b ≤ DT (a + b))
   (f g : add_monoid_algebra R A) :
-  f.support.inf D + g.support.inf D ≤ (f * g).support.inf D :=
+  f.support.inf DT + g.support.inf DT ≤ (f * g).support.inf DT :=
 order_dual.of_dual_le_of_dual.mpr $
-  sup_support_mul_le (λ a b, order_dual.of_dual_le_of_dual.mp Dm) f g
+  sup_support_mul_le (λ a b, order_dual.of_dual_le_of_dual.mp DTm) f g
 
 end add_only
 
-lemma sup_support_list_prod_le [add_monoid A] [add_monoid B] [semilattice_sup B] [order_bot B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b) :
+end explicit_Ds
+
+section add_monoids
+variables [add_monoid A]
+  [add_monoid B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+  [add_monoid T] [covariant_class T T (+) (≤)] [covariant_class T T (function.swap (+)) (≤)]
+  {DB : A → B} {DT : A → T}
+
+lemma sup_support_list_prod_le (DB0 : DB 0 ≤ 0) (DBm : ∀ a b, DB (a + b) ≤ DB a + DB b) :
   ∀ l : list (add_monoid_algebra R A),
-    l.prod.support.sup D ≤ (l.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum
+    l.prod.support.sup DB ≤ (l.map (λ f : add_monoid_algebra R A, f.support.sup DB)).sum
 | [] := begin
     rw [list.map_nil, finset.sup_le_iff, list.prod_nil, list.sum_nil],
     exact λ a ha, by rwa [finset.mem_singleton.mp (finsupp.support_single_subset ha)]
   end
 | (f::fs) := begin
     rw [list.prod_cons, list.map_cons, list.sum_cons],
-    exact (sup_support_mul_le Dm _ _).trans (add_le_add_left (sup_support_list_prod_le _) _)
+    exact (sup_support_mul_le DBm _ _).trans (add_le_add_left (sup_support_list_prod_le _) _)
   end
 
-lemma le_inf_support_sum [add_monoid A] [add_monoid B] [semilattice_inf B] [order_top B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)] {D : A → B}
-  (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b)) (l : list (add_monoid_algebra R A)) :
-  (l.map (λ f : add_monoid_algebra R A, f.support.inf D)).sum ≤ l.prod.support.inf D :=
-order_dual.of_dual_le_of_dual.mpr $ sup_support_list_prod_le (order_dual.of_dual_le_of_dual.mp D0)
-  (λ a b, order_dual.of_dual_le_of_dual.mp (Dm _ _)) l
+lemma le_inf_support_sum (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
+  (l : list (add_monoid_algebra R A)) :
+  (l.map (λ f : add_monoid_algebra R A, f.support.inf DT)).sum ≤ l.prod.support.inf DT :=
+order_dual.of_dual_le_of_dual.mpr $ sup_support_list_prod_le (order_dual.of_dual_le_of_dual.mp DT0)
+  (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) l
 
-lemma sup_support_pow_le [add_monoid A] [add_monoid B] [semilattice_sup B] [order_bot B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b) (n : ℕ)
+lemma sup_support_pow_le (DB0 : DB 0 ≤ 0) (DBm : ∀ a b, DB (a + b) ≤ DB a + DB b) (n : ℕ)
   (f : add_monoid_algebra R A) :
-  (f ^ n).support.sup D ≤ n • (f.support.sup D) :=
+  (f ^ n).support.sup DB ≤ n • (f.support.sup DB) :=
 begin
   rw [← list.prod_repeat, ←list.sum_repeat],
-  refine (sup_support_list_prod_le D0 Dm _).trans_eq _,
+  refine (sup_support_list_prod_le DB0 DBm _).trans_eq _,
   rw list.map_repeat,
 end
 
-lemma le_inf_support_pow [add_monoid A] [add_monoid B] [semilattice_inf B] [order_top B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b)) (n : ℕ)
+lemma le_inf_support_pow (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b)) (n : ℕ)
   (f : add_monoid_algebra R A) :
-  n • (f.support.inf D) ≤ (f ^ n).support.inf D :=
-order_dual.of_dual_le_of_dual.mpr $ sup_support_pow_le (order_dual.of_dual_le_of_dual.mp D0)
-  (λ a b, order_dual.of_dual_le_of_dual.mp (Dm _ _)) n f
+  n • (f.support.inf DT) ≤ (f ^ n).support.inf DT :=
+order_dual.of_dual_le_of_dual.mpr $ sup_support_pow_le (order_dual.of_dual_le_of_dual.mp DT0)
+  (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) n f
+
+end add_monoids
 
 end semiring
 
-variables [comm_semiring R] [add_comm_monoid A] [add_comm_monoid B]
+variables [comm_semiring R] [add_comm_monoid A]
+  [add_comm_monoid B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
+  [add_comm_monoid T] [covariant_class T T (+) (≤)] [covariant_class T T (function.swap (+)) (≤)]
+  {DB : A → B} {DT : A → T}
 
-lemma sup_support_multiset_prod_le [semilattice_sup B] [order_bot B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
-  (F : multiset (add_monoid_algebra R A)) :
-  F.prod.support.sup D ≤ (F.map (λ f : add_monoid_algebra R A, f.support.sup D)).sum :=
+lemma sup_support_multiset_prod_le
+  (DB0 : DB 0 ≤ 0) (DBm : ∀ a b, DB (a + b) ≤ DB a + DB b)
+  (m : multiset (add_monoid_algebra R A)) :
+  m.prod.support.sup DB ≤ (m.map (λ f : add_monoid_algebra R A, f.support.sup DB)).sum :=
 begin
-  induction F using quot.induction_on,
+  induction m using quot.induction_on,
   rw [multiset.quot_mk_to_coe'', multiset.coe_map, multiset.coe_sum, multiset.coe_prod],
-  exact sup_support_list_prod_le D0 Dm F,
+  exact sup_support_list_prod_le DB0 DBm m,
 end
 
-lemma le_inf_support_multiset_prod [semilattice_inf B] [order_top B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b))
+lemma le_inf_support_multiset_prod
+  (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
   (F : multiset (add_monoid_algebra R A)) :
-  (F.map (λ f : add_monoid_algebra R A, f.support.inf D)).sum ≤ F.prod.support.inf D :=
+  (F.map (λ f : add_monoid_algebra R A, f.support.inf DT)).sum ≤ F.prod.support.inf DT :=
 order_dual.of_dual_le_of_dual.mpr $
-  sup_support_multiset_prod_le (order_dual.of_dual_le_of_dual.mp D0)
-    (λ a b, order_dual.of_dual_le_of_dual.mp (Dm _ _)) F
+  sup_support_multiset_prod_le (order_dual.of_dual_le_of_dual.mp DT0)
+    (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) F
 
-lemma sup_support_finset_prod_le [semilattice_sup B] [order_bot B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
+lemma sup_support_finset_prod_le
+  (DB0 : DB 0 ≤ 0) (DBm : ∀ a b, DB (a + b) ≤ DB a + DB b)
   (s : finset ι) (f : ι → add_monoid_algebra R A):
-  (∏ i in s, f i).support.sup D ≤ ∑ i in s, (f i).support.sup D :=
-(sup_support_multiset_prod_le D0 Dm _).trans_eq $ congr_arg _ $ multiset.map_map _ _ _
+  (∏ i in s, f i).support.sup DB ≤ ∑ i in s, (f i).support.sup DB :=
+(sup_support_multiset_prod_le DB0 DBm _).trans_eq $ congr_arg _ $ multiset.map_map _ _ _
 
-lemma finset_sum_inf_support_le [semilattice_inf B] [order_top B]
-  [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
-  {D : A → B} (D0 : 0 ≤ D 0) (Dm : ∀ a b, D a + D b ≤ D (a + b))
+lemma finset_sum_inf_support_le
+  (DT0 : 0 ≤ DT 0) (DTm : ∀ a b, DT a + DT b ≤ DT (a + b))
   (s : finset ι) (f : ι → add_monoid_algebra R A):
-  ∑ i in s, (f i).support.inf D ≤ (∏ i in s, f i).support.inf D :=
+  ∑ i in s, (f i).support.inf DT ≤ (∏ i in s, f i).support.inf DT :=
 order_dual.of_dual_le_of_dual.mpr $
-  sup_support_finset_prod_le (order_dual.of_dual_le_of_dual.mp D0)
-    (λ a b, order_dual.of_dual_le_of_dual.mp (Dm _ _)) s f
+  sup_support_finset_prod_le (order_dual.of_dual_le_of_dual.mp DT0)
+    (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) s f
 
 end general_results_assuming_semilattice_sup
 

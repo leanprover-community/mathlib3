@@ -105,18 +105,6 @@ def iso_mk (h : A₀.1 ≅ A₁.1) (w : F.map h.hom ≫ A₁.str = A₀.str ≫ 
 { obj := λ A, A.1,
   map := λ A B f, f.1 }
 
-/-- An algebra morphism with an underlying epimorphism hom in `C` is an algebra epimorphism. -/
-lemma epi_of_epi {X Y : algebra F} (f : X ⟶ Y) [epi f.1] : epi f :=
-{ left_cancellation := λ Z g h w, begin
-    ext, rw [← cancel_epi f.1, ← comp_f, w, comp_f],
-  end }
-
-/-- An algebra morphism with an underlying monomorphism hom in `C` is an algebra monomorphism. -/
-lemma mono_of_mono {X Y : algebra F} (f : X ⟶ Y) [mono f.1] : mono f :=
-{ right_cancellation := λ Z g h w, begin
-    ext, rw [← cancel_mono f.1, ← comp_f, w, comp_f],
-  end }
-
 /-- An algebra morphism with an underlying isomorphism hom in `C` is an algebra isomorphism. -/
 lemma iso_of_iso (f : A₀ ⟶ A₁) [is_iso f.1] : is_iso f :=
 ⟨⟨{ f := inv f.1,
@@ -126,6 +114,14 @@ instance forget_reflects_iso : reflects_isomorphisms (forget F) :=
 { reflects := λ A B, iso_of_iso }
 
 instance forget_faithful : faithful (forget F) := {}
+
+/-- An algebra morphism with an underlying epimorphism hom in `C` is an algebra epimorphism. -/
+lemma epi_of_epi {X Y : algebra F} (f : X ⟶ Y) [h : epi f.1] : epi f :=
+(forget F).epi_of_epi_map h
+
+/-- An algebra morphism with an underlying monomorphism hom in `C` is an algebra monomorphism. -/
+lemma mono_of_mono {X Y : algebra F} (f : X ⟶ Y) [h : mono f.1] : mono f :=
+(forget F).mono_of_mono_map h
 
 /--
 From a natural transformation `α : G → F` we get a functor from
@@ -300,6 +296,14 @@ instance forget_reflects_iso : reflects_isomorphisms (forget F) :=
 { reflects := λ A B, iso_of_iso }
 
 instance forget_faithful : faithful (forget F) := {}
+
+/-- An algebra morphism with an underlying epimorphism hom in `C` is an algebra epimorphism. -/
+lemma epi_of_epi {X Y : coalgebra F} (f : X ⟶ Y) [h : epi f.1] : epi f :=
+(forget F).epi_of_epi_map h
+
+/-- An algebra morphism with an underlying monomorphism hom in `C` is an algebra monomorphism. -/
+lemma mono_of_mono {X Y : coalgebra F} (f : X ⟶ Y) [h : mono f.1] : mono f :=
+(forget F).mono_of_mono_map h
 
 /--
 From a natural transformation `α : F → G` we get a functor from

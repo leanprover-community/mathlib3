@@ -9,7 +9,7 @@ import topology.compact_open
 import topology.homotopy.basic
 import topology.homotopy.path
 
-universe u
+universes u v w
 
 noncomputable theory
 
@@ -17,8 +17,8 @@ open_locale unit_interval
 
 namespace continuous_map
 
-lemma continuous_to_C_iff_uncurry {X Y Z : Type u} [topological_space X] [topological_space Y]
-[locally_compact_space Y] [topological_space Z] {g : X → C(Y, Z)} :
+lemma continuous_to_C_iff_uncurry (X : Type u) (Y : Type v) (Z : Type w) [topological_space X]
+  [topological_space Y] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
   continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
 (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
 
@@ -142,21 +142,33 @@ end
 
 example (x : X) : has_coe_to_fun (Ω x) (λ _, I → X) := infer_instance
 
-variable (f : ℕ → ℕ)
-#check (coe ∘ f : ℕ → ℝ)
 
--- example (Y : Type u) [topological_space Y] (x  :X) (f : Y → Ω x) : true =
--- begin
---  let := (↑f : Y → C(I,X)),
--- end
+variable {x : X}
 
-variable (x : X)
+@[simp]
+lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y]
+[locally_compact_space Y] {g : Y → Ω x} : continuous g ↔ continuous (↑g : Y → C(I,X)) :=
+begin
+  sorry,
+end
 
 lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y]
 [locally_compact_space Y] {g : Y → Ω x} :
   continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
 begin
-  convert continuous_to_C_iff_uncurry using 0,
+  -- have := @co/,-- (↑g : Y → C(I,X)),
+  split,
+  { intro h,
+    -- apply continuous_to_C_iff_uncurry.mp _,
+    -- have uno := continuous_to_Ω_iff_to_C.mp h,
+    apply (continuous_to_C_iff_uncurry Y I X ↑g).mp (continuous_to_Ω_iff_to_C.mp h),
+  },
+  { intro h,
+    replace this := this.mpr,
+    specialize this h,
+    apply this,
+
+  },
 end
 
 -- lemma continuous_to_loop_space_iff_uncurry (Y : Type u) [topological_space Y] (g : Y → Ω x) :
@@ -195,11 +207,11 @@ end
 -- end
 
 
-lemma continuous_to_loop_space_iff_curry {Y : Type u} [topological_space Y]
-  {g : Y → Ω x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
-  begin
-    sorry
-  end
+-- lemma continuous_to_loop_space_iff_curry {Y : Type u} [topological_space Y]
+--   {g : Y → Ω x} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
+--   begin
+--     sorry
+--   end
 
 -- example (Y Z : Type u) [topological_space Y] [topological_space Z] (f : Y → X) (hf : continuous f)
 -- : continuous (λ p : Y × Z, f p.1) := continuous.fst' hf

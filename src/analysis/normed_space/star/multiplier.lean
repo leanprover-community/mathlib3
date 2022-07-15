@@ -104,7 +104,14 @@ instance : has_add 𝓜(𝕜, A) :=
 { add := λ a b,
   { left := a.left + b.left,
     right := a.right + b.right,
-    central := sorry } }
+    central :=
+            begin
+            intros x y,
+            simp,
+            rw add_mul,
+            rw mul_add,
+            repeat {rw central _ _},
+            end } }
 
 @[simp]
 lemma add_left (a b : 𝓜(𝕜, A)) : ⇑(a + b).left = a.left + b.left := rfl
@@ -115,7 +122,13 @@ instance : has_mul 𝓜(𝕜, A) :=
 { mul := λ a b,
   { left := a.left.comp b.left,
     right := b.right.comp a.right,
-    central := sorry } }
+    central :=
+              begin
+              intros x y,
+              simp,
+              repeat
+              {rw central _ _},
+              end } }
 
 @[simp]
 lemma mul_left (a b : 𝓜(𝕜, A)) : ⇑(a * b).left = a.left ∘ b.left := rfl
@@ -131,7 +144,16 @@ instance : has_smul 𝕜 𝓜(𝕜, A) :=
 { smul := λ k a,
   { left := k • a.left,
     right := k • a.right,
-    central := sorry } }
+    central :=
+              begin
+              intros x y,
+              simp,
+              repeat {rw central _ _},
+              rw mul_smul_comm _ _ _,
+              rw smul_mul_assoc,
+              rw central _ _,
+              exact _inst_4,
+              end } }
 
 @[simp]
 lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : ⇑(k • a).left = k • a.left := rfl
@@ -168,7 +190,17 @@ instance : has_star 𝓜(𝕜, A) :=
       ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
     right := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.left).comp
       ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
-    central := sorry } }
+    central :=
+              begin
+              intros x y,
+              simp,
+              have ha := a.central,
+              specialize ha (star y) (star x),
+              have P := congr_arg star ha,
+              simp only [star_mul , star_star] at P,
+              symmetry,
+              exact P,
+              end } }
 
 @[simp]
 lemma star_left (a : 𝓜(𝕜, A)) (b : A) : (star a).left b = star (a.right (star b)) := rfl
@@ -179,7 +211,12 @@ instance : has_neg 𝓜(𝕜, A) :=
 { neg := λ a,
   { left := -(a.left),
     right := -(a.right),
-    central := sorry } }
+    central :=
+              begin
+              intros x y,
+              simp,
+              apply central,
+              end } }
 
 @[simp]
 lemma neg_left (a : 𝓜(𝕜, A)) : ⇑(-a).left = -a.left := rfl
@@ -190,7 +227,14 @@ instance : has_sub 𝓜(𝕜, A) :=
 { sub := λ a b,
   { left := a.left - b.left,
     right := a.right - b.right,
-  central := sorry } }
+  central :=
+            begin
+            intros x y,
+            simp,
+            rw sub_mul,
+            rw mul_sub,
+            repeat { rw central _ _ },
+            end } }
 
 @[simp]
 lemma sub_left (a b : 𝓜(𝕜, A)) : ⇑(a - b).left = a.left - b.left := rfl
@@ -263,10 +307,37 @@ instance : star_module 𝕜 𝓜(𝕜, A) :=
 noncomputable instance : has_norm 𝓜(𝕜, A) :=
 { norm := λ a, ∥a.left∥ }
 
-lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
--- Can't get that it is a `normed_star_group` without this.
-lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := sorry -- this uses the cstar property
+open_locale nnreal
+variables [cstar_ring A]
 
+lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
+lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ :=
+      begin
+      have h1 : ∀ b, ∥ a.left b ∥₊ ^ 2 ≤  ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊ ^ 2,
+      { intros b,
+
+            calc ∥ a.left b ∥₊ ^ 2 = ∥ a.left b ∥₊ * ∥ a.left b ∥₊ : by ring
+            ...                   = ∥ star (a.left b) * (a.left b) ∥₊  : (cstar_ring.nnnorm_star_mul_self).symm
+            ...                 = ∥ a.right (star (a.left b)) * b ∥₊ : by rw a.central _ b
+            ...                 ≤ ∥ a.right (star (a.left b))∥₊ * ∥ b ∥₊ : nnnorm_mul_le _ _
+            ...                 ≤ ∥ a.right ∥₊ * ∥ star (a.left b) ∥₊ * ∥ b ∥₊ : mul_le_mul_right' (a.right.le_op_nnnorm _) _
+            ...                 = ∥ a.right ∥₊ * ∥ a.left b ∥₊ * ∥ b ∥₊ : by rw nnnorm_star
+            ...                 ≤ ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊  * ∥ b ∥₊ :
+                                                                          begin
+                                                                          apply mul_le_mul_right',
+                                                                          rw mul_assoc,
+                                                                          apply mul_le_mul_left',
+                                                                          apply a.left.le_op_nnnorm,
+                                                                          end
+            ...                 = ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊ ^ 2 : by ring, } ,
+            have h2 : ∀ b, ∥ a.left b ∥ ^ 2 ≤  ∥ a.right ∥ * ∥ a.left ∥ * ∥ b ∥ ^ 2 :=
+                                        begin
+                                        intro b,
+                                        have h2 := h1 b,
+                                        exact_mod_cast nnreal.coe_mono h2,
+                                        end,
+      sorry
+      end
 noncomputable instance : metric_space 𝓜(𝕜, A) :=
 { dist := λ a b, ∥a - b∥,
   dist_self := λ x, by { simpa only [sub_self, norm_left] using norm_zero },
@@ -298,12 +369,12 @@ noncomputable instance : normed_ring 𝓜(𝕜, A) :=
   .. double_centralizer.ring,
   .. double_centralizer.normed_group }
 
-variables [cstar_ring A]
 instance : cstar_ring 𝓜(𝕜, A) :=
 { norm_star_mul_self := λ a,
   begin
     simp only [norm_left],
     change ∥(star a).left * a.left∥ = ∥a.left∥ * ∥a.left∥,
+    sorry,
   end }
 
 end double_centralizer

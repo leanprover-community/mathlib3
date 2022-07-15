@@ -47,7 +47,8 @@ iff.rfl
 
 @[simp]
 lemma Gamma_mem (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (((↑ₘγ 0 0) : ℤ) : zmod N) = 1 ∧
-  (((↑ₘγ 0 1) : ℤ) : zmod N) = 0 ∧ (((↑ₘγ 1 0) : ℤ) : zmod N) = 0 ∧ (((↑ₘγ 1 1) : ℤ) : zmod N) = 1 :=
+  (((↑ₘγ 0 1) : ℤ) : zmod N) = 0 ∧ (((↑ₘγ 1 0) : ℤ) : zmod N) = 0 ∧
+  (((↑ₘγ 1 1) : ℤ) : zmod N) = 1 :=
 begin
   rw Gamma_mem',
   split,

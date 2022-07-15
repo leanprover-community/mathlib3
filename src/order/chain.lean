@@ -96,7 +96,6 @@ protected lemma is_chain.directed {f : β → α} {c : set β} (h : is_chain (f 
     exact ⟨b, hb, refl _⟩) $
   λ hab, (h ha hb hab).elim (λ h, ⟨⟨b, hb⟩, h, refl _⟩) $ λ h, ⟨⟨a, ha⟩, refl _, h⟩
 
-
 lemma is_chain.exists3 (hchain : is_chain r s) [is_trans α r] {a b c}
   (mem1 : a ∈ s) (mem2 : b ∈ s) (mem3 : c ∈ s) :
   ∃ (z) (mem4 : z ∈ s), r a z ∧ r b z ∧ r c z :=

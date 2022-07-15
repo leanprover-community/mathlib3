@@ -427,7 +427,7 @@ protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 @[simps { fully_applied := ff }]
 protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=
 { to_fun := with_bot.map f,
-  map_rel_iff' := with_bot.map_le_iff f (λ a b, rel_embedding.map_rel_iff f),
+  map_rel_iff' := with_bot.map_le_iff f (λ a b, f.map_rel_iff),
   .. f.to_embedding.option_map }
 
 /-- A version of `with_top.map` for order embeddings. -/

@@ -453,9 +453,6 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
 
-@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
-lt_of_le_of_ne (zero_le _) zero_ne_one
-
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
@@ -1167,7 +1164,7 @@ end
   to `⊤`. -/
 def to_part_enat : cardinal →+ part_enat :=
 { to_fun := λ c, if c < ℵ₀ then c.to_nat else ⊤,
-  map_zero' := by simp [if_pos (zero_lt_one.trans one_lt_aleph_0)],
+  map_zero' := by simp [if_pos aleph_0_pos],
   map_add' := λ x y, begin
     by_cases hx : x < ℵ₀,
     { obtain ⟨x0, rfl⟩ := lt_aleph_0.1 hx,

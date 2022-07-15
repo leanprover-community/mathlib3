@@ -821,13 +821,12 @@ begin
   { cases c with a' m',
     simp only [function.update, of_list_pairs_cons, coe_update, eq_rec_constant, dite_eq_ite],
     cases h,
-    { rw prod.mk.inj_iff at h,
-      simpa [h.1] using h.2.symm },
-    { rcases eq_or_ne a a' with rfl | ha,
-      { rw [eq_self_iff_true, if_true],
+    { rcases prod.mk.inj h with ⟨rfl, rfl⟩,
+      exact if_pos rfl },
+    { split_ifs with ha ha,
+      { subst ha,
         exact H _ (l.mem_cons_self _) },
-      { simp only [ha, if_false],
-        exact IH h (λ m'' hm, H _ (list.mem_cons_of_mem _ hm)) } } }
+      { exact (IH h (λ m'' hm, H _ (list.mem_cons_of_mem _ hm))) } } }
 end
 
 @[simp] lemma of_list_pairs_graph (f : α →₀ M) : of_list_pairs f.graph.to_list = f :=

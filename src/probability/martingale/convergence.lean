@@ -11,16 +11,32 @@ import measure_theory.function.uniform_integrable
 # Martingale convergence theorems
 
 The martingale convergence theorems are a collection of theorems characterizing the convergence
-of a martingale provided it satisfy some boundedness conditions. In particular, we have proved the
-almost everywhere martingale convergence theorem which states that, given a L¹-bounded
-submartingale adapted to the filtration `ℱ`, it converges almost everywhere to an integrable
-function which is measurable with respect to the σ-algebra `⨆ n, ℱ n`.
+of a martingale provided it satisfy some boundedness conditions. This file contains the
+almost everywhere martingale convergence theorem which provides an almost everywhere limit to
+an L¹ bounded submartingale. It also contains the L¹ martingale convergence theorem which provides
+an L¹ limit to a uniformly integrable submartingale.
 
 ## Main results
 
-* `measure_theory.submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd`: a L¹-bounded submartingale
-  adapted to the filtration `ℱ` converges almost everywhere to an integrable function which is
-  measurable with respect to the σ-algebra `⨆ n, ℱ n`.
+* `measure_theory.submartingale.exists_mem_ℒ1_ae_tendsto_of_bdd`: the almost everywhere martingale
+  convergence theorem: a L¹-bounded submartingale adapted to the filtration `ℱ` converges almost
+  everywhere to an integrable function which is measurable with respect to the σ-algebra `⨆ n, ℱ n`.
+* `measure_theory.submartingale.exists_mem_ℒ1_tendsto_snorm`: part a of the L¹ martingale
+  convergence theorem: a uniformly integrable submartingale adapted to the filtration `ℱ` converges
+  almost everywhere and in L¹ to an integrable function which is measurable with respect to
+  the σ-algebra `⨆ n, ℱ n`.
+* `measure_theory.martingale.exists_mem_ℒ1_tendsto_snorm`: part b the L¹ martingale convergence
+  theorem: a uniformly integrable martingale `f` adapted to the filtration `ℱ` converges almost
+  everywhere and in L¹ to an integrable function `g` which is measurable with respect to the
+  σ-algebra `⨆ n, ℱ n`. Furthermore, for all `n`, `f n` is almost everywhere equal to `𝔼[g | ℱ n]`.
+* `measure_theory.mem_ℒp.condexp_uniform_integrable`: given a integrable function `g`, the
+  sequence defined by `𝔼[g | ℱ n]` is uniformly integrable for any filtration `ℱ`.
+* `measure_theory.mem_ℒp.condexp_tendsto_ae`: part c the L¹ martingale convergence theorem:
+  given a `⨆ n, ℱ n`-measurable function `g` where `ℱ` is a filtration, `𝔼[g | ℱ n]` converges
+  almost everywhere to `g`.
+* `measure_theory.mem_ℒp.condexp_tendsto_snorm`: part c the L¹ martingale convergence theorem:
+  given a `⨆ n, ℱ n`-measurable function `g` where `ℱ` is a filtration, `𝔼[g | ℱ n]` converges in
+  L¹ to `g`.
 
 -/
 
@@ -493,8 +509,7 @@ let ⟨g, hg₁, hg₂, hg₃, hg₄⟩ := hf.submartingale.exists_mem_ℒ1_tend
 
 /-- Given a integrable function `g`, the conditional expectations of `g` is uniformly
 integrable. -/
-lemma mem_ℒp.condexp_uniform_integrable
-  {g : α → ℝ} (hg : mem_ℒp g 1 μ) :
+lemma mem_ℒp.condexp_uniform_integrable {g : α → ℝ} (hg : mem_ℒp g 1 μ) :
   uniform_integrable (λ n, μ[g | ℱ n]) 1 μ :=
 begin
   have hmeas : ∀ n, ∀ C, measurable_set {x | C ≤ ∥μ[g | ℱ n] x∥₊} :=

@@ -1423,7 +1423,7 @@ variables {A : Type*} [comm_ring A]
 
 lemma rescale_X (a : A) : rescale a X = C A a * X :=
 begin
-  ext n,
+  ext,
   simp only [coeff_rescale, coeff_C_mul, coeff_X],
   split_ifs with h;
   simp [h],

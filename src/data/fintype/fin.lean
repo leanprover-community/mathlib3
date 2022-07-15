@@ -49,17 +49,10 @@ end
 
 lemma card_filter_univ_fin (p : (fin (n + 1)) → Prop) [decidable_pred p] :
   (univ.filter p).card = (ite (p 0) 1 0) + (univ.filter (p ∘ fin.succ)).card :=
-let s : finset (fin (n + 1)) := (univ.map $ (succ_embedding n).to_embedding) in
-have this : ∀ a, a ∈ ({0} : finset (fin (n + 1))) → a ∉ s,
-{ refine λ a ha ha', _,
-  have : ∃ b, fin.succ b = a := by simpa using ha',
-  exact let ⟨b, hb⟩ := this in fin.succ_ne_zero b (hb.trans (finset.mem_singleton.1 ha)) },
-calc (filter p univ).card = (filter p (disj_union {0} s this)).card :
-    by { congr, exact finset.ext (λ x, by simpa [@eq_comm _ x] using fin.eq_zero_or_eq_succ x) }
-  ... = ite (p 0) 1 0 + (filter p s).card :
-    by { rw [filter_disj_union, card_disj_union, filter_singleton], split_ifs; simp }
-  ... =  ite (p 0) 1 0 + (filter (p ∘ fin.succ) univ).card :
-    by { simp only [s, finset.map_filter, finset.card_map], refl }
+begin
+  rw [fin.univ_succ, filter_cons, card_disj_union, map_filter, card_map],
+  split_ifs; simp,
+end
 
 lemma card_filter_univ_eq_nth_eq_count [decidable_eq α] (a : α) (v : vector α n) :
   (univ.filter $ λ i, a = v.nth i).card = v.to_list.count a :=

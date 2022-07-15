@@ -29,12 +29,14 @@ open matrix.special_linear_group matrix
 def SL_reduction_mod_hom (N : ℕ) : SL(2, ℤ) →* SL(2, (zmod N)) := map (int.cast_ring_hom (zmod N))
 
 @[simp]
-lemma SL_reduction_mod_hom_val (N : ℕ) (γ : SL(2, ℤ)) : ∀ i j, ↑ₘ(SL_reduction_mod_hom N γ) i j =
-  ((↑ₘγ i j) : zmod N) :=
+lemma SL_reduction_mod_hom_val (N : ℕ) (γ : SL(2, ℤ)): ∀ (i j : fin 2),
+  ((SL_reduction_mod_hom N γ) : (matrix (fin 2) (fin 2) (zmod N))) i j =
+  (((↑ₘγ i j) : ℤ) : zmod N) :=
 begin
   intros i j,
   refl,
 end
+
 
 /--The full level `N` congruence subgroup of `SL(2,ℤ)` of matrices that reduce to the identity
 modulo `N`.-/
@@ -44,8 +46,8 @@ lemma Gamma_mem' (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (SL_reductio
 iff.rfl
 
 @[simp]
-lemma Gamma_mem (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ ((↑ₘγ 0 0) : zmod N) = 1 ∧
-  ((↑ₘγ 0 1) : zmod N) = 0 ∧ ((↑ₘγ 1 0) : zmod N) = 0 ∧ ((↑ₘγ 1 1) : zmod N) = 1 :=
+lemma Gamma_mem (N : ℕ) (γ : SL(2, ℤ)) : γ ∈ (Gamma N) ↔ (((↑ₘγ 0 0) : ℤ) : zmod N) = 1 ∧
+  (((↑ₘγ 0 1) : ℤ) : zmod N) = 0 ∧ (((↑ₘγ 1 0) : ℤ) : zmod N) = 0 ∧ (((↑ₘγ 1 1) : ℤ) : zmod N) = 1 :=
 begin
   rw Gamma_mem',
   split,
@@ -83,7 +85,7 @@ end
 /--The congruence subgroup of `SL(2,ℤ)` of matrices whose lower left-hand entry reduces to zero
 modulo `N`. -/
 def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
-{ carrier := { g : SL(2, ℤ) | (↑ₘg 1 0 : zmod N) = 0 },
+{ carrier := { g : SL(2, ℤ) | ((↑ₘg 1 0 : ℤ) : zmod N) = 0 },
   one_mem' := by { simp },
   mul_mem':= by {intros a b ha hb,
     simp only [ set.mem_set_of_eq],
@@ -100,7 +102,7 @@ def Gamma0 (N : ℕ) : subgroup SL(2, ℤ) :=
     exact ha } }
 
 @[simp]
-lemma Gamma0_mem (N : ℕ) (A: SL(2, ℤ)) : A ∈ (Gamma0 N) ↔ ((↑ₘA) 1 0 : zmod N) = 0 :=iff.rfl
+lemma Gamma0_mem (N : ℕ) (A: SL(2, ℤ)) : A ∈ (Gamma0 N) ↔ (((↑ₘA) 1 0 : ℤ) : zmod N) = 0 :=iff.rfl
 
 lemma Gamma0_det (N : ℕ) (A : Gamma0 N) : (A.1.1.det : zmod N) = 1 :=
 begin
@@ -110,7 +112,7 @@ end
 /--The group homomorphism from `Gamma0` to `zmod N` given by mapping a matrix to its lower
 right-hand entry. -/
 def Gamma_0_map (N : ℕ): (Gamma0 N) →* (zmod N) :=
-{ to_fun := λ g, (↑ₘg 1 1 : zmod N),
+{ to_fun := λ g, ((↑ₘg 1 1 : ℤ) : zmod N),
   map_one' := by { simp, },
   map_mul' := by {intros A B,
   have := (mat_two_mul_expl A.1.1 B.1.1).2.2.2,
@@ -132,7 +134,7 @@ lemma Gamma1_mem' (N : ℕ) (γ :(Gamma0 N)) : γ ∈ (Gamma1' N) ↔ ((Gamma_0_
 iff.rfl
 
 lemma Gamma1_to_Gamma0_mem (N : ℕ) (A : Gamma0 N) : A ∈ (Gamma1' N) ↔
-  (↑ₘA 0 0 : zmod N) = 1 ∧ (↑ₘA 1 1 : zmod N) = 1 ∧ (↑ₘA 1 0 : zmod N) = 0 :=
+  ((↑ₘA 0 0 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 1 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 0 : ℤ) : zmod N) = 0 :=
 begin
   split,
   intro ha,
@@ -158,7 +160,7 @@ def Gamma1 (N : ℕ) : subgroup SL(2, ℤ) := subgroup.map
 
 @[simp]
 lemma Gamma1_mem (N : ℕ) (A : SL(2, ℤ)) : A ∈ (Gamma1 N) ↔
-  (↑ₘA 0 0 : zmod N) = 1 ∧ (↑ₘA 1 1 : zmod N) = 1 ∧ (↑ₘA 1 0 : zmod N) = 0 :=
+  ((↑ₘA 0 0 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 1 : ℤ) : zmod N) = 1 ∧ ((↑ₘA 1 0 : ℤ) : zmod N) = 0 :=
 begin
   split,
   { intro ha,

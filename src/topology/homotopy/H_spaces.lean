@@ -257,10 +257,15 @@ end
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
-  cont' := sorry,
-  -- begin
+  cont' := --sorry,
+  begin
+    apply continuous_to_Ω_iff_uncurry.mpr,
+
   --   apply (continuous_to_loop_space_iff_curry x).mpr,
-  --   apply continuous_of_restricts_union (univ_eq_union_halves _),
+  apply continuous_of_restricts_union (univ_eq_union_halves _),
+  dsimp [set.restrict],
+  sorry,
+  -- simp only,
   --   { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
   --     have hφ: continuous φ, sorry,
   --     sorry,
@@ -294,7 +299,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
     -- },
   -- sorry,
     -- },
-  -- end,
+  end,
   Hmul_e_e := sorry,
   left_Hmul_e := sorry,
   right_Hmul_e := sorry}

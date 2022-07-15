@@ -156,15 +156,14 @@ def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i 
 
 /-- `sum.map` as an initial segment into `sum.lift_rel r s`. -/
 def sum_lift_rel_map (f : r ≃r s) (g : t ≼i u) : sum.lift_rel r t ≼i sum.lift_rel s u :=
-⟨rel_embedding.sum_lift_rel_map f g,
-  begin
-    rintros (a | c) (b | d),
-    { refine λ h, ⟨sum.inl (f.symm b), _⟩,
-      simp },
-    { simp },
-    { simp },
-    { simpa using g.init c d },
-  end⟩
+⟨rel_embedding.sum_lift_rel_map f g, begin
+  rintros (a | c) (b | d),
+  { refine λ h, ⟨sum.inl (f.symm b), _⟩,
+    simp },
+  { simp },
+  { simp },
+  { simpa using g.init c d }
+end⟩
 
 @[simp] theorem sum_lift_rel_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
   sum_lift_rel_map f g a = sum.map f g a := rfl
@@ -179,30 +178,28 @@ def sum_lex_inl (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.l
 
 /-- `sum.map` as an initial segment between `sum.lex` relations. -/
 def sum_lex_map (f : r ≃r s) (g : t ≼i u) : sum.lex r t ≼i sum.lex s u :=
-⟨rel_embedding.sum_lex_map f g,
-  begin
-    have H : ∀ b, ∃ a, f a = b := λ b, ⟨f.symm b, by simp⟩,
-    rintros (a | c) (b | d),
-    { simp [H] },
-    { simp },
-    { simp [H] },
-    { simpa using g.init c d },
-  end⟩
+⟨rel_embedding.sum_lex_map f g, begin
+  have H : ∀ b, ∃ a, f a = b := λ b, ⟨f.symm b, by simp⟩,
+  rintros (a | c) (b | d),
+  { simp [H] },
+  { simp },
+  { simp [H] },
+  { simpa using g.init c d }
+end⟩
 
 @[simp] theorem sum_lex_map_apply (f : r ≃r s) (g : t ≼i u) (a) :
   sum_lex_map f g a = sum.map f g a := rfl
 
 /-- `λ b, prod.mk a b` as an initial segment. You must provide a minimal element `a` under `r`. -/
 @[simps] def prod_lex_mk (s : β → β → Prop) {a : α} (H : ∀ a', ¬ r a' a) : s ≼i prod.lex r s :=
-⟨rel_embedding.prod_lex_mk_left s (H a),
-  begin
-    rintros b ⟨a', b'⟩,
-    simp only [prod.lex_def, rel_embedding.prod_lex_mk_left_apply, prod.mk.inj_iff,
-      exists_eq_right],
-    rintro (h | ⟨rfl, -⟩),
-    { exact (H a' h).elim },
-    { exact rfl }
-  end⟩
+⟨rel_embedding.prod_lex_mk_left s (H a), begin
+  rintros b ⟨a', b'⟩,
+  simp only [prod.lex_def, rel_embedding.prod_lex_mk_left_apply, prod.mk.inj_iff,
+    exists_eq_right],
+  rintro (h | ⟨rfl, -⟩),
+  { exact (H a' h).elim },
+  { exact rfl }
+end⟩
 
 end initial_seg
 
@@ -296,12 +293,11 @@ def equiv_lt (f : r ≃r s) (g : s ≺i t) : r ≺i t :=
 /-- Composition of a principal segment with an order isomorphism, as a principal segment -/
 def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
   (f : principal_seg r s) (g : s ≃r t) : principal_seg r t :=
-⟨@rel_embedding.trans _ _ _ r s t f g, g f.top,
-  begin
-    intro x,
-    rw [← g.apply_symm_apply x, g.map_rel_iff, f.down', exists_congr],
-    intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
-  end⟩
+⟨@rel_embedding.trans _ _ _ r s t f g, g f.top, begin
+  intro x,
+  rw [← g.apply_symm_apply x, g.map_rel_iff, f.down', exists_congr],
+  intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
+end⟩
 
 @[simp] theorem equiv_lt_apply (f : r ≃r s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
 rel_embedding.trans_apply _ _ _

@@ -219,11 +219,14 @@ begin
     exact (cast_add_one_pos _).ne' }
 end
 
-lemma exists_large_sphere (hn : 0 < n) (hd : 0 < d) :
-  ∃ k, (d ^ n / ↑(n * d^2) : ℝ) ≤ (sphere n d k).card :=
+lemma exists_large_sphere (n d : ℕ) : ∃ k, (d ^ n / ↑(n * d^2) : ℝ) ≤ (sphere n d k).card :=
 begin
   obtain ⟨k, -, hk⟩ := exists_large_sphere_aux n d,
   refine ⟨k, _⟩,
+  obtain rfl | hn := n.eq_zero_or_pos,
+  { simp },
+  obtain rfl | hd := d.eq_zero_or_pos,
+  { simp },
   rw ←cast_pow,
   refine (div_le_div_of_le_left _ _ _).trans hk,
   { exact cast_nonneg _ },
@@ -237,18 +240,15 @@ begin
   exact le_mul_of_one_le_right zero_le_two (one_le_cast.2 hd),
 end
 
-lemma bound_aux' (hd : 0 < d) (hn : 0 < n) (hN : (2 * d - 1)^n ≤ N) :
-  (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number_nat N :=
-let ⟨k, h⟩ := exists_large_sphere hn hd in
-  h.trans $ cast_le.2 $ card_sphere_le_roth_number_nat hd hN
+lemma bound_aux' (n d : ℕ) : (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number_nat ((2 * d - 1)^n) :=
+let ⟨k, h⟩ := exists_large_sphere n d in h.trans $ cast_le.2 $ card_sphere_le_roth_number_nat _ _ _
 
-lemma bound_aux (hd : 0 < d) (hn : 2 ≤ n) (hN : (2 * d - 1)^n ≤ N) :
-  (d ^ (n - 2) / n : ℝ) ≤ roth_number_nat N :=
+lemma bound_aux (hd : d  ≠ 0) (hn : 2 ≤ n) :
+  (d ^ (n - 2) / n : ℝ) ≤ roth_number_nat ((2 * d - 1)^n) :=
 begin
-  convert bound_aux' hd (zero_lt_two.trans_le hn) hN using 1,
+  convert bound_aux' n d using 1,
   rw [cast_mul, cast_pow, mul_comm, ←div_div, pow_sub₀ _ _ hn, ←div_eq_mul_inv],
-  rw cast_ne_zero,
-  exact hd.ne',
+  rwa cast_ne_zero,
 end
 
 open_locale filter topological_space
@@ -462,62 +462,49 @@ lemma roth_lower_bound_explicit (hN : 4096 ≤ N) :
   (N : ℝ) * exp (-4 * sqrt (log N)) < roth_number_nat N :=
 begin
   let n := n_value N,
-  have hn : 0 < n := n_value_pos (hN.trans' $ by norm_num1),
+  have hn : 0 < (n : ℝ) := cast_pos.2 (n_value_pos $ hN.trans' $ by norm_num1),
   have hd : 0 < d_value N := d_value_pos (hN.trans' $ by norm_num1),
   have hN₀ : 0 < (N : ℝ) := cast_pos.2 (hN.trans' $ by norm_num1),
   have hn₂ : 2 ≤ n := two_le_n_value (hN.trans' $ by norm_num1),
   have : (2 * d_value N - 1)^n ≤ N := le_N (hN.trans' $ by norm_num1),
-  refine (bound_aux hd hn₂ this).trans_lt' _,
-  refine (div_lt_div_of_lt (by rwa cast_pos) $ pow_lt_pow_of_lt_left (bound hN) _ _).trans_le' _,
+  refine ((bound_aux hd.ne' hn₂).trans $ cast_le.2 $ roth_number_nat.mono this).trans_lt' _,
+  refine (div_lt_div_of_lt hn $ pow_lt_pow_of_lt_left (bound hN) _ _).trans_le' _,
   { exact div_nonneg (rpow_nonneg_of_nonneg (cast_nonneg _) _) (exp_pos _).le },
-  { apply tsub_pos_of_lt,
-    exact three_le_n_value (hN.trans' $ by norm_num1) },
+  { exact tsub_pos_of_lt (three_le_n_value $ hN.trans' $ by norm_num1) },
   rw [←rpow_nat_cast, div_rpow (rpow_nonneg_of_nonneg hN₀.le _) (exp_pos _).le, ←rpow_mul hN₀.le,
-    mul_comm (_ / _), mul_one_div, cast_sub hn₂, cast_two, same_sub_div, exp_one_rpow,
-    div_div, rpow_sub, rpow_one, div_div, div_eq_mul_inv],
-  { refine mul_le_mul_of_nonneg_left _ (cast_nonneg _),
-    rw [mul_inv, mul_inv, ←exp_neg, ←rpow_neg (cast_nonneg _), neg_sub, ←div_eq_mul_inv],
-    have : exp ((-4) * sqrt (log N)) = exp (-2 * sqrt (log N)) * exp (-2 * sqrt (log N)),
-    { rw [←exp_add, ←add_mul],
-      norm_num },
-    rw this,
-    apply (mul_le_mul _ (exp_neg_two_mul_le (real.sqrt_pos.2 _)).le _ _),
-    { rw [←le_log_iff_exp_le (rpow_pos_of_pos hN₀ _), log_rpow hN₀, ←le_div_iff, mul_div_assoc,
-        div_sqrt, neg_mul, neg_le_neg_iff, div_mul_eq_mul_div, div_le_iff],
-      { exact mul_le_mul_of_nonneg_left (le_ceil _) zero_le_two },
-      { rwa cast_pos },
-      rw real.sqrt_pos,
-      refine log_pos _,
-      rw one_lt_cast,
-      exact hN.trans_lt' (by norm_num1) },
-    { refine log_pos _,
-      rw one_lt_cast,
-      exact hN.trans_lt' (by norm_num1) },
-    { exact (exp_pos _).le },
-    exact rpow_nonneg_of_nonneg (cast_nonneg _) _ },
-  { exact hN₀ },
-  apply ne_of_gt,
-  rwa cast_pos,
+    mul_comm (_ / _), mul_one_div, cast_sub hn₂, cast_two, same_sub_div hn.ne', exp_one_rpow,
+    div_div, rpow_sub hN₀, rpow_one, div_div, div_eq_mul_inv],
+  refine mul_le_mul_of_nonneg_left _ (cast_nonneg _),
+  rw [mul_inv, mul_inv, ←exp_neg, ←rpow_neg (cast_nonneg _), neg_sub, ←div_eq_mul_inv],
+  have : exp ((-4) * sqrt (log N)) = exp (-2 * sqrt (log N)) * exp (-2 * sqrt (log N)),
+  { rw [←exp_add, ←add_mul],
+    norm_num },
+  rw this,
+  refine (mul_le_mul _ (exp_neg_two_mul_le $ real.sqrt_pos.2 $ log_pos _).le (exp_pos _).le $
+    rpow_nonneg_of_nonneg (cast_nonneg _) _),
+  { rw [←le_log_iff_exp_le (rpow_pos_of_pos hN₀ _), log_rpow hN₀, ←le_div_iff, mul_div_assoc,
+      div_sqrt, neg_mul, neg_le_neg_iff, div_mul_eq_mul_div, div_le_iff hn],
+    { exact mul_le_mul_of_nonneg_left (le_ceil _) zero_le_two },
+    refine real.sqrt_pos.2 (log_pos _),
+    rw one_lt_cast,
+    exact hN.trans_lt' (by norm_num1) },
+  { rw one_lt_cast,
+    exact hN.trans_lt' (by norm_num1) }
 end
 
 lemma exp_four_lt : exp 4 < 64 :=
 begin
-  have : (2 : ℝ) ^ ((6 : ℕ) : ℝ) = 64,
-  { rw rpow_nat_cast,
-    norm_num1 },
-  rw [←this, ←lt_log_iff_exp_lt (rpow_pos_of_pos zero_lt_two _), log_rpow zero_lt_two,
-    ←div_lt_iff'],
-  refine lt_of_le_of_lt (by norm_num1) log_two_gt_d9,
+  rw [show (64 : ℝ) = 2 ^ ((6 : ℕ) : ℝ), by norm_num1,
+    ←lt_log_iff_exp_lt (rpow_pos_of_pos zero_lt_two _), log_rpow zero_lt_two, ←div_lt_iff'],
+  exact log_two_gt_d9.trans_le' (by norm_num1),
   norm_num
 end
 
 lemma four_zero_nine_six_lt_exp_sixteen : 4096 < exp 16 :=
 begin
-  rw [←log_lt_iff_lt_exp (show (0 : ℝ) < 4096, by norm_num)],
-  have : (4096 : ℝ) = 2 ^ 12,
-  { norm_num },
-  rw [this, ←rpow_nat_cast, log_rpow zero_lt_two, cast_bit0, cast_bit0, cast_bit1, cast_one],
-  linarith [log_two_lt_d9]
+  rw [←log_lt_iff_lt_exp (show (0 : ℝ) < 4096, by norm_num), show (4096 : ℝ) = 2 ^ 12, by norm_num,
+    ←rpow_nat_cast, log_rpow zero_lt_two, cast_bit0, cast_bit0, cast_bit1, cast_one],
+  linarith [log_two_lt_d9],
 end
 
 lemma lower_bound_le_one' (hN : 2 ≤ N) (hN' : N ≤ 4096) : (N : ℝ) * exp (-4 * sqrt (log N)) ≤ 1 :=
@@ -529,7 +516,7 @@ begin
     (zero_le_bit0.2 zero_le_two), log_le_iff_le_exp (cast_pos.2 (zero_lt_two.trans_le hN))],
   norm_num1,
   apply le_trans _ four_zero_nine_six_lt_exp_sixteen.le,
-  exact_mod_cast hN'
+  exact_mod_cast hN',
 end
 
 lemma lower_bound_le_one (hN : 1 ≤ N) (hN' : N ≤ 4096) : (N : ℝ) * exp (-4 * sqrt (log N)) ≤ 1 :=

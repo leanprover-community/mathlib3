@@ -1399,6 +1399,7 @@ variables (R)
 def transpose_linear_equiv [semiring R] [add_comm_monoid α] [module R α] :
   matrix m n α ≃ₗ[R] matrix n m α := { map_smul' := transpose_smul, ..transpose_add_equiv}
 variables {R}
+
 @[simp] lemma transpose_linear_equiv_symm [semiring R] [add_comm_monoid α] [module R α] :
   (transpose_linear_equiv R : matrix m n α ≃ₗ[R] _).symm = transpose_linear_equiv R := rfl
 
@@ -1420,6 +1421,7 @@ lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : l
   l.prodᵀ = (l.map transpose).reverse.prod :=
 (transpose_ring_equiv : matrix m m α ≃+* _).unop_map_list_prod l
 
+variables (R)
 /-- `matrix.transpose` as an `alg_equiv` to the opposite ring -/
 @[simps]
 def transpose_alg_equiv [comm_semiring R] [comm_semiring α] [fintype m] [decidable_eq m]
@@ -1429,6 +1431,7 @@ def transpose_alg_equiv [comm_semiring R] [comm_semiring α] [fintype m] [decida
                                   mul_opposite.algebra_map_apply],
   ..transpose_add_equiv.trans mul_opposite.op_add_equiv,
   ..transpose_ring_equiv }
+variables {R}
 
 end transpose
 

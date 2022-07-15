@@ -355,11 +355,13 @@ theorem cod_restrict_apply (p) (f : r ≺i s) (H H₂ a) : cod_restrict p f H H�
 theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂).top = ⟨f.top, H₂⟩ := rfl
 
 /-- A relation on an empty type is a principal segment in a relation with a minimal element `b`. -/
-def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) :
-  r ≺i s :=
+def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) : r ≺i s :=
 { top := b,
   down := by simp [H],
   ..rel_embedding.of_is_empty r s }
+
+@[simp] theorem of_is_empty_top (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) :
+  (of_is_empty r H).top = b := rfl
 
 /-- `sum.inl` as a principal segment. You must provide a minimal element `b` under `s`. -/
 def sum_lex_inl (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) : r ≺i sum.lex r s :=

@@ -67,8 +67,11 @@ lemma is_well_founded_on.is_well_founded {s : set α} {r : α → α → Prop} :
   s.is_well_founded_on r → is_well_founded s (subrel r s) :=
 id
 
--- Todo (Vi): Adding API for `is_well_founded_on.min` would alleviate having to use `haveI` in the
--- following proofs.
+-- Todo (vihdzp): Adding API for `is_well_founded_on.min` would alleviate having to use `haveI` in
+-- the following proofs.
+
+@[simp] lemma well_founded_on_empty (r : α → α → Prop) : well_founded_on ∅ r :=
+well_founded_of_empty _
 
 lemma is_well_founded_on_iff {s : set α} {r : α → α → Prop} :
   s.is_well_founded_on r ↔ is_well_founded α (λ a b, r a b ∧ a ∈ s ∧ b ∈ s) :=
@@ -135,6 +138,11 @@ variables [has_lt α]
 def is_wf (s : set α) : Prop := well_founded_lt s
 
 lemma is_wf_def {s : set α} : s.is_wf ↔ well_founded_lt s := iff.rfl
+
+@[simp] lemma is_wf_empty : is_wf (∅ : set α) := well_founded_of_empty _
+
+lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
+by simp [is_wf, well_founded_on_iff]
 
 @[simp] lemma is_well_founded_on_lt_iff {s : set α} : is_well_founded_on s (<) ↔ s.is_wf := iff.rfl
 
@@ -211,10 +219,19 @@ namespace set
 def partially_well_ordered_on (s) (r : α → α → Prop) : Prop :=
   ∀ (f : ℕ → α), range f ⊆ s → ∃ (m n : ℕ), m < n ∧ r (f m) (f n)
 
+@[simp] theorem partially_well_ordered_on_empty (r : α → α → Prop) :
+  partially_well_ordered_on (∅ : set α) r :=
+λ f h, begin
+  rw subset_empty_iff at h,
+  exact ((range_nonempty f).ne_empty h).elim
+end
+
 /-- A subset of a preorder is partially well-ordered when any infinite sequence contains
   a monotone subsequence of length 2 (or equivalently, an infinite monotone subsequence). -/
 def is_pwo [preorder α] (s) : Prop :=
 partially_well_ordered_on s ((≤) : α → α → Prop)
+
+@[simp] theorem is_pwo_empty [preorder α] : is_pwo (∅ : set α) := partially_well_ordered_on_empty _
 
 theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   (ht : t.partially_well_ordered_on r) (hsub : s ⊆ t) :
@@ -455,8 +472,6 @@ theorem finite.is_pwo (h : s.finite) : s.is_pwo :=
 by { rw ← h.coe_to_finset, exact h.to_finset.is_pwo }
 
 @[simp] theorem fintype.is_pwo [fintype α] : s.is_pwo := s.to_finite.is_pwo
-
-@[simp] theorem is_pwo_empty : is_pwo (∅ : set α) := finite_empty.is_pwo
 
 @[simp] theorem is_pwo_singleton (a) : is_pwo ({a} : set α) := (finite_singleton a).is_pwo
 
@@ -874,7 +889,7 @@ begin
   { simpa only [forall_true_left, finset.mem_univ] using this finset.univ, },
   apply' finset.induction,
   { intros f hf, existsi rel_embedding.refl (≤),
-    simp only [forall_false_left, implies_true_iff, forall_const, finset.not_mem_empty], },
+    simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f hf,
     obtain ⟨g, hg⟩ := (well_founded_lt.is_wf set.univ).is_pwo.exists_monotone_subseq
       ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),

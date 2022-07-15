@@ -1097,29 +1097,29 @@ variables {m : multiset α}
 
 /-- If `p` is a decidable predicate,
 so is the predicate that all elements of a multiset satisfy `p`. -/
-protected def decidable_forall_multiset {p : α → Prop} [hp : ∀a, decidable (p a)] :
-  decidable (∀a∈m, p a) :=
-quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a∈l, p a) $ by simp)
+protected def decidable_forall_multiset {p : α → Prop} [hp : ∀ a, decidable (p a)] :
+  decidable (∀ a ∈ m, p a) :=
+quotient.rec_on_subsingleton m (λl, decidable_of_iff (∀a ∈ l, p a) $ by simp)
 
-instance decidable_dforall_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
-  decidable (∀a (h : a ∈ m), p a h) :=
+instance decidable_dforall_multiset {p : Π a ∈ m, Prop} [hp : ∀ a (h : a ∈ m), decidable (p a h)] :
+  decidable (∀ a (h : a ∈ m), p a h) :=
 decidable_of_decidable_of_iff
   (@multiset.decidable_forall_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
   (iff.intro (assume h a ha, h ⟨a, ha⟩ (mem_attach _ _)) (assume h ⟨a, ha⟩ _, h _ _))
 
 /-- decidable equality for functions whose domain is bounded by multisets -/
-instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀a, decidable_eq (β a)] :
-  decidable_eq (Πa∈m, β a) :=
-assume f g, decidable_of_iff (∀a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
+instance decidable_eq_pi_multiset {β : α → Type*} [h : ∀ a, decidable_eq (β a)] :
+  decidable_eq (Π a ∈ m, β a) :=
+assume f g, decidable_of_iff (∀ a (h : a ∈ m), f a h = g a h) (by simp [function.funext_iff])
 
 /-- If `p` is a decidable predicate,
 so is the existence of an element in a multiset satisfying `p`. -/
-def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
+protected def decidable_exists_multiset {p : α → Prop} [decidable_pred p] :
   decidable (∃ x ∈ m, p x) :=
-quotient.rec_on_subsingleton m list.decidable_exists_mem
+quotient.rec_on_subsingleton m (λl, decidable_of_iff (∃ a ∈ l, p a) $ by simp)
 
-instance decidable_dexists_multiset {p : Πa∈m, Prop} [hp : ∀a (h : a ∈ m), decidable (p a h)] :
-  decidable (∃a (h : a ∈ m), p a h) :=
+instance decidable_dexists_multiset {p : Π a ∈ m, Prop} [hp : ∀ a (h : a ∈ m), decidable (p a h)] :
+  decidable (∃ a (h : a ∈ m), p a h) :=
 decidable_of_decidable_of_iff
   (@multiset.decidable_exists_multiset {a // a ∈ m} m.attach (λa, p a.1 a.2) _)
   (iff.intro (λ ⟨⟨a, ha₁⟩, _, ha₂⟩, ⟨a, ha₁, ha₂⟩)

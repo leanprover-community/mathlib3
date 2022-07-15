@@ -66,8 +66,7 @@ by unfold trailing_monic; apply_instance
 @[simp] lemma nat_trailing_degree_zero : nat_trailing_degree (0 : R[X]) = 0 := rfl
 
 lemma trailing_degree_eq_top : trailing_degree p = ⊤ ↔ p = 0 :=
-⟨λ h, by rw [trailing_degree, ← min_eq_inf_with_top] at h;
-  exact support_eq_empty.1 (min_eq_none.1 h),
+⟨λ h, support_eq_empty.1 (finset.min_eq_top.1 h),
 λ h, by simp [h]⟩
 
 lemma trailing_degree_eq_nat_trailing_degree (hp : p ≠ 0) :

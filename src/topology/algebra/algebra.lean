@@ -102,11 +102,11 @@ but we don't have those, so we use the clunky approach of talking about
 an algebra homomorphism, and a separate homeomorphism,
 along with a witness that as functions they are the same.
 -/
-lemma subalgebra.topological_closure_comap'_homeomorph
+lemma subalgebra.topological_closure_comap_homeomorph
   (s : subalgebra R A)
   {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
   (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
-  s.topological_closure.comap' f = (s.comap' f).topological_closure :=
+  s.topological_closure.comap f = (s.comap f).topological_closure :=
 begin
   apply set_like.ext',
   simp only [subalgebra.topological_closure_coe],

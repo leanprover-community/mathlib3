@@ -1091,6 +1091,11 @@ exists.elim h (λ x hx, ⟨x, and.left hx⟩)
 @[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
+/-- For some reason simp doesn't use `forall_const` to simplify in this case. -/
+@[simp] lemma forall_forall_const {α β : Type*} (p : β → Prop) [nonempty α] :
+  (∀ x, α → p x) ↔ ∀ x, p x :=
+forall_congr $ λ x, forall_const α
+
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 

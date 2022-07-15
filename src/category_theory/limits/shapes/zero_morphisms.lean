@@ -519,36 +519,30 @@ by { rw image.eq_fac h, simp }
 end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance split_mono_sigma_ι
-  {β : Type u'} [has_zero_morphisms C]
-  (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
-{ retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
+instance split_mono_sigma_ι {β : Type u'} [has_zero_morphisms C] (f : β → C)
+  [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
+{ retraction := sigma.desc $ pi.single b (𝟙 _) }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance split_epi_pi_π
-  {β : Type u'} [has_zero_morphisms C]
-  (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
-{ section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
+instance split_epi_pi_π {β : Type u'} [has_zero_morphisms C] (f : β → C)
+  [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
+{ section_ := pi.lift $ pi.single b (𝟙 _) }
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance split_mono_coprod_inl
-  [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
+instance split_mono_coprod_inl [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
   split_mono (coprod.inl : X ⟶ X ⨿ Y) :=
 { retraction := coprod.desc (𝟙 X) 0, }
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance split_mono_coprod_inr
-  [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
+instance split_mono_coprod_inr [has_zero_morphisms C] {X Y : C} [has_colimit (pair X Y)] :
   split_mono (coprod.inr : Y ⟶ X ⨿ Y) :=
 { retraction := coprod.desc 0 (𝟙 Y), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance split_epi_prod_fst
-  [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
+instance split_epi_prod_fst [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
   split_epi (prod.fst : X ⨯ Y ⟶ X) :=
 { section_ := prod.lift (𝟙 X) 0, }
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance split_epi_prod_snd
-  [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
+instance split_epi_prod_snd [has_zero_morphisms C] {X Y : C} [has_limit (pair X Y)] :
   split_epi (prod.snd : X ⨯ Y ⟶ Y) :=
 { section_ := prod.lift 0 (𝟙 Y), }
 

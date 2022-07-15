@@ -423,7 +423,7 @@ section finite_dimensional
 variables (F E : intermediate_field K L)
 
 instance finite_dimensional_left [finite_dimensional K L] : finite_dimensional K F :=
-finite_dimensional.finite_dimensional_submodule F.to_subalgebra.to_submodule
+left K F L
 
 instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional F L :=
 right K F L

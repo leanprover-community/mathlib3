@@ -225,7 +225,7 @@ is linear independent over `S` in `V'`, then it is linear independent over `R` i
 
 The statement we prove is actually slightly more general:
  * it suffices that the inclusion `algebra_map R S : R → S` is nontrivial
- * the inclusion `f' : V'' → V'` doesn't need to be injective
+ * the function `f' : V'' → V'` doesn't need to be injective
 -/
 lemma finrank_quotient_map.linear_independent_of_nontrivial
   [is_domain R] [is_dedekind_domain R] (hRS : (algebra_map R S).ker ≠ ⊤)

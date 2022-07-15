@@ -442,7 +442,7 @@ protected def has_op_smul : has_smul 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
   rw op_smul_eq_smul,
   exact (k • f).prop,
 end⟩⟩
-has_op_smul
+
 local attribute [instance] simple_func.has_op_smul
 
 @[simp, norm_cast] lemma coe_smul (c : 𝕜) (f : Lp.simple_func E p μ) :

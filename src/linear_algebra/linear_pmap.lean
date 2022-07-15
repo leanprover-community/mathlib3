@@ -68,6 +68,10 @@ begin
     refl, },
 end
 
+lemma ext_iff {f g : linear_pmap R E F} :
+  f = g ↔ ∃ (domain_eq : f.domain = g.domain), ∀ x, f.to_fun x = g.to_fun ⟨x, domain_eq ▸ x.2⟩ :=
+⟨λ EQ, EQ ▸ ⟨rfl, λ _, by congr; ext; refl⟩, λ ⟨deq, feq⟩, ext deq feq⟩
+
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
 

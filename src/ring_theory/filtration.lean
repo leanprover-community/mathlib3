@@ -163,6 +163,8 @@ begin
   rw [add_comm, tsub_add_cancel_of_le hn],
 end
 
+omit h
+
 lemma stable_iff_exists_pow_smul_eq_of_ge :
   F.stable ↔ ∃ n₀, ∀ n ≥ n₀, F.N n = I ^ (n - n₀) • F.N n₀ :=
 begin
@@ -171,7 +173,7 @@ begin
     tsub_add_eq_add_tsub hn],
 end
 
-lemma stable.exists_forall_le (e : F.N 0 ≤ F'.N 0) :
+lemma stable.exists_forall_le (h : F.stable) (e : F.N 0 ≤ F'.N 0) :
   ∃ n₀, ∀ n, F.N (n + n₀) ≤ F'.N n :=
 begin
   obtain ⟨n₀, hF⟩ := h,
@@ -184,7 +186,7 @@ begin
     simp },
 end
 
-lemma stable.bounded_difference (h' : F'.stable) (e : F.N 0 = F'.N 0) :
+lemma stable.bounded_difference (h : F.stable) (h' : F'.stable) (e : F.N 0 = F'.N 0) :
   ∃ n₀, ∀ n, F.N (n + n₀) ≤ F'.N n ∧ F'.N (n + n₀) ≤ F.N n :=
 begin
   obtain ⟨n₁, h₁⟩ := h.exists_forall_le (le_of_eq e),

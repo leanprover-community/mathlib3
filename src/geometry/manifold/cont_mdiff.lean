@@ -78,6 +78,22 @@ functions between manifolds. -/
 def cont_diff_within_at_prop (n : with_top ℕ) (f : H → H') (s : set H) (x : H) : Prop :=
 cont_diff_within_at 𝕜 n (I' ∘ f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) (I x)
 
+lemma cont_diff_within_at_prop_self_source {f : E → H'} {s : set E} {x : E} :
+  cont_diff_within_at_prop 𝓘(𝕜, E) I' n f s x ↔ cont_diff_within_at 𝕜 n (I' ∘ f) s x :=
+begin
+  simp_rw [cont_diff_within_at_prop, model_with_corners_self_coe, range_id, inter_univ],
+  refl
+end
+
+lemma cont_diff_within_at_prop_self {f : E → E'} {s : set E} {x : E} :
+  cont_diff_within_at_prop 𝓘(𝕜, E) 𝓘(𝕜, E') n f s x ↔ cont_diff_within_at 𝕜 n f s x :=
+cont_diff_within_at_prop_self_source 𝓘(𝕜, E')
+
+lemma cont_diff_within_at_prop_self_target {f : H → E'} {s : set H} {x : H} :
+  cont_diff_within_at_prop I 𝓘(𝕜, E') n f s x ↔
+  cont_diff_within_at 𝕜 n (f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) (I x) :=
+iff.rfl
+
 /-- Being `Cⁿ` in the model space is a local property, invariant under smooth maps. Therefore,
 it will lift nicely to manifolds. -/
 lemma cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
@@ -95,7 +111,7 @@ lemma cont_diff_within_at_local_invariant_prop (n : with_top ℕ) :
       by { rw [model_with_corners.left_inv], exact is_open.mem_nhds u_open xu },
     apply continuous_at.preimage_mem_nhds I.continuous_symm.continuous_at this,
   end,
-  right_invariance :=
+  right_invariance' :=
   begin
     assume s x f e he hx h,
     rw cont_diff_within_at_prop at h ⊢,
@@ -348,7 +364,63 @@ lemma cont_mdiff_at_iff_of_mem_source {x' : M} {y : M'} (hx : x' ∈ (chart_at H
 (cont_mdiff_within_at_iff_of_mem_source hx hy).trans $
   by rw [continuous_within_at_univ, preimage_univ, univ_inter]
 
+omit Is
+
+lemma cont_mdiff_within_at_iff_target_of_mem_source
+  {x : M} {y : M'} (hy : f x ∈ (chart_at H' y).source) :
+  cont_mdiff_within_at I I' n f s x ↔ continuous_within_at f s x ∧
+    cont_mdiff_within_at I 𝓘(𝕜, E') n (ext_chart_at I' y ∘ f) s x :=
+begin
+  simp_rw [cont_mdiff_within_at],
+  rw [(cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart_target
+    (chart_mem_maximal_atlas I' y) hy, and_congr_right],
+  intro hf,
+  simp_rw [structure_groupoid.lift_prop_within_at_self_target],
+  simp_rw [((chart_at H' y).continuous_at hy).comp_continuous_within_at hf],
+  rw [← ext_chart_at_source I'] at hy,
+  simp_rw [(ext_chart_at_continuous_at' I' _ hy).comp_continuous_within_at hf],
+  refl,
+end
+
+lemma cont_mdiff_at_iff_target_of_mem_source
+  {x : M} {y : M'} (hy : f x ∈ (chart_at H' y).source) :
+  cont_mdiff_at I I' n f x ↔ continuous_at f x ∧
+    cont_mdiff_at I 𝓘(𝕜, E') n (ext_chart_at I' y ∘ f) x :=
+begin
+  rw [cont_mdiff_at, cont_mdiff_within_at_iff_target_of_mem_source hy,
+    continuous_within_at_univ, cont_mdiff_at],
+  apply_instance
+end
+
+include Is
 omit I's
+
+lemma cont_mdiff_within_at_iff_source_of_mem_source
+  {x' : M} (hx' : x' ∈ (chart_at H x).source) :
+  cont_mdiff_within_at I I' n f s x' ↔
+    cont_mdiff_within_at 𝓘(𝕜, E) I' n (f ∘ (ext_chart_at I x).symm)
+    ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x') :=
+begin
+  simp_rw [cont_mdiff_within_at],
+  rw [(cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart_source
+    (chart_mem_maximal_atlas I x) hx'],
+  simp_rw [structure_groupoid.lift_prop_within_at_self_source],
+  -- get continuity of f ∘ ....
+  -- simp_rw [((chart_at H' y).continuous_at hy).comp_continuous_within_at hf],
+  -- rw [← ext_chart_at_source I'] at hy,
+  -- simp_rw [(ext_chart_at_continuous_at' I' _ hy).comp_continuous_within_at hf],
+  -- refl,
+end
+
+lemma cont_mdiff_at_iff_source_of_mem_source
+  {x' : M} (hy : x' ∈ (chart_at H x).source) :
+  cont_mdiff_at I I' n f x' ↔ continuous_at f x' ∧
+    cont_mdiff_at 𝓘(𝕜, E) I' n (f ∘ (ext_chart_at I x).symm) (ext_chart_at I x x') :=
+begin
+  rw [cont_mdiff_at, cont_mdiff_within_at_iff_source_of_mem_source hy,
+    continuous_within_at_univ, cont_mdiff_at],
+  apply_instance
+end
 
 lemma cont_mdiff_at_ext_chart_at' {x' : M} (h : x' ∈ (chart_at H x).source) :
   cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x' :=

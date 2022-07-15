@@ -275,16 +275,27 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
-  extends is_well_founded α r, is_trichotomous α r, is_trans α r : Prop
+  extends is_strict_total_order' α r : Prop :=
+(wf : well_founded r)
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order' (r : α → α → Prop) [is_well_order α r] :
   is_strict_total_order' α r := {}
-
-theorem well_founded_lt.is_well_order (α : Type u) [linear_order α] [well_founded_lt α] :
-  is_well_order α (<) := {}
-theorem well_founded_gt.is_well_order (α : Type u) [linear_order α] [well_founded_gt α] :
-  is_well_order α (>) := @well_founded_lt.is_well_order αᵒᵈ _ _
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
+  is_strict_total_order α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
+  is_extensional α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
+  is_trichotomous α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] :
+  is_trans α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] :
+  is_irrefl α r := by apply_instance
 
 namespace well_founded_lt
 variables [has_lt α] [well_founded_lt α]
@@ -341,6 +352,10 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
   linear_order α :=
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
+/-- Derive a `has_well_founded` instance from a `is_well_order` instance. -/
+def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
+  has_well_founded α := { r := (<), wf := hwo.wf }
+
 -- This isn't made into an instance as it loops with `is_irrefl α r`.
 theorem subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
   is_well_order α r :=
@@ -355,6 +370,7 @@ subsingleton.is_well_order _
 @[priority 100]
 instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
 { trichotomous := is_empty_elim,
+  irrefl       := is_empty_elim,
   trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
 
@@ -374,6 +390,8 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
+  irrefl := λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
+    [exact irrefl _ h, exact irrefl _ h],
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
@@ -382,7 +400,7 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
     { exact prod.lex.left _ _ bc },
     { exact prod.lex.right _ (trans ab bc) }
   end,
-  ..prod.lex.is_well_founded }
+  wf := prod.lex_wf is_well_order.wf is_well_order.wf }
 
 instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
   is_well_founded _ (inv_image r f) :=
@@ -602,4 +620,4 @@ instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒ
 @is_total.swap α _ _
 
 instance : well_founded_lt ℕ := ⟨nat.lt_wf⟩
-instance nat.lt.is_well_order : is_well_order ℕ (<) := well_founded_lt.is_well_order ℕ
+instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩

@@ -39,6 +39,8 @@ open_locale pointwise convex
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
 convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
 
+alias real.convex_iff_is_preconnected ↔ _ is_preconnected.convex
+
 /-! ### Standard simplex -/
 
 section std_simplex

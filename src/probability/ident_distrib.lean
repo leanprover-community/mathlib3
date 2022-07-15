@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import probability.variance
+import measure_theory.function.uniform_integrable
 
 /-!
 # Identically distributed random variables
@@ -281,5 +282,22 @@ begin
 end
 
 end ident_distrib
+
+section uniform_integrable
+
+variables {E : Type*} [measurable_space E] [normed_group E] {μ : measure α} [is_finite_measure μ]
+
+lemma uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
+  {p : ℝ≥0∞} (hp₀ : 1 ≤ p) (hp₁ : p ≠ ∞)
+  (hfmeas : ∀ i, strongly_measurable (f i)) (hf : ∀ i j, ident_distrib (f i) (f j) μ μ) :
+  uniform_integrable f p μ :=
+begin
+  refine uniform_integrable_of hp₀ hp₁ hfmeas (λ ε hε, _),
+  by_cases hι : nonempty ι,
+  swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
+  sorry
+end
+
+end uniform_integrable
 
 end probability_theory

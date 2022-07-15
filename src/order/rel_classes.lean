@@ -202,6 +202,8 @@ instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
 
+/-! ### Well-order -/
+
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_strict_total_order' α r : Prop :=

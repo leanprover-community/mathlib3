@@ -296,6 +296,11 @@ begin
     basis.equiv_fun_apply],
 end
 
+@[simp] protected lemma coe_to_basis_repr_apply (b : orthonormal_basis ι 𝕜 E) (x : E) (i : ι) :
+  b.to_basis.repr x i = b.repr x i :=
+by {rw [← basis.equiv_fun_apply, orthonormal_basis.coe_to_basis_repr,
+      linear_isometry_equiv.coe_to_linear_equiv]}
+
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
 by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }

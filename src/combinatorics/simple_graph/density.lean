@@ -96,27 +96,6 @@ lemma interedges_bUnion (s : finset ι) (t : finset κ) (f : ι → finset α) (
     (s.product t).bUnion (λ ab, interedges r (f ab.1) (g ab.2)) :=
 by simp_rw [product_bUnion, interedges_bUnion_left, interedges_bUnion_right]
 
-lemma card_interedges_finpartition_left (P : finpartition s) (t : finset β) :
-  (interedges r s t).card = ∑ a in P.parts, (interedges r a t).card :=
-begin
-  simp_rw [←P.bUnion_parts, interedges_bUnion_left, id.def],
-  rw card_bUnion,
-  exact λ x hx y hy h, interedges_disjoint_left r (P.disjoint hx hy h) _,
-end
-
-lemma card_interedges_finpartition_right (s : finset α) (P : finpartition t) :
-  (interedges r s t).card = ∑ b in P.parts, (interedges r s b).card :=
-begin
-  simp_rw [←P.bUnion_parts, interedges_bUnion_right, id],
-  rw card_bUnion,
-  exact λ x hx y hy h, interedges_disjoint_right r _ (P.disjoint hx hy h),
-end
-
-lemma card_interedges_finpartition (P : finpartition s) (Q : finpartition t) :
-  (interedges r s t).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
-by simp_rw [card_interedges_finpartition_left _ P, card_interedges_finpartition_right _ _ Q,
-  sum_product]
-
 end decidable_eq
 
 lemma card_interedges_le_mul (s : finset α) (t : finset β) :
@@ -143,6 +122,30 @@ by rw [edge_density, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
 
 @[simp] lemma edge_density_empty_right (s : finset α) : edge_density r s ∅ = 0 :=
 by rw [edge_density, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
+
+lemma card_interedges_finpartition_left [decidable_eq α] (P : finpartition s) (t : finset β) :
+  (interedges r s t).card = ∑ a in P.parts, (interedges r a t).card :=
+begin
+  classical,
+  simp_rw [←P.bUnion_parts, interedges_bUnion_left, id.def],
+  rw card_bUnion,
+  exact λ x hx y hy h, interedges_disjoint_left r (P.disjoint hx hy h) _,
+end
+
+lemma card_interedges_finpartition_right [decidable_eq β] (s : finset α) (P : finpartition t) :
+  (interedges r s t).card = ∑ b in P.parts, (interedges r s b).card :=
+begin
+  classical,
+  simp_rw [←P.bUnion_parts, interedges_bUnion_right, id],
+  rw card_bUnion,
+  exact λ x hx y hy h, interedges_disjoint_right r _ (P.disjoint hx hy h),
+end
+
+lemma card_interedges_finpartition [decidable_eq α] [decidable_eq β] (P : finpartition s)
+  (Q : finpartition t) :
+  (interedges r s t).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
+by simp_rw [card_interedges_finpartition_left _ P, card_interedges_finpartition_right _ _ Q,
+  sum_product]
 
 lemma mul_edge_density_le_edge_density (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁) (hs₂ : s₂.nonempty)
   (ht₂ : t₂.nonempty) :

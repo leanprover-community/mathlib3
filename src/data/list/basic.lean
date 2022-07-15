@@ -2945,21 +2945,23 @@ theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   map g (filter_map f l) = l :=
 by simp only [map_filter_map, H, filter_map_some]
 
-theorem length_filter_map (f : α → option β) (l : list α) :
-  (filter_map f l).length ≤ l.length :=
+theorem map_filter_map_some_eq_filter_map_is_some (f : α → option β) (l : list α) :
+  (l.filter_map f).map some = (l.map f).filter (λ b, b.is_some) :=
 begin
-  induction l with hd tl ih,
-  { refl },
-  { rw length,
-    unfold filter_map,
-    cases f hd,
-    { change (filter_map f tl).length ≤ tl.length + 1,
-      apply le_trans ih,
-      apply nat.le_succ },
-    { change (val :: (filter_map f tl)).length ≤ tl.length + 1,
-      rw length,
-      apply add_le_add_right,
-      exact ih } }
+  induction l with x xs ih,
+  { simp },
+  { cases h : f x; rw [list.filter_map_cons, h]; simp [h, ih] },
+end
+
+theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
+  (l.filter p).length ≤ l.length :=
+list.length_le_of_sublist (list.filter_sublist _)
+
+theorem length_filter_map_le (f : α → option β) (l : list α) :
+  (list.filter_map f l).length ≤ l.length :=
+begin
+  rw [← list.length_map some, list.map_filter_map_some_eq_filter_map_is_some, ← list.length_map f],
+  apply list.length_filter_le,
 end
 
 theorem sublist.filter_map (f : α → option β) {l₁ l₂ : list α}

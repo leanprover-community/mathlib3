@@ -7,7 +7,6 @@ Authors: Kenny Lau
 import algebra.module.basic
 import algebra.gcd_monoid.basic
 import algebra.group_ring_action
-import data.sum.order
 import group_theory.group_action.defs
 
 /-!
@@ -152,61 +151,3 @@ by refine { .. punit.distrib_mul_action, .. };
 intros; exact subsingleton.elim _ _
 
 end punit
-
-variables {α : Type*} [has_le α]
-
-namespace with_bot
-
-/-- `with_bot α` is order-isomorphic to `punit ⊕ₗ α`, by sending `⊥` to `punit.star` and `↑a` to
-`a`. -/
-def order_iso_punit_sum_lex : with_bot α ≃o punit ⊕ₗ α :=
-⟨(equiv.option_equiv_sum_punit α).trans $ (equiv.sum_comm _ _).trans to_lex,
-begin
-  rintros (a | _) (b | _),
-  { simp },
-  { simp },
-  { simpa using with_bot.not_coe_le_bot a },
-  { simp }
-end⟩
-
-@[simp] theorem order_iso_punit_sum_lex_bot :
-  @order_iso_punit_sum_lex α _ ⊥ = sum.inl punit.star := rfl
-
-@[simp] theorem order_iso_punit_sum_lex_coe (a : α) :
-  @order_iso_punit_sum_lex α _ a = sum.inr a := rfl
-
-@[simp] theorem order_iso_punit_sum_lex_symm_inl (x : punit) :
-  (@order_iso_punit_sum_lex α _).symm (sum.inl x) = ⊥ := rfl
-
-@[simp] theorem order_iso_punit_sum_lex_symm_inr (a : α) :
-  (@order_iso_punit_sum_lex α _).symm (sum.inr a) = a := rfl
-
-end with_bot
-
-namespace with_top
-
-/-- `with_top α` is order-isomorphic to `α ⊕ₗ punit`, by sending `⊤` to `punit.star` and `↑a` to
-`a`. -/
-def order_iso_sum_lex_punit : with_top α ≃o α ⊕ₗ punit :=
-⟨(equiv.option_equiv_sum_punit α).trans to_lex,
-begin
-  rintros (a | _) (b | _),
-  { simp },
-  { simpa using not_top_le_coe b },
-  { simp },
-  { simp }
-end⟩
-
-@[simp] theorem order_iso_sum_lex_punit_top :
-  @order_iso_sum_lex_punit α _ ⊤ = sum.inr punit.star := rfl
-
-@[simp] theorem order_iso_sum_lex_punit_coe (a : α) :
-  @order_iso_sum_lex_punit α _ a = sum.inl a := rfl
-
-@[simp] theorem order_iso_sum_lex_punit_symm_inr (x : punit) :
-  (@order_iso_sum_lex_punit α _).symm (sum.inr x) = ⊤ := rfl
-
-@[simp] theorem order_iso_sum_lex_punit_symm_inl (a : α) :
-  (@order_iso_sum_lex_punit α _).symm (sum.inl a) = a := rfl
-
-end with_top

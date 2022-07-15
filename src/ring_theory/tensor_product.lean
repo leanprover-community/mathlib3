@@ -398,6 +398,8 @@ instance left_algebra : algebra S (A ⊗[R] B) :=
   .. tensor_product.include_left_ring_hom.comp (algebra_map S A),
   .. (by apply_instance : module S (A ⊗[R] B)) }.
 
+-- This is for the `undergrad.yaml` list.
+/-- The tensor product of two `R`-algebras is an `R`-algebra. -/
 instance : algebra R (A ⊗[R] B) := infer_instance
 
 @[simp]
@@ -799,8 +801,8 @@ variables [comm_semiring R] [comm_semiring A] [semiring A'] [semiring B] [comm_s
 variables [algebra R A] [algebra R A'] [algebra A A'] [is_scalar_tower R A A'] [algebra R B]
 variables [algebra R S] [algebra A S] [is_scalar_tower R A S]
 
-/-- If `A'` is an `A`-algebra, then the product map of `f : A' →ₐ[A] S` and `g : B →ₐ[R] S` is
-an `A`-algebra homomorphism. -/
+/-- If `A`, `B` are `R`-algebras, `A'` is an `A`-algebra, then the product map of `f : A' →ₐ[A] S`
+and `g : B →ₐ[R] S` is an `A`-algebra homomorphism. -/
 @[simps] def product_left_algebra_map (f : A' →ₐ[A] S) (g : B →ₐ[R] S) : A' ⊗[R] B →ₐ[A] S :=
 { commutes' := λ r, by { dsimp, simp },
   ..(product_map (f.restrict_scalars R) g).to_ring_hom }

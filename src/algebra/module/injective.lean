@@ -277,7 +277,8 @@ begin
   rw extension_of.max_extension_property hchain hnonempty (r • y)
     (pick_submodule_mem_image hchain hnonempty (r • y)).some_spec.1 mem_smul,
   generalize_proofs inst hsmul hy,
-  rcases directed_on' hchain _ hsmul.some_spec.1 _ hy.some_spec.1 with
+  rcases (directed_on_iff_directed.mpr (is_chain.directed hchain) : directed_on (≤) c) _
+    hsmul.some_spec.1 _ hy.some_spec.1 with
     ⟨X, hX, ⟨h10, h1⟩, ⟨h20, h2⟩⟩,
   erw [@h1 ⟨r • y, mem_smul⟩ ⟨r • y, h10 mem_smul⟩ (by refl),
     @h2 ⟨y, mem_y⟩ ⟨y, h20 mem_y⟩ (by refl), ←linear_map.map_smul],
@@ -356,7 +357,6 @@ instance extension_of.inhabited : inhabited (extension_of i f) :=
       simp only [linear_map.coe_mk],
       erw fact.out (function.injective i) (⟨i m, ⟨_, rfl⟩⟩ : i.range).2.some_spec,
     end } }
-
 
 /--Since every nonempty chain has a maximal element, by Zorn's lemma, there is a maximal
 `extension_of hi f`-/
@@ -474,15 +474,15 @@ begin
   rw [extension_of_max_adjoin.eqn, ← sub_eq_zero,
     show ∀ (a b c d : N), (a + b) - (c + d) = (a - c) - (d - b), from λ _ _ _ _, by abel,
     sub_eq_zero, ← sub_smul] at eq2,
-  have eq3 := extension_of_max_adjoin.extend_ideal_to_eq f hi h (r - extension_of_max_adjoin.snd x)
-    (by rw ← eq2; exact submodule.sub_mem _ (extension_of_max_adjoin.fst x).2 a.2),
+  have eq3 := extension_of_max_adjoin.extend_ideal_to_eq i f h (r - extension_of_max_adjoin.snd i x)
+    (by rw ← eq2; exact submodule.sub_mem _ (extension_of_max_adjoin.fst i x).2 a.2),
   simp only [map_sub, sub_smul, sub_eq_iff_eq_add] at eq3,
   unfold extension_of_max_adjoin.extension_to_fun,
   rw [eq3, ← add_assoc],
   congr' 1,
-  rw [← map_add, show ∀ (a b : (extension_of_max f hi).domain), a + b = ⟨a.1 + b.1, _⟩,
+  rw [← map_add, show ∀ (a b : (extension_of_max i f).domain), a + b = ⟨a.1 + b.1, _⟩,
     from λ _ _, rfl],
-  have eq4 := extension_of_max_adjoin.eqn x,
+  have eq4 := extension_of_max_adjoin.eqn i x,
   rw eq1 at eq4,
   simp only [eq4, add_sub, add_sub_cancel],
   exact congr_arg _ (subtype.ext_val rfl),
@@ -502,24 +502,24 @@ def extension_of_max_adjoin (h : module.Baer R Q) (y : N) :
         { change a.1 + b.1 = _ + _,
           rw [extension_of_max_adjoin.eqn, extension_of_max_adjoin.eqn, add_smul],
           abel, },
-        rw [extension_of_max_adjoin.extension_to_fun_wd f hi h (a + b) _ _ eq1, map_add, map_add],
+        rw [extension_of_max_adjoin.extension_to_fun_wd i f h (a + b) _ _ eq1, map_add, map_add],
         unfold extension_of_max_adjoin.extension_to_fun,
         abel,
       end,
       map_smul' := λ r a, begin
         rw [ring_hom.id_apply],
-        have eq1 : (r • a).1 = (r • extension_of_max_adjoin.fst a).1 +
-          (r • extension_of_max_adjoin.snd a) • y,
+        have eq1 : (r • a).1 = (r • extension_of_max_adjoin.fst i a).1 +
+          (r • extension_of_max_adjoin.snd i a) • y,
         { change r • a.1 = _,
           rw [extension_of_max_adjoin.eqn, smul_add, smul_eq_mul, mul_smul],
           refl, },
-        rw [extension_of_max_adjoin.extension_to_fun_wd f hi h (r • a) _ _ eq1,
+        rw [extension_of_max_adjoin.extension_to_fun_wd i f h (r • a) _ _ eq1,
           linear_map.map_smul, linear_map.map_smul, ← smul_add],
         congr',
       end },
   is_extension := λ m, begin
     simp only [linear_map.coe_mk],
-    rw [(extension_of_max f hi).is_extension, extension_of_max_adjoin.extension_to_fun_wd f hi h
+    rw [(extension_of_max i f).is_extension, extension_of_max_adjoin.extension_to_fun_wd i f h
       _ ⟨i m, _⟩ 0 _, map_zero, add_zero],
     simp,
   end }
@@ -544,10 +544,10 @@ lemma extension_of_max_to_submodule_eq_top (h : module.Baer R Q) :
   (extension_of_max i f).domain = ⊤ :=
 begin
   by_contra rid,
-  rcases show ∃ (y : N), y ∉ (extension_of_max f hi).domain,
+  rcases show ∃ (y : N), y ∉ (extension_of_max i f).domain,
     by contrapose! rid; ext; exact ⟨λ _, trivial, λ _, rid _⟩ with ⟨y, hy⟩,
   apply hy,
-  erw [← extension_of_max_eq f hi h y, submodule.mem_sup],
+  erw [← extension_of_max_eq i f h y, submodule.mem_sup],
   exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩,
 end
 

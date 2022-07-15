@@ -632,7 +632,7 @@ open function
 variables [is_well_order α (<)]
 
 lemma Inf_eq_argmin_on (hs : s.nonempty) :
-  Inf s = argmin_on id (@is_well_founded.wf α (<) _) s hs :=
+  Inf s = argmin_on id (@is_well_order.wf α (<) _) s hs :=
 is_least.cInf_eq ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩
 
 lemma is_least_Inf (hs : s.nonempty) : is_least s (Inf s) :=

@@ -57,8 +57,8 @@ variables (X : Type u) [topological_space X]
 
 instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
-instance (x y : X) : topological_space (path x y) := topological_space.induced
-  (coe : _ → C(I, X)) (by {apply_instance})
+instance (x y : X) : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
+  continuous_map.compact_open
 
 end path
 
@@ -123,16 +123,16 @@ variables {X : Type u} [topological_space X]
 --   exact f.2,
 -- end
 
-abbreviation loop_space (x : X) := path x x
+def loop_space (x : X) := path x x
 
-notation ` Ω ` := loop_space
 
-instance (x : X) : topological_space (Ω x) := infer_instance
+notation ` Ω(` x `)` := path x x
 
-instance (x : X) : has_coe (Ω x) C(I, X) := {coe := λ g, ⟨g.1⟩}
+@[simp]
+lemma continuous_coe (x : X) : continuous (coe : Ω(x) → C(↥I, X)) := continuous_induced_dom
 
 @[ext]
-lemma ext_loop (x : X) (γ γ' : Ω x) : γ = γ' ↔ (∀ t, γ t = γ' t) :=
+lemma ext_loop (x : X) (γ γ' : Ω(x) ) : γ = γ' ↔ (∀ t, γ t = γ' t) :=
 begin
   split;
   intro h,
@@ -140,36 +140,26 @@ begin
   { rw [← function.funext_iff] at h, exact path.ext h }
 end
 
-example (x : X) : has_coe_to_fun (Ω x) (λ _, I → X) := infer_instance
+example (x : X) : has_coe_to_fun Ω(x) (λ _, I → X) := infer_instance
 
 
 variable {x : X}
 
 @[simp]
 lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y]
-[locally_compact_space Y] {g : Y → Ω x} : continuous g ↔ continuous (↑g : Y → C(I,X)) :=
-begin
-  sorry,
-end
+[locally_compact_space Y] {g : Y → Ω(x) } : continuous g ↔ continuous (↑g : Y → C(I,X)) :=
+⟨λ h, continuous.comp (continuous_coe x) h, λ h, continuous_induced_rng h⟩
+--begin
+  --  split;
+--   intro h,
+--   { exact continuous.comp (continuous_coe x) h },
+--   { exact continuous_induced_rng h, },
+-- end
 
 lemma continuous_to_Ω_iff_uncurry {Y : Type u} [topological_space Y]
-[locally_compact_space Y] {g : Y → Ω x} :
-  continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
-begin
-  -- have := @co/,-- (↑g : Y → C(I,X)),
-  split,
-  { intro h,
-    -- apply continuous_to_C_iff_uncurry.mp _,
-    -- have uno := continuous_to_Ω_iff_to_C.mp h,
-    apply (continuous_to_C_iff_uncurry Y I X ↑g).mp (continuous_to_Ω_iff_to_C.mp h),
-  },
-  { intro h,
-    replace this := this.mpr,
-    specialize this h,
-    apply this,
-
-  },
-end
+[locally_compact_space Y] {g : Y → Ω(x)} : continuous g ↔ continuous (λ p : Y × I, g p.1 p.2) :=
+  iff.intro ((λ h, (continuous_to_C_iff_uncurry Y I X ↑g).mp (continuous_to_Ω_iff_to_C.mp h)))
+  (λ h, continuous_to_Ω_iff_to_C.mpr ((continuous_to_C_iff_uncurry Y I X ↑g).mpr h))
 
 -- lemma continuous_to_loop_space_iff_uncurry (Y : Type u) [topological_space Y] (g : Y → Ω x) :
 --   continuous g ↔ continuous (λ y : Y, λ t : I, g y t) :=
@@ -264,21 +254,21 @@ begin
     rw h }
 end
 
-instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
+instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
-  cont' :=
-  begin
-    apply (continuous_to_loop_space_iff_curry x).mpr,
-    apply continuous_of_restricts_union (univ_eq_union_halves _),
-    { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
-      have hφ: continuous φ, sorry,
-      sorry,
-      -- convert hφ,
-      -- refl,
+  cont' := sorry,
+  -- begin
+  --   apply (continuous_to_loop_space_iff_curry x).mpr,
+  --   apply continuous_of_restricts_union (univ_eq_union_halves _),
+  --   { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
+  --     have hφ: continuous φ, sorry,
+  --     sorry,
+  --     -- convert hφ,
+  --     -- refl,
 
-    },
-    sorry,
+  --   },
+    -- sorry,
 
     -- rw continuous_iff_continuous_at,
     -- intro w,
@@ -304,7 +294,7 @@ instance loop_space_is_H_space (x : X) : H_space (Ω x) :=
     -- },
   -- sorry,
     -- },
-  end,
+  -- end,
   Hmul_e_e := sorry,
   left_Hmul_e := sorry,
   right_Hmul_e := sorry}

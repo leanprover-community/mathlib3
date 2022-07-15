@@ -20,15 +20,18 @@ coincide with the standard one:
   coefficient in `f`, or `⊤`, if `f = 0`.
 
 The main results are
-* `add_monoid_algebra.max_degree_mul_le`: the max-degree of a product is at most the sum of the max-degrees,
-* `add_monoid_algebra.le_min_degree_mul`: the min-degree of a product is at least the sum of the min-degrees,
-* `add_monoid_algebra.max_degree_add_le`: the max-degree of a sum is at most the sup of the max-degrees,
+* `add_monoid_algebra.max_degree_mul_le`:
+  the max-degree of a product is at most the sum of the max-degrees,
+* `add_monoid_algebra.le_min_degree_mul`:
+  the min-degree of a product is at least the sum of the min-degrees,
+* `add_monoid_algebra.max_degree_add_le`:
+  the max-degree of a sum is at most the sup of the max-degrees,
 * `le_min_degree_add`: the min-degree of a sum is at least the inf of the min-degrees.
 
 ## Implementation notes
 
-The current plan is to state and prove lemmas about `finset.sup (finsupp.support f) D` with a "generic"
-degree/weight function `D` from the grading Type `A` to a somewhat ordered Type `B`.
+The current plan is to state and prove lemmas about `finset.sup (finsupp.support f) D` with a
+"generic" degree/weight function `D` from the grading Type `A` to a somewhat ordered Type `B`.
 
 Next, the general lemmas get specialized twice:
 * once for `max_degree` (essentially a simple application) and
@@ -44,7 +47,6 @@ variables {R A B ι : Type*}
 
 namespace add_monoid_algebra
 open_locale classical big_operators
-
 
 /-! ### Results about the `finset.sup` and `finset.inf` of `finsupp.support` -/
 
@@ -160,7 +162,6 @@ order_dual.of_dual_le_of_dual.mpr $
   sup_support_multiset_prod_le (order_dual.of_dual_le_of_dual.mp D0)
     (λ a b, order_dual.of_dual_le_of_dual.mp (Dm _ _)) F
 
-
 lemma sup_support_finset_prod_le [semilattice_sup B] [order_bot B]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   {D : A → B} (D0 : D 0 ≤ 0) (Dm : ∀ a b, D (a + b) ≤ D a + D b)
@@ -178,7 +179,6 @@ order_dual.of_dual_le_of_dual.mpr $
     (λ a b, order_dual.of_dual_le_of_dual.mp (Dm _ _)) s f
 
 end general_results_assuming_semilattice_sup
-
 
 /-! ### Shorthands for special cases
 

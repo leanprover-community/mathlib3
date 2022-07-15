@@ -49,12 +49,12 @@ and their multiplicative counterparts:
   condition that `xⁿ = y` has solutions for all `n ≠ 0` and `a ∈ A`.
 * `monoid.rootable_by_prod` : any product of two rootable monoids is rootable.
 * `monoid.rootable_by_pi` : any product of rootable monoids is rootable.
-* `group.divisible_by_int_of_divisible_by_nat` : in groups, int divisibility is implied by nat
-  divisiblity.
-* `group.divisible_by_nat_of_divisible_by_int` : in groups, nat divisiblity is implied by int
-  divisiblity.
-* `comm_group.divisible_by_quotient` : quotient group of rootable group is rootable.
-* `comm_group.divisible_by_of_surj` : if `A` is rootable and `A →* B` is surjective, then `B` is
+* `group.rootable_by_int_of_rootable_by_nat` : in groups, int rootablity is implied by nat
+  rootablity.
+* `group.rootable_by_nat_of_rootable_by_int` : in groups, nat rootablity is implied by int
+  rootablity.
+* `comm_group.rootable_by_quotient` : quotient group of rootable group is rootable.
+* `comm_group.rootable_by_of_surj` : if `A` is rootable and `A →* B` is surjective, then `B` is
   rootable.
 
 TODO: Show that divisibility implies injectivity in the category of `AddCommGroup`.

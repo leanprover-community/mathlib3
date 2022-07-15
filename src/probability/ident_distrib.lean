@@ -289,20 +289,18 @@ variables {E : Type*} [measurable_space E] [normed_group E] [borel_space E]
   {μ : measure α} [is_finite_measure μ]
 
 lemma uniform_integrable_of_ident_distrib {ι : Type*} {f : ι → α → E}
-  (hfmeas : ∀ i, strongly_measurable (f i)) (hfint : ∀ i, mem_ℒp (f i) 1 μ)
-  (hf : ∀ i j, ident_distrib (f i) (f j) μ μ) :
+  (hfmeas : ∀ i, strongly_measurable (f i)) (j : ι)
+  (hj : mem_ℒp (f j) 1 μ) (hf : ∀ i, ident_distrib (f i) (f j) μ μ) :
   uniform_integrable f 1 μ :=
 begin
-  classical,
   refine uniform_integrable_of le_rfl ennreal.one_ne_top hfmeas (λ ε hε, _),
   by_cases hι : nonempty ι,
   swap, { exact ⟨0, λ i, false.elim (hι $ nonempty.intro i)⟩ },
-  obtain ⟨C, hC₁, hC₂⟩ := (hfint hι.some).snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
+  obtain ⟨C, hC₁, hC₂⟩ := hj.snorm_indicator_norm_ge_pos_le μ (hfmeas _) hε,
   have hmeas : ∀ i, measurable_set {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} :=
     λ i, measurable_set_le measurable_const (hfmeas _).measurable.nnnorm,
   refine ⟨⟨C, hC₁.le⟩, λ i, le_trans (le_of_eq _) hC₂⟩,
-  have hid : ident_distrib (λ x, ∥f i x∥₊) (λ x, ∥f hι.some x∥₊) μ μ :=
-    (hf i hι.some).comp measurable_nnnorm,
+  have hid : ident_distrib (λ x, ∥f i x∥₊) (λ x, ∥f j x∥₊) μ μ := (hf i).comp measurable_nnnorm,
   have hpre : ∀ i, {x | (⟨C, hC₁.le⟩ : ℝ≥0) ≤ ∥f i x∥₊} =
     (λ x, ∥f i x∥₊) ⁻¹' set.Ici (⟨C, hC₁.le⟩ : ℝ≥0),
   { intro i,
@@ -314,7 +312,7 @@ begin
     ← set_lintegral_map measurable_set_Ici measurable_coe_nnreal_ennreal
       (hfmeas _).nnnorm.measurable, hid.map_eq,
     set_lintegral_map measurable_set_Ici measurable_coe_nnreal_ennreal
-      (hfmeas _).nnnorm.measurable, ← hpre hι.some],
+      (hfmeas _).nnnorm.measurable, ← hpre j],
   simp_rw [← @nnreal.coe_le_coe ⟨C, hC₁.le⟩, subtype.coe_mk, coe_nnnorm],
   rw [lintegral_indicator _ (measurable_set_le measurable_const (hfmeas _).norm.measurable)],
 end

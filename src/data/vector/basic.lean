@@ -328,7 +328,7 @@ This can be used as `induction v using vector.induction_on`. -/
   {n : ℕ} (v : vector α n)
   (h_nil : C nil)
   (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
-  C v :=
+    C v :=
 begin
   induction n with n ih generalizing v,
   { rcases v with ⟨_|⟨-,-⟩,-|-⟩,

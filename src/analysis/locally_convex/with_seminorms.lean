@@ -314,7 +314,7 @@ end topological_add_group
 section normed_space
 
 /-- The topology of a `normed_space 𝕜 E` is induced by the seminorm `norm_seminorm 𝕜 E`. -/
-def norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
+lemma norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
   with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
 begin
   let p : seminorm_family 𝕜 E (fin 1) := λ _, norm_seminorm 𝕜 E,

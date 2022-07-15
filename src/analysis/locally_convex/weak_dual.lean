@@ -123,7 +123,7 @@ begin
   exact hx y hy,
 end
 
-def linear_map.weak_bilin_with_seminorms (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+lemma linear_map.weak_bilin_with_seminorms (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
   with_seminorms (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
 seminorm_family.with_seminorms_of_has_basis _ B.has_basis_weak_bilin
 

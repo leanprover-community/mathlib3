@@ -249,19 +249,7 @@ lemma submartingale.upcrossing_ae_lt_top
   (hf : submartingale f ℱ μ) (hbdd : ∀ n, snorm (f n) 1 μ ≤ R) :
   ∀ᵐ x ∂μ, ∀ a b : ℚ, a < b → upcrossing a b f x < ∞ :=
 begin
-  suffices : ∀ a b : ℚ, a < b → ∀ᵐ x ∂μ, upcrossing a b f x < ∞,
-  { simp_rw ae_iff at this ⊢,
-    push_neg at this ⊢,
-    rw set.set_of_exists,
-    refine nonpos_iff_eq_zero.1 ((measure_Union_le _).trans
-      (((tsum_eq_zero_iff ennreal.summable).2 (λ a, _)).le)),
-    rw set.set_of_exists,
-    refine nonpos_iff_eq_zero.1 ((measure_Union_le _).trans
-      (((tsum_eq_zero_iff ennreal.summable).2 (λ b, _)).le)),
-    rw set.set_of_and,
-    by_cases hab : a < b,
-    { simp only [hab, set.set_of_true, set.univ_inter, this a b] },
-    { simp only [hab, set.set_of_false, set.empty_inter, measure_empty] } },
+  simp only [ae_all_iff, eventually_imp_distrib_left],
   rintro a b hab,
   exact hf.upcrossing_ae_lt_top' hbdd (rat.cast_lt.2 hab),
 end
@@ -625,8 +613,34 @@ tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
     (λ n,(strongly_measurable_condexp.mono (ℱ.le n)).ae_strongly_measurable)
       (hg.condexp_tendsto_ae hgmeas))
 
-/-
-Uniform boundedness in Lᵖ → uniform integrability so do we really need Doob's Lᵖ inequality?
--/
+/-- **Lévy's upward theorem**, almost everywhere version: given a function `g` and a filtration
+`ℱ`, the sequence defined by `𝔼[g | ℱ n]` converges almost everywhere to `𝔼[g | ⨆ n, ℱ n]`. -/
+lemma mem_ℒp.condexp_tendsto_ae' {g : α → ℝ} :
+  ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
+begin
+  have ht : ∀ᵐ x ∂μ, tendsto (λ n, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
+    mem_ℒp.condexp_tendsto_ae (mem_ℒp_one_iff_integrable.2 integrable_condexp)
+      strongly_measurable_condexp,
+  have heq : ∀ n, ∀ᵐ x ∂μ, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x = μ[g | ℱ n] x :=
+    λ n, condexp_condexp_of_le (le_supr _ n) (supr_le (λ n, ℱ.le n)),
+  rw ← ae_all_iff at heq,
+  filter_upwards [heq, ht] with x hxeq hxt,
+  exact hxt.congr hxeq,
+end
+
+/-- **Lévy's upward theorem**, L¹ version: given a function `g` and a filtration `ℱ`, the
+sequence defined by `𝔼[g | ℱ n]` converges in L¹ to `𝔼[g | ⨆ n, ℱ n]`. -/
+lemma mem_ℒp.condexp_tendsto_snorm' {g : α → ℝ} :
+  tendsto (λ n, snorm (μ[g | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
+begin
+  have ht : tendsto (λ n, snorm (μ[μ[g | ⨆ n, ℱ n] | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
+    mem_ℒp.condexp_tendsto_snorm (mem_ℒp_one_iff_integrable.2 integrable_condexp)
+      strongly_measurable_condexp,
+  have heq : ∀ n, ∀ᵐ x ∂μ, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x = μ[g | ℱ n] x :=
+    λ n, condexp_condexp_of_le (le_supr _ n) (supr_le (λ n, ℱ.le n)),
+  refine ht.congr (λ n, snorm_congr_ae _),
+  filter_upwards [heq n] with x hxeq,
+  simp only [hxeq, pi.sub_apply],
+end
 
 end measure_theory

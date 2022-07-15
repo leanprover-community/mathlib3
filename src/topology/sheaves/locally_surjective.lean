@@ -98,8 +98,8 @@ begin
     Let g ∈ Γₛₜ 𝒢 x be a germ. Represent it on an open set U ⊆ X
     as ⟨t, U⟩. By local surjectivity, pass to a smaller open set V
     on which there exists s ∈ Γ_ ℱ V mapping to t |_ V.
-    Then the germ of s maps to g.
-    -/
+    Then the germ of s maps to g -/
+
     -- Let g ∈ Γₛₜ 𝒢 x be a germ.
     intros x g,
     -- Represent it on an open set U ⊆ X as ⟨t, U⟩.
@@ -114,7 +114,7 @@ begin
     convert Top.presheaf.stalk_functor_map_germ_apply V ⟨x, hxV⟩ T s,
 
     -- I said, "then the germ of maps to g."
-    change ((forget C).map _ s) = _ at h_eq,
+    change ((forget C).map _ s) = (forget C).map _ t at h_eq,
 
     -- The germ of s maps to g? Please?
     change _ = (forget C).map _ ((forget C).map _ _),

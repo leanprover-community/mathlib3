@@ -506,9 +506,7 @@ lemma degree_le_zero_iff : degree p ≤ 0 ↔ p = C (coeff p 0) :=
 ⟨eq_C_of_degree_le_zero, λ h, h.symm ▸ degree_C_le⟩
 
 lemma degree_add_le (p q : R[X]) : degree (p + q) ≤ max (degree p) (degree q) :=
-calc degree (p + q) = ((p + q).support).sup some : rfl
-  ... ≤ (p.support ∪ q.support).sup some : sup_mono support_add
-  ... = p.support.sup some ⊔ q.support.sup some : sup_union
+by simpa only [degree_eq_max_degree, map_add] using add_monoid_algebra.max_degree_add_le _ _
 
 lemma degree_add_le_of_degree_le {p q : R[X]} {n : ℕ} (hp : degree p ≤ n)
   (hq : degree q ≤ n) : degree (p + q) ≤ n :=

@@ -1393,13 +1393,14 @@ lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι �
   (∑ i in s, M i)ᵀ = ∑ i in s, (M i)ᵀ :=
 (transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
 
+variables (R)
 /-- `matrix.transpose` as a `linear_map` -/
 @[simps apply]
 def transpose_linear_equiv [semiring R] [add_comm_monoid α] [module R α] :
   matrix m n α ≃ₗ[R] matrix n m α := { map_smul' := transpose_smul, ..transpose_add_equiv}
-
+variables {R}
 @[simp] lemma transpose_linear_equiv_symm [semiring R] [add_comm_monoid α] [module R α] :
-  (transpose_linear_equiv : matrix m n α ≃ₗ[R] matrix n m α).symm = transpose_linear_equiv := rfl
+  (transpose_linear_equiv R : matrix m n α ≃ₗ[R] _).symm = transpose_linear_equiv R := rfl
 
 /-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
@@ -1425,7 +1426,7 @@ def transpose_alg_equiv [comm_semiring R] [comm_semiring α] [fintype m] [decida
   [algebra R α] : matrix m m α ≃ₐ[R] (matrix m m α)ᵐᵒᵖ :=
 { to_fun := λ M, mul_opposite.op (Mᵀ),
   commutes' := λ r, by simp only [algebra_map_eq_diagonal, diagonal_transpose,
-                                  mul_opposite.algebra_map_apply] },
+                                  mul_opposite.algebra_map_apply],
   ..transpose_add_equiv.trans mul_opposite.op_add_equiv,
   ..transpose_ring_equiv }
 

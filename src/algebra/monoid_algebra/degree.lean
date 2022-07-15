@@ -22,6 +22,20 @@ coincide with the standard one:
 Currently, the only results are
 * `max_degree_mul_le` -- the max-degree of a product is at most the sum of the max-degrees,
 * `le_min_degree_mul` -- the min-degree of a product is at least the sum of the min-degrees.
+
+## Implementation notes
+
+The current plan is to state and prove lemmas about `finset.support_sup` with a "generic"
+degree/weight function `D` from the grading Type `A` to a somewhat ordered Type `B`.
+
+Next, the general lemmas get specialized twice:
+* once for `max_degree` (essentially a simple application) and
+* once for `min_degree` (a simple application, via `order_dual`).
+These final lemmas are the ones that likely get used the most.  The generic lemmas about
+`finset.support.sup` may not be used directly much outside of this file.
+
+To see this in action, you can look at the triple
+`(sup_support_mul_le, max_degree_mul_le, le_min_degree_mul)`.
 -/
 
 variables {R A B ι : Type*} [semilattice_sup B] [order_bot B]

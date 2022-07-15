@@ -4,7 +4,7 @@ import analysis.normed_space.operator_norm
 /-!
 Define the multiplier algebra of a C∗-algebra as the algebra of double centralizers.
 A double centralizer is a pair of continuous linear maps `L R : A →L[𝕜] A` satisfying the
-intertwining condition `R x * y = x * L y`. These maps
+intertwining condition `R x * y = x * L y`.
 -/
 
 universes u v

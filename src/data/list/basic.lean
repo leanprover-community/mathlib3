@@ -2945,6 +2945,23 @@ theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   map g (filter_map f l) = l :=
 by simp only [map_filter_map, H, filter_map_some]
 
+theorem length_filter_map (f : α → option β) (l : list α) :
+  (filter_map f l).length ≤ l.length :=
+begin
+  induction l with hd tl ih,
+  { refl },
+  { rw length,
+    unfold filter_map,
+    cases f hd,
+    { change (filter_map f tl).length ≤ tl.length + 1,
+      apply le_trans ih,
+      apply nat.le_succ },
+    { change (val :: (filter_map f tl)).length ≤ tl.length + 1,
+      rw length,
+      apply add_le_add_right,
+      exact ih } }
+end
+
 theorem sublist.filter_map (f : α → option β) {l₁ l₂ : list α}
   (s : l₁ <+ l₂) : filter_map f l₁ <+ filter_map f l₂ :=
 by induction s with l₁ l₂ a s IH l₁ l₂ a s IH;

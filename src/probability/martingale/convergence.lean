@@ -29,10 +29,10 @@ an L¹ limit to a uniformly integrable submartingale.
   theorem: a uniformly integrable martingale `f` adapted to the filtration `ℱ` converges almost
   everywhere and in L¹ to an integrable function `g` which is measurable with respect to the
   σ-algebra `⨆ n, ℱ n`. Furthermore, for all `n`, `f n` is almost everywhere equal to `𝔼[g | ℱ n]`.
-* `measure_theory.mem_ℒp.condexp_tendsto_ae`: part c the L¹ martingale convergence theorem:
+* `measure_theory.mem_ℒp.tendsto_ae_condexp`: part c the L¹ martingale convergence theorem:
   given a `⨆ n, ℱ n`-measurable function `g` where `ℱ` is a filtration, `𝔼[g | ℱ n]` converges
   almost everywhere to `g`.
-* `measure_theory.mem_ℒp.condexp_tendsto_snorm`: part c the L¹ martingale convergence theorem:
+* `measure_theory.mem_ℒp.tendsto_snorm_condexp`: part c the L¹ martingale convergence theorem:
   given a `⨆ n, ℱ n`-measurable function `g` where `ℱ` is a filtration, `𝔼[g | ℱ n]` converges in
   L¹ to `g`.
 
@@ -547,8 +547,8 @@ is measurable with respect to `⨆ n, ℱ n` where `ℱ` is a filtration, the ma
 `𝔼[g | ℱ n]` converges almost everywhere to `g`.
 
 This martingale also converges to `g` in L¹ and this result is provided by
-`measure_theory.mem_ℒp.condexp_tendsto_snorm` -/
-lemma mem_ℒp.condexp_tendsto_ae
+`measure_theory.mem_ℒp.tendsto_snorm_condexp` -/
+lemma mem_ℒp.tendsto_ae_condexp
   {g : α → ℝ} (hg : mem_ℒp g 1 μ) (hgmeas : strongly_measurable[⨆ n, ℱ n] g) :
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (g x)) :=
 begin
@@ -603,23 +603,23 @@ is measurable with respect to `⨆ n, ℱ n` where `ℱ` is a filtration, the ma
 `𝔼[g | ℱ n]` converges in L¹ to `g`.
 
 This martingale also converges to `g` almost everywhere and this result is provided by
-`measure_theory.mem_ℒp.condexp_tendsto_ae` -/
-lemma mem_ℒp.condexp_tendsto_snorm
+`measure_theory.mem_ℒp.tendsto_ae_condexp` -/
+lemma mem_ℒp.tendsto_snorm_condexp
   {g : α → ℝ} (hg : mem_ℒp g 1 μ) (hgmeas : strongly_measurable[⨆ n, ℱ n] g) :
   tendsto (λ n, snorm (μ[g | ℱ n] - g) 1 μ) at_top (𝓝 0) :=
 tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top
   (λ n, (strongly_measurable_condexp.mono (ℱ.le n)).ae_strongly_measurable) hg
   hg.uniform_integrable_condexp_filtration.2.1 (tendsto_in_measure_of_tendsto_ae
     (λ n,(strongly_measurable_condexp.mono (ℱ.le n)).ae_strongly_measurable)
-      (hg.condexp_tendsto_ae hgmeas))
+      (hg.tendsto_ae_condexp hgmeas))
 
 /-- **Lévy's upward theorem**, almost everywhere version: given a function `g` and a filtration
 `ℱ`, the sequence defined by `𝔼[g | ℱ n]` converges almost everywhere to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma mem_ℒp.condexp_tendsto_ae' {g : α → ℝ} :
+lemma mem_ℒp.tendsto_ae_condexp' {g : α → ℝ} :
   ∀ᵐ x ∂μ, tendsto (λ n, μ[g | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
 begin
   have ht : ∀ᵐ x ∂μ, tendsto (λ n, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x) at_top (𝓝 (μ[g | ⨆ n, ℱ n] x)) :=
-    mem_ℒp.condexp_tendsto_ae (mem_ℒp_one_iff_integrable.2 integrable_condexp)
+    mem_ℒp.tendsto_ae_condexp (mem_ℒp_one_iff_integrable.2 integrable_condexp)
       strongly_measurable_condexp,
   have heq : ∀ n, ∀ᵐ x ∂μ, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x = μ[g | ℱ n] x :=
     λ n, condexp_condexp_of_le (le_supr _ n) (supr_le (λ n, ℱ.le n)),
@@ -630,11 +630,11 @@ end
 
 /-- **Lévy's upward theorem**, L¹ version: given a function `g` and a filtration `ℱ`, the
 sequence defined by `𝔼[g | ℱ n]` converges in L¹ to `𝔼[g | ⨆ n, ℱ n]`. -/
-lemma mem_ℒp.condexp_tendsto_snorm' {g : α → ℝ} :
+lemma mem_ℒp.tendsto_snorm_condexp' {g : α → ℝ} :
   tendsto (λ n, snorm (μ[g | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
 begin
   have ht : tendsto (λ n, snorm (μ[μ[g | ⨆ n, ℱ n] | ℱ n] - μ[g | ⨆ n, ℱ n]) 1 μ) at_top (𝓝 0) :=
-    mem_ℒp.condexp_tendsto_snorm (mem_ℒp_one_iff_integrable.2 integrable_condexp)
+    mem_ℒp.tendsto_snorm_condexp (mem_ℒp_one_iff_integrable.2 integrable_condexp)
       strongly_measurable_condexp,
   have heq : ∀ n, ∀ᵐ x ∂μ, μ[μ[g | ⨆ n, ℱ n] | ℱ n] x = μ[g | ℱ n] x :=
     λ n, condexp_condexp_of_le (le_supr _ n) (supr_le (λ n, ℱ.le n)),

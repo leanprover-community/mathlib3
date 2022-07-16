@@ -300,7 +300,7 @@ begin
   exact this.symm
 end
 
-variable {R}
+variables {R} (K)
 
 lemma dvd_total [h : valuation_ring R] (x y : R) : x ∣ y ∨ y ∣ x :=
 @@is_total.total _ (iff_dvd_total.mp h) x y
@@ -312,6 +312,8 @@ begin
   rw [irreducible.dvd_comm hp hq, or_self] at this,
   exact associated_of_dvd_dvd (irreducible.dvd_symm hq hp this) this,
 end
+
+variable (R)
 
 lemma iff_is_integer_or_is_integer :
   valuation_ring R ↔ ∀ x : K, is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹ :=
@@ -340,9 +342,13 @@ begin
       exact ⟨c, or.inl e⟩ } }
 end
 
+variable {K}
+
 lemma is_integer_or_is_integer [h : valuation_ring R] (x : K) :
   is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹ :=
-iff_is_integer_or_is_integer.mp h x
+(iff_is_integer_or_is_integer R K).mp h x
+
+variable {R}
 
 -- This implies that valuation rings are integrally closed through typeclass search.
 @[priority 100]
@@ -381,14 +387,14 @@ begin
   { exact mul_dvd_mul_right (is_unit_iff_forall_dvd.mp (is_unit_of_mul_is_unit_right h') _) _ },
 end
 
-protected lemma tfae :
+protected lemma tfae (R : Type u) [comm_ring R] [is_domain R] :
   tfae [valuation_ring R,
     ∀ x : fraction_ring R, is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹,
     is_total R (∣),
     is_total (ideal R) (≤),
     local_ring R ∧ is_bezout R] :=
 begin
-  tfae_have : 1 ↔ 2, { exact iff_is_integer_or_is_integer },
+  tfae_have : 1 ↔ 2, { exact iff_is_integer_or_is_integer R _ },
   tfae_have : 1 ↔ 3, { exact iff_dvd_total },
   tfae_have : 1 ↔ 4, { exact iff_ideal_total },
   tfae_have : 1 ↔ 5, { exact iff_local_bezout_domain },

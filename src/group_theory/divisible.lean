@@ -69,7 +69,7 @@ variables (A α : Type*) [add_monoid A] [has_scalar α A] [has_zero α]
 
 /--
 An `add_monoid A` is `α`-divisible iff `n • x = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
-Here we adpot a constructive approach where we ask an explicit `div : A → α → A` function such that
+Here we adopt a constructive approach where we ask an explicit `div : A → α → A` function such that
 * `div a 0 = 0` for all `a ∈ A`
 * `n • div a n = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
 -/
@@ -110,13 +110,13 @@ variables (A α : Type*) [monoid A] [has_pow A α] [has_zero α]
 
 /--
 A `monoid A` is `α`-rootable iff `xⁿ = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
-Here we adpot a constructive approach where we ask an explicit `root : A → α → A` function such that
+Here we adopt a constructive approach where we ask an explicit `root : A → α → A` function such that
 * `root a 0 = 1` for all `a ∈ A`
 * `(root a n)ⁿ = a` for all `n ≠ 0 ∈ α` and `a ∈ A`.
 -/
 @[to_additive add_monoid.divisible_by
 "An `add_monoid A` is `α`-divisible iff `n • x = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
-Here we adpot a constructive approach where we ask an explicit `div : A → α → A` function such that
+Here we adopt a constructive approach where we ask an explicit `div : A → α → A` function such that
 * `div a 0 = 0` for all `a ∈ A`
 * `n • div a n = a` for all `n ≠ 0 ∈ α` and `a ∈ A`."]
 class rootable_by :=

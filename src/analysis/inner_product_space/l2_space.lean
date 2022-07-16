@@ -485,9 +485,11 @@ protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
 begin
   convert b.has_sum_repr x,
   ext J,
-  let b' : orthonormal_basis (span 𝕜 (J.image b : set E)) :=
-  simp_rw b.repr_apply_apply,
-
+  let b' : orthonormal_basis J 𝕜 (span 𝕜 (J.image b : set E)) :=
+    orthonormal_basis.span b.orthonormal J,
+  simp_rw [b'.orthogonal_projection_eq_sum, coe_sum, coe_smul, b',
+            orthonormal_basis.span_apply b.orthonormal J,
+            J.sum_coe_sort (λ i : ι, ⟪b i, x⟫ • b i), b.repr_apply_apply],
 end
 
 /-- A Hilbert space admits a Hilbert basis extending a given orthonormal subset. -/

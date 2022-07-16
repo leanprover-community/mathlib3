@@ -266,7 +266,7 @@ This tactic only should be used when the target's type an equality whose
 meta def set_goal_to_hleft_eq_tleft (hsum_on_left : expr) : tactic unit :=
 do to_expr ``(replace_eq_expr %%hsum_on_left) >>= apply, skip
 
-/-
+/--
 If an exponent `n` is provided, changes the goal from `t = 0` to `t^n = 0`.
 * Input:
   * `exponent : option ℕ`, the power to raise the goal by. If `none`, this tactic is a no-op.

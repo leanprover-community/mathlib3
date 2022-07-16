@@ -600,7 +600,7 @@ lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
     exact ⟨f '' F, hF.symm.trans (preimage_comap_zero_locus f F)⟩,
   end }
 
-lemma image_comap_eq_comap (hf : surjective f) (I : ideal S) :
+lemma image_comap_zero_locus_eq_zero_locus_comap (hf : surjective f) (I : ideal S) :
   comap f '' zero_locus I = zero_locus (I.comap f) :=
 begin
   ext p, simp only [set.mem_image, mem_zero_locus, set_like.coe_subset_coe],

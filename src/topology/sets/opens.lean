@@ -177,6 +177,19 @@ begin
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
 end
 
+/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
+  it is a finite union of some elements in the basis -/
+lemma is_compact_open_iff_eq_finite_Union_of_is_basis
+  {ι : Type*} (b : ι → opens α) (hb : opens.is_basis (set.range b))
+  (hb' : ∀ i, is_compact (b i : set α)) (U : set α) :
+  is_compact U ∧ is_open U ↔ ∃ (s : set ι), s.finite ∧ U = ⋃ i ∈ s, b i :=
+begin
+  apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
+    (λ i : ι, (b i).1),
+  { convert hb, ext, simp },
+  { exact hb' }
+end
+
 /-- The preimage of an open set, as an open set. -/
 def comap (f : C(α, β)) : frame_hom (opens β) (opens α) :=
 { to_fun := λ s, ⟨f ⁻¹' s, s.2.preimage f.continuous⟩,

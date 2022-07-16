@@ -167,6 +167,18 @@ lemma lor_assoc (n m k : ℕ) : lor (lor n m) k = lor n (lor m k) := by bitwise_
 @[simp] lemma lxor_self (n : ℕ) : lxor n n = 0 :=
 zero_of_test_bit_eq_ff $ λ i, by simp
 
+lemma lxor_lxor_self_right (n m : ℕ) : lxor (lxor m n) n = m :=
+by rw [lxor_assoc, lxor_self, lxor_zero]
+
+lemma lxor_lxor_self_left (n m : ℕ) : lxor (lxor n m) n = m :=
+by rw [lxor_comm n, lxor_lxor_self_right]
+
+lemma lxor_lxor_self_right' (n m : ℕ) : lxor n (lxor m n) = m :=
+by rw [lxor_comm, lxor_lxor_self_right]
+
+lemma lxor_lxor_self_left' (n m : ℕ) : lxor n (lxor n m) = m :=
+by rw [lxor_comm, lxor_lxor_self_left]
+
 lemma lxor_right_inj {n m m' : ℕ} (h : lxor n m = lxor n m') : m = m' :=
 calc m = lxor n (lxor n m') : by simp [←lxor_assoc, ←h]
    ... = m' : by simp [←lxor_assoc]
@@ -177,7 +189,9 @@ by { rw [lxor_comm n m, lxor_comm n' m] at h, exact lxor_right_inj h }
 lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
 ⟨by { rw ←lxor_self m, exact lxor_left_inj }, by { rintro rfl, exact lxor_self _ }⟩
 
-lemma lxor_trichotomy {a b c : ℕ} (h : lxor a (lxor b c) ≠ 0) :
+lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := not_iff_not_of_iff lxor_eq_zero
+
+lemma lxor_trichotomy {a b c : ℕ} (h : a ≠ lxor b c) :
   lxor b c < a ∨ lxor a c < b ∨ lxor a b < c :=
 begin
   set v := lxor a (lxor b c) with hv,
@@ -194,7 +208,7 @@ begin
 
   -- If `i` is the position of the most significant bit of `v`, then at least one of `a`, `b`, `c`
   -- has a one bit at position `i`.
-  obtain ⟨i, ⟨hi, hi'⟩⟩ := exists_most_significant_bit h,
+  obtain ⟨i, ⟨hi, hi'⟩⟩ := exists_most_significant_bit (lxor_ne_zero.2 h),
   have : test_bit a i = tt ∨ test_bit b i = tt ∨ test_bit c i = tt,
   { contrapose! hi,
     simp only [eq_ff_eq_not_eq_tt, ne, test_bit_lxor] at ⊢ hi,
@@ -206,5 +220,8 @@ begin
   [{ left, rw hbc }, { right, left, rw hac }, { right, right, rw hab }];
   exact lt_of_test_bit i (by simp [h, hi]) h (λ j hj, by simp [hi' _ hj])
 end
+
+lemma lt_lxor_cases {a b c : ℕ} (h : a < lxor b c) : lxor a c < b ∨ lxor a b < c :=
+(lxor_trichotomy h.ne).elim (λ h', (h.asymm h').elim) id
 
 end nat

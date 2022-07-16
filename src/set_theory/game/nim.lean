@@ -248,24 +248,26 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (o : ordinal) :
+lemma grundy_value_eq_iff_equiv_nim {G : pgame} [G.impartial] {o : ordinal} :
   grundy_value G = o ↔ G ≈ nim o :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
   by { intro h, rw ←nim_equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
 lemma nim_grundy_value (o : ordinal.{u}) : grundy_value (nim o) = o :=
-by simp
+grundy_value_eq_iff_equiv_nim.2 $ equiv_refl _
 
-@[simp] lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
+lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
   grundy_value G = grundy_value H ↔ G ≈ H :=
-(grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
+grundy_value_eq_iff_equiv_nim.trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-@[simp] lemma grundy_value_zero : grundy_value 0 = 0 := by simp [nim_zero_equiv.symm]
+@[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
+grundy_value_eq_iff_equiv_nim.2 nim_zero_equiv.symm
 
-@[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
+lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
-lemma grundy_value_star : grundy_value star = 1 := by simp [nim_one_equiv.symm]
+@[simp] lemma grundy_value_star : grundy_value star = 1 :=
+grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
 /-- The Grundy value of the sum of two nim games with natural numbers of piles equals their bitwise
 xor. We prove this inductively, by showing a -/
@@ -274,10 +276,9 @@ xor. We prove this inductively, by showing a -/
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
-  rw [grundy_value_def],
+  rw grundy_value_def,
   apply (ordinal.mex_le_of_ne.{u u} (λ i, _)).antisymm (ordinal.le_mex_of_forall (λ ou hu, _)),
-  { apply left_moves_add_cases i,
-    all_goals
+  { apply left_moves_add_cases i;
     { refine λ a, nim_left_moves_rec_on a (λ ok hk, _),
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (hk.trans (ordinal.nat_lt_omega _)),
       simp only [add_move_left_inl, add_move_left_inr, move_left_nim', equiv.symm_apply_apply],
@@ -288,18 +289,11 @@ begin
       exact nat.lxor_left_inj h <|> exact nat.lxor_right_inj h } },
   { obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (hu.trans (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,
-    have : nat.lxor u (nat.lxor n m) ≠ 0,
-    { intro h, rw nat.lxor_eq_zero at h, linarith },
-    rcases nat.lxor_trichotomy this with h|h|h,
-    { linarith },
-    { obtain ⟨i, hi⟩ := exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨to_left_moves_add (sum.inl i), _⟩,
-      simp only [hi, add_move_left_inl],
-      rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
-    { obtain ⟨i, hi⟩ := exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨to_left_moves_add (sum.inr i), _⟩,
-      simp only [hi, add_move_left_inr],
-      rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } }
+    cases nat.lt_lxor_cases hu with h h,
+    { refine ⟨to_left_moves_add (sum.inl $ to_left_moves_nim ⟨_, ordinal.nat_cast_lt.2 h⟩), _⟩,
+      simp [nat.lxor_lxor_self_right, hn _ h] },
+    { refine ⟨to_left_moves_add (sum.inr $ to_left_moves_nim ⟨_, ordinal.nat_cast_lt.2 h⟩), _⟩,
+      simp [nat.lxor_lxor_self_right', hm _ h] } }
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=

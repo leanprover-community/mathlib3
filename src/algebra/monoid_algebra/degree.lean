@@ -6,7 +6,7 @@ Authors: Damiano Testa
 import algebra.monoid_algebra.basic
 
 /-!
-# Max-degree and min-degree of an `add_monoid_algebra`
+# Lemmas about the `sup` and `inf` of the support of `add_monoid_algebra`
 
 Let `R` be a semiring and let `A` be a `semilattice_sup`.
 

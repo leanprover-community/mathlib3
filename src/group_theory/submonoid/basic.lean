@@ -132,6 +132,9 @@ instance : set_like (submonoid M) M :=
   coe_injective' := λ p q h, by cases p; cases q; congr' }
 
 @[to_additive]
+instance : partial_order (submonoid M) := set_like.partial_order
+
+@[to_additive]
 instance : submonoid_class (submonoid M) M :=
 { one_mem := submonoid.one_mem',
   mul_mem := submonoid.mul_mem' }
@@ -264,7 +267,7 @@ instance : complete_lattice (submonoid M) :=
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (submonoid M) $ λ s,
     is_glb.of_image (λ S T,
-      show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
+      show (S : set M) ≤ T ↔ S ≤ T, from iff.rfl) is_glb_binfi }
 
 @[simp, to_additive]
 lemma subsingleton_iff : subsingleton (submonoid M) ↔ subsingleton M :=

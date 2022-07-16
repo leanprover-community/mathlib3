@@ -90,15 +90,13 @@ succ_le_iff.mp (mem_Ico.1 hx).1
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
--- TODO: PR these in data/nat/factorization/basic
+-- TODO: PR these
 
 lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
 begin
 
   sorry,
 end
-
-
 
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
@@ -221,16 +219,11 @@ end
   This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
 lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
    p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-sorry
 -- by rw [← part_enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma factorization_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :
   n!.factorization p ≤ (n/(p - 1) : ℕ) :=
-begin
-  sorry,
-  -- rw [hp.multiplicity_factorial (lt_succ_self _), part_enat.coe_le_coe],
-  -- exact nat.geom_sum_Ico_le hp.two_le _ _,
-end
+by { rw hp.factorization_factorial, apply nat.geom_sum_Ico_le hp.two_le }
 
 
 

@@ -25,7 +25,7 @@ the image of `A` under `algebra_map A K` agrees with `(valuation A K).integer`.
 
 We also provide the equivalence of the following notions for a domain `R` in `valuation_ring.tfae`.
 1. `R` is a valuation ring.
-2. For `K` a fraction field of `R`, and for each `x : K`, either `x` or `x⁻¹` is in `R`.
+2. For each `x : fraction_ring K`, either `x` or `x⁻¹` is in `R`.
 3. "divides" is a total relation on the elements of `R`.
 4. "contains" is a total relation on the ideals of `R`.
 5. `R` is a local bezout domain.
@@ -344,6 +344,7 @@ lemma is_integer_or_is_integer [h : valuation_ring R] (x : K) :
   is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹ :=
 iff_is_integer_or_is_integer.mp h x
 
+-- This implies that valuation rings are integrally closed through typeclass search.
 @[priority 100]
 instance [valuation_ring R] : is_bezout R :=
 begin
@@ -382,7 +383,7 @@ end
 
 protected lemma tfae :
   tfae [valuation_ring R,
-    ∀ x : K, is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹,
+    ∀ x : fraction_ring R, is_localization.is_integer R x ∨ is_localization.is_integer R x⁻¹,
     is_total R (∣),
     is_total (ideal R) (≤),
     local_ring R ∧ is_bezout R] :=

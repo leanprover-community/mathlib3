@@ -22,20 +22,19 @@ also in the subset.
 ## Results
 
 - There is a Galois insertion between the subsets of points of a projective space
-and the subspaces of the projective space, which is given by taking the span of the set of points.
+  and the subspaces of the projective space, which is given by taking the span of the set of points.
 - The subspaces of a projective space form a complete lattice under inclusion.
 
 # Future Work
 - Show that there is a one-to-one order-preserving correspondence between subspaces of a
-projective space and the submodules of the underlying vector space.
+  projective space and the submodules of the underlying vector space.
 -/
-
 
 variables (K V : Type*) [field K] [add_comm_group V] [module K V]
 
 namespace projectivization
 
-/-- A subspace of projective space is a structure consisting of a set of points such that:
+/-- A subspace of a projective space is a structure consisting of a set of points such that:
 If two nonzero vectors determine points which are in the set, and the sum of the two vectors is
 nonzero, then the point determined by the sum is also in the set. -/
 @[ext] structure subspace :=
@@ -59,7 +58,7 @@ lemma mem_add (T : subspace K V) (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : 
   projectivization.mk K (v + w) (hvw) ∈ T :=
   T.mem_add' v w hv hw hvw
 
-/-- The span of a set of points in projective space is defined inductively to be the set of points
+/-- The span of a set of points in a projective space is defined inductively to be the set of points
 which contains the original set, and contains all points determined by the (nonzero) sum of two
 nonzero vectors, each of which determine points in the span. -/
 inductive span_carrier (S : set (ℙ K V)) : set (ℙ K V)
@@ -100,17 +99,6 @@ def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
   le_l_u := λ S, subset_span _,
   choice_eq := λ _ _, rfl }
 
-/-- The ambient projective space is the top of the lattice of subspaces. -/
-instance has_top : has_top (subspace K V) :=
-⟨⟨⊤, λ _ _ _ _ _ _ _, trivial⟩⟩
-
-instance subspace_inhabited : inhabited (subspace K V) :=
-{ default := ⊤ }
-
-/-- The empty set is the bottom of the lattice of subspaces. -/
-instance has_bot : has_bot (subspace K V) :=
-⟨⟨⊥, λ v w hv hw hvw h, h.elim⟩⟩
-
 /-- The infimum of two subspaces exists. -/
 instance has_inf : has_inf (subspace K V) :=
 ⟨λ A B, ⟨A ⊓ B, λ v w hv hw hvw h1 h2,
@@ -125,37 +113,19 @@ end⟩⟩
 
 /-- The subspaces of a projective space form a complete lattice. -/
 instance : complete_lattice (subspace K V) :=
-{ sup := λ A B, Inf { E | A ≤ E ∧ B ≤ E },
-  le_sup_left := begin
-    rintros A B x hx E ⟨E, hE, rfl⟩,
-    exact hE.1 hx,
-  end,
-  le_sup_right := begin
-    rintros A B x hx E ⟨E, hE, rfl⟩,
-    exact hE.2 hx,
-  end,
-  sup_le := λ A B C h1 h2 x hx, hx C ⟨C, ⟨h1, h2⟩, rfl⟩,
-  inf_le_left := λ A B x hx, by exact hx.1,
+{ inf_le_left := λ A B x hx, by exact hx.1,
   inf_le_right := λ A B x hx, by exact hx.2,
   le_inf := λ A B C h1 h2 x hx, ⟨h1 hx, h2 hx⟩,
-  Sup := λ A, Inf { E | ∀ U ∈ A, U ≤ E },
-  le_Sup := begin
-    rintros S A hA x hx E ⟨E, hE, rfl⟩,
-    exact hE _ hA hx,
-  end,
-  Sup_le := λ S A hA x hx, hx A ⟨A, hA, rfl⟩,
-  Inf_le := λ S A hA x hx, by exact hx _ ⟨A, hA, rfl⟩,
-  le_Inf := begin
-    rintros S A hA x hx E ⟨E, hE, rfl⟩,
-    exact hA _ hE hx,
-  end,
-  le_top := λ E x hx, trivial,
-  bot_le := λ E x hx, hx.elim,
-  ..(infer_instance : has_Inf _),
   ..(infer_instance : has_inf _),
-  ..(infer_instance : has_top _),
-  ..(infer_instance : has_bot _),
-  ..set_like.partial_order }
+  ..complete_lattice_of_Inf (subspace K V)
+  begin
+    refine λ s, ⟨λ a ha x hx, (hx _ ⟨a, ha, rfl⟩), λ a ha x hx E, _⟩,
+    rintros ⟨E, hE, rfl⟩,
+    exact (ha hE hx)
+  end }
+
+instance subspace_inhabited : inhabited (subspace K V) :=
+{ default := ⊤ }
 
 end subspace
 

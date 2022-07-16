@@ -85,6 +85,9 @@ instance : set_like (subsemigroup M) M :=
 ⟨subsemigroup.carrier, λ p q h, by cases p; cases q; congr'⟩
 
 @[to_additive]
+instance : partial_order (subsemigroup M) := set_like.partial_order
+
+@[to_additive]
 instance : mul_mem_class (subsemigroup M) M :=
 { mul_mem := subsemigroup.mul_mem' }
 
@@ -208,7 +211,7 @@ instance : complete_lattice (subsemigroup M) :=
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (subsemigroup M) $ λ s,
     is_glb.of_image (λ S T,
-      show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
+      show (S : set M) ≤ T ↔ S ≤ T, from iff.rfl) is_glb_binfi }
 
 @[simp, to_additive]
 lemma subsingleton_of_subsingleton [subsingleton (subsemigroup M)] : subsingleton M :=

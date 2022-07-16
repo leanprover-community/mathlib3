@@ -45,7 +45,7 @@ To see this in action, you can look at the triple
 `(sup_support_mul_le, max_degree_mul_le, le_min_degree_mul)`.
 -/
 
-variables {R A T B ι : Type*} [semilattice_sup B] [order_bot B] [semilattice_inf T] [order_top T]
+variables {R A T B ι : Type*}
 
 namespace add_monoid_algebra
 open_locale classical big_operators
@@ -53,6 +53,7 @@ open_locale classical big_operators
 /-! ### Results about the `finset.sup` and `finset.inf` of `finsupp.support` -/
 
 section general_results_assuming_semilattice_sup
+variables [semilattice_sup B] [order_bot B] [semilattice_inf T] [order_top T]
 
 section semiring
 
@@ -69,11 +70,12 @@ begin
   { exact (finset.le_sup dg).trans le_sup_right }
 end
 
-lemma le_inf_degree_add : f.support.inf DT ⊓ g.support.inf DT ≤ (f + g).support.inf DT :=
+lemma le_inf_support_add : f.support.inf DT ⊓ g.support.inf DT ≤ (f + g).support.inf DT :=
 sup_support_add_le (λ a : A, order_dual.to_dual (DT a)) f g
 
-section add_only
+end explicit_Ds
 
+section add_only
 variables [has_add A] [has_add B] [has_add T]
   [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   [covariant_class T T (+) (≤)] [covariant_class T T (function.swap (+)) (≤)]
@@ -96,8 +98,6 @@ order_dual.of_dual_le_of_dual.mpr $
   sup_support_mul_le (λ a b, order_dual.of_dual_le_of_dual.mp DTm) f g
 
 end add_only
-
-end explicit_Ds
 
 section add_monoids
 variables [add_monoid A]
@@ -142,6 +142,7 @@ end add_monoids
 
 end semiring
 
+section commutative_lemmas
 variables [comm_semiring R] [add_comm_monoid A]
   [add_comm_monoid B] [covariant_class B B (+) (≤)] [covariant_class B B (function.swap (+)) (≤)]
   [add_comm_monoid T] [covariant_class T T (+) (≤)] [covariant_class T T (function.swap (+)) (≤)]
@@ -178,6 +179,8 @@ lemma finset_sum_inf_support_le
 order_dual.of_dual_le_of_dual.mpr $
   sup_support_finset_prod_le (order_dual.of_dual_le_of_dual.mp DT0)
     (λ a b, order_dual.of_dual_le_of_dual.mp (DTm _ _)) s f
+
+end commutative_lemmas
 
 end general_results_assuming_semilattice_sup
 

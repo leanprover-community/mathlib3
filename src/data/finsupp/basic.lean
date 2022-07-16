@@ -775,6 +775,7 @@ end
 @[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
 (graph_injective α M).eq_iff' graph_zero
 
+/-- When turned into a list of key/value pairs, a graph has no duplicate keys. -/
 lemma graph_nodupkeys (f : α →₀ M) : (list.map prod.to_sigma f.graph.to_list).nodupkeys :=
 begin
   rw [list.nodupkeys, list.keys, list.map_map, prod.fst_to_sigma_comp, list.nodup_map_iff_inj_on],

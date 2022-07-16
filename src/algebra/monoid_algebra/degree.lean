@@ -32,12 +32,7 @@ section explicit_Ds
 variables (DB : A → B) (DT : A → T) (f g : add_monoid_algebra R A)
 
 lemma sup_support_add_le : (f + g).support.sup DB ≤ (f.support.sup DB) ⊔ (g.support.sup DB) :=
-begin
-  refine (finset.sup_le (λ d ds, _)),
-  cases finset.mem_union.mp (finsupp.support_add ds) with df dg,
-  { exact (finset.le_sup df).trans le_sup_left },
-  { exact (finset.le_sup dg).trans le_sup_right }
-end
+(finset.sup_mono finsupp.support_add).trans_eq finset.sup_union
 
 lemma le_inf_support_add : f.support.inf DT ⊓ g.support.inf DT ≤ (f + g).support.inf DT :=
 sup_support_add_le (λ a : A, order_dual.to_dual (DT a)) f g

@@ -856,7 +856,7 @@ lemma submodule.exists_finset_of_mem_supr
   ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
 begin
   have := complete_lattice.is_compact_element.exists_finset_of_le_supr (submodule R M)
-    (submodule.span R {m}) (submodule.singleton_span_is_compact_element m) p,
+    (submodule.singleton_span_is_compact_element m) p,
   simp only [submodule.span_singleton_le_iff_mem] at this,
   exact this hm,
 end

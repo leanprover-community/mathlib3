@@ -472,6 +472,25 @@ begin
     exact ih.trans (subset_mul_right _ hs) }
 end
 
+@[to_additive] lemma mem_list_prod {l : list (set α)} {a : α} :
+  a ∈ l.prod ↔ ∃ l' : list {x : α × set α // x.1 ∈ x.2},
+    list.prod (l'.map (λ x, (x : α × set α).1)) = a ∧ l'.map (λ x, (x : α × set α).2) = l :=
+begin
+  induction l with hd tl ih generalizing a,
+  { simp [@eq_comm _ a 1]},
+  { simp_rw [list.prod_cons, mem_mul, @ih],
+    split,
+    { rintro ⟨x, y, hx, ⟨l', rfl, rfl⟩, rfl⟩,
+      refine ⟨⟨(x, hd), hx⟩ :: l', _, rfl⟩,
+      { rw [list.map_cons, list.prod_cons, subtype.coe_mk] } },
+    { rintro ⟨l, rfl, h⟩,
+      cases l, {cases h},
+      injection h with h_hd h_tl,
+      substs h_hd h_tl,
+      refine ⟨_, _, l_hd.prop, ⟨l_tl, rfl, rfl⟩, _⟩,
+      rw [list.map_cons, list.prod_cons] } },
+end
+
 @[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
   a ∈ (list.of_fn s).prod ↔ ∃ f : fin n → α, (∀ i, f i ∈ s i) ∧ (list.of_fn f).prod = a :=
 begin

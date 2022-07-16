@@ -1110,7 +1110,7 @@ end, λ h, by simp_rw h⟩
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=
-(order_iso.cast sorry).trans (enum_iso (<))
+(rel_iso.cast _ _ sorry sorry).trans (enum_iso (<))
 
 /-- `o.out.α` is an `order_bot` whenever `0 < o`. -/
 def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=

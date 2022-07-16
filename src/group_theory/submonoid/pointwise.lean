@@ -323,10 +323,10 @@ section add_monoid_with_one
 variables [add_monoid_with_one R]
 
 instance : has_one (add_submonoid R) :=
-⟨(nat.cast_add_monoid_hom _).mrange⟩
+⟨(nat.cast_add_monoid_hom R).mrange⟩
 
 theorem one_eq_mrange :
-  (1 : add_submonoid R) = (nat.cast_add_monoid_hom _).mrange := rfl
+  (1 : add_submonoid R) = (nat.cast_add_monoid_hom R).mrange := rfl
 
 lemma nat_cast_mem_one (n : ℕ) : (n : R) ∈ (1 : add_submonoid R) := ⟨_, rfl⟩
 

@@ -124,7 +124,7 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
-protected def map (f : α → α') (g : β → β')  : α ⊕ β → α' ⊕ β' :=
+protected def map (f : α → α') (g : β → β') : α ⊕ β → α' ⊕ β' :=
 sum.elim (inl ∘ f) (inr ∘ g)
 
 @[simp] lemma map_inl (f : α → α') (g : β → β') (x : α) : (inl x).map f g = inl (f x) := rfl

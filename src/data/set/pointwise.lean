@@ -1354,8 +1354,6 @@ begin
   exact s.mul_mem ha hb
 end
 
-lemma le_def {S T : set M} : closure S ≤ closure T ↔ ∀ ⦃x : M⦄, x ∈ closure S → x ∈ closure T := iff.rfl
-
 @[to_additive]
 lemma closure_mul_le (S T : set M) : closure (S * T) ≤ closure S ⊔ closure T :=
 Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem

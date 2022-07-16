@@ -19,18 +19,15 @@ where `n` and `m` are natural numbers, then `G + H` has the Grundy value `n xor 
 
 ## Implementation details
 
-The pen-and-paper definition of nim defines the possible moves of `nim o` to be `{o' | o' < o}`.
+The pen-and-paper definition of nim defines the possible moves of `nim o` to be `set.Iio o`.
 However, this definition does not work for us because it would make the type of nim
 `ordinal.{u} → pgame.{u + 1}`, which would make it impossible for us to state the Sprague-Grundy
 theorem, since that requires the type of `nim` to be `ordinal.{u} → pgame.{u}`. For this reason, we
-instead use `o.out.α` for the possible moves, which makes proofs significantly more messy and
-tedious, but avoids the universe bump.
-
-The lemma `nim_def` is somewhat prone to produce "motive is not type correct" errors. If you run
-into this problem, you may find the lemmas `exists_ordinal_move_left_eq` and `exists_move_left_eq`
-useful.
-
+instead use `o.out.α` for the possible moves. You can use `to_left_moves_nim` and
+`to_right_moves_nim` to convert an ordinal less than `o` into a left or right move of `nim o`, and
+viceversa.
 -/
+
 universes u
 
 /-- `ordinal.out'` has the sole purpose of making `nim` computable. It performs the same job as
@@ -135,6 +132,18 @@ by simp
 lemma move_right_nim {o : ordinal} (i) :
   (nim o).move_right (to_right_moves_nim i) = nim i :=
 by simp
+
+/-- A recursion principle for left moves of a nim game. -/
+@[elab_as_eliminator] def nim_left_moves_rec_on {o : ordinal} {P : (nim o).left_moves → Sort*}
+  (i : (nim o).left_moves) (H : ∀ (a : ordinal) (ha : a < o), P (to_left_moves_nim ⟨a, ha⟩)) :
+  P i :=
+by { rw ←to_left_moves_nim.apply_symm_apply i, apply H }
+
+/-- A recursion principle for right moves of a nim game. -/
+@[elab_as_eliminator] def nim_right_moves_rec_on {o : ordinal} {P : (nim o).right_moves → Sort*}
+  (i : (nim o).right_moves) (H : ∀ (a : ordinal) (ha : a < o), P (to_right_moves_nim ⟨a, ha⟩)) :
+  P i :=
+by { rw ←to_right_moves_nim.apply_symm_apply i, apply H }
 
 @[simp] lemma neg_nim (o : ordinal) : -nim o = nim o :=
 begin
@@ -258,63 +267,31 @@ by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
 lemma grundy_value_star : grundy_value star = 1 := by simp [nim_one_equiv.symm]
 
+/-- The Grundy value of the sum of two nim games with natural numbers of piles equals their bitwise
+xor. We prove this inductively, by showing a -/
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
   rw [grundy_value_def],
-
-  -- We want to show that `n xor m` is the smallest unreachable Grundy value. We will do this in two
-  -- steps:
-  -- h₀: `n xor m` is not a reachable grundy number.
-  -- h₁: every Grundy number strictly smaller than `n xor m` is reachable.
-
-  have h₀ : ∀ i, grundy_value ((nim n + nim m).move_left i) ≠ (nat.lxor n m : ordinal),
-  { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
-    -- different from `n xor m`.
-    intro i,
-
-    -- The move operates either on the left pile or on the right pile.
-    apply left_moves_add_cases i,
-
+  apply (ordinal.mex_le_of_ne.{u u} (λ i, _)).antisymm (ordinal.le_mex_of_forall (λ ou hu, _)),
+  { apply left_moves_add_cases i,
     all_goals
-    { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
-      intro a,
-      obtain ⟨ok, hk, hk'⟩ := exists_ordinal_move_left_eq a,
-      obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
-      replace hk := ordinal.nat_cast_lt.1 hk,
-
-      -- Thus, the problem is reduced to computing the Grundy value of `nim n + nim k` or
-      -- `nim k + nim m`, both of which can be dealt with using an inductive hypothesis.
-      simp only [hk', add_move_left_inl, add_move_left_inr, id],
+    { refine λ a, nim_left_moves_rec_on a (λ ok hk, _),
+      obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (hk.trans (ordinal.nat_lt_omega _)),
+      simp only [add_move_left_inl, add_move_left_inr, move_left_nim', equiv.symm_apply_apply],
+      rw nat_cast_lt at hk,
       rw hn _ hk <|> rw hm _ hk,
-
-      -- But of course xor is injective, so if we change one of the arguments, we will not get the
-      -- same value again.
-      intro h,
+      refine λ h, hk.ne _,
       rw ordinal.nat_cast_inj at h,
-      try { rw [nat.lxor_comm n k, nat.lxor_comm n m] at h },
-      exact hk.ne (nat.lxor_left_inj h) } },
-
-  have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
-    u ∈ set.range (λ i, grundy_value ((nim n + nim m).move_left i)),
-  { -- Take any natural number `u` less than `n xor m`.
-    intros ou hu,
-    obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (lt_trans hu (ordinal.nat_lt_omega _)),
+      exact nat.lxor_left_inj h <|> exact nat.lxor_right_inj h } },
+  { obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (hu.trans (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,
-
-    -- Our goal is to produce a move that gives the Grundy value `u`.
-    rw set.mem_range,
-
-    -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.
     have : nat.lxor u (nat.lxor n m) ≠ 0,
     { intro h, rw nat.lxor_eq_zero at h, linarith },
     rcases nat.lxor_trichotomy this with h|h|h,
     { linarith },
-
-    -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
-    -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
     { obtain ⟨i, hi⟩ := exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨to_left_moves_add (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
@@ -322,12 +299,7 @@ begin
     { obtain ⟨i, hi⟩ := exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨to_left_moves_add (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
-      rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
-
-  -- We are done!
-  apply (ordinal.mex_le_of_ne.{u u} h₀).antisymm,
-  contrapose! h₁,
-  exact ⟨_, ⟨h₁, ordinal.mex_not_mem_range _⟩⟩,
+      rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } }
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=

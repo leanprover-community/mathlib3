@@ -161,12 +161,6 @@ begin
   simpa using IH _ (typein_lt_self _)
 end
 
-lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_left i = nim o' :=
-⟨_, typein_lt_self _, move_left_nim' i⟩
-
-lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
-⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
-
 lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],

@@ -34,7 +34,7 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 
 -/
 
-open real set filter is_R_or_C
+open real set filter is_R_or_C submodule
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
@@ -268,6 +268,24 @@ protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_s
   ∑ i , v i • b i = (b.repr.symm v) :=
 by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
 
+protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
+  ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
+begin
+  have := @pi_Lp.inner_apply 𝕜 _ _ _ _ _ (b.repr x) (b.repr y),
+  simp_rw [is_R_or_C.inner_apply, b.repr.inner_map_map] at this,
+  convert this.symm,
+  ext i,
+  rw [b.repr_apply_apply, b.repr_apply_apply, inner_conj_sym]
+end
+
+protected def map [inner_product_space 𝕜 F] (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] F) :
+  orthonormal_basis ι 𝕜 F :=
+{ repr := L.symm.trans b.repr }
+
+@[simp] protected lemma map_apply [inner_product_space 𝕜 F] (b : orthonormal_basis ι 𝕜 E)
+  (L : E ≃ₗᵢ[𝕜] F) (i : ι) :
+b.map L i = L (b i) := rfl
+
 variable {v : ι → E}
 
 /-- A basis that is orthonormal is an orthonormal basis. -/
@@ -314,6 +332,31 @@ protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range
 protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤) :
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
+
+#check basis.span
+#check linear_independent_span
+#check linear_isometry_equiv
+
+protected def span {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
+  orthonormal_basis s 𝕜 (span 𝕜 (s.image v' : set E)) :=
+let
+  e₀ : basis s 𝕜 _ := basis.span (h.linear_independent.comp (coe : s → ι') subtype.coe_injective),
+  e₀' : orthonormal_basis s 𝕜 _ := orthonormal_basis.mk
+    begin
+      convert orthonormal_span (h.comp (coe : s → ι') subtype.coe_injective),
+      ext,
+      simp [e₀, basis.span_apply],
+      refl,
+    end e₀.span_eq,
+  φ : span 𝕜 (s.image v' : set E) ≃ₗᵢ[𝕜] span 𝕜 (range (v' ∘ (coe : s → ι'))) :=
+    linear_isometry_equiv.of_eq _ _
+    begin
+      rw [finset.coe_image, image_eq_range],
+      refl
+    end,
+  e'' : basis s 𝕜 _ := e'
+in
+_ --orthonormal_basis.mk _ basis.comp
 
 end orthonormal_basis
 

@@ -238,7 +238,7 @@ lemma irreducible_aux2 {k m m' n : ℕ}
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
-  let f : polynomial ℤ → polynomial ℤ :=
+  let f : ℤ[X] → ℤ[X] :=
   λ p, ⟨finsupp.filter (set.Ioo (k + n) (n + n)) p.to_finsupp⟩,
   replace h := congr_arg f h,
   replace h := (irreducible_aux1 hkm hmn u v w hp).trans h,

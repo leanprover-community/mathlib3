@@ -39,13 +39,13 @@ begin
   { exact z_ne_zero (pow_eq_zero (by rwa [key, add_self_eq_zero] at h2)) },
 end
 
-lemma selmer_irreducible {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : polynomial ℤ) :=
+lemma selmer_irreducible {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : ℤ[X]) :=
 begin
   by_cases hn0 : n = 0,
   { rw [hn0, pow_zero, sub_sub, add_comm, ←sub_sub, sub_self, zero_sub],
     exact associated.irreducible ⟨-1, mul_neg_one X⟩ irreducible_X },
   have hn : 1 < n := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn0, hn1⟩,
-  have hp : (X ^ n - X - 1 : polynomial ℤ) = trinomial 0 1 n (-1) (-1) 1 :=
+  have hp : (X ^ n - X - 1 : ℤ[X]) = trinomial 0 1 n (-1) (-1) 1 :=
     by simp only [trinomial, C_neg, C_1]; ring,
   rw hp,
   apply is_unit_trinomial.irreducible_of_coprime' ⟨0, 1, n, zero_lt_one, hn, -1, -1, 1, rfl⟩,
@@ -61,12 +61,12 @@ begin
   exact ⟨rfl, by linear_combination -h2⟩,
 end
 
-lemma selmer_irreducible' {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : polynomial ℚ) :=
+lemma selmer_irreducible' {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : ℚ[X]) :=
 begin
   by_cases hn0 : n = 0,
   { rw [hn0, pow_zero, sub_sub, add_comm, ←sub_sub, sub_self, zero_sub],
     exact associated.irreducible ⟨-1, mul_neg_one X⟩ irreducible_X },
-  have hp : (X ^ n - X - 1 : polynomial ℤ) = trinomial 0 1 n (-1) (-1) 1 :=
+  have hp : (X ^ n - X - 1 : ℤ[X]) = trinomial 0 1 n (-1) (-1) 1 :=
   by simp only [trinomial, C_neg, C_1]; ring,
   have hn : 1 < n := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn0, hn1⟩,
   have h := (is_primitive.int.irreducible_iff_irreducible_map_cast _).mp (selmer_irreducible hn1),

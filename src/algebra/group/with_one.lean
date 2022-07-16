@@ -67,6 +67,18 @@ def rec_one_coe {C : with_one α → Sort*} (h₁ : C 1) (h₂ : Π (a : α), C 
   Π (n : with_one α), C n :=
 option.rec h₁ h₂
 
+/-- Deconstruct a `x : with_one α` to the underlying value in `α`, given a proof that `x ≠ 1`. -/
+@[to_additive unzero
+  "Deconstruct a `x : with_zero α` to the underlying value in `α`, given a proof that `x ≠ 0`."]
+def unone {x : with_one α} (hx : x ≠ 1) : α := with_bot.unbot x hx
+
+@[simp, to_additive unzero_coe]
+lemma unone_coe {x : α} (hx : (x : with_one α) ≠ 1) : unone hx = x := rfl
+
+@[simp, to_additive coe_unzero]
+lemma coe_unone {x : with_one α} (hx : x ≠ 1) : (@unone _ _ hx : with_one α) = x :=
+with_bot.coe_unbot x hx
+
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
@@ -422,14 +434,12 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.monoid_with_zero }
 
 /-- Any group is isomorphic to the units of itself adjoined with `0`. -/
-@[simps] def units_with_zero_equiv (α : Type*) [group α] : (with_zero α)ˣ ≃* α :=
-{ to_fun    := λ a, option.get $ option.ne_none_iff_is_some.1 a.ne_zero,
-  inv_fun   := λ a,
-    ⟨a, a⁻¹, mul_inv_cancel with_zero.coe_ne_zero, inv_mul_cancel with_zero.coe_ne_zero⟩,
-  left_inv  := λ _, units.ext $ option.coe_get _,
+@[simps] def units_with_zero_equiv [group α] : (with_zero α)ˣ ≃* α :=
+{ to_fun    := λ a, unzero a.ne_zero,
+  inv_fun   := λ a, ⟨a, a⁻¹, mul_inv_cancel coe_ne_zero, inv_mul_cancel coe_ne_zero⟩,
+  left_inv  := λ _, units.ext $ by simp only [coe_unzero, units.mk_coe],
   right_inv := λ _, rfl,
-  map_mul'  := λ _ _,
-    with_zero.coe_inj.mp $ by simp only [units.coe_mul, option.coe_get, with_zero.coe_mul] }
+  map_mul'  := λ _ _, coe_inj.mp $ by simp only [coe_unzero, coe_mul, units.coe_mul] }
 
 attribute [irreducible] with_zero
 

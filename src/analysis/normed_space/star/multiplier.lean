@@ -104,16 +104,13 @@ def of_central_funs (L : A → A) (R : A → A) (h : ∀ x y : A, R x * y = x * 
     cont := sorry },
   central := h }
 
--- probably we don't even need the `cast` map and can just declare the `coe` directly.
-noncomputable def cast (a : A) : 𝓜(𝕜, A) :=
-{ left := continuous_linear_map.lmul' 𝕜 A a,
-  right := continuous_linear_map.lmul_right' 𝕜 A a,
-  central := λ x y, mul_assoc _ _ _ }
-
 variables {𝕜 A}
 
 noncomputable instance : has_coe A 𝓜(𝕜, A) :=
-{ coe := double_centralizer.cast 𝕜 A }
+{ coe := λ a,
+  { left := continuous_linear_map.lmul' 𝕜 A a,
+    right := continuous_linear_map.lmul_right' 𝕜 A a,
+    central := λ x y, mul_assoc _ _ _ } }
 
 @[simp, norm_cast]
 lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul' 𝕜 A a := rfl

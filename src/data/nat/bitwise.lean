@@ -188,7 +188,7 @@ lxor_left_injective.eq_iff
 @[simp] lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
 by rw [←lxor_self n, lxor_right_inj, eq_comm]
 
-lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := not_iff_not_of_iff lxor_eq_zero
+lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := lxor_eq_zero.not
 
 lemma lxor_trichotomy {a b c : ℕ} (h : a ≠ lxor b c) :
   lxor b c < a ∨ lxor a c < b ∨ lxor a b < c :=

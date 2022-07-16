@@ -852,8 +852,8 @@ empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
-⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
-  by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
+is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $
+  by rw [sup_principal, union_compl_self, principal_univ]
 
 theorem mem_inf_principal' {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ tᶜ ∪ s ∈ f :=
@@ -1702,6 +1702,22 @@ lemma comap_comm (G : filter δ) : comap φ (comap ψ G) = comap θ (comap ρ G)
 by rw [filter.comap_comap, H, ← filter.comap_comap]
 end comm
 
+lemma _root_.function.semiconj.filter_map {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) : function.semiconj (map f) (map ga) (map gb) :=
+map_comm h.comp_eq
+
+lemma _root_.commute.filter_map {f g : α → α} (h : function.commute f g) :
+  function.commute (map f) (map g) :=
+h.filter_map
+
+lemma _root_.function.semiconj.filter_comap {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) : function.semiconj (comap f) (comap gb) (comap ga) :=
+comap_comm h.comp_eq.symm
+
+lemma _root_.commute.filter_comap {f g : α → α} (h : function.commute f g) :
+  function.commute (comap f) (comap g) :=
+h.filter_comap
+
 @[simp] theorem comap_principal {t : set β} : comap m (𝓟 t) = 𝓟 (m ⁻¹' t) :=
 filter.ext $ λ s,
   ⟨λ ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, (preimage_mono hu).trans b,
@@ -1885,7 +1901,7 @@ comap_fst_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
 begin
   casesI is_empty_or_nonempty α with hα hα,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not];
-      [simpa using hα.elim, apply_instance] },
+      [simp, apply_instance] },
   { simp [comap_ne_bot_iff_frequently, hα] }
 end
 
@@ -1898,7 +1914,7 @@ lemma comap_eval_ne_bot_iff' {ι : Type*} {α : ι → Type*} {i : ι} {f : filt
 begin
   casesI is_empty_or_nonempty (Π j, α j) with H H,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [skip, assumption],
-    simpa [← classical.nonempty_pi] using H.elim },
+    simp [← classical.nonempty_pi] },
   { haveI : ∀ j, nonempty (α j), from classical.nonempty_pi.1 H,
     simp [comap_ne_bot_iff_frequently, *] }
 end

@@ -847,7 +847,7 @@ The key properties of this are given in `exists_minimal_degree_vertex`, `min_deg
 and `le_min_degree_of_forall_le_degree`.
 -/
 def min_degree [decidable_rel G.adj] : ℕ :=
-option.get_or_else (univ.image (λ v, G.degree v)).min 0
+with_top.untop' 0 (univ.image (λ v, G.degree v)).min
 
 /--
 There exists a vertex of minimal degree. Note the assumption of being nonempty is necessary, as
@@ -866,8 +866,7 @@ lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.de
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
   have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
-  rw option.mem_def at ht,
-  rwa [min_degree, ht, option.get_or_else_some],
+  rwa [min_degree, ht]
 end
 
 /--
@@ -899,7 +898,6 @@ begin
   have ht₂ := mem_of_max ht,
   simp only [mem_image, mem_univ, exists_prop_of_true] at ht₂,
   rcases ht₂ with ⟨v, rfl⟩,
-  rw option.mem_def at ht,
   refine ⟨v, _⟩,
   rw [max_degree, ht],
   refl
@@ -910,7 +908,7 @@ lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
   have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
-  rwa [max_degree, ht, option.get_or_else_some],
+  rwa [max_degree, ht],
 end
 
 /--

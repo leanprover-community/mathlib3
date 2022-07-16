@@ -333,7 +333,7 @@ lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
   (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
 by simpa using edge_set_mono h
 
-/-- Graph homomorphisms induce functions between the collections of subgraphs. -/
+/-- Graph homomorphisms induce a covariant function on subgraphs. -/
 @[simps]
 protected def map {G' : simple_graph W} (f : G →g G') (H : G.subgraph) : G'.subgraph :=
 { verts := f '' H.verts,
@@ -352,6 +352,45 @@ begin
     exact ⟨_, h.1 hv, rfl⟩ },
   { rintros _ _ ⟨u, v, ha, rfl, rfl⟩,
     exact ⟨_, _, h.2 ha, rfl, rfl⟩ }
+end
+
+/-- Graph homomorphisms induce a contravariant function on subgraphs. -/
+@[simps]
+protected def comap {G' : simple_graph W} (f : G →g G') (H : G'.subgraph) : G.subgraph :=
+{ verts := f ⁻¹' H.verts,
+  adj := λ u v, G.adj u v ∧ H.adj (f u) (f v),
+  adj_sub := by { rintros v w ⟨ga, ha⟩, exact ga },
+  edge_vert := by { rintros v w ⟨ga, ha⟩, simp [H.edge_vert ha] } }
+
+lemma comap_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.comap f) :=
+begin
+  intros H H' h,
+  split,
+  { intro,
+    simp only [comap_verts, set.mem_preimage],
+    apply h.1, },
+  { intros v w,
+    simp only [comap_adj, and_imp, true_and] { contextual := tt },
+    intro,
+    apply h.2, }
+end
+
+lemma map_le_iff_le_comap {G' : simple_graph W} (f : G →g G') (H : G.subgraph) (H' : G'.subgraph) :
+  H.map f ≤ H' ↔ H ≤ H'.comap f :=
+begin
+  refine ⟨λ h, ⟨λ v hv, _, λ v w hvw, _⟩, λ h, ⟨λ v, _, λ v w, _⟩⟩,
+  { simp only [comap_verts, set.mem_preimage],
+    exact h.1 ⟨v, hv, rfl⟩, },
+  { simp only [H.adj_sub hvw, comap_adj, true_and],
+    exact h.2 ⟨v, w, hvw, rfl, rfl⟩, },
+  { simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+    rintro w hw rfl,
+    exact h.1 hw, },
+  { simp only [relation.map, map_adj, forall_exists_index, and_imp],
+    rintros u u' hu rfl rfl,
+    have := h.2 hu,
+    simp only [comap_adj] at this,
+    exact this.2, }
 end
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
@@ -453,6 +492,32 @@ begin
   rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
+
+/-! ## Subgraphs of subgraphs -/
+
+/-- Given a subgraph of a subgraph of `G`, construct a subgraph of `G`. -/
+@[reducible]
+protected def coe_subgraph {G' : G.subgraph} : G'.coe.subgraph → G.subgraph := subgraph.map G'.hom
+
+/-- Given a subgraph of `G`, restrict it to being a subgraph of another subgraph `G'` by
+taking the portion of `G` that intersects `G'`. -/
+@[reducible]
+protected def restrict {G' : G.subgraph} : G.subgraph → G'.coe.subgraph := subgraph.comap G'.hom
+
+lemma restrict_coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) :
+  G''.coe_subgraph.restrict = G'' :=
+begin
+  ext,
+  { simp },
+  { simp only [relation.map, comap_adj, coe_adj, subtype.coe_prop, hom_apply, map_adj,
+      set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right_right,
+      subtype.coe_eta, exists_true_left, exists_eq_right, and_iff_right_iff_imp],
+    apply G''.adj_sub, }
+end
+
+lemma coe_subgraph_injective (G' : G.subgraph) :
+  function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
+function.left_inverse.injective restrict_coe_subgraph
 
 /-! ## Edge deletion -/
 

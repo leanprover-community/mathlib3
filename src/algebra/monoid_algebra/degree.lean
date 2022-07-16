@@ -56,7 +56,6 @@ section general_results_assuming_semilattice_sup
 variables [semilattice_sup B] [order_bot B] [semilattice_inf T] [order_top T]
 
 section semiring
-
 variables [semiring R]
 
 section explicit_Ds
@@ -193,9 +192,59 @@ section degrees
 
 variables [semiring R]
 
-section max_degree
+section sup_degree
 
 variables [semilattice_sup A]
+
+/--  Let `R` be a semiring, let `A` be a `semilattice_sup`, and let `f : R[A]` be an
+an element of `add_monoid_algebra R A`.  The sup-degree of `f` takes values in `with_bot A`
+and it is the supremum of the support of `f` or `⊥`, depending on whether `f` is non-zero or not.
+
+If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
+the exponents. -/
+@[reducible] def sup_degree (f : add_monoid_algebra R A) : with_bot A :=
+f.support.sup coe
+
+lemma sup_degree_add_le (f g : add_monoid_algebra R A) :
+  (f + g).sup_degree ≤ f.sup_degree ⊔ g.sup_degree :=
+sup_support_add_le coe f g
+
+variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
+variables (f g : add_monoid_algebra R A)
+
+lemma sup_degree_mul_le : (f * g).sup_degree ≤ f.sup_degree + g.sup_degree :=
+sup_support_mul_le (λ a b, (with_bot.coe_add _ _).le) f g
+
+end sup_degree
+
+section inf_degree
+
+variables [semilattice_inf A]
+
+/--  Let `R` be a semiring, let `A` be a `semilattice_inf`, and let `f : R[A]` be an
+an element of `add_monoid_algebra R A`.  The inf-degree of `f` takes values in `with_top A`
+and it is the infimum of the support of `f` or `⊤`, depending on whether `f` is non-zero or not.
+
+If `A` has a linear order, then this notion coincides with the usual one, using the minimum of
+the exponents. -/
+@[reducible] def inf_degree (f : add_monoid_algebra R A) : with_top A :=
+f.support.inf coe
+
+lemma le_inf_degree_add (f g : add_monoid_algebra R A) :
+  f.inf_degree ⊓ g.inf_degree ≤ (f + g).inf_degree :=
+sup_support_add_le (coe : Aᵒᵈ → with_bot Aᵒᵈ) f g
+
+variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
+  (f g : add_monoid_algebra R A)
+
+lemma le_inf_degree_mul : f.inf_degree + g.inf_degree ≤ (f * g).inf_degree :=
+sup_support_mul_le (λ a b : Aᵒᵈ, (with_bot.coe_add _ _).le) _ _
+
+end inf_degree
+
+section max_degree
+
+variables [add_zero_class A] [linear_ordered_add_comm_monoid B] [order_bot B] (D : A →+ B)
 
 /--  Let `R` be a semiring, let `A` be a `semilattice_sup`, and let `f : R[A]` be an
 an element of `add_monoid_algebra R A`.  The max-degree of `f` takes values in `with_bot A`
@@ -203,24 +252,22 @@ and it is the supremum of the support of `f` or `⊥`, depending on whether `f` 
 
 If `A` has a linear order, then this notion coincides with the usual one, using the maximum of
 the exponents. -/
-@[reducible] def max_degree (f : add_monoid_algebra R A) : with_bot A :=
-f.support.sup coe
+@[reducible] def max_degree (f : add_monoid_algebra R A) : B :=
+f.support.sup D
 
 lemma max_degree_add_le (f g : add_monoid_algebra R A) :
-  (f + g).max_degree ≤ f.max_degree ⊔ g.max_degree :=
-sup_support_add_le coe f g
+  (f + g).max_degree D ≤ max (f.max_degree D) (g.max_degree D) :=
+sup_support_add_le D f g
 
-variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
-variables (f g : add_monoid_algebra R A)
-
-lemma max_degree_mul_le : (f * g).max_degree ≤ f.max_degree + g.max_degree :=
-sup_support_mul_le (λ a b, (with_bot.coe_add _ _).le) f g
+lemma max_degree_mul_le (f g : add_monoid_algebra R A) :
+  (f * g).max_degree D ≤ f.max_degree D + g.max_degree D :=
+sup_support_mul_le (λ a b, (add_monoid_hom.map_add D _ _).le) f g
 
 end max_degree
 
 section min_degree
 
-variables [semilattice_inf A]
+variables [add_zero_class A] [linear_ordered_add_comm_monoid T] [order_top T] (D : A →+ T)
 
 /--  Let `R` be a semiring, let `A` be a `semilattice_inf`, and let `f : R[A]` be an
 an element of `add_monoid_algebra R A`.  The min-degree of `f` takes values in `with_top A`
@@ -228,18 +275,16 @@ and it is the infimum of the support of `f` or `⊤`, depending on whether `f` i
 
 If `A` has a linear order, then this notion coincides with the usual one, using the minimum of
 the exponents. -/
-@[reducible] def min_degree (f : add_monoid_algebra R A) : with_top A :=
-f.support.inf coe
+@[reducible] def min_degree (f : add_monoid_algebra R A) : T :=
+f.support.inf D
 
 lemma le_min_degree_add (f g : add_monoid_algebra R A) :
-  f.min_degree ⊓ g.min_degree ≤ (f + g).min_degree :=
-sup_support_add_le (coe : Aᵒᵈ → with_bot Aᵒᵈ) f g
+  min (f.min_degree D) (g.min_degree D) ≤ (f + g).min_degree D :=
+le_inf_support_add D f g
 
-variables [add_monoid A] [covariant_class A A (+) (≤)] [covariant_class A A (function.swap (+)) (≤)]
-  (f g : add_monoid_algebra R A)
-
-lemma le_min_degree_mul : f.min_degree + g.min_degree ≤ (f * g).min_degree :=
-sup_support_mul_le (λ a b : Aᵒᵈ, (with_bot.coe_add _ _).le) _ _
+lemma le_min_degree_mul (f g : add_monoid_algebra R A) :
+  f.min_degree D + g.min_degree D ≤ (f * g).min_degree D :=
+le_inf_support_mul (λ a b : A, (add_monoid_hom.map_add D _ _).ge) _ _
 
 end min_degree
 

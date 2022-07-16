@@ -175,13 +175,39 @@ end
 -- vvv Versions to translate into `factorization` vvv
 
 /--
-The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
-over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
-lemma factorization_factorial' {p : ℕ} (hp : p.prime) :
-  ∀ {n b : ℕ}, log p n < b → n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
+This sum is expressed over the finset `Ico 1 (log p n).succ`. -/
+lemma factorization_factorial'' {p : ℕ} (hp : p.prime) (n : ℕ) :
+  ∀ {n : ℕ}, n!.factorization p = (∑ i in Ico 1 (log p n).succ, n / p ^ i : ℕ) :=
 begin
-
-  sorry,
+  intro n,
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  rcases lt_or_le n p with hnp | hnp, {
+    have : log p n = 0, { rw log_eq_zero_iff, simp [hnp] },
+    simp [this],
+    rw factorization_eq_zero_iff',
+    right, left,
+    rw hp.dvd_factorial,
+    simp [hnp] },
+  rw factorization_factorial hp,
+  rw ←Ico_succ_right,
+  have := @sum_Ico_consecutive ℕ _ _ 1 (log p n).succ n.succ _ _,
+  rw ←this,
+  simp,
+  {
+    rintro x hx1 hx2,
+    refine nat.div_eq_zero ((lt_pow_iff_log_lt hp.one_lt hn0).2 (succ_le_iff.1 hx1)),
+   },
+  { apply succ_le_succ,
+    rw ←pow_le_iff_le_log hp.one_lt hn0,
+    simp,
+    exact succ_le_iff.mpr hn0,
+  },
+  { apply succ_le_succ,
+    apply le_of_lt,
+    rw ← lt_pow_iff_log_lt hp.one_lt hn0,
+    exact lt_pow_self hp.one_lt n,
+  },
 end
 
 

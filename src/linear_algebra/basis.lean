@@ -1247,7 +1247,7 @@ spans of its nonzero elements. -/
 lemma atom_iff_nonzero_span (W : submodule K V) :
   is_atom W ↔ ∃ (v : V) (hv : v ≠ 0), W = span K {v} :=
 begin
-  split; intro h,
+  refine ⟨λ h, _, λ h, _ ⟩,
   { cases h with hbot h,
     rcases ((submodule.ne_bot_iff W).1 hbot) with ⟨v, ⟨hW, hv⟩⟩,
     refine ⟨v, ⟨hv, _⟩⟩,
@@ -1277,8 +1277,7 @@ instance : is_atomistic (submodule K V) :=
   begin
     intro W,
     use {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
-    split,
-    { exact submodule_eq_Sup_le_atoms W },
+    refine ⟨submodule_eq_Sup_le_atoms W, _⟩,
     { rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw }
   end }
 

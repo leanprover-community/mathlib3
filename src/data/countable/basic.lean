@@ -10,14 +10,20 @@ import data.countable.defs
 /-!
 # Countable types
 
-In this file we provide basis instances of the `countable` typeclass defined elsewhere.
+In this file we provide basic instances of the `countable` typeclass defined elsewhere.
 -/
 
 universes u v w
 
 open function
 
-instance : countable ℤ := countable.of_equiv ℕ equiv.int_equiv_nat.symm
+@[priority 100] -- see note [lower priority instance]
+instance encodable.countable {α} [encodable α] : countable α :=
+⟨⟨_, encodable.encode_injective⟩⟩
+
+/-- Convert `countable α` to `encodable α` (noncomputable). -/
+noncomputable def countable.to_encodable (α) [countable α] : encodable α :=
+encodable.of_inj _ $ classical.some_spec $ exists_injective_nat α
 
 /-!
 ### Definition in terms of `function.embedding`

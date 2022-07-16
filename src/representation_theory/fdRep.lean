@@ -48,6 +48,13 @@ by { change add_comm_group ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_in
 instance (V : fdRep k G) : module k V :=
 by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
 
+-- `FinVect` doesn't carry the right-module structure, so we have to construct it
+instance op_module (V : fdRep k G) : module kᵐᵒᵖ V :=
+module.comp_hom _ $ (ring_hom.id k).from_opposite commute.all
+
+instance (V : fdRep k G) : is_central_scalar k V :=
+⟨λ r v, rfl⟩
+
 instance (V : fdRep k G) : finite_dimensional k V :=
 by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
 

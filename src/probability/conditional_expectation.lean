@@ -44,33 +44,35 @@ begin
     (λ s _ hs, integrable_on_const.2 (or.inr hs)) (λ s hms hs, _)
     strongly_measurable_const.ae_strongly_measurable').symm,
   rw set_integral_const,
-  refine @integrable.induction _ _ m₁ _ _ _ _ _ _ _ f hfint₁,
+  rw ← mem_ℒp_one_iff_integrable at hfint,
+  refine hfint.induction_strongly_measurable hle₁ ennreal.one_ne_top _ _ _ _ _ _,
   { intros c t hmt ht,
     rw [integral_indicator (hle₁ _ hmt), set_integral_const, smul_smul,
       ← ennreal.to_real_mul, mul_comm, ← hindp _ _ hmt hms, set_integral_indicator (hle₁ _ hmt),
       set_integral_const, set.inter_comm] },
-  { intros u v hdisj huint hvint hu hv,
-    have huint' := integrable_of_integrable_trim hle₁ huint,
-    have hvint' := integrable_of_integrable_trim hle₁ hvint,
-    rw [integral_add' huint' hvint', smul_add, hu, hv,
-      integral_add' huint'.integrable_on hvint'.integrable_on] },
-  { have heq₁ : (λ f : Lp E 1 (μ.trim hle₁), ∫ x, f x ∂μ) = λ f, ∫ x, f x ∂(μ.trim hle₁),
-    { ext f,
-      exact integral_trim _ (Lp.strongly_measurable _) },
-    have heq₂ : (λ f : Lp E 1 (μ.trim hle₁), ∫ x in s, f x ∂μ) =
-      (λ f : Lp E 1 μ, ∫ x in s, f x ∂μ) ∘ ((submodule.subtypeL _).comp
-        (Lp_meas_to_Lp_trim_lie E ℝ 1 μ hle₁).symm.to_linear_isometry.to_continuous_linear_map),
-    { ext f,
-      exact integral_congr_ae ((ae_eq_restrict_iff_indicator_ae_eq (hle₂ _ hms)).2
-        (eventually_eq.indicator (ae_eq_fun.coe_fn_mk _ _).symm)) },
-    exact is_closed_eq
-      (continuous.const_smul (heq₁.symm ▸ continuous_integral) _)
-      (heq₂.symm ▸ (continuous_set_integral s).comp (continuous_linear_map.continuous _)) },
+  { intros u v hdisj huint hvint hu hv hu_eq hv_eq,
+    rw mem_ℒp_one_iff_integrable at huint hvint,
+    rw [integral_add' huint hvint, smul_add, hu_eq, hv_eq,
+      integral_add' huint.integrable_on hvint.integrable_on], },
+  { have heq₁ : (λ f : Lp_meas E ℝ m₁ 1 μ, ∫ x, f x ∂μ) =
+      (λ f : Lp E 1 μ, ∫ x, f x ∂μ) ∘ (submodule.subtypeL _),
+    { refine funext (λ f, integral_congr_ae _),
+      simp_rw [submodule.coe_subtypeL', submodule.coe_subtype, ← coe_fn_coe_base], },
+    have heq₂ : (λ f : Lp_meas E ℝ m₁ 1 μ, ∫ x in s, f x ∂μ) =
+      (λ f : Lp E 1 μ, ∫ x in s, f x ∂μ) ∘ (submodule.subtypeL _),
+    { refine funext (λ f, integral_congr_ae (ae_restrict_of_ae _)),
+      simp_rw [submodule.coe_subtypeL', submodule.coe_subtype, ← coe_fn_coe_base],
+      exact eventually_of_forall (λ _, rfl), },
+    refine is_closed_eq (continuous.const_smul _ _) _,
+    { rw heq₁,
+      exact continuous_integral.comp (continuous_linear_map.continuous _), },
+    { rw heq₂,
+      exact (continuous_set_integral _).comp (continuous_linear_map.continuous _), }, },
   { intros u v huv huint hueq,
-    rwa [← integral_congr_ae (ae_eq_of_ae_eq_trim huv),
+    rwa [← integral_congr_ae huv,
       ← (set_integral_congr_ae (hle₂ _ hms) _ : ∫ x in s, u x ∂μ = ∫ x in s, v x ∂μ)],
-    filter_upwards [ae_eq_of_ae_eq_trim huv] with x hx _,
-    exact hx }
+    filter_upwards [huv] with x hx _ using hx, },
+  { exact ⟨f, hf, eventually_eq.rfl⟩, },
 end
 
 end measure_theory

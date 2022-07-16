@@ -437,7 +437,7 @@ end unit_group
 
 section nonunits
 
-/-- The nonunits of a valuation subring, as a subsemigroup of `K`-/
+/-- The nonunits of a valuation subring of `K`, as a subsemigroup of `K`-/
 def nonunits : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
   mul_mem' := λ a b ha hb, (mul_lt_mul₀ ha hb).trans_eq $ mul_one _ }

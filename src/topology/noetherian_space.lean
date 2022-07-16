@@ -140,10 +140,11 @@ end
   noetherian_space (set.univ : set α) ↔ noetherian_space α :=
 noetherian_space_iff_of_homeomorph (homeomorph.set.univ α)
 
-lemma noetherian_space.Union {ι : Type*} [fintype ι] (f : ι → set α)
+lemma noetherian_space.Union {ι : Type*} (f : ι → set α) [finite ι]
   [hf : ∀ i, noetherian_space (f i)] :
   noetherian_space (⋃ i, f i) :=
 begin
+  casesI nonempty_fintype ι,
   simp_rw noetherian_space_set_iff at hf ⊢,
   intros t ht,
   rw [← set.inter_eq_left_iff_subset.mpr ht, set.inter_Union],
@@ -157,14 +158,20 @@ lemma noetherian_space.discrete [noetherian_space α] [t2_space α] : discrete_t
 local attribute [instance] noetherian_space.discrete
 
 /-- Spaces that are both Noetherian and Hausdorff is finite. -/
-@[priority 100]
-noncomputable
-def noetherian_space.fintype [noetherian_space α] [t2_space α] : fintype α :=
-set.fintype_of_finite_univ (noetherian_space.is_compact set.univ).finite_of_discrete
+lemma noetherian_space.finite [noetherian_space α] [t2_space α] : finite α :=
+begin
+  letI : fintype α :=
+    set.fintype_of_finite_univ (noetherian_space.is_compact set.univ).finite_of_discrete,
+  apply_instance
+end
 
 @[priority 100]
-instance noetherian_space.of_fintype [fintype α] : noetherian_space α :=
-by { classical, exact ⟨@@fintype.well_founded_of_trans_of_irrefl (subtype.fintype _) _ _ _⟩ }
+instance noetherian_space.of_fintype [finite α] : noetherian_space α :=
+begin
+  casesI nonempty_fintype α,
+  classical,
+  exact ⟨@@fintype.well_founded_of_trans_of_irrefl (subtype.fintype _) _ _ _⟩
+end
 
 lemma noetherian_space.exists_finset_irreducible [noetherian_space α] (s : closeds α) :
   ∃ S : finset (closeds α), (∀ k : S, is_irreducible (k : set α)) ∧ s = S.sup id :=
@@ -218,3 +225,4 @@ begin
 end
 
 end topological_space
+#lint

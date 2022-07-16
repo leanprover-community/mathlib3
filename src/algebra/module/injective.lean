@@ -184,13 +184,6 @@ linear_pmap.le_Sup (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_
   exact ⟨a, ha, rfl⟩,
 end
 
-lemma extension_of.aux1 : ∀ (c : set (extension_of i f)),
-  is_chain has_le.le c →
-  c.nonempty →
-  (∃ (ub : extension_of i f), ∀ (a : extension_of i f), a ∈ c → a ≤ ub) :=
-λ c hchain hnonempty,
-  ⟨extension_of.max hchain hnonempty, extension_of.le_max hchain hnonempty⟩
-
 variables (i f) [fact $ function.injective i]
 
 instance extension_of.inhabited : inhabited (extension_of i f) :=
@@ -218,16 +211,18 @@ instance extension_of.inhabited : inhabited (extension_of i f) :=
 `extension_of hi f`-/
 def extension_of_max : extension_of i f :=
 (@zorn_nonempty_partial_order (extension_of i f) _ ⟨inhabited.default⟩
-  (extension_of.aux1)).some
+  (λ c hchain hnonempty,
+    ⟨extension_of.max hchain hnonempty, extension_of.le_max hchain hnonempty⟩)).some
 
 lemma extension_of_max_is_max :
   ∀ (a : extension_of i f),
     (extension_of_max i f) ≤ a → a = (extension_of_max i f) :=
 (@zorn_nonempty_partial_order (extension_of i f) _ ⟨inhabited.default⟩
-  (extension_of.aux1)).some_spec
+  ((λ c hchain hnonempty,
+    ⟨extension_of.max hchain hnonempty, extension_of.le_max hchain hnonempty⟩))).some_spec
 
 variables {f}
-lemma extension_of_max_adjoin.aux1
+private lemma extension_of_max_adjoin.aux1
   {y : N}
   (x : (extension_of_max i f).domain ⊔ submodule.span R {y}) :
   ∃ (a : (extension_of_max i f).domain) (b : R), x.1 = a.1 + b • y :=

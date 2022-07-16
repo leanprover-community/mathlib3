@@ -69,7 +69,6 @@ universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
-@[nolint has_inhabited_instance]
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
@@ -194,7 +193,9 @@ rfl
 
 @[simp] theorem coe_refl : ⇑(equiv.refl α) = id := rfl
 
-@[simp] theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
+/-- This cannot be a `simp` lemmas as it incorrectly matches against `e : α ≃ synonym α`, when
+`synonym α` is semireducible. This makes a mess of `multiplicative.of_add` etc. -/
+theorem perm.coe_subsingleton {α : Type*} [subsingleton α] (e : perm α) : ⇑(e) = id :=
 by rw [perm.subsingleton_eq_refl e, coe_refl]
 
 theorem refl_apply (x : α) : equiv.refl α x = x := rfl
@@ -403,6 +404,27 @@ def prod_pprod {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂
 @[simps apply symm_apply]
 def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β := (equiv.refl α).pprod_prod (equiv.refl β)
 
+/-- Product of two equivalences, in terms of `pprod`. If `α ≃ β` and `γ ≃ δ`, then
+`pprod α γ ≃ pprod β δ`. -/
+@[congr, simps apply]
+def pprod_congr {δ : Sort z} (e₁ : α ≃ β) (e₂ : γ ≃ δ) : pprod α γ ≃ pprod β δ :=
+{ to_fun := λ x, ⟨e₁ x.1, e₂ x.2⟩,
+  inv_fun := λ x, ⟨e₁.symm x.1, e₂.symm x.2⟩,
+  left_inv := λ ⟨x, y⟩, by simp,
+  right_inv := λ ⟨x, y⟩, by simp }
+
+/-- Combine two equivalences using `pprod` in the domain and `prod` in the codomain. -/
+@[simps apply symm_apply]
+def pprod_prod {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) :
+  pprod α₁ β₁ ≃ α₂ × β₂ :=
+(ea.pprod_congr eb).trans pprod_equiv_prod
+
+/-- Combine two equivalences using `pprod` in the codomain and `prod` in the domain. -/
+@[simps apply symm_apply]
+def prod_pprod {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) :
+  α₁ × β₁ ≃ pprod α₂ β₂ :=
+(ea.symm.pprod_prod eb.symm).symm
+
 /-- `pprod α β` is equivalent to `plift α × plift β` -/
 @[simps apply symm_apply]
 def pprod_equiv_prod_plift {α β : Sort*} : pprod α β ≃ plift α × plift β :=
@@ -573,7 +595,8 @@ arrow_punit_of_is_empty _ _
 
 end
 
-/-- Product of two equivalences. If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then `α₁ × β₁ ≃ α₂ × β₂`. -/
+/-- Product of two equivalences. If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then `α₁ × β₁ ≃ α₂ × β₂`. This is
+`prod.map` as an equivalence. -/
 @[congr, simps apply]
 def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ : β₁ ≃ β₂) : α₁ × β₁ ≃ α₂ × β₂ :=
 ⟨prod.map e₁ e₂, prod.map e₁.symm e₂.symm, λ ⟨a, b⟩, by simp, λ ⟨a, b⟩, by simp⟩
@@ -582,15 +605,16 @@ def prod_congr {α₁ β₁ α₂ β₂ : Type*} (e₁ : α₁ ≃ α₂) (e₂ 
   (prod_congr e₁ e₂).symm = prod_congr e₁.symm e₂.symm :=
 rfl
 
-/-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. -/
+/-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. This is `prod.swap` as an
+equivalence.-/
 @[simps apply] def prod_comm (α β : Type*) : α × β ≃ β × α :=
-⟨prod.swap, prod.swap, λ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
+⟨prod.swap, prod.swap, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
 
 @[simp] lemma prod_comm_symm (α β) : (prod_comm α β).symm = prod_comm β α := rfl
 
 /-- Type product is associative up to an equivalence. -/
 @[simps] def prod_assoc (α β γ : Sort*) : (α × β) × γ ≃ α × (β × γ) :=
-⟨λ p, (p.1.1, p.1.2, p.2), λp, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
+⟨λ p, (p.1.1, p.1.2, p.2), λ p, ((p.1, p.2.1), p.2.2), λ ⟨⟨a, b⟩, c⟩, rfl, λ ⟨a, ⟨b, c⟩⟩, rfl⟩
 
 /-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
 @[simps {fully_applied := ff}] def curry (α β γ : Type*) :
@@ -638,24 +662,32 @@ end
 section
 open sum
 
+/-- `psum` is equivalent to `sum`. -/
+def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β :=
+{ to_fun := λ s, psum.cases_on s inl inr,
+  inv_fun := sum.elim psum.inl psum.inr,
+  left_inv := λ s, by cases s; refl,
+  right_inv := λ s, by cases s; refl }
+
+/-- If `α ≃ α'` and `β ≃ β'`, then `α ⊕ β ≃ α' ⊕ β'`. This is `sum.map` as an equivalence. -/
+@[simps apply]
+def sum_congr {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ α₂ ⊕ β₂ :=
+⟨sum.map ea eb, sum.map ea.symm eb.symm, λ x, by simp, λ x, by simp⟩
+
+/-- If `α ≃ α'` and `β ≃ β'`, then `psum α β ≃ psum α' β'`. -/
+def psum_congr {δ : Sort z} (e₁ : α ≃ β) (e₂ : γ ≃ δ) : psum α γ ≃ psum β δ :=
+{ to_fun := λ x, psum.cases_on x (psum.inl ∘ e₁) (psum.inr ∘ e₂),
+  inv_fun := λ x, psum.cases_on x (psum.inl ∘ e₁.symm) (psum.inr ∘ e₂.symm),
+  left_inv := by rintro (x|x); simp,
+  right_inv := by rintro (x|x); simp }
+
 /-- Combine two `equiv`s using `psum` in the domain and `sum` in the codomain. -/
 def psum_sum {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : psum α₁ β₁ ≃ α₂ ⊕ β₂ :=
-{ to_fun := λ s, psum.cases_on s (inl ∘ ea) (inr ∘ eb),
-  inv_fun := sum.elim (psum.inl ∘ ea.symm) (psum.inr ∘ eb.symm),
-  left_inv := by rintro (x|x); simp,
-  right_inv := by rintro (x|x); dsimp; simp }
+(ea.psum_congr eb).trans (psum_equiv_sum _ _)
 
 /-- Combine two `equiv`s using `sum` in the domain and `psum` in the codomain. -/
 def sum_psum {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ psum α₂ β₂ :=
 (ea.symm.psum_sum eb.symm).symm
-
-/-- `psum` is equivalent to `sum`. -/
-def psum_equiv_sum (α β : Type*) : psum α β ≃ α ⊕ β := (equiv.refl α).psum_sum (equiv.refl β)
-
-/-- If `α ≃ α'` and `β ≃ β'`, then `α ⊕ β ≃ α' ⊕ β'`. -/
-@[simps apply]
-def sum_congr {α₁ β₁ α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ ⊕ β₁ ≃ α₂ ⊕ β₂ :=
-⟨sum.map ea eb, sum.map ea.symm eb.symm, λ x, by simp, λ x, by simp⟩
 
 @[simp] lemma sum_congr_trans {α₁ α₂ β₁ β₂ γ₁ γ₂ : Sort*}
   (e : α₁ ≃ β₁) (f : α₂ ≃ β₂) (g : β₁ ≃ γ₁) (h : β₂ ≃ γ₂) :
@@ -707,8 +739,8 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 ⟨λ p, @to_bool p (classical.prop_decidable _),
  λ b, b, λ p, by simp, λ b, by simp⟩
 
-/-- Sum of types is commutative up to an equivalence. -/
-@[simps apply]
+/-- Sum of types is commutative up to an equivalence. This is `sum.swap` as an equivalence. -/
+@[simps apply {fully_applied := ff}]
 def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 

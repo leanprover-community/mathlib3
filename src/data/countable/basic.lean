@@ -8,11 +8,9 @@ import logic.equiv.fin
 import data.countable.defs
 
 /-!
-# Countable `Sort*`s and `Type*`s
+# Countable types
 
-In this file we define a typeclass saying that a given `Sort*` is countable. See also `encodable`
-for a version that singles out a specific encoding of elements of `α` by natural numbers.
-
+In this file we provide basis instances of the `countable` typeclass defined elsewhere.
 -/
 
 universes u v w

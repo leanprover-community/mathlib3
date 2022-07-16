@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
+import algebra.char_zero.quotient
 
 /-!
 # The type of angles
@@ -83,6 +84,28 @@ by simp [←coe_int_mul_eq_zsmul]
 
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
+
+lemma zsmul_eq_iff {ψ θ : angle} {z : ℤ} (hz : z ≠ 0) :
+  z • ψ = z • θ ↔ (∃ k : fin z.nat_abs, ψ = θ + (k : ℕ) • (2 * π / z : ℝ)) :=
+quotient_add_group.zmultiples_zsmul_eq_zsmul_iff hz
+
+lemma nsmul_eq_iff {ψ θ : angle} {n : ℕ} (hz : n ≠ 0) :
+  n • ψ = n • θ ↔ (∃ k : fin n, ψ = θ + (k : ℕ) • (2 * π / n : ℝ)) :=
+quotient_add_group.zmultiples_nsmul_eq_nsmul_iff hz
+
+lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by rw [zsmul_eq_iff two_ne_zero, int.nat_abs_bit0, int.nat_abs_one,
+    fin.exists_fin_two, fin.coe_zero, fin.coe_one, zero_smul, add_zero, one_smul,
+    int.cast_two, mul_div_cancel_left (_ : ℝ) two_ne_zero]
+
+lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_iff]
+
+lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by convert two_nsmul_eq_iff; simp
+
+lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
 
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin

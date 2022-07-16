@@ -266,7 +266,7 @@ by { change @recursion α _ β C H0 IH ⟨[], _⟩ = H0, rw recursion }
 
 theorem recursion_insert {β : α → Type v} {C : alist β → Sort*} (H0 : C ∅)
   (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b))
-  (c : sigma β) (l : alist β) (h : c.1 ∉ l) :
+  {c : sigma β} {l : alist β} (h : c.1 ∉ l) :
   @recursion α _ β C H0 IH (l.insert c.1 c.2) = IH c.1 c.2 l h (@recursion α _ β C H0 IH l) :=
 begin
   cases l with l hl,
@@ -282,9 +282,9 @@ end
 
 theorem recursion_insert_mk {β : α → Type v} {C : alist β → Sort*} (H0 : C ∅)
   (IH : Π (a : α) (b : β a) (l : alist β) (h : a ∉ l), C l → C (l.insert a b))
-  (a : α) (b : β a) (l : alist β) (h : a ∉ l) :
+  {a : α} (b : β a) {l : alist β} (h : a ∉ l) :
   @recursion α _ β C H0 IH (l.insert a b) = IH a b l h (@recursion α _ β C H0 IH l) :=
-recursion_insert H0 IH ⟨a, b⟩ l h
+@recursion_insert α _ β C H0 IH ⟨a, b⟩ l h
 
 /-! ### extract -/
 

@@ -322,15 +322,12 @@ lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, a
 lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
   induction n using int.induction_on with n h n h,
-  { ext i j, fin_cases i; fin_cases j;
-    simp only [pow_zero, coe_one, int.coe_nat_zero, of_apply]; refl },
-  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, cons_mul, empty_mul, equiv.symm_apply_apply,
-      cons_vec_mul_cons, empty_vec_mul, smul_cons, smul_empty, add_zero, cons_add_cons,
-      empty_add_empty, smul_eq_mul, mul_zero, mul_one, add_zero, zero_add, add_comm (1 : ℤ)] },
-  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, cons_mul, empty_mul, equiv.symm_apply_apply,
-      cons_vec_mul_cons, empty_vec_mul, smul_cons, smul_empty, add_zero, cons_add_cons,
-      empty_add_empty, smul_eq_mul, mul_zero, mul_one, mul_neg_one, add_zero, neg_zero, zero_add,
-      sub_eq_neg_add] },
+  { rw [zpow_zero, coe_one, matrix.one_fin_two] },
+  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, matrix.mul_fin_two],
+    congrm !![_, _; _, _],
+    rw [mul_one, mul_one, add_comm] },
+  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, matrix.mul_fin_two],
+    congrm !![_, _; _, _]; ring },
 end
 
 @[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=

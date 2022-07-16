@@ -389,6 +389,11 @@ begin
   rw [ϕ.injective key, subalgebra.coe_zero]
 end
 
+variables {F} {α}
+
+@[simp] lemma adjoin_simple_le_iff {K : intermediate_field F E} : F⟮α⟯ ≤ K ↔ α ∈ K :=
+adjoin_le_iff.trans set.singleton_subset_iff
+
 end adjoin_simple
 end adjoin_def
 

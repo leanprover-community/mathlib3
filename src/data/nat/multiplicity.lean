@@ -217,11 +217,6 @@ begin
 end
 
 
-
-#exit
-
-
-
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
 lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
@@ -236,6 +231,12 @@ begin
   -- rw [hp.multiplicity_factorial (lt_succ_self _), part_enat.coe_le_coe],
   -- exact nat.geom_sum_Ico_le hp.two_le _ _,
 end
+
+
+
+#exit
+
+
 
 lemma factorization_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ∑ i in finset.Ico 1 b, n / p ^ i =

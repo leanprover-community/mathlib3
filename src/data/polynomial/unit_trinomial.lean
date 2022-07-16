@@ -389,7 +389,7 @@ begin
     exact associated.irreducible ⟨-1, mul_neg_one X⟩ irreducible_X },
   have hn : 1 < n := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn0, hn1⟩,
   have hp : (X ^ n - X - 1 : polynomial ℤ) = trinomial 0 1 n (-1) (-1) 1 :=
-  by simp only [trinomial, C_neg, C_1]; ring,
+    by simp only [trinomial, C_neg, C_1]; ring,
   rw hp,
   apply is_unit_trinomial.irreducible_of_coprime' ⟨0, 1, n, zero_lt_one, hn, -1, -1, 1, rfl⟩,
   rintros z ⟨h1, h2⟩,

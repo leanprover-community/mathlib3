@@ -1102,7 +1102,7 @@ end, λ h, by simp_rw h⟩
 
 /-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
 @[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
-{ to_fun := λ ⟨o, h⟩, enum r o h,
+{ to_fun := λ x, enum r x.1 x.2,
   inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
   left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
   right_inv := λ h, enum_typein _ _,
@@ -1110,11 +1110,7 @@ end, λ h, by simp_rw h⟩
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=
-{ to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
-  inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
-  left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
-  right_inv := λ h, enum_typein _ _,
-  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_le_enum' } }
+(order_iso.cast sorry).trans (enum_iso (<))
 
 /-- `o.out.α` is an `order_bot` whenever `0 < o`. -/
 def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=

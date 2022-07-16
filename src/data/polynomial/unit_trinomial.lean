@@ -6,7 +6,9 @@ Authors: Thomas Browning
 
 import analysis.complex.polynomial
 import data.polynomial.mirror
+import ring_theory.polynomial.content
 import ring_theory.roots_of_unity
+import ring_theory.unique_factorization_domain
 import tactic.polyrith
 
 /-!
@@ -89,6 +91,13 @@ by rw [leading_coeff, trinomial_nat_degree hkm hmn hw, trinomial_leading_coeff' 
 lemma trinomial_trailing_coeff (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
   (trinomial k m n u v w).trailing_coeff = u :=
 by rw [trailing_coeff, trinomial_nat_trailing_degree hkm hmn hu, trinomial_trailing_coeff' hkm hmn]
+
+lemma trinomial_monic (hkm : k < m) (hmn : m < n) : (trinomial k m n u v 1).monic :=
+begin
+  casesI subsingleton_or_nontrivial R with h h,
+  { apply subsingleton.elim },
+  { exact trinomial_leading_coeff hkm hmn one_ne_zero },
+end
 
 lemma trinomial_mirror (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hw : w ≠ 0) :
   (trinomial k m n u v w).mirror = trinomial k (n - m + k) n w v u :=
@@ -406,9 +415,7 @@ begin
   have h := (is_primitive.int.irreducible_iff_irreducible_map_cast _).mp (selmer_irreducible hn1),
   { rwa [polynomial.map_sub, polynomial.map_sub, polynomial.map_pow, polynomial.map_one,
       polynomial.map_X] at h },
-  { apply monic.is_primitive,
-    rw hp,
-    exact trinomial_leading_coeff zero_lt_one hn one_ne_zero },
+  { exact hp.symm ▸ (trinomial_monic zero_lt_one hn).is_primitive },
 end
 
 end polynomial

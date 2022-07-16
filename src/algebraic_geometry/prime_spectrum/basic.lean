@@ -610,29 +610,29 @@ begin
     have hp : ker f ≤ p.as_ideal :=
       (ideal.comap_mono bot_le).trans h_I_p,
     use ideal.map f p.as_ideal,
-    exact ideal.map_is_prime_of_surjective hf hp,
-    split,
-    { intros x hx,
-      rw ideal.mem_map_iff_of_surjective _ hf,
-      obtain ⟨x', rfl : f x' = x⟩ := hf x,
-      exact ⟨x', h_I_p hx, rfl⟩, },
-    { ext x,
-      change f x ∈ p.as_ideal.map f ↔ _,
-      rw ideal.mem_map_iff_of_surjective _ hf,
-      split,
-      { rintros ⟨x', ⟨hx', heq⟩⟩,
-        rw (by ring : x = x' + (x - x')),
-        apply p.as_ideal.add_mem hx',
-        apply hp ((mem_ker _).mpr _),
-        rw [map_sub, heq, sub_self], },
-      { intro hx, exact ⟨x, hx, rfl⟩, }, }, }
+    { exact ideal.map_is_prime_of_surjective hf hp, },
+    { split,
+      { intros x hx,
+        rw ideal.mem_map_iff_of_surjective _ hf,
+        obtain ⟨x', rfl : f x' = x⟩ := hf x,
+        exact ⟨x', h_I_p hx, rfl⟩, },
+      { ext x,
+        change f x ∈ p.as_ideal.map f ↔ _,
+        rw ideal.mem_map_iff_of_surjective _ hf,
+        split,
+        { rintros ⟨x', ⟨hx', heq⟩⟩,
+          rw (by ring : x = x' + (x - x')),
+          apply p.as_ideal.add_mem hx',
+          apply hp ((mem_ker _).mpr _),
+          rw [map_sub, heq, sub_self], },
+        { intro hx, exact ⟨x, hx, rfl⟩, }, }, } }
 end
 
 lemma range_comap_of_surjective (hf : surjective f) :
   set.range (comap f) = zero_locus (ker f) :=
 begin
   rw ← set.image_univ,
-  convert image_comap_eq_comap _ _ hf _,
+  convert image_comap_zero_locus_eq_zero_locus_comap _ _ hf _,
   rw zero_locus_bot,
 end
 

@@ -84,16 +84,21 @@ lemma Icc_insert_succ (n : ℕ): Icc 1 n.succ = insert n.succ (Icc 1 n) :=
  by { rw [←insert_erase (mem_Icc.2 ⟨succ_le_succ (zero_le n), rfl.le⟩),
       Icc_erase_right, Ico_succ_right] }
 
+lemma pos_of_mem_Ico_one {n x : ℕ} (hx : x ∈ Ico 1 n) : 0 < x :=
+succ_le_iff.mp (mem_Ico.1 hx).1
+
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
--- TODO: PR this in data/nat/factorization/basic
+-- TODO: PR these in data/nat/factorization/basic
 
 lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
 begin
 
   sorry,
 end
+
+
 
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
@@ -167,10 +172,8 @@ lemma factorization_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   (p * (n + 1))!.factorization p = (p * n)!.factorization p + (n + 1).factorization p + 1 :=
 begin
 
-  have hp' := prime_iff.mp hp,
-  have h0 : 2 ≤ p := hp.two_le,
   have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
-  have h2 : p * n + 1 ≤ p * (n + 1), linarith,
+  have h2 : p * n + 1 ≤ p * (n + 1), linarith [hp.two_le],
   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
   have h4 : ∀ m : ℕ, m ∈ Ico (p * n + 1) (p * (n + 1)) → m.factorization p = 0,
   { intros m hm,
@@ -178,18 +181,32 @@ begin
     rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
     rw [mem_Ico] at hm,
     exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
-  sorry,
+
+  simp_rw [← prod_Ico_id_eq_factorial],
+  simp_rw [factorization_prod (λ x hx, (pos_of_mem_Ico_one hx).ne')],
+  rw ←sum_Ico_consecutive _ h1 h3,
+  rw add_assoc,
+  simp only [sum_apply', finsupp.coe_add, pi.add_apply],
+  simp,
+
+  rw [sum_Ico_succ_top h2],
+  have := sum_eq_zero_iff.2 h4,
+  simp [this],
+
+  rw factorization_mul hp.ne_zero (succ_ne_zero n),
+  simp,
+  have : p.factorization p = 1, { simp [hp] },
+  rw this,
+  rw add_comm,
+
+  -- intros x hx1 hx2,
+  -- apply factorization_eq_zero_of_not_dvd,
+  -- rw ←not_dvd_iff_between_consec_multiples x hp.pos,
+  -- refine ⟨n, succ_le_iff.mp hx1, hx2⟩,
 end
---   have hm : multiplicity p (p * n)! ≠ ⊤,
---   { rw [ne.def, eq_top_iff_not_finite, not_not, finite_nat_iff],
---     exact ⟨hp.ne_one, factorial_pos _⟩ },
---   revert hm,
-  -- simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
-  --   add_assoc], intro h,
-  -- rw [part_enat.add_left_cancel_iff h, sum_Ico_succ_top h2, multiplicity.mul hp',
-  --   hp.multiplicity_self, sum_congr rfl h4, sum_const_zero, zero_add,
-  --   add_comm (1 : part_enat)]
--- end
+
+#exit
+
 
 /-- The multiplicity of `p` in `(p * n)!` is `n` more than that of `n!`. -/
 lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :

@@ -468,13 +468,6 @@ begin
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
 
--- TODO: generalize to some ordered add_monoids, based on #6145
-lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, simp }
-
-lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, simp }
-
 /-! ### `pred` -/
 
 @[simp]
@@ -771,6 +764,27 @@ begin
 end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
 
+/-- Given `P : ℕ → ℕ → Sort*`, if for all `a b : ℕ` we can extend `P` from the rectangle
+strictly below `(a,b)` to `P a b`, then we have `P n m` for all `n m : ℕ`.
+Note that for non-`Prop` output it is preferable to use the equation compiler directly if possible,
+since this produces equation lemmas. -/
+@[elab_as_eliminator]
+def strong_sub_recursion {P : ℕ → ℕ → Sort*}
+  (H : ∀ a b, (∀ x y, x < a → y < b → P x y) → P a b) : Π (n m : ℕ), P n m
+| n m := H n m (λ x y hx hy, strong_sub_recursion x y)
+
+/-- Given `P : ℕ → ℕ → Sort*`, if we have `P i 0` and `P 0 i` for all `i : ℕ`,
+and for any `x y : ℕ` we can extend `P` from `(x,y+1)` and `(x+1,y)` to `(x+1,y+1)`
+then we have `P n m` for all `n m : ℕ`.
+Note that for non-`Prop` output it is preferable to use the equation compiler directly if possible,
+since this produces equation lemmas. -/
+@[elab_as_eliminator]
+def pincer_recursion {P : ℕ → ℕ → Sort*} (Ha0 : ∀ a : ℕ, P a 0) (H0b : ∀ b : ℕ, P 0 b)
+  (H : ∀ x y : ℕ, P x y.succ → P x.succ y → P x.succ y.succ) : ∀ (n m : ℕ), P n m
+| a 0 := Ha0 a
+| 0 b := H0b b
+| (nat.succ a) (nat.succ b) := H _ _ (pincer_recursion _ _) (pincer_recursion _ _)
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]
@@ -941,6 +955,17 @@ begin
     rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
     exact nat.eq_mul_of_div_eq_right hx h },
   { intros h, rw h },
+end
+
+lemma mul_div_mul_comm_of_dvd_dvd {a b c d : ℕ} (hac : c ∣ a) (hbd : d ∣ b) :
+  a * b / (c * d) = a / c * (b / d) :=
+begin
+  rcases c.eq_zero_or_pos with rfl | hc0, { simp },
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp },
+  obtain ⟨k1, rfl⟩ := hac,
+  obtain ⟨k2, rfl⟩ := hbd,
+  rw [mul_mul_mul_comm, nat.mul_div_cancel_left _ hc0, nat.mul_div_cancel_left _ hd0,
+      nat.mul_div_cancel_left _ (mul_pos hc0 hd0)],
 end
 
 @[simp]
@@ -1264,24 +1289,28 @@ begin
   { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
 end
 
-/-- `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)` for some `k`. -/
-lemma exists_lt_and_lt_iff_not_dvd (m : ℕ) {n : ℕ} (hn : 0 < n) :
-  (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
+/-- `n` is not divisible by `a` if it is between `a * k` and `a * (k + 1)` for some `k`. -/
+lemma not_dvd_of_between_consec_multiples {n a k : ℕ} (h1 : a * k < n) (h2 : n < a * (k + 1)) :
+  ¬ a ∣ n :=
 begin
-  split,
-  { rintro ⟨k, h1k, h2k⟩ ⟨l, rfl⟩, rw [mul_lt_mul_left hn] at h1k h2k,
-    rw [lt_succ_iff, ← not_lt] at h2k, exact h2k h1k },
-  { intro h, rw [dvd_iff_mod_eq_zero, ← ne.def, ← pos_iff_ne_zero] at h,
-    simp only [← mod_add_div m n] {single_pass := tt},
-    refine ⟨m / n, lt_add_of_pos_left _ h, _⟩,
-    rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
+  rintro ⟨d, rfl⟩,
+  exact monotone.ne_of_lt_of_lt_nat (covariant.monotone_of_const a) k h1 h2 d rfl,
 end
 
-/-- Two natural numbers are equal if and only if the have the same multiples. -/
+/-- `n` is not divisible by `a` iff it is between `a * k` and `a * (k + 1)` for some `k`. -/
+lemma not_dvd_iff_between_consec_multiples (n : ℕ) {a : ℕ} (ha : 0 < a) :
+  (∃ k : ℕ, a * k < n ∧ n < a * (k + 1)) ↔ ¬ a ∣ n :=
+begin
+  refine ⟨λ ⟨k, hk1, hk2⟩, not_dvd_of_between_consec_multiples hk1 hk2,
+          λ han, ⟨n/a, ⟨lt_of_le_of_ne (mul_div_le n a) _, lt_mul_div_succ _ ha⟩⟩⟩,
+  exact mt (dvd.intro (n/a)) han,
+end
+
+/-- Two natural numbers are equal if and only if they have the same multiples. -/
 lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
 ⟨λ h, dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl), λ h n, by rw h⟩
 
-/-- Two natural numbers are equal if and only if the have the same divisors. -/
+/-- Two natural numbers are equal if and only if they have the same divisors. -/
 lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
 ⟨λ h, dvd_antisymm ((h _).mp dvd_rfl) ((h _).mpr dvd_rfl), λ h n, by rw h⟩
 

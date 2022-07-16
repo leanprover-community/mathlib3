@@ -157,4 +157,30 @@ by simp only [mem_of_fn, set.forall_range_iff]
   of_fn (λ i : fin n, c) = repeat c n :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
+/-- A recursor for lists that expands a list into a function mapping to its elements. -/
+def of_fn_rec (C : list α → Sort*) (h : ∀ n (f : fin n → α), C (list.of_fn f)) (l : list α) : C l :=
+l.of_fn_nth_le ▸ h l.length (λ i, l.nth_le ↑i i.2)
+
+lemma exists_iff_exists_tuple {P : list α → Prop} :
+  (∃ l : list α, P l) ↔ ∃ n (f : fin n → α), P (list.of_fn f) :=
+begin
+  split,
+  { rintros ⟨l, h⟩,
+    induction l using list.of_fn_rec,
+    exact ⟨_, _, h⟩ },
+  { rintros ⟨n, f, h⟩,
+    exact ⟨_, h⟩ },
+end
+
+lemma forall_iff_forall_tuple {P : list α → Prop} :
+  (∀ l : list α, P l) ↔ ∀ n (f : fin n → α), P (list.of_fn f) :=
+begin
+  split,
+  { intros h n f,
+    exact h _, },
+  { intros h l,
+    induction l using list.of_fn_rec,
+    exact h _ _ },
+end
+
 end list

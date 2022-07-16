@@ -16,6 +16,15 @@ $$
 $$
 This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 
+This file develops the notion of a finite dimensional Hilbert space over `𝕜 = ℂ, ℝ`, referred to as
+`E`. We define an `orthonormal_basis 𝕜 ι E` as a linear isometric equivalence
+between `E` and `euclidean_space 𝕜 ι`. Then `std_orthonormal_basis` shows that such an equivalence
+always exists if `E` is finite dimensional. We provide language for converting between a basis
+that is orthonormal and an orthonormal basis (e.g. `basis.to_orthonormal_basis`). We show that
+orthonormal bases for each summand in a direct sum of spaces can be combined into an orthonormal
+basis for the the whole sum in `direct_sum.submodule_is_internal.subordinate_orthonormal_basis`. In
+the last section, various properties of matrices are explored.
+
 ## Main definitions
 
 - `euclidean_space 𝕜 n`: defined to be `pi_Lp 2 (n → 𝕜)` for any `fintype n`, i.e., the space
@@ -28,21 +37,13 @@ This is recorded in this file as an inner product space instance on `pi_Lp 2`.
 - `basis.to_orthonormal_basis`: constructs an `orthonormal_basis` for a finite-dimensional
   Euclidean space from a `basis` which is `orthonormal`.
 
-- `linear_isometry_equiv.of_inner_product_space`: provides an arbitrary isometry to Euclidean space
-  from a given finite-dimensional inner product space, induced by choosing an arbitrary basis.
+- `orthonormal.exists_orthonormal_basis_extension`: provides an existential result of an
+  `orthonormal_basis` extending a given orthonormal set
 
-- `std_orthonormal_basis`: the canonical `orthonormal_basis` on `euclidean_space 𝕜 ι`
+- `exists_orthonormal_basis`: provides an orthonormal basis on a finite dimensional vector space
 
-- `complex.isometry_euclidean`: standard isometry from `ℂ` to `euclidean_space ℝ (fin 2)`
-
-This file develops the notion of a finite dimensional Hilbert space over `𝕜 = ℂ, ℝ`, referred to as
-`euclidean_space 𝕜 ι`. We define an `orthonormal_basis 𝕜 ι E` as a linear isometric equivalence
-between `E` and `euclidean_space 𝕜 ι`. Then `std_orthonormal_basis` shows that such an equivalence
-always exists if `E` is finite dimensional. We provide language for converting between a basis
-that is orthonormal and an orthonormal basis (e.g. `basis.to_orthonormal_basis`). We show that
-orthonormal bases for each summand in a direct sum of spaces can be combined into an orthonormal
-basis for the the whole sum in `direct_sum.submodule_is_internal.subordinate_orthonormal_basis`. In
-the last section, various properties of matrices are explored.
+- `std_orthonormal_basis`: provides an arbitrarily-chosen `orthonormal_basis` of a given finite
+  dimensional inner product space
 
 For consequences in infinite dimension (Hilbert bases, etc.), see the file
 `analysis.inner_product_space.l2_space`.
@@ -104,14 +105,6 @@ space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
 def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
-
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
-backwards direction. -/
-def to_euclidean_space [fintype ι] : (ι → 𝕜) ≃ euclidean_space 𝕜 ι := equiv.refl _
-
-/-- The (forgetful) equivalence between `euclidean_space 𝕜 ι` and maps, `ι → 𝕜`:
-forwards direction. -/
-def of_euclidean_space [fintype ι]: euclidean_space 𝕜 ι ≃ (ι → 𝕜) := equiv.refl _
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=

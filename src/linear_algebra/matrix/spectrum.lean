@@ -71,14 +71,11 @@ begin
     (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n)
     finrank_euclidean_space (euclidean_space.single j 1)
     ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i),
-  {
-    rw [eigenvector_basis],
-    rw [to_lin'_apply],
+  { rw [eigenvector_basis, to_lin'_apply],
     simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
     simp_rw [orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
       euclidean_space.single, pi_Lp.equiv_symm_apply', mul_vec_single, mul_one],
-    refl
-    },
+    refl },
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
     rw [basis.to_matrix_apply,
      orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,

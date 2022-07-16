@@ -2149,69 +2149,6 @@ begin
     ((condexp_L1_mono hf hg hfg).trans_eq (condexp_ae_eq_condexp_L1 hm _).symm),
 end
 
-section real
-
-lemma rn_deriv_ae_eq_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)] {f : α → ℝ}
-  (hf : integrable f μ) :
-  signed_measure.rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | m] :=
-begin
-  refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
-  { exact λ _ _ _, (integrable_of_integrable_trim hm (signed_measure.integrable_rn_deriv
-      ((μ.with_densityᵥ f).trim hm) (μ.trim hm))).integrable_on },
-  { intros s hs hlt,
-    conv_rhs { rw [← hf.with_densityᵥ_trim_eq_integral hm hs,
-      ← signed_measure.with_densityᵥ_rn_deriv_eq ((μ.with_densityᵥ f).trim hm) (μ.trim hm)
-        (hf.with_densityᵥ_trim_absolutely_continuous hm)], },
-    rw [with_densityᵥ_apply
-        (signed_measure.integrable_rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm)) hs,
-      ← set_integral_trim hm _ hs],
-    exact (signed_measure.measurable_rn_deriv _ _).strongly_measurable },
-  { exact strongly_measurable.ae_strongly_measurable'
-      (signed_measure.measurable_rn_deriv _ _).strongly_measurable },
-end
-
-/-- TODO: this should be generalized and proved using Jensen's inequality
-for the conditional expectation (not in mathlib yet) .-/
-lemma snorm_one_condexp_le_snorm (f : α → ℝ) :
-  snorm (μ[f | m]) 1 μ ≤ snorm f 1 μ :=
-begin
-  by_cases hf : integrable f μ,
-  swap, { rw [snorm_congr_ae (condexp_undef hf), snorm_zero], exact zero_le _ },
-  by_cases hm : m ≤ m0,
-  swap, { rw [condexp_of_not_le hm, snorm_zero], exact zero_le _ },
-  by_cases hsig : sigma_finite (μ.trim hm),
-  swap, { rw [condexp_of_not_sigma_finite hm hsig, snorm_zero], exact zero_le _ },
-  calc snorm (μ[f | m]) 1 μ ≤ snorm (μ[|f| | m]) 1 μ :
-  begin
-    refine snorm_mono_ae _,
-    filter_upwards [@condexp_mono _ m m0 _ _ _ _ _ _ _ _ hf hf.abs
-        (@ae_of_all _ m0 _ μ (λ x, le_abs_self (f x) : ∀ x, f x ≤ |f x|)),
-      eventually_le.trans (condexp_neg f).symm.le
-        (@condexp_mono _ m m0 _ _ _ _ _ _ _  _ hf.neg hf.abs
-        (@ae_of_all _ m0 _ μ (λ x, neg_le_abs_self (f x) : ∀ x, -f x ≤ |f x|)))] with x hx₁ hx₂,
-    exact abs_le_abs hx₁ hx₂,
-  end
-    ... = snorm f 1 μ :
-  begin
-    rw [snorm_one_eq_lintegral_nnnorm, snorm_one_eq_lintegral_nnnorm,
-      ← ennreal.to_real_eq_to_real (ne_of_lt integrable_condexp.2) (ne_of_lt hf.2),
-      ← integral_norm_eq_lintegral_nnnorm
-        (strongly_measurable_condexp.mono hm).ae_strongly_measurable,
-      ← integral_norm_eq_lintegral_nnnorm hf.1],
-    simp_rw [real.norm_eq_abs],
-    rw ← @integral_condexp _ _ _ _ _ m m0 μ _ hm hsig hf.abs,
-    refine integral_congr_ae _,
-    have : 0 ≤ᵐ[μ] μ[|f| | m],
-    { rw ← @condexp_zero α ℝ _ _ _ m m0 μ,
-      exact condexp_mono (integrable_zero _ _ _) hf.abs
-        (@ae_of_all _ m0 _ μ (λ x, abs_nonneg (f x) : ∀ x, 0 ≤ |f x|)) },
-    filter_upwards [this] with x hx,
-    exact abs_eq_self.2 hx
-  end
-end
-
-end real
-
 section indicator
 
 lemma condexp_ae_eq_restrict_zero (hs : measurable_set[m] s) (hf : f =ᵐ[μ.restrict s] 0) :
@@ -2381,6 +2318,65 @@ end
 end indicator
 
 section real
+
+lemma rn_deriv_ae_eq_condexp {hm : m ≤ m0} [hμm : sigma_finite (μ.trim hm)] {f : α → ℝ}
+  (hf : integrable f μ) :
+  signed_measure.rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm) =ᵐ[μ] μ[f | m] :=
+begin
+  refine ae_eq_condexp_of_forall_set_integral_eq hm hf _ _ _,
+  { exact λ _ _ _, (integrable_of_integrable_trim hm (signed_measure.integrable_rn_deriv
+      ((μ.with_densityᵥ f).trim hm) (μ.trim hm))).integrable_on },
+  { intros s hs hlt,
+    conv_rhs { rw [← hf.with_densityᵥ_trim_eq_integral hm hs,
+      ← signed_measure.with_densityᵥ_rn_deriv_eq ((μ.with_densityᵥ f).trim hm) (μ.trim hm)
+        (hf.with_densityᵥ_trim_absolutely_continuous hm)], },
+    rw [with_densityᵥ_apply
+        (signed_measure.integrable_rn_deriv ((μ.with_densityᵥ f).trim hm) (μ.trim hm)) hs,
+      ← set_integral_trim hm _ hs],
+    exact (signed_measure.measurable_rn_deriv _ _).strongly_measurable },
+  { exact strongly_measurable.ae_strongly_measurable'
+      (signed_measure.measurable_rn_deriv _ _).strongly_measurable },
+end
+
+/-- TODO: this should be generalized and proved using Jensen's inequality
+for the conditional expectation (not in mathlib yet) .-/
+lemma snorm_one_condexp_le_snorm (f : α → ℝ) :
+  snorm (μ[f | m]) 1 μ ≤ snorm f 1 μ :=
+begin
+  by_cases hf : integrable f μ,
+  swap, { rw [snorm_congr_ae (condexp_undef hf), snorm_zero], exact zero_le _ },
+  by_cases hm : m ≤ m0,
+  swap, { rw [condexp_of_not_le hm, snorm_zero], exact zero_le _ },
+  by_cases hsig : sigma_finite (μ.trim hm),
+  swap, { rw [condexp_of_not_sigma_finite hm hsig, snorm_zero], exact zero_le _ },
+  calc snorm (μ[f | m]) 1 μ ≤ snorm (μ[|f| | m]) 1 μ :
+  begin
+    refine snorm_mono_ae _,
+    filter_upwards [@condexp_mono _ m m0 _ _ _ _ _ _ _ _ hf hf.abs
+        (@ae_of_all _ m0 _ μ (λ x, le_abs_self (f x) : ∀ x, f x ≤ |f x|)),
+      eventually_le.trans (condexp_neg f).symm.le
+        (@condexp_mono _ m m0 _ _ _ _ _ _ _  _ hf.neg hf.abs
+        (@ae_of_all _ m0 _ μ (λ x, neg_le_abs_self (f x) : ∀ x, -f x ≤ |f x|)))] with x hx₁ hx₂,
+    exact abs_le_abs hx₁ hx₂,
+  end
+    ... = snorm f 1 μ :
+  begin
+    rw [snorm_one_eq_lintegral_nnnorm, snorm_one_eq_lintegral_nnnorm,
+      ← ennreal.to_real_eq_to_real (ne_of_lt integrable_condexp.2) (ne_of_lt hf.2),
+      ← integral_norm_eq_lintegral_nnnorm
+        (strongly_measurable_condexp.mono hm).ae_strongly_measurable,
+      ← integral_norm_eq_lintegral_nnnorm hf.1],
+    simp_rw [real.norm_eq_abs],
+    rw ← @integral_condexp _ _ _ _ _ m m0 μ _ hm hsig hf.abs,
+    refine integral_congr_ae _,
+    have : 0 ≤ᵐ[μ] μ[|f| | m],
+    { rw ← @condexp_zero α ℝ _ _ _ m m0 μ,
+      exact condexp_mono (integrable_zero _ _ _) hf.abs
+        (@ae_of_all _ m0 _ μ (λ x, abs_nonneg (f x) : ∀ x, 0 ≤ |f x|)) },
+    filter_upwards [this] with x hx,
+    exact abs_eq_self.2 hx
+  end
+end
 
 /-- Given a integrable function `g`, the conditional expectations of `g` with respect to
 a sequence of sub-σ-algebras is uniformly integrable. -/

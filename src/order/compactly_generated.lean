@@ -125,8 +125,7 @@ begin
   have h2 : k ≤ Sup (set.range g),
   { exact h.trans (supr_le (λ i, le_Sup_of_le ⟨{i}, rfl⟩ (le_supr_of_le i (le_supr_of_le
       (finset.mem_singleton_self i) le_rfl)))) },
-  obtain ⟨-, ⟨s, rfl⟩, hs⟩ :=
-    (complete_lattice.is_compact_element_iff_le_of_directed_Sup_le α k).mp hk
+  obtain ⟨-, ⟨s, rfl⟩, hs⟩ := (is_compact_element_iff_le_of_directed_Sup_le α k).mp hk
     (set.range g) (set.range_nonempty g) h1 h2,
   exact ⟨s, hs⟩,
 end

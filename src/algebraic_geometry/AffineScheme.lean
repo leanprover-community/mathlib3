@@ -184,8 +184,8 @@ begin
   exact set.image_univ
 end
 
-instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
-⟨(top_is_affine_open X).is_compact⟩
+-- instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
+-- ⟨(top_is_affine_open X).is_compact⟩
 
 lemma is_affine_open.from_Spec_base_preimage
   {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :

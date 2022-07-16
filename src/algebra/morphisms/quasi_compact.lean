@@ -14,8 +14,6 @@ quasi-compact.
 It suffices to check that preimages of affine open sets are compact
 (`quasi_compact_iff_forall_affine`).
 
-We show that this property is local, and is stable under compositions and base-changes.
-
 -/
 
 noncomputable theory

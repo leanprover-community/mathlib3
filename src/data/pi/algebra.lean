@@ -88,7 +88,8 @@ instance has_mul [∀ i, has_mul $ f i] :
 instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
 { pow := λ x b i, (x i) ^ b }
 
-@[simp, to_additive] lemma pow_apply {β : Type*} [Π i, has_pow (f i) β] (x : Π i, f i) (b : β) (i : I) :
+@[simp, to_additive] lemma pow_apply {β : Type*} [Π i, has_pow (f i) β]
+  (x : Π i, f i) (b : β) (i : I) :
   (x ^ b) i = (x i) ^ b := rfl
 
 section

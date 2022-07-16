@@ -8,41 +8,11 @@ import algebra.monoid_algebra.basic
 /-!
 # Lemmas about the `sup` and `inf` of the support of `add_monoid_algebra`
 
-Let `R` be a semiring and let `A` be a `semilattice_sup`.
-
-For an element `f : add_monoid_algebra R A`, this file defines
-* `add_monoid_algebra.max_degree`: the max-degree taking values in `with_bot A`,
-* `add_monoid_algebra.min_degree`: the min-degree taking values in `with_top A`.
-If the grading type `A` is a linearly ordered additive monoid, then these two notions of degree
-coincide with the standard one:
-* the max-degree is the maximum of the exponents of the monomials that appear with non-zero
-  coefficient in `f`, or `⊥`, if `f = 0`;
-* the min-degree is the minimum of the exponents of the monomials that appear with non-zero
-  coefficient in `f`, or `⊤`, if `f = 0`.
-
-The main results are
-* `add_monoid_algebra.max_degree_mul_le`:
-  the max-degree of a product is at most the sum of the max-degrees,
-* `add_monoid_algebra.le_min_degree_mul`:
-  the min-degree of a product is at least the sum of the min-degrees,
-* `add_monoid_algebra.max_degree_add_le`:
-  the max-degree of a sum is at most the sup of the max-degrees,
-* `add_monoid_algebra.le_min_degree_add`:
-  the min-degree of a sum is at least the inf of the min-degrees.
-
-## Implementation notes
-
+## TODO
 The current plan is to state and prove lemmas about `finset.sup (finsupp.support f) D` with a
 "generic" degree/weight function `D` from the grading Type `A` to a somewhat ordered Type `B`.
 
-Next, the general lemmas get specialized twice:
-* once for `max_degree` (essentially a simple application) and
-* once for `min_degree` (a simple application, via `order_dual`).
-These final lemmas are the ones that likely get used the most.  The generic lemmas about
-`finset.support.sup` may not be used directly much outside of this file.
-
-To see this in action, you can look at the triple
-`(sup_support_mul_le, max_degree_mul_le, le_min_degree_mul)`.
+Next, the general lemmas get specialized for some yet-to-be-defined `degree`s.
 -/
 
 variables {R A T B ι : Type*}

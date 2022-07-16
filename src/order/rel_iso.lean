@@ -337,6 +337,10 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
+/-- A relation embedding from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
+⟨embedding.of_is_empty, is_empty_elim⟩
+
 end rel_embedding
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/

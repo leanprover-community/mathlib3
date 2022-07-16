@@ -48,10 +48,9 @@ lemma sup_support_mul_le {DB : A → B} (DBm : ∀ {a b}, DB (a + b) ≤ DB a + 
   (f g : add_monoid_algebra R A) :
   (f * g).support.sup DB ≤ f.support.sup DB + g.support.sup DB :=
 begin
-  refine (finset.sup_le (λ d ds, _)),
-  obtain ⟨a, af, b, bg, rfl⟩ : ∃ a, a ∈ f.support ∧ ∃ b, b ∈ g.support ∧ d = a + b,
-  { simpa only [finset.mem_bUnion, finset.mem_singleton, exists_prop] using f.support_mul g ds },
-  refine DBm.trans (add_le_add _ _);
+  refine (finset.sup_mono $ support_mul _ _).trans _,
+  simp_rw [finset.sup_bUnion, finset.sup_singleton],
+  refine (finset.sup_le $ λ fd fds, finset.sup_le $ λ gd gds, DBm.trans $ add_le_add _ _);
   exact finset.le_sup ‹_›,
 end
 

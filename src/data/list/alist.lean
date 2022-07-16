@@ -57,7 +57,7 @@ namespace alist
 lemma ext_iff {s t : alist β} : s = t ↔ s.entries = t.entries :=
 ⟨congr_arg _, ext⟩
 
-@[simp] lemma eta {s : alist β} (h : s.entries.nodupkeys := s.2) : (⟨s.1, h⟩ : alist β) = s :=
+@[simp] lemma eta (s : alist β) (h : s.entries.nodupkeys := s.2) : (⟨s.1, h⟩ : alist β) = s :=
 by { cases s, refl }
 
 instance [decidable_eq α] [∀ a, decidable_eq (β a)] : decidable_eq (alist β) :=

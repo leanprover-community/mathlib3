@@ -167,6 +167,8 @@ lemma lor_assoc (n m k : ℕ) : lor (lor n m) k = lor n (lor m k) := by bitwise_
 @[simp] lemma lxor_self (n : ℕ) : lxor n n = 0 :=
 zero_of_test_bit_eq_ff $ λ i, by simp
 
+-- These lemmas match `mul_inv_cancel_right` and `mul_inv_cancel_left`.
+
 lemma lxor_cancel_right (n m : ℕ) : lxor (lxor m n) n = m :=
 by rw [lxor_assoc, lxor_self, lxor_zero]
 
@@ -176,7 +178,7 @@ by rw [←lxor_assoc, lxor_self, zero_lxor]
 lemma lxor_right_injective {n : ℕ} : function.injective (lxor n) :=
 λ m m' h, by rw [←lxor_cancel_left n m, ←lxor_cancel_left n m', h]
 
-lemma lxor_left_injective {n : ℕ} : function.injective (function.swap lxor n) :=
+lemma lxor_left_injective {n : ℕ} : function.injective (λ m, lxor m n) :=
 λ m m' (h : lxor m n = lxor m' n), by rw [←lxor_cancel_right n m, ←lxor_cancel_right n m', h]
 
 @[simp] lemma lxor_right_inj {n m m' : ℕ} : lxor n m = lxor n m' ↔ m = m' :=

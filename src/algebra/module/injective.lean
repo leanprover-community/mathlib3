@@ -408,7 +408,6 @@ protected theorem injective (h : module.Baer R Q) :
   module.injective R Q :=
 { out := λ X Y ins1 ins2 ins3 ins4 i hi f, begin
   haveI : fact (function.injective i) := ⟨hi⟩,
-  resetI,
   have eq1 := extension_of_max_to_submodule_eq_top i f h,
   set f'' : (⊤ : submodule R Y) →ₗ[R] Q :=
   { to_fun := λ y, (extension_of_max i f).to_fun ⟨y.1, eq1.symm ▸ y.2⟩,

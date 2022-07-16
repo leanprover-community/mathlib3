@@ -242,7 +242,8 @@ begin
   sorry,
 end
 
-example (α β : Type u) [inhabited α] (f : α → β) : (∃ b, f = (function.const α b)) ↔ (∀ x y : α, f x = f y) :=
+example (α β : Type u) [inhabited α] (f : α → β) : (∃ b, f = (function.const α b)) ↔
+  (∀ x y : α, f x = f y) :=
 begin
   split,
   { rintro ⟨b, hb⟩,
@@ -260,10 +261,27 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
   cont' := --sorry,
   begin
     apply continuous_to_Ω_iff_uncurry.mpr,
+    apply continuous.piecewise,
+    {sorry},
+    { apply continuous.path_extend,
+      continuity,
+      sorry,
+      -- simp only,
 
+    },
+    {sorry},
+ sorry;
+ {
   --   apply (continuous_to_loop_space_iff_curry x).mpr,
   apply continuous_of_restricts_union (univ_eq_union_halves _),
-  dsimp [set.restrict],
+  { dsimp [set.restrict],
+    dsimp [path.trans],
+    -- dsimp [I₀],
+    -- have lemma_dopo : ∀ x : (set.univ: (set I₀)), (x.1 : ℝ) ≤ 1/2, sorry,
+    -- have lemma_dopo : ∀ x : I₀, ((x : I) : ℝ) ≤ 1/2, sorry,
+    have := @continuous.if_const,-- ((set.univ: (set I)) ×ˢ I₀) _ _ ,
+    -- simp_rw lemma_dopo,
+    },
   sorry,
   -- simp only,
   --   { let φ := (λ p : (Ω x × Ω x) × I₀, p.fst.snd p.snd),
@@ -299,6 +317,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
     -- },
   -- sorry,
     -- },
+ },
   end,
   Hmul_e_e := sorry,
   left_Hmul_e := sorry,

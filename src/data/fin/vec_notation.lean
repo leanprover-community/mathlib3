@@ -154,6 +154,11 @@ meta instance _root_.pi_fin.reflect [reflected_univ.{u}] [reflected _ α] [has_r
 | (n + 1) v := (cons_head_tail v).rec $
     (by reflect_name : reflected _ @vec_cons.{u}).subst₄ `(α) `(n) `(_) (_root_.pi_fin.reflect _)
 
+/-- Convert a vector of pexprs to the pexpr constructing that vector.-/
+meta def _root_.pi_fin.to_pexpr : Π {n}, (fin n → pexpr) → pexpr
+| 0 v := ``(![])
+| (n + 1) v := ``(vec_cons %%(v 0) %%(_root_.pi_fin.to_pexpr $ vec_tail v))
+
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
 numeral-indexed element of a vector given with matrix notation to
@@ -282,7 +287,7 @@ end val
 
 section smul
 
-variables {M : Type*} [has_scalar M α]
+variables {M : Type*} [has_smul M α]
 
 @[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
 

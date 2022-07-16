@@ -400,13 +400,13 @@ calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
      ... = μ t             : by rw [ae_le_set.1 H, add_zero]
 
-alias measure_mono_ae ← filter.eventually_le.measure_le
+alias measure_mono_ae ← _root_.filter.eventually_le.measure_le
 
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
 lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
 
-alias measure_congr ← filter.eventually_eq.measure_eq
+alias measure_congr ← _root_.filter.eventually_eq.measure_eq
 
 lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
 nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le

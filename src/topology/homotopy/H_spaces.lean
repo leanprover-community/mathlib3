@@ -146,9 +146,9 @@ example (x : X) : has_coe_to_fun Ω(x) (λ _, I → X) := infer_instance
 variable {x : X}
 
 @[simp]
-lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y]
-[locally_compact_space Y] {g : Y → Ω(x) } : continuous g ↔ continuous (↑g : Y → C(I,X)) :=
-⟨λ h, continuous.comp (continuous_coe x) h, λ h, continuous_induced_rng h⟩
+lemma continuous_to_Ω_iff_to_C {Y : Type u} [topological_space Y] {g : Y → Ω(x) } :
+ continuous g ↔ continuous (↑g : Y → C(I,X)) :=
+ ⟨λ h, continuous.comp (continuous_coe x) h, λ h, continuous_induced_rng h⟩
 --begin
   --  split;
 --   intro h,
@@ -255,22 +255,59 @@ begin
     rw h }
 end
 
+
+-- #help options
+
+-- set_option trace.simp_lemmas true
+
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
   cont' := --sorry,
   begin
-    apply continuous_to_Ω_iff_uncurry.mpr,
-    apply continuous.piecewise,
-    {sorry},
-    { apply continuous.path_extend,
-      continuity,
-      sorry,
+    sorry;
+    -- apply continuous_to_Ω_iff_uncu/rry.mpr,
+    -- dsimp [path.trans],
+    -- apply continuous_to_Ω_iff_to_C.mpr,
+    -- have h₁ : continuous (λ p : Ω(x) × Ω(x),
+    -- have h₂ : continuous (coe : I → ℝ), sorry,
+    -- refine continuous.comp _ h,
+    -- simp only [one_div],
+    -- unfold_coes,
+    -- simp only,
+    -- convert continuous.comp _ _,
+
+    -- continuity,
+    -- apply conti/inuous_of_const _,
+    -- rintros ⟨γ₁, γ₂, h⟩ k,--, h₃, h₄, h₅, h₆⟩,
+    -- funext,
+    -- apply continuous.piecewise,
+    -- {sorry},
+    -- { apply continuous.path_extend,
+    --  {
+    --   apply continuous_to_Ω_iff_uncurry.mp,
+    --     exact continuous_fst.comp continuous_fst,
+    --     refine locally_compact_space.prod _ _,
+
+    --  },
+    -- refine continuous_uncurry_left (λ (i : (path x x × path x x) × ↥I), i.fst.fst) _,
+      -- continuity,
+      -- apply continuous.path_extend,
+    --  simp only,
+      -- have : continuous (λ (t : (path x x × path x x) × ↥I), t.fst.fst),
+      -- refine continuous_fst.comp continuous_fst,
+      -- refine _,
+      -- apply continuous_uncurry_extend_of_continuous_family,
+      -- have := continuous_of_continuous_uncurry,
+    --  apply continuous.path_extend,
+    --  convert this,
+    --   refine _,
+    --   sorry,
       -- simp only,
 
-    },
-    {sorry},
- sorry;
+    -- },
+    -- {sorry},
+--  sorry;
  {
   --   apply (continuous_to_loop_space_iff_curry x).mpr,
   apply continuous_of_restricts_union (univ_eq_union_halves _),

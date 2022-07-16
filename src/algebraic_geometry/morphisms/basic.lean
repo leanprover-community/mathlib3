@@ -55,20 +55,21 @@ lemma affine_target_morphism_property.to_property_apply (P : affine_target_morph
   {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] :
   P.to_property f ↔ P f := by { delta affine_target_morphism_property.to_property, simp [*] }
 
+namespace morphism_property
+
 /-- A morphism property `respects_iso` if it still holds when composed with an isomorphism -/
-def respects_iso (P : morphism_property) :=
+def respects_iso (P : morphism_property) : Prop :=
   (∀ {X Y Z} (e : X ≅ Y) (f : Y ⟶ Z), P f → P (e.hom ≫ f)) ∧
   (∀ {X Y Z} (e : Y ≅ Z) (f : X ⟶ Y), P f → P (f ≫ e.hom))
 
 /-- A morphism property is `stable_under_composition` if the composition of two such morphisms
 still falls in the class. -/
-def stable_under_composition (P : morphism_property) :=
+def stable_under_composition (P : morphism_property) : Prop :=
   ∀ ⦃X Y Z⦄ (f : X ⟶ Y) (g : Y ⟶ Z), P f → P g → P (f ≫ g)
 
 /-- A morphism property is `stable_under_composition` if the base change of such a morphism
 still falls in the class. -/
-def stable_under_base_change
-  (P : morphism_property) : Prop :=
+def stable_under_base_change (P : morphism_property) : Prop :=
 ∀ ⦃X Y S : Scheme⦄ (f : X ⟶ S) (g : Y ⟶ S), P g → P (pullback.fst : pullback f g ⟶ X)
 
 lemma stable_under_composition.respects_iso {P : morphism_property}
@@ -148,5 +149,7 @@ begin
   exacts [hP.base_change_map hP' _ (over.hom_mk _ e₂.symm : over.mk g ⟶ over.mk g') h₂,
     hP.base_change_map hP' _ (over.hom_mk _ e₁.symm : over.mk f ⟶ over.mk f') h₁],
 end
+
+end morphism_property
 
 end algebraic_geometry

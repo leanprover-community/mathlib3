@@ -94,9 +94,10 @@ variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [fintype (G ⧸ H)] :
+lemma index (H : subgroup G) [finite (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=
 begin
+  casesI nonempty_fintype (G ⧸ H),
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),
@@ -114,11 +115,12 @@ begin
   exact hG.index (stabilizer G a),
 end
 
-variables (α) [fintype α] [fintype (fixed_points G α)]
+variables (α) [fintype α]
 
 /-- If `G` is a `p`-group acting on a finite set `α`, then the number of fixed points
   of the action is congruent mod `p` to the cardinality of `α` -/
-lemma card_modeq_card_fixed_points : card α ≡ card (fixed_points G α) [MOD p] :=
+lemma card_modeq_card_fixed_points [fintype (fixed_points G α)] :
+  card α ≡ card (fixed_points G α) [MOD p] :=
 begin
   classical,
   calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
@@ -143,10 +145,12 @@ end
 
 /-- If a p-group acts on `α` and the cardinality of `α` is not a multiple
   of `p` then the action has a fixed point. -/
-lemma nonempty_fixed_point_of_prime_not_dvd_card (hpα : ¬ p ∣ card α) :
+lemma nonempty_fixed_point_of_prime_not_dvd_card (hpα : ¬ p ∣ card α)
+  [finite (fixed_points G α)] :
   (fixed_points G α).nonempty :=
 @set.nonempty_of_nonempty_subtype _ _ begin
-rw [←card_pos_iff, pos_iff_ne_zero],
+  casesI nonempty_fintype (fixed_points G α),
+  rw [←card_pos_iff, pos_iff_ne_zero],
   contrapose! hpα,
   rw [←nat.modeq_zero_iff_dvd, ←hpα],
   exact hG.card_modeq_card_fixed_points α,
@@ -157,36 +161,44 @@ end
 lemma exists_fixed_point_of_prime_dvd_card_of_fixed_point
   (hpα : p ∣ card α) {a : α} (ha : a ∈ fixed_points G α) :
   ∃ b, b ∈ fixed_points G α ∧ a ≠ b :=
-have hpf : p ∣ card (fixed_points G α) :=
-  nat.modeq_zero_iff_dvd.mp ((hG.card_modeq_card_fixed_points α).symm.trans hpα.modeq_zero_nat),
-have hα : 1 < card (fixed_points G α) :=
-  (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
-let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
-⟨b, hb, λ hab, hba (by simp_rw [hab])⟩
+begin
+  casesI nonempty_fintype (fixed_points G α),
+  have hpf : p ∣ card (fixed_points G α) :=
+    nat.modeq_zero_iff_dvd.mp ((hG.card_modeq_card_fixed_points α).symm.trans hpα.modeq_zero_nat),
+  have hα : 1 < card (fixed_points G α) :=
+    (fact.out p.prime).one_lt.trans_le (nat.le_of_dvd (card_pos_iff.2 ⟨⟨a, ha⟩⟩) hpf),
+  exact let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
+  ⟨b, hb, λ hab, hba (by simp_rw [hab])⟩
+end
 
 section p2comm
 
-variables [fintype G] [decidable_eq G] {n : ℕ} (hGpn : card G = p ^ n)
+variables [fintype G] {n : ℕ} (hGpn : card G = p ^ n)
 omit hG
+include hGpn
 open subgroup
 
-instance decidable_pred_fixed_points : decidable_pred (fixed_points (conj_act G) G) :=
+/-instance decidable_pred_fixed_points : decidable_pred (fixed_points (conj_act G) G) :=
 λ x, fintype.decidable_forall_fintype
 
 instance decidable_pred_center : decidable_pred (λ x, x ∈ center G) :=
-λ x, fintype.decidable_forall_fintype
+λ x, fintype.decidable_forall_fintype-/
 
 /-- `p`-groups have non-trivial `center` -/
 lemma exists_ne_one_mem_center (hn : 0 < n) : ∃ g ≠ (1 : G), g ∈ center G :=
-have ∃ g : G, g ∈ fixed_points (conj_act G) G ∧ 1 ≠ g :=
-  exists_fixed_point_of_prime_dvd_card_of_fixed_point (of_card hGpn) G
-    (hGpn.symm ▸ (dvd_pow (dvd_refl p) (pos_iff_ne_zero.1 hn)))
-    (show (1 : G) ∈ fixed_points (conj_act G) G,
-      by simp [conj_act.fixed_points_eq_center, subgroup.one_mem]),
-by simpa [conj_act.fixed_points_eq_center, eq_comm, and.comm]
+begin
+  classical,
+  have : ∃ g : G, g ∈ fixed_points (conj_act G) G ∧ 1 ≠ g :=
+    exists_fixed_point_of_prime_dvd_card_of_fixed_point (of_card hGpn) G
+      (hGpn.symm ▸ (dvd_pow (dvd_refl p) (pos_iff_ne_zero.1 hn)))
+      (show (1 : G) ∈ fixed_points (conj_act G) G,
+        by simp [conj_act.fixed_points_eq_center, subgroup.one_mem]),
+  by simpa [conj_act.fixed_points_eq_center, eq_comm, and.comm]
+end
 
 /-- The cardinality of the `center` of a `p`-group is `p ^ k` where `k` is positive. -/
-lemma card_center_eq_prime_pow (hn : 0 < n) : ∃ k > 0, card (center G) = p ^ k :=
+lemma card_center_eq_prime_pow (hn : 0 < n) [fintype (center G)] :
+  ∃ k > 0, card (center G) = p ^ k :=
 have card (center G) ∣ p ^ n,
   from hGpn ▸ card_subgroup_dvd_card (center G),
 begin
@@ -198,10 +210,13 @@ begin
   exact hg1' (fintype.card_le_one_iff.1 (le_of_eq hk) _ _)
 end
 
+omit hGpn
+
 /-- The quotient by the center of a group of cardinality `p ^ 2` is cyclic. -/
-def cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
+lemma cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
   is_cyclic (G ⧸ (center G)) :=
 begin
+  classical,
   rcases card_center_eq_prime_pow hG zero_lt_two with ⟨k, hk0, hk⟩,
   have hk2 : k ≤ 2, from (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1
     (hG ▸ hk ▸ card_subgroup_dvd_card (center G)),
@@ -219,9 +234,12 @@ end
 /-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sqr` for the
 `comm_group` instance. -/
 lemma commutative_of_card_eq_prime_sqr (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
-by haveI : is_cyclic (G ⧸ (center G)) :=
-  cyclic_center_quotient_of_card_eq_prime_sqr hG;
-exact commutative_of_cyclic_center_quotient (quotient_group.mk' (center G)) (by simp)
+begin
+  classical,
+  by haveI : is_cyclic (G ⧸ (center G)) :=
+    cyclic_center_quotient_of_card_eq_prime_sqr hG;
+  exact commutative_of_cyclic_center_quotient (quotient_group.mk' (center G)) (by simp)
+end
 
 /-- A group of order `p ^ 2` is commutative. See also `commutative_of_card_eq_prime_sqr`
 for just the proof that `∀ a b, a * b = b * a` -/
@@ -231,9 +249,10 @@ def comm_group_of_card_eq_prime_sqr (hG : card G = p ^ 2) : comm_group G :=
 
 end p2comm
 
-lemma center_nontrivial [nontrivial G] [fintype G] : nontrivial (subgroup.center G) :=
+lemma center_nontrivial [nontrivial G] [finite G] : nontrivial (subgroup.center G) :=
 begin
   classical,
+  casesI nonempty_fintype G,
   have := (hG.of_equiv conj_act.to_conj_act).exists_fixed_point_of_prime_dvd_card_of_fixed_point G,
   rw conj_act.fixed_points_eq_center at this,
   obtain ⟨g, hg⟩ := this _ (subgroup.center G).one_mem,
@@ -245,9 +264,10 @@ begin
     exact (fintype.one_lt_card).ne' hn },
 end
 
-lemma bot_lt_center [nontrivial G] [fintype G] : ⊥ < subgroup.center G :=
+lemma bot_lt_center [nontrivial G] [finite G] : ⊥ < subgroup.center G :=
 begin
   haveI := center_nontrivial hG,
+  casesI nonempty_fintype G,
   classical,
   exact bot_lt_iff_ne_bot.mpr ((subgroup.center G).one_lt_card_iff_ne_bot.mp fintype.one_lt_card),
 end

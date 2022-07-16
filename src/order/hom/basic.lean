@@ -638,8 +638,24 @@ protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embed
 e.to_order_embedding.lt_iff_lt
 
 /-- Converts an `order_iso` into a `rel_iso (<) (<)`. -/
-def to_rel_iso_lt (e : α ≃o β): ((<) : α → α → Prop) ≃r ((<) : β → β → Prop) :=
-⟨e.to_equiv, λ _ _, lt_iff_lt e⟩
+def to_rel_iso_lt (e : α ≃o β) : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop) :=
+⟨e.to_equiv, λ x y, lt_iff_lt e⟩
+
+@[simp] lemma to_rel_iso_lt_apply (e : α ≃o β) (x : α) : e.to_rel_iso_lt x = e x := rfl
+
+@[simp] lemma to_rel_iso_lt_symm (e : α ≃o β) : e.to_rel_iso_lt.symm = e.symm.to_rel_iso_lt := rfl
+
+/-- Converts a `rel_iso (<) (<)` into an `order_iso`. -/
+def of_rel_iso_lt {α β} [linear_order α] [linear_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : α ≃o β :=
+⟨e.to_equiv, λ x y, by simp [←not_lt, e.map_rel_iff]⟩
+
+@[simp] lemma of_rel_iso_lt_apply {α β} [linear_order α] [linear_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) (x : α) : of_rel_iso_lt e x = e x := rfl
+
+@[simp] lemma of_rel_iso_lt_symm {α β} [linear_order α] [linear_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) :
+  (of_rel_iso_lt e).symm = of_rel_iso_lt e.symm := rfl
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/

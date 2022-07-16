@@ -353,6 +353,8 @@ instance Prop.le_is_total : is_total Prop (≤) :=
 noncomputable instance Prop.linear_order : linear_order Prop :=
 by classical; exact lattice.to_linear_order Prop
 
+lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
+
 @[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl

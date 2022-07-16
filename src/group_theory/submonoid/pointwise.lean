@@ -323,10 +323,10 @@ section add_monoid_with_one
 variables [add_monoid_with_one R]
 
 instance : has_one (add_submonoid R) :=
-⟨(nat.cast_add_monoid_hom _).mrange⟩
+⟨(nat.cast_add_monoid_hom R).mrange⟩
 
 theorem one_eq_mrange :
-  (1 : add_submonoid R) = (nat.cast_add_monoid_hom _).mrange := rfl
+  (1 : add_submonoid R) = (nat.cast_add_monoid_hom R).mrange := rfl
 
 lemma nat_cast_mem_one (n : ℕ) : (n : R) ∈ (1 : add_submonoid R) := ⟨_, rfl⟩
 
@@ -366,7 +366,6 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
 
 open_locale pointwise
 
-variables R
 -- this proof is copied directly from `submodule.span_mul_span`
 theorem closure_mul_closure (S T : set R) : closure S * closure T = closure (S * T) :=
 begin
@@ -382,7 +381,9 @@ begin
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
 end
-variables {R}
+
+lemma mul_eq_closure_mul_set (M N : add_submonoid R) : M * N = closure (M * N) :=
+by rw [←closure_mul_closure, closure_eq, closure_eq]
 
 @[simp] theorem mul_bot (S : add_submonoid R) : S * ⊥ = ⊥ :=
 eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [add_submonoid.mem_bot] at hn ⊢; rw [hn, mul_zero]
@@ -405,6 +406,36 @@ by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
 end non_unital_non_assoc_semiring
 
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring R]
+
+/-- `add_submonoid.has_pointwise_neg` distributes over multiplication.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def has_distrib_neg : has_distrib_neg (add_submonoid R) :=
+{ neg := has_neg.neg,
+  neg_mul := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [add_submonoid.mem_neg, ←neg_mul] at *,
+    { exact mul_mem_mul hm hn },
+    { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
+  end,
+  mul_neg := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((add_submonoid.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [add_submonoid.mem_neg, ←mul_neg] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
+  end,
+  ..add_submonoid.has_involutive_neg }
+
+localized "attribute [instance] add_submonoid.has_distrib_neg" in pointwise
+
+end non_unital_non_assoc_ring
+
 section non_assoc_semiring
 variables [non_assoc_semiring R]
 
@@ -422,7 +453,6 @@ variables [non_unital_semiring R]
 instance : semigroup (add_submonoid R) :=
 { mul := (*),
   mul_assoc := λ M N P,
-    -- copied from `submodule.mul_assoc`
     le_antisymm (mul_le.2 $ λ mn hmn p hp,
       suffices M * N ≤ (M * (N * P)).comap (add_monoid_hom.mul_right p), from this hmn,
       mul_le.2 $ λ m hm n hn, show m * n * p ∈ M * (N * P), from
@@ -442,6 +472,16 @@ instance : monoid (add_submonoid R) :=
   mul := (*),
   ..add_submonoid.semigroup,
   ..add_submonoid.mul_one_class }
+
+lemma closure_pow (s : set R) : ∀ n : ℕ, closure s ^ n = closure (s ^ n)
+| 0 := by rw [pow_zero, pow_zero, one_eq_closure_one_set]
+| (n + 1) := by rw [pow_succ, pow_succ, closure_pow, closure_mul_closure]
+
+lemma pow_eq_closure_pow_set (s : add_submonoid R) (n : ℕ) : s ^ n = closure ((s : set R) ^ n) :=
+by rw [←closure_pow, closure_eq]
+
+lemma pow_subset_pow {s : add_submonoid R} {n : ℕ} : (↑s : set R)^n ⊆ ↑(s^n) :=
+(pow_eq_closure_pow_set s n).symm ▸ subset_closure
 
 end semiring
 

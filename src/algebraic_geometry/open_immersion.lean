@@ -1537,8 +1537,7 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
 
 lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
   {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
-  H.base_open.is_open_map.functor.obj (X.basic_open r)
-    = Y.basic_open (H.inv_app U r) :=
+  H.base_open.is_open_map.functor.obj (X.basic_open r) = Y.basic_open (H.inv_app U r) :=
 begin
   have e := Scheme.preimage_basic_open f (H.inv_app U r),
   rw [PresheafedSpace.is_open_immersion.inv_app_app_apply, Scheme.basic_open_res,

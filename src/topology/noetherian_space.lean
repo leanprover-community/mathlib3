@@ -166,7 +166,7 @@ begin
 end
 
 @[priority 100]
-instance noetherian_space.of_fintype [finite α] : noetherian_space α :=
+instance finite.to_noetherian_space [finite α] : noetherian_space α :=
 begin
   casesI nonempty_fintype α,
   classical,

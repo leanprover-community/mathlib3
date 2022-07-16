@@ -333,17 +333,31 @@ end
 -- vvv Versions to translate into `factorization` vvv
 
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
-lemma factorization_le_factorization_choose_add {p : ℕ} (hp : p.prime) : ∀ (n k : ℕ),
-  n.factorization p ≤ (choose n k).factorization p + k.factorization p := sorry
--- | _     0     := by simp
--- | 0     (_+1) := by simp
--- | (n+1) (k+1) :=
--- begin
---   rw ← hp.multiplicity_mul,
---   refine multiplicity_le_multiplicity_of_dvd_right _,
---   rw [← succ_mul_choose_eq],
---   exact dvd_mul_right _ _
--- end
+lemma multiplicity_le_multiplicity_choose_add {p : ℕ} (hp : p.prime) : ∀ (n k : ℕ),
+  multiplicity p n ≤ multiplicity p (choose n k) + multiplicity p k
+| _     0     := by simp
+| 0     (_+1) := by simp
+| (n+1) (k+1) :=
+begin
+  rw ← hp.multiplicity_mul,
+  refine multiplicity_le_multiplicity_of_dvd_right _,
+  rw [← succ_mul_choose_eq],
+  exact dvd_mul_right _ _
+end
+
+/-- A lower bound on the multiplicity of `p` in `choose n k`.
+Note that this needs more assumptions on `n` and `k` than the corresponding lemma
+`multiplicity_le_multiplicity_choose_add`. -/
+lemma factorization_le_factorization_choose_add {p n k : ℕ} (hp : p.prime) (hk0 : k ≠ 0)
+  (hnk: k ≤ n) : n.factorization p ≤ (choose n k).factorization p + k.factorization p :=
+begin
+  have h1 := multiplicity_le_multiplicity_choose_add hp n k ,
+  rcases eq_or_ne n 0 with rfl | hn0, { simp },
+  rw [multiplicity_eq_factorization hp hn0, multiplicity_eq_factorization hp hk0,
+      multiplicity_eq_factorization hp (choose_pos hnk).ne'] at h1,
+  norm_cast at h1,
+  exact h1,
+end
 
 lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime)
   (hkn : k ≤ p ^ n) (hk0 : 0 < k) :

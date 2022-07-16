@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
+import data.countable.basic
 import data.nat.part_enat
-import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
@@ -928,7 +928,7 @@ theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
 
 theorem lt_aleph_0_iff_finite {α : Type u} : #α < ℵ₀ ↔ finite α :=
-by simp only [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
+by simp_rw [lt_aleph_0, mk_eq_nat_iff, finite_iff_exists_equiv_fin]
 
 theorem lt_aleph_0_iff_fintype {α : Type u} : #α < ℵ₀ ↔ nonempty (fintype α) :=
 lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
@@ -936,10 +936,27 @@ lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
 lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+@[simp] theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
+
+@[simp] lemma mk_subtype_lt_aleph_0 (p : α → Prop) : #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
+lt_aleph_0_iff_set_finite
+
+theorem le_aleph_0_iff_countable {α : Type u} : #α ≤ ℵ₀ ↔ countable α :=
+by rw [aleph_0, ←lift_uzero (#α), lift_mk_le', countable_iff_nonempty_embedding]
+
+theorem le_aleph_0_of_countable (α : Type u) [countable α] : #α ≤ ℵ₀ :=
+le_aleph_0_iff_countable.2 ‹_›
+
+@[simp] theorem le_aleph_0_iff_set_countable {α} {S : set α} : #S ≤ ℵ₀ ↔ S.countable :=
+le_aleph_0_iff_countable.trans countable_coe_iff
+
+alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
+
+@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
+le_aleph_0_iff_set_countable
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
@@ -1035,16 +1052,6 @@ lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀
 
 @[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ :=
 denumerable_iff.1 ⟨‹_›⟩
-
-@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
-begin
-  rw [countable_iff_exists_injective], split,
-  { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
-  { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
-end
-
-@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
-mk_set_le_aleph_0 _
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _
 

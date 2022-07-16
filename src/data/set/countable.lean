@@ -32,6 +32,9 @@ lemma countable_iff_exists_injective {s : set α} :
 ⟨λ ⟨h⟩, by exactI ⟨encode, encode_injective⟩,
  λ ⟨f, h⟩, ⟨⟨f, partial_inv f, partial_inv_left h⟩⟩⟩
 
+protected lemma countable_iff_nonempty_embedding {s : set α} : s.countable ↔ nonempty (s ↪ ℕ) :=
+countable_iff_exists_injective.trans ⟨λ ⟨f, hf⟩, ⟨⟨f, hf⟩⟩, λ ⟨⟨f, hf⟩⟩, ⟨f, hf⟩⟩
+
 /-- A set `s : set α` is countable if and only if there exists a function `α → ℕ` injective
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :

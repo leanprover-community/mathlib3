@@ -113,11 +113,11 @@ lemma direct_sum.coe_decompose_mul_add_of_left_mem {ι σ A}
   {a b : A} {i j : ι} (a_mem : a ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) (i + j) : A) = a * decompose 𝒜 b j :=
 begin
-  obtain rfl | hb := eq_or_ne b 0,
+  obtain rfl | ha := eq_or_ne a 0,
   { simp },
   classical,
   lift a to (𝒜 i) using a_mem,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a (λ r,by subst r; exact hb rfl),
+  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a (λ r,by subst r; exact ha rfl),
     singleton_product, map_filter, sum_map],
   simp_rw [comp, embedding.coe_fn_mk, add_left_cancel_iff, filter_eq'],
   refine dite (decompose 𝒜 b j = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),

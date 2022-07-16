@@ -143,7 +143,7 @@ begin
   refl,
 end
 
-lemma direct_sum.decompose_mul_add_of_left_mem {ι σ A}
+lemma direct_sum.decompose_mul_add_left {ι σ A}
   [decidable_eq ι] [add_left_cancel_monoid ι] [semiring A]
   [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
   {i j : ι} (a : 𝒜 i) {b : A} :

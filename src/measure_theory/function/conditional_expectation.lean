@@ -2384,14 +2384,14 @@ section real
 
 /-- Given a integrable function `g`, the conditional expectations of `g` with respect to
 a sequence of sub-σ-algebras is uniformly integrable. -/
-lemma mem_ℒp.uniform_integrable_condexp {ι : Type*} [is_finite_measure μ]
-  {g : α → ℝ} (hg : mem_ℒp g 1 μ) {ℱ : ι → measurable_space α} (hℱ : ∀ i, ℱ i ≤ m0) :
+lemma integrable.uniform_integrable_condexp {ι : Type*} [is_finite_measure μ]
+  {g : α → ℝ} (hint : integrable g μ) {ℱ : ι → measurable_space α} (hℱ : ∀ i, ℱ i ≤ m0) :
   uniform_integrable (λ i, μ[g | ℱ i]) 1 μ :=
 begin
   have hmeas : ∀ n, ∀ C, measurable_set {x | C ≤ ∥μ[g | ℱ n] x∥₊} :=
     λ n C, measurable_set_le measurable_const
       (strongly_measurable_condexp.mono (hℱ n)).measurable.nnnorm,
-  have hint : integrable g μ := mem_ℒp_one_iff_integrable.1 hg,
+  have hg : mem_ℒp g 1 μ := mem_ℒp_one_iff_integrable.2 hint,
   refine uniform_integrable_of le_rfl ennreal.one_ne_top
     (λ n, strongly_measurable_condexp.mono (hℱ n)) (λ ε hε, _),
   by_cases hne : snorm g 1 μ = 0,

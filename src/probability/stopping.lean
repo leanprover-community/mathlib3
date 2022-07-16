@@ -220,9 +220,9 @@ instance is_finite_measure.sigma_finite_filtration [preorder ι] (μ : measure �
 
 /-- Given a integrable function `g`, the conditional expectations of `g` with respect to a
 filtration is uniformly integrable. -/
-lemma mem_ℒp.uniform_integrable_condexp_filtration
+lemma integrable.uniform_integrable_condexp_filtration
   [preorder ι] {μ : measure α} [is_finite_measure μ] {f : filtration ι m}
-  {g : α → ℝ} (hg : mem_ℒp g 1 μ) :
+  {g : α → ℝ} (hg : integrable g μ) :
   uniform_integrable (λ i, μ[g | f i]) 1 μ :=
 hg.uniform_integrable_condexp f.le
 

@@ -130,8 +130,9 @@ lemma direct_sum.coe_decompose_mul_add_of_right_mem {ι σ A}
   [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
   {a b : A} {i j : ι} (b_mem : b ∈ 𝒜 j) :
   (decompose 𝒜 (a * b) (i + j) : A) = (decompose 𝒜 a i) * b :=
-or.elim (em (b = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ,
 begin
+  obtain rfl | hb := eq_or_ne b 0,
+  { simp },
   classical,
   lift b to (𝒜 j) using b_mem,
   have INEQ' : b ≠ 0 := λ r, by subst r; exact INEQ rfl,

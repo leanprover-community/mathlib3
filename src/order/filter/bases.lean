@@ -287,21 +287,35 @@ protected lemma _root_.filter_basis.has_basis {α : Type*} (B : filter_basis α)
   has_basis (B.filter) (λ s : set α, s ∈ B) id :=
 ⟨λ t, B.mem_filter_iff⟩
 
-lemma has_basis_in_iff_has_basis {P : set α → Prop} :
-  has_basis_in l P ↔ has_basis l (λ s, s ∈ l ∧ P s) id :=
-begin
-  simp only [has_basis_in, has_basis_iff, exists_prop, id, and_assoc],
-  exact forall_congr (λ s, _),
+protected lemma has_basis.has_basis_in' {P : set α → Prop} (h : l.has_basis p s)
+  (hP : ∀ i, p i → ∃ t ∈ l, P t ∧ t ⊆ s i) : l.has_basis_in P :=
+λ t ht, let ⟨i, hpi, hi⟩ := h.mem_iff.1 ht, ⟨t', ht'l, hPt', ht'i⟩ := hP i hpi in
+  ⟨t', ht'l, hPt', ht'i.trans hi⟩
 
-end
-
-lemma has_basis_in_iff_has_basis {p : set α → Prop} :
- 
+protected lemma has_basis.has_basis_in {P : set α → Prop} (h : l.has_basis p s)
+  (hP : ∀ i, p i → P (s i)) : l.has_basis_in P :=
+h.has_basis_in' $ λ i hi, ⟨s i, h.mem_of_mem hi, hP i hi, subset.rfl⟩
 
 protected lemma has_basis_in.has_basis {p : set α → Prop} (h : l.has_basis_in p) :
   has_basis l (λ s : set α, s ∈ l ∧ p s) id :=
 ⟨λ t, ⟨λ ht, (h ht).imp $ λ s hs, ⟨⟨hs.fst, hs.snd.1⟩, hs.snd.2⟩,
-  _⟩⟩
+  λ ⟨s, ⟨hsl, hps⟩, hst⟩, mem_of_superset hsl hst⟩⟩
+
+lemma has_basis_in_iff_has_basis {P : set α → Prop} :
+  has_basis_in l P ↔ has_basis l (λ s, s ∈ l ∧ P s) id :=
+⟨λ h, h.has_basis, λ h, h.has_basis_in $ λ i, and.right⟩
+
+lemma has_basis_in.exists_mem {P : set α → Prop} (h : l.has_basis_in P) :
+  ∃ s ∈ l, P s :=
+let ⟨s, hsl, hPs, hs⟩ := h univ_mem in ⟨s, hsl, hPs⟩
+
+lemma has_basis_in.exists_mem' {P : set α → Prop} (h : l.has_basis_in P) :
+  ∃ s, P s ∧ s ∈ l :=
+let ⟨s, hsl, hs⟩ := h.exists_mem in ⟨s, hs, hsl⟩
+
+lemma has_basis_in.mono {P₁ P₂ : set α → Prop} (hl : l.has_basis_in P₁) (h₂ : ∀ s, P₁ s → P₂ s) :
+  l.has_basis_in P₂ :=
+λ t ht, let ⟨s, hsl, hPs, hst⟩ := hl ht in ⟨s, hsl, h₂ s hPs, hst⟩
 
 lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=
@@ -355,13 +369,6 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 lemma as_basis_filter (f : filter α) : f.as_basis.filter = f :=
 by ext t; exact exists_mem_subset_iff
 
-lemma has_basis_self {l : filter α} {P : set α → Prop} :
-  has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
-begin
-  simp only [has_basis_iff, exists_prop, id, and_assoc],
-  exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_of_superset hl hts⟩⟩)
-end
-
 lemma has_basis.comp_of_surjective (h : l.has_basis p s) {g : ι' → ι} (hg : function.surjective g) :
   l.has_basis (p ∘ g) (s ∘ g) :=
 ⟨λ t, h.mem_iff.trans hg.exists⟩
@@ -388,9 +395,9 @@ lemma has_basis.restrict_subset (h : l.has_basis p s) {V : set α} (hV : V ∈ l
 h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem hV (h.mem_of_mem hi))).imp $
   λ j hj, ⟨hj.fst, subset_inter_iff.1 hj.snd⟩
 
-lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
-  {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
-by simpa only [and_assoc] using h.restrict_subset hV
+lemma has_basis_in.restrict_subset {P : set α → Prop} (h : l.has_basis_in P) {V : set α}
+  (hV : V ∈ l) : l.has_basis_in (λ t, P t ∧ t ⊆ V) :=
+(h.has_basis.restrict_subset hV).has_basis_in $ λ t ht, ⟨ht.1.2, ht.2⟩
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',

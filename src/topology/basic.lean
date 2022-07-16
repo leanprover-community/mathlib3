@@ -326,6 +326,23 @@ lemma interior_sInter_subset (S : set (set α)) : interior (⋂₀ S) ⊆ ⋂ s 
 calc interior (⋂₀ S) = interior (⋂ s ∈ S, s) : by rw sInter_eq_bInter
                  ... ⊆ ⋂ s ∈ S, interior s  : interior_Inter₂_subset _ _
 
+lemma filter.has_basis.lift'_interior {l : filter α} {p : ι → Prop} {s : ι → set α}
+  (hl : l.has_basis p s) : (l.lift' interior).has_basis p (interior ∘ s) :=
+hl.lift' $ λ _ _, interior_mono
+
+lemma filter.lift'_interior_le (l : filter α) : l.lift' interior ≤ l :=
+l.basis_sets.lift'_interior.le_iff.2 $ λ s hs, ⟨s, hs, interior_subset⟩
+
+lemma filter.has_basis_in.lift'_interior_eq_self {l : filter α} (hl : l.has_basis_in is_open) :
+  l.lift' interior = l :=
+l.lift'_interior_le.antisymm $ hl.has_basis.lift'_interior.ge_iff.2 $
+  λ s hs, by simp only [(∘), id, hs.2.interior_eq, hs.1]
+
+lemma filter.lift'_interior_eq_self_iff {l : filter α} :
+  l.lift' interior = l ↔ l.has_basis_in is_open :=
+⟨λ h, h ▸ l.basis_sets.lift'_interior.has_basis_in (λ s hs, is_open_interior),
+  λ h, h.lift'_interior_eq_self⟩
+
 /-!
 ### Closure of a set
 -/
@@ -448,6 +465,23 @@ theorem mem_closure_iff {s : set α} {a : α} :
   closure_minimal this (is_closed_compl_iff.2 oo) h ao,
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
   let ⟨x, hc, hs⟩ := (H _ h₁.is_open_compl nc) in hc (h₂ hs)⟩
+
+lemma filter.has_basis.lift'_closure {l : filter α} {p : ι → Prop} {s : ι → set α}
+  (hl : l.has_basis p s) : (l.lift' closure).has_basis p (closure ∘ s) :=
+hl.lift' $ λ _ _, closure_mono
+
+lemma filter.le_lift'_closure (l : filter α) : l ≤ l.lift' closure :=
+l.basis_sets.lift'_closure.ge_iff.2 $ λ s hs, mem_of_superset hs subset_closure
+
+lemma filter.has_basis_in.lift'_closure_eq_self {l : filter α} (hl : l.has_basis_in is_closed) :
+  l.lift' closure = l :=
+le_antisymm (hl.has_basis.ge_iff.2 $ λ s hs, hs.2.closure_eq ▸ by convert mem_lift' hs.1)
+  l.le_lift'_closure
+
+lemma filter.lift'_closure_eq_self_iff {l : filter α} :
+  l.lift' closure = l ↔ l.has_basis_in is_closed :=
+⟨λ h, h ▸ l.basis_sets.lift'_closure.has_basis_in (λ s hs, is_closed_closure),
+  λ h, h.lift'_closure_eq_self⟩
 
 /-- A set is dense in a topological space if every point belongs to its closure. -/
 def dense (s : set α) : Prop := ∀ x, x ∈ closure s
@@ -658,6 +692,9 @@ end
 lemma nhds_basis_closeds (a : α) : (𝓝 a).has_basis (λ s : set α, a ∉ s ∧ is_closed s) compl :=
 ⟨λ t, (nhds_basis_opens a).mem_iff.trans $ compl_surjective.exists.trans $
   by simp only [is_open_compl_iff, mem_compl_iff]⟩
+
+lemma nhds_has_basis_in_open {x : α} : (𝓝 x).has_basis_in is_open :=
+(nhds_basis_opens x).has_basis_in $ λ s, and.right
 
 /-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=

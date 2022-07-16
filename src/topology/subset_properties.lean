@@ -996,21 +996,21 @@ Hausdorff spaces but not in general. This one is the precise condition on X need
 evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
 compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
-(local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s)
+(local_compact_nhds : ∀ x : α, (𝓝 x).has_basis_in is_compact)
+
+lemma nhds_has_basis_in_compact [locally_compact_space α] {x : α} :
+  (𝓝 x).has_basis_in is_compact :=
+locally_compact_space.local_compact_nhds x
 
 lemma compact_basis_nhds [locally_compact_space α] (x : α) :
   (𝓝 x).has_basis (λ s, s ∈ 𝓝 x ∧ is_compact s) (λ s, s) :=
-has_basis_self.2 $ by simpa only [and_comm] using locally_compact_space.local_compact_nhds x
-
-lemma local_compact_nhds [locally_compact_space α] {x : α} {n : set α} (h : n ∈ 𝓝 x) :
-  ∃ s ∈ 𝓝 x, s ⊆ n ∧ is_compact s :=
-locally_compact_space.local_compact_nhds _ _ h
+nhds_has_basis_in_compact.has_basis
 
 lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x → Prop}
   {s : Π x, ι x → set α} (h : ∀ x, (𝓝 x).has_basis (p x) (s x))
   (hc : ∀ x i, p x i → is_compact (s x i)) :
   locally_compact_space α :=
-⟨λ x t ht, let ⟨i, hp, ht⟩ := (h x).mem_iff.1 ht in ⟨s x i, (h x).mem_of_mem hp, ht, hc x i hp⟩⟩
+⟨λ x, (h x).has_basis_in (hc x)⟩
 
 instance locally_compact_space.prod (α : Type*) (β : Type*) [topological_space α]
   [topological_space β] [locally_compact_space α] [locally_compact_space β] :
@@ -1023,15 +1023,14 @@ locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
   (hU : is_open U) (hx : x ∈ U) : ∃ (K : set α), is_compact K ∧ x ∈ interior K ∧ K ⊆ U :=
 begin
-  rcases locally_compact_space.local_compact_nhds x U (hU.mem_nhds hx) with ⟨K, h1K, h2K, h3K⟩,
-  exact ⟨K, h3K, mem_interior_iff_mem_nhds.2 h1K, h2K⟩,
+  rcases nhds_has_basis_in_compact (hU.mem_nhds hx) with ⟨K, h1K, h2K, h3K⟩,
+  exact ⟨K, h2K, mem_interior_iff_mem_nhds.2 h1K, h3K⟩,
 end
 
 /-- In a locally compact space every point has a compact neighborhood. -/
 lemma exists_compact_mem_nhds [locally_compact_space α] (x : α) :
   ∃ K, is_compact K ∧ K ∈ 𝓝 x :=
-let ⟨K, hKc, hx, H⟩ := exists_compact_subset is_open_univ (mem_univ x)
-in ⟨K, hKc, mem_interior_iff_mem_nhds.1 hx⟩
+nhds_has_basis_in_compact.exists_mem'
 
 /-- In a locally compact space, every compact set is contained in the interior of a compact set. -/
 lemma exists_compact_superset [locally_compact_space α] {K : set α} (hK : is_compact K) :

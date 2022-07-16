@@ -195,12 +195,20 @@ lemma symmetric_rel.mk_mem_comm {V : set (α × α)} (hV : symmetric_rel V) {x y
   (x, y) ∈ V ↔ (y, x) ∈ V :=
 set.ext_iff.1 hV (y, x)
 
-lemma symmetric_rel_inter {U V : set (α × α)} (hU : symmetric_rel U) (hV : symmetric_rel V) :
+lemma symmetric_rel.eq {U : set (α × α)} (hU : symmetric_rel U) : prod.swap ⁻¹' U = U := hU
+
+lemma symmetric_rel.inter {U V : set (α × α)} (hU : symmetric_rel U) (hV : symmetric_rel V) :
   symmetric_rel (U ∩ V) :=
-begin
-  unfold symmetric_rel at *,
-  rw [preimage_inter, hU, hV],
-end
+by rw [symmetric_rel, preimage_inter, hU.eq, hV.eq]
+
+lemma symmetric_rel.closure [topological_space α] {U : set (α × α)} (hU : symmetric_rel U) :
+  symmetric_rel (closure U) :=
+by rw [symmetric_rel, is_open_map_swap.preimage_closure_eq_closure_preimage continuous_swap, hU.eq]
+
+lemma symmetric_rel.interior [topological_space α] {U : set (α × α)} (hU : symmetric_rel U) :
+  symmetric_rel (interior U) :=
+by rw [symmetric_rel, is_open_map_swap.preimage_interior_eq_interior_preimage continuous_swap,
+  hU.eq]
 
 /-- This core description of a uniform space is outside of the type class hierarchy. It is useful
   for constructions of uniform spaces, when the topology is derived from the uniform space. -/
@@ -658,7 +666,7 @@ begin
   rw nhds_prod_eq,
   apply (has_basis_nhds x).prod' (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
-  exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
+  exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, U_symm.inter V_symm⟩,
          ball_inter_left x U V, ball_inter_right y U V⟩,
 end
 
@@ -775,17 +783,25 @@ begin
   exact iff.rfl,
 end
 
-lemma uniformity_has_basis_closed : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_closed V) id :=
+lemma uniformity_has_basis_in_symmetric_closed :
+  (𝓤 α).has_basis_in (λ V, symmetric_rel V ∧ is_closed V) :=
 begin
-  refine filter.has_basis_self.2 (λ t h, _),
-  rcases comp_comp_symm_mem_uniformity_sets h with ⟨w, w_in, w_symm, r⟩,
-  refine ⟨closure w, mem_of_superset w_in subset_closure, is_closed_closure, _⟩,
-  refine subset.trans _ r,
-  rw closure_eq_uniformity,
-  apply Inter_subset_of_subset,
-  apply Inter_subset,
-  exact ⟨w_in, w_symm⟩
+  intros t ht,
+  rcases comp_comp_symm_mem_uniformity_sets ht with ⟨w, w_in, w_symm, r⟩,
+  refine ⟨closure w, mem_of_superset w_in subset_closure, ⟨w_symm.closure, is_closed_closure⟩, _⟩,
+  calc closure w = ⋂ V ∈ {V | V ∈ 𝓤 α ∧ symmetric_rel V}, V ○ w ○ V : closure_eq_uniformity w
+  ... ⊆ w ○ w ○ w : bInter_subset_of_mem ⟨w_in, w_symm⟩
+  ... ⊆ t : r,
 end
+
+lemma uniformity_has_basis_in_symmetric : (𝓤 α).has_basis_in symmetric_rel :=
+uniformity_has_basis_in_symmetric_closed.mono $ λ _, and.left
+
+lemma uniformity_has_basis_in_closed : (𝓤 α).has_basis_in is_closed :=
+uniformity_has_basis_in_symmetric_closed.mono $ λ _, and.right
+
+lemma uniformity_has_basis_closed : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_closed V) id :=
+uniformity_has_basis_in_closed.has_basis
 
 /-- Closed entourages form a basis of the uniformity filter. -/
 lemma uniformity_has_basis_closure : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α) closure :=

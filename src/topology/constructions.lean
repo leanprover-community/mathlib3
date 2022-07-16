@@ -397,6 +397,9 @@ prod_mem_nhds ha hb
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
 
+lemma is_open_map_swap : is_open_map (@prod.swap α β) :=
+is_open_map.of_nhds_le $ λ ⟨a, b⟩, (nhds_swap b a).le
+
 lemma filter.tendsto.prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
   (ha : tendsto ma f (𝓝 a)) (hb : tendsto mb f (𝓝 b)) :
   tendsto (λc, (ma c, mb c)) f (𝓝 (a, b)) :=

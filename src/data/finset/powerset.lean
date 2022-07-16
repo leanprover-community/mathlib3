@@ -33,10 +33,7 @@ by { ext, simp }
 @[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
 mem_powerset.2 (empty_subset _)
 
-@[simp] theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
-mem_powerset.2 (subset.refl _)
-
-@[simp] lemma powerset_empty : finset.powerset (∅ : finset α) = {∅} := rfl
+@[simp] lemma mem_powerset_self (s : finset α) : s ∈ powerset s := mem_powerset.2 subset.rfl
 
 lemma powerset_nonempty (s : finset α) : s.powerset.nonempty := ⟨∅, empty_mem_powerset _⟩
 
@@ -45,9 +42,14 @@ lemma powerset_nonempty (s : finset α) : s.powerset.nonempty := ⟨∅, empty_m
  λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
 
 lemma powerset_injective : injective (powerset : finset α → finset (finset α)) :=
-λ s t h, (powerset_mono.1 h.subset').antisymm $ powerset_mono.1 h.superset
+injective_of_le_imp_le _ $ λ s t, powerset_mono.1
 
 @[simp] lemma powerset_inj : powerset s = powerset t ↔ s = t := powerset_injective.eq_iff
+
+@[simp] lemma powerset_empty : (∅ : finset α).powerset = {∅} := rfl
+
+@[simp] lemma powerset_eq_singleton_empty : s.powerset = {∅} ↔ s = ∅ :=
+by rw [←powerset_empty, powerset_inj]
 
 /-- **Number of Subsets of a Set** -/
 @[simp] theorem card_powerset (s : finset α) :

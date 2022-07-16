@@ -1543,4 +1543,13 @@ def Scheme.open_cover.pullback_cover {X : Scheme} (𝒰 : X.open_cover) {W : Sch
     { rw ← Top.epi_iff_surjective, apply_instance }
   end }
 
+lemma Scheme.open_cover.Union_range {X : Scheme} (𝒰 : X.open_cover) :
+  (⋃ i, set.range (𝒰.map i).1.base) = set.univ :=
+begin
+  rw set.eq_univ_iff_forall,
+  intros x,
+  rw set.mem_Union,
+  exact ⟨𝒰.f x, 𝒰.covers x⟩
+end
+
 end algebraic_geometry

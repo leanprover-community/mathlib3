@@ -94,15 +94,6 @@ begin
   exact hS.compact_bUnion (λ i _, H i i.prop)
 end
 
-lemma Scheme.open_cover.Union_range {X : Scheme} (𝒰 : X.open_cover) :
-  (⋃ i, set.range (𝒰.map i).1.base) = set.univ :=
-begin
-  rw set.eq_univ_iff_forall,
-  intros x,
-  rw set.mem_Union,
-  exact ⟨𝒰.f x, 𝒰.covers x⟩
-end
-
 lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [finite 𝒰.J]
   [H : ∀ i, compact_space (𝒰.obj i).carrier] : compact_space X.carrier :=
 begin

@@ -221,6 +221,6 @@ begin
 end
 
 lemma lt_lxor_cases {a b c : ℕ} (h : a < lxor b c) : lxor a c < b ∨ lxor a b < c :=
-(lxor_trichotomy h.ne).elim (λ h', (h.asymm h').elim) id
+(or_iff_right $ λ h', (h.asymm h').elim).1 $ lxor_trichotomy h.ne
 
 end nat

@@ -77,6 +77,12 @@ nodupkeys_iff_pairwise.1 h
   nodupkeys (s::l) ↔ s.1 ∉ l.keys ∧ nodupkeys l :=
 by simp [keys, nodupkeys]
 
+theorem not_mem_keys_of_nodupkeys_cons {s : sigma β} {l : list (sigma β)} (h : nodupkeys (s :: l)) :
+  s.1 ∉ l.keys := (nodupkeys_cons.1 h).1
+
+theorem nodupkeys_of_nodupkeys_cons {s : sigma β} {l : list (sigma β)} (h : nodupkeys (s :: l)) :
+  nodupkeys l := (nodupkeys_cons.1 h).2
+
 theorem nodupkeys.eq_of_fst_eq {l : list (sigma β)}
   (nd : nodupkeys l) {s s' : sigma β} (h : s ∈ l) (h' : s' ∈ l) :
   s.1 = s'.1 → s = s' :=

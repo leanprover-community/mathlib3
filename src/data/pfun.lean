@@ -458,13 +458,13 @@ protected def prod (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
 @[simp] lemma dom_prod (f : α →. γ) (g : β →. δ) :
   (f.prod g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
 
-@[simp] lemma get_prod (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
+lemma get_prod (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
   (f.prod g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
 
 @[simp] lemma prod_apply (f : α →. γ) (g : β →. δ) (x : α × β) :
   f.prod g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
 
-@[simp] lemma mem_prod {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
+lemma mem_prod {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
   y ∈ f.prod g x ↔ ∃ h : (f.prod g x).dom, ((f x.1).get h.1, (g x.2).get h.2) = y := iff.rfl
 
 @[simp] lemma prod_id_id : (pfun.id α).prod (pfun.id β) = pfun.id _ :=

@@ -4,9 +4,31 @@ import data.real.sqrt
 import analysis.special_functions.pow
 
 /-!
-Define the multiplier algebra of a C∗-algebra as the algebra of double centralizers.
-A double centralizer is a pair of continuous linear maps `L R : A →L[𝕜] A` satisfying the
-intertwining condition `R x * y = x * L y`.
+# Multiplier Algebra of a C⋆-algebra
+
+Define the multiplier algebra of a C⋆-algebra as the algebra (over `𝕜`) of double centralizers,
+for which we provide the localized notation `𝓜(𝕜, A)`.  A double centralizer is a pair of
+continuous linear maps `L R : A →L[𝕜] A` satisfying the intertwining condition `R x * y = x * L y`.
+
+There is a natural embedding `A → 𝓜(𝕜, A)` which sends `a : A` to the continuous linear maps
+`L R : A →L[𝕜] A` given by left and right multiplication by `a`, and we provide this map as a
+coercion.
+
+The multiplier algebra corresponds to a non-commutative Stone–Čech compactification in the sense
+that when the algebra `A` is commutative, it can be identified with `C₀(X, ℂ)` for some locally
+compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified with `C(βX, ℂ)`.
+
+## Implementation notes
+
+## TODO
+
++ show that `𝓜(𝕜, A)` is a C⋆-ring
++ show that `𝓜(𝕜, A)` is complete in the norm topology
++ define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict topology
++ after ⋆-algebra morphisms are implemented in mathlib, bundle the coercion `A → 𝓜(𝕜, A)`
++ show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal
++ prove the universal property of `𝓜(𝕜, A)`
+
 -/
 
 universes u v

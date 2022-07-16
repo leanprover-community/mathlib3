@@ -209,7 +209,7 @@ begin
   rcases k with  _ | _ | _ | k,
   { exact (lt_irrefl _ hk0).elim },
   { rw [pow_two, pow_one, nat.mul_left_inj (fact.out p.prime).pos] at hG,
-    convert @is_cyclic_of_prime_card _ _ (@quotient_group.fintype _ _ _ _ (quotient_group.left_rel_decidable _)) p _ hG },
+    exact is_cyclic_of_prime_card hG },
   { conv_rhs at hG { rw ← one_mul (p ^ 2) },
     rw [nat.mul_left_inj (pow_pos (fact.out p.prime).pos _)] at hG,
     exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (le_of_eq hG)⟩ },

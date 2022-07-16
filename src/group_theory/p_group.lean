@@ -9,6 +9,7 @@ import group_theory.index
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
 import group_theory.perm.cycle.type
+import group_theory.specific_groups.cyclic
 
 /-!
 # p-groups
@@ -163,36 +164,43 @@ have hα : 1 < card (fixed_points G α) :=
 let ⟨⟨b, hb⟩, hba⟩ := exists_ne_of_one_lt_card hα ⟨a, ha⟩ in
 ⟨b, hb, λ hab, hba (by simp_rw [hab])⟩
 
-end mul_action
+section p2comm
+
+variables [fintype G] [decidable_eq G] {n : ℕ} (hGpn : card G = p ^ n)
+omit hG
+open subgroup
+
+instance decidable_pred_fixed_points : decidable_pred (fixed_points (conj_act G) G) :=
+λ x, fintype.decidable_forall_fintype
+
+instance decidable_pred_center : decidable_pred (λ x, x ∈ center G) :=
+λ x, fintype.decidable_forall_fintype
 
 /-- `p`-groups have non-trivial `center` -/
-lemma exists_ne_one_mem_center (hn : 0 < n): ∃ g ≠ (1 : G), g ∈ center G :=
-have ∃ g : G, g ∈ fixed_points (conj G) G ∧ 1 ≠ g :=
-  exists_fixed_point_of_prime_dvd_card_of_fixed_point G
-    (conj.card.trans hG)
-    (hG.symm ▸ (dvd_pow (dvd_refl p) (pos_iff_ne_zero.1 hn)))
-    (show (1 : G) ∈ fixed_points (conj G) G,
-      by simp [conj.fixed_points_eq_center, subgroup.one_mem]),
-by simpa [conj.fixed_points_eq_center, eq_comm, and.comm]
+lemma exists_ne_one_mem_center (hn : 0 < n) : ∃ g ≠ (1 : G), g ∈ center G :=
+have ∃ g : G, g ∈ fixed_points (conj_act G) G ∧ 1 ≠ g :=
+  exists_fixed_point_of_prime_dvd_card_of_fixed_point (of_card hGpn) G
+    (hGpn.symm ▸ (dvd_pow (dvd_refl p) (pos_iff_ne_zero.1 hn)))
+    (show (1 : G) ∈ fixed_points (conj_act G) G,
+      by simp [conj_act.fixed_points_eq_center, subgroup.one_mem]),
+by simpa [conj_act.fixed_points_eq_center, eq_comm, and.comm]
 
 /-- The cardinality of the `center` of a `p`-group is `p ^ k` where `k` is positive. -/
 lemma card_center_eq_prime_pow (hn : 0 < n) : ∃ k > 0, card (center G) = p ^ k :=
 have card (center G) ∣ p ^ n,
-  from hG ▸ card_subgroup_dvd_card (center G),
+  from hGpn ▸ card_subgroup_dvd_card (center G),
 begin
   rcases (nat.dvd_prime_pow (fact.out p.prime)).1 this with ⟨k, hkn, hk⟩,
   refine ⟨k, nat.pos_of_ne_zero (λ hk0, _), hk⟩,
   rw [hk0, pow_zero] at hk,
-  rcases exists_ne_one_mem_center hG hn with ⟨g, hg1, hg⟩,
+  rcases exists_ne_one_mem_center hGpn hn with ⟨g, hg1, hg⟩,
   have hg1' : (⟨g, hg⟩ : center G) ≠ 1, from λ h, hg1 (subtype.ext_iff.1 h),
   exact hg1' (fintype.card_le_one_iff.1 (le_of_eq hk) _ _)
 end
 
-omit hG
-
 /-- The quotient by the center of a group of cardinality `p ^ 2` is cyclic. -/
 def cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
-  is_cyclic (quotient_group.quotient (center G)) :=
+  is_cyclic (G ⧸ (center G)) :=
 begin
   rcases card_center_eq_prime_pow hG zero_lt_two with ⟨k, hk0, hk⟩,
   have hk2 : k ≤ 2, from (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1
@@ -201,7 +209,7 @@ begin
   rcases k with  _ | _ | _ | k,
   { exact (lt_irrefl _ hk0).elim },
   { rw [pow_two, pow_one, nat.mul_left_inj (fact.out p.prime).pos] at hG,
-    exact is_cyclic_of_prime_card hG },
+    convert @is_cyclic_of_prime_card _ _ (@quotient_group.fintype _ _ _ _ (quotient_group.left_rel_decidable _)) p _ hG },
   { conv_rhs at hG { rw ← one_mul (p ^ 2) },
     rw [nat.mul_left_inj (pow_pos (fact.out p.prime).pos _)] at hG,
     exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (le_of_eq hG)⟩ },
@@ -211,7 +219,7 @@ end
 /-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sqr` for the
 `comm_group` instance. -/
 lemma commutative_of_card_eq_prime_sqr (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
-by haveI : is_cyclic (quotient_group.quotient (center G)) :=
+by haveI : is_cyclic (G ⧸ (center G)) :=
   cyclic_center_quotient_of_card_eq_prime_sqr hG;
 exact commutative_of_cyclic_center_quotient (quotient_group.mk' (center G)) (by simp)
 
@@ -221,7 +229,8 @@ def comm_group_of_card_eq_prime_sqr (hG : card G = p ^ 2) : comm_group G :=
 { mul_comm := commutative_of_card_eq_prime_sqr hG,
   .. show group G, by apply_instance }
 
-end p_group
+end p2comm
+
 lemma center_nontrivial [nontrivial G] [fintype G] : nontrivial (subgroup.center G) :=
 begin
   classical,

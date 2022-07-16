@@ -20,7 +20,7 @@ The first is chosen as the definition, and the equivalence is shown in
 `topological_space.noetherian_space_tfae`.
 
 Many examples of noetherian spaces come from algebraic topology. For example, the underlying space
-of a noetherian scheme (and spectrums of noetherian rings in particular) is noetherian.
+of a noetherian scheme (e.g., the spectrum of a noetherian ring) is noetherian.
 
 ## Main Results
 - `noetherian_space.set`: Every subspace of a noetherian space is noetherian.

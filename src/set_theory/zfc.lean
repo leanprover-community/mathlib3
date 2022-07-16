@@ -61,6 +61,9 @@ def arity (α : Type u) : ℕ → Type u
 | 0     := α
 | (n+1) := α → arity n
 
+@[simp] theorem arity_zero (α : Type u) : arity α 0 = α := rfl
+@[simp] theorem arity_succ (α : Type u) (n : ℕ) : arity α n.succ = (α → arity α n) := rfl
+
 namespace arity
 
 /-- Constant `n`-ary function with value `a`. -/
@@ -68,8 +71,11 @@ def const {α : Type u} (a : α) : ∀ n, arity α n
 | 0     := a
 | (n+1) := λ _, const n
 
-instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
-⟨const default _⟩
+@[simp] theorem const_zero {α : Type u} (a : α) : const a 0 = a := rfl
+@[simp] theorem const_succ {α : Type u} (a : α) (n : ℕ) : const a n.succ = λ _, const a n := rfl
+theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) : const a n.succ x = const a n := rfl
+
+instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) := ⟨const default _⟩
 
 end arity
 
@@ -97,6 +103,14 @@ theorem mk_type_func : Π (x : pSet), mk x.type x.func = x
 equivalent to some element of the second family and vice-versa. -/
 def equiv (x y : pSet) : Prop :=
 pSet.rec (λ α z m ⟨β, B⟩, (∀ a, ∃ b, m a (B b)) ∧ (∀ b, ∃ a, m a (B b))) x y
+
+theorem exists_equiv_left : Π {x y : pSet} (h : equiv x y) (i : x.type),
+  ∃ j, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h := h.1
+
+theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
+  ∃ i, equiv (x.func i) (y.func j)
+| ⟨α, A⟩ ⟨β, B⟩ h := h.2
 
 theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
@@ -357,7 +371,11 @@ open pSet
 /-- Turns a pre-set into a ZFC set. -/
 def mk : pSet → Set := quotient.mk
 
-@[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+@[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
+@[simp] theorem mk_out : ∀ x : Set, mk x.out = x := quotient.out_eq
+theorem eq {x y : pSet} : mk x = mk y ↔ equiv x y := quotient.eq
+theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound h
+theorem exact {x y : pSet} : mk x = mk y → pSet.equiv x y := quotient.exact
 
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=

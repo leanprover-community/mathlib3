@@ -22,7 +22,8 @@ TODO: Show that the Selmer polynomials have full Galois group.
 namespace polynomial
 open_locale polynomial
 
-lemma selmer_irreducible_aux (n : ℕ) (z : ℂ) : ¬ (z ^ n = z + 1 ∧ z ^ n + z ^ 2 = 0) :=
+lemma X_pow_sub_X_sub_one_irreducible_aux (n : ℕ) (z : ℂ) :
+  ¬ (z ^ n = z + 1 ∧ z ^ n + z ^ 2 = 0) :=
 begin
   rintros ⟨h1, h2⟩,
   replace h3 : z ^ 3 = 1,
@@ -39,7 +40,8 @@ begin
   { exact z_ne_zero (pow_eq_zero (by rwa [key, add_self_eq_zero] at h2)) },
 end
 
-lemma selmer_irreducible {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : ℤ[X]) :=
+lemma X_pow_sub_X_sub_one_irreducible {n : ℕ} (hn1 : n ≠ 1) :
+  irreducible (X ^ n - X - 1 : ℤ[X]) :=
 begin
   by_cases hn0 : n = 0,
   { rw [hn0, pow_zero, sub_sub, add_comm, ←sub_sub, sub_self, zero_sub],
@@ -50,7 +52,7 @@ begin
   rw hp,
   apply is_unit_trinomial.irreducible_of_coprime' ⟨0, 1, n, zero_lt_one, hn, -1, -1, 1, rfl⟩,
   rintros z ⟨h1, h2⟩,
-  apply selmer_irreducible_aux n z,
+  apply X_pow_sub_X_sub_one_irreducible_aux n z,
   rw [trinomial_mirror zero_lt_one hn (-1 : ℤˣ).ne_zero (1 : ℤˣ).ne_zero] at h2,
   simp_rw [trinomial, aeval_add, aeval_mul, aeval_X_pow, aeval_C] at h1 h2,
   simp_rw [units.coe_neg, units.coe_one, map_neg, map_one] at h1 h2,
@@ -61,7 +63,8 @@ begin
   exact ⟨rfl, by linear_combination -h2⟩,
 end
 
-lemma selmer_irreducible' {n : ℕ} (hn1 : n ≠ 1) : irreducible (X ^ n - X - 1 : ℚ[X]) :=
+lemma X_pow_sub_X_sub_one_irreducible_rat {n : ℕ} (hn1 : n ≠ 1) :
+  irreducible (X ^ n - X - 1 : ℚ[X]) :=
 begin
   by_cases hn0 : n = 0,
   { rw [hn0, pow_zero, sub_sub, add_comm, ←sub_sub, sub_self, zero_sub],
@@ -69,7 +72,8 @@ begin
   have hp : (X ^ n - X - 1 : ℤ[X]) = trinomial 0 1 n (-1) (-1) 1 :=
   by simp only [trinomial, C_neg, C_1]; ring,
   have hn : 1 < n := nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn0, hn1⟩,
-  have h := (is_primitive.int.irreducible_iff_irreducible_map_cast _).mp (selmer_irreducible hn1),
+  have h := (is_primitive.int.irreducible_iff_irreducible_map_cast _).mp
+    (X_pow_sub_X_sub_one_irreducible hn1),
   { rwa [polynomial.map_sub, polynomial.map_sub, polynomial.map_pow, polynomial.map_one,
       polynomial.map_X] at h },
   { exact hp.symm ▸ (trinomial_monic zero_lt_one hn).is_primitive },

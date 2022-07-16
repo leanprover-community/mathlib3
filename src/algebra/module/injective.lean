@@ -108,7 +108,7 @@ begin
   rcases b with ⟨b, b_le, e2⟩,
   dsimp only at *,
   congr,
-  refine linear_pmap.ext domain_eq to_fun_eq,
+  exact linear_pmap.ext domain_eq to_fun_eq,
 end
 
 end ext
@@ -122,13 +122,9 @@ lemma extension_of.ext_iff (a b : extension_of i f) :
 instance : has_inf (extension_of i f) :=
 { inf := λ X1 X2,
   { le := λ x hx, (begin
-      refine ⟨X1.le hx, X2.le hx, _⟩,
-      have := X1.is_extension hx.some,
-      simp only [hx.some_spec] at this,
-      erw ←this,
-      have := X2.is_extension hx.some,
-      simp only [hx.some_spec] at this,
-      erw ←this,
+      rcases hx with ⟨x, rfl⟩,
+      refine ⟨X1.le (set.mem_range_self _), X2.le (set.mem_range_self _), _⟩,
+      erw [← X1.is_extension x, ← X2.is_extension x],
     end : x ∈ X1.to_linear_pmap.eq_locus X2.to_linear_pmap),
     is_extension := λ m, (begin
       dsimp,
@@ -158,10 +154,8 @@ end
 def extension_of.max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) :
   extension_of i f :=
-{ le := le_trans hnonempty.some.le $ (linear_pmap.le_Sup _ $ begin
-    rw set.mem_image,
-    exact ⟨hnonempty.some, hnonempty.some_spec, rfl⟩,
-  end).1,
+{ le := le_trans hnonempty.some.le $ (linear_pmap.le_Sup _ $ (set.mem_image _ _ _).mpr
+    ⟨hnonempty.some, hnonempty.some_spec, rfl⟩).1,
   is_extension := λ m, begin
     refine eq.trans (hnonempty.some.is_extension m) _,
     dsimp,
@@ -179,10 +173,8 @@ def extension_of.max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
 lemma extension_of.le_max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (a : extension_of i f) (ha : a ∈ c) :
   a ≤ extension_of.max hchain hnonempty :=
-linear_pmap.le_Sup (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) begin
-  rw set.mem_image,
-  exact ⟨a, ha, rfl⟩,
-end
+linear_pmap.le_Sup (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) $
+  (set.mem_image _ _ _).mpr ⟨a, ha, rfl⟩
 
 variables (i f) [fact $ function.injective i]
 
@@ -248,7 +240,7 @@ def extension_of_max_adjoin.snd
 
 lemma extension_of_max_adjoin.eqn
   {y : N} (x : (extension_of_max i f).domain ⊔ submodule.span R {y}) :
-  x.1 = (extension_of_max_adjoin.fst i x).1 + (extension_of_max_adjoin.snd i x) • y :=
+  ↑x = ↑(extension_of_max_adjoin.fst i x) + (extension_of_max_adjoin.snd i x) • y :=
 (extension_of_max_adjoin.aux1 i x).some_spec.some_spec
 
 variables (f)
@@ -284,8 +276,7 @@ lemma extension_of_max_adjoin.extend_ideal_to_wd' (h : module.Baer R Q) {y : N} 
 begin
   rw extension_of_max_adjoin.extend_ideal_to_is_extension i f h y r
     (by rw eq1; exact submodule.zero_mem _ : r • y ∈ _),
-  unfold extension_of_max_adjoin.ideal_to,
-  simp only [linear_map.coe_mk, eq1],
+  simp only [extension_of_max_adjoin.ideal_to, linear_map.coe_mk, eq1],
   convert map_zero _,
 end
 
@@ -316,7 +307,7 @@ def extension_of_max_adjoin.extension_to_fun (h : module.Baer R Q)
 lemma extension_of_max_adjoin.extension_to_fun_wd (h : module.Baer R Q)
   {y : N} (x : (extension_of_max i f).domain ⊔ submodule.span R {y})
   (a : (extension_of_max i f).domain) (r : R)
-  (eq1 : x.1 = a.1 + r • y) :
+  (eq1 : ↑x = ↑a + r • y) :
   extension_of_max_adjoin.extension_to_fun i f h x =
   (extension_of_max i f).to_fun a +
   extension_of_max_adjoin.extend_ideal_to i f h y r :=
@@ -331,12 +322,13 @@ begin
   unfold extension_of_max_adjoin.extension_to_fun,
   rw [eq3, ← add_assoc],
   congr' 1,
-  rw [← map_add, show ∀ (a b : (extension_of_max i f).domain), a + b = ⟨a.1 + b.1, _⟩,
+  rw [← map_add, show ∀ (a b : (extension_of_max i f).domain), a + b = ⟨a + b, _⟩,
     from λ _ _, rfl],
   have eq4 := extension_of_max_adjoin.eqn i x,
   rw eq1 at eq4,
-  simp only [eq4, add_sub, add_sub_cancel],
-  exact congr_arg _ (subtype.ext_val rfl),
+  simp only [←subtype.val_eq_coe, add_sub],
+  simp only [subtype.val_eq_coe, eq4, ←add_sub, sub_self, add_zero],
+  exact congr_arg _ (subtype.ext rfl),
 end
 
 /--The linear map `M ⊔ ⟨y⟩ ⟶ Q` by `x + r • y ↦ f x + φ r` is an extension of `f`-/
@@ -347,11 +339,10 @@ def extension_of_max_adjoin (h : module.Baer R Q) (y : N) :
   to_fun :=
     { to_fun := extension_of_max_adjoin.extension_to_fun i f h,
       map_add' := λ a b, begin
-        have eq1 : (a + b).val =
-          ((extension_of_max_adjoin.fst i a) + (extension_of_max_adjoin.fst i b)).1 +
+        have eq1 : ↑a + ↑b =
+          ↑((extension_of_max_adjoin.fst i a) + (extension_of_max_adjoin.fst i b)) +
           (extension_of_max_adjoin.snd i a + extension_of_max_adjoin.snd i b) • y,
-        { change a.1 + b.1 = _ + _,
-          rw [extension_of_max_adjoin.eqn, extension_of_max_adjoin.eqn, add_smul],
+        { rw [extension_of_max_adjoin.eqn, extension_of_max_adjoin.eqn, add_smul],
           abel, },
         rw [extension_of_max_adjoin.extension_to_fun_wd i f h (a + b) _ _ eq1, map_add, map_add],
         unfold extension_of_max_adjoin.extension_to_fun,
@@ -359,10 +350,9 @@ def extension_of_max_adjoin (h : module.Baer R Q) (y : N) :
       end,
       map_smul' := λ r a, begin
         rw [ring_hom.id_apply],
-        have eq1 : (r • a).1 = (r • extension_of_max_adjoin.fst i a).1 +
+        have eq1 : r • ↑a = ↑(r • extension_of_max_adjoin.fst i a) +
           (r • extension_of_max_adjoin.snd i a) • y,
-        { change r • a.1 = _,
-          rw [extension_of_max_adjoin.eqn, smul_add, smul_eq_mul, mul_smul],
+        { rw [extension_of_max_adjoin.eqn, smul_add, smul_eq_mul, mul_smul],
           refl, },
         rw [extension_of_max_adjoin.extension_to_fun_wd i f h (r • a) _ _ eq1,
           linear_map.map_smul, linear_map.map_smul, ← smul_add],
@@ -380,16 +370,9 @@ lemma extension_of_max_le (h : module.Baer R Q) {y : N} :
 ⟨le_sup_left, λ x x' EQ, begin
   symmetry,
   change extension_of_max_adjoin.extension_to_fun i f h _ = _,
-  rw [extension_of_max_adjoin.extension_to_fun_wd i f h x' x 0, map_zero, add_zero],
+  rw [extension_of_max_adjoin.extension_to_fun_wd i f h x' x 0 (by simp [EQ]), map_zero, add_zero],
   refl,
-
-  rw [zero_smul, add_zero],
-  exact EQ.symm,
 end⟩
-
-lemma extension_of_max_eq (h : module.Baer R Q) (y : N) :
-  extension_of_max_adjoin i f h y = extension_of_max i f :=
-extension_of_max_is_max i f _ (extension_of_max_le i f h)
 
 lemma extension_of_max_to_submodule_eq_top (h : module.Baer R Q) :
   (extension_of_max i f).domain = ⊤ :=
@@ -398,7 +381,7 @@ begin
   rcases show ∃ (y : N), y ∉ (extension_of_max i f).domain,
     by contrapose! rid; ext; exact ⟨λ _, trivial, λ _, rid _⟩ with ⟨y, hy⟩,
   apply hy,
-  erw [← extension_of_max_eq i f h y, submodule.mem_sup],
+  erw [← extension_of_max_is_max i f _ (extension_of_max_le i f h), submodule.mem_sup],
   exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩,
 end
 
@@ -406,19 +389,21 @@ end
 linear map from an ideal can be extended, then the module is injective.-/
 protected theorem injective (h : module.Baer R Q) :
   module.injective R Q :=
+have eq1 : (extension_of_max i f).domain = ⊤, begin
+  by_contra rid,
+  rcases show ∃ (y : N), y ∉ (extension_of_max i f).domain,
+    by contrapose! rid; ext; exact ⟨λ _, trivial, λ _, rid _⟩ with ⟨y, hy⟩,
+  apply hy,
+  erw [← extension_of_max_is_max i f _ (extension_of_max_le i f h), submodule.mem_sup],
+  exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩,
+end,
 { out := λ X Y ins1 ins2 ins3 ins4 i hi f, begin
   haveI : fact (function.injective i) := ⟨hi⟩,
-  have eq1 := extension_of_max_to_submodule_eq_top i f h,
-  set f'' : (⊤ : submodule R Y) →ₗ[R] Q :=
-  { to_fun := λ y, (extension_of_max i f).to_fun ⟨y.1, eq1.symm ▸ y.2⟩,
-    map_add' := λ x y, by { dsimp, erw ← map_add,  congr' 1 },
-    map_smul' := λ r x, by { dsimp, erw ← linear_map.map_smul, congr' 1 } } with f''_eq,
-  use
-  { to_fun := λ y, f'' ⟨y, trivial⟩,
-    map_add' := λ x y, by rw ← map_add; congr',
-    map_smul' := λ r x, by rw [ring_hom.id_apply, ← linear_map.map_smul]; refl },
-  intros x,
-  exact ((extension_of_max i f).is_extension x).symm,
+  exact ⟨{ to_fun := λ y, (extension_of_max i f).to_fun
+      ⟨y, (extension_of_max_to_submodule_eq_top i f h).symm ▸ trivial⟩,
+    map_add' := λ x y, by { dsimp, erw ← map_add,  congr, },
+    map_smul' := λ r x, by { dsimp, erw ← linear_map.map_smul, congr } },
+    λ x, ((extension_of_max i f).is_extension x).symm⟩,
 end }
 
 end module.Baer

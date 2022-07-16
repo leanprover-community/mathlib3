@@ -124,10 +124,10 @@ end has_inv
 open_locale pointwise
 
 section has_involutive_inv
-variables [decidable_eq α] [has_involutive_inv α] {s t : finset α}
+variables [decidable_eq α] [has_involutive_inv α] (s : finset α)
 
 @[simp, norm_cast, to_additive]
-lemma coe_inv (s : finset α) : ↑(s⁻¹) = (s : set α)⁻¹ := coe_image.trans set.image_inv
+lemma coe_inv : ↑(s⁻¹) = (s : set α)⁻¹ := coe_image.trans set.image_inv
 
 @[simp, to_additive] lemma card_inv : s⁻¹.card = s.card := card_image_of_injective _ inv_injective
 
@@ -888,10 +888,39 @@ coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
 
-@[to_additive] lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α]
-  {s : set α} {t : finset α} :
+section left_cancel_semigroup
+variables [left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
+
+@[to_additive] lemma pairwise_disjoint_smul_iff {s : set α} {t : finset α} :
   s.pairwise_disjoint (• t) ↔ ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
+
+@[to_additive] lemma card_singleton_mul : ({a} * t).card = t.card :=
+card_image₂_singleton_left _ $ mul_right_injective _
+
+@[to_additive] lemma singleton_mul_inter : {a} * (s ∩ t) = ({a} * s) ∩ ({a} * t) :=
+image₂_singleton_inter _ _ $ mul_right_injective _
+
+@[to_additive] lemma card_le_card_mul_left {s : finset α} (hs : s.nonempty) :
+  t.card ≤ (s * t).card :=
+card_le_card_image₂_left _ hs mul_right_injective
+
+end left_cancel_semigroup
+
+section
+variables [right_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
+
+@[to_additive] lemma card_mul_singleton : (s * {a}).card = s.card :=
+card_image₂_singleton_right _ $ mul_left_injective _
+
+@[to_additive] lemma inter_mul_singleton : (s ∩ t) * {a} = (s * {a}) ∩ (t * {a}) :=
+image₂_inter_singleton _ _ $ mul_left_injective _
+
+@[to_additive] lemma card_le_card_mul_right {t : finset α} (ht : t.nonempty) :
+  s.card ≤ (s * t).card :=
+card_le_card_image₂_right _ ht mul_left_injective
+
+end
 
 open_locale pointwise
 

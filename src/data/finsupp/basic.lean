@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.hom.group_action
 import algebra.indicator_function
 import data.finset.preimage
+import data.list.alist
 
 /-!
 # Type of functions with finite support
@@ -775,6 +776,59 @@ end
 (graph_injective α M).eq_iff' graph_zero
 
 end graph
+
+end finsupp
+
+/-! ### Declarations about `list.to_finsupp` and `alist.to_finsupp` -/
+
+namespace list
+variable [has_zero M]
+
+/-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`. -/
+def to_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M :=
+finsupp.of_support_finite (λ a, (l.lookup a).get_or_else 0) begin
+  apply l.keys.to_finset.finite_to_set.subset,
+  intros a ha,
+  dsimp at ha,
+  rw [mem_coe, mem_to_finset, ←lookup_is_some],
+  cases lookup a l with m,
+  { rw option.get_or_else_none at ha,
+    exact (ha rfl).elim },
+  { exact option.is_some_some }
+end
+
+@[simp] lemma to_finsupp_apply (l : list (sigma (λ x : α, M))) (a : α) :
+  l.to_finsupp a = (l.lookup a).get_or_else 0 := rfl
+
+@[simp] lemma to_finsupp_graph (f : α →₀ M) : (f.graph.to_list.map prod.to_sigma).to_finsupp = f :=
+begin
+  ext,
+  by_cases h : f a = 0,
+  { suffices : lookup a (map prod.to_sigma f.graph.to_list) = none,
+    { simp [h, this] },
+    simp [lookup_eq_none, h, keys] },
+  { suffices : lookup a (map prod.to_sigma f.graph.to_list) = some (f a),
+    { simp [h, this] },
+    apply (mem_lookup_iff _).2,
+    { simpa using h },
+    { rw [nodupkeys, keys, map_map, prod.fst_to_sigma_comp, nodup_map_iff_inj_on],
+      { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
+        rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
+        dsimp at hb hc,
+        rw [←hc.1, hb.1] },
+      { apply nodup_to_list } } }
+end
+
+lemma to_finsupp_left_inverse :
+  function.left_inverse finsupp.graph (λ x, (x.to_list.map prod.to_sigma).to_finsupp) :=
+to_finsupp_graph
+
+lemma to_finsupp_surjective : function.surjective
+
+end list
+
+#exit
+namespace finsupp
 
 /-!
 ### Declarations about `sum` and `prod`

@@ -112,13 +112,13 @@ lemma direct_sum.coe_decompose_mul_add_of_left_mem {ι σ A}
   [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
   {a b : A} {i j : ι} (a_mem : a ∈ 𝒜 i) :
   (decompose 𝒜 (a * b) (i + j) : A) = a * decompose 𝒜 b j :=
-or.elim (em (a = 0)) (λ EQ, EQ.symm ▸ by simp) $ λ INEQ,
 begin
+  obtain rfl | hb := eq_or_ne b 0,
+  { simp },
   classical,
   lift a to (𝒜 i) using a_mem,
-  have INEQ' : a ≠ 0 := λ r, by subst r; exact INEQ rfl,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a INEQ', singleton_product,
-    map_filter, sum_map],
+  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ i a (λ r,by subst r; exact hb rfl),
+    singleton_product, map_filter, sum_map],
   simp_rw [comp, embedding.coe_fn_mk, add_left_cancel_iff, filter_eq'],
   refine dite (decompose 𝒜 b j = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
   erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
@@ -135,9 +135,8 @@ begin
   { simp },
   classical,
   lift b to (𝒜 j) using b_mem,
-  have INEQ' : b ≠ 0 := λ r, by subst r; exact INEQ rfl,
-  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ j b INEQ', product_singleton,
-    map_filter, sum_map],
+  erw [decompose_mul, coe_mul_apply, decompose_coe, support_of _ j b (λ r,by subst r; exact hb rfl),
+    product_singleton, map_filter, sum_map],
   simp_rw [comp, embedding.coe_fn_mk, add_right_cancel_iff, filter_eq'],
   refine dite (decompose 𝒜 a i = 0) (λ h, by simp [if_neg (not_mem_support_iff.mpr h), h]) (λ h, _),
   erw [if_pos (mem_support_iff.mpr h), finset.sum_singleton, of_eq_same],
@@ -152,7 +151,7 @@ lemma direct_sum.decompose_mul_add_left {ι σ A}
     @graded_monoid.ghas_mul.mul ι (λ i, 𝒜 i) _ _ _ _ a (decompose 𝒜 b j) :=
 subtype.ext $ direct_sum.coe_decompose_mul_add_of_left_mem 𝒜 a.2
 
-lemma direct_sum.decompose_mul_add_of_right_mem {ι σ A}
+lemma direct_sum.decompose_mul_add_right {ι σ A}
   [decidable_eq ι] [add_right_cancel_monoid ι] [semiring A]
   [set_like σ A] [add_submonoid_class σ A] (𝒜 : ι → σ) [graded_ring 𝒜]
   {i j : ι} {a : A} (b : 𝒜 j) :

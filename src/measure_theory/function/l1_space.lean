@@ -1182,6 +1182,41 @@ lemma to_L1_smul' (f : α → β) (hf : integrable f μ) (k : 𝕜) :
 
 end integrable
 
+section trim
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {m0 : measurable_space α}
+
+/-- Given a measure `μ`, `Lp_trim_lm` is the linear map defined by the projection of the Lᵖ space
+with respect to `μ` restricted on a sub-σ-algebra `m` to the original Lᵖ space. -/
+def Lp_trim_lm (p : ℝ≥0∞) (μ : measure α) (hle : m ≤ m0) :
+  Lp E p (μ.trim hle) →ₗ[ℝ] Lp E p μ :=
+{ to_fun := λ f, (mem_ℒp_of_mem_ℒp_trim hle (Lp.mem_ℒp f)).to_Lp f,
+  map_add' := λ f g,
+  begin
+    rw ← mem_ℒp.to_Lp_add,
+    exact mem_ℒp.to_Lp_congr _ _ (ae_eq_of_ae_eq_trim (Lp.coe_fn_add f g)),
+  end,
+  map_smul' := λ c f,
+  begin
+    rw ← mem_ℒp.to_Lp_const_smul,
+    exact mem_ℒp.to_Lp_congr _ _ (ae_eq_of_ae_eq_trim (Lp.coe_fn_smul c f)),
+  end }
+
+/-- The projection of the L¹ space with respect to the measure `μ` restricted on a sub-σ-algebra `m`
+to the original L¹ space is a continuous linear map. -/
+def L1_trim_clm (μ : measure α) (hle₁ : m ≤ m0) :
+  Lp E 1 (μ.trim hle₁) →L[ℝ] Lp E 1 μ :=
+linear_map.mk_continuous_of_exists_bound (Lp_trim_lm 1 μ hle₁)
+begin
+  refine ⟨1, λ x, le_of_eq _⟩,
+  simp only [one_mul, Lp.norm_def, linear_map.coe_mk],
+  rw [ennreal.to_real_eq_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _),
+    snorm_trim hle₁ (Lp.strongly_measurable _)],
+  exact snorm_congr_ae (ae_eq_fun.coe_fn_mk _ _),
+end
+
+end trim
+
 end measure_theory
 
 open measure_theory

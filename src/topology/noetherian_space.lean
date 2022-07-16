@@ -225,4 +225,3 @@ begin
 end
 
 end topological_space
-#lint

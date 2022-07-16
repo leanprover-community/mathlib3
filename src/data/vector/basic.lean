@@ -7,6 +7,7 @@ import data.vector
 import data.list.nodup
 import data.list.of_fn
 import control.applicative
+import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
@@ -320,9 +321,11 @@ def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
 /-- Define `C v` by induction on `v : vector α n`.
 
 This function has two arguments: `h_nil` handles the base case on `C nil`,
-and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`. -/
+and `h_cons` defines the inductive step using `∀ x : α, C w → C (x ::ᵥ w)`.
+
+This can be used as `induction v using vector.induction_on`. -/
 @[elab_as_eliminator] def induction_on {C : Π {n : ℕ}, vector α n → Sort*}
-  (v : vector α n)
+  {n : ℕ} (v : vector α n)
   (h_nil : C nil)
   (h_cons : ∀ {n : ℕ} {x : α} {w : vector α n}, C w → C (x ::ᵥ w)) :
     C v :=
@@ -335,6 +338,9 @@ begin
     apply @h_cons n _ ⟨v, (add_left_inj 1).mp v_property⟩,
     apply ih, }
 end
+
+-- check that the above works with `induction ... using`
+example (v : vector α n) : true := by induction v using vector.induction_on; trivial
 
 variables {β γ : Type*}
 
@@ -564,9 +570,10 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   id_map := by intros; cases x; simp! [(<$>)],
   comp_map := by intros; cases x; simp! [(<$>)] }
 
-meta instance reflect {α : Type} [has_reflect α] [reflected α] {n : ℕ} : has_reflect (vector α n) :=
-λ v, @vector.induction_on n α (λ n, reflected) v
-  (`(λ a, @vector.nil.{0} a).subst `(α))
-  (λ n x xs ih, (`(λ x xs, vector.cons.{0} x xs).subst `(x)).subst ih)
+meta instance reflect [reflected_univ.{u}] {α : Type u} [has_reflect α] [reflected _ α] {n : ℕ} :
+  has_reflect (vector α n) :=
+λ v, @vector.induction_on α (λ n, reflected _) n v
+  ((by reflect_name : reflected _ @vector.nil.{u}).subst `(α))
+  (λ n x xs ih, (by reflect_name : reflected _ @vector.cons.{u}).subst₄ `(α) `(n) `(x) ih)
 
 end vector

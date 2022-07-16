@@ -266,6 +266,19 @@ This tactic only should be used when the target's type an equality whose
 meta def set_goal_to_hleft_eq_tleft (hsum_on_left : expr) : tactic unit :=
 do to_expr ``(replace_eq_expr %%hsum_on_left) >>= apply, skip
 
+/-
+If an exponent `n` is provided, changes the goal from `t = 0` to `t^n = 0`.
+* Input:
+  * `exponent : option ℕ`, the power to raise the goal by. If `none`, this tactic is a no-op.
+
+* Output: N/A
+-/
+meta def raise_goal_to_power (exponent : option ℕ) : tactic unit :=
+match exponent with
+| some n := refine ``(@pow_eq_zero _ _ _ _ %%`(n) _)
+| none := skip
+end
+
 /--
 This tactic attempts to prove the goal by normalizing the target if the
 `normalize` field of the given configuration is true.
@@ -307,13 +320,14 @@ Note: The left and right sides of all the equalities should have the same
 * Output: N/A
 -/
 meta def linear_combination (h_eqs_names : list pexpr) (coeffs : list pexpr)
-  (config : linear_combination_config := {}) : tactic unit :=
+  (exponent : option ℕ := none) (config : linear_combination_config := {}) : tactic unit :=
 do
   `(@eq %%ext _ _) ← target | fail "linear_combination can only be used to prove equality goals",
   h_eqs ← h_eqs_names.mmap to_expr,
   hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
+  raise_goal_to_power exponent,
   set_goal_to_hleft_eq_tleft hsum_on_left,
   prove_equal_if_desired config
 
@@ -353,6 +367,9 @@ setup_tactic_parser
   configuration is set to false, then the tactic will simply set the user up to
   prove their target using the linear combination instead of attempting to
   finish the proof.
+
+Users may provide an optional `with exponent n`. This will raise the goal to the power `n`
+  before subtracting the linear combination.
 
 Note: The left and right sides of all the equalities should have the same
   type, and the coefficients should also have this type.  There must be
@@ -399,6 +416,9 @@ begin
   norm_cast
 end
 
+example (x y z : ℚ) (h : x = y) (h2 : x * y = 0) : x + y*z = 0 :=
+by linear_combination (-y * z ^ 2 + x) * h + (z ^ 2 + 2 * z + 1) * h2 with exponent 2
+
 constants (qc : ℚ) (hqc : qc = 2*qc)
 
 example (a b : ℚ) (h : ∀ p q : ℚ, p = q) : 3*a + qc = 3*b + 2*qc :=
@@ -408,10 +428,16 @@ by linear_combination 3 * h a b + hqc
 meta def _root_.tactic.interactive.linear_combination
   (input : parse (as_linear_combo ff [] <$> texpr)?)
   (_ : parse (tk "with")?)
+  (exponent : parse (prod.mk <$> ident <*> small_nat)?)
   (config : linear_combination_config := {})
-  : tactic unit :=
+  : tactic unit := do
+  exponent ← match exponent with
+  | none := return none
+  | some (`exponent, n) := return $ some n
+  | some (id, _) := fail!"linear_combination does not support the modifier {id}"
+  end,
 let (h_eqs_names, coeffs) := list.unzip (input.get_or_else []) in
-linear_combination h_eqs_names coeffs config
+linear_combination h_eqs_names coeffs exponent config
 
 add_tactic_doc
 { name := "linear_combination",

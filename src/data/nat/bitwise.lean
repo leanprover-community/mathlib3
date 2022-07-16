@@ -185,7 +185,7 @@ lxor_right_injective.eq_iff
 @[simp] lemma lxor_left_inj {n m m' : ℕ} : lxor m n = lxor m' n ↔ m = m' :=
 lxor_left_injective.eq_iff
 
-lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
+@[simp] lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
 by rw [←lxor_self n, lxor_right_inj, eq_comm]
 
 @[simp] lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := not_iff_not_of_iff lxor_eq_zero

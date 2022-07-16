@@ -135,29 +135,8 @@ theorem ext_iff : p = q ↔ (∀ x, x ∈ p ↔ x ∈ q) := coe_injective.eq_iff
 
 @[simp] protected lemma eta (x : p) (hx : (x : B) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
--- `dangerous_instance` does not know that `B` is used only as an `out_param`
-@[nolint dangerous_instance, priority 100]
-instance : partial_order A :=
+protected def partial_order : partial_order A :=
 { le := λ H K, ∀ ⦃x⦄, x ∈ H → x ∈ K,
   .. partial_order.lift (coe : A → set B) coe_injective }
-
-lemma le_def {S T : A} : S ≤ T ↔ ∀ ⦃x : B⦄, x ∈ S → x ∈ T := iff.rfl
-
-@[simp, norm_cast]
-lemma coe_subset_coe {S T : A} : (S : set B) ⊆ T ↔ S ≤ T := iff.rfl
-
-@[mono] lemma coe_mono : monotone (coe : A → set B) := λ a b, coe_subset_coe.mpr
-
-@[simp, norm_cast]
-lemma coe_ssubset_coe {S T : A} : (S : set B) ⊂ T ↔ S < T := iff.rfl
-
-@[mono] lemma coe_strict_mono : strict_mono (coe : A → set B) := λ a b, coe_ssubset_coe.mpr
-
-lemma not_le_iff_exists : ¬(p ≤ q) ↔ ∃ x ∈ p, x ∉ q := set.not_subset
-
-lemma exists_of_lt : p < q → ∃ x ∈ q, x ∉ p := set.exists_of_ssubset
-
-lemma lt_iff_le_and_exists : p < q ↔ p ≤ q ∧ ∃ x ∈ q, x ∉ p :=
-by rw [lt_iff_le_not_le, not_le_iff_exists]
 
 end set_like

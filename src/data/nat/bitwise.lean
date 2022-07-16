@@ -167,17 +167,11 @@ lemma lor_assoc (n m k : ℕ) : lor (lor n m) k = lor n (lor m k) := by bitwise_
 @[simp] lemma lxor_self (n : ℕ) : lxor n n = 0 :=
 zero_of_test_bit_eq_ff $ λ i, by simp
 
-lemma lxor_lxor_self_right (n m : ℕ) : lxor (lxor m n) n = m :=
+lemma lxor_cancel_right (n m : ℕ) : lxor (lxor m n) n = m :=
 by rw [lxor_assoc, lxor_self, lxor_zero]
 
-lemma lxor_lxor_self_left (n m : ℕ) : lxor (lxor n m) n = m :=
-by rw [lxor_comm n, lxor_lxor_self_right]
-
-lemma lxor_lxor_self_right' (n m : ℕ) : lxor n (lxor m n) = m :=
-by rw [lxor_comm, lxor_lxor_self_right]
-
-lemma lxor_lxor_self_left' (n m : ℕ) : lxor n (lxor n m) = m :=
-by rw [lxor_comm, lxor_lxor_self_left]
+lemma lxor_cancel_left (n m : ℕ) : lxor n (lxor n m) = m :=
+by rw [←lxor_assoc, lxor_self, zero_lxor]
 
 lemma lxor_right_inj {n m m' : ℕ} (h : lxor n m = lxor n m') : m = m' :=
 calc m = lxor n (lxor n m') : by simp [←lxor_assoc, ←h]

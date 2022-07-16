@@ -285,9 +285,10 @@ begin
     replace hu := ordinal.nat_cast_lt.1 hu,
     cases nat.lt_lxor_cases hu with h h,
     { refine ⟨to_left_moves_add (sum.inl $ to_left_moves_nim ⟨_, ordinal.nat_cast_lt.2 h⟩), _⟩,
-      simp [nat.lxor_lxor_self_right, hn _ h] },
+      simp [nat.lxor_cancel_right, hn _ h] },
     { refine ⟨to_left_moves_add (sum.inr $ to_left_moves_nim ⟨_, ordinal.nat_cast_lt.2 h⟩), _⟩,
-      simp [nat.lxor_lxor_self_right', hm _ h] } }
+      have : n.lxor (u.lxor n) = u, rw [nat.lxor_comm u, nat.lxor_cancel_left],
+      simpa [hm _ h] using this } }
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=

@@ -526,6 +526,13 @@ subset.trans h (subset_union_left t u)
 lemma subset_union_of_subset_right {s u : set α} (h : s ⊆ u) (t : set α) : s ⊆ t ∪ u :=
 subset.trans h (subset_union_right t u)
 
+lemma union_eq_union_of_subset_of_subset {s t a : set α} (h1 : s ⊆ t ∪ a) (h2 : t ⊆ s ∪ a) :
+  s ∪ a = t ∪ a :=
+sup_eq_sup_of_le_of_le h1 h2
+
+lemma union_eq_union_iff_subset_subset {s t a : set α} : s ∪ a = t ∪ a ↔ s ⊆ t ∪ a ∧ t ⊆ s ∪ a :=
+sup_eq_sup_iff_le_le
+
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 by simp only [← subset_empty_iff]; exact union_subset_iff
 
@@ -587,6 +594,13 @@ inter_eq_left_iff_subset.mpr
 
 theorem inter_eq_self_of_subset_right {s t : set α} : t ⊆ s → s ∩ t = t :=
 inter_eq_right_iff_subset.mpr
+
+lemma inter_eq_inter_of_subset_of_subset {s t a : set α} (h1 : t ∩ a ⊆ s) (h2 : s ∩ a ⊆ t) :
+  s ∩ a = t ∩ a :=
+inf_eq_inf_of_le_of_le h1 h2
+
+lemma inter_eq_inter_iff_subset_subset {s t a : set α} : s ∩ a = t ∩ a ↔ t ∩ a ⊆ s ∧ s ∩ a ⊆ t :=
+inf_eq_inf_iff_le_le
 
 @[simp] theorem inter_univ (a : set α) : a ∩ univ = a := inf_top_eq
 
@@ -1408,6 +1422,15 @@ lemma image_comm {β'} {f : β → γ} {g : α → β} {f' : α → β'} {g' : �
   (s.image g).image f = (s.image f').image g' :=
 by simp_rw [image_image, h_comm]
 
+lemma _root_.function.semiconj.set_image {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) :
+  function.semiconj (image f) (image ga) (image gb) :=
+λ s, image_comm h
+
+lemma _root_.function.commute.set_image {f g : α → α} (h : function.commute f g) :
+  function.commute (image f) (image g) :=
+h.set_image
+
 /-- Image is monotone with respect to `⊆`. See `set.monotone_image` for the statement in
 terms of `≤`. -/
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
@@ -1952,8 +1975,8 @@ instance can_lift [can_lift α β] : can_lift (set α) (set β) :=
   cond := λ s, ∀ x ∈ s, can_lift.cond β x,
   prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
-@[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
-range_iff_surjective.2 quot.exists_rep
+@[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
+range_quot_mk _
 
 lemma range_const_subset {c : α} : range (λ x : ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, rfl
@@ -1978,15 +2001,6 @@ by simp [range_subset_iff, funext_iff, mem_singleton]
 
 lemma image_compl_preimage {f : α → β} {s : set β} : f '' ((f ⁻¹' s)ᶜ) = range f \ s :=
 by rw [compl_eq_univ_diff, image_diff_preimage, image_univ]
-
-@[simp] theorem range_sigma_mk {β : α → Type*} (a : α) :
-  range (sigma.mk a : β a → Σ a, β a) = sigma.fst ⁻¹' {a} :=
-begin
-  apply subset.antisymm,
-  { rintros _ ⟨b, rfl⟩, simp },
-  { rintros ⟨x, y⟩ (rfl|_),
-    exact mem_range_self y }
-end
 
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=

@@ -330,6 +330,12 @@ open_locale nnreal
 open nnreal
 variables [cstar_ring A]
 
+-- this should go in `analysis.normed_space.star_basic`
+lemma _root_.cstar_ring.nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring E] [star_ring E]
+  [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
+by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
+
+
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := sorry
 lemma norm_left_eq_right (a : 𝓜(𝕜, A)) : ∥a.left∥ = ∥a.right∥ :=

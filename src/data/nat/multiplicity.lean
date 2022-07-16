@@ -169,11 +169,6 @@ begin
   simp [factorization_eq_card_pow_dvd n.succ pp, ←Ico_succ_right],
 end
 
--- ^^^ Versions translated into `factorization` ^^^
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
--- vvv Versions to translate into `factorization` vvv
-
 /--
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
 This sum is expressed over the finset `Ico 1 (log p n).succ`. -/
@@ -308,6 +303,13 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) :
     by simp only [nat.add_div (pow_pos hp.pos _)]
 ... = _ : by simp [sum_add_distrib, sum_boole]
+
+-- ^^^ Versions translated into `factorization` ^^^
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+-- vvv Versions to translate into `factorization` vvv
+
+
 
 /-- The multiplicity of `p` in `choose n k` is the number of carries when `k` and `n - k`
   are added in base `p`. The set is expressed by filtering `Ico 1 b` where `b`

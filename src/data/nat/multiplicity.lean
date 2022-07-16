@@ -80,7 +80,7 @@ sorry
 --------------------------------------------------------------------------------------------------
 
 -- Temp: Yaël is going to PR some lemmas about intervals
-lemma Icc_insert (n : ℕ): Icc 1 n.succ = insert n.succ (Icc 1 n) :=
+lemma Icc_insert_succ (n : ℕ): Icc 1 n.succ = insert n.succ (Icc 1 n) :=
  by { rw [←insert_erase (mem_Icc.2 ⟨succ_le_succ (zero_le n), rfl.le⟩),
       Icc_erase_right, Ico_succ_right] }
 
@@ -131,25 +131,24 @@ multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
 -- ^^^^ The counterparts of these are all already in data.nat.factorization.basic
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
--- vvv Versions to translate into `factorization` vvv
+-- vvv Versions translated into `factorization` vvv
 
 /-- **Legendre's Theorem**
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i` for `i ∈ Ico 1 n`. -/
+lemma factorization_factorial {p : ℕ} (pp : p.prime) {n : ℕ} :
+  n!.factorization p = (∑ i in Icc 1 n, n / p ^ i : ℕ) :=
+begin
+  induction n with n IHn, { simp },
+  simp_rw [Icc_insert_succ, sum_insert (λ H, not_succ_le_self n (mem_Icc.1 H).2),
+    nat.div_eq_zero (lt_pow_self pp.one_lt n.succ), zero_add, succ_div, sum_add_distrib, ←IHn,
+    factorial_succ, factorization_mul (succ_ne_zero n) (factorial_ne_zero n), add_comm],
+  simp [factorization_eq_card_pow_dvd n.succ pp, ←Ico_succ_right],
+end
 
-The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
-over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
-lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
-  ∀ {n b : ℕ}, log p n < b → multiplicity p n! = (∑ i in Ico 1 b, n / p ^ i : ℕ)
-| 0     b hb := by simp [Ico, hp.multiplicity_one]
-| (n+1) b hb :=
-  calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
-    by rw [factorial_succ, hp.multiplicity_mul, add_comm]
-  ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
-    by rw [multiplicity_factorial ((log_mono_right $ le_succ _).trans_lt hb),
-      ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
-  ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
-    by { rw [sum_add_distrib, sum_boole], simp }
-  ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
-    congr_arg coe $ finset.sum_congr rfl $ λ _ _, (succ_div _ _).symm
+-- ^^^ Versions translated into `factorization` ^^^
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+-- vvv Versions to translate into `factorization` vvv
 
 /-- The multiplicity of `p` in `(p * (n + 1))!` is one more than the sum
   of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/

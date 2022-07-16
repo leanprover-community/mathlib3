@@ -8,6 +8,16 @@ import data.finset.pointwise
 
 /-!
 # The Plünnecke-Ruzsa inequality
+
+This file proves Ruzsa's triangle inequality, the Plünnecke-Petridis lemma, and the Plünnecke-Ruzsa
+inequality.
+
+## Main declarations
+
+* `finset.card_sub_mul_le_card_sub_mul_card_sub`: Ruzsa's triangle inequality, difference version.
+* `finset.card_add_mul_le_card_add_mul_card_add`: Ruzsa's triangle inequality, sum version.
+* `finset.pluennecke_petridis`: The Plünnecke-Petridis lemma.
+* `finset.card_smul_sub_smul_le`: The Plünnecke-Ruzsa inequality.
 -/
 
 namespace finset
@@ -23,8 +33,6 @@ lemma exists_maximal_image (hs : s.nonempty) (f : ι → α) : ∃ i ∈ s, ∀ 
 by { classical, simpa using exists_maximal _ (hs.image f) }
 
 end
-
-lemma powerset_nonempty (s : finset α) : s.powerset.nonempty := ⟨∅, empty_mem_powerset _⟩
 
 open function
 open_locale pointwise
@@ -112,9 +120,10 @@ sup_congr_left (sdiff_le.trans le_sup_right) $ le_sup_sdiff.trans $ sup_le_sup_r
 
 end
 
-open finset nat
+open nat
 open_locale pointwise
 
+namespace finset
 variables {α : Type*} [add_comm_group α] [decidable_eq α] {A B C X : finset α}
 
 /-- **Ruzsa's triangle inequality** -/
@@ -183,6 +192,19 @@ end
 
 /-! ### Sum triangle inequality -/
 
+private lemma aux (hA : A.nonempty) (hAB : A ⊆ B)
+  (h : ∀ A' ∈ B.powerset.erase ∅, ((A + C).card : ℚ) / ↑(A.card) ≤ ((A' + C).card) / ↑(A'.card)) :
+  ∀ A' ⊆ A, (A + C).card * A'.card ≤ (A' + C).card * A.card :=
+begin
+  rintro A' hAA',
+  obtain rfl | hA' := A'.eq_empty_or_nonempty,
+  { simp },
+  have hA₀ : (0 : ℚ) < A.card := cast_pos.2 hA.card_pos,
+  have hA₀' : (0 : ℚ) < A'.card := cast_pos.2 hA'.card_pos,
+  exact_mod_cast (div_le_div_iff (hA₀) hA₀').1 (h _ $ mem_erase_of_ne_of_mem hA'.ne_empty $
+    mem_powerset.2 $ hAA'.trans hAB),
+end
+
 /-- **Ruzsa's triangle inequality** -/
 lemma card_add_mul_le_card_add_mul_card_add (A B C : finset α) :
   (A + C).card * B.card ≤ (A + B).card * (B + C).card :=
@@ -201,17 +223,9 @@ begin
   refine le_trans _ (mul_le_mul (hUA _ hB') (cast_le.2 $ card_le_of_subset $
     add_subset_add_right hU.2) (cast_nonneg _) $ div_nonneg (cast_nonneg _) $
     cast_nonneg _),
-  dsimp,
   rw [←mul_div_right_comm, ←add_assoc],
   refine (le_div_iff $ by exact cast_pos.2 hU.1.card_pos).2 _,
-  norm_cast,
-  refine pluennecke_petridis C (λ U' hUU', _),
-  obtain rfl | hU' := U'.eq_empty_or_nonempty,
-  { simp },
-  have hU₀ : (0 : ℚ) < U.card := cast_pos.2 hU.1.card_pos,
-  have hU₀' : (0 : ℚ) < U'.card := cast_pos.2 hU'.card_pos,
-  exact_mod_cast (div_le_div_iff hU₀ hU₀').1
-    (hUA _ $ mem_erase_of_ne_of_mem hU'.ne_empty $ mem_powerset.2 $ hUU'.trans hU.2),
+  exact_mod_cast pluennecke_petridis C (aux hU.1 hU.2 hUA),
 end
 
 /-- **Ruzsa's triangle inequality** -/
@@ -231,3 +245,46 @@ by { rw [sub_eq_add_neg, sub_eq_add_neg], exact card_add_mul_le_card_add_mul_car
 lemma card_sub_mul_le_card_sub_mul_card_add (A B C : finset α) :
   (A - C).card * B.card ≤ (A - B).card * (B + C).card :=
 by { rw [←sub_neg_eq_add, sub_eq_add_neg], exact card_add_mul_le_card_sub_mul_card_sub _ _ _ }
+
+lemma card_add_nsmul_le (hAB : ∀ A' ⊆ A, (A + B).card * A'.card ≤ (A' + B).card * A.card) (n : ℕ) :
+  ((A + n • B).card : ℚ) ≤ ((A + B).card / A.card) ^ n * A.card :=
+begin
+  obtain rfl | hA := A.eq_empty_or_nonempty,
+  { simp },
+  induction n with n ih,
+  { simp },
+  rw [succ_nsmul, ←add_assoc, pow_succ, mul_assoc, ←mul_div_right_comm, le_div_iff, ←cast_mul],
+  swap, exact (cast_pos.2 hA.card_pos),
+  refine (cast_le.2 $ pluennecke_petridis _ hAB).trans _,
+  rw cast_mul,
+  exact mul_le_mul_of_nonneg_left ih (cast_nonneg _),
+end
+
+/-- The **Plünnecke-Ruzsa inequality**. -/
+lemma card_smul_sub_smul_le (hB : B.nonempty) (m n : ℕ) :
+  ((m • B - n • B).card : ℚ) ≤ ((B + B).card / B.card) ^ (m + n) * B.card :=
+begin
+  have hB' : B ∈ B.powerset.erase ∅ := mem_erase_of_ne_of_mem hB.ne_empty (mem_powerset_self _),
+  obtain ⟨A, hA, hAB⟩ := exists_min_image (B.powerset.erase ∅) (λ A, (A + B).card/A.card : _ → ℚ)
+    ⟨B, hB'⟩,
+  rw [mem_erase, mem_powerset, ←nonempty_iff_ne_empty] at hA,
+  refine (mul_le_mul_right $ cast_pos.2 hA.1.card_pos).1 _,
+  norm_cast,
+  refine (cast_le.2 $ card_sub_mul_le_card_add_mul_card_add _ _ _).trans _,
+  push_cast,
+  rw [add_comm],
+  refine (mul_le_mul (card_add_nsmul_le (aux hA.1 hA.2 hAB) _)
+    (card_add_nsmul_le (aux hA.1 hA.2 hAB) _) (cast_nonneg _) $
+    mul_nonneg (pow_nonneg (div_nonneg (cast_nonneg _) $ cast_nonneg _) _) $ cast_nonneg _).trans _,
+  rw [mul_mul_mul_comm, ←pow_add, ←mul_assoc],
+  refine mul_le_mul_of_nonneg_right _ (cast_nonneg _),
+  refine mul_le_mul _ _ _ _,
+  refine pow_le_pow_of_le_left (div_nonneg (cast_nonneg _) $ cast_nonneg _) _ _,
+  refine hAB _ hB',
+  refine cast_le.2 (card_le_of_subset hA.2),
+  refine cast_nonneg _,
+  refine pow_nonneg _ _,
+  refine div_nonneg (cast_nonneg _) (cast_nonneg _),
+end
+
+end finset

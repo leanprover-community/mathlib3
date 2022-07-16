@@ -66,7 +66,7 @@ open_locale pointwise
 
 namespace add_monoid
 
-variables (A α : Type*) [add_monoid A] [has_scalar α A] [has_zero α]
+variables (A α : Type*) [add_monoid A] [has_smul α A] [has_zero α]
 
 /--
 An `add_monoid A` is `α`-divisible iff `n • x = a` has a solution for all `n ≠ 0 ∈ α` and `a ∈ A`.
@@ -81,7 +81,7 @@ class divisible_by :=
 
 section pi
 
-variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_scalar β (B i)]
+variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_smul β (B i)]
 variables [has_zero β] [Π (i : ι), add_monoid (B i)] [Π i, divisible_by (B i) β]
 
 instance divisible_by_pi : divisible_by (Π i, B i) β :=
@@ -94,7 +94,7 @@ end pi
 section prod
 
 variables {β B B' : Type*} [has_zero β] [add_monoid B] [add_monoid B']
-variables [has_scalar β B] [has_scalar β B'] [divisible_by B β] [divisible_by B' β]
+variables [has_smul β B] [has_smul β B'] [divisible_by B β] [divisible_by B' β]
 
 instance divisible_by_prod : divisible_by (B × B') β :=
 { div := λ p n, (divisible_by.div p.1 n, divisible_by.div p.2 n),

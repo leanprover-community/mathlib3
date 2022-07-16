@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.AffineScheme
+import topology.spectral.hom
 
 /-!
 # Quasi-compact morphisms
@@ -34,6 +35,10 @@ of quasi-compact open sets are quasi-compact.
 class quasi_compact (f : X ⟶ Y) : Prop :=
 (is_compact_preimage : ∀ U : set Y.carrier, is_open U → is_compact U → is_compact (f.1.base ⁻¹' U))
 
+/-- Being `quasi_comapact` only depends on the underlying map between the topological spaces. -/
+lemma quasi_compact_iff_spectral : quasi_compact f ↔ is_spectral_map f.1.base :=
+⟨λ ⟨h⟩, ⟨by continuity, h⟩, λ h, ⟨h.2⟩⟩
+
 @[priority 900]
 instance quasi_compact_of_is_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] : quasi_compact f :=
 begin
@@ -59,58 +64,11 @@ end
 instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
 ⟨(top_is_affine_open X).is_compact⟩
 
-/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
-  it is a finite union of some elements in the basis -/
-lemma is_compact_open_iff_eq_finset_Union_of_is_topological_basis {α : Type*} [topological_space α]
-  {ι : Type*} (b : ι → set α) (hb : is_topological_basis (set.range b))
-  (hb' : ∀ i, is_compact (b i)) (U : set α) :
-  is_compact U ∧ is_open U ↔ ∃ (s : finset ι), U = ⋃ i : s, b i :=
-begin
-  classical,
-  split,
-  { rintro ⟨h₁, h₂⟩,
-    obtain ⟨β, f, e, hf⟩ := hb.open_eq_Union h₂,
-    choose f' hf' using hf,
-    have : b ∘ f' = f := funext hf', subst this,
-    obtain ⟨t, ht⟩ := h₁.elim_finite_subcover (b ∘ f')
-      (λ i, hb.is_open (set.mem_range_self _)) (by rw e),
-    use t.image f',
-    apply le_antisymm,
-    { refine set.subset.trans ht _,
-      simp only [set.Union_subset_iff, coe_coe],
-      intros i hi,
-      exact set.subset_Union (λ i : t.image f', b i) ⟨_, finset.mem_image_of_mem _ hi⟩ },
-    { apply set.Union_subset,
-      rintro ⟨i, hi⟩,
-      obtain ⟨j, hj, rfl⟩ := finset.mem_image.mp hi,
-      rw e,
-      exact set.subset_Union (b ∘ f') j } },
-  { rintro ⟨s, rfl⟩,
-    split,
-    { convert @finset.compact_bUnion _ _ _ s.attach _ _,
-      { ext y, simp },
-      { exact λ i _, hb' i } },
-    { apply is_open_Union, rintro i, exact hb.is_open (set.mem_range_self _) } },
-end
-
-
-/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
-  it is a finite union of some elements in the basis -/
-lemma is_compact_open_iff_eq_finset_Union_of_opens_is_basis {α : Type*} [topological_space α]
-  {ι : Type*} (b : ι → opens α) (hb : opens.is_basis (set.range b))
-  (hb' : ∀ i, is_compact (b i : set α)) (U : set α) :
-  is_compact U ∧ is_open U ↔ ∃ (s : finset ι), U = ⋃ i : s, b i :=
-begin
-  apply is_compact_open_iff_eq_finset_Union_of_is_topological_basis
-    (λ i : ι, (b i).1),
-  { convert hb, ext, simp },
-  { exact hb' }
-end
-
 lemma is_compact_open_iff_eq_finset_affine_union {X : Scheme} (U : set X.carrier) :
-  is_compact U ∧ is_open U ↔ ∃ (s : set X.affine_opens), s.finite ∧ U = ⋃ i ∈ s, i :=
+  is_compact U ∧ is_open U ↔
+    ∃ (s : set X.affine_opens), s.finite ∧ U = ⋃ (i : X.affine_opens) (h : i ∈ s), i :=
 begin
-  apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
+  apply opens.is_compact_open_iff_eq_finite_Union_of_is_basis
     (coe : X.affine_opens → opens X.carrier),
   { rw subtype.range_coe, exact is_basis_affine_open X },
   { intro i, exact i.2.is_compact }
@@ -118,9 +76,10 @@ end
 
 lemma is_compact_open_iff_eq_basic_open_union {X : Scheme} [is_affine X] (U : set X.carrier) :
   is_compact U ∧ is_open U ↔
-    ∃ (s : finset (X.presheaf.obj (op ⊤))), U = ⋃ (i : s), X.basic_open i.1 :=
+    ∃ (s : set (X.presheaf.obj (op ⊤))), s.finite ∧
+      U = ⋃ (i : X.presheaf.obj (op ⊤)) (h : i ∈ s), X.basic_open i :=
 begin
-  apply is_compact_open_iff_eq_finset_Union_of_opens_is_basis,
+  apply opens.is_compact_open_iff_eq_finite_Union_of_is_basis,
   { exact is_basis_basic_open X },
   { intro i, exact ((top_is_affine_open _).basic_open_is_affine _).is_compact }
 end
@@ -131,10 +90,9 @@ begin
   rw quasi_compact_iff,
   refine ⟨λ H U hU, H U U.prop hU.is_compact, _⟩,
   intros H U hU hU',
-  obtain ⟨S, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
+  obtain ⟨S, hS, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
   simp only [set.preimage_Union, subtype.val_eq_coe],
-  convert S.compact_bUnion (λ i _, H i i.prop) using 1,
-  exact set.Union_subtype _ _
+  exact hS.compact_bUnion (λ i _, H i i.prop)
 end
 
 lemma Scheme.open_cover.Union_range {X : Scheme} (𝒰 : X.open_cover) :
@@ -146,9 +104,10 @@ begin
   exact ⟨𝒰.f x, 𝒰.covers x⟩
 end
 
-lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [fintype 𝒰.J]
+lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [finite 𝒰.J]
   [H : ∀ i, compact_space (𝒰.obj i).carrier] : compact_space X.carrier :=
 begin
+  casesI nonempty_fintype 𝒰.J,
   rw [← is_compact_univ_iff, ← 𝒰.Union_range],
   apply compact_Union,
   intro i,
@@ -159,25 +118,27 @@ begin
     subtype.range_coe.symm).hom.1.base))
 end
 
-lemma compact_open_induction_on (P : opens X.carrier → Prop)
+@[elab_as_eliminator]
+lemma compact_open_induction_on {P : opens X.carrier → Prop} (S : opens X.carrier)
+  (hS : is_compact S.1)
   (h₁ : P ⊥)
   (h₂ : ∀ (S : opens X.carrier) (hS : is_compact S.1) (U : X.affine_opens), P S → P (S ⊔ U)) :
-  ∀ (S : opens X.carrier) (hS : is_compact S.1), P S :=
+    P S :=
 begin
   classical,
-  intros S hS,
-  obtain ⟨s, hs⟩ := (is_compact_open_iff_eq_finset_affine_union S.1).mp ⟨hS, S.2⟩,
-  replace hs : S = supr (λ i : s, (i : opens X.carrier)) := by { ext1, simpa using hs },
-  subst hs,
-  induction s using finset.induction with x s h₃ h₄,
+  obtain ⟨s, hs, hs'⟩ := (is_compact_open_iff_eq_finset_affine_union S.1).mp ⟨hS, S.2⟩,
+  replace hs' : S = supr (λ i : s, (i : opens X.carrier)) := by { ext1, simpa using hs' },
+  subst hs',
+  apply hs.induction_on,
   { convert h₁, rw supr_eq_bot, rintro ⟨_, h⟩, exact h.elim },
-  { have : is_compact (⨆ i : s, (i : opens X.carrier)).1,
-    { refine ((is_compact_open_iff_eq_finset_affine_union _).mpr _).1, use s, simp },
-    convert h₂ _ this x (h₄ this),
+  { intros x s h₃ hs h₄,
+    have : is_compact (⨆ i : s, (i : opens X.carrier)).1,
+    { refine ((is_compact_open_iff_eq_finset_affine_union _).mpr _).1, exact ⟨s, hs, by simp⟩ },
+    convert h₂ _ this x h₄,
     simp only [coe_coe],
     rw [supr_subtype, sup_comm],
     conv_rhs { rw supr_subtype },
-    exact finset.supr_insert _ _ _ }
+    exact supr_insert }
 end
 
 end algebraic_geometry

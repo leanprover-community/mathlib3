@@ -177,7 +177,7 @@ end
 /--
 The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
 This sum is expressed over the finset `Ico 1 (log p n).succ`. -/
-lemma factorization_factorial'' {p : ℕ} (hp : p.prime) (n : ℕ) :
+lemma factorization_factorial' {p : ℕ} (hp : p.prime) (n : ℕ) :
   ∀ {n : ℕ}, n!.factorization p = (∑ i in Ico 1 (log p n).succ, n / p ^ i : ℕ) :=
 begin
   intro n,
@@ -212,14 +212,14 @@ end
 
 
 /--
-The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
-over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
-lemma factorization_factorial' {p : ℕ} (hp : p.prime) :
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
+This sum is expressed over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
+lemma factorization_factorial'' {p : ℕ} (hp : p.prime) :
   ∀ {n b : ℕ}, log p n < b → n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
 begin
   rintro n b hbn,
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  rw factorization_factorial'' hp b,
+  rw factorization_factorial' hp b,
   rw ← @sum_Ico_consecutive ℕ _ _ 1 (log p n).succ b _ (succ_le_iff.2 hbn),
   { simp,
     rintro x hx1 hx2,
@@ -283,7 +283,7 @@ end
 lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
    p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
 begin
-  rw ←factorization_factorial' hp hbn,
+  rw ←factorization_factorial'' hp hbn,
   exact hp.pow_dvd_iff_le_factorization (factorial_ne_zero n),
 end
 
@@ -293,7 +293,7 @@ by { rw hp.factorization_factorial, apply nat.geom_sum_Ico_le hp.two_le }
 
 
 
-#exit
+-- #exit
 
 
 

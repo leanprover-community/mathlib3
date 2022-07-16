@@ -6,6 +6,7 @@ Authors: Jujian Zhang
 import group_theory.subgroup.pointwise
 import group_theory.group_action.pi
 import group_theory.quotient_group
+import algebra.group.pi
 
 /-!
 # Divisible Group and rootable group
@@ -163,10 +164,6 @@ end pi
 section prod
 
 variables {β B B' : Type*} [has_pow B β] [has_pow B' β]
-
-instance has_pow_prod : has_pow (B × B') β :=
-{ pow := λ p n, (p.1^n, p.2^n) }
-
 variables [has_zero β] [monoid B] [monoid B'] [rootable_by B β] [rootable_by B' β]
 
 @[to_additive add_monoid.divisible_by_prod]

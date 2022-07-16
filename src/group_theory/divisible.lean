@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
+import group_theory.group_action.pi
 import group_theory.quotient_group
 
 /-!
@@ -13,7 +14,7 @@ In this file, we define a divisible add monoid and a rootable monoid with some b
 
 ## Main definition
 * An additive monoid `A` is said to be divisible by `α` iff for all `n ≠ 0 ∈ α` and `y ∈ A`, there
-  is an `x ∈ A` such that `n • x = y`. In this file, we adpot a constructive approach, i.e. we ask
+  is an `x ∈ A` such that `n • x = y`. In this file, we adopt a constructive approach, i.e. we ask
   for an explicit `div : A → α → A` function such that `div a 0 = 0` and `n • div a n = a` for all
   `n ≠ 0 ∈ α`.
 * A monoid `A` is said to be rootable by `α` iff for all `n ≠ 0 ∈ α` and `y ∈ A`, there is an
@@ -80,11 +81,12 @@ class divisible_by :=
 section pi
 
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_scalar β (B i)]
-
-instance has_scalar_pi : has_scalar β (Π i, B i) :=
-{ smul := λ n x i, n • (x i) }
-
 variables [has_zero β] [Π (i : ι), add_monoid (B i)] [Π i, divisible_by (B i) β]
+
+instance divisible_by_pi : divisible_by (Π i, B i) β :=
+{ div := λ x n i, divisible_by.div (x i) n,
+  div_zero := λ x, funext $ λ i, divisible_by.div_zero _,
+  div_cancel := λ n x hn, funext $ λ i, divisible_by.div_cancel _ hn }
 
 end pi
 
@@ -123,8 +125,8 @@ class rootable_by :=
 (root_cancel : ∀ {n : α} (a : A), n ≠ 0 → (root a n)^n = a)
 
 @[to_additive smul_surj_of_divisible_by]
-lemma pow_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
-  function.surjective ((flip (^)) n : A → A) :=
+lemma pow_left_surj_of_rootable_by [rootable_by A α] {n : α} (hn : n ≠ 0) :
+  function.surjective (λ a, pow a n : A → A) :=
 λ x, ⟨rootable_by.root x n, rootable_by.root_cancel _ hn⟩
 
 /--
@@ -135,24 +137,22 @@ implies the textbook approach.
 "An `add_monoid A` is `α`-divisible iff `n • _` is a surjective function, i.e. the constructive
 version implies the textbook approach."]
 noncomputable def rootable_by_of_pow_surj
-  [Π (n : α), decidable (n = 0)]
-  (H : ∀ {n : α}, n ≠ 0 → function.surjective ((flip (^)) n : A → A)) :
+  (H : ∀ {n : α}, n ≠ 0 → function.surjective (λ a, a^n : A → A)) :
 rootable_by A α :=
-{ root := λ a n, dite (n = 0) (λ _, 1) (λ hn, (H hn a).some),
-  root_zero := λ _, dif_pos rfl,
+{ root := λ a n, @dite _ (n = 0) (classical.dec _) (λ _, (1 : A)) (λ hn, (H hn a).some),
+  root_zero := λ _, by classical; exact dif_pos rfl,
   root_cancel := λ n a hn, by rw dif_neg hn; exact (H hn a).some_spec }
 
 section pi
 
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_pow (B i) β]
 
-@[to_additive add_monoid.has_scalar_pi]
 instance has_pow_pi : has_pow (Π i, B i) β :=
 { pow := λ x n i, (x i)^n }
 
 variables [has_zero β] [Π (i : ι), monoid (B i)] [Π i, rootable_by (B i) β]
 
-@[to_additive]
+@[to_additive add_monoid.divisible_by_pi]
 instance rootable_by_pi : rootable_by (Π i, B i) β :=
 { root := λ x n i, rootable_by.root (x i) n,
   root_zero := λ x, funext $ λ i, rootable_by.root_zero _,

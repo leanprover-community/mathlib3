@@ -31,7 +31,8 @@ open_locale complex_conjugate
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
-@[simps] def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
+@[simps apply]
+def equiv_real_prod : ℂ ≃ (ℝ × ℝ) :=
 { to_fun := λ z, ⟨z.re, z.im⟩,
   inv_fun := λ p, ⟨p.1, p.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
@@ -159,6 +160,10 @@ lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
 lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
 lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
 lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
+
+@[simp] lemma equiv_real_prod_symm_apply (p : ℝ × ℝ) :
+  equiv_real_prod.symm p = p.1 + p.2 * I :=
+by { ext; simp [equiv_real_prod] }
 
 /-! ### Commutative ring instance and lemmas -/
 

@@ -84,13 +84,16 @@ instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y | _ _ h rfl := irrefl _ h
 lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _ _ h rfl := irrefl _ h
 
-lemma not_rel (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
+lemma not_rel_of_subsingleton (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
 subsingleton.elim x y ▸ irrefl x
+
+lemma rel_of_subsingleton (r) [is_refl α r] [subsingleton α] (x y) : r x y :=
+subsingleton.elim x y ▸ refl x
 
 @[simp] lemma empty_relation_apply (a b : α) : empty_relation a b ↔ false := iff.rfl
 
 lemma eq_empty_relation (r) [is_irrefl α r] [subsingleton α] : r = empty_relation :=
-funext₂ $ by simpa using not_rel r
+funext₂ $ by simpa using not_rel_of_subsingleton r
 
 instance : is_irrefl α empty_relation := ⟨λ a, id⟩
 
@@ -246,8 +249,8 @@ def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
 theorem subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
   is_well_order α r :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim a b,
-  trans        := λ a b c h, (not_rel r a b h).elim,
-  wf           := ⟨λ a, ⟨_, λ y h, (not_rel r y a h).elim⟩⟩,
+  trans        := λ a b c h, (not_rel_of_subsingleton r a b h).elim,
+  wf           := ⟨λ a, ⟨_, λ y h, (not_rel_of_subsingleton r y a h).elim⟩⟩,
   ..hr }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=

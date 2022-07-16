@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import algebra.group_with_zero.power
 import data.set.intervals.pi
 import order.filter.interval
-import topology.algebra.group
+import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
 
@@ -249,20 +249,10 @@ section partial_order
 variables [topological_space α] [partial_order α] [t : order_closed_topology α]
 include t
 
-private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
-by simp only [le_antisymm_iff];
-   exact is_closed.inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
-
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
-{ t2 :=
-  have is_open {p : α × α | p.1 ≠ p.2} := is_closed_eq_aux.is_open_compl,
-  assume a b h,
-  let ⟨u, v, hu, hv, ha, hb, h⟩ := is_open_prod_iff.mp this a b h in
-  ⟨u, v, hu, hv, ha, hb,
-    set.eq_empty_iff_forall_not_mem.2 $ assume a ⟨h₁, h₂⟩,
-    have a ≠ a, from @h (a, a) ⟨h₁, h₂⟩,
-    this rfl⟩ }
+t2_iff_is_closed_diagonal.2 $ by simpa only [diagonal, le_antisymm_iff] using
+  t.is_closed_le'.inter (is_closed_le continuous_snd continuous_fst)
 
 end partial_order
 
@@ -1093,7 +1083,7 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
-instance order_topology.regular_space : regular_space α :=
+instance order_topology.t3_space : t3_space α :=
 { regular := assume s a hs ha,
     have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
@@ -1271,23 +1261,23 @@ sometimes Lean fails to unify different instances while trying to apply the depe
 e.g., `ι → ℝ`.
 -/
 
-variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+variables {ι : Type*} {π : ι → Type*} [finite ι] [Π i, linear_order (π i)]
   [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
 
 lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
-pi_univ_Iic a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Iic_mem_nhds (ha _))
+pi_univ_Iic a ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Iic_mem_nhds (ha _))
 
 lemma pi_Iic_mem_nhds' (ha : ∀ i, x' i < a' i) : Iic a' ∈ 𝓝 x' :=
 pi_Iic_mem_nhds ha
 
 lemma pi_Ici_mem_nhds (ha : ∀ i, a i < x i) : Ici a ∈ 𝓝 x :=
-pi_univ_Ici a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Ici_mem_nhds (ha _))
+pi_univ_Ici a ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Ici_mem_nhds (ha _))
 
 lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
 pi_Ici_mem_nhds ha
 
 lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
-pi_univ_Icc a b ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+pi_univ_Icc a b ▸ set_pi_mem_nhds finite_univ (λ i _, Icc_mem_nhds (ha _) (hb _))
 
 lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
 pi_Icc_mem_nhds ha hb
@@ -1296,7 +1286,7 @@ variables [nonempty ι]
 
 lemma pi_Iio_mem_nhds (ha : ∀ i, x i < a i) : Iio a ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Iio_subset a),
   exact Iio_mem_nhds (ha i)
 end
@@ -1312,7 +1302,7 @@ pi_Ioi_mem_nhds ha
 
 lemma pi_Ioc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioc a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ioc_subset a b),
   exact Ioc_mem_nhds (ha i) (hb i)
 end
@@ -1322,7 +1312,7 @@ pi_Ioc_mem_nhds ha hb
 
 lemma pi_Ico_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ico a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ico_subset a b),
   exact Ico_mem_nhds (ha i) (hb i)
 end
@@ -1332,7 +1322,7 @@ pi_Ico_mem_nhds ha hb
 
 lemma pi_Ioo_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioo a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ioo_subset a b),
   exact Ioo_mem_nhds (ha i) (hb i)
 end
@@ -1669,7 +1659,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
       refine linear_ordered_add_comm_group.tendsto_nhds.2 (λ ε ε0, _),
       rcases dense_or_discrete 0 ε with (⟨δ, δ0, δε⟩|⟨h₁, h₂⟩),
       { -- If there exists `δ ∈ (0, ε)`, then we choose `δ`-nhd of `a` and `(ε-δ)`-nhd of `b`
-        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
+        filter_upwards [(eventually_abs_sub_lt a δ0).prod_nhds
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
         rw [add_sub_add_comm],
@@ -1680,8 +1670,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         have hε : ∀ {x y}, |x - y| < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },
-        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a ε0)
-          (eventually_abs_sub_lt b ε0)],
+        filter_upwards [(eventually_abs_sub_lt a ε0).prod_nhds (eventually_abs_sub_lt b ε0)],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < ε, hy : |y - b| < ε⟩,
         simpa [hε hx, hε hy] }
     end,
@@ -1890,7 +1879,7 @@ begin
     ... ≤ 1 + ε : by ring_nf }
 end
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
 ⟨begin
   rw continuous_iff_continuous_at,
@@ -2070,6 +2059,45 @@ begin
       exact tendsto_const_nhds },
     { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
+
+-- TODO: With a different proof, this could be possibly generalised to only require a
+-- `linear_ordered_semifield` instance, which would also remove the need for the
+-- `nnreal` instance of `has_continuous_inv₀`.
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
+{ continuous_at_inv₀ :=
+  begin
+    suffices : ∀ {x : α}, 0 < x → continuous_at has_inv.inv x,
+    { intros x hx,
+      cases hx.symm.lt_or_lt,
+      { exact this h },
+      convert (this $ neg_pos.mpr h).neg.comp continuous_neg.continuous_at,
+      ext,
+      simp [neg_inv] },
+    intros t ht,
+    rw [continuous_at,
+        (nhds_basis_Ioo_pos t).tendsto_iff $ nhds_basis_Ioo_pos_of_pos $ inv_pos.2 ht],
+    rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
+    refine ⟨min (t ^ 2 * ε / 2) (t / 2),
+            lt_min (half_pos $ mul_pos (by nlinarith) hε) $ by linarith, λ x h, _⟩,
+    have hx : t / 2 < x,
+    { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
+      nlinarith },
+    have hx' : 0 < x := (half_pos ht).trans hx,
+    have aux : 0 < 2 / t ^ 2 := div_pos zero_lt_two (sq_pos_of_pos ht),
+    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
+    rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
+    suffices : |t * x|⁻¹ < 2 / t ^ 2,
+    { rw [←abs_neg, neg_sub],
+      refine (mul_lt_mul'' h this (abs_nonneg _) $ inv_nonneg.mpr $ abs_nonneg _).trans_le _,
+      rw [mul_comm, mul_min_of_nonneg _ _ aux.le],
+      apply min_le_of_left_le,
+      rw [←mul_div, ←mul_assoc, div_mul_cancel _ (sq_pos_of_pos ht).ne',
+          mul_div_cancel' ε two_ne_zero] },
+    refine inv_lt_of_inv_lt aux _,
+    rw [inv_div, abs_of_pos $ mul_pos ht hx', sq, ←mul_div_assoc'],
+    exact mul_lt_mul_of_pos_left hx ht
+  end }
 
 end linear_ordered_field
 

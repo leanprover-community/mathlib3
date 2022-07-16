@@ -199,7 +199,7 @@ begin
   suffices : ∀ x : α, ∃ s : S, irreducible_component x = s,
   { choose f hf,
     rw [show irreducible_component = coe ∘ f, from funext hf, set.range_comp],
-    exact set.finite.image _ (set.finite.intro infer_instance) },
+    exact (set.finite.intro infer_instance).image _ },
   intro x,
   obtain ⟨z, hz, hz'⟩ : ∃ (z : set α) (H : z ∈ finset.image coe S), irreducible_component x ⊆ z,
   { convert is_irreducible_iff_sUnion_closed.mp

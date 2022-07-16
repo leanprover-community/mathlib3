@@ -721,6 +721,16 @@ begin
 end
 
 @[elab_as_eliminator]
+theorem finite.induction_on' {C : Π (s : set α), Prop} {S : set α} (h : S.finite)
+(H0 : C ∅) (H1 : ∀ {a s}, a ∈ S → s ⊆ S → a ∉ s → C s → C (insert a s)) : C S :=
+begin
+  convert @finset.induction_on' α (λ s, C s) (classical.dec_eq α) h.to_finset H0 _, { simp },
+  push_cast,
+  intros x t h₃ h₄,
+  apply @H1 x t; simp [*, set.subset_to_finset_iff h] at *,
+end
+
+@[elab_as_eliminator]
 theorem finite.dinduction_on {C : ∀ (s : set α), s.finite → Prop} {s : set α} (h : s.finite)
   (H0 : C ∅ finite_empty)
   (H1 : ∀ {a s}, a ∉ s → ∀ h : set.finite s, C s h → C (insert a s) (h.insert a)) :

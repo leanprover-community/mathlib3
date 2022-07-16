@@ -371,7 +371,11 @@ open pSet
 /-- Turns a pre-set into a ZFC set. -/
 def mk : pSet → Set := quotient.mk
 
-@[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+@[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
+@[simp] theorem mk_out : ∀ x : Set, mk x.out = x := quotient.out_eq
+theorem eq {x y : pSet} : mk x = mk y ↔ equiv x y := quotient.eq
+theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound h
+theorem exact {x y : pSet} : mk x = mk y → pSet.equiv x y := quotient.exact
 
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=

@@ -1,5 +1,25 @@
+/-
+Copyright (c) 2022 Matej Penciak. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Matej Penciak, Moritz Doll, Fabien Clery
+-/
+
 import data.real.basic
 import linear_algebra.matrix.nonsingular_inverse
+
+/-!
+# The Symplectic Group
+
+## Main Definitions
+
+`J`
+`symplectic_group`
+
+## Implementation Notes
+
+## TODO
+* Fill in all this stuff
+-/
 
 open_locale matrix
 
@@ -9,7 +29,7 @@ section J_matrix_lemmas
 
 namespace matrix
 
-variables (l) [decidable_eq l] [fintype l]
+variables (l) [decidable_eq l]
 
 lemma neg_one : (-1 : matrix l l ℝ)  = (-1 : ℝ) • 1  := by simp only [neg_smul, one_smul]
 
@@ -43,6 +63,8 @@ begin
   simp [from_blocks],
 end
 
+variables [fintype l]
+
 lemma J_squared : (J l ℝ) ⬝ (J l ℝ) = -1 :=
 begin
   unfold J,
@@ -60,11 +82,10 @@ end
 
 lemma J_det : det (J l ℝ) = 1 ∨ det (J l ℝ) = - 1:=
 begin
-  have H : (det (J l ℝ)) * (det (J l ℝ)) = 1 := by {
-    rw [←det_mul, J_squared, neg_one, det_smul],
+  have H : (det (J l ℝ)) * (det (J l ℝ)) = 1 := by
+  { rw [←det_mul, J_squared, neg_one, det_smul],
     simp only [fintype.card_sum, det_one, mul_one],
-    rw minus_powers,
-  },
+    rw minus_powers },
   rw [←sq_eq_one_iff, pow_two],
   exact H,
 end
@@ -75,17 +96,11 @@ end matrix
 
 end J_matrix_lemmas
 
-
-
-
-
-
-
-
 open matrix
 
 variables (l) [decidable_eq l] [fintype l]
 
+/-- TODO: Fill in this docstring -/
 def symplectic_group : submonoid (matrix (l ⊕ l) (l ⊕ l)  ℝ) :=
 { carrier := { A | A ⬝ (J l ℝ) ⬝ Aᵀ = J l ℝ},
   mul_mem' :=
@@ -110,14 +125,6 @@ instance coe_matrix : has_coe (symplectic_group l) (matrix (l ⊕ l) (l ⊕ l)  
 instance coe_fun : has_coe_to_fun (symplectic_group l) (λ _, (l ⊕ l) → (l ⊕ l) → ℝ) :=
 { coe := λ A, A.val }
 
-
-
-
-
-
-
-
-
 section coe_lemmas
 
 variables (A B : symplectic_group l)
@@ -137,14 +144,6 @@ submonoid.mul_mem _ hA hB
 
 end coe_lemmas
 
-
-
-
-
-
-
-
-
 section symplectic_J
 
 variables (l)
@@ -157,6 +156,7 @@ begin
   simp,
 end
 
+/-- TODO: Fill in this doc string -/
 def sym_J : symplectic_group l := ⟨J l ℝ, J_mem l⟩
 
 variables {l}
@@ -166,13 +166,6 @@ variables {l}
 @[simp] lemma J_apply : ⇑(sym_J l) = J l ℝ := rfl
 
 end symplectic_J
-
-
-
-
-
-
-
 
 variables {A : matrix (l ⊕ l) (l ⊕ l) ℝ}
 
@@ -223,10 +216,9 @@ lemma transpose_mem_iff : Aᵀ ∈ symplectic_group l ↔ A ∈ symplectic_group
 lemma mem_iff' : A ∈ symplectic_group l ↔ Aᵀ ⬝ (J l ℝ) ⬝ A = J l ℝ :=
 by rw [←transpose_mem_iff, mem_iff, transpose_transpose]
 
-instance : has_inv (symplectic_group l) := {
-  inv := λ A, ⟨- (J l ℝ) ⬝ Aᵀ ⬝ (J l ℝ),
-    mul_mem (mul_mem (neg_mem $ J_mem l) $ transpose_mem A.2) $ J_mem _⟩,
-}
+instance : has_inv (symplectic_group l) :=
+{ inv := λ A, ⟨- (J l ℝ) ⬝ Aᵀ ⬝ (J l ℝ),
+  mul_mem (mul_mem (neg_mem $ J_mem l) $ transpose_mem A.2) $ J_mem _⟩ }
 
 @[simp] lemma coe_inv (A : symplectic_group l): (↑(A⁻¹) : matrix _ _ _) = - (J l ℝ) ⬝ Aᵀ ⬝ (J l ℝ)
   := rfl
@@ -242,8 +234,8 @@ calc -(J l ℝ ⬝ Aᵀ ⬝ J l ℝ ⬝ A)
 ... = (-1 : ℝ) • -1 : by rw J_squared
 ... = 1 : by simp only [neg_smul_neg, one_smul]
 
-instance : group (symplectic_group l) := {
-  mul_left_inv :=
+instance : group (symplectic_group l) :=
+{ mul_left_inv :=
   begin
     intro A,
     apply subtype.ext,
@@ -251,7 +243,6 @@ instance : group (symplectic_group l) := {
     exact inv_left_mul_aux A.2,
   end,
   .. symplectic_group.has_inv,
-  .. submonoid.to_monoid _
-}
+  .. submonoid.to_monoid _ }
 
 end symplectic_group

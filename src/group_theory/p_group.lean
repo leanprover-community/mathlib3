@@ -104,6 +104,12 @@ begin
   exact ⟨k, hk2⟩,
 end
 
+lemma nontrivial_iff_card [fintype G] : nontrivial G ↔ ∃ n > 0, card G = p ^ n :=
+⟨λ hGnt, let ⟨k, hk⟩ := iff_card.1 hG in ⟨k, nat.pos_of_ne_zero $ λ hk0,
+  by rw [hk0, pow_zero] at hk; exactI fintype.one_lt_card.ne' hk, hk⟩,
+λ ⟨k, hk0, hk⟩, one_lt_card_iff_nontrivial.1 $ hk.symm ▸
+  one_lt_pow (fact.out p.prime).one_lt (ne_of_gt hk0)⟩
+
 variables {α : Type*} [mul_action G α]
 
 lemma card_orbit (a : α) [fintype (orbit G a)] :
@@ -171,84 +177,6 @@ begin
   ⟨b, hb, λ hab, hba (by simp_rw [hab])⟩
 end
 
-section p2comm
-
-variables [fintype G] {n : ℕ} (hGpn : card G = p ^ n)
-omit hG
-include hGpn
-open subgroup
-
-/-instance decidable_pred_fixed_points : decidable_pred (fixed_points (conj_act G) G) :=
-λ x, fintype.decidable_forall_fintype
-
-instance decidable_pred_center : decidable_pred (λ x, x ∈ center G) :=
-λ x, fintype.decidable_forall_fintype-/
-
-/-- `p`-groups have non-trivial `center` -/
-lemma exists_ne_one_mem_center (hn : 0 < n) : ∃ g ≠ (1 : G), g ∈ center G :=
-begin
-  classical,
-  have : ∃ g : G, g ∈ fixed_points (conj_act G) G ∧ 1 ≠ g :=
-    exists_fixed_point_of_prime_dvd_card_of_fixed_point (of_card hGpn) G
-      (hGpn.symm ▸ (dvd_pow (dvd_refl p) (pos_iff_ne_zero.1 hn)))
-      (show (1 : G) ∈ fixed_points (conj_act G) G,
-        by simp [conj_act.fixed_points_eq_center, subgroup.one_mem]),
-  by simpa [conj_act.fixed_points_eq_center, eq_comm, and.comm]
-end
-
-/-- The cardinality of the `center` of a `p`-group is `p ^ k` where `k` is positive. -/
-lemma card_center_eq_prime_pow (hn : 0 < n) [fintype (center G)] :
-  ∃ k > 0, card (center G) = p ^ k :=
-have card (center G) ∣ p ^ n,
-  from hGpn ▸ card_subgroup_dvd_card (center G),
-begin
-  rcases (nat.dvd_prime_pow (fact.out p.prime)).1 this with ⟨k, hkn, hk⟩,
-  refine ⟨k, nat.pos_of_ne_zero (λ hk0, _), hk⟩,
-  rw [hk0, pow_zero] at hk,
-  rcases exists_ne_one_mem_center hGpn hn with ⟨g, hg1, hg⟩,
-  have hg1' : (⟨g, hg⟩ : center G) ≠ 1, from λ h, hg1 (subtype.ext_iff.1 h),
-  exact hg1' (fintype.card_le_one_iff.1 (le_of_eq hk) _ _)
-end
-
-omit hGpn
-
-/-- The quotient by the center of a group of cardinality `p ^ 2` is cyclic. -/
-lemma cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
-  is_cyclic (G ⧸ (center G)) :=
-begin
-  classical,
-  rcases card_center_eq_prime_pow hG zero_lt_two with ⟨k, hk0, hk⟩,
-  have hk2 : k ≤ 2, from (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1
-    (hG ▸ hk ▸ card_subgroup_dvd_card (center G)),
-  rw [card_eq_card_quotient_mul_card_subgroup (center G), hk] at hG,
-  rcases k with  _ | _ | _ | k,
-  { exact (lt_irrefl _ hk0).elim },
-  { rw [pow_two, pow_one, nat.mul_left_inj (fact.out p.prime).pos] at hG,
-    exact is_cyclic_of_prime_card hG },
-  { conv_rhs at hG { rw ← one_mul (p ^ 2) },
-    rw [nat.mul_left_inj (pow_pos (fact.out p.prime).pos _)] at hG,
-    exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (le_of_eq hG)⟩ },
-  { simpa [nat.succ_le_succ_iff] using hk2 }
-end
-
-/-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sqr` for the
-`comm_group` instance. -/
-lemma commutative_of_card_eq_prime_sqr (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
-begin
-  classical,
-  by haveI : is_cyclic (G ⧸ (center G)) :=
-    cyclic_center_quotient_of_card_eq_prime_sqr hG;
-  exact commutative_of_cyclic_center_quotient (quotient_group.mk' (center G)) (by simp)
-end
-
-/-- A group of order `p ^ 2` is commutative. See also `commutative_of_card_eq_prime_sqr`
-for just the proof that `∀ a b, a * b = b * a` -/
-def comm_group_of_card_eq_prime_sqr (hG : card G = p ^ 2) : comm_group G :=
-{ mul_comm := commutative_of_card_eq_prime_sqr hG,
-  .. show group G, by apply_instance }
-
-end p2comm
-
 lemma center_nontrivial [nontrivial G] [finite G] : nontrivial (subgroup.center G) :=
 begin
   classical,
@@ -257,11 +185,8 @@ begin
   rw conj_act.fixed_points_eq_center at this,
   obtain ⟨g, hg⟩ := this _ (subgroup.center G).one_mem,
   { exact ⟨⟨1, ⟨g, hg.1⟩, mt subtype.ext_iff.mp hg.2⟩⟩ },
-  { obtain ⟨n, hn⟩ := is_p_group.iff_card.mp hG,
-    rw hn,
-    apply dvd_pow_self,
-    rintro rfl,
-    exact (fintype.one_lt_card).ne' hn },
+  { obtain ⟨n, hn0, hn⟩ := hG.nontrivial_iff_card.mp infer_instance,
+    exact hn.symm ▸ dvd_pow_self _ (ne_of_gt hn0) },
 end
 
 lemma bot_lt_center [nontrivial G] [finite G] : ⊥ < subgroup.center G :=
@@ -367,5 +292,61 @@ begin
       (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
   simpa [this] using hn₁,
 end
+
+section p2comm
+
+variables [fintype G] [fact p.prime] {n : ℕ} (hGpn : card G = p ^ n)
+include hGpn
+open subgroup
+
+/-- The cardinality of the `center` of a `p`-group is `p ^ k` where `k` is positive. -/
+lemma card_center_eq_prime_pow (hn : 0 < n) [fintype (center G)] :
+  ∃ k > 0, card (center G) = p ^ k :=
+begin
+  have hcG := to_subgroup (of_card hGpn) (center G),
+  rcases iff_card.1 hcG with ⟨k, hk⟩,
+  haveI : nontrivial G := (nontrivial_iff_card $ of_card hGpn).2 ⟨n, hn, hGpn⟩,
+  have := center_nontrivial (of_card hGpn),
+  rwa nontrivial_iff_card hcG at this
+end
+
+omit hGpn
+
+/-- The quotient by the center of a group of cardinality `p ^ 2` is cyclic. -/
+lemma cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
+  is_cyclic (G ⧸ (center G)) :=
+begin
+  classical,
+  rcases card_center_eq_prime_pow hG zero_lt_two with ⟨k, hk0, hk⟩,
+  have hk2 : k ≤ 2, from (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1
+    (hG ▸ hk ▸ card_subgroup_dvd_card (center G)),
+  rw [card_eq_card_quotient_mul_card_subgroup (center G), hk] at hG,
+  rcases k with  _ | _ | _ | k,
+  { exact (lt_irrefl _ hk0).elim },
+  { rw [pow_two, pow_one, nat.mul_left_inj (fact.out p.prime).pos] at hG,
+    exact is_cyclic_of_prime_card hG },
+  { conv_rhs at hG { rw ← one_mul (p ^ 2) },
+    rw [nat.mul_left_inj (pow_pos (fact.out p.prime).pos _)] at hG,
+    exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (le_of_eq hG)⟩ },
+  { simpa [nat.succ_le_succ_iff] using hk2 }
+end
+
+/-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sqr` for the
+`comm_group` instance. -/
+lemma commutative_of_card_eq_prime_sqr (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
+begin
+  classical,
+  by haveI : is_cyclic (G ⧸ (center G)) :=
+    cyclic_center_quotient_of_card_eq_prime_sqr hG;
+  exact commutative_of_cyclic_center_quotient (quotient_group.mk' (center G)) (by simp)
+end
+
+/-- A group of order `p ^ 2` is commutative. See also `commutative_of_card_eq_prime_sqr`
+for just the proof that `∀ a b, a * b = b * a` -/
+def comm_group_of_card_eq_prime_sqr (hG : card G = p ^ 2) : comm_group G :=
+{ mul_comm := commutative_of_card_eq_prime_sqr hG,
+  .. show group G, by apply_instance }
+
+end p2comm
 
 end is_p_group

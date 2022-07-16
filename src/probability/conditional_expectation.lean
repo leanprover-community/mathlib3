@@ -58,7 +58,8 @@ begin
     { ext f,
       exact integral_trim _ (Lp.strongly_measurable _) },
     have heq₂ : (λ f : Lp E 1 (μ.trim hle₁), ∫ x in s, f x ∂μ) =
-      (λ f : Lp E 1 μ, ∫ x in s, f x ∂μ) ∘ (L1_trim_clm μ hle₁),
+      (λ f : Lp E 1 μ, ∫ x in s, f x ∂μ) ∘ ((submodule.subtypeL _).comp
+        (Lp_meas_to_Lp_trim_lie E ℝ 1 μ hle₁).symm.to_linear_isometry.to_continuous_linear_map),
     { ext f,
       exact integral_congr_ae ((ae_eq_restrict_iff_indicator_ae_eq (hle₂ _ hms)).2
         (eventually_eq.indicator (ae_eq_fun.coe_fn_mk _ _).symm)) },

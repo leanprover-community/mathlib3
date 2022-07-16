@@ -775,6 +775,16 @@ end
 @[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
 (graph_injective α M).eq_iff' graph_zero
 
+lemma graph_nodupkeys (f : α →₀ M) : (list.map prod.to_sigma f.graph.to_list).nodupkeys :=
+begin
+  rw [list.nodupkeys, list.keys, list.map_map, prod.fst_to_sigma_comp, list.nodup_map_iff_inj_on],
+  { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
+    rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
+    dsimp at hb hc,
+    rw [←hc.1, hb.1] },
+  { apply nodup_to_list }
+end
+
 end graph
 
 end finsupp
@@ -809,25 +819,28 @@ begin
     simp [lookup_eq_none, h, keys] },
   { suffices : lookup a (map prod.to_sigma f.graph.to_list) = some (f a),
     { simp [h, this] },
-    apply (mem_lookup_iff _).2,
-    { simpa using h },
-    { rw [nodupkeys, keys, map_map, prod.fst_to_sigma_comp, nodup_map_iff_inj_on],
-      { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
-        rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
-        dsimp at hb hc,
-        rw [←hc.1, hb.1] },
-      { apply nodup_to_list } } }
+    apply (mem_lookup_iff f.graph_nodupkeys).2,
+    { simpa using h } }
 end
 
-lemma to_finsupp_left_inverse :
-  function.left_inverse finsupp.graph (λ x, (x.to_list.map prod.to_sigma).to_finsupp) :=
-to_finsupp_graph
-
-lemma to_finsupp_surjective : function.surjective
+lemma to_finsupp_surjective : surjective (@to_finsupp α M _) := λ f, ⟨_, to_finsupp_graph f⟩
 
 end list
 
-#exit
+namespace alist
+variable [has_zero M]
+
+/-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`. -/
+def to_finsupp (l : alist (λ x : α, M)) : α →₀ M := l.1.to_finsupp
+
+@[simp] lemma to_finsupp_apply (l : alist (λ x : α, M)) (a : α) :
+  l.to_finsupp a = (l.lookup a).get_or_else 0 := rfl
+
+lemma to_finsupp_surjective : surjective (@to_finsupp α M _) :=
+λ f, ⟨⟨_, f.graph_nodupkeys⟩, list.to_finsupp_graph f⟩
+
+end alist
+
 namespace finsupp
 
 /-!

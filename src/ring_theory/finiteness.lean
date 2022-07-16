@@ -144,8 +144,9 @@ end finite
 
 end module
 
-instance [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M] [module R M]
-  [h : module.finite R M] : module.finite A (tensor_product R A M) :=
+instance module.finite.base_change [comm_semiring R] [semiring A] [algebra R A]
+  [add_comm_monoid M] [module R M] [h : module.finite R M] :
+  module.finite A (tensor_product R A M) :=
 begin
   classical,
   obtain ⟨s, hs⟩ := h.out,

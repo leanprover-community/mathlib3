@@ -304,12 +304,6 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
     by simp only [nat.add_div (pow_pos hp.pos _)]
 ... = _ : by simp [sum_add_distrib, sum_boole]
 
--- ^^^ Versions translated into `factorization` ^^^
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
--- vvv Versions to translate into `factorization` vvv
-
-
 
 /-- The multiplicity of `p` in `choose n k` is the number of carries when `k` and `n - k`
   are added in base `p`. The set is expressed by filtering `Ico 1 b` where `b`
@@ -317,23 +311,26 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
 lemma factorization_choose {p n k b : ℕ} (hp : p.prime) (hkn : k ≤ n) (hnb : log p n < b) :
   (choose n k).factorization p =
   ((Ico 1 b).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card :=
-sorry
--- have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
---     ((finset.Ico 1 b).filter (λ i, p ^ i ≤ k % p ^ i + (n - k) % p ^ i)).card +
---     multiplicity p (k! * (n - k)!),
---   begin
---     rw [← hp.multiplicity_mul, ← mul_assoc, choose_mul_factorial_mul_factorial hkn,
---         hp.multiplicity_factorial hnb, hp.multiplicity_mul,
---         hp.multiplicity_factorial ((log_mono_right hkn).trans_lt hnb),
---         hp.multiplicity_factorial (lt_of_le_of_lt (log_mono_right tsub_le_self) hnb),
---         multiplicity_choose_aux hp hkn],
---     simp [add_comm],
---   end,
--- (part_enat.add_right_cancel_iff
---   (part_enat.ne_top_iff_dom.2 $
---     by exact finite_nat_iff.2
---       ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
---   h₁
+begin
+  have h1 := (choose_pos hkn).ne',
+  have h2 : (n.choose k * k! * (n - k)!).factorization p = n!.factorization p,
+  { rw choose_mul_factorial_mul_factorial hkn },
+  rw [factorization_mul (mul_ne_zero_iff.2 ⟨h1, factorial_ne_zero k⟩) (factorial_ne_zero (n-k)),
+      factorization_mul h1 (factorial_ne_zero k)] at h2,
+  simp_rw [finsupp.add_apply] at h2,
+  rw [←@add_right_cancel_iff _ _ ((k!.factorization) p + ((n - k)!.factorization) p),
+      ←add_assoc, h2,
+      factorization_factorial'' hp hnb, factorization_choose_aux hp hkn,
+      add_comm, add_right_inj,
+      factorization_factorial'' hp (lt_of_le_of_lt (log_mono_right tsub_le_self) hnb),
+      factorization_factorial'' hp (lt_of_le_of_lt (log_mono_right hkn) hnb)],
+end
+
+
+-- ^^^ Versions translated into `factorization` ^^^
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+-- vvv Versions to translate into `factorization` vvv
 
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
 lemma factorization_le_factorization_choose_add {p : ℕ} (hp : p.prime) : ∀ (n k : ℕ),

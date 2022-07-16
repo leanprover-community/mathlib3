@@ -371,7 +371,7 @@ end complete_lattice
 
 /- Lemmas for `lower_adjoint (coe : α → set β)`, where `set_like α β` -/
 section coe_to_set
-variables [set_like α β] (l : lower_adjoint (coe : α → set β))
+variables [set_like α β] [preorder α] (l : lower_adjoint (coe : α → set β))
 
 lemma subset_closure (s : set β) : s ⊆ l s :=
 l.le_closure s
@@ -386,7 +386,8 @@ lemma mem_iff (s : set β) (x : β) : x ∈ l s ↔ ∀ S : α, s ⊆ S → x �
 by { simp_rw [←set_like.mem_coe, ←set.singleton_subset_iff, ←l.le_iff_subset],
   exact ⟨λ h S, h.trans, λ h, h _ le_rfl⟩ }
 
-lemma eq_of_le {s : set β} {S : α} (h₁ : s ⊆ S) (h₂ : S ≤ l s) : l s = S :=
+lemma eq_of_le {α} [set_like α β] [partial_order α] (l : lower_adjoint (coe : α → set β))
+  {s : set β} {S : α} (h₁ : s ⊆ S) (h₂ : S ≤ l s) : l s = S :=
 ((l.le_iff_subset _ _).2 h₁).antisymm h₂
 
 lemma closure_union_closure_subset (x y : α) :

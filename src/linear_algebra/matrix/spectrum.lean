@@ -31,8 +31,7 @@ variables (hA : A.is_hermitian)
 /-- The eigenvalues of a hermitian matrix, indexed by `fin (fintype.card n)` where `n` is the index
 type of the matrix. -/
 noncomputable def eigenvalues₀ : fin (fintype.card n) → ℝ :=
-@inner_product_space.is_self_adjoint.eigenvalues 𝕜 _ _ (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin'
-  (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n) finrank_euclidean_space
+(is_hermitian_iff_is_symmetric.1 hA).eigenvalues finrank_euclidean_space
 
 /-- The eigenvalues of a hermitian matrix, reusing the index `n` of the matrix entries. -/
 noncomputable def eigenvalues : n → ℝ :=
@@ -40,9 +39,7 @@ noncomputable def eigenvalues : n → ℝ :=
 
 /-- A choice of an orthonormal basis of eigenvectors of a hermitian matrix. -/
 noncomputable def eigenvector_basis : basis n 𝕜 (n → 𝕜) :=
-(@inner_product_space.is_self_adjoint.eigenvector_basis 𝕜 _ _
-    (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _
-    (fintype.card n) finrank_euclidean_space).reindex
+((is_hermitian_iff_is_symmetric.1 hA).eigenvector_basis finrank_euclidean_space).reindex
   (fintype.equiv_of_card_eq (fintype.card_fin _))
 
 /-- A matrix whose columns are an orthonormal basis of eigenvectors of a hermitian matrix. -/
@@ -67,18 +64,17 @@ theorem spectral_theorem :
 begin
   rw [eigenvector_matrix_inv, basis_to_matrix_basis_fun_mul],
   ext i j,
-  convert @inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply 𝕜 _ _
-    (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n)
+  convert @linear_map.is_symmetric.diagonalization_basis_apply_self_apply 𝕜 _ _
+    (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_symmetric.1 hA) _ (fintype.card n)
     finrank_euclidean_space (euclidean_space.single j 1)
     ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i),
-  { rw [eigenvector_basis, inner_product_space.is_self_adjoint.diagonalization_basis,
-      to_lin'_apply],
+  { rw [eigenvector_basis, linear_map.is_symmetric.diagonalization_basis, to_lin'_apply],
     simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
     simp_rw [basis.reindex_repr, euclidean_space.single, pi_Lp.equiv_symm_apply', mul_vec_single,
       mul_one],
     refl },
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis,
-      inner_product_space.is_self_adjoint.diagonalization_basis],
+      linear_map.is_symmetric.diagonalization_basis],
     rw [basis.to_matrix_apply, basis.coe_to_orthonormal_basis_repr, basis.reindex_repr,
       basis.equiv_fun_apply, pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
       euclidean_space.single, pi_Lp.equiv_symm_apply'] }

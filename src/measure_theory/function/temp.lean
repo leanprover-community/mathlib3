@@ -10,32 +10,7 @@ namespace measure_theory
 
 variables {α E : Type*} {m₁ m₂ m: measurable_space α}
   [normed_group E] [normed_space ℝ E]
-  {μ : measure α} {f : α → E}
-
-def Lp_trim_lm (μ : measure α) (hle₁ : m₁ ≤ m) : Lp E 1 (μ.trim hle₁) →ₗ[ℝ] Lp E 1 μ :=
-{ to_fun := λ f, (mem_ℒp_of_mem_ℒp_trim hle₁ (Lp.mem_ℒp f)).to_Lp f,
-  map_add' := λ f g,
-  begin
-    rw ← mem_ℒp.to_Lp_add,
-    exact mem_ℒp.to_Lp_congr _ _ (ae_eq_of_ae_eq_trim (Lp.coe_fn_add f g)),
-  end,
-  map_smul' := λ c f,
-  begin
-    rw ← mem_ℒp.to_Lp_const_smul,
-    exact mem_ℒp.to_Lp_congr _ _ (ae_eq_of_ae_eq_trim (Lp.coe_fn_smul c f)),
-  end }
-
-def Lp_trim_clm (μ : measure α) (hle₁ : m₁ ≤ m) : Lp E 1 (μ.trim hle₁) →L[ℝ] Lp E 1 μ :=
-linear_map.mk_continuous_of_exists_bound (Lp_trim_lm μ hle₁)
-begin
-  refine ⟨1, λ x, le_of_eq _⟩,
-  simp only [one_mul, Lp.norm_def, linear_map.coe_mk],
-  rw [ennreal.to_real_eq_to_real (snorm_ne_top _) (snorm_ne_top _),
-    snorm_trim hle₁ (Lp.strongly_measurable _)],
-  exact snorm_congr_ae (ae_eq_fun.coe_fn_mk _ _),
-end
-
-variables [complete_space E]
+  {μ : measure α} {f : α → E} [complete_space E]
 
 lemma condexp_indep_eq
   (hle₁ : m₁ ≤ m) (hle₂ : m₂ ≤ m) [sigma_finite (μ.trim hle₂)]

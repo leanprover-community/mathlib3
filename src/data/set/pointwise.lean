@@ -492,22 +492,17 @@ begin
 end
 
 @[to_additive] lemma mem_prod_list_of_fn {a : α} {s : fin n → set α} :
-  a ∈ (list.of_fn s).prod ↔ ∃ f : fin n → α, (∀ i, f i ∈ s i) ∧ (list.of_fn f).prod = a :=
+  a ∈ (list.of_fn s).prod ↔ ∃ f : (Π i : fin n, s i), (list.of_fn (λ i, (f i : α))).prod = a :=
 begin
   induction n with n ih generalizing a,
-  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi, eq_comm],
-    exact (and_iff_right fin_zero_elim).symm },
-  { simp_rw [list.of_fn_succ, list.prod_cons, fin.forall_fin_succ, fin.exists_fin_succ_pi,
-      fin.cons_zero, fin.cons_succ, mem_mul, @ih],
-    split,
-    { rintro ⟨x, y, hx, ⟨v, hv, hv'⟩, rfl⟩,
-      exact ⟨_, v, ⟨hx, hv⟩, congr_arg _ hv'⟩ },
-    { rintro ⟨a, v, ⟨ha, hv⟩, rfl⟩,
-      exact ⟨_, _, ha, ⟨_, hv, rfl⟩, rfl⟩ } },
+  { simp_rw [list.of_fn_zero, list.prod_nil, fin.exists_fin_zero_pi, eq_comm, set.mem_one] },
+  { simp_rw [list.of_fn_succ, list.prod_cons, fin.exists_fin_succ_pi, fin.cons_zero, fin.cons_succ,
+      mem_mul, @ih, exists_and_distrib_left, exists_exists_eq_and, set_coe.exists, subtype.coe_mk,
+      exists_prop] }
 end
 
 @[to_additive] lemma mem_pow {a : α} {n : ℕ} :
-  a ∈ s ^ n ↔ ∃ f : fin n → α, (∀ i, f i ∈ s) ∧ (list.of_fn f).prod = a :=
+  a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, (f i : α))).prod = a :=
 by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_repeat]
 
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=

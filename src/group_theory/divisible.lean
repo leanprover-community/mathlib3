@@ -147,10 +147,6 @@ rootable_by A α :=
 section pi
 
 variables {ι β : Type*} (B : ι → Type*) [Π (i : ι), has_pow (B i) β]
-
-instance has_pow_pi : has_pow (Π i, B i) β :=
-{ pow := λ x n i, (x i)^n }
-
 variables [has_zero β] [Π (i : ι), monoid (B i)] [Π i, rootable_by (B i) β]
 
 @[to_additive add_monoid.divisible_by_pi]

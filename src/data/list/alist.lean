@@ -199,7 +199,7 @@ theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
 by rw [insert_entries, kerase_of_not_mem_keys h]
 
 theorem insert_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
-  (insert a b s) = ⟨⟨a, b⟩ :: s.entries, nodupkeys_cons.2 ⟨h, s.2⟩⟩ :=
+  insert a b s = ⟨⟨a, b⟩ :: s.entries, nodupkeys_cons.2 ⟨h, s.2⟩⟩ :=
 ext (insert_entries_of_neg h)
 
 @[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :

@@ -868,7 +868,7 @@ begin
     exactI intermediate_field.finite_dimensional_sup _ _ },
 end
 
-instance finite_dimensional_supr_of_mem_finset {ι : Type*}
+instance finite_dimensional_supr_of_finset {ι : Type*}
   {f : ι → intermediate_field K L} {s : finset ι} [h : Π i ∈ s, finite_dimensional K (f i)] :
   finite_dimensional K (⨆ i ∈ s, f i : intermediate_field K L) :=
 begin

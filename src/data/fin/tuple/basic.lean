@@ -132,6 +132,14 @@ begin
   exact tail_cons _ _
 end
 
+@[simp] lemma forall_fin_zero_pi {α : fin 0 → Sort*} {P : (Π i, α i) → Prop} :
+  (∀ x, P x) ↔ P fin_zero_elim :=
+⟨λ h, h _, λ h x, subsingleton.elim fin_zero_elim x ▸ h⟩
+
+@[simp] lemma exists_fin_zero_pi {α : fin 0 → Sort*} {P : (Π i, α i) → Prop} :
+  (∃ x, P x) ↔ P fin_zero_elim :=
+⟨λ ⟨x, h⟩, subsingleton.elim x fin_zero_elim ▸ h, λ h, ⟨_, h⟩⟩
+
 lemma forall_fin_succ_pi {P : (Π i, α i) → Prop} :
   (∀ x, P x) ↔ (∀ a v, P (fin.cons a v)) :=
 ⟨λ h a v, h (fin.cons a v), cons_induction⟩

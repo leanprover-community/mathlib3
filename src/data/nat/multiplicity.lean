@@ -174,6 +174,18 @@ end
 --------------------------------------------------------------------------------------------------
 -- vvv Versions to translate into `factorization` vvv
 
+/--
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
+over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
+lemma factorization_factorial' {p : ℕ} (hp : p.prime) :
+  ∀ {n b : ℕ}, log p n < b → n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
+begin
+
+  sorry,
+end
+
+
+
 /-- The multiplicity of `p` in `(p * (n + 1))!` is one more than the sum
   of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/
 lemma factorization_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
@@ -224,11 +236,10 @@ begin
   ring_nf,
 end
 
-
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
 lemma pow_dvd_factorial_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : log p n < b) :
-   p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
+   p ^ r ∣ n! ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i := sorry
 -- by rw [← part_enat.coe_le_coe, ← hp.multiplicity_factorial hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma factorization_factorial_le_div_pred {p : ℕ} (hp : p.prime) (n : ℕ) :

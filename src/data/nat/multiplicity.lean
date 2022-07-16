@@ -205,21 +205,22 @@ begin
   -- refine ⟨n, succ_le_iff.mp hx1, hx2⟩,
 end
 
+
+/-- The multiplicity of `p` in `(p * n)!` is `n` more than that of `n!`. -/
+lemma factorization_factorial_mul {n p : ℕ} (hp : p.prime) :
+  (p * n)!.factorization p = n!.factorization p + n :=
+begin
+  induction n with n ih, { simp },
+  rw [factorization_factorial_mul_succ hp, ih, factorial_succ n, succ_eq_add_one,
+      factorization_mul (succ_ne_zero n) (factorial_ne_zero n),  finsupp.coe_add, pi.add_apply],
+  ring_nf,
+end
+
+
+
 #exit
 
 
-/-- The multiplicity of `p` in `(p * n)!` is `n` more than that of `n!`. -/
-lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
-  (p * n)!.factorization p = n!.factorization p + n :=
-begin
-  induction n with n ih,
-  { simp },
-  sorry,
-  -- { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
-  --     multiplicity_factorial_mul_succ, ←add_assoc, nat.cast_one, nat.cast_add, factorial_succ],
-  --   congr' 1,
-  --   rw [add_comm, add_assoc] }
-end
 
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/

@@ -1535,7 +1535,7 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
   hom_inv_id' := by { rw ← cancel_mono f, simp },
   inv_hom_id' := by { rw ← cancel_mono g, simp } }
 
-lemma image_basic_open {X Y: Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
+lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
   {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
   H.base_open.is_open_map.functor.obj (X.basic_open r)
     = Y.basic_open (H.inv_app U r) :=

@@ -87,6 +87,17 @@ lemma Icc_insert_succ (n : ℕ): Icc 1 n.succ = insert n.succ (Icc 1 n) :=
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
+-- TODO: PR this in data/nat/factorization/basic
+
+lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
+begin
+
+  sorry,
+end
+
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+
 /-- The multiplicity of `m` in `n` is the number of positive natural numbers `i` such that `m ^ i`
 divides `n`. This set is expressed by filtering `Ico 1 b` where `b` is any bound greater than
 `log m n`. -/
@@ -154,22 +165,25 @@ end
   of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/
 lemma factorization_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   (p * (n + 1))!.factorization p = (p * n)!.factorization p + (n + 1).factorization p + 1 :=
-  sorry
--- begin
---   have hp' := prime_iff.mp hp,
---   have h0 : 2 ≤ p := hp.two_le,
---   have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
---   have h2 : p * n + 1 ≤ p * (n + 1), linarith,
---   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
+begin
+
+  have hp' := prime_iff.mp hp,
+  have h0 : 2 ≤ p := hp.two_le,
+  have h1 : 1 ≤ p * n + 1 := nat.le_add_left _ _,
+  have h2 : p * n + 1 ≤ p * (n + 1), linarith,
+  have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
+  have h4 : ∀ m : ℕ, m ∈ Ico (p * n + 1) (p * (n + 1)) → m.factorization p = 0,
+  { intros m hm,
+    apply factorization_eq_zero_of_not_dvd,
+    rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
+    rw [mem_Ico] at hm,
+    exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
+  sorry,
+end
 --   have hm : multiplicity p (p * n)! ≠ ⊤,
 --   { rw [ne.def, eq_top_iff_not_finite, not_not, finite_nat_iff],
 --     exact ⟨hp.ne_one, factorial_pos _⟩ },
 --   revert hm,
---   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
---   { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
---     rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
---     rw [mem_Ico] at hm,
---     exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
   -- simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
   --   add_assoc], intro h,
   -- rw [part_enat.add_left_cancel_iff h, sum_Ico_succ_top h2, multiplicity.mul hp',

@@ -816,13 +816,13 @@ end alg_hom_mk_adjoin_splits
 
 section supremum
 
-lemma le_sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) :
+variables {K L : Type*} [field K] [field L] [algebra K L] (E1 E2 : intermediate_field K L)
+
+lemma le_sup_to_subalgebra :
   E1.to_subalgebra ⊔ E2.to_subalgebra ≤ (E1 ⊔ E2).to_subalgebra :=
 sup_le (show E1 ≤ E1 ⊔ E2, from le_sup_left) (show E2 ≤ E1 ⊔ E2, from le_sup_right)
 
-lemma sup_to_subalgebra {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+lemma sup_to_subalgebra [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
   (E1 ⊔ E2).to_subalgebra = E1.to_subalgebra ⊔ E2.to_subalgebra :=
 begin
   let S1 := E1.to_subalgebra,
@@ -841,8 +841,7 @@ begin
     (field.to_is_field K),
 end
 
-lemma finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
-  (E1 E2 : intermediate_field K L) [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
+instance finite_dimensional_sup [h1 : finite_dimensional K E1] [h2 : finite_dimensional K E2] :
   finite_dimensional K ↥(E1 ⊔ E2) :=
 begin
   let g := algebra.tensor_product.product_map E1.val E2.val,
@@ -850,6 +849,23 @@ begin
   { have h : finite_dimensional K g.range.to_submodule := g.to_linear_map.finite_dimensional_range,
     rwa this at h },
   rw [algebra.tensor_product.product_map_range, E1.range_val, E2.range_val, sup_to_subalgebra],
+end
+
+instance intermediate_field.finite_dimensional_supr_of_finite
+  {ι : Type*} {t : ι → intermediate_field K L} [h : finite ι] [Π i, finite_dimensional K (t i)] :
+  finite_dimensional K (⨆ i, t i : intermediate_field K L) :=
+begin
+  rw ← supr_univ,
+  let P : set ι → Prop := λ s, finite_dimensional K (⨆ i ∈ s, t i : intermediate_field K L),
+  change P set.univ,
+  apply set.finite.induction_on,
+  { exact set.finite_univ },
+  all_goals { dsimp only [P] },
+  { rw supr_emptyset,
+    exact (intermediate_field.bot_equiv K L).symm.to_linear_equiv.finite_dimensional },
+  { intros _ s _ _ hs,
+    rw supr_insert,
+    exactI intermediate_field.finite_dimensional_sup _ _ },
 end
 
 end supremum

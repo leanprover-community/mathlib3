@@ -2173,6 +2173,14 @@ wide_pushout_shape_op_equiv _
 def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
 wide_pullback_shape_op_equiv _
 
+/-- Having wide pullback at any universe level implies having binary pullbacks. -/
+@[priority 100] -- see Note [lower instance priority]
+instance has_pullbacks_of_has_wide_pullbacks [has_wide_pullbacks.{w} C] : has_pullbacks C :=
+begin
+  haveI := has_wide_pullbacks_shrink.{0 w} C,
+  apply_instance
+end
+
 variable {C}
 
 /-- Given a morphism `f : X ⟶ Y`, we can take morphisms over `Y` to morphisms over `X` via
@@ -2182,13 +2190,5 @@ def base_change [has_pullbacks C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
 { obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ _),
   map := λ g₁ g₂ i, over.hom_mk (pullback.map _ _ _ _ i.left (𝟙 _) (𝟙 _) (by simp) (by simp))
     (by simp) }
-
-/-- Having wide pullback at any universe level implies having binary pullbacks. -/
-@[priority 100] -- see Note [lower instance priority]
-instance has_pullbacks_of_has_wide_pullbacks [has_wide_pullbacks.{w} C] : has_pullbacks C :=
-begin
-  haveI := has_wide_pullbacks_shrink.{0 w} C,
-  apply_instance
-end
 
 end category_theory.limits

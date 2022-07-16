@@ -76,8 +76,7 @@ def unone {x : with_one α} (hx : x ≠ 1) : α := with_bot.unbot x hx
 lemma unone_coe {x : α} (hx : (x : with_one α) ≠ 1) : unone hx = x := rfl
 
 @[simp, to_additive coe_unzero]
-lemma coe_unone {x : with_one α} (hx : x ≠ 1) : (@unone _ _ hx : with_one α) = x :=
-with_bot.coe_unbot x hx
+lemma coe_unone {x : with_one α} (hx : x ≠ 1) : ↑(unone hx) = x := with_bot.coe_unbot x hx
 
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl

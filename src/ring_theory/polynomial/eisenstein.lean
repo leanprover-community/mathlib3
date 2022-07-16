@@ -186,7 +186,7 @@ end
 lemma dvd_pow_nat_degree_of_aeval_eq_zero [algebra R A] [nontrivial A]
   [no_zero_smul_divisors R A] {p : R[X]} (hp : p.monic) (x y : R) (z : A)
   (h : polynomial.aeval z p = 0) (hz : z * algebra_map R A x = algebra_map R A y) :
-    x ∣ y ^ p.nat_degree :=
+  x ∣ y ^ p.nat_degree :=
 dvd_pow_nat_degree_of_eval₂_eq_zero (no_zero_smul_divisors.algebra_map_injective R A)
   hp x y z h ((mul_comm _ _).trans hz)
 

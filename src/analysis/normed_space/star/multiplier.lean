@@ -337,35 +337,43 @@ by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
 
 
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
-lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := sorry
-lemma norm_left_eq_right (a : 𝓜(𝕜, A)) : ∥a.left∥ = ∥a.right∥ :=
-      begin
-      have h0 : ∀ f : A →L[𝕜] A, ∀ C : ℝ≥0, (∀ b : A, ∥f b∥₊ ^ 2 ≤ C * ∥f b∥₊ * ∥b∥₊ ^ 2) → ∥f∥₊ ≤ C,
-      { sorry },
-      have h1 : ∀ b, ∥ a.left b ∥₊ ^ 2 ≤  ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊ ^ 2,
-      sorry { intros b,
 
-            calc ∥ a.left b ∥₊ ^ 2 = ∥ a.left b ∥₊ * ∥ a.left b ∥₊ : by ring
-            ...                   = ∥ star (a.left b) * (a.left b) ∥₊  : (cstar_ring.nnnorm_star_mul_self).symm
-            ...                 = ∥ a.right (star (a.left b)) * b ∥₊ : by rw a.central _ b
-            ...                 ≤ ∥ a.right (star (a.left b))∥₊ * ∥ b ∥₊ : nnnorm_mul_le _ _
-            ...                 ≤ ∥ a.right ∥₊ * ∥ star (a.left b) ∥₊ * ∥ b ∥₊ : mul_le_mul_right' (a.right.le_op_nnnorm _) _
-            ...                 = ∥ a.right ∥₊ * ∥ a.left b ∥₊ * ∥ b ∥₊ : by rw nnnorm_star
-            ...                 ≤ ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊  * ∥ b ∥₊ :
-                                                                          begin
-                                                                          apply mul_le_mul_right',
-                                                                          rw mul_assoc,
-                                                                          apply mul_le_mul_left',
-                                                                          apply a.left.le_op_nnnorm,
-                                                                          end
-            ...                 = ∥ a.right ∥₊ * ∥ a.left ∥₊ * ∥ b ∥₊ ^ 2 : by ring, } ,
-        sorry  {  replace h1 := λ b, sqrt_le_sqrt_iff.mpr (h1 b),
-            simp only [sqrt_sq, sqrt_mul] at h1,
-            have h2 := div_le_of_le_mul (a.left.op_nnnorm_le_bound _ h1),
-            have h3 := rpow_le_rpow h2 (by exact_mod_cast zero_le (2 : ℕ) : 0 ≤ (2 : ℝ)),
-            simp only [rpow_two, div_pow, sq_sqrt] at h3,
-            simp only [sq, mul_self_div_self] at h3, },
-      end
+lemma norm_left_eq_right (a : 𝓜(𝕜, A)) : ∥a.left∥ = ∥a.right∥ :=
+begin
+  -- a handy lemma for this proof
+  have h0 : ∀ f : A →L[𝕜] A, ∀ C : ℝ≥0, (∀ b : A, ∥f b∥₊ ^ 2 ≤ C * ∥f b∥₊ * ∥b∥₊) → ∥f∥₊ ≤ C,
+  { intros f C h,
+    have h1 : ∀ b, C * ∥f b∥₊ * ∥b∥₊ ≤ C * ∥f∥₊ * ∥b∥₊ ^ 2,
+    { intros b,
+      convert mul_le_mul_right' (mul_le_mul_left' (f.le_op_nnnorm b) C) (∥b∥₊) using 1,
+      ring, },
+    have := div_le_of_le_mul (f.op_nnnorm_le_bound _ (by simpa only [sqrt_sq, sqrt_mul]
+      using (λ b, sqrt_le_sqrt_iff.mpr ((h b).trans (h1 b))))),
+    convert rpow_le_rpow this (by exact_mod_cast zero_le (2 : ℕ) : 0 ≤ (2 : ℝ)),
+    { simp only [rpow_two, div_pow, sq_sqrt], simp only [sq, mul_self_div_self] },
+    { simp only [rpow_two, sq_sqrt] } },
+  have h1 : ∀ b, ∥ a.left b ∥₊ ^ 2 ≤  ∥ a.right ∥₊ * ∥ a.left b ∥₊ * ∥ b ∥₊,
+  { intros b,
+    calc ∥ a.left b ∥₊ ^ 2
+        = ∥ star (a.left b) * (a.left b) ∥₊
+        : by simpa only [←sq] using (cstar_ring.nnnorm_star_mul_self).symm
+    ... ≤ ∥ a.right (star (a.left b))∥₊ * ∥ b ∥₊ : a.central (star (a.left b)) b ▸ nnnorm_mul_le _ _
+    ... ≤ ∥ a.right ∥₊ * ∥ a.left b ∥₊ * ∥ b ∥₊
+        : nnnorm_star (a.left b) ▸ mul_le_mul_right' (a.right.le_op_nnnorm _) _},
+  have h2 : ∀ b, ∥ a.right b ∥₊ ^ 2 ≤  ∥ a.left ∥₊ * ∥ a.right b ∥₊ * ∥ b ∥₊,
+  { intros b,
+    calc ∥ a.right b ∥₊ ^ 2
+        = ∥ a.right b * star (a.right b) ∥₊
+        : by simpa only [←sq] using (cstar_ring.nnnorm_self_mul_star).symm
+    ... ≤ ∥ b ∥₊ * ∥ a.left (star (a.right b))∥₊
+        : (a.central b (star (a.right b))).symm ▸ nnnorm_mul_le _ _
+    ... = ∥ a.left (star (a.right b))∥₊ * ∥b∥₊ : mul_comm _ _
+    ... ≤ ∥ a.left ∥₊ * ∥ a.right b ∥₊ * ∥ b ∥₊
+        : nnnorm_star (a.right b) ▸ mul_le_mul_right' (a.left.le_op_nnnorm _) _  },
+  exact le_antisymm (h0 _ _ h1) (h0 _ _ h2),
+end
+
+lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
 
 noncomputable instance : metric_space 𝓜(𝕜, A) :=
 { dist := λ a b, ∥a - b∥,

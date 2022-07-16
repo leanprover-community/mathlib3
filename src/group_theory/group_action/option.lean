@@ -35,8 +35,7 @@ variables [has_smul M α] [has_smul N α] (a : M) (b : α) (x : option α)
 instance [has_smul M N] [is_scalar_tower M N α] : is_scalar_tower M N (option α) :=
 ⟨λ a b x, by { cases x, exacts [rfl, congr_arg some (smul_assoc _ _ _)] }⟩
 
-@[to_additive] instance {M N α : Type*} [has_smul M α] [has_smul N α] [smul_comm_class M N α] :
-  smul_comm_class M N (option α) :=
+@[to_additive] instance [smul_comm_class M N α] : smul_comm_class M N (option α) :=
 ⟨λ a b, function.commute.option_map $ smul_comm _ _⟩
 
 instance [has_smul Mᵐᵒᵖ α] [is_central_scalar M α] : is_central_scalar M (option α) :=

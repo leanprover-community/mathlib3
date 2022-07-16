@@ -92,6 +92,7 @@ end gcd
 
 local attribute [instance] to_gcd_domain
 
+@[priority 100]
 instance [is_domain R] [is_bezout R] : is_integrally_closed R := infer_instance
 
 lemma _root_.function.surjective.is_bezout {S : Type v} [comm_ring S] (f : R →+* S)

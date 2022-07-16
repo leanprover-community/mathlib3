@@ -211,6 +211,22 @@ begin
 end
 
 
+/--
+The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`. This sum is expressed
+over the finset `Ico 1 b` where `b` is any bound greater than `log p n`. -/
+lemma factorization_factorial' {p : ℕ} (hp : p.prime) :
+  ∀ {n b : ℕ}, log p n < b → n!.factorization p = (∑ i in Ico 1 b, n / p ^ i : ℕ) :=
+begin
+  rintro n b hbn,
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  rw factorization_factorial'' hp b,
+  rw ← @sum_Ico_consecutive ℕ _ _ 1 (log p n).succ b _ (succ_le_iff.2 hbn),
+  { simp,
+    rintro x hx1 hx2,
+    exact nat.div_eq_zero ((lt_pow_iff_log_lt hp.one_lt hn0).2 (succ_le_iff.1 hx1)) },
+  { apply succ_le_succ, simp, },
+end
+
 
 /-- The multiplicity of `p` in `(p * (n + 1))!` is one more than the sum
   of the multiplicities of `p` in `(p * n)!` and `n + 1`. -/

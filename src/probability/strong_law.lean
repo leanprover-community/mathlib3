@@ -806,8 +806,8 @@ begin
   refine tendsto_Lp_of_tendsto_in_measure _ le_rfl ennreal.one_ne_top havg (mem_ℒp_const _) _
     (tendsto_in_measure_of_tendsto_ae havg (strong_law_ae _ hint hindep hident)),
   rw (_ : (λ n ω, (∑ i in range n, X i ω) / ↑n) = λ n, (∑ i in range n, X i) / ↑n),
-  { exact (uniform_integrable_average ℙ X $ uniform_integrable_of_ident_distrib hmeas 0
-      (mem_ℒp_one_iff_integrable.2 hint) hident).2.1 },
+  { exact (uniform_integrable_average ℙ X $
+      integrable.uniform_integrable_of_ident_distrib hint hmeas hident).2.1 },
   { ext n ω,
     simp only [pi.coe_nat, pi.div_apply, sum_apply] }
 end

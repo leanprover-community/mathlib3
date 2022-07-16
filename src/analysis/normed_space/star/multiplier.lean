@@ -38,10 +38,6 @@ variables (𝕜 : Type u) (A : Type v)
   [non_unital_normed_ring A]
   [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
 
--- should we just implement this as a subtype of `(A →L[𝕜] A) × (A →L[𝕜] A)`?
--- I think not because it just makes the linear maps harder to access.
--- although then we would need only one set of `simp` lemmas.
--- What the hell is going on with `continuous_linear_map` and `prod` in structures?
 @[ext]
 structure double_centralizer : Type v :=
 (left : A →L[𝕜] A)
@@ -51,7 +47,7 @@ structure double_centralizer : Type v :=
 namespace continuous_linear_map
 
 -- `lmul` exists, but doesn't work for us because we have *non-unital* ring, so we need this
--- very similar version.
+-- very similar version. There's a PR open to fix this: #15310
 noncomputable def lmul' (𝕜 : Type u) (A : Type v) [nondiscrete_normed_field 𝕜]
   [non_unital_normed_ring A] [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A] :
   A →L[𝕜] A →L[𝕜] A :=
@@ -137,6 +133,8 @@ instance : has_add 𝓜(𝕜, A) :=
             repeat {rw central _ _},
             end } }
 
+-- all these simp lemmas should be prefixed with `coe_`, then the non-`coe_` ones should just be
+-- linear maps, not their coercions to functions.
 @[simp]
 lemma add_left (a b : 𝓜(𝕜, A)) : ⇑(a + b).left = a.left + b.left := rfl
 @[simp]
@@ -397,26 +395,40 @@ noncomputable instance : normed_ring 𝓜(𝕜, A) :=
   .. double_centralizer.ring,
   .. double_centralizer.normed_group }
 
-instance : cstar_ring 𝓜(𝕜, A) :=
-{ norm_star_mul_self := λ a,
-  begin
-    simp only [norm_left],
-    change ∥(((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.right).comp
-      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A) * a.left∥ = ∥a.left∥ * ∥a.left∥,
+open_locale ennreal
 
-    sorry,
-  end }
+/- I think we don't have the necessary type class to make this lemma true.
+`nondiscrete_normed_field 𝕜` is too weak, but `is_R_or_C 𝕜` is far too strong. What we
+want is a type class for `𝕜` where we can say `λ k : 𝕜, ∥k∥` has dense range in `ℝ`. -/
+lemma normed_field.exists_nnnorm_lt_and_lt {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  (r : ℝ) (hr : 0 < r) : ∃ k : 𝕜, 1 - r < ∥k∥ ∧ ∥k∥ < 1 :=
+begin
+  sorry
+end
+
+-- it would be nice if maybe we could get this for `ℝ≥0` instead, but we go to `ℝ≥0∞` because it
+-- is a complete lattice and therefore `supr` is well-behaved.
+lemma key_lemma {𝕜 E : Type*} [nondiscrete_normed_field 𝕜] [non_unital_normed_ring E] [star_ring E]
+  [cstar_ring E] [module 𝕜 E] [is_scalar_tower 𝕜 E E] [normed_space 𝕜 E] (a : E) :
+  (∥a∥₊ : ℝ≥0∞) = ⨆ b (hb : ∥b∥₊ ≤ 1), ∥b * a∥₊ :=
+begin
+  refine le_antisymm _ (supr₂_le (λ b hb, _)),
+  { by_cases h : ∥a∥₊ = 0,
+    { rw h, exact_mod_cast zero_le _ },
+    { refine ennreal.le_of_forall_pos_le_add (λ ε hε h_lt, _),
+      rw ennreal.bsupr_add' (⟨0, by simp only [nnnorm_zero, zero_le']⟩ : ∃ x : E, ∥x∥₊ ≤ 1),
+      /- we now want to choose some `k : 𝕜` such that `(1 + ε * ∥a∥₊⁻¹)⁻¹ * ∥a∥₊ < ∥k'∥₊ < 1`, then
+      we will apply `refine le_trans _ (le_supr₂ (k⁻¹ • (star a)) _)`; This is why we want that
+      lemma above. -/
+      sorry, } },
+  { calc (∥b * a∥₊ : ℝ≥0∞) ≤ ∥b∥₊ * ∥a∥₊ : by exact_mod_cast norm_mul_le _ _
+    ...                    ≤ ∥a∥₊ : by simpa using (ennreal.coe_mono $ mul_le_mul_right' hb _) }
+end
+
+instance : cstar_ring 𝓜(𝕜, A) :=
+{ norm_star_mul_self := sorry }
+
+instance : complete_space 𝓜(𝕜, A) :=
+{ complete := sorry }
 
 end double_centralizer
-
-/-
-∥a.left b∥ ^ 2 = ∥(a.left b)⋆ * (a.left b)∥
-...            = ∥(a.left b)⋆ * (a.left b)∥
-              = ∥a.right (a.left b)⋆ * b∥
-               ≤ ∥a.right (a.left b)⋆∥ * ∥b∥
-               ≤ ∥a.right∥ * ∥(a.left b)⋆∥ * ∥b∥
-               ≤  ∥a.right∥ * ∥a.left b∥ * ∥b∥
-              ≤   ∥a.right∥ * ∥a.left∥ * ∥b∥ ^ 2
-
-∥a.left b∥ ≤ (∥a.right∥ * ∥a.left∥ * ∥b∥ ^ 2).sqrt
--/

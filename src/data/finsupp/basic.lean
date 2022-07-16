@@ -819,10 +819,10 @@ begin
   induction l with c l IH,
   { exact (list.not_mem_nil _ h).elim },
   { cases c with a' m',
-    simp only [function.update, of_list_pairs_cons, coe_update, eq_rec_constant, dite_eq_ite],
+    simp only [function.update, of_list_pairs_cons, coe_update],
     cases h,
     { rcases prod.mk.inj h with ⟨rfl, rfl⟩,
-      exact if_pos rfl },
+      exact dif_pos rfl },
     { split_ifs with ha ha,
       { subst ha,
         exact H _ (l.mem_cons_self _) },
@@ -833,16 +833,13 @@ end
 begin
   ext,
   by_cases h : f a = 0,
-  { rw h,
-    apply of_list_pairs_apply_zero_of_not_mem,
-    simpa using h },
-  { apply of_list_pairs_apply_eq_of_nodup,
-    { simpa using h },
-    { simp } }
+  { simp [of_list_pairs_apply_zero_of_not_mem, h] },
+  { apply of_list_pairs_apply_eq_of_nodup;
+    simp [h] }
 end
 
 /-- `of_list_pairs` is a left inverse of `to_list ∘ graph`. -/
-lemma left_inverse_of_list_pairs_graph : left_inverse of_list_pairs (to_list ∘ (@graph α M _)) :=
+lemma left_inverse_of_list_pairs_graph : left_inverse of_list_pairs (to_list ∘ @graph α M _) :=
 of_list_pairs_graph
 
 lemma of_list_pairs_surjective : surjective (@of_list_pairs α M _) :=

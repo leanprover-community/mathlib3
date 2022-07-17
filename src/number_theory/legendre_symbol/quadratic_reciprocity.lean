@@ -143,7 +143,7 @@ quadratic_char_eq_neg_one_iff_not_one ha
 /-- The Legendre symbol of `p` and `a` is zero iff `p ∣ a`. -/
 lemma legendre_sym_eq_zero_iff (p : ℕ) [fact p.prime] (a : ℤ) :
   legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
-quadratic_char_eq_zero_iff a
+quadratic_char_eq_zero_iff
 
 @[simp] lemma legendre_sym_zero (p : ℕ) [fact p.prime] : legendre_sym p 0 = 0 :=
 by rw [legendre_sym, int.cast_zero, mul_char.map_zero]

@@ -164,8 +164,8 @@ instance {P : C} [projective P] : injective (op P) :=
 lemma injective_iff_projective_op {J : C} : injective J ↔ projective (op J) :=
 ⟨λ h, by exactI infer_instance, λ h, show injective (unop (op J)), by exactI infer_instance⟩
 
-lemma projective_iff_injective_op {P : C} : projective P ↔ injective (op J) :=
-⟨λ h, by exactI infer_instance, λ h, show projective (unop (op J)), by exactI infer_instance⟩
+lemma projective_iff_injective_op {P : C} : projective P ↔ injective (op P) :=
+⟨λ h, by exactI infer_instance, λ h, show projective (unop (op P)), by exactI infer_instance⟩
 
 lemma injective_iff_preserves_epimorphisms_yoneda_obj (J : C) :
   injective J ↔ (yoneda.obj J).preserves_epimorphisms :=

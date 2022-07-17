@@ -106,7 +106,7 @@ instance linear_order (α β : Type*) [linear_order α] [linear_order β] : line
   decidable_eq := lex.decidable_eq _ _,
   .. prod.lex.partial_order α β }
 
-instance is_well_order' (α β : Type*) [has_lt α] [has_lt β] [is_well_order α (<)] [is_well_order β (<)] :
-  is_well_order (α ×ₗ β) (<) := prod.lex.is_well_order
+instance is_well_order' (α β : Type*) [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] : is_well_order (α ×ₗ β) (<) := prod.lex.is_well_order
 
 end prod.lex

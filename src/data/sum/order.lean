@@ -3,8 +3,6 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-
-import algebra.punit_instances
 import order.hom.basic
 
 /-!
@@ -536,13 +534,7 @@ namespace with_bot
 `a`. -/
 def order_iso_punit_sum_lex : with_bot α ≃o punit ⊕ₗ α :=
 ⟨(equiv.option_equiv_sum_punit α).trans $ (equiv.sum_comm _ _).trans to_lex,
-begin
-  rintros (a | _) (b | _),
-  { simp },
-  { simp },
-  { simpa using with_bot.not_coe_le_bot a },
-  { simp }
-end⟩
+  by rintro (a | _) (b | _); simp; exact not_coe_le_bot _⟩
 
 @[simp] lemma order_iso_punit_sum_lex_bot :
   @order_iso_punit_sum_lex α _ ⊥ = to_lex (inl punit.star) := rfl
@@ -564,13 +556,7 @@ namespace with_top
 `a`. -/
 def order_iso_sum_lex_punit : with_top α ≃o α ⊕ₗ punit :=
 ⟨(equiv.option_equiv_sum_punit α).trans to_lex,
-begin
-  rintros (a | _) (b | _),
-  { simp },
-  { simpa using not_top_le_coe b },
-  { simp },
-  { simp }
-end⟩
+  by rintro (a | _) (b | _); simp; exact not_top_le_coe _⟩
 
 @[simp] lemma order_iso_sum_lex_punit_top :
   @order_iso_sum_lex_punit α _ ⊤ = to_lex (inr punit.star) := rfl

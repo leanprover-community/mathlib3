@@ -63,6 +63,10 @@ end
 section
 variables {C D}
 
+/-- The isomorphism between `(X.1, X.2)` and `X`. -/
+@[simps]
+def prod.eta_iso (X : C × D) : (X.1, X.2) ≅ X := { hom := (𝟙 _, 𝟙 _), inv := (𝟙 _, 𝟙 _) }
+
 /-- Construct an isomorphism in `C × D` out of two isomorphisms in `C` and `D`. -/
 @[simps]
 def iso.prod {P Q : C} {S T : D} (f : P ≅ Q) (g : S ≅ T) : (P, S) ≅ (Q, T) :=
@@ -189,6 +193,14 @@ namespace functor
 { obj := λ a, (F.obj a, G.obj a),
   map := λ x y f, (F.map f, G.map f), }
 
+@[simps]
+def prod'_comp_fst (F : A ⥤ B) (G : A ⥤ C) : (F.prod' G) ⋙ (category_theory.prod.fst B C) ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
+
+@[simps]
+def prod'_comp_snd (F : A ⥤ B) (G : A ⥤ C) : (F.prod' G) ⋙ (category_theory.prod.snd B C) ≅ G :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
+
 section
 variable (C)
 
@@ -226,5 +238,25 @@ end nat_trans
 def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
   F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
 nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
+
+@[simps]
+def functor_prod_functor_equiv : ((A ⥤ B) × (A ⥤ C)) ≌ (A ⥤ (B × C)) :=
+{ functor :=
+  { obj := λ F, F.1.prod' F.2,
+    map := λ F G f, { app := λ X, (f.1.app X, f.2.app X) } },
+  inverse :=
+  { obj := λ F, ⟨F ⋙ (category_theory.prod.fst B C), F ⋙ (category_theory.prod.snd B C)⟩,
+    map := λ F G α,
+    ⟨{ app := λ X, (α.app X).1,
+       naturality' := λ X Y f,
+        by simp only [functor.comp_map, prod.fst_map, ←prod_comp_fst, α.naturality] },
+     { app := λ X, (α.app X).2,
+       naturality' := λ X Y f,
+        by simp only [functor.comp_map, prod.snd_map, ←prod_comp_snd, α.naturality] }⟩ },
+  unit_iso := nat_iso.of_components
+    (λ F, (((functor.prod'_comp_fst _ _).prod (functor.prod'_comp_snd _ _)).trans
+    (prod.eta_iso F)).symm) (by tidy),
+  counit_iso := nat_iso.of_components
+    (λ F, nat_iso.of_components (λ X, prod.eta_iso (F.obj X)) (by tidy)) (by tidy) }
 
 end category_theory

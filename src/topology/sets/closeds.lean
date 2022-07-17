@@ -92,7 +92,7 @@ by { ext, simp only [infi, coe_Inf, bInter_range], refl }
   (⨅ i, ⟨s i, h i⟩ : closeds α) = ⟨⋂ i, s i, is_closed_Inter h⟩ :=
 by simp [infi_def]
 
-@[simp, norm_cast] lemma {ι} coe_infi (s : ι → closeds α) :
+@[simp, norm_cast] lemma coe_infi {ι} (s : ι → closeds α) :
   ((⨅ i, s i : closeds α) : set α) = ⋂ i, s i :=
 by simp [infi_def]
 

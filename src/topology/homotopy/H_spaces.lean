@@ -260,6 +260,70 @@ end
 
 -- set_option trace.simp_lemmas true
 
+lemma Hmul_Ω_cont (x : X) (γ γ' : Ω(x)) : continuous (λ t, γ.trans γ' t) :=
+begin
+  exact (trans γ γ').continuous,
+end
+
+lemma Hmul_Ω_cont' (x : X) : continuous (λ t, λ φ : Ω(x) × Ω(x), φ.1.trans φ.2 t) :=
+begin
+  exact continuous_pi (λ (i : path x x × path x x), (i.fst.trans i.snd).continuous),
+end
+
+-- lemma Hmul_Ω_cont'' (x : X) : continuous (λ φ : Ω(x) × Ω(x), λ t, φ.1.trans φ.2 t) :=
+-- begin
+--   continuity,
+-- end
+
+lemma senza_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2 x.1.1) :=
+begin
+  have h : continuous (λ x : (I × Ω(x)) × Ω(x), x.1), exact continuous_fst,
+  set π := (λ p : I × Ω(x), p.1 p.2) with hπ,
+  { have hπ : continuous π,
+    have := @continuous_eval' I X _ _ _,
+    sorry,
+    sorry,
+    -- convert this,
+    -- have π':= function.uncurry_curry π,
+    -- rw ← π',
+    -- have := continuous_uncurry_of_continuous,
+    -- have := continuous_to_Ω_iff_uncurry.mpr _,
+    -- have := continuous.comp continuous_swap _,
+    -- apply continuous.comp continuous_swap,
+
+    }
+  have := hπ.comp h,
+  exact this,
+end
+
+lemma Hmul_Ω_cont₁ (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.trans x.2.2 x.1) :=
+begin
+  apply continuous.piecewise,
+  sorry,
+  -- sorry,
+  { --let φ₁ := prod.swap,
+    set f := λ (i : ↥I × path x x × path x x), i.snd.fst.extend (2 * ↑(i.fst)) with hf,
+    set g := λ (i : (↥I × Ω(x)) × Ω(x)), i.fst.snd.extend (2 * ↑(i.fst.fst)) with hg,
+    -- have : continuous f, sorry,
+    let φ₁ := (@homeomorph.prod_assoc I Ω(x) Ω(x) _ _ _),
+    apply (φ₁.comp_continuous_iff').mp,
+    set ψ₁ := f ∘ φ₁ with hψ₁,
+    have heq : ψ₁ = g, refl,
+    rw ← hψ₁,
+    rw heq,
+    apply continuous.prod,
+    -- continuity,
+    -- simp,
+    -- ext ⟨⟨t, γ⟩, γ'⟩,
+    -- refl,
+    -- let := φ₁.1.1,-- = (λ p : I × Ω(X) × Ω(x), ⟨p.1, ⟨p.2.1, p.2.2⟩⟩),
+    -- squeeze_simp [φ₁.1.1],
+    -- simp only,
+
+
+  },
+end
+
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,

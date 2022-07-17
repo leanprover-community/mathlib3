@@ -9,9 +9,6 @@ import data.rel
 /-!
 # Partial functions
 
-def pfun.prod (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
-  λ x, ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩
-
 This file defines partial functions. Partial functions are like functions, except they can also be
 "undefined" on some inputs. We define them as functions `α → part β`.
 

@@ -57,10 +57,10 @@ end
 lemma card_filter_univ_eq_nth_eq_count [decidable_eq α] (a : α) (v : vector α n) :
   (univ.filter $ λ i, a = v.nth i).card = v.to_list.count a :=
 begin
-  refine vector.induction_on v (by simp) (_),
-  intros n' x xs hxs,
-  simp_rw [card_filter_univ_fin, vector.nth_cons_zero, vector.to_list_cons,
-    function.comp, vector.nth_cons_succ, hxs, list.count_cons', add_comm (ite (a = x) 1 0)]
+  induction v using vector.induction_on with n x xs hxs,
+  { simp },
+  { simp_rw [card_filter_univ_fin, vector.nth_cons_zero, vector.to_list_cons,
+    function.comp, vector.nth_cons_succ, hxs, list.count_cons', add_comm (ite (a = x) 1 0)] }
 end
 
 end fin

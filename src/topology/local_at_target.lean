@@ -109,7 +109,7 @@ begin
   rw forall_and_distrib,
   apply and_congr,
   { apply inducing_iff_inducing_of_supr_eq_top; assumption },
-  { apply injective_iff_injective_of_Union_eq_univ, convert (congr_arg coe hU), simp }
+  { apply set.injective_iff_injective_of_Union_eq_univ, convert (congr_arg coe hU), simp }
 end
 
 lemma open_embedding_iff_open_embedding_of_supr_eq_top (h : continuous f) :

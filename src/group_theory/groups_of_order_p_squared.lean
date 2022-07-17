@@ -42,7 +42,8 @@ instance {G} : can_lift (group G) (comm_group G) :=
   prf := λ g hg, ⟨{mul_comm := hg, ..g}, by cases g; refl⟩ }
 
 /-- A group whose center is ⊤ must be abelian. -/
-lemma group.of_comm_center_eq_top {H : Type*} [group H] (h : (subgroup.center H = ⊤)) : (∀ a b : H, a * b = b * a) :=
+lemma group.of_comm_center_eq_top {H : Type*} [group H] (h : (subgroup.center H = ⊤)) :
+  (∀ a b : H, a * b = b * a) :=
 begin
   rw subgroup.eq_top_iff' at h,
   intros x y,

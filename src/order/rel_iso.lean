@@ -213,7 +213,7 @@ initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_e
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
-@[simp] theorem inj {f : r ↪r s} {a b} : f a = f b ↔ a = b := f.injective.eq_iff
+@[simp] theorem inj (f : r ↪r s) {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
 theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
 

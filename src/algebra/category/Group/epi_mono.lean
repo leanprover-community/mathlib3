@@ -26,35 +26,6 @@ section
 
 variables [group A] [group B]
 
-@[to_additive add_monoid_hom.ker_eq_bot]
-lemma ker_eq_bot (f : A →* B) :
-  f.ker = ⊥ ↔ function.injective f :=
-{ mp := λ h1 x y h2, begin
-    rwa [←div_eq_one, ←map_div, ←mem_ker, h1, subgroup.mem_bot, div_eq_one] at h2,
-  end,
-  mpr := λ h, set_like.ext $ λ x, iff.trans (mem_ker _) $
-    iff.trans begin
-      rw ←(by rw map_one : f x = f 1 ↔ f x = 1),
-      exact ⟨λ h', h h', λ h, h ▸ rfl⟩,
-    end subgroup.mem_bot.symm }
-
-@[to_additive add_monoid_hom.range_eq_top]
-lemma range_eq_top (f : A →* B) :
-  f.range = ⊤ ↔ function.surjective f :=
-{ mp := λ h x, show x ∈ f.range, from h.symm ▸ subgroup.mem_top _,
-  mpr := λ h, set_like.ext $ λ x, iff.trans mem_range ⟨λ _, trivial, λ _, h x⟩ }
-
-@[to_additive add_monoid_hom.range_zero_eq_bot]
-lemma range_one_eq_bot :
-  (1 : A →* B).range = ⊥ :=
-set_like.ext $ λ a, iff.trans monoid_hom.mem_range $
-  iff.trans (by simp only [one_apply, exists_const]; split; intros h; subst h) subgroup.mem_bot.symm
-
-@[to_additive add_monoid_hom.ker_zero_eq_top]
-lemma ker_one_eq_top :
-  (1 : A →* B).ker = ⊤ :=
-set_like.ext $ λ a, iff.trans (monoid_hom.mem_ker _) $ by simp
-
 @[to_additive add_monoid_hom.ker_eq_bot_of_cancel]
 lemma ker_eq_bot_of_cancel {f : A →* B}
   (h : ∀ (u v : f.ker →* A), f.comp u = f.comp v → u = v) :
@@ -65,7 +36,7 @@ begin
     simp only [comp_one, one_apply, coe_comp, subgroup.coe_subtype, function.comp_app],
     rw [←subtype.val_eq_coe, f.mem_ker.mp x.2],
   end,
-  rw [←subgroup.subtype_range f.ker, ←h, range_one_eq_bot],
+  rw [←subgroup.subtype_range f.ker, ←h, range_one],
 end
 
 end
@@ -87,7 +58,7 @@ begin
     exact ⟨x, rfl⟩,
   end,
   replace h : (quotient_group.mk' _).ker = (1 : B →* B ⧸ f.range).ker := by rw h,
-  rwa [ker_one_eq_top, quotient_group.ker_mk] at h,
+  rwa [ker_one, quotient_group.ker_mk] at h,
 end
 
 end
@@ -112,12 +83,12 @@ monoid_hom.ker_eq_bot_of_cancel $ λ u v,
 lemma mono_iff_ker_eq_bot :
   mono f ↔ f.ker = ⊥ :=
 ⟨λ h, @@ker_eq_bot_of_mono f h,
-λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot f).1 h⟩
+λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot_iff f).1 h⟩
 
 @[to_additive AddGroup.mono_iff_injective]
 lemma mono_iff_injective :
   mono f ↔ function.injective f :=
-iff.trans (mono_iff_ker_eq_bot f) $ monoid_hom.ker_eq_bot f
+iff.trans (mono_iff_ker_eq_bot f) $ monoid_hom.ker_eq_bot_iff f
 
 namespace surjective_of_epi_auxs
 
@@ -139,7 +110,7 @@ local notation `X'` := X_with_infinity f
 local notation `∞` := X_with_infinity.infinity
 local notation `SX'` := equiv.perm X'
 
-instance : has_scalar B X' :=
+instance : has_smul B X' :=
 { smul := λ b x, match x with
   | from_coset y := from_coset ⟨b *l y, begin
     rw [←subtype.val_eq_coe, ←y.2.some_spec, left_coset_assoc],

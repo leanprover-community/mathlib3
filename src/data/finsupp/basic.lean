@@ -798,7 +798,7 @@ variable [has_zero M]
 /-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`, sending
 absent keys to zero. -/
 def lookup_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M :=
-{ support := l.keys.to_finset.filter (λ x, l.lookup x ≠ some 0),
+{ support := l.keys.to_finset.filter $ λ x, l.lookup x ≠ some 0,
   to_fun := λ a, (l.lookup a).get_or_else 0,
   mem_support_to_fun := λ a, begin
     rw [finset.mem_filter, mem_to_finset, ←lookup_is_some],

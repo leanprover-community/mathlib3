@@ -432,11 +432,18 @@ begin
   },
 end
 
-#exit
-
 end prime
 
-lemma factorization_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), n!.factorization 2 < n := sorry
+lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n := sorry
+
+lemma factorization_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), n!.factorization 2 < n :=
+begin
+  rintro n hn0,
+  have H := multiplicity_two_factorial_lt hn0,
+  rw multiplicity_eq_factorization prime_two (factorial_ne_zero n) at H,
+  exact part_enat.coe_lt_coe.1 H,
+end
+
 -- begin
 --   have h2 := prime_iff.mp prime_two,
 --   refine binary_rec _ _,

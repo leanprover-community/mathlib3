@@ -929,15 +929,13 @@ variables (a b : punit.{u+1})
 
 instance : boolean_algebra punit :=
 by refine_struct
-{ le := λ _ _, true,
-  lt := λ _ _, false,
-  top := star,
+{ top := star,
   bot := star,
   sup := λ _ _, star,
   inf := λ _ _, star,
   compl := λ _, star,
-  sdiff := λ _ _, star };
-    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false]
+  sdiff := λ _ _, star, ..punit.linear_order };
+    intros; trivial <|> exact subsingleton.elim _ _
 
 @[simp] lemma top_eq : (⊤ : punit) = star := rfl
 @[simp] lemma bot_eq : (⊥ : punit) = star := rfl
@@ -945,7 +943,5 @@ by refine_struct
 @[simp] lemma inf_eq : a ⊓ b = star := rfl
 @[simp] lemma compl_eq : aᶜ = star := rfl
 @[simp] lemma sdiff_eq : a \ b = star := rfl
-@[simp] protected lemma le : a ≤ b := trivial
-@[simp] lemma not_lt : ¬ a < b := not_false
 
 end punit

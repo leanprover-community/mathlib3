@@ -79,11 +79,7 @@ intros; trivial
 instance : linear_ordered_cancel_add_comm_monoid punit :=
 { add_left_cancel := λ _ _ _ _, subsingleton.elim _ _,
   le_of_add_le_add_left := λ _ _ _ _, trivial,
-  le_total := λ _ _, or.inl trivial,
-  decidable_le := λ _ _, decidable.true,
-  decidable_eq := punit.decidable_eq,
-  decidable_lt := λ _ _, decidable.false,
-  .. punit.canonically_ordered_add_monoid }
+  .. punit.canonically_ordered_add_monoid, ..punit.linear_order }
 
 instance : has_smul R punit :=
 { smul := λ _ _, star }

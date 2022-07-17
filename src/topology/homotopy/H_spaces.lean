@@ -278,10 +278,9 @@ end
 lemma senza_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2 x.1.1) :=
 begin
   have h : continuous (λ x : (I × Ω(x)) × Ω(x), x.1), exact continuous_fst,
-  set π := (λ p : I × Ω(x), p.1 p.2) with hπ,
-  { have hπ : continuous π,
-    have := @continuous_eval' I X _ _ _,
-    sorry,
+  set π := (λ p : I × Ω(x), p.2 p.1) with hπ,
+  { --have hπ : continuous π,
+    -- have := @continuous_eval' I X _ _ _,
     sorry,
     -- convert this,
     -- have π':= function.uncurry_curry π,
@@ -291,9 +290,9 @@ begin
     -- have := continuous.comp continuous_swap _,
     -- apply continuous.comp continuous_swap,
 
-    }
-  have := hπ.comp h,
-  exact this,
+    },
+  -- have := hπ.comp h,
+  -- exact this,
 end
 
 lemma Hmul_Ω_cont₁ (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.trans x.2.2 x.1) :=
@@ -311,7 +310,8 @@ begin
     have heq : ψ₁ = g, refl,
     rw ← hψ₁,
     rw heq,
-    apply continuous.prod,
+    sorry,
+    -- apply continuous.prod,
     -- continuity,
     -- simp,
     -- ext ⟨⟨t, γ⟩, γ'⟩,
@@ -322,6 +322,7 @@ begin
 
 
   },
+  sorry,
 end
 
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=

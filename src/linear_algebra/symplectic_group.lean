@@ -82,23 +82,24 @@ begin
   exact neg_neg 1,
 end
 
-variables [no_zero_divisors R]
+variables (R)
+variables [no_zero_divisors R] [nontrivial R]
 
-lemma J_det : det (J l R) = 1 ∨ det (J l R) = - 1:=
+lemma J_det [rc : fact (ring_char R ≠ 2)] : det (J l R) = 1 ∨ det (J l R) = - 1:=
 begin
   have H : (det (J l R)) * (det (J l R)) = 1 := by
   { rw [←det_mul, J_squared],
     rw [←one_smul R (-1 : matrix _ _ R)],
     rw [smul_neg, ←neg_smul, det_smul],
     simp only [fintype.card_sum, det_one, mul_one],
-    rw neg_one_pow_eq_one_iff_even,
-    exact even_add_self _,
-    sorry,  },
+    rw neg_one_pow_eq_one_iff_even (ring.neg_one_ne_one_of_char_ne_two (fact.elim rc)),
+    exact even_add_self _ },
   rw [←sq_eq_one_iff, pow_two],
   exact H,
 end
 
-lemma J_det_unit : is_unit (det (J l R)) := pm_one_unit (J_det l R)
+lemma J_det_unit [fact (ring_char R ≠ 2)] : is_unit (det (J l R)) :=
+  pm_one_unit (J_det l R)
 
 end matrix
 
@@ -120,7 +121,7 @@ def symplectic_group : submonoid (matrix (l ⊕ l) (l ⊕ l)  R) :=
   end,
   one_mem' := by simp }
 
-variables {l}
+variables {l} {R}
 
 namespace symplectic_group
 
@@ -145,7 +146,6 @@ variables (A B : symplectic_group l R)
 
 @[simp] lemma one_apply : ⇑(1 : symplectic_group l R) = (1 : matrix (l ⊕ l) (l ⊕ l)  R) := rfl
 
-variables {R}
 
 lemma mul_mem {A B : matrix (l ⊕ l) (l ⊕ l) R}
   (hA : A ∈ symplectic_group l R) (hB : B ∈ symplectic_group l R) :
@@ -156,7 +156,7 @@ end coe_lemmas
 
 section symplectic_J
 
-variables (l)
+variables (l) (R)
 
 lemma J_mem : (J l R) ∈ symplectic_group l R :=
 begin
@@ -169,7 +169,7 @@ end
 /-- TODO: Fill in this doc string -/
 def sym_J : symplectic_group l R := ⟨J l R, J_mem l R⟩
 
-variables {l}
+variables {l} {R}
 
 @[simp] lemma coe_J : ↑(sym_J l R) = J l R := rfl
 
@@ -177,8 +177,16 @@ variables {l}
 
 end symplectic_J
 
-variables [no_zero_divisors R]
 variables {R} {A : matrix (l ⊕ l) (l ⊕ l) R}
+
+lemma neg_mem (h : A ∈ symplectic_group l R) : -A ∈ symplectic_group l R :=
+begin
+  rw mem_iff at h ⊢,
+  simp [h],
+end
+
+variables [no_zero_divisors R] [nontrivial R]
+variables [fact (ring_char R ≠ 2)]
 
 lemma symplectic_det (hA : A ∈ symplectic_group l R) : is_unit $ det A :=
 begin
@@ -187,8 +195,7 @@ begin
   simp only [det_mul, det_transpose] at hA,
   have H := J_det l R,
   cases H,
-  {
-    rw [H, mul_one, ←sq, sq_eq_one_iff] at hA,
+  { rw [H, mul_one, ←sq, sq_eq_one_iff] at hA,
     exact pm_one_unit hA },
   { rw H at hA,
   simp only [mul_neg, mul_one, neg_mul, neg_inj] at hA,
@@ -196,7 +203,8 @@ begin
   exact pm_one_unit hA },
 end
 
-lemma transpose_mem (hA : A ∈ symplectic_group l R) : Aᵀ ∈ symplectic_group l R :=
+lemma transpose_mem (hA : A ∈ symplectic_group l R) :
+  Aᵀ ∈ symplectic_group l R :=
 begin
   rw mem_iff at ⊢ hA,
   rw transpose_transpose,
@@ -216,11 +224,6 @@ begin
   ... = (J l R) : by simp [J_inv]
 end
 
-lemma neg_mem (h : A ∈ symplectic_group l R) : -A ∈ symplectic_group l R :=
-begin
-  rw mem_iff at h ⊢,
-  simp [h],
-end
 
 lemma transpose_mem_iff : Aᵀ ∈ symplectic_group l R ↔ A ∈ symplectic_group l R :=
 ⟨λ hA, by simpa using transpose_mem hA , transpose_mem⟩
@@ -230,10 +233,10 @@ by rw [←transpose_mem_iff, mem_iff, transpose_transpose]
 
 instance : has_inv (symplectic_group l R) :=
 { inv := λ A, ⟨- (J l R) ⬝ Aᵀ ⬝ (J l R),
-  mul_mem (mul_mem (neg_mem $ J_mem l R) $ transpose_mem A.2) $ J_mem _ R⟩ }
+  mul_mem (mul_mem (neg_mem $ J_mem _ _) $ transpose_mem A.2) $ J_mem _ _⟩ }
 
-@[simp] lemma coe_inv (A : symplectic_group l R): (↑(A⁻¹) : matrix _ _ _) = - (J l R) ⬝ Aᵀ ⬝ (J l R)
-  := rfl
+@[simp] lemma coe_inv (A : symplectic_group l R) :
+  (↑(A⁻¹) : matrix _ _ _) = - (J l R) ⬝ Aᵀ ⬝ (J l R) := rfl
 
 @[simp] lemma inv_apply (A : symplectic_group l R): ⇑(A⁻¹) = - (J l R) ⬝ Aᵀ ⬝ (J l R) := rfl
 

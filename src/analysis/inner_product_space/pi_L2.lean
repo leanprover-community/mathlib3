@@ -182,12 +182,9 @@ TODO : This should be generalized to `pi_Lp`. -/
 /-- The projection on the `i`-th coordinate of `euclidean_space 𝕜 ι`, as a continuous linear map.
 
 TODO : This should be generalized to `pi_Lp`. -/
-def euclidean_space.proj [decidable_eq ι] (i : ι) :
+@[simps] def euclidean_space.proj [decidable_eq ι] (i : ι) :
   euclidean_space 𝕜 ι →L[𝕜] 𝕜 :=
 ⟨euclidean_space.projₗ i, continuous_apply i⟩
-
-@[simp] lemma euclidean_space.proj_apply [decidable_eq ι] (i : ι) (b : euclidean_space 𝕜 ι) :
-  (euclidean_space.proj i : euclidean_space 𝕜 ι →L[𝕜] 𝕜) b = b i := rfl
 
 /-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
 all other coordinates.

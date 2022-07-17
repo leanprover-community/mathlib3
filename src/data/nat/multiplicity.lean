@@ -391,26 +391,39 @@ begin
 end
 
 
+
+lemma factorization_choose_prime_pow' {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+  (choose (p ^ n) k).factorization p + k.factorization p = n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn0, {
+  simp only [pow_zero] at hkn,
+  have : k = 1, { apply eq_of_le_of_not_lt hkn, simp [hk0.ne'] },
+  simp [this] },
+
+  refine le_antisymm _ _,
+
+  { have hdisj : disjoint
+      ((Ico 1 n.succ).filter (λ i, p ^ i ≤ k % p ^ i + (p ^ n - k) % p ^ i))
+      ((Ico 1 n.succ).filter (λ i, p ^ i ∣ k)),
+    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
+        {contextual := tt},
+    sorry,
+    -- rw [multiplicity_choose hp hkn (lt_succ_self _),
+    --   multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
+    --     (lt_succ_of_le (log_mono_right hkn)),
+    --   ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
+    --   ← card_disjoint_union hdisj, filter_union_right],
+    -- have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
+    -- rwa card_Ico 1 n.succ at filter_le_Ico,
+  },
+  {
+    sorry,
+    -- rw [← hp.multiplicity_pow_self];
+    -- exact multiplicity_le_multiplicity_choose_add hp _ _
+  },
+end
+
 #exit
-
-
--- le_antisymm
---   (have hdisj : disjoint
---       ((Ico 1 n.succ).filter (λ i, p ^ i ≤ k % p ^ i + (p ^ n - k) % p ^ i))
---       ((Ico 1 n.succ).filter (λ i, p ^ i ∣ k)),
---     by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
---         {contextual := tt},
---   begin
---     rw [multiplicity_choose hp hkn (lt_succ_self _),
---       multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
---         (lt_succ_of_le (log_mono_right hkn)),
---       ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
---       ← card_disjoint_union hdisj, filter_union_right],
---     have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
---     rwa card_Ico 1 n.succ at filter_le_Ico,
---   end)
---   (by rw [← hp.multiplicity_pow_self];
---     exact multiplicity_le_multiplicity_choose_add hp _ _)
 
 end prime
 

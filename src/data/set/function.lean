@@ -356,6 +356,59 @@ theorem surjective_maps_to_image_restrict (f : α → β) (s : set α) :
 theorem maps_to.mem_iff (h : maps_to f s t) (hc : maps_to f sᶜ tᶜ) {x} : f x ∈ t ↔ x ∈ s :=
 ⟨λ ht, by_contra $ λ hs, hc hs ht, λ hx, h hx⟩
 
+/-! ### Restriction onto preimage -/
+section
+
+variables {α β : Type*} (s : set β) (f : α → β)
+variables {ι : Type*} (U : ι → set β) (hU : set.Union U = set.univ)
+
+/-- The restriction of a function onto the preimage of a set. -/
+@[simps] def set.restrict_preimage : f ⁻¹' s → s :=
+(set.maps_to_preimage f s).restrict _ _ _
+
+lemma set.range_restrict_preimage :
+  set.range (s.restrict_preimage f) = coe ⁻¹' (set.range f) :=
+begin
+  delta set.restrict_preimage set.maps_to.restrict,
+  rw [@set.range_subtype_map _ _ _ (f ⁻¹' s) s, set.image_preimage_eq_inter_range,
+    set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
+end
+
+include hU
+
+lemma injective_iff_injective_of_Union_eq_univ :
+  function.injective f ↔ ∀ i, function.injective ((U i).restrict_preimage f) :=
+begin
+  split,
+  { intros H i x y e, injection e with e, exact subtype.coe_injective (H e) },
+  { intros H x y e,
+    obtain ⟨i, hi⟩ := set.mem_Union.mp (show f x ∈ set.Union U, by { rw hU, triv }),
+    injection @H i ⟨x, hi⟩ ⟨y, show f y ∈ U i, from e ▸ hi⟩ (subtype.ext e) }
+end
+
+lemma surjective_iff_surjective_of_Union_eq_univ :
+  function.surjective f ↔ ∀ i, function.surjective ((U i).restrict_preimage f) :=
+begin
+  split,
+  { exact λ H i x, ⟨⟨_, (show f (H x).some ∈ U i,
+      from (H x).some_spec.symm ▸ x.2)⟩, subtype.ext (H x).some_spec⟩ },
+  { intros H x,
+    obtain ⟨i, hi⟩ := set.mem_Union.mp (show x ∈ set.Union U, by { rw hU, triv }),
+    exact ⟨_, congr_arg subtype.val (H i ⟨x, hi⟩).some_spec⟩ }
+end
+
+lemma bijective_iff_bijective_of_Union_eq_univ :
+  function.bijective f ↔ ∀ i, function.bijective ((U i).restrict_preimage f) :=
+begin
+  delta function.bijective,
+  rw forall_and_distrib,
+  apply and_congr,
+  exacts [injective_iff_injective_of_Union_eq_univ f U hU,
+    surjective_iff_surjective_of_Union_eq_univ f U hU]
+end
+
+end
+
 /-! ### Injectivity on a set -/
 
 /-- `f` is injective on `a` if the restriction of `f` to `a` is injective. -/

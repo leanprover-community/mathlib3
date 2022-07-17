@@ -463,9 +463,8 @@ def omega : Set := mk omega
 ⟨⟨0⟩, equiv.rfl⟩
 
 @[simp] theorem omega_succ {n} : n ∈ omega.{u} → insert n n ∈ omega.{u} :=
-quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩, quotient.exact $
-  show @has_insert.insert Set Set _ ⟦x⟧ ⟦x⟧ = @has_insert.insert Set Set _ ⟦of_nat n⟧ ⟦of_nat n⟧,
-  by { rw (@quotient.sound pSet _ _ _ h), refl }⟩)
+quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩, Set.exact $
+  show insert (mk x) (mk x) = insert (mk $ of_nat n) (mk $ of_nat n), { rw Set.sound h, refl } ⟩)
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
 protected def sep (p : Set → Prop) : Set → Set :=

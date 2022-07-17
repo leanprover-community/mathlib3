@@ -19,6 +19,7 @@ noncomputable theory
 
 open category_theory
 open category_theory.limits
+open opposite
 
 universes v u
 
@@ -144,20 +145,21 @@ instance {β : Type v} (c : β → C) [has_zero_morphisms C] [has_biproduct c]
   simp only [category.assoc, biproduct.lift_π, comp_factor_thru],
 end }
 
-instance {P : Cᵒᵖ} [projective P] : injective (P.unop) :=
-{ factors := λ X Y g f mono, begin
-  resetI,
-  refine ⟨(@projective.factor_thru Cᵒᵖ _ P (opposite.op X) (opposite.op Y) _ g.op f.op _).unop, _⟩,
-  convert congr_arg quiver.hom.unop (@projective.factor_thru_comp Cᵒᵖ _ P
-    (opposite.op X) (opposite.op Y) _ g.op f.op _),
-end }
+instance {P : Cᵒᵖ} [projective P] : injective (unop P) :=
+{ factors := λ X Y g f mono, by exactI ⟨(@projective.factor_thru Cᵒᵖ _ P _ _ _ g.op f.op _).unop,
+      quiver.hom.op_inj (by simp)⟩ }
 
-instance {J : C} [injective J] : projective (opposite.op J) :=
-{ factors := λ E X f e epi, begin
-  resetI,
-  refine ⟨(@factor_thru C _ J _ _ _ f.unop e.unop _).op, _⟩,
-  convert congr_arg quiver.hom.op (@comp_factor_thru C _ J _ _ _ f.unop e.unop _),
-end }
+instance {J : Cᵒᵖ} [injective J] : projective (unop J) :=
+{ factors := λ E X f e he, by exactI ⟨(@factor_thru Cᵒᵖ _ J _ _ _ f.op e.op _).unop,
+    quiver.hom.op_inj (by simp)⟩ }
+
+instance {J : C} [injective J] : projective (op J) :=
+{ factors := λ E X f e epi, by exactI ⟨(@factor_thru C _ J _ _ _ f.unop e.unop _).op,
+    quiver.hom.unop_inj (by simp)⟩ }
+
+instance {P : C} [projective P] : injective (op P) :=
+{ factors := λ X Y g f mono, by exactI ⟨(@projective.factor_thru C _ P _ _ _ g.unop f.unop _).op,
+    quiver.hom.unop_inj (by simp)⟩ }
 
 section enough_injectives
 variable [enough_injectives C]
@@ -205,6 +207,18 @@ cokernel.π f ≫ ι (cokernel f)
 end
 
 end enough_injectives
+
+instance [enough_injectives C] : enough_projectives Cᵒᵖ :=
+⟨λ X, ⟨⟨_, infer_instance, (injective.ι (unop X)).op, infer_instance⟩⟩⟩
+
+instance [enough_projectives C] : enough_injectives Cᵒᵖ :=
+⟨λ X, ⟨⟨_, infer_instance, (projective.π (unop X)).op, infer_instance⟩⟩⟩
+
+lemma enough_projectives_of_enough_injectives_op [enough_injectives Cᵒᵖ] : enough_projectives C :=
+⟨λ X, ⟨⟨_, infer_instance, (injective.ι (op X)).unop, infer_instance⟩⟩⟩
+
+lemma enough_injectives_of_enough_projectives_op [enough_projectives Cᵒᵖ] : enough_injectives C :=
+⟨λ X, ⟨⟨_, infer_instance, (projective.π (op X)).unop, infer_instance⟩⟩⟩
 
 open injective
 

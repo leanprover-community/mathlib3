@@ -857,7 +857,7 @@ namespace alist
   (alist.mk l h).lookup_finsupp = l.lookup_finsupp :=
 by { ext, rw list.lookup_finsupp_apply, refl }
 
-lemma lookup_finsupp_surjective [has_zero M] : surjective (@alist.lookup_finsupp α M _) :=
+lemma lookup_finsupp_surjective : surjective (@alist.lookup_finsupp α M _) :=
 λ f, ⟨_, (mk_lookup_finsupp _ f.graph_nodupkeys).trans $ list.lookup_finsupp_graph f⟩
 
 end alist

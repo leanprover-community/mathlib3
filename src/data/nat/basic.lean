@@ -743,6 +743,21 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+/-- Recursion principle on even and odd numbers: if we have `P 0`, and for all `i : ℕ` we can
+extend from `P i` to both `P (2 * i)` and `P (2 * i + 1)`, then we have `P n` for all `n : ℕ`.
+This is nothing more than a wrapper around `nat.binary_rec`, to avoid having to switch to
+dealing with `bit0` and `bit1`. -/
+@[elab_as_eliminator]
+def even_odd_rec (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i))
+  (h_odd : ∀ i, P i → P (2 * i + 1)) : P n :=
+begin
+  refine @binary_rec P h0 (λ b i hi, _) n,
+  cases b,
+  { simpa [bit, bit0_val i] using h_even i hi },
+  { simpa [bit, bit1_val i] using h_odd i hi },
+end
+
 /-- Given a predicate on two naturals `P : ℕ → ℕ → Prop`, `P a b` is true for all `a < b` if
 `P (a + 1) (a + 1)` is true for all `a`, `P 0 (b + 1)` is true for all `b` and for all
 `a < b`, `P (a + 1) b` is true and `P a (b + 1)` is true implies `P (a + 1) (b + 1)` is true. -/

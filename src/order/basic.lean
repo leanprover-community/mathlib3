@@ -410,15 +410,6 @@ instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x�
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
 instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
--- `dual_le` and `dual_lt` should not be simp lemmas:
--- they cause a loop since `α` and `αᵒᵈ` are definitionally equal
-
-lemma dual_le [has_le α] {a b : α} :
-  @has_le.le αᵒᵈ _ a b ↔ @has_le.le α _ b a := iff.rfl
-
-lemma dual_lt [has_lt α] {a b : α} :
-  @has_lt.lt αᵒᵈ _ a b ↔ @has_lt.lt α _ b a := iff.rfl
-
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
   le_trans         := λ a b c hab hbc, hbc.trans hab,

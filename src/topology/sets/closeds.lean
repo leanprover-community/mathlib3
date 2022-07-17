@@ -19,7 +19,7 @@ For a topological space `α`,
 
 open set
 
-variables {α β : Type*} [topological_space α] [topological_space β]
+variables {ι α β : Type*} [topological_space α] [topological_space β]
 
 namespace topological_space
 
@@ -55,12 +55,34 @@ instance : bounded_order (closeds α) := bounded_order.lift (coe : _ → set α)
 /-- The type of closed sets is inhabited, with default element the empty set. -/
 instance : inhabited (closeds α) := ⟨⊥⟩
 
-@[simp] lemma coe_sup (s t : closeds α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
-@[simp] lemma coe_inf (s t : closeds α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
-@[simp] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_sup (s t : closeds α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_inf (s t : closeds α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_top : (↑(⊤ : closeds α) : set α) = univ := rfl
+@[simp, norm_cast] lemma coe_bot : (↑(⊥ : closeds α) : set α) = ∅ := rfl
+
+@[simp, norm_cast] lemma coe_finset_sup (f : ι → closeds α) (s : finset ι) :
+  (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
+map_finset_sup (⟨⟨coe, coe_sup⟩, coe_bot⟩ : sup_bot_hom (closeds α) (set α)) _ _
+
+@[simp, norm_cast] lemma coe_finset_inf (f : ι → closeds α) (s : finset ι) :
+  (↑(s.inf f) : set α) = s.inf (coe ∘ f) :=
+map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (closeds α) (set α)) _ _
 
 end closeds
+
+/-- The complement of a closed set as an open set. -/
+@[simps] def closeds.compl (s : closeds α) : opens α := ⟨sᶜ, s.2.is_open_compl⟩
+
+/-- The complement of an open set as a closed set. -/
+@[simps] def opens.compl (s : opens α) : closeds α := ⟨sᶜ, s.2.is_closed_compl⟩
+
+lemma closeds.compl_compl (s : closeds α) : s.compl.compl = s := closeds.ext (compl_compl s)
+lemma opens.compl_compl (s : opens α) : s.compl.compl = s := opens.ext (compl_compl s)
+
+lemma closeds.compl_bijective : function.bijective (@closeds.compl α _) :=
+function.bijective_iff_has_inverse.mpr ⟨opens.compl, closeds.compl_compl, opens.compl_compl⟩
+lemma opens.compl_bijective : function.bijective (@opens.compl α _) :=
+function.bijective_iff_has_inverse.mpr ⟨closeds.compl, opens.compl_compl, closeds.compl_compl⟩
 
 /-! ### Clopen sets -/
 

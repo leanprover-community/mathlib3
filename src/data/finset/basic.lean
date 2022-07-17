@@ -327,6 +327,9 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : finset α) : Prop := ∃ x : α, x ∈ s
 
+instance decidable_nonempty {s : finset α} : decidable s.nonempty :=
+decidable_of_iff (∃ a ∈ s, true) $ by simp_rw [exists_prop, and_true, finset.nonempty]
+
 @[simp, norm_cast] lemma coe_nonempty {s : finset α} : (s : set α).nonempty ↔ s.nonempty := iff.rfl
 
 @[simp] lemma nonempty_coe_sort {s : finset α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
@@ -535,12 +538,32 @@ end cons
 /-- `disj_union s t h` is the set such that `a ∈ disj_union s t h` iff `a ∈ s` or `a ∈ t`.
 It is the same as `s ∪ t`, but it does not require decidable equality on the type. The hypothesis
 ensures that the sets are disjoint. -/
-def disj_union {α} (s t : finset α) (h : ∀ a ∈ s, a ∉ t) : finset α :=
+def disj_union (s t : finset α) (h : ∀ a ∈ s, a ∉ t) : finset α :=
 ⟨s.1 + t.1, multiset.nodup_add.2 ⟨s.2, t.2, h⟩⟩
 
 @[simp] theorem mem_disj_union {α s t h a} :
   a ∈ @disj_union α s t h ↔ a ∈ s ∨ a ∈ t :=
 by rcases s with ⟨⟨s⟩⟩; rcases t with ⟨⟨t⟩⟩; apply list.mem_append
+
+lemma disj_union_comm (s t : finset α) (h : ∀ a ∈ s, a ∉ t) :
+  disj_union s t h = disj_union t s (λ a ht hs, h _ hs ht) :=
+eq_of_veq $ add_comm _ _
+
+@[simp] lemma empty_disj_union (t : finset α) (h : ∀ a' ∈ ∅, a' ∉ t := λ a h _, not_mem_empty _ h) :
+  disj_union ∅ t h = t :=
+eq_of_veq $ zero_add _
+
+@[simp] lemma disj_union_empty (s : finset α) (h : ∀ a' ∈ s, a' ∉ ∅ := λ a h, not_mem_empty _) :
+  disj_union s ∅ h = s :=
+eq_of_veq $ add_zero _
+
+lemma singleton_disj_union (a : α) (t : finset α) (h : ∀ a' ∈ {a}, a' ∉ t) :
+  disj_union {a} t h = cons a t (h _ $ mem_singleton_self _) :=
+eq_of_veq $ multiset.singleton_add _ _
+
+lemma disj_union_singleton (s : finset α) (a : α) (h : ∀ a' ∈ s, a' ∉ {a}) :
+  disj_union s {a} h = cons a s (λ ha, h _ ha $ mem_singleton_self _) :=
+by rw [disj_union_comm, singleton_disj_union]
 
 /-! ### insert -/
 
@@ -1518,6 +1541,31 @@ lemma subset_coe_filter_of_subset_forall (s : finset α) {t : set α}
 
 theorem filter_singleton (a : α) : filter p (singleton a) = if p a then singleton a else ∅ :=
 by { classical, ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
+
+theorem filter_cons_of_pos (a : α) (s : finset α) (ha : a ∉ s) (hp : p a):
+  filter p (cons a s ha) = cons a (filter p s) (mem_filter.not.mpr $ mt and.left ha) :=
+eq_of_veq $ multiset.filter_cons_of_pos s.val hp
+
+theorem filter_cons_of_neg (a : α) (s : finset α) (ha : a ∉ s) (hp : ¬p a):
+  filter p (cons a s ha) = filter p s :=
+eq_of_veq $ multiset.filter_cons_of_neg s.val hp
+
+theorem filter_disj_union (s : finset α) (t : finset α) (h : ∀ (a : α), a ∈ s → a ∉ t) :
+  filter p (disj_union s t h) = (filter p s).disj_union (filter p t)
+    (λ a hs ht, h a (mem_of_mem_filter _ hs) (mem_of_mem_filter _ ht)) :=
+eq_of_veq $ multiset.filter_add _ _ _
+
+theorem filter_cons {a : α} (s : finset α) (ha : a ∉ s) :
+  filter p (cons a s ha) = (if p a then {a} else ∅ : finset α).disj_union (filter p s) (λ b hb, by
+    { split_ifs at hb,
+      { rw finset.mem_singleton.mp hb,
+        exact (mem_filter.not.mpr $ mt and.left ha) },
+      { cases hb } }) :=
+begin
+  split_ifs with h,
+  { rw [filter_cons_of_pos _ _ _ ha h, singleton_disj_union] },
+  { rw [filter_cons_of_neg _ _ _ ha h, empty_disj_union] },
+end
 
 variable [decidable_eq α]
 

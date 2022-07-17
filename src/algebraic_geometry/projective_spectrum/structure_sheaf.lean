@@ -288,7 +288,7 @@ def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
     ⟨𝟙 _, ⟨f.deg, ⟨⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩,
       λ z, ⟨z.2, rfl⟩⟩⟩⟩⟩⟩
 
-/--Given any point `x` and `f` in the homogeneous localizatoin at `x`, there is an element in the
+/--Given any point `x` and `f` in the homogeneous localization at `x`, there is an element in the
 stalk at `x` obtained by `section_in_basic_open`. This is the inverse of `stalk_to_fiber_ring_hom`.
 -/
 def homogeneous_localization_to_stalk (x : projective_spectrum.Top 𝒜) :

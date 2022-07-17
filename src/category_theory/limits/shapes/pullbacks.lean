@@ -2139,6 +2139,88 @@ by rw [← iso.eq_comp_inv, category.assoc, inr_inr_pushout_assoc_inv]
 
 end pushout_assoc
 
+section opposite
+
+open opposite
+
+/-- The pullback of `f` and `g` in `C` is isomorphic to the pullback of
+`f.op` and `g.op` in `Cᵒᵖ`. -/
+noncomputable
+def pullback_iso_unop_pushout (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_pushout f.op g.op] : pullback f g ≅ unop (pushout f.op g.op) :=
+{ hom := (pushout.desc pullback.fst.op pullback.snd.op
+    (congr_arg quiver.hom.op pullback.condition) : pushout f.op g.op ⟶ op _).unop,
+  inv := pullback.lift (pushout.inl : _ ⟶ pushout f.op g.op).unop
+    (pushout.inr : _ ⟶ pushout f.op g.op).unop (congr_arg quiver.hom.unop
+      (@pushout.condition _ _ _ _ _ f.op g.op _)),
+  hom_inv_id' := by ext; simp [← unop_comp],
+  inv_hom_id' := by { apply quiver.hom.op_inj, ext; simp [← op_comp] } }
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_inv_fst (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_pushout f.op g.op] :
+  (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
+    (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
+pullback.lift_fst _ _ _
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_inv_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
+    (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
+pullback.lift_snd _ _ _
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_hom_inl {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  pushout.inl ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.fst.op :=
+pushout.inl_desc _ _ _
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_hom_inr {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
+pushout.inr_desc _ _ _
+
+noncomputable
+def pushout_iso_unop_pullback {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] : pushout f g ≅ unop (pullback f.op g.op) :=
+{ hom := pushout.desc (pullback.fst : pullback f.op g.op ⟶ _).unop
+    (pullback.snd : pullback f.op g.op ⟶ _).unop (congr_arg quiver.hom.unop
+      (@pullback.condition _ _ _ _ _ f.op g.op _)),
+  inv := (pullback.lift pushout.inl.op pushout.inr.op
+    (congr_arg quiver.hom.op pushout.condition) : op _ ⟶ pullback f.op g.op).unop,
+  hom_inv_id' := by ext; simp [← unop_comp],
+  inv_hom_id' := by { apply quiver.hom.op_inj, ext; erw [category.id_comp]; simp [← op_comp] } }
+.
+@[simp, reassoc]
+lemma pushout_iso_unop_pullback_inl_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
+    (pullback.fst : pullback f.op g.op ⟶ _).unop :=
+pushout.inl_desc _ _ _
+
+@[simp, reassoc]
+lemma pushout_iso_unop_pullback_inr_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =
+    (pullback.snd : pullback f.op g.op ⟶ _).unop :=
+pushout.inr_desc _ _ _
+
+@[simp]
+lemma pushout_iso_unop_pullback_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.fst = pushout.inl.op :=
+pullback.lift_fst _ _ _
+
+@[simp]
+lemma pushout_iso_unop_pullback_inv_snd {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.snd = pushout.inr.op :=
+pullback.lift_snd _ _ _
+
+end opposite
+
 variables (C)
 
 /--

@@ -370,6 +370,8 @@ is classically true but not constructively. -/
 
 theorem of_not_not : ¬¬a → a := by_contra
 
+@[simp] theorem not_imp_false_iff : ¬a → false ↔ a := not_not
+
 lemma not_ne_iff {α : Sort*} {a b : α} : ¬ a ≠ b ↔ a = b := not_not
 
 -- See Note [decidable namespace]

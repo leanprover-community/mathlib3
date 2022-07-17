@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.nat.enat
+import data.nat.part_enat
 import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
@@ -1038,7 +1038,7 @@ denumerable_iff.1 ⟨‹_›⟩
 
 @[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
 begin
-  rw [countable_iff_exists_injective], split,
+  rw [set.countable_iff_exists_injective], split,
   { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
@@ -1165,7 +1165,7 @@ end
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to `⊤`. -/
-def to_enat : cardinal →+ enat :=
+def to_part_enat : cardinal →+ part_enat :=
 { to_fun := λ c, if c < ℵ₀ then c.to_nat else ⊤,
   map_zero' := by simp [if_pos (zero_lt_one.trans one_lt_aleph_0)],
   map_add' := λ x y, begin
@@ -1175,33 +1175,34 @@ def to_enat : cardinal →+ enat :=
       { obtain ⟨y0, rfl⟩ := lt_aleph_0.1 hy,
         simp only [add_lt_aleph_0 hx hy, hx, hy, to_nat_cast, if_true],
         rw [← nat.cast_add, to_nat_cast, nat.cast_add] },
-      { rw [if_neg hy, if_neg, enat.add_top],
+      { rw [if_neg hy, if_neg, part_enat.add_top],
         contrapose! hy,
         apply le_add_self.trans_lt hy } },
-    { rw [if_neg hx, if_neg, enat.top_add],
+    { rw [if_neg hx, if_neg, part_enat.top_add],
       contrapose! hx,
       apply le_self_add.trans_lt hx },
   end }
 
-lemma to_enat_apply_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : c.to_enat = c.to_nat :=
+lemma to_part_enat_apply_of_lt_aleph_0 {c : cardinal} (h : c < ℵ₀) : c.to_part_enat = c.to_nat :=
 if_pos h
 
-lemma to_enat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_enat = ⊤ :=
+lemma to_part_enat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_part_enat = ⊤ :=
 if_neg h.not_lt
 
-@[simp] lemma to_enat_cast (n : ℕ) : cardinal.to_enat n = n :=
-by rw [to_enat_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
+@[simp] lemma to_part_enat_cast (n : ℕ) : cardinal.to_part_enat n = n :=
+by rw [to_part_enat_apply_of_lt_aleph_0 (nat_lt_aleph_0 n), to_nat_cast]
 
-@[simp] lemma mk_to_enat_of_infinite [h : infinite α] : (#α).to_enat = ⊤ :=
-to_enat_apply_of_aleph_0_le (infinite_iff.1 h)
+@[simp] lemma mk_to_part_enat_of_infinite [h : infinite α] : (#α).to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le (infinite_iff.1 h)
 
-@[simp] theorem aleph_0_to_enat : to_enat ℵ₀ = ⊤ :=
-to_enat_apply_of_aleph_0_le le_rfl
+@[simp] theorem aleph_0_to_part_enat : to_part_enat ℵ₀ = ⊤ :=
+to_part_enat_apply_of_aleph_0_le le_rfl
 
-lemma to_enat_surjective : surjective to_enat :=
-λ x, enat.cases_on x ⟨ℵ₀, to_enat_apply_of_aleph_0_le le_rfl⟩ $ λ n, ⟨n, to_enat_cast n⟩
+lemma to_part_enat_surjective : surjective to_part_enat :=
+λ x, part_enat.cases_on x ⟨ℵ₀, to_part_enat_apply_of_aleph_0_le le_rfl⟩ $
+  λ n, ⟨n, to_part_enat_cast n⟩
 
-lemma mk_to_enat_eq_coe_card [fintype α] : (#α).to_enat = fintype.card α :=
+lemma mk_to_part_enat_eq_coe_card [fintype α] : (#α).to_part_enat = fintype.card α :=
 by simp
 
 lemma mk_int : #ℤ = ℵ₀ := mk_denumerable ℤ

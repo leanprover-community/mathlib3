@@ -31,6 +31,9 @@ lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
 
+lemma uniform_inducing_id : uniform_inducing (@id α) :=
+⟨by rw [← prod.map_def, prod.map_id, comap_id]⟩
+
 lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
 ⟨ by rw [show (λ (x : α × α), ((g ∘ f) x.1, (g ∘ f) x.2)) =
@@ -41,6 +44,15 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   {ι : Sort*} {p : ι → Prop} {s : ι → set (β × β)} (H : (𝓤 β).has_basis p s) :
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
+
+lemma uniform_inducing_of_compose {f : α → β} {g : β → γ} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) (hgf : uniform_inducing (g ∘ f)) : uniform_inducing f :=
+begin
+  refine ⟨le_antisymm _ hf.le_comap⟩,
+  rw [← hgf.1, ← prod.map_def, ← prod.map_def, ← prod.map_comp_map f f g g,
+      ← @comap_comap _ _ _ _ (prod.map f f)],
+  exact comap_mono hg.le_comap
+end
 
 /-- A map `f : α → β` between uniform spaces is a *uniform embedding* if it is uniform inducing and
 injective. If `α` is a separated space, then the latter assumption follows from the former. -/

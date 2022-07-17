@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.prod
 import data.fin.succ_pred
 import order.succ_pred.relation
 
@@ -46,6 +46,15 @@ def hasse_dual_iso : hasse αᵒᵈ ≃g hasse α :=
 @[simp] lemma hasse_dual_iso_symm_apply (a : α) : hasse_dual_iso.symm a = to_dual a := rfl
 
 end preorder
+
+section partial_order
+variables [partial_order α] [partial_order β]
+
+@[simp] lemma hasse_prod : hasse (α × β) = hasse α □ hasse β :=
+by { ext x y, simp_rw [box_prod_adj, hasse_adj, prod.covby_iff, or_and_distrib_right,
+  @eq_comm _ y.1, @eq_comm _ y.2, or_or_or_comm] }
+
+end partial_order
 
 section linear_order
 variables [linear_order α]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import analysis.matrix
 
@@ -194,9 +194,8 @@ theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
 begin
   let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
-  { simp only [continuous_pi_iff, fin.forall_fin_two],
-    have : ∀ c : ℝ, continuous (λ x : ℝ, c) := λ c, continuous_const,
-    exact ⟨⟨continuous_id, @this (-1 : ℤ)⟩, ⟨this (cd 0), this (cd 1)⟩⟩ },
+  { simp only [continuous_pi_iff, fin.forall_fin_two, mB, continuous_const, continuous_id',
+      cons_val_zero, cons_val_one, and_self ] },
   refine filter.tendsto.of_tendsto_comp _ (comap_cocompact_le hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
     λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
@@ -236,7 +235,7 @@ lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (hg 
     + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
   have nonZ1 : (p 0 : ℂ) ^ 2 + (p 1) ^ 2 ≠ 0 := by exact_mod_cast hp.sq_add_sq_ne_zero,
-  have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, hp.ne_zero ((@int.cast_injective ℝ _ _ _).comp_left h),
+  have : (coe : ℤ → ℝ) ∘ p ≠ 0 := λ h, hp.ne_zero (by ext i; simpa using congr_fun h i),
   have nonZ2 : (p 0 : ℂ) * z + p 1 ≠ 0 := by simpa using linear_ne_zero _ z this,
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
@@ -332,10 +331,30 @@ begin
     simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
 end
 
-variables {z}
+@[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
+by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
+
+@[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
+by simpa using T_pow_mul_apply_one 1 g
+
+@[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
+by simpa using T_pow_mul_apply_one (-1) g
 
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
+
+lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
+by rw [←coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re]
+
+lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
+by rw [←coe_im, coe_T_zpow_smul_eq, add_im, int_cast_im, add_zero, coe_im]
+
+lemma re_T_smul : (T • z).re = z.re + 1 := by simpa using re_T_zpow_smul z 1
+lemma im_T_smul : (T • z).im = z.im := by simpa using im_T_zpow_smul z 1
+lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 := by simpa using re_T_zpow_smul z (-1)
+lemma im_T_inv_smul : (T⁻¹ • z).im = z.im := by simpa using im_T_zpow_smul z (-1)
+
+variables {z}
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
 lemma exists_eq_T_zpow_of_c_eq_zero (hc : ↑ₘg 1 0 = 0) :
@@ -421,7 +440,7 @@ begin
   { rwa [← int.cast_abs, ← int.cast_one, int.cast_lt, int.abs_lt_one_iff] at this, },
   have h₁ := hz.2,
   have h₂ := hg.2,
-  rw [← coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re] at h₂,
+  rw [re_T_zpow_smul] at h₂,
   calc |(n : ℝ)| ≤ |z.re| + |z.re + (n : ℝ)| : abs_add' (n : ℝ) z.re
              ... < 1/2 + 1/2 : add_lt_add h₁ h₂
              ... = 1 : add_halves 1,
@@ -445,25 +464,19 @@ begin
   { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
     contrapose! hg₀',
     refine ⟨S * g, _⟩,
-    rw mul_action.mul_smul,
+    rw mul_smul,
     exact im_lt_im_S_smul hg₀' },
   { show |(g • z).re| ≤ 1 / 2, -- if not, then either `T` or `T'` decrease |Re|.
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T * g, by simp [T, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re + 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [T] },
+      refine ⟨T * g, (T_mul_apply_one _).symm, _⟩,
+      rw [mul_smul, re_T_smul],
+      cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith },
     { contrapose! hg',
-      refine ⟨T⁻¹ * g, by simp [coe_T_inv, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re - 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [coe_T_inv, sub_eq_add_neg] } }
+      refine ⟨T⁻¹ * g, (T_inv_mul_apply_one _).symm, _⟩,
+      rw [mul_smul, re_T_inv_smul],
+      cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith } }
 end
 
 section unique_representative

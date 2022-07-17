@@ -71,7 +71,7 @@ let ⟨⟨num, denom⟩, h⟩ := is_localization.surj _ a in ⟨denom, set.mem_r
 
 /-- Each element `a : S` has an `M`-multiple which is an integer.
 
-This version multiplies `a` on the left, matching the argument order in the `has_scalar` instance.
+This version multiplies `a` on the left, matching the argument order in the `has_smul` instance.
 -/
 lemma exists_integer_multiple (a : S) :
   ∃ (b : M), is_integer R ((b : R) • a) :=

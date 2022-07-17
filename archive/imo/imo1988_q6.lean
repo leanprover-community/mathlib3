@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.nat.prime
-import data.rat.basic
+import data.rat.defs
 import order.well_founded
 import tactic.linarith
 
@@ -226,9 +226,9 @@ begin
       { rw [← sub_eq_zero, ← h_root],
         ring, },
       rw hzx at hpos,
-      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
+      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_left hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
-      apply nonneg_of_mul_nonneg_right hpos (by exact_mod_cast hx), },
+      apply nonneg_of_mul_nonneg_left hpos (by exact_mod_cast hx), },
     { contrapose! hV₀ with x_lt_z,
       apply ne_of_gt,
       calc z * y > x*x     : by apply mul_lt_mul'; linarith
@@ -271,7 +271,7 @@ begin
     split,
     { have zy_pos : z * y ≥ 0,
       { rw hV₀, exact_mod_cast (nat.zero_le _) },
-      apply nonneg_of_mul_nonneg_right zy_pos,
+      apply nonneg_of_mul_nonneg_left zy_pos,
       linarith },
     { contrapose! hV₀ with x_lt_z,
       apply ne_of_gt,

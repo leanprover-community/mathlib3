@@ -51,7 +51,7 @@ def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
   compact' := is_compact_univ_pi (λ i, is_compact_Icc),
-  interior_nonempty' := by simp only [interior_pi_set, finite.of_fintype, interior_Icc,
+  interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
 namespace measure_theory
@@ -419,7 +419,7 @@ lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
   μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
-    by simp [smul_closed_ball' hr.ne' (0 : E), real.norm_eq_abs, abs_of_nonneg hr.le],
+    by simp [smul_closed_ball' hr.ne' (0 : E), abs_of_nonneg hr.le],
   simp only [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_closed_ball_center, abs_pow],
 end
 
@@ -427,7 +427,7 @@ lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 
   μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
-    by simp [smul_closed_ball r (0 : E) hs, real.norm_eq_abs, abs_of_nonneg hr],
+    by simp [smul_closed_ball r (0 : E) hs, abs_of_nonneg hr],
   simp only [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center, abs_pow],
 end
 
@@ -445,7 +445,7 @@ begin
   have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
     (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
-    exact ennreal.tendsto_of_real ((tendsto_id' nhds_within_le_nhds).pow _) },
+    exact ennreal.tendsto_of_real ((tendsto_id'.2 nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
   refine le_of_tendsto A _,
   refine mem_nhds_within_Iio_iff_exists_Ioo_subset.2 ⟨(0 : ℝ), by simp, λ r hr, _⟩,

@@ -137,6 +137,7 @@ begin
   refine ⟨Hx, or.inr _⟩,
   rintros q q_irred ⟨r, hr⟩,
   let D := adjoin_root q,
+  haveI := fact.mk q_irred,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
   have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
@@ -152,7 +153,7 @@ begin
       (linear_map.finrank_le_finrank_of_injective (show function.injective ϕ.to_linear_map,
         from ϕ.to_ring_hom.injective)) finite_dimensional.finrank_pos, },
   let C := adjoin_root (minpoly F x),
-  have Hx_irred := minpoly.irreducible Hx,
+  haveI Hx_irred := fact.mk (minpoly.irreducible Hx),
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F D) (adjoin_root.root q) (by rw [algebra_map_eq F E D, ←eval₂_map, hr,
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
@@ -262,6 +263,26 @@ alg_equiv.ext (λ _, (algebra_map E K₃).injective
 /-- Restriction to an normal subfield as a group homomorphism -/
 def alg_equiv.restrict_normal_hom [normal F E] : (K₁ ≃ₐ[F] K₁) →* (E ≃ₐ[F] E) :=
 monoid_hom.mk' (λ χ, χ.restrict_normal E) (λ ω χ, (χ.restrict_normal_trans ω E))
+
+variables (F K₁ E)
+
+/-- If `K₁/E/F` is a tower of fields with `E/F` normal then `normal.alg_hom_equiv_aut` is an
+ equivalence. -/
+@[simps] def normal.alg_hom_equiv_aut [normal F E] : (E →ₐ[F] K₁) ≃ (E ≃ₐ[F] E) :=
+{ to_fun := λ σ, alg_hom.restrict_normal' σ E,
+  inv_fun := λ σ, (is_scalar_tower.to_alg_hom F E K₁).comp σ.to_alg_hom,
+  left_inv := λ σ, begin
+    ext,
+    simp[alg_hom.restrict_normal'],
+  end,
+  right_inv := λ σ, begin
+    ext,
+    simp only [alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
+    apply no_zero_smul_divisors.algebra_map_injective E K₁,
+    rw alg_hom.restrict_normal_commutes,
+    simp,
+  end }
+
 
 end restrict
 

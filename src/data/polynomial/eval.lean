@@ -474,10 +474,6 @@ by rw [←C_eq_nat_cast, C_mul_comp, C_eq_nat_cast]
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : R[X]) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
 
-lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset R[X]) (p : R[X]) :
-  s.prod.comp p = (s.map (λ q : R[X], q.comp p)).prod :=
-(s.prod_hom (monoid_hom.mk (λ q : R[X], q.comp p) one_comp (λ q r, mul_comp q r p))).symm
-
 @[simp] lemma pow_comp {R : Type*} [comm_semiring R] (p q : R[X]) (n : ℕ) :
   (p^n).comp q = (p.comp q)^n :=
 ((monoid_hom.mk (λ r : R[X], r.comp q)) one_comp (λ r s, mul_comp r s q)).map_pow p n
@@ -799,6 +795,10 @@ end
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=
 eval₂_ring_hom C
 
+@[simp] lemma coe_comp_ring_hom (q : R[X]) : (comp_ring_hom q : R[X] → R[X]) = λ p, comp p q := rfl
+
+lemma coe_comp_ring_hom_apply (p q : R[X]) : (comp_ring_hom q : R[X] → R[X]) p = comp p q := rfl
+
 lemma root_mul_left_of_is_root (p : R[X]) {q : R[X]} :
   is_root q a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, mul_zero]
@@ -835,6 +835,18 @@ Polynomial evaluation commutes with `finset.prod`
 lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → R[X]) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
 (eval_ring_hom x).map_prod _ _
+
+lemma list_prod_comp (l : list R[X]) (q : R[X]) :
+  l.prod.comp q = (l.map (λ p : R[X], p.comp q)).prod :=
+map_list_prod (comp_ring_hom q) _
+
+lemma multiset_prod_comp (s : multiset R[X]) (q : R[X]) :
+  s.prod.comp q = (s.map (λ p : R[X], p.comp q)).prod :=
+map_multiset_prod (comp_ring_hom q) _
+
+lemma prod_comp {ι : Type*} (s : finset ι) (p : ι → R[X]) (q : R[X]) :
+  (∏ j in s, p j).comp q = ∏ j in s, (p j).comp q :=
+map_prod (comp_ring_hom q) _ _
 
 lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   (s : finset ι) (p : ι → R[X]) (x : R) :

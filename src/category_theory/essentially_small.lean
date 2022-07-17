@@ -69,6 +69,10 @@ begin
     exact essentially_small.mk' (e.trans f), },
 end
 
+lemma discrete.essentially_small_of_small {α : Type u} [small.{w} α] :
+  essentially_small.{w} (discrete α) :=
+⟨⟨discrete (shrink α), ⟨infer_instance, ⟨discrete.equivalence (equiv_shrink _)⟩⟩⟩⟩
+
 /--
 A category is `w`-locally small if every hom set is `w`-small.
 

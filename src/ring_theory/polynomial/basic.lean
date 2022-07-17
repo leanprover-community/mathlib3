@@ -519,8 +519,10 @@ begin
     I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
 end
 
-/-- If `I` is an ideal, and `pᵢ` is a finite family of polynomials satisfying `∀ k, (pᵢ)ₖ ∈ Iⁿⁱ⁻ᵏ`,
-then `p = ∏ pᵢ` also satisfies `∀ k, pₖ ∈ Iⁿ⁻ᵏ` with `n = ∑ nᵢ`. -/
+/--
+If `I` is an ideal, and `pᵢ` is a finite family of polynomials each satisfying
+`∀ k, (pᵢ)ₖ ∈ Iⁿⁱ⁻ᵏ` for some `nᵢ`, then `p = ∏ pᵢ` also satisfies `∀ k, pₖ ∈ Iⁿ⁻ᵏ` with `n = ∑ nᵢ`.
+-/
 lemma _root_.polynomial.coeff_prod_mem_ideal_pow_tsub {ι : Type*} (s : finset ι) (f : ι → R[X])
   (I : ideal R) (n : ι → ℕ) (h : ∀ (i ∈ s) k, (f i).coeff k ∈ I ^ (n i - k)) (k : ℕ) :
   (s.prod f).coeff k ∈ I ^ (s.sum n - k) :=

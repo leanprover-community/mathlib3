@@ -359,6 +359,19 @@ begin
   exact h1,
 end
 
+lemma factorization_le_factorization_choose_add' {p n k : ℕ} (hp : p.prime) :
+  ∀ (n k : ℕ), k ≠ 0 → k ≤ n → n.factorization p ≤ (choose n k).factorization p + k.factorization p
+| _     0     := by simp
+| 0     (_+1) := by simp
+| (n+1) (k+1) := by
+  { rintro hk hkn,
+    rw [←finsupp.add_apply,
+      ←factorization_mul (λ H, not_lt_of_le hkn (choose_eq_zero_iff.1 H)) hk, ←succ_mul_choose_eq],
+    have h1 := mul_ne_zero (succ_ne_zero n) ((choose_pos (succ_le_succ_iff.1 hkn)).ne'),
+    have h2 := (factorization_le_iff_dvd (succ_ne_zero n) h1).2 (dvd_mul_right (n+1) (n.choose k)),
+    exact finsupp.le_def.1 h2 p }
+
+
 lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime)
   (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
   (choose (p ^ n) k).factorization p + k.factorization p = n := sorry

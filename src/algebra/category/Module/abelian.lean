@@ -76,9 +76,9 @@ instance : abelian (Module R) :=
   normal_epi_of_epi := λ X Y, normal_epi }
 
 section reflects_limits
-
 /- We need to put this in this weird spot because we need to know that the category of modules
     is balanced. -/
+    
 instance forget_reflects_limits_of_size :
   reflects_limits_of_size.{v v} (forget (Module.{max v w} R)) :=
 reflects_limits_of_reflects_isomorphisms

@@ -213,13 +213,6 @@ instance has_pow {γ : Type*} [has_pow α γ] [has_pow β γ] : has_pow (α × �
 @[simp] lemma pow_def {γ : Type*} [has_pow α γ] [has_pow β γ]
   (a : α) (b : β) (c : γ) : (⟨a, b⟩ : α × β) ^ c = ⟨a ^ c, b ^ c⟩ := rfl
 
-instance has_smul {γ : Type*} [has_smul γ α] [has_smul γ β] : has_smul γ (α × β) :=
-{ smul := λ c p, (c • p.1, c • p.2) }
-
-@[simp] lemma smul_def {γ : Type*} [has_smul γ α] [has_smul γ β]
-  (c : γ) (a : α) (b : β) :
-  c • (⟨a, b⟩ : α × β) = (c • a, c • b) := rfl
-
 end prod
 
 open prod

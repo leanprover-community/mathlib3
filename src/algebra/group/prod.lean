@@ -96,6 +96,18 @@ rfl
 @[simp, to_additive] lemma swap_div [has_div G] [has_div H] (a b : G × H) :
   (a / b).swap = a.swap / b.swap := rfl
 
+@[to_additive] instance has_smul {γ : Type*} [has_smul γ M] [has_smul γ N] : has_smul γ (M × N) :=
+{ smul := λ c p, (c • p.1, c • p.2) }
+@[simp, to_additive] lemma smul_def {γ : Type*} [has_smul γ M] [has_smul γ N]
+  (c : γ) (a : M) (b : N) :
+  c • (⟨a, b⟩ : M × N) = (c • a, c • b) := rfl
+@[simp, to_additive] lemma fst_smul {γ : Type*} [has_smul γ M] [has_smul γ N]
+  (c : γ) (p : M × N) : (c • p).1 = c • p.1 := rfl
+@[simp, to_additive] lemma snd_smul {γ : Type*} [has_smul γ M] [has_smul γ N]
+  (c : γ) (p : M × N) : (c • p).2 = c • p.2 := rfl
+@[simp, to_additive] lemma swap_smul {γ : Type*} [has_smul γ M] [has_smul γ N]
+  (c : γ) (p : M × N) : (c • p).swap = c • p.swap := rfl
+
 instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
 { zero_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
   mul_zero := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,

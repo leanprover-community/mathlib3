@@ -430,9 +430,8 @@ begin
     -- rwa card_Ico 1 n.succ at filter_le_Ico,
   },
   {
-    sorry,
-    -- rw [← hp.multiplicity_pow_self];
-    -- exact multiplicity_le_multiplicity_choose_add hp _ _
+    apply (factorization_pow_self hp n).symm.le.trans,
+    exact factorization_le_factorization_choose_add hp hk0.ne' hkn,
   },
 end
 

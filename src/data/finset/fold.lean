@@ -230,6 +230,11 @@ end
 lemma lt_fold_max : c < s.fold max b f ↔ (c < b ∨ ∃ x∈s, c < f x) :=
 fold_op_rel_iff_or $ λ x y z, lt_max_iff
 
+lemma fold_max_add [has_add β] [covariant_class β β (function.swap (+)) (≤)]
+ (n : with_bot β) (s : finset α) :
+  s.fold max ⊥ (λ (x : α), ↑(f x) + n) = s.fold max ⊥ (coe ∘ f) + n :=
+by { classical, apply s.induction_on; simp [max_add_add_right] {contextual := tt} }
+
 end order
 
 end fold

@@ -3155,6 +3155,74 @@ by convert filter_eq_nil.2 (λ _ _, id)
       take_while_append_drop l]
     else by rw [take_while, drop_while, if_neg pa, if_neg pa, nil_append]
 
+lemma drop_while_nth_le_zero_not (l : list α) (hl : 0 < (l.drop_while p).length) :
+  ¬ p ((l.drop_while p).nth_le 0 hl) :=
+begin
+  induction l with hd tl IH,
+  { rw length_pos_iff_exists_mem at hl,
+    contrapose! hl,
+    simp [drop_while] },
+  { simp only [drop_while],
+    split_ifs with hp,
+    { exact IH _ },
+    { simpa using hp } }
+end
+
+variables {p} {l : list α}
+
+@[simp] lemma drop_while_eq_nil_iff : drop_while p l = [] ↔ ∀ x ∈ l, p x :=
+begin
+  induction l with x xs IH,
+  { simp [drop_while] },
+  { rw drop_while,
+    split_ifs with h h,
+    { simp only [IH, mem_cons_iff, mem_singleton],
+      split,
+      { rintro H y (rfl|hy),
+        { exact h },
+        { exact H _ hy }, },
+      { rintro H y hy,
+        exact H _ (or.inr hy) } },
+    { simp only [append_eq_nil, and_false, mem_append, mem_singleton, false_iff, not_forall,
+                 exists_prop],
+      exact ⟨x, or.inl rfl, h⟩ } }
+end
+
+@[simp] lemma take_while_eq_self_iff : take_while p l = l ↔ ∀ x ∈ l, p x :=
+begin
+  induction l with x xs IH,
+  { simp [take_while] },
+  { rw take_while,
+    split_ifs;
+    simp [h, IH] }
+end
+
+@[simp] lemma take_while_eq_nil_iff :
+  take_while p l = [] ↔ ∀ (hl : 0 < l.length), ¬ p (l.nth_le 0 hl) :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { rw take_while,
+    split_ifs;
+    simp [h] }
+end
+
+lemma mem_take_while_imp {x : α} (hx : x ∈ take_while p l) : p x :=
+begin
+  induction l with hd tl IH,
+  { simpa [take_while] using hx },
+  { simp only [take_while] at hx,
+    split_ifs at hx,
+    { rw mem_cons_iff at hx,
+      rcases hx with rfl|hx,
+      { exact h },
+      { exact IH hx } },
+    { simpa using hx } }
+end
+
+lemma take_while_idempotent : take_while p (take_while p l) = take_while p l :=
+take_while_eq_self_iff.mpr (λ _, mem_take_while_imp)
+
 end filter
 
 /-! ### erasep -/
@@ -3854,6 +3922,15 @@ attribute [to_additive] alternating_prod -- `list.alternating_sum`
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (ilast'_mem b l)
+
+lemma last_reverse {l : list α} (hl : l.reverse ≠ [])
+  (hl' : 0 < l.length := by { contrapose! hl, simpa [length_eq_zero] using hl }) :
+  l.reverse.last hl = l.nth_le 0 hl' :=
+begin
+  rw [last_eq_nth_le, nth_le_reverse'],
+  { simp, },
+  { simpa using hl' }
+end
 
 @[simp] lemma nth_le_attach (L : list α) (i) (H : i < L.attach.length) :
   (L.attach.nth_le i H).1 = L.nth_le i (length_attach L ▸ H) :=

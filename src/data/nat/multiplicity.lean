@@ -121,6 +121,24 @@ lemma factorization_pow_self {p : ℕ} (pp : p.prime) (n : ℕ) : (p ^ n).factor
 by simp [pp.factorization]
 
 
+example (p i r : ℕ) (pp : p.prime) (hr : ¬ p ∣ r) : (p * i + r).factorization p = 0 :=
+begin
+  apply factorization_eq_zero_of_not_dvd,
+  contrapose! hr,
+  have := pp.pos,
+  rcases r.eq_zero_or_pos with rfl | hr0, { simp },
+  cases hr with q hq,
+  -- library_search,
+
+
+
+  -- have := dvd_mul_if
+  sorry,
+end
+
+
+
+
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
 
@@ -459,26 +477,36 @@ begin
   exact part_enat.coe_lt_coe.1 H,
 end
 
-lemma factorization_two_factorial_lt' : ∀ {n : ℕ} (h : n ≠ 0), n!.factorization 2 < n :=
+lemma factorization_two_factorial_lt' {n : ℕ} : (n ≠ 0) →  n!.factorization 2 < n :=
 begin
---   have h2 := prime_iff.mp prime_two,
---   refine binary_rec _ _,
---   { contradiction },
---   { intros b n ih h,
---     by_cases hn : n = 0,
---     { subst hn, simp at h, simp [h, one_right h2.not_unit, part_enat.zero_lt_one] },
---     have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
---     { rw [prime_two.multiplicity_factorial_mul],
---       refine (part_enat.add_lt_add_right (ih hn) (part_enat.coe_ne_top _)).trans_le _,
---       rw [two_mul], norm_cast },
---     cases b,
---     { simpa [bit0_eq_two_mul n] },
---     { suffices : multiplicity 2 (2 * n + 1) + multiplicity 2 (2 * n)! < ↑(2 * n) + 1,
---       { simpa [succ_eq_add_one, multiplicity.mul, h2, prime_two, nat.bit1_eq_succ_bit0,
---           bit0_eq_two_mul n] },
---       rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
---       refine this.trans _, exact_mod_cast lt_succ_self _ }}
-  sorry,
+  apply even_odd_rec n (λ n, (n ≠ 0) → n!.factorization 2 < n),
+  { simp },
+  {
+    rintro i hi2 hi3,
+    rw [prime_two.factorization_factorial_mul],
+    rw [two_mul],
+    simp,
+    apply hi2,
+    exact (mul_ne_zero_iff.1 hi3).2,
+  },
+  {
+    rintro i hi2 hi3,
+    rcases eq_or_ne i 0 with rfl | hi0, { simp },
+    rw factorial_succ,
+    rw factorization_mul (succ_ne_zero _) (factorial_ne_zero _),
+    rw finsupp.add_apply,
+
+    have : (2 * i + 1).factorization 2 = 0,
+    { rw factorization_eq_zero_of_not_dvd,
+      simp [two_dvd_ne_zero, add_mod] },
+    simp [this],
+
+    refine lt_trans _ (lt_succ_self _),
+    rw [prime_two.factorization_factorial_mul],
+    rw [two_mul],
+    simp,
+    apply hi2,
+    exact hi0 },
 end
 
 -- ^^^ Versions to translate into `factorization` ^^^

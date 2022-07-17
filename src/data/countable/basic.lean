@@ -17,13 +17,7 @@ universes u v w
 
 open function
 
-@[priority 100] -- see note [lower priority instance]
-instance encodable.countable {α} [encodable α] : countable α :=
-⟨⟨_, encodable.encode_injective⟩⟩
-
-/-- Convert `countable α` to `encodable α` (noncomputable). -/
-noncomputable def countable.to_encodable (α) [countable α] : encodable α :=
-encodable.of_inj _ $ classical.some_spec $ exists_injective_nat α
+instance : countable ℤ := countable.of_equiv ℕ equiv.int_equiv_nat.symm
 
 /-!
 ### Definition in terms of `function.embedding`

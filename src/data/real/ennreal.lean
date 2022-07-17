@@ -1672,6 +1672,13 @@ begin
   simp only [to_nnreal_coe, ← coe_mul]
 end
 
+@[simp] lemma smul_to_nnreal (a : ℝ≥0) (b : ℝ≥0∞) :
+  (a • b).to_nnreal = a * b.to_nnreal :=
+begin
+  change ((a : ℝ≥0∞) * b).to_nnreal = a * b.to_nnreal,
+  simp only [ennreal.to_nnreal_mul, ennreal.to_nnreal_coe],
+end
+
 /-- `ennreal.to_nnreal` as a `monoid_hom`. -/
 def to_nnreal_hom : ℝ≥0∞ →* ℝ≥0 :=
 { to_fun := ennreal.to_nnreal,

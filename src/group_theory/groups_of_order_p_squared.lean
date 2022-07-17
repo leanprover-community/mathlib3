@@ -3,8 +3,7 @@ Copyright (c) 2022 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sidharth Hariharan, Kevin Buzzard
 -/
-
-import tactic
+import tactic.interval_cases
 import group_theory.index
 import group_theory.p_group
 import group_theory.quotient_group

@@ -84,9 +84,8 @@ def module.Baer : Prop := ∀ (I : ideal R) (g : I →ₗ[R] Q), ∃ (g' : R →
 
 namespace module.Baer
 
-variables {R} {M N : Type (max u v)} [add_comm_group M] [add_comm_group N]
+variables {R Q} {M N : Type (max u v)} [add_comm_group M] [add_comm_group N]
 variables [module R M] [module R N] (i : M →ₗ[R] N) (f : M →ₗ[R] Q)
-variable {Q}
 
 /-- If we view `M` as a submodule of `N` via the injective linear map `i : M ↪ N`, then a submodule
 between `M` and `N` is a submodule `N'` of `N`. To prove Baer's criterion, we need to consider
@@ -111,13 +110,13 @@ begin
   exact linear_pmap.ext domain_eq to_fun_eq,
 end
 
-end ext
-
 lemma extension_of.ext_iff (a b : extension_of i f) :
   a = b ↔ ∃ (domain_eq : a.domain = b.domain),
     ∀ x, a.to_fun x = b.to_fun ⟨x, domain_eq ▸ x.2⟩ :=
 ⟨λ r, r ▸ ⟨rfl, λ x, congr_arg a.to_fun $ subtype.ext_val rfl⟩,
   λ ⟨h1, h2⟩, extension_of.ext h1 h2⟩
+
+end ext
 
 instance : has_inf (extension_of i f) :=
 { inf := λ X1 X2,
@@ -126,11 +125,7 @@ instance : has_inf (extension_of i f) :=
       refine ⟨X1.le (set.mem_range_self _), X2.le (set.mem_range_self _), _⟩,
       erw [← X1.is_extension x, ← X2.is_extension x],
     end : x ∈ X1.to_linear_pmap.eq_locus X2.to_linear_pmap),
-    is_extension := λ m, (begin
-      dsimp,
-      change _ = X1.to_linear_pmap.to_fun.comp _ _,
-      convert X1.is_extension _,
-    end),
+    is_extension := λ m, X1.is_extension _,
     .. (X1.to_linear_pmap ⊓ X2.to_linear_pmap)} }
 
 instance : semilattice_inf (extension_of i f) :=
@@ -145,7 +140,7 @@ lemma chain_linear_pmap_of_chain_extension_of
   (is_chain (≤) $ (λ x : extension_of i f, x.to_linear_pmap) '' c) :=
 begin
   rintro _ ⟨a, a_mem, rfl⟩ _ ⟨b, b_mem, rfl⟩ neq,
-  rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with ⟨⟨le1, le2⟩⟩ | ⟨⟨le1, le2⟩⟩,
+  rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with ⟨le1, le2⟩ | ⟨le1, le2⟩,
   { left, exact ⟨le1, le2⟩, },
   { right, exact ⟨le1, le2⟩, },
 end
@@ -162,13 +157,10 @@ def extension_of.max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
     symmetry,
     generalize_proofs _ h0 h1,
     erw linear_pmap.Sup_apply
-      (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) begin
-        rw set.mem_image,
-        exact ⟨hnonempty.some, hnonempty.some_spec, rfl⟩,
-      end ⟨i m, h1⟩,
+      (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain)
+        ((set.mem_image _ _ _).mpr ⟨hnonempty.some, hnonempty.some_spec, rfl⟩) ⟨i m, h1⟩,
   end,
-  ..linear_pmap.Sup (extension_of.to_linear_pmap '' c)
-    (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) }
+  ..linear_pmap.Sup _ (is_chain.directed_on $ chain_linear_pmap_of_chain_extension_of hchain) }
 
 lemma extension_of.le_max {c : set (extension_of i f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (a : extension_of i f) (ha : a ∈ c) :
@@ -376,10 +368,9 @@ end⟩
 
 lemma extension_of_max_to_submodule_eq_top (h : module.Baer R Q) :
   (extension_of_max i f).domain = ⊤ :=
-begin
-  by_contra rid,
-  rcases show ∃ (y : N), y ∉ (extension_of_max i f).domain,
-    by contrapose! rid; ext; exact ⟨λ _, trivial, λ _, rid _⟩ with ⟨y, hy⟩,
+classical.by_contradiction $ λ rid, begin
+  rw [submodule.eq_top_iff', not_forall] at rid,
+  rcases rid with ⟨y, hy⟩,
   apply hy,
   erw [← extension_of_max_is_max i f _ (extension_of_max_le i f h), submodule.mem_sup],
   exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩,
@@ -389,21 +380,13 @@ end
 linear map from an ideal can be extended, then the module is injective.-/
 protected theorem injective (h : module.Baer R Q) :
   module.injective R Q :=
-have eq1 : (extension_of_max i f).domain = ⊤, begin
-  by_contra rid,
-  rcases show ∃ (y : N), y ∉ (extension_of_max i f).domain,
-    by contrapose! rid; ext; exact ⟨λ _, trivial, λ _, rid _⟩ with ⟨y, hy⟩,
-  apply hy,
-  erw [← extension_of_max_is_max i f _ (extension_of_max_le i f h), submodule.mem_sup],
-  exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩,
-end,
 { out := λ X Y ins1 ins2 ins3 ins4 i hi f, begin
-  haveI : fact (function.injective i) := ⟨hi⟩,
-  exact ⟨{ to_fun := λ y, (extension_of_max i f).to_fun
-      ⟨y, (extension_of_max_to_submodule_eq_top i f h).symm ▸ trivial⟩,
-    map_add' := λ x y, by { dsimp, erw ← map_add,  congr, },
-    map_smul' := λ r x, by { dsimp, erw ← linear_map.map_smul, congr } },
-    λ x, ((extension_of_max i f).is_extension x).symm⟩,
-end }
+    haveI : fact (function.injective i) := ⟨hi⟩,
+    exact ⟨{ to_fun := λ y, (extension_of_max i f).to_fun
+        ⟨y, (extension_of_max_to_submodule_eq_top i f h).symm ▸ trivial⟩,
+      map_add' := λ x y, by { dsimp, erw ← map_add,  congr, },
+      map_smul' := λ r x, by { dsimp, erw ← linear_map.map_smul, congr } },
+      λ x, ((extension_of_max i f).is_extension x).symm⟩,
+  end }
 
 end module.Baer

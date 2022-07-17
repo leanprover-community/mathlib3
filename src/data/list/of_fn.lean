@@ -107,6 +107,23 @@ begin
     simp_rw [fin.cast_succ_fin_succ], }
 end
 
+@[simp] lemma of_fn_eq_nil_iff {n : ℕ} {f : fin n → α} :
+  of_fn f = [] ↔ n = 0 :=
+begin
+  split,
+  { contrapose!,
+    intro h,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_succ_of_ne_zero h,
+    simp },
+  { simp {contextual := tt} }
+end
+
+@[simp] lemma last_of_fn {n : ℕ} (f : fin n → α) (h : of_fn f ≠ [])
+  (hn : n - 1 < n := lt_of_not_le (mt (λ hn,
+    of_fn_eq_nil_iff.mpr (nat.pred_eq_self_iff.mp (le_antisymm (nat.pred_le _) hn))) h)) :
+  last (of_fn f) h = f ⟨n - 1, hn⟩ :=
+by simp [last_eq_nth_le]
+
 /-- Note this matches the convention of `list.of_fn_succ'`, putting the `fin m` elements first. -/
 theorem of_fn_add {m n} (f : fin (m + n) → α) :
   list.of_fn f = list.of_fn (λ i, f (fin.cast_add n i)) ++ list.of_fn (λ j, f (fin.nat_add m j)) :=

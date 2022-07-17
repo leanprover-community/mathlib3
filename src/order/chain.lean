@@ -181,7 +181,8 @@ begin
   case union : s hs ih
   { apply or.imp_left h.antisymm',
     apply classical.by_contradiction,
-    simp [not_or_distrib, sUnion_subset_iff, not_forall],
+    simp only [not_or_distrib, sUnion_subset_iff, not_forall, exists_prop, and_imp,
+               forall_exists_index],
     intros c₃ hc₃ h₁ h₂,
     obtain h | h := chain_closure_succ_total_aux hc₁ (hs c₃ hc₃) (λ c₄, ih _ hc₃),
     { exact h₁ (subset_succ_chain.trans h) },

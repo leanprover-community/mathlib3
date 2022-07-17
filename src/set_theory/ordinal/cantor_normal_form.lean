@@ -31,8 +31,8 @@ namespace ordinal
 @[pp_nodot, elab_as_eliminator] noncomputable def CNF_rec {C : ordinal → Sort*} (b : ordinal)
   (H0 : C 0) (H : ∀ o, 0 < o → C (o % b ^ log b o) → C o) : ∀ o, C o
 | o := if ho : o = 0 then by rwa ho else
-    let ho' := ordinal.pos_iff_ne_zero.2 ho, wf := mod_opow_log_lt_self b ho' in
-      H o ho' $ CNF_rec $ o % b ^ log b o
+        let ho' := ordinal.pos_iff_ne_zero.2 ho, wf := mod_opow_log_lt_self b ho' in
+          H o ho' $ CNF_rec $ o % b ^ log b o
 using_well_founded {dec_tac := `[assumption]}
 
 -- Todo (vihdzp): remove the unused hypothesis `b ≠ 0`.

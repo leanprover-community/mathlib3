@@ -22,6 +22,7 @@ lemma continuous_to_C_iff_uncurry (X : Type u) (Y : Type v) (Z : Type w) [topolo
   continuous g ↔ continuous (λ p : X × Y, g p.1 p.2) :=  iff.intro
 (λ h, continuous_uncurry_of_continuous ⟨_, h⟩) (λ h, continuous_of_continuous_uncurry _ h)
 
+
 -- lemma continuous_to_C_iff_curry (X Y Z : Type u) [topological_space X] [topological_space Y]
 -- [locally_compact_space X] [locally_compact_space Y] [topological_space Z] (g : X → C(Y, Z)) :
 --   continuous g ↔ continuous (λ x y, g x y) :=  --iff.intro
@@ -59,6 +60,12 @@ instance (x y : X) : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
 
 instance (x y : X) : topological_space (path x y) := topological_space.induced (coe : _ → C(↥I, X))
   continuous_map.compact_open
+
+-- def continuous_map.extend : C(I,X) → C(ℝ, X) := -- λ f, Icc_extend zero_le_one f
+-- begin
+--   intro f,
+--   let := Icc_extend zero_le_one f,
+-- end
 
 end path
 
@@ -123,7 +130,7 @@ variables {X : Type u} [topological_space X]
 --   exact f.2,
 -- end
 
-def loop_space (x : X) := path x x
+-- def loop_space (x : X) := path x x
 
 
 notation ` Ω(` x `)` := path x x
@@ -275,22 +282,43 @@ end
 --   continuity,
 -- end
 
-lemma senza_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2 x.1.1) :=
+
+lemma senza_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend x.1.1) :=
 begin
   have h : continuous (λ x : (I × Ω(x)) × Ω(x), x.1), exact continuous_fst,
-  set π := (λ p : I × Ω(x), p.2 p.1) with hπ,
-  set π' := (λ p : Ω(x) × I, p.1 p.2) with hπ',
-  have H : continuous π',
-  { rw hπ',
-    have := @continuous_eval' I X _ _ _,
-    have cont_coe : continuous (coe : Ω(x) → C(I, X)), sorry,
-    have also := continuous.prod_map cont_coe (@continuous_id I _),
-    exact this.comp also,
-    },
-  replace H : continuous π, from H.comp continuous_swap,
+  -- have h : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.extend), sorry,
+  -- set π := (λ p : I × Ω(x), p.2 p.1) with hπ,
+  -- set π' := (λ p : Ω(x) × I, p.1 p.2) with hπ',
+  set π₁ := (λ p : Ω(x) × I, p.1.extend p.2) with hπ₁,
+  have cont_coe : continuous (coe : Ω(x) → C(I, X)), from continuous_induced_dom,
+  -- have H : continuous π',
+  -- rw hπ',
+  --   have := @continuous_eval' I X _ _ _,
+
+  --   -- have hext := continuous_map.comp cont_coe,--(Icc_extend zero_le_one) cont_coe,
+  --   have also := continuous.prod_map cont_coe (@continuous_id I _),
+  --   -- let φ : C(I, X) := ⟨_, also⟩,
+  --   exact this.comp also,
+    have K : continuous π₁,
+  rw hπ₁,
+    have thiss := @continuous_eval' ℝ X _ _ _,
+    -- have cont_ext : continuous (path.extend : C(I,X) → C(ℝ,X)),
+    let ρ := @Icc_extend ℝ X _ _ _ _ 0 1 zero_le_one,
+    have hρ : continuous ρ,
+    { sorry },
+    have uff := hρ.comp cont_coe,
+    have hIR : continuous (coe : I → ℝ), from continuous_induced_dom,
+    have also2 := continuous.prod_map uff hIR,
+    -- convert also2,
+    -- -- let ρ₀ := (λ f, ρ f),
+    have argh := thiss.comp also2,
+    exact argh,
+
+  sorry,
+--  replace H : continuous π, from H.comp continuous_swap,
   -- exact hswap,
-  have := H.comp h,
-  exact this,
+  -- have := K.comp h,
+  -- exact K,
 end
 
 lemma Hmul_Ω_cont₁ (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.trans x.2.2 x.1) :=
@@ -326,11 +354,11 @@ end
 instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
 { Hmul := λ ρ, ρ.1.trans ρ.2,
   e := refl _,
-  cont' := --sorry,
+  cont' := --Hmul_Ω_cont₁ x,--sorry,
   begin
-    sorry;
-    -- apply continuous_to_Ω_iff_uncu/rry.mpr,
-    -- dsimp [path.trans],
+    -- sorry
+    apply continuous_to_Ω_iff_uncurry.mpr,
+    dsimp [path.trans],
     -- apply continuous_to_Ω_iff_to_C.mpr,
     -- have h₁ : continuous (λ p : Ω(x) × Ω(x),
     -- have h₂ : continuous (coe : I → ℝ), sorry,
@@ -344,7 +372,7 @@ instance loop_space_is_H_space (x : X) : H_space Ω(x) :=
     -- apply conti/inuous_of_const _,
     -- rintros ⟨γ₁, γ₂, h⟩ k,--, h₃, h₄, h₅, h₆⟩,
     -- funext,
-    -- apply continuous.piecewise,
+    apply continuous.piecewise,
     -- {sorry},
     -- { apply continuous.path_extend,
     --  {

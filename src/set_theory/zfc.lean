@@ -227,8 +227,7 @@ def omega : pSet := ⟨ulift ℕ, λ n, of_nat n.down⟩
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
 protected def sep (p : pSet → Prop) (x : pSet) : pSet := ⟨{a // p (x.func a)}, λ y, x.func y.1⟩
 
-/-- The pre-set separation operation `{x ∈ a | p x}` -/
-instance : has_sep pSet pSet := ⟨λ p x, ⟨{a // p (x.func a)}, λ y, x.func y.1⟩⟩
+instance : has_sep pSet pSet := ⟨pSet.sep⟩
 
 /-- The pre-set powerset operator -/
 def powerset (x : pSet) : pSet := ⟨set x.type, λ p, ⟨{a // p a}, λ y, x.func y.1⟩⟩
@@ -413,7 +412,10 @@ def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
 @[simp] theorem mem_to_set (a u : Set.{u}) : a ∈ u.to_set ↔ a ∈ u := iff.rfl
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
-instance has_subset : has_subset Set := ⟨λ x y, ∀ ⦃z⦄, z ∈ x → z ∈ y⟩
+protected def subset (x y : Set.{u}) :=
+∀ ⦃z⦄, z ∈ x → z ∈ y
+
+instance has_subset : has_subset Set := ⟨Set.subset⟩
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
@@ -448,15 +450,17 @@ theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (mem_empty _)⟩)⟩
 
 /-- `insert x y` is the set `{x} ∪ y` -/
-instance : has_insert Set Set :=
-⟨resp.eval 2 ⟨insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+protected def insert : Set → Set → Set :=
+resp.eval 2 ⟨pSet.insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
   ⟨λ o, match o with
    | some a := let ⟨b, hb⟩ := αβ a in ⟨some b, hb⟩
    | none := ⟨none, uv⟩
    end, λ o, match o with
    | some b := let ⟨a, ha⟩ := βα b in ⟨some a, ha⟩
    | none := ⟨none, uv⟩
-   end⟩⟩⟩
+   end⟩⟩
+
+instance : has_insert Set Set := ⟨Set.insert⟩
 
 instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
 
@@ -565,19 +569,23 @@ let this := congr_arg Union H in by rwa [Union_singleton, Union_singleton] at th
 by { ext, simp }
 
 /-- The binary union operation -/
-instance : has_union Set := ⟨λ x y, ⋃ {x, y}⟩
+protected def union (x y : Set.{u}) : Set.{u} := ⋃ {x, y}
+
+/-- The binary intersection operation -/
+protected def inter (x y : Set.{u}) : Set.{u} := {z ∈ x | z ∈ y}
+
+/-- The set difference operation -/
+protected def diff (x y : Set.{u}) : Set.{u} := {z ∈ x | z ∉ y}
+
+instance : has_union Set := ⟨Set.union⟩
+instance : has_inter Set := ⟨Set.inter⟩
+instance : has_sdiff Set := ⟨Set.diff⟩
 
 @[simp] theorem union_to_set (x y : Set.{u}) : (x ∪ y).to_set = x.to_set ∪ y.to_set :=
 by { unfold has_union.union, simp }
 
-/-- The binary intersection operation -/
-instance : has_inter Set := ⟨λ x y, {z ∈ x | z ∈ y}⟩
-
 @[simp] theorem inter_to_set (x y : Set.{u}) : (x ∩ y).to_set = x.to_set ∩ y.to_set :=
 by { unfold has_inter.inter, ext, simp }
-
-/-- The set difference operation -/
-instance : has_sdiff Set := ⟨λ x y, {z ∈ x | z ∉ y}⟩
 
 @[simp] theorem sdiff_to_set (x y : Set.{u}) : (x \ y).to_set = x.to_set \ y.to_set :=
 by { change {z ∈ x | z ∉ y}.to_set = _, ext, simp, }

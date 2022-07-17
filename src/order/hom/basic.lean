@@ -657,6 +657,14 @@ def of_rel_iso_lt {α β} [linear_order α] [linear_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) :
   (of_rel_iso_lt e).symm = of_rel_iso_lt e.symm := rfl
 
+@[simp] lemma of_rel_iso_lt_to_rel_iso_lt {α β} [linear_order α] [linear_order β] (e : α ≃o β) :
+  of_rel_iso_lt (to_rel_iso_lt e) = e :=
+by { ext, simp }
+
+@[simp] lemma to_rel_iso_lt_of_rel_iso_lt {α β} [linear_order α] [linear_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : to_rel_iso_lt (of_rel_iso_lt e) = e :=
+by { ext, simp }
+
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)

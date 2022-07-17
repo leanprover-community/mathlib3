@@ -137,8 +137,7 @@ begin
   { assume p,
     conv_rhs {rw [← one_mul p.1, ← cos_sq_add_sin_sq p.2] },
     simp only [neg_mul, linear_map.det_to_continuous_linear_map, linear_map.det_to_lin,
-      matrix.det_fin_two, sub_neg_eq_add, matrix.cons_val_zero, matrix.cons_val_one,
-      matrix.head_cons],
+      matrix.det_fin_two_of, sub_neg_eq_add],
     ring_exp },
   symmetry,
   calc

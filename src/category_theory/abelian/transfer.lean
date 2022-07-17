@@ -148,7 +148,7 @@ local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
 lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :
   (coimage_iso_image F G i adj f).hom = abelian.coimage_image_comparison f :=
 begin
-  ext,
+  ext, 
   simpa only [←G.map_comp_assoc, coimage_iso_image, nat_iso.inv_inv_app, cokernel_iso,
     coimage_iso_image_aux, iso.trans_symm, iso.symm_symm_eq, iso.refl_trans, iso.trans_refl,
     iso.trans_hom, iso.symm_hom, cokernel_comp_is_iso_inv, cokernel_epi_comp_inv, as_iso_hom,

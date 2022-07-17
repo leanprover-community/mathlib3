@@ -45,7 +45,7 @@ Once we have the strong operator topology on spaces of linear maps between to TV
 
 ## References
 
-TODO
+* Bourbaki, *Spectral Theory*, chapters 3 to 5, to be published (2022)
 
 ## Tags
 

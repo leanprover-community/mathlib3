@@ -60,9 +60,6 @@ begin
   apply quasi_compact.is_compact_preimage; assumption
 end
 
-instance Scheme.quasi_compact_of_affine (X : Scheme) [is_affine X] : compact_space X.carrier :=
-⟨(top_is_affine_open X).is_compact⟩
-
 lemma is_compact_open_iff_eq_finset_affine_union {X : Scheme} (U : set X.carrier) :
   is_compact U ∧ is_open U ↔
     ∃ (s : set X.affine_opens), s.finite ∧ U = ⋃ (i : X.affine_opens) (h : i ∈ s), i :=

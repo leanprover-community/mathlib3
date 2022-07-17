@@ -586,6 +586,20 @@ rfl
   ((prod_assoc R E E₂ E₃).symm : E × E₂ × E₃ → (E × E₂) × E₃) = (equiv.prod_assoc E E₂ E₃).symm :=
 rfl
 
+variables {R E E₂ E₃} {R' : Type*} [ring R'] [module R' E] (p q : submodule R' E)
+
+/-- `linear_equiv.of_eq` as a `linear_isometry_equiv`. -/
+def of_eq (hpq : p = q) :
+  p ≃ₗᵢ[R'] q :=
+{ norm_map' := λ x, rfl,
+  ..linear_equiv.of_eq p q hpq }
+
+variables {p q}
+
+@[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : E) = x := rfl
+
+@[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+
 end linear_isometry_equiv
 
 /-- Two linear isometries are equal if they are equal on basis vectors. -/

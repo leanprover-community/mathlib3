@@ -303,6 +303,12 @@ lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
 
 end real
 
+/-- The orthogonal projection is self-adjoint. -/
+lemma orthogonal_projection_is_self_adjoint [complete_space E] (U : submodule 𝕜 E)
+  [complete_space U] :
+  is_self_adjoint (U.subtypeL ∘L orthogonal_projection U : E →ₗ[𝕜] E):=
+inner_orthogonal_projection_left_eq_right U
+
 end continuous_linear_map
 
 namespace linear_map

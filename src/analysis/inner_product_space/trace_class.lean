@@ -53,7 +53,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 section trace_along
 
-noncomputable abbreviation conj_proj [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
+noncomputable def conj_proj [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
   [complete_space U] : E →L[𝕜] E :=
 (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L orthogonal_projection U)
 
@@ -85,13 +85,11 @@ begin
 end
 
 lemma has_sum_trace_along_of_hilbert_basis [complete_space E] {ι : Type*}
-  {U : submodule 𝕜 E} [finite_dimensional 𝕜 U] (T : E →L[𝕜] E)
+  (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] (T : E →L[𝕜] E)
   (e : hilbert_basis ι 𝕜 E) :
   has_sum (λ i, ⟪(e i : E), (conj_proj T U) (e i)⟫) (trace_along U T) :=
 begin
-  let f : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
-    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
-    (std_orthonormal_basis 𝕜 U).span_eq,
+  let f := std_orthonormal_basis 𝕜 U,
   rw trace_along_eq_of_orthonormal_basis T f,
   have : ∀ a, has_sum (λ i, ⟪(conj_proj (T†) U) (f a : E), e i⟫ * ⟪e i, f a⟫)
     ⟪(conj_proj (T†) U) (f a : E), f a⟫ :=
@@ -132,9 +130,7 @@ end
 lemma trace_along_continuous [complete_space E] (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] :
   continuous (trace_along U) :=
 begin
-  let f : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
-    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
-    (std_orthonormal_basis 𝕜 U).span_eq,
+  let f := std_orthonormal_basis 𝕜 U,
   let φ : (E →L[𝕜] E) →L[𝕜] 𝕜 :=
     ∑ i, innerSL (f i : E) ∘L (continuous_linear_map.apply 𝕜 E (f i : E)),
   convert φ.cont using 2,
@@ -225,9 +221,7 @@ end
 lemma is_positive.trace_along_eq_re [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] : trace_along U T = re (trace_along U T) :=
 begin
-  let e : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
-    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
-    (std_orthonormal_basis 𝕜 U).span_eq,
+  let e := std_orthonormal_basis 𝕜 U,
   rw [trace_along_eq_of_orthonormal_basis _ e, _root_.map_sum, of_real_sum],
   congr,
   ext i,
@@ -238,27 +232,55 @@ end
 lemma is_positive.trace_along_nonneg [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] : 0 ≤ re (trace_along U T) :=
 begin
-  let e : orthonormal_basis (orthonormal_basis_index 𝕜 U) 𝕜 U :=
-    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 U)
-    (std_orthonormal_basis 𝕜 U).span_eq,
+  let e := std_orthonormal_basis 𝕜 U,
   rw [trace_along_eq_of_orthonormal_basis _ e, _root_.map_sum],
   refine finset.sum_nonneg (λ i _, _),
   rw [← coe_coe, ← hT.1],
   exact hT.2 (e i)
 end
 
-#check orthonormal.exists_hilbert_basis_extension
-
+-- TODO : make the API better so that this is as trivial as it should be
 lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
     re (trace_along U (conj_proj T V)) ≤
     re (trace_along V T) :=
 begin
-  let f : orthonormal_basis _ 𝕜 (U : submodule 𝕜 E) :=
-    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 (U : submodule 𝕜 E))
-    (basis.span_eq _),
-  --rcases orthonormal.exists_hilbert_basis_extension f.orthonormal,
-  sorry -- This should be easy thanks to has_sum_trace_along_of_hilbert_basis
+  rcases orthonormal.exists_hilbert_basis_extension
+    ((std_orthonormal_basis 𝕜 U).orthonormal.comp_linear_isometry U.subtypeₗᵢ).coe_range
+    with ⟨s, e, hs, he⟩,
+  let t := coe '' (orthonormal_basis_index 𝕜 U : set U),
+  have hts : t ⊆ s,
+  { rw coe_std_orthonormal_basis at hs,
+    change set.range (coe ∘ coe) ⊆ s at hs,
+    rwa [set.range_comp, subtype.range_coe] at hs },
+  have he₁ : ∀ i (his : i ∈ s) (hit : i ∈ t), (orthogonal_projection U i : E) = i,
+  { rintros i his ⟨i₀, hi₀, rfl⟩,
+    rw orthogonal_projection_eq_self_iff,
+    exact submodule.coe_mem _ },
+  have he₂ : ∀ i (his : i ∈ s) (hit : i ∉ t), orthogonal_projection U i = 0,
+  { rintros i his hit,
+    rw (std_orthonormal_basis 𝕜 U).orthogonal_projection_eq_sum,
+    refine finset.sum_eq_zero (λ j₀ _, _),
+    rw [coe_std_orthonormal_basis],
+    rcases j₀ with ⟨j₁, hj₁⟩,
+    let j : E := j₁,
+    change ⟪j, i⟫ • _ = (0 : U),
+    have hjt : j ∈ t := mem_image_of_mem _ hj₁,
+    have : j ≠ i := λ h, hit (h ▸ hjt),
+    have : (⟨j, hts hjt⟩ : s) ≠ ⟨i, his⟩ := λ h, this (congr_arg coe h),
+    have := e.orthonormal.2 this,
+    rw [he, subtype.coe_mk, subtype.coe_mk] at this,
+    rw [this, zero_smul] },
+  have key₁ := re_clm.has_sum ((T.conj_proj V).has_sum_trace_along_of_hilbert_basis U e),
+  have key₂ := re_clm.has_sum (T.has_sum_trace_along_of_hilbert_basis V e),
+  refine has_sum_le _ key₁ key₂,
+  rintros ⟨x, hxs⟩,
+  simp only [he, conj_proj, comp_apply, coe_subtypeL', subtype_apply, subtype.coe_mk],
+  by_cases hxt : x ∈ t,
+  { rw [← inner_orthogonal_projection_left_eq_right, he₁ x hxs hxt] },
+  { rw [← inner_orthogonal_projection_left_eq_right, he₂ x hxs hxt, submodule.coe_zero,
+        inner_zero_left, _root_.map_zero],
+    exact (hT.conj_proj V).inner_nonneg_right x },
 end
 
 noncomputable def is_positive.trace_along_nnreal [complete_space E] (U : submodule 𝕜 E)
@@ -274,7 +296,8 @@ lemma is_positive.trace_along_ennreal_conj_proj_le [complete_space E] {T : E →
     (hT.conj_proj V).trace_along_ennreal U ≤
     hT.trace_along_ennreal V :=
 begin
-  sorry -- This should be easy thanks to is_positive.trace_along_conj_proj_le
+  rw [is_positive.trace_along_ennreal, is_positive.trace_along_ennreal, ennreal.coe_le_coe],
+  exact hT.trace_along_conj_proj_le _ _
 end
 
 noncomputable def is_positive.trace [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive) :
@@ -298,11 +321,7 @@ begin
     exact le_rfl },
   { refine supr_le (λ U, _),
     haveI : finite_dimensional 𝕜 (U : submodule 𝕜 E) := U.finite_dimensional,
-    let f : orthonormal_basis _ 𝕜 (U : submodule 𝕜 E) :=
-      orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 (U : submodule 𝕜 E))
-      (basis.span_eq _),
-    --have : ∑ i, ennreal.of_real (re ⟪(f i : E), T (f i)⟫) ≤ hT.trace,
-    --{ sorry },
+    let f := std_orthonormal_basis 𝕜 (U : submodule 𝕜 E),
     let V : finset ι → submodule 𝕜 E := λ J, span 𝕜 (J.image e),
     suffices : tendsto (λ J : finset ι, (hT.conj_proj (V J)).trace_along_ennreal U) at_top
       (𝓝 $ hT.trace_along_ennreal U),
@@ -324,11 +343,5 @@ begin
 end
 
 end positive
-
-section trace_class
-
-
-
-end trace_class
 
 end continuous_linear_map

@@ -66,7 +66,7 @@ begin
   by_cases pp : p.prime, swap,
   { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors pp), simp [factorization, pp] },
   simp only [factorization, coe_mk, pp, if_true],
-  rw [←enat.coe_inj, padic_val_nat_def' pp.ne_one hn0,
+  rw [←part_enat.coe_inj, padic_val_nat_def' pp.ne_one hn0,
     unique_factorization_monoid.multiplicity_eq_count_normalized_factors pp hn0.ne'],
   simp [factors_eq],
 end

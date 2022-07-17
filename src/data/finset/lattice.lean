@@ -779,8 +779,8 @@ variables [linear_order α]
 /-- Let `s` be a finset in a linear order. Then `s.max` is the maximum of `s` if `s` is not empty,
 and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element of `α`, see
 `s.max'`. -/
-protected def max : finset α → with_bot α :=
-fold max ⊥ coe
+protected def max (s : finset α) : with_bot α :=
+sup s coe
 
 theorem max_eq_sup_with_bot (s : finset α) :
   s.max = sup s coe := rfl
@@ -832,8 +832,8 @@ sup_le st
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `⊤` otherwise. It belongs to `with_top α`. If you want to get an element of `α`, see
 `s.min'`. -/
-protected def min : finset α → with_top α :=
-fold min ⊤ coe
+protected def min (s : finset α) : with_top α :=
+inf s coe
 
 theorem min_eq_inf_with_top (s : finset α) :
   s.min = inf s coe := rfl

@@ -138,6 +138,10 @@ end canonically_ordered_comm_semiring
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
+lemma zero_pow_le_one : ∀ n : ℕ, (0 : R) ^ n ≤ 1
+| 0 := (pow_zero _).le
+| (n + 1) := by { rw [zero_pow n.succ_pos], exact zero_le_one }
+
 theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
   rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,

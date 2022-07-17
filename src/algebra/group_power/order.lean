@@ -138,6 +138,10 @@ end canonically_ordered_comm_semiring
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
+lemma zero_pow_le_one : ∀ n : ℕ, (0 : R) ^ n ≤ 1
+| 0 := (pow_zero _).le
+| (n + 1) := by { rw [zero_pow n.succ_pos], exact zero_le_one }
+
 theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
   rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,
@@ -247,7 +251,7 @@ end
 end ordered_ring
 
 section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+variables [linear_ordered_semiring R] {a b : R}
 
 lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ 1 ↔ a ≤ 1 :=
 begin
@@ -293,6 +297,9 @@ le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
 
 @[simp] lemma sq_eq_sq {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 = b ^ 2 ↔ a = b :=
 pow_left_inj ha hb dec_trivial
+
+lemma lt_of_mul_self_lt_mul_self (hb : 0 ≤ b) : a * a < b * b → a < b :=
+by { simp_rw ←sq, exact lt_of_pow_lt_pow _ hb }
 
 end linear_ordered_semiring
 

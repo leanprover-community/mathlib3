@@ -198,15 +198,12 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) :
   tendsto (λ x, (b * exp x + c) / x ^ n) at_top at_top :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
+  rcases eq_or_ne n 0 with rfl | hn,
   { simp only [pow_zero, div_one],
     exact (tendsto_exp_at_top.const_mul_at_top hb).at_top_add tendsto_const_nhds },
-  refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
-    (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
-      ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
-  intros x hx,
-  simp only [zpow_neg x n],
-  ring,
+  simp only [add_div, mul_div_assoc],
+  exact ((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
+    (tendsto_const_nhds.div_at_top (tendsto_pow_at_top hn))
 end
 
 /-- The function `(x ^ n) / (b * exp x + c)` tends to `0` at `+∞`, for any natural number

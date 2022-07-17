@@ -665,6 +665,9 @@ end
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=
 (nhds_basis_uniformity' (𝓤 α).basis_sets).eq_binfi
 
+lemma nhds_eq_uniformity' {x : α} : 𝓝 x = (𝓤 α).lift' (λ s, {y | (y, x) ∈ s}) :=
+(nhds_basis_uniformity (𝓤 α).basis_sets).eq_binfi
+
 lemma mem_nhds_left (x : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
   {y : α | (x, y) ∈ s} ∈ 𝓝 x :=
 ball_mem_nhds x h
@@ -702,15 +705,10 @@ lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
   (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set (α×α),
     {y : α | (y, a) ∈ s} ×ˢ {y : α | (b, y) ∈ t})) :=
 begin
-  rw [prod_def],
-  show (𝓝 a).lift (λs:set α, (𝓝 b).lift (λt:set α, 𝓟 (s ×ˢ t))) = _,
-  rw [lift_nhds_right],
-  apply congr_arg, funext s,
-  rw [lift_nhds_left],
-  refl,
-  exact monotone_principal.comp (monotone_prod monotone_const monotone_id),
-  exact (monotone_lift' monotone_const $ monotone_lam $
-    assume x, monotone_prod monotone_id monotone_const)
+  rw [nhds_eq_uniformity', nhds_eq_uniformity, prod_lift'_lift'],
+  { refl },
+  { exact monotone_preimage },
+  { exact monotone_preimage },
 end
 
 lemma nhds_eq_uniformity_prod {a b : α} :
@@ -718,8 +716,8 @@ lemma nhds_eq_uniformity_prod {a b : α} :
   (𝓤 α).lift' (λs:set (α×α), {y : α | (y, a) ∈ s} ×ˢ {y : α | (b, y) ∈ s}) :=
 begin
   rw [nhds_prod_eq, nhds_nhds_eq_uniformity_uniformity_prod, lift_lift'_same_eq_lift'],
-  { intro s, exact monotone_prod monotone_const monotone_preimage },
-  { intro t, exact monotone_prod monotone_preimage monotone_const }
+  { intro s, exact monotone_const.set_prod monotone_preimage },
+  { intro t, exact monotone_preimage.set_prod monotone_const }
 end
 
 lemma nhdset_of_mem_uniformity {d : set (α×α)} (s : set (α×α)) (hd : d ∈ 𝓤 α) :
@@ -731,7 +729,7 @@ have ∀p ∈ s, ∃t ⊆ cl_d, is_open t ∧ p ∈ t, from
   begin
     rw [nhds_eq_uniformity_prod, mem_lift'_sets],
     exact ⟨d, hd, assume ⟨a, b⟩ ⟨ha, hb⟩, ⟨x, y, ha, hp, hb⟩⟩,
-    exact monotone_prod monotone_preimage monotone_preimage
+    exact monotone_preimage.set_prod monotone_preimage
   end,
 have ∃t:(Π(p:α×α) (h:p ∈ s), set (α×α)),
     ∀p, ∀h:p ∈ s, t p h ⊆ cl_d ∧ is_open (t p h) ∧ p ∈ t p h,
@@ -819,12 +817,12 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff
   begin
     rw [map_lift'_eq2],
     simp [image_swap_eq_preimage_swap, function.comp],
-    exact monotone_prod monotone_preimage monotone_preimage
+    exact monotone_preimage.set_prod monotone_preimage
   end
   ... ↔ (∀s ∈ 𝓤 α, ({y : α | (a, y) ∈ s} ×ˢ {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
     rw [lift'_inf_principal_eq, ← ne_bot_iff, lift'_ne_bot_iff],
-    exact (monotone_prod monotone_preimage monotone_preimage).inter monotone_const
+    exact (monotone_preimage.set_prod monotone_preimage).inter monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ s ○ (t ○ s)) :
     forall₂_congr $ λ s hs,
@@ -1160,7 +1158,7 @@ begin
   exact comap_mono hu
 end
 
-lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
+lemma uniform_continuous_iff {α β} {uα : uniform_space α} {uβ : uniform_space β} {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
 filter.map_le_iff_le_comap
 

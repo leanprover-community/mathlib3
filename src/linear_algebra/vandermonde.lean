@@ -75,21 +75,23 @@ begin
   induction n with n ih,
   { exact det_eq_one_of_card_eq_zero (fintype.card_fin 0) },
 
-  calc det (λ (i j : fin n.succ), v i ^ (j : ℕ))
-      = det (λ (i j : fin n.succ), @fin.cons _ (λ _, R)
+  calc det (of $ λ (i j : fin n.succ), v i ^ (j : ℕ))
+      = det (of $ λ (i j : fin n.succ), matrix.vec_cons
                (v 0 ^ (j : ℕ))
                (λ i, v (fin.succ i) ^ (j : ℕ) - v 0 ^ (j : ℕ)) i) :
-    det_eq_of_forall_row_eq_smul_add_const (fin.cons 0 1) 0 (fin.cons_zero _ _) _
-  ... = det (λ (i j : fin n), @fin.cons _ (λ _, R)
-              (v 0 ^ (j.succ : ℕ))
-              (λ (i : fin n), v (fin.succ i) ^ (j.succ : ℕ) - v 0 ^ (j.succ : ℕ))
-              (fin.succ_above 0 i)) :
-    by simp_rw [det_succ_column_zero, fin.sum_univ_succ, fin.cons_zero, minor, fin.cons_succ,
+    det_eq_of_forall_row_eq_smul_add_const (matrix.vec_cons 0 1) 0 (fin.cons_zero _ _) _
+  ... = det (of $ λ (i j : fin n), matrix.vec_cons
+               (v 0 ^ (j.succ : ℕ))
+               (λ (i : fin n), v (fin.succ i) ^ (j.succ : ℕ) - v 0 ^ (j.succ : ℕ))
+               (fin.succ_above 0 i)) :
+    by simp_rw [det_succ_column_zero, fin.sum_univ_succ, of_apply, matrix.cons_val_zero, minor,
+                of_apply, matrix.cons_val_succ,
                 fin.coe_zero, pow_zero, one_mul, sub_self, mul_zero, zero_mul,
                 finset.sum_const_zero, add_zero]
-  ... = det (λ (i j : fin n), (v (fin.succ i) - v 0) *
-              (∑ k in finset.range (j + 1 : ℕ), v i.succ ^ k * v 0 ^ (j - k : ℕ))) :
-    by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, mul_comm],
+  ... = det (of $ λ (i j : fin n), (v (fin.succ i) - v 0) *
+              (∑ k in finset.range (j + 1 : ℕ), v i.succ ^ k * v 0 ^ (j - k : ℕ)) :
+                matrix _ _ R) :
+    by { congr, ext i j, rw [fin.succ_above_zero, matrix.cons_val_succ, fin.coe_succ, mul_comm],
          exact (geom_sum₂_mul (v i.succ) (v 0) (j + 1 : ℕ)).symm }
   ... = (∏ (i : fin n), (v (fin.succ i) - v 0)) * det (λ (i j : fin n),
     (∑ k in finset.range (j + 1 : ℕ), v i.succ ^ k * v 0 ^ (j - k : ℕ))) :
@@ -99,10 +101,11 @@ begin
   ... = ∏ i : fin n.succ, ∏ j in Ioi i, (v j - v i) :
     by simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, fin.prod_Ioi_zero, fin.prod_Ioi_succ],
   { intros i j,
-    rw fin.cons_zero,
+    simp_rw [of_apply],
+    rw matrix.cons_val_zero,
     refine fin.cases _ (λ i, _) i,
     { simp },
-    rw [fin.cons_succ, fin.cons_succ, pi.one_apply],
+    rw [matrix.cons_val_succ, matrix.cons_val_succ, pi.one_apply],
     ring },
   { cases n,
     { simp only [det_eq_one_of_card_eq_zero (fintype.card_fin 0)] },

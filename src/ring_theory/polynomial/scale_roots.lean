@@ -14,12 +14,11 @@ This file defines `scale_roots p s` for a polynomial `p` in one variable and a r
 be the polynomial with root `r * s` for each root `r` of `p` and proves some basic results about it.
 -/
 
-section scale_roots
-
 variables {A K R S : Type*} [comm_ring A] [is_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
-open polynomial
+namespace polynomial
+
 open_locale big_operators polynomial
 
 /-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/
@@ -126,4 +125,4 @@ lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]
   aeval (algebra_map A K r) (scale_roots p s) = 0 :=
 scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero inj hr hs
 
-end scale_roots
+end polynomial

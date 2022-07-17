@@ -28,7 +28,7 @@ variables {C : Type u} [category.{v} C]
 If `C` has (small) products and a small weakly initial set of objects, then it has a weakly initial
 object.
 -/
-lemma has_weakly_initial_of_weakly_initial_set_and_has_products [has_products C]
+lemma has_weakly_initial_of_weakly_initial_set_and_has_products [has_products.{v} C]
   {ι : Type v} {B : ι → C} (hB : ∀ (A : C), ∃ i, nonempty (B i ⟶ A)) :
   ∃ (T : C), ∀ X, nonempty (T ⟶ X) :=
 ⟨∏ B, λ X, ⟨pi.π _ _ ≫ (hB X).some_spec.some⟩⟩
@@ -39,7 +39,7 @@ If `C` has (small) wide equalizers and a weakly initial object, then it has an i
 The initial object is constructed as the wide equalizer of all endomorphisms on the given weakly
 initial object.
 -/
-lemma has_initial_of_weakly_initial_and_has_wide_equalizers [has_wide_equalizers C]
+lemma has_initial_of_weakly_initial_and_has_wide_equalizers [has_wide_equalizers.{v} C]
   {T : C} (hT : ∀ X, nonempty (T ⟶ X)) :
   has_initial C :=
 begin

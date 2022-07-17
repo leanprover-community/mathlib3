@@ -444,7 +444,8 @@ begin
   exact part_enat.coe_lt_coe.1 H,
 end
 
--- begin
+lemma factorization_two_factorial_lt' : ∀ {n : ℕ} (h : n ≠ 0), n!.factorization 2 < n :=
+begin
 --   have h2 := prime_iff.mp prime_two,
 --   refine binary_rec _ _,
 --   { contradiction },
@@ -462,7 +463,8 @@ end
 --           bit0_eq_two_mul n] },
 --       rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
 --       refine this.trans _, exact_mod_cast lt_succ_self _ }}
--- end
+  sorry,
+end
 
 -- ^^^ Versions to translate into `factorization` ^^^
 --------------------------------------------------------------------------------------------------

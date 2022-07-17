@@ -210,12 +210,8 @@ instance : has_neg 𝓜(𝕜, A) :=
 { neg := λ a,
   { left := -(a.left),
     right := -(a.right),
-    central :=
-              begin
-              intros x y,
-              simp,
-              apply central,
-              end } }
+    central := λ x y, by simp only [continuous_linear_map.neg_apply, neg_mul,
+                      mul_neg, neg_inj, central]}}
 
 @[simp]
 lemma neg_left (a : 𝓜(𝕜, A)) : ⇑(-a).left = -a.left := rfl
@@ -226,14 +222,8 @@ instance : has_sub 𝓜(𝕜, A) :=
 { sub := λ a b,
   { left := a.left - b.left,
     right := a.right - b.right,
-  central :=
-            begin
-            intros x y,
-            simp,
-            rw sub_mul,
-            rw mul_sub,
-            repeat { rw central _ _ },
-            end } }
+  central := λ x y, by simp only [continuous_linear_map.coe_sub', pi.sub_apply, sub_mul,
+                       mul_sub, central]}}
 
 @[simp]
 lemma sub_left (a b : 𝓜(𝕜, A)) : ⇑(a - b).left = a.left - b.left := rfl

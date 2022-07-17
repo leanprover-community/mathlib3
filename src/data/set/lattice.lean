@@ -1087,8 +1087,7 @@ by { rw sInter_eq_bInter, apply image_Inter₂_subset }
 /-! ### `restrict_preimage` -/
 section
 
-variables {α β : Type*} (s : set β) (f : α → β)
-variables {ι : Type*} (U : ι → set β) (hU : set.Union U = set.univ)
+variables (s : set β) (f : α → β) (U : ι → set β) (hU : set.Union U = set.univ)
 
 include hU
 

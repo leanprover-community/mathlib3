@@ -415,7 +415,8 @@ def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
 protected def subset (x y : Set.{u}) :=
 ∀ ⦃z⦄, z ∈ x → z ∈ y
 
-instance has_subset : has_subset Set := ⟨Set.subset⟩
+instance has_subset : has_subset Set :=
+⟨Set.subset⟩
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
@@ -582,13 +583,13 @@ instance : has_inter Set := ⟨Set.inter⟩
 instance : has_sdiff Set := ⟨Set.diff⟩
 
 @[simp] theorem union_to_set (x y : Set.{u}) : (x ∪ y).to_set = x.to_set ∪ y.to_set :=
-by { unfold has_union.union, simp }
+by { unfold has_union.union, rw Set.union, simp }
 
 @[simp] theorem inter_to_set (x y : Set.{u}) : (x ∩ y).to_set = x.to_set ∩ y.to_set :=
-by { unfold has_inter.inter, ext, simp }
+by { unfold has_inter.inter, rw Set.inter, ext, simp }
 
 @[simp] theorem sdiff_to_set (x y : Set.{u}) : (x \ y).to_set = x.to_set \ y.to_set :=
-by { change {z ∈ x | z ∉ y}.to_set = _, ext, simp, }
+by { change {z ∈ x | z ∉ y}.to_set = _, ext, simp }
 
 @[simp] theorem mem_union {x y z : Set.{u}} : z ∈ x ∪ y ↔ z ∈ x ∨ z ∈ y :=
 by { rw ←mem_to_set, simp }

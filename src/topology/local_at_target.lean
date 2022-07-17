@@ -93,8 +93,8 @@ begin
     erw ← open_embedding.map_nhds_eq (h.1 _ (U i).2).open_embedding_subtype_coe ⟨x, hi⟩,
     rw (induced_iff_nhds_eq _).mp (H i).1 ⟨x, hi⟩,
     erw (induced_iff_nhds_eq (coe : (U i).1 → β)).mp embedding_subtype_coe.to_inducing.1 ⟨_, hi⟩,
-    rw [filter.comap_comap, (show coe ∘ (U i).val.restrict_preimage f = f ∘ coe, from rfl), subtype.coe_mk,
-      ← filter.comap_comap, filter.subtype_coe_map_comap, inf_eq_left],
+    rw [filter.comap_comap, (show coe ∘ (U i).val.restrict_preimage f = f ∘ coe, from rfl),
+      subtype.coe_mk, ← filter.comap_comap, filter.subtype_coe_map_comap, inf_eq_left],
     intros S hS,
     rw filter.mem_comap,
     exact ⟨U i, (U i).2.mem_nhds hi, hS⟩ }

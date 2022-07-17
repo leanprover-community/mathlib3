@@ -148,7 +148,7 @@ local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
 lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :
   (coimage_iso_image F G i adj f).hom = abelian.coimage_image_comparison f :=
 begin
-  ext, 
+  ext,
   simpa only [←G.map_comp_assoc, coimage_iso_image, nat_iso.inv_inv_app, cokernel_iso,
     coimage_iso_image_aux, iso.trans_symm, iso.symm_symm_eq, iso.refl_trans, iso.trans_refl,
     iso.trans_hom, iso.symm_hom, cokernel_comp_is_iso_inv, cokernel_epi_comp_inv, as_iso_hom,
@@ -212,17 +212,16 @@ variables (adj : L ⊣ R)
 namespace enough_injectives_of_adjunction
 
 /--
-Since `𝓑` is injective, then `L(A)` has an injective presentation for all `A ∈ 𝓐`,
-i.e. `L(A) → J` where `J` is injective.-/
+Since `𝓑` has enough injectives, `L(A)` has an injective presentation for all `A ∈ 𝓐`, i.e.
+`L(A) → J` where `J` is injective.-/
 def injective_presentation_of_apply (A : 𝓐) :
   injective_presentation (L.obj A) :=
 (nonempty.some (enough_injectives.presentation (L.obj A)))
 
 /--
-Since `L ⊣ R` and `L(A) → J`, then `injective_object_of_adjunction A` is defined to be `R(J)`.
--/
-def injective_object_of_adjunction (A : 𝓐) : 𝓐 :=
-  R.obj $ (injective_presentation_of_apply L A).J
+Given injective presentation `L(A) → J`, then `injective_object_of_adjunction A` is defined to be
+`R(J)`. It will later be proven to be an injective object in `𝓐`.-/
+def injective_object_of_adjunction (A : 𝓐) : 𝓐 := R.obj $ (injective_presentation_of_apply L A).J
 
 include adj
 variables {L R}
@@ -238,7 +237,7 @@ A ---> R(J)                 L(A) -----> J <--------
      /                                /           |
     /  g                           by adjunction  |
    /                                /             |
-  /                                /              |
+  /                                /         by injectivity
 X                              L(X)               |
 |                               |                 |
 v                               v                 |
@@ -270,9 +269,9 @@ See the diagram below:
 A ---> R(J) <---                                   L(A) -----> J <--------
       /        |                                              /          |
      /         |                                             /           |
-    /  g   by adjunction                                  by adjunction  |
+    /  g   by adjunction                                    /            |
    /           |                                           /             |
-  /            |                                          /              |
+  /            |                                          /        by injectivity
 X              |                                      L(X)               |
 |              |                                       |                 |
 v              |                                       v                 |
@@ -319,7 +318,8 @@ instance of_adjunction.presentation.injective (A : 𝓐) :
   injective (of_adjunction.presentation.J adj A) :=
 by apply injective_object_of_adjunction_is_injective adj
 
-/-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono.-/
+/-- the morphism `A → R(J)` obtained by `L(A) → J` via adjunction, this morphism is mono, so that
+`A → R(J)` is an injective presentation of `A` in `𝓐`.-/
 def of_adjunction.presentation.f (A : 𝓐) :
   A ⟶ injective_object_of_adjunction L R A :=
 adj.hom_equiv A (injective_presentation_of_apply L A).J (injective_presentation_of_apply L A).f
@@ -356,8 +356,7 @@ by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 end enough_injectives_of_adjunction
 
 /--
-faithful and exact left adjoint functor transfers enough injectiveness
--/
+faithful and exact left adjoint functor transfers enough injectiveness.-/
 def enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
   [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
   {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R)
@@ -370,8 +369,7 @@ def enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
     mono := enough_injectives_of_adjunction.of_adjunction.presentation.mono adj _ } }
 
 /--
-equivalence of category transfers enough injectiveness.
--/
+equivalence of category transfers enough injectiveness.-/
 def enough_injectives.of_equivalence {𝓐 : Type u₁} {𝓑 : Type u₂}
   [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
   (e : 𝓐 ⥤ 𝓑) [is_equivalence e] [enough_injectives 𝓑] : enough_injectives 𝓐 :=

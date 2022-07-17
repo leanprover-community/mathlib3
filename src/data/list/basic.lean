@@ -3907,7 +3907,7 @@ begin
         { cases j; unfold_wf, refl,
           transitivity, apply xs_ih,
           simp }, },
-      unfold_wf, apply zero_lt_one_add, },
+      unfold_wf, },
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },
 end

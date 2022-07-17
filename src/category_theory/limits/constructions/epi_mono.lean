@@ -35,7 +35,7 @@ end
 
 @[priority 100]
 instance preserves_monomorphisms_of_preserves_limits_of_shape
-  [preserves_limits_of_shape walking_cospan.{v₁} F] : F.preserves_monomorphisms :=
+  [preserves_limits_of_shape walking_cospan F] : F.preserves_monomorphisms :=
 { preserves := λ X Y f hf, by exactI preserves_mono_of_preserves_limit F f }
 
 /-- If `F` reflects pullbacks, then it reflects monomorphisms. -/
@@ -49,7 +49,7 @@ end
 
 @[priority 100]
 instance reflects_monomorphisms_of_reflects_limits_of_shape
-  [reflects_limits_of_shape walking_cospan.{v₁} F] : F.reflects_monomorphisms :=
+  [reflects_limits_of_shape walking_cospan F] : F.reflects_monomorphisms :=
 { reflects := λ X Y f hf, by exactI reflects_mono_of_reflects_limit F f }
 
 /-- If `F` preserves pushouts, then it preserves epimorphisms. -/
@@ -63,7 +63,7 @@ end
 
 @[priority 100]
 instance preserves_epimorphisms_of_preserves_colimits_of_shape
-  [preserves_colimits_of_shape walking_span.{v₁} F] : F.preserves_epimorphisms :=
+  [preserves_colimits_of_shape walking_span F] : F.preserves_epimorphisms :=
 { preserves := λ X Y f hf, by exactI preserves_epi_of_preserves_colimit F f }
 
 /-- If `F` reflects pushouts, then it reflects epimorphisms. -/
@@ -78,7 +78,7 @@ end
 
 @[priority 100]
 instance reflects_epimorphisms_of_reflects_colimits_of_shape
-  [reflects_colimits_of_shape walking_span.{v₁} F] : F.reflects_epimorphisms :=
+  [reflects_colimits_of_shape walking_span F] : F.reflects_epimorphisms :=
 { reflects := λ X Y f hf, by exactI reflects_epi_of_reflects_colimit F f }
 
 end category_theory

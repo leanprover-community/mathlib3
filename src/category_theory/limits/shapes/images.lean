@@ -289,6 +289,10 @@ lemma image.lift_fac (F' : mono_factorisation f) : image.lift F' ≫ F'.m = imag
 @[simp, reassoc]
 lemma image.fac_lift (F' : mono_factorisation f) : factor_thru_image f ≫ image.lift F' = F'.e :=
 (image.is_image f).fac_lift F'
+@[simp]
+lemma image.is_image_lift (F : mono_factorisation f) :
+  (image.is_image f).lift F = image.lift F :=
+rfl
 
 @[simp, reassoc]
 lemma is_image.lift_ι {F : mono_factorisation f} (hF : is_image F) :
@@ -791,7 +795,7 @@ instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks
 
 end has_strong_epi_images
 
-variables [has_strong_epi_mono_factorisations.{v} C]
+variables [has_strong_epi_mono_factorisations C]
 variables {X Y : C} {f : X ⟶ Y}
 
 /--

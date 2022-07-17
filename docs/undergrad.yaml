@@ -219,8 +219,8 @@ Bilinear and Quadratic Forms Over a Vector Space:
     norm: 'inner_product_space.of_core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
-    orthogonal group: ''
-    unitary group: ''
+    orthogonal group: 'matrix.orthogonal_group'
+    unitary group: 'matrix.unitary_group'
     special orthogonal group: ''
     special unitary group: ''
     self-adjoint endomorphism: 'inner_product_space.is_self_adjoint'

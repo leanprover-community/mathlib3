@@ -31,7 +31,7 @@ namespace ordinal
 @[elab_as_eliminator, nolint unused_arguments] noncomputable def CNF_rec {b : ordinal} (b0 : b ≠ 0)
   {C : ordinal → Sort*} (H0 : C 0) (H : ∀ o, 0 < o → C (o % b ^ log b o) → C o) : ∀ o, C o
 | o := if o0 : o = 0 then by rwa o0 else
-        let ho' := ordinal.pos_iff_ne_zero.2 o0, wf := mod_opow_log_lt_self b ho' in
+        let ho' := ordinal.pos_iff_ne_zero.2 o0, hwf := mod_opow_log_lt_self b ho' in
           H o ho' (CNF_rec (o % b ^ log b o))
 using_well_founded {dec_tac := `[assumption]}
 

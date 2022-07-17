@@ -166,7 +166,11 @@ end
 
 variables (ι 𝕜)
 
-@[simps] def euclidean_space.equiv [decidable_eq ι] :
+/-- `pi_Lp.linear_equiv` upgraded to a continuous linear map between `euclidean_space 𝕜 ι`
+and `ι → 𝕜`.
+
+TODO : This should be generalized to `pi_Lp` with finite dimensional factors. -/
+@[simps] def euclidean_space.equiv :
   euclidean_space 𝕜 ι ≃L[𝕜] (ι → 𝕜) :=
 (pi_Lp.linear_equiv 2 𝕜 (λ i : ι, 𝕜)).to_continuous_linear_equiv
 
@@ -175,14 +179,14 @@ variables {ι 𝕜}
 /-- The projection on the `i`-th coordinate of `euclidean_space 𝕜 ι`, as a linear map.
 
 TODO : This should be generalized to `pi_Lp`. -/
-@[simps] def euclidean_space.projₗ [decidable_eq ι] (i : ι) :
+@[simps] def euclidean_space.projₗ (i : ι) :
   euclidean_space 𝕜 ι →ₗ[𝕜] 𝕜 :=
 (linear_map.proj i).comp (pi_Lp.linear_equiv 2 𝕜 (λ i : ι, 𝕜) : euclidean_space 𝕜 ι →ₗ[𝕜] ι → 𝕜)
 
 /-- The projection on the `i`-th coordinate of `euclidean_space 𝕜 ι`, as a continuous linear map.
 
 TODO : This should be generalized to `pi_Lp`. -/
-@[simps] def euclidean_space.proj [decidable_eq ι] (i : ι) :
+@[simps] def euclidean_space.proj (i : ι) :
   euclidean_space 𝕜 ι →L[𝕜] 𝕜 :=
 ⟨euclidean_space.projₗ i, continuous_apply i⟩
 

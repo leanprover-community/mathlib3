@@ -196,7 +196,7 @@ instance : has_emptyc pSet := ⟨pSet.empty⟩
 
 instance : inhabited pSet := ⟨∅⟩
 
-@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := exists_pempty.1
+@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 /-- Insert an element into a pre-set -/
 protected def insert : pSet → pSet → pSet

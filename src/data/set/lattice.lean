@@ -1084,6 +1084,47 @@ lemma image_sInter_subset (S : set (set α)) (f : α → β) :
   f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
 by { rw sInter_eq_bInter, apply image_Inter₂_subset }
 
+/-! ### `restrict_preimage` -/
+section
+
+variables {α β : Type*} (s : set β) (f : α → β)
+variables {ι : Type*} (U : ι → set β) (hU : set.Union U = set.univ)
+
+include hU
+
+lemma injective_iff_injective_of_Union_eq_univ :
+  function.injective f ↔ ∀ i, function.injective ((U i).restrict_preimage f) :=
+begin
+  split,
+  { intros H i x y e, injection e with e, exact subtype.coe_injective (H e) },
+  { intros H x y e,
+    obtain ⟨i, hi⟩ := set.mem_Union.mp (show f x ∈ set.Union U, by { rw hU, triv }),
+    injection @H i ⟨x, hi⟩ ⟨y, show f y ∈ U i, from e ▸ hi⟩ (subtype.ext e) }
+end
+
+lemma surjective_iff_surjective_of_Union_eq_univ :
+  function.surjective f ↔ ∀ i, function.surjective ((U i).restrict_preimage f) :=
+begin
+  split,
+  { exact λ H i x, ⟨⟨_, (show f (H x).some ∈ U i,
+      from (H x).some_spec.symm ▸ x.2)⟩, subtype.ext (H x).some_spec⟩ },
+  { intros H x,
+    obtain ⟨i, hi⟩ := set.mem_Union.mp (show x ∈ set.Union U, by { rw hU, triv }),
+    exact ⟨_, congr_arg subtype.val (H i ⟨x, hi⟩).some_spec⟩ }
+end
+
+lemma bijective_iff_bijective_of_Union_eq_univ :
+  function.bijective f ↔ ∀ i, function.bijective ((U i).restrict_preimage f) :=
+begin
+  delta function.bijective,
+  rw forall_and_distrib,
+  apply and_congr,
+  exacts [injective_iff_injective_of_Union_eq_univ f U hU,
+    surjective_iff_surjective_of_Union_eq_univ f U hU]
+end
+
+end
+
 /-! ### `inj_on` -/
 
 lemma inj_on.image_inter {f : α → β} {s t u : set α} (hf : inj_on f u) (hs : s ⊆ u) (ht : t ⊆ u) :

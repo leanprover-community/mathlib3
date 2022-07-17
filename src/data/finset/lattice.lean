@@ -552,8 +552,8 @@ begin
   induction f₁ using with_bot.rec_bot_coe,
   { rw [bot_sup_eq], exact bot_sup_eq.symm, },
   { induction f₂ using with_bot.rec_bot_coe,
-    { simp [g'] },
-    { simp [g', ←with_bot.coe_sup, g_sup] } }
+    { refl },
+    { exact congr_arg coe (g_sup f₁ f₂) } }
 end
 
 lemma sup'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))

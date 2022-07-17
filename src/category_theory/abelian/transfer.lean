@@ -326,31 +326,28 @@ adj.hom_equiv A (injective_presentation_of_apply L A).J (injective_presentation_
 
 instance of_adjunction.presentation.mono (A : 𝓐) :
   mono $ of_adjunction.presentation.f adj A :=
-have e1 : exact _ (of_adjunction.presentation.f adj A) := exact_kernel_ι,
 have e2 : exact (L.map (kernel.ι (of_adjunction.presentation.f adj A)))
-  (L.map (of_adjunction.presentation.f adj A)), from L.map_exact _ _ e1,
+  (L.map (of_adjunction.presentation.f adj A)), from L.map_exact _ _ (exact_kernel_ι),
 have eq1 : L.map (of_adjunction.presentation.f adj A) ≫ (adj.counit.app _) =
   (injective_presentation_of_apply L A).f, begin
-  dunfold of_adjunction.presentation.f,
-  simp only [adjunction.hom_equiv_unit, functor.map_comp, category.assoc,
-    adjunction.counit_naturality, adjunction.left_triangle_components_assoc],
+  simp only [of_adjunction.presentation.f, adjunction.hom_equiv_unit, functor.map_comp,
+  category.assoc, adjunction.counit_naturality, adjunction.left_triangle_components_assoc],
 end,
-have m2 : mono (L.map (of_adjunction.presentation.f adj A)), from begin
-  haveI : mono (L.map (of_adjunction.presentation.f adj A) ≫ (adj.counit.app _)),
-  { rw eq1,
-    exactI (injective_presentation_of_apply L A).mono, },
-  exactI mono_of_mono (L.map (of_adjunction.presentation.f adj A))
-    (adj.counit.app (injective_presentation_of_apply L A).J),
+have m1 : mono (L.map (of_adjunction.presentation.f adj A) ≫ (adj.counit.app _)), begin
+  rw eq1, exactI (injective_presentation_of_apply L A).mono
 end,
-have eq2 : L.map (kernel.ι (of_adjunction.presentation.f adj A)) = 0, begin
+have m2 : mono (L.map (of_adjunction.presentation.f adj A)), begin
+  exactI mono_of_mono _ (adj.counit.app (injective_presentation_of_apply L A).J),
+end,
+have eq2 : L.map (kernel.ι (of_adjunction.presentation.f adj A)) =
+  (preserves_kernel.iso L (of_adjunction.presentation.f adj A)).hom ≫
+      kernel.ι (L.map (of_adjunction.presentation.f adj A)), begin
+  simp only [preserves_kernel.iso_hom, kernel_comparison_comp_ι],
+end,
+have eq3 : kernel.ι (of_adjunction.presentation.f adj A) = 0, from L.zero_of_map_zero _ begin
   rw abelian.mono_iff_kernel_ι_eq_zero at m2,
-  have : L.map (kernel.ι (of_adjunction.presentation.f adj A)) =
-    (preserves_kernel.iso L (of_adjunction.presentation.f adj A)).hom ≫
-      kernel.ι (L.map (of_adjunction.presentation.f adj A)),
-  { simp only [preserves_kernel.iso_hom, kernel_comparison_comp_ι], },
-  rw [this, m2, comp_zero],
+  rw [eq2, m2, comp_zero],
 end,
-have eq3 : kernel.ι (of_adjunction.presentation.f adj A) = 0, from L.zero_of_map_zero _ eq2,
 by rw [abelian.mono_iff_kernel_ι_eq_zero, eq3]
 
 end enough_injectives_of_adjunction

@@ -122,6 +122,10 @@ theorem lookup_eq_none {a : α} {s : alist β} :
   lookup a s = none ↔ a ∉ s :=
 lookup_eq_none
 
+theorem mem_lookup_iff {a : α} {b : β a} {s : alist β} :
+  b ∈ s.lookup a ↔ sigma.mk a b ∈ s.entries :=
+list.mem_lookup_iff s.nodupkeys
+
 theorem perm_lookup {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   s₁.lookup a = s₂.lookup a :=
 perm_lookup _ s₁.nodupkeys s₂.nodupkeys p
@@ -153,6 +157,10 @@ end
 /-- Fold a function over the key-value pairs in the map. -/
 def foldl {δ : Type w} (f : δ → Π a, β a → δ) (d : δ) (m : alist β) : δ :=
 m.entries.foldl (λ r a, f r a.1 a.2) d
+
+/-- Fold a function over the key-value pairs in the map. -/
+def foldr {δ : Type w} (f : δ → Π a, β a → δ) (d : δ) (m : alist β) : δ :=
+m.entries.foldr (λ a r, f r a.1 a.2) d
 
 /-! ### erase -/
 

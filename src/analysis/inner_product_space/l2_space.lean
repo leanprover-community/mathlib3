@@ -482,7 +482,8 @@ end
 
 protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
   (b : hilbert_basis ι 𝕜 E) (x : E) :
-  tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E)) at_top (𝓝 x) :=
+  tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
+    at_top (𝓝 x) :=
 begin
   convert b.has_sum_repr x,
   ext J,

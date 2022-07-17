@@ -421,39 +421,25 @@ begin
     by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
         {contextual := tt},
 
-    -- rw ←finsupp.add_apply,
-    -- rw ←factorization_mul _ hk0.ne', swap, { sorry },
     have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
     rw card_Ico 1 n.succ at filter_le_Ico,
     simp at filter_le_Ico,
 
-    have H1 : k.factorization p ≤ (filter (λ (i : ℕ), p ^ i ∣ k) (Ico 1 n.succ)).card,
-    {
-      rw factorization_eq_card_pow_dvd k hp,
-      rw Ico_filter_pow_dvd_eq hp hk0.ne' hkn,
-      rw Ico_succ_right,
-    },
+    refine le_trans _ filter_le_Ico,
+    rotate 2,
 
     rw [factorization_choose hp hkn (lt_succ_self _), log_pow hp.one_lt],
 
-
-    have := lt_succ_of_le (log_mono_right hkn),
-
-    -- rw factorization_eq_card_pow_dvd'',
     have H := card_disjoint_union hdisj,
     rw filter_union_right at H,
     rw eq_comm at H,
-    have := H.le,
 
-    --     (lt_succ_of_le (log_mono_right hkn)),
-    sorry,
-    -- rw [multiplicity_choose hp hkn (lt_succ_self _),
-    --   multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
-    --     (lt_succ_of_le (log_mono_right hkn)),
-    --   ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
-    --   ← card_disjoint_union hdisj, filter_union_right],
-    -- have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
-    -- rwa card_Ico 1 n.succ at filter_le_Ico,
+    refine le_trans _ H.le,
+    simp,
+    rw factorization_eq_card_pow_dvd k hp,
+    rw Ico_filter_pow_dvd_eq hp hk0.ne' hkn,
+    rw Ico_succ_right,
+
   },
   {
     apply (factorization_pow_self hp n).symm.le.trans,

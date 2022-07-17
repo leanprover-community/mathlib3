@@ -33,29 +33,20 @@ h.orthonormal_of_forall_eq_or_eq_neg (e.adjust_to_orientation_apply_eq_or_eq_neg
 
 /-- An orthonormal basis, indexed by `fin n`, with the given orientation. -/
 protected def orientation.fin_orthonormal_basis {n : ℕ} (hn : 0 < n) (h : finrank ℝ E = n)
-  (x : orientation ℝ E (fin n)) : basis (fin n) ℝ E :=
+  (x : orientation ℝ E (fin n)) : orthonormal_basis (fin n) ℝ E :=
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (fin_std_orthonormal_basis h).to_basis.adjust_to_orientation x
-end
-
-/-- `orientation.fin_orthonormal_basis` is orthonormal. -/
-protected lemma orientation.fin_orthonormal_basis_orthonormal {n : ℕ} (hn : 0 < n)
-  (h : finrank ℝ E = n) (x : orientation ℝ E (fin n)) :
-  orthonormal ℝ (x.fin_orthonormal_basis hn h) :=
-begin
-  haveI := fin.pos_iff_nonempty.1 hn,
-  haveI := finite_dimensional_of_finrank (h.symm ▸ hn : 0 < finrank ℝ E),
-  exact (show orthonormal ℝ (fin_std_orthonormal_basis h).to_basis, -- Note sure how to format this
+  exact ((fin_std_orthonormal_basis h).to_basis.adjust_to_orientation x).to_orthonormal_basis (
+  (show orthonormal ℝ (fin_std_orthonormal_basis h).to_basis, -- Note sure how to format this
     by simp only [orthonormal_basis.coe_to_basis, orthonormal_basis.orthonormal]
-    ).orthonormal_adjust_to_orientation _
+    ).orthonormal_adjust_to_orientation _),
 end
 
 /-- `orientation.fin_orthonormal_basis` gives a basis with the required orientation. -/
 @[simp] lemma orientation.fin_orthonormal_basis_orientation {n : ℕ} (hn : 0 < n)
   (h : finrank ℝ E = n) (x : orientation ℝ E (fin n)) :
-  (x.fin_orthonormal_basis hn h).orientation = x :=
+  (x.fin_orthonormal_basis hn h).to_basis.orientation = x :=
 begin
   haveI := fin.pos_iff_nonempty.1 hn,
   exact basis.orientation_adjust_to_orientation _ _

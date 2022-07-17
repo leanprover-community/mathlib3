@@ -519,6 +519,28 @@ begin
     I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
 end
 
+/--
+If `I` is an ideal, and `pᵢ` is a finite family of polynomials each satisfying
+`∀ k, (pᵢ)ₖ ∈ Iⁿⁱ⁻ᵏ` for some `nᵢ`, then `p = ∏ pᵢ` also satisfies `∀ k, pₖ ∈ Iⁿ⁻ᵏ` with `n = ∑ nᵢ`.
+-/
+lemma _root_.polynomial.coeff_prod_mem_ideal_pow_tsub {ι : Type*} (s : finset ι) (f : ι → R[X])
+  (I : ideal R) (n : ι → ℕ) (h : ∀ (i ∈ s) k, (f i).coeff k ∈ I ^ (n i - k)) (k : ℕ) :
+  (s.prod f).coeff k ∈ I ^ (s.sum n - k) :=
+begin
+  classical,
+  induction s using finset.induction with a s ha hs generalizing k,
+  { rw [sum_empty, prod_empty, coeff_one, zero_tsub, pow_zero, ideal.one_eq_top],
+    exact submodule.mem_top },
+  { rw [sum_insert ha, prod_insert ha, coeff_mul],
+    apply sum_mem,
+    rintro ⟨i, j⟩ e,
+    obtain rfl : i + j = k := nat.mem_antidiagonal.mp e,
+    apply ideal.pow_le_pow add_tsub_add_le_tsub_add_tsub,
+    rw pow_add,
+    exact ideal.mul_mem_mul (h _ (finset.mem_insert.mpr $ or.inl rfl) _)
+      (hs (λ i hi k, h _ (finset.mem_insert.mpr $ or.inr hi) _) j) }
+end
+
 end comm_semiring
 
 section ring

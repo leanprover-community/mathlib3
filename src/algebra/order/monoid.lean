@@ -789,7 +789,7 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid αᵒᵈ :=
 @[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
 instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
   contravariant_class αᵒᵈ αᵒᵈ has_mul.mul has_le.le :=
-{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
+{ elim := λ a b c, ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid αᵒᵈ :=

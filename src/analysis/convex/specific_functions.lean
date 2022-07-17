@@ -35,7 +35,7 @@ open_locale big_operators
 
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
-strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
+strict_convex_on_univ_of_deriv2_pos continuous_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
 
 /-- `exp` is convex on the whole real line. -/
 lemma convex_on_exp : convex_on ℝ univ exp := strict_convex_on_exp.convex_on
@@ -55,7 +55,7 @@ end
 lemma even.strict_convex_on_pow {n : ℕ} (hn : even n) (h : n ≠ 0) :
   strict_convex_on ℝ set.univ (λ x : ℝ, x^n) :=
 begin
-  apply strict_mono.strict_convex_on_univ_of_deriv (differentiable_pow n),
+  apply strict_mono.strict_convex_on_univ_of_deriv (continuous_pow n),
   rw deriv_pow',
   replace h := nat.pos_of_ne_zero h,
   exact strict_mono.const_mul (odd.strict_mono_pow $ nat.even.sub_odd h hn $ nat.odd_iff.2 rfl)
@@ -76,8 +76,7 @@ end
 /-- `x^n`, `n : ℕ` is strictly convex on `[0, +∞)` for all `n` greater than `2`. -/
 lemma strict_convex_on_pow {n : ℕ} (hn : 2 ≤ n) : strict_convex_on ℝ (Ici 0) (λ x : ℝ, x^n) :=
 begin
-  apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _)
-    (differentiable_on_pow n),
+  apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _),
   rw [deriv_pow', interior_Ici],
   exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
     nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
@@ -139,12 +138,8 @@ end
 lemma strict_convex_on_zpow {m : ℤ} (hm₀ : m ≠ 0) (hm₁ : m ≠ 1) :
   strict_convex_on ℝ (Ioi 0) (λ x : ℝ, x^m) :=
 begin
-  have : ∀ n : ℤ, differentiable_on ℝ (λ x, x ^ n) (Ioi (0 : ℝ)),
-    from λ n, differentiable_on_zpow _ _ (or.inl $ lt_irrefl _),
-  apply strict_convex_on_of_deriv2_pos (convex_Ioi 0),
-  { exact (this _).continuous_on },
-   all_goals { rw interior_Ioi },
-  { exact this _ },
+  apply strict_convex_on_of_deriv2_pos' (convex_Ioi 0),
+  { exact (continuous_on_zpow₀ m).mono (λ x hx, ne_of_gt hx) },
   intros x hx,
   rw iter_deriv_zpow,
   refine mul_pos _ (zpow_pos_of_pos hx _),
@@ -176,7 +171,6 @@ begin
   have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp.le] },
   apply strict_convex_on_of_deriv2_pos (convex_Ici 0),
   { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp.le)) },
-  { exact (differentiable_rpow_const hp.le).differentiable_on },
   rw interior_Ici,
   rintro x (hx : 0 < x),
   suffices : 0 < p * ((p - 1) * x ^ (p - 1 - 1)), by simpa [ne_of_gt hx, A],
@@ -187,8 +181,8 @@ lemma strict_concave_on_log_Ioi : strict_concave_on ℝ (Ioi 0) log :=
 begin
   have h₁ : Ioi 0 ⊆ ({0} : set ℝ)ᶜ,
   { exact λ x (hx : 0 < x) (hx' : x = 0), hx.ne' hx' },
-  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 0) is_open_Ioi
-    (differentiable_on_log.mono h₁) (λ x (hx : 0 < x), _),
+  refine strict_concave_on_of_deriv2_neg' (convex_Ioi 0)
+    (continuous_on_log.mono h₁) (λ x (hx : 0 < x), _),
   rw [function.iterate_succ, function.iterate_one],
   change (deriv (deriv log)) x < 0,
   rw [deriv_log', deriv_inv],
@@ -199,8 +193,8 @@ lemma strict_concave_on_log_Iio : strict_concave_on ℝ (Iio 0) log :=
 begin
   have h₁ : Iio 0 ⊆ ({0} : set ℝ)ᶜ,
   { exact λ x (hx : x < 0) (hx' : x = 0), hx.ne hx' },
-  refine strict_concave_on_open_of_deriv2_neg (convex_Iio 0) is_open_Iio
-    (differentiable_on_log.mono h₁) (λ x (hx : x < 0), _),
+  refine strict_concave_on_of_deriv2_neg' (convex_Iio 0)
+    (continuous_on_log.mono h₁) (λ x (hx : x < 0), _),
   rw [function.iterate_succ, function.iterate_one],
   change (deriv (deriv log)) x < 0,
   rw [deriv_log', deriv_inv],
@@ -248,9 +242,9 @@ end
 
 lemma strict_concave_on_sqrt_mul_log_Ioi : strict_concave_on ℝ (set.Ioi 1) (λ x, sqrt x * log x) :=
 begin
-  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 1) is_open_Ioi (λ x hx, _) (λ x hx, _),
-  { have h₀ : x ≠ 0, from (one_pos.trans hx.out).ne',
-    exact (has_deriv_at_sqrt_mul_log h₀).differentiable_at.differentiable_within_at },
+  apply strict_concave_on_of_deriv2_neg' (convex_Ioi 1) _ (λ x hx, _),
+  { exact continuous_sqrt.continuous_on.mul
+      (continuous_on_log.mono (λ x hx, ne_of_gt (zero_lt_one.trans hx))) },
   { rw [deriv2_sqrt_mul_log x],
     exact div_neg_of_neg_of_pos (neg_neg_of_pos (log_pos hx))
       (mul_pos four_pos (pow_pos (sqrt_pos.mpr (zero_lt_one.trans hx)) 3)) },
@@ -262,16 +256,14 @@ open_locale real
 
 lemma strict_concave_on_sin_Icc : strict_concave_on ℝ (Icc 0 π) sin :=
 begin
-  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_sin
-    differentiable_sin.differentiable_on (λ x hx, _),
+  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_sin (λ x hx, _),
   rw interior_Icc at hx,
   simp [sin_pos_of_mem_Ioo hx],
 end
 
 lemma strict_concave_on_cos_Icc : strict_concave_on ℝ (Icc (-(π/2)) (π/2)) cos :=
 begin
-  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_cos
-    differentiable_cos.differentiable_on (λ x hx, _),
+  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_cos (λ x hx, _),
   rw interior_Icc at hx,
   simp [cos_pos_of_mem_Ioo hx],
 end

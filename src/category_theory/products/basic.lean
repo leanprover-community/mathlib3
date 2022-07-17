@@ -193,10 +193,12 @@ namespace functor
 { obj := λ a, (F.obj a, G.obj a),
   map := λ x y f, (F.map f, G.map f), }
 
+/-- The product `F.prod' G` followed by projection on the first component is isomorphic to `F` -/
 @[simps]
 def prod'_comp_fst (F : A ⥤ B) (G : A ⥤ C) : (F.prod' G) ⋙ (category_theory.prod.fst B C) ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
 
+/-- The product `F.prod' G` followed by projection on the second component is isomorphic to `G` -/
 @[simps]
 def prod'_comp_snd (F : A ⥤ B) (G : A ⥤ C) : (F.prod' G) ⋙ (category_theory.prod.snd B C) ≅ G :=
 nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by simp)
@@ -239,6 +241,7 @@ def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
   F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
 nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
 
+/-- The equivalence of categories between `(A ⥤ B) × (A ⥤ C)` and `A ⥤ (B × C)` -/
 @[simps]
 def functor_prod_functor_equiv : ((A ⥤ B) × (A ⥤ C)) ≌ (A ⥤ (B × C)) :=
 { functor :=

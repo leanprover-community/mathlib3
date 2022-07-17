@@ -2143,7 +2143,7 @@ section opposite
 
 open opposite
 
-/-- The pullback of `f` and `g` in `C` is isomorphic to the pullback of
+/-- The pullback of `f` and `g` in `C` is isomorphic to the pushout of
 `f.op` and `g.op` in `Cᵒᵖ`. -/
 noncomputable
 def pullback_iso_unop_pushout (f : X ⟶ Z) (g : Y ⟶ Z)
@@ -2182,6 +2182,8 @@ lemma pullback_iso_unop_pushout_hom_inr {X Y Z : C} (f : X ⟶ Z)
   pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
 pushout.inr_desc _ _ _
 
+/-- The pushout of `f` and `g` in `C` is isomorphic to the pullback of
+ `f.op` and `g.op` in `Cᵒᵖ`. -/
 noncomputable
 def pushout_iso_unop_pullback {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] : pushout f g ≅ unop (pullback f.op g.op) :=

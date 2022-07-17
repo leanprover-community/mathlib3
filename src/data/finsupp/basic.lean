@@ -795,7 +795,8 @@ end finsupp
 namespace list
 variable [has_zero M]
 
-/-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`. -/
+/-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`, sending
+absent keys to zero. -/
 def lookup_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M :=
 { support := {x ∈ l.keys.to_finset | l.lookup x ≠ some 0},
   to_fun := λ a, (l.lookup a).get_or_else 0,
@@ -808,7 +809,8 @@ def lookup_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M :=
 @[simp] lemma lookup_finsupp_apply (l : list (sigma (λ x : α, M))) (a : α) :
   l.lookup_finsupp a = (l.lookup a).get_or_else 0 := rfl
 
-@[simp] lemma lookup_finsupp_graph (f : α →₀ M) : (f.graph.to_list.map prod.to_sigma).lookup_finsupp = f :=
+@[simp] lemma lookup_finsupp_graph (f : α →₀ M) :
+  (f.graph.to_list.map prod.to_sigma).lookup_finsupp = f :=
 begin
   ext,
   by_cases h : f a = 0,
@@ -829,7 +831,8 @@ end list
 namespace alist
 variable [has_zero M]
 
-/-- Converts an association list into a finitely supported function via `alist.lookup`. -/
+/-- Converts an association list into a finitely supported function via `alist.lookup`, sending
+absent keys to zero. -/
 def lookup_finsupp (l : alist (λ x : α, M)) : α →₀ M := l.1.lookup_finsupp
 
 @[simp] lemma lookup_finsupp_apply (l : alist (λ x : α, M)) (a : α) :

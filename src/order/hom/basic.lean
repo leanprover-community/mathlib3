@@ -646,22 +646,22 @@ def to_rel_iso_lt (e : α ≃o β) : ((<) : α → α → Prop) ≃r ((<) : β �
 @[simp] lemma to_rel_iso_lt_symm (e : α ≃o β) : e.to_rel_iso_lt.symm = e.symm.to_rel_iso_lt := rfl
 
 /-- Converts a `rel_iso (<) (<)` into an `order_iso`. -/
-def of_rel_iso_lt {α β} [linear_order α] [linear_order β]
+def of_rel_iso_lt {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : α ≃o β :=
-⟨e.to_equiv, λ x y, by simp [←not_lt, e.map_rel_iff]⟩
+⟨e.to_equiv, λ x y, by simp [le_iff_eq_or_lt, e.map_rel_iff]⟩
 
-@[simp] lemma of_rel_iso_lt_apply {α β} [linear_order α] [linear_order β]
+@[simp] lemma of_rel_iso_lt_apply {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) (x : α) : of_rel_iso_lt e x = e x := rfl
 
-@[simp] lemma of_rel_iso_lt_symm {α β} [linear_order α] [linear_order β]
+@[simp] lemma of_rel_iso_lt_symm {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) :
   (of_rel_iso_lt e).symm = of_rel_iso_lt e.symm := rfl
 
-@[simp] lemma of_rel_iso_lt_to_rel_iso_lt {α β} [linear_order α] [linear_order β] (e : α ≃o β) :
+@[simp] lemma of_rel_iso_lt_to_rel_iso_lt {α β} [partial_order α] [partial_order β] (e : α ≃o β) :
   of_rel_iso_lt (to_rel_iso_lt e) = e :=
 by { ext, simp }
 
-@[simp] lemma to_rel_iso_lt_of_rel_iso_lt {α β} [linear_order α] [linear_order β]
+@[simp] lemma to_rel_iso_lt_of_rel_iso_lt {α β} [partial_order α] [partial_order β]
   (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : to_rel_iso_lt (of_rel_iso_lt e) = e :=
 by { ext, simp }
 

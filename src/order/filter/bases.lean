@@ -881,8 +881,8 @@ protected lemma has_antitone_basis.mem [preorder ι] {l : filter α} {s : ι →
   (hs : l.has_antitone_basis s) (i : ι) : s i ∈ l :=
 hs.to_has_basis.mem_of_mem trivial
 
-lemma has_antitone_basis.has_basis_ge [preorder ι] [is_directed ι (≤)] {l : filter α} {s : ι → set α}
-  (hs : l.has_antitone_basis s) (i : ι) :
+lemma has_antitone_basis.has_basis_ge [preorder ι] [is_directed ι (≤)] {l : filter α}
+  {s : ι → set α} (hs : l.has_antitone_basis s) (i : ι) :
   l.has_basis (λ j, i ≤ j) s :=
 hs.1.to_has_basis (λ j _, (exists_ge_ge i j).imp $ λ k hk, ⟨hk.1, hs.2 hk.2⟩)
   (λ j hj, ⟨j, trivial, subset.rfl⟩)

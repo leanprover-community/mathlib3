@@ -207,6 +207,20 @@ begin
   { rw [count_cons', count_cons', count_erase_of_ne] }
 end
 
+@[to_additive]
+lemma prod_map_eq_pow_single [decidable_eq α] [monoid β] {l : list α} (a : α)
+  (f : α → β) (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) :
+  (l.map f).prod = (f a) ^ (l.count a) :=
+begin
+  induction l with a' as h generalizing a,
+  { rw [map_nil, prod_nil, count_nil, pow_zero] },
+  { specialize h a (λ a' ha' hfa', hf a' ha' (mem_cons_of_mem _ hfa')),
+    rw [map_cons, prod_cons, count_cons, h],
+    split_ifs with ha',
+    { rw [ha', pow_succ] },
+    { rw [hf a' (ne.symm ha') (mem_cons_self a' as), one_mul] } }
+end
+
 end count
 
 end list

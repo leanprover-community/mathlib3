@@ -62,6 +62,11 @@ lemma prod_eq_pow_card (l : list M) (m : M) (h : ∀ (x ∈ l), x = m) :
 by rw [← prod_repeat, ← list.eq_repeat.mpr ⟨rfl, h⟩]
 
 @[to_additive]
+lemma prod_eq_one {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) :
+  l.prod = 1 :=
+trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
+
+@[to_additive]
 lemma prod_hom_rel (l : list ι) {r : M → N → Prop} {f : ι → M} {g : ι → N} (h₁ : r 1 1)
   (h₂ : ∀ ⦃i a b⦄, r a b → r (f i * a) (g i * b)) :
   r (l.map f).prod (l.map g).prod :=

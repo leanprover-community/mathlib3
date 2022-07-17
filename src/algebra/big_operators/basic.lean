@@ -1014,39 +1014,7 @@ end
 
 lemma sum_filter_count_eq_countp [decidable_eq α] (p : α → Prop) [decidable_pred p] (l : list α) :
   ∑ x in l.to_finset.filter p, l.count x = l.countp p :=
-begin
-  induction l with a as h,
-  { simp },
-  { rw [list.to_finset_cons],
-    by_cases ha : a ∈ as.to_finset,
-    { rw [finset.insert_eq_of_mem ha, list.countp_cons],
-      calc ∑ x in as.to_finset.filter p, (a :: as).count x
-        = ∑ x in as.to_finset.filter p, (as.count x + ite (a = x) (ite (p a) 1 0) 0) :
-          begin
-            refine finset.sum_congr rfl (λ x hx, _),
-            split_ifs with hax hpa,
-            { simp [hax] },
-            { exact false.elim (hpa $ hax.symm ▸ (finset.mem_filter.1 hx).2) },
-            { simp [ne.symm hax] }
-          end
-        ... = list.countp p as + ite (p a) 1 0 : by simp_rw [finset.sum_add_distrib, h,
-          finset.sum_ite_eq, finset.mem_filter, ← ite_and, and_assoc, and_self, ha, true_and] },
-    { calc ∑ x in (insert a as.to_finset).filter p, (a :: as).count x
-        = (ite (p a) ((a :: as).count a) 0) + ∑ x in as.to_finset.filter p, (a :: as).count x :
-          begin
-            rw [finset.filter_insert],
-            split_ifs with hpa,
-            { exact finset.sum_insert (λ h, ha (finset.mem_filter.1 h).1) },
-            { exact (zero_add _).symm }
-          end
-        ... = (ite (p a) 1 0) + ∑ x in as.to_finset.filter p, as.count x : begin
-          congr' 1,
-          { simp [list.count_eq_zero_of_not_mem (ha ∘ list.mem_to_finset.2)] },
-          { refine finset.sum_congr rfl (λ x hx, _),
-            simp [(λ hxa, ha (hxa ▸ (finset.mem_filter.1 hx).1) : x ≠ a)] }
-        end
-        ... = (a :: as).countp p : by rw [h, list.countp_cons, add_comm] } }
-end
+by simp [finset.sum, sum_map_count_dedup_filter_eq_countp p l]
 
 open multiset
 

@@ -427,8 +427,7 @@ protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 @[simps { fully_applied := ff }]
 protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=
 { to_fun := with_bot.map f,
-  map_rel_iff' := λ a b, by cases a; cases b; simp [with_bot.none_eq_bot, with_bot.some_eq_coe,
-    with_bot.not_coe_le_bot],
+  map_rel_iff' := with_bot.map_le_iff f (λ a b, f.map_rel_iff),
   .. f.to_embedding.option_map }
 
 /-- A version of `with_top.map` for order embeddings. -/
@@ -637,6 +636,10 @@ protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embed
 
 @[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
 e.to_order_embedding.lt_iff_lt
+
+/-- Converts an `order_iso` into a `rel_iso (<) (<)`. -/
+def to_rel_iso_lt (e : α ≃o β): ((<) : α → α → Prop) ≃r ((<) : β → β → Prop) :=
+⟨e.to_equiv, λ _ _, lt_iff_lt e⟩
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/

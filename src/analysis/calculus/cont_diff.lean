@@ -452,6 +452,12 @@ lemma cont_diff_within_at.congr_of_eventually_eq
 ⟨{x ∈ u | f₁ x = f x}, filter.inter_mem hu (mem_nhds_within_insert.2 ⟨hx, h₁⟩), p,
   (H.mono (sep_subset _ _)).congr (λ _, and.right)⟩
 
+lemma cont_diff_within_at.congr_of_eventually_eq_insert
+  (h : cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[𝓝[insert x s] x] f) :
+  cont_diff_within_at 𝕜 n f₁ s x :=
+h.congr_of_eventually_eq (nhds_within_mono x (subset_insert x s) h₁)
+  (mem_of_mem_nhds_within (mem_insert x s) h₁ : _)
+
 lemma cont_diff_within_at.congr_of_eventually_eq'
   (h : cont_diff_within_at 𝕜 n f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : x ∈ s) :
   cont_diff_within_at 𝕜 n f₁ s x :=
@@ -567,6 +573,38 @@ begin
           change p' x k (init (@snoc k (λ i : fin k.succ, E) v y))
             (@snoc k (λ i : fin k.succ, E) v y (last k)) = p' x k v y,
           rw [snoc_last, init_snoc] } } } }
+end
+
+/-- One direction of `cont_diff_within_at_succ_iff_has_fderiv_within_at`, but where all derivatives
+  are taken within the same set. -/
+lemma cont_diff_within_at.has_fderiv_within_at_nhds {n : ℕ}
+  (hf : cont_diff_within_at 𝕜 (n + 1 : ℕ) f s x) :
+  ∃ u ∈ 𝓝[insert x s] x, u ⊆ insert x s ∧ ∃ f' : E → E →L[𝕜] F,
+    (∀ x ∈ u, has_fderiv_within_at f (f' x) s x) ∧ cont_diff_within_at 𝕜 n f' s x :=
+begin
+  obtain ⟨u, hu, f', huf', hf'⟩ := cont_diff_within_at_succ_iff_has_fderiv_within_at.mp hf,
+  obtain ⟨w, hw, hxw, hwu⟩ := mem_nhds_within.mp hu,
+  rw [inter_comm] at hwu,
+  refine ⟨insert x s ∩ w, inter_mem_nhds_within _ (hw.mem_nhds hxw), inter_subset_left _ _,
+    f', λ y hy, _, _⟩,
+  { refine ((huf' y $ hwu hy).mono hwu).mono_of_mem _,
+    refine mem_of_superset _ (inter_subset_inter_left _ (subset_insert _ _)),
+    refine inter_mem_nhds_within _ (hw.mem_nhds hy.2) },
+  { exact hf'.mono_of_mem (nhds_within_mono _ (subset_insert _ _) hu) }
+end
+
+/-- A version of `cont_diff_within_at_succ_iff_has_fderiv_within_at` where all derivatives
+  are taken within the same set. This lemma assumes `x ∈ s`. -/
+lemma cont_diff_within_at_succ_iff_has_fderiv_within_at_of_mem {n : ℕ} (hx : x ∈ s) :
+  cont_diff_within_at 𝕜 (n + 1 : ℕ) f s x
+  ↔ ∃ u ∈ 𝓝[s] x, u ⊆ s ∧ ∃ f' : E → E →L[𝕜] F,
+    (∀ x ∈ u, has_fderiv_within_at f (f' x) s x) ∧ cont_diff_within_at 𝕜 n f' s x :=
+begin
+  split,
+  { intro hf, simpa only [insert_eq_of_mem hx] using hf.has_fderiv_within_at_nhds },
+  rw [cont_diff_within_at_succ_iff_has_fderiv_within_at, insert_eq_of_mem hx],
+  rintro ⟨u, hu, hus, f', huf', hf'⟩,
+  exact ⟨u, hu, f', λ y hy, (huf' y hy).mono hus, hf'.mono hus⟩
 end
 
 /-! ### Smooth functions within a set -/
@@ -1092,6 +1130,31 @@ lemma cont_diff_on.continuous_on_fderiv_of_open
   (h : cont_diff_on 𝕜 n f s) (hs : is_open s) (hn : 1 ≤ n) :
   continuous_on (λ x, fderiv 𝕜 f x) s :=
 ((cont_diff_on_succ_iff_fderiv_of_open hs).1 (h.of_le hn)).2.continuous_on
+
+lemma cont_diff_within_at.fderiv_within'
+  (hf : cont_diff_within_at 𝕜 n f s x) (hs : ∀ᶠ y in 𝓝[insert x s] x, unique_diff_within_at 𝕜 s y)
+  (hmn : m + 1 ≤ n) :
+  cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x :=
+begin
+  have : ∀ k : ℕ, (k + 1 : with_top ℕ) ≤ n → cont_diff_within_at 𝕜 k (fderiv_within 𝕜 f s) s x,
+  { intros k hkn,
+    obtain ⟨v, hv, -, f', hvf', hf'⟩ := (hf.of_le hkn).has_fderiv_within_at_nhds,
+    apply hf'.congr_of_eventually_eq_insert,
+    filter_upwards [hv, hs],
+    exact λ y hy h2y, (hvf' y hy).fderiv_within h2y },
+  induction m using with_top.rec_top_coe,
+  { obtain rfl := eq_top_iff.mpr hmn,
+    rw [cont_diff_within_at_top],
+    exact λ m, this m le_top },
+  exact this m hmn
+end
+
+lemma cont_diff_within_at.fderiv_within
+  (hf : cont_diff_within_at 𝕜 n f s x) (hs : unique_diff_on 𝕜 s)
+  (hmn : (m + 1 : with_top ℕ) ≤ n) (hxs : x ∈ s) :
+  cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x :=
+hf.fderiv_within' (by { rw [insert_eq_of_mem hxs], exact eventually_of_mem self_mem_nhds_within hs})
+  hmn
 
 /-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
 continuous. -/

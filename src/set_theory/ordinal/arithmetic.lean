@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
+import data.prod.lex
 import set_theory.ordinal.basic
 import tactic.by_contra
 
@@ -586,8 +587,27 @@ instance : monoid ordinal.{u} :=
     ⟨⟨prod_punit _, λ a b, by rcases a with ⟨a, ⟨⟨⟩⟩⟩; rcases b with ⟨b, ⟨⟨⟩⟩⟩;
     simp only [prod.lex_def, empty_relation, and_false, or_false]; refl⟩⟩ }
 
-@[simp] theorem type_prod_lex {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+theorem type_prod_lex {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type (prod.lex s r) = type r * type s := rfl
+
+theorem type_lt_prod_lex {α β : Type u} [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] :
+  @type (β ×ₗ α) (<) _ = @type α (<) _ * @type β (<) _ :=
+type_prod_lex _ _
+
+@[simp] theorem type_prod_lex_lift {α : Type u} {β : Type v} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] :
+  type (prod.lex s r) = lift.{v} (type r) * lift.{u} (type s) :=
+begin
+  apply rel_iso.ordinal_type_eq,
+  apply rel_iso.prod_lex_congr;
+  exact (rel_iso.preimage equiv.ulift _).symm
+end
+
+@[simp] theorem type_lt_prod_lex_lift {α : Type u} {β : Type v} [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] :
+  @type (β ×ₗ α) (<) _ = lift.{v} (@type α (<) _) * lift.{u} (@type β (<) _) :=
+type_prod_lex_lift _ _
 
 private theorem mul_eq_zero' {a b : ordinal} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
 induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin

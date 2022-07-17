@@ -327,11 +327,6 @@ begin
 end
 
 
--- ^^^ Versions translated into `factorization` ^^^
---------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------
--- vvv Versions to translate into `factorization` vvv
-
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
 lemma multiplicity_le_multiplicity_choose_add {p : ℕ} (hp : p.prime) : ∀ (n k : ℕ),
   multiplicity p n ≤ multiplicity p (choose n k) + multiplicity p k
@@ -359,6 +354,9 @@ begin
   exact h1,
 end
 
+/-- A lower bound on the multiplicity of `p` in `choose n k`.
+Note that this needs more assumptions on `n` and `k` than the corresponding lemma
+`multiplicity_le_multiplicity_choose_add`. -/
 lemma factorization_le_factorization_choose_add' {p n k : ℕ} (hp : p.prime) :
   ∀ (n k : ℕ), k ≠ 0 → k ≤ n → n.factorization p ≤ (choose n k).factorization p + k.factorization p
 | _     0     := by simp
@@ -370,6 +368,13 @@ lemma factorization_le_factorization_choose_add' {p n k : ℕ} (hp : p.prime) :
     have h1 := mul_ne_zero (succ_ne_zero n) ((choose_pos (succ_le_succ_iff.1 hkn)).ne'),
     have h2 := (factorization_le_iff_dvd (succ_ne_zero n) h1).2 (dvd_mul_right (n+1) (n.choose k)),
     exact finsupp.le_def.1 h2 p }
+
+
+-- ^^^ Versions translated into `factorization` ^^^
+--------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------
+-- vvv Versions to translate into `factorization` vvv
+
 
 
 lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime)

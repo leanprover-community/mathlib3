@@ -28,7 +28,8 @@ true in more general settings.
   sequences.
 * `X ⟶ Y ⟶ Z ⟶ 0` is exact if and only if the second map is a cokernel of the first, and
   `0 ⟶ X ⟶ Y ⟶ Z` is exact if and only if the first map is a kernel of the second.
-
+* An exact functor preserves exactness, more specifically, if `F` preserves finite colimits and
+  limits, then `exact f g` implies `exact (F.map f) (F.map g)`
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -320,6 +321,26 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful [faith
     rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
   end }
 
+end
+
+end functor
+
+namespace functor
+
+open limits abelian
+
+variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
+variables [has_zero_object A] [has_zero_morphisms A] [has_images A] [has_equalizers A]
+variables [has_cokernels A] [abelian B]
+variables (L : A ⥤ B) [preserves_finite_limits L] [preserves_finite_colimits L]
+
+lemma map_exact {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
+  exact (L.map f) (L.map g) :=
+begin
+  let hcoker := is_colimit_of_has_cokernel_of_preserves_colimit L f,
+  let hker := is_limit_of_has_kernel_of_preserves_limit L g,
+  refine (exact_iff' _ _ hker hcoker).2 ⟨by simp [← L.map_comp, e1.1], _⟩,
+  rw [fork.ι_of_ι, cofork.π_of_π, ← L.map_comp, kernel_comp_cokernel _ _ e1, L.map_zero]
 end
 
 end functor

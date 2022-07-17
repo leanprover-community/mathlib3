@@ -121,14 +121,7 @@ instance : has_add 𝓜(𝕜, A) :=
 { add := λ a b,
   { left := a.left + b.left,
     right := a.right + b.right,
-    central :=
-            begin
-            intros x y,
-            simp,
-            rw add_mul,
-            rw mul_add,
-            repeat {rw central _ _},
-            end } }
+    central := λ x y, by simp only [continuous_linear_map.add_apply, add_mul, mul_add, central]}}
 
 -- all these simp lemmas should be prefixed with `coe_`, then the non-`coe_` ones should just be
 -- linear maps, not their coercions to functions.
@@ -141,13 +134,7 @@ instance : has_mul 𝓜(𝕜, A) :=
 { mul := λ a b,
   { left := a.left.comp b.left,
     right := b.right.comp a.right,
-    central :=
-              begin
-              intros x y,
-              simp,
-              repeat
-              {rw central _ _},
-              end } }
+    central := λ x y, by simp only [continuous_linear_map.coe_comp', function.comp_app, central]}}
 
 @[simp]
 lemma mul_left (a b : 𝓜(𝕜, A)) : ⇑(a * b).left = a.left ∘ b.left := rfl
@@ -163,16 +150,8 @@ instance : has_smul 𝕜 𝓜(𝕜, A) :=
 { smul := λ k a,
   { left := k • a.left,
     right := k • a.right,
-    central :=
-              begin
-              intros x y,
-              simp,
-              repeat {rw central _ _},
-              rw mul_smul_comm _ _ _,
-              rw smul_mul_assoc,
-              rw central _ _,
-              exact _inst_4,
-              end } }
+    central := λ x y , by simp only [continuous_linear_map.coe_smul', pi.smul_apply, central,
+               mul_smul_comm, smul_mul_assoc]}}
 
 @[simp]
 lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : ⇑(k • a).left = k • a.left := rfl
@@ -212,7 +191,8 @@ instance : has_star 𝓜(𝕜, A) :=
     central :=
               begin
               intros x y,
-              simp,
+              simp only [continuous_linear_map.coe_comp', linear_isometry_equiv.coe_coe'',
+              coe_starₗᵢ, function.comp_app],
               have ha := a.central,
               specialize ha (star y) (star x),
               have P := congr_arg star ha,

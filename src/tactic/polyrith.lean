@@ -285,12 +285,14 @@ meta instance : non_null_json_serializable poly :=
     | sum.inr p := pure p
     end}
 
+/-- A schema for success messages from the python script -/
 @[derive non_null_json_serializable]
 structure sage_json_success :=
 (success : {b : bool // b = tt})
 (trace : option string := none)
 (data : option (list poly) := none)
 
+/-- A schema for failure messages from the python script -/
 @[derive non_null_json_serializable]
 structure sage_json_failure :=
 (success : {b : bool // b = ff})

@@ -1680,4 +1680,17 @@ by simp [eq_iff_veq, mul_def]
 
 end mul
 
+section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `nat.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
+local attribute [semireducible] reflected
+meta instance reflect : Π n, has_reflect (fin n)
+| 0 := fin_zero_elim
+| (n + 1) := nat.mk_numeral `(fin n.succ)
+              `(by apply_instance : has_zero (fin n.succ))
+              `(by apply_instance : has_one (fin n.succ))
+              `(by apply_instance : has_add (fin n.succ)) ∘ subtype.val
+end
+
 end fin

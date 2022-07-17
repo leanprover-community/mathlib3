@@ -833,16 +833,7 @@ lemma tendsto_integral_of_L1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
   (hF : tendsto (λ i, ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0)) :
   tendsto (λ i, ∫ x, F i x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
-begin
-  rw [tendsto_iff_norm_tendsto_zero],
-  replace hF : tendsto (λ i, ennreal.to_real $ ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0) :=
-    (ennreal.tendsto_to_real zero_ne_top).comp hF,
-  refine squeeze_zero_norm' (hFi.mp $ hFi.mono $ λ i hFi hFm, _) hF,
-  simp only [norm_norm, ← integral_sub hFi hfi],
-  convert norm_integral_le_lintegral_norm (λ x, F i x - f x),
-  ext1 x,
-  exact coe_nnreal_eq _
-end
+tendsto_set_to_fun_of_L1 (dominated_fin_meas_additive_weighted_smul μ) f hfi hFi hF
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
   everywhere convergence of a sequence of functions implies the convergence of their integrals.
@@ -1212,8 +1203,8 @@ lemma tendsto_integral_approx_on_of_measurable
 begin
   have hfi' := simple_func.integrable_approx_on hfm hfi h₀ h₀i,
   simp only [simple_func.integral_eq_integral _ (hfi' _)],
-  exact tendsto_integral_of_L1 _ hfi (eventually_of_forall hfi')
-    (simple_func.tendsto_approx_on_L1_nnnorm hfm _ hs (hfi.sub h₀i).2)
+  exact tendsto_set_to_fun_approx_on_of_measurable (dominated_fin_meas_additive_weighted_smul μ)
+    hfi hfm hs h₀ h₀i,
 end
 
 lemma tendsto_integral_approx_on_of_measurable_of_range_subset
@@ -1224,10 +1215,7 @@ lemma tendsto_integral_approx_on_of_measurable_of_range_subset
     (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   apply tendsto_integral_approx_on_of_measurable hf fmeas _ _ (integrable_zero _ _ _),
-  apply eventually_of_forall (λ x, _),
-  apply subset_closure,
-  apply hs,
-  simp,
+  exact eventually_of_forall (λ x, subset_closure (hs (set.mem_union_left _ (mem_range_self _)))),
 end
 
 variable {ν : measure α}

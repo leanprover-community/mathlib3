@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fin.basic
+import data.fin.tuple.basic
 import data.list.basic
 import data.list.join
 
@@ -20,6 +20,8 @@ The main statements pertain to lists generated using `of_fn`
 - `list.length_of_fn`, which tells us the length of such a list
 - `list.nth_of_fn`, which tells us the nth element of such a list
 - `list.array_eq_of_fn`, which interprets the list form of an array as such a list.
+- `list.equiv_sigma_tuple`, which is an `equiv` between lists and the functions that generate them
+  via `list.of_fn`.
 -/
 
 universes u
@@ -157,30 +159,25 @@ by simp only [mem_of_fn, set.forall_range_iff]
   of_fn (λ i : fin n, c) = repeat c n :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
+/- Lists are equivalent to the sigma type of tuples of a given length. -/
+@[simps]
+def equiv_sigma_tuple : list α ≃ Σ n, fin n → α :=
+{ to_fun := λ l, ⟨l.length, λ i, l.nth_le ↑i i.2⟩,
+  inv_fun := λ f, list.of_fn f.2,
+  left_inv := list.of_fn_nth_le,
+  right_inv := λ ⟨n, f⟩, fin.sigma_eq_of_eq_comp_cast (length_of_fn _) $ funext $ λ i,
+    nth_le_of_fn' f i.prop }
+
 /-- A recursor for lists that expands a list into a function mapping to its elements. -/
-def of_fn_rec (C : list α → Sort*) (h : ∀ n (f : fin n → α), C (list.of_fn f)) (l : list α) : C l :=
-l.of_fn_nth_le ▸ h l.length (λ i, l.nth_le ↑i i.2)
+def of_fn_rec (C : list α → Sort*) (h : Π n (f : fin n → α), C (list.of_fn f)) (l : list α) : C l :=
+l.of_fn_nth_le.rec $ h l.length (λ i, l.nth_le ↑i i.2)
 
 lemma exists_iff_exists_tuple {P : list α → Prop} :
   (∃ l : list α, P l) ↔ ∃ n (f : fin n → α), P (list.of_fn f) :=
-begin
-  split,
-  { rintros ⟨l, h⟩,
-    induction l using list.of_fn_rec,
-    exact ⟨_, _, h⟩ },
-  { rintros ⟨n, f, h⟩,
-    exact ⟨_, h⟩ },
-end
+equiv_sigma_tuple.symm.surjective.exists.trans sigma.exists
 
 lemma forall_iff_forall_tuple {P : list α → Prop} :
   (∀ l : list α, P l) ↔ ∀ n (f : fin n → α), P (list.of_fn f) :=
-begin
-  split,
-  { intros h n f,
-    exact h _, },
-  { intros h l,
-    induction l using list.of_fn_rec,
-    exact h _ _ },
-end
+equiv_sigma_tuple.symm.surjective.forall.trans sigma.forall
 
 end list

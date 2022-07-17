@@ -188,18 +188,8 @@ instance : has_star 𝓜(𝕜, A) :=
       ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
     right := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.left).comp
       ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
-    central :=
-              begin
-              intros x y,
-              simp only [continuous_linear_map.coe_comp', linear_isometry_equiv.coe_coe'',
-              coe_starₗᵢ, function.comp_app],
-              have ha := a.central,
-              specialize ha (star y) (star x),
-              have P := congr_arg star ha,
-              simp only [star_mul , star_star] at P,
-              symmetry,
-              exact P,
-              end } }
+    central := λ x y, by simpa only [star_mul, star_star] using (congr_arg star (a.central (star y)
+                         (star x))).symm}}
 
 @[simp]
 lemma star_left (a : 𝓜(𝕜, A)) (b : A) : (star a).left b = star (a.right (star b)) := rfl

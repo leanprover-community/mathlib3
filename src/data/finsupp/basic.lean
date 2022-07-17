@@ -802,7 +802,7 @@ open list
 /-- Converts an association list into a finitely supported function via `alist.lookup`, sending
 absent keys to zero. -/
 @[simps] def lookup_finsupp (l : alist (λ _ : α, M)) : α →₀ M :=
-{ support := (l.entries.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset,
+{ support := (l.1.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset,
   to_fun := λ a, (l.lookup a).get_or_else 0,
   mem_support_to_fun := λ a, begin
     simp_rw [mem_to_finset, list.mem_keys, list.mem_filter, ←mem_lookup_iff],
@@ -818,13 +818,17 @@ namespace list
 
 /-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`, sending
 absent keys to zero. -/
-def lookup_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M := l.to_alist.lookup_finsupp
+def lookup_finsupp (l : list (Σ x : α, M)) : α →₀ M := l.to_alist.lookup_finsupp
 
-@[simp] lemma to_alist_lookup_finsupp (l : list (sigma (λ x : α, M))) :
+@[simp] lemma to_alist_lookup_finsupp (l : list (Σ x : α, M)) :
   l.to_alist.lookup_finsupp = l.lookup_finsupp :=
 rfl
 
-@[simp] lemma lookup_finsupp_apply (l : list (sigma (λ x : α, M))) (a : α) :
+@[simp] lemma lookup_finsupp_support (l : list (Σ x : α, M)) :
+  l.lookup_finsupp.support = (l.dedupkeys.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset :=
+rfl
+
+@[simp] lemma lookup_finsupp_apply (l : list (Σ x : α, M)) (a : α) :
   l.lookup_finsupp a = (l.lookup a).get_or_else 0 :=
 by rw [lookup_finsupp, alist.lookup_finsupp_apply, alist.lookup_to_alist]
 
@@ -849,7 +853,7 @@ end list
 
 namespace alist
 
-@[simp] lemma mk_lookup_finsupp (l : list (sigma (λ x : α, M))) (h : l.nodupkeys) :
+@[simp] lemma mk_lookup_finsupp (l : list (Σ x : α, M)) (h : l.nodupkeys) :
   (alist.mk l h).lookup_finsupp = l.lookup_finsupp :=
 by { ext, rw list.lookup_finsupp_apply, refl }
 

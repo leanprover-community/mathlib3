@@ -271,9 +271,9 @@ begin
     norm_num,
     split,
     { intros h h',
-      have t := (of_not_not h).symm.trans h',
+      have t := h.symm.trans h',
       norm_num at t, },
-    exact λ h h', h' ((or_iff_left h).mp h₃), },
+    exact λ h, (or_iff_left h).mp h₃, },
 end
 
 end char

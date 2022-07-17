@@ -831,7 +831,7 @@ end list
 namespace alist
 variable [has_zero M]
 
-/-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`. -/
+/-- Converts an association list into a finitely supported function via `alist.lookup`. -/
 def to_finsupp (l : alist (λ x : α, M)) : α →₀ M := l.1.to_finsupp
 
 @[simp] lemma to_finsupp_apply (l : alist (λ x : α, M)) (a : α) :

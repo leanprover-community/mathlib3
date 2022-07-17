@@ -1637,9 +1637,10 @@ def Scheme.open_cover.pullback_cover {X : Scheme} (𝒰 : X.open_cover) {W : Sch
 lemma Scheme.open_cover.Union_range {X : Scheme} (𝒰 : X.open_cover) :
   (⋃ i, set.range (𝒰.map i).1.base) = set.univ :=
 begin
-  rw [Scheme.Γ_map_op, morphism_restrict_c_app f U ⊤, f.val.c.naturality_assoc],
-  erw ← X.presheaf.map_comp,
-  congr,
+  rw set.eq_univ_iff_forall,
+  intros x,
+  rw set.mem_Union,
+  exact ⟨𝒰.f x, 𝒰.covers x⟩
 end
 
 /-- Given open covers `{ Uᵢ }` and `{ Uⱼ }`, we may form the open cover `{ Uᵢ ∩ Uⱼ }`. -/

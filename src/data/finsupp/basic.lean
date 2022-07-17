@@ -790,28 +790,25 @@ end graph
 
 end finsupp
 
-/-! ### Declarations about `list.to_finsupp` and `alist.to_finsupp` -/
+/-! ### Declarations about `list.lookup_finsupp` and `alist.lookup_finsupp` -/
 
 namespace list
 variable [has_zero M]
 
 /-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`. -/
-def to_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M :=
-finsupp.of_support_finite (λ a, (l.lookup a).get_or_else 0) begin
-  apply l.keys.to_finset.finite_to_set.subset,
-  intros a ha,
-  dsimp at ha,
-  rw [mem_coe, mem_to_finset, ←lookup_is_some],
-  cases lookup a l with m,
-  { rw option.get_or_else_none at ha,
-    exact (ha rfl).elim },
-  { exact option.is_some_some }
-end
+def lookup_finsupp (l : list (sigma (λ x : α, M))) : α →₀ M :=
+{ support := {x ∈ l.keys.to_finset | l.lookup x ≠ some 0},
+  to_fun := λ a, (l.lookup a).get_or_else 0,
+  mem_support_to_fun := λ a, begin
+    simp only [←lookup_is_some, sep_def, finset.mem_filter, mem_to_finset],
+    cases lookup a l;
+    simp
+  end }
 
-@[simp] lemma to_finsupp_apply (l : list (sigma (λ x : α, M))) (a : α) :
-  l.to_finsupp a = (l.lookup a).get_or_else 0 := rfl
+@[simp] lemma lookup_finsupp_apply (l : list (sigma (λ x : α, M))) (a : α) :
+  l.lookup_finsupp a = (l.lookup a).get_or_else 0 := rfl
 
-@[simp] lemma to_finsupp_graph (f : α →₀ M) : (f.graph.to_list.map prod.to_sigma).to_finsupp = f :=
+@[simp] lemma lookup_finsupp_graph (f : α →₀ M) : (f.graph.to_list.map prod.to_sigma).lookup_finsupp = f :=
 begin
   ext,
   by_cases h : f a = 0,
@@ -824,7 +821,8 @@ begin
     { simpa using h } }
 end
 
-lemma to_finsupp_surjective : surjective (@to_finsupp α M _) := λ f, ⟨_, to_finsupp_graph f⟩
+lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
+λ f, ⟨_, lookup_finsupp_graph f⟩
 
 end list
 
@@ -832,13 +830,13 @@ namespace alist
 variable [has_zero M]
 
 /-- Converts an association list into a finitely supported function via `alist.lookup`. -/
-def to_finsupp (l : alist (λ x : α, M)) : α →₀ M := l.1.to_finsupp
+def lookup_finsupp (l : alist (λ x : α, M)) : α →₀ M := l.1.lookup_finsupp
 
-@[simp] lemma to_finsupp_apply (l : alist (λ x : α, M)) (a : α) :
-  l.to_finsupp a = (l.lookup a).get_or_else 0 := rfl
+@[simp] lemma lookup_finsupp_apply (l : alist (λ x : α, M)) (a : α) :
+  l.lookup_finsupp a = (l.lookup a).get_or_else 0 := rfl
 
-lemma to_finsupp_surjective : surjective (@to_finsupp α M _) :=
-λ f, ⟨⟨_, f.graph_nodupkeys⟩, list.to_finsupp_graph f⟩
+lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
+λ f, ⟨⟨_, f.graph_nodupkeys⟩, list.lookup_finsupp_graph f⟩
 
 end alist
 

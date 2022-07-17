@@ -20,22 +20,13 @@ This file defines the symplectic group and proves elementary properties.
 ## Implementation Notes
 
 ## TODO
-* Every symplectic matrix has determinant 1
-* For `n = 1` the symplectic group coincides with the special linear group
-* Fill in all this stuff
+* Every symplectic matrix has determinant 1.
+* For `n = 1` the symplectic group coincides with the special linear group.
 -/
 
 open_locale matrix
 
 variables {l R : Type*}
-
-section J_matrix_lemmas
-
-namespace matrix
-
-variables (l) [decidable_eq l]
-
-lemma neg_one : (-1 : matrix l l ℝ)  = (-1 : ℝ) • 1  := by simp only [neg_smul, one_smul]
 
 lemma pm_one_unit [ring R] {x : R} (h : x = 1 ∨ x = -1) : is_unit x :=
 begin
@@ -45,12 +36,11 @@ begin
     simp only [h, units.coe_neg_one] }
 end
 
-lemma minus_powers (n : ℕ) : (-1 : ℝ)^(n + n) = 1 :=
-begin
-  rw neg_one_pow_eq_one_iff_even,
-  exact even_add_self n,
-  norm_num,
-end
+section J_matrix_lemmas
+
+namespace matrix
+
+variables (l) [decidable_eq l]
 
 variables (R) [comm_ring R]
 
@@ -61,7 +51,7 @@ def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
 begin
   unfold J,
   rw [from_blocks_transpose, ←neg_one_smul R (from_blocks _ _ _ _), from_blocks_smul,
-      matrix.transpose_zero, matrix.transpose_one, transpose_neg],
+    matrix.transpose_zero, matrix.transpose_one, transpose_neg],
   simp [from_blocks],
 end
 
@@ -166,7 +156,7 @@ begin
   simp,
 end
 
-/-- TODO: Fill in this doc string -/
+/-- TODO: The canonical skew-symmetric matrix as an element in the symplectic group. -/
 def sym_J : symplectic_group l R := ⟨J l R, J_mem l R⟩
 
 variables {l} {R}
@@ -198,9 +188,9 @@ begin
   { rw [H, mul_one, ←sq, sq_eq_one_iff] at hA,
     exact pm_one_unit hA },
   { rw H at hA,
-  simp only [mul_neg, mul_one, neg_mul, neg_inj] at hA,
-  rw [←sq, sq_eq_one_iff] at hA,
-  exact pm_one_unit hA },
+    simp only [mul_neg, mul_one, neg_mul, neg_inj] at hA,
+    rw [←sq, sq_eq_one_iff] at hA,
+    exact pm_one_unit hA },
 end
 
 lemma transpose_mem (hA : A ∈ symplectic_group l R) :
@@ -223,7 +213,6 @@ begin
                              nonsing_inv_mul_cancel_right _ _ huA]
   ... = (J l R) : by simp [J_inv]
 end
-
 
 lemma transpose_mem_iff : Aᵀ ∈ symplectic_group l R ↔ A ∈ symplectic_group l R :=
 ⟨λ hA, by simpa using transpose_mem hA , transpose_mem⟩

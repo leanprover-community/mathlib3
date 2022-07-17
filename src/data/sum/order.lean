@@ -544,17 +544,17 @@ begin
   { simp }
 end⟩
 
-@[simp] theorem order_iso_punit_sum_lex_bot :
-  @order_iso_punit_sum_lex α _ ⊥ = to_lex (sum.inl punit.star) := rfl
+@[simp] lemma order_iso_punit_sum_lex_bot :
+  @order_iso_punit_sum_lex α _ ⊥ = to_lex (inl punit.star) := rfl
 
-@[simp] theorem order_iso_punit_sum_lex_coe (a : α) :
-  order_iso_punit_sum_lex (↑a) = to_lex (sum.inr a) := rfl
+@[simp] lemma order_iso_punit_sum_lex_coe (a : α) :
+  order_iso_punit_sum_lex (↑a) = to_lex (inr a) := rfl
 
-@[simp] theorem order_iso_punit_sum_lex_symm_inl (x : punit) :
-  (@order_iso_punit_sum_lex α _).symm (to_lex $ sum.inl x) = ⊥ := rfl
+@[simp] lemma order_iso_punit_sum_lex_symm_inl (x : punit) :
+  (@order_iso_punit_sum_lex α _).symm (to_lex $ inl x) = ⊥ := rfl
 
-@[simp] theorem order_iso_punit_sum_lex_symm_inr (a : α) :
-  order_iso_punit_sum_lex.symm (to_lex $ sum.inr a) = a := rfl
+@[simp] lemma order_iso_punit_sum_lex_symm_inr (a : α) :
+  order_iso_punit_sum_lex.symm (to_lex $ inr a) = a := rfl
 
 end with_bot
 
@@ -572,16 +572,16 @@ begin
   { simp }
 end⟩
 
-@[simp] theorem order_iso_sum_lex_punit_top :
-  @order_iso_sum_lex_punit α _ ⊤ = to_lex (sum.inr punit.star) := rfl
+@[simp] lemma order_iso_sum_lex_punit_top :
+  @order_iso_sum_lex_punit α _ ⊤ = to_lex (inr punit.star) := rfl
 
-@[simp] theorem order_iso_sum_lex_punit_coe (a : α) :
-  order_iso_sum_lex_punit (↑a) = to_lex (sum.inl a) := rfl
+@[simp] lemma order_iso_sum_lex_punit_coe (a : α) :
+  order_iso_sum_lex_punit (↑a) = to_lex (inl a) := rfl
 
-@[simp] theorem order_iso_sum_lex_punit_symm_inr (x : punit) :
-  (@order_iso_sum_lex_punit α _).symm (to_lex $ sum.inr x) = ⊤ := rfl
+@[simp] lemma order_iso_sum_lex_punit_symm_inr (x : punit) :
+  (@order_iso_sum_lex_punit α _).symm (to_lex $ inr x) = ⊤ := rfl
 
-@[simp] theorem order_iso_sum_lex_punit_symm_inl (a : α) :
-  order_iso_sum_lex_punit.symm (to_lex $ sum.inl a) = a := rfl
+@[simp] lemma order_iso_sum_lex_punit_symm_inl (a : α) :
+  order_iso_sum_lex_punit.symm (to_lex $ inl a) = a := rfl
 
 end with_top

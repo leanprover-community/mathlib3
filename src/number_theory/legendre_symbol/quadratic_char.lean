@@ -142,11 +142,8 @@ quadratic_char_eq_zero_iff'
 /-- For nonzero `a : F`, `quadratic_char F a = 1 ↔ is_square a`. -/
 lemma quadratic_char_one_iff_is_square {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ↔ is_square a :=
-begin
-  simp only [quadratic_char_apply, quadratic_char_def, ha, (dec_trivial : (-1 : ℤ) ≠ 1),
-             if_false, ite_eq_left_iff],
-  exact not_not,
-end
+by simp only [quadratic_char_apply, quadratic_char_def, ha, (dec_trivial : (-1 : ℤ) ≠ 1),
+              if_false, ite_eq_left_iff, imp_false, not_not]
 
 /-- The quadratic character takes the value `1` on nonzero squares. -/
 lemma quadratic_char_sq_one' {a : F} (ha : a ≠ 0) : quadratic_char F (a ^ 2) = 1 :=

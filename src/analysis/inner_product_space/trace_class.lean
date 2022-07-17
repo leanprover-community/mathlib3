@@ -247,11 +247,17 @@ begin
   exact hT.2 (e i)
 end
 
+#check orthonormal.exists_hilbert_basis_extension
+
 lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
     re (trace_along U (conj_proj T V)) ≤
     re (trace_along V T) :=
 begin
+  let f : orthonormal_basis _ 𝕜 (U : submodule 𝕜 E) :=
+    orthonormal_basis.mk (std_orthonormal_basis_orthonormal 𝕜 (U : submodule 𝕜 E))
+    (basis.span_eq _),
+  --rcases orthonormal.exists_hilbert_basis_extension f.orthonormal,
   sorry -- This should be easy thanks to has_sum_trace_along_of_hilbert_basis
 end
 

@@ -503,6 +503,14 @@ let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
   hws,
   hilbert_basis.coe_of_orthogonal_eq_bot_mk _ _ ⟩
 
+def _root_.orthonormal.hilbert_extension_index {v : ι → E}
+  (hs : orthonormal 𝕜 v) : set E :=
+classical.some (hs.coe_range.exists_hilbert_basis_extension)
+
+def _root_.orthonormal.hilbert_extension {v : ι → E}
+  (hs : orthonormal 𝕜 v) : hilbert_basis (hs.hilbert_extension_index) 𝕜 E :=
+classical.some (classical.some_spec hs.coe_range.exists_hilbert_basis_extension)
+
 variables (𝕜 E)
 
 /-- A Hilbert space admits a Hilbert basis. -/

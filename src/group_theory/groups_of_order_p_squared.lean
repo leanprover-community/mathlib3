@@ -88,10 +88,8 @@ begin
   unfreezingI { lift ‹group G› to comm_group G using h2 },
   have h3 : subgroup.center G = ⊤, exact comm_group.center_eq_top,
   have h4 : card (G ⧸ subgroup.center G) = 1,
-  {
-    simp_rw [h3, ← nat.card_eq_fintype_card],
-    exact subgroup.index_top,
-  },
+  { simp_rw [h3, ← nat.card_eq_fintype_card],
+    exact subgroup.index_top, },
   rw h4 at h1,
   exact nat.not_prime_one h1,
 end
@@ -119,68 +117,47 @@ begin
     rcases h31 with ⟨x, hx, hxx⟩,
     have h32 : subgroup.center G = ⊥, rw [← subgroup.card_le_one_iff_eq_bot, hk2],
     have hxx' : x = 1,
-    {
-      rw subgroup.eq_bot_iff_forall at h32,
-      exact h32 x hx,
-    },
+    { rw subgroup.eq_bot_iff_forall at h32,
+      exact h32 x hx, },
     contradiction,
   },
   -- We look at the case |Z(G)| = p
   {
     exfalso,
     have h41 : p * (subgroup.center G).index = p^2,
-    {
-      simp at hk2,
+    { simp at hk2,
       simp_rw ← nat.card_eq_fintype_card at hk2,
       simp_rw ← nat.card_eq_fintype_card at hG,
       rw [← hG, ← hk2],
-      exact subgroup.card_mul_index (subgroup.center G),
-    },
+      exact subgroup.card_mul_index (subgroup.center G), },
     have h42 : (subgroup.center G).index = p,
-    {
-      have hcalc : p * (subgroup.center G).index = p * p,
-      {
-        simp_rw h41,
-        exact sq p,
-      },
+    { have hcalc : p * (subgroup.center G).index = p * p,
+      { simp_rw h41,
+        exact sq p, },
       simp at hcalc,
       have hcalc2 : ¬ (p = 0),
-      {
-        intro hcp,
+      { intro hcp,
         have hcp2 := _inst_1.out,
         rw hcp at hcp2,
         have hcp3 := nat.not_prime_zero,
-        contradiction,
-      },
+        contradiction, },
       cases hcalc with hcl hcr,
-      {
-        exact hcl,
-      },
-      {
-        exfalso,
-        contradiction,
-      },
-    },
+      { exact hcl, },
+      { exfalso,
+        contradiction, }, },
     have h43 : nat.prime (card (G ⧸ subgroup.center G)),
-    {
-      have hcalc : nat.card (G ⧸ subgroup.center G) = p, exact h42,
+    { have hcalc : nat.card (G ⧸ subgroup.center G) = p, exact h42,
       rw nat.card_eq_fintype_card at hcalc,
       rw hcalc,
-      exact _inst_1.out,
-    },
+      exact _inst_1.out, },
     have h44 : ¬ nat.prime (fintype.card (G ⧸ subgroup.center G)),
-    {
-      apply center_index_not_prime p G,
-      exact hG,
-    },
-    contradiction,
-  },
+    { apply center_index_not_prime p G,
+      exact hG, },
+    contradiction, },
   -- We look at the case |Z(G)| = p^2
-  {
-    apply subgroup.eq_top_of_card_eq,
+  { apply subgroup.eq_top_of_card_eq,
     rw hG,
-    exact hk2,
-  },
+    exact hk2, },
 end
 
 end G_has_order_psq

@@ -86,7 +86,7 @@ end
 
 /-- Summing the count of `x` over a list filtered by some `p` is just `countp` applied to `p` -/
 lemma sum_map_count_dedup_filter_eq_countp [decidable_eq α] (p : α → Prop) [decidable_pred p]
-  (l : list α) : ((l.dedup.filter p).map (λ x, l.count x)).sum = l.countp p :=
+  (l : list α) : ((l.dedup.filter p).map $ λ x, l.count x).sum = l.countp p :=
 begin
   induction l with a as h,
   { simp },
@@ -106,5 +106,13 @@ begin
         simp only [(λ h, hp (h ▸ (list.mem_filter.1 ha'.1).2) : a' ≠ a), if_false] at ha',
         exact ha'.2.symm } } },
 end
+
+lemma sum_map_count_dedup_eq_length [decidable_eq α] (l : list α) :
+  (l.dedup.map $ λ x, l.count x).sum = l.length :=
+calc (l.dedup.map $ λ x, l.count x).sum
+  = ((l.dedup.filter $ λ x, true).map (λ x, l.count x)).sum :
+    by { congr, exact symm (filter_true _) }
+  ... = l.countp (λ x, true) : sum_map_count_dedup_filter_eq_countp _ l
+  ... = l.length : (countp_eq_length _).2 (by simp)
 
 end list

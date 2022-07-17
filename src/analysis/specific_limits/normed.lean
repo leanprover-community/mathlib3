@@ -54,7 +54,7 @@ begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
   simp only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
-  exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+  exact (tendsto_pow_at_top hm.ne').comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
 /-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/

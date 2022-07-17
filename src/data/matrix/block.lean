@@ -125,6 +125,21 @@ begin
   simp only [conj_transpose, from_blocks_transpose, from_blocks_map]
 end
 
+@[simp] lemma from_blocks_minor_sum_swap_left
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → l ⊕ m) :
+  (from_blocks A B C D).minor sum.swap f = (from_blocks C D A B).minor id f :=
+by { ext i j, cases i; dsimp; cases f j; refl }
+
+@[simp] lemma from_blocks_minor_sum_swap_right
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (f : p → n ⊕ o) :
+  (from_blocks A B C D).minor f sum.swap = (from_blocks B A D C).minor f id :=
+by { ext i j, cases j; dsimp; cases f i; refl }
+
+lemma from_blocks_minor_sum_swap_sum_swap {l m n o α : Type*}
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).minor sum.swap sum.swap = from_blocks D C B A :=
+by simp
+
 /-- A 2x2 block matrix is block diagonal if the blocks outside of the diagonal vanish -/
 def is_two_block_diagonal [has_zero α] (A : matrix (n ⊕ o) (l ⊕ m) α) : Prop :=
 to_blocks₁₂ A = 0 ∧ to_blocks₂₁ A = 0

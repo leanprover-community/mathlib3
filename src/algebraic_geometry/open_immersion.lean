@@ -616,6 +616,16 @@ by unfreezingI { cases X, delta to_LocallyRingedSpace, simp }
 
 end to_LocallyRingedSpace
 
+lemma is_iso_of_subset {X Y : PresheafedSpace.{v} C} (f : X ⟶ Y)
+  [H : PresheafedSpace.is_open_immersion f] (U : opens Y.carrier)
+  (hU : (U : set Y.carrier) ⊆ set.range f.base) : is_iso (f.c.app $ op U) :=
+begin
+  have : U = H.base_open.is_open_map.functor.obj ((opens.map f.base).obj U),
+  { ext1,
+    exact (set.inter_eq_left_iff_subset.mpr hU).symm.trans set.image_preimage_eq_inter_range.symm },
+  convert PresheafedSpace.is_open_immersion.c_iso ((opens.map f.base).obj U),
+end
+
 end PresheafedSpace.is_open_immersion
 
 namespace SheafedSpace.is_open_immersion

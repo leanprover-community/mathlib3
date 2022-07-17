@@ -336,16 +336,6 @@ instance {X : Scheme} {U : opens X.carrier} (f : X.presheaf.obj (op U)) :
   algebra (X.presheaf.obj (op U)) (X.presheaf.obj (op $ X.basic_open f)) :=
 (X.presheaf.map (hom_of_le $ RingedSpace.basic_open_subset _ f : _ ⟶ U).op).to_algebra
 
-lemma PresheafedSpace.is_open_immersion.is_iso_of_subset {C : Type*} [category C]
-  {X Y : PresheafedSpace C} (f : X ⟶ Y) [H : PresheafedSpace.is_open_immersion f]
-  (U : opens Y.carrier) (hU : (U : set Y.carrier) ⊆ set.range f.base) : is_iso (f.c.app $ op U) :=
-begin
-  have : U = H.base_open.is_open_map.functor.obj ((opens.map f.base).obj U),
-  { ext1,
-    exact (set.inter_eq_left_iff_subset.mpr hU).symm.trans set.image_preimage_eq_inter_range.symm },
-  convert PresheafedSpace.is_open_immersion.c_iso ((opens.map f.base).obj U),
-end
-
 lemma is_affine_open.opens_map_from_Spec_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
   (opens.map hU.from_Spec.val.base).obj (X.basic_open f) =

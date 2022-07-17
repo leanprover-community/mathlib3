@@ -245,7 +245,7 @@ lemma nhds_basis_balanced : (𝓝 (0 : E)).has_basis
     ⟨balanced_core_mem_nhds_zero hs, balanced_core_balanced s⟩, balanced_core_subset s⟩)
   (λ s hs, ⟨s, hs.1, rfl.subset⟩)
 
-lemma nhds_basis_closed_balanced [regular_space E] : (𝓝 (0 : E)).has_basis
+lemma nhds_basis_closed_balanced [t3_space E] : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ is_closed s ∧ balanced 𝕜 s) id :=
 begin
   refine (closed_nhds_basis 0).to_has_basis (λ s hs, _) (λ s hs, ⟨s, ⟨hs.1, hs.2.1⟩, rfl.subset⟩),

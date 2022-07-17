@@ -236,6 +236,16 @@ lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M}
 s.topological_closure_minimal (h.trans t.submodule_topological_closure)
   t.is_closed_topological_closure
 
+/-- The topological closure of a closed submodule `s` is equal to `s`. -/
+lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
+  s.topological_closure = s :=
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+
+/-- A subspace is dense iff its topological closure is the entire space. -/
+lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
+  dense (s : set M) ↔ s.topological_closure = ⊤ :=
+by { rw [←set_like.coe_set_eq, dense_iff_closure_eq], simp }
+
 end closure
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
@@ -1982,11 +1992,11 @@ begin
   exact continuous_quot_mk.comp continuous_smul
 end
 
-instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
-  regular_space (M ⧸ S) :=
+instance t3_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
+  t3_space (M ⧸ S) :=
 begin
   letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
-  exact S.to_add_subgroup.regular_quotient_of_is_closed
+  exact S.to_add_subgroup.t3_quotient_of_is_closed
 end
 
 end submodule

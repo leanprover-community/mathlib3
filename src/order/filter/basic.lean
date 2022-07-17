@@ -852,8 +852,8 @@ empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
-⟨by simp only [inf_principal, inter_compl_self, principal_empty, le_refl],
-  by simp only [sup_principal, union_compl_self, principal_univ, le_refl]⟩
+is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $
+  by rw [sup_principal, union_compl_self, principal_univ]
 
 theorem mem_inf_principal' {f : filter α} {s t : set α} :
   s ∈ f ⊓ 𝓟 t ↔ tᶜ ∪ s ∈ f :=
@@ -1454,6 +1454,26 @@ lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} 
   0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
 eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
 
+lemma eventually_le.sup [semilattice_sup β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
+  f₁ ⊔ g₁ ≤ᶠ[l] f₂ ⊔ g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le_sup hfx hgx
+
+lemma eventually_le.sup_le [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : f ≤ᶠ[l] h) (hg : g ≤ᶠ[l] h) :
+  f ⊔ g ≤ᶠ[l] h :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le hfx hgx
+
+lemma eventually_le.le_sup_of_le_left [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : h ≤ᶠ[l] f) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hf] with x hfx using le_sup_of_le_left hfx
+
+lemma eventually_le.le_sup_of_le_right [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hg : h ≤ᶠ[l] g) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hg] with x hgx using le_sup_of_le_right hgx
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 
@@ -1682,6 +1702,22 @@ lemma comap_comm (G : filter δ) : comap φ (comap ψ G) = comap θ (comap ρ G)
 by rw [filter.comap_comap, H, ← filter.comap_comap]
 end comm
 
+lemma _root_.function.semiconj.filter_map {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) : function.semiconj (map f) (map ga) (map gb) :=
+map_comm h.comp_eq
+
+lemma _root_.commute.filter_map {f g : α → α} (h : function.commute f g) :
+  function.commute (map f) (map g) :=
+h.filter_map
+
+lemma _root_.function.semiconj.filter_comap {f : α → β} {ga : α → α} {gb : β → β}
+  (h : function.semiconj f ga gb) : function.semiconj (comap f) (comap gb) (comap ga) :=
+comap_comm h.comp_eq.symm
+
+lemma _root_.commute.filter_comap {f g : α → α} (h : function.commute f g) :
+  function.commute (comap f) (comap g) :=
+h.filter_comap
+
 @[simp] theorem comap_principal {t : set β} : comap m (𝓟 t) = 𝓟 (m ⁻¹' t) :=
 filter.ext $ λ s,
   ⟨λ ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, (preimage_mono hu).trans b,
@@ -1805,27 +1841,27 @@ lemma mem_comap_iff {f : filter β} {m : α → β} (inj : injective m)
   (large : set.range m ∈ f) {S : set α} : S ∈ comap m f ↔ m '' S ∈ f :=
 by rw [← image_mem_map_iff inj, map_comap_of_mem large]
 
-lemma le_of_map_le_map_inj' {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y)
-  (h : map m f ≤ map m g) : f ≤ g :=
-λ t ht, by filter_upwards [hsf, h $ image_mem_map (inter_mem hsg ht)]
-using λ _ has ⟨_, ⟨hbs, hb⟩, h⟩, hm _ hbs _ has h ▸ hb
+lemma map_le_map_iff_of_inj_on {l₁ l₂ : filter α} {f : α → β} {s : set α}
+  (h₁ : s ∈ l₁) (h₂ : s ∈ l₂) (hinj : inj_on f s) :
+  map f l₁ ≤ map f l₂ ↔ l₁ ≤ l₂ :=
+⟨λ h t ht, mp_mem h₁ $ mem_of_superset (h $ image_mem_map (inter_mem h₂ ht)) $
+  λ y ⟨x, ⟨hxs, hxt⟩, hxy⟩ hys, hinj hxs hys hxy ▸ hxt, λ h, map_mono h⟩
 
-lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y) :
-  map m f ≤ map m g ↔ f ≤ g :=
-iff.intro (le_of_map_le_map_inj' hsf hsg hm) (λ h, map_mono h)
+lemma map_le_map_iff {f g : filter α} {m : α → β} (hm : injective m) : map m f ≤ map m g ↔ f ≤ g :=
+by rw [map_le_iff_le_comap, comap_map hm]
 
-lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : inj_on m s)
-  (h : map m f = map m g) : f = g :=
-le_antisymm
-  (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
-  (le_of_map_le_map_inj' hsg hsf hm $ le_of_eq h.symm)
+lemma map_eq_map_iff_of_inj_on {f g : filter α} {m : α → β} {s : set α}
+  (hsf : s ∈ f) (hsg : s ∈ g) (hm : inj_on m s) :
+  map m f = map m g ↔ f = g :=
+by simp only [le_antisymm_iff, map_le_map_iff_of_inj_on hsf hsg hm,
+  map_le_map_iff_of_inj_on hsg hsf hm]
 
-lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) (h : map m f = map m g) :
-  f = g :=
-eq_of_map_eq_map_inj' univ_mem univ_mem (hm.inj_on _) h
+lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) :
+  map m f = map m g ↔ f = g :=
+map_eq_map_iff_of_inj_on univ_mem univ_mem (hm.inj_on _)
+
+lemma map_injective {m : α → β} (hm : injective m) : injective (map m) :=
+λ f g, (map_inj hm).1
 
 lemma comap_ne_bot_iff {f : filter β} {m : α → β} : ne_bot (comap m f) ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
 begin
@@ -1865,7 +1901,7 @@ comap_fst_ne_bot_iff.2 ⟨‹_›, ‹_›⟩
 begin
   casesI is_empty_or_nonempty α with hα hα,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not];
-      [simpa using hα.elim, apply_instance] },
+      [simp, apply_instance] },
   { simp [comap_ne_bot_iff_frequently, hα] }
 end
 
@@ -1878,7 +1914,7 @@ lemma comap_eval_ne_bot_iff' {ι : Type*} {α : ι → Type*} {i : ι} {f : filt
 begin
   casesI is_empty_or_nonempty (Π j, α j) with H H,
   { rw [filter_eq_bot_of_is_empty (f.comap _), ← not_iff_not]; [skip, assumption],
-    simpa [← classical.nonempty_pi] using H.elim },
+    simp [← classical.nonempty_pi] },
   { haveI : ∀ j, nonempty (α j), from classical.nonempty_pi.1 H,
     simp [comap_ne_bot_iff_frequently, *] }
 end

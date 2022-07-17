@@ -159,7 +159,7 @@ by simp only [mem_of_fn, set.forall_range_iff]
   of_fn (λ i : fin n, c) = repeat c n :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
-/- Lists are equivalent to the sigma type of tuples of a given length. -/
+/-- Lists are equivalent to the sigma type of tuples of a given length. -/
 @[simps]
 def equiv_sigma_tuple : list α ≃ Σ n, fin n → α :=
 { to_fun := λ l, ⟨l.length, λ i, l.nth_le ↑i i.2⟩,

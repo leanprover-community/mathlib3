@@ -354,6 +354,8 @@ calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_ba
   by { classical, rw orthonormal_basis.coe_to_basis }
 ... = (v : ι → E) : by simp
 
+variable {v : ι → E}
+
 /-- A finite orthonormal set that spans is an orthonormal basis -/
 protected def mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set.range v) = ⊤):
   orthonormal_basis ι 𝕜 E :=

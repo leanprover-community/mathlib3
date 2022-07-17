@@ -129,8 +129,9 @@ variables {s : set X} (f : partition_of_unity ι X s)
 
 instance : has_coe_to_fun (partition_of_unity ι X s) (λ _, ι → C(X, ℝ)) := ⟨to_fun⟩
 
-protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
-f.locally_finite'
+protected lemma locally_finite : locally_finite (λ i, support (f i)) := f.locally_finite'
+
+lemma locally_finite_tsupport : locally_finite (λ i, tsupport (f i)) := f.locally_finite.closure
 
 lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 
@@ -164,11 +165,11 @@ variables {s : set X} (f : bump_covering ι X s)
 
 instance : has_coe_to_fun (bump_covering ι X s) (λ _, ι → C(X, ℝ)) := ⟨to_fun⟩
 
-protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
-f.locally_finite'
+protected lemma locally_finite : locally_finite (λ i, support (f i)) := f.locally_finite'
 
-protected lemma point_finite (x : X) : {i | f i x ≠ 0}.finite :=
-f.locally_finite.point_finite x
+lemma locally_finite_tsupport : locally_finite (λ i, tsupport (f i)) := f.locally_finite.closure
+
+protected lemma point_finite (x : X) : {i | f i x ≠ 0}.finite := f.locally_finite.point_finite x
 
 lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 

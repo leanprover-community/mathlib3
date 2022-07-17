@@ -291,7 +291,8 @@ noncomputable def is_positive.trace_along_ennreal [complete_space E] (U : submod
   [finite_dimensional 𝕜 U] {T : E →L[𝕜] E} (hT : T.is_positive) : ℝ≥0∞ :=
 hT.trace_along_nnreal U
 
-lemma is_positive.trace_along_ennreal_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
+lemma is_positive.trace_along_ennreal_conj_proj_le [complete_space E] {T : E →L[𝕜] E}
+  (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
     (hT.conj_proj V).trace_along_ennreal U ≤
     hT.trace_along_ennreal V :=

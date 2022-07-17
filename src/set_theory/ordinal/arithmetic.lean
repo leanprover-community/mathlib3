@@ -593,7 +593,7 @@ theorem mul_def {α β : Type u} (r : α → α → Prop) (s : β → β → Pro
 theorem mul_def_lt {α β : Type u} [has_lt α] [has_lt β]
   [is_well_order α (<)] [is_well_order β (<)] :
   @type (β ×ₗ α) (<) _ = @type α (<) _ * @type β (<) _ :=
-mul_def _ _
+rfl
 
 @[simp] theorem type_prod_lex {α : Type u} {β : Type v} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] :

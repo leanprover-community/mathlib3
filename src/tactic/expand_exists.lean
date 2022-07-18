@@ -30,14 +30,16 @@ namespace tactic
 
 open expr
 
-private meta structure parse_ctx :=
+namespace expand_exists
+
+meta structure parse_ctx :=
 (original_decl : declaration)
 -- is theorem, name, type, value
 (decl : bool → name → expr → pexpr → tactic unit)
 (names : list name)
 (pis_depth : ℕ := 0)
 
-private meta structure parse_ctx_exists extends parse_ctx :=
+meta structure parse_ctx_exists extends parse_ctx :=
 -- Applies pi arguments to a term (eg `id` -> `id #2 #1 #0`).
 (with_args : expr → expr)
 -- Takes the form of `classical.some_spec^n (it_exists ...)`, with `n` the depth of `∃` parsed.
@@ -45,16 +47,16 @@ private meta structure parse_ctx_exists extends parse_ctx :=
 -- List of declarations containing the value(s) of witnesses.
 (exists_decls : list name := [])
 
-private meta structure parse_ctx_props extends parse_ctx_exists :=
+meta structure parse_ctx_props extends parse_ctx_exists :=
 -- Projects a proof of the full proposition (eg `A ∧ B ∧ C`) to a specific proof (eg `B`).
 (project_proof : pexpr → pexpr := id)
 
 -- Converts `#0` in `∃ n, #0 = #0` to `n_value = n_value`.
-private meta def instantiate_exists_decls (ctx : parse_ctx_exists) (p : expr) : expr :=
+meta def instantiate_exists_decls (ctx : parse_ctx_exists) (p : expr) : expr :=
 p.instantiate_vars $ ctx.exists_decls.reverse.map (λname,
   ctx.with_args (const name ctx.original_decl.univ_levels))
 
-private meta def parse_one_prop (ctx : parse_ctx_props) (p : expr) : tactic unit :=
+meta def parse_one_prop (ctx : parse_ctx_props) (p : expr) : tactic unit :=
 do
   let p : expr := instantiate_exists_decls { ..ctx } p,
   let val : pexpr := ctx.project_proof ctx.spec_chain,
@@ -65,7 +67,7 @@ do
   end,
   ctx.decl true n p val
 
-private meta def parse_props : parse_ctx_props → expr → tactic unit
+meta def parse_props : parse_ctx_props → expr → tactic unit
 | ctx (app (app (const "and" []) p) q) := do
   match ctx.names with
   | [n] := parse_one_prop ctx (app (app (const `and []) p) q)
@@ -80,7 +82,7 @@ private meta def parse_props : parse_ctx_props → expr → tactic unit
   end
 | ctx p := parse_one_prop ctx p
 
-private meta def parse_exists : parse_ctx_exists → expr → tactic unit
+meta def parse_exists : parse_ctx_exists → expr → tactic unit
 | ctx (app (app (const "Exists" [lvl]) type) (lam var_name bi var_type body)) := do
   /- TODO: Is this needed, and/or does this create issues? -/
   (if type = var_type then tactic.skip else tactic.fail "exists types should be equal"),
@@ -102,7 +104,7 @@ private meta def parse_exists : parse_ctx_exists → expr → tactic unit
   parse_exists ctx body
 | ctx e := parse_props { ..ctx } e
 
-private meta def parse_pis : parse_ctx → expr → tactic unit
+meta def parse_pis : parse_ctx → expr → tactic unit
 | ctx (pi n bi ty body) :=
   -- When making a declaration, wrap in an equivalent pi expression.
   let decl := (λ is_theorem name type val,
@@ -116,6 +118,8 @@ private meta def parse_pis : parse_ctx → expr → tactic unit
       with_args $ const ctx.original_decl.to_name ctx.original_decl.univ_levels),
     ..ctx } (app (app (const "Exists" [lvl]) type) p)
 | ctx e := fail ("unexpected expression " ++ to_string e)
+
+end expand_exists
 
 /--
 From a proof that (a) value(s) exist(s) with certain properties, constructs (an) instance(s)
@@ -164,7 +168,7 @@ meta def expand_exists_attr : user_attribute unit (list name) :=
   after_set := some (λ decl prio persistent, do
     d <- get_decl decl,
     names <- expand_exists_attr.get_param decl,
-    parse_pis
+    expand_exists.parse_pis
     { original_decl := d,
       decl := λ is_t n ty val, (tactic.to_expr val >>= λ val,
         tactic.add_decl (if is_t then declaration.thm n d.univ_params ty (pure val)

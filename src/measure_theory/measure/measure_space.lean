@@ -2601,6 +2601,30 @@ begin
   exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
 end
 
+lemma forall_measure_inter_spanning_sets_eq_zero
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
+begin
+  split,
+  { intros h,
+    rw (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
+        by rw [← inter_Union, Union_spanning_sets, inter_univ]),
+    exact measure_Union_null_iff.mpr h, },
+  { intros s_null n,
+    exact le_antisymm (le_trans (measure_mono (inter_subset_left _ _)) s_null.le) (zero_le _), },
+end
+
+lemma exists_measure_inter_spanning_sets_pos
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∃ n, μ (s ∩ (spanning_sets μ n)) > 0) ↔ μ s > 0 :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists, not_lt, nonpos_iff_eq_zero],
+  exact forall_measure_inter_spanning_sets_eq_zero s,
+end
+
+/-- If the union of disjoint measurable sets has finite measure, then there are only
+finitely many members of the union whose measure exceeds any given positive number. -/
 lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] {μ : measure α}
   {ε : ℝ≥0∞} (ε_pos : 0 < ε) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
   (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
@@ -2630,6 +2654,8 @@ begin
   exact lt_irrefl _  shouldnot,
 end
 
+/-- If the union of disjoint measurable sets has finite measure, then there are only
+countably many members of the union whose measure is positive. -/
 lemma countable_meas_pos_of_disjoint_Union' {ι : Type*} [measurable_space α]
   {μ : measure α} {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
   (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
@@ -2653,32 +2679,8 @@ begin
   exact countable_Union countable_pieces,
 end
 
-
-
-
-
-lemma forall_measure_inter_spanning_sets_eq_zero
-  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
-  (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
-begin
-  split,
-  { intros h,
-    rw (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
-        by rw [← inter_Union, Union_spanning_sets, inter_univ]),
-    exact measure_Union_null_iff.mpr h, },
-  { intros s_null n,
-    exact le_antisymm (le_trans (measure_mono (inter_subset_left _ _)) s_null.le) (zero_le _), },
-end
-
-lemma exists_measure_inter_spanning_sets_pos
-  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
-  (∃ n, μ (s ∩ (spanning_sets μ n)) > 0) ↔ μ s > 0 :=
-begin
-  rw ← not_iff_not,
-  simp only [not_exists, not_lt, nonpos_iff_eq_zero],
-  exact forall_measure_inter_spanning_sets_eq_zero s,
-end
-
+/-- In a σ-finite space, among disjoint measurable sets, only countably many can have positive
+measure. -/
 lemma countable_meas_pos_of_disjoint_Union
   {ι : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
   {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
@@ -2705,10 +2707,6 @@ begin
   { refine lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n),
     exact Union_subset (λ i, inter_subset_right _ _), },
 end
-
-
-
-
 
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.

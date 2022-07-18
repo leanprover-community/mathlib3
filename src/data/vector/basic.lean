@@ -51,7 +51,7 @@ instance zero_subsingleton : subsingleton (vector α 0) :=
 lemma eq_cons_iff (a : α) (v : vector α n.succ) (v' : vector α n) :
   v = a ::ᵥ v' ↔ v.head = a ∧ v.tail = v' :=
 ⟨λ h, h.symm ▸ ⟨head_cons a v', tail_cons a v'⟩,
-  λ h, trans (cons_head_tail v).symm (by rw [h.1, h.2])⟩
+ λ h, trans (cons_head_tail v).symm (by rw [h.1, h.2])⟩
 
 lemma ne_cons_iff (a : α) (v : vector α n.succ) (v' : vector α n) :
   v ≠ a ::ᵥ v' ↔ v.head ≠ a ∨ v.tail ≠ v' :=

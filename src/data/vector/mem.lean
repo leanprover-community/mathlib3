@@ -18,7 +18,7 @@ namespace vector
 variables {α β : Type*} {n : ℕ} (a a' : α)
 
 @[simp] lemma nth_mem (i : fin n) (v : vector α n) : v.nth i ∈ v.to_list :=
-by { rw [nth_eq_nth_le],  exact list.nth_le_mem _ _ _ }
+by { rw nth_eq_nth_le,  exact list.nth_le_mem _ _ _ }
 
 lemma mem_iff_nth (v : vector α n) : a ∈ v.to_list ↔ ∃ i, v.nth i = a :=
 by simp only [list.mem_iff_nth_le, fin.exists_iff, vector.nth_eq_nth_le];

@@ -39,7 +39,7 @@ using_well_founded {dec_tac := `[assumption]}
   (H0 : C 0) (H : ∀ o, 0 < o → C (o % b ^ log b o) → C o) : @CNF_rec C b H0 H 0 = H0 :=
 by { rw [CNF_rec, dif_pos rfl], refl }
 
-theorem CNF_rec_ne_zero (b : ordinal) {o : ordinal} {C : ordinal → Sort*} (ho : 0 < o)
+theorem CNF_pos (b : ordinal) {o : ordinal} {C : ordinal → Sort*} (ho : 0 < o)
   (H0 : C 0) (H : ∀ o, 0 < o → C (o % b ^ log b o) → C o) :
   @CNF_rec C b H0 H o = H o ho (@CNF_rec C b H0 H _) :=
 by rw [CNF_rec, dif_neg ho.ne']
@@ -56,13 +56,13 @@ CNF_rec b [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 @[simp] theorem CNF_zero (b : ordinal) : CNF b 0 = [] := CNF_rec_zero b _ _
 
 /-- Recursive definition for the Cantor normal form. -/
-theorem CNF_ne_zero {b o : ordinal} (o0 : 0 < o) :
+theorem CNF_pos {b o : ordinal} (o0 : 0 < o) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
-CNF_rec_ne_zero b o0 _ _
+CNF_pos b o0 _ _
 
-theorem zero_CNF {o : ordinal} (ho : 0 < o) : CNF 0 o = [⟨0, o⟩] := by simp [CNF_ne_zero ho]
+theorem zero_CNF {o : ordinal} (ho : 0 < o) : CNF 0 o = [⟨0, o⟩] := by simp [CNF_pos ho]
 
-theorem one_CNF {o : ordinal} (ho : 0 < o) : CNF 1 o = [⟨0, o⟩] := by simp [CNF_ne_zero ho]
+theorem one_CNF {o : ordinal} (ho : 0 < o) : CNF 1 o = [⟨0, o⟩] := by simp [CNF_pos ho]
 
 theorem CNF_of_le_one {b o : ordinal} (hb : b ≤ 1) (ho : 0 < o) : CNF b o = [⟨0, o⟩] :=
 begin
@@ -72,12 +72,12 @@ begin
 end
 
 theorem CNF_of_lt {b o : ordinal} (ho : 0 < o) (hb : o < b) : CNF b o = [⟨0, o⟩] :=
-by simp [CNF_ne_zero ho, log_eq_zero hb]
+by simp [CNF_pos ho, log_eq_zero hb]
 
 /-- Evaluating the Cantor normal form of an ordinal returns the ordinal. -/
 theorem CNF_foldr (b o : ordinal) : (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
 CNF_rec b (by { rw CNF_zero, refl })
-  (λ o o0 IH, by rw [CNF_ne_zero o0, list.foldr_cons, IH, div_add_mod]) o
+  (λ o o0 IH, by rw [CNF_pos o0, list.foldr_cons, IH, div_add_mod]) o
 
 /-- Every exponent in the Cantor normal form `CNF b o` is less or equal to `log b o`. -/
 theorem CNF_fst_le_log {b o : ordinal.{u}} {x : ordinal × ordinal} :
@@ -86,7 +86,7 @@ begin
   refine CNF_rec b _ (λ o ho H, _) o,
   { rw CNF_zero,
     exact false.elim },
-  { rw [CNF_ne_zero ho, list.mem_cons_iff],
+  { rw [CNF_pos ho, list.mem_cons_iff],
     rintro (rfl | h),
     { exact le_rfl },
     { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ho).le) } }
@@ -105,7 +105,7 @@ begin
     { rw [zero_CNF ho, list.mem_singleton],
       rintro rfl,
       exact ho },
-    { rw CNF_ne_zero ho,
+    { rw CNF_pos ho,
       rintro (rfl | h),
       { simp,
         rw div_pos,
@@ -120,7 +120,7 @@ theorem CNF_snd_lt {b o : ordinal.{u}} (hb : 1 < b) {x : ordinal × ordinal} :
 begin
   refine CNF_rec b _ (λ o ho IH, _) o,
   { simp },
-  { rw CNF_ne_zero ho,
+  { rw CNF_pos ho,
     rintro (rfl | h),
     { simpa using div_opow_log_lt o hb },
     { exact IH h } }
@@ -135,7 +135,7 @@ begin
     { simp [CNF_of_le_one hb ho] },
     { cases lt_or_le o b with hob hbo,
       { simp [CNF_of_lt ho hob] },
-      { rw [CNF_ne_zero ho, list.map_cons, list.sorted_cons],
+      { rw [CNF_pos ho, list.map_cons, list.sorted_cons],
         refine ⟨λ a H, _, IH⟩,
         rw list.mem_map at H,
         rcases H with ⟨⟨a, a'⟩, H, rfl⟩,

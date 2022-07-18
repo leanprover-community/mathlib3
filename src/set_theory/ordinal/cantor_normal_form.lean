@@ -40,7 +40,7 @@ using_well_founded {dec_tac := `[assumption]}
 @[simp] theorem CNF_rec_zero {b} (b0) {C H0 H} : @CNF_rec b b0 C H0 H 0 = H0 :=
 by rw [CNF_rec, dif_pos rfl]; refl
 
-@[simp] theorem CNF_rec_ne_zero {b} (b0) {C H0 H o} (o0) :
+@[simp] theorem CNF_rec_pos {b} (b0) {C H0 H o} (o0) :
   @CNF_rec b b0 C H0 H o = H o o0 (@CNF_rec b b0 C H0 H _) :=
 by rw [CNF_rec, dif_neg o0.ne']
 
@@ -61,19 +61,19 @@ dif_pos rfl
 if b0 : b = 0 then dif_pos b0 else (dif_neg b0).trans $ CNF_rec_zero _
 
 /-- Recursive definition for the Cantor normal form. -/
-theorem CNF_ne_zero {b o : ordinal} (b0 : b ≠ 0) (o0 : 0 < o) :
+theorem CNF_pos {b o : ordinal} (b0 : b ≠ 0) (o0 : 0 < o) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
-by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
+by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_pos b0 o0]
 
 @[simp] theorem one_CNF {o : ordinal} (o0 : 0 < o) : CNF 1 o = [(0, o)] :=
-by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_of_not_one_lt_left (irrefl _), opow_zero, mod_one,
+by rw [CNF_pos ordinal.one_ne_zero o0, log_of_not_one_lt_left (irrefl _), opow_zero, mod_one,
        CNF_zero, div_one]
 
 /-- Evaluating the Cantor normal form of an ordinal returns the ordinal. -/
 theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
   (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
 CNF_rec b0 (by rw CNF_zero; refl)
-  (λ o o0 IH, by rw [CNF_ne_zero b0 o0, list.foldr_cons, IH, div_add_mod]) o
+  (λ o o0 IH, by rw [CNF_pos b0 o0, list.foldr_cons, IH, div_add_mod]) o
 
 /-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_pairwise` and
 `ordinal.CNF_fst_le_log`. -/
@@ -86,7 +86,7 @@ begin
   { refine CNF_rec b0 _ _ o,
     { simp only [CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     intros o o0 IH, cases IH with IH₁ IH₂,
-    simp only [CNF_ne_zero b0 o0, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
+    simp only [CNF_pos b0 o0, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
     refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
     { exact (IH₁ p m).trans (log_mono_right _ $ le_of_lt $ mod_opow_log_lt_self b o0) },
     { refine (IH₁ p m).trans_lt ((lt_opow_iff_log_lt b1 _).1 _),
@@ -121,7 +121,7 @@ private theorem CNF_snd_lt_aux {b o : ordinal.{u}} (b1 : 1 < b) :
 begin
   have b0 := (zero_lt_one.trans b1).ne',
   refine CNF_rec b0 (λ _, by { rw CNF_zero, exact false.elim }) (λ o o0 IH, _) o,
-  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
+  simp only [CNF_pos b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
   nth_rewrite 1 ←@succ_le_iff,
   rw [div_lt (opow_ne_zero _ b0), ←opow_succ, le_div (opow_ne_zero _ b0), succ_zero, mul_one],
   exact ⟨lt_opow_succ_log_self b1 _, opow_log_le_self _ o0⟩

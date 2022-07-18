@@ -16,7 +16,7 @@ import category_theory.preadditive.generator
   that Grothendieck categories have an injective coseparator.
 
 ## References
-* [Peter J Freyd, *Abelian Categoriess* (Theorem 3.37)][freyd1964abelian]
+* [Peter J Freyd, *Abelian Categories* (Theorem 3.37)][freyd1964abelian]
 
 -/
 

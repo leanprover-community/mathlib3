@@ -105,7 +105,7 @@ begin
   rcases a with ⟨a, a_le, e1⟩,
   rcases b with ⟨b, b_le, e2⟩,
   congr,
-  exact linear_pmap.ext domain_eq to_fun_eq,
+  exact linear_pmap.ext domain_eq (λ x y h, by { simp only [to_fun_eq x, h], congr, ext, refl }),
 end
 
 lemma extension_of.ext_iff {a b : extension_of i f} :
@@ -128,8 +128,8 @@ instance : has_inf (extension_of i f) :=
 
 instance : semilattice_inf (extension_of i f) :=
 function.injective.semilattice_inf extension_of.to_linear_pmap
-  (λ X Y h, extension_of.ext (by rw h) $ λ x, (linear_pmap.ext_iff.mp h).some_spec _) $ λ X Y,
-    linear_pmap.ext rfl $ λ x, rfl
+  (λ X Y h, extension_of.ext (by rw h) $ λ x, (linear_pmap.ext_iff.mp h).some_spec rfl) $ λ X Y,
+    linear_pmap.ext rfl $ λ x y h, by { congr, exact_mod_cast h, }
 
 variables {R i f}
 

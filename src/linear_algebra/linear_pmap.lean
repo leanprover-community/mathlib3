@@ -62,24 +62,11 @@ end
 
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
-@[ext] lemma ext {f g : linear_pmap R E F} (domain_eq : f.domain = g.domain)
-  (to_fun_eq : ∀ x, f.to_fun x = g.to_fun ⟨x, domain_eq ▸ x.2⟩) :
-  f = g :=
-begin
-  rcases f with ⟨df, f⟩,
-  rcases g with ⟨dg, g⟩,
-  dsimp at domain_eq,
-  subst domain_eq,
-  congr,
-  ext,
-  convert to_fun_eq x,
-  ext,
-  refl,
-end
-
 lemma ext_iff {f g : linear_pmap R E F} :
-  f = g ↔ ∃ (domain_eq : f.domain = g.domain), ∀ x, f.to_fun x = g.to_fun ⟨x, domain_eq ▸ x.2⟩ :=
-⟨λ EQ, EQ ▸ ⟨rfl, λ _, by congr; ext; refl⟩, λ ⟨deq, feq⟩, ext deq feq⟩
+  f = g ↔
+  ∃ (domain_eq : f.domain = g.domain),
+    ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y :=
+⟨λ EQ, EQ ▸ ⟨rfl, λ x y h, by { congr, exact_mod_cast h }⟩, λ ⟨deq, feq⟩, ext deq feq⟩
 
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y

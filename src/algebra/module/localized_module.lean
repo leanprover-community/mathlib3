@@ -165,7 +165,7 @@ induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, add_zero, mk_e
   exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
 instance has_nat_smul : has_smul ℕ (localized_module S M) :=
-{ smul := λ n, nat.rec_on n (λ x, 0) (λ m f x, x + f x) }
+{ smul := λ n, nsmul_rec n }
 
 lemma nsmul_zero' (x : localized_module S M) : (0 : ℕ) • x = 0 :=
 localized_module.induction_on (λ _ _, rfl) x

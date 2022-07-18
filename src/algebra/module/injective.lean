@@ -99,19 +99,19 @@ variables {i f}
 
 @[ext] lemma extension_of.ext {a b : extension_of i f}
   (domain_eq : a.domain = b.domain)
-  (to_fun_eq : ∀ x, a.to_linear_pmap x = b.to_linear_pmap ⟨x, domain_eq ▸ x.2⟩) :
-  a = b :=
+  (to_fun_eq : ∀ ⦃x : a.domain⦄ ⦃y : b.domain⦄,
+    (x : N) = y → a.to_linear_pmap x = b.to_linear_pmap y) : a = b :=
 begin
   rcases a with ⟨a, a_le, e1⟩,
   rcases b with ⟨b, b_le, e2⟩,
   congr,
-  exact linear_pmap.ext domain_eq (λ x y h, by { simp only [to_fun_eq x, h], congr, ext, refl }),
+  exact linear_pmap.ext domain_eq to_fun_eq,
 end
 
 lemma extension_of.ext_iff {a b : extension_of i f} :
   a = b ↔ ∃ (domain_eq : a.domain = b.domain),
-    ∀ x, a.to_linear_pmap x = b.to_linear_pmap ⟨x, domain_eq ▸ x.2⟩ :=
-⟨λ r, r ▸ ⟨rfl, λ x, congr_arg a.to_fun $ subtype.ext_val rfl⟩,
+    ∀ ⦃x : a.domain⦄ ⦃y : b.domain⦄, (x : N) = y → a.to_linear_pmap x = b.to_linear_pmap y :=
+⟨λ r, r ▸ ⟨rfl, λ x y h, congr_arg a.to_fun $ by exact_mod_cast h⟩,
  λ ⟨h1, h2⟩, extension_of.ext h1 h2⟩
 
 end ext
@@ -128,8 +128,8 @@ instance : has_inf (extension_of i f) :=
 
 instance : semilattice_inf (extension_of i f) :=
 function.injective.semilattice_inf extension_of.to_linear_pmap
-  (λ X Y h, extension_of.ext (by rw h) $ λ x, (linear_pmap.ext_iff.mp h).some_spec rfl) $ λ X Y,
-    linear_pmap.ext rfl $ λ x y h, by { congr, exact_mod_cast h, }
+  (λ X Y h, extension_of.ext (by rw h) $ λ x y h', by { induction h, congr, exact_mod_cast h' }) $
+    λ X Y, linear_pmap.ext rfl $ λ x y h, by { congr, exact_mod_cast h }
 
 variables {R i f}
 

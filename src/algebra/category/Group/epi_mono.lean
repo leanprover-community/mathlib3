@@ -233,8 +233,7 @@ lemma g_apply_from_coset (x : B) (y : X) :
     use x * y.2.some,
   end⟩ := rfl
 
-lemma g_apply_infinity (x : B) :
-  (g x) ∞ = ∞ := rfl
+lemma g_apply_infinity (x : B) : (g x) ∞ = ∞ := rfl
 
 lemma h_apply_infinity (x : B) (hx : x ∈ f.range) :
   (h x) ∞ = ∞ :=

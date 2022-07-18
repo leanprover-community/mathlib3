@@ -13,16 +13,15 @@ In this file, we prove monomorphisms in category of group are injective homomorp
 epimorphisms are surjective homomorphisms.
 -/
 
+noncomputable theory
 
-universes u
+universes u v
 
 namespace monoid_hom
 
 open quotient_group
 
-variables {A B : Type u}
-
-section
+variables {A : Type u} {B : Type v}
 
 variables [group A] [group B]
 
@@ -37,30 +36,6 @@ begin
     rw [←subtype.val_eq_coe, f.mem_ker.mp x.2],
   end,
   rw [←subgroup.subtype_range f.ker, ←h, range_one],
-end
-
-end
-
-section
-
-variables [comm_group A] [comm_group B]
-
-@[to_additive add_monoid_hom.range_eq_top_of_cancel]
-lemma range_eq_top_of_cancel {f : A →* B}
-  (h : ∀ (u v : B →* B ⧸ f.range), u.comp f = v.comp f → u = v) :
-  f.range = ⊤ :=
-begin
-  specialize h 1 (quotient_group.mk' _) begin
-    ext1,
-    simp only [one_apply, coe_comp, coe_mk', function.comp_app],
-    rw [show (1 : B ⧸ f.range) = (1 : B), from quotient_group.coe_one _, quotient_group.eq, inv_one,
-      one_mul],
-    exact ⟨x, rfl⟩,
-  end,
-  replace h : (quotient_group.mk' _).ker = (1 : B →* B ⧸ f.range).ker := by rw h,
-  rwa [ker_one, quotient_group.ker_mk] at h,
-end
-
 end
 
 end monoid_hom
@@ -95,7 +70,7 @@ namespace surjective_of_epi_auxs
 local notation `X` := set.range (function.swap left_coset f.range.carrier)
 
 /--
-Define `X'` to be the set of all right cosets with an extra point at "infinity".
+Define `X'` to be the set of all left cosets with an extra point at "infinity".
 -/
 @[nolint has_inhabited_instance]
 inductive X_with_infinity
@@ -163,12 +138,12 @@ begin
 end
 
 
-noncomputable instance : decidable_eq X' := classical.dec_eq _
+instance : decidable_eq X' := classical.dec_eq _
 
 /--
 Let `τ` be the permutation on `X'` exchanging `f.range` and the point at infinity.
 -/
-noncomputable def tau : SX' := equiv.swap
+def tau : SX' := equiv.swap
 (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
 
 local notation `τ` := tau f
@@ -211,7 +186,7 @@ local notation `g` := G f
 /--
 Define `h : B ⟶ S(X')` to be `τ g τ⁻¹`
 -/
-noncomputable def H : B →* SX':=
+def H : B →* SX':=
 { to_fun := λ β, ((τ).symm.trans (g β)).trans τ,
   map_one' := by ext; simp,
   map_mul' := λ b1 b2, by ext; simp }

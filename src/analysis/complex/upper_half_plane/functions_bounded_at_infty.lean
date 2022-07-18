@@ -53,9 +53,7 @@ number `A` such that for all `z ∈ ℍ` with `im z ≥ A` we have `abs(f (z)) �
 def is_zero_at_infty (f : ℍ → ℂ) : Prop := filter.tendsto f at_I_infty (𝓝 0)
 
 lemma zero_form_is_bounded_at_infty : is_bound_at_infty 0 :=
-begin
-  apply zero_is_bounded_at_filter,
-end
+zero_is_bounded_at_filter _
 
 /--Module of functions that are zero at infinity.-/
 def zero_at_infty_submodule : submodule ℂ (ℍ → ℂ) := zero_at_filter_submodule at_I_infty

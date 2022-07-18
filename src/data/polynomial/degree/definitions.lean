@@ -832,7 +832,7 @@ by rw [ne.def, ← degree_eq_bot];
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
 by simp [degree_eq_bot, ← not_lt]
 
-lemma coe_le_degree_of_ne_zero (n : ℕ) (h : ↑n ≤ p.degree) : p ≠ 0 :=
+lemma ne_zero_of_coe_le_degree (n : ℕ) (h : ↑n ≤ p.degree) : p ≠ 0 :=
 degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans h
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=

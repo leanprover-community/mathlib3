@@ -38,13 +38,13 @@ namespace ulift
 
 @[to_additive]
 instance has_smul [has_smul α β] : has_smul α (ulift β) := ⟨λ n x, up (n • x.down)⟩
-@[simp, to_additive] lemma smul_down [has_smul α β] (a : α) (b : ulift.{v} β) :
-  (a • b).down = a • b.down := rfl
+@[simp, to_additive]
+lemma smul_down [has_smul α β] (a : α) (b : ulift.{v} β) : (a • b).down = a • b.down := rfl
 
 @[to_additive has_smul, to_additive_reorder 1]
 instance has_pow [has_pow α β] : has_pow (ulift α) β := ⟨λ x n, up (x.down ^ n)⟩
-@[simp, to_additive, to_additive_reorder 1] lemma pow_down [has_pow α β] (a : ulift.{v} α) (b : β) :
-  (a ^ b).down = a.down ^ b := rfl
+@[simp, to_additive smul_down, to_additive_reorder 1]
+lemma pow_down [has_pow α β] (a : ulift.{v} α) (b : β) : (a ^ b).down = a.down ^ b := rfl
 
 /--
 The multiplicative equivalence between `ulift α` and `α`.

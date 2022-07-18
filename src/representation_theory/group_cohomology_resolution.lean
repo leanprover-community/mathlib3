@@ -179,8 +179,8 @@ variables (k G n)
 /-- An isomorphism of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on
 which `G` acts by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
 `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
-def equiv_tensor : (Rep.of_mul_action k G (fin (n + 1) → G))
-  ≅ Rep.of ((representation.of_mul_action k G G).tprod (1 : representation k G ((fin n → G) →₀ k))) :=
+def equiv_tensor : (Rep.of_mul_action k G (fin (n + 1) → G)) ≅ Rep.of
+  ((representation.of_mul_action k G G).tprod (1 : representation k G ((fin n → G) →₀ k))) :=
 Action.mk_iso (linear_equiv.to_Module_iso
 { inv_fun := of_tensor_aux k G n,
   left_inv := to_tensor_aux_left_inv,
@@ -197,7 +197,6 @@ Action.mk_iso (linear_equiv.to_Module_iso
 /- A few things from #13713... which this PR should maybe wait for. -/
 
 variables {k G}
-#where
 
 lemma to_Module_monoid_algebra_map_aux
   {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V] [module k W]

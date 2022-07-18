@@ -58,12 +58,12 @@ def EllipticCurve.disc_aux {R : Type u} [comm_ring R] (a₁ a₂ a₃ a₄ a₆ 
   correct for certain rings, for example if `R` is a field or a PID). -/
 structure EllipticCurve (R : Type u) [comm_ring R] :=
 (a₁ a₂ a₃ a₄ a₆ : R) (disc_unit : Rˣ)
-(disc_unit_eq : disc_unit.val = EllipticCurve.disc_aux a₁ a₂ a₃ a₄ a₆)
+(disc_unit_eq : ↑disc_unit = EllipticCurve.disc_aux a₁ a₂ a₃ a₄ a₆)
 
 namespace EllipticCurve
 
 instance : inhabited (EllipticCurve ℚ) :=
-⟨⟨0, 0, 1, -1, 0, ⟨37, 37⁻¹, by norm_num1, by norm_num1⟩, by { change _ = _ + _, norm_num1 }⟩⟩
+⟨⟨0, 0, 1, -1, 0, ⟨37, 37⁻¹, by norm_num1, by norm_num1⟩, by { change (37 : ℚ) = _ + _, norm_num }⟩⟩
 
 variables {R : Type u} [comm_ring R] (E : EllipticCurve R)
 
@@ -79,7 +79,7 @@ lemma disc_is_unit : is_unit E.disc :=
 by { convert units.is_unit E.disc_unit, exact E.disc_unit_eq.symm }
 
 /-- The j-invariant of an elliptic curve. -/
-def j : R := E.disc_unit.inv
+def j : R := ↑E.disc_unit⁻¹
   * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3
 
 /-! ### `2`-torsion polynomials -/
@@ -138,27 +138,27 @@ variables (u : Rˣ) (r s t : R)
   `(x, y) ↦ (u²x + r, u³y + u²sx + t)` for some `u ∈ Rˣ` and some `r, s, t ∈ R`.
   When `R` is a field, any two isomorphic long Weierstrass equations are related by this. -/
 def change_of_variable : EllipticCurve R :=
-{ a₁           := u.inv * (E.a₁ + 2 * s),
-  a₂           := u.inv ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
-  a₃           := u.inv ^ 3 * (E.a₃ + r * E.a₁ + 2 * t),
-  a₄           := u.inv ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁ + 3 * r ^ 2
-                               - 2 * s * t),
-  a₆           := u.inv ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2
-                               - r * t * E.a₁),
+{ a₁           := ↑u⁻¹ * (E.a₁ + 2 * s),
+  a₂           := ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
+  a₃           := ↑u⁻¹ ^ 3 * (E.a₃ + r * E.a₁ + 2 * t),
+  a₄           := ↑u⁻¹ ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁ + 3 * r ^ 2
+                              - 2 * s * t),
+  a₆           := ↑u⁻¹ ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2
+                              - r * t * E.a₁),
   disc_unit    :=
-  { val     := u.inv ^ 12 * E.disc_unit.val,
-    inv     := u.val ^ 12 * E.disc_unit.inv,
-    val_inv := by { have hvi : (u.val * u.inv) ^ 12 = 1 := by rw [u.val_inv, one_pow],
-                    linear_combination hvi + u.val ^ 12 * u.inv ^ 12 * E.disc_unit.val_inv },
-    inv_val := by { have hvi : (u.val * u.inv) ^ 12 = 1 := by rw [u.val_inv, one_pow],
-                    linear_combination hvi + u.val ^ 12 * u.inv ^ 12 * E.disc_unit.val_inv } },
-  disc_unit_eq := by { simp only [disc_unit_eq, disc_aux], ring1 } }
+  { val     := ↑u⁻¹ ^ 12 * E.disc_unit,
+    inv     := u ^ 12 * ↑E.disc_unit⁻¹,
+    val_inv := by { have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
+                    linear_combination hvi + ↑u ^ 12 * ↑u⁻¹ ^ 12 * E.disc_unit.mul_inv },
+    inv_val := by { have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
+                    linear_combination hvi + ↑u ^ 12 * ↑u⁻¹ ^ 12 * E.disc_unit.mul_inv } },
+  disc_unit_eq := by { simp only [units.coe_mk, disc_unit_eq, disc_aux], ring1 } }
 
 lemma change_of_variable.j_eq_j : (E.change_of_variable u r s t).j = E.j :=
 begin
-  simp only [change_of_variable, j],
-  have hvi : (u.val * u.inv) ^ 12 = 1 := by rw [u.val_inv, one_pow],
-  linear_combination E.disc_unit.inv
+  simp only [change_of_variable, j, units.inv_mk, units.coe_mk],
+  have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
+  linear_combination ↑E.disc_unit⁻¹
     * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3 * hvi
 end
 

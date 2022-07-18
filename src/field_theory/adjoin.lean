@@ -437,7 +437,7 @@ begin
 end
 
 /-- Adjoining a finite subset is compact in the lattice of intermediate fields. -/
-lemma adjoin_finite_is_compact_element (S : set E) (h : S.finite) :
+lemma adjoin_finite_is_compact_element {S : set E} (h : S.finite) :
   is_compact_element (adjoin F S) :=
 finite.coe_to_finset h ▸ (adjoin_finset_is_compact_element h.to_finset)
 

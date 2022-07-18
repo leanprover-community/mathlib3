@@ -431,37 +431,17 @@ lemma factorization_choose_prime_pow' {p n k : ℕ} (hp : p.prime) (hkn : k ≤ 
   (choose (p ^ n) k).factorization p + k.factorization p = n :=
 begin
   refine le_antisymm _ _,
-
-  { have hdisj : disjoint
-      ((Ico 1 n.succ).filter (λ i, p ^ i ≤ k % p ^ i + (p ^ n - k) % p ^ i))
-      ((Ico 1 n.succ).filter (λ i, p ^ i ∣ k)),
-    by simp [disjoint_right, *, dvd_iff_mod_eq_zero, nat.mod_lt _ (pow_pos hp.pos _)]
-        {contextual := tt},
-
-    have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
-    rw card_Ico 1 n.succ at filter_le_Ico,
-    simp at filter_le_Ico,
-
-    refine le_trans _ filter_le_Ico,
-    rotate 2,
-
-    rw [factorization_choose hp hkn (lt_succ_self _), log_pow hp.one_lt],
-
-    have H := card_disjoint_union hdisj,
-    rw filter_union_right at H,
-    rw eq_comm at H,
-
-    refine le_trans _ H.le,
-    simp,
-    rw factorization_eq_card_pow_dvd k hp,
-    rw Ico_filter_pow_dvd_eq hp hk0.ne' hkn,
-    rw Ico_succ_right,
-
-  },
-  {
-    apply (factorization_pow_self hp n).symm.le.trans,
-    exact factorization_le_factorization_choose_add hp hk0.ne' hkn,
-  },
+  { rw [factorization_choose hp hkn (lt_succ_self _), log_pow hp.one_lt,
+        factorization_eq_card_pow_dvd k hp, ←card_disjoint_union],
+    swap,
+    { simp only [disjoint_right, mem_filter, mem_Ico, not_and, not_le, and_imp],
+      rintro a - - h3,
+      simp [dvd_iff_mod_eq_zero.1 h3, nat.mod_lt _ (pow_pos hp.pos _)] },
+    rw [Ico_filter_pow_dvd_eq hp hk0.ne' hkn, ←Ico_succ_right, filter_union_right],
+    refine le_trans ((Ico 1 n.succ).card_filter_le _) _,
+    simp },
+  { apply (factorization_pow_self hp n).symm.le.trans,
+    exact factorization_le_factorization_choose_add hp hk0.ne' hkn },
 end
 
 end prime

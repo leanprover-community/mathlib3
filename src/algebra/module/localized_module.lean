@@ -138,13 +138,13 @@ lemma mk_add_mk {m1 m2 : M} {s1 s2 : S} :
   mk m1 s1 + mk m2 s2 = mk (s2 • m1 + s1 • m2) (s1 * s2) :=
 mk_eq.mpr $ ⟨1, by dsimp only; rw [one_smul]⟩
 
-lemma add_assoc' (x y z : localized_module S M) :
+private lemma add_assoc' (x y z : localized_module S M) :
   x + y + z = x + (y + z) :=
 begin
   induction x using localized_module.induction_on with mx sx,
   induction y using localized_module.induction_on with my sy,
   induction z using localized_module.induction_on with mz sz,
-  simp [mk_add_mk],
+  simp only [mk_add_mk, smul_add],
   refine mk_eq.mpr ⟨1, _⟩,
   rw [one_smul, one_smul],
   congr' 1,
@@ -152,24 +152,24 @@ begin
   { rw [mul_comm, add_assoc, mul_smul, mul_smul, ←mul_smul sx sz, mul_comm, mul_smul], },
 end
 
-lemma add_comm' (x y : localized_module S M) :
+private lemma add_comm' (x y : localized_module S M) :
   x + y = y + x :=
 localized_module.induction_on₂ (λ m m' s s', by rw [mk_add_mk, mk_add_mk, add_comm, mul_comm]) x y
 
-lemma zero_add' (x : localized_module S M) : 0 + x = x :=
+private lemma zero_add' (x : localized_module S M) : 0 + x = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, zero_add, mk_eq];
   exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
-lemma add_zero' (x : localized_module S M) : x + 0 = x :=
+private lemma add_zero' (x : localized_module S M) : x + 0 = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, add_zero, mk_eq];
   exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
 instance has_nat_smul : has_smul ℕ (localized_module S M) :=
 { smul := λ n, nsmul_rec n }
 
-lemma nsmul_zero' (x : localized_module S M) : (0 : ℕ) • x = 0 :=
+private lemma nsmul_zero' (x : localized_module S M) : (0 : ℕ) • x = 0 :=
 localized_module.induction_on (λ _ _, rfl) x
-lemma nsmul_succ' (n : ℕ) (x : localized_module S M) :
+private lemma nsmul_succ' (n : ℕ) (x : localized_module S M) :
   n.succ • x = x + n • x :=
 localized_module.induction_on (λ _ _, rfl) x
 
@@ -212,14 +212,14 @@ begin
   rw [localization.lift_on_mk, lift_on_mk],
 end
 
-lemma one_smul' (m : localized_module S M) :
+private lemma one_smul' (m : localized_module S M) :
   (1 : localization S) • m = m :=
 begin
   induction m using localized_module.induction_on with m s,
   rw [← localization.mk_one, mk_smul_mk, one_smul, one_mul],
 end
 
-lemma mul_smul' (x y : localization S) (m : localized_module S M) :
+private lemma mul_smul' (x y : localization S) (m : localized_module S M) :
   (x * y) • m = x • y • m :=
 begin
   induction x using localization.induction_on with data,
@@ -230,7 +230,7 @@ begin
   rw [localization.mk_mul, mk_smul_mk, mk_smul_mk, mk_smul_mk, mul_smul, mul_assoc],
 end
 
-lemma smul_add' (x : localization S) (y z : localized_module S M) :
+private lemma smul_add' (x : localization S) (y z : localized_module S M) :
   x • (y + z) = x • y + x • z :=
 begin
   induction x using localization.induction_on with data,
@@ -243,7 +243,7 @@ begin
   ring_nf
 end
 
-lemma smul_zero' (x : localization S) :
+private lemma smul_zero' (x : localization S) :
   x • (0 : localized_module S M) = 0 :=
 begin
   induction x using localization.induction_on with data,
@@ -251,7 +251,7 @@ begin
   rw [←zero_mk s, mk_smul_mk, smul_zero, zero_mk, zero_mk],
 end
 
-lemma add_smul' (x y : localization S) (z : localized_module S M) :
+private lemma add_smul' (x y : localization S) (z : localized_module S M) :
   (x + y) • z = x • z + y • z :=
 begin
   induction x using localization.induction_on with datax,
@@ -266,7 +266,7 @@ begin
   ring_nf,
 end
 
-lemma zero_smul' (x : localized_module S M) :
+private lemma zero_smul' (x : localized_module S M) :
   (0 : localization S) • x = 0 :=
 begin
   induction x using localized_module.induction_on with m s,

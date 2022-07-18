@@ -758,7 +758,7 @@ end division_ring
 end alg_hom
 
 @[simp] lemma rat.smul_one_eq_coe {A : Type*} [division_ring A] [algebra ℚ A] (m : ℚ) :
-  m • (1 : A) = ↑m :=
+  @@has_smul.smul algebra.to_has_smul m (1 : A) = ↑m :=
 by rw [algebra.smul_def, mul_one, ring_hom.eq_rat_cast]
 
 set_option old_structure_cmd true

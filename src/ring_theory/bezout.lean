@@ -92,8 +92,8 @@ end gcd
 
 local attribute [instance] to_gcd_domain
 
--- Note that the proof, despite being `infer_instance`, depends on a `local attribute [instance]` lemma,
--- and is thus necessary to be restated.
+-- Note that the proof, despite being `infer_instance`, depends on the `local attribute [instance]`
+-- lemma above, and is thus necessary to be restated.
 @[priority 100]
 instance [is_domain R] [is_bezout R] : is_integrally_closed R := infer_instance
 

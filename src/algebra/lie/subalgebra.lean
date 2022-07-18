@@ -401,7 +401,7 @@ by { rw eq_bot_iff, exact iff.rfl, }
 lemma subsingleton_of_bot : subsingleton (lie_subalgebra R ↥(⊥ : lie_subalgebra R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
-  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw submodule.mem_bot at hx, subst hx,
+  ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_subalgebra.mem_bot at hx, subst hx,
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 

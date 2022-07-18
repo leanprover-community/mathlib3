@@ -69,15 +69,15 @@ CNF_rec b [] (λ o h0 l, ⟨log b o, o / b ^ log b o⟩ :: l) o
 @[simp] theorem CNF_list_zero (b : ordinal) : CNF_list b 0 = [] := CNF_rec_zero _ _ _
 
 /-- Recursive definition for the Cantor normal form. -/
-theorem CNF_list_ne_zero {b o : ordinal} (ho : 0 < o) :
+theorem CNF_list_pos {b o : ordinal} (ho : 0 < o) :
   CNF_list b o = ⟨log b o, o / b ^ log b o⟩ :: CNF_list b (o % b ^ log b o) :=
 CNF_rec_pos ho _ _ _
 
 theorem zero_CNF_list {o : ordinal} (ho : 0 < o) : CNF_list 0 o = [⟨0, o⟩] :=
-by simp [CNF_list_ne_zero ho]
+by simp [CNF_list_pos ho]
 
 theorem one_CNF_list {o : ordinal} (ho : 0 < o) : CNF_list 1 o = [⟨0, o⟩] :=
-by simp [CNF_list_ne_zero ho]
+by simp [CNF_list_pos ho]
 
 theorem CNF_list_of_le_one {b o : ordinal} (hb : b ≤ 1) (ho : 0 < o) : CNF_list b o = [⟨0, o⟩] :=
 begin
@@ -87,18 +87,18 @@ begin
 end
 
 theorem CNF_list_of_lt {b o : ordinal} (ho : 0 < o) (hb : o < b) : CNF_list b o = [⟨0, o⟩] :=
-by simp [CNF_list_ne_zero ho, log_eq_zero hb]
+by simp [CNF_list_pos ho, log_eq_zero hb]
 
 theorem CNF_list_foldr (b o : ordinal) : (CNF_list b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
 CNF_rec b (by { rw CNF_list_zero, refl })
-  (λ o ho IH, by rw [CNF_list_ne_zero ho, list.foldr_cons, IH, div_add_mod]) o
+  (λ o ho IH, by rw [CNF_list_pos ho, list.foldr_cons, IH, div_add_mod]) o
 
 theorem le_log_of_mem_CNF_list {b o x : ordinal} : x ∈ (CNF_list b o).keys → x ≤ log b o :=
 begin
   refine CNF_rec b _ (λ a ha H, _) o,
   { rw CNF_list_zero,
     exact false.elim },
-  { rw [CNF_list_ne_zero ha, keys, map_cons, mem_cons_iff],
+  { rw [CNF_list_pos ha, keys, map_cons, mem_cons_iff],
     rintro (rfl | h),
     { exact le_rfl },
     { exact (H h).trans (log_mono_right _ (mod_opow_log_lt_self b ha).le) } }
@@ -116,7 +116,7 @@ begin
     { rw [zero_CNF_list ho, mem_singleton],
       rintro rfl,
       exact ho },
-    { rw CNF_list_ne_zero ho,
+    { rw CNF_list_pos ho,
       rintro (rfl | h),
       { simp,
         rw div_pos,
@@ -130,7 +130,7 @@ theorem snd_lt_of_mem_CNF_list {b o : ordinal} (hb : 1 < b) {x : sigma _} :
 begin
   refine CNF_rec b _ (λ o ho IH, _) o,
   { simp },
-  { rw CNF_list_ne_zero ho,
+  { rw CNF_list_pos ho,
     rintro (rfl | h),
     { simpa using div_opow_log_lt o hb },
     { exact IH h } }
@@ -144,7 +144,7 @@ begin
     { simp [CNF_list_of_le_one hb ho] },
     { cases lt_or_le o b with hob hbo,
       { simp [CNF_list_of_lt ho hob] },
-      { rw [CNF_list_ne_zero ho, keys, map_cons, sorted_cons],
+      { rw [CNF_list_pos ho, keys, map_cons, sorted_cons],
         exact ⟨λ a H, (le_log_of_mem_CNF_list H).trans_lt $
           log_mod_opow_log_lt_log_self hb ho hbo, IH⟩ } } }
 end

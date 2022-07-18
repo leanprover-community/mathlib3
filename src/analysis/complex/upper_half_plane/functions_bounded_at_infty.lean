@@ -37,8 +37,9 @@ begin
     upper_half_plane.coe_im],
   split,
   { intro h, cases h with a h, exact ⟨a, (λ z hz, h (im z) hz rfl)⟩ },
-  { refine (λ h, by {cases h with A h,
-    refine ⟨A, (λ b hb x hx, by {apply (h x), rw hx, exact hb})⟩}) }
+  { rintro ⟨A, h⟩,
+    refine ⟨A, λ b hb x hx, h x _⟩,
+    rwa hx, }
 end
 
 /--A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M, A` such that

@@ -3,9 +3,9 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
+import algebra.category.Group.basic
 import category_theory.epi_mono
 import group_theory.quotient_group
-import algebra.category.Group.basic
 
 /-!
 # Monomorphisms and epimorphisms in `Group`
@@ -27,7 +27,7 @@ variables [group A] [group B]
 
 @[to_additive add_monoid_hom.ker_eq_bot_of_cancel]
 lemma ker_eq_bot_of_cancel {f : A →* B} (h : ∀ (u v : f.ker →* A), f.comp u = f.comp v → u = v) :
-  f.ker = (⊥ : subgroup A) :=
+  f.ker = ⊥ :=
 by simpa using _root_.congr_arg range (h f.ker.subtype 1 (by tidy))
 
 end monoid_hom
@@ -83,8 +83,7 @@ instance : has_smul B X' :=
   | ∞ := ∞
   end }
 
-lemma mul_smul (b b' : B) (x : X') :
-  (b * b') • x = b • b' • x :=
+lemma mul_smul (b b' : B) (x : X') : (b * b') • x = b • b' • x :=
 match x with
 | from_coset y :=
   begin
@@ -94,8 +93,7 @@ match x with
 | ∞ := rfl
 end
 
-lemma one_smul (x : X') :
-  (1 : B) • x = x :=
+lemma one_smul (x : X') : (1 : B) • x = x :=
 match x with
 | from_coset y :=
   begin
@@ -190,12 +188,7 @@ The strategy is the following: assuming `epi f`
 * but if `f` is not surjective, then some `x ∉ f.range`, then `h x ≠ g x` at the coset `f.range`.
 -/
 
-lemma g_apply_from_coset (x : B) (y : X) :
-  (g x) (from_coset y) = from_coset ⟨x *l y,
-  begin
-    rw [←subtype.val_eq_coe, ←y.2.some_spec, set.mem_range, left_coset_assoc],
-    use x * y.2.some
-  end⟩ :=
+lemma g_apply_from_coset (x : B) (y : X) : (g x) (from_coset y) = from_coset ⟨x *l y, by tidy⟩ :=
 rfl
 
 lemma g_apply_infinity (x : B) : (g x) ∞ = ∞ := rfl
@@ -280,12 +273,10 @@ begin
     ((cancel_epi f).1 (surjective_of_epi_auxs.comp_eq f)),
 end
 
-lemma epi_iff_surjective :
-  epi f ↔ function.surjective f :=
+lemma epi_iff_surjective : epi f ↔ function.surjective f :=
 ⟨λ h, @@surjective_of_epi f h, concrete_category.epi_of_surjective _⟩
 
-lemma epi_iff_range_eq_top :
-  epi f ↔ f.range = ⊤ :=
+lemma epi_iff_range_eq_top : epi f ↔ f.range = ⊤ :=
 iff.trans (epi_iff_surjective _) (subgroup.eq_top_iff' f.range).symm
 
 end Group

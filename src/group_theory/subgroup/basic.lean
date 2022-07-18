@@ -2026,8 +2026,7 @@ range_top_iff_surjective.2 hf
 
 @[simp, to_additive]
 lemma range_one : (1 : G →* N).range = ⊥ :=
-set_like.ext $ λ a, iff.trans monoid_hom.mem_range $
-  iff.trans (by simp only [one_apply, exists_const]; split; intros h; subst h) subgroup.mem_bot.symm
+set_like.ext $ λ x, by simpa using @comm _ (=) _ 1 x
 
 @[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
 by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }

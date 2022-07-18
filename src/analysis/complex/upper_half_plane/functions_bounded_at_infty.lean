@@ -36,7 +36,7 @@ begin
   simp only [at_I_infty, filter.mem_comap', filter.mem_at_top_sets, ge_iff_le, set.mem_set_of_eq,
     upper_half_plane.coe_im],
   split,
-  { intro h, cases h with a h, refine ⟨a, (λ z hz, by {apply h (im z) hz , refl})⟩ },
+  { intro h, cases h with a h, exact ⟨a, (λ z hz, h (im z) hz rfl)⟩ },
   { refine (λ h, by {cases h with A h,
     refine ⟨A, (λ b hb x hx, by {apply (h x), rw hx, exact hb})⟩}) }
 end

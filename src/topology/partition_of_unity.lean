@@ -152,7 +152,7 @@ lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 (single_le_finsum i (f.locally_finite.point_finite x) (λ j, f.nonneg j x)).trans (f.sum_le_one x)
 
 lemma continuous_smul {E : Type*} [add_comm_monoid E] [smul_with_zero ℝ E]
-  [topological_space E] [has_continuous_add E] [has_continuous_smul ℝ E]
+  [topological_space E] [has_continuous_smul ℝ E]
   {s : set X} (f : partition_of_unity ι X s) {g : X → E} {i : ι}
   (hg : ∀ x ∈ tsupport (f i), continuous_at g x) :
   continuous (λ x, f i x • g x) :=

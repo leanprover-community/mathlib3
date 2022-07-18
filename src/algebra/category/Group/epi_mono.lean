@@ -26,17 +26,9 @@ variables {A : Type u} {B : Type v}
 variables [group A] [group B]
 
 @[to_additive add_monoid_hom.ker_eq_bot_of_cancel]
-lemma ker_eq_bot_of_cancel {f : A →* B}
-  (h : ∀ (u v : f.ker →* A), f.comp u = f.comp v → u = v) :
+lemma ker_eq_bot_of_cancel {f : A →* B} (h : ∀ (u v : f.ker →* A), f.comp u = f.comp v → u = v) :
   f.ker = (⊥ : subgroup A) :=
-begin
-  specialize h 1 f.ker.subtype begin
-    ext1,
-    simp only [comp_one, one_apply, coe_comp, subgroup.coe_subtype, function.comp_app],
-    rw [←subtype.val_eq_coe, f.mem_ker.mp x.2],
-  end,
-  rw [←subgroup.subtype_range f.ker, ←h, range_one],
-end
+by simpa using _root_.congr_arg range (h f.ker.subtype 1 (by tidy))
 
 end monoid_hom
 
@@ -51,18 +43,15 @@ variables {A B : Group.{u}} (f : A ⟶ B)
 @[to_additive AddGroup.ker_eq_bot_of_mono]
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
 monoid_hom.ker_eq_bot_of_cancel $ λ u v,
-  (@cancel_mono _ _ _ _ _ f _
-    (show Group.of f.ker ⟶ A, from u) _).1
+  (@cancel_mono _ _ _ _ _ f _ (show Group.of f.ker ⟶ A, from u) _).1
 
 @[to_additive AddGroup.mono_iff_ker_eq_bot]
-lemma mono_iff_ker_eq_bot :
-  mono f ↔ f.ker = ⊥ :=
+lemma mono_iff_ker_eq_bot : mono f ↔ f.ker = ⊥ :=
 ⟨λ h, @@ker_eq_bot_of_mono f h,
-λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot_iff f).1 h⟩
+ λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot_iff f).1 h⟩
 
 @[to_additive AddGroup.mono_iff_injective]
-lemma mono_iff_injective :
-  mono f ↔ function.injective f :=
+lemma mono_iff_injective : mono f ↔ function.injective f :=
 iff.trans (mono_iff_ker_eq_bot f) $ monoid_hom.ker_eq_bot_iff f
 
 namespace surjective_of_epi_auxs
@@ -76,7 +65,6 @@ Define `X'` to be the set of all left cosets with an extra point at "infinity".
 inductive X_with_infinity
 | from_coset : set.range (function.swap left_coset f.range.carrier) → X_with_infinity
 | infinity : X_with_infinity
-
 
 open X_with_infinity equiv.perm
 open_locale coset
@@ -139,7 +127,6 @@ begin
   rw [left_coset_eq_iff, mul_one] at r,
   exact hb (inv_inv b ▸ (subgroup.inv_mem _ r)),
 end
-
 
 instance : decidable_eq X' := classical.dec_eq _
 
@@ -204,10 +191,9 @@ The strategy is the following: assuming `epi f`
 -/
 
 lemma g_apply_from_coset (x : B) (y : X) :
-  (g x) (from_coset y) =
-  from_coset ⟨x *l y,
+  (g x) (from_coset y) = from_coset ⟨x *l y,
   begin
-    rwa [←subtype.val_eq_coe, ←y.2.some_spec, set.mem_range, left_coset_assoc],
+    rw [←subtype.val_eq_coe, ←y.2.some_spec, set.mem_range, left_coset_assoc],
     use x * y.2.some
   end⟩ :=
 rfl
@@ -236,10 +222,9 @@ lemma h_apply_from_coset_nin_range (x : B) (hx : x ∈ f.range) (b : B) (hb : b 
   from_coset ⟨(x * b) *l f.range.carrier, ⟨x * b, rfl⟩⟩ :=
 begin
   simp only [H, tau, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
-  rw [equiv.symm_swap],
-  rw @equiv.swap_apply_of_ne_of_ne X' _
+  rw [equiv.symm_swap, @equiv.swap_apply_of_ne_of_ne X' _
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
-    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simp),
+    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simp)],
   simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
   refine equiv.swap_apply_of_ne_of_ne (from_coset_ne_of_nin_range _ (λ r, hb _)) (by simp),
   convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
@@ -272,8 +257,7 @@ lemma comp_eq : f ≫ (show B ⟶ Group.of SX', from g) = f ≫ h :=
 fun_like.ext _ _ $ λ a,
   by simp only [comp_apply, show h (f a) = _, from (by simp [←agree] : f a ∈ {b | h b = g b})]
 
-lemma g_ne_h (x : B) (hx : x ∉ f.range) :
-  g ≠ h :=
+lemma g_ne_h (x : B) (hx : x ∉ f.range) : g ≠ h :=
 begin
   intros r,
   replace r := fun_like.congr_fun (fun_like.congr_fun r x)

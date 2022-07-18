@@ -197,6 +197,8 @@ end ordinal
 
 - CNF is injective (easy via CNF_foldr)
 - CNF b o = [] ↔ o = 0, easy via former
+- (CNF b o).head = ⟨log b o, o / b ^ log b o⟩, unconditionally true (by coincidence lol)
+- CNF b (b ^ e * c + x) = ⟨e, c⟩ :: CNF b x for suitable values
 - CNF_coeff function
 - CNF_coeff b (o + o') ≤ CNF_coeff b o + CNF_coeff b o'
 - (CNF_coeff b (o + o')).support ⊆ (CNF_coeff b o).support ∪ (CNF_coeff b o').support for b

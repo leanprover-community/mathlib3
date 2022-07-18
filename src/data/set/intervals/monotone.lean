@@ -183,10 +183,10 @@ section succ_order
 
 open order
 
-variables {α β : Type*} [partial_order α] [succ_order α] [is_succ_archimedean α]
+variables {α β : Type*} [partial_order α]
 
-lemma strict_mono_on.Iic_id_le [order_bot α] {n : α} {φ : α → α}
-  (hφ : strict_mono_on φ (set.Iic n)) :
+lemma strict_mono_on.Iic_id_le [succ_order α] [is_succ_archimedean α] [order_bot α]
+  {n : α} {φ : α → α} (hφ : strict_mono_on φ (set.Iic n)) :
   ∀ m ≤ n, m ≤ φ m :=
 begin
   revert hφ,
@@ -206,6 +206,11 @@ begin
     { exact ih (strict_mono_on.mono hφ (λ x hx, le_trans hx (le_succ _))) _ h } }
 end
 
+lemma strict_mono_on.Iic_le_id [pred_order α] [is_pred_archimedean α] [order_top α]
+  {n : α} {φ : α → α} (hφ : strict_mono_on φ (set.Ici n)) :
+  ∀ m ≥ n, φ m ≤ m :=
+@strict_mono_on.Iic_id_le αᵒᵈ _ _ _ _ _ _ ( λ i hi j hj (hij : j < i), hφ hj hi hij)
+
 variables [preorder β] {ψ : α → β}
 
 /-- A function `ψ` on a `succ_order` is strictly monotone before some `n` if for all `m` such that
@@ -213,7 +218,7 @@ variables [preorder β] {ψ : α → β}
 
 We note that in the lemma `succ m ≤ n` and `m < n` are not equivalent since this is in general
 not true if we do not assume `no_max_order`. -/
-lemma strict_mono_on_Iic_of_lt_succ
+lemma strict_mono_on_Iic_of_lt_succ [succ_order α] [is_succ_archimedean α]
   {n : α} (hψ : ∀ m, succ m ≤ n → ψ m < ψ (succ m)) :
   strict_mono_on ψ (set.Iic n) :=
 begin

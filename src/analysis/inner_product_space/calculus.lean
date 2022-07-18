@@ -263,7 +263,6 @@ variables {𝕜 ι H : Type*} [is_R_or_C 𝕜] [normed_group H] [normed_space �
 lemma differentiable_within_at_euclidean :
   differentiable_within_at 𝕜 f t y ↔ ∀ i, differentiable_within_at 𝕜 (λ x, f x i) t y :=
 begin
-  --let (euclidean_space.equiv ι 𝕜) : euclidean_space 𝕜 ι ≃L[𝕜] ι → 𝕜 := euclidean_space.equiv,
   rw [← (euclidean_space.equiv ι 𝕜).comp_differentiable_within_at_iff, differentiable_within_at_pi],
   refl
 end

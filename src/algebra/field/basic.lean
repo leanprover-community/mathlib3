@@ -52,10 +52,17 @@ variables {α β K : Type*}
 
 /-- The default definition of the coercion `(↑(a : ℚ) : K)` for a division ring `K`
 is defined as `(a / b : K) = (a : K) * (b : K)⁻¹`.
-Use `coe` instead of `of_rat_rec` for better definitional behaviour.
+Use `coe` instead of `rat.cast_rec` for better definitional behaviour.
 -/
-def of_rat_rec [has_lift_t ℕ K] [has_lift_t ℤ K] [has_mul K] [has_inv K] : ℚ → K
+def rat.cast_rec [has_lift_t ℕ K] [has_lift_t ℤ K] [has_mul K] [has_inv K] : ℚ → K
 | ⟨a, b, _, _⟩ := ↑a * (↑b)⁻¹
+
+/--
+Type class for the canonical homomorphism `ℚ → K`.
+-/
+@[protect_proj]
+class has_rat_cast (K : Type u) :=
+(rat_cast : ℚ → K)
 
 /-- The default definition of the scalar multiplication `(a : ℚ) • (x : K)` for a division ring `K`
 is given by `a • x = (↑ a) * x`.
@@ -79,13 +86,13 @@ definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].
 -/
 @[protect_proj, ancestor ring div_inv_monoid nontrivial]
-class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K :=
+class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K, has_rat_cast K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
-(of_rat : ℚ → K := of_rat_rec)
-(of_rat_mk' : ∀ (a : ℤ) (b : ℕ) h1 h2, of_rat ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
-(qsmul : ℚ → K → K := qsmul_rec of_rat)
-(qsmul_eq_mul' : ∀ (a : ℚ) (x : K), qsmul a x = of_rat a * x . try_refl_tac)
+(rat_cast := rat.cast_rec)
+(rat_cast_mk : ∀ (a : ℤ) (b : ℕ) h1 h2, rat_cast ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
+(qsmul : ℚ → K → K := qsmul_rec rat_cast)
+(qsmul_eq_mul' : ∀ (a : ℚ) (x : K), qsmul a x = rat_cast a * x . try_refl_tac)
 
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]

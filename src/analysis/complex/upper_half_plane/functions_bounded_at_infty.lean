@@ -70,7 +70,7 @@ lemma prod_of_bound_is_bound {f g : ℍ → ℂ} (hf : is_bound_at_infty f) (hg 
   is_bound_at_infty (f * g) := by {have := hf.mul hg, simp only [pi.one_apply, mul_one,
      norm_eq_abs, complex.abs_mul] at this, convert this,}
 
-@[simp]lemma bound_mem (f : ℍ → ℂ) :
+@[simp] lemma bound_mem (f : ℍ → ℂ) :
   is_bound_at_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=
 begin
   simp [is_bound_at_infty, asymptotics.is_O_iff, filter.eventually, at_I_infty_mem],

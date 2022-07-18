@@ -430,11 +430,6 @@ end
 lemma factorization_choose_prime_pow' {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
   (choose (p ^ n) k).factorization p + k.factorization p = n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, {
-  simp only [pow_zero] at hkn,
-  have : k = 1, { apply eq_of_le_of_not_lt hkn, simp [hk0.ne'] },
-  simp [this] },
-
   refine le_antisymm _ _,
 
   { have hdisj : disjoint

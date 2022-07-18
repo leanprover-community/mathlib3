@@ -157,8 +157,11 @@ namespace rat
 @[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
 ⟨has_rat_cast.rat_cast⟩
 
+theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
+division_ring.rat_cast_mk _ _ _ _
+
 theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
-| ⟨a, b, h1, h2⟩ := (division_ring.rat_cast_mk _ _ _ _).trans (div_eq_mul_inv _ _).symm
+| ⟨a, b, h1, h2⟩ := (cast_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
 
 @[priority 100]
 instance smul_division_ring : has_smul ℚ K :=

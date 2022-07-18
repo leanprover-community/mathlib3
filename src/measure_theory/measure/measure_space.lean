@@ -2601,50 +2601,6 @@ begin
   exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
 end
 
-
-
-
-
-lemma _root_.ennreal.Union_Ioi_add_inv_nat (z : ℝ≥0∞) :
-  (⋃ (n : ℕ), Ioi (z + n⁻¹)) = Ioi z :=
-begin
-  refine subset_antisymm _ _,
-  { apply Union_subset,
-    intro n,
-    exact Ioi_subset_Ioi_iff.mpr (le_add_of_le_of_nonneg le_rfl (zero_le (n : ℝ≥0∞)⁻¹)), },
-  { intros x z_lt_x,
-    have diff_pos : 0 < x - z := tsub_pos_of_lt z_lt_x,
-    rcases ennreal.exists_inv_nat_lt diff_pos.ne.symm with ⟨m, hm⟩,
-    simp only [mem_Union, mem_Ioi],
-    exact ⟨m, lt_tsub_iff_left.mp hm⟩, },
-end
-
-lemma _root_.ennreal.Union_Ioi_inv_nat :
-  (⋃ (n : ℕ), Ioi ((n : ℝ≥0∞)⁻¹)) = {x : ℝ≥0∞ | x ≠ 0} :=
-by simp_rw [(show {x : ℝ≥0∞ | x ≠ 0} = Ioi 0, by { ext x, exact pos_iff_ne_zero.symm, }),
-            ← ennreal.Union_Ioi_add_inv_nat 0, zero_add]
-
-lemma _root_.ennreal.Union_Ici_add_inv_nat {z : ℝ≥0∞} (z_ne_top : z ≠ ∞) :
-  (⋃ (n : ℕ), Ici (z + n⁻¹)) = Ioi z :=
-begin
-  refine subset_antisymm _ _,
-  { apply Union_subset,
-    intro n,
-    apply Ici_subset_Ioi.mpr,
-    simpa using ennreal.add_lt_add_of_le_of_lt z_ne_top le_rfl
-                (ennreal.inv_pos.mpr (ennreal.nat_ne_top n)), },
-  { intros x z_lt_x,
-    have diff_pos : 0 < x - z := tsub_pos_of_lt z_lt_x,
-    rcases ennreal.exists_inv_nat_lt diff_pos.ne.symm with ⟨m, hm⟩,
-    simp only [mem_Union, mem_Ici],
-    exact ⟨m, (lt_tsub_iff_left.mp hm).le⟩, },
-end
-
-lemma _root_.ennreal.Union_Ici_inv_nat :
-  (⋃ (n : ℕ), Ici ((n : ℝ≥0∞)⁻¹)) = {x : ℝ≥0∞ | x ≠ 0} :=
-by simp_rw [(show {x : ℝ≥0∞ | x ≠ 0} = Ioi 0, by { ext x, exact pos_iff_ne_zero.symm, }),
-            ← ennreal.Union_Ici_add_inv_nat ennreal.zero_ne_top, zero_add]
-
 lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] {μ : measure α}
   {ε : ℝ≥0∞} (ε_pos : 0 < ε) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
   (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
@@ -2729,7 +2685,6 @@ lemma countable_meas_pos_of_disjoint_Union
   (As_disj : pairwise (disjoint on As)) :
   set.countable {i : ι | 0 < μ (As i)} :=
 begin
-  have := spanning_sets μ,
   have obs : {i : ι | 0 < μ (As i)} = (⋃ n, {i : ι | 0 < μ ((As i) ∩ (spanning_sets μ n))}),
   { ext i,
     split,

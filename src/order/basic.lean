@@ -724,8 +724,8 @@ by refine_struct
     intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false] <|>
       exact or.inl trivial
 
-@[simp] lemma max_eq : max a b = star := rfl
-@[simp] lemma min_eq : min a b = star := rfl
+lemma max_eq : max a b = star := rfl
+lemma min_eq : min a b = star := rfl
 @[simp] protected lemma le : a ≤ b := trivial
 @[simp] lemma not_lt : ¬ a < b := not_false
 

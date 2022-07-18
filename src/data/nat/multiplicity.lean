@@ -131,22 +131,13 @@ lemma factorization_eq_zero_iff_remainder (p i r : ℕ) (pp : p.prime) (hr0 : r 
   (¬ p ∣ r) ↔ (p * i + r).factorization p = 0 :=
 begin
   refine ⟨factorization_eq_zero_of_remainder p i r, λ h, _⟩,
-
   rcases eq_or_ne i 0 with rfl | hi0, {
     simp only [mul_zero, zero_add] at h,
     simpa [pp, hr0] using (factorization_eq_zero_iff' _ _).1 h },
-
-
   rw factorization_eq_zero_iff' at h,
-  rcases h with h1 | h2 | h3,
-  { cases h1 pp },
-  { contrapose! h2,
-    rcases h2 with ⟨k, rfl⟩,
-    simp [←mul_add]
-  },
-  { simp at h3, cases hr0 h3.2,
-   },
-
+  simp only [pp, hr0, not_true, add_eq_zero_iff, and_false, or_false, false_or] at h,
+  contrapose! h,
+  rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
 end
 
 

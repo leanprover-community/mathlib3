@@ -758,6 +758,34 @@ begin
   { simpa [bit, bit1_val i] using h_odd i hi },
 end
 
+@[simp] lemma even_odd_rec_zero (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1)) :
+  @even_odd_rec 0 P h0 h_even h_odd = h0 := binary_rec_zero _ _
+
+@[simp] lemma even_odd_rec_even (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
+  (H : h_even 0 h0 = h0) :
+  @even_odd_rec (2 * n) P h0 h_even h_odd = h_even n (even_odd_rec n P h0 h_even h_odd) :=
+begin
+  convert binary_rec_eq _ ff n,
+  { exact (bit0_eq_two_mul _).symm },
+  { exact (bit0_eq_two_mul _).symm },
+  { apply heq_of_cast_eq, refl },
+  { exact H }
+end
+
+@[simp] lemma even_odd_rec_odd (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
+  (H : h_even 0 h0 = h0) :
+  @even_odd_rec (2 * n + 1) P h0 h_even h_odd = h_odd n (even_odd_rec n P h0 h_even h_odd) :=
+begin
+  convert binary_rec_eq _ tt n,
+  { exact (bit0_eq_two_mul _).symm },
+  { exact (bit0_eq_two_mul _).symm },
+  { apply heq_of_cast_eq, refl },
+  { exact H }
+end
+
 /-- Given a predicate on two naturals `P : ℕ → ℕ → Prop`, `P a b` is true for all `a < b` if
 `P (a + 1) (a + 1)` is true for all `a`, `P 0 (b + 1)` is true for all `b` and for all
 `a < b`, `P (a + 1) b` is true and `P a (b + 1)` is true implies `P (a + 1) (b + 1)` is true. -/

@@ -103,8 +103,7 @@ succ_le_iff.mp (mem_Ico.1 hx).1
 
 lemma factorization_eq_zero_of_not_dvd {n p : ℕ} (h : ¬ p ∣ n) : n.factorization p = 0 :=
 begin
-
-  sorry,
+  rw factorization_eq_zero_iff', simp [h],
 end
 
 
@@ -121,19 +120,39 @@ lemma factorization_pow_self {p : ℕ} (pp : p.prime) (n : ℕ) : (p ^ n).factor
 by simp [pp.factorization]
 
 
-example (p i r : ℕ) (pp : p.prime) (hr : ¬ p ∣ r) : (p * i + r).factorization p = 0 :=
+lemma factorization_eq_zero_of_remainder (p i r : ℕ) (hr : ¬ p ∣ r) :
+  (p * i + r).factorization p = 0 :=
 begin
   apply factorization_eq_zero_of_not_dvd,
   contrapose! hr,
-  have := pp.pos,
-  rcases r.eq_zero_or_pos with rfl | hr0, { simp },
-  cases hr with q hq,
-  -- library_search,
+  exact (@nat.dvd_add_iff_right p (p*i) r (dvd.intro i rfl)).2 hr,
+end
 
+lemma factorization_eq_zero_iff_remainder (p i r : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :
+  (¬ p ∣ r) ↔ (p * i + r).factorization p = 0 :=
+begin
+  rcases eq_or_ne i 0 with rfl | hi0, {
+    simp,
+    rw factorization_eq_zero_iff',
+    rw [or_rotate],
+    refine ⟨or.inl, (or_iff_left_of_imp _).mp⟩,
+    rintro H,
+    cases H,
+    { subst H, cases hr0 (refl 0) },
+    { cases H pp },
+  },
 
+  refine ⟨factorization_eq_zero_of_remainder p i r, λ h, _⟩,
+  rw factorization_eq_zero_iff' at h,
+  rcases h with h1 | h2 | h3,
+  { cases h1 pp },
+  { contrapose! h2,
+    rcases h2 with ⟨k, rfl⟩,
+    simp [←mul_add]
+  },
+  { simp at h3, cases hr0 h3.2,
+   },
 
-  -- have := dvd_mul_if
-  sorry,
 end
 
 

@@ -364,7 +364,7 @@ variables [algebra A B] [is_scalar_tower R A B]
 
 include hI
 
-/-- Given a tower of algebras `R → A → B`, and `I : ideal B` be square-zero, each lift `A →ₐ[R] B`
+/-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each lift `A →ₐ[R] B`
 of the canonical map `A →ₐ[R] B ⧸ I` corresponds to a `R`-derivation from `A` to `I`. -/
 def derivation_to_square_zero_of_lift
   (f : A →ₐ[R] B) (e : (ideal.quotient.mkₐ R I).comp f = is_scalar_tower.to_alg_hom R A (B ⧸ I)) :
@@ -396,7 +396,7 @@ lemma derivation_to_square_zero_of_lift_apply (f : A →ₐ[R] B)
   (e : (ideal.quotient.mkₐ R I).comp f = is_scalar_tower.to_alg_hom R A (B ⧸ I))
   (x : A) : (derivation_to_square_zero_of_lift I hI f e x : B) = f x - algebra_map A B x := rfl
 
-/-- Given a tower of algebras `R → A → B`, and `I : ideal B` be square-zero, each `R`-derivation
+/-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`, each `R`-derivation
 from `A` to `I` corresponds to a lift `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
 def lift_of_derivation_to_square_zero (f : derivation R A I) :
   A →ₐ[R] B :=
@@ -424,7 +424,7 @@ lemma lift_of_derivation_to_square_zero_apply (f : derivation R A I) (x : A) :
 by { rw [lift_of_derivation_to_square_zero_apply, map_add,
   ideal.quotient.eq_zero_iff_mem.mpr (d x).prop, zero_add], refl }
 
-/-- Given a tower of algebras `R → A → B`, and `I : ideal B` be square-zero,
+/-- Given a tower of algebras `R → A → B`, and a square-zero `I : ideal B`,
 there is a 1-1 correspondance between `R`-derivations from `A` to `I` and
 lifts `A →ₐ[R] B` of the canonical map `A →ₐ[R] B ⧸ I`. -/
 @[simps]

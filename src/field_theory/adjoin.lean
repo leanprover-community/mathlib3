@@ -396,7 +396,7 @@ open set complete_lattice
 @[simp] lemma adjoin_simple_le_iff {K : intermediate_field F E} : F⟮α⟯ ≤ K ↔ α ∈ K :=
 adjoin_le_iff.trans singleton_subset_iff
 
-/-- Adjoining a finite element is compact in the lattice of intermediate fields. -/
+/-- Adjoining a single element is compact in the lattice of intermediate fields. -/
 lemma adjoin_simple_is_compact_element (x : E) : is_compact_element F⟮x⟯ :=
 begin
   rw is_compact_element_iff_le_of_directed_Sup_le,

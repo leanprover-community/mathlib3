@@ -216,11 +216,17 @@ begin
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
 
+/-- Given a morphism of `k`-linear `G`-representations `ρ ⟶ σ` on `V, W`
+respectively, defines a `k[G]`-linear map `V → W`, where the module structure comes from the
+representations. -/
 def to_Module_monoid_algebra_map {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V]
   [module k W] (ρ : representation k G V) (σ : representation k G W) (f : Rep.of ρ ⟶ Rep.of σ) :
   ρ.as_module →ₗ[monoid_algebra k G] σ.as_module :=
 { map_smul' := λ r x, to_Module_monoid_algebra_map_aux ρ σ f.hom f.comm r x, ..f.hom }
 
+/-- Given an isomorphism of `k`-linear `G`-representations `ρ ≃ σ` on `V, W`
+respectively, defines a `k[G]`-linear isomorphism `V ≃ W`, where the module structure comes from
+the representations. -/
 def iso_to_linear_equiv {V W : Type u} [add_comm_group V] [add_comm_group W] [module k V]
   [module k W] (ρ : representation k G V) (τ : representation k G W)
   (f : Rep.of ρ ≅ Rep.of τ) :

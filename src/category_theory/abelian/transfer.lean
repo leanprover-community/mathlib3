@@ -199,6 +199,13 @@ abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm F.as_equivalence.sy
 
 section transfer_enough_injectives
 
+/-!
+If `L ⊣ R` are a pair of adjoint functors between abelian categories `𝓐` and `𝓐` and `L` is
+faithful and exact, then if `𝓑` has enough injectives, so does `𝓐`. We achieve this by considering
+an arbitrary injective presentation of `L(A) ⟶ J`: by adjunction, there is an `A ⟶ R(J)`, we will
+prove that this `A ⟶ R(J)` is an injective presentation of `A`.
+-/
+
 open limits
 
 universes v₁ v₂

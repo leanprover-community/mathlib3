@@ -392,8 +392,29 @@ begin
   apply_instance
 end
 
-include Is
 omit I's
+variable (I)
+lemma model_with_corners.symm_continuous_within_at_comp_right_iff {X} [topological_space X]
+  {f : H → X} {s : set H} {x : H} :
+  continuous_within_at (f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) (I x) ↔ continuous_within_at f s x :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have := h.comp I.continuous_within_at (maps_to_preimage _ _),
+    simp_rw [preimage_inter, preimage_preimage, I.left_inv, preimage_id', preimage_range,
+      inter_univ] at this,
+    rwa [function.comp.assoc, I.symm_comp_self] at this },
+  { rw [← I.left_inv x] at h, exact h.comp I.continuous_within_at_symm (inter_subset_left _ _) }
+end
+variable {I}
+
+lemma ext_chart_at_symm_continuous_within_at_comp_right_iff {X} [topological_space X] {f : M → X}
+  {s : set M} {x x' : M} :
+  continuous_within_at (f ∘ (ext_chart_at I x).symm) ((ext_chart_at I x).symm ⁻¹' s ∩ range I)
+    (ext_chart_at I x x') ↔
+  continuous_within_at (f ∘ (chart_at H x).symm) ((chart_at H x).symm ⁻¹' s) (chart_at H x x') :=
+by convert I.symm_continuous_within_at_comp_right_iff; refl
+
+include Is
 
 lemma cont_mdiff_within_at_iff_source_of_mem_source
   {x' : M} (hx' : x' ∈ (chart_at H x).source) :
@@ -401,26 +422,22 @@ lemma cont_mdiff_within_at_iff_source_of_mem_source
     cont_mdiff_within_at 𝓘(𝕜, E) I' n (f ∘ (ext_chart_at I x).symm)
     ((ext_chart_at I x).symm ⁻¹' s ∩ range I) (ext_chart_at I x x') :=
 begin
-  simp_rw [cont_mdiff_within_at],
-  rw [(cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart_source
-    (chart_mem_maximal_atlas I x) hx'],
-  simp_rw [structure_groupoid.lift_prop_within_at_self_source],
-  -- get continuity of f ∘ ....
-  -- simp_rw [((chart_at H' y).continuous_at hy).comp_continuous_within_at hf],
-  -- rw [← ext_chart_at_source I'] at hy,
-  -- simp_rw [(ext_chart_at_continuous_at' I' _ hy).comp_continuous_within_at hf],
-  -- refl,
+  have h2x' := hx', rw [← ext_chart_at_source I] at h2x',
+  simp_rw [cont_mdiff_within_at,
+    (cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart_source
+    (chart_mem_maximal_atlas I x) hx', structure_groupoid.lift_prop_within_at_self_source,
+    ext_chart_at_symm_continuous_within_at_comp_right_iff, cont_diff_within_at_prop_self_source,
+    cont_diff_within_at_prop, function.comp, (chart_at H x).left_inv hx',
+    (ext_chart_at I x).left_inv h2x'],
+  refl,
 end
 
 lemma cont_mdiff_at_iff_source_of_mem_source
-  {x' : M} (hy : x' ∈ (chart_at H x).source) :
-  cont_mdiff_at I I' n f x' ↔ continuous_at f x' ∧
-    cont_mdiff_at 𝓘(𝕜, E) I' n (f ∘ (ext_chart_at I x).symm) (ext_chart_at I x x') :=
-begin
-  rw [cont_mdiff_at, cont_mdiff_within_at_iff_source_of_mem_source hy,
-    continuous_within_at_univ, cont_mdiff_at],
-  apply_instance
-end
+  {x' : M} (hx' : x' ∈ (chart_at H x).source) :
+  cont_mdiff_at I I' n f x' ↔ cont_mdiff_within_at 𝓘(𝕜, E) I' n (f ∘ (ext_chart_at I x).symm)
+    (range I) (ext_chart_at I x x') :=
+by simp_rw [cont_mdiff_at, cont_mdiff_within_at_iff_source_of_mem_source hx', preimage_univ,
+  univ_inter]
 
 lemma cont_mdiff_at_ext_chart_at' {x' : M} (h : x' ∈ (chart_at H x).source) :
   cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x' :=
@@ -437,7 +454,43 @@ end
 lemma cont_mdiff_at_ext_chart_at : cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x :=
 cont_mdiff_at_ext_chart_at' $ mem_chart_source H x
 
+lemma ext_chart_at_image_subset (hs : s ⊆ (chart_at H x).source) :
+  ext_chart_at I x '' s ⊆ (ext_chart_at I x).symm ⁻¹' s ∩ range I :=
+begin
+  rw [ext_chart_at_coe, ext_chart_at_coe_symm, preimage_comp, ← I.image_eq, image_comp,
+    (chart_at H x).image_eq_target_inter_inv_preimage hs],
+  exact image_subset _ (inter_subset_right _ _)
+end
+
 include I's
+
+/-- If the set where you want `f` to be smooth lies entirely in a single chart, and `f` maps it
+  into a single chart, the smoothness of `f` on that set can be expressed by purely looking in
+  these charts.
+  Note: this lemma uses `ext_chart_at I x '' s` instead of `(ext_chart_at I x).symm ⁻¹' s` to ensure
+  that this set lies in `(ext_chart_at I x).target`. -/
+lemma cont_mdiff_on_iff_of_subset_source {x : M} {y : M'}
+  (hs : s ⊆ (chart_at H x).source)
+  (h2s : f '' s ⊆ (chart_at H' y).source) :
+  cont_mdiff_on I I' n f s ↔ continuous_on f s ∧
+    cont_diff_on 𝕜 n (ext_chart_at I' y ∘ f ∘ (ext_chart_at I x).symm)
+    (ext_chart_at I x '' s) :=
+begin
+  split,
+  { refine λ H, ⟨λ x hx, (H x hx).1, _⟩,
+    rintro _ ⟨x', hx', rfl⟩,
+    refine ((cont_mdiff_within_at_iff_of_mem_source (hs hx') (h2s $ mem_image_of_mem f hx')).mp
+      (H _ hx')).2.mono (ext_chart_at_image_subset hs) },
+  { rintro ⟨h1, h2⟩ x' hx',
+    refine (cont_mdiff_within_at_iff_of_mem_source (hs hx') (h2s $ mem_image_of_mem f hx')).mpr
+      ⟨h1.continuous_within_at hx', _⟩,
+    refine (h2 _ $ mem_image_of_mem _ hx').mono_of_mem _,
+    rw [← ext_chart_at_source I] at hs,
+    rw [(ext_chart_at I x).image_eq_target_inter_inv_preimage hs],
+    refine inter_mem _ (ext_chart_preimage_mem_nhds_within' I x (hs hx') self_mem_nhds_within),
+    have := ext_chart_at_target_mem_nhds_within' I x (hs hx'),
+    refine nhds_within_mono _ (inter_subset_right _ _) this }
+end
 
 /-- One can reformulate smoothness on a set as continuity on this set, and smoothness in any
 extended chart. -/
@@ -568,7 +621,7 @@ lemma cont_mdiff.of_succ {n : ℕ} (h : cont_mdiff I I' n.succ f) :
   cont_mdiff I I' n f :=
 λ x, (h x).of_succ
 
-/-! ### Deducing continuity from smoothness-/
+/-! ### Deducing continuity from smoothness -/
 
 lemma cont_mdiff_within_at.continuous_within_at
   (hf : cont_mdiff_within_at I I' n f s x) : continuous_within_at f s x :=

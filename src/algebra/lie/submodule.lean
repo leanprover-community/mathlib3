@@ -185,6 +185,19 @@ instance lie_ideal.lie_ring (I : lie_ideal R L) : lie_ring I := lie_subalgebra.l
 instance lie_ideal.lie_algebra (I : lie_ideal R L) : lie_algebra R I :=
 lie_subalgebra.lie_algebra R L ↑I
 
+/-- Transfer the `lie_module` instance from the coercion `lie_ideal → lie_subalgebra`. -/
+instance lie_ideal.lie_ring_module (I : lie_ideal R L) : lie_ring_module I M :=
+lie_subalgebra.lie_ring_module (I : lie_subalgebra R L)
+
+@[simp]
+theorem lie_ideal.coe_bracket_of_module (I : lie_ideal R L) (x : I) (m : M) :
+  ⁅x,m⁆ = ⁅(↑x : L),m⁆ :=
+lie_subalgebra.coe_bracket_of_module (I : lie_subalgebra R L) x m
+
+/-- Transfer the `lie_module` instance from the coercion `lie_ideal → lie_subalgebra`. -/
+instance lie_ideal.lie_module (I : lie_ideal R L) : lie_module R I M :=
+lie_subalgebra.lie_module (I : lie_subalgebra R L)
+
 end lie_ideal
 
 variables {R M}

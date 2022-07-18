@@ -112,10 +112,11 @@ local notation `SX'` := equiv.perm X'
 
 instance : has_smul B X' :=
 { smul := λ b x, match x with
-  | from_coset y := from_coset ⟨b *l y, begin
-    rw [←subtype.val_eq_coe, ←y.2.some_spec, left_coset_assoc],
-    use b * y.2.some,
-  end⟩
+  | from_coset y := from_coset ⟨b *l y,
+    begin
+      rw [←subtype.val_eq_coe, ←y.2.some_spec, left_coset_assoc],
+      use b * y.2.some,
+    end⟩
   | ∞ := ∞
   end }
 

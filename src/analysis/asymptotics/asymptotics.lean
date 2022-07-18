@@ -143,14 +143,10 @@ theorem is_o.is_O (hgf : f =o[l] g) : f =O[l] g := hgf.is_O_with.is_O
 
 lemma is_O.is_O_with : f =O[l] g → ∃ c : ℝ, is_O_with c l f g := is_O_iff_is_O_with.1
 
-theorem is_O_with.weaken' (h : is_O_with c l f g) (hg : ∀ᶠ x in l, 0 ≤ ∥g x∥) (hc : c ≤ c') :
-  is_O_with c' l f g :=
-is_O_with.of_bound $ hg.mp $ h.bound.mono $ λ x hx hx',
-calc ∥f x∥ ≤ c * ∥g x∥ : hx
-... ≤ _ : mul_le_mul_of_nonneg_right hc hx'
-
 theorem is_O_with.weaken (h : is_O_with c l f g') (hc : c ≤ c') : is_O_with c' l f g' :=
-h.weaken' (eventually_of_forall $ λ _, norm_nonneg _) hc
+is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
+calc ∥f x∥ ≤ c * ∥g' x∥ : hx
+... ≤ _ : mul_le_mul_of_nonneg_right hc (norm_nonneg _)
 
 theorem is_O_with.exists_pos (h : is_O_with c l f g') :
   ∃ c' (H : 0 < c'), is_O_with c' l f g' :=
@@ -166,13 +162,6 @@ let ⟨c, cpos, hc⟩ := h.exists_pos in ⟨c, le_of_lt cpos, hc⟩
 theorem is_O.exists_nonneg (h : f =O[l] g') :
   ∃ c (H : 0 ≤ c), is_O_with c l f g' :=
 let ⟨c, hc⟩ := h.is_O_with in hc.exists_nonneg
-
-theorem is_O_with.nonneg_imp (h : is_O_with c l f g) (hc : 0 < c) :
-  ∀ᶠ x in l, 0 ≤ ∥f x∥ → 0 ≤ ∥g x∥ :=
-h.bound.mono $ λ x hle hf, nonneg_of_mul_nonneg_left (hf.trans hle) hc
-
-theorem is_o.nonneg_imp (h : f =o[l] g) : ∀ᶠ x in l, 0 ≤ ∥f x∥ → 0 ≤ ∥g x∥ :=
-h.is_O_with.nonneg_imp one_pos
 
 /-- `f = O(g)` if and only if `is_O_with c f g` for all sufficiently large `c`. -/
 lemma is_O_iff_eventually_is_O_with : f =O[l] g' ↔ ∀ᶠ c in at_top, is_O_with c l f g' :=

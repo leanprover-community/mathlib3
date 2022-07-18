@@ -25,7 +25,7 @@ See <https://stacks.math.columbia.edu/tag/03A3>
 ## Transfering "enough-injectiveness" across a functor
 If `𝓐, 𝓑` are abelian categories and `L ⊣ R` is a pair of adjoint functors such that `L` is
 faithful and exact (that is, preserves finite limits and colimits), then enough injectiveness of
-`𝓑` implies enough injectives of `𝓐`.
+`𝓑` implies enough injectiveness of `𝓐`.
 
 ## Notes
 The hypotheses, following the statement from the Stacks project,

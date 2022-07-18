@@ -306,7 +306,7 @@ protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basi
 
 @[simp] protected lemma map_apply {G : Type*} [inner_product_space 𝕜 G]
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) :
-b.map L i = L (b i) := rfl
+  b.map L i = L (b i) := rfl
 
 /-- A basis that is orthonormal is an orthonormal basis. -/
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :

@@ -1188,7 +1188,7 @@ def linear_equiv.isometry_of_inner (f : E ≃ₗ[𝕜] E') (h : ∀ x y, ⟪f x,
   (f.isometry_of_inner h).to_linear_equiv = f := rfl
 
 /-- A linear isometry preserves the property of being orthonormal. -/
-lemma linear_isometry.comp_orthonormal_iff {v : ι → E} (f : E →ₗᵢ[𝕜] E') :
+lemma linear_isometry.orthonormal_comp_iff {v : ι → E} (f : E →ₗᵢ[𝕜] E') :
   orthonormal 𝕜 (f ∘ v) ↔ orthonormal 𝕜 v :=
 begin
   classical,

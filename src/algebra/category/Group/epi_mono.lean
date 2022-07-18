@@ -263,11 +263,9 @@ begin
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
     (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simp),
   simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
-  exact equiv.swap_apply_of_ne_of_ne begin
-    refine from_coset_ne_of_nin_range _ (λ r, hb _),
-    convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
-    rw [←mul_assoc, mul_left_inv, one_mul],
-  end (by simp),
+  refine equiv.swap_apply_of_ne_of_ne (from_coset_ne_of_nin_range _ (λ r, hb _)) (by simp),
+  convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
+  rw [←mul_assoc, mul_left_inv, one_mul],
 end
 
 lemma agree : f.range.carrier = {x | h x = g x} :=

@@ -167,7 +167,7 @@ instance : comm_monoid (num_denom_same_deg 𝒜 x) :=
   mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
 
 instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
-{ pow := λ c n, ⟨n • c.deg, ⟨c.num ^ n, pow_mem n c.num.2⟩, ⟨c.denom ^ n, pow_mem n c.denom.2⟩,
+{ pow := λ c n, ⟨n • c.deg, ⟨c.num ^ n, pow_mem n c.num.2⟩, ⟨c.denom ^ n, pow_mem_graded n c.denom.2⟩,
     begin
       cases n,
       { simp only [pow_zero],

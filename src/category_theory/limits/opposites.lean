@@ -520,4 +520,120 @@ def is_limit_equiv_is_colimit_unop  {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z
 
 end pullback_cone
 
+section pullback
+
+open opposite
+
+/-- The pullback of `f` and `g` in `C` is isomorphic to the pushout of
+`f.op` and `g.op` in `Cᵒᵖ`. -/
+noncomputable
+def pullback_iso_unop_pushout {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_pushout f.op g.op] : pullback f g ≅ unop (pushout f.op g.op) :=
+is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
+  ((pushout_cocone.is_colimit_equiv_is_limit_unop _) (colimit.is_colimit (span f.op g.op)))
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_pullback f g] [has_pushout f.op g.op] :
+  (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
+    (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
+begin
+  refine (is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans _,
+  dsimp, simp, dsimp, simp,
+end
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_inv_snd {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
+    (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
+begin
+  refine (is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans _,
+  dsimp, simp, dsimp, simp,
+end
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_hom_inl {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  pushout.inl ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.fst.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pullback_iso_unop_pushout_inv_fst, iso.hom_inv_id_assoc],
+end
+
+@[simp, reassoc]
+lemma pullback_iso_unop_pushout_hom_inr {X Y Z : C} (f : X ⟶ Z)
+  (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
+  pushout.inr ≫ (pullback_iso_unop_pushout f g).hom.op = pullback.snd.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pullback_iso_unop_pushout_inv_snd, iso.hom_inv_id_assoc],
+end
+
+end pullback
+
+section pushout
+
+/-- The pushout of `f` and `g` in `C` is isomorphic to the pullback of
+ `f.op` and `g.op` in `Cᵒᵖ`. -/
+noncomputable
+def pushout_iso_unop_pullback {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] : pushout f g ≅ unop (pullback f.op g.op) :=
+is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+  ((pullback_cone.is_limit_equiv_is_colimit_unop _) (limit.is_limit (cospan f.op g.op)))
+.
+@[simp, reassoc]
+lemma pushout_iso_unop_pullback_inl_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
+    (pullback.fst : pullback f.op g.op ⟶ _).unop :=
+begin
+  refine (is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans _,
+  dsimp,
+  simp only [limit.cone_π, pullback_cone.unop_ι_app],
+  dsimp,
+  erw [nat_trans.id_app, unop_id],
+  dsimp,
+  simp,
+end
+
+@[simp, reassoc]
+lemma pushout_iso_unop_pullback_inr_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =
+    (pullback.snd : pullback f.op g.op ⟶ _).unop :=
+begin
+  refine (is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans _,
+  dsimp,
+  simp only [limit.cone_π, pullback_cone.unop_ι_app],
+  dsimp,
+  erw [nat_trans.id_app, unop_id],
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma pushout_iso_unop_pullback_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.fst = pushout.inl.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pushout_iso_unop_pullback_inl_hom, category.assoc, iso.hom_inv_id, category.comp_id],
+end
+
+@[simp]
+lemma pushout_iso_unop_pullback_inv_snd {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
+  [has_pushout f g] [has_pullback f.op g.op] :
+  (pushout_iso_unop_pullback f g).inv.op ≫ pullback.snd = pushout.inr.op :=
+begin
+  apply quiver.hom.unop_inj,
+  dsimp,
+  rw [← pushout_iso_unop_pullback_inr_hom, category.assoc, iso.hom_inv_id, category.comp_id],
+end
+
+end pushout
+
 end category_theory.limits

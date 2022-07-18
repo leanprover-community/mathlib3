@@ -5,6 +5,7 @@ Authors: Kevin Buzzard, David Kurniadi Angdinata
 -/
 
 import algebra.cubic_discriminant
+import tactic.linear_combination
 
 /-!
 # The category of elliptic curves (over a field or a PID)
@@ -147,23 +148,18 @@ def change_of_variable : EllipticCurve R :=
   disc_unit    :=
   { val     := u.inv ^ 12 * E.disc_unit.val,
     inv     := u.val ^ 12 * E.disc_unit.inv,
-    val_inv := by rw [← mul_assoc, ← mul_comm $ _ ^ 12, ← mul_assoc, ← mul_pow, u.val_inv, one_pow,
-                      one_mul, E.disc_unit.val_inv],
-    inv_val := by rw [← mul_assoc, ← mul_comm $ _ ^ 12, ← mul_assoc, ← mul_pow, u.inv_val, one_pow,
-                      one_mul, E.disc_unit.inv_val] },
+    val_inv := by { have hvi : (u.val * u.inv) ^ 12 = 1 := by rw [u.val_inv, one_pow],
+                    linear_combination hvi + u.val ^ 12 * u.inv ^ 12 * E.disc_unit.val_inv },
+    inv_val := by { have hvi : (u.val * u.inv) ^ 12 = 1 := by rw [u.val_inv, one_pow],
+                    linear_combination hvi + u.val ^ 12 * u.inv ^ 12 * E.disc_unit.val_inv } },
   disc_unit_eq := by { simp only [disc_unit_eq, disc_aux], ring1 } }
 
 lemma change_of_variable.j_eq_j : (E.change_of_variable u r s t).j = E.j :=
 begin
-  have lhs_rw : ∀ a₁ a₂ a₃ a₄ v : R,
-    v ^ 12 * (-48 * a₄ - 24 * a₁ * a₃ + 16 * a₂ ^ 2 + 8 * a₁ ^ 2 * a₂ + a₁ ^ 4) ^ 3
-    = (-48 * (v ^ 4 * a₄) - 24 * (v * a₁) * (v ^ 3 * a₃) + 16 * (v ^ 2 * a₂) ^ 2
-       + 8 * (v * a₁) ^ 2 * (v ^ 2 * a₂) + (v * a₁) ^ 4) ^ 3 :=
-  by { intros, ring1 },
   simp only [change_of_variable, j],
-  rw [mul_comm $ u.val ^ 12, mul_assoc, lhs_rw],
-  simp only [← mul_assoc u.val, ← mul_assoc (u.val ^ _), ← mul_pow, u.val_inv],
-  ring1
+  have hvi : (u.val * u.inv) ^ 12 = 1 := by rw [u.val_inv, one_pow],
+  linear_combination E.disc_unit.inv
+    * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3 * hvi
 end
 
 end change_of_variables

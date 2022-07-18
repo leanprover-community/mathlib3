@@ -37,7 +37,7 @@ e.g., when `α` is a finite field. See `quadratic_char_mul`.
 We will later define `quadratic_char` to be a multiplicative character
 of type `mul_char F ℤ`, when the domain is a finite field `F`.
 -/
-def quadratic_char_def (α : Type*) [monoid_with_zero α] [decidable_eq α]
+def quadratic_char_fun (α : Type*) [monoid_with_zero α] [decidable_eq α]
   [decidable_pred (is_square : α → Prop)] (a : α) : ℤ :=
 if a = 0 then 0 else if is_square a then 1 else -1
 
@@ -58,9 +58,9 @@ open mul_char
 variables {F : Type*} [field F] [fintype F] [decidable_eq F]
 
 /-- Some basic API lemmas -/
-lemma quadratic_char_eq_zero_iff' {a : F} : quadratic_char_def F a = 0 ↔ a = 0 :=
+lemma quadratic_char_eq_zero_iff' {a : F} : quadratic_char_fun F a = 0 ↔ a = 0 :=
 begin
-  simp only [quadratic_char_def],
+  simp only [quadratic_char_fun],
   by_cases ha : a = 0,
   { simp only [ha, eq_self_iff_true, if_true], },
   { simp only [ha, if_false, iff_false],
@@ -68,35 +68,35 @@ begin
 end
 
 @[simp]
-lemma quadratic_char_zero : quadratic_char_def F 0 = 0 :=
-by simp only [quadratic_char_def, eq_self_iff_true, if_true, id.def]
+lemma quadratic_char_zero : quadratic_char_fun F 0 = 0 :=
+by simp only [quadratic_char_fun, eq_self_iff_true, if_true, id.def]
 
 @[simp]
-lemma quadratic_char_one : quadratic_char_def F 1 = 1 :=
-by simp only [quadratic_char_def, one_ne_zero, is_square_one, if_true, if_false, id.def]
+lemma quadratic_char_one : quadratic_char_fun F 1 = 1 :=
+by simp only [quadratic_char_fun, one_ne_zero, is_square_one, if_true, if_false, id.def]
 
-/-- If `ring_char F = 2`, then `quadratic_char_def F` takes the value `1` on nonzero elements. -/
+/-- If `ring_char F = 2`, then `quadratic_char_fun F` takes the value `1` on nonzero elements. -/
 lemma quadratic_char_eq_one_of_char_two' (hF : ring_char F = 2) {a : F} (ha : a ≠ 0) :
-  quadratic_char_def F a = 1 :=
+  quadratic_char_fun F a = 1 :=
 begin
-  simp only [quadratic_char_def, ha, if_false, ite_eq_left_iff],
+  simp only [quadratic_char_fun, ha, if_false, ite_eq_left_iff],
   intro h,
   exfalso,
   exact h (finite_field.is_square_of_char_two hF a),
 end
 
-/-- If `ring_char F` is odd, then `quadratic_char_def F a` can be computed in
+/-- If `ring_char F` is odd, then `quadratic_char_fun F a` can be computed in
 terms of `a ^ (fintype.card F / 2)`. -/
 lemma quadratic_char_eq_pow_of_char_ne_two' (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
-  quadratic_char_def F a = if a ^ (fintype.card F / 2) = 1 then 1 else -1 :=
+  quadratic_char_fun F a = if a ^ (fintype.card F / 2) = 1 then 1 else -1 :=
 begin
-  simp only [quadratic_char_def, ha, if_false],
+  simp only [quadratic_char_fun, ha, if_false],
   simp_rw finite_field.is_square_iff hF ha,
 end
 
 /-- The quadratic character is multiplicative. -/
 lemma quadratic_char_mul (a b : F) :
-  quadratic_char_def F (a * b) = quadratic_char_def F a * quadratic_char_def F b :=
+  quadratic_char_fun F (a * b) = quadratic_char_fun F a * quadratic_char_fun F b :=
 begin
   by_cases ha : a = 0,
   { rw [ha, zero_mul, quadratic_char_zero, zero_mul], },
@@ -128,7 +128,7 @@ variables (F)
 
 /-- The quadratic character as a multiplicative character. -/
 @[simps] def quadratic_char : mul_char F ℤ :=
-{ to_fun := quadratic_char_def F,
+{ to_fun := quadratic_char_fun F,
   map_one' := quadratic_char_one,
   map_mul' := quadratic_char_mul,
   map_nonunit' := λ a ha, by { rw of_not_not (mt ne.is_unit ha), exact quadratic_char_zero, } }
@@ -142,12 +142,12 @@ quadratic_char_eq_zero_iff'
 /-- For nonzero `a : F`, `quadratic_char F a = 1 ↔ is_square a`. -/
 lemma quadratic_char_one_iff_is_square {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ↔ is_square a :=
-by simp only [quadratic_char_apply, quadratic_char_def, ha, (dec_trivial : (-1 : ℤ) ≠ 1),
+by simp only [quadratic_char_apply, quadratic_char_fun, ha, (dec_trivial : (-1 : ℤ) ≠ 1),
               if_false, ite_eq_left_iff, imp_false, not_not]
 
 /-- The quadratic character takes the value `1` on nonzero squares. -/
 lemma quadratic_char_sq_one' {a : F} (ha : a ≠ 0) : quadratic_char F (a ^ 2) = 1 :=
-by simp only [quadratic_char_def, ha, pow_eq_zero_iff, nat.succ_pos', is_square_sq, if_true,
+by simp only [quadratic_char_fun, ha, pow_eq_zero_iff, nat.succ_pos', is_square_sq, if_true,
               if_false, quadratic_char_apply]
 
 /-- The square of the quadratic character on nonzero arguments is `1`. -/

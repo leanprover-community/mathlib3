@@ -208,7 +208,7 @@ end
 
 lemma strict_mono_on.Iic_le_id [pred_order α] [is_pred_archimedean α] [order_top α]
   {n : α} {φ : α → α} (hφ : strict_mono_on φ (set.Ici n)) :
-  ∀ m ≥ n, φ m ≤ m :=
+  ∀ m, n ≤ m → φ m ≤ m :=
 @strict_mono_on.Iic_id_le αᵒᵈ _ _ _ _ _ _ ( λ i hi j hj (hij : j < i), hφ hj hi hij)
 
 variables [preorder β] {ψ : α → β}

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Scott Morrison
 import algebra.hom.group_action
 import algebra.indicator_function
 import data.finset.preimage
+import data.list.alist
 
 /-!
 # Type of functions with finite support
@@ -774,7 +775,96 @@ end
 @[simp] lemma graph_eq_empty {f : α →₀ M} : f.graph = ∅ ↔ f = 0 :=
 (graph_injective α M).eq_iff' graph_zero
 
+/-- When turned into a list of key/value pairs, a graph has no duplicate keys. -/
+lemma graph_nodupkeys (f : α →₀ M) : (list.map prod.to_sigma f.graph.to_list).nodupkeys :=
+begin
+  rw [list.nodupkeys, list.keys, list.map_map, prod.fst_to_sigma_comp, list.nodup_map_iff_inj_on],
+  { rintros ⟨b, m⟩ hb ⟨c, n⟩ hc (rfl : b = c),
+    rw [mem_to_list, finsupp.mem_graph_iff] at hb hc,
+    dsimp at hb hc,
+    rw [←hc.1, hb.1] },
+  { apply nodup_to_list }
+end
+
 end graph
+
+end finsupp
+
+/-! ### Declarations about `list.lookup_finsupp` and `alist.lookup_finsupp` -/
+
+section lookup_finsupp
+
+variable [has_zero M]
+
+namespace alist
+open list
+
+/-- Converts an association list into a finitely supported function via `alist.lookup`, sending
+absent keys to zero. -/
+@[simps] def lookup_finsupp (l : alist (λ _ : α, M)) : α →₀ M :=
+{ support := (l.1.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset,
+  to_fun := λ a, (l.lookup a).get_or_else 0,
+  mem_support_to_fun := λ a, begin
+    simp_rw [mem_to_finset, list.mem_keys, list.mem_filter, ←mem_lookup_iff],
+    cases lookup a l;
+    simp
+  end }
+
+alias lookup_finsupp_to_fun ← lookup_finsupp_apply
+
+end alist
+
+namespace list
+
+/-- Converts a list of key/value pairs into a finitely supported function via `list.lookup`, sending
+absent keys to zero. -/
+def lookup_finsupp (l : list (Σ x : α, M)) : α →₀ M := l.to_alist.lookup_finsupp
+
+@[simp] lemma to_alist_lookup_finsupp (l : list (Σ x : α, M)) :
+  l.to_alist.lookup_finsupp = l.lookup_finsupp :=
+rfl
+
+@[simp] lemma lookup_finsupp_support (l : list (Σ x : α, M)) :
+  l.lookup_finsupp.support = (l.dedupkeys.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset :=
+rfl
+
+@[simp] lemma lookup_finsupp_apply (l : list (Σ x : α, M)) (a : α) :
+  l.lookup_finsupp a = (l.lookup a).get_or_else 0 :=
+by rw [lookup_finsupp, alist.lookup_finsupp_apply, alist.lookup_to_alist]
+
+@[simp] lemma lookup_finsupp_graph (f : α →₀ M) :
+  (f.graph.to_list.map prod.to_sigma).lookup_finsupp = f :=
+begin
+  ext,
+  by_cases h : f a = 0,
+  { suffices : lookup a (map prod.to_sigma f.graph.to_list) = none,
+    { simp [h, this] },
+    { simp [lookup_eq_none, h, keys] } },
+  { suffices : lookup a (map prod.to_sigma f.graph.to_list) = some (f a),
+    { simp [h, this] },
+    { apply (mem_lookup_iff f.graph_nodupkeys).2,
+      simpa using h } }
+end
+
+lemma lookup_finsupp_surjective : surjective (@lookup_finsupp α M _) :=
+λ f, ⟨_, lookup_finsupp_graph f⟩
+
+end list
+
+namespace alist
+
+@[simp] lemma mk_lookup_finsupp (l : list (Σ x : α, M)) (h : l.nodupkeys) :
+  (alist.mk l h).lookup_finsupp = l.lookup_finsupp :=
+by { ext, rw list.lookup_finsupp_apply, refl }
+
+lemma lookup_finsupp_surjective : surjective (@alist.lookup_finsupp α M _) :=
+λ f, ⟨_, (mk_lookup_finsupp _ f.graph_nodupkeys).trans $ list.lookup_finsupp_graph f⟩
+
+end alist
+
+end lookup_finsupp
+
+namespace finsupp
 
 /-!
 ### Declarations about `sum` and `prod`

@@ -123,8 +123,8 @@ theorem lookup_eq_none {a : α} {s : alist β} :
 lookup_eq_none
 
 theorem mem_lookup_iff {a : α} {b : β a} {s : alist β} :
-  b ∈ s.lookup a ↔ sigma.mk a b ∈ s.entries :=
-list.mem_lookup_iff s.nodupkeys
+  b ∈ lookup a s ↔ sigma.mk a b ∈ s.entries :=
+mem_lookup_iff s.nodupkeys
 
 theorem perm_lookup {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   s₁.lookup a = s₂.lookup a :=

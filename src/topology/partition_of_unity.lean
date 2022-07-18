@@ -137,12 +137,44 @@ lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 
 lemma sum_eq_one {x : X} (hx : x ∈ s) : ∑ᶠ i, f i x = 1 := f.sum_eq_one' x hx
 
+lemma exists_pos {x : X} (hx : x ∈ s) : ∃ i, 0 < f i x :=
+begin
+  have H := f.sum_eq_one hx,
+  contrapose! H,
+  simpa only [λ i, (H i).antisymm (f.nonneg i x), finsum_zero] using zero_ne_one
+end
+
 lemma sum_le_one (x : X) : ∑ᶠ i, f i x ≤ 1 := f.sum_le_one' x
 
 lemma sum_nonneg (x : X) : 0 ≤ ∑ᶠ i, f i x := finsum_nonneg $ λ i, f.nonneg i x
 
 lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 (single_le_finsum i (f.locally_finite.point_finite x) (λ j, f.nonneg j x)).trans (f.sum_le_one x)
+
+lemma continuous_finsum_smul {Y : Type*} [add_comm_monoid Y] [smul_with_zero ℝ Y]
+  [topological_space Y] [has_continuous_add Y] [has_continuous_smul ℝ Y]
+  {s : set X} (f : partition_of_unity ι X s) {g : ι → X → Y}
+  (hg : ∀ i (x ∈ tsupport (f i)), continuous_at (g i) x) :
+  continuous (λ x, ∑ᶠ i, f i x • g i x) :=
+begin
+  refine continuous_finsum (λ i, _) (f.locally_finite.subset $ λ i x, mt _),
+  { refine continuous_of_tsupport (λ x hx, _),
+    exact ((f i).continuous_at x).smul (hg i x $ tsupport_smul_subset_left _ _ hx) },
+  { intro h, simp only [h, zero_smul] }
+end
+
+lemma finsum_mul_pos {g : ι → X → ℝ} (hg : ∀ i (x ∈ support (f i)), 0 < g i x) {x : X}
+  (hx : x ∈ s) : 0 < ∑ᶠ i, f i x * g i x :=
+begin
+  have hf : (support (λ i, f i x * g i x)).finite,
+    from (f.locally_finite.point_finite _).subset (support_mul_subset_left _ _),
+  rw [finsum_eq_sum _ hf],
+  refine finset.sum_pos (λ i hi, _) _,
+  { rw [hf.mem_to_finset, mem_support, mul_ne_zero_iff] at hi,
+    exact mul_pos ((f.nonneg i x).lt_of_ne' hi.1) (hg _ _ hi.1) },
+  { rcases f.exists_pos hx with ⟨i, hi⟩,
+    exact ⟨i, hf.mem_to_finset.2 $ mul_ne_zero hi.ne' (hg _ _ hi.ne').ne'⟩ }
+end
 
 /-- A partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same type if
 for each `i` the closure of the support of `f i` is a subset of `U i`. -/
@@ -156,6 +188,13 @@ lemma exists_finset_nhd_support_subset {U : ι → set X}
   ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),
     support (λ i, f i z) ⊆ is :=
 f.locally_finite.exists_finset_nhd_support_subset hso ho x
+
+lemma is_subordinate.continuous_finsum_smul {Y : Type*} [add_comm_monoid Y] [smul_with_zero ℝ Y]
+  [topological_space Y] [has_continuous_add Y] [has_continuous_smul ℝ Y]
+  {s : set X} {f : partition_of_unity ι X s} {U : ι → set X} (h : f.is_subordinate U) {g : ι → X → Y}
+  (hg : ∀ i (x ∈ U i), continuous_at (g i) x) :
+  continuous (λ x, ∑ᶠ i, f i x • g i x) :=
+f.continuous_finsum_smul $ λ i x hx, hg i x $ h _ hx
 
 end partition_of_unity
 

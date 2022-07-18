@@ -55,7 +55,7 @@ unity.
 smooth bump function, partition of unity
 -/
 
-universes uι uE uH uM
+universes uι uE uH uM uF
 
 open function filter finite_dimensional set
 open_locale topological_space manifold classical filter big_operators
@@ -64,6 +64,7 @@ noncomputable theory
 
 variables {ι : Type uι}
 {E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{F : Type uF} [normed_group F] [normed_space ℝ F]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -146,6 +147,17 @@ smooth_finsum (λ i, (f i).smooth) f.locally_finite
 lemma le_one (i : ι) (x : M) : f i x ≤ 1 := f.to_partition_of_unity.le_one i x
 
 lemma sum_nonneg (x : M) : 0 ≤ ∑ᶠ i, f i x := f.to_partition_of_unity.sum_nonneg x
+
+lemma smooth_smul {g : M → F} {i} (hg : ∀ x ∈ tsupport (f i), smooth_at I 𝓘(ℝ, F) g x) :
+  smooth I 𝓘(ℝ, F) (λ x, f i x • g x) :=
+cont_mdiff_of_support $ λ x hx, (f i).smooth.smooth_at.smul $ hg x $
+  tsupport_smul_subset_left _ _ hx
+
+lemma smooth_finsum_smul {g : ι → M → F}
+  (hg : ∀ i (x ∈ tsupport (f i)), smooth_at I 𝓘(ℝ, F) (g i) x) :
+  smooth I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
+smooth_finsum (λ i, f.smooth_smul (hg i)) $ f.locally_finite.subset $
+  λ i, support_smul_subset_left _ _
 
 /-- A smooth partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same
 type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/
@@ -372,8 +384,6 @@ begin
   exact nmem_support.1 (subset_compl_comm.1 (hf.support_subset i) hx)
 end
 
-variable {I}
-
 namespace smooth_partition_of_unity
 
 /-- A `smooth_partition_of_unity` that consists of a single function, uniformly equal to one,
@@ -388,7 +398,7 @@ def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
   end
 
 instance [inhabited ι] (s : set M) : inhabited (smooth_partition_of_unity ι I M s) :=
-⟨single default s⟩
+⟨single I default s⟩
 
 variables [t2_space M] [sigma_compact_space M]
 

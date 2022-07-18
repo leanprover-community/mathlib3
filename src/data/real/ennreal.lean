@@ -1903,3 +1903,27 @@ lemma supr_coe_nat : (⨆n:ℕ, (n : ℝ≥0∞)) = ∞ :=
 end supr
 
 end ennreal
+
+namespace set
+namespace ord_connected
+
+variables {s : set ℝ} {t : set ℝ≥0} {u : set ℝ≥0∞}
+
+lemma preimage_coe_nnreal_ennreal (h : u.ord_connected) : (coe ⁻¹' u : set ℝ≥0).ord_connected :=
+h.preimage_mono ennreal.coe_mono
+
+lemma image_coe_nnreal_ennreal (h : t.ord_connected) : (coe '' t : set ℝ≥0∞).ord_connected :=
+begin
+  refine ⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz, _⟩,
+  rcases ennreal.le_coe_iff.1 hz.2 with ⟨z, rfl, hzy⟩,
+  exact mem_image_of_mem _ (h.out hx hy ⟨ennreal.coe_le_coe.1 hz.1, ennreal.coe_le_coe.1 hz.2⟩)
+end
+
+lemma preimage_ennreal_of_real (h : u.ord_connected) : (ennreal.of_real ⁻¹' u).ord_connected :=
+h.preimage_coe_nnreal_ennreal.preimage_real_to_nnreal
+
+lemma image_ennreal_of_real (h : s.ord_connected) : (ennreal.of_real '' s).ord_connected :=
+by simpa only [image_image] using h.image_real_to_nnreal.image_coe_nnreal_ennreal
+
+end ord_connected
+end set

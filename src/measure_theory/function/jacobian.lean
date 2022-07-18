@@ -331,7 +331,7 @@ begin
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
       = {f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε),
       by rw [smul_add, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
-        smul_zero, singleton_add_closed_ball_zero, ← A.image_smul_set,
+        smul_zero, singleton_add_closed_ball_zero, ← image_smul_set ℝ E E A,
         smul_closed_ball _ _ zero_le_one, smul_zero, real.norm_eq_abs, abs_of_nonneg r0, mul_one,
         mul_comm],
     rw this at K,

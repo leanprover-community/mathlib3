@@ -1135,13 +1135,43 @@ calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
   (eventually_gt_at_top 0).mono $ λ x hx, (log_rpow hx _).symm
      ... =o[at_top] (λ x, x ^ r)       : is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)
 
-lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
+lemma is_o_log_rpow_rpow_at_top {s : ℝ} (r : ℝ) (hs : 0 < s) :
   (λ x, log x ^ r) =o[at_top] (λ x, x ^ s) :=
-have H : 0 < s / r, from div_pos hs hr,
-calc (λ x, log x ^ r) =o[at_top] (λ x, (x ^ (s / r)) ^ r) :
+let r' := max r 1 in
+have hr : 0 < r', from lt_max_iff.2 $ or.inr one_pos,
+have H : 0 < s / r', from div_pos hs hr,
+calc (λ x, log x ^ r) =O[at_top] (λ x, log x ^ r') :
+  is_O.of_bound 1 $ (tendsto_log_at_top.eventually_ge_at_top 1).mono $ λ x hx,
+    have hx₀ : 0 ≤ log x, from zero_le_one.trans hx,
+    by simp [norm_eq_abs, abs_rpow_of_nonneg, abs_rpow_of_nonneg hx₀,
+      rpow_le_rpow_of_exponent_le (hx.trans (le_abs_self _))]
+                  ... =o[at_top] (λ x, (x ^ (s / r')) ^ r') :
   (is_o_log_rpow_at_top H).rpow hr $ (tendsto_rpow_at_top H).eventually $ eventually_ge_at_top 0
                   ... =ᶠ[at_top] (λ x, x ^ s) :
   (eventually_ge_at_top 0).mono $ λ x hx, by simp only [← rpow_mul hx, div_mul_cancel _ hr.ne']
+
+lemma is_o_abs_log_rpow_rpow_nhds_zero {s : ℝ} (r : ℝ) (hs : s < 0) :
+  (λ x, |log x| ^ r) =o[𝓝[>] 0] (λ x, x ^ s) :=
+((is_o_log_rpow_rpow_at_top r (neg_pos.2 hs)).comp_tendsto tendsto_inv_zero_at_top).congr'
+  (mem_of_superset (Icc_mem_nhds_within_Ioi $ set.left_mem_Ico.2 one_pos) $
+    λ x hx, by simp [abs_of_nonpos, log_nonpos hx.1 hx.2])
+  (eventually_mem_nhds_within.mono $ λ x hx,
+    by rw [function.comp_app, inv_rpow hx.out.le, rpow_neg hx.out.le, inv_inv])
+
+lemma is_o_log_rpow_nhds_zero {r : ℝ} (hr : r < 0) : log =o[𝓝[>] 0] (λ x, x ^ r) :=
+(is_o_abs_log_rpow_rpow_nhds_zero 1 hr).neg_left.congr'
+  (mem_of_superset (Icc_mem_nhds_within_Ioi $ set.left_mem_Ico.2 one_pos) $
+    λ x hx, by simp [abs_of_nonpos (log_nonpos hx.1 hx.2)])
+  eventually_eq.rfl
+
+lemma tendsto_log_div_rpow_nhds_zero {r : ℝ} (hr : r < 0) :
+  tendsto (λ x, log x / x ^ r) (𝓝[>] 0) (𝓝 0) :=
+(is_o_log_rpow_nhds_zero hr).tendsto_div_nhds_zero
+
+lemma tensdto_log_mul_rpow_nhds_zero {r : ℝ} (hr : 0 < r) :
+  tendsto (λ x, log x * x ^ r) (𝓝[>] 0) (𝓝 0) :=
+(tendsto_log_div_rpow_nhds_zero $ neg_lt_zero.2 hr).congr' $
+  eventually_mem_nhds_within.mono $ λ x hx, by rw [rpow_neg hx.out.le, div_inv_eq_mul]
 
 end limits
 

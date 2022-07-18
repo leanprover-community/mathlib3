@@ -118,7 +118,7 @@ begin
   have hanz : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
   have : σ'.symm a ≠ 0 := (ring_hom.map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
   change _ ⊆ σ _ • _,
-  rw [set.image_subset_iff, f.preimage_smul_setₛₗ this.is_unit],
+  rw [set.image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit],
   refine hr (σ'.symm a) _,
   rwa σ'_symm_iso.norm_map_of_map_zero (map_zero _)
 end
@@ -164,7 +164,7 @@ section uniform_add_group
 
 variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-variables [regular_space E]
+variables [t3_space E]
 
 lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
   bornology.is_vonN_bounded 𝕜 s :=

@@ -208,7 +208,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_map_eq_pow_single [decidable_eq α] [monoid β] {l : list α} (a : α)
+lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α)
   (f : α → β) (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) :
   (l.map f).prod = (f a) ^ (l.count a) :=
 begin

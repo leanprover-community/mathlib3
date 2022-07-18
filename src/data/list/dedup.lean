@@ -77,7 +77,7 @@ lemma repeat_dedup {x : α} : ∀ {k}, k ≠ 0 → (repeat x k).dedup = [x]
 | (n+2) _ := by rw [repeat_succ, dedup_cons_of_mem (mem_repeat.2 ⟨n.succ_ne_zero, rfl⟩),
     repeat_dedup n.succ_ne_zero]
 
-lemma count_dedup [decidable_eq α] (l : list α) (a : α) :
+lemma count_dedup (l : list α) (a : α) :
   l.dedup.count a = if a ∈ l then 1 else 0 :=
 begin
   refine trans (count_eq_of_nodup $ nodup_dedup l) _,
@@ -85,7 +85,7 @@ begin
 end
 
 /-- Summing the count of `x` over a list filtered by some `p` is just `countp` applied to `p` -/
-lemma sum_map_count_dedup_filter_eq_countp [decidable_eq α] (p : α → Prop) [decidable_pred p]
+lemma sum_map_count_dedup_filter_eq_countp (p : α → Prop) [decidable_pred p]
   (l : list α) : ((l.dedup.filter p).map $ λ x, l.count x).sum = l.countp p :=
 begin
   induction l with a as h,
@@ -107,7 +107,7 @@ begin
         exact ha'.2.symm } } },
 end
 
-lemma sum_map_count_dedup_eq_length [decidable_eq α] (l : list α) :
+lemma sum_map_count_dedup_eq_length (l : list α) :
   (l.dedup.map $ λ x, l.count x).sum = l.length :=
 calc (l.dedup.map $ λ x, l.count x).sum
   = ((l.dedup.filter $ λ x, true).map (λ x, l.count x)).sum :

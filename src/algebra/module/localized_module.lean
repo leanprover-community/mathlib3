@@ -164,7 +164,7 @@ lemma add_zero' (x : localized_module S M) : x + 0 = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, add_zero, mk_eq];
   exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
-instance has_nat_scalar : has_scalar ℕ (localized_module S M) :=
+instance has_nat_smul : has_smul ℕ (localized_module S M) :=
 { smul := λ n, nat.rec_on n (λ x, 0) (λ m f x, x + f x) }
 
 lemma nsmul_zero' (x : localized_module S M) : (0 : ℕ) • x = 0 :=
@@ -184,7 +184,7 @@ instance : add_comm_monoid (localized_module S M) :=
   nsmul_succ' := nsmul_succ',
   add_comm := add_comm' }
 
-instance : has_scalar (localization S) (localized_module S M) :=
+instance : has_smul (localization S) (localized_module S M) :=
 { smul := λ f x, localization.lift_on f (λ r s, lift_on x (λ p, mk (r • p.1) (s * p.2))
     begin
       rintros ⟨m1, t1⟩ ⟨m2, t2⟩ ⟨u, h⟩,
@@ -208,7 +208,7 @@ instance : has_scalar (localization S) (localized_module S M) :=
 lemma mk_smul_mk (r : R) (m : M) (s t : S) :
   localization.mk r s • mk m t = mk (r • m) (s * t) :=
 begin
-  unfold has_scalar.smul,
+  unfold has_smul.smul,
   rw [localization.lift_on_mk, lift_on_mk],
 end
 

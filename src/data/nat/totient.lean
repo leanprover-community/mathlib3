@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.zmod.basic
-import data.nat.periodic
-import data.nat.factorization.basic
 import algebra.char_p.two
+import data.nat.factorization.basic
+import data.nat.periodic
+import data.zmod.basic
 
 /-!
 # Euler's totient function

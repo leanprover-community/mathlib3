@@ -232,7 +232,7 @@ lemma cont_mdiff_within_at_univ :
   cont_mdiff_within_at I I' n f univ x ↔ cont_mdiff_at I I' n f x :=
 iff.rfl
 
-lemma smooth_at_univ :
+lemma smooth_within_at_univ :
  smooth_within_at I I' f univ x ↔ smooth_at I I' f x := cont_mdiff_within_at_univ
 
 lemma cont_mdiff_on_univ :
@@ -240,8 +240,7 @@ lemma cont_mdiff_on_univ :
 by simp only [cont_mdiff_on, cont_mdiff, cont_mdiff_within_at_univ,
   forall_prop_of_true, mem_univ]
 
-lemma smooth_on_univ :
-  smooth_on I I' f univ ↔ smooth I I' f := cont_mdiff_on_univ
+lemma smooth_on_univ : smooth_on I I' f univ ↔ smooth I I' f := cont_mdiff_on_univ
 
 /-- One can reformulate smoothness within a set at a point as continuity within this set at this
 point, and smoothness in the corresponding extended chart. -/
@@ -624,6 +623,13 @@ lemma smooth_within_at.smooth_at
   (h : smooth_within_at I I' f s x) (ht : s ∈ 𝓝 x) :
   smooth_at I I' f x :=
 cont_mdiff_within_at.cont_mdiff_at h ht
+
+lemma cont_mdiff_on.cont_mdiff_at (h : cont_mdiff_on I I' n f s) (hx : s ∈ 𝓝 x) :
+  cont_mdiff_at I I' n f x :=
+(h x (mem_of_mem_nhds hx)).cont_mdiff_at hx
+
+lemma smooth_on.smooth_at (h : smooth_on I I' f s) (hx : s ∈ 𝓝 x) : smooth_at I I' f x :=
+h.cont_mdiff_at hx
 
 include Is
 

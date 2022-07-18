@@ -52,7 +52,7 @@ subsingleton_singleton.countable
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :
   s.countable ↔ ∃ f : α → ℕ, inj_on f s :=
-countable_iff_exists_injective.trans
+set.countable_iff_exists_injective.trans
 ⟨λ ⟨f, hf⟩, ⟨λ a, if h : a ∈ s then f ⟨a, h⟩ else 0,
    λ a as b bs h, congr_arg subtype.val $
      hf $ by simpa [as, bs] using h⟩,

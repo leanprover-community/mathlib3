@@ -160,6 +160,11 @@ namespace rat
 theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
 | ⟨a, b, h1, h2⟩ := (division_ring.rat_cast_mk _ _ _ _).trans (div_eq_mul_inv _ _).symm
 
+instance smul_division_ring : has_smul ℚ K :=
+⟨division_ring.qsmul⟩
+
+lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
+
 end rat
 
 local attribute [simp]
@@ -413,19 +418,22 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
   [has_zero K'] [has_one K'] [has_add K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K']
-  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ]
+  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_smul ℚ K'] [has_pow K' ℕ] [has_pow K' ℤ]
   [has_nat_cast K'] [has_int_cast K'] [has_rat_cast K']
   (f : K' → K) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (rat_cast : ∀ n : ℚ, f n = n) :
   division_ring K' :=
 { rat_cast := coe,
   rat_cast_mk := λ a b h1 h2, hf (by erw [rat_cast, mul, inv, int_cast, nat_cast];
                                      exact division_ring.rat_cast_mk a b h1 h2),
+  qsmul := (•),
+  qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
   .. hf.group_with_zero f zero one mul inv div npow zpow,
   .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
@@ -449,18 +457,21 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.field [field K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
-  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ]
+  [has_div K'] [has_smul ℕ K'] [has_smul ℤ K'] [has_smul ℚ K'] [has_pow K' ℕ] [has_pow K' ℤ]
   [has_nat_cast K'] [has_int_cast K'] [has_rat_cast K']
   (f : K' → K) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (rat_cast : ∀ n : ℚ, f n = n) :
   field K' :=
 { rat_cast := coe,
   rat_cast_mk := λ a b h1 h2, hf (by erw [rat_cast, mul, inv, int_cast, nat_cast];
                                      exact division_ring.rat_cast_mk a b h1 h2),
+  qsmul := (•),
+  qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
   .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
   .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }

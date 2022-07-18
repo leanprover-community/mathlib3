@@ -154,14 +154,14 @@ protected lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x := fun_li
 @[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
 
 /-- The `ring_equiv` between two semirings with a unique element. -/
-def ring_equiv_of_unique_of_unique {M N}
+def ring_equiv_of_unique {M N}
   [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] : M ≃+* N :=
-{ ..add_equiv.add_equiv_of_unique_of_unique,
-  ..mul_equiv.mul_equiv_of_unique_of_unique}
+{ ..add_equiv.add_equiv_of_unique,
+  ..mul_equiv.mul_equiv_of_unique}
 
 instance {M N} [unique M] [unique N] [has_add M] [has_mul M] [has_add N] [has_mul N] :
   unique (M ≃+* N) :=
-{ default := ring_equiv_of_unique_of_unique,
+{ default := ring_equiv_of_unique,
   uniq := λ _, ext $ λ x, subsingleton.elim _ _ }
 
 variable (R)

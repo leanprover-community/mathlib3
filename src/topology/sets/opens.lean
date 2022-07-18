@@ -7,6 +7,7 @@ import order.hom.complete_lattice
 import topology.bases
 import topology.homeomorph
 import topology.continuous_function.basic
+import order.compactly_generated
 
 /-!
 # Open sets
@@ -23,7 +24,7 @@ We define the subtype of open sets in a topological space.
 
 open filter function order set
 
-variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
+variables {ι α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 
 namespace topological_space
 variable (α)
@@ -88,10 +89,20 @@ lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) := iff
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
-@[simp, norm_cast] lemma coe_inf {U V : opens α} : ((U ⊓ V : opens α) : set α) = U ∩ V := rfl
-@[simp] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
-@[simp] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
-@[simp] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i := (@gc α _).l_Sup
+@[simp, norm_cast] lemma coe_inf (s t : opens α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
+@[simp, norm_cast] lemma coe_sup (s t : opens α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
+@[simp, norm_cast] lemma coe_bot : ((⊥ : opens α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_top : ((⊤ : opens α) : set α) = set.univ := rfl
+@[simp, norm_cast] lemma coe_Sup {S : set (opens α)} : (↑(Sup S) : set α) = ⋃ i ∈ S, ↑i :=
+(@gc α _).l_Sup
+
+@[simp, norm_cast] lemma coe_finset_sup (f : ι → opens α) (s : finset ι) :
+  (↑(s.sup f) : set α) = s.sup (coe ∘ f) :=
+map_finset_sup (⟨⟨coe, coe_sup⟩, coe_bot⟩ : sup_bot_hom (opens α) (set α)) _ _
+
+@[simp, norm_cast] lemma coe_finset_inf (f : ι → opens α) (s : finset ι) :
+  (↑(s.inf f) : set α) = s.inf (coe ∘ f) :=
+map_finset_inf (⟨⟨coe, coe_inf⟩, coe_top⟩ : inf_top_hom (opens α) (set α)) _ _
 
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
@@ -188,6 +199,23 @@ begin
     (λ i : ι, (b i).1),
   { convert hb, ext, simp },
   { exact hb' }
+end
+
+@[simp] lemma is_compact_element_iff (s : opens α) :
+  complete_lattice.is_compact_element s ↔ is_compact (s : set α) :=
+begin
+  rw [is_compact_iff_finite_subcover, complete_lattice.is_compact_element_iff],
+  refine ⟨_, λ H ι U hU, _⟩,
+  { introv H hU hU',
+    obtain ⟨t, ht⟩ := H ι (λ i, ⟨U i, hU i⟩) (by simpa),
+    refine ⟨t, set.subset.trans ht _⟩,
+    rw [coe_finset_sup, finset.sup_eq_supr],
+    refl },
+  { obtain ⟨t, ht⟩ := H (λ i, U i) (λ i, (U i).prop)
+      (by simpa using (show (s : set α) ⊆ ↑(supr U), from hU)),
+    refine ⟨t, set.subset.trans ht _⟩,
+    simp only [set.Union_subset_iff],
+    show ∀ i ∈ t, U i ≤ t.sup U, from λ i, finset.le_sup }
 end
 
 /-- The preimage of an open set, as an open set. -/

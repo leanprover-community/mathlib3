@@ -1807,8 +1807,7 @@ instance submodule.inner_product_space (W : submodule 𝕜 E) : inner_product_sp
 
 lemma orthonormal.restrict_range {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v)
   (s : submodule 𝕜 E) (hvs : ∀ i, v i ∈ s) :
-  @orthonormal 𝕜 s _ _ ι
-    (λ i : ι, ⟨v i, hvs i⟩) :=
+  @orthonormal 𝕜 s _ _ ι (set.cod_restrict v s hvs) :=
 s.subtypeₗᵢ.orthonormal_comp_iff.mp hv
 
 lemma orthonormal_span {ι : Type*} {v : ι → E} (hv : orthonormal 𝕜 v) :

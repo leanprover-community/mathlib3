@@ -513,8 +513,9 @@ def Scheme.affine_opens (X : Scheme) : set (opens X.carrier) :=
 { U : opens X.carrier | is_affine_open U }
 
 /-- The basic open set of a section `f` on an an affine open as an `X.affine_opens`. -/
-abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens} (f : X.presheaf.obj $ op U) :
-  X.affine_opens := ⟨X.basic_open f, U.prop.basic_open_is_affine f⟩
+abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
+  (f : X.presheaf.obj $ op U) : X.affine_opens :=
+⟨X.basic_open f, U.prop.basic_open_is_affine f⟩
 
 @[simp]
 lemma is_affine_open.from_Spec_map_basic_open {X : Scheme} {U : opens X.carrier}

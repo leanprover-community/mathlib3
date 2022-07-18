@@ -10,7 +10,20 @@ import meta.expr
 
 `expand_exists` is an attribute which takes a proof that something exists with some property, and
 outputs a value using `classical.some`, and a proof that it has that property using
-`classical.some_spec`.
+`classical.some_spec`. For example:
+
+```lean
+@[expand_exists it it_spec]
+lemma it_exists (n : ℕ) : ∃ m : ℕ, n < m := sorry
+```
+
+produces
+
+```
+def it (n : ℕ) : ℕ := classical.some (it_exists n)
+
+lemma it_spec (n : ℕ) : n < it n := classical.some_spec (it_exists n)
+```
 -/
 
 namespace tactic

@@ -241,25 +241,42 @@ def flip_comp_evaluation (F : A ⥤ B ⥤ C) (a) :
   F.flip ⋙ (evaluation _ _).obj a ≅ F.obj a :=
 nat_iso.of_components (λ b, eq_to_iso rfl) $ by tidy
 
+variables (A B C)
+
+/-- The forward direction for `functor_prod_functor_equiv` -/
+@[simps] def prod_functor_to_functor_prod : (A ⥤ B) × (A ⥤ C) ⥤ A ⥤ B × C :=
+{ obj := λ F, F.1.prod' F.2,
+  map := λ F G f, { app := λ X, (f.1.app X, f.2.app X) } }
+
+/-- The backward direction for `functor_prod_functor_equiv` -/
+@[simps] def functor_prod_to_prod_functor : (A ⥤ B × C) ⥤ (A ⥤ B) × (A ⥤ C) :=
+{ obj := λ F, ⟨F ⋙ (category_theory.prod.fst B C), F ⋙ (category_theory.prod.snd B C)⟩,
+  map := λ F G α,
+  ⟨{ app := λ X, (α.app X).1,
+     naturality' := λ X Y f,
+     by simp only [functor.comp_map, prod.fst_map, ←prod_comp_fst, α.naturality] },
+   { app := λ X, (α.app X).2,
+     naturality' := λ X Y f,
+     by simp only [functor.comp_map, prod.snd_map, ←prod_comp_snd, α.naturality] }⟩ }
+
+/-- The unit isomorphism for `functor_prod_functor_equiv` -/
+@[simps] def functor_prod_functor_equiv_unit_iso :
+  𝟭 _ ≅ prod_functor_to_functor_prod A B C ⋙ functor_prod_to_prod_functor A B C :=
+nat_iso.of_components
+  (λ F, (((functor.prod'_comp_fst _ _).prod (functor.prod'_comp_snd _ _)).trans
+  (prod.eta_iso F)).symm) (λ F G α, by {tidy})
+
+/-- The counit isomorphism for `functor_prod_functor_equiv` -/
+@[simps] def functor_prod_functor_equiv_counit_iso :
+  functor_prod_to_prod_functor A B C ⋙ prod_functor_to_functor_prod A B C ≅ 𝟭 _ :=
+nat_iso.of_components
+  (λ F, nat_iso.of_components (λ X, prod.eta_iso (F.obj X)) (by tidy)) (by tidy)
+
 /-- The equivalence of categories between `(A ⥤ B) × (A ⥤ C)` and `A ⥤ (B × C)` -/
-@[simps]
-def functor_prod_functor_equiv : ((A ⥤ B) × (A ⥤ C)) ≌ (A ⥤ (B × C)) :=
-{ functor :=
-  { obj := λ F, F.1.prod' F.2,
-    map := λ F G f, { app := λ X, (f.1.app X, f.2.app X) } },
-  inverse :=
-  { obj := λ F, ⟨F ⋙ (category_theory.prod.fst B C), F ⋙ (category_theory.prod.snd B C)⟩,
-    map := λ F G α,
-    ⟨{ app := λ X, (α.app X).1,
-       naturality' := λ X Y f,
-        by simp only [functor.comp_map, prod.fst_map, ←prod_comp_fst, α.naturality] },
-     { app := λ X, (α.app X).2,
-       naturality' := λ X Y f,
-        by simp only [functor.comp_map, prod.snd_map, ←prod_comp_snd, α.naturality] }⟩ },
-  unit_iso := nat_iso.of_components
-    (λ F, (((functor.prod'_comp_fst _ _).prod (functor.prod'_comp_snd _ _)).trans
-    (prod.eta_iso F)).symm) (by tidy),
-  counit_iso := nat_iso.of_components
-    (λ F, nat_iso.of_components (λ X, prod.eta_iso (F.obj X)) (by tidy)) (by tidy) }
+@[simps] def functor_prod_functor_equiv : ((A ⥤ B) × (A ⥤ C)) ≌ (A ⥤ (B × C)) :=
+{ functor := prod_functor_to_functor_prod A B C,
+  inverse := functor_prod_to_prod_functor A B C,
+  unit_iso := functor_prod_functor_equiv_unit_iso A B C,
+  counit_iso := functor_prod_functor_equiv_counit_iso A B C }
 
 end category_theory

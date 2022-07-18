@@ -410,24 +410,22 @@ lemma factorization_le_factorization_choose_add' {p n k : ℕ} (hp : p.prime) :
 --------------------------------------------------------------------------------------------------
 -- vvv Versions to translate into `factorization` vvv
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
-  multiplicity p (choose (p ^ n) k) + multiplicity p k = n := sorry
+-- lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
+--   (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+--   multiplicity p (choose (p ^ n) k) + multiplicity p k = n := sorry
 
+
+-- lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+--   (choose (p ^ n) k).factorization p + k.factorization p = n :=
+-- begin
+--   have H := multiplicity_choose_prime_pow hp hkn hk0,
+--   have h1 := λ H, not_lt_of_le hkn (choose_eq_zero_iff.1 H),
+--   rw [multiplicity_eq_factorization hp h1, multiplicity_eq_factorization hp hk0.ne'] at H,
+--   norm_cast at H,
+--   exact part_enat.coe_inj.1 H,
+-- end
 
 lemma factorization_choose_prime_pow {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
-  (choose (p ^ n) k).factorization p + k.factorization p = n :=
-begin
-  have H := multiplicity_choose_prime_pow hp hkn hk0,
-  have h1 := λ H, not_lt_of_le hkn (choose_eq_zero_iff.1 H),
-  rw [multiplicity_eq_factorization hp h1, multiplicity_eq_factorization hp hk0.ne'] at H,
-  norm_cast at H,
-  exact part_enat.coe_inj.1 H,
-end
-
-
-
-lemma factorization_choose_prime_pow' {p n k : ℕ} (hp : p.prime) (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
   (choose (p ^ n) k).factorization p + k.factorization p = n :=
 begin
   refine le_antisymm _ _,

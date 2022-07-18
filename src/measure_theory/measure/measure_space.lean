@@ -2601,6 +2601,160 @@ begin
   exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
 end
 
+
+
+
+
+lemma _root_.ennreal.Union_Ioi_add_inv_nat (z : ℝ≥0∞) :
+  (⋃ (n : ℕ), Ioi (z + n⁻¹)) = Ioi z :=
+begin
+  refine subset_antisymm _ _,
+  { apply Union_subset,
+    intro n,
+    exact Ioi_subset_Ioi_iff.mpr (le_add_of_le_of_nonneg le_rfl (zero_le (n : ℝ≥0∞)⁻¹)), },
+  { intros x z_lt_x,
+    have diff_pos : 0 < x - z := tsub_pos_of_lt z_lt_x,
+    rcases ennreal.exists_inv_nat_lt diff_pos.ne.symm with ⟨m, hm⟩,
+    simp only [mem_Union, mem_Ioi],
+    exact ⟨m, lt_tsub_iff_left.mp hm⟩, },
+end
+
+lemma _root_.ennreal.Union_Ioi_inv_nat :
+  (⋃ (n : ℕ), Ioi ((n : ℝ≥0∞)⁻¹)) = {x : ℝ≥0∞ | x ≠ 0} :=
+by simp_rw [(show {x : ℝ≥0∞ | x ≠ 0} = Ioi 0, by { ext x, exact pos_iff_ne_zero.symm, }),
+            ← ennreal.Union_Ioi_add_inv_nat 0, zero_add]
+
+lemma _root_.ennreal.Union_Ici_add_inv_nat {z : ℝ≥0∞} (z_ne_top : z ≠ ∞) :
+  (⋃ (n : ℕ), Ici (z + n⁻¹)) = Ioi z :=
+begin
+  refine subset_antisymm _ _,
+  { apply Union_subset,
+    intro n,
+    apply Ici_subset_Ioi.mpr,
+    simpa using ennreal.add_lt_add_of_le_of_lt z_ne_top le_rfl
+                (ennreal.inv_pos.mpr (ennreal.nat_ne_top n)), },
+  { intros x z_lt_x,
+    have diff_pos : 0 < x - z := tsub_pos_of_lt z_lt_x,
+    rcases ennreal.exists_inv_nat_lt diff_pos.ne.symm with ⟨m, hm⟩,
+    simp only [mem_Union, mem_Ici],
+    exact ⟨m, (lt_tsub_iff_left.mp hm).le⟩, },
+end
+
+lemma _root_.ennreal.Union_Ici_inv_nat :
+  (⋃ (n : ℕ), Ici ((n : ℝ≥0∞)⁻¹)) = {x : ℝ≥0∞ | x ≠ 0} :=
+by simp_rw [(show {x : ℝ≥0∞ | x ≠ 0} = Ioi 0, by { ext x, exact pos_iff_ne_zero.symm, }),
+            ← ennreal.Union_Ici_add_inv_nat ennreal.zero_ne_top, zero_add]
+
+lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] {μ : measure α}
+  {ε : ℝ≥0∞} (ε_pos : 0 < ε) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
+  set.finite {i : ι | ε ≤ μ (As i)} :=
+begin
+  by_contradiction con,
+  set substantial := {i : ι | ε ≤ μ (As i)} with h_substantial,
+  let pickseq := set.infinite.nat_embedding _ con,
+  set js := (λ n, (pickseq.to_fun n).val) with js_def,
+  have js_inj : function.injective js,
+  { intros n m hnm,
+    simp only [js_def, function.embedding.to_fun_eq_coe, subtype.val_eq_coe] at hnm,
+    have equ : pickseq.to_fun n = pickseq.to_fun m, by { ext, exact hnm, },
+    exact pickseq.injective equ, },
+  have disj : pairwise (disjoint on (λ (n : ℕ), As (js n))),
+    from λ n m hnm b hb, As_disj (js n) (js m) (function.injective.ne js_inj hnm) hb,
+  have huge : μ (⋃ n, As (js n)) = ∑' n, μ (As (js n)), from measure_Union disj (λ n, As_mble _),
+  have large_terms : ∀ n, ε ≤ μ (As (js n)), from λ n, (pickseq.to_fun n).property,
+  have diverges : ∑' n, μ (As (js n)) = ∞,
+  { have obs : ∑' (n : ℕ), ε ≤ ∑' n, μ (As (js n)), from ennreal.tsum_le_tsum large_terms,
+    rw (show ∑' (n : ℕ), ε = ∞, from ennreal.tsum_const_eq_top_of_ne_zero ε_pos.ne.symm) at obs,
+    exact eq_top_iff.mpr obs, } ,
+  have sub : (⋃ n, As (js n)) ⊆ (⋃ i, As i), from Union_subset (λ n, subset_Union _ _),
+  have shouldnot := lt_of_le_of_lt (show μ (⋃ n, As (js n)) ≤ μ (⋃ i, As i), from measure_mono sub)
+                    Union_As_finite,
+  rw [huge, diverges] at shouldnot,
+  exact lt_irrefl _  shouldnot,
+end
+
+lemma countable_meas_pos_of_disjoint_Union' {ι : Type*} [measurable_space α]
+  {μ : measure α} {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
+  set.countable {i : ι | 0 < μ (As i)} :=
+begin
+  set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
+  set fairmeas := λ (n : ℕ) , {i : ι | μ (As i) ≥ 1/n} with fairmeas_def,
+  have countable_union : posmeas = (⋃ n, fairmeas(n)) ,
+  { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (n : ℝ≥0∞)⁻¹,
+    { intro n,
+      simpa only [fairmeas_def, one_div, ge_iff_le], },
+    simpa only [fairmeas_eq, posmeas_def, ← preimage_Union,
+                ennreal.Union_Ici_inv_nat, pos_iff_ne_zero.symm], },
+  have countable_pieces : ∀ n, set.countable (fairmeas n),
+  { intros n,
+    apply finite.countable,
+    apply finite_const_le_meas_of_disjoint_Union _ As_mble As_disj Union_As_finite,
+    simp only [one_div, ennreal.add_eq_top, ennreal.nat_ne_top, ne.def, ennreal.one_ne_top,
+               not_false_iff, ennreal.inv_pos, or_self], } ,
+  rw countable_union,
+  exact countable_Union countable_pieces,
+end
+
+
+
+
+
+lemma forall_measure_inter_spanning_sets_eq_zero
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
+begin
+  split,
+  { intros h,
+    rw (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
+        by rw [← inter_Union, Union_spanning_sets, inter_univ]),
+    exact measure_Union_null_iff.mpr h, },
+  { intros s_null n,
+    exact le_antisymm (le_trans (measure_mono (inter_subset_left _ _)) s_null.le) (zero_le _), },
+end
+
+lemma exists_measure_inter_spanning_sets_pos
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∃ n, μ (s ∩ (spanning_sets μ n)) > 0) ↔ μ s > 0 :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists, not_lt, nonpos_iff_eq_zero],
+  exact forall_measure_inter_spanning_sets_eq_zero s,
+end
+
+lemma countable_meas_pos_of_disjoint_Union
+  {ι : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  set.countable {i : ι | 0 < μ (As i)} :=
+begin
+  have := spanning_sets μ,
+  have obs : {i : ι | 0 < μ (As i)} = (⋃ n, {i : ι | 0 < μ ((As i) ∩ (spanning_sets μ n))}),
+  { ext i,
+    split,
+    { assume i_in_nonzeroes,
+      by_contra con,
+      simp only [mem_Union, mem_set_of_eq, not_exists, not_lt, nonpos_iff_eq_zero] at *,
+      simpa [(forall_measure_inter_spanning_sets_eq_zero _).mp con] using i_in_nonzeroes, },
+    { assume i_in_Union,
+      rcases mem_Union.mp i_in_Union with ⟨n, hn⟩,
+      simp only [mem_set_of_eq] at *,
+      exact lt_of_lt_of_le hn (measure_mono (inter_subset_left _ _)), }, },
+  rw obs,
+  apply countable_Union,
+  intros n,
+  apply countable_meas_pos_of_disjoint_Union',
+  { exact λ i, measurable_set.inter (As_mble i) (measurable_spanning_sets μ n), },
+  { exact λ i j i_ne_j b hb, As_disj i j i_ne_j ⟨hb.1.1, hb.2.1⟩, },
+  { refine lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n),
+    exact Union_subset (λ i, inter_subset_right _ _), },
+end
+
+
+
+
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
 This only holds when `μ` is σ-finite. For a version without this assumption (but requiring

@@ -9,14 +9,14 @@ import topology.sheaves.stalks
 
 /-!
 
-Locally surjective maps of presheaves.
+# Locally surjective maps of presheaves.
 
-Let X be a topological space, ℱ and 𝒢 presheaves on X, T : ℱ ⟶ 𝒢 a map.
+Let `X` be a topological space, `ℱ` and `𝒢` presheaves on `X`, `T : ℱ ⟶ 𝒢` a map.
 
 In this file we formulate two notions for what it means for
 T to be locally surjective:
 
-  1. For each open set U, each section t ∈ 𝒢(U) is in the image of T
+  1. For each open set U, each section t : 𝒢(U) is in the image of T
      after passing to some open cover of U.
 
   2. For each x : X, the map of *stalks* Tₓ : ℱₓ ⟶ 𝒢ₓ is surjective.
@@ -56,9 +56,7 @@ def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
 
 section surjective_on_stalks
 
-variables
-  [category_theory.limits.has_colimits C]
-  [category_theory.limits.preserves_filtered_colimits (forget C)]
+variables [limits.has_colimits C] [limits.preserves_filtered_colimits (forget C)]
 
 /-- An equivalent condition for a map of presheaves to be locally surjective
 is for all the induced maps on stalks to be surjective. -/
@@ -76,7 +74,7 @@ begin
     -- Let g ∈ Γₛₜ 𝒢 x be a germ.
     intros x g,
     -- Represent it on an open set U ⊆ X as ⟨t, U⟩.
-    rcases 𝒢.germ_exist x g with ⟨U, hxU, t, rfl⟩,
+    obtain ⟨U, hxU, t, rfl⟩ :=  𝒢.germ_exist x g,
     -- By local surjectivity, pass to a smaller open set V
     -- on which there exists s ∈ Γ_ ℱ V mapping to t |_ V.
     rcases hT U t x hxU with ⟨V, ι, hxV, s, h_eq⟩,

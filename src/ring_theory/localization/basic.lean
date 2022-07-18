@@ -987,7 +987,7 @@ from map_ne_zero_of_mem_non_zero_divisors (algebra_map R S) (is_localization.inj
 
 variables {S}
 
-lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) {x : S} :
+lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
   ((sec M x).snd : R) ≠ 0 :=
 begin
   change ((⟨(sec M x).snd.val, hM (sec M x).snd.property⟩ : non_zero_divisors R) : R) ≠ 0,
@@ -1000,7 +1000,7 @@ begin
   have hsec := sec_spec M x,
   intro hfst,
   rw [hfst, map_zero, mul_eq_zero, _root_.map_eq_zero_iff] at hsec,
-  { exact or.elim hsec hx (sec_snd_ne_zero hM) },
+  { exact or.elim hsec hx (sec_snd_ne_zero hM x) },
   { exact is_localization.injective S hM }
 end
 

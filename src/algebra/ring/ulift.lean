@@ -106,7 +106,7 @@ tactic.pi_instance_derive_field
 instance [has_rat_cast α] : has_rat_cast (ulift α) :=
 ⟨λ a, ulift.up (coe a)⟩
 
-@[simp] lemma cast_rat_down [has_rat_cast α] (n : ℚ) : ulift.down (n : ulift α) = n :=
+@[simp] lemma rat_cast_down [has_rat_cast α] (n : ℚ) : ulift.down (n : ulift α) = n :=
 rfl
 
 instance field [field α] : field (ulift α) :=
@@ -114,7 +114,7 @@ begin
   have of_rat_mk : ∀ a b h1 h2, ((⟨a, b, h1, h2⟩ : ℚ) : ulift α) = ↑a * (↑b)⁻¹,
   { intros a b h1 h2,
     ext,
-    rw [cast_rat_down, mul_down, inv_down, cast_nat_down, cast_int_down],
+    rw [rat_cast_down, mul_down, inv_down, nat_cast_down, int_cast_down],
     exact field.rat_cast_mk a b h1 h2 },
   refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
   zpow := λ n a, ulift.up (a.down ^ n), rat_cast := coe, rat_cast_mk := of_rat_mk, qsmul := (•),

@@ -77,7 +77,7 @@ instance add_monoid_with_one [add_monoid_with_one α] : add_monoid_with_one (uli
   nat_cast_succ := λ n, congr_arg ulift.up (nat.cast_succ _),
   .. ulift.has_one, .. ulift.add_monoid }
 
-@[simp] lemma cast_nat_down [add_monoid_with_one α] (n : ℕ) :
+@[simp] lemma nat_cast_down [add_monoid_with_one α] (n : ℕ) :
   (n : ulift α).down = n :=
 rfl
 
@@ -107,7 +107,7 @@ instance add_group_with_one [add_group_with_one α] : add_group_with_one (ulift 
   int_cast_neg_succ_of_nat := λ n, congr_arg ulift.up (int.cast_neg_succ_of_nat _),
   .. ulift.add_monoid_with_one, .. ulift.add_group }
 
-@[simp] lemma cast_int_down [add_group_with_one α] (n : ℤ) :
+@[simp] lemma int_cast_down [add_group_with_one α] (n : ℤ) :
   (n : ulift α).down = n :=
 rfl
 

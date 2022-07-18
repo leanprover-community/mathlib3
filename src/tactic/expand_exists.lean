@@ -3,9 +3,7 @@ Copyright (c) 2022 Ian Wood. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ian Wood
 -/
-import init.meta.declaration
 import meta.expr
-import init.meta.lean.parser
 
 /-!
 # `expand_exists`

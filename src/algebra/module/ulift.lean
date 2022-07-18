@@ -57,8 +57,9 @@ instance mul_action [monoid R] [mul_action R M] : mul_action (ulift R) M :=
 instance mul_action' [monoid R] [mul_action R M] :
   mul_action R (ulift M) :=
 { smul := (•),
-  mul_smul := λ r s f, by { cases f, ext, simp [mul_smul], },
-  one_smul := λ f, by { ext, simp [one_smul], } }
+  mul_smul := λ r s ⟨f⟩, ext _ _ $ mul_smul _ _ _,
+  one_smul := λ ⟨f⟩, ext _ _ $ one_smul _ _,
+  ..ulift.has_smul_left }
 
 instance distrib_mul_action [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action (ulift R) M :=

@@ -280,6 +280,11 @@ by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
 iff.trans (is_O_iff_is_bounded_under_le_div $ eventually_of_forall $ λ x, exp_ne_zero _) $
   by simp only [norm_eq_abs, abs_exp, ← exp_sub, is_bounded_under_le_exp_comp, pi.sub_def]
 
+@[simp] lemma is_Theta_exp_comp_exp_comp {α : Type*} {l : filter α} {f g : α → ℝ} :
+  (λ x, exp (f x)) =Θ[l] (λ x, exp (g x)) ↔ is_bounded_under (≤) l (λ x, |f x - g x|) :=
+by simp only [is_bounded_under_le_abs, ← is_bounded_under_le_neg, neg_sub, is_Theta,
+  is_O_exp_comp_exp_comp, pi.sub_def]
+
 /-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
 from below under `f`. -/
 @[simp] lemma is_O_one_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
@@ -288,18 +293,15 @@ by simp only [← exp_zero, is_O_exp_comp_exp_comp, pi.sub_def, zero_sub, is_bou
 
 /-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
 from below under `f`. -/
-@[simp] lemma is_O_exp_comp_one {α : Type*} {l : filter α} {f : α → ℝ} :
+lemma is_O_exp_comp_one {α : Type*} {l : filter α} {f : α → ℝ} :
   (λ x, exp (f x)) =O[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l f :=
 by simp only [is_O_one_iff, norm_eq_abs, abs_exp, is_bounded_under_le_exp_comp]
-
-@[simp] lemma is_Theta_exp_comp_exp_comp
 
 /-- `real.exp (f x)` is bounded away from zero and infinity along a filter `l` if and only if
 `|f x|` is bounded from above along this filter. -/
 @[simp] lemma is_Theta_exp_comp_one {α : Type*} {l : filter α} {f : α → ℝ} :
   (λ x, exp (f x)) =Θ[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l (λ x, |f x|) :=
-by simp only [is_Theta, is_O_one_exp_comp, is_O_const_of_ne (@one_ne_zero ℝ _ _), (∘), norm_eq_abs,
-  abs_exp, is_bounded_under_le_exp_comp, is_bounded_under_le_abs]
+by simp only [← exp_zero, is_Theta_exp_comp_exp_comp, sub_zero]
 
 end real
 

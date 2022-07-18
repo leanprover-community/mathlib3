@@ -318,8 +318,6 @@ protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basi
   (b : orthonormal_basis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) :
 b.map L i = L (b i) := rfl
 
-variable {v : ι → E}
-
 /-- A basis that is orthonormal is an orthonormal basis. -/
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   orthonormal_basis ι 𝕜 E :=
@@ -391,7 +389,7 @@ e₀.map φ.symm
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
-              linear_isometry_equiv.coe_of_eq_apply]*
+              linear_isometry_equiv.coe_of_eq_apply]
 
 open submodule
 

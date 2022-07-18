@@ -18,8 +18,10 @@ This file contains two equivalence:
 
 namespace Group
 
-@[simps]
-def to_AddGroup : Group ⥤ AddGroup :=
+/--
+The functor `Group ⥤ AddGroup` by sending `X ↦ additive X` and `f ↦ f`.
+-/
+@[simps] def to_AddGroup : Group ⥤ AddGroup :=
 { obj := λ X, ⟨additive X⟩,
   map := λ X Y f,
   { to_fun := λ x, f x,
@@ -32,8 +34,10 @@ end Group
 
 namespace CommGroup
 
-@[simps]
-def to_AddCommGroup : CommGroup ⥤ AddCommGroup :=
+/--
+The functor `CommGroup ⥤ AddCommGroup` by sending `X ↦ additive X` and `f ↦ f`.
+-/
+@[simps] def to_AddCommGroup : CommGroup ⥤ AddCommGroup :=
 { obj := λ X, ⟨additive X⟩,
   map := λ X Y f,
   { to_fun := λ x, f x,
@@ -46,8 +50,10 @@ end CommGroup
 
 namespace AddGroup
 
-@[simps]
-def to_Group : AddGroup ⥤ Group :=
+/--
+The functor `AddGroup ⥤ Group` by sending `X ↦ multiplicative Y` and `f ↦ f`.
+-/
+@[simps] def to_Group : AddGroup ⥤ Group :=
 { obj := λ X, ⟨multiplicative X⟩,
   map := λ X Y f,
   { to_fun := λ x, f x,
@@ -60,8 +66,10 @@ end AddGroup
 
 namespace AddCommGroup
 
-@[simps]
-def to_CommGroup : AddCommGroup ⥤ CommGroup :=
+/--
+The functor `AddCommGroup ⥤ CommGroup` by sending `X ↦ multiplicative Y` and `f ↦ f`.
+-/
+@[simps] def to_CommGroup : AddCommGroup ⥤ CommGroup :=
 { obj := λ X, ⟨multiplicative X⟩,
   map := λ X Y f,
   { to_fun := λ x, f x,
@@ -72,8 +80,10 @@ def to_CommGroup : AddCommGroup ⥤ CommGroup :=
 
 end AddCommGroup
 
-@[simps]
-def Group_AddGroup_equivalence : Group ≌ AddGroup :=
+/--
+The equivalence of categories between `Group` and `AddGroup`
+-/
+@[simps] def Group_AddGroup_equivalence : Group ≌ AddGroup :=
 { functor := Group.to_AddGroup,
   inverse := AddGroup.to_Group,
   unit_iso :=
@@ -96,6 +106,9 @@ def Group_AddGroup_equivalence : Group ≌ AddGroup :=
     inv_hom_id' := rfl },
   functor_unit_iso_comp' := λ X, rfl }
 
+/--
+The equivalence of categories between `CommGroup` and `AddCommGroup`.
+-/
 def CommGroup_AddCommGroup_equivalence : CommGroup ≌ AddCommGroup :=
 { functor := CommGroup.to_AddCommGroup,
   inverse := AddCommGroup.to_CommGroup,

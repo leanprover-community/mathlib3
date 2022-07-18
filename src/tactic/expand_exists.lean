@@ -157,7 +157,7 @@ meta def expand_exists_attr : user_attribute unit (list name) :=
     { original_decl := d,
       decl := λ is_t n ty val, (tactic.to_expr val >>= λ val,
         tactic.add_decl (if is_t then declaration.thm n d.univ_params ty (pure val)
-          else declaration.defn n d.univ_params ty val default ff)),
+          else declaration.defn n d.univ_params ty val default tt)),
       names := names } d.type) }
 
 add_tactic_doc

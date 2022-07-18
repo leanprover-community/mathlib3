@@ -160,6 +160,7 @@ namespace rat
 theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
 | ⟨a, b, h1, h2⟩ := (division_ring.rat_cast_mk _ _ _ _).trans (div_eq_mul_inv _ _).symm
 
+@[priority 100]
 instance smul_division_ring : has_smul ℚ K :=
 ⟨division_ring.qsmul⟩
 

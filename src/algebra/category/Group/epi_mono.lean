@@ -8,7 +8,7 @@ import group_theory.quotient_group
 import algebra.category.Group.basic
 
 /-!
-# Monomorphisms and epimorphism in `Group`
+# Monomorphisms and epimorphisms in `Group`
 In this file, we prove monomorphisms in category of group are injective homomorphisms and
 epimorphisms are surjective homomorphisms.
 -/
@@ -87,10 +87,11 @@ local notation `SX'` := equiv.perm X'
 
 instance : has_smul B X' :=
 { smul := λ b x, match x with
-  | from_coset y := from_coset ⟨b *l y, begin
-    rw [←subtype.val_eq_coe, ←y.2.some_spec, left_coset_assoc],
-    use b * y.2.some,
-  end⟩
+  | from_coset y := from_coset ⟨b *l y,
+    begin
+      rw [←subtype.val_eq_coe, ←y.2.some_spec, left_coset_assoc],
+      use b * y.2.some,
+    end⟩
   | ∞ := ∞
   end }
 
@@ -143,8 +144,8 @@ instance : decidable_eq X' := classical.dec_eq _
 /--
 Let `τ` be the permutation on `X'` exchanging `f.range` and the point at infinity.
 -/
-def tau : SX' := equiv.swap
-(from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
+noncomputable def tau : SX' :=
+equiv.swap (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
 
 local notation `τ` := tau f
 
@@ -178,7 +179,7 @@ def G : B →* SX' :=
     inv_fun := λ x, β⁻¹ • x,
     left_inv := λ x, by dsimp only; rw [←mul_smul, mul_left_inv, one_smul],
     right_inv := λ x, by dsimp only; rw [←mul_smul, mul_right_inv, one_smul] },
-  map_one' := by ext; simp [one_smul],
+  map_one' := by { ext, simp [one_smul] },
   map_mul' := λ b1 b2, by ext; simp [mul_smul] }
 
 local notation `g` := G f
@@ -193,7 +194,7 @@ def H : B →* SX':=
 
 local notation `h` := H f
 
-/--
+/-!
 The strategy is the following: assuming `epi f`
 * prove that `f.range = {x | h x = g x}`;
 * thus `f ≫ h = f ≫ g` so that `h = g`;
@@ -207,8 +208,7 @@ lemma g_apply_from_coset (x : B) (y : X) :
     use x * y.2.some,
   end⟩ := rfl
 
-lemma g_apply_infinity (x : B) :
-  (g x) ∞ = ∞ := rfl
+lemma g_apply_infinity (x : B) : (g x) ∞ = ∞ := rfl
 
 lemma h_apply_infinity (x : B) (hx : x ∈ f.range) :
   (h x) ∞ = ∞ :=
@@ -238,36 +238,32 @@ begin
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
     (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simp),
   simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
-  exact equiv.swap_apply_of_ne_of_ne begin
-    refine from_coset_ne_of_nin_range _ (λ r, hb _),
-    convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
-    rw [←mul_assoc, mul_left_inv, one_mul],
-  end (by simp),
+  refine equiv.swap_apply_of_ne_of_ne (from_coset_ne_of_nin_range _ (λ r, hb _)) (by simp),
+  convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
+  rw [←mul_assoc, mul_left_inv, one_mul],
 end
 
-lemma agree :
-  f.range.carrier = {x | h x = g x} :=
-set.ext $ λ b,
-⟨begin
-  rintros ⟨a, rfl⟩,
-  change h (f a) = g (f a),
-  ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
-  { rw [g_apply_from_coset],
-    by_cases m : y ∈ f.range,
-    { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
-      change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
-      simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
-        left_coset_assoc] },
-    { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
-      simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
-  { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], },
-end, λ (hb : h b = g b), classical.by_contradiction $ λ r, begin
-  have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-    (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
-  have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
-  exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]),
-end⟩
+lemma agree : f.range.carrier = {x | h x = g x} :=
+begin
+  refine set.ext (λ b, ⟨_, λ (hb : h b = g b), classical.by_contradiction (λ r, _)⟩),
+  { rintros ⟨a, rfl⟩,
+    change h (f a) = g (f a),
+    ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
+    { rw [g_apply_from_coset],
+      by_cases m : y ∈ f.range,
+      { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
+        change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
+        simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
+          left_coset_assoc] },
+      { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
+        simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
+    { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], } },
+  { have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
+    have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+      (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
+    exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]) }
+end
 
 lemma comp_eq : f ≫ (show B ⟶ Group.of SX', from g) = f ≫ h :=
 fun_like.ext _ _ $ λ a,

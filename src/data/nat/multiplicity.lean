@@ -130,18 +130,13 @@ end
 lemma factorization_eq_zero_iff_remainder (p i r : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :
   (¬ p ∣ r) ↔ (p * i + r).factorization p = 0 :=
 begin
-  rcases eq_or_ne i 0 with rfl | hi0, {
-    simp,
-    rw factorization_eq_zero_iff',
-    rw [or_rotate],
-    refine ⟨or.inl, (or_iff_left_of_imp _).mp⟩,
-    rintro H,
-    cases H,
-    { subst H, cases hr0 (refl 0) },
-    { cases H pp },
-  },
-
   refine ⟨factorization_eq_zero_of_remainder p i r, λ h, _⟩,
+
+  rcases eq_or_ne i 0 with rfl | hi0, {
+    simp only [mul_zero, zero_add] at h,
+    simpa [pp, hr0] using (factorization_eq_zero_iff' _ _).1 h },
+
+
   rw factorization_eq_zero_iff' at h,
   rcases h with h1 | h2 | h3,
   { cases h1 pp },

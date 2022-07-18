@@ -65,8 +65,8 @@ def bounded_at_infty_submodule : submodule ℂ (ℍ → ℂ) := bounded_filter_s
 def bounded_at_infty_subalgebra : subalgebra ℂ (ℍ → ℂ) := bounded_filter_subalgebra at_I_infty
 
 lemma prod_of_bound_is_bound {f g : ℍ → ℂ} (hf : is_bound_at_infty f) (hg : is_bound_at_infty g) :
-  is_bound_at_infty (f * g) := by {have := hf.mul hg, simp only [pi.one_apply, mul_one,
-     norm_eq_abs, complex.abs_mul] at this, convert this,}
+  is_bound_at_infty (f * g) :=
+by simpa only [pi.one_apply, mul_one, norm_eq_abs, complex.abs_mul] using hf.mul hg
 
 @[simp] lemma bound_mem (f : ℍ → ℂ) :
   is_bound_at_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=

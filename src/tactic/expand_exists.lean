@@ -165,7 +165,7 @@ meta def expand_exists_attr : user_attribute unit (list name) :=
   descr := "From a proof that (a) value(s) exist(s) with certain properties, "
   ++ "constructs (an) instance(s) satisfying those properties.",
   parser := lean.parser.many lean.parser.ident,
-  after_set := some (λ decl prio persistent, do
+  after_set := some $ λ decl prio persistent, do
     d <- get_decl decl,
     names <- expand_exists_attr.get_param decl,
     expand_exists.parse_pis
@@ -173,7 +173,7 @@ meta def expand_exists_attr : user_attribute unit (list name) :=
       decl := λ is_t n ty val, (tactic.to_expr val >>= λ val,
         tactic.add_decl (if is_t then declaration.thm n d.univ_params ty (pure val)
           else declaration.defn n d.univ_params ty val default tt)),
-      names := names } d.type) }
+      names := names } d.type }
 
 add_tactic_doc
 { name := "expand_exists",

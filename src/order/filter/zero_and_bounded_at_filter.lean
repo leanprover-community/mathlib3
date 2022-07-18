@@ -42,7 +42,7 @@ def zero_at_filter_submodule {α : Type*} {β : Type*} [topological_space β] [s
 def zero_at_filter_add_submonoid {α : Type*} {β : Type*} [topological_space β]
 [add_zero_class β] [has_continuous_add β] (l : filter α) : add_submonoid (α → β) :=
 { carrier := zero_at_filter l,
-  add_mem' := by { intros a b ha hb,simpa using ha.add hb },
+  add_mem' := by { intros a b ha hb, simpa using ha.add hb },
   zero_mem' := zero_is_zero_at_filter l, }
 
 /--A function `f: α → β` is `bounded_at_filter` if `f =O[l] 1`. -/

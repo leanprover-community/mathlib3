@@ -66,7 +66,7 @@ class has_rat_cast (K : Type u) :=
 
 /-- The default definition of the scalar multiplication `(a : ℚ) • (x : K)` for a division ring `K`
 is given by `a • x = (↑ a) * x`.
-Use `(a : ℚ) • (x : K)` instead of `qsmul` for better definitional behaviour.
+Use `(a : ℚ) • (x : K)` instead of `qsmul_rec` for better definitional behaviour.
 -/
 def qsmul_rec (coe : ℚ → K) [has_mul K] (a : ℚ) (x : K) : K :=
 coe a * x

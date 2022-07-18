@@ -382,7 +382,7 @@ lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
 
 variables {R x}
 
-lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : (minpoly.to_adjoin R x) a =
+lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : minpoly.to_adjoin R x a =
   lift_hom (minpoly R x) (⟨x, self_mem_adjoin_singleton R x⟩ : adjoin R ({x} : set S))
   (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
 

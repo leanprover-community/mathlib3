@@ -1408,7 +1408,7 @@ lemma modify_nth_tail_modify_nth_tail_le
   (l.modify_nth_tail f n).modify_nth_tail g m =
     l.modify_nth_tail (λl, (f l).modify_nth_tail g (m - n)) n :=
 begin
-  rcases le_iff_exists_add.1 h with ⟨m, rfl⟩,
+  rcases exists_add_of_le h with ⟨m, rfl⟩,
   rw [add_tsub_cancel_left, add_comm, modify_nth_tail_modify_nth_tail]
 end
 

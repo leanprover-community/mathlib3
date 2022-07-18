@@ -282,6 +282,85 @@ instance is_module : module (localization S) (localized_module S M) :=
   add_smul := add_smul',
   zero_smul := zero_smul' }
 
+instance is_module' : module R (localized_module S M) :=
+{ smul := λ r x, lift_on x (λ p, mk (r • p.1) p.2) $ λ ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩, mk_eq.mpr ⟨c,
+    begin
+      dsimp only,
+      change (c : R) • (b : R) • _ = (c : R) • (b' : R) • _ at eq1,
+      change (c : R) • (b : R) • _ = (c : R) • (b' : R) • _,
+      simp only [←mul_smul, ←mul_assoc, mul_comm (↑c * ↑b) r, mul_comm (↑c * ↑b') r],
+      simp only [mul_smul, eq1],
+    end⟩,
+  one_smul := λ x, induction_on (λ m s,
+    begin
+      change mk _ _ = _,
+      rw [one_smul],
+    end) x,
+  mul_smul := λ r r' x , induction_on (λ m s,
+    begin
+      change mk _ _ = mk _ _,
+      simp only [mul_smul],
+    end) x,
+  smul_add := λ r x y, induction_on₂ (λ m m' s s',
+    begin
+      change mk _ _ = mk _ _ + mk _ _,
+      simp only [mk_add_mk, smul_add],
+      congr' 1,
+      change r • (s' : R) • _ + r • (s : R) • _ = (s' : R) • _ + (s : R) • _,
+      simp only [←mul_smul],
+      congr' 2;
+      ring
+    end) x y,
+  smul_zero := λ r, begin
+    change mk _ _ = _,
+    rw [smul_zero, zero_mk],
+  end,
+  add_smul := λ r s x, induction_on (λ m t,
+    begin
+      change mk _ _ = mk _ _ + mk _ _,
+      simp only [mk_add_mk],
+      refine mk_eq.mpr ⟨1, _⟩,
+      rw [one_smul, one_smul, ←smul_add, ←mul_smul],
+      congr,
+      rw add_smul,
+    end) x,
+  zero_smul := λ x, induction_on (λ m t,
+    begin
+      change mk _ _ = _,
+      rw [zero_smul, zero_mk],
+    end) x }
+
+section
+
+variables (S M)
+def mk_linear_map : M →ₗ[R] localized_module S M :=
+{ to_fun := λ m, mk m 1,
+  map_add' := λ x y, by simp [mk_add_mk],
+  map_smul' := λ r x, rfl }
+
+end
+
 end
 
 end localized_module
+
+section is_localized_module
+
+universes u v
+
+variables {R : Type u} [comm_ring R] (S : submonoid R)
+variables {M M' : Type u}
+variables [add_comm_group M] [add_comm_group M']
+variables [module R M] [module R M']
+variables (f : M →ₗ[R] M')
+
+/-- The typeclass `is_module_localization (S : submonoid R) (f : M →ₗ[R] M')`
+ expresses that `M'` is the localization of `M` at `S`. -/
+class is_module_localization : Prop :=
+(map_units [] : ∀ (x : S), is_unit (algebra_map R (module.End R M') x))
+(surj [] : ∀ y : M', ∃ (x : M × S), x.2 • y = f x.1)
+(exists_of_eq_zero [] : ∀ {x}, f x = 0 → ∃ c : S, c • x = 0)
+
+instance test : @is_module_localization R _ S M (localized_module S M) _ _ _ _ (localized_module.mk_linear_map S M)  := sorry
+
+end is_localized_module

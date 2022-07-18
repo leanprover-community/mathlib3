@@ -37,7 +37,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 
 * Cardinals form a `canonically_ordered_comm_semiring` with the aforementioned sum and product.
 * Cardinals form a `succ_order`. Use `order.succ c` for the smallest cardinal greater than `c`.
-* The less-equal relation on cardinals forms a well-order.
+* The less than relation on cardinals forms a well-order.
 * Cardinals form a `conditionally_complete_linear_order_bot`. Bounded sets for cardinals in universe
   `u` are precisely the sets indexed by some type in universe `u`, see
   `cardinal.bdd_above_iff_small`. One can use `Sup` for the cardinal supremum, and `Inf` for the

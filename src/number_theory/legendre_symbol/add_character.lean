@@ -85,21 +85,19 @@ def is_nontrivial (ψ : add_char R R') : Prop := ∃ (a : R), ψ a ≠ 1
 lemma is_nontrivial_iff_ne_trivial (ψ : add_char R R') :
   is_nontrivial ψ ↔ ψ ≠ add_char.trivial :=
 begin
-  refine ⟨λ ⟨a, ha⟩ hf, ne_of_eq_of_ne (trivial_apply a).symm
-                         (ne_of_eq_of_ne (congr_fun (congr_arg coe_fn hf) a).symm ha) rfl, _⟩,
-  contrapose!,
-  intro h,
-  simp only [is_nontrivial, not_exists_not] at h,
-  ext,
-  exact (h x).trans (trivial_apply x).symm,
+  refine not_forall.symm.trans (iff.not _),
+  rw fun_like.ext_iff,
+  refl,
 end
 
 /-- Define the multiplicative shift of an additive character.
 This satisfies `mul_shift ψ a x = ψ (a * x)`. -/
+@[simps]
 def mul_shift (ψ : add_char R R') (a : R) : add_char R R' :=
 ψ.comp (add_monoid_hom.mul_left a).to_multiplicative
 
-lemma mul_shift_spec (ψ : add_char R R') (a x : R) : mul_shift ψ a x = ψ (of_add (a * x)) := rfl
+lemma mul_shift_spec {ψ : add_char R R'} {a : R} {x : multiplicative R} :
+  mul_shift ψ a x = ψ (of_add (a * x)) := rfl
 
 /-- If `n` is a natural number, then `mul_shift ψ n x = (ψ x) ^ n`. -/
 lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : R) : mul_shift ψ n x = (ψ x) ^ n :=
@@ -112,14 +110,8 @@ end
 lemma mul_shift_mul (ψ : add_char R R') (a b : R) :
   mul_shift ψ a * mul_shift ψ b = mul_shift ψ (a + b) :=
 begin
-  erw [← monoid_hom.comp_mul ψ],
-  congr,
-  have h : ∀ (f g : R →+ R),
-           f.to_multiplicative * g.to_multiplicative = (f + g).to_multiplicative := λ f g, rfl,
-  rw h,
-  congr,
   ext,
-  simp only [add_monoid_hom.add_apply, add_monoid_hom.coe_mul_left, add_mul],
+  simp only [monoid_hom.mul_apply, mul_shift_spec, add_mul, of_add_add, ψ.map_mul],
 end
 
 /-- `mul_shift ψ 0` is the trivial character. -/
@@ -127,9 +119,7 @@ end
 lemma mul_shift_zero (ψ : add_char R R') : mul_shift ψ 0 = add_char.trivial :=
 begin
   ext,
-  simp only [mul_shift, add_char.trivial, monoid_hom.coe_comp, function.comp_app,
-             add_monoid_hom.to_multiplicative_apply_apply, add_monoid_hom.coe_mul_left,
-             zero_mul, of_add_zero, map_one, monoid_hom.coe_mk],
+  simp only [mul_shift_apply, zero_mul, of_add_zero, map_one, trivial_apply],
 end
 
 /-- An additive character is *primitive* iff all its multiplicative shifts by nonzero

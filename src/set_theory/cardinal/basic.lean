@@ -28,7 +28,8 @@ We define cardinal numbers as a quotient of types under the equivalence relation
 * `cardinal.aleph_0` or `ℵ₀` is the cardinality of `ℕ`. This definition is universe polymorphic:
   `cardinal.aleph_0.{u} : cardinal.{u}` (contrast with `ℕ : Type`, which lives in a specific
   universe). In some cases the universe level has to be given explicitly.
-* `cardinal.min (I : nonempty ι) (c : ι → cardinal)` is the minimal cardinal in the range of `c`.
+* There is an instance that `cardinal` forms a `conditionally_complete_linear_order_bot`. One can
+  use `Sup` for the cardinal supremum, and `Inf` for the minimum of a set of cardinals.
 * `order.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
 * `cardinal.sum` is the sum of a collection of cardinals.
 * `cardinal.powerlt a b` or `a ^< b` is defined as the supremum of `a ^ c` for `c < b`.

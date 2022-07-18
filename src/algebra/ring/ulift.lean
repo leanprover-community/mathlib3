@@ -105,13 +105,13 @@ tactic.pi_instance_derive_field
 
 instance field [field α] : field (ulift α) :=
 begin
-  have of_rat_mk : ∀ a b h1 h2, ulift.up (field.of_rat ⟨a, b, h1, h2⟩ : α) = ↑a * (↑b)⁻¹,
+  have of_rat_mk : ∀ a b h1 h2, ulift.up (field.rat_cast ⟨a, b, h1, h2⟩ : α) = ↑a * (↑b)⁻¹,
   { intros a b h1 h2,
     ext,
-    rw [field.of_rat_mk', mul_down, inv_down, cast_nat_down, cast_int_down] },
+    rw [field.rat_cast_mk, mul_down, inv_down, cast_nat_down, cast_int_down] },
   refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
-  zpow := λ n a, ulift.up (a.down ^ n), of_rat := λ a, ulift.up (field.of_rat a),
-  of_rat_mk' := of_rat_mk, qsmul := λ a b, ulift.up (field.qsmul a b.down),
+  zpow := λ n a, ulift.up (a.down ^ n), rat_cast := λ a, ulift.up (field.rat_cast a),
+  rat_cast_mk := of_rat_mk, qsmul := λ a b, ulift.up (field.qsmul a b.down),
   .. @ulift.nontrivial α _, .. ulift.comm_ring }; tactic.pi_instance_derive_field,
   -- `mul_inv_cancel` requires special attention: it leaves the goal `∀ {a}, a ≠ 0 → a * a⁻¹ = 1`.
   cases a,

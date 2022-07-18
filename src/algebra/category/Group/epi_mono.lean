@@ -169,8 +169,8 @@ noncomputable instance : decidable_eq X' := classical.dec_eq _
 /--
 Let `τ` be the permutation on `X'` exchanging `f.range` and the point at infinity.
 -/
-noncomputable def tau : SX' := equiv.swap
-(from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
+noncomputable def tau : SX' :=
+equiv.swap (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
 
 local notation `τ` := tau f
 

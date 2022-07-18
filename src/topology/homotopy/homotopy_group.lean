@@ -39,11 +39,6 @@ universes u
 variables {X : Type u} [topological_space X]
 variables {n : ℕ} {x : X}
 
-
-@[simp] lemma uncurry_apply  {α : Type*} {β : Type*} {γ : Type*}
-[topological_space α] [topological_space β] [topological_space γ] [locally_compact_space β]
-(f : C(α, C(β, γ))) (a : α) (b : β) : f.uncurry ⟨a, b⟩ = f a b := rfl
-
 /-- The `n`-dimensional cube. -/
 @[derive [has_zero, has_one, topological_space, metric_space]]
 def cube (n : ℕ) : Type := fin n → I
@@ -71,8 +66,8 @@ def boundary (n : ℕ) : set (I^n) := {y | ∃ i, y i = 0 ∨ y i = 1}
 @[simps] def tail : C(I^(n+1), I^n) := ⟨λ c, fin.tail c,
   (continuous_map.pi (λ i:fin n, ⟨λ f:I^(n+1), f i.succ, continuous_apply i.succ⟩)).2⟩
 
-@[simp] lemma tail.coe_to_fun : (tail : I^(n+1) → I^n) = fin.tail :=
-  by {ext, simp only [tail_to_fun]}
+-- @[simp] lemma tail.coe_to_fun : (tail : I^(n+1) → I^n) = fin.tail :=
+--   by {ext, simp only [tail_apply]}
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
@@ -88,7 +83,7 @@ lemma one_char (f : I^1) : f = λ _, f 0 := by convert eq_const_of_unique f
     exacts [continuous_fst, λ i, (continuous_map.comp (proj i) ⟨_,continuous_snd⟩).2],
   end }
 
-@[simp] lemma cons_apply (x₀:I) (xn:I^n): cons ⟨x₀,xn⟩ = fin.cons x₀ xn := rfl
+-- @[simp] lemma cons_apply (x₀:I) (xn:I^n): cons ⟨x₀,xn⟩ = fin.cons x₀ xn := rfl
 
 /-- Continuous `head`×`tail` map -/
 def uncons : C(I^(n+1), I×I^n) :=
@@ -99,8 +94,8 @@ continuous_map.prod_mk ⟨head,head.continuous⟩ ⟨tail,tail.continuous⟩
 section
 variable (i : fin (n+1))
 
-/-- Continuos "insert" map, in particular `insert_ 0 = cons`. -/
-def insert_ (i : fin (n+1)) : C(I×I^n, I^(n+1)):=
+/-- Continuos "insert" map, in particular `insert 0 = cons`. -/
+def insert (i : fin (n+1)) : C(I×I^n, I^(n+1)):=
 begin
   refine ⟨λ t j, _, _⟩,
   { by_cases Hlt : j<i, exact t.snd ⟨j, nat.lt_of_lt_of_le Hlt (nat.lt_succ_iff.mp i.2)⟩,
@@ -115,31 +110,31 @@ begin
   all_goals {exact (proj_continuous _).comp continuous_snd}
 end
 
-@[simp] lemma insert_at_eq (t₀:I) (t) : insert_ i ⟨t₀, t⟩ i = t₀ :=
-by simp only [insert_, lt_self_iff_false,not_false_iff,id.def,continuous_map.coe_mk,dif_pos,dif_neg]
+@[simp] lemma insert_at_eq (t₀:I) (t) : insert i ⟨t₀, t⟩ i = t₀ :=
+by simp only [insert, lt_self_iff_false,not_false_iff,id.def,continuous_map.coe_mk,dif_pos,dif_neg]
 
-lemma insert_at_lt (j : fin n) {t₀ t} : ↑j < i → insert_ i ⟨t₀, t⟩ ↑j = t j :=
+lemma insert_at_lt (j : fin n) {t₀ t} : ↑j < i → insert i ⟨t₀, t⟩ ↑j = t j :=
 begin
   intro H,
-  simp only [insert_, not_lt,id.def, fin.coe_eq_cast_succ, continuous_map.coe_mk, fin.coe_cast_succ,
+  simp only [insert, not_lt,id.def, fin.coe_eq_cast_succ, continuous_map.coe_mk, fin.coe_cast_succ,
     fin.eta, dite_eq_right_iff, dite],
   cases ((subtype.decidable_lt (fin.cast_succ j) i)); simp only,
   exfalso, apply h, convert H, norm_cast
 end
 
-lemma insert_at_lt' (j: fin (n+1)) {t₀ t} (H: ↑j<n) : j<i → insert_ i ⟨t₀, t⟩ j = t ⟨j,H⟩ :=
+lemma insert_at_lt' (j: fin (n+1)) {t₀ t} (H: ↑j<n) : j<i → insert i ⟨t₀, t⟩ j = t ⟨j,H⟩ :=
 begin
   intro H,
-  simp only [insert_, not_lt,id.def, fin.coe_eq_cast_succ, continuous_map.coe_mk, fin.coe_cast_succ,
+  simp only [insert, not_lt,id.def, fin.coe_eq_cast_succ, continuous_map.coe_mk, fin.coe_cast_succ,
     fin.eta, dite_eq_right_iff, dite],
   cases ((subtype.decidable_lt j i)); simp only,
   exfalso, apply h, exact H
 end
 
-lemma insert_at_gt (j : fin n) {t₀ t} : i < j.succ → insert_ i ⟨t₀, t⟩ j.succ = t j :=
+lemma insert_at_gt (j : fin n) {t₀ t} : i < j.succ → insert i ⟨t₀, t⟩ j.succ = t j :=
 begin
   intro H,
-  simp only [insert_, fin.coe_succ,id.def,continuous_map.coe_mk, fin.cases_succ, dite_eq_ite, dite],
+  simp only [insert, fin.coe_succ,id.def,continuous_map.coe_mk, fin.cases_succ, dite_eq_ite, dite],
   cases subtype.decidable_lt j.succ i; simp only,
   cases subtype.decidable_eq j.succ i; simp only,
   { simp only [fin.pred_succ] },
@@ -147,8 +142,7 @@ begin
   exfalso, exact not_le_of_lt H (le_of_lt h)
 end
 
-lemma insert_boundary {t₀:I} {t} : (t₀=0 ∨ t₀=1) ∨ t∈boundary n →
-  insert_ i ⟨t₀, t⟩ ∈ boundary (n+1) :=
+lemma insert_boundary {t₀:I} {t} : (t₀=0 ∨ t₀=1) ∨ t∈boundary n → insert i ⟨t₀,t⟩ ∈boundary (n+1) :=
 begin
   intros H, cases H,
   use i, rwa insert_at_eq,
@@ -158,30 +152,8 @@ begin
   simp only [fin.val_eq_coe, fin.coe_cast_succ, fin.coe_succ, lt_add_iff_pos_right, nat.lt_one_iff]
 end
 
-lemma insert_0 : @insert_ n 0 = cons :=
-begin
-  ext1, cases a with t₀ t,
-  ext1 j,
-  by_cases Hj0 : j=0,
-  { subst Hj0, simp only [insert_at_eq, cons_apply, fin.cons_zero] },
-  revert j, refine fin.cases _ (λ j, _); intros,
-  { exfalso, apply Hj0, refl },
-  rw insert_at_gt, simp only [cons_apply, fin.cons_succ],
-  rw fin.lt_def, norm_num
-end
-
-lemma insert_1 {t₀ t} : @insert_ (n+1) 1 (t₀, t) = fin.cons t.head (fin.cons t₀ t.tail) :=
-begin
-  ext1 j,
-  revert j, refine fin.cases _ (fin.cases _ (λ j, _)),
-  { simp only [head_to_fun, fin.cons_zero],
-    convert insert_at_lt _ 0 _, rw fin.lt_def, exact zero_lt_one },
-  { simp only [fin.succ_zero_eq_one, insert_at_eq, fin.cons_succ, fin.cons_zero] },
-  simp only [tail.coe_to_fun, fin.cons_succ],
-  rw insert_at_gt, refl, rw fin.lt_def, norm_num
-end
-
-@[simps] def extract_ (i : fin (n+1)) : C(I^(n+1), I×I^n) :=
+/-- Continuos "extract" map, in particular `extract 0 t = (t.head, t.tail)`. -/
+@[simps] def extract (i : fin (n+1)) : C(I^(n+1), I×I^n) :=
 begin
   refine ⟨λ t, ⟨t i, λ j, if ↑j<i then t ↑j else t j.succ⟩,_⟩,
   simp only [fin.coe_eq_cast_succ, dite_eq_ite, id.def, auto_param_eq],
@@ -190,10 +162,10 @@ begin
   exacts [proj_continuous (fin.succ i_1), proj_continuous (fin.cast_succ i_1)]
 end
 
-@[simp] lemma extract_insert (t : I×I^n) : extract_ i (insert_ i t) = t :=
+@[simp] lemma extract_insert (t : I×I^n) : extract i (insert i t) = t :=
 begin
   cases t with t₀ t,
-  simp only [extract__to_fun, insert_at_eq, fin.coe_eq_cast_succ, prod.mk.inj_iff, eq_self_iff_true,
+  simp only [extract_apply, insert_at_eq, fin.coe_eq_cast_succ, prod.mk.inj_iff, eq_self_iff_true,
     true_and, ite],
   ext1 j, cases subtype.decidable_lt (fin.cast_succ j) i; simp only,
   { apply insert_at_gt, rw fin.lt_def, simp only [fin.val_eq_coe, fin.coe_succ],
@@ -201,10 +173,10 @@ begin
   convert insert_at_lt i j _, norm_cast, convert h, norm_cast
 end
 
-@[simp] lemma insert_extract (t : I^(n+1)) : insert_ i (extract_ i t) = t :=
+lemma insert_extract (t : I^(n+1)) :  insert i (extract i t) = t :=
 begin
   ext1,
-  simp only [extract_, insert_, id.def,fin.coe_eq_cast_succ,continuous_map.coe_mk, fin.cast_succ_mk,
+  simp only [extract, insert, id.def,fin.coe_eq_cast_succ,continuous_map.coe_mk, fin.cast_succ_mk,
     fin.eta, fin.succ_mk, dite],
   cases subtype.decidable_lt x i; simp only,
   { cases subtype.decidable_eq x i; simp only,
@@ -224,12 +196,12 @@ end
 
 /-- Product with `I` homeomorphism -/
 def fold.homeomorph (i : fin n) : I×I^n ≃ₜ I^(n+1) :=
-{ to_fun := insert_ i,
-  inv_fun := extract_ i,
+{ to_fun := insert i,
+  inv_fun := extract i,
   left_inv := extract_insert i,
   right_inv := insert_extract i,
-  continuous_to_fun := (insert_ i).2,
-  continuous_inv_fun := (extract_ i).2 }
+  continuous_to_fun := (insert i).2,
+  continuous_inv_fun := (extract i).2 }
 
 end
 end cube
@@ -297,7 +269,7 @@ begin
   apply not_lt.mp, use Hlt,
 end
 
-lemma pred_nlt (Hneq : j≠i) (Hnlt : ¬(j < i)) : ¬(↑(j.pred (neq_nlt_neq _ _ Hneq Hnlt)) < i) := --sorry
+lemma pred_nlt (Hneq : j≠i) (Hnlt : ¬(j < i)) : ¬(↑(j.pred (neq_nlt_neq _ _ Hneq Hnlt)) < i) :=
 begin
   rw fin.lt_def,
   simp only [fin.coe_eq_cast_succ, fin.val_eq_coe, fin.coe_cast_succ, fin.coe_pred, not_lt],
@@ -312,9 +284,9 @@ end
 def to_path (i : fin (n+1)) : gen_loop (n+1) x → Ω (gen_loop n x) const :=
 begin
   rintros ⟨g,gH⟩, refine path.mk ⟨_,_⟩ _ _,
-  { intro t, refine ⟨(g.comp (cube.insert_ i)).curry t,_⟩,
+  { intro t, refine ⟨(g.comp (cube.insert i)).curry t,_⟩,
     rintros y ⟨j,jH⟩,
-    simp only [continuous_map.curry_apply, continuous_map.comp_apply], --cube.fold_apply],
+    simp only [continuous_map.curry_apply, continuous_map.comp_apply],
     apply gH, apply cube.insert_boundary, right, exact ⟨j,jH⟩},
   { simp only [auto_param_eq], continuity },
   all_goals {simp only, ext,
@@ -330,10 +302,10 @@ def from_path (i : fin (n+1)) : Ω (gen_loop n x) const → gen_loop (n+1) x :=
 begin
   rintros ⟨p,H₀,H₁⟩,
   simp only [continuous_map.to_fun_eq_coe] at H₀ H₁,
-  refine ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(I^n, X))).uncurry.comp (cube.extract_ i),_⟩,
+  refine ⟨(⟨λ t, (p t).1, by continuity⟩ : C(I, C(I^n, X))).uncurry.comp (cube.extract i),_⟩,
   rintros y ⟨j,Hj⟩,
-  simp only [subtype.val_eq_coe, continuous_map.comp_apply, cube.extract__to_fun,
-    fin.coe_eq_cast_succ, uncurry_apply, continuous_map.coe_mk],
+  simp only [subtype.val_eq_coe,continuous_map.comp_apply, cube.extract_apply, fin.coe_eq_cast_succ,
+    continuous_map.uncurry_apply, continuous_map.coe_mk, function.uncurry_apply_pair],
   by_cases Heq : j=i, { rw ← Heq, cases Hj; rw Hj; simp only [H₀, H₁]; convert const_eq },
   apply gen_loop.boundary,
   by_cases Hlt : j < i,
@@ -354,11 +326,9 @@ lemma from_to (p : gen_loop (n+1) x) : from_path i (to_path i p) = p :=
 begin
   rcases p with ⟨⟨p,Hc⟩,Hb⟩,
   ext,
-  unfold to_path, unfold from_path, unfold continuous_map.comp, unfold function.comp,
-  unfold continuous_map.curry, unfold continuous_map.uncurry, unfold function.uncurry,
-  simp only [continuous_map.coe_mk, subtype.coe_mk],
-  unfold continuous_map.curry', unfold function.curry,
-  simp only [continuous_map.coe_mk, prod.mk.eta],
+  simp only [to_path, from_path, continuous_map.coe_mk, subtype.coe_mk, continuous_map.comp_apply,
+    continuous_map.uncurry_apply, continuous_map.curry_apply],
+  cases H : cube.extract i a, simp only [function.uncurry_apply_pair], rw ← H,
   rw cube.insert_extract
 end
 
@@ -366,17 +336,10 @@ lemma to_from (p : Ω (gen_loop n x) const) : to_path i (from_path i p) = p :=
 begin
   rcases p with ⟨⟨p,Hc⟩,Hs,Ht⟩,
   ext,
-  unfold from_path, unfold to_path, unfold continuous_map.comp, unfold function.comp,
-  unfold continuous_map.curry, unfold continuous_map.uncurry, unfold function.uncurry,
-  simp only [continuous_map.coe_mk, subtype.val_eq_coe, cube.extract__to_fun, fin.coe_eq_cast_succ,
-    path.coe_mk, mk_apply],
-  unfold continuous_map.curry', unfold function.curry,
-  simp only [continuous_map.coe_mk, cube.insert_at_eq],
-  convert rfl, ext1 j, unfold ite,
-  cases subtype.decidable_lt (fin.cast_succ j) i; simp only; symmetry,
-  { refine cube.insert_at_gt i j _, rw fin.lt_def, simp only [fin.val_eq_coe, fin.coe_succ],
-    refine nat.lt_succ_iff.mpr (not_lt.mp _), convert h },
-  convert cube.insert_at_lt i j _, norm_cast, convert h, norm_cast
+  simp only [from_path, to_path, continuous_map.coe_mk, subtype.val_eq_coe, path.coe_mk, mk_apply,
+    continuous_map.curry_apply, continuous_map.comp_apply, cube.extract_insert,
+    continuous_map.uncurry_apply, function.uncurry_apply_pair],
+  refl
 end
 
 /-- Loop space equivalence -/
@@ -387,17 +350,17 @@ def path_equiv (i : fin n) : gen_loop (n+1) x ≃ Ω (gen_loop n x) const :=
   right_inv := to_from i }
 
 lemma insert_to_path {p : gen_loop (n+1) x} {t} {tn} :
-  (p.val) (cube.insert_ i ⟨t, tn⟩) = (@coe_fn _ _ path.has_coe_to_fun (to_path i p)) t tn :=
+  (p.val) (cube.insert i ⟨t, tn⟩) = (@coe_fn _ _ path.has_coe_to_fun (to_path i p)) t tn :=
   by {cases p, simp only [to_path, path.coe_mk, mk_apply, continuous_map.curry_apply,
     continuous_map.comp_apply]}
 
 lemma extract_from_path {p : Ω (gen_loop n x) const} {t : I^(n+1)} :
-  (from_path i p : C(I^(n+1),X)) t = p.to_fun (t i) (cube.extract_ i t).snd :=
+  (from_path i p : C(I^(n+1),X)) t = p.to_fun (t i) (cube.extract i t).snd :=
 begin
   cases p,
   simp only [from_path, subtype.val_eq_coe, subtype.coe_mk, continuous_map.comp_apply,
-    cube.extract__to_fun, fin.coe_eq_cast_succ, uncurry_apply, continuous_map.coe_mk,
-    continuous_map.to_fun_eq_coe],
+    cube.extract_apply, fin.coe_eq_cast_succ, continuous_map.uncurry_apply, continuous_map.coe_mk,
+    function.uncurry_apply_pair, continuous_map.to_fun_eq_coe],
   refl,
 end
 
@@ -414,14 +377,15 @@ abbreviation c_uncurrying : C(C(I, C(I^n, X)),C(I × I^n, X)) :=
 
 /-- Composition with insert as a continuous map.-/
 abbreviation c_comp_insert (i : fin (n+1)) : C(C(I^(n+1), X), C(I×I^n, X)) :=
-⟨λ f, f.comp (cube.insert_ i), (cube.insert_ i).continuous_comp_left⟩
+⟨λ f, f.comp (cube.insert i), (cube.insert i).continuous_comp_left⟩
 
 lemma homotopic_to {p q : gen_loop (n+1) x} :
   homotopic p q → (to_path i p).homotopic (to_path i q) :=
 begin
   apply nonempty.map, rintros H,
   refine
-  ⟨⟨⟨λ t, ⟨(c_currying.comp ((c_comp_insert i).comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,_,_⟩,_⟩,
+  ⟨⟨  ⟨λ t, ⟨(c_currying.comp ((c_comp_insert i).comp H.to_continuous_map.curry)).uncurry t,_⟩,_⟩,
+      _, _⟩, _⟩,
   { rintros y ⟨i,iH⟩,
     simp only [uncurry_helper, continuous_map.comp_apply, continuous_map.coe_mk,
       continuous_map.curry_apply, --cube.insert_apply,
@@ -430,23 +394,20 @@ begin
   { simp only [auto_param_eq], continuity },
   show ∀ _ _ _, _,
   { intros t y yH,
-    split; ext1; simp only [uncurry_apply, continuous_map.comp_apply, continuous_map.coe_mk,
-      continuous_map.curry_apply, --cube.insert_apply,
-      continuous_map.homotopy_with.coe_to_continuous_map, mk_apply, path.coe_to_continuous_map],
+    split; ext1;
+    simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
+      continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.uncurry_apply,
+      function.uncurry_apply_pair, mk_apply, path.coe_to_continuous_map],
     rw H.eq_fst, refine insert_to_path _, use i, rwa cube.insert_at_eq,
     rw H.eq_snd, refine insert_to_path _, use i, rwa cube.insert_at_eq },
-  all_goals {intro t, ext1,
-    simp only [uncurry_apply, continuous_map.comp_apply, continuous_map.coe_mk,
-      continuous_map.curry_apply,-- cube.insert_apply,
-      continuous_map.homotopy_with.coe_to_continuous_map, mk_apply,
-      continuous_map.homotopy_with.apply_zero, continuous_map.homotopy_with.apply_one,
-      subtype.val_eq_coe, path.coe_to_continuous_map],
+  all_goals
+  { intro t, ext1,
+    simp only [continuous_map.comp_apply, continuous_map.coe_mk, continuous_map.curry_apply,
+      continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.uncurry_apply,
+      function.uncurry_apply_pair, mk_apply, continuous_map.homotopy_with.apply_zero,
+      continuous_map.homotopy_with.apply_one, subtype.val_eq_coe, path.coe_to_continuous_map],
     exact insert_to_path _}
 end
-
-@[simp] lemma prod_map_eval {α₁ α₂ β₁ β₂ : Type*} [topological_space α₁] [topological_space β₁]
-[topological_space α₂] [topological_space β₂] (f : C(α₁, α₂)) (g : C(β₁, β₂)) (x:α₁) (y:β₁) :
-f.prod_map g ⟨x,y⟩ = ⟨f x, g y⟩ := rfl
 
 /--Coercion as a continuous map.-/
 abbreviation c_coe : C(gen_loop n x, C(I^n,X)) := ⟨λ p, p.val, continuous_induced_dom⟩
@@ -456,13 +417,14 @@ lemma homotopic_from {p q : gen_loop (n+1) x} :
 begin
   apply nonempty.map, rintros H,
   refine ⟨⟨(c_uncurrying.comp (c_coe.comp H.to_continuous_map).curry).uncurry.comp
-      ((continuous_map.id I).prod_map (cube.extract_ i)),_,_⟩,_⟩,
+      ((continuous_map.id I).prod_map (cube.extract i)),_,_⟩,_⟩,
   show ∀ _ _ _, _,
   { rintros t y ⟨j,jH⟩,
-    simp only [continuous_map.to_fun_eq_coe, continuous_map.comp_apply, prod_map_eval,
-      continuous_map.id_apply, cube.extract__to_fun, fin.coe_eq_cast_succ, uncurry_apply,
-      continuous_map.coe_mk, continuous_map.curry_apply,
-      continuous_map.homotopy_with.coe_to_continuous_map, subtype.val_eq_coe],
+    simp only [continuous_map.to_fun_eq_coe, continuous_map.comp_apply,
+      continuous_map.prod_map_apply, continuous_map.coe_id, prod.map_mk, id.def, cube.extract_apply,
+      fin.coe_eq_cast_succ, continuous_map.uncurry_apply, continuous_map.coe_mk,
+      continuous_map.curry_apply, continuous_map.homotopy_with.coe_to_continuous_map,
+      subtype.val_eq_coe, function.uncurry_apply_pair],
     have hp : (p : C(I^(n+1),X)) y = x := p.2 _ ⟨j,jH⟩,
     have hq : (q : C(I^(n+1),X)) y = x := q.2 _ ⟨j,jH⟩,
     rw [hp, hq],
@@ -484,13 +446,14 @@ begin
     convert h, apply fin.eq_of_veq, simp only [fin.coe_eq_cast_succ] },
   all_goals
   { intros y,
-    simp only [continuous_map.to_fun_eq_coe, continuous_map.comp_apply, prod_map_eval,
-      continuous_map.id_apply, cube.extract__to_fun, fin.coe_eq_cast_succ, uncurry_apply,
-      continuous_map.coe_mk, continuous_map.curry_apply,
-      continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.homotopy_with.apply_zero,
-      continuous_map.homotopy_with.apply_one, path.coe_to_continuous_map, subtype.val_eq_coe],
+    simp only [continuous_map.to_fun_eq_coe, continuous_map.comp_apply,
+      continuous_map.prod_map_apply, continuous_map.coe_id, prod.map_mk, id.def, cube.extract_apply,
+      fin.coe_eq_cast_succ, continuous_map.uncurry_apply, continuous_map.coe_mk,
+      continuous_map.curry_apply, continuous_map.homotopy_with.coe_to_continuous_map,
+      subtype.val_eq_coe, function.uncurry_apply_pair, continuous_map.homotopy_with.apply_zero,
+      continuous_map.homotopy_with.apply_one, path.coe_to_continuous_map],
     symmetry, convert insert_to_path _,-- rw [← cube.extract__to_fun, cube.insert_uninsert] }
-    ext1 j, simp only [cube.insert_, continuous_map.coe_mk, fin.cast_succ_mk, fin.eta, fin.succ_mk,
+    ext1 j, simp only [cube.insert, continuous_map.coe_mk, fin.cast_succ_mk, fin.eta, fin.succ_mk,
       fin.succ_pred, dite],
     cases subtype.decidable_lt j i; simp only [ite],
     cases subtype.decidable_eq j i; simp only,
@@ -591,7 +554,7 @@ begin
       end }⟩],
 end
 
-/--Concatenation of equivalence clasess.-/
+/--Concatenation of equivalence clasess along the _horizontal_ component, i.e. the first.-/
 def concat : π_(n+1) X x → π_(n+1) X x → π_(n+1) X x :=
 begin
   refine (quotient.map₂' (gen_loop.concat_ 0) _),
@@ -697,6 +660,7 @@ def is_group : group (π_(n+1) X x) :=
   zpow_neg' := λ _ _, rfl,
   mul_left_inv := reverse_concat }
 
+/--Concatenation of equivalence clasess along the _vertical_ component, i.e. the second.-/
 def concat₂ : π_(n+2) X x → π_(n+2) X x → π_(n+2) X x :=
 begin
   refine (quotient.map₂' (gen_loop.concat_ 1) _),
@@ -707,7 +671,6 @@ begin
   exacts [Hp, Hq],
 end
 
--- instance has_add : has_add (π_(n+2) X x) := ⟨concat₂⟩
 local infix `*₂`:70 := concat₂
 
 lemma concat₂_const (p: π_(n+2) X x) : p *₂ 𝟙 = p :=
@@ -732,9 +695,13 @@ begin
   apply path.homotopy.refl_trans
 end
 
-instance comm_group : comm_group (π_(n+2) X x) :=
+lemma is_unital : @eckmann_hilton.is_unital (π_(n+2) X x) (*₂) 𝟙 :=⟨⟨const_concat₂⟩,⟨concat₂_const⟩⟩
+
+/-- Conmutativity of horizontal concatenation is shown by
+  distributivity with vertical concatenation. -/
+@[reducible] def is_comm_group : comm_group (π_(n+2) X x) :=
 begin
-  apply @eckmann_hilton.comm_group (π_(n+2) X x) (*₂) 𝟙 ⟨⟨const_concat₂⟩,⟨concat₂_const⟩⟩ is_group,
+  apply @eckmann_hilton.comm_group (π_(n+2) X x) (*₂) 𝟙 is_unital is_group,
   intros a b c d,
   induction a using quotient.induction_on, induction b using quotient.induction_on,
   induction c using quotient.induction_on, induction d using quotient.induction_on,
@@ -745,19 +712,19 @@ begin
   { rw Heq, apply continuous_map.homotopy_rel.refl},
   ext1 t, simp only [gen_loop.concat_, subtype.val_eq_coe],
   repeat {rw gen_loop.extract_from_path},
-  simp only [continuous_map.to_fun_eq_coe, path.coe_to_continuous_map, cube.extract__to_fun,
+  simp only [continuous_map.to_fun_eq_coe, path.coe_to_continuous_map, cube.extract_apply,
     fin.coe_eq_cast_succ, fin.not_lt_zero, if_false],
   repeat {rw path.trans_apply},
   simp only [dite, one_div],
   have H01 : (0:fin (n+2))<1, {rw fin.lt_def, exact zero_lt_one},
-  have H1 : ∀ t₀ (t:I^(n+1)), (cube.insert_ 0) ⟨t₀, t⟩ 1 = t 0,
+  have H1 : ∀ t₀ (t:I^(n+1)), (cube.insert 0) ⟨t₀, t⟩ 1 = t 0,
     { intros, convert cube.insert_at_gt 0 0 _, rw fin.lt_def, exact zero_lt_one },
   have His : ∀ {n} {i : fin n}, fin.cast_succ i.succ = (fin.cast_succ i).succ :=
     by {intros n i, cases i, simp only [fin.succ_mk, fin.cast_succ_mk]},
   cases ((t 0 :ℝ).decidable_le 2⁻¹) with H₀ H₀; cases ((t 1 :ℝ).decidable_le 2⁻¹) with H₁ H₁;
   simp only; repeat {rw ← gen_loop.insert_to_path}; simp only [subtype.val_eq_coe];
   repeat {rw gen_loop.extract_from_path};
-  simp only [continuous_map.to_fun_eq_coe, path.coe_to_continuous_map, cube.extract__to_fun,
+  simp only [continuous_map.to_fun_eq_coe, path.coe_to_continuous_map, cube.extract_apply,
   fin.coe_eq_cast_succ, fin.not_lt_zero, if_false, cube.insert_at_gt, fin.succ_pos];
   rw [cube.insert_at_lt' _ _ (by norm_num) H01];
   simp only [fin.coe_zero, fin.mk_zero, fin.cast_succ_zero, fin.succ_zero_eq_one];
@@ -769,7 +736,7 @@ begin
     apply gen_loop.congr', ext1 j,
     revert j, refine fin.cases _ (fin.cases _ _),
     rw cube.insert_at_eq, rw [cube.insert_at_lt' _ _ (by norm_num) H01],
-    simp only [fin.coe_zero, fin.mk_zero, fin.cast_succ_zero, cube.insert_at_eq, fin.succ_zero_eq_one],
+    simp only [fin.coe_zero,fin.mk_zero,fin.cast_succ_zero, cube.insert_at_eq,fin.succ_zero_eq_one],
     rw if_pos H01, simp only [fin.succ_zero_eq_one, cube.insert_at_eq],
     rw H1, simp only [fin.succ_zero_eq_one, cube.insert_at_eq],
     intro i,

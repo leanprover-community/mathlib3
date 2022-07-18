@@ -308,6 +308,7 @@ begin
   rw [b.repr_apply_apply, b.repr_apply_apply, inner_conj_sym]
 end
 
+/-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
 protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
   (L : E ≃ₗᵢ[𝕜] G) :
   orthonormal_basis ι 𝕜 G :=
@@ -366,6 +367,7 @@ protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: submodule.span 𝕜 (set
   ⇑(orthonormal_basis.mk hon hsp) = v :=
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
+/-- Any finite subset of a orthonormal family is an `orthonormal_basis` for its span. -/
 protected def span {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
   orthonormal_basis s 𝕜 (span 𝕜 (s.image v' : set E)) :=
 let
@@ -389,7 +391,8 @@ e₀.map φ.symm
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
-              linear_isometry_equiv.coe_of_eq_apply]
+              linear_isometry_equiv.coe_of_eq_apply]*
+
 open submodule
 
 /-- A finite orthonormal family of vectors whose span has trivial orthogonal complement is an

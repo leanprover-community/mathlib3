@@ -100,20 +100,20 @@ protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
-by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
+by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
   exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
-  (by rw div_self (@two_ne_zero' ℝ _ _ _); exact one_le_pi_div_two)
+  (by rw div_self (@two_ne_zero' ℝ _ _); exact one_le_pi_div_two)
 
 lemma pi_le_four : π ≤ 4 :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -364,9 +364,9 @@ lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
   λ h, by simp [h]⟩
 
 lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x :=
-⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (sub_floor_div_mul_nonneg _ pi_pos))
+⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (int.sub_floor_div_mul_nonneg _ pi_pos))
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃,
-    (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos)).ne
+    (sin_pos_of_pos_of_lt_pi h₃ (int.sub_floor_div_mul_lt _ pi_pos)).ne
     (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
@@ -481,10 +481,10 @@ subset.antisymm (range_subset_iff.2 cos_mem_Icc) surj_on_cos.subset_range
 subset.antisymm (range_subset_iff.2 sin_mem_Icc) surj_on_sin.subset_range
 
 lemma range_cos_infinite : (range real.cos).infinite :=
-by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+by { rw real.range_cos, exact Icc_infinite (by norm_num) }
 
 lemma range_sin_infinite : (range real.sin).infinite :=
-by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+by { rw real.range_sin, exact Icc_infinite (by norm_num) }
 
 
 section cos_div_sq

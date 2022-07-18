@@ -16,6 +16,13 @@ scalar multiplication as a homomorphism from `α × β` to `β`.
 
 * `smul_mul_hom`/`smul_monoid_hom`: Scalar multiplication bundled as a multiplicative/monoid
   homomorphism.
+
+## See also
+
+* `group_theory.group_action.option`
+* `group_theory.group_action.pi`
+* `group_theory.group_action.sigma`
+* `group_theory.group_action.sum`
 -/
 
 variables {M N P α β : Type*}
@@ -24,9 +31,9 @@ namespace prod
 
 section
 
-variables [has_scalar M α] [has_scalar M β] [has_scalar N α] [has_scalar N β] (a : M) (x : α × β)
+variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M) (x : α × β)
 
-@[to_additive prod.has_vadd] instance : has_scalar M (α × β) := ⟨λa p, (a • p.1, a • p.2)⟩
+@[to_additive prod.has_vadd] instance : has_smul M (α × β) := ⟨λa p, (a • p.1, a • p.2)⟩
 
 @[simp, to_additive] theorem smul_fst : (a • x).1 = a • x.1 := rfl
 @[simp, to_additive] theorem smul_snd : (a • x).2 = a • x.2 := rfl
@@ -34,7 +41,7 @@ variables [has_scalar M α] [has_scalar M β] [has_scalar N α] [has_scalar N β
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
 @[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
-instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
+instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩
 
@@ -42,29 +49,29 @@ instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   smul_comm_class M N (α × β) :=
 { smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
 
-instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
+instance [has_smul Mᵐᵒᵖ α] [has_smul Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
   is_central_scalar M (α × β) :=
 ⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩
 
-@[to_additive has_faithful_vadd_left]
-instance has_faithful_scalar_left [has_faithful_scalar M α] [nonempty β] :
-  has_faithful_scalar M (α × β) :=
+@[to_additive]
+instance has_faithful_smul_left [has_faithful_smul M α] [nonempty β] :
+  has_faithful_smul M (α × β) :=
 ⟨λ x y h, let ⟨b⟩ := ‹nonempty β› in eq_of_smul_eq_smul $ λ a : α, by injection h (a, b)⟩
 
-@[to_additive has_faithful_vadd_right]
-instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
-  has_faithful_scalar M (α × β) :=
+@[to_additive]
+instance has_faithful_smul_right [nonempty α] [has_faithful_smul M β] :
+  has_faithful_smul M (α × β) :=
 ⟨λ x y h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ b : β, by injection h (a, b)⟩
 
 end
 
 @[to_additive]
-instance smul_comm_class_both [has_mul N] [has_mul P] [has_scalar M N] [has_scalar M P]
+instance smul_comm_class_both [has_mul N] [has_mul P] [has_smul M N] [has_smul M P]
   [smul_comm_class M N N] [smul_comm_class M P P] :
   smul_comm_class M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, mul_smul_comm]⟩
 
-instance is_scalar_tower_both [has_mul N] [has_mul P] [has_scalar M N] [has_scalar M P]
+instance is_scalar_tower_both [has_mul N] [has_mul P] [has_smul M N] [has_smul M P]
   [is_scalar_tower M N N] [is_scalar_tower M P P] :
   is_scalar_tower M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, smul_mul_assoc]⟩

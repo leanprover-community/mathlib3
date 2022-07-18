@@ -165,21 +165,19 @@ The following facts are true more generally in a (linearly) ordered commutative 
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
-  [has_zero β] [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_zero β] [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_monoid_with_zero β :=
 { zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
     linear_ordered_comm_monoid_with_zero.zero_le_one],
-  ..linear_order.lift f hf,
+  ..linear_order.lift f hf hsup hinf,
   ..hf.ordered_comm_monoid f one mul npow,
   ..hf.comm_monoid_with_zero f zero one mul npow }
 
-lemma zero_le_one' : (0 : α) ≤ 1 :=
-linear_ordered_comm_monoid_with_zero.zero_le_one
-
 @[simp] lemma zero_le' : 0 ≤ a :=
-by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
+by simpa only [mul_zero, mul_one] using mul_le_mul_left' zero_le_one a
 
 @[simp] lemma not_lt_zero' : ¬a < 0 :=
 not_lt_of_le zero_le'
@@ -208,7 +206,7 @@ end linear_ordered_comm_monoid
 variables [linear_ordered_comm_group_with_zero α]
 
 lemma zero_lt_one₀ : (0 : α) < 1 :=
-lt_of_le_of_ne zero_le_one' zero_ne_one
+lt_of_le_of_ne zero_le_one zero_ne_one
 
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
 by simpa only [mul_inv_cancel_right₀ h] using (mul_le_mul_right' hab c⁻¹)

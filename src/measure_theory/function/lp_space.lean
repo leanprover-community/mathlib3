@@ -500,7 +500,7 @@ lemma mem_ℒp.of_le {f : α → E} {g : α → F}
   mem_ℒp f p μ :=
 ⟨hf, (snorm_mono_ae hfg).trans_lt hg.snorm_lt_top⟩
 
-alias mem_ℒp.of_le ← measure_theory.mem_ℒp.mono
+alias mem_ℒp.of_le ← mem_ℒp.mono
 
 lemma mem_ℒp.mono' {f : α → E} {g : α → ℝ} (hg : mem_ℒp g p μ)
   (hf : ae_strongly_measurable f μ) (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ g a) : mem_ℒp f p μ :=
@@ -2069,7 +2069,7 @@ def comp_Lpₗ (L : E →L[𝕜] F) : (Lp E p μ) →ₗ[𝕜] (Lp F p μ) :=
     ext1,
     filter_upwards [Lp.coe_fn_smul c f, coe_fn_comp_Lp L (c • f), Lp.coe_fn_smul c (L.comp_Lp f),
       coe_fn_comp_Lp L f] with _ ha1 ha2 ha3 ha4,
-    simp only [ha1, ha2, ha3, ha4, map_smul, pi.smul_apply],
+    simp only [ha1, ha2, ha3, ha4, smul_hom_class.map_smul, pi.smul_apply],
   end }
 
 /-- Composing `f : Lp E p μ` with `L : E →L[𝕜] F`, seen as a continuous `𝕜`-linear map on
@@ -2096,7 +2096,7 @@ lemma smul_comp_LpL [fact (1 ≤ p)] (c : 𝕜) (L : E →L[𝕜] F) :
   (c • L).comp_LpL p μ  = c • (L.comp_LpL p μ) :=
 by { ext1 f, exact smul_comp_Lp c L f }
 
-/-- TODO: written in an "apply" way because of a missing `has_scalar` instance. -/
+/-- TODO: written in an "apply" way because of a missing `has_smul` instance. -/
 lemma smul_comp_LpL_apply [fact (1 ≤ p)] {𝕜'} [normed_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (L : E →L[𝕜] F) (f : Lp E p μ) :
   (c • L).comp_LpL p μ f = c • (L.comp_LpL p μ f) :=
@@ -2132,7 +2132,7 @@ namespace Lp
 section pos_part
 
 lemma lipschitz_with_pos_part : lipschitz_with 1 (λ (x : ℝ), max x 0) :=
-lipschitz_with.of_dist_le_mul $ λ x y, by simp [dist, abs_max_sub_max_le_abs]
+lipschitz_with.of_dist_le_mul $ λ x y, by simp [real.dist_eq, abs_max_sub_max_le_abs]
 
 lemma _root_.measure_theory.mem_ℒp.pos_part {f : α → ℝ} (hf : mem_ℒp f p μ) :
   mem_ℒp (λ x, max (f x) 0) p μ :=

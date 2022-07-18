@@ -54,7 +54,7 @@ are equivalent on `ℝ^n` for abstract (norm equivalence) reasons. Instead, we g
 We also set up the theory for `pseudo_emetric_space` and `pseudo_metric_space`.
 -/
 
-open real set filter is_R_or_C
+open real set filter is_R_or_C bornology
 open_locale big_operators uniformity topological_space nnreal ennreal
 
 noncomputable theory
@@ -83,8 +83,11 @@ to compare the `L^p` and `L^∞` distances through it. -/
 protected def equiv : pi_Lp p α ≃ Π (i : ι), α i :=
 equiv.refl _
 
-@[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
-@[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
+lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+
+@[simp] lemma equiv_apply' (x : pi_Lp p α) : pi_Lp.equiv p α x = x := rfl
+@[simp] lemma equiv_symm_apply' (x : Π i, α i) : (pi_Lp.equiv p α).symm x = x := rfl
 
 section
 /-!
@@ -131,6 +134,28 @@ def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
       ennreal.Lp_add_le _ _ _ fact_one_le_p.out }
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
+
+/-- Endowing the space `pi_Lp p β` with the `L^p` pseudodistance. This definition is not
+satisfactory, as it does not register the fact that the topology, the uniform structure, and the
+bornology coincide with the product ones. Therefore, we do not register it as an instance. Using
+this as a temporary pseudoemetric space instance, we will show that the uniform structure is equal
+(but not defeq) to the product one, and then register an instance in which we replace the uniform
+structure and the bornology by the product ones using this pseudometric space,
+`pseudo_metric_space.replace_uniformity`, and `pseudo_metric_space.replace_bornology`.
+
+See note [reducible non-instances] -/
+@[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
+pseudo_emetric_space.to_pseudo_metric_space_of_dist
+  (λ f g, (∑ i, dist (f i) (g i) ^ p) ^ (1/p))
+  (λ f g, ennreal.rpow_ne_top_of_nonneg (one_div_nonneg.2 (pos p).le) $ ne_of_lt $
+    (ennreal.sum_lt_top $ λ i hi, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _)))
+  (λ f g,
+    have A : ∀ i, edist (f i) (g i) ^ p ≠ ⊤,
+      from λ i, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _),
+    have B : edist f g = (∑ i, edist (f i) (g i) ^ p) ^ (1/p), from rfl,
+    by simp only [B, dist_edist, ennreal.to_real_rpow, ← ennreal.to_real_sum (λ i _, A i)])
+
+local attribute [instance] pi_Lp.pseudo_metric_aux
 
 lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
@@ -188,6 +213,13 @@ begin
   rw [← A.comap_uniformity, this, comap_id]
 end
 
+lemma aux_cobounded_eq :
+  cobounded (pi_Lp p α) = @cobounded _ pi.bornology :=
+calc cobounded (pi_Lp p α) = comap (pi_Lp.equiv p α) (cobounded _) :
+  le_antisymm (antilipschitz_with_equiv_aux p α).tendsto_cobounded.le_comap
+    (lipschitz_with_equiv_aux p α).comap_cobounded_le
+... = _ : comap_id
+
 end
 
 /-! ### Instances on finite `L^p` products -/
@@ -196,6 +228,9 @@ instance uniform_space [Π i, uniform_space (β i)] : uniform_space (pi_Lp p β)
 Pi.uniform_space _
 
 variable [fintype ι]
+
+instance bornology [Π i, bornology (β i)] : bornology (pi_Lp p β) := pi.bornology
+
 include fact_one_le_p
 
 /-- pseudoemetric space instance on the product of finitely many pseudoemetric spaces, using the
@@ -216,14 +251,8 @@ variables (p β)
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
 instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :=
-pseudo_emetric_space.to_pseudo_metric_space_of_dist
-  (λ f g, (∑ i, dist (f i) (g i) ^ p) ^ (1/p))
-  (λ f g, ennreal.rpow_ne_top_of_nonneg (one_div_nonneg.2 (pos p).le) $ ne_of_lt $
-    (ennreal.sum_lt_top $ λ i hi, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _)))
-  (λ f g,
-    have A : ∀ i, edist (f i) (g i) ^ p ≠ ⊤,
-      from λ i, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _),
-    by simp only [edist_eq, dist_edist, ennreal.to_real_rpow, ← ennreal.to_real_sum (λ i _, A i)])
+((pseudo_metric_aux p β).replace_uniformity (aux_uniformity_eq p β).symm).replace_bornology $
+  λ s, filter.ext_iff.1 (aux_cobounded_eq p β).symm sᶜ
 
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
@@ -283,6 +312,18 @@ lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x : 
   ∥x∥₊ = nnreal.sqrt (∑ (i : ι), ∥x i∥₊ ^ 2) :=
 subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
+lemma dist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
+by simp_rw [dist_eq_norm, norm_eq_of_L2, pi.sub_apply]
+
+lemma nndist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
+subtype.ext $ by { push_cast, exact dist_eq_of_L2 _ _ }
+
+lemma edist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
+by simp_rw [pi_Lp.edist_eq, ennreal.rpow_two]
+
 include fact_one_le_p
 
 variables [normed_field 𝕜]
@@ -311,6 +352,47 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
+
+variables {ι' : Type*}
+variables [fintype ι']
+
+variables (p 𝕜) (E : Type*) [normed_group E] [normed_space 𝕜 E]
+
+/-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
+functions-/
+def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
+  pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
+{ to_linear_equiv := linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
+  norm_map' :=
+  begin
+    intro x,
+    simp only [norm],
+    simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
+    congr,
+    rw fintype.sum_equiv (e.symm),
+    exact λ i, rfl,
+  end, }
+
+variables {p 𝕜 E}
+
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_apply
+  (e : ι ≃ ι') (v : pi_Lp p (λ i : ι, E)) :
+  linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e v = equiv.Pi_congr_left' (λ i : ι, E) e v :=
+rfl
+
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_symm (e : ι ≃ ι') :
+  (linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e).symm
+    = (linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e.symm) :=
+linear_isometry_equiv.ext $ λ x, rfl
+
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_single
+  [decidable_eq ι] [decidable_eq ι'] (e : ι ≃ ι') (i : ι) (v : E) :
+  linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e (pi.single i v) = pi.single (e i) v :=
+begin
+  funext x,
+  simp [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
+    pi.single, function.update, equiv.symm_apply_eq],
+end
 
 @[simp] lemma equiv_zero : pi_Lp.equiv p β 0 = 0 := rfl
 @[simp] lemma equiv_symm_zero : (pi_Lp.equiv p β).symm 0 = 0 := rfl

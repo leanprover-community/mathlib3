@@ -792,6 +792,10 @@ quotient.induction_on' s $ λ l, begin
   refl
 end
 
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain r (list.range n.succ) ↔ r n 0 ∧ ∀ m < n, r m m.succ :=
+by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, chain_range_succ]
+
 variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
@@ -824,7 +828,7 @@ theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b 
   intros hs b hb c hc,
   rw [cycle.chain_coe_cons, chain_iff_pairwise hr] at hs,
   simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
-    forall_false_left, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
+    is_empty.forall_iff, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
   simp only [mem_coe_iff, mem_cons_iff] at hb hc,
   rcases hb with rfl | hb;
   rcases hc with rfl | hc,

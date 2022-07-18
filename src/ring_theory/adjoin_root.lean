@@ -377,7 +377,8 @@ open algebra polynomial
 
 /-- The surjective algebra morphism `R[X]/(minpoly R x) → R[x]`.
 
-If `R` is a GCD domain and `x` is integral, this is an isomorphism `adjoin_root.minpoly.equiv_adjoin`. -/
+If `R` is a GCD domain and `x` is integral, this is an isomorphism,
+see `adjoin_root.minpoly.equiv_adjoin`. -/
 @[simps] def minpoly.to_adjoin : adjoin_root (minpoly R x) →ₐ[R] adjoin R ({x} : set S) :=
 lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
   (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe])

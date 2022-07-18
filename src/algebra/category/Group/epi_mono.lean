@@ -204,7 +204,7 @@ def G : B →* SX' :=
     inv_fun := λ x, β⁻¹ • x,
     left_inv := λ x, by dsimp only; rw [←mul_smul, mul_left_inv, one_smul],
     right_inv := λ x, by dsimp only; rw [←mul_smul, mul_right_inv, one_smul] },
-  map_one' := by ext; simp [one_smul],
+  map_one' := by { ext, simp [one_smul] },
   map_mul' := λ b1 b2, by ext; simp [mul_smul] }
 
 local notation `g` := G f

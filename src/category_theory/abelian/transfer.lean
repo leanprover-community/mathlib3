@@ -361,7 +361,7 @@ end enough_injectives_of_adjunction
 
 /--
 faithful and exact left adjoint functor transfers enough injectiveness.-/
-def enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
+lemma enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
   [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
   {L : 𝓐 ⥤ 𝓑} {R : 𝓑 ⥤ 𝓐} (adj : L ⊣ R)
   [faithful L] [preserves_finite_limits L] [preserves_finite_colimits L]
@@ -374,7 +374,7 @@ def enough_injectives.of_adjunction {𝓐 : Type u₁} {𝓑 : Type u₂}
 
 /--
 equivalence of category transfers enough injectiveness.-/
-def enough_injectives.of_equivalence {𝓐 : Type u₁} {𝓑 : Type u₂}
+lemma enough_injectives.of_equivalence {𝓐 : Type u₁} {𝓑 : Type u₂}
   [category.{v₁} 𝓐] [category.{v₂} 𝓑] [abelian 𝓐] [abelian 𝓑]
   (e : 𝓐 ⥤ 𝓑) [is_equivalence e] [enough_injectives 𝓑] : enough_injectives 𝓐 :=
 @@enough_injectives.of_adjunction _ _ _ _ e.as_equivalence.to_adjunction _ _

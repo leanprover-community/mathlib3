@@ -41,6 +41,19 @@ variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
 @[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
+@[to_additive has_smul]
+instance has_pow {γ : Type*} [has_pow α γ] [has_pow β γ] : has_pow (α × β) γ :=
+{ pow := λ p c, (p.1 ^ c, p.2 ^ c) }
+@[simp, to_additive smul_fst] lemma pow_fst {γ : Type*} [has_pow α γ] [has_pow β γ]
+  (c : γ) (p : α × β) : (p ^ c).fst = p.fst ^ c := rfl
+@[simp, to_additive smul_snd] lemma pow_snd {γ : Type*} [has_pow α γ] [has_pow β γ]
+  (c : γ) (p : α × β) : (p ^ c).snd = p.snd ^ c := rfl
+@[simp, to_additive smul_swap] lemma pow_swap {γ : Type*} [has_pow α γ] [has_pow β γ]
+  (c : γ) (p : α × β) : (p ^ c).swap = p.swap ^ c := rfl
+@[simp, to_additive smul_def] lemma pow_def {γ : Type*} [has_pow α γ] [has_pow β γ]
+  (a : α) (b : β) (c : γ) : (⟨a, b⟩ : α × β) ^ c = ⟨a ^ c, b ^ c⟩ := rfl
+
+
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩

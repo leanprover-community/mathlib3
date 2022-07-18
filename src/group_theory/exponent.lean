@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import group_theory.order_of_element
-import algebra.punit_instances
 import algebra.gcd_monoid.finset
+import algebra.punit_instances
+import data.nat.factorization.basic
 import tactic.by_contra
 
 /-!

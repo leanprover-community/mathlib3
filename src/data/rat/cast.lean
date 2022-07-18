@@ -34,16 +34,6 @@ open_locale rat
 section with_div_ring
 variable [division_ring α]
 
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨division_ring.of_rat⟩
-
-theorem cast_def : ∀ (r : ℚ), (r : α) = r.num / r.denom
-| ⟨a, b, h1, h2⟩ := (division_ring.of_rat_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
-
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 (cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 

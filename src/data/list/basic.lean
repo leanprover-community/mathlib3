@@ -3168,9 +3168,7 @@ lemma drop_while_nth_le_zero_not (l : list α) (hl : 0 < (l.drop_while p).length
   ¬ p ((l.drop_while p).nth_le 0 hl) :=
 begin
   induction l with hd tl IH,
-  { rw length_pos_iff_exists_mem at hl,
-    contrapose! hl,
-    simp [drop_while] },
+  { cases hl },
   { simp only [drop_while],
     split_ifs with hp,
     { exact IH _ },
@@ -3183,37 +3181,25 @@ variables {p} {l : list α}
 begin
   induction l with x xs IH,
   { simp [drop_while] },
-  { rw drop_while,
-    split_ifs with h h,
-    { simp only [IH, mem_cons_iff, mem_singleton],
-      split,
-      { rintro H y (rfl|hy),
-        { exact h },
-        { exact H _ hy }, },
-      { rintro H y hy,
-        exact H _ (or.inr hy) } },
-    { simp only [append_eq_nil, and_false, mem_append, mem_singleton, false_iff, not_forall,
-                 exists_prop],
-      exact ⟨x, or.inl rfl, h⟩ } }
+  { by_cases hp : p x;
+    simp [hp, drop_while, IH] }
 end
 
 @[simp] lemma take_while_eq_self_iff : take_while p l = l ↔ ∀ x ∈ l, p x :=
 begin
   induction l with x xs IH,
   { simp [take_while] },
-  { rw take_while,
-    split_ifs;
-    simp [h, IH] }
+  { by_cases hp : p x;
+    simp [hp, take_while, IH] }
 end
 
 @[simp] lemma take_while_eq_nil_iff :
   take_while p l = [] ↔ ∀ (hl : 0 < l.length), ¬ p (l.nth_le 0 hl) :=
 begin
-  induction l with hd tl IH,
+  induction l with x xs IH,
   { simp },
-  { rw take_while,
-    split_ifs;
-    simp [h] }
+  { by_cases hp : p x;
+    simp [hp, take_while, IH] }
 end
 
 lemma mem_take_while_imp {x : α} (hx : x ∈ take_while p l) : p x :=
@@ -3229,8 +3215,18 @@ begin
     { simpa using hx } }
 end
 
-lemma take_while_idempotent : take_while p (take_while p l) = take_while p l :=
-take_while_eq_self_iff.mpr (λ _, mem_take_while_imp)
+lemma take_while_take_while (p q : α → Prop) [decidable_pred p] [decidable_pred q] (l : list α) :
+  take_while p (take_while q l) = take_while (λ a, p a ∧ q a) l :=
+begin
+  induction l with hd tl IH,
+  { simp [take_while] },
+  { by_cases hp : p hd;
+    by_cases hq : q hd;
+    simp [take_while, hp, hq, IH] }
+end
+
+lemma take_while_idem : take_while p (take_while p l) = take_while p l :=
+by simp_rw [take_while_take_while, and_self]
 
 end filter
 
@@ -3927,6 +3923,15 @@ attribute [to_additive] list.prod -- `list.sum`
 attribute [to_additive] alternating_prod -- `list.alternating_sum`
 
 /-! ### Miscellaneous lemmas -/
+
+lemma last_reverse {l : list α} (hl : l.reverse ≠ [])
+  (hl' : 0 < l.length := by { contrapose! hl, simpa [length_eq_zero] using hl }) :
+  l.reverse.last hl = l.nth_le 0 hl' :=
+begin
+  rw [last_eq_nth_le, nth_le_reverse'],
+  { simp, },
+  { simpa using hl' }
+end
 
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl

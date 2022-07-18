@@ -100,21 +100,18 @@ lemma two_torsion_polynomial.disc_eq_disc :
   (two_torsion_polynomial E A).disc = 16 * algebra_map R A E.disc :=
 begin
   rw [cubic.disc, two_torsion_polynomial, disc, disc_aux],
-  simp only [map_neg, map_add, map_sub, map_mul, map_pow],
-  simp only [map_one, map_bit0, map_bit1],
+  simp only [map_neg, map_add, map_sub, map_mul, map_pow, map_one, map_bit0, map_bit1],
   ring1
 end
 
-lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [h2 : invertible (2 : K)]
+lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [invertible (2 : K)]
   (E : EllipticCurve K) (A : Type u) [comm_ring A] [nontrivial A] [no_zero_divisors A]
   [algebra K A] : (two_torsion_polynomial E A).disc ≠ 0 :=
 begin
   haveI : invertible (2 : A) :=
   begin
-    rw [← algebra.id.map_eq_self (2 : K)] at h2,
-    replace h2 := @is_scalar_tower.invertible.algebra_tower _ _ A _ _ _ _ _ _ _ _ h2,
-    rw [map_bit0, map_one] at h2,
-    exact h2
+    rw [← nat.cast_two],
+    exact @is_scalar_tower.invertible_algebra_coe_nat _ _ _ _ _ _ (by rwa [nat.cast_two])
   end,
   rw [two_torsion_polynomial.disc_eq_disc],
   convert_to 2 ^ 4 * algebra_map K A E.disc ≠ 0,
@@ -145,18 +142,12 @@ def change_of_variable : EllipticCurve R :=
                               - 2 * s * t),
   a₆           := ↑u⁻¹ ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2
                               - r * t * E.a₁),
-  disc_unit    :=
-  { val     := ↑u⁻¹ ^ 12 * E.disc_unit,
-    inv     := u ^ 12 * ↑E.disc_unit⁻¹,
-    val_inv := by { have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
-                    linear_combination hvi + ↑u ^ 12 * ↑u⁻¹ ^ 12 * E.disc_unit.mul_inv },
-    inv_val := by { have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
-                    linear_combination hvi + ↑u ^ 12 * ↑u⁻¹ ^ 12 * E.disc_unit.mul_inv } },
-  disc_unit_eq := by { simp only [units.coe_mk, disc_unit_eq, disc_aux], ring1 } }
+  disc_unit    := u⁻¹ ^ 12 * E.disc_unit,
+  disc_unit_eq := by { simp only [units.coe_mul, units.coe_pow, disc_unit_eq, disc_aux], ring1 } }
 
 lemma change_of_variable.j_eq_j : (E.change_of_variable u r s t).j = E.j :=
 begin
-  simp only [change_of_variable, j, units.inv_mk, units.coe_mk],
+  simp only [change_of_variable, j, mul_inv, units.coe_mul, inv_pow, inv_inv, units.coe_pow],
   have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination ↑E.disc_unit⁻¹
     * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3 * hvi

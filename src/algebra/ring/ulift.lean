@@ -103,15 +103,21 @@ instance comm_ring [comm_ring α] : comm_ring (ulift α) :=
 by refine_struct { .. ulift.ring };
 tactic.pi_instance_derive_field
 
+instance [has_rat_cast α] : has_rat_cast (ulift α) :=
+⟨λ a, ulift.up (coe a)⟩
+
+@[simp] lemma cast_rat_down [has_rat_cast α] (n : ℚ) : ulift.down (n : ulift α) = n :=
+rfl
+
 instance field [field α] : field (ulift α) :=
 begin
-  have of_rat_mk : ∀ a b h1 h2, ulift.up (field.rat_cast ⟨a, b, h1, h2⟩ : α) = ↑a * (↑b)⁻¹,
+  have of_rat_mk : ∀ a b h1 h2, ((⟨a, b, h1, h2⟩ : ℚ) : ulift α) = ↑a * (↑b)⁻¹,
   { intros a b h1 h2,
     ext,
-    rw [field.rat_cast_mk, mul_down, inv_down, cast_nat_down, cast_int_down] },
+    rw [cast_rat_down, mul_down, inv_down, cast_nat_down, cast_int_down],
+    exact field.rat_cast_mk a b h1 h2 },
   refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
-  zpow := λ n a, ulift.up (a.down ^ n), rat_cast := λ a, ulift.up (field.rat_cast a),
-  rat_cast_mk := of_rat_mk, qsmul := (•),
+  zpow := λ n a, ulift.up (a.down ^ n), rat_cast := coe, rat_cast_mk := of_rat_mk, qsmul := (•),
   .. @ulift.nontrivial α _, .. ulift.comm_ring }; tactic.pi_instance_derive_field,
   -- `mul_inv_cancel` requires special attention: it leaves the goal `∀ {a}, a ≠ 0 → a * a⁻¹ = 1`.
   cases a,

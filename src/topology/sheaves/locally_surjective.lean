@@ -14,12 +14,12 @@ import topology.sheaves.stalks
 Let `X` be a topological space, `ℱ` and `𝒢` presheaves on `X`, `T : ℱ ⟶ 𝒢` a map.
 
 In this file we formulate two notions for what it means for
-T to be locally surjective:
+`T` to be locally surjective:
 
-  1. For each open set U, each section t : 𝒢(U) is in the image of T
-     after passing to some open cover of U.
+  1. For each open set `U`, each section `t : 𝒢(U)` is in the image of `T`
+     after passing to some open cover of `U`.
 
-  2. For each x : X, the map of *stalks* Tₓ : ℱₓ ⟶ 𝒢ₓ is surjective.
+  2. For each `x : X`, the map of *stalks* `Tₓ : ℱₓ ⟶ 𝒢ₓ` is surjective.
 
 We prove that these are equivalent.
 
@@ -40,15 +40,15 @@ section locally_surjective
 local attribute [instance] concrete_category.has_coe_to_fun
 local attribute [instance] concrete_category.has_coe_to_sort
 
-/-- Let C be a concrete category, X a topological space. -/
+/-- Let `C` be a concrete category, `X` a topological space. -/
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}
 
-/-- Let ℱ, 𝒢 : (opens X)ᵒᵖ ⥤ C be C-valued presheaves on X. -/
+/-- Let `ℱ, 𝒢 : (opens X)ᵒᵖ ⥤ C` be `C`-valued presheaves on `X`. -/
 variables {ℱ 𝒢 : X.presheaf C}
 
-/-- A map of presheaves T : ℱ ⟶ 𝒢 is **locally surjective** if for
-any open set U, section t over U, and x ∈ U, there exists an open set
-x ∈ V ⊆ U such that $T_*(s_V) = t|_V$. -/
+/-- A map of presheaves `T : ℱ ⟶ 𝒢` is **locally surjective** if for
+any open set `U`, section `t` over `U`, and `x ∈ U`, there exists an open set
+`x ∈ V ⊆ U` such that `$T_*(s_V) = t|_V$`. -/
 def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
   ∀ (U : opens X) (t : 𝒢.obj (op U)) (x : X) (hx : x ∈ U),
   ∃ (V : opens X) (ι : V ⟶ U) (hxV : x ∈ V) (s : ℱ.obj (op V)),

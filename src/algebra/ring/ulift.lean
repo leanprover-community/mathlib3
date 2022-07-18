@@ -21,16 +21,6 @@ variables {α : Type u} {x y : ulift.{v} α}
 
 namespace ulift
 
-@[simp] lemma cast_nat_down [add_monoid_with_one α] :
-  ∀ (n : ℕ), (n : ulift α).down = n
-| 0 := rfl
-| (n + 1) := rfl
-
-@[simp] lemma cast_int_down [add_group_with_one α] :
-  ∀ (n : ℤ), (n : ulift α).down = n
-| (int.of_nat n) := rfl
-| -[1+ n] := rfl
-
 instance mul_zero_class [mul_zero_class α] : mul_zero_class (ulift α) :=
 by refine_struct { zero := (0 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
 

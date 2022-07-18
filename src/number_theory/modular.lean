@@ -95,7 +95,7 @@ lemma bottom_row_surj {R : Type*} [comm_ring R] :
     {cd | is_coprime (cd 0) (cd 1)} :=
 begin
   rintros cd ⟨b₀, a, gcd_eqn⟩,
-  let A := ![![a, -b₀], cd],
+  let A := of ![![a, -b₀], cd],
   have det_A_1 : det A = 1,
   { convert gcd_eqn,
     simp [A, det_fin_two, (by ring : a * (cd 1) + b₀ * (cd 0) = b₀ * (cd 0) + a * (cd 1))] },
@@ -192,9 +192,10 @@ theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   tendsto (λ g : {g : SL(2, ℤ) // ↑ₘg 1 = cd}, lc_row0 cd ↑(↑g : SL(2, ℝ)))
     cofinite (cocompact ℝ) :=
 begin
-  let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
+  let mB : ℝ → (matrix (fin 2) (fin 2) ℝ) := λ t, of ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
-  { simp only [continuous_pi_iff, fin.forall_fin_two, mB, continuous_const, continuous_id',
+  { refine continuous_matrix _,
+    simp only [fin.forall_fin_two, mB, continuous_const, continuous_id', of_apply,
       cons_val_zero, cons_val_one, and_self ] },
   refine filter.tendsto.of_tendsto_comp _ (comap_cocompact_le hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
@@ -216,13 +217,13 @@ begin
       int.coe_cast_ring_hom, lc_row0_apply, function.comp_app, cons_val_zero, lc_row0_extend_apply,
       linear_map.general_linear_group.coe_fn_general_linear_equiv,
       general_linear_group.to_linear_apply, coe_plane_conformal_matrix, neg_neg, mul_vec_lin_apply,
-      cons_val_one, head_cons] },
+      cons_val_one, head_cons, of_apply] },
   { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
     simp only [f₁, mul_vec, dot_product, fin.sum_univ_two, matrix.det_fin_two, function.comp_app,
       subtype.coe_mk, lc_row0_extend_apply, cons_val_zero,
       linear_map.general_linear_group.coe_fn_general_linear_equiv,
       general_linear_group.to_linear_apply, coe_plane_conformal_matrix, mul_vec_lin_apply,
-      cons_val_one, head_cons, map_apply, neg_mul, int.cast_sub, int.cast_mul, neg_sub],
+      cons_val_one, head_cons, map_apply, neg_mul, int.cast_sub, int.cast_mul, neg_sub, of_apply],
     ring },
   { refl }
 end
@@ -307,34 +308,52 @@ begin
 end
 
 /-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T : SL(2,ℤ) := ⟨![![1, 1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
+def T : SL(2,ℤ) := ⟨!![1, 1; 0, 1], by norm_num [matrix.det_fin_two_of]⟩
 
 /-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
-def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]⟩
+def S : SL(2,ℤ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
 
-lemma coe_S : ↑ₘS = ![![0, -1], ![1, 0]] := rfl
+lemma coe_S : ↑ₘS = !![0, -1; 1, 0] := rfl
 
-lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
+lemma coe_T : ↑ₘT = !![1, 1; 0, 1] := rfl
 
-lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] := by simp [coe_inv, coe_T, adjugate_fin_two]
+lemma coe_T_inv : ↑ₘ(T⁻¹) = !![1, -1; 0, 1] := by simp [coe_inv, coe_T, adjugate_fin_two]
 
-lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
+lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
   induction n using int.induction_on with n h n h,
-  { ext i j, fin_cases i; fin_cases j;
-    simp, },
-  { rw [zpow_add, zpow_one, coe_mul, h, coe_T],
-    ext i j, fin_cases i; fin_cases j;
-    simp [matrix.mul_apply, fin.sum_univ_succ, add_comm (1 : ℤ)], },
-  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv],
-    ext i j, fin_cases i; fin_cases j;
-    simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
+  { rw [zpow_zero, coe_one, matrix.one_fin_two] },
+  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, matrix.mul_fin_two],
+    congrm !![_, _; _, _],
+    rw [mul_one, mul_one, add_comm] },
+  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, matrix.mul_fin_two],
+    congrm !![_, _; _, _]; ring },
 end
 
-variables {z}
+@[simp] lemma T_pow_mul_apply_one (n : ℤ) (g : SL(2, ℤ)) : ↑ₘ(T ^ n * g) 1 = ↑ₘg 1 :=
+by simp [coe_T_zpow, matrix.mul, matrix.dot_product, fin.sum_univ_succ]
+
+@[simp] lemma T_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T * g) 1 = ↑ₘg 1 :=
+by simpa using T_pow_mul_apply_one 1 g
+
+@[simp] lemma T_inv_mul_apply_one (g : SL(2, ℤ)) : ↑ₘ(T⁻¹ * g) 1 = ↑ₘg 1 :=
+by simpa using T_pow_mul_apply_one (-1) g
 
 lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
+
+lemma re_T_zpow_smul (n : ℤ) : ((T^n) • z).re = z.re + n :=
+by rw [←coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re]
+
+lemma im_T_zpow_smul (n : ℤ) : ((T^n) • z).im = z.im :=
+by rw [←coe_im, coe_T_zpow_smul_eq, add_im, int_cast_im, add_zero, coe_im]
+
+lemma re_T_smul : (T • z).re = z.re + 1 := by simpa using re_T_zpow_smul z 1
+lemma im_T_smul : (T • z).im = z.im := by simpa using im_T_zpow_smul z 1
+lemma re_T_inv_smul : (T⁻¹ • z).re = z.re - 1 := by simpa using re_T_zpow_smul z (-1)
+lemma im_T_inv_smul : (T⁻¹ • z).im = z.im := by simpa using im_T_zpow_smul z (-1)
+
+variables {z}
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
 lemma exists_eq_T_zpow_of_c_eq_zero (hc : ↑ₘg 1 0 = 0) :
@@ -359,8 +378,11 @@ lemma g_eq_of_c_eq_one (hc : ↑ₘg 1 0 = 1) :
 begin
   have hg := g.det_coe.symm,
   replace hg : ↑ₘg 0 1 = ↑ₘg 0 0 * ↑ₘg 1 1 - 1, { rw [det_fin_two, hc] at hg, linarith, },
-  ext i j, fin_cases i; fin_cases j;
-  simp [coe_S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ, hg, hc],
+  refine subtype.ext _,
+  conv_lhs { rw matrix.eta_fin_two ↑ₘg },
+  rw [hc, hg],
+  simp only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
+  congrm !![_, _; _, _]; ring
 end
 
 /-- If `1 < |z|`, then `|S • z| < 1`. -/
@@ -420,7 +442,7 @@ begin
   { rwa [← int.cast_abs, ← int.cast_one, int.cast_lt, int.abs_lt_one_iff] at this, },
   have h₁ := hz.2,
   have h₂ := hg.2,
-  rw [← coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re] at h₂,
+  rw [re_T_zpow_smul] at h₂,
   calc |(n : ℝ)| ≤ |z.re| + |z.re + (n : ℝ)| : abs_add' (n : ℝ) z.re
              ... < 1/2 + 1/2 : add_lt_add h₁ h₂
              ... = 1 : add_halves 1,
@@ -444,25 +466,19 @@ begin
   { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
     contrapose! hg₀',
     refine ⟨S * g, _⟩,
-    rw mul_action.mul_smul,
+    rw mul_smul,
     exact im_lt_im_S_smul hg₀' },
   { show |(g • z).re| ≤ 1 / 2, -- if not, then either `T` or `T'` decrease |Re|.
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T * g, by simp [T, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re + 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [T] },
+      refine ⟨T * g, (T_mul_apply_one _).symm, _⟩,
+      rw [mul_smul, re_T_smul],
+      cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith },
     { contrapose! hg',
-      refine ⟨T⁻¹ * g, by simp [coe_T_inv, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
-      rw mul_action.mul_smul,
-      have : |(g • z).re - 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
-      convert this,
-      simp [coe_T_inv, sub_eq_add_neg] } }
+      refine ⟨T⁻¹ * g, (T_inv_mul_apply_one _).symm, _⟩,
+      rw [mul_smul, re_T_inv_smul],
+      cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith } }
 end
 
 section unique_representative

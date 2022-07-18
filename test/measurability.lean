@@ -77,3 +77,8 @@ by measurability
 
 example : measurable (λ x : ℝ, real.exp (2 * inner x 3)) :=
 by measurability
+
+/-- An older version of the tactic failed in the presence of a negated hypothesis due to an
+internal call to `apply_assumption`. -/
+example {ι : Type*} (i k : ι) (hik : i ≠ k) : measurable (id : α → α) :=
+by measurability

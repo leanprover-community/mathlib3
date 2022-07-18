@@ -124,8 +124,7 @@ lemma factorization_eq_zero_of_remainder (p i r : ℕ) (hr : ¬ p ∣ r) :
   (p * i + r).factorization p = 0 :=
 begin
   apply factorization_eq_zero_of_not_dvd,
-  contrapose! hr,
-  exact (@nat.dvd_add_iff_right p (p*i) r (dvd.intro i rfl)).2 hr,
+  rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
 end
 
 lemma factorization_eq_zero_iff_remainder (p i r : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :

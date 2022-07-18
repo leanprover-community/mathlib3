@@ -120,17 +120,17 @@ lemma factorization_pow_self {p : ℕ} (pp : p.prime) (n : ℕ) : (p ^ n).factor
 by simp [pp.factorization]
 
 
-lemma factorization_eq_zero_of_remainder (p i r : ℕ) (hr : ¬ p ∣ r) :
+lemma factorization_eq_zero_of_remainder {p r : ℕ} (i : ℕ) (hr : ¬ p ∣ r) :
   (p * i + r).factorization p = 0 :=
 begin
   apply factorization_eq_zero_of_not_dvd,
   rwa ←nat.dvd_add_iff_right ((dvd.intro i rfl)),
 end
 
-lemma factorization_eq_zero_iff_remainder (p i r : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :
+lemma factorization_eq_zero_iff_remainder {p r : ℕ} (i : ℕ) (pp : p.prime) (hr0 : r ≠ 0) :
   (¬ p ∣ r) ↔ (p * i + r).factorization p = 0 :=
 begin
-  refine ⟨factorization_eq_zero_of_remainder p i r, λ h, _⟩,
+  refine ⟨factorization_eq_zero_of_remainder i, λ h, _⟩,
   rcases eq_or_ne i 0 with rfl | hi0, {
     simp only [mul_zero, zero_add] at h,
     simpa [pp, hr0] using (factorization_eq_zero_iff' _ _).1 h },

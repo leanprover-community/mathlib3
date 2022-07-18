@@ -381,9 +381,6 @@ end cov
 
 end linear_order
 
-@[to_additive] lemma mul_le_cancellable_one [monoid α] [has_le α] : mul_le_cancellable (1 : α) :=
-λ a b, by simpa only [one_mul] using id
-
 section ordered_add_comm_monoid
 variables [partial_order α] [add_comm_monoid α] [has_sub α] [has_ordered_sub α]
 

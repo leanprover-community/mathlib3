@@ -100,7 +100,7 @@ lemma factorization_inj : set.inj_on factorization { x : ℕ | x ≠ 0 } :=
 by simpa [factorization]
 
 @[simp] lemma factorization_one : factorization 1 = 0 :=
-by { simpa [factorization] }
+by simpa [factorization]
 
 /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : ℕ} : n.factorization.support = n.factors.to_finset :=

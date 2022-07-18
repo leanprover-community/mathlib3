@@ -91,7 +91,7 @@ See <https://stacks.math.columbia.edu/tag/001D>. We do not define 'strictly full
 (obj : C)
 (property : Z obj)
 
-instance full_subcategory.categoty : category.{v} (full_subcategory Z) :=
+instance full_subcategory.category : category.{v} (full_subcategory Z) :=
 induced_category.category full_subcategory.obj
 
 /--

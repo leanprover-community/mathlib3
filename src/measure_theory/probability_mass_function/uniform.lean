@@ -10,6 +10,11 @@ import measure_theory.probability_mass_function.constructions
 
 This file defines a number of uniform `pmf` distributions from various inputs.
 
+`uniform_of_finset` gives each element in the set equal probability,
+  with `0` probability for elements not in the set.
+
+`uniform_of_fintype` gives all elements equal probability,
+  equal to the inverse of the size of the `fintype`.
 
 -/
 

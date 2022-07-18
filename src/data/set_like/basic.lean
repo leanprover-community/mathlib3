@@ -69,6 +69,10 @@ While this is equivalent, `set_like` conveniently uses a carrier set projection 
 subobjects
 -/
 
+-- This instance should have low priority, to ensure we follow the chain
+-- `set_like → has_coe_to_sort`
+attribute [instance, priority 10] coe_sort_trans
+
 /-- A class to indicate that there is a canonical injection between `A` and `set B`.
 
 This has the effect of giving terms of `A` elements of type `B` (through a `has_mem`

@@ -219,7 +219,7 @@ noncomputable def H : B →* SX':=
 
 local notation `h` := H f
 
-/--
+/-!
 The strategy is the following: assuming `epi f`
 * prove that `f.range = {x | h x = g x}`;
 * thus `f ≫ h = f ≫ g` so that `h = g`;

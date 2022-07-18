@@ -9,21 +9,22 @@ import data.fintype.basic
 /-!
 # Down-compressions
 
-This file defines down-compression. It is an operation on a set family that reduces its shadow.
+This file defines down-compression. It is an operation on a set family that reduces the number of
+sets it shatters.
 
-Down-compressing `a : α` along `u v : α` means replacing `a` by `(a ⊔ u) \ v` if `a` and `u` are
-disjoint and `v ≤ a`. In some sense, it's moving `a` from `v` to `u`.
-
-Down-compressions are immensely useful to prove the Kruskal-Katona theorem. The idea is that
-compressing a set family might decrease the size of its shadow, so iterated compressions hopefully
-minimise the shadow.
+Down-compressing `𝒜 : finset (finset α)` along `a : α` means removing `a` from the elements of `𝒜`,
+when the resulting set is not already in `𝒜`.
 
 ## Main declarations
 
 * `finset.non_member_section`: `𝒜.non_member_section a` is the subfamily of sets not containing `a`.
 * `finset.member_section`: `𝒜.member_section a` is the image of the subfamily of sets containing
   `a` under removing `a`.
-* `down.compress`: `compress u v a` is `a` compressed along `u` and `v`.
+* `down.compression`: Down-compression.
+
+## Notation
+
+`𝓓 a 𝒜` is notation for `down.compress a 𝒜` in locale `set_family`.
 
 ## References
 
@@ -99,6 +100,21 @@ begin
   rw [member_section, non_member_section, card_image_of_inj_on,
     filter_card_add_filter_neg_card_eq_card],
   exact (erase_inj_on' _).mono (λ s hs, (mem_filter.1 hs).2),
+end
+
+lemma member_section_union_non_member_section (a : α) (𝒜 : finset (finset α)) :
+  𝒜.member_section a ∪ 𝒜.non_member_section a = 𝒜.image (λ s, s.erase a) :=
+begin
+  ext s,
+  simp only [mem_union, mem_member_section, mem_non_member_section, mem_image, exists_prop],
+  split,
+  { rintro (h | h),
+    { exact ⟨_, h.1, erase_insert h.2⟩ },
+    { exact ⟨_, h.1, erase_eq_of_not_mem h.2⟩ } },
+  { rintro ⟨s, hs, rfl⟩,
+    by_cases ha : a ∈ s,
+    { exact or.inl ⟨by rwa insert_erase ha, not_mem_erase _ _⟩ },
+    { exact or.inr ⟨by rwa erase_eq_of_not_mem ha, not_mem_erase _ _⟩ } }
 end
 
 @[simp] lemma member_section_member_section : (𝒜.member_section a).member_section a = ∅ :=

@@ -126,4 +126,33 @@ def sheafify_stalk_iso (x : X) : F.sheafify.1.stalk x ≅ F.stalk x :=
 
 -- PROJECT functoriality, and that sheafification is the left adjoint of the forgetful functor.
 
+variables {F} {G : presheaf (Type v) X}
+
+def sheafify_map (T : F ⟶ G) : F.sheafify ⟶ G.sheafify :=
+{ app := λ U f,
+    ⟨λ x, (stalk_functor _ x.1).map T (f.1 x),
+     λ x, begin
+      obtain ⟨V, hxV, ι, ⟨f', hf'⟩⟩ := f.2 x,
+        -- notice that ι : V ⟶ unop U, I'm not sure why the API is mixing
+        -- (opens X) and (opens X)ᵒᵖ here...
+      refine ⟨V, hxV, ι, _⟩,
+      exact ⟨T.app _ f', λ x',
+      begin
+        simp only [subtype.val_eq_coe] at ⊢ hf', rw hf',
+        exact stalk_functor_map_germ_apply V x' T f',
+      end⟩,
+    end⟩,
+  naturality' := λ U V res, begin
+    ext f x,
+    simp only [category_theory.types_comp_apply, subtype.coe_mk],
+    change _ = (stalk_functor (Type v) x.val).map T _,
+    congr,
+  end, }
+
+def sheafification : presheaf (Type v) X ⥤ sheaf (Type v) X :=
+{ obj := λ F : presheaf (Type v) X, F.sheafify,
+  map := λ F G T, sorry -- "sheafify_map T" gives (deterministic) timeout
+}
+
+
 end Top.presheaf

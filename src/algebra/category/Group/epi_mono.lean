@@ -98,20 +98,22 @@ instance : has_smul B X' :=
 lemma mul_smul (b b' : B) (x : X') :
   (b * b') • x = b • b' • x :=
 match x with
-| from_coset y := begin
-  change from_coset _ = from_coset _,
-  simp only [←subtype.val_eq_coe, left_coset_assoc],
-end
+| from_coset y :=
+  begin
+    change from_coset _ = from_coset _,
+    simp only [←subtype.val_eq_coe, left_coset_assoc],
+  end
 | ∞ := rfl
 end
 
 lemma one_smul (x : X') :
   (1 : B) • x = x :=
 match x with
-| from_coset y := begin
-  change from_coset _ = from_coset _,
-  simp only [←subtype.val_eq_coe, one_left_coset, subtype.ext_iff_val],
-end
+| from_coset y :=
+  begin
+    change from_coset _ = from_coset _,
+    simp only [←subtype.val_eq_coe, one_left_coset, subtype.ext_iff_val],
+  end
 | ∞ := rfl
 end
 
@@ -170,17 +172,17 @@ lemma τ_symm_apply_infinity :
 by rw [tau, equiv.symm_swap, equiv.swap_apply_right]
 
 /--
-Let `g : B ⟶ S(X')` be defined as as such that, for any `β : B`, `g(β)` is the function sending
+Let `g : B ⟶ S(X')` be defined as such that, for any `β : B`, `g(β)` is the function sending
 point at infinity to point at infinity and sending coset `y` to `β *l y`.
 -/
 def G : B →* SX' :=
 { to_fun := λ β,
   { to_fun := λ x, β • x,
     inv_fun := λ x, β⁻¹ • x,
-    left_inv := λ x, by dsimp only; rw [←mul_smul, mul_left_inv, one_smul],
-    right_inv := λ x, by dsimp only; rw [←mul_smul, mul_right_inv, one_smul] },
+    left_inv := λ x, by { dsimp only, rw [←mul_smul, mul_left_inv, one_smul] },
+    right_inv := λ x, by { dsimp only, rw [←mul_smul, mul_right_inv, one_smul] } },
   map_one' := by { ext, simp [one_smul] },
-  map_mul' := λ b1 b2, by ext; simp [mul_smul] }
+  map_mul' := λ b1 b2, by { ext, simp [mul_smul] } }
 
 local notation `g` := G f
 
@@ -189,8 +191,8 @@ Define `h : B ⟶ S(X')` to be `τ g τ⁻¹`
 -/
 def H : B →* SX':=
 { to_fun := λ β, ((τ).symm.trans (g β)).trans τ,
-  map_one' := by ext; simp,
-  map_mul' := λ b1 b2, by ext; simp }
+  map_one' := by { ext, simp },
+  map_mul' := λ b1 b2, by { ext, simp } }
 
 local notation `h` := H f
 
@@ -203,15 +205,16 @@ The strategy is the following: assuming `epi f`
 
 lemma g_apply_from_coset (x : B) (y : X) :
   (g x) (from_coset y) =
-  from_coset ⟨x *l y, begin
-    rw [←subtype.val_eq_coe, ←y.2.some_spec, set.mem_range, left_coset_assoc],
-    use x * y.2.some,
-  end⟩ := rfl
+  from_coset ⟨x *l y,
+  begin
+    rwa [←subtype.val_eq_coe, ←y.2.some_spec, set.mem_range, left_coset_assoc],
+    use x * y.2.some
+  end⟩ :=
+rfl
 
 lemma g_apply_infinity (x : B) : (g x) ∞ = ∞ := rfl
 
-lemma h_apply_infinity (x : B) (hx : x ∈ f.range) :
-  (h x) ∞ = ∞ :=
+lemma h_apply_infinity (x : B) (hx : x ∈ f.range) : (h x) ∞ = ∞ :=
 begin
   simp only [H, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
   rw [τ_symm_apply_infinity, g_apply_from_coset],
@@ -271,7 +274,8 @@ fun_like.ext _ _ $ λ a,
 
 lemma g_ne_h (x : B) (hx : x ∉ f.range) :
   g ≠ h :=
-λ r, begin
+begin
+  intros r,
   replace r := fun_like.congr_fun (fun_like.congr_fun r x)
     ((from_coset ⟨f.range, ⟨1, one_left_coset _⟩⟩)),
   rw [H, g_apply_from_coset, monoid_hom.coe_mk, tau] at r,
@@ -284,12 +288,12 @@ end
 end surjective_of_epi_auxs
 
 lemma surjective_of_epi [epi f] : function.surjective f :=
-classical.by_contradiction $ λ r, begin
+begin
+  by_contra r,
   push_neg at r,
   rcases r with ⟨b, hb⟩,
-  refine surjective_of_epi_auxs.g_ne_h f b _ ((cancel_epi f).1 (surjective_of_epi_auxs.comp_eq f)),
-  rintros ⟨c, hc⟩,
-  exact hb _ hc,
+  exact surjective_of_epi_auxs.g_ne_h f b (λ ⟨c, hc⟩, hb _ hc)
+    ((cancel_epi f).1 (surjective_of_epi_auxs.comp_eq f)),
 end
 
 lemma epi_iff_surjective :

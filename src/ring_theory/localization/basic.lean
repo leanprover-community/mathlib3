@@ -1005,6 +1005,25 @@ protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
 show (algebra_map R S).to_monoid_with_zero_hom x ≠ 0,
 from map_ne_zero_of_mem_non_zero_divisors (algebra_map R S) (is_localization.injective S hM) hx
 
+variables {S}
+
+lemma sec_snd_ne_zero [nontrivial R] (hM : M ≤ non_zero_divisors R) (x : S) :
+  ((sec M x).snd : R) ≠ 0 :=
+begin
+  change ((⟨(sec M x).snd.val, hM (sec M x).snd.property⟩ : non_zero_divisors R) : R) ≠ 0,
+  exact non_zero_divisors.coe_ne_zero _
+end
+
+lemma sec_fst_ne_zero [nontrivial R] [no_zero_divisors S] (hM : M ≤ non_zero_divisors R) {x : S}
+  (hx : x ≠ 0) : (sec M x).fst ≠ 0 :=
+begin
+  have hsec := sec_spec M x,
+  intro hfst,
+  rw [hfst, map_zero, mul_eq_zero, _root_.map_eq_zero_iff] at hsec,
+  { exact or.elim hsec hx (sec_snd_ne_zero hM x) },
+  { exact is_localization.injective S hM }
+end
+
 variables (S M) (Q : Type*) [comm_ring Q] {g : R →+* P} [algebra P Q]
 
 /-- Injectivity of a map descends to the map induced on localizations. -/

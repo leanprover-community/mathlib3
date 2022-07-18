@@ -243,28 +243,7 @@ end
 lemma strict_anti_on_Iic_of_succ_lt [succ_order α] [is_succ_archimedean α]
   {n : α} (hψ : ∀ m, succ m ≤ n → ψ (succ m) < ψ m) :
   strict_anti_on ψ (set.Iic n) :=
-begin
-  intros x hx y hy hxy,
-  obtain ⟨i, rfl⟩ := hxy.le.exists_succ_iterate,
-  induction i with k ih,
-  { simpa using hxy },
-  cases k,
-  { exact hψ _ hy },
-  rw set.mem_Iic at *,
-  simp only [function.iterate_succ', function.comp_apply] at ih hxy hy ⊢,
-  by_cases hmax : is_max (succ^[k] x),
-  { rw succ_eq_iff_is_max.2 hmax at hxy ⊢,
-    exact ih (le_trans (le_succ _) hy) hxy },
-  refine lt_trans _ (ih (le_trans (le_succ _) hy) _),
-  conv_lhs { congr, congr,
-    rw [← function.comp_apply succ, ← function.iterate_succ'] },
-  conv_rhs { rw [← function.comp_apply succ, ← function.iterate_succ'] },
-  refine hψ _ (le_trans _ hy),
-  rw [function.iterate_succ', function.comp_apply],
-  { refine lt_of_le_of_lt (le_succ_iterate k _) _,
-    rw lt_succ_iff_not_is_max,
-    exact hmax },
-end
+λ i hi j hj hij, @strict_mono_on_Iic_of_lt_succ α βᵒᵈ _ _ ψ _ _ n hψ i hi j hj hij
 
 lemma strict_mono_on_Iic_of_pred_lt [pred_order α] [is_pred_archimedean α]
   {n : α} (hψ : ∀ m, n ≤ pred m → ψ (pred m) < ψ m) :

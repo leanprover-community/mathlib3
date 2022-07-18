@@ -149,9 +149,25 @@ def sheafify_map (T : F ⟶ G) : F.sheafify ⟶ G.sheafify :=
     congr,
   end, }
 
+lemma sheafify_id (F : X.presheaf (Type v)) :
+  sheafify_map (𝟙 F) = 𝟙 F.sheafify :=
+begin
+  ext U f x,
+  unfold sheafify_map, simp,
+end
+
+lemma sheafify_comp {F G H : X.presheaf (Type v)} (T1 : F ⟶ G) (T2 : G ⟶ H) :
+  sheafify_map (T1 ≫ T2) = sheafify_map T1 ≫ sheafify_map T2 :=
+begin
+  ext U f x,
+  unfold sheafify_map, simp,
+end
+
 def sheafification : presheaf (Type v) X ⥤ sheaf (Type v) X :=
 { obj := λ F : presheaf (Type v) X, F.sheafify,
-  map := λ F G T, sorry -- "sheafify_map T" gives (deterministic) timeout
+  map := λ F G T, sheafify_map T,
+  map_id' := sheafify_id,
+  map_comp' := λ _ _ _ T1 T2, sheafify_comp T1 T2,
 }
 
 

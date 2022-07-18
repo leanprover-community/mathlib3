@@ -135,6 +135,10 @@ lemma tsub_le_tsub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 lemma add_tsub_le_assoc : a + b - c ≤ a + (b - c) :=
 by { rw [tsub_le_iff_left, add_left_comm], exact add_le_add_left le_add_tsub a }
 
+/-- See `tsub_add_eq_add_tsub` for the equality. -/
+lemma tsub_add_le_right_comm : a + b - c ≤ a - c + b :=
+by { rw [add_comm, add_comm _ b], exact add_tsub_le_assoc }
+
 lemma add_le_add_add_tsub : a + b ≤ (a + c) + (b - c) :=
 by { rw [add_assoc], exact add_le_add_left le_add_tsub a }
 
@@ -158,6 +162,22 @@ tsub_le_iff_right.2 $ calc
     a ≤ a - b + b : le_tsub_add
   ... ≤ a - b + (c + (b - c)) : add_le_add_left le_add_tsub _
   ... = a - b + c + (b - c) : (add_assoc _ _ _).symm
+
+lemma add_tsub_add_le_tsub_add_tsub : a + b - (c + d) ≤ a - c + (b - d) :=
+begin
+  rw [add_comm c, tsub_le_iff_left, add_assoc, ←tsub_le_iff_left, ←tsub_le_iff_left],
+  refine (tsub_le_tsub_right add_tsub_le_assoc c).trans _,
+  rw [add_comm a, add_comm (a - c)],
+  exact add_tsub_le_assoc,
+end
+
+/-- See `add_tsub_add_eq_tsub_left` for the equality. -/
+lemma add_tsub_add_le_tsub_left : a + b - (a + c) ≤ b - c :=
+by { rw [tsub_le_iff_left, add_assoc], exact add_le_add_left le_add_tsub _ }
+
+/-- See `add_tsub_add_eq_tsub_right` for the equality. -/
+lemma add_tsub_add_le_tsub_right : a + c - (b + c) ≤ a - b :=
+by { rw [tsub_le_iff_left, add_right_comm], exact add_le_add_right le_add_tsub c }
 
 end cov
 
@@ -221,33 +241,13 @@ begin
   { rw [tsub_le_iff_left, add_assoc, ← tsub_le_iff_left, ← tsub_le_iff_left] }
 end
 
-section cov
-variable [covariant_class α α (+) (≤)]
-
-lemma tsub_add_eq_tsub_tsub (a b c : α) : a - (b + c) = a - b - c :=
-begin
-  refine le_antisymm (tsub_le_iff_left.mpr _)
-    (tsub_le_iff_left.mpr $ tsub_le_iff_left.mpr _),
-  { rw [add_assoc], refine le_trans le_add_tsub (add_le_add_left le_add_tsub _) },
-  { rw [← add_assoc], apply le_add_tsub }
-end
+lemma tsub_add_eq_tsub_tsub (a b c : α) : a - (b + c) = a - b - c := (tsub_tsub _ _ _).symm
 
 lemma tsub_add_eq_tsub_tsub_swap (a b c : α) : a - (b + c) = a - c - b :=
 by { rw [add_comm], apply tsub_add_eq_tsub_tsub }
 
 lemma tsub_right_comm : a - b - c = a - c - b :=
 by simp_rw [← tsub_add_eq_tsub_tsub, add_comm]
-
-lemma add_tsub_add_le_tsub_add_tsub :
-  (a + b) - (c + d) ≤ (a - c) + (b - d) :=
-begin
-  rw [add_comm c, ← tsub_tsub],
-  refine (tsub_le_tsub_right add_tsub_le_assoc c).trans _,
-  rw [add_comm a, add_comm (a - c)],
-  exact add_tsub_le_assoc
-end
-
-end cov
 
 /-! ### Lemmas that assume that an element is `add_le_cancellable`. -/
 
@@ -324,12 +324,9 @@ variables [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)
 
 lemma add_tsub_add_eq_tsub_right (a c b : α) : (a + c) - (b + c) = a - b :=
 begin
-  apply le_antisymm,
-  { rw [tsub_le_iff_left, add_right_comm], exact add_le_add_right le_add_tsub c },
-  { rw [tsub_le_iff_left, add_comm b],
-    apply le_of_add_le_add_right,
-    rw [add_assoc],
-    exact le_tsub_add }
+  refine add_tsub_add_le_tsub_right.antisymm (tsub_le_iff_right.2 $ le_of_add_le_add_right _), swap,
+  rw add_assoc,
+  exact le_tsub_add,
 end
 
 lemma add_tsub_add_eq_tsub_left (a b c : α) : (a + b) - (a + c) = b - c :=

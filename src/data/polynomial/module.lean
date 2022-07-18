@@ -50,7 +50,6 @@ omit R
 
 variables {M}
 variables {S : Type*} [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
-variables {S' : Type*} [comm_semiring S'] [algebra S' R] [module S' M] [is_scalar_tower S' R M]
 
 namespace polynomial_module
 

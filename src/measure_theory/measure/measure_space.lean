@@ -2601,6 +2601,8 @@ begin
   exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
 end
 
+/-- A set in a σ-finite space has zero measure if and only if its intersection with
+all members of the countable family of finite measure spanning sets has zero measure. -/
 lemma forall_measure_inter_spanning_sets_eq_zero
   [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
   (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
@@ -2614,9 +2616,11 @@ begin
     exact le_antisymm (le_trans (measure_mono (inter_subset_left _ _)) s_null.le) (zero_le _), },
 end
 
+/-- A set in a σ-finite space has positive measure if and only if its intersection with
+some member of the countable family of finite measure spanning sets has positive measure. -/
 lemma exists_measure_inter_spanning_sets_pos
   [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
-  (∃ n, μ (s ∩ (spanning_sets μ n)) > 0) ↔ μ s > 0 :=
+  (∃ n, 0 < μ (s ∩ (spanning_sets μ n))) ↔ 0 < μ s :=
 begin
   rw ← not_iff_not,
   simp only [not_exists, not_lt, nonpos_iff_eq_zero],

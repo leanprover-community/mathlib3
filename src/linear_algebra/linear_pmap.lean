@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Moritz Doll
 -/
 import linear_algebra.basic
 import linear_algebra.prod
@@ -23,7 +23,6 @@ Partially defined maps are currently used in `mathlib` to prove Hahn-Banach theo
 and its variations. Namely, `linear_pmap.Sup` implies that every chain of `linear_pmap`s
 is bounded above.
 
-Another possible use (not yet in `mathlib`) would be the theory of unbounded linear operators.
 -/
 
 open set
@@ -482,6 +481,72 @@ by { cases x, cases y, exact f.mem_graph_snd_inj hx hy hxy }
 lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E} {x' : F} (h : (x,x') ∈ f.graph)
   (hx : x = 0) : x' = 0 :=
 f.mem_graph_snd_inj h f.graph.zero_mem hx
+
+lemma mem_domain_iff {f : linear_pmap R E F} {x : E} : x ∈ f.domain ↔ ∃ y : F, (x,y) ∈ f.graph :=
+begin
+  split; intro h,
+  { use f ⟨x, h⟩,
+    exact f.mem_graph ⟨x, h⟩ },
+  cases h with y h,
+  rw mem_graph_iff at h,
+  cases h with x' h,
+  simp only at h,
+  rw ←h.1,
+  simp,
+end
+
+lemma image_iff {f : linear_pmap R E F} {x : E} {y : F} (hx : x ∈ f.domain) :
+  y = f ⟨x, hx⟩ ↔ (x, y) ∈ f.graph :=
+begin
+  rw mem_graph_iff,
+  split; intro h,
+  { use ⟨x, hx⟩,
+    simp [h] },
+  rcases h with ⟨⟨x', hx'⟩, ⟨h1, h2⟩⟩,
+  simp only [submodule.coe_mk] at h1 h2,
+  simp only [←h2, h1],
+end
+
+lemma mem_range_iff {f : linear_pmap R E F} {y : F} : y ∈ set.range f ↔ ∃ x : E, (x,y) ∈ f.graph :=
+begin
+  split; intro h,
+  { rw set.mem_range at h,
+    rcases h with ⟨⟨x, hx⟩, h⟩,
+    use x,
+    rw ←h,
+    exact f.mem_graph ⟨x, hx⟩ },
+  cases h with x h,
+  rw mem_graph_iff at h,
+  cases h with x h,
+  rw set.mem_range,
+  use x,
+  simp only at h,
+  rw h.2,
+end
+
+lemma mem_domain_of_eq_graph_iff {f g : linear_pmap R E F} (h : f.graph = g.graph) {x : E} :
+  x ∈ f.domain ↔ x ∈ g.domain :=
+by simp_rw [mem_domain_iff, h]
+
+lemma le_of_le_graph {f g : linear_pmap R E F} (h : f.graph ≤ g.graph) : f ≤ g :=
+begin
+  split,
+  { intros x hx,
+    rw mem_domain_iff at hx ⊢,
+    cases hx with y hx,
+    use y,
+    exact h hx },
+  rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+  rw image_iff,
+  refine h _,
+  simp only [submodule.coe_mk] at hxy,
+  rw hxy at hx,
+  rw ←image_iff hx,
+  simp [hxy],
+end
+
+lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
+by {ext, exact mem_domain_of_eq_graph_iff h, exact (le_of_le_graph h.le).2 }
 
 end graph
 

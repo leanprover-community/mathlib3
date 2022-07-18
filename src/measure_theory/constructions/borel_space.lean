@@ -632,7 +632,7 @@ lemma ext_of_Ico' {α : Type*} [topological_space α] {m : measurable_space α}
   (h : ∀ ⦃a b⦄, a < b → μ (Ico a b) = ν (Ico a b)) : μ = ν :=
 begin
   rcases exists_countable_dense_bot_top α with ⟨s, hsc, hsd, hsb, hst⟩,
-  have : countable (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)),
+  have : (⋃ (l ∈ s) (u ∈ s) (h : l < u), {Ico l u} : set (set α)).countable,
     from hsc.bUnion (λ l hl, hsc.bUnion
       (λ u hu, countable_Union_Prop $ λ _, countable_singleton _)),
   simp only [← set_of_eq_eq_singleton, ← set_of_exists] at this,
@@ -804,7 +804,7 @@ instance topological_group.has_measurable_inv [group γ] [topological_group γ] 
 @[priority 100]
 instance has_continuous_smul.has_measurable_smul {M α} [topological_space M]
   [topological_space α] [measurable_space M] [measurable_space α]
-  [opens_measurable_space M] [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [opens_measurable_space M] [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul M α :=
 ⟨λ c, (continuous_const_smul _).measurable,
   λ y, (continuous_id.smul continuous_const).measurable⟩
@@ -899,7 +899,7 @@ instance has_continuous_sub.has_measurable_sub₂ [second_countable_topology γ]
 instance has_continuous_smul.has_measurable_smul₂ {M α} [topological_space M]
   [second_countable_topology M] [measurable_space M] [opens_measurable_space M]
   [topological_space α] [second_countable_topology α] [measurable_space α]
-  [borel_space α] [has_scalar M α] [has_continuous_smul M α] :
+  [borel_space α] [has_smul M α] [has_continuous_smul M α] :
   has_measurable_smul₂ M α :=
 ⟨continuous_smul.measurable⟩
 
@@ -1136,7 +1136,7 @@ lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topo
   ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on αᵒᵈ β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
-lemma measurable_set_of_mem_nhds_within_Ioi_aux [densely_ordered α]
+lemma measurable_set_of_mem_nhds_within_Ioi_aux
   {s : set α} (h : ∀ x ∈ s, s ∈ 𝓝[>] x) (h' : ∀ x ∈ s, ∃ y, x < y) :
   measurable_set s :=
 begin
@@ -1159,12 +1159,11 @@ begin
       have : x ∈ interior s :=
         mem_interior.2 ⟨Ioo x' (y x'), h'y _ hx'.1, is_open_Ioo, ⟨h', hz.1.trans h'z.2⟩⟩,
       exact false.elim (hx.2 this) } },
-  apply B.countable_of_is_open (λ x hx, is_open_Ioo) (λ x hx, _),
-  simpa using hy x hx.1
+  exact B.countable_of_Ioo (λ x hx, hy x hx.1),
 end
 
 /-- If a set is a right-neighborhood of all of its points, then it is measurable. -/
-lemma measurable_set_of_mem_nhds_within_Ioi [densely_ordered α] {s : set α}
+lemma measurable_set_of_mem_nhds_within_Ioi {s : set α}
   (h : ∀ x ∈ s, s ∈ 𝓝[>] x) : measurable_set s :=
 begin
   by_cases H : ∃ x ∈ s, is_top x,
@@ -1229,12 +1228,12 @@ lemma ae_measurable_infi {ι} {μ : measure δ} [encodable ι] {f : ι → δ �
   ae_measurable (λ b, ⨅ i, f i b) μ :=
 ae_measurable.is_glb hf $ (ae_of_all μ (λ b, is_glb_infi))
 
-lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma measurable_bsupr {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨆ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [supr_subtype'],
      exact measurable_supr (λ i, hf i) }
 
-lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma ae_measurable_bsupr {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨆ i ∈ s, f i b) μ :=
 begin
   haveI : encodable s := hs.to_encodable,
@@ -1242,12 +1241,12 @@ begin
   exact ae_measurable_supr (λ i, hf i),
 end
 
-lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma measurable_binfi {ι} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) : measurable (λ b, ⨅ i ∈ s, f i b) :=
 by { haveI : encodable s := hs.to_encodable, simp only [infi_subtype'],
      exact measurable_infi (λ i, hf i) }
 
-lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : countable s)
+lemma ae_measurable_binfi {ι} {μ : measure δ} (s : set ι) {f : ι → δ → α} (hs : s.countable)
   (hf : ∀ i, ae_measurable (f i) μ) : ae_measurable (λ b, ⨅ i ∈ s, f i b) μ :=
 begin
   haveI : encodable s := hs.to_encodable,
@@ -1576,7 +1575,7 @@ def finite_spanning_sets_in_Ioo_rat (μ : measure ℝ) [is_locally_finite_measur
   set_mem := λ n,
     begin
       simp only [mem_Union, mem_singleton_iff],
-      refine ⟨-(n + 1), n + 1, _, by norm_cast⟩,
+      refine ⟨-(n + 1 : ℕ), n + 1, _, by simp⟩, -- TODO: norm_cast fails here?
       exact (neg_nonpos.2 (@nat.cast_nonneg ℚ _ (n + 1))).trans_lt n.cast_add_one_pos
     end,
   finite := λ n, measure_Ioo_lt_top,
@@ -1598,7 +1597,7 @@ begin
     refine generate_from_le (λ t, _),
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
-    { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
+    { have hg : ∀ q : ℚ, measurable_set[g] (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
       refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
@@ -1812,7 +1811,7 @@ lemma ae_measurable.coe_real_ereal {f : α → ℝ} {μ : measure α} (hf : ae_m
 measurable_coe_real_ereal.comp_ae_measurable hf
 
 /-- The set of finite `ereal` numbers is `measurable_equiv` to `ℝ`. -/
-def measurable_equiv.ereal_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ᵐ ℝ :=
+def measurable_equiv.ereal_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ᵐ ℝ :=
 ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
 
 lemma ereal.measurable_of_measurable_real {f : ereal → α}

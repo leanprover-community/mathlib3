@@ -134,7 +134,7 @@ begin
   apply is_unit_of_self_mul_dvd_separable hsep,
   rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  simpa only [nat.cast_one, nat.cast_bit0] using enat.add_one_le_of_lt hq
+  simpa only [nat.cast_one, nat.cast_bit0] using part_enat.add_one_le_of_lt hq
 end
 
 lemma separable.squarefree {p : R[X]} (hsep : separable p) : squarefree p :=
@@ -220,7 +220,8 @@ lemma root_multiplicity_le_one_of_separable [nontrivial R] {p : R[X]}
 begin
   by_cases hp : p = 0,
   { simp [hp], },
-  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← enat.coe_le_coe, enat.coe_get, nat.cast_one],
+  rw [root_multiplicity_eq_multiplicity, dif_neg hp, ← part_enat.coe_le_coe, part_enat.coe_get,
+    nat.cast_one],
   exact multiplicity_le_one_of_separable (not_is_unit_X_sub_C _) hsep
 end
 
@@ -262,7 +263,7 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
   (∏ i in s, (X - C (f i))).separable ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
 ⟨λ hfs x hx y hy hfxy, hfs.inj_of_prod_X_sub_C hx hy hfxy,
 λ H, by { rw ← prod_attach, exact separable_prod' (λ x hx y hy hxy,
-    @pairwise_coprime_X_sub _ _ { x // x ∈ s } (λ x, f x)
+    @pairwise_coprime_X_sub_C _ _ { x // x ∈ s } (λ x, f x)
       (λ x y hxy, subtype.eq $ H x.1 x.2 y.1 y.2 hxy) _ _ hxy)
   (λ _ _, separable_X_sub_C) }⟩
 
@@ -404,11 +405,9 @@ end
 
 lemma exists_finset_of_splits
   (i : F →+* K) {f : F[X]} (sep : separable f) (sp : splits i f) :
-  ∃ (s : finset K), f.map i =
-    C (i f.leading_coeff) * (s.prod (λ a : K, (X : K[X]) - C a)) :=
+  ∃ (s : finset K), f.map i = C (i f.leading_coeff) * (s.prod (λ a : K, X - C a)) :=
 begin
-  classical,
-  obtain ⟨s, h⟩ := exists_multiset_of_splits i sp,
+  obtain ⟨s, h⟩ := (splits_iff_exists_multiset _).1 sp,
   use s.to_finset,
   rw [h, finset.prod_eq_multiset_prod, ←multiset.to_finset_eq],
   apply nodup_of_separable_prod,

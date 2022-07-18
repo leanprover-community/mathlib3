@@ -161,6 +161,21 @@ instance : has_coe_to_fun (model_with_corners 𝕜 E H) (λ _, H → E) := ⟨λ
 /-- The inverse to a model with corners, only registered as a local equiv. -/
 protected def symm : local_equiv E H := I.to_local_equiv.symm
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
+  (I : model_with_corners 𝕜 E H) : H → E := I
+
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
+  (I : model_with_corners 𝕜 E H) : E → H := I.symm
+
+initialize_simps_projections model_with_corners
+  (to_local_equiv_to_fun → apply, to_local_equiv_inv_fun → symm_apply,
+   to_local_equiv_source → source, to_local_equiv_target → target, -to_local_equiv)
+
 /- Register a few lemmas to make sure that `simp` puts expressions in normal form -/
 @[simp, mfld_simps] lemma to_local_equiv_coe : (I.to_local_equiv : H → E) = I :=
 rfl
@@ -289,7 +304,7 @@ corners `I.prod I'` on `(E × E', model_prod H H')`. This appears in particular 
 structure on the tangent bundle to a manifold modelled on `(E, H)`: it will be modelled on
 `(E × E, H × E)`. See note [Manifold type tags] for explanation about `model_prod H H'`
 vs `H × H'`. -/
-def model_with_corners.prod
+@[simps (lemmas_only)] def model_with_corners.prod
   {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
   {E : Type v} [normed_group E] [normed_space 𝕜 E] {H : Type w} [topological_space H]
   (I : model_with_corners 𝕜 E H)

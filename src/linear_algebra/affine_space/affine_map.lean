@@ -177,7 +177,7 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
 
 @[simp] lemma mk'_linear (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : (mk' f f' p h).linear = f' := rfl
 
-section has_scalar
+section has_smul
 variables {R : Type*} [monoid R] [distrib_mul_action R V2] [smul_comm_class k R V2]
 
 /-- The space of affine maps to a module inherits an `R`-action from the action on its codomain. -/
@@ -194,7 +194,7 @@ instance [distrib_mul_action Rᵐᵒᵖ V2] [is_central_scalar R V2] :
   is_central_scalar R (P1 →ᵃ[k] V2) :=
 { op_smul_eq_smul := λ r x, ext $ λ _, op_smul_eq_smul _ _ }
 
-end has_scalar
+end has_smul
 
 instance : has_zero (P1 →ᵃ[k] V2) := { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩ }
 instance : has_add (P1 →ᵃ[k] V2) :=

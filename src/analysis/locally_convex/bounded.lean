@@ -225,7 +225,7 @@ begin
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
 
-lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = infer_instance :=
+lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = pseudo_metric_space.to_bornology :=
 begin
   rw bornology.ext_iff_is_bounded,
   intro s,

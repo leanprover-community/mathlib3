@@ -342,7 +342,7 @@ variables {R : Type u} {A : Type u} {B : Type w} [comm_semiring R] [comm_semirin
 variables [algebra R A] [algebra R B] (I : ideal B) (hI : I ^ 2 = ⊥)
 
 /-- If `f₁ f₂ : A →ₐ[R] B` are two lifts of the same `A →ₐ[R] B ⧸ I`,
-  we may define a map `f₁ - f₂ : A →ₐ[R] I`. -/
+  we may define a map `f₁ - f₂ : A →ₗ[R] I`. -/
 def diff_to_ideal_of_quotient_comp_eq (f₁ f₂ : A →ₐ[R] B)
   (e : (ideal.quotient.mkₐ R I).comp f₁ = (ideal.quotient.mkₐ R I).comp f₂) :
   A →ₗ[R] I :=

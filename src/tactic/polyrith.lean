@@ -303,15 +303,14 @@ structure sage_json_failure :=
 objects, or `none` if only trace output was requested. -/
 meta def convert_sage_output (j : json) : tactic (option (list poly)) :=
 do
-  let e : exceptional (sage_json_success ⊕ sage_json_failure) :=
+  r : sage_json_success ⊕ sage_json_failure ← decorate_ex "internal json error: "
     -- try the error format first, so that if both fail we get the message from the success parser
-    (sum.inr <$> of_json sage_json_failure j) <|> (sum.inl <$> of_json sage_json_success j),
-  match e with
-  | exceptional.exception f := exceptional.exception (λ s, format!"internal json error: " ++ f s)
-  | exceptional.success (sum.inr f) :=
+    (sum.inr <$> of_json sage_json_failure j <|> sum.inl <$> of_json sage_json_success j),
+  match r with
+  | sum.inr f :=
       fail!"polyrith failed to retrieve a solution from Sage! {f.error_name}: {f.error_value}"
-  | exceptional.success (sum.inl s) := do
-      do { some t ← pure s.trace | skip, tactic.trace t},
+  | sum.inl s := do
+      s.trace.mmap trace,
       pure s.data
   end
 

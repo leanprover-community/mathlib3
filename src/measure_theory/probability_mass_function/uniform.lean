@@ -6,7 +6,7 @@ Authors: Devon Tuma
 import measure_theory.probability_mass_function.constructions
 
 /-!
-# Uniform probability mass functions
+# Uniform Probability Mass Functions
 
 This file defines a number of uniform `pmf` distributions from various inputs.
 

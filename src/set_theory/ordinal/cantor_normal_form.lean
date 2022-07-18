@@ -191,3 +191,17 @@ theorem lt_of_mem_CNF_lookup {b o x y : ordinal} (hb : 1 < b) (h : y ∈ (CNF b 
   y < b := snd_lt_of_mem_CNF_list hb $ alist.mem_lookup_iff.1 h
 
 end ordinal
+
+/-!
+### Todo
+
+- CNF is injective (easy via CNF_foldr)
+- CNF b o = [] ↔ o = 0, easy via former
+- CNF_coeff function
+- CNF_coeff b (o + o') ≤ CNF_coeff b o + CNF_coeff b o'
+- (CNF_coeff b (o + o')).support ⊆ (CNF_coeff b o).support ∪ (CNF_coeff b o').support for b
+  additive principal
+- (CNF_coeff b o').support ⊆ (CNF_coeff b (o + o')).support for b additive principal
+- CNF_coeff b (o ♯ o') = CNF_coeff b o + CNF_coeff b o'
+- The result for natural multiplication
+-/

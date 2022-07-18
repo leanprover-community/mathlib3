@@ -33,13 +33,15 @@ open category_theory
 open topological_space
 open opposite
 
+namespace Top.presheaf
+
 section locally_surjective
 
 /-- Let C be a concrete category, X a topological space. -/
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}
 
 /-- Let ℱ, 𝒢 : (opens X)ᵒᵖ ⥤ C be C-valued presheaves on X. -/
-variables {ℱ : X.presheaf C} {𝒢 : X.presheaf C}
+variables {ℱ 𝒢 : X.presheaf C}
 
 /-- When U is an open set, we introduce the notation "Γ_ ℱ U"
 for the set of sections of ℱ over U.
@@ -95,7 +97,7 @@ variables [category_theory.limits.preserves_filtered_colimits (forget C)]
 
 /-- Being locally surjective is equivalent to being surjective on stalks. -/
 lemma locally_surjective_iff_surjective_on_stalks (T : ℱ ⟶ 𝒢) :
-  is_locally_surjective T ↔ is_surjective_on_stalks T :=
+  is_locally_surjective T ↔ ∀ x, function.surjective ((stalk_functor C x).map T) :=
 begin
   split; intro hT,
   { /- human proof:
@@ -160,3 +162,5 @@ end
 end surjective_on_stalks
 
 end locally_surjective
+
+end Top.presheaf

@@ -518,12 +518,13 @@ abbreviation Scheme.affine_basic_open (X : Scheme) {U : X.affine_opens}
 ⟨X.basic_open f, U.prop.basic_open_is_affine f⟩
 
 @[simp]
-lemma is_affine_open.from_Spec_map_basic_open {X : Scheme} {U : opens X.carrier}
+lemma is_affine_open.basic_open_from_Spec_app {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
-  (opens.map hU.from_Spec.val.base).obj (X.basic_open f) = prime_spectrum.basic_open f :=
+  @Scheme.basic_open (Scheme.Spec.obj $ op (X.presheaf.obj $ op U))
+    ((opens.map hU.from_Spec.1.base).obj U)
+    (hU.from_Spec.1.c.app (op U) f) = prime_spectrum.basic_open f :=
 begin
-  rw [Scheme.preimage_basic_open,
-    ← Scheme.basic_open_res_eq _ _ (eq_to_hom hU.from_Spec_base_preimage.symm).op,
+  rw [← Scheme.basic_open_res_eq _ _ (eq_to_hom hU.from_Spec_base_preimage.symm).op,
     basic_open_eq_of_affine', is_affine_open.from_Spec_app_eq],
   congr,
   rw [← comp_apply, ← comp_apply, category.assoc, ← functor.map_comp_assoc,
@@ -531,6 +532,11 @@ begin
     category.id_comp, ← iso.app_inv, iso.inv_hom_id],
   refl
 end
+
+lemma is_affine_open.from_Spec_map_basic_open {X : Scheme} {U : opens X.carrier}
+  (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
+  (opens.map hU.from_Spec.val.base).obj (X.basic_open f) = prime_spectrum.basic_open f :=
+by simp
 
 lemma is_affine_open.basic_open_union_eq_self_iff {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (s : set (X.presheaf.obj $ op U)) :

@@ -191,8 +191,8 @@ f.locally_finite.exists_finset_nhd_support_subset hso ho x
 
 lemma is_subordinate.continuous_finsum_smul {Y : Type*} [add_comm_monoid Y] [smul_with_zero ℝ Y]
   [topological_space Y] [has_continuous_add Y] [has_continuous_smul ℝ Y]
-  {s : set X} {f : partition_of_unity ι X s} {U : ι → set X} (h : f.is_subordinate U) {g : ι → X → Y}
-  (hg : ∀ i (x ∈ U i), continuous_at (g i) x) :
+  {s : set X} {f : partition_of_unity ι X s} {U : ι → set X} (h : f.is_subordinate U)
+  {g : ι → X → Y} (hg : ∀ i (x ∈ U i), continuous_at (g i) x) :
   continuous (λ x, ∑ᶠ i, f i x • g i x) :=
 f.continuous_finsum_smul $ λ i x hx, hg i x $ h _ hx
 

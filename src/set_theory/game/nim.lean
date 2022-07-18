@@ -302,7 +302,7 @@ begin
       intro h,
       rw ordinal.nat_cast_inj at h,
       try { rw [nat.lxor_comm n k, nat.lxor_comm n m] at h },
-      exact hk.ne (nat.lxor_left_inj h) } },
+      exact hk.ne (nat.lxor_left_injective h) } },
 
   have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
     u ∈ set.range (λ i, grundy_value ((nim n + nim m).move_left i)),
@@ -315,10 +315,7 @@ begin
     rw set.mem_range,
 
     -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.
-    have : nat.lxor u (nat.lxor n m) ≠ 0,
-    { intro h, rw nat.lxor_eq_zero at h, linarith },
-    rcases nat.lxor_trichotomy this with h|h|h,
-    { linarith },
+    cases nat.lt_lxor_cases hu with h h,
 
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.

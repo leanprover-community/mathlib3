@@ -63,7 +63,7 @@ structure EllipticCurve (R : Type u) [comm_ring R] :=
 namespace EllipticCurve
 
 instance : inhabited (EllipticCurve ℚ) :=
-⟨⟨0, 0, 1, -1, 0, ⟨37, 37⁻¹, by norm_num1, by norm_num1⟩, by { change (37 : ℚ) = _ + _, norm_num }⟩⟩
+⟨⟨0, 0, 1, -1, 0, ⟨37, 37⁻¹, by norm_num1, by norm_num1⟩, show (37 : ℚ) = _ + _, by norm_num1 ⟩⟩
 
 variables {R : Type u} [comm_ring R] (E : EllipticCurve R)
 

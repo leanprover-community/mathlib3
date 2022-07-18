@@ -56,7 +56,7 @@ using_well_founded {dec_tac := `[assumption]}
   (H0 : C 0) (H : ∀ o, 0 < o → C (o % b ^ log b o) → C o) : @CNF_rec C b H0 H 0 = H0 :=
 by { rw [CNF_rec, dif_pos rfl], refl }
 
-theorem CNF_rec_ne_zero {o : ordinal} {C : ordinal → Sort*} (ho : 0 < o) (b : ordinal)
+theorem CNF_rec_pos {o : ordinal} {C : ordinal → Sort*} (ho : 0 < o) (b : ordinal)
   (H0 : C 0) (H : ∀ o, 0 < o → C (o % b ^ log b o) → C o) :
   @CNF_rec C b H0 H o = H o ho (@CNF_rec C b H0 H _) :=
 by rw [CNF_rec, dif_neg ho.ne']
@@ -71,7 +71,7 @@ CNF_rec b [] (λ o h0 l, ⟨log b o, o / b ^ log b o⟩ :: l) o
 /-- Recursive definition for the Cantor normal form. -/
 theorem CNF_list_ne_zero {b o : ordinal} (ho : 0 < o) :
   CNF_list b o = ⟨log b o, o / b ^ log b o⟩ :: CNF_list b (o % b ^ log b o) :=
-CNF_rec_ne_zero ho _ _ _
+CNF_rec_pos ho _ _ _
 
 theorem zero_CNF_list {o : ordinal} (ho : 0 < o) : CNF_list 0 o = [⟨0, o⟩] :=
 by simp [CNF_list_ne_zero ho]

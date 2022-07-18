@@ -270,29 +270,27 @@ begin
   end (by simp),
 end
 
-lemma agree :
-  f.range.carrier = {x | h x = g x} :=
-set.ext $ λ b,
-⟨begin
-  rintros ⟨a, rfl⟩,
-  change h (f a) = g (f a),
-  ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
-  { rw [g_apply_from_coset],
-    by_cases m : y ∈ f.range,
-    { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
-      change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
-      simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
-        left_coset_assoc] },
-    { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
-      simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
-  { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], },
-end, λ (hb : h b = g b), classical.by_contradiction $ λ r, begin
-  have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-    (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
-  have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
-  exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]),
-end⟩
+lemma agree : f.range.carrier = {x | h x = g x} :=
+begin
+  refine set.ext (λ b, ⟨_, λ (hb : h b = g b), classical.by_contradiction (λ r, _)⟩),
+  { rintros ⟨a, rfl⟩,
+    change h (f a) = g (f a),
+    ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
+    { rw [g_apply_from_coset],
+      by_cases m : y ∈ f.range,
+      { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
+        change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
+        simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
+          left_coset_assoc] },
+      { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
+        simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
+    { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], } },
+  { have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
+    have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+      (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
+    exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]) }
+end
 
 lemma comp_eq : f ≫ (show B ⟶ Group.of SX', from g) = f ≫ h :=
 fun_like.ext _ _ $ λ a,

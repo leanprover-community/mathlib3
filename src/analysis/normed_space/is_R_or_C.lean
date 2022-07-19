@@ -80,18 +80,6 @@ lemma linear_map.bound_of_ball_bound' {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E
   ∥f z∥ ≤ c / r * ∥z∥ :=
 f.bound_of_sphere_bound r_pos c (λ z hz, h z hz.le) z
 
-lemma continuous_linear_map.op_norm_bound_of_ball_bound
-  {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →L[𝕜] 𝕜) (h : ∀ z ∈ closed_ball (0 : E) r, ∥f z∥ ≤ c) :
-  ∥f∥ ≤ c / r :=
-begin
-  apply continuous_linear_map.op_norm_le_bound,
-  { apply div_nonneg _ r_pos.le,
-    exact (norm_nonneg _).trans
-          (h 0 (by simp only [norm_zero, mem_closed_ball, dist_zero_left, r_pos.le])), },
-  apply linear_map.bound_of_ball_bound' r_pos,
-  exact λ z hz, h z hz,
-end
-
 variables (𝕜)
 include 𝕜
 lemma normed_space.sphere_nonempty_is_R_or_C [nontrivial E] {r : ℝ} (hr : 0 ≤ r) :

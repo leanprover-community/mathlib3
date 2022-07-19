@@ -1261,6 +1261,54 @@ begin
       by rwa [mul_one] }
 end
 
+-- true? need a new typeclass?
+lemma normed_field.exists_one_lt_norm_lt (α : Type*) [nondiscrete_normed_field α] {r : ℝ}
+  (hr : 1 < r) :
+  ∃ (x : α), 1 < ∥x∥ ∧ ∥x∥ < r :=
+begin
+  obtain ⟨y, hy⟩:= normed_field.exists_one_lt_norm α,
+  sorry
+end
+
+lemma continuous_linear_map.op_norm_bound_of_ball_bound
+  {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →L[𝕜] 𝕜) (h : ∀ z ∈ closed_ball (0 : E) r, ∥f z∥ ≤ c) :
+  ∥f∥ ≤ c / r :=
+begin
+  have H₀ : 0 ≤ c := by simpa using h 0 (by simpa using r_pos.le),
+  have H₁ : 0 ≤ c / r := div_nonneg H₀ r_pos.le,
+  by_cases hf : f = 0,
+  { simpa [hf] using H₁ },
+  have H₂ : 0 < ∥f∥ := by rwa norm_pos_iff,
+  apply le_of_forall_rat_lt_imp_le' H₁,
+  intros q hq hq',
+  have H₃ : 1 < (↑q)⁻¹ * ∥f∥,
+  { convert mul_lt_mul_of_pos_left hq' (inv_pos.mpr hq),
+    field_simp [hq.ne'] },
+  have H₄ : 0 < ↑q / ∥f∥ := div_pos hq H₂,
+  have H₅ : 0 ≤ ↑q * c / ∥f∥ / r := sorry,
+  obtain ⟨b, hb, hb'⟩ : ∃ b : 𝕜, 1 < ∥b∥ ∧ ∥b∥ < q⁻¹ * ∥f∥ :=
+    normed_field.exists_one_lt_norm_lt 𝕜 H₃,
+  have H₆ : 0 ≤ c * ∥b∥ / r := sorry,
+  have H₇ : 0 < ∥b∥ := by linarith,
+  have h₁ : ↑q ≤ ↑q / ∥f∥ * (c * ∥b∥ / r),
+  { have : ∀ (x : E), r / ∥b∥ ≤ ∥x∥ → ∥x∥ < r → ∥f x∥ ≤ (c * ∥b∥ / r) * ∥x∥,
+    { intros x hx₁ hx₂,
+      transitivity c,
+      apply h _ (by simpa using hx₂.le),
+      convert mul_le_mul_of_nonneg_left hx₁ H₆ using 1,
+      field_simp [r_pos.ne', H₇.ne'] },
+    convert mul_le_mul_of_nonneg_left
+      (continuous_linear_map.op_norm_le_of_shell r_pos H₆ hb this) H₄.le,
+    field_simp [H₂.ne'] },
+  have h₂ : ↑q / ∥f∥ * (c * ∥b∥ / r) ≤ c / r,
+  { convert mul_le_mul_of_nonneg_left hb'.le H₅ using 1,
+    { field_simp [H₂.ne', r_pos.ne'],
+      ring },
+    { field_simp [H₂.ne', r_pos.ne', hq.ne'],
+      ring } },
+  exact h₁.trans h₂,
+end
+
 section completeness
 
 open_locale topological_space

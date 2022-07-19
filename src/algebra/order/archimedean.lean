@@ -152,7 +152,7 @@ end
 end linear_ordered_ring
 
 section linear_ordered_field
-variables [linear_ordered_field α] [archimedean α] {x y ε : α}
+variables [linear_ordered_field α] [archimedean α] {x y ε c : α}
 
 /-- Every positive `x` is between two successive integer powers of
 another `y` greater than one. This is the same as `exists_mem_Ioc_zpow`,
@@ -234,6 +234,17 @@ le_of_not_lt $ λ hyx, let ⟨q, hy, hx⟩ := exists_rat_btwn hyx in hy.not_le $
 
 lemma le_of_forall_lt_rat_imp_le (h : ∀ q : ℚ, y < q → x ≤ q) : x ≤ y :=
 le_of_not_lt $ λ hyx, let ⟨q, hy, hx⟩ := exists_rat_btwn hyx in hx.not_le $ h _ hy
+
+lemma le_of_forall_rat_lt_imp_le' (hy : c ≤ y) (h : ∀ (q : ℚ), c < q → ↑q < x → ↑q ≤ y) :
+  x ≤ y :=
+begin
+  apply le_of_forall_rat_lt_imp_le,
+  intros q hq,
+  by_cases hq' : ↑q ≤ c,
+  { exact le_trans (by exact_mod_cast hq') hy },
+  push_neg at hq',
+  exact h q hq' hq,
+end
 
 lemma eq_of_forall_rat_lt_iff_lt (h : ∀ q : ℚ, (q : α) < x ↔ (q : α) < y) : x = y :=
 (le_of_forall_rat_lt_imp_le $ λ q hq, ((h q).1 hq).le).antisymm $ le_of_forall_rat_lt_imp_le $

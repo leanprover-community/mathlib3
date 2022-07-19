@@ -73,7 +73,7 @@ section has_smul
 variables {α β M N : Type*} {φ : M → N} [has_smul M α] [has_smul N β]
 
 /-- The map on scalars underlying an equivariant map -/
-def to_scalar_map (f : α →ₑ[φ] β) := φ
+def to_smul_map (f : α →ₑ[φ] β) := φ
 
 -- ACL : I copied a few of them from `group_theory.hom.group_action.lean` and `linear_map.lean`
 -- but I don't really know what I'm doing

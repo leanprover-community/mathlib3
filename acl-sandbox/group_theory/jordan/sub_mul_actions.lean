@@ -270,7 +270,7 @@ end
 
 lemma sub_mul_action.of_fixing_subgroup_of_stabilizer.scalar_map_bijective
   (a : α) (s : set (sub_mul_action.of_stabilizer M a)) :
-  function.bijective (sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s).to_scalar_map :=
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s).to_smul_map :=
 begin
   split,
   { rintros ⟨m, hm⟩ ⟨n, hn⟩ hmn,
@@ -491,9 +491,9 @@ lemma sub_mul_action.of_fixing_subgroup_of_eq.map_def {s t : set α} (hst : s = 
   ∀ (x : α) (hx : x ∈ sub_mul_action.of_fixing_subgroup M s),
   (((sub_mul_action.of_fixing_subgroup_of_eq.map M hst) ⟨x, hx⟩) : α) = x := λ x hx, rfl
 
-lemma sub_mul_action.of_fixing_subgroup_of_eq.to_scalar_map_def {s t : set α} (hst : s = t)
+lemma sub_mul_action.of_fixing_subgroup_of_eq.to_smul_map_def {s t : set α} (hst : s = t)
   (g : M)  (hg : g ∈ fixing_subgroup M s) :
-  g = (sub_mul_action.of_fixing_subgroup_of_eq.map M hst).to_scalar_map
+  g = (sub_mul_action.of_fixing_subgroup_of_eq.map M hst).to_smul_map
     (⟨g, hg⟩ : fixing_subgroup M s) := rfl
 
 lemma sub_mul_action.of_fixing_subgroup_of_eq.map_bijective {s t : set α} (hst : s = t) :
@@ -510,8 +510,8 @@ begin
     refl },
 end
 
-lemma sub_mul_action.of_fixing_subgroup_of_eq.to_scalar_map_bijective {s t : set α} (hst : s = t) :
-  function.bijective (sub_mul_action.of_fixing_subgroup_of_eq.map M hst).to_scalar_map :=
+lemma sub_mul_action.of_fixing_subgroup_of_eq.to_smul_map_bijective {s t : set α} (hst : s = t) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_eq.map M hst).to_smul_map :=
 begin
   split,
   { rintros ⟨g, hg⟩ ⟨k, hk⟩ hgk,

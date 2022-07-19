@@ -938,30 +938,17 @@ end is_tensor_product
 
 section is_base_change
 
-variables (R S M N : Type*) [add_comm_monoid M] [add_comm_monoid N] [comm_ring R]
+variables {R M N : Type*} (S : Type*) [add_comm_monoid M] [add_comm_monoid N] [comm_ring R]
 variables [comm_ring S] [algebra R S] [module R M] [module R N] [module S N] [is_scalar_tower R S N]
 variables (f : M →ₗ[R] N)
 
-def linear_map.restrict_scalars_map : (N →ₗ[S] N) →ₗ[R] (N →ₗ[R] N) :=
-{ to_fun := linear_map.restrict_scalars R,
-  map_add' := λ f g, rfl,
-  map_smul' := λ r f, rfl }
-
-@[simps]
-def algebra_alg_hom (R S : Type*) [comm_semiring R] [semiring S] [algebra R S] : R →ₐ[R] S :=
-{ commutes' := λ r, rfl, ..(algebra_map R S) }
-
 include f
-
-variables {R M N}
-
-example : module S (M →ₗ[R] N) := infer_instance
 
 /-- Given an `R`-algebra `S` and an `R`-module `M`, an `S`-module `N` together with a map
 `f : M →ₗ[R] N` is the base change of `M` to `S` if the map `S × M → N, (s, m) ↦ s • f m` is the
 tensor product. -/
 def is_base_change : Prop := is_tensor_product
-(((algebra_alg_hom S $ module.End S (M →ₗ[R] N)).to_linear_map.flip f).restrict_scalars R)
+(((algebra.of_id S $ module.End S (M →ₗ[R] N)).to_linear_map.flip f).restrict_scalars R)
 
 variables {S f} (h : is_base_change S f)
 variables {P Q : Type*} [add_comm_monoid P] [module R P]
@@ -972,7 +959,7 @@ variables[add_comm_monoid Q] [module R Q] [module S Q] [is_scalar_tower R S Q]
 noncomputable
 def is_base_change.lift (g : M →ₗ[R] Q) : N →ₗ[S] Q :=
 { map_smul' := λ r x, begin
-    let F := ((algebra_alg_hom S $ module.End S (M →ₗ[R] Q))
+    let F := ((algebra.of_id S $ module.End S (M →ₗ[R] Q))
       .to_linear_map.flip g).restrict_scalars R,
     have hF : ∀ (s : S) (m : M), h.lift F (s • f m) = s • g m := h.lift_eq F,
     change h.lift F (r • x) = r • h.lift F x,
@@ -983,7 +970,7 @@ def is_base_change.lift (g : M →ₗ[R] Q) : N →ₗ[S] Q :=
       rw [← mul_smul, hF, hF, mul_smul] },
     { intros x₁ x₂ e₁ e₂, rw [map_add, smul_add, map_add, smul_add, e₁, e₂] }
   end,
-  ..(h.lift (((algebra_alg_hom S $ module.End S (M →ₗ[R] Q))
+  ..(h.lift (((algebra.of_id S $ module.End S (M →ₗ[R] Q))
     .to_linear_map.flip g).restrict_scalars R)) }
 
 lemma is_base_change.lift_eq (g : M →ₗ[R] Q) (x : M) : h.lift g (f x) = g x :=

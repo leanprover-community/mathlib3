@@ -183,13 +183,14 @@ lemma exists_finset_nhd_support_subset {U : ι → set X}
     support (λ i, f i z) ⊆ is :=
 f.locally_finite.exists_finset_nhd_support_subset hso ho x
 
-/-- If `f` is a partition of unity that is subordinate to a family of sets `U i` and `g : ι → X → E`
-is a family of functions such that each `g i` is continuous at every point of `U i`, then the sum
+/-- If `f` is a partition of unity that is subordinate to a family of open sets `U i` and
+`g : ι → X → E` is a family of functions such that each `g i` is continuous on `U i`, then the sum
 `λ x, ∑ᶠ i, f i x • g i x` is a continuous function. -/
 lemma is_subordinate.continuous_finsum_smul [has_continuous_add E] {U : ι → set X}
-  (h : f.is_subordinate U) {g : ι → X → E} (hg : ∀ i (x ∈ U i), continuous_at (g i) x) :
+  (ho : ∀ i, is_open (U i)) (hf : f.is_subordinate U) {g : ι → X → E}
+  (hg : ∀ i, continuous_on (g i) (U i)) :
   continuous (λ x, ∑ᶠ i, f i x • g i x) :=
-f.continuous_finsum_smul $ λ i x hx, hg i x $ h _ hx
+f.continuous_finsum_smul $ λ i x hx, (hg i).continuous_at $ (ho i).mem_nhds $ hf i hx
 
 end partition_of_unity
 

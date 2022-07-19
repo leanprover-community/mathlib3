@@ -3,9 +3,11 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.convex.partition_of_unity
 import geometry.manifold.algebra.structures
 import geometry.manifold.bump_function
+import topology.paracompact
+import topology.partition_of_unity
+import topology.shrinking_lemma
 
 /-!
 # Smooth partition of unity
@@ -37,12 +39,17 @@ depends on `x`.
 We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
 for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering ι I M s`
 subordinate to `U`. Then we use this fact to prove a similar statement about smooth partitions of
-unity.
+unity, see `smooth_partition_of_unity.exists_is_subordinate`.
+
+Finally, we use existence of a partition of unity to prove lemma
+`exists_smooth_forall_mem_convex_of_local` that allows us to construct a globally defined smooth
+function from local functions.
 
 ## TODO
 
 * Build a framework for to transfer local definitions to global using partition of unity and use it
-  to define, e.g., the integral of a differential form over a manifold.
+  to define, e.g., the integral of a differential form over a manifold. Lemma
+  `exists_smooth_forall_mem_convex_of_local` is a first step in this direction.
 
 ## Tags
 
@@ -147,23 +154,40 @@ lemma smooth_smul {g : M → F} {i} (hg : ∀ x ∈ tsupport (f i), smooth_at I 
 cont_mdiff_of_support $ λ x hx, (f i).smooth.smooth_at.smul $ hg x $
   tsupport_smul_subset_left _ _ hx
 
+/-- If `f` is a smooth partition of unity on a set `s : set M` and `g : ι → M → F` is a family of
+functions such that `g i` is smooth at every point of the topological support of `f i`, then the sum
+`λ x, ∑ᶠ i, f i x • g i x` is smooth on the whole manifold. -/
 lemma smooth_finsum_smul {g : ι → M → F}
   (hg : ∀ i (x ∈ tsupport (f i)), smooth_at I 𝓘(ℝ, F) (g i) x) :
   smooth I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
 smooth_finsum (λ i, f.smooth_smul (hg i)) $ f.locally_finite.subset $
   λ i, support_smul_subset_left _ _
 
+lemma finsum_smul_mem_convex {g : ι → M → F} {t : set F} {x : M} (hx : x ∈ s)
+  (hg : ∀ i, f i x ≠ 0 → g i x ∈ t) (ht : convex ℝ t) :
+  ∑ᶠ i, f i x • g i x ∈ t :=
+ht.finsum_mem (λ i, f.nonneg _ _) (f.sum_eq_one hx) hg
+
 /-- A smooth partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same
 type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/
 def is_subordinate (f : smooth_partition_of_unity ι I M s) (U : ι → set M) :=
 ∀ i, tsupport (f i) ⊆ U i
 
-@[simp] lemma is_subordinate_to_partition_of_unity {f : smooth_partition_of_unity ι I M s}
-  {U : ι → set M} :
+variables {f} {U : ι → set M}
+
+@[simp] lemma is_subordinate_to_partition_of_unity :
   f.to_partition_of_unity.is_subordinate U ↔ f.is_subordinate U :=
 iff.rfl
 
 alias is_subordinate_to_partition_of_unity ↔ _ is_subordinate.to_partition_of_unity
+
+/-- If `f` is a smooth partition of unity on a set `s : set M` subordinate to a family of open sets
+`U : ι → set M` and `g : ι → M → F` is a family of functions such that `g i` is smooth on `U i`,
+then the sum `λ x, ∑ᶠ i, f i x • g i x` is smooth on the whole manifold. -/
+lemma is_subordinate.smooth_finsum_smul {g : ι → M → F} (hf : f.is_subordinate U)
+  (ho : ∀ i, is_open (U i)) (hg : ∀ i, smooth_on I 𝓘(ℝ, F) (g i) (U i)) :
+  smooth I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
+f.smooth_finsum_smul $ λ i x hx, (hg i).smooth_at $ (ho i).mem_nhds (hf i hx)
 
 end smooth_partition_of_unity
 
@@ -415,8 +439,14 @@ end
 
 end smooth_partition_of_unity
 
-lemma exists_smooth_forall_mem_convex_of_local [sigma_compact_space M] [t2_space M] {t : M → set F}
-  (ht : ∀ x, convex ℝ (t x))
+variables [sigma_compact_space M] [t2_space M] {t : M → set F}
+
+/-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F`
+be a family of convex sets. Suppose that for each point `x : M` there exists a neighborhood
+`U ∈ 𝓝 x` and a function `g : M → F` such that `g` is smooth on `U` and `g y ∈ t y` for all `y ∈ U`.
+Then there exists a smooth function `g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯` such that `g x ∈ t x` for all `x`.
+See also `exists_smooth_forall_mem_convex_of_local_const`. -/
+lemma exists_smooth_forall_mem_convex_of_local (ht : ∀ x, convex ℝ (t x))
   (Hloc : ∀ x : M, ∃ (U ∈ 𝓝 x) (g : M → F), smooth_on I 𝓘(ℝ, F) g U ∧ ∀ y ∈ U, g y ∈ t y) :
   ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
 begin
@@ -424,8 +454,19 @@ begin
   obtain ⟨f, hf⟩ := smooth_partition_of_unity.exists_is_subordinate I is_closed_univ
     (λ x, interior (U x)) (λ x, is_open_interior)
     (λ x hx, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩),
-  refine ⟨⟨λ x, ∑ᶠ i, f i x • g i x, f.smooth_finsum_smul $ λ i x hx, _⟩, λ x, _⟩,
-  { exact (hgs _).smooth_at (mem_interior_iff_mem_nhds.1 $ hf _ hx) },
-  { refine f.to_partition_of_unity.finsum_smul_mem_convex (mem_univ x) (λ i hi, hgt _ _ _) (ht _),
-    exact interior_subset (hf _ $ subset_closure hi) }
+  refine ⟨⟨λ x, ∑ᶠ i, f i x • g i x,
+    hf.smooth_finsum_smul (λ i, is_open_interior) $ λ i, (hgs i).mono interior_subset⟩,
+    λ x, f.finsum_smul_mem_convex (mem_univ x) (λ i hi, hgt _ _ _) (ht _)⟩,
+  exact interior_subset (hf _ $ subset_closure hi)
 end
+
+/-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F` be
+a family of convex sets. Suppose that for each point `x : M` there exists a vector `c : F` such that
+for all `y` in a neighborhood of `x` we have `c ∈ t y`. Then there exists a smooth function
+`g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯` such that `g x ∈ t x` for all `x`.  See also
+`exists_smooth_forall_mem_convex_of_local`. -/
+lemma exists_smooth_forall_mem_convex_of_local_const (ht : ∀ x, convex ℝ (t x))
+  (Hloc : ∀ x : M, ∃ c : F, ∀ᶠ y in 𝓝 x, c ∈ t y) :
+  ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
+exists_smooth_forall_mem_convex_of_local I ht $ λ x,
+  let ⟨c, hc⟩ := Hloc x in ⟨_, hc, λ _, c, smooth_on_const, λ y, id⟩

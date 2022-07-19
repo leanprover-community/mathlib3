@@ -33,7 +33,6 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
 ## Future work
 
  * Redefine `localization` for monoids and rings to coincide with `localized_module`.
- * Define a characteristic predicate for the localized module.
 -/
 
 
@@ -333,6 +332,10 @@ instance is_module' : module R (localized_module S M) :=
 section
 
 variables (S M)
+
+/--
+The map `m ↦ m / 1` is `R`-linear.export
+-/
 def mk_linear_map : M →ₗ[R] localized_module S M :=
 { to_fun := λ m, mk m 1,
   map_add' := λ x y, by simp [mk_add_mk],
@@ -340,6 +343,9 @@ def mk_linear_map : M →ₗ[R] localized_module S M :=
 
 end
 
+/--
+For any `s : S`, there is an `R`-linear map given by `a/b ↦ s • a/b`.
+-/
 def mul_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
 { to_fun := (•) s,
   map_add' := λ _ _, by simp,
@@ -350,6 +356,9 @@ def mul_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
     ring_nf,
   end }
 
+/--
+For any `s : S`, there is an `R`-linear map given by `a/b ↦ a/(b*s)`.
+-/
 def div_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
 { to_fun := λ p, p.lift_on (λ p, mk p.1 (s * p.2)) $ λ ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩, mk_eq.mpr ⟨c,
   begin

@@ -562,6 +562,23 @@ ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 theorem singleton_inj {x y : Set.{u}} (H : ({x} : Set) = {y}) : x = y :=
 let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
 
+/-- The intersection operator, the collection of elements in all of the elements of a ZFC set. We
+special-case `⋂₀ ∅ = ∅`. -/
+noncomputable def sInter (x : Set) : Set :=
+begin
+  by_cases h : x.to_set.nonempty,
+  { exact {z ∈ classical.some h | ∀ w ∈ x, z ∈ w} },
+  { exact ∅ }
+end
+
+prefix `⋂₀ `:110 := Set.sInter
+
+@[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ :=
+begin
+  apply dif_neg,
+  simp,
+end
+
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
 

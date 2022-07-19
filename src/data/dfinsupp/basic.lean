@@ -128,11 +128,11 @@ instance [Π i, add_zero_class (β i)] : has_add (Π₀ i, β i) :=
 
 lemma add_apply [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ + g₂) i = g₁ i + g₂ i :=
-zip_with_apply _ _ g₁ g₂ i
+rfl
 
 @[simp] lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ + g₂) = g₁ + g₂ :=
-funext $ add_apply g₁ g₂
+rfl
 
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
 fun_like.coe_injective.add_zero_class _ coe_zero coe_add
@@ -147,7 +147,7 @@ lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : �
 rfl
 
 @[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
-funext $ nsmul_apply b v
+rfl
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
 fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
@@ -202,7 +202,7 @@ lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι
 rfl
 
 @[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
-funext $ zsmul_apply b v
+rfl
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 fun_like.coe_injective.add_group _
@@ -226,7 +226,7 @@ rfl
 @[simp] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
-funext $ smul_apply b v
+rfl
 
 instance {δ : Type*} [monoid γ] [monoid δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
@@ -354,12 +354,12 @@ rfl
 @[simp] lemma subtype_domain_add [Π i, add_zero_class (β i)] {p : ι → Prop} [decidable_pred p]
   (v v' : Π₀ i, β i) :
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
-ext $ λ i, rfl
+coe_fn_injective rfl
 
 @[simp] lemma subtype_domain_smul [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] {p : ι → Prop} [decidable_pred p] (r : γ) (f : Π₀ i, β i) :
   (r • f).subtype_domain p = r • f.subtype_domain p :=
-ext $ λ i, rfl
+coe_fn_injective rfl
 
 variables (γ β)
 
@@ -384,12 +384,12 @@ variables {γ β}
 @[simp]
 lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
   (- v).subtype_domain p = - v.subtype_domain p :=
-ext $ λ i, rfl
+coe_fn_injective rfl
 
 @[simp] lemma subtype_domain_sub [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p]
   {v v' : Π₀ i, β i} :
   (v - v').subtype_domain p = v.subtype_domain p - v'.subtype_domain p :=
-ext $ λ i, rfl
+coe_fn_injective rfl
 
 end filter_and_subtype_domain
 
@@ -590,7 +590,7 @@ by rw [erase_single, if_neg h]
 
 section update
 
-variables (f : Π₀ i, β i) (i) (b : β i) [decidable (b = 0)]
+variables (f : Π₀ i, β i) (i) (b : β i)
 
 /-- Replace the value of a `Π₀ i, β i` at a given point `i : ι` by a given value `b : β i`.
 If `b = 0`, this amounts to removing `i` from the support.
@@ -599,27 +599,22 @@ Otherwise, `i` is added to it.
 This is the (dependent) finitely-supported version of `function.update`. -/
 def update : Π₀ i, β i :=
 ⟨function.update f i b, f.support'.map $ λ s,
-  ⟨if b = 0 then multiset.erase s i else i ::ₘ s,
-  begin
-    intro j,
+  ⟨i ::ₘ s, λ j, begin
     rcases eq_or_ne i j with rfl|hi,
-    { split_ifs with hb,
-      { simp [hb] },
-      { simp } },
+    { simp, },
     { obtain hj | (hj : f j = 0) := s.prop j,
-      { split_ifs;
-        simp [multiset.mem_erase_of_ne hi.symm, hj] },
-      { simp [function.update_noteq hi.symm, hj] } }
+      { exact or.inl (multiset.mem_cons_of_mem hj), },
+      { exact or.inr ((function.update_noteq hi.symm b _).trans hj) } }
   end⟩⟩
 
 variables (j : ι)
 
-@[simp] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b :=
-rfl
-@[simp] lemma update_self [decidable (f i = 0)] : f.update i (f i) = f :=
+@[simp] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b := rfl
+
+@[simp] lemma update_self : f.update i (f i) = f :=
 by { ext, simp }
 
-@[simp] lemma update_eq_erase [decidable ((0 : β i) = 0)] : f.update i 0 = f.erase i :=
+@[simp] lemma update_eq_erase : f.update i 0 = f.erase i :=
 begin
   ext j,
   rcases eq_or_ne i j with rfl|hi,
@@ -628,7 +623,7 @@ begin
 end
 
 lemma update_eq_single_add_erase {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
-  (b : β i) [decidable (b = 0)] :
+  (b : β i) :
   f.update i b = single i b + f.erase i :=
 begin
   ext j,
@@ -638,7 +633,7 @@ begin
 end
 
 lemma update_eq_erase_add_single {β : ι → Type*} [Π i, add_zero_class (β i)] (f : Π₀ i, β i) (i : ι)
-  (b : β i) [decidable (b = 0)] :
+  (b : β i) :
   f.update i b = f.erase i + single i b :=
 begin
   ext j,
@@ -648,7 +643,7 @@ begin
 end
 
 lemma update_eq_sub_add_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι)
-  (b : β i) [decidable (b = 0)] :
+  (b : β i) :
   f.update i b = f - single i (f i) + single i b :=
 by rw [update_eq_erase_add_single f i b, erase_eq_sub_single f i]
 
@@ -945,7 +940,7 @@ by { ext j, by_cases h1 : j = i; by_cases h2 : f j ≠ 0; simp at h2; simp [h1, 
   (f.erase i).support = f.support.erase i :=
 by { ext j, by_cases h1 : j = i, simp [h1], by_cases h2 : f j ≠ 0; simp at h2; simp [h1, h2] }
 
-lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} [decidable (b = 0)] (h : b ≠ 0) :
+lemma support_update_ne_zero (f : Π₀ i, β i) (i : ι) {b : β i} (h : b ≠ 0) :
   support (f.update i b) = insert i f.support :=
 begin
   ext j,
@@ -1188,33 +1183,35 @@ end
 `curry`.-/
 noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
   Π₀ (i : Σ i, _), δ i.1 i.2 :=
-by { classical,
-  exact mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j) }
+{ to_fun := λ i, f i.1 i.2,
+  support' := f.support'.map $ λ s,
+    ⟨(multiset.bind ↑s $ λ i, ((f i).support.map ⟨sigma.mk i, sigma_mk_injective⟩).val), λ i, begin
+      simp_rw [multiset.mem_bind, map_val, multiset.mem_map, function.embedding.coe_fn_mk,
+        ←finset.mem_def, mem_support_to_fun],
+      obtain hi | (hi : f i.1 = 0) := s.prop i.1,
+      { by_cases hi' : f i.1 i.2 = 0,
+        { exact or.inr hi' },
+        { exact or.inl ⟨_, hi, i.2, hi', sigma.eta _⟩ } },
+      { right,
+        rw [hi, zero_apply] }
+    end⟩ }
 
 @[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j :=
-begin
-  dunfold sigma_uncurry, by_cases h : f i j = 0,
-  { rw mk_apply, split_ifs, { refl }, { exact h.symm } },
-  { apply mk_of_mem, rw mem_bUnion, refine ⟨i, _, _⟩,
-    { rw mem_support_to_fun, intro H, rw ext_iff at H, exact h (H j) },
-    { apply mem_image_of_mem, rw mem_support_to_fun, exact h } }
-end
+rfl
 
 @[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)] :
   sigma_uncurry (0 : Π₀ i j, δ i j) = 0 :=
-by { ext ⟨i, j⟩, rw sigma_uncurry_apply, refl }
+rfl
 
 @[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)] (f g : Π₀ i j, δ i j) :
   sigma_uncurry (f + g) = sigma_uncurry f + sigma_uncurry g :=
-by { ext ⟨i, j⟩, rw [add_apply, sigma_uncurry_apply,
-    sigma_uncurry_apply, sigma_uncurry_apply, @add_apply _ (λ i, Π₀ j, δ i j) _, add_apply] }
+coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
   [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ i j, δ i j) :
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
-by { ext ⟨i, j⟩, rw [smul_apply, sigma_uncurry_apply,
-    sigma_uncurry_apply, @smul_apply _ _ (λ i, Π₀ j, δ i j) _ _ _, smul_apply] }
+coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)] (i) (j : α i) (x : δ i j) :
   sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=

@@ -30,7 +30,7 @@ begin
     linarith }
 end
 
-theorem sum_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=
+theorem add_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=
 begin
   rw mkpair,
   split_ifs,
@@ -40,7 +40,7 @@ begin
 end
 
 theorem unpair_sum_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
-by { rw [←mkpair_unpair n, unpair_mkpair], apply sum_le_mkpair }
+by { rw [←mkpair_unpair n, unpair_mkpair], apply add_le_mkpair }
 
 end nat
 

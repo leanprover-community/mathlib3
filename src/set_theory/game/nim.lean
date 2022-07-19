@@ -106,6 +106,11 @@ by { rw nim_def, exact ordinal.is_empty_out_zero }
 instance is_empty_nim_zero_right_moves : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
+/-- `nim 0` has exactly the same moves as `0`. -/
+def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
+
+@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
+
 noncomputable instance unique_nim_one_left_moves : unique (nim 1).left_moves :=
 (equiv.cast $ left_moves_nim 1).unique
 
@@ -133,11 +138,6 @@ by simp
 
 theorem nim_one_move_right (x) : (nim 1).move_right x = nim 0 :=
 by simp
-
-/-- `nim 0` has exactly the same moves as `0`. -/
-def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
-
-@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
 /-- `nim 1` has exactly the same moves as `star`. -/
 noncomputable def nim_one_relabelling : nim 1 ≡r star :=

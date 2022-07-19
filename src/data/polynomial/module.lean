@@ -43,7 +43,7 @@ instances of `module R[X] (polynomial_module R[X])`.
 See https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.2315065.20polynomial.20modules
 for the full discussion.
 -/
-@[derive add_comm_group, nolint has_inhabited_instance, nolint unused_arguments]
+@[derive add_comm_group, derive inhabited, nolint unused_arguments]
 def polynomial_module := ℕ →₀ M
 
 omit R
@@ -53,6 +53,8 @@ variables {S : Type*} [comm_semiring S] [algebra S R] [module S M] [is_scalar_to
 
 namespace polynomial_module
 
+/-- This is required to have the `is_scalar_tower S R M` instance to avoid diamonds. -/
+@[nolint unused_arguments]
 noncomputable
 instance : module S (polynomial_module R M) :=
 finsupp.module ℕ M

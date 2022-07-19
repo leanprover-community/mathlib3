@@ -121,7 +121,7 @@ variables (B C D E)
 A version of `category_theory.whiskering_right` for bifunctors, obtained by uncurrying,
 applying `whiskering_right` and currying back
 -/
-@[simps] def whiskering_rigth₂ : (C ⥤ D ⥤ E) ⥤ ((B ⥤ C) ⥤ (B ⥤ D) ⥤ (B ⥤ E)) :=
+@[simps] def whiskering_right₂ : (C ⥤ D ⥤ E) ⥤ ((B ⥤ C) ⥤ (B ⥤ D) ⥤ (B ⥤ E)) :=
 uncurry ⋙ (whiskering_right _ _ _) ⋙
 ((whiskering_left _ _ _).obj (prod_functor_to_functor_prod _ _ _)) ⋙ curry
 

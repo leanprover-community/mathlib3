@@ -585,7 +585,9 @@ begin
     rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_cons] },
   obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
   rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
-  linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
+  -- TODO: linarith [...] should solve this directly
+  have : ∀ {k}, 2 ≤ m → 2 ≤ n → n + (m + k) = 3 → false, { intros, linarith },
+  cases this (two_le_of_mem_cycle_type (mem_of_mem_erase hm)) (two_le_of_mem_cycle_type hn) h,
 end
 
 lemma is_cycle (h : is_three_cycle σ) : is_cycle σ :=

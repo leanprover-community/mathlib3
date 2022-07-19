@@ -137,6 +137,7 @@ begin
   refine ⟨Hx, or.inr _⟩,
   rintros q q_irred ⟨r, hr⟩,
   let D := adjoin_root q,
+  haveI := fact.mk q_irred,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
   have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
@@ -152,7 +153,7 @@ begin
       (linear_map.finrank_le_finrank_of_injective (show function.injective ϕ.to_linear_map,
         from ϕ.to_ring_hom.injective)) finite_dimensional.finrank_pos, },
   let C := adjoin_root (minpoly F x),
-  have Hx_irred := minpoly.irreducible Hx,
+  haveI Hx_irred := fact.mk (minpoly.irreducible Hx),
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F D) (adjoin_root.root q) (by rw [algebra_map_eq F E D, ←eval₂_map, hr,
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),

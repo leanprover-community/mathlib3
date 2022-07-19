@@ -409,7 +409,7 @@ begin
     rw nat.not_even_iff at hi₂,
     rw [hi₂, add_comm] at this,
     refine ⟨i / 2, _, this⟩,
-    rw nat.div_lt_iff_lt_mul _ _ zero_lt_two,
+    rw nat.div_lt_iff_lt_mul zero_lt_two,
     exact lt_of_le_of_lt hin h },
   { rintro ⟨a, -, rfl⟩,
     rw even_iff_two_dvd,

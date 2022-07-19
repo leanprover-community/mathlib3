@@ -103,12 +103,12 @@ def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
 λ ⟨o, e⟩, begin
   have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
   refine ordinal.induction_on o _ this, introsI α r _ h,
-  let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
+  let s := ⨆ a, inv_fun aleph_idx (ordinal.typein r a),
   apply (lt_succ s).not_le,
   have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
-  simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
-    le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
-      (ordinal.enum r _ (h (succ s))),
+  simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using le_csupr
+    (cardinal.bdd_above_range.{u u} (λ a : α, inv_fun aleph_idx (ordinal.typein r a)))
+    (ordinal.enum r _ (h (succ s)))
 end
 
 @[simp] theorem aleph_idx.rel_iso_coe :
@@ -218,6 +218,12 @@ by rwa [←aleph'_zero, aleph'_lt]
 
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 aleph_0_pos.trans_le (aleph_0_le_aleph o)
+
+@[simp] theorem aleph_to_nat (o : ordinal) : (aleph o).to_nat = 0 :=
+to_nat_apply_of_aleph_0_le $ aleph_0_le_aleph o
+
+@[simp] theorem aleph_to_part_enat (o : ordinal) : (aleph o).to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le $ aleph_0_le_aleph o
 
 instance nonempty_out_aleph (o : ordinal) : nonempty (aleph o).ord.out.α :=
 begin
@@ -642,7 +648,7 @@ lemma powerlt_aleph_0 {c : cardinal} (h : ℵ₀ ≤ c) : c ^< ℵ₀ = c :=
 begin
   apply le_antisymm,
   { rw powerlt_le, intro c', rw lt_aleph_0, rintro ⟨n, rfl⟩, apply power_nat_le h },
-  convert le_powerlt one_lt_aleph_0, rw power_one
+  convert le_powerlt c one_lt_aleph_0, rw power_one
 end
 
 lemma powerlt_aleph_0_le (c : cardinal) : c ^< ℵ₀ ≤ max c ℵ₀ :=
@@ -655,7 +661,7 @@ end
 
 /-! ### Computing cardinality of various types -/
 
-theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
+@[simp] theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
 have H1 : ℵ₀ ≤ #α := aleph_0_le_mk α,
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
 calc  #(list α)
@@ -685,10 +691,30 @@ begin
     apply le_max_right }
 end
 
-theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
+@[simp] theorem mk_finset_of_infinite (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
 calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
+
+@[simp] lemma mk_finsupp_lift_of_infinite (α : Type u) (β : Type v) [infinite α] [has_zero β]
+  [nontrivial β] : #(α →₀ β) = max (lift.{v} (#α)) (lift.{u} (#β)) :=
+begin
+  apply le_antisymm,
+  { calc #(α →₀ β) ≤ # (finset (α × β)) : mk_le_of_injective (finsupp.graph_injective α β)
+    ... = #(α × β) : mk_finset_of_infinite _
+    ... = max (lift.{v} (#α)) (lift.{u} (#β)) :
+      by rw [mk_prod, mul_eq_max_of_aleph_0_le_left]; simp },
+  { apply max_le;
+    rw [←lift_id (# (α →₀ β)), ←lift_umax],
+    { cases exists_ne (0 : β) with b hb,
+      exact lift_mk_le.{u (max u v) v}.2 ⟨⟨_, finsupp.single_left_injective hb⟩⟩ },
+    { inhabit α,
+      exact lift_mk_le.{v (max u v) u}.2 ⟨⟨_, finsupp.single_injective default⟩⟩ } }
+end
+
+lemma mk_finsupp_of_infinite (α β : Type u) [infinite α] [has_zero β]
+  [nontrivial β] : #(α →₀ β) = max (#α) (#β) :=
+by simp
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
   #{t : set α // #t ≤ c} ≤ #α ^ c :=
@@ -755,10 +781,10 @@ begin
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
   replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,
   classical,
-  lift s to finset α using finite.of_fintype s,
-  lift t to finset β using finite.of_fintype t,
-  simp only [finset.coe_sort_coe, mk_finset, lift_nat_cast, nat.cast_inj] at h2,
-  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_finset, finset.card_compl,
+  lift s to finset α using s.to_finite,
+  lift t to finset β using t.to_finite,
+  simp only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
+  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 

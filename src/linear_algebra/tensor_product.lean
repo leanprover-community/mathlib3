@@ -135,7 +135,7 @@ section
 variables (R R' M N)
 
 /--
-A typeclass for `has_scalar` structures which can be moved across a tensor product.
+A typeclass for `has_smul` structures which can be moved across a tensor product.
 
 This typeclass is generated automatically from a `is_scalar_tower` instance, but exists so that
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
@@ -154,7 +154,7 @@ end
 `mul_action.is_scalar_tower.left`. -/
 @[priority 100]
 instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
+  [has_smul R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
   conv_lhs {rw ← one_smul R m},
@@ -169,10 +169,10 @@ lemma smul_tmul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (m
 compatible_smul.smul_tmul _ _ _
 
 /-- Auxiliary function to defining scalar multiplication on tensor product. -/
-def smul.aux {R' : Type*} [has_scalar R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
+def smul.aux {R' : Type*} [has_smul R' M] (r : R') : free_add_monoid (M × N) →+ M ⊗[R] N :=
 free_add_monoid.lift $ λ p : M × N, (r • p.1) ⊗ₜ p.2
 
-theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
+theorem smul.aux_of {R' : Type*} [has_smul R' M] (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
@@ -191,7 +191,7 @@ action. Two natural ways in which this situation arises are:
 Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
 action on a tensor product of two modules. This special case is important enough that, for
 performance reasons, we define it explicitly below. -/
-instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
+instance left_has_smul : has_smul R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
@@ -208,7 +208,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
-instance : has_scalar R (M ⊗[R] N) := tensor_product.left_has_scalar
+instance : has_smul R (M ⊗[R] N) := tensor_product.left_has_smul
 
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
@@ -288,7 +288,7 @@ section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
 variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
-variables [smul_comm_class R R'₂ M] [has_scalar R'₂ R']
+variables [smul_comm_class R R'₂ M] [has_smul R'₂ R']
 
 /-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
@@ -313,7 +313,7 @@ end
 
 /-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
 instances are sufficient. -/
-instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] :
+instance is_scalar_tower [has_smul R' R] [is_scalar_tower R' R M] :
   is_scalar_tower R' R (M ⊗[R] N) :=
 tensor_product.is_scalar_tower_left  -- or right
 

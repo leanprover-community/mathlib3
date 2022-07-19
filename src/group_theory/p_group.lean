@@ -306,8 +306,7 @@ begin
   have hcG := to_subgroup (of_card hGpn) (center G),
   rcases iff_card.1 hcG with ⟨k, hk⟩,
   haveI : nontrivial G := (nontrivial_iff_card $ of_card hGpn).2 ⟨n, hn, hGpn⟩,
-  have := center_nontrivial (of_card hGpn),
-  rwa nontrivial_iff_card hcG at this
+  exact (nontrivial_iff_card hcG).mp (center_nontrivial (of_card hGpn)),
 end
 
 omit hGpn
@@ -318,22 +317,18 @@ lemma cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
 begin
   classical,
   rcases card_center_eq_prime_pow hG zero_lt_two with ⟨k, hk0, hk⟩,
-  have hk2 : k ≤ 2, from (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1
-    (hG ▸ hk ▸ card_subgroup_dvd_card (center G)),
-  rw [card_eq_card_quotient_mul_card_subgroup (center G), hk] at hG,
-  rcases k with  _ | _ | _ | k,
-  { exact (lt_irrefl _ hk0).elim },
-  { rw [pow_two, pow_one, nat.mul_left_inj (fact.out p.prime).pos] at hG,
+  rw [card_eq_card_quotient_mul_card_subgroup (center G), mul_comm, hk] at hG,
+  have hk2 := (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1 ⟨_, hG.symm⟩,
+  interval_cases k,
+  { rw [sq, pow_one, nat.mul_right_inj (fact.out p.prime).pos] at hG,
     exact is_cyclic_of_prime_card hG },
-  { conv_rhs at hG { rw ← one_mul (p ^ 2) },
-    rw [nat.mul_left_inj (pow_pos (fact.out p.prime).pos _)] at hG,
-    exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (le_of_eq hG)⟩ },
-  { simpa [nat.succ_le_succ_iff] using hk2 }
+  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 ((nat.mul_right_inj
+      (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
 /-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sqr` for the
 `comm_group` instance. -/
-lemma commutative_of_card_eq_prime_sqr (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
+lemma commutative_of_card_eq_prime_sq (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
 begin
   classical,
   by haveI : is_cyclic (G ⧸ (center G)) :=

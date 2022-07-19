@@ -37,11 +37,11 @@ Bertrand, prime, binomial coefficients
 
 open_locale big_operators
 
-namespace bertrand
-
 section real
 
 open real
+
+namespace bertrand
 
 /--
 A reified version of the `bertrand.main_inequality` below.
@@ -82,6 +82,8 @@ begin
         ←rpow_le_rpow_iff _ (rpow_pos_of_pos four_pos _).le three_pos, ←rpow_mul]; norm_num },
 end
 
+end bertrand
+
 end real
 
 section nat
@@ -91,13 +93,13 @@ open nat
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
-lemma main_inequality {n : ℕ} (n_large : 512 ≤ n) :
+lemma bertrand_main_inequality {n : ℕ} (n_large : 512 ≤ n) :
   n * (2 * n) ^ (sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@cast_le ℝ,
   simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ←real.rpow_nat_cast],
   have n_large_real : 512 ≤ (n : ℝ) := le_trans (by norm_num) (cast_le.mpr n_large),
-  refine trans (mul_le_mul _ _ _ _) (real_main_inequality n_large_real),
+  refine trans (mul_le_mul _ _ _ _) (bertrand.real_main_inequality n_large_real),
   { exact (mul_le_mul_left (by linarith)).mpr (real.rpow_le_rpow_of_exponent_le (by linarith)
       (real.nat_sqrt_le_real_sqrt.trans (by norm_cast))) },
   { exact real.rpow_le_rpow_of_exponent_le (by norm_num) (cast_div_le.trans (by norm_cast)) },
@@ -163,22 +165,20 @@ begin
     exact nat.factorization_choose_le_one (sqrt_lt'.mp hp.2) },
 end
 
-end nat
-
-end bertrand
+namespace nat
 
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
-lemma bertrand_eventually (n : ℕ) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma exists_prime_lt_and_le_two_mul_eventually (n : ℕ) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Assume there is no prime in the range.
   by_contradiction no_prime,
   -- Then we have the above sub-exponential bound on the size of this central binomial coefficient.
   -- We now couple this bound with an exponential lower bound on the central binomial coefficient,
   -- yielding an inequality which we have seen is false for large enough n.
-  linarith [bertrand.main_inequality n_big, nat.four_pow_lt_mul_central_binom n (by linarith),
-    mul_le_mul_left' (bertrand.central_binom_le_of_no_bertrand_prime n (by linarith) no_prime) n],
+  linarith [bertrand_main_inequality n_big, nat.four_pow_lt_mul_central_binom n (by linarith),
+    mul_le_mul_left' (central_binom_le_of_no_bertrand_prime n (by linarith) no_prime) n],
 end
 
 /--
@@ -186,7 +186,7 @@ Proves that Bertrand's postulate holds over all positive naturals less than n by
 descending list of primes, each no more than twice the next, such that the list contains a witness
 for each number ≤ n.
 -/
-lemma bertrand_initial (n : ℕ) (hn0 : n ≠ 0)
+lemma exists_prime_lt_and_le_two_mul_initial (n : ℕ) (hn0 : n ≠ 0)
   (plist : list ℕ) (prime_plist : ∀ p ∈ plist, nat.prime p)
   (covering : ∀ a b, (a, b) ∈ list.zip plist (list.tail (plist ++ [2])) → a ≤ 2 * b)
   (hn : n < (plist ++ [2]).head) :
@@ -229,15 +229,15 @@ end
 Bertrand's Postulate: For any positive natural number, there is a prime which is greater than
 it, but no more than twice as large.
 -/
-theorem bertrand (n : ℕ) (hn0 : n ≠ 0) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+theorem exists_prime_lt_and_le_two_mul (n : ℕ) (hn0 : n ≠ 0) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
   cases lt_or_le 511 n,
   -- If `n` is large, apply the lemma derived from the inequalities on the central binomial
   -- coefficient.
-  { exact bertrand_eventually n h, },
+  { exact exists_prime_lt_and_le_two_mul_eventually n h, },
   -- For small `n`, supply a list of primes to cover the initial cases.
-  apply bertrand_initial n hn0 [521, 317, 163, 83, 43, 23, 13, 7, 5, 3],
+  apply exists_prime_lt_and_le_two_mul_initial n hn0 [521, 317, 163, 83, 43, 23, 13, 7, 5, 3],
   -- Prove the list has the properties needed:
   { -- The list consists of primes
     intros p hp,
@@ -253,3 +253,9 @@ begin
     rw [list.cons_append, list.head],
     linarith, },
 end
+
+alias nat.exists_prime_lt_and_le_two_mul ← nat.bertrand
+
+end nat
+
+end nat

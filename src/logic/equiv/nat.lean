@@ -59,12 +59,4 @@ calc α × α ≃ ℕ × ℕ : prod_congr e e
       ...  ≃ ℕ     : nat_prod_nat_equiv_nat
       ...  ≃ α     : e.symm
 
-/--
-An equivalence between `ℕ+` and `ℕ`, by mapping `x` in `ℕ+` to `x - 1` in `ℕ`.
--/
-def pnat_equiv_nat : ℕ+ ≃ ℕ :=
-⟨λ n, pred n.1, succ_pnat,
-  λ ⟨n, h⟩, by { cases n, cases h, simp [succ_pnat, h] }, λ n, by simp [succ_pnat] ⟩
-
-
 end equiv

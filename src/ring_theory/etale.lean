@@ -12,7 +12,7 @@ import linear_algebra.isomorphisms
 
 # Formally étale morphisms
 
-An `R` algebra `A` is formally étale (resp. unramified, smooth) if for every `R`-algebra,
+An `R`-algebra `A` is formally étale (resp. unramified, smooth) if for every `R`-algebra,
 every square-zero ideal `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists
 exactly (resp. at most, at least) one lift `A →ₐ[R] B`.
 
@@ -33,7 +33,7 @@ variables {B : Type u} [comm_ring B] [algebra R B] (I : ideal B)
 
 include R A
 
-/-- An `R` algebra `A` is formally unramified if for every `R`-algebra, every square-zero ideal
+/-- An `R`-algebra `A` is formally unramified if for every `R`-algebra, every square-zero ideal
 `I : ideal B` and `f : A →ₐ[R] B ⧸ I`, there exists at most one lift `A →ₐ[R] B`. -/
 @[mk_iff]
 class formally_unramified : Prop :=

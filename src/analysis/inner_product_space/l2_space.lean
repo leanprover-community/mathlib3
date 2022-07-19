@@ -390,11 +390,9 @@ end
 protected lemma has_sum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
   has_sum (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) ⟪x, y⟫ :=
 begin
-  have := @lp.has_sum_inner ι 𝕜 _ (λ i, 𝕜) _ (b.repr x) (b.repr y),
-  simp_rw [is_R_or_C.inner_apply, b.repr.inner_map_map] at this,
-  convert this,
+  convert (b.has_sum_repr y).map _ (innerSL x).continuous,
   ext i,
-  rw [b.repr_apply_apply, b.repr_apply_apply, inner_conj_sym]
+  rw [function.comp_apply, innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
 end
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)

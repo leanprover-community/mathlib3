@@ -24,15 +24,15 @@ character defined by `x ↦ ψ (a * x)`. An additive character `ψ` is *primitiv
 if `mul_shift ψ a` is trivial only when `a = 0`.
 
 We show that when `ψ` is primitive, then the map `a ↦ mul_shift ψ a` is injective
-(`to_mul_shift_inj_of_is_primitive`) and that `ψ` is primitive when `R` is a field
-and `ψ` is nontrivial.
+(`add_char.to_mul_shift_inj_of_is_primitive`) and that `ψ` is primitive when `R` is a field
+and `ψ` is nontrivial (`add_char.is_primitive_of_is_nontrivial`).
 
 We also show that there are primitive additive characters on `R` (with suitable
-target `R'`) when `R` is a field or `R = zmod n` (`primitive_char_finite_field`
-and `primitive_zmod_char`).
+target `R'`) when `R` is a field or `R = zmod n` (`add_char.primitive_char_finite_field`
+and `add_char.primitive_zmod_char`).
 
 Finally, we show that the sum of all character values is zero when the character
-is nontrivial (and the target is a domain); see `sum_eq_zero_of_is_nontrivial`.
+is nontrivial (and the target is a domain); see `add_char.sum_eq_zero_of_is_nontrivial`.
 
 ## Tags
 

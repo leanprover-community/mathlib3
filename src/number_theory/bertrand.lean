@@ -170,7 +170,8 @@ namespace nat
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
-lemma exists_prime_lt_and_le_two_mul_eventually (n : ℕ) (n_big : 512 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma exists_prime_lt_and_le_two_mul_eventually (n : ℕ) (n_big : 512 ≤ n) :
+  ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Assume there is no prime in the range.
   by_contradiction no_prime,
@@ -229,7 +230,8 @@ end
 Bertrand's Postulate: For any positive natural number, there is a prime which is greater than
 it, but no more than twice as large.
 -/
-theorem exists_prime_lt_and_le_two_mul (n : ℕ) (hn0 : n ≠ 0) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+theorem exists_prime_lt_and_le_two_mul (n : ℕ) (hn0 : n ≠ 0) :
+  ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
   cases lt_or_le 511 n,

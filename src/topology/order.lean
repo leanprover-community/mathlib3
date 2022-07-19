@@ -725,12 +725,11 @@ continuous_iff_le_induced.2 $ bot_le
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
+lemma continuous_id_iff_le {t t' : tspace α} : cont t t' id ↔ t ≤ t' :=
+@continuous_def _ _ t t' id
+
 lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
-begin
-  rw continuous_def,
-  assume u hu,
-  exact h u hu
-end
+continuous_id_iff_le.2 h
 
 /- 𝓝 in the induced topology -/
 
@@ -876,7 +875,7 @@ lemma is_open_supr_iff {s : set α} : @is_open _ (⨆ i, t i) s ↔ ∀ i, @is_o
 show s ∈ set_of (supr t).is_open ↔ s ∈ {x : set α | ∀ (i : ι), (t i).is_open x},
 by simp [set_of_is_open_supr]
 
-lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
+lemma is_closed_supr_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
 by simp [← is_open_compl_iff, is_open_supr_iff]
 
 end infi

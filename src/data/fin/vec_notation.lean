@@ -6,15 +6,15 @@ Authors: Anne Baanen
 import data.fin.tuple
 import data.list.range
 import group_theory.group_action.pi
+import meta.univs
 
 /-!
 # Matrix and vector notation
 
 This file defines notation for vectors and matrices. Given `a b c d : α`,
 the notation allows us to write `![a, b, c, d] : fin 4 → α`.
-Nesting vectors gives a matrix, so `![![a, b], ![c, d]] : fin 2 → fin 2 → α`.
-Later we will define `matrix m n α` to be `m → n → α`, so the type of `![![a, b], ![c, d]]`
-can be written as `matrix (fin 2) (fin 2) α`.
+Nesting vectors gives coefficients of a matrix, so `![![a, b], ![c, d]] : fin 2 → fin 2 → α`.
+In later files we introduce `!![a, b; c, d]` as notation for `matrix.of ![![a, b], ![c, d]]`.
 
 ## Main definitions
 
@@ -146,11 +146,17 @@ by { refine fin.forall_fin_one.2 _ i, refl }
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)
 
-meta instance _root_.pi_fin.reflect {α : Type} [reflected α] [h : has_reflect α] :
+meta instance _root_.pi_fin.reflect [reflected_univ.{u}] [reflected _ α] [has_reflect α] :
   Π {n}, has_reflect (fin n → α)
-| 0 v := (subsingleton.elim vec_empty v).rec (`(λ a, @vec_empty.{0} a).subst `(α))
+| 0 v := (subsingleton.elim vec_empty v).rec
+    ((by reflect_name : reflected _ (@vec_empty.{u})).subst `(α))
 | (n + 1) v := (cons_head_tail v).rec $
-  (`(λ x (xs : fin n → α), vec_cons x xs).subst (h _)).subst (_root_.pi_fin.reflect _)
+    (by reflect_name : reflected _ @vec_cons.{u}).subst₄ `(α) `(n) `(_) (_root_.pi_fin.reflect _)
+
+/-- Convert a vector of pexprs to the pexpr constructing that vector.-/
+meta def _root_.pi_fin.to_pexpr : Π {n}, (fin n → pexpr) → pexpr
+| 0 v := ``(![])
+| (n + 1) v := ``(vec_cons %%(v 0) %%(_root_.pi_fin.to_pexpr $ vec_tail v))
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
@@ -280,7 +286,7 @@ end val
 
 section smul
 
-variables {M : Type*} [has_scalar M α]
+variables {M : Type*} [has_smul M α]
 
 @[simp] lemma smul_empty (x : M) (v : fin 0 → α) : x • v = ![] := empty_eq _
 

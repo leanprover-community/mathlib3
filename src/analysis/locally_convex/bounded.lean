@@ -32,6 +32,7 @@ von Neumann-bounded sets.
 
 variables {𝕜 E ι : Type*}
 
+open filter
 open_locale topological_space pointwise
 
 namespace bornology
@@ -41,7 +42,7 @@ section semi_normed_ring
 section has_zero
 
 variables (𝕜)
-variables [semi_normed_ring 𝕜] [has_scalar 𝕜 E] [has_zero E]
+variables [semi_normed_ring 𝕜] [has_smul 𝕜 E] [has_zero E]
 variables [topological_space E]
 
 /-- A set `s` is von Neumann bounded if every neighborhood of 0 absorbs `s`. -/
@@ -93,6 +94,37 @@ lemma is_vonN_bounded.of_topological_space_le {t t' : topological_space E} (h : 
 
 end multiple_topologies
 
+section image
+
+variables {𝕜₁ 𝕜₂ F : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
+  [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F]
+  [topological_space E] [topological_space F]
+
+/-- A continuous linear image of a bounded set is bounded. -/
+lemma is_vonN_bounded.image {σ : 𝕜₁ →+* 𝕜₂} [ring_hom_surjective σ] [ring_hom_isometric σ]
+  {s : set E} (hs : is_vonN_bounded 𝕜₁ s) (f : E →SL[σ] F) :
+  is_vonN_bounded 𝕜₂ (f '' s) :=
+begin
+  let σ' := ring_equiv.of_bijective σ ⟨σ.injective, σ.is_surjective⟩,
+  have σ_iso : isometry σ := add_monoid_hom_class.isometry_of_norm σ
+    (λ x, ring_hom_isometric.is_iso),
+  have σ'_symm_iso : isometry σ'.symm := σ_iso.right_inv σ'.right_inv,
+  have f_tendsto_zero := f.continuous.tendsto 0,
+  rw map_zero at f_tendsto_zero,
+  intros V hV,
+  rcases hs (f_tendsto_zero hV) with ⟨r, hrpos, hr⟩,
+  refine ⟨r, hrpos, λ a ha, _⟩,
+  rw ← σ'.apply_symm_apply a,
+  have hanz : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
+  have : σ'.symm a ≠ 0 := (ring_hom.map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
+  change _ ⊆ σ _ • _,
+  rw [set.image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit],
+  refine hr (σ'.symm a) _,
+  rwa σ'_symm_iso.norm_map_of_map_zero (map_zero _)
+end
+
+end image
+
 section normed_field
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
@@ -130,9 +162,8 @@ end bornology
 
 section uniform_add_group
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables (𝕜) [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-variables [regular_space E]
 
 lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
   bornology.is_vonN_bounded 𝕜 s :=
@@ -142,7 +173,7 @@ begin
   have h : filter.tendsto (λ (x : E × E), x.fst + x.snd) (𝓝 (0,0)) (𝓝 ((0 : E) + (0 : E))) :=
     tendsto_add,
   rw add_zero at h,
-  have h' := (nhds_basis_closed_balanced 𝕜 E).prod (nhds_basis_closed_balanced 𝕜 E),
+  have h' := (nhds_basis_balanced 𝕜 E).prod (nhds_basis_balanced 𝕜 E),
   simp_rw [←nhds_prod_eq, id.def] at h',
   rcases h.basis_left h' U hU with ⟨x, hx, h''⟩,
   rcases hs x.snd hx.2.1 with ⟨t, ht, hs⟩,
@@ -155,7 +186,7 @@ begin
     simpa only [hz] using h'' hz' },
   refine λ y hy, absorbs.mono_left _ hx_fstsnd,
   rw [←set.singleton_vadd, vadd_eq_add],
-  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.2.absorbs_self,
+  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.absorbs_self,
 end
 
 end uniform_add_group

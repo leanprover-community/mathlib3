@@ -68,7 +68,7 @@ with blocks indexed by `ι`,
 and matrix entries in `i`-th block living in the endomorphisms of `s i`. -/
 @[simps] noncomputable
 def matrix_decomposition
-  (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
+  (o : hom_orthogonal s) {α β : Type} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { to_fun := λ z i j k,
@@ -99,7 +99,7 @@ variables [preadditive C] [has_finite_biproducts C]
 /-- `hom_orthogonal.matrix_decomposition` as an additive equivalence. -/
 @[simps] noncomputable
 def matrix_decomposition_add_equiv
-  (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
+  (o : hom_orthogonal s) {α β : Type} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃+
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { map_add' := λ w z, by { ext, dsimp [biproduct.components], simp, },
@@ -107,7 +107,7 @@ def matrix_decomposition_add_equiv
 
 @[simp]
 lemma matrix_decomposition_id
-  (o : hom_orthogonal s) {α : Type*} [fintype α] {f : α → ι} (i : ι) :
+  (o : hom_orthogonal s) {α : Type} [fintype α] {f : α → ι} (i : ι) :
   o.matrix_decomposition (𝟙 (⨁ (λ a, s (f a)))) i = 1 :=
 begin
   ext ⟨b, ⟨⟩⟩ ⟨a⟩,
@@ -122,7 +122,7 @@ end
 
 lemma matrix_decomposition_comp
   (o : hom_orthogonal s)
-  {α β γ : Type*} [fintype α] [fintype β] [fintype γ] {f : α → ι} {g : β → ι} {h : γ → ι}
+  {α β γ : Type} [fintype α] [fintype β] [fintype γ] {f : α → ι} {g : β → ι} {h : γ → ι}
   (z : (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b)))) (w : (⨁ (λ b, s (g b)) ⟶ ⨁ (λ c, s (h c))))
   (i : ι) :
   o.matrix_decomposition (z ≫ w) i = o.matrix_decomposition w i ⬝ o.matrix_decomposition z i :=
@@ -154,7 +154,7 @@ variables {R : Type*} [semiring R] [linear R C]
 @[simps] noncomputable
 def matrix_decomposition_linear_equiv
 (o : hom_orthogonal s)
-  {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
+  {α β : Type} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃ₗ[R]
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { map_smul' := λ w z, by { ext, dsimp [biproduct.components], simp, },
@@ -174,7 +174,7 @@ for which each `End (s i)` is a ring with invariant basis number (e.g. if each `
 if two direct sums over `s` are isomorphic, then they have the same multiplicities.
 -/
 lemma equiv_of_iso (o : hom_orthogonal s)
-  {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
+  {α β : Type} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
   (i : ⨁ (λ a, s (f a)) ≅ ⨁ (λ b, s (g b))) :
   ∃ e : α ≃ β, ∀ a, g (e a) = f a :=
 begin

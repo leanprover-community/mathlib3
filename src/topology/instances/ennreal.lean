@@ -136,27 +136,6 @@ def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ ℝ≥0 :=
 by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnreal;
   simp only [mem_set_of_eq, lt_top_iff_ne_top]
 
-/-- If `f : α → ℝ≥0∞` is a continuous function, then there exists a continuous function
-`g : α → ℝ≥0` that is equal to zero when `f x = 0` and is strictly between zero and `f x` when
-`f x ≠ 0`. -/
-lemma exists_continuous_pos_lt [topological_space α] {f : α → ℝ≥0∞} (hf : continuous f) :
-  ∃ g : C(α, ℝ≥0), (∀ x, f x = 0 → g x = 0) ∧ (∀ x, f x ≠ 0 → 0 < g x ∧ ↑(g x) < f x) :=
-begin
-  have h : ∀ {a : ℝ≥0∞}, min a 1 ≠ ∞, from λ a, (min_lt_iff.2 $ or.inr ennreal.one_lt_top).ne,
-  have h₀ : ∀ {a : ℝ≥0∞}, a ≠ 0 → min a 1 ≠ 0,
-    from λ a ha, (lt_min ha.bot_lt ennreal.zero_lt_one).ne',
-  refine ⟨⟨λ x, (min (f x) 1).to_nnreal / 2, _⟩, λ x, _, λ x, _⟩,
-  { refine (continuous_iff_continuous_at.2 $ λ x, (ennreal.tendsto_to_nnreal _).comp _).div_const,
-    exacts [h, (hf.min continuous_const).continuous_at] },
-  { intro hx,
-    simp only [hx, continuous_map.coe_mk, zero_min, ennreal.zero_to_nnreal, _root_.zero_div] },
-  { intro hx, split,
-    { exact (nnreal.half_pos $ ennreal.to_nnreal_pos (h₀ hx) h) },
-    { rw [continuous_map.coe_mk, ennreal.coe_div _root_.two_ne_zero, ennreal.coe_two,
-        ennreal.coe_to_nnreal h],
-      exact (ennreal.half_lt_self (h₀ hx) h).trans_le (min_le_left _ _) } }
-end
-
 lemma nhds_top : 𝓝 ∞ = ⨅ a ≠ ∞, 𝓟 (Ioi a) :=
 nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 

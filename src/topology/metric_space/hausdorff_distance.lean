@@ -185,26 +185,6 @@ begin
   exact mem_closure_iff_inf_edist_zero.2 H,
 end
 
-/-- Every open set `U` in a (pseudo)emetric space is the support of a continuous function
-`r : α → ℝ≥0` that is less than the infimum extended distance to `Uᶜ` at all points
-`x ∈ U`. -/
-lemma _root_.is_open.exists_continuous_pos_lt_inf_edist {U : set α} (hU : is_open U) :
-  ∃ r : C(α, ℝ≥0), support r = U ∧ ∀ x ∈ U, ↑(r x) < inf_edist x Uᶜ :=
-begin
-  rcases ennreal.exists_continuous_pos_lt (@continuous_inf_edist _ _ Uᶜ) with ⟨r, h₁, h₂⟩,
-  simp only [ne.def, ← mem_iff_inf_edist_zero_of_closed hU.is_closed_compl, mem_compl_iff,
-    not_not] at h₁ h₂,
-  exact ⟨r, ext (λ x, ⟨not_imp_comm.2 (h₁ x), λ hx, (h₂ x hx).1.ne'⟩), λ x hx, (h₂ x hx).2⟩,
-end
-
-/-- Every open set `U` in a (pseudo)emetric space is the support of a continuous function
-`r : α → ℝ≥0` such that `emetric.closed_ball x (r x) ⊆ U` whenever `x ∈ U`. -/
-lemma _root_.is_open.exists_continuous_pos_emetric_closed_ball_subset {U : set α} (hU : is_open U) :
-  ∃ r : C(α, ℝ≥0), support r = U ∧ ∀ x ∈ U, closed_ball x (r x) ⊆ U :=
-let ⟨r, hr, hlt⟩ := hU.exists_continuous_pos_lt_inf_edist
-in ⟨r, hr, λ x hx, disjoint_compl_right_iff_subset.1
-  (disjoint_closed_ball_of_lt_inf_edist $ hlt x hx)⟩
-
 end inf_edist --section
 
 /-! ### The Hausdorff distance as a function into `ℝ≥0∞`. -/

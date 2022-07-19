@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.set.lattice
 import logic.small
+import order.well_founded
 
 /-!
 # A model of ZFC
@@ -185,6 +186,23 @@ end⟩
 theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀ {w : pSet.{u}}, x ∈ w ↔ y ∈ w)
 | x y h ⟨α, A⟩ := ⟨λ ⟨a, ha⟩, ⟨a, h.symm.trans ha⟩, λ ⟨a, ha⟩, ⟨a, h.trans ha⟩⟩
 
+private theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
+| ⟨α, A⟩ ⟨β, B⟩ H := ⟨_, begin
+  rintros ⟨γ, C⟩ ⟨b, hc⟩,
+  cases exists_equiv_right H b with a ha,
+  have H := ha.trans hc.symm,
+  rw mk_func at H,
+  exact mem_wf_aux H
+end⟩
+
+theorem mem_wf : @well_founded pSet (∈) := ⟨λ x, mem_wf_aux $ equiv.refl x⟩
+
+instance : has_well_founded pSet := ⟨_, mem_wf⟩
+instance : is_asymm pSet (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : pSet} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : pSet) : x ∉ x := irrefl x
+
 /-- Convert a pre-set to a `set` of pre-sets. -/
 def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 
@@ -204,6 +222,8 @@ instance : inhabited pSet := ⟨∅⟩
 instance : is_empty (type (∅)) := pempty.is_empty
 
 @[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
+
+@[simp] theorem empty_subset (x : pSet.{u}) : (∅ : pSet) ⊆ x := λ x, x.elim
 
 /-- Insert an element into a pre-set -/
 protected def insert (x y : pSet) : pSet := ⟨option y.type, λ o, option.rec x y.func o⟩
@@ -238,9 +258,11 @@ def powerset (x : pSet) : pSet := ⟨set x.type, λ p, ⟨{a // p a}, λ y, x.fu
     λ ⟨a, b, ba⟩, ⟨b, ba⟩⟩⟩
 
 /-- The pre-set union operator -/
-def Union (a : pSet) : pSet := ⟨Σ x, (a.func x).type, λ ⟨x, y⟩, (a.func x).func y⟩
+def sUnion (a : pSet) : pSet := ⟨Σ x, (a.func x).type, λ ⟨x, y⟩, (a.func x).func y⟩
 
-@[simp] theorem mem_Union : Π {x y : pSet.{u}}, y ∈ Union x ↔ ∃ z ∈ x, y ∈ z
+prefix `⋃₀ `:110 := pSet.sUnion
+
+@[simp] theorem mem_sUnion : Π {x y : pSet.{u}}, y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z
 | ⟨α, A⟩ y :=
   ⟨λ ⟨⟨a, c⟩, (e : equiv y ((A a).func c))⟩,
     have func (A a) c ∈ mk (A a).type (A a).func, from mem.mk (A a).func c,
@@ -425,7 +447,7 @@ instance has_subset : has_subset Set :=
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
-@[simp] theorem subset_iff : Π (x y : pSet), mk x ⊆ mk y ↔ x ⊆ y
+@[simp] theorem subset_iff : Π {x y : pSet}, mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ h a, @h ⟦A a⟧ (mem.mk A a),
   λ h z, quotient.induction_on z (λ z ⟨a, za⟩, let ⟨b, ab⟩ := h a in ⟨b, za.trans ab⟩)⟩
 
@@ -442,6 +464,9 @@ instance : inhabited Set := ⟨∅⟩
 
 @[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
 quotient.induction_on x pSet.mem_empty
+
+@[simp] theorem empty_subset (x : Set.{u}) : (∅ : Set) ⊆ x :=
+quotient.induction_on x $ λ y, subset_iff.2 $ pSet.empty_subset y
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 ⟨λ h y, (h.symm ▸ mem_empty y),
@@ -520,8 +545,8 @@ quotient.induction_on₂ x y ( λ ⟨α, A⟩ ⟨β, B⟩,
   show (⟨β, B⟩ : pSet.{u}) ∈ (pSet.powerset.{u} ⟨α, A⟩) ↔ _,
     by simp [mem_powerset, subset_iff])
 
-theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : ∀ a, ∃ b, equiv (A a) (B b)) :
-  ∀ a, ∃ b, (equiv ((Union ⟨α, A⟩).func a) ((Union ⟨β, B⟩).func b))
+theorem sUnion_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : ∀ a, ∃ b, equiv (A a) (B b)) :
+  ∀ a, ∃ b, (equiv ((sUnion ⟨α, A⟩).func a) ((sUnion ⟨β, B⟩).func b))
 | ⟨a, c⟩ := let ⟨b, hb⟩ := αβ a in
   begin
     induction ea : A a with γ Γ,
@@ -536,25 +561,25 @@ theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : �
   end
 
 /-- The union operator, the collection of elements of elements of a ZFC set -/
-def Union : Set → Set :=
-resp.eval 1 ⟨pSet.Union, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
-  ⟨Union_lem A B αβ, λ a, exists.elim (Union_lem B A (λ b,
+def sUnion : Set → Set :=
+resp.eval 1 ⟨pSet.sUnion, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+  ⟨sUnion_lem A B αβ, λ a, exists.elim (sUnion_lem B A (λ b,
     exists.elim (βα b) (λ c hc, ⟨c, pSet.equiv.symm hc⟩)) a) (λ b hb, ⟨b, pSet.equiv.symm hb⟩)⟩⟩
 
-notation `⋃` := Union
+prefix `⋃₀ `:110 := Set.sUnion
 
-@[simp] theorem mem_Union {x y : Set.{u}} : y ∈ Union x ↔ ∃ z ∈ x, y ∈ z :=
-quotient.induction_on₂ x y (λ x y, iff.trans mem_Union
+@[simp] theorem mem_sUnion {x y : Set.{u}} : y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z :=
+quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
   ⟨λ ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ ⟨z, h⟩, quotient.induction_on z (λ z h, ⟨z, h⟩) h⟩)
 
-@[simp] theorem Union_singleton {x : Set.{u}} : Union {x} = x :=
-ext $ λ y, by simp_rw [mem_Union, exists_prop, mem_singleton, exists_eq_left]
+@[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
+ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
 theorem singleton_inj {x y : Set.{u}} (H : ({x} : Set) = {y}) : x = y :=
-let this := congr_arg Union H in by rwa [Union_singleton, Union_singleton] at this
+let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
 
 /-- The binary union operation -/
-protected def union (x y : Set.{u}) : Set.{u} := ⋃ {x, y}
+protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
 
 /-- The binary intersection operation -/
 protected def inter (x y : Set.{u}) : Set.{u} := {z ∈ x | z ∈ y}
@@ -567,7 +592,7 @@ instance : has_inter Set := ⟨Set.inter⟩
 instance : has_sdiff Set := ⟨Set.diff⟩
 
 @[simp] theorem mem_union {x y z : Set.{u}} : z ∈ x ∪ y ↔ z ∈ x ∨ z ∈ y :=
-iff.trans mem_Union
+iff.trans mem_sUnion
  ⟨λ ⟨w, wxy, zw⟩, match mem_pair.1 wxy with
   | or.inl wx := or.inl (by rwa ←wx)
   | or.inr wy := or.inr (by rwa ←wy)
@@ -582,10 +607,20 @@ iff.trans mem_Union
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+/-- Induction on the `∈` relation. -/
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
 quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
 show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
 quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ ha), exact IH a })
+
+theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
+
+instance : has_well_founded Set := ⟨_, mem_wf⟩
+
+instance : is_asymm Set (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : Set} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : Set) : x ∉ x := irrefl x
 
 theorem regularity (x : Set.{u}) (h : x ≠ ∅) : ∃ y ∈ x, x ∩ y = ∅ :=
 classical.by_contradiction $ λ ne, h $ (eq_empty x).2 $ λ y,
@@ -737,8 +772,9 @@ def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
 def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
 
 /-- The union of a class is the class of all members of ZFC sets in the class -/
-def Union (x : Class) : Class := set.sUnion (Class_to_Cong x)
-notation `⋃` := Union
+def sUnion (x : Class) : Class := ⋃₀ (Class_to_Cong x)
+
+prefix `⋃₀ `:110 := Class.sUnion
 
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
@@ -775,12 +811,12 @@ set.ext $ λ z, iff.symm Set.mem_diff
 @[simp] theorem powerset_hom (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
 set.ext $ λ z, iff.symm Set.mem_powerset
 
-@[simp] theorem Union_hom (x : Set.{u}) : Union.{u} x = Set.Union x :=
-set.ext $ λ z, by { refine iff.trans _ Set.mem_Union.symm, exact
+@[simp] theorem sUnion_hom (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
+set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
 
 /-- The definite description operator, which is `{x}` if `{a | p a} = {x}` and `∅` otherwise. -/
-def iota (p : Set → Prop) : Class := Union {x | ∀ y, p y ↔ y = x}
+def iota (p : Set → Prop) : Class := ⋃₀ {x | ∀ y, p y ↔ y = x}
 
 theorem iota_val (p : Set → Prop) (x : Set) (H : ∀ y, p y ↔ y = x) : iota p = ↑x :=
 set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl),
@@ -822,9 +858,9 @@ theorem choice_mem_aux (y : Set.{u}) (yx : y ∈ x) : classical.epsilon (λ z : 
 @classical.epsilon_spec _ (λ z : Set.{u}, z ∈ y) $ classical.by_contradiction $ λ n, h $
 by rwa ←((eq_empty y).2 $ λ z zx, n ⟨z, zx⟩)
 
-theorem choice_is_func : is_func x (Union x) (choice x) :=
+theorem choice_is_func : is_func x (⋃₀ x) (choice x) :=
 (@map_is_func _ (classical.all_definable _) _ _).2 $
-  λ y yx, mem_Union.2 ⟨y, yx, choice_mem_aux x h y yx⟩
+  λ y yx, mem_sUnion.2 ⟨y, yx, choice_mem_aux x h y yx⟩
 
 theorem choice_mem (y : Set.{u}) (yx : y ∈ x) : (choice x ′ y : Class.{u}) ∈ (y : Class.{u}) :=
 begin

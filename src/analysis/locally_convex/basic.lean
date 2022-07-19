@@ -78,7 +78,7 @@ begin
   classical,
   induction t using finset.induction_on with i t ht hi,
   { simp only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
-    forall_false_left, implies_true_iff] },
+      is_empty.forall_iff, implies_true_iff] },
   rw [finset.set_bUnion_insert, absorbs_union, hi],
   split; intro h,
   { refine λ _ hi', (finset.mem_insert.mp hi').elim _ (h.2 _),

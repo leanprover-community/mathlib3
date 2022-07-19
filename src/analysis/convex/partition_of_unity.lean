@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import topology.partition_of_unity
 import analysis.convex.combination

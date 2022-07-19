@@ -1371,17 +1371,26 @@ begin
   exact n.lt_two_pow
 end
 
+lemma Union_Ioi_eq_Ioi_infi {ι α : Type*} [complete_linear_order α] (f : ι → α) :
+  (⋃ (i : ι), Ioi (f i)) = Ioi (⨅ i, f i) :=
+begin
+  refine subset_antisymm (Union_subset (λ i, Ioi_subset_Ioi_iff.mpr (infi_le (λ i, f i) i))) _,
+  { intros x infi_lt_x,
+    by_contra con,
+    simp only [mem_Union, mem_Ioi, not_exists, not_lt] at con,
+    exact lt_irrefl _ (lt_of_le_of_lt (le_infi con) infi_lt_x), },
+end
+
 lemma Union_Ioi_add_inv_nat (z : ℝ≥0∞) : (⋃ (n : ℕ), Ioi (z + n⁻¹)) = Ioi z :=
 begin
-  refine subset_antisymm _ _,
-  { apply Union_subset,
-    intro n,
-    exact Ioi_subset_Ioi_iff.mpr (le_add_of_le_of_nonneg le_rfl (zero_le (n : ℝ≥0∞)⁻¹)), },
-  { intros x z_lt_x,
-    have diff_pos : 0 < x - z := tsub_pos_of_lt z_lt_x,
-    rcases ennreal.exists_inv_nat_lt diff_pos.ne.symm with ⟨m, hm⟩,
-    simp only [mem_Union, mem_Ioi],
-    exact ⟨m, lt_tsub_iff_left.mp hm⟩, },
+  rw Union_Ioi_eq_Ioi_infi,
+  congr,
+  refine le_antisymm (ennreal.le_of_forall_pos_le_add _)
+                     (le_infi (λ j, le_add_of_nonneg_right (zero_le (j : ℝ≥0∞)⁻¹))),
+  intros ε ε_pos z_lt_top,
+  have ε_ne_zero : (ε : ℝ≥0∞) ≠ 0, by { exact_mod_cast ε_pos.ne.symm, },
+  rcases ennreal.exists_inv_nat_lt ε_ne_zero with ⟨n, hn⟩,
+  refine infi_le_of_le n (add_le_add le_rfl hn.le),
 end
 
 lemma Union_Ioi_inv_nat : (⋃ (n : ℕ), Ioi ((n : ℝ≥0∞)⁻¹)) = {x : ℝ≥0∞ | x ≠ 0} :=

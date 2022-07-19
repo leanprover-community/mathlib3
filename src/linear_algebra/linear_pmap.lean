@@ -19,9 +19,13 @@ a `semilattice_inf` with `order_bot` instance on this this, and define three ope
 * `Sup` takes a `directed_on (≤)` set of partial linear maps, and returns the unique
   partial linear map on the `Sup` of their domains that extends all these maps.
 
+Moreover, we define
+* `linear_pmap.graph` is the graph of the partial linear map viewed as a submodule of `E × F`.
+
 Partially defined maps are currently used in `mathlib` to prove Hahn-Banach theorem
 and its variations. Namely, `linear_pmap.Sup` implies that every chain of `linear_pmap`s
 is bounded above.
+They are also the basis for the theory of unbounded operators.
 
 -/
 
@@ -461,6 +465,60 @@ by { cases x, simp_rw [mem_graph_iff', prod.mk.inj_iff] }
 /-- The tuple `(x, f x)` is contained in the graph of `f`. -/
 lemma mem_graph (f : linear_pmap R E F) (x : domain f) : ((x : E), f x) ∈ f.graph :=
 by simp
+
+variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F] (y : M)
+
+/-- The graph of `z • f` as a pushforward. -/
+lemma smul_graph (f : linear_pmap R E F) (z : M) :
+  (z • f).graph = f.graph.map (linear_map.id.prod_map (z • linear_map.id)) :=
+begin
+  ext x, cases x,
+  split; intros h,
+  { rw mem_graph_iff at h,
+    rcases h with ⟨y, hy, h⟩,
+    rw linear_pmap.smul_apply at h,
+    rw submodule.mem_map,
+    simp only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
+      linear_map.smul_apply, prod.mk.inj_iff, prod.exists, exists_exists_and_eq_and],
+    use [x_fst, y],
+    simp [hy, h] },
+  rw submodule.mem_map at h,
+  rcases h with ⟨x', hx', h⟩,
+  cases x',
+  simp only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.smul_apply,
+    prod.mk.inj_iff] at h,
+  rw mem_graph_iff at hx' ⊢,
+  rcases hx' with ⟨y, hy, hx'⟩,
+  use y,
+  rw [←h.1, ←h.2],
+  simp[hy, hx'],
+end
+
+/-- The graph of `-f` as a pushforward. -/
+lemma neg_graph (f : linear_pmap R E F) :
+  (-f).graph = f.graph.map (linear_map.id.prod_map (-linear_map.id)) :=
+begin
+  ext, cases x,
+  split; intros h,
+  { rw mem_graph_iff at h,
+    rcases h with ⟨y, hy, h⟩,
+    rw linear_pmap.neg_apply at h,
+    rw submodule.mem_map,
+    simp only [mem_graph_iff, linear_map.prod_map_apply, linear_map.id_coe, id.def,
+      linear_map.neg_apply, prod.mk.inj_iff, prod.exists, exists_exists_and_eq_and],
+    use [x_fst, y],
+    simp [hy, h] },
+  rw submodule.mem_map at h,
+  rcases h with ⟨x', hx', h⟩,
+  cases x',
+  simp only [linear_map.prod_map_apply, linear_map.id_coe, id.def, linear_map.neg_apply,
+    prod.mk.inj_iff] at h,
+  rw mem_graph_iff at hx' ⊢,
+  rcases hx' with ⟨y, hy, hx'⟩,
+  use y,
+  rw [←h.1, ←h.2],
+  simp [hy, hx'],
+end
 
 lemma mem_graph_snd_inj (f : linear_pmap R E F) {x y : E} {x' y' : F} (hx : (x,x') ∈ f.graph)
   (hy : (y,y') ∈ f.graph) (hxy : x = y) : x' = y' :=

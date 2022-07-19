@@ -8,8 +8,8 @@ variables {R E F 𝕜: Type*}
 
 variables [comm_ring R] [add_comm_group E] [add_comm_group F]
 variables [module R E] [module R F] [topological_space R]
-variables [topological_space E] [topological_add_group E]
-variables [topological_space F] [topological_add_group F]
+variables [uniform_space E] [uniform_add_group E]
+variables [uniform_space F] [uniform_add_group F]
 
 namespace linear_pmap
 
@@ -32,14 +32,16 @@ def closable (f : linear_pmap R E F) : Prop :=
 lemma closed.closable {f : linear_pmap R E F} (hf : f.closed) : f.closable :=
 ⟨f, hf.topological_closure_eq⟩
 
-lemma closable_iff_tendsto {f : linear_pmap R E F} : f.closable ↔
+lemma closable_iff_tendsto [t2_space F] {f : linear_pmap R E F} : f.closable ↔
   ∀ {a : ℕ → f.domain} (ha : filter.tendsto a filter.at_top (𝓝 0))
   (hfa : ∃ y : F, filter.tendsto (function.comp f a) filter.at_top (𝓝 y)),
-  filter.tendsto (λ n, f (a n)) filter.at_top (𝓝 0) :=
+  filter.tendsto (function.comp f a) filter.at_top (𝓝 0)
+  :=
 begin
   split; intro h,
   { rintros a ha ⟨y, hfa⟩,
-    have ha' : filter.tendsto (function.comp (continuous_linear_map.subtype_val f.domain) a) filter.at_top (𝓝 (0 : E)) :=
+    have ha' : filter.tendsto (function.comp (continuous_linear_map.subtype_val f.domain) a)
+      filter.at_top (𝓝 (0 : E)) :=
     begin
       refine filter.tendsto.comp _ ha,
       exact continuous_induced_dom.continuous_at,
@@ -53,8 +55,43 @@ begin
     refine mem_closure_of_tendsto hf _,
     simp },
   let f'_graph := f.graph.topological_closure,
-  -- show that f'_graph is the graph of a `linear_pmap` `f'`:
-  sorry,
+  have hf' : ∀ (x : E × F) (hx : x ∈ f'_graph) (hx' : x.fst = 0), x.snd = 0 :=
+  begin
+    intros x hx hx',
+    rw [←set_like.mem_coe] at hx,
+    rw [f.graph.topological_closure_coe] at hx,
+    rw mem_closure_iff_frequently at hx,
+    haveI  : (𝓝 x).is_countably_generated := sorry,
+    rcases filter.exists_seq_forall_of_frequently hx with ⟨a, ha, hx⟩,
+    simp at hx,
+    rcases classical.skolem.mp hx with ⟨a1, ha1⟩,
+    unfreezingI { cases x },
+    have ha1' : filter.tendsto a1 filter.at_top (𝓝 x_fst) :=
+    begin
+      sorry,
+    end,
+    have ha1'' : filter.tendsto (f ∘ a1) filter.at_top (𝓝 x_snd) :=
+    begin
+      refine filter.tendsto.comp _ ha1',
+      sorry,
+    end,
+    specialize h ha1' ⟨x_snd, ha1''⟩,
+    let a2 : ℕ → F := prod.snd ∘ a, --λ n, (a n).snd,
+    have ha2 : filter.tendsto a2 filter.at_top (𝓝 x_snd) :=
+    begin
+      refine filter.tendsto.comp _ ha,
+      rw nhds_prod_eq,
+      exact filter.tendsto_snd,
+    end,
+    have ha2' : filter.tendsto a2 filter.at_top (𝓝 0) :=
+    begin
+      -- slightly harder
+      sorry,
+    end,
+    refine tendsto_nhds_unique' filter.at_top_ne_bot ha2 ha2',
+  end,
+  use f'_graph.to_linear_pmap hf',
+  rw f'_graph.to_linear_pmap_graph_eq,
 end
 
 /-- The closure is unique. -/
@@ -78,16 +115,6 @@ begin
   refine le_of_le_graph _,
   rw ←hf.closure_eq_closure,
   exact (graph f).submodule_topological_closure,
-end
-
-variables (g : linear_pmap R E F) (h : f ≤ g)
-#check h.1
-
-lemma closable.mem_domain_closure {f : linear_pmap R E F} (hf : f.closable) {x : (closure hf).domain} :
-  ∃ a : ℕ → f.domain, filter.tendsto a filter.at_top (𝓝 (submodule.of_le hf.le_closure.1 x)) ∧
-    ∃ (y : F), filter.tendsto (function.comp f a) filter.at_top (𝓝 y) :=
-begin
-  sorry,
 end
 
 end linear_pmap

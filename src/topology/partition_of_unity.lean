@@ -151,17 +151,21 @@ lemma sum_nonneg (x : X) : 0 ≤ ∑ᶠ i, f i x := finsum_nonneg $ λ i, f.nonn
 lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 (single_le_finsum i (f.locally_finite.point_finite x) (λ j, f.nonneg j x)).trans (f.sum_le_one x)
 
-lemma continuous_finsum_smul {Y : Type*} [add_comm_monoid Y] [smul_with_zero ℝ Y]
-  [topological_space Y] [has_continuous_add Y] [has_continuous_smul ℝ Y]
-  {s : set X} (f : partition_of_unity ι X s) {g : ι → X → Y}
+lemma continuous_smul {E : Type*} [add_comm_monoid E] [smul_with_zero ℝ E]
+  [topological_space E] [has_continuous_smul ℝ E]
+  {s : set X} (f : partition_of_unity ι X s) {g : X → E} {i : ι}
+  (hg : ∀ x ∈ tsupport (f i), continuous_at g x) :
+  continuous (λ x, f i x • g x) :=
+continuous_of_tsupport $ λ x hx, ((f i).continuous_at x).smul $
+  hg x $ tsupport_smul_subset_left _ _ hx
+
+lemma continuous_finsum_smul {E : Type*} [add_comm_monoid E] [smul_with_zero ℝ E]
+  [topological_space E] [has_continuous_add E] [has_continuous_smul ℝ E]
+  {s : set X} (f : partition_of_unity ι X s) {g : ι → X → E}
   (hg : ∀ i (x ∈ tsupport (f i)), continuous_at (g i) x) :
   continuous (λ x, ∑ᶠ i, f i x • g i x) :=
-begin
-  refine continuous_finsum (λ i, _) (f.locally_finite.subset $ λ i x, mt _),
-  { refine continuous_of_tsupport (λ x hx, _),
-    exact ((f i).continuous_at x).smul (hg i x $ tsupport_smul_subset_left _ _ hx) },
-  { intro h, simp only [h, zero_smul] }
-end
+continuous_finsum (λ i, f.continuous_smul (hg i)) $
+  f.locally_finite.subset $ λ i, support_smul_subset_left _ _
 
 lemma finsum_mul_pos {g : ι → X → ℝ} (hg : ∀ i (x ∈ support (f i)), 0 < g i x) {x : X}
   (hx : x ∈ s) : 0 < ∑ᶠ i, f i x * g i x :=

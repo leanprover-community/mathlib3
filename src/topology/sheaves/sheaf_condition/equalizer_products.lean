@@ -18,7 +18,7 @@ in terms of an equalizer diagram where the two objects are
 
 -/
 
-universes v u
+universes v' v u
 
 noncomputable theory
 
@@ -30,8 +30,8 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{v'}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
 
@@ -85,7 +85,7 @@ end
 The equalizer diagram for the sheaf condition.
 -/
 @[reducible]
-def diagram : walking_parallel_pair.{v} ⥤ C :=
+def diagram : walking_parallel_pair ⥤ C :=
 parallel_pair (left_res F U) (right_res F U)
 
 /--
@@ -148,7 +148,7 @@ end
 
 section open_embedding
 
-variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
+variables {V : Top.{v'}} {j : V ⟶ X} (oe : open_embedding j)
 variables (𝒰 : ι → opens V)
 
 /--
@@ -232,9 +232,9 @@ begin
     exact
     F.map_iso (iso.op
     { hom := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
   { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.

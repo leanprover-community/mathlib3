@@ -88,6 +88,21 @@ lemma continuous_comp : continuous (continuous_map.comp g : C(α, β) → C(α, 
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by rw [hm, preimage_gen g hs hu]; exact continuous_map.is_open_gen hs (hu.preimage g.2)
 
+variable (f : C(α, β))
+
+private lemma image_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
+  (λ g : C(β, γ), g.comp f) ⁻¹' compact_open.gen s u = compact_open.gen (f '' s) u :=
+begin
+  ext ⟨g, _⟩,
+  change g ∘ f '' s ⊆ u ↔ g '' (f '' s) ⊆ u,
+  rw set.image_comp,
+end
+
+/-- C(-, γ) is a functor. -/
+lemma continuous_comp_left : continuous (λ g, g.comp f : C(β, γ) → C(α, γ)) :=
+continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
+  by { rw [hm, image_gen f hs hu], exact continuous_map.is_open_gen (hs.image f.2) hu }
+
 end functorial
 
 section ev
@@ -305,7 +320,7 @@ continuous_eval'.comp $ f.continuous.prod_map continuous_id
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
     function spaces, see `homeomorph.curry`. -/
-def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
+@[simps] def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
 ⟨_, continuous_uncurry_of_continuous f⟩
 
 /-- The uncurrying process is a continuous map between function spaces. -/

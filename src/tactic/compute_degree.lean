@@ -82,7 +82,7 @@ meta def guess_degree : expr → tactic expr
                                 pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
                                 pure $ expr.mk_app pe [e]
 
-/--  `resolve_sum_step tf e` takes an expression `e` as input.
+/--  `resolve_sum_step e` takes an expression `e` as input.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
 * a sum, difference, opposite, product, or a power;

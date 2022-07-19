@@ -12,30 +12,18 @@ import category_theory.sites.spaces
 /-!
 # Sheaves
 
-We define sheaves on a topological space, with values in an arbitrary category with products.
+We define sheaves on a topological space, with values in an arbitrary category.
 
-The sheaf condition for a `F : presheaf C X` requires that the morphism
-`F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
-is the equalizer of the two morphisms
-`∏ F.obj (U i) ⟶ ∏ F.obj (U i ⊓ U j)`.
+A presheaf on a topological space `X` is a sheaf presicely when it is a sheaf under the
+grothendieck topology on `opens X`, which expands out to say: For each open cover `{ Uᵢ }` of
+`U`, and a family of compatible functions `A ⟶ F(Uᵢ)` for an `A : X`, there exists an unique
+gluing `A ⟶ F(U)` compatible with the restriction.
+
+See the docstring of `Top.presheaf.is_sheaf` for an explanation on the design descisions and a list
+of equivalent conditions.
 
 We provide the instance `category (sheaf C X)` as the full subcategory of presheaves,
 and the fully faithful functor `sheaf.forget : sheaf C X ⥤ presheaf C X`.
-
-## Equivalent conditions
-
-While the "official" definition is in terms of an equalizer diagram,
-in `src/topology/sheaves/sheaf_condition/pairwise_intersections.lean`
-and in `src/topology/sheaves/sheaf_condition/open_le_cover.lean`
-we provide two equivalent conditions (and prove they are equivalent).
-
-The first is that `F.obj U` is the limit point of the diagram consisting of all the `F.obj (U i)`
-and `F.obj (U i ⊓ U j)`.
-(That is, we explode the equalizer of two products out into its component pieces.)
-
-The second is that `F.obj U` is the limit point of the diagram constisting of all the `F.obj V`,
-for those `V : opens X` such that `V ≤ U i` for some `i`.
-(This condition is particularly easy to state, and perhaps should become the "official" definition.)
 
 -/
 
@@ -59,10 +47,42 @@ namespace presheaf
 open sheaf_condition_equalizer_products
 
 /--
-The sheaf condition for a `F : presheaf C X` requires that the morphism
-`F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
-is the equalizer of the two morphisms
-`∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+The sheaf condition has several different equivalent formulations.
+The official definition chosen here is in terms of grothendieck topologies so that the results on
+sites could be applied here easily, and this condition does not require additional constraints on
+the value category.
+The equivalent formulations of the sheaf condition on `presheaf C X` are as follows :
+
+1. `Top.presheaf.is_sheaf`: (the official definition)
+  It is a sheaf with respect to the grothendieck topology on `opens X`, which is to say:
+  For each open cover `{ Uᵢ }` of `U`, and a family of compatible functions `A ⟶ F(Uᵢ)` for an
+  `A : X`, there exists an unique gluing `A ⟶ F(U)` compatible with the restriction.
+
+2. `Top.presheaf.is_sheaf_equalizer_products`: (requires `C` to have all products)
+  For each open cover `{ Uᵢ }` of `U`, `F(U) ⟶ ∏ F(Uᵢ)` is the equalizer of the two morphisms
+  `∏ F(Uᵢ) ⟶ ∏ F(Uᵢ ∩ Uⱼ)`.
+  See `Top.presheaf.is_sheaf_iff_is_sheaf_equalizer_products`.
+
+3. `Top.presheaf.is_sheaf_opens_le_cover`:
+  Each `F(U)` is the (inverse) limit of all `F(V)` with `V ⊆ U`.
+  See `Top.presheaf.is_sheaf_iff_is_sheaf_opens_le_cover`.
+
+4. `Top.presheaf.is_sheaf_pairwise_intersections`:
+  For each open cover `{ Uᵢ }` of `U`, `F(U)` is the limit of all `F(Uᵢ)` and all `F(Uᵢ ∩ Uⱼ)`.
+  See `Top.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections`.
+
+The following requires `C` to be concrete and complete, and `forget C` to reflect isomorphisms and
+preserve limits. This applies to most "algebraic" categories, e.g. groups, abelian groups and rings.
+
+5. `Top.presheaf.is_sheaf_unique_gluing`:
+  (requires `C` to be concrete and complete; `forget C` to reflect isomorphisms and preserve limits)
+  For each open cover `{ Uᵢ }` of `U`, and a compatible family of elements `x : F(Uᵢ)`, there exists
+  a unique gluing `x : F(U)` that restricts to the given elements.
+  See `Top.presheaf.is_sheaf_iff_is_sheaf_unique_gluing`.
+
+6. The underlying sheaf of types is a sheaf.
+  See `Top.presheaf.is_sheaf_iff_is_sheaf_comp` and
+  `category_theory.presheaf.is_sheaf_iff_is_sheaf_forget`.
 -/
 def is_sheaf (F : presheaf.{w v u} C X) : Prop :=
 presheaf.is_sheaf (opens.grothendieck_topology X) F
@@ -113,8 +133,9 @@ The forgetful functor from sheaves to presheaves.
 def forget : Top.sheaf C X ⥤ Top.presheaf C X :=
 Sheaf_to_presheaf _ _
 
-@[simp] lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).1.app t = 𝟙 _ := rfl
-@[simp] lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
+-- Note: These can be proved by simp.
+lemma id_app (F : sheaf C X) (t) : (𝟙 F : F ⟶ F).1.app t = 𝟙 _ := rfl
+lemma comp_app {F G H : sheaf C X} (f : F ⟶ G) (g : G ⟶ H) (t) :
   (f ≫ g).1.app t = f.1.app t ≫ g.1.app t := rfl
 
 end sheaf

@@ -394,7 +394,7 @@ end Top.presheaf
 
 namespace Top.sheaf
 
-variables {X : Top.{v}} {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{v}} {C : Type u} [category.{v} C]
 variables (F : X.sheaf C) (U V : opens X)
 open category_theory.limits
 
@@ -414,6 +414,8 @@ pullback_cone.mk (F.1.map (hom_of_le le_sup_left).op) (F.1.map (hom_of_le le_sup
 
 variable (s : pullback_cone
   (F.1.map (hom_of_le inf_le_left : U ∩ V ⟶ _).op) (F.1.map (hom_of_le inf_le_right).op))
+
+variable [has_products.{v} C]
 
 /-- (Implementation).
 Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`. -/

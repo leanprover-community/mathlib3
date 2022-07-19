@@ -12,10 +12,10 @@ import category_theory.sites.dense_subsite
 
 # The sheaf condition in terms of sites.
 
-The theory of sheaves on sites is developed independently from sheaves on spaces in
+The theory of sheaves on sites was developed independently from sheaves on spaces in
 `category_theory/sites`. In this file, we connect the two theories: We show that for a topological
 space `X`, a presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the site `opens X` if and only if it is
-a sheaf on `X` in the usual sense.
+a sheaf on `X` in terms of `is_sheaf_equalizer_products`.
 
 Recall that a presheaf `F : (opens X)ᵒᵖ ⥤ C` is called a *sheaf* on the space `X`, if for every
 family of opens `U : ι → opens X`, the object `F.obj (op (supr U))` is the limit of some fork
@@ -26,10 +26,8 @@ and `presieve_of_covering`, which translate between the two concepts. We then pr
 naturality lemmas relating the two fork diagrams to each other.
 
 ## Main statements
-* `is_sheaf_sites_iff_is_sheaf_spaces`. A presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the site
-  `opens X` if and only if it is a sheaf on the space `X`.
-* `Sheaf_sites_eq_sheaf_spaces`. The type of sheaves on the site `opens X` is *equal* to the type
-  of sheaves on the space `X`.
+* `is_sheaf_iff_is_sheaf_equalizer_products`. A presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the
+  site `opens X` if and only if it is a sheaf on the space `X`.
 
 -/
 
@@ -488,7 +486,7 @@ namespace Top.sheaf
 
 open category_theory topological_space Top opposite
 
-variables {C : Type u} [category.{v} C] [limits.has_products.{v} C]
+variables {C : Type u} [category.{v} C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : X.presheaf C) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 

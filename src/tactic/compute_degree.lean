@@ -82,7 +82,7 @@ meta def guess_degree : expr → tactic expr
                                 pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
                                 pure $ expr.mk_app pe [e]
 
-/--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
+/--  `resolve_sum_step tf e` takes an expression `e` as input.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
 * a sum, difference, opposite, product, or a power;
@@ -113,7 +113,7 @@ meta def resolve_sum_step : expr → tactic unit
       refine ``(dite (%%n = 0) (λ (n0 : %%n = 0),
         (by simp only [n0, zero_mul, zero_le])) (λ (n0 : ¬ %%n = 0), _)),
       refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero ‹_›)).mp _))
-  | e                := do ppe ← pp e, fail format!"'{ppe}' is not supported"
+  | e                := fail!"'{e}' is not supported"
   end
 | e := fail!("'resolve_sum_step' was called on\n" ++
   "{e}\nbut it expects `f.nat_degree ≤ d`")

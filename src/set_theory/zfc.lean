@@ -404,7 +404,7 @@ instance : has_mem Set Set := ⟨Set.mem⟩
 /-- Convert a ZFC set into a `set` of ZFC sets -/
 def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
 
-instance small_to_set (x : Set) : small x.to_set :=
+instance small_to_set (x : Set.{u}) : small.{u} x.to_set :=
 quotient.induction_on x $ λ a, begin
   let f : a.type → (mk a).to_set := λ i, ⟨mk $ a.func i, func_mem a i⟩,
   suffices : function.surjective f,

@@ -164,7 +164,8 @@ by { rw ←image_inv, exact (range_comp _ _).symm }
 open mul_opposite
 
 @[to_additive]
-lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ := by simp_rw [←image_inv, image_comm op_inv]
+lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ :=
+by simp_rw [←image_inv, function.semiconj.set_image op_inv s]
 
 end has_involutive_inv
 end inv
@@ -736,24 +737,76 @@ lemma mem_fintype_prod [fintype ι] (f : ι → set α) (a : α) :
   a ∈ ∏ i, f i ↔ ∃ (g : ι → α) (hg : ∀ i, g i ∈ f i), ∏ i, g i = a :=
 by { rw mem_finset_prod, simp }
 
-/-- The n-ary version of `set.mul_mem_mul`. -/
-@[to_additive /-" The n-ary version of `set.add_mem_add`. "-/]
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
+lemma list_prod_mem_list_prod (t : list ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  (t.map g).prod ∈ (t.map f).prod :=
+begin
+  induction t with h tl ih,
+  { simp_rw [list.map_nil, list.prod_nil, set.mem_one] },
+  { simp_rw [list.map_cons, list.prod_cons],
+    exact mul_mem_mul
+      (hg h $ list.mem_cons_self _ _) (ih $ λ i hi, hg i $ list.mem_cons_of_mem _ hi) }
+end
+
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
+lemma list_prod_subset_list_prod (t : list ι) (f₁ f₂ : ι → set α) (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
+  (t.map f₁).prod ⊆ (t.map f₂).prod :=
+begin
+  induction t with h tl ih,
+  { refl, },
+  { simp_rw [list.map_cons, list.prod_cons],
+    exact mul_subset_mul
+      (hf h $ list.mem_cons_self _ _) (ih $ λ i hi, hf i $ list.mem_cons_of_mem _ hi) }
+end
+
+@[to_additive]
+lemma list_prod_singleton {M : Type*} [comm_monoid M] (s : list M) :
+  (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
+(map_list_prod (singleton_monoid_hom : M →* set M) _).symm
+
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
+lemma multiset_prod_mem_multiset_prod (t : multiset ι) (f : ι → set α)
+  (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
+  (t.map g).prod ∈ (t.map f).prod :=
+begin
+  induction t using quotient.induction_on,
+  simp_rw [multiset.quot_mk_to_coe, multiset.coe_map, multiset.coe_prod],
+  exact list_prod_mem_list_prod _ _ _ hg,
+end
+
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
+lemma multiset_prod_subset_multiset_prod (t : multiset ι) (f₁ f₂ : ι → set α)
+  (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
+  (t.map f₁).prod ⊆ (t.map f₂).prod :=
+begin
+  induction t using quotient.induction_on,
+  simp_rw [multiset.quot_mk_to_coe, multiset.coe_map, multiset.coe_prod],
+  exact list_prod_subset_list_prod _ _ _ hf,
+end
+
+@[to_additive]
+lemma multiset_prod_singleton {M : Type*} [comm_monoid M] (s : multiset M) :
+  (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
+(map_multiset_prod (singleton_monoid_hom : M →* set M) _).symm
+
+/-- An n-ary version of `set.mul_mem_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_mem_add`. "-/]
 lemma finset_prod_mem_finset_prod (t : finset ι) (f : ι → set α)
   (g : ι → α) (hg : ∀ i ∈ t, g i ∈ f i) :
   ∏ i in t, g i ∈ ∏ i in t, f i :=
-by { rw mem_finset_prod, exact ⟨g, hg, rfl⟩ }
+multiset_prod_mem_multiset_prod _ _ _ hg
 
-/-- The n-ary version of `set.mul_subset_mul`. -/
-@[to_additive /-" The n-ary version of `set.add_subset_add`. "-/]
+/-- An n-ary version of `set.mul_subset_mul`. -/
+@[to_additive /-" An n-ary version of `set.add_subset_add`. "-/]
 lemma finset_prod_subset_finset_prod (t : finset ι) (f₁ f₂ : ι → set α)
-  (hf : ∀ {i}, i ∈ t → f₁ i ⊆ f₂ i) :
+  (hf : ∀ i ∈ t, f₁ i ⊆ f₂ i) :
   ∏ i in t, f₁ i ⊆ ∏ i in t, f₂ i :=
-begin
-  intro a,
-  rw [mem_finset_prod, mem_finset_prod],
-  rintro ⟨g, hg, rfl⟩,
-  exact ⟨g, λ i hi, hf hi $ hg hi, rfl⟩
-end
+multiset_prod_subset_multiset_prod _ _ _ hf
 
 @[to_additive]
 lemma finset_prod_singleton {M ι : Type*} [comm_monoid M] (s : finset ι) (I : ι → M) :
@@ -946,7 +999,7 @@ ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_s
 @[to_additive]
 instance smul_comm_class_set [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :
   smul_comm_class α β (set γ) :=
-⟨λ _ _ _, image_comm $ smul_comm _ _⟩
+⟨λ _ _, commute.set_image $ smul_comm _ _⟩
 
 @[to_additive]
 instance smul_comm_class_set' [has_smul α γ] [has_smul β γ] [smul_comm_class α β γ] :

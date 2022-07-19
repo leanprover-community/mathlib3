@@ -6,6 +6,7 @@ Authors: Antoine Labelle
 import representation_theory.fdRep
 import linear_algebra.trace
 import representation_theory.basic
+import representation_theory.invariants
 
 /-!
 # Characters of representations
@@ -22,7 +23,8 @@ noncomputable theory
 
 universes u
 
-open linear_map category_theory.monoidal_category representation
+open linear_map category_theory.monoidal_category representation finite_dimensional
+open_locale big_operators
 
 variables {k G : Type u} [field k]
 
@@ -67,6 +69,12 @@ by rw [char_mul_comm, inv_mul_cancel_left]
 @[simp] lemma char_lin_hom (V W : fdRep k G) (g : G) :
   (of (lin_hom V.ρ W.ρ)).character g = (V.character g⁻¹) * (W.character g) :=
 by { rw [←char_iso (dual_tensor_iso_lin_hom _ _), char_tensor, pi.mul_apply, char_dual], refl }
+
+variables [fintype G] [invertible (fintype.card G : k)]
+
+theorem average_char_eq_finrank_invariants (V : fdRep k G) :
+  ⅟(fintype.card G : k) • ∑ g : G, V.character g = finrank k (invariants V.ρ) :=
+by { rw ←(is_proj_average_map V.ρ).trace, simp [character, group_algebra.average, _root_.map_sum], }
 
 end group
 

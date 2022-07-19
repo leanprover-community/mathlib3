@@ -251,8 +251,9 @@ end
 lemma factorization_le_of_le_pow {n p b : ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
-  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp] },
-  exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb),
+  by_cases pp : p.prime, 
+  { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb) },
+  { simp [factorization_eq_zero_of_non_prime n pp] }
 end
 
 lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) :

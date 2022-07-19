@@ -537,20 +537,14 @@ lemma pullback_iso_unop_pushout_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
   [has_pullback f g] [has_pushout f.op g.op] :
   (pullback_iso_unop_pushout f g).inv ≫ pullback.fst =
     (pushout.inl : _ ⟶ pushout f.op g.op).unop :=
-begin
-  refine (is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans _,
-  dsimp, simp, dsimp, simp,
-end
+(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simp)
 
 @[simp, reassoc]
 lemma pullback_iso_unop_pushout_inv_snd {X Y Z : C} (f : X ⟶ Z)
   (g : Y ⟶ Z) [has_pullback f g] [has_pushout f.op g.op] :
   (pullback_iso_unop_pushout f g).inv ≫ pullback.snd =
     (pushout.inr : _ ⟶ pushout f.op g.op).unop :=
-begin
-  refine (is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans _,
-  dsimp, simp, dsimp, simp,
-end
+(is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _).trans (by simp)
 
 @[simp, reassoc]
 lemma pullback_iso_unop_pushout_hom_inl {X Y Z : C} (f : X ⟶ Z)
@@ -589,30 +583,14 @@ lemma pushout_iso_unop_pullback_inl_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] :
   pushout.inl ≫ (pushout_iso_unop_pullback f g).hom =
     (pullback.fst : pullback f.op g.op ⟶ _).unop :=
-begin
-  refine (is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans _,
-  dsimp,
-  simp only [limit.cone_π, pullback_cone.unop_ι_app],
-  dsimp,
-  erw [nat_trans.id_app, unop_id],
-  dsimp,
-  simp,
-end
+(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simp)
 
 @[simp, reassoc]
 lemma pushout_iso_unop_pullback_inr_hom {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)
   [has_pushout f g] [has_pullback f.op g.op] :
   pushout.inr ≫ (pushout_iso_unop_pullback f g).hom =
     (pullback.snd : pullback f.op g.op ⟶ _).unop :=
-begin
-  refine (is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans _,
-  dsimp,
-  simp only [limit.cone_π, pullback_cone.unop_ι_app],
-  dsimp,
-  erw [nat_trans.id_app, unop_id],
-  dsimp,
-  simp,
-end
+(is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _).trans (by simp)
 
 @[simp]
 lemma pushout_iso_unop_pullback_inv_fst {X Y Z : C} (f : X ⟶ Z) (g : X ⟶ Y)

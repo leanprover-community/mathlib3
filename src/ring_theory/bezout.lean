@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 
 import ring_theory.principal_ideal_domain
+import algebra.gcd_monoid.integrally_closed
 
 /-!
 
@@ -90,6 +91,11 @@ gcd_monoid_of_gcd gcd gcd_dvd_left gcd_dvd_right
 end gcd
 
 local attribute [instance] to_gcd_domain
+
+-- Note that the proof, despite being `infer_instance`, depends on the `local attribute [instance]`
+-- lemma above, and is thus necessary to be restated.
+@[priority 100]
+instance [is_domain R] [is_bezout R] : is_integrally_closed R := infer_instance
 
 lemma _root_.function.surjective.is_bezout {S : Type v} [comm_ring S] (f : R →+* S)
   (hf : function.surjective f) [is_bezout R] : is_bezout S :=

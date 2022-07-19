@@ -253,6 +253,9 @@ lemma le_iff_eq_sup_sdiff (hz : z ≤ y) (hx : x ≤ y) : x ≤ z ↔ y = z ⊔ 
     exact bot_le,
   end⟩
 
+lemma sup_sdiff_eq_sup (h : z ≤ x) : x ⊔ y \ z = x ⊔ y :=
+sup_congr_left (sdiff_le.trans le_sup_right) $ le_sup_sdiff.trans $ sup_le_sup_right h _
+
 -- cf. `set.union_diff_cancel'`
 lemma sup_sdiff_cancel' (hx : x ≤ z) (hz : z ≤ y) : z ⊔ (y \ x) = y :=
 ((le_iff_eq_sup_sdiff hz (hx.trans hz)).1 hx).symm

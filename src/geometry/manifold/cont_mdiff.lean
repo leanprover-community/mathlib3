@@ -414,6 +414,14 @@ lemma ext_chart_at_symm_continuous_within_at_comp_right_iff {X} [topological_spa
   continuous_within_at (f ∘ (chart_at H x).symm) ((chart_at H x).symm ⁻¹' s) (chart_at H x x') :=
 by convert I.symm_continuous_within_at_comp_right_iff; refl
 
+lemma ext_chart_at_image_subset (hs : s ⊆ (chart_at H x).source) :
+  ext_chart_at I x '' s ⊆ (ext_chart_at I x).symm ⁻¹' s ∩ range I :=
+begin
+  rw [ext_chart_at_coe, ext_chart_at_coe_symm, preimage_comp, ← I.image_eq, image_comp,
+    (chart_at H x).image_eq_target_inter_inv_preimage hs],
+  exact image_subset _ (inter_subset_right _ _)
+end
+
 include Is
 
 lemma cont_mdiff_within_at_iff_source_of_mem_source
@@ -453,14 +461,6 @@ end
 
 lemma cont_mdiff_at_ext_chart_at : cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x :=
 cont_mdiff_at_ext_chart_at' $ mem_chart_source H x
-
-lemma ext_chart_at_image_subset (hs : s ⊆ (chart_at H x).source) :
-  ext_chart_at I x '' s ⊆ (ext_chart_at I x).symm ⁻¹' s ∩ range I :=
-begin
-  rw [ext_chart_at_coe, ext_chart_at_coe_symm, preimage_comp, ← I.image_eq, image_comp,
-    (chart_at H x).image_eq_target_inter_inv_preimage hs],
-  exact image_subset _ (inter_subset_right _ _)
-end
 
 include I's
 
@@ -2064,3 +2064,5 @@ lemma smooth_at.smul {N : Type*} [topological_space N] [charted_space H N]
   {f : N → 𝕜} {g : N → V} {x : N} (hf : smooth_at I 𝓘(𝕜) f x) (hg : smooth_at I 𝓘(𝕜, V) g x) :
   smooth_at I 𝓘(𝕜, V) (λ p, f p • g p) x :=
 smooth_smul.smooth_at.comp _ (hf.prod_mk hg)
+
+#lint

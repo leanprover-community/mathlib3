@@ -899,8 +899,7 @@ lemma ext_chart_preimage_inter_eq :
   = ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ∩ ((ext_chart_at I x).symm ⁻¹' t) :=
 by mfld_set_tac
 
-/-! We use the name `ext_coord_change` for `(ext_chart_at I x').symm ≫ ext_chart_at I x`
-for some `x`, `x'`. -/
+/-! We use the name `ext_coord_change` for `(ext_chart_at I x').symm ≫ ext_chart_at I x`. -/
 
 lemma ext_coord_change_source (x x' : M) :
   ((ext_chart_at I x').symm ≫ ext_chart_at I x).source =

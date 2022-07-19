@@ -19,6 +19,8 @@ In this file we define the complement of a subgroup.
   i.e. the set of all `S : set G` that contain exactly one element of each left coset of `T`.
 - `right_transversals S` where `S` is a subset of `G` is the set of all right-complements of `S`,
   i.e. the set of all `T : set G` that contain exactly one element of each right coset of `S`.
+- `transfer_transversal H g` is a specific `left_transversal` of `H` that is used in the
+  computation of the transfer homomorphism evaluated at an element `g : G`.
 
 ## Main results
 
@@ -416,16 +418,16 @@ variables {G : Type u} [group G] (H : subgroup G) (g : G)
 
 /-- Partition `G ⧸ H` into orbits of the action of `g : G`. -/
 noncomputable def quotient_equiv_sigma_zmod : G ⧸ H ≃
-  Σ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))), zmod (minimal_period ((•) g) q.out') :=
+  Σ (q : orbit_rel.quotient (zpowers g) (G ⧸ H)), zmod (minimal_period ((•) g) q.out') :=
 (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)).trans
   (sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
 
 lemma quotient_equiv_sigma_zmod_symm_apply
-  (q : quotient (orbit_rel (zpowers g) (G ⧸ H))) (k : zmod (minimal_period ((•) g) q.out')) :
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
   (quotient_equiv_sigma_zmod H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
 rfl
 
-lemma quotient_equiv_sigma_zmod_apply (q : quotient (orbit_rel (zpowers g) (G ⧸ H))) (k : ℤ) :
+lemma quotient_equiv_sigma_zmod_apply (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : ℤ) :
   quotient_equiv_sigma_zmod H g (g ^ k • q.out') = ⟨q, k⟩ :=
 by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply,
   zmod.coe_int_cast, zpow_smul_mod_minimal_period]
@@ -446,6 +448,9 @@ by rw [transfer_function_apply, ←smul_eq_mul, coe_smul_out',
 def transfer_set : set G :=
 set.range (transfer_function H g)
 
+lemma mem_transfer_set (q : G ⧸ H) : transfer_function H g q ∈ transfer_set H g :=
+⟨q, rfl⟩
+
 /-- The transfer transversal. -/
 def transfer_transversal : left_transversals (H : set G) :=
 ⟨transfer_set H g, range_mem_left_transversals (coe_transfer_function H g)⟩
@@ -455,13 +460,13 @@ lemma transfer_transversal_apply (q : G ⧸ H) :
 to_equiv_apply (coe_transfer_function H g) q
 
 lemma transfer_transversal_apply'
-  (q : quotient (orbit_rel (zpowers g) (G ⧸ H))) (k : zmod (minimal_period ((•) g) q.out')) :
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
   ↑(to_equiv (transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) = g ^ (k : ℤ) * q.out'.out' :=
 by rw [transfer_transversal_apply, transfer_function_apply,
   ←quotient_equiv_sigma_zmod_symm_apply, apply_symm_apply]
 
 lemma transfer_transversal_apply''
-  (q : quotient (orbit_rel (zpowers g) (G ⧸ H))) (k : zmod (minimal_period ((•) g) q.out')) :
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
   ↑(to_equiv (g • transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
     if k = 0 then g ^ minimal_period ((•) g) q.out' * q.out'.out' else g ^ (k : ℤ) * q.out'.out' :=
 begin

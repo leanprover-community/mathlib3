@@ -33,10 +33,11 @@ instance has_smul {α : Type*} [Π i, has_smul α $ f i] :
 
 @[to_additive]
 lemma smul_def {α : Type*} [Π i, has_smul α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[simp, to_additive]
+@[to_additive]
 lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
-@[to_additive pi.has_smul] instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
+@[to_additive pi.has_smul]
+instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
 { pow := λ x b i, (x i) ^ b }
 
 @[to_additive pi.smul_def, simp] lemma pow_def {β : Type*} [Π i, has_pow (f i) β]

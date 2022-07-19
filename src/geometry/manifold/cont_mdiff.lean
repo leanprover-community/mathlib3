@@ -2064,5 +2064,3 @@ lemma smooth_at.smul {N : Type*} [topological_space N] [charted_space H N]
   {f : N → 𝕜} {g : N → V} {x : N} (hf : smooth_at I 𝓘(𝕜) f x) (hg : smooth_at I 𝓘(𝕜, V) g x) :
   smooth_at I 𝓘(𝕜, V) (λ p, f p • g p) x :=
 smooth_smul.smooth_at.comp _ (hf.prod_mk hg)
-
-#lint

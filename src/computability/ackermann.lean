@@ -1,43 +1,84 @@
+/-
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Violeta Hernández Palacios
+-/
+
 import computability.primrec
-import tactic
-import order.filter.at_top_bot
+import tactic.linarith
+
+/-!
+# Ackermann function
+
+In this file, we define the two-argument Ackermann function `ack`, which is defined via recursion on
+pairs of naturals with the lexicographic order. We then show that it isn't a primitive recursive
+function.
+
+## Main result
+
+- `not_primrec₂_ack`: the two-argument Ackermann function is not primitive recursive.
+-/
+
+namespace nat
+
+theorem mkpair_lt_max_succ_sq (m n : ℕ) : mkpair m n < (max m n + 1) ^ 2 :=
+begin
+  rw mkpair,
+  split_ifs,
+  { rw max_eq_right h.le,
+    linarith },
+  { rw max_eq_left (le_of_not_lt h),
+    linarith }
+end
+
+theorem sum_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=
+begin
+  rw mkpair,
+  split_ifs,
+  { linarith [le_mul_self n] },
+  { rw add_assoc,
+    apply self_le_add_left }
+end
+
+theorem unpair_sum_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
+by { rw [←mkpair_unpair n, unpair_mkpair], apply sum_le_mkpair }
+
+end nat
+
+open nat
 
 /-- The two-argument Ackermann function, defined so that
 
-- `ackermann 0 n = n + 1`
-- `ackermann (m + 1) 0 = ackermann m 1`
-- `ackermann (m + 1) (n + 1) = ackermann m (ackermann (m + 1) n)`.
+- `ack 0 n = n + 1`
+- `ack (m + 1) 0 = ack m 1`
+- `ack (m + 1) (n + 1) = ack m (ack (m + 1) n)`.
 
 This is of interest as both a fast-growing function, and as an example of a recursive function that
 isn't primitive recursive. -/
-def ackermann : ℕ → ℕ → ℕ
+def ack : ℕ → ℕ → ℕ
 | 0       n       := n + 1
-| (m + 1) 0       := ackermann m 1
-| (m + 1) (n + 1) := ackermann m (ackermann (m + 1) n)
+| (m + 1) 0       := ack m 1
+| (m + 1) (n + 1) := ack m (ack (m + 1) n)
 
-@[simp] theorem ackermann_zero (n : ℕ) : ackermann 0 n = n + 1 := by rw ackermann
+@[simp] theorem ack_zero (n : ℕ) : ack 0 n = n + 1 := by rw ack
+@[simp] theorem ack_succ_zero (m : ℕ) : ack (m + 1) 0 = ack m 1 := by rw ack
+@[simp] theorem ack_succ_succ (m n : ℕ) : ack (m + 1) (n + 1) = ack m (ack (m + 1) n) := by rw ack
 
-@[simp] theorem ackermann_succ_zero (m : ℕ) : ackermann (m + 1) 0 = ackermann m 1 := by rw ackermann
-
-@[simp] theorem ackermann_succ_succ (m n : ℕ) :
-  ackermann (m + 1) (n + 1) = ackermann m (ackermann (m + 1) n) :=
-by rw ackermann
-
-@[simp] theorem ackermann_one (n : ℕ) : ackermann 1 n = n + 2 :=
+@[simp] theorem ack_one (n : ℕ) : ack 1 n = n + 2 :=
 begin
   induction n with n IH,
   { simp },
   { simp [IH] }
 end
 
-@[simp] theorem ackermann_two (n : ℕ) : ackermann 2 n = 2 * n + 3 :=
+@[simp] theorem ack_two (n : ℕ) : ack 2 n = 2 * n + 3 :=
 begin
   induction n with n IH,
   { simp },
-  { simp [IH, nat.mul_succ] }
+  { simp [IH, mul_succ] }
 end
 
-private theorem ackermann_three_aux (n : ℕ) : (ackermann 3 n : ℤ) = 2 ^ (n + 3) - 3 :=
+private theorem ack_three_aux (n : ℕ) : (ack 3 n : ℤ) = 2 ^ (n + 3) - 3 :=
 begin
   induction n with n IH,
   { simp, norm_num },
@@ -46,55 +87,225 @@ begin
     norm_num }
 end
 
-@[simp] theorem ackermann_three (n : ℕ) : ackermann 3 n = 2 ^ (n + 3) - 3 :=
+@[simp] theorem ack_three (n : ℕ) : ack 3 n = 2 ^ (n + 3) - 3 :=
 begin
   zify,
-  rw nat.cast_sub,
-  { exact_mod_cast ackermann_three_aux n },
+  rw cast_sub,
+  { exact_mod_cast ack_three_aux n },
   { have H : 3 ≤ 2 ^ 3 := by norm_num,
     exact H.trans (pow_mono one_le_two $ le_add_left le_rfl) }
 end
 
-theorem ackermann_pos : ∀ m n, 0 < ackermann m n
+theorem ack_pos : ∀ m n, 0 < ack m n
 | 0       n       := by simp
-| (m + 1) 0       := by { rw ackermann_succ_zero, apply ackermann_pos }
-| (m + 1) (n + 1) := by { rw ackermann_succ_succ, apply ackermann_pos }
+| (m + 1) 0       := by { rw ack_succ_zero, apply ack_pos }
+| (m + 1) (n + 1) := by { rw ack_succ_succ, apply ack_pos }
 
-theorem one_lt_ackermann_succ : ∀ m n, 1 < ackermann (m + 1) n
+theorem one_lt_ack_succ_left : ∀ m n, 1 < ack (m + 1) n
 | 0       n       := by simp
-| (m + 1) 0       := by { rw ackermann_succ_zero, apply one_lt_ackermann_succ }
-| (m + 1) (n + 1) := by { rw ackermann_succ_succ, apply one_lt_ackermann_succ }
+| (m + 1) 0       := by { rw ack_succ_zero, apply one_lt_ack_succ_left }
+| (m + 1) (n + 1) := by { rw ack_succ_succ, apply one_lt_ack_succ_left }
 
-theorem ackermann_strict_mono_left : ∀ m, strict_mono (ackermann m)
-| 0 n₁ n₂ h := by simpa using h
-| (m + 1) 0 0 h := h.false.elim
-| (m + 1) 0 (n + 1) h := begin
-  rw [ackermann_succ_zero, ackermann_succ_succ],
-  exact ackermann_strict_mono_left _ (one_lt_ackermann_succ m n)
+theorem one_lt_ack_succ_right : ∀ m n, 1 < ack m (n + 1)
+| 0       n := by simp
+| (m + 1) n := begin
+  rw ack_succ_succ,
+  cases exists_eq_succ_of_ne_zero (ack_pos (m + 1) n).ne',
+  rw h,
+  apply one_lt_ack_succ_right
 end
-| (m + 1) (n₁ + 1) 0 h := (nat.not_lt_zero _ h).elim
+
+theorem ack_strict_mono_right : ∀ m, strict_mono (ack m)
+| 0 n₁ n₂ h := by simpa using h
+| (m + 1) 0 (n + 1) h := begin
+  rw [ack_succ_zero, ack_succ_succ],
+  exact ack_strict_mono_right _ (one_lt_ack_succ_left m n)
+end
 | (m + 1) (n₁ + 1) (n₂ + 1) h := begin
-  rw [ackermann_succ_succ, ackermann_succ_succ],
-  apply ackermann_strict_mono_left _ (ackermann_strict_mono_left _ _),
+  rw [ack_succ_succ, ack_succ_succ],
+  apply ack_strict_mono_right _ (ack_strict_mono_right _ _),
   rwa add_lt_add_iff_right at h
 end
 
-theorem sum_lt_ackermann : ∀ m n, m + n < ackermann m n
+theorem ack_mono_right (m : ℕ) : monotone (ack m) := (ack_strict_mono_right m).monotone
+
+theorem ack_injective_right (m : ℕ) : function.injective (ack m) :=
+(ack_strict_mono_right m).injective
+
+@[simp] theorem ack_lt_iff_right {m n₁ n₂ : ℕ} : ack m n₁ < ack m n₂ ↔ n₁ < n₂ :=
+(ack_strict_mono_right m).lt_iff_lt
+
+@[simp] theorem ack_le_iff_right {m n₁ n₂ : ℕ} : ack m n₁ ≤ ack m n₂ ↔ n₁ ≤ n₂ :=
+(ack_strict_mono_right m).le_iff_le
+
+@[simp] theorem ack_inj_right {m n₁ n₂ : ℕ} : ack m n₁ = ack m n₂ ↔ n₁ = n₂ :=
+(ack_injective_right m).eq_iff
+
+theorem max_ack_right (m n₁ n₂ : ℕ) : ack m (max n₁ n₂) = max (ack m n₁) (ack m n₂) :=
+(ack_mono_right m).map_max
+
+theorem sum_lt_ack : ∀ m n, m + n < ack m n
 | 0       n       := by simp
-| (m + 1) 0       := by { rw [ackermann_succ_zero, add_zero], apply sum_lt_ackermann }
-| (m + 1) (n + 1) := begin
-  rw [ackermann_succ_succ, add_assoc],
-  apply (sum_lt_ackermann m _).trans,
-  apply ackermann_strict_mono_left,
+| (m + 1) 0       := by simpa using sum_lt_ack m 1
+| (m + 1) (n + 1) :=
+calc (m + 1) + n + 1
+      ≤ m + (m + n + 2) : by linarith
+  ... < ack m (m + n + 2) : sum_lt_ack _ _
+  ... ≤ ack m (ack (m + 1) n) : ack_mono_right m $
+          le_of_eq_of_le (by ring_nf) $ succ_le_of_lt $ sum_lt_ack (m + 1) n
+  ... = ack (m + 1) (n + 1) : (ack_succ_succ m n).symm
+
+theorem sum_succ_le_ack (m n : ℕ) : m + n + 1 ≤ ack m n := succ_le_of_lt (sum_lt_ack m n)
+
+theorem lt_ack_left (m n : ℕ) : m < ack m n := (self_le_add_right m n).trans_lt $ sum_lt_ack m n
+theorem lt_ack_right (m n : ℕ) : n < ack m n := (self_le_add_left n m).trans_lt $ sum_lt_ack m n
+
+-- we reorder the arguments to appease the equation compiler
+private theorem ack_strict_mono_left' : ∀ {m₁ m₂} n, m₁ < m₂ → ack m₁ n < ack m₂ n
+| m 0 n := λ h, (nat.not_lt_zero m h).elim
+| 0 (m + 1) 0 := λ h, by simpa using one_lt_ack_succ_right m 0
+| 0 (m + 1) (n + 1) := λ h, begin
+  rw [ack_zero, ack_succ_succ],
+  apply lt_of_le_of_lt (le_trans _ (add_le_add_left (sum_succ_le_ack _ _) m)) (sum_lt_ack _ _),
+  linarith
+end
+| (m₁ + 1) (m₂ + 1) 0 := λ h, by simpa using ack_strict_mono_left' 1 ((add_lt_add_iff_right 1).1 h)
+| (m₁ + 1) (m₂ + 1) (n + 1) := λ h, begin
+  rw [ack_succ_succ, ack_succ_succ],
+  exact (ack_strict_mono_left' _ ((add_lt_add_iff_right 1).1 h)).trans
+    (ack_strict_mono_right _ (ack_strict_mono_left' n h))
 end
 
-theorem lt_ackermann_of_primrec₂ {f : ℕ → ℕ} (hf : nat.primrec f) :
-  ∀ᶠ n in filter.at_top, f n < ackermann n n :=
+theorem ack_strict_mono_left (n : ℕ) : strict_mono (λ m, ack m n) :=
+λ m₁ m₂, ack_strict_mono_left' n
+
+theorem ack_mono_left (n : ℕ) : monotone (λ m, ack m n) := (ack_strict_mono_left n).monotone
+
+theorem ack_injective_left (n : ℕ) : function.injective (λ m, ack m n) :=
+(ack_strict_mono_left n).injective
+
+@[simp] theorem ack_lt_iff_left {m₁ m₂ n : ℕ} : ack m₁ n < ack m₂ n ↔ m₁ < m₂ :=
+(ack_strict_mono_left n).lt_iff_lt
+
+@[simp] theorem ack_le_iff_left {m₁ m₂ n : ℕ} : ack m₁ n ≤ ack m₂ n ↔ m₁ ≤ m₂ :=
+(ack_strict_mono_left n).le_iff_le
+
+@[simp] theorem ack_inj_left {m₁ m₂ n : ℕ} : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=
+(ack_injective_left n).eq_iff
+
+theorem max_ack_left (m₁ m₂ n : ℕ) : ack (max m₁ m₂) n = max (ack m₁ n) (ack m₂ n) :=
+(ack_mono_left n).map_max
+
+theorem ack_le_ack {m₁ m₂ n₁ n₂ : ℕ} (hm : m₁ ≤ m₂) (hn : n₁ ≤ n₂) : ack m₁ n₁ ≤ ack m₂ n₂ :=
+(ack_mono_left n₁ hm).trans $ ack_mono_right m₂ hn
+
+theorem ack_succ_right_le_ack_succ_left (m n : ℕ) : ack m (n + 1) ≤ ack (m + 1) n :=
 begin
-  induction hf,
-  { exact filter.eventually_of_forall (λ n, ackermann_pos n n) },
-  {
-
-  }
-
+  cases n,
+  { simp },
+  { rw [ack_succ_succ, succ_eq_add_one],
+    apply ack_mono_right m (le_trans _ (sum_succ_le_ack _ n)),
+    linarith }
 end
+
+private theorem sq_le_two_pow_succ_minus_three (n : ℕ) : n ^ 2 ≤ 2 ^ (n + 1) - 3 :=
+begin
+  induction n with k hk,
+  { norm_num },
+  { cases k,
+    { norm_num },
+    { rw [succ_eq_add_one, add_sq, pow_succ 2, two_mul (2 ^ _), add_tsub_assoc_of_le,
+        add_comm (2 ^ _), add_assoc],
+      { apply add_le_add hk,
+        norm_num,
+        apply succ_le_of_lt,
+        rw [pow_succ, mul_lt_mul_left (@zero_lt_two ℕ _ _)],
+        apply lt_two_pow },
+      { rw [pow_succ, pow_succ],
+        linarith [one_le_pow k 2 zero_lt_two] } } }
+end
+
+theorem ack_succ_sq_lt_ack_add_three : ∀ m n, (ack m n + 1) ^ 2 ≤ ack (m + 3) n
+| 0       n       := by simpa using sq_le_two_pow_succ_minus_three (n + 2)
+| (m + 1) 0       := by { rw [ack_succ_zero, ack_succ_zero], apply ack_succ_sq_lt_ack_add_three }
+| (m + 1) (n + 1) := begin
+  rw [ack_succ_succ, ack_succ_succ],
+  apply (ack_succ_sq_lt_ack_add_three _ _).trans (ack_mono_right _ $ ack_mono_left _ _),
+  linarith
+end
+
+theorem ack_ack_lt_ack_max_add_two (m n k : ℕ) : ack m (ack n k) < ack (max m n + 2) k :=
+calc ack m (ack n k)
+      ≤ ack (max m n) (ack n k) : ack_mono_left _ (le_max_left _ _)
+  ... < ack (max m n) (ack (max m n + 1) k) : ack_strict_mono_right _ $ ack_strict_mono_left k $
+          lt_succ_of_le $ le_max_right m n
+  ... = ack (max m n + 1) (k + 1) : (ack_succ_succ _ _).symm
+  ... ≤ ack (max m n + 2) k : ack_succ_right_le_ack_succ_left _ _
+
+theorem ack_succ_sq_lt_ack_add_four (m n : ℕ) : ack m ((n + 1) ^ 2) < ack (m + 4) n :=
+calc ack m ((n + 1) ^ 2)
+      < ack m ((ack m n + 1) ^ 2) : ack_strict_mono_right m $
+          pow_lt_pow_of_lt_left (succ_lt_succ (lt_ack_right m n)) zero_lt_two
+  ... ≤ ack m (ack (m + 3) n) : ack_mono_right m $ ack_succ_sq_lt_ack_add_three m n
+  ... ≤ ack (m + 2) (ack (m + 3) n) : ack_mono_left _ $ by linarith
+  ... = ack (m + 3) (n + 1) : (ack_succ_succ _ n).symm
+  ... ≤ ack (m + 4) n : ack_succ_right_le_ack_succ_left _ n
+
+theorem ack_mkpair_lt (m n k : ℕ) : ack m (mkpair n k) < ack (m + 4) (max n k) :=
+(ack_strict_mono_right m (mkpair_lt_max_succ_sq n k)).trans (ack_succ_sq_lt_ack_add_four _ _)
+
+/-- If `f` is primitive recursive, there exists `m` such that `f n < ack m n` for all `n`. -/
+theorem exists_lt_ack_of_nat_primrec {f : ℕ → ℕ} (hf : nat.primrec f) : ∃ m, ∀ n, f n < ack m n :=
+begin
+  induction hf with f g hf hg IHf IHg f g hf hg IHf IHg f g hf hg IHf IHg,
+  { exact ⟨0, ack_pos 0⟩ },
+  { refine ⟨1, λ n, _⟩,
+    rw succ_eq_one_add,
+    apply sum_lt_ack },
+  { refine ⟨0, λ n, _⟩,
+    rw [ack_zero, lt_succ_iff],
+    exact unpair_left_le n },
+  { refine ⟨0, λ n, _⟩,
+    rw [ack_zero, lt_succ_iff],
+    exact unpair_right_le n },
+  all_goals { cases IHf with a ha, cases IHg with b hb },
+  { refine ⟨max a b + 3, λ n, (mkpair_lt_max_succ_sq _ _).trans_le $
+      (nat.pow_le_pow_of_le_left (add_le_add_right _ _) 2).trans $
+        ack_succ_sq_lt_ack_add_three _ _⟩,
+    rw max_ack_left,
+    exact max_le_max (ha n).le (hb n).le },
+  { exact ⟨max a b + 2, λ n,
+      (ha _).trans ((ack_strict_mono_right a (hb n)).trans $ ack_ack_lt_ack_max_add_two a b n)⟩ },
+  { have H : ∀ m n, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n <
+      ack (max a b + 9) (m + n),
+    { intros m n,
+      induction n with n IH,
+      { apply (ha m).trans (ack_strict_mono_left m $ (le_max_left a b).trans_lt _),
+        linarith },
+      { rw elim_succ,
+        apply (hb _).trans ((ack_mkpair_lt _ _ _).trans_le _),
+        cases lt_or_le _ m with h₁ h₁,
+        { rw max_eq_left h₁.le,
+          exact ack_le_ack (add_le_add (le_max_right a b) $ by norm_num) (self_le_add_right m _) },
+        rw max_eq_right h₁,
+        apply (ack_mkpair_lt _ _ _).le.trans,
+        cases lt_or_le _ n with h₂ h₂,
+        { rw [max_eq_left h₂.le, add_assoc],
+          exact ack_le_ack (add_le_add (le_max_right a b) $ by norm_num)
+            ((le_succ n).trans $ self_le_add_left _ _) },
+        rw max_eq_right h₂,
+        apply (ack_strict_mono_right _ IH).le.trans,
+        rw [add_succ m, add_succ _ 8, ack_succ_succ (_ + 8), add_assoc],
+        exact ack_mono_left _ (add_le_add (le_max_right a b) le_rfl) } },
+    exact ⟨max a b + 9, λ n, (H _ _).trans_le $ ack_mono_right _ $ unpair_sum_le n⟩ }
+end
+
+theorem not_nat_primrec_ack_self : ¬ nat.primrec (λ n, ack n n) :=
+λ h, by { cases exists_lt_ack_of_nat_primrec h with m hm, exact (hm m).false }
+
+theorem not_primrec_ack_self : ¬ _root_.primrec (λ n, ack n n) :=
+by { rw primrec.nat_iff, exact not_nat_primrec_ack_self }
+
+/-- The Ackermann function is not primitive recursive. -/
+theorem not_primrec₂_ack : ¬ primrec₂ ack :=
+λ h, not_primrec_ack_self $ h.comp primrec.id primrec.id

@@ -949,7 +949,7 @@ begin
   { simp [hi.symm] }
 end
 
-lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)] :
+lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]:
   support (f.update i b) = if b = 0 then support (f.erase i) else insert i f.support :=
 begin
   ext j,
@@ -1126,9 +1126,19 @@ instance distrib_mul_action₂ [monoid γ] [Π i j, add_monoid (δ i j)]
 /--The natural map between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.  -/
 noncomputable def sigma_curry [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2) :
   Π₀ i j, δ i j :=
-by { classical,
-  exact mk (f.support.image $ λ i, i.1)
-    (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
+{ to_fun := λ i,
+  { to_fun := λ j, f ⟨i, j⟩,
+    support' := f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _ },
+  support' := f.support'.map $ λ s, ⟨multiset.map sigma.fst (↑s : multiset (sigma α)), λ i, begin
+    simp_rw [ext_iff, multiset.mem_map, coe_mk, zero_apply],
+    have := (λ j : α i, s.prop ⟨i, j⟩),
+    contrapose! this,
+    obtain ⟨h, xi, hxi⟩ := this,
+    refine ⟨xi, λ h', h _ h' rfl, hxi⟩,
+  end⟩ }
+-- by { classical,
+--   exact mk (f.support.image $ λ i, i.1)
+--     (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
 
 @[simp] lemma sigma_curry_apply [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2)
   (i : ι) (j : α i) :

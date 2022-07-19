@@ -1740,7 +1740,7 @@ lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multise
   multiset.disjoint a (∑ x in i, f x) :=
 disjoint_sum_right $ by simpa using h
 
-lemma finset_sum_le_of_le_of_disjoint {β : Type*} {T : multiset α} {i : finset β}
+lemma finset_sum_eq_sup_of_disjoint {β : Type*} {T : multiset α} {i : finset β}
   {f : β → multiset α} (h : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
   ∑ x in i, f x = i.sup f :=
 begin

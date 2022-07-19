@@ -168,9 +168,28 @@ def equiv_sigma_tuple : list α ≃ Σ n, fin n → α :=
   right_inv := λ ⟨n, f⟩, fin.sigma_eq_of_eq_comp_cast (length_of_fn _) $ funext $ λ i,
     nth_le_of_fn' f i.prop }
 
-/-- A recursor for lists that expands a list into a function mapping to its elements. -/
-def of_fn_rec (C : list α → Sort*) (h : Π n (f : fin n → α), C (list.of_fn f)) (l : list α) : C l :=
-l.of_fn_nth_le.rec $ h l.length (λ i, l.nth_le ↑i i.2)
+/-- A recursor for lists that expands a list into a function mapping to its elements.
+
+This can be used with `induction l using list.of_fn_rec`. -/
+@[elab_as_eliminator]
+def of_fn_rec {C : list α → Sort*} (h : Π n (f : fin n → α), C (list.of_fn f)) (l : list α) : C l :=
+cast (congr_arg _ l.of_fn_nth_le) $ h l.length (λ i, l.nth_le ↑i i.2)
+
+@[simp]
+lemma of_fn_rec_of_fn {C : list α → Sort*} (h : Π n (f : fin n → α), C (list.of_fn f))
+  {n : ℕ} (f : fin n → α) : @of_fn_rec _ C h (list.of_fn f) = h _ f :=
+begin
+  rw [of_fn_rec, cast_eq_iff_heq],
+  have := length_of_fn f,
+  congr',
+  simp_rw [←fin.coe_cast this, nth_le_of_fn],
+  ext,
+  { rw this },
+  intros a b hab,
+  congr,
+  rw [fin.cast_eq_cast, cast_eq_iff_heq],
+  exact hab,
+end
 
 lemma exists_iff_exists_tuple {P : list α → Prop} :
   (∃ l : list α, P l) ↔ ∃ n (f : fin n → α), P (list.of_fn f) :=

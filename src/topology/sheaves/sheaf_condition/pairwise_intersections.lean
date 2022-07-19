@@ -432,7 +432,7 @@ begin
       exacts [⟨⟨walking_pair.left⟩, h⟩, ⟨⟨walking_pair.right⟩, h⟩] },
     { rintro ⟨⟨_ | _⟩, h⟩,
       exacts [or.inl h, or.inr h] } },
-  refine (F.1.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
+  refine (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
     ⟨s.X, { app := _, naturality' := _ }⟩ ≫ F.1.map (eq_to_hom hι).op,
   { apply opposite.rec,
     rintro ((_|_)|(_|_)),

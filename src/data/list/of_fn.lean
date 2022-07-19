@@ -117,7 +117,7 @@ by cases n; simp only [of_fn_zero, of_fn_succ, eq_self_iff_true, nat.succ_ne_zer
   last (of_fn f) h = f ⟨n - 1, hn⟩ :=
 by simp [last_eq_nth_le]
 
-@[simp] lemma last_of_fn_succ {n : ℕ} (f : fin n.succ → α)
+lemma last_of_fn_succ {n : ℕ} (f : fin n.succ → α)
   (h : of_fn f ≠ [] := mt of_fn_eq_nil_iff.mp (nat.succ_ne_zero _)) :
   last (of_fn f) h = f (fin.last _) :=
 last_of_fn f h

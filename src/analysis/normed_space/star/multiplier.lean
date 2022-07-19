@@ -159,8 +159,6 @@ instance : has_smul 𝕜 𝓜(𝕜, A) :=
     central := λ x y , by simp only [continuous_linear_map.coe_smul', pi.smul_apply, central,
       mul_smul_comm, smul_mul_assoc] } }
 
--- all these simp lemmas should be prefixed with `coe_`, then the non-`coe_` ones should just be
--- linear maps, not their coercions to functions.
 @[simp] lemma add_left (a b : 𝓜(𝕜, A)) : (a + b).left = a.left + b.left := rfl
 @[simp] lemma add_right (a b : 𝓜(𝕜, A)) : (a + b).right = a.right + b.right := rfl
 @[simp] lemma zero_left : (0 : 𝓜(𝕜, A)).left = 0 := rfl
@@ -356,9 +354,6 @@ end
 lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ :=
 by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
-
-open_locale nnreal ennreal
-open nnreal
 
 /- I think we don't have the necessary type class to make this lemma true.
 `nondiscrete_normed_field 𝕜` is too weak, but `is_R_or_C 𝕜` is far too strong. What we

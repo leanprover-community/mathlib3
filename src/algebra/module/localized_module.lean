@@ -344,9 +344,9 @@ def mk_linear_map : M →ₗ[R] localized_module S M :=
 end
 
 /--
-For any `s : S`, there is an `R`-linear map given by `a/b ↦ s • a/b`.
+For any `r : R`, there is an `R`-linear map given by `a/b ↦ r • a/b = (r • a)/b`.
 -/
-def mul_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
+def mul_by (s : R) : localized_module S M →ₗ[R] localized_module S M :=
 { to_fun := (•) s,
   map_add' := λ _ _, by simp,
   map_smul' := λ r p,
@@ -354,6 +354,26 @@ def mul_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
     change (s : R) • _ = r • (s : R) • _,
     simp only [←mul_smul],
     ring_nf,
+  end }
+
+/--
+The bilinear map `r ↦ z ↦ r • z`.
+-/
+def mul : R →ₗ[R] localized_module S M →ₗ[R] localized_module S M :=
+{ to_fun := λ r, mul_by r,
+  map_add' := λ x y, fun_like.ext _ _ $ λ z, z.induction_on
+  begin
+    intros m s,
+    change mk _ _ = mk _ _ + mk _ _,
+    simp only [add_smul, mk_add_mk],
+    refine mk_eq.mpr ⟨1, _⟩,
+    simp only [one_smul, ←smul_add, mul_smul],
+  end,
+  map_smul' := λ r x, fun_like.ext _ _ $ λ z, z.induction_on
+  begin
+    intros m s,
+    change mk _ _ = mk _ _,
+    simp [mul_smul],
   end }
 
 /--
@@ -383,7 +403,7 @@ def div_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
     refl,
   end }
 
-lemma div_by_mul_by (s : S) (p : localized_module S M) : div_by s (mul_by s p) = p :=
+lemma div_by_mul_by (s : S) (p : localized_module S M) : div_by s (mul_by ↑s p) = p :=
 begin
   induction p using localized_module.induction_on with a b,
   change mk _ _ = _,
@@ -393,7 +413,7 @@ begin
   refl,
 end
 
-lemma mul_by_div_by (s : S) (p : localized_module S M) : mul_by s (div_by s p) = p :=
+lemma mul_by_div_by (s : S) (p : localized_module S M) : mul_by ↑s (div_by s p) = p :=
 begin
   induction p using localized_module.induction_on with a b,
   change mk _ _ = _,
@@ -415,6 +435,11 @@ variables {R : Type u} [comm_ring R] (S : submonoid R)
 variables {M M' : Type u} [add_comm_monoid M] [add_comm_monoid M']
 variables [module R M] [module R M'] (f : M →ₗ[R] M')
 
+/--
+The characteristic predicate for localized module.
+`is_localized_module S f` describes that `f : M ⟶ M'` is the localization map identifying `M'` as
+`localized_module S M`.
+-/
 class is_localized_module : Prop :=
 (map_units [] : ∀ (x : S), is_unit (algebra_map R (module.End R M') x))
 (surj [] : ∀ y : M', ∃ (x : M × S), x.2 • y = f x.1)

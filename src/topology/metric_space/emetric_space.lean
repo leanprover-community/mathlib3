@@ -562,6 +562,14 @@ eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
+lemma ord_connected_set_of_closed_ball_subset (x : α) (s : set α) :
+  ord_connected {r | closed_ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (closed_ball_subset_closed_ball hr.2).trans hr₂⟩
+
+lemma ord_connected_set_of_ball_subset (x : α) (s : set α) :
+  ord_connected {r | ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (ball_subset_ball hr.2).trans hr₂⟩
+
 /-- Relation “two points are at a finite edistance” is an equivalence relation. -/
 def edist_lt_top_setoid : setoid α :=
 { r := λ x y, edist x y < ⊤,

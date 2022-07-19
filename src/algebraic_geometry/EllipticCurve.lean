@@ -118,7 +118,7 @@ variables (A : Type v) [comm_ring A] [algebra R A]
 def two_torsion_polynomial : cubic A :=
 ⟨4, algebra_map R A E.b₂, 2 * algebra_map R A E.b₄, algebra_map R A E.b₆⟩
 
-lemma two_torsion_polynomial.disc_eq_Δ :
+lemma two_torsion_polynomial.disc_eq :
   (two_torsion_polynomial E A).disc = 16 * algebra_map R A E.Δ :=
 begin
   simp only [two_torsion_polynomial, cubic.disc, coe_Δ, b₂, b₄, b₆, b₈, map_neg, map_add, map_sub,
@@ -133,14 +133,12 @@ lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [invertible (2 
   (algebra_map K A).injective
 begin
   simp only [map_mul, map_pow, map_bit0, map_one, map_zero],
-  linear_combination hdisc - two_torsion_polynomial.disc_eq_Δ E A
+  linear_combination hdisc - two_torsion_polynomial.disc_eq E A
 end
 
 end torsion_polynomial
 
 /-! ### Changes of variables -/
-
-section change_of_variables
 
 variables (u : Rˣ) (r s t : R)
 
@@ -156,13 +154,58 @@ def change_of_variable : EllipticCurve R :=
   Δ    := u⁻¹ ^ 12 * E.Δ,
   Δ_eq := by { simp [-inv_pow], ring1 } }
 
-lemma change_of_variable.j_eq_j : (E.change_of_variable u r s t).j = E.j :=
+namespace change_of_variable
+
+@[simp] lemma a₁_eq : (E.change_of_variable u r s t).a₁ = ↑u⁻¹ * (E.a₁ + 2 * s) := rfl
+
+@[simp] lemma a₂_eq :
+  (E.change_of_variable u r s t).a₂ = ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2) :=
+rfl
+
+@[simp] lemma a₃_eq : (E.change_of_variable u r s t).a₃ = ↑u⁻¹ ^ 3 * (E.a₃ + r * E.a₁ + 2 * t) :=
+rfl
+
+@[simp] lemma a₄_eq :
+  (E.change_of_variable u r s t).a₄
+    = ↑u⁻¹ ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁ + 3 * r ^ 2 - 2 * s * t) :=
+rfl
+
+@[simp] lemma a₆_eq :
+  (E.change_of_variable u r s t).a₆
+    = ↑u⁻¹ ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2 - r * t * E.a₁) :=
+rfl
+
+@[simp] lemma b₂_eq : (E.change_of_variable u r s t).b₂ = ↑u⁻¹ ^ 2 * (E.b₂ + 12 * r) :=
+by { simp [change_of_variable], ring1 }
+
+@[simp] lemma b₄_eq :
+  (E.change_of_variable u r s t).b₄ = ↑u⁻¹ ^ 4 * (E.b₄ + r * E.b₂ + 6 * r ^ 2) :=
+by { simp [change_of_variable], ring1 }
+
+@[simp] lemma b₆_eq :
+  (E.change_of_variable u r s t).b₆ = ↑u⁻¹ ^ 6 * (E.b₆ + 2 * r * E.b₄ + r ^ 2 * E.b₂ + 4 * r ^ 3) :=
+by { simp [change_of_variable], ring1 }
+
+@[simp] lemma b₈_eq :
+  (E.change_of_variable u r s t).b₈
+    = ↑u⁻¹ ^ 8 * (E.b₈ + 3 * r * E.b₆ + 3 * r ^ 2 * E.b₄ + r ^ 3 * E.b₂ + 3 * r ^ 4) :=
+by { simp [change_of_variable], ring1 }
+
+@[simp] lemma c₄_eq : (E.change_of_variable u r s t).c₄ = ↑u⁻¹ ^ 4 * E.c₄ :=
+by { simp [change_of_variable], ring1 }
+
+@[simp] lemma c₆_eq : (E.change_of_variable u r s t).c₆ = ↑u⁻¹ ^ 6 * E.c₆ :=
+by { simp [change_of_variable], ring1 }
+
+@[simp] lemma Δ_eq : (E.change_of_variable u r s t).Δ = u⁻¹ ^ 12 * E.Δ := rfl
+
+@[simp] lemma j_eq : (E.change_of_variable u r s t).j = E.j :=
 begin
-  simp [change_of_variable],
+  simp,
   have hu : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination ↑E.Δ⁻¹ * ((E.a₁ ^ 2 + 4 * E.a₂) ^ 2 - 24 * (2 * E.a₄ + E.a₁ * E.a₃)) ^ 3 * hu
 end
 
-end change_of_variables
+end change_of_variable
 
 end EllipticCurve

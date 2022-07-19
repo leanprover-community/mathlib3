@@ -46,8 +46,11 @@ if `R` is not a field. Define the group law on the `R`-points. Prove associativi
 
 universe u
 
-/-- The discriminant of the plane cubic `y² + a₁xy + a₃y = x³ + a₂x² + a₄x + a₆`. If `R` is a
-  field, then this polynomial vanishes iff the cubic curve cut out by this equation is singular. -/
+/-- The discriminant of an elliptic curve given by the long Weierstrass equation
+  `y² + a₁xy + a₃y = x³ + a₂x² + a₄x + a₆`. If `R` is a field, then this polynomial vanishes iff the
+  cubic curve cut out by this equation is singular. Sometimes only defined up to sign in the
+  literature; we choose the sign used by the LMFDB. For more discussion, see
+  [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant). -/
 def EllipticCurve.disc_aux {R : Type u} [comm_ring R] (a₁ a₂ a₃ a₄ a₆ : R) : R :=
 -(a₁ ^ 2 + 4 * a₂) ^ 2 * (a₁ ^ 2 * a₆ + 4 * a₂ * a₆ - a₁ * a₃ * a₄ + a₂ * a₃ ^ 2 - a₄ ^ 2)
   - 8 * (2 * a₄ + a₁ * a₃) ^ 3 - 27 * (a₃ ^ 2 + 4 * a₆) ^ 2
@@ -57,8 +60,7 @@ def EllipticCurve.disc_aux {R : Type u} [comm_ring R] (a₁ a₂ a₃ a₄ a₆ 
 /-- The category of elliptic curves over `R` (note that this definition is only mathematically
   correct for certain rings, for example if `R` is a field or a PID). -/
 structure EllipticCurve (R : Type u) [comm_ring R] :=
-(a₁ a₂ a₃ a₄ a₆ : R) (disc_unit : Rˣ)
-(disc_unit_eq : ↑disc_unit = EllipticCurve.disc_aux a₁ a₂ a₃ a₄ a₆)
+(a₁ a₂ a₃ a₄ a₆ : R) (disc : Rˣ) (disc_eq : ↑disc = EllipticCurve.disc_aux a₁ a₂ a₃ a₄ a₆)
 
 namespace EllipticCurve
 
@@ -67,19 +69,11 @@ instance : inhabited (EllipticCurve ℚ) :=
 
 variables {R : Type u} [comm_ring R] (E : EllipticCurve R)
 
-/-! ### Standard quantities -/
+@[simp] lemma coe_disc : (E.disc : R) = disc_aux E.a₁ E.a₂ E.a₃ E.a₄ E.a₆ := E.disc_eq
 
-/-- The discriminant of an elliptic curve given by the long Weierstrass equation.
-  Sometimes only defined up to sign in the literature; we choose the sign used by the LMFDB. See
-  [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant)
-  for more discussion. -/
-def disc : R := disc_aux E.a₁ E.a₂ E.a₃ E.a₄ E.a₆
-
-lemma disc_is_unit : is_unit E.disc :=
-by { convert units.is_unit E.disc_unit, exact E.disc_unit_eq.symm }
-
-/-- The j-invariant of an elliptic curve. -/
-def j : R := ↑E.disc_unit⁻¹
+/-- The j-invariant of an elliptic curve given by the long Weierstrass equation
+  `y² + a₁xy + a₃y = x³ + a₂x² + a₄x + a₆`, which is invariant under isomorphisms over `R`. -/
+def j : R := ↑E.disc⁻¹
   * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3
 
 /-! ### `2`-torsion polynomials -/
@@ -99,28 +93,19 @@ def two_torsion_polynomial : cubic A :=
 lemma two_torsion_polynomial.disc_eq_disc :
   (two_torsion_polynomial E A).disc = 16 * algebra_map R A E.disc :=
 begin
-  rw [cubic.disc, two_torsion_polynomial, disc, disc_aux],
-  simp only [map_neg, map_add, map_sub, map_mul, map_pow, map_one, map_bit0, map_bit1],
+  simp only [cubic.disc, two_torsion_polynomial, coe_disc, disc_aux, map_neg, map_add, map_sub,
+             map_mul, map_pow, map_one, map_bit0, map_bit1],
   ring1
 end
 
 lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [invertible (2 : K)]
   (E : EllipticCurve K) (A : Type u) [comm_ring A] [nontrivial A] [no_zero_divisors A]
   [algebra K A] : (two_torsion_polynomial E A).disc ≠ 0 :=
+λ hdisc, E.disc.ne_zero $ mul_left_cancel₀ (pow_ne_zero 4 $ nonzero_of_invertible (2 : K)) $
+  (algebra_map K A).injective
 begin
-  haveI : invertible (2 : A) :=
-  begin
-    rw [← nat.cast_two],
-    exact @is_scalar_tower.invertible_algebra_coe_nat _ _ _ _ _ _ (by rwa [nat.cast_two])
-  end,
-  rw [two_torsion_polynomial.disc_eq_disc],
-  convert_to 2 ^ 4 * algebra_map K A E.disc ≠ 0,
-  { norm_num1,
-    refl },
-  refine mul_ne_zero (pow_ne_zero 4 _) _,
-  { exact nonzero_of_invertible 2 },
-  rw [ring_hom.map_ne_zero $ algebra_map K A, disc, ← disc_unit_eq],
-  exact units.ne_zero E.disc_unit
+  simp only [map_mul, map_pow, map_bit0, map_one, map_zero],
+  linear_combination hdisc - two_torsion_polynomial.disc_eq_disc E A
 end
 
 end torsion_polynomial
@@ -135,21 +120,20 @@ variables (u : Rˣ) (r s t : R)
   `(x, y) ↦ (u²x + r, u³y + u²sx + t)` for some `u ∈ Rˣ` and some `r, s, t ∈ R`.
   When `R` is a field, any two isomorphic long Weierstrass equations are related by this. -/
 def change_of_variable : EllipticCurve R :=
-{ a₁           := ↑u⁻¹ * (E.a₁ + 2 * s),
-  a₂           := ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
-  a₃           := ↑u⁻¹ ^ 3 * (E.a₃ + r * E.a₁ + 2 * t),
-  a₄           := ↑u⁻¹ ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁ + 3 * r ^ 2
-                              - 2 * s * t),
-  a₆           := ↑u⁻¹ ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2
-                              - r * t * E.a₁),
-  disc_unit    := u⁻¹ ^ 12 * E.disc_unit,
-  disc_unit_eq := by { simp only [units.coe_mul, units.coe_pow, disc_unit_eq, disc_aux], ring1 } }
+{ a₁      := ↑u⁻¹ * (E.a₁ + 2 * s),
+  a₂      := ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
+  a₃      := ↑u⁻¹ ^ 3 * (E.a₃ + r * E.a₁ + 2 * t),
+  a₄      := ↑u⁻¹ ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁ + 3 * r ^ 2
+                    - 2 * s * t),
+  a₆      := ↑u⁻¹ ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2 - r * t * E.a₁),
+  disc    := u⁻¹ ^ 12 * E.disc,
+  disc_eq := by { simp only [units.coe_mul, units.coe_pow, disc_eq, disc_aux], ring1 } }
 
 lemma change_of_variable.j_eq_j : (E.change_of_variable u r s t).j = E.j :=
 begin
   simp only [change_of_variable, j, mul_inv, units.coe_mul, inv_pow, inv_inv, units.coe_pow],
   have hvi : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
-  linear_combination ↑E.disc_unit⁻¹
+  linear_combination ↑E.disc⁻¹
     * (-48 * E.a₄ - 24 * E.a₁ * E.a₃ + 16 * E.a₂ ^ 2 + 8 * E.a₁ ^ 2 * E.a₂ + E.a₁ ^ 4) ^ 3 * hvi
 end
 

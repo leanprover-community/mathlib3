@@ -294,8 +294,8 @@ from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
 def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
-(linear_isometry_equiv.from_orthogonal_span_singleton n
-  (ne_zero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
+(orthonormal_basis.from_orthogonal_span_singleton n
+  (ne_zero_of_mem_unit_sphere v)).repr.to_homeomorph.to_local_homeomorph
 
 @[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
@@ -326,8 +326,8 @@ lemma stereographic'_symm_apply {n : ℕ} [fact (finrank ℝ E = n + 1)]
     (v : sphere (0:E) 1) (x : euclidean_space ℝ (fin n)) :
   ((stereographic' n v).symm x : E) =
     let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n
-        (ne_zero_of_mem_unit_sphere v) in
+      (orthonormal_basis.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere v)).repr in
     ((∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (4 : ℝ) • (U.symm x : E) +
       (∥(U.symm x : E)∥ ^ 2 + 4)⁻¹ • (∥(U.symm x : E)∥ ^ 2 - 4) • v) :=
 by simp [real_inner_comm, stereographic, stereographic', ← submodule.coe_norm]
@@ -341,12 +341,16 @@ instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
 smooth_manifold_with_corners_of_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
   rintros _ _ ⟨v, rfl⟩ ⟨v', rfl⟩,
-  let U : (ℝ ∙ (v:E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (ne_zero_of_mem_unit_sphere v),
-  let U' : (ℝ ∙ (v':E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    linear_isometry_equiv.from_orthogonal_span_singleton n
-      (ne_zero_of_mem_unit_sphere v'),
+  let U := -- Removed type ascription, and this helped for some reason with timeout issues?
+    (orthonormal_basis.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v)).repr,
+  let U' :=-- Removed type ascription, and this helped for some reason with timeout issues?
+    (orthonormal_basis.from_orthogonal_span_singleton n
+      (ne_zero_of_mem_unit_sphere v')).repr,
+  have hUv : stereographic' n v = (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
+    U.to_homeomorph.to_local_homeomorph := rfl,
+  have hU'v' : stereographic' n v' = (stereographic (norm_eq_of_mem_sphere v')).trans
+    U'.to_homeomorph.to_local_homeomorph := rfl,
   have H₁ := U'.cont_diff.comp_cont_diff_on cont_diff_on_stereo_to_fun,
   have H₂ := (cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ (v:E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff,
@@ -363,8 +367,9 @@ begin
   split,
   { exact continuous_subtype_coe },
   { intros v _,
-    let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-      linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v)),
+    let U := -- Again, removing type ascription...
+      (orthonormal_basis.from_orthogonal_span_singleton n
+        (ne_zero_of_mem_unit_sphere (-v))).repr,
     exact ((cont_diff_stereo_inv_fun_aux.comp
       (ℝ ∙ ((-v):E))ᗮ.subtypeL.cont_diff).comp U.symm.cont_diff).cont_diff_on }
 end
@@ -383,8 +388,8 @@ begin
   rw cont_mdiff_iff_target,
   refine ⟨continuous_induced_rng hf.continuous, _⟩,
   intros v,
-  let U : (ℝ ∙ ((-v):E))ᗮ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin n) :=
-    (linear_isometry_equiv.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))),
+  let U := -- Again, removing type ascription... Weird that this helps!
+    (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
   have h : cont_diff_on ℝ ⊤ _ set.univ :=
     U.cont_diff.cont_diff_on,
   have H₁ := (h.comp' cont_diff_on_stereo_to_fun).cont_mdiff_on,

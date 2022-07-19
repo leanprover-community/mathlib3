@@ -162,6 +162,10 @@ instance : nontrivial ordinal.{u} :=
 @[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
 
+instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
+{ default := ⟨0, zero_lt_one⟩,
+  uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
+
 instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
 
 instance unique_out_one : unique (1 : ordinal).out.α :=
@@ -221,9 +225,15 @@ theorem pred_eq_iff_not_succ {o} : pred o = o ↔ ¬ ∃ a, o = succ a :=
 ⟨λ e ⟨a, e'⟩, by rw [e', pred_succ] at e; exact (lt_succ a).ne e,
  λ h, dif_neg h⟩
 
+theorem pred_eq_iff_not_succ' {o} : pred o = o ↔ ∀ a, o ≠ succ a :=
+by simpa using pred_eq_iff_not_succ
+
 theorem pred_lt_iff_is_succ {o} : pred o < o ↔ ∃ a, o = succ a :=
 iff.trans (by simp only [le_antisymm_iff, pred_le_self, true_and, not_le])
   (iff_not_comm.1 pred_eq_iff_not_succ).symm
+
+@[simp] theorem pred_zero : pred 0 = 0 :=
+pred_eq_iff_not_succ'.2 $ λ a, (succ_ne_zero a).symm
 
 theorem succ_pred_iff_is_succ {o} : succ (pred o) = o ↔ ∃ a, o = succ a :=
 ⟨λ e, ⟨_, e.symm⟩, λ ⟨a, e⟩, by simp only [e, pred_succ]⟩
@@ -2079,14 +2089,26 @@ if b1 : 1 < b then (right_le_opow _ b1).trans (opow_log_le_self b (ordinal.pos_i
 else by simp only [log_of_not_one_lt_left b1, ordinal.zero_le]
 
 @[simp] theorem log_one_right (b : ordinal) : log b 1 = 0 :=
-if hb : 1 < b then by rwa [←lt_one_iff_zero, ←lt_opow_iff_log_lt hb zero_lt_one, opow_one]
-else log_of_not_one_lt_left hb 1
+if hb : 1 < b then log_eq_zero hb else log_of_not_one_lt_left hb 1
 
 theorem mod_opow_log_lt_self (b : ordinal) {o : ordinal} (ho : 0 < o) : o % b ^ log b o < o :=
 begin
   rcases eq_or_ne b 0 with rfl | hb,
   { simpa using ho },
   exact (mod_lt _ $ opow_ne_zero _ hb).trans_le (opow_log_le_self _ $ ho)
+end
+
+theorem log_mod_opow_log_lt_log_self {b o : ordinal} (hb : 1 < b) (ho : 0 < o) (hbo : b ≤ o) :
+  log b (o % b ^ log b o) < log b o :=
+begin
+  cases eq_zero_or_pos (o % b ^ log b o),
+  { rw [h, log_zero_right],
+    apply log_pos hb ho hbo },
+  { rw [←succ_le_iff, succ_log_def hb h],
+    apply cInf_le',
+    apply mod_lt,
+    rw ←ordinal.pos_iff_ne_zero,
+    exact opow_pos _ (zero_lt_one.trans hb) }
 end
 
 theorem log_mod_opow_log_lt_log_self {b o : ordinal} (hb : 1 < b) (ho : 0 < o) (hbo : b ≤ o) :

@@ -36,7 +36,7 @@ A logarithmic upper bound on the multiplicity of a prime in a binomial coefficie
 lemma factorization_choose_le_log : (choose n k).factorization p ≤ log p n :=
 begin
   by_cases h : (choose n k).factorization p = 0, { simp [h] },
-  by_cases hp : p.prime, swap, { cases h (factorization_eq_zero_of_non_prime _ hp) },
+  cases em' p.prime with hp hp, { cases h (factorization_eq_zero_of_non_prime _ hp) },
   rcases lt_or_le n k with hnk | hkn, { simp [choose_eq_zero_of_lt hnk] },
   simp only [hp.factorization_choose hkn (lt_add_one _)],
   apply (finset.card_filter_le _ _).trans,
@@ -69,7 +69,7 @@ lemma factorization_choose_of_lt_three_mul
   (hp' : p ≠ 2) (hk : p ≤ k) (hk' : p ≤ n - k) (hn : n < 3 * p) :
   (choose n k).factorization p = 0 :=
 begin
-  by_cases hp : p.prime, swap, { exact factorization_eq_zero_of_non_prime _ hp },
+  cases em' p.prime with hp hp, { exact factorization_eq_zero_of_non_prime _ hp },
   cases lt_or_le n k with hnk hkn, { simp [choose_eq_zero_of_lt hnk] },
   simp only [hp.factorization_choose hkn (lt_add_one _)],
   simp only [finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],

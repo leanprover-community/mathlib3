@@ -18,12 +18,13 @@ This file develops the theory of von Neumann ordinals: transitive sets, well-ord
 
 - `Set.is_transitive`: every element of a set is a subset.
 - `Set.is_ordinal`: a set is transitive, and transitive under `∈`.
-- `Ordinal`: the subtype of ordinal `Set`s.
+- `Set.Ordinal`: the subtype of ordinal `Set`s.
 
 ## Main results
 
-- `is_ordinal_iff_well_founded`: proves our simple characterization of von Neumann sets to be
+- `Set.is_ordinal_iff_well_founded`: proves our simple characterization of von Neumann sets to be
   equivalent with the usual characterization.
+- `Set.is_ordinal_not_mem_univ`: the Burali-Forti paradox.
 - `Ordinal.lt_wf`: transfinite induction on ordinals.
 - `Ordinal.linear_order`: ordinals form a linear order.
 
@@ -253,6 +254,20 @@ theorem is_ordinal.succ_subset_iff_mem (hx : x.is_ordinal) (hy : y.is_ordinal) :
   succ x ⊆ y ↔ x ∈ y :=
 by rw [←not_iff_not, hx.succ.not_subset_iff_mem hy, hx.not_mem_iff_subset hy,
   hy.mem_succ_iff_subset hx]
+
+/-- The **Burali-Forti paradox**: ordinals form a proper class. -/
+theorem is_ordinal_not_mem_univ : is_ordinal ∉ Class.univ.{u} :=
+begin
+  rintro ⟨x, hx, -⟩,
+  suffices : is_ordinal x,
+  { apply Class.mem_irrefl.{u} x,
+    rwa [Class.mem_hom_left, hx] },
+  { refine ⟨λ y hy z hz, _, λ y z w hyz hzw hwx, _⟩,
+    { rw [←Class.mem_hom_right, hx] at hy ⊢,
+      exact hy.mem hz },
+    { rw [←Class.mem_hom_right, hx] at hwx,
+      exact hwx.mem_trans hyz hzw } }
+end
 
 /-! ### Subtype of ordinals -/
 

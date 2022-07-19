@@ -305,11 +305,12 @@ by { simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
 protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
   ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
 begin
-  nth_rewrite_rhs 0 ← b.sum_repr x,
-  nth_rewrite_rhs 0 ← b.sum_repr y,
-  rw b.orthonormal.inner_sum,
-  congrm ∑ i, _,
-  rw [b.repr_apply_apply, b.repr_apply_apply, inner_conj_sym]
+  have := congr_arg (@innerSL 𝕜 _ _ _ x) (b.sum_repr y),
+  rw map_sum at this,
+  convert this,
+  ext i,
+  rw [smul_hom_class.map_smul, b.repr_apply_apply, mul_comm],
+  refl,
 end
 
 protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :

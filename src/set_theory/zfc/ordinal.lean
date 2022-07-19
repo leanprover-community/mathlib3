@@ -63,21 +63,21 @@ protected theorem is_transitive.inter (hx : x.is_transitive) (hy : y.is_transiti
   (x ∩ y).is_transitive :=
 λ z hz w hw, by { rw mem_inter at hz ⊢, exact ⟨hx.mem_trans hw hz.1, hy.mem_trans hw hz.2⟩ }
 
-protected theorem is_transitive.Union (h : x.is_transitive) : (⋃ x).is_transitive :=
+protected theorem is_transitive.sUnion (h : x.is_transitive) : (⋃₀ x).is_transitive :=
 λ y hy z hz, begin
-  rcases mem_Union.1 hy with ⟨w, hw, hw'⟩,
-  exact mem_Union_of_mem hz (h.mem_trans hw' hw)
+  rcases mem_sUnion.1 hy with ⟨w, hw, hw'⟩,
+  exact mem_sUnion_of_mem hz (h.mem_trans hw' hw)
 end
 
-theorem is_transitive.Union' (H : ∀ y ∈ x, is_transitive y) : (⋃ x).is_transitive :=
+theorem is_transitive.sUnion' (H : ∀ y ∈ x, is_transitive y) : (⋃₀ x).is_transitive :=
 λ y hy z hz, begin
-  rcases mem_Union.1 hy with ⟨w, hw, hw'⟩,
-  exact mem_Union_of_mem ((H w hw).mem_trans hz hw') hw
+  rcases mem_sUnion.1 hy with ⟨w, hw, hw'⟩,
+  exact mem_sUnion_of_mem ((H w hw).mem_trans hz hw') hw
 end
 
-theorem is_transitive_iff_Union_subset : x.is_transitive ↔ ⋃ x ⊆ x :=
-⟨λ h y hy, by { rcases mem_Union.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },
-  λ H y hy z hz, H $ mem_Union_of_mem hz hy⟩
+theorem is_transitive_iff_Union_subset : x.is_transitive ↔ ⋃₀ x ⊆ x :=
+⟨λ h y hy, by { rcases mem_sUnion.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },
+  λ H y hy z hz, H $ mem_sUnion_of_mem hz hy⟩
 
 alias is_transitive_iff_Union_subset ↔ is_transitive.Union_subset _
 
@@ -102,15 +102,15 @@ theorem mem_trans (h : z.is_ordinal) : x ∈ y → y ∈ z → x ∈ z := h.is_t
 
 theorem mem_trans' (hx : x.is_ordinal) : y ∈ z → z ∈ w → w ∈ x → y ∈ w := hx.2 y z w
 
-protected theorem Union (H : ∀ y ∈ x, is_ordinal y) : (Union x).is_ordinal :=
+protected theorem sUnion (H : ∀ y ∈ x, is_ordinal y) : (⋃₀ x).is_ordinal :=
 begin
-  refine ⟨is_transitive.Union' $ λ y hy, (H y hy).is_transitive, λ y z w hyz hzw hwx, _⟩,
-  { rcases mem_Union.1 hwx with ⟨v, hvx, hwv⟩,
+  refine ⟨is_transitive.sUnion' $ λ y hy, (H y hy).is_transitive, λ y z w hyz hzw hwx, _⟩,
+  { rcases mem_sUnion.1 hwx with ⟨v, hvx, hwv⟩,
     exact (H v hvx).mem_trans' hyz hzw hwv }
 end
 
 protected theorem union (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∪ y).is_ordinal :=
-is_ordinal.Union $ λ z hz, by { rcases mem_pair.1 hz with rfl | rfl, assumption' }
+is_ordinal.sUnion $ λ z hz, by { rcases mem_pair.1 hz with rfl | rfl, assumption' }
 
 protected theorem inter (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∩ y).is_ordinal :=
 ⟨hx.is_transitive.inter hy.is_transitive, λ z w v hzw hwv hv,
@@ -180,7 +180,7 @@ theorem not_mem_iff_subset (hx : x.is_ordinal) (hy : y.is_ordinal) : x ∉ y ↔
   by_contra hzx,
   exact hyx (mem_of_subset_of_mem hx hy
     (IH z x (game_add.snd hzy).swap_mk_left (hy.mem hzy) hx hzx) hzy),
-end, λ hxy hyx, mem_irrefl (hxy hyx)⟩
+end, λ hxy hyx, mem_irrefl _ (hxy hyx)⟩
 
 theorem not_subset_iff_mem (hx : x.is_ordinal) (hy : y.is_ordinal) : ¬ x ⊆ y ↔ y ∈ x :=
 by rw [not_iff_comm, not_mem_iff_subset hy hx]
@@ -522,10 +522,10 @@ theorem subset_to_Set_of_le : a ≤ b → a.to_Set ⊆ b.to_Set :=
 by simpa [to_Set] using subset_to_pSet_of_le
 
 @[simp] theorem to_Set_mem_iff : a.to_Set ∈ b.to_Set ↔ a < b :=
-⟨λ h, by { by_contra' h', exact Set.mem_irrefl (subset_to_Set_of_le h' h) }, mem_to_Set_of_lt⟩
+⟨λ h, by { by_contra' h', exact Set.mem_irrefl _ (subset_to_Set_of_le h' h) }, mem_to_Set_of_lt⟩
 
 @[simp] theorem to_Set_subset_iff : a.to_Set ⊆ b.to_Set ↔ a ≤ b :=
-⟨λ h, by { by_contra' h', exact Set.mem_irrefl (h (mem_to_Set_of_lt h')) }, subset_to_Set_of_le⟩
+⟨λ h, by { by_contra' h', exact Set.mem_irrefl _ (h (mem_to_Set_of_lt h')) }, subset_to_Set_of_le⟩
 
 @[simp] theorem to_Set_inj : a.to_Set = b.to_Set ↔ a = b :=
 by rw [subset_antisymm_iff, le_antisymm_iff, to_Set_subset_iff, to_Set_subset_iff]

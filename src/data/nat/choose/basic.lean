@@ -21,7 +21,12 @@ requiring more imports).
 * `nat.desc_factorial_eq_factorial_mul_choose`: Relates binomial coefficients to the descending
   factorial. This is used to prove `nat.choose_le_pow` and variants. We provide similar statements
   for the ascending factorial.
+* `nat.multichoose`: whereas `choose` counts combinations, `multichoose` counts multicombinations.
+* `nat.multichoose_eq` : a proof that `multichoose n k = (n + k - 1).choose k`
 
+## Tags
+
+binomial coefficient, combination, multicombination
 -/
 
 open_locale nat
@@ -286,5 +291,66 @@ lemma choose_le_choose {a b : ℕ} (c : ℕ) (h : a ≤ b) : choose a c ≤ choo
 (add_tsub_cancel_of_le h) ▸ choose_le_add a (b - a) c
 
 lemma choose_mono (b : ℕ) : monotone (λ a, choose a b) := λ _ _, choose_le_choose b
+
+/-! #### Multichoose
+
+Whereas `choose n k` is the number of subsets of cardinality `k` from a type of cardinality `n`,
+`multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`.
+
+Alternatively, whereas `choose n k` counts the number of combinations,
+i.e. ways to select `k` items (up to permutation) from `n` items without replacement,
+`multichoose n k` counts the number of multicombinations,
+i.e. ways to select `k` items (up to permutation) from `n` items with replacement.
+
+Note that `multichoose` is *not* the multinomial coefficient, although it can be computed
+in terms of multinomial coefficients. For details see https://mathworld.wolfram.com/Multichoose.html
+
+TODO: Prove that `choose (-n) k = (-1)^k * multichoose n k`,
+where `choose` is the generalized binomial coefficient.
+<https://github.com/leanprover-community/mathlib/pull/15072#issuecomment-1171415738>
+
+-/
+
+/--
+`multichoose n k` is the number of multisets of cardinality `k` from a type of cardinality `n`. -/
+def multichoose : ℕ → ℕ → ℕ
+| _             0 := 1
+| 0       (k + 1) := 0
+| (n + 1) (k + 1) := multichoose n (k + 1) + multichoose (n + 1) k
+
+@[simp] lemma multichoose_zero_right (n : ℕ) : multichoose n 0 = 1 :=
+by { cases n; simp [multichoose] }
+
+@[simp] lemma multichoose_zero_succ (k : ℕ) : multichoose 0 (k + 1) = 0 := by simp [multichoose]
+
+lemma multichoose_succ_succ (n k : ℕ) :
+  multichoose (n + 1) (k + 1) = multichoose n (k + 1) + multichoose (n + 1) k :=
+by simp [multichoose]
+
+@[simp] lemma multichoose_one (k : ℕ) : multichoose 1 k = 1 :=
+begin
+  induction k with k IH, { simp },
+  simp [multichoose_succ_succ 0 k, IH],
+end
+
+@[simp] lemma multichoose_two (k : ℕ) : multichoose 2 k = k + 1 :=
+begin
+  induction k with k IH, { simp },
+  simp [multichoose_succ_succ 1 k, IH],
+  rw add_comm,
+end
+
+@[simp] lemma multichoose_one_right (n : ℕ) : multichoose n 1 = n :=
+begin
+  induction n with n IH, { simp },
+  simp [multichoose_succ_succ n 0, IH],
+end
+
+lemma multichoose_eq : ∀ (n k : ℕ), multichoose n k = (n + k - 1).choose k
+| _      0    := by simp
+| 0     (k+1) := by simp
+| (n+1) (k+1) := by
+  { rw [multichoose_succ_succ, add_comm, nat.succ_add_sub_one, ←add_assoc, nat.choose_succ_succ],
+    simp [multichoose_eq] }
 
 end nat

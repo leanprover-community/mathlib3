@@ -816,6 +816,35 @@ end csupr
 
 end nnreal
 
+namespace set
+namespace ord_connected
+
+variables {s : set ℝ} {t : set ℝ≥0}
+
+lemma preimage_coe_nnreal_real (h : s.ord_connected) : (coe ⁻¹' s : set ℝ≥0).ord_connected :=
+h.preimage_mono nnreal.coe_mono
+
+lemma image_coe_nnreal_real (h : t.ord_connected) : (coe '' t : set ℝ).ord_connected :=
+⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz,
+  ⟨⟨z, x.2.trans hz.1⟩, h.out hx hy hz, rfl⟩⟩
+
+lemma image_real_to_nnreal (h : s.ord_connected) : (real.to_nnreal '' s).ord_connected :=
+begin
+  refine ⟨ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy z hz, _⟩,
+  cases le_total y 0 with hy₀ hy₀,
+  { rw [mem_Icc, real.to_nnreal_of_nonpos hy₀, nonpos_iff_eq_zero] at hz,
+    exact ⟨y, hy, (to_nnreal_of_nonpos hy₀).trans hz.2.symm⟩ },
+  { lift y to ℝ≥0 using hy₀,
+    rw [to_nnreal_coe] at hz,
+    exact ⟨z, h.out hx hy ⟨to_nnreal_le_iff_le_coe.1 hz.1, hz.2⟩, to_nnreal_coe⟩ }
+end
+
+lemma preimage_real_to_nnreal (h : t.ord_connected) : (real.to_nnreal ⁻¹' t).ord_connected :=
+h.preimage_mono real.to_nnreal_mono
+
+end ord_connected
+end set
+
 namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/

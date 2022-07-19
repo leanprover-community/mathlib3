@@ -2079,8 +2079,7 @@ if b1 : 1 < b then (right_le_opow _ b1).trans (opow_log_le_self b (ordinal.pos_i
 else by simp only [log_of_not_one_lt_left b1, ordinal.zero_le]
 
 @[simp] theorem log_one_right (b : ordinal) : log b 1 = 0 :=
-if hb : 1 < b then by rwa [←lt_one_iff_zero, ←lt_opow_iff_log_lt hb zero_lt_one, opow_one]
-else log_of_not_one_lt_left hb 1
+if hb : 1 < b then log_eq_zero hb else log_of_not_one_lt_left hb 1
 
 theorem mod_opow_log_lt_self {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) : o % b ^ log b o < o :=
 (mod_lt _ $ opow_ne_zero _ b0).trans_le (opow_log_le_self _ $ ordinal.pos_iff_ne_zero.2 o0)

@@ -892,7 +892,7 @@ def norm (x : free_group α) : nat := x.to_word.length
 
 private lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
 begin
-  let w := x.to_word
+  let w := x.to_word,
  
   calc norm x⁻¹ = norm ((mk (x.to_word))⁻¹) : by simp only [to_word.mk]
        ... = norm (mk (inv_rev w)) : by simp only [←inv_mk]

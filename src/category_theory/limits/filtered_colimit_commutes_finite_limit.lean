@@ -313,16 +313,18 @@ begin
   apply cones.cone_iso_of_hom_iso,
 end
 
-noncomputable
-instance filtered_colim_preserves_finite_limits_of_types :
-  preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) := ⟨λ J _ _, by exactI ⟨λ F, ⟨λ c hc,
+noncomputable instance filtered_colim_preserves_finite_limits_of_types :
+  preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) :=
 begin
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{v},
+  intros J _ _, resetI, constructor,
+  intro F, constructor,
+  intros c hc,
   apply is_limit.of_iso_limit (limit.is_limit _),
-  symmetry,
-  transitivity (colim.map_cone (limit.cone F)),
+  symmetry, transitivity (colim.map_cone (limit.cone F)),
   exact functor.map_iso _ (hc.unique_up_to_iso (limit.is_limit F)),
-  exact as_iso (colimit_limit_to_limit_colimit_cone F),
-end ⟩⟩⟩
+  exact as_iso (colimit_limit_to_limit_colimit_cone.{v (v + 1)} F),
+end
 
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
 section
@@ -346,7 +348,10 @@ noncomputable
 instance [preserves_finite_limits (forget C)] [preserves_filtered_colimits (forget C)]
   [has_finite_limits C] [has_colimits_of_shape K C] [reflects_isomorphisms (forget C)] :
     preserves_finite_limits (colim : (K ⥤ C) ⥤ _) :=
-⟨λ _ _ _, by exactI category_theory.limits.filtered_colim_preserves_finite_limits⟩
+begin
+  apply preserves_finite_limits_of_preserves_finite_limits_of_size.{v},
+  intros J _ _, resetI, apply_instance
+end
 
 section
 

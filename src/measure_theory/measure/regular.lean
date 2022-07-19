@@ -21,7 +21,7 @@ A measure is `regular` if it satisfies the following properties:
 A measure is `weakly_regular` if it satisfies the following properties:
 * it is outer regular;
 * it is inner regular for open sets with respect to closed sets: the measure of any open set `U`
-  is the supremum of `μ F` over all compact sets `F` contained in `U`.
+  is the supremum of `μ F` over all closed sets `F` contained in `U`.
 
 In a Hausdorff topological space, regularity implies weak regularity. These three conditions are
 registered as typeclasses for a measure `μ`, and this implication is recorded as an instance.

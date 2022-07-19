@@ -19,6 +19,8 @@ This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where 
 keep them in sync.
 -/
 
+open set
+
 variables {M R : Type*}
 
 namespace subsemiring

@@ -20,16 +20,6 @@ namespace equiv
 variables {α : Type*}
 
 /--
-An equivalence between `ℕ × ℕ` and `ℕ`, using the `mkpair` and `unpair` functions in
-`data.nat.pairing`.
--/
-@[simps] def nat_prod_nat_equiv_nat : ℕ × ℕ ≃ ℕ :=
-{ to_fun := uncurry mkpair,
-  inv_fun := unpair,
-  left_inv := λ ⟨m, n⟩, nat.unpair_mkpair m n,
-  right_inv := nat.mkpair_unpair }
-
-/--
 An equivalence between `bool × ℕ` and `ℕ`, by mapping `(tt, x)` to `2 * x + 1` and `(ff, x)` to
 `2 * x`.
 -/
@@ -60,7 +50,7 @@ An equivalence between `α × α` and `α`, given that there is an equivalence b
 -/
 def prod_equiv_of_equiv_nat (e : α ≃ ℕ) : α × α ≃ α :=
 calc α × α ≃ ℕ × ℕ : prod_congr e e
-      ...  ≃ ℕ     : nat_prod_nat_equiv_nat
+      ...  ≃ ℕ     : nat.mkpair_equiv
       ...  ≃ α     : e.symm
 
 /--

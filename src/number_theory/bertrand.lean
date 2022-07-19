@@ -226,7 +226,7 @@ begin
 end
 
 /--
-Bertrand's Postulate: For any positive natural number, there is a prime which is greater than
+**Bertrand's Postulate**: For any positive natural number, there is a prime which is greater than
 it, but no more than twice as large.
 -/
 theorem exists_prime_lt_and_le_two_mul (n : ℕ) (hn0 : n ≠ 0) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=

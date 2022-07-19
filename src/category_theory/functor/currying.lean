@@ -17,10 +17,10 @@ namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
-variables {C : Type u₁} [category.{v₁} C]
-          {D : Type u₂} [category.{v₂} D]
-          {E : Type u₃} [category.{v₃} E]
-          {B : Type u₄} [category.{v₄} B]
+variables {B : Type u₁} [category.{v₁} B]
+          {C : Type u₂} [category.{v₂} C]
+          {D : Type u₃} [category.{v₃} D]
+          {E : Type u₄} [category.{v₄} E]
 
 /--
 The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a functor `(C × D) ⥤ E`.

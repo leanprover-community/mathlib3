@@ -583,11 +583,11 @@ end
 Let `P` be a predicate on the affine open sets of `X` satisfying
 1. If `P` holds on `U`, then `P` holds on the basic open set of every section on `U`.
 2. If `P` holds for a family of basic open sets covering `U`, then `P` holds for `U`.
-3. There exists an affine open cover of `X` each satisfying `U`.
+3. There exists an affine open cover of `X` each satisfying `P`.
 
 Then `P` holds for every affine open of `X`.
 
-This is also known as the **Affine communication lemma** in some literature. -/
+This is also known as the **Affine communication lemma** in Vakil's "The rising sea". -/
 @[elab_as_eliminator]
 lemma of_affine_open_cover {X : Scheme} (V : X.affine_opens) (S : set X.affine_opens)
   {P : X.affine_opens → Prop}

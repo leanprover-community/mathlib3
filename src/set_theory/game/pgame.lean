@@ -603,14 +603,6 @@ begin
   { exact ⟨λ i, or.inl ⟨_, by simpa using (hl (L.symm i)).2⟩, λ j, or.inr ⟨_, (hr j).2⟩⟩ }
 end
 
-/-- The same as `pgame.equiv_of_mk_equiv` but with the equivalences swapped. -/
-theorem equiv_of_mk_equiv' {x y : pgame}
-  (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ i, x.move_left (L i) ≈ y.move_left i)
-  (hr : ∀ j, x.move_right j ≈ y.move_right (R j)) : x ≈ y :=
-equiv_of_mk_equiv L.symm R.symm
-  (λ i, by simpa using hl (L.symm i)) (λ j, by simpa using hr (R.symm j))
-
 /-- The fuzzy, confused, or incomparable relation on pre-games.
 
 If `x ∥ 0`, then the first player can always win `x`. -/
@@ -711,7 +703,7 @@ Specifically, there is a bijection between the moves for Left in `x` and in `y`,
 for Right, and under these bijections we inductively have `relabelling`s for the consequent games.
 -/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
-| mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : y.right_moves ≃ x.right_moves),
+| mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
          (∀ i, relabelling (x.move_left i) (y.move_left (L i))) →
          (∀ j, relabelling (x.move_right j) (y.move_right (R j))) →
        relabelling x y
@@ -1225,7 +1217,7 @@ theorem add_comm_equiv {x y : pgame} : x + y ≈ y + x :=
 def add_assoc_relabelling : Π (x y z : pgame.{u}), x + y + z ≡r x + (y + z)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ :=
 begin
-  refine ⟨equiv.sum_assoc _ _ _, (equiv.sum_assoc _ _ _).symm, _, _⟩,
+  refine ⟨equiv.sum_assoc _ _ _, equiv.sum_assoc _ _ _, _, _⟩,
   all_goals
   { rintro (⟨i|i⟩|i) <|> rintro (j|⟨j|j⟩),
     { apply add_assoc_relabelling },

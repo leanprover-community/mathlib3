@@ -147,7 +147,7 @@ def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short
 begin
   resetI,
   haveI := fintype.of_equiv _ L,
-  haveI := fintype.of_equiv _ R.symm,
+  haveI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
     (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)
@@ -215,7 +215,7 @@ instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ⧏ y
 (le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-and.decidable 
+and.decidable
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable

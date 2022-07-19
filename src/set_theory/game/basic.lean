@@ -331,12 +331,12 @@ begin
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
   { fsplit,
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl },
-    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
   { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)⟧
              = ⟦xL i * y + x * yL j - xL i * yL j + x * z⟧,
@@ -426,12 +426,12 @@ begin
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_,_⟩ | ⟨_, _⟩,_⟩); refl },
     { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_,⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
   { fsplit,
-    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
-    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl },
-    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl } },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
   { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
     { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zL k
                - (xL i * y + x * yL j - xL i * yL j) * zL k⟧

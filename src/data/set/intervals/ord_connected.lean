@@ -53,6 +53,14 @@ begin
   exact insert_subset.2 ⟨hx, insert_subset.2 ⟨hy, hs x hx y hy hxy'⟩⟩,
 end
 
+lemma ord_connected.preimage_mono {f : β → α} (hs : ord_connected s) (hf : monotone f) :
+  ord_connected (f ⁻¹' s) :=
+⟨λ x hx y hy z hz, hs.out hx hy ⟨hf hz.1, hf hz.2⟩⟩
+
+lemma ord_connected.preimage_anti {f : β → α} (hs : ord_connected s) (hf : antitone f) :
+  ord_connected (f ⁻¹' s) :=
+⟨λ x hx y hy z hz, hs.out hy hx ⟨hf hz.2, hf hz.1⟩⟩
+
 protected lemma Icc_subset (s : set α) [hs : ord_connected s] {x y} (hx : x ∈ s) (hy : y ∈ s) :
   Icc x y ⊆ s := hs.out hx hy
 

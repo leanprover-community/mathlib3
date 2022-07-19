@@ -23,7 +23,7 @@ instance : has_involutive_neg (sphere (0 : E) r) :=
   neg_neg := λ x, subtype.ext $ neg_neg x }
 
 @[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0 : E) r) :
-  (((-v) : sphere _ _) : E) = - (v:E) :=
+  ↑(-v) = (-v : E) :=
 rfl
 
 instance : has_continuous_neg (sphere (0 : E) r) :=
@@ -36,7 +36,7 @@ instance {r : ℝ} : has_involutive_neg (ball (0 : E) r) :=
   neg_neg := λ x, subtype.ext $ neg_neg x }
 
 @[simp] lemma coe_neg_ball {r : ℝ} (v : ball (0 : E) r) :
-  (((-v) : ball _ _) : E) = - (v:E) :=
+  ↑(-v) = (-v : E) :=
 rfl
 
 instance : has_continuous_neg (ball (0 : E) r) :=
@@ -49,7 +49,7 @@ instance {r : ℝ} : has_involutive_neg (closed_ball (0 : E) r) :=
   neg_neg := λ x, subtype.ext $ neg_neg x }
 
 @[simp] lemma coe_neg_closed_ball {r : ℝ} (v : closed_ball (0 : E) r) :
-  (((-v) : closed_ball _ _) : E) = - (v:E) :=
+  ↑(-v) = (-v : E) :=
 rfl
 
 instance : has_continuous_neg (closed_ball (0 : E) r) :=

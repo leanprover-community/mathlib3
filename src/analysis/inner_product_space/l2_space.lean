@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.lp_space
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Hilbert sum of a family of inner product spaces
@@ -387,6 +388,18 @@ begin
   exact subset_span ⟨i, rfl⟩
 end
 
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
+-- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
+protected lemma to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
+  orthonormal_basis ι 𝕜 E :=
+orthonormal_basis.mk b.orthonormal
+begin
+  rw [← set.image_univ, ← finset.coe_univ, ← finset.coe_image],
+  have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
+  rw [← this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ],
+  exact b.dense_span
+end
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 
@@ -420,6 +433,23 @@ hilbert_basis.mk hv
 hilbert_basis.coe_mk hv _
 
 omit hv
+
+-- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
+-- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have that yet (July 2022).
+protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthonormal_basis ι 𝕜 E) :
+  hilbert_basis ι 𝕜 E :=
+hilbert_basis.mk b.orthonormal
+begin
+  rw [← set.image_univ, ← finset.coe_univ, ← finset.coe_image],
+  have := (span 𝕜 (finset.univ.image b : set E)).closed_of_finite_dimensional,
+  rw [this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ,
+      ← orthonormal_basis.coe_to_basis],
+  exact b.to_basis.span_eq
+end
+
+@[simp] lemma _root_.orthonormal_basis.coe_to_hilbert_basis [fintype ι]
+  (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=
+hilbert_basis.coe_mk _ _
 
 /-- A Hilbert space admits a Hilbert basis extending a given orthonormal subset. -/
 lemma _root_.orthonormal.exists_hilbert_basis_extension

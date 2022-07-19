@@ -456,34 +456,18 @@ end
 
 lemma factorization_two_factorial_lt' {n : ℕ} : (n ≠ 0) →  n!.factorization 2 < n :=
 begin
+  have H : ∀ i, (i!.factorization) 2 < i → ((2 * i)!.factorization) 2 < 2 * i,
+  { intros i h,
+    rw [prime_two.factorization_factorial_mul, two_mul],
+    simp [h] },
   apply even_odd_rec n (λ n, (n ≠ 0) → n!.factorization 2 < n),
   { simp },
-  {
-    rintro i hi2 hi3,
-    rw [prime_two.factorization_factorial_mul],
-    rw [two_mul],
-    simp,
-    apply hi2,
-    exact (mul_ne_zero_iff.1 hi3).2,
-  },
-  {
-    rintro i hi2 hi3,
+  { exact λ i hi2 hi3, H i (hi2 (mul_ne_zero_iff.1 hi3).2) },
+  { rintro i hi2 hi3,
     rcases eq_or_ne i 0 with rfl | hi0, { simp },
-    rw factorial_succ,
-    rw factorization_mul (succ_ne_zero _) (factorial_ne_zero _),
-    rw finsupp.add_apply,
-
-    have : (2 * i + 1).factorization 2 = 0,
-    { rw factorization_eq_zero_of_not_dvd,
-      simp [two_dvd_ne_zero, add_mod] },
-    simp [this],
-
-    refine lt_trans _ (lt_succ_self _),
-    rw [prime_two.factorization_factorial_mul],
-    rw [two_mul],
-    simp,
-    apply hi2,
-    exact hi0 },
+    refine lt_of_le_of_lt _ ((H i (hi2 hi0)).trans (lt_succ_self _)),
+    simp [factorial_succ, factorization_mul (succ_ne_zero _) (factorial_ne_zero _),
+          factorization_eq_zero_of_remainder i (mt nat.dvd_one.1 (succ_succ_ne_one 0))] },
 end
 
 -- ^^^ Versions to translate into `factorization` ^^^

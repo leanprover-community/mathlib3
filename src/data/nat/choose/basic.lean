@@ -22,6 +22,7 @@ requiring more imports).
   factorial. This is used to prove `nat.choose_le_pow` and variants. We provide similar statements
   for the ascending factorial.
 * `nat.multichoose`: whereas `choose` counts combinations, `multichoose` counts multicombinations.
+
 The fact that this is indeed the correct counting function for multisets is proved in
 `sym.card_sym_eq_multichoose` in `data/sym/card`.
 * `nat.multichoose_eq` : a proof that `multichoose n k = (n + k - 1).choose k`.
@@ -32,6 +33,7 @@ counting multisets of size `k` over an alphabet of size `n` to counting strings 
 ## Tags
 
 binomial coefficient, combination, multicombination, stars and bars
+
 -/
 
 open_locale nat

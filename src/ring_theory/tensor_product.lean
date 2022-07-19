@@ -682,12 +682,10 @@ alg_equiv_of_linear_equiv_triple_tensor_product
 
 variables {R A B C}
 
--- variables {R A B C}
-
--- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) :
---   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
--- rfl
+@[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
+  ((tensor_product.assoc R A B C) :
+  (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+rfl
 
 end
 

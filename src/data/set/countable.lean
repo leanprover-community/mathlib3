@@ -27,7 +27,7 @@ constructive analogue of countability. (For the most part, theorems about
 -/
 protected def countable (s : set α) : Prop := countable s
 
-lemma countable_iff_exists_injective {s : set α} :
+protected lemma countable_iff_exists_injective {s : set α} :
   s.countable ↔ ∃ f : s → ℕ, injective f :=
 countable_iff_exists_injective
 
@@ -62,17 +62,17 @@ set.countable_iff_exists_injective.trans
 A non-empty set is countable iff there exists a surjection from the
 natural numbers onto the subtype induced by the set.
 -/
-lemma countable_iff_exists_surjective {s : set α} (hs : s.nonempty) :
+protected lemma countable_iff_exists_surjective {s : set α} (hs : s.nonempty) :
   s.countable ↔ ∃ f : ℕ → s, surjective f :=
 @countable_iff_exists_surjective _ hs.to_subtype
 
-alias set.countable_iff_exists_surjective ↔ set.countable.exists_surjective _
+alias set.countable_iff_exists_surjective ↔ countable.exists_surjective _
 
 /-- If `s : set α` is a nonempty countable set, then there exists a map
 `f : ℕ → α` such that `s = range f`. -/
 lemma countable.exists_eq_range {s : set α} (hc : s.countable) (hs : s.nonempty) :
   ∃ f : ℕ → α, s = range f :=
-let ⟨f, hf⟩ := (countable_iff_exists_surjective hs).1 hc
+let ⟨f, hf⟩ := hc.exists_surjective hs
 in ⟨coe ∘ f, by rw [hf.range_comp, subtype.range_coe]⟩
 
 lemma countable_range [countable ι] (f : ι → α) : (range f).countable :=
@@ -115,7 +115,7 @@ alias countable_iff_exists_subset_range ↔ set.countable.exists_subset_range _
 lemma maps_to.countable_of_inj_on {s : set α} {t : set β} {f : α → β}
   (hf : maps_to f s t) (hf' : inj_on f s) (ht : t.countable) :
   s.countable :=
-@injective.countable _ _ ht _ (hf'.injective.cod_restrict _)
+@injective.countable _ _ ht _ (hf'.injective.cod_restrict $ λ x, hf x.2)
 
 lemma countable.preimage_of_inj_on {s : set β} (hs : s.countable) {f : α → β}
   (hf : inj_on f (f ⁻¹' s)) : (f ⁻¹' s).countable :=
@@ -189,7 +189,7 @@ lemma countable_Union_Prop {p : Prop} {t : p → set β} (ht : ∀h:p, (t h).cou
 by by_cases p; simp [h, ht]
 
 lemma finite.countable {s : set α} (hs : s.finite) : s.countable :=
-let ⟨h⟩ := hs in @finite.countable _ (_root_.finite.of_fintype h)
+let ⟨h⟩ := hs in @finite.countable _ h.finite
 
 @[nontriviality] lemma countable.of_subsingleton [subsingleton α] (s : set α) :
   s.countable :=
@@ -217,7 +217,7 @@ end
 
 lemma countable_univ_pi {π : α → Type*} [finite α] {s : Π a, set (π a)} (hs : ∀ a, (s a).countable) :
   (pi univ s).countable :=
-by { haveI := λ a, (hs a).to_subtype, exact (equiv.set.pi s).countable }
+by { haveI := λ a, (hs a).to_subtype, exact countable.of_equiv _ (equiv.set.univ_pi s).symm }
 
 lemma countable_pi {π : α → Type*} [finite α] {s : Π a, set (π a)} (hs : ∀ a, (s a).countable) :
   {f : Π a, π a | ∀ a, f a ∈ s a}.countable :=
@@ -228,7 +228,7 @@ protected lemma countable.prod {s : set α} {t : set β} (hs : s.countable) (ht 
 begin
   haveI : countable s := hs.to_subtype,
   haveI : countable t := ht.to_subtype,
-  exact (equiv.set.prod _ _).countable
+  exact countable.of_equiv _  (equiv.set.prod _ _).symm
 end
 
 lemma countable.image2 {s : set α} {t : set β} (hs : s.countable) (ht : t.countable)

@@ -112,8 +112,9 @@ meta def resolve_sum_step : expr → tactic unit
       refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
       n0 ← get_unused_name "n0" >>= intro,
       refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
-      refine ``((%%n0 rfl).elim) <|>
-        try `[ simp only [nat.mul_div_cancel, nat.div_self, nat.pos_of_ne_zero ‹_›] ]
+      lem1 ← to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff,
+      lem2 ← to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff,
+      focus1 (refine ``((%%n0 rfl).elim) <|> rewrite_target lem1 <|> rewrite_target lem2) <|> skip
   | e                := fail!"'{e}' is not supported"
   end
 | e := fail!("'resolve_sum_step' was called on\n" ++

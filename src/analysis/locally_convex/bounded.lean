@@ -118,7 +118,7 @@ begin
   have hanz : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
   have : σ'.symm a ≠ 0 := (ring_hom.map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
   change _ ⊆ σ _ • _,
-  rw [set.image_subset_iff, f.preimage_smul_setₛₗ this.is_unit],
+  rw [set.image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit],
   refine hr (σ'.symm a) _,
   rwa σ'_symm_iso.norm_map_of_map_zero (map_zero _)
 end
@@ -162,9 +162,8 @@ end bornology
 
 section uniform_add_group
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables (𝕜) [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-variables [t3_space E]
 
 lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
   bornology.is_vonN_bounded 𝕜 s :=
@@ -174,7 +173,7 @@ begin
   have h : filter.tendsto (λ (x : E × E), x.fst + x.snd) (𝓝 (0,0)) (𝓝 ((0 : E) + (0 : E))) :=
     tendsto_add,
   rw add_zero at h,
-  have h' := (nhds_basis_closed_balanced 𝕜 E).prod (nhds_basis_closed_balanced 𝕜 E),
+  have h' := (nhds_basis_balanced 𝕜 E).prod (nhds_basis_balanced 𝕜 E),
   simp_rw [←nhds_prod_eq, id.def] at h',
   rcases h.basis_left h' U hU with ⟨x, hx, h''⟩,
   rcases hs x.snd hx.2.1 with ⟨t, ht, hs⟩,
@@ -187,7 +186,7 @@ begin
     simpa only [hz] using h'' hz' },
   refine λ y hy, absorbs.mono_left _ hx_fstsnd,
   rw [←set.singleton_vadd, vadd_eq_add],
-  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.2.absorbs_self,
+  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.absorbs_self,
 end
 
 end uniform_add_group

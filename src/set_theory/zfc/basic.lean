@@ -144,7 +144,9 @@ instance setoid : setoid pSet :=
 
 /-- A pre-set is a subset of another pre-set if every element of the first family is extensionally
 equivalent to some element of the second family.-/
-instance : has_subset pSet := ⟨λ x y, ∀ a, ∃ b, equiv (x.func a) (y.func b)⟩
+protected def subset (x y : pSet) : Prop := ∀ a, ∃ b, equiv (x.func a) (y.func b)
+
+instance : has_subset pSet := ⟨pSet.subset⟩
 
 instance : is_refl pSet (⊆) := ⟨λ x a, ⟨a, equiv.refl _⟩⟩
 
@@ -171,9 +173,9 @@ theorem subset.congr_right : Π {x y z : pSet}, equiv x y → (z ⊆ x ↔ z ⊆
     λ γβ c, let ⟨b, cb⟩ := γβ c, ⟨a, ab⟩ := βα b in ⟨a, cb.trans (equiv.symm ab)⟩⟩
 
 /-- `x ∈ y` as pre-sets if `x` is extensionally equivalent to a member of the family `y`. -/
-instance : has_mem pSet.{u} pSet.{u} := ⟨λ x y, ∃ b, equiv x (y.func b)⟩
+protected def mem (x y : pSet.{u}) : Prop := ∃ b, equiv x (y.func b)
 
-theorem mem_def {x y : pSet} : x ∈ y ↔ ∃ b, equiv x (y.func b) := iff.rfl
+instance : has_mem pSet pSet := ⟨pSet.mem⟩
 
 theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
@@ -232,11 +234,13 @@ equiv_iff_mem.trans set.ext_iff.symm
 instance : has_coe pSet (set pSet) := ⟨to_set⟩
 
 /-- The empty pre-set -/
-instance : has_emptyc pSet := ⟨⟨_, pempty.elim⟩⟩
+protected def empty : pSet := ⟨_, pempty.elim⟩
+
+instance : has_emptyc pSet := ⟨pSet.empty⟩
 
 instance : inhabited pSet := ⟨∅⟩
 
-instance : is_empty (type ∅) := pempty.is_empty
+instance : is_empty (type (∅)) := pempty.is_empty
 
 @[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
@@ -245,7 +249,9 @@ instance : is_empty (type ∅) := pempty.is_empty
 @[simp] theorem empty_subset (x : pSet) : ∅ ⊆ x := λ x, x.elim
 
 /-- Insert an element into a pre-set -/
-instance : has_insert pSet pSet := ⟨λ x y, ⟨option y.type, λ o, option.rec x y.func o⟩⟩
+protected def insert (x y : pSet) : pSet := ⟨option y.type, λ o, option.rec x y.func o⟩
+
+instance : has_insert pSet pSet := ⟨pSet.insert⟩
 
 instance : has_singleton pSet pSet := ⟨λ s, insert s ∅⟩
 
@@ -254,7 +260,9 @@ instance : is_lawful_singleton pSet pSet := ⟨λ _, rfl⟩
 instance (x y : pSet) : inhabited (insert x y).type := option.inhabited _
 
 /-- The pre-set separation operation `{x ∈ a | p x}` -/
-instance : has_sep pSet pSet := ⟨λ p x, ⟨{a // p (x.func a)}, λ y, x.func y.1⟩⟩
+protected def sep (p : pSet → Prop) (x : pSet) : pSet := ⟨{a // p (x.func a)}, λ y, x.func y.1⟩
+
+instance : has_sep pSet pSet := ⟨pSet.sep⟩
 
 /-- The pre-set powerset operator -/
 def powerset (x : pSet) : pSet := ⟨set x.type, λ p, ⟨{a // p a}, λ y, x.func y.1⟩⟩
@@ -371,8 +379,6 @@ end resp
 class inductive definable (n) : arity Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval n f)
 
--- Todo (Vi): this shouldn't be a class, since sets have lots of nontrivial equalities between them.
-
 attribute [instance] definable.mk
 
 /-- The evaluation of a function respecting equivalence is definable, by that same function. -/
@@ -416,17 +422,22 @@ open pSet
 /-- Turns a pre-set into a ZFC set. -/
 def mk : pSet → Set := quotient.mk
 
-@[simp] theorem mk_eq (x : pSet) : ⟦x⟧ = mk x := rfl
-
-protected theorem eq {x y : pSet} : mk x = mk y ↔ equiv x y := quotient.eq
+@[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+@[simp] theorem mk_out : ∀ x : Set, mk x.out = x := quotient.out_eq
+theorem eq {x y : pSet} : mk x = mk y ↔ equiv x y := quotient.eq
+theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound h
+theorem exact {x y : pSet} : mk x = mk y → pSet.equiv x y := quotient.exact
 
 @[simp] lemma eval_mk {n f x} :
   (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
 rfl
 
 /-- The membership relation for ZFC sets is inherited from the membership relation for pre-sets. -/
-instance : has_mem Set Set := ⟨quotient.lift₂ (∈) $
-  λ x y x' y' hx hy, propext ((@mem.congr_left x x' hx _).trans $ mem.congr_right hy)⟩
+protected def mem : Set → Set → Prop :=
+quotient.lift₂ pSet.mem
+  (λ x y x' y' hx hy, propext ((mem.congr_left hx).trans (mem.congr_right hy)))
+
+instance : has_mem Set Set := ⟨Set.mem⟩
 
 @[simp] theorem mk_mem_iff {x y : pSet} : mk x ∈ mk y ↔ x ∈ y := iff.rfl
 
@@ -476,7 +487,8 @@ instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @h
 by simp_rw [ext_iff, ←mem_to_set, ←set.ext_iff]
 
 /-- The empty ZFC set -/
-instance : has_emptyc Set := ⟨mk ∅⟩
+protected def empty : Set := mk ∅
+instance : has_emptyc Set := ⟨Set.empty⟩
 instance : inhabited Set := ⟨∅⟩
 
 @[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
@@ -530,15 +542,17 @@ by { ext, simp }
 iff.trans mem_insert $ or_congr iff.rfl mem_singleton
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
-instance : has_sep Set Set :=
-⟨λ p, resp.eval 1 ⟨has_sep.sep (λ y, p ⟦y⟧), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
-  ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa [mk_func, ←(@quotient.sound pSet _ _ _ hb)]⟩, hb⟩,
-   λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa [mk_func, (@quotient.sound pSet _ _ _ ha)]⟩, ha⟩⟩⟩⟩
+protected def sep (p : Set → Prop) : Set → Set :=
+resp.eval 1 ⟨pSet.sep (λ y, p (mk y)), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+  ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa [mk_func, ←Set.sound hb]⟩, hb⟩,
+   λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa [mk_func, Set.sound ha]⟩, ha⟩⟩⟩
+
+instance : has_sep Set Set := ⟨Set.sep⟩
 
 @[simp] theorem mem_sep {p : Set.{u} → Prop} {x y : Set.{u}} : y ∈ {y ∈ x | p y} ↔ y ∈ x ∧ p y :=
 quotient.induction_on₂ x y (λ ⟨α, A⟩ y,
   ⟨λ ⟨⟨a, pa⟩, h⟩, ⟨⟨a, h⟩, by rwa (@quotient.sound pSet _ _ _ h)⟩,
-  λ ⟨⟨a, h⟩, pa⟩, ⟨⟨a, by { rw mk_func at h, rwa [mk_func, ←(@quotient.sound pSet _ _ _ h)] }⟩, h⟩⟩)
+  λ ⟨⟨a, h⟩, pa⟩, ⟨⟨a, by { rw mk_func at h, rwa [mk_func, ←Set.sound h] }⟩, h⟩⟩)
 
 @[simp] theorem sep_to_set (a : Set) (p : Set → Prop) :
   {x ∈ a | p x}.to_set = {x ∈ a.to_set | p x} :=

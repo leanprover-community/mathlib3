@@ -125,7 +125,7 @@ begin
       exacts [or.inl $ (congr_arg f hc.symm).trans h, or.inr ⟨c, hc, h⟩] } }
 end
 
-alias mem_map ↔ list.exists_of_mem_map _
+alias mem_map ↔ exists_of_mem_map _
 
 theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
 mem_map.2 ⟨a, h, rfl⟩
@@ -133,6 +133,15 @@ mem_map.2 ⟨a, h, rfl⟩
 theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : list α} :
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
+
+@[simp] lemma _root_.function.involutive.exists_mem_and_apply_eq_iff {f : α → α}
+  (hf : function.involutive f) (x : α) (l : list α) :
+  (∃ (y : α), y ∈ l ∧ f y = x) ↔ f x ∈ l :=
+⟨by { rintro ⟨y, h, rfl⟩, rwa hf y }, λ h, ⟨f x, h, hf _⟩⟩
+
+theorem mem_map_of_involutive {f : α → α} (hf : involutive f) {a : α} {l : list α} :
+  a ∈ map f l ↔ f a ∈ l :=
+by rw [mem_map, hf.exists_mem_and_apply_eq_iff]
 
 lemma forall_mem_map_iff {f : α → β} {l : list α} {P : β → Prop} :
   (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) :=
@@ -1560,8 +1569,7 @@ lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.leng
 | (n+1) []       h := (nat.not_succ_le_zero _ h).elim
 | (n+1) (a'::as) h := begin
   dsimp [list.insert_nth],
-  erw [list.mem_cons_iff, mem_insert_nth (nat.le_of_succ_le_succ h), list.mem_cons_iff,
-    ← or.assoc, or_comm (a = a'), or.assoc]
+  erw [mem_insert_nth (nat.le_of_succ_le_succ h), ← or.assoc, or_comm (a = a'), or.assoc]
 end
 
 lemma inj_on_insert_nth_index_of_not_mem (l : list α) (x : α) (hx : x ∉ l) :
@@ -2924,6 +2932,14 @@ begin
         or_and_distrib_right, exists_or_distrib, this, exists_eq_left] }
 end
 
+@[simp] theorem filter_map_join (f : α → option β) (L : list (list α)) :
+  filter_map f (join L) = join (map (filter_map f) L) :=
+begin
+  induction L with hd tl ih,
+  { refl },
+  { rw [map, join, join, filter_map_append, ih] },
+end
+
 theorem map_filter_map_of_inv (f : α → option β) (g : β → α)
   (H : ∀ x : α, (f x).map g = some x) (l : list α) :
   map g (filter_map f l) = l :=
@@ -3473,6 +3489,60 @@ begin
     { simp [hmem] } }
 end
 
+@[simp] lemma enum_nil : enum ([] : list α) = [] := rfl
+@[simp] lemma enum_from_nil (n : ℕ) : enum_from n ([] : list α) = [] := rfl
+
+@[simp] lemma enum_from_cons (x : α) (xs : list α) (n : ℕ) :
+  enum_from n (x :: xs) = (n, x) :: enum_from (n + 1) xs := rfl
+@[simp] lemma enum_cons (x : α) (xs : list α) :
+  enum (x :: xs) = (0, x) :: enum_from 1 xs := rfl
+@[simp] lemma enum_from_singleton (x : α) (n : ℕ) :
+  enum_from n [x] = [(n, x)] := rfl
+@[simp] lemma enum_singleton (x : α) :
+  enum [x] = [(0, x)] := rfl
+
+lemma enum_from_append (xs ys : list α) (n : ℕ) :
+  enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (n + xs.length) ys :=
+begin
+  induction xs with x xs IH generalizing ys n,
+  { simp },
+  { rw [cons_append, enum_from_cons, IH, ←cons_append, ←enum_from_cons,
+        length, add_right_comm, add_assoc] }
+end
+
+lemma enum_append (xs ys : list α) :
+  enum (xs ++ ys) = enum xs ++ enum_from xs.length ys :=
+by simp [enum, enum_from_append]
+
+lemma map_fst_add_enum_from_eq_enum_from (l : list α) (n k : ℕ) :
+  map (prod.map (+ n) id) (enum_from k l) = enum_from (n + k) l :=
+begin
+  induction l with hd tl IH generalizing n k,
+  { simp [enum_from] },
+  { simp only [enum_from, map, zero_add, prod.map_mk, id.def,
+               eq_self_iff_true, true_and],
+    simp [IH, add_comm n k, add_assoc, add_left_comm] }
+end
+
+lemma map_fst_add_enum_eq_enum_from (l : list α) (n : ℕ) :
+  map (prod.map (+ n) id) (enum l) = enum_from n l :=
+map_fst_add_enum_from_eq_enum_from l _ _
+
+lemma nth_le_enum_from (l : list α) (n i : ℕ)
+  (hi' : i < (l.enum_from n).length)
+  (hi : i < l.length := by simpa [length_enum_from] using hi') :
+  (l.enum_from n).nth_le i hi' = (n + i, l.nth_le i hi) :=
+begin
+  rw [←option.some_inj, ←nth_le_nth],
+  simp [enum_from_nth, nth_le_nth hi]
+end
+
+lemma nth_le_enum (l : list α) (i : ℕ)
+  (hi' : i < l.enum.length)
+  (hi : i < l.length := by simpa [length_enum] using hi') :
+  l.enum.nth_le i hi' = (i, l.nth_le i hi) :=
+by { convert nth_le_enum_from _ _ _ hi', exact (zero_add _).symm }
+
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)
 
@@ -3789,6 +3859,15 @@ attribute [to_additive] alternating_prod -- `list.alternating_sum`
 
 /-! ### Miscellaneous lemmas -/
 
+lemma last_reverse {l : list α} (hl : l.reverse ≠ [])
+  (hl' : 0 < l.length := by { contrapose! hl, simpa [length_eq_zero] using hl }) :
+  l.reverse.last hl = l.nth_le 0 hl' :=
+begin
+  rw [last_eq_nth_le, nth_le_reverse'],
+  { simp, },
+  { simpa using hl' }
+end
+
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (ilast'_mem b l)
@@ -3837,7 +3916,7 @@ begin
         { cases j; unfold_wf, refl,
           transitivity, apply xs_ih,
           simp }, },
-      unfold_wf, apply zero_lt_one_add, },
+      unfold_wf, },
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },
 end

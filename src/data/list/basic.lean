@@ -3859,6 +3859,15 @@ attribute [to_additive] alternating_prod -- `list.alternating_sum`
 
 /-! ### Miscellaneous lemmas -/
 
+lemma last_reverse {l : list α} (hl : l.reverse ≠ [])
+  (hl' : 0 < l.length := by { contrapose! hl, simpa [length_eq_zero] using hl }) :
+  l.reverse.last hl = l.nth_le 0 hl' :=
+begin
+  rw [last_eq_nth_le, nth_le_reverse'],
+  { simp, },
+  { simpa using hl' }
+end
+
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (ilast'_mem b l)
@@ -3907,7 +3916,7 @@ begin
         { cases j; unfold_wf, refl,
           transitivity, apply xs_ih,
           simp }, },
-      unfold_wf, apply zero_lt_one_add, },
+      unfold_wf, },
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },
 end

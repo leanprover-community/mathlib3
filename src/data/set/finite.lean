@@ -720,6 +720,17 @@ begin
     exact @H1 a s ha (set.to_finite _) hs }
 end
 
+/-- Analogous to `finset.induction_on'`. -/
+@[elab_as_eliminator]
+theorem finite.induction_on' {C : set α → Prop} {S : set α} (h : S.finite)
+  (H0 : C ∅) (H1 : ∀ {a s}, a ∈ S → s ⊆ S → a ∉ s → C s → C (insert a s)) : C S :=
+begin
+  refine @set.finite.induction_on α (λ s, s ⊆ S → C s) S h (λ _, H0) _ subset.rfl,
+  intros a s has hsf hCs haS,
+  rw insert_subset at haS,
+  exact H1 haS.1 haS.2 has (hCs haS.2)
+end
+
 @[elab_as_eliminator]
 theorem finite.dinduction_on {C : ∀ (s : set α), s.finite → Prop} {s : set α} (h : s.finite)
   (H0 : C ∅ finite_empty)

@@ -274,7 +274,7 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   .. S.to_subalgebra.map f}
 
 @[simp] lemma coe_map (f : L →ₐ[K] L') : (S.map f : set L') = f '' S := rfl
-@[simp] lemma coe_sort_map (f : L →ₐ[K] L') : ↥(S.map f) = ↥(f '' S) := rfl
+lemma coe_sort_map (f : L →ₐ[K] L') : ↥(S.map f) = ↥(f '' S) := rfl
 
 lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]

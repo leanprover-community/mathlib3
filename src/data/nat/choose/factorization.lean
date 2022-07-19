@@ -139,7 +139,8 @@ lemma le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
 le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt)
 
-lemma choose_factorization_prod_pow (n k : ℕ) (hkn : k ≤ n) :
+/-- A binomial coefficient is the product of its prime factors, which are at most `n`. -/
+lemma prod_pow_factorization_choose (n k : ℕ) (hkn : k ≤ n) :
   ∏ p in (finset.range (n + 1)),
     p ^ ((nat.choose n k).factorization p)
   = choose n k :=
@@ -154,12 +155,14 @@ begin
   { intros p _ h2, simp [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
 end
 
-lemma central_binom_factorization_prod_pow (n : ℕ) :
+/-- The `n`th central binomial coefficient is the product of its prime factors, which are
+at most `2n`. -/
+lemma prod_pow_factorization_central_binom (n : ℕ) :
   ∏ p in (finset.range (2 * n + 1)),
     p ^ ((central_binom n).factorization p)
   = central_binom n :=
 begin
-  apply choose_factorization_prod_pow,
+  apply prod_pow_factorization_choose,
   linarith,
 end
 

@@ -112,7 +112,7 @@ lemma central_binom_factorization_small (n : ℕ) (n_large : 2 < n)
     p ^ ((central_binom n).factorization p) :=
 begin
   refine ((finset.prod_subset (finset.range_subset.mpr (add_le_add_right (nat.div_le_self
-    (2 * n) 3) 1)) (λ x hx h2x, _)).trans n.central_binom_factorization_prod_pow).symm,
+    (2 * n) 3) 1)) (λ x hx h2x, _)).trans n.prod_pow_factorization_central_binom).symm,
   rw [finset.mem_range, lt_succ_iff] at hx h2x,
   rw [not_le, div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
   replace no_prime := not_exists.mp no_prime x,

@@ -5,7 +5,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
 import data.finset.sym
-import tactic.slim_check
 
 /-!
 # Stars and bars

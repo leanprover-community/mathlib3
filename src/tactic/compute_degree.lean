@@ -51,7 +51,7 @@ namespace compute_degree
 open expr polynomial
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
-at guessing the degree of `e`.  Heuristics for `guess_degree`:
+at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
 * `0, 1, C a`,      guess `0`,
 * `polynomial.X`,   guess `1`,
 *  `bit0/1 f, -f`,  guess `guess_degree f`,
@@ -60,6 +60,9 @@ at guessing the degree of `e`.  Heuristics for `guess_degree`:
 * `f ^ n`,          guess `guess_degree f * n`,
 * `monomial n r`,   guess `n`,
 * `f` not as above, guess `f.nat_degree`.
+
+The guessed degree should coincide with the behaviour of `resolve_sum_step`:
+`resolve_sum_step` cannot solve a goal `f.nat_degree ≤ d` if `guess_degree f < d`.
  -/
 meta def guess_degree : expr → tactic expr
 | `(has_zero.zero)           := pure `(0)
@@ -82,8 +85,10 @@ meta def guess_degree : expr → tactic expr
                                 pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
                                 pure $ expr.mk_app pe [e]
 
-/--  `resolve_sum_step e` takes an expression `e` as input.
-It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
+/-- `resolve_sum_step e` takes the type of the current goal `e` as input.
+It tries to make progress on the goal `e` by reducing it to subgoals.
+It assumes that `e` is of the form `f.nat_degree ≤ d`, failing otherwise.
+
 `resolve_sum_step` progresses into `f` if `f` is
 * a sum, difference, opposite, product, or a power;
 * a monomial;
@@ -91,7 +96,10 @@ It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 * `0, 1` or `bit0 a, bit1 a` (to deal with numerals).
 
 The side-goals produced by `resolve_sum_step` are either again of the same shape `f'.nat_degree ≤ d`
-or of the form `m ≤ n`, where `m n : ℕ`. -/
+or of the form `m ≤ n`, where `m n : ℕ`.
+
+If `d` is less than `guess_degree f`, this tactic will create unsolvable goals.
+-/
 meta def resolve_sum_step : expr → tactic unit
 | `(nat_degree %%tl ≤ %%tr) := match tl with
   | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
@@ -137,9 +145,9 @@ On the atoms of the process, `eval_guessing` tries to use `eval_expr' ℕ`, reso
 
 For use with degree of polynomials, we mostly use `n = 0`. -/
 meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
-| `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
-| `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
+| `(%%a + %%b)   := (+) <$> eval_guessing a <*> eval_guessing b
+| `(%%a * %%b)   := (*) <$> eval_guessing a <*> eval_guessing b
+| `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
 | e              := eval_expr' ℕ e <|> pure n
 
 end compute_degree

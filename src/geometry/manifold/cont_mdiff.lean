@@ -323,6 +323,15 @@ lemma smooth_within_at_iff_target :
     smooth_within_at I 𝓘(𝕜, E') (ext_chart_at I' (f x) ∘ f) s x :=
 cont_mdiff_within_at_iff_target
 
+lemma cont_mdiff_at_iff_target {x : M} :
+  cont_mdiff_at I I' n f x ↔
+    continuous_at f x ∧ cont_mdiff_at I 𝓘(𝕜, E') n (ext_chart_at I' (f x) ∘ f) x :=
+by rw [cont_mdiff_at, cont_mdiff_at, cont_mdiff_within_at_iff_target, continuous_within_at_univ]
+
+lemma smooth_at_iff_target {x : M} :
+  smooth_at I I' f x ↔ continuous_at f x ∧ smooth_at I 𝓘(𝕜, E') (ext_chart_at I' (f x) ∘ f) x :=
+cont_mdiff_at_iff_target
+
 include Is I's
 
 /-- One can reformulate smoothness within a set at a point as continuity within this set at this

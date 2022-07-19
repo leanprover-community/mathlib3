@@ -84,13 +84,6 @@ instance has_mul [∀ i, has_mul $ f i] :
 @[simp, to_additive] lemma const_div [has_div β] (a b : β) :
   const α a / const α b = const α (a / b) := rfl
 
-@[to_additive has_smul] instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
-{ pow := λ x b i, (x i) ^ b }
-
-@[to_additive smul_def, simp] lemma pow_def {β : Type*} [Π i, has_pow (f i) β]
-  (x : Π i, f i) (b : β) (i : I) :
-  (x ^ b) i = (x i) ^ b := rfl
-
 section
 
 variables [decidable_eq I]

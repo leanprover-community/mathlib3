@@ -39,7 +39,7 @@ begin
     apply self_le_add_left }
 end
 
-theorem unpair_sum_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
+theorem unpair_add_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
 by { rw [←mkpair_unpair n, unpair_mkpair], apply add_le_mkpair }
 
 end nat
@@ -295,7 +295,7 @@ begin
         apply (ack_strict_mono_right _ IH).le.trans,
         rw [add_succ m, add_succ _ 8, ack_succ_succ (_ + 8), add_assoc],
         exact ack_mono_left _ (add_le_add (le_max_right a b) le_rfl) } },
-    exact ⟨max a b + 9, λ n, (this _ _).trans_le $ ack_mono_right _ $ unpair_sum_le n⟩ }
+    exact ⟨max a b + 9, λ n, (this _ _).trans_le $ ack_mono_right _ $ unpair_add_le n⟩ }
 end
 
 theorem not_nat_primrec_ack_self : ¬ nat.primrec (λ n, ack n n) :=

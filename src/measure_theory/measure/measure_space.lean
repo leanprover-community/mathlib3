@@ -2607,13 +2607,9 @@ lemma forall_measure_inter_spanning_sets_eq_zero
   [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
   (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
 begin
-  split,
-  { intros h,
-    rw (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
-        by rw [← inter_Union, Union_spanning_sets, inter_univ]),
-    exact measure_Union_null_iff.mpr h, },
-  { intros s_null n,
-    exact le_antisymm (le_trans (measure_mono (inter_subset_left _ _)) s_null.le) (zero_le _), },
+  nth_rewrite 0 (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
+                 by rw [← inter_Union, Union_spanning_sets, inter_univ]),
+  rw [measure_Union_null_iff],
 end
 
 /-- A set in a σ-finite space has positive measure if and only if its intersection with

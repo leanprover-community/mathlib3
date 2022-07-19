@@ -74,7 +74,7 @@ begin
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
   { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
-    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
+    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index, mem_sUnion,
                 set.mem_set_of_eq],
     refine ⟨λ u hu, (UT hu).1, (pairwise_disjoint_sUnion hU.directed_on).2 (λ u hu, (UT hu).2.1),
       λ a hat b u uU hbu hab, _⟩,
@@ -235,7 +235,7 @@ theorem exists_disjoint_covering_ae [metric_space α] [measurable_space α] [ope
   (t : set (set α)) (hf : ∀ x ∈ s, ∀ (ε > (0 : ℝ)), ∃ a ∈ t, x ∈ a ∧ a ⊆ closed_ball x ε)
   (ht : ∀ a ∈ t, (interior a).nonempty) (h't : ∀ a ∈ t, is_closed a)
   (C : ℝ≥0) (h : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a) :
-  ∃ u ⊆ t, countable u ∧ u.pairwise_disjoint id ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
+  ∃ u ⊆ t, u.countable ∧ u.pairwise_disjoint id ∧ μ (s \ ⋃ (a ∈ u), a) = 0 :=
 begin
   /- The idea of the proof is the following. Assume for simplicity that `μ` is finite. Applying the
   abstract Vitali covering theorem with `δ = diam`, one obtains a disjoint subfamily `u`, such
@@ -293,7 +293,7 @@ begin
   have ut : u ⊆ t := λ a hau, (ut' hau).1,
   -- As the space is second countable, the family is countable since all its sets have nonempty
   -- interior.
-  have u_count : countable u :=
+  have u_count : u.countable :=
     u_disj.countable_of_nonempty_interior (λ a ha, ht a (ut ha)),
   -- the family `u` will be the desired family
   refine ⟨u, λ a hat', (ut' hat').1, u_count, u_disj, _⟩,

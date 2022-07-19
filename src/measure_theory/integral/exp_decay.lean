@@ -52,7 +52,7 @@ end
 /-- If `f` is continuous on `[a, ∞)`, and is `O (exp (-b * x))` at `∞` for some `b > 0`, then
 `f` is integrable on `(a, ∞)`. -/
 lemma integrable_of_is_O_exp_neg {f : ℝ → ℝ} {a b : ℝ} (h0 : 0 < b)
-  (h1 : continuous_on f (Ici a)) (h2 : asymptotics.is_O f (λ x, exp (-b * x)) at_top) :
+  (h1 : continuous_on f (Ici a)) (h2 : f =O[at_top] (λ x, exp (-b * x))) :
   integrable_on f (Ioi a) :=
 begin
   cases h2.is_O_with with c h3,

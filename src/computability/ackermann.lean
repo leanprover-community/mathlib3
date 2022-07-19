@@ -165,14 +165,14 @@ private theorem ack_strict_mono_left' : ∀ {m₁ m₂} n, m₁ < m₂ → ack m
 | 0 (m + 1) 0 := λ h, by simpa using one_lt_ack_succ_right m 0
 | 0 (m + 1) (n + 1) := λ h, begin
   rw [ack_zero, ack_succ_succ],
-  apply lt_of_le_of_lt (le_trans _ (add_le_add_left (add_succ_le_ack _ _) m)) (add_lt_ack _ _),
+  apply lt_of_le_of_lt (le_trans _ $ add_le_add_left (add_succ_le_ack _ _) m) (add_lt_ack _ _),
   linarith
 end
 | (m₁ + 1) (m₂ + 1) 0 := λ h, by simpa using ack_strict_mono_left' 1 ((add_lt_add_iff_right 1).1 h)
 | (m₁ + 1) (m₂ + 1) (n + 1) := λ h, begin
   rw [ack_succ_succ, ack_succ_succ],
-  exact (ack_strict_mono_left' _ ((add_lt_add_iff_right 1).1 h)).trans
-    (ack_strict_mono_right _ (ack_strict_mono_left' n h))
+  exact (ack_strict_mono_left' _ $ (add_lt_add_iff_right 1).1 h).trans
+    (ack_strict_mono_right _ $ ack_strict_mono_left' n h)
 end
 
 theorem ack_strict_mono_left (n : ℕ) : strict_mono (λ m, ack m n) :=
@@ -203,7 +203,7 @@ begin
   cases n,
   { simp },
   { rw [ack_succ_succ, succ_eq_add_one],
-    apply ack_mono_right m (le_trans _ (add_succ_le_ack _ n)),
+    apply ack_mono_right m (le_trans _ $ add_succ_le_ack _ n),
     linarith }
 end
 
@@ -275,7 +275,7 @@ begin
     exact max_le_max (ha n).le (hb n).le },
   { exact ⟨max a b + 2, λ n,
       (ha _).trans $ (ack_strict_mono_right a $ hb n).trans $ ack_ack_lt_ack_max_add_two a b n⟩ },
-  { have : ∀ m n, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n < ack (max a b + 9) (m + n),
+  { have : ∀ {m n}, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n < ack (max a b + 9) (m + n),
     { intros m n,
       induction n with n IH,
       { apply (ha m).trans (ack_strict_mono_left m $ (le_max_left a b).trans_lt _),
@@ -295,7 +295,7 @@ begin
         apply (ack_strict_mono_right _ IH).le.trans,
         rw [add_succ m, add_succ _ 8, ack_succ_succ (_ + 8), add_assoc],
         exact ack_mono_left _ (add_le_add (le_max_right a b) le_rfl) } },
-    exact ⟨max a b + 9, λ n, (this _ _).trans_le $ ack_mono_right _ $ unpair_add_le n⟩ }
+    exact ⟨max a b + 9, λ n, this.trans_le $ ack_mono_right _ $ unpair_add_le n⟩ }
 end
 
 theorem not_nat_primrec_ack_self : ¬ nat.primrec (λ n, ack n n) :=

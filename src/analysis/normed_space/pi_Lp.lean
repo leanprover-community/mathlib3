@@ -342,6 +342,11 @@ instance normed_space [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 
   end,
   .. pi.module ι β 𝕜 }
 
+instance finite_dimensional [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)]
+  [I : ∀ i, finite_dimensional 𝕜 (β i)] :
+  finite_dimensional 𝕜 (pi_Lp p β) :=
+finite_dimensional.finite_dimensional_pi' _ _
+
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
 variables {𝕜 p α} [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
@@ -434,7 +439,7 @@ lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
 (norm_equiv_symm_const (1 : β)).trans rfl
 
-variables (𝕜)
+variables (𝕜 p)
 
 /-- `pi_Lp.equiv` as a linear map. -/
 @[simps {fully_applied := ff}]

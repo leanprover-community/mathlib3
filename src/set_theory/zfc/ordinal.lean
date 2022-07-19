@@ -39,17 +39,17 @@ theorem is_transitive_iff_mem_trans {z : Set} :
 
 alias is_transitive_iff_mem_trans ↔ is_transitive.mem_trans _
 
-theorem is_transitive.Union {x : Set} (h : x.is_transitive) : (⋃ x).is_transitive :=
+theorem is_transitive.sUnion {x : Set} (h : x.is_transitive) : (⋃ x).is_transitive :=
 λ y hy z hz, begin
-  rcases mem_Union.1 hy with ⟨w, hw, hw'⟩,
-  exact mem_Union_of_mem hz (h.mem_trans hw' hw)
+  rcases mem_sUnion.1 hy with ⟨w, hw, hw'⟩,
+  exact mem_sUnion_of_mem hz (h.mem_trans hw' hw)
 end
 
-theorem is_transitive_iff_Union_subset {x : Set} : x.is_transitive ↔ ⋃ x ⊆ x :=
-⟨λ h y hy, by { rcases mem_Union.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },
-  λ H y hy z hz, H $ mem_Union_of_mem hz hy⟩
+theorem is_transitive_iff_sUnion_subset {x : Set} : x.is_transitive ↔ ⋃ x ⊆ x :=
+⟨λ h y hy, by { rcases mem_sUnion.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },
+  λ H y hy z hz, H $ mem_sUnion_of_mem hz hy⟩
 
-alias is_transitive_iff_Union_subset ↔ is_transitive.Union_subset _
+alias is_transitive_iff_sUnion_subset ↔ is_transitive.sUnion_subset _
 
 theorem is_transitive_iff_subset_powerset {x : Set} : x.is_transitive ↔ x ⊆ powerset x :=
 ⟨λ h y hy, mem_powerset.2 $ h.subset_of_mem hy, λ H y hy z hz, mem_powerset.1 (H hy) hz⟩

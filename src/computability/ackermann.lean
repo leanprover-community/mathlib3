@@ -244,7 +244,7 @@ calc ack m (ack n k)
 theorem ack_succ_sq_lt_ack_add_four (m n : ℕ) : ack m ((n + 1) ^ 2) < ack (m + 4) n :=
 calc ack m ((n + 1) ^ 2)
       < ack m ((ack m n + 1) ^ 2) : ack_strict_mono_right m $
-          pow_lt_pow_of_lt_left (succ_lt_succ (lt_ack_right m n)) zero_lt_two
+          pow_lt_pow_of_lt_left (succ_lt_succ $ lt_ack_right m n) zero_lt_two
   ... ≤ ack m (ack (m + 3) n) : ack_mono_right m $ ack_succ_sq_lt_ack_add_three m n
   ... ≤ ack (m + 2) (ack (m + 3) n) : ack_mono_left _ $ by linarith
   ... = ack (m + 3) (n + 1) : (ack_succ_succ _ n).symm
@@ -274,9 +274,8 @@ begin
     rw max_ack_left,
     exact max_le_max (ha n).le (hb n).le },
   { exact ⟨max a b + 2, λ n,
-      (ha _).trans ((ack_strict_mono_right a (hb n)).trans $ ack_ack_lt_ack_max_add_two a b n)⟩ },
-  { have H : ∀ m n, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n <
-      ack (max a b + 9) (m + n),
+      (ha _).trans $ (ack_strict_mono_right a $ hb n).trans $ ack_ack_lt_ack_max_add_two a b n⟩ },
+  { have : ∀ m n, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n < ack (max a b + 9) (m + n),
     { intros m n,
       induction n with n IH,
       { apply (ha m).trans (ack_strict_mono_left m $ (le_max_left a b).trans_lt _),
@@ -296,7 +295,7 @@ begin
         apply (ack_strict_mono_right _ IH).le.trans,
         rw [add_succ m, add_succ _ 8, ack_succ_succ (_ + 8), add_assoc],
         exact ack_mono_left _ (add_le_add (le_max_right a b) le_rfl) } },
-    exact ⟨max a b + 9, λ n, (H _ _).trans_le $ ack_mono_right _ $ unpair_sum_le n⟩ }
+    exact ⟨max a b + 9, λ n, (this _ _).trans_le $ ack_mono_right _ $ unpair_sum_le n⟩ }
 end
 
 theorem not_nat_primrec_ack_self : ¬ nat.primrec (λ n, ack n n) :=

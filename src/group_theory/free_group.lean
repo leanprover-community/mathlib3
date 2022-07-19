@@ -369,8 +369,12 @@ instance : has_mul (free_group α) :=
     (λ L₁ L₂ H, quot.induction_on y $ λ L₃, quot.sound $ red.step.append_right H)⟩
 @[simp] lemma mul_mk : mk L₁ * mk L₂ = mk (L₁ ++ L₂) := rfl
 
+/-- Transform a word representing a free group element into a word representing its inverse. --/
 def inv_rev (w : list (α × bool)) : list (α × bool) :=
- (list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse 
+(list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse 
+
+@[simp] lemma inv_rev_eq (w : list (α × bool)) : inv_rev w =  
+(list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse := rfl 
 
 lemma inv_rev_length : (inv_rev L₁).length = L₁.length :=
 begin
@@ -380,7 +384,7 @@ end
 
 instance : has_inv (free_group α) :=
 ⟨λx, quot.lift_on x (λ L, mk (inv_rev L))
-  (assume a b h, quot.sound $ by { unfold inv_rev, cases h; simp })⟩
+  (assume a b h, quot.sound $ by { cases h; simp })⟩
 @[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
 
 instance : group (free_group α) :=
@@ -884,6 +888,7 @@ section metric
 
 variable [decidable_eq α]
 
+/-- The length of reduced words provides a norm on a free group. --/
 def norm (x : free_group α) : nat := x.to_word.length
 
 private lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=

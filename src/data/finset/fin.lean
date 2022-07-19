@@ -12,25 +12,12 @@ A few constructions for finsets in `fin n`.
 
 ## Main declarations
 
-* `finset.fin_range`: `{0, 1, ..., n - 1}` as a `finset (fin n)`.
 * `finset.attach_fin`: Turns a finset of naturals strictly less than `n` into a `finset (fin n)`.
 -/
 
 variables {n : ℕ}
 
 namespace finset
-
-/-- `finset.fin_range n` is the finset `{0, 1, ..., n - 1}`, as a `finset (fin n)`. -/
-def fin_range (n : ℕ) : finset (fin n) := ⟨list.fin_range n, list.nodup_fin_range n⟩
-
-@[simp]
-lemma fin_range_card : (fin_range n).card = n := by simp [fin_range]
-
-@[simp]
-lemma mem_fin_range (m : fin n) : m ∈ fin_range n := list.mem_fin_range m
-
-@[simp] lemma coe_fin_range (n : ℕ) : (fin_range n : set (fin n)) = set.univ :=
-set.eq_univ_of_forall mem_fin_range
 
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/

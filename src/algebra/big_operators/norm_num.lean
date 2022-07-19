@@ -141,12 +141,6 @@ meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   eq ← mk_eq_refl e,
   nd ← i_to_expr ``(list.nodup_range %%en),
   pure (eis, eq, nd)
-| e@`(finset.fin_range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_fin_range %%en),
-  pure (eis, eq, nd)
 | e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
 
 lemma list.map_cons_congr {α β : Type*} (f : α → β) {x : α} {xs : list α} {fx : β} {fxs : list β}

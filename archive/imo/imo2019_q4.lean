@@ -27,20 +27,32 @@ individually.
 open_locale nat big_operators
 open finset multiplicity nat (hiding zero_le prime)
 
-theorem imo2019_q4_upper_bound {k n : ℕ} (hk : k > 0)
+theorem imo2019_q4_upper_bound {k n : ℕ} (hk : 0 < k)
   (h : (k! : ℤ) = ∏ i in range n, (2 ^ n - 2 ^ i)) : n < 6 :=
 begin
   have prime_2 : prime (2 : ℤ),
   { exact prime_iff_prime_int.mp prime_two },
   have h2 : n * (n - 1) / 2 < k,
-  { suffices : multiplicity 2 (k! : ℤ) = (n * (n - 1) / 2 : ℕ),
-    { rw [← part_enat.coe_lt_coe, ← this], change multiplicity ((2 : ℕ) : ℤ) _ < _,
-      simp_rw [int.coe_nat_multiplicity, multiplicity_two_factorial_lt hk.lt.ne.symm] },
-    rw [h, multiplicity.finset.prod prime_2, ← sum_range_id, ← sum_nat_coe_enat],
-    apply sum_congr rfl, intros i hi,
-    rw [multiplicity_sub_of_gt, multiplicity_pow_self_of_prime prime_2],
-    rwa [multiplicity_pow_self_of_prime prime_2, multiplicity_pow_self_of_prime prime_2,
-      part_enat.coe_lt_coe, ←mem_range] },
+  { suffices : k!.factorization 2 = (n * (n - 1) / 2),
+    { rw ←this, exact factorization_two_factorial_lt hk.ne' },
+    rw prime_two.factorization_factorial,
+    have : ∑ (i : ℕ) in Icc 1 n, i = n * (n - 1) / 2, {
+
+
+      sorry },
+    rw ←this,
+
+
+    have := multiplicity.finset.prod,
+    -- rw [h, multiplicity.finset.prod prime_2, ← sum_range_id, ← sum_nat_coe_enat],
+    sorry,
+    -- apply sum_congr rfl, intros i hi,
+    -- rw [multiplicity_sub_of_gt, multiplicity_pow_self_of_prime prime_2],
+    -- rwa [multiplicity_pow_self_of_prime prime_2, multiplicity_pow_self_of_prime prime_2,
+    --   part_enat.coe_lt_coe, ←mem_range]
+      },
+
+
   rw [←not_le], intro hn,
   apply ne_of_lt _ h.symm,
   suffices : (∏ i in range n, 2 ^ n : ℤ) < ↑k!,

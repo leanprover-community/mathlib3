@@ -60,6 +60,30 @@ notation A ` →ₙₐ[`:25 R `] ` B := non_unital_alg_hom R A B
 attribute [nolint doc_blame] non_unital_alg_hom.to_distrib_mul_action_hom
 attribute [nolint doc_blame] non_unital_alg_hom.to_mul_hom
 
+/-- `non_unital_alg_hom_class F R A B` asserts `F` is a type of bundled algebra homomorphisms
+from `A` to `B`.  -/
+class non_unital_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
+  (B : out_param Type*) [monoid R]
+  [non_unital_non_assoc_semiring A] [non_unital_non_assoc_semiring B]
+  [distrib_mul_action R A] [distrib_mul_action R B]
+  extends distrib_mul_action_hom_class F R A B, mul_hom_class F A B
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] non_unital_alg_hom_class.to_mul_hom_class
+
+namespace non_unital_alg_hom_class
+
+variables [semiring R]
+  [non_unital_non_assoc_semiring A] [module R A]
+  [non_unital_non_assoc_semiring B] [module R B]
+
+@[priority 100] -- see Note [lower instance priority]
+instance {F : Type*} [non_unital_alg_hom_class F R A B] : linear_map_class F R A B :=
+{ map_smulₛₗ := distrib_mul_action_hom_class.map_smul,
+  ..‹non_unital_alg_hom_class F R A B› }
+
+end non_unital_alg_hom_class
+
 namespace non_unital_alg_hom
 
 variables {R A B C} [monoid R]
@@ -77,6 +101,14 @@ initialize_simps_projections non_unital_alg_hom (to_fun → apply)
 lemma coe_injective :
   @function.injective (A →ₙₐ[R] B) (A → B) coe_fn :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
+
+instance : non_unital_alg_hom_class (A →ₙₐ[R] B) R A B :=
+{ coe := to_fun,
+  coe_injective' := coe_injective,
+  map_smul := λ f, f.map_smul',
+  map_add := λ f, f.map_add',
+  map_zero := λ f, f.map_zero',
+  map_mul := λ f, f.map_mul' }
 
 @[ext] lemma ext {f g : A →ₙₐ[R] B} (h : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext h
@@ -131,20 +163,16 @@ by { ext, refl, }
   ((⟨f, h₁, h₂, h₃, h₄⟩ : A →ₙₐ[R] B) : A →ₙ* B) = ⟨f, h₄⟩ :=
 by { ext, refl, }
 
-@[simp] lemma map_smul (f : A →ₙₐ[R] B) (c : R) (x : A) :
-  f (c • x) = c • f x :=
-f.to_distrib_mul_action_hom.map_smul c x
+@[simp] protected lemma map_smul (f : A →ₙₐ[R] B) (c : R) (x : A) :
+  f (c • x) = c • f x := map_smul _ _ _
 
-@[simp] lemma map_add (f : A →ₙₐ[R] B) (x y : A) :
-  f (x + y) = (f x) + (f y) :=
-f.to_distrib_mul_action_hom.map_add x y
+@[simp] protected lemma map_add (f : A →ₙₐ[R] B) (x y : A) :
+  f (x + y) = (f x) + (f y) := map_add _ _ _
 
-@[simp] lemma map_mul (f : A →ₙₐ[R] B) (x y : A) :
-  f (x * y) = (f x) * (f y) :=
-f.to_mul_hom.map_mul x y
+@[simp] protected lemma map_mul (f : A →ₙₐ[R] B) (x y : A) :
+  f (x * y) = (f x) * (f y) := map_mul _ _ _
 
-@[simp] lemma map_zero (f : A →ₙₐ[R] B) : f 0 = 0 :=
-f.to_distrib_mul_action_hom.map_zero
+@[simp] protected lemma map_zero (f : A →ₙₐ[R] B) : f 0 = 0 := map_zero _
 
 instance : has_zero (A →ₙₐ[R] B) :=
 ⟨{ map_mul' := by simp,
@@ -263,9 +291,14 @@ namespace alg_hom
 
 variables {R A B} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
 
+@[priority 100] -- see Note [lower instance priority]
+instance {F : Type*} [alg_hom_class F R A B] : non_unital_alg_hom_class F R A B :=
+{ map_smul := map_smul,
+  ..‹alg_hom_class F R A B› }
+
 /-- A unital morphism of algebras is a `non_unital_alg_hom`. -/
 def to_non_unital_alg_hom (f : A →ₐ[R] B) : A →ₙₐ[R] B :=
-{ map_smul' := f.map_smul, .. f, }
+{ map_smul' := map_smul f, .. f, }
 
 instance non_unital_alg_hom.has_coe : has_coe (A →ₐ[R] B) (A →ₙₐ[R] B) :=
 ⟨to_non_unital_alg_hom⟩

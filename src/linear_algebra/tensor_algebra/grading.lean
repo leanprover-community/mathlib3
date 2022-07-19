@@ -37,12 +37,12 @@ variables {R M}
 instance graded_algebra :
   graded_algebra ((^) (ι R : M →ₗ[R] tensor_algebra R M).range : ℕ → submodule R _) :=
 graded_algebra.of_alg_hom _
-  (lift _ $ graded_algebra.ι R M)
+  (lift R $ graded_algebra.ι R M)
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
       alg_hom.id_apply],
-    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
+    rw [lift_ι_apply, graded_algebra.ι_apply R M, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (λ i x, begin
     cases x with x hx,
@@ -52,7 +52,7 @@ graded_algebra.of_alg_hom _
     { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
     { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
     { obtain ⟨_, rfl⟩ := hm,
-      rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
+      rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply R M, direct_sum.of_mul_of],
       exact direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext (add_comm _ _) rfl) }
   end)
 

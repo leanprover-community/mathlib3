@@ -465,7 +465,7 @@ disjoint_left.2 $ λ y hy, not_mem_of_dist_lt_inf_dist $
   ... < inf_dist x s : hy
 
 lemma ball_inf_dist_subset_compl : ball x (inf_dist x s) ⊆ sᶜ :=
-disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
+disjoint_ball_inf_dist.subset_compl_right
 
 lemma ball_inf_dist_compl_subset : ball x (inf_dist x sᶜ) ⊆ s :=
 ball_inf_dist_subset_compl.trans (compl_compl s).subset
@@ -1064,6 +1064,18 @@ begin
   refine ⟨δ / 2, half_pos hδ, h.mono _ _⟩;
     exact (cthickening_subset_thickening' hδ (half_lt_self hδ) _),
 end
+
+lemma _root_.is_compact.exists_thickening_subset_open (hs : is_compact s) (ht : is_open t)
+  (hst : s ⊆ t) :
+  ∃ δ, 0 < δ ∧ thickening δ s ⊆ t :=
+(hst.disjoint_compl_right.exists_thickenings hs ht.is_closed_compl).imp $ λ δ h,
+  ⟨h.1, disjoint_compl_right_iff_subset.1 $ h.2.mono_right $ self_subset_thickening h.1 _⟩
+
+lemma _root_.is_compact.exists_cthickening_subset_open (hs : is_compact s) (ht : is_open t)
+  (hst : s ⊆ t) :
+  ∃ δ, 0 < δ ∧ cthickening δ s ⊆ t :=
+(hst.disjoint_compl_right.exists_cthickenings hs ht.is_closed_compl).imp $ λ δ h,
+  ⟨h.1, disjoint_compl_right_iff_subset.1 $ h.2.mono_right $ self_subset_cthickening _⟩
 
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :

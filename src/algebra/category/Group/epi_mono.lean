@@ -23,12 +23,37 @@ open quotient_group
 
 variables {A : Type u} {B : Type v}
 
+section
+
 variables [group A] [group B]
 
 @[to_additive add_monoid_hom.ker_eq_bot_of_cancel]
 lemma ker_eq_bot_of_cancel {f : A →* B} (h : ∀ (u v : f.ker →* A), f.comp u = f.comp v → u = v) :
   f.ker = ⊥ :=
 by simpa using _root_.congr_arg range (h f.ker.subtype 1 (by tidy))
+
+end
+
+section
+
+variables [comm_group A] [comm_group B]
+
+@[to_additive add_monoid_hom.range_eq_top_of_cancel]
+lemma range_eq_top_of_cancel {f : A →* B}
+  (h : ∀ (u v : B →* B ⧸ f.range), u.comp f = v.comp f → u = v) :
+  f.range = ⊤ :=
+begin
+  specialize h 1 (quotient_group.mk' _) _,
+  { ext1,
+    simp only [one_apply, coe_comp, coe_mk', function.comp_app],
+    rw [show (1 : B ⧸ f.range) = (1 : B), from quotient_group.coe_one _, quotient_group.eq,
+     inv_one, one_mul],
+    exact ⟨x, rfl⟩, },
+  replace h : (quotient_group.mk' _).ker = (1 : B →* B ⧸ f.range).ker := by rw h,
+  rwa [ker_one, quotient_group.ker_mk] at h,
+end
+
+end
 
 end monoid_hom
 
@@ -308,18 +333,15 @@ variables {A B : CommGroup.{u}} (f : A ⟶ B)
 @[to_additive AddCommGroup.ker_eq_bot_of_mono]
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
 monoid_hom.ker_eq_bot_of_cancel $ λ u v,
-  (@cancel_mono _ _ _ _ _ f _
-    (show CommGroup.of f.ker ⟶ A, from u) _).1
+  (@cancel_mono _ _ _ _ _ f _ (show Group.of f.ker ⟶ A, from u) _).1
 
 @[to_additive AddCommGroup.mono_iff_ker_eq_bot]
-lemma mono_iff_ker_eq_bot :
-  mono f ↔ f.ker = ⊥ :=
+lemma mono_iff_ker_eq_bot : mono f ↔ f.ker = ⊥ :=
 ⟨λ h, @@ker_eq_bot_of_mono f h,
-λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot_iff f).1 h⟩
+ λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot_iff f).1 h⟩
 
 @[to_additive AddCommGroup.mono_iff_injective]
-lemma mono_iff_injective :
-  mono f ↔ function.injective f :=
+lemma mono_iff_injective : mono f ↔ function.injective f :=
 iff.trans (mono_iff_ker_eq_bot f) $ monoid_hom.ker_eq_bot_iff f
 
 @[to_additive]

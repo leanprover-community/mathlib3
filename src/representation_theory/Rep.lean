@@ -79,6 +79,11 @@ end Rep
 namespace Rep
 variables {k G : Type u} [comm_ring k] [monoid G]
 
+-- Verify that the symmetric monoidal structure is available.
+example : symmetric_category (Rep k G) := by apply_instance
+example : monoidal_preadditive (Rep k G) := by apply_instance
+example : monoidal_linear k (Rep k G) := by apply_instance
+
 noncomputable theory
 
 /-- Auxilliary lemma for `to_Module_monoid_algebra`. -/
@@ -181,11 +186,6 @@ def equivalence_Module_monoid_algebra : Rep k G ≌ Module.{u} (monoid_algebra k
   inverse := of_Module_monoid_algebra,
   unit_iso := nat_iso.of_components (λ V, unit_iso V) (by tidy),
   counit_iso := nat_iso.of_components (λ M, counit_iso M) (by tidy), }
-
--- Verify that the symmetric monoidal structure is available.
-example : symmetric_category (Rep k G) := by apply_instance
-example : monoidal_preadditive (Rep k G) := by apply_instance
-example : monoidal_linear k (Rep k G) := by apply_instance
 
 -- TODO Verify that the equivalence with `Module (monoid_algebra k G)` is a monoidal functor.
 

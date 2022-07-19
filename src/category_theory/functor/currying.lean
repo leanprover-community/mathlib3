@@ -15,11 +15,12 @@ and verify that they provide an equivalence of categories
 -/
 namespace category_theory
 
-universes v₁ v₂ v₃ u₁ u₂ u₃
+universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 
 variables {C : Type u₁} [category.{v₁} C]
           {D : Type u₂} [category.{v₂} D]
           {E : Type u₃} [category.{v₃} E]
+          {B : Type u₄} [category.{v₄} B]
 
 /--
 The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a functor `(C × D) ⥤ E`.
@@ -113,5 +114,15 @@ swapping the factors followed by the uncurrying of `F`. -/
 @[simps]
 def uncurry_obj_flip (F : C ⥤ D ⥤ E) : uncurry.obj F.flip ≅ prod.swap _ _ ⋙ uncurry.obj F :=
 nat_iso.of_components (λ p, iso.refl _) (by tidy)
+
+variables (B C D E)
+
+/--
+A version of `category_theory.whiskering_right` for bifunctors, obtained by uncurrying,
+applying `whiskering_right` and currying back
+-/
+@[simps] def whiskering_rigth₂ : (C ⥤ D ⥤ E) ⥤ ((B ⥤ C) ⥤ (B ⥤ D) ⥤ (B ⥤ E)) :=
+uncurry ⋙ (whiskering_right _ _ _) ⋙
+((whiskering_left _ _ _).obj (prod_functor_to_functor_prod _ _ _)) ⋙ curry
 
 end category_theory

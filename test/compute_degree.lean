@@ -13,12 +13,12 @@ example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
  (p ^ n).nat_degree ≤ 0 :=
 by cases n; compute_degree_le
 
-example {p q r : R[X]} {n0 : ℕ} {p0 : p.nat_degree = n0} {q0 : q.nat_degree = 0}
-  {r0 : r.nat_degree = 1} :
- (q * p ^ n0 * r).nat_degree ≤ n0 ^ 2 + 1 :=
+example {p q r : R[X]} {a b c d e f m n : ℕ} {p0 : p.nat_degree = a} {q0 : q.nat_degree = b}
+  {r0 : r.nat_degree = c} :
+  (((q ^ e * p ^ d) ^ m * r ^ f) ^ n).nat_degree ≤ ((b * e + a * d) * m + c * f) * n :=
 begin
   compute_degree_le,
-  rw [p0, q0, r0, zero_add, nat.succ_le_succ_iff, sq],
+  rw [p0, q0, r0],
 end
 
 example {F} [ring F] {p : F[X]} (p0 : p.nat_degree ≤ 0) :

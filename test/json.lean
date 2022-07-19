@@ -14,6 +14,20 @@ run_cmd do
   let j := json.of_int (-1),
   tactic.success_if_fail_with_msg (of_json ℕ j) "must be non-negative"
 
+run_cmd do
+  let j := json.of_int 1,
+  v ← of_json {x // x ≠ some 2} j,
+  guard (v = ⟨some 1, dec_trivial⟩),
+  v ← of_json (option {x // x ≠ 2}) j,
+  guard (v = some ⟨1, dec_trivial⟩)
+
+run_cmd do
+  let j := json.null,
+  v ← of_json {x // x ≠ some 2} j,
+  guard (v = ⟨none, dec_trivial⟩),
+  v ← of_json (option {x // x ≠ 2}) j,
+  guard (v = none)
+
 @[derive [decidable_eq, non_null_json_serializable]]
 structure my_type (yval : bool) :=
 (x : nat)

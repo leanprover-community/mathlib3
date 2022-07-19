@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import data.matrix.basic
 import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
+import group_theory.quotient_group
 
 /-!
 # The Special Linear group $SL(n, R)$
@@ -222,7 +223,11 @@ lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl
 
 end coe_fn_instance
 
-namespace projective
+end special_linear_group
+
+namespace projective_special_linear_group
+
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 def diagonal_subgroup : subgroup (special_linear_group n R) :=
 { carrier := { A : special_linear_group n R | ∃ x, matrix.scalar n x = A },
@@ -239,19 +244,29 @@ inv_mem' := begin
   rintros a ⟨xa, ha⟩,
   use xa ^ ((finset.univ : finset n).card - 1),
   simp only [coe_scalar, coe_fn_eq_coe, coe_inv] at ⊢ ha,
-  simp only [← ha, ← diagonal_one, ← diagonal_smul, adjugate_diagonal, diagonal_smul, 
-  diagonal_one, pi.smul_apply, algebra.id.smul_eq_mul, mul_one, finset.prod_const,
-  finset.card_erase_of_mem, finset.mem_univ],
-rw ← diagonal_one,
-rw ← diagonal_smul,
-rw matrix.diagonal_eq_diagonal_iff,
-simp only [pi.smul_apply, algebra.id.smul_eq_mul, mul_one, eq_self_iff_true, implies_true_iff],
+  simp only [← ha, ← diagonal_one, ← diagonal_smul, adjugate_diagonal],
+  simp only [diagonal_smul, diagonal_one, pi.smul_apply, algebra.id.smul_eq_mul, mul_one, 
+    finset.prod_const, finset.card_erase_of_mem, finset.mem_univ],
+  simp only [← diagonal_one, ← diagonal_smul, matrix.diagonal_eq_diagonal_iff],
+  simp only [pi.smul_apply, algebra.id.smul_eq_mul, mul_one, eq_self_iff_true, implies_true_iff],
 end,
 }
 
-end projective
+instance diagonal_is_normal : (diagonal_subgroup : subgroup (special_linear_group n R)).normal :=
+by sorry
 
-end special_linear_group
+end projective_special_linear_group
 
+section
+
+variables (n : Type u) [decidable_eq n] [fintype n] (R : Type v) [comm_ring R]
+
+def projective_special_linear_group := 
+quotient_group.quotient.group 
+(projective_special_linear_group.diagonal_subgroup : subgroup (special_linear_group n R))
+
+end
+
+localized "notation `PSL(` n `,` R `)`:= matrix.projective_special_linear_group (fin n) R" in matrix_groups
 
 end matrix

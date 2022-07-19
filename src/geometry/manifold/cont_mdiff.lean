@@ -713,6 +713,18 @@ lemma cont_mdiff_at_iff_cont_mdiff_on_nhds {n : ℕ} :
 by simp [← cont_mdiff_within_at_univ, cont_mdiff_within_at_iff_cont_mdiff_on_nhds,
   nhds_within_univ]
 
+/-- Note: does not hold for `n = ∞`. -/
+lemma cont_mdiff_at_iff_cont_mdiff_at_nhds {n : ℕ} :
+  cont_mdiff_at I I' n f x ↔ ∀ᶠ x' in 𝓝 x, cont_mdiff_at I I' n f x' :=
+begin
+  refine ⟨_, λ h, h.self_of_nhds⟩,
+  rw [cont_mdiff_at_iff_cont_mdiff_on_nhds],
+  rintro ⟨u, hu, h⟩,
+  obtain ⟨v, hvu, hv, hxv⟩ := mem_nhds_iff.mp hu,
+  refine eventually_of_mem (hv.mem_nhds hxv) (λ x' hx', _),
+  exact (h x' (hvu hx')).cont_mdiff_at (mem_of_superset (hv.mem_nhds hx') hvu)
+end
+
 omit Is I's
 
 /-! ### Congruence lemmas -/

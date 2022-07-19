@@ -829,11 +829,10 @@ by rintros ⟨L⟩; exact reduce.self
 lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
-theorem to_word.le_length (x : free_group α) (h : free_group.mk L₁ = x) : x.to_word.length ≤ L₁.length := 
+theorem to_word.le_length : (mk L₁).to_word.length ≤ L₁.length := 
 begin
-  suffices k : red L₁ (x.to_word),
+  suffices k : red L₁ (mk L₁).to_word,
   { exact list.length_le_of_sublist (red.sublist k), },
-  rw ← h,
   unfold to_word, 
   simp [reduce.red],
 end
@@ -889,12 +888,13 @@ def norm (x : free_group α) : nat := x.to_word.length
 
 private lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
 begin
-  set w := x.to_word with hw,
+  let w := x.to_word,
  
-  calc norm x⁻¹ ≤ (inv_rev w).length : to_word.le_length (x⁻¹) 
-       (by simp only [←inv_mk,to_word.mk])
-   ... = w.length : inv_rev_length
-   ... = norm x : by unfold norm,
+  calc norm x⁻¹ = norm ((mk (x.to_word))⁻¹) : by simp only [to_word.mk]
+       ... = norm (mk (inv_rev w)) : by simp only [←inv_mk]
+       ... ≤ (inv_rev w).length : by exact to_word.le_length
+       ... = w.length : inv_rev_length
+       ... = norm x : by unfold norm,
 end
 
 lemma norm_inv_eq (x : free_group α) : norm x = norm x⁻¹ :=
@@ -927,15 +927,19 @@ begin
   unfold norm,
   
   set wx := x.to_word with hwx,
+  have mwx : (mk wx) = x := to_word.mk,
   set wy := y.to_word with hwy,
+  have mwy : (mk wy) = y := to_word.mk,
 
   set wxy := wx ++ wy with hwxy,
   rw ←list.length_append,
-   
+  
+  rw ← mwx,
+  rw ← mwy, 
   apply to_word.le_length,
-  rw [← mul_mk, to_word.mk, to_word.mk],
 end
 
 end metric
 
 end free_group
+

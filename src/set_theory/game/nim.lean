@@ -134,18 +134,6 @@ by simp
 theorem nim_one_move_right (x) : (nim 1).move_right x = nim 0 :=
 by simp
 
-instance : is_empty (nim 0).left_moves :=
-by { rw nim_def, exact ordinal.is_empty_out_zero }
-
-instance : is_empty (nim 0).right_moves :=
-by { rw nim_def, exact ordinal.is_empty_out_zero }
-
-noncomputable instance : unique (nim 1).left_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
-
-noncomputable instance : unique (nim 1).right_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
-
 /-- `nim 0` has exactly the same moves as `0`. -/
 def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 

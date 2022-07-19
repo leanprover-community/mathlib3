@@ -260,7 +260,8 @@ limits.colimit.ι_desc _ _
 
 @[simp] lemma stalk_to_fiber_ring_hom_germ' (U : opens (projective_spectrum.Top 𝒜))
   (x : projective_spectrum.Top 𝒜) (hx : x ∈ U) (s : (Proj.structure_sheaf 𝒜).1.obj (op U)) :
-  stalk_to_fiber_ring_hom 𝒜 x ((Proj.structure_sheaf 𝒜).presheaf.germ ⟨x, hx⟩ s) = (s.1 ⟨x, hx⟩ : _) :=
+  stalk_to_fiber_ring_hom 𝒜 x
+    ((Proj.structure_sheaf 𝒜).presheaf.germ ⟨x, hx⟩ s) = (s.1 ⟨x, hx⟩ : _) :=
 ring_hom.ext_iff.1 (germ_comp_stalk_to_fiber_ring_hom 𝒜 U ⟨x, hx⟩ : _) s
 
 @[simp] lemma stalk_to_fiber_ring_hom_germ (U : opens (projective_spectrum.Top 𝒜)) (x : U)

@@ -418,7 +418,9 @@ variable (s : pullback_cone
 variable [has_products.{v} C]
 
 /-- (Implementation).
-Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`. -/
+Every cone over `F(U) ⟶ F(U ∩ V)` and `F(V) ⟶ F(U ∩ V)` factors through `F(U ∪ V)`.
+TODO: generalize to `C` without products.
+-/
 def inter_union_pullback_cone_lift : s.X ⟶ F.1.obj (op (U ∪ V)) :=
 begin
   let ι : ulift.{v} walking_pair → opens X := λ j, walking_pair.cases_on j.down U V,

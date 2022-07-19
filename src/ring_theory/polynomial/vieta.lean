@@ -29,18 +29,21 @@ variables {R : Type*} [comm_semiring R]
 
 /-- TODO. This should go elsewhere... -/
 lemma sum_powerset_len {α : Type*} (S : multiset α) :
-  S.powerset = ∑ k in finset.range(S.card + 1), (S.powerset_len k) :=
+  S.powerset = ∑ k in finset.range (S.card + 1), (S.powerset_len k) :=
 begin
+  classical,
   apply eq.symm,
   apply multiset.eq_of_le_of_card_le,
-  { apply multiset.finset_sum_le_of_le_of_disjoint,
-    { exact λ _ _, multiset.powerset_len_le_powerset _ _, },
-    { exact λ _ _ _ _ hxny _ htx hty,
+  suffices : finset.sup (finset.range (S.card + 1)) (λ k, S.powerset_len k) ≤ S.powerset,
+  { apply eq.trans_le _ this,
+    exact finset_sum_eq_sup_of_disjoint (λ _ _ _ _ hxny _ htx hty,
       hxny (eq.trans (multiset.mem_powerset_len.mp htx).right.symm
-        (multiset.mem_powerset_len.mp hty).right) }},
+      (multiset.mem_powerset_len.mp hty).right)), },
+  { rw finset.sup_le_iff,
+    exact λ b _, powerset_len_le_powerset b S, },
   { rw [multiset.card_powerset, map_sum card],
     conv_rhs { congr, skip, funext, rw multiset.card_powerset_len },
-    exact eq.le (nat.sum_range_choose S.card).symm, }
+    exact eq.le (nat.sum_range_choose S.card).symm, },
 end
 
 /-- A sum version of Vieta's formula for `multiset`: the product of the linear terms `X + λ` where
@@ -106,9 +109,9 @@ lemma prod_X_sub_C_eq_sum_esymm (s : multiset R) :
   ∑ j in finset.range (s.card + 1),
   (-1)^j* (polynomial.C (s.esymm j) * polynomial.X ^ (s.card - j)) :=
 begin
-  conv_lhs { congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg polynomial.C _,  },
+  conv_lhs { congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg polynomial.C _, },
   convert prod_X_add_C_eq_sum_esymm (map (λ t, -t) s) using 1,
-  { rw map_map },
+  { rw map_map, },
   { simp only [esymm_neg, card_map, mul_assoc, map_mul, map_pow, map_neg, map_one], },
 end
 
@@ -116,7 +119,7 @@ lemma prod_X_sub_C_coeff (s : multiset R) {k : ℕ} (h : k ≤ s.card):
   polynomial.coeff (s.map (λ t, polynomial.X - polynomial.C t)).prod k =
     (-1)^(s.card - k) * s.esymm (s.card - k) :=
 begin
-  conv_lhs { congr, congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg polynomial.C _,  },
+  conv_lhs { congr, congr, congr, funext, rw sub_eq_add_neg, rw ←map_neg polynomial.C _, },
   convert prod_X_add_C_coeff (map (λ t, -t) s) _ using 1,
   { rw map_map, },
   { rw [esymm_neg, card_map] },

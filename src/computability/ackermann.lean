@@ -10,9 +10,8 @@ import tactic.linarith
 /-!
 # Ackermann function
 
-In this file, we define the two-argument Ackermann function `ack`, which is defined via recursion on
-pairs of naturals with the lexicographic order. We then show that it isn't a primitive recursive
-function.
+In this file, we define the two-argument Ackermann function `ack`. Despite having a recursive
+definition, we show that this isn't a primitive recursive function.
 
 ## Main result
 
@@ -252,7 +251,7 @@ calc ack m ((n + 1) ^ 2)
   ... ≤ ack (m + 4) n : ack_succ_right_le_ack_succ_left _ n
 
 theorem ack_mkpair_lt (m n k : ℕ) : ack m (mkpair n k) < ack (m + 4) (max n k) :=
-(ack_strict_mono_right m (mkpair_lt_max_succ_sq n k)).trans (ack_succ_sq_lt_ack_add_four _ _)
+(ack_strict_mono_right m $ mkpair_lt_max_succ_sq n k).trans $ ack_succ_sq_lt_ack_add_four _ _
 
 /-- If `f` is primitive recursive, there exists `m` such that `f n < ack m n` for all `n`. -/
 theorem exists_lt_ack_of_nat_primrec {f : ℕ → ℕ} (hf : nat.primrec f) : ∃ m, ∀ n, f n < ack m n :=

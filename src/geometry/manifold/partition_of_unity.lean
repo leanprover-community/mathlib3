@@ -3,11 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import analysis.convex.partition_of_unity
 import geometry.manifold.algebra.structures
 import geometry.manifold.bump_function
-import topology.paracompact
-import topology.partition_of_unity
-import topology.shrinking_lemma
 
 /-!
 # Smooth partition of unity
@@ -40,10 +38,6 @@ We prove that on a smooth finitely dimensional real manifold with `σ`-compact H
 for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering ι I M s`
 subordinate to `U`. Then we use this fact to prove a similar statement about smooth partitions of
 unity.
-
-## Implementation notes
-
-
 
 ## TODO
 
@@ -420,3 +414,18 @@ begin
 end
 
 end smooth_partition_of_unity
+
+lemma exists_smooth_forall_mem_convex_of_local [sigma_compact_space M] [t2_space M] {t : M → set F}
+  (ht : ∀ x, convex ℝ (t x))
+  (Hloc : ∀ x : M, ∃ (U ∈ 𝓝 x) (g : M → F), smooth_on I 𝓘(ℝ, F) g U ∧ ∀ y ∈ U, g y ∈ t y) :
+  ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
+begin
+  choose U hU g hgs hgt using Hloc,
+  obtain ⟨f, hf⟩ := smooth_partition_of_unity.exists_is_subordinate I is_closed_univ
+    (λ x, interior (U x)) (λ x, is_open_interior)
+    (λ x hx, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩),
+  refine ⟨⟨λ x, ∑ᶠ i, f i x • g i x, f.smooth_finsum_smul $ λ i x hx, _⟩, λ x, _⟩,
+  { exact (hgs _).smooth_at (mem_interior_iff_mem_nhds.1 $ hf _ hx) },
+  { refine f.to_partition_of_unity.finsum_smul_mem_convex (mem_univ x) (λ i hi, hgt _ _ _) (ht _),
+    exact interior_subset (hf _ $ subset_closure hi) }
+end

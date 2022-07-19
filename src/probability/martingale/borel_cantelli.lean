@@ -40,7 +40,7 @@ by filter_upwards [hf, hg] with x hfx hgx using add_le_add hfx hgx
 variables {β : Type*}
 variables {u : ℕ → α → β} {τ : α → ℕ}
 
-lemma stopped_value_eq' [add_comm_monoid β] (n : ℕ) :
+lemma stopped_process_eq' [add_comm_monoid β] (n : ℕ) :
   stopped_process u τ n =
   set.indicator {a | n + 1 ≤ τ a} (u n) +
     ∑ i in finset.range (n + 1), set.indicator {a | τ a = i} (u i) :=
@@ -73,39 +73,60 @@ end
 
 end move
 
--- Could generalize but need to refactor stopped process
-lemma submartingale.stopped_process_least_ge [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (r : ℝ) (n : ℕ) :
-  submartingale (λ n, stopped_value f (least_ge f r n)) ℱ μ :=
+lemma stopped_value_least_ge_eq (i : ℕ) (r : ℝ) :
+  stopped_value f (least_ge f r i) = stopped_process f (least_ge f r i) i :=
 begin
-  refine submartingale_nat _ _ _,
-  { sorry
+  ext x,
+  exact congr_arg2 _ (min_eq_right (hitting_le x : least_ge f r i x ≤ i)).symm rfl
+end
 
-  },
-  -- (hf.adapted.stopped_process_of_nat
-  --   (hf.adapted.is_stopping_time_least_ge r n))
-  --   (integrable_stopped_process (hf.adapted.is_stopping_time_least_ge r n) hf.integrable)
-  --   (λ i, _),
-  have hst := hf.adapted.is_stopping_time_least_ge r n,
-  have hsint : integrable (∑ i in finset.range (i + 1),
-    {a | least_ge f r n a = i}.indicator (f i)) μ :=
-    integrable_finset_sum' _ (λ j _, (hf.integrable j).indicator $
-      ℱ.le _ _ ((hf.adapted.is_stopping_time_least_ge r n).measurable_set_eq j)),
-  have hmeas : measurable_set[ℱ i] {a | i + 1 ≤ least_ge f r n a},
-  { simp_rw [nat.succ_le_iff, ← not_le],
-    exact (hst.measurable_set_le i).compl },
-  rw [stopped_process_eq', stopped_process_eq],
-  refine eventually_le.trans _ (condexp_add ((hf.integrable (i + 1)).indicator $
-    (ℱ.le _ _ hmeas)) hsint).symm.le,
+-- lemma stopped_process_least_ge_succ
+
+lemma submartingale.stopped_value_least_ge [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (r : ℝ) :
+  submartingale (λ i, stopped_value f (least_ge f r i)) ℱ μ :=
+begin
+  -- have hst := hf.adapted.is_stopping_time_least_ge r n,
+  refine submartingale_nat (λ N, strongly_measurable_stopped_value_of_le
+      hf.adapted.prog_measurable_of_nat
+      (hf.adapted.is_stopping_time_least_ge _ _) (λ x, hitting_le _))
+    (λ i, integrable_stopped_value (hf.adapted.is_stopping_time_least_ge _ _)
+      hf.integrable (λ x, hitting_le _)) (λ i, _),
+  have hsint : integrable (∑ j in finset.range (i + 1),
+    {a | least_ge f r (i + 1) a = j}.indicator (f j)) μ := sorry,
+    -- integrable_finset_sum' _ (λ j _, (hf.integrable j).indicator $
+    --   ℱ.le _ _ ((hf.adapted.is_stopping_time_least_ge r j).measurable_set_eq j)),
+  have hmeas : measurable_set[ℱ i] {a | i + 1 ≤ least_ge f r (i + 1) a}, sorry,
+  -- { simp_rw [nat.succ_le_iff, ← not_le],
+  --   exact (hst.measurable_set_le i).compl },
   have hmeas' : strongly_measurable[ℱ i]
-    (∑ i in finset.range (i + 1), {a | least_ge f r n a = i}.indicator (f i)) :=
-    finset.strongly_measurable_sum' _ (λ j hj,
-      ((hf.strongly_measurable j).mono (ℱ.mono $ finset.mem_range_succ_iff.1 hj)).indicator $
-      ℱ.mono (finset.mem_range_succ_iff.1 hj) _ (hst.measurable_set_eq j)),
+    (∑ j in finset.range (i + 1), {a | least_ge f r (i + 1) a = j}.indicator (f j)) := sorry,
+  --   finset.strongly_measurable_sum' _ (λ j hj,
+  --     ((hf.strongly_measurable j).mono (ℱ.mono $ finset.mem_range_succ_iff.1 hj)).indicator $
+  --     ℱ.mono (finset.mem_range_succ_iff.1 hj) _ (hst.measurable_set_eq j)),
+  simp_rw [stopped_value_least_ge_eq],
+  rw [stopped_process_eq, stopped_process_eq],
+  refine eventually_le.trans _ (condexp_add ((hf.integrable (i + 1)).indicator $
+    ℱ.le _ _ hmeas) hsint).symm.le,
   rw condexp_of_strongly_measurable (ℱ.le _) hmeas' hsint,
-  exact eventually_le.add_le_add (eventually_le.trans (indicator_eventually_le_indicator $
-    eventually.filter_mono inf_le_left (hf.2.1 i _ (i.le_succ)))
-    (condexp_indicator (hf.integrable _) hmeas).symm.le) (eventually_le.refl _ _),
+  refine eventually_le.add_le_add _ (eventually_eq.le $ eventually_of_forall $ λ x, _),
+  { sorry },
+  { rw [finset.sum_apply, finset.sum_apply],
+    refine finset.sum_congr rfl (λ j hj, _),
+    congr,
+    ext y,
+    simp_rw [least_ge],
+    refine ⟨λ h, _, λ h, _⟩,
+    { rw [← h, eq_comm],
+      refine hitting_eq_hitting_of_exists (zero_le _) i.le_succ _,
+      obtain ⟨j, hj⟩ := (hitting_lt_iff _ _).1 (lt_of_le_of_lt h.le (finset.mem_range.1 hj)),
+      -- refine hitting_mem_set _,
+    },
+
+  }
+  -- (eventually_le.trans (indicator_eventually_le_indicator $
+  --   eventually.filter_mono inf_le_left (hf.2.1 i _ (i.le_succ)))
+  --   (condexp_indicator (hf.integrable _) hmeas).symm.le) (eventually_le.refl _ _),
 end
 
 variables {r : ℝ} {R : ℝ≥0}

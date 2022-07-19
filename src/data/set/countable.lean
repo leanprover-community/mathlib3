@@ -27,7 +27,7 @@ constructive analogue of countability. (For the most part, theorems about
 -/
 protected def countable (s : set α) : Prop := nonempty (encodable s)
 
-lemma countable_iff_exists_injective {s : set α} :
+protected lemma countable_iff_exists_injective {s : set α} :
   s.countable ↔ ∃f:s → ℕ, injective f :=
 ⟨λ ⟨h⟩, by exactI ⟨encode, encode_injective⟩,
  λ ⟨f, h⟩, ⟨⟨f, partial_inv f, partial_inv_left h⟩⟩⟩
@@ -36,13 +36,13 @@ lemma countable_iff_exists_injective {s : set α} :
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :
   s.countable ↔ ∃ f : α → ℕ, inj_on f s :=
-countable_iff_exists_injective.trans
+set.countable_iff_exists_injective.trans
 ⟨λ ⟨f, hf⟩, ⟨λ a, if h : a ∈ s then f ⟨a, h⟩ else 0,
    λ a as b bs h, congr_arg subtype.val $
      hf $ by simpa [as, bs] using h⟩,
  λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
 
-lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
+protected lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
   s.countable ↔ ∃f:ℕ → α, s ⊆ range f :=
 ⟨λ ⟨h⟩, by inhabit α; exactI ⟨λ n, ((decode s n).map subtype.val).iget,
   λ a as, ⟨encode (⟨a, as⟩ : s), by simp [encodek]⟩⟩,
@@ -69,7 +69,7 @@ have (∃ f : ℕ → s, surjective f) → s.countable, from assume ⟨f, fsurj�
 by split; assumption
 
 /-- Convert `set.countable s` to `encodable s` (noncomputable). -/
-def countable.to_encodable {s : set α} : s.countable → encodable s :=
+protected def countable.to_encodable {s : set α} : s.countable → encodable s :=
 classical.choice
 
 lemma countable_encodable' (s : set α) [H : encodable s] : s.countable :=
@@ -86,7 +86,7 @@ begin
   letI : encodable s := countable.to_encodable hc,
   letI : nonempty s := hs.to_subtype,
   have : (univ : set s).countable := countable_encodable _,
-  rcases countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
+  rcases set.countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
   have : range g = univ := univ_subset_iff.1 hg,
   use coe ∘ g,
   simp only [range_comp, this, image_univ, subtype.range_coe]

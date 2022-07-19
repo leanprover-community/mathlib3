@@ -213,12 +213,10 @@ end⟩, ⟨λ a b h, begin
 end⟩⟩, λ h, @sum.densely_ordered _ _ _ _ h.1 h.2⟩
 
 @[simp] lemma swap_le_swap_iff [has_le α] [has_le β] {a b : α ⊕ β} : a.swap ≤ b.swap ↔ a ≤ b :=
-by cases a; cases b;
-  simp only [swap, inr_le_inr_iff, inl_le_inl_iff, not_inl_le_inr, not_inr_le_inl]
+lift_rel_swap_iff
 
 @[simp] lemma swap_lt_swap_iff [has_lt α] [has_lt β] {a b : α ⊕ β} : a.swap < b.swap ↔ a < b :=
-by cases a; cases b;
-  simp only [swap, inr_lt_inr_iff, inl_lt_inl_iff, not_inl_lt_inr, not_inr_lt_inl]
+lift_rel_swap_iff
 
 end disjoint
 

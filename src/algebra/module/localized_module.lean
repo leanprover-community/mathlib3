@@ -340,6 +340,60 @@ def mk_linear_map : M →ₗ[R] localized_module S M :=
 
 end
 
+def mul_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
+{ to_fun := (•) s,
+  map_add' := λ _ _, by simp,
+  map_smul' := λ r p,
+  begin
+    change (s : R) • _ = r • (s : R) • _,
+    simp only [←mul_smul],
+    ring_nf,
+  end }
+
+def div_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
+{ to_fun := λ p, p.lift_on (λ p, mk p.1 (s * p.2)) $ λ ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩, mk_eq.mpr ⟨c,
+  begin
+    change (c : R) • ((s : R) * b) • a' = (c : R) • ((s : R) * b') • a,
+    change (c : R) • (b : R) • a' = (c : R) • (b' : R) • a at eq1,
+    simp only [←mul_smul, ←mul_assoc, mul_comm (c : R) s],
+    simp only [mul_smul, eq1],
+  end⟩,
+  map_add' := λ x y,
+  begin
+    induction x using localized_module.induction_on with m t,
+    induction y using localized_module.induction_on with m' t',
+    simp only [mk_add_mk, lift_on_mk],
+    refine mk_eq.mpr ⟨1, _⟩,
+    simp only [one_smul, mul_smul, ←smul_add],
+    congr' 2,
+    rw [←mul_smul, ←mul_smul, mul_comm _ s],
+  end,
+  map_smul' := λ r x,
+  begin
+    induction x using localized_module.induction_on with m t,
+    refl,
+  end }
+
+lemma div_by_mul_by (s : S) (p : localized_module S M) : div_by s (mul_by s p) = p :=
+begin
+  induction p using localized_module.induction_on with a b,
+  change mk _ _ = _,
+  refine mk_eq.mpr ⟨1, _⟩,
+  simp only [one_smul, submonoid.coe_subtype],
+  rw [mul_comm, mul_smul],
+  refl,
+end
+
+lemma mul_by_div_by (s : S) (p : localized_module S M) : mul_by s (div_by s p) = p :=
+begin
+  induction p using localized_module.induction_on with a b,
+  change mk _ _ = _,
+  refine mk_eq.mpr ⟨1, _⟩,
+  simp only [one_smul, submonoid.coe_subtype],
+  rw [mul_comm, mul_smul],
+  refl,
+end
+
 end
 
 end localized_module
@@ -349,17 +403,30 @@ section is_localized_module
 universes u v
 
 variables {R : Type u} [comm_ring R] (S : submonoid R)
-variables (M L : Type u)
-variables [add_comm_monoid M] [add_comm_monoid L] [semiring L]
-variables [module R M] [algebra R L]
+variables {M M' : Type u} [add_comm_monoid M] [add_comm_monoid M']
+variables [module R M] [module R M'] (f : M →ₗ[R] M')
 
-/-- The typeclass `is_module_localization (S : submonoid R) L`
- expresses that `L` is the localization of `M` at `S`. -/
-class is_module_localization : Prop :=
-(map_units [] : ∀ (x : S), is_unit (algebra_map R L x))
-(surj [] : ∀ z : L, ∃ (x : R × S), z * (algebra_map R L) x.2 = algebra_map R L x.1)
-(eq_iff_exists [] : ∀ {x y : R}, algebra_map R L x = algebra_map R L y ↔ ∃ (c : S), x * c = y * c)
+class is_localized_module : Prop :=
+(map_units [] : ∀ (x : S), is_unit (algebra_map R (module.End R M') x))
+(surj [] : ∀ y : M', ∃ (x : M × S), x.2 • y = f x.1)
+(eq_iff_exists [] : ∀ {x₁ x₂}, f x₁ = f x₂ ↔ ∃ c : S, c • x₂ = c • x₁)
 
-instance test : is_module_localization S (localized_module S M) := sorry
+instance localized_module_is_localized_module :
+  is_localized_module S (localized_module.mk_linear_map S M) :=
+{ map_units := λ s, ⟨⟨localized_module.mul_by s, localized_module.div_by s,
+    fun_like.ext _ _ $ localized_module.mul_by_div_by _,
+    fun_like.ext _ _ $ localized_module.div_by_mul_by _⟩,
+    fun_like.ext _ _ $ λ p, p.induction_on $ by { intros, refl }⟩,
+  surj := λ p, localized_module.induction_on (λ m t, ⟨(m, t),
+    begin
+      simp [localized_module.mk_linear_map],
+      change localized_module.mk _ _ = _,
+      refine localized_module.mk_eq.mpr ⟨1, _⟩,
+      simp [one_smul],
+      refl,
+    end⟩) p,
+  eq_iff_exists := λ m1 m2,
+  { mp := λ eq1, by simpa only [one_smul] using localized_module.mk_eq.mp eq1,
+    mpr := λ ⟨c, eq1⟩, localized_module.mk_eq.mpr ⟨c, by simpa only [one_smul] using eq1⟩ } }
 
 end is_localized_module

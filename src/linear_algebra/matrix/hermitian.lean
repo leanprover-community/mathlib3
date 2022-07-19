@@ -148,7 +148,7 @@ variables [is_R_or_C α] [is_R_or_C β]
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_self_adjoint [fintype n] [decidable_eq n] {A : matrix n n α} :
   is_hermitian A ↔ inner_product_space.is_self_adjoint
-    ((pi_Lp.linear_equiv α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
+    ((pi_Lp.linear_equiv 2 α (λ _ : n, α)).symm.conj A.to_lin' : module.End α (pi_Lp 2 _)) :=
 begin
   rw [inner_product_space.is_self_adjoint, (pi_Lp.equiv 2 (λ _ : n, α)).symm.surjective.forall₂],
   simp only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,

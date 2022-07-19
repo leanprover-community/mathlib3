@@ -8,5 +8,6 @@
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
   "search.usePCRE2": true,
-  "lean.memoryLimit": 30096
+  "lean.memoryLimit": 7096,
+  "typescript.tsserver.maxTsServerMemory": 7072
 }

@@ -158,6 +158,40 @@ end comm_ring
 
 end is_weakly_eisenstein_at
 
+section scale_roots
+
+variables {A : Type*} [comm_ring R] [comm_ring A]
+
+lemma scale_roots.is_weakly_eisenstein_at (p : R[X]) {x : R}
+  {P : ideal R} (hP : x ∈ P) : (scale_roots p x).is_weakly_eisenstein_at P :=
+begin
+  refine ⟨λ i hi, _⟩,
+  rw coeff_scale_roots,
+  rw [nat_degree_scale_roots, ← tsub_pos_iff_lt] at hi,
+  exact ideal.mul_mem_left _ _ (ideal.pow_mem_of_mem P hP _ hi)
+end
+
+lemma dvd_pow_nat_degree_of_eval₂_eq_zero {f : R →+* A}
+  (hf : function.injective f) {p : R[X]} (hp : p.monic) (x y : R) (z : A)
+  (h : p.eval₂ f z = 0) (hz : f x * z = f y) : x ∣ y ^ p.nat_degree :=
+begin
+  rw [← nat_degree_scale_roots p x, ← ideal.mem_span_singleton],
+  refine (scale_roots.is_weakly_eisenstein_at _ (ideal.mem_span_singleton.mpr $ dvd_refl x))
+    .pow_nat_degree_le_of_root_of_monic_mem _ ((monic_scale_roots_iff x).mpr hp) _ le_rfl,
+  rw injective_iff_map_eq_zero' at hf,
+  have := scale_roots_eval₂_eq_zero f h,
+  rwa [hz, polynomial.eval₂_at_apply, hf] at this
+end
+
+lemma dvd_pow_nat_degree_of_aeval_eq_zero [algebra R A] [nontrivial A]
+  [no_zero_smul_divisors R A] {p : R[X]} (hp : p.monic) (x y : R) (z : A)
+  (h : polynomial.aeval z p = 0) (hz : z * algebra_map R A x = algebra_map R A y) :
+  x ∣ y ^ p.nat_degree :=
+dvd_pow_nat_degree_of_eval₂_eq_zero (no_zero_smul_divisors.algebra_map_injective R A)
+  hp x y z h ((mul_comm _ _).trans hz)
+
+end scale_roots
+
 namespace is_eisenstein_at
 
 section comm_semiring
@@ -317,7 +351,7 @@ begin
   have finrank_K_L : finite_dimensional.finrank K L = B.dim := B.finrank,
   have deg_K_P : (minpoly K B.gen).nat_degree = B.dim := B.nat_degree_minpoly,
   have deg_R_P : P.nat_degree = B.dim,
-  { rw [← deg_K_P, minpoly.gcd_domain_eq_field_fractions K hBint,
+  { rw [← deg_K_P, minpoly.gcd_domain_eq_field_fractions' K hBint,
         (minpoly.monic hBint).nat_degree_map (algebra_map R K)] },
   choose! f hf using hei.is_weakly_eisenstein_at.exists_mem_adjoin_mul_eq_pow_nat_degree_le
     (minpoly.aeval R B.gen) (minpoly.monic hBint),
@@ -359,7 +393,7 @@ begin
   ... = _ : _,
   { simp only [algebra.smul_def, algebra_map_apply R K L, algebra.norm_algebra_map, _root_.map_mul,
       _root_.map_pow, finrank_K_L, power_basis.norm_gen_eq_coeff_zero_minpoly,
-      minpoly.gcd_domain_eq_field_fractions K hBint, coeff_map, ← hn],
+      minpoly.gcd_domain_eq_field_fractions' K hBint, coeff_map, ← hn],
     ring_exp },
   swap, { simp_rw [← smul_sum, ← smul_sub, algebra.smul_def p, algebra_map_apply R K L,
       _root_.map_mul, algebra.norm_algebra_map, finrank_K_L, hr, ← hn] },
@@ -493,7 +527,7 @@ begin
     rw [nat.succ_eq_add_one, add_assoc, ← nat.add_sub_assoc H, ← add_assoc, add_comm (j + 1),
       nat.add_sub_add_left, ← nat.add_sub_assoc, nat.add_sub_add_left, hP,
       ← (minpoly.monic hBint).nat_degree_map  (algebra_map R K),
-      ← minpoly.gcd_domain_eq_field_fractions K hBint, nat_degree_minpoly, hn, nat.sub_one,
+      ← minpoly.gcd_domain_eq_field_fractions' K hBint, nat_degree_minpoly, hn, nat.sub_one,
       nat.pred_succ],
     linarith },
 
@@ -531,7 +565,7 @@ begin
     rw [algebra.smul_def, mul_assoc, ← mul_sub, _root_.map_mul, algebra_map_apply R K L, map_pow,
       algebra.norm_algebra_map, _root_.map_mul, algebra_map_apply R K L, algebra.norm_algebra_map,
       finrank B, ← hr,
-      power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions K hBint,
+      power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions' K hBint,
       coeff_map, show (-1 : K) = algebra_map R K (-1), by simp, ← map_pow, ← map_pow,
       ← _root_.map_mul, ← map_pow, ← _root_.map_mul, ← map_pow, ← _root_.map_mul] at hQ,
 

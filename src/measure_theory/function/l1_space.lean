@@ -344,12 +344,12 @@ section pos_part
 
 lemma has_finite_integral.max_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, max (f a) 0) μ :=
-hf.mono $ eventually_of_forall $ λ x, by simp [real.norm_eq_abs, abs_le, abs_nonneg, le_abs_self]
+hf.mono $ eventually_of_forall $ λ x, by simp [abs_le, le_abs_self]
 
 lemma has_finite_integral.min_zero {f : α → ℝ} (hf : has_finite_integral f μ) :
   has_finite_integral (λa, min (f a) 0) μ :=
 hf.mono $ eventually_of_forall $ λ x,
-  by simp [real.norm_eq_abs, abs_le, abs_nonneg, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
+  by simp [abs_le, neg_le, neg_le_abs_self, abs_eq_max_neg, le_total]
 
 end pos_part
 
@@ -498,7 +498,7 @@ by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.right_of_add_measure, 
 
 @[simp] lemma integrable_zero_measure {m : measurable_space α} {f : α → β} :
   integrable f (0 : measure α) :=
-⟨ae_measurable_zero_measure f, has_finite_integral_zero_measure f⟩
+⟨ae_strongly_measurable_zero_measure f, has_finite_integral_zero_measure f⟩
 
 theorem integrable_finset_sum_measure {ι} {m : measurable_space α} {f : α → β}
   {μ : ι → measure α} {s : finset ι} :
@@ -687,7 +687,7 @@ begin
   refine lt_of_le_of_lt _ ((has_finite_integral_iff_norm _).1 hf.has_finite_integral),
   apply lintegral_mono,
   assume x,
-  simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
+  simp [ennreal.of_real_le_of_real, abs_le, le_abs_self],
 end
 
 lemma of_real_to_real_ae_eq {f : α → ℝ≥0∞} (hf : ∀ᵐ x ∂μ, f x < ∞) :

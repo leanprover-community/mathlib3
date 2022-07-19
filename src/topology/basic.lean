@@ -13,7 +13,7 @@ import algebra.support
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
-`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
+`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
 `x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
@@ -58,7 +58,7 @@ open_locale classical filter
 universes u v w
 
 /-!
-### Topological spaces
+### Topological spaces
 -/
 
 /-- A topology on `α`. -/
@@ -84,27 +84,26 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
 
 section topological_space
 
-variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
+variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ t : set α} {p p₁ p₂ : α → Prop}
 
 @[ext]
 lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_open → f = g
 | ⟨a, _, _, _⟩ ⟨b, _, _, _⟩ rfl := rfl
 
 section
-variables [t : topological_space α]
-include t
+variables [topological_space α]
 
 /-- `is_open s` means that `s` is open in the ambient topological space on `α` -/
-def is_open (s : set α) : Prop := topological_space.is_open t s
+def is_open (s : set α) : Prop := topological_space.is_open ‹_› s
 
 @[simp]
-lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ t
+lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ _
 
 lemma is_open.inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
-topological_space.is_open_inter t s₁ s₂ h₁ h₂
+topological_space.is_open_inter _ s₁ s₂ h₁ h₂
 
 lemma is_open_sUnion {s : set (set α)} (h : ∀t ∈ s, is_open t) : is_open (⋃₀ s) :=
-topological_space.is_open_sUnion t s h
+topological_space.is_open_sUnion _ s h
 
 end
 
@@ -348,8 +347,7 @@ sInter_subset_of_mem ⟨h₂, h₁⟩
 
 lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
   disjoint (closure s) t :=
-disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
-  ht.is_closed_compl
+disjoint_compl_left.mono_left $ closure_minimal hd.subset_compl_right ht.is_closed_compl
 
 lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
   disjoint s (closure t) :=
@@ -601,13 +599,12 @@ lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s �
 lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
 (union_diff_cancel' interior_subset subset_closure).symm
 
-lemma is_open.inter_frontier_eq_empty_of_disjoint {s t : set α} (ht : is_open t)
-  (hd : disjoint s t) :
-  t ∩ frontier s = ∅ :=
-begin
-  rw [inter_comm, ← subset_compl_iff_disjoint],
-  exact frontier_subset_closure.trans (closure_minimal (disjoint_left.1 hd) ht.is_closed_compl),
-end
+lemma disjoint.frontier_left (ht : is_open t) (hd : disjoint s t) : disjoint (frontier s) t :=
+subset_compl_iff_disjoint_right.1 $ frontier_subset_closure.trans $ closure_minimal
+  (disjoint_left.1 hd) $ is_closed_compl_iff.2 ht
+
+lemma disjoint.frontier_right (hs : is_open s) (hd : disjoint s t) : disjoint s (frontier t) :=
+(hd.symm.frontier_left hs).symm
 
 lemma frontier_eq_inter_compl_interior {s : set α} :
   frontier s = (interior s)ᶜ ∩ (interior (sᶜ))ᶜ :=
@@ -621,7 +618,7 @@ begin
 end
 
 /-!
-### Neighborhoods
+### Neighborhoods
 -/
 
 /-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
@@ -1194,8 +1191,8 @@ lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x
   {b | x ∈ f b}.finite :=
 let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
-lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
-assume x, ⟨univ, univ_mem, finite.of_fintype _⟩
+lemma locally_finite_of_finite [finite β] (f : β → set α) : locally_finite f :=
+assume x, ⟨univ, univ_mem, to_finite _⟩
 
 lemma locally_finite.subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
@@ -1211,6 +1208,12 @@ lemma locally_finite.eventually_finite {f : β → set α} (hf : locally_finite 
   ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
 eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
   ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
+
+lemma locally_finite.exists_mem_basis {f : β → set α} (hf : locally_finite f) {p : ι → Prop}
+  {s : ι → set α} {x : α} (hb : (𝓝 x).has_basis p s) :
+  ∃ i (hi : p i), {j | (f j ∩ s i).nonempty}.finite :=
+let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_finite x)
+in ⟨i, hpi, hi subset.rfl⟩
 
 lemma locally_finite.sum_elim {γ} {f : β → set α} {g : γ → set α} (hf : locally_finite f)
   (hg : locally_finite g) : locally_finite (sum.elim f g) :=
@@ -1256,6 +1259,17 @@ subset.antisymm
   (closure_minimal (Union_mono $ λ _, subset_closure) $
     h.closure.is_closed_Union $ λ _, is_closed_closure)
   (Union_subset $ λ i, closure_mono $ subset_Union _ _)
+
+/-- If `f : β → set α` is a locally finite family of closed sets, then for any `x : α`, the
+intersection of the complements to `f i`, `x ∉ f i`, is a neighbourhood of `x`. -/
+lemma locally_finite.Inter_compl_mem_nhds {f : β → set α} (hf : locally_finite f)
+  (hc : ∀ i, is_closed (f i)) (x : α) : (⋂ i (hi : x ∉ f i), (f i)ᶜ) ∈ 𝓝 x :=
+begin
+  refine is_open.mem_nhds _ (mem_Inter₂.2 $ λ i, id),
+  suffices : is_closed (⋃ i : {i // x ∉ f i}, f i),
+    by rwa [← is_open_compl_iff, compl_Union, Inter_subtype] at this,
+  exact (hf.comp_injective subtype.coe_injective).is_closed_Union (λ i, hc _)
+end
 
 end locally_finite
 

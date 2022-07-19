@@ -186,7 +186,7 @@ Proves that Bertrand's postulate holds over all positive naturals less than n by
 descending list of primes, each no more than twice the next, such that the list contains a witness
 for each number ≤ n.
 -/
-lemma bertrand_initial (n : ℕ) (hn0 : 0 < n)
+lemma bertrand_initial (n : ℕ) (hn0 : n ≠ 0)
   (plist : list ℕ) (prime_plist : ∀ p ∈ plist, nat.prime p)
   (covering : ∀ a b, (a, b) ∈ list.zip plist (list.tail (plist ++ [2])) → a ≤ 2 * b)
   (hn : n < (plist ++ [2]).head) :
@@ -195,8 +195,8 @@ begin
   unfreezingI { induction plist, },
   { simp only [list.nil_append, list.head_cons] at hn,
     interval_cases n,
-    { use 2,
-      norm_num, }, },
+    { use 2, },
+    { use 2, norm_num, }, },
   { simp only [list.mem_cons_iff, forall_eq_or_imp] at prime_plist,
     by_cases plist_hd ≤ 2 * n,
     { use plist_hd,
@@ -229,7 +229,7 @@ end
 Bertrand's Postulate: For any positive natural number, there is a prime which is greater than
 it, but no more than twice as large.
 -/
-theorem bertrand (n : ℕ) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+theorem bertrand (n : ℕ) (hn0 : n ≠ 0) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
   cases lt_or_le 511 n,
@@ -237,7 +237,7 @@ begin
   -- coefficient.
   { exact bertrand_eventually n h, },
   -- For small `n`, supply a list of primes to cover the initial cases.
-  apply bertrand_initial n n_pos [521, 317, 163, 83, 43, 23, 13, 7, 5, 3],
+  apply bertrand_initial n hn0 [521, 317, 163, 83, 43, 23, 13, 7, 5, 3],
   -- Prove the list has the properties needed:
   { -- The list consists of primes
     intros p hp,

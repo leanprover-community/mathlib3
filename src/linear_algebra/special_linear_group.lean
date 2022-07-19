@@ -3,6 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
+import data.matrix.basic
 import linear_algebra.matrix.adjugate
 import linear_algebra.matrix.to_lin
 
@@ -221,6 +222,40 @@ lemma coe_fn_eq_coe (s : special_linear_group n R) : ⇑s = ↑ₘs := rfl
 
 end coe_fn_instance
 
+namespace projective
+
+def diagonal_subgroup : subgroup (special_linear_group n R) :=
+{ carrier := { A : special_linear_group n R | ∃ x, matrix.scalar n x = A },
+mul_mem' := begin
+  rintros a b ⟨xa,ha⟩ ⟨xb,hb⟩, 
+  use xb * xa,
+  simp only [coe_scalar, coe_fn_eq_coe, coe_mul] at ha hb ⊢,
+  rw [←ha,←hb],
+  simp only [mul_smul, matrix.mul_one],
+  rw smul_smul,
+end,
+one_mem' := by { use 1, simp, },
+inv_mem' := begin
+  rintros a ⟨xa, ha⟩,
+  use xa ^ ((finset.univ : finset n).card - 1),
+  simp only [coe_scalar, coe_fn_eq_coe, coe_inv] at ⊢ ha,
+  rw ← ha,
+  rw ← diagonal_one,
+rw ← diagonal_smul,
+rw ← diagonal_smul,
+rw adjugate_diagonal,
+simp only [diagonal_smul, diagonal_one, pi.smul_apply, algebra.id.smul_eq_mul, mul_one, finset.prod_const,
+  finset.card_erase_of_mem, finset.mem_univ],
+rw ← diagonal_one,
+rw ← diagonal_smul,
+rw matrix.diagonal_eq_diagonal_iff,
+simp only [pi.smul_apply, algebra.id.smul_eq_mul, mul_one, eq_self_iff_true, implies_true_iff],
+end,
+}
+
+end projective
+
 end special_linear_group
+
 
 end matrix

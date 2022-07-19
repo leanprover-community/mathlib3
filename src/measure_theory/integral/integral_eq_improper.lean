@@ -576,6 +576,29 @@ lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Ioi_of_interval_integral_norm_bounded I' a hfi hb hI'
 
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc (a i) (b i))
+  (ha : tendsto a l $ 𝓝 a₀) (hb : tendsto b l $ 𝓝 b₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
+begin
+  refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
+    (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),
+  intros i hi, simp only [measure.restrict_restrict measurable_set_Ioc],
+  refine le_trans (set_integral_mono_set (hfi i).norm _ _) hi,
+  { apply ae_of_all, simp only [pi.zero_apply, norm_nonneg, forall_const] },
+  { apply ae_of_all, intros c hc, exact hc.1 },
+end
+
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded_left {I a₀ b : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc (a i) b) (ha : tendsto a l $ 𝓝 a₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ∥f x∥ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
+integrable_on_Ioc_of_interval_integral_norm_bounded hfi ha tendsto_const_nhds h
+
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded_right {I a b₀ : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc a (b i)) (hb : tendsto b l $ 𝓝 b₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ∥f x∥ ) ≤ I) : integrable_on f (Ioc a b₀) :=
+integrable_on_Ioc_of_interval_integral_norm_bounded hfi tendsto_const_nhds hb h
+
 end integrable_of_interval_integral
 
 section integral_of_interval_integral

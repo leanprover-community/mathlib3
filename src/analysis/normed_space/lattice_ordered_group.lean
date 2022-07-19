@@ -85,18 +85,8 @@ normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance : normed_lattice_add_comm_group αᵒᵈ :=
-{ add_le_add_left := begin
-    intros a b h₁ c,
-    rw ← order_dual.dual_le,
-    rw ← order_dual.dual_le at h₁,
-    exact add_le_add_left h₁ _,
-  end,
-  solid := begin
-    intros a b h₂,
-    apply dual_solid,
-    rw ← order_dual.dual_le at h₂,
-    exact h₂,
-  end, }
+{ add_le_add_left := λ a b, add_le_add_left,
+  solid := dual_solid }
 
 lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
 (solid (abs_abs a).le).antisymm (solid (abs_abs a).symm.le)
@@ -129,6 +119,18 @@ begin
       { exact abs_sup_sub_sup_le_abs _ _ _, },
       { rw [@sup_comm _ _ c, @sup_comm _ _ c],
         exact abs_sup_sub_sup_le_abs _ _ _, } },
+end
+
+lemma norm_inf_le_add (x y : α) : ∥x ⊓ y∥ ≤ ∥x∥ + ∥y∥ :=
+begin
+  have h : ∥x ⊓ y - 0 ⊓ 0∥ ≤ ∥x - 0∥ + ∥y - 0∥ := norm_inf_sub_inf_le_add_norm x y 0 0,
+  simpa only [inf_idem, sub_zero] using h,
+end
+
+lemma norm_sup_le_add (x y : α) : ∥x ⊔ y∥ ≤ ∥x∥ + ∥y∥ :=
+begin
+  have h : ∥x ⊔ y - 0 ⊔ 0∥ ≤ ∥x - 0∥ + ∥y - 0∥ := norm_sup_sub_sup_le_add_norm x y 0 0,
+  simpa only [sup_idem, sub_zero] using h,
 end
 
 /--

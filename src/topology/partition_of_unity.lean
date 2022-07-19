@@ -167,7 +167,7 @@ instance : has_coe_to_fun (bump_covering ι X s) (λ _, ι → C(X, ℝ)) := ⟨
 protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
 f.locally_finite'
 
-protected lemma point_finite (x : X) : finite {i | f i x ≠ 0} :=
+protected lemma point_finite (x : X) : {i | f i x ≠ 0}.finite :=
 f.locally_finite.point_finite x
 
 lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x

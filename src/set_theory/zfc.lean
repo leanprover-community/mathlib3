@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import order.well_founded
 
 /-!
 # A model of ZFC
@@ -180,6 +181,23 @@ end⟩
 
 theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀ {w : pSet.{u}}, x ∈ w ↔ y ∈ w)
 | x y h ⟨α, A⟩ := ⟨λ ⟨a, ha⟩, ⟨a, h.symm.trans ha⟩, λ ⟨a, ha⟩, ⟨a, h.trans ha⟩⟩
+
+private theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
+| ⟨α, A⟩ ⟨β, B⟩ H := ⟨_, begin
+  rintros ⟨γ, C⟩ ⟨b, hc⟩,
+  cases exists_equiv_right H b with a ha,
+  have H := ha.trans hc.symm,
+  rw mk_func at H,
+  exact mem_wf_aux H
+end⟩
+
+theorem mem_wf : @well_founded pSet (∈) := ⟨λ x, mem_wf_aux $ equiv.refl x⟩
+
+instance : has_well_founded pSet := ⟨_, mem_wf⟩
+instance : is_asymm pSet (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : pSet} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : pSet) : x ∉ x := irrefl x
 
 /-- Convert a pre-set to a `set` of pre-sets. -/
 def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
@@ -566,10 +584,20 @@ iff.trans mem_Union
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
+/-- Induction on the `∈` relation. -/
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
 quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
 show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
 quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ ha), exact IH a })
+
+theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
+
+instance : has_well_founded Set := ⟨_, mem_wf⟩
+
+instance : is_asymm Set (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : Set} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : Set) : x ∉ x := irrefl x
 
 theorem regularity (x : Set.{u}) (h : x ≠ ∅) : ∃ y ∈ x, x ∩ y = ∅ :=
 classical.by_contradiction $ λ ne, h $ (eq_empty x).2 $ λ y,

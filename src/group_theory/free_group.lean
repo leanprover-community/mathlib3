@@ -274,7 +274,7 @@ by cases H; simp; constructor; constructor; refl
 theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
 refl_trans_gen_of_transitive_reflexive
   (λl, list.sublist.refl l) (λa b c hab hbc, list.sublist.trans hbc hab) (λa b, red.step.sublist)
-
+  
 theorem sizeof_of_step : ∀ {L₁ L₂ : list (α × bool)}, step L₁ L₂ → L₂.sizeof < L₁.sizeof
 | _ _ (@step.bnot _ L1 L2 x b) :=
   begin
@@ -369,10 +369,19 @@ instance : has_mul (free_group α) :=
     (λ L₁ L₂ H, quot.induction_on y $ λ L₃, quot.sound $ red.step.append_right H)⟩
 @[simp] lemma mul_mk : mk L₁ * mk L₂ = mk (L₁ ++ L₂) := rfl
 
+def inv_rev (w : list (α × bool)) : list (α × bool) :=
+ (list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse 
+
+lemma inv_rev_length : (inv_rev L₁).length = L₁.length :=
+begin
+  induction L₁, { finish, },
+  unfold inv_rev, { finish, },
+end
+
 instance : has_inv (free_group α) :=
-⟨λx, quot.lift_on x (λ L, mk (L.map $ λ x : α × bool, (x.1, bnot x.2)).reverse)
-  (assume a b h, quot.sound $ by cases h; simp)⟩
-@[simp] lemma inv_mk : (mk L)⁻¹ = mk (L.map $ λ x : α × bool, (x.1, bnot x.2)).reverse := rfl
+⟨λx, quot.lift_on x (λ L, mk (inv_rev L))
+  (assume a b h, quot.sound $ by { unfold inv_rev, cases h; simp })⟩
+@[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
 
 instance : group (free_group α) :=
 { mul := (*),
@@ -820,6 +829,15 @@ by rintros ⟨L⟩; exact reduce.self
 lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
+theorem to_word.le_length (x : free_group α) (h : free_group.mk L₁ = x) : x.to_word.length ≤ L₁.length := 
+begin
+  suffices k : red L₁ (x.to_word),
+  { exact list.length_le_of_sublist (red.sublist k), },
+  rw ← h,
+  unfold to_word, 
+  simp [reduce.red],
+end
+
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :
   { L₄ // red L₂ L₄ ∧ red L₃ L₄ } :=
@@ -862,5 +880,62 @@ fintype.subtype (list.to_finset $ red.enum L₁) $
   λ H, list.mem_to_finset.2 $ red.enum.complete H⟩
 
 end reduce
+
+section metric
+
+variable [decidable_eq α]
+
+def norm (x : free_group α) : nat := x.to_word.length
+
+private lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
+begin
+  set w := x.to_word with hw,
+ 
+  calc norm x⁻¹ ≤ (inv_rev w).length : to_word.le_length (x⁻¹) 
+       (by simp only [←inv_mk,to_word.mk])
+   ... = w.length : inv_rev_length
+   ... = norm x : by unfold norm,
+end
+
+lemma norm_inv_eq (x : free_group α) : norm x = norm x⁻¹ :=
+begin
+  have h1 := norm_inv_le x,
+  have h2 := norm_inv_le x⁻¹,
+  simp at h2,
+  finish,
+end
+
+lemma norm_zero_eq_one (x : free_group α ) : norm x = 0 → x = 1 := 
+begin
+  intro h1,
+  unfold norm at h1,
+  rw list.length_eq_zero at h1,
+  
+  have h2 : (1 : free_group α).to_word = list.nil,
+  { rw one_eq_mk,
+    unfold to_word,
+    simp only [quot_lift_mk],
+    rw ← free_group.red.nil_iff ,
+    simp only [reduce.red], },
+
+  rw ← h2 at h1,
+  exact to_word.inj x 1 h1,
+end
+
+lemma norm_triangle (x : free_group α) (y : free_group α) : norm (x * y) ≤ norm x + norm y :=
+begin
+  unfold norm,
+  
+  set wx := x.to_word with hwx,
+  set wy := y.to_word with hwy,
+
+  set wxy := wx ++ wy with hwxy,
+  rw ←list.length_append,
+   
+  apply to_word.le_length,
+  rw [← mul_mk, to_word.mk, to_word.mk],
+end
+
+end metric
 
 end free_group

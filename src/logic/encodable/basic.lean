@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.nat
 import order.directed
-import data.countable.basic
+import data.countable.defs
 import order.rel_iso
 
 /-!
@@ -326,7 +326,7 @@ of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 r
 
 /-- If `α` is countable, then it has a (non-canonical) `encodable` structure. -/
 noncomputable def of_countable (α : Type*) [countable α] : encodable α :=
-nonempty.some $ let ⟨e⟩ := nonempty_embedding_nat α in ⟨of_inj e e.injective⟩
+nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
 
 @[simp] lemma nonempty_encodable : nonempty (encodable α) ↔ countable α :=
 ⟨λ ⟨h⟩, @encodable.countable α h, λ h, ⟨@of_countable _ h⟩⟩

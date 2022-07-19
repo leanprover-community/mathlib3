@@ -828,7 +828,8 @@ by rintros ⟨L⟩; exact reduce.self
 lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
-theorem to_word.le_length (x : free_group α) (h : free_group.mk L₁ = x) : x.to_word.length ≤ L₁.length := 
+theorem to_word.le_length (x : free_group α) (h : free_group.mk L₁ = x) :
+  x.to_word.length ≤ L₁.length := 
 begin
   suffices k : red L₁ (x.to_word),
   { exact list.length_le_of_sublist (red.sublist k), },

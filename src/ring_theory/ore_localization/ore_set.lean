@@ -55,8 +55,11 @@ def ore_condition (r : R) (s : S) : Σ' r' : R, Σ' s' : S, r * s' = s * r' :=
 instance ore_set_bot : ore_set (⊥ : submonoid R) :=
 { ore_left_cancel := λ _ _ s h,
     ⟨s, begin
-          rcases s with ⟨s, hs⟩, rw submonoid.mem_bot at hs,subst hs,
-          rw [set_like.coe_mk, one_mul, one_mul] at h, subst h
+          rcases s with ⟨s, hs⟩,
+          rw submonoid.mem_bot at hs,
+          subst hs,
+          rw [set_like.coe_mk, one_mul, one_mul] at h,
+          subst h
         end⟩,
   ore_num := λ r _, r,
   ore_denom := λ _ s, s,
@@ -85,7 +88,7 @@ def ore_set_of_cancel_monoid_with_zero
   ore_eq := ore_eq }
 
 /-- In rings without zero divisors, the first (cancellability) condition is always fulfilled,
-it suffices to give a prove for the ore condition itself. -/
+it suffices to give a proof for the Ore condition itself. -/
 def ore_set_of_no_zero_divisors
   {R : Type*} [ring R] [no_zero_divisors R] {S : submonoid R}
   (ore_num : R → S → R) (ore_denom : R → S → S)

@@ -13,9 +13,9 @@ equality to `heq` (`a == b`).
 
 In particular, `indeq` is for when `a : A i` and `b : A j`, where `A : ι → Sort u` is an indexed
 family of types. Instead of `type_eq_of_heq` which states `A i = A j` for `a == b`, this provides
-`indeq.index_eq` which states `i = j` for `a =ᵢ b`.begin
+`indeq.index_eq` which states `i = j` for `a =ᵢ b`.
 
-Note that in the degerate case when `A = id`, this is equivalent to `heq`.
+Note that in the degenerate case when `A = id`, this is equivalent to `heq`.
 -/
 
 universes ui ui' u u'
@@ -33,21 +33,19 @@ infix ` =ᵢ `:50 := indeq
 attribute [refl] indeq.refl
 
 variables {i j k : ι} {a a' : A i} {b : A j} {c : A k}
-
-
 @[symm] lemma indeq.symm (h : a =ᵢ b) : b =ᵢ a :=
 indeq.rec_on h (indeq.refl a)
 
 @[trans] lemma indeq.trans (h₁ : a =ᵢ b) (h₂ : b =ᵢ c) : a =ᵢ c :=
 indeq.rec_on h₂ h₁
 
-lemma indeq_of_eq (h : a = a') : a =ᵢ a' :=
+protected lemma eq.indeq (h : a = a') : a =ᵢ a' :=
 eq.subst h (indeq.refl a)
 
 lemma indeq.index_eq (h : a =ᵢ b) : i = j :=
 indeq.rec_on h (eq.refl _)
 
-lemma indeq.heq (h : a =ᵢ b) : a == b :=
+protected lemma indeq.heq (h : a =ᵢ b) : a == b :=
 indeq.rec_on h (heq.refl _)
 
 lemma indeq_of_eq_of_heq (hij : i = j) (hab : a == b) : a =ᵢ b :=

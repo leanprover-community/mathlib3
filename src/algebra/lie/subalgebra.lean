@@ -87,6 +87,9 @@ instance [has_smul R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
   (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
 L'.to_submodule.is_scalar_tower
 
+instance (L' : lie_subalgebra R L) [is_noetherian R L] : is_noetherian R L' :=
+is_noetherian_submodule' ↑L'
+
 end
 
 /-- A Lie subalgebra forms a new Lie algebra. -/

@@ -125,20 +125,19 @@ meta def norm_assum : tactic unit :=
 try `[ norm_num ] >> try assumption
 
 /--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
-estimate for the evaluation of `eval_expr ℕ e`.  It is tailor made for estimating degrees of
+estimate for the evaluation of `eval_expr' ℕ e`.  It is tailor made for estimating degrees of
 polynomials.
 
 It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
-On the atoms of the process, `eval_guessing` tries to use `eval_expr ℕ`, resorting to using
-`n` if `eval_expr ℕ` fails.
+On the atoms of the process, `eval_guessing` tries to use `eval_expr' ℕ`, resorting to using
+`n` if `eval_expr' ℕ` fails.
 
 For use with degree of polynomials, we mostly use `n = 0`. -/
 meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
 | `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
 | `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
-| `(nat.zero)    := pure 0
-| e              := eval_expr ℕ e <|> pure n
+| e              := eval_expr' ℕ e <|> pure n
 
 end compute_degree
 
@@ -156,7 +155,7 @@ do t ← target,
   `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
   expected_deg ← guess_degree tl >>= eval_guessing 0,
-  deg_bound ← eval_expr ℕ tr <|> pure expected_deg,
+  deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
   if deg_bound < expected_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else

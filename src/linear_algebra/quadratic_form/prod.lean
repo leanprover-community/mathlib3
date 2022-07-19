@@ -64,7 +64,7 @@ lemma anisotropic_of_prod {R} [ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} (h : (Q₁.prod Q₂).anisotropic) :
   Q₁.anisotropic ∧ Q₂.anisotropic :=
 begin
-  simp_rw [anisotropic, prod_to_fun, prod.forall, prod.mk_eq_zero] at h,
+  simp_rw [anisotropic, prod_apply, prod.forall, prod.mk_eq_zero] at h,
   split,
   { intros x hx,
     refine (h x 0 _).1,
@@ -78,7 +78,7 @@ lemma nonneg_prod_iff {R} [ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} :
   (∀ x, 0 ≤ (Q₁.prod Q₂) x) ↔ (∀ x, 0 ≤ Q₁ x) ∧ (∀ x, 0 ≤ Q₂ x) :=
 begin
-  simp_rw [prod.forall, prod_to_fun],
+  simp_rw [prod.forall, prod_apply],
   split,
   { intro h,
     split,

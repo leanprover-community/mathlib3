@@ -123,7 +123,7 @@ fork.is_limit.mk' _ $ λ s,
 
 end has_equalizers
 
-instance : has_products ωCPO.{v} :=
+instance : has_products.{v} ωCPO.{v} :=
 λ J, { has_limit := λ F, has_limit_of_iso discrete.nat_iso_functor.symm }
 
 instance {X Y : ωCPO.{v}} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=

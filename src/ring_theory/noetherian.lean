@@ -154,6 +154,18 @@ theorem fg.sup {N₁ N₂ : submodule R M}
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
 
+lemma fg_finset_sup {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ i ∈ s, (N i).fg) :
+  (s.sup N).fg :=
+finset.sup_induction fg_bot (λ a ha b hb, ha.sup hb) h
+
+lemma fg_bsupr {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ i ∈ s, (N i).fg) :
+  (⨆ i ∈ s, N i).fg :=
+by simpa only [finset.sup_eq_supr] using fg_finset_sup s N h
+
+lemma fg_supr {ι : Type*} [fintype ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
+  (supr N).fg :=
+by simpa using fg_bsupr finset.univ N (λ i hi, h i)
+
 variables {P : Type*} [add_comm_monoid P] [module R P]
 variables (f : M →ₗ[R] P)
 
@@ -256,6 +268,18 @@ begin
     unfold id,
     rw [f.map_smul, (hg y (hl1 hy)).2],
     { exact zero_smul _ }, { exact λ _ _ _, add_smul _ _ _ } }
+end
+
+lemma fg_induction (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
+  (P : submodule R M → Prop)
+  (h₁ : ∀ x, P (submodule.span R {x})) (h₂ : ∀ M₁ M₂, P M₁ → P M₂ → P (M₁ ⊔ M₂))
+  (N : submodule R M) (hN : N.fg) : P N :=
+begin
+  classical,
+  obtain ⟨s, rfl⟩ := hN,
+  induction s using finset.induction,
+  { rw [finset.coe_empty, submodule.span_empty, ← submodule.span_zero_singleton], apply h₁ },
+  { rw [finset.coe_insert, submodule.span_insert], apply h₂; apply_assumption }
 end
 
 /-- An ideal of `R` is finitely generated if it is the span of a finite subset of `R`.
@@ -504,6 +528,34 @@ begin
   exact ⟨λ ⟨h⟩, λ k, (fg_iff_compact k).mp (h k), λ h, ⟨λ k, (fg_iff_compact k).mpr (h k)⟩⟩,
 end
 
+lemma is_noetherian_iff_fg_well_founded :
+  is_noetherian R M ↔ well_founded
+    ((>) : { N : submodule R M // N.fg } → { N : submodule R M // N.fg } → Prop) :=
+begin
+  let α := { N : submodule R M // N.fg },
+  split,
+  { introI H,
+    let f : α ↪o submodule R M := order_embedding.subtype _,
+    exact order_embedding.well_founded f.dual (is_noetherian_iff_well_founded.mp H) },
+  { intro H,
+    constructor,
+    intro N,
+    obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ := well_founded.well_founded_iff_has_max'.mp
+      H { N' : α | N'.1 ≤ N } ⟨⟨⊥, submodule.fg_bot⟩, bot_le⟩,
+    convert h₁,
+    refine (e.antisymm _).symm,
+    by_contra h₃,
+    obtain ⟨x, hx₁ : x ∈ N, hx₂ : x ∉ N₀⟩ := set.not_subset.mp h₃,
+    apply hx₂,
+    have := h₂ ⟨(R ∙ x) ⊔ N₀, _⟩ _ _,
+    { injection this with eq,
+      rw ← eq,
+      exact (le_sup_left : (R ∙ x) ≤ (R ∙ x) ⊔ N₀) (submodule.mem_span_singleton_self _) },
+    { exact submodule.fg.sup ⟨{x}, by rw [finset.coe_singleton]⟩ h₁ },
+    { exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e },
+    { show N₀ ≤ (R ∙ x) ⊔ N₀, from le_sup_right } }
+end
+
 variables (R M)
 
 lemma well_founded_submodule_gt (R M) [semiring R] [add_comm_monoid M] [module R M] :
@@ -708,7 +760,7 @@ end
 /-- If `M / S / R` is a scalar tower, and `M / R` is Noetherian, then `M / S` is
 also noetherian. -/
 theorem is_noetherian_of_tower (R) {S M} [semiring R] [semiring S]
-  [add_comm_monoid M] [has_scalar R S] [module S M] [module R M] [is_scalar_tower R S M]
+  [add_comm_monoid M] [has_smul R S] [module S M] [module R M] [is_scalar_tower R S M]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,

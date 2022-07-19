@@ -23,7 +23,7 @@ open_locale direct_sum big_operators
 
 variables (R : Type*) [comm_ring R] (σ : Type*)
 
-/-
+/--
 For a multivariable polynomial `p`, we can decompose `p` as a direct sum of monomials
 -/
 noncomputable def decompose (p : mv_polynomial σ R) :

@@ -29,6 +29,31 @@ in `D` (i.e. we have `hG : W.is_inverted_by G`), then there exists a unique func
 The expected property of `lift G hG` if expressed by the lemma `fac` and the
 uniqueness is expressed by `fac`.
 
+TODO:
+1) show that for any category `E`, the composition of functors gives
+an equivalence of categories between `W.localization ⥤ E` and the full
+subcategory of `C ⥤ E` consisting of functors inverting `W`. (This only
+requires an extension property for natural transformations of functors.)
+
+2) define a predicate `is_localization L W` for a functor `L : C ⥤ D` and
+a class of arrows `W` in `C` expressing that it is a localization with respect
+to `W`, i.e. that it inverts `W` and that the obvious functor `W.localization ⥤ D`
+induced by `L` is an equivalence of categories. (It is more straightforward
+to define this predicate this way rather than by using a universal property which
+may imply attempting at quantifying on all universes.)
+
+3) implement a constructor for `is_localization L W` which would take
+as an input a *strict* universal property (`lift`/`fac`/`uniq`) similar to
+what is obtained here for `W.localization`. (Practically speaking, this is
+the easiest way to show that a functor is a localization.)
+
+4) when we have `is_localization L W`, then show that `D ⥤ E` identifies
+to the full subcategory of `C ⥤ E` consisting of `W`-inverting functors.
+
+5) provide an API for the lifting of functors `C ⥤ E`, for which
+`fac`/`uniq` assertions would be expressed as isomorphisms rather than
+by equalities of functors.
+
 ## References
 
 * [P. Gabriel, M. Zisman, *Calculus of fractions and homotopy theory*][gabriel-zisman-1967]

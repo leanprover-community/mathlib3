@@ -14,23 +14,39 @@ This file defines the type `ℕ+` or `pnat`, the subtype of natural numbers that
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof
   is not stored. -/
+@[derive linear_order]
 def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat
 
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
 instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
 
+namespace pnat
+
 /-- Predecessor of a `ℕ+`, as a `ℕ`. -/
-def pnat.nat_pred (i : ℕ+) : ℕ := i - 1
+def nat_pred (i : ℕ+) : ℕ := i - 1
 
-@[simp] lemma pnat.one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
-by rw [pnat.nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
+@[simp] lemma one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
+by rw [nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
 
-@[simp] lemma pnat.nat_pred_add_one (n : ℕ+) : n.nat_pred + 1 = n :=
+@[simp] lemma nat_pred_add_one (n : ℕ+) : n.nat_pred + 1 = n :=
 (add_comm _ _).trans n.one_add_nat_pred
 
-@[simp] lemma pnat.nat_pred_eq_pred {n : ℕ} (h : 0 < n) :
-pnat.nat_pred (⟨n, h⟩ : ℕ+) = n.pred := rfl
+@[simp] lemma nat_pred_eq_pred {n : ℕ} (h : 0 < n) : nat_pred (⟨n, h⟩ : ℕ+) = n.pred := rfl
+
+@[mono] lemma nat_pred_strict_mono : strict_mono nat_pred := λ m n h, nat.pred_lt_pred m.2.ne' h
+@[mono] lemma nat_pred_monotone : monotone nat_pred := nat_pred_strict_mono.monotone
+lemma nat_pred_injective : function.injective nat_pred := nat_pred_strict_mono.injective
+
+@[simp] lemma nat_pred_lt_nat_pred {m n : ℕ+} : m.nat_pred < n.nat_pred ↔ m < n :=
+nat_pred_strict_mono.lt_iff_lt
+
+@[simp] lemma nat_pred_le_nat_pred {m n : ℕ+} : m.nat_pred ≤ n.nat_pred ↔ m ≤ n :=
+nat_pred_strict_mono.le_iff_le
+
+@[simp] lemma nat_pred_inj {m n : ℕ+} : m.nat_pred = n.nat_pred ↔ m = n := nat_pred_injective.eq_iff
+
+end pnat
 
 namespace nat
 
@@ -43,8 +59,25 @@ def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
 
 @[simp] theorem succ_pnat_coe (n : ℕ) : (succ_pnat n : ℕ) = succ n := rfl
 
-theorem succ_pnat_inj {n m : ℕ} : succ_pnat n = succ_pnat m → n = m :=
-λ h, by { let h' := congr_arg (coe : ℕ+ → ℕ) h, exact nat.succ.inj h' }
+@[mono] theorem succ_pnat_strict_mono : strict_mono succ_pnat := λ m n, nat.succ_lt_succ
+
+@[mono] theorem succ_pnat_mono : monotone succ_pnat := succ_pnat_strict_mono.monotone
+
+@[simp] theorem succ_pnat_lt_succ_pnat {m n : ℕ} : m.succ_pnat < n.succ_pnat ↔ m < n :=
+succ_pnat_strict_mono.lt_iff_lt
+
+@[simp] theorem succ_pnat_le_succ_pnat {m n : ℕ} : m.succ_pnat ≤ n.succ_pnat ↔ m ≤ n :=
+succ_pnat_strict_mono.le_iff_le
+
+theorem succ_pnat_injective : function.injective succ_pnat := succ_pnat_strict_mono.injective
+
+@[simp] theorem succ_pnat_inj {n m : ℕ} : succ_pnat n = succ_pnat m ↔ n = m :=
+succ_pnat_injective.eq_iff
+
+@[simp] theorem nat_pred_succ_pnat (n : ℕ) : n.succ_pnat.nat_pred = n := rfl
+
+@[simp] theorem _root_.pnat.succ_pnat_nat_pred (n : ℕ+) : n.nat_pred.succ_pnat = n :=
+subtype.eq $ succ_pred_eq_of_pos n.2
 
 /-- Convert a natural number to a pnat. `n+1` is mapped to itself,
   and `0` becomes `1`. -/
@@ -68,9 +101,6 @@ open nat
 -/
 
 instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
-
-instance : linear_order ℕ+ :=
-subtype.linear_order _
 
 @[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
   (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
@@ -111,6 +141,21 @@ coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
 
 instance : add_right_cancel_semigroup ℕ+ :=
 coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
+
+/-- An equivalence between `ℕ+` and `ℕ` given by `pnat.nat_pred` and `nat.succ_pnat`. -/
+@[simps { fully_applied := ff }] def _root_.equiv.pnat_equiv_nat : ℕ+ ≃ ℕ :=
+{ to_fun := pnat.nat_pred,
+  inv_fun := nat.succ_pnat,
+  left_inv := succ_pnat_nat_pred,
+  right_inv := nat.nat_pred_succ_pnat }
+
+/-- The order isomorphism between ℕ and ℕ+ given by `succ`. -/
+@[simps apply { fully_applied := ff }] def _root_.order_iso.pnat_iso_nat : ℕ+ ≃o ℕ :=
+{ to_equiv := equiv.pnat_equiv_nat,
+  map_rel_iff' := λ _ _, nat_pred_le_nat_pred }
+
+@[simp] lemma _root_.order_iso.pnat_iso_nat_symm_apply :
+  ⇑order_iso.pnat_iso_nat.symm = nat.succ_pnat := rfl
 
 @[priority 10]
 instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
@@ -179,26 +224,13 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
 @[simp] lemma coe_coe_monoid_hom : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
 
 @[simp]
-lemma coe_eq_one_iff {m : ℕ+} :
-(m : ℕ) = 1 ↔ m = 1 := by { split; intro h; try { apply pnat.eq}; rw h; simp }
+lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 := by rw [← one_coe, coe_inj]
 
-@[simp] lemma le_one_iff {n : ℕ+} :
-  n ≤ 1 ↔ n = 1 :=
-begin
-  rcases n with ⟨_|n, hn⟩,
-  { exact absurd hn (lt_irrefl _) },
-  { simp [←pnat.coe_le_coe, subtype.ext_iff, nat.succ_le_succ_iff, nat.succ_inj'], }
-end
+@[simp] lemma le_one_iff {n : ℕ+} : n ≤ 1 ↔ n = 1 := le_bot_iff
 
-lemma lt_add_left (n m : ℕ+) : n < m + n :=
-begin
-  rcases m with ⟨_|m, hm⟩,
-  { exact absurd hm (lt_irrefl _) },
-  { simp [←pnat.coe_lt_coe] }
-end
+lemma lt_add_left (n m : ℕ+) : n < m + n := lt_add_of_pos_left _ m.2
 
-lemma lt_add_right (n m : ℕ+) : n < n + m :=
-(lt_add_left n m).trans_le (add_comm _ _).le
+lemma lt_add_right (n m : ℕ+) : n < n + m := (lt_add_left n m).trans_eq (add_comm _ _)
 
 @[simp] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
 @[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl

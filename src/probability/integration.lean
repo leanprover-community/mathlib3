@@ -28,7 +28,7 @@ example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} 
 
 noncomputable theory
 open set measure_theory
-open_locale ennreal
+open_locale ennreal measure_theory
 
 variables {α : Type*} {mα : measurable_space α} {μ : measure α} {f g : α → ℝ≥0∞} {X Y : α → ℝ}
 
@@ -39,7 +39,7 @@ namespace probability_theory
   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator {Mf mα : measurable_space α}
   {μ : measure α} (hMf : Mf ≤ mα) (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
-  (h_ind : indep_sets Mf.measurable_set' {T} μ) (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) :
+  (h_ind : indep_sets {s | measurable_set[Mf] s} {T} μ) (h_meas_f : measurable[Mf] f) :
   ∫⁻ a, f a * T.indicator (λ _, c) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, T.indicator (λ _, c) a ∂μ :=
 begin
   revert f,
@@ -59,8 +59,8 @@ begin
     have h_measM_f' : measurable f', from h_meas_f'.mono hMf le_rfl,
     have h_measM_g : measurable g, from h_meas_g.mono hMf le_rfl,
     simp_rw [pi.add_apply, right_distrib],
-    rw [lintegral_add (h_mul_indicator _ h_measM_f') (h_mul_indicator _ h_measM_g),
-      lintegral_add h_measM_f' h_measM_g, right_distrib, h_ind_f', h_ind_g] },
+    rw [lintegral_add_left (h_mul_indicator _ h_measM_f'),
+      lintegral_add_left h_measM_f', right_distrib, h_ind_f', h_ind_g] },
   { intros f h_meas_f h_mono_f h_ind_f,
     have h_measM_f : ∀ n, measurable (f n), from λ n, (h_meas_f n).mono hMf le_rfl,
     simp_rw [ennreal.supr_mul],
@@ -79,7 +79,7 @@ end
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   {Mf Mg mα : measurable_space α} {μ : measure α}
   (hMf : Mf ≤ mα) (hMg : Mg ≤ mα) (h_ind : indep Mf Mg μ)
-  (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) (h_meas_g : @measurable α ℝ≥0∞ Mg _ g) :
+  (h_meas_f : measurable[Mf] f) (h_meas_g : measurable[Mg] g) :
   ∫⁻ a, f a * g a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 begin
   revert g,
@@ -93,8 +93,7 @@ begin
     have h_measM_f' : measurable f', from h_measMg_f'.mono hMg le_rfl,
     have h_measM_g : measurable g, from h_measMg_g.mono hMg le_rfl,
     simp_rw [pi.add_apply, left_distrib],
-    rw [lintegral_add h_measM_f' h_measM_g,
-      lintegral_add (h_measM_f.mul h_measM_f') (h_measM_f.mul h_measM_g),
+    rw [lintegral_add_left h_measM_f', lintegral_add_left (h_measM_f.mul h_measM_f'),
       left_distrib, h_ind_f', h_ind_g'] },
   { intros f' h_meas_f' h_mono_f' h_ind_f',
     have h_measM_f' : ∀ n, measurable (f' n), from λ n, (h_meas_f' n).mono hMg le_rfl,

@@ -96,7 +96,7 @@ begin
     refine ⟨ih.mp ⟨pi.single h.some (μ a * s h.some) + μ * λ _, s a, _⟩, λ b hb, _⟩,
     { rw [prod_eq_mul_prod_diff_singleton h.some_spec, ← mul_assoc,
         ← @if_pos _ _ h.some_spec R (_ * _) 0, ← sum_pi_single', ← sum_add_distrib] at hμ,
-      rw [← hμ, sum_congr rfl], intros x hx, convert add_mul _ _ _ using 2,
+      rw [← hμ, sum_congr rfl], intros x hx, convert @add_mul R _ _ _ _ _ _ using 2,
       { by_cases hx : x = h.some,
         { rw [hx, pi.single_eq_same, pi.single_eq_same] },
         { rw [pi.single_eq_of_ne hx, pi.single_eq_of_ne hx, zero_mul] } },

@@ -82,7 +82,7 @@ export has_sdiff (sdiff)
 
 /-- A generalized Boolean algebra is a distributive lattice with `⊥` and a relative complement
 operation `\` (called `sdiff`, after "set difference") satisfying `(a ⊓ b) ⊔ (a \ b) = a` and
-`(a ⊓ b) ⊓ (a \ b) = b`, i.e. `a \ b` is the complement of `b` in `a`.
+`(a ⊓ b) ⊓ (a \ b) = ⊥`, i.e. `a \ b` is the complement of `b` in `a`.
 
 This is a generalization of Boolean algebras which applies to `finset α` for arbitrary
 (not-necessarily-`fintype`) `α`. -/
@@ -253,6 +253,9 @@ lemma le_iff_eq_sup_sdiff (hz : z ≤ y) (hx : x ≤ y) : x ≤ z ↔ y = z ⊔ 
     exact bot_le,
   end⟩
 
+lemma sup_sdiff_eq_sup (h : z ≤ x) : x ⊔ y \ z = x ⊔ y :=
+sup_congr_left (sdiff_le.trans le_sup_right) $ le_sup_sdiff.trans $ sup_le_sup_right h _
+
 -- cf. `set.union_diff_cancel'`
 lemma sup_sdiff_cancel' (hx : x ≤ z) (hz : z ≤ y) : z ⊔ (y \ x) = y :=
 ((le_iff_eq_sup_sdiff hz (hx.trans hz)).1 hx).symm
@@ -354,6 +357,12 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
 lemma sdiff_sdiff_le : x \ (x \ y) ≤ y := sdiff_le_iff.2 le_sdiff_sup
+
+lemma sdiff_triangle (x y z : α) : x \ z ≤ x \ y ⊔ y \ z :=
+begin
+  rw [sdiff_le_iff, sup_left_comm, ←sdiff_le_iff],
+  exact sdiff_sdiff_le.trans (sdiff_le_iff.1 le_rfl),
+end
 
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
@@ -637,6 +646,12 @@ theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
 theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
 ⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
 
+theorem compl_eq_comm : xᶜ = y ↔ yᶜ = x :=
+by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
+
+theorem eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
+by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
+
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
 
@@ -651,6 +666,8 @@ is_compl_bot_top.compl_eq
 
 @[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
 is_compl_compl.symm.compl_eq
+
+theorem compl_comp_compl : compl ∘ compl = @id α := funext compl_compl
 
 @[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
 
@@ -699,6 +716,21 @@ theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
 
 theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
 ⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
+
+lemma le_compl_iff_disjoint_right : x ≤ yᶜ ↔ disjoint x y := is_compl_compl.le_right_iff
+lemma le_compl_iff_disjoint_left : y ≤ xᶜ ↔ disjoint x y :=
+le_compl_iff_disjoint_right.trans disjoint.comm
+
+lemma disjoint_compl_left_iff : disjoint xᶜ y ↔ y ≤ x :=
+by rw [←le_compl_iff_disjoint_left, compl_compl]
+
+lemma disjoint_compl_right_iff : disjoint x yᶜ ↔ x ≤ y :=
+by rw [←le_compl_iff_disjoint_right, compl_compl]
+
+alias le_compl_iff_disjoint_right ↔ _ disjoint.le_compl_right
+alias le_compl_iff_disjoint_left ↔ _ disjoint.le_compl_left
+alias disjoint_compl_left_iff ↔ _ has_le.le.disjoint_compl_left
+alias disjoint_compl_right_iff ↔ _ has_le.le.disjoint_compl_right
 
 namespace boolean_algebra
 
@@ -812,6 +844,9 @@ instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i
 lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
   xᶜ = λ i, (x i)ᶜ := rfl
 
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
 @[simp]
 lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
   xᶜ i = (x i)ᶜ := rfl
@@ -842,6 +877,10 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   inf_compl_le_bot := λ a, a.band_bnot_self.le,
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
+
+@[simp] lemma bool.sup_eq_bor : (⊔) = bor := rfl
+@[simp] lemma bool.inf_eq_band : (⊓) = band := rfl
+@[simp] lemma bool.compl_eq_bnot : has_compl.compl = bnot := rfl
 
 section lift
 
@@ -887,3 +926,25 @@ protected def function.injective.boolean_algebra [has_sup α] [has_inf α] [has_
   ..hf.generalized_boolean_algebra f map_sup map_inf map_bot map_sdiff }
 
 end lift
+
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : boolean_algebra punit :=
+by refine_struct
+{ top := star,
+  bot := star,
+  sup := λ _ _, star,
+  inf := λ _ _, star,
+  compl := λ _, star,
+  sdiff := λ _ _, star, ..punit.linear_order };
+    intros; trivial <|> exact subsingleton.elim _ _
+
+@[simp] lemma top_eq : (⊤ : punit) = star := rfl
+@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
+@[simp] lemma sup_eq : a ⊔ b = star := rfl
+@[simp] lemma inf_eq : a ⊓ b = star := rfl
+@[simp] lemma compl_eq : aᶜ = star := rfl
+@[simp] lemma sdiff_eq : a \ b = star := rfl
+
+end punit

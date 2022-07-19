@@ -109,9 +109,11 @@ meta def resolve_sum_step : expr → tactic unit
   | `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
   | `(%%tl1 ^ %%n)   := do
       refine ``(nat_degree_pow_le.trans _),
-      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0),
-        (by simp only [n0, zero_mul, zero_le])) (λ (n0 : ¬ %%n = 0), _)),
-      refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero ‹_›)).mp _))
+      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
+      n0 ← get_unused_name "n0" >>= intro,
+      refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
+      refine ``((%%n0 rfl).elim) <|>
+        try `[ simp only [nat.mul_div_cancel, nat.div_self, nat.pos_of_ne_zero ‹_›] ]
   | e                := fail!"'{e}' is not supported"
   end
 | e := fail!("'resolve_sum_step' was called on\n" ++

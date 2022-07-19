@@ -2412,6 +2412,23 @@ lemma differentiable_on.mul (ha : differentiable_on 𝕜 a s) (hb : differentiab
   differentiable 𝕜 (λ y, a y * b y) :=
 λx, (ha x).mul (hb x)
 
+lemma differentiable_within_at.pow (ha : differentiable_within_at 𝕜 a s x) :
+  ∀ n : ℕ, differentiable_within_at 𝕜 (λ x, a x ^ n) s x
+| 0 := by simp only [pow_zero, differentiable_within_at_const]
+| (n + 1) := by simp only [pow_succ, differentiable_within_at.pow n, ha.mul]
+
+@[simp] lemma differentiable_at.pow (ha : differentiable_at 𝕜 a x) (n : ℕ) :
+  differentiable_at 𝕜 (λ x, a x ^ n) x :=
+differentiable_within_at_univ.mp $ ha.differentiable_within_at.pow n
+
+lemma differentiable_on.pow (ha : differentiable_on 𝕜 a s) (n : ℕ) :
+  differentiable_on 𝕜 (λ x, a x ^ n) s :=
+λ x h, (ha x h).pow n
+
+@[simp] lemma differentiable.pow (ha : differentiable 𝕜 a) (n : ℕ) :
+  differentiable 𝕜 (λ x, a x ^ n) :=
+λx, (ha x).pow n
+
 lemma fderiv_within_mul' (hxs : unique_diff_within_at 𝕜 s x)
   (ha : differentiable_within_at 𝕜 a s x) (hb : differentiable_within_at 𝕜 b s x) :
   fderiv_within 𝕜 (λ y, a y * b y) s x =

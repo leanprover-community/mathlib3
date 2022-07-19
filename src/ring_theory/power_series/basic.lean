@@ -1421,11 +1421,16 @@ end ring
 section comm_ring
 variables {A : Type*} [comm_ring A]
 
-@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+@[simp] lemma rescale_X (a : A) : rescale a X = C A a * X :=
 begin
-  ext, simp only [linear_map.map_neg, coeff_rescale, coeff_X],
-  split_ifs with h; simp [h]
+  ext,
+  simp only [coeff_rescale, coeff_C_mul, coeff_X],
+  split_ifs with h;
+  simp [h],
 end
+
+lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+by rw [rescale_X, map_neg, map_one, neg_one_mul]
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=

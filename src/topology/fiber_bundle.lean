@@ -164,7 +164,7 @@ below as `trivialization F proj`) if the total space has not been given a topolo
 have a topology on both the fiber and the base space. Through the construction
 `topological_fiber_prebundle F proj` it will be possible to promote a
 `pretrivialization F proj` to a `trivialization F proj`. -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_inhabited_instance]
 structure topological_fiber_bundle.pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
 (open_target   : is_open target)
 (base_set      : set B)
@@ -278,7 +278,7 @@ A structure extending local homeomorphisms, defining a local trivialization of a
 `proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F` defined between two
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_inhabited_instance]
 structure topological_fiber_bundle.trivialization (proj : Z → B)
   extends local_homeomorph Z (B × F) :=
 (base_set      : set B)
@@ -299,6 +299,11 @@ def to_pretrivialization : topological_fiber_bundle.pretrivialization F proj := 
 instance : has_coe_to_fun (trivialization F proj) (λ _, Z → B × F) := ⟨λ e, e.to_fun⟩
 instance : has_coe (trivialization F proj) (pretrivialization F proj) :=
 ⟨to_pretrivialization⟩
+
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization F proj, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← local_homeomorph.to_local_equiv_injective.eq_iff], exact id }
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex

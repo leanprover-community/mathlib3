@@ -39,13 +39,13 @@ theorem is_transitive_iff_mem_trans {z : Set} :
 
 alias is_transitive_iff_mem_trans ↔ is_transitive.mem_trans _
 
-theorem is_transitive.sUnion {x : Set} (h : x.is_transitive) : (⋃ x).is_transitive :=
+theorem is_transitive.sUnion {x : Set} (h : x.is_transitive) : (⋃₀ x).is_transitive :=
 λ y hy z hz, begin
   rcases mem_sUnion.1 hy with ⟨w, hw, hw'⟩,
   exact mem_sUnion_of_mem hz (h.mem_trans hw' hw)
 end
 
-theorem is_transitive_iff_sUnion_subset {x : Set} : x.is_transitive ↔ ⋃ x ⊆ x :=
+theorem is_transitive_iff_sUnion_subset {x : Set} : x.is_transitive ↔ ⋃₀ x ⊆ x :=
 ⟨λ h y hy, by { rcases mem_sUnion.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },
   λ H y hy z hz, H $ mem_sUnion_of_mem hz hy⟩
 

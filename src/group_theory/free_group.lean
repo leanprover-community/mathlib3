@@ -383,8 +383,7 @@ begin
 end
 
 instance : has_inv (free_group α) :=
-⟨λx, quot.lift_on x (λ L, mk (inv_rev L))
-  (assume a b h, quot.sound $ by { cases h; simp })⟩
+⟨ quot.map inv_rev (by { intros a b h, cases h, simp, }) ⟩
 @[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
 
 instance : group (free_group α) :=
@@ -893,7 +892,7 @@ def norm (x : free_group α) : nat := x.to_word.length
 
 private lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
 begin
-  let w := x.to_word,
+  let w := x.to_word
  
   calc norm x⁻¹ = norm ((mk (x.to_word))⁻¹) : by simp only [to_word.mk]
        ... = norm (mk (inv_rev w)) : by simp only [←inv_mk]

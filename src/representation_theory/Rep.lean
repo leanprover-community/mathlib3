@@ -92,8 +92,8 @@ lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
 begin
   apply monoid_algebra.induction_on r,
   { intro g,
-      simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
-      exact linear_map.congr_fun (w g) x, },
+    simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
+    exact linear_map.congr_fun (w g) x, },
   { intros g h gw hw, simp only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
   { intros r g w,
     simp only [alg_hom.map_smul, w, ring_hom.id_apply,

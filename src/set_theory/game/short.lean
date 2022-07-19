@@ -103,7 +103,7 @@ begin
   split, all_goals
   { rw ←cardinal.ord_aleph_0,
     refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_aleph_0
-      (cardinal.lt_aleph_0_of_fintype _) (λ i, _),
+      (cardinal.lt_aleph_0_of_finite _) (λ i, _),
     rw cardinal.ord_aleph_0,
     apply short_birthday _ },
   { exact move_left_short' xL xR i },
@@ -150,7 +150,7 @@ begin
   haveI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
-    (λ j, short_of_relabelling (rR j) infer_instance)
+    (λ j, by simpa using short_of_relabelling (rR (R.symm j)) infer_instance)
 end
 
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)

@@ -134,6 +134,15 @@ theorem mem_map_of_injective {f : α → β} (H : injective f) {a : α} {l : lis
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
+@[simp] lemma _root_.function.involutive.exists_mem_and_apply_eq_iff {f : α → α}
+  (hf : function.involutive f) (x : α) (l : list α) :
+  (∃ (y : α), y ∈ l ∧ f y = x) ↔ f x ∈ l :=
+⟨by { rintro ⟨y, h, rfl⟩, rwa hf y }, λ h, ⟨f x, h, hf _⟩⟩
+
+theorem mem_map_of_involutive {f : α → α} (hf : involutive f) {a : α} {l : list α} :
+  a ∈ map f l ↔ f a ∈ l :=
+by rw [mem_map, hf.exists_mem_and_apply_eq_iff]
+
 lemma forall_mem_map_iff {f : α → β} {l : list α} {P : β → Prop} :
   (∀ i ∈ l.map f, P i) ↔ ∀ j ∈ l, P (f j) :=
 begin
@@ -3480,8 +3489,8 @@ begin
     { simp [hmem] } }
 end
 
-@[simp] lemma enum_from_nil (n : ℕ) : enum_from n ([] : list α) = [] := rfl
 @[simp] lemma enum_nil : enum ([] : list α) = [] := rfl
+@[simp] lemma enum_from_nil (n : ℕ) : enum_from n ([] : list α) = [] := rfl
 
 @[simp] lemma enum_from_cons (x : α) (xs : list α) (n : ℕ) :
   enum_from n (x :: xs) = (n, x) :: enum_from (n + 1) xs := rfl
@@ -3492,9 +3501,8 @@ end
 @[simp] lemma enum_singleton (x : α) :
   enum [x] = [(0, x)] := rfl
 
--- Addition on the right to make `enum_append` be definitionally true to this lemma
 lemma enum_from_append (xs ys : list α) (n : ℕ) :
-  enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (xs.length + n) ys :=
+  enum_from n (xs ++ ys) = enum_from n xs ++ enum_from (n + xs.length) ys :=
 begin
   induction xs with x xs IH generalizing ys n,
   { simp },
@@ -3504,7 +3512,7 @@ end
 
 lemma enum_append (xs ys : list α) :
   enum (xs ++ ys) = enum xs ++ enum_from xs.length ys :=
-enum_from_append _ _ _
+by simp [enum, enum_from_append]
 
 lemma map_fst_add_enum_from_eq_enum_from (l : list α) (n k : ℕ) :
   map (prod.map (+ n) id) (enum_from k l) = enum_from (n + k) l :=
@@ -3851,6 +3859,15 @@ attribute [to_additive] alternating_prod -- `list.alternating_sum`
 
 /-! ### Miscellaneous lemmas -/
 
+lemma last_reverse {l : list α} (hl : l.reverse ≠ [])
+  (hl' : 0 < l.length := by { contrapose! hl, simpa [length_eq_zero] using hl }) :
+  l.reverse.last hl = l.nth_le 0 hl' :=
+begin
+  rw [last_eq_nth_le, nth_le_reverse'],
+  { simp, },
+  { simpa using hl' }
+end
+
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l
 | a []     := or.inl rfl
 | a (b::l) := or.inr (ilast'_mem b l)
@@ -3899,7 +3916,7 @@ begin
         { cases j; unfold_wf, refl,
           transitivity, apply xs_ih,
           simp }, },
-      unfold_wf, apply zero_lt_one_add, },
+      unfold_wf, },
     { unfold_wf, apply xs_ih _ _ h,
       apply lt_of_succ_lt_succ hi, } },
 end

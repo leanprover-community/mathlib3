@@ -17,6 +17,7 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators topol
 namespace measure_theory
 
 variables {α : Type*} {m0 : measurable_space α} {μ : measure α}
+  {ℱ : filtration ℕ m0} {f : ℕ → α → ℝ}
 
 /-
 for a (sub)martingale `f` with bounded difference,
@@ -26,9 +27,7 @@ for a (sub)martingale `f` with bounded difference,
 noncomputable
 def least_ge (f : ℕ → α → ℝ) (r : ℝ) (n : ℕ) := hitting f (set.Ici r) 0 n
 
-variables {ℱ : filtration ℕ m0} {f : ℕ → α → ℝ} (r : ℝ) (n : ℕ)
-
-lemma adapted.is_stopping_time_least_ge (hf : adapted ℱ f) :
+lemma adapted.is_stopping_time_least_ge (r : ℝ) (n : ℕ) (hf : adapted ℱ f) :
   is_stopping_time ℱ (least_ge f r n) :=
 hitting_is_stopping_time hf measurable_set_Ici
 
@@ -38,9 +37,10 @@ lemma eventually_le.add_le_add {α β : Type*} [ordered_semiring β] {l : filter
   {f₁ f₂ g₁ g₂ : α → β} (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) : f₁ + g₁ ≤ᶠ[l] f₂ + g₂ :=
 by filter_upwards [hf, hg] with x hfx hgx using add_le_add hfx hgx
 
-variables {u : ℕ → α → ℝ} {τ : α → ℕ}
+variables {β : Type*}
+variables {u : ℕ → α → β} {τ : α → ℕ}
 
-lemma stopped_process_eq' (n : ℕ) :
+lemma stopped_value_eq' [add_comm_monoid β] (n : ℕ) :
   stopped_process u τ n =
   set.indicator {a | n + 1 ≤ τ a} (u n) +
     ∑ i in finset.range (n + 1), set.indicator {a | τ a = i} (u i) :=
@@ -56,16 +56,36 @@ begin
   rw [stopped_process_eq, this, finset.sum_range_succ_comm, ← add_assoc],
 end
 
+lemma not_mem_of_lt_hitting {ι : Type*}
+  [conditionally_complete_linear_order ι] [is_well_order ι (<)]
+  {u : ι → α → β} {s : set β} {x : α} {n m k : ι}
+  (hk₁ : k < hitting u s n m x) (hk₂ : n ≤ k) :
+  u k x ∉ s :=
+begin
+  classical,
+  intro h,
+  have hexists : ∃ j ∈ set.Icc n m, u j x ∈ s,
+  refine ⟨k, ⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
+  refine not_le.2 hk₁ _,
+  simp_rw [hitting, if_pos hexists],
+  exact cInf_le bdd_below_Icc.inter_of_left ⟨⟨hk₂, le_trans hk₁.le $ hitting_le _⟩, h⟩,
+end
+
 end move
 
-lemma submartingale.stopped_process_least_ge
-  [is_finite_measure μ] (hf : submartingale f ℱ μ) :
-  submartingale (stopped_process f (least_ge f r n)) ℱ μ :=
+-- Could generalize but need to refactor stopped process
+lemma submartingale.stopped_process_least_ge [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (r : ℝ) (n : ℕ) :
+  submartingale (λ n, stopped_value f (least_ge f r n)) ℱ μ :=
 begin
-  refine submartingale_nat (hf.adapted.stopped_process_of_nat
-    (hf.adapted.is_stopping_time_least_ge r n))
-    (integrable_stopped_process (hf.adapted.is_stopping_time_least_ge r n) hf.integrable)
-    (λ i, _),
+  refine submartingale_nat _ _ _,
+  { sorry
+
+  },
+  -- (hf.adapted.stopped_process_of_nat
+  --   (hf.adapted.is_stopping_time_least_ge r n))
+  --   (integrable_stopped_process (hf.adapted.is_stopping_time_least_ge r n) hf.integrable)
+  --   (λ i, _),
   have hst := hf.adapted.is_stopping_time_least_ge r n,
   have hsint : integrable (∑ i in finset.range (i + 1),
     {a | least_ge f r n a = i}.indicator (f i)) μ :=
@@ -88,33 +108,58 @@ begin
     (condexp_indicator (hf.integrable _) hmeas).symm.le) (eventually_le.refl _ _),
 end
 
-variables {R : ℝ≥0}
+variables {r : ℝ} {R : ℝ≥0}
 
 -- #check snorm_le_of_ae_bound
 
--- add something like not_mem_of_lt_hitting
-
-lemma stopped_process_least_ge_le [is_finite_measure μ]
-  (hbdd : ∀ i, snorm (f (i + 1) - f i) 1 μ ≤ R) (m : ℕ) (x : α) (hf0 : f 0 x = 0) :
-  stopped_process f (least_ge f r n) m x ≤ n + R :=
+lemma norm_stopped_process_least_ge_le [is_finite_measure μ]
+  {r : ℝ} (hr : 0 ≤ r) (hf : 0 ≤ f) (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (n m : ℕ) :
+  ∀ᵐ x ∂μ, ∥stopped_process f (least_ge f r n) m x∥ ≤ r + R + f 0 x :=
 begin
-  rw least_ge,
-  -- refine le_trans (stopped_value_hitting_mem _) _,
-  -- have : f (least_ge f r n x) x ∈ set.Ici r, refine hitting_mem_set _,
-  sorry
+  filter_upwards [hbdd] with x hbddx,
+  change ∥f (min m $ least_ge f r n x) x∥ ≤ r + R + f 0 x,
+  rw [real.norm_eq_abs, abs_of_nonneg (hf (min m $ least_ge f r n x) x)],
+  by_cases hlt : m < least_ge f r n x,
+  { rw [min_eq_left hlt.le, add_assoc],
+    refine (not_le.1 $ not_mem_of_lt_hitting hlt $ zero_le _).le.trans
+      (le_add_of_nonneg_right $ add_nonneg R.coe_nonneg (hf 0 x)) },
+  { rw min_eq_right (not_lt.1 hlt),
+    by_cases heq : least_ge f r n x = 0,
+    { exact heq ▸ le_add_of_nonneg_left (add_nonneg hr R.coe_nonneg) },
+    { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero heq,
+      exact hk.symm ▸ (sub_le_iff_le_add.1 $ hbddx k).trans
+        ((add_le_add_left (not_le.1 $ not_mem_of_lt_hitting
+          (hk.symm ▸ k.lt_succ_self : k < least_ge f r n x) (zero_le _)).le _).trans
+          (add_comm ↑R r ▸ le_add_of_nonneg_right (hf 0 x))) } }
 end
 
 lemma stopped_process_least_ge_snorm_le [is_finite_measure μ]
-  (hf0 : f 0 = 0) (hbdd : ∀ i, snorm (f (i + 1) - f i) 1 μ ≤ R) (m : ℕ) :
-  snorm (stopped_process f (least_ge f r n) m) 1 μ ≤ 2 * μ set.univ * (n + R) :=
+  {r : ℝ} (hr : 0 ≤ r) (hf : 0 ≤ f) (hf0 : f 0 = 0)
+  (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (n m : ℕ) :
+  snorm (stopped_process f (least_ge f r n) m) 1 μ ≤ μ set.univ * ennreal.of_real (r + R) :=
 begin
-  sorry,
+  have hbound := norm_stopped_process_least_ge_le hr hf hbdd n m,
+  simp only [hf0, pi.zero_apply, add_zero] at hbound,
+  refine le_trans (snorm_le_of_ae_bound hbound) _,
+  rw [ennreal.one_to_real, inv_one, ennreal.rpow_one],
+  exact le_rfl,
 end
 
 lemma foo [is_finite_measure μ]
-  (hf : submartingale f ℱ μ) (hfnonneg : 0 ≤ f) (hbdd : ∀ n, snorm (f (n + 1) - f n) 1 μ ≤ R) :
+  (hf : submartingale f ℱ μ) (hlef : 0 ≤ f) (hf0 : f 0 = 0)
+  (hbdd : ∀ n, snorm (f (n + 1) - f n) 1 μ ≤ R) :
   ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) → ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
 begin
+  suffices : ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) →
+    ∃ N : ℕ, f = λ n, stopped_process f (least_ge f N n) n,
+  { filter_upwards [this] with x hx hbound,
+    obtain ⟨N, hN⟩ := hx hbound,
+    rw [hN],
+    simp,
+    -- refine submartingale.exists_ae_trim_tendsto_of_bdd _ _,
+
+   },
+  -- have := hf.stopped_process_least_ge,
   sorry
 end
 

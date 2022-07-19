@@ -5,13 +5,21 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] {a b c d e : R}
 
---  error: VM does not have code for 'nat.zero'
---example {R} [semiring R] {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
---  (p ^ n).nat_degree ≤ 0 :=
---begin
---  cases n,
---  { compute_degree_le, },
---end
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by compute_degree_le
+
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by cases n; compute_degree_le
+
+example {p q r : R[X]} {a b c d e f m n : ℕ} {p0 : p.nat_degree = a} {q0 : q.nat_degree = b}
+  {r0 : r.nat_degree = c} :
+  (((q ^ e * p ^ d) ^ m * r ^ f) ^ n).nat_degree ≤ ((b * e + a * d) * m + c * f) * n :=
+begin
+  compute_degree_le,
+  rw [p0, q0, r0],
+end
 
 example {F} [ring F] {p : F[X]} (p0 : p.nat_degree ≤ 0) :
   p.nat_degree ≤ 0 :=

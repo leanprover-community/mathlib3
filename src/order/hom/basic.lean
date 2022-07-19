@@ -427,8 +427,7 @@ protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 @[simps { fully_applied := ff }]
 protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=
 { to_fun := with_bot.map f,
-  map_rel_iff' := λ a b, by cases a; cases b; simp [with_bot.none_eq_bot, with_bot.some_eq_coe,
-    with_bot.not_coe_le_bot],
+  map_rel_iff' := with_bot.map_le_iff f (λ a b, f.map_rel_iff),
   .. f.to_embedding.option_map }
 
 /-- A version of `with_top.map` for order embeddings. -/
@@ -638,6 +637,34 @@ protected lemma strict_mono (e : α ≃o β) : strict_mono e := e.to_order_embed
 @[simp] lemma lt_iff_lt (e : α ≃o β) {x y : α} : e x < e y ↔ x < y :=
 e.to_order_embedding.lt_iff_lt
 
+/-- Converts an `order_iso` into a `rel_iso (<) (<)`. -/
+def to_rel_iso_lt (e : α ≃o β) : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop) :=
+⟨e.to_equiv, λ x y, lt_iff_lt e⟩
+
+@[simp] lemma to_rel_iso_lt_apply (e : α ≃o β) (x : α) : e.to_rel_iso_lt x = e x := rfl
+
+@[simp] lemma to_rel_iso_lt_symm (e : α ≃o β) : e.to_rel_iso_lt.symm = e.symm.to_rel_iso_lt := rfl
+
+/-- Converts a `rel_iso (<) (<)` into an `order_iso`. -/
+def of_rel_iso_lt {α β} [partial_order α] [partial_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : α ≃o β :=
+⟨e.to_equiv, λ x y, by simp [le_iff_eq_or_lt, e.map_rel_iff]⟩
+
+@[simp] lemma of_rel_iso_lt_apply {α β} [partial_order α] [partial_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) (x : α) : of_rel_iso_lt e x = e x := rfl
+
+@[simp] lemma of_rel_iso_lt_symm {α β} [partial_order α] [partial_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) :
+  (of_rel_iso_lt e).symm = of_rel_iso_lt e.symm := rfl
+
+@[simp] lemma of_rel_iso_lt_to_rel_iso_lt {α β} [partial_order α] [partial_order β] (e : α ≃o β) :
+  of_rel_iso_lt (to_rel_iso_lt e) = e :=
+by { ext, simp }
+
+@[simp] lemma to_rel_iso_lt_of_rel_iso_lt {α β} [partial_order α] [partial_order β]
+  (e : ((<) : α → α → Prop) ≃r ((<) : β → β → Prop)) : to_rel_iso_lt (of_rel_iso_lt e) = e :=
+by { ext, simp }
+
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
     it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
@@ -770,40 +797,42 @@ lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top
   f ⊤ = ⊤ :=
 f.dual.map_bot
 
-lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : α ↪o β) (x y : α) :
+lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β] (f : α ↪o β) (x y : α) :
   f (x ⊓ y) ≤ f x ⊓ f y :=
 f.monotone.map_inf_le x y
 
-lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : α ≃o β) (x y : α) :
+lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β] (f : α ↪o β) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+f.monotone.le_map_sup x y
+
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o β) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
   simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
 end
 
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
+  f (x ⊔ y) = f x ⊔ f y :=
+f.dual.map_inf x y
+
 /-- Note that this goal could also be stated `(disjoint on f) a b` -/
 lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
   {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
-begin
-  rw [disjoint, ←f.map_inf, ←f.map_bot],
-  exact f.monotone ha,
-end
+by { rw [disjoint, ←f.map_inf, ←f.map_bot], exact f.monotone ha }
+
+/-- Note that this goal could also be stated `(codisjoint on f) a b` -/
+lemma codisjoint.map_order_iso [semilattice_sup α] [order_top α] [semilattice_sup β] [order_top β]
+  {a b : α} (f : α ≃o β) (ha : codisjoint a b) : codisjoint (f a) (f b) :=
+by { rw [codisjoint, ←f.map_sup, ←f.map_top], exact f.monotone ha }
 
 @[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
   [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=
 ⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
 
-lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : α ↪o β) (x y : α) :
-  f x ⊔ f y ≤ f (x ⊔ y) :=
-f.monotone.le_map_sup x y
-
-lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : α ≃o β) (x y : α) :
-  f (x ⊔ y) = f x ⊔ f y :=
-f.dual.map_inf x y
+@[simp] lemma codisjoint_map_order_iso_iff [semilattice_sup α] [order_top α] [semilattice_sup β]
+  [order_top β] {a b : α} (f : α ≃o β) : codisjoint (f a) (f b) ↔ codisjoint a b :=
+⟨λ h, f.symm_apply_apply a ▸ f.symm_apply_apply b ▸ h.map_order_iso f.symm, λ h, h.map_order_iso f⟩
 
 namespace with_bot
 
@@ -873,15 +902,11 @@ variables [lattice α] [lattice β] [bounded_order α] [bounded_order β] (f : �
 include f
 
 lemma order_iso.is_compl {x y : α} (h : is_compl x y) : is_compl (f x) (f y) :=
-⟨by { rw [← f.map_bot, ← f.map_inf, f.map_rel_iff], exact h.1 },
-  by { rw [← f.map_top, ← f.map_sup, f.map_rel_iff], exact h.2 }⟩
+⟨h.1.map_order_iso _, h.2.map_order_iso _⟩
 
 theorem order_iso.is_compl_iff {x y : α} :
   is_compl x y ↔ is_compl (f x) (f y) :=
-⟨f.is_compl, λ h, begin
-  rw [← f.symm_apply_apply x, ← f.symm_apply_apply y],
-  exact f.symm.is_compl h,
-end⟩
+⟨f.is_compl, λ h, f.symm_apply_apply x ▸ f.symm_apply_apply y ▸ f.symm.is_compl h⟩
 
 lemma order_iso.is_complemented
   [is_complemented α] : is_complemented β :=

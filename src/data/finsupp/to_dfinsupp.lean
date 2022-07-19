@@ -276,7 +276,7 @@ local attribute [-instance] finsupp.add_zero_class
 @[simp]
 lemma sigma_finsupp_equiv_dfinsupp_smul {R} [monoid R] [add_monoid N] [distrib_mul_action R N]
   (r : R) (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
-  @has_scalar.smul R (Π₀ i, η i →₀ N) mul_action.to_has_scalar r (sigma_finsupp_equiv_dfinsupp f) :=
+  @has_smul.smul R (Π₀ i, η i →₀ N) mul_action.to_has_smul r (sigma_finsupp_equiv_dfinsupp f) :=
 by { ext, refl }
 
 local attribute [-instance] finsupp.add_monoid

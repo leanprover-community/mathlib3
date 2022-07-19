@@ -40,7 +40,7 @@ the base type `A 0` with:
 and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplication:
 
 * (nothing)
-* `graded_monoid.grade_zero.has_scalar (A 0)`
+* `graded_monoid.grade_zero.has_smul (A 0)`
 * `graded_monoid.grade_zero.mul_action (A 0)`
 * (nothing)
 
@@ -69,7 +69,7 @@ provides the `Prop` typeclasses:
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
 included for convenience. Note that there is no need for `graded_ring` or similar, as all the
 information it would contain is already supplied by `graded_monoid` when `A` is a collection
-of additively-closed set_like objects such as `submodules`. These constructions are explored in
+of additively-closed set_like objects such as `submodule`s. These constructions are explored in
 `algebra.direct_sum.internal`.
 
 This file also contains the definition of `set_like.homogeneous_submonoid A`, which is, as the name
@@ -222,7 +222,7 @@ variables [add_zero_class ι] [ghas_mul A]
 /-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
 -/
-instance grade_zero.has_scalar (i : ι) : has_scalar (A 0) (A i) :=
+instance grade_zero.has_smul (i : ι) : has_smul (A 0) (A i) :=
 { smul := λ x y, (zero_add i).rec (ghas_mul.mul x y) }
 
 /-- `(*) : A 0 → A 0 → A 0` is the value provided in `graded_monoid.ghas_mul.mul`, composed with

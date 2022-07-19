@@ -8,7 +8,7 @@ import group_theory.quotient_group
 import group_theory.solvable
 import group_theory.p_group
 import group_theory.sylow
-import data.nat.factorization
+import data.nat.factorization.basic
 import tactic.tfae
 
 /-!

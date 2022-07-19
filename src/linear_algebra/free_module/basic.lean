@@ -128,6 +128,10 @@ instance self : module.free R R := of_basis $ basis.singleton unit R
 instance of_subsingleton [subsingleton N] : module.free R N :=
 of_basis (basis.empty N : basis pempty R N)
 
+@[priority 100]
+instance of_subsingleton' [subsingleton R] : module.free R N :=
+by letI := module.subsingleton R N; exact module.free.of_subsingleton R N
+
 instance dfinsupp {ι : Type*} (M : ι → Type*) [Π (i : ι), add_comm_monoid (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π₀ i, M i) :=
 of_basis $ dfinsupp.basis $ λ i, choose_basis R (M i)

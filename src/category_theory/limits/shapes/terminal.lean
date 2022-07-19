@@ -25,18 +25,20 @@ namespace category_theory.limits
 
 variables {C : Type u₁} [category.{v₁} C]
 
+local attribute [tidy] tactic.discrete_cases
+
 /-- Construct a cone for the empty diagram given an object. -/
-@[simps] def as_empty_cone (X : C) : cone (functor.empty.{w} C) := { X := X, π := by tidy }
+@[simps] def as_empty_cone (X : C) : cone (functor.empty.{0} C) := { X := X, π := by tidy }
 /-- Construct a cocone for the empty diagram given an object. -/
-@[simps] def as_empty_cocone (X : C) : cocone (functor.empty.{w} C) := { X := X, ι := by tidy }
+@[simps] def as_empty_cocone (X : C) : cocone (functor.empty.{0} C) := { X := X, ι := by tidy }
 
 /-- `X` is terminal if the cone it induces on the empty diagram is limiting. -/
-abbreviation is_terminal (X : C) := is_limit (as_empty_cone.{v₁} X)
+abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
 /-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
-abbreviation is_initial (X : C) := is_colimit (as_empty_cocone.{v₁} X)
+abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
 
 /-- An object `Y` is terminal iff for every `X` there is a unique morphism `X ⟶ Y`. -/
-def is_terminal_equiv_unique (F : discrete.{v₁} pempty ⥤ C) (Y : C) :
+def is_terminal_equiv_unique (F : discrete.{0} pempty.{1} ⥤ C) (Y : C) :
   is_limit (⟨Y, by tidy⟩ : cone F) ≃ ∀ X : C, unique (X ⟶ Y) :=
 { to_fun := λ t X, { default := t.lift ⟨X, by tidy⟩,
     uniq := λ f, t.uniq ⟨X, by tidy⟩ f (by tidy) },
@@ -60,7 +62,7 @@ is_limit.of_iso_limit hY
   inv := { hom := i.inv } }
 
 /-- An object `X` is initial iff for every `Y` there is a unique morphism `X ⟶ Y`. -/
-def is_initial_equiv_unique (F : discrete.{v₁} pempty ⥤ C) (X : C) :
+def is_initial_equiv_unique (F : discrete.{0} pempty.{1} ⥤ C) (X : C) :
   is_colimit (⟨X, by tidy⟩ : cocone F) ≃ ∀ Y : C, unique (X ⟶ Y) :=
 { to_fun := λ t X, { default := t.desc ⟨X, by tidy⟩,
     uniq := λ f, t.uniq ⟨X, by tidy⟩ f (by tidy) },
@@ -147,12 +149,12 @@ variable (C)
 A category has a terminal object if it has a limit over the empty diagram.
 Use `has_terminal_of_unique` to construct instances.
 -/
-abbreviation has_terminal := has_limits_of_shape (discrete.{v₁} pempty) C
+abbreviation has_terminal := has_limits_of_shape (discrete.{0} pempty) C
 /--
 A category has an initial object if it has a colimit over the empty diagram.
 Use `has_initial_of_unique` to construct instances.
 -/
-abbreviation has_initial := has_colimits_of_shape (discrete.{v₁} pempty) C
+abbreviation has_initial := has_colimits_of_shape (discrete.{0} pempty) C
 
 section univ
 
@@ -163,8 +165,8 @@ variables (X : C) {F₁ : discrete.{w} pempty ⥤ C} {F₂ : discrete.{w'} pempt
 def is_limit_change_empty_cone {c₁ : cone F₁} (hl : is_limit c₁)
   (c₂ : cone F₂) (hi : c₁.X ≅ c₂.X) : is_limit c₂ :=
 { lift := λ c, hl.lift ⟨c.X, by tidy⟩ ≫ hi.hom,
-  fac' := λ _ j, j.elim,
-  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.elim), simp } }
+  fac' := λ _ j, j.as.elim,
+  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (f ≫ hi.inv) (λ j, j.as.elim), simp } }
 
 /-- Replacing an empty cone in `is_limit` by another with the same cone point
     is an equivalence. -/
@@ -187,8 +189,8 @@ lemma has_terminal_change_universe [h : has_limits_of_shape (discrete.{w} pempty
 def is_colimit_change_empty_cocone {c₁ : cocone F₁} (hl : is_colimit c₁)
   (c₂ : cocone F₂) (hi : c₁.X ≅ c₂.X) : is_colimit c₂ :=
 { desc := λ c, hi.inv ≫ hl.desc ⟨c.X, by tidy⟩,
-  fac' := λ _ j, j.elim,
-  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.elim), simp } }
+  fac' := λ _ j, j.as.elim,
+  uniq' := λ c f _, by { erw ← hl.uniq ⟨c.X, by tidy⟩ (hi.hom ≫ f) (λ j, j.as.elim), simp } }
 
 /-- Replacing an empty cocone in `is_colimit` by another with the same cocone point
     is an equivalence. -/
@@ -214,13 +216,13 @@ An arbitrary choice of terminal object, if one exists.
 You can use the notation `⊤_ C`.
 This object is characterized by having a unique morphism from any object.
 -/
-abbreviation terminal [has_terminal C] : C := limit (functor.empty.{v₁} C)
+abbreviation terminal [has_terminal C] : C := limit (functor.empty.{0} C)
 /--
 An arbitrary choice of initial object, if one exists.
 You can use the notation `⊥_ C`.
 This object is characterized by having a unique morphism to any object.
 -/
-abbreviation initial [has_initial C] : C := colimit (functor.empty.{v₁} C)
+abbreviation initial [has_initial C] : C := colimit (functor.empty.{0} C)
 
 notation `⊤_ ` C:20 := terminal C
 notation `⊥_ ` C:20 := initial C
@@ -323,7 +325,7 @@ def limit_const_terminal {J : Type*} [category J] {C : Type*} [category C] [has_
   {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] {j : J} :
   limit_const_terminal.inv ≫ limit.π ((category_theory.functor.const J).obj (⊤_ C)) j =
     terminal.from _ :=
-by ext ⟨⟩
+by ext ⟨⟨⟩⟩
 
 instance {J : Type*} [category J] {C : Type*} [category C] [has_initial C] :
   has_colimit ((category_theory.functor.const J).obj (⊥_ C)) :=
@@ -346,7 +348,7 @@ def colimit_const_initial {J : Type*} [category J] {C : Type*} [category C] [has
   {J : Type*} [category J] {C : Type*} [category C] [has_initial C] {j : J} :
   colimit.ι ((category_theory.functor.const J).obj (⊥_ C)) j ≫ colimit_const_initial.hom =
     initial.to _ :=
-by ext ⟨⟩
+by ext ⟨⟨⟩⟩
 
 /-- A category is a `initial_mono_class` if the canonical morphism of an initial object is a
 monomorphism.  In practice, this is most useful when given an arbitrary morphism out of the chosen

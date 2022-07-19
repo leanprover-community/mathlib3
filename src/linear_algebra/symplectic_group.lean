@@ -95,7 +95,7 @@ end matrix
 
 end J_matrix_lemmas
 
-open matrix
+namespace matrix
 
 variables (l) (R) [decidable_eq l] [fintype l] [comm_ring R]
 
@@ -111,9 +111,13 @@ def symplectic_group : submonoid (matrix (l ⊕ l) (l ⊕ l)  R) :=
   end,
   one_mem' := by simp }
 
-variables {l} {R}
+end matrix
 
 namespace symplectic_group
+
+variables {l} {R} [decidable_eq l] [fintype l] [comm_ring R]
+
+open matrix
 
 lemma mem_iff {A : matrix (l ⊕ l) (l ⊕ l)  R} :
   A ∈ symplectic_group l R ↔ A ⬝ (J l R) ⬝ Aᵀ = J l R :=

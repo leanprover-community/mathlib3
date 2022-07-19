@@ -10,7 +10,7 @@ import data.countable.defs
 /-!
 # Countable types
 
-In this file we provide basis instances of the `countable` typeclass defined elsewhere.
+In this file we provide basic instances of the `countable` typeclass defined elsewhere.
 -/
 
 universes u v w

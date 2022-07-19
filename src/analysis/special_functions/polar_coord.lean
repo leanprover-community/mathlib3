@@ -97,7 +97,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
 lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :
   has_fderiv_at polar_coord.symm
     (matrix.to_lin (basis.fin_two_prod ℝ) (basis.fin_two_prod ℝ)
-      (![![cos p.2, -p.1 * sin p.2], ![sin p.2, p.1 * cos p.2]])).to_continuous_linear_map p :=
+      (!![cos p.2, -p.1 * sin p.2; sin p.2, p.1 * cos p.2])).to_continuous_linear_map p :=
 begin
   rw matrix.to_lin_fin_two_prod_to_continuous_linear_map,
   convert has_fderiv_at.prod
@@ -130,15 +130,14 @@ theorem integral_comp_polar_coord_symm
 begin
   set B : (ℝ × ℝ) → ((ℝ × ℝ) →L[ℝ] (ℝ × ℝ)) := λ p,
     (matrix.to_lin (basis.fin_two_prod ℝ) (basis.fin_two_prod ℝ)
-      ![![cos p.2, -p.1 * sin p.2], ![sin p.2, p.1 * cos p.2]]).to_continuous_linear_map with hB,
+      !![cos p.2, -p.1 * sin p.2; sin p.2, p.1 * cos p.2]).to_continuous_linear_map with hB,
   have A : ∀ p ∈ polar_coord.symm.source, has_fderiv_at polar_coord.symm (B p) p :=
     λ p hp, has_fderiv_at_polar_coord_symm p,
   have B_det : ∀ p, (B p).det = p.1,
   { assume p,
     conv_rhs {rw [← one_mul p.1, ← cos_sq_add_sin_sq p.2] },
     simp only [neg_mul, linear_map.det_to_continuous_linear_map, linear_map.det_to_lin,
-      matrix.det_fin_two, sub_neg_eq_add, matrix.cons_val_zero, matrix.cons_val_one,
-      matrix.head_cons],
+      matrix.det_fin_two_of, sub_neg_eq_add],
     ring_exp },
   symmetry,
   calc

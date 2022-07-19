@@ -10,6 +10,7 @@ import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
 import group_theory.perm.cycle.type
 import group_theory.specific_groups.cyclic
+import tactic.interval_cases
 
 /-!
 # p-groups
@@ -312,7 +313,7 @@ end
 omit hGpn
 
 /-- The quotient by the center of a group of cardinality `p ^ 2` is cyclic. -/
-lemma cyclic_center_quotient_of_card_eq_prime_sqr (hG : card G = p ^ 2) :
+lemma cyclic_center_quotient_of_card_eq_prime_sq (hG : card G = p ^ 2) :
   is_cyclic (G ⧸ (center G)) :=
 begin
   classical,
@@ -326,20 +327,20 @@ begin
       (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
-/-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sqr` for the
+/-- A group of order `p ^ 2` is commutative. See also `comm_group_of_card_eq_prime_sq` for the
 `comm_group` instance. -/
 lemma commutative_of_card_eq_prime_sq (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
 begin
   classical,
   by haveI : is_cyclic (G ⧸ (center G)) :=
-    cyclic_center_quotient_of_card_eq_prime_sqr hG;
+    cyclic_center_quotient_of_card_eq_prime_sq hG;
   exact commutative_of_cyclic_center_quotient (quotient_group.mk' (center G)) (by simp)
 end
 
-/-- A group of order `p ^ 2` is commutative. See also `commutative_of_card_eq_prime_sqr`
+/-- A group of order `p ^ 2` is commutative. See also `commutative_of_card_eq_prime_sq`
 for just the proof that `∀ a b, a * b = b * a` -/
-def comm_group_of_card_eq_prime_sqr (hG : card G = p ^ 2) : comm_group G :=
-{ mul_comm := commutative_of_card_eq_prime_sqr hG,
+def comm_group_of_card_eq_prime_sq (hG : card G = p ^ 2) : comm_group G :=
+{ mul_comm := commutative_of_card_eq_prime_sq hG,
   .. show group G, by apply_instance }
 
 end p2comm

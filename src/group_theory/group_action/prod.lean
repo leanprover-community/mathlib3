@@ -51,8 +51,9 @@ instance has_pow {γ : Type*} [has_pow α γ] [has_pow β γ] : has_pow (α × �
 @[simp, to_additive smul_swap] lemma pow_swap {γ : Type*} [has_pow α γ] [has_pow β γ]
   (c : γ) (p : α × β) : (p ^ c).swap = p.swap ^ c := rfl
 @[simp, to_additive smul_def] lemma pow_def {γ : Type*} [has_pow α γ] [has_pow β γ]
-  (a : α) (b : β) (c : γ) : (⟨a, b⟩ : α × β) ^ c = ⟨a ^ c, b ^ c⟩ := rfl
-
+  (p : α × β) (c : γ) : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
+@[simp, to_additive smul_mk] lemma pow_mk {γ : Type*} [has_pow α γ] [has_pow β γ]
+  (a : α) (b : β) (c : γ) : (prod.mk a b)^c = prod.mk (a^c) (b^c) := rfl
 
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=

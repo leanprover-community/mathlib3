@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import algebra.group.to_additive
+import algebra.group.defs
 import data.prod.basic
 import logic.unique
 import tactic.congr
@@ -29,7 +30,7 @@ variables (x y : Π i, f i) (i : I)
 
 namespace pi
 
-/-! `1`, `0`, `+`, `*`, `-`, `⁻¹`, and `/` are defined pointwise. -/
+/-! `1`, `0`, `+`, `•`, `*`, `^`, `-`, `⁻¹`, and `/` are defined pointwise. -/
 
 @[to_additive] instance has_one [∀ i, has_one $ f i] :
   has_one (Π i : I, f i) :=
@@ -43,6 +44,26 @@ namespace pi
 @[simp, to_additive] lemma one_comp [has_one γ] (x : α → β) : (1 : β → γ) ∘ x = 1 := rfl
 
 @[simp, to_additive] lemma comp_one [has_one β] (x : β → γ) : x ∘ 1 = const α (x 1) := rfl
+
+
+@[to_additive pi.has_vadd]
+instance has_smul {α : Type*} [Π i, has_smul α $ f i] : has_smul α (Π i : I, f i) :=
+⟨λ s x, λ i, s • (x i)⟩
+
+@[to_additive]
+lemma smul_def {α : Type*} [Π i, has_smul α $ f i] (s : α) : s • x = λ i, s • x i := rfl
+@[to_additive]
+lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i = s • x i := rfl
+
+@[to_additive pi.has_smul]
+instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
+{ pow := λ x b i, (x i) ^ b }
+
+@[to_additive pi.smul_apply, simp] lemma pow_apply {β : Type*} [Π i, has_pow (f i) β]
+  (x : Π i, f i) (b : β) (i : I) : (x ^ b) i = (x i) ^ b := rfl
+@[to_additive pi.smul_def, simp] lemma pow_def {β : Type*} [Π i, has_pow (f i) β]
+  (x : Π i, f i) (b : β) : x ^ b = λ i, (x i) ^ b := rfl
+
 
 @[to_additive]
 instance has_mul [∀ i, has_mul $ f i] :

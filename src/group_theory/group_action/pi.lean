@@ -26,23 +26,6 @@ variables (x y : Π i, f i) (i : I)
 
 namespace pi
 
-@[to_additive pi.has_vadd]
-instance has_smul {α : Type*} [Π i, has_smul α $ f i] :
-  has_smul α (Π i : I, f i) :=
-⟨λ s x, λ i, s • (x i)⟩
-
-@[to_additive]
-lemma smul_def {α : Type*} [Π i, has_smul α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[to_additive]
-lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i = s • x i := rfl
-
-@[to_additive pi.has_smul]
-instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
-{ pow := λ x b i, (x i) ^ b }
-
-@[to_additive pi.smul_def, simp] lemma pow_def {β : Type*} [Π i, has_pow (f i) β]
-  (x : Π i, f i) (b : β) (i : I) : (x ^ b) i = (x i) ^ b := rfl
-
 @[to_additive pi.has_vadd']
 instance has_smul' {g : I → Type*} [Π i, has_smul (f i) (g i)] :
   has_smul (Π i, f i) (Π i : I, g i) :=

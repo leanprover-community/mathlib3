@@ -845,7 +845,7 @@ lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : B.c
   (Bne : B.nonempty) (f : ι → α) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
-  rw countable_iff_exists_surjective_to_subtype Bne at Bcbl,
+  rw countable_iff_exists_surjective Bne at Bcbl,
   rcases Bcbl with ⟨g, gsurj⟩,
   rw infi_subtype',
   use (λ n, g n), apply le_antisymm; rw le_infi_iff,

@@ -688,7 +688,6 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 localized "infix ` ≡r `:50 := pgame.relabelling" in pgame
 
 namespace relabelling
-
 variables {x y : pgame.{u}}
 
 /-- A constructor for relabellings swapping the equivalences. -/

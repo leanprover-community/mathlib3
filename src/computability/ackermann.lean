@@ -143,21 +143,21 @@ theorem ack_injective_right (m : ℕ) : function.injective (ack m) :=
 theorem max_ack_right (m n₁ n₂ : ℕ) : ack m (max n₁ n₂) = max (ack m n₁) (ack m n₂) :=
 (ack_mono_right m).map_max
 
-theorem sum_lt_ack : ∀ m n, m + n < ack m n
+theorem add_lt_ack : ∀ m n, m + n < ack m n
 | 0       n       := by simp
-| (m + 1) 0       := by simpa using sum_lt_ack m 1
+| (m + 1) 0       := by simpa using add_lt_ack m 1
 | (m + 1) (n + 1) :=
 calc (m + 1) + n + 1
       ≤ m + (m + n + 2) : by linarith
-  ... < ack m (m + n + 2) : sum_lt_ack _ _
+  ... < ack m (m + n + 2) : add_lt_ack _ _
   ... ≤ ack m (ack (m + 1) n) : ack_mono_right m $
-          le_of_eq_of_le (by ring_nf) $ succ_le_of_lt $ sum_lt_ack (m + 1) n
+          le_of_eq_of_le (by ring_nf) $ succ_le_of_lt $ add_lt_ack (m + 1) n
   ... = ack (m + 1) (n + 1) : (ack_succ_succ m n).symm
 
-theorem sum_succ_le_ack (m n : ℕ) : m + n + 1 ≤ ack m n := succ_le_of_lt (sum_lt_ack m n)
+theorem add_succ_le_ack (m n : ℕ) : m + n + 1 ≤ ack m n := succ_le_of_lt (add_lt_ack m n)
 
-theorem lt_ack_left (m n : ℕ) : m < ack m n := (self_le_add_right m n).trans_lt $ sum_lt_ack m n
-theorem lt_ack_right (m n : ℕ) : n < ack m n := (self_le_add_left n m).trans_lt $ sum_lt_ack m n
+theorem lt_ack_left (m n : ℕ) : m < ack m n := (self_le_add_right m n).trans_lt $ add_lt_ack m n
+theorem lt_ack_right (m n : ℕ) : n < ack m n := (self_le_add_left n m).trans_lt $ add_lt_ack m n
 
 -- we reorder the arguments to appease the equation compiler
 private theorem ack_strict_mono_left' : ∀ {m₁ m₂} n, m₁ < m₂ → ack m₁ n < ack m₂ n
@@ -165,7 +165,7 @@ private theorem ack_strict_mono_left' : ∀ {m₁ m₂} n, m₁ < m₂ → ack m
 | 0 (m + 1) 0 := λ h, by simpa using one_lt_ack_succ_right m 0
 | 0 (m + 1) (n + 1) := λ h, begin
   rw [ack_zero, ack_succ_succ],
-  apply lt_of_le_of_lt (le_trans _ (add_le_add_left (sum_succ_le_ack _ _) m)) (sum_lt_ack _ _),
+  apply lt_of_le_of_lt (le_trans _ (add_le_add_left (add_succ_le_ack _ _) m)) (add_lt_ack _ _),
   linarith
 end
 | (m₁ + 1) (m₂ + 1) 0 := λ h, by simpa using ack_strict_mono_left' 1 ((add_lt_add_iff_right 1).1 h)
@@ -203,7 +203,7 @@ begin
   cases n,
   { simp },
   { rw [ack_succ_succ, succ_eq_add_one],
-    apply ack_mono_right m (le_trans _ (sum_succ_le_ack _ n)),
+    apply ack_mono_right m (le_trans _ (add_succ_le_ack _ n)),
     linarith }
 end
 
@@ -260,7 +260,7 @@ begin
   { exact ⟨0, ack_pos 0⟩ },
   { refine ⟨1, λ n, _⟩,
     rw succ_eq_one_add,
-    apply sum_lt_ack },
+    apply add_lt_ack },
   { refine ⟨0, λ n, _⟩,
     rw [ack_zero, lt_succ_iff],
     exact unpair_left_le n },

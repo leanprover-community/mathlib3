@@ -229,14 +229,14 @@ set.disjoint_iff_inter_eq_empty.symm.trans disjoint_image_image_iff
 variables (α β)
 
 /-- The quotient by `mul_action.orbit_rel`, given a name to enable dot notation. -/
-@[reducible, to_additive "The quotient by `mul_action.orbit_rel`, given a name to enable dot
+@[reducible, to_additive "The quotient by `add_action.orbit_rel`, given a name to enable dot
 notation."]
 def orbit_rel.quotient : Type* := quotient $ orbit_rel α β
 
 variables {α β}
 
 /-- The orbit corresponding to an element of the quotient by `mul_action.orbit_rel` -/
-@[to_additive "The orbit corresponding to an element of the quotient by `mul_action.orbit_rel`"]
+@[to_additive "The orbit corresponding to an element of the quotient by `add_action.orbit_rel`"]
 def orbit_rel.quotient.orbit (x : orbit_rel.quotient α β) : set β :=
 quotient.lift_on' x (orbit α) $ λ _ _, mul_action.orbit_eq_iff.2
 
@@ -271,8 +271,8 @@ This version is expressed in terms of `mul_action.orbit_rel.quotient.orbit` inst
 @[to_additive "Decomposition of a type `X` as a disjoint union of its orbits under an additive group
 action.
 
-This version is expressed in terms of `mul_action.orbit_rel.quotient.orbit` instead of
-`mul_action.orbit`, to avoid mentioning `quotient.out'`. "]
+This version is expressed in terms of `add_action.orbit_rel.quotient.orbit` instead of
+`add_action.orbit`, to avoid mentioning `quotient.out'`. "]
 def self_equiv_sigma_orbits' : β ≃ Σ ω : Ω, ω.orbit :=
 calc  β
     ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_fiber_equiv quotient.mk').symm

@@ -225,7 +225,7 @@ begin
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
 
-/-- In a normed space, the Von Neumann borology (`bornology.vonN_bornology`) is equal to the
+/-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
 metric bornology. -/
 lemma vonN_bornology_eq : bornology.vonN_bornology 𝕜 E = pseudo_metric_space.to_bornology :=
 begin

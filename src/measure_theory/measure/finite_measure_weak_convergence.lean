@@ -774,15 +774,19 @@ section normalize_finite_measure
 /-! ### Normalization of finite measures to probability measures
 
 This section is about normalizing finite measures to probability measures.
+
+The weak convergence of finite measures to nonzero limit measures is characterized by
+the convergence of the total mass and the convergence of the normalized probability
+measures.
 -/
 
 namespace finite_measure
 
-variables {α : Type*} [measurable_space α] [inhabited α]
+variables {α : Type*} [measurable_space α] (μ : finite_measure α)
 
 /-- Normalize a finite measure so that it becomes a probability measure, i.e., divide by the
 total mass. -/
-def normalize (μ : finite_measure α) : probability_measure α :=
+def normalize [inhabited α] : probability_measure α :=
 if zero : μ.mass = 0 then default else
     { val := (μ.mass)⁻¹ • μ,
       property := begin
@@ -793,10 +797,10 @@ if zero : μ.mass = 0 then default else
         exact inv_mul_cancel zero,
       end }
 
-lemma normalize_zero : (0 : finite_measure α).normalize = default :=
+lemma normalize_zero [inhabited α] : (0 : finite_measure α).normalize = default :=
 by simp only [normalize, zero.mass, dif_pos]
 
-@[simp] lemma self_eq_mass_mul_normalize (μ : finite_measure α) (s : set α) :
+@[simp] lemma self_eq_mass_mul_normalize [inhabited α] (s : set α) :
   μ s = (μ.mass) * (μ.normalize s) :=
 begin
   by_cases μ = 0,
@@ -809,7 +813,7 @@ begin
   simp only [mass_nonzero, algebra.id.smul_eq_mul, mul_inv_cancel_left₀, ne.def, not_false_iff],
 end
 
-lemma self_eq_mass_smul_normalize (μ : finite_measure α) :
+lemma self_eq_mass_smul_normalize [inhabited α] :
   μ = μ.mass • μ.normalize.to_finite_measure :=
 begin
   ext s s_mble,
@@ -817,12 +821,12 @@ begin
   refl,
 end
 
-lemma normalize_eq_of_nonzero (μ : finite_measure α) (nonzero : μ ≠ 0) (s : set α) :
+lemma normalize_eq_of_nonzero [inhabited α] (nonzero : μ ≠ 0) (s : set α) :
   μ.normalize s = (μ.mass)⁻¹ * (μ s) :=
 by simp only [μ.self_eq_mass_mul_normalize, μ.mass_nonzero_iff.mpr nonzero,
               inv_mul_cancel_left₀, ne.def, not_false_iff]
 
-lemma normalize_eq_of_nonzero' (μ : finite_measure α) (nonzero : μ ≠ 0) :
+lemma normalize_eq_inv_mass_smul_of_nonzero [inhabited α] (μ : finite_measure α) (nonzero : μ ≠ 0) :
   μ.normalize.to_finite_measure = (μ.mass)⁻¹ • μ :=
 begin
   nth_rewrite 2 μ.self_eq_mass_smul_normalize,
@@ -831,7 +835,7 @@ begin
              inv_mul_cancel, ne.def, not_false_iff, one_smul],
 end
 
-lemma coe_normalize_eq_of_nonzero (μ : finite_measure α) (nonzero : μ ≠ 0) :
+lemma coe_normalize_eq_of_nonzero [inhabited α] (nonzero : μ ≠ 0) :
   (μ.normalize : measure α) = (μ.mass)⁻¹ • μ :=
 begin
   ext1 s s_mble,
@@ -841,7 +845,8 @@ begin
 end
 
 @[simp] lemma _root_.probability_measure.to_finite_measure_normalize_eq_self
-  (μ : probability_measure α) : μ.to_finite_measure.normalize = μ :=
+  [inhabited α] (μ : probability_measure α) :
+  μ.to_finite_measure.normalize = μ :=
 begin
   ext s s_mble,
   rw μ.to_finite_measure.normalize_eq_of_nonzero μ.to_finite_measure_nonzero s,
@@ -849,14 +854,9 @@ begin
   refl,
 end
 
-variables [topological_space α] [opens_measurable_space α]
+variables [topological_space α]
 
-lemma tendsto_mass_of_tendsto {γ : Type*} {F : filter γ}
-  {μs : γ → finite_measure α} {μ : finite_measure α} (h : tendsto μs F (𝓝 μ)) :
-  tendsto (λ i, (μs i).mass) F (𝓝 μ.mass) :=
-((continuous_mass).tendsto μ).comp h
-
-lemma test_against_nn_eq_mass_mul (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+lemma test_against_nn_eq_mass_mul [inhabited α] (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn f = μ.mass * μ.normalize.to_finite_measure.test_against_nn f :=
 begin
   nth_rewrite 0 μ.self_eq_mass_smul_normalize,
@@ -865,9 +865,18 @@ begin
 end
 
 lemma normalize_test_against_nn
-  (μ : finite_measure α) (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
+  [inhabited α] (μ : finite_measure α) (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
   μ.normalize.to_finite_measure.test_against_nn f = (μ.mass)⁻¹ * μ.test_against_nn f :=
 by simp [μ.test_against_nn_eq_mass_mul, μ.mass_nonzero_iff.mpr nonzero]
+
+variables [opens_measurable_space α]
+
+variables {μ}
+
+lemma tendsto_mass_of_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} (h : tendsto μs F (𝓝 μ)) :
+  tendsto (λ i, (μs i).mass) F (𝓝 μ.mass) :=
+(continuous_mass.tendsto μ).comp h
 
 lemma tendsto_zero_test_against_nn_of_tendsto_zero_mass
   {γ : Type*} {F : filter γ} {μs : γ → finite_measure α}
@@ -890,7 +899,7 @@ begin
 end
 
 lemma tendsto_test_against_nn_of_tendsto_normalize_test_against_nn_of_tendsto_mass
-  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α}
+  [inhabited α] {γ : Type*} {F : filter γ} {μs : γ → finite_measure α}
   (μs_lim : tendsto (λ i, (μs i).normalize) F (𝓝 μ.normalize))
   (mass_lim : tendsto (λ i, (μs i).mass) F (𝓝 μ.mass)) (f : α →ᵇ ℝ≥0) :
   tendsto (λ i, (μs i).test_against_nn f) F (𝓝 (μ.test_against_nn f)) :=
@@ -910,7 +919,7 @@ begin
 end
 
 lemma tendsto_normalize_test_against_nn_of_tendsto [inhabited α]
-  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α}
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α}
   (h : tendsto μs F (𝓝 μ)) (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
   tendsto (λ i, (μs i).normalize.to_finite_measure.test_against_nn f) F
           (𝓝 (μ.normalize.to_finite_measure.test_against_nn f)) :=

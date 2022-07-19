@@ -274,7 +274,6 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   .. S.to_subalgebra.map f}
 
 @[simp] lemma coe_map (f : L →ₐ[K] L') : (S.map f : set L') = f '' S := rfl
-lemma coe_sort_map (f : L →ₐ[K] L') : ↥(S.map f) = ↥(f '' S) := rfl
 
 lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
@@ -397,9 +396,6 @@ def restrict_scalars (E : intermediate_field L' L) :
 
 @[simp] lemma coe_restrict_scalars {E : intermediate_field L' L} :
   (restrict_scalars K E : set L) = (E : set L) := rfl
-
-@[simp] lemma coe_sort_restrict_scalars (E : intermediate_field L' L) :
-  ↥(restrict_scalars K E) = ↥E := rfl
 
 @[simp] lemma restrict_scalars_to_subalgebra {E : intermediate_field L' L} :
   (E.restrict_scalars K).to_subalgebra = E.to_subalgebra.restrict_scalars K :=

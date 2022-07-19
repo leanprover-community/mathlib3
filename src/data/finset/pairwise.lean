@@ -66,11 +66,10 @@ end
 end set
 
 namespace list
-variables {β : Type*} [decidable_eq α] {r : β → β → Prop} {f : α → β} {l : list α}
+variables {β : Type*} [decidable_eq α] {r : α → α → Prop} {l : list α}
 
-lemma pairwise_of_coe_to_finset_pairwise (hl : (l.to_finset : set α).pairwise (r on f))
-  (hn : l.nodup) :
-  l.pairwise (r on f) :=
+lemma pairwise_of_coe_to_finset_pairwise (hl : (l.to_finset : set α).pairwise r) (hn : l.nodup) :
+  l.pairwise r :=
 begin
   induction l with hd tl IH,
   { simp },
@@ -81,8 +80,8 @@ begin
   exact hn.left hx
 end
 
-lemma pairwise_iff_coe_to_finset_pairwise (hn : l.nodup) (hs : symmetric (r on f)) :
-  (l.to_finset : set α).pairwise (r on f) ↔ l.pairwise (r on f) :=
+lemma pairwise_iff_coe_to_finset_pairwise (hn : l.nodup) (hs : symmetric r) :
+  (l.to_finset : set α).pairwise r ↔ l.pairwise r :=
 begin
   refine ⟨λ h, pairwise_of_coe_to_finset_pairwise h hn, λ h, _⟩,
   induction l with hd tl IH,

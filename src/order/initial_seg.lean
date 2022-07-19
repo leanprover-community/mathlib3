@@ -45,7 +45,6 @@ open function
 /-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≼i s` is an order
 embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
 range of `f`. -/
-@[nolint has_inhabited_instance]
 structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (init : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)
 
@@ -77,6 +76,8 @@ def of_iso (f : r ≃r s) : r ≼i s :=
 /-- The identity function shows that `≼i` is reflexive -/
 @[refl] protected def refl (r : α → α → Prop) : r ≼i r :=
 ⟨rel_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
+
+instance (r : α → α → Prop) : inhabited (r ≼i r) := ⟨initial_seg.refl r⟩
 
 /-- Composition of functions shows that `≼i` is transitive -/
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=

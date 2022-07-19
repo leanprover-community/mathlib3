@@ -34,7 +34,7 @@ compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified 
 noncomputable theory
 
 open_locale nnreal ennreal
-open nnreal
+open nnreal continuous_linear_map
 
 universes u v
 
@@ -44,6 +44,11 @@ variables (𝕜 : Type u) (A : Type v)
   [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜 A A]
 
 section prereqs
+
+-- this should go in `analysis.normed_space.star_basic`
+lemma _root_.cstar_ring.nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring E] [star_ring E]
+  [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
+by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
 
 namespace continuous_linear_map
 
@@ -125,14 +130,7 @@ instance : has_add 𝓜(𝕜, A) :=
 { add := λ a b,
   { left := a.left + b.left,
     right := a.right + b.right,
-    central :=
-            begin
-            intros x y,
-            simp only [continuous_linear_map.add_apply],
-            rw add_mul,
-            rw mul_add,
-            repeat {rw central _ _},
-            end } }
+    central := λ x y, by simp only [continuous_linear_map.add_apply, add_mul, mul_add, central] } }
 
 instance : has_zero 𝓜(𝕜, A) :=
 { zero :=
@@ -144,40 +142,35 @@ instance : has_neg 𝓜(𝕜, A) :=
 { neg := λ a,
   { left := -(a.left),
     right := -(a.right),
-    central :=
-              begin
-              intros x y,
-              simp only [continuous_linear_map.neg_apply, neg_mul, mul_neg, neg_inj],
-              apply central,
-              end } }
+    central := λ x y, by simp only [continuous_linear_map.neg_apply, neg_mul,
+                      mul_neg, neg_inj, central]}}
 
 instance : has_sub 𝓜(𝕜, A) :=
 { sub := λ a b,
   { left := a.left - b.left,
     right := a.right - b.right,
-  central :=
-            begin
-            intros x y,
-            simp only [continuous_linear_map.coe_sub', pi.sub_apply],
-            rw sub_mul,
-            rw mul_sub,
-            simp only [central],
-            end } }
+    central := λ x y, by simp only [continuous_linear_map.coe_sub', pi.sub_apply, sub_mul,
+      mul_sub, central] } }
 
 instance : has_smul 𝕜 𝓜(𝕜, A) :=
 { smul := λ k a,
   { left := k • a.left,
     right := k • a.right,
-    central :=
-              begin
-              intros x y,
-              simp only [continuous_linear_map.coe_smul', pi.smul_apply],
-              repeat {rw central _ _},
-              rw mul_smul_comm _ _ _,
-              rw smul_mul_assoc,
-              rw central _ _,
-              exact _inst_4,
-              end } }
+    central := λ x y , by simp only [continuous_linear_map.coe_smul', pi.smul_apply, central,
+      mul_smul_comm, smul_mul_assoc] } }
+
+-- all these simp lemmas should be prefixed with `coe_`, then the non-`coe_` ones should just be
+-- linear maps, not their coercions to functions.
+@[simp] lemma add_left (a b : 𝓜(𝕜, A)) : (a + b).left = a.left + b.left := rfl
+@[simp] lemma add_right (a b : 𝓜(𝕜, A)) : (a + b).right = a.right + b.right := rfl
+@[simp] lemma zero_left : (0 : 𝓜(𝕜, A)).left = 0 := rfl
+@[simp] lemma zero_right : (0 : 𝓜(𝕜, A)).right = 0 := rfl
+@[simp] lemma neg_left (a : 𝓜(𝕜, A)) : (-a).left = -a.left := rfl
+@[simp] lemma neg_right (a : 𝓜(𝕜, A)) : (-a).right = -a.right := rfl
+@[simp] lemma sub_left (a b : 𝓜(𝕜, A)) : (a - b).left = a.left - b.left := rfl
+@[simp] lemma sub_right (a b : 𝓜(𝕜, A)) : (a - b).right = a.right - b.right := rfl
+@[simp] lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).left = k • a.left := rfl
+@[simp] lemma smul_right (k : 𝕜) (a : 𝓜(𝕜, A)) : (k • a).right = k • a.right := rfl
 
 -- this is easier than defining the instances of `has_smul` for `ℕ` and `ℤ`.
 instance : add_comm_group 𝓜(𝕜, A) :=
@@ -225,6 +218,101 @@ begin
   { exact ((continuous_mul_left x).comp (clm_apply y).continuous).comp continuous_fst }
 end
 
+/-!
+### Multiplicative structure
+-/
+
+instance : has_one 𝓜(𝕜, A) :=
+{ one :=
+  { left := 1,
+    right := 1,
+    central := λ x y, rfl } }
+
+instance : has_mul 𝓜(𝕜, A) :=
+{ mul := λ a b,
+  { left := a.left.comp b.left,
+    right := b.right.comp a.right,
+    central := λ x y, by simp only [continuous_linear_map.coe_comp', function.comp_app, central]}}
+
+@[simp] lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
+@[simp] lemma one_right : (1 : 𝓜(𝕜, A)).right = 1 := rfl
+@[simp] lemma mul_left (a b : 𝓜(𝕜, A)) : (a * b).left = a.left * b.left := rfl
+@[simp] lemma mul_right (a b : 𝓜(𝕜, A)) : (a * b).right = b.right * a.right := rfl
+
+instance : ring 𝓜(𝕜, A) :=
+{ one := 1,
+  mul := λ x y, x * y,
+  mul_assoc := λ a b c, by {ext1; simp only [mul_left, mul_right, mul_assoc]},
+  one_mul := λ a, by {ext1; simp},
+  mul_one := λ a, by {ext1; simp},
+  left_distrib := λ a b c,
+  begin
+    ext1,
+    { rw [mul_left, add_left, add_left],
+      simp only [mul_add, mul_left] },
+    { rw [mul_right, add_right, add_right],
+      simp only [add_mul, mul_right] }
+  end,
+  right_distrib := λ a b c,
+  begin
+    ext1,
+    { rw [mul_left, add_left, add_left],
+      simp only [add_mul, mul_left] },
+    { rw [mul_right, add_right, add_right],
+      simp only [mul_add, mul_right] },
+  end,
+  .. double_centralizer.add_comm_group }
+/-!
+### Star structure
+-/
+
+variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
+
+instance : has_star 𝓜(𝕜, A) :=
+{ star := λ a,
+  { left := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.right).comp
+      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
+    right := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.left).comp
+      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
+    central := λ x y, by simpa only [star_mul, star_star]
+      using (congr_arg star (a.central (star y) (star x))).symm } }
+
+@[simp] lemma star_left (a : 𝓜(𝕜, A)) (b : A) : (star a).left b = star (a.right (star b)) := rfl
+@[simp] lemma star_right (a : 𝓜(𝕜, A)) (b : A) : (star a).right b = star (a.left (star b)) := rfl
+
+instance : star_add_monoid 𝓜(𝕜, A) :=
+{ star_involutive := λ x, by {ext; simp only [star_left, star_right, star_star]},
+  star_add := λ x y, by {ext; simp only [star_left, star_right, add_left, add_right,
+    continuous_linear_map.add_apply, star_add]},
+  .. double_centralizer.has_star }
+
+instance : star_ring 𝓜(𝕜, A) :=
+{ star_mul := λ a b, by {ext; simp only [star_left, star_right, mul_left, mul_right, star_star,
+    continuous_linear_map.coe_mul, function.comp_app]},
+  .. double_centralizer.star_add_monoid }
+
+instance : star_module 𝕜 𝓜(𝕜, A) :=
+{ star_smul := λ k a, by {ext; exact star_smul _ _},
+  .. double_centralizer.star_add_monoid }
+
+/-!
+### Norm structures
+-/
+
+noncomputable instance : normed_ring 𝓜(𝕜, A) :=
+{ norm_mul := λ a b,
+    begin
+      refine max_le ((norm_mul_le _ _).trans _) ((norm_mul_le _ _).trans _),
+      exact mul_le_mul (le_max_left _ _) (le_max_left _ _) (norm_nonneg _)
+        ((norm_nonneg _).trans $ le_max_left _ _),
+      exact mul_comm (∥a.right∥) (∥b.right∥) ▸ mul_le_mul (le_max_right _ _) (le_max_right _ _)
+        (norm_nonneg _) ((norm_nonneg _).trans $ le_max_right _ _),
+    end,
+  .. double_centralizer.ring,
+  .. double_centralizer.normed_group }
+
+variables [cstar_ring A]
+
 /-- For `a : 𝓜(𝕜, A)`, the norms of `a.left` and `a.right` coincide. Consequently,
 `double_centralizer.prod_mk : 𝓜(𝕜, A) → (A →L[𝕜] A) × (A →L[𝕜] A)` is injective (see
 `double_centralizer.prod_mk_injective`). The `normed_space` structure on `𝓜(𝕜, A)` is
@@ -264,230 +352,13 @@ begin
   exact le_antisymm (h0 _ _ h1) (h0 _ _ h2),
 end
 
-#exit
-
--- this requires approximate units, which we don't yet have, and it's a bit of a mess.
-def of_central_funs (L : A → A) (R : A → A) (h : ∀ x y : A, R x * y = x * L y) : 𝓜(𝕜, A) :=
-{ left :=
-  { to_fun := L,
-    map_add' := sorry,
-    map_smul' := sorry,
-    cont := sorry },
-  right :=
-  { to_fun := R,
-    map_add' := sorry,
-    map_smul' := sorry,
-    cont := sorry },
-  central := h }
-
-
-noncomputable instance : has_coe A 𝓜(𝕜, A) :=
-{ coe := λ a,
-  { left := continuous_linear_map.lmul' 𝕜 A a,
-    right := continuous_linear_map.lmul_right' 𝕜 A a,
-    central := λ x y, mul_assoc _ _ _ } }
-
-@[simp, norm_cast]
-lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul' 𝕜 A a := rfl
-@[simp, norm_cast]
-lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right' 𝕜 A a := rfl
-
-instance : has_add 𝓜(𝕜, A) :=
-{ add := λ a b,
-  { left := a.left + b.left,
-    right := a.right + b.right,
-    central := λ x y, by simp only [continuous_linear_map.add_apply, add_mul, mul_add, central]}}
-
--- all these simp lemmas should be prefixed with `coe_`, then the non-`coe_` ones should just be
--- linear maps, not their coercions to functions.
-@[simp]
-lemma add_left (a b : 𝓜(𝕜, A)) : ⇑(a + b).left = a.left + b.left := rfl
-@[simp]
-lemma add_right (a b : 𝓜(𝕜, A)) : ⇑(a + b).right = a.right + b.right := rfl
-
-instance : has_mul 𝓜(𝕜, A) :=
-{ mul := λ a b,
-  { left := a.left.comp b.left,
-    right := b.right.comp a.right,
-    central := λ x y, by simp only [continuous_linear_map.coe_comp', function.comp_app, central]}}
-
-@[simp]
-lemma mul_left (a b : 𝓜(𝕜, A)) : ⇑(a * b).left = a.left ∘ b.left := rfl
-@[simp]
-lemma mul_right (a b : 𝓜(𝕜, A)) : ⇑(a * b).right = b.right ∘ a.right := rfl
-
-@[simp]
-lemma mul_left_apply (a b : 𝓜(𝕜, A)) (c : A) : (a * b).left c = a.left (b.left c) := rfl
-@[simp]
-lemma mul_right_apply (a b : 𝓜(𝕜, A)) (c : A) : (a * b).right c = b.right (a.right c) := rfl
-
-instance : has_smul 𝕜 𝓜(𝕜, A) :=
-{ smul := λ k a,
-  { left := k • a.left,
-    right := k • a.right,
-    central := λ x y , by simp only [continuous_linear_map.coe_smul', pi.smul_apply, central,
-               mul_smul_comm, smul_mul_assoc]}}
-
-@[simp]
-lemma smul_left (k : 𝕜) (a : 𝓜(𝕜, A)) : ⇑(k • a).left = k • a.left := rfl
-@[simp]
-lemma smul_right (k : 𝕜) (a : 𝓜(𝕜, A)) : ⇑(k • a).right = k • a.right := rfl
-
-@[simp]
-lemma zero_left : (0 : 𝓜(𝕜, A)).left = 0 := rfl
-@[simp]
-lemma zero_right : (0 : 𝓜(𝕜, A)).right = 0 := rfl
-
-instance : has_one 𝓜(𝕜, A) :=
-{ one :=
-  { left := 1,
-    right := 1,
-    central := λ x y, rfl } }
-
-@[simp]
-lemma one_left : (1 : 𝓜(𝕜, A)).left = 1 := rfl
-@[simp]
-lemma one_right : (1 : 𝓜(𝕜, A)).right = 1 := rfl
-
-variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
-
-instance : has_star 𝓜(𝕜, A) :=
-{ star := λ a,
-  { left := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.right).comp
-      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
-    right := (((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A).comp a.left).comp
-      ((starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A) : A →L⋆[𝕜] A),
-    central := λ x y, by simpa only [star_mul, star_star] using (congr_arg star (a.central (star y)
-                         (star x))).symm}}
-
-@[simp]
-lemma star_left (a : 𝓜(𝕜, A)) (b : A) : (star a).left b = star (a.right (star b)) := rfl
-@[simp]
-lemma star_right (a : 𝓜(𝕜, A)) (b : A) : (star a).right b = star (a.left (star b)) := rfl
-
-instance : has_neg 𝓜(𝕜, A) :=
-{ neg := λ a,
-  { left := -(a.left),
-    right := -(a.right),
-    central := λ x y, by simp only [continuous_linear_map.neg_apply, neg_mul,
-                      mul_neg, neg_inj, central]}}
-
-@[simp]
-lemma neg_left (a : 𝓜(𝕜, A)) : ⇑(-a).left = -a.left := rfl
-@[simp]
-lemma neg_right (a : 𝓜(𝕜, A)) : ⇑(-a).right = -a.right := rfl
-
-instance : has_sub 𝓜(𝕜, A) :=
-{ sub := λ a b,
-  { left := a.left - b.left,
-    right := a.right - b.right,
-  central := λ x y, by simp only [continuous_linear_map.coe_sub', pi.sub_apply, sub_mul,
-                       mul_sub, central]}}
-
-@[simp]
-lemma sub_left (a b : 𝓜(𝕜, A)) : ⇑(a - b).left = a.left - b.left := rfl
-@[simp]
-lemma sub_right (a b : 𝓜(𝕜, A)) : ⇑(a - b).right = a.right - b.right := rfl
-
-instance : star_add_monoid 𝓜(𝕜, A) :=
-{ star_involutive := λ x, by {ext; simp},
-  star_add := λ x y, by {ext; simp},
-  .. double_centralizer.has_star }
-
-instance : ring 𝓜(𝕜, A) :=
-{ one := 1,
-  mul := λ x y, x * y,
-  mul_assoc := λ a b c, by {ext; simp only [mul_left, mul_right], },
-  one_mul := λ a, by {ext; simp only [mul_left_apply, one_left, mul_right_apply, one_right, continuous_linear_map.one_apply]},
-  mul_one := λ a, by {ext; simp only [mul_left_apply, one_left, mul_right_apply, one_right, continuous_linear_map.one_apply]},
-  left_distrib := λ a b c,
-  begin
-    ext,
-    { rw [mul_left, add_left, add_left],
-      simp only [function.comp_app, pi.add_apply, map_add, mul_left] },
-    { rw [mul_right, add_right, add_right],
-      simp only [function.comp_app, pi.add_apply, mul_right] }
-  end,
-  right_distrib := λ a b c,
-  begin
-    ext,
-    { rw [mul_left, add_left, add_left],
-      simp only [function.comp_app, pi.add_apply, map_add, mul_left] },
-    { change (c.right * (a.right + b.right)) x = ((c.right * a.right) + (c.right * b.right)) x,
-      rw mul_add, }
-  end,
-  .. double_centralizer.add_comm_group }
-
-instance : star_ring 𝓜(𝕜, A) :=
-{ star_mul := λ a b, by {ext; simp only [star_left, star_right, mul_right, mul_left,
-    function.comp_apply, star_star]},
-  .. double_centralizer.star_add_monoid }
-
-instance : module 𝕜 𝓜(𝕜, A) :=
-{ smul := λ k a, k • a,
-  one_smul := λ a, by {ext; simp only [smul_left, smul_right, one_smul],},
-  mul_smul := λ k₁ k₂ a, by {ext; exact mul_smul _ _ _},
-  smul_add := λ k a b, by {ext; exact smul_add _ _ _},
-  smul_zero := λ k, by {ext; exact smul_zero _},
-  add_smul := λ k₁ k₂ a, by {ext; exact add_smul _ _ _},
-  zero_smul := λ a, by {ext; simp only [smul_left, one_smul, smul_right, smul_add, smul_zero,
-    pi.smul_apply, zero_smul, zero_left, zero_right, continuous_linear_map.zero_apply,
-    eq_self_iff_true, pi.zero_apply]} }
-
-instance : star_module 𝕜 𝓜(𝕜, A) :=
-{ star_smul := λ k a, by {ext; exact star_smul _ _},
-  .. double_centralizer.star_add_monoid }
-
--- this might already require `A` to be a `cstar_ring`, for otherwise I don't think we'll be able
--- to prove `norm_right` below.
-noncomputable instance : has_norm 𝓜(𝕜, A) :=
-{ norm := λ a, ∥a.left∥ }
-
-open_locale nnreal
-open nnreal
-variables [cstar_ring A]
-
--- this should go in `analysis.normed_space.star_basic`
-lemma _root_.cstar_ring.nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring E] [star_ring E]
-  [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
-by simpa using @cstar_ring.nnnorm_star_mul_self _ _ _ _ (star x)
-
-
-lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ := rfl
-
-
+@[simp] lemma norm_eq (a : 𝓜(𝕜, A)) : ∥a∥ = max (∥a.left∥) (∥a.right∥) := rfl
+lemma norm_left (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.left∥ :=
+by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
 
-noncomputable instance : metric_space 𝓜(𝕜, A) :=
-{ dist := λ a b, ∥a - b∥,
-  dist_self := λ x, by { simpa only [sub_self, norm_left] using norm_zero },
-  dist_comm := λ x y, dist_comm x.left y.left,
-  dist_triangle := λ x y z, dist_triangle x.left y.left z.left,
-  eq_of_dist_eq_zero := λ x y h₁,
-  begin
-    change ∥(x - y).left∥ = 0 at h₁,
-    have h₂ := h₁,
-    rw [←norm_left, norm_right] at h₂,
-    ext1,
-    exact (@eq_of_dist_eq_zero _ _ x.left y.left h₁),
-    exact (@eq_of_dist_eq_zero _ _ x.right y.right h₂),
-  end }
-
-noncomputable instance : normed_group 𝓜(𝕜, A) :=
-{ dist_eq := λ x y, rfl,
-  .. double_centralizer.add_comm_group,
-  .. double_centralizer.has_norm,
-  .. double_centralizer.metric_space }
-
-
-
-
-noncomputable instance : normed_ring 𝓜(𝕜, A) :=
-{ norm_mul := λ a b, norm_mul_le a.left b.left,
-  .. double_centralizer.ring,
-  .. double_centralizer.normed_group }
-
-open_locale ennreal
+open_locale nnreal ennreal
+open nnreal
 
 /- I think we don't have the necessary type class to make this lemma true.
 `nondiscrete_normed_field 𝕜` is too weak, but `is_R_or_C 𝕜` is far too strong. What we
@@ -520,7 +391,51 @@ end
 instance : cstar_ring 𝓜(𝕜, A) :=
 { norm_star_mul_self := sorry }
 
-instance : complete_space 𝓜(𝕜, A) :=
-{ complete := sorry }
+/-!
+### Coercion from an algebra into its multiplier algebra
+-/
+
+noncomputable instance : has_coe A 𝓜(𝕜, A) :=
+{ coe := λ a,
+  { left := continuous_linear_map.lmul' 𝕜 A a,
+    right := continuous_linear_map.lmul_right' 𝕜 A a,
+    central := λ x y, mul_assoc _ _ _ } }
+
+@[simp, norm_cast]
+lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul' 𝕜 A a := rfl
+@[simp, norm_cast]
+lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right' 𝕜 A a := rfl
+
+-- TODO: make this into a `non_unital_star_alg_hom` once we have those
+def non_unital_algebra_hom_coe : A →ₙₐ[𝕜] 𝓜(𝕜, A) :=
+{ to_fun := λ a, a,
+  map_smul' := λ k a, by {ext1; simp only [coe_left, coe_right, continuous_linear_map.map_smul,
+    smul_left, smul_right]},
+  map_zero' := by {ext1; simp only [coe_left, coe_right, map_zero, zero_left, zero_right]},
+  map_add' := λ a b, by {ext1; simp only [coe_left, coe_right, map_add, add_left, add_right]},
+  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul'_apply,
+    continuous_linear_map.lmul_right'_apply, mul_left, mul_right, coe_mul, function.comp_app,
+    mul_assoc]} }
+
+/-!
+### Constructing a double centralizer
+
+The main result here is that a pair of functions from the algebra to itself which satisfy the
+centrality condition are inherently continuous linear maps
+-/
+
+-- this requires approximate units, which we don't yet have, and it's a bit of a mess.
+def of_central_funs (L : A → A) (R : A → A) (h : ∀ x y : A, R x * y = x * L y) : 𝓜(𝕜, A) :=
+{ left :=
+  { to_fun := L,
+    map_add' := sorry,
+    map_smul' := sorry,
+    cont := sorry },
+  right :=
+  { to_fun := R,
+    map_add' := sorry,
+    map_smul' := sorry,
+    cont := sorry },
+  central := h }
 
 end double_centralizer

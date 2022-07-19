@@ -68,7 +68,7 @@ end
 lemma is_positive_id : is_positive (1 : E →L[𝕜] E) :=
 ⟨λ x y, rfl, λ x, inner_self_nonneg⟩
 
-lemma is_positive.add [complete_space E] {T S : E →L[𝕜] E} (hT : T.is_positive)
+lemma is_positive.add {T S : E →L[𝕜] E} (hT : T.is_positive)
   (hS : S.is_positive) : (T + S).is_positive :=
 begin
   refine ⟨hT.is_self_adjoint.add hS.is_self_adjoint, λ x, _⟩,

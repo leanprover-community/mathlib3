@@ -125,21 +125,14 @@ by simp [symplectic_group]
 
 instance coe_matrix : has_coe (symplectic_group l R) (matrix (l ⊕ l) (l ⊕ l)  R) := ⟨subtype.val⟩
 
-instance coe_fun : has_coe_to_fun (symplectic_group l R) (λ _, (l ⊕ l) → (l ⊕ l) → R) :=
-{ coe := λ A, A.val }
-
 section coe_lemmas
 
 variables (A B : symplectic_group l R)
 
-@[simp] lemma mul_val : ↑(A * B) = A ⬝ B := rfl
-
-@[simp] lemma mul_apply : ⇑(A * B) = (A ⬝ B) := rfl
+@[simp] lemma mul_val : ↑(A * B) = (A : matrix (l ⊕ l) (l ⊕ l) R) ⬝ (B : matrix (l ⊕ l) (l ⊕ l) R)
+:= rfl
 
 @[simp] lemma one_val : ↑(1 : symplectic_group l R) = (1 : matrix (l ⊕ l) (l ⊕ l)  R) := rfl
-
-@[simp] lemma one_apply : ⇑(1 : symplectic_group l R) = (1 : matrix (l ⊕ l) (l ⊕ l)  R) := rfl
-
 
 lemma mul_mem {A B : matrix (l ⊕ l) (l ⊕ l) R}
   (hA : A ∈ symplectic_group l R) (hB : B ∈ symplectic_group l R) :
@@ -160,14 +153,12 @@ begin
   simp,
 end
 
-/-- TODO: The canonical skew-symmetric matrix as an element in the symplectic group. -/
+/-- The canonical skew-symmetric matrix as an element in the symplectic group. -/
 def sym_J : symplectic_group l R := ⟨J l R, J_mem l R⟩
 
 variables {l} {R}
 
 @[simp] lemma coe_J : ↑(sym_J l R) = J l R := rfl
-
-@[simp] lemma J_apply : ⇑(sym_J l R) = J l R := rfl
 
 end symplectic_J
 
@@ -225,13 +216,11 @@ lemma mem_iff' : A ∈ symplectic_group l R ↔ Aᵀ ⬝ (J l R) ⬝ A = J l R :
 by rw [←transpose_mem_iff, mem_iff, transpose_transpose]
 
 instance : has_inv (symplectic_group l R) :=
-{ inv := λ A, ⟨- (J l R) ⬝ Aᵀ ⬝ (J l R),
+{ inv := λ A, ⟨- (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R),
   mul_mem (mul_mem (neg_mem $ J_mem _ _) $ transpose_mem A.2) $ J_mem _ _⟩ }
 
 @[simp] lemma coe_inv (A : symplectic_group l R) :
-  (↑(A⁻¹) : matrix _ _ _) = - (J l R) ⬝ Aᵀ ⬝ (J l R) := rfl
-
-@[simp] lemma inv_apply (A : symplectic_group l R): ⇑(A⁻¹) = - (J l R) ⬝ Aᵀ ⬝ (J l R) := rfl
+  (↑(A⁻¹) : matrix _ _ _) = - (J l R) ⬝ (A : matrix (l ⊕ l) (l ⊕ l) R)ᵀ ⬝ (J l R) := rfl
 
 lemma inv_left_mul_aux {A : matrix (l ⊕ l) (l ⊕ l) R} (hA : A ∈ symplectic_group l R) :
   -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A) = 1 :=
@@ -247,7 +236,7 @@ instance : group (symplectic_group l R) :=
   begin
     intro A,
     apply subtype.ext,
-    simp only [mul_val, inv_apply, matrix.neg_mul, one_val],
+    simp only [mul_val, one_val, matrix.neg_mul, coe_inv],
     exact inv_left_mul_aux A.2,
   end,
   .. symplectic_group.has_inv,

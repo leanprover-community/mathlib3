@@ -50,9 +50,9 @@ namespace pi
 instance has_smul {α : Type*} [Π i, has_smul α $ f i] : has_smul α (Π i : I, f i) :=
 ⟨λ s x, λ i, s • (x i)⟩
 
-@[to_additive]
+@[simp, to_additive]
 lemma smul_def {α : Type*} [Π i, has_smul α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[to_additive]
+@[simp, to_additive]
 lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i = s • x i := rfl
 
 @[to_additive pi.has_smul]

@@ -202,14 +202,22 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 
 end
 
-@[simp] lemma binary_fan.mk_π_app_left {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
-  (binary_fan.mk π₁ π₂).π.app ⟨walking_pair.left⟩ = π₁ := rfl
-@[simp] lemma binary_fan.mk_π_app_right {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
-  (binary_fan.mk π₁ π₂).π.app ⟨walking_pair.right⟩ = π₂ := rfl
-@[simp] lemma binary_cofan.mk_ι_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
-  (binary_cofan.mk ι₁ ι₂).ι.app ⟨walking_pair.left⟩ = ι₁ := rfl
-@[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
-  (binary_cofan.mk ι₁ ι₂).ι.app ⟨walking_pair.right⟩ = ι₂ := rfl
+@[simp] lemma binary_fan.mk_fst {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
+  (binary_fan.mk π₁ π₂).fst = π₁ := rfl
+@[simp] lemma binary_fan.mk_snd {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
+  (binary_fan.mk π₁ π₂).snd = π₂ := rfl
+@[simp] lemma binary_cofan.mk_inl {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+  (binary_cofan.mk ι₁ ι₂).inl = ι₁ := rfl
+@[simp] lemma binary_cofan.mk_inr {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+  (binary_cofan.mk ι₁ ι₂).inr = ι₂ := rfl
+
+/-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
+def iso_binary_fan_mk {X Y : C} (c : binary_fan X Y) : c ≅ binary_fan.mk c.fst c.snd :=
+cones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
+
+/-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
+def iso_binary_cofan_mk {X Y : C} (c : binary_cofan X Y) : c ≅ binary_cofan.mk c.inl c.inr :=
+cocones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.

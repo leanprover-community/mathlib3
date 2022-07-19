@@ -462,7 +462,8 @@ lemma root_multiplicity_eq_zero {p : R[X]} {x : R} (h : ¬ is_root p x) :
 begin
   rw root_multiplicity_eq_multiplicity,
   split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
+  rw [← part_enat.coe_inj, part_enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd,
+    nat.cast_zero],
   intro hdvd,
   exact h (dvd_iff_is_root.mp hdvd)
 end
@@ -471,7 +472,7 @@ lemma root_multiplicity_pos {p : R[X]} (hp : p ≠ 0) {x : R} :
   0 < root_multiplicity x p ↔ is_root p x :=
 begin
   rw [← dvd_iff_is_root, root_multiplicity_eq_multiplicity, dif_neg hp,
-      ← enat.coe_lt_coe, enat.coe_get],
+      ← part_enat.coe_lt_coe, part_enat.coe_get],
   exact multiplicity.dvd_iff_multiplicity_pos
 end
 

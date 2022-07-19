@@ -192,12 +192,13 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
-  [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_monoid β :=
 { .. hf.ordered_comm_monoid f one mul npow,
-  .. linear_order.lift f hf }
+  .. linear_order.lift f hf hsup hinf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
 add_pos' h h
@@ -222,17 +223,21 @@ partial_order.lift coe units.ext
 
 @[to_additive]
 instance [monoid α] [linear_order α] : linear_order αˣ :=
-linear_order.lift coe units.ext
+linear_order.lift' coe units.ext
+
+/-- `coe : αˣ → α` as an order embedding. -/
+@[to_additive "`coe : add_units α → α` as an order embedding.", simps { fully_applied := ff }]
+def order_embedding_coe [monoid α] [linear_order α] : αˣ ↪o α := ⟨⟨coe, ext⟩, λ _ _, iff.rfl⟩
 
 @[simp, norm_cast, to_additive]
 theorem max_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(max a b) : α) = max a b :=
-by by_cases b ≤ a; simp [max_def, h]
+monotone.map_max order_embedding_coe.monotone
 
 @[simp, norm_cast, to_additive]
 theorem min_coe [monoid α] [linear_order α] {a b : αˣ} :
   (↑(min a b) : α) = min a b :=
-by by_cases a ≤ b; simp [min_def, h]
+monotone.map_min order_embedding_coe.monotone
 
 end units
 
@@ -409,15 +414,16 @@ le_antisymm bot_le (one_le ⊥)
 mul_eq_one_iff' (one_le _) (one_le _)
 
 @[simp, to_additive] lemma le_one_iff_eq_one : a ≤ 1 ↔ a = 1 :=
-iff.intro
-  (assume h, le_antisymm h (one_le a))
-  (assume h, h ▸ le_refl a)
+(one_le a).le_iff_eq
 
 @[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
-iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
+(one_le a).lt_iff_ne.trans ne_comm
 
 @[to_additive] lemma eq_one_or_one_lt : a = 1 ∨ 1 < a :=
 (one_le a).eq_or_lt.imp_left eq.symm
+
+@[simp, to_additive add_pos_iff] lemma one_lt_mul_iff : 1 < a * b ↔ 1 < a ∨ 1 < b :=
+by simp only [one_lt_iff_ne_one, ne.def, mul_eq_one_iff, not_and_distrib]
 
 @[to_additive] lemma exists_one_lt_mul_of_lt (h : a < b) : ∃ c (hc : 1 < c), a * c = b :=
 begin
@@ -702,11 +708,12 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_cancel_add_comm_monoid
 "Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
-  [has_one β] [has_mul β] [has_pow β ℕ]
+  [has_one β] [has_mul β] [has_pow β ℕ] [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_cancel_comm_monoid β :=
-{ ..hf.linear_ordered_comm_monoid f one mul npow,
+{ ..hf.linear_ordered_comm_monoid f one mul npow hsup hinf,
   ..hf.ordered_cancel_comm_monoid f one mul npow }
 
 end linear_ordered_cancel_comm_monoid
@@ -783,7 +790,7 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid αᵒᵈ :=
 @[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
 instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
   contravariant_class αᵒᵈ αᵒᵈ has_mul.mul has_le.le :=
-{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
+{ elim := λ a b c, ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid αᵒᵈ :=

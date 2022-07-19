@@ -337,6 +337,7 @@ meta def as_linear_combo : bool → list pexpr → pexpr → list (pexpr × pexp
   | ``has_add.add, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo neg ms e2
   | ``has_sub.sub, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo (bnot neg) ms e2
   | ``has_mul.mul, [e1, e2] := as_linear_combo neg (e1::ms) e2
+  | ``has_div.div, [e1, e2] := as_linear_combo neg (``((%%e2)⁻¹)::ms) e1
   | ``has_neg.neg, [e1] := as_linear_combo (bnot neg) ms e1
   | _, _ := let m := mk_mul ms in [(e, if neg then ``(-%%m) else m)]
   end

@@ -25,7 +25,7 @@ However, this definition does not work for us because it would make the type of 
 theorem, since that requires the type of `nim` to be `ordinal.{u} → pgame.{u}`. For this reason, we
 instead use `o.out.α` for the possible moves. You can use `to_left_moves_nim` and
 `to_right_moves_nim` to convert an ordinal less than `o` into a left or right move of `nim o`, and
-viceversa.
+vice versa.
 -/
 
 universes u

@@ -3,18 +3,22 @@ Copyright (c) 2022 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import measure_theory.probability_mass_function.constructions
+import probability.probability_mass_function.constructions
 
 /-!
 # Uniform Probability Mass Functions
 
-This file defines a number of uniform `pmf` distributions from various inputs.
+This file defines a number of uniform `pmf` distributions from various inputs,
+  uniformly drawing from the corresponding object.
 
-`uniform_of_finset` gives each element in the set equal probability,
+`pmf.uniform_of_finset` gives each element in the set equal probability,
   with `0` probability for elements not in the set.
 
-`uniform_of_fintype` gives all elements equal probability,
+`pmf.uniform_of_fintype` gives all elements equal probability,
   equal to the inverse of the size of the `fintype`.
+
+`pmf.of_multiset` draws randomly from the given `multiset`, treating duplicate values as distinct.
+  Each probability is given by the count of the element divided by the size of the `multiset`
 
 -/
 
@@ -124,5 +128,60 @@ by simpa [uniform_of_fintype, hs]
 end measure
 
 end uniform_of_fintype
+
+
+section of_multiset
+
+/-- Given a non-empty multiset `s` we construct the `pmf` which sends `a` to the fraction of
+  elements in `s` that are `a`. -/
+def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
+⟨λ a, s.count a / s.card,
+  have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
+  { simp only [div_eq_inv_mul, ← finset.mul_sum, ← nat.cast_sum, multiset.to_finset_sum_count_eq],
+    rw [inv_mul_cancel], simp [hs] },
+  have ∑ a in s.to_finset, (s.count a : ℝ≥0) / s.card = 1,
+    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
+  begin
+    rw ← this,
+    apply has_sum_sum_of_ne_finset_zero,
+    simp {contextual := tt},
+  end⟩
+
+variables {s : multiset α} (hs : s ≠ 0)
+
+@[simp] lemma of_multiset_apply (a : α) : of_multiset s hs a = s.count a / s.card := rfl
+
+@[simp] lemma support_of_multiset : (of_multiset s hs).support = s.to_finset :=
+set.ext (by simp [mem_support_iff, hs])
+
+lemma mem_support_of_multiset_iff (a : α) : a ∈ (of_multiset s hs).support ↔ a ∈ s.to_finset :=
+by simp
+
+lemma of_multiset_apply_of_not_mem {a : α} (ha : a ∉ s) : of_multiset s hs a = 0 :=
+div_eq_zero_iff.2 (or.inl $ nat.cast_eq_zero.2 $ multiset.count_eq_zero_of_not_mem ha)
+
+section measure
+
+variable (t : set α)
+
+@[simp] lemma to_outer_measure_of_multiset_apply :
+  (of_multiset s hs).to_outer_measure t = (∑' x, (s.filter (∈ t)).count x) / s.card :=
+begin
+  rw [div_eq_mul_inv, ← ennreal.tsum_mul_right, to_outer_measure_apply],
+  refine tsum_congr (λ x, _),
+  by_cases hx : x ∈ t,
+  { have : (multiset.card s : ℝ≥0) ≠ 0 := by simp [hs],
+    simp [set.indicator, hx, div_eq_mul_inv, ennreal.coe_inv this] },
+  { simp [hx] }
+end
+
+@[simp] lemma to_measure_of_multiset_apply [measurable_space α] (ht : measurable_set t) :
+  (of_multiset s hs).to_measure t = (∑' x, (s.filter (∈ t)).count x) / s.card :=
+(to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
+  (to_outer_measure_of_multiset_apply hs t)
+
+end measure
+
+end of_multiset
 
 end pmf

@@ -1045,6 +1045,15 @@ instance [add_monoid α] : add_monoid (with_top α) :=
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
 { ..with_top.add_monoid, ..with_top.add_comm_semigroup }
 
+instance [add_monoid_with_one α] : add_monoid_with_one (with_top α) :=
+{ nat_cast := λ n, ↑(n : α),
+  nat_cast_zero := by rw [nat.cast_zero, with_top.coe_zero],
+  nat_cast_succ := λ n, by rw [nat.cast_add_one, with_top.coe_add, with_top.coe_one],
+  .. with_top.has_one, .. with_top.add_monoid }
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one (with_top α) :=
+{ .. with_top.add_monoid_with_one, .. with_top.add_comm_monoid }
+
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=
     begin
@@ -1137,6 +1146,10 @@ instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.
 instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_comm_monoid
+instance [add_monoid_with_one α] : add_monoid_with_one (with_bot α) := with_top.add_monoid_with_one
+
+instance [add_comm_monoid_with_one α] : add_comm_monoid_with_one (with_bot α) :=
+with_top.add_comm_monoid_with_one
 
 instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
   zero_le_one_class (with_bot α) :=

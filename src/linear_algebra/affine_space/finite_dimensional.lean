@@ -47,7 +47,7 @@ finite_dimensional_vector_span_of_finite k (set.finite_range _)
 is finite-dimensional. -/
 instance finite_dimensional_vector_span_image_of_fintype [fintype ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (vector_span k (p '' s)) :=
-finite_dimensional_vector_span_of_finite k ((set.finite.of_fintype _).image _)
+finite_dimensional_vector_span_of_finite k (set.to_finite _)
 
 /-- The direction of the affine span of a finite set is
 finite-dimensional. -/
@@ -65,7 +65,7 @@ finite_dimensional_direction_affine_span_of_finite k (set.finite_range _)
 by a `fintype` is finite-dimensional. -/
 instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] (p : ι → P)
   (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
-finite_dimensional_direction_affine_span_of_finite k ((set.finite.of_fintype _).image _)
+finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
 noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]

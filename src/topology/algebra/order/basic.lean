@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import algebra.group_with_zero.power
 import data.set.intervals.pi
 import order.filter.interval
-import topology.algebra.group
+import topology.algebra.field
 import tactic.linarith
 import tactic.tfae
 
@@ -1083,7 +1083,7 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
-instance order_topology.regular_space : regular_space α :=
+instance order_topology.t3_space : t3_space α :=
 { regular := assume s a hs ha,
     have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
@@ -1261,23 +1261,23 @@ sometimes Lean fails to unify different instances while trying to apply the depe
 e.g., `ι → ℝ`.
 -/
 
-variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+variables {ι : Type*} {π : ι → Type*} [finite ι] [Π i, linear_order (π i)]
   [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
 
 lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
-pi_univ_Iic a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Iic_mem_nhds (ha _))
+pi_univ_Iic a ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Iic_mem_nhds (ha _))
 
 lemma pi_Iic_mem_nhds' (ha : ∀ i, x' i < a' i) : Iic a' ∈ 𝓝 x' :=
 pi_Iic_mem_nhds ha
 
 lemma pi_Ici_mem_nhds (ha : ∀ i, a i < x i) : Ici a ∈ 𝓝 x :=
-pi_univ_Ici a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Ici_mem_nhds (ha _))
+pi_univ_Ici a ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Ici_mem_nhds (ha _))
 
 lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
 pi_Ici_mem_nhds ha
 
 lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
-pi_univ_Icc a b ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+pi_univ_Icc a b ▸ set_pi_mem_nhds finite_univ (λ i _, Icc_mem_nhds (ha _) (hb _))
 
 lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
 pi_Icc_mem_nhds ha hb
@@ -1286,7 +1286,7 @@ variables [nonempty ι]
 
 lemma pi_Iio_mem_nhds (ha : ∀ i, x i < a i) : Iio a ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Iio_subset a),
   exact Iio_mem_nhds (ha i)
 end
@@ -1302,7 +1302,7 @@ pi_Ioi_mem_nhds ha
 
 lemma pi_Ioc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioc a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ioc_subset a b),
   exact Ioc_mem_nhds (ha i) (hb i)
 end
@@ -1312,7 +1312,7 @@ pi_Ioc_mem_nhds ha hb
 
 lemma pi_Ico_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ico a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ico_subset a b),
   exact Ico_mem_nhds (ha i) (hb i)
 end
@@ -1322,7 +1322,7 @@ pi_Ico_mem_nhds ha hb
 
 lemma pi_Ioo_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioo a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ioo_subset a b),
   exact Ioo_mem_nhds (ha i) (hb i)
 end
@@ -1879,7 +1879,7 @@ begin
     ... ≤ 1 + ε : by ring_nf }
 end
 
-@[priority 100]
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
 ⟨begin
   rw continuous_iff_continuous_at,
@@ -2006,45 +2006,40 @@ tendsto_inv_zero_at_top.comp h
 
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
-lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (zpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : n ≠ 0) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
+by simpa only [zpow_neg, zpow_coe_nat] using (@tendsto_pow_at_top α _ _ hn).inv_tendsto_at_top
 
 lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=
 begin
-  have : 1 ≤ -n := le_neg.mp (int.le_of_lt_add_one (hn.trans_le (neg_add_self 1).symm.le)),
-  apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
   lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
-  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+  rw [← neg_pos, ← h, nat.cast_pos] at hn,
+  simpa only [h, neg_neg] using tendsto_pow_neg_at_top hn.ne'
 end
 
 lemma tendsto_const_mul_zpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
   tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
 (mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_zpow_at_top_zero hn))
 
-lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+lemma tendsto_const_mul_pow_nhds_iff' {n : ℕ} {c d : α} :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ (c = 0 ∨ n = 0) ∧ c = d :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have hn : n = 0,
-    { by_contradiction hn,
-      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
-      by_cases hc' : 0 < c,
-      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
-        exact not_tendsto_nhds_of_tendsto_at_top this d h },
-      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
-        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
-    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
-    rw [this, tendsto_const_nhds_iff] at h,
-    exact ⟨hn, h⟩ },
-  { obtain ⟨hn, hcd⟩ := h,
-    simpa [hn, hcd] using tendsto_const_nhds }
+  rcases eq_or_ne n 0 with (rfl|hn),
+  { simp [tendsto_const_nhds_iff] },
+  rcases lt_trichotomy c 0 with hc|rfl|hc,
+  { have := tendsto_const_mul_pow_at_bot_iff.2 ⟨hn, hc⟩,
+    simp [not_tendsto_nhds_of_tendsto_at_bot this, hc.ne, hn] },
+  { simp [tendsto_const_nhds_iff] },
+  { have := tendsto_const_mul_pow_at_top_iff.2 ⟨hn, hc⟩,
+    simp [not_tendsto_nhds_of_tendsto_at_top this, hc.ne', hn] }
 end
 
-lemma tendsto_const_mul_zpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
-    (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
+lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+by simp [tendsto_const_mul_pow_nhds_iff', hc]
+
+lemma tendsto_const_mul_zpow_at_top_nhds_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { by_cases hn : 0 ≤ n,
@@ -2059,6 +2054,45 @@ begin
       exact tendsto_const_nhds },
     { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
 end
+
+-- TODO: With a different proof, this could be possibly generalised to only require a
+-- `linear_ordered_semifield` instance, which would also remove the need for the
+-- `nnreal` instance of `has_continuous_inv₀`.
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_field.to_topological_division_ring : topological_division_ring α :=
+{ continuous_at_inv₀ :=
+  begin
+    suffices : ∀ {x : α}, 0 < x → continuous_at has_inv.inv x,
+    { intros x hx,
+      cases hx.symm.lt_or_lt,
+      { exact this h },
+      convert (this $ neg_pos.mpr h).neg.comp continuous_neg.continuous_at,
+      ext,
+      simp [neg_inv] },
+    intros t ht,
+    rw [continuous_at,
+        (nhds_basis_Ioo_pos t).tendsto_iff $ nhds_basis_Ioo_pos_of_pos $ inv_pos.2 ht],
+    rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
+    refine ⟨min (t ^ 2 * ε / 2) (t / 2),
+            lt_min (half_pos $ mul_pos (by nlinarith) hε) $ by linarith, λ x h, _⟩,
+    have hx : t / 2 < x,
+    { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
+      nlinarith },
+    have hx' : 0 < x := (half_pos ht).trans hx,
+    have aux : 0 < 2 / t ^ 2 := div_pos zero_lt_two (sq_pos_of_pos ht),
+    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
+    rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
+    suffices : |t * x|⁻¹ < 2 / t ^ 2,
+    { rw [←abs_neg, neg_sub],
+      refine (mul_lt_mul'' h this (abs_nonneg _) $ inv_nonneg.mpr $ abs_nonneg _).trans_le _,
+      rw [mul_comm, mul_min_of_nonneg _ _ aux.le],
+      apply min_le_of_left_le,
+      rw [←mul_div, ←mul_assoc, div_mul_cancel _ (sq_pos_of_pos ht).ne',
+          mul_div_cancel' ε two_ne_zero] },
+    refine inv_lt_of_inv_lt aux _,
+    rw [inv_div, abs_of_pos $ mul_pos ht hx', sq, ←mul_div_assoc'],
+    exact mul_lt_mul_of_pos_left hx ht
+  end }
 
 end linear_ordered_field
 

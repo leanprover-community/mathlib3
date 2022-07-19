@@ -20,9 +20,6 @@ of `sup` over `inf`, on the left or on the right.
 
 ## Main declarations
 
-* `has_sup`: type class for the `⊔` notation
-* `has_inf`: type class for the `⊓` notation
-
 * `semilattice_sup`: a type class for join semilattices
 * `semilattice_sup.mk'`: an alternative constructor for `semilattice_sup` via proofs that `⊔` is
   commutative, associative and idempotent.
@@ -67,14 +64,6 @@ section
 end
 
 /- TODO: automatic construction of dual definitions / theorems -/
-
-/-- Typeclass for the `⊔` (`\lub`) notation -/
-@[notation_class] class has_sup (α : Type u) := (sup : α → α → α)
-/-- Typeclass for the `⊓` (`\glb`) notation -/
-@[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
-
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
 
 /-!
 ### Join-semilattices
@@ -564,7 +553,8 @@ end lattice
 equivalent distributive properties (of `sup` over `inf` or `inf` over `sup`,
 on the left or right).
 
-The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`.
+The definition here chooses `le_sup_inf`: `(x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z)`. To prove distributivity
+from the dual law, use `distrib_lattice.of_inf_sup_le`.
 
 A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
@@ -572,9 +562,6 @@ generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
-
-/- TODO: alternative constructors from the other distributive properties,
-and perhaps a `tfae` statement -/
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}
@@ -618,6 +605,13 @@ le_antisymm
   (le_of_inf_le_sup_le (le_of_eq h₁.symm) (le_of_eq h₂.symm))
 
 end distrib_lattice
+
+/-- Prove distributivity of an existing lattice from the dual distributive law. -/
+@[reducible] -- See note [reducible non-instances]
+def distrib_lattice.of_inf_sup_le [lattice α]
+  (inf_sup_le : ∀ a b c : α, a ⊓ (b ⊔ c) ≤ (a ⊓ b) ⊔ (a ⊓ c)) : distrib_lattice α :=
+{ ..‹lattice α›,
+  ..@order_dual.distrib_lattice αᵒᵈ { le_sup_inf := inf_sup_le, ..order_dual.lattice _ } }
 
 /-!
 ### Lattices derived from linear orders

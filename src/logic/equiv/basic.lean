@@ -387,22 +387,13 @@ protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
 
-/-- Combine two equivalences using `pprod` in the domain and `prod` in the codomain. -/
-@[simps apply symm_apply]
-def pprod_prod {α₁ β₁ : Sort*} {α₂ β₂ : Type*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : pprod α₁ β₁ ≃ α₂ × β₂ :=
-{ to_fun := λ x, (ea x.1, eb x.2),
-  inv_fun := λ x, ⟨ea.symm x.1, eb.symm x.2⟩,
-  left_inv := λ ⟨x, y⟩, by simp,
-  right_inv := λ ⟨x, y⟩, by simp }
-
-/-- Combine two equivalences using `pprod` in the codomain and `prod` in the domain. -/
-@[simps apply symm_apply]
-def prod_pprod {α₁ β₁ : Type*} {α₂ β₂ : Sort*} (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) : α₁ × β₁ ≃ pprod α₂ β₂ :=
-(ea.symm.pprod_prod eb.symm).symm
-
 /-- `pprod α β` is equivalent to `α × β` -/
 @[simps apply symm_apply]
-def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β := (equiv.refl α).pprod_prod (equiv.refl β)
+def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
+{ to_fun := λ x, (x.1, x.2),
+  inv_fun := λ x, ⟨x.1, x.2⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨x, y⟩, rfl }
 
 /-- Product of two equivalences, in terms of `pprod`. If `α ≃ β` and `γ ≃ δ`, then
 `pprod α γ ≃ pprod β δ`. -/

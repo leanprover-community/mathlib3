@@ -15,8 +15,6 @@ functions `f : pmf (α → β)`) to get a `pmf β`
 
 `of_finset` and `of_fintype` simplify the construction of a `pmf α` from a function `f : α → ℝ≥0`,
 by allowing the "sum equals 1" constraint to be in terms of `finset.sum` instead of `tsum`.
-`of_multiset`, `uniform_of_finset`, and `uniform_of_fintype` construct probability mass functions
-from the corresponding object, with proportional weighting for each element of the object.
 
 `normalize` constructs a `pmf α` by normalizing a function `f : α → ℝ≥0` by its sum,
 and `filter` uses this to filter the support of a `pmf` and re-normalize the new distribution.

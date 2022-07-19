@@ -186,7 +186,8 @@ instance lie_ideal.lie_algebra (I : lie_ideal R L) : lie_algebra R I :=
 lie_subalgebra.lie_algebra R L ↑I
 
 /-- Transfer the `lie_module` instance from the coercion `lie_ideal → lie_subalgebra`. -/
-instance lie_ideal.lie_ring_module (I : lie_ideal R L) : lie_ring_module I M :=
+instance lie_ideal.lie_ring_module {R L : Type*} [comm_ring R] [lie_ring L] [lie_algebra R L]
+  (I : lie_ideal R L) [lie_ring_module L M] : lie_ring_module I M :=
 lie_subalgebra.lie_ring_module (I : lie_subalgebra R L)
 
 @[simp]

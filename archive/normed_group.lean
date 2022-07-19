@@ -7,10 +7,12 @@ import group_theory.free_group
 -/
 
 --!! I don't think we want this here
---noncomputable theory
+noncomputable theory
 open set function real
 
 namespace normed_group
+
+notation `ℝ₊` := nnreal
 
 section
 
@@ -27,21 +29,26 @@ class generated_group (G S : Type*) extends group G :=
 
 """an S-generated group, with additionally a norm on generators"""
 class norm_generated_group (G S : Type*) extends generated_group G S :=
-(Snorm : S → ℝ)
+(Snorm : S → ℝ₊)
 (Spos : ∃ε > 0, ∀s : S, Snorm s ≥ ε)
 
-def list_norm (Snorm : S → ℝ) : list (S × bool) → ℝ
+def list_norm (Snorm : S → ℝ₊) : list (S × bool) → ℝ₊
 | [] := 0
 | (s :: tail) := (Snorm s.fst) + (list_norm tail)
 
 --!! why do I have to repeat "decidable_eq S"?
-def free_group_norm (Snorm : S → ℝ) [decidable_eq S] : free_group S → ℝ := λf, list_norm Snorm (free_group.to_word f)
+def free_group_norm (Snorm : S → ℝ₊) [decidable_eq S] : free_group S → ℝ₊ := λf, list_norm Snorm (free_group.to_word f)
 
 instance gg_to_ngg (GS : generated_group G S) : norm_generated_group G S := { Snorm := λ s, 1, Spos := begin use 1,
 split, exact zero_lt_one, intro s, finish end, ..GS }
 
 --!! it's useful to have a norm and a metric. However, there will be lots of code duplication if we're not careful
-instance ngg_to_ng (GS : norm_generated_group G S) [decidable_eq S] : normed_group := { norm := λ g, Inf{ (free_group_norm GS.Snorm)'' (GS.marking⁻¹' g)},
+
+set_option trace.class_instances true
+
+--!! error: maximum class-instance resolution depth has been reached (the limit can be increased by setting option 'class.instance_max_depth') (the class-instance resolution trace can be visualized by setting option 'trace.class_instances')
+
+instance ngg_to_ng (GS : norm_generated_group G S) [decidable_eq S] : normed_group := { norm := λ g, Inf ((free_group_norm GS.Snorm)'' (GS.marking⁻¹' g)),
 dist := sorry,
 dist_self := sorry,
 dist_comm := sorry,
@@ -59,14 +66,25 @@ end normed_group
 
 namespace group_growth
 
---!! notation for cardinality?
-def growth (G : Type*) [normed_group G] : ℕ → ℝ := λ n, #{x : G | ∥x∥ ≤ n }
+--variables {G : Type*} [normed_group G]
 
---!! notation for ℝ₊, the positive reals?
-def dominates (a : ℕ → ℝ) (b : ℕ → ℝ) : Prop := ∃K, ∀n, a(n) ≤ b(K*n)
+def ball0 (r : ℝ₊) (G : Type*) [normed_group G] : set G := { x | ∥x∥ ≤ r }
+
+--!! error here if I don't put the (G:Type) explicitly
+lemma finite_balls (G : Type*) [normed_group.norm_generated_group G] : ∀ r, set.finite (ball0 r G) := begin
+    have x : G.Spos,
+    sorry
+end
+
+def ball (G : Type*) [norm_generated_group G] (r : ℝ₊) : finset G := (finite_balls G r).to_finset
+
+
+def growth (G : Type*) [norm_generated_group G] : ℝ₊ → ℝ₊ := λ r, (ball G r).card
+
+def dominates (a : ℝ₊ → ℝ₊) (b : ℝ₊ → ℝ₊) : Prop := ∃K, ∀(r ≥ 0), a(r) ≤ b(K*r)
 
 --!! notation infix:`≾` for dominates, `∼` for equivalent
-def equivalent (a : ℕ → ℝ) (b : ℕ → ℝ) : Prop := (dominates a b) ∧ (dominates b a)
+def equivalent (a : ℝ₊ → ℝ₊) (b : ℝ₊ → ℝ₊) : Prop := (dominates a b) ∧ (dominates b a)
 
 /-
 define growth types: exponential, polynomial, intermediate

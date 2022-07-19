@@ -46,7 +46,6 @@ tactic.pi_instance_derive_field
 @[simp]
 lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
 -- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[simp]
 lemma nsmul_apply [∀ i, add_monoid $ f i] (n : ℕ) : (n • x) i = n • x i := rfl
 
 @[to_additive]

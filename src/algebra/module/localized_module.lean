@@ -349,18 +349,17 @@ section is_localized_module
 universes u v
 
 variables {R : Type u} [comm_ring R] (S : submonoid R)
-variables {M M' : Type u}
-variables [add_comm_group M] [add_comm_group M']
-variables [module R M] [module R M']
-variables (f : M →ₗ[R] M')
+variables (M L : Type u)
+variables [add_comm_monoid M] [add_comm_monoid L] [semiring L]
+variables [module R M] [algebra R L]
 
-/-- The typeclass `is_module_localization (S : submonoid R) (f : M →ₗ[R] M')`
- expresses that `M'` is the localization of `M` at `S`. -/
+/-- The typeclass `is_module_localization (S : submonoid R) L`
+ expresses that `L` is the localization of `M` at `S`. -/
 class is_module_localization : Prop :=
-(map_units [] : ∀ (x : S), is_unit (algebra_map R (module.End R M') x))
-(surj [] : ∀ y : M', ∃ (x : M × S), x.2 • y = f x.1)
-(exists_of_eq_zero [] : ∀ {x}, f x = 0 → ∃ c : S, c • x = 0)
+(map_units [] : ∀ (x : S), is_unit (algebra_map R L x))
+(surj [] : ∀ z : L, ∃ (x : R × S), z * (algebra_map R L) x.2 = algebra_map R L x.1)
+(eq_iff_exists [] : ∀ {x y : R}, algebra_map R L x = algebra_map R L y ↔ ∃ (c : S), x * c = y * c)
 
-instance test : @is_module_localization R _ S M (localized_module S M) _ _ _ _ (localized_module.mk_linear_map S M)  := sorry
+instance test : is_module_localization S (localized_module S M) := sorry
 
 end is_localized_module

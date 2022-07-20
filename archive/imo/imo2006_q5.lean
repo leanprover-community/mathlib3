@@ -17,23 +17,34 @@ times. Prove that there are at most $n$ integers $t$ such that $Q(t)=t$.
 ## Sketch of solution
 
 Let $P^k$ denote the polynomial $P$ composed with itself $k$ times. We rely on a key observation: if
-$P^k(t)=t$, then $P(P(t))=t$. This is proven by observing that $P(t)-t$ divides $P(P(t))-P(t)$
-divides... $P^{k+1}(t)-P^k(t)=P^k(t)-t$, which implies $P(P(t))-P(t)\mid P(t)-t$ and thus
-$P(P(t))-P(t)=\pm(P(t)-t)$. Thi
+$P^k(t)=t$, then $P(P(t))=t$. We prove this by building the cyclic list
+$(P(t)-t,P^2(t)-P(t),\ldots)$, and showing that each entry divides the next, which by transitivity
+implies they all divide each other, and thus have the same absolute value. If two successive entries
+$P^{r+1}(t)-P^r(t)$ and $P^{r+2}(t)-P^{r+1}(t)$ have opposite signs, then $P^{r+2}(t)=P^r(t)$, which
+implies $P(P(t))=t$. Otherwise, either all successive entries compare as `<` or they all compare as
+`>`, which by transitivity implies the contradiction $P(t)-t < P(t)-t$  or $P(t)-t > P(t)-t$.
 
-Let `P` be a polynomial of degree `n > 1` and let `k : ℕ+`. Consider the polynomial `Q` equal to `P`
-composed with itself `k` times. Prove that there's at most `n` integers `t` such that
-`Q.eval t = t`.
-
-The trick is proving that if `P` composed with itself `n` times applied
+Knowing that $P(P(t))=t$, [FINISH WRITEUP]
 -/
 
 open function polynomial
 
-
-theorem periodic_lemma {p : polynomial ℤ} {k : ℕ} (hk : 1 ≤ n) {t : ℤ}
-  (H : (p.comp^[n] X).eval t = t) : (p.comp p).eval t = t :=
+/-- If every entry in a cyclic list of integers divides the next, then they all have the same
+absolute value -/
+theorem abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣)) (hx : x ∈ l) (hy : y ∈ l) :
+  abs x = abs y :=
 begin
-  have : p.comp p = (p.comp^[2] X) := by simp,
-  rw this,
+haveI : @is_trans ℤ (∣) := by apply_instance,
+  rw cycle.chain_iff_pairwise () at hl,
+end
+
+/-- The main lemma in the proof: if $P^k(t)=t$, then $P(P(t))=t$. -/
+theorem periodic_lemma {p : polynomial ℤ} {k : ℕ} (hk : 1 ≤ k) {t : ℤ}
+  (H : (p.comp^[k] X).eval t = t) : (p.comp p).eval t = t :=
+begin
+  -- The cycle [t, P(t), P(P(t)), ...].
+  let C₁ : cycle ℤ := periodic_orbit (λ x, p.eval x) t,
+
+  -- The cycle [P(t) - t, P(P(t)) - P(t), ...]
+  let C₂ : cycle ℤ := C₁.map (λ x, p.eval x - x),
 end

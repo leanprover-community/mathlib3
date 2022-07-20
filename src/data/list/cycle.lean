@@ -821,7 +821,7 @@ begin
     exact hs b (Hl hb) a Ha }
 end
 
-theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
+theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
 ⟨begin
   induction s using cycle.induction_on with a l _,
   exact λ _ b hb, hb.elim,

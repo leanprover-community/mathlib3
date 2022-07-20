@@ -37,6 +37,8 @@ Bertrand, prime, binomial coefficients
 
 open_locale big_operators
 
+set_option profiler true
+
 section real
 
 open real
@@ -256,7 +258,7 @@ begin
     linarith, },
 end
 
-alias nat.exists_prime_lt_and_le_two_mul ← nat.bertrand
+alias nat.exists_prime_lt_and_le_two_mul ← bertrand
 
 end nat
 

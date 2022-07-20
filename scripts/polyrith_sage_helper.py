@@ -20,7 +20,8 @@ def power_to_string(var: int, pow: int) -> str:
 @dataclass
 class MonomForm:
     """
-    `MonoForm` stores the string representation of a monomial.
+    `MonomForm` stores the string representation of a monomial.
+
     To cleanly format sums of monomials, we need to be careful with negation:
     if the first monomial in a sum is negative, we print the negation symbol;
     if a subsequent monomial is negative, we subtract the non-negated version.

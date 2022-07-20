@@ -192,22 +192,41 @@ by linear_combination
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
 begin
   linear_combination with {normalize := ff},
-  guard_target' z + w - (w + z) = 0 - 0,
+  guard_target' z + w - (w + z) - (0 - 0) = 0,
   simp [add_comm]
 end
 
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
 by linear_combination with {normalization_tactic := `[simp [add_comm]]}
 
-/-! ### Cases that should fail -/
+/-! ### Cases where the goal is not closed -/
 
--- This should fail because there are no hypotheses given
+example (x y : ℚ) (h1 : x + y = 3) (h2 : 3*x = 7) :
+  x*x*y + y*x*y + 6*x = 3*x*y + 14 :=
+begin
+  linear_combination x*y*h1 + h2,
+  guard_target' (x * 3 - 7 = 0),
+  linear_combination h2
+end
+
+example (a b c d : ℚ) (h1 : a = 4) (h2 : 3 = b) (h3 : c*3 = d) (h4 : -d = a) :
+  6 - 3*c + 3*a + 3*d = 2*b - d + 12 - 3*a :=
+begin
+  linear_combination 2*h2,
+  linear_combination -h3,
+  linear_combination 3*h1,
+  linear_combination -3*h4,
+end
+
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 begin
-  success_if_fail {linear_combination},
+  linear_combination,
   linear_combination h1 - 2 * h2,
 end
+
+/-! ### Cases that should fail -/
+
 
 -- This should fail because the second coefficient has a different type than
 --   the equations it is being combined with.  This was a design choice for the
@@ -224,25 +243,6 @@ but is expected to have type
   linear_combination h1
 end
 
--- This should fail because the second coefficient has a different type than
---   the equations it is being combined with.  This was a design choice for the
---   sake of simplicity, but the tactic could potentially be modified to allow
---   this behavior.
-example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
-  x*y + 2*x = 1 :=
-begin
-  success_if_fail {linear_combination h1 + (0 : ℕ)  * h2},
-  linear_combination h1
-end
-
--- This should fail because the coefficients are incorrect.  They should instead
---   be -2 and 3, respectively.
-example (x y : ℤ) (h1 : 3*x + 2*y = 10) (h2 : 2*x + 5*y = 3) :
-  11*y = -11 :=
-begin
-  success_if_fail {linear_combination 2*h1 - 3*h2},
-  linear_combination -2*h1 + 3*h2
-end
 
 -- This fails because the linear_combination tactic requires the equations
 --   and coefficients to use a type that fulfills the add_group condition,

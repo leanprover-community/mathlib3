@@ -32,7 +32,9 @@ def sum_to_string(terms: Iterator[MonomForm]) -> str:
         return const_to_string(QQ(0))
     else:
         first_form = first.neg_form if first.neg_form is not None else first.pos_form
-        return reduce(sum_to_string_aux, terms, first_form)
+        return reduce(
+            lambda old, nxt: mk_app("poly.sub" if nxt.neg_form is not None else "poly.add", old, nxt.pos_form),
+            terms, first_form)
 
 def monomial_to_string(etuple: ETuple, coeff: QQ) -> MonomForm:
     etuple = list(etuple.sparse_iter())

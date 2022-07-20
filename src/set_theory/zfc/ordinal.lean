@@ -30,6 +30,8 @@ universe u
 
 variables {x y z w : Set.{u}}
 
+local attribute [simp] subtype.coe_inj
+
 namespace Set
 
 /-! ### Transitive sets -/

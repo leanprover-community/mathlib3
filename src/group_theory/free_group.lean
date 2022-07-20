@@ -838,7 +838,7 @@ begin
   simp only [reduce.red],
 end
 
-lemma to_word_eq_nil_iff {x : free_group α} : (x.to_word = list.nil) ↔ (x = 1) :=
+@[simp] lemma to_word_eq_nil_iff {x : free_group α} : (x.to_word = list.nil) ↔ (x = 1) :=
 begin
   split,
   { intro h,
@@ -917,31 +917,17 @@ begin
        ... = norm x : rfl
 end
 
-@[simp] lemma norm_inv_eq (x : free_group α) : norm x⁻¹ = norm x :=
+@[simp] lemma norm_inv_eq {x : free_group α} : norm x⁻¹ = norm x :=
 begin
   refine le_antisymm (norm_inv_le x) _,
   simpa using norm_inv_le x⁻¹,
 end
 
-
-lemma norm_zero_eq_one (x : free_group α ) : norm x = 0 → x = 1 := 
-begin
-  intro h1,
-  unfold norm at h1,
-  rw list.length_eq_zero at h1,
-  rw ← to_word_one_eq_nil at h1,
-  exact to_word.inj x 1 h1,
-end
-
 @[simp] lemma norm_zero_iff_one {x : free_group α} : norm x = 0 ↔ x = 1 := 
 begin
-  split,
-  { exact norm_zero_eq_one x, },
-  { intro h,
-    rw h,
-    unfold norm,
-    
-  },
+  unfold norm,
+  rw list.length_eq_zero,
+  exact to_word_eq_nil_iff,
 end
 
 lemma norm_mul_le (x : free_group α) (y : free_group α) : norm (x * y) ≤ norm x + norm y :=

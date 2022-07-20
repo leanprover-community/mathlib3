@@ -314,11 +314,7 @@ begin
     have argh := thiss.comp also2,
     exact argh,
 
-  sorry,
---  replace H : continuous π, from H.comp continuous_swap,
-  -- exact hswap,
-  -- have := K.comp h,
-  -- exact K,
+  { sorry },
 end
 
 lemma Hmul_Ω_cont₁ (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.trans x.2.2 x.1) :=

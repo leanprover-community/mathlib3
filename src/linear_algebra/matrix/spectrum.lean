@@ -38,17 +38,17 @@ noncomputable def eigenvalues : n → ℝ :=
 λ i, hA.eigenvalues₀ $ (fintype.equiv_of_card_eq (fintype.card_fin _)).symm i
 
 /-- A choice of an orthonormal basis of eigenvectors of a hermitian matrix. -/
-noncomputable def eigenvector_basis : basis n 𝕜 (n → 𝕜) :=
+noncomputable def eigenvector_basis : orthonormal_basis n 𝕜 (euclidean_space 𝕜 n) :=
 ((is_hermitian_iff_is_symmetric.1 hA).eigenvector_basis finrank_euclidean_space).reindex
   (fintype.equiv_of_card_eq (fintype.card_fin _))
 
 /-- A matrix whose columns are an orthonormal basis of eigenvectors of a hermitian matrix. -/
 noncomputable def eigenvector_matrix : matrix n n 𝕜 :=
-(pi.basis_fun 𝕜 n).to_matrix (eigenvector_basis hA)
+(pi.basis_fun 𝕜 n).to_matrix (eigenvector_basis hA).to_basis
 
 /-- The inverse of `eigenvector_matrix` -/
 noncomputable def eigenvector_matrix_inv : matrix n n 𝕜 :=
-(eigenvector_basis hA).to_matrix (pi.basis_fun 𝕜 n)
+(eigenvector_basis hA).to_basis.to_matrix (pi.basis_fun 𝕜 n)
 
 lemma eigenvector_matrix_mul_inv :
   hA.eigenvector_matrix ⬝ hA.eigenvector_matrix_inv = 1 :=
@@ -68,15 +68,15 @@ begin
     (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_symmetric.1 hA) _ (fintype.card n)
     finrank_euclidean_space (euclidean_space.single j 1)
     ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i),
-  { rw [eigenvector_basis, linear_map.is_symmetric.diagonalization_basis, to_lin'_apply],
+  { rw [eigenvector_basis, to_lin'_apply],
     simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
-    simp_rw [basis.reindex_repr, euclidean_space.single, pi_Lp.equiv_symm_apply', mul_vec_single,
-      mul_one],
+    simp_rw [orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
+      euclidean_space.single, pi_Lp.equiv_symm_apply', mul_vec_single, mul_one],
     refl },
-  { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis,
-      linear_map.is_symmetric.diagonalization_basis],
-    rw [basis.to_matrix_apply, basis.coe_to_orthonormal_basis_repr, basis.reindex_repr,
-      basis.equiv_fun_apply, pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
+  { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
+    rw [basis.to_matrix_apply,
+      orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
+      pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
       euclidean_space.single, pi_Lp.equiv_symm_apply'] }
 end
 

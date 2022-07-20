@@ -38,8 +38,13 @@ by { rintros b rfl, exact max_of_succ_le (h $ le_succ b) }
 
 lemma is_succ_limit_of_succ_ne (h : ∀ b, succ b ≠ a) : is_succ_limit a := λ b hb, (h _ hb).elim
 
+lemma not_is_succ_limit_iff : ¬ is_succ_limit a ↔ ∃ b, ¬ is_max b ∧ succ b = a :=
+by simp [is_succ_limit, and_comm]
+
+/-- See `order.not_is_succ_limit_iff` for a version that states that `a` is a successor of a value
+other than itself. -/
 lemma mem_range_succ_of_not_is_succ_limit (h : ¬ is_succ_limit a) : a ∈ range (@succ α _ _) :=
-by { dsimp [range], contrapose! h, exact is_succ_limit_of_succ_ne h }
+by { cases not_is_succ_limit_iff.1 h with b hb, exact ⟨b, hb.2⟩ }
 
 lemma is_succ_limit_of_succ_lt (H : ∀ a < b, succ a < b) : is_succ_limit b :=
 by { rintros a rfl, by_contra ha, exact (H a $ lt_succ_of_not_is_max ha).false }
@@ -72,7 +77,7 @@ lemma is_succ_limit.succ_ne (h : is_succ_limit a) (b) : succ b ≠ a := λ hb, n
 lemma is_succ_limit_iff_succ_ne : is_succ_limit a ↔ ∀ b, succ b ≠ a :=
 ⟨is_succ_limit.succ_ne, is_succ_limit_of_succ_ne⟩
 
-lemma not_is_succ_limit_iff : ¬ is_succ_limit a ↔ a ∈ range (@succ α _ _) :=
+lemma not_is_succ_limit_iff' : ¬ is_succ_limit a ↔ a ∈ range (@succ α _ _) :=
 by { simp_rw [is_succ_limit_iff_succ_ne, not_forall, not_ne_iff], refl }
 
 end no_max_order
@@ -197,8 +202,8 @@ lemma is_pred_limit.pred_ne (h : is_pred_limit a) (b) : pred b ≠ a := λ hb, n
 lemma is_pred_limit_iff_pred_ne : is_pred_limit a ↔ ∀ b, pred b ≠ a :=
 @is_succ_limit_iff_succ_ne αᵒᵈ a _ _ _
 
-lemma not_is_pred_limit_iff : ¬ is_pred_limit a ↔ a ∈ range (@pred α _ _) :=
-@not_is_succ_limit_iff αᵒᵈ a _ _ _
+lemma not_is_pred_limit_iff' : ¬ is_pred_limit a ↔ a ∈ range (@pred α _ _) :=
+@not_is_succ_limit_iff' αᵒᵈ a _ _ _
 
 end no_min_order
 

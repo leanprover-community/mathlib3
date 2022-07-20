@@ -1649,38 +1649,49 @@ end list
 
 namespace multiset
 
-lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)}
-  (h : ∀ b ∈ l, multiset.disjoint a b) :
-  multiset.disjoint a l.sum :=
+lemma disjoint_list_sum_left {a : multiset α} {l : list (multiset α)} :
+  (∀ b ∈ l, multiset.disjoint b a) ↔ multiset.disjoint l.sum a :=
 begin
   induction l with b bs ih,
-  { exact (zero_disjoint _).symm },
-  { rw [list.sum_cons, disjoint_add_right],
-    exact ⟨h _ (list.mem_cons_self _ _), ih $ λ b hb, h _ $ list.mem_cons_of_mem _ hb⟩ }
+  { simp only [zero_disjoint, list.not_mem_nil, is_empty.forall_iff, forall_const, list.sum_nil], },
+  { simp_rw [list.sum_cons, disjoint_add_left, list.mem_cons_iff, forall_eq_or_imp],
+    simp [and.congr_left_iff, iff_self, ih], },
 end
 
-lemma disjoint_list_sum_left {a : multiset α} {l : list (multiset α)}
-  (h : ∀ b ∈ l, multiset.disjoint b a) :
-  multiset.disjoint l.sum a := (disjoint_list_sum_right $ λ b hb, (h b hb).symm).symm
-
-lemma disjoint_sum_right {a : multiset α} {i : multiset (multiset α)} :
-  (∀ b ∈ i, multiset.disjoint a b) → multiset.disjoint a i.sum :=
-quotient.induction_on i $ λ l h, begin
-  rw [quot_mk_to_coe, multiset.coe_sum],
-  exact disjoint_list_sum_right h,
+lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)} :
+  (∀ b ∈ l, multiset.disjoint a b) ↔ multiset.disjoint a l.sum :=
+begin
+  simp_rw @disjoint_comm _ a _,
+  exact disjoint_list_sum_left,
 end
 
 lemma disjoint_sum_left {a : multiset α} {i : multiset (multiset α)} :
-  (∀ b ∈ i, multiset.disjoint b a) → multiset.disjoint i.sum a :=
-λ h, (disjoint_sum_right $ λ b hb, (h b hb).symm).symm
+  (∀ b ∈ i, multiset.disjoint b a) ↔ multiset.disjoint i.sum a :=
+quotient.induction_on i $ λ l, begin
+  rw [quot_mk_to_coe, multiset.coe_sum],
+  exact disjoint_list_sum_left,
+end
 
-lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α}
-  (h : ∀ b ∈ i, multiset.disjoint a (f b)) :
-  multiset.disjoint a (∑ x in i, f x) := disjoint_sum_right (by simpa using h)
+lemma disjoint_sum_right {a : multiset α} {i : multiset (multiset α)} :
+  (∀ b ∈ i, multiset.disjoint a b) ↔ multiset.disjoint a i.sum :=
+begin
+  simp_rw @disjoint_comm _ a _,
+  exact disjoint_sum_left,
+end
 
-lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α}
-  (h : ∀ b ∈ i, multiset.disjoint (f b) a) :
-  multiset.disjoint (∑ x in i, f x) a := (disjoint_finset_sum_right $ λ b hb, (h b hb).symm).symm
+lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
+  (∀ b ∈ i, multiset.disjoint (f b) a) ↔ multiset.disjoint (∑ x in i, f x) a :=
+begin
+  convert (@disjoint_sum_left _ a) (map f i.val),
+  simp [finset.mem_def, and.congr_left_iff, iff_self],
+end
+
+lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
+  (∀ b ∈ i, multiset.disjoint a (f b)) ↔ multiset.disjoint a (∑ x in i, f x) :=
+begin
+  simp_rw @disjoint_comm _ a _,
+  exact disjoint_finset_sum_left,
+end
 
 variables [decidable_eq α]
 

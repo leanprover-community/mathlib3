@@ -6,7 +6,6 @@ Authors: Chris Hughes
 import algebra.hom.equiv
 import data.part
 import data.nat.lattice
-import order.conditionally_complete_lattice
 import tactic.norm_num
 
 /-!

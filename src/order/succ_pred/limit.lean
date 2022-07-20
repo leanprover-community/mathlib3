@@ -124,6 +124,9 @@ begin
     exact (h hb.is_max).elim }
 end
 
+lemma is_succ_limit.succ_lt_iff (hb : is_succ_limit b) : succ a < b ↔ a < b :=
+⟨λ h, (le_succ a).trans_lt h, hb.succ_lt⟩
+
 lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 ⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
 
@@ -251,8 +254,11 @@ end preorder
 section partial_order
 variables [partial_order α] [pred_order α]
 
-lemma is_pred_limit.lt_pred : ∀ (ha : is_pred_limit a) (hb : a < b), a < pred b :=
+lemma is_pred_limit.lt_pred : ∀ (ha : is_pred_limit a), a < b → a < pred b :=
 @is_succ_limit.succ_lt αᵒᵈ b a _ _
+
+lemma is_pred_limit.lt_pred_iff : ∀ (ha : is_pred_limit a), a < pred b ↔ a < b :=
+@is_succ_limit.succ_lt_iff αᵒᵈ b a _ _
 
 lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 @is_succ_limit_iff_succ_lt αᵒᵈ a _ _

@@ -408,8 +408,6 @@ lemma algebra_map_apply (r : S) :
 
 instance : is_scalar_tower R S (A ⊗[R] B) := ⟨λ a b c, by simp⟩
 
-local attribute [simp] algebra_map_apply
-
 variables {C : Type v₃} [semiring C] [algebra R C]
 
 @[ext]
@@ -485,34 +483,6 @@ instance : comm_ring (A ⊗[R] B) :=
   .. (by apply_instance : ring (A ⊗[R] B)) }.
 
 end comm_ring
-
-section left_algebra
-
-variables {R A A' B : Type*} [comm_semiring R] [comm_semiring A] [semiring A'] [semiring B]
-variables [algebra R A] [algebra R A'] [algebra A A'] [is_scalar_tower R A A'] [algebra R B]
-
-instance left_algebra : algebra A (A' ⊗[R] B) :=
-{ commutes' := λ r x,
-  begin
-    apply tensor_product.induction_on x,
-    { simp },
-    { intros a b, dsimp, rw [algebra.commutes, _root_.mul_one, _root_.one_mul] },
-    { intros y y' h h', dsimp at h h' ⊢, simp only [mul_add, add_mul, h, h'] },
-  end,
-  smul_def' := λ r x,
-  begin
-    apply tensor_product.induction_on x,
-    { simp [smul_zero] },
-    { intros a b, dsimp, rw [tensor_product.smul_tmul', algebra.smul_def r a, _root_.one_mul] },
-    { intros, dsimp, simp [smul_add, mul_add, *] },
-  end,
-  .. tensor_product.include_left.to_ring_hom.comp (algebra_map A A'),
-  .. (by apply_instance : module A (A' ⊗[R] B)) }
-
-@[simp] lemma left_algebra.algebra_map_apply (x : A) :
-  algebra_map A (A' ⊗[R] B) x = (algebra_map A A' x) ⊗ₜ 1 := rfl
-
-end left_algebra
 
 /--
 Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`

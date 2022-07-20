@@ -643,7 +643,60 @@ lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce
 @[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
 by ext; simp
 
+@[simp] lemma induce_self_verts : G'.induce G'.verts = G' :=
+begin
+  ext,
+  { simp },
+  { split;
+    simp only [induce_adj, implies_true_iff, and_true] {contextual := tt},
+    exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
+end
+
 end induce
+
+/-- Given a subgraph and a set of vertices, delete all the vertices from the subgraph,
+if present. Any edges indicent to the deleted vertices are deleted as well. -/
+@[reducible] def delete_verts (G' : G.subgraph) (s : set V) : G.subgraph := G'.induce (G'.verts \ s)
+
+section delete_verts
+variables {G' : G.subgraph} {s : set V}
+
+lemma delete_verts_verts : (G'.delete_verts s).verts = G'.verts \ s := rfl
+
+lemma delete_verts_adj {u v : V} :
+  (G'.delete_verts s).adj u v ↔
+  u ∈ G'.verts ∧ ¬ u ∈ s ∧ v ∈ G'.verts ∧ ¬ v ∈ s ∧ G'.adj u v :=
+by simp [and_assoc]
+
+@[simp] lemma delete_verts_delete_verts (s s' : set V) :
+  (G'.delete_verts s).delete_verts s' = G'.delete_verts (s ∪ s') :=
+by ext; simp [not_or_distrib, and_assoc] { contextual := tt }
+
+@[simp] lemma delete_verts_empty : G'.delete_verts ∅ = G' :=
+by simp [delete_verts]
+
+lemma delete_verts_le : G'.delete_verts s ≤ G' :=
+by split; simp [set.diff_subset]
+
+@[mono]
+lemma delete_verts_mono {G' G'' : G.subgraph} (h : G' ≤ G'') :
+  G'.delete_verts s ≤ G''.delete_verts s :=
+induce_mono h (set.diff_subset_diff_left h.1)
+
+@[mono]
+lemma delete_verts_anti {s s' : set V} (h : s ⊆ s') :
+  G'.delete_verts s' ≤ G'.delete_verts s :=
+induce_mono (le_refl _) (set.diff_subset_diff_right h)
+
+@[simp] lemma delete_verts_inter_verts_left_eq :
+  G'.delete_verts (G'.verts ∩ s) = G'.delete_verts s :=
+by ext; simp [imp_false] { contextual := tt }
+
+@[simp] lemma delete_verts_inter_verts_set_right_eq :
+  G'.delete_verts (s ∩ G'.verts) = G'.delete_verts s :=
+by ext; simp [imp_false] { contextual := tt }
+
+end delete_verts
 
 end subgraph
 

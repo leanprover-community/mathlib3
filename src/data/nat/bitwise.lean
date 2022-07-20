@@ -167,23 +167,30 @@ lemma lor_assoc (n m k : ℕ) : lor (lor n m) k = lor n (lor m k) := by bitwise_
 @[simp] lemma lxor_self (n : ℕ) : lxor n n = 0 :=
 zero_of_test_bit_eq_ff $ λ i, by simp
 
+-- These lemmas match `mul_inv_cancel_right` and `mul_inv_cancel_left`.
+
 lemma lxor_cancel_right (n m : ℕ) : lxor (lxor m n) n = m :=
 by rw [lxor_assoc, lxor_self, lxor_zero]
 
 lemma lxor_cancel_left (n m : ℕ) : lxor n (lxor n m) = m :=
 by rw [←lxor_assoc, lxor_self, zero_lxor]
 
-lemma lxor_right_inj {n m m' : ℕ} (h : lxor n m = lxor n m') : m = m' :=
-calc m = lxor n (lxor n m') : by simp [←lxor_assoc, ←h]
-   ... = m' : by simp [←lxor_assoc]
+lemma lxor_right_injective {n : ℕ} : function.injective (lxor n) :=
+λ m m' h, by rw [←lxor_cancel_left n m, ←lxor_cancel_left n m', h]
 
-lemma lxor_left_inj {n n' m : ℕ} (h : lxor n m = lxor n' m) : n = n' :=
-by { rw [lxor_comm n m, lxor_comm n' m] at h, exact lxor_right_inj h }
+lemma lxor_left_injective {n : ℕ} : function.injective (λ m, lxor m n) :=
+λ m m' (h : lxor m n = lxor m' n), by rw [←lxor_cancel_right n m, ←lxor_cancel_right n m', h]
 
-lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
-⟨by { rw ←lxor_self m, exact lxor_left_inj }, by { rintro rfl, exact lxor_self _ }⟩
+@[simp] lemma lxor_right_inj {n m m' : ℕ} : lxor n m = lxor n m' ↔ m = m' :=
+lxor_right_injective.eq_iff
 
-lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := not_iff_not_of_iff lxor_eq_zero
+@[simp] lemma lxor_left_inj {n m m' : ℕ} : lxor m n = lxor m' n ↔ m = m' :=
+lxor_left_injective.eq_iff
+
+@[simp] lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
+by rw [←lxor_self n, lxor_right_inj, eq_comm]
+
+lemma lxor_ne_zero {n m : ℕ} : lxor n m ≠ 0 ↔ n ≠ m := lxor_eq_zero.not
 
 lemma lxor_trichotomy {a b c : ℕ} (h : a ≠ lxor b c) :
   lxor b c < a ∨ lxor a c < b ∨ lxor a b < c :=
@@ -216,6 +223,6 @@ begin
 end
 
 lemma lt_lxor_cases {a b c : ℕ} (h : a < lxor b c) : lxor a c < b ∨ lxor a b < c :=
-(lxor_trichotomy h.ne).elim (λ h', (h.asymm h').elim) id
+(or_iff_right $ λ h', (h.asymm h').elim).1 $ lxor_trichotomy h.ne
 
 end nat

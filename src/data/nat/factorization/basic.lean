@@ -263,12 +263,12 @@ end
 lemma padic_part_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
-lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.p_odd_part p ≠ 0 :=
+lemma p_odd_part_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < n.p_odd_part p :=
 begin
-  cases em' p.prime with pp pp, { simpa [nat.factorization_eq_zero_of_non_prime n pp] },
+  cases em' p.prime with pp pp,
+  { simpa [nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
   rw ←p_odd_part_def',
-  refine mt (nat.div_eq_zero_iff _).1 (not_lt.2 (padic_part_le p hn)),
-  simp [pow_pos pp.pos],
+  exact nat.div_pos (padic_part_le p hn) (padic_part_pos n p),
 end
 
 lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
@@ -281,7 +281,7 @@ begin
   exact pow_factorization_dvd n p,
 
 
-  rw [nat.prime.dvd_iff_one_le_factorization hp (div_pow_factorization_ne_zero p hn),
+  rw [nat.prime.dvd_iff_one_le_factorization hp (p_odd_part_pos p hn),
     nat.factorization_div (nat.pow_factorization_dvd n p)],
   simp [hp.factorization],
 end

@@ -3,13 +3,13 @@ Copyright (c) 2022 . All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
-import topology.metric_space.emetric_space
+import topology.metric_space.basic
 /-!
 # Basic definitions of coarse geometry on metric space
 
 This file defines the notions of “coarsely dense” and “coarsely separated” subsets
-of a pseudo-emetric space.
-If `α` is a pseudo-emetric space, `s t : set α` and `ε δ : ℝ≥0`:
+of a pseudo-metric space.
+If `α` is a pseudo-emetric space, `s t : set α` and `ε δ : ℝ`:
 
 * `s` is `ε`-dense in `t` if any point of `t` is at distance at most `ε` from some point of `s`;
 * `s` is `δ`-separated if any two distinct points of `s` have distance greater than `δ`.
@@ -19,6 +19,11 @@ If `α` is a pseudo-emetric space, `s t : set α` and `ε δ : ℝ≥0`:
 * `exists_coarsely_separated_coarsely_dense_with_in`:
   Given a subset `S` of the pseudo-emetric space `α` and some non-negative `δ`,
   there exists a set `s ⊆ S` that is both `δ`-dense in `S` and `δ`-separated.
+
+## Implementation notes
+
+Even though in practice `δ` and `ε` are going to be positive reals, 
+this is only assumed when needed.
 
 ## References
 
@@ -31,24 +36,24 @@ coarse geometry, metric space
 
 universes u v w
 
-open function set fintype function pseudo_emetric_space
+open function set fintype function pseudo_metric_space
 open_locale nnreal ennreal
 
-variables {α : Type u} [pseudo_emetric_space α]
+variables {α : Type u} [pseudo_metric_space α]
 
 /--
 Given a pseudo-emetric space `α`, the subset `s` is `ε`-dense in the subset `t`
 if any point of `t` is at distance at most `ε` from some point of `s`.
 -/
-def coarsely_dense_with_in (ε : ℝ≥0) (s t : set α) :=
-∀ ⦃x⦄ (hx : x ∈ t), ∃ ⦃y⦄ (hy : y ∈ s), edist x y ≤ ε
+def coarsely_dense_with_in (ε : ℝ) (s t : set α) :=
+∀ ⦃x⦄ (hx : x ∈ t), ∃ ⦃y⦄ (hy : y ∈ s), dist x y ≤ ε
 
 /--
 Given a pseudo-emetric space `α`, the subset `s` is `δ`-separated
 if any pair of distinct points of `s` has distance greater than `δ`.
 -/
-def coarsely_separated_with  (δ : ℝ≥0) (s : set α)  :=
-∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x ≠ y → edist x y > δ
+def coarsely_separated_with  (δ : ℝ) (s : set α)  :=
+∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x ≠ y → dist x y > δ
 
 namespace coarsely_dense_with_in
 
@@ -62,7 +67,7 @@ lemma refl (s : set α) : coarsely_dense_with_in 0 s s :=
 If `r` is `ε`-dense in `s`, and `s` is `ε'`-dense in `t`,
 then `r` is `(ε+ε')`-dense in `t`.
 -/
-lemma trans {ε ε' : ℝ≥0} {r s t : set α}
+lemma trans {ε ε' : ℝ} {r s t : set α}
   (r_in_s : coarsely_dense_with_in ε r s) (s_in_t : coarsely_dense_with_in ε' s t) :
   coarsely_dense_with_in (ε + ε') r t :=
 begin
@@ -70,17 +75,17 @@ begin
   rcases s_in_t z_in_t with ⟨y,y_in_s,yd⟩,
   rcases r_in_s y_in_s with ⟨x,x_in_r,xd⟩,
   use [x, x_in_r],
-  calc edist z x ≤ (edist z y) + (edist y x) : edist_triangle z y x
-             ... ≤ ε'          + (edist y x) : add_le_add yd (le_refl $ edist y x)
-             ... ≤ ε'          + ε           : add_le_add (le_refl ε') xd
-             ... = ε + ε'                    : by ring
+  calc dist z x ≤ (dist z y) + (dist y x) :  pseudo_metric_space.dist_triangle z y x
+            ... ≤ ε'         + (dist y x) : add_le_add yd (le_refl $ dist y x)
+            ... ≤ ε'         + ε          : add_le_add (le_refl ε') xd
+            ... = ε + ε'                  : by ring
 end
 
 /--
 If `s` is `ε`-dense in `t`, `s ⊆ s'`, `t' ⊆ t`, and `ε ≤ ε'`,
 then `s'` is `ε'`-dense in `t'`.
 -/
-lemma weaken {ε ε' : ℝ≥0} {s s' t t' : set α }
+lemma weaken {ε ε' : ℝ} {s s' t t' : set α }
   (s_in_t : coarsely_dense_with_in ε s t)
   (s_sub_s' : s ⊆ s') (t'_sub_t : t' ⊆ t) (ε_le_ε' : ε ≤ ε') :
   coarsely_dense_with_in ε' s' t' :=
@@ -90,14 +95,14 @@ begin
   rcases s_in_t z_in_t with ⟨x,x_in_s,xd⟩,
   have x_in_s' : x ∈ s', from s_sub_s' x_in_s,
   use [x,x_in_s'],
-  calc edist z x ≤ ε  : xd
-             ... ≤ ε' : ennreal.coe_le_coe.mpr ε_le_ε',
+  calc dist z x ≤ ε  : xd
+            ... ≤ ε' : ε_le_ε',
 end
 
 /--
-If `s` is a maximal `δ`-separated subset of `S`, then it is `δ`-dense in `S`.
+If `s` is a maximal `δ`-separated (with `δ ≥ 0`) subset of `S`, then it is `δ`-dense in `S`.
 -/
-theorem of_max_coarsely_separated_with_in {δ : ℝ≥0} {s S: set α}
+theorem of_max_coarsely_separated_with_in (δ : ℝ) (δgez : δ ≥ 0) {s S: set α}
   (H : s ⊆ S
      ∧ coarsely_separated_with δ s
      ∧ (∀ t : set α, s ⊆ t → t ⊆ S →  coarsely_separated_with δ t → s = t)) :
@@ -110,8 +115,8 @@ begin
   push_neg at H,
   have x_notin_s : x ∉ s,
   { intro x_in_s,
-    have : edist x x > 0, from gt_of_gt_of_ge (H x_in_s) (zero_le ↑δ),
-    exact (ne_of_gt this) (edist_self x)},
+    have : dist x x > 0, from gt_of_gt_of_ge (H x_in_s) δgez,
+    exact (ne_of_gt this) (pseudo_metric_space.dist_self x)},
   have s_sub_t : s ⊆ t , from subset_insert x s,
   have s_ne_t : s ≠ t , from ne_insert_of_not_mem s x_notin_s,
   have t_sub_S : t ⊆ S, from insert_subset.mpr ⟨xS, s_sub_S⟩,
@@ -120,7 +125,7 @@ begin
     { exact λ h, (h rfl).elim },
     { exact λ hzy, H ys },
     { intro hzy,
-      rw edist_comm,
+      rw pseudo_metric_space.dist_comm,
       exact H zs },
     { exact s_sep zs ys }},
   exact s_ne_t (s_max t s_sub_t t_sub_S this),
@@ -133,7 +138,7 @@ namespace coarsely_separated_with
 /--
 A directed union of `δ`-separated sets is a `δ`-separated.
 -/
-lemma of_directed_union {δ : ℝ≥0} {𝒸 : set $ set α}
+lemma of_directed_union {δ : ℝ} {𝒸 : set $ set α}
   (allsep : ∀ s ∈ 𝒸, coarsely_separated_with δ s)
   (dir : directed_on (⊆) 𝒸) :
   coarsely_separated_with δ 𝒸.sUnion :=
@@ -154,7 +159,7 @@ end
 /--
 Given any `δ` and subset `S` of `α`, there exists a maximal `δ`-separated subset of `S`.
 -/
-theorem exists_max (δ : ℝ≥0) (S : set α) :
+theorem exists_max (δ : ℝ) (S : set α) :
   ∃ s : set α, s ⊆ S
              ∧ coarsely_separated_with δ s
              ∧ (∀ t : set α, s ⊆ t → t ⊆ S →  coarsely_separated_with δ t → s = t) :=
@@ -185,13 +190,13 @@ end
 end coarsely_separated_with
 
 /--
-Given any `δ` and subset `S` of `α`, there exists a `δ`-separated and `δ`-dense subset of `S`.
+Given any `δ ≥ 0` and subset `S` of `α`, there exists a `δ`-separated and `δ`-dense subset of `S`.
 -/
-theorem exists_coarsely_separated_coarsely_dense_with_in (δ : ℝ≥0) (S : set α) :
+theorem exists_coarsely_separated_coarsely_dense_with_in (δ : ℝ) (δgez : δ ≥ 0) (S : set α) :
   ∃ s ⊆ S, coarsely_separated_with δ s
          ∧ coarsely_dense_with_in δ s S :=
 begin
   rcases coarsely_separated_with.exists_max δ S with ⟨s, s_sub_S, s_sep, s_max_sep⟩,
   use [s,s_sub_S,s_sep],
-  exact coarsely_dense_with_in.of_max_coarsely_separated_with_in ⟨s_sub_S, s_sep, s_max_sep⟩,
+  exact coarsely_dense_with_in.of_max_coarsely_separated_with_in δ δgez ⟨s_sub_S, s_sep, s_max_sep⟩,
 end

@@ -227,6 +227,9 @@ def padic_part (n p : ℕ) := p ^ n.factorization p
 noncomputable -- TODO: Delete `noncomputable` when #12301 is merged
 def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 
+@[simp] lemma padic_part_def (n p : ℕ) : n.padic_part p = p ^ n.factorization p := rfl
+@[simp] lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
+
 /-! ### Factorization and divisibility -/
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=

@@ -129,6 +129,32 @@ begin
     exact le_trans h₁ (nat.le_add_left _ _) }
 end
 
+theorem mkpair_lt_max_succ_sq (m n : ℕ) : mkpair m n < (max m n + 1) ^ 2 :=
+begin
+  rw mkpair,
+  split_ifs,
+  { rw [max_eq_right h.le, add_sq, add_assoc, sq, add_lt_add_iff_left, mul_one,
+      two_mul, add_assoc],
+    exact h.trans_le (self_le_add_right n _) },
+  { rw not_lt at h,
+    rw [max_eq_left h, add_sq, add_assoc, add_assoc, sq, add_lt_add_iff_left, mul_one,
+      two_mul, add_assoc, add_lt_add_iff_left],
+    exact lt_succ_of_le h }
+end
+
+theorem add_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=
+begin
+  rw mkpair,
+  split_ifs,
+  { rw [add_comm, add_le_add_iff_right],
+    exact le_mul_self n },
+  { rw add_assoc,
+    apply self_le_add_left }
+end
+
+theorem unpair_add_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
+by { rw [←mkpair_unpair n, unpair_mkpair], apply add_le_mkpair }
+
 end nat
 open nat
 

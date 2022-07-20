@@ -16,33 +16,33 @@ definition, we show that this isn't a primitive recursive function.
 ## Main result
 
 - `not_primrec₂_ack`: the two-argument Ackermann function is not primitive recursive.
+
+## Proof approach
+
+We very broadly adapt the proof idea from
+https://www.planetmath.org/ackermannfunctionisnotprimitiverecursive. Namely, we prove that for any
+primitive recursive `f : ℕ → ℕ`, there exists `m` such that `f n < ack m n` for all `n`. We aren't
+able to use the same bounds as in that proof though, since our approach of using a pairing function
+to definite primitive recursive functions is different to their approach of using multivariate
+functions.
+
+The important bounds we show during the main inductive proof (`exists_lt_ack_of_primrec`) are the
+following. Assuming `∀ n, f n < ack a n` and `∀ n, g n < ack b n`, we have:
+
+- `∀ n, nat.mkpair (f n) (g n) < ack (max a b + 3) n`.
+- `∀ n, g (f n) < ack (max a b + 2) n`.
+- `∀ n, elim (f (unpair n).fst) (λ (y IH : ℕ), g (mkpair (unpair n).1 (mkpair y IH))) (unpair n).2 <
+  ack (max a b + 9) n`.
+
+The last one is evidently the hardest. Using `unpair_add_le`, we reduce it to the more
+manageable
+
+- `∀ m n, elim (f m) (λ (y IH : ℕ), g (mkpair m (mkpair y IH))) n < ack (max a b + 9) (m + n)`.
+
+We then prove this by induction on `n`. Our proof crucially depends on `ack_mkpair_lt`, which is
+applied twice, giving us a constant of `4 + 4`. The rest of the proof consists of simpler bounds
+which bump up our constant to `9`.
 -/
-
-namespace nat
-
-theorem mkpair_lt_max_succ_sq (m n : ℕ) : mkpair m n < (max m n + 1) ^ 2 :=
-begin
-  rw mkpair,
-  split_ifs,
-  { rw max_eq_right h.le,
-    linarith },
-  { rw max_eq_left (le_of_not_lt h),
-    linarith }
-end
-
-theorem add_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=
-begin
-  rw mkpair,
-  split_ifs,
-  { linarith [le_mul_self n] },
-  { rw add_assoc,
-    apply self_le_add_left }
-end
-
-theorem unpair_add_le (n : ℕ) : (unpair n).1 + (unpair n).2 ≤ n :=
-by { rw [←mkpair_unpair n, unpair_mkpair], apply add_le_mkpair }
-
-end nat
 
 open nat
 
@@ -206,6 +206,8 @@ begin
     apply ack_mono_right m (le_trans _ $ add_succ_le_ack _ n),
     linarith }
 end
+
+-- All the inequalities from this point onwards are specific to the main proof.
 
 private theorem sq_le_two_pow_succ_minus_three (n : ℕ) : n ^ 2 ≤ 2 ^ (n + 1) - 3 :=
 begin

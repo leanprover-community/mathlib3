@@ -68,9 +68,8 @@ lemma module.injective_module_of_injective_object
 { out := λ X Y ins1 ins2 ins3 ins4 f hf g, begin
     resetI,
     rcases @category_theory.injective.factors (Module R) _ ⟨Q⟩ _ ⟨X⟩ ⟨Y⟩ g f
-      ((Module.mono_iff_injective _).mpr hf) with ⟨h, eq1⟩,
-    refine ⟨h, λ x, _⟩,
-    rw [← eq1, Module.coe_comp],
+      ((Module.mono_iff_injective _).mpr hf) with ⟨h, rfl⟩,
+    exact ⟨h, λ x, rfl⟩
   end }
 
 lemma module.injective_iff_injective_object :

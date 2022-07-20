@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.inner_product_space.l2_space
-import analysis.inner_product_space.adjoint
+import analysis.inner_product_space.positive
 import linear_algebra.trace
 
 /-!
@@ -112,12 +112,6 @@ begin
         orthogonal_projection_mem_subspace_eq_self] }
 end
 
---lemma foo [complete_space E] {ι : Type*} {e : ι → E}
---  (he : orthonormal 𝕜 e) (s : finset ι) :
---  (span 𝕜 (s.image e : set E)).subtypeL ∘L orthogonal_projection (span 𝕜 (s.image e : set E)) =
---  ∑ i in s, (𝕜 ∙ e i).subtypeL ∘L orthogonal_projection (𝕜 ∙ e i) :=
---sorry
-
 lemma trace_along_span_eq_of_orthonormal [complete_space E] {ι : Type*} (T : E →L[𝕜] E) {e : ι → E}
   (he : orthonormal 𝕜 e) (s : finset ι) :
   trace_along (span 𝕜 (s.image e : set E)) T = ∑ i in s, ⟪(e i : E), T (e i)⟫ :=
@@ -144,79 +138,6 @@ end
 end trace_along
 
 section positive
-
-def is_positive (T : E →L[𝕜] E) : Prop :=
-  is_self_adjoint (T : E →ₗ[𝕜] E) ∧ ∀ x, 0 ≤ T.re_apply_inner_self x
-
-lemma is_positive.inner_nonneg_left {T : E →L[𝕜] E} (hT : is_positive T) (x : E) :
-  0 ≤ re ⟪T x, x⟫ :=
-hT.2 x
-
-lemma is_positive.inner_nonneg_right {T : E →L[𝕜] E} (hT : is_positive T) (x : E) :
-  0 ≤ re ⟪x, T x⟫ :=
-by rw inner_re_symm; exact hT.inner_nonneg_left x
-
-lemma is_positive_zero : is_positive (0 : E →L[𝕜] E) :=
-begin
-  split,
-  { exact λ x y, (inner_zero_right : ⟪x, 0⟫ = 0).symm ▸ (inner_zero_left : ⟪0, y⟫ = 0) },
-  { intro x,
-    change 0 ≤ re ⟪_, _⟫,
-    rw [zero_apply, inner_zero_left, zero_hom_class.map_zero] }
-end
-
-lemma is_positive_id : is_positive (1 : E →L[𝕜] E) :=
-⟨λ x y, rfl, λ x, inner_self_nonneg⟩
-
-lemma is_positive.add [complete_space E] {T S : E →L[𝕜] E} (hT : T.is_positive)
-  (hS : S.is_positive) : (T + S).is_positive :=
-begin
-  rw [is_positive, is_self_adjoint_iff_eq_adjoint] at *,
-  split,
-  { rw [map_add, ← hT.1, ← hS.1] },
-  { intro x,
-    rw [re_apply_inner_self, add_apply, inner_add_left, map_add],
-    exact add_nonneg (hT.2 x) (hS.2 x) }
-end
-
-lemma is_positive.proj_comp [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
-  (U : submodule 𝕜 E) [complete_space U] :
-  (orthogonal_projection U ∘L T ∘L U.subtypeL).is_positive :=
-begin
-  split,
-  { intros x y,
-    rw [coe_coe, comp_apply, coe_inner, inner_orthogonal_projection_left_eq_right,
-        comp_apply, ← coe_coe, hT.1, orthogonal_projection_mem_subspace_eq_self,
-        coe_subtypeL', U.subtype_apply],
-    nth_rewrite 0 ← orthogonal_projection_mem_subspace_eq_self x,
-    rw inner_orthogonal_projection_left_eq_right,
-    refl },
-  { intros x,
-    rw [re_apply_inner_self, coe_inner, comp_apply, inner_orthogonal_projection_left_eq_right,
-        orthogonal_projection_mem_subspace_eq_self],
-    exact hT.2 x }
-end
-
-lemma is_positive.conj [complete_space E] [complete_space F] {T : E →L[𝕜] E} (hT : T.is_positive)
-  (S : E →L[𝕜] F) : (S ∘L T ∘L S†).is_positive :=
-begin
-  split,
-  { intros x y,
-    rw [coe_coe, comp_apply, comp_apply, ← adjoint_inner_right, ← coe_coe, hT.1, coe_coe,
-        adjoint_inner_left],
-    refl },
-  { intro x,
-    rw [re_apply_inner_self, comp_apply, ← adjoint_inner_right],
-    exact hT.2 _ }
-end
-
-lemma is_positive.conj_proj [complete_space E] (U : submodule 𝕜 E) {T : E →L[𝕜] E}
-  (hT : T.is_positive) [complete_space U] :
-  (conj_proj T U).is_positive :=
-begin
-  have := hT.conj (U.subtypeL ∘L orthogonal_projection U),
-  rwa ← (orthogonal_projection_is_self_adjoint U).eq_adjoint at this
-end
 
 lemma is_positive.trace_along_eq_re [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] : trace_along U T = re (trace_along U T) :=
@@ -280,7 +201,7 @@ begin
   { rw [← inner_orthogonal_projection_left_eq_right, he₁ x hxs hxt] },
   { rw [← inner_orthogonal_projection_left_eq_right, he₂ x hxs hxt, submodule.coe_zero,
         inner_zero_left, _root_.map_zero],
-    exact (hT.conj_proj V).inner_nonneg_right x },
+    exact (hT.conj_orthogonal_projection V).inner_nonneg_right x },
 end
 
 noncomputable def is_positive.trace_along_nnreal [complete_space E] (U : submodule 𝕜 E)
@@ -294,7 +215,7 @@ hT.trace_along_nnreal U
 lemma is_positive.trace_along_ennreal_conj_proj_le [complete_space E] {T : E →L[𝕜] E}
   (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
-    (hT.conj_proj V).trace_along_ennreal U ≤
+    (hT.conj_orthogonal_projection V).trace_along_ennreal U ≤
     hT.trace_along_ennreal V :=
 begin
   rw [is_positive.trace_along_ennreal, is_positive.trace_along_ennreal, ennreal.coe_le_coe],
@@ -324,7 +245,8 @@ begin
     haveI : finite_dimensional 𝕜 (U : submodule 𝕜 E) := U.finite_dimensional,
     let f := std_orthonormal_basis 𝕜 (U : submodule 𝕜 E),
     let V : finset ι → submodule 𝕜 E := λ J, span 𝕜 (J.image e),
-    suffices : tendsto (λ J : finset ι, (hT.conj_proj (V J)).trace_along_ennreal U) at_top
+    suffices : tendsto
+      (λ J : finset ι, (hT.conj_orthogonal_projection (V J)).trace_along_ennreal U) at_top
       (𝓝 $ hT.trace_along_ennreal U),
     { refine le_of_tendsto_of_tendsto' this ennreal.summable.has_sum (λ J, _),
       rw [← ennreal.of_real_sum_of_nonneg (fact J), ← _root_.map_sum,

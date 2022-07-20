@@ -338,16 +338,6 @@ begin
   refl,
 end
 
-protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
-  ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
-begin
-  have := @pi_Lp.inner_apply 𝕜 _ _ _ _ _ (b.repr x) (b.repr y),
-  simp_rw [is_R_or_C.inner_apply, b.repr.inner_map_map] at this,
-  convert this.symm,
-  ext i,
-  rw [b.repr_apply_apply, b.repr_apply_apply, inner_conj_sym]
-end
-
 /-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
 protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)
   (L : E ≃ₗᵢ[𝕜] G) :
@@ -429,7 +419,8 @@ e₀.map φ.symm
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,
-              linear_isometry_equiv.coe_of_eq_apply]
+              linear_isometry_equiv.of_eq_apply, linear_equiv.to_fun_eq_coe,
+              linear_equiv.of_eq_apply, equiv.to_fun_as_coe, equiv.set.of_eq_apply, coe_mk]
 
 open submodule
 

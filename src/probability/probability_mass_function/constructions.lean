@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Devon Tuma
 -/
-import measure_theory.probability_mass_function.monad
+import probability.probability_mass_function.monad
 
 /-!
 # Specific Constructions of Probability Mass Functions
@@ -28,7 +28,7 @@ and `filter` uses this to filter the support of a `pmf` and re-normalize the new
 namespace pmf
 
 noncomputable theory
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
 
 section map
@@ -37,6 +37,8 @@ section map
 def map (f : α → β) (p : pmf α) : pmf β := bind p (pure ∘ f)
 
 variables (f : α → β) (p : pmf α) (b : β)
+
+lemma monad_map_eq_map {α β : Type*} (f : α → β) (p : pmf α) : f <$> p = p.map f := rfl
 
 @[simp] lemma map_apply : (map f p) b = ∑' a, if b = f a then p a else 0 := by simp [map]
 
@@ -82,6 +84,8 @@ def seq (q : pmf (α → β)) (p : pmf α) : pmf β := q.bind (λ m, p.bind $ λ
 
 variables (q : pmf (α → β)) (p : pmf α) (b : β)
 
+lemma monad_seq_eq_seq {α β : Type*} (q : pmf (α → β)) (p : pmf α) : q <*> p = q.seq p := rfl
+
 @[simp] lemma seq_apply : (seq q p) b = ∑' (f : α → β) (a : α), if b = f a then q f * p a else 0 :=
 begin
   simp only [seq, mul_boole, bind_apply, pure_apply],
@@ -96,6 +100,17 @@ lemma mem_support_seq_iff : b ∈ (seq q p).support ↔ ∃ (f ∈ q.support), b
 by simp
 
 end seq
+
+instance : is_lawful_functor pmf :=
+{ map_const_eq := λ α β, rfl,
+  id_map := λ α, bind_pure,
+  comp_map := λ α β γ g h x, (map_comp _ _ _).symm }
+
+instance : is_lawful_monad pmf :=
+{ bind_pure_comp_eq_map := λ α β f x, rfl,
+  bind_map_eq_seq := λ α β f x, rfl,
+  pure_bind := λ α β, pure_bind,
+  bind_assoc := λ α β γ, bind_bind }
 
 section of_finset
 
@@ -173,7 +188,8 @@ section of_multiset
 def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
 ⟨λ a, s.count a / s.card,
   have ∑ a in s.to_finset, (s.count a : ℝ) / s.card = 1,
-    by simp [div_eq_inv_mul, finset.mul_sum.symm, (nat.cast_sum _ _).symm, hs],
+  { simp only [div_eq_inv_mul, ← finset.mul_sum, ← nat.cast_sum, multiset.to_finset_sum_count_eq],
+    rw [inv_mul_cancel], simp [hs] },
   have ∑ a in s.to_finset, (s.count a : ℝ≥0) / s.card = 1,
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin

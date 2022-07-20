@@ -6,8 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
-import tactic.linarith
-import tactic.interval_cases
+import data.nat.interval
 
 /-!
 # Prime factorizations
@@ -76,7 +75,7 @@ by simp [factorization]
 
 /-- The support of `n.factorization` is exactly `n.factors.to_finset` -/
 @[simp] lemma support_factorization {n : ℕ} : n.factorization.support = n.factors.to_finset :=
-by simpa [factorization, multiset.to_finsupp_support]
+by simp [factorization, multiset.to_finsupp_support]
 
 lemma factor_iff_mem_factorization {n p : ℕ} : p ∈ n.factorization.support ↔ p ∈ n.factors :=
 by simp only [support_factorization, list.mem_to_finset]
@@ -239,6 +238,24 @@ end
 lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorization p ≤ n :=
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
+/-- A crude upper bound on `n.factorization p` -/
+lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < n :=
+begin
+  by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
+  rw ←pow_lt_iff_lt_right pp.two_le,
+  apply lt_of_le_of_lt (pow_factorization_le p hn),
+  exact lt_of_lt_of_le (lt_two_pow n) (pow_le_pow_of_le_left (by linarith) pp.two_le n),
+end
+
+/-- An upper bound on `n.factorization p` -/
+lemma factorization_le_of_le_pow {n p b : ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  by_cases pp : p.prime, 
+  { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb) },
+  { simp [factorization_eq_zero_of_non_prime n pp] }
+end
+
 lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
   n / p ^ n.factorization p ≠ 0 :=
 begin
@@ -246,15 +263,6 @@ begin
   { apply mt (nat.div_eq_zero_iff (pow_pos (prime.pos pp) _)).1,
     simp [le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)] },
   { simp [nat.factorization_eq_zero_of_non_prime n pp, hn] },
-end
-
-lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
-  ¬ p ^ (n.factorization p + 1) ∣ n :=
-begin
-  intro h,
-  have := factors_sublist_of_dvd h hn,
-  rw [hp.factors_pow, ←le_count_iff_repeat_sublist, factors_count_eq] at this,
-  linarith
 end
 
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
@@ -267,6 +275,14 @@ begin
     rw [←factorization_prod_pow_eq_self hn, ←factorization_prod_pow_eq_self hd,
         ←finsupp.prod_add_index' pow_zero pow_add, hK, add_tsub_cancel_of_le hdn] },
   { rintro ⟨c, rfl⟩, rw factorization_mul hd (right_ne_zero_of_mul hn), simp },
+end
+
+lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
+  ¬ p ^ (n.factorization p + 1) ∣ n :=
+begin
+  intro h,
+  rw ←factorization_le_iff_dvd (pow_pos hp.pos _).ne' hn at h,
+  simpa [hp.factorization] using h p,
 end
 
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
@@ -385,6 +401,36 @@ begin
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
+lemma set_of_pow_dvd_eq_Icc_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = set.Icc 1 (n.factorization p) :=
+by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization hn] }
+
+/-- The set of positive powers of prime `p` that divide `n` is exactly the set of
+positive natural numbers up to `n.factorization p`. -/
+lemma Icc_factorization_eq_pow_dvd (n : ℕ) {p : ℕ} (pp : prime p) :
+  Icc 1 ((n.factorization) p) = (Ico 1 n).filter (λ (i : ℕ), p ^ i ∣ n) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  ext x,
+  simp only [mem_Icc, finset.mem_filter, mem_Ico, and_assoc, and.congr_right_iff,
+    pp.pow_dvd_iff_le_factorization hn, iff_and_self],
+  exact λ H1 H2, lt_of_le_of_lt H2 (factorization_lt p hn),
+end
+
+lemma factorization_eq_card_pow_dvd (n : ℕ) {p : ℕ} (pp : p.prime) :
+  n.factorization p = ((Ico 1 n).filter (λ i, p ^ i ∣ n)).card :=
+by simp [←Icc_factorization_eq_pow_dvd n pp]
+
+lemma Ico_filter_pow_dvd_eq {n p b : ℕ} (pp : p.prime) (hn : n ≠ 0) (hb : n ≤ p ^ b):
+  (Ico 1 n).filter (λ i, p ^ i ∣ n) = (Icc 1 b).filter (λ i, p ^ i ∣ n) :=
+begin
+  ext x,
+  simp only [finset.mem_filter, mem_Ico, mem_Icc, and.congr_left_iff, and.congr_right_iff],
+  rintro h1 -,
+  simp [lt_of_pow_dvd_right hn pp.two_le h1,
+    (pow_le_iff_le_right pp.two_le).1 ((le_of_dvd hn.bot_lt h1).trans hb)],
+end
+
 /-! ### Factorization and coprimes -/
 
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
@@ -475,10 +521,8 @@ begin
     exact hp p n hp' hn },
   refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
-  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
-    interval_cases a,
-    { simpa only [dvd_zero, not_true] using hpa },
-    { contradiction } },
+  { contrapose! hpa,
+    simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

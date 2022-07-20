@@ -116,7 +116,7 @@ theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
   ∃ i, equiv (x.func i) (y.func j)
 | ⟨α, A⟩ ⟨β, B⟩ h := h.2
 
-protected theorem equiv.refl (x) : equiv x x :=
+@[refl] protected theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
 
 protected theorem equiv.rfl : ∀ {x}, equiv x x := equiv.refl
@@ -126,10 +126,10 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 ⟨λ a, let ⟨b, ab⟩ := αβ a, ⟨c, bc⟩ := βγ b in ⟨c, IH a ab bc⟩,
   λ c, let ⟨b, cb⟩ := γβ c, ⟨a, ba⟩ := βα b in ⟨a, IH a ba cb⟩⟩
 
-protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
+@[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
-protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
+@[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
 instance setoid : setoid pSet :=

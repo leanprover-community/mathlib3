@@ -101,8 +101,8 @@ variable {C}
 noncomputable
 def preserves_binary_products_of_preserves_terminal_and_pullbacks
   [has_terminal C] [has_pullbacks C]
-  [preserves_limits_of_shape (discrete.{v} pempty) F]
-  [preserves_limits_of_shape walking_cospan.{v} F] :
+  [preserves_limits_of_shape (discrete.{0} pempty) F]
+  [preserves_limits_of_shape walking_cospan F] :
   preserves_limits_of_shape (discrete walking_pair) F :=
 ⟨λ K, preserves_limit_of_preserves_limit_cone (limit_cone_of_terminal_and_pullbacks K).2
 begin
@@ -198,8 +198,8 @@ variable {C}
 noncomputable
 def preserves_binary_coproducts_of_preserves_initial_and_pushouts
   [has_initial C] [has_pushouts C]
-  [preserves_colimits_of_shape (discrete.{v} pempty) F]
-  [preserves_colimits_of_shape walking_span.{v} F] :
+  [preserves_colimits_of_shape (discrete.{0} pempty) F]
+  [preserves_colimits_of_shape walking_span F] :
   preserves_colimits_of_shape (discrete walking_pair) F :=
 ⟨λ K, preserves_colimit_of_preserves_colimit_cocone (colimit_cocone_of_initial_and_pushouts K).2
 begin

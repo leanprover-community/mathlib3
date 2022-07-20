@@ -217,6 +217,16 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
+/-! ### Generalisation of "even" and "odd" parts -/
+
+/-- The largest divisor of `n` divisible by `p`.  For `p = 2` this is the even part of `n` -/
+noncomputable -- TODO: Delete `noncomputable` when #12301 is merged
+def padic_part (n p : ℕ) := p ^ n.factorization p
+
+/-- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n` -/
+noncomputable -- TODO: Delete `noncomputable` when #12301 is merged
+def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
+
 /-! ### Factorization and divisibility -/
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
@@ -251,7 +261,7 @@ end
 lemma factorization_le_of_le_pow {n p b : ℕ} (hb : n ≤ p ^ b) : n.factorization p ≤ b :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
-  by_cases pp : p.prime, 
+  by_cases pp : p.prime,
   { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb) },
   { simp [factorization_eq_zero_of_non_prime n pp] }
 end

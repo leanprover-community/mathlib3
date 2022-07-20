@@ -829,6 +829,26 @@ by rintros ⟨L⟩; exact reduce.self
 lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
+lemma to_word_one_eq_nil : (1 : free_group α).to_word = list.nil :=
+begin
+  rw one_eq_mk,
+  unfold to_word,
+  simp only [quot_lift_mk],
+  rw ← free_group.red.nil_iff ,
+  simp only [reduce.red],
+end
+
+lemma to_word_eq_nil_iff {x : free_group α} : (x.to_word = list.nil) ↔ (x = 1) :=
+begin
+  split,
+  { intro h,
+    rw ← to_word_one_eq_nil at h,
+    exact to_word.inj x 1 h, },
+  { intro h,
+    rw h,
+    exact to_word_one_eq_nil, },
+end
+
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :
   { L₄ // red L₂ L₄ ∧ red L₃ L₄ } :=
@@ -903,21 +923,25 @@ begin
   simpa using norm_inv_le x⁻¹,
 end
 
+
 lemma norm_zero_eq_one (x : free_group α ) : norm x = 0 → x = 1 := 
 begin
   intro h1,
   unfold norm at h1,
   rw list.length_eq_zero at h1,
-  
-  have h2 : (1 : free_group α).to_word = list.nil,
-  { rw one_eq_mk,
-    unfold to_word,
-    simp only [quot_lift_mk],
-    rw ← free_group.red.nil_iff ,
-    simp only [reduce.red], },
-
-  rw ← h2 at h1,
+  rw ← to_word_one_eq_nil at h1,
   exact to_word.inj x 1 h1,
+end
+
+@[simp] lemma norm_zero_iff_one {x : free_group α} : norm x = 0 ↔ x = 1 := 
+begin
+  split,
+  { exact norm_zero_eq_one x, },
+  { intro h,
+    rw h,
+    unfold norm,
+    
+  },
 end
 
 lemma norm_mul_le (x : free_group α) (y : free_group α) : norm (x * y) ≤ norm x + norm y :=

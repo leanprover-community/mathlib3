@@ -17,21 +17,20 @@ def power_to_string(var: int, pow: int) -> str:
         return var_s
     return mk_app("poly.pow", var_s, str(pow))
 
-# `MonoForm`` stores the string representation of a monomial.
-# To cleanly format sums of monomials, we need to be careful with negation:
-# if the first monomial in a sum is negative, we print the negation symbol;
-# if a subsequent monomial is negative, we subtract the non-negated version.
-# `MonomForm` always stores the *positive* representation of a monomial in the `pos_form` field.
-# If the monomial is in fact negative, it also stores the full (negative) representation
-# in the `neg_form` field. For instance, putting `-2*x` into a `MonomForm` would store
-# the representation of `2*x` in `pos_form` and `-2*x` in `neg_form`.
 @dataclass
 class MonomForm:
+    """
+    `MonoForm` stores the string representation of a monomial.
+    To cleanly format sums of monomials, we need to be careful with negation:
+    if the first monomial in a sum is negative, we print the negation symbol;
+    if a subsequent monomial is negative, we subtract the non-negated version.
+    `MonomForm` always stores the *positive* representation of a monomial in the `pos_form` field.
+    If the monomial is in fact negative, it also stores the full (negative) representation
+    in the `neg_form` field. For instance, putting `-2*x` into a `MonomForm` would store
+    the representation of `2*x` in `pos_form` and `-2*x` in `neg_form`.
+    """
     pos_form: str
     neg_form: Optional[str] = None
-
-def sum_to_string_aux(old: str, nxt: MonomForm) -> str:
-    return mk_app("poly.sub" if nxt.neg_form is not None else "poly.add", old, nxt.pos_form)
 
 def sum_to_string(terms: Iterator[MonomForm]) -> str:
     try:

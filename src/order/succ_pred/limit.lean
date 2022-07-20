@@ -65,7 +65,7 @@ begin
     exact hs _ H.1 }
 end
 
-@[simp] lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
+lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
   (hl : Π a, is_succ_limit a → C a) (hb : is_succ_limit b) :
   @is_succ_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
@@ -209,7 +209,7 @@ Note that you need a partial order for data built using this to behave nicely on
   (hs : Π a, ¬ is_min a → C (pred a)) (hl : Π a, is_pred_limit a → C a), C b :=
 @is_succ_limit_rec_on αᵒᵈ _ _
 
-@[simp] theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
+theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
   (hl : Π a, is_pred_limit a → C a) (hb : is_pred_limit b),
   @is_pred_limit_rec_on α _ _ C b hs hl = hl b hb :=
 @is_succ_limit_rec_on_limit αᵒᵈ b _ _

@@ -387,6 +387,16 @@ begin
   exact subset_span ⟨i, rfl⟩
 end
 
+protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E} [complete_space E]
+  [complete_space U] (b : hilbert_basis ι 𝕜 U) (x : E) :
+  has_sum (λ i, ⟪(b i : E), x⟫ • b i) (orthogonal_projection U x) :=
+begin
+  convert b.has_sum_repr (orthogonal_projection U x) using 2,
+  ext i,
+  rw [b.repr_apply_apply, coe_inner, ← inner_orthogonal_projection_left_eq_right,
+      orthogonal_projection_mem_subspace_eq_self]
+end
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 

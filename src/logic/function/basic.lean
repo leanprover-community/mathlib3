@@ -774,6 +774,21 @@ lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Type*} (x y :
 lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
 (cast_bijective h).injective.eq_iff
 
+lemma function.left_inverse.eq_rec_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
+
+lemma function.left_inverse.eq_rec_on_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec_on (C (g (f a))) = C a :=
+h.eq_rec_eq _ _
+
+lemma function.left_inverse.cast_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  cast (congr_arg (λ a, γ (f a)) (h a)) (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
+
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/
 def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=

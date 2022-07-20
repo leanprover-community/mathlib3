@@ -178,7 +178,7 @@ cast (congr_arg _ l.of_fn_nth_le) $ h l.length (λ i, l.nth_le ↑i i.2)
 @[simp]
 lemma of_fn_rec_of_fn {C : list α → Sort*} (h : Π n (f : fin n → α), C (list.of_fn f))
   {n : ℕ} (f : fin n → α) : @of_fn_rec _ C h (list.of_fn f) = h _ f :=
-equiv_sigma_tuple.cast_symm_apply_apply (λ s, h s.1 s.2) ⟨n, f⟩
+equiv_sigma_tuple.right_inverse_symm.cast_eq (λ s, h s.1 s.2) ⟨n, f⟩
 
 lemma exists_iff_exists_tuple {P : list α → Prop} :
   (∃ l : list α, P l) ↔ ∃ n (f : fin n → α), P (list.of_fn f) :=

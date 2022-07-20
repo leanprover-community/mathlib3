@@ -243,26 +243,6 @@ ext $ λ x, by { substs h h2, refl }
 lemma cast_eq_iff_heq {α β} (h : α = β) {a : α} {b : β} : equiv.cast h a = b ↔ a == b :=
 by { subst h, simp }
 
-section eq_rec_lemmas
-
-lemma rec_symm_apply_apply {γ : α → Sort*} (e : α ≃ β) (f : Π b : β, γ (e.symm b)) (y : β) :
-  @eq.rec _ _ γ (f (e (e.symm y))) _ (e.symm_apply_apply (e.symm y)) = f y :=
-eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [e.apply_symm_apply]
-
-lemma rec_apply_symm_apply {γ : β → Sort*} (e : α ≃ β) (f : Π a : α, γ (e a)) (y : α) :
-  @eq.rec _ _ γ (f (e.symm (e y))) _ (e.apply_symm_apply (e y)) = f y :=
-eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [e.symm_apply_apply]
-
-lemma cast_symm_apply_apply {γ : α → Sort*} (e : α ≃ β) (f : Π b : β, γ (e.symm b)) (y : β) :
-  cast (congr_arg _ (e.symm_apply_apply (e.symm y))) (f (e (e.symm y))) = f y :=
-eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [e.apply_symm_apply]
-
-lemma cast_apply_symm_apply {γ : β → Sort*} (e : α ≃ β) (f : Π a : α, γ (e a)) (y : α) :
-  cast (congr_arg _ (e.apply_symm_apply (e y))) (f (e.symm (e y))) = f y :=
-eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [e.symm_apply_apply]
-
-end eq_rec_lemmas
-
 lemma symm_apply_eq {α β} (e : α ≃ β) {x y} : e.symm x = y ↔ x = e y :=
 ⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
 

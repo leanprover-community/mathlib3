@@ -57,18 +57,21 @@ def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
 @[irreducible] private def add : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
 @[irreducible] private def neg : ℝ → ℝ | ⟨a⟩ := ⟨-a⟩
 @[irreducible] private def mul : ℝ → ℝ → ℝ | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
+@[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 
 instance : has_zero ℝ := ⟨zero⟩
 instance : has_one ℝ := ⟨one⟩
 instance : has_add ℝ := ⟨add⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
+noncomputable instance : has_inv ℝ := ⟨inv'⟩
 
 lemma of_cauchy_zero : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
 lemma of_cauchy_one : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
 lemma of_cauchy_add (a b) : (⟨a + b⟩ : ℝ) = ⟨a⟩ + ⟨b⟩ := show _ = add _ _, by rw add
 lemma of_cauchy_neg (a) : (⟨-a⟩ : ℝ) = -⟨a⟩ := show _ = neg _, by rw neg
 lemma of_cauchy_mul (a b) : (⟨a * b⟩ : ℝ) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
+lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _, by rw inv'
 
 lemma cauchy_zero : (0 : ℝ).cauchy = 0 := show zero.cauchy = 0, by rw zero
 lemma cauchy_one : (1 : ℝ).cauchy = 1 := show one.cauchy = 1, by rw one
@@ -78,6 +81,8 @@ lemma cauchy_neg : ∀ a, (-a : ℝ).cauchy = -a.cauchy
 | ⟨a⟩ := show (neg _).cauchy = _, by rw neg
 lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
 | ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
+lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
+| ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
 
 /-- `real.equiv_Cauchy` as a ring equivalence. -/
 @[simps]
@@ -109,11 +114,16 @@ begin
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
 end
 
+
+instance : has_rat_cast ℝ := { rat_cast := λ q, ⟨q⟩ }
+
 lemma of_cauchy_nat_cast (n : ℕ) : (⟨n⟩ : ℝ) = n := rfl
 lemma of_cauchy_int_cast (z : ℤ) : (⟨z⟩ : ℝ) = z := rfl
+lemma of_cauchy_rat_cast (q : ℚ) : (⟨q⟩ : ℝ) = q := rfl
 
 lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
 lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
+lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
 
 /-! Extra instances to short-circuit type class resolution.
 
@@ -144,13 +154,6 @@ instance : inhabited ℝ          := ⟨0⟩
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
 instance : has_trivial_star ℝ   := ⟨λ _, rfl⟩
-
-/-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
-is `cau_seq.completion.of_rat`, not `rat.cast`. -/
-def of_rat : ℚ →+* ℝ :=
-(ring_equiv_Cauchy.symm.to_ring_hom).comp of_rat_ring_hom
-
-lemma of_rat_apply (x : ℚ) : of_rat x = of_cauchy (cau_seq.completion.of_rat x) := rfl
 
 /-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
 def mk (x : cau_seq ℚ abs) : ℝ := ⟨cau_seq.completion.mk x⟩
@@ -219,14 +222,14 @@ instance : partial_order ℝ :=
 
 instance : preorder ℝ := by apply_instance
 
-theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y :=
+theorem of_rat_lt {x y : ℚ} : (x : ℝ) < (y : ℝ) ↔ x < y :=
 begin
   rw [mk_lt] {md := tactic.transparency.semireducible},
   exact const_lt
 end
 
 protected theorem zero_lt_one : (0 : ℝ) < 1 :=
-by convert of_rat_lt.2 zero_lt_one; simp
+by convert of_rat_lt.2 zero_lt_one; simp [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
 
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
 begin
@@ -275,16 +278,6 @@ noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : is_domain ℝ :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
-@[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
-noncomputable instance : has_inv ℝ := ⟨inv'⟩
-lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _, by rw inv'
-lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
-| ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
-
-instance : has_rat_cast ℝ := { rat_cast := of_rat }
-
-lemma of_cauchy_rat_cast (q : ℚ) : (⟨q⟩ : ℝ) = q := rfl
-lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
 
 noncomputable instance : linear_ordered_field ℝ :=
 { inv := has_inv.inv,
@@ -318,9 +311,6 @@ noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_
 
 open rat
 
-@[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
-of_rat.eq_rat_cast
-
 theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
 begin
@@ -332,7 +322,6 @@ begin
   obtain ⟨i, H⟩ := exists_forall_ge_and h
     (exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0)),
   apply not_lt_of_le (H _ le_rfl).1,
-  rw ← of_rat_eq_cast,
   rw [mk_lt] {md := tactic.transparency.semireducible},
   refine ⟨_, half_pos K0, i, λ j ij, _⟩,
   have := add_le_add (H _ ij).2.1

@@ -487,7 +487,7 @@ instance : has_singleton Set Set := ⟨λ x, insert x ∅⟩
 
 instance : is_lawful_singleton Set Set := ⟨λ x, rfl⟩
 
-@[simp] theorem mem_insert {x y z : Set.{u}} : x ∈ insert y z ↔ x = y ∨ x ∈ z :=
+@[simp] theorem mem_insert_iff {x y z : Set.{u}} : x ∈ insert y z ↔ x = y ∨ x ∈ z :=
 quotient.induction_on₃ x y z
  (λ x y ⟨α, A⟩, show x ∈ pSet.mk (option α) (λ o, option.rec y A o) ↔
     mk x = mk y ∨ x ∈ pSet.mk α A, from
@@ -499,11 +499,14 @@ quotient.induction_on₃ x y z
   | or.inl h := ⟨none, quotient.exact h⟩
   end⟩)
 
+theorem mem_insert (x y : Set) : x ∈ insert x y := mem_insert_iff.2 $ or.inl rfl
+theorem mem_insert_of_mem {y z : Set} (x) (h : z ∈ y): z ∈ insert x y := mem_insert_iff.2 $ or.inr h
+
 @[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
-iff.trans mem_insert ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o, or.inl⟩
+iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o, or.inl⟩
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
-iff.trans mem_insert $ or_congr iff.rfl mem_singleton
+iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
 
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega
@@ -798,7 +801,7 @@ set.ext $ λ y, Set.mem_sep
 set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
 
 @[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
-set.ext $ λ z, iff.symm Set.mem_insert
+set.ext $ λ z, iff.symm Set.mem_insert_iff
 
 @[simp] theorem union_hom (x y : Set.{u}) : (x : Class.{u}) ∪ y = (x ∪ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_union

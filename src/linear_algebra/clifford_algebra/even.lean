@@ -29,7 +29,7 @@ top of `clifford_algebra.lift`: the first is to use morphisms as the output type
 `N = (N', S)` where `N'` is the value we wish to compute, and `S` is some auxiliary state passed
 between one recursor invocation and the next.
 For the universal property of the even subalgebra, we apply a variant of the first trick again by
-choosing `S` to itself be a sumbmodule of morphisms.
+choosing `S` to itself be a submodule of morphisms.
 -/
 
 namespace clifford_algebra

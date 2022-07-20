@@ -230,14 +230,6 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 @[simp] lemma padic_part_def (n p : ℕ) : n.padic_part p = p ^ n.factorization p := rfl
 @[simp] lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
 
-/-! ### Factorization and divisibility -/
-
-lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
-begin
-  rcases eq_or_ne n 0 with rfl | hn, { simp },
-  simp [←mem_factors_iff_dvd hn (prime_of_mem_factorization h), factor_iff_mem_factorization.mp h],
-end
-
 lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n hp] },
@@ -246,6 +238,14 @@ begin
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
   simp [list.eq_of_mem_repeat hq],
+end
+
+/-! ### Factorization and divisibility -/
+
+lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  simp [←mem_factors_iff_dvd hn (prime_of_mem_factorization h), factor_iff_mem_factorization.mp h],
 end
 
 lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorization p ≤ n :=

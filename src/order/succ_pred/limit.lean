@@ -33,6 +33,9 @@ def is_succ_limit (a : α) : Prop := ∀ b, succ b = a → is_max b
 
 protected lemma is_succ_limit.is_max (h : is_succ_limit (succ a)) : is_max a := h a rfl
 
+lemma not_is_succ_limit_succ_of_not_is_max (ha : ¬ is_max a) : ¬ is_succ_limit (succ a) :=
+λ h, ha (h a rfl)
+
 protected lemma _root_.is_min.is_succ_limit (h : is_min a) : is_succ_limit a :=
 by { rintros b rfl, exact max_of_succ_le (h $ le_succ b) }
 

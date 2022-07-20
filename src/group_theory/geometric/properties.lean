@@ -57,13 +57,13 @@ example (G : Type*) [group G] : is_trivial G → is_finite G := sorry
 
 example (G : Type*) [group G] : (virtually is_trivial) G ↔ is_finite G := sorry
 
-example (G : Type*) [group G] : (virtually is_finitely_generated) G → is_finitely_generated G := sorry -- Reidemeister-Schreier theorem
+example (G : Type*) [group G] : (virtually is_finitely_generated) G ↔ is_finitely_generated G := sorry -- Reidemeister-Schreier theorem
 
 /-- A group `G` is residually P if every non-identity element of `G`
 can be detected by a homomorphism to a group satisfying P. --/
 def residually (property : group_property) (G : Type*) [group G] : Prop :=
 ∀ (g : G) (h : g ≠ 1),
-∃ (H : Type*) (h : group H),
+∃ (H : Type*) (h : group H), --(f : G →* H), f g ≠ 1
 let one_class := @monoid.to_mul_one_class H (@group.to_monoid H h) in
 @property H h ∧
 ∃ (f : @monoid_hom G H _ one_class),

@@ -344,39 +344,6 @@ def mk_linear_map : M →ₗ[R] localized_module S M :=
 end
 
 /--
-For any `r : R`, there is an `R`-linear map given by `a/b ↦ r • a/b = (r • a)/b`.
--/
-def mul_by (s : R) : localized_module S M →ₗ[R] localized_module S M :=
-{ to_fun := (•) s,
-  map_add' := λ _ _, by simp,
-  map_smul' := λ r p,
-  begin
-    change (s : R) • _ = r • (s : R) • _,
-    simp only [←mul_smul],
-    ring_nf,
-  end }
-
-/--
-The bilinear map `r ↦ z ↦ r • z`.
--/
-def mul : R →ₗ[R] localized_module S M →ₗ[R] localized_module S M :=
-{ to_fun := λ r, mul_by r,
-  map_add' := λ x y, fun_like.ext _ _ $ λ z, z.induction_on
-  begin
-    intros m s,
-    change mk _ _ = mk _ _ + mk _ _,
-    simp only [add_smul, mk_add_mk],
-    refine mk_eq.mpr ⟨1, _⟩,
-    simp only [one_smul, ←smul_add, mul_smul],
-  end,
-  map_smul' := λ r x, fun_like.ext _ _ $ λ z, z.induction_on
-  begin
-    intros m s,
-    change mk _ _ = mk _ _,
-    simp [mul_smul],
-  end }
-
-/--
 For any `s : S`, there is an `R`-linear map given by `a/b ↦ a/(b*s)`.
 -/
 def div_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
@@ -403,7 +370,8 @@ def div_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
     refl,
   end }
 
-lemma div_by_mul_by (s : S) (p : localized_module S M) : div_by s (mul_by ↑s p) = p :=
+lemma div_by_mul_by (s : S) (p : localized_module S M) :
+  div_by s (algebra_map R (module.End R (localized_module S M)) s p) = p :=
 begin
   induction p using localized_module.induction_on with a b,
   change mk _ _ = _,
@@ -413,7 +381,8 @@ begin
   refl,
 end
 
-lemma mul_by_div_by (s : S) (p : localized_module S M) : mul_by ↑s (div_by s p) = p :=
+lemma mul_by_div_by (s : S) (p : localized_module S M) :
+  algebra_map R (module.End R (localized_module S M)) s (div_by s p) = p :=
 begin
   induction p using localized_module.induction_on with a b,
   change mk _ _ = _,
@@ -447,7 +416,8 @@ class is_localized_module : Prop :=
 
 instance localized_module_is_localized_module :
   is_localized_module S (localized_module.mk_linear_map S M) :=
-{ map_units := λ s, ⟨⟨localized_module.mul_by s, localized_module.div_by s,
+{ map_units := λ s, ⟨⟨algebra_map R (module.End R (localized_module S M)) s,
+    localized_module.div_by s,
     fun_like.ext _ _ $ localized_module.mul_by_div_by _,
     fun_like.ext _ _ $ localized_module.div_by_mul_by _⟩,
     fun_like.ext _ _ $ λ p, p.induction_on $ by { intros, refl }⟩,

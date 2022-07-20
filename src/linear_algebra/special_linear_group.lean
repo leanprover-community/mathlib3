@@ -234,7 +234,7 @@ def diagonal_subgroup : subgroup (special_linear_group n R) :=
 mul_mem' := begin
   rintros a b ⟨xa,ha⟩ ⟨xb,hb⟩, 
   use xb * xa,
-  simp only [coe_scalar, coe_fn_eq_coe, coe_mul] at ha hb ⊢,
+  simp only [coe_scalar, special_linear_group.coe_fn_eq_coe, special_linear_group.coe_mul] at ha hb ⊢,
   rw [←ha,←hb],
   simp only [mul_smul, matrix.mul_one],
   rw smul_smul,
@@ -243,7 +243,7 @@ one_mem' := by { use 1, simp, },
 inv_mem' := begin
   rintros a ⟨xa, ha⟩,
   use xa ^ ((finset.univ : finset n).card - 1),
-  simp only [coe_scalar, coe_fn_eq_coe, coe_inv] at ⊢ ha,
+  simp only [coe_scalar, special_linear_group.coe_fn_eq_coe, special_linear_group.coe_inv] at ⊢ ha,
   simp only [← ha, ← diagonal_one, ← diagonal_smul, adjugate_diagonal],
   simp only [diagonal_smul, diagonal_one, pi.smul_apply, algebra.id.smul_eq_mul, mul_one, 
     finset.prod_const, finset.card_erase_of_mem, finset.mem_univ],
@@ -253,7 +253,14 @@ end,
 }
 
 instance diagonal_is_normal : (diagonal_subgroup : subgroup (special_linear_group n R)).normal :=
-by sorry
+⟨begin
+  rintros a ⟨x,ha⟩ g,
+  use x,
+  simp at ha,
+  simp only [coe_scalar, special_linear_group.coe_fn_eq_coe, special_linear_group.coe_mul, special_linear_group.coe_inv, ← ha, mul_smul, matrix.mul_one, smul_mul],
+  simp only [← matrix.special_linear_group.coe_inv, ←  matrix.special_linear_group.coe_mul],
+  simp,
+end⟩
 
 end projective_special_linear_group
 

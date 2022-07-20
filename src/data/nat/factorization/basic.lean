@@ -231,6 +231,8 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 @[simp] lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
 @[simp] lemma p_odd_part_def' (n p : ℕ) : n / n.padic_part p = n.p_odd_part p := rfl
 
+-- TODO: Rename the following lemmas
+
 lemma pow_factorization_dvd (n p : ℕ) : n.padic_part p ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n hp] },
@@ -261,7 +263,6 @@ begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
   simp [←mem_factors_iff_dvd hn (prime_of_mem_factorization h), factor_iff_mem_factorization.mp h],
 end
-
 
 /-- A crude upper bound on `n.factorization p` -/
 lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < n :=

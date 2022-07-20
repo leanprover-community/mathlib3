@@ -233,6 +233,17 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 
 -- TODO: Rename the following lemmas
 
+-- TODO: Prove:
+-- [*] n.padic_part p ∣ n
+-- [*] 0 < n.padic_part p ≤ n
+-- [ ] 0 ≤ n.p_odd_part p ≤ n
+-- [ ] n.p_odd_part p ∣ n
+-- [ ] n.padic_part p * n.p_odd_part p = n
+-- [ ] a.padic_part p * b.padic_part p = (a*b).padic_part p
+-- [ ] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
+-- [ ] n.padic_part p is the largest divisor of `n` divisible by `p`.
+-- [ ] n.p_odd_part p is the largest divisor of `n` not divisible by `p`.
+
 lemma pow_factorization_dvd (n p : ℕ) : n.padic_part p ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n hp] },

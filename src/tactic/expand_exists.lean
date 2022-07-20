@@ -216,6 +216,6 @@ add_tactic_doc
 { name := "expand_exists",
   category := doc_category.attr,
   decl_names := [`tactic.expand_exists_attr],
-  tags := [] }
+  tags := ["lemma derivation", "environment"] }
 
 end tactic

@@ -280,28 +280,6 @@ begin
   apply nat.div_le_self,
 end
 
-
-lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
-  ¬p ∣ n.p_odd_part p :=
-begin
-  rw ←p_odd_part_def',
-  rw (dvd_div_iff (pow_factorization_dvd n p)),
-  intro H,
-  swap,
-  exact pow_factorization_dvd n p,
-
-
-  rw [nat.prime.dvd_iff_one_le_factorization hp (p_odd_part_pos p hn),
-    nat.factorization_div (nat.pow_factorization_dvd n p)],
-  simp [hp.factorization],
-end
-
-lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
-  coprime p (n / p ^ n.factorization p) :=
-(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
-
-
-
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
@@ -345,6 +323,8 @@ begin
   rw ←factorization_le_iff_dvd (pow_pos hp.pos _).ne' hn at h,
   simpa [hp.factorization] using h p,
 end
+
+
 
 lemma factorization_le_factorization_mul_left {a b : ℕ} (hb : b ≠ 0) :
   a.factorization ≤ (a * b).factorization :=
@@ -390,6 +370,20 @@ begin
       ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
       nat.div_mul_cancel h],
 end
+
+-- TODO: Rename this to `not_dvd_p_odd_part`
+lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  ¬p ∣ n.p_odd_part p :=
+begin
+  rw [nat.prime.dvd_iff_one_le_factorization hp (p_odd_part_pos p hn).ne'],
+  rw ←p_odd_part_def',
+  rw [nat.factorization_div (nat.pow_factorization_dvd n p)],
+  simp [hp.factorization],
+end
+
+lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  coprime p (n / p ^ n.factorization p) :=
+(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=

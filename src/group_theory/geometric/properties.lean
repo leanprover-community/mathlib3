@@ -10,7 +10,7 @@ def is_finite (G : Type*) [group G] : Prop := nonempty (fintype G)
 
 def is_trivial (G : Type*) [group G] : Prop := ∀ (g : G), g = 1
 
-def is_finitely_generated (G : Type*) [group G] : Prop := ∃ (S : set G), subgroup.closure S = ⊤
+def is_finitely_generated (G : Type*) [group G] : Prop := ∃ (S : set G), S.finite ∧ subgroup.closure S = ⊤
 
 /-- A group is virtually P if it contains a subgroup of finite index which has property P. --/
 def virtually (property : group_property) (G : Type*) [group G] : Prop :=

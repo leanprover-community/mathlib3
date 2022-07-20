@@ -3,7 +3,6 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Gabriel Ebner, Yury Kudryashov
 -/
-import data.nat.part_enat
 import order.conditionally_complete_lattice
 
 /-!
@@ -184,19 +183,3 @@ lemma bInter_lt_succ' (u : ℕ → set α) (n : ℕ) : (⋂ k < n + 1, u k) = u 
 nat.infi_lt_succ' u n
 
 end set
-
-namespace part_enat
-open_locale classical
-
-noncomputable instance : complete_linear_order part_enat :=
-{ inf := (⊓),
-  sup := (⊔),
-  top := ⊤,
-  bot := ⊥,
-  le := (≤),
-  lt := (<),
-  .. part_enat.lattice,
-  .. with_top_order_iso.symm.to_galois_insertion.lift_complete_lattice,
-  .. part_enat.linear_order, }
-
-end part_enat

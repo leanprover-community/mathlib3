@@ -197,17 +197,26 @@ add_decl_doc ordinal.partial_order.le
   a function embedding `r` as a principal segment of `s`. -/
 add_decl_doc ordinal.partial_order.lt
 
-theorem type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
+theorem type_le_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r ≤ type s ↔ nonempty (r ≼i s) := iff.rfl
 
-theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
+theorem type_le_iff' {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ↪r s) :=
 ⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
+
+theorem _root_.initial_seg.ordinal_type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ≼i s) : type r ≤ type s := ⟨h⟩
+
+theorem _root_.rel_embedding.ordinal_type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ↪r s) : type r ≤ type s := ⟨h.collapse⟩
 
 @[simp] theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r < type s ↔ nonempty (r ≺i s) := iff.rfl
+
+theorem _root_.principal_seg.ordinal_type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ≺i s) : type r < type s := ⟨h⟩
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
@@ -637,14 +646,13 @@ instance add_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-  induction_on c $ λ β s hs, (@type_le' _ _ _ _
-    (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
-    (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
-  ⟨⟨f.sum_map (embedding.refl _), λ a b, begin
+  induction_on c $ λ β s hs, by exactI
+  @rel_embedding.ordinal_type_le _ _ (sum.lex r₁ s) (sum.lex r₂ s) _ _
+  ⟨f.sum_map (embedding.refl _), λ a b, begin
     split; intro H,
     { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
     { cases H; constructor; [rwa fo, assumption] }
-  end⟩⟩)
+  end⟩)
 end⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
@@ -899,7 +907,7 @@ let ⟨r, _, e⟩ := ord_eq α in begin
   { cases h with f,
     have g := rel_embedding.preimage f s,
     haveI := rel_embedding.is_well_order g,
-    exact le_trans (ord_le_type _) (type_le'.2 ⟨g⟩) }
+    exact le_trans (ord_le_type _) g.ordinal_type_le }
 end
 
 theorem gc_ord_card : galois_connection ord card := λ _ _, ord_le

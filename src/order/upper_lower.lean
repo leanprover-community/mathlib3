@@ -19,6 +19,8 @@ This file defines upper and lower sets in an order.
   of the set is in the set itself.
 * `upper_set`: The type of upper sets.
 * `lower_set`: The type of lower sets.
+* `upper_closure`: The greatest upper set containing a set.
+* `lower_closure`: The least lower set containing a set.
 * `upper_set.Ici`: Principal upper set. `set.Ici` as an upper set.
 * `upper_set.Ioi`: Strict principal upper set. `set.Ioi` as an upper set.
 * `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
@@ -515,3 +517,68 @@ def Iic_Inf_hom : Inf_hom α (lower_set α) := ⟨Iic, λ s, (Iic_Inf s).trans I
 
 end complete_lattice
 end lower_set
+
+section closure
+variables [preorder α] {s t : set α} {x : α}
+
+/-- The greatest upper set containing a given set. -/
+def upper_closure (s : set α) : upper_set α :=
+⟨{x | ∃ a ∈ s, a ≤ x}, λ x y h, Exists₂.imp $ λ a _, h.trans'⟩
+
+/-- The least lower set containing a given set. -/
+def lower_closure (s : set α) : lower_set α :=
+⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
+
+@[simp, norm_cast] lemma coe_upper_closure (s : set α) :
+  ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
+
+@[simp, norm_cast] lemma coe_lower_closure (s : set α) :
+  ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
+
+@[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl
+@[simp] lemma mem_lower_closure : x ∈ lower_closure s ↔ ∃ a ∈ s, x ≤ a := iff.rfl
+
+lemma upper_closure_anti (h : s ⊆ t) : upper_closure t ≤ upper_closure s :=
+λ x ⟨a, ha, hax⟩, ⟨a, h ha, hax⟩
+
+lemma lower_closure_mono (h : s ⊆ t) : lower_closure s ≤ lower_closure t :=
+λ x ⟨a, ha, hax⟩, ⟨a, h ha, hax⟩
+
+@[simp] lemma upper_closure_union (s t : set α) :
+  upper_closure (s ∪ t) = upper_closure s ⊔ upper_closure t :=
+by { ext, simp [or_and_distrib_right, exists_or_distrib] }
+
+@[simp] lemma lower_closure_union (s t : set α) :
+  lower_closure (s ∪ t) = lower_closure s ⊔ lower_closure t :=
+by { ext, simp [or_and_distrib_right, exists_or_distrib] }
+
+lemma upper_closure_inter_le (s t : set α) :
+  upper_closure (s ∩ t) ≤ upper_closure s ⊓ upper_closure t :=
+le_inf (inter_subset_left _ _).upper_closure_le (inter_subset_right _ _).upper_closure_le
+
+@[simp] lemma upper_closure_empty : upper_closure (∅ : set α) = ⊤ := by { ext, simp }
+@[simp] lemma lower_closure_empty : lower_closure (∅ : set α) = ⊥ := by { ext, simp }
+
+@[simp] lemma upper_closure_univ : upper_closure (univ : set α) = ⊥ :=
+le_bot_iff.1 $ λ x h, ⟨x, mem_univ x, le_rfl⟩
+
+@[simp] lemma lower_closure_univ : lower_closure (univ : set α) = ⊥ :=
+top_le_iff.1 $ λ x h, ⟨x, mem_univ x, le_rfl⟩
+
+@[simp] lemma upper_closure_eq_top_iff : upper_closure s = ⊤ ↔ s = ∅ :=
+begin
+  refine ⟨λ h, set.ext (λ x, _), by { rintro rfl, exact upper_closure_empty }⟩,
+  rw [mem_empty_eq, iff_false],
+  rw [set_like.ext'_iff, coe_upper_closure, upper_set.coe_bot, eq_empty_iff_forall_not_mem] at h,
+  exact λ hx, h x ⟨x, hx, le_rfl⟩,
+end
+
+@[simp] lemma lower_closure_eq_bot_iff : lower_closure s = ⊥ ↔ s = ∅ :=
+begin
+  refine ⟨λ h, set.ext (λ x, _), by { rintro rfl, exact upper_closure_empty }⟩,
+  rw [mem_empty_eq, iff_false],
+  rw [set_like.ext'_iff, coe_upper_closure, upper_set.coe_bot, eq_empty_iff_forall_not_mem] at h,
+  exact λ hx, h x ⟨x, hx, le_rfl⟩,
+end
+
+end closure

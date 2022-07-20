@@ -91,20 +91,6 @@ begin
   exact hS.compact_bUnion (λ i _, H i i.prop)
 end
 
-lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [finite 𝒰.J]
-  [H : ∀ i, compact_space (𝒰.obj i).carrier] : compact_space X.carrier :=
-begin
-  casesI nonempty_fintype 𝒰.J,
-  rw [← is_compact_univ_iff, ← 𝒰.Union_range],
-  apply compact_Union,
-  intro i,
-  rw is_compact_iff_compact_space,
-  exact @@homeomorph.compact_space _ _ (H i)
-    (Top.homeo_of_iso (as_iso (is_open_immersion.iso_of_range_eq (𝒰.map i)
-    (X.of_restrict (opens.open_embedding ⟨_, (𝒰.is_open i).base_open.open_range⟩))
-    subtype.range_coe.symm).hom.1.base))
-end
-
 @[elab_as_eliminator]
 lemma compact_open_induction_on {P : opens X.carrier → Prop} (S : opens X.carrier)
   (hS : is_compact S.1)

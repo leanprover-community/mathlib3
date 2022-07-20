@@ -204,9 +204,9 @@ def preserves_coequalizers_of_pushouts_and_binary_coproducts
     apply (map_is_colimit_of_preserves_of_is_colimit G _ _ (coprod_is_coprod _ _)).hom_ext,
     swap, apply_instance,
     rintro (_|_),
-    { simp only [binary_fan.π_app_left, binary_fan.mk_fst, category.assoc, ← G.map_comp_assoc,
+    { simp only [binary_cofan.ι_app_left, binary_cofan.mk_inl, category.assoc, ← G.map_comp_assoc,
         coprod.inl_desc] },
-    { simp only [binary_fan.π_app_right, binary_fan.mk_snd, category.assoc, ← G.map_comp_assoc,
+    { simp only [binary_cofan.ι_app_right, binary_cofan.mk_inr, category.assoc, ← G.map_comp_assoc,
         coprod.inr_desc],
       exact (c.ι.naturality walking_parallel_pair_hom.left).trans
         (c.ι.naturality walking_parallel_pair_hom.right).symm, },

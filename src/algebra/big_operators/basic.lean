@@ -1722,6 +1722,7 @@ lemma disjoint_list_sum_right {a : multiset α} {l : list (multiset α)}
   (h : ∀ b ∈ l, multiset.disjoint a b) :
   multiset.disjoint a l.sum :=
 begin
+  classical,
   induction l with b bs ih,
   { exact (zero_disjoint _).symm },
   { rw [list.sum_cons, disjoint_add_right],
@@ -1730,15 +1731,18 @@ end
 
 lemma disjoint_sum_right {a : multiset α} {i : multiset (multiset α)} :
   (∀ b ∈ i, multiset.disjoint a b) → multiset.disjoint a i.sum :=
-  quotient.induction_on i $ λ l h, begin
-    rw [quot_mk_to_coe, multiset.coe_sum],
-    exact disjoint_list_sum_right h,
-  end
+begin
+  classical,
+  induction i using quotient.induction_on,
+  intros h,
+  rw [quot_mk_to_coe, multiset.coe_sum],
+  exact disjoint_list_sum_right h,
+end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α}
   (h : ∀ b ∈ i, multiset.disjoint a (f b)) :
   multiset.disjoint a (∑ x in i, f x) :=
-disjoint_sum_right $ by simpa using h
+by { classical, exact disjoint_sum_right (by simpa using h), }
 
 lemma finset_sum_eq_sup_of_disjoint {β : Type*} {i : finset β}
   {f : β → multiset α} (h : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :

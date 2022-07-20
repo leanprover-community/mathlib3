@@ -891,7 +891,7 @@ variable [decidable_eq α]
 /-- The length of reduced words provides a norm on a free group. --/
 def norm (x : free_group α) : nat := x.to_word.length
 
-private lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
+lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
 begin
   let w := x.to_word,
  

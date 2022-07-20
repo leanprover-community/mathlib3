@@ -112,10 +112,10 @@ theorem equiv_iff : Π {x y : pSet}, equiv x y ↔
   (∀ i, ∃ j, equiv (x.func i) (y.func j)) ∧ (∀ j, ∃ i, equiv (x.func i) (y.func j))
 | ⟨α, A⟩ ⟨β, B⟩ := iff.rfl
 
-theorem exists_equiv_left {x y : pSet} (h : equiv x y) : ∀ i, ∃ j, equiv (x.func i) (y.func j) :=
+theorem equiv.exists_left {x y : pSet} (h : equiv x y) : ∀ i, ∃ j, equiv (x.func i) (y.func j) :=
 (equiv_iff.1 h).1
 
-theorem exists_equiv_right {x y : pSet} (h : equiv x y) : ∀ j, ∃ i, equiv (x.func i) (y.func j) :=
+theorem equiv.exists_right {x y : pSet} (h : equiv x y) : ∀ j, ∃ i, equiv (x.func i) (y.func j) :=
 (equiv_iff.1 h).2
 
 protected theorem equiv.refl (x) : equiv x x :=
@@ -190,7 +190,7 @@ theorem mem.congr_left : Π {x y : pSet.{u}}, equiv x y → (∀ {w : pSet.{u}},
 private theorem mem_wf_aux : Π {x y : pSet.{u}}, equiv x y → acc (∈) y
 | ⟨α, A⟩ ⟨β, B⟩ H := ⟨_, begin
   rintros ⟨γ, C⟩ ⟨b, hc⟩,
-  cases exists_equiv_right H b with a ha,
+  cases H.exists_right b with a ha,
   have H := ha.trans hc.symm,
   rw mk_func at H,
   exact mem_wf_aux H

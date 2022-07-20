@@ -13,21 +13,18 @@ namespace geometric_group_theory
 section marked_group
 
 --  an S-generated group
-structure marking (G : Type*) [group G] :=
-(S : Type*)
-(decidable : decidable_eq S) -- is this the right place to put it?
+structure marking (S : Type*) (G : Type*) [decidable_eq S] [group G] :=
 (marking : free_group S →* G)
 (is_surjective : function.surjective marking)
 
-def free_group_norm (S : Type*) (h : decidable_eq S) (f : free_group S) : ℕ := (free_group.to_word f).length
+variables {S : Type*} [decidable_eq S]
 
-lemma empty_list {α : Type*} (l : list α) : l.length = 0 → l = list.nil := begin
-  intro h, ext1, finish
-end
+def free_group_norm (f : free_group S) : ℕ := (free_group.to_word f).length
+
 lemma empty_list {α : Type*} (l : list α) : l.length = 0 → l = list.nil := 
 list.length_eq_zero.mp
 
-lemma free_group_norm_zero (S : Type*) (h : decidable_eq S) (f : free_group S) : free_group_norm S h f = 0 → f = 1 := begin
+lemma free_group_norm_zero (f : free_group S) : free_group_norm f = 0 → f = 1 := begin
   intro h,
   have fempty : free_group.to_word f = list.nil, { exact empty_list (free_group.to_word f) h },
   have h : free_group.mk (free_group.to_word f) = free_group.mk list.nil, {
@@ -37,10 +34,10 @@ lemma free_group_norm_zero (S : Type*) (h : decidable_eq S) (f : free_group S) :
   exact h
 end
 
-variables {G : Type*} [group G] (m : marking G)
+variables {G : Type*} [group G] (m : marking S G)
 
 -- suggestion to use nat.find instead of nat.lt.is_well_order.wf.min
-def group_norms (g : G) : set ℕ := (free_group_norm m.S m.decidable '' {x | m.marking x = g})
+def group_norms (g : G) : set ℕ := (free_group_norm '' {x | m.marking x = g})
 
 def group_norms_nonempty (g : G) : (group_norms m g).nonempty := 
   (by { apply set.nonempty.image, exact m.is_surjective g })

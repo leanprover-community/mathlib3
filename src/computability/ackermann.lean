@@ -21,10 +21,10 @@ definition, we show that this isn't a primitive recursive function.
 
 We very broadly adapt the proof idea from
 https://www.planetmath.org/ackermannfunctionisnotprimitiverecursive. Namely, we prove that for any
-primitive recursive `f : ℕ → ℕ`, there exists `m` such that `f n < ack m n` for all `n`. We aren't
-able to use the same bounds as in that proof though, since our approach of using a pairing function
-to definite primitive recursive functions is different to their approach of using multivariate
-functions.
+primitive recursive `f : ℕ → ℕ`, there exists `m` such that `f n < ack m n` for all `n`. This then
+implies that `λ n, ack n n` can't be primitive recursive, and so neither can `ack`. We aren't able
+to use the same bounds as in that proof though, since our approach of using pairing functions
+differs from their approach of using multivariate functions.
 
 The important bounds we show during the main inductive proof (`exists_lt_ack_of_primrec`) are the
 following. Assuming `∀ n, f n < ack a n` and `∀ n, g n < ack b n`, we have:
@@ -34,7 +34,7 @@ following. Assuming `∀ n, f n < ack a n` and `∀ n, g n < ack b n`, we have:
 - `∀ n, elim (f (unpair n).fst) (λ (y IH : ℕ), g (mkpair (unpair n).1 (mkpair y IH))) (unpair n).2 <
   ack (max a b + 9) n`.
 
-The last one is evidently the hardest. Using `unpair_add_le`, we reduce it to the more
+The last one is evidently the hardest. Using `nat.unpair_add_le`, we reduce it to the more
 manageable
 
 - `∀ m n, elim (f m) (λ (y IH : ℕ), g (mkpair m (mkpair y IH))) n < ack (max a b + 9) (m + n)`.

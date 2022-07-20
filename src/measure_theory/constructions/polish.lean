@@ -696,8 +696,7 @@ begin
   have : ∀ x, ((map (λ i, f i x) l) ×ᶠ (map (λ i, f i x) l)).has_antitone_basis
     (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := λ x, hu.map.prod hu.map,
   simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
-    metric.uniformity_basis_dist_inv_nat_succ],
-  simp_rw set.set_of_forall,
+    metric.uniformity_basis_dist_inv_nat_succ, set.set_of_forall],
   refine measurable_set.bInter (countable_encodable _) (λ K _, _),
   simp_rw set.set_of_exists,
   refine measurable_set.bUnion (countable_encodable _) (λ N hN, _),

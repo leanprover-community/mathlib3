@@ -26,6 +26,10 @@ Further development can be found on the branch `von_neumann_v2`.
   `set_theory/ordinal/arithmetic.lean`.
 -/
 
+universe u
+
+variables {x y z : Set.{u}}
+
 namespace Set
 
 /-- A transitive set is one where every element is a subset. -/

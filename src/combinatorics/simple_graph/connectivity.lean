@@ -775,7 +775,7 @@ list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
 @[simp] lemma nodup_support {u v : V} (p : G.path u v) : (p : G.walk u v).support.nodup :=
 (walk.is_path_def _).mp p.property
 
-lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
+@[simp] lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
 begin
   obtain (p|p) := p,
   { refl },

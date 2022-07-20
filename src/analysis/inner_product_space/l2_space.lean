@@ -395,6 +395,14 @@ begin
   rw [function.comp_apply, innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
 end
 
+protected lemma summable_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
+  summable (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) :=
+(b.has_sum_inner_mul_inner x y).summable
+
+protected lemma tsum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
+  ∑' i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
+(b.has_sum_inner_mul_inner x y).tsum_eq
+
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
 

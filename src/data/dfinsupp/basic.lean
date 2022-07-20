@@ -61,7 +61,7 @@ instance : has_zero (Π₀ i, β i) := ⟨⟨0, trunc.mk $ ⟨∅, λ i, or.inr 
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
 @[simp]
-lemma coe_mk (f : Π i, β i) (s) : ⇑(⟨f, s⟩ : Π₀ i, β i) = f := rfl
+lemma coe_mk' (f : Π i, β i) (s) : ⇑(⟨f, s⟩ : Π₀ i, β i) = f := rfl
 
 @[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
@@ -850,7 +850,7 @@ begin
   cases f with f s,
   induction s using trunc.induction_on,
   dsimp only [support, trunc.lift_mk],
-  rw [finset.mem_filter, multiset.mem_to_finset, coe_mk],
+  rw [finset.mem_filter, multiset.mem_to_finset, coe_mk'],
   exact and_iff_right_of_imp (s.prop i).resolve_right
 end
 
@@ -1475,7 +1475,7 @@ def sum_add_hom [Π i, add_zero_class (β i)] [add_comm_monoid γ] (φ : Π i, �
   map_add' := begin
     rintros ⟨f, sf, hf⟩ ⟨g, sg, hg⟩,
     change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
-    simp only [coe_add, coe_mk, subtype.coe_mk, pi.add_apply, map_add, finset.sum_add_distrib],
+    simp only [coe_add, coe_mk', subtype.coe_mk, pi.add_apply, map_add, finset.sum_add_distrib],
     congr' 1,
     { refine (finset.sum_subset _ _).symm,
       { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
@@ -1509,7 +1509,7 @@ begin
   change ∑ i in _, _ = (∑ i in finset.filter _ _, _),
   rw [finset.sum_filter, finset.sum_congr rfl],
   intros i _,
-  dsimp only [coe_mk, subtype.coe_mk] at *,
+  dsimp only [coe_mk', subtype.coe_mk] at *,
   split_ifs,
   refl,
   rw [(not_not.mp h), add_monoid_hom.map_zero],

@@ -190,20 +190,11 @@ end
 
 -- for now we just use the default for the `gnpow` field as it's easier.
 instance gmonoid : graded_monoid.gmonoid (λ i, ⨂[R]^i M) :=
-{ one_mul := λ a, graded_monoid_eq_of_cast (zero_add _) (one_mul _), --(one_mul _),
-  mul_one := λ a, graded_monoid_eq_of_cast (add_zero _) (mul_one _), --(mul_one _),
+{ one_mul := λ a, graded_monoid_eq_of_cast (zero_add _) (one_mul _),
+  mul_one := λ a, graded_monoid_eq_of_cast (add_zero _) (mul_one _),
   mul_assoc := λ a b c, graded_monoid_eq_of_cast (add_assoc _ _ _) (mul_assoc _ _ _),
   ..tensor_power.ghas_mul,
   ..tensor_power.ghas_one, }
-
-instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
-{ mul_zero := λ i j a, linear_map.map_zero _,
-  zero_mul := λ i j b, linear_map.map_zero₂ _ _,
-  mul_add := λ i j a b₁ b₂, linear_map.map_add _ _ _,
-  add_mul := λ i j a₁ a₂ b, linear_map.map_add₂ _ _ _ _,
-  ..tensor_power.gmonoid }
-
-example : semiring (⨁ n : ℕ, ⨂[R]^n M) := by apply_instance
 
 /-- The canonical map from `R` to `⨂[R]^0 M` corresponding to the algebra_map of the tensor
 algebra. -/
@@ -213,6 +204,9 @@ linear_equiv.symm $ is_empty_equiv (fin 0)
 lemma algebra_map_eq_smul_one (r : R) :
   (algebra_map r : ⨂[R]^0 M) = r • ₜ1 :=
 by { simp [algebra_map], congr }
+
+lemma algebra_map_one : (algebra_map 1 : ⨂[R]^0 M) = ₜ1 :=
+(algebra_map_eq_smul_one 1).trans (one_smul _ _)
 
 lemma algebra_map_mul {n} (r : R) (a : ⨂[R]^n M) :
   cast R M (zero_add _) (algebra_map r ₜ* a) = r • a :=
@@ -231,9 +225,21 @@ begin
   exact algebra_map_mul r (@algebra_map R M _ _ _ s),
 end
 
+instance gsemiring : direct_sum.gsemiring (λ i, ⨂[R]^i M) :=
+{ mul_zero := λ i j a, linear_map.map_zero _,
+  zero_mul := λ i j b, linear_map.map_zero₂ _ _,
+  mul_add := λ i j a b₁ b₂, linear_map.map_add _ _ _,
+  add_mul := λ i j a₁ a₂ b, linear_map.map_add₂ _ _ _ _,
+  nat_cast := λ n, algebra_map (n : R),
+  nat_cast_zero := by rw [nat.cast_zero, map_zero],
+  nat_cast_succ := λ n, by rw [nat.cast_succ, map_add, algebra_map_one],
+  ..tensor_power.gmonoid }
+
+example : semiring (⨁ n : ℕ, ⨂[R]^n M) := by apply_instance
+
 instance galgebra : direct_sum.galgebra R (λ i, ⨂[R]^i M) :=
 { to_fun := (tensor_power.algebra_map : R ≃ₗ[R] ⨂[R]^0 M) .to_linear_map.to_add_monoid_hom,
-  map_one := (algebra_map_eq_smul_one 1).trans (one_smul _ _),
+  map_one := algebra_map_one,
   map_mul := λ r s, graded_monoid_eq_of_cast rfl begin
     rw [←linear_equiv.eq_symm_apply],
     have := algebra_map_mul_algebra_map r s,

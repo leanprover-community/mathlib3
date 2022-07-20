@@ -18,7 +18,7 @@ def append' (a : fin na → α) (b : fin nb → α) : fin (na + nb) → α :=
 
 /-- Repeat `a` `n` times. -/
 def repeat (a : fin na → α) (n : ℕ) : fin (n * na) → α
-| i := a ⟨i % na, nat.mod_lt _ $ pos_of_mul_pos_left ((nat.zero_le i).trans_lt i.is_lt) n.zero_le⟩
+| i := a ⟨i % na, nat.mod_lt _ $ pos_of_mul_pos_right ((nat.zero_le i).trans_lt i.is_lt) n.zero_le⟩
 
 @[simp] lemma append'_apply_left {α} {na nb} (a : fin na → α) (b : fin nb → α) (i : fin na) :
   append' a b (fin.cast_add _ i) = a i :=

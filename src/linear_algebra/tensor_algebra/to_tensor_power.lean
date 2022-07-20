@@ -31,30 +31,9 @@ lemma to_tensor_algebra_ghas_one :
   (@graded_monoid.ghas_one.one _ (λ n, ⨂[R]^n M) _ _).to_tensor_algebra = 1 :=
 tensor_power.to_tensor_algebra_tprod _
 
-#check list.of_fn_succ
-
-lemma _root_.list.of_fn_add {α i j} (a : fin (i + j) → α) :
-  list.of_fn a = list.of_fn (λ i, a (fin.cast_add j i)) ++ list.of_fn (λ j, a (fin.nat_add i j)) :=
-begin
-  apply list.ext_le,
-  { rw [list.length_of_fn, list.length_append, list.length_of_fn, list.length_of_fn] },
-  intros n ha hb,
-  simp_rw list.nth_le_of_fn',
-  cases lt_or_le n i,
-  { rw [list.nth_le_append, list.nth_le_of_fn', fin.cast_add_mk],
-    rw list.length_of_fn, exact h },
-  { obtain ⟨n', rfl⟩ := nat.exists_eq_add_of_le h,
-    rw [list.nth_le_append_right, list.nth_le_of_fn'],
-    simp_rw [list.length_of_fn, add_tsub_cancel_left, fin.nat_add_mk],
-    rw list.length_of_fn,
-    exact h },
-end
-
-lemma _root_.list.of_fn_fin_append' {α i j} (a : fin i → α) (b : fin j → α):
+lemma _root_.list.of_fn_fin_append' {α i j} (a : fin i → α) (b : fin j → α) :
   list.of_fn (fin.append' a b) = list.of_fn a ++ list.of_fn b :=
-begin
-  simp_rw [_root_.list.of_fn_add, fin.append'_apply_left, fin.append'_apply_right],
-end
+by simp_rw [_root_.list.of_fn_add, fin.append'_apply_left, fin.append'_apply_right]
 
 @[simp]
 lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
@@ -117,7 +96,7 @@ begin
   simp [direct_sum.lof_eq_of, tprod_apply],
 end
 
-@[simp] lemma of_direct_sum_to_direct_sum (x : tensor_algebra R M):
+@[simp] lemma of_direct_sum_to_direct_sum (x : tensor_algebra R M) :
   of_direct_sum x.to_direct_sum = x :=
 alg_hom.congr_fun of_direct_sum_comp_to_direct_sum x
 
@@ -207,7 +186,7 @@ begin
   simp [direct_sum.lof_eq_of, -tprod_apply, to_direct_sum_tensor_power_tprod],
 end
 
-@[simp] lemma to_direct_sum_of_direct_sum (x : ⨁ n, ⨂[R]^n M):
+@[simp] lemma to_direct_sum_of_direct_sum (x : ⨁ n, ⨂[R]^n M) :
   (of_direct_sum x).to_direct_sum = x :=
 alg_hom.congr_fun to_direct_sum_comp_of_direct_sum x
 

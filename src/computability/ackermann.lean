@@ -13,8 +13,10 @@ import tactic.linarith
 In this file, we define the two-argument Ackermann function `ack`. Despite having a recursive
 definition, we show that this isn't a primitive recursive function.
 
-## Main result
+## Main results
 
+- `exists_lt_ack_of_primrec`: any primitive recursive function is pointwise bounded above by `ack m`
+  for some `m`.
 - `not_primrec₂_ack`: the two-argument Ackermann function is not primitive recursive.
 
 ## Proof approach

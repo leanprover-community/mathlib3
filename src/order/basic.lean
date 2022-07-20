@@ -709,6 +709,30 @@ or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : linear_order punit :=
+by refine_struct
+{ le := λ _ _, true,
+  lt := λ _ _, false,
+  max := λ _ _, star,
+  min := λ _ _, star,
+  decidable_eq := punit.decidable_eq,
+  decidable_le := λ _ _, decidable.true,
+  decidable_lt := λ _ _, decidable.false };
+    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false] <|>
+      exact or.inl trivial
+
+lemma max_eq : max a b = star := rfl
+lemma min_eq : min a b = star := rfl
+@[simp] protected lemma le : a ≤ b := trivial
+@[simp] lemma not_lt : ¬ a < b := not_false
+
+instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
+
+end punit
+
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
 /-! ### Linear order from a total partial order -/

@@ -167,9 +167,11 @@ as a special case. "]
 noncomputable def self_equiv_sigma_orbits_quotient_stabilizer' {φ : Ω → β}
   (hφ : left_inverse quotient.mk' φ) : β ≃ Σ (ω : Ω), α ⧸ (stabilizer α (φ ω)) :=
 calc  β
-    ≃ Σ (ω : Ω), orbit α (φ ω) : self_equiv_sigma_orbits' α β hφ
+    ≃ Σ (ω : Ω), orbit_rel.quotient.orbit ω : self_equiv_sigma_orbits' α β
 ... ≃ Σ (ω : Ω), α ⧸ (stabilizer α (φ ω)) :
-        equiv.sigma_congr_right (λ ω, orbit_equiv_quotient_stabilizer α (φ ω))
+        equiv.sigma_congr_right (λ ω,
+          (equiv.set.of_eq $ orbit_rel.quotient.orbit_eq_orbit_out _ hφ).trans $
+            orbit_equiv_quotient_stabilizer α (φ ω))
 
 /-- **Class formula** for a finite group acting on a finite type. See
 `mul_action.card_eq_sum_card_group_div_card_stabilizer` for a specialized version using

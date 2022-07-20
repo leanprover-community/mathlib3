@@ -447,6 +447,14 @@ instance : is_compactly_generated (intermediate_field F E) :=
   Sup_image.trans (le_antisymm (supr_le (λ i, supr_le (λ hi, adjoin_simple_le_iff.mpr hi)))
     (λ x hx, adjoin_simple_le_iff.mp (le_supr_of_le x (le_supr_of_le hx le_rfl))))⟩⟩⟩
 
+lemma exists_finset_of_mem_supr {ι : Type*} {f : ι → intermediate_field F E}
+  {x : E} (hx : x ∈ ⨆ i, f i) : ∃ s : finset ι, x ∈ ⨆ i ∈ s, f i :=
+begin
+  have := (adjoin_simple_is_compact_element x).exists_finset_of_le_supr (intermediate_field F E) f,
+  simp only [adjoin_simple_le_iff] at this,
+  exact this hx,
+end
+
 end adjoin_simple
 end adjoin_def
 

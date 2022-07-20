@@ -70,6 +70,11 @@ variables [topological_space M] [monoid M]
 @[to_additive] instance : topological_space Mˣ :=
 topological_space.induced (embed_product M) prod.topological_space
 
+@[to_additive] lemma inducing_embed_product : inducing (embed_product M) := ⟨rfl⟩
+
+@[to_additive] lemma embedding_embed_product : embedding (embed_product M) :=
+⟨inducing_embed_product, embed_product_injective M⟩
+
 @[to_additive] lemma continuous_embed_product : continuous (embed_product M) :=
 continuous_induced_dom
 

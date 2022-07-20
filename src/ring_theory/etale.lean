@@ -253,9 +253,10 @@ variables {A : Type u} [semiring A] [algebra R A]
 variables (B : Type u) [comm_semiring B] [algebra R B]
 
 
-lemma formally_unramified.base_change (h : formally_unramified R A) :
+instance formally_unramified.base_change [formally_unramified R A] :
   formally_unramified B (B ⊗[R] A) :=
 begin
+  constructor,
   introsI C _ _ I hI f₁ f₂ e,
   letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
   haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
@@ -269,19 +270,21 @@ begin
   change ((f₁.restrict_scalars R).comp tensor_product.include_right) a =
     ((f₂.restrict_scalars R).comp tensor_product.include_right) a,
   congr' 1,
-  apply h.ext I ⟨2, hI⟩,
+  refine formally_unramified.ext I ⟨2, hI⟩ _,
   intro x,
   exact alg_hom.congr_fun e (1 ⊗ₜ x)
 end
 
-lemma formally_smooth.base_change (h : formally_smooth R A) :
+instance formally_smooth.base_change [formally_smooth R A] :
   formally_smooth B (B ⊗[R] A) :=
 begin
+  constructor,
   introsI C _ _ I hI f,
   letI := ((algebra_map B C).comp (algebra_map R B)).to_algebra,
   haveI : is_scalar_tower R B C := is_scalar_tower.of_algebra_map_eq' rfl,
-  refine ⟨tensor_product.product_left_algebra_map (algebra.of_id B C) _, _⟩,
-  { exact h.lift I ⟨2, hI⟩ ((f.restrict_scalars R).comp tensor_product.include_right) },
+  refine ⟨tensor_product.product_left_alg_hom (algebra.of_id B C) _, _⟩,
+  { exact formally_smooth.lift I ⟨2, hI⟩
+      ((f.restrict_scalars R).comp tensor_product.include_right) },
   { apply alg_hom.restrict_scalars_injective R,
     apply tensor_product.ext,
     any_goals { apply_instance },
@@ -291,10 +294,9 @@ begin
     rw [← algebra.smul_def, ← map_smul, tensor_product.smul_tmul', smul_eq_mul, mul_one] },
 end
 
-lemma formally_etale.base_change (h : formally_etale R A) :
+instance formally_etale.base_change [formally_etale R A] :
   formally_etale B (B ⊗[R] A) :=
-formally_etale.iff_unramified_and_smooth.mpr
-  ⟨h.to_unramified.base_change B, h.to_smooth.base_change B⟩
+formally_etale.iff_unramified_and_smooth.mpr ⟨infer_instance, infer_instance⟩
 
 end base_change
 

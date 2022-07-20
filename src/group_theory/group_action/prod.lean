@@ -46,10 +46,11 @@ variables [has_pow α E] [has_pow β E] (c : E) (p : α × β)
 { pow := λ p c, (p.1 ^ c, p.2 ^ c) }
 @[simp, to_additive smul_fst] lemma pow_fst : (p ^ c).fst = p.fst ^ c := rfl
 @[simp, to_additive smul_snd] lemma pow_snd : (p ^ c).snd = p.snd ^ c := rfl
+@[simp, to_additive smul_mk] lemma pow_mk (a : α) (b : β) :
+  (prod.mk a b)^c = prod.mk (a^c) (b^c) := rfl
+@[to_additive smul_def] lemma pow_def : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
 @[simp, to_additive smul_swap] lemma pow_swap : (p ^ c).swap = p.swap ^ c := rfl
-@[simp, to_additive smul_def] lemma pow_def : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
-@[simp, to_additive smul_mk] lemma pow_mk (a : α) (b : β) : (prod.mk a b)^c = prod.mk (a^c) (b^c) :=
-rfl
+
 
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=

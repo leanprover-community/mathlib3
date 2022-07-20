@@ -50,7 +50,7 @@ def even : subalgebra R (clifford_algebra Q) :=
   set_like.graded_monoid.one_mem
   (λ x y hx hy, add_zero (0 : zmod 2) ▸ set_like.graded_monoid.mul_mem hx hy)
 
-lemma even_to_submodule : (even Q).to_submodule = even_odd Q 0 :=
+@[simp] lemma even_to_submodule : (even Q).to_submodule = even_odd Q 0 :=
 rfl
 
 variables (A)
@@ -64,7 +64,7 @@ structure even_hom : Type (max u_2 u_3) :=
 
 variables {A Q}
 
-/-- Compse an `even_hom` with an `alg_hom` on the output. -/
+/-- Compose an `even_hom` with an `alg_hom` on the output. -/
 @[simps]
 def even_hom.compr₂ (g : even_hom Q A) (f : A →ₐ[R] B) : even_hom Q B :=
 { bilin := g.bilin.compr₂ f.to_linear_map,

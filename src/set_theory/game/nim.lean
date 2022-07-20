@@ -142,12 +142,12 @@ lemma move_right_nim {o : ordinal} (i) :
 by simp
 
 /-- A recursion principle for left moves of a nim game. -/
-@[elab_as_eliminator] def nim_left_moves_rec_on {o : ordinal} {P : (nim o).left_moves → Sort*}
+@[elab_as_eliminator] def left_moves_nim_rec_on {o : ordinal} {P : (nim o).left_moves → Sort*}
   (i : (nim o).left_moves) (H : ∀ a < o, P $ to_left_moves_nim ⟨a, H⟩) : P i :=
 by { rw ←to_left_moves_nim.apply_symm_apply i, apply H }
 
 /-- A recursion principle for right moves of a nim game. -/
-@[elab_as_eliminator] def nim_right_moves_rec_on {o : ordinal} {P : (nim o).right_moves → Sort*}
+@[elab_as_eliminator] def right_moves_nim_rec_on {o : ordinal} {P : (nim o).right_moves → Sort*}
   (i : (nim o).right_moves) (H : ∀ a < o, P $ to_right_moves_nim ⟨a, H⟩) : P i :=
 by { rw ←to_right_moves_nim.apply_symm_apply i, apply H }
 

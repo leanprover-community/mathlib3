@@ -348,11 +348,7 @@ variable [order_bot α]
 lemma lt_succ_bot_iff [no_max_order α] : a < succ ⊥ ↔ a = ⊥ := by rw [lt_succ_iff, le_bot_iff]
 
 lemma le_succ_bot_iff : a ≤ succ ⊥ ↔ a = ⊥ ∨ a = succ ⊥ :=
-begin
-  by_cases h : is_max ⊥,
-  { rw [h.succ_eq, le_bot_iff, or_self] },
-  { by rw [le_iff_eq_or_lt, lt_succ_iff_of_not_is_max h, le_bot_iff, or_comm] }
-end
+by rw [le_succ_iff_eq_or_le, le_bot_iff, or_comm]
 
 variable [nontrivial α]
 

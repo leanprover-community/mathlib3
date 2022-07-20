@@ -283,6 +283,11 @@ end
 lemma padic_mul_p_odd_part_eq_self (n p : ℕ) : n.padic_part p * n.p_odd_part p = n :=
 nat.mul_div_cancel' (pow_factorization_dvd n p)
 
+lemma mul_padic_part (a b p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
+  a.padic_part p * b.padic_part p = (a*b).padic_part p :=
+by simp [factorization_mul ha hb, pow_add]
+
+
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },

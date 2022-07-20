@@ -1931,17 +1931,41 @@ variables {V : Type*} [normed_group V] [normed_space 𝕜 V]
 lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
 smooth_iff.2 ⟨continuous_smul, λ x y, cont_diff_smul.cont_diff_on⟩
 
-lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
-  {f : N → 𝕜} {g : N → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
-  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
-smooth_smul.comp (hf.prod_mk hg)
+lemma cont_mdiff_within_at.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff_within_at I 𝓘(𝕜) n f s x)
+  (hg : cont_mdiff_within_at I 𝓘(𝕜, V) n g s x) :
+  cont_mdiff_within_at I 𝓘(𝕜, V) n (λ p, f p • g p) s x :=
+(smooth_smul.of_le le_top).cont_mdiff_at.comp_cont_mdiff_within_at x (hf.prod_mk hg)
 
-lemma smooth_on.smul {N : Type*} [topological_space N] [charted_space H N]
-  {f : N → 𝕜} {g : N → V} {s : set N} (hf : smooth_on I 𝓘(𝕜) f s) (hg : smooth_on I 𝓘(𝕜, V) g s) :
-  smooth_on I 𝓘(𝕜, V) (λ p, f p • g p) s :=
-smooth_smul.comp_smooth_on (hf.prod_mk hg)
+lemma cont_mdiff_at.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff_at I 𝓘(𝕜) n f x)
+  (hg : cont_mdiff_at I 𝓘(𝕜, V) n g x) :
+  cont_mdiff_at I 𝓘(𝕜, V) n (λ p, f p • g p) x :=
+hf.smul hg
 
-lemma smooth_at.smul {N : Type*} [topological_space N] [charted_space H N]
-  {f : N → 𝕜} {g : N → V} {x : N} (hf : smooth_at I 𝓘(𝕜) f x) (hg : smooth_at I 𝓘(𝕜, V) g x) :
+lemma cont_mdiff_on.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff_on I 𝓘(𝕜) n f s)
+  (hg : cont_mdiff_on I 𝓘(𝕜, V) n g s) :
+  cont_mdiff_on I 𝓘(𝕜, V) n (λ p, f p • g p) s :=
+λ x hx, (hf x hx).smul (hg x hx)
+
+lemma cont_mdiff.smul {f : M → 𝕜} {g : M → V} (hf : cont_mdiff I 𝓘(𝕜) n f)
+  (hg : cont_mdiff I 𝓘(𝕜, V) n g) :
+  cont_mdiff I 𝓘(𝕜, V) n (λ p, f p • g p) :=
+λ x, (hf x).smul (hg x)
+
+lemma smooth_within_at.smul {f : M → 𝕜} {g : M → V} (hf : smooth_within_at I 𝓘(𝕜) f s x)
+  (hg : smooth_within_at I 𝓘(𝕜, V) g s x) :
+  smooth_within_at I 𝓘(𝕜, V) (λ p, f p • g p) s x :=
+hf.smul hg
+
+lemma smooth_at.smul {f : M → 𝕜} {g : M → V} (hf : smooth_at I 𝓘(𝕜) f x)
+  (hg : smooth_at I 𝓘(𝕜, V) g x) :
   smooth_at I 𝓘(𝕜, V) (λ p, f p • g p) x :=
-smooth_smul.smooth_at.comp _ (hf.prod_mk hg)
+hf.smul hg
+
+lemma smooth_on.smul {f : M → 𝕜} {g : M → V} (hf : smooth_on I 𝓘(𝕜) f s)
+  (hg : smooth_on I 𝓘(𝕜, V) g s) :
+  smooth_on I 𝓘(𝕜, V) (λ p, f p • g p) s :=
+hf.smul hg
+
+lemma smooth.smul {f : M → 𝕜} {g : M → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
+  smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
+hf.smul hg

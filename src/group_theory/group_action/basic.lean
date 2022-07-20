@@ -226,30 +226,66 @@ lemma image_inter_image_iff (U V : set β) :
   (quotient.mk '' U) ∩ (quotient.mk '' V) = ∅ ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
 set.disjoint_iff_inter_eq_empty.symm.trans disjoint_image_image_iff
 
+variables (α β)
+
+/-- The quotient by `mul_action.orbit_rel`, given a name to enable dot notation. -/
+@[reducible, to_additive "The quotient by `add_action.orbit_rel`, given a name to enable dot
+notation."]
+def orbit_rel.quotient : Type* := quotient $ orbit_rel α β
+
+variables {α β}
+
+/-- The orbit corresponding to an element of the quotient by `mul_action.orbit_rel` -/
+@[to_additive "The orbit corresponding to an element of the quotient by `add_action.orbit_rel`"]
+def orbit_rel.quotient.orbit (x : orbit_rel.quotient α β) : set β :=
+quotient.lift_on' x (orbit α) $ λ _ _, mul_action.orbit_eq_iff.2
+
+@[simp, to_additive]
+lemma orbit_rel.quotient.orbit_mk (b : β) :
+  orbit_rel.quotient.orbit (quotient.mk' b : orbit_rel.quotient α β) = orbit α b := rfl
+
+@[to_additive]
+lemma orbit_rel.quotient.mem_orbit {b : β} {x : orbit_rel.quotient α β} :
+  b ∈ x.orbit ↔ quotient.mk' b = x :=
+by { induction x using quotient.induction_on', rw quotient.eq', refl }
+
+/-- Note that `hφ = quotient.out_eq'` is a useful choice here. -/
+@[to_additive "Note that `hφ = quotient.out_eq'` is a useful choice here."]
+lemma orbit_rel.quotient.orbit_eq_orbit_out (x : orbit_rel.quotient α β)
+  {φ : orbit_rel.quotient α β → β} (hφ : right_inverse φ quotient.mk') :
+  orbit_rel.quotient.orbit x = orbit α (φ x) :=
+begin
+  conv_lhs { rw ←hφ x },
+  induction x using quotient.induction_on',
+  refl,
+end
+
 variables (α) (β)
-local notation `Ω` := (quotient $ orbit_rel α β)
+
+local notation `Ω` := orbit_rel.quotient α β
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action.
-This version works with any right inverse to `quotient.mk'` in order to stay computable. In most
-cases you'll want to use `quotient.out'`, so we provide `mul_action.self_equiv_sigma_orbits` as
-a special case. -/
+
+This version is expressed in terms of `mul_action.orbit_rel.quotient.orbit` instead of
+`mul_action.orbit`, to avoid mentioning `quotient.out'`. -/
 @[to_additive "Decomposition of a type `X` as a disjoint union of its orbits under an additive group
-action. This version works with any right inverse to `quotient.mk'` in order to stay computable.
-In most cases you'll want to use `quotient.out'`, so we provide `add_action.self_equiv_sigma_orbits`
-as a special case."]
-def self_equiv_sigma_orbits' {φ : Ω → β} (hφ : right_inverse φ quotient.mk') :
-  β ≃ Σ (ω : Ω), orbit α (φ ω) :=
+action.
+
+This version is expressed in terms of `add_action.orbit_rel.quotient.orbit` instead of
+`add_action.orbit`, to avoid mentioning `quotient.out'`. "]
+def self_equiv_sigma_orbits' : β ≃ Σ ω : Ω, ω.orbit :=
 calc  β
     ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_fiber_equiv quotient.mk').symm
-... ≃ Σ (ω : Ω), orbit α (φ ω) :
-        equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
-          λ x, by {rw [← hφ ω, quotient.eq', hφ ω], refl })
+... ≃ Σ (ω : Ω), ω.orbit :
+        equiv.sigma_congr_right $ λ ω, equiv.subtype_equiv_right $ λ x,
+          orbit_rel.quotient.mem_orbit.symm
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action. -/
 @[to_additive "Decomposition of a type `X` as a disjoint union of its orbits under an additive group
 action."]
-noncomputable def self_equiv_sigma_orbits : β ≃ Σ (ω : Ω), orbit α ω.out' :=
-self_equiv_sigma_orbits' α β quotient.out_eq'
+def self_equiv_sigma_orbits : β ≃ Σ (ω : Ω), orbit α ω.out' :=
+(self_equiv_sigma_orbits' α β).trans $ equiv.sigma_congr_right $ λ i,
+  equiv.set.of_eq $ orbit_rel.quotient.orbit_eq_orbit_out _ quotient.out_eq'
 
 variables {α β}
 

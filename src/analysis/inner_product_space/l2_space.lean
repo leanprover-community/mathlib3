@@ -397,7 +397,7 @@ begin
 end
 
 -- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
--- `pi_Lp 2 (λ i : ι, 𝕜)`.
+-- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
 protected lemma to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk b.orthonormal
@@ -453,7 +453,7 @@ hilbert_basis.coe_mk hv _
 omit hv
 
 -- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
--- `pi_Lp 2 (λ i : ι, 𝕜)`.
+-- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have that yet (July 2022).
 protected def _root_.orthonormal_basis.to_hilbert_basis [fintype ι] (b : orthonormal_basis ι 𝕜 E) :
   hilbert_basis ι 𝕜 E :=
 hilbert_basis.mk b.orthonormal

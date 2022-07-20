@@ -203,6 +203,12 @@ lemma coe_injective {α} : injective (coe : finset α → set α) :=
 /-- Coercion from a finset to the corresponding subtype. -/
 instance {α : Type u} : has_coe_to_sort (finset α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
 
+@[simp] protected lemma forall_coe {α : Type*} (s : finset α) (p : s → Prop) :
+  (∀ (x : s), p x) ↔ ∀ (x : α) (h : x ∈ s), p ⟨x, h⟩ := subtype.forall
+
+@[simp] protected lemma exists_coe {α : Type*} (s : finset α) (p : s → Prop) :
+  (∃ (x : s), p x) ↔ ∃ (x : α) (h : x ∈ s), p ⟨x, h⟩ := subtype.exists
+
 instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
   (s : finset ι) :
 can_lift (Π i : s, α i) (Π i, α i) :=
@@ -1873,6 +1879,7 @@ variables [decidable_eq α] {l l' : list α} {a : α}
 def to_finset (l : list α) : finset α := multiset.to_finset l
 
 @[simp] theorem to_finset_val (l : list α) : l.to_finset.1 = (l.dedup : multiset α) := rfl
+@[simp] theorem to_finset_coe (l : list α) : (l : multiset α).to_finset = l.to_finset := rfl
 
 lemma to_finset_eq (n : nodup l) : @finset.mk α l n = l.to_finset := multiset.to_finset_eq n
 

@@ -372,18 +372,15 @@ instance : has_mul (free_group α) :=
 def inv_rev (w : list (α × bool)) : list (α × bool) :=
 (list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse 
 
-@[simp] lemma inv_rev_eq (w : list (α × bool)) : inv_rev w =  
-(list.map (λ (g : α × bool), (g.1, bnot g.2)) w).reverse := rfl 
-
 lemma inv_rev_length : (inv_rev L₁).length = L₁.length :=
 begin
   induction L₁, 
   { refl },
-  { simp }
+  { unfold inv_rev, simp }
 end
 
 instance : has_inv (free_group α) :=
-⟨ quot.map inv_rev (by { intros a b h, cases h, simp, }) ⟩
+⟨ quot.map inv_rev (by { intros a b h, cases h, simp [inv_rev], }) ⟩
 @[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
 
 instance : group (free_group α) :=
@@ -394,7 +391,7 @@ instance : group (free_group α) :=
   one_mul := by rintros ⟨L⟩; refl,
   mul_one := by rintros ⟨L⟩; simp [one_eq_mk],
   mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
-    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
+    λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [inv_rev, one_eq_mk]) ih) }
 
 /-- `of` is the canonical injection from the type to the free group over that type by sending each
 element to the equivalence class of the letter that is the element. -/

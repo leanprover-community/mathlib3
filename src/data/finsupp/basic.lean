@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.hom.group_action
 import algebra.indicator_function
+import data.dfinsupp.basic
 import data.finset.preimage
 
 /-!
@@ -86,8 +87,6 @@ This file is a `noncomputable theory` and uses classical logic throughout.
 
 -/
 
-noncomputable theory
-
 open finset function
 open_locale classical big_operators
 
@@ -95,26 +94,26 @@ variables {α β γ ι M M' N P G H R S : Type*}
 
 /-- `finsupp α M`, denoted `α →₀ M`, is the type of functions `f : α → M` such that
   `f x = 0` for all but finitely many `x`. -/
-structure finsupp (α : Type*) (M : Type*) [has_zero M] :=
-(support            : finset α)
-(to_fun             : α → M)
-(mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0)
+def finsupp (α : Type*) (M : Type*) [has_zero M] := Π₀ i : α, M
 
 infixr ` →₀ `:25 := finsupp
 
 namespace finsupp
+
+/-- A more convenient constructor -/
+def mk [has_zero M] (support : finset α) (to_fun : α → M)
+  (support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0) : α →₀ M :=
+⟨to_fun, trunc.mk ⟨support.1, λ i, or_iff_not_imp_right.mpr (support_to_fun i).mpr⟩⟩
 
 /-! ### Basic declarations about `finsupp` -/
 
 section basic
 variable [has_zero M]
 
-instance fun_like : fun_like (α →₀ M) α (λ _, M) := ⟨to_fun, begin
-  rintro ⟨s, f, hf⟩ ⟨t, g, hg⟩ (rfl : f = g),
-  congr',
-  ext a,
-  exact (hf _).trans (hg _).symm,
-end⟩
+/-- The support of the function -/
+noncomputable def support (f : α →₀ M) : finset α := dfinsupp.support f
+
+instance fun_like : fun_like (α →₀ M) α (λ _, M) := dfinsupp.fun_like
 
 /-- Helper instance for when there are too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
@@ -131,9 +130,9 @@ lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn := 
 lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h _
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
-  ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
+  ⇑(mk s f h : α →₀ M) = f := rfl
 
-instance : has_zero (α →₀ M) := ⟨⟨∅, 0, λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+instance : has_zero (α →₀ M) := dfinsupp.has_zero
 
 @[simp] lemma coe_zero : ⇑(0 : α →₀ M) = 0 := rfl
 lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
@@ -173,7 +172,7 @@ lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
 instance [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
-assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a)) ext_iff'.symm
+dfinsupp.decidable_eq
 
 lemma finite_support (f : α →₀ M) : set.finite (function.support f) :=
 f.fun_support_eq.symm ▸ f.support.finite_to_set
@@ -186,10 +185,7 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
 /-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
 @[simps] def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
-⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp only [true_and, finset.mem_univ,
-  iff_self, finset.mem_filter, finset.filter_congr_decidable, forall_true_iff]),
-  begin intro f, ext a, refl end,
-  begin intro f, ext a, refl end⟩
+dfinsupp.equiv_fun_on_fintype
 
 @[simp] lemma equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
   equiv_fun_on_fintype.symm f = f :=
@@ -197,7 +193,7 @@ by { ext, simp [equiv_fun_on_fintype], }
 
 /-- If `α` has a unique term,
 then the type of finitely supported functions `α →₀ β` is equivalent to `β`. -/
-@[simps] noncomputable
+@[simps]
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
 finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique ι M)
 
@@ -210,27 +206,20 @@ variables [has_zero M] {a a' : α} {b : M}
 
 /-- `single a b` is the finitely supported function which has
   value `b` at `a` and zero otherwise. -/
-def single (a : α) (b : M) : α →₀ M :=
-⟨if b = 0 then ∅ else {a}, λ a', if a = a' then b else 0, λ a', begin
-  by_cases hb : b = 0; by_cases a = a';
-    simp only [hb, h, if_pos, if_false, mem_singleton],
-  { exact ⟨false.elim, λ H, H rfl⟩ },
-  { exact ⟨false.elim, λ H, H rfl⟩ },
-  { exact ⟨λ _, hb, λ _, rfl⟩ },
-  { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ }
-end⟩
+noncomputable def single (a : α) (b : M) : α →₀ M :=
+dfinsupp.single a b
 
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
-by convert rfl
+dfinsupp.single_apply.trans $ by simp
 
 lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
 @[simp] lemma single_eq_same : (single a b : α →₀ M) a = b :=
-if_pos rfl
+dfinsupp.single_eq_same
 
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
-if_neg h
+dfinsupp.single_eq_of_ne h
 
 lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
@@ -253,10 +242,10 @@ begin
 end
 
 lemma support_single_ne_zero (a : α) (hb : b ≠ 0) : (single a b).support = {a} :=
-if_neg hb
+dfinsupp.support_single_ne_zero hb
 
 lemma support_single_subset : (single a b).support ⊆ {a} :=
-show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
+dfinsupp.support_single_subset
 
 lemma single_apply_mem (x) : single a b x ∈ ({0, b} : set M) :=
 by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
@@ -292,21 +281,7 @@ end
 
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : M) :
   single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
-begin
-  split,
-  { assume eq,
-    by_cases a₁ = a₂,
-    { refine or.inl ⟨h, _⟩,
-      rwa [h, (single_injective a₂).eq_iff] at eq },
-    { rw [ext_iff] at eq,
-      have h₁ := eq a₁,
-      have h₂ := eq a₂,
-      simp only [single_eq_same, single_eq_of_ne h, single_eq_of_ne (ne.symm h)] at h₁ h₂,
-      exact or.inr ⟨h₁, h₂.symm⟩ } },
-  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
-    { refl },
-    { rw [single_zero, single_zero] } }
-end
+(dfinsupp.single_eq_single_iff _ _ _ _).trans $ by simp
 
 /-- `finsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
 `finsupp.single_injective` -/
@@ -390,7 +365,8 @@ by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
 @[simp] lemma equiv_fun_on_fintype_symm_single [decidable_eq α] [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _).symm (pi.single x m) = finsupp.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype, pi.single_apply,
+  eq_comm], }
 
 end single
 
@@ -405,30 +381,37 @@ If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
 Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
 
 This is the finitely-supported version of `function.update`. -/
-def update : α →₀ M :=
-⟨if b = 0 then f.support.erase a else insert a f.support,
-  function.update f a b,
-  λ i, begin
-    simp only [function.update_apply, ne.def],
-    split_ifs with hb ha ha hb;
-    simp [ha, hb]
-  end⟩
+def update [decidable_eq α]: α →₀ M :=
+dfinsupp.update a f b
 
 @[simp] lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
-by convert rfl
+rfl
 @[simp] lemma update_self : f.update a (f a) = f :=
 by { ext, simp }
 
 lemma support_update [decidable_eq α] : support (f.update a b) =
-  if b = 0 then f.support.erase a else insert a f.support := by convert rfl
+  if b = 0 then f.support.erase a else insert a f.support :=
+begin
+  classical,
+  dunfold finsupp.support finsupp.update,
+  convert (@dfinsupp.support_update _ _ _ _ _ f a b _).trans _,
+  congr,
+  convert dfinsupp.support_erase a f,
+end
 
 @[simp] lemma support_update_zero [decidable_eq α] :
-  support (f.update a 0) = f.support.erase a := by convert if_pos rfl
+  support (f.update a 0) = f.support.erase a :=
+by rw [support_update, if_pos rfl]
 
 variables {b}
 
 lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
-  support (f.update a b) = insert a f.support := by convert if_neg h
+  support (f.update a b) = insert a f.support :=
+begin
+  classical,
+  dunfold update support,
+  convert dfinsupp.support_update_ne_zero f a h,
+end
 
 end update
 
@@ -441,7 +424,7 @@ variables [has_zero M]
   The function needs to be `0` outside of `s`. Use this when the set needs to be filtered anyways,
   otherwise a better set representation is often available. -/
 def on_finset (s : finset α) (f : α → M) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ M :=
-⟨s.filter (λa, f a ≠ 0), f, by simpa⟩
+⟨f, trunc.mk $ ⟨s.1, λ i, or_iff_not_imp_right.mpr (hf i)⟩⟩
 
 @[simp] lemma on_finset_apply {s : finset α} {f : α → M} {hf a} :
   (on_finset s f hf : α →₀ M) a = f a :=
@@ -449,7 +432,7 @@ rfl
 
 @[simp] lemma support_on_finset_subset {s : finset α} {f : α → M} {hf} :
   (on_finset s f hf).support ⊆ s :=
-filter_subset _ _
+by simp [on_finset, support, dfinsupp.support, trunc.lift_mk]
 
 @[simp] lemma mem_support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
@@ -459,7 +442,7 @@ by rw [finsupp.mem_support_iff, finsupp.on_finset_apply]
 lemma support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
   (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
-rfl
+by simp [on_finset, support, dfinsupp.support, trunc.lift_mk]
 
 end on_finset
 
@@ -470,9 +453,7 @@ variables [has_zero M]
 /-- The natural `finsupp` induced by the function `f` given that it has finite support. -/
 noncomputable def of_support_finite
   (f : α → M) (hf : (function.support f).finite) : α →₀ M :=
-{ support := hf.to_finset,
-  to_fun := f,
-  mem_support_to_fun := λ _, hf.mem_to_finset }
+mk hf.to_finset f $ λ _, hf.mem_to_finset
 
 lemma of_support_finite_coe {f : α → M} {hf : (function.support f).finite} :
   (of_support_finite f hf : α → M) = f := rfl
@@ -503,8 +484,7 @@ bundled:
 * `finsupp.map_range.linear_equiv`
 -/
 def map_range (f : M → N) (hf : f 0 = 0) (g : α →₀ M) : α →₀ N :=
-on_finset g.support (f ∘ g) $
-  assume a, by rw [mem_support_iff, not_imp_not]; exact λ H, (congr_arg f H).trans hf
+dfinsupp.map_range (λ _, f) (λ _, hf) g
 
 @[simp] lemma map_range_apply {f : M → N} {hf : f 0 = 0} {g : α →₀ M} {a : α} :
   map_range f hf g a = f (g a) :=
@@ -523,11 +503,11 @@ ext $ λ _, rfl
 
 lemma support_map_range {f : M → N} {hf : f 0 = 0} {g : α →₀ M} :
   (map_range f hf g).support ⊆ g.support :=
-support_on_finset_subset
+dfinsupp.support_map_range
 
 @[simp] lemma map_range_single {f : M → N} {hf : f 0 = 0} {a : α} {b : M} :
   map_range f hf (single a b) = single a (f b) :=
-ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact hf]
+dfinsupp.map_range_single
 
 lemma support_map_range_of_injective
   {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :
@@ -548,10 +528,10 @@ variables [has_zero M] [has_zero N]
 /-- Given `f : α ↪ β` and `v : α →₀ M`, `emb_domain f v : β →₀ M`
 is the finitely supported function whose value at `f a : β` is `v a`.
 For a `b : β` outside the range of `f`, it is zero. -/
-def emb_domain (f : α ↪ β) (v : α →₀ M) : β →₀ M :=
+noncomputable def emb_domain (f : α ↪ β) (v : α →₀ M) : β →₀ M :=
 begin
-  refine ⟨v.support.map f, λa₂,
-    if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
+  refine mk (v.support.map f) (λa₂,
+    if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0) _,
   { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
     exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.injective hb) },
   { assume a₂,
@@ -564,7 +544,7 @@ end
 
 @[simp] lemma support_emb_domain (f : α ↪ β) (v : α →₀ M) :
   (emb_domain f v).support = v.support.map f :=
-rfl
+sorry
 
 @[simp] lemma emb_domain_zero (f : α ↪ β) : (emb_domain f 0 : β →₀ M) = 0 :=
 rfl
@@ -655,11 +635,7 @@ variables [has_zero M] [has_zero N] [has_zero P]
 /-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
   `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and it is well-defined when `f 0 0 = 0`. -/
 def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : α →₀ P :=
-on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H,
-begin
-  simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
-  rintro ⟨h₁, h₂⟩, rw [h₁, h₂] at H, exact H hf
-end
+dfinsupp.zip_with (λ _, f) (λ _, hf) g₁ g₂
 
 @[simp] lemma zip_with_apply
   {f : M → N → P} {hf : f 0 0 = 0} {g₁ : α →₀ M} {g₂ : α →₀ N} {a : α} :
@@ -668,7 +644,7 @@ rfl
 
 lemma support_zip_with [D : decidable_eq α] {f : M → N → P} {hf : f 0 0 = 0}
   {g₁ : α →₀ M} {g₂ : α →₀ N} : (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
-by rw subsingleton.elim D; exact support_on_finset_subset
+sorry
 
 end zip_with
 
@@ -680,15 +656,12 @@ variables [has_zero M]
 
 /-- `erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to
   `0`. -/
-def erase (a : α) (f : α →₀ M) : α →₀ M :=
-⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
-  assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
-    [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
-    exact and_iff_right h]⟩
+noncomputable def erase (a : α) (f : α →₀ M) : α →₀ M :=
+dfinsupp.erase a f
 
 @[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
-by convert rfl
+by { dunfold erase support, convert (dfinsupp.support_erase a f : _) }
 
 @[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
 if_pos rfl
@@ -730,7 +703,7 @@ variable [has_zero M]
 
 /-- The graph of a finitely supported function over its support, i.e. the finset of input and output
 pairs with non-zero outputs. -/
-def graph (f : α →₀ M) : finset (α × M) :=
+noncomputable def graph (f : α →₀ M) : finset (α × M) :=
 f.support.map ⟨λ a, prod.mk a (f a), λ x y h, (prod.mk.inj h).1⟩
 
 lemma mk_mem_graph_iff {a : α} {m : M} {f : α →₀ M} : (a, m) ∈ f.graph ↔ f a = m ∧ m ≠ 0 :=
@@ -786,7 +759,7 @@ section sum_prod
 
 /-- `prod f g` is the product of `g a (f a)` over the support of `f`. -/
 @[to_additive "`sum f g` is the sum of `g a (f a)` over the support of `f`. "]
-def prod [has_zero M] [comm_monoid N] (f : α →₀ M) (g : α → M → N) : N :=
+noncomputable def prod [has_zero M] [comm_monoid N] (f : α →₀ M) (g : α → M → N) : N :=
 ∏ a in f.support, g a (f a)
 
 variables [has_zero M] [has_zero M'] [comm_monoid N]
@@ -943,7 +916,7 @@ fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 
 See `finsupp.lsingle` for the stronger version as a linear map.
 -/
-@[simps] def single_add_hom (a : α) : M →+ α →₀ M :=
+@[simps] noncomputable def single_add_hom (a : α) : M →+ α →₀ M :=
 ⟨single a, single_zero a, single_add a⟩
 
 /-- Evaluation of a function `f : α →₀ M` at a point as an additive monoid homomorphism.
@@ -954,7 +927,7 @@ def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, �
 
 /-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
 @[simps]
-noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
+def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
 { to_fun := coe_fn,
   map_zero' := coe_zero,
   map_add' := coe_add }
@@ -992,7 +965,7 @@ end
 
 /-- `finsupp.erase` as an `add_monoid_hom`. -/
 @[simps]
-def erase_add_hom (a : α) : (α →₀ M) →+ (α →₀ M) :=
+noncomputable def erase_add_hom (a : α) : (α →₀ M) →+ (α →₀ M) :=
 { to_fun := erase a, map_zero' := erase_zero a, map_add' := erase_add a }
 
 @[elab_as_eliminator]
@@ -1077,7 +1050,7 @@ lemma map_range_add [add_zero_class N]
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
-@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
+@[simps] noncomputable def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
 { to_fun := λ v, emb_domain f v,
   map_zero' := by simp,
   map_add' := λ v w,
@@ -1335,7 +1308,8 @@ prod_add_index' (λ a, (h a).map_one) (λ a, (h a).map_mul)
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
-def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
+noncomputable def lift_add_hom [add_zero_class M] [add_comm_monoid N] :
+  (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
 { to_fun := λ F,
   { to_fun := λ f, f.sum (λ x, F x),
     map_zero' := finset.sum_empty,

@@ -28,6 +28,14 @@ notation `ℝ` := real
 
 attribute [pp_using_anonymous_constructor] real
 
+namespace cau_seq.completion
+
+-- this can't go in `data.real.cau_seq_completion` as the structure on `rat` isn't available
+@[simp] theorem of_rat_rat {abv : ℚ → ℚ} [is_absolute_value abv] (q : ℚ) :
+  of_rat (q : ℚ) = (q : @Cauchy _ _ _ _ abv _) := rfl
+
+end cau_seq.completion
+
 namespace real
 open cau_seq cau_seq.completion
 
@@ -71,6 +79,15 @@ lemma cauchy_neg : ∀ a, (-a : ℝ).cauchy = -a.cauchy
 lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
 | ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
 
+/-- `real.equiv_Cauchy` as a ring equivalence. -/
+@[simps]
+def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
+{ to_fun := cauchy,
+  inv_fun := of_cauchy,
+  map_add' := cauchy_add,
+  map_mul' := cauchy_mul,
+  ..equiv_Cauchy }
+
 instance : comm_ring ℝ :=
 begin
   refine_struct { zero  := (0 : ℝ),
@@ -91,6 +108,12 @@ begin
   apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
 end
+
+lemma of_cauchy_nat_cast (n : ℕ) : (⟨n⟩ : ℝ) = n := rfl
+lemma of_cauchy_int_cast (z : ℤ) : (⟨z⟩ : ℝ) = z := rfl
+
+lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
+lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
 
 /-! Extra instances to short-circuit type class resolution.
 
@@ -125,9 +148,7 @@ instance : has_trivial_star ℝ   := ⟨λ _, rfl⟩
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
 def of_rat : ℚ →+* ℝ :=
-by refine_struct { to_fun := of_cauchy ∘ of_rat };
-  simp [of_rat_one, of_rat_zero, of_rat_mul, of_rat_add,
-    of_cauchy_one, of_cauchy_zero, ← of_cauchy_mul, ← of_cauchy_add]
+(ring_equiv_Cauchy.symm.to_ring_hom).comp of_rat_ring_hom
 
 lemma of_rat_apply (x : ℚ) : of_rat x = of_cauchy (cau_seq.completion.of_rat x) := rfl
 
@@ -260,6 +281,11 @@ lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _
 lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
 | ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
 
+instance : has_rat_cast ℝ := { rat_cast := of_rat }
+
+lemma of_cauchy_rat_cast (q : ℚ) : (⟨q⟩ : ℝ) = q := rfl
+lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
+
 noncomputable instance : linear_ordered_field ℝ :=
 { inv := has_inv.inv,
   mul_inv_cancel := begin
@@ -269,7 +295,11 @@ noncomputable instance : linear_ordered_field ℝ :=
     exact cau_seq.completion.inv_mul_cancel h,
   end,
   inv_zero := by simp [← of_cauchy_zero, ←of_cauchy_inv],
-  ..real.linear_ordered_comm_ring, }
+  rat_cast := coe,
+  rat_cast_mk  := λ n d hd h2,
+    by rw [←of_cauchy_rat_cast, rat.cast_mk', of_cauchy_mul, of_cauchy_inv, of_cauchy_nat_cast,
+           of_cauchy_int_cast],
+  ..real.linear_ordered_comm_ring }
 
 /- Extra instances to short-circuit type class resolution -/
 

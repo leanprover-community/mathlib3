@@ -1347,28 +1347,37 @@ theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 theorem is_clopen.diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
 hs.inter ht.compl
 
+lemma is_clopen.prod {s : set α} {t : set β} (hs : is_clopen s) (ht : is_clopen t) :
+  is_clopen (s ×ˢ t) :=
+⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
+
 lemma is_clopen_Union {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋃ i, s i) :=
 ⟨is_open_Union (forall_and_distrib.1 h).1, is_closed_Union (forall_and_distrib.1 h).2⟩
 
-lemma is_clopen_bUnion {β : Type*} {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_clopen $ f i) :
+lemma is_clopen_bUnion {β : Type*} {s : set β} {f : β → set α} (hs : s.finite)
+  (h : ∀ i ∈ s, is_clopen $ f i) :
   is_clopen (⋃ i ∈ s, f i) :=
-begin
-  refine ⟨is_open_bUnion (λ i hi, (h i hi).1), _⟩,
-  show is_closed (⋃ (i : β) (H : i ∈ (s : set β)), f i),
-  rw bUnion_eq_Union,
-  exact is_closed_Union (λ ⟨i, hi⟩,(h i hi).2)
-end
+⟨is_open_bUnion (λ i hi, (h i hi).1), is_closed_bUnion hs (λ i hi, (h i hi).2)⟩
+
+lemma is_clopen_bUnion_finset {β : Type*} {s : finset β} {f : β → set α}
+  (h : ∀ i ∈ s, is_clopen $ f i) :
+  is_clopen (⋃ i ∈ s, f i) :=
+is_clopen_bUnion s.finite_to_set h
 
 lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
-lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_clopen (f i)) :
+lemma is_clopen_bInter {β : Type*} {s : set β} (hs : s.finite) {f : β → set α}
+  (h : ∀ i ∈ s, is_clopen (f i)) :
   is_clopen (⋂ i ∈ s, f i) :=
-⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
-  by {show is_closed (⋂ (i : β) (H : i ∈ (↑s : set β)), f i), rw bInter_eq_Inter,
-    apply is_closed_Inter, rintro ⟨i, hi⟩, exact (h i hi).2}⟩
+⟨is_open_bInter hs (λ i hi, (h i hi).1), is_closed_bInter (λ i hi, (h i hi).2)⟩
+
+lemma is_clopen_bInter_finset {β : Type*} {s : finset β} {f : β → set α}
+  (h : ∀ i ∈ s, is_clopen (f i)) :
+  is_clopen (⋂ i ∈ s, f i) :=
+is_clopen_bInter s.finite_to_set h
 
 lemma continuous_on.preimage_clopen_of_clopen
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)
@@ -1378,15 +1387,14 @@ lemma continuous_on.preimage_clopen_of_clopen
 
 /-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen. -/
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
-  (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
+  (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : disjoint a b) : is_clopen (Z ∩ a) :=
 begin
   refine ⟨is_open.inter h.1 ha, _⟩,
   have : is_closed (Z ∩ bᶜ) := is_closed.inter h.2 (is_closed_compl_iff.2 hb),
   convert this using 1,
-  apply subset.antisymm,
-  { exact inter_subset_inter_right Z (subset_compl_iff_disjoint.2 hab) },
-  { rintros x ⟨hx₁, hx₂⟩,
-    exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
+  refine (inter_subset_inter_right Z hab.subset_compl_right).antisymm _,
+  rintro x ⟨hx₁, hx₂⟩,
+  exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩,
 end
 
 @[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=

@@ -143,8 +143,8 @@ begin
   rcases ha x with ⟨Va, ma, ia, ja, ⟨ra, ra_mem⟩, ⟨sa, sa_mem⟩, wa⟩,
   rcases hb x with ⟨Vb, mb, ib, jb, ⟨rb, rb_mem⟩, ⟨sb, sb_mem⟩, wb⟩,
   refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ja + jb,
-    ⟨ra * rb, set_like.graded_monoid.mul_mem ra_mem rb_mem⟩,
-    ⟨sa * sb, set_like.graded_monoid.mul_mem sa_mem sb_mem⟩, λ y, ⟨λ h, _, _⟩⟩,
+    ⟨ra * rb, set_like.mul_mem_graded ra_mem rb_mem⟩,
+    ⟨sa * sb, set_like.mul_mem_graded sa_mem sb_mem⟩, λ y, ⟨λ h, _, _⟩⟩,
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,
     { choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩, exact nin h },
     { choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩, exact nin h }, },
@@ -288,7 +288,7 @@ def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
     ⟨𝟙 _, ⟨f.deg, ⟨⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩,
       λ z, ⟨z.2, rfl⟩⟩⟩⟩⟩⟩
 
-/--Given any point `x` and `f` in the homogeneous localizatoin at `x`, there is an element in the
+/--Given any point `x` and `f` in the homogeneous localization at `x`, there is an element in the
 stalk at `x` obtained by `section_in_basic_open`. This is the inverse of `stalk_to_fiber_ring_hom`.
 -/
 def homogeneous_localization_to_stalk (x : projective_spectrum.Top 𝒜) :

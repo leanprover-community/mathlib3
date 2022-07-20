@@ -137,10 +137,12 @@ begin
 end
 
 lemma is_eulerian.card_filter_odd_degree [fintype V] [decidable_rel G.adj]
-  {u v : V} {p : G.walk u v} (ht : p.is_eulerian) :
-  ((finset.univ : finset V).filter (λ v, odd (G.degree v))).card ∈ ({0, 2} : set ℕ) :=
+  {u v : V} {p : G.walk u v} (ht : p.is_eulerian)
+  {s} (h : s = (finset.univ : finset V).filter (λ v, odd (G.degree v))) :
+  s.card = 0 ∨ s.card = 2 :=
 begin
-  simp only [nat.odd_iff_not_even, set.mem_insert_iff, finset.card_eq_zero, set.mem_singleton_iff],
+  subst s,
+  simp only [nat.odd_iff_not_even, finset.card_eq_zero],
   simp only [ht.even_degree_iff, ne.def, not_forall, not_and, not_not, exists_prop],
   obtain (rfl | hn) := eq_or_ne u v,
   { left,
@@ -155,10 +157,10 @@ end
 
 lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
   {u v : V} {p : G.walk u v} (ht : p.is_eulerian) :
-  fintype.card {v : V | odd (G.degree v)} ∈ ({0, 2} : set ℕ) :=
+  fintype.card {v : V | odd (G.degree v)} = 0 ∨ fintype.card {v : V | odd (G.degree v)} = 2 :=
 begin
   rw ← set.to_finset_card,
-  convert is_eulerian.card_filter_odd_degree ht,
+  apply is_eulerian.card_filter_odd_degree ht,
   ext v,
   simp,
 end

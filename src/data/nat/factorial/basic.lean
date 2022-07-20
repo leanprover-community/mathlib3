@@ -308,7 +308,7 @@ lemma desc_factorial_self : ∀ n : ℕ, n.desc_factorial n = n!
   exact λ h _, h,
 end
 
-alias nat.desc_factorial_eq_zero_iff_lt ↔ _ nat.desc_factorial_of_lt
+alias desc_factorial_eq_zero_iff_lt ↔ _ desc_factorial_of_lt
 
 lemma add_desc_factorial_eq_asc_factorial (n : ℕ) :
   ∀ k : ℕ, (n + k).desc_factorial k = n.asc_factorial k

@@ -79,8 +79,20 @@ lemma infix_concat : l₁ <:+: l₂ → l₁ <:+: concat l₂ a :=
 protected lemma is_infix.sublist : l₁ <:+: l₂ → l₁ <+ l₂ :=
 λ ⟨s, t, h⟩, by { rw [← h], exact (sublist_append_right _ _).trans (sublist_append_left _ _) }
 
-protected lemma is_prefix.sublist (h : l₁ <+: l₂) : l₁ <+ l₂ := h.is_infix.sublist
-protected lemma is_suffix.sublist (h : l₁ <:+ l₂) : l₁ <+ l₂ := h.is_infix.sublist
+protected lemma is_infix.subset (hl : l₁ <:+: l₂) : l₁ ⊆ l₂ :=
+hl.sublist.subset
+
+protected lemma is_prefix.sublist (h : l₁ <+: l₂) : l₁ <+ l₂ :=
+h.is_infix.sublist
+
+protected lemma is_prefix.subset (hl : l₁ <+: l₂) : l₁ ⊆ l₂ :=
+hl.sublist.subset
+
+protected lemma is_suffix.sublist (h : l₁ <:+ l₂) : l₁ <+ l₂ :=
+h.is_infix.sublist
+
+protected lemma is_suffix.subset (hl : l₁ <:+ l₂) : l₁ ⊆ l₂ :=
+hl.sublist.subset
 
 @[simp] lemma reverse_suffix : reverse l₁ <:+ reverse l₂ ↔ l₁ <+: l₂ :=
 ⟨λ ⟨r, e⟩, ⟨reverse r,
@@ -97,9 +109,9 @@ by rw ← reverse_suffix; simp only [reverse_reverse]
  λ ⟨s, t, e⟩, ⟨reverse t, reverse s,
   by rw [append_assoc, ← reverse_append, ← reverse_append, e]⟩⟩
 
-alias reverse_prefix ↔ _ list.is_suffix.reverse
-alias reverse_suffix ↔ _ list.is_prefix.reverse
-alias reverse_infix ↔ _ list.is_infix.reverse
+alias reverse_prefix ↔ _ is_suffix.reverse
+alias reverse_suffix ↔ _ is_prefix.reverse
+alias reverse_infix ↔ _ is_infix.reverse
 
 lemma is_infix.length_le (h : l₁ <:+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
 lemma is_prefix.length_le (h : l₁ <+: l₂) : l₁.length ≤ l₂.length := length_le_of_sublist h.sublist
@@ -110,7 +122,7 @@ lemma eq_nil_of_infix_nil (h : l <:+: []) : l = [] := eq_nil_of_sublist_nil h.su
 @[simp] lemma infix_nil_iff : l <:+: [] ↔ l = [] :=
 ⟨λ h, eq_nil_of_sublist_nil h.sublist, λ h, h ▸ infix_rfl⟩
 
-alias infix_nil_iff ↔ list.eq_nil_of_infix_nil _
+alias infix_nil_iff ↔ eq_nil_of_infix_nil _
 
 @[simp] lemma prefix_nil_iff : l <+: [] ↔ l = [] :=
 ⟨λ h, eq_nil_of_infix_nil h.is_infix, λ h, h ▸ prefix_rfl⟩
@@ -118,8 +130,8 @@ alias infix_nil_iff ↔ list.eq_nil_of_infix_nil _
 @[simp] lemma suffix_nil_iff : l <:+ [] ↔ l = [] :=
 ⟨λ h, eq_nil_of_infix_nil h.is_infix, λ h, h ▸ suffix_rfl⟩
 
-alias prefix_nil_iff ↔ list.eq_nil_of_prefix_nil _
-alias suffix_nil_iff ↔ list.eq_nil_of_suffix_nil _
+alias prefix_nil_iff ↔ eq_nil_of_prefix_nil _
+alias suffix_nil_iff ↔ eq_nil_of_suffix_nil _
 
 lemma infix_iff_prefix_suffix (l₁ l₂ : list α) : l₁ <:+: l₂ ↔ ∃ t, l₁ <+: t ∧ t <:+ l₂ :=
 ⟨λ ⟨s, t, e⟩, ⟨l₁ ++ t, ⟨_, rfl⟩, by rw [← e, append_assoc]; exact ⟨_, rfl⟩⟩,
@@ -199,6 +211,12 @@ lemma take_subset (n) (l : list α) : take n l ⊆ l := (take_sublist n l).subse
 lemma drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subset
 lemma mem_of_mem_take (h : a ∈ l.take n) : a ∈ l := take_subset n l h
 lemma mem_of_mem_drop (h : a ∈ l.drop n) : a ∈ l := drop_subset n l h
+
+lemma take_while_prefix (p : α → Prop) [decidable_pred p] : l.take_while p <+: l :=
+⟨l.drop_while p, take_while_append_drop p l⟩
+
+lemma drop_while_suffix (p : α → Prop) [decidable_pred p] : l.drop_while p <:+ l :=
+⟨l.take_while p, take_while_append_drop p l⟩
 
 lemma init_prefix : ∀ (l : list α), l.init <+: l
 | [] := ⟨nil, by rw [init, list.append_nil]⟩
@@ -493,4 +511,8 @@ congr_arg _ $ insert_of_mem h
 congr_arg _ $ insert_of_not_mem h
 
 end insert
+
+lemma mem_of_mem_suffix (hx : a ∈ l₁) (hl : l₁ <:+ l₂) : a ∈ l₂ :=
+hl.subset hx
+
 end list

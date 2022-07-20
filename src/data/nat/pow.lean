@@ -111,7 +111,7 @@ strict_mono.injective (pow_left_strict_mono k)
 theorem sq_sub_sq (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by { rw [sq, sq], exact nat.mul_self_sub_mul_self_eq a b }
 
-alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
+alias sq_sub_sq ← pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 
@@ -133,7 +133,7 @@ begin
   cases lt_or_ge p (b^succ w) with h₁ h₁,
   -- base case: p < b^succ w
   { have h₂ : p / b < b^w,
-    { rw [div_lt_iff_lt_mul p _ b_pos],
+    { rw [div_lt_iff_lt_mul b_pos],
       simpa [pow_succ'] using h₁ },
     rw [mod_eq_of_lt h₁, mod_eq_of_lt h₂],
     simp [div_add_mod] },
@@ -150,7 +150,7 @@ begin
     rw [sub_mul_mod _ _ _ h₁, sub_mul_div _ _ _ h₁],
     -- Cancel subtraction inside mod b^w
     have p_b_ge :  b^w ≤ p / b,
-    { rw [le_div_iff_mul_le _ _ b_pos, mul_comm],
+    { rw [le_div_iff_mul_le b_pos, mul_comm],
       exact h₁ },
     rw [eq.symm (mod_eq_sub_mod p_b_ge)] }
 end
@@ -193,6 +193,12 @@ by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 lemma pow_div {x m n : ℕ} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) :=
 by rw [nat.div_eq_iff_eq_mul_left (pow_pos hx n) (pow_dvd_pow _ h), pow_sub_mul_pow _ h]
+
+lemma lt_of_pow_dvd_right {p i n : ℕ} (hn : n ≠ 0) (hp : 2 ≤ p) (h : p ^ i ∣ n) : i < n :=
+begin
+  rw ←pow_lt_iff_lt_right hp,
+  exact lt_of_le_of_lt (le_of_dvd hn.bot_lt h) (lt_pow_self (succ_le_iff.mp hp) n),
+end
 
 /-! ### `shiftl` and `shiftr` -/
 

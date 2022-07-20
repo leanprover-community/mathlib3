@@ -92,10 +92,34 @@ noncomputable def as_module : module (monoid_algebra k G) V :=
 
 end monoid_algebra
 
+section mul_action
+variables (k : Type*) [comm_semiring k] (G : Type*) [monoid G] (H : Type*) [mul_action G H]
+
+/-- A `G`-action on `H` induces a representation `G →* End(k[H])` in the natural way. -/
+noncomputable def of_mul_action : representation k G (H →₀ k) :=
+{ to_fun := λ g, finsupp.lmap_domain k k ((•) g),
+  map_one' := by { ext x y, dsimp, simp },
+  map_mul' := λ x y, by { ext z w, simp [mul_smul] }}
+
+variables {k G H}
+
+lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
+
+end mul_action
 section group
 
 variables {k G V : Type*} [comm_semiring k] [group G] [add_comm_monoid V] [module k V]
 variables (ρ : representation k G V)
+
+@[simp] lemma of_mul_action_apply {H : Type*} [mul_action G H]
+  (g : G) (f : H →₀ k) (h : H) : of_mul_action k G H g f h = f (g⁻¹ • h) :=
+begin
+  conv_lhs { rw ← smul_inv_smul g h, },
+  let h' := g⁻¹ • h,
+  change of_mul_action k G H g f (g • h') = f h',
+  have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simp, },
+  simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
+end
 
 /--
 When `G` is a group, a `k`-linear representation of `G` on `V` can be thought of as
@@ -108,33 +132,6 @@ lemma as_group_hom_apply (g : G) : ↑(as_group_hom ρ g) = ρ g :=
 by simp only [as_group_hom, monoid_hom.coe_to_hom_units]
 
 end group
-
-section character
-
-variables {k G V : Type*} [comm_ring k] [group G] [add_comm_group V] [module k V]
-variables (ρ : representation k G V)
-
-/--
-The character associated to a representation of `G`, which as a map `G → k`
-sends each element to the trace of the corresponding linear map.
--/
-@[simp]
-noncomputable def character (g : G) : k := trace k V (ρ g)
-
-theorem char_mul_comm (g : G) (h : G) : character ρ (h * g) = character ρ (g * h) :=
-by simp only [trace_mul_comm, character, map_mul]
-
-/-- The character of a representation is constant on conjugacy classes. -/
-theorem char_conj (g : G) (h : G) : (character ρ) (h * g * h⁻¹) = (character ρ) g :=
-by simp only [character, ←as_group_hom_apply, map_mul, map_inv, trace_conj]
-
-variables [nontrivial k] [module.free k V] [module.finite k V]
-
-/-- The evaluation of the character at the identity is the dimension of the representation. -/
-theorem char_one : character ρ 1 = finite_dimensional.finrank k V :=
-by simp only [character, map_one, trace_one]
-
-end character
 
 section tensor_product
 
@@ -153,7 +150,7 @@ def tprod : representation k G (V ⊗[k] W) :=
   map_one' := by simp only [map_one, tensor_product.map_one],
   map_mul' := λ g h, by simp only [map_mul, tensor_product.map_mul] }
 
-notation ρV ` ⊗ ` ρW := tprod ρV ρW
+local notation ρV ` ⊗ ` ρW := tprod ρV ρW
 
 @[simp]
 lemma tprod_apply (g : G) : (ρV ⊗ ρW) g = tensor_product.map (ρV g) (ρW g) := rfl
@@ -199,7 +196,14 @@ def dual : representation k G (module.dual k V) :=
     by {ext, simp only [coe_comp, function.comp_app, mul_inv_rev, map_mul, coe_mk, mul_apply]}}
 
 @[simp]
-lemma dual_apply (g : G) (f : module.dual k V) : (dual ρV) g f = f ∘ₗ (ρV g⁻¹) := rfl
+lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
+
+lemma dual_tensor_hom_comm (g : G) :
+  (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
+  (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=
+begin
+  ext, simp [module.dual.transpose_apply],
+end
 
 end linear_hom
 

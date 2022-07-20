@@ -139,11 +139,11 @@ lemma induction_on {C : free_product M → Prop}
   C m :=
 begin
   let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
-  convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
+  convert subtype.prop (lift (λ i, of.cod_restrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
   ext,
-  simp [monoid_hom.cod_mrestrict],
+  simp [monoid_hom.cod_restrict],
 end
 
 lemma of_left_inverse [decidable_eq ι] (i : ι) :
@@ -815,9 +815,8 @@ begin
     -- Positive and negative powers separately
     cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,
     { have h1n : 1 ≤ n := hlt,
-      calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : set_smul_subset_set_smul_iff.mpr $
-        set.disjoint_iff_subset_compl_right.mp $
-          disjoint.union_left (hXYdisj j i) (hYdisj j i hij.symm)
+      calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono
+            ((hXYdisj j i).union_left $ hYdisj j i hij.symm).subset_compl_right
       ... ⊆ X i :
       begin
         refine int.le_induction _ _ _ h1n,
@@ -826,16 +825,14 @@ begin
           calc (a i ^ (n + 1)) • (Y i)ᶜ
                 = (a i ^ n * a i) • (Y i)ᶜ : by rw [zpow_add, zpow_one]
             ... = a i ^ n • (a i • (Y i)ᶜ) : mul_action.mul_smul _ _ _
-            ... ⊆ a i ^ n • X i : set_smul_subset_set_smul_iff.mpr $ hX i
-            ... ⊆ a i ^ n • (Y i)ᶜ : set_smul_subset_set_smul_iff.mpr $
-              set.disjoint_iff_subset_compl_right.mp (hXYdisj i i)
+            ... ⊆ a i ^ n • X i : smul_set_mono $ hX i
+            ... ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono (hXYdisj i i).subset_compl_right
             ... ⊆ X i : hi, },
       end
       ... ⊆ X' i : set.subset_union_left _ _, },
     { have h1n : n ≤ -1, { apply int.le_of_lt_add_one, simpa using hgt, },
-      calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : set_smul_subset_set_smul_iff.mpr $
-        set.disjoint_iff_subset_compl_right.mp $
-          disjoint.union_left (hXdisj j i hij.symm) (hXYdisj i j).symm
+      calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : smul_set_mono
+            ((hXdisj j i hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
       ... ⊆ Y i :
       begin
         refine int.le_induction_down _ _ _ h1n,
@@ -844,9 +841,8 @@ begin
           calc (a i ^ (n - 1)) • (X i)ᶜ
                 = (a i ^ n * (a i)⁻¹) • (X i)ᶜ : by rw [zpow_sub, zpow_one]
             ... = a i ^ n • ((a i)⁻¹ • (X i)ᶜ) : mul_action.mul_smul _ _ _
-            ... ⊆ a i ^ n • Y i : set_smul_subset_set_smul_iff.mpr $ hY i
-            ... ⊆ a i ^ n • (X i)ᶜ : set_smul_subset_set_smul_iff.mpr $
-              set.disjoint_iff_subset_compl_right.mp (hXYdisj i i).symm
+            ... ⊆ a i ^ n • Y i : smul_set_mono $ hY i
+            ... ⊆ a i ^ n • (X i)ᶜ : smul_set_mono (hXYdisj i i).symm.subset_compl_right
             ... ⊆ Y i : hi, },
       end
       ... ⊆ X' i : set.subset_union_right _ _, }, },

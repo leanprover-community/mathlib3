@@ -546,7 +546,7 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, p.cons_inv, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, p.cons a, s.cons2 _ _ _⟩⟩
 
-alias subperm_cons ↔ list.subperm.of_cons list.subperm.cons
+alias subperm_cons ↔ subperm.of_cons subperm.cons
 
 attribute [protected] subperm.cons
 
@@ -890,6 +890,14 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂, f
     refine (pairwise_middle S).2 (pairwise_cons.2 ⟨λ b m, _, IH _ p'⟩),
     exact h _ (p'.symm.subset m) }
 end
+
+lemma pairwise.perm {R : α → α → Prop} {l l' : list α} (hR : l.pairwise R)
+  (hl : l ~ l') (hsymm : symmetric R) : l'.pairwise R :=
+(hl.pairwise_iff hsymm).mp hR
+
+lemma perm.pairwise {R : α → α → Prop} {l l' : list α}
+  (hl : l ~ l') (hR : l.pairwise R) (hsymm : symmetric R) : l'.pairwise R :=
+hR.perm hl hsymm
 
 theorem perm.nodup_iff {l₁ l₂ : list α} : l₁ ~ l₂ → (nodup l₁ ↔ nodup l₂) :=
 perm.pairwise_iff $ @ne.symm α

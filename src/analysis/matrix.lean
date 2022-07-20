@@ -90,7 +90,7 @@ lemma nnnorm_entry_le_entrywise_sup_nnnorm (A : matrix m n α) {i : m} {j : n} :
 
 @[simp] lemma nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=
-by simp_rw [pi.nnnorm_def, matrix.map, hf]
+by simp_rw [pi.nnnorm_def, matrix.map_apply, hf]
 @[simp] lemma norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
   ∥A.map f∥ = ∥A∥ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
@@ -372,7 +372,7 @@ lemma frobenius_norm_def (A : matrix m n α) :
 
 @[simp] lemma frobenius_nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=
-by simp_rw [frobenius_nnnorm_def, matrix.map, hf]
+by simp_rw [frobenius_nnnorm_def, matrix.map_apply, hf]
 @[simp] lemma frobenius_norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
   ∥A.map f∥ = ∥A∥ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ frobenius_nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)

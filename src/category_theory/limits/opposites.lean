@@ -368,7 +368,7 @@ calc (span f g).op ≅ 𝟭 _ ⋙ (span f g).op : by refl
 namespace pushout_cocone
 
 /-- The obvious map `pushout_cocone f g → pullback_cone f.unop g.unop` -/
-@[simps]
+@[simps (lemmas_only)]
 def unop {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   pullback_cone f.unop g.unop :=
 cocone.unop ((cocones.precompose (op_cospan f.unop g.unop).hom).obj
@@ -377,15 +377,17 @@ cocone.unop ((cocones.precompose (op_cospan f.unop g.unop).hom).obj
 @[simp]
 lemma unop_fst {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   c.unop.fst = c.inl.unop :=
-by { change (_ : limits.cone _).π.app _ = _, tidy, }
+by { change (_ : limits.cone _).π.app _ = _,
+  simp only [pushout_cocone.ι_app_left, pushout_cocone.unop_π_app], tidy }
 
 @[simp]
 lemma unop_snd {X Y Z : Cᵒᵖ} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   c.unop.snd = c.inr.unop :=
-by { change (_ : limits.cone _).π.app _ = _, tidy, }
+by { change (_ : limits.cone _).π.app _ = _,
+  simp only [pushout_cocone.unop_π_app, pushout_cocone.ι_app_right], tidy, }
 
 /-- The obvious map `pushout_cocone f.op g.op → pullback_cone f g` -/
-@[simps]
+@[simps (lemmas_only)]
 def op {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} (c : pushout_cocone f g) :
   pullback_cone f.op g.op :=
 (cones.postcompose ((cospan_op f g).symm).hom).obj
@@ -406,7 +408,7 @@ end pushout_cocone
 namespace pullback_cone
 
 /-- The obvious map `pullback_cone f g → pushout_cocone f.unop g.unop` -/
-@[simps]
+@[simps (lemmas_only)]
 def unop {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
   pushout_cocone f.unop g.unop :=
 cone.unop ((cones.postcompose (op_span f.unop g.unop).symm.hom).obj
@@ -427,12 +429,12 @@ lemma unop_inr {X Y Z : Cᵒᵖ} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone 
 begin
   change ((_ : limits.cocone _).ι.app _) = _,
   apply quiver.hom.op_inj,
-  dsimp, simp, dsimp, simp,
+  simp [unop_ι_app], dsimp, simp,
   apply category.comp_id,
 end
 
 /-- The obvious map `pullback_cone f g → pushout_cocone f.op g.op` -/
-@[simps]
+@[simps (lemmas_only)]
 def op {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} (c : pullback_cone f g) :
   pushout_cocone f.op g.op :=
 (cocones.precompose (span_op f g).hom).obj

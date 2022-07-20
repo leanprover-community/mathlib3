@@ -54,7 +54,7 @@ variables (G : Type*) [group G] (H : subgroup G)
 set_option old_structure_cmd true
 
 /-- Equivariant functions. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mul_action_hom :=
 (to_fun : X → Y)
 (map_smul' : ∀ (m : M') (x : X), to_fun (m • x) = m • to_fun x)
@@ -258,7 +258,7 @@ end semiring
 end distrib_mul_action_hom
 
 /-- Equivariant ring homomorphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mul_semiring_action_hom extends R →+[M] S, R →+* S.
 
 /-- Reinterpret an equivariant ring homomorphism as a ring homomorphism. -/

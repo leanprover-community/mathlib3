@@ -1435,7 +1435,7 @@ namespace ring
 
 /-- A positive cone in a ring consists of a positive cone in underlying `add_comm_group`,
 which contains `1` and such that the positive elements are closed under multiplication. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_cone α :=
 (one_nonneg : nonneg 1)
 (mul_pos : ∀ (a b), pos a → pos b → pos (a * b))
@@ -1444,7 +1444,7 @@ structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_c
 add_decl_doc positive_cone.to_positive_cone
 
 /-- A positive cone in a ring induces a linear order if `1` is a positive element. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure total_positive_cone (α : Type*) [ring α]
   extends positive_cone α, add_comm_group.total_positive_cone α :=
 (one_pos : pos 1)

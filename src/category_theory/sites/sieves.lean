@@ -170,7 +170,7 @@ def functor_pushforward (S : presieve X) : presieve (F.obj X) :=
 /--
 An auxillary definition in order to fix the choice of the preimages between various definitions.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure functor_pushforward_structure (S : presieve X) {Y} (f : Y ⟶ F.obj X) :=
 (preobj : C) (premap : preobj ⟶ X) (lift : Y ⟶ F.obj preobj)
 (cover : S premap) (fac : f = lift ≫ F.map premap)

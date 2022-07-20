@@ -45,7 +45,7 @@ section
 A projective presentation of an object `X` consists of an epimorphism `f : P ⟶ X`
 from some projective object `P`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure projective_presentation (X : C) :=
 (P : C)
 (projective : projective P . tactic.apply_instance)

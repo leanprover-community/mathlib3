@@ -76,7 +76,7 @@ such that
 We can then glue the schemes `U i` together by identifying `V i j` with `V j i`, such
 that the `U i`'s are open subschemes of the glued space.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure glue_data extends category_theory.glue_data Scheme :=
 (f_open : ∀ i j, is_open_immersion (f i j))
 

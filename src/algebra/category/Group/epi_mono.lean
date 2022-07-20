@@ -61,7 +61,7 @@ local notation `X` := set.range (function.swap left_coset f.range.carrier)
 /--
 Define `X'` to be the set of all left cosets with an extra point at "infinity".
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive X_with_infinity
 | from_coset : set.range (function.swap left_coset f.range.carrier) → X_with_infinity
 | infinity : X_with_infinity

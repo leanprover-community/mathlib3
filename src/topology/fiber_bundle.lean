@@ -164,7 +164,7 @@ below as `trivialization F proj`) if the total space has not been given a topolo
 have a topology on both the fiber and the base space. Through the construction
 `topological_fiber_prebundle F proj` it will be possible to promote a
 `pretrivialization F proj` to a `trivialization F proj`. -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_fiber_bundle.pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
 (open_target   : is_open target)
 (base_set      : set B)
@@ -278,7 +278,7 @@ A structure extending local homeomorphisms, defining a local trivialization of a
 `proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F` defined between two
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure topological_fiber_bundle.trivialization (proj : Z → B)
   extends local_homeomorph Z (B × F) :=
 (base_set      : set B)
@@ -833,7 +833,7 @@ Trivialization changes from `i` to `j` are given by continuous maps `coord_chang
 `base_set i ∩ base_set j` to the set of homeomorphisms of `F`, but we express them as maps
 `B → F → F` and require continuity on `(base_set i ∩ base_set j) × F` to avoid the topology on the
 space of continuous maps on `F`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_fiber_bundle_core (ι : Type*) (B : Type*) [topological_space B]
   (F : Type*) [topological_space F] :=
 (base_set          : ι → set B)
@@ -854,7 +854,7 @@ variables [topological_space B] [topological_space F] (Z : topological_fiber_bun
 include Z
 
 /-- The index set of a topological fiber bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def index := ι
 
 /-- The base space of a topological fiber bundle core, as a convenience function for dot notation -/
@@ -863,7 +863,7 @@ def base := B
 
 /-- The fiber of a topological fiber bundle core, as a convenience function for dot notation and
 typeclass inference -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def fiber (x : B) := F
 
 section fiber_instances
@@ -1166,7 +1166,7 @@ open topological_fiber_bundle
 equivalences but there is not yet a topology on the total space. The total space is hence given a
 topology in such a way that there is a fiber bundle structure for which the local equivalences
 are also local homeomorphism and hence local trivializations. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure topological_fiber_prebundle (proj : Z → B) :=
 (pretrivialization_atlas : set (pretrivialization F proj))
 (pretrivialization_at : B → pretrivialization F proj)

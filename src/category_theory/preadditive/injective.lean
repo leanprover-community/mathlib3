@@ -37,7 +37,7 @@ section
 An injective presentation of an object `X` consists of a monomorphism `f : X ⟶ J`
 to some injective object `J`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure injective_presentation (X : C) :=
 (J : C)
 (injective : injective J . tactic.apply_instance)

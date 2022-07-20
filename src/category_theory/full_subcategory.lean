@@ -47,7 +47,7 @@ include F
 which provides a category structure so that the morphisms `X ⟶ Y` are the morphisms
 in `D` from `F X` to `F Y`.
 -/
-@[nolint has_inhabited_instance unused_arguments]
+@[nolint has_nonempty_instance unused_arguments]
 def induced_category : Type u₁ := C
 
 variables {D}

@@ -473,7 +473,7 @@ variable (M)
 
 /-- The tangent bundle to a smooth manifold, as a Sigma type. Defined in terms of
 `bundle.total_space` to be able to put a suitable topology on it. -/
-@[nolint has_inhabited_instance, reducible] -- is empty if the base manifold is empty
+@[nolint has_nonempty_instance, reducible] -- is empty if the base manifold is empty
 def tangent_bundle := bundle.total_space (tangent_space I : M → Type*)
 
 local notation `TM` := tangent_bundle I M

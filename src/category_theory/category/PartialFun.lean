@@ -39,7 +39,7 @@ namespace PartialFun
 instance : has_coe_to_sort PartialFun Type* := ⟨id⟩
 
 /-- Turns a type into a `PartialFun`. -/
-@[nolint has_inhabited_instance] def of : Type* → PartialFun := id
+@[nolint has_nonempty_instance] def of : Type* → PartialFun := id
 
 @[simp] lemma coe_of (X : Type*) : ↥(of X) = X := rfl
 

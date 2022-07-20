@@ -41,7 +41,7 @@ obvious idempotent `X ⟶ P ⟶ X` which is the projection onto `P` with kernel 
 one may define a formal direct factor of an object `X : C` : it consists of an idempotent
 `p : X ⟶ X` which is thought as the "formal image" of `p`. The type `karoubi C` shall be the
 type of the objects of the karoubi enveloppe of `C`. It makes sense for any category `C`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure karoubi := (X : C) (p : X ⟶ X) (idem : p ≫ p = p)
 
 namespace karoubi

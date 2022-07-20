@@ -62,7 +62,7 @@ def len (n : simplex_category) : ℕ := n
 @[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
 
 /-- Morphisms in the simplex_category. -/
-@[irreducible, nolint has_inhabited_instance]
+@[irreducible, nolint has_nonempty_instance]
 protected def hom (a b : simplex_category) := fin (a.len + 1) →o fin (b.len + 1)
 
 namespace hom

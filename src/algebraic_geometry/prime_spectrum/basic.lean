@@ -57,7 +57,7 @@ is the type of all prime ideals of `R`.
 It is naturally endowed with a topology (the Zariski topology),
 and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}

@@ -240,7 +240,7 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
 A structure on an oplax functor that promotes an oplax functor to a pseudofunctor.
 See `pseudofunctor.mk_of_oplax`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure pseudo_core (F : oplax_functor B C) :=
 (map_id_iso (a : B) : F.map (𝟙 a) ≅ 𝟙 (F.obj a))
 (map_comp_iso {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : F.map (f ≫ g) ≅ F.map f ≫ F.map g)

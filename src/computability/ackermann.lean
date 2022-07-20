@@ -103,25 +103,25 @@ theorem ack_pos : ∀ m n, 0 < ack m n
 | (m + 1) 0       := by { rw ack_succ_zero, apply ack_pos }
 | (m + 1) (n + 1) := by { rw ack_succ_succ, apply ack_pos }
 
-theorem one_lt_ack_add_one_left : ∀ m n, 1 < ack (m + 1) n
+theorem one_lt_ack_succ_left : ∀ m n, 1 < ack (m + 1) n
 | 0       n       := by simp
-| (m + 1) 0       := by { rw ack_succ_zero, apply one_lt_ack_add_one_left }
-| (m + 1) (n + 1) := by { rw ack_succ_succ, apply one_lt_ack_add_one_left }
+| (m + 1) 0       := by { rw ack_succ_zero, apply one_lt_ack_succ_left }
+| (m + 1) (n + 1) := by { rw ack_succ_succ, apply one_lt_ack_succ_left }
 
-theorem one_lt_ack_add_one_right : ∀ m n, 1 < ack m (n + 1)
+theorem one_lt_ack_succ_right : ∀ m n, 1 < ack m (n + 1)
 | 0       n := by simp
 | (m + 1) n := begin
   rw ack_succ_succ,
   cases exists_eq_succ_of_ne_zero (ack_pos (m + 1) n).ne',
   rw h,
-  apply one_lt_ack_add_one_right
+  apply one_lt_ack_succ_right
 end
 
 theorem ack_strict_mono_right : ∀ m, strict_mono (ack m)
 | 0 n₁ n₂ h := by simpa using h
 | (m + 1) 0 (n + 1) h := begin
   rw [ack_succ_zero, ack_succ_succ],
-  exact ack_strict_mono_right _ (one_lt_ack_add_one_left m n)
+  exact ack_strict_mono_right _ (one_lt_ack_succ_left m n)
 end
 | (m + 1) (n₁ + 1) (n₂ + 1) h := begin
   rw [ack_succ_succ, ack_succ_succ],
@@ -165,7 +165,7 @@ theorem lt_ack_right (m n : ℕ) : n < ack m n := (self_le_add_left n m).trans_l
 -- we reorder the arguments to appease the equation compiler
 private theorem ack_strict_mono_left' : ∀ {m₁ m₂} n, m₁ < m₂ → ack m₁ n < ack m₂ n
 | m 0 n := λ h, (nat.not_lt_zero m h).elim
-| 0 (m + 1) 0 := λ h, by simpa using one_lt_ack_add_one_right m 0
+| 0 (m + 1) 0 := λ h, by simpa using one_lt_ack_succ_right m 0
 | 0 (m + 1) (n + 1) := λ h, begin
   rw [ack_zero, ack_succ_succ],
   apply lt_of_le_of_lt (le_trans _ $ add_le_add_left (add_add_one_le_ack _ _) m) (add_lt_ack _ _),
@@ -201,7 +201,7 @@ theorem max_ack_left (m₁ m₂ n : ℕ) : ack (max m₁ m₂) n = max (ack m₁
 theorem ack_le_ack {m₁ m₂ n₁ n₂ : ℕ} (hm : m₁ ≤ m₂) (hn : n₁ ≤ n₂) : ack m₁ n₁ ≤ ack m₂ n₂ :=
 (ack_mono_left n₁ hm).trans $ ack_mono_right m₂ hn
 
-theorem ack_add_one_right_le_ack_add_one_left (m n : ℕ) : ack m (n + 1) ≤ ack (m + 1) n :=
+theorem ack_succ_right_le_ack_succ_left (m n : ℕ) : ack m (n + 1) ≤ ack (m + 1) n :=
 begin
   cases n,
   { simp },
@@ -244,7 +244,7 @@ calc ack m (ack n k)
   ... < ack (max m n) (ack (max m n + 1) k) : ack_strict_mono_right _ $ ack_strict_mono_left k $
           lt_succ_of_le $ le_max_right m n
   ... = ack (max m n + 1) (k + 1) : (ack_succ_succ _ _).symm
-  ... ≤ ack (max m n + 2) k : ack_add_one_right_le_ack_add_one_left _ _
+  ... ≤ ack (max m n + 2) k : ack_succ_right_le_ack_succ_left _ _
 
 theorem ack_add_one_sq_lt_ack_add_four (m n : ℕ) : ack m ((n + 1) ^ 2) < ack (m + 4) n :=
 calc ack m ((n + 1) ^ 2)
@@ -253,7 +253,7 @@ calc ack m ((n + 1) ^ 2)
   ... ≤ ack m (ack (m + 3) n) : ack_mono_right m $ ack_add_one_sq_lt_ack_add_three m n
   ... ≤ ack (m + 2) (ack (m + 3) n) : ack_mono_left _ $ by linarith
   ... = ack (m + 3) (n + 1) : (ack_succ_succ _ n).symm
-  ... ≤ ack (m + 4) n : ack_add_one_right_le_ack_add_one_left _ n
+  ... ≤ ack (m + 4) n : ack_succ_right_le_ack_succ_left _ n
 
 theorem ack_mkpair_lt (m n k : ℕ) : ack m (mkpair n k) < ack (m + 4) (max n k) :=
 (ack_strict_mono_right m $ mkpair_lt_max_add_one_sq n k).trans $ ack_add_one_sq_lt_ack_add_four _ _

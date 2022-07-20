@@ -239,8 +239,8 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 -- [*] 0 < n.padic_part p ≤ n
 -- [*] 0 < n.p_odd_part p ≤ n
 -- [*] n.padic_part p * n.p_odd_part p = n
--- [ ] a.padic_part p * b.padic_part p = (a*b).padic_part p
--- [ ] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
+-- [*] a.padic_part p * b.padic_part p = (a*b).padic_part p
+-- [*] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
 -- [ ] n.padic_part p is the largest divisor of `n` divisible by `p`.
 -- [ ] n.p_odd_part p is the largest divisor of `n` not divisible by `p`.
 
@@ -359,8 +359,8 @@ lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n �
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
 lemma prime.pow_dvd_iff_dvd_pow_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
-  p ^ k ∣ n ↔ p ^ k ∣ p ^ n.factorization p :=
-by rw [pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
+  p ^ k ∣ n ↔ p ^ k ∣ n.padic_part p :=
+by rw [padic_part, pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
 
 lemma prime.dvd_iff_one_le_factorization {p n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ∣ n ↔ 1 ≤ n.factorization p :=

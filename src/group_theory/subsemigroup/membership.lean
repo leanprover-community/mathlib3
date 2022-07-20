@@ -27,7 +27,7 @@ stub and only provides rudimentary support.
 subsemigroup
 -/
 
-variables {M A B : Type*}
+variables {ι : Sort*} {M A B : Type*}
 
 section non_assoc
 variables [has_mul M]
@@ -40,7 +40,7 @@ namespace subsemigroup
 -- such that `complete_lattice.le` coincides with `set_like.le`
 
 @[to_additive]
-lemma mem_supr_of_directed {ι} {S : ι → subsemigroup M} (hS : directed (≤) S) {x : M} :
+lemma mem_supr_of_directed {S : ι → subsemigroup M} (hS : directed (≤) S) {x : M} :
   x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
   refine ⟨_, λ ⟨i, hi⟩, (set_like.le_def.1 $ le_supr S i) hi⟩,
@@ -53,7 +53,7 @@ begin
 end
 
 @[to_additive]
-lemma coe_supr_of_directed {ι} {S : ι → subsemigroup M} (hS : directed (≤) S) :
+lemma coe_supr_of_directed {S : ι → subsemigroup M} (hS : directed (≤) S) :
   ((⨆ i, S i : subsemigroup M) : set M) = ⋃ i, ↑(S i) :=
 set.ext $ λ x, by simp [mem_supr_of_directed hS]
 
@@ -82,7 +82,7 @@ lemma mul_mem_sup {S T : subsemigroup M} {x y : M} (hx : x ∈ S) (hy : y ∈ T)
 mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
 @[to_additive]
-lemma mem_supr_of_mem {ι : Sort*} {S : ι → subsemigroup M} (i : ι) :
+lemma mem_supr_of_mem {S : ι → subsemigroup M} (i : ι) :
   ∀ {x : M}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 
@@ -97,7 +97,7 @@ then it holds for all elements of the supremum of `S`. -/
 @[elab_as_eliminator, to_additive /-" An induction principle for elements of `⨆ i, S i`.
 If `C` holds all elements of `S i` for all `i`, and is preserved under addition,
 then it holds for all elements of the supremum of `S`. "-/]
-lemma supr_induction {ι : Sort*} (S : ι → subsemigroup M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, S i)
+lemma supr_induction (S : ι → subsemigroup M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, S i)
   (hp : ∀ i (x ∈ S i), C x)
   (hmul : ∀ x y, C x → C y → C (x * y)) : C x :=
 begin
@@ -109,7 +109,7 @@ end
 
 /-- A dependent version of `subsemigroup.supr_induction`. -/
 @[elab_as_eliminator, to_additive /-"A dependent version of `add_subsemigroup.supr_induction`. "-/]
-lemma supr_induction' {ι : Sort*} (S : ι → subsemigroup M) {C : Π x, (x ∈ ⨆ i, S i) → Prop}
+lemma supr_induction' (S : ι → subsemigroup M) {C : Π x, (x ∈ ⨆ i, S i) → Prop}
   (hp : ∀ i (x ∈ S i), C x (mem_supr_of_mem i ‹_›))
   (hmul : ∀ x y hx hy, C x hx → C y hy → C (x * y) (mul_mem ‹_› ‹_›))
   {x : M} (hx : x ∈ ⨆ i, S i) : C x hx :=

@@ -229,6 +229,7 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 
 @[simp] lemma padic_part_def (n p : ℕ) : n.padic_part p = p ^ n.factorization p := rfl
 @[simp] lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
+@[simp] lemma p_odd_part_def' (n p : ℕ) : n / n.padic_part p = n.p_odd_part p := rfl
 
 lemma pow_factorization_dvd (n p : ℕ) : n.padic_part p ∣ n :=
 begin
@@ -242,6 +243,16 @@ end
 
 lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
+
+lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.p_odd_part p ≠ 0 :=
+begin
+  cases em' p.prime with pp pp, { simpa [nat.factorization_eq_zero_of_non_prime n pp] },
+  rw ←p_odd_part_def',
+  refine mt (nat.div_eq_zero_iff _).1 (not_lt.2 (pow_factorization_le p hn)),
+  simp [pow_pos pp.pos],
+end
+
+
 
 /-! ### Factorization and divisibility -/
 
@@ -268,15 +279,6 @@ begin
   by_cases pp : p.prime,
   { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb) },
   { simp [factorization_eq_zero_of_non_prime n pp] }
-end
-
-lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
-  n / p ^ n.factorization p ≠ 0 :=
-begin
-  by_cases pp : nat.prime p,
-  { apply mt (nat.div_eq_zero_iff (pow_pos (prime.pos pp) _)).1,
-    simp [le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)] },
-  { simp [nat.factorization_eq_zero_of_non_prime n pp, hn] },
 end
 
 lemma factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :

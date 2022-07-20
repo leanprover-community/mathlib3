@@ -323,7 +323,7 @@ have hf2 : finite (p : ℤ) (n₂ * d₁),
     norm_cast,
     rw [← multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1) hf1, add_comm,
       ← multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1) hf2,
-      enat.get_le_get, multiplicity_le_multiplicity_iff] }
+      part_enat.get_le_get, multiplicity_le_multiplicity_iff] }
 
 /--
 Sufficient conditions to show that the p-adic valuation of `q` is less than or equal to the
@@ -465,9 +465,9 @@ lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn :
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
   rw padic_val_nat_def hn,
-  { rw [nat.cast_add, enat.coe_get],
+  { rw [nat.cast_add, part_enat.coe_get],
     simp only [nat.cast_one, not_le],
-    exact enat.lt_add_one (ne_top_iff_finite.mpr
+    exact part_enat.lt_add_one (ne_top_iff_finite.mpr
       (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
   { apply_instance }
 end
@@ -478,7 +478,7 @@ begin
   split,
   { rw [pow_dvd_iff_le_multiplicity, padic_val_nat],
     split_ifs,
-    { rw enat.coe_le_iff,
+    { rw part_enat.coe_le_iff,
       exact λ hn, or.inr (hn _) },
     { simp only [true_and, not_lt, ne.def, not_false_iff, nat.le_zero_iff, hp.out.ne_one] at h,
       exact λ hn, or.inl h } },

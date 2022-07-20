@@ -230,10 +230,10 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 @[simp] lemma padic_part_def (n p : ℕ) : n.padic_part p = p ^ n.factorization p := rfl
 @[simp] lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
 
-lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
+lemma pow_factorization_dvd (n p : ℕ) : n.padic_part p ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n hp] },
-  rw ←factors_count_eq,
+  rw [padic_part_def, ←factors_count_eq],
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,

@@ -42,7 +42,8 @@ intros; exact subsingleton.elim _ _
 
 instance : comm_ring punit :=
 by refine
-{ .. punit.comm_group,
+{ nat_cast := λ _, punit.star,
+  .. punit.comm_group,
   .. punit.add_comm_group,
   .. };
 intros; exact subsingleton.elim _ _
@@ -69,50 +70,18 @@ intros; exact subsingleton.elim _ _
 @[simp] lemma lcm_eq : lcm x y = star := rfl
 @[simp] lemma norm_unit_eq : norm_unit x = 1 := rfl
 
-instance : complete_boolean_algebra punit :=
-by refine
-{ le := λ _ _, true,
-  le_antisymm := λ _ _ _ _, subsingleton.elim _ _,
-  lt := λ _ _, false,
-  lt_iff_le_not_le := λ _ _, iff_of_false not_false (λ H, H.2 trivial),
-  top := star,
-  bot := star,
-  sup := λ _ _, star,
-  inf := λ _ _, star,
-  Sup := λ _, star,
-  Inf := λ _, star,
-  compl := λ _, star,
-  sdiff := λ _ _, star,
-  .. };
-intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
-
-@[simp] lemma top_eq : (⊤ : punit) = star := rfl
-@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
-@[simp] lemma sup_eq : x ⊔ y = star := rfl
-@[simp] lemma inf_eq : x ⊓ y = star := rfl
-@[simp] lemma Sup_eq : Sup s = star := rfl
-@[simp] lemma Inf_eq : Inf s = star := rfl
-@[simp] lemma compl_eq : xᶜ = star := rfl
-@[simp] lemma sdiff_eq : x \ y = star := rfl
-@[simp] protected lemma le : x ≤ y := trivial
-@[simp] lemma not_lt : ¬(x < y) := not_false
-
 instance : canonically_ordered_add_monoid punit :=
 by refine
-{ le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
+{ exists_add_of_le := λ _ _ _, ⟨star, subsingleton.elim _ _⟩,
   .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 
 instance : linear_ordered_cancel_add_comm_monoid punit :=
 { add_left_cancel := λ _ _ _ _, subsingleton.elim _ _,
   le_of_add_le_add_left := λ _ _ _ _, trivial,
-  le_total := λ _ _, or.inl trivial,
-  decidable_le := λ _ _, decidable.true,
-  decidable_eq := punit.decidable_eq,
-  decidable_lt := λ _ _, decidable.false,
-  .. punit.canonically_ordered_add_monoid }
+  .. punit.canonically_ordered_add_monoid, ..punit.linear_order }
 
-instance : has_scalar R punit :=
+instance : has_smul R punit :=
 { smul := λ _ _, star }
 
 @[simp] lemma smul_eq (r : R) : r • y = star := rfl
@@ -121,14 +90,14 @@ instance : is_central_scalar R punit := ⟨λ _ _, rfl⟩
 
 instance : smul_comm_class R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
-instance [has_scalar R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
+instance [has_smul R S] : is_scalar_tower R S punit := ⟨λ _ _ _, subsingleton.elim _ _⟩
 
 instance [has_zero R] : smul_with_zero R punit :=
-by refine { ..punit.has_scalar, .. };
+by refine { ..punit.has_smul, .. };
 intros; exact subsingleton.elim _ _
 
 instance [monoid R] : mul_action R punit :=
-by refine { ..punit.has_scalar, .. };
+by refine { ..punit.has_smul, .. };
 intros; exact subsingleton.elim _ _
 
 instance [monoid R] : distrib_mul_action R punit :=

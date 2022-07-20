@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import topology.algebra.module.weak_dual
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.locally_convex.with_seminorms
 
 /-!
@@ -50,9 +50,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 /-- Construct a seminorm from a linear form `f : E →ₗ[𝕜] 𝕜` over a normed field `𝕜` by
 `λ x, ∥f x∥` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
-{ to_fun := λ x, ∥f x∥,
-  smul' := λ a x, by simp only [map_smulₛₗ, ring_hom.id_apply, smul_eq_mul, norm_mul],
-  triangle' := λ x x', by { simp only [map_add, add_apply], exact norm_add_le _ _ } }
+(norm_seminorm 𝕜 𝕜).comp f
 
 lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :
   ⇑f.to_seminorm = λ x, ∥f x∥ := rfl
@@ -100,12 +98,9 @@ begin
     simp only [id.def],
     let U' := hU₁.to_finset,
     by_cases hU₃ : U.fst.nonempty,
-    { have hU₃' : U'.nonempty := (set.finite.to_finset.nonempty hU₁).mpr hU₃,
-      let r := U'.inf' hU₃' U.snd,
-      have hr : 0 < r :=
-      (finset.lt_inf'_iff hU₃' _).mpr (λ y hy, hU₂ y ((set.finite.mem_to_finset hU₁).mp hy)),
-      use [seminorm.ball (U'.sup p) (0 : E) r],
-      refine ⟨p.basis_sets_mem _ hr, λ x hx y hy, _⟩,
+    { have hU₃' : U'.nonempty := hU₁.nonempty_to_finset.mpr hU₃,
+      refine ⟨(U'.sup p).ball 0 $ U'.inf' hU₃' U.snd, p.basis_sets_mem _ $
+        (finset.lt_inf'_iff _).2 $ λ y hy, hU₂ y $ (hU₁.mem_to_finset).mp hy, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
       rw seminorm.mem_ball_zero at hx,
       rw ←linear_map.to_seminorm_family_apply,
@@ -128,8 +123,8 @@ begin
   exact hx y hy,
 end
 
-instance : with_seminorms
-  (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
+lemma linear_map.weak_bilin_with_seminorms (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+  with_seminorms (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
 seminorm_family.with_seminorms_of_has_basis _ B.has_basis_weak_bilin
 
 end topology
@@ -140,6 +135,6 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
-seminorm_family.to_locally_convex_space B.to_seminorm_family
+seminorm_family.to_locally_convex_space (B.weak_bilin_with_seminorms)
 
 end locally_convex

@@ -148,7 +148,7 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
   M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
 { to_fun := λ m, (f m).dom_restrict q,
   map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
-  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [map_smulₛₗ, dom_restrict_apply,
+  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [f.map_smulₛₗ, dom_restrict_apply,
     smul_apply]}
 
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
@@ -168,12 +168,13 @@ section comm_semiring
 variables {R : Type*} [comm_semiring R] {R₂ : Type*} [comm_semiring R₂]
 variables {R₃ : Type*} [comm_semiring R₃] {R₄ : Type*} [comm_semiring R₄]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables {Nₗ : Type*} {Pₗ : Type*} {Qₗ : Type*}
+variables {Mₗ : Type*} {Nₗ : Type*} {Pₗ : Type*} {Qₗ Qₗ': Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-variables [add_comm_monoid Nₗ] [add_comm_monoid Pₗ] [add_comm_monoid Qₗ]
+variables [add_comm_monoid Mₗ] [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
+variables [add_comm_monoid Qₗ] [add_comm_monoid Qₗ']
 variables [module R M] [module R₂ N] [module R₃ P] [module R₄ Q]
-variables [module R Nₗ] [module R Pₗ] [module R Qₗ]
+variables [module R Mₗ] [module R Nₗ] [module R Pₗ] [module R Qₗ] [module R Qₗ']
 variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
 variables {σ₄₂ : R₄ →+* R₂} {σ₄₃ : R₄ →+* R₃}
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₄₂ σ₂₃ σ₄₃]
@@ -215,6 +216,9 @@ variables {R Pₗ}
 @[simp] theorem lcomp_apply (f : M →ₗ[R] Nₗ) (g : Nₗ →ₗ[R] Pₗ) (x : M) :
   lcomp R Pₗ f g x = g (f x) := rfl
 
+theorem lcomp_apply' (f : M →ₗ[R] Nₗ) (g : Nₗ →ₗ[R] Pₗ) :
+  lcomp R Pₗ f g = g ∘ₗ f := rfl
+
 variables (P σ₂₃)
 /-- Composing a semilinear map `M → N` and a semilinear map `N → P` to form a semilinear map
 `M → P` is itself a linear map. -/
@@ -238,6 +242,9 @@ variables {R M Nₗ Pₗ}
 section
 @[simp] theorem llcomp_apply (f : Nₗ →ₗ[R] Pₗ) (g : M →ₗ[R] Nₗ) (x : M) :
   llcomp R M Nₗ Pₗ f g x = f (g x) := rfl
+
+theorem llcomp_apply' (f : Nₗ →ₗ[R] Pₗ) (g : M →ₗ[R] Nₗ) :
+  llcomp R M Nₗ Pₗ f g = f ∘ₗ g := rfl
 end
 
 /-- Composing a linear map `Q → N` and a bilinear map `M → N → P` to
@@ -248,6 +255,29 @@ include σ₄₃
 @[simp] theorem compl₂_apply (g : Q →ₛₗ[σ₄₂] N) (m : M) (q : Q) :
   f.compl₂ g m q = f m (g q) := rfl
 omit σ₄₃
+
+/-- Composing linear maps `Q → M` and `Q' → N` with a bilinear map `M → N → P` to
+form a bilinear map `Q → Q' → P`. -/
+def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ) :
+  Qₗ →ₗ[R] Qₗ' →ₗ[R] Pₗ :=
+(f.comp g).compl₂ g'
+
+@[simp] theorem compl₁₂_apply (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ)
+  (x : Qₗ) (y : Qₗ') : f.compl₁₂ g g' x y = f (g x) (g' y) := rfl
+
+lemma compl₁₂_inj {f₁ f₂ : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} {g : Qₗ →ₗ[R] Mₗ} {g' : Qₗ' →ₗ[R] Nₗ}
+  (hₗ : function.surjective g) (hᵣ : function.surjective g') :
+  f₁.compl₁₂ g g' = f₂.compl₁₂ g g' ↔ f₁ = f₂ :=
+begin
+  split; intros h,
+  { -- B₁.comp l r = B₂.comp l r → B₁ = B₂
+    ext x y,
+    cases hₗ x with x' hx, subst hx,
+    cases hᵣ y with y' hy, subst hy,
+    convert linear_map.congr_fun₂ h x' y' },
+  { -- B₁ = B₂ → B₁.comp l r = B₂.comp l r
+    subst h },
+end
 
 /-- Composing a linear map `P → Q` and a bilinear map `M → N → P` to
 form a bilinear map `M → N → Q`. -/
@@ -298,7 +328,8 @@ lemma sum_repr_mul_repr_mul {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} 
   B x y :=
 begin
   conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
-  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum, map_smulₛₗ₂, map_smulₛₗ],
+  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
+    linear_map.map_smulₛₗ₂, linear_map.map_smulₛₗ],
 end
 
 

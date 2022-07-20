@@ -210,14 +210,18 @@ instance : has_zero_morphisms (homological_complex V c) :=
 
 open_locale zero_object
 
-instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
-{ zero :=
-  { X := λ i, 0,
-    d := λ i j, 0 },
-  unique_from := λ C, ⟨⟨0⟩, λ f, by ext⟩,
-  unique_to := λ C, ⟨⟨0⟩, λ f, by ext⟩ }
+/-- The zero complex -/
+noncomputable def zero [has_zero_object V] : homological_complex V c :=
+{ X := λ i, 0, d := λ i j, 0 }
 
-instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
+lemma is_zero_zero [has_zero_object V] : is_zero (zero : homological_complex V c) :=
+by { refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩; ext, }
+
+instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
+⟨⟨zero, is_zero_zero⟩⟩
+
+noncomputable
+instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨zero⟩
 
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i

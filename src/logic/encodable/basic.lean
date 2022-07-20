@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.nat
 import order.directed
+import data.countable.defs
 import order.rel_iso
 
 /-!
@@ -53,6 +54,10 @@ theorem encode_injective [encodable α] : function.injective (@encode α _)
 @[simp] lemma encode_inj [encodable α] {a b : α} : encode a = encode b ↔ a = b :=
 encode_injective.eq_iff
 
+-- The priority of the instance below is less than the priorities of `subtype.countable`
+-- and `quotient.countable`
+@[priority 400] instance [encodable α] : countable α := encode_injective.countable
+
 lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
   surjective (λ n, (encodable.decode α n).iget) :=
 λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
@@ -84,16 +89,16 @@ of_left_inverse e e.symm e.left_inv
 @[simp] theorem decode_of_equiv {α β} [encodable α] (e : β ≃ α) (n : ℕ) :
   @decode _ (of_equiv _ e) n = (decode α n).map e.symm := rfl
 
-instance nat : encodable ℕ :=
+instance _root_.nat.encodable : encodable ℕ :=
 ⟨id, some, λ a, rfl⟩
 
 @[simp] theorem encode_nat (n : ℕ) : encode n = n := rfl
 @[simp] theorem decode_nat (n : ℕ) : decode ℕ n = some n := rfl
 
-@[priority 100] instance is_empty [is_empty α] : encodable α :=
+@[priority 100] instance _root_.is_empty.to_encodable [is_empty α] : encodable α :=
 ⟨is_empty_elim, λ n, none, is_empty_elim⟩
 
-instance unit : encodable punit :=
+instance _root_.punit.encodable : encodable punit :=
 ⟨λ_, 0, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simp⟩
 
 @[simp] theorem encode_star : encode punit.star = 0 := rfl
@@ -102,7 +107,7 @@ instance unit : encodable punit :=
 @[simp] theorem decode_unit_succ (n) : decode punit (succ n) = none := rfl
 
 /-- If `α` is encodable, then so is `option α`. -/
-instance option {α : Type*} [h : encodable α] : encodable (option α) :=
+instance _root_.option.encodable {α : Type*} [h : encodable α] : encodable (option α) :=
 ⟨λ o, option.cases_on o nat.zero (λ a, succ (encode a)),
  λ n, nat.cases_on n (some none) (λ m, (decode α m).map some),
  λ o, by cases o; dsimp; simp [encodek, nat.succ_ne_zero]⟩
@@ -193,7 +198,7 @@ match bodd_div2 n with
 end
 
 /-- If `α` and `β` are encodable, then so is their sum. -/
-instance sum : encodable (α ⊕ β) :=
+instance _root_.sum.encodable : encodable (α ⊕ β) :=
 ⟨encode_sum, decode_sum, λ s,
   by cases s; simp [encode_sum, decode_sum, encodek]; refl⟩
 
@@ -206,7 +211,7 @@ instance sum : encodable (α ⊕ β) :=
 
 end sum
 
-instance bool : encodable bool :=
+instance _root_.bool.encodable : encodable bool :=
 of_equiv (unit ⊕ unit) equiv.bool_equiv_punit_sum_punit
 
 @[simp] theorem encode_tt : encode tt = 1 := rfl
@@ -226,7 +231,7 @@ begin
   simp [decode_sum]; cases bodd n; simp [decode_sum]; rw e; refl
 end
 
-noncomputable instance «Prop» : encodable Prop :=
+noncomputable instance _root_.Prop.encodable : encodable Prop :=
 of_equiv bool equiv.Prop_equiv_bool
 
 section sigma
@@ -241,7 +246,7 @@ def decode_sigma (n : ℕ) : option (sigma γ) :=
 let (n₁, n₂) := unpair n in
 (decode α n₁).bind $ λ a, (decode (γ a) n₂).map $ sigma.mk a
 
-instance sigma : encodable (sigma γ) :=
+instance _root_.sigma.encodable : encodable (sigma γ) :=
 ⟨encode_sigma, decode_sigma, λ ⟨a, b⟩,
   by simp [encode_sigma, decode_sigma, unpair_mkpair, encodek]⟩
 
@@ -258,7 +263,7 @@ section prod
 variables [encodable α] [encodable β]
 
 /-- If `α` and `β` are encodable, then so is their product. -/
-instance prod : encodable (α × β) :=
+instance _root_.prod.encodable : encodable (α × β) :=
 of_equiv _ (equiv.sigma_equiv_prod α β).symm
 
 @[simp] theorem decode_prod_val (n : ℕ) : decode (α × β) n =
@@ -289,7 +294,7 @@ def decode_subtype (v : ℕ) : option {a : α // P a} :=
 if h : P a then some ⟨a, h⟩ else none
 
 /-- A decidable subtype of an encodable type is encodable. -/
-instance subtype : encodable {a : α // P a} :=
+instance _root_.subtype.encodable : encodable {a : α // P a} :=
 ⟨encode_subtype, decode_subtype,
  λ ⟨v, h⟩, by simp [encode_subtype, decode_subtype, encodek, h]⟩
 
@@ -298,28 +303,37 @@ by cases a; refl
 
 end subtype
 
-instance fin (n) : encodable (fin n) :=
-of_equiv _ (equiv.fin_equiv_subtype _)
+instance _root_.fin.encodable (n) : encodable (fin n) :=
+subtype.encodable
 
-instance int : encodable ℤ :=
+instance _root_.int.encodable : encodable ℤ :=
 of_equiv _ equiv.int_equiv_nat
 
-instance pnat : encodable ℕ+ :=
+instance _root_.pnat.encodable : encodable ℕ+ :=
 of_equiv _ equiv.pnat_equiv_nat
 
 /-- The lift of an encodable type is encodable. -/
-instance ulift [encodable α] : encodable (ulift α) :=
+instance _root_.ulift.encodable [encodable α] : encodable (ulift α) :=
 of_equiv _ equiv.ulift
 
 /-- The lift of an encodable type is encodable. -/
-instance plift [encodable α] : encodable (plift α) :=
+instance _root_.plift.encodable [encodable α] : encodable (plift α) :=
 of_equiv _ equiv.plift
 
 /-- If `β` is encodable and there is an injection `f : α → β`, then `α` is encodable as well. -/
 noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
+/-- If `α` is countable, then it has a (non-canonical) `encodable` structure. -/
+noncomputable def of_countable (α : Type*) [countable α] : encodable α :=
+nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
+
+@[simp] lemma nonempty_encodable : nonempty (encodable α) ↔ countable α :=
+⟨λ ⟨h⟩, @encodable.countable α h, λ h, ⟨@of_countable _ h⟩⟩
+
 end encodable
+
+instance : countable ℕ+ := subtype.countable -- short-circuit instance search
 
 section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode

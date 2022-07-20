@@ -53,6 +53,11 @@ instance : set_like (lie_submodule R L M) M :=
 { coe := carrier,
   coe_injective' := λ N O h, by cases N; cases O; congr' }
 
+instance : add_subgroup_class (lie_submodule R L M) M :=
+{ add_mem := λ N, N.add_mem',
+  zero_mem := λ N, N.zero_mem',
+  neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -78,7 +83,7 @@ iff.rfl
 
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+@[simp] protected lemma zero_mem : (0 : M) ∈ N := zero_mem N
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 
@@ -119,13 +124,13 @@ instance : lie_ring_module L N :=
   lie_add     := by { intros x m n, apply set_coe.ext, apply lie_add, },
   leibniz_lie := by { intros x y m, apply set_coe.ext, apply leibniz_lie, }, }
 
-instance module' {S : Type*} [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+instance module' {S : Type*} [semiring S] [has_smul S R] [module S M] [is_scalar_tower S R M] :
   module S N :=
 N.to_submodule.module'
 
 instance : module R N := N.to_submodule.module
 
-instance {S : Type*} [semiring S] [has_scalar S R] [has_scalar Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
+instance {S : Type*} [semiring S] [has_smul S R] [has_smul Sᵐᵒᵖ R] [module S M] [module Sᵐᵒᵖ M]
   [is_scalar_tower S R M] [is_scalar_tower Sᵐᵒᵖ R M] [is_central_scalar S M] :
   is_central_scalar S N :=
 N.to_submodule.is_central_scalar
@@ -550,6 +555,15 @@ lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
 submodule.mem_map
 
 @[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
+
+lemma comap_incl_eq_top : N₂.comap N.incl = ⊤ ↔ N ≤ N₂ :=
+by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_submodule_comap,
+  lie_submodule.incl_coe, lie_submodule.top_coe_submodule, submodule.comap_subtype_eq_top]
+
+lemma comap_incl_eq_bot : N₂.comap N.incl = ⊥ ↔ N ⊓ N₂ = ⊥ :=
+by simpa only [_root_.eq_bot_iff, ← lie_submodule.coe_to_submodule_eq_iff,
+  lie_submodule.coe_submodule_comap, lie_submodule.incl_coe, lie_submodule.bot_coe_submodule,
+  ← submodule.disjoint_iff_comap_eq_bot]
 
 end lie_submodule
 

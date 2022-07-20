@@ -46,6 +46,11 @@ theorem isometry.dist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : 
   (hf : isometry f) (x y : α) : dist (f x) (f y) = dist x y :=
 by rw [dist_edist, dist_edist, hf]
 
+/-- An isometry preserves non-negative distances. -/
+theorem isometry.nndist_eq [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β}
+  (hf : isometry f) (x y : α) : nndist (f x) (f y) = nndist x y :=
+subtype.ext $ hf.dist_eq x y
+
 section pseudo_emetric_isometry
 
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
@@ -232,6 +237,10 @@ h.isometry.edist_eq x y
 protected lemma dist_eq {α β : Type*} [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
   (x y : α) : dist (h x) (h y) = dist x y :=
 h.isometry.dist_eq x y
+
+protected lemma nndist_eq {α β : Type*} [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
+  (x y : α) : nndist (h x) (h y) = nndist x y :=
+h.isometry.nndist_eq x y
 
 protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
 

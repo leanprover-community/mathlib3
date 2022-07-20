@@ -94,44 +94,65 @@ exists_maximal_of_chains_bounded
       (h c hc))
   (λ a b c, trans)
 
-section partial_order
-variables [partial_order α]
+section preorder
+variables [preorder α]
 
-lemma zorn_partial_order (h : ∀ c : set α, is_chain (≤) c → ∃ ub, ∀ a ∈ c, a ≤ ub) :
-  ∃ m : α, ∀ a, m ≤ a → a = m :=
-let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (λ a b c, le_trans) in
-⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
+theorem zorn_preorder (h : ∀ c : set α, is_chain (≤) c → bdd_above c) :
+  ∃ m : α, ∀ a, m ≤ a → a ≤ m :=
+exists_maximal_of_chains_bounded h (λ a b c, le_trans)
 
-lemma zorn_nonempty_partial_order [nonempty α]
-  (h : ∀ c : set α, is_chain (≤) c → c.nonempty → ∃ ub, ∀ a ∈ c, a ≤ ub) :
-  ∃ (m : α), ∀ a, m ≤ a → a = m :=
-let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a b c, le_trans) in
-⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
+theorem zorn_nonempty_preorder [nonempty α]
+  (h : ∀ (c : set α), is_chain (≤) c → c.nonempty → bdd_above c) :
+  ∃ (m : α), ∀ a, m ≤ a → a ≤ m :=
+exists_maximal_of_nonempty_chains_bounded h (λ a b c, le_trans)
 
-lemma zorn_partial_order₀ (s : set α)
+theorem zorn_preorder₀ (s : set α)
   (ih : ∀ c ⊆ s, is_chain (≤) c → ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) :
-  ∃ m ∈ s, ∀ z ∈ s, m ≤ z → z = m :=
-let ⟨⟨m, hms⟩, h⟩ := @zorn_partial_order {m // m ∈ s} _
+  ∃ m ∈ s, ∀ z ∈ s, m ≤ z → z ≤ m :=
+let ⟨⟨m, hms⟩, h⟩ := @zorn_preorder s _
   (λ c hc,
     let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (λ _ ⟨⟨x, hx⟩, _, h⟩, h ▸ hx)
       (by { rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
         refine hc hpc hqc (λ t, hpq (subtype.ext_iff.1 t)) })
     in ⟨⟨ub, hubs⟩, λ ⟨y, hy⟩ hc, hub _ ⟨_, hc, rfl⟩⟩)
-in ⟨m, hms, λ z hzs hmz, congr_arg subtype.val (h ⟨z, hzs⟩ hmz)⟩
+in ⟨m, hms, λ z hzs hmz, h ⟨z, hzs⟩ hmz⟩
+
+theorem zorn_nonempty_preorder₀ (s : set α)
+  (ih : ∀ c ⊆ s, is_chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) (x : α) (hxs : x ∈ s) :
+  ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z ≤ m :=
+begin
+  rcases zorn_preorder₀ {y ∈ s | x ≤ y} (λ c hcs hc, _) with ⟨m, ⟨hms, hxm⟩, hm⟩,
+  { exact ⟨m, hms, hxm, λ z hzs hmz, hm _ ⟨hzs, (hxm.trans hmz)⟩ hmz⟩ },
+  { rcases c.eq_empty_or_nonempty with rfl|⟨y, hy⟩,
+    { exact ⟨x, ⟨hxs, le_rfl⟩, λ z, false.elim⟩ },
+    { rcases ih c (λ z hz, (hcs hz).1) hc y hy with ⟨z, hzs, hz⟩,
+      exact ⟨z, ⟨hzs, (hcs hy).2.trans $ hz _ hy⟩, hz⟩ } }
+end
+
+end preorder
+
+section partial_order
+variables [partial_order α]
+
+lemma zorn_partial_order (h : ∀ c : set α, is_chain (≤) c → bdd_above c) :
+  ∃ m : α, ∀ a, m ≤ a → a = m :=
+let ⟨m, hm⟩ := zorn_preorder h in ⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_nonempty_partial_order [nonempty α]
+  (h : ∀ (c : set α), is_chain (≤) c → c.nonempty → bdd_above c) :
+  ∃ (m : α), ∀ a, m ≤ a → a = m :=
+let ⟨m, hm⟩ := zorn_nonempty_preorder h in ⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
+
+theorem zorn_partial_order₀ (s : set α)
+  (ih : ∀ c ⊆ s, is_chain (≤) c → ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) :
+  ∃ m ∈ s, ∀ z ∈ s, m ≤ z → z = m :=
+let ⟨m, hms, hm⟩ := zorn_preorder₀ s ih in ⟨m, hms, λ z hzs hmz, (hm z hzs hmz).antisymm hmz⟩
 
 lemma zorn_nonempty_partial_order₀ (s : set α)
   (ih : ∀ c ⊆ s, is_chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) (x : α) (hxs : x ∈ s) :
   ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
-let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
-  (λ c hc, c.eq_empty_or_nonempty.elim
-    (λ hce, hce.symm ▸ ⟨⟨x, hxs, le_rfl⟩, λ _, false.elim⟩)
-    (λ ⟨m, hmc⟩,
-      let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
-        (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
-          exact hc hpc hqc (ne_of_apply_ne _ hpq)) m.1 (mem_image_of_mem _ hmc) in
-    ⟨⟨ub, hubs, le_trans m.2.2 $ hub m.1 $ mem_image_of_mem _ hmc⟩,
-      λ a hac, hub a.1 ⟨a, hac, rfl⟩⟩)) in
-⟨m, hms, hxm, λ z hzs hmz, congr_arg subtype.val $ h ⟨z, hzs, le_trans hxm hmz⟩ hmz⟩
+let ⟨m, hms, hxm, hm⟩ := zorn_nonempty_preorder₀ s ih x hxs
+in ⟨m, hms, hxm, λ z hzs hmz, (hm z hzs hmz).antisymm hmz⟩
 
 end partial_order
 
@@ -147,13 +168,12 @@ zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 lemma zorn_superset (S : set (set α))
   (h : ∀ c ⊆ S, is_chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
   ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
-@zorn_partial_order₀ (order_dual (set α)) _ S $ λ c cS hc, h c cS hc.symm
+@zorn_partial_order₀ (set α)ᵒᵈ _ S $ λ c cS hc, h c cS hc.symm
 
 lemma zorn_superset_nonempty (S : set (set α))
   (H : ∀ c ⊆ S, is_chain (⊆) c → c.nonempty → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) (x) (hx : x ∈ S) :
   ∃ m ∈ S, m ⊆ x ∧ ∀ a ∈ S, a ⊆ m → a = m :=
-@zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
-  hc.symm ⟨y, yc⟩) _ hx
+@zorn_nonempty_partial_order₀ (set α)ᵒᵈ _ S (λ c cS hc y yc, H _ cS hc.symm ⟨y, yc⟩) _ hx
 
 /-- Every chain is contained in a maximal chain. This generalizes Hausdorff's maximality principle.
 -/

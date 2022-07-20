@@ -3,6 +3,7 @@ Copyright (c) 2022 Alex J. Best, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Yaël Dillies
 -/
+import algebra.order.archimedean
 import algebra.order.hom.monoid
 import algebra.order.ring
 import algebra.ring.equiv
@@ -277,6 +278,10 @@ ext e.left_inv
 @[simp] lemma symm_trans_self (e : α ≃+*o β) : e.symm.trans e = order_ring_iso.refl β :=
 ext e.right_inv
 
+lemma symm_bijective : bijective (order_ring_iso.symm : (α ≃+*o β) → β ≃+*o α) :=
+⟨λ f g h, f.symm_symm.symm.trans $ (congr_arg order_ring_iso.symm h).trans g.symm_symm,
+  λ f, ⟨f.symm, f.symm_symm⟩⟩
+
 end has_le
 
 section non_assoc_semiring
@@ -294,5 +299,54 @@ def to_order_ring_hom (f : α ≃+*o β) : α →+*o β :=
 @[simp]
 lemma coe_to_order_ring_hom_refl : (order_ring_iso.refl α : α →+*o α) = order_ring_hom.id α := rfl
 
+lemma to_order_ring_hom_injective : injective (to_order_ring_hom : (α ≃+*o β) → α →+*o β) :=
+λ f g h, fun_like.coe_injective $ by convert fun_like.ext'_iff.1 h
+
 end non_assoc_semiring
 end order_ring_iso
+
+/-!
+### Uniqueness
+
+There is at most one ordered ring homomorphism from a linear ordered field to an archimedean linear
+ordered field. Reciprocally, such an ordered ring homomorphism exists when the codomain is further
+conditionally complete.
+-/
+
+/-- There is at most one ordered ring homomorphism from a linear ordered field to an archimedean
+linear ordered field. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma order_ring_hom.subsingleton [linear_ordered_field α] [linear_ordered_field β]
+  [archimedean β] :
+  subsingleton (α →+*o β) :=
+⟨λ f g, begin
+  ext x,
+  by_contra' h,
+  wlog h : f x < g x using [f g, g f],
+  { exact ne.lt_or_lt h },
+  obtain ⟨q, hf, hg⟩ := exists_rat_btwn h,
+  rw ←map_rat_cast f at hf,
+  rw ←map_rat_cast g at hg,
+  exact (lt_asymm ((order_hom_class.mono g).reflect_lt hg) $
+    (order_hom_class.mono f).reflect_lt hf).elim,
+end⟩
+
+local attribute [instance] order_ring_hom.subsingleton
+
+/-- There is at most one ordered ring isomorphism between a linear ordered field and an archimedean
+linear ordered field. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma order_ring_iso.subsingleton_right [linear_ordered_field α] [linear_ordered_field β]
+  [archimedean β] :
+  subsingleton (α ≃+*o β) :=
+order_ring_iso.to_order_ring_hom_injective.subsingleton
+
+local attribute [instance] order_ring_iso.subsingleton_right
+
+/-- There is at most one ordered ring isomorphism between an archimedean linear ordered field and a
+linear ordered field. -/
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma order_ring_iso.subsingleton_left [linear_ordered_field α] [archimedean α]
+  [linear_ordered_field β] :
+  subsingleton (α ≃+*o β) :=
+order_ring_iso.symm_bijective.injective.subsingleton

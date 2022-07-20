@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.full_subcategory
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.products
-import tactic.elementwise
 import topology.sheaves.presheaf
 
 /-!
@@ -19,7 +18,7 @@ in terms of an equalizer diagram where the two objects are
 
 -/
 
-universes v u
+universes v' v u
 
 noncomputable theory
 
@@ -31,8 +30,8 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
+variables {X : Top.{v'}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
 
@@ -68,7 +67,7 @@ def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
 @[simp, elementwise]
-lemma res_π (i : ι) : res F U ≫ limit.π _ i = F.map (opens.le_supr U i).op :=
+lemma res_π (i : ι) : res F U ≫ limit.π _ ⟨i⟩ = F.map (opens.le_supr U i).op :=
 by rw [res, limit.lift_π, fan.mk_π_app]
 
 @[elementwise]
@@ -86,7 +85,7 @@ end
 The equalizer diagram for the sheaf condition.
 -/
 @[reducible]
-def diagram : walking_parallel_pair.{v} ⥤ C :=
+def diagram : walking_parallel_pair ⥤ C :=
 parallel_pair (left_res F U) (right_res F U)
 
 /--
@@ -149,7 +148,7 @@ end
 
 section open_embedding
 
-variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
+variables {V : Top.{v'}} {j : V ⟶ X} (oe : open_embedding j)
 variables (𝒰 : ι → opens V)
 
 /--
@@ -233,11 +232,11 @@ begin
     exact
     F.map_iso (iso.op
     { hom := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
-  { ext,
+  { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,

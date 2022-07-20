@@ -80,12 +80,12 @@ variables {R S k a}
 
 lemma map_dickson (f : R →+* S) :
   ∀ (n : ℕ), map f (dickson k a n) = dickson k (f a) n
-| 0       := by simp only [dickson_zero, map_sub, polynomial.map_nat_cast,
-                            bit1, bit0, map_add, map_one]
+| 0       := by simp only [dickson_zero, polynomial.map_sub, polynomial.map_nat_cast,
+                            bit1, bit0, polynomial.map_add, polynomial.map_one]
 | 1       := by simp only [dickson_one, map_X]
 | (n + 2) :=
 begin
-  simp only [dickson_add_two, map_sub, map_mul, map_X, map_C],
+  simp only [dickson_add_two, polynomial.map_sub, polynomial.map_mul, map_X, map_C],
   rw [map_dickson, map_dickson]
 end
 
@@ -200,7 +200,7 @@ begin
   apply @set.infinite.mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
     simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
-      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow₀, zmod.cast_hom_apply,
+      dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow, zmod.cast_hom_apply,
       zmod.cast_one'] },
   -- Now we need to show that the set of such `x` is infinite.
   -- If the set is finite, then we will show that `K` is also finite.

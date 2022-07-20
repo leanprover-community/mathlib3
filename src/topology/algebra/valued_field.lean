@@ -28,7 +28,6 @@ separated, so the map from `K` to `hat K` is injective.
 Then we extend the valuation given on `K` to a valuation on `hat K`.
 -/
 
-
 open filter set
 open_locale topological_space
 
@@ -70,7 +69,7 @@ begin
     ... = (v x⁻¹) * (v $ y - x) * (v y⁻¹) : by repeat { rw valuation.map_mul }
     ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [v.map_inv, v.map_inv]
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : by
-      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev₀] }
+      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev] }
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : rfl
     ... = (v $ x - y) * ((v y) * (v y))⁻¹ : by rw valuation.map_sub_swap
     ... < γ : hyp1',
@@ -104,7 +103,8 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
 @[priority 100]
 instance valued_ring.separated [valued K Γ₀] : separated_space K :=
 begin
-  apply topological_add_group.separated_of_zero_sep,
+  rw separated_iff_t2,
+  apply topological_add_group.t2_space_of_zero_sep,
   intros x x_ne,
   refine ⟨{k | v k < v x}, _, λ h, lt_irrefl _ h⟩,
   rw valued.mem_nhds,
@@ -142,7 +142,7 @@ end valuation_topological_division_ring
 
 end division_ring
 
-section valuation_on_valued_field_completion
+namespace valued
 open uniform_space
 
 variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀]
@@ -150,13 +150,11 @@ variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_
 
 include hv
 
-open valued uniform_space
-
 local notation `hat ` := completion
 
 /-- A valued field is completable. -/
 @[priority 100]
-instance valued.completable : completable_top_field K :=
+instance completable : completable_top_field K :=
 { nice := begin
     rintros F hF h0,
     have : ∃ (γ₀ : Γ₀ˣ) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀) ≤ v x,
@@ -203,10 +201,10 @@ instance valued.completable : completable_top_field K :=
 local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
 
 /-- The extension of the valuation of a valued field to the completion of the field. -/
-noncomputable def valued.extension : hat K → Γ₀ :=
+noncomputable def extension : hat K → Γ₀ :=
 completion.dense_inducing_coe.extend (v : K → Γ₀)
 
-lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
+lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
  begin
   refine completion.dense_inducing_coe.continuous_extend _,
   intro x₀,
@@ -274,7 +272,7 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
     { apply hV,
       have : ((z₀⁻¹ : K) : hat K) = z₀⁻¹,
       from ring_hom.map_inv (completion.coe_ring_hom : K →+* hat K) z₀,
-      rw [completion.coe_mul, this, ← hy, hz₀, mul_inv₀, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
+      rw [completion.coe_mul, this, ← hy, hz₀, mul_inv, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
           mul_inv_cancel h, mul_one],
       solve_by_elim },
     calc v x = v (x*z₀⁻¹*z₀) : by rw [mul_assoc, inv_mul_cancel z₀_ne, mul_one]
@@ -282,17 +280,17 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
          ... = v z₀ : by rw [this, one_mul]  },
 end
 
-@[norm_cast]
-lemma valued.extension_extends (x : K) : (valued.extension (x : hat K) : Γ₀) = v x :=
+@[simp, norm_cast]
+lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
-  haveI : t2_space Γ₀ := regular_space.t2_space _,
+  haveI : t2_space Γ₀ := t3_space.t2_space _,
   refine completion.dense_inducing_coe.extend_eq_of_tendsto _,
   rw ← completion.dense_inducing_coe.nhds_eq_comap,
   exact valued.continuous_valuation.continuous_at,
 end
 
 /-- the extension of a valuation on a division ring to its completion. -/
-noncomputable def valued.extension_valuation :
+noncomputable def extension_valuation :
   valuation (hat K) Γ₀ :=
 { to_fun := valued.extension,
   map_zero' := by { rw [← v.map_zero, ← valued.extension_extends (0 : K)], refl, },
@@ -324,4 +322,42 @@ noncomputable def valued.extension_valuation :
       exact v.map_add x y, },
   end }
 
-end valuation_on_valued_field_completion
+-- Bourbaki CA VI §5 no.3 Proposition 5 (d)
+lemma closure_coe_completion_v_lt {γ : Γ₀ˣ} :
+  closure (coe '' { x : K | v x < (γ : Γ₀) }) = { x : hat K | extension_valuation x < (γ : Γ₀) } :=
+begin
+  ext x,
+  let γ₀ := extension_valuation x,
+  suffices : γ₀ ≠ 0 → (x ∈ closure (coe '' { x : K | v x < (γ : Γ₀) }) ↔ γ₀ < (γ : Γ₀)),
+  { cases eq_or_ne γ₀ 0,
+    { simp only [h, (valuation.zero_iff _).mp h, mem_set_of_eq, valuation.map_zero, units.zero_lt,
+        iff_true],
+      apply subset_closure,
+      exact ⟨0, by simpa only [mem_set_of_eq, valuation.map_zero, units.zero_lt, true_and]⟩, },
+    { exact this h, }, },
+  intros h,
+  have hγ₀ : extension ⁻¹' {γ₀} ∈ 𝓝 x := continuous_extension.continuous_at.preimage_mem_nhds
+    (linear_ordered_comm_group_with_zero.singleton_mem_nhds_of_ne_zero h),
+  rw mem_closure_iff_nhds',
+  refine ⟨λ hx, _, λ hx s hs, _⟩,
+  { obtain ⟨⟨-, y, hy₁ : v y < (γ : Γ₀), rfl⟩, hy₂⟩ := hx _ hγ₀,
+    replace hy₂ : v y = γ₀, { simpa using hy₂, },
+    rwa ← hy₂, },
+  { obtain ⟨y, hy₁, hy₂ : ↑y ∈ s⟩ := completion.dense_range_coe.mem_nhds (inter_mem hγ₀ hs),
+    replace hy₁ : v y = γ₀, { simpa using hy₁, },
+    rw ← hy₁ at hx,
+    exact ⟨⟨y, ⟨y, hx, rfl⟩⟩, hy₂⟩, },
+end
+
+noncomputable instance valued_completion : valued (hat K) Γ₀ :=
+{ v := extension_valuation,
+  is_topological_valuation := λ s,
+  begin
+    suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ γ : Γ₀ˣ, { x | extension_valuation x < γ }),
+    { rw this.mem_iff,
+      exact exists_congr (λ γ, by simp), },
+    simp_rw ← closure_coe_completion_v_lt,
+    exact (has_basis_nhds_zero K Γ₀).has_basis_of_dense_inducing completion.dense_inducing_coe,
+  end }
+
+end valued

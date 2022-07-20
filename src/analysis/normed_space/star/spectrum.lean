@@ -51,7 +51,8 @@ variables {A : Type*}
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-lemma spectral_radius_eq_nnnorm_of_self_adjoint {a : A} (ha : a ∈ self_adjoint A) :
+lemma spectral_radius_eq_nnnorm_of_self_adjoint [norm_one_class A] {a : A}
+  (ha : a ∈ self_adjoint A) :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
@@ -64,10 +65,10 @@ begin
   simp,
 end
 
-lemma spectral_radius_eq_nnnorm_of_star_normal (a : A) [is_star_normal a] :
+lemma spectral_radius_eq_nnnorm_of_star_normal [norm_one_class A] (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
-  refine (ennreal.pow_strict_mono (by linarith : 2 ≠ 0)).injective _,
+  refine (ennreal.pow_strict_mono two_ne_zero).injective _,
   have ha : a⋆ * a ∈ self_adjoint A,
     from self_adjoint.mem_iff.mpr (by simpa only [star_star] using (star_mul a⋆ a)),
   have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
@@ -87,11 +88,11 @@ theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : 
   (ha : a ∈ self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
   let Iu := units.mk0 I I_ne_zero,
-  have : exp ℂ ℂ (I • z) ∈ spectrum ℂ (exp ℂ A (I • a)),
+  have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
     by simpa only [units.smul_def, units.coe_mk0]
       using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
   exact complex.ext (of_real_re _)
-    (by simpa only [←complex.exp_eq_exp_ℂ_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
+    (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
       real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
       using spectrum.subset_circle_of_unitary (self_adjoint.exp_i_smul_unitary ha) this),
 end

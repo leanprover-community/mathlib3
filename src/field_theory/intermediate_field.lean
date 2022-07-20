@@ -273,6 +273,8 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
+@[simp] lemma coe_map (f : L →ₐ[K] L') : (S.map f : set L') = f '' S := rfl
+
 lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
   (E : intermediate_field K L₁) (f : L₁ →ₐ[K] L₂) (g : L₂ →ₐ[K] L₃) :

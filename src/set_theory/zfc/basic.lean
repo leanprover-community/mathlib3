@@ -116,7 +116,7 @@ theorem exists_equiv_right : Π {x y : pSet} (h : equiv x y) (j : y.type),
   ∃ i, equiv (x.func i) (y.func j)
 | ⟨α, A⟩ ⟨β, B⟩ h := h.2
 
-protected theorem equiv.refl (x) : equiv x x :=
+@[refl] protected theorem equiv.refl (x) : equiv x x :=
 pSet.rec_on x $ λ α A IH, ⟨λ a, ⟨a, IH a⟩, λ a, ⟨a, IH a⟩⟩
 
 protected theorem equiv.rfl : ∀ {x}, equiv x x := equiv.refl
@@ -126,10 +126,10 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 ⟨λ a, let ⟨b, ab⟩ := αβ a, ⟨c, bc⟩ := βγ b in ⟨c, IH a ab bc⟩,
   λ c, let ⟨b, cb⟩ := γβ c, ⟨a, ba⟩ := βα b in ⟨a, IH a ba cb⟩⟩
 
-protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
+@[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
-protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
+@[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
 instance setoid : setoid pSet :=
@@ -140,6 +140,15 @@ equivalent to some element of the second family.-/
 protected def subset (x y : pSet) : Prop := ∀ a, ∃ b, equiv (x.func a) (y.func b)
 
 instance : has_subset pSet := ⟨pSet.subset⟩
+
+instance : is_refl pSet (⊆) := ⟨λ x a, ⟨a, equiv.refl _⟩⟩
+
+instance : is_trans pSet (⊆) :=
+⟨λ x y z hxy hyz a, begin
+  cases hxy a with b hb,
+  cases hyz b with c hc,
+  exact ⟨c, hb.trans hc⟩
+end⟩
 
 theorem equiv.ext : Π (x y : pSet), equiv x y ↔ (x ⊆ y ∧ y ⊆ x)
 | ⟨α, A⟩ ⟨β, B⟩ :=
@@ -431,6 +440,9 @@ instance has_subset : has_subset Set :=
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
+instance : is_refl Set (⊆) := ⟨λ x a, id⟩
+instance : is_trans Set (⊆) := ⟨λ x y z hxy hyz a ha, hyz (hxy ha)⟩
+
 @[simp] theorem subset_iff : Π {x y : pSet}, mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ h a, @h ⟦A a⟧ (mem.mk A a),
   λ h z, quotient.induction_on z (λ z ⟨a, za⟩, let ⟨b, ab⟩ := h a in ⟨b, za.trans ab⟩)⟩
@@ -440,6 +452,8 @@ quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧
 
 theorem ext_iff {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) ↔ x = y :=
 ⟨ext, λ h, by simp [h]⟩
+
+instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @hba c⟩⟩
 
 /-- The empty ZFC set -/
 protected def empty : Set := mk ∅
@@ -555,6 +569,9 @@ prefix `⋃₀ `:110 := Set.sUnion
 @[simp] theorem mem_sUnion {x y : Set.{u}} : y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z :=
 quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
   ⟨λ ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ ⟨z, h⟩, quotient.induction_on z (λ z h, ⟨z, h⟩) h⟩)
+
+theorem mem_sUnion_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃₀ x :=
+mem_sUnion.2 ⟨z, hz, hy⟩
 
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]

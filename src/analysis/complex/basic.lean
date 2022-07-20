@@ -49,7 +49,7 @@ instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
-  .. complex.field }
+  .. complex.field, .. complex.normed_group }
 
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp; norm_num⟩ }
@@ -161,7 +161,7 @@ by simpa [mul_self_abs] using
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_re_le_abs])
+def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [abs_re_le_abs])
 
 @[continuity] lemma continuous_re : continuous re := re_clm.continuous
 
@@ -177,7 +177,7 @@ calc 1 = ∥re_clm 1∥ : by simp
 @[simp] lemma re_clm_nnnorm : ∥re_clm∥₊ = 1 := subtype.ext re_clm_norm
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
+def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_le_abs])
 
 @[continuity] lemma continuous_im : continuous im := im_clm.continuous
 

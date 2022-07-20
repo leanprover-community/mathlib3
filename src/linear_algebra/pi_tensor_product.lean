@@ -145,7 +145,7 @@ lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
  quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R₁)
-  [has_scalar R₁ R] [is_scalar_tower R₁ R R] [has_scalar R₁ (s i)] [is_scalar_tower R₁ R (s i)] :
+  [has_smul R₁ R] [is_scalar_tower R₁ R R] [has_smul R₁ (s i)] [is_scalar_tower R₁ R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
   have h₁ : r • z = (r • (1 : R)) * z := by rw [smul_mul_assoc, one_mul],
@@ -205,7 +205,7 @@ variables [monoid R₂] [distrib_mul_action R₂ R] [smul_comm_class R₂ R R]
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance has_scalar' : has_scalar R₁ (⨂[R] i, s i) :=
+instance has_smul' : has_smul R₁ (⨂[R] i, s i) :=
 ⟨λ r, lift_add_hom (λ f : R × Π i, s i, tprod_coeff R (r • f.1) f.2)
   (λ r' f i hf, by simp_rw [zero_tprod_coeff' _ f i hf])
   (λ f, by simp [zero_tprod_coeff])
@@ -213,7 +213,7 @@ instance has_scalar' : has_scalar R₁ (⨂[R] i, s i) :=
   (λ r' r'' f, by simp [add_tprod_coeff', mul_add])
   (λ z f i r', by simp [smul_tprod_coeff, mul_smul_comm])⟩
 
-instance : has_scalar R (⨂[R] i, s i) := pi_tensor_product.has_scalar'
+instance : has_smul R (⨂[R] i, s i) := pi_tensor_product.has_smul'
 
 lemma smul_tprod_coeff' (r : R₁) (z : R) (f : Π i, s i) :
   r • (tprod_coeff R z f) = tprod_coeff R (r • z) f := rfl
@@ -238,7 +238,7 @@ instance smul_comm_class' [smul_comm_class R₁ R₂ R] : smul_comm_class R₁ R
   (λ xr xf, by simp only [smul_tprod_coeff', smul_comm])
   (λ z y ihz ihy, by simp_rw [pi_tensor_product.smul_add, ihz, ihy])⟩
 
-instance is_scalar_tower' [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ R] :
+instance is_scalar_tower' [has_smul R₁ R₂] [is_scalar_tower R₁ R₂ R] :
   is_scalar_tower R₁ R₂ (⨂[R] i, s i) :=
 ⟨λ r' r'' x, pi_tensor_product.induction_on' x
   (λ xr xf, by simp only [smul_tprod_coeff', smul_assoc])

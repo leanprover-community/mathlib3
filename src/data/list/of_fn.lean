@@ -181,14 +181,12 @@ lemma of_fn_rec_of_fn {C : list α → Sort*} (h : Π n (f : fin n → α), C (l
 begin
   rw [of_fn_rec, cast_eq_iff_heq],
   have := length_of_fn f,
-  congr',
-  simp_rw [←fin.coe_cast this, nth_le_of_fn],
-  ext,
-  { rw this },
-  intros a b hab,
   congr,
-  rw [fin.cast_eq_cast, cast_eq_iff_heq],
-  exact hab,
+  { exact this },
+  { simp_rw [←fin.coe_cast this, nth_le_of_fn],
+    refine function.hfunext (congr_arg _ this) (λ a b hab, congr_arg_heq _ _),
+    rw [fin.cast_eq_cast, cast_eq_iff_heq],
+    exact hab }
 end
 
 lemma exists_iff_exists_tuple {P : list α → Prop} :

@@ -726,7 +726,7 @@ begin
   { assume n,
     induction n with n IH,
     { simp only [u, P, prod.forall, id.def, function.iterate_zero],
-      simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
+      simp only [finset.not_mem_empty, is_empty.forall_iff, finset.coe_empty, forall_2_true_iff,
         and_self, pairwise_disjoint_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },

@@ -1727,8 +1727,8 @@ lemma cont_diff.continuous_linear_map_comp {f : E → F} (g : F →L[𝕜] G)
 cont_diff_on_univ.1 $ cont_diff_on.continuous_linear_map_comp
   _ (cont_diff_on_univ.2 hf)
 
-/-- Composition by continuous linear equivs on the left respects higher differentiability on
-domains. -/
+/-- Composition by continuous linear equivs on the left respects higher differentiability at a
+point in a domain. -/
 lemma continuous_linear_equiv.comp_cont_diff_within_at_iff
   (e : F ≃L[𝕜] G) :
   cont_diff_within_at 𝕜 n (e ∘ f) s x ↔ cont_diff_within_at 𝕜 n f s x :=
@@ -1736,12 +1736,24 @@ lemma continuous_linear_equiv.comp_cont_diff_within_at_iff
   using H.continuous_linear_map_comp (e.symm : G →L[𝕜] F),
   λ H, H.continuous_linear_map_comp (e : F →L[𝕜] G)⟩
 
+/-- Composition by continuous linear equivs on the left respects higher differentiability at a
+point. -/
+lemma continuous_linear_equiv.comp_cont_diff_at_iff (e : F ≃L[𝕜] G) :
+  cont_diff_at 𝕜 n (e ∘ f) x ↔ cont_diff_at 𝕜 n f x :=
+by simp only [← cont_diff_within_at_univ, e.comp_cont_diff_within_at_iff]
+
 /-- Composition by continuous linear equivs on the left respects higher differentiability on
 domains. -/
 lemma continuous_linear_equiv.comp_cont_diff_on_iff
   (e : F ≃L[𝕜] G) :
   cont_diff_on 𝕜 n (e ∘ f) s ↔ cont_diff_on 𝕜 n f s :=
 by simp [cont_diff_on, e.comp_cont_diff_within_at_iff]
+
+/-- Composition by continuous linear equivs on the left respects higher differentiability. -/
+lemma continuous_linear_equiv.comp_cont_diff_iff
+  (e : F ≃L[𝕜] G) :
+  cont_diff 𝕜 n (e ∘ f) ↔ cont_diff 𝕜 n f :=
+by simp only [← cont_diff_on_univ, e.comp_cont_diff_on_iff]
 
 /-- If `f` admits a Taylor series `p` in a set `s`, and `g` is linear, then `f ∘ g` admits a Taylor
 series in `g ⁻¹' s`, whose `k`-th term is given by `p k (g v₁, ..., g vₖ)` . -/
@@ -1813,6 +1825,15 @@ begin
     exact H.comp_continuous_linear_map _ },
 end
 
+/-- Composition by continuous linear equivs on the right respects higher differentiability at a
+point. -/
+lemma continuous_linear_equiv.cont_diff_at_comp_iff (e : G ≃L[𝕜] E) :
+  cont_diff_at 𝕜 n (f ∘ e) (e.symm x) ↔ cont_diff_at 𝕜 n f x :=
+begin
+  rw [← cont_diff_within_at_univ, ← cont_diff_within_at_univ, ← preimage_univ],
+  exact e.cont_diff_within_at_comp_iff
+end
+
 /-- Composition by continuous linear equivs on the right respects higher differentiability on
 domains. -/
 lemma continuous_linear_equiv.cont_diff_on_comp_iff (e : G ≃L[𝕜] E) :
@@ -1825,6 +1846,14 @@ begin
     by { rw [← preimage_comp, e.self_comp_symm], refl },
   rw [A, ← B],
   exact H.comp_continuous_linear_map (e.symm : E →L[𝕜] G)
+end
+
+/-- Composition by continuous linear equivs on the right respects higher differentiability. -/
+lemma continuous_linear_equiv.cont_diff_comp_iff (e : G ≃L[𝕜] E) :
+  cont_diff 𝕜 n (f ∘ e) ↔ cont_diff 𝕜 n f :=
+begin
+  rw [← cont_diff_on_univ, ← cont_diff_on_univ, ← preimage_univ],
+  exact e.cont_diff_on_comp_iff
 end
 
 /-- If two functions `f` and `g` admit Taylor series `p` and `q` in a set `s`, then the cartesian

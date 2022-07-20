@@ -300,3 +300,18 @@ protected def function.injective.complete_boolean_algebra [has_sup α] [has_inf 
   ..hf.boolean_algebra f map_sup map_inf map_top map_bot map_compl map_sdiff }
 
 end lift
+
+namespace punit
+variables (s : set punit.{u+1}) (x y : punit.{u+1})
+
+instance : complete_boolean_algebra punit :=
+by refine_struct
+{ Sup := λ _, star,
+  Inf := λ _, star,
+  ..punit.boolean_algebra };
+    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false]
+
+@[simp] lemma Sup_eq : Sup s = star := rfl
+@[simp] lemma Inf_eq : Inf s = star := rfl
+
+end punit

@@ -134,6 +134,9 @@ meta instance {α : Type} [json_serializable α] (p : α → Prop) [decidable_pr
     else
       exception (λ _, format!"condition does not hold") }
 
+meta instance {α : Type} [non_null_json_serializable α] (p : α → Prop) [decidable_pred p] :
+  non_null_json_serializable (subtype p) := {}
+
 /-- Note this only makes sense on types which do not themselves serialize to `null` -/
 meta instance {α} [non_null_json_serializable α] : json_serializable (option α) :=
 { to_json := option.elim json.null to_json,

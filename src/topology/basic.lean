@@ -1209,6 +1209,12 @@ lemma locally_finite.eventually_finite {f : β → set α} (hf : locally_finite 
 eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
   ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
 
+lemma locally_finite.exists_mem_basis {f : β → set α} (hf : locally_finite f) {p : ι → Prop}
+  {s : ι → set α} {x : α} (hb : (𝓝 x).has_basis p s) :
+  ∃ i (hi : p i), {j | (f j ∩ s i).nonempty}.finite :=
+let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_finite x)
+in ⟨i, hpi, hi subset.rfl⟩
+
 lemma locally_finite.sum_elim {γ} {f : β → set α} {g : γ → set α} (hf : locally_finite f)
   (hg : locally_finite g) : locally_finite (sum.elim f g) :=
 begin
@@ -1253,6 +1259,17 @@ subset.antisymm
   (closure_minimal (Union_mono $ λ _, subset_closure) $
     h.closure.is_closed_Union $ λ _, is_closed_closure)
   (Union_subset $ λ i, closure_mono $ subset_Union _ _)
+
+/-- If `f : β → set α` is a locally finite family of closed sets, then for any `x : α`, the
+intersection of the complements to `f i`, `x ∉ f i`, is a neighbourhood of `x`. -/
+lemma locally_finite.Inter_compl_mem_nhds {f : β → set α} (hf : locally_finite f)
+  (hc : ∀ i, is_closed (f i)) (x : α) : (⋂ i (hi : x ∉ f i), (f i)ᶜ) ∈ 𝓝 x :=
+begin
+  refine is_open.mem_nhds _ (mem_Inter₂.2 $ λ i, id),
+  suffices : is_closed (⋃ i : {i // x ∉ f i}, f i),
+    by rwa [← is_open_compl_iff, compl_Union, Inter_subtype] at this,
+  exact (hf.comp_injective subtype.coe_injective).is_closed_Union (λ i, hc _)
+end
 
 end locally_finite
 

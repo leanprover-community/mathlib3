@@ -178,16 +178,7 @@ cast (congr_arg _ l.of_fn_nth_le) $ h l.length (λ i, l.nth_le ↑i i.2)
 @[simp]
 lemma of_fn_rec_of_fn {C : list α → Sort*} (h : Π n (f : fin n → α), C (list.of_fn f))
   {n : ℕ} (f : fin n → α) : @of_fn_rec _ C h (list.of_fn f) = h _ f :=
-begin
-  rw [of_fn_rec, cast_eq_iff_heq],
-  have := length_of_fn f,
-  congr,
-  { exact this },
-  { simp_rw [←fin.coe_cast this, nth_le_of_fn],
-    refine function.hfunext (congr_arg _ this) (λ a b hab, congr_arg_heq _ _),
-    rw [fin.cast_eq_cast, cast_eq_iff_heq],
-    exact hab }
-end
+equiv_sigma_tuple.cast_symm_apply_apply (λ s, h s.1 s.2) ⟨n, f⟩
 
 lemma exists_iff_exists_tuple {P : list α → Prop} :
   (∃ l : list α, P l) ↔ ∃ n (f : fin n → α), P (list.of_fn f) :=

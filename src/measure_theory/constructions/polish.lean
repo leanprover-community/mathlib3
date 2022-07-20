@@ -684,7 +684,7 @@ end
 omit hγb
 
 /-- The set of points for which a measurable sequence of functions converges is measurable. -/
-@[measurability] lemma measurable_set_exists_tendsto_at_top
+@[measurability] lemma measurable_set_exists_tendsto
   [hγ : opens_measurable_space γ] [encodable ι] {l : filter ι} [hl : l.ne_bot]
   [l.is_countably_generated] {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
   measurable_set {x | ∃ c, tendsto (λ n, f n x) l (𝓝 c)} :=

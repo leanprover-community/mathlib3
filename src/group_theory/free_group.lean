@@ -378,8 +378,9 @@ def inv_rev (w : list (α × bool)) : list (α × bool) :=
 
 lemma inv_rev_length : (inv_rev L₁).length = L₁.length :=
 begin
-  induction L₁, { finish, },
-  unfold inv_rev, { finish, },
+  induction L₁, 
+  { refl },
+  { simp }
 end
 
 instance : has_inv (free_group α) :=

@@ -91,7 +91,7 @@ begin
     haveI : inhabited α := ⟨basepoint⟩,
     have : ∃s:set α, s.countable ∧ dense s := exists_countable_dense α,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
-    rcases set.countable_iff_exists_surjective.1 S_countable with ⟨x, x_range⟩,
+    rcases set.countable_iff_exists_subset_range.1 S_countable with ⟨x, x_range⟩,
     /- Use embedding_of_subset to construct the desired isometry -/
     exact ⟨embedding_of_subset x, embedding_of_subset_isometry x (S_dense.mono x_range)⟩ }
 end

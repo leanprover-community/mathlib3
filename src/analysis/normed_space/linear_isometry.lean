@@ -610,7 +610,7 @@ rfl
 variables {R E E₂ E₃} {R' : Type*} [ring R'] [module R' E] (p q : submodule R' E)
 
 /-- `linear_equiv.of_eq` as a `linear_isometry_equiv`. -/
-@[simps] def of_eq (hpq : p = q) :
+@[simps apply symm_apply] def of_eq (hpq : p = q) :
   p ≃ₗᵢ[R'] q :=
 { norm_map' := λ x, rfl,
   ..linear_equiv.of_eq p q hpq }

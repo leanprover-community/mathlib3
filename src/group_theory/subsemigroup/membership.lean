@@ -29,11 +29,6 @@ subsemigroup
 
 variables {M A B : Type*}
 
-/-
-Here, we can't have various product lemmas because we don't have a `1 : M`. Perhaps we need to
-define a type of nonempty lists, and then products on those?
--/
-
 section non_assoc
 variables [has_mul M]
 

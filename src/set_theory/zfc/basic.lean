@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import logic.small
 import order.well_founded
 
 /-!
@@ -172,6 +173,9 @@ instance : has_mem pSet pSet := ⟨pSet.mem⟩
 
 theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
+
+theorem func_mem (x : pSet) (i : x.type) : x.func i ∈ x :=
+by { cases x, apply mem.mk }
 
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y
 | ⟨α, A⟩ ⟨β, B⟩ h := ⟨λ a, (h (A a)).1 (mem.mk A a),
@@ -430,6 +434,17 @@ instance : has_mem Set Set := ⟨Set.mem⟩
 
 /-- Convert a ZFC set into a `set` of ZFC sets -/
 def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
+
+instance small_to_set (x : Set.{u}) : small.{u} x.to_set :=
+quotient.induction_on x $ λ a, begin
+  let f : a.type → (mk a).to_set := λ i, ⟨mk $ a.func i, func_mem a i⟩,
+  suffices : function.surjective f,
+  { exact small_of_surjective this },
+  rintro ⟨y, hb⟩,
+  induction y using quotient.induction_on,
+  cases hb with i h,
+  exact ⟨i, subtype.coe_injective (quotient.sound h.symm)⟩
+end
 
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
 protected def subset (x y : Set.{u}) :=

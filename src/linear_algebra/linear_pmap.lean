@@ -62,6 +62,12 @@ end
 
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
+lemma ext_iff {f g : linear_pmap R E F} :
+  f = g ↔
+  ∃ (domain_eq : f.domain = g.domain),
+    ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y :=
+⟨λ EQ, EQ ▸ ⟨rfl, λ x y h, by { congr, exact_mod_cast h }⟩, λ ⟨deq, feq⟩, ext deq feq⟩
+
 lemma map_add (f : linear_pmap R E F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
 
@@ -396,6 +402,15 @@ protected lemma Sup_le {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
 le_of_eq_locus_ge $ Sup_le $ λ _ ⟨f, hf, eq⟩, eq ▸
 have f ≤ (linear_pmap.Sup c hc) ⊓ g, from le_inf (linear_pmap.le_Sup _ hf) (hg f hf),
 this.1
+
+protected lemma Sup_apply {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
+  {l : linear_pmap R E F} (hl : l ∈ c) (x : l.domain) :
+  (linear_pmap.Sup c hc) ⟨x, (linear_pmap.le_Sup hc hl).1 x.2⟩ = l x :=
+begin
+  symmetry,
+  apply (classical.some_spec (Sup_aux c hc) hl).2,
+  refl,
+end
 
 end linear_pmap
 

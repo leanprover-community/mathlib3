@@ -114,12 +114,13 @@ by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
-lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : 0 < n) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
+lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : n ≠ 0) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
 begin
   suffices : im (log x * n⁻¹) ∈ Ioc (-π) π,
   { rw [← cpow_nat_cast, ← cpow_mul _ this.1 this.2, inv_mul_cancel, cpow_one],
-    exact_mod_cast hn.ne' },
+    exact_mod_cast hn },
   rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, of_real_mul_im, ← div_eq_inv_mul],
+  rw [← pos_iff_ne_zero] at hn,
   have hn' : 0 < (n : ℝ), by assumption_mod_cast,
   have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (nat.succ_le_iff.2 hn),
   split,
@@ -1405,11 +1406,11 @@ by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
 lemma rpow_one_div_eq_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) :  x ^ (1 / z) = y ↔ x = y ^ z :=
 by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
 
-lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
+lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : n ≠ 0) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
 by { rw [← nnreal.coe_eq, coe_rpow, nnreal.coe_pow], exact real.pow_nat_rpow_nat_inv x.2 hn }
 
-lemma rpow_nat_inv_pow_nat (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
+lemma rpow_nat_inv_pow_nat (x : ℝ≥0) {n : ℕ} (hn : n ≠ 0) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
 by { rw [← nnreal.coe_eq, nnreal.coe_pow, coe_rpow], exact real.rpow_nat_inv_pow_nat x.2 hn }
 
@@ -1451,7 +1452,7 @@ begin
   have hq := this.trans_lt hxq,
   replace hxq := rpow_lt_rpow this hxq hn',
   replace hqy := rpow_lt_rpow hq.le hqy hn',
-  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn.bot_lt] at hxq hqy,
+  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn] at hxq hqy,
   exact ⟨q, by exact_mod_cast hq, (le_max_right _ _).trans_lt hxq, hqy⟩,
   { exact le_max_left _ _ },
   { exact hy.le }

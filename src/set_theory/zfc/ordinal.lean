@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
+import logic.hydra
 import set_theory.zfc.basic
 
 /-!
@@ -33,6 +34,8 @@ variables {x y z w : Set.{u}}
 local attribute [simp] subtype.coe_inj
 
 namespace Set
+
+open relation
 
 /-! ### Transitive sets -/
 

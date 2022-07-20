@@ -403,10 +403,6 @@ rfl
 | 0     := rfl
 | (n+1) := funext $ λ x, quotient.induction_on x $ λ y, eval_const _
 
-@[simp] lemma eval_mk {n : ℕ} (f : resp (n + 1)) (x : pSet) :
-  (@resp.eval (n+1) f : Set → arity Set n) (Set.mk x) = eval (resp.f f x) :=
-rfl
-
 end resp
 
 /-- A set function is "definable" if it is the image of some n-ary pre-set

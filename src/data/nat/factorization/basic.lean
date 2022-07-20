@@ -240,6 +240,9 @@ begin
   simp [list.eq_of_mem_repeat hq],
 end
 
+lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
+le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
+
 /-! ### Factorization and divisibility -/
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
@@ -248,8 +251,6 @@ begin
   simp [←mem_factors_iff_dvd hn (prime_of_mem_factorization h), factor_iff_mem_factorization.mp h],
 end
 
-lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorization p ≤ n :=
-le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
 /-- A crude upper bound on `n.factorization p` -/
 lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < n :=

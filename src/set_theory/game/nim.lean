@@ -264,7 +264,7 @@ by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
 /-- The Grundy value of the sum of two nim games with natural numbers of piles equals their bitwise
-xor. We prove this inductively, by showing a -/
+xor. -/
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin

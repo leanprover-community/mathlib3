@@ -275,7 +275,7 @@ If `α` might be empty, then `exists_countable_dense` is the main way to use sep
 lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, dense_range u :=
 begin
   obtain ⟨s : set α, hs, s_dense⟩ := exists_countable_dense α,
-  cases set.countable_iff_exists_surjective.mp hs with u hu,
+  cases set.countable_iff_exists_subset_range.mp hs with u hu,
   exact ⟨u, s_dense.mono hu⟩,
 end
 

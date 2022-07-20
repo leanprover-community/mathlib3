@@ -941,8 +941,17 @@ this.to₂.of_eq $ λ l n, begin
   { apply IH }
 end
 
+theorem list_nthd (d : α) : primrec₂ (list.nthd d) :=
+begin
+  suffices : list.nthd d = λ l n, (list.nth l n).get_or_else d,
+  { rw this,
+    exact option_get_or_else.comp₂ list_nth (const _) },
+  funext,
+  exact list.nthd_eq_get_or_else_nth _ _ _
+end
+
 theorem list_inth [inhabited α] : primrec₂ (@list.inth α _) :=
-option_iget.comp₂ list_nth
+list_nthd _
 
 theorem list_append : primrec₂ ((++) : list α → list α → list α) :=
 (list_foldr fst snd $ to₂ $ comp (@list_cons α _) snd).to₂.of_eq $

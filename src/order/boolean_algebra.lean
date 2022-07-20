@@ -926,3 +926,25 @@ protected def function.injective.boolean_algebra [has_sup α] [has_inf α] [has_
   ..hf.generalized_boolean_algebra f map_sup map_inf map_bot map_sdiff }
 
 end lift
+
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : boolean_algebra punit :=
+by refine_struct
+{ top := star,
+  bot := star,
+  sup := λ _ _, star,
+  inf := λ _ _, star,
+  compl := λ _, star,
+  sdiff := λ _ _, star, ..punit.linear_order };
+    intros; trivial <|> exact subsingleton.elim _ _
+
+@[simp] lemma top_eq : (⊤ : punit) = star := rfl
+@[simp] lemma bot_eq : (⊥ : punit) = star := rfl
+@[simp] lemma sup_eq : a ⊔ b = star := rfl
+@[simp] lemma inf_eq : a ⊓ b = star := rfl
+@[simp] lemma compl_eq : aᶜ = star := rfl
+@[simp] lemma sdiff_eq : a \ b = star := rfl
+
+end punit

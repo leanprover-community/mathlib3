@@ -243,20 +243,20 @@ begin
   simp [list.eq_of_mem_repeat hq],
 end
 
-lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
-le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
-
-lemma padic_part_ne_zero (n p : ℕ) : n.padic_part p ≠ 0 :=
+lemma padic_part_pos (n p : ℕ) : 0 < n.padic_part p :=
 begin
   rcases p.eq_zero_or_pos with rfl | hp0, { simp },
-  simp [(pow_pos hp0 _).ne'],
+  simp [(pow_pos hp0 _)],
 end
+
+lemma padic_part_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
+le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
 lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.p_odd_part p ≠ 0 :=
 begin
   cases em' p.prime with pp pp, { simpa [nat.factorization_eq_zero_of_non_prime n pp] },
   rw ←p_odd_part_def',
-  refine mt (nat.div_eq_zero_iff _).1 (not_lt.2 (pow_factorization_le p hn)),
+  refine mt (nat.div_eq_zero_iff _).1 (not_lt.2 (padic_part_le p hn)),
   simp [pow_pos pp.pos],
 end
 
@@ -292,7 +292,7 @@ lemma factorization_lt {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.factorization p < 
 begin
   by_cases pp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n pp], exact hn.bot_lt },
   rw ←pow_lt_iff_lt_right pp.two_le,
-  apply lt_of_le_of_lt (pow_factorization_le p hn),
+  apply lt_of_le_of_lt (padic_part_le p hn),
   exact lt_of_lt_of_le (lt_two_pow n) (pow_le_pow_of_le_left (by linarith) pp.two_le n),
 end
 
@@ -301,7 +301,7 @@ lemma factorization_le_of_le_pow {n p b : ℕ} (hb : n ≤ p ^ b) : n.factorizat
 begin
   rcases eq_or_ne n 0 with rfl | hn, { simp },
   by_cases pp : p.prime,
-  { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (pow_factorization_le p hn) hb) },
+  { exact (pow_le_iff_le_right pp.two_le).1 (le_trans (padic_part_le p hn) hb) },
   { simp [factorization_eq_zero_of_non_prime n pp] }
 end
 

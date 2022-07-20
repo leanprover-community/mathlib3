@@ -1055,16 +1055,6 @@ is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).r
   (rpow_nonneg_of_nonneg hc.le _) hr.le hg).congr_const
     (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
 
-lemma is_O.of_pow {n : ℕ} (h : (f ^ n) =O[l] (g ^ n)) (hn : n ≠ 0) : f =O[l] g :=
-suffices H : (λ x, |f x ^ n| ^ (n⁻¹ : ℝ)) =O[l] (λ x, |g x ^ n| ^ (n⁻¹ : ℝ)),
-  from is_O.of_norm_norm $ by simpa only [abs_pow, pow_nat_rpow_nat_inv (abs_nonneg _) hn] using H,
-h.norm_norm.rpow (inv_nonneg.2 n.cast_nonneg) (eventually_of_forall $ λ x, abs_nonneg _)
-
-lemma is_o.of_pow {n : ℕ} (h : (f ^ n) =o[l] (g ^ n)) (hn : n ≠ 0) : f =o[l] g :=
-suffices H : (λ x, |f x ^ n| ^ (n⁻¹ : ℝ)) =o[l] (λ x, |g x ^ n| ^ (n⁻¹ : ℝ)),
-  from is_o.of_norm_norm $ by simpa only [abs_pow, pow_nat_rpow_nat_inv (abs_nonneg _) hn] using H,
-h.norm_norm.rpow (inv_pos.2 $ nat.cast_pos.2 hn.bot_lt)  (eventually_of_forall $ λ x, abs_nonneg _)
-
 end asymptotics
 
 open asymptotics

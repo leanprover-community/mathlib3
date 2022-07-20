@@ -603,29 +603,22 @@ lemma comap_inducing_of_surjective (hf : surjective f) : inducing (comap f) :=
 lemma image_comap_zero_locus_eq_zero_locus_comap (hf : surjective f) (I : ideal S) :
   comap f '' zero_locus I = zero_locus (I.comap f) :=
 begin
-  ext p, simp only [set.mem_image, mem_zero_locus, set_like.coe_subset_coe],
-  split,
-  { rintro ⟨p, hp, rfl⟩ a ha, exact hp ha, },
-  { intro h_I_p,
-    have hp : ker f ≤ p.as_ideal :=
-      (ideal.comap_mono bot_le).trans h_I_p,
-    use ideal.map f p.as_ideal,
-    { exact ideal.map_is_prime_of_surjective hf hp, },
-    { split,
-      { intros x hx,
-        rw ideal.mem_map_iff_of_surjective _ hf,
-        obtain ⟨x', rfl : f x' = x⟩ := hf x,
-        exact ⟨x', h_I_p hx, rfl⟩, },
-      { ext x,
-        change f x ∈ p.as_ideal.map f ↔ _,
-        rw ideal.mem_map_iff_of_surjective _ hf,
-        split,
-        { rintros ⟨x', ⟨hx', heq⟩⟩,
-          rw (by ring : x = x' + (x - x')),
-          apply p.as_ideal.add_mem hx',
-          apply hp ((mem_ker _).mpr _),
-          rw [map_sub, heq, sub_self], },
-        { intro hx, exact ⟨x, hx, rfl⟩, }, }, } }
+  simp only [set.ext_iff, set.mem_image, mem_zero_locus, set_like.coe_subset_coe],
+  refine λ p, ⟨_, λ h_I_p, _⟩,
+  { rintro ⟨p, hp, rfl⟩ a ha,
+    exact hp ha },
+  { have hp : ker f ≤ p.as_ideal := (ideal.comap_mono bot_le).trans h_I_p,
+    refine ⟨⟨p.as_ideal.map f, ideal.map_is_prime_of_surjective hf hp⟩, λ x hx, _, _⟩,
+    { obtain ⟨x', rfl⟩ := hf x,
+      exact ideal.mem_map_of_mem f (h_I_p hx) },
+    { ext x,
+      change f x ∈ p.as_ideal.map f ↔ _,
+      rw ideal.mem_map_iff_of_surjective f hf,
+      refine ⟨_, λ hx, ⟨x, hx, rfl⟩⟩,
+      rintros ⟨x', hx', heq⟩,
+      rw ← sub_sub_cancel x' x,
+      refine p.as_ideal.sub_mem hx' (hp _),
+      rwa [mem_ker, map_sub, sub_eq_zero] } },
 end
 
 lemma range_comap_of_surjective (hf : surjective f) :

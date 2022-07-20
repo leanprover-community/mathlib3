@@ -46,7 +46,7 @@ analytic sets.
 -/
 
 open set function polish_space pi_nat topological_space metric filter
-open_locale topological_space measure_theory
+open_locale topological_space measure_theory filter
 
 variables {α : Type*} [topological_space α] {ι : Type*}
 
@@ -685,24 +685,26 @@ omit hγb
 
 /-- The set of points for which a measurable sequence of functions converges is measurable. -/
 @[measurability] lemma measurable_set_exists_tendsto_at_top
-  [hγ : opens_measurable_space γ] [nonempty ι] [encodable ι] [semilattice_sup ι]
-  {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
-  measurable_set {x | ∃ c, tendsto (λ n, f n x) at_top (𝓝 c)} :=
+  [hγ : opens_measurable_space γ] [encodable ι] {l : filter ι} [hl : l.ne_bot]
+  [l.is_countably_generated] {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
+  measurable_set {x | ∃ c, tendsto (λ n, f n x) l (𝓝 c)} :=
 begin
   letI := upgrade_polish_space γ,
+  rcases l.exists_antitone_basis with ⟨u, hu⟩,
   simp_rw ← cauchy_map_iff_exists_tendsto,
-  change measurable_set {x | cauchy_seq (λ n, f n x)},
-  simp_rw metric.cauchy_seq_iff'',
-  rw set.set_of_forall,
-  refine measurable_set.Inter (λ K, _),
-  rw set.set_of_exists,
-  refine measurable_set.Union (λ N, _),
-  rw set.set_of_forall,
-  refine measurable_set.Inter (λ n, _),
-  by_cases hNn : N ≤ n,
-  { simp only [hNn, ge_iff_le, forall_true_left],
-    exact measurable_set_lt (measurable.dist (hf n) (hf N)) measurable_const },
-  { simp only [hNn, ge_iff_le, is_empty.forall_iff, set_of_true, measurable_set.univ], }
+  change measurable_set {x | _ ∧ _},
+  have : ∀ x, ((map (λ i, f i x) l) ×ᶠ (map (λ i, f i x) l)).has_antitone_basis
+    (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := hu.map.prod hu.map,
+  simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
+    metric.uniformity_basis_dist_inv_nat_succ],
+  simp_rw set.set_of_forall,
+  refine measurable_set.bInter (countable_encodable _) (λ K _, _),
+  simp_rw set.set_of_exists,
+  refine measurable_set.bUnion (countable_encodable _) (λ N hN, _),
+  simp_rw [prod_image_image_eq, image_subset_iff, prod_subset_iff, set.set_of_forall],
+  exact measurable_set.bInter (countable_encodable _) (λ i _,
+    measurable_set.bInter (countable_encodable _) (λ j _,
+    measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const))
 end
 
 end measure_theory

@@ -238,7 +238,7 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 -- [*] n.p_odd_part p ∣ n
 -- [*] 0 < n.padic_part p ≤ n
 -- [*] 0 < n.p_odd_part p ≤ n
--- [ ] n.padic_part p * n.p_odd_part p = n
+-- [*] n.padic_part p * n.p_odd_part p = n
 -- [ ] a.padic_part p * b.padic_part p = (a*b).padic_part p
 -- [ ] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
 -- [ ] n.padic_part p is the largest divisor of `n` divisible by `p`.
@@ -274,11 +274,14 @@ begin
   exact nat.div_pos (padic_part_le p hn) (padic_part_pos n p),
 end
 
-lemma p_odd_part_le {n : ℕ} (p : ℕ) : n.p_odd_part p ≤ n :=
+lemma p_odd_part_le (n p : ℕ) : n.p_odd_part p ≤ n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
   apply nat.div_le_self,
 end
+
+lemma padic_mul_p_odd_part_eq_self (n p : ℕ) : n.padic_part p * n.p_odd_part p = n :=
+nat.mul_div_cancel' (pow_factorization_dvd n p)
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin

@@ -900,10 +900,10 @@ begin
        ... = norm x : rfl
 end
 
-lemma norm_inv_eq (x : free_group α) : norm x = norm x⁻¹ :=
+@[simp] lemma norm_inv_eq (x : free_group α) : norm x⁻¹ = norm x :=
 begin
-  refine le_antisymm _ (norm_inv_le x),
-  simpa using norm_inv_le x⁻¹
+  refine le_antisymm (norm_inv_le x) _,
+  simpa using norm_inv_le x⁻¹,
 end
 
 lemma norm_zero_eq_one (x : free_group α ) : norm x = 0 → x = 1 := 

@@ -28,7 +28,7 @@ Further development can be found on the branch `von_neumann_v2`.
 
 universe u
 
-variables {x y z : Set.{u}}
+variables {x y z w : Set.{u}}
 
 namespace Set
 

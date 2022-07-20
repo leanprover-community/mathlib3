@@ -141,6 +141,15 @@ protected def subset (x y : pSet) : Prop := ∀ a, ∃ b, equiv (x.func a) (y.fu
 
 instance : has_subset pSet := ⟨pSet.subset⟩
 
+instance : is_refl pSet (⊆) := ⟨λ x a, ⟨a, equiv.refl _⟩⟩
+
+instance : is_trans pSet (⊆) :=
+⟨λ x y z hxy hyz a, begin
+  cases hxy a with b hb,
+  cases hyz b with c hc,
+  exact ⟨c, hb.trans hc⟩
+end⟩
+
 theorem equiv.ext : Π (x y : pSet), equiv x y ↔ (x ⊆ y ∧ y ⊆ x)
 | ⟨α, A⟩ ⟨β, B⟩ :=
   ⟨λ ⟨αβ, βα⟩, ⟨αβ, λ b, let ⟨a, h⟩ := βα b in ⟨a, equiv.symm h⟩⟩,
@@ -430,6 +439,9 @@ instance has_subset : has_subset Set :=
 ⟨Set.subset⟩
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
+
+instance : is_refl Set (⊆) := ⟨λ x a, id⟩
+instance : is_trans Set (⊆) := ⟨λ x y z hxy hyz a ha, hyz (hxy ha)⟩
 
 @[simp] theorem subset_iff : Π {x y : pSet}, mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ h a, @h ⟦A a⟧ (mem.mk A a),

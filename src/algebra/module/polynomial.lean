@@ -33,13 +33,12 @@ open_locale polynomial
 open polynomial module
 
 /--A type synonym for a `R`-module which explicitly mentions a given endomorphism.-/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_inhabited_instance, derive add_comm_monoid]
 def module_with_End (E : End R M) := M
 
 namespace module_with_End
 variables {E : End R M}
 
-instance : add_comm_monoid (module_with_End E) := (infer_instance : add_comm_monoid M)
 instance : module R (module_with_End E) := (infer_instance : module R M)
 /--The type conversion `M → module_with_End E`, as a `R`-linear isomorphism.-/
 def of_module (E : End R M) : M ≃ₗ[R] module_with_End E := linear_equiv.refl R M
@@ -56,11 +55,13 @@ h $ (of_module E).symm m
 action of `X`.-/
 noncomputable instance polynomial_module : module R[X] (module_with_End E) :=
 comp_hom M (aeval E).to_ring_hom
+
 lemma smul_def (P : R[X]) (u : M) :
   P • of_module E u = of_module E (aeval E P u) := rfl
 
 lemma X_smul (u : M) : (X : R[X]) • of_module E u = of_module E (E u) :=
 by rw [smul_def, aeval_X]
+
 lemma C_smul (a : R) (u : M) : (C a) • of_module E u = of_module E (a • u) :=
 by rw [smul_def, aeval_C, algebra_map_End_apply]
 
@@ -101,6 +102,7 @@ def polynomial_linear_of_semiconj {L : M →ₗ[R] N} (h : L.comp E = F.comp L) 
         mul_apply, algebra_map_End_apply, symm_apply_apply, ← comp_apply, ← comp_apply, this] }
   end,
   ..(of_module F).to_linear_map.comp $ L.comp $ (of_module E).symm.to_linear_map }
+
 @[simp] lemma polynomial_linear_of_semiconj_apply {L : M →ₗ[R] N} (h : L.comp E = F.comp L)
   (u : M) : polynomial_linear_of_semiconj h (of_module E u) = of_module F (L u) := rfl
 
@@ -110,6 +112,7 @@ def polynomial_lequiv_of_semiconj {L : M ≃ₗ[R] N}
   module_with_End E ≃ₗ[R[X]] module_with_End F :=
 { map_smul' := (polynomial_linear_of_semiconj h).map_smul',
   ..(of_module E).symm.trans $ L.trans (of_module F) }
+
 @[simp] lemma polynomial_lequiv_of_semiconj_apply {L : M ≃ₗ[R] N}
   (h : (L : M →ₗ[R] N).comp E = F.comp (L : M →ₗ[R] N)) (u : M) :
   polynomial_lequiv_of_semiconj h u = L u := rfl
@@ -123,6 +126,7 @@ begin
   simp only [comp_apply, coe_to_linear_map, linear_map.restrict_scalars_apply],
   rw [← X_smul, L.map_smul, symm_apply_eq, ← X_smul, apply_symm_apply]
 end⟩
+
 @[simp] lemma semiconj_of_polynomial_linear_apply (L : module_with_End E →ₗ[R[X]] module_with_End F)
   (u : M) : of_module F (semiconj_of_polynomial_linear L u) = L (of_module E u) := rfl
 
@@ -135,6 +139,7 @@ begin
   simp only [comp_apply, linear_equiv.coe_coe, trans_apply, linear_equiv.restrict_scalars_apply],
   rw [← X_smul, L.map_smul, symm_apply_eq, ← X_smul, apply_symm_apply]
 end⟩
+
 @[simp] lemma semiconj_of_polynomial_lequiv_apply (L : module_with_End E ≃ₗ[R[X]] module_with_End F)
   (u : M) : of_module F (semiconj_of_polynomial_lequiv L u) = L (of_module E u) := rfl
 

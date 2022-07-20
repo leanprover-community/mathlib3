@@ -123,7 +123,7 @@ variables {ι I M}
 
 namespace smooth_partition_of_unity
 
-variables {s : set M} (f : smooth_partition_of_unity ι I M s)
+variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : with_top ℕ}
 
 instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s)
   (λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) :=
@@ -149,10 +149,23 @@ lemma le_one (i : ι) (x : M) : f i x ≤ 1 := f.to_partition_of_unity.le_one i 
 
 lemma sum_nonneg (x : M) : 0 ≤ ∑ᶠ i, f i x := f.to_partition_of_unity.sum_nonneg x
 
+lemma cont_mdiff_smul {g : M → F} {i} (hg : ∀ x ∈ tsupport (f i), cont_mdiff_at I 𝓘(ℝ, F) n g x) :
+  cont_mdiff I 𝓘(ℝ, F) n (λ x, f i x • g x) :=
+cont_mdiff_of_support $ λ x hx, ((f i).cont_mdiff.cont_mdiff_at.of_le le_top).smul $ hg x $
+  tsupport_smul_subset_left _ _ hx
+
 lemma smooth_smul {g : M → F} {i} (hg : ∀ x ∈ tsupport (f i), smooth_at I 𝓘(ℝ, F) g x) :
   smooth I 𝓘(ℝ, F) (λ x, f i x • g x) :=
-cont_mdiff_of_support $ λ x hx, (f i).smooth.smooth_at.smul $ hg x $
-  tsupport_smul_subset_left _ _ hx
+f.cont_mdiff_smul hg
+
+/-- If `f` is a smooth partition of unity on a set `s : set M` and `g : ι → M → F` is a family of
+functions such that `g i` is $C^n$ smooth at every point of the topological support of `f i`, then
+the sum `λ x, ∑ᶠ i, f i x • g i x` is smooth on the whole manifold. -/
+lemma cont_mdiff_finsum_smul {g : ι → M → F}
+  (hg : ∀ i (x ∈ tsupport (f i)), cont_mdiff_at I 𝓘(ℝ, F) n (g i) x) :
+  cont_mdiff I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
+cont_mdiff_finsum (λ i, f.cont_mdiff_smul (hg i)) $ f.locally_finite.subset $
+  λ i, support_smul_subset_left _ _
 
 /-- If `f` is a smooth partition of unity on a set `s : set M` and `g : ι → M → F` is a family of
 functions such that `g i` is smooth at every point of the topological support of `f i`, then the sum
@@ -160,8 +173,7 @@ functions such that `g i` is smooth at every point of the topological support of
 lemma smooth_finsum_smul {g : ι → M → F}
   (hg : ∀ i (x ∈ tsupport (f i)), smooth_at I 𝓘(ℝ, F) (g i) x) :
   smooth I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
-smooth_finsum (λ i, f.smooth_smul (hg i)) $ f.locally_finite.subset $
-  λ i, support_smul_subset_left _ _
+f.cont_mdiff_finsum_smul hg
 
 lemma finsum_smul_mem_convex {g : ι → M → F} {t : set F} {x : M} (hx : x ∈ s)
   (hg : ∀ i, f i x ≠ 0 → g i x ∈ t) (ht : convex ℝ t) :
@@ -439,32 +451,44 @@ end
 
 end smooth_partition_of_unity
 
-variables [sigma_compact_space M] [t2_space M] {t : M → set F}
+variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : with_top ℕ}
 
 /-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F`
 be a family of convex sets. Suppose that for each point `x : M` there exists a neighborhood
-`U ∈ 𝓝 x` and a function `g : M → F` such that `g` is smooth on `U` and `g y ∈ t y` for all `y ∈ U`.
-Then there exists a smooth function `g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯` such that `g x ∈ t x` for all `x`.
-See also `exists_smooth_forall_mem_convex_of_local_const`. -/
-lemma exists_smooth_forall_mem_convex_of_local (ht : ∀ x, convex ℝ (t x))
-  (Hloc : ∀ x : M, ∃ (U ∈ 𝓝 x) (g : M → F), smooth_on I 𝓘(ℝ, F) g U ∧ ∀ y ∈ U, g y ∈ t y) :
-  ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
+`U ∈ 𝓝 x` and a function `g : M → F` such that `g` is $C^n$ smooth on `U` and `g y ∈ t y` for all
+`y ∈ U`. Then there exists a $C^n$ smooth function `g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯` such that `g x ∈ t x`
+for all `x`. See also `exists_smooth_forall_mem_convex_of_local` and
+`exists_smooth_forall_mem_convex_of_local_const`. -/
+lemma exists_cont_mdiff_forall_mem_convex_of_local (ht : ∀ x, convex ℝ (t x))
+  (Hloc : ∀ x : M, ∃ (U ∈ 𝓝 x) (g : M → F), cont_mdiff_on I 𝓘(ℝ, F) n g U ∧ ∀ y ∈ U, g y ∈ t y) :
+  ∃ g : C^n⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
 begin
   choose U hU g hgs hgt using Hloc,
   obtain ⟨f, hf⟩ := smooth_partition_of_unity.exists_is_subordinate I is_closed_univ
     (λ x, interior (U x)) (λ x, is_open_interior)
     (λ x hx, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩),
   refine ⟨⟨λ x, ∑ᶠ i, f i x • g i x,
-    hf.smooth_finsum_smul (λ i, is_open_interior) $ λ i, (hgs i).mono interior_subset⟩,
+    hf.cont_mdiff_finsum_smul (λ i, is_open_interior) $ λ i, (hgs i).mono interior_subset⟩,
     λ x, f.finsum_smul_mem_convex (mem_univ x) (λ i hi, hgt _ _ _) (ht _)⟩,
   exact interior_subset (hf _ $ subset_closure hi)
 end
+
+/-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F`
+be a family of convex sets. Suppose that for each point `x : M` there exists a neighborhood
+`U ∈ 𝓝 x` and a function `g : M → F` such that `g` is smooth on `U` and `g y ∈ t y` for all `y ∈ U`.
+Then there exists a smooth function `g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯` such that `g x ∈ t x` for all `x`.
+See also `exists_cont_mdiff_forall_mem_convex_of_local` and
+`exists_smooth_forall_mem_convex_of_local_const`. -/
+lemma exists_smooth_forall_mem_convex_of_local (ht : ∀ x, convex ℝ (t x))
+  (Hloc : ∀ x : M, ∃ (U ∈ 𝓝 x) (g : M → F), smooth_on I 𝓘(ℝ, F) g U ∧ ∀ y ∈ U, g y ∈ t y) :
+  ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
+exists_cont_mdiff_forall_mem_convex_of_local ht Hloc
 
 /-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F` be
 a family of convex sets. Suppose that for each point `x : M` there exists a vector `c : F` such that
 for all `y` in a neighborhood of `x` we have `c ∈ t y`. Then there exists a smooth function
 `g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯` such that `g x ∈ t x` for all `x`.  See also
-`exists_smooth_forall_mem_convex_of_local`. -/
+`exists_cont_mdiff_forall_mem_convex_of_local` and `exists_smooth_forall_mem_convex_of_local`. -/
 lemma exists_smooth_forall_mem_convex_of_local_const (ht : ∀ x, convex ℝ (t x))
   (Hloc : ∀ x : M, ∃ c : F, ∀ᶠ y in 𝓝 x, c ∈ t y) :
   ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=

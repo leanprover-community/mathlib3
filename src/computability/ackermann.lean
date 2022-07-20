@@ -33,13 +33,14 @@ following. Assuming `∀ n, f n < ack a n` and `∀ n, g n < ack b n`, we have:
 
 - `∀ n, nat.mkpair (f n) (g n) < ack (max a b + 3) n`.
 - `∀ n, g (f n) < ack (max a b + 2) n`.
-- `∀ n, elim (f (unpair n).fst) (λ (y IH : ℕ), g (mkpair (unpair n).1 (mkpair y IH))) (unpair n).2 <
-  ack (max a b + 9) n`.
+- `∀ n, nat.elim (f n.unpair.1) (λ (y IH : ℕ), g (nat.mkpair n.unpair.1 (nat.mkpair y IH)))
+  n.unpair.2 < ack (max a b + 9) n`.
 
 The last one is evidently the hardest. Using `nat.unpair_add_le`, we reduce it to the more
 manageable
 
-- `∀ m n, elim (f m) (λ (y IH : ℕ), g (mkpair m (mkpair y IH))) n < ack (max a b + 9) (m + n)`.
+- `∀ m n, elim (f m) (λ (y IH : ℕ), g (nat.mkpair m (nat.mkpair y IH))) n <
+  ack (max a b + 9) (m + n)`.
 
 We then prove this by induction on `n`. Our proof crucially depends on `ack_mkpair_lt`, which is
 applied twice, giving us a constant of `4 + 4`. The rest of the proof consists of simpler bounds

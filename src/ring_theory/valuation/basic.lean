@@ -67,7 +67,7 @@ noncomputable theory
 
 open function ideal
 
-variables {K F R : Type*} -- This will be a ring, assumed commutative in some sections
+variables {K F R : Type*} [division_ring K]
 
 section
 variables (F R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
@@ -170,11 +170,11 @@ lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = 
 def to_preorder : preorder R := preorder.lift v
 
 /-- If `v` is a valuation on a division ring then `v(x) = 0` iff `x = 0`. -/
-@[simp] lemma zero_iff [nontrivial Γ₀] [division_ring K] (v : valuation K Γ₀) {x : K} :
+@[simp] lemma zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x = 0 ↔ x = 0 :=
 v.to_monoid_with_zero_hom.map_eq_zero
 
-lemma ne_zero_iff [nontrivial Γ₀] [division_ring K] (v : valuation K Γ₀) {x : K} :
+lemma ne_zero_iff [nontrivial Γ₀] (v : valuation K Γ₀) {x : K} :
   v x ≠ 0 ↔ x ≠ 0 :=
 v.to_monoid_with_zero_hom.map_ne_zero
 
@@ -217,11 +217,11 @@ end monoid
 section group
 variables [linear_ordered_comm_group_with_zero Γ₀] {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
 
-@[simp] lemma map_inv [division_ring K] (v : valuation K Γ₀) {x : K} :
+@[simp] lemma map_inv (v : valuation K Γ₀) {x : K} :
   v x⁻¹ = (v x)⁻¹ :=
 v.to_monoid_with_zero_hom.map_inv x
 
-@[simp] lemma map_zpow [division_ring K] (v : valuation K Γ₀) {x : K} {n : ℤ} :
+@[simp] lemma map_zpow (v : valuation K Γ₀) {x : K} {n : ℤ} :
   v (x^n) = (v x)^n :=
 v.to_monoid_with_zero_hom.map_zpow x n
 
@@ -293,7 +293,7 @@ begin
   simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
 end
 
-lemma one_lt_val_iff [division_ring K] (v : valuation K Γ₀) {x : K} (h : x ≠ 0) :
+lemma one_lt_val_iff (v : valuation K Γ₀) {x : K} (h : x ≠ 0) :
   1 < v x ↔ v x⁻¹ < 1 :=
 by simpa using (inv_lt_inv₀ (v.ne_zero_iff.2 h) one_ne_zero).symm
 
@@ -362,7 +362,6 @@ lemma is_equiv_of_map_strict_mono [linear_ordered_comm_monoid_with_zero Γ₀]
 
 lemma is_equiv_of_val_le_one [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) (h : ∀ {x:K}, v x ≤ 1 ↔ v' x ≤ 1) :
   v.is_equiv v' :=
 begin
@@ -386,7 +385,6 @@ end
 lemma is_equiv_iff_val_le_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v x ≤ 1 ↔ v' x ≤ 1 :=
 ⟨λ h x, by  simpa using h x 1, is_equiv_of_val_le_one _ _⟩
@@ -394,7 +392,6 @@ lemma is_equiv_iff_val_le_one
 lemma is_equiv_iff_val_eq_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v x = 1 ↔ v' x = 1 :=
 begin
@@ -426,7 +423,6 @@ end
 lemma is_equiv_iff_val_lt_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v x < 1 ↔ v' x < 1 :=
 begin
@@ -455,7 +451,6 @@ end
 lemma is_equiv_iff_val_sub_one_lt_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
 begin
@@ -466,7 +461,6 @@ end
 lemma is_equiv_tfae
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
-  [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   [v.is_equiv v',
    ∀ {x}, v x ≤ 1 ↔ v' x ≤ 1,
@@ -667,11 +661,11 @@ valuation.ext_iff
 def to_preorder : preorder R := preorder.lift v
 
 /-- If `v` is an additive valuation on a division ring then `v(x) = ⊤` iff `x = 0`. -/
-@[simp] lemma top_iff [nontrivial Γ₀] [division_ring K] (v : add_valuation K Γ₀) {x : K} :
+@[simp] lemma top_iff [nontrivial Γ₀] (v : add_valuation K Γ₀) {x : K} :
   v x = ⊤ ↔ x = 0 :=
 v.zero_iff
 
-lemma ne_top_iff [nontrivial Γ₀] [division_ring K] (v : add_valuation K Γ₀) {x : K} :
+lemma ne_top_iff [nontrivial Γ₀] (v : add_valuation K Γ₀) {x : K} :
   v x ≠ ⊤ ↔ x ≠ 0 :=
 v.ne_zero_iff
 
@@ -707,7 +701,7 @@ end monoid
 section group
 variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valuation R Γ₀) {x y z : R}
 
-@[simp] lemma map_inv [division_ring K] (v : add_valuation K Γ₀) {x : K} :
+@[simp] lemma map_inv (v : add_valuation K Γ₀) {x : K} :
   v x⁻¹ = - (v x) :=
 v.map_inv
 

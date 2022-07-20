@@ -407,7 +407,7 @@ lemma unit_group_le_unit_group {A B : valuation_subring K} :
   A.unit_group ≤ B.unit_group ↔ A ≤ B :=
 begin
   split,
-  { rintros h x hx,
+  { intros h x hx,
     rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
     by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
     by_cases h_2 : 1 + x = 0,
@@ -454,6 +454,25 @@ end
 
 lemma nonunits_inj {A B : valuation_subring K} : A.nonunits = B.nonunits ↔ A = B :=
 nonunits_injective.eq_iff
+
+lemma nonunits_le_nonunits {A B : valuation_subring K} :
+  B.nonunits ≤ A.nonunits ↔ A ≤ B :=
+begin
+  split,
+  { intros h x hx,
+    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1] at hx ⊢,
+    by_contra h_2, from hx (h h_2) },
+  { intros h x hx,
+    by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
+end
+
+/-- The map on valuation subrings to their nonunits is a dual order embedding. -/
+def nonunits_order_embedding :
+  valuation_subring K ↪o (subsemigroup K)ᵒᵈ :=
+{ to_fun := λ A, A.nonunits,
+  inj' := nonunits_injective,
+  map_rel_iff' := λ A B, nonunits_le_nonunits }
 
 variables {A}
 

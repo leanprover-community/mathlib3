@@ -246,6 +246,12 @@ end
 lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
+lemma padic_part_ne_zero (n p : ℕ) : n.padic_part p ≠ 0 :=
+begin
+  rcases p.eq_zero_or_pos with rfl | hp0, { simp },
+  simp [(pow_pos hp0 _).ne'],
+end
+
 lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.p_odd_part p ≠ 0 :=
 begin
   cases em' p.prime with pp pp, { simpa [nat.factorization_eq_zero_of_non_prime n pp] },

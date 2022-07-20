@@ -390,7 +390,7 @@ end
 
 -- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
 -- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
-protected lemma to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
+protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.mk b.orthonormal
 begin
@@ -399,6 +399,10 @@ begin
   rw [← this.submodule_topological_closure_eq, finset.coe_image, finset.coe_univ, set.image_univ],
   exact b.dense_span
 end
+
+@[simp] lemma coe_to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
+  (b.to_orthonormal_basis : ι → E) = b :=
+orthonormal_basis.coe_mk _ _
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt

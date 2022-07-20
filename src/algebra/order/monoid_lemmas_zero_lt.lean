@@ -126,7 +126,6 @@ end abbreviations_mono
 
 variables {a b c d : α}
 
-
 section has_mul_zero
 variables [has_mul α] [has_zero α]
 
@@ -169,7 +168,6 @@ lemma mul_lt_mul_iff_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
 
 end has_lt
 
-
 section has_lt_le
 variables [has_lt α] [has_le α]
 
@@ -208,7 +206,6 @@ lemma mul_le_mul_iff_right [mul_pos_mono α] [mul_pos_mono_rev α]
 @rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, a0⟩ _ _
 
 end has_lt_le
-
 
 section preorder
 variables [preorder α]
@@ -328,7 +325,6 @@ instance mul_pos_strict_mono.to_mul_pos_mono_rev [mul_pos_strict_mono α] : mul_
 end linear_order
 
 end has_mul_zero
-
 
 section mul_zero_class
 variables [mul_zero_class α]
@@ -551,13 +547,11 @@ end linear_order
 
 end mul_zero_class
 
-
 section mul_one_class
 variables [mul_one_class α] [has_zero α]
 
 section preorder
 variables [preorder α]
-
 
 /-! Lemmas of the form `a ≤ a * b ↔ 1 ≤ b` and `a * b ≤ a ↔ b ≤ 1`,
 which assume left covariance. -/
@@ -590,7 +584,6 @@ lemma mul_lt_iff_lt_one_right
   a * b < a ↔ b < 1 :=
 iff.trans (by rw [mul_one]) (mul_lt_mul_iff_left a0)
 
-
 /-! Lemmas of the form `a ≤ b * a ↔ 1 ≤ b` and `a * b ≤ b ↔ a ≤ 1`,
 which assume right covariance. -/
 
@@ -621,7 +614,6 @@ lemma mul_lt_iff_lt_one_left
   (b0 : 0 < b) :
   a * b < b ↔ a < 1 :=
 iff.trans (by rw [one_mul]) (mul_lt_mul_iff_right b0)
-
 
 /-! Lemmas of the form `b ≤ c → a ≤ 1 → b * a ≤ c`. -/
 
@@ -698,7 +690,6 @@ calc  b * a < c * a : mul_lt_mul_right bc a0
         ... < c * 1 : mul_lt_mul_left ha c0
         ... = c     : mul_one c
 
-
 /-! Lemmas of the form `b ≤ c → 1 ≤ a → b ≤ c * a`. -/
 
 -- proven with `c0 : 0 ≤ c` as `le_mul_of_le_of_one_le`
@@ -773,7 +764,6 @@ lemma lt_mul_of_lt_of_one_lt' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
 calc  b = b * 1 : (mul_one b).symm
     ... < b * a : mul_lt_mul_left ha b0
     ... < c * a : mul_lt_mul_right bc a0
-
 
 /-! Lemmas of the form `a ≤ 1 → b ≤ c → a * b ≤ c`. -/
 
@@ -850,7 +840,6 @@ calc  a * b < a * c : mul_lt_mul_left bc a0
         ... < 1 * c : mul_lt_mul_right ha c0
         ... = c     : one_mul c
 
-
 /-! Lemmas of the form `1 ≤ a → b ≤ c → b ≤ a * c`. -/
 
 -- proven with `c0 : 0 ≤ c` as `le_mul_of_one_le_of_le`
@@ -925,7 +914,6 @@ lemma lt_mul_of_one_lt_of_lt' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
 calc  b = 1 * b : (one_mul b).symm
     ... < a * b : mul_lt_mul_right ha b0
     ... < a * c : mul_lt_mul_left bc a0
-
 
 -- proven with `a0 : 0 ≤ a` as `mul_le_of_le_one_right`
 lemma preorder.mul_le_of_le_one_right [pos_mul_mono α] (h : b ≤ 1) (a0 : 0 < a) :

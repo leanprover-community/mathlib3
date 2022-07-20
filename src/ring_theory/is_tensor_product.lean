@@ -102,10 +102,8 @@ begin
 end
 
 lemma is_tensor_product.induction_on (h : is_tensor_product f) {C : M → Prop}
-  (x : M)
-  (h0 : C 0)
-  (htmul : ∀ x₁ x₂, C (f x₁ x₂))
-  (hadd : ∀ x₁ x₂, C x₁ → C x₂ → C (x₁ + x₂)) : C x :=
+  (x : M) (h0 : C 0) (htmul : ∀ x₁ x₂, C (f x₁ x₂)) (hadd : ∀ x₁ x₂, C x₁ → C x₂ → C (x₁ + x₂)) :
+  C x :=
 begin
   rw ← h.equiv.right_inv x,
   generalize : h.equiv.inv_fun x = y,

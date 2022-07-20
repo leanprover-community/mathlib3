@@ -444,6 +444,8 @@ begin
   congr,
   { apply factors_mul_to_finset; assumption },
   { simp only [←support_factorization, factorization_gcd hn0 hm0, finsupp.support_inf] },
+end
+
 lemma set_of_pow_dvd_eq_Icc_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   {i : ℕ | i ≠ 0 ∧ p ^ i ∣ n} = set.Icc 1 (n.factorization p) :=
 by { ext, simp [lt_succ_iff, one_le_iff_ne_zero, pp.pow_dvd_iff_le_factorization hn] }

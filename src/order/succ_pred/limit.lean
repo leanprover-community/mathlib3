@@ -51,18 +51,18 @@ by { rintros a rfl, by_contra ha, exact (H a $ lt_succ_of_not_is_max ha).false }
 
 /-- A value can be built by building it on successors and successor limits.
 
-Note that you need a partial order without a maximum for data built using this to behave nicely on
-successors. -/
+Note that you need a partial order for data built using this to behave nicely on successors. -/
 @[elab_as_eliminator] noncomputable def is_succ_limit_rec_on {C : α → Sort*} (b)
-  (hs : Π a, C (succ a)) (hl : Π a, is_succ_limit a → C a) : C b :=
+  (hs : Π a, ¬ is_max a → C (succ a)) (hl : Π a, is_succ_limit a → C a) : C b :=
 begin
   by_cases hb : is_succ_limit b,
   { exact hl b hb },
-  { rw ←classical.some_spec (mem_range_succ_of_not_is_succ_limit hb),
-    apply hs }
+  { have H := classical.some_spec (not_is_succ_limit_iff.1 hb),
+    rw ←H.2,
+    exact hs _ H.1 }
 end
 
-@[simp] theorem is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, C (succ a))
+@[simp] lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
   (hl : Π a, is_succ_limit a → C a) (hb : is_succ_limit b) :
   @is_succ_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
@@ -123,6 +123,19 @@ end
 
 lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 ⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
+
+lemma is_succ_limit_rec_on_succ' {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
+  (hl : Π a, is_succ_limit a → C a) {b : α} (hb : ¬ is_max b) :
+  @is_succ_limit_rec_on α _ _ C (succ b) hs hl = hs b hb :=
+begin
+  have hb' := not_is_succ_limit_succ_of_not_is_max hb,
+  have H := classical.some_spec (not_is_succ_limit_iff.1 hb'),
+  rw is_succ_limit_rec_on,
+  simp only [cast_eq_iff_heq, hb', not_false_iff, eq_mpr_eq_cast, dif_neg],
+  congr,
+  { exact (succ_eq_succ_iff_of_not_is_max H.1 hb).1 H.2 },
+  { apply proof_irrel_heq }
+end
 
 section no_max_order
 variables [no_max_order α]

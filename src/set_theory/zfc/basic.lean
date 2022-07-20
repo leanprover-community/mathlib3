@@ -164,6 +164,9 @@ instance : has_mem pSet pSet := ⟨pSet.mem⟩
 theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
 
+theorem func_mem (x : pSet) (i : x.type) : x.func i ∈ x :=
+by { cases x, apply mem.mk }
+
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y
 | ⟨α, A⟩ ⟨β, B⟩ h := ⟨λ a, (h (A a)).1 (mem.mk A a),
     λ b, let ⟨a, ha⟩ := (h (B b)).2 (mem.mk B b) in ⟨a, ha.symm⟩⟩
@@ -205,7 +208,7 @@ def to_set (u : pSet.{u}) : set pSet.{u} := {x | x ∈ u}
 @[simp] theorem mem_to_set (a u : pSet.{u}) : a ∈ u.to_set ↔ a ∈ u := iff.rfl
 
 /-- A nonempty set is one that contains some element. -/
-def nonempty (u : pSet) : Prop := u.to_set.nonempty
+protected def nonempty (u : pSet) : Prop := u.to_set.nonempty
 
 theorem nonempty_def (u : pSet) : u.nonempty ↔ ∃ x, x ∈ u := iff.rfl
 
@@ -240,7 +243,7 @@ instance : is_empty (type (∅)) := pempty.is_empty
 
 @[simp] theorem empty_subset (x : pSet.{u}) : (∅ : pSet) ⊆ x := λ x, x.elim
 
-@[simp] theorem not_nonempty_empty : ¬ nonempty ∅ := by simp [nonempty]
+@[simp] theorem not_nonempty_empty : ¬ pSet.nonempty ∅ := by simp [pSet.nonempty]
 
 /-- Insert an element into a pre-set -/
 protected def insert (x y : pSet) : pSet := ⟨option y.type, λ o, option.rec x y.func o⟩

@@ -465,17 +465,6 @@ end
   (b : orthonormal_basis ι 𝕜 E) : (b.to_hilbert_basis : ι → E) = b :=
 hilbert_basis.coe_mk _ _
 
-/-- A Hilbert space admits a Hilbert basis extending a given orthonormal subset. -/
-lemma _root_.orthonormal.exists_hilbert_basis_extension
-  {s : set E} (hs : orthonormal 𝕜 (coe : s → E)) :
-  ∃ (w : set E) (b : hilbert_basis w 𝕜 E), s ⊆ w ∧ ⇑b = (coe : w → E) :=
-let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
-⟨ w,
-  hilbert_basis.mk_of_orthogonal_eq_bot hw_ortho
-    (by simpa [maximal_orthonormal_iff_orthogonal_complement_eq_bot hw_ortho] using hw_max),
-  hws,
-  hilbert_basis.coe_of_orthogonal_eq_bot_mk _ _ ⟩
-
 protected lemma _root_.orthonormal_basis.orthogonal_projection_eq_sum [fintype ι]
   {U : submodule 𝕜 E} [complete_space E] [complete_space U] (b : orthonormal_basis ι 𝕜 U) (x : E) :
   (orthogonal_projection U x) = ∑ i, ⟪(b i : E), x⟫ • b i :=
@@ -498,6 +487,17 @@ begin
             orthonormal_basis.span_apply b.orthonormal J,
             J.sum_coe_sort (λ i : ι, ⟪b i, x⟫ • b i), b.repr_apply_apply],
 end
+
+/-- A Hilbert space admits a Hilbert basis extending a given orthonormal subset. -/
+lemma _root_.orthonormal.exists_hilbert_basis_extension
+  {s : set E} (hs : orthonormal 𝕜 (coe : s → E)) :
+  ∃ (w : set E) (b : hilbert_basis w 𝕜 E), s ⊆ w ∧ ⇑b = (coe : w → E) :=
+let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
+⟨ w,
+  hilbert_basis.mk_of_orthogonal_eq_bot hw_ortho
+    (by simpa [maximal_orthonormal_iff_orthogonal_complement_eq_bot hw_ortho] using hw_max),
+  hws,
+  hilbert_basis.coe_of_orthogonal_eq_bot_mk _ _ ⟩
 
 variables (𝕜 E)
 

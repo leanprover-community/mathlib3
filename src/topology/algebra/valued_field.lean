@@ -283,7 +283,7 @@ end
 @[simp, norm_cast]
 lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
-  haveI : t2_space Γ₀ := regular_space.t2_space _,
+  haveI : t2_space Γ₀ := t3_space.t2_space _,
   refine completion.dense_inducing_coe.extend_eq_of_tendsto _,
   rw ← completion.dense_inducing_coe.nhds_eq_comap,
   exact valued.continuous_valuation.continuous_at,

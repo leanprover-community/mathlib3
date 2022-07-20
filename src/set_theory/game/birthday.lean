@@ -5,7 +5,6 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.game.ordinal
-import set_theory.ordinal.arithmetic
 
 /-!
 # Birthdays of games
@@ -27,6 +26,8 @@ prove the basic properties about these.
 universe u
 
 open ordinal
+
+open_locale pgame
 
 namespace pgame
 
@@ -67,26 +68,18 @@ begin
     { exact hi.trans_lt (birthday_move_right_lt i) } }
 end
 
-theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ := begin
-  rw [birthday, birthday],
+theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthday x = birthday y
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ r := begin
+  unfold birthday,
   congr' 1,
   all_goals
   { apply lsub_eq_of_range_eq.{u u u},
-    ext i,
-    split },
-  { rintro ⟨j, rfl⟩,
-    exact ⟨L j, (relabelling.birthday_congr (hL j)).symm⟩ },
-  { rintro ⟨j, rfl⟩,
-    refine ⟨L.symm j, relabelling.birthday_congr _⟩,
-    convert hL (L.symm j),
-    rw L.apply_symm_apply },
-  { rintro ⟨j, rfl⟩,
-    refine ⟨R j, (relabelling.birthday_congr _).symm⟩,
-    convert hR (R j),
-    rw R.symm_apply_apply },
-  { rintro ⟨j, rfl⟩,
-    exact ⟨R.symm j, relabelling.birthday_congr (hR j)⟩ }
+    ext i, split },
+  all_goals { rintro ⟨j, rfl⟩ },
+  { exact ⟨_, (r.move_left j).birthday_congr.symm⟩ },
+  { exact ⟨_, (r.move_left_symm j).birthday_congr⟩ },
+  { exact ⟨_, (r.move_right j).birthday_congr.symm⟩ },
+  { exact ⟨_, (r.move_right_symm j).birthday_congr⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

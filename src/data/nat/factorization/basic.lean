@@ -217,7 +217,7 @@ by { cases n, refl }
 lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.support, prime p) :
   (factorization_equiv.symm ⟨f, hf⟩).1 = f.prod pow := rfl
 
-/-! ### Generalisation of "even" and "odd" parts -/
+/-! ### Factorization and divisibility -/
 
 /-- The largest divisor of `n` divisible by `p`.  For `p = 2` this is the even part of `n` -/
 noncomputable -- TODO: Delete `noncomputable` when #12301 is merged
@@ -254,9 +254,26 @@ begin
   simp [pow_pos pp.pos],
 end
 
+lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  ¬p ∣ n.p_odd_part p :=
+begin
+  rw ←p_odd_part_def',
+  rw (dvd_div_iff (pow_factorization_dvd n p)),
+  intro H,
+  swap,
+  exact pow_factorization_dvd n p,
 
 
-/-! ### Factorization and divisibility -/
+  rw [nat.prime.dvd_iff_one_le_factorization hp (div_pow_factorization_ne_zero p hn),
+    nat.factorization_div (nat.pow_factorization_dvd n p)],
+  simp [hp.factorization],
+end
+
+lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  coprime p (n / p ^ n.factorization p) :=
+(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
+
+
 
 lemma dvd_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ∣ n :=
 begin
@@ -346,18 +363,6 @@ begin
       ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
       nat.div_mul_cancel h],
 end
-
-lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
-  ¬p ∣ n / p ^ n.factorization p :=
-begin
-  rw [nat.prime.dvd_iff_one_le_factorization hp (div_pow_factorization_ne_zero p hn),
-    nat.factorization_div (nat.pow_factorization_dvd n p)],
-  simp [hp.factorization],
-end
-
-lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
-  coprime p (n / p ^ n.factorization p) :=
-(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=

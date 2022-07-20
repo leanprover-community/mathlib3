@@ -202,7 +202,7 @@ end
 
 @[to_additive] lemma monoid_hom.map_finprod_Prop {p : Prop} (f : M →* N) (g : p → M) :
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
-f.map_finprod_plift g (finite.of_fintype _)
+f.map_finprod_plift g (set.to_finite _)
 
 @[to_additive] lemma monoid_hom.map_finprod_of_preimage_one (f : M →* N)
   (hf : ∀ x, f x = 1 → x = 1) (g : α → M) :
@@ -310,7 +310,7 @@ by { classical, rw [finprod_def, dif_pos hf] }
 
 @[to_additive] lemma finprod_eq_prod_of_fintype [fintype α] (f : α → M) :
   ∏ᶠ i : α, f i = ∏ i, f i :=
-finprod_eq_prod_of_mul_support_to_finset_subset _ (finite.of_fintype _) $ finset.subset_univ _
+finprod_eq_prod_of_mul_support_to_finset_subset _ (set.to_finite _) $ finset.subset_univ _
 
 @[to_additive] lemma finprod_cond_eq_prod_of_cond_iff (f : α → M) {p : α → Prop} {t : finset α}
   (h : ∀ {x}, f x ≠ 1 → (p x ↔ x ∈ t)) :

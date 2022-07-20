@@ -12,15 +12,15 @@ lemma nat_greater_exists (n : ℕ) : ∃ m : ℕ, n < m := ⟨n + 1, by fconstru
 noncomputable def nat_greater_res : ℕ → ℕ := nat_greater
 lemma nat_greater_spec_res : ∀ (n : ℕ), n < nat_greater n := nat_greater_spec
 
-@[expand_exists dependant_type dependant_type_val dependant_type_spec]
-lemma dependant_type_exists {α : Type*} (a : α) : ∃ {β : Type} (b : β), (a, b) = (a, b) :=
+@[expand_exists dependent_type dependent_type_val dependent_type_spec]
+lemma dependent_type_exists {α : Type*} (a : α) : ∃ {β : Type} (b : β), (a, b) = (a, b) :=
 ⟨unit, (), rfl⟩
 
-def dependant_type_res {α : Type*} (a : α) : Type := dependant_type a
-noncomputable def dependant_type_val_res {α : Type*} (a : α) : dependant_type a :=
-dependant_type_val a
-lemma dependant_type_spec_res
-{α : Type*} (a : α) : (a, dependant_type_val a) = (a, dependant_type_val a) := dependant_type_spec a
+def dependent_type_res {α : Type*} (a : α) : Type := dependent_type a
+noncomputable def dependent_type_val_res {α : Type*} (a : α) : dependent_type a :=
+dependent_type_val a
+lemma dependent_type_spec_res
+{α : Type*} (a : α) : (a, dependent_type_val a) = (a, dependent_type_val a) := dependent_type_spec a
 
 @[expand_exists nat_greater_nosplit nat_greater_nosplit_spec,
   expand_exists nat_greater_split nat_greater_split_lt nat_greater_split_neq]

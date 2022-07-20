@@ -899,7 +899,7 @@ begin
        ... = norm (mk (inv_rev w)) : by simp only [←inv_mk]
        ... ≤ (inv_rev w).length : by exact to_word.le_length
        ... = w.length : inv_rev_length
-       ... = norm x : by unfold norm,
+       ... = norm x : rfl
 end
 
 lemma norm_inv_eq (x : free_group α) : norm x = norm x⁻¹ :=

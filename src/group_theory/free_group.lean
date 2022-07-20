@@ -832,14 +832,6 @@ by rintros ⟨L⟩; exact reduce.self
 lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
-theorem to_word.le_length : (mk L₁).to_word.length ≤ L₁.length := 
-begin
-  suffices k : red L₁ (mk L₁).to_word,
-  { exact list.length_le_of_sublist (red.sublist k), },
-  simp [to_word, reduce.red],
-
-end
-
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :
   { L₄ // red L₂ L₄ ∧ red L₃ L₄ } :=
@@ -890,13 +882,20 @@ variable [decidable_eq α]
 /-- The length of reduced words provides a norm on a free group. --/
 def norm (x : free_group α) : nat := x.to_word.length
 
+theorem norm_mk_le : norm (mk L₁) ≤ L₁.length := 
+begin
+  suffices k : red L₁ (mk L₁).to_word,
+  { exact list.length_le_of_sublist (red.sublist k), },
+  simp [to_word, reduce.red],
+end
+
 lemma norm_inv_le (x : free_group α) : norm x⁻¹ ≤ norm x :=
 begin
   let w := x.to_word,
  
   calc norm x⁻¹ = norm ((mk (x.to_word))⁻¹) : by simp only [to_word.mk]
        ... = norm (mk (inv_rev w)) : by simp only [←inv_mk]
-       ... ≤ (inv_rev w).length : by exact to_word.le_length
+       ... ≤ (inv_rev w).length : by exact norm_mk_le 
        ... = w.length : inv_rev_length
        ... = norm x : rfl
 end
@@ -938,7 +937,7 @@ begin
   
   rw ← mwx,
   rw ← mwy, 
-  apply to_word.le_length,
+  apply norm_mk_le, 
 end
 
 end metric

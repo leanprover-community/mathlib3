@@ -232,7 +232,6 @@ begin
   letI := (f₁.comp (is_scalar_tower.to_alg_hom R A B)).to_ring_hom.to_algebra,
   let F₁ : B →ₐ[A] C := { commutes' := λ r, rfl, ..f₁ },
   let F₂ : B →ₐ[A] C := { commutes' := alg_hom.congr_fun e'.symm, ..f₂ },
-
   ext1,
   change F₁ x = F₂ x,
   congr,

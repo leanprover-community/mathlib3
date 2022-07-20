@@ -241,7 +241,7 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 -- [*] n.padic_part p * n.p_odd_part p = n
 -- [*] a.padic_part p * b.padic_part p = (a*b).padic_part p
 -- [*] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
--- [ ] n.padic_part p is the largest divisor of `n` divisible by `p`.
+-- [ ] n.padic_part p is the largest power of `p` that divides into `n`
 -- [ ] n.p_odd_part p is the largest divisor of `n` not divisible by `p`.
 
 -- TODO: Rename this to `padic_part_dvd`

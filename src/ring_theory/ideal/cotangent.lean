@@ -140,6 +140,32 @@ begin
   refl
 end
 
+/--
+If `N` is a f.g. `R`-submodule of `M`, and `I` is an ideal of `R` contained in its jacobson radical,
+then `N/IN` is principal as an `R/I`-module implies that `N` is a principal `
+-/
+lemma submodule.is_principal_of_quotient_smul_is_principal (I : ideal R)
+  (hI : I ≤ (⊥ : ideal R).jacobson) (N : submodule R M) (hN : N.fg)
+    [h : (⊤ : submodule (R ⧸ I) (N ⧸ I • (⊤ : submodule R N))).is_principal] :
+    N.is_principal :=
+begin
+  unfreezingI { obtain ⟨x, hx'⟩ := h },
+  obtain ⟨x, rfl⟩ := submodule.mkq_surjective _ x,
+  rw [← set.image_singleton, ← submodule.restrict_scalars_inj R,
+    submodule.restrict_scalars_top, ← submodule.span_eq_restrict_scalars,
+    ← submodule.map_span, eq_comm, submodule.map_mkq_eq_top,
+    ← (submodule.map_injective_of_injective N.injective_subtype).eq_iff,
+    submodule.map_sup, submodule.map_smul'', submodule.map_top, submodule.range_subtype,
+    submodule.map_span, set.image_singleton, N.subtype_apply] at hx',
+  have : submodule.span R {↑x} ⊔ N = submodule.span R {↑x} ⊔ I • N,
+  { rw [@sup_comm _ _ _ (I • N), hx', sup_eq_right], exact le_sup_right.trans hx'.le },
+  have := submodule.smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson hN hI this.le,
+  rw [submodule.bot_smul, sup_bot_eq, sup_eq_left] at this,
+  rw sup_eq_right.mpr this at hx',
+  exacts [⟨⟨x, hx'.symm⟩⟩, ideal.quotient.mk_surjective],
+end
+
+
 end ideal
 
 attribute [mk_iff] submodule.is_principal

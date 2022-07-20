@@ -37,8 +37,6 @@ Bertrand, prime, binomial coefficients
 
 open_locale big_operators
 
-set_option profiler true
-
 section real
 
 open real

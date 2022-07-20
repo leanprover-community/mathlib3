@@ -139,6 +139,7 @@ def coyoneda : (Action V G)ᵒᵖ ⥤ Action V G ⥤ Action V G :=
 @[simp] lemma internal_hom_obj_map (X : Vᵒᵖ) {Y Z : V} (f : Y ⟶ Z) :
   (monoidal_closed.internal_hom.obj X).map f = (ihom (unop X)).map f := rfl
 
+variables {X Y Z}
 @[nolint unused_arguments] lemma tensor_left_g_id_comp_injective {f' f'' : X.V ⊗ Y.V ⟶ Z.V} :
   ((X.ρ_Aut g).hom ⊗ 𝟙 Y.V) ≫ f' = ((X.ρ_Aut g).hom ⊗ 𝟙 Y.V) ≫ f'' → f' = f'' :=
 begin
@@ -181,7 +182,7 @@ begin
   rw monoidal_closed.uncurry_natural_left,
   rw monoidal_closed.uncurry_pre,
   rw @monoidal_category.id_tensor_comp_tensor_id_assoc _ _ _ _ ((ihom X.V).obj Z.V),
-  apply tensor_left_g_id_comp_injective _ _ _ g,
+  apply tensor_left_g_id_comp_injective g,
   rw [←Action.ρ_Aut_apply_inv, monoidal_category.hom_inv_id_tensor_assoc,
     monoidal_category.hom_inv_id_tensor_assoc],
   simp,
@@ -192,7 +193,7 @@ end⟩
 
 @[simp] lemma monoidal_closed_curry_hom
   (f : (monoidal_category.tensor_left X).obj Y ⟶ Z) :
-  (monoidal_closed_curry X Y Z f).hom = monoidal_closed.curry f.hom := rfl
+  (monoidal_closed_curry f).hom = monoidal_closed.curry f.hom := rfl
 
 /-- Elevate the uncurry on `V` to an `Action V G` hom. -/
 def monoidal_closed_uncurry
@@ -203,7 +204,7 @@ begin
   intro,
   have : ((monoidal_category.tensor_left X).obj Y).ρ = (X ⊗ Y).ρ := rfl,
   rw this,
-  apply tensor_left_g_id_comp_injective _ _ _ g⁻¹,
+  apply tensor_left_g_id_comp_injective g⁻¹,
   rw [Action.tensor_rho, Action.ρ_Aut_apply_hom, ←Action.ρ_Aut_apply_inv,
     ←Action.ρ_Aut_apply_hom, ←category.assoc,
     monoidal_category.inv_hom_id_tensor,
@@ -228,7 +229,7 @@ begin
   have : 𝟙 ((ihom X.V).obj Z.V) = 𝟙 (ihom X Z).V := rfl,
   rw this,
   rw monoidal_category.id_tensor_comp_tensor_id_assoc,
-  apply tensor_left_g_id_comp_injective _ _ _ g,
+  apply tensor_left_g_id_comp_injective g,
   rw ←Action.ρ_Aut_apply_inv,
   rw monoidal_category.hom_inv_id_tensor_assoc,
   rw monoidal_category.hom_inv_id_tensor_assoc,
@@ -245,24 +246,24 @@ end⟩
 
 @[simp] lemma monoidal_closed_uncurry_hom
   (f : Y ⟶ ihom X Z) :
-  (monoidal_closed_uncurry X Y Z f).hom = monoidal_closed.uncurry f.hom := rfl
+  (monoidal_closed_uncurry f).hom = monoidal_closed.uncurry f.hom := rfl
 
 /-- Intermediate step to constructing `monoidal_closed` -/
 def monoidal_closed_hom_equiv :
   ((monoidal_category.tensor_left X).obj Y ⟶ Z) ≃
   (Y ⟶ (coyoneda.obj (op X)).obj Z) :=
-{ to_fun := monoidal_closed_curry _ _ _,
-  inv_fun := monoidal_closed_uncurry _ _ _,
+{ to_fun := monoidal_closed_curry,
+  inv_fun := monoidal_closed_uncurry,
   left_inv := by { intro f, apply Action.hom.ext, simp },
   right_inv := by { intro f, apply Action.hom.ext, simp } }
 
 @[simp] lemma monoidal_closed_hom_equiv_apply
   (f : (monoidal_category.tensor_left X).obj Y ⟶ Z) :
-  monoidal_closed_hom_equiv X Y Z f = monoidal_closed_curry X Y Z f := rfl
+  monoidal_closed_hom_equiv f = monoidal_closed_curry f := rfl
 
 @[simp] lemma monoidal_closed_hom_equiv_symm_apply
   (f : Y ⟶ ihom X Z) :
-  (monoidal_closed_hom_equiv X Y Z).symm f = monoidal_closed_uncurry X Y Z f := rfl
+  monoidal_closed_hom_equiv.symm f = monoidal_closed_uncurry f := rfl
 
 /-- For a group `G`, if `V` is a closed monoidal category, then `Action V G` is a closed monoidal
 category. -/
@@ -273,7 +274,7 @@ instance : monoidal_closed (Action V G) :=
     { right := coyoneda.obj (op X),
       adj := begin
         apply adjunction.mk_of_hom_equiv,
-        refine ⟨λ Y Z, monoidal_closed_hom_equiv X Y Z, _, _⟩,
+        refine ⟨λ Y Z, monoidal_closed_hom_equiv, _, _⟩,
         { intros Y Y' Z f f',
           apply Action.hom.ext,
           simp,

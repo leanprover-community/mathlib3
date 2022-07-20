@@ -904,10 +904,8 @@ end
 
 lemma norm_inv_eq (x : free_group α) : norm x = norm x⁻¹ :=
 begin
-  have h1 := norm_inv_le x,
-  have h2 := norm_inv_le x⁻¹,
-  simp at h2,
-  finish,
+  refine le_antisymm _ (norm_inv_le x),
+  simpa using norm_inv_le x⁻¹
 end
 
 lemma norm_zero_eq_one (x : free_group α ) : norm x = 0 → x = 1 := 

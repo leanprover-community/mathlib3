@@ -562,7 +562,7 @@ mem_sUnion.2 ⟨z, hz, hy⟩
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
-theorem singleton_injective : function.injective (λ x, ({x} : Set)) :=
+theorem singleton_injective : function.injective (@singleton Set Set _) :=
 λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
 
 @[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
@@ -653,8 +653,8 @@ begin
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
-theorem pair_injective {x y x' y' : Set} (H : pair x y = pair x' y') : x = x' ∧ y = y' :=
-begin
+theorem pair_injective : function.injective2 pair :=
+λ x x' y y' H, begin
   have ae := ext_iff.2 H,
   simp only [pair, mem_pair] at ae,
   obtain rfl : x = x',
@@ -678,7 +678,7 @@ begin
 end
 
 @[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
-⟨pair_injective, by { rintro ⟨rfl, rfl⟩, refl }⟩
+pair_injective.eq_iff
 
 /-- The cartesian product, `{(a, b) | a ∈ x, b ∈ y}` -/
 def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λ a b, true)

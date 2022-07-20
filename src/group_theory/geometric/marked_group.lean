@@ -24,6 +24,8 @@ def free_group_norm (S : Type*) (h : decidable_eq S) (f : free_group S) : ℕ :=
 lemma empty_list {α : Type*} (l : list α) : l.length = 0 → l = list.nil := begin
   intro h, ext1, finish
 end
+lemma empty_list {α : Type*} (l : list α) : l.length = 0 → l = list.nil := 
+list.length_eq_zero.mp
 
 lemma free_group_norm_zero (S : Type*) (h : decidable_eq S) (f : free_group S) : free_group_norm S h f = 0 → f = 1 := begin
   intro h,
@@ -53,7 +55,7 @@ lemma group_norm_one (x : G) : group_norm m x = 0 ↔ x = 1 := begin
     rw hzero at h,
     rcases h with ⟨y,ymem,normzero⟩,
     have yone : y = 1, { 
-      exact free_group_norm_zero m.S m.decidable y normzero,
+      exact free_group_norm_zero y normzero,
     },
     rw yone at ymem,
     finish -- can we replace it by a simple command?

@@ -242,8 +242,8 @@ begin
     simp only [*, homeomorph.coe_to_equiv, homeomorph.comp_continuous_iff'] at * },
 end
 
-lemma continuous_triple_prod_swap {α β γ δ : Type u} [topological_space α] [topological_space β]
-  [topological_space γ] [topological_space δ] (f : (α × β) × γ → δ) : continuous f ↔
+lemma continuous_triple_prod_swap {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} [topological_space α] [topological_space β]
+  [topological_space γ] [topological_space δ] {f : (α × β) × γ → δ} : continuous f ↔
     continuous (f ∘ (homeomorph.prod_comm _ _).symm.1) :=
 begin
   sorry,
@@ -282,67 +282,38 @@ end
 --   continuity,
 -- end
 
-
 lemma senza_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend x.1.1) :=
 begin
-  have h : continuous (λ x : (I × Ω(x)) × Ω(x), x.1), exact continuous_fst,
-  -- have h : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.extend), sorry,
-  -- set π := (λ p : I × Ω(x), p.2 p.1) with hπ,
-  -- set π' := (λ p : Ω(x) × I, p.1 p.2) with hπ',
   set π₁ := (λ p : Ω(x) × I, p.1.extend p.2) with hπ₁,
-  have cont_coe : continuous (coe : Ω(x) → C(I, X)), from continuous_induced_dom,
-  -- have H : continuous π',
-  -- rw hπ',
-  --   have := @continuous_eval' I X _ _ _,
-
-  --   -- have hext := continuous_map.comp cont_coe,--(Icc_extend zero_le_one) cont_coe,
-  --   have also := continuous.prod_map cont_coe (@continuous_id I _),
-  --   -- let φ : C(I, X) := ⟨_, also⟩,
-  --   exact this.comp also,
-    have K : continuous π₁,
-  rw hπ₁,
+  have K : continuous π₁,
+  { rw hπ₁,
     have thiss := @continuous_eval' ℝ X _ _ _,
-    -- have cont_ext : continuous (path.extend : C(I,X) → C(ℝ,X)),
     let ρ := @Icc_extend ℝ X _ _ _ _ 0 1 zero_le_one,
     have hρ : continuous ρ,
     { sorry },
-    have uff := hρ.comp cont_coe,
+    have uff := hρ.comp continuous_induced_dom,
     have hIR : continuous (coe : I → ℝ), from continuous_induced_dom,
     have also2 := continuous.prod_map uff hIR,
-    -- convert also2,
-    -- -- let ρ₀ := (λ f, ρ f),
     have argh := thiss.comp also2,
-    exact argh,
-
+    exact argh },
   { sorry },
 end
+
+lemma senza_smul_due_senza_swap (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.extend x.1.1) :=
+begin
+  let φ := homeomorph.prod_assoc I Ω(x) Ω(x),
+  exact (homeomorph.comp_continuous_iff' φ.symm).mpr (senza_smul_due_con_swap x),
+  end
 
 lemma Hmul_Ω_cont₁ (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.trans x.2.2 x.1) :=
 begin
   apply continuous.piecewise,
   sorry,
   -- sorry,
-  { --let φ₁ := prod.swap,
-    set f := λ (i : ↥I × path x x × path x x), i.snd.fst.extend (2 * ↑(i.fst)) with hf,
-    set g := λ (i : (↥I × Ω(x)) × Ω(x)), i.fst.snd.extend (2 * ↑(i.fst.fst)) with hg,
-    -- have : continuous f, sorry,
-    let φ₁ := (@homeomorph.prod_assoc I Ω(x) Ω(x) _ _ _),
-    apply (φ₁.comp_continuous_iff').mp,
-    set ψ₁ := f ∘ φ₁ with hψ₁,
-    have heq : ψ₁ = g, refl,
-    rw ← hψ₁,
-    rw heq,
-    sorry,
-    -- apply continuous.prod,
-    -- continuity,
-    -- simp,
-    -- ext ⟨⟨t, γ⟩, γ'⟩,
-    -- refl,
-    -- let := φ₁.1.1,-- = (λ p : I × Ω(X) × Ω(x), ⟨p.1, ⟨p.2.1, p.2.2⟩⟩),
-    -- squeeze_simp [φ₁.1.1],
-    -- simp only,
-
-
+  { let ψ : (I × Ω(x) × Ω(x)) → (ℝ × Ω(x) × Ω(x)) := λ x : (I × Ω(x) × Ω(x)), ⟨(2 : ℝ) * ↑(x.1), x.2.1, x.2.2⟩,
+    have hψ : continuous ψ, sorry,
+    have := continuous.comp (senza_smul_due_senza_swap x);--the problem is that paths now leave from ℝ and not from I
+  sorry,
   },
   sorry,
 end

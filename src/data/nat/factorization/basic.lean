@@ -235,15 +235,16 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 
 -- TODO: Prove:
 -- [*] n.padic_part p ∣ n
+-- [*] n.p_odd_part p ∣ n
 -- [*] 0 < n.padic_part p ≤ n
 -- [*] 0 < n.p_odd_part p ≤ n
--- [ ] n.p_odd_part p ∣ n
 -- [ ] n.padic_part p * n.p_odd_part p = n
 -- [ ] a.padic_part p * b.padic_part p = (a*b).padic_part p
 -- [ ] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
 -- [ ] n.padic_part p is the largest divisor of `n` divisible by `p`.
 -- [ ] n.p_odd_part p is the largest divisor of `n` not divisible by `p`.
 
+-- TODO: Rename this to `padic_part_dvd`
 lemma pow_factorization_dvd (n p : ℕ) : n.padic_part p ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n hp] },
@@ -253,6 +254,9 @@ begin
   intros q hq,
   simp [list.eq_of_mem_repeat hq],
 end
+
+lemma p_odd_part_dvd (n p : ℕ) : n.p_odd_part p ∣ n :=
+div_dvd_of_dvd (pow_factorization_dvd n p)
 
 lemma padic_part_pos (n p : ℕ) : 0 < n.padic_part p :=
 begin
@@ -267,7 +271,6 @@ lemma p_odd_part_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < n.p_odd_part p :=
 begin
   cases em' p.prime with pp pp,
   { simpa [nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
-  rw ←p_odd_part_def',
   exact nat.div_pos (padic_part_le p hn) (padic_part_pos n p),
 end
 

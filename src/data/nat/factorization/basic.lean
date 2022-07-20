@@ -401,6 +401,19 @@ lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0)
   coprime p (n / p ^ n.factorization p) :=
 (or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
+lemma factorization_p_odd_part (n p : ℕ) :
+  (n.p_odd_part p).factorization = n.factorization.erase p :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  by_cases pp : p.prime, swap, { simp [pp] },
+  ext q,
+  rcases eq_or_ne q p with rfl | hqp,
+  { simp only [finsupp.erase_same, factorization_eq_zero_iff', not_dvd_div_pow_factorization pp hn],
+    simp },
+  { rw [finsupp.erase_ne hqp, ←p_odd_part_def', factorization_div (pow_factorization_dvd n p)],
+    simp [pp.factorization, hqp.symm] },
+end
+
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin

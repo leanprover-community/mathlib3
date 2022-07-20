@@ -760,6 +760,11 @@ begin
     exact ⟨⟨i, i⟩, ⟨hi, hi⟩, h⟩ },
 end
 
+lemma has_antitone_basis.map {f : filter α} {m : α → β}
+  {s : ℕ → set α} (hf : has_antitone_basis f s) :
+  has_antitone_basis (map m f) (λ n, m '' s n) :=
+⟨has_basis.map _ hf.to_has_basis, λ i j hij, image_subset _ $ hf.2 hij⟩
+
 lemma has_antitone_basis.prod {f : filter α} {g : filter β}
   {s : ℕ → set α} {t : ℕ → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
   has_antitone_basis (f ×ᶠ g) (λ n, s n ×ˢ t n) :=

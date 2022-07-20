@@ -61,7 +61,7 @@ variables {M : Type*} [topological_space M] [charted_space H M]
 {M' : Type*} [topological_space M'] [charted_space H' M']
 {N : Type*} [topological_space N] [charted_space G N]
 {N' : Type*} [topological_space N'] [charted_space G' N']
-{n : with_top ℕ}
+{n : ℕ∞}
 
 section defs
 

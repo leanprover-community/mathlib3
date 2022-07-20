@@ -28,7 +28,7 @@ In the definition of the hitting time, we bound the hitting time by an upper and
 This is to ensure that our result is meaningful in the case we are taking the infimum of an
 empty set or the infimum of a set which is unbounded from below. With this, we can talk about
 hitting times indexed by the natural numbers or the reals. By taking the bounds to be
-`⊤` and `⊥`, we obtain the standard definition in the case that the index is `with_top ℕ` or `ℝ≥0∞`.
+`⊤` and `⊥`, we obtain the standard definition in the case that the index is `ℕ∞` or `ℝ≥0∞`.
 
 -/
 

@@ -684,7 +684,7 @@ end normed_group
 
 namespace cont_diff_bump_of_inner
 
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [normed_space ℝ E']
 variables [inner_product_space ℝ G]
 variables [complete_space E']
@@ -758,7 +758,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space 𝕜 E'']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables [complete_space F]
 variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
@@ -888,7 +888,7 @@ variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
 variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
-variables {n : with_top ℕ}
+variables {n : ℕ∞}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 variables [complete_space F]
 variables {μ : measure 𝕜}

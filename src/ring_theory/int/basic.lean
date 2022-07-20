@@ -31,7 +31,7 @@ namespace nat
 instance : wf_dvd_monoid ℕ :=
 ⟨begin
   refine rel_hom_class.well_founded
-    (⟨λ (x : ℕ), if x = 0 then (⊤ : with_top ℕ) else x, _⟩ : dvd_not_unit →r (<))
+    (⟨λ (x : ℕ), if x = 0 then (⊤ : ℕ∞) else x, _⟩ : dvd_not_unit →r (<))
     (with_top.well_founded_lt nat.lt_wf),
   intros a b h,
   cases a,

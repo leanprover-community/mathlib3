@@ -191,7 +191,8 @@ instance lie_ideal.lie_ring_module {R L : Type*} [comm_ring R] [lie_ring L] [lie
 lie_subalgebra.lie_ring_module (I : lie_subalgebra R L)
 
 @[simp]
-theorem lie_ideal.coe_bracket_of_module (I : lie_ideal R L) (x : I) (m : M) :
+theorem lie_ideal.coe_bracket_of_module {R L : Type*} [comm_ring R] [lie_ring L] [lie_algebra R L]
+  (I : lie_ideal R L) [lie_ring_module L M] (x : I) (m : M) :
   ⁅x,m⁆ = ⁅(↑x : L),m⁆ :=
 lie_subalgebra.coe_bracket_of_module (I : lie_subalgebra R L) x m
 

@@ -498,7 +498,7 @@ theorem add_is_normal (a : ordinal) : is_normal ((+) a) :=
 theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
 (add_is_normal a).is_limit
 
-alias add_is_limit ← ordinal.is_limit.add
+alias add_is_limit ← is_limit.add
 
 /-! ### Subtraction on ordinals-/
 

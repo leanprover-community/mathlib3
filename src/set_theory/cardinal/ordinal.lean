@@ -23,6 +23,9 @@ using ordinals.
 * The function `cardinal.aleph` gives the infinite cardinals listed by their
   ordinal index. `aleph 0 = ℵ₀`, `aleph 1 = succ ℵ₀` is the first
   uncountable cardinal, and so on.
+* The function `cardinal.beth` enumerates the Beth cardinals. `beth 0 = ℵ₀`,
+  `beth (succ o) = 2 ^ beth o`, and for a limit ordinal `o`, `beth o` is the supremum of `beth a`
+  for `a < o`.
 
 ## Main Statements
 

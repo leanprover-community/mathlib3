@@ -236,7 +236,7 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 -- TODO: Prove:
 -- [*] n.padic_part p ∣ n
 -- [*] 0 < n.padic_part p ≤ n
--- [ ] 0 ≤ n.p_odd_part p ≤ n
+-- [*] 0 < n.p_odd_part p ≤ n
 -- [ ] n.p_odd_part p ∣ n
 -- [ ] n.padic_part p * n.p_odd_part p = n
 -- [ ] a.padic_part p * b.padic_part p = (a*b).padic_part p
@@ -270,6 +270,13 @@ begin
   rw ←p_odd_part_def',
   exact nat.div_pos (padic_part_le p hn) (padic_part_pos n p),
 end
+
+lemma p_odd_part_le {n : ℕ} (p : ℕ) : n.p_odd_part p ≤ n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
+  apply nat.div_le_self,
+end
+
 
 lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   ¬p ∣ n.p_odd_part p :=

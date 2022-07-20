@@ -444,8 +444,8 @@ lemma heq_of_reindex_cast {ι ι₂ : Type*} [dι : decidable_eq ι] [dι₂ : d
   (a : ⨂[R] i : ι, M) (b : ⨂[R] i : ι₂, M) {h : ι = ι₂} :
   reindex R M (equiv.cast h) a = b → a == b :=
 begin
-  unfreezingI {
-    subst h,
+  unfreezingI
+  { subst h,
     have : dι = dι₂ := subsingleton.elim _ _,
     subst this, },
   simp,

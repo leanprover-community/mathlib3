@@ -895,7 +895,7 @@ begin
  
   calc norm x⁻¹ = norm ((mk (x.to_word))⁻¹) : by simp only [to_word.mk]
        ... = norm (mk (inv_rev w)) : by simp only [←inv_mk]
-       ... ≤ (inv_rev w).length : by exact norm_mk_le 
+       ... ≤ (inv_rev w).length : norm_mk_le 
        ... = w.length : inv_rev_length
        ... = norm x : rfl
 end

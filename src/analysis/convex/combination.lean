@@ -153,7 +153,7 @@ lemma convex.sum_mem (hs : convex R s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : �
 by simpa only [h₁, center_mass, inv_one, one_smul] using
   hs.center_mass_mem h₀ (h₁.symm ▸ zero_lt_one) hz
 
-/-- A version of `convex,sum_mem` for `finsum`s. If `s` is a convex set, `w : ι → R` is a family of
+/-- A version of `convex.sum_mem` for `finsum`s. If `s` is a convex set, `w : ι → R` is a family of
 nonnegative weights with sum one and `z : ι → E` is a family of elements of a module over `R` such
 that `z i ∈ s` whenever `w i ≠ 0``, then the sum `∑ᶠ i, w i • z i` belongs to `s`. See also
 `partition_of_unity.finsum_smul_mem_convex`. -/

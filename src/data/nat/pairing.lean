@@ -145,11 +145,10 @@ end
 theorem max_sq_add_min_le_mkpair (m n : ℕ) : max m n ^ 2 + min m n ≤ mkpair m n :=
 begin
   rw mkpair,
-  split_ifs,
-  { rw [max_eq_right h.le, min_eq_left h.le, sq] },
-  { rw not_lt at h,
-    rw [max_eq_left h, min_eq_right h, sq, add_assoc, add_le_add_iff_left],
-    apply h.trans (self_le_add_right m n) }
+  cases lt_or_le m n,
+  { rw [if_pos h, max_eq_right h.le, min_eq_left h.le, sq], },
+  { rw [if_neg h.not_lt, max_eq_left h, min_eq_right h, sq, add_assoc, add_le_add_iff_left],
+    exact le_add_self }
 end
 
 theorem add_le_mkpair (m n : ℕ) : m + n ≤ mkpair m n :=

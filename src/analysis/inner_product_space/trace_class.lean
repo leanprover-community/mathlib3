@@ -53,9 +53,14 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 section trace_along
 
-noncomputable def conj_proj [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
+private noncomputable def conj_proj [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
   [complete_space U] : E →L[𝕜] E :=
 (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L orthogonal_projection U)
+
+private lemma conj_proj_apply [complete_space E] (T : E →L[𝕜] E) (U : submodule 𝕜 E)
+  [complete_space U] (x : E) :
+  conj_proj T U x = orthogonal_projection U (T (orthogonal_projection U x)) :=
+rfl
 
 noncomputable def trace_along (U : submodule 𝕜 E) [finite_dimensional 𝕜 U] :
   (E →L[𝕜] E) →ₗ[𝕜] 𝕜 :=
@@ -91,17 +96,15 @@ lemma has_sum_trace_along_of_hilbert_basis [complete_space E] {ι : Type*}
 begin
   let f := std_orthonormal_basis 𝕜 U,
   rw trace_along_eq_of_orthonormal_basis T f,
-  have : ∀ a, has_sum (λ i, ⟪(conj_proj (T†) U) (f a : E), e i⟫ * ⟪e i, f a⟫)
-    ⟪(conj_proj (T†) U) (f a : E), f a⟫ :=
-    λ a, e.has_sum_inner_mul_inner _ _,
-  convert has_sum_sum (λ a (_ : a ∈ finset.univ), this a),
+  have : ∀ j, has_sum (λ i, ⟪(conj_proj (T†) U) (f j : E), e i⟫ * ⟪e i, f j⟫)
+    ⟪(conj_proj (T†) U) (f j : E), f j⟫ :=
+    λ j, e.has_sum_inner_mul_inner _ _,
+  convert has_sum_sum (λ j (_ : j ∈ finset.univ), this j),
   { ext i,
-    change ⟪e i, orthogonal_projection U (T (orthogonal_projection U $ e i))⟫ = _,
-    rw [← inner_orthogonal_projection_left_eq_right],
+    rw [conj_proj_apply, ← inner_orthogonal_projection_left_eq_right],
     nth_rewrite 0 ← orthogonal_projection_mem_subspace_eq_self (orthogonal_projection U (e i)),
     rw [inner_orthogonal_projection_left_eq_right, ← coe_inner, ← f.sum_inner_mul_inner],
-    congr,
-    ext j,
+    congrm ∑ j, _,
     rw [coe_inner, coe_inner, inner_orthogonal_projection_left_eq_right,
         orthogonal_projection_mem_subspace_eq_self, ← inner_orthogonal_projection_left_eq_right,
         ← T.adjoint_inner_left, ← inner_orthogonal_projection_left_eq_right, mul_comm],
@@ -160,7 +163,7 @@ begin
   exact hT.2 (e i)
 end
 
--- TODO : make the API better so that this is as trivial as it should be
+-- This is annoying, can we make it easier ?
 lemma is_positive.trace_along_conj_proj_le [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
   (U V : submodule 𝕜 E) [finite_dimensional 𝕜 U] [finite_dimensional 𝕜 V] :
     re (trace_along U (conj_proj T V)) ≤
@@ -174,12 +177,12 @@ begin
   { rw coe_std_orthonormal_basis at hs,
     change set.range (coe ∘ coe) ⊆ s at hs,
     rwa [set.range_comp, subtype.range_coe] at hs },
-  have he₁ : ∀ i (his : i ∈ s) (hit : i ∈ t), (orthogonal_projection U i : E) = i,
-  { rintros i his ⟨i₀, hi₀, rfl⟩,
-    rw orthogonal_projection_eq_self_iff,
+  have he₁ : ∀ (i : s) (hit : (i : E) ∈ t), (orthogonal_projection U i : E) = i,
+  { rintros i ⟨i₀, hi₀, hii₀⟩,
+    rw [← hii₀, orthogonal_projection_eq_self_iff],
     exact submodule.coe_mem _ },
-  have he₂ : ∀ i (his : i ∈ s) (hit : i ∉ t), orthogonal_projection U i = 0,
-  { rintros i his hit,
+  have he₂ : ∀ (i : s) (hit : (i : E) ∉ t), orthogonal_projection U i = 0,
+  { rintros i hit,
     rw (std_orthonormal_basis 𝕜 U).orthogonal_projection_eq_sum,
     refine finset.sum_eq_zero (λ j₀ _, _),
     rw [coe_std_orthonormal_basis],
@@ -188,18 +191,17 @@ begin
     change ⟪j, i⟫ • _ = (0 : U),
     have hjt : j ∈ t := mem_image_of_mem _ hj₁,
     have : j ≠ i := λ h, hit (h ▸ hjt),
-    have : (⟨j, hts hjt⟩ : s) ≠ ⟨i, his⟩ := λ h, this (congr_arg coe h),
+    have : (⟨j, hts hjt⟩ : s) ≠ i := λ h, this (congr_arg coe h),
     have := e.orthonormal.2 this,
-    rw [he, subtype.coe_mk, subtype.coe_mk] at this,
+    rw [he, subtype.coe_mk] at this,
     rw [this, zero_smul] },
-  have key₁ := re_clm.has_sum ((T.conj_proj V).has_sum_trace_along_of_hilbert_basis U e),
+  have key₁ := re_clm.has_sum ((conj_proj T V).has_sum_trace_along_of_hilbert_basis U e),
   have key₂ := re_clm.has_sum (T.has_sum_trace_along_of_hilbert_basis V e),
-  refine has_sum_le _ key₁ key₂,
-  rintros ⟨x, hxs⟩,
+  refine has_sum_le (λ x, _) key₁ key₂,
   simp only [he, conj_proj, comp_apply, coe_subtypeL', subtype_apply, subtype.coe_mk],
-  by_cases hxt : x ∈ t,
-  { rw [← inner_orthogonal_projection_left_eq_right, he₁ x hxs hxt] },
-  { rw [← inner_orthogonal_projection_left_eq_right, he₂ x hxs hxt, submodule.coe_zero,
+  by_cases hxt : (x : E) ∈ t,
+  { rw [← inner_orthogonal_projection_left_eq_right, he₁ x hxt] },
+  { rw [← inner_orthogonal_projection_left_eq_right, he₂ x hxt, submodule.coe_zero,
         inner_zero_left, _root_.map_zero],
     exact (hT.conj_orthogonal_projection V).inner_nonneg_right x },
 end

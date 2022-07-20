@@ -92,8 +92,8 @@ local attribute[instance] has_pullback_of_preserves_pullback
 /-- A functor that preserves pullbacks and binary products also presrves equalizers. -/
 def preserves_equalizers_of_pullbacks_and_binary_products
     [has_binary_products C] [has_pullbacks C]
-    [preserves_limits_of_shape (discrete.{v} walking_pair) G]
-    [preserves_limits_of_shape walking_cospan.{v} G] :
+    [preserves_limits_of_shape (discrete walking_pair) G]
+    [preserves_limits_of_shape walking_cospan G] :
   preserves_limits_of_shape walking_parallel_pair G :=
 ⟨λ K, preserves_limit_of_preserves_limit_cone (equalizer_cone_is_limit K) $
 { lift := λ c, begin
@@ -103,8 +103,10 @@ def preserves_equalizers_of_pullbacks_and_binary_products
     apply (map_is_limit_of_preserves_of_is_limit G _ _ (prod_is_prod _ _)).hom_ext,
     swap, apply_instance,
     rintro (_|_),
-    { simp only [binary_fan.mk_π_app_left, category.assoc, ← G.map_comp, prod.lift_fst] },
-    { simp only [binary_fan.mk_π_app_right, category.assoc, ← G.map_comp, prod.lift_snd],
+    { simp only [category.assoc, ← G.map_comp, prod.lift_fst,
+        binary_fan.π_app_left, binary_fan.mk_fst], },
+    { simp only [binary_fan.π_app_right, binary_fan.mk_snd,
+        category.assoc, ← G.map_comp, prod.lift_snd],
       exact (c.π.naturality (walking_parallel_pair_hom.left)).symm.trans
         (c.π.naturality (walking_parallel_pair_hom.right)) },
   end,
@@ -191,8 +193,8 @@ local attribute[instance] has_pushout_of_preserves_pushout
 /-- A functor that preserves pushouts and binary coproducts also presrves coequalizers. -/
 def preserves_coequalizers_of_pushouts_and_binary_coproducts
     [has_binary_coproducts C] [has_pushouts C]
-    [preserves_colimits_of_shape (discrete.{v} walking_pair) G]
-    [preserves_colimits_of_shape walking_span.{v} G] :
+    [preserves_colimits_of_shape (discrete walking_pair) G]
+    [preserves_colimits_of_shape walking_span G] :
   preserves_colimits_of_shape walking_parallel_pair G :=
 ⟨λ K, preserves_colimit_of_preserves_colimit_cocone (coequalizer_cocone_is_colimit K) $
 { desc := λ c, begin
@@ -202,8 +204,10 @@ def preserves_coequalizers_of_pushouts_and_binary_coproducts
     apply (map_is_colimit_of_preserves_of_is_colimit G _ _ (coprod_is_coprod _ _)).hom_ext,
     swap, apply_instance,
     rintro (_|_),
-    { simp only [binary_cofan.mk_ι_app_left, category.assoc, ← G.map_comp_assoc, coprod.inl_desc] },
-    { simp only [binary_cofan.mk_ι_app_right, category.assoc, ← G.map_comp_assoc, coprod.inr_desc],
+    { simp only [binary_fan.π_app_left, binary_fan.mk_fst, category.assoc, ← G.map_comp_assoc,
+        coprod.inl_desc] },
+    { simp only [binary_fan.π_app_right, binary_fan.mk_snd, category.assoc, ← G.map_comp_assoc,
+        coprod.inr_desc],
       exact (c.ι.naturality walking_parallel_pair_hom.left).trans
         (c.ι.naturality walking_parallel_pair_hom.right).symm, },
   end,

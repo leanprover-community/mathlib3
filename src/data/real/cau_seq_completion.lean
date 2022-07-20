@@ -76,11 +76,11 @@ instance : has_sub Cauchy :=
 theorem of_rat_add (x y : β) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
 
-theorem of_rat_mul (x y : β) : of_rat (x * y) = of_rat x * of_rat y :=
-congr_arg mk (const_mul _ _)
-
 theorem of_rat_neg (x : β) : of_rat (-x) = -of_rat x :=
 congr_arg mk (const_neg _)
+
+theorem of_rat_mul (x y : β) : of_rat (x * y) = of_rat x * of_rat y :=
+congr_arg mk (const_mul _ _)
 
 private lemma zero_def : 0 = mk 0 := rfl
 

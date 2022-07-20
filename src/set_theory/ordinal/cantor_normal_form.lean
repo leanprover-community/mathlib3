@@ -98,7 +98,7 @@ begin
     refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
     { exact (IH₁ p m).trans (log_mono_right _ $ le_of_lt $ mod_opow_log_lt_self b0 o0) },
     { refine (IH₁ p m).trans_lt ((lt_opow_iff_log_lt b1 _).1 _),
-      { rw ordinal.pos_iff_ne_zero, intro e,
+      { intro e,
         rw e at m, simpa only [CNF_zero] using m },
       { exact mod_lt _ (opow_ne_zero _ b0) } } },
   { by_cases o0 : o = 0,
@@ -132,8 +132,7 @@ begin
   simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
   nth_rewrite 1 ←@succ_le_iff,
   rw [div_lt (opow_ne_zero _ b0), ←opow_succ, le_div (opow_ne_zero _ b0), succ_zero, mul_one],
-  refine ⟨lt_opow_succ_log_self b1 _, opow_log_le_self _ _⟩,
-  rwa ordinal.pos_iff_ne_zero
+  exact ⟨lt_opow_succ_log_self b1 _, opow_log_le_self _ o0⟩
 end
 
 /-- Every coefficient in the Cantor normal form `CNF b o` is less than `b`. -/

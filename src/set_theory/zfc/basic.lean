@@ -767,6 +767,9 @@ instance : is_asymm Class (∈) := mem_wf.is_asymm
 theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
 theorem mem_irrefl (x : Class) : x ∉ x := irrefl x
 
+/-- There is no universal set. -/
+theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
+
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
 

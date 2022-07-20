@@ -432,9 +432,8 @@ quotient.induction_on x $ λ a, begin
   suffices : function.surjective f,
   { exact small_of_surjective this },
   rintro ⟨y, hb⟩,
-  revert hb,
-  refine quotient.induction_on y (λ b, _),
-  rintro ⟨i, h⟩,
+  induction y using quotient.induction_on,
+  cases hb with i h,
   exact ⟨i, subtype.coe_injective (quotient.sound h.symm)⟩
 end
 

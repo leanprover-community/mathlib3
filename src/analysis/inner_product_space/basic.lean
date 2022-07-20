@@ -832,20 +832,9 @@ begin
   simp [hf.eq_iff]
 end
 
-lemma equiv.orthonormal_comp_iff {ι' : Type*} (f : ι' ≃ ι) {v : ι → E} :
-  orthonormal 𝕜 (v ∘ f) ↔ orthonormal 𝕜 v :=
-begin
-  refine ⟨λ h, _, λ h, h.comp f f.injective⟩,
-  have : orthonormal 𝕜 (v ∘ f ∘ f.symm) := h.comp f.symm f.symm.injective,
-  rwa f.self_comp_symm at this
-end
-
 lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
   orthonormal 𝕜 (coe : set.range v → E) :=
-begin
-  let e : ι ≃ set.range v := equiv.of_injective _ (hv.linear_independent.injective),
-  rwa ← e.orthonormal_comp_iff
-end
+by simpa using hv.comp _ (set.range_splitting_injective v)
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/

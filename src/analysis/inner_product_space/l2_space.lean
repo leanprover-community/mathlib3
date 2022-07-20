@@ -73,7 +73,7 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical complex_conjugate
+open_locale big_operators nnreal ennreal classical complex_conjugate topological_space
 
 noncomputable theory
 
@@ -388,16 +388,6 @@ begin
   exact subset_span ⟨i, rfl⟩
 end
 
-protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E} [complete_space E]
-  [complete_space U] (b : hilbert_basis ι 𝕜 U) (x : E) :
-  has_sum (λ i, ⟪(b i : E), x⟫ • b i) (orthogonal_projection U x) :=
-begin
-  convert b.has_sum_repr (orthogonal_projection U x) using 2,
-  ext i,
-  rw [b.repr_apply_apply, coe_inner, ← inner_orthogonal_projection_left_eq_right,
-      orthogonal_projection_mem_subspace_eq_self]
-end
-
 -- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
 -- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
 protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
@@ -413,6 +403,16 @@ end
 @[simp] lemma coe_to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :
   (b.to_orthonormal_basis : ι → E) = b :=
 orthonormal_basis.coe_mk _ _
+
+protected lemma has_sum_orthogonal_projection {U : submodule 𝕜 E} [complete_space E]
+  [complete_space U] (b : hilbert_basis ι 𝕜 U) (x : E) :
+  has_sum (λ i, ⟪(b i : E), x⟫ • b i) (orthogonal_projection U x) :=
+begin
+  convert b.has_sum_repr (orthogonal_projection U x) using 2,
+  ext i,
+  rw [b.repr_apply_apply, coe_inner, ← inner_orthogonal_projection_left_eq_right,
+      orthogonal_projection_mem_subspace_eq_self]
+end
 
 variables {v : ι → E} (hv : orthonormal 𝕜 v)
 include hv cplt
@@ -475,6 +475,29 @@ let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
     (by simpa [maximal_orthonormal_iff_orthogonal_complement_eq_bot hw_ortho] using hw_max),
   hws,
   hilbert_basis.coe_of_orthogonal_eq_bot_mk _ _ ⟩
+
+protected lemma _root_.orthonormal_basis.orthogonal_projection_eq_sum [fintype ι]
+  {U : submodule 𝕜 E} [complete_space E] [complete_space U] (b : orthonormal_basis ι 𝕜 U) (x : E) :
+  (orthogonal_projection U x) = ∑ i, ⟪(b i : E), x⟫ • b i :=
+begin
+  convert (b.to_hilbert_basis.has_sum_orthogonal_projection x).unique (has_sum_fintype _) using 2,
+  ext i,
+  rw b.coe_to_hilbert_basis
+end
+
+protected lemma tendsto_orthogonal_projection_at_top [complete_space E]
+  (b : hilbert_basis ι 𝕜 E) (x : E) :
+  tendsto (λ J : finset ι, (orthogonal_projection (span 𝕜 (J.image b : set E)) x : E))
+    at_top (𝓝 x) :=
+begin
+  convert b.has_sum_repr x,
+  ext J,
+  let b' : orthonormal_basis J 𝕜 (span 𝕜 (J.image b : set E)) :=
+    orthonormal_basis.span b.orthonormal J,
+  simp_rw [b'.orthogonal_projection_eq_sum, coe_sum, coe_smul, b',
+            orthonormal_basis.span_apply b.orthonormal J,
+            J.sum_coe_sort (λ i : ι, ⟪b i, x⟫ • b i), b.repr_apply_apply],
+end
 
 variables (𝕜 E)
 

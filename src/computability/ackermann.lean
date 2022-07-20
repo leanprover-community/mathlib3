@@ -262,44 +262,60 @@ theorem ack_mkpair_lt (m n k : ℕ) : ack m (mkpair n k) < ack (m + 4) (max n k)
 theorem exists_lt_ack_of_nat_primrec {f : ℕ → ℕ} (hf : nat.primrec f) : ∃ m, ∀ n, f n < ack m n :=
 begin
   induction hf with f g hf hg IHf IHg f g hf hg IHf IHg f g hf hg IHf IHg,
+  -- Zero function:
   { exact ⟨0, ack_pos 0⟩ },
+  -- Successor function:
   { refine ⟨1, λ n, _⟩,
     rw succ_eq_one_add,
     apply add_lt_ack },
+  -- Left projection:
   { refine ⟨0, λ n, _⟩,
     rw [ack_zero, lt_succ_iff],
     exact unpair_left_le n },
+  -- Right projection:
   { refine ⟨0, λ n, _⟩,
     rw [ack_zero, lt_succ_iff],
     exact unpair_right_le n },
   all_goals { cases IHf with a ha, cases IHg with b hb },
+  -- Pairing:
   { refine ⟨max a b + 3, λ n, (mkpair_lt_max_succ_sq _ _).trans_le $
       (nat.pow_le_pow_of_le_left (add_le_add_right _ _) 2).trans $
         ack_succ_sq_lt_ack_add_three _ _⟩,
     rw max_ack_left,
     exact max_le_max (ha n).le (hb n).le },
+  -- Composition:
   { exact ⟨max a b + 2, λ n,
       (ha _).trans $ (ack_strict_mono_right a $ hb n).trans $ ack_ack_lt_ack_max_add_two a b n⟩ },
-  { have : ∀ {m n}, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n < ack (max a b + 9) (m + n),
+  -- Primitive recursion operator:
+  { -- We prove this simpler inequality first.
+    have : ∀ {m n}, elim (f m) (λ y IH, g $ mkpair m $ mkpair y IH) n < ack (max a b + 9) (m + n),
     { intros m n,
+      -- We induct on n.
       induction n with n IH,
+      -- The base case is easy.
       { apply (ha m).trans (ack_strict_mono_left m $ (le_max_left a b).trans_lt _),
         linarith },
-      { rw elim_succ,
+      { -- We get rid of the first `mkpair`.
+        rw elim_succ,
         apply (hb _).trans ((ack_mkpair_lt _ _ _).trans_le _),
+        -- If m is the maximum, we get a very weak inequality.
         cases lt_or_le _ m with h₁ h₁,
         { rw max_eq_left h₁.le,
           exact ack_le_ack (add_le_add (le_max_right a b) $ by norm_num) (self_le_add_right m _) },
         rw max_eq_right h₁,
+        -- We get rid of the second `mkpair`.
         apply (ack_mkpair_lt _ _ _).le.trans,
+        -- If n is the maximum, we get a very weak inequality.
         cases lt_or_le _ n with h₂ h₂,
         { rw [max_eq_left h₂.le, add_assoc],
           exact ack_le_ack (add_le_add (le_max_right a b) $ by norm_num)
             ((le_succ n).trans $ self_le_add_left _ _) },
         rw max_eq_right h₂,
+        -- We now use the inductive hypothesis, and some simple algebraic manipulation.
         apply (ack_strict_mono_right _ IH).le.trans,
         rw [add_succ m, add_succ _ 8, ack_succ_succ (_ + 8), add_assoc],
         exact ack_mono_left _ (add_le_add (le_max_right a b) le_rfl) } },
+    -- The proof is now simple.
     exact ⟨max a b + 9, λ n, this.trans_le $ ack_mono_right _ $ unpair_add_le n⟩ }
 end
 

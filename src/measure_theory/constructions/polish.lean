@@ -694,7 +694,7 @@ begin
   simp_rw ← cauchy_map_iff_exists_tendsto,
   change measurable_set {x | _ ∧ _},
   have : ∀ x, ((map (λ i, f i x) l) ×ᶠ (map (λ i, f i x) l)).has_antitone_basis
-    (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := hu.map.prod hu.map,
+    (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := λ x, hu.map.prod hu.map,
   simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
     metric.uniformity_basis_dist_inv_nat_succ],
   simp_rw set.set_of_forall,

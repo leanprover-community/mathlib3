@@ -705,8 +705,8 @@ includes `s i` for some `i`, and `s` is decreasing. -/
 (antitone : antitone s)
 
 lemma has_antitone_basis.map {l : filter α} {s : ι'' → set α} {m : α → β}
-  (hf : has_antitone_basis l s'') :
-  has_antitone_basis (map m l) (λ n, m '' s'' n) :=
+  (hf : has_antitone_basis l s) :
+  has_antitone_basis (map m l) (λ n, m '' s n) :=
 ⟨has_basis.map _ hf.to_has_basis, λ i j hij, image_subset _ $ hf.2 hij⟩
 
 end same_type

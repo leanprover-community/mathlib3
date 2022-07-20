@@ -60,11 +60,11 @@ theorem is_transitive.sUnion' (H : ∀ y ∈ x, is_transitive y) : (⋃₀ x).is
   exact mem_sUnion_of_mem ((H w hw).mem_trans hz hw') hw
 end
 
-theorem is_transitive_iff_Union_subset : x.is_transitive ↔ ⋃₀ x ⊆ x :=
+theorem is_transitive_iff_sUnion_subset : x.is_transitive ↔ ⋃₀ x ⊆ x :=
 ⟨λ h y hy, by { rcases mem_sUnion.1 hy with ⟨z, hz, hz'⟩, exact h.mem_trans hz' hz },
   λ H y hy z hz, H $ mem_sUnion_of_mem hz hy⟩
 
-alias is_transitive_iff_Union_subset ↔ is_transitive.Union_subset _
+alias is_transitive_iff_sUnion_subset ↔ is_transitive.sUnion_subset _
 
 theorem is_transitive_iff_subset_powerset : x.is_transitive ↔ x ⊆ powerset x :=
 ⟨λ h y hy, mem_powerset.2 $ h.subset_of_mem hy, λ H y hy z hz, mem_powerset.1 (H hy) hz⟩

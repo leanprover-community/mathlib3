@@ -880,7 +880,7 @@ section metric
 variable [decidable_eq α]
 
 /-- The length of reduced words provides a norm on a free group. --/
-def norm (x : free_group α) : nat := x.to_word.length
+def norm (x : free_group α) : ℕ := x.to_word.length
 
 theorem norm_mk_le : norm (mk L₁) ≤ L₁.length := 
 begin

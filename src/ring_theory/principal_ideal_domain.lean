@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
 import ring_theory.unique_factorization_domain
+import ring_theory.nakayama
 
 /-!
 # Principal ideal rings and principal ideal domains
@@ -289,6 +290,52 @@ lemma is_principal_ideal_ring.of_surjective [is_principal_ideal_ring R]
   (f : R →+* S) (hf : function.surjective f) :
   is_principal_ideal_ring S :=
 ⟨λ I, ideal.is_principal.of_comap f hf I⟩
+
+instance submodule.is_principal.map (M' : submodule R M) (f : M →ₗ[R] N) [M'.is_principal] :
+    (M'.map f).is_principal :=
+begin
+  refine ⟨⟨f M'^.is_principal.generator, _⟩⟩,
+  conv_lhs { rw ← M'^.is_principal.span_singleton_generator },
+  rw [submodule.map_span, set.image_singleton],
+end
+
+lemma submodule.is_principal.map_iff (M' : submodule R M) (f : M →ₗ[R] N)
+  (hf : function.injective f) :
+   (M'.map f).is_principal ↔ M'.is_principal :=
+begin
+  symmetry,
+  split,
+  { exact λ _, by exactI infer_instance },
+  { introI,
+    obtain ⟨g, hg, e⟩ := (M'.map f)^.is_principal.generator_mem,
+  refine ⟨⟨g, _⟩⟩,
+  rw [← (submodule.map_injective_of_injective hf).eq_iff, submodule.map_span, set.image_singleton,
+    e, submodule.is_principal.span_singleton_generator] }
+end
+
+/--
+If `N` is a f.g. `R`-submodule of `M`, and `I` is an ideal
+-/
+lemma submodule.is_principal_of_quotient_smul_is_principal (I : ideal R)
+  (hI : I ≤ (⊥ : ideal R).jacobson) (N : submodule R M) (hN : N.fg)
+    [h : (⊤ : submodule (R ⧸ I) (N ⧸ I • (⊤ : submodule R N))).is_principal] :
+    N.is_principal :=
+begin
+  unfreezingI { obtain ⟨x, hx'⟩ := h },
+  obtain ⟨x, rfl⟩ := submodule.mkq_surjective _ x,
+  rw [← set.image_singleton, ← submodule.restrict_scalars_inj R,
+    submodule.restrict_scalars_top, ← submodule.span_eq_restrict_scalars,
+    ← submodule.map_span, eq_comm, submodule.map_mkq_eq_top,
+    ← (submodule.map_injective_of_injective N.injective_subtype).eq_iff,
+    submodule.map_sup, submodule.map_smul'', submodule.map_top, submodule.range_subtype,
+    submodule.map_span, set.image_singleton, N.subtype_apply] at hx',
+  have : submodule.span R {↑x} ⊔ N = submodule.span R {↑x} ⊔ I • N,
+  { rw [@sup_comm _ _ _ (I • N), hx', sup_eq_right], exact le_sup_right.trans hx'.le },
+  have := submodule.smul_sup_eq_smul_sup_of_le_smul_of_le_jacobson hN hI this.le,
+  rw [submodule.bot_smul, sup_bot_eq, sup_eq_left] at this,
+  rw sup_eq_right.mpr this at hx',
+  exacts [⟨⟨x, hx'.symm⟩⟩, ideal.quotient.mk_surjective],
+end
 
 end surjective
 

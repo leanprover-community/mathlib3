@@ -286,7 +286,17 @@ noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
 
-open rat
+/-- Attempt to show the underlying cauchy series for real numbers. Note that this is not all that
+useful, since most real numbers can't be computed in the first place.
+
+For cauchy sequences which don't converge in 5 steps, we just use `sorry` as a repr along with a
+comment. -/
+meta instance : has_repr ℝ :=
+{ repr := λ r,
+  let N := 5, seq := r.cauchy.unquot in
+    option.get_or_else
+      ((list.range N).mfirst $ λ i, if seq i = seq i.succ then some (repr (seq i)) else none)
+      ("(⟨sorry /- " ++ (",".intercalate $ (list.range N).map $ repr ∘ seq) ++ ",... -/⟩ : ℝ)") }
 
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 of_rat.eq_rat_cast

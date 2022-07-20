@@ -923,7 +923,7 @@ begin
   exact to_word.inj x 1 h1,
 end
 
-lemma norm_triangle (x : free_group α) (y : free_group α) : norm (x * y) ≤ norm x + norm y :=
+lemma norm_mul_le (x : free_group α) (y : free_group α) : norm (x * y) ≤ norm x + norm y :=
 begin
   unfold norm,
   

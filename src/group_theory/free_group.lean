@@ -837,8 +837,8 @@ theorem to_word.le_length : (mk L₁).to_word.length ≤ L₁.length :=
 begin
   suffices k : red L₁ (mk L₁).to_word,
   { exact list.length_le_of_sublist (red.sublist k), },
-  unfold to_word, 
-  simp [reduce.red],
+  simp [to_word, reduce.red],
+
 end
 
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/

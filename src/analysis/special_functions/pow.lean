@@ -1358,7 +1358,7 @@ begin
   have hq := this.trans_lt hxq,
   replace hxq := rpow_lt_rpow this hxq hn',
   replace hqy := rpow_lt_rpow hq.le hqy hn',
-  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn.bot_lt] at hxq hqy,
+  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn] at hxq hqy,
   exact ⟨q, by exact_mod_cast hq, (le_max_right _ _).trans_lt hxq, hqy⟩,
   { exact le_max_left _ _ },
   { exact hy.le }

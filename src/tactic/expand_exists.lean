@@ -57,7 +57,7 @@ meta structure parse_ctx_exists extends parse_ctx :=
 (exists_decls : list name := [])
 
 /--
-Data known when parsing the proposition (after pasing exists and pi expressions).
+Data known when parsing the proposition (after parsing exists and pi expressions).
 
 `project_proof` projects a proof of the full proposition (eg `A ∧ B ∧ C`) to a specific proof (eg
 `B`).
@@ -113,8 +113,8 @@ meta def parse_props : parse_ctx_props → expr → tactic unit
 | ctx p := parse_one_prop ctx p
 
 /--
-Parses an `∃ a : α, p a`, created an associated definition with a value of `α`. When `p α` is not an
-exists, it will call `parse_props`.
+Parses an `∃ a : α, p a`, and creates an associated definition with a value of `α`. When `p α` is
+not an exists statement, it will call `parse_props`.
 -/
 meta def parse_exists : parse_ctx_exists → expr → tactic unit
 | ctx (app (app (const "Exists" [lvl]) type) (lam var_name bi var_type body)) := do

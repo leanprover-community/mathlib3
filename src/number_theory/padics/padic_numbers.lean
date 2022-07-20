@@ -439,13 +439,14 @@ section completion
 variables {p : ℕ} [fact p.prime]
 
 /-- The discrete field structure on `ℚ_p` is inherited from the Cauchy completion construction. -/
-instance field : field (ℚ_[p]) :=
-cau_seq.completion.field
+instance : field (ℚ_[p]) := Cauchy.field
 
 instance : inhabited ℚ_[p] := ⟨0⟩
 
 -- short circuits
 
+instance : comm_ring (ℚ_[p]) := Cauchy.comm_ring
+instance : ring (ℚ_[p]) := Cauchy.ring
 instance : has_zero ℚ_[p] := by apply_instance
 instance : has_one ℚ_[p] := by apply_instance
 instance : has_add ℚ_[p] := by apply_instance
@@ -454,7 +455,6 @@ instance : has_sub ℚ_[p] := by apply_instance
 instance : has_neg ℚ_[p] := by apply_instance
 instance : has_div ℚ_[p] := by apply_instance
 instance : add_comm_group ℚ_[p] := by apply_instance
-instance : comm_ring ℚ_[p] := by apply_instance
 
 /-- Builds the equivalence class of a Cauchy sequence of rationals. -/
 def mk : padic_seq p → ℚ_[p] := quotient.mk
@@ -487,21 +487,11 @@ cau_seq.completion.of_rat_div
 
 @[simp] lemma of_rat_zero : of_rat p 0 = 0 := rfl
 
-lemma cast_eq_of_rat_of_nat (n : ℕ) : (↑n : ℚ_[p]) = of_rat p n :=
-begin
-  induction n with n ih,
-  { refl },
-  { simpa using ih }
-end
+lemma cast_eq_of_rat_of_nat (n : ℕ) : (↑n : ℚ_[p]) = of_rat p n := rat.cast_coe_nat _
 
-lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
-by induction n; simp [cast_eq_of_rat_of_nat]
+lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n := rat.cast_coe_int _
 
-lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
-| ⟨n, d, h1, h2⟩ :=
-  show ↑n / ↑d = _, from
-    have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom',
-    by simp [this, rat.mk_eq_div, of_rat_div, cast_eq_of_rat_of_int, cast_eq_of_rat_of_nat]
+lemma cast_eq_of_rat (q : ℚ) : (↑q : ℚ_[p]) = of_rat p q := rfl
 
 @[norm_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]
 @[norm_cast] lemma coe_neg : ∀ {x : ℚ}, (↑(-x) : ℚ_[p]) = -↑x := by simp [cast_eq_of_rat]
@@ -1015,9 +1005,7 @@ begin
   change (padic_seq.norm _ : ℝ) = (p : ℝ) ^ -padic_seq.valuation _,
   rw padic_seq.norm_eq_pow_val,
   change ↑((p : ℚ) ^ -padic_seq.valuation f) = (p : ℝ) ^ -padic_seq.valuation f,
-  { rw rat.cast_zpow,
-    congr' 1,
-    norm_cast },
+  { rw [rat.cast_zpow, rat.cast_coe_nat] },
   { apply cau_seq.not_lim_zero_of_not_congr_zero,
     contrapose! hf,
     apply quotient.sound,

@@ -388,6 +388,22 @@ begin
   exact subset_span ⟨i, rfl⟩
 end
 
+protected lemma has_sum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
+  has_sum (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) ⟪x, y⟫ :=
+begin
+  convert (b.has_sum_repr y).map _ (innerSL x).continuous,
+  ext i,
+  rw [function.comp_apply, innerSL_apply, b.repr_apply_apply, inner_smul_right, mul_comm]
+end
+
+protected lemma summable_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
+  summable (λ i, ⟪x, b i⟫ * ⟪b i, y⟫) :=
+(b.has_sum_inner_mul_inner x y).summable
+
+protected lemma tsum_inner_mul_inner (b : hilbert_basis ι 𝕜 E) (x y : E) :
+  ∑' i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
+(b.has_sum_inner_mul_inner x y).tsum_eq
+
 -- Note : this should be `b.repr` composed with an identification of `lp (λ i : ι, 𝕜) 2` with
 -- `pi_Lp 2 (λ i : ι, 𝕜)`, but we don't have this yet (July 2022).
 protected def to_orthonormal_basis [fintype ι] (b : hilbert_basis ι 𝕜 E) :

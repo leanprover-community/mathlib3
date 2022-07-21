@@ -132,12 +132,12 @@ lemma is_greatest.maximals_eq (h : is_greatest s a) : maximals (≤) s = {a} :=
 eq_singleton_iff_unique_mem.2 ⟨h.mem_maximals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
 
 lemma is_antichain.maximals_upper_closure (hs : is_antichain (≤) s) :
-  maximals (≤) (upper_closure s) = s :=
-hs.max_maximals (λ x, λ ⟨⟨z,hzs,hxz⟩,hy⟩, by rwa (hy ⟨z,hzs,le_rfl⟩ hxz))
-  (λ a has, ⟨a,⟨⟨a,has,le_rfl⟩, λ y ⟨z,hz,hyz⟩ hay, by_contra
-    (λ haz, hs has hz (λ haz', haz (hay.antisymm (le_of_le_of_eq hyz haz'.symm)))
-      (hay.trans hyz))⟩,le_rfl⟩)
+  minimals (≤) (upper_closure s : set α) = s :=
+hs.max_minimals (λ a ⟨⟨b, hb, hba⟩, h⟩, by rwa h (subset_upper_closure hb) hba) $ λ a ha,
+  ⟨a, ⟨subset_upper_closure ha, λ b ⟨c, hc, hcb⟩ hba, hba.antisymm' $
+    by rwa hs.eq' ha hc (hcb.trans hba)⟩, le_rfl⟩
 
 lemma is_antichain.minimals_lower_closure (hs : is_antichain (≤) s) :
-  minimals (≤) (lower_closure s) = s :=
+  maximals (≤) (lower_closure s : set α) = s :=
 hs.to_dual.maximals_upper_closure
+#lint

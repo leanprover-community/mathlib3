@@ -3,13 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.big_operators.basic
-import data.nat.prime
-import data.zmod.basic
-import ring_theory.multiplicity
-import data.nat.periodic
 import algebra.char_p.two
-import number_theory.divisors
+import data.nat.factorization.basic
+import data.nat.periodic
+import data.zmod.basic
 
 /-!
 # Euler's totient function

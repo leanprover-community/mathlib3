@@ -145,8 +145,7 @@ def mass (μ : finite_measure α) : ℝ≥0 := μ univ
 instance has_zero : has_zero (finite_measure α) :=
 { zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
 
-@[simp] lemma zero.mass : (0 : finite_measure α).mass = 0 :=
-by { simp only [mass], refl, }
+@[simp] lemma zero.mass : (0 : finite_measure α).mass = 0 := rfl
 
 @[simp] lemma mass_zero_iff (μ : finite_measure α) : μ.mass = 0 ↔ μ = 0 :=
 begin
@@ -250,8 +249,7 @@ lemma test_against_nn_mono (μ : finite_measure α)
   μ.test_against_nn f ≤ μ.test_against_nn g :=
 begin
   simp only [←ennreal.coe_le_coe, test_against_nn_coe_eq],
-  apply lintegral_mono,
-  exact λ x, ennreal.coe_mono (f_le_g x),
+  exact lintegral_mono (λ x, ennreal.coe_mono (f_le_g x)),
 end
 
 @[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) :
@@ -263,13 +261,8 @@ by { funext, simp only [zero.test_against_nn_apply, pi.zero_apply], }
 
 @[simp] lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   (c • μ).test_against_nn f  = c • (μ.test_against_nn f) :=
-begin
-  simp only [test_against_nn, coe_smul, smul_eq_mul ℝ≥0, ← ennreal.smul_to_nnreal],
-  congr,
-  rw [(show c • (μ : measure α) = (c : ℝ≥0∞) • (μ : measure α), by refl),
-      lintegral_smul_measure],
-  refl,
-end
+by simp only [test_against_nn, coe_smul, smul_eq_mul, ← ennreal.smul_to_nnreal,
+  ennreal.smul_def, lintegral_smul_measure]
 
 variables [opens_measurable_space α]
 
@@ -643,8 +636,8 @@ def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ
 
 @[simp] lemma ennreal_coe_fn_eq_coe_fn_to_measure (ν : probability_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s :=
-by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
-     finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure], refl, }
+by rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
+  finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure, coe_comp_to_finite_measure_eq_coe]
 
 @[ext] lemma extensionality (μ ν : probability_measure α)
   (h : ∀ (s : set α), measurable_set s → μ s = ν s) :

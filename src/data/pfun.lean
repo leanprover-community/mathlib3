@@ -68,6 +68,9 @@ def dom (f : α →. β) : set α := {a | (f a).dom}
 @[simp] lemma mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
 by simp [dom, part.dom_iff_mem]
 
+@[simp] lemma dom_mk (p : α → Prop) (f : Π a, p a → β) : pfun.dom (λ x, ⟨p x, f x⟩) = {x | p x} :=
+rfl
+
 theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
 set.ext (mem_dom f)
 
@@ -318,6 +321,9 @@ rel.preimage_union _ s t
 
 lemma preimage_univ : f.preimage set.univ = f.dom :=
 by ext; simp [mem_preimage, mem_dom]
+
+lemma coe_preimage (f : α → β) (s : set β) : (f : α →. β).preimage s = f ⁻¹' s :=
+by ext; simp
 
 /-- Core of a set `s : set β` with respect to a partial function `f : α →. β`. Set of all `a : α`
 such that `f a ∈ s`, if `f a` is defined. -/

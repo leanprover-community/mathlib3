@@ -832,6 +832,8 @@ begin
   simp [hf.eq_iff]
 end
 
+/-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
+family. -/
 lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
   orthonormal 𝕜 (coe : set.range v → E) :=
 by simpa using hv.comp _ (set.range_splitting_injective v)

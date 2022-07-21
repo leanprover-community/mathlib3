@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 import algebra.category.Module.monoidal
+import algebra.category.Group.basic
+import algebra.category.Group.Z_Module_equivalence
 import category_theory.monoidal.functorial
 import category_theory.monoidal.types
 import linear_algebra.direct_sum.finsupp
@@ -341,3 +343,307 @@ ext R (α.trans (embedding_lift_iso R F).symm)
 end Free
 
 end category_theory
+
+namespace change_of_rings
+
+universes u₁ u₂
+
+namespace restriction_of_scalars
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+variable (M : Module S)
+
+protected def has_smul : has_smul R M :=
+has_smul.comp _ f
+
+localized "notation r ` r•[` f `] ` m := @has_smul.smul _ _ (restriction_of_scalars.has_smul f _) r m" in change_of_rings
+
+@[simp] lemma smul_def (r : R) (m : M) : (r r•[f] m) = f r • m := rfl
+
+protected def mul_action : mul_action R M :=
+{ one_smul := λ m, by simp,
+  mul_smul := λ x y m, by simp [map_mul, mul_smul],
+  ..restriction_of_scalars.has_smul f _ }
+
+protected def distrib_mul_action : distrib_mul_action R M :=
+{ smul_add := λ r m n, by simp,
+  smul_zero := λ r, by simp,
+  ..restriction_of_scalars.mul_action f _ }
+
+protected def is_module : module R M :=
+{ add_smul := λ r s m, by simp [map_add, add_smul],
+  zero_smul := λ m, by simp,
+  ..restriction_of_scalars.distrib_mul_action f _ }
+
+def obj' : Module R :=
+{ carrier := M,
+  is_add_comm_group := infer_instance,
+  is_module := restriction_of_scalars.is_module f M }
+
+@[simps]
+def map' {M M' : Module S} (g : M ⟶ M') :
+  obj' f M ⟶ obj' f M' :=
+{ map_smul' := λ r (x : M), by simp,
+  ..g }
+
+private lemma map_id' : map' f (𝟙 M) = 𝟙 _ := linear_map.ext $ λ (m : M), rfl
+
+private lemma map_comp' {M M' M'' : Module S} (g : M ⟶ M') (h : M' ⟶ M'') :
+  map' f (g ≫ h) = map' f g ≫ map' f h :=
+linear_map.ext $ λ (x : M), rfl
+
+@[simps]
+protected def functor : Module S ⥤ Module R :=
+{ obj := obj' f,
+  map := λ _ _, map' f,
+  map_id' := map_id' f,
+  map_comp' := λ _ _ _ g h, map_comp' f _ _ }
+
+end restriction_of_scalars
+
+namespace coextension_of_scalars
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+variable (M : Module R)
+
+local notation `Hom` M := (restriction_of_scalars.functor f).obj ⟨S⟩ →ₗ[R] M
+
+protected def has_smul : has_smul S $ Hom M :=
+{ smul := λ s g,
+  { to_fun := λ (s' : S), g (s' • s : S),
+    map_add' := λ (x y : S), by simp [add_smul, map_add],
+    map_smul' := λ r (t : S), by rw [ring_hom.id_apply, restriction_of_scalars.smul_def f ⟨S⟩,
+      ←linear_map.map_smul, restriction_of_scalars.smul_def f ⟨S⟩, smul_assoc] } }
+
+localized "notation s ` c•[` f `] ` m := @has_smul.smul _ _ (coextension_of_scalars.has_smul f _) s m" in change_of_rings
+
+@[simp] lemma smul_apply (s : S) (g : Hom M) (s' : S) :
+  (s c•[f] g) s' = g (s' • s : S) := rfl
+
+protected def mul_action : mul_action S $ Hom M :=
+{ one_smul := λ g, linear_map.ext $ λ (s : S), by simp,
+  mul_smul := λ (s t : S) g, linear_map.ext $ λ (x : S), by simp [mul_assoc],
+  ..coextension_of_scalars.has_smul f _ }
+
+protected def distrib_mul_action : distrib_mul_action S $ Hom M :=
+{ smul_add := λ s g h, linear_map.ext $ λ (t : S), by simp,
+  smul_zero := λ s, linear_map.ext $ λ (t : S), by simp,
+  ..coextension_of_scalars.mul_action f _ }
+
+protected def is_module : module S $ Hom M :=
+{ add_smul := λ s1 s2 g, linear_map.ext $ λ (x : S), by simp,
+  zero_smul := λ g, linear_map.ext $ λ (x : S), by simp,
+  ..coextension_of_scalars.distrib_mul_action f _ }
+
+def obj' : Module S :=
+{ carrier := Hom M,
+  is_add_comm_group := infer_instance,
+  is_module := coextension_of_scalars.is_module f _ }
+
+@[simps]
+def map' {M M' : Module R} (g : M ⟶ M') :
+  obj' f M ⟶ obj' f M' :=
+{ to_fun := λ h, g.comp h,
+  map_add' := λ _ _, linear_map.comp_add _ _ _,
+  map_smul' := λ s h, linear_map.ext $ λ (t : S), by simp }
+
+private lemma map_id' : map' f (𝟙 M) = 𝟙 _ := linear_map.ext $ λ h, linear_map.ext $ λ x, rfl
+private lemma map_comp' {M M' M'' : Module R} (g : M ⟶ M') (h : M' ⟶ M'') :
+  map' f (g ≫ h) = map' f g ≫ map' f h :=
+linear_map.ext $ λ h, linear_map.ext $ λ x, rfl
+
+@[simps]
+protected def functor : Module R ⥤ Module S :=
+{ obj := obj' f,
+  map := λ _ _, map' _,
+  map_id' := map_id' _,
+  map_comp' := λ _ _ _, map_comp' f }
+
+end coextension_of_scalars
+
+namespace restriction_coextension_adj
+
+variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
+
+@[simps]
+def hom_equiv.from_restriction_to_to_coextension
+  {X Y} (g : (restriction_of_scalars.functor f).obj Y ⟶ X) :
+  Y ⟶ (coextension_of_scalars.functor f).obj X :=
+{ to_fun := λ (y : Y),
+  { to_fun := λ (s : S), g $ (s • y : Y),
+    map_add' := λ (s1 s2 : S), by simp [add_smul],
+    map_smul' := λ r (s : S),
+    begin
+      rw [restriction_of_scalars.smul_def f ⟨S⟩, ring_hom.id_apply,
+        ←g.map_smul, smul_eq_mul, mul_smul],
+      congr,
+    end },
+  map_add' := λ (y1 y2 : Y), linear_map.ext $ λ (s : S),
+  begin
+    rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk, linear_map.coe_mk,
+      smul_add, map_add],
+  end,
+  map_smul' := λ s y, linear_map.ext $ λ (t : S), by simp [mul_smul] }
+
+@[simps]
+def hom_equiv.to_coextension_to_from_restriction
+  {X Y} (g : Y ⟶ (coextension_of_scalars.functor f).obj X) :
+  (restriction_of_scalars.functor f).obj Y ⟶ X :=
+{ to_fun := λ (y : Y), (g y).to_fun (1 : S),
+  map_add' := λ x y, by simp only [g.map_add, linear_map.to_fun_eq_coe, linear_map.add_apply],
+  map_smul' := λ r (y : Y),
+  by rw [linear_map.to_fun_eq_coe, linear_map.to_fun_eq_coe, ring_hom.id_apply,
+    ←linear_map.map_smul, restriction_of_scalars.smul_def f ⟨S⟩, smul_eq_mul, mul_one,
+    restriction_of_scalars.smul_def f Y, linear_map.map_smul, coextension_of_scalars.smul_apply,
+    smul_eq_mul, one_mul], }
+
+lemma hom_equiv.fb {X Y} (g : (restriction_of_scalars.functor f).obj Y ⟶ X) :
+  hom_equiv.to_coextension_to_from_restriction f
+    (hom_equiv.from_restriction_to_to_coextension f g) = g :=
+linear_map.ext $ λ (y : Y), by simp
+
+lemma hom_equiv.bf {X Y} (g : Y ⟶ (coextension_of_scalars.functor f).obj X) :
+  hom_equiv.from_restriction_to_to_coextension f
+    (hom_equiv.to_coextension_to_from_restriction f g) = g :=
+linear_map.ext $ λ (y : Y), by { ext, simp }
+
+@[simps]
+protected def unit' :
+  𝟭 (Module S) ⟶ restriction_of_scalars.functor f ⋙ coextension_of_scalars.functor f :=
+{ app := λ Y,
+  { to_fun := λ (y : Y),
+    { to_fun := λ (s : S), (s • y : Y),
+      map_add' := λ s s', add_smul _ _ _,
+      map_smul' := λ r (s : S), by rw [ring_hom.id_apply, restriction_of_scalars.smul_def f ⟨S⟩,
+        smul_eq_mul, mul_smul, restriction_of_scalars.smul_def] },
+    map_add' := λ y1 y2, linear_map.ext $ λ (s : S), by rw [linear_map.add_apply, linear_map.coe_mk,
+      linear_map.coe_mk, linear_map.coe_mk, smul_add],
+    map_smul' := λ s (y : Y), linear_map.ext $ λ (t : S), by simp [mul_smul] },
+  naturality' := λ Y Y' g, linear_map.ext $ λ (y : Y), linear_map.ext $ λ (s : S), by simp }
+
+@[simps]
+protected def counit' :
+  coextension_of_scalars.functor f ⋙ restriction_of_scalars.functor f ⟶ 𝟭 (Module R) :=
+{ app := λ X,
+  { to_fun := λ g, g.to_fun (1 : S),
+    map_add' := λ x1 x2, by simp [linear_map.to_fun_eq_coe],
+    map_smul' := λ r (g : (restriction_of_scalars.functor f).obj
+      ((coextension_of_scalars.functor f).obj X)),
+    begin
+      simp only [linear_map.to_fun_eq_coe, ring_hom.id_apply],
+      rw [restriction_of_scalars.smul_def f, coextension_of_scalars.smul_apply, smul_eq_mul,
+        one_mul, ←linear_map.map_smul, restriction_of_scalars.smul_def f ⟨S⟩, smul_eq_mul, mul_one],
+    end },
+  naturality' := λ X X' g, linear_map.ext $ λ h, by simp }
+
+@[simps]
+def _root_.change_of_rings.restriction_coextension_adj :
+  restriction_of_scalars.functor f ⊣ coextension_of_scalars.functor f :=
+{ hom_equiv := λ Y X, ⟨hom_equiv.from_restriction_to_to_coextension f,
+    hom_equiv.to_coextension_to_from_restriction f, hom_equiv.fb f, hom_equiv.bf f⟩,
+  unit := restriction_coextension_adj.unit' f,
+  counit := restriction_coextension_adj.counit' f,
+  hom_equiv_unit' := λ Y X g, linear_map.ext $ λ y, rfl,
+  hom_equiv_counit' := λ Y X g, linear_map.ext $ λ (y : Y), by simp }
+
+end restriction_coextension_adj
+
+namespace coextension_forget₂_adj
+
+universes u
+
+variables {S : Type u} [ring S] (f : ℤ →+* S)
+
+open_locale change_of_rings
+
+@[simps]
+def Ab_to_Z_Module : AddCommGroup ⥤ Module ℤ :=
+{ obj := λ X, ⟨X⟩,
+  map := λ X Y g,
+  { map_smul' := λ z (x : X), by rw [add_monoid_hom.to_fun_eq_coe, g.map_zsmul, ring_hom.id_apply],
+    ..g },
+  map_id' := λ X, fun_like.ext _ _ $ λ (x : X), rfl,
+  map_comp' := λ X Y Z g h, fun_like.ext _ _ $ λ (x : X), rfl }
+
+@[simps]
+def hom_equiv.forget₂_to_coextension {X : Module S} {Y : AddCommGroup}
+  (g : (forget₂ (Module S) AddCommGroup).obj X ⟶ Y) :
+  X ⟶ (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f).obj Y :=
+{ to_fun := λ x,
+  { to_fun := λ (s : S), g (s • x : X),
+    map_add' := λ (s₁ s₂ : S), by simp [add_smul],
+    map_smul' := λ z (s : S),
+    begin
+      rw [restriction_of_scalars.smul_def f ⟨S⟩, ring_hom.id_apply, smul_eq_mul, mul_smul,
+        ←g.map_zsmul],
+      induction z using int.induction_on with i ih i ih,
+      { rw [map_zero, zero_smul, map_zero, zero_smul, map_zero], },
+      { rw [map_add, add_smul, map_add, ih, map_one, one_smul, add_smul, one_smul, map_add], },
+      { rw [map_sub, sub_smul, map_one, one_smul, map_sub, ih, sub_smul, one_smul, map_sub], },
+    end },
+  map_add' := λ X₁ X₂, by { ext, simp },
+  map_smul' := λ s x, by { ext, simp [mul_smul], } }
+
+@[simps]
+def hom_equiv.coextension_to_forget₂ {X : Module S} {Y : AddCommGroup}
+  (g : X ⟶ (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f).obj Y) :
+  (forget₂ (Module S) AddCommGroup).obj X ⟶ Y :=
+{ to_fun := λ (x : X), (g x).to_fun (1 : S),
+  map_zero' := by simp,
+  map_add' := λ (x₁ x₂ : X), by simp }
+
+lemma hom_equiv.fb {X : Module S} {Y : AddCommGroup}
+  (g : (forget₂ (Module S) AddCommGroup).obj X ⟶ Y) :
+  hom_equiv.coextension_to_forget₂ f (hom_equiv.forget₂_to_coextension f g) = g :=
+by { ext, simp }
+
+lemma hom_equiv.bf {X : Module S} {Y : AddCommGroup}
+  (g : X ⟶ (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f).obj Y) :
+  hom_equiv.forget₂_to_coextension f (hom_equiv.coextension_to_forget₂ f g) = g :=
+by { ext, simp }
+
+@[simps] def unit' :
+  𝟭 (Module S) ⟶
+  forget₂ (Module S) AddCommGroup ⋙ Ab_to_Z_Module ⋙ coextension_of_scalars.functor f :=
+{ app := λ X,
+  { to_fun := λ (x : X),
+    { to_fun := λ (s : S), (s • x : X),
+      map_add' := λ x₁ x₂, add_smul _ _ _,
+      map_smul' := λ z (s : S),
+      begin
+        rw [ring_hom.id_apply],
+
+        induction z using int.induction_on with i ih i ih,
+        { rw [zero_smul, restriction_of_scalars.smul_def f ⟨S⟩, map_zero, zero_smul, zero_smul], },
+        { rw [add_smul, add_smul, one_smul, ih, add_smul, one_smul], },
+        { rw [sub_smul, sub_smul, one_smul, ih, sub_smul, one_smul], },
+      end },
+    map_add' := λ (x₁ x₂ : X), by { ext, simp },
+    map_smul' := λ s (x : X), by { ext, simp [mul_smul], } },
+  naturality' := λ X Y g, by { ext, simp, } }
+
+@[simps] def counit' :
+  (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f) ⋙ forget₂ (Module S) AddCommGroup ⟶
+  𝟭 AddCommGroup :=
+{ app := λ X,
+  { to_fun := λ g, g.to_fun (1 : S),
+    map_zero' := by simp,
+    map_add' := λ _ _, by simp },
+  naturality' := λ X Y g, by { ext, simp, } }
+
+def _root_.change_of_rings.coextension_forget₂_adj :
+  forget₂ (Module S) AddCommGroup ⊣
+  (Ab_to_Z_Module.comp $ coextension_of_scalars.functor f) :=
+{ hom_equiv := λ X Y, ⟨hom_equiv.forget₂_to_coextension f, hom_equiv.coextension_to_forget₂ f,
+    hom_equiv.fb f, hom_equiv.bf f⟩,
+  unit := unit' f,
+  counit := counit' f,
+  hom_equiv_unit' := λ X Y g, by { ext, simp },
+  hom_equiv_counit' := λ X Y g, by { ext, simp } }
+
+instance : is_left_adjoint (forget₂ (Module S) AddCommGroup) :=
+⟨_, change_of_rings.coextension_forget₂_adj $ algebra_map ℤ S⟩
+
+end coextension_forget₂_adj
+
+end change_of_rings

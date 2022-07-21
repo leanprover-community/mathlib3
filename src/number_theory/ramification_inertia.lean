@@ -591,7 +591,7 @@ begin
     contradiction },
 end
 
-/-- Quotienting `P^i / P^e` by its subspace `P^(i+1) ⧸ P^e` is `R ⧸ p`-linear to `S ⧸ P`. -/
+/-- Quotienting `P^i / P^e` by its subspace `P^(i+1) ⧸ P^e` is `R ⧸ p`-linearly isomorphic to `S ⧸ P`. -/
 noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_domain S] [is_dedekind_domain S]
   [P.is_prime] (hP : P ≠ ⊥) {i : ℕ} (hi : i < e) :
   (_ ⧸ (pow_quot_succ_inclusion f p P i).range) ≃ₗ[R ⧸ p] S ⧸ P :=

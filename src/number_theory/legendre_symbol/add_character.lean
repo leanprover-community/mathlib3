@@ -79,7 +79,7 @@ def trivial : add_char R R' :=
   map_mul' := λ x y, (mul_one 1).symm }
 
 /-- An additive character is *nontrivial* if it takes a value `≠ 1`. -/
-def is_nontrivial (ψ : add_char R R') : Prop := ∃ (a : R), ψ a ≠ 1
+def is_nontrivial (ψ : add_char R R') : Prop := ∃ (a : R), ψ (of_add a) ≠ 1
 
 /-- An additive character is nontrivial iff it is not the trivial character. -/
 lemma is_nontrivial_iff_ne_trivial (ψ : add_char R R') :
@@ -92,26 +92,23 @@ end
 
 /-- Define the multiplicative shift of an additive character.
 This satisfies `mul_shift ψ a x = ψ (a * x)`. -/
-@[simps]
 def mul_shift (ψ : add_char R R') (a : R) : add_char R R' :=
 ψ.comp (add_monoid_hom.mul_left a).to_multiplicative
 
-lemma mul_shift_spec {ψ : add_char R R'} {a : R} {x : multiplicative R} :
-  mul_shift ψ a x = ψ (of_add (a * x)) := rfl
+@[simp] lemma mul_shift_apply {ψ : add_char R R'} {a : R} {x : multiplicative R} :
+  mul_shift ψ a x = ψ (of_add (a * to_add x)) := rfl
 
 /-- If `n` is a natural number, then `mul_shift ψ n x = (ψ x) ^ n`. -/
-lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : R) : mul_shift ψ n x = (ψ x) ^ n :=
-begin
-  rw [mul_shift_spec, ← nsmul_eq_mul, of_add_nsmul, map_pow],
-  refl,
-end
+lemma mul_shift_spec' (ψ : add_char R R') (n : ℕ) (x : multiplicative R) :
+  mul_shift ψ n x = (ψ x) ^ n :=
+by rw [mul_shift_apply, ← nsmul_eq_mul, of_add_nsmul, map_pow, of_add_to_add]
 
 /-- The product of `mul_shift ψ a` and `mul_shift ψ b` is `mul_shift ψ (a + b)`. -/
 lemma mul_shift_mul (ψ : add_char R R') (a b : R) :
   mul_shift ψ a * mul_shift ψ b = mul_shift ψ (a + b) :=
 begin
   ext,
-  simp only [monoid_hom.mul_apply, mul_shift_spec, add_mul, of_add_add, ψ.map_mul],
+  simp only [monoid_hom.mul_apply, mul_shift_apply, add_mul, of_add_add, ψ.map_mul],
 end
 
 /-- `mul_shift ψ 0` is the trivial character. -/
@@ -133,13 +130,11 @@ lemma to_mul_shift_inj_of_is_primitive {ψ : add_char R R'} (hψ : is_primitive 
   function.injective ψ.mul_shift :=
 begin
   intros a b h,
-  have h₁ : mul_shift ψ a * mul_shift ψ (- b) = mul_shift ψ b * mul_shift ψ (- b) :=
-    congr_fun (congr_arg has_mul.mul h) (mul_shift ψ (- b)),
-  simp only [mul_shift_mul, mul_shift_zero, add_right_neg] at h₁,
+  apply_fun (λ x, x * mul_shift ψ (-b)) at h,
+  simp only [mul_shift_mul, mul_shift_zero, add_right_neg] at h,
   have h₂ := hψ (a + (- b)),
-  rw [h₁, is_nontrivial_iff_ne_trivial, ← sub_eq_add_neg, ne.def add_char.trivial,
-      ne_self_iff_false, imp_false, not_not] at h₂,
-  exact eq_of_sub_eq_zero h₂,
+  rw [h, is_nontrivial_iff_ne_trivial, ← sub_eq_add_neg, sub_ne_zero] at h₂,
+  exact not_not.mp (λ h, h₂ h rfl),
 end
 
 -- `add_comm_group.equiv_direct_sum_zmod_of_fintype`
@@ -154,7 +149,7 @@ begin
   intros a ha,
   cases hψ with x h,
   use (a⁻¹ * x),
-  rwa [mul_shift_spec, mul_inv_cancel_left₀ ha],
+  rwa [mul_shift_apply, to_add_of_add, mul_inv_cancel_left₀ ha],
 end
 
 /-- Structure for a primitive additive character on a finite ring `R` into a cyclotomic extension
@@ -179,19 +174,18 @@ def zmod_char (n : ℕ) [fact (0 < n)] {ζ : C} (hζ : ζ ^ n = 1) : add_char (z
   map_mul' := λ x y, by rw [to_add_mul, ← pow_add, zmod.val_add (to_add x) (to_add y),
                             ← pow_eq_pow_mod _ hζ] }
 
-/-- An additive character on `zmod n` is trivial iff it takes the value `1` on `1`. -/
+/-- An additive character on `zmod n` is nontrivial iff it takes the value `1` on `1`. -/
 lemma zmod_char_is_nontrivial_iff (n : ℕ) [fact (0 < n)] (ψ : add_char (zmod n) C) :
   is_nontrivial ψ ↔ ψ (of_add 1) ≠ 1 :=
 begin
   refine ⟨_, λ h, ⟨1, h⟩⟩,
-  { contrapose!,
-    rintros h₁ ⟨a, ha⟩,
-    have ha₁ : a = a.val • 1 :=
-    by { rw [nsmul_eq_mul, mul_one], exact (zmod.nat_cast_zmod_val a).symm },
-    have ha₂ : of_add a = (of_add 1) ^ a.val := by rw [← of_add_nsmul, ← ha₁],
-    change ψ (of_add a) ≠ 1 at ha,
-    rw [ha₂, map_pow, h₁, one_pow] at ha,
-    exact ha rfl, },
+  contrapose!,
+  rintros h₁ ⟨a, ha⟩,
+  have ha₁ : a = a.val • 1,
+  { rw [nsmul_eq_mul, mul_one], exact (zmod.nat_cast_zmod_val a).symm },
+  have ha₂ : of_add a = (of_add 1) ^ a.val := by rw [← of_add_nsmul _ a.val, ← ha₁],
+  rw [ha₂, map_pow, h₁, one_pow] at ha,
+  exact ha rfl,
 end
 
 /-- A primitive additive character on `zmod n` takes the value `1` only at `0`. -/
@@ -310,13 +304,17 @@ end
 
 /-- The sum over the values of the trivial additive character is the cardinality of the source. -/
 lemma sum_eq_card_of_is_trivial {ψ : add_char R R'} (hψ : ¬ is_nontrivial ψ) :
-  ∑ a, ψ a = fintype.card R :=
+  ∑ a, ψ (of_add a) = fintype.card R :=
 begin
   simp only [is_nontrivial] at hψ,
   push_neg at hψ,
   simp only [hψ, finset.sum_const, nat.smul_one_eq_coe],
   refl,
 end
+
+lemma sum_eq_card_of_is_trivial' {ψ : add_char R R'} (hψ : ¬ is_nontrivial ψ) :
+  ∑ a, ψ a = fintype.card R :=
+sum_eq_card_of_is_trivial hψ
 
 end add_char
 

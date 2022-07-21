@@ -1242,8 +1242,8 @@ begin
     simp_rw [← mul_smul, inv_mul_cancel h, one_smul, ha] at *, exact smul_mem T _ hs},
 end
 
-/-- For a module over a division ring, the atoms of its lattice of submodules are the
-spans of its nonzero elements. -/
+/-- The atoms of the lattice of submodules of a module over a division ring are the
+submodules equal to the span of a nonzero element of the module. -/
 lemma atom_iff_nonzero_span (W : submodule K V) :
   is_atom W ↔ ∃ (v : V) (hv : v ≠ 0), W = span K {v} :=
 begin
@@ -1258,27 +1258,14 @@ begin
   { rcases h with ⟨v, ⟨hv, rfl⟩⟩, exact nonzero_span_atom v hv },
 end
 
-/-- For a module over a division ring, any submodule is equal to the supremum of the
-spans of the submodule's nonzero elements. -/
-lemma submodule_eq_Sup_le_atoms (W : submodule K V) :
-  W = Sup {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}} :=
-begin
-  let S := {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
-  apply le_antisymm,
-  { intros w hw, by_cases h : w = 0,
-    { rw h, simp },
-    { exact @le_Sup _ _ S _ ⟨w, ⟨hw, ⟨h, rfl⟩⟩⟩ w (mem_span_singleton_self w) } },
-  { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
-end
-
-/-- For a module over a division ring, the lattice of its submodules is atomistic. -/
+/-- The lattice of submodules of a module over a division ring is atomistic. -/
 instance : is_atomistic (submodule K V) :=
 { eq_Sup_atoms :=
   begin
     intro W,
     use {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
-    refine ⟨submodule_eq_Sup_le_atoms W, _⟩,
-    { rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw }
+    refine ⟨submodule_eq_Sup_le_nonzero_spans W, _⟩,
+    rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw
   end }
 
 end atoms_of_submodule_lattice

@@ -127,18 +127,12 @@ sequence of `bit0` and `bit1` applied to `0` or `1`.  Otherwise, `num_to_nat e =
 meta def num_to_nat : expr → option ℕ
 | `(has_zero.zero) := some 0
 | `(has_one.one)   := some 1
-| `(bit0 %%a)      := match num_to_nat a with
-  | some an        := some (bit0 an)
-  | none           := none
-  end
+| `(bit0 %%a)      := bit0 <$> num_to_nat a
 | `(bit1 %%a)      := match num_to_nat a with
   | some an        := some (bit1 an)
   | none           := none
   end
-| `(%%a + %%b)      := match num_to_nat a, num_to_nat b with
-  | (some an), (some bn) := some (an + bn)
-  | _, _ := none
-  end
+| `(%%a + %%b)      := (+) <$> a <*> b
 | `(%%a * %%b)      := match num_to_nat a, num_to_nat b with
   | (some an), (some bn) := some (an * bn)
   | _, _ := none
@@ -157,7 +151,7 @@ meta def convert_num_to_C_num (a : expr) : tactic unit :=
 match num_to_nat a with
 | (some an) := do
   `(@polynomial %%R %%inst) ← infer_type a,
-  aexp ← to_expr ``(%%(reflect an)) tt ff,
+  aexp ← to_expr ``(%%`(an)) tt ff,
   n_eq_Cn ← to_expr ``(%%a = polynomial.C (%%aexp : %%R)),
   (_, nproof) ← solve_aux n_eq_Cn
     `[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one] ],

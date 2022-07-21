@@ -2471,70 +2471,106 @@ by simp [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
 
 /-! ### Product of two functions -/
 
+section mul_prod
+
+variables {𝔸 ι 𝕜' : Type*} [normed_ring 𝔸] [normed_algebra 𝕜 𝔸] [normed_field 𝕜']
+  [normed_algebra 𝕜 𝕜']
+
 /- The product is smooth. -/
-lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝕜 × 𝕜, p.1 * p.2) :=
-is_bounded_bilinear_map_mul.cont_diff
+lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝔸 × 𝔸, p.1 * p.2) :=
+(continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.cont_diff
 
 /-- The product of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/
-lemma cont_diff_within_at.mul {s : set E} {f g : E → 𝕜}
+lemma cont_diff_within_at.mul {s : set E} {f g : E → 𝔸}
   (hf : cont_diff_within_at 𝕜 n f s x) (hg : cont_diff_within_at 𝕜 n g s x) :
   cont_diff_within_at 𝕜 n (λ x, f x * g x) s x :=
-cont_diff_mul.cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ
+cont_diff_mul.comp_cont_diff_within_at x (hf.prod hg)
 
 /-- The product of two `C^n` functions at a point is `C^n` at this point. -/
-lemma cont_diff_at.mul {f g : E → 𝕜}
-  (hf : cont_diff_at 𝕜 n f x) (hg : cont_diff_at 𝕜 n g x) :
+lemma cont_diff_at.mul {f g : E → 𝔸} (hf : cont_diff_at 𝕜 n f x) (hg : cont_diff_at 𝕜 n g x) :
   cont_diff_at 𝕜 n (λ x, f x * g x) x :=
-by rw [← cont_diff_within_at_univ] at *; exact hf.mul hg
+hf.mul hg
 
 /-- The product of two `C^n` functions on a domain is `C^n`. -/
-lemma cont_diff_on.mul {s : set E} {f g : E → 𝕜}
-  (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
+lemma cont_diff_on.mul {s : set E} {f g : E → 𝔸} (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
   cont_diff_on 𝕜 n (λ x, f x * g x) s :=
 λ x hx, (hf x hx).mul (hg x hx)
 
 /-- The product of two `C^n`functions is `C^n`. -/
-lemma cont_diff.mul {f g : E → 𝕜} (hf : cont_diff 𝕜 n f) (hg : cont_diff 𝕜 n g) :
+lemma cont_diff.mul {f g : E → 𝔸} (hf : cont_diff 𝕜 n f) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (λ x, f x * g x) :=
 cont_diff_mul.comp (hf.prod hg)
 
-lemma cont_diff_within_at.div_const {f : E → 𝕜} {n} {c : 𝕜}
-  (hf : cont_diff_within_at 𝕜 n f s x) :
-  cont_diff_within_at 𝕜 n (λ x, f x / c) s x :=
-by simpa only [div_eq_mul_inv] using hf.mul cont_diff_within_at_const
+lemma cont_diff_within_at_prod' {t : finset ι} {f : ι → E → 𝔸}
+  (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n f s x) :
+  cont_diff_within_at 𝕜 n (∏ i in t, f i) s x :=
+finset.prod_induction
 
-lemma cont_diff_at.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : cont_diff_at 𝕜 n f x) :
-  cont_diff_at 𝕜 n (λ x, f x / c) x :=
-by simpa only [div_eq_mul_inv] using hf.mul cont_diff_at_const
+lemma cont_diff_within_at_prod {t : finset ι} {f : ι → E → 𝔸}
+  (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n f s x) :
+  cont_diff_within_at 𝕜 n (λ y, ∏ i in t, f i y) s x :=
+by simpa only [← prod_finset_apply] using cont_diff_within_at_prod' h
 
-lemma cont_diff_on.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : cont_diff_on 𝕜 n f s) :
-  cont_diff_on 𝕜 n (λ x, f x / c) s :=
-by simpa only [div_eq_mul_inv] using hf.mul cont_diff_on_const
+lemma cont_diff_at_prod' {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_at 𝕜 n f s x) :
+  cont_diff_at 𝕜 n (∏ i in t, f i) s x :=
+cont_diff_within_at_prod' h
 
-lemma cont_diff.div_const {f : E → 𝕜} {n} {c : 𝕜} (hf : cont_diff 𝕜 n f) :
-  cont_diff 𝕜 n (λ x, f x / c) :=
-by simpa only [div_eq_mul_inv] using hf.mul cont_diff_const
+lemma cont_diff_at_prod {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_at 𝕜 n f s x) :
+  cont_diff_at 𝕜 n (λ y, ∏ i in t, f i y) s x :=
+cont_diff_within_at_prod h
 
-lemma cont_diff.pow {f : E → 𝕜}
-  (hf : cont_diff 𝕜 n f) :
+lemma cont_diff_on_prod' {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (∏ i in t, f i) s :=
+λ x hx, cont_diff_within_at_prod' (λ i hi, h i hi x hx)
+
+lemma cont_diff_on_prod {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ y, ∏ i in t, f i y) s :=
+λ x hx, cont_diff_within_at_prod (λ i hi, h i hi x hx)
+
+lemma cont_diff_prod' {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (∏ i in t, f i) :=
+cont_diff_iff_cont_diff_at.mpr $ λ x, cont_diff_at_prod' $ λ i hi, (h i hi).cont_diff_at
+
+lemma cont_diff_prod {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (λ y, ∏ i in t, f i y) :=
+cont_diff_iff_cont_diff_at.mpr $ λ x, cont_diff_at_prod $ λ i hi, (h i hi).cont_diff_at
+
+lemma cont_diff.pow {f : E → 𝔸} (hf : cont_diff 𝕜 n f) :
   ∀ m : ℕ, cont_diff 𝕜 n (λ x, (f x) ^ m)
 | 0       := by simpa using cont_diff_const
 | (m + 1) := by simpa [pow_succ] using hf.mul (cont_diff.pow m)
 
-lemma cont_diff_at.pow {f : E → 𝕜} (hf : cont_diff_at 𝕜 n f x)
-  (m : ℕ) : cont_diff_at 𝕜 n (λ y, f y ^ m) x :=
-(cont_diff_id.pow m).cont_diff_at.comp x hf
-
-lemma cont_diff_within_at.pow {f : E → 𝕜}
-  (hf : cont_diff_within_at 𝕜 n f s x) (m : ℕ) :
+lemma cont_diff_within_at.pow {f : E → 𝔸} (hf : cont_diff_within_at 𝕜 n f s x) (m : ℕ) :
   cont_diff_within_at 𝕜 n (λ y, f y ^ m) s x :=
-(cont_diff_id.pow m).cont_diff_at.comp_cont_diff_within_at x hf
+(cont_diff_id.pow m).comp_cont_diff_within_at x hf
 
-lemma cont_diff_on.pow {f : E → 𝕜}
-  (hf : cont_diff_on 𝕜 n f s) (m : ℕ) :
+lemma cont_diff_at.pow {f : E → 𝔸} (hf : cont_diff_at 𝕜 n f x) (m : ℕ) :
+  cont_diff_at 𝕜 n (λ y, f y ^ m) x :=
+hf.pow m
+
+lemma cont_diff_on.pow {f : E → 𝔸} (hf : cont_diff_on 𝕜 n f s) (m : ℕ) :
   cont_diff_on 𝕜 n (λ y, f y ^ m) s :=
 λ y hy, (hf y hy).pow m
+
+lemma cont_diff_within_at.div_const {f : E → 𝕜'} {n} {c : 𝕜'}
+  (hf : cont_diff_within_at 𝕜 n f s x) :
+  cont_diff_within_at 𝕜 n (λ x, f x / c) s x :=
+by simpa only [div_eq_mul_inv] using hf.mul cont_diff_within_at_const
+
+lemma cont_diff_at.div_const {f : E → 𝕜'} {n} {c : 𝕜'} (hf : cont_diff_at 𝕜 n f x) :
+  cont_diff_at 𝕜 n (λ x, f x / c) x :=
+hf.div_const
+
+lemma cont_diff_on.div_const {f : E → 𝕜'} {n} {c : 𝕜'} (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, f x / c) s :=
+λ x hx, (hf x hx).div_const
+
+lemma cont_diff.div_const {f : E → 𝕜'} {n} {c : 𝕜'} (hf : cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (λ x, f x / c) :=
+by simpa only [div_eq_mul_inv] using hf.mul cont_diff_const
+
+end mul_prod
 
 /-! ### Scalar multiplication -/
 

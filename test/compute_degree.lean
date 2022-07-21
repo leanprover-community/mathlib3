@@ -18,7 +18,7 @@ example {F : Type*} [semiring F] (t : ((2 : ℕ) : F) ≠ 0) : degree (X + 0 + X
 begin
   compute_degree,
   work_on_goal 2 { norm_num },
-  --  from here, could be automated, but currently is not.#check
+  --  from here, could be automated, but currently is not.
   --  the issue though is that I would like to use `norm_num`
   --  to discharge other goals, but currently I cannot since here
   --  it would timeout.

@@ -480,7 +480,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
   rw [←typein_lt_typein (sum.lex r s), typein_enum],
   have := H _ (h.2 _ (typein_lt_type s x)),
   rw [add_succ, succ_le_iff] at this,
-  refine (type_le'.2 ⟨rel_embedding.of_monotone (λ a, _) (λ a b, _)⟩).trans_lt this,
+  refine (rel_embedding.of_monotone (λ a, _) (λ a b, _)).ordinal_type_le.trans_lt this,
   { rcases a with ⟨a | b, h⟩,
     { exact sum.inl a },
     { exact sum.inr ⟨b, by cases h; assumption⟩ } },
@@ -640,9 +640,8 @@ theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one a b
 instance mul_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
-  refine type_le'.2 ⟨rel_embedding.of_monotone
-    (λ a, (f a.1, a.2))
-    (λ a b h, _)⟩, clear_,
+  refine (rel_embedding.of_monotone (λ a : α × γ, (f a.1, a.2)) (λ a b h, _)).ordinal_type_le,
+  clear_,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
   { exact prod.lex.left _ _ (f.to_rel_embedding.map_rel_iff.2 h') },
   { exact prod.lex.right _ h' }
@@ -651,9 +650,7 @@ end⟩
 instance mul_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (swap (*)) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
-  refine type_le'.2 ⟨rel_embedding.of_monotone
-    (λ a, (a.1, f a.2))
-    (λ a b h, _)⟩,
+  refine (rel_embedding.of_monotone (λ a : γ × α, (a.1, f a.2)) (λ a b h, _)).ordinal_type_le,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
   { exact prod.lex.left _ _ h' },
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
@@ -676,9 +673,7 @@ begin
   have := H _ (h.2 _ (typein_lt_type s b)),
   rw mul_succ at this,
   have := ((add_lt_add_iff_left _).2 (typein_lt_type _ a)).trans_le this,
-  refine (type_le'.2 _).trans_lt this,
-  constructor,
-  refine rel_embedding.of_monotone (λ a, _) (λ a b, _),
+  refine (rel_embedding.of_monotone (λ a, _) (λ a b, _)).ordinal_type_le.trans_lt this,
   { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,

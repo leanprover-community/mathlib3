@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import logic.small
 import order.well_founded
 
 /-!
@@ -141,6 +142,15 @@ protected def subset (x y : pSet) : Prop := ∀ a, ∃ b, equiv (x.func a) (y.fu
 
 instance : has_subset pSet := ⟨pSet.subset⟩
 
+instance : is_refl pSet (⊆) := ⟨λ x a, ⟨a, equiv.refl _⟩⟩
+
+instance : is_trans pSet (⊆) :=
+⟨λ x y z hxy hyz a, begin
+  cases hxy a with b hb,
+  cases hyz b with c hc,
+  exact ⟨c, hb.trans hc⟩
+end⟩
+
 theorem equiv.ext : Π (x y : pSet), equiv x y ↔ (x ⊆ y ∧ y ⊆ x)
 | ⟨α, A⟩ ⟨β, B⟩ :=
   ⟨λ ⟨αβ, βα⟩, ⟨αβ, λ b, let ⟨a, h⟩ := βα b in ⟨a, equiv.symm h⟩⟩,
@@ -163,6 +173,9 @@ instance : has_mem pSet pSet := ⟨pSet.mem⟩
 
 theorem mem.mk {α : Type u} (A : α → pSet) (a : α) : A a ∈ mk α A :=
 ⟨a, equiv.refl (A a)⟩
+
+theorem func_mem (x : pSet) (i : x.type) : x.func i ∈ x :=
+by { cases x, apply mem.mk }
 
 theorem mem.ext : Π {x y : pSet.{u}}, (∀ w : pSet.{u}, w ∈ x ↔ w ∈ y) → equiv x y
 | ⟨α, A⟩ ⟨β, B⟩ h := ⟨λ a, (h (A a)).1 (mem.mk A a),
@@ -422,6 +435,17 @@ instance : has_mem Set Set := ⟨Set.mem⟩
 /-- Convert a ZFC set into a `set` of ZFC sets -/
 def to_set (u : Set.{u}) : set Set.{u} := {x | x ∈ u}
 
+instance small_to_set (x : Set.{u}) : small.{u} x.to_set :=
+quotient.induction_on x $ λ a, begin
+  let f : a.type → (mk a).to_set := λ i, ⟨mk $ a.func i, func_mem a i⟩,
+  suffices : function.surjective f,
+  { exact small_of_surjective this },
+  rintro ⟨y, hb⟩,
+  induction y using quotient.induction_on,
+  cases hb with i h,
+  exact ⟨i, subtype.coe_injective (quotient.sound h.symm)⟩
+end
+
 /-- `x ⊆ y` as ZFC sets means that all members of `x` are members of `y`. -/
 protected def subset (x y : Set.{u}) :=
 ∀ ⦃z⦄, z ∈ x → z ∈ y
@@ -430,6 +454,9 @@ instance has_subset : has_subset Set :=
 ⟨Set.subset⟩
 
 lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
+
+instance : is_refl Set (⊆) := ⟨λ x a, id⟩
+instance : is_trans Set (⊆) := ⟨λ x y z hxy hyz a ha, hyz (hxy ha)⟩
 
 @[simp] theorem subset_iff : Π {x y : pSet}, mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λ h a, @h ⟦A a⟧ (mem.mk A a),
@@ -440,6 +467,8 @@ quotient.induction_on₂ x y (λ u v h, quotient.sound (mem.ext (λ w, h ⟦w⟧
 
 theorem ext_iff {x y : Set.{u}} : (∀ z : Set.{u}, z ∈ x ↔ z ∈ y) ↔ x = y :=
 ⟨ext, λ h, by simp [h]⟩
+
+instance : is_antisymm Set (⊆) := ⟨λ a b hab hba, ext $ λ c, ⟨@hab c, @hba c⟩⟩
 
 /-- The empty ZFC set -/
 protected def empty : Set := mk ∅

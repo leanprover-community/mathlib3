@@ -29,27 +29,39 @@ example {a : ℤ} (ha : 3 < a) : 0 < a := by positivity
 
 example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity -- fails
 
-/- ## Tests of the @[positivity] plugin tactics (addition, multiplication) -/
+/- ## Tests of the @[positivity] plugin tactics (addition, multiplication, division) -/
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a + a := by positivity
 
 example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 ≤ 3 + a + b + b + 14 := by positivity
 
+example {H : Type*} [linear_ordered_add_comm_group H] {a b : H} (ha : 0 < a) (hb : 0 ≤ b) :
+  0 ≤ a + a + b :=
+by positivity
+
 example {a : ℤ} (ha : 3 < a) : 0 < a + a := by positivity
 
-example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a + b + b + 7 + 14 := by positivity
+example {a b : ℚ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
 
-/- ## Tests of other @[positivity] plugin tactics not yet implemented
+-- TODO: this fails because `div_nonneg` doesn't apply directly to `ℤ` -- it requires a linearly
+-- ordered field
+-- example {a b : ℤ} (ha : 3 < a) (hb : 4 ≤ b) : 0 < 3 + a * b / 7 + b + 7 + 14 := by positivity
 
-Eg. powers, division, absolute value.  All these tests currently fail. -/
+example {a : ℕ} : 0 < a ^ 0 := by positivity
 
-example {a : ℤ} (ha : 3 < a) : a ^ 2 + a ≥ 0 := by positivity
+example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 2 + a := by positivity
 
 example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 ≤ 3 * a ^ 2 * b + b * 7 + 14 := by positivity
 
-example {a : ℤ} (ha : 3 < a) : a ^ 2 + a > 0 := by positivity
+example {a : ℤ} (ha : 3 < a) : 0 < a ^ 2 + a := by positivity
 
 example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 < 3 * a ^ 2 * b + b * 7 + 14 := by positivity
+
+example {a : ℤ} : 0 ≤ |a| := by positivity
+
+example {a : ℤ} : 0 < |a| + 3 := by positivity
+
+example {a : ℤ} (ha : 1 < a) : 0 < |(3:ℤ) + a| := by positivity
 
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 

@@ -24,6 +24,7 @@ theorem lemma3 {α} [preorder α] {a a' b : α} : a = a' → a ≤ b → a' ≤ 
 theorem lemma4 {α} [preorder α] {b b' a : α} : b = b' → a < b' → a < b :=
 λ h1 h3, by rwa h1
 
+#check instance_cache.get _ `has_zero.zero
 
 meta def orelse' (tac1 tac2 : tactic (bool × expr)) : tactic (bool × expr) := do
   res ← try_core tac1,
@@ -38,11 +39,9 @@ orelse' (do -- try `norm_num` to prove the goal positive directly
   (e', p) ← norm_num.derive e <|> refl_conv e,
   e'' ← e'.to_rat,
   typ ← infer_type e',
-  tactic.trace e',
   ic ← mk_instance_cache typ,
   if e'' > 0 then do
     (ic, p₁) ← norm_num.prove_pos ic e',
-    tactic.trace ("i proved that this is positive", e'),
     p ← mk_app ``lemma4 [p, p₁],
     pure (tt, p)
   else if e'' = 0 then do
@@ -51,7 +50,7 @@ orelse' (do -- try `norm_num` to prove the goal positive directly
   else failed) $ -- loop over hypotheses
   local_context >>= list.foldl (λ tac p₃,
     orelse' tac $ do -- if RHS of the hypothesis is the object whose positivity is sought, try
-      -- `norm_num` to prove positivity of the LHS and then apply transitivity
+    -- `norm_num` to prove positivity of the LHS and then apply transitivity
       p_typ ← infer_type p₃,
       (lo, hi, strict) ← match p_typ with
       | `(%%lo ≤ %%hi) := pure (lo, hi, ff)
@@ -61,24 +60,22 @@ orelse' (do -- try `norm_num` to prove the goal positive directly
       | _ := failed
       end,
       is_def_eq e hi,
-      tactic.trace (e, hi, lo),
       (lo', p₂) ← norm_num.derive lo <|> refl_conv lo,
-      tactic.trace (e, hi, lo),
       typ ← infer_type lo',
       ic ← mk_instance_cache typ,
       if strict then do
         (ic, p₁) ← norm_num.prove_nonneg ic lo',
         p ← mk_app ``lemma1 [p₂, p₁, p₃],
         pure (tt, p)
-      else match lo' with
-      | `(0) := do
-        p ← mk_app ``lemma3 [p₂, p₃],
-        pure (ff, p)
-      | _ := do
-        (ic, p₁) ← norm_num.prove_pos ic lo',
-        p ← mk_app ``lemma2 [p₂, p₁, p₃],
-        pure (tt, p)
-      end) failed
+      else do
+        z ← mk_mapp ``has_zero.zero [some typ, none], -- there was a way to get from instance cache?
+        if lo' = z then do
+          p ← mk_app ``lemma3 [p₂, p₃],
+          pure (ff, p)
+        else do
+          (ic, p₁) ← norm_num.prove_pos ic lo',
+          p ← mk_app ``lemma2 [p₂, p₁, p₃],
+          pure (tt, p)) failed
 
 @[user_attribute]
 meta def positivity_attr : user_attribute (expr → tactic (bool × expr)) unit :=
@@ -99,7 +96,6 @@ together with a boolean stating whether the proof found was for strict positivit
 for nonnegativity (`ff`). -/
 meta def positivity_core (e : expr) : tactic (bool × expr) := do
   f ← positivity_attr.get_cache,
-  tactic.trace e,
   f e <|> fail "failed to prove positivity/nonnegativity"
 
 @[positivity]
@@ -116,10 +112,10 @@ meta def positivity_add : expr → tactic (bool × expr)
 | _ := failed
 
 lemma lemma5 {R : Type*} [linear_ordered_semiring R] (a b : R) (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a * b :=
-(zero_le_mul_left ha).mpr hb
+mul_nonneg ha.le hb
 
 lemma lemma6 {R : Type*} [linear_ordered_semiring R] (a b : R) (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a * b :=
-(zero_le_mul_right hb).mpr ha
+mul_nonneg ha hb.le
 
 @[positivity]
 meta def positivity_mul : expr → tactic (bool × expr)
@@ -134,7 +130,58 @@ meta def positivity_mul : expr → tactic (bool × expr)
   end
 | _ := failed
 
-/- TODO: implement plugins for division, powers, absolute values. -/
+lemma lemma7 {R : Type*} [linear_ordered_field R] (a b : R) (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ a / b :=
+div_nonneg ha.le hb
+
+lemma lemma8 {R : Type*} [linear_ordered_field R] (a b : R) (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a / b :=
+div_nonneg ha hb.le
+
+@[positivity]
+meta def positivity_div : expr → tactic (bool × expr)
+| `(%%a / %%b) := do
+  (strict_a, pa) ← positivity_core a,
+  (strict_b, pb) ← positivity_core b,
+  match strict_a, strict_b with
+  | tt, tt := prod.mk tt <$> mk_app ``div_pos [pa, pb]
+  | tt, ff := prod.mk ff <$> mk_app ``lemma7 [pa, pb]
+  | ff, tt := prod.mk ff <$> mk_app ``lemma8 [pa, pb]
+  | ff, ff := prod.mk ff <$> mk_app ``div_nonneg [pa, pb] -- TODO handle eg `int.div_nonneg`
+  end
+| _ := failed
+
+@[positivity]
+meta def positivity_pow : expr → tactic (bool × expr)
+| `(%%a ^ %%n) := do
+  n_typ ← infer_type n,
+  match n_typ with
+  | `(ℕ) := do
+    if n = `(0) then do
+      -- if we're considering `a ^ 0` then it's strictly positive
+      p₂ ← mk_app ``pow_zero [a],
+      a_typ ← infer_type a,
+      p₁ ← mk_mapp ``zero_lt_one [some a_typ, none, none], -- better way here?
+      prod.mk tt <$> mk_app ``lemma4 [p₂, p₁]
+    else do
+      -- else, `a ^ n` is positive if `a` is and nonnegative if `a` is
+      (strict_a, pa) ← positivity_core a,
+      match strict_a with
+      | tt := prod.mk tt <$> mk_app ``pow_pos [pa, n]
+      | ff := prod.mk ff <$> mk_app ``pow_nonneg [pa, n]
+      end
+  | _ := failed -- TODO handle integer powers, maybe even real powers
+  end
+| _ := failed
+
+@[positivity]
+meta def positivity_abs : expr → tactic (bool × expr)
+| `(|%%a|) := do
+  (do -- if can prove `0 < a`, report positivity
+    (strict_a, pa) ← positivity_core a,
+    prod.mk tt <$> mk_app ``abs_pos_of_pos [pa]) <|>
+  prod.mk ff <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+/- TODO: implement further plugins (raising to non-numeral powers, exp, log, norm) -/
 
 meta def positivity : tactic unit := focus1 $ do
   (a, strict_desired) ← get_pos_goal,

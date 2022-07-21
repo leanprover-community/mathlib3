@@ -217,8 +217,6 @@ preserves_limits_of_size.{w w} G :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI preserves_limit_of_preserves_equalizers_and_product G }
 
-set_option pp.universes true
-
 lemma has_finite_limits_of_has_terminal_and_pullbacks [has_terminal C] [has_pullbacks C] :
   has_finite_limits C :=
 @@finite_limits_from_equalizers_and_finite_products _

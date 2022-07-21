@@ -193,10 +193,11 @@ open set
 lemma antitone.liminf_comp_eq_apply_limsup_of_continuous
   {ι R : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
+  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f ) :
   F.liminf (f ∘ a) = f (F.limsup a) :=
 begin
-  rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf, ←f_decr.Sup_image_eq_apply_Inf f_cont],
+  rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf] at *,
+  rw (map_Inf_of_continuous_at_of_antitone' f_cont.continuous_at f_decr _),
   { apply congr_arg,
     simp only [image_image, function.comp_app],
     refine subset_antisymm _ _;
@@ -204,7 +205,7 @@ begin
       rw mem_image at *,
       rcases hi with ⟨I, I_mem_F, hI⟩,
       refine ⟨I, I_mem_F, _⟩,
-      rw [← hI, ← f_decr.Inf_image_eq_apply_Sup f_cont _ _, image_image],
+      rw [← hI, map_Sup_of_continuous_at_of_antitone' f_cont.continuous_at f_decr _, image_image],
       exact nonempty_image_iff.mpr (ne_bot.nonempty_of_mem ‹ne_bot F› I_mem_F), }, },
   { refine nonempty_image_iff.mpr nonempty_of_nonempty_subtype, },
 end

@@ -86,17 +86,9 @@ lemma is_hermitian.from_blocks₂₂ [fintype n] [decidable_eq n]
   (hD : D.is_hermitian) :
   (from_blocks A B Bᴴ D).is_hermitian ↔ (A - B ⬝ D⁻¹ ⬝ Bᴴ).is_hermitian :=
 begin
-  have hBDB : (B ⬝ D⁻¹ ⬝ Bᴴ).is_hermitian,
-  { apply is_hermitian_mul_mul_conj_transpose,
-    apply hD.inv },
-  rw [is_hermitian_from_blocks_iff],
-  split,
-  { intro h,
-    apply is_hermitian.sub h.1 hBDB },
-  { intro h,
-    refine ⟨_, rfl, conj_transpose_conj_transpose B, hD⟩,
-    rw ← sub_add_cancel A,
-    apply is_hermitian.add h hBDB }
+  rw [←is_hermitian_minor_equiv (equiv.sum_comm n m), equiv.sum_comm_apply,
+    from_blocks_minor_sum_swap_sum_swap],
+  convert is_hermitian.from_blocks₁₁ _ _ hD; simp
 end
 
 lemma pos_semidef.from_blocks₁₁ [fintype m] [decidable_eq m] [fintype n]

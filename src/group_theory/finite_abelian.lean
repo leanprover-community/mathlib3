@@ -85,8 +85,8 @@ end add_comm_group
 namespace comm_group
 
 /-- A finitely generated torsion abelian multiplicative group is finite. -/
-noncomputable def fintype_of_fg_torsion (G : Type*) [comm_group G] [hfg : group.fg G]
-  (hit : monoid.is_torsion G) : fintype G :=
-@fintype.of_equiv _ _ (add_comm_group.fintype_of_fg_torsion (additive G) hit) multiplicative.of_add
+noncomputable def fintype_of_fg_torsion (G : Type*) [comm_group G] [group.fg G]
+  (hG : monoid.is_torsion G) : fintype G :=
+@fintype.of_equiv _ _ (add_comm_group.fintype_of_fg_torsion (additive G) hG) multiplicative.of_add
 
 end comm_group

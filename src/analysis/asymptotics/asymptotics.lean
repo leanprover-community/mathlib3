@@ -1145,9 +1145,28 @@ theorem is_O_with.pow [norm_one_class R] {f : α → R} {g : α → 𝕜} (h : i
 | 0 := by simpa using h.pow' 0
 | (n + 1) := h.pow' (n + 1)
 
+theorem is_O_with.of_pow {n : ℕ} {f : α → 𝕜} {g : α → R} (h : is_O_with c l (f ^ n) (g ^ n))
+  (hn : n ≠ 0) (hc : c ≤ c' ^ n) (hc' : 0 ≤ c') : is_O_with c' l f g :=
+is_O_with.of_bound $ (h.weaken hc).bound.mono $ λ x hx,
+  le_of_pow_le_pow n (mul_nonneg hc' $ norm_nonneg _) hn.bot_lt $
+    calc ∥f x∥ ^ n = ∥(f x) ^ n∥ : (norm_pow _ _).symm
+               ... ≤ c' ^ n * ∥(g x) ^ n∥ : hx
+               ... ≤ c' ^ n * ∥g x∥ ^ n :
+      mul_le_mul_of_nonneg_left (norm_pow_le' _ hn.bot_lt) (pow_nonneg hc' _)
+               ... = (c' * ∥g x∥) ^ n : (mul_pow _ _ _).symm
+
 theorem is_O.pow {f : α → R} {g : α → 𝕜} (h : f =O[l] g) (n : ℕ) :
   (λ x, f x ^ n) =O[l] (λ x, g x ^ n) :=
 let ⟨C, hC⟩ := h.is_O_with in is_O_iff_is_O_with.2 ⟨_, hC.pow' n⟩
+
+theorem is_O.of_pow {f : α → 𝕜} {g : α → R} {n : ℕ} (hn : n ≠ 0) (h : (f ^ n) =O[l] (g ^ n)) :
+  f =O[l] g :=
+begin
+  rcases h.exists_pos with ⟨C, hC₀, hC⟩,
+  obtain ⟨c, hc₀, hc⟩ : ∃ c : ℝ, 0 ≤ c ∧ C ≤ c ^ n,
+    from ((eventually_ge_at_top _).and $ (tendsto_pow_at_top hn).eventually_ge_at_top C).exists,
+  exact (hC.of_pow hn hc hc₀).is_O
+end
 
 theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : f =o[l] g) {n : ℕ} (hn : 0 < n) :
   (λ x, f x ^ n) =o[l] (λ x, g x ^ n) :=
@@ -1156,6 +1175,10 @@ begin
   induction n with n ihn, { simpa only [pow_one] },
   convert h.mul ihn; simp [pow_succ]
 end
+
+theorem is_o.of_pow {f : α → 𝕜} {g : α → R} {n : ℕ} (h : (f ^ n) =o[l] (g ^ n)) (hn : n ≠ 0) :
+  f =o[l] g :=
+is_o.of_is_O_with $ λ c hc, (h.def' $ pow_pos hc _).of_pow hn le_rfl hc.le
 
 /-! ### Inverse -/
 

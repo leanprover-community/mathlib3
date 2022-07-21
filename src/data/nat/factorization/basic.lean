@@ -261,6 +261,12 @@ def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 @[simp] lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
 @[simp] lemma p_odd_part_def' (n p : ℕ) : n / n.padic_part p = n.p_odd_part p := rfl
 
+@[simp] lemma padic_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : n.padic_part p = 1 :=
+by simp [factorization_eq_zero_of_non_prime n hp]
+
+@[simp] lemma p_odd_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : n.p_odd_part p = n :=
+by simp [factorization_eq_zero_of_non_prime n hp]
+
 -- TODO: Rename the following lemmas
 
 -- TODO: Prove:

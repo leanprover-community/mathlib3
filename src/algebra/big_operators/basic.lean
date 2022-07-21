@@ -1680,14 +1680,14 @@ begin
 end
 
 lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
-  (∀ b ∈ i, multiset.disjoint (f b) a) ↔ multiset.disjoint (∑ x in i, f x) a :=
+  (∀ b ∈ i, multiset.disjoint (f b) a) ↔ multiset.disjoint (i.sum f)  a :=
 begin
   convert (@disjoint_sum_left _ a) (map f i.val),
   simp [finset.mem_def, and.congr_left_iff, iff_self],
 end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
-  (∀ b ∈ i, multiset.disjoint a (f b)) ↔ multiset.disjoint a (∑ x in i, f x) :=
+  (∀ b ∈ i, multiset.disjoint a (f b)) ↔ multiset.disjoint a (i.sum f) :=
 begin
   simp_rw @disjoint_comm _ a _,
   exact disjoint_finset_sum_left,
@@ -1695,20 +1695,30 @@ end
 
 variables [decidable_eq α]
 
-lemma finset_sum_eq_sup_of_disjoint {β : Type*} {i : finset β}
-  {f : β → multiset α} (h : ∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) :
-  ∑ x in i, f x = i.sup f :=
+lemma disjoint_finset_iff_sum_eq_sup {β : Type*} {i : finset β} {f : β → multiset α} :
+  (∀ x y ∈ i, x ≠ y → multiset.disjoint (f x) (f y)) ↔ i.sum f = i.sup f :=
 begin
-  classical,
-  induction i using finset.induction_on with z i hz hr,
-  { simp only [finset.sum_empty, finset.sup_empty, bot_eq_zero], },
-  { rw [finset.sum_insert hz, finset.sup_insert],
-    convert add_eq_union_iff_disjoint.mpr _,
-    exact (hr (λ x hx y hy hxy, h x (finset.mem_insert_of_mem hx)
-      y (finset.mem_insert_of_mem hy) hxy)).symm,
-    exact disjoint_finset_sum_right
-      (λ x hx, h z (finset.mem_insert_self z i) x (finset.mem_insert_of_mem hx)
-      (by {contrapose! hx, simp [←hx, hz], } : z ≠ x)), }
+  induction i using finset.cons_induction_on with z i hz hr,
+  { simp only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff,
+      finset.sum_empty, finset.sup_empty, bot_eq_zero, eq_self_iff_true], },
+  { simp_rw [finset.sum_cons hz, finset.sup_cons, finset.mem_cons, multiset.sup_eq_union],
+    split,
+    { intro h,
+      rw ( _ : i.sup f = i.sum f),
+      { rw add_eq_union_iff_disjoint,
+        exact disjoint_finset_sum_right.mp
+          (λ b hb, h z (or.inl $ eq.refl z) b (or.inr $ hb) (by { contrapose! hb, rwa ←hb })), },
+      exact (hr.mp (λ x hx y hy hxy, h x (or.inr $ hx) y (or.inr $ hy) hxy)).symm, },
+    { simp_rw [forall_eq_or_imp, ne.def, eq_self_iff_true, not_true, is_empty.forall_iff, true_and],
+      intro h,
+      suffices : i.sum f = i.sup f,
+      { rw [←this, add_eq_union_iff_disjoint, ←disjoint_finset_sum_right] at h,
+        exact ⟨(λ x hx _, h x hx),
+          λ x hx, ⟨λ _, (h x hx).symm, λ y hy hxy, hr.mpr this x hx y hy hxy⟩⟩, },
+      rw [←(add_right_inj (f z)), le_antisymm_iff],
+      exact ⟨le_trans (eq.le h) (union_le_add (f z) (i.sup f)),
+       (add_le_add_iff_left (f z)).mpr (@finset.sup_le _ _ _ _ i f (i.sum f)
+        (λ x hx, le_sum_of_mem $ mem_map_of_mem f hx))⟩, }},
 end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
@@ -1858,5 +1868,3 @@ begin
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end
-
-#lint

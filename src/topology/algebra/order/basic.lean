@@ -2883,11 +2883,42 @@ end
 
 lemma antitone.Sup_image_eq_apply_Inf {R S : Type*}
   [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  [complete_linear_order S] [topological_space S]
+  [order_topology S] -- was: [order_closed_topology S]
   {f : R → S} (f_decr : antitone f) (f_cont : continuous f)
   (A : set R) (hA : A.nonempty):
   Sup (f '' A) = f (Inf A) :=
-le_antisymm (f_decr.Sup_image_le A) (continuous_Inf_le_Sup_continuous f_cont A hA)
+begin
+  -- The working version proof was:
+  -- `le_antisymm (f_decr.Sup_image_le A) (continuous_Inf_le_Sup_continuous f_cont A hA)`
+
+  -- It indeed looks like the previously existing `antitone.le_map_Inf f_decr` would be
+  -- similar, but I fail to fill in the sorry with it. This is the reason I originally had to
+  -- introduce the new lemmas `antitone.Sup_image_le` etc.
+
+  -- (That the assumption in the existing lemma is somewhat more stringent is not an issue
+  -- for me, even the weaker result would be good enough to me, but I can't get it to work.)
+
+  apply le_antisymm _ (continuous_Inf_le_Sup_continuous f_cont A hA),
+
+  have similar_to_goal := @antitone.le_map_Inf R S _ _ A f f_decr, -- Why is this not enough?
+
+  convert similar_to_goal,
+
+  ext x,
+  split,
+  { intros hx,
+    rcases hx with ⟨r, ⟨r_in_A, fr_eq_x⟩⟩,
+    use r,
+    simp only [fr_eq_x, r_in_A, csupr_pos], },
+  { intros hx,
+    rcases hx with ⟨r, hr⟩,
+    use r,
+    split,
+    sorry, -- How to proceed?
+    sorry, -- How to proceed?
+    },
+end
 
 lemma antitone.Inf_image_eq_apply_Sup {R S : Type*}
   [complete_linear_order R] [topological_space R] [order_topology R]
@@ -2902,7 +2933,8 @@ end
 
 lemma monotone.Inf_image_eq_apply_Inf {R S : Type*}
   [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  [complete_linear_order S] [topological_space S]
+  [order_topology S] -- was: [order_closed_topology S]
   {f : R → S} (f_incr : monotone f) (f_cont : continuous f)
   (A : set R) (hA : A.nonempty):
   Inf (f '' A) = f (Inf A) :=
@@ -2910,7 +2942,8 @@ f_incr.dual_left.Inf_image_eq_apply_Sup f_cont A hA
 
 lemma monotone.Sup_image_eq_apply_Sup {R S : Type*}
   [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  [complete_linear_order S] [topological_space S]
+  [order_topology S] -- was: [order_closed_topology S]
   {f : R → S} (f_incr : monotone f) (f_cont : continuous f)
   (A : set R) (hA : A.nonempty):
   Sup (f '' A) = f (Sup A) :=

@@ -444,6 +444,20 @@ begin
     simp [pp.factorization, hqp.symm] },
 end
 
+-- `n.padic_part p` is the largest divisor of `n` not divisible by `p`.
+lemma dvd_p_odd_part_of_dvd_not_dvd {p d n : ℕ} (hdn : d ∣ n) (hpd : ¬ p ∣ d) :
+  d ∣ n.p_odd_part p :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn0, { simp },
+  rcases eq_or_ne d 0 with rfl | hd0, { simp at hpd, cases hpd },
+  rw [←(factorization_le_iff_dvd hd0 (p_odd_part_pos p hn0).ne'), factorization_p_odd_part],
+  intro q,
+  rcases eq_or_ne q p with rfl | hqp,
+  { simp [factorization_eq_zero_iff', hpd] },
+  { simp [hqp, (factorization_le_iff_dvd hd0 hn0).2 hdn q] },
+end
+
+
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin

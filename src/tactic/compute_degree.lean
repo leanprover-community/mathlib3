@@ -353,7 +353,7 @@ do t ← target,
   `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
   expected_deg ← guess_degree tl >>= eval_guessing 0,
-  deg_bound ← eval_expr ℕ tr <|> pure expected_deg,
+  deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
   if deg_bound < expected_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else
@@ -381,7 +381,7 @@ meta def progressively_remove : tactic unit :=
 do `(%%a + %%b ≠ 0) ← target,
   match b with
   | `(coeff %%pol %%n) := do de ← guess_degree pol, d ← eval_guessing 0 de,
-    nn ← eval_expr ℕ n,
+    nn ← eval_expr' ℕ n,
     if d < nn then
       compute_degree.remove_one_coeff b
     else skip
@@ -417,8 +417,8 @@ do t ← target,
   `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
   exp_deg ← guess_degree tl >>= eval_guessing 0,
-  cond ← succeeds $ eval_expr ℕ tr,
-  deg_bou ← if cond then eval_expr ℕ tr else pure exp_deg,
+  cond ← succeeds $ eval_expr' ℕ tr,
+  deg_bou ← if cond then eval_expr' ℕ tr else pure exp_deg,
   if deg_bou < exp_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
   else
@@ -481,7 +481,7 @@ do try $ ( refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
   focus1 ( compute_degree_le_core >> done ),
   ad ← to_expr ``((+) : (%%R) → (%%R) → (%%R)) tt ff,
 --  trace deg, infer_type deg >>= trace,
-  tar_deg ← eval_expr ℕ deg,
+  tar_deg ← eval_expr' ℕ deg,
 --trace tar_deg,
 --  summ ← list_binary_operands ad pol,trace summ,
   `[ repeat { rw coeff_add } ],
@@ -552,7 +552,7 @@ do try $ refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate,
   fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   gde ← guess_degree pol,
   deg ← eval_guessing 0 gde,
-  degvn ← eval_expr ℕ degv,
+  degvn ← eval_expr' ℕ degv,
   guard (deg = degvn) <|>
   ( do ppe ← pp deg, ppg ← pp degvn,
     fail sformat!("'{ppe}' is the expected degree\n" ++ "'{ppg}' is the given degree\n") ),
@@ -727,7 +727,7 @@ meta def compute_degree_old : parse opt_pexpr_list → tactic unit
   `(polynomial.nat_degree %%tl = %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   (lead, m') ← extract_top_degree_terms_and_deg tl,
-  td ← eval_expr ℕ tr,
+  td ← eval_expr' ℕ tr,
   if m' ≠ td then do
     pptl ← pp tl, ppm' ← pp m',
     if is_deg then

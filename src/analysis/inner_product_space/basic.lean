@@ -7,6 +7,7 @@ import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
+import analysis.normed_space.banach
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -830,6 +831,12 @@ begin
   convert hv (f i) (f j) using 1,
   simp [hf.eq_iff]
 end
+
+/-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
+family. -/
+lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+  orthonormal 𝕜 (coe : set.range v → E) :=
+by simpa using hv.comp _ (set.range_splitting_injective v)
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/
@@ -2276,74 +2283,3 @@ begin
 end
 
 end orthogonal
-
-/-! ### Self-adjoint operators -/
-
-namespace inner_product_space
-
-/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
-`x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
-def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
-
-/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
-`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_bilin_form (T : F →ₗ[ℝ] F) :
-  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
-
-lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
-  conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
-by rw [hT x y, inner_conj_sym]
-
-@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
-  (x y : E) :
-  ⟪T x, y⟫ = ⟪x, T y⟫ :=
-hT x y
-
-/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
-@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
-  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
-  (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
-begin
-  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
-  { obtain ⟨r, hr⟩ := this,
-    simp [hr, T.re_apply_inner_self_apply] },
-  rw ← eq_conj_iff_real,
-  exact hT.conj_inner_sym x x
-end
-
-/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
-self-adjoint. -/
-lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
-  {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  is_self_adjoint (T.restrict hV) :=
-λ v w, hT v w
-
-section complex
-
-variables {V : Type*}
-  [inner_product_space ℂ V]
-
-/-- A linear operator on a complex inner product space is self-adjoint precisely when
-`⟪T v, v⟫_ℂ` is real for all v.-/
-lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
-  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
-begin
-  split,
-  { intros hT v,
-    apply is_self_adjoint.conj_inner_sym hT },
-  { intros h x y,
-    nth_rewrite 1 ← inner_conj_sym,
-    nth_rewrite 1 inner_map_polarization,
-    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
-    simp only [← star_ring_end_apply],
-    rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
-    simp only [complex.conj_I],
-    rw inner_map_polarization',
-    norm_num,
-    ring },
-end
-
-end complex
-
-end inner_product_space

@@ -470,6 +470,7 @@ open compute_degree polynomial
 
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
+
 If the given degree `d` is smaller than the one that the tactic computes,
 then the tactic suggests the degree that it computed. -/
 meta def compute_degree_le : tactic unit :=

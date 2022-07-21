@@ -402,7 +402,7 @@ theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
-induction_on o $ λ α r _, (rel_embedding.of_is_empty _ _).ordinal_type_le
+induction_on o $ λ α r _, by exactI (rel_embedding.of_is_empty _ r).ordinal_type_le
 
 instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
 
@@ -427,6 +427,8 @@ lemma ne_zero_of_out_nonempty (o : ordinal) [h : nonempty o.out.α] : o ≠ 0 :=
 out_nonempty_iff_ne_zero.1 h
 
 instance : has_one ordinal := ⟨type $ @empty_relation punit⟩
+
+@[simp] theorem zero_lt_one : (0 : ordinal) < 1 := principal_seg.pempty_to_punit.ordinal_type_lt
 
 theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
 (rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq

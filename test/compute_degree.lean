@@ -5,6 +5,38 @@ open_locale polynomial
 universe u
 --set_option pp.all true
 --instance {F : Type*} [comm_semiring F] : has_add (polynomial F) := by refine polynomial.has_add
+
+section one_term_polynomials
+variables {F : Type*} [comm_semiring F] [nontrivial F] (n : ℕ) (a : F)
+
+example : nat_degree (X ^ n : F[X]) = n :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_X_pow _",
+     exact polynomial.nat_degree_X_pow _ }
+
+example : nat_degree (C a : F[X]) = 0 :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_C _",
+     exact polynomial.nat_degree_C _ }
+
+example : nat_degree (X : F[X]) = 1 :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_X",
+     exact polynomial.nat_degree_X }
+
+example (a0 : a ≠ 0) : nat_degree (C a * X ^ n : F[X]) = n :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
+     exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_› }
+
+example (a0 : a ≠ 0) : nat_degree (C a * X : F[X]) = 1 :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
+     exact polynomial.nat_degree_C_mul_X _ ‹_› }
+
+end one_term_polynomials
+
+#exit
 example {F : Type*} [comm_semiring F] [nontrivial F] : nat_degree (1 + X : F[X]) = 1 :=
 by compute_degree
 

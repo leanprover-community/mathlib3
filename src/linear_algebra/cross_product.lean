@@ -83,17 +83,17 @@ by simp [cross_apply, mul_comm]
 
 /-- The cross product of two vectors is perpendicular to the first vector. -/
 @[simp] lemma dot_self_cross (v w : fin 3 → R) :
-  v ⬝ᵥ (v ×₃ w) = 0 :=
+  v ⬝ (v ×₃ w) = 0 :=
 by simp [cross_apply, vec3_dot_product, mul_sub, mul_assoc, mul_left_comm]
 
 /-- The cross product of two vectors is perpendicular to the second vector. -/
 @[simp] lemma dot_cross_self (v w : fin 3 → R) :
-  w ⬝ᵥ (v ×₃ w) = 0 :=
+  w ⬝ (v ×₃ w) = 0 :=
 by rw [← cross_anticomm, matrix.dot_product_neg, dot_self_cross, neg_zero]
 
 /-- Cyclic permutations preserve the triple product. See also `triple_product_eq_det`. -/
 lemma triple_product_permutation (u v w : fin 3 → R) :
-  u ⬝ᵥ (v ×₃ w) = v ⬝ᵥ (w ×₃ u) :=
+  u ⬝ (v ×₃ w) = v ⬝ (w ×₃ u) :=
 begin
   simp only [cross_apply, vec3_dot_product,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_append, matrix.cons_val_one,
@@ -104,7 +104,7 @@ end
 /-- The triple product of `u`, `v`, and `w` is equal to the determinant of the matrix
     with those vectors as its rows. -/
 theorem triple_product_eq_det (u v w : fin 3 → R) :
-  u ⬝ᵥ (v ×₃ w) = matrix.det ![u, v, w] :=
+  u ⬝ (v ×₃ w) = matrix.det ![u, v, w] :=
 begin
   simp only [vec3_dot_product, cross_apply, matrix.det_fin_three,
     matrix.head_cons, matrix.cons_vec_bit0_eq_alt0, matrix.empty_vec_alt0, matrix.cons_vec_alt0,
@@ -115,7 +115,7 @@ end
 
 /-- The scalar quadruple product identity, related to the Binet-Cauchy identity. -/
 theorem cross_dot_cross (u v w x : fin 3 → R) :
-  (u ×₃ v) ⬝ᵥ (w ×₃ x) = (u ⬝ᵥ w) * (v ⬝ᵥ x) - (u ⬝ᵥ x) * (v ⬝ᵥ w) :=
+  (u ×₃ v) ⬝ (w ×₃ x) = (u ⬝ w) * (v ⬝ x) - (u ⬝ x) * (v ⬝ w) :=
 begin
   simp only [vec3_dot_product, cross_apply, cons_append, cons_vec_bit0_eq_alt0,
     cons_val_one, cons_vec_alt0, linear_map.mk₂_apply, cons_val_zero, head_cons, empty_append],

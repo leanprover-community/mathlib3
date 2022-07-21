@@ -56,7 +56,7 @@ variables {R}
 
 /-- It is useful to refer to ideal membership sometimes
  and the annihilation condition other times. -/
-lemma mem_ann_ideal_iff_aeval_eq_zero (a : A) (p : R[X]) :
+lemma mem_ann_ideal_iff_aeval_eq_zero {a : A} {p : R[X]} :
   p ∈ ann_ideal R a ↔ aeval a p = 0 :=
 iff.rfl
 
@@ -69,12 +69,14 @@ variable (𝕜)
 
 open submodule
 
-/-- Since `𝕜[X]` is a principal ideal domain there is a polynomial `g` such that
+/-- `ann_ideal_generator 𝕜 a` is the monic generator of `ann_ideal 𝕜 a` if one exists, otherwise `0`. 
+
+Since `𝕜[X]` is a principal ideal domain there is a polynomial `g` such that
  `span 𝕜 {g} = ann_ideal a`. This picks some generator.
  We prefer the monic generator of the ideal. -/
 noncomputable def ann_ideal_generator (a : A) : 𝕜[X] :=
 let g := is_principal.generator $ ann_ideal 𝕜 a
-  in (C g.leading_coeff⁻¹) * g
+  in g * (C g.leading_coeff⁻¹)
 
 section
 
@@ -100,58 +102,34 @@ begin
     apply (mul_ne_zero_iff.mp h).2, }
 end
 
-/-- The annihilating ideal generator is a member of the annihilating ideal,
-  following submodule.generator_mem -/
+/-- The annihilating ideal generator is a member of the annihilating ideal. -/
 lemma ann_ideal_generator_mem (a : A) : ann_ideal_generator 𝕜 a ∈ ann_ideal 𝕜 a :=
-let I := ann_ideal 𝕜 a,
-    g := submodule.is_principal.generator I in
-  I.mul_mem_left (C g.leading_coeff⁻¹) (submodule.is_principal.generator_mem I)
+ideal.mul_mem_right _ _ (submodule.is_principal.generator_mem _)
 
-/-- sourced from submodule.mem_iff_eq_smul_generator -/
 lemma mem_iff_eq_smul_ann_ideal_generator {p : 𝕜[X]} (a : A) :
   p ∈ ann_ideal 𝕜 a ↔ ∃ s : 𝕜[X], p = s • ann_ideal_generator 𝕜 a :=
 by simp_rw [@eq_comm _ p, ← mem_span_singleton, ← span_singleton_ann_ideal_generator 𝕜 a,
  ideal.span]
 
-/-- sourced from submodule.eq_bot_iff_generator_eq_zero -/
-lemma eq_bot_iff_ann_ideal_generator_eq_zero (a : A) :
-  ann_ideal 𝕜 a = (⊥ : ideal 𝕜[X]) ↔ ann_ideal_generator 𝕜 a = (0 : 𝕜[X]) :=
-begin
-  rw ← span_singleton_ann_ideal_generator,
-  apply @span_singleton_eq_bot 𝕜[X] 𝕜[X] _ _ _ (ann_ideal_generator 𝕜 a),
-end
-
 /-- The generator we chose for the annihilating ideal is monic when the ideal is non-zero. -/
 lemma monic_ann_ideal_generator (a : A) (hg : ann_ideal_generator 𝕜 a ≠ 0) :
   monic (ann_ideal_generator 𝕜 a) :=
-begin
-  dunfold ann_ideal_generator,
-  dsimp *,
-  rw mul_comm,
-  have hg' : is_principal.generator (ann_ideal 𝕜 a) ≠ 0,
-  { unfold ann_ideal_generator at hg, simp at hg, exact hg, },
-  apply polynomial.monic_mul_leading_coeff_inv,
-  apply hg',
-end
+monic_mul_leading_coeff_inv (mul_ne_zero_iff.mp hg).1
 
-/-- We are working toward showing the generator of the annihilating ideal
+/-! We are working toward showing the generator of the annihilating ideal
 in the field case is the minimal polynomial. We are going to use a uniqueness
-theorem of the minimal polynomial. This is the first condition: it must annihilate
-the original element `a : A`. -/
+theorem of the minimal polynomial.
+
+This is the first condition: it must annihilate the original element `a : A`. -/
 lemma ann_ideal_generator_aeval_eq_zero (a : A) :
   aeval a (ann_ideal_generator 𝕜 a) = 0 :=
-begin
-  have hg : aeval a (is_principal.generator (ann_ideal 𝕜 a)) = 0,
-  { have gen_member := submodule.is_principal.generator_mem (ann_ideal 𝕜 a),
-    exact (ring_hom.mem_ker (polynomial.aeval a).to_ring_hom).1 gen_member, },
-  rw ann_ideal_generator, simp *,
-end
+mem_ann_ideal_iff_aeval_eq_zero.mp (ann_ideal_generator_mem 𝕜 a)
 
-/-- sourced from submodule.is_principal.mem_iff_generator_dvd -/
-lemma mem_iff_ann_ideal_generator_dvd (a : A) {x : 𝕜[X]} :
-  x ∈ ann_ideal 𝕜 a ↔ ann_ideal_generator 𝕜 a ∣ x :=
-(mem_iff_eq_smul_ann_ideal_generator 𝕜 a).trans
- (exists_congr (λ a, by simp only [mul_comm, smul_eq_mul]))
+variables {𝕜}
+
+lemma mem_iff_ann_ideal_generator_dvd {p : 𝕜[X]} {a : A} :
+  p ∈ ann_ideal 𝕜 a ↔ ann_ideal_generator 𝕜 a ∣ p :=
+by rw [← ideal.mem_span_singleton, span_singleton_ann_ideal_generator]
 
 /-- The generator of the annihilating ideal has minimal degree among
  the non-zero members of the annihilating ideal -/

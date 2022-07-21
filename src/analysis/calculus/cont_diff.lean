@@ -2473,8 +2473,8 @@ by simp [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
 
 section mul_prod
 
-variables {𝔸 ι 𝕜' : Type*} [normed_ring 𝔸] [normed_algebra 𝕜 𝔸] [normed_field 𝕜']
-  [normed_algebra 𝕜 𝕜']
+variables {𝔸 𝔸' ι 𝕜' : Type*} [normed_ring 𝔸] [normed_algebra 𝕜 𝔸]
+  [normed_comm_ring 𝔸'] [normed_algebra 𝕜 𝔸'] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /- The product is smooth. -/
 lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝔸 × 𝔸, p.1 * p.2) :=
@@ -2502,37 +2502,38 @@ lemma cont_diff.mul {f g : E → 𝔸} (hf : cont_diff 𝕜 n f) (hg : cont_diff
   cont_diff 𝕜 n (λ x, f x * g x) :=
 cont_diff_mul.comp (hf.prod hg)
 
-lemma cont_diff_within_at_prod' {t : finset ι} {f : ι → E → 𝔸}
-  (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n f s x) :
+lemma cont_diff_within_at_prod' {t : finset ι} {f : ι → E → 𝔸'}
+  (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n (f i) s x) :
   cont_diff_within_at 𝕜 n (∏ i in t, f i) s x :=
-finset.prod_induction
+finset.prod_induction f (λ f, cont_diff_within_at 𝕜 n f s x) (λ _ _, cont_diff_within_at.mul)
+  (@cont_diff_within_at_const _ _ _ _ _ _ _ _ _ _ _ 1) h
 
-lemma cont_diff_within_at_prod {t : finset ι} {f : ι → E → 𝔸}
-  (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n f s x) :
+lemma cont_diff_within_at_prod {t : finset ι} {f : ι → E → 𝔸'}
+  (h : ∀ i ∈ t, cont_diff_within_at 𝕜 n (f i) s x) :
   cont_diff_within_at 𝕜 n (λ y, ∏ i in t, f i y) s x :=
-by simpa only [← prod_finset_apply] using cont_diff_within_at_prod' h
+by simpa only [← finset.prod_apply] using cont_diff_within_at_prod' h
 
-lemma cont_diff_at_prod' {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_at 𝕜 n f s x) :
-  cont_diff_at 𝕜 n (∏ i in t, f i) s x :=
+lemma cont_diff_at_prod' {t : finset ι} {f : ι → E → 𝔸'} (h : ∀ i ∈ t, cont_diff_at 𝕜 n (f i) x) :
+  cont_diff_at 𝕜 n (∏ i in t, f i) x :=
 cont_diff_within_at_prod' h
 
-lemma cont_diff_at_prod {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_at 𝕜 n f s x) :
-  cont_diff_at 𝕜 n (λ y, ∏ i in t, f i y) s x :=
+lemma cont_diff_at_prod {t : finset ι} {f : ι → E → 𝔸'} (h : ∀ i ∈ t, cont_diff_at 𝕜 n (f i) x) :
+  cont_diff_at 𝕜 n (λ y, ∏ i in t, f i y) x :=
 cont_diff_within_at_prod h
 
-lemma cont_diff_on_prod' {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_on 𝕜 n f s) :
+lemma cont_diff_on_prod' {t : finset ι} {f : ι → E → 𝔸'} (h : ∀ i ∈ t, cont_diff_on 𝕜 n (f i) s) :
   cont_diff_on 𝕜 n (∏ i in t, f i) s :=
 λ x hx, cont_diff_within_at_prod' (λ i hi, h i hi x hx)
 
-lemma cont_diff_on_prod {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff_on 𝕜 n f s) :
+lemma cont_diff_on_prod {t : finset ι} {f : ι → E → 𝔸'} (h : ∀ i ∈ t, cont_diff_on 𝕜 n (f i) s) :
   cont_diff_on 𝕜 n (λ y, ∏ i in t, f i y) s :=
 λ x hx, cont_diff_within_at_prod (λ i hi, h i hi x hx)
 
-lemma cont_diff_prod' {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff 𝕜 n f) :
+lemma cont_diff_prod' {t : finset ι} {f : ι → E → 𝔸'} (h : ∀ i ∈ t, cont_diff 𝕜 n (f i)) :
   cont_diff 𝕜 n (∏ i in t, f i) :=
 cont_diff_iff_cont_diff_at.mpr $ λ x, cont_diff_at_prod' $ λ i hi, (h i hi).cont_diff_at
 
-lemma cont_diff_prod {t : finset ι} {f : ι → E → 𝔸} (h : ∀ i ∈ t, cont_diff 𝕜 n f) :
+lemma cont_diff_prod {t : finset ι} {f : ι → E → 𝔸'} (h : ∀ i ∈ t, cont_diff 𝕜 n (f i)) :
   cont_diff 𝕜 n (λ y, ∏ i in t, f i y) :=
 cont_diff_iff_cont_diff_at.mpr $ λ x, cont_diff_at_prod $ λ i hi, (h i hi).cont_diff_at
 
@@ -2543,7 +2544,7 @@ lemma cont_diff.pow {f : E → 𝔸} (hf : cont_diff 𝕜 n f) :
 
 lemma cont_diff_within_at.pow {f : E → 𝔸} (hf : cont_diff_within_at 𝕜 n f s x) (m : ℕ) :
   cont_diff_within_at 𝕜 n (λ y, f y ^ m) s x :=
-(cont_diff_id.pow m).comp_cont_diff_within_at x hf
+(cont_diff_id.pow m).comp_cont_diff_within_at hf
 
 lemma cont_diff_at.pow {f : E → 𝔸} (hf : cont_diff_at 𝕜 n f x) (m : ℕ) :
   cont_diff_at 𝕜 n (λ y, f y ^ m) x :=

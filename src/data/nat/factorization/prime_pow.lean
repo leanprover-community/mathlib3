@@ -60,6 +60,11 @@ lemma is_prime_pow_iff_card_support_factorization_eq_one {n : ℕ} :
 by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_one', exists_prop,
   pos_iff_ne_zero]
 
+-- TODO: PR this in data/nat/basic
+lemma eq_of_dvd_div_eq_one {a b : ℕ} (h1 : b ∣ a) (h2 : a / b = 1) : a = b :=
+by rw [(nat.mul_div_cancel' h1).symm, h2, mul_one]
+
+
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
 dividing it. -/
 lemma is_prime_pow_iff_unique_prime_dvd {n : ℕ} :

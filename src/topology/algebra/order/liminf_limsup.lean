@@ -190,35 +190,6 @@ section monotone
 
 open set
 
-lemma _root_.filter.limsup_eq_Inf_Sup
-  {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
-  F.limsup a = Inf ((λ I, Sup (a '' I)) '' F.sets) :=
-begin
-  refine le_antisymm _ _,
-  { rw limsup_eq,
-    apply Inf_le_Inf,
-    intros x hx,
-    rcases (mem_image _ F.sets x).mp hx with ⟨I, ⟨I_mem_F, hI⟩⟩,
-    filter_upwards [I_mem_F] with i hi,
-    rw ← hI,
-    exact le_Sup (mem_image_of_mem _ hi), },
-  { rw limsup_eq,
-    apply le_Inf_iff.mpr,
-    intros b hb,
-    simp only [mem_set_of_eq, filter.eventually] at hb,
-    apply Inf_le_of_le (mem_image_of_mem _ (filter.mem_sets.mpr hb)),
-    apply Sup_le,
-    intros x hx,
-    simp only [mem_image, mem_set_of_eq] at hx,
-    rcases hx with ⟨k, ak_le_b, ak_eq_x⟩,
-    rwa [ak_eq_x] at ak_le_b, },
-end
-
-lemma _root_.filter.liminf_eq_Sup_Inf
-  {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
-  F.liminf a = Sup ((λ I, Inf (a '' I)) '' F.sets) :=
-@filter.limsup_eq_Inf_Sup ι (order_dual R) _ _ a
-
 lemma antitone.liminf_comp_eq_apply_limsup_of_continuous
   {ι R : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]

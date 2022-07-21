@@ -465,6 +465,33 @@ theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f :
   (h : f.has_basis p s) : f.liminf u = ⨆ i (hi : p i), ⨅ a ∈ s i, u a :=
 @has_basis.limsup_eq_infi_supr αᵒᵈ _ _ _ _ _ _ _ h
 
+lemma limsup_eq_Inf_Sup {ι R : Type*} (f : filter ι) [complete_lattice R] (a : ι → R) :
+  f.limsup a = Inf ((λ I, Sup (a '' I)) '' f.sets) :=
+begin
+  refine le_antisymm _ _,
+  { rw limsup_eq,
+    apply Inf_le_Inf,
+    intros x hx,
+    rcases (mem_image _ f.sets x).mp hx with ⟨I, ⟨I_mem_f, hI⟩⟩,
+    filter_upwards [I_mem_f] with i hi,
+    rw ← hI,
+    exact le_Sup (mem_image_of_mem _ hi), },
+  { rw limsup_eq,
+    apply le_Inf_iff.mpr,
+    intros b hb,
+    simp only [mem_set_of_eq, filter.eventually] at hb,
+    apply Inf_le_of_le (mem_image_of_mem _ (filter.mem_sets.mpr hb)),
+    apply Sup_le,
+    intros x hx,
+    simp only [mem_image, mem_set_of_eq] at hx,
+    rcases hx with ⟨k, ak_le_b, ak_eq_x⟩,
+    rwa [ak_eq_x] at ak_le_b, },
+end
+
+lemma liminf_eq_Sup_Inf {ι R : Type*} (f : filter ι) [complete_lattice R] (a : ι → R) :
+  f.liminf a = Sup ((λ I, Inf (a '' I)) '' f.sets) :=
+@filter.limsup_eq_Inf_Sup ι (order_dual R) _ _ a
+
 @[simp] lemma liminf_nat_add (f : ℕ → α) (k : ℕ) :
   at_top.liminf (λ i, f (i + k)) = at_top.liminf f :=
 by { simp_rw liminf_eq_supr_infi_of_nat, exact supr_infi_ge_nat_add f k }

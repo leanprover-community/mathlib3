@@ -780,6 +780,14 @@ lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
 
+lemma incidence_finset_eq_filter [decidable_eq V] [fintype G.edge_set] :
+  G.incidence_finset v = G.edge_finset.filter (has_mem.mem v) :=
+begin
+  ext e,
+  refine sym2.ind (λ x y, _) e,
+  simp [mk_mem_incidence_set_iff],
+end
+
 end finite_at
 
 section locally_finite

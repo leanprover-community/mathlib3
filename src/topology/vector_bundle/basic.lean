@@ -56,7 +56,7 @@ variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 /-- A pretrivialization for a (yet to be defined) topological vector bundle `total_space E` is a
 local equiv between sets of the form `proj ⁻¹' base_set` and `base_set × F` which respects the
 first coordinate, and is linear in each fiber. -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_inhabited_instance]
 structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
   topological_fiber_bundle.pretrivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -234,7 +234,7 @@ A structure extending local homeomorphisms, defining a local trivialization of t
 and `B × F` defined between two sets of the form `proj ⁻¹' base_set` and `base_set × F`,
 acting trivially on the first coordinate and linear in the fibers.
 -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_inhabited_instance]
 structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
   topological_fiber_bundle.trivialization F (@total_space.proj B E) :=
 (linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
@@ -260,6 +260,11 @@ protected lemma linear (hb : b ∈ e.base_set) :
 e.linear' b hb
 
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
+
+lemma to_pretrivialization_injective :
+  function.injective (λ e : trivialization R F E, e.to_pretrivialization) :=
+by { intros e e', rw [pretrivialization.ext_iff, trivialization.ext_iff,
+  ← topological_fiber_bundle.trivialization.to_pretrivialization_injective.eq_iff], exact id }
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = x.proj := e.proj_to_fun x ex
@@ -518,7 +523,8 @@ namespace trivialization
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
-{ cont := begin
+{ to_fun := e.linear_map_at b, -- given explicitly to help `simps`
+  cont := begin
     dsimp,
     rw [e.coe_linear_map_at b],
     refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
@@ -530,7 +536,8 @@ def continuous_linear_map_at (e : trivialization R F E) (b : B) :
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/
 @[simps apply {fully_applied := ff}]
 def symmL (e : trivialization R F E) (b : B) : F →L[R] E b :=
-{ cont := begin
+{ to_fun := e.symm b, -- given explicitly to help `simps`
+  cont := begin
     by_cases hb : b ∈ e.base_set,
     { rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
       exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
@@ -554,8 +561,8 @@ is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply {fully_applied := ff}]
 def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk b y)).2,
-  inv_fun := e.symm b,
+{ to_fun := λ y, (e (total_space_mk b y)).2, -- given explicitly to help `simps`
+  inv_fun := e.symm b, -- given explicitly to help `simps`
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := (e.symmL b).continuous,

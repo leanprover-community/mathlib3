@@ -30,7 +30,8 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
   a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_group` structure.
   Under appropriate conditions, this is also equipped with the instances `lp.normed_space`,
-  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`, `lp.infty_normed_algebra`.
+  `lp.complete_space`. For `p=∞`, there is also `lp.infty_normed_ring`,
+  `lp.infty_normed_algebra`, `lp.infty_star_ring` and `lp.infty_cstar_ring`.
 
 ## Main results
 
@@ -723,12 +724,12 @@ section star_ring
 
 variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
 
-instance : star_ring (lp B ∞) :=
+instance infty_star_ring : star_ring (lp B ∞) :=
 { star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,
   .. (show star_add_monoid (lp B ∞),
       by { letI : Π i, star_add_monoid (B i) := λ i, infer_instance, apply_instance }) }
 
-instance [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
+instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
 { norm_star_mul_self := λ f,
   begin
     apply le_antisymm,

@@ -475,6 +475,14 @@ is_well_order.preimage r equiv.ulift
 noncomputable def of_surjective (f : r ↪r s) (H : surjective f) : r ≃r s :=
 ⟨equiv.of_bijective f ⟨f.injective, H⟩, λ a b, f.map_rel_iff⟩
 
+/-- A sum with a relation on an empty type is isomorphic to the original. -/
+def sum_lex_empty (r s) [is_empty β] : sum.lex r s ≃r r :=
+⟨equiv.sum_empty α β, by { simp only [sum.forall, is_empty.forall_iff, and_true], intro a, simp }⟩
+
+/-- A sum with a relation on an empty type is isomorphic to the original. -/
+def empty_sum_lex (r s) [is_empty α] : sum.lex r s ≃r s :=
+⟨equiv.empty_sum α β, by { simp only [sum.forall, is_empty.forall_iff, true_and], intro a, simp }⟩
+
 /--
 Given relation isomorphisms `r₁ ≃r s₁` and `r₂ ≃r s₂`, construct a relation isomorphism for the
 lexicographic orders on the sum.
@@ -486,6 +494,10 @@ def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
  by cases e₁ with f hf; cases e₂ with g hg;
     cases a; cases b; simp [hf, hg]⟩
 
+/-- The lexicographic sum is associative up to relation isomorphism. -/
+def sum_lex_assoc (r s t) : sum.lex (sum.lex r s) t ≃r sum.lex r (sum.lex s t) :=
+⟨equiv.sum_assoc α β γ, by rintros (⟨a|a⟩|a) (⟨b|b⟩|b); simp⟩
+
 /--
 Given relation isomorphisms `r₁ ≃r s₁` and `r₂ ≃r s₂`, construct a relation isomorphism for the
 lexicographic orders on the product.
@@ -495,6 +507,13 @@ def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   prod.lex r₁ r₂ ≃r prod.lex s₁ s₂ :=
 ⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,
   λ a b, by simp [prod.lex_def, e₁.map_rel_iff, e₂.map_rel_iff]⟩
+
+/-- The lexicographic sum is associative up to relation isomorphism. -/
+def prod_lex_assoc (r s t) : prod.lex (prod.lex r s) t ≃r prod.lex r (prod.lex s t) :=
+⟨equiv.prod_assoc α β γ, begin
+  rintros ⟨⟨a₁, b₁⟩, c₁⟩ ⟨⟨a₂, b₂⟩, c₂⟩,
+  simp [prod.lex_def, and_or_distrib_left, or_assoc, and_assoc]
+end⟩
 
 instance : group (r ≃r r) :=
 { one := rel_iso.refl r,

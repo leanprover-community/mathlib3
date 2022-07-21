@@ -602,16 +602,10 @@ instance : add_monoid_with_one ordinal.{u} :=
 { add       := (+),
   zero      := 0,
   one       := 1,
-  zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
-    ⟨⟨(empty_sum pempty α).symm, λ a b, sum.lex_inr_inr⟩⟩,
-  add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
-    ⟨⟨(sum_empty α pempty).symm, λ a b, sum.lex_inl_inl⟩⟩,
+  zero_add  := λ o, induction_on o $ λ α r _, (empty_sum_lex r _).ordinal_type_eq,
+  add_zero  := λ o, induction_on o $ λ α r _, (sum_lex_empty r _).ordinal_type_eq,
   add_assoc := λ o₁ o₂ o₃, quotient.induction_on₃ o₁ o₂ o₃ $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
-    ⟨⟨sum_assoc _ _ _, λ a b,
-    begin rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b;
-      simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
-        sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, (rel_iso.sum_lex_assoc r s t).ordinal_type_eq }
 
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl

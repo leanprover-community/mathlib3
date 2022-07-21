@@ -576,18 +576,12 @@ by rw [← ordinal.add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
 /-- The multiplication of ordinals `o₁` and `o₂` is the (well founded) lexicographic order on
 `o₂ × o₁`. -/
 instance : monoid ordinal.{u} :=
-{ mul := λ a b, quotient.lift_on₂ a b
-      (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨β × α, prod.lex s r, by exactI prod.lex.is_well_order⟩⟧
-        : Well_order → Well_order → ordinal) $
+{ mul := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, by exactI type (prod.lex s r)) $
     λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-    quot.sound ⟨rel_iso.prod_lex_congr g f⟩,
+      ⟨rel_iso.prod_lex_congr g f⟩.ordinal_type_eq,
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
-    eq.symm $ quotient.sound ⟨⟨prod_assoc _ _ _, λ a b, begin
-      rcases a with ⟨⟨a₁, a₂⟩, a₃⟩,
-      rcases b with ⟨⟨b₁, b₂⟩, b₃⟩,
-      simp [prod.lex_def, and_or_distrib_left, or_assoc, and_assoc]
-    end⟩⟩,
+    (rel_iso.prod_lex_assoc r s t).ordinal_type_eq,
   mul_one := λ a, induction_on a $ λ α r _, quotient.sound
     ⟨⟨punit_prod _, λ a b, by rcases a with ⟨⟨⟨⟩⟩, a⟩; rcases b with ⟨⟨⟨⟩⟩, b⟩;
     simp only [prod.lex_def, empty_relation, false_or];

@@ -64,6 +64,17 @@ by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_on
 lemma eq_of_dvd_div_eq_one {a b : ℕ} (h1 : b ∣ a) (h2 : a / b = 1) : a = b :=
 by rw [(nat.mul_div_cancel' h1).symm, h2, mul_one]
 
+lemma is_prime_pow_of_p_odd_part_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime) :
+  n.p_odd_part p = 1 → is_prime_pow n :=
+begin
+  rw ←nat.p_odd_part_def',
+  rw is_prime_pow_nat_iff,
+  intro H,
+  rw [eq_of_dvd_div_eq_one (nat.pow_factorization_dvd n p) H] at |- hn,
+  refine ⟨p, n.factorization p, pp, _, (by simp)⟩,
+  contrapose! hn,
+  simp [le_zero_iff.1 hn],
+end
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
 dividing it. -/

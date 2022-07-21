@@ -62,19 +62,18 @@ variable {α}
 instance noetherian_space.set [h : noetherian_space α] (s : set α) : noetherian_space s :=
 begin
   rw noetherian_space_iff,
-  apply well_founded.well_founded_iff_has_max'.2,
-  intros p hp,
+  refine well_founded.well_founded_iff_has_min.2 (λ p hp, _),
   obtain ⟨⟨_, u, hu, rfl⟩, hu'⟩ := hp,
-  obtain ⟨U, hU, hU'⟩ := well_founded.well_founded_iff_has_max'.1 h.1
+  obtain ⟨U, hU, hU'⟩ := well_founded.has_min h.1
     (((opens.comap ⟨_, continuous_subtype_coe⟩)) ⁻¹' p) ⟨⟨u, hu⟩, hu'⟩,
   refine ⟨opens.comap ⟨_, continuous_subtype_coe⟩ U, hU, _⟩,
   rintros ⟨_, x, hx, rfl⟩ hx' hx'',
-  refine le_antisymm (set.preimage_mono (_ : (⟨x, hx⟩ : opens α) ≤ U)) hx'',
-  refine sup_eq_right.mp (hU' (⟨x, hx⟩ ⊔ U) _ le_sup_right),
+  refine not_le_of_lt hx'' (set.preimage_mono (_ : (⟨x, hx⟩ : opens α) ≤ U)),
+  refine sup_eq_right.mp (le_sup_right.eq_of_not_gt (hU' (⟨x, hx⟩ ⊔ U) _ )),
   dsimp [set.preimage],
   rw map_sup,
   convert hx',
-  exact sup_eq_left.mpr hx''
+  exact sup_eq_left.mpr (le_of_lt hx'')
 end
 
 variable (α)

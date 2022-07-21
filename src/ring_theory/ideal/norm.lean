@@ -274,6 +274,16 @@ lemma ideal.self_basis_def (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   ∀ i, (ideal.self_basis b I hI i : S) = ideal.smith_coeffs b I hI i • ideal.ring_basis b I hI i :=
 (ideal.exists_smith_normal_form b I hI).some_spec.some_spec.some_spec
 
+@[simp]
+lemma ideal.smith_coeffs_ne_zero (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) (i) :
+  ideal.smith_coeffs b I hI i ≠ 0 :=
+begin
+  intro hi,
+  apply basis.ne_zero (ideal.self_basis b I hI) i,
+  refine subtype.coe_injective _,
+  simp [hi]
+end
+
 end pid
 
 open_locale big_operators
@@ -434,12 +444,11 @@ linear_map.ext (λ x, by simp)
     refine congr_arg _ (linear_map.pi_ext (λ i x, quotient.induction_on' x (λ x', funext $ λ j, _))),
     rw [linear_map.comp_apply, submodule.pi_quotient_lift_single, submodule.quotient.mk'_eq_mk,
         submodule.mapq_apply, submodule.quotient_pi_lift_mk, linear_map.id_apply],
-    by_cases hij : i = j; simp [linear_map.coe_single, pi.single_apply, ← hij];
-      sorry -- Why doesn't Lean see that this is the same?!
+    by_cases hij : i = j; simp only [submodule.mkq_apply, linear_map.coe_single],
+    { subst hij, simp only [pi.single_eq_same] },
+    { simp only [pi.single_eq_of_ne (ne.symm hij), submodule.quotient.mk_zero] },
   end,
   .. submodule.quotient_pi_lift p (λ i, (p i).mkq) (λ i, by simp) }
-
-.
 
 variables {M : Type*} [add_comm_group M] [module R M]
 
@@ -488,8 +497,6 @@ fintype.of_equiv punit $ equiv_of_subsingleton_of_subsingleton 0 0
 calc card_norm ⊤ = fintype.card (M ⧸ ⊤) : card_norm_apply _
 ... = fintype.card punit : fintype.card_eq.mpr ⟨equiv_of_subsingleton_of_subsingleton 0 0⟩
 ... = 1 : fintype.card_punit
-
-.
 
 noncomputable instance [fintype M] (S : submodule R M) [decidable_pred (∈ S)] :
   fintype (M ⧸ S) :=
@@ -603,13 +610,10 @@ noncomputable def ideal.fintype_quotient_of_free_of_ne_bot [decidable_eq ι]
 begin
   let a := I.smith_coeffs b hI,
   let e := I.quotient_equiv_pi_zmod b hI,
-  haveI : ∀ i, fact (0 < (a i).nat_abs) := sorry,
+  haveI : ∀ i, fact (0 < (a i).nat_abs) := λ i,
+    ⟨int.nat_abs_pos_of_ne_zero (ideal.smith_coeffs_ne_zero b I hI i)⟩,
   exact fintype.of_equiv (Π i, zmod (a i).nat_abs) e.symm,
 end
-
-.
-
-#print ideal.quotient
 
 variables [infinite S] -- TODO: should be provable from [integral_domain S] and `basis ι ℤ S`
 
@@ -663,20 +667,32 @@ begin
 
   -- Now we map everything through the linear equiv `S ≃ₗ (ι → ℤ)`,
   -- which maps `(S ⧸ I)` to `Π i, zmod (a i).nat_abs`.
-  haveI : ∀ i, fact (0 < (a i).nat_abs) := sorry,
+  haveI : ∀ i, fact (0 < (a i).nat_abs) := λ i,
+    ⟨int.nat_abs_pos_of_ne_zero (ideal.smith_coeffs_ne_zero b I hI i)⟩,
   simp_rw [fintype.card_eq.mpr ⟨ideal.quotient_equiv_pi_zmod I b hI⟩, fintype.card_pi, zmod.card],
-  sorry -- TODO: `normalize = (↑) ∘ nat_abs`
+  rw nat.cast_prod,
+  refine finset.prod_congr rfl (λ i _, _),
+  rw [int.coe_nat_abs_eq_normalize]
 end
 
 .
 
+lemma inf_eq_mul_of_coprime {I J : ideal S} (coprime : I ⊔ J = ⊤) :
+  I ⊓ J = I * J :=
+begin
+  
+end
+
 /-- Chinese remainder theorem, specialized to two ideals. -/
-def ideal.quotient_mul_equiv_quotient_prod (I J : ideal S) (coprime : I ⊔ J = ⊤) :
+noncomputable def ideal.quotient_mul_equiv_quotient_prod (I J : ideal S) (coprime : I ⊔ J = ⊤) :
   (S ⧸ (I * J)) ≃+* (S ⧸ I) × S ⧸ J :=
 let f : fin 2 → ideal S := ![I, J] in
 have hf : ∀ (i j : fin 2), i ≠ j → f i ⊔ f j = ⊤,
-{ intros i j h, fin_cases i; fin_cases j; sorry },
-sorry
+{ intros i j h,
+  fin_cases i; fin_cases j; try { contradiction }; simpa [f, sup_comm] using coprime },
+ring_equiv.trans (ideal.quotient_equiv _ _ (ring_equiv.refl S)
+  ((inf_eq_mul_of_coprime coprime).trans (ideal.map_id _).symm)) $
+ring_equiv.trans (ideal.quotient_inf_ring_equiv_pi_quotient f hf) _
 
 /-- Multiplicity of the ideal norm, for coprime ideals.
 
@@ -1129,7 +1145,10 @@ theorem card_norm_mul (b : basis ι ℤ S) (I J : ideal S) :
 unique_factorization_monoid.multiplicative_of_coprime card_norm I J
   card_norm_bot
   (λ I J hI, by simp [ideal.is_unit_iff.mp hI, ideal.mul_top])
-  (λ I i hI, have ideal.is_prime I := sorry, by exactI card_norm_pow_of_prime b _ hI.ne_zero)
-  (λ I J hIJ, card_norm_mul_of_coprime b I J sorry)
+  (λ I i hI, have ideal.is_prime I := ideal.is_prime_of_prime hI,
+             by exactI card_norm_pow_of_prime b _ hI.ne_zero)
+  (λ I J hIJ, card_norm_mul_of_coprime b I J (ideal.is_unit_iff.mp (hIJ _
+    (ideal.dvd_iff_le.mpr le_sup_left)
+    (ideal.dvd_iff_le.mpr le_sup_right))))
 
 end int

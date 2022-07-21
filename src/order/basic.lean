@@ -484,6 +484,40 @@ instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_ord
 { le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
 
+instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
+  has_sdiff (Π i, α i) :=
+⟨λ x y i, x i \ y i⟩
+
+lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
+  (x \ y) = λ i, x i \ y i := rfl
+
+@[simp]
+lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
+  (x \ y) i = x i \ y i := rfl
+
+/-- Set / lattice complement -/
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
+
+instance Prop.has_compl : has_compl Prop := ⟨not⟩ 
+
+instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
+  has_compl (Π i, α i) :=
+⟨λ x i, (x i)ᶜ⟩
+
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
+@[simp]
+lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
+  xᶜ i = (x i)ᶜ := rfl
+
 /-! ### `min`/`max` recursors -/
 
 section min_max_rec

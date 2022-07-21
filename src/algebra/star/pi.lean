@@ -58,7 +58,7 @@ lemma update_star [Π i, has_star (f i)] [decidable_eq I]
   function.update (star h) i (star a) = star (function.update h i a) :=
 funext $ λ j, (apply_update (λ i, star) h i a j).symm
 
-lemma star_sum_elim {I J α β : Type*} (x : I → α) (y : J → α) [has_star α] [has_star β] :
+lemma star_sum_elim {I J α β : Type*} (x : I → α) (y : J → α) [has_star α] :
   star (sum.elim x y)  = (sum.elim (star x) (star y)) :=
 by { ext x, cases x; simp }
 

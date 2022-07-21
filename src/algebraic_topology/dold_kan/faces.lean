@@ -12,7 +12,7 @@ import tactic.ring_exp
 
 # Study of face maps for the Dold-Kan correspondence
 
-TODO (@joelriou) continue adding the various files references below
+TODO (@joelriou) continue adding the various files referenced below
 
 In this file, we obtain the technical lemmas that are used in the file
 `projections.lean` in order to get basic properties of the endomorphisms

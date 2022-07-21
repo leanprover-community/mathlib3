@@ -382,16 +382,15 @@ end
 lemma inv_rev_involutive : (inv_rev (inv_rev L₁) = L₁) :=
 begin
  induction L₁,
- { finish, }, -- FIXME
+ { unfold inv_rev, 
+   simp, },
  unfold inv_rev,
- rw list.map_reverse,
- rw list.map_map,
- simp only [list.map, function.comp_app, bnot_bnot, prod.mk.eta, list.reverse_reverse, eq_self_iff_true, true_and],
+ simp only [ list.map_reverse, list.map_map, list.map, function.comp_app,
+   bnot_bnot, prod.mk.eta, list.reverse_reverse, eq_self_iff_true, true_and],
  have h : ((λ (g : α × bool), (g.fst, !g.snd)) ∘ (λ (g : α × bool), (g.fst, !g.snd))) = id,
  { funext, simp, },
-
  rw h,
- simp, 
+ apply list.map_id,
 end
 
 instance : has_inv (free_group α) :=
@@ -912,18 +911,10 @@ begin
   apply reduce.min,
   apply red.inv_rev_iff.1,
   rw inv_rev_involutive,
-
-  have h1 : red w (reduce w) := reduce.red,
-  have h2 : red (inv_rev w) (inv_rev (reduce w)) := red.inv_rev_iff.2 h1,
-  have h3 : red (inv_rev w) (reduce (inv_rev w)) := reduce.red,
-  have h4 : red (inv_rev (inv_rev w)) (inv_rev (reduce (inv_rev w))) := red.inv_rev h3,
-  have h5 : red w (inv_rev (reduce (inv_rev w))), 
-  { 
-    rw inv_rev_involutive at h4,
-    assumption,
-  },
-  
-  exact reduce.red_of_red h5,
+  apply reduce.red_of_red,
+  have : red (inv_rev (inv_rev w)) (inv_rev (reduce (inv_rev w))) := red.inv_rev reduce.red,
+  rw inv_rev_involutive at this,
+  assumption, 
 end
 
 lemma inv_to_word_eq_inv_rev_to_word {x : free_group α} : (x⁻¹).to_word = inv_rev x.to_word := 
@@ -1010,7 +1001,7 @@ begin
   have mwy : (mk wy) = y := to_word.mk,
 
   set wxy := wx ++ wy with hwxy,
-  rw ←list.length_append,
+  rw ← list.length_append,
   
   rw ← mwx,
   rw ← mwy, 

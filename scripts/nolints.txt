@@ -1080,7 +1080,7 @@ apply_nolint cardinal.mk_compl_eq_mk_compl_finite_same fintype_finite
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
--- set_theory/zfc.lean
+-- set_theory/zfc/basic.lean
 apply_nolint Set.map_definable_aux unused_arguments
 
 -- tactic/abel.lean

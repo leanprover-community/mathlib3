@@ -91,13 +91,13 @@ end⟩
 
 @[simp] theorem trans_apply (f : r ≼i s) (g : s ≼i t) (a : α) : (f.trans g) a = g (f a) := rfl
 
-theorem unique_of_extensional [is_extensional β s] :
+theorem unique_of_trichotomous_of_irrefl [is_trichotomous β s] [is_irrefl β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
     congr, exact rel_embedding.coe_fn_injective this },
   funext a, have := h a, induction this with a H IH,
-  refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
+  refine extensional_of_trichotomous_of_irrefl s (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
     rw IH _ h', exact (g : r ↪r s).map_rel_iff.2 h' },
   { rcases g.init_iff.1 h with ⟨y, rfl, h'⟩,
@@ -105,7 +105,7 @@ theorem unique_of_extensional [is_extensional β s] :
 end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
-⟨λ a, @subsingleton.elim _ (unique_of_extensional
+⟨λ a, @subsingleton.elim _ (unique_of_trichotomous_of_irrefl
   (@rel_embedding.well_founded _ _ r s a is_well_order.wf)) a⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
@@ -262,7 +262,7 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
   { show ((f : r ≼i s) : α → β) = g,
     rw @subsingleton.elim _ _ (f : r ≼i s) g, refl },
   have et : f.top = g.top,
-  { refine @is_extensional.ext _ s _ _ _ (λ x, _),
+  { refine extensional_of_trichotomous_of_irrefl s (λ x, _),
     simp only [f.down, g.down, ef, coe_fn_to_rel_embedding] },
   cases f, cases g,
   have := rel_embedding.coe_fn_injective ef; congr'

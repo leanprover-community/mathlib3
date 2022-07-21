@@ -580,6 +580,6 @@ add_tactic_doc
 { name := "polyrith",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.polyrith],
-  tags := ["arithmetic", "automation", "polynomial", "grobner", "groebner"] }
+  tags := ["arithmetic", "finishing", "decision procedure"] }
 
 end polyrith

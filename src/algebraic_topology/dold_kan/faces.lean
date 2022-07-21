@@ -195,7 +195,7 @@ begin
   have eq₁ := δ_comp_σ_of_gt X ineq₁,
   rw fin.cast_succ_mk at eq₁,
   rw eq₁,
-  by_cases ham' : a<m,
+  obtain (ham' | ham'') := ham.lt_or_eq,
   { -- case where `a<m`
     have ineq₂ : (fin.cast_succ (⟨a+1, nat.succ_lt_succ ham'⟩ : fin (m+1)) ≤ j),
     { simpa only [fin.le_iff_coe_le_coe] using nat.succ_le_iff.mpr haj, },

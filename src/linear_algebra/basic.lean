@@ -1524,6 +1524,7 @@ variables (p q : submodule R M)
 
 variables {p q}
 
+@[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : M) = x := rfl
 @[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
 @[simp] lemma of_eq_rfl : of_eq p p rfl = linear_equiv.refl R p := by ext; refl
 

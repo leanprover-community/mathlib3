@@ -53,5 +53,5 @@ structure from the norm properties. Note that in most cases this instance create
 equalities (e.g., it does not take into account a possibly existing `uniform_space instance on `E`).
 -/
 def group_norm.to_normed_mul_group (p : group_norm E) : normed_mul_group E :=
-{ eq_of_dist_eq_zero := λ x y h, div_eq_one.1 $ p.eq_one_of_to_fun h,
+{ eq_of_dist_eq_zero := λ x y h, inv_mul_eq_one.1 $ p.eq_one_of_to_fun h,
   ..p.to_group_seminorm.to_seminormed_mul_group _ }

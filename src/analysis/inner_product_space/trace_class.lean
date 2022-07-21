@@ -392,7 +392,69 @@ begin
     e.nonneg_trace_map_of_is_positive hT htrT, (e.trace_map_eq_is_positive_trace hT htrT).symm⟩⟩
 end
 
+variables (𝕜 E)
+
 noncomputable def traceₗ : (trace_class_submodule 𝕜 E) →ₗ[𝕜] 𝕜 := exists_extend_trace.some
+
+variables {𝕜 E}
+
+lemma is_positive.re_traceₗ {T : E →L[𝕜] E} (hT : T.is_positive) (htrT : hT.trace < ⊤) :
+  (re (traceₗ 𝕜 E ⟨T, hT.is_trace_class htrT⟩) : 𝕜) = traceₗ 𝕜 E ⟨T, hT.is_trace_class htrT⟩ :=
+(exists_extend_trace.some_spec T hT htrT).1.symm
+
+lemma is_positive.traceₗ_nonneg {T : E →L[𝕜] E} (hT : T.is_positive) (htrT : hT.trace < ⊤) :
+  (0 : ℝ) ≤ re (traceₗ 𝕜 E ⟨T, hT.is_trace_class htrT⟩) :=
+(exists_extend_trace.some_spec T hT htrT).2.1
+
+lemma is_positive.traceₗ_eq_positive_trace {T : E →L[𝕜] E} (hT : T.is_positive)
+  (htrT : hT.trace < ⊤) :
+  ennreal.of_real (re $ traceₗ 𝕜 E ⟨T, hT.is_trace_class htrT⟩) = hT.trace :=
+(exists_extend_trace.some_spec T hT htrT).2.2.symm
+
+lemma _root_.ennreal.inj_on_of_real : inj_on ennreal.of_real {x | 0 ≤ x} :=
+begin
+  intros x hx y hy H,
+  rwa [ennreal.of_real_eq_coe_nnreal hx, ennreal.of_real_eq_coe_nnreal hy,
+      ennreal.coe_eq_coe, subtype.mk_eq_mk] at H
+end
+
+lemma traceₗ_spec {tr : (trace_class_submodule 𝕜 E) →ₗ[𝕜] 𝕜}
+  (H : ∀ (T : E →L[𝕜] E) (hT : T.is_positive) (htrT : hT.trace < ⊤),
+    tr ⟨T, hT.is_trace_class htrT⟩ = re (tr ⟨T, hT.is_trace_class htrT⟩) ∧
+    (0 : ℝ) ≤ re (tr ⟨T, hT.is_trace_class htrT⟩) ∧
+    hT.trace = ennreal.of_real (re $ tr ⟨T, hT.is_trace_class htrT⟩)) :
+  tr = traceₗ 𝕜 E :=
+begin
+  rcases tr.exists_extend with ⟨tr', htr⟩,
+  rcases (traceₗ 𝕜 E).exists_extend with ⟨trace', htrace⟩,
+  rw [← htr, ← htrace] at *,
+  ext S,
+  rcases S with ⟨S, hS⟩,
+  change tr' S = trace' S,
+  refine eq_on_span _ hS,
+  rintros T ⟨hTpos, htrT⟩,
+  split_ifs at htrT,
+  rcases H T hTpos htrT with ⟨H₁, H₂, H₃⟩,
+  have H₁' := hTpos.re_traceₗ htrT,
+  have H₂' := hTpos.traceₗ_nonneg htrT,
+  have H₃' := hTpos.traceₗ_eq_positive_trace htrT,
+  rw [← htrace] at H₁' H₂' H₃',
+  rw [linear_map.comp_apply, submodule.subtype_apply, subtype.coe_mk] at H₁ H₂ H₃ H₁' H₂' H₃',
+  rw [H₁, ← H₁', is_R_or_C.of_real_inj, ← ennreal.inj_on_of_real.eq_iff H₂ H₂', ← H₃, H₃']
+end
+
+lemma _root_.hilbert_space.trace_map_eq_traceₗ {ι : Type*} (e : hilbert_basis ι 𝕜 E) :
+  e.trace_map = traceₗ 𝕜 E :=
+traceₗ_spec (λ T hTpos htrT, ⟨(e.re_trace_map_of_is_positive hTpos htrT).symm,
+  e.nonneg_trace_map_of_is_positive hTpos htrT,
+  (e.trace_map_eq_is_positive_trace hTpos htrT).symm⟩)
+
+noncomputable def trace (T : E →L[𝕜] E) : 𝕜 :=
+if hT : T.is_trace_class then traceₗ 𝕜 E ⟨T, hT⟩ else 0
+
+lemma is_trace_class.has_sum_trace_of_hilbert_basis {ι : Type*} (e : hilbert_basis ι 𝕜 E)
+  {T : E →L[𝕜] E} (hT : T.is_trace_class) : has_sum (λ i, ⟪e i, T (e i)⟫) (trace T) :=
+sorry
 
 end trace_class
 

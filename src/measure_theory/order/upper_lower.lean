@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta, Kexing Ying
 -/
 import data.set.intervals.ord_connected
+import measure_theory.covering.differentiation
 import measure_theory.measure.lebesgue
 import order.upper_lower
 
@@ -16,22 +17,6 @@ This file proves that order-connected sets in `ℝⁿ` under the pointwise order
 
 * `is_upper_set.null_frontier`/`is_lower_set.null_frontier`
 -/
-
--- Will come from #14785
-section
-variables {α : Type*} [preorder α] {s : set α}
-
-def upper_closure : set α → upper_set α := sorry
-def lower_closure : set α → lower_set α := sorry
-
-namespace set
-
-lemma ord_connected.upper_closure_inter_lower_closure (h : s.ord_connected) :
-  ↑(upper_closure s) ∩ ↑(lower_closure s) = s := sorry
-
-end set
-
-end
 
 section
 variables {ι α : Type*} [fintype ι] [pseudo_emetric_space α]
@@ -49,9 +34,6 @@ lemma dist_pi_const_le (a b : α) : dist (λ _ : ι, a) (λ _, b) ≤ dist a b :
 
 lemma nndist_pi_const_le (a b : α) : nndist (λ _ : ι, a) (λ _, b) ≤ nndist a b :=
 nndist_pi_le_iff.2 $ λ _, le_rfl
-
-lemma where_is_that {s : set α} {x : α} {ε : ℝ} (hx : x ∈ frontier s) (hε : 0 < ε) :
-  ∃ z ∈ s, dist x z < ε := sorry
 
 end
 
@@ -112,7 +94,7 @@ begin
     refine (add_le_add_left (pi_norm_const_le _) _).trans_eq _,
     simp [real.norm_of_nonneg, hδ.le, zero_le_three],
     ring_nf },
-  obtain ⟨y, hy, hxy⟩ := where_is_that hx (half_pos hδ),
+  obtain ⟨y, hy, hxy⟩ := metric.mem_closure_iff.1 (frontier_subset_closure hx) _ (half_pos hδ),
   refine λ z hz, hs (λ i, _) hy,
   rw [mem_closed_ball, dist_eq_norm'] at hz,
   rw dist_eq_norm at hxy,
@@ -120,7 +102,7 @@ begin
   replace hz := (norm_le_pi_norm _ i).trans hz,
   dsimp at hxy hz,
   rw abs_sub_le_iff at hxy hz,
-  refine (sub_le_iff_le_add.1 hxy.2).trans ((sub_le.1 hz.1).trans_eq' _),
+  refine (sub_le_iff_le_add.1 hxy.2).trans ((_root_.sub_le.1 hz.1).trans_eq' _),
   ring,
 end
 
@@ -132,7 +114,7 @@ begin
     refine (add_le_add_left (pi_norm_const_le _) _).trans_eq _,
     simp [real.norm_of_nonneg, hδ.le, zero_le_three],
     ring_nf },
-  obtain ⟨y, hy, hxy⟩ := where_is_that hx (half_pos hδ),
+  obtain ⟨y, hy, hxy⟩ := metric.mem_closure_iff.1 (frontier_subset_closure hx) _ (half_pos hδ),
   refine λ z hz, hs (λ i, _) hy,
   rw [mem_closed_ball, dist_eq_norm'] at hz,
   rw dist_eq_norm at hxy,
@@ -140,11 +122,20 @@ begin
   replace hz := (norm_le_pi_norm _ i).trans hz,
   dsimp at hxy hz,
   rw abs_sub_le_iff at hxy hz,
-  refine (sub_le_iff_le_add.1 hz.2).trans ((sub_le.1 hxy.1).trans_eq' _),
+  refine (sub_le_iff_le_add.1 hz.2).trans ((_root_.sub_le.1 hxy.1).trans_eq' _),
   ring,
 end
 
-lemma is_upper_set.null_frontier (hs : is_upper_set s) : volume (frontier s) = 0 := sorry
+lemma is_upper_set.null_frontier (hs : is_upper_set s) : volume (frontier s) = 0 :=
+begin
+  refine eq_bot_mono (volume.mono _)
+    (vitali_family.ae_tendsto_measure_inter_div_of_measurable_set _ _),
+  sorry,
+  sorry,
+  sorry,
+  sorry,
+end
+
 lemma is_lower_set.null_frontier (hs : is_lower_set s) : volume (frontier s) = 0 := sorry
 
 lemma set.ord_connected.null_frontier (hs : s.ord_connected) : volume (frontier s) = 0 :=

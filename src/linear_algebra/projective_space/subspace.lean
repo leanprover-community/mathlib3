@@ -137,13 +137,13 @@ end
 
 /-- The supremum of two subspaces is equal to the span of their union. -/
 lemma sup_eq_span_union (W S : subspace K V) : W ⊔ S = span (W ∪ S) :=
-by { exact (galois_insertion.l_sup_u (@gi K V _ _ _) W S).symm }
+by { apply symm, exact (galois_insertion.l_sup_u gi W S) }
 
 /-- The supremum of a collection of subspaces is equal to the span of the union of the
 collection. -/
 lemma Sup_eq_span_union (S : set (subspace K V)) :
   Sup S = span ⋃ (W : subspace K V) (hW : W ∈ S), W :=
-by { apply symm, rw (Sup_eq_supr), exact galois_insertion.l_bsupr_u (gi) _ }
+by { apply symm, rw (Sup_eq_supr), exact galois_insertion.l_bsupr_u gi _ }
 
 end subspace
 

@@ -393,7 +393,7 @@ theorem type_empty : type (@empty_relation empty) = 0 := type_eq_zero_of_empty _
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
-induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
+induction_on o $ λ α r _, (rel_embedding.of_is_empty _ _).ordinal_type_le
 
 instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
 

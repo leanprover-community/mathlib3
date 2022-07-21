@@ -63,18 +63,18 @@ count_nth_of_infinite _ infinite_set_of_prime _
 nth_mem_of_infinite _ infinite_set_of_prime _
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
-lemma prime_counting'_add_le {a k : ℕ} (h0 : 0 < a) (h1 : a < k) (n : ℕ) :
-  π' (k + n) ≤ π' k + nat.totient a * (n / a + 1) :=
-calc π' (k + n)
-    ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :
+lemma prime_counting'_add_mul_le {a k : ℕ} (h0 : 0 < a) (h1 : a < k) (m : ℕ) :
+  π' (k + m * a) ≤ π' k + nat.totient a * (m) :=
+calc π' (k + m * a)
+    ≤ ((range k).filter (prime)).card + ((Ico k (k + m * a)).filter (prime)).card :
         begin
           rw [prime_counting', count_eq_card_filter_range, range_eq_Ico,
               ←Ico_union_Ico_eq_Ico (zero_le k) (le_self_add), filter_union],
           apply card_union_le,
         end
-... ≤ π' k + ((Ico k (k + n)).filter (prime)).card :
+... ≤ π' k + ((Ico k (k + m * a)).filter (prime)).card :
         by rw [prime_counting', count_eq_card_filter_range]
-... ≤ π' k + ((Ico k (k + n)).filter (coprime a)).card :
+... ≤ π' k + ((Ico k (k + m * a)).filter (coprime a)).card :
         begin
           refine add_le_add_left (card_le_of_subset _) k.prime_counting',
           simp only [subset_iff, and_imp, mem_filter, mem_Ico],
@@ -84,10 +84,36 @@ calc π' (k + n)
           { rw coprime_comm,
             exact coprime_of_lt_prime h0 (gt_of_ge_of_gt succ_k_le_p h1) p_prime, },
         end
-... ≤ π' k + totient a * (n / a + 1) :
+... ≤ π' k + totient a * (m) :
         begin
           rw [add_le_add_iff_left],
-          exact Ico_filter_coprime_le k n h0,
+          apply Ico_add_mul_filter_coprime_le,
+          exact h0,
         end
+
+/-- An explicit instantiation of nat.prime_counting'_add_mul_le  -/
+lemma prime_counting'_add_mul_le (n : ℕ) :
+  π' (n) ≤ n / 3 + 2 :=
+begin
+  nth_rewrite 0 ←div_add_mod n 3,
+  generalize : n / 3 = n',
+  nth_rewrite 0 ←div_add_mod n' 2,
+  generalize : n' / 2 = d,
+  cases d,
+  {
+    simp,
+    sorry,
+  },
+  cases d,
+  {
+    simp,
+    sorry,
+  },
+  simp_rw mul_succ,
+  simp_rw add_assoc,
+  -- generalize : 3 + n % 3 = k,
+  rw [add_comm, mul_comm],
+  refine le_trans (prime_counting'_add_mul_le _ _ _) _,
+end
 
 end nat

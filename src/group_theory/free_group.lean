@@ -379,9 +379,40 @@ begin
   { unfold inv_rev, simp }
 end
 
+lemma inv_rev_involutive : (inv_rev (inv_rev L₁) = L₁) :=
+begin
+ induction L₁,
+ { finish, }, -- FIXME
+ unfold inv_rev,
+ rw list.map_reverse,
+ rw list.map_map,
+ simp only [list.map, function.comp_app, bnot_bnot, prod.mk.eta, list.reverse_reverse, eq_self_iff_true, true_and],
+ have h : ((λ (g : α × bool), (g.fst, !g.snd)) ∘ (λ (g : α × bool), (g.fst, !g.snd))) = id,
+ { funext, simp, },
+
+ rw h,
+ simp, 
+end
+
 instance : has_inv (free_group α) :=
 ⟨ quot.map inv_rev (by { intros a b h, cases h, simp [inv_rev], }) ⟩
 @[simp] lemma inv_mk : (mk L)⁻¹ = mk (inv_rev L) := rfl
+
+def red.step.inv_rev {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red.step L₁ L₂) :
+red.step (inv_rev L₁) (inv_rev L₂) := 
+begin
+  cases h with a b x y,
+  simp [inv_rev],
+end
+
+def red.inv_rev {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red L₁ L₂) :
+red (inv_rev L₁) (inv_rev L₂) := 
+begin
+  apply relation.refl_trans_gen.lift,
+  { intros _ _ h2,
+    use red.step.inv_rev h2, }, 
+  use h,
+end
 
 instance : group (free_group α) :=
 { mul := (*),
@@ -899,41 +930,6 @@ variable [decidable_eq α]
 /-- The length of reduced words provides a norm on a free group. --/
 def norm (x : free_group α) : ℕ := x.to_word.length
 
-def mk_to_word_eq_reduce {w : list (α × bool)} : (mk w).to_word = reduce w :=
-by simp [to_word]
-
-def red_step_inv_rev {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red.step L₁ L₂) :
-red.step (inv_rev L₁) (inv_rev L₂) := 
-begin
-  cases h with a b x y,
-  simp [inv_rev],
-end
-
-def red_inv_rev {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red L₁ L₂) :
-red (inv_rev L₁) (inv_rev L₂) := 
-begin
-  apply relation.refl_trans_gen.lift,
-  { intros _ _ h2,
-    use red_step_inv_rev h2,
-  }, 
-  use h,
-end
-
-def inv_rev_involutive { w : list ( α × bool ) } : (inv_rev (inv_rev w) = w) :=
-begin
- induction w,
- { finish, },
- unfold inv_rev,
- rw list.map_reverse,
- rw list.map_map,
- simp only [list.map, function.comp_app, bnot_bnot, prod.mk.eta, list.reverse_reverse, eq_self_iff_true, true_and],
- have h : ((λ (g : α × bool), (g.fst, !g.snd)) ∘ (λ (g : α × bool), (g.fst, !g.snd))) = id,
- { funext, simp, },
-
- rw h,
- simp, 
-end
-
 def inv_rev_red {L₁ : list (α × bool)} {L₂ : list (α × bool)} (h : red (inv_rev L₁) (inv_rev L₂)) :
 red L₁ L₂ := 
 begin
@@ -941,27 +937,7 @@ begin
   have h2 : inv_rev (inv_rev L₂) = L₂ := inv_rev_involutive ,
   rw ← h1,
   rw ← h2,
-  apply red_inv_rev,
-  assumption,
-end
-
-def inv_rev_reduce_comm' {w : list (α × bool)} : reduce (inv_rev (reduce (inv_rev w))) = reduce w := 
-begin
-  have h1 : red w (reduce w) := reduce.red,
-  have h2 : red (inv_rev w) (inv_rev (reduce w)) := red_inv_rev h1,
-  have h3 : red (inv_rev w) (reduce (inv_rev w)) := reduce.red,
-  have h4 : red (inv_rev (inv_rev w)) (inv_rev (reduce (inv_rev w))) := red_inv_rev h3,
-  have h5 : red w (inv_rev (reduce (inv_rev w))), 
-  { 
-    rw inv_rev_involutive at h4,
-    assumption,
-  },  
-
-  have h6 := red.church_rosser h1 h5,
-  rw ← free_group.red.exact at h6,
-  apply reduce.sound,
-  rw reduce.self at h6,
-  symmetry,
+  apply red.inv_rev,
   assumption,
 end
 
@@ -974,33 +950,33 @@ end
 
 def inv_rev_reduce_comm {w : list (α × bool)} : inv_rev (reduce w) = reduce (inv_rev w) := 
 begin
-symmetry,
-apply reduce.min,
-apply inv_rev_red,
-rw inv_rev_involutive,
+  symmetry,
+  apply reduce.min,
+  apply inv_rev_red,
+  rw inv_rev_involutive,
 
   have h1 : red w (reduce w) := reduce.red,
-  have h2 : red (inv_rev w) (inv_rev (reduce w)) := red_inv_rev h1,
+  have h2 : red (inv_rev w) (inv_rev (reduce w)) := red.inv_rev h1,
   have h3 : red (inv_rev w) (reduce (inv_rev w)) := reduce.red,
-  have h4 : red (inv_rev (inv_rev w)) (inv_rev (reduce (inv_rev w))) := red_inv_rev h3,
+  have h4 : red (inv_rev (inv_rev w)) (inv_rev (reduce (inv_rev w))) := red.inv_rev h3,
   have h5 : red w (inv_rev (reduce (inv_rev w))), 
   { 
     rw inv_rev_involutive at h4,
     assumption,
   },
   
-exact red_reduced h5,
+  exact red_reduced h5,
 end
 
-def reduce_to_word {x : free_group α} : reduce x.to_word = x.to_word := 
-by rw [← mk_to_word_eq_reduce, to_word.mk]
+def mk_to_word_eq_reduce {w : list (α × bool)} : (mk w).to_word = reduce w :=
+by simp [to_word]
 
 def inv_to_word_eq_inv_rev_to_word {x : free_group α} : (x⁻¹).to_word = inv_rev x.to_word := 
 calc (x⁻¹).to_word = (mk x.to_word)⁻¹.to_word : by rw to_word.mk 
   ... = (mk $ inv_rev x.to_word).to_word : by rw inv_mk
   ... = reduce (inv_rev x.to_word) : by rw mk_to_word_eq_reduce
   ... = inv_rev (reduce x.to_word) : by rw inv_rev_reduce_comm
-  ... = inv_rev x.to_word : by rw reduce_to_word 
+  ... = inv_rev x.to_word : by rw [← mk_to_word_eq_reduce, to_word.mk]
 
 @[simp] lemma norm_inv_eq {x : free_group α} : norm x⁻¹ = norm x :=
 by simp only [norm, inv_to_word_eq_inv_rev_to_word, inv_rev_length]

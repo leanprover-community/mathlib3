@@ -692,23 +692,23 @@ variables {F : Type*} [non_unital_non_assoc_semiring T] [non_unital_ring_hom_cla
 open non_unital_subsemiring_class non_unital_subsemiring
 
 /-- Restriction of a non-unital ring homomorphism to a non-unital subsemiring of the domain. -/
-def srestrict (f : F) (s : non_unital_subsemiring R) : s →ₙ+* S :=
+def restrict (f : F) (s : non_unital_subsemiring R) : s →ₙ+* S :=
 (f : R →ₙ+* S).comp (subtype s)
 
-@[simp] lemma srestrict_apply (f : F) (x : s) : (srestrict f s x : S) = f x := rfl
+@[simp] lemma restrict_apply (f : F) (x : s) : (restrict f s x : S) = f x := rfl
 
 /-- Restriction of a non-unital ring homomorphism to a non-unital subsemiring of the codomain. -/
-def cod_srestrict (f : F) (s : non_unital_subsemiring S) (h : ∀ x, f x ∈ s) : R →ₙ+* s :=
+def cod_restrict (f : F) (s : non_unital_subsemiring S) (h : ∀ x, f x ∈ s) : R →ₙ+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
-  .. (f : R →ₙ* S).cod_srestrict s.to_subsemigroup h,
-  .. (f : R →+ S).cod_mrestrict s.to_add_submonoid h }
+  .. (f : R →ₙ* S).cod_restrict s.to_subsemigroup h,
+  .. (f : R →+ S).cod_restrict s.to_add_submonoid h }
 
 /-- Restriction of a non-unital ring homomorphism to its range interpreted as a
 non-unital subsemiring.
 
 This is the bundled version of `set.range_factorization`. -/
 def srange_restrict (f : F) : R →ₙ+* (srange f : non_unital_subsemiring S) :=
-cod_srestrict f (srange f) (mem_srange_self f)
+cod_restrict f (srange f) (mem_srange_self f)
 
 @[simp] lemma coe_srange_restrict (f : F) (x : R) :
   (srange_restrict f x : S) = f x :=
@@ -770,7 +770,7 @@ open non_unital_ring_hom non_unital_subsemiring_class
 /-- The non-unital ring homomorphism associated to an inclusion of
 non-unital subsemirings. -/
 def inclusion {S T : non_unital_subsemiring R} (h : S ≤ T) : S →ₙ+* T :=
-cod_srestrict (subtype S) _ (λ x, h x.2)
+cod_restrict (subtype S) _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : non_unital_subsemiring R) : (subtype s).srange = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe

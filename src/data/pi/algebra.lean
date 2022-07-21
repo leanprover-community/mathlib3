@@ -225,3 +225,33 @@ lemma subsingleton.pi_mul_single_eq {α : Type*} [decidable_eq I] [subsingleton 
   (i : I) (x : α) :
   pi.mul_single i x = λ _, x :=
 funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]
+
+
+namespace sum
+variables (a a' : α → γ) (b b' : β → γ)
+
+lemma inv_elim [has_inv γ] :
+  (sum.elim a b)⁻¹  = sum.elim a⁻¹ b⁻¹ :=
+by { ext x, cases x; simp }
+
+lemma neg_elim [has_neg γ] :
+  - (sum.elim a b)  = sum.elim (- a) (- b) :=
+by { ext x, cases x; simp }
+
+lemma mul_elim [has_mul γ] :
+  (sum.elim a b) * (sum.elim a' b') = sum.elim (a * a') (b * b') :=
+by { ext x, cases x; simp }
+
+lemma div_elim [has_div γ] :
+  (sum.elim a b) / (sum.elim a' b') = sum.elim (a / a') (b / b') :=
+by { ext x, cases x; simp }
+
+lemma add_elim [has_add γ] :
+  (sum.elim a b) + (sum.elim a' b') = sum.elim (a + a') (b + b') :=
+by { ext x, cases x; simp }
+
+lemma sub_elim [has_sub γ] :
+  (sum.elim a b) - (sum.elim a' b') = sum.elim (a - a') (b - b') :=
+by { ext x, cases x; simp }
+
+end sum

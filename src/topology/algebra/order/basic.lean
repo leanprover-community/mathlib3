@@ -2698,7 +2698,7 @@ end densely_ordered
 section complete_linear_order
 
 variables [complete_linear_order α] [topological_space α] [order_topology α]
-  [complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
+  [complete_linear_order β] [topological_space β] [order_closed_topology β] [nonempty γ]
 
 lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α]
   [order_topology α] {s : set α} (hs : s.nonempty) :
@@ -2729,7 +2729,7 @@ lemma map_Sup_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : c
 ((is_lub_Sup _).is_lub_of_tendsto (λ x hx y hy xy, Mf xy) hs $
   Cf.mono_left inf_le_left).Sup_eq.symm
 
-/-- A monotone function `s` sending `bot` to `bot` and continuous at the supremum of a set sends
+/-- A monotone function `f` sending `bot` to `bot` and continuous at the supremum of a set sends
 this supremum to the supremum of the image of this set. -/
 lemma map_Sup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (fbot : f ⊥ = ⊥) :
@@ -2761,7 +2761,7 @@ lemma map_Inf_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : c
   f (Inf s) = Inf (f '' s) :=
 @map_Sup_of_continuous_at_of_monotone' αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual hs
 
-/-- A monotone function `s` sending `top` to `top` and continuous at the infimum of a set sends
+/-- A monotone function `f` sending `top` to `top` and continuous at the infimum of a set sends
 this infimum to the infimum of the image of this set. -/
 lemma map_Inf_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (ftop : f ⊤ = ⊤) :
@@ -2781,6 +2781,76 @@ lemma map_infi_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι
   (Cf : continuous_at f (infi g)) (Mf : monotone f) (ftop : f ⊤ = ⊤) :
   f (infi g) = infi (f ∘ g) :=
 @map_supr_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι f g Cf Mf.dual ftop
+
+
+
+
+
+
+
+/-- An antitone function continuous at the supremum of a nonempty set sends this supremum to
+the infimum of the image of this set. -/
+lemma map_Sup_of_continuous_at_of_antitone' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (hs : s.nonempty) :
+  f (Sup s) = Inf (f '' s) :=
+map_Sup_of_continuous_at_of_monotone'
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af hs
+
+/-- An antitone function `f` sending `bot` to `top` and continuous at the supremum of a set sends
+this supremum to the infimum of the image of this set. -/
+lemma map_Sup_of_continuous_at_of_antitone {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (fbot : f ⊥ = ⊤) :
+  f (Sup s) = Inf (f '' s) :=
+map_Sup_of_continuous_at_of_monotone
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af fbot
+
+/-- An antitone function continuous at the indexed supremum over a nonempty `Sort` sends this
+indexed supremum to the indexed infimum of the composition. -/
+lemma map_supr_of_continuous_at_of_antitone' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Af : antitone f) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+map_supr_of_continuous_at_of_monotone'
+  (show continuous_at (order_dual.to_dual ∘ f) (supr g), from Cf) Af
+
+/-- An antitone function sending `bot` to `top` is continuous at the indexed supremum over
+a `Sort`, then it sends this indexed supremum to the indexed supremum of the composition. -/
+lemma map_supr_of_continuous_at_of_antitone {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Af : antitone f) (fbot : f ⊥ = ⊤) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+map_supr_of_continuous_at_of_monotone
+  (show continuous_at (order_dual.to_dual ∘ f) (supr g), from Cf) Af fbot
+
+/-- An antitone function continuous at the infimum of a nonempty set sends this infimum to
+the supremum of the image of this set. -/
+lemma map_Inf_of_continuous_at_of_antitone' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (hs : s.nonempty) :
+  f (Inf s) = Sup (f '' s) :=
+map_Inf_of_continuous_at_of_monotone'
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af hs
+
+/-- An antitone function `f` sending `top` to `bot` and continuous at the infimum of a set sends
+this infimum to the supremum of the image of this set. -/
+lemma map_Inf_of_continuous_at_of_antitone {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (ftop : f ⊤ = ⊥) :
+  f (Inf s) = Sup (f '' s) :=
+map_Inf_of_continuous_at_of_monotone
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af ftop
+
+/-- An antitone function continuous at the indexed infimum over a nonempty `Sort` sends this indexed
+infimum to the indexed supremum of the composition. -/
+lemma map_infi_of_continuous_at_of_antitone' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Af : antitone f) :
+  f (⨅ i, g i) = ⨆ i, f (g i) :=
+map_infi_of_continuous_at_of_monotone'
+  (show continuous_at (order_dual.to_dual ∘ f) (infi g), from Cf) Af
+
+/-- If an antitone function sending `top` to `bot` is continuous at the indexed infimum over
+a `Sort`, then it sends this indexed infimum to the indexed supremum of the composition. -/
+lemma map_infi_of_continuous_at_of_antitone {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Af : antitone f) (ftop : f ⊤ = ⊥) :
+  f (infi g) = supr (f ∘ g) :=
+map_infi_of_continuous_at_of_monotone
+  (show continuous_at (order_dual.to_dual ∘ f) (infi g), from Cf) Af ftop
 
 end complete_linear_order
 
@@ -2863,90 +2933,3 @@ lemma monotone.tendsto_nhds_within_Ioi
 end conditionally_complete_linear_order
 
 end order_topology
-
-section monotone
-
-private lemma continuous_Inf_le_Sup_continuous {R S : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_closed_topology S]
-  {f : R → S} (f_cont : continuous f)
-  (A : set R) (hA : A.nonempty):
-  f (Inf A) ≤ Sup (f '' A) :=
-begin
-  refine le_Sup_iff.mpr _,
-  intros b hb,
-  have InfA_mem_clA : Inf A ∈ closure A, from Inf_mem_closure hA,
-  have aux := @continuous.continuous_on _ _ _ _ f (closure A) f_cont,
-  have key := (continuous_on.image_closure aux).trans (closure_mono (show f '' A ⊆ Iic b, from hb)),
-  simpa [closure_Iic] using key (mem_image_of_mem f InfA_mem_clA),
-end
-
-lemma antitone.Sup_image_eq_apply_Inf {R S : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S]
-  [order_topology S] -- was: [order_closed_topology S]
-  {f : R → S} (f_decr : antitone f) (f_cont : continuous f)
-  (A : set R) (hA : A.nonempty):
-  Sup (f '' A) = f (Inf A) :=
-begin
-  -- The working version proof was:
-  -- `le_antisymm (f_decr.Sup_image_le A) (continuous_Inf_le_Sup_continuous f_cont A hA)`
-
-  -- It indeed looks like the previously existing `antitone.le_map_Inf f_decr` would be
-  -- similar, but I fail to fill in the sorry with it. This is the reason I originally had to
-  -- introduce the new lemmas `antitone.Sup_image_le` etc.
-
-  -- (That the assumption in the existing lemma is somewhat more stringent is not an issue
-  -- for me, even the weaker result would be good enough to me, but I can't get it to work.)
-
-  apply le_antisymm _ (continuous_Inf_le_Sup_continuous f_cont A hA),
-
-  have similar_to_goal := @antitone.le_map_Inf R S _ _ A f f_decr, -- Why is this not enough?
-
-  convert similar_to_goal,
-
-  ext x,
-  split,
-  { intros hx,
-    rcases hx with ⟨r, ⟨r_in_A, fr_eq_x⟩⟩,
-    use r,
-    simp only [fr_eq_x, r_in_A, csupr_pos], },
-  { intros hx,
-    rcases hx with ⟨r, hr⟩,
-    use r,
-    split,
-    sorry, -- How to proceed?
-    sorry, -- How to proceed?
-    },
-end
-
-lemma antitone.Inf_image_eq_apply_Sup {R S : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_topology S]
-  {f : R → S} (f_decr : antitone f) (f_cont : continuous f)
-  (A : set R) (hA : A.nonempty):
-  Inf (f '' A) = f (Sup A) :=
-begin
-  have this : continuous (order_dual.to_dual ∘ f) := f_cont,
-  exact (map_Sup_of_continuous_at_of_monotone' this.continuous_at f_decr hA).symm,
-end
-
-lemma monotone.Inf_image_eq_apply_Inf {R S : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S]
-  [order_topology S] -- was: [order_closed_topology S]
-  {f : R → S} (f_incr : monotone f) (f_cont : continuous f)
-  (A : set R) (hA : A.nonempty):
-  Inf (f '' A) = f (Inf A) :=
-f_incr.dual_left.Inf_image_eq_apply_Sup f_cont A hA
-
-lemma monotone.Sup_image_eq_apply_Sup {R S : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S]
-  [order_topology S] -- was: [order_closed_topology S]
-  {f : R → S} (f_incr : monotone f) (f_cont : continuous f)
-  (A : set R) (hA : A.nonempty):
-  Sup (f '' A) = f (Sup A) :=
-f_incr.dual.Inf_image_eq_apply_Inf f_cont A hA
-
-end monotone

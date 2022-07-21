@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 import tactic.interval_cases
 import algebra.big_operators.order
-import algebra.big_operators.enat
+import algebra.big_operators.part_enat
 import data.nat.multiplicity
 
 /-!

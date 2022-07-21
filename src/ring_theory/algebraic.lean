@@ -104,9 +104,16 @@ lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [ch
   [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
 by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
+open is_scalar_tower
+
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
-λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]⟩
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [←algebra_map_aeval, hf₂, map_zero]⟩
+
+lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map S A)) :
+  is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
+⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by simpa only [map_zero, ←to_alg_hom_apply R S A, aeval_alg_hom_apply]
+  using hp)⟩, is_algebraic_algebra_map_of_is_algebraic⟩
 
 end zero_ne_one
 

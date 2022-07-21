@@ -465,6 +465,9 @@ eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 
+lemma algebraic_iff {x : S} : is_algebraic K x ↔ is_algebraic K (x : L) :=
+(is_algebraic_algebra_map_iff (algebra_map S L).injective).symm
+
 end intermediate_field
 
 /-- If `L/K` is algebraic, the `K`-subalgebras of `L` are all fields.  -/

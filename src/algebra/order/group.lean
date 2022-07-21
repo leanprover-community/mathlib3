@@ -68,8 +68,14 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 @[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
 @[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
+@[to_additive order_dual.subtraction_monoid]
+instance [h : division_monoid α] : division_monoid αᵒᵈ := h
+@[to_additive order_dual.subtraction_comm_monoid]
+instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
 @[to_additive] instance [h : group α] : group αᵒᵈ := h
 @[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -889,14 +895,15 @@ See note [reducible non-instances]. -/
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
-  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  [has_sup β] [has_inf β] (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_group β :=
-{ ..linear_order.lift f hf,
+{ ..linear_order.lift f hf hsup hinf,
   ..hf.ordered_comm_group f one mul inv div npow zpow }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
@@ -1074,7 +1081,7 @@ end
 lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
 by simpa using neg_abs_le_self (-a)
 
-lemma abs_nonneg (a : α) : 0 ≤ |a| :=
+@[simp] lemma abs_nonneg (a : α) : 0 ≤ |a| :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
 @[simp] lemma abs_abs (a : α) : | |a| | = |a| :=

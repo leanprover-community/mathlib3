@@ -42,10 +42,16 @@ lemma isometry_emetric_iff_metric [pseudo_metric_space α] [pseudo_metric_space 
 by simp only [isometry_emetric_iff_nndist, ← coe_nndist, nnreal.coe_eq]
 
 /-- An isometry preserves distances. -/
-alias isometry_emetric_iff_metric ↔ isometry.dist_eq isometry.of_dist_eq
+alias isometry_emetric_iff_metric ↔ isometry.dist_eq _
+
+/-- A map that preserves distances is an isometry -/
+alias isometry_emetric_iff_metric ↔ _ isometry.of_dist_eq
 
 /-- An isometry preserves non-negative distances. -/
-alias isometry_emetric_iff_nndist ↔ isometry.dist_eq isometry.of_nndist_eq
+alias isometry_emetric_iff_nndist ↔ isometry.dist_eq _
+
+/-- A map that preserves non-negative distances is an isometry. -/
+alias isometry_emetric_iff_nndist ↔ _ isometry.of_nndist_eq
 
 namespace isometry
 

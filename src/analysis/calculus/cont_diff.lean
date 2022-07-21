@@ -2493,7 +2493,7 @@ lemma cont_diff_at.mul {f g : E → 𝔸} (hf : cont_diff_at 𝕜 n f x) (hg : c
 hf.mul hg
 
 /-- The product of two `C^n` functions on a domain is `C^n`. -/
-lemma cont_diff_on.mul {s : set E} {f g : E → 𝔸} (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
+lemma cont_diff_on.mul {f g : E → 𝔸} (hf : cont_diff_on 𝕜 n f s) (hg : cont_diff_on 𝕜 n g s) :
   cont_diff_on 𝕜 n (λ x, f x * g x) s :=
 λ x hx, (hf x hx).mul (hg x hx)
 

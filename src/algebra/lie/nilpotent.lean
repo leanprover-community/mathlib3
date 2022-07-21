@@ -177,6 +177,19 @@ lemma is_nilpotent_iff :
   is_nilpotent R L M ↔ ∃ k, lower_central_series R L M k = ⊥ :=
 ⟨λ h, h.nilpotent, λ h, ⟨h⟩⟩
 
+variables {R L M}
+
+lemma _root_.lie_submodule.is_nilpotent_iff_exists_lcs_eq_bot (N : lie_submodule R L M) :
+  lie_module.is_nilpotent R L N ↔ ∃ k, N.lcs k = ⊥ :=
+begin
+  rw is_nilpotent_iff,
+  refine exists_congr (λ k, _),
+  rw [N.lower_central_series_eq_lcs_comap k, lie_submodule.comap_incl_eq_bot,
+    inf_eq_right.mpr (N.lcs_le_self k)],
+end
+
+variables (R L M)
+
 @[priority 100]
 instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
@@ -344,6 +357,10 @@ centralizer^[k]
 @[simp] lemma ucs_succ (k : ℕ) :
   N.ucs (k + 1) = (N.ucs k).centralizer :=
 function.iterate_succ_apply' centralizer k N
+
+lemma ucs_add (k l : ℕ) :
+  N.ucs (k + l) = (N.ucs l).ucs k :=
+function.iterate_add_apply centralizer k l N
 
 @[mono] lemma ucs_mono (k : ℕ) (h : N₁ ≤ N₂) :
   N₁.ucs k ≤ N₂.ucs k :=

@@ -135,31 +135,20 @@ end ordered_smul
 
 /-- If `R` is a linear ordered semifield, then it suffices to verify only the first axiom of
 `ordered_smul`. Moreover, it suffices to verify that `a < b` and `0 < c` imply
-`c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
-instead. -/
-lemma ordered_smul.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
-  [mul_action_with_zero R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
-  (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
+`c • a ≤ c • b`. -/
+lemma ordered_smul.mk' {R M : Type*} [linear_ordered_semifield R] [ordered_add_comm_monoid M]
+  [mul_action_with_zero R M]  (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_smul R M :=
 begin
   have hlt' : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a < c • b,
-  { refine λ a b c hab hc, (hlt hab hc).lt_of_ne _,
-    rw [ne.def, (hR hc.ne').smul_left_cancel],
-    exact hab.ne },
+  { exact λ a b c hab hc, (hlt hab hc).lt_of_ne ((hc.ne'.is_unit.smul_left_cancel).not.2 hab.ne) },
   refine { smul_lt_smul_of_pos := hlt', .. },
   intros a b c h hc,
-  rcases (hR hc.ne') with ⟨c, rfl⟩,
-  rw [← inv_smul_smul c a, ← inv_smul_smul c b],
+  lift c to Rˣ using hc.ne'.is_unit,
+    rw [← inv_smul_smul c a, ← inv_smul_smul c b],
   refine hlt' h (pos_of_mul_pos_right _ hc.le),
   simp only [c.mul_inv, zero_lt_one]
 end
-
-/-- If `R` is a linear ordered field, then it suffices to verify only the first axiom of
-`ordered_smul`. -/
-lemma ordered_smul.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_monoid M]
-  [mul_action_with_zero k M] (hlt : ∀ ⦃a b : M⦄ ⦃c : k⦄, a < b → 0 < c → c • a ≤ c • b) :
-  ordered_smul k M :=
-ordered_smul.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
 
 instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_semiring R] :
   ordered_smul R R :=
@@ -168,9 +157,8 @@ instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_sem
 
 section field
 
-variables {k M : Type*} [linear_ordered_field k]
-  [ordered_add_comm_group M] [mul_action_with_zero k M] [ordered_smul k M]
-  {a b : M} {c : k}
+variables {k M : Type*} [linear_ordered_semifield k] [ordered_add_comm_group M]
+  [mul_action_with_zero k M] [ordered_smul k M] {a b : M} {c : k}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
 ⟨λ h, inv_smul_smul₀ hc.ne' a ▸ inv_smul_smul₀ hc.ne' b ▸

@@ -597,7 +597,7 @@ begin
   rw h.2,
 end
 
-lemma mem_domain_of_eq_graph_iff {f g : linear_pmap R E F} (h : f.graph = g.graph) {x : E} :
+lemma mem_domain_iff_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) {x : E} :
   x ∈ f.domain ↔ x ∈ g.domain :=
 by simp_rw [mem_domain_iff, h]
 
@@ -619,7 +619,7 @@ begin
 end
 
 lemma eq_of_eq_graph {f g : linear_pmap R E F} (h : f.graph = g.graph) : f = g :=
-by {ext, exact mem_domain_of_eq_graph_iff h, exact (le_of_le_graph h.le).2 }
+by {ext, exact mem_domain_iff_of_eq_graph h, exact (le_of_le_graph h.le).2 }
 
 end graph
 

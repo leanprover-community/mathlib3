@@ -540,20 +540,20 @@ begin
   { intro H,
     constructor,
     intro N,
-    obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ := well_founded.well_founded_iff_has_max'.mp
+    obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ := well_founded.has_min
       H { N' : α | N'.1 ≤ N } ⟨⟨⊥, submodule.fg_bot⟩, bot_le⟩,
     convert h₁,
     refine (e.antisymm _).symm,
     by_contra h₃,
     obtain ⟨x, hx₁ : x ∈ N, hx₂ : x ∉ N₀⟩ := set.not_subset.mp h₃,
     apply hx₂,
-    have := h₂ ⟨(R ∙ x) ⊔ N₀, _⟩ _ _,
+    have := eq_of_le_of_not_lt _ (h₂ ⟨(R ∙ x) ⊔ N₀, _⟩ _),
     { injection this with eq,
-      rw ← eq,
+      rw eq,
       exact (le_sup_left : (R ∙ x) ≤ (R ∙ x) ⊔ N₀) (submodule.mem_span_singleton_self _) },
     { exact submodule.fg.sup ⟨{x}, by rw [finset.coe_singleton]⟩ h₁ },
-    { exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e },
-    { show N₀ ≤ (R ∙ x) ⊔ N₀, from le_sup_right } }
+    { show N₀ ≤ (R ∙ x) ⊔ N₀, from le_sup_right },
+    { exact sup_le ((submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e } }
 end
 
 variables (R M)

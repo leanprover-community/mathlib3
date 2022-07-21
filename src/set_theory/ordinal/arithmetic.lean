@@ -225,9 +225,15 @@ theorem pred_eq_iff_not_succ {o} : pred o = o ↔ ¬ ∃ a, o = succ a :=
 ⟨λ e ⟨a, e'⟩, by rw [e', pred_succ] at e; exact (lt_succ a).ne e,
  λ h, dif_neg h⟩
 
+theorem pred_eq_iff_not_succ' {o} : pred o = o ↔ ∀ a, o ≠ succ a :=
+by simpa using pred_eq_iff_not_succ
+
 theorem pred_lt_iff_is_succ {o} : pred o < o ↔ ∃ a, o = succ a :=
 iff.trans (by simp only [le_antisymm_iff, pred_le_self, true_and, not_le])
   (iff_not_comm.1 pred_eq_iff_not_succ).symm
+
+@[simp] theorem pred_zero : pred 0 = 0 :=
+pred_eq_iff_not_succ'.2 $ λ a, (succ_ne_zero a).symm
 
 theorem succ_pred_iff_is_succ {o} : succ (pred o) = o ↔ ∃ a, o = succ a :=
 ⟨λ e, ⟨_, e.symm⟩, λ ⟨a, e⟩, by simp only [e, pred_succ]⟩
@@ -474,7 +480,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
   rw [←typein_lt_typein (sum.lex r s), typein_enum],
   have := H _ (h.2 _ (typein_lt_type s x)),
   rw [add_succ, succ_le_iff] at this,
-  refine (type_le'.2 ⟨rel_embedding.of_monotone (λ a, _) (λ a b, _)⟩).trans_lt this,
+  refine (rel_embedding.of_monotone (λ a, _) (λ a b, _)).ordinal_type_le.trans_lt this,
   { rcases a with ⟨a | b, h⟩,
     { exact sum.inl a },
     { exact sum.inr ⟨b, by cases h; assumption⟩ } },
@@ -634,9 +640,8 @@ theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one a b
 instance mul_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
-  refine type_le'.2 ⟨rel_embedding.of_monotone
-    (λ a, (f a.1, a.2))
-    (λ a b h, _)⟩, clear_,
+  refine (rel_embedding.of_monotone (λ a : α × γ, (f a.1, a.2)) (λ a b h, _)).ordinal_type_le,
+  clear_,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
   { exact prod.lex.left _ _ (f.to_rel_embedding.map_rel_iff.2 h') },
   { exact prod.lex.right _ h' }
@@ -645,9 +650,7 @@ end⟩
 instance mul_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (swap (*)) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
-  refine type_le'.2 ⟨rel_embedding.of_monotone
-    (λ a, (a.1, f a.2))
-    (λ a b h, _)⟩,
+  refine (rel_embedding.of_monotone (λ a : γ × α, (a.1, f a.2)) (λ a b h, _)).ordinal_type_le,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
   { exact prod.lex.left _ _ h' },
   { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.2 h') }
@@ -670,9 +673,7 @@ begin
   have := H _ (h.2 _ (typein_lt_type s b)),
   rw mul_succ at this,
   have := ((add_lt_add_iff_left _).2 (typein_lt_type _ a)).trans_le this,
-  refine (type_le'.2 _).trans_lt this,
-  constructor,
-  refine rel_embedding.of_monotone (λ a, _) (λ a b, _),
+  refine (rel_embedding.of_monotone (λ a, _) (λ a b, _)).ordinal_type_le.trans_lt this,
   { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,
@@ -777,8 +778,10 @@ theorem div_le {a b c : ordinal} (b0 : b ≠ 0) : a / b ≤ c ↔ a < b * succ c
 ⟨λ h, (lt_mul_succ_div a b0).trans_le (mul_le_mul_left' (succ_le_succ_iff.2 h) _),
  λ h, by rw div_def a b0; exact cInf_le' h⟩
 
-theorem lt_div {a b c : ordinal} (c0 : c ≠ 0) : a < b / c ↔ c * succ a ≤ b :=
-by rw [← not_le, div_le c0, not_lt]
+theorem lt_div {a b c : ordinal} (h : c ≠ 0) : a < b / c ↔ c * succ a ≤ b :=
+by rw [← not_le, div_le h, not_lt]
+
+theorem div_pos {b c : ordinal} (h : c ≠ 0) : 0 < b / c ↔ c ≤ b := by simp [lt_div h]
 
 theorem le_div {a b c : ordinal} (c0 : c ≠ 0) :
   a ≤ b / c ↔ c * a ≤ b :=
@@ -2054,6 +2057,20 @@ theorem opow_le_iff_le_log {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : b ^ c �
 theorem lt_opow_iff_log_lt {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : x < b ^ c ↔ log b x < c :=
 lt_iff_lt_of_le_iff_le (opow_le_iff_le_log b1 x0)
 
+theorem log_pos {b o : ordinal} (hb : 1 < b) (ho : 0 < o) (hbo : b ≤ o) : 0 < log b o :=
+by rwa [←succ_le_iff, succ_zero, ←opow_le_iff_le_log hb ho, opow_one]
+
+theorem log_eq_zero {b o : ordinal} (hbo : o < b) : log b o = 0 :=
+begin
+  rcases eq_zero_or_pos o with rfl | ho,
+  { exact log_zero_right b },
+  cases le_or_lt b 1 with hb hb,
+  { rcases le_one_iff.1 hb with rfl | rfl,
+    { exact log_zero_left o },
+    { exact log_one_left o } },
+  { rwa [←ordinal.le_zero, ←lt_succ_iff, succ_zero, ←lt_opow_iff_log_lt hb ho, opow_one] }
+end
+
 @[mono] theorem log_mono_right (b) {x y : ordinal} (xy : x ≤ y) : log b x ≤ log b y :=
 if x0 : x = 0 then by simp only [x0, log_zero_right, ordinal.zero_le] else
 have x0 : 0 < x, from ordinal.pos_iff_ne_zero.2 x0,
@@ -2067,11 +2084,23 @@ if b1 : 1 < b then (right_le_opow _ b1).trans (opow_log_le_self b (ordinal.pos_i
 else by simp only [log_of_not_one_lt_left b1, ordinal.zero_le]
 
 @[simp] theorem log_one_right (b : ordinal) : log b 1 = 0 :=
-if hb : 1 < b then by rwa [←lt_one_iff_zero, ←lt_opow_iff_log_lt hb zero_lt_one, opow_one]
-else log_of_not_one_lt_left hb 1
+if hb : 1 < b then log_eq_zero hb else log_of_not_one_lt_left hb 1
 
 theorem mod_opow_log_lt_self {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) : o % b ^ log b o < o :=
 (mod_lt _ $ opow_ne_zero _ b0).trans_le (opow_log_le_self _ $ ordinal.pos_iff_ne_zero.2 o0)
+
+theorem log_mod_opow_log_lt_log_self {b o : ordinal} (hb : 1 < b) (ho : 0 < o) (hbo : b ≤ o) :
+  log b (o % b ^ log b o) < log b o :=
+begin
+  cases eq_zero_or_pos (o % b ^ log b o),
+  { rw [h, log_zero_right],
+    apply log_pos hb ho hbo },
+  { rw [←succ_le_iff, succ_log_def hb h],
+    apply cInf_le',
+    apply mod_lt,
+    rw ←ordinal.pos_iff_ne_zero,
+    exact opow_pos _ (zero_lt_one.trans hb) }
+end
 
 lemma opow_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) : 0 < b ^ u * v + w :=
 (opow_pos u hb).trans_le ((le_mul_left _ hv).trans (le_add_right _ _))
@@ -2100,10 +2129,16 @@ begin
     exact (not_lt_of_le h) (opow_mul_add_lt_opow_succ hvb hw) }
 end
 
-@[simp] theorem log_opow {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=
+theorem log_opow {b : ordinal} (hb : 1 < b) (x : ordinal) : log b (b ^ x) = x :=
 begin
   convert log_opow_mul_add hb zero_lt_one hb (opow_pos x (zero_lt_one.trans hb)),
   rw [add_zero, mul_one]
+end
+
+theorem div_opow_log_lt {b : ordinal} (o : ordinal) (hb : 1 < b) : o / b ^ log b o < b :=
+begin
+  rw [div_lt (opow_pos _ (zero_lt_one.trans hb)).ne', ←opow_succ],
+  exact lt_opow_succ_log_self hb o
 end
 
 theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < y) :

@@ -112,8 +112,8 @@ lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
 
 lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map S A)) :
   is_algebraic R (algebra_map S A a) ↔ is_algebraic R a :=
-⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by simpa only [map_zero, ←to_alg_hom_apply R S A, aeval_alg_hom_apply]
-  using hp)⟩, is_algebraic_algebra_map_of_is_algebraic⟩
+⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, algebra_map_aeval])⟩,
+  is_algebraic_algebra_map_of_is_algebraic⟩
 
 end zero_ne_one
 

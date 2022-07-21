@@ -11,7 +11,7 @@ import number_theory.bernoulli
 /-!
 # Bernoulli polynomials
 
-The Bernoulli polynomials (defined at <https://en.wikipedia.org/wiki/Bernoulli_polynomials>)
+The [Bernoulli polynomials](https://en.wikipedia.org/wiki/Bernoulli_polynomials)
 are an important tool obtained from Bernoulli numbers.
 
 ## Mathematical overview

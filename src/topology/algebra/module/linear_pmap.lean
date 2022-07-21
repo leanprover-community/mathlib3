@@ -1,5 +1,6 @@
 import linear_algebra.linear_pmap
 import topology.algebra.module.basic
+import topology.sequences
 
 
 open_locale topological_space
@@ -11,13 +12,81 @@ variables [module R E] [module R F] [topological_space R]
 variables [uniform_space E] [uniform_add_group E]
 variables [uniform_space F] [uniform_add_group F]
 
+localized "notation a `→∞` x := filter.tendsto a filter.at_top (nhds x)" in sequential_limits
+
+open_locale sequential_limits
+
 namespace linear_pmap
 
 /-- An operator is closed if its graph is closed. -/
 def closed (f : linear_pmap R E F) : Prop :=
 is_closed (↑f.graph : set (E × F))
 
+lemma closed_iff (f : linear_pmap R E F) : f.closed ↔ is_closed (f.graph : set (E × F)) := iff.rfl
+
+lemma closed_of_domain_univ (f : linear_pmap R E F) : f.closed :=
+begin
+  sorry,
+end
+
 variables [has_continuous_smul R E] [has_continuous_smul R F]
+
+/-- The kernel of `f : linear_pmap R E F` is the kernel of `f.to_fun` viewed as a
+  submodule on `E`. -/
+abbreviation ker (f : linear_pmap R E F) : submodule R E := f.to_fun.ker.map f.domain.subtype
+
+lemma ker_le_domain (f : linear_pmap R E F) : f.ker ≤ f.domain :=
+submodule.map_subtype_le _ _
+
+lemma mem_ker (f : linear_pmap R E F) (x : f.domain) (hx : f x = 0) : (x : E) ∈ f.ker :=
+by simp [hx]
+
+@[protected] lemma congr_arg (f : linear_pmap R E F) {x y : f.domain} (h : (x : E) = y) :
+  f x = f y :=
+congr_arg f (subtype.ext_val h)
+
+lemma mem_ker' (f : linear_pmap R E F) (x : f.ker) : f (submodule.of_le f.ker_le_domain x) = 0 :=
+begin
+  rw submodule.of_le_apply,
+  cases x with x_val x_prop,
+  rw submodule.mem_map at x_prop,
+  rcases x_prop with ⟨y, hy, h⟩,
+  simp only [submodule.coe_subtype] at h,
+  simp only [linear_map.mem_ker, to_fun_eq_coe] at hy,
+  rw ←hy,
+  refine f.congr_arg _,
+  simp[h],
+end
+
+
+-- Todo: define the kernel of a linear_pmap
+
+lemma closed.ker_closed {f : linear_pmap R E F} (hf : f.closed) : is_closed (f.ker : set E) :=
+begin
+  sorry,
+end
+
+variables (f : linear_pmap R E F) (x : f.ker)
+
+#check f.to_fun.range
+#check (f.to_fun.ker : set f.domain)
+
+lemma closed_iff_tendsto [sequential_space (E × F)]
+  [t2_space E] [t2_space F] {f : linear_pmap R E F} : f.closed ↔
+  ∀ {a : ℕ → f.domain} (ha' : ∃ x : E, (coe ∘ a : ℕ → E) →∞ x) (hfa : ∃ y, f ∘ a →∞ y),
+  ∃ x' : f.domain, (a →∞ x') ∧ (f ∘ a →∞ f x') :=
+begin
+  dunfold closed,
+  rw ←is_seq_closed_iff_is_closed,
+  split; intro h,
+  {
+    intro a,
+    sorry,
+  },
+  refine is_seq_closed_of_def _,
+  intros a z ha haz,
+  sorry,
+end
 
 /-- The topological closure of a closed submodule `s` is equal to `s`. -/
 lemma _root_.is_closed.topological_closure_eq {s : submodule R E} (hs : is_closed (s : set E)) :
@@ -34,8 +103,8 @@ lemma closed.closable {f : linear_pmap R E F} (hf : f.closed) : f.closable :=
 
 lemma closable_iff_tendsto [t2_space F] {f : linear_pmap R E F} : f.closable ↔
   ∀ {a : ℕ → f.domain} (ha : filter.tendsto a filter.at_top (𝓝 0))
-  (hfa : ∃ y : F, filter.tendsto (function.comp f a) filter.at_top (𝓝 y)),
-  filter.tendsto (function.comp f a) filter.at_top (𝓝 0)
+  (hfa : ∃ y : F, filter.tendsto (f ∘ a) filter.at_top (𝓝 y)),
+  filter.tendsto (f ∘ a) filter.at_top (𝓝 0)
   :=
 begin
   split; intro h,
@@ -76,7 +145,7 @@ begin
       sorry,
     end,
     specialize h ha1' ⟨x_snd, ha1''⟩,
-    let a2 : ℕ → F := prod.snd ∘ a, --λ n, (a n).snd,
+    let a2 : ℕ → F := prod.snd ∘ a,
     have ha2 : filter.tendsto a2 filter.at_top (𝓝 x_snd) :=
     begin
       refine filter.tendsto.comp _ ha,
@@ -103,18 +172,28 @@ begin
 end
 
 noncomputable
-def closure {f : linear_pmap R E F} (hf : f.closable) : linear_pmap R E F :=
+def closable.closure {f : linear_pmap R E F} (hf : f.closable) : linear_pmap R E F :=
 hf.some
 
-lemma closable.closure_eq_closure {f : linear_pmap R E F} (hf : f.closable) :
-  f.graph.topological_closure = (closure hf).graph :=
+/-- The closure (as a submodule) of the graph is equal to the graph of the closure
+  (as a `linear_pmap`). -/
+lemma closable.graph_closure_eq_closure_graph {f : linear_pmap R E F} (hf : f.closable) :
+  f.graph.topological_closure = hf.closure.graph :=
 hf.some_spec
 
-lemma closable.le_closure {f : linear_pmap R E F} (hf : f.closable) : f ≤ closure hf :=
+/-- A closable `linear_pmap` is contained in its closure. -/
+lemma closable.le_closure {f : linear_pmap R E F} (hf : f.closable) : f ≤ hf.closure :=
 begin
   refine le_of_le_graph _,
-  rw ←hf.closure_eq_closure,
+  rw ←hf.graph_closure_eq_closure_graph,
   exact (graph f).submodule_topological_closure,
+end
+
+/-- The closure is closed. -/
+lemma closable.closure_closed {f : linear_pmap R E F} (hf : f.closable) : hf.closure.closed :=
+begin
+  rw [closed_iff, ←hf.graph_closure_eq_closure_graph],
+  exact f.graph.is_closed_topological_closure,
 end
 
 end linear_pmap

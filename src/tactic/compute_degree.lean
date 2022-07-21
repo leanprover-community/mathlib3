@@ -128,19 +128,10 @@ meta def num_to_nat : expr → option ℕ
 | `(has_zero.zero) := some 0
 | `(has_one.one)   := some 1
 | `(bit0 %%a)      := bit0 <$> num_to_nat a
-| `(bit1 %%a)      := match num_to_nat a with
-  | some an        := some (bit1 an)
-  | none           := none
-  end
-| `(%%a + %%b)      := (+) <$> a <*> b
-| `(%%a * %%b)      := match num_to_nat a, num_to_nat b with
-  | (some an), (some bn) := some (an * bn)
-  | _, _ := none
-  end
-| `(%%a ^ %%b)      := match num_to_nat a, num_to_nat b with
-  | (some an), (some bn) := some (an ^ bn)
-  | _, _ := none
-  end
+| `(bit1 %%a)      := bit1 <$> num_to_nat a
+| `(%%a + %%b)     := (+) <$> num_to_nat a <*> num_to_nat b
+| `(%%a * %%b)     := (*) <$> num_to_nat a <*> num_to_nat b
+| `(%%a ^ %%b)     := (^) <$> num_to_nat a <*> num_to_nat b
 | _ := none
 
 /--  `convert_num_to_C_num a` takes an expression `a`, assuming that it is a term in a polynomial

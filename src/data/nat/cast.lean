@@ -274,6 +274,10 @@ lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
 
 end pi
 
+lemma sum.elim_nat_cast_nat_cast {α β γ : Type*} [has_nat_cast γ] (n : ℕ) :
+  sum.elim (n : α → γ) (n : β → γ) = n :=
+by { ext x, cases x; simp }
+
 namespace pi
 variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
 

@@ -32,10 +32,6 @@ is submultiplicative and such that `f x⁻¹ = f x` and `f x = 0 → x = 1` for 
 @[nolint has_inhabited_instance] structure group_norm extends group_seminorm E :=
 (eq_one_of_to_fun : ∀ ⦃x : E⦄, to_fun x = 0 → x = 1)
 
-lemma mul_mul_inv_cancel (x y z : E) [group E] : (x⁻¹*z) = (x⁻¹*y * (y⁻¹*z)) := by group
-
-lemma inv_of_inv_mul (x y : E) [group E] : (x⁻¹*y)⁻¹ = y⁻¹*x := by group
-
 /-- Constructing a seminormed group from a seminorm, i.e., registering the pseudodistance and the
 pseudometric space structure from the seminorm properties. Note that in most cases this instance
 creates bad definitional equalities (e.g., it does not take into account a possibly existing
@@ -45,14 +41,12 @@ def group_seminorm.to_seminormed_mul_group (p : group_seminorm E) : seminormed_m
   dist := λ x y, p (x⁻¹*y),
   dist_self := λ x, by simp [p.map_one],
   dist_triangle := λ x y z,
-    calc p (x⁻¹*z) = p (x⁻¹*y * (y⁻¹*z)) : by rw mul_mul_inv_cancel
+    calc p (x⁻¹*z) = p (x⁻¹*y * (y⁻¹*z)) : by rw [mul_assoc, mul_inv_cancel_left]
             ... ≤ p (x⁻¹*y) + p (y⁻¹*z)  : p.mul_le _ _,
-  dist_comm := begin
-    intros x y,
-    let pinv := p.inv (y⁻¹*x),
-    rw inv_of_inv_mul at pinv,
-    exact pinv
-  end }
+  dist_comm := λ x y,
+    calc p (x⁻¹*y) = p (y⁻¹*x)⁻¹ : by rw [mul_inv_rev,inv_inv]
+            ... = p (y⁻¹*x) : p.inv _
+ }
 
 /-- Constructing a normed group from a norm, i.e., registering the distance and the metric space
 structure from the norm properties. Note that in most cases this instance creates bad definitional

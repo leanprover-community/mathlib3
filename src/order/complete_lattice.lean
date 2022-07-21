@@ -592,59 +592,6 @@ lemma antitone.le_map_Inf [complete_lattice β] {s : set α} {f : α → β} (hf
   (⨆ a ∈ s, f a) ≤ f (Inf s) :=
 hf.dual_left.le_map_Sup
 
-lemma monotone.Sup_image_le {R S : Type*} [complete_lattice R] [complete_linear_order S]
-  {f : R → S} (f_incr : monotone f) (A : set R) :
-  Sup (f '' A) ≤ f (Sup A) :=
-begin
-  refine Sup_le _,
-  intros x x_in_fA,
-  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
-  by_contra b_gt,
-  have key := (f_incr (le_Sup z_in_A)),
-  rw fz_eq_x at key,
-  exact (lt_self_iff_false x).mp (lt_of_le_of_lt key (not_le.mp b_gt)),
-end
-
-lemma monotone.le_Inf_image {R S : Type*} [complete_semilattice_Inf R] [complete_linear_order S]
-  {f : R → S} (f_incr : monotone f) (A : set R) :
-  f (Inf A) ≤ Inf (f '' A) :=
-begin
-  have := f_incr.dual,
-  refine le_Inf _,
-  intros x x_in_fA,
-  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
-  by_contra b_gt,
-  have key := (f_incr (Inf_le z_in_A)),
-  rw fz_eq_x at key,
-  exact (lt_self_iff_false x).mp (lt_of_lt_of_le (not_le.mp b_gt) key),
-end
-
-lemma antitone.Sup_image_le {R S : Type*} [complete_semilattice_Inf R] [complete_linear_order S]
-  {f : R → S} (f_decr : antitone f) (A : set R) :
-  Sup (f '' A) ≤ f (Inf A) :=
-begin
-  refine Sup_le _,
-  intros x x_in_fA,
-  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
-  by_contra b_gt,
-  have key := (f_decr (Inf_le z_in_A)),
-  rw fz_eq_x at key,
-  exact (lt_self_iff_false x).mp (lt_of_le_of_lt key (not_le.mp b_gt)),
-end
-
-lemma antitone.le_Inf_image {R S : Type*} [complete_semilattice_Sup R] [complete_linear_order S]
-  {f : R → S} (f_decr : antitone f) (A : set R) :
-  f (Sup A) ≤ Inf (f '' A) :=
-begin
-  refine le_Inf _,
-  intros x x_in_fA,
-  rcases (mem_image f A x).mp x_in_fA with ⟨z, ⟨z_in_A, fz_eq_x⟩⟩,
-  by_contra b_gt,
-  have key := (f_decr (le_Sup z_in_A)),
-  rw fz_eq_x at key,
-  exact (lt_self_iff_false x).mp (lt_of_lt_of_le (not_le.mp b_gt) key),
-end
-
 lemma order_iso.map_supr [complete_lattice β] (f : α ≃o β) (x : ι → α) :
   f (⨆ i, x i) = ⨆ i, f (x i) :=
 eq_of_forall_ge_iff $ f.surjective.forall.2 $ λ x,

@@ -2891,11 +2891,14 @@ le_antisymm (f_decr.Sup_image_le A) (continuous_Inf_le_Sup_continuous f_cont A h
 
 lemma antitone.Inf_image_eq_apply_Sup {R S : Type*}
   [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_closed_topology S]
+  [complete_linear_order S] [topological_space S] [order_topology S]
   {f : R → S} (f_decr : antitone f) (f_cont : continuous f)
   (A : set R) (hA : A.nonempty):
   Inf (f '' A) = f (Sup A) :=
-f_decr.dual.Sup_image_eq_apply_Inf f_cont A hA
+begin
+  have this : continuous (order_dual.to_dual ∘ f) := f_cont,
+  exact (map_Sup_of_continuous_at_of_monotone' this.continuous_at f_decr hA).symm,
+end
 
 lemma monotone.Inf_image_eq_apply_Inf {R S : Type*}
   [complete_linear_order R] [topological_space R] [order_topology R]

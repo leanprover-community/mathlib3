@@ -36,7 +36,7 @@ by { success_if_fail_with_msg {compute_degree}
 
 end one_term_polynomials
 
-#exit
+--#exit
 example {F : Type*} [comm_semiring F] [nontrivial F] : nat_degree (1 + X : F[X]) = 1 :=
 by compute_degree
 

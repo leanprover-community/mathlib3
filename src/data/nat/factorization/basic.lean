@@ -417,6 +417,10 @@ begin
       nat.div_mul_cancel h],
 end
 
+lemma dvd_padic_part_of_dvd {n p : ℕ} (hn : n ≠ 0) (pp : p.prime) (h : p ∣ n) :
+  p ∣ n.padic_part p :=
+dvd_pow_self p (prime.factorization_pos_of_dvd pp hn h).ne'
+
 -- TODO: Rename this to `not_dvd_p_odd_part`
 lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   ¬p ∣ n.p_odd_part p :=

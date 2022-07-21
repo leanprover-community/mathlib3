@@ -5,8 +5,6 @@ Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.Group.basic
 import group_theory.free_abelian_group
-import algebra.category.Ring.basic
-import algebra.category.Module.basic
 
 /-!
 # Adjunctions regarding the category of (abelian) groups

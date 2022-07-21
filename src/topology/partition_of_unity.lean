@@ -125,16 +125,27 @@ variables {ι : Type u} {X : Type v} [topological_space X]
 
 namespace partition_of_unity
 
-variables {s : set X} (f : partition_of_unity ι X s)
+variables {E : Type*} [add_comm_monoid E] [smul_with_zero ℝ E] [topological_space E]
+  [has_continuous_smul ℝ E] {s : set X} (f : partition_of_unity ι X s)
 
 instance : has_coe_to_fun (partition_of_unity ι X s) (λ _, ι → C(X, ℝ)) := ⟨to_fun⟩
 
-protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
-f.locally_finite'
+protected lemma locally_finite : locally_finite (λ i, support (f i)) := f.locally_finite'
+
+lemma locally_finite_tsupport : locally_finite (λ i, tsupport (f i)) := f.locally_finite.closure
 
 lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 
 lemma sum_eq_one {x : X} (hx : x ∈ s) : ∑ᶠ i, f i x = 1 := f.sum_eq_one' x hx
+
+/-- If `f` is a partition of unity on `s`, then for every `x ∈ s` there exists an index `i` such
+that `0 < f i x`. -/
+lemma exists_pos {x : X} (hx : x ∈ s) : ∃ i, 0 < f i x :=
+begin
+  have H := f.sum_eq_one hx,
+  contrapose! H,
+  simpa only [λ i, (H i).antisymm (f.nonneg i x), finsum_zero] using zero_ne_one
+end
 
 lemma sum_le_one (x : X) : ∑ᶠ i, f i x ≤ 1 := f.sum_le_one' x
 
@@ -142,6 +153,22 @@ lemma sum_nonneg (x : X) : 0 ≤ ∑ᶠ i, f i x := finsum_nonneg $ λ i, f.nonn
 
 lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 (single_le_finsum i (f.locally_finite.point_finite x) (λ j, f.nonneg j x)).trans (f.sum_le_one x)
+
+/-- If `f` is a partition of unity on `s : set X` and `g : X → E` is continuous at every point of
+the topological support of some `f i`, then `λ x, f i x • g x` is continuous on the whole space. -/
+lemma continuous_smul {g : X → E} {i : ι} (hg : ∀ x ∈ tsupport (f i), continuous_at g x) :
+  continuous (λ x, f i x • g x) :=
+continuous_of_tsupport $ λ x hx, ((f i).continuous_at x).smul $
+  hg x $ tsupport_smul_subset_left _ _ hx
+
+/-- If `f` is a partition of unity on a set `s : set X` and `g : ι → X → E` is a family of functions
+such that each `g i` is continuous at every point of the topological support of `f i`, then the sum
+`λ x, ∑ᶠ i, f i x • g i x` is continuous on the whole space. -/
+lemma continuous_finsum_smul [has_continuous_add E] {g : ι → X → E}
+  (hg : ∀ i (x ∈ tsupport (f i)), continuous_at (g i) x) :
+  continuous (λ x, ∑ᶠ i, f i x • g i x) :=
+continuous_finsum (λ i, f.continuous_smul (hg i)) $
+  f.locally_finite.subset $ λ i, support_smul_subset_left _ _
 
 /-- A partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same type if
 for each `i` the closure of the support of `f i` is a subset of `U i`. -/
@@ -156,6 +183,15 @@ lemma exists_finset_nhd_support_subset {U : ι → set X}
     support (λ i, f i z) ⊆ is :=
 f.locally_finite.exists_finset_nhd_support_subset hso ho x
 
+/-- If `f` is a partition of unity that is subordinate to a family of open sets `U i` and
+`g : ι → X → E` is a family of functions such that each `g i` is continuous on `U i`, then the sum
+`λ x, ∑ᶠ i, f i x • g i x` is a continuous function. -/
+lemma is_subordinate.continuous_finsum_smul [has_continuous_add E] {U : ι → set X}
+  (ho : ∀ i, is_open (U i)) (hf : f.is_subordinate U) {g : ι → X → E}
+  (hg : ∀ i, continuous_on (g i) (U i)) :
+  continuous (λ x, ∑ᶠ i, f i x • g i x) :=
+f.continuous_finsum_smul $ λ i x hx, (hg i).continuous_at $ (ho i).mem_nhds $ hf i hx
+
 end partition_of_unity
 
 namespace bump_covering
@@ -164,11 +200,11 @@ variables {s : set X} (f : bump_covering ι X s)
 
 instance : has_coe_to_fun (bump_covering ι X s) (λ _, ι → C(X, ℝ)) := ⟨to_fun⟩
 
-protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
-f.locally_finite'
+protected lemma locally_finite : locally_finite (λ i, support (f i)) := f.locally_finite'
 
-protected lemma point_finite (x : X) : {i | f i x ≠ 0}.finite :=
-f.locally_finite.point_finite x
+lemma locally_finite_tsupport : locally_finite (λ i, tsupport (f i)) := f.locally_finite.closure
+
+protected lemma point_finite (x : X) : {i | f i x ≠ 0}.finite := f.locally_finite.point_finite x
 
 lemma nonneg (i : ι) (x : X) : 0 ≤ f i x := f.nonneg' i x
 

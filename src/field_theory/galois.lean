@@ -66,7 +66,7 @@ instance self : is_galois F F :=
 
 variables (F) {E}
 
-lemma integral [is_galois F E] (x : E) : is_integral F x := normal.is_integral' x
+lemma integral [is_galois F E] (x : E) : is_integral F x := to_normal.is_integral x
 
 lemma separable [is_galois F E] (x : E) : (minpoly F x).separable := is_separable.separable F x
 
@@ -257,7 +257,7 @@ def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
   left_inv := λ K, fixed_field_fixing_subgroup K,
   right_inv := λ H, intermediate_field.fixing_subgroup_fixed_field H,
   map_rel_iff' := λ K L, by { rw [←fixed_field_fixing_subgroup L, intermediate_field.le_iff_le,
-                                  fixed_field_fixing_subgroup L, ←order_dual.dual_le], refl } }
+                                  fixed_field_fixing_subgroup L], refl } }
 
 /-- The Galois correspondence as a galois_insertion -/
 def galois_insertion_intermediate_field_subgroup [finite_dimensional F E] :

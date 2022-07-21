@@ -340,6 +340,10 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
+/-- A relation embedding from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
+⟨embedding.of_is_empty, is_empty_elim⟩
+
 /-- `sum.inl` as a relation embedding into `sum.lift_rel r s`. -/
 @[simps] def sum_lift_rel_inl (r : α → α → Prop) (s : β → β → Prop) : r ↪r sum.lift_rel r s :=
 { to_fun := sum.inl,
@@ -468,9 +472,21 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 @[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
 /-- A relation isomorphism between equal relations on equal types. -/
-@[simps] protected def cast {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+@[simps to_equiv apply] protected def cast {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
 ⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
+
+@[simp] protected theorem cast_symm {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+  (h₁ : α = β) (h₂ : r == s) : (rel_iso.cast h₁ h₂).symm = rel_iso.cast h₁.symm h₂.symm := rfl
+
+@[simp] protected theorem cast_refl {α : Type u} {r : α → α → Prop}
+  (h₁ : α = α := rfl) (h₂ : r == r := heq.rfl) : rel_iso.cast h₁ h₂ = rel_iso.refl r := rfl
+
+@[simp] protected theorem cast_trans {α β γ : Type u}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} (h₁ : α = β) (h₁' : β = γ)
+  (h₂ : r == s) (h₂' : s == t): (rel_iso.cast h₁ h₂).trans (rel_iso.cast h₁' h₂') =
+  rel_iso.cast (h₁.trans h₁') (h₂.trans h₂') :=
+ext $ λ x, by { subst h₁, refl }
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=

@@ -5,6 +5,7 @@ Authors: Dhruv Bhatia, Eric Wieser
 -/
 import tactic.linear_combination
 import data.buffer.parser.numeral
+import data.json
 
 /-!
 
@@ -275,34 +276,43 @@ ch '('
     <|> sub_parser poly_parser <|> mul_parser poly_parser <|> pow_parser poly_parser)
   <* ch ')'
 
+meta instance : non_null_json_serializable poly :=
+{ to_json := λ p, json.null,  -- we don't actually need this, but the typeclass asks for it
+  of_json := λ j, do
+    s ← of_json string j,
+    match poly_parser.run_string s with
+    | sum.inl s := exceptional.fail format!"unable to parse polynomial from.\n\n{s}"
+    | sum.inr p := pure p
+    end}
+
+/-- A schema for success messages from the python script -/
+@[derive [non_null_json_serializable, inhabited]]
+structure sage_json_success :=
+(success : {b : bool // b = tt})
+(trace : option string := none)
+(data : option (list poly) := none)
+
+/-- A schema for failure messages from the python script -/
+@[derive [non_null_json_serializable, inhabited]]
+structure sage_json_failure :=
+(success : {b : bool // b = ff})
+(error_name : string)
+(error_value : string)
+
 /-- Parse the json output from `scripts/polyrith.py` into either an error message, a list of `poly`
 objects, or `none` if only trace output was requested. -/
 meta def convert_sage_output (j : json) : tactic (option (list poly)) :=
 do
-  json.object obj ← pure j | fail!"Must be an object",
-  let obj := rbmap.from_list obj,
-  json.of_bool success ← obj.find "success" | fail!"internal error: missing success field",
-  if success then do
-    do
-    { some t ← pure (obj.find "trace") | skip,
-      json.of_string t ← pure t | fail!"internal error: trace must be a string",
-      tactic.trace t },
-    do
-    { some d ← pure (obj.find "data") | pure none,
-      json.array l ← some d | fail!"internal error: data field must be a string",
-      l ← l.mmap $ λ x, do
-      { json.of_string poly_s ← pure x | fail!"internal error: entries must be strings",
-        pure poly_s },
-      l ← l.mmap $ λ x, match poly_parser.run_string x with
-        | sum.inl s := fail!"internal error: unable to parse polynomial from.\n\n{s}"
-        | sum.inr p := pure p
-        end,
-      pure l }
-  else do
-    json.of_string kind ← obj.find "error_name",
-    json.of_string message ← obj.find "error_value",
-    fail!"polyrith failed to retrieve a solution from Sage! {kind}: {message}"
-
+  r : sage_json_success ⊕ sage_json_failure ← decorate_ex "internal json error: "
+    -- try the error format first, so that if both fail we get the message from the success parser
+    (sum.inr <$> of_json sage_json_failure j <|> sum.inl <$> of_json sage_json_success j),
+  match r with
+  | sum.inr f :=
+      fail!"polyrith failed to retrieve a solution from Sage! {f.error_name}: {f.error_value}"
+  | sum.inl s := do
+      s.trace.mmap trace,
+      pure s.data
+  end
 
 /-!
 # Parsing context into poly
@@ -390,6 +400,15 @@ do
   pure j
 
 /--
+Adds parentheses around additions and subtractions, for printing at
+precedence 65.
+-/
+meta def add_parens : expr → tactic format
+| e@`(_ + _) := pformat!"({e})"
+| e@`(_ - _) := pformat!"({e})"
+| e := pformat!"{e}"
+
+/--
 Given a pair of `expr`s, where one represents the hypothesis/proof term,
 and the other representes the coefficient attached to it, this tactic
 creates a string combining the two in the appropriate format for
@@ -402,12 +421,10 @@ because it may appear as a negation (if this is the first component)
 or a subtraction.
 -/
 meta def component_to_lc_format : expr × expr → tactic (bool × format)
-| (ex, `(-@has_one.one _ _)) := prod.mk tt <$> pformat!"{ex}"
 | (ex, `(@has_one.one _ _))  := prod.mk ff <$> pformat!"{ex}"
+| (ex, `(@has_one.one _ _ / %%cf))  := do f ← add_parens cf, prod.mk ff <$> pformat!"{ex} / {f}"
 | (ex, `(-%%cf)) := do (neg, fmt) ← component_to_lc_format (ex, cf), return (!neg, fmt)
-| (ex, cf@`(_ + _)) := prod.mk ff <$> pformat!"({cf}) * {ex}"
-| (ex, cf@`(_ - _)) := prod.mk ff <$> pformat!"({cf}) * {ex}"
-| (ex, cf) := prod.mk ff <$> pformat!"{cf} * {ex}"
+| (ex, cf) := do f ← add_parens cf, prod.mk ff <$> pformat!"{f} * {ex}"
 
 private meta def intersperse_ops_aux : list (bool × format) → format
 | [] := ""
@@ -451,7 +468,7 @@ The second half of `tactic.polyrith` processes the output from Sage into
 a call to `linear_combination`.
 -/
 meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_out : json) :
-  tactic format := do
+  tactic format := focus1 $ do
   some coeffs_as_poly ← convert_sage_output sage_out | fail!"internal error: No output available",
   coeffs_as_pexpr ← coeffs_as_poly.mmap (poly.to_pexpr m),
   let eq_names_pexpr := eq_names.map to_pexpr,
@@ -460,6 +477,9 @@ meta def process_output (eq_names : list expr) (m : list expr) (R : expr) (sage_
   let components := (eq_names.zip coeffs_as_expr).filter
     $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
+  let lc_fmt : format := "linear_combination " ++ format.nest 2 (format.group expr_string),
+  done <|>
+    fail!"polyrith found the following certificate, but it failed to close the goal:\n{lc_fmt}",
   return $ "linear_combination " ++ format.nest 2 (format.group expr_string)
 
 /-- Tactic for the special case when no hypotheses are available. -/
@@ -560,6 +580,6 @@ add_tactic_doc
 { name := "polyrith",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.polyrith],
-  tags := ["arithmetic", "automation", "polynomial", "grobner", "groebner"] }
+  tags := ["arithmetic", "finishing", "decision procedure"] }
 
 end polyrith

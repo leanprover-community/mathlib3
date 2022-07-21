@@ -143,6 +143,10 @@ def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i sub
 
 @[simp] theorem cod_restrict_apply (p) (f : r ≼i s) (H a) : cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
+/-- Initial segment from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ≼i s :=
+⟨rel_embedding.of_is_empty r s, is_empty_elim⟩
+
 /-- Initial segment embedding of an order `r` into the disjoint union of `r` and `s`. -/
 def le_add (r : α → α → Prop) (s : β → β → Prop) : r ≼i sum.lex r s :=
 ⟨⟨⟨sum.inl, λ _ _, sum.inl.inj⟩, λ a b, sum.lex_inl_inl⟩,
@@ -300,6 +304,19 @@ theorem cod_restrict_apply (p) (f : r ≺i s) (H H₂ a) : cod_restrict p f H H�
 
 @[simp]
 theorem cod_restrict_top (p) (f : r ≺i s) (H H₂) : (cod_restrict p f H H₂).top = ⟨f.top, H₂⟩ := rfl
+
+/-- Principal segment from an empty type into a type with a minimal element. -/
+def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) : r ≺i s :=
+{ top := b,
+  down := by simp [H],
+  ..rel_embedding.of_is_empty r s }
+
+@[simp] theorem of_is_empty_top (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ s b' b) :
+  (of_is_empty r H).top = b := rfl
+
+/-- Principal segment from the empty relation on `pempty` to the empty relation on `punit`. -/
+@[reducible] def pempty_to_punit : @empty_relation pempty ≺i @empty_relation punit :=
+@of_is_empty _ _ empty_relation _ _ punit.star $ λ x, not_false
 
 end principal_seg
 

@@ -43,7 +43,8 @@ lemma to_finsupp_apply_le (hn : l.length ≤ n) :
   l.to_finsupp n = 0 :=
 nthd_eq_default _ _ hn
 
-@[simp] lemma to_finsupp_nil : to_finsupp ([] : list M) = 0 :=
+@[simp] lemma to_finsupp_nil [decidable_pred (λ (i : ℕ), nthd 0 ([] : list M) i ≠ 0)] :
+  to_finsupp ([] : list M) = 0 :=
 by { ext, simp [to_finsupp_coe] }
 
  lemma to_finsupp_singleton (x : M)

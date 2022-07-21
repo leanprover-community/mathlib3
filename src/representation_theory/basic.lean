@@ -88,7 +88,7 @@ If `ρ : representation k G V`, then `ρ.as_module` is a type synonym for `V`,
 which we equip with an instance `module (monoid_algebra k G) ρ.as_module`.
 You should use `as_module_equiv : ρ.as_module ≃+ V` to translate terms.
 -/
-@[nolint unused_arguments, derive add_comm_monoid]
+@[nolint unused_arguments, derive [add_comm_monoid, module (module.End k V)]]
 def as_module (ρ : representation k G V) := V
 
 instance : inhabited ρ.as_module := ⟨0⟩
@@ -98,10 +98,7 @@ A `k`-linear representation of `G` on `V` can be thought of as
 a module over `monoid_algebra k G`.
 -/
 noncomputable instance as_module_module : module (monoid_algebra k G) ρ.as_module :=
-begin
-  change module (monoid_algebra k G) V,
-  exact module.comp_hom V (as_algebra_hom ρ).to_ring_hom,
-end
+module.comp_hom V (as_algebra_hom ρ).to_ring_hom
 
 end monoid_algebra
 

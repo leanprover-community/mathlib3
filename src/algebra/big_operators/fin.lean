@@ -161,11 +161,8 @@ by simpa [partial_prod]
   f 0 • partial_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
 funext $ λ x, fin.induction_on x (by simp) (λ x hx,
 begin
-  dsimp at hx ⊢,
-  rw [partial_prod_succ, ←mul_assoc, hx],
-  convert mul_inv_cancel_left _ _,
-  ext,
-  exact fin.coe_coe_of_lt (lt_trans x.2 (nat.lt_succ_self _))
+  simp only [coe_eq_cast_succ, pi.smul_apply, smul_eq_mul] at hx ⊢,
+  rw [partial_prod_succ, ←mul_assoc, hx, mul_inv_cancel_left],
 end)
 
 @[to_additive] lemma partial_prod_right_inv {G : Type*} [group G]
@@ -173,12 +170,9 @@ end)
   ((g • partial_prod f) i)⁻¹ * (g • partial_prod f) i.succ = f i :=
 begin
   cases i with i hn,
-  revert hn,
-  induction i with i hi,
-  { intro hn,
-    simp [←fin.succ_mk, partial_prod_succ] },
-  { intro hn,
-    specialize hi (lt_trans (nat.lt_succ_self i) hn),
+  induction i with i hi generalizing hn,
+  { simp [←fin.succ_mk, partial_prod_succ] },
+  { specialize hi (lt_trans (nat.lt_succ_self i) hn),
     simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
       smul_eq_mul, pi.smul_apply] at hi ⊢,
     rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk],

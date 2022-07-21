@@ -48,6 +48,14 @@ lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 
 @[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : s.restrict f x = f x := rfl
 
+lemma restrict_eq_iff {f : Π a, π a} {s : set α} {g : Π a : s, π a} :
+  restrict s f = g ↔ ∀ a (ha : a ∈ s), f a = g ⟨a, ha⟩ :=
+funext_iff.trans subtype.forall
+
+lemma eq_restrict_iff {s : set α} {f : Π a : s, π a} {g : Π a, π a} :
+  f = restrict s g ↔ ∀ a (ha : a ∈ s), f ⟨a, ha⟩ = g a :=
+funext_iff.trans subtype.forall
+
 @[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (s.restrict f) = f '' s :=
 (range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
@@ -127,23 +135,28 @@ variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f�
 
 /-! ### Equality on a set -/
 
-/-- Two functions `f₁ f₂ : α → β` are equal on `s`
+/-- Two functions `f₁ f₂ : Π a : α, π a` are equal on `s`
   if `f₁ x = f₂ x` for all `x ∈ a`. -/
-def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
+def eq_on (f₁ f₂ : Π a, π a) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
-@[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+@[simp] lemma restrict_eq_restrict_iff {f g : Π a, π a} :
+  restrict s f = restrict s g ↔ eq_on f g s :=
+restrict_eq_iff
 
-@[symm] lemma eq_on.symm (h : eq_on f₁ f₂ s) : eq_on f₂ f₁ s :=
+@[simp] lemma eq_on_empty (f₁ f₂ : Π a, π a) : eq_on f₁ f₂ ∅ := λ x, false.elim
+
+@[symm] lemma eq_on.symm {f g : Π a, π a} (h : eq_on f g s) : eq_on g f s :=
 λ x hx, (h hx).symm
 
-lemma eq_on_comm : eq_on f₁ f₂ s ↔ eq_on f₂ f₁ s :=
+lemma eq_on_comm {f g : Π a, π a} : eq_on f g s ↔ eq_on g f s :=
 ⟨eq_on.symm, eq_on.symm⟩
 
-@[refl] lemma eq_on_refl (f : α → β) (s : set α) : eq_on f f s :=
+@[refl] lemma eq_on_refl (f : Π a, π a) (s : set α) : eq_on f f s :=
 λ _ _, rfl
 
-@[trans] lemma eq_on.trans (h₁ : eq_on f₁ f₂ s) (h₂ : eq_on f₂ f₃ s) : eq_on f₁ f₃ s :=
+@[trans] lemma eq_on.trans {f₁ f₂ f₃ : Π a, π a} (h₁ : eq_on f₁ f₂ s) (h₂ : eq_on f₂ f₃ s) :
+  eq_on f₁ f₃ s :=
 λ x hx, (h₁ hx).trans (h₂ hx)
 
 theorem eq_on.image_eq (heq : eq_on f₁ f₂ s) : f₁ '' s = f₂ '' s :=
@@ -152,7 +165,7 @@ image_congr heq
 theorem eq_on.inter_preimage_eq (heq : eq_on f₁ f₂ s) (t : set β) : s ∩ f₁ ⁻¹' t = s ∩ f₂ ⁻¹' t :=
 ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, heq hx]
 
-lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
+lemma eq_on.mono {f₁ f₂ : Π a, π a} (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 
 lemma eq_on.comp_left (h : s.eq_on f₁ f₂) : s.eq_on (g ∘ f₁) (g ∘ f₂) := λ a ha, congr_arg _ $ h ha

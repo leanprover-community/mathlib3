@@ -2485,7 +2485,7 @@ at this point. -/
 lemma cont_diff_within_at.mul {s : set E} {f g : E → 𝔸}
   (hf : cont_diff_within_at 𝕜 n f s x) (hg : cont_diff_within_at 𝕜 n g s x) :
   cont_diff_within_at 𝕜 n (λ x, f x * g x) s x :=
-cont_diff_mul.comp_cont_diff_within_at x (hf.prod hg)
+cont_diff_mul.comp_cont_diff_within_at (hf.prod hg)
 
 /-- The product of two `C^n` functions at a point is `C^n` at this point. -/
 lemma cont_diff_at.mul {f g : E → 𝔸} (hf : cont_diff_at 𝕜 n f x) (hg : cont_diff_at 𝕜 n g x) :

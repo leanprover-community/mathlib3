@@ -163,7 +163,7 @@ functions such that `g i` is $C^n$ smooth at every point of the topological supp
 the sum `λ x, ∑ᶠ i, f i x • g i x` is smooth on the whole manifold. -/
 lemma cont_mdiff_finsum_smul {g : ι → M → F}
   (hg : ∀ i (x ∈ tsupport (f i)), cont_mdiff_at I 𝓘(ℝ, F) n (g i) x) :
-  cont_mdiff I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
+  cont_mdiff I 𝓘(ℝ, F) n (λ x, ∑ᶠ i, f i x • g i x) :=
 cont_mdiff_finsum (λ i, f.cont_mdiff_smul (hg i)) $ f.locally_finite.subset $
   λ i, support_smul_subset_left _ _
 

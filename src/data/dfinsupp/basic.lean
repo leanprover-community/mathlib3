@@ -30,7 +30,7 @@ that this does not impact equality. This approach has computational benefits ove
 having to evaluate the resulting function to recompute its support (which would required
 decidability of `b = 0` for `b : β i`).
 
-The true support of the function can sill be recovered with `dfinsupp.support`; but these
+The true support of the function can still be recovered with `dfinsupp.support`; but these
 decidability obligations are now postponed to when the support is actually needed. As a consequence,
 there are two ways to sum a `dfinsupp`: with `dfinsupp.sum` which works over an arbitrary function
 but requires recomputation of the support and therefore a `decidable` argument; and with

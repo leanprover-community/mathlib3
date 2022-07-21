@@ -236,17 +236,17 @@ lemma elim_one_one [has_one γ] :
 by { ext x, cases x; simp }
 
 @[to_additive]
-lemma inv_elim [has_inv γ] :
+lemma elim_inv_inv [has_inv γ] :
   sum.elim a⁻¹ b⁻¹ = (sum.elim a b)⁻¹ :=
 by { ext x, cases x; simp }
 
 @[to_additive]
-lemma mul_elim [has_mul γ] :
+lemma elim_mul_mul [has_mul γ] :
   sum.elim (a * a') (b * b') = sum.elim a b * sum.elim a' b' :=
 by { ext x, cases x; simp }
 
 @[to_additive]
-lemma div_elim [has_div γ] :
+lemma elim_div_div [has_div γ] :
   sum.elim (a / a') (b / b') = sum.elim a b / sum.elim a' b' :=
 by { ext x, cases x; simp }
 

@@ -689,12 +689,6 @@ variables {F : Type*} [non_unital_non_assoc_semiring T] [non_unital_ring_hom_cla
 
 open non_unital_subsemiring_class non_unital_subsemiring
 
-/-- Restriction of a non-unital ring homomorphism to a non-unital subsemiring of the domain. -/
-def restrict (f : F) (s : non_unital_subsemiring R) : s →ₙ+* S :=
-(f : R →ₙ+* S).comp (subtype s)
-
-@[simp] lemma restrict_apply (f : F) (x : s) : (restrict f s x : S) = f x := rfl
-
 /-- Restriction of a non-unital ring homomorphism to a non-unital subsemiring of the codomain. -/
 def cod_restrict (f : F) (s : non_unital_subsemiring S) (h : ∀ x, f x ∈ s) : R →ₙ+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,

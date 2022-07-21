@@ -76,7 +76,7 @@ by {
   --norm_num,
   sorry
   }
-#exit
+--#exit
 example {R} [semiring R] [nontrivial R] {a b c d e : R} :
   nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   (C a * X ^ 0 + (C b * X ^ 5 + X ^ 10 + C c * X ^ 2) + --0 * X ^ 10 +
@@ -347,4 +347,4 @@ by compute_degree_le; assumption
 example {F} [ring F] : nat_degree (X ^ 4 + bit1 1 : F[X]) ≤ 4 :=
 by {compute_degree_le }
 
-end non_trivial
+end tests_for_compute_degree

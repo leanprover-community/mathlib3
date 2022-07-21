@@ -262,61 +262,71 @@ begin
     { exact set.eq_empty_of_forall_not_mem (λ j ⟨hj₁, hj₂⟩, hx₁ ⟨j, hj₁, hj₂⟩) } },
 end
 
-#exit
-
 variables {r : ℝ} {R : ℝ≥0}
 
--- #check snorm_le_of_ae_bound
-
-lemma norm_stopped_process_least_ge_le [is_finite_measure μ]
-  {r : ℝ} (hr : 0 ≤ r) (hf : 0 ≤ f) (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (n m : ℕ) :
-  ∀ᵐ x ∂μ, ∥stopped_process f (least_ge f r n) m x∥ ≤ r + R + f 0 x :=
+lemma norm_stopped_value_least_ge_le [is_finite_measure μ]
+  {r : ℝ} (hr : 0 ≤ r) (hf : 0 ≤ f) (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (i : ℕ) :
+  ∀ᵐ x ∂μ, ∥stopped_value f (least_ge f r i) x∥ ≤ r + R + f 0 x :=
 begin
   filter_upwards [hbdd] with x hbddx,
-  change ∥f (min m $ least_ge f r n x) x∥ ≤ r + R + f 0 x,
-  rw [real.norm_eq_abs, abs_of_nonneg (hf (min m $ least_ge f r n x) x)],
-  by_cases hlt : m < least_ge f r n x,
-  { rw [min_eq_left hlt.le, add_assoc],
-    refine (not_le.1 $ not_mem_of_lt_hitting hlt $ zero_le _).le.trans
-      (le_add_of_nonneg_right $ add_nonneg R.coe_nonneg (hf 0 x)) },
-  { rw min_eq_right (not_lt.1 hlt),
-    by_cases heq : least_ge f r n x = 0,
-    { exact heq ▸ le_add_of_nonneg_left (add_nonneg hr R.coe_nonneg) },
-    { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero heq,
-      exact hk.symm ▸ (sub_le_iff_le_add.1 $ hbddx k).trans
-        ((add_le_add_left (not_le.1 $ not_mem_of_lt_hitting
-          (hk.symm ▸ k.lt_succ_self : k < least_ge f r n x) (zero_le _)).le _).trans
-          (add_comm ↑R r ▸ le_add_of_nonneg_right (hf 0 x))) } }
+  change ∥f (least_ge f r i x) x∥ ≤ r + R + f 0 x,
+  rw [real.norm_eq_abs, abs_of_nonneg (hf (least_ge f r i x) x)],
+  by_cases heq : least_ge f r i x = 0,
+  { exact heq ▸ le_add_of_nonneg_left (add_nonneg hr R.coe_nonneg) },
+  { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero heq,
+    exact hk.symm ▸ (sub_le_iff_le_add.1 $ hbddx k).trans
+      ((add_le_add_left (not_le.1 $ not_mem_of_lt_hitting
+        (hk.symm ▸ k.lt_succ_self : k < least_ge f r i x) (zero_le _)).le _).trans
+        (add_comm ↑R r ▸ le_add_of_nonneg_right (hf 0 x))) }
 end
 
-lemma stopped_process_least_ge_snorm_le [is_finite_measure μ]
+lemma stopped_value_least_ge_snorm_le [is_finite_measure μ]
   {r : ℝ} (hr : 0 ≤ r) (hf : 0 ≤ f) (hf0 : f 0 = 0)
-  (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (n m : ℕ) :
-  snorm (stopped_process f (least_ge f r n) m) 1 μ ≤ μ set.univ * ennreal.of_real (r + R) :=
+  (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (i : ℕ) :
+  snorm (stopped_value f (least_ge f r i)) 1 μ ≤ μ set.univ * ennreal.of_real (r + R) :=
 begin
-  have hbound := norm_stopped_process_least_ge_le hr hf hbdd n m,
+  have hbound := norm_stopped_value_least_ge_le hr hf hbdd i,
   simp only [hf0, pi.zero_apply, add_zero] at hbound,
   refine le_trans (snorm_le_of_ae_bound hbound) _,
   rw [ennreal.one_to_real, inv_one, ennreal.rpow_one],
   exact le_rfl,
 end
 
--- lemma foo [is_finite_measure μ]
---   (hf : submartingale f ℱ μ) (hlef : 0 ≤ f) (hf0 : f 0 = 0)
---   (hbdd : ∀ n, snorm (f (n + 1) - f n) 1 μ ≤ R) :
---   ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) → ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
--- begin
---   suffices : ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) →
---     ∃ N : ℕ, f = λ n, stopped_process f (least_ge f N n) n,
---   { filter_upwards [this] with x hx hbound,
---     obtain ⟨N, hN⟩ := hx hbound,
---     rw [hN],
---     simp,
---     -- refine submartingale.exists_ae_trim_tendsto_of_bdd _ _,
+lemma stopped_value_least_ge_snorm_le' [is_finite_measure μ]
+  {r : ℝ} (hr : 0 ≤ r) (hf : 0 ≤ f) (hf0 : f 0 = 0)
+  (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) (i : ℕ) :
+  snorm (stopped_value f (least_ge f r i)) 1 μ ≤
+    ennreal.to_nnreal (μ set.univ * ennreal.of_real (r + R)) :=
+begin
+  refine (stopped_value_least_ge_snorm_le hr hf hf0 hbdd i).trans _,
+  rw [ennreal.coe_to_nnreal (ennreal.mul_ne_top (measure_ne_top μ _) (ennreal.of_real_ne_top))],
+  exact le_rfl,
+end
 
---    },
---   -- have := hf.stopped_process_least_ge,
---   sorry
--- end
+lemma submartingale.exists_tendsto_of_bdd_above [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hlef : 0 ≤ f) (hf0 : f 0 = 0)
+  (hbdd : ∀ᵐ x ∂μ, ∀ i, f (i + 1) x - f i x ≤ R) :
+  ∀ᵐ x ∂μ, bdd_above (set.range $ λ n, f n x) → ∃ c, tendsto (λ n, f n x) at_top (𝓝 c) :=
+begin
+  have ht : ∀ᵐ x ∂μ, ∀ i : ℕ, ∃ c, tendsto (λ n, stopped_value f (least_ge f i n) x) at_top (𝓝 c),
+  { rw ae_all_iff,
+    exact λ i, submartingale.exists_ae_tendsto_of_bdd (hf.stopped_value_least_ge i)
+      (stopped_value_least_ge_snorm_le' i.cast_nonneg hlef hf0 hbdd) },
+  filter_upwards [ht] with x hx hxb,
+  rw bdd_above at hxb,
+  obtain ⟨i, hi⟩ := exists_nat_gt hxb.some,
+  have hib : ∀ n, f n x < i,
+  { intro n,
+    exact lt_of_le_of_lt ((mem_upper_bounds.1 hxb.some_mem) _ ⟨n, rfl⟩) hi },
+  have heq : ∀ n, stopped_value f (least_ge f i n) x = f n x,
+  { intro n,
+    rw [least_ge, hitting, stopped_value],
+    simp only,
+    rw if_neg,
+    push_neg,
+    exact λ j _ hj, not_le.2 (hib j) hj },
+  simp only [← heq, hx i],
+end
+#check condexp_mono
 
 end measure_theory

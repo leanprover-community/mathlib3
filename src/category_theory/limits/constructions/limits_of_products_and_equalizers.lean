@@ -217,6 +217,8 @@ preserves_limits_of_size.{w w} G :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI preserves_limit_of_preserves_equalizers_and_product G }
 
+set_option pp.universes true
+
 lemma has_finite_limits_of_has_terminal_and_pullbacks [has_terminal C] [has_pullbacks C] :
   has_finite_limits C :=
 @@finite_limits_from_equalizers_and_finite_products _
@@ -228,12 +230,12 @@ lemma has_finite_limits_of_has_terminal_and_pullbacks [has_terminal C] [has_pull
 /-- If G preserves terminal objects and pullbacks, it preserves all finite limits. -/
 def preserves_finite_limits_of_preserves_terminal_and_pullbacks
   [has_terminal C] [has_pullbacks C] (G : C ⥤ D)
-  [preserves_limits_of_shape (discrete.{v} pempty) G]
-  [preserves_limits_of_shape walking_cospan.{v} G] :
+  [preserves_limits_of_shape (discrete.{0} pempty) G]
+  [preserves_limits_of_shape walking_cospan G] :
 preserves_finite_limits G :=
 begin
   haveI : has_finite_limits C := has_finite_limits_of_has_terminal_and_pullbacks,
-  haveI : preserves_limits_of_shape (discrete.{v} walking_pair) G :=
+  haveI : preserves_limits_of_shape (discrete walking_pair) G :=
     preserves_binary_products_of_preserves_terminal_and_pullbacks G,
   exact @@preserves_finite_limits_of_preserves_equalizers_and_finite_products _ _ _ _ G
     (preserves_equalizers_of_pullbacks_and_binary_products G)
@@ -435,12 +437,12 @@ lemma has_finite_colimits_of_has_initial_and_pushouts [has_initial C] [has_pusho
 /-- If G preserves initial objects and pushouts, it preserves all finite colimits. -/
 def preserves_finite_colimits_of_preserves_initial_and_pushouts
   [has_initial C] [has_pushouts C] (G : C ⥤ D)
-  [preserves_colimits_of_shape (discrete.{v} pempty) G]
-  [preserves_colimits_of_shape walking_span.{v} G] :
+  [preserves_colimits_of_shape (discrete.{0} pempty) G]
+  [preserves_colimits_of_shape walking_span G] :
 preserves_finite_colimits G :=
 begin
   haveI : has_finite_colimits C := has_finite_colimits_of_has_initial_and_pushouts,
-  haveI : preserves_colimits_of_shape (discrete.{v} walking_pair) G :=
+  haveI : preserves_colimits_of_shape (discrete walking_pair) G :=
     preserves_binary_coproducts_of_preserves_initial_and_pushouts G,
   exact @@preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts _ _ _ _ G
     (preserves_coequalizers_of_pushouts_and_binary_coproducts G)

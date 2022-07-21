@@ -19,14 +19,14 @@ TODO: generalize universe
 
 noncomputable theory
 
-universes v u u'
+universes v v' u u'
 
 open category_theory category_theory.category
 
 namespace category_theory.limits
 
 variables {C : Type u} [category.{v} C]
-variables {D : Type u'} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u'} [category.{v'} D] (G : C ⥤ D)
 
 -- We hide the "implementation details" inside a namespace
 namespace has_equalizers_of_pullbacks_and_binary_products
@@ -121,9 +121,9 @@ def preserves_equalizers_of_pullbacks_and_binary_products
     rw iso.eq_comp_inv,
     have := h walking_parallel_pair.zero,
     dsimp [equalizer_cone] at this,
-    ext; simpa only [pullback_comparison_comp_fst, pullback_comparison_comp_snd, category.assoc,
-        preserves_pullback.iso_hom, pullback.lift_fst, pullback.lift_snd, category.comp_id,
-        ← pullback_fst_eq_pullback_snd] using this
+    ext; simp only [preserves_pullback.iso_hom_snd,
+      category.assoc, preserves_pullback.iso_hom_fst, pullback.lift_fst, pullback.lift_snd,
+      category.comp_id, ← pullback_fst_eq_pullback_snd, ← this],
   end }⟩
 
 
@@ -221,9 +221,9 @@ def preserves_coequalizers_of_pushouts_and_binary_coproducts
     rw iso.eq_inv_comp,
     have := h walking_parallel_pair.one,
     dsimp [coequalizer_cocone] at this,
-    ext; simpa only [preserves_pushout.iso_hom, category.id_comp, pushout.inl_desc,
-      pushout.inr_desc, inl_comp_pushout_comparison_assoc, inr_comp_pushout_comparison_assoc,
-      ← pushout_inl_eq_pushout_inr] using this,
+    ext; simp only [preserves_pushout.inl_iso_hom_assoc, category.id_comp, pushout.inl_desc,
+      pushout.inr_desc, preserves_pushout.inr_iso_hom_assoc,
+      ← pushout_inl_eq_pushout_inr, ← this],
   end }⟩
 
 

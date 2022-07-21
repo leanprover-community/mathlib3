@@ -194,12 +194,20 @@ iff.rfl
 alias is_subordinate_to_partition_of_unity ↔ _ is_subordinate.to_partition_of_unity
 
 /-- If `f` is a smooth partition of unity on a set `s : set M` subordinate to a family of open sets
+`U : ι → set M` and `g : ι → M → F` is a family of functions such that `g i` is $C^n$ smooth on
+`U i`, then the sum `λ x, ∑ᶠ i, f i x • g i x` is $C^n$ smooth on the whole manifold. -/
+lemma is_subordinate.cont_mdiff_finsum_smul {g : ι → M → F} (hf : f.is_subordinate U)
+  (ho : ∀ i, is_open (U i)) (hg : ∀ i, cont_mdiff_on I 𝓘(ℝ, F) n (g i) (U i)) :
+  cont_mdiff I 𝓘(ℝ, F) n (λ x, ∑ᶠ i, f i x • g i x) :=
+f.cont_mdiff_finsum_smul $ λ i x hx, (hg i).cont_mdiff_at $ (ho i).mem_nhds (hf i hx)
+
+/-- If `f` is a smooth partition of unity on a set `s : set M` subordinate to a family of open sets
 `U : ι → set M` and `g : ι → M → F` is a family of functions such that `g i` is smooth on `U i`,
 then the sum `λ x, ∑ᶠ i, f i x • g i x` is smooth on the whole manifold. -/
 lemma is_subordinate.smooth_finsum_smul {g : ι → M → F} (hf : f.is_subordinate U)
   (ho : ∀ i, is_open (U i)) (hg : ∀ i, smooth_on I 𝓘(ℝ, F) (g i) (U i)) :
   smooth I 𝓘(ℝ, F) (λ x, ∑ᶠ i, f i x • g i x) :=
-f.smooth_finsum_smul $ λ i x hx, (hg i).smooth_at $ (ho i).mem_nhds (hf i hx)
+hf.cont_mdiff_finsum_smul ho hg
 
 end smooth_partition_of_unity
 
@@ -482,7 +490,7 @@ See also `exists_cont_mdiff_forall_mem_convex_of_local` and
 lemma exists_smooth_forall_mem_convex_of_local (ht : ∀ x, convex ℝ (t x))
   (Hloc : ∀ x : M, ∃ (U ∈ 𝓝 x) (g : M → F), smooth_on I 𝓘(ℝ, F) g U ∧ ∀ y ∈ U, g y ∈ t y) :
   ∃ g : C^∞⟮I, M; 𝓘(ℝ, F), F⟯, ∀ x, g x ∈ t x :=
-exists_cont_mdiff_forall_mem_convex_of_local ht Hloc
+exists_cont_mdiff_forall_mem_convex_of_local I ht Hloc
 
 /-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F` be
 a family of convex sets. Suppose that for each point `x : M` there exists a vector `c : F` such that

@@ -17,13 +17,6 @@ section nthd
 
 variables {α : Type*} (l : list α) (x : α) (xs : list α) (d : α) (n : ℕ)
 
-/-- "default" `nth` function: returns `d` instead of `none` in the case
-  that the index is out of bounds. -/
-def nthd : Π (l : list α) (n : ℕ), α
-| []      _       := d
-| (x::xs) 0       := x
-| (x::xs) (n + 1) := nthd xs n
-
 @[simp] lemma nthd_nil : nthd d [] n = d := rfl
 
 @[simp] lemma nthd_cons_zero : nthd d (x::xs) 0 = x := rfl

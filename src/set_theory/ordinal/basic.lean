@@ -197,17 +197,26 @@ add_decl_doc ordinal.partial_order.le
   a function embedding `r` as a principal segment of `s`. -/
 add_decl_doc ordinal.partial_order.lt
 
-theorem type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
+theorem type_le_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r ≤ type s ↔ nonempty (r ≼i s) := iff.rfl
 
-theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
+theorem type_le_iff' {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ↪r s) :=
 ⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
+
+theorem _root_.initial_seg.ordinal_type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ≼i s) : type r ≤ type s := ⟨h⟩
+
+theorem _root_.rel_embedding.ordinal_type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ↪r s) : type r ≤ type s := ⟨h.collapse⟩
 
 @[simp] theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r < type s ↔ nonempty (r ≺i s) := iff.rfl
+
+theorem _root_.principal_seg.ordinal_type_lt {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ≺i s) : type r < type s := ⟨h⟩
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
@@ -637,14 +646,13 @@ instance add_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
-  induction_on c $ λ β s hs, (@type_le' _ _ _ _
-    (@sum.lex.is_well_order _ _ _ _ hr₁ hs)
-    (@sum.lex.is_well_order _ _ _ _ hr₂ hs)).2
-  ⟨⟨f.sum_map (embedding.refl _), λ a b, begin
+  induction_on c $ λ β s hs, by exactI
+  @rel_embedding.ordinal_type_le _ _ (sum.lex r₁ s) (sum.lex r₂ s) _ _
+  ⟨f.sum_map (embedding.refl _), λ a b, begin
     split; intro H,
     { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
     { cases H; constructor; [rwa fo, assumption] }
-  end⟩⟩)
+  end⟩)
 end⟩
 
 theorem le_add_right (a b : ordinal) : a ≤ a + b :=
@@ -741,7 +749,7 @@ end, λ h, by simp_rw h⟩
 
 /-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
 @[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
-{ to_fun := λ ⟨o, h⟩, enum r o h,
+{ to_fun := λ x, enum r x.1 x.2,
   inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
   left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
   right_inv := λ h, enum_typein _ _,
@@ -749,7 +757,7 @@ end, λ h, by simp_rw h⟩
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
 @[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=
-{ to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
+{ to_fun := λ x, enum (<) x.1 $ by { rw type_lt, exact x.2 },
   inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
   left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
   right_inv := λ h, enum_typein _ _,
@@ -899,33 +907,34 @@ let ⟨r, _, e⟩ := ord_eq α in begin
   { cases h with f,
     have g := rel_embedding.preimage f s,
     haveI := rel_embedding.is_well_order g,
-    exact le_trans (ord_le_type _) (type_le'.2 ⟨g⟩) }
+    exact le_trans (ord_le_type _) g.ordinal_type_le }
 end
 
-theorem lt_ord {c o} : o < ord c ↔ o.card < c :=
-by rw [← not_le, ← not_le, ord_le]
+theorem gc_ord_card : galois_connection ord card := λ _ _, ord_le
+
+theorem lt_ord {c o} : o < ord c ↔ o.card < c := gc_ord_card.lt_iff_lt
 
 @[simp] theorem card_ord (c) : (ord c).card = c :=
 quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
-theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
-ord_le.2 le_rfl
+/-- Galois coinsertion between `cardinal.ord` and `ordinal.card`. -/
+def gci_ord_card : galois_coinsertion ord card :=
+gc_ord_card.to_galois_coinsertion $ λ c, c.card_ord.le
 
-lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
-by { rw lt_ord, apply lt_succ }
+theorem ord_card_le (o : ordinal) : o.card.ord ≤ o := gc_ord_card.l_u_le _
 
-@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
-by simp only [ord_le, card_ord]
+lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord := lt_ord.2 $ lt_succ _
 
-@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ :=
-by simp only [lt_ord, card_ord]
+@[mono] theorem ord_strict_mono : strict_mono ord := gci_ord_card.strict_mono_l
+@[mono] theorem ord_mono : monotone ord := gc_ord_card.monotone_l
 
-@[simp] theorem ord_zero : ord 0 = 0 :=
-le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
+@[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ := gci_ord_card.l_le_l_iff
+@[simp] theorem ord_lt_ord {c₁ c₂} : ord c₁ < ord c₂ ↔ c₁ < c₂ := ord_strict_mono.lt_iff_lt
+@[simp] theorem ord_zero : ord 0 = 0 := gc_ord_card.l_bot
 
 @[simp] theorem ord_nat (n : ℕ) : ord n = n :=
-le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
+(ord_le.2 (card_nat n).ge).antisymm begin
   induction n with n IH,
   { apply ordinal.zero_le },
   { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
@@ -935,14 +944,11 @@ end
 by simpa using ord_nat 1
 
 @[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=
-eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
-  split; intro h,
-  { rcases ordinal.lt_lift_iff.1 h with ⟨a, e, h⟩,
-    rwa [← e, lt_ord, ← lift_card, lift_lt, ← lt_ord] },
-  { rw lt_ord at h,
-    rcases lift_down' (le_of_lt h) with ⟨o, rfl⟩,
-    rw [← lift_card, lift_lt] at h,
-    rwa [ordinal.lift_lt, lt_ord] }
+begin
+  refine le_antisymm (le_of_forall_lt (λ a ha, _)) _,
+  { rcases ordinal.lt_lift_iff.1 ha with ⟨a, rfl, h⟩,
+    rwa [lt_ord, ← lift_card, lift_lt, ← lt_ord, ← ordinal.lift_lt] },
+  { rw [ord_le, ← lift_card, card_ord] }
 end
 
 lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp

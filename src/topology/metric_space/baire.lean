@@ -188,7 +188,7 @@ theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS :
 begin
   cases S.eq_empty_or_nonempty with h h,
   { simp [h] },
-  { rcases hS.exists_surjective h with ⟨f, hf⟩,
+  { rcases hS.exists_eq_range h with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
     rw [hf, sInter_range],
     exact dense_Inter_of_open_nat (λn, ho _ (F n)) (λn, hd _ (F n)) }

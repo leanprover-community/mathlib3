@@ -5,7 +5,7 @@ open_locale polynomial
 universe u
 --set_option pp.all true
 --instance {F : Type*} [comm_semiring F] : has_add (polynomial F) := by refine polynomial.has_add
-example {F : Type u} [comm_semiring F] [nontrivial F] : nat_degree (1 + X : F[X]) = 1 :=
+example {F : Type*} [comm_semiring F] [nontrivial F] : nat_degree (1 + X : F[X]) = 1 :=
 by compute_degree
 
 /-
@@ -38,20 +38,12 @@ open tactic
 #eval compute_degree.num_to_nat `((2 * 2 + 2) ^ 2)
 
 
-example {F : Type*} [ring F] [nontrivial F] : nat_degree ((2 * 2 + 2) ^ 2 * X : F[X]) = 1 :=
-by
-  do
-
-  `(polynomial.nat_degree %%pol = %%tar) ← target,
-  `(polynomial.nat_degree (%%c * %%x) = %%tar) ← target,
-  trace pol,
-  trace $ compute_degree.num_to_nat c,
-  trace tar
-  ,
-    tactic.compute_degree.single_term_resolve pol
---  compute_degree,
-
-
+example {F : Type*} [ring F] (h37 : ((37 : ℕ) : F) ≠ 0) : nat_degree (((2 * 2 + 2) ^ 2 + 1) * X + 1 : F[X]) = 1 :=
+begin
+  compute_degree,
+  recover,
+  norm_num,
+end
 
 #exit
 example : (X ^ 4 + 1 + X ^ 4 : polynomial ℕ).nat_degree = 1 + 1 + 1 + 1 :=
@@ -182,15 +174,25 @@ begin
 end
 --/
 
+/- From here
+This part should be better and about `compute_degree_le`. -/
 variables {R : Type*} [semiring R] {a b c d e : R}
 
---  error: VM does not have code for 'nat.zero'
---example {R} [semiring R] {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
---  (p ^ n).nat_degree ≤ 0 :=
---begin
---  cases n,
---  { compute_degree_le, },
---end
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by compute_degree_le
+
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by cases n; compute_degree_le
+
+example {p q r : R[X]} {a b c d e f m n : ℕ} {p0 : p.nat_degree = a} {q0 : q.nat_degree = b}
+  {r0 : r.nat_degree = c} :
+  (((q ^ e * p ^ d) ^ m * r ^ f) ^ n).nat_degree ≤ ((b * e + a * d) * m + c * f) * n :=
+begin
+  compute_degree_le,
+  rw [p0, q0, r0],
+end
 
 example {F} [ring F] {p : F[X]} (p0 : p.nat_degree ≤ 0) :
   p.nat_degree ≤ 0 :=
@@ -204,9 +206,10 @@ example {F} [ring F] {p q : F[X]} (h : p.nat_degree + 1 ≤ q.nat_degree) :
 by compute_degree_le
 
 example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
-  nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
+  nat_degree (X ^ n - C a * X ^ 10 : F[X]) ≤ 10 :=
 by compute_degree_le
 
+/-  To here. -/
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
 by {
   compute_degree,
@@ -360,7 +363,7 @@ end
 
 example {n : ℕ} (h : 1 + n < 11) :
   degree (X + (X * monomial 2 1 + X * X) ^ 2) ≤ 10 :=
-by compute_degree_le!
+by compute_degree_le
 
 example {m s: ℕ} (ms : m ≤ s) (s1 : 1 ≤ s) : nat_degree (C a * X ^ m + X + 5) ≤ s :=
 by compute_degree_le; assumption

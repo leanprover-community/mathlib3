@@ -13,21 +13,17 @@ Applied when the goal is of the form `f.(nat_)degree = d` or `f.(nat_)degree ≤
 solve it.
 They may leave side-goals, in case they are not entirely successful.
 
-There is also a version `compute_degree_le!` that recurses more aggressively into powers.
-If there are exponents that are not closed naturals that could be zero, then the `!`-version
-could leave unsolvable side-goals.
-
 See the corresponding doc-strings for more details.
 
 ##  Future work
 
-* Add better functionality to deal with exponents that are not necessarily natural numbers.
+* Add better functionality to deal with exponents that are not necessarily closed natural numbers.
 * It may not be hard to allow an optional argument to be passed to `compute_degree` that would
   let the tactic know which ones are the terms of highest degree.  This would bypass the step
   where the exponents get sorted and may make it accessible to continue with the rest of the
   argument with minimal change.
 * Add functionality to close `monic` goals and compute `leading_coeff`s.
-* Add support for proving goals of the from `f.nat_degree ≠ 0`.
+* Add support for proving goals of the from `f.(nat_)degree ≠ 0`.
 * Make sure that `degree` and `nat_degree` are equally supported.
 
 ##  Implementation details
@@ -91,20 +87,6 @@ lemma nat_degree_add_right_succ (n : ℕ) (f g : polynomial R)
   (f + g).nat_degree = n.succ :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (df.trans_lt (nat.lt_of_succ_le dg.ge))
 
-lemma nat_degree_sub_le_iff_left {R : Type*} [ring R] {n : ℕ} (p q : polynomial R)
-  (qn : q.nat_degree ≤ n) :
-  (p - q).nat_degree ≤ n ↔ p.nat_degree ≤ n :=
-begin
-  rw [sub_eq_add_neg, nat_degree_add_le_iff_left],
-  rwa nat_degree_neg,
-end
-
-lemma nat_degree_bit0 : (bit0 a).nat_degree ≤ a.nat_degree :=
-(nat_degree_add_le _ _).trans (max_self _).le
-
-lemma nat_degree_bit1 : (bit1 a).nat_degree ≤ a.nat_degree :=
-(nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
-
 lemma nat_degree_eq_of_le_of_coeff_ne_zero {n : ℕ} {f : polynomial R}
   (fn : f.nat_degree ≤ n) (f0 : f.coeff n ≠ 0) :
   f.nat_degree = n :=
@@ -135,7 +117,7 @@ end polynomial
 
 namespace tactic
 namespace compute_degree
-open expr
+open expr polynomial
 
 /--  If an expression `e` is an iterated suquence of `bit0` and `bit1` starting from `0` or `1`,
 then `num_to_nat e` returns `some n`, where `n` is the natural number obtained from the same
@@ -220,37 +202,56 @@ meta def single_term_resolve : expr → tactic unit
   fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
 See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
 
+
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
-at guessing the degree of `e`.  Heuristics for `guess_degree`:
-* `0, 1, C a`,      guessing `0`,
-* `polynomial.X`,   guessing `1`,
-*  `bit0/1 f, -f`,  guessing `guess_degree f`,
-* `f + g, f - g`,   guessing `max (guess_degree f) (guess_degree g)`,
-* `f * g`,          guessing `guess_degree f + guess_degree g`,
-* `f ^ n`,          guessing `guess_degree f * n`,
-* `monomial n r`,   guessing `n`,
-* `f` not as above, guessing `f.nat_degree`.
+at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
+* `0, 1, C a`,      guess `0`,
+* `polynomial.X`,   guess `1`,
+*  `bit0/1 f, -f`,  guess `guess_degree f`,
+* `f + g, f - g`,   guess `max (guess_degree f) (guess_degree g)`,
+* `f * g`,          guess `guess_degree f + guess_degree g`,
+* `f ^ n`,          guess `guess_degree f * n`,
+* `monomial n r`,   guess `n`,
+* `f` not as above, guess `f.nat_degree`.
+
+The guessed degree should coincide with the behaviour of `resolve_sum_step`:
+`resolve_sum_step` cannot solve a goal `f.nat_degree ≤ d` if `guess_degree f < d`.
  -/
 meta def guess_degree : expr → tactic expr
-| `(has_zero.zero)         := pure `(0)
-| `(has_one.one)           := pure `(0)
-| `(- %%f)                 := guess_degree f
-| (app `(⇑polynomial.C) x) := pure `(0)
-| `(polynomial.X)          := pure `(1)
-| `(bit0 %%a)              := guess_degree a
-| `(bit1 %%a)              := guess_degree a
-| `(%%a + %%b)             := do [da, db] ← [a, b].mmap guess_degree,
-                              pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a - %%b)             := do [da, db] ← [a, b].mmap guess_degree,
-                              pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a * %%b)             := do [da, db] ← [a, b].mmap guess_degree,
-                              pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
-| `(%%a ^ %%b)             := do da ← guess_degree a,
-                              pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
-| (app `(⇑(polynomial.monomial %%n)) x) := pure n
-| e                        := do `(@polynomial %%R %%inst) ← infer_type e,
-                              pe ← to_expr ``(@polynomial.nat_degree %%R %%inst) tt ff,
-                              pure $ expr.mk_app pe [e]
+| `(has_zero.zero)           := pure `(0)
+| `(has_one.one)             := pure `(0)
+| `(- %%f)                   := guess_degree f
+| (app `(⇑C) x)              := pure `(0)
+| `(X)                       := pure `(1)
+| `(bit0 %%a)                := guess_degree a
+| `(bit1 %%a)                := guess_degree a
+| `(%%a + %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+                                pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
+| `(%%a - %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+                                pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
+| `(%%a * %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+                                pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
+| `(%%a ^ %%b)               := do da ← guess_degree a,
+                                pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
+| (app `(⇑(monomial %%n)) x) := pure n
+| e                          := do `(@polynomial %%R %%inst) ← infer_type e,
+                                pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
+                                pure $ expr.mk_app pe [e]
+
+/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
+estimate for the evaluation of `eval_expr' ℕ e`.  It is tailor made for estimating degrees of
+polynomials.
+
+It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
+On the atoms of the process, `eval_guessing` tries to use `eval_expr' ℕ`, resorting to using
+`n` if `eval_expr' ℕ` fails.
+
+For use with degree of polynomials, we mostly use `n = 0`. -/
+meta def eval_guessing (n : ℕ) : expr → tactic ℕ
+| `(%%a + %%b)   := (+) <$> eval_guessing a <*> eval_guessing b
+| `(%%a * %%b)   := (*) <$> eval_guessing a <*> eval_guessing b
+| `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
+| e              := eval_expr' ℕ e <|> pure n
 
 meta def guess_degree_to_nat : expr → ℕ
 | `(has_zero.zero)         := 0
@@ -268,64 +269,48 @@ meta def guess_degree_to_nat : expr → ℕ
 | (app `(⇑(polynomial.monomial %%n)) x) := n.to_nat.get_or_else 0
 | e                        := 0
 
-/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
-estimate for the evaluation of `eval_expr ℕ e`.  It is tailor made for estimating degrees of
-polynomials.
+/-- `resolve_sum_step e` takes the type of the current goal `e` as input.
+It tries to make progress on the goal `e` by reducing it to subgoals.
+It assumes that `e` is of the form `f.nat_degree ≤ d`, failing otherwise.
 
-It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
-On the atoms of the process, `eval_guessing` tries to use `eval_expr ℕ`, resorting to using
-`n` if `eval_expr ℕ` fails.
-
-For use with degree of polynomials, we mostly use `n = 0`. -/
-meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
-| `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
-| `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
-| e              := eval_expr ℕ e <|> pure n
-
-/--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
-It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
-* a sum, difference, opposite or product;
-* (a power of) `X`;
+* a sum, difference, opposite, product, or a power;
 * a monomial;
 * `C a`;
 * `0, 1` or `bit0 a, bit1 a` (to deal with numerals).
 
-The boolean `tf` determines whether `resolve_sum_step` aggressively simplifies powers.
-If `tf` is `false`, then `resolve_sum_step` will fail on powers other than `X ^ n`.
-
-If `tf` is `true`, then `resolve_sum_step` tries to make progress on powers.
-Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
-
 The side-goals produced by `resolve_sum_step` are either again of the same shape `f'.nat_degree ≤ d`
-or of the form `m ≤ n`, where `m n : ℕ`, or, if `tf = true`, also of the form `0 < m`. -/
-meta def resolve_sum_step (pows : bool) : expr → tactic unit
-| `(polynomial.nat_degree %%tl ≤ %%tr) := match tl with
-  | `(%%tl1 + %%tl2) := refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 - %%tl2) := refine ``((polynomial.nat_degree_sub_le_iff_left _ _ _).mpr _)
+or of the form `m ≤ n`, where `m n : ℕ`.
+
+If `d` is less than `guess_degree f`, this tactic will create unsolvable goals.
+-/
+meta def resolve_sum_step : expr → tactic unit
+| `(nat_degree %%tl ≤ %%tr) := match tl with
+  | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
+  | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _ _ _).mpr _)
   | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
-    refine ``(polynomial.nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
-  | `(- %%f) := refine ``((polynomial.nat_degree_neg _).le.trans _)
-  | `(polynomial.X ^ %%n) := refine ``((polynomial.nat_degree_X_pow_le %%n).trans _)
-  | (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
-    refine ``((polynomial.nat_degree_monomial_le %%x).trans _)
-  | (app `(⇑polynomial.C) x) :=
-    interactive.exact ``((polynomial.nat_degree_C _).le.trans (nat.zero_le _))
-  | `(polynomial.X) :=
-    refine ``(polynomial.nat_degree_X_le.trans _)
-  | `(has_zero.zero) := refine ``(polynomial.nat_degree_zero.le.trans (nat.zero_le _))
-  | `(has_one.one)   := refine ``(polynomial.nat_degree_one.le.trans (nat.zero_le _))
-  | `(bit0 %%a)      := refine ``((polynomial.nat_degree_bit0 %%a).trans _)
-  | `(bit1 %%a)      := refine ``((polynomial.nat_degree_bit1 %%a).trans _)
-  | `(%%tl1 ^ %%n)   := if pows then do
-      refine ``(polynomial.nat_degree_pow_le.trans $
-        (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
-    else failed
-  | e                := do ppe ← pp e, fail format!"'{ppe}' is not supported"
+    refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
+  | `(- %%f)         := refine ``((nat_degree_neg _).le.trans _)
+  | `(X ^ %%n)       := refine ``((nat_degree_X_pow_le %%n).trans _)
+  | (app `(⇑(@monomial %%R %%inst %%n)) x) := refine ``((nat_degree_monomial_le %%x).trans _)
+  | (app `(⇑C) x)    := refine ``((nat_degree_C %%x).le.trans (nat.zero_le %%tr))
+  | `(X)             := refine ``(nat_degree_X_le.trans _)
+  | `(has_zero.zero) := refine ``(nat_degree_zero.le.trans (nat.zero_le _))
+  | `(has_one.one)   := refine ``(nat_degree_one.le.trans (nat.zero_le _))
+  | `(bit0 %%a)      := refine ``((nat_degree_bit0 %%a).trans _)
+  | `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
+  | `(%%tl1 ^ %%n)   := do
+      refine ``(nat_degree_pow_le.trans _),
+      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
+      n0 ← get_unused_name "n0" >>= intro,
+      refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
+      lem1 ← to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff,
+      lem2 ← to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff,
+      focus1 (refine ``((%%n0 rfl).elim) <|> rewrite_target lem1 <|> rewrite_target lem2) <|> skip
+  | e                := fail!"'{e}' is not supported"
   end
-| e := do ppe ← pp e, fail format!("'resolve_sum_step' was called on\n" ++
-  "{ppe}\nbut it expects `f.nat_degree ≤ d`")
+| e := fail!("'resolve_sum_step' was called on\n" ++
+  "{e}\nbut it expects `f.nat_degree ≤ d`")
 
 /--  `norm_assum` simply tries `norm_num` and `assumption`.
 It is used to try to discharge as many as possible of the side-goals of `compute_degree_le`.
@@ -377,7 +362,7 @@ do gs ← get_goals >>= list.mmap infer_type,
 
 /--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
 input, instead of parsing a `!` token. -/
-meta def compute_degree_le_core (expos : bool) : tactic unit :=
+meta def compute_degree_le_core : tactic unit :=
 do t ← target,
   try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
@@ -387,7 +372,7 @@ do t ← target,
   if deg_bound < expected_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else
-    repeat $ target >>= resolve_sum_step expos,
+    repeat $ target >>= resolve_sum_step,
   check_target_changes t,
   try $ any_goals' norm_assum
 
@@ -400,7 +385,7 @@ do n ← get_unused_name "h",
   c0 ← mk_app `eq [fc, zer],
   hc0 ← assert n c0,
   refine ``(polynomial.coeff_eq_zero_of_nat_degree_lt (nat.lt_succ_of_le _)),
-  focus1 (compute_degree_le_core ff),
+  focus1 compute_degree_le_core,
   interactive.rotate,
   try $ rewrite_target hc0,
   clear hc0
@@ -452,7 +437,7 @@ do t ← target,
   if deg_bou < exp_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
   else
-    repeat $ target >>= resolve_sum_step expos,
+    repeat $ target >>= resolve_sum_step,
   check_target_changes t
     --,
     --try $ any_goals' norm_assum
@@ -479,34 +464,35 @@ do te ← infer_type e,
   end
 
 end compute_degree
---#check to_nat
-namespace interactive
-open compute_degree
-/-
-#check polynomial.coeff_mul_X_pow'
-#check polynomial.coeff_monomial
-#check polynomial.coeff_bit0_mul
-#check polynomial.coeff_bit1_mul
-#check polynomial.coeff_neg
-#check zero_add
-#check add_zero
-#check polynomial.coeff_one
-#check zero_eq_bit0
-#check bit0_eq_zero
-#check if_false
-#check neg_zero'
-#check add_zero
-#check one_ne_zero
-#check not_false_iff
--/
 
+namespace interactive
+open compute_degree polynomial
+
+/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
+where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
+If the given degree `d` is smaller than the one that the tactic computes,
+then the tactic suggests the degree that it computed. -/
+meta def compute_degree_le : tactic unit :=
+do t ← target,
+  try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
+  `(nat_degree %%tl ≤ %%tr) ← target |
+    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
+  expected_deg ← guess_degree tl >>= eval_guessing 0,
+  deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
+  if deg_bound < expected_deg
+  then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
+  else
+    repeat $ target >>= resolve_sum_step,
+    (do gs ← get_goals >>= list.mmap infer_type,
+      success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
+    try $ any_goals' norm_assum
 
 meta def compute_degree_1 : tactic unit :=
 do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     rotate ),
    `(@polynomial.nat_degree %%R %%inst %%pol = %%deg) ← target,
   refine ``(le_antisymm _ (polynomial.le_nat_degree_of_ne_zero _)),
-  focus1 ( compute_degree_le_core ff >> done ),
+  focus1 ( compute_degree_le_core >> done ),
   ad ← to_expr ``((+) : (%%R) → (%%R) → (%%R)) tt ff,
 --  trace deg, infer_type deg >>= trace,
   tar_deg ← eval_expr ℕ deg,
@@ -550,6 +536,28 @@ do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     ]],
     try $ any_goals' assumption
 
+/--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
+where `d : ℕ` and `f` satisfies:
+* `f` is a sum of expressions of the form
+  `C a * X ^ n, C a * X, C a, X ^ n, X, monomial n a, monomial n a * monomial m b`;
+* all exponents and the `n` in `monomial n a` are *closed* terms of type `ℕ`;
+* the term with largest exponent is `C a * X ^ n, X ^ n, C a * X, X, C a` and is the unique term of
+  its degree (repetitions are allowed in terms of smaller degree);
+* if the leading term involves a product with `C a`, there must be in context the assumption
+  `a ≠ 0`;
+* if the goal is computing `degree`, instead of `nat_degree`, then the expected degree `d` should
+  not be `⊥`.
+
+If the given degree does not match what the tactic computes,
+then the tactic suggests the degree that it computed.
+
+You can also pass an optional argument to `compute_degree`, letting the tactic know which term is
+the one of highest degree.  The syntax is `compute_degree [<expression for one term>]`.  The
+expression can involve underscore, and Lean will try to unify them with one of the summands in the
+goal.  This opens the possibility of working with polynomials whose exponents are not closed natural
+numbers, though this is mostly unimplemented still.
+
+The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
 do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     rotate ),
@@ -580,7 +588,7 @@ do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
   any_goals' $ try $
     (do `(polynomial.nat_degree %%po = _) ← target, single_term_resolve po),
   check_target_changes t,
-  any_goals' $ try $ compute_degree_le_core ff,
+  any_goals' $ try $ compute_degree_le_core,
 --  `(polynomial.nat_degree %%pol = %%degv) ← target,
   skip
   --gs ← get_goals,
@@ -602,33 +610,27 @@ gts ← gs.mmap infer_type,
 -- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
 -- * otherwise, it is the tactic that tries `norm_num` and `assumption`
 is_ineq ← gts.mmap (λ t : expr, do match t with
-  | `(polynomial.nat_degree %%_ ≤ %%_) := return $ compute_degree_le_core ff
+  | `(polynomial.nat_degree %%_ ≤ %%_) := return $ compute_degree_le_core
   | _                                  := return norm_assum end),
 focus' is_ineq
 
-setup_tactic_parser
+add_tactic_doc
+{ name := "compute_degree_le",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.compute_degree_le],
+  tags := ["arithmetic, finishing"] }
 
-/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
-where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
+add_tactic_doc
+{ name := "compute_degree",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.compute_degree],
+  tags := ["arithmetic, finishing"] }
 
-If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed.
+end interactive
 
-Using `compute_degree_le!` also recurses inside powers.
-Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
+end tactic
 
-For instance, in the following example `compute_degree_le` makes no progress,
-while `compute_degree_le!` leaves an unprovable side-goal:
-```lean
-example {R} [semiring R] {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
-  (p ^ n).nat_degree ≤ 0 :=
-by compute_degree_le!
-  -- ⊢ 0 < n
-```
- -/
-meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
-if expos.is_some then compute_degree_le_core tt else compute_degree_le_core ff
-
+/-
 #exit
 /--  `compute_degree.with_lead lead` assumes that `lead` is an expression for the highest degree
 term of a polynomial and proceeds to try to close a goal of the form
@@ -757,19 +759,4 @@ meta def compute_degree_old : parse opt_pexpr_list → tactic unit
   tactic.compute_degree.with_lead [lead]
 | _  := fail "'compute_degree' only accepts one leading term"
 
-add_tactic_doc
-{ name := "compute_degree_le",
-  category := doc_category.tactic,
-  decl_names := [`tactic.interactive.compute_degree],
-  tags := ["arithmetic, finishing"] }
-
-add_tactic_doc
-{ name := "compute_degree",
-  category := doc_category.tactic,
-  decl_names := [`tactic.interactive.compute_degree],
-  tags := ["arithmetic, finishing"] }
-
-end interactive
-
-end tactic
- u
+-/

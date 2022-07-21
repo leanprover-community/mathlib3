@@ -35,6 +35,11 @@ variables {α β : Type*}
 /-- A linear ordered field is a field with a linear order respecting the operations. -/
 @[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
 
+/-- A canonically linear ordered field is a linear ordered field in which `a ≤ b` iff there exists
+`c` with `b = a + c`. -/
+@[protect_proj] class canonically_linear_ordered_semifield (α : Type*)
+  extends canonically_ordered_comm_semiring α, linear_ordered_semifield α
+
 @[priority 100] -- See note [lower instance priority]
 instance linear_ordered_field.to_linear_ordered_semifield [linear_ordered_field α] :
   linear_ordered_semifield α :=
@@ -461,6 +466,8 @@ end
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
+lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 := by simpa using one_half_lt_one
+
 lemma left_lt_add_div_two : a < (a + b) / 2 ↔ a < b := by simp [lt_div_iff, mul_two]
 
 lemma add_div_two_lt_right : (a + b) / 2 < b ↔ a < b := by simp [div_lt_iff, mul_two]
@@ -859,3 +866,10 @@ theorem nat.cast_le_pow_div_sub (H : 1 < a) (n : ℕ) : (n : α) ≤ a ^ n / (a 
   (sub_le_self _ zero_le_one)
 
 end
+
+section canonically_linear_ordered_semifield
+variables [canonically_linear_ordered_semifield α]
+
+lemma tsub_div (a b c : α) : (a - b) / c = a / c - b / c := by simp only [div_eq_mul_inv, tsub_mul]
+
+end canonically_linear_ordered_semifield

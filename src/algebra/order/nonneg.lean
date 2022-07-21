@@ -227,14 +227,14 @@ def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
 map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
-instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
+instance has_inv [linear_ordered_semifield α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
 
 @[simp, norm_cast]
-protected lemma coe_inv [linear_ordered_field α] (a : {x : α // 0 ≤ x}) :
+protected lemma coe_inv [linear_ordered_semifield α] (a : {x : α // 0 ≤ x}) :
   ((a⁻¹ : {x : α // 0 ≤ x}) : α) = a⁻¹ := rfl
 
-@[simp] lemma inv_mk [linear_ordered_field α] {x : α} (hx : 0 ≤ x) :
+@[simp] lemma inv_mk [linear_ordered_semifield α] {x : α} (hx : 0 ≤ x) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x})⁻¹ = ⟨x⁻¹, inv_nonneg.mpr hx⟩ :=
 rfl
 
@@ -246,14 +246,14 @@ instance linear_ordered_comm_group_with_zero [linear_ordered_field α] :
   ..nonneg.has_inv,
   ..nonneg.linear_ordered_comm_monoid_with_zero }
 
-instance has_div [linear_ordered_field α] : has_div {x : α // 0 ≤ x} :=
+instance has_div [linear_ordered_semifield α] : has_div {x : α // 0 ≤ x} :=
 { div := λ x y, ⟨x / y, div_nonneg x.2 y.2⟩ }
 
 @[simp, norm_cast]
-protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
+protected lemma coe_div [linear_ordered_semifield α] (a b : {x : α // 0 ≤ x}) :
   ((a / b : {x : α // 0 ≤ x}) : α) = a / b := rfl
 
-@[simp] lemma mk_div_mk [linear_ordered_field α] {x y : α} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+@[simp] lemma mk_div_mk [linear_ordered_semifield α] {x y : α} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) / ⟨y, hy⟩ = ⟨x / y, div_nonneg hx hy⟩ :=
 rfl
 
@@ -274,6 +274,12 @@ instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divis
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
+
+instance canonically_linear_ordered_semifield [linear_ordered_field α] :
+  canonically_linear_ordered_semifield {x : α // 0 ≤ x} :=
+{ ..subtype.coe_injective.linear_ordered_field _ rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl)
+    (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl),
+  ..nonneg.canonically_linear_ordered_add_monoid }
 
 instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,

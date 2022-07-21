@@ -518,11 +518,38 @@ protected lemma lipschitz : lipschitz_with 1 e := e.isometry.lipschitz
 
 protected lemma antilipschitz : antilipschitz_with 1 e := e.isometry.antilipschitz
 
+lemma image_eq_preimage (s : set E) : e '' s = e.symm ⁻¹' s :=
+e.to_linear_equiv.image_eq_preimage s
+
 @[simp] lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
 e.isometry.ediam_image s
 
 @[simp] lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
 e.isometry.diam_image s
+
+@[simp] lemma preimage_ball (x : E₂) (r : ℝ) :
+  e ⁻¹' (metric.ball x r) = metric.ball (e.symm x) r :=
+e.to_isometric.preimage_ball x r
+
+@[simp] lemma preimage_sphere (x : E₂) (r : ℝ) :
+  e ⁻¹' (metric.sphere x r) = metric.sphere (e.symm x) r :=
+e.to_isometric.preimage_sphere x r
+
+@[simp] lemma preimage_closed_ball (x : E₂) (r : ℝ) :
+  e ⁻¹' (metric.closed_ball x r) = metric.closed_ball (e.symm x) r :=
+e.to_isometric.preimage_closed_ball x r
+
+@[simp] lemma image_ball (x : E) (r : ℝ) :
+  e '' (metric.ball x r) = metric.ball (e x) r :=
+e.to_isometric.image_ball x r
+
+@[simp] lemma image_sphere (x : E) (r : ℝ) :
+  e '' (metric.sphere x r) = metric.sphere (e x) r :=
+e.to_isometric.image_sphere x r
+
+@[simp] lemma image_closed_ball (x : E) (r : ℝ) :
+  e '' (metric.closed_ball x r) = metric.closed_ball (e x) r :=
+e.to_isometric.image_closed_ball x r
 
 variables {α : Type*} [topological_space α]
 
@@ -586,6 +613,12 @@ rfl
   ((prod_assoc R E E₂ E₃).symm : E × E₂ × E₃ → (E × E₂) × E₃) = (equiv.prod_assoc E E₂ E₃).symm :=
 rfl
 
+/-- If `p` is a submodule that is equal to `⊤`, then `linear_isometry_equiv.of_top p hp` is the
+equivalence between `p` and `E`. -/
+def of_top {R : Type*} [ring R] [module R E] (p : submodule R E) (hp : p = ⊤) :
+  p ≃ₗᵢ[R] E :=
+{ to_linear_equiv := linear_equiv.of_top p hp, .. p.subtypeₗᵢ }
+
 end linear_isometry_equiv
 
 /-- Two linear isometries are equal if they are equal on basis vectors. -/
@@ -601,3 +634,10 @@ lemma basis.ext_linear_isometry_equiv {ι : Type*} (b : basis ι R E) {f₁ f₂
 linear_isometry_equiv.to_linear_equiv_injective $ b.ext' h
 
 omit σ₂₁
+
+/-- Reinterpret a `linear_isometry` as a `linear_isometry_equiv` to the range. -/
+noncomputable def linear_isometry.to_linear_isometry_equiv {S : Type*} [ring S] {σ₁₂ : R →+* S}
+  {σ₂₁ : S →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [module S E]
+  (f : F →ₛₗᵢ[σ₁₂] E) :
+  F ≃ₛₗᵢ[σ₁₂] f.to_linear_map.range :=
+{ .. linear_equiv.of_injective f.to_linear_map f.injective, .. f }

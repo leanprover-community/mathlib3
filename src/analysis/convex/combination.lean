@@ -410,7 +410,7 @@ begin
   apply congr_arg,
   convert subtype.range_coe.symm,
   ext x,
-  simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
+  simp [ite_smul, finset.filter_eq]
 end
 
 /-- All values of a function `f ∈ std_simplex 𝕜 ι` belong to `[0, 1]`. -/

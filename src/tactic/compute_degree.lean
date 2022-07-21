@@ -320,22 +320,17 @@ meta def compute_step (deg : ℕ) : expr → tactic unit
 
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit := do
-bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_X_pow _),
-if bo then fail "Try this: exact polynomial.nat_degree_X_pow _"
-else do
-bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C _),
-if bo then fail "Try this: exact polynomial.nat_degree_C _"
-else do
-bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_X),
-if bo then fail "Try this: exact polynomial.nat_degree_X"
-else do
-bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
-if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›"
-else do
-bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›),
-if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
-else
-  skip
+ff ← succeeds $ interactive.exact ``(polynomial.nat_degree_X_pow _) |
+  fail "Try this: exact polynomial.nat_degree_X_pow _",
+ff ← succeeds $ interactive.exact ``(polynomial.nat_degree_C _) |
+  fail "Try this: exact polynomial.nat_degree_C _",
+ff ← succeeds $ interactive.exact ``(polynomial.nat_degree_X) |
+  fail "Try this: exact polynomial.nat_degree_X",
+ff ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›) |
+  fail "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
+ff ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›) |
+  fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
+skip
   --fail "'compute_degree' works better with polynomials involving more than one term\n"
 
 /--  A simple check: `check_target_changes t` changes if `t` unifies with one of the current

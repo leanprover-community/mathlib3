@@ -85,7 +85,9 @@ group_norm.to_normed_mul_group _
   eq_one_of_to_fun := λ x hx, begin
     obtain ⟨l, rfl, hl⟩ := (find_eq_zero $ aux _).1 (cast_eq_zero.1 hx),
     rw [nat.le_zero_iff, length_eq_zero] at hl,
-    sorry,
+    have hl2 : l.to_word = (1:free_group S).to_word := by tauto,
+    have hl3 := free_group.to_word.inj l 1 hl2,
+    finish
   end }
 
 /- comments by Sébastien Gouëzel:

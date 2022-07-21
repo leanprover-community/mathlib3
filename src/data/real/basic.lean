@@ -222,14 +222,14 @@ instance : partial_order ℝ :=
 
 instance : preorder ℝ := by apply_instance
 
-theorem of_rat_lt {x y : ℚ} : (x : ℝ) < (y : ℝ) ↔ x < y :=
+theorem rat_cast_lt {x y : ℚ} : (x : ℝ) < (y : ℝ) ↔ x < y :=
 begin
   rw [mk_lt] {md := tactic.transparency.semireducible},
   exact const_lt
 end
 
 protected theorem zero_lt_one : (0 : ℝ) < 1 :=
-by convert of_rat_lt.2 zero_lt_one; simp [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
+by convert rat_cast_lt.2 zero_lt_one; simp [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
 
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
 begin

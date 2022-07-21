@@ -197,7 +197,7 @@ by rw [← is_localization.mk'_one (fraction_ring K[X]) p, ← mk_coe_def, submo
 lemma mk_eq_mk {p q p' q' : K[X]} (hq : q ≠ 0) (hq' : q' ≠ 0) :
   ratfunc.mk p q = ratfunc.mk p' q' ↔ p * q' = p' * q :=
 by rw [mk_def_of_ne _ hq, mk_def_of_ne _ hq', of_fraction_ring_injective.eq_iff,
-       is_localization.mk'_eq_iff_eq, set_like.coe_mk, set_like.coe_mk,
+       is_localization.mk'_eq_iff_eq', set_like.coe_mk, set_like.coe_mk,
        (is_fraction_ring.injective K[X] (fraction_ring K[X])).eq_iff]
 
 lemma lift_on_mk {P : Sort v} (p q : K[X])

@@ -278,6 +278,10 @@ lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (y₂ * x₁) = algebra_map R S (y₁ * x₂) :=
 (to_localization_map M S).mk'_eq_iff_eq
 
+lemma mk'_eq_iff_eq' {x₁ x₂} {y₁ y₂ : M} :
+  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
+(to_localization_map M S).mk'_eq_iff_eq'
+
 lemma mk'_mem_iff {x} {y : M} {I : ideal S} : mk' S x y ∈ I ↔ algebra_map R S x ∈ I :=
 begin
   split;
@@ -322,6 +326,10 @@ lemma mk'_eq_iff_mk'_eq {x₁ x₂}
 lemma mk'_eq_of_eq {a₁ b₁ : R} {a₂ b₂ : M} (H : ↑a₂ * b₁ = ↑b₂ * a₁) :
   mk' S a₁ a₂ = mk' S b₁ b₂ :=
 (to_localization_map M S).mk'_eq_of_eq H
+
+lemma mk'_eq_of_eq' {a₁ b₁ : R} {a₂ b₂ : M} (H : b₁ * ↑a₂ = a₁ * ↑b₂) :
+  mk' S a₁ a₂ = mk' S b₁ b₂ :=
+(to_localization_map M S).mk'_eq_of_eq' H
 
 variables (S)
 

@@ -575,6 +575,10 @@ by rw [eq_comm, eq_mk'_iff_mul_eq, eq_comm]
  λ H, by rw [mk'_eq_iff_eq_mul, mk', mul_assoc, mul_comm _ (f.to_map y₁), ←mul_assoc,
   ←f.to_map.map_mul, mul_comm x₂, ←H, ←mul_comm x₁, f.to_map.map_mul, mul_inv_right f.map_units]⟩
 
+@[to_additive] lemma mk'_eq_iff_eq' {x₁ x₂} {y₁ y₂ : S} :
+  f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ f.to_map (x₁ * y₂) = f.to_map (x₂ * y₁) :=
+by simp only [f.mk'_eq_iff_eq, mul_comm]
+
 @[to_additive] protected lemma eq {a₁ b₁} {a₂ b₂ : S} :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ ∃ c : S, ↑c * (↑b₂ * a₁) = c * (a₂ * b₁) :=
 f.mk'_eq_iff_eq.trans $ f.eq_iff_exists
@@ -604,6 +608,10 @@ f.eq_iff_exists.1 $ f.mk'_eq_iff_eq.1 $ (mk'_sec _ _).symm
 @[to_additive] lemma mk'_eq_of_eq {a₁ b₁ : M} {a₂ b₂ : S} (H : ↑a₂ * b₁ = ↑b₂ * a₁) :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ :=
 f.mk'_eq_iff_eq.2 $ H ▸ rfl
+
+@[to_additive] lemma mk'_eq_of_eq' {a₁ b₁ : M} {a₂ b₂ : S} (H : b₁ * ↑a₂ = a₁ * ↑b₂) :
+  f.mk' a₁ a₂ = f.mk' b₁ b₂ :=
+f.mk'_eq_of_eq $ by simpa only [mul_comm] using H
 
 @[simp, to_additive] lemma mk'_self' (y : S) :
   f.mk' (y : M) y = 1 :=

@@ -1,5 +1,5 @@
-import group_theory.geometric.mathlib
-import group_theory.geometric.normed_group
+import .mathlib
+import .normed_group
 
 /-!
 # Marked groups

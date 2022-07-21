@@ -1,4 +1,5 @@
 import group_theory.free_group
+import topology.metric_space.hausdorff_distance
 
 /-!
 # To move
@@ -25,3 +26,13 @@ begin
 end
 
 end free_group
+
+section
+variables {α : Type*} [pseudo_metric_space α] {s : set α} {ε : ℝ}
+
+open metric
+
+lemma diam_cthickening_le (hε : 0 ≤ ε) : diam (cthickening ε s) ≤ 2 * ε + diam s := sorry
+lemma diam_thickening_le (hε : 0 ≤ ε) : diam (cthickening ε s) ≤ 2 * ε + diam s := sorry
+
+end

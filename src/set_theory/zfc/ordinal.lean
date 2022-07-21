@@ -10,18 +10,20 @@ import set_theory.zfc.basic
 /-!
 # Von Neumann ordinals
 
-This file works towards the development of von Neumann ordinals, i.e. transitive sets, well-ordered
-under `∈`. We currently only have an initial development of transitive sets.
-
-Further development can be found on the branch `von_neumann_v2`.
+This file develops the theory of von Neumann ordinals: transitive sets, well-ordered under `∈`.
 
 ## Definitions
 
-- `Set.is_transitive` means that every element of a set is a subset.
+- `Set.is_transitive`: every element of a set is a subset.
+- `Set.is_ordinal`: a set is transitive, and transitive under `∈`.
+
+## Main results
+
+- `Set.is_ordinal_iff_well_founded`: proves our simple characterization of von Neumann sets to be
+  equivalent with the usual characterization.
 
 ## Todo
 
-- Define von Neumann ordinals.
 - Define the basic arithmetic operations on ordinals from a purely set-theoretic perspective.
 - Prove the equivalences between these definitions and those provided in
   `set_theory/ordinal/arithmetic.lean`.

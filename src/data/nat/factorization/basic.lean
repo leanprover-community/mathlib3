@@ -252,11 +252,9 @@ lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.suppo
 /-! ### Factorization and divisibility -/
 
 /-- The largest divisor of `n` divisible by `p`.  For `p = 2` this is the even part of `n` -/
-noncomputable -- TODO: Delete `noncomputable` when #12301 is merged
 def padic_part (n p : ℕ) := p ^ n.factorization p
 
 /-- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n` -/
-noncomputable -- TODO: Delete `noncomputable` when #12301 is merged
 def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
 
 @[simp] lemma padic_part_def (n p : ℕ) : n.padic_part p = p ^ n.factorization p := rfl

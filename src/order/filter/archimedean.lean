@@ -152,32 +152,22 @@ variables [linear_ordered_ring R] [archimedean R]
 `linear_ordered_field`s which does not require the `archimedean` assumption. -/
 lemma tendsto.at_top_mul_neg_const' (hr : r < 0) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_bot :=
-begin
-  have h : (λ x, f x * -r) = -λ x, f x * r, { ext, simp, },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top,
-  exact h ▸ tendsto.at_top_mul_const' (neg_pos.mpr hr) hf,
-end
+by simpa only [tendsto_neg_at_top_iff, mul_neg] using hf.at_top_mul_const' (neg_pos.mpr hr)
 
 /-- See also `filter.tendsto.at_bot_mul_const` for a version of this lemma for
 `linear_ordered_field`s which does not require the `archimedean` assumption. -/
 lemma tendsto.at_bot_mul_const' (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λx, f x * r) l at_bot :=
 begin
-  have h : (λ x, (-f) x * r) = -λ x, f x * r, { ext, simp, },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf ⊢,
-  exact h ▸  tendsto.at_top_mul_const' hr hf,
+  simp only [← tendsto_neg_at_top_iff, ← neg_mul] at hf ⊢,
+  exact hf.at_top_mul_const' hr
 end
 
 /-- See also `filter.tendsto.at_bot_mul_neg_const` for a version of this lemma for
 `linear_ordered_field`s which does not require the `archimedean` assumption. -/
 lemma tendsto.at_bot_mul_neg_const' (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λx, f x * r) l at_top :=
-begin
-  have h : (λ x, (-f) x * r) = -λ x, f x * r, { ext, simp, },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf,
-  rw tendsto_at_top_iff_tends_to_neg_at_bot,
-  exact h ▸ tendsto.at_top_mul_neg_const' hr hf,
-end
+by simpa only [mul_neg, tendsto_neg_at_bot_iff] using hf.at_bot_mul_const' (neg_pos.2 hr)
 
 end linear_ordered_ring
 
@@ -201,11 +191,7 @@ variables [linear_ordered_add_comm_group R] [archimedean R]
 
 lemma tendsto.at_top_nsmul_neg_const {f : α → ℕ} (hr : r < 0) (hf : tendsto f l at_top) :
   tendsto (λ x, f x • r) l at_bot :=
-begin
-  have h : (λ x, f x • -r) = -λ x, f x • r, { ext, simp, },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top,
-  exact h ▸ tendsto.at_top_nsmul_const (neg_pos.mpr hr) hf,
-end
+by simpa using hf.at_top_nsmul_const (neg_pos.2 hr)
 
 lemma tendsto.at_top_zsmul_const {f : α → ℤ} (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λ x, f x • r) l at_top :=
@@ -218,28 +204,18 @@ end
 
 lemma tendsto.at_top_zsmul_neg_const {f : α → ℤ} (hr : r < 0) (hf : tendsto f l at_top) :
   tendsto (λ x, f x • r) l at_bot :=
-begin
-  have h : (λ x, f x • -r) = -λ x, f x • r, { ext, simp [zsmul_neg], },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top,
-  exact h ▸ tendsto.at_top_zsmul_const (neg_pos.mpr hr) hf,
-end
+by simpa using hf.at_top_zsmul_const (neg_pos.2 hr)
 
 lemma tendsto.at_bot_zsmul_const {f : α → ℤ} (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x • r) l at_bot :=
 begin
-  have h : (λ x, (-f) x • r) = -λ x, f x • r, { ext, simp, },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf ⊢,
-  exact h ▸ tendsto.at_top_zsmul_const hr hf,
+  simp only [← tendsto_neg_at_top_iff, ← neg_zsmul] at hf ⊢,
+  exact hf.at_top_zsmul_const hr
 end
 
 lemma tendsto.at_bot_zsmul_neg_const {f : α → ℤ} (hr : r < 0) (hf : tendsto f l at_bot) :
   tendsto (λ x, f x • r) l at_top :=
-begin
-  have h : (λ x, (-f) x • r) = -λ x, f x • r, { ext, simp, },
-  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf,
-  rw tendsto_at_top_iff_tends_to_neg_at_bot,
-  exact h ▸ tendsto.at_top_zsmul_neg_const hr hf,
-end
+by simpa using hf.at_bot_zsmul_const (neg_pos.2 hr)
 
 end linear_ordered_add_comm_group
 

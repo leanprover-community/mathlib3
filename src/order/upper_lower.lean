@@ -419,7 +419,7 @@ def Ioi (a : α) : upper_set α := ⟨Ioi a, is_upper_set_Ioi a⟩
 @[simp] lemma mem_Ici_iff : b ∈ Ici a ↔ a ≤ b := iff.rfl
 @[simp] lemma mem_Ioi_iff : b ∈ Ioi a ↔ a < b := iff.rfl
 
-lemma Icoi_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
+lemma Ici_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
 
 @[simp] lemma Ioi_top [order_top α] : Ioi (⊤ : α) = ⊤ := set_like.coe_injective Ioi_top
 @[simp] lemma Ici_bot [order_bot α] : Ici (⊥ : α) = ⊥ := set_like.coe_injective Ici_bot

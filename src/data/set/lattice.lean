@@ -756,6 +756,12 @@ by simp only [inter_Union]
 lemma Union₂_inter (s : Π i, κ i → set α) (t : set α) : (⋃ i j, s i j) ∩ t = ⋃ i j, s i j ∩ t :=
 by simp_rw Union_inter
 
+lemma union_Inter₂ (s : set α) (t : Π i, κ i → set α) : s ∪ (⋂ i j, t i j) = ⋂ i j, s ∪ t i j :=
+by simp_rw union_Inter
+
+lemma Inter₂_union (s : Π i, κ i → set α) (t : set α) : (⋂ i j, s i j) ∪ t = ⋂ i j, s i j ∪ t :=
+by simp_rw Inter_union
+
 theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t) (ht : t ∈ S) :
   x ∈ ⋃₀ S :=
 ⟨t, ht, hx⟩
@@ -912,6 +918,9 @@ theorem range_sigma_eq_Union_range {γ : α → Type*} (f : sigma γ → β) :
 set.ext $ by simp
 
 theorem Union_eq_range_sigma (s : α → set β) : (⋃ i, s i) = range (λ a : Σ i, s i, a.2) :=
+by simp [set.ext_iff]
+
+theorem Union_eq_range_psigma (s : ι → set β) : (⋃ i, s i) = range (λ a : Σ' i, s i, a.2) :=
 by simp [set.ext_iff]
 
 theorem Union_image_preimage_sigma_mk_eq_self {ι : Type*} {σ : ι → Type*} (s : set (sigma σ)) :

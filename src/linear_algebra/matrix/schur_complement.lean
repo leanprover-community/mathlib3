@@ -116,19 +116,9 @@ lemma pos_semidef.from_blocks₂₂ [fintype m] [fintype n] [decidable_eq n]
   (hD : D.pos_def) [invertible D] :
   (from_blocks A B Bᴴ D).pos_semidef ↔ (A - B ⬝ D⁻¹ ⬝ Bᴴ).pos_semidef :=
 begin
-  rw [pos_semidef, is_hermitian.from_blocks₂₂ _ _ hD.1],
-  split,
-  { refine λ h, ⟨h.1, λ x, _⟩,
-    have := h.2 (x ⊕ᵥ - ((D⁻¹ ⬝ Bᴴ).mul_vec x)),
-    rw [dot_product_mul_vec, schur_complement_eq₂₂ A B _ _ hD.1, add_neg_self,
-      dot_product_zero, zero_add] at this,
-    rw [dot_product_mul_vec], exact this },
-  { refine λ h, ⟨h.1, λ x, _⟩,
-    rw [dot_product_mul_vec, ← sum.elim_comp_inl_inr x, schur_complement_eq₂₂ A B _ _ hD.1],
-    apply le_add_of_nonneg_of_le,
-    { rw ← dot_product_mul_vec,
-      apply hD.pos_semidef.2, },
-    { rw ← dot_product_mul_vec, apply h.2 } }
+  rw [←pos_semidef_minor_equiv (equiv.sum_comm n m), equiv.sum_comm_apply,
+    from_blocks_minor_sum_swap_sum_swap],
+  convert pos_semidef.from_blocks₁₁ _ _ hD; apply_instance <|> simp
 end
 
 end matrix

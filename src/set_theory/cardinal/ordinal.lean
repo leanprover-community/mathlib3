@@ -23,6 +23,9 @@ using ordinals.
 * The function `cardinal.aleph` gives the infinite cardinals listed by their
   ordinal index. `aleph 0 = ℵ₀`, `aleph 1 = succ ℵ₀` is the first
   uncountable cardinal, and so on.
+* The function `cardinal.beth` enumerates the Beth cardinals. `beth 0 = ℵ₀`,
+  `beth (succ o) = 2 ^ beth o`, and for a limit ordinal `o`, `beth o` is the supremum of `beth a`
+  for `a < o`.
 
 ## Main Statements
 
@@ -59,6 +62,8 @@ begin
     { exact co.trans h },
     { rw ord_aleph_0, exact omega_is_limit } }
 end
+
+/-! ### Aleph cardinals -/
 
 /-- The `aleph'` index function, which gives the ordinal index of a cardinal.
   (The `aleph'` part is because unlike `aleph` this counts also the
@@ -173,6 +178,13 @@ theorem aleph'_le_of_limit {o : ordinal} (l : o.is_limit) {c} :
   exact h _ h'
 end⟩
 
+theorem aleph'_limit {o : ordinal} (ho : is_limit o) : aleph' o = ⨆ a : Iio o, aleph' a :=
+begin
+  refine le_antisymm _ (csupr_le' (λ i, aleph'_le.2 (le_of_lt i.2))),
+  rw aleph'_le_of_limit ho,
+  exact λ a ha, le_csupr (bdd_above_of_small _) (⟨a, ha⟩ : Iio o)
+end
+
 @[simp] theorem aleph'_omega : aleph' ω = ℵ₀ :=
 eq_of_forall_ge_iff $ λ c, begin
   simp only [aleph'_le_of_limit omega_is_limit, lt_omega, exists_imp_distrib, aleph_0_le],
@@ -202,10 +214,24 @@ begin
 end
 
 @[simp] theorem aleph_succ {o : ordinal} : aleph (succ o) = succ (aleph o) :=
-by { rw [aleph, add_succ, aleph'_succ], refl }
+by rw [aleph, add_succ, aleph'_succ, aleph]
 
 @[simp] theorem aleph_zero : aleph 0 = ℵ₀ :=
-by simp only [aleph, add_zero, aleph'_omega]
+by rw [aleph, add_zero, aleph'_omega]
+
+theorem aleph_limit {o : ordinal} (ho : is_limit o) : aleph o = ⨆ a : Iio o, aleph a :=
+begin
+  apply le_antisymm _ (csupr_le' _),
+  { rw [aleph, aleph'_limit (ho.add _)],
+    refine csupr_mono' (bdd_above_of_small _) _,
+    rintro ⟨i, hi⟩,
+    cases lt_or_le i ω,
+    { rcases lt_omega.1 h with ⟨n, rfl⟩,
+      use ⟨0, ho.pos⟩,
+      simpa using (nat_lt_aleph_0 n).le },
+    { exact ⟨⟨_, (sub_lt_of_le h).2 hi⟩, aleph'_le.2 (le_add_sub _ _)⟩ } },
+  { exact λ i, aleph_le.2 (le_of_lt i.2) }
+end
 
 theorem aleph_0_le_aleph' {o : ordinal} : ℵ₀ ≤ aleph' o ↔ ω ≤ o :=
 by rw [← aleph'_omega, aleph'_le]
@@ -300,6 +326,69 @@ begin
   { rw [←ord_aleph_0, ord_le_ord],
     exact aleph_0_le_aleph _ }
 end
+
+/-! ### Beth cardinals -/
+
+/-- Beth numbers are defined so that `beth 0 = ℵ₀`, `beth (succ o) = 2 ^ (beth o)`, and when `o` is
+a limit ordinal, `beth o` is the supremum of `beth o'` for `o' < o`.
+
+Assuming the generalized continuum hypothesis, which is undecidable in ZFC, `beth o = aleph o` for
+every `o`. -/
+def beth (o : ordinal.{u}) : cardinal.{u} :=
+limit_rec_on o aleph_0 (λ _ x, 2 ^ x) (λ a ha IH, ⨆ b : Iio a, IH b.1 b.2)
+
+@[simp] theorem beth_zero : beth 0 = aleph_0 :=
+limit_rec_on_zero _ _ _
+
+@[simp] theorem beth_succ (o : ordinal) : beth (succ o) = 2 ^ beth o :=
+limit_rec_on_succ _ _ _ _
+
+theorem beth_limit {o : ordinal} : is_limit o → beth o = ⨆ a : Iio o, beth a :=
+limit_rec_on_limit _ _ _ _
+
+theorem beth_strict_mono : strict_mono beth :=
+begin
+  intros a b,
+  induction b using ordinal.induction with b IH generalizing a,
+  intro h,
+  rcases zero_or_succ_or_limit b with rfl | ⟨c, rfl⟩ | hb,
+  { exact (ordinal.not_lt_zero a h).elim },
+  { rw lt_succ_iff at h,
+    rw beth_succ,
+    apply lt_of_le_of_lt _ (cantor _),
+    rcases eq_or_lt_of_le h with rfl | h, { refl },
+    exact (IH c (lt_succ c) h).le },
+  { apply (cantor _).trans_le,
+    rw [beth_limit hb, ←beth_succ],
+    exact le_csupr (bdd_above_of_small _) (⟨_, hb.succ_lt h⟩ : Iio b) }
+end
+
+@[simp] theorem beth_lt {o₁ o₂ : ordinal} : beth o₁ < beth o₂ ↔ o₁ < o₂ :=
+beth_strict_mono.lt_iff_lt
+
+@[simp] theorem beth_le {o₁ o₂ : ordinal} : beth o₁ ≤ beth o₂ ↔ o₁ ≤ o₂ :=
+beth_strict_mono.le_iff_le
+
+theorem aleph_le_beth (o : ordinal) : aleph o ≤ beth o :=
+begin
+  apply limit_rec_on o,
+  { simp },
+  { intros o h,
+    rw [aleph_succ, beth_succ, succ_le_iff],
+    exact (cantor _).trans_le (power_le_power_left two_ne_zero' h) },
+  { intros o ho IH,
+    rw [aleph_limit ho, beth_limit ho],
+    exact csupr_mono (bdd_above_of_small _) (λ x, IH x.1 x.2) }
+end
+
+theorem aleph_0_le_beth (o : ordinal) : ℵ₀ ≤ beth o :=
+(aleph_0_le_aleph o).trans $ aleph_le_beth o
+
+theorem beth_pos (o : ordinal) : 0 < beth o :=
+aleph_0_pos.trans_le $ aleph_0_le_beth o
+
+theorem beth_ne_zero (o : ordinal) : beth o ≠ 0 :=
+(beth_pos o).ne'
 
 /-! ### Properties of `mul` -/
 

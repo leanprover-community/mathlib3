@@ -59,7 +59,7 @@ lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i =
 instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
 { pow := λ x b i, (x i) ^ b }
 
-@[to_additive pi.smul_apply, simp] lemma pow_apply {β : Type*} [Π i, has_pow (f i) β]
+@[simp, to_additive pi.smul_apply] lemma pow_apply {β : Type*} [Π i, has_pow (f i) β]
   (x : Π i, f i) (b : β) (i : I) : (x ^ b) i = (x i) ^ b := rfl
 @[to_additive pi.smul_def] lemma pow_def {β : Type*} [Π i, has_pow (f i) β]
   (x : Π i, f i) (b : β) : x ^ b = λ i, (x i) ^ b := rfl

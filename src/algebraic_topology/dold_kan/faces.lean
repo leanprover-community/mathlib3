@@ -204,7 +204,6 @@ begin
     slice_rhs 2 3 { rw ← eq₂, },
     simp only [← assoc, v j (by linarith), zero_comp], },
   { -- in the last case, a=m, q=1 and j=a+1
-    have ham'' : a=m := le_antisymm ham (not_lt.mp ham'),
     have hq : q=1 := by rw [← add_left_inj a, ha, ham'', add_comm],
     have hj₄ : (⟨a+1, by linarith⟩ : fin (m+3)) = fin.cast_succ j,
     { ext,

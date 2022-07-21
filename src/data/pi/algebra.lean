@@ -9,6 +9,7 @@ import logic.unique
 import tactic.congr
 import tactic.simpa
 import tactic.split_ifs
+import data.sum.basic
 
 /-!
 # Instances and theorems on pi types

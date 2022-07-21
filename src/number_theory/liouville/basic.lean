@@ -34,7 +34,7 @@ begin
   -- By contradiction, `x = a / b`, with `a ∈ ℤ`, `0 < b ∈ ℕ` is a Liouville number,
   rintros ⟨⟨a, b, bN0, cop⟩, rfl⟩,
   -- clear up the mess of constructions of rationals
-  change (liouville (a / b)) at h,
+  rw [rat.cast_mk', ←div_eq_mul_inv] at h,
   -- Since `a / b` is a Liouville number, there are `p, q ∈ ℤ`, with `q1 : 1 < q`,
   -- `a0 : a / b ≠ p / q` and `a1 : |a / b - p / q| < 1 / q ^ (b + 1)`
   rcases h (b + 1) with ⟨p, q, q1, a0, a1⟩,

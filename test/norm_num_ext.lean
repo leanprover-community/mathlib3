@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.big_operators.norm_num
-import algebra.squarefree
+import data.nat.squarefree
 import data.int.gcd
 import data.nat.fib
 import data.nat.prime
 import data.nat.sqrt_norm_num
+import analysis.special_functions.pow
 
 /-!
 # Tests for `norm_num` extensions
@@ -256,6 +257,10 @@ example : nat.fib 10 = 55 := by norm_num
 example : nat.fib 37 = 24157817 := by norm_num
 example : nat.fib 64 = 10610209857723 := by norm_num
 example : nat.fib 100 + nat.fib 101 = nat.fib 102 := by norm_num
+
+example : (2 : ℝ) ^ (3 : ℝ) = 8 := by norm_num
+example : (1 : ℝ) ^ (20 : ℝ) = 1 := by norm_num
+example : (2 : ℝ) ^ (-3 : ℝ) = 1/8 := by norm_num
 
 section big_operators
 

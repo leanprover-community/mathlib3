@@ -27,7 +27,7 @@ universes u v
 instance : nontrivial ℕ :=
 ⟨⟨0, 1, nat.zero_ne_one⟩⟩
 
-instance : comm_semiring nat :=
+instance : comm_semiring ℕ :=
 { add            := nat.add,
   add_assoc      := nat.add_assoc,
   zero           := nat.zero,
@@ -44,6 +44,9 @@ instance : comm_semiring nat :=
   zero_mul       := nat.zero_mul,
   mul_zero       := nat.mul_zero,
   mul_comm       := nat.mul_comm,
+  nat_cast       := λ n, n,
+  nat_cast_zero  := rfl,
+  nat_cast_succ  := λ n, rfl,
   nsmul          := λ m n, m * n,
   nsmul_zero'    := nat.zero_mul,
   nsmul_succ'    := λ n x,
@@ -90,8 +93,8 @@ instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+{ exists_add_of_le := λ a b h, (nat.le.dest h).imp $ λ _, eq.symm,
+  le_self_add := nat.le_add_right,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   .. nat.nontrivial,
   .. nat.order_bot,
@@ -371,7 +374,7 @@ lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
-  rw [← lt_succ_iff, div_lt_iff_lt_mul _ _ n0, succ_mul, mul_comm],
+  rw [← lt_succ_iff, div_lt_iff_lt_mul n0, succ_mul, mul_comm],
   cases n, {cases n0},
   exact lt_succ_iff,
 end
@@ -464,13 +467,6 @@ begin
   rw add_assoc,
   exact add_lt_add_of_lt_of_le hab (nat.succ_le_iff.2 hcd)
 end
-
--- TODO: generalize to some ordered add_monoids, based on #6145
-lemma le_of_add_le_left {a b c : ℕ} (h : a + b ≤ c) : a ≤ c :=
-by { refine le_trans _ h, simp }
-
-lemma le_of_add_le_right {a b c : ℕ} (h : a + b ≤ c) : b ≤ c :=
-by { refine le_trans _ h, simp }
 
 /-! ### `pred` -/
 
@@ -747,6 +743,91 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+/-- Recursion principle on even and odd numbers: if we have `P 0`, and for all `i : ℕ` we can
+extend from `P i` to both `P (2 * i)` and `P (2 * i + 1)`, then we have `P n` for all `n : ℕ`.
+This is nothing more than a wrapper around `nat.binary_rec`, to avoid having to switch to
+dealing with `bit0` and `bit1`. -/
+@[elab_as_eliminator]
+def even_odd_rec (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i))
+  (h_odd : ∀ i, P i → P (2 * i + 1)) : P n :=
+begin
+  refine @binary_rec P h0 (λ b i hi, _) n,
+  cases b,
+  { simpa [bit, bit0_val i] using h_even i hi },
+  { simpa [bit, bit1_val i] using h_odd i hi },
+end
+
+@[simp] lemma even_odd_rec_zero (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1)) :
+  @even_odd_rec 0 P h0 h_even h_odd = h0 := binary_rec_zero _ _
+
+@[simp] lemma even_odd_rec_even (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
+  (H : h_even 0 h0 = h0) :
+  @even_odd_rec (2 * n) P h0 h_even h_odd = h_even n (even_odd_rec n P h0 h_even h_odd) :=
+begin
+  convert binary_rec_eq _ ff n,
+  { exact (bit0_eq_two_mul _).symm },
+  { exact (bit0_eq_two_mul _).symm },
+  { apply heq_of_cast_eq, refl },
+  { exact H }
+end
+
+@[simp] lemma even_odd_rec_odd (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
+  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
+  (H : h_even 0 h0 = h0) :
+  @even_odd_rec (2 * n + 1) P h0 h_even h_odd = h_odd n (even_odd_rec n P h0 h_even h_odd) :=
+begin
+  convert binary_rec_eq _ tt n,
+  { exact (bit0_eq_two_mul _).symm },
+  { exact (bit0_eq_two_mul _).symm },
+  { apply heq_of_cast_eq, refl },
+  { exact H }
+end
+
+/-- Given a predicate on two naturals `P : ℕ → ℕ → Prop`, `P a b` is true for all `a < b` if
+`P (a + 1) (a + 1)` is true for all `a`, `P 0 (b + 1)` is true for all `b` and for all
+`a < b`, `P (a + 1) b` is true and `P a (b + 1)` is true implies `P (a + 1) (b + 1)` is true. -/
+@[elab_as_eliminator]
+lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a + 1) (a + 1)) (hb : ∀ b, P 0 (b + 1))
+  (hd : ∀ a b, a < b → P (a + 1) b → P a (b + 1) → P (a + 1) (b + 1)) :
+  ∀ a b, a < b → P a b
+| 0 (b + 1) h := hb _
+| (a + 1) (b + 1) h :=
+begin
+  apply hd _ _ ((add_lt_add_iff_right _).1 h),
+  { have : a + 1 = b ∨ a + 1 < b,
+    { rwa [← le_iff_eq_or_lt, ← nat.lt_succ_iff] },
+    rcases this with rfl | _,
+    { exact ha _ },
+    apply diag_induction (a + 1) b this },
+  apply diag_induction a (b + 1),
+  apply lt_of_le_of_lt (nat.le_succ _) h,
+end
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
+
+/-- Given `P : ℕ → ℕ → Sort*`, if for all `a b : ℕ` we can extend `P` from the rectangle
+strictly below `(a,b)` to `P a b`, then we have `P n m` for all `n m : ℕ`.
+Note that for non-`Prop` output it is preferable to use the equation compiler directly if possible,
+since this produces equation lemmas. -/
+@[elab_as_eliminator]
+def strong_sub_recursion {P : ℕ → ℕ → Sort*}
+  (H : ∀ a b, (∀ x y, x < a → y < b → P x y) → P a b) : Π (n m : ℕ), P n m
+| n m := H n m (λ x y hx hy, strong_sub_recursion x y)
+
+/-- Given `P : ℕ → ℕ → Sort*`, if we have `P i 0` and `P 0 i` for all `i : ℕ`,
+and for any `x y : ℕ` we can extend `P` from `(x,y+1)` and `(x+1,y)` to `(x+1,y+1)`
+then we have `P n m` for all `n m : ℕ`.
+Note that for non-`Prop` output it is preferable to use the equation compiler directly if possible,
+since this produces equation lemmas. -/
+@[elab_as_eliminator]
+def pincer_recursion {P : ℕ → ℕ → Sort*} (Ha0 : ∀ a : ℕ, P a 0) (H0b : ∀ b : ℕ, P 0 b)
+  (H : ∀ x y : ℕ, P x y.succ → P x.succ y → P x.succ y.succ) : ∀ (n m : ℕ), P n m
+| a 0 := Ha0 a
+| 0 b := H0b b
+| (nat.succ a) (nat.succ b) := H _ _ (pincer_recursion _ _) (pincer_recursion _ _)
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]
@@ -808,13 +889,13 @@ lemma div_lt_self' (n b : ℕ) : (n+1)/(b+2) < n+1 :=
 nat.div_lt_self (nat.succ_pos n) (nat.succ_lt_succ (nat.succ_pos _))
 
 theorem le_div_iff_mul_le' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x ≤ y / k ↔ x * k ≤ y :=
-le_div_iff_mul_le x y k0
+le_div_iff_mul_le k0
 
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
 lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
-by rw [le_div_iff_mul_le _ _ hb, one_mul]
+by rw [le_div_iff_mul_le hb, one_mul]
 
 lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=
 lt_iff_lt_of_le_iff_le $ one_le_div_iff hb
@@ -840,7 +921,7 @@ lt_of_mul_lt_mul_left
   (nat.zero_le n)
 
 lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
-lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le _ _ w).2
+lt_of_not_ge $ not_le_of_gt h ∘ (nat.le_div_iff_mul_le w).2
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
@@ -856,7 +937,7 @@ eq_zero_of_mul_le hb $
 
 lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
+else (nat.le_div_iff_mul_le (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact nat.mul_le_mul_left _ (nat.div_mul_le_self _ _))
 
 lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
@@ -886,6 +967,12 @@ protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b
   a = c * b :=
 by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
+protected lemma lt_div_iff_mul_lt {n d : ℕ} (hnd : d ∣ n) (a : ℕ) : a < n / d ↔ d * a < n :=
+begin
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.mp hnd] },
+  rw [←mul_lt_mul_left hd0, ←nat.eq_mul_of_div_eq_right hnd rfl],
+end
+
 protected theorem mul_div_cancel_left' {a b : ℕ} (Hd :  a ∣ b) : a * (b / a) = b :=
 by rw [mul_comm,nat.div_mul_cancel Hd]
 
@@ -897,7 +984,7 @@ by rw [mul_comm, mul_comm b, a.mul_div_mul_left b hc]
 
 lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
 begin
-  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul hb],
   exact nat.lt_succ_self _,
 end
 
@@ -911,6 +998,24 @@ begin
     rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
     exact nat.eq_mul_of_div_eq_right hx h },
   { intros h, rw h },
+end
+
+lemma mul_div_mul_comm_of_dvd_dvd {a b c d : ℕ} (hac : c ∣ a) (hbd : d ∣ b) :
+  a * b / (c * d) = a / c * (b / d) :=
+begin
+  rcases c.eq_zero_or_pos with rfl | hc0, { simp },
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp },
+  obtain ⟨k1, rfl⟩ := hac,
+  obtain ⟨k2, rfl⟩ := hbd,
+  rw [mul_mul_mul_comm, nat.mul_div_cancel_left _ hc0, nat.mul_div_cancel_left _ hd0,
+      nat.mul_div_cancel_left _ (mul_pos hc0 hd0)],
+end
+
+@[simp]
+protected lemma div_left_inj {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←nat.mul_div_cancel' hda, ←nat.mul_div_cancel' hdb, h],
 end
 
 /-! ### `mod`, `dvd` -/
@@ -1178,7 +1283,7 @@ nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
-(nat.le_div_iff_mul_le _ _ h₂).2 $
+(nat.le_div_iff_mul_le h₂).2 $
   le_trans (nat.mul_le_mul_left _ h₁) (div_mul_le_self _ _)
 
 lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=
@@ -1227,30 +1332,46 @@ begin
   { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
 end
 
-/-- `m` is not divisible by `n` iff it is between `n * k` and `n * (k + 1)` for some `k`. -/
-lemma exists_lt_and_lt_iff_not_dvd (m : ℕ) {n : ℕ} (hn : 0 < n) :
-  (∃ k, n * k < m ∧ m < n * (k + 1)) ↔ ¬ n ∣ m :=
+/-- `n` is not divisible by `a` if it is between `a * k` and `a * (k + 1)` for some `k`. -/
+lemma not_dvd_of_between_consec_multiples {n a k : ℕ} (h1 : a * k < n) (h2 : n < a * (k + 1)) :
+  ¬ a ∣ n :=
 begin
-  split,
-  { rintro ⟨k, h1k, h2k⟩ ⟨l, rfl⟩, rw [mul_lt_mul_left hn] at h1k h2k,
-    rw [lt_succ_iff, ← not_lt] at h2k, exact h2k h1k },
-  { intro h, rw [dvd_iff_mod_eq_zero, ← ne.def, ← pos_iff_ne_zero] at h,
-    simp only [← mod_add_div m n] {single_pass := tt},
-    refine ⟨m / n, lt_add_of_pos_left _ h, _⟩,
-    rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
+  rintro ⟨d, rfl⟩,
+  exact monotone.ne_of_lt_of_lt_nat (covariant.monotone_of_const a) k h1 h2 d rfl,
 end
 
-/-- Two natural numbers are equal if and only if the have the same multiples. -/
+/-- `n` is not divisible by `a` iff it is between `a * k` and `a * (k + 1)` for some `k`. -/
+lemma not_dvd_iff_between_consec_multiples (n : ℕ) {a : ℕ} (ha : 0 < a) :
+  (∃ k : ℕ, a * k < n ∧ n < a * (k + 1)) ↔ ¬ a ∣ n :=
+begin
+  refine ⟨λ ⟨k, hk1, hk2⟩, not_dvd_of_between_consec_multiples hk1 hk2,
+          λ han, ⟨n/a, ⟨lt_of_le_of_ne (mul_div_le n a) _, lt_mul_div_succ _ ha⟩⟩⟩,
+  exact mt (dvd.intro (n/a)) han,
+end
+
+/-- Two natural numbers are equal if and only if they have the same multiples. -/
 lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
 ⟨λ h, dvd_antisymm ((h _).mpr dvd_rfl) ((h _).mp dvd_rfl), λ h n, by rw h⟩
 
-/-- Two natural numbers are equal if and only if the have the same divisors. -/
+/-- Two natural numbers are equal if and only if they have the same divisors. -/
 lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
 ⟨λ h, dvd_antisymm ((h _).mp dvd_rfl) ((h _).mpr dvd_rfl), λ h n, by rw h⟩
 
 /-- `dvd` is injective in the left argument -/
 lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
+
+lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
+by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
+
+lemma mul_add_mod (a b c : ℕ) : (a * b + c) % b = c % b :=
+by simp [nat.add_mod]
+
+lemma mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
+by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
+
+lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
+by { cases n; simp [(nat.succ_ne_self _).symm] }
 
 /-! ### `find` -/
 section find
@@ -1443,6 +1564,14 @@ by unfold bodd div2; cases bodd_div2 n; refl
 @[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
 ⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
 
+theorem bit_add : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit ff n + bit b m
+| tt := bit1_add
+| ff := bit0_add
+
+theorem bit_add' : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit b n + bit ff m
+| tt := bit1_add'
+| ff := bit0_add
+
 protected theorem bit0_le {n m : ℕ} (h : n ≤ m) : bit0 n ≤ bit0 m :=
 add_le_add h h
 
@@ -1510,10 +1639,29 @@ by { convert bit1_lt_bit0_iff, refl, }
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }
 
-/-- Define a function on `ℕ` depending on parity of the argument. -/
-@[elab_as_eliminator]
-def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
-eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
+@[simp] lemma bit_cases_on_bit {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (b : bool) (n : ℕ) :
+  bit_cases_on (bit b n) H = H b n :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [bodd_bit, div2_bit]
+
+@[simp] lemma bit_cases_on_bit0 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit0 n) H = H ff n :=
+bit_cases_on_bit H ff n
+
+@[simp] lemma bit_cases_on_bit1 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit1 n) H = H tt n :=
+bit_cases_on_bit H tt n
+
+lemma bit_cases_on_injective {C : ℕ → Sort u} :
+  function.injective (λ H : Π b n, C (bit b n), λ n, bit_cases_on n H) :=
+begin
+  intros H₁ H₂ h,
+  ext b n,
+  simpa only [bit_cases_on_bit] using congr_fun h (bit b n)
+end
+
+@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
+  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
+bit_cases_on_injective.eq_iff
 
 /-! ### decidability of predicates -/
 

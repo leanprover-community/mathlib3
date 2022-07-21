@@ -5,7 +5,7 @@ Authors: Simon Hudon, Patrick Massot
 -/
 import tactic.pi_instances
 import algebra.group.pi
-import algebra.ring.basic
+import algebra.hom.ring
 
 /-!
 # Pi instances for ring
@@ -136,7 +136,6 @@ def pi.eval_non_unital_ring_hom (f : I → Type v)
   ..(pi.eval_add_monoid_hom f i) }
 
 /-- `function.const` as a `non_unital_ring_hom`. -/
-
 @[simps]
 def pi.const_non_unital_ring_hom (α β : Type*) [non_unital_non_assoc_semiring β] : β →ₙ+* (α → β) :=
 { to_fun := function.const _,

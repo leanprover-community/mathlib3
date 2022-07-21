@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
 import algebra.order.sub
-import order.order_dual
 
 /-!
 # Ordered groups
@@ -24,32 +23,6 @@ open function
 
 universe u
 variable {α : Type u}
-
-@[to_additive]
-instance group.covariant_class_le.to_contravariant_class_le
-  [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-group.covconv
-
-@[to_additive]
-instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
-  [covariant_class α α (swap (*)) (≤)] : contravariant_class α α (swap (*)) (≤) :=
-{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
-                          ... ≤ c * a * a⁻¹ : mul_le_mul_right' bc a⁻¹
-                          ... = c           : mul_inv_eq_of_eq_mul rfl }
-
-@[to_additive]
-instance group.covariant_class_lt.to_contravariant_class_lt
-  [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
-{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
-                          ... < a⁻¹ * (a * c) : mul_lt_mul_left' bc a⁻¹
-                          ... = c             : inv_mul_cancel_left a c }
-
-@[to_additive]
-instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
-  [covariant_class α α (swap (*)) (<)] : contravariant_class α α (swap (*)) (<) :=
-{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
-                          ... < c * a * a⁻¹ : mul_lt_mul_right' bc a⁻¹
-                          ... = c           : mul_inv_eq_of_eq_mul rfl }
 
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
@@ -95,8 +68,14 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 @[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
 @[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
+@[to_additive order_dual.subtraction_monoid]
+instance [h : division_monoid α] : division_monoid αᵒᵈ := h
+@[to_additive order_dual.subtraction_comm_monoid]
+instance [h : division_comm_monoid α] : division_comm_monoid αᵒᵈ := h
 @[to_additive] instance [h : group α] : group αᵒᵈ := h
 @[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
+instance [h : group_with_zero α] : group_with_zero αᵒᵈ := h
+instance [h : comm_group_with_zero α] : comm_group_with_zero αᵒᵈ := h
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -821,7 +800,7 @@ lemma div_le_inv_mul_iff [covariant_class α α (swap (*)) (≤)] :
   a / b ≤ a⁻¹ * b ↔ a ≤ b :=
 begin
   rw [div_eq_mul_inv, mul_inv_le_inv_mul_iff],
-  exact ⟨λ h, not_lt.mp (λ k, not_lt.mpr h (mul_lt_mul''' k k)), λ h, mul_le_mul' h h⟩,
+  exact ⟨λ h, not_lt.mp (λ k, not_lt.mpr h (mul_lt_mul_of_lt_of_lt k k)), λ h, mul_le_mul' h h⟩,
 end
 
 /-  What is the point of this lemma?  See comment about `div_le_inv_mul_iff` above. -/
@@ -916,14 +895,15 @@ See note [reducible non-instances]. -/
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
-  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
+  [has_sup β] [has_inf β] (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_group β :=
-{ ..linear_order.lift f hf,
+{ ..linear_order.lift f hf hsup hinf,
   ..hf.ordered_comm_group f one mul inv div npow zpow }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
@@ -1091,10 +1071,17 @@ begin
             ... ≤ a     : (neg_neg a).le }
 end
 
+lemma add_abs_nonneg (a : α) : 0 ≤ a + |a| :=
+begin
+  rw ←add_right_neg a,
+  apply add_le_add_left,
+  exact (neg_le_abs_self a),
+end
+
 lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
 by simpa using neg_abs_le_self (-a)
 
-lemma abs_nonneg (a : α) : 0 ≤ |a| :=
+@[simp] lemma abs_nonneg (a : α) : 0 ≤ |a| :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
 @[simp] lemma abs_abs (a : α) : | |a| | = |a| :=
@@ -1387,3 +1374,47 @@ lemma one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
 one_le_inv'.mpr
 
 end norm_num_lemmas
+
+section
+
+variables {β : Type*}
+[group α] [preorder α] [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+[preorder β] {f : β → α} {s : set β}
+
+@[to_additive] lemma monotone.inv (hf : monotone f) : antitone (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_le_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma antitone.inv (hf : antitone f) : monotone (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_le_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma monotone_on.inv (hf : monotone_on f s) :
+  antitone_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_le_inv_iff.2 (hf hx hy hxy)
+
+@[to_additive] lemma antitone_on.inv (hf : antitone_on f s) :
+  monotone_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_le_inv_iff.2 (hf hx hy hxy)
+
+end
+
+section
+
+variables {β : Type*}
+[group α] [preorder α] [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
+[preorder β] {f : β → α} {s : set β}
+
+@[to_additive] lemma strict_mono.inv (hf : strict_mono f) : strict_anti (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_lt_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma strict_anti.inv (hf : strict_anti f) : strict_mono (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_lt_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma strict_mono_on.inv (hf : strict_mono_on f s) :
+  strict_anti_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_lt_inv_iff.2 (hf hx hy hxy)
+
+@[to_additive] lemma strict_anti_on.inv (hf : strict_anti_on f s) :
+  strict_mono_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_lt_inv_iff.2 (hf hx hy hxy)
+
+end

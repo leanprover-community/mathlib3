@@ -135,7 +135,10 @@ lemma inf_assoc (a b c : α) : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) := by { dsimp onl
 lemma sup_inf_self (a b : α) : a ⊔ a ⊓ b = a :=
 by { dsimp only [(⊔), (⊓)], assoc_rw [mul_self, add_self, add_zero] }
 lemma inf_sup_self (a b : α) : a ⊓ (a ⊔ b) = a :=
-by { dsimp only [(⊔), (⊓)], assoc_rw [mul_add, mul_add, mul_self, mul_self, add_self, add_zero] }
+begin
+  dsimp only [(⊔), (⊓)],
+  rw [mul_add, mul_add, mul_self, ←mul_assoc, mul_self, add_assoc, add_self, add_zero]
+end
 
 lemma le_sup_inf_aux (a b c : α) : (a + b + a * b) * (a + c + a * c) = a + b * c + a * (b * c) :=
 calc (a + b + a * b) * (a + c + a * c) =
@@ -161,7 +164,6 @@ The data is defined so that:
 * `a \ b` unfolds to `a * (1 + b)`
 -/
 def to_boolean_algebra : boolean_algebra α :=
-boolean_algebra.of_core
 { le_sup_inf := le_sup_inf,
   top := 1,
   le_top := λ a, show a + 1 + a * 1 = 1, by assoc_rw [mul_one, add_comm, add_self, add_zero],
@@ -385,3 +387,25 @@ end algebra_to_ring
 { map_mul' := λ a b, rfl,
   map_add' := of_boolalg_symm_diff,
   ..of_boolring.trans of_boolalg }
+
+open bool
+
+instance : boolean_ring bool :=
+{ add := bxor,
+  add_assoc := bxor_assoc,
+  zero := ff,
+  zero_add := ff_bxor,
+  add_zero := bxor_ff,
+  neg := id,
+  sub := bxor,
+  sub_eq_add_neg := λ _ _, rfl,
+  add_left_neg := bxor_self,
+  add_comm := bxor_comm,
+  one := tt,
+  mul := band,
+  mul_assoc := band_assoc,
+  one_mul := tt_band,
+  mul_one := band_tt,
+  left_distrib := band_bxor_distrib_left,
+  right_distrib := band_bxor_distrib_right,
+  mul_self := band_self }

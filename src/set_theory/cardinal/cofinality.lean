@@ -162,8 +162,8 @@ begin
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
     rw [← e, e'],
-    refine type_le'.2 ⟨rel_embedding.of_monotone
-      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
+    refine (rel_embedding.of_monotone (λ a : T, (⟨a, let ⟨aS, _⟩ := a.2 in aS⟩ : S)) (λ a b h, _))
+      .ordinal_type_le,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
     change s ⟨a, _⟩ ⟨b, _⟩,
     refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
@@ -507,7 +507,7 @@ begin
   let r' := subrel r {i | ∀ j, r j i → f j < f i},
   let hrr' : r' ↪r r := subrel.rel_embedding _ _,
   haveI := hrr'.is_well_order,
-  refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
+  refine ⟨_, _, hrr'.ordinal_type_le.trans _, λ i j _ h _, (enum r' j h).prop _ _,
     le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
   { rw [←hι, hr] },
   { change r (hrr'.1 _ ) (hrr'.1 _ ),

@@ -197,7 +197,7 @@ lemma antitone.map_limsup_of_continuous
   f (F.limsup a) = F.liminf (f ∘ a) :=
 begin
   rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf] at *,
-  rw (map_Inf_of_continuous_at_of_antitone' f_cont.continuous_at f_decr _),
+  rw (f_decr.map_Inf_of_continuous_at' f_cont.continuous_at _),
   { apply congr_arg,
     simp only [image_image, function.comp_app],
     refine subset_antisymm _ _;
@@ -205,7 +205,7 @@ begin
       rw mem_image at *,
       rcases hi with ⟨I, I_mem_F, hI⟩,
       refine ⟨I, I_mem_F, _⟩,
-      rw [← hI, map_Sup_of_continuous_at_of_antitone' f_cont.continuous_at f_decr _, image_image],
+      rw [← hI, f_decr.map_Sup_of_continuous_at' f_cont.continuous_at _, image_image],
       exact nonempty_image_iff.mpr (ne_bot.nonempty_of_mem ‹ne_bot F› I_mem_F), }, },
   { refine nonempty_image_iff.mpr nonempty_of_nonempty_subtype, },
 end

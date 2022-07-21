@@ -168,6 +168,7 @@ segments.
 /-- If `r` is a relation on `α` and `s` in a relation on `β`, then `f : r ≺i s` is an order
 embedding whose range is an open interval `(-∞, top)` for some element `top` of `β`. Such order
 embeddings are called principal segments -/
+@[nolint has_inhabited_instance]
 structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (top : β)
 (down : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)
@@ -315,8 +316,6 @@ def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ 
 /-- Principal segment from the empty relation on `pempty` to the empty relation on `punit`. -/
 @[reducible] def pempty_to_punit : @empty_relation pempty ≺i @empty_relation punit :=
 @of_is_empty _ _ empty_relation _ _ punit.star $ λ x, not_false
-
-instance : inhabited (@empty_relation pempty ≺i @empty_relation punit) := ⟨pempty_to_punit⟩
 
 end principal_seg
 

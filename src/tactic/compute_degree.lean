@@ -401,8 +401,8 @@ do try $ refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate,
   summ ← list_binary_operands ad pol,
   let low_degs := (prod.mk ff <$> (summ.filter (λ t, guess_degree_to_nat t < deg)).map to_pexpr),
   let iters := low_degs.length,
-  --trace iters,
-  move_op.with_errors (to_pexpr ad) low_degs none,--target >>= trace,
+  --  would be nice to not have to `try` this and simply do it!
+  try $ tactic.move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
   iterate_at_most iters $
   ( do `(nat_degree %%po = _) ← target,
     compute_step deg po ),

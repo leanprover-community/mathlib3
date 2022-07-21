@@ -140,4 +140,3 @@ hs.max_minimals (λ a ⟨⟨b, hb, hba⟩, h⟩, by rwa h (subset_upper_closure 
 lemma is_antichain.minimals_lower_closure (hs : is_antichain (≤) s) :
   maximals (≤) (lower_closure s : set α) = s :=
 hs.to_dual.maximals_upper_closure
-#lint

@@ -495,7 +495,7 @@ end
 See `quotient_to_quotient_range_pow_quot_succ` for this as a linear map,
 and `quotient_range_pow_quot_succ_inclusion_equiv` for this as a linear equivalence.
 -/
-noncomputable def quotient_to_quotient_range_pow_quot_succ_aux (i : ℕ) (a : S) (a_mem : a ∈ P^i) :
+noncomputable def quotient_to_quotient_range_pow_quot_succ_aux {i : ℕ} {a : S} (a_mem : a ∈ P^i) :
   S ⧸ P → (_ ⧸ (pow_quot_succ_inclusion f p P i).range) :=
 quotient.map' (λ (x : S), ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩)
   (λ x y h, begin
@@ -507,43 +507,44 @@ quotient.map' (λ (x : S), ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x 
         subtype.coe_mk, _root_.map_mul, map_sub, sub_mul]
   end)
 
-lemma quotient_to_quotient_range_pow_quot_succ_aux_mk (i : ℕ) (a : S) (a_mem : a ∈ P^i) (x : S) :
-  quotient_to_quotient_range_pow_quot_succ_aux f p P i a a_mem (submodule.quotient.mk x) =
+lemma quotient_to_quotient_range_pow_quot_succ_aux_mk {i : ℕ} {a : S} (a_mem : a ∈ P^i) (x : S) :
+  quotient_to_quotient_range_pow_quot_succ_aux f p P a_mem (submodule.quotient.mk x) =
     submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
 by apply quotient.map'_mk'
 
 include hfp
 
 /-- `S ⧸ P` embeds into the quotient by `P^(i+1) ⧸ P^e` as a subspace of `P^i ⧸ P^e`. -/
-noncomputable def quotient_to_quotient_range_pow_quot_succ (i : ℕ) (a : S) (a_mem : a ∈ P^i) :
+noncomputable def quotient_to_quotient_range_pow_quot_succ {i : ℕ} {a : S} (a_mem : a ∈ P^i) :
   S ⧸ P →ₗ[R ⧸ p] (_ ⧸ (pow_quot_succ_inclusion f p P i).range) :=
-{ to_fun := quotient_to_quotient_range_pow_quot_succ_aux f p P i a a_mem, map_add' := begin
-  intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
-  simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
-             quotient_to_quotient_range_pow_quot_succ_aux_mk, add_mul],
-  refine congr_arg submodule.quotient.mk _,
-  ext,
-  refl
-end, map_smul' := begin
-  intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
-  simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
-             quotient_to_quotient_range_pow_quot_succ_aux_mk, ring_hom.id_apply],
-  refine congr_arg submodule.quotient.mk _,
-  ext,
-  simp only [subtype.coe_mk, _root_.map_mul, algebra.smul_def, submodule.coe_mk, mul_assoc,
-             ideal.quotient.mk_eq_mk, submodule.coe_smul_of_tower,
-             ideal.quotient.algebra_map_quotient_pow_ramification_idx]
-end }
+{ to_fun := quotient_to_quotient_range_pow_quot_succ_aux f p P a_mem,
+  map_add' := begin
+    intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
+    simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
+              quotient_to_quotient_range_pow_quot_succ_aux_mk, add_mul],
+    refine congr_arg submodule.quotient.mk _,
+    ext,
+    refl
+  end,
+  map_smul' := begin
+    intros x y, refine quotient.induction_on' x (λ x, quotient.induction_on' y (λ y, _)),
+    simp only [submodule.quotient.mk'_eq_mk, ← submodule.quotient.mk_add,
+              quotient_to_quotient_range_pow_quot_succ_aux_mk, ring_hom.id_apply],
+    refine congr_arg submodule.quotient.mk _,
+    ext,
+    simp only [subtype.coe_mk, _root_.map_mul, algebra.smul_def, submodule.coe_mk, mul_assoc,
+              ideal.quotient.mk_eq_mk, submodule.coe_smul_of_tower,
+              ideal.quotient.algebra_map_quotient_pow_ramification_idx]
+  end }
 
-lemma quotient_to_quotient_range_pow_quot_succ_mk (i : ℕ)
-  (a : S) (a_mem : a ∈ P^i) (x : S) :
-  quotient_to_quotient_range_pow_quot_succ f p P i a a_mem (submodule.quotient.mk x) =
+lemma quotient_to_quotient_range_pow_quot_succ_mk {i : ℕ} {a : S} (a_mem : a ∈ P^i) (x : S) :
+  quotient_to_quotient_range_pow_quot_succ f p P a_mem (submodule.quotient.mk x) =
     submodule.quotient.mk ⟨_, ideal.mem_map_of_mem _ (ideal.mul_mem_left _ x a_mem)⟩ :=
-quotient_to_quotient_range_pow_quot_succ_aux_mk f p P i a a_mem x
+quotient_to_quotient_range_pow_quot_succ_aux_mk f p P a_mem x
 
 lemma quotient_to_quotient_range_pow_quot_succ_injective [is_domain S] [is_dedekind_domain S]
   [P.is_prime] {i : ℕ} (hi : i < e) {a : S} (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
-  function.injective (quotient_to_quotient_range_pow_quot_succ f p P i a a_mem) :=
+  function.injective (quotient_to_quotient_range_pow_quot_succ f p P a_mem) :=
 λ x, quotient.induction_on' x $ λ x y, quotient.induction_on' y $ λ y h,
 begin
   have Pe_le_Pi1 : P^e ≤ P^(i + 1) := ideal.pow_le_pow hi,
@@ -562,7 +563,7 @@ end
 lemma quotient_to_quotient_range_pow_quot_succ_surjective [is_domain S] [is_dedekind_domain S]
   (hP0 : P ≠ ⊥) [hP : P.is_prime] {i : ℕ} (hi : i < e)
   {a : S} (a_mem : a ∈ P^i) (a_not_mem : a ∉ P^(i + 1)) :
-  function.surjective (quotient_to_quotient_range_pow_quot_succ f p P i a a_mem) :=
+  function.surjective (quotient_to_quotient_range_pow_quot_succ f p P a_mem) :=
 begin
   rintro ⟨⟨⟨x⟩, hx⟩⟩,
   have Pe_le_Pi : P^e ≤ P^i := ideal.pow_le_pow hi.le,
@@ -599,7 +600,7 @@ begin
   choose a a_mem a_not_mem using set_like.exists_of_lt
     (ideal.strict_anti_pow P hP (ideal.is_prime.ne_top infer_instance) (le_refl i.succ)),
   refine (linear_equiv.of_bijective _ _ _).symm,
-  { exact quotient_to_quotient_range_pow_quot_succ f p P i a a_mem },
+  { exact quotient_to_quotient_range_pow_quot_succ f p P a_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_injective f p P hi a_mem a_not_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_surjective f p P hP hi a_mem a_not_mem }
 end

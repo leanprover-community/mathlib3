@@ -90,16 +90,15 @@ begin
   rintro ⟨p, ⟨hp, hn⟩, hq⟩,
   -- Take care of the n = 0 case
   rcases eq_or_ne n 0 with rfl | hn₀,
-  { obtain ⟨q, hq', hq''⟩ := nat.exists_infinite_primes (p + 1),
-    cases hq q ⟨hq'', by simp⟩,
-    simpa using hq' },
+  { simp only [dvd_zero, and_true] at hq,
+    cases (hq 2 nat.prime_two).trans (hq 3 nat.prime_three).symm },
   -- So assume 0 < n
   refine ⟨p, n.factorization p, hp, hp.factorization_pos_of_dvd hn₀ hn, _⟩,
   simp only [and_imp] at hq,
   apply nat.dvd_antisymm (nat.pow_factorization_dvd _ _),
   -- We need to show n ∣ p ^ n.factorization p
   apply nat.dvd_of_factors_subperm hn₀,
-  rw [hp.factors_pow, list.subperm_ext_iff],
+  rw [nat.padic_part_def, hp.factors_pow, list.subperm_ext_iff],
   intros q hq',
   rw nat.mem_factors hn₀ at hq',
   cases hq _ hq'.1 hq'.2,

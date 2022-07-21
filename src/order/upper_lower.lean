@@ -561,6 +561,12 @@ def lower_closure (s : set α) : lower_set α :=
 lemma subset_upper_closure : s ⊆ upper_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 lemma subset_lower_closure : s ⊆ lower_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 
+lemma upper_closure_min (h : s ⊆ t) (ht : is_upper_set t) : ↑(upper_closure s) ⊆ t :=
+λ a ⟨b, hb, hba⟩, ht hba $ h hb
+
+lemma lower_closure_min (h : s ⊆ t) (ht : is_lower_set t) : ↑(lower_closure s) ⊆ t :=
+λ a ⟨b, hb, hab⟩, ht hab $ h hb
+
 @[simp] lemma upper_set.infi_Ici (s : set α) : (⨅ a ∈ s, upper_set.Ici a) = upper_closure s :=
 by { ext, simp }
 
@@ -570,11 +576,11 @@ by { ext, simp }
 lemma gc_upper_closure_coe :
   galois_connection (to_dual ∘ upper_closure : set α → (upper_set α)ᵒᵈ) (coe ∘ of_dual) :=
 λ s t, ⟨λ h, subset_upper_closure.trans $ upper_set.coe_subset_coe.2 h,
-  λ h a ⟨b, hb, hba⟩, t.upper hba $ h hb⟩
+  λ h, upper_closure_min h t.upper⟩
 
 lemma gc_lower_closure_coe : galois_connection (lower_closure : set α → lower_set α) coe :=
 λ s t, ⟨λ h, subset_lower_closure.trans $ lower_set.coe_subset_coe.2 h,
-  λ h a ⟨b, hb, hab⟩, t.lower hab $ h hb⟩
+  λ h, lower_closure_min h t.lower⟩
 
 /-- `upper_closure` forms a reversed Galois insertion with the coercion from upper sets to sets. -/
 def gi_upper_closure_coe :

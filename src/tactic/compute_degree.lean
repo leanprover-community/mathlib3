@@ -187,11 +187,10 @@ meta def single_term_resolve : expr → tactic unit
   fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
 See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
 
-
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
 * `0, 1, C a`,      guess `0`,
-* `polynomial.X`,   guess `1`,
+* `X`,              guess `1`,
 *  `bit0/1 f, -f`,  guess `guess_degree f`,
 * `f + g, f - g`,   guess `max (guess_degree f) (guess_degree g)`,
 * `f * g`,          guess `guess_degree f + guess_degree g`,
@@ -294,8 +293,7 @@ meta def resolve_sum_step : expr → tactic unit
       focus1 (refine ``((%%n0 rfl).elim) <|> rewrite_target lem1 <|> rewrite_target lem2) <|> skip
   | e                := fail!"'{e}' is not supported"
   end
-| e := fail!("'resolve_sum_step' was called on\n" ++
-  "{e}\nbut it expects `f.nat_degree ≤ d`")
+| e := fail!("'resolve_sum_step' was called on\n{e}\nbut it expects `f.nat_degree ≤ d`")
 
 /--  `norm_assum` simply tries `norm_num` and `assumption`.
 It is used to try to discharge as many as possible of the side-goals of `compute_degree_le`.
@@ -400,10 +398,9 @@ do try $ refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate,
     (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
   summ ← list_binary_operands ad pol,
   let low_degs := (prod.mk ff <$> (summ.filter (λ t, guess_degree_to_nat t < deg)).map to_pexpr),
-  let iters := low_degs.length,
   --  would be nice to not have to `try` this and simply do it!
   try $ tactic.move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
-  iterate_at_most iters $
+  iterate_at_most low_degs.length $
   ( do `(nat_degree %%po = _) ← target,
     compute_step deg po ),
   any_goals' $ try $

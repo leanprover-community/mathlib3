@@ -236,7 +236,8 @@ begin
   simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
     units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
-    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
+    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one,
+    ← polynomial.C_eq_algebra_map, polynomial.aeval_mul, polynomial.aeval_C],
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,

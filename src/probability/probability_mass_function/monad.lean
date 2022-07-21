@@ -3,7 +3,7 @@ Copyright (c) 2020 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Devon Tuma
 -/
-import measure_theory.probability_mass_function.basic
+import probability.probability_mass_function.basic
 
 /-!
 # Monad Operations for Probability Mass Functions

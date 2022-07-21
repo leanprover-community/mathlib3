@@ -193,6 +193,16 @@ noncomputable instance : field Cauchy :=
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
 by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
 
+/-- Show the first 10 items of a representative of this equivalence class of cauchy sequences.
+
+The representative chosen is the one passed in the VM to `quot.mk`, so two cauchy sequences
+converging to the same number may be printed differently.
+-/
+meta instance [has_repr β] : has_repr Cauchy :=
+{ repr := λ r,
+  let N := 10, seq := r.unquot in
+    "(sorry /- " ++ (", ".intercalate $ (list.range N).map $ repr ∘ seq) ++ ", ... -/)" }
+
 end
 end cau_seq.completion
 

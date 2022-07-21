@@ -94,7 +94,7 @@ begin
 end
 
 /-!
-We don't define `small_of_fintype` or `small_of_encodable` in this file,
+We don't define `small_of_fintype` or `small_of_countable` in this file,
 to keep imports to `logic` to a minimum.
 -/
 

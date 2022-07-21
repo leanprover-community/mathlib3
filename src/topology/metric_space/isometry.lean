@@ -121,7 +121,7 @@ lemma maps_to_emetric_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
   maps_to f (emetric.ball x r) (emetric.ball (f x) r) :=
 (hf.preimage_emetric_ball x r).ge
 
-lemma isometry.maps_to_emetric_closed_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
+lemma maps_to_emetric_closed_ball (hf : isometry f) (x : α) (r : ℝ≥0∞) :
   maps_to f (emetric.closed_ball x r) (emetric.closed_ball (f x) r) :=
 (hf.preimage_emetric_closed_ball x r).ge
 
@@ -154,7 +154,7 @@ protected theorem embedding (hf : isometry f) : embedding f :=
 hf.uniform_embedding.embedding
 
 /-- An isometry from a complete emetric space is a closed embedding -/
-theorem isometry.closed_embedding [complete_space α] [emetric_space γ]
+theorem closed_embedding [complete_space α] [emetric_space γ]
   {f : α → γ} (hf : isometry f) : closed_embedding f :=
 hf.antilipschitz.closed_embedding hf.lipschitz.uniform_continuous
 

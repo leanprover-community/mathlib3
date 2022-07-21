@@ -37,8 +37,8 @@ meta def tactic.test_polyrith (only_on : bool) (hyps : list pexpr)
   guard (out = expected_out) <|>
     fail!"expected final output: {expected_out}\nbut produced: {out}"
 
-meta def format_string_list (input : list string) : string :=
-to_string $ input.map (λ s, "\"" ++ s ++ "\"")
+meta def format_string_list (input : list string) : format :=
+format.join $ input.map (λ s, "\"" ++ s ++ "\"" ++ format.line)
 
 setup_tactic_parser
 
@@ -87,7 +87,8 @@ meta def tactic.interactive.create_polyrith_test (restr : parse (tk "only")?)
   let argstring := format_string_list args,
   let onl := if restr.is_some then "only " else "",
   let hyps := if hyps = [] then "" else to_string hyps,
-  trace!"test_polyrith {onl}{hyps} \n\"{sage_out}\"\n{argstring}\n\"{out}\""
+  let trf := format.nest 2 $ format!"test_polyrith {onl}{hyps} \n\"{sage_out}\"\n{argstring}\"{out}\"",
+  trace!"Try this: {trf}"
 
 
 end tactic
@@ -115,8 +116,9 @@ end
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by test_polyrith "{\"data\":[\"(poly.const 1/1)\"],\"success\":true}" ["ff", "int", "2", "[(((3 * var0) + (2 * var1)) - 10)]", "(((3 * var0) + (2 * var1)) - 10)"]  "linear_combination h1"
+by create_polyrith_test
 
+#exit
 example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
 by test_polyrith "{\"data\":[\"(poly.const 1/1)\",\"(poly.const -2/1)\"],\"success\":true}" ["ff", "rat", "2", "[(((var0 * var1) + (2 * var0)) - 1), (var0 - var1)]", "((var0 * var1) - (((-1 * 2) * var1) + 1))"]  "linear_combination h1 - 2 * h2"

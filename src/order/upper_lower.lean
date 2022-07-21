@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Sara Rousta
 -/
 import data.set_like.basic
+import data.set.intervals.ord_connected
 import order.hom.complete_lattice
 
 /-!
@@ -135,15 +136,30 @@ alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 end has_le
 
 section preorder
-variables [preorder α] (a : α)
+variables [preorder α] {s : set α} (a : α)
 
 lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
 lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
 lemma is_upper_set_Ioi : is_upper_set (Ioi a) := λ _ _, flip lt_of_lt_of_le
 lemma is_lower_set_Iio : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
 
+lemma is_upper_set_iff_Ici_subset : is_upper_set s ↔ ∀ ⦃a⦄, a ∈ s → Ici a ⊆ s :=
+by simp [is_upper_set, subset_def, @forall_swap (_ ∈ s)]
+
+lemma is_lower_set_iff_Iic_subset : is_lower_set s ↔ ∀ ⦃a⦄, a ∈ s → Iic a ⊆ s :=
+by simp [is_lower_set, subset_def, @forall_swap (_ ∈ s)]
+
+alias is_upper_set_iff_Ici_subset ↔ is_upper_set.Ici_subset _
+alias is_lower_set_iff_Iic_subset ↔ is_lower_set.Iic_subset _
+
+lemma is_upper_set.ord_connected (h : is_upper_set s) : s.ord_connected :=
+⟨λ a ha b _, Icc_subset_Ici_self.trans $ h.Ici_subset ha⟩
+
+lemma is_lower_set.ord_connected (h : is_lower_set s) : s.ord_connected :=
+⟨λ a _ b hb, Icc_subset_Iic_self.trans $ h.Iic_subset hb⟩
+
 section order_top
-variables [order_top α] {s : set α}
+variables [order_top α]
 
 lemma is_lower_set.top_mem (hs : is_lower_set s) : ⊤ ∈ s ↔ s = univ :=
 ⟨λ h, eq_univ_of_forall $ λ a, hs le_top h, λ h, h.symm ▸ mem_univ _⟩
@@ -157,7 +173,7 @@ hs.top_mem.not.trans not_nonempty_iff_eq_empty
 end order_top
 
 section order_bot
-variables [order_bot α] {s : set α}
+variables [order_bot α]
 
 lemma is_upper_set.bot_mem (hs : is_upper_set s) : ⊥ ∈ s ↔ s = univ :=
 ⟨λ h, eq_univ_of_forall $ λ a, hs bot_le h, λ h, h.symm ▸ mem_univ _⟩
@@ -545,6 +561,12 @@ def lower_closure (s : set α) : lower_set α :=
 lemma subset_upper_closure : s ⊆ upper_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 lemma subset_lower_closure : s ⊆ lower_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 
+@[simp] lemma upper_set.infi_Ici (s : set α) : (⨅ a ∈ s, upper_set.Ici a) = upper_closure s :=
+by { ext, simp }
+
+@[simp] lemma lower_set.supr_Iic (s : set α) : (⨆ a ∈ s, lower_set.Iic a) = lower_closure s :=
+by { ext, simp }
+
 lemma gc_upper_closure_coe :
   galois_connection (to_dual ∘ upper_closure : set α → (upper_set α)ᵒᵈ) (coe ∘ of_dual) :=
 λ s t, ⟨λ h, subset_upper_closure.trans $ upper_set.coe_subset_coe.2 h,
@@ -616,5 +638,18 @@ by simp_rw [sUnion_eq_bUnion, upper_closure_Union]
 @[simp] lemma lower_closure_sUnion (S : set (set α)) :
   lower_closure (⋃₀ S) = ⨆ s ∈ S, lower_closure s :=
 by simp_rw [sUnion_eq_bUnion, lower_closure_Union]
+
+lemma set.ord_connected.upper_closure_inter_lower_closure (h : s.ord_connected) :
+  ↑(upper_closure s) ∩ ↑(lower_closure s) = s :=
+(subset_inter subset_upper_closure subset_lower_closure).antisymm' $ λ a ⟨⟨b, hb, hba⟩, c, hc, hac⟩,
+  h.out hb hc ⟨hba, hac⟩
+
+lemma ord_connected_iff_upper_closure_inter_lower_closure :
+  s.ord_connected ↔ ↑(upper_closure s) ∩ ↑(lower_closure s) = s :=
+begin
+  refine ⟨set.ord_connected.upper_closure_inter_lower_closure, λ h, _⟩,
+  rw ←h,
+  exact (upper_set.upper _).ord_connected.inter (lower_set.lower _).ord_connected,
+end
 
 end closure

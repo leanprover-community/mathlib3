@@ -1,47 +1,37 @@
-import analysis.normed.group.basic
 import data.complex.exponential
 import group_theory.free_group
-import order.well_founded
 import group_theory.geometric.marked_group
 
-/-! growth of groups.
+/-!
+# Growth of groups
 -/
 
 -- TOTALLY WIP
 
 noncomputable theory
-open set function real
+open function metric real set
+open_locale nnreal
 
 namespace geometric_group_theory
+variables {G H S : Type*} [group G] (m : marking G S)
 
-section group_growth
+lemma finite_balls : ∀ r, set.finite (ball (0 : marked m) r) := sorry
 
-notation `ℝ₊` := nnreal
+def ball (r : ℝ≥0) : finset (marked m) := (finite_balls m r).to_finset
 
---variables {G S : Type*} [group G] [decidable_eq S] (m : marking S G)
-variables {m G : Type*} [marked_group m G]
+def growth : ℝ≥0 → ℝ≥0 := λ r, (ball m r).card
 
--- this doesn't work, it seems that the instance [has_norm] G] didn't propagate
-def ball0 (r : ℝ₊) : set G := { x | ∥x∥ ≤ r }
+def dominates (a : ℝ≥0 → ℝ≥0) (b : ℝ≥0 → ℝ≥0) : Prop := ∃ K, ∀ r, a r ≤ b(K*r)
 
-lemma finite_balls : ∀ r, set.finite (ball0 r) := sorry
-
-def ball (r : ℝ₊) : finset G := (finite_balls G r)
-
-
-def growth : ℝ₊ → ℝ₊ := λ r, (ball G r).card
-
-def dominates (a : ℝ₊ → ℝ₊) (b : ℝ₊ → ℝ₊) : Prop := ∃K, ∀r, a(r) ≤ b(K*r)
 infix `≾`:10 := dominates
 
-def equivalent (a : ℝ₊ → ℝ₊) (b : ℝ₊ → ℝ₊) : Prop := (dominates a b) ∧ (dominates b a)
+def equivalent (a : ℝ≥0 → ℝ≥0) (b : ℝ≥0 → ℝ≥0) : Prop := dominates a b ∧ dominates b a
+
 infix `∼`:10 := equivalent
 
-def is_exponentially_growing (G : Type*) [marked_group G] : Prop := ∃B, growth r ≿ λr, exp(C*r)
+def is_exponentially_growing : Prop := ∃ B, (λ r, ⟨exp (B * r), (exp_pos _).le⟩) ≾ growth m
 
-def is_polynomially_growing (G : Type*) [marked_group G] : Prop := ∃(d : ℕ), growth ≾ λr, r^d
-
-variables {G H : Type} [marked_group G] [marked_group H]
+def is_polynomially_growing : Prop := ∃ d : ℕ, growth m ≾ λ r, r^d
 
 /-
 then lots of basic lemmas: e.g. growth of subgroup is smaller than growth of group.
@@ -52,7 +42,5 @@ growth of soluble group is polynomial or exponential
 
 there exists a group of neither polynomial nor exponential growth
 -/
-
-end group_growth
 
 end geometric_group_theory

@@ -227,7 +227,6 @@ lemma subsingleton.pi_mul_single_eq {α : Type*} [decidable_eq I] [subsingleton 
   pi.mul_single i x = λ _, x :=
 funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]
 
-
 namespace sum
 variables (a a' : α → γ) (b b' : β → γ)
 

@@ -119,6 +119,21 @@ namespace tactic
 namespace compute_degree
 open expr polynomial
 
+/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
+estimate for the evaluation of `eval_expr' ℕ e`.  It is tailor made for estimating degrees of
+polynomials.
+
+It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
+On the atoms of the process, `eval_guessing` tries to use `eval_expr' ℕ`, resorting to using
+`n` if `eval_expr' ℕ` fails.
+
+For use with degree of polynomials, we mostly use `n = 0`. -/
+meta def eval_guessing (n : ℕ) : expr → tactic ℕ
+| `(%%a + %%b)   := (+) <$> eval_guessing a <*> eval_guessing b
+| `(%%a * %%b)   := (*) <$> eval_guessing a <*> eval_guessing b
+| `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
+| e              := eval_expr' ℕ e <|> pure n
+
 /--  If an expression `e` is an iterated suquence of `bit0` and `bit1` starting from `0` or `1`,
 then `num_to_nat e` returns `some n`, where `n` is the natural number obtained from the same
 sequence of `bit0` and `bit1` applied to `0` or `1`.  Otherwise, `num_to_nat e = none`. -/
@@ -222,21 +237,6 @@ meta def guess_degree : expr → tactic expr
 | e                          := do `(@polynomial %%R %%inst) ← infer_type e,
                                 pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
                                 pure $ expr.mk_app pe [e]
-
-/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
-estimate for the evaluation of `eval_expr' ℕ e`.  It is tailor made for estimating degrees of
-polynomials.
-
-It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
-On the atoms of the process, `eval_guessing` tries to use `eval_expr' ℕ`, resorting to using
-`n` if `eval_expr' ℕ` fails.
-
-For use with degree of polynomials, we mostly use `n = 0`. -/
-meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := (+) <$> eval_guessing a <*> eval_guessing b
-| `(%%a * %%b)   := (*) <$> eval_guessing a <*> eval_guessing b
-| `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
-| e              := eval_expr' ℕ e <|> pure n
 
 meta def guess_degree_to_nat : expr → ℕ
 | `(has_zero.zero)           := 0

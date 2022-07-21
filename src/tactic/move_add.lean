@@ -37,11 +37,10 @@ around a sum.
 ##  Future work
 
 * Add support for `neg/div/inv` in additive/multiplicative groups?
-* Customize error messages to mention `move_add/move_mul` instead of `move_op`?
-* Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
-  Should there be the desire for supporting more operations, it might make sense to extract
-  the `simp [add] <|> simp [mul]` block in `with_errors` to a separate tactic,
-  including all the lemmas used for the rearrangement to work.
+* Currently the tactic has special support for `+` and `*`.  Every other operation is outsourced
+  to `ac_refl` (see the proof of `reorder_hyp`).  Should there be the desire for specialized support
+  of other operations (e.g. `∪, ∩, ⊓, ⊔, ...`), that is the definition to modify, at least in the
+  first instance.
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
 * Add a non-recursive version for use in `conv` mode.
@@ -69,34 +68,35 @@ def return_unused {α : Type*} : list α → list bool → list α
 | [] bo := []
 | (u::us) (b::bs) := if b then u::return_unused us bs else return_unused us bs
 
-/--  Given a list `lp` of `bool × pexpr` and a list `sl` of `expr`, scan the elements of `lp` one
-at a time and produce 3 sublists of `sl`.
+/--  Given a list `lp` of `bool × pexpr` and a list `l_un` of `expr`, scan the elements of `lp` one
+at a time and produce 3 sublists of `l_un`.
 
-If `(tf,pe)` is the first element of `lp`, we look for the first element of `sl` that unifies with
+If `(tf,pe)` is the first element of `lp`, we look for the first element of `l_un` that unifies with
 `pe.to_expr`.  If no such element exists, then we discard `(tf,pe)` and move along.
-If `eu ∈ sl` is the first element of `sl` that unifies with `pe.to_expr`, then we add `eu` as the
-next element of either the first or the second list, depending on the boolean `tf` and we remove
-`eu` from the list `sl`.  In this case, we continue our scanning with the next element of `lp`,
-replacing `sl` by `sl.erase eu`.
+If `eu ∈ l_un` is the first element of `l_un` that unifies with `pe.to_expr`, then we add `eu` as
+the next element of either the first or the second list, depending on the boolean `tf` and we remove
+`eu` from the list `l_un`.  In this case, we continue our scanning with the next element of `lp`,
+replacing `l_un` by `l_un.erase eu`.
 
-Once we exhaust the elements of `lp`, we return the three lists:
-* first the list of elements of `sl` that came from an element of `lp` whose boolean was `tt`,
-* next the list of elements of `sl` that came from an element of `lp` whose boolean was `ff`, and
-* finally the ununified elements of `sl`.
+Once we exhaust the elements of `lp`, we return the four lists:
+* `l_tt`: the list of elements of `l_un` that came from an element of `lp` whose boolean was `tt`,
+* `l_ff`: the list of elements of `l_un` that came from an element of `lp` whose boolean was `ff`,
+* `l_un`: the un-unified elements of `l_un`,
+* `l_m`: a "mask" list of booleans corresponding to the elements of `lp` that were placed in `l_un`.
 
-The ununified elements of `sl` get used for error management: they keep track of which user inputs
+The ununified elements of `l_un` get used for error management: they keep track of which user inputs
 are superfluous. -/
 meta def move_left_or_right : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
-| [] sl is_unused      := return ([], [], sl, is_unused)
-| (be::l) sl is_unused := do
-    (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
-    move_left_or_right l sl (is_unused.append [tt]),
-  (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
-  if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
+| [] l_un l_m      := return ([], [], l_un, l_m)
+| (be::l) l_un l_m := do
+  (ex :: _) ← l_un.mfilter $ λ e', succeeds $ unify be.2 e' |
+    move_left_or_right l l_un (l_m.append [tt]),
+  (l_tt, l_ff, l_un, l_m) ← move_left_or_right l (l_un.erase ex) (l_m.append [ff]),
+  if be.1 then return (ex::l_tt, l_ff, l_un, l_m) else return (l_tt, ex::l_ff, l_un, l_m)
 
-/--  We combine `snd_to_expr` and `move_left_or_right`, and then some:
-1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
+/--  We adapt `move_left_or_right` to our goal:
+1. we convert a list of pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
    `move_left_or_right`,
 3. we jam the third factor inside the first two.
@@ -107,32 +107,32 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- `is_given_op op e` checks if the head term of `e` is the binary operation `op`, returning
-`tt` if this is the case and `ff` otherwise. -/
-meta def is_given_op (op : expr) : expr → tactic bool
-| (expr.app (expr.app F a) b) := succeeds $ (unify op F)
-| _ := return ff
+/-- `as_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
+if it cannot. -/
+meta def as_given_op (op : pexpr) : expr → tactic expr
+| (expr.app (expr.app F a) b) := do
+    to_expr op tt ff >>= unify F,
+    return F
+| _ := failed
 
-/-- `reorder_oper op lp boos e` converts an expression `e` to a similar looking one.
+/-- `(e, unused) ← reorder_oper op lp e` converts an expression `e` to a similar looking one.
 The tactic scans the expression `e` looking for subexpressions that begin with the given binary
 operation `op`.  As soon as `reorder_oper` finds one such subexpression,
 * it extracts the "`op`-summands" in the subexpression,
 * it rearranges them according to the rules determined by `lp`,
 * it recurses into each `op`-summand.
 
-The `boos` parameter is a list of booleans.  It is keeping track of which of the inputs provided
+The `unused` output is a list of booleans.  It is keeping track of which of the inputs provided
 by `lp` is actually used to perform the rearrangements.  It is useful to report unused inputs.
-In its intended application, it is set to a list of `tt`, one for each element of `lp`, indicating
-that they all begin unused.
 
 Here are two examples:
 ```lean
-#eval trace $ reorder_oper ``((=)) [(ff,``(2)), (tt,``(7))] [tt] `(∀ x y : ℕ, 2 = 0)
+#eval trace $ reorder_oper ``((=)) [(ff,``(2)), (tt,``(7))] `(∀ x y : ℕ, 2 = 0)
 --  (ℕ → ℕ → 0 = 2, [ff, tt])
 -- the input `[(ff,``(2)), (tt,``(7))]` instructs Lean to move `2` to the right and `7`
--- to the right.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
+-- to the left.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
 
-#eval trace $ reorder_oper ``((+)) [(ff,``(2)), (tt,``(5))] [tt, tt]
+#eval trace $ reorder_oper ``((+)) [(ff,``(2)), (tt,``(5))]
   `(λ (e : ℕ), ∀ (x : ℕ), ∃ (y : ℕ),
       2 + x * (y + (e + 5)) + y = x + 2 + e → 2 + x = x + 5 + (2 + y))
 /-  `2` moves to the right, `5` moves to the left.  Lean reports that `2, 5` are not unused
@@ -142,69 +142,82 @@ Here are two examples:
 ```
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
-  list bool → expr → tactic (expr × list bool)
-| lu F'@(expr.app F b) := do
-  op ← to_expr op tt ff,
-  cond ← is_given_op op F',
-  if cond then do
-    (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
-    sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
-    let (recs, list_unused) := sort_all.unzip,
-    let summed := (recs.drop 1).foldl (λ e f, op.mk_app [e, f]) ((recs.nth 0).get_or_else `(0)),
-    return (summed, list_unused.transpose.map list.band)
-  else do
-    [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper lu,
-    return $ (expr.app Fn bn, [unused_F, unused_b, lu].transpose.map list.band)
-| lu (expr.pi na bi e f)           := do [en, fn] ← [e, f].mmap $ reorder_oper lu,
-    return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| lu (expr.lam na bi e f)          := do [en, fn] ← [e, f].mmap $ reorder_oper lu,
-    return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
-| lu (expr.mvar na pp e)           := do en ← reorder_oper lu e,
+  expr → tactic (expr × list bool)
+| F'@(expr.app F b) := do
+    is_op ← try_core (as_given_op op F'),
+    match is_op with
+    | some op := do
+        (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
+        sort_all ← sort_list.mmap (λ e, do
+          (e, lu) ← reorder_oper e,
+          pure (e, [lu, is_unused].transpose.map list.band)),
+        let (recs, list_unused) := sort_all.unzip,
+        recs_0 :: recs_rest ← pure recs | fail!"internal error: cannot have 0 operands",
+        let summed := recs_rest.foldl (λ e f, op.mk_app [e, f]) recs_0,
+        return (summed, list_unused.transpose.map list.band)
+    | none := do
+        [(Fn, unused_F), (bn, unused_b)] ← [F, b].mmap $ reorder_oper,
+        return $ (expr.app Fn bn, [unused_F, unused_b].transpose.map list.band)
+    end
+| (expr.pi na bi e f)           := do
+  [en, fn] ← [e, f].mmap $ reorder_oper,
+  return (expr.pi  na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
+| (expr.lam na bi e f)          := do
+  [en, fn] ← [e, f].mmap $ reorder_oper,
+  return (expr.lam na bi en.1 fn.1, [en.2, fn.2].transpose.map list.band)
+| (expr.mvar na pp e)           := do  -- is it really needed to recurse here?
+  en ← reorder_oper e,
   return (expr.mvar na pp en.1, [en.2].transpose.map list.band)
-| lu (expr.local_const na pp bi e) := do en ← reorder_oper lu e,
+| (expr.local_const na pp bi e) := do  -- is it really needed to recurse here?
+  en ← reorder_oper e,
   return (expr.local_const na pp bi en.1, [en.2].transpose.map list.band)
-| lu (expr.elet na e f g)          := do [en, fn, gn] ← [e, f, g].mmap $ reorder_oper lu,
+| (expr.elet na e f g)          := do
+  [en, fn, gn] ← [e, f, g].mmap $ reorder_oper,
   return (expr.elet na en.1 fn.1 gn.1, [en.2, fn.2, gn.2].transpose.map list.band)
-| lu (expr.macro ma le)            := do len ← le.mmap $ reorder_oper lu,
+| (expr.macro ma le)            := do  -- is it really needed to recurse here?
+  len ← le.mmap $ reorder_oper,
   let (lee, lb) := len.unzip,
   return (expr.macro ma lee, lb.transpose.map list.band)
-| lu e := pure (e, lu)
+| e := pure (e, (lp.map (λ _, tt)))
 
-/-- Parses the user input `ll` to `reorder_oper` at a single location, that could either be
+/-- Passes the user input `na` to `reorder_oper` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Replaces the
-given location by the rearranged one that `with_errors` receives from `reorder_oper`.
+given hypothesis/goal with the rearranged one that `reorder_hyp` receives from `reorder_oper`.
 Returns a pair consisting of a boolean and a further list of booleans.
 The single boolean is `tt` iff the tactic did *not* change the goal on which it was acting.
 The list of booleans records which variable in `ll` has been unified in the application:
 `tt` means that the corresponding variable has *not* been unified.
 
 This definition is useful to streamline error catching. -/
-meta def with_errors (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
-  tactic (bool × list bool) :=
-do (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some" branch
-  if na.is_none then do t ← target, return (t, t)
-  else
-  ( do nn ← get_unused_name,
-      hl ← get_local (na.get_or_else nn),
+meta def reorder_hyp (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
+  tactic (bool × list bool) := do
+(thyp, hyploc) ← match na with
+  | none := do
+      t ← target,
+      return (t, none)
+  | some na := do
+      hl ← get_local na,
       th ← infer_type hl,
-      return (th, hl)),
-  (reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
-  uni ← succeeds $ unify reordered thyp,
-  if uni then return (tt, is_unused) else do
-  neq ← mk_app `eq [thyp, reordered],
-  pre ← pp reordered,
-  (_, prf) ← solve_aux neq $
-    `[{ simp only [add_comm, add_assoc, add_left_comm], done }] <|>
-    `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }] <|>
+      return (th, some hl)
+  end,
+(reordered, is_unused) ← reorder_oper op lp thyp,
+unify reordered thyp >> return (tt, is_unused) <|> do
+-- the current `do` block takes place where the reordered expression is not equal to the original
+neq ← mk_app `eq [thyp, reordered],
+nop ← to_expr op tt ff,
+pre ← pp reordered,
+(_, prf) ← solve_aux neq $ match nop with
+  | `(has_add.add) := `[{ simp only [add_comm, add_assoc, add_left_comm]; refl, done }]
+  | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm]; refl, done }]
+  | _ := ac_refl <|>
     fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
-    "the initial goal equals:\n\n{pre}\n"),
-  cond ← if na.is_none then
-  (do refine ``(eq.mpr %%prf _),
-    nt ← target,
-    succeeds $ unify nt thyp )
-  else (do replace_hyp hyploc reordered prf,
-          succeeds $ unify hyploc thyp),
-  return (cond, is_unused)
+      "the initial goal equals:\n\n{pre}\n")
+  end,
+match hyploc with
+| none := replace_target reordered prf
+| some hyploc := replace_hyp hyploc reordered prf >> skip
+end,
+return (ff, is_unused)
 
 section parsing_arguments_for_move_op
 setup_tactic_parser
@@ -235,39 +248,31 @@ Currently, the tactic uses only `add/mul_comm, add/mul_assoc, add/mul_left_comm`
 operations will not actually work.
 -/
 meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location) (op : pexpr) :
-  tactic unit :=
-match locat with
-| loc.wildcard := do
-  ctx ← local_context,
-  err_rep ← ctx.mmap (λ e, with_errors op args e.local_pp_name),
-  er_t ← with_errors op args none,
-  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
-    fail "'move_op at *' changed nothing" else skip,
-  let li_unused := er_t.2::err_rep.map (λ e, e.2),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
+  tactic unit := do
+locas ← locat.get_locals,
+tg ← target,
+let locas_with_tg := if locat.include_goal then locas ++ [tg] else locas,
+ner ← locas_with_tg.mmap (λ e, reorder_hyp op args e.local_pp_name <|> reorder_hyp op args none),
+let (unch_tgts, unus_vars) := ner.unzip,
+str_unva ← match
+  (return_unused args (unus_vars.transpose.map list.band)).map (λ e : bool × pexpr, e.2) with
+  | []   := pure []
+  | [pe] := do
+    nm ← to_expr pe tt ff >>= λ ex, pp ex.replace_mvars,
+    return [format!"'{nm}' is an unused variable"]
+  | pes  := do
+    nms ← pes.mmap (λ e, to_expr e tt ff) >>= λ exs, (exs.map expr.replace_mvars).mmap pp,
+    return [format!"'{nms}' are unused variables"]
   end,
-  assumption <|> try (tactic.reflexivity reducible)
-| loc.ns names := do
-  err_rep ← names.mmap $ with_errors op args,
-  let conds := err_rep.map (λ e, e.1),
-  linames ← (return_unused names conds).reduce_option.mmap get_local,
-  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
-  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
-  let li_unused       := (err_rep.map (λ e, e.2)),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars      := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
+let str_tgts := match locat with
+  | loc.wildcard := if unch_tgts.band then [format!"nothing changed"] else []
+  | loc.ns names := let linames := return_unused locas unch_tgts in
+      (if none ∈ return_unused names unch_tgts
+        then [format!"Goal did not change"] else []) ++
+      (if linames ≠ [] then [format!"'{linames.reverse}' did not change"] else [])
   end,
-  assumption <|> try (tactic.reflexivity reducible)
-end
+[] ← pure (str_tgts ++ str_unva) | fail (format.intercalate "\n" (str_tgts ++ str_unva)),
+assumption <|> try (tactic.reflexivity reducible)
 
 namespace interactive
 
@@ -281,7 +286,7 @@ may change the goal. Also, the *order* in which the terms are provided matters: 
 them from left to right.  This is especially important if there are multiple matches for the typed
 terms in the given expressions.
 
-A single call of `move_op` moves terms across different sums in the same expression.
+A single call of `move_add` moves terms across different sums in the same expression.
 Here is an example.
 
 ```lean
@@ -362,6 +367,22 @@ replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
 move_op args locat ``(has_mul.mul)
+
+/--  `move_oper` behaves like `move_add` except that it also takes an associative, commutative,
+binary operation as input.  The operation must be passed as a list consisting of a single element.
+For instance
+```lean
+example (a b : ℕ) : max a b = max b a :=
+by move_oper [max] [← a, b] at *
+```
+solves the goal.  For more details, see the `move_add` doc-string, replacing `add` with your
+intended operation.
+-/
+meta def move_oper
+  (op : parse pexpr_list) (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
+  tactic unit := do
+[op] ← pure op | fail "only one operation is allowed",
+move_op args locat op
 
 add_tactic_doc
 { name := "move_add",

@@ -24,8 +24,6 @@ theorem lemma3 {α} [preorder α] {a a' b : α} : a = a' → a ≤ b → a' ≤ 
 theorem lemma4 {α} [preorder α] {b b' a : α} : b = b' → a < b' → a < b :=
 λ h1 h3, by rwa h1
 
-#check instance_cache.get _ `has_zero.zero
-
 meta def orelse' (tac1 tac2 : tactic (bool × expr)) : tactic (bool × expr) := do
   res ← try_core tac1,
   match res with
@@ -161,13 +159,16 @@ meta def positivity_pow : expr → tactic (bool × expr)
       a_typ ← infer_type a,
       p₁ ← mk_mapp ``zero_lt_one [some a_typ, none, none], -- better way here?
       prod.mk tt <$> mk_app ``lemma4 [p₂, p₁]
-    else do
-      -- else, `a ^ n` is positive if `a` is and nonnegative if `a` is
-      (strict_a, pa) ← positivity_core a,
-      match strict_a with
-      | tt := prod.mk tt <$> mk_app ``pow_pos [pa, n]
-      | ff := prod.mk ff <$> mk_app ``pow_nonneg [pa, n]
-      end
+    else orelse' (do
+      -- squares are nonnegative (TODO: similar for any `bit0` exponent?)
+      prod.mk ff <$> mk_app ``sq_nonneg [a])
+      -- moreover `a ^ n` is positive if `a` is and nonnegative if `a` is
+      (do
+        (strict_a, pa) ← positivity_core a,
+        if strict_a then
+          prod.mk tt <$> mk_app ``pow_pos [pa, n]
+        else
+          prod.mk ff <$> mk_app ``pow_nonneg [pa, n])
   | _ := failed -- TODO handle integer powers, maybe even real powers
   end
 | _ := failed
@@ -181,7 +182,7 @@ meta def positivity_abs : expr → tactic (bool × expr)
   prod.mk ff <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
 | _ := failed
 
-/- TODO: implement further plugins (raising to non-numeral powers, exp, log, norm) -/
+/- TODO: implement further plugins (raising to non-numeral powers, exp, log, norm, fintype.card) -/
 
 meta def positivity : tactic unit := focus1 $ do
   (a, strict_desired) ← get_pos_goal,

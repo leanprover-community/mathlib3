@@ -10,7 +10,7 @@ import data.mv_polynomial.basic
 
 The main result in this file is `mv_polynomial.cardinal_mk_le_max`, which says that
 the cardinality of `mv_polynomial σ R` is bounded above by the maximum of `#R`, `#σ`
-and `ω`.
+and `ℵ₀`.
 
 -/
 universes u
@@ -78,27 +78,24 @@ begin
       (sum.inr (sum.inl i)) pempty.elim)), by simp [to_mv_polynomial]⟩ }
 end
 
-private lemma cardinal_mv_polynomial_fun_le : #(mv_polynomial_fun σ R) ≤ max (max (#R) (#σ)) ω :=
+private lemma cardinal_mv_polynomial_fun_le : #(mv_polynomial_fun σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
 calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
   by dsimp [mv_polynomial_fun]; simp only [← add_def, add_assoc, cardinal.mk_ulift]
-... ≤ max (max (#R + #σ) (#(ulift bool))) ω : add_le_max _ _
-... ≤ max (max (max (max (#R) (#σ)) ω) (#(ulift bool))) ω :
+... ≤ max (max (#R + #σ) (#(ulift bool))) ℵ₀ : add_le_max _ _
+... ≤ max (max (max (max (#R) (#σ)) ℵ₀) (#(ulift bool))) ℵ₀ :
   max_le_max (max_le_max (add_le_max _ _) le_rfl) le_rfl
-... ≤ _ : begin
-  have : #(ulift.{u} bool) ≤ ω,
-    from le_of_lt (lt_omega_iff_fintype.2 ⟨infer_instance⟩),
-  simp only [max_comm omega.{u}, max_assoc, max_left_comm omega.{u}, max_self, max_eq_left this],
-end
+... ≤ _ : by simp only [max_comm ℵ₀, max_assoc, max_left_comm ℵ₀, max_self,
+            max_eq_left (lt_aleph_0_of_finite (ulift.{u} bool)).le]
 
 namespace mv_polynomial
 
 /-- The cardinality of the multivariate polynomial ring, `mv_polynomial σ R` is at most the maximum
-of `#R`, `#σ` and `ω` -/
+of `#R`, `#σ` and `ℵ₀` -/
 lemma cardinal_mk_le_max {σ R : Type u} [comm_semiring R] :
-  #(mv_polynomial σ R) ≤ max (max (#R) (#σ)) ω :=
+  #(mv_polynomial σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
 calc #(mv_polynomial σ R) ≤ #(W_type (arity σ R)) :
   cardinal.mk_le_of_surjective to_mv_polynomial_surjective
-... ≤ max (#(mv_polynomial_fun σ R)) ω : W_type.cardinal_mk_le_max_omega_of_fintype
+... ≤ max (#(mv_polynomial_fun σ R)) ℵ₀ : W_type.cardinal_mk_le_max_aleph_0_of_finite
 ... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le le_rfl
 ... ≤ _ : by simp only [max_assoc, max_self]
 

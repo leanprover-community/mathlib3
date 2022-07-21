@@ -78,8 +78,7 @@ lemma disj_sum_strict_mono_right (s : multiset α) :
 
 protected lemma nodup.disj_sum (hs : s.nodup) (ht : t.nodup) : (s.disj_sum t).nodup :=
 begin
-  refine (multiset.nodup_add_of_nodup (multiset.nodup_map inl_injective hs) $
-    multiset.nodup_map inr_injective ht).2 (λ x hs ht, _),
+  refine ((hs.map inl_injective).add_iff $ ht.map inr_injective).2 (λ x hs ht, _),
   rw multiset.mem_map at hs ht,
   obtain ⟨a, _, rfl⟩ := hs,
   obtain ⟨b, _, h⟩ := ht,

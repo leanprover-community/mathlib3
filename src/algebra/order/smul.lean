@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import group_theory.group_action.group
+import algebra.order.field
 import algebra.smul_with_zero
+import group_theory.group_action.group
 
 /-!
 # Ordered scalar product
@@ -49,40 +50,36 @@ namespace order_dual
 
 variables {R M : Type*}
 
-instance [has_scalar R M] : has_scalar R (order_dual M) :=
-{ smul := λ k x, order_dual.rec (λ x', (k • x' : M)) x }
+instance [has_smul R M] : has_smul R Mᵒᵈ := ⟨λ k x, order_dual.rec (λ x', (k • x' : M)) x⟩
 
-instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] :
-  smul_with_zero R (order_dual M) :=
+instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] : smul_with_zero R Mᵒᵈ :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,
   smul_zero := λ r, order_dual.rec (smul_zero' _) r,
-  ..order_dual.has_scalar }
+  ..order_dual.has_smul }
 
-instance [monoid R] [mul_action R M] : mul_action R (order_dual M) :=
+instance [monoid R] [mul_action R M] : mul_action R Mᵒᵈ :=
 { one_smul := λ m, order_dual.rec (one_smul _) m,
   mul_smul := λ r, order_dual.rec mul_smul r,
-  ..order_dual.has_scalar }
+  ..order_dual.has_smul }
 
 instance [monoid_with_zero R] [add_monoid M] [mul_action_with_zero R M] :
-  mul_action_with_zero R (order_dual M) :=
+  mul_action_with_zero R Mᵒᵈ :=
 { ..order_dual.mul_action, ..order_dual.smul_with_zero }
 
 instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M] :
-  distrib_mul_action R (order_dual M) :=
+  distrib_mul_action R Mᵒᵈ :=
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
   smul_zero := λ r, order_dual.rec smul_zero r }
 
 instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_smul R M] :
-  ordered_smul R (order_dual M) :=
+  ordered_smul R Mᵒᵈ :=
 { smul_lt_smul_of_pos := λ a b, @ordered_smul.smul_lt_smul_of_pos R M _ _ _ _ b a,
   lt_of_smul_lt_smul_of_pos := λ a b,
     @ordered_smul.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
 
-@[simp] lemma to_dual_smul [has_scalar R M] {c : R} {a : M} : to_dual (c • a) = c • to_dual a := rfl
-
-@[simp] lemma of_dual_smul [has_scalar R M] {c : R} {a : order_dual M} :
-  of_dual (c • a) = c • of_dual a :=
+@[simp] lemma to_dual_smul [has_smul R M] {c : R} {a : M} : to_dual (c • a) = c • to_dual a := rfl
+@[simp] lemma of_dual_smul [has_smul R M] {c : R} {a : Mᵒᵈ} : of_dual (c • a) = c • of_dual a :=
 rfl
 
 end order_dual
@@ -97,12 +94,11 @@ lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_smu
 
 lemma smul_le_smul_of_nonneg (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c • a ≤ c • b :=
 begin
-  by_cases H₁ : c = 0,
-  { simp [H₁, zero_smul] },
-  { by_cases H₂ : a = b,
-    { rw H₂ },
-    { exact le_of_lt
-        (smul_lt_smul_of_pos (lt_of_le_of_ne h₁ H₂) (lt_of_le_of_ne h₂ (ne.symm H₁))), } }
+  rcases h₁.eq_or_lt with rfl|hab,
+  { refl },
+  { rcases h₂.eq_or_lt with rfl|hc,
+    { rw [zero_smul, zero_smul] },
+    { exact (smul_lt_smul_of_pos hab hc).le } }
 end
 
 lemma smul_nonneg (hc : 0 ≤ c) (ha : 0 ≤ a) : 0 ≤ c • a :=
@@ -110,7 +106,7 @@ calc (0 : M) = c • (0 : M) : (smul_zero' M c).symm
          ... ≤ c • a : smul_le_smul_of_nonneg ha hc
 
 lemma smul_nonpos_of_nonneg_of_nonpos (hc : 0 ≤ c) (ha : a ≤ 0) : c • a ≤ 0 :=
-@smul_nonneg R (order_dual M) _ _ _ _ _ _ hc ha
+@smul_nonneg R Mᵒᵈ _ _ _ _ _ _ hc ha
 
 lemma eq_of_smul_eq_smul_of_pos_of_le (h₁ : c • a = c • b) (hc : 0 < c) (hle : a ≤ b) :
   a = b :=
@@ -129,10 +125,10 @@ calc 0 < c • a ↔ c • 0 < c • a : by rw smul_zero'
 
 alias smul_pos_iff_of_pos ↔ _ smul_pos
 
-lemma monotone_smul_left (hc : 0 ≤ c) : monotone (has_scalar.smul c : M → M) :=
+lemma monotone_smul_left (hc : 0 ≤ c) : monotone (has_smul.smul c : M → M) :=
 λ a b h, smul_le_smul_of_nonneg h hc
 
-lemma strict_mono_smul_left (hc : 0 < c) : strict_mono (has_scalar.smul c : M → M) :=
+lemma strict_mono_smul_left (hc : 0 < c) : strict_mono (has_smul.smul c : M → M) :=
 λ a b h, smul_lt_smul_of_pos h hc
 
 end ordered_smul
@@ -154,7 +150,7 @@ begin
   intros a b c h hc,
   rcases (hR hc.ne') with ⟨c, rfl⟩,
   rw [← inv_smul_smul c a, ← inv_smul_smul c b],
-  refine hlt' h (pos_of_mul_pos_left _ hc.le),
+  refine hlt' h (pos_of_mul_pos_right _ hc.le),
   simp only [c.mul_inv, zero_lt_one]
 end
 

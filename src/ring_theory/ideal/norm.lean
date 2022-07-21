@@ -7,7 +7,7 @@ Authors: Anne Baanen
 import data.matrix.notation
 import data.zmod.quotient
 import linear_algebra.free_module.pid
-import ring_theory.dedekind_domain
+import ring_theory.dedekind_domain.ideal
 import ring_theory.norm
 
 /-!
@@ -55,13 +55,6 @@ end
 ⟨λ h, h.trans (normalize_associated y),
  λ h, h.trans (associated_normalize y)⟩
 
-@[simp] lemma linear_map.coe_restrict_scalars (R : Type*) {S M M' : Type*}
-  [semiring R] [semiring S] [add_comm_monoid M] [add_comm_monoid M']
-  [module R M] [module R M'] [module S M] [module S M'] [linear_map.compatible_smul M M' R S]
-  (f : M →ₗ[S] M') :
-  (f.restrict_scalars R : M → M') = f :=
-rfl
-
 @[simp] lemma ideal.coe_restrict_scalars {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
   (I : ideal S) : ((I.restrict_scalars R) : set S) = ↑I :=
 rfl
@@ -87,14 +80,14 @@ noncomputable def basis_span_singleton (b : basis ι R S) {x : S} (hx : x ≠ 0)
   basis ι R (span ({x} : set S)) :=
 b.map $ ((linear_equiv.of_injective (algebra.lmul R S x) (algebra.lmul_injective hx)) ≪≫ₗ
   (linear_equiv.of_eq _ _ (by { ext, simp [mem_span_singleton', mul_comm] })) ≪≫ₗ
-  (submodule.restrict_scalars_equiv R S S (ideal.span ({x} : set S))))
+  ((submodule.restrict_scalars_equiv R S S (ideal.span ({x} : set S))).restrict_scalars R))
 
 @[simp] lemma basis_span_singleton_apply (b : basis ι R S) {x : S} (hx : x ≠ 0) (i : ι) :
   (basis_span_singleton b hx i : S) = x * b i :=
 begin
   simp only [basis_span_singleton, basis.map_apply, linear_equiv.trans_apply, subtype.coe_mk,
-      restrict_scalars_equiv_apply, linear_equiv.of_injective_apply, algebra.lmul_apply,
-      linear_equiv.coe_of_eq_apply]
+      submodule.restrict_scalars_equiv_apply, linear_equiv.of_injective_apply, algebra.lmul_apply,
+      linear_equiv.coe_of_eq_apply, linear_equiv.restrict_scalars_apply]
 end
 
 @[simp] lemma constr_basis_span_singleton
@@ -102,10 +95,10 @@ end
   (b : basis ι R S) {x : S} (hx : x ≠ 0) :
   b.constr N (coe ∘ basis_span_singleton b hx) = algebra.lmul R S x :=
 b.ext (λ i, by rw [basis.constr_basis, function.comp_app, basis_span_singleton_apply,
-                   subtype.coe_mk, algebra.lmul_apply])
+                   algebra.lmul_apply])
 
 @[simp] lemma span_zero_singleton : span ({0} : set S) = ⊥ :=
-submodule.span_zero_singleton
+submodule.span_zero_singleton S
 
 end ideal
 
@@ -156,24 +149,6 @@ begin
   apply norm_aux_associated
 end
 
-section
-
-end
-
-/-
-lemma norm_aux_mul (I J : ideal S)
-  (eI : S ≃ₗ[R] I) (eJ : S ≃ₗ[R] J) (eIJ : S ≃ₗ[R] (I * J : ideal _)) :
-  norm_aux (I * J) eIJ = norm_aux I eI * norm_aux J eJ :=
-begin
-  unfold norm_aux,
-  rw [← normalize.map_mul, ← linear_map.det.map_mul, normalize_eq_normalize_iff],
-  apply dvd_dvd_of_associated,
-  refine linear_map.associated_det_of_eq_comp (linear_equiv.refl _ _) _ _ _,
-  intro x,
-  simp
-end
--/
-
 variables [is_principal_ideal_ring R]
 
 open_locale classical
@@ -223,7 +198,7 @@ lemma norm_span_singleton (b : basis ι R S) (x : S) :
   ideal.norm R (span ({x} : set S)) = normalize (algebra.norm R x) :=
 begin
   by_cases hx : x = 0,
-  { simp [hx, algebra.norm_zero_of_basis b] },
+  { simp [hx, algebra.norm_eq_zero_iff_of_basis b] },
   have : span {x} ≠ ⊥ := mt ideal.span_singleton_eq_bot.mp hx,
   rw [algebra.norm_apply,
       ← normalize_det_equiv b (span {x}) this (b.equiv (basis_span_singleton b hx) (equiv.refl _))],
@@ -239,11 +214,12 @@ span_singleton_one
 begin
   by_cases hS : ∃ (s : set S) (b : basis s R S), s.finite,
   swap, { exact (dif_neg top_ne_bot).trans (dif_neg hS) },
-  letI : fintype hS.some := hS.some_spec.some_spec.some,
+  letI : fintype hS.some := hS.some_spec.some_spec.fintype,
   rw [← span_singleton_one', norm_span_singleton hS.some_spec.some, monoid_hom.map_one,
       normalize.map_one]
 end
 
+/- TODO
 lemma algebra_map_norm_mem (b : basis ι R S) (I : ideal S) :
   algebra_map R S (I.norm R) ∈ I :=
 sorry -- TODO: via Lagrange's theorem?
@@ -254,17 +230,24 @@ iff.trans
   ⟨λ h, ideal.eq_top_of_is_unit_mem _ (algebra_map_norm_mem b _) ((algebra_map R S).is_unit_map h),
    λ h, have is_unit (1 : R) := is_unit_one, by rwa [h, ideal.norm_top]⟩
   span_singleton_eq_top
+-/
 
 end ideal
 
+variables {R S : Type*} [comm_ring R] [is_domain R] [comm_ring S] [is_domain S]
+variables [algebra R S] {ι : Type*}
+
 @[simp] lemma is_unit_normalize [normalization_monoid S] {x : S} :
   is_unit (normalize x) ↔ is_unit x :=
-by rw [← @normalize_eq_one _ _ _ _ x, ← normalize_eq_one, normalize_idem]
+by rw [← @normalize_eq_one _ _ _ x, ← normalize_eq_one, normalize_idem]
 
-theorem algebra.is_unit_norm_iff [is_principal_ideal_ring R] [normalization_monoid R]
+/- TODO
+theorem algebra.is_unit_norm_iff [fintype ι] [is_principal_ideal_ring R] [normalization_monoid R]
   (b : basis ι R S) (x : S) :
   is_unit (algebra.norm R x) ↔ is_unit x :=
-by rw [← @is_unit_normalize _ _ _ (algebra.norm R _), ← ideal.norm_span_singleton b x, ideal.is_unit_norm_iff b]
+by rw [← @is_unit_normalize _ _ _ _ (algebra.norm R _),
+       ← ideal.norm_span_singleton b x, ideal.is_unit_norm_iff b]
+-/
 
 section int
 
@@ -273,136 +256,54 @@ section int
 When the base ring is `ℤ`, we can show multiplicity by applying the Chinese Remainder Theorem.
 -/
 
-/-- Linear independent families are injective, even if you multiply either side. -/
-lemma linear_independent.eq_of_smul_apply_eq_smul_apply {M : Type*} [add_comm_group M] [module R M]
-  [nontrivial R] {v : ι → M} (li : linear_independent R v) (c d : R) (i j : ι)
-  (hc : c ≠ 0) (h : c • v i = d • v j) : i = j :=
-begin
-  let l : ι →₀ R := finsupp.single i c - finsupp.single j d,
-  have h_total : finsupp.total ι M R v l = 0,
-  { simp_rw [linear_map.map_sub, finsupp.total_apply],
-    simp [h] },
-  have h_single_eq : finsupp.single i c = finsupp.single j d,
-  { rw linear_independent_iff at li,
-    simp [eq_add_of_sub_eq' (li l h_total)] },
-  rcases (finsupp.single_eq_single_iff _ _ _ _).mp h_single_eq with ⟨this, _⟩ | ⟨hc, _⟩,
-  { exact this },
-  { contradiction },
-end
-
 section pid
 
-variables [is_principal_ideal_ring R]
-
-/-- If `S` is a finite free extension of a PID `R`, then any nonzero ideal `I` is free
-and we can find a basis for `S` and `I` such that the inclusion map is a diagonal matrix. -/
-theorem ideal.smith_normal_form (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
-  ∃ (b' : basis ι R S) (a : ι → R) (ab' : basis ι R I),
-  ∀ i, (ab' i : S) = a i • b' i :=
-begin
-  obtain ⟨n, b', ab', g', a', ab_eq⟩ := submodule.exists_smith_normal_form b (I.restrict_scalars R),
-  let ab : basis (fin n) R I := ab'.map I.restrict_scalars_equiv,
-  have g'_inj : function.injective g',
-  { intros i j h,
-    refine ab'.linear_independent.eq_of_smul_apply_eq_smul_apply (a' j) (a' i) i j _ _,
-    { rintro ha,
-      refine ab'.ne_zero j _,
-      ext,
-      simp [ab_eq, ha] },
-    { ext,
-      simp [ab_eq, h, ← mul_action.mul_smul, mul_comm] } },
-  have g'_bij := (fintype.bijective_iff_injective_and_card g').mpr ⟨g'_inj, ideal.rank_eq b' hI ab⟩,
-  let g : fin n ≃ ι := equiv.of_bijective g' g'_bij,
-  have g_apply : ∀ i, g i = g' i := λ i, rfl,
-  let a : ι → R := a' ∘ g.symm,
-  have a_apply : ∀ i, a i = a' (g.symm i) := λ i, rfl,
-  use [b', a, ab.reindex g],
-  intro i,
-  rw [← g.apply_symm_apply i, a_apply, g.symm_apply_apply, basis.reindex_apply, g.symm_apply_apply],
-  simp only [ab_eq, ab'.map_apply, I.restrict_scalars_equiv_apply, equiv.of_bijective_apply],
-end
+variables [is_principal_ideal_ring R] [fintype ι]
 
 noncomputable def ideal.ring_basis (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
-  basis ι R S := (ideal.smith_normal_form b I hI).some
+  basis ι R S := (ideal.exists_smith_normal_form b I hI).some
 
 noncomputable def ideal.self_basis (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
-  basis ι R I := (ideal.smith_normal_form b I hI).some_spec.some_spec.some
+  basis ι R I := (ideal.exists_smith_normal_form b I hI).some_spec.some_spec.some
 
 noncomputable def ideal.smith_coeffs (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
-  ι → R := (ideal.smith_normal_form b I hI).some_spec.some
+  ι → R := (ideal.exists_smith_normal_form b I hI).some_spec.some
 
 @[simp]
 lemma ideal.self_basis_def (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   ∀ i, (ideal.self_basis b I hI i : S) = ideal.smith_coeffs b I hI i • ideal.ring_basis b I hI i :=
-(ideal.smith_normal_form b I hI).some_spec.some_spec.some_spec
+(ideal.exists_smith_normal_form b I hI).some_spec.some_spec.some_spec
 
 end pid
+
+open_locale big_operators
 
 -- TODO: why doesn't this work "normally"?
 lemma normalize_prod {ι : Type*} (a : ι → ℤ) (s : finset ι) :
   normalize (∏ i in s, a i) = ∏ i in s, normalize (a i) :=
-monoid_hom.map_prod (normalize.to_monoid_hom : ℤ →* ℤ) a s
+map_prod normalize a s
 
 /-- If `P` is a submodule of `M` and `Q` a submodule of `N`,
 and `f : M ≃ₗ N` maps `P` to `Q`, then `M.quotient` is equivalent to `N.quotient`. -/
 @[simps] def submodule.quotient.equiv {M N : Type*}
   [add_comm_group M] [module R M] [add_comm_group N] [module R N]
   (P : submodule R M) (Q : submodule R N)
-  (f : M ≃ₗ[R] N) (hf : P.map ↑f = Q) : P.quotient ≃ₗ[R] Q.quotient :=
-{ to_fun := P.mapq Q ↑f (λ x hx, hf ▸ submodule.mem_map_of_mem hx),
-  inv_fun := Q.mapq P ↑f.symm (λ x hx, begin
+  (f : M ≃ₗ[R] N) (hf : P.map (f : M →ₗ[R] N) = Q) : (M ⧸ P) ≃ₗ[R] N ⧸ Q :=
+{ to_fun := P.mapq Q (f : M →ₗ[R] N) (λ x hx, hf ▸ submodule.mem_map_of_mem hx),
+  inv_fun := Q.mapq P (f.symm : N →ₗ[R] M) (λ x hx, begin
     rw [← hf, submodule.mem_map] at hx,
     obtain ⟨y, hy, rfl⟩ := hx,
     simpa
   end),
   left_inv := λ x, quotient.induction_on' x (by simp),
   right_inv := λ x, quotient.induction_on' x (by simp),
-  .. P.mapq Q ↑f (λ x hx, hf ▸ submodule.mem_map_of_mem hx) }
-
-.
-
--- TODO: make this the main `submodule.quotient.module` instance
-instance submodule.quotient.module'
-  {M : Type*} [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
-  (P : submodule S M) : module R P.quotient :=
-module.of_core { smul := λ c x, algebra_map R S c • x,
-                 smul_add := λ c x y, smul_add _ _ _,
-                 add_smul := λ c c' x, by simp only [ring_hom.map_add, add_smul],
-                 mul_smul := λ c c' x, by simp only [ring_hom.map_mul, mul_action.mul_smul],
-                 one_smul := λ x, by simp only [ring_hom.map_one, one_smul] }
-
-@[simp] lemma smul_mk {M : Type*} [add_comm_group M] [module R M] [module S M]
-  [is_scalar_tower R S M] (P : submodule S M) (c : R) (x : M) :
-  (c • submodule.quotient.mk x : P.quotient) = submodule.quotient.mk (c • x) :=
-show submodule.quotient.mk (algebra_map R S c • x) = submodule.quotient.mk (c • x),
-by rw algebra_map_smul
-
-instance {M : Type*} [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
-  (P : submodule S M) : is_scalar_tower R S P.quotient :=
-{ smul_assoc := λ x y z, show (x • y) • z = algebra_map R S x • y • z,
-                         by rw [← smul_assoc, algebra_map_smul] }
-
-/-- Restricting the scalars of a submodule doesn't change the quotient you get. -/
-@[simps] def submodule.restrict_scalars_quotient_equiv {M : Type*}
-  [add_comm_group M] [module R M] [module S M] [is_scalar_tower R S M]
-  (P : submodule S M) : (P.restrict_scalars R).quotient ≃ₗ[R] P.quotient :=
-{ to_fun := quot.map id (λ x y, id),
-  inv_fun := quot.map id (λ x y, id),
-  left_inv := λ x, quot.induction_on x (λ x', rfl),
-  right_inv := λ x, quot.induction_on x (λ x', rfl),
-  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
-  map_smul' := λ c x, quot.induction_on x (λ x',
-    by { rw [submodule.quotient.quot_mk_eq_mk, smul_mk, ← algebra_map_smul S c x'],
-         exact submodule.quotient.mk_smul _ }) }
+  .. P.mapq Q (f : M →ₗ[R] N) (λ x hx, hf ▸ submodule.mem_map_of_mem hx) }
 
 @[simps] def submodule_span_quotient_equiv (s : set S) :
-  (submodule.span S s).quotient ≃ₗ[S] (ideal.span s).quotient :=
-{ to_fun := quot.map id (λ x y, id),
-  inv_fun := quot.map id (λ x y, id),
-  left_inv := λ x, quot.induction_on x (λ x', rfl),
-  right_inv := λ x, quot.induction_on x (λ x', rfl),
-  map_add' := λ x y, quot.induction_on₂ x y (λ x' y', rfl),
-  map_smul' := λ c x, quot.induction_on x (λ x', rfl) }
+  (S ⧸ (submodule.span S s)) ≃ₗ[S] (S ⧸ (ideal.span s)) :=
+submodule.quot_equiv_of_eq _ _ ideal.submodule_span_eq
+
+variables [fintype ι]
 
 lemma basis.mem_submodule_iff {M : Type*} [add_comm_group M] [module R M] {P : submodule R M}
   (b : basis ι R P) {x : M} :
@@ -419,7 +320,7 @@ end
 
 lemma basis.mem_ideal_iff {I : ideal S} (b : basis ι R I) {x : S} :
   x ∈ I ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
-(b.map I.restrict_scalars_equiv.symm).mem_submodule_iff
+(b.map ((I.restrict_scalars_equiv R _ _).restrict_scalars R).symm).mem_submodule_iff
 
 @[simp] lemma basis.repr_sum_self {M : Type*}
   [add_comm_monoid M] [module R M] (b : basis ι R M) (c : ι → R) :
@@ -436,14 +337,14 @@ end
 lemma le_comap_single_pi {ι : Type*} [fintype ι] [decidable_eq ι]
   {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)]
   (p : ∀ i, submodule R (M i)) {i} :
-  p i ≤ submodule.comap (single i) (submodule.pi set.univ p) :=
+  p i ≤ submodule.comap (linear_map.single i) (submodule.pi set.univ p) :=
 begin
   intros x hx,
   rw [submodule.mem_comap, submodule.mem_pi],
   rintros j -,
   by_cases h : j = i,
-  { rwa [h, coe_single, pi.single_eq_same] },
-  { rw [coe_single, pi.single_eq_of_ne h], exact (p j).zero_mem }
+  { rwa [h, linear_map.coe_single, pi.single_eq_same] },
+  { rw [linear_map.coe_single, pi.single_eq_of_ne h], exact (p j).zero_mem }
 end
 
 /-- Lift a family of maps to the direct sum of quotients. -/
@@ -452,8 +353,8 @@ def submodule.pi_quotient_lift {ι : Type*} [fintype ι] [decidable_eq ι]
   {N : Type*} [add_comm_group N] [module R N]
   (p : ∀ i, submodule R (M i)) (q : submodule R N)
   (f : Π i, M i →ₗ[R] N) (hf : ∀ i, p i ≤ q.comap (f i)) :
-  (Π i, (p i).quotient) →ₗ[R] q.quotient :=
-linear_map.lsum R (λ i, (p i).quotient) R (λ i, (p i).mapq q (f i) (hf i))
+  (Π i, (M i ⧸ p i)) →ₗ[R] (N ⧸ q) :=
+linear_map.lsum R (λ i, (M i ⧸ (p i))) R (λ i, (p i).mapq q (f i) (hf i))
 
 @[simp] lemma submodule.pi_quotient_lift_mk {ι : Type*} [fintype ι] [decidable_eq ι]
   {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)]
@@ -470,7 +371,7 @@ by rw [submodule.pi_quotient_lift, linear_map.lsum_apply, linear_map.sum_apply,
   {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)]
   {N : Type*} [add_comm_group N] [module R N]
   (p : ∀ i, submodule R (M i)) (q : submodule R N)
-  (f : Π i, M i →ₗ[R] N) (hf : ∀ i, p i ≤ q.comap (f i)) (i) (x : (p i).quotient) :
+  (f : Π i, M i →ₗ[R] N) (hf : ∀ i, p i ≤ q.comap (f i)) (i) (x : M i ⧸ p i) :
   submodule.pi_quotient_lift p q f hf (pi.single i x) =
     submodule.mapq _ _ (f i) (hf i) x :=
 begin
@@ -482,13 +383,15 @@ begin
   { intros, have := finset.mem_univ i, contradiction },
 end
 
+open linear_map
+
 /-- Lift a family of maps to a quotient of direct sums. -/
 def submodule.quotient_pi_lift {ι : Type*} [fintype ι] [decidable_eq ι]
   {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)]
   {N : ι → Type*} [∀ i, add_comm_group (N i)] [∀ i, module R (N i)]
   (p : ∀ i, submodule R (M i))
   (f : Π i, M i →ₗ[R] N i) (hf : ∀ i, p i ≤ ker (f i)) :
-  (submodule.pi set.univ p).quotient →ₗ[R] Π i, N i :=
+  ((Π i, M i) ⧸ submodule.pi set.univ p) →ₗ[R] Π i, N i :=
 (submodule.pi set.univ p).liftq (linear_map.pi (λ i, (f i).comp (linear_map.proj i)))
   (λ x hx, mem_ker.mpr (by { ext i, simpa using hf i (submodule.mem_pi.mp hx i (set.mem_univ i)) }))
 
@@ -519,7 +422,7 @@ linear_map.ext (λ x, by simp)
 @[simps] def submodule.quotient_pi {ι : Type*} [fintype ι] [decidable_eq ι]
   {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)]
   (p : ∀ i, submodule R (M i)) :
-  (submodule.pi set.univ p).quotient ≃ₗ[R] Π i, (p i).quotient :=
+  ((Π i, M i) ⧸ submodule.pi set.univ p) ≃ₗ[R] Π i, M i ⧸ p i :=
 { to_fun := submodule.quotient_pi_lift p (λ i, (p i).mkq) (λ i, by simp),
   inv_fun := submodule.pi_quotient_lift p (submodule.pi set.univ p)
     linear_map.single (λ i, le_comap_single_pi p),
@@ -531,7 +434,8 @@ linear_map.ext (λ x, by simp)
     refine congr_arg _ (linear_map.pi_ext (λ i x, quotient.induction_on' x (λ x', funext $ λ j, _))),
     rw [linear_map.comp_apply, submodule.pi_quotient_lift_single, submodule.quotient.mk'_eq_mk,
         submodule.mapq_apply, submodule.quotient_pi_lift_mk, linear_map.id_apply],
-    sorry -- Why doesn't Lean see that this is the same?!
+    by_cases hij : i = j; simp [linear_map.coe_single, pi.single_apply, ← hij];
+      sorry -- Why doesn't Lean see that this is the same?!
   end,
   .. submodule.quotient_pi_lift p (λ i, (p i).mkq) (λ i, by simp) }
 
@@ -545,22 +449,22 @@ section
 
 open_locale classical
 
-/-- The norm of a submodule `S`, defined as the cardinality of `S.quotient`,
-if `S.quotient` is finite, and `0` otherwise. -/
+/-- The norm of a submodule `S`, defined as the cardinality of `(M ⧸ S)`,
+if `(M ⧸ S)` is finite, and `0` otherwise. -/
 noncomputable def card_norm (S : submodule R M) : ℕ :=
-if h : nonempty (fintype S.quotient) then @fintype.card S.quotient h.some else 0
+if h : nonempty (fintype (M ⧸ S)) then @fintype.card _ h.some else 0
 
-@[simp] lemma card_norm_apply (S : submodule R M) [h : fintype S.quotient] :
-  card_norm S = fintype.card S.quotient :=
+@[simp] lemma card_norm_apply (S : submodule R M) [h : fintype (M ⧸ S)] :
+  card_norm S = fintype.card (M ⧸ S) :=
 by convert dif_pos (nonempty.intro h) -- `convert` deals with the different `fintype` instances
 
-instance [infinite M] : infinite (⊥ : submodule R M).quotient :=
+instance [infinite M] : infinite (M ⧸ (⊥ : submodule R M)) :=
 infinite.of_injective submodule.quotient.mk $ λ x y h, sub_eq_zero.mp $ (quotient.eq ⊥).mp h
 
 @[simp] lemma card_norm_bot [infinite M] : card_norm (⊥ : submodule R M) = 0 :=
 dif_neg (by simp; apply_instance)
 
-instance : unique (⊤ : submodule R M).quotient :=
+instance : unique (M ⧸ (⊤ : submodule R M)) :=
 { default := 0,
   uniq := λ x, quotient.induction_on' x $ λ x, (quotient.eq ⊤).mpr mem_top }
 
@@ -577,47 +481,47 @@ variables (R)
 
 variables {R}
 
-instance quotient_top.fintype : fintype (⊤ : submodule R M).quotient :=
+instance quotient_top.fintype : fintype (M ⧸ (⊤ : submodule R M)) :=
 fintype.of_equiv punit $ equiv_of_subsingleton_of_subsingleton 0 0
 
 @[simp] lemma card_norm_top : card_norm (⊤ : submodule R M) = 1 :=
-calc card_norm ⊤ = fintype.card (submodule.quotient ⊤) : card_norm_apply _
+calc card_norm ⊤ = fintype.card (M ⧸ ⊤) : card_norm_apply _
 ... = fintype.card punit : fintype.card_eq.mpr ⟨equiv_of_subsingleton_of_subsingleton 0 0⟩
 ... = 1 : fintype.card_punit
 
 .
 
 noncomputable instance [fintype M] (S : submodule R M) [decidable_pred (∈ S)] :
-  fintype S.quotient :=
+  fintype (M ⧸ S) :=
 quotient.fintype _
 
 /-- A (non-canonical) bijection between a module `M` and the product `(M / S) × S` -/
 noncomputable def module_equiv_quotient_times_submodule (S : submodule R M) :
-  M ≃ quotient S × S :=
-calc M ≃ Σ L : quotient S, {x : M // quotient.mk x = L} :
+  M ≃ (M ⧸ S) × S :=
+calc M ≃ Σ L : M ⧸ S, {x : M // quotient.mk x = L} :
   (equiv.sigma_preimage_equiv S.mkq).symm
-    ... ≃ Σ L : quotient S, {x : M // x - quotient.out' L ∈ S} :
+    ... ≃ Σ L : M ⧸ S, {x : M // x - quotient.out' L ∈ S} :
   equiv.sigma_congr_right (λ L, (equiv.refl M).subtype_equiv (λ x,
     by { conv_lhs { rw ← quotient.out_eq' L },
       rw [submodule.quotient.mk'_eq_mk, submodule.quotient.eq, equiv.refl_apply] }))
-    ... ≃ Σ L : quotient S, S :
+    ... ≃ Σ L : M ⧸ S, S :
   equiv.sigma_congr_right (λ L,
     ⟨λ x, ⟨x.1 - quotient.out' L, x.2⟩,
      λ x, ⟨x.1 + quotient.out' L, by simp⟩,
      λ ⟨x, hx⟩, subtype.eq $ by simp,
      λ ⟨g, hg⟩, subtype.eq $ by simp⟩)
-    ... ≃ quotient S × S :
+    ... ≃ (M ⧸ S) × S :
   equiv.sigma_equiv_prod _ _
 
 lemma submodule.card_eq_card_quotient_mul_card [fintype M] (S : submodule R M) [decidable_pred (∈ S)]  :
-  fintype.card M = fintype.card S * fintype.card S.quotient :=
+  fintype.card M = fintype.card S * fintype.card (M ⧸ S) :=
 by { rw [mul_comm, ← fintype.card_prod],
      exact fintype.card_congr (module_equiv_quotient_times_submodule S) }
 
 /-- `[S : T] [M : S] = [M : T]` -/
 lemma card_quotient_mul_card_quotient (S T : submodule R M) (hST : T ≤ S)
-  [fintype S.quotient] [fintype T.quotient] :
-  fintype.card (S.map T.mkq) * fintype.card S.quotient = fintype.card T.quotient :=
+  [fintype (M ⧸ S)] [fintype (M ⧸ T)] :
+  fintype.card (S.map T.mkq) * fintype.card (M ⧸ S) = fintype.card (M ⧸ T) :=
 by rw [submodule.card_eq_card_quotient_mul_card (map T.mkq S),
        fintype.card_eq.mpr ⟨(quotient_quotient_equiv_quotient T S hST).to_equiv⟩]
 
@@ -630,7 +534,7 @@ open submodule
 /-- We can write the quotient of an ideal over a PID as a product of quotients by principal ideals. -/
 noncomputable def ideal.quotient_equiv_pi_span [is_principal_ideal_ring R] [decidable_eq ι]
   (I : ideal S) (b : basis ι R S) (hI : I ≠ ⊥) :
-  I.quotient ≃ₗ[R] Π i, (ideal.span ({I.smith_coeffs b hI i} : set R)).quotient :=
+  (S ⧸ I) ≃ₗ[R] Π i, (R ⧸ ideal.span ({I.smith_coeffs b hI i} : set R)) :=
 begin
   -- Choose `e : S ≃ₗ I` and a basis `b'` for `S` that turns the map
   -- `f := ((submodule.subtype I).restrict_scalars R).comp e` into a diagonal matrix:
@@ -640,7 +544,7 @@ begin
   let ab := I.self_basis b hI,
   have ab_eq := I.self_basis_def b hI,
   let e : S ≃ₗ[R] I := b'.equiv ab (equiv.refl _),
-  let f : S →ₗ[R] S := (I.subtype.restrict_scalars R).comp e,
+  let f : S →ₗ[R] S := (I.subtype.restrict_scalars R).comp (e : S →ₗ[R] I),
   let f_apply : ∀ x, f x = b'.equiv ab (equiv.refl _) x := λ x, rfl,
   have ha : ∀ i, f (b' i) = a i • b' i,
   { intro i, rw [f_apply, b'.equiv_apply, equiv.refl_apply, ab_eq] },
@@ -657,7 +561,7 @@ begin
   -- Now we map everything through the linear equiv `S ≃ₗ (ι → R)`,
   -- which maps `I` to `I' := Π i, a i ℤ`.
   let I' : submodule R (ι → R) := submodule.pi set.univ (λ i, ideal.span ({a i} : set R)),
-  have : submodule.map ↑b'.equiv_fun (I.restrict_scalars R) = I',
+  have : submodule.map (b'.equiv_fun : S →ₗ[R] (ι → R)) (I.restrict_scalars R) = I',
   { ext x,
     simp only [submodule.mem_map, submodule.mem_pi, ideal.mem_span_singleton, set.mem_univ,
                submodule.restrict_scalars_mem, mem_I_iff, smul_eq_mul, forall_true_left,
@@ -667,31 +571,35 @@ begin
     { rintros hdvd,
       refine ⟨∑ i, x i • b' i, λ i, _, _⟩; rwa b'.repr_sum_self,
       { exact hdvd i } } },
-  exact I.restrict_scalars_quotient_equiv.symm.trans
-    ((submodule.quotient.equiv (I.restrict_scalars R) I' b'.equiv_fun this).trans
-    (submodule.quotient_pi _))
+  refine ((submodule.quotient.restrict_scalars_equiv R I).restrict_scalars R).symm.trans _,
+  any_goals { apply ring_hom.id }, any_goals { apply_instance },
+  refine (submodule.quotient.equiv (I.restrict_scalars R) I' b'.equiv_fun this).trans _,
+  any_goals { apply ring_hom.id }, any_goals { apply_instance },
+  let := submodule.quotient_pi (show Π i, submodule R R, from λ i, ideal.span ({a i} : set R)),
+  exact this
 end
 
 -- TODO: do we want to strengthen the equiv (e.g. ring equiv?)
 /-- Ideal quotients over a free finite extension of `ℤ` are isomorphic to a direct product of `zmod`. -/
 noncomputable def ideal.quotient_equiv_pi_zmod [decidable_eq ι]
   (I : ideal S) (b : basis ι ℤ S) (hI : I ≠ ⊥) :
-  I.quotient ≃ Π i, (zmod (I.smith_coeffs b hI i).nat_abs) :=
+  (S ⧸ I) ≃ Π i, (zmod (I.smith_coeffs b hI i).nat_abs) :=
 begin
   let a := I.smith_coeffs b hI,
   let e := I.quotient_equiv_pi_span b hI,
-  let e' : (Π (i : ι), (ideal.span ({a i} : set ℤ)).quotient) ≃ Π (i : ι), zmod (a i).nat_abs :=
+  recover,
+  let e' : (Π (i : ι), (ℤ ⧸ ideal.span ({a i} : set ℤ))) ≃ Π (i : ι), zmod (a i).nat_abs :=
     equiv.Pi_congr (equiv.refl _) (λ i, (int.quotient_span_equiv_zmod (a i)).to_equiv),
-  refine (_ : I.quotient ≃ₗ[ℤ] _).to_equiv.trans e',
-  -- TODO: probably from the `module _ I.quotient` instance assuming `is_scalar_tower`
-  haveI : unique (module ℤ I.quotient) := add_comm_group.int_module.unique,
+  refine (_ : (S ⧸ I) ≃ₗ[ℤ] _).to_equiv.trans e',
+  -- TODO: probably from the `module _ (S ⧸ I)` instance assuming `is_scalar_tower`
+  haveI : unique (module ℤ (S ⧸ I)) := add_comm_group.int_module.unique,
   convert e
 end
 
 /-- A nonzero ideal over a free finite extension of `ℤ` has a finite quotient. -/
 noncomputable def ideal.fintype_quotient_of_free_of_ne_bot [decidable_eq ι]
   (I : ideal S) (b : basis ι ℤ S) (hI : I ≠ ⊥) :
-  fintype I.quotient :=
+  fintype (S ⧸ I) :=
 begin
   let a := I.smith_coeffs b hI,
   let e := I.quotient_equiv_pi_zmod b hI,
@@ -705,8 +613,6 @@ end
 
 variables [infinite S] -- TODO: should be provable from [integral_domain S] and `basis ι ℤ S`
 
-local attribute [reducible] ideal.quotient
-
 -- TODO: can we generalize this to other PIDs than ℤ?
 theorem ideal.card_norm_eq_norm (b : basis ι ℤ S) (I : ideal S) :
   ideal.norm ℤ I = card_norm I :=
@@ -715,14 +621,14 @@ begin
   by_cases hI : I = ⊥,
   { rw [hI, ideal.norm_bot, card_norm_bot, int.coe_nat_zero] },
 
-  -- Otherwise, `I.quotient` is isomorphic to a product of `zmod`s, so it is a fintype.
+  -- Otherwise, `(S ⧸ I)` is isomorphic to a product of `zmod`s, so it is a fintype.
   letI := classical.dec_eq ι,
   let a := I.smith_coeffs b hI,
   let b' := I.ring_basis b hI,
   let ab := I.self_basis b hI,
   have ab_eq := I.self_basis_def b hI,
   let e : S ≃ₗ[ℤ] I := b'.equiv ab (equiv.refl _),
-  let f : S →ₗ[ℤ] S := (I.subtype.restrict_scalars ℤ).comp e,
+  let f : S →ₗ[ℤ] S := (I.subtype.restrict_scalars ℤ).comp (e : S →ₗ[ℤ] I),
   let f_apply : ∀ x, f x = b'.equiv ab (equiv.refl _) x := λ x, rfl,
   have ha : ∀ i, f (b' i) = a i • b' i,
   { intro i, rw [f_apply, b'.equiv_apply, equiv.refl_apply, ab_eq] },
@@ -743,20 +649,20 @@ begin
       = normalize (linear_map.det f) : (I.normalize_det_equiv b' hI e).symm
   ... = normalize (linear_map.to_matrix b' b' f).det : by rw det_to_matrix
   ... = normalize (matrix.diagonal a).det : _
-  ... = normalize (∏ i, a i) : by rw det_diagonal
+  ... = normalize (∏ i, a i) : by rw matrix.det_diagonal
   ... = ∏ i, normalize (a i) : normalize_prod a finset.univ
-  ... = fintype.card I.quotient : _
+  ... = fintype.card (S ⧸ I) : _
   ... = card_norm I : by rw card_norm_apply I,
   -- since `linear_map.to_matrix b' b' f` is the diagonal matrix with `a` along the diagonal.
   { congr, ext i j,
     rw [to_matrix_apply, ha, linear_equiv.map_smul, basis.repr_self, finsupp.smul_single,
         smul_eq_mul, mul_one],
     by_cases h : i = j,
-    { rw [h, diagonal_apply_eq, finsupp.single_eq_same] },
-    { rw [diagonal_apply_ne h, finsupp.single_eq_of_ne (ne.symm h)] } },
+    { rw [h, matrix.diagonal_apply_eq, finsupp.single_eq_same] },
+    { rw [matrix.diagonal_apply_ne _ h, finsupp.single_eq_of_ne (ne.symm h)] } },
 
   -- Now we map everything through the linear equiv `S ≃ₗ (ι → ℤ)`,
-  -- which maps `I.quotient` to `Π i, zmod (a i).nat_abs`.
+  -- which maps `(S ⧸ I)` to `Π i, zmod (a i).nat_abs`.
   haveI : ∀ i, fact (0 < (a i).nat_abs) := sorry,
   simp_rw [fintype.card_eq.mpr ⟨ideal.quotient_equiv_pi_zmod I b hI⟩, fintype.card_pi, zmod.card],
   sorry -- TODO: `normalize = (↑) ∘ nat_abs`
@@ -766,7 +672,7 @@ end
 
 /-- Chinese remainder theorem, specialized to two ideals. -/
 def ideal.quotient_mul_equiv_quotient_prod (I J : ideal S) (coprime : I ⊔ J = ⊤) :
-  (I * J).quotient ≃+* I.quotient × J.quotient :=
+  (S ⧸ (I * J)) ≃+* (S ⧸ I) × S ⧸ J :=
 let f : fin 2 → ideal S := ![I, J] in
 have hf : ∀ (i j : fin 2), i ≠ j → f i ⊔ f j = ⊤,
 { intros i j h, fin_cases i; fin_cases j; sorry },
@@ -798,7 +704,7 @@ end
 variables [is_dedekind_domain S]
 
 lemma unique_factorization_monoid.pow_eq_pow_iff {M : Type*}
-  [comm_cancel_monoid_with_zero M] [unique_factorization_monoid M]
+  [cancel_comm_monoid_with_zero M] [unique_factorization_monoid M]
   {a : M} (ha0 : a ≠ 0) (ha1 : ¬ is_unit a) {i j : ℕ} : a ^ i = a ^ j ↔ i = j :=
 begin
   letI := classical.dec_eq M,
@@ -807,10 +713,10 @@ begin
     letI : nontrivial M := ⟨⟨a, 0, ha0⟩⟩,
     letI : normalization_monoid M := unique_factorization_monoid.normalization_monoid,
     obtain ⟨p', hp', dvd'⟩ := wf_dvd_monoid.exists_irreducible_factor ha1 ha0,
-    obtain ⟨p, mem, _⟩ := unique_factorization_monoid.exists_mem_factors_of_dvd ha0 hp' dvd',
-    have := congr_arg (λ x, multiset.count p (unique_factorization_monoid.factors x)) hij,
-    simp only [unique_factorization_monoid.factors_pow, multiset.count_nsmul] at this,
-    exact mul_right_cancel' (multiset.count_ne_zero.mpr mem) this },
+    obtain ⟨p, mem, _⟩ := unique_factorization_monoid.exists_mem_normalized_factors_of_dvd ha0 hp' dvd',
+    have := congr_arg (λ x, multiset.count p (unique_factorization_monoid.normalized_factors x)) hij,
+    simp only [unique_factorization_monoid.normalized_factors_pow, multiset.count_nsmul] at this,
+    exact mul_right_cancel₀ (multiset.count_ne_zero.mpr mem) this },
   { rintros rfl, refl }
 end
 
@@ -835,15 +741,6 @@ end
 
 open unique_factorization_monoid
 
-lemma multiset.nsmul_singleton {α : Type*} (n : ℕ) (x : α) :
-  n • (x ::ₘ 0) = multiset.repeat x n :=
-begin
-  refine multiset.eq_repeat.mpr ⟨by simp, λ y hy, _⟩,
-  cases n with n,
-  { simpa using hy },
-  { exact multiset.mem_singleton.mp ((multiset.mem_nsmul n.succ_ne_zero).mp hy) }
-end
-
 lemma multiset.lt_repeat_succ {α : Type*} {m : multiset α} {x : α} {n : ℕ} :
   m < multiset.repeat x (n + 1) ↔ m ≤ multiset.repeat x n :=
 begin
@@ -857,14 +754,10 @@ begin
     exact ⟨x, multiset.cons_le_cons _ h⟩ }
 end
 
-lemma dvd_of_factor {α : Type*} [nontrivial α] [decidable_eq α]
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
-  {x y : α} (hx : x ∈ factors y) : x ∣ y :=
-have hy : y ≠ 0 := λ hy, by simpa [hy] using hx,
-dvd_trans (multiset.dvd_prod hx) (dvd_of_associated (factors_prod hy))
+open unique_factorization_monoid
 
 lemma exists_mem_factors {α : Type*} [nontrivial α] [decidable_eq α]
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
   {x : α} (hx : x ≠ 0) (h : ¬ is_unit x) : ∃ p, p ∈ factors x :=
 begin
   obtain ⟨p', hp', hp'x⟩ := wf_dvd_monoid.exists_irreducible_factor h hx,
@@ -872,30 +765,57 @@ begin
   exact ⟨p, hp⟩
 end
 
+lemma exists_mem_normalized_factors {α : Type*} [nontrivial α] [decidable_eq α]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
+  {x : α} (hx : x ≠ 0) (h : ¬ is_unit x) : ∃ p, p ∈ normalized_factors x :=
+begin
+  obtain ⟨p', hp', hp'x⟩ := wf_dvd_monoid.exists_irreducible_factor h hx,
+  obtain ⟨p, hp, hpx⟩ := exists_mem_normalized_factors_of_dvd hx hp' hp'x,
+  exact ⟨p, hp⟩
+end
+
 @[simp] lemma factors_pos {α : Type*} [nontrivial α] [decidable_eq α]
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
   (x : α) (hx : x ≠ 0) : 0 < factors x ↔ ¬ is_unit x :=
 begin
   split,
   { intros h hx,
     obtain ⟨p, hp⟩ := multiset.exists_mem_of_ne_zero h.ne',
-    exact (prime_of_factor _ hp).not_unit (is_unit_of_dvd_unit (dvd_of_factor hp) hx) },
+    exact (prime_of_factor _ hp).not_unit (is_unit_of_dvd_unit (dvd_of_mem_factors hp) hx) },
   { intros h,
     obtain ⟨p, hp⟩ := exists_mem_factors hx h,
     exact bot_lt_iff_ne_bot.mpr (mt multiset.eq_zero_iff_forall_not_mem.mp
       (not_forall.mpr ⟨p, not_not.mpr hp⟩)) },
 end
 
+
+@[simp] lemma normalized_factors_pos {α : Type*} [nontrivial α] [decidable_eq α]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
+  (x : α) (hx : x ≠ 0) : 0 < normalized_factors x ↔ ¬ is_unit x :=
+begin
+  split,
+  { intros h hx,
+    obtain ⟨p, hp⟩ := multiset.exists_mem_of_ne_zero h.ne',
+    exact (prime_of_normalized_factor _ hp).not_unit (is_unit_of_dvd_unit (dvd_of_mem_normalized_factors hp) hx) },
+  { intros h,
+    obtain ⟨p, hp⟩ := exists_mem_normalized_factors hx h,
+    exact bot_lt_iff_ne_bot.mpr (mt multiset.eq_zero_iff_forall_not_mem.mp
+      (not_forall.mpr ⟨p, not_not.mpr hp⟩)) },
+end
+
 lemma dvd_not_unit_iff_factors_lt_factors {α : Type*} [nontrivial α] [decidable_eq α]
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
-  {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) : dvd_not_unit x y ↔ factors x < factors y :=
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [normalization_monoid α]
+  {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  dvd_not_unit x y ↔ normalized_factors x < normalized_factors y :=
 begin
   split,
   { rintro ⟨_, c, hc, rfl⟩,
-    simp [hx, right_ne_zero_of_mul hy, hc] },
+    simp only [hx, right_ne_zero_of_mul hy, normalized_factors_mul, ne.def, not_false_iff,
+      lt_add_iff_pos_right, normalized_factors_pos, hc] },
   { intro h,
-    exact dvd_not_unit_of_dvd_of_not_dvd ((dvd_iff_factors_le_factors hx hy).mpr h.le)
-            (mt (dvd_iff_factors_le_factors hy hx).mp h.not_le) }
+    exact dvd_not_unit_of_dvd_of_not_dvd
+      ((dvd_iff_normalized_factors_le_normalized_factors hx hy).mpr h.le)
+      (mt (dvd_iff_normalized_factors_le_normalized_factors hy hx).mp h.not_le) }
 end
 
 
@@ -906,14 +826,16 @@ begin
   refine le_antisymm hle _,
   letI := classical.dec_eq (ideal S),
   letI : normalization_monoid (ideal S) := unique_factorization_monoid.normalization_monoid,
-  have irr_P : irreducible P := sorry,
+  have P_prime' := ideal.prime_of_is_prime hP P_prime,
   have : I ≠ ⊥ := (lt_of_le_of_lt bot_le hlt).ne',
   have := pow_ne_zero i hP,
   have := pow_ne_zero (i + 1) hP,
-  rw [← ideal.dvd_not_unit_iff_lt, dvd_not_unit_iff_factors_lt_factors, factors_pow,
-      factors_irreducible irr_P, multiset.nsmul_singleton, multiset.lt_repeat_succ] at hlt,
-  rw [← ideal.dvd_iff_le, dvd_iff_factors_le_factors, factors_pow, factors_irreducible irr_P,
-      multiset.nsmul_singleton],
+  rw [← ideal.dvd_not_unit_iff_lt, dvd_not_unit_iff_factors_lt_factors, normalized_factors_pow,
+      normalized_factors_irreducible P_prime'.irreducible, multiset.nsmul_singleton,
+      multiset.lt_repeat_succ]
+    at hlt,
+  rw [← ideal.dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors, normalized_factors_pow,
+      normalized_factors_irreducible P_prime'.irreducible, multiset.nsmul_singleton],
   all_goals { assumption }
 end
 
@@ -941,7 +863,7 @@ lemma ideal.span_singleton_le_iff_mem {a : S} {I : ideal S} :
   ideal.span {a} ≤ I ↔ a ∈ I :=
 submodule.span_singleton_le_iff_mem _ _
 
-lemma prime_pow_succ_dvd_mul {α : Type*} [comm_cancel_monoid_with_zero α]
+lemma prime_pow_succ_dvd_mul {α : Type*} [cancel_comm_monoid_with_zero α]
   [unique_factorization_monoid α]
   {p x y : α} (h : prime p) {i : ℕ} (hxy : p ^ (i + 1) ∣ x * y) :
   p ^ (i + 1) ∣ x ∨ p ∣ y :=
@@ -950,15 +872,12 @@ begin
   intro hy,
   induction i with i ih generalizing x,
   { simp only [zero_add, pow_one] at *,
-    exact (h.div_or_div hxy).resolve_right hy },
+    exact (h.dvd_or_dvd hxy).resolve_right hy },
   rw pow_succ at hxy ⊢,
-  obtain ⟨x', rfl⟩ := (h.div_or_div (dvd_of_mul_right_dvd hxy)).resolve_right hy,
+  obtain ⟨x', rfl⟩ := (h.dvd_or_dvd (dvd_of_mul_right_dvd hxy)).resolve_right hy,
   rw mul_assoc at hxy,
   exact mul_dvd_mul_left p (ih ((mul_dvd_mul_iff_left h.ne_zero).mp hxy)),
 end
-
-lemma ideal.prime (P : ideal S) [P.is_prime] : prime P :=
-sorry
 
 lemma ideal.mem_prime_of_mul_mem_pow
   {P : ideal S} [P_prime : P.is_prime] (hP : P ≠ ⊥) {i : ℕ}
@@ -967,7 +886,7 @@ lemma ideal.mem_prime_of_mul_mem_pow
 begin
   simp only [← ideal.span_singleton_le_iff_mem, ← ideal.dvd_iff_le, pow_succ,
        ← ideal.span_singleton_mul_span_singleton] at a_mem a_not_mem ab_mem ⊢,
-  exact (prime_pow_succ_dvd_mul P.prime ab_mem).resolve_left a_not_mem
+  exact (prime_pow_succ_dvd_mul (ideal.prime_of_is_prime hP P_prime) ab_mem).resolve_left a_not_mem
 end
 
 /-- The choice of `d` in `ideal.exists_mul_add_mem_pow_succ` is unique, up to `P`.
@@ -1012,11 +931,11 @@ begin
   letI := classical.dec_eq ι,
   induction i with i ih,
   { simp },
-letI := ideal.fintype_quotient_of_free_of_ne_bot (P ^ i.succ) b (pow_ne_zero _ hP),
+  letI := ideal.fintype_quotient_of_free_of_ne_bot (P ^ i.succ) b (pow_ne_zero _ hP),
   letI := ideal.fintype_quotient_of_free_of_ne_bot (P ^ i) b (pow_ne_zero _ hP),
   letI := ideal.fintype_quotient_of_free_of_ne_bot P b hP,
   have : P ^ (i + 1) < P ^ i := ideal.pow_succ_lt_pow hP i,
-  suffices hquot : map (P ^ i.succ).mkq (P ^ i) ≃ quotient P,
+  suffices hquot : map (P ^ i.succ).mkq (P ^ i) ≃ S ⧸ P,
   { rw [pow_succ (card_norm P), ← ih, card_norm_apply (P ^ i.succ),
       ← card_quotient_mul_card_quotient (P ^ i) (P ^ i.succ) this.le,
       card_norm_apply (P ^ i), card_norm_apply P],
@@ -1048,7 +967,7 @@ letI := ideal.fintype_quotient_of_free_of_ne_bot (P ^ i.succ) b (pow_ne_zero _ h
     have hc' := ideal.mul_mem_right d _ a_mem,
     have hd' := mem_map.mpr ⟨a * d, hc', rfl⟩,
     refine ⟨⟨_, hd'⟩, _⟩,
-    simp only [mkq_apply, quotient.mk'_eq_mk, submodule.quotient.eq],
+    simp only [submodule.quotient.mk'_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.eq],
     obtain ⟨he, hd'⟩ := (ideal.exists_mul_add_mem_pow_succ P hP a _ a_mem a_not_mem hc').some_spec.some_spec,
     refine ideal.mul_add_mem_pow_succ_unique P hP a _ _ 0 _ a_mem a_not_mem _ he _,
     { exact (P ^ (i + 1)).zero_mem },
@@ -1065,7 +984,7 @@ and `P x ∧ P y` for coprime `x, y` implies `P (x * y)`,
 then `P` holds on a product of prime powers. -/
 @[elab_as_eliminator]
 theorem unique_factorization_monoid.induction_on_prime_power {α : Type*}
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
   {P : α → Prop} (s : finset α) (i : α → ℕ)
   (is_prime : ∀ p ∈ s, prime p) (is_coprime : ∀ p q ∈ s, p ∣ q → p = q)
   (h1 : ∀ {x}, is_unit x → P x) (hpr : ∀ {p} (i : ℕ), prime p → P (p ^ i))
@@ -1078,19 +997,19 @@ begin
   rw finset.prod_insert hpf',
   have hp := is_prime _ (finset.mem_insert_self _ _),
   refine hcp _ (hpr (i p) hp) (ih (λ q hq, is_prime _ (finset.mem_insert_of_mem hq))
-    (λ q q' hq hq', is_coprime _ _ (finset.mem_insert_of_mem hq) (finset.mem_insert_of_mem hq'))),
+    (λ q hq q' hq', is_coprime _ (finset.mem_insert_of_mem hq) _ (finset.mem_insert_of_mem hq'))),
   refine λ _, no_factors_of_no_prime_factors (pow_ne_zero _ hp.ne_zero) _,
   intros d hdp hdprod hd,
   apply hpf',
   replace hdp := hd.dvd_of_dvd_pow hdp,
-  obtain ⟨q, q_mem', hdq⟩ := exists_mem_multiset_dvd_of_prime hd hdprod,
+  obtain ⟨q, q_mem', hdq⟩ := hd.exists_mem_multiset_dvd hdprod,
   obtain ⟨q, q_mem, rfl⟩ := multiset.mem_map.mp q_mem',
   replace hdq := hd.dvd_of_dvd_pow hdq,
   have : p ∣ q := dvd_trans
-    (dvd_symm_of_irreducible (irreducible_of_prime hd) (irreducible_of_prime hp) hdp)
+    (hd.irreducible.dvd_symm hp.irreducible hdp)
     hdq,
   convert q_mem,
-  exact is_coprime _ _ (finset.mem_insert_self p f') (finset.mem_insert_of_mem q_mem) this,
+  exact is_coprime _  (finset.mem_insert_self p f') _ (finset.mem_insert_of_mem q_mem) this,
 end
 
 /-- If `P` holds for `0`, units and powers of primes,
@@ -1098,7 +1017,7 @@ and `P x ∧ P y` for coprime `x, y` implies `P (x * y)`,
 then `P` holds on all `a : α`. -/
 @[elab_as_eliminator]
 theorem unique_factorization_monoid.induction_on_coprime {α : Type*}
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
   {P : α → Prop} (a : α) (h0 : P 0) (h1 : ∀ {x}, is_unit x → P x)
   (hpr : ∀ {p} (i : ℕ), prime p → P (p ^ i))
   (hcp : ∀ {x y}, (∀ p, p ∣ x → p ∣ y → is_unit p) → P x → P y → P (x * y)) :
@@ -1111,24 +1030,23 @@ begin
   by_cases ha0 : a = 0, { rwa ha0 },
   haveI : nontrivial α := ⟨⟨_, _, ha0⟩⟩,
   letI : normalization_monoid α := unique_factorization_monoid.normalization_monoid,
-  refine P_of_associated (factors_prod ha0) _,
-  rw [← (factors a).map_id, finset.prod_multiset_map_count],
+  refine P_of_associated (normalized_factors_prod ha0) _,
+  rw [← (normalized_factors a).map_id, finset.prod_multiset_map_count],
   refine unique_factorization_monoid.induction_on_prime_power _ _ _ _ @h1 @hpr @hcp;
     simp only [multiset.mem_to_finset],
-  { apply prime_of_factor },
-  rintro p q hp hq hdvd,
+  { apply prime_of_normalized_factor },
+  rintro p hp q hq hdvd,
   convert normalize_eq_normalize hdvd
-    (dvd_symm_of_irreducible
-      (irreducible_of_prime (prime_of_factor _ hp))
-      (irreducible_of_prime (prime_of_factor _ hq)) hdvd);
-    apply (normalize_factor _ _).symm; assumption
+    (((prime_of_normalized_factor _ hp).irreducible).dvd_symm
+      ((prime_of_normalized_factor _ hq).irreducible) hdvd);
+    apply (normalize_normalized_factor _ _).symm; assumption
 end
 
 /-- If `f` maps `p ^ i` to `(f p) ^ i` for primes `p`, and `f`
 is multiplicative on coprime elements, then `f` is multiplicative on all products of primes. -/
 @[elab_as_eliminator]
 theorem unique_factorization_monoid.multiplicative_prime_power {α β : Type*}
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α] [comm_cancel_monoid_with_zero β]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [cancel_comm_monoid_with_zero β]
   {f : α → β} (s : finset α) (i j : α → ℕ)
   (is_prime : ∀ p ∈ s, prime p) (is_coprime : ∀ p q ∈ s, p ∣ q → p = q)
   (h1 : ∀ {x y}, is_unit y → f (x * y) = f x * f y)
@@ -1144,27 +1062,25 @@ begin
   suffices red : ∀ (i' : α → ℕ) (q : α), q ∣ p ^ i' p → q ∣ ∏ q' in f', q' ^ i' q' → is_unit q,
   { rw [hcp (red _), hpr (i p + j p) hp, hcp (red _), hpr (i p) hp, hcp (red _), hpr (j p) hp,
         ih (λ q hq, is_prime _ (finset.mem_insert_of_mem hq))
-          (λ q q' hq hq', is_coprime _ _ (finset.mem_insert_of_mem hq) (finset.mem_insert_of_mem hq')),
+          (λ q hq q' hq', is_coprime _ (finset.mem_insert_of_mem hq) _ (finset.mem_insert_of_mem hq')),
         pow_add, mul_assoc, mul_left_comm (f p ^ j p), mul_assoc] },
   -- TODO: unify this and the analogous argument for `induction_on_coprime`
   refine λ i' _, no_factors_of_no_prime_factors (pow_ne_zero _ hp.ne_zero) _,
   intros d hdp hdprod hd,
   apply hpf',
   replace hdp := hd.dvd_of_dvd_pow hdp,
-  obtain ⟨q, q_mem', hdq⟩ := exists_mem_multiset_dvd_of_prime hd hdprod,
+  obtain ⟨q, q_mem', hdq⟩ := hd.exists_mem_multiset_dvd hdprod,
   obtain ⟨q, q_mem, rfl⟩ := multiset.mem_map.mp q_mem',
   replace hdq := hd.dvd_of_dvd_pow hdq,
-  have : p ∣ q := dvd_trans
-    (dvd_symm_of_irreducible (irreducible_of_prime hd) (irreducible_of_prime hp) hdp)
-    hdq,
+  have : p ∣ q := (hd.irreducible.dvd_symm hp.irreducible hdp).trans hdq,
   convert q_mem,
-  exact is_coprime _ _ (finset.mem_insert_self p f') (finset.mem_insert_of_mem q_mem) this,
+  exact is_coprime _ (finset.mem_insert_self p f') _ (finset.mem_insert_of_mem q_mem) this,
 end
 
 /-- If `f` maps `p ^ i` to `(f p) ^ i` for primes `p`, and `f`
 is multiplicative on coprime elements, then `f` is multiplicative everywhere. -/
 theorem unique_factorization_monoid.multiplicative_of_coprime {α β : Type*}
-  [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α] [comm_cancel_monoid_with_zero β]
+  [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α] [cancel_comm_monoid_with_zero β]
   (f : α → β) (a b : α) (h0 : f 0 = 0) (h1 : ∀ {x y}, is_unit y → f (x * y) = f x * f y)
   (hpr : ∀ {p} (i : ℕ), prime p → f (p ^ i) = (f p) ^ i)
   (hcp : ∀ {x y}, (∀ p, p ∣ x → p ∣ y → is_unit p) → f (x * y) = f x * f y) :
@@ -1181,26 +1097,26 @@ begin
   letI := classical.dec_eq α,
   haveI : nontrivial α := ⟨⟨_, _, ha0⟩⟩,
   letI : normalization_monoid α := unique_factorization_monoid.normalization_monoid,
-  obtain ⟨ua, a_eq⟩ := factors_prod ha0,
-  obtain ⟨ub, b_eq⟩ := factors_prod hb0,
+  obtain ⟨ua, a_eq⟩ := normalized_factors_prod ha0,
+  obtain ⟨ub, b_eq⟩ := normalized_factors_prod hb0,
   rw [← a_eq, ← b_eq, mul_right_comm _ ↑ua, h1 ua.is_unit, h1 ub.is_unit, h1 ua.is_unit,
       ← mul_assoc, h1 ub.is_unit, mul_right_comm _ (f ua), ← mul_assoc],
   congr,
-  rw [← (factors a).map_id, ← (factors b).map_id,
+  rw [← (normalized_factors a).map_id, ← (normalized_factors b).map_id,
       finset.prod_multiset_map_count, finset.prod_multiset_map_count,
-      finset.prod_subset (finset.subset_union_left _ (factors b).to_finset),
-      finset.prod_subset (finset.subset_union_right (factors a).to_finset (factors b).to_finset),
+      finset.prod_subset (finset.subset_union_left _ (normalized_factors b).to_finset),
+      finset.prod_subset (finset.subset_union_right (normalized_factors a).to_finset (normalized_factors b).to_finset),
       ← finset.prod_mul_distrib],
   simp_rw [id.def, ← pow_add],
   refine unique_factorization_monoid.multiplicative_prime_power _ _ _ _ _ @h1 @hpr @hcp,
   all_goals { simp only [multiset.mem_to_finset, finset.mem_union] },
-  { rintros p (hpa | hpb); apply prime_of_factor; assumption },
-  { rintro p q (hp | hp) (hq | hq) hdvd;
-      rw [← normalize_factor _ hp, ← normalize_factor _ hq];
+  { rintros p (hpa | hpb); apply prime_of_normalized_factor; assumption },
+  { rintro p (hp | hp) q (hq | hq) hdvd;
+      rw [← normalize_normalized_factor _ hp, ← normalize_normalized_factor _ hq];
       exact normalize_eq_normalize hdvd
-        (dvd_symm_of_irreducible
-          (irreducible_of_prime (prime_of_factor _ hp))
-          (irreducible_of_prime (prime_of_factor _ hq)) hdvd) },
+        ((prime_of_normalized_factor _ hp).irreducible.dvd_symm
+          (prime_of_normalized_factor _ hq).irreducible
+          hdvd) },
   { intros p hpab hpb,
     simp [hpb] },
   { intros p hpab hpa,

@@ -180,7 +180,7 @@ end
 lemma is_field.is_principal_ideal_ring
   {R : Type*} [comm_ring R] (h : is_field R) :
   is_principal_ideal_ring R :=
-@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R h.to_field)
 
 namespace principal_ideal_ring
 open is_principal_ideal_ring
@@ -240,7 +240,7 @@ lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
 begin
   rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
   rw [← hc],
-  exact submonoid.mul_mem _ (submonoid.multiset_prod_mem _ _ hfac) (hunit _),
+  exact mul_mem (multiset_prod_mem _ hfac) (hunit _)
 end
 
 /-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
@@ -388,6 +388,17 @@ end
 
 theorem prime.coprime_iff_not_dvd {p n : R} (pp : prime p) : is_coprime p n ↔ ¬ p ∣ n :=
 pp.irreducible.coprime_iff_not_dvd
+
+theorem irreducible.dvd_iff_not_coprime {p n : R} (hp : irreducible p) : p ∣ n ↔ ¬ is_coprime p n :=
+iff_not_comm.2 hp.coprime_iff_not_dvd
+
+theorem irreducible.coprime_pow_of_not_dvd {p a : R} (m : ℕ) (hp : irreducible p) (h : ¬ p ∣ a) :
+  is_coprime a (p ^ m) :=
+(hp.coprime_iff_not_dvd.2 h).symm.pow_right
+
+theorem irreducible.coprime_or_dvd {p : R} (hp : irreducible p) (i : R) :
+  is_coprime p i ∨ p ∣ i :=
+(em _).imp_right hp.dvd_iff_not_coprime.2
 
 theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ d, associated (d ^ k) a :=

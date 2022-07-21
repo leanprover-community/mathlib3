@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group.defs
-import data.equiv.set
 import data.fun_like.basic
 import logic.embedding
+import logic.equiv.set
 import order.rel_classes
 
 /-!
@@ -74,7 +74,7 @@ lemma map_inf [semilattice_inf α] [linear_order β]
 lemma map_sup [semilattice_sup α] [linear_order β]
   [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
   (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-@map_inf (order_dual α) (order_dual β) _ _ _ _ _ _ _
+@map_inf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _
 
 protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r
 | ⟨H⟩ := ⟨λ a h, H _ (map_rel f h)⟩
@@ -337,6 +337,10 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
+/-- A relation embedding from an empty type. -/
+def of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] : r ↪r s :=
+⟨embedding.of_is_empty, is_empty_elim⟩
+
 end rel_embedding
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
@@ -410,6 +414,23 @@ instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
 
 @[simp] lemma default_def (r : α → α → Prop) : default = rel_iso.refl r := rfl
 
+/-- A relation isomorphism between equal relations on equal types. -/
+@[simps to_equiv apply] protected def cast {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+  (h₁ : α = β) (h₂ : r == s) : r ≃r s :=
+⟨equiv.cast h₁, λ a b, by { subst h₁, rw eq_of_heq h₂, refl }⟩
+
+@[simp] protected theorem cast_symm {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+  (h₁ : α = β) (h₂ : r == s) : (rel_iso.cast h₁ h₂).symm = rel_iso.cast h₁.symm h₂.symm := rfl
+
+@[simp] protected theorem cast_refl {α : Type u} {r : α → α → Prop}
+  (h₁ : α = α := rfl) (h₂ : r == r := heq.rfl) : rel_iso.cast h₁ h₂ = rel_iso.refl r := rfl
+
+@[simp] protected theorem cast_trans {α β γ : Type u}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop} (h₁ : α = β) (h₁' : β = γ)
+  (h₂ : r == s) (h₂' : s == t): (rel_iso.cast h₁ h₂).trans (rel_iso.cast h₁' h₂') =
+  rel_iso.cast (h₁.trans h₁') (h₂.trans h₂') :=
+ext $ λ x, by { subst h₁, refl }
+
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
 protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
@@ -440,6 +461,14 @@ f.injective.eq_iff
 
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
+
+instance is_well_order.preimage {α : Type u} (r : α → α → Prop) [is_well_order α r] (f : β ≃ α) :
+  is_well_order β (f ⁻¹'o r) :=
+@rel_embedding.is_well_order _ _ (f ⁻¹'o r) r (rel_iso.preimage f r) _
+
+instance is_well_order.ulift {α : Type u} (r : α → α → Prop) [is_well_order α r] :
+  is_well_order (ulift α) (ulift.down ⁻¹'o r) :=
+is_well_order.preimage r equiv.ulift
 
 /-- A surjective relation embedding is a relation isomorphism. -/
 @[simps apply]
@@ -486,6 +515,22 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 
 @[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
+/-- Two relations on empty types are isomorphic. -/
+def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
+⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
+
+/-- Two irreflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_irrefl (r : α → α → Prop) (s : β → β → Prop)
+  [is_irrefl α r] [is_irrefl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ x y, by simp [not_rel_of_subsingleton r, not_rel_of_subsingleton s]⟩
+
+/-- Two reflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
+  [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
+
 end rel_iso
 
 /-- `subrel r p` is the inherited relation on a subset. -/
@@ -504,9 +549,20 @@ protected def rel_embedding (r : α → α → Prop) (p : set α) :
 @[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
   subrel.rel_embedding r p a = a.1 := rfl
 
-instance (r : α → α → Prop) [is_well_order α r]
-  (p : set α) : is_well_order p (subrel r p) :=
+instance (r : α → α → Prop) [is_well_order α r] (p : set α) : is_well_order p (subrel r p) :=
 rel_embedding.is_well_order (subrel.rel_embedding r p)
+
+instance (r : α → α → Prop) [is_refl α r] (p : set α) : is_refl p (subrel r p) :=
+⟨λ x, @is_refl.refl α r _ x⟩
+
+instance (r : α → α → Prop) [is_symm α r] (p : set α) : is_symm p (subrel r p) :=
+⟨λ x y, @is_symm.symm α r _ x y⟩
+
+instance (r : α → α → Prop) [is_trans α r] (p : set α) : is_trans p (subrel r p) :=
+⟨λ x y z, @is_trans.trans α r _ x y z⟩
+
+instance (r : α → α → Prop) [is_irrefl α r] (p : set α) : is_irrefl p (subrel r p) :=
+⟨λ x, @is_irrefl.irrefl α r _ x⟩
 
 end subrel
 

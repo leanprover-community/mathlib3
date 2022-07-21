@@ -15,11 +15,11 @@ Shows that products in the over category can be derived from wide pullbacks in t
 The main result is `over_product_of_wide_pullback`, which says that if `C` has `J`-indexed wide
 pullbacks, then `over B` has `J`-indexed products.
 -/
-universes v u -- morphism levels before object levels. See note [category_theory universes].
+universes w v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 
-variables {J : Type v}
+variables {J : Type w}
 variables {C : Type u} [category.{v} C]
 variable {X : C}
 
@@ -33,17 +33,17 @@ Given a product diagram in `C/B`, construct the corresponding wide pullback diag
 in `C`.
 -/
 @[reducible]
-def wide_pullback_diagram_of_diagram_over (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+def wide_pullback_diagram_of_diagram_over (B : C) {J : Type w} (F : discrete J ⥤ over B) :
   wide_pullback_shape J ⥤ C :=
-wide_pullback_shape.wide_cospan B (λ j, (F.obj j).left) (λ j, (F.obj j).hom)
+wide_pullback_shape.wide_cospan B (λ j, (F.obj ⟨j⟩).left) (λ j, (F.obj ⟨j⟩).hom)
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
-def cones_equiv_inverse_obj (B : C) {J : Type v} (F : discrete J ⥤ over B) (c : cone F) :
+def cones_equiv_inverse_obj (B : C) {J : Type w} (F : discrete J ⥤ over B) (c : cone F) :
   cone (wide_pullback_diagram_of_diagram_over B F) :=
 { X := c.X.left,
   π :=
-  { app := λ X, option.cases_on X c.X.hom (λ (j : J), (c.π.app j).left),
+  { app := λ X, option.cases_on X c.X.hom (λ (j : J), (c.π.app ⟨j⟩).left),
   -- `tidy` can do this using `case_bash`, but let's try to be a good `-T50000` citizen:
     naturality' := λ X Y f,
     begin
@@ -55,7 +55,7 @@ def cones_equiv_inverse_obj (B : C) {J : Type v} (F : discrete J ⥤ over B) (c 
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
-def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+def cones_equiv_inverse (B : C) {J : Type w} (F : discrete J ⥤ over B) :
   cone F ⥤ cone (wide_pullback_diagram_of_diagram_over B F) :=
 { obj := cones_equiv_inverse_obj B F,
   map := λ c₁ c₂ f,
@@ -65,18 +65,20 @@ def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
       cases j,
       { simp },
       { dsimp,
-        rw ← f.w j,
+        rw ← f.w ⟨j⟩,
         refl }
     end } }
 
+local attribute [tidy] tactic.discrete_cases
+
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
-def cones_equiv_functor (B : C) {J : Type v} (F : discrete J ⥤ over B) :
+def cones_equiv_functor (B : C) {J : Type w} (F : discrete J ⥤ over B) :
   cone (wide_pullback_diagram_of_diagram_over B F) ⥤ cone F :=
 { obj := λ c,
   { X := over.mk (c.π.app none),
     π :=
-    { app := λ j, over.hom_mk (c.π.app (some j))
+    { app := λ ⟨j⟩, over.hom_mk (c.π.app (some j))
                     (by apply c.w (wide_pullback_shape.hom.term j)) } },
   map := λ c₁ c₂ f,
   { hom := over.hom_mk f.hom } }
@@ -130,16 +132,18 @@ lemma over_binary_product_of_pullback [has_pullbacks C] {B : C} :
 over_product_of_wide_pullback
 
 /-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
-lemma over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
-  has_products (over B) :=
+lemma over_products_of_wide_pullbacks [has_wide_pullbacks.{w} C] {B : C} :
+  has_products.{w} (over B) :=
 λ J, over_product_of_wide_pullback
 
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
 lemma over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
   has_finite_products (over B) :=
-⟨λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback⟩
+⟨λ J 𝒥, by exactI over_product_of_wide_pullback⟩
 
 end construct_products
+
+local attribute [tidy] tactic.discrete_cases
 
 /--
 Construct terminal object in the over category. This isn't an instance as it's not typically the
@@ -151,10 +155,10 @@ lemma over_has_terminal (B : C) : has_terminal (over B) :=
 { has_limit := λ F, has_limit.mk
   { cone :=
     { X := over.mk (𝟙 _),
-      π := { app := λ p, pempty.elim p } },
+      π := { app := λ p, p.as.elim } },
     is_limit :=
       { lift := λ s, over.hom_mk _,
-        fac' := λ _ j, j.elim,
+        fac' := λ _ j, j.as.elim,
         uniq' := λ s m _,
           begin
             ext,

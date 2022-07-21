@@ -13,6 +13,8 @@ where one replaces the data parts with provably equal definitions
 that have better definitional properties.
 -/
 
+open order
+
 universe u
 
 variables {α : Type u}
@@ -72,6 +74,44 @@ begin
   all_goals { abstract { subst_vars, casesI c, assumption } }
 end
 
+/-- A function to create a provable equal copy of a frame with possibly different definitional
+equalities. -/
+def frame.copy (c : frame α)
+  (le : α → α → Prop) (eq_le : le = @frame.le α c)
+  (top : α) (eq_top : top = @frame.top α c)
+  (bot : α) (eq_bot : bot = @frame.bot α c)
+  (sup : α → α → α) (eq_sup : sup = @frame.sup α c)
+  (inf : α → α → α) (eq_inf : inf = @frame.inf α c)
+  (Sup : set α → α) (eq_Sup : Sup = @frame.Sup α c)
+  (Inf : set α → α) (eq_Inf : Inf = @frame.Inf α c) :
+  frame α :=
+begin
+  refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf,
+    .. complete_lattice.copy (@frame.to_complete_lattice α c)
+      le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf,
+    .. },
+  all_goals { abstract { subst_vars, casesI c, assumption } }
+end
+
+/-- A function to create a provable equal copy of a coframe with possibly different definitional
+equalities. -/
+def coframe.copy (c : coframe α)
+  (le : α → α → Prop) (eq_le : le = @coframe.le α c)
+  (top : α) (eq_top : top = @coframe.top α c)
+  (bot : α) (eq_bot : bot = @coframe.bot α c)
+  (sup : α → α → α) (eq_sup : sup = @coframe.sup α c)
+  (inf : α → α → α) (eq_inf : inf = @coframe.inf α c)
+  (Sup : set α → α) (eq_Sup : Sup = @coframe.Sup α c)
+  (Inf : set α → α) (eq_Inf : Inf = @coframe.Inf α c) :
+  coframe α :=
+begin
+  refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf,
+    .. complete_lattice.copy (@coframe.to_complete_lattice α c)
+      le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf,
+    .. },
+  all_goals { abstract { subst_vars, casesI c, assumption } }
+end
+
 /-- A function to create a provable equal copy of a complete distributive lattice
 with possibly different definitional equalities. -/
 def complete_distrib_lattice.copy (c : complete_distrib_lattice α)
@@ -83,13 +123,10 @@ def complete_distrib_lattice.copy (c : complete_distrib_lattice α)
   (Sup : set α → α) (eq_Sup : Sup = @complete_distrib_lattice.Sup α c)
   (Inf : set α → α) (eq_Inf : Inf = @complete_distrib_lattice.Inf α c) :
   complete_distrib_lattice α :=
-begin
-  refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf,
-    .. complete_lattice.copy (@complete_distrib_lattice.to_complete_lattice α c)
+{ .. frame.copy (@complete_distrib_lattice.to_frame α c)
       le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf,
-    .. },
-  all_goals { abstract { subst_vars, casesI c, assumption } }
-end
+  .. coframe.copy (@complete_distrib_lattice.to_coframe α c)
+      le eq_le top eq_top bot eq_bot sup eq_sup inf eq_inf Sup eq_Sup Inf eq_Inf}
 
 /-- A function to create a provable equal copy of a conditionally complete lattice
 with possibly different definitional equalities. -/

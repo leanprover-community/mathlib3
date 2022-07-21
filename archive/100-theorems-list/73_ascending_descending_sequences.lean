@@ -45,9 +45,9 @@ begin
   -- Given an index `i`, produce the set of increasing (resp., decreasing) subsequences which ends
   -- at `i`.
   let inc_sequences_ending_in : fin n → finset (finset (fin n)) :=
-    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_mono_on f ↑t),
+    λ i, univ.powerset.filter (λ t, finset.max t = i ∧ strict_mono_on f ↑t),
   let dec_sequences_ending_in : fin n → finset (finset (fin n)) :=
-    λ i, univ.powerset.filter (λ t, finset.max t = some i ∧ strict_anti_on f ↑t),
+    λ i, univ.powerset.filter (λ t, finset.max t = i ∧ strict_anti_on f ↑t),
   -- The singleton sequence is in both of the above collections.
   -- (This is useful to show that the maximum length subsequence is at least 1, and that the set
   -- of subsequences is nonempty.)
@@ -67,8 +67,8 @@ begin
   suffices : ∃ i, r < (ab i).1 ∨ s < (ab i).2,
   { obtain ⟨i, hi⟩ := this,
     apply or.imp _ _ hi,
-    work_on_goal 0 { have : (ab i).1 ∈ _ := max'_mem _ _ },
-    work_on_goal 1 { have : (ab i).2 ∈ _ := max'_mem _ _ },
+    work_on_goal 1 { have : (ab i).1 ∈ _ := max'_mem _ _ },
+    work_on_goal 2 { have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals
     { intro hi,
       rw mem_image at this,
@@ -84,8 +84,8 @@ begin
     -- We have two cases: `f i < f j` or `f j < f i`.
     -- In the former we'll show `a_i < a_j`, and in the latter we'll show `b_i < b_j`.
     cases lt_or_gt_of_ne (λ _, ne_of_lt ‹i < j› (hf ‹f i = f j›)),
-    work_on_goal 0 { apply ne_of_lt _ q₁, have : (ab i).1 ∈ _ := max'_mem _ _ },
-    work_on_goal 1 { apply ne_of_lt _ q₂, have : (ab i).2 ∈ _ := max'_mem _ _ },
+    work_on_goal 1 { apply ne_of_lt _ q₁, have : (ab i).1 ∈ _ := max'_mem _ _ },
+    work_on_goal 2 { apply ne_of_lt _ q₂, have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals
     { -- Reduce to showing there is a subsequence of length `a_i + 1` which ends at `j`.
       rw nat.lt_iff_add_one_le,
@@ -96,7 +96,7 @@ begin
       rcases this with ⟨t, ht₁, ht₂⟩,
       rw mem_filter at ht₁,
       -- Ensure `t` ends at `i`.
-      have : i ∈ t.max,
+      have : t.max = i,
         simp [ht₁.2.1],
       -- Now our new subsequence is given by adding `j` at the end of `t`.
       refine ⟨insert j t, _, _⟩,
@@ -106,8 +106,8 @@ begin
         { rw mem_powerset, apply subset_univ },
         -- It ends at `j` since `i < j`.
         { convert max_insert,
-          rw [ht₁.2.1, option.lift_or_get_some_some, max_eq_left, with_top.some_eq_coe],
-          apply le_of_lt ‹i < j› },
+          rw [ht₁.2.1, max_eq_left],
+          apply with_bot.coe_le_coe.mpr (le_of_lt ‹i < j›) },
         -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases
         -- on what the possibilities could be - either in `t` or equals `j`.
         simp only [strict_mono_on, strict_anti_on, coe_insert, set.mem_insert_iff,
@@ -116,16 +116,16 @@ begin
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
         { apply (irrefl _ ‹j < j›).elim },
         { exfalso,
-          apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_mem ‹y ∈ t› ‹i ∈ t.max›) },
+          apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_mem ‹y ∈ t› ‹t.max = i›) },
         { apply lt_of_le_of_lt _ ‹f i < f j› <|> apply lt_of_lt_of_le ‹f j < f i› _,
-          rcases lt_or_eq_of_le (le_max_of_mem ‹x ∈ t› ‹i ∈ t.max›) with _ | rfl,
-          { apply le_of_lt (ht₁.2.2 ‹x ∈ t› (mem_of_max ‹i ∈ t.max›) ‹x < i›) },
+          rcases lt_or_eq_of_le (le_max_of_mem ‹x ∈ t› ‹t.max = i›) with _ | rfl,
+          { apply le_of_lt (ht₁.2.2 ‹x ∈ t› (mem_of_max ‹t.max = i›) ‹x < i›) },
           { refl } },
         { apply ht₁.2.2 ‹x ∈ t› ‹y ∈ t› ‹x < y› } },
       -- Finally show that this new subsequence is one longer than the old one.
       { rw [card_insert_of_not_mem, ht₂],
         intro _,
-        apply not_le_of_lt ‹i < j› (le_max_of_mem ‹j ∈ t› ‹i ∈ t.max›) } } },
+        apply not_le_of_lt ‹i < j› (le_max_of_mem ‹j ∈ t› ‹t.max = i›) } } },
       -- Finished both goals!
   -- Now that we have uniqueness of each label, it remains to do some counting to finish off.
   -- Suppose all the labels are small.

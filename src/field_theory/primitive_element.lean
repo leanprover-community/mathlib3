@@ -5,6 +5,7 @@ Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
+import field_theory.fixed
 import field_theory.is_alg_closed.basic
 import field_theory.separable
 import ring_theory.integral_domain
@@ -57,7 +58,7 @@ begin
     exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
     rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
-    exact pow_mem F⟮↑α⟯ (mem_adjoin_simple_self F ↑α) n, },
+    exact zpow_mem (mem_adjoin_simple_self F ↑α) n, },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -112,9 +113,7 @@ begin
       { rw ← add_sub_cancel α (c • β),
         exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-    { rw adjoin_le_iff,
-      change {γ} ⊆ _,
-      rw set.singleton_subset_iff,
+    { rw [adjoin_simple_le_iff],
       have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),
       have β_in_Fαβ : β ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert_of_mem α rfl),
       exact F⟮α,β⟯.add_mem α_in_Fαβ (F⟮α, β⟯.smul_mem β_in_Fαβ) } },
@@ -165,7 +164,11 @@ end
 end primitive_element_inf
 
 variables (F E : Type*) [field F] [field E]
-variables [algebra F E] [finite_dimensional F E] [is_separable F E]
+variables [algebra F E] [finite_dimensional F E]
+
+section separable_assumption
+
+variable [is_separable F E]
 
 /-- Primitive element theorem: a finite separable field extension `E` of `F` has a
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
@@ -174,7 +177,7 @@ begin
   rcases is_empty_or_nonempty (fintype F) with F_inf|⟨⟨F_finite⟩⟩,
   { let P : intermediate_field F E → Prop := λ K, ∃ α : E, F⟮α⟯ = K,
     have base : P ⊥ := ⟨0, adjoin_zero⟩,
-    have ih : ∀ (K : intermediate_field F E) (x : E), P K → P ↑K⟮x⟯,
+    have ih : ∀ (K : intermediate_field F E) (x : E), P K → P (K⟮x⟯.restrict_scalars F),
     { intros K β hK,
       cases hK with α hK,
       rw [←hK, adjoin_simple_adjoin_simple],
@@ -195,17 +198,16 @@ let α := (exists_primitive_element F E).some,
 have e : F⟮α⟯ = ⊤ := (exists_primitive_element F E).some_spec,
 pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
-/-- If `E / F` is a finite separable extension, then there are finitely many
-embeddings from `E` into `K` that fix `F`, corresponding to the number of
-conjugate roots of the primitive element generating `F`. -/
-instance {K : Type*} [field K] [algebra F K] : fintype (E →ₐ[F] K) :=
-power_basis.alg_hom.fintype (power_basis_of_finite_of_separable F E)
+end separable_assumption
 
 end field
 
 @[simp] lemma alg_hom.card (F E K : Type*) [field F] [field E] [field K] [is_alg_closed K]
   [algebra F E] [finite_dimensional F E] [is_separable F E] [algebra F K] :
   fintype.card (E →ₐ[F] K) = finrank F E :=
-(alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
+begin
+  convert (alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
     (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
-  (power_basis.finrank _).symm
+    (power_basis.finrank _).symm,
+  apply_instance,
+end

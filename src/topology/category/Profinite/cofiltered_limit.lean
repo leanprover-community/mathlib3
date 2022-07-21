@@ -42,7 +42,7 @@ theorem exists_clopen_of_cofiltered {U : set C.X} (hU : is_clopen U) :
 begin
   -- First, we have the topological basis of the cofiltered limit obtained by pulling back
   -- clopen sets from the factors in the limit. By continuity, all such sets are again clopen.
-  have hB := Top.is_topological_basis_cofiltered_limit
+  have hB := Top.is_topological_basis_cofiltered_limit.{u}
     (F ⋙ Profinite.to_Top)
     (Profinite.to_Top.map_cone C)
     (is_limit_of_preserves _ hC)
@@ -90,7 +90,7 @@ begin
     if hs : s ∈ G then F.map (f s hs) ⁻¹' (V s) else set.univ,
   -- Conclude, using the `j0` and the clopen set of `F.obj j0` obtained above.
   refine ⟨j0, ⋃ (s : S) (hs : s ∈ G), W s, _, _⟩,
-  { apply is_clopen_bUnion,
+  { apply is_clopen_bUnion_finset,
     intros s hs,
     dsimp only [W],
     rw dif_pos hs,
@@ -220,7 +220,7 @@ begin
     suffices : nonempty C.X, from is_empty.false (S.proj this.some),
     let D := Profinite.to_Top.map_cone C,
     have hD : is_limit D := is_limit_of_preserves Profinite.to_Top hC,
-    have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit _)).inv,
+    have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit.{u} _)).inv,
     exact cond.map CD },
   { let f' : locally_constant C.X S := ⟨S.proj, S.proj_is_locally_constant⟩,
     obtain ⟨j, g', hj⟩ := exists_locally_constant_fintype_nonempty _ hC f',

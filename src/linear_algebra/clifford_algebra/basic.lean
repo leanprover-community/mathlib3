@@ -6,8 +6,7 @@ Authors: Eric Wieser, Utensil Song
 
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
-import linear_algebra.exterior_algebra.basic
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 
 /-!
 # Clifford Algebras
@@ -164,6 +163,8 @@ end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
 and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+
+See also the stronger `clifford_algebra.left_induction` and `clifford_algebra.right_induction`.
 -/
 -- This proof closely follows `tensor_algebra.induction`
 @[elab_as_eliminator]
@@ -193,26 +194,6 @@ begin
   exact alg_hom.congr_fun of_id a,
 end
 
-/-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
-def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
-alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
-    by simp only [forall_const, ring_hom.map_zero,
-                  exterior_algebra.ι_sq_zero, quadratic_form.zero_apply]⟩)
-  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)),
-    by simp only [forall_const, ring_hom.map_zero,
-                  quadratic_form.zero_apply, ι_sq_scalar]⟩)
-  (exterior_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  exterior_algebra.lift_ι_apply, clifford_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
-  (clifford_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
-
 /-- The symmetric product of vectors is a scalar -/
 lemma ι_mul_ι_add_swap (a b : M) :
   ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
@@ -224,6 +205,11 @@ calc  ι Q a * ι Q b + ι Q b * ι Q a
 ... = algebra_map R _ (Q (a + b) - Q a - Q b) :
         by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
 ... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
+
+@[simp]
+lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
+  (ι Q).range.map (lift Q ⟨f, cond⟩).to_linear_map = f.range :=
+by rw [←linear_map.range_comp, ι_comp_lift]
 
 section map
 
@@ -264,6 +250,11 @@ begin
     alg_hom.id_apply],
   rw [map_apply_ι, map_apply_ι, map_apply_ι, linear_map.comp_apply],
 end
+
+@[simp]
+lemma ι_range_map_map (f : M₁ →ₗ[R] M₂) (hf : ∀ m, Q₂ (f m) = Q₁ m) :
+  (ι Q₁).range.map (map Q₁ Q₂ f hf).to_linear_map = f.range.map (ι Q₂) :=
+(ι_range_map_lift _ _).trans (linear_map.range_comp _ _)
 
 variables {Q₁ Q₂ Q₃}
 

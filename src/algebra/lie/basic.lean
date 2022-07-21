@@ -3,10 +3,10 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import tactic.noncomm_ring
-import data.equiv.module
+import algebra.module.equiv
 import data.bracket
 import linear_algebra.basic
+import tactic.noncomm_ring
 
 /-!
 # Lie algebras
@@ -418,6 +418,9 @@ by { ext, refl }
 @[simp] lemma symm_apply_apply (e : L₁ ≃ₗ⁅R⁆ L₂) : ∀ x, e.symm (e x) = x :=
   e.to_linear_equiv.symm_apply_apply
 
+@[simp]
+theorem refl_symm : (refl : L₁ ≃ₗ⁅R⁆ L₁).symm = refl := rfl
+
 /-- Lie algebra equivalences are transitive. -/
 @[trans]
 def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L₁ ≃ₗ⁅R⁆ L₃ :=
@@ -596,18 +599,25 @@ lemma sub_apply (f g : M →ₗ⁅R,L⁆ N) (m : M) : (f - g) m = f m - g m := r
 
 lemma neg_apply (f : M →ₗ⁅R,L⁆ N) (m : M) : (-f) m = -(f m) := rfl
 
-instance : add_comm_group (M →ₗ⁅R,L⁆ N) :=
-{ zero           := 0,
-  add            := (+),
-  neg            := has_neg.neg,
-  sub            := has_sub.sub,
-  nsmul          := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) },
-  nsmul_zero'    := λ f, by { ext, simp, },
-  nsmul_succ'    := λ n f, by { ext, simp [nat.succ_eq_one_add, add_nsmul], },
-  ..(coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub :
-    add_comm_group (M →ₗ⁅R,L⁆ N)) }
+instance has_nsmul : has_smul ℕ (M →ₗ⁅R,L⁆ N) :=
+{ smul := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) } }
 
-instance : has_scalar R (M →ₗ⁅R,L⁆ N) :=
+@[norm_cast, simp] lemma coe_nsmul (n : ℕ) (f : M →ₗ⁅R,L⁆ N) : ⇑(n • f) = n • f := rfl
+
+lemma nsmul_apply (n : ℕ) (f : M →ₗ⁅R,L⁆ N) (m : M) : (n • f) m = n • f m := rfl
+
+instance has_zsmul : has_smul ℤ (M →ₗ⁅R,L⁆ N) :=
+{ smul := λ z f, { map_lie' := λ x m, by simp, ..(z • (f : M →ₗ[R] N)) } }
+
+@[norm_cast, simp] lemma coe_zsmul (z : ℤ) (f : M →ₗ⁅R,L⁆ N) : ⇑(z • f) = z • f := rfl
+
+lemma zsmul_apply (z : ℤ) (f : M →ₗ⁅R,L⁆ N) (m : M) : (z • f) m = z • f m := rfl
+
+instance : add_comm_group (M →ₗ⁅R,L⁆ N) :=
+coe_injective.add_comm_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+
+instance : has_smul R (M →ₗ⁅R,L⁆ N) :=
 { smul := λ t f, { map_lie' := by simp, ..(t • (f : M →ₗ[R] N)) }, }
 
 @[norm_cast, simp] lemma coe_smul (t : R) (f : M →ₗ⁅R,L⁆ N) : ⇑(t • f) = t • f := rfl

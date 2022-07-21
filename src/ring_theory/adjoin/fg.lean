@@ -58,7 +58,7 @@ begin
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
     rw [this, finsupp.sum],
-    refine sum_mem _ _,
+    refine sum_mem _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
     rw [← hp', ← set.image_id p, finsupp.mem_span_image_iff_total R] at this,
@@ -66,7 +66,7 @@ begin
     have := @finsupp.total_apply A A R,
     rw this at hl,
     rw [←hl, finsupp.sum_mul],
-    refine sum_mem _ _,
+    refine sum_mem _,
     intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
     exact subset_span ⟨t, z, hlp ht, hlq hz, rfl⟩ }
 end
@@ -87,8 +87,7 @@ lemma fg_adjoin_finset (s : finset A) : (algebra.adjoin R (↑s : set A)).fg :=
 ⟨s, rfl⟩
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
-⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
-λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+iff.symm set.exists_finite_iff_finset
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
@@ -108,7 +107,7 @@ lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A)
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
 by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
-lemma fg_prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
+lemma fg.prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
 begin
   obtain ⟨s, hs⟩ := fg_def.1 hS,
   obtain ⟨t, ht⟩ := fg_def.1 hT,
@@ -121,7 +120,7 @@ end
 
 section
 open_locale classical
-lemma fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
+lemma fg.map {S : subalgebra R A} (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
 let ⟨s, hs⟩ := hs in ⟨s.image f, by rw [finset.coe_image, algebra.adjoin_image, hs]⟩
 end
 
@@ -132,7 +131,7 @@ by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of
   rw [← alg_hom.coe_range, ← algebra.adjoin_le_iff, hs, ← algebra.map_top], exact map_mono le_top }⟩
 
 lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
-⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
+⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg.map _ h },
 λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
 
 lemma induction_on_adjoin [is_noetherian R A] (P : subalgebra R A → Prop)

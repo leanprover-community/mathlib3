@@ -50,7 +50,7 @@ universe u
 
 /-! ### Closure operator -/
 
-variable (α : Type*)
+variables (α : Type*) {ι : Sort*} {κ : ι → Sort*}
 
 /-- A closure operator on the preorder `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent. -/
@@ -217,15 +217,13 @@ end semilattice_sup
 section complete_lattice
 variables [complete_lattice α] (c : closure_operator α)
 
-lemma closure_supr_closure {ι : Type u} (x : ι → α) :
-  c (⨆ i, c (x i)) = c (⨆ i, x i) :=
-le_antisymm ((c.le_closure_iff _ _).1 (supr_le (λ i, c.monotone
-  (le_supr x i)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
+@[simp] lemma closure_supr_closure (f : ι → α) : c (⨆ i, c (f i)) = c (⨆ i, f i) :=
+le_antisymm ((c.le_closure_iff _ _).1 $ supr_le $ λ i, c.monotone $ le_supr f i) $
+  c.monotone $ supr_mono $ λ i, c.le_closure _
 
-lemma closure_bsupr_closure (p : α → Prop) :
-  c (⨆ x (H : p x), c x) = c (⨆ x (H : p x), x) :=
-le_antisymm ((c.le_closure_iff _ _).1 (bsupr_le (λ x hx, c.monotone
-  (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, c.le_closure x)))
+@[simp] lemma closure_supr₂_closure (f : Π i, κ i → α) : c (⨆ i j, c (f i j)) = c (⨆ i j, f i j) :=
+le_antisymm ((c.le_closure_iff _ _).1 $ supr₂_le $ λ i j, c.monotone $ le_supr₂ i j) $
+  c.monotone $ supr₂_mono $ λ i j, c.le_closure _
 
 end complete_lattice
 end closure_operator
@@ -362,13 +360,12 @@ end semilattice_sup
 section complete_lattice
 variables [complete_lattice α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-lemma closure_supr_closure {ι : Type u} (x : ι → α) :
-  u (l (⨆ i, u (l (x i)))) = u (l (⨆ i, x i)) :=
-l.closure_operator.closure_supr_closure x
+lemma closure_supr_closure (f : ι → α) : u (l (⨆ i, u (l (f i)))) = u (l (⨆ i, f i)) :=
+l.closure_operator.closure_supr_closure _
 
-lemma closure_bsupr_closure (p : α → Prop) :
-  u (l (⨆ x (H : p x), u (l x))) = u (l (⨆ x (H : p x), x)) :=
-l.closure_operator.closure_bsupr_closure p
+lemma closure_supr₂_closure (f : Π i, κ i → α) :
+  u (l $ ⨆ i j, u (l $ f i j)) = u (l $ ⨆ i j, f i j) :=
+l.closure_operator.closure_supr₂_closure _
 
 end complete_lattice
 
@@ -408,13 +405,11 @@ set_like.coe_injective (l.closure_sup_closure_right x y)
   l ((l x) ∪ (l y)) = l (x ∪ y) :=
 set_like.coe_injective (l.closure_operator.closure_sup_closure x y)
 
-@[simp] lemma closure_Union_closure {ι : Type u} (x : ι → α) :
-  l (⋃ i, l (x i)) = l (⋃ i, x i) :=
-set_like.coe_injective (l.closure_supr_closure (coe ∘ x))
+@[simp] lemma closure_Union_closure (f : ι → α) : l (⋃ i, l (f i)) = l (⋃ i, f i) :=
+set_like.coe_injective $ l.closure_supr_closure _
 
-@[simp] lemma closure_bUnion_closure (p : set β → Prop) :
-  l (⋃ x (H : p x), l x) = l (⋃ x (H : p x), x) :=
-set_like.coe_injective (l.closure_bsupr_closure p)
+@[simp] lemma closure_Union₂_closure (f : Π i, κ i → α) : l (⋃ i j, l (f i j)) = l (⋃ i j, f i j) :=
+set_like.coe_injective $ l.closure_supr₂_closure _
 
 end coe_to_set
 

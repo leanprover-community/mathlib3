@@ -58,7 +58,7 @@ variables (𝕜 E) [ordered_semiring 𝕜]
 
 /-- A convex cone is a subset `s` of a `𝕜`-module such that `a • x + b • y ∈ s` whenever `a, b > 0`
 and `x, y ∈ s`. -/
-structure convex_cone [add_comm_monoid E] [has_scalar 𝕜 E] :=
+structure convex_cone [add_comm_monoid E] [has_smul 𝕜 E] :=
 (carrier : set E)
 (smul_mem' : ∀ ⦃c : 𝕜⦄, 0 < c → ∀ ⦃x : E⦄, x ∈ carrier → c • x ∈ carrier)
 (add_mem' : ∀ ⦃x⦄ (hx : x ∈ carrier) ⦃y⦄ (hy : y ∈ carrier), x + y ∈ carrier)
@@ -71,8 +71,8 @@ namespace convex_cone
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E]
 
-section has_scalar
-variables [has_scalar 𝕜 E] (S T : convex_cone 𝕜 E)
+section has_smul
+variables [has_smul 𝕜 E] (S T : convex_cone 𝕜 E)
 
 instance : has_coe (convex_cone 𝕜 E) (set E) := ⟨convex_cone.carrier⟩
 
@@ -151,7 +151,7 @@ instance : complete_lattice (convex_cone 𝕜 E) :=
 
 instance : inhabited (convex_cone 𝕜 E) := ⟨⊥⟩
 
-end has_scalar
+end has_smul
 
 section module
 variables [module 𝕜 E] (S : convex_cone 𝕜 E)
@@ -237,7 +237,7 @@ section ordered_semiring
 variables [ordered_semiring 𝕜]
 
 section add_comm_monoid
-variables [add_comm_monoid E] [has_scalar 𝕜 E] (S : convex_cone 𝕜 E)
+variables [add_comm_monoid E] [has_smul 𝕜 E] (S : convex_cone 𝕜 E)
 
 /-- A convex cone is pointed if it includes `0`. -/
 def pointed (S : convex_cone 𝕜 E) : Prop := (0 : E) ∈ S
@@ -254,7 +254,7 @@ by rw [pointed_iff_not_blunt, not_not]
 end add_comm_monoid
 
 section add_comm_group
-variables [add_comm_group E] [has_scalar 𝕜 E] (S : convex_cone 𝕜 E)
+variables [add_comm_group E] [has_smul 𝕜 E] (S : convex_cone 𝕜 E)
 
 /-- A convex cone is flat if it contains some nonzero vector `x` and its opposite `-x`. -/
 def flat : Prop := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
@@ -461,11 +461,11 @@ begin
       by simpa only [set.nonempty, upper_bounds, lower_bounds, ball_image_iff] using this,
     refine exists_between_of_forall_le (nonempty.image f _) (nonempty.image f (dense y)) _,
     { rcases (dense (-y)) with ⟨x, hx⟩,
-      rw [← neg_neg x, coe_neg, ← sub_eq_add_neg] at hx,
+      rw [← neg_neg x, add_subgroup_class.coe_neg, ← sub_eq_add_neg] at hx,
       exact ⟨_, hx⟩ },
     rintros a ⟨xn, hxn, rfl⟩ b ⟨xp, hxp, rfl⟩,
     have := s.add_mem hxp hxn,
-    rw [add_assoc, add_sub_cancel'_right, ← sub_eq_add_neg, ← coe_sub] at this,
+    rw [add_assoc, add_sub_cancel'_right, ← sub_eq_add_neg, ← add_subgroup_class.coe_sub] at this,
     replace := nonneg _ this,
     rwa [f.map_sub, sub_nonneg] at this },
   have hy' : y ≠ 0, from λ hy₀, hy (hy₀.symm ▸ zero_mem _),
@@ -505,7 +505,7 @@ theorem exists_top (p : linear_pmap ℝ E ℝ)
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
 begin
   replace hp_nonneg : p ∈ { p | _ }, by { rw mem_set_of_eq, exact hp_nonneg },
-  obtain ⟨q, hqs, hpq, hq⟩ := zorn.zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
+  obtain ⟨q, hqs, hpq, hq⟩ := zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
   { refine ⟨q, hpq, _, hqs⟩,
     contrapose! hq,
     rcases step s q hqs _ hq with ⟨r, hqr, hr⟩,
@@ -589,7 +589,7 @@ open_locale real_inner_product_space
 
 /-- The dual cone is the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`. -/
-noncomputable def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
+def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
 { carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
   smul_mem' := λ c hc y hy x hx,
   begin

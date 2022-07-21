@@ -40,10 +40,10 @@ instance [semi_normed_group E] : normed_group (completion E) :=
     { refine is_closed_eq (completion.uniform_continuous_extension₂ _).continuous _,
       exact continuous.comp completion.continuous_extension continuous_sub },
     { intros x y,
-      rw [← completion.coe_sub, norm_coe, metric.completion.dist_eq, dist_eq_norm] }
+      rw [← completion.coe_sub, norm_coe, completion.dist_eq, dist_eq_norm] }
   end,
-  .. uniform_space.completion.add_comm_group,
-  .. metric.completion.metric_space }
+  .. completion.add_comm_group,
+  .. completion.metric_space }
 
 end completion
 end uniform_space

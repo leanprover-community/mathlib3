@@ -636,19 +636,17 @@ lemma prod_mono_left (t : non_unital_subsemiring S) :
   monotone (λ s : non_unital_subsemiring R, s.prod t) :=
 λ s₁ s₂ hs, prod_mono hs (le_refl t)
 
-/- need to go define `non_unital_ring_hom.fst` to make this work.
 lemma prod_top (s : non_unital_subsemiring R) :
   s.prod (⊤ : non_unital_subsemiring S) = s.comap (non_unital_ring_hom.fst R S) :=
 ext $ λ x, by simp [mem_prod, monoid_hom.coe_fst]
 
 lemma top_prod (s : non_unital_subsemiring S) :
-  (⊤ : non_unital_subsemiring R).prod s = s.comap (ring_hom.snd R S) :=
+  (⊤ : non_unital_subsemiring R).prod s = s.comap (non_unital_ring_hom.snd R S) :=
 ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
 
 @[simp]
 lemma top_prod_top : (⊤ : non_unital_subsemiring R).prod (⊤ : non_unital_subsemiring S) = ⊤ :=
 (top_prod _).trans $ comap_top _
--/
 
 /-- Product of non-unital subsemirings is isomorphic to their product as semigroups. -/
 def prod_equiv (s : non_unital_subsemiring R) (t : non_unital_subsemiring S) : s.prod t ≃+* s × t :=
@@ -775,15 +773,13 @@ cod_restrict (subtype S) _ (λ x, h x.2)
 @[simp] lemma srange_subtype (s : non_unital_subsemiring R) : (subtype s).srange = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
 
-/-
 @[simp]
 lemma range_fst : (fst R S).srange = ⊤ :=
-(fst R S).srange_top_of_surjective $ prod.fst_surjective
+non_unital_ring_hom.srange_top_of_surjective (fst R S) prod.fst_surjective
 
 @[simp]
 lemma range_snd : (snd R S).srange = ⊤ :=
-(snd R S).srange_top_of_surjective $ prod.snd_surjective
--/
+non_unital_ring_hom.srange_top_of_surjective (snd R S) $ prod.snd_surjective
 
 end non_unital_subsemiring
 

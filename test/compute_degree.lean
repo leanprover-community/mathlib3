@@ -2,7 +2,26 @@ import tactic.compute_degree
 
 open polynomial
 open_locale polynomial
-universe u
+--universe u
+
+--set_option pp.all true
+lemma qui {F : Type*} [comm_ring F] (a : F[X]) (a0 : a.nat_degree = 0) :
+  a.nat_degree ≤ 0 :=
+begin
+  norm_num,
+  assumption
+end
+
+example {F : Type*} [comm_ring F] (t : ((2 : ℕ) : F) ≠ 0) (a b c : F[X])
+  (a0 : a.nat_degree = 0) :
+  nat_degree (X + a + X : F[X]) = 1 :=
+begin
+--  sorry;
+  compute_degree,
+  { exact nat.le_zero_iff.mpr a0 },
+  rw ← two_mul,
+  compute_degree,
+end
 
 section suggestions
 variables {F : Type*} [ring F] [nontrivial F] (n : ℕ) (a : F)
@@ -43,30 +62,31 @@ by { success_if_fail_with_msg {compute_degree}
      exact polynomial.nat_degree_C_mul_X _ ‹_› }
 
 end suggestions
-
+open tactic
 /-  Issue: goals hidden and needing recover. -/
 example {F : Type*} [ring F] (h37 : ((37 : ℕ) : F) ≠ 0) :
   nat_degree (((2 * 2 + 2) ^ 2 + 1) * X + 1 : F[X]) = 1 :=
 begin
   compute_degree,
-  recover,
-  norm_num,
+--  recover,  -- this is no longer needed.
 end
 
 /-  Issue: cannot use `norm_num` on one of the goals, since it times out
-(and would likely not do much). -/
-example {F : Type*} [semiring F] (t : ((2 : ℕ) : F) ≠ 0) : degree (X + 0 + X : F[X]) = 1 :=
+(and would likely not do much).
+Seems to be resolved, but the tactic is still slow.
+ -/
+example {F : Type*} [ring F] (t : ((2 : ℕ) : F) ≠ 0) : degree (X + 0 + X : F[X]) = 1 :=
 begin
   compute_degree,
-  work_on_goal 2 { norm_num },
   --  from here, could be automated, but currently is not.
   --  the issue though is that I would like to use `norm_num`
   --  to discharge other goals, but currently I cannot since here
   --  it would timeout.
-  --norm_num, -- times out
+--  norm_num, -- does not time out, but is very slow
   rw [← two_mul],
-  convert nat_degree_C_mul_X _ t,
-  simp only [nat.cast_bit0, nat.cast_one, C_bit0, map_one],
+  compute_degree,
+--  convert nat_degree_C_mul_X _ t,
+--  simp only [nat.cast_bit0, nat.cast_one, C_bit0, map_one],
 end
 
 section one_term_polynomials
@@ -99,60 +119,47 @@ by { success_if_fail_with_msg {compute_degree}
 
 end one_term_polynomials
 
---#exit
 example {F : Type*} [comm_semiring F] [nontrivial F] : nat_degree (1 + X : F[X]) = 1 :=
 by compute_degree
 
 example {F : Type*} [comm_semiring F] [nontrivial F] : nat_degree (1 * X : F[X]) = 1 :=
-by {compute_degree, norm_num,}
+by {compute_degree, }
 
---example {F : Type*} [comm_semiring F] [nontrivial F] : nat_degree (X : F[X]) = 1 :=
---by {compute_degree, norm_num,}
---#exit
-/-
-example {F} [ring F] [nontrivial F] (a b c : F[X]) :
-  nat_degree (a + a : F[X]) = 0 :=
-begin
-  compute_degree,
-end
--/
 example {F : Type*} [semiring F] (h2 : (2 : F) ≠ 0) : nat_degree (X + 1 + X + 1 : F[X]) = 0 + 1 :=
 begin
   compute_degree,
   rw ← two_mul,
   compute_degree,
-  norm_num,
-  assumption,
 end
+
 
 example {F : Type*} [ring F] (h2 : (2 : F) ≠ 0) : degree (X ^ 4 + (- 3) + X ^ 4 : F[X]) = 4 :=
 begin
+--sorry;
   compute_degree,
 --  norm_num, --times out, but does not using `{F : Type u}` or `[semiring F]`.
   rw ← two_mul,
   compute_degree,
-  norm_num,
-  assumption,
-  norm_num,
+--  norm_num,
+--  assumption,
+--  norm_num,
 end
 
-open tactic
-
---#exit
 example : (X ^ 4 + 1 + X ^ 4 : polynomial ℕ).nat_degree = 1 + 1 + 1 + 1 :=
 by {
   compute_degree,
   rw ← two_mul,
   compute_degree,
-  norm_num,  -- no timeout using `ℕ[X]`
   }
---#exit
+
 example {R} [semiring R] [nontrivial R] {a b c d e : R} :
   nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   (C a * X ^ 0 + (C b * X ^ 5 + X ^ 10 + C c * X ^ 2) + --0 * X ^ 10 +
   X ^ 4 * X ^ 5) + C e * X ^ 9 + monomial 9 10) = 10 :=
 begin
   compute_degree,
+  repeat { refine nat.succ_le_succ _ },
+  repeat { exact nat.zero_le _ },
 end
 
 example {R} [semiring R] (a b c : R) (h3 : (3 : R) ≠ 0) (f g h : R[X]) :
@@ -165,15 +172,6 @@ example {R} [semiring R] (a b c : R) (h3 : (3 : R) ≠ 0) (f g h : R[X]) :
   (C a + X + 1 + C (c * 4 * a) * X ^ 2 + X + X + C 6 + monomial 3 3 + 1: R[X]).nat_degree = 3 :=
 begin
   compute_degree,
-end
-
-example {F : Type*} [comm_ring F] (t : ((2 : ℕ) : F) ≠ 0) (a b c : F[X]) (a0 : a.nat_degree ≤ 0) :
-  nat_degree (X + a + X : F[X]) = 1 :=
-begin
-  compute_degree,
-  rw ← two_mul,
-  compute_degree,
-  exact a0,
 end
 
 /- From here
@@ -213,10 +211,7 @@ by compute_degree_le
 
 /-  To here. -/
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
-by {
-  compute_degree,
-  norm_num,
-  }
+by compute_degree
 
 section tests_for_compute_degree
 
@@ -224,27 +219,29 @@ example {n : ℕ} (h : 1 + n < 11) :
   degree (X ^ 5 + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
 begin
   compute_degree_le,
+  repeat { refine nat.succ_le_succ _ },
+  repeat { exact nat.zero_le _ <|> refl },
   exact nat.lt_succ_iff.mp h,
 end
 
 example (a0 : a ≠ 0) : nat_degree (C a * X ^ 2) = 2 :=
 begin
---  success_if_fail_with_msg {compute_degree}
---    "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
+  success_if_fail_with_msg {compute_degree}
+    "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
   exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›
 end
 
 example (a0 : a ≠ 0) : nat_degree (C a * X) = 1 :=
 begin
---  success_if_fail_with_msg {compute_degree}
---    "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
+  success_if_fail_with_msg {compute_degree}
+    "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
   exact polynomial.nat_degree_C_mul_X _ ‹_›
 end
 
 example : nat_degree (C a) = 0 :=
 begin
---  success_if_fail_with_msg {compute_degree}
---    "Try this: exact polynomial.nat_degree_C _",
+  success_if_fail_with_msg {compute_degree}
+    "Try this: exact polynomial.nat_degree_C _",
   exact polynomial.nat_degree_C _
 end
 
@@ -254,16 +251,16 @@ by { compute_degree, exact neg_ne_zero.mp h }
 
 example {R : Type*} [ring R] (h : ¬ (2 : R) = 0) :
   nat_degree (2 * X ^ 2 + 1 : polynomial R) = 2 :=
-by {compute_degree, norm_num, assumption}
+by compute_degree
 
 /--  Alex's example. -/
 example [char_zero R] :
   nat_degree (2 * X ^ 2 + 1 : polynomial R) = 2 :=
-by {compute_degree, norm_num, }
+by compute_degree
 
 example {R : Type*} [ring R] (h : ¬ (21 : R) = 0) :
   nat_degree (21 * X ^ 2 + 1 : polynomial R) = 2 :=
-by {compute_degree, norm_num, assumption}
+by compute_degree
 
 example {R : Type*} [ring R] (a : R) (h : -a ≠ 0) : nat_degree (C a * X + 1 : polynomial R) = 1 :=
 by { compute_degree, exact neg_ne_zero.mp h }
@@ -273,8 +270,7 @@ example {F} [field F] : nat_degree (X ^ 4 + C 1 : F[X]) = 4 :=
 by compute_degree
 
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
-by {compute_degree,norm_num,
-  }
+by compute_degree
 
 example {F} [field F] : nat_degree (C 1 * X ^ 4 + X + C 1 : F[X]) = 4 :=
 by compute_degree
@@ -292,7 +288,7 @@ example (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 
 begin
   success_if_fail_with_msg {compute_degree_le}
     "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  compute_degree,norm_num,
+  compute_degree,
 end
 
 section non_trivial_assumption

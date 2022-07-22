@@ -893,7 +893,7 @@ variables (N)
 
 @[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
-lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
+@[simp] lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
 by { rw ltensor_id, refl, }
 
 @[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id

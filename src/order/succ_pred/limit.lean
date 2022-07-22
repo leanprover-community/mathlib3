@@ -74,7 +74,7 @@ by { classical, exact dif_pos hb }
 `pred' (succ a) = a` when `a` is not maximal.
 
 When working in a succ-archimedean partial order, this can be used to build an `is_pred_archimdean`
-instance: see `order.succ_order.is_pred_archimedean`.
+instance: see `order.succ_order.to_is_pred_archimedean`.
 
 Note that this is only nicely behaved on partial orders. -/
 noncomputable def pred' (a : α) : α := is_succ_limit_rec_on a (λ b _, b) (λ b _, b)
@@ -303,7 +303,7 @@ theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min
 `succ' (pred a) = a` where `a` is not minimal.
 
 When working in a pred-archimedean partial order, this can be used to build an `is_succ_archimdean`
-instance: see `order.pred_order.is_succ_archimedean`.
+instance: see `order.pred_order.to_is_succ_archimedean`.
 
 Note that this is only nicely behaved on partial orders. -/
 noncomputable def succ' : α → α := @pred' αᵒᵈ _ _

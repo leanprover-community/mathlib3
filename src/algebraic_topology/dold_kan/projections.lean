@@ -42,8 +42,7 @@ namespace algebraic_topology
 
 namespace dold_kan
 
-variables {C : Type*} [category C] [preadditive C]
-variables {X : simplicial_object C}
+variables {C : Type*} [category C] [preadditive C] {X : simplicial_object C}
 
 /-- This is the inductive definition of the projections `P q : K[X] ⟶ K[X]`,
 with `P 0 := 𝟙 _` and `P (q+1) := P q ≫ (𝟙 _ + Hσ q)`. -/
@@ -62,7 +61,7 @@ begin
       homological_complex.id_f, id_comp, hq, Hσ_eq_zero, add_zero], },
 end
 
-/-- Q q is the complement projection associated to P q -/
+/-- `Q q` is the complement projection associated to `P q` -/
 def Q (q : ℕ) : K[X] ⟶ K[X] := 𝟙 _ - P q
 
 lemma P_add_Q (q : ℕ) : P q + Q q = 𝟙 K[X] := by { rw Q, abel, }

@@ -62,11 +62,14 @@ by { success_if_fail_with_msg {compute_degree}
      exact polynomial.nat_degree_C_mul_X _ ‹_› }
 
 end suggestions
-open tactic
+
 /-  Issue: goals hidden and needing recover. -/
 example {F : Type*} [ring F] (h37 : ((37 : ℕ) : F) ≠ 0) :
   nat_degree (((2 * 2 + 2) ^ 2 + 1) * X + 1 : F[X]) = 1 :=
 begin
+--  have : ((((2 * 2 + 2) ^ 2 + 1)) : F[X]) = C ((((2 * 2 + 2) ^ 2 + 1) : ℕ) : F),
+--  simp only [nat.cast_add, nat.cast_pow, nat.cast_mul, nat.cast_bit0, nat.cast_one, map_add, map_pow, map_mul, C_bit0, map_one],
+--  rw this,
   compute_degree,
 --  recover,  -- this is no longer needed.
 end

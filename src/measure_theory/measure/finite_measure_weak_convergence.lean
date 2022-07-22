@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.measure_space
 import measure_theory.integral.set_integral
+import measure_theory.integral.average
 import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
 import topology.metric_space.thickened_indicator
@@ -894,6 +895,19 @@ begin
   refl,
 end
 
+/-- Averaging with respect to a finite measure is the same as integraing against
+`finite_measure.normalize`. -/
+lemma average_eq_integral_normalize
+  {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+  (nonzero : μ ≠ 0) (f : α → E) :
+  average (μ : measure α) f = ∫ x, f x ∂(μ.normalize : measure α) :=
+begin
+  rw [μ.coe_normalize_eq_of_nonzero nonzero, average],
+  congr,
+  simp only [ring_hom.to_fun_eq_coe, ennreal.coe_of_nnreal_hom,
+             ennreal.coe_inv (μ.mass_nonzero_iff.mpr nonzero), ennreal_mass],
+end
+
 variables [topological_space α]
 
 lemma test_against_nn_eq_mass_mul (f : α →ᵇ ℝ≥0) :
@@ -933,11 +947,11 @@ begin
 end
 
 lemma tendsto_normalize_test_against_nn_of_tendsto {γ : Type*} {F : filter γ}
-  {μs : γ → finite_measure α} (h : tendsto μs F (𝓝 μ)) (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
+  {μs : γ → finite_measure α} (μs_lim : tendsto μs F (𝓝 μ)) (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
   tendsto (λ i, (μs i).normalize.to_finite_measure.test_against_nn f) F
           (𝓝 (μ.normalize.to_finite_measure.test_against_nn f)) :=
 begin
-  have lim_mass := tendsto_mass_of_tendsto h,
+  have lim_mass := tendsto_mass_of_tendsto μs_lim,
   have aux : {(0 : ℝ≥0)}ᶜ ∈ 𝓝 (μ.mass),
     from is_open_compl_singleton.mem_nhds (μ.mass_nonzero_iff.mpr nonzero),
   have eventually_nonzero : ∀ᶠ i in F, μs i ≠ 0,
@@ -955,8 +969,46 @@ begin
         F (𝓝 (⟨(μ.mass)⁻¹, μ.test_against_nn f⟩)),
   { refine (prod.tendsto_iff _ _).mpr ⟨_, _⟩,
     { exact (continuous_on_inv₀.continuous_at aux).tendsto.comp lim_mass, },
-    { exact tendsto_iff_forall_test_against_nn_tendsto.mp h f, }, },
+    { exact tendsto_iff_forall_test_against_nn_tendsto.mp μs_lim f, }, },
   exact tendsto_mul.comp lim_pair,
+end
+
+/-- If the normalized versions of finite measures converge weakly and their total masses
+also converge, then the finite measures themselves converge weakly. -/
+lemma tendsto_of_tendsto_normalize_test_against_nn_of_tendsto_mass
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α}
+  (μs_lim : tendsto (λ i, (μs i).normalize) F (𝓝 μ.normalize))
+  (mass_lim : tendsto (λ i, (μs i).mass) F (𝓝 μ.mass)) :
+  tendsto μs F (𝓝 μ) :=
+begin
+  rw tendsto_iff_forall_test_against_nn_tendsto,
+  exact λ f, tendsto_test_against_nn_of_tendsto_normalize_test_against_nn_of_tendsto_mass
+             μs_lim mass_lim f,
+end
+
+/-- If finite measures themselves converge weakly to a nonzero limit measure, then their
+normalized versions also converge weakly. -/
+lemma tendsto_normalize_of_tendsto {γ : Type*} {F : filter γ}
+  {μs : γ → finite_measure α} (μs_lim : tendsto μs F (𝓝 μ)) (nonzero : μ ≠ 0) :
+  tendsto (λ i, (μs i).normalize) F (𝓝 (μ.normalize)) :=
+begin
+  rw probability_measure.tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
+  rw tendsto_iff_forall_test_against_nn_tendsto,
+  exact λ f, tendsto_normalize_test_against_nn_of_tendsto μs_lim nonzero f,
+end
+
+/-- The weak convergence of finite measures to a nonzero limit can be characterized by the weak
+convergence of both their normalized versions (probability measures) and their total masses. -/
+theorem tendsto_normalize_iff_tendsto {γ : Type*} {F : filter γ}
+  {μs : γ → finite_measure α} (nonzero : μ ≠ 0) :
+  tendsto (λ i, (μs i).normalize) F (𝓝 (μ.normalize)) ∧ tendsto (λ i, (μs i).mass) F (𝓝 (μ.mass))
+  ↔ tendsto μs F (𝓝 μ) :=
+begin
+  split,
+  { rintros ⟨normalized_lim, mass_lim⟩,
+    exact tendsto_of_tendsto_normalize_test_against_nn_of_tendsto_mass normalized_lim mass_lim, },
+  { intro μs_lim,
+    refine ⟨tendsto_normalize_of_tendsto μs_lim nonzero, tendsto_mass_of_tendsto μs_lim⟩, },
 end
 
 end finite_measure --namespace

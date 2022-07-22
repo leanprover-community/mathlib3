@@ -235,6 +235,8 @@ begin
   exact is_vonN_bounded_iff 𝕜 E s
 end
 
+variable (𝕜)
+
 lemma is_bounded_iff_subset_smul_ball {s : set E} :
   bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.ball 0 1 :=
 begin
@@ -251,13 +253,12 @@ end
 lemma is_bounded_iff_subset_smul_closed_ball {s : set E} :
   bornology.is_bounded s ↔ ∃ a : 𝕜, s ⊆ a • metric.closed_ball 0 1 :=
 begin
-  rw ← is_vonN_bounded_iff 𝕜,
   split,
-  { intros h,
-    rcases h (metric.closed_ball_mem_nhds 0 zero_lt_one) with ⟨ρ, hρ, hρball⟩,
-    rcases normed_field.exists_lt_norm 𝕜 ρ with ⟨a, ha⟩,
-    exact ⟨a, hρball a ha.le⟩ },
-  { rintros ⟨a, ha⟩,
+  { rw is_bounded_iff_subset_smul_ball 𝕜,
+    exact exists_imp_exists
+      (λ a ha, ha.trans $ set.smul_set_mono $ metric.ball_subset_closed_ball) },
+  { rw ← is_vonN_bounded_iff 𝕜,
+    rintros ⟨a, ha⟩,
     exact ((is_vonN_bounded_closed_ball 𝕜 E 1).image (a • 1 : E →L[𝕜] E)).subset ha }
 end
 

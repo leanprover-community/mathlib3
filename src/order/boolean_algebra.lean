@@ -618,6 +618,16 @@ class boolean_algebra (α : Type u) extends distrib_lattice α, has_compl α, ha
 instance boolean_algebra.to_bounded_order [h : boolean_algebra α] : bounded_order α :=
 { ..h }
 
+/-- A bounded generalized boolean algebra is a boolean algebra. -/
+@[reducible] -- See note [reducible non instances]
+def generalized_boolean_algebra.to_boolean_algebra [generalized_boolean_algebra α] [order_top α] :
+  boolean_algebra α :=
+{ compl := λ a, ⊤ \ a,
+  inf_compl_le_bot := λ _, disjoint_sdiff_self_right,
+  top_le_sup_compl := λ _, le_sup_sdiff,
+  sdiff_eq := λ _ _, by { rw [←inf_sdiff_assoc, inf_top_eq], refl },
+  ..‹generalized_boolean_algebra α›, ..generalized_boolean_algebra.to_order_bot, ..‹order_top α› }
+
 section boolean_algebra
 variables [boolean_algebra α]
 

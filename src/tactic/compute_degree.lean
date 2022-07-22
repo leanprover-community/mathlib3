@@ -298,27 +298,6 @@ meta def compute_step (deg : ℕ) : expr → tactic unit
     fail "sorry, there are two or more terms of highest expected degree"
 | _ := failed
 
-/-
-/--  These are the cases in which an easy lemma computes the degree. -/
-meta def single_term_suggestions1 (tf : bool) : tactic unit := do
-success_if_fail (interactive.exact ``(polynomial.nat_degree_X_pow _)) <|>
-  if tf then fail "Try this: exact polynomial.nat_degree_X_pow _"
-  else fail "Try this: exact polynomial.degree_X_pow _",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_C _)) <|>
-  if tf then fail "Try this: exact polynomial.nat_degree_C _"
-  else fail "Try this: exact polynomial.degree_C ‹_›",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_X)) <|>
-  if tf then fail "Try this: exact polynomial.nat_degree_X"
-  else fail "Try this: exact polynomial.degree_X",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›)) <|>
-  if tf then fail "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›"
-  else fail "Try this: exact polynomial.degree_C_mul_X_pow _ _ ‹_›",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›)) <|>
-  if tf then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
-  else fail "Try this: exact polynomial.degree_C_mul_X _ ‹_›",
-skip
--/
-
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit := do
 success_if_fail (interactive.exact ``(polynomial.nat_degree_X_pow _)) <|>

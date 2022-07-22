@@ -76,6 +76,87 @@ def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (set.finite {i | f i ≠ 0}) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
 
+lemma mem_ℓp.comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { exact hf.preimage_embedding φ },
+  { exact hf.mono (set.range_subset_iff.mpr $ λ b, set.mem_range_self (φ b)) },
+  { exact hf.comp_injective φ.injective }
+end
+
+lemma mem_ℓp.extend_zero (s : set α) [decidable_pred $ (λ x, x ∈ s)] {f : Π i : s, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x : α, if hx : x ∈ s then f ⟨x, hx⟩ else 0) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { refine (hf.image coe).subset (λ i hi, _),
+    rw set.mem_set_of at hi,
+    split_ifs at hi,
+    { exact ⟨⟨i, h⟩, hi, rfl⟩ },
+    { contradiction } },
+  { rcases hf with ⟨M, hM⟩,
+    refine ⟨max 0 M, set.forall_range_iff.mpr $ λ i, _⟩,
+    split_ifs,
+    { exact le_max_of_le_right (set.forall_range_iff.mp hM _) },
+    { rw norm_zero,
+      exact le_max_left _ _ } },
+  { have : function.support (λ x, ∥(if hx : x ∈ s then f ⟨x, hx⟩ else 0 : E x)∥ ^ p.to_real) ⊆ s,
+    { rw function.support_subset_iff',
+      intros x hx,
+      split_ifs,
+      rw [norm_zero, real.zero_rpow],
+      intro h,
+      rw ennreal.to_real_eq_zero_iff at h,
+      exact h.elim h₁ h₂ },
+    rw ← summable_subtype_iff_of_support_subset this,
+    convert hf,
+    ext x,
+    have : (x : α) ∈ s := x.2,
+    rw function.comp_apply,
+    split_ifs,
+    refine congr_arg (λ y, ∥f y∥ ^ p.to_real) _,
+    ext,
+    refl }
+end
+
+lemma mem_ℓp.map_embedding {β : Type*} (φ : β ↪ α) [decidable_pred $ (λ x, x ∈ set.range φ)]
+  {f : Π i : β, E (φ i)} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x : α, (if hx : x ∈ set.range φ then f hx.some else 0 : E $ φ x)) p :=
+begin
+  rw mem_ℓp at *,
+  split_ifs at ⊢ hf with h₁ h₂,
+  { refine (hf.image coe).subset (λ i hi, _),
+    rw set.mem_set_of at hi,
+    split_ifs at hi,
+    { exact ⟨⟨i, h⟩, hi, rfl⟩ },
+    { contradiction } },
+  { rcases hf with ⟨M, hM⟩,
+    refine ⟨max 0 M, set.forall_range_iff.mpr $ λ i, _⟩,
+    split_ifs,
+    { exact le_max_of_le_right (set.forall_range_iff.mp hM _) },
+    { rw norm_zero,
+      exact le_max_left _ _ } },
+  { have : function.support (λ x, ∥(if hx : x ∈ s then f ⟨x, hx⟩ else 0 : E x)∥ ^ p.to_real) ⊆ s,
+    { rw function.support_subset_iff',
+      intros x hx,
+      split_ifs,
+      rw [norm_zero, real.zero_rpow],
+      intro h,
+      rw ennreal.to_real_eq_zero_iff at h,
+      exact h.elim h₁ h₂ },
+    rw ← summable_subtype_iff_of_support_subset this,
+    convert hf,
+    ext x,
+    have : (x : α) ∈ s := x.2,
+    rw function.comp_apply,
+    split_ifs,
+    refine congr_arg (λ y, ∥f y∥ ^ p.to_real) _,
+    ext,
+    refl }
+end
+
 lemma mem_ℓp_zero_iff {f : Π i, E i} : mem_ℓp f 0 ↔ set.finite {i | f i ≠ 0} :=
 by dsimp [mem_ℓp]; rw [if_pos rfl]
 
@@ -627,6 +708,21 @@ begin
   exact (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)
 end
 
+def map_embedding [fact $ 1 ≤ p] {β : Type*} (φ : β ↪ α) :
+  lp (E ∘ φ) p →ₗᵢ[𝕜] lp E p :=
+{ to_fun := λ f, ⟨_, f.2.extend_zero φ⟩,
+  map_add' := λ _ _, by ext; refl,
+  map_smul' := λ _ _, by ext; refl,
+  norm_map' :=
+  begin
+    intros f,
+    unfreezingI
+    { rcases p.trichotomy with rfl | rfl | hp,
+      { exfalso,
+        exact not_le_of_lt ennreal.zero_lt_one (fact.elim ‹_›) },
+      {  } },
+  end }
+
 end normed_space
 
 section non_unital_normed_ring
@@ -1017,3 +1113,17 @@ end
 end topology
 
 end lp
+
+section lp_lp
+
+noncomputable! def foo {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [normed_field 𝕜]
+  (a : α) :
+lp (λ b : β a, 𝕜) p →ₗᵢ[𝕜] lp (λ ab : Σ (a : α), β a, 𝕜) p :=
+lp.comp
+
+
+noncomputable! def lp_sigma_equivₗᵢ {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [normed_field 𝕜] :
+  lp (λ ab : Σ (a : α), β a, 𝕜) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, 𝕜) p) p :=
+sorry
+
+end lp_lp

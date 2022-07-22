@@ -455,4 +455,25 @@ lemma _root_.exists_hilbert_basis :
   ∃ (w : set E) (b : hilbert_basis w 𝕜 E), ⇑b = (coe : w → E) :=
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_hilbert_basis_extension in ⟨w, hw, hw''⟩
 
+/-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
+def hilbert_basis_index : set E :=
+classical.some (exists_hilbert_basis 𝕜 E)
+
+/-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
+def std_hilbert_basis : hilbert_basis (hilbert_basis_index 𝕜 E) 𝕜 E :=
+classical.some (classical.some_spec (exists_hilbert_basis 𝕜 E))
+
+@[simp] lemma coe_std_hilbert_basis : ⇑(std_hilbert_basis 𝕜 E) = coe :=
+classical.some_spec (classical.some_spec (exists_hilbert_basis 𝕜 E))
+
+section subordinate_hilbert_basis
+open direct_sum
+variables {𝕜 E} [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : is_internal V)
+          [∀ i, complete_space (V i)]
+
+@[irreducible] def direct_sum.is_internal.subordinate_hilbert_basis
+  (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
+  hilbert_basis (Σ i, hilbert_basis_index 𝕜 (V i)) 𝕜 E :=
+_
+
 end hilbert_basis

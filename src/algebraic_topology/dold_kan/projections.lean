@@ -160,12 +160,11 @@ homological_complex.congr_hom ((nat_trans_P q).naturality f) n
 
 lemma map_P {D : Type*} [category D] [preadditive D]
   (G : C ⥤ D) [G.additive] (X : simplicial_object C) (q n : ℕ) :
-  ((P q : K[((whiskering C D).obj G).obj X] ⟶ _).f n) = G.map ((P q : K[X] ⟶ _).f n) :=
+  G.map ((P q : K[X] ⟶ _).f n) = (P q : K[((whiskering C D).obj G).obj X] ⟶ _).f n :=
 begin
   induction q with q hq,
   { unfold P,
-    dsimp,
-    rw G.map_id, },
+    apply G.map_id, },
   { unfold P,
     simp only [comp_add, homological_complex.comp_f, homological_complex.add_f_apply,
       comp_id, functor.map_add, functor.map_comp, hq, map_Hσ], }

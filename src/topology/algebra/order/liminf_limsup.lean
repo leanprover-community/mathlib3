@@ -190,10 +190,12 @@ section monotone
 
 open set
 
-lemma antitone.map_limsup_of_continuous
-  {ι R : Type*} {F : filter ι} [ne_bot F]
+variables {ι R S : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f ) :
+  [complete_linear_order S] [topological_space S] [order_topology S]
+
+lemma antitone.map_limsup_of_continuous
+  (a : ι → R) {f : R → S} (f_decr : antitone f) (f_cont : continuous f ) :
   f (F.limsup a) = F.liminf (f ∘ a) :=
 begin
   rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf] at *,
@@ -211,10 +213,19 @@ begin
 end
 
 lemma antitone.map_liminf_of_continuous
-  {ι R : Type*} {F : filter ι} [ne_bot F]
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  (a : ι → R) {f : R → R} (f_decr : antitone f) (f_cont : continuous f) :
+  (a : ι → R) {f : R → S} (f_decr : antitone f) (f_cont : continuous f) :
   f (F.liminf a) = F.limsup (f ∘ a) :=
-@antitone.map_limsup_of_continuous ι (order_dual R) F _ _ _ _ a f f_decr.dual f_cont
+@antitone.map_limsup_of_continuous ι (order_dual R) (order_dual S)
+  F _ _ _ _ _ _ _ a f f_decr.dual f_cont
+
+lemma monotone.map_liminf_of_continuous
+  (a : ι → R) {f : R → S} (f_incr : monotone f) (f_cont : continuous f) :
+  f (F.liminf a) = F.liminf (f ∘ a) :=
+@antitone.map_liminf_of_continuous ι R (order_dual S) F _ _ _ _ _ _ _ a f f_incr f_cont
+
+lemma monotone.map_limsup_of_continuous
+  (a : ι → R) {f : R → S} (f_incr : monotone f) (f_cont : continuous f) :
+  f (F.limsup a) = F.limsup (f ∘ a) :=
+@antitone.map_limsup_of_continuous ι R (order_dual S) F _ _ _ _ _ _ _ a f f_incr f_cont
 
 end monotone

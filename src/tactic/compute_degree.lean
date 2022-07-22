@@ -313,25 +313,6 @@ end compute_degree
 namespace interactive
 open compute_degree polynomial
 
-/-
-/--  For a description, see the doc-string of `compute_degree_le`.
-The tactic `compute_degree_le_no_norm_num` performs the same steps as `compute_degree`, except that
-it avoids the final clean-up using `norm_num` and `assumption`.  It is used in `compute_degree`
-to avoid duplicating the clean-up step. -/
-meta def compute_degree_le_no_norm_num : tactic unit :=
-do t ← target,
-  try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
-  `(nat_degree %%tl ≤ %%tr) ← target |
-    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  expected_deg ← guess_degree tl >>= eval_guessing 0,
-  deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
-  if deg_bound < expected_deg
-  then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
-  else
-    repeat $ target >>= resolve_sum_step,
-    check_target_changes t
--/
-
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 

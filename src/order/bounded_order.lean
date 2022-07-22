@@ -668,6 +668,12 @@ instance [partial_order α] : partial_order (with_bot α) :=
   end,
   .. with_bot.preorder }
 
+lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
+  ∀ (a b : with_bot α), a.map f ≤ b.map f ↔ a ≤ b
+| ⊥       _       := by simp only [map_bot, bot_le]
+| (a : α) ⊥       := by simp only [map_coe, map_bot, coe_ne_bot, not_coe_le_bot _]
+| (a : α) (b : α) := by simpa using mono_iff
+
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
 | none     b := λ _ h, option.no_confusion h
@@ -969,6 +975,11 @@ instance [partial_order α] : partial_order (with_top α) :=
       rw le_antisymm h₁' h₂' }
   end,
   .. with_top.preorder }
+
+lemma map_le_iff [preorder α] [preorder β] (f : α → β)
+  (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
+  a.map f ≤ b.map f ↔ a ≤ b :=
+@with_bot.map_le_iff αᵒᵈ βᵒᵈ _ _ f (λ a b, mono_iff) b a
 
 instance [semilattice_inf α] : semilattice_inf (with_top α) :=
 { inf          := option.lift_or_get (⊓),

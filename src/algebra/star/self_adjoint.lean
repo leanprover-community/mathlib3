@@ -127,8 +127,15 @@ end ring
 section comm_ring
 variables [comm_ring R] [star_ring R]
 
+lemma mul_mem {x y : R} (hx : x ∈ self_adjoint R) (hy : y ∈ self_adjoint R) :
+  x * y ∈ self_adjoint R :=
+begin
+  rw mem_iff at ⊢ hx hy,
+  rw [star_mul', hx, hy]
+end
+
 instance : has_mul (self_adjoint R) :=
-⟨λ x y, ⟨(x : R) * y, by simp only [mem_iff, star_mul', star_coe_eq]⟩⟩
+⟨λ x y, ⟨(x : R) * y, mul_mem x.prop y.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
 
@@ -159,11 +166,27 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 @[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
+lemma rat_cast_mem : ∀ (x : ℚ), (x : R) ∈ self_adjoint R
+| ⟨a, b, h1, h2⟩ :=
+  by rw [mem_iff, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
+
+instance : has_rat_cast (self_adjoint R) :=
+⟨λ n, ⟨n, rat_cast_mem n⟩⟩
+
+@[simp, norm_cast] lemma coe_rat_cast (x : ℚ) : ↑(x : self_adjoint R) = (x : R) :=
+rfl
+
+instance has_qsmul : has_smul ℚ (self_adjoint R) :=
+⟨λ a x, ⟨a • x, by rw rat.smul_def; exact mul_mem (rat_cast_mem a) x.prop⟩⟩
+
+@[simp, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
+rfl
+
 instance : field (self_adjoint R) :=
 function.injective.field _ subtype.coe_injective
   (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
   (self_adjoint R).coe_sub coe_inv coe_div (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul
-  coe_pow coe_zpow (λ _, rfl) (λ _, rfl)
+  coe_rat_smul coe_pow coe_zpow (λ _, rfl) (λ _, rfl) coe_rat_cast
 
 end field
 

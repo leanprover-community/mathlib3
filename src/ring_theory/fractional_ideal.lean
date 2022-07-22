@@ -141,6 +141,10 @@ end set_like
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
+/-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
+instance (I : fractional_ideal S P) : add_comm_group I := submodule.add_comm_group ↑I
+instance (I : fractional_ideal S P) : module R I := submodule.module ↑I
+
 lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
 subtype.coe_injective

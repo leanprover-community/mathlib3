@@ -303,13 +303,17 @@ begin
   exact ⟨this,⟨k,⟨kK,k_adj_c.symm⟩⟩⟩,
 end
 
-lemma finite (Knempty: K.nonempty) (Kfinite: K.finite) : (components G K).finite :=
+lemma finite (Kfinite: K.finite) : (components G K).finite :=
 begin
-  by_contra comps_inf,
-  haveI : infinite (subtype (components G K)), from infinite_coe_iff.mpr comps_inf,
-  have := @set.infinite_range_of_injective (subtype (components G K)) V (_inst) (to_bdry_point G K Knempty Kfinite) (to_bdry_point_inj G K Knempty Kfinite),
-  have : (bdry G K).infinite, from set.infinite.mono (to_bdry_point_in_bdry G K Knempty Kfinite) this,
-  exact this (bdry_finite G K Kfinite),
+  by_cases Knempty : K.nonempty,
+  { by_contra comps_inf,
+    haveI : infinite (subtype (components G K)), from infinite_coe_iff.mpr comps_inf,
+    have := @set.infinite_range_of_injective (subtype (components G K)) V (_inst) (to_bdry_point G K Knempty Kfinite) (to_bdry_point_inj G K Knempty Kfinite),
+    have : (bdry G K).infinite, from set.infinite.mono (to_bdry_point_in_bdry G K Knempty Kfinite) this,
+    exact this (bdry_finite G K Kfinite),},
+  { sorry,}
+  -- If K is not nonempty, it is empty. This means, since G is assumed connected,
+  -- that components G K is just {G}, i.e. a singleton, hence finite
 end
 
 
@@ -332,8 +336,15 @@ variables {K L L' M : set V}
 
 lemma inf_components_subset (K : set V) : inf_components G K ⊆ components G K := λ C h, h.1
 
-instance inf_components_finite (Knempty: K.nonempty) (Kfinite: K.finite) :
-  fintype (inf_components G K) := (set.finite.subset (component.finite G K Knempty Kfinite) (inf_components_subset G K)).fintype
+lemma infinite_graph_to_inf_components_nonempty (Kfinite: K.finite) (Vinfinite : (@set.univ V).infinite) : (inf_components G K).nonempty :=
+begin
+  sorry,
+  -- K is finite, hence its boundary too, and there can only be a finite number of components
+  -- if all are finite, then their union is finite, so that V is finite too
+end
+
+instance inf_components_finite (Kfinite: K.finite) :
+  fintype (inf_components G K) := (set.finite.subset (component.finite G K Kfinite) (inf_components_subset G K)).fintype
 
 def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
   ∀ x y ∈ D, c_o G K x y :=
@@ -410,8 +421,7 @@ begin
 end
 
 lemma bwd_map_surjective
-  (Knempty : K.nonempty) (Kfinite : K.finite)
-  (Lnempty : L.nonempty) (Lfinite : L.finite)
+  (Kfinite : K.finite) (Lfinite : L.finite)
   : surjective (bwd_map G K_sub_L) :=
 begin
   unfold surjective,
@@ -419,7 +429,7 @@ begin
   let L_comps := components G L,
   let L_comps_in_C := { D : set V | D ∈ components G L ∧ D ⊆ C},
   have sub : L_comps_in_C ⊆ L_comps, from (λ D ⟨a,b⟩,  a),
-  have : L_comps_in_C.finite, from set.finite.subset (component.finite G L Lnempty Lfinite) sub,
+  have : L_comps_in_C.finite, from set.finite.subset (component.finite G L Lfinite) sub,
   have : (⋃₀ L_comps_in_C).infinite, from
     λ fin, C_inf ((Lfinite.union fin).subset (subcomponents_cover G K_sub_L C C_comp)),
 
@@ -527,7 +537,6 @@ def to_ends_for_def (ℱ : fam) (e : ends G) (K : ℱ.fam) :
   e.val (⟨K.val,mem_of_subset_of_mem ℱ.fin K.prop⟩ : finsubsets) = (to_ends_for G ℱ e).val K := refl _
 
 
-
 def of_ends_for (ℱ : fam) : ends_for G ℱ → ends G :=
 λ g,
   let
@@ -585,6 +594,15 @@ begin
   exact C_inf (set.finite.subset Vfinite (set.subset_univ C)),
 end
 
+lemma ends_infinite_graph  (Vinfinite : (@set.univ V).infinite) : (ends G).nonempty :=
+begin
+  let K : set V := ∅,
+  -- Could as well take (@set.univ V) and verify that it satisfies what is needed
+  let inf_comps_K_nempty := infinite_graph_to_inf_components_nonempty G (set.finite_empty) (Vinfinite),
+  sorry,
+  -- Now, the eval map ends → inf_components K forces ends to be nonempty, since inf_components K is
+end
+
 
 def eval_for (ℱ : fam) (K : ℱ.fam):
   ends_for G ℱ → inf_components G K := λ e, e.val K
@@ -617,6 +635,13 @@ begin
   assumption,
 end
 
+
+/-
+  This shows that if K is such that the "backward maps" to K are all injective, then so is
+  the evaluation map.
+  It should eventually be used to bound the number of ends from above in certain cases.
+  Say, when G is the grid ℤ²,
+-/
 lemma eval_injective (K : finsubsets)
   (inj_from_K : ∀ L : @finsubsets V _ _ _, K.val ⊆ L.val → injective (bwd_map G ‹K.val⊆L.val›)) :
   injective (eval G K) :=
@@ -636,13 +661,32 @@ begin
   simpa only [embedding_like.apply_eq_iff_eq],
 end
 
+lemma eval_injective' (K : finsubsets)
+  (inj_from_K : ∀ L : @finsubsets V _ _ _, K.val ⊆ L.val →
+                ∃ L' ∈ {L' : @finsubsets V _ _ _ | L.val ⊆ L'.val},
+                injective (bwd_map G (subset.trans ‹K.val⊆L.val› ‹L.val⊆L'.val›))) :
+  injective (eval G K) :=
+begin
+  -- idea: bwd_map L → K is factored through by L' → K, which is itself injective
+  sorry
+end
 
+/-
+  The goal now would be to be able to bound the number of ends from below.
+  The number of ends is at least the number of infinite components outside of K, for any given K,
+  i.e. it cannot decrease.
+  The construction to show this needs to extend each infinite component outside of K into an end.
+  This is done by taking a family indexed over ℕ and by iteratively extending.
+-/
+
+
+/-
 structure nat_fam :=
   (f : ℕ → set V)
-  (zero : (f 0).nonempty)
  -- (fin : ∀ n, (f n) ∈ finsubsets V)
   (mon: ∀ m  n, m ≤ n → f m ⊆ f n)
   (cof: ∀ K : @finsubsets V _ _ _, ∃ n : ℕ, K.val ⊆ f n)
+
 
 
 def nat_fam_to_fam  (nf : @nat_fam V _ _ _) : @fam V _ _ _ := sorry
@@ -694,7 +738,7 @@ lemma extend_along_fam
   (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
   end_for
 
-/-
+
 def enum_fam_def
   (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
   (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) : ℕ → @finsubsets V _ _ _ :=
@@ -731,28 +775,20 @@ end
 
 def enum_fam  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
   (Knempty : K.nonempty) (Kfinite : K.finite) : fam = ⟨enum_fam_def enum Knempty Kfinite, ⟩
+
 -/
 
 
-lemma of_component
-  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
-  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
-  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
-begin
+-- we need to assume that V is countable, but that's no big deal: it follows from local finiteness and connectedness
+lemma end_of_component (Kfinite : K.finite) (C : inf_components G K) :
+  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val := sorry
 
-  let fenum_fam := enum_fam G enum Knempty Kfinite C,
-  let fenum_fam_cof := enum_fam_cof G enum Knempty Kfinite C,
-  let fenum_fam_mono := enum_fam_mono G enum Knempty Kfinite C,
-  have lol := (enum_fam_zero G enum Knempty Kfinite C).symm,
-  let fe := extend_along G fenum_fam fenum_fam_mono (lol ▸ Knempty) (lol ▸ Kfinite) (sorry /- lol ▸ c-/),
-  let e : ends_for
 
-  /-
+lemma eval_surjective (Kfinite : K.finite) : surjective (eval G ⟨K,Kfinite⟩) := sorry
+-- should be pretty much only λ C, end_of component G kfinite C
 
-  use extend_along on this function
-  get an element of ends_for and an element of ends
-  -/
-end
+
+
 
 /-
 example (K : set V) (Knempty : K.nonempty) (Kfinite : K.finite)

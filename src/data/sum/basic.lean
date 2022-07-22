@@ -349,7 +349,6 @@ end function
 namespace sum
 open function
 
-@[simp]
 lemma elim_const_const (c : γ) :
   sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=
 by { ext x, cases x; refl }
@@ -359,7 +358,7 @@ lemma elim_lam_const_lam_const (c : γ) :
   sum.elim (λ (_ : α), c) (λ (_ : β), c) = λ _, c :=
 sum.elim_const_const c
 
-@[simp] lemma elim_update_left [decidable_eq α] [decidable_eq β]
+lemma elim_update_left [decidable_eq α] [decidable_eq β]
     (f : α → γ) (g : β → γ) (i : α) (c : γ) :
   sum.elim (function.update f i c) g = function.update (sum.elim f g) (inl i) c :=
 begin
@@ -370,7 +369,7 @@ begin
   { simp }
 end
 
-@[simp] lemma elim_update_right [decidable_eq α] [decidable_eq β]
+lemma elim_update_right [decidable_eq α] [decidable_eq β]
     (f : α → γ) (g : β → γ) (i : β) (c : γ) :
   sum.elim f (function.update g i c) = function.update (sum.elim f g) (inr i) c :=
 begin

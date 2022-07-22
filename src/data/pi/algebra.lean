@@ -242,7 +242,7 @@ by simp only [pi.mul_single, sum.elim_update_left, elim_one_one]
 
 @[simp, to_additive]
 lemma elim_one_mul_single [decidable_eq α] [decidable_eq β] [has_one γ] (i : β) (c : γ) :
-  sum.elim (1 : β → γ) (pi.mul_single i c) = pi.mul_single (sum.inr i) c :=
+  sum.elim (1 : α → γ) (pi.mul_single i c) = pi.mul_single (sum.inr i) c :=
 by simp only [pi.mul_single, sum.elim_update_right, elim_one_one]
 
 @[to_additive]

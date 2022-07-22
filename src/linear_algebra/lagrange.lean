@@ -275,8 +275,7 @@ def interpolate (s : finset ι) (v : ι → F) : (ι → F) →ₗ[F] F[X] :=
                                   pi.smul_apply, ring_hom.id_apply, smul_eq_mul] }
 
 lemma interpolate_apply (s : finset ι) (v r : ι → F) :
-  interpolate s v r = ∑ i in s, C (r i) * basis s v i :=
-rfl
+  interpolate s v r = ∑ i in s, C (r i) * basis s v i := rfl
 
 @[simp] theorem interpolate_empty : interpolate ∅ v r = 0 :=
 by rw [interpolate_apply, sum_empty]
@@ -358,8 +357,6 @@ begin
   { rw h, exact ⟨degree_interpolate_lt _ hvs, λ _ hi, eval_interpolate_at_node _ hvs hi⟩ }
 end
 
-
-
 /-- Lagrange interpolation induces isomorphism between functions from `s`
 and polynomials of degree less than `fintype.card ι`.-/
 def fun_equiv_degree_lt (hvs : set.inj_on v s) : degree_lt F s.card ≃ₗ[F] (s → F) :=
@@ -397,7 +394,6 @@ begin
     have H : t.card = (1 + (t.card - s.card)) + (s.card - 1),
     { rw [add_assoc, tsub_add_tsub_cancel hst' hs, ← add_tsub_assoc_of_le (hs.trans hst'),
           nat.succ_add_sub_one, zero_add] },
-
     rw [degree_basis (set.inj_on.mono hst hvt) hi, H, with_bot.coe_add,
         with_bot.add_lt_add_iff_right (@with_bot.coe_ne_bot _ (s.card - 1))],
     convert degree_interpolate_lt _ (hvt.mono (coe_subset.mpr (insert_subset.mpr
@@ -426,13 +422,14 @@ theorem interpolate_eq_add_interpolate_erase (hvs : set.inj_on v s) (hi : i ∈ 
   (hij : i ≠ j) : interpolate s v r = interpolate (s.erase j) v r * basis_divisor (v i) (v j) +
   interpolate (s.erase i) v r * basis_divisor (v j) (v i) :=
 begin
-  rw interpolate_eq_sum_interpolate_insert_sdiff _ hvs ⟨i, (mem_insert_self i {j})⟩ _,
-  rw sum_insert (not_mem_singleton.mpr hij), rw sum_singleton,
-  rw basis_doubleton_left hij, rw basis_doubleton_right hij, congr;
-  [skip, rw pair_comm]; ext k; rw [mem_insert, mem_erase, mem_sdiff, mem_insert, mem_singleton];
-  push_neg; exact ⟨ by { rintros (rfl | ⟨_, _, _⟩); tauto },
-                    by { rw or_iff_not_imp_left, rintros ⟨_, _⟩ _, tauto, } ⟩,
-  intros k hk, simp at hk, rcases hk with (rfl | rfl), exact hi, exact hj
+  rw [interpolate_eq_sum_interpolate_insert_sdiff _ hvs ⟨i, (mem_insert_self i {j})⟩ _,
+      sum_insert (not_mem_singleton.mpr hij), sum_singleton,
+      basis_doubleton_left hij, basis_doubleton_right hij,
+      finset.sdiff_insert_insert_of_mem_of_not_mem hi (not_mem_singleton.mpr hij),
+      sdiff_singleton_eq_erase, finset.doubleton_comm,
+      finset.sdiff_insert_insert_of_mem_of_not_mem hj (not_mem_singleton.mpr hij.symm),
+      sdiff_singleton_eq_erase],
+  { exact insert_subset.mpr ⟨hi, singleton_subset_iff.mpr hj⟩ },
 end
 
 end interpolate
@@ -542,7 +539,7 @@ sum_congr rfl (λ j hj, by rw [mul_comm, basis_eq_prod_sub_inv_mul_nodal_div hj]
 lemma eval_interpolate_not_at_node (hx : ∀ i ∈ s, x ≠ v i) : eval x (interpolate s v r) =
   eval x (nodal s v) * ∑ i in s, nodal_weight s v i * (x - v i)⁻¹ * r i :=
 begin
-  simp_rw [interpolate, mul_sum, eval_finset_sum, eval_mul, eval_C],
+  simp_rw [interpolate_apply, mul_sum, eval_finset_sum, eval_mul, eval_C],
   refine sum_congr rfl (λ i hi, _),
   rw [← mul_assoc, mul_comm, eval_basis_not_at_node hi (hx _ hi)]
 end

@@ -139,7 +139,7 @@ lemma has_continuous_smul_induced :
 { continuous_smul :=
     begin
       letI : topological_space M₁ := t.induced f,
-      refine continuous_induced_rng _,
+      refine continuous_induced_rng.2 _,
       simp_rw [function.comp, f.map_smul],
       refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
     end }

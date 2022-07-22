@@ -194,6 +194,8 @@ variables {ι R S : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
   [complete_linear_order S] [topological_space S] [order_topology S]
 
+/-- A continuous antitone function between complete linear ordered spaces sends a `filter.limsup`
+to the `filter.liminf` of the images. -/
 lemma antitone.map_limsup_of_continuous
   (a : ι → R) {f : R → S} (f_decr : antitone f) (f_cont : continuous f ) :
   f (F.limsup a) = F.liminf (f ∘ a) :=
@@ -212,17 +214,23 @@ begin
   { refine nonempty_image_iff.mpr nonempty_of_nonempty_subtype, },
 end
 
+/-- A continuous antitone function between complete linear ordered spaces sends a `filter.liminf`
+to the `filter.limsup` of the images. -/
 lemma antitone.map_liminf_of_continuous
   (a : ι → R) {f : R → S} (f_decr : antitone f) (f_cont : continuous f) :
   f (F.liminf a) = F.limsup (f ∘ a) :=
 @antitone.map_limsup_of_continuous ι (order_dual R) (order_dual S)
   F _ _ _ _ _ _ _ a f f_decr.dual f_cont
 
+/-- A continuous monotone function between complete linear ordered spaces sends a `filter.liminf`
+to the `filter.liminf` of the images. -/
 lemma monotone.map_liminf_of_continuous
   (a : ι → R) {f : R → S} (f_incr : monotone f) (f_cont : continuous f) :
   f (F.liminf a) = F.liminf (f ∘ a) :=
 @antitone.map_liminf_of_continuous ι R (order_dual S) F _ _ _ _ _ _ _ a f f_incr f_cont
 
+/-- A continuous monotone function between complete linear ordered spaces sends a `filter.limsup`
+to the `filter.limsup` of the images. -/
 lemma monotone.map_limsup_of_continuous
   (a : ι → R) {f : R → S} (f_incr : monotone f) (f_cont : continuous f) :
   f (F.limsup a) = F.limsup (f ∘ a) :=

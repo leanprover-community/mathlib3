@@ -2933,8 +2933,8 @@ monotone.map_cinfi_of_continuous_at
   (show continuous_at (order_dual.to_dual ∘ f) (⨅ i, g i), from Cf) Af H
 
 /-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
-lemma monotone.tendsto_nhds_within_Iio
-  {α β : Type*} [linear_order α] [topological_space α] [order_topology α]
+lemma monotone.tendsto_nhds_within_Iio {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
   [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[<] x) (𝓝 (Sup (f '' (Iio x)))) :=
@@ -2952,9 +2952,9 @@ begin
 end
 
 /-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/
-lemma monotone.tendsto_nhds_within_Ioi
-  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
-  {β : Type*} [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+lemma monotone.tendsto_nhds_within_Ioi {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[>] x) (𝓝 (Inf (f '' (Ioi x)))) :=
 @monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x

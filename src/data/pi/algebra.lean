@@ -238,7 +238,7 @@ by { ext x, cases x; refl }
 @[simp, to_additive]
 lemma elim_inv_inv [has_inv γ] :
   sum.elim a⁻¹ b⁻¹ = (sum.elim a b)⁻¹ :=
-by { ext x, cases x; refl }
+(sum.comp_elim has_inv.inv a b).symm
 
 @[simp, to_additive]
 lemma elim_mul_mul [has_mul γ] :

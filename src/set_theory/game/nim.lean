@@ -249,13 +249,13 @@ lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
 grundy_value_eq_iff_equiv_nim.trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
 @[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
-grundy_value_eq_iff_equiv_nim.2 nim.nim_zero_equiv.symm
+grundy_value_eq_iff_equiv_nim.2 nim_zero_equiv.symm
 
 lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
 @[simp] lemma grundy_value_star : grundy_value star = 1 :=
-grundy_value_eq_iff_equiv_nim.2 nim.nim_one_equiv.symm
+grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=

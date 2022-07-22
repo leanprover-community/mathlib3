@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Heather Macbeth
 -/
 import tactic.norm_num
 
-/- # `positivity` tactic
+/-! # `positivity` tactic
 
 The `positivity` tactic in this file solves goals of the form `0 ≤ x` and `0 < x`.  The tactic works
 recursively according to the syntax of the expression `x`.  For example, a goal of the form
@@ -158,7 +158,6 @@ setup_tactic_parser
 the syntax of the expression `x`, if the atoms composing the expression all have numeric lower
 bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either closes the goal
 or fails. -/
-@[nolint long_line]
 meta def positivity : tactic unit := focus1 $ do
   t ← target,
   (a, strict_desired) ← match t with
@@ -170,7 +169,8 @@ meta def positivity : tactic unit := focus1 $ do
   end,
   (strict_proved, p) ← tactic.positivity.core a,
   match strict_desired, strict_proved with
-  | tt, ff := fail "failed to prove strict positivity, but it would be possible to prove nonnegativity if desired"
+  | tt, ff := fail ("failed to prove strict positivity, but it would be possible to prove " ++
+      " nonnegativity if desired")
   | ff, tt := mk_app ``le_of_lt [p]
   | _, _ := pure p
   end >>= tactic.exact

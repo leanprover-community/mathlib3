@@ -1463,8 +1463,6 @@ instance : bounded_order (subtype (measurable_set : set α → Prop)) :=
 
 instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
 { sdiff := (\),
-  sup_inf_sdiff := λ a b, subtype.eq $ sup_inf_sdiff a b,
-  inf_inf_sdiff := λ a b, subtype.eq $ inf_inf_sdiff a b,
   compl := has_compl.compl,
   inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
   top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),

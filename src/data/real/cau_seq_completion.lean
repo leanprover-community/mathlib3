@@ -102,12 +102,27 @@ instance : add_group_with_one Cauchy :=
   one := 1,
   .. Cauchy.add_group }
 
+@[simp] theorem of_rat_nat_cast (n : ℕ) : of_rat n = n := rfl
+@[simp] theorem of_rat_int_cast (z : ℤ) : of_rat z = z := rfl
+
 instance : comm_ring Cauchy :=
 by refine { add := (+), zero := (0 : Cauchy), mul := (*), one := 1, npow := npow_rec,
     .. Cauchy.add_group_with_one, .. }; try { intros; refl };
 { repeat {refine λ a, quotient.induction_on a (λ _, _)},
   simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
           sub_eq_add_neg] }
+
+-- shortcut instance to ensure computability
+instance : ring Cauchy := comm_ring.to_ring _
+
+/-- `cau_seq.completion.of_rat` as a `ring_hom`  -/
+@[simps]
+def of_rat_ring_hom : β →+* Cauchy :=
+{ to_fun := of_rat,
+  map_zero' := of_rat_zero,
+  map_one' := of_rat_one,
+  map_add' := of_rat_add,
+  map_mul' := of_rat_mul, }
 
 theorem of_rat_sub (x y : β) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
@@ -120,6 +135,10 @@ section
 parameters {α : Type*} [linear_ordered_field α]
 parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 local notation `Cauchy` := @Cauchy _ _ _ _ abv _
+
+instance : has_rat_cast Cauchy := ⟨λ q, of_rat q⟩
+
+@[simp] theorem of_rat_rat_cast (q : ℚ) : of_rat (↑q : β) = (q : Cauchy) := rfl
 
 noncomputable instance : has_inv Cauchy :=
 ⟨λ x, quotient.lift_on x
@@ -157,23 +176,32 @@ quotient.induction_on x $ λ f hf, begin
   exact quotient.sound (cau_seq.inv_mul_cancel hf)
 end
 
-/-- The Cauchy completion forms a field.
-See note [reducible non-instances]. -/
-@[reducible]
-noncomputable def field : field Cauchy :=
+theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
+congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
+
+/-- The Cauchy completion forms a field. -/
+noncomputable instance : field Cauchy :=
 { inv              := has_inv.inv,
   mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
   exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
+  rat_cast := λ q, of_rat q,
+  rat_cast_mk := λ n d hd hnd,
+    by rw [rat.cast_mk', of_rat_mul, of_rat_int_cast, of_rat_inv, of_rat_nat_cast],
   .. Cauchy.comm_ring }
-
-local attribute [instance] field
-
-theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
-congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
 
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
 by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
+
+/-- Show the first 10 items of a representative of this equivalence class of cauchy sequences.
+
+The representative chosen is the one passed in the VM to `quot.mk`, so two cauchy sequences
+converging to the same number may be printed differently.
+-/
+meta instance [has_repr β] : has_repr Cauchy :=
+{ repr := λ r,
+  let N := 10, seq := r.unquot in
+    "(sorry /- " ++ (", ".intercalate $ (list.range N).map $ repr ∘ seq) ++ ", ... -/)" }
 
 end
 end cau_seq.completion

@@ -156,6 +156,14 @@ smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N,
 lemma smul_inf_le (M₁ M₂ : submodule R M) : I • (M₁ ⊓ M₂) ≤ I • M₁ ⊓ I • M₂ :=
 le_inf (submodule.smul_mono_right inf_le_left) (submodule.smul_mono_right inf_le_right)
 
+lemma smul_supr {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • supr t = ⨆ i, I • t i :=
+map₂_supr_right _ _ _
+
+lemma smul_infi_le {ι : Sort*} {I : ideal R} {t : ι → submodule R M} :
+  I • infi t ≤ ⨅ i, I • t i :=
+le_infi (λ i, smul_mono_right (infi_le _ _))
+
 variables (S : set R) (T : set M)
 
 theorem span_smul_span : (ideal.span S) • (span R T) =

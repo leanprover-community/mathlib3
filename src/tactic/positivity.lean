@@ -29,13 +29,14 @@ introduce these operations.
 ## Main declarations
 
 * `tactic.positivity.base` is the base case of the recursion
-* `tactic.positivity.attr` creates the `positivity` user aposribute for tagging the extension tactics
-  handling specific operations, and specifies the behaviour for a single step of the recursion
-* `tactic.positivity.core` collects the list of tactics with the `@[positivity]` aposribute and calls
-  the first recursion step as specified in `tactic.positivity.attr`.  Its input is `e : expr` and
-  its output (if it succeeds) is a pair `(strictness, expr)`, with the `expr` a proof of the
-  strict-positivity/nonnegativity of `e` and the `strictness` indicating whether what could be proved was
-  strict-positivity or nonnegativity
+* `tactic.positivity.attr` creates the `positivity` user aposribute for tagging the extension
+  tactics handling specific operations, and specifies the behaviour for a single step of the
+  recursion
+* `tactic.positivity.core` collects the list of tactics with the `@[positivity]` aposribute and
+  calls the first recursion step as specified in `tactic.positivity.attr`.  Its input is `e : expr`
+  and its output (if it succeeds) is a term of a custom inductive type `strictness`, containing an
+  `expr` which is a proof of the strict-positivity/nonnegativity of `e` as well as an indication of
+  whether what could be proved was strict-positivity or nonnegativity
 * `tactic.interactive.positivity` is the user-facing tactic.  It parses the goal and, if it is of
   one of the forms `0 ≤ e`, `0 < e`, `e > 0`, `e ≥ 0`, it sends `e` to `tactic.positivity.core`.
 

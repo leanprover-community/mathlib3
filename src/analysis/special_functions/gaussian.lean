@@ -20,15 +20,10 @@ open_locale real topological_space
 lemma exp_neg_mul_sq_is_o_exp_neg {b : ℝ} (hb : 0 < b) :
   (λ x:ℝ, exp (-b * x^2)) =o[at_top] (λ x:ℝ, exp (-x)) :=
 begin
-  refine is_o_of_tendsto (λ x hx, _) _,
-  { exfalso, exact (exp_pos (-x)).ne' hx },
-  have : (λ (x:ℝ), exp (-b * x^2) / exp (-x)) = (λ (x:ℝ), exp (x * (1 - b * x))),
-  { ext1 x, field_simp [exp_ne_zero, real.exp_neg, ← real.exp_add], ring_exp },
-  rw this,
-  apply tendsto_exp_at_bot.comp,
-  apply tendsto.at_top_mul_at_bot tendsto_id,
-  apply tendsto_at_bot_add_const_left at_top (1 : ℝ),
-  apply tendsto_neg_at_top_at_bot.comp,
+  have A : (λ (x : ℝ), -x - -b * x ^ 2) = (λ x, x * (b * x + (- 1))), by { ext x, ring },
+  rw [is_o_exp_comp_exp_comp, A],
+  apply tendsto.at_top_mul_at_top tendsto_id,
+  apply tendsto_at_top_add_const_right at_top (-1 : ℝ),
   exact tendsto.const_mul_at_top hb tendsto_id,
 end
 
@@ -128,7 +123,7 @@ begin
   { refine tendsto_const_nhds.sub _,
     apply tendsto.const_mul,
     apply tendsto_exp_at_bot.comp,
-    exact tendsto.neg_const_mul_at_top (neg_lt_zero.2 hb) (tendsto_pow_at_top one_le_two) },
+    exact tendsto.neg_const_mul_at_top (neg_lt_zero.2 hb) (tendsto_pow_at_top two_ne_zero) },
   simpa using L,
 end
 
@@ -143,7 +138,7 @@ begin
   refine (sq_eq_sq _ (sqrt_nonneg _)).1 _,
   { exact integral_nonneg (λ x, (exp_pos _).le) },
   /- We compute `(∫ exp(-b x^2))^2` as an integral over `ℝ^2`, and then make a polar change of
-  coordinates. We are left with `∫ r * exp(-b r^2)`, which has been computed in
+  coordinates. We are left with `∫ r * exp (-b r^2)`, which has been computed in
   `integral_mul_exp_neg_mul_sq` using the fact that this function has an obvious primitive. -/
   calc
   (∫ x, real.exp (-b * x^2)) ^ 2

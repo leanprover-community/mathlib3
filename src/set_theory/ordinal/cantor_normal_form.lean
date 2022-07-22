@@ -37,12 +37,11 @@ open order
 namespace ordinal
 
 /-- Inducts on the base `b` expansion of an ordinal. -/
-@[elab_as_eliminator, no_lint unused_arguments] noncomputable def CNF_rec {b : ordinal} (hb : b ≠ 0)
+@[elab_as_eliminator, nolint unused_arguments] noncomputable def CNF_rec {b : ordinal} (hb : b ≠ 0)
   {C : ordinal → Sort*} (H0 : C 0) (H : ∀ o, o ≠ 0 → C (o % b ^ log b o) → C o) : ∀ o, C o
 | o :=
   if ho : o = 0 then by rwa ho else
-  have _, from mod_opow_log_lt_self hb ho,
-  H o ho (CNF_rec (o % b ^ log b o))
+    let hwf := mod_opow_log_lt_self b ho in H o ho (CNF_rec (o % b ^ log b o))
 using_well_founded {dec_tac := `[assumption]}
 
 -- Todo (vihdzp): remove the unused hypothesis `b ≠ 0`.
@@ -98,7 +97,7 @@ begin
     intros o ho IH, cases IH with IH₁ IH₂,
     simp only [CNF_ne_zero hb ho, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
     refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
-    { exact (IH₁ p m).trans (log_mono_right _ $ le_of_lt $ mod_opow_log_lt_self hb ho) },
+    { exact (IH₁ p m).trans (log_mono_right _ $ le_of_lt $ mod_opow_log_lt_self b ho) },
     { refine (IH₁ p m).trans_lt ((lt_opow_iff_log_lt hb' _).1 _),
       { intro e,
         rw e at m, simpa only [CNF_zero] using m },
@@ -152,3 +151,4 @@ theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
 by { rw [list.sorted, list.pairwise_map], exact CNF_pairwise b o }
 
 end ordinal
+#lint

@@ -187,6 +187,14 @@ begin
     exact hc'.le }
 end
 
+lemma le_succ_pred' (a : α) : a ≤ succ (pred' a) :=
+begin
+  refine is_succ_limit_rec_on a (λ a ha, _) (λ a ha, _),
+  { rw pred'_succ_of_not_is_max ha },
+  { rw pred'_of_limit ha,
+    exact le_succ a }
+end
+
 section no_max_order
 variables [no_max_order α]
 
@@ -377,6 +385,8 @@ lemma succ'_le_of_lt : a < b → succ' a ≤ b := @le_pred'_of_lt αᵒᵈ _ _ _
 
 lemma le_of_lt_succ' : a < succ' b → a ≤ b := @le_of_pred'_lt αᵒᵈ _ _ _ _
 
+lemma pred_succ'_le : ∀ a : α, pred (succ' a) ≤ a := @le_succ_pred' αᵒᵈ _ _
+
 section no_min_order
 variables [no_min_order α]
 
@@ -410,8 +420,7 @@ noncomputable def pred_order.to_succ_order : succ_order α :=
   succ_le_of_lt := λ a b, succ'_le_of_lt,
   le_of_lt_succ := λ a b, le_of_lt_succ' }
 
-@[simp] lemma succ'_eq_succ [h : succ_order α] : @succ' α _ _ = succ :=
-show @succ α _ pred_order.to_succ_order = @succ α _ h, by congr
+@[simp] lemma succ'_eq_succ [h : succ_order α] : @succ' α _ _ = succ := @pred'_eq_pred αᵒᵈ _ _ _ _
 
 lemma exists_succ'_iterate_of_le : a ≤ b → ∃ n : ℕ, succ'^[n] a = b :=
 @exists_pred'_iterate_of_le αᵒᵈ _ _ _ _ _

@@ -69,7 +69,8 @@ variable (𝕜)
 
 open submodule
 
-/-- `ann_ideal_generator 𝕜 a` is the monic generator of `ann_ideal 𝕜 a` if one exists, otherwise `0`. 
+/-- `ann_ideal_generator 𝕜 a` is the monic generator of `ann_ideal 𝕜 a`
+if one exists, otherwise `0`. 
 
 Since `𝕜[X]` is a principal ideal domain there is a polynomial `g` such that
  `span 𝕜 {g} = ann_ideal a`. This picks some generator.
@@ -136,7 +137,7 @@ by rw [← ideal.mem_span_singleton, span_singleton_ann_ideal_generator]
 lemma degree_ann_ideal_generator_le_of_mem (a : A) (p : 𝕜[X])
   (hp : p ∈ ann_ideal 𝕜 a) (hpn0 : p ≠ 0) :
   degree (ann_ideal_generator 𝕜 a) ≤ degree p :=
-degree_le_of_dvd ((mem_iff_ann_ideal_generator_dvd 𝕜 a).1 hp) hpn0
+degree_le_of_dvd (mem_iff_ann_ideal_generator_dvd.1 hp) hpn0
 
 variables (𝕜)
 

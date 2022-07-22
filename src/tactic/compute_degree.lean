@@ -187,6 +187,13 @@ meta def single_term_resolve : expr → tactic unit
   fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
 See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
 
+meta def ste : tactic unit := do
+t ← target,
+match t with
+| `(nat_degree %%po = %%_) := single_term_resolve po
+| _ := fail "not of the form `f.nat_degree = d`"
+end
+
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
 * `0, 1, C a`,      guess `0`,
@@ -314,6 +321,19 @@ end compute_degree
 namespace interactive
 open compute_degree polynomial
 
+/--  A general description of `compute_degree_le_aux` is in the doc-string of `compute_degree`.
+The difference betweem the two is that `compute_degree_le_aux` makes no effort to close side-goals,
+nor fails if the goal does not change. -/
+meta def compute_degree_le_aux : tactic unit := do
+try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
+`(nat_degree %%tl ≤ %%tr) ← target |
+  fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
+expected_deg ← guess_degree tl >>= eval_guessing 0,
+deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
+if deg_bound < expected_deg
+then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
+else repeat $ resolve_sum_step
+
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 
@@ -321,6 +341,10 @@ If the given degree `d` is smaller than the one that the tactic computes,
 then the tactic suggests the degree that it computed. -/
 meta def compute_degree_le : tactic unit :=
 do t ← target,
+  compute_degree_le_aux,
+  check_target_changes t,
+  try $ any_goals' norm_assum
+/-
   try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
@@ -330,8 +354,11 @@ do t ← target,
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else
     repeat $ resolve_sum_step,
-    check_target_changes t,
-    try $ any_goals' norm_assum
+-/
+--    done <|> repeat (refine ``(nat.succ_le_succ _)) >> repeat (reflexivity <|> refine ``(nat.zero_le _))
+    --,
+    --check_target_changes t,
+    --try $ any_goals' norm_assum
 
 meta def _root_.list.gsum (op : expr) : list expr → expr
 | [] := `(0)
@@ -378,27 +405,41 @@ do t ← target,
   ad ← to_expr ``(has_add.add) tt ff,
   summ ← list_binary_operands ad pol,
 --  small_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
-  (large_degs, small_degs) ← summ.mpartition
+  (lg_degs, sm_degs) ← summ.mpartition
     (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (deg = dt)),
---  let ssmal := small_degs.gsum ad,trace ssmal,
---  let slarge := large_degs.gsum ad,trace slarge,
-  if (small_degs.length ≠ 0) then
-    do eq_sm_add_lg ← mk_app `eq [pol, ad.mk_app [large_degs.gsum ad, small_degs.gsum ad]],
-      (_, prf) ← solve_aux (eq_sm_add_lg) $
-  --  would be nice to not have to `try move_op` and simply do it!
-        reflexivity <|>
-        move_op (prod.mk tt <$> small_degs.map to_pexpr) (interactive.loc.ns [none]) (to_pexpr ad),
-      rewrite_target prf,
-      refine ``(nat_degree_add_left_succ _ _ _ _ _),
-      rotate >> try compute_degree_le
-    else skip,
-      try $ any_goals' $
-        (do `(nat_degree %%po = _) ← target, single_term_resolve po),
-      try $ any_goals' norm_assum
+  if (sm_degs.length ≠ 0) then do
+    eq_sm_add_lg ← mk_app `eq [pol, ad.mk_app [lg_degs.gsum ad, sm_degs.gsum ad]],
+    (_, prf) ← solve_aux (eq_sm_add_lg) $
+      reflexivity <|>
+      move_op (prod.mk tt <$> sm_degs.map to_pexpr) (interactive.loc.ns [none]) (to_pexpr ad),
+    rewrite_target prf,
+    refine ``(nat_degree_add_left_succ _ _ _ _ _),
+    rotate >> try compute_degree_le_aux
+  else skip,
+  gs ← get_goals,
+  focus' $ gs.map (λ g : expr, do gi ← infer_type g, match gi with
+    | `(nat_degree (%%_ + %%_) = %%_) := skip
+    | `(nat_degree %%_ ≤ %%_) := skip
+    | `(nat_degree %%_ = %%_) := ste >> norm_assum
+    |_ := try norm_assum
+     end)
+  --tacs ← gs.mmap (λ g : expr, (do `(nat_degree %%po = _) ← g, return $ single_term_resolve po) <|>
+  --  do return $ try norm_assum ),
+  --focus' (tacs)
+--  iterate_at_most (gs.length - 1) norm_assum,
+--  try $ do `(nat_degree %%po = _) ← target, single_term_resolve po
+--  `(%%_ ≤ %%_) ← target >> norm_assum <|>
+  --try $ any_goals' $
+  --  (do `(nat_degree %%po = _) ← target, single_term_resolve po)
+  --,
+  --try $ any_goals' norm_assum
+--    done <|> repeat (refine ``(nat.succ_le_succ _)) >> repeat (reflexivity <|> refine ``(nat.zero_le _))
+      --,
+      --try $ any_goals' norm_assum
 /-
-  try $ move_op (prod.mk ff <$> small_degs.map to_pexpr) (interactive.loc.ns [none]) (to_pexpr ad),
+  try $ move_op (prod.mk ff <$> sm_degs.map to_pexpr) (interactive.loc.ns [none]) (to_pexpr ad),
   -- now that all the small degree terms are on the right, we peel them off
-  iterate_at_most small_degs.length $ refine ``(nat_degree_add_left_succ _ _ _ _ _),
+  iterate_at_most sm_degs.length $ refine ``(nat_degree_add_left_succ _ _ _ _ _),
   any_goals' $ try $
     (do `(nat_degree %%po = _) ← target, single_term_resolve po),
   try $ any_goals' $ repeat $ target >>= resolve_sum_step,--compute_degree_le_no_norm_num,

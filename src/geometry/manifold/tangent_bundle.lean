@@ -83,7 +83,7 @@ corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial
 of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
 base. We require the change of coordinates of the fibers to be linear, so that the resulting bundle
 is a vector bundle. -/
-structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -98,7 +98,7 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
-def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -110,7 +110,7 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 
 namespace basic_smooth_vector_bundle_core
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -289,7 +289,7 @@ end basic_smooth_vector_bundle_core
 
 section tangent_bundle
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]

@@ -40,7 +40,7 @@ universes u v
 namespace normed_space
 
 section general
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 variables (E : Type*) [semi_normed_group E] [normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
@@ -143,11 +143,11 @@ open metric set normed_space
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
-def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+def polar (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
 (dual_pairing 𝕜 E).flip.polar
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
 
 lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl

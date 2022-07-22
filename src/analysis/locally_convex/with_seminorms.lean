@@ -336,9 +336,9 @@ end
 
 end normed_space
 
-section nondiscrete_normed_field
+section nontrivially_normed_field
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
 variables {p : seminorm_family 𝕜 E ι}
 variables [topological_space E]
 
@@ -390,7 +390,7 @@ begin
   exact ⟨1, zero_lt_one, λ _ _, zero_lt_one⟩,
 end
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 section continuous_bounded
 
 namespace seminorm

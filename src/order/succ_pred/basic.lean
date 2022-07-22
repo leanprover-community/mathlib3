@@ -321,7 +321,7 @@ section no_max_order
 variables [no_max_order α]
 
 @[simp] lemma succ_eq_succ_iff : succ a = succ b ↔ a = b :=
-by simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff]
+succ_eq_succ_iff_of_not_is_max (not_is_max a) (not_is_max b)
 
 lemma succ_injective : injective (succ : α → α) := λ a b, succ_eq_succ_iff.1
 lemma succ_ne_succ_iff : succ a ≠ succ b ↔ a ≠ b := succ_injective.ne_iff

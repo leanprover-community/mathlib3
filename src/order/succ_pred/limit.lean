@@ -65,7 +65,7 @@ begin
     exact hs _ H.1 }
 end
 
-@[simp] lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
+lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
   (hl : Π a, is_succ_limit a → C a) (hb : is_succ_limit b) :
   @is_succ_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
@@ -147,6 +147,9 @@ begin
     subst hab,
     exact (h hb.is_max).elim }
 end
+
+lemma is_succ_limit.succ_lt_iff (hb : is_succ_limit b) : succ a < b ↔ a < b :=
+⟨λ h, (le_succ a).trans_lt h, hb.succ_lt⟩
 
 lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 ⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
@@ -261,6 +264,9 @@ def is_pred_limit (a : α) : Prop := ∀ b, pred b = a → is_min b
 
 protected lemma is_pred_limit.is_min (h : is_pred_limit (pred a)) : is_min a := h a rfl
 
+lemma not_is_pred_limit_pred_of_not_is_min (ha : ¬ is_min a) : ¬ is_pred_limit (pred a) :=
+λ h, ha (h a rfl)
+
 protected lemma _root_.is_max.is_pred_limit : is_max a → is_pred_limit a :=
 @is_min.is_succ_limit αᵒᵈ a _ _
 
@@ -272,20 +278,19 @@ lemma not_is_pred_limit_iff : ¬ is_pred_limit a ↔ ∃ b, ¬ is_min b ∧ pred
 /-- See `order.not_is_pred_limit_iff` for a version that states that `a` is a predecessor of a value
 other than itself. -/
 lemma mem_range_pred_of_not_is_pred_limit : ¬ is_pred_limit a → a ∈ range (@pred α _ _) :=
-@mem_range_succ_of_not_is_succ_limit αᵒᵈ a _ _
+@mem_range_succ_of_not_is_succ_limit αᵒᵈ _ _ _
 
 lemma is_pred_limit_of_lt_pred : (∀ b > a, a < pred b) → is_pred_limit a :=
 @is_succ_limit_of_succ_lt αᵒᵈ a _ _
 
 /-- A value can be built by building it on predecessors and predecessor limits.
 
-Note that you need a partial order without a minimum for data built using this to behave nicely on
-successors. -/
+Note that you need a partial order for data built using this to behave nicely on successors. -/
 @[elab_as_eliminator] noncomputable def is_pred_limit_rec_on : Π {C : α → Sort*} (b)
   (hs : Π a, ¬ is_min a → C (pred a)) (hl : Π a, is_pred_limit a → C a), C b :=
 @is_succ_limit_rec_on αᵒᵈ _ _
 
-@[simp] lemma is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
+theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
   (hl : Π a, is_pred_limit a → C a) (hb : is_pred_limit b),
   @is_pred_limit_rec_on α _ _ C b hs hl = hl b hb :=
 @is_succ_limit_rec_on_limit αᵒᵈ b _ _
@@ -347,8 +352,11 @@ end preorder
 section partial_order
 variables [partial_order α] [pred_order α]
 
-lemma is_pred_limit.lt_pred : ∀ (ha : is_pred_limit a) (hb : a < b), a < pred b :=
+lemma is_pred_limit.lt_pred : ∀ (ha : is_pred_limit a), a < b → a < pred b :=
 @is_succ_limit.succ_lt αᵒᵈ b a _ _
+
+lemma is_pred_limit.lt_pred_iff : ∀ (ha : is_pred_limit a), a < pred b ↔ a < b :=
+@is_succ_limit.succ_lt_iff αᵒᵈ b a _ _
 
 lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 @is_succ_limit_iff_succ_lt αᵒᵈ a _ _

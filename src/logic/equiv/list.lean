@@ -251,7 +251,7 @@ lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
 /-- `raise l n` is an non-decreasing sequence. -/
 lemma raise_sorted : ∀ l n, list.sorted (≤) (raise l n)
 | []       n := list.sorted_nil
-| (m :: l) n := (list.chain_iff_pairwise (@le_trans _ _)).1 (raise_chain _ _)
+| (m :: l) n := list.chain_iff_pairwise.1 (raise_chain _ _)
 
 /-- If `α` is denumerable, then so is `multiset α`. Warning: this is *not* the same encoding as used
 in `multiset.encodable`. -/
@@ -299,8 +299,7 @@ lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
 /-- `raise' l n` is a strictly increasing sequence. -/
 lemma raise'_sorted : ∀ l n, list.sorted (<) (raise' l n)
 | []       n := list.sorted_nil
-| (m :: l) n := (list.chain_iff_pairwise (@lt_trans _ _)).1
-  (raise'_chain _ (lt_succ_self _))
+| (m :: l) n := list.chain_iff_pairwise.1 (raise'_chain _ (lt_succ_self _))
 
 /-- Makes `raise' l n` into a finset. Elements are distinct thanks to `raise'_sorted`. -/
 def raise'_finset (l : list ℕ) (n : ℕ) : finset ℕ :=

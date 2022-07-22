@@ -352,7 +352,7 @@ omit 𝕜
 instance real_normed_space.noncompact_space [normed_space ℝ E] : noncompact_space E :=
 normed_space.noncompact_space ℝ E
 
-end notrivially_normed_space
+end nontrivially_normed_space
 
 section normed_algebra
 

@@ -5,6 +5,7 @@ Authors: Jujian Zhang
 -/
 import algebraic_geometry.projective_spectrum.structure_sheaf
 import algebraic_geometry.Spec
+import ring_theory.graded_algebra.radical
 
 /-!
 # Proj as a scheme
@@ -168,6 +169,9 @@ x.2.some_spec.some_spec
 
 lemma degree_zero_part.coe_mul {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
   (↑(x * y) : away f) = x * y := rfl
+
+lemma degree_zero_part.coe_one {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) :
+  (↑(1 : A⁰_ f_deg) : away f) = 1 := rfl
 
 lemma degree_zero_part.coe_sum {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) {ι : Type*}
   (s : finset ι) (g : ι → A⁰_ f_deg) :
@@ -392,12 +396,12 @@ variables {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
 /--The underlying set-/
 def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
 {a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨_, by exact graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
+      ⟨i, ⟨_, by exact set_like.pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
 
 lemma mem_carrier_iff (q : Spec.T (A⁰_ f_deg)) (a : A) :
   a ∈ carrier q ↔
   ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨_, by exact graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 :=
+      ⟨i, ⟨_, by exact set_like.pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 :=
 iff.rfl
 
 lemma carrier.zero_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
@@ -411,12 +415,12 @@ begin
   rw carrier at ha hb ⊢,
   intro i,
   set α := (⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
-    ⟨i, ⟨_, by exact graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+    ⟨i, ⟨_, by exact set_like.pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
   suffices : α * α ∈ q.1,
   { cases q.2.mem_or_mem this, assumption, assumption },
   { rw show α * α =
     ⟨mk ((proj 𝒜 i (a + b))^(2*m)) ⟨f^(2*i), ⟨_, rfl⟩⟩,
-      ⟨2 * i, ⟨_, by { rw show m * (2 * i) = (2 * m) * i, by ring, exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _) }⟩, rfl⟩⟩,
+      ⟨2 * i, ⟨_, by { rw show m * (2 * i) = (2 * m) * i, by ring, exact set_like.pow_mem_graded _ (submodule.coe_mem _) }⟩, rfl⟩⟩,
     { rw [subtype.ext_iff, degree_zero_part.coe_mul],
       change localization.mk _ _ * mk _ _ = mk _ _,
       rw [mk_mul],
@@ -435,7 +439,7 @@ begin
         convert sum_attach,
         refl, },
       have mem1 : (proj 𝒜 i) (a + b) ^ (2 * m) ∈ 𝒜 (m * (2 * i)),
-      { rw show m * (2 * i) = (2 * m) * i, by ring, exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _) },
+      { rw show m * (2 * i) = (2 * m) * i, by ring, exact set_like.pow_mem_graded _ (submodule.coe_mem _) },
       have eq1 : (proj 𝒜 i (a + b))^(2*m) = s,
       { rw [linear_map.map_add, add_pow] },
       rw calc (⟨mk ((proj 𝒜 i (a + b))^(2*m)) ⟨f^(2*i), ⟨_, rfl⟩⟩, ⟨2 * i, ⟨_, mem1⟩, rfl⟩⟩ : A⁰_ f_deg)
@@ -450,9 +454,9 @@ begin
                 ⟨mk ((proj 𝒜 i a)^j.1 * (proj 𝒜 i b)^(2 * m - j.1) * (2 * m).choose j.1) ⟨f^(2 * i), ⟨2*i, rfl⟩⟩,
                 ⟨2*i, ⟨_, begin
                   have mem1 : (proj 𝒜 i) a ^ j.1 ∈ 𝒜 (j.1 * i),
-                  { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _), },
+                  { exact set_like.pow_mem_graded _ (submodule.coe_mem _), },
                   have mem2 : (proj 𝒜 i) b ^ (2 * m - j.1) ∈ 𝒜 ((2*m-j.1) * i),
-                  { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _) },
+                  { exact set_like.pow_mem_graded _ (submodule.coe_mem _) },
                   have mem3 : ((2 * m).choose j.1 : A) ∈ 𝒜 0,
                   { refine (show ∀ (n : ℕ), (n : A) ∈ 𝒜 0, from nat.rec _ _) _,
                     { simp only [nat.cast_zero, submodule.zero_mem], },
@@ -471,25 +475,23 @@ begin
             : begin
                 rw [subtype.ext_iff, degree_zero_part.coe_sum],
                 change localization.mk _ _ = ∑ _, mk _ _,
-                sorry
-                -- rw [localization.mk_sum],
-                -- simp only [degree_zero_part.coe_sum, localization.mk_sum],
+                rw [localization.mk_sum, univ_eq_attach],
               end,
       clear' s s' ss' eq1,
       apply ideal.sum_mem,
       intros k hk,
       by_cases ineq : m ≤ k.1,
       { -- use (proj 𝒜 i) a ^ k
-        set α := (⟨mk ((proj 𝒜 i) a ^ m) ⟨f^i, ⟨i, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+        set α := (⟨mk ((proj 𝒜 i) a ^ m) ⟨f^i, ⟨i, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
         set β := (⟨mk ((proj 𝒜 i) a ^ (k.val - m) *
             (proj 𝒜 i) b ^ (2 * m - k.val) * (2*m).choose k.1) ⟨f^i, ⟨i, rfl⟩⟩, begin
               refine ⟨i, ⟨_, _⟩, rfl⟩,
               have mem1 : (proj 𝒜 i) a ^ (k.val - m) ∈ 𝒜 ((k.val - m) * i),
-              { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _), },
+              { exact set_like.pow_mem_graded _ (submodule.coe_mem _), },
               have mem2 : (proj 𝒜 i) b ^ (2 * m - k.val) ∈ 𝒜 ((2*m-k.1) * i),
-              { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _), },
+              { exact set_like.pow_mem_graded _ (submodule.coe_mem _), },
               have mem3 : ((2*m).choose k.1 : A) ∈ 𝒜 0,
-              { exact set_like.graded_monoid.nat_mem _ _, },
+              { exact set_like.nat_cast_mem_graded _ _, },
               rw show m * i = ((k.val - m) * i) + ((2*m-k.1) * i) + 0,
               { rw [add_zero, ←add_mul],
                 congr' 1,
@@ -529,15 +531,15 @@ begin
         { apply ideal.mul_mem_right,
           apply ha, } },
 
-      { set α := (⟨mk ((proj 𝒜 i) b ^ m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+      { set α := (⟨mk ((proj 𝒜 i) b ^ m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by exact set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
         set β := (⟨mk ((proj 𝒜 i) a ^ k.val * (proj 𝒜 i) b ^ (m - k.val) * ((2 * m).choose k.val))
           ⟨f^i, ⟨_, rfl⟩⟩, begin
             have mem1 : (proj 𝒜 i) a ^ k.val ∈ 𝒜 (k.1 * i),
-            { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _), },
+            { exact set_like.pow_mem_graded _ (submodule.coe_mem _), },
             have mem2 : (graded_algebra.proj 𝒜 i) b ^ (m - k.val) ∈ 𝒜 ((m - k.1) * i),
-            { exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _), },
+            { exact set_like.pow_mem_graded _ (submodule.coe_mem _), },
             have mem3 : ↑((2 * m).choose k.val) ∈ 𝒜 0,
-            { apply set_like.graded_monoid.nat_mem, },
+            { apply set_like.nat_cast_mem_graded, },
             refine ⟨_, ⟨_, _⟩, rfl⟩,
             rw ← show k.1 * i + (m - k.1) * i + 0 = m * i,
             { exact calc k.1 * i + (m - k.1) * i + 0
@@ -654,15 +656,10 @@ begin
                 dsimp only,
                 rw mul_pow,
               end
-          ... = (⟨mk (a^m) ⟨f^n, ⟨_, rfl⟩⟩, begin
-                  refine ⟨n, ⟨a^m, _⟩, rfl⟩,
-                  exact set_like.graded_monoid.pow_mem m ha,
-                end⟩ : A⁰_ f_deg) *
-                (⟨mk ((proj 𝒜 (i-n) x)^m) ⟨f^(i-n), ⟨_, rfl⟩⟩, begin
-                  refine ⟨i-n, ⟨(proj 𝒜 (i-n) x)^m, _⟩, rfl⟩,
-                  dsimp only,
-                  exact graded_monoid.pow_mem _ (submodule.coe_mem _),
-                end⟩ : A⁰_ f_deg)
+          ... = (⟨mk (a^m) ⟨f^n, ⟨_, rfl⟩⟩,
+                  ⟨n, ⟨a^m, set_like.pow_mem_graded m ha⟩, rfl⟩⟩ : A⁰_ f_deg) *
+                ⟨mk ((proj 𝒜 (i-n) x)^m) ⟨f^(i-n), ⟨_, rfl⟩⟩,
+                  ⟨_, ⟨(proj 𝒜 (i-n) x)^m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩
               : begin
                 rw [subtype.ext_iff, degree_zero_part.coe_mul],
                 change localization.mk _ _ = mk _ _ * mk _ _,
@@ -722,14 +719,15 @@ begin
   change (proj _ i a) ∈ carrier q,
   change a ∈ carrier q at ha,
   intros j,
-  have := calc (⟨mk ((proj 𝒜 j (proj 𝒜 i a)) ^ m) ⟨f^j, ⟨_, rfl⟩⟩, ⟨j, ⟨_, by exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)
+  have := calc (⟨mk ((proj 𝒜 j (proj 𝒜 i a)) ^ m) ⟨f^j, ⟨_, rfl⟩⟩,
+                  ⟨j, ⟨_, by exact set_like.pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)
           = (⟨mk ((ite (j = i) (proj 𝒜 j a) 0)^m) ⟨f^j, ⟨_, rfl⟩⟩, begin
               refine ⟨j, ⟨((ite (j = i) (proj 𝒜 j a) 0)^m), _⟩, rfl⟩,
               have mem1 : ite (j = i) ((proj 𝒜 j) a) 0 ∈ 𝒜 j,
               { split_ifs,
                 exact submodule.coe_mem _,
                 exact zero_mem _ },
-              exact set_like.graded_monoid.pow_mem m mem1,
+              exact set_like.pow_mem_graded m mem1,
             end⟩ : A⁰_ f_deg)
             : begin
               rw [subtype.ext_iff_val],
@@ -748,7 +746,7 @@ begin
             ⟨f^j, ⟨_, rfl⟩⟩, begin
               refine ⟨j, ⟨(ite (j = i) ((graded_algebra.proj 𝒜 j a)^m) 0), _⟩, rfl⟩,
               split_ifs,
-              exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _),
+              exact set_like.pow_mem_graded _ (submodule.coe_mem _),
               exact submodule.zero_mem _,
             end⟩ : A⁰_ f_deg)
             : begin
@@ -759,7 +757,7 @@ begin
             end
       ... = ite (j = i)
             (⟨localization.mk ((graded_algebra.proj 𝒜 i a)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-              ⟨i, ⟨_, by exact set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)
+              ⟨i, ⟨_, by exact set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)
             (0 : A⁰_ f_deg)
             : begin
               split_ifs with H,
@@ -786,13 +784,10 @@ begin
     apply q.is_prime.1,
     rw ideal.eq_top_iff_one,
     convert rid2,
-    rw [subtype.ext_iff_val, degree_zero_part.one_val],
-    dsimp only,
-    symmetry,
-    rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same],
-    convert localization.mk_self _,
-    refl,
-    exact f_deg },
+    rw [subtype.ext_iff, degree_zero_part.coe_one],
+    change (1 : away f) = mk _ _,
+    rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same _ f_deg],
+    exact (localization.mk_self (⟨_, ⟨m, rfl⟩⟩ : submonoid.powers f)).symm, },
   apply mem1,
   have mem2 : f ∈ homogeneous_ideal.irrelevant 𝒜,
   { change graded_algebra.proj 𝒜 0 f = 0,
@@ -817,11 +812,10 @@ begin
       exact one_mem, },
     simp only [eq1, one_pow] at rid,
     convert rid,
-    rw [subtype.ext_iff_val, degree_zero_part.one_val],
-    dsimp only,
-    symmetry,
-    convert localization.mk_one,
-    rw pow_zero, },
+    rw [subtype.ext_iff, degree_zero_part.coe_one],
+    change (1 : away f) = mk 1 _,
+    simp only [pow_zero],
+    convert ←localization.mk_one.symm, },
   { -- homogeneously prime
     rintros x y ⟨nx, hnx⟩ ⟨ny, hny⟩ hxy,
     contrapose hxy,
@@ -831,15 +825,15 @@ begin
     change y ∉ carrier q at hy,
     change ¬ ∀ (i : ℕ),
       (⟨mk ((proj 𝒜 i x)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-        ⟨i, ⟨((proj 𝒜 i x)^m), set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at hx,
+        ⟨i, ⟨((proj 𝒜 i x)^m), set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at hx,
     change ¬ ∀ (i : ℕ), (⟨mk ((proj 𝒜 i y)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨((graded_algebra.proj 𝒜 i y)^m), set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at hy,
+      ⟨i, ⟨((graded_algebra.proj 𝒜 i y)^m), set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at hy,
     rw not_forall at hx hy,
     obtain ⟨ix, hix⟩ := hx,
     obtain ⟨iy, hiy⟩ := hy,
     intro rid,
     change ∀ (i : ℕ), (⟨mk ((proj 𝒜 i (x*y))^m) ⟨f^i, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨((proj 𝒜 i (x*y))^m), set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at rid,
+      ⟨i, ⟨((proj 𝒜 i (x*y))^m), set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at rid,
     specialize rid (nx + ny),
     have eqx : nx = ix,
     { by_contra rid,
@@ -911,8 +905,8 @@ def to_fun (hm : 0 < m) :
     rw ideal.eq_top_iff_one,
     convert rid,
     symmetry,
-    rw [subtype.ext_iff_val, degree_zero_part.one_val],
-    dsimp only,
+    rw [subtype.ext_iff, degree_zero_part.coe_one],
+    change localization.mk _ _ = 1,
     rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same 𝒜 f_deg],
     convert localization.mk_self _,
     refl,

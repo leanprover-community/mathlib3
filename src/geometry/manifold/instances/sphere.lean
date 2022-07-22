@@ -436,7 +436,7 @@ instance : lie_group (𝓡 1) circle :=
     let c : circle → ℂ := coe,
     have h₂ : cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
     { rw cont_mdiff_iff,
-      exact ⟨continuous_mul, λ x y, (cont_diff_mul.restrict_scalars ℝ).cont_diff_on⟩ },
+      exact ⟨continuous_mul, λ x y, cont_diff_mul.cont_diff_on⟩ },
     suffices h₁ : cont_mdiff _ _ _ (prod.map c c),
     { apply h₂.comp h₁ },
     -- this elaborates much faster with `apply`

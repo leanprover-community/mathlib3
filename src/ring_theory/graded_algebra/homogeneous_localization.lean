@@ -167,10 +167,12 @@ instance : comm_monoid (num_denom_same_deg 𝒜 x) :=
   mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
 
 instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
-{ pow := λ c n, ⟨n • c.deg, ⟨c.num ^ n, pow_mem n c.num.2⟩, ⟨c.denom ^ n, pow_mem n c.denom.2⟩,
+{ pow := λ c n, ⟨n • c.deg,
+    @graded_monoid.gmonoid.gnpow _ (λ i, ↥(𝒜 i)) _ _ n _ c.num,
+    @graded_monoid.gmonoid.gnpow _ (λ i, ↥(𝒜 i)) _ _ n _ c.denom,
     begin
       cases n,
-      { simp only [pow_zero],
+      { simp only [graded_monoid.gmonoid.gnpow, subtype.coe_mk, pow_zero],
         exact λ r, (infer_instance : x.is_prime).ne_top $ (ideal.eq_top_iff_one _).mpr r, },
       { exact λ r, c.denom_not_mem $
           ((infer_instance : x.is_prime).pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r }

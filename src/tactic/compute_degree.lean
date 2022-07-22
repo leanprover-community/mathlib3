@@ -313,12 +313,11 @@ end compute_degree
 namespace interactive
 open compute_degree polynomial
 
-/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
-where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
-
-If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed. -/
-meta def compute_degree_le : tactic unit :=
+/--  For a description, see the doc-string of `compute_degree_le`.
+The tactic `compute_degree_le_no_norm_num` performs the same steps as `compute_degree`, except that
+it avoids the final clean-up using `norm_num` and `assumption`.  It is used in `compute_degree`
+to avoid duplicating the clean-up step. -/
+meta def compute_degree_le_no_norm_num : tactic unit :=
 do t ← target,
   try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(nat_degree %%tl ≤ %%tr) ← target |
@@ -329,8 +328,15 @@ do t ← target,
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else
     repeat $ target >>= resolve_sum_step,
-    check_target_changes t,
-    try $ any_goals' norm_assum
+    check_target_changes t
+
+/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
+where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
+
+If the given degree `d` is smaller than the one that the tactic computes,
+then the tactic suggests the degree that it computed. -/
+meta def compute_degree_le : tactic unit :=
+compute_degree_le_no_norm_num >> (try $ any_goals' norm_assum)
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
@@ -378,8 +384,8 @@ do t ← target,
   iterate_at_most small_degs.length $ refine ``(nat_degree_add_left_succ _ _ _ _ _),
   any_goals' $ try $
     (do `(nat_degree %%po = _) ← target, single_term_resolve po),
+  try $ any_goals' $ compute_degree_le_no_norm_num,
   check_target_changes t,
-  try $ any_goals' $ compute_degree_le,
   try $ any_goals' norm_assum
 
 add_tactic_doc

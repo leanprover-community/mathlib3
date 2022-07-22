@@ -248,6 +248,20 @@ lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_group E]
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
+lemma integrable_on_Ici_iff_integrable_on_Ioi'
+  {E : Type*} [normed_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
+begin
+  have : Ici a = Icc a a ∪ Ioi a := (Icc_union_Ioi_eq_Ici le_rfl).symm,
+  rw [this, integrable_on_union],
+  simp [ha.lt_top]
+end
+
+lemma integrable_on_Ici_iff_integrable_on_Ioi
+  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} :
+  integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
+integrable_on_Ici_iff_integrable_on_Ioi' (by simp)
+
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
 lemma measure_theory.integrable.interval_integrable (hf : integrable f μ) :
@@ -1786,6 +1800,19 @@ lemma integral_has_strict_deriv_at_left
   (hf : interval_integrable f volume a b) (hmeas : strongly_measurable_at_filter f (𝓝 a))
   (ha : continuous_at f a) : has_strict_deriv_at (λ u, ∫ x in u..b, f x) (-f a) a :=
 by simpa only [← integral_symm] using (integral_has_strict_deriv_at_right hf.symm hmeas ha).neg
+
+/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then `u ↦ ∫ x in a..u, f x`
+has derivative `f b` at `b` in the sense of strict differentiability. -/
+lemma _root_.continuous.integral_has_strict_deriv_at {f : ℝ → E} (hf : continuous f) (a b : ℝ) :
+  has_strict_deriv_at (λ u, ∫ (x : ℝ) in a..u, f x) (f b) b :=
+integral_has_strict_deriv_at_right (hf.interval_integrable _ _)
+ (hf.strongly_measurable_at_filter _ _) hf.continuous_at
+
+/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then the derivative
+of `u ↦ ∫ x in a..u, f x` at `b` is `f b`. -/
+lemma _root_.continuous.deriv_integral (f : ℝ → E) (hf : continuous f) (a b : ℝ) :
+  deriv (λ u, ∫ (x : ℝ) in a..u, f x) b = f b :=
+(hf.integral_has_strict_deriv_at a b).has_deriv_at.deriv
 
 /-!
 #### Fréchet differentiability

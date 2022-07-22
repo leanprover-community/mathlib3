@@ -331,7 +331,7 @@ begin
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
       = {f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε),
       by rw [smul_add, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
-        smul_zero, singleton_add_closed_ball_zero, ← A.image_smul_set,
+        smul_zero, singleton_add_closed_ball_zero, ← image_smul_set ℝ E E A,
         smul_closed_ball _ _ zero_le_one, smul_zero, real.norm_eq_abs, abs_of_nonneg r0, mul_one,
         mul_comm],
     rw this at K,
@@ -1243,5 +1243,17 @@ begin
   conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
   refl
 end
+
+theorem integral_target_eq_integral_abs_det_fderiv_smul [complete_space F]
+  {f : local_homeomorph E E} (hf' : ∀ x ∈ f.source, has_fderiv_at f (f' x) x) (g : E → F) :
+  ∫ x in f.target, g x ∂μ = ∫ x in f.source, |(f' x).det| • g (f x) ∂μ :=
+begin
+  have : f '' f.source = f.target := local_equiv.image_source_eq_target f.to_local_equiv,
+  rw ← this,
+  apply integral_image_eq_integral_abs_det_fderiv_smul μ f.open_source.measurable_set _ f.inj_on,
+  assume x hx,
+  exact (hf' x hx).has_fderiv_within_at
+end
+
 
 end measure_theory

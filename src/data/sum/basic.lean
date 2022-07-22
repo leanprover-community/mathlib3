@@ -354,6 +354,28 @@ lemma sum.elim_lam_const_lam_const (c : γ) :
   sum.elim (λ (_ : α), c) (λ (_ : β), c) = λ _, c :=
 sum.elim_const_const c
 
+@[simp] lemma sum.elim_update_left [decidable_eq α] [decidable_eq β]
+    (f : α → γ) (g : β → γ) (i : α) (c : γ) :
+  sum.elim (function.update f i c) g = function.update (sum.elim f g) (inl i) c :=
+begin
+  ext x, cases x,
+  { by_cases h : x = i,
+    { subst h, simp },
+    { simp [h] } },
+  { simp }
+end
+
+@[simp] lemma sum.elim_update_right [decidable_eq α] [decidable_eq β]
+    (f : α → γ) (g : β → γ) (i : β) (c : γ) :
+  sum.elim f (function.update g i c) = function.update (sum.elim f g) (inr i) c :=
+begin
+  ext x, cases x,
+  { simp },
+  { by_cases h : x = i,
+    { subst h, simp },
+    { simp [h] } }
+end
+
 end function
 
 /-!

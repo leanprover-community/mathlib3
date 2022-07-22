@@ -454,17 +454,6 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         simp [h] }
     end,
   top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
-  sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
-  inf_inf_sdiff := λ x y, begin
-      rcases eq_bot_or_eq_top x with rfl | rfl,
-      { simpa },
-      rcases eq_bot_or_eq_top y with rfl | rfl,
-      { simpa },
-      { simp only [true_and, top_inf_eq, eq_self_iff_true],
-        split_ifs with h h;
-        simpa [h] }
-    end,
   .. (show bounded_order α, by apply_instance),
   .. is_simple_order.distrib_lattice }
 

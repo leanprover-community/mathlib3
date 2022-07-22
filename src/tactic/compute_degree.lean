@@ -90,16 +90,13 @@ by rwa nat_degree_add_eq_right_of_nat_degree_lt (df.trans_lt (nat.lt_of_succ_le 
 lemma nat_degree_eq_of_le_of_coeff_ne_zero {n : ℕ} {f : polynomial R}
   (fn : f.nat_degree ≤ n) (f0 : f.coeff n ≠ 0) :
   f.nat_degree = n :=
-le_antisymm fn (le_nat_degree_of_ne_zero f0)
+fn.antisymm (le_nat_degree_of_ne_zero f0)
 
 lemma monic_of_le_of_coeff_eq_one [nontrivial R] {n : ℕ} {f : polynomial R}
   (fn : f.nat_degree ≤ n) (f0 : f.coeff n = 1) :
   f.monic :=
-begin
-  rw [monic, ← f0, leading_coeff],
-  congr,
-  refine nat_degree_eq_of_le_of_coeff_ne_zero fn (λ h, (one_ne_zero (f0.symm.trans h))),
-end
+by rw [monic, ← f0, leading_coeff,
+       nat_degree_eq_of_le_of_coeff_ne_zero fn (λ h, (one_ne_zero (f0.symm.trans h)))]
 
 lemma coeff_C_eq_zero_of_succ (n : ℕ) (a : R) :
   (C a).coeff (n + 1) = 0 :=
@@ -147,7 +144,9 @@ match num_to_nat a with
   (_, nproof) ← solve_aux n_eq_Cn
     -- the reason to use `simp + norm_num` is to speed-up and avoid timeouts.  `norm_num` would
     -- be enough, but then some of the tests time out.
-    `[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one]; norm_num ],
+    `[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one, nat.cast_add,
+         nat.cast_pow, nat.cast_mul, map_add, map_pow, map_mul, C_bit0, map_one]; norm_num
+     ],
   rewrite_target nproof
 | none := skip
 end

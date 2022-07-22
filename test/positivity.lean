@@ -1,4 +1,6 @@
-import tactic.positivity_plugins
+import analysis.normed.group.basic
+import data.real.sqrt
+import tactic.positivity
 
 /-! # Tests for the `positivity` tactic
 

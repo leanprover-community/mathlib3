@@ -230,22 +230,22 @@ funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]
 namespace sum
 variables (a a' : α → γ) (b b' : β → γ)
 
-@[to_additive]
+@[simp, to_additive]
 lemma elim_one_one [has_one γ] :
   sum.elim (1 : α → γ) (1 : β → γ) = 1 :=
 by { ext x, cases x; refl }
 
-@[to_additive]
+@[simp, to_additive]
 lemma elim_inv_inv [has_inv γ] :
   sum.elim a⁻¹ b⁻¹ = (sum.elim a b)⁻¹ :=
 by { ext x, cases x; refl }
 
-@[to_additive]
+@[simp, to_additive]
 lemma elim_mul_mul [has_mul γ] :
   sum.elim (a * a') (b * b') = sum.elim a b * sum.elim a' b' :=
 by { ext x, cases x; refl }
 
-@[to_additive]
+@[simp, to_additive]
 lemma elim_div_div [has_div γ] :
   sum.elim (a / a') (b / b') = sum.elim a b / sum.elim a' b' :=
 by { ext x, cases x; refl }

@@ -270,6 +270,7 @@ lemma int_apply (n : ℤ) (a : α) : (n : ∀ a, β a) a = n := rfl
 
 end pi
 
+@[simp]
 lemma sum.elim_int_cast_int_cast {α β γ : Type*} [has_int_cast γ] (n : ℤ) :
   sum.elim (n : α → γ) (n : β → γ) = n :=
 by { ext x, cases x; refl }

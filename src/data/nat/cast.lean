@@ -274,6 +274,7 @@ lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
 
 end pi
 
+@[simp]
 lemma sum.elim_nat_cast_nat_cast {α β γ : Type*} [has_nat_cast γ] (n : ℕ) :
   sum.elim (n : α → γ) (n : β → γ) = n :=
 by { ext x, cases x; refl }

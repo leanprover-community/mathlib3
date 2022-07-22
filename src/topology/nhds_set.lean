@@ -46,12 +46,17 @@ by { rw [← subset_interior_iff_mem_nhds_set, subset_interior_iff] }
 lemma has_basis_nhds_set (s : set α) : (𝓝ˢ s).has_basis (λ U, is_open U ∧ s ⊆ U) (λ U, U) :=
 ⟨λ t, by simp [mem_nhds_set_iff_exists, and_assoc]⟩
 
+lemma has_basis_in_open_nhds_set (s : set α) : (𝓝ˢ s).has_basis_in is_open :=
+(has_basis_nhds_set s).has_basis_in $ λ U, and.left
+
+@[simp] lemma lift'_interior_nhds_set (s : set α) : (𝓝ˢ s).lift' interior = 𝓝ˢ s :=
+(has_basis_in_open_nhds_set _).lift'_interior_eq_self
+
 lemma is_open.mem_nhds_set (hU : is_open s) : s ∈ 𝓝ˢ t ↔ t ⊆ s :=
 by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_open.mpr hU]
 
 @[simp] lemma nhds_set_singleton : 𝓝ˢ {x} = 𝓝 x :=
-by { ext,
-     rw [← subset_interior_iff_mem_nhds_set, ← mem_interior_iff_mem_nhds, singleton_subset_iff] }
+by rw [nhds_set, image_singleton, Sup_singleton]
 
 lemma mem_nhds_set_interior : s ∈ 𝓝ˢ (interior s) :=
 subset_interior_iff_mem_nhds_set.mp subset.rfl

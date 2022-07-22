@@ -333,15 +333,25 @@ hl.lift' $ λ _ _, interior_mono
 lemma filter.lift'_interior_le (l : filter α) : l.lift' interior ≤ l :=
 l.basis_sets.lift'_interior.le_iff.2 $ λ s hs, ⟨s, hs, interior_subset⟩
 
+lemma filter.has_basis.lift'_interior_eq_self {l : filter α} {p : ι → Prop} {s : ι → set α}
+  (hl : l.has_basis p s) (ho : ∀ i, p i → is_open (s i)) :
+  l.lift' interior = l :=
+l.lift'_interior_le.antisymm $ hl.lift'_interior.ge_iff.2 $ λ i hi,
+  by simp only [(∘), (ho i hi).interior_eq, hl.mem_of_mem hi]
+
 lemma filter.has_basis_in.lift'_interior_eq_self {l : filter α} (hl : l.has_basis_in is_open) :
   l.lift' interior = l :=
-l.lift'_interior_le.antisymm $ hl.has_basis.lift'_interior.ge_iff.2 $
-  λ s hs, by simp only [(∘), id, hs.2.interior_eq, hs.1]
+hl.lift'_interior_eq_self $ λ _, and.right
 
-lemma filter.lift'_interior_eq_self_iff {l : filter α} :
+@[simp] lemma filter.lift'_interior_eq_self_iff {l : filter α} :
   l.lift' interior = l ↔ l.has_basis_in is_open :=
 ⟨λ h, h ▸ l.basis_sets.lift'_interior.has_basis_in (λ s hs, is_open_interior),
   λ h, h.lift'_interior_eq_self⟩
+
+@[simp] lemma filter.has_basis_interior_iff {l : filter α} :
+  l.has_basis (λ s, s ∈ l) interior ↔ l.has_basis_in is_open :=
+⟨λ h, h.has_basis_in $ λ _ _, is_open_interior, λ h,
+  by simpa only [h.lift'_interior_eq_self] using l.basis_sets.lift'_interior⟩
 
 /-!
 ### Closure of a set
@@ -473,12 +483,22 @@ hl.lift' $ λ _ _, closure_mono
 lemma filter.le_lift'_closure (l : filter α) : l ≤ l.lift' closure :=
 l.basis_sets.lift'_closure.ge_iff.2 $ λ s hs, mem_of_superset hs subset_closure
 
-lemma filter.has_basis_in.lift'_closure_eq_self {l : filter α} (hl : l.has_basis_in is_closed) :
+lemma filter.has_basis.lift'_closure_eq_self {l : filter α} {p : ι → Prop} {s : ι → set α}
+  (hl : l.has_basis p s) (hc : ∀ i, p i → is_closed (s i)) :
   l.lift' closure = l :=
-le_antisymm (hl.has_basis.ge_iff.2 $ λ s hs, hs.2.closure_eq ▸ by convert mem_lift' hs.1)
+le_antisymm (hl.ge_iff.2 $ λ i hi, (hc i hi).closure_eq ▸ mem_lift' (hl.mem_of_mem hi))
   l.le_lift'_closure
 
-lemma filter.lift'_closure_eq_self_iff {l : filter α} :
+lemma filter.has_basis_in.lift'_closure_eq_self {l : filter α} (hl : l.has_basis_in is_closed) :
+  l.lift' closure = l :=
+hl.lift'_closure_eq_self $ λ _, and.right
+
+@[simp] lemma filter.has_basis_closure_iff {l : filter α} :
+  l.has_basis (λ s, s ∈ l) closure ↔ l.has_basis_in is_closed :=
+⟨λ h, h.has_basis_in (λ s hs, is_closed_closure),
+  λ h, by simpa only [h.lift'_closure_eq_self] using l.basis_sets.lift'_closure⟩
+
+@[simp] lemma filter.lift'_closure_eq_self_iff {l : filter α} :
   l.lift' closure = l ↔ l.has_basis_in is_closed :=
 ⟨λ h, h ▸ l.basis_sets.lift'_closure.has_basis_in (λ s hs, is_closed_closure),
   λ h, h.lift'_closure_eq_self⟩
@@ -695,6 +715,9 @@ lemma nhds_basis_closeds (a : α) : (𝓝 a).has_basis (λ s : set α, a ∉ s �
 
 lemma nhds_has_basis_in_open {x : α} : (𝓝 x).has_basis_in is_open :=
 (nhds_basis_opens x).has_basis_in $ λ s, and.right
+
+@[simp] lemma lift'_interior_nhds (x : α) : (𝓝 x).lift' interior = 𝓝 x :=
+nhds_has_basis_in_open.lift'_interior_eq_self
 
 /-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=

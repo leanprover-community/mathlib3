@@ -80,7 +80,7 @@ end
 
 theorem mem_degree_lt {n : ℕ} {f : R[X]} :
   f ∈ degree_lt R n ↔ degree f < n :=
-by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
+by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree, finset.max_eq_sup_coe,
     finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff,
     with_bot.coe_lt_coe, lt_iff_not_le, ne, not_imp_not], refl }
 

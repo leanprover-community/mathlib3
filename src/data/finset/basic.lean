@@ -1192,14 +1192,7 @@ instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of
 eq_empty_of_forall_not_mem $
 by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 
-instance : generalized_boolean_algebra (finset α) :=
-{ sup_inf_sdiff := λ x y, by { simp only [ext_iff, mem_union, mem_sdiff, inf_eq_inter, sup_eq_union,
-      mem_inter], tauto },
-  inf_inf_sdiff := λ x y, by { simp only [ext_iff, inter_sdiff_self, inter_empty, inter_assoc,
-      false_iff, inf_eq_inter, not_mem_empty], tauto },
-  ..finset.has_sdiff,
-  ..finset.distrib_lattice,
-  ..finset.order_bot }
+instance : generalized_boolean_algebra (finset α) := generalized_boolean_algebra.to_boolean_algebra
 
 lemma not_mem_sdiff_of_mem_right (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]

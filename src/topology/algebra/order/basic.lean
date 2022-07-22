@@ -2006,45 +2006,40 @@ tendsto_inv_zero_at_top.comp h
 
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
-lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (zpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
+lemma tendsto_pow_neg_at_top {n : ℕ} (hn : n ≠ 0) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
+by simpa only [zpow_neg, zpow_coe_nat] using (@tendsto_pow_at_top α _ _ hn).inv_tendsto_at_top
 
 lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=
 begin
-  have : 1 ≤ -n := le_neg.mp (int.le_of_lt_add_one (hn.trans_le (neg_add_self 1).symm.le)),
-  apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
   lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
-  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+  rw [← neg_pos, ← h, nat.cast_pos] at hn,
+  simpa only [h, neg_neg] using tendsto_pow_neg_at_top hn.ne'
 end
 
 lemma tendsto_const_mul_zpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
   tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
 (mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_zpow_at_top_zero hn))
 
-lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+lemma tendsto_const_mul_pow_nhds_iff' {n : ℕ} {c d : α} :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ (c = 0 ∨ n = 0) ∧ c = d :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have hn : n = 0,
-    { by_contradiction hn,
-      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
-      by_cases hc' : 0 < c,
-      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
-        exact not_tendsto_nhds_of_tendsto_at_top this d h },
-      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
-        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
-    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
-    rw [this, tendsto_const_nhds_iff] at h,
-    exact ⟨hn, h⟩ },
-  { obtain ⟨hn, hcd⟩ := h,
-    simpa [hn, hcd] using tendsto_const_nhds }
+  rcases eq_or_ne n 0 with (rfl|hn),
+  { simp [tendsto_const_nhds_iff] },
+  rcases lt_trichotomy c 0 with hc|rfl|hc,
+  { have := tendsto_const_mul_pow_at_bot_iff.2 ⟨hn, hc⟩,
+    simp [not_tendsto_nhds_of_tendsto_at_bot this, hc.ne, hn] },
+  { simp [tendsto_const_nhds_iff] },
+  { have := tendsto_const_mul_pow_at_top_iff.2 ⟨hn, hc⟩,
+    simp [not_tendsto_nhds_of_tendsto_at_top this, hc.ne', hn] }
 end
 
-lemma tendsto_const_mul_zpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
-    (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
+lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+by simp [tendsto_const_mul_pow_nhds_iff', hc]
+
+lemma tendsto_const_mul_zpow_at_top_nhds_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { by_cases hn : 0 ≤ n,

@@ -665,7 +665,7 @@ begin
   rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
   use s,
   -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
-  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm (zero_locus {f})ᶜ, ← set.diff_eq,
            set.diff_eq_empty, hI, ← zero_locus_supr],
   rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
   apply zero_locus_anti_mono,

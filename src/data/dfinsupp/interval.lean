@@ -70,16 +70,14 @@ end finset
 open finset
 
 namespace dfinsupp
-variables [decidable_eq ι] [Π i, decidable_eq (α i)]
 
 section bundled_singleton
 variables [Π i, has_zero (α i)] {f : Π₀ i, α i} {i : ι} {a : α i}
 
 /-- Pointwise `finset.singleton` bundled as a `dfinsupp`. -/
 def singleton (f : Π₀ i, α i) : Π₀ i, finset (α i) :=
-⟦{ to_fun := λ i, {f i},
-  pre_support := f.support.1,
-  zero := λ i, (ne_or_eq (f i) 0).imp mem_support_iff.2 (congr_arg _) }⟧
+{ to_fun := λ i, {f i},
+  support' := f.support'.map $ λ s, ⟨s, λ i, (s.prop i).imp id (congr_arg _) ⟩ }
 
 lemma mem_singleton_apply_iff : a ∈ f.singleton i ↔ a = f i := mem_singleton
 
@@ -91,20 +89,23 @@ variables [Π i, has_zero (α i)] [Π i, partial_order (α i)] [Π i, locally_fi
 
 /-- Pointwise `finset.Icc` bundled as a `dfinsupp`. -/
 def range_Icc (f g : Π₀ i, α i) : Π₀ i, finset (α i) :=
-⟦{ to_fun := λ i, Icc (f i) (g i),
-  pre_support := f.support.1 + g.support.1,
-  zero := λ i, begin
-    refine or_iff_not_imp_left.2 (λ h, _),
-    rw [not_mem_support_iff.1 (multiset.not_mem_mono (multiset.le_add_right _ _).subset h),
-      not_mem_support_iff.1 (multiset.not_mem_mono (multiset.le_add_left _ _).subset h)],
-    exact Icc_self _,
-  end }⟧
+{ to_fun := λ i, Icc (f i) (g i),
+  support' := f.support'.bind $ λ fs, g.support'.map $ λ gs,
+    ⟨fs + gs, λ i, or_iff_not_imp_left.2 $ λ h, begin
+      have hf : f i = 0 :=
+        (fs.prop i).resolve_left (multiset.not_mem_mono (multiset.le_add_right _ _).subset h),
+      have hg : g i = 0 :=
+        (gs.prop i).resolve_left (multiset.not_mem_mono (multiset.le_add_left _ _).subset h),
+      rw [hf, hg],
+      exact Icc_self _,
+    end⟩ }
 
 @[simp] lemma range_Icc_apply (f g : Π₀ i, α i) (i : ι) : f.range_Icc g i = Icc (f i) (g i) := rfl
 
 lemma mem_range_Icc_apply_iff : a ∈ f.range_Icc g i ↔ f i ≤ a ∧ a ≤ g i := mem_Icc
 
-lemma support_range_Icc_subset : (f.range_Icc g).support ⊆ f.support ∪ g.support :=
+lemma support_range_Icc_subset [decidable_eq ι] [Π i, decidable_eq (α i)] :
+  (f.range_Icc g).support ⊆ f.support ∪ g.support :=
 begin
   refine λ x hx, _,
   by_contra,
@@ -119,7 +120,7 @@ end
 end bundled_Icc
 
 section pi
-variables [Π i, has_zero (α i)]
+variables [Π i, has_zero (α i)] [decidable_eq ι] [Π i, decidable_eq (α i)]
 
 /-- Given a finitely supported function `f : Π₀ i, finset (α i)`, one can define the finset
 `f.pi` of all finitely supported functions whose value at `i` is in `f i` for all `i`. -/
@@ -137,6 +138,7 @@ end
 end pi
 
 section locally_finite
+variables [decidable_eq ι] [Π i, decidable_eq (α i)]
 variables [Π i, partial_order (α i)] [Π i, has_zero (α i)] [Π i, locally_finite_order (α i)]
 
 instance : locally_finite_order (Π₀ i, α i) :=

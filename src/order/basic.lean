@@ -29,6 +29,7 @@ classes and allows to transfer order instances.
 
 * `has_sup`: type class for the `⊔` notation
 * `has_inf`: type class for the `⊓` notation
+* `has_compl`: type class for the complement operator
 * `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
@@ -446,6 +447,27 @@ linear_order.ext $ λ _ _, iff.rfl
 
 end order_dual
 
+/-! ### `has_compl` -/
+
+/-- Set / lattice complement -/
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
+
+instance Prop.has_compl : has_compl Prop := ⟨not⟩
+
+instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
+  has_compl (Π i, α i) :=
+⟨λ x i, (x i)ᶜ⟩
+
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
 /-! ### Order instances on the function space -/
 
 instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
@@ -494,25 +516,6 @@ lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] 
 @[simp]
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
-
-/-- Set / lattice complement -/
-@[notation_class] class has_compl (α : Type*) := (compl : α → α)
-
-export has_compl (compl)
-
-postfix `ᶜ`:(max+1) := compl
-
-instance Prop.has_compl : has_compl Prop := ⟨not⟩ 
-
-instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
-  has_compl (Π i, α i) :=
-⟨λ x i, (x i)ᶜ⟩
-
-lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
-  xᶜ = λ i, (x i)ᶜ := rfl
-
-instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
-instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
 
 @[simp]
 lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :

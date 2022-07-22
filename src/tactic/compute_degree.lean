@@ -405,8 +405,8 @@ do t ← target,
   ad ← to_expr ``(@has_add.add (@polynomial %%R %%inst)
     (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
   summ ← list_binary_operands ad pol,
-  just_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
-  let low_degs := prod.mk ff <$> just_degs.map to_pexpr,
+  small_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
+  let low_degs := prod.mk ff <$> small_degs.map to_pexpr,
   --  would be nice to not have to `try move_op` and simply do it!
   try $ move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
   iterate_at_most low_degs.length $

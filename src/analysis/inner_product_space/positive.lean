@@ -19,10 +19,11 @@ of requiring self adjointness in the definition.
 
 ## Main statements
 
-* `continuous_linear_map.is_positive.conj_adjoint` : if `T : E →L[𝕜] E` is positive, then for any `S : E →L[𝕜] F`,
-  `S ∘L T ∘L S†` is also positive.
-* `continuous_linear_map.is_positive_iff_complex` : in a ***complex*** hilbert space, checking that `⟪T x, x⟫` is a
-  nonnegative real number for all `x` suffices to prove that `T` is positive
+* `continuous_linear_map.is_positive.conj_adjoint` : if `T : E →L[𝕜] E` is positive,
+  then for any `S : E →L[𝕜] F`, `S ∘L T ∘L S†` is also positive.
+* `continuous_linear_map.is_positive_iff_complex` : in a ***complex*** hilbert space,
+  checking that `⟪T x, x⟫` is a nonnegative real number for all `x` suffices to prove that
+  `T` is positive
 
 ## References
 
@@ -100,8 +101,8 @@ begin
   rwa (orthogonal_projection_is_self_adjoint U).adjoint_eq at this
 end
 
-lemma is_positive.orthogonal_projection_comp [complete_space E] {T : E →L[𝕜] E} (hT : T.is_positive)
-  (U : submodule 𝕜 E) [complete_space U] :
+lemma is_positive.orthogonal_projection_comp [complete_space E] {T : E →L[𝕜] E}
+  (hT : T.is_positive) (U : submodule 𝕜 E) [complete_space U] :
   (orthogonal_projection U ∘L T ∘L U.subtypeL).is_positive :=
 begin
   have := hT.conj_adjoint (orthogonal_projection U : E →L[𝕜] U),

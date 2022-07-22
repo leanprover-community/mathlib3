@@ -502,38 +502,27 @@ lemma exists_smooth_forall_mem_convex_of_local_const (ht : ∀ x, convex ℝ (t 
 exists_smooth_forall_mem_convex_of_local I ht $ λ x,
   let ⟨c, hc⟩ := Hloc x in ⟨_, hc, λ _, c, smooth_on_const, λ y, id⟩
 
-/-- Let `X` be an extended metric space. Let `K : ι → set X` be a locally finite family of closed
-sets, let `U : ι → set X` be a family of open sets such that `K i ⊆ U i` for all `i`. Then there
-exists a positive continuous function `δ : X → ℝ≥0` such that for any `i` and `x ∈ K i`,
-we have `emetric.closed_ball x (δ x) ⊆ U i`. -/
-lemma emetric.exists_smooth_forall_closed_ball_subset [emetric_space M] [charted_space H M]
-  [smooth_manifold_with_corners I M] [sigma_compact_space M] [t2_space M] {K : ι → set M}
+/-- Let `M` be a smooth σ-compact manifold with extended distance. Let `K : ι → set M` be a locally
+finite family of closed sets, let `U : ι → set M` be a family of open sets such that `K i ⊆ U i` for
+all `i`. Then there exists a positive smooth function `δ : M → ℝ≥0` such that for any `i` and
+`x ∈ K i`, we have `emetric.closed_ball x (δ x) ⊆ U i`. -/
+lemma emetric.exists_smooth_forall_closed_ball_subset {M} [emetric_space M] [charted_space H M]
+  [smooth_manifold_with_corners I M] [sigma_compact_space M] {K : ι → set M}
   {U : ι → set M} (hK : ∀ i, is_closed (K i)) (hU : ∀ i, is_open (U i)) (hKU : ∀ i, K i ⊆ U i)
   (hfin : locally_finite K) :
   ∃ δ : C^∞⟮I, M; 𝓘(ℝ, ℝ), ℝ⟯, (∀ x, 0 < δ x) ∧
     ∀ i (x ∈ K i), emetric.closed_ball x (ennreal.of_real (δ x)) ⊆ U i :=
-begin
-  suffices : ∃ δ : C^∞⟮I, M; 𝓘(ℝ, ℝ), ℝ⟯, ∀ x,
-    δ x ∈ Ioi 0 ∩ ennreal.of_real ⁻¹' (⋂ i (hi : x ∈ K i), Iio (emetric.inf_edist x (U i)ᶜ)),
-  { choose δ hδ0 hδ_lt,
-    replace hδ_lt : ∀ x i, x ∈ K i → ennreal.of_real (δ x) < emetric.inf_edist x (U i)ᶜ,
-      by simpa using hδ_lt,
-    exact ⟨δ, hδ0, λ i x hx, disjoint_compl_right_iff_subset.mp
-      (emetric.disjoint_closed_ball_of_lt_inf_edist $ hδ_lt _ _ hx)⟩ },
-  refine exists_smooth_forall_mem_convex_of_local I (λ x, _) (λ x, _),
-  { refine (convex_Ioi _).inter (ord_connected.preimage_ennreal_of_real _).convex,
-    exact ord_connected_Inter (λ i, ord_connected_Inter $ λ _, ord_connected_Iio) },
-  { rcases emetric.exists_nhds_nnreal_pos_forall_closed_ball_subset hK hU hKU hfin x
-      with ⟨V, hV, r, hr⟩,
-    exact ⟨V, hV, λ _, r, smooth_on_const, hr⟩ }
-end
+by simpa only [mem_inter_eq, forall_and_distrib, mem_preimage, mem_Inter, @forall_swap ι M]
+  using exists_smooth_forall_mem_convex_of_local_const I
+    emetric.exists_forall_closed_ball_subset_aux₂
+    (emetric.exists_forall_closed_ball_subset_aux₁ hK hU hKU hfin)
 
-/-- Let `X` be a metric space. Let `K : ι → set X` be a locally finite family of closed sets, let
-`U : ι → set X` be a family of open sets such that `K i ⊆ U i` for all `i`. Then there exists a
-positive continuous function `δ : X → ℝ≥0` such that for any `i` and `x ∈ K i`, we have
-`metric.closed_ball x (δ x) ⊆ U i`. -/
-lemma metric.exists_smooth_forall_closed_ball_subset [metric_space M] [charted_space H M]
-  [smooth_manifold_with_corners I M] [sigma_compact_space M] [t2_space M] {K : ι → set M}
+/-- Let `M` be a smooth σ-compact manifold with a metric. Let `K : ι → set M` be a locally finite
+family of closed sets, let `U : ι → set M` be a family of open sets such that `K i ⊆ U i` for all
+`i`. Then there exists a positive smooth function `δ : M → ℝ≥0` such that for any `i` and `x ∈ K i`,
+we have `metric.closed_ball x (δ x) ⊆ U i`. -/
+lemma metric.exists_smooth_forall_closed_ball_subset {M} [metric_space M] [charted_space H M]
+  [smooth_manifold_with_corners I M] [sigma_compact_space M] {K : ι → set M}
   {U : ι → set M} (hK : ∀ i, is_closed (K i)) (hU : ∀ i, is_open (U i)) (hKU : ∀ i, K i ⊆ U i)
   (hfin : locally_finite K) :
   ∃ δ : C^∞⟮I, M; 𝓘(ℝ, ℝ), ℝ⟯, (∀ x, 0 < δ x) ∧ ∀ i (x ∈ K i), metric.closed_ball x (δ x) ⊆ U i :=

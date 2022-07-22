@@ -486,22 +486,27 @@ begin
 end
 
 
-private def exhaustion := { ℱ : set (set V) // ℱ ⊆ finsubsets ∧ ∀ K : @finsubsets V _ _ _, ∃ F : ℱ, K.val ⊆ F }
-private def fin_exh : exhaustion := ⟨@finsubsets V _ _ _,⟨set.subset.refl _,(λ K, ⟨K,set.subset.refl _⟩)⟩⟩
-private def fin_exh_up (K : @finsubsets V _ _ _) : exhaustion := ⟨up K, ⟨up_sub K, up_cofin K⟩⟩
+
+
+private structure fam :=
+  (fam: set (set V))
+  (fin: fam ⊆ finsubsets)
+  (cof: ∀ K : @finsubsets V _ _ _, ∃ F : fam, K.val ⊆ F)
+private def fin_fam : fam := ⟨@finsubsets V _ _ _,set.subset.refl _,(λ K, ⟨K,set.subset.refl _⟩)⟩
+private def fin_fam_up (K : @finsubsets V _ _ _) : fam := ⟨up K,up_sub K, up_cofin K⟩
 
 
 
 
-def ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :=
-{ f : Π (K : ℱ), inf_components G K.val | ∀ K L : ℱ, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) }
+def ends_for (ℱ : @fam V _ _ _) :=
+{ f : Π (K : ℱ.1), inf_components G K.val | ∀ K L : ℱ.1, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) }
 
-lemma ends_for_directed (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val)
-  (g : ends_for G ℱ H ℱ_cofin) (K L : ℱ) :
-  ∃ (F : ℱ) (hK : K.val ⊆ F.val) (hL : L.val ⊆ F.val),
+lemma ends_for_directed  (ℱ : @fam V _ _ _)
+  (g : ends_for G ℱ) (K L : ℱ.1) :
+  ∃ (F : ℱ.1) (hK : K.val ⊆ F.val) (hL : L.val ⊆ F.val),
     g.1 K = bwd_map G hK (g.1 F) ∧ g.1 L = bwd_map G hL (g.1 F) :=
 begin
-  rcases (ℱ_cofin ⟨K.val∪L.val,set.finite_union.mpr ⟨(H K.prop),(H L.prop)⟩⟩) with ⟨F,F_good⟩,
+  rcases (ℱ.cof ⟨K.val∪L.val,set.finite_union.mpr ⟨(ℱ.fin K.prop),(ℱ.fin L.prop)⟩⟩) with ⟨F,F_good⟩,
   use F,
   use (set.subset_union_left K.val L.val).trans F_good,
   use (set.subset_union_right K.val L.val).trans F_good,
@@ -510,41 +515,35 @@ begin
     apply g.2,}
  end
 
-def ends := ends_for G finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl K.val⟩)
+def ends := ends_for G (@fin_fam V _ _ _)
 
 
 
-def to_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends G → ends_for G ℱ H ℱ_cofin :=
-/-| ⟨f,f_comm⟩ := ⟨ λ K, f ⟨K, H K.property⟩
-                , λ K L hKL, f_comm (set.inclusion H K) (set.inclusion H L) hKL⟩
--/
-λ f : ends G, ⟨ λ K, f.1 ⟨K, H K.property⟩
-                , λ K L hKL, f.2 (set.inclusion H K) (set.inclusion H L) hKL⟩
+def to_ends_for (ℱ : fam) : ends G → ends_for G ℱ :=
+λ f : ends G, ⟨ λ K, f.1 ⟨K, ℱ.fin K.property⟩
+                , λ K L hKL, f.2 (set.inclusion ℱ.fin K) (set.inclusion ℱ.fin L) hKL⟩
 
-def to_ends_for_def (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val)
-  (e : ends G) (K : ℱ) :
-  e.val (⟨K.val,mem_of_subset_of_mem H K.prop⟩ : finsubsets) = (to_ends_for G ℱ H ℱ_cofin e).val K := refl _
+def to_ends_for_def (ℱ : fam) (e : ends G) (K : ℱ.fam) :
+  e.val (⟨K.val,mem_of_subset_of_mem ℱ.fin K.prop⟩ : finsubsets) = (to_ends_for G ℱ e).val K := refl _
 
 
 
-def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends_for G ℱ H ℱ_cofin → ends G :=
+def of_ends_for (ℱ : fam) : ends_for G ℱ → ends G :=
 λ g,
   let
     f : Π (K : finsubsets), inf_components G K.val := λ K,
       let
-        F := classical.some (ℱ_cofin K)
-      , K_sub_F := classical.some_spec (ℱ_cofin K)
+        F := classical.some (ℱ.cof K)
+      , K_sub_F := classical.some_spec (ℱ.cof K)
       in
         bwd_map G K_sub_F (g.1 F)
   , f_comm : ∀ K L : finsubsets, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) := λ K L hKL, by
     { --simp *,
-      let FK := some (ℱ_cofin K),
-      let K_FK := some_spec (ℱ_cofin K),
-      let FL := some (ℱ_cofin L),
-      let L_FL := some_spec (ℱ_cofin L),
-      rcases ends_for_directed G ℱ H ℱ_cofin g FK FL with ⟨M,FK_M,FL_M,backK,backL⟩,
+      let FK := some (ℱ.cof K),
+      let K_FK := some_spec (ℱ.cof K),
+      let FL := some (ℱ.cof L),
+      let L_FL := some_spec (ℱ.cof L),
+      rcases ends_for_directed G ℱ H ℱ.cof g FK FL with ⟨M,FK_M,FL_M,backK,backL⟩,
       have hey : f K = bwd_map G K_FK (g.1 FK), by simpa,
       have hoo : f L = bwd_map G L_FL (g.1 FL), by simpa,
       rw [hey,hoo,backK,backL,bwd_map_comp',bwd_map_comp',bwd_map_comp'],}
@@ -552,10 +551,9 @@ def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
     ⟨f,f_comm⟩
 
 -- Thanks Kyle Miller
-def equiv_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends G ≃ ends_for G ℱ H ℱ_cofin :=
-{ to_fun := to_ends_for G ℱ H ℱ_cofin,
-  inv_fun := of_ends_for G ℱ H ℱ_cofin,
+def equiv_ends_for (ℱ : fam) : ends G ≃ ends_for G ℱ :=
+{ to_fun := to_ends_for G ℱ,
+  inv_fun := of_ends_for G ℱ,
   left_inv := begin
     rintro ⟨g, g_comm⟩,
     simp only [of_ends_for, to_ends_for, comp_app, id.def, subtype.mk_eq_mk],
@@ -588,29 +586,25 @@ begin
 end
 
 
-def eval_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) (K : ℱ):
-  ends_for G ℱ H ℱ_cofin → inf_components G K := λ e, e.val K
+def eval_for (ℱ : fam) (K : ℱ.fam):
+  ends_for G ℱ → inf_components G K := λ e, e.val K
 
 
-def eval (K : @finsubsets V _ _ _): ends G → inf_components G K :=
-eval_for G finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl K.val⟩) K
+def eval (K : @finsubsets V _ _ _): ends G → inf_components G K := eval_for G fin_fam K
 
 
-def eval_comm  (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) (K : ℱ) (e : ends G) :
-  eval_for G ℱ H ℱ_cofin K (equiv_ends_for G ℱ H ℱ_cofin e) = @eval V G _ _ _ _ _ ⟨K.val,H K.prop⟩ e :=
+def eval_comm  (ℱ : fam) (K : ℱ.fam) (e : ends G) :
+  eval_for G ℱ K (equiv_ends_for G ℱ e) = @eval V G _ _ _ _ _ ⟨K.val,ℱ.fin K.prop⟩ e :=
 begin
   simp only [eval, eval_for, equiv_ends_for, equiv.coe_fn_mk],
   rw [←to_ends_for_def],
-  simpa only,
 end
 
-
-/- This is the family of finite sets containing K-/
 
 
 lemma eval_injective_for_up (K : finsubsets)
   (inj_from_K : ∀ L : @finsubsets V _ _ _, K.val ⊆ L.val → injective (bwd_map G ‹K.val⊆L.val›)) :
-  injective (eval_for G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩) :=
+  injective (eval_for G (fin_fam_up K) ⟨K,in_up K⟩) :=
 begin
   rintros e₁ e₂,
   simp only [eval_for, subtype.val_eq_coe],
@@ -628,12 +622,12 @@ lemma eval_injective (K : finsubsets)
   injective (eval G K) :=
 begin
   rintros e₁ e₂ same,
-  let f₁ := (equiv_ends_for G (up K) (up_sub K) (up_cofin K)) e₁,
-  let f₂ := (equiv_ends_for G (up K) (up_sub K) (up_cofin K)) e₂,
+  let f₁ := (equiv_ends_for G (fin_fam_up K)) e₁,
+  let f₂ := (equiv_ends_for G (fin_fam_up K)) e₂,
   have : f₁ = f₂, by {
     apply eval_injective_for_up G K inj_from_K,
-    rw [ eval_comm G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩ e₁,
-         eval_comm G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩ e₂],
+    rw [ eval_comm G (fin_fam_up K) ⟨K,in_up K⟩ e₁,
+         eval_comm G (fin_fam_up K) ⟨K,in_up K⟩ e₂],
     dsimp only,
     have lol : K = ⟨↑K,K.2⟩, by simp,
     rw lol at same,
@@ -642,9 +636,19 @@ begin
   simpa only [embedding_like.apply_eq_iff_eq],
 end
 
-lemma extend_along (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
-  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-  Π i : ℕ, inf_components G (f i) :=
+
+structure nat_fam :=
+  (f : ℕ → set V)
+  (zero : (f 0).nonempty)
+ -- (fin : ∀ n, (f n) ∈ finsubsets V)
+  (mon: ∀ m  n, m ≤ n → f m ⊆ f n)
+  (cof: ∀ K : @finsubsets V _ _ _, ∃ n : ℕ, K.val ⊆ f n)
+
+
+def nat_fam_to_fam  (nf : @nat_fam V _ _ _) : @fam V _ _ _ := sorry
+
+lemma extend_along (nf : @nat_fam V _ _ _) (C : inf_components G (nf.f 0)) :
+  Π i : ℕ, inf_components G (nf.f i) :=
 nat.rec
   (by {exact C})
   (λ k extend_along_k, some $ bwd_map_surjective G (fmon k (k+1) (nat.le_succ k))
@@ -657,16 +661,13 @@ nat.rec
 
 lemma extend_along_comm_add (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
   (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-let
-  e := extend_along G f fmon Knempty Kfinite C
-in
+let e := extend_along G f fmon Knempty Kfinite C in
   ∀ (i j : ℕ), (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i :=
-let
-  e := extend_along G f fmon Knempty Kfinite C
-in  λ i, @nat.rec
-      (λ j, (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i)
-      (by {apply bwd_map_refl,})
-      (λ j hj, by {rw ←hj,sorry})
+let e := extend_along G f fmon Knempty Kfinite C in
+λ i, @nat.rec
+  (λ j, (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i)
+  (by {apply bwd_map_refl,})
+  (λ j hj, by {rw ←hj,sorry})
 
 lemma extend_along_comm (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
   (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
@@ -686,15 +687,68 @@ lemma extend_along_spec (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤
   (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
 extend_along G f fmon Knempty Kfinite C 0 = C := by {sorry} -- should be by def ??
 
+lemma extend_along_fam
+  (f : ℕ → @finsubsets V _ _ _)
+  (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
+  (fcof: ∀ K : @finsubsets V _ _ _, ∃ n : ℕ, K.val ⊆ f n)
+  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
+  end_for
+
+/-
+def enum_fam_def
+  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
+  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) : ℕ → @finsubsets V _ _ _ :=
+  λ n, ⟨K ∪ enum '' {j | j < n}, sorry⟩
+
+lemma enum_fam_zero
+  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
+  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
+  (enum_fam_def G enum Knempty Kfinite C 0).val = K :=
+begin
+  unfold enum_fam_def,simp,
+end
+
+lemma enum_fam_mono
+  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
+  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
+  ∀ (i j : ℕ), i ≤ j → (enum_fam_def G enum Knempty Kfinite C i).val ⊆ (enum_fam_def G enum Knempty Kfinite C j).val :=
+λ i j ilej, set.union_subset_union (subset_refl K) (set.image_subset _ (λ n nlei, le_trans (by {simp at nlei,exact nlei}) ilej))
+
+lemma enum_fam_cof
+  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
+  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
+  ∀ F : finsubsets, ∃ n : ℕ, F.val ⊆ (enum_fam_def G enum Knempty Kfinite C n).val :=
+begin
+  rintros ⟨F,Ffin⟩,
+  have : ∃ M : ℕ, enum.inv_fun '' F ⊆ {j : ℕ | j < M}, by sorry,
+  rcases this with ⟨M,Mbound⟩,
+  use M,
+  simp,
+  rintros v vF,
+  have : v ∈ enum.to_fun '' {j : ℕ | j < M}, by sorry,
+  exact set.mem_union_right K this,
+end
+
+def enum_fam  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
+  (Knempty : K.nonempty) (Kfinite : K.finite) : fam = ⟨enum_fam_def enum Knempty Kfinite, ⟩
+-/
+
+
 lemma of_component
   (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
   (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
   ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
 begin
-  sorry
+
+  let fenum_fam := enum_fam G enum Knempty Kfinite C,
+  let fenum_fam_cof := enum_fam_cof G enum Knempty Kfinite C,
+  let fenum_fam_mono := enum_fam_mono G enum Knempty Kfinite C,
+  have lol := (enum_fam_zero G enum Knempty Kfinite C).symm,
+  let fe := extend_along G fenum_fam fenum_fam_mono (lol ▸ Knempty) (lol ▸ Kfinite) (sorry /- lol ▸ c-/),
+  let e : ends_for
+
   /-
-  Construct the function ℕ → finsubsets defined as sending i to K ∪ enum '' { j | j ≤ i}.
-  Show that this is monotone, and cofinal
+
   use extend_along on this function
   get an element of ends_for and an element of ends
   -/

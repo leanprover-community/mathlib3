@@ -134,6 +134,8 @@ instance : boolean_algebra (finset α) :=
   ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
 
+lemma sdiff_eq_inter_compl (s t : finset α) : s \ t = s ∩ tᶜ := sdiff_eq
+
 lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 
 @[simp] lemma mem_compl : a ∈ sᶜ ↔ a ∉ s := by simp [compl_eq_univ_sdiff]

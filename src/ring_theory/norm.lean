@@ -73,7 +73,7 @@ variables {R}
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
-by rw [norm_apply, ← linear_map.det_to_matrix b, to_matrix_lmul_eq]
+by { rwa [norm_apply, ← linear_map.det_to_matrix b, ← to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the norm is `x ^ [L : K]`. -/
 lemma norm_algebra_map_of_basis (b : basis ι R S) (x : R) :

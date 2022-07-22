@@ -252,6 +252,7 @@ lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.suppo
 /-! ### Factorization and divisibility -/
 
 /-- The largest power of `p` that divides into `n`.  For `p = 2` this is the even part of `n` -/
+-- @[reducible]
 def padic_part (n p : ℕ) := p ^ n.factorization p
 
 /-- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n` -/

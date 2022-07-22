@@ -630,17 +630,20 @@ splitting_field_aux.field _ _
 
 instance inhabited : inhabited (splitting_field f) := ⟨37⟩
 
-/-- This should be an instance globally, but it creates diamonds with the `ℕ` and `ℤ` actions:
+/-- This should be an instance globally, but it creates diamonds with the `ℕ`, `ℤ`, and `ℚ` algebras
+(via their `smul` and `to_fun` fields):
 
 ```lean
 example :
-  (add_comm_monoid.nat_module : module ℕ (splitting_field f)) =
-    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+  (algebra_nat : algebra ℕ (splitting_field f)) = splitting_field.algebra' f :=
 rfl  -- fails
 
 example :
-  (add_comm_group.int_module _ : module ℤ (splitting_field f)) =
-    @algebra.to_module _ _ _ _ (splitting_field.algebra' f) :=
+  (algebra_int _ : algebra ℤ (splitting_field f)) = splitting_field.algebra' f :=
+rfl  -- fails
+
+example [char_zero K] [char_zero (splitting_field f)] :
+  (algebra_rat : algebra ℚ (splitting_field f)) = splitting_field.algebra' f :=
 rfl  -- fails
 ```
 
@@ -649,8 +652,8 @@ Until we resolve these diamonds, it's more convenient to only turn this instance
 
 In the meantime, the `splitting_field.algebra` instance below is immune to these particular diamonds
 since `K = ℕ` and `K = ℤ` are not possible due to the `field K` assumption. Diamonds in
-`algebra ℚ (splitting_field f)` instances are still possible, but this is a problem throughout the
-library and not unique to this `algebra` instance.
+`algebra ℚ (splitting_field f)` instances are still possible via this instance unfortunately, but
+these are less common as they require suitable `char_zero` instances to be present.
 -/
 instance algebra' {R} [comm_semiring R] [algebra R K] : algebra R (splitting_field f) :=
 splitting_field_aux.algebra _ _ _

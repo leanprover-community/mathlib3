@@ -2,6 +2,7 @@ import tactic.positivity
 import data.real.sqrt
 import analysis.normed.group.basic
 
+namespace tactic
 
 lemma lemma9 {x : ℝ} (hx : 0 < x) : 0 < real.sqrt x := real.sqrt_pos.mpr hx
 
@@ -23,3 +24,5 @@ meta def positivity_norm : expr → tactic (bool × expr)
 meta def positivity_dist : expr → tactic (bool × expr)
 | `(dist %%a %%b) := do prod.mk ff <$> mk_app ``dist_nonneg [a, b]
 | _ := failed
+
+end tactic

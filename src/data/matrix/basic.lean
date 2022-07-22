@@ -1370,6 +1370,7 @@ lemma transpose_map {f : α → β} {M : matrix m n α} : Mᵀ.map f = (M.map f)
 by { ext, refl }
 
 variables (m n α)
+
 /-- `matrix.transpose` as an `add_equiv` -/
 @[simps apply]
 def transpose_add_equiv [has_add α] : matrix m n α ≃+ matrix n m α :=
@@ -1381,7 +1382,9 @@ def transpose_add_equiv [has_add α] : matrix m n α ≃+ matrix n m α :=
 
 @[simp] lemma transpose_add_equiv_symm [has_add α] :
   (transpose_add_equiv m n α).symm = transpose_add_equiv n m α := rfl
+
 variables {m n α}
+
 lemma transpose_list_sum [add_monoid α] (l : list (matrix m n α)) :
   l.sumᵀ = (l.map transpose).sum :=
 (transpose_add_equiv m n α).to_add_monoid_hom.map_list_sum l
@@ -1395,6 +1398,7 @@ lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι �
 (transpose_add_equiv m n α).to_add_monoid_hom.map_sum _ s
 
 variables (m n R α)
+
 /-- `matrix.transpose` as a `linear_map` -/
 @[simps apply]
 def transpose_linear_equiv [semiring R] [add_comm_monoid α] [module R α] :
@@ -1403,9 +1407,11 @@ def transpose_linear_equiv [semiring R] [add_comm_monoid α] [module R α] :
 
 @[simp] lemma transpose_linear_equiv_symm [semiring R] [add_comm_monoid α] [module R α] :
   (transpose_linear_equiv m n R α).symm = transpose_linear_equiv n m R α := rfl
+
 variables {m n R α}
 
 variables (m α)
+
 /-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
 def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
@@ -1415,6 +1421,7 @@ def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
   map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
     (mul_opposite.op_mul _ _),
   ..(transpose_add_equiv m m α).trans mul_opposite.op_add_equiv }
+
 variables {m α}
 
 @[simp] lemma transpose_pow [comm_semiring α] [fintype m] [decidable_eq m] (M : matrix m m α)
@@ -1426,6 +1433,7 @@ lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : l
 (transpose_ring_equiv m α).unop_map_list_prod l
 
 variables (R m α)
+
 /-- `matrix.transpose` as an `alg_equiv` to the opposite ring -/
 @[simps]
 def transpose_alg_equiv [comm_semiring R] [comm_semiring α] [fintype m] [decidable_eq m]
@@ -1435,6 +1443,7 @@ def transpose_alg_equiv [comm_semiring R] [comm_semiring α] [fintype m] [decida
                                   mul_opposite.algebra_map_apply],
   ..(transpose_add_equiv m m α).trans mul_opposite.op_add_equiv,
   ..transpose_ring_equiv m α }
+
 variables {R m α}
 
 end transpose
@@ -1538,7 +1547,9 @@ matrix.ext $ by simp [mul_apply]
 matrix.ext $ by simp
 
 /-- `matrix.conj_transpose` as an `add_equiv` -/
+
 variables (m n α)
+
 @[simps apply]
 def conj_transpose_add_equiv [add_monoid α] [star_add_monoid α] : matrix m n α ≃+ matrix n m α :=
 { to_fun := conj_transpose,
@@ -1549,6 +1560,7 @@ def conj_transpose_add_equiv [add_monoid α] [star_add_monoid α] : matrix m n �
 
 @[simp] lemma conj_transpose_add_equiv_symm [add_monoid α] [star_add_monoid α] :
   (conj_transpose_add_equiv m n α).symm = conj_transpose_add_equiv n m α := rfl
+
 variables {m n α}
 
 lemma conj_transpose_list_sum [add_monoid α] [star_add_monoid α] (l : list (matrix m n α)) :
@@ -1566,7 +1578,8 @@ lemma conj_transpose_sum [add_comm_monoid α] [star_add_monoid α] {ι : Type*} 
 (conj_transpose_add_equiv m n α).to_add_monoid_hom.map_sum _ s
 
 variables (m n R α)
-/-- `matrix.transpose` as a `linear_map` -/
+
+/-- `matrix.conj_transpose` as a `linear_map` -/
 @[simps apply]
 def conj_transpose_linear_equiv [comm_semiring R] [star_ring R] [add_comm_monoid α]
   [star_add_monoid α] [module R α] [star_module R α] : matrix m n α ≃ₗ⋆[R] matrix n m α :=
@@ -1575,6 +1588,7 @@ def conj_transpose_linear_equiv [comm_semiring R] [star_ring R] [add_comm_monoid
 @[simp] lemma conj_transpose_linear_equiv_symm [comm_semiring R] [star_ring R] [add_comm_monoid α]
   [star_add_monoid α] [module R α] [star_module R α] :
   (conj_transpose_linear_equiv m n R α).symm = conj_transpose_linear_equiv n m R α := rfl
+
 variables {m n R α}
 
 variables (m α)

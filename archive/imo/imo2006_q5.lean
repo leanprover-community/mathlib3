@@ -24,9 +24,9 @@ $P^k(t)=t$, then $P(P(t))=t$. We prove this by building the cyclic list
 $(P(t)-t,P^2(t)-P(t),\ldots)$, and showing that each entry divides the next, which by transitivity
 implies they all divide each other, and thus have the same absolute value.
 
-If the entries in this list are all pairwise equal, then we can show inductively that $P^n(t)-t$
-must always have the same sign as $P(t)-t$. Substituting $n=k$ gives us $P(t)=t$ and in particular
-$P(P(t))=t$.
+If the entries in this list are all pairwise equal, then we can show inductively that for positive
+$n$, $P^n(t)-t$ must always have the same sign as $P(t)-t$. Substituting $n=k$ gives us $P(t)=t$ and
+in particular $P(P(t))=t$.
 
 Otherwise, there must be two consecutive entries that are opposites of one another. This means
 $P^{n+2}(t)-P^{n+1}(t)=P^n(t)-P^{n+1}(t)$, which implies $P^{n+2}(t)=P^n(t)$ and $P(P(t))=t$.
@@ -56,7 +56,7 @@ theorem add_eq_add_of_nat_abs_eq_of_nat_abs_eq {a b c d : ℤ} (hne : a ≠ b)
 begin
   cases int.nat_abs_eq_nat_abs_iff.1 h₁ with h₁ h₁,
   { cases int.nat_abs_eq_nat_abs_iff.1 h₂ with h₂ h₂,
-    { exact (hne (by linarith)).elim  },
+    { exact (hne $ by linarith).elim  },
     { linarith } },
   { linarith }
 end
@@ -65,35 +65,31 @@ end
 theorem periodic_lemma {P : polynomial ℤ} {t : ℤ}
   (ht : t ∈ periodic_pts (λ x, P.eval x)) : is_periodic_pt (λ x, P.eval x) 2 t :=
 begin
-   -- The cycle [t, P(t), P(P(t)), ...].
-  let C₁ : cycle ℤ := periodic_orbit (λ x, P.eval x) t,
-  have HC₁ : ∀ {n : ℕ}, (λ x, P.eval x)^[n] t ∈ C₁ := iterate_mem_periodic_orbit ht,
-
   -- The cycle [P(t) - t, P(P(t)) - P(t), ...]
-  let C₂ : cycle ℤ := C₁.map (λ x, P.eval x - x),
-  have HC₂ : ∀ {n : ℕ}, (λ x, P.eval x)^[n + 1] t - ((λ x, P.eval x)^[n] t) ∈ C₂,
+  let C : cycle ℤ := (periodic_orbit (λ x, P.eval x) t).map (λ x, P.eval x - x),
+  have HC : ∀ {n : ℕ}, (λ x, P.eval x)^[n + 1] t - ((λ x, P.eval x)^[n] t) ∈ C,
   { intro n,
     rw [cycle.mem_map, function.iterate_succ_apply'],
-    exact ⟨_, HC₁, rfl⟩ },
+    exact ⟨_, iterate_mem_periodic_orbit ht n, rfl⟩ },
 
-  -- Elements in C₂ are all divisible by one another.
-  have Hdvd : C₂.chain (∣),
+  -- Elements in C are all divisible by one another.
+  have Hdvd : C.chain (∣),
   { rw [cycle.chain_map, periodic_orbit_chain' _ ht],
     intro n,
     convert sub_dvd_eval_sub ((λ x, P.eval x)^[n + 1] t) ((λ x, P.eval x)^[n] t) P;
     rw function.iterate_succ_apply' },
 
-  -- Any two entries in C₂ have the same absolute value.
+  -- Any two entries in C have the same absolute value.
   have Habs : ∀ m n : ℕ, ((λ x, P.eval x)^[m + 1] t - ((λ x, P.eval x)^[m] t)).nat_abs =
     ((λ x, P.eval x)^[n + 1] t - ((λ x, P.eval x)^[n] t)).nat_abs :=
-  λ m n, nat_abs_eq_of_chain_dvd Hdvd HC₂ HC₂,
+  λ m n, nat_abs_eq_of_chain_dvd Hdvd HC HC,
 
-  -- We case on whether the elements on C₂ are pairwise equal.
-  by_cases HC₂' : C₂.chain (=),
-  { -- Any two entries in C₂ are equal.
+  -- We case on whether the elements on C are pairwise equal.
+  by_cases HC' : C.chain (=),
+  { -- Any two entries in C are equal.
     have Heq : ∀ m n : ℕ, (λ x, P.eval x)^[m + 1] t - ((λ x, P.eval x)^[m] t) =
       ((λ x, P.eval x)^[n + 1] t - ((λ x, P.eval x)^[n] t)) :=
-    λ m n, cycle.chain_iff_pairwise.1 HC₂' _ HC₂ _ HC₂,
+    λ m n, cycle.chain_iff_pairwise.1 HC' _ HC _ HC,
 
     -- The sign of P^n(t) - t is the same as P(t) - t for positive n. Proven by induction on n.
     have IH : ∀ n : ℕ, ((λ x, P.eval x)^[n + 1] t - t).sign = (P.eval t - t).sign,
@@ -114,9 +110,9 @@ begin
         sub_eq_zero] at H,
       simp [is_periodic_pt, is_fixed_pt, H] } },
   { -- We take two nonequal consecutive entries.
-    rw [cycle.chain_map, periodic_orbit_chain' _ ht] at HC₂',
-    push_neg at HC₂',
-    cases HC₂' with n hn,
+    rw [cycle.chain_map, periodic_orbit_chain' _ ht] at HC',
+    push_neg at HC',
+    cases HC' with n hn,
 
     -- They must have opposite sign, so that P^{k + 1}(t) - P^k(t) = P^{k + 2}(t) - P^{k + 1}(t).
     cases int.nat_abs_eq_nat_abs_iff.1 (Habs n n.succ) with hn' hn',

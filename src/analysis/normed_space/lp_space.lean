@@ -164,7 +164,6 @@ end
 @[simp] lemma neg_iff {f : Π i, E i} : mem_ℓp (-f) p ↔ mem_ℓp f p :=
 ⟨λ h, neg_neg f ▸ h.neg, mem_ℓp.neg⟩
 
-
 lemma of_exponent_ge {p q : ℝ≥0∞} {f : Π i, E i}
   (hfq : mem_ℓp f q) (hpq : q ≤ p) :
   mem_ℓp f p :=
@@ -635,7 +634,6 @@ section normed_star_group
 
 variables [Π (i : α), star_add_monoid (E i)] [Π i, normed_star_group (E i)]
 
-
 lemma _root_.mem_ℓp.star_mem {f : Π i, E i}
   (hf : mem_ℓp f p) : mem_ℓp (star f) p :=
 begin
@@ -647,12 +645,9 @@ begin
   { apply mem_ℓp_gen,
     simpa using hf.summable hp },
 end
---
+
 instance : has_star (lp E p) :=
 { star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
-
-@[simp] lemma _root_.mem_ℓp.star_iff {f : Π i, E i} : mem_ℓp (star f) p ↔ mem_ℓp f p :=
-⟨λ h, star_star f ▸ mem_ℓp.star_mem h ,mem_ℓp.star_mem⟩
 
 @[simp] lemma coe_fn_star (f : lp E p) : ⇑(star f) = star f := rfl
 @[simp] protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) := rfl
@@ -728,7 +723,6 @@ instance infty_smul_comm_class {𝕜} [normed_field 𝕜] [Π i, normed_space �
 section star_ring
 
 variables [Π i, star_ring (B i)] [Π i, normed_star_group (B i)]
-
 
 instance infty_star_ring : star_ring (lp B ∞) :=
 { star_mul := λ f g, ext $ star_mul (_ : Π i, B i) _,

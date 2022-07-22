@@ -170,6 +170,16 @@ lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indi
 lemma to_measure_apply' (hs : measurable_set s) : p.to_measure s = ↑(∑' x, s.indicator p x) :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply' s)
 
+lemma to_measure_apply_singleton (a : α) (h : measurable_set ({a} : set α)) :
+  p.to_measure {a} = p a :=
+by simp [to_measure_apply_eq_to_outer_measure_apply p {a} h,
+  to_outer_measure_apply_singleton]
+
+lemma to_measure_apply_eq_zero_iff (hs : measurable_set s) :
+  p.to_measure s = 0 ↔ disjoint p.support s :=
+by rw [to_measure_apply_eq_to_outer_measure_apply p s hs,
+  to_outer_measure_apply_eq_zero_iff]
+
 lemma to_measure_apply_eq_one_iff (hs : measurable_set s) : p.to_measure s = 1 ↔ p.support ⊆ s :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs : p.to_measure s = p.to_outer_measure s).symm
   ▸ (p.to_outer_measure_apply_eq_one_iff s)

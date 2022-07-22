@@ -150,12 +150,9 @@ namespace subspace
 
 variables {α ι ι' ν ν' κ : Type*}
 
-def eval_at (s : subspace α ι ν) (w : ν → α) : ι → α :=
-λ i, sum.cases_on (s.idx_fun i) id w
-
-/-- A subspace `s` is a map from `ν`-indexed words over `α` to `ι`-indexed words over `α`. -/
+/-- A subspace `s` gives a map from `ν`-indexed words over `α` to `ι`-indexed words over `α`. -/
 instance (α ι ν) : has_coe_to_fun (subspace α ι ν) (λ _, (ν → α) → (ι → α)) :=
-⟨λ s x, s.eval_at x⟩
+⟨λ s x, λ i, sum.cases_on (s.idx_fun i) id x⟩
 
 lemma coe_eq (s : subspace α ι ν) (w : ν → α) : s w = λ i, sum.cases_on (s.idx_fun i) id w := rfl
 
@@ -164,7 +161,7 @@ def zero_dim [is_empty ν] (x : ι → α) : subspace α ι ν := ⟨(λ i, sum.
 
 /-- A bijection between `ι` and `ν` gives rise to a subspace over an arbitrary alphabet. -/
 def wildcard_equiv_index (α : Type*) (e : ι ≃ ν): subspace α ι ν :=
-  ⟨sum.inr ∘ e, λ n, ⟨e.symm n, by simp⟩⟩
+⟨sum.inr ∘ e, λ n, ⟨e.symm n, by simp⟩⟩
 
 /-- Every type `ν` gives rise to a subspace in which `ν` is both the wildcard and index type -/
 def wildcard_eq_index (α ν : Type*) : subspace α ν ν := wildcard_equiv_index α (equiv.refl ν)
@@ -193,20 +190,19 @@ begin
   exact ⟨⟨idx, proper⟩⟩,
 end
 
+/-- This lemma cannot be upgraded into an `inhabited` instance, since the injection cannot
+be constructively inverted.  -/
 lemma nonempty_of_nonempty (h : nonempty (α ⊕ ν)) (h' : nonempty (ν ↪ ι)) :
   nonempty (subspace α ι ν) :=
 nonempty_iff.mpr ⟨h', or.inl h⟩
 
-instance nonempty_of_unique [unique ν] [nonempty ι] : nonempty (subspace α ι ν) :=
-begin
-  inhabit ι,
-  exact nonempty_of_nonempty infer_instance ⟨⟨λ _, default, function.injective_of_subsingleton _⟩⟩,
-end
+instance inhabited_of_unique [unique ν] [inhabited ι] : inhabited (subspace α ι ν) :=
+ ⟨⟨λ i, sum.inr default, λ n, ⟨default, by rw unique.eq_default n⟩⟩⟩
 
-instance nonempty_of_empty_empty [is_empty ι] [is_empty ν] : nonempty (subspace α ι ν) :=
+instance inhabited_of_empty_empty [is_empty ι] [is_empty ν] : inhabited (subspace α ι ν) :=
 ⟨⟨is_empty_elim,is_empty_elim⟩⟩
 
-instance nonempty_of_wildcard_eq : nonempty (subspace α ν ν) := ⟨wildcard_eq_index _ _⟩
+instance inhabited_of_wildcard_eq : inhabited (subspace α ν ν) := ⟨wildcard_eq_index _ _⟩
 
 /- #### Colourings -/
 
@@ -312,9 +308,8 @@ lemma coe_eq_coe_of_dim_one [unique ν] (s : subspace α ι ν) (x : α) :
   (s (λ _, x) = equiv_line s x) :=
 begin
   ext i, unfold_coes,
-  simp only [to_line, eval_at, id.def, equiv.to_fun_as_coe, equiv_line_apply],
-  cases s.idx_fun i with a n;
-  refl,
+  simp only [to_line, id.def, equiv.to_fun_as_coe, equiv_line_apply],
+  obtain (a | n) := s.idx_fun i; refl,
 end
 
 lemma mono_iff_line_mono [nonempty α] [unique ν] {C : (ι → α) → κ} {s : subspace α ι ν} :

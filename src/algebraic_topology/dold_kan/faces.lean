@@ -61,8 +61,8 @@ lemma of_comp {Y Z : C} {q n : ℕ} {φ : Y ⟶ X _[n+1]}
   higher_faces_vanish q (f ≫ φ) := λ j hj,
 by rw [assoc, v j hj, comp_zero]
 
-lemma comp_Hσ_eq {Y : C} {n a q : ℕ} (hnaq : n=a+q) {φ : Y ⟶ X _[n+1]}
-  (v : higher_faces_vanish q φ) : φ ≫ (Hσ q).f (n+1) =
+lemma comp_Hσ_eq {Y : C} {n a q : ℕ} {φ : Y ⟶ X _[n+1]}
+  (v : higher_faces_vanish q φ) (hnaq : n=a+q) : φ ≫ (Hσ q).f (n+1) =
   - φ ≫ X.δ ⟨a+1, nat.succ_lt_succ (nat.lt_succ_iff.mpr (nat.le.intro hnaq.symm))⟩ ≫
     X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro hnaq.symm)⟩ :=
 begin
@@ -134,8 +134,8 @@ begin
     ring_exp, },
 end
 
-lemma comp_Hσ_eq_zero {Y : C} {n q : ℕ} (hqn : n<q) {φ : Y ⟶ X _[n+1]}
-  (v : higher_faces_vanish q φ) : φ ≫ (Hσ q).f (n+1) = 0 :=
+lemma comp_Hσ_eq_zero {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
+  (v : higher_faces_vanish q φ) (hqn : n<q) : φ ≫ (Hσ q).f (n+1) = 0 :=
 begin
   simp only [Hσ, homotopy.null_homotopic_map'_f (c_mk (n+2) (n+1) rfl) (c_mk (n+1) n rfl)],
   rw [hσ'_eq_zero hqn (c_mk (n+1) n rfl), comp_zero, zero_add],
@@ -168,10 +168,10 @@ begin
   simp only [comp_add, add_comp, comp_id],
   -- when n < q, the result follows immediately from the assumption
   by_cases hqn : n<q,
-  { rw [comp_Hσ_eq_zero hqn v, zero_comp, add_zero, v j (by linarith)], },
+  { rw [v.comp_Hσ_eq_zero hqn, zero_comp, add_zero, v j (by linarith)], },
   -- we now assume that n≥q, and write n=a+q
   cases nat.le.dest (not_lt.mp hqn) with a ha,
-  rw [comp_Hσ_eq (show n=a+q, by linarith) v, neg_comp, add_neg_eq_zero, assoc, assoc],
+  rw [v.comp_Hσ_eq (show n=a+q, by linarith), neg_comp, add_neg_eq_zero, assoc, assoc],
   cases n with m hm,
   -- the boundary case n=0
   { simpa only [nat.eq_zero_of_add_eq_zero_left ha, fin.eq_zero j,

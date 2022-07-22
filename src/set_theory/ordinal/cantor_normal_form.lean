@@ -151,4 +151,3 @@ theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
 by { rw [list.sorted, list.pairwise_map], exact CNF_pairwise b o }
 
 end ordinal
-#lint

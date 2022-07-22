@@ -1,11 +1,9 @@
-import data.rel
 import data.set.finite
 import data.sym.sym2
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import topology.metric_space.basic
 import data.setoid.partition
-import logic.relation
 
 open function
 open finset
@@ -104,11 +102,9 @@ end connected_outside
 
 open simple_graph.connected_outside
 
-
 def components (K : set V) : set (set V) := {C : set V | ∃ x ∈ C, C = {y : V | c_o G K x y}}
 
 namespace component
-
 
 variable (K : set V)
 
@@ -475,7 +471,25 @@ variables {K L L' M : set V}
           (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M)
           (K_sub_L' : K ⊆ L') (L'_sub_M : L' ⊆ M)
 
+
+
 private def finsubsets := {K : set V | K.finite}
+
+private def up (K : @finsubsets V _ _ _) := {L ∈ @finsubsets V _ _ _ | K.val ⊆ L}
+private lemma up_sub  (K : finsubsets)  : up K ⊆ @finsubsets V _ _ _ := λ K H, H.1
+private lemma in_up  (K : @finsubsets V _ _ _) : K.val ∈ (up K) := ⟨K.prop,set.subset.refl K.val⟩
+private lemma up_cofin  (K : @finsubsets V _ _ _) :
+  ∀ M : @finsubsets V _ _ _, ∃ L : up K, M.val ⊆ L := λ M,
+begin
+  use ⟨M.val ∪ K.val, set.finite.union M.prop K.prop, set.subset_union_right M.val K.val⟩,
+  exact set.subset_union_left M.val K.val,
+end
+
+
+private def exhaustion := { ℱ : set (set V) // ℱ ⊆ finsubsets ∧ ∀ K : @finsubsets V _ _ _, ∃ F : ℱ, K.val ⊆ F }
+private def fin_exh : exhaustion := ⟨@finsubsets V _ _ _,⟨set.subset.refl _,(λ K, ⟨K,set.subset.refl _⟩)⟩⟩
+private def fin_exh_up (K : @finsubsets V _ _ _) : exhaustion := ⟨up K, ⟨up_sub K, up_cofin K⟩⟩
+
 
 
 
@@ -501,17 +515,17 @@ def ends := ends_for G finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl 
 
 
 def to_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends G → ends_for G ℱ H ℱ_cofin
-| ⟨f,f_comm⟩ := ⟨ λ K, f ⟨K, H K.property⟩
+  ends G → ends_for G ℱ H ℱ_cofin :=
+/-| ⟨f,f_comm⟩ := ⟨ λ K, f ⟨K, H K.property⟩
                 , λ K L hKL, f_comm (set.inclusion H K) (set.inclusion H L) hKL⟩
+-/
+λ f : ends G, ⟨ λ K, f.1 ⟨K, H K.property⟩
+                , λ K L hKL, f.2 (set.inclusion H K) (set.inclusion H L) hKL⟩
 
 def to_ends_for_def (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val)
   (e : ends G) (K : ℱ) :
-  e.val (⟨K.val,mem_of_subset_of_mem H K.prop⟩ : finsubsets) = (to_ends_for G ℱ H ℱ_cofin e).val K :=
-begin
-  dsimp only [to_ends_for],
-  sorry,
-end
+  e.val (⟨K.val,mem_of_subset_of_mem H K.prop⟩ : finsubsets) = (to_ends_for G ℱ H ℱ_cofin e).val K := refl _
+
 
 
 def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
@@ -590,18 +604,12 @@ begin
   simpa only,
 end
 
-private def up (K : @finsubsets V _ _ _) := {L ∈ @finsubsets V _ _ _ | K.val ⊆ L}
-private lemma up_sub  (K : finsubsets)  : up K ⊆ @finsubsets V _ _ _ := λ K H, H.1
-private lemma in_up  (K : @finsubsets V _ _ _) : K.val ∈ (up K) := ⟨K.prop,set.subset.refl K.val⟩
-private lemma up_cofin  (K : finsubsets) :
-  ∀ M : @finsubsets V _ _ _, ∃ L : up K, M.val ⊆ L.val := λ M,
-begin
-  use ⟨M.val ∪ K.val, set.finite.union M.prop K.prop, set.subset_union_right M.val K.val⟩,
-  exact set.subset_union_left M.val K.val,
-end
+
+/- This is the family of finite sets containing K-/
+
 
 lemma eval_injective_for_up (K : finsubsets)
-  (inj_from_K : ∀ L : set V, L.finite → K.val ⊆ L → injective (bwd_map G ‹K.val⊆L›)) :
+  (inj_from_K : ∀ L : @finsubsets V _ _ _, K.val ⊆ L.val → injective (bwd_map G ‹K.val⊆L.val›)) :
   injective (eval_for G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩) :=
 begin
   rintros e₁ e₂,
@@ -610,13 +618,13 @@ begin
   apply subtype.eq,
   ext1 L,
   simp only [subtype.val_eq_coe],
-  apply inj_from_K L.val L.prop.1 L.prop.2,
+  apply inj_from_K ⟨L.val,L.prop.1⟩ L.prop.2,
   rw [e₁.prop ⟨K.val,in_up K⟩ L L.prop.2,e₂.prop ⟨K.val,in_up K⟩ L L.prop.2],
   assumption,
 end
 
 lemma eval_injective (K : finsubsets)
-  (inj_from_K : ∀ L : set V, L.finite → K.val ⊆ L → injective (bwd_map G ‹K.val⊆L›)) :
+  (inj_from_K : ∀ L : @finsubsets V _ _ _, K.val ⊆ L.val → injective (bwd_map G ‹K.val⊆L.val›)) :
   injective (eval G K) :=
 begin
   rintros e₁ e₂ same,
@@ -627,29 +635,51 @@ begin
     rw [ eval_comm G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩ e₁,
          eval_comm G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩ e₂],
     dsimp only,
-    sorry, -- It's stupid but I don't know how to get from `K` to `⟨↑K,_⟩` efficiently
+    have lol : K = ⟨↑K,K.2⟩, by simp,
+    rw lol at same,
+    exact same,
   },
   simpa only [embedding_like.apply_eq_iff_eq],
 end
 
 lemma extend_along (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
   (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-  Π i : ℕ, inf_components G (f i)
-| 0     := C
-| (k+1) := some $ bwd_map_surjective G (fmon k (k+1) (nat.le_succ k))
-                                       (set.nonempty.mono (fmon 0 k $ nat.zero_le k) Knempty)
-                                       (f k).prop
-                                       (set.nonempty.mono (fmon 0 (k+1) $ nat.zero_le $ k+1) Knempty)
-                                       (f $ k + 1).prop
-                                       (extend_along k)
+  Π i : ℕ, inf_components G (f i) :=
+nat.rec
+  (by {exact C})
+  (λ k extend_along_k, some $ bwd_map_surjective G (fmon k (k+1) (nat.le_succ k))
+                              (set.nonempty.mono (fmon 0 k $ nat.zero_le k) Knempty)
+                              (f k).prop
+                              (set.nonempty.mono (fmon 0 (k+1) $ nat.zero_le $ k+1) Knempty)
+                              (f $ k + 1).prop
+                              (extend_along_k))
+
+
+lemma extend_along_comm_add (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
+  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
+let
+  e := extend_along G f fmon Knempty Kfinite C
+in
+  ∀ (i j : ℕ), (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i :=
+let
+  e := extend_along G f fmon Knempty Kfinite C
+in  λ i, @nat.rec
+      (λ j, (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i)
+      (by {apply bwd_map_refl,})
+      (λ j hj, by {rw ←hj,sorry})
+
 lemma extend_along_comm (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
   (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
 let
   e := extend_along G f fmon Knempty Kfinite C
 in
-  ∀ i j, i ≤ j →  (bwd_map G $ fmon i j ‹i≤j›) (e j) = e i :=
+  ∀ i j, i ≤ j → (bwd_map G $ fmon i j ‹i≤j›) (e j) = e i :=
 begin
-  sorry
+  rintros A i j ilej, -- not sure why I have to introduce this A before the rest ?!
+  rcases le_iff_exists_add.mp ilej with ⟨k,hk⟩,
+  have lol := extend_along_comm_add G f fmon Knempty Kfinite C i k,
+  -- I want to do rewrites but I cannot!!!
+  sorry,
 end
 
 lemma extend_along_spec (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)

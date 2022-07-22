@@ -2737,7 +2737,7 @@ lemma monotone.map_Sup_of_continuous_at {f : α → β} {s : set α} (Cf : conti
 begin
   cases s.eq_empty_or_nonempty with h h,
   { simp [h, fbot] },
-  { exact monotone.map_Sup_of_continuous_at' Cf Mf h }
+  { exact Mf.map_Sup_of_continuous_at' Cf h }
 end
 
 /-- A monotone function continuous at the indexed supremum over a nonempty `Sort` sends this indexed
@@ -2745,14 +2745,14 @@ supremum to the indexed supremum of the composition. -/
 lemma monotone.map_supr_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Cf : continuous_at f (supr g)) (Mf : monotone f) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, monotone.map_Sup_of_continuous_at' Cf Mf (range_nonempty g), ← range_comp, supr]
+by rw [supr, Mf.map_Sup_of_continuous_at' Cf (range_nonempty g), ← range_comp, supr]
 
 /-- If a monotone function sending `bot` to `bot` is continuous at the indexed supremum over
 a `Sort`, then it sends this indexed supremum to the indexed supremum of the composition. -/
 lemma monotone.map_supr_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
   (Cf : continuous_at f (supr g)) (Mf : monotone f) (fbot : f ⊥ = ⊥) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, monotone.map_Sup_of_continuous_at Cf Mf fbot, ← range_comp, supr]
+by rw [supr, Mf.map_Sup_of_continuous_at Cf fbot, ← range_comp, supr]
 
 /-- A monotone function continuous at the infimum of a nonempty set sends this infimum to
 the infimum of the image of this set. -/
@@ -2884,7 +2884,7 @@ a nonempty `Sort`, then it sends this supremum to the supremum of the compositio
 lemma monotone.map_csupr_of_continuous_at {f : α → β} {g : γ → α}
   (Cf : continuous_at f (⨆ i, g i)) (Mf : monotone f) (H : bdd_above (range g)) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, monotone.map_cSup_of_continuous_at Cf Mf (range_nonempty _) H, ← range_comp, supr]
+by rw [supr, Mf.map_cSup_of_continuous_at Cf (range_nonempty _) H, ← range_comp, supr]
 
 /-- If a monotone function is continuous at the infimum of a nonempty bounded below set `s`,
 then it sends this infimum to the infimum of the image of `s`. -/

@@ -393,15 +393,18 @@ variable {𝒜}
 
 variables {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
 
+private meta def mem_tac : tactic unit :=
+let b : tactic unit :=
+  `[exact pow_mem_graded _ (submodule.coe_mem _) <|> exact nat_cast_mem_graded _ _] in
+b <|> `[by repeat { all_goals { apply graded_monoid.mul_mem } }; b]
+
 /--The underlying set-/
 def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
-{a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨_, by exact pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
+{a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
 
 lemma mem_carrier_iff (q : Spec.T (A⁰_ f_deg)) (a : A) :
   a ∈ carrier q ↔
-  ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨_, by exact pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 :=
+  ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 :=
 iff.rfl
 
 lemma carrier.zero_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
@@ -414,14 +417,12 @@ lemma carrier.add_mem (q : Spec.T (A⁰_ f_deg)) {a b : A}
 begin
   rw carrier at ha hb ⊢,
   intro i,
-  set α := (⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩,
-    ⟨i, ⟨_, by exact pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+  set α := (⟨mk ((proj 𝒜 i (a + b))^m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg),
   suffices : α * α ∈ q.1,
   { cases q.2.mem_or_mem this; assumption },
   rw show α * α =
   ⟨mk ((proj 𝒜 i (a + b))^(2*m)) ⟨f^(2*i), ⟨_, rfl⟩⟩,
-    ⟨2 * i, ⟨_, by { rw show m * (2 * i) = (2 * m) * i, by ring,
-      exact pow_mem_graded _ (submodule.coe_mem _) }⟩, rfl⟩⟩,
+    ⟨2 * i, ⟨_, by { rw show m * (2 * i) = (2 * m) * i, by ring, mem_tac }⟩, rfl⟩⟩,
   { rw [subtype.ext_iff, degree_zero_part.coe_mul],
     change localization.mk _ _ * mk _ _ = mk _ _,
     rw [mk_mul],
@@ -436,13 +437,12 @@ begin
     have ss' : s = s',
     { symmetry, convert sum_attach, refl },
     have mem1 : (proj 𝒜 i) (a + b) ^ (2 * m) ∈ 𝒜 (m * (2 * i)),
-    { rw show m * (2 * i) = (2 * m) * i, by ring, exact pow_mem_graded _ (submodule.coe_mem _) },
+    { rw show m * (2 * i) = (2 * m) * i, by ring, mem_tac },
     have eq1 : (proj 𝒜 i (a + b))^(2*m) = s,
     { rw [linear_map.map_add, add_pow] },
     rw calc (⟨mk ((proj 𝒜 i (a + b))^(2*m)) ⟨f^(2*i), ⟨_, rfl⟩⟩,
                 ⟨2 * i, ⟨_, mem1⟩, rfl⟩⟩ : A⁰_ f_deg)
-          = ⟨mk s ⟨f ^ (2 * i), ⟨_, rfl⟩⟩, ⟨2*i, ⟨s, eq1 ▸ mem1⟩, rfl⟩⟩
-          : by simp only [eq1]
+          = ⟨mk s ⟨f ^ (2 * i), ⟨_, rfl⟩⟩, ⟨2*i, ⟨s, eq1 ▸ mem1⟩, rfl⟩⟩ : by simp only [eq1]
       ... = ⟨mk s' ⟨f ^ (2 * i), ⟨_, rfl⟩⟩, ⟨2*i, ⟨s', ss' ▸ eq1 ▸ mem1⟩, rfl⟩⟩ : by congr' 2
       ... = ∑ j in (range (2 * m + 1)).attach,
               ⟨mk ((proj 𝒜 i a)^j.1 * (proj 𝒜 i b)^(2 * m - j.1) * (2 * m).choose j.1)
@@ -455,11 +455,7 @@ begin
                     { rw [eq_sub_iff_add_eq, ←int.coe_nat_add, nat.sub_add_cancel
                         (nat.lt_succ_iff.mp (mem_range.mp j.2))],
                       refl, }, },
-                  exact graded_monoid.mul_mem
-                    (graded_monoid.mul_mem
-                      (pow_mem_graded _ (submodule.coe_mem _))
-                      (pow_mem_graded _ (submodule.coe_mem _)))
-                    (set_like.nat_cast_mem_graded _ _),
+                  mem_tac,
                 end⟩, rfl⟩⟩
           : begin
               rw [subtype.ext_iff, degree_zero_part.coe_sum],
@@ -471,8 +467,7 @@ begin
     intros k hk,
     by_cases ineq : m ≤ k.1,
     { -- use (proj 𝒜 i) a ^ k
-      set α := (⟨mk ((proj 𝒜 i) a ^ m) ⟨f^i, ⟨i, rfl⟩⟩,
-                  ⟨i, ⟨_, by exact pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+      set α := (⟨mk ((proj 𝒜 i) a ^ m) ⟨f^i, ⟨i, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg),
       set β := (⟨mk ((proj 𝒜 i) a ^ (k.val - m) *
           (proj 𝒜 i) b ^ (2 * m - k.val) * (2*m).choose k.1) ⟨f^i, ⟨i, rfl⟩⟩, begin
             refine ⟨i, ⟨_, _⟩, rfl⟩,
@@ -492,9 +487,7 @@ begin
                     ... = 2 * m - m : by { rw nat.add_sub_cancel_left k.1 (2*m), }
                     ... = m + m - m : by { rw two_mul, }
                     ... = m : by rw nat.add_sub_cancel, },
-            exact graded_monoid.mul_mem
-              (graded_monoid.mul_mem (pow_mem_graded _ (submodule.coe_mem _))
-                (pow_mem_graded _ (submodule.coe_mem _))) (nat_cast_mem_graded _ _),
+            mem_tac,
           end⟩ : A⁰_ f_deg),
       suffices : α * β ∈ q.1,
       { convert this,
@@ -514,8 +507,7 @@ begin
         { simp only [two_mul, pow_add], refl, } },
       exact ideal.mul_mem_right _ _ (ha _), },
 
-    { set α := (⟨mk ((proj 𝒜 i) b ^ m) ⟨f^i, ⟨_, rfl⟩⟩,
-                  ⟨i, ⟨_, by exact pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg),
+    { set α := (⟨mk ((proj 𝒜 i) b ^ m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg),
       set β := (⟨mk ((proj 𝒜 i) a ^ k.val * (proj 𝒜 i) b ^ (m - k.val) * ((2 * m).choose k.val))
         ⟨f^i, ⟨_, rfl⟩⟩, begin
           refine ⟨_, ⟨_, _⟩, rfl⟩,
@@ -531,25 +523,16 @@ begin
                         exact ineq,
                       end
                 ... = m * i : by rw nat.add_sub_cancel_left, },
-          exact graded_monoid.mul_mem
-            (graded_monoid.mul_mem (pow_mem_graded _ (submodule.coe_mem _))
-              (pow_mem_graded _ (submodule.coe_mem _))) (nat_cast_mem_graded _ _),
+          mem_tac,
         end⟩ : A⁰_ f_deg),
       suffices : α * β ∈ q.1,
       { convert this,
         rw [localization.mk_mul],
         congr' 1,
-        { simp only [← mul_assoc],
-          congr' 1,
-          conv_rhs { rw [mul_comm _ (proj 𝒜 i a ^ k.1), mul_assoc] },
-          congr' 1,
-          simp only [← pow_add],
-          congr' 1,
-          rw [← nat.add_sub_assoc (by linarith : k.1 ≤ m)],
-          congr' 1,
-          rw [two_mul] },
-        { simp only [two_mul, pow_add],
-          refl, } },
+        { rw show ∀ (a b c d : A), a * (b * c * d) = b * (a * c) * d, by {intros, ring},
+          congr,
+          rw [←pow_add, ← nat.add_sub_assoc (by linarith : k.1 ≤ m), ←two_mul], },
+        { simpa only [two_mul, pow_add], } },
       exact ideal.mul_mem_right _ _ (hb _), },
 end
 
@@ -648,8 +631,7 @@ begin
               end,
         apply ideal.mul_mem_left,
         apply hx },
-      { simp only [smul_eq_mul, eq1, zero_pow hm, localization.mk_zero],
-        exact submodule.zero_mem _ } },
+      { simp only [smul_eq_mul, eq1, zero_pow hm, localization.mk_zero], exact zero_mem _ } },
     { -- in this case, the left hand side is zero
       rw not_le at ineq1,
       convert submodule.zero_mem _,

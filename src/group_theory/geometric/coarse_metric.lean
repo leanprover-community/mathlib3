@@ -190,3 +190,49 @@ begin
   use [s,s_sub_S,s_sep],
   exact coarsely_dense_with_in.of_max_coarsely_separated_with_in δ δgez ⟨s_sub_S, s_sep, s_max_sep⟩,
 end
+
+-- an attempty by LB to go towards Proposition 1.A.1
+structure c_path (δ : ℝ) (x y : α) :=
+(n : ℕ)
+(c : fin (n+1) → α)
+(anchors : c 0 = x ∧ c n = y)
+(steps : ∀ (i : fin n), dist (c i) (c (i+1)) < δ)
+
+def constant_path (δ : ℝ) (x : α) : c_path δ x x := {
+  n := 0,
+  c := λ(i : fin 1), x, 
+  anchors := begin let xx : x = x := by refl, exact ⟨xx,xx⟩ end,
+  steps := by dec_trivial
+}
+
+def increase_delta (δ δ' : ℝ) (h : δ ≤ δ') {x y : α} (c : c_path δ x y) : c_path δ' x y := {
+  n := c.n,
+  c := c.c,
+  anchors := c.anchors,
+  steps := λi, lt_of_lt_of_le (c.steps i) h
+}
+
+def coarsely_connected_in (δ : ℝ) (s : set α) :=
+∀⦃x y⦄ (hxy : x ∈ s ∧ y ∈ s), ∃(c : c_path δ x y), ∀ (i : fin c.n), c.c i ∈ s
+
+-- don't know how to synthesize placeholder??
+def coarsely_connected (δ : ℝ) :=
+∀⦃x y⦄, ∃(c : c_path δ x y)
+
+-- infer type failed, sort expected??
+def large_scale_geodesic (δ : ℝ) := ∃a b,
+∀⦃x y⦄, ∃(c : c_path δ x y), ((c.n):ℝ) ≤ a*dist x y + b
+
+-- Definition 6.A.1
+def coarsely_elementary_homotopic_expand (δ : ℝ) {x y : α} (c d : c_path δ x y) := d.n = c.n+1 ∧ ∃i, (∀(j<i), c.c i = d.c i) ∧ (∀(j≥i), c.c j = d.c (j+1))
+
+def coarsely_elementary_homotopic (δ : ℝ) {x y : α} (c d : c_path δ x y) := coarsely_elementary_homotopic_expand δ c d ∨ coarsely_elementary_homotopic_expand δ d c
+
+def coarsely_homotopic (δ : ℝ) {x y : α} (c d : c_path δ x y) := ∃(n : ℕ) (e : fin (n+1) → c_path δ x y), e 0 = c ∧ e n = d ∧ ∀(i : fin n), coarsely_elementary_homotopic δ (e i) (e (i+1))
+
+-- Definition 6.A.3
+def has_property_sc (δ δ' : ℝ) (h : δ ≤ δ') (x : α) := ∀(c : c_path δ x x), coarsely_homotopic δ' (increase_delta δ δ' h c) (constant_path δ' x)
+
+-- Definition 6.A.5
+def coarsely_simply_connected (δ : ℝ) := coarsely_connected δ ∧
+∀δ' > δ, ∃(δ'' > δ') (x : α), has_property_sc δ' δ'' (le_of_lt H) x

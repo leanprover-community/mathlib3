@@ -790,13 +790,13 @@ lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_bot α) = ma
 lemma well_founded_lt [preorder α] (h : @well_founded α (<)) : @well_founded (with_bot α) (<) :=
 have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   acc.intro _ (λ a ha, (not_le_of_gt ha bot_le).elim),
-⟨λ a, option.rec_on a acc_bot (λ a, acc.intro _ (λ b, option.rec_on b (λ _, acc_bot)
+⟨λ a, with_bot.rec_bot_coe acc_bot (λ a, acc.intro _ (λ b, with_bot.rec_bot_coe (λ _, acc_bot)
 (λ b, well_founded.induction h b
   (show ∀ b : α, (∀ c, c < b → (c : with_bot α) < a →
       acc ((<) : with_bot α → with_bot α → Prop) c) → (b : with_bot α) < a →
         acc ((<) : with_bot α → with_bot α → Prop) b,
-  from λ b ih hba, acc.intro _ (λ c, option.rec_on c (λ _, acc_bot)
-    (λ c hc, ih _ (some_lt_some.1 hc) (lt_trans hc hba)))))))⟩
+  from λ b ih hba, acc.intro _ (λ c, with_bot.rec_bot_coe (λ _, acc_bot)
+    (λ c hc, ih _ (coe_lt_coe.1 hc) (lt_trans hc hba)) c))) b)) a⟩
 
 instance [has_lt α] [densely_ordered α] [no_min_order α] : densely_ordered (with_bot α) :=
 ⟨ λ a b,
@@ -1131,21 +1131,38 @@ lemma coe_min [linear_order α] (x y : α) : (↑(min x y) : with_top α) = min 
 lemma coe_max [linear_order α] (x y : α) : (↑(max x y) : with_top α) = max x y := rfl
 
 lemma well_founded_lt [preorder α] (h : @well_founded α (<)) : @well_founded (with_top α) (<) :=
-have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
+have acc_coe : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (a) :=
 λ a, acc.intro _ (well_founded.induction h a
-  (show ∀ b, (∀ c, c < b → ∀ d : with_top α, d < some c → acc (<) d) →
-    ∀ y : with_top α, y < some b → acc (<) y,
-  from λ b ih c, option.rec_on c (λ hc, (not_lt_of_ge le_top hc).elim)
-    (λ c hc, acc.intro _ (ih _ (some_lt_some.1 hc))))),
-⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
-  (λ _ _, acc_some _))) acc_some⟩
+  (show ∀ b, (∀ c : α, c < b → ∀ d : with_top α, d < c → acc (<) d) →
+    ∀ y : with_top α, y < b → acc (<) y,
+  from λ b ih c, with_top.rec_top_coe (λ hc, (not_lt_of_ge le_top hc).elim)
+    (λ c hc, acc.intro _ (ih _ (coe_lt_coe.1 hc))) c)),
+⟨λ a, with_top.rec_top_coe (acc.intro _ (λ y, with_top.rec_top_coe (λ h, (lt_irrefl _ h).elim)
+  (λ _ _, acc_coe _) y)) (acc_coe) a⟩
 
 lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (with_top α) (>) :=
-@with_bot.well_founded_lt αᵒᵈ _ h
+⟨λ a, begin
+  -- ideally, use rel_hom_class.acc, but that is defined later
+  have : acc (<) a.invert := well_founded.apply (with_bot.well_founded_lt h) _,
+  revert this,
+  generalize ha : a.invert = b, intro ac,
+  induction ac with _ H IH generalizing a, subst ha,
+  exact ⟨_, λ a' h, IH (a'.invert) (invert_lt_invert_iff.mpr h) _ rfl⟩
+end⟩
 
 lemma _root_.with_bot.well_founded_gt [preorder α] (h : @well_founded α (>)) :
   @well_founded (with_bot α) (>) :=
-@with_top.well_founded_lt αᵒᵈ _ h
+⟨λ a, begin
+  -- ideally, use rel_hom_class.acc, but that is defined later
+  have : acc (>) (with_top.invert.symm a) := well_founded.apply (with_top.well_founded_gt h) _,
+  revert this,
+  generalize ha : with_top.invert.symm a = b, intro ac,
+  induction ac with _ H IH generalizing a, subst ha,
+  refine ⟨_, λ a' h, IH _ (lt_invert_iff.mp _) _ rfl⟩,
+  simpa using h,
+end⟩
+-- @with_top.well_founded_lt αᵒᵈ _ h
+#exit
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
 order_dual.densely_ordered (with_bot αᵒᵈ)

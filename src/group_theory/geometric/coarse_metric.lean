@@ -100,7 +100,7 @@ theorem of_max_coarsely_separated_with_in (δ : ℝ) (δgez : δ ≥ 0) {s S: se
 begin
   rcases H with ⟨s_sub_S, s_sep, s_max⟩,
   rintros x xS,
-  let t := s.insert x,
+  let t := insert x s,
   by_contradiction H,
   push_neg at H,
   have x_notin_s : x ∉ s,
@@ -161,7 +161,7 @@ begin
     rintros t s_sub_t t_sub_S t_sep,
     have : t ∈ 𝒮, from ⟨t_sub_S,t_sep⟩,
     exact (s_max t ‹t ∈ 𝒮› s_sub_t).symm,},
-  apply zorn.zorn_subset,
+  apply zorn_subset,
   rintro 𝒸 𝒸_sub_𝒮 𝒸_chain,
   have 𝒸_sep : ∀ s ∈ 𝒸, coarsely_separated_with δ s, from λ s ∈ 𝒸, (𝒸_sub_𝒮 H).right,
   let 𝒞 := 𝒸.sUnion,

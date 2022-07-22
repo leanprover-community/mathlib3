@@ -36,7 +36,8 @@ vec_mul (star (x ⊕ᵥ y)) (from_blocks A B Bᴴ D) ⬝ᵥ (x ⊕ᵥ y) =
   vec_mul (star (x + (A⁻¹ ⬝ B).mul_vec y)) A ⬝ᵥ (x + (A⁻¹ ⬝ B).mul_vec y) +
     vec_mul (star y) (D - Bᴴ ⬝ A⁻¹ ⬝ B) ⬝ᵥ y :=
 begin
-  simp [function.star_sum_elim, from_blocks_mul_vec, vec_mul_from_blocks, add_vec_mul,
+  rw [function.star_sum_elim],
+  simp [from_blocks_mul_vec, vec_mul_from_blocks, add_vec_mul,
     dot_product_mul_vec, vec_mul_sub, matrix.mul_assoc, vec_mul_mul_vec, hA.eq,
     conj_transpose_nonsing_inv, star_mul_vec],
   abel
@@ -49,7 +50,8 @@ vec_mul (star (x ⊕ᵥ y)) (from_blocks A B Bᴴ D) ⬝ᵥ (x ⊕ᵥ y) =
   vec_mul (star ((D⁻¹ ⬝ Bᴴ).mul_vec x + y)) D ⬝ᵥ ((D⁻¹ ⬝ Bᴴ).mul_vec x + y) +
     vec_mul (star x) (A - B ⬝ D⁻¹ ⬝ Bᴴ) ⬝ᵥ x :=
 begin
-  simp [function.star_sum_elim, from_blocks_mul_vec, vec_mul_from_blocks, add_vec_mul,
+  rw [function.star_sum_elim],
+  simp [from_blocks_mul_vec, vec_mul_from_blocks, add_vec_mul,
     dot_product_mul_vec, vec_mul_sub, matrix.mul_assoc, vec_mul_mul_vec, hD.eq,
     conj_transpose_nonsing_inv, star_mul_vec],
   abel

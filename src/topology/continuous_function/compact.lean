@@ -32,7 +32,7 @@ open bounded_continuous_function
 
 namespace continuous_map
 
-variables {α β E : Type*} [topological_space α] [compact_space α] [metric_space β] [normed_group E]
+variables {α β E : Type*} [topological_space α] [compact_space α] [metric_space β] [normed_add_group E]
 
 section
 
@@ -153,7 +153,7 @@ rfl
 
 open bounded_continuous_function
 
-instance : normed_group C(α, E) :=
+instance : normed_add_group C(α, E) :=
 { dist_eq := λ x y, by
     rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub],
   dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
@@ -201,7 +201,7 @@ variables {R : Type*} [normed_ring R]
 
 instance : normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
-  ..(infer_instance : normed_group C(α,R)),
+  ..(infer_instance : normed_add_group C(α,R)),
   .. continuous_map.ring }
 
 end
@@ -308,7 +308,7 @@ end continuous_map
 section comp_left
 variables (X : Type*) {𝕜 β γ : Type*} [topological_space X] [compact_space X]
   [nondiscrete_normed_field 𝕜]
-variables [normed_group β] [normed_space 𝕜 β] [normed_group γ] [normed_space 𝕜 γ]
+variables [normed_add_group β] [normed_space 𝕜 β] [normed_add_group γ] [normed_space 𝕜 γ]
 
 open continuous_map
 
@@ -352,7 +352,7 @@ section comp_right
 Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
 -/
 def comp_right_continuous_map {X Y : Type*} (T : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_add_group T]
   (f : C(X, Y)) : C(C(Y, T), C(X, T)) :=
 { to_fun := λ g, g.comp f,
   continuous_to_fun :=
@@ -365,7 +365,7 @@ def comp_right_continuous_map {X Y : Type*} (T : Type*)
   end }
 
 @[simp] lemma comp_right_continuous_map_apply {X Y : Type*} (T : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_add_group T]
   (f : C(X, Y)) (g : C(Y, T)) :
   (comp_right_continuous_map T f) g = g.comp f :=
 rfl
@@ -374,7 +374,7 @@ rfl
 Precomposition by a homeomorphism is itself a homeomorphism between spaces of continuous maps.
 -/
 def comp_right_homeomorph {X Y : Type*} (T : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_add_group T]
   (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
 { to_fun := comp_right_continuous_map T f.to_continuous_map,
   inv_fun := comp_right_continuous_map T f.symm.to_continuous_map,
@@ -415,7 +415,7 @@ section weierstrass
 open topological_space
 
 variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X]
-variables {E : Type*} [normed_group E] [complete_space E]
+variables {E : Type*} [normed_add_group E] [complete_space E]
 
 lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
   (hF : ∀ K : compacts X, summable (λ i, ∥(F i).restrict K∥)) :
@@ -442,7 +442,7 @@ Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C
 section normed_space
 
 variables {α : Type*} {β : Type*}
-variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables [topological_space α] [normed_add_group β] [star_add_monoid β] [normed_star_group β]
 
 lemma _root_.bounded_continuous_function.mk_of_compact_star [compact_space α] (f : C(α, β)) :
   mk_of_compact (star f) = star (mk_of_compact f) := rfl

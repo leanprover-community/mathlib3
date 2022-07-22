@@ -101,9 +101,9 @@ end formal_multilinear_series
 
 
 variables [nondiscrete_normed_field 𝕜]
-[normed_group E] [normed_space 𝕜 E]
-[normed_group F] [normed_space 𝕜 F]
-[normed_group G] [normed_space 𝕜 G]
+[normed_add_group E] [normed_space 𝕜 E]
+[normed_add_group F] [normed_space 𝕜 F]
+[normed_add_group G] [normed_space 𝕜 G]
 
 namespace formal_multilinear_series
 

@@ -19,22 +19,22 @@ open_locale nnreal topological_space
 open filter
 
 /-- A `normed_add_torsor V P` is a torsor of an additive seminormed group
-action by a `semi_normed_group V` on points `P`. We bundle the pseudometric space
+action by a `seminormed_add_group V` on points `P`. We bundle the pseudometric space
 structure and require the distance to be the same as results from the
 norm (which in fact implies the distance yields a pseudometric space, but
 bundling just the distance and using an instance for the pseudometric space
 results in type class problems). -/
 class normed_add_torsor (V : out_param $ Type*) (P : Type*)
-  [out_param $ semi_normed_group V] [pseudo_metric_space P]
+  [out_param $ seminormed_add_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
-variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [normed_add_torsor V P]
-variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
+variables {α V P : Type*} [seminormed_add_group V] [pseudo_metric_space P] [normed_add_torsor V P]
+variables {W Q : Type*} [normed_add_group W] [metric_space Q] [normed_add_torsor W Q]
 
-/-- A `semi_normed_group` is a `normed_add_torsor` over itself. -/
+/-- A `seminormed_add_group` is a `normed_add_torsor` over itself. -/
 @[priority 100]
-instance semi_normed_group.to_normed_add_torsor : normed_add_torsor V V :=
+instance seminormed_add_group.to_normed_add_torsor : normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
 
 include V
@@ -147,7 +147,7 @@ omit V
 /-- The pseudodistance defines a pseudometric space structure on the torsor. This
 is not an instance because it depends on `V` to define a `metric_space
 P`. -/
-def pseudo_metric_space_of_normed_group_of_add_torsor (V P : Type*) [semi_normed_group V]
+def pseudo_metric_space_of_normed_add_group_of_add_torsor (V P : Type*) [seminormed_add_group V]
   [add_torsor V P] : pseudo_metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
   dist_self := λ x, by simp,
@@ -162,7 +162,7 @@ def pseudo_metric_space_of_normed_group_of_add_torsor (V P : Type*) [semi_normed
 /-- The distance defines a metric space structure on the torsor. This
 is not an instance because it depends on `V` to define a `metric_space
 P`. -/
-def metric_space_of_normed_group_of_add_torsor (V P : Type*) [normed_group V] [add_torsor V P] :
+def metric_space_of_normed_add_group_of_add_torsor (V P : Type*) [normed_add_group V] [add_torsor V P] :
   metric_space P :=
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
   dist_self := λ x, by simp,

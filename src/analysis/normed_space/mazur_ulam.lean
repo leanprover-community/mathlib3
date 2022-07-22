@@ -28,8 +28,8 @@ isometry, affine map, linear map
 -/
 
 variables
-  {E PE : Type*} [normed_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
-  {F PF : Type*} [normed_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
+  {E PE : Type*} [normed_add_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
+  {F PF : Type*} [normed_add_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
 
 open set affine_map affine_isometry_equiv
 

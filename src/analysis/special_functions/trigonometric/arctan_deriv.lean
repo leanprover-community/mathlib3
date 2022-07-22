@@ -131,7 +131,7 @@ end deriv
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ} {x : E}
+variables {E : Type*} [normed_add_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ} {x : E}
   {s : set E} {n : with_top ℕ}
 
 lemma has_strict_fderiv_at.arctan (hf : has_strict_fderiv_at f f' x) :

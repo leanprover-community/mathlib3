@@ -23,8 +23,8 @@ variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {R : Type*} {R' : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 variables [has_norm E] [has_norm F] [has_norm G]
-variables [semi_normed_group E'] [semi_normed_group F'] [semi_normed_group G']
-variables [normed_group E''] [normed_group F''] [normed_group G'']
+variables [seminormed_add_group E'] [seminormed_add_group F'] [seminormed_add_group G']
+variables [normed_add_group E''] [normed_add_group F''] [normed_add_group G'']
 variables [semi_normed_ring R] [semi_normed_ring R']
 variables [normed_field 𝕜] [normed_field 𝕜']
 variables {c c' c₁ c₂ : ℝ} {f : α → E} {g : α → F} {k : α → G}

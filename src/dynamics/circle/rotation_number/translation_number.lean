@@ -842,7 +842,7 @@ begin
   { refine csupr_mono (this y) (λ g, _),
     exact mono _ (mono _ hxy) },
   { simp only [map_add_one],
-    exact (map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const)
+    exact (monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const)
       (monotone_id.add_const (1 : ℝ)) (this x)).symm },
   { exact this x }
 end

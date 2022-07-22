@@ -95,12 +95,12 @@ end
 begin
   by_cases h : ann_ideal_generator 𝕜 a = 0,
   { rw [h, ann_ideal_generator_eq_zero_iff.mp h, set.singleton_zero, ideal.span_zero] },
-  { rw [ann_ideal_generator, ideal.span_singleton_mul_left_unit, ideal.span_singleton_generator],
+  { rw [ann_ideal_generator, ideal.span_singleton_mul_right_unit, ideal.span_singleton_generator],
     apply polynomial.is_unit_C.mpr,
     apply is_unit.mk0,
     apply inv_eq_zero.not.mpr,
     apply polynomial.leading_coeff_eq_zero.not.mpr,
-    apply (mul_ne_zero_iff.mp h).2, }
+    apply (mul_ne_zero_iff.mp h).1 }
 end
 
 /-- The annihilating ideal generator is a member of the annihilating ideal. -/
@@ -150,12 +150,12 @@ begin
     rintro ⟨p, p_monic, (hp : aeval a p = 0)⟩,
     refine p_monic.ne_zero (ideal.mem_bot.mp _),
     simpa only [ann_ideal_generator_eq_zero_iff.mp h]
-      using (mem_ann_ideal_iff_aeval_eq_zero a _).mpr hp },
+      using mem_ann_ideal_iff_aeval_eq_zero.mpr hp },
   { exact minpoly.unique _ _
       (monic_ann_ideal_generator _ _ h)
       (ann_ideal_generator_aeval_eq_zero _ _)
-      (λ q q_monic hq, (degree_ann_ideal_generator_le_of_mem _ a q
-        ((mem_ann_ideal_iff_aeval_eq_zero a q).mpr hq)
+      (λ q q_monic hq, (degree_ann_ideal_generator_le_of_mem a q
+        (mem_ann_ideal_iff_aeval_eq_zero.mpr hq)
         q_monic.ne_zero)) }
 end
 

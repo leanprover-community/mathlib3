@@ -647,7 +647,6 @@ begin
   { apply mem_ℓp_gen,
     simpa using hf.summable hp },
 end
---
 instance : has_star (lp E p) :=
 { star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
 

@@ -74,7 +74,7 @@ lemma antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 λx y, by rw subsingleton.elim x y; simp
 
 /-- The identity is an isometry -/
-lemma _root_.isometry_id : isometry (id : α → α) := λx y, rfl
+lemma _root_.isometry_id : isometry (id : α → α) := λ x y, rfl
 
 /-- The composition of isometries is an isometry -/
 theorem comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=

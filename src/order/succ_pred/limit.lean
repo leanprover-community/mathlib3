@@ -260,7 +260,7 @@ begin
 end
 
 /-- A succ-archimedean partial order is pred-archimedean. -/
-@[priority 100] instance succ_order.to_is_pred_archimedean [pred_order α] : is_pred_archimedean α :=
+lemma succ_order.to_is_pred_archimedean [pred_order α] : is_pred_archimedean α :=
 ⟨by { rw ←pred'_eq_pred, exact λ a b, exists_pred'_iterate_of_le }⟩
 
 end is_succ_archimedean
@@ -302,7 +302,7 @@ Note that you need a partial order for data built using this to behave nicely on
   (hs : Π a, ¬ is_min a → C (pred a)) (hl : Π a, is_pred_limit a → C a), C b :=
 @is_succ_limit_rec_on αᵒᵈ _ _
 
-theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
+lemma is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
   (hl : Π a, is_pred_limit a → C a) (hb : is_pred_limit b),
   @is_pred_limit_rec_on α _ _ C b hs hl = hl b hb :=
 @is_succ_limit_rec_on_limit αᵒᵈ b _ _
@@ -426,7 +426,7 @@ lemma exists_succ'_iterate_of_le : a ≤ b → ∃ n : ℕ, succ'^[n] a = b :=
 @exists_pred'_iterate_of_le αᵒᵈ _ _ _ _ _
 
 /-- A pred-archimedean partial order is succ-archimedean. -/
-@[priority 100] instance pred_order.to_is_succ_archimedean [succ_order α] : is_succ_archimedean α :=
+lemma pred_order.to_is_succ_archimedean [succ_order α] : is_succ_archimedean α :=
 ⟨λ a b, by { rw ←succ'_eq_succ, exact exists_succ'_iterate_of_le }⟩
 
 end is_pred_archimedean

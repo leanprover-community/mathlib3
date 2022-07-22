@@ -46,7 +46,7 @@ instance : is_succ_archimedean ℤ :=
 ⟨λ a b h, ⟨(b - a).to_nat,
   by rw [succ_eq_succ, succ_iterate, to_nat_sub_of_le h, ←add_sub_assoc, add_sub_cancel']⟩⟩
 
-instance : is_pred_archimedean ℤ := by apply_instance
+instance : is_pred_archimedean ℤ := succ_order.to_is_pred_archimedean
 
 /-! ### Covering relation -/
 

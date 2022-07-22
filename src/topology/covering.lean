@@ -1,6 +1,5 @@
-import category_theory.full_subcategory
 import topology.is_locally_homeomorph
-import topology.homotopy.fundamental_groupoid
+
 
 variables {E X : Type*} [topological_space E] [topological_space X]
 

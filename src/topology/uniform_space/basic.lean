@@ -786,7 +786,7 @@ end
 lemma uniformity_has_basis_in_symmetric_closed :
   (𝓤 α).has_basis_in (λ V, symmetric_rel V ∧ is_closed V) :=
 begin
-  intros t ht,
+  refine has_basis_in.mk (λ t ht, _),
   rcases comp_comp_symm_mem_uniformity_sets ht with ⟨w, w_in, w_symm, r⟩,
   refine ⟨closure w, mem_of_superset w_in subset_closure, ⟨w_symm.closure, is_closed_closure⟩, _⟩,
   calc closure w = ⋂ V ∈ {V | V ∈ 𝓤 α ∧ symmetric_rel V}, V ○ w ○ V : closure_eq_uniformity w

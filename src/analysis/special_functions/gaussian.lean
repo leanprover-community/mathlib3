@@ -103,7 +103,7 @@ end
 lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
   integrable (λ x:ℝ, x * exp (-b * x^2)) :=
 begin
-  have A : (-1 : ℝ) < 1, by linarith,
+  have A : (-1 : ℝ) < 1, by norm_num,
   convert integrable_rpow_mul_exp_neg_mul_sq hb A,
   simp,
 end

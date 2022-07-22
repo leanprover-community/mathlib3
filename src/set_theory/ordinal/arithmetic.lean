@@ -2107,7 +2107,7 @@ if hb : 1 < b then log_eq_zero hb else log_of_not_one_lt_left hb 1
 theorem mod_opow_log_lt_self (b : ordinal) {o : ordinal} (ho : o ≠ 0) : o % b ^ log b o < o :=
 begin
   rcases eq_or_ne b 0 with rfl | hb,
-  { simpa using (ordinal.pos_iff_ne_zero.2 ho) },
+  { simpa using ordinal.pos_iff_ne_zero.2 ho },
   { exact (mod_lt _ $ opow_ne_zero _ hb).trans_le (opow_log_le_self _ ho) }
 end
 

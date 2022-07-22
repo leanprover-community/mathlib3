@@ -1988,7 +1988,7 @@ lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.no
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
   obtain ⟨c, hcs : c ∈ s⟩ := h,
-  have : well_founded (@has_lt.lt {x // x ∈ s} _) := fintype.well_founded_of_trans_of_irrefl _,
+  have : well_founded (@has_lt.lt {x // x ∈ s} _) := finite.well_founded_of_trans_of_irrefl _,
   obtain ⟨⟨m, hms : m ∈ s⟩, -, H⟩ := this.has_min set.univ ⟨⟨c, hcs⟩, trivial⟩,
   exact ⟨m, hms, λ x hx hxm, H ⟨x, hx⟩ trivial hxm⟩,
 end

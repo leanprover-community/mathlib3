@@ -119,7 +119,7 @@ is_artinian_of_range_eq_ker
 
 @[instance, priority 100]
 lemma is_artinian_of_fintype [fintype M] : is_artinian R M :=
-⟨fintype.well_founded_of_trans_of_irrefl _⟩
+⟨finite.well_founded_of_trans_of_irrefl _⟩
 
 local attribute [elab_as_eliminator] fintype.induction_empty_option
 

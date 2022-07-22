@@ -791,7 +791,7 @@ def non_unital_subsemiring_congr (h : s = t) : s ≃+* t :=
 
 /-- Restrict a non-unital ring homomorphism with a left inverse to a ring isomorphism to its
 `non_unital_ring_hom.srange`. -/
-def sof_left_inverse {g : S → R} {f : F} (h : function.left_inverse g f) :
+def sof_left_inverse' {g : S → R} {f : F} (h : function.left_inverse g f) :
   R ≃+* srange f :=
 { to_fun := srange_restrict f,
   inv_fun := λ x, g (subtype (srange f) x),
@@ -801,13 +801,13 @@ def sof_left_inverse {g : S → R} {f : F} (h : function.left_inverse g f) :
     show f (g x) = x, by rw [←hx', h x'],
   ..(srange_restrict f) }
 
-@[simp] lemma sof_left_inverse_apply
+@[simp] lemma sof_left_inverse'_apply
   {g : S → R} {f : F} (h : function.left_inverse g f) (x : R) :
-  ↑(sof_left_inverse h x) = f x := rfl
+  ↑(sof_left_inverse' h x) = f x := rfl
 
-@[simp] lemma sof_left_inverse_symm_apply
+@[simp] lemma sof_left_inverse'_symm_apply
   {g : S → R} {f : F} (h : function.left_inverse g f) (x : srange f) :
-  (sof_left_inverse h).symm x = g x := rfl
+  (sof_left_inverse' h).symm x = g x := rfl
 
 /-- Given an equivalence `e : R ≃+* S` of non-unital semirings and a non-unital subsemiring
 `s` of `R`, `non_unital_subsemiring_map e s` is the induced equivalence between `s` and

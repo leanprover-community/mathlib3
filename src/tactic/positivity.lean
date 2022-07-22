@@ -158,6 +158,7 @@ setup_tactic_parser
 the syntax of the expression `x`, if the atoms composing the expression all have numeric lower
 bounds which can be proved positive/nonnegative by `norm_num`.  This tactic either closes the goal
 or fails. -/
+@[nolint long_line]
 meta def positivity : tactic unit := focus1 $ do
   t ← target,
   (a, strict_desired) ← match t with
@@ -287,9 +288,6 @@ meta def positivity_div : expr → tactic (bool × expr)
   | ff, ff := prod.mk ff <$> mk_app ``div_nonneg [pa, pb] -- TODO handle eg `int.div_nonneg`
   end
 | _ := failed
-
-alias inv_pos ↔ _ inv_pos_of_pos
-alias inv_nonneg ↔ _ inv_nonneg_of_nonneg
 
 /-- Extension for the `positivity` tactic: an inverse of a positive number is positive, an inverse
 of a nonnegative number is nonnegative. -/

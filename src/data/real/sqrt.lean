@@ -280,7 +280,7 @@ its input is. -/
 meta def _root_.tactic.positivity_sqrt : expr → tactic (bool × expr)
 | `(real.sqrt %%a) := do
   (do -- if can prove `0 < a`, report positivity
-    (strict_a, pa) ← tactic.positivity_core a,
+    (strict_a, pa) ← tactic.positivity.core a,
     prod.mk tt <$> tactic.mk_app ``sqrt_pos_of_pos [pa]) <|>
   prod.mk ff <$> tactic.mk_app ``real.sqrt_nonneg [a] -- else report nonnegativity
 | _ := tactic.failed

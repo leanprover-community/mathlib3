@@ -372,6 +372,14 @@ end
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by rw [← count_pos, count_roots p, root_multiplicity_pos hp]
 
+lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a :=
+begin
+  rcases eq_or_ne p 0 with rfl | hp,
+  { rw roots_zero at h,
+    exact h.elim },
+  { exact (mem_roots hp).1 h }
+end
+
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
 (multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)

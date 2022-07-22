@@ -6,7 +6,7 @@ Authors: Joël Riou
 
 import algebraic_topology.dold_kan.faces
 
-/-
+/-!
 
 # Construction of projections for the Dold-Kan correspondence
 

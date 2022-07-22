@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.succ_pred.basic
+import order.succ_pred.limit
 
 /-!
 # Successors and predecessors of naturals
@@ -54,8 +54,7 @@ lemma pred_iterate (a : ℕ) : ∀ n, pred^[n] a = a - n
 instance : is_succ_archimedean ℕ :=
 ⟨λ a b h, ⟨b - a, by rw [succ_eq_succ, succ_iterate, add_tsub_cancel_of_le h]⟩⟩
 
-instance : is_pred_archimedean ℕ :=
-⟨λ a b h, ⟨b - a, by rw [pred_eq_pred, pred_iterate, tsub_tsub_cancel_of_le h]⟩⟩
+instance : is_pred_archimedean ℕ := by apply_instance
 
 /-! ### Covering relation -/
 

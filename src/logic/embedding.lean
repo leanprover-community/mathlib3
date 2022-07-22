@@ -232,8 +232,8 @@ open sum
 def sum_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
 ⟨sum.map e₁ e₂,
     assume s₁ s₂ h, match s₁, s₂, h with
-    | inl a₁, inl a₂, h := congr_arg inl $ e₁.injective $ inl.inj h
-    | inr b₁, inr b₂, h := congr_arg inr $ e₂.injective $ inr.inj h
+    | sum.inl a₁, sum.inl a₂, h := congr_arg sum.inl $ e₁.injective $ sum.inl.inj h
+    | sum.inr b₁, sum.inr b₂, h := congr_arg sum.inr $ e₂.injective $ sum.inr.inj h
     end⟩
 
 @[simp] theorem coe_sum_map {α β γ δ} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :

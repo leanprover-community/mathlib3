@@ -160,8 +160,8 @@ begin
   { refine ⟨T, this,
       le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
     rw [← e, e'],
-    refine type_le'.2 ⟨rel_embedding.of_monotone
-      (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
+    refine (rel_embedding.of_monotone (λ a : T, (⟨a, let ⟨aS, _⟩ := a.2 in aS⟩ : S)) (λ a b h, _))
+      .ordinal_type_le,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
     change s ⟨a, _⟩ ⟨b, _⟩,
     refine ((trichotomous_of s _ _).resolve_left (λ hn, _)).resolve_left _,
@@ -219,9 +219,8 @@ end
 begin
   refine induction_on o _,
   introsI α r _,
-  cases lift_type r with _ e, rw e,
   apply le_antisymm,
-  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
+  { refine le_cof_type.2 (λ S H, _),
     have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
     { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
       exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },
@@ -506,7 +505,7 @@ begin
   let r' := subrel r {i | ∀ j, r j i → f j < f i},
   let hrr' : r' ↪r r := subrel.rel_embedding _ _,
   haveI := hrr'.is_well_order,
-  refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
+  refine ⟨_, _, hrr'.ordinal_type_le.trans _, λ i j _ h _, (enum r' j h).prop _ _,
     le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
   { rw [←hι, hr] },
   { change r (hrr'.1 _ ) (hrr'.1 _ ),
@@ -595,7 +594,7 @@ begin
     rw [e, ord_nat] at this,
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
-    { rw [← nat_cast_succ, cof_succ] at this,
+    { rw [nat_cast_succ, cof_succ] at this,
       rw [← this, cof_eq_one_iff_is_succ] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }
@@ -735,6 +734,19 @@ is_succ_limit_of_succ_lt $ λ x h, (succ_le_of_lt $ cantor x).trans_lt $ H.two_p
 
 theorem aleph_0_le_of_is_strong_limit {c : cardinal} (h : is_strong_limit c) : c ≠ 0 → ℵ₀ ≤ c :=
 aleph_0_le_of_is_succ_limit h.is_succ_limit
+
+theorem is_strong_limit_beth {o : ordinal} (H : ∀ a < o, succ a < o) : is_strong_limit (beth o) :=
+begin
+  rcases eq_or_ne o 0 with rfl | h,
+  { rw beth_zero,
+    exact is_strong_limit_aleph_0 },
+  { intros a ha,
+    rw beth_limit ⟨h, H⟩ at ha,
+    rcases exists_lt_of_lt_csupr' ha with ⟨⟨i, hi⟩, ha⟩,
+    have := power_le_power_left two_ne_zero' ha.le,
+    rw ←beth_succ at this,
+    exact this.trans_lt (beth_lt.2 (H i hi)) }
+end
 
 theorem is_strong_limit.mk_bounded_subset {α : Type*} (h : is_strong_limit (#α)) {r : α → α → Prop}
   [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=

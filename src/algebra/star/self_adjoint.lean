@@ -127,8 +127,15 @@ end ring
 section comm_ring
 variables [comm_ring R] [star_ring R]
 
+lemma mul_mem {x y : R} (hx : x ∈ self_adjoint R) (hy : y ∈ self_adjoint R) :
+  x * y ∈ self_adjoint R :=
+begin
+  rw mem_iff at ⊢ hx hy,
+  rw [star_mul', hx, hy]
+end
+
 instance : has_mul (self_adjoint R) :=
-⟨λ x y, ⟨(x : R) * y, by simp only [mem_iff, star_mul', star_coe_eq]⟩⟩
+⟨λ x y, ⟨(x : R) * y, mul_mem x.prop y.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
 
@@ -159,25 +166,41 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 @[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
+lemma rat_cast_mem : ∀ (x : ℚ), (x : R) ∈ self_adjoint R
+| ⟨a, b, h1, h2⟩ :=
+  by rw [mem_iff, rat.cast_mk', star_mul', star_inv', star_nat_cast, star_int_cast]
+
+instance : has_rat_cast (self_adjoint R) :=
+⟨λ n, ⟨n, rat_cast_mem n⟩⟩
+
+@[simp, norm_cast] lemma coe_rat_cast (x : ℚ) : ↑(x : self_adjoint R) = (x : R) :=
+rfl
+
+instance has_qsmul : has_smul ℚ (self_adjoint R) :=
+⟨λ a x, ⟨a • x, by rw rat.smul_def; exact mul_mem (rat_cast_mem a) x.prop⟩⟩
+
+@[simp, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
+rfl
+
 instance : field (self_adjoint R) :=
 function.injective.field _ subtype.coe_injective
   (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
   (self_adjoint R).coe_sub coe_inv coe_div (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul
-  coe_pow coe_zpow (λ _, rfl) (λ _, rfl)
+  coe_rat_smul coe_pow coe_zpow (λ _, rfl) (λ _, rfl) coe_rat_cast
 
 end field
 
-section has_scalar
+section has_smul
 variables [has_star R] [has_trivial_star R] [add_group A] [star_add_monoid A]
 
-lemma smul_mem [has_scalar R A] [star_module R A] (r : R) {x : A}
+lemma smul_mem [has_smul R A] [star_module R A] (r : R) {x : A}
   (h : x ∈ self_adjoint A) : r • x ∈ self_adjoint A :=
 by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h]
 
-instance [has_scalar R A] [star_module R A] : has_scalar R (self_adjoint A) :=
+instance [has_smul R A] [star_module R A] : has_smul R (self_adjoint A) :=
 ⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
-@[simp, norm_cast] lemma coe_smul [has_scalar R A] [star_module R A] (r : R) (x : self_adjoint A) :
+@[simp, norm_cast] lemma coe_smul [has_smul R A] [star_module R A] (r : R) (x : self_adjoint A) :
   ↑(r • x) = r • (x : A) := rfl
 
 instance [monoid R] [mul_action R A] [star_module R A] : mul_action R (self_adjoint A) :=
@@ -187,7 +210,7 @@ instance [monoid R] [distrib_mul_action R A] [star_module R A] :
   distrib_mul_action R (self_adjoint A) :=
 function.injective.distrib_mul_action (self_adjoint A).subtype subtype.coe_injective coe_smul
 
-end has_scalar
+end has_smul
 
 section module
 variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
@@ -233,14 +256,14 @@ is_star_normal_of_mem (set_like.coe_mem _)
 
 end ring
 
-section has_scalar
+section has_smul
 variables [has_star R] [has_trivial_star R] [add_comm_group A] [star_add_monoid A]
 
 lemma smul_mem [monoid R] [distrib_mul_action R A] [star_module R A] (r : R) {x : A}
   (h : x ∈ skew_adjoint A) : r • x ∈ skew_adjoint A :=
 by rw [mem_iff, star_smul, star_trivial, mem_iff.mp h, smul_neg r]
 
-instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_scalar R (skew_adjoint A) :=
+instance [monoid R] [distrib_mul_action R A] [star_module R A] : has_smul R (skew_adjoint A) :=
 ⟨λ r x, ⟨r • x, smul_mem r x.prop⟩⟩
 
 @[simp, norm_cast] lemma coe_smul [monoid R] [distrib_mul_action R A] [star_module R A]
@@ -253,7 +276,7 @@ function.injective.distrib_mul_action (skew_adjoint A).subtype subtype.coe_injec
 instance [semiring R] [module R A] [star_module R A] : module R (skew_adjoint A) :=
 function.injective.module R (skew_adjoint A).subtype subtype.coe_injective coe_smul
 
-end has_scalar
+end has_smul
 
 end skew_adjoint
 

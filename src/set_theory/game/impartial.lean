@@ -63,15 +63,11 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
 (impartial_def.1 h).2.2 j
 
 theorem impartial_congr : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
-| G H e := begin
+| G H := λ e, begin
   introI h,
-  rw impartial_def,
-  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
-    λ i, _, λ j, _⟩;
-  cases e with _ _ L R hL hR,
-  { convert impartial_congr (hL (L.symm i)),
-    rw equiv.apply_symm_apply },
-  { exact impartial_congr (hR j) }
+  exact impartial_def.2
+    ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
+      λ i, impartial_congr (e.move_left_symm i), λ j, impartial_congr (e.move_right_symm j)⟩
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -170,7 +166,7 @@ begin
   { rw [equiv_zero_iff_le G, le_zero_lf],
     exact λ i, (hb i).1 },
   { rw fuzzy_zero_iff_lf,
-    exact move_left_lf_of_le i hp.1 }
+    exact hp.1.move_left_lf i }
 end
 
 lemma forall_right_moves_fuzzy_iff_equiv_zero : (∀ j, G.move_right j ∥ 0) ↔ G ≈ 0 :=
@@ -179,7 +175,7 @@ begin
   { rw [equiv_zero_iff_ge G, zero_le_lf],
     exact λ i, (hb i).2 },
   { rw fuzzy_zero_iff_gf,
-    exact lf_move_right_of_le i hp.2 }
+    exact hp.2.lf_move_right i }
 end
 
 lemma exists_left_move_equiv_iff_fuzzy_zero : (∃ i, G.move_left i ≈ 0) ↔ G ∥ 0 :=

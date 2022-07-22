@@ -27,7 +27,7 @@ constructive analogue of countability. (For the most part, theorems about
 -/
 protected def countable (s : set α) : Prop := nonempty (encodable s)
 
-lemma countable_iff_exists_injective {s : set α} :
+protected lemma countable_iff_exists_injective {s : set α} :
   s.countable ↔ ∃f:s → ℕ, injective f :=
 ⟨λ ⟨h⟩, by exactI ⟨encode, encode_injective⟩,
  λ ⟨f, h⟩, ⟨⟨f, partial_inv f, partial_inv_left h⟩⟩⟩
@@ -36,13 +36,13 @@ lemma countable_iff_exists_injective {s : set α} :
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :
   s.countable ↔ ∃ f : α → ℕ, inj_on f s :=
-countable_iff_exists_injective.trans
+set.countable_iff_exists_injective.trans
 ⟨λ ⟨f, hf⟩, ⟨λ a, if h : a ∈ s then f ⟨a, h⟩ else 0,
    λ a as b bs h, congr_arg subtype.val $
      hf $ by simpa [as, bs] using h⟩,
  λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
 
-lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
+lemma countable_iff_exists_subset_range [ne : nonempty α] {s : set α} :
   s.countable ↔ ∃f:ℕ → α, s ⊆ range f :=
 ⟨λ ⟨h⟩, by inhabit α; exactI ⟨λ n, ((decode s n).map subtype.val).iget,
   λ a as, ⟨encode (⟨a, as⟩ : s), by simp [encodek]⟩⟩,
@@ -58,7 +58,7 @@ lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
 A non-empty set is countable iff there exists a surjection from the
 natural numbers onto the subtype induced by the set.
 -/
-lemma countable_iff_exists_surjective_to_subtype {s : set α} (hs : s.nonempty) :
+protected lemma countable_iff_exists_surjective {s : set α} (hs : s.nonempty) :
   s.countable ↔ ∃ f : ℕ → s, surjective f :=
 have inhabited s, from ⟨classical.choice hs.to_subtype⟩,
 have s.countable → ∃ f : ℕ → s, surjective f, from assume ⟨h⟩,
@@ -69,7 +69,7 @@ have (∃ f : ℕ → s, surjective f) → s.countable, from assume ⟨f, fsurj�
 by split; assumption
 
 /-- Convert `set.countable s` to `encodable s` (noncomputable). -/
-def countable.to_encodable {s : set α} : s.countable → encodable s :=
+protected def countable.to_encodable {s : set α} : s.countable → encodable s :=
 classical.choice
 
 lemma countable_encodable' (s : set α) [H : encodable s] : s.countable :=
@@ -80,13 +80,13 @@ lemma countable_encodable [encodable α] (s : set α) : s.countable :=
 
 /-- If `s : set α` is a nonempty countable set, then there exists a map
 `f : ℕ → α` such that `s = range f`. -/
-lemma countable.exists_surjective {s : set α} (hc : s.countable) (hs : s.nonempty) :
-  ∃f:ℕ → α, s = range f :=
+lemma countable.exists_eq_range {s : set α} (hc : s.countable) (hs : s.nonempty) :
+  ∃ f : ℕ → α, s = range f :=
 begin
   letI : encodable s := countable.to_encodable hc,
   letI : nonempty s := hs.to_subtype,
   have : (univ : set s).countable := countable_encodable _,
-  rcases countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
+  rcases set.countable_iff_exists_subset_range.1 this with ⟨g, hg⟩,
   have : range g = univ := univ_subset_iff.1 hg,
   use coe ∘ g,
   simp only [range_comp, this, image_univ, subtype.range_coe]
@@ -133,7 +133,7 @@ begin
     rcases eq_empty_or_nonempty S with rfl|hne,
     { rw [Sup_empty] at hS, haveI := subsingleton_of_bot_eq_top hS,
       rcases h with ⟨x, hx⟩, exact ⟨λ n, x, λ n, hx, subsingleton.elim _ _⟩ },
-    { rcases (countable_iff_exists_surjective_to_subtype hne).1 hSc with ⟨s, hs⟩,
+    { rcases (set.countable_iff_exists_surjective hne).1 hSc with ⟨s, hs⟩,
       refine ⟨λ n, s n, λ n, hps _ (s n).coe_prop, _⟩,
       rwa [hs.supr_comp, ← Sup_eq_supr'] } }
 end

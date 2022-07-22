@@ -577,13 +577,17 @@ by rw [disjoint.comm, disjoint_principal_right]
 
 @[simp] lemma disjoint_principal_principal {s t : set α} :
   disjoint (𝓟 s) (𝓟 t) ↔ disjoint s t :=
-by simp [disjoint_iff_subset_compl_left]
+by simp [←subset_compl_iff_disjoint_left]
 
-alias disjoint_principal_principal ↔ _ disjoint.filter_principal
+alias disjoint_principal_principal ↔ _ _root_.disjoint.filter_principal
 
 @[simp] lemma disjoint_pure_pure {x y : α} :
   disjoint (pure x : filter α) (pure y) ↔ x ≠ y :=
 by simp only [← principal_singleton, disjoint_principal_principal, disjoint_singleton]
+
+@[simp] lemma compl_diagonal_mem_prod {l₁ l₂ : filter α} :
+  (diagonal α)ᶜ ∈ l₁ ×ᶠ l₂ ↔ disjoint l₁ l₂ :=
+by simp only [mem_prod_iff, filter.disjoint_iff, prod_subset_compl_diagonal_iff_disjoint]
 
 lemma le_iff_forall_inf_principal_compl {f g : filter α} :
   f ≤ g ↔ ∀ V ∈ g, f ⊓ 𝓟 Vᶜ = ⊥ :=
@@ -777,6 +781,16 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 
 end two_types
 
+lemma map_sigma_mk_comap {π : α → Type*} {π' : β → Type*} {f : α → β}
+  (hf : function.injective f) (g : Π a, π a → π' (f a)) (a : α) (l : filter (π' (f a))) :
+  map (sigma.mk a) (comap (g a) l) = comap (sigma.map f g) (map (sigma.mk (f a)) l) :=
+begin
+  refine (((basis_sets _).comap _).map _).eq_of_same_basis _,
+  convert ((basis_sets _).map _).comap _,
+  ext1 s,
+  apply image_sigma_mk_preimage_sigma_map hf
+end
+
 end filter
 
 end sort
@@ -830,14 +844,7 @@ end
 lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : B.countable)
   (Bne : B.nonempty) (f : ι → α) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
-begin
-  rw countable_iff_exists_surjective_to_subtype Bne at Bcbl,
-  rcases Bcbl with ⟨g, gsurj⟩,
-  rw infi_subtype',
-  use (λ n, g n), apply le_antisymm; rw le_infi_iff,
-  { intro i, apply infi_le_of_le (g i) _, apply le_rfl },
-  { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
-end
+let ⟨g, hg⟩ := Bcbl.exists_eq_range Bne in ⟨g, hg.symm ▸ infi_range⟩
 
 lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : B.countable) (f : ι → α)
   {i₀ : ι} (h : f i₀ = ⊤) :

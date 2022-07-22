@@ -292,13 +292,12 @@ h.symm.image_eq
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
 by simp only [is_image, set.ext_iff, mem_inter_eq, and.congr_right_iff, mem_preimage]
 
-alias iff_preimage_eq ↔ local_equiv.is_image.preimage_eq local_equiv.is_image.of_preimage_eq
+alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
 lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
 symm_iff.symm.trans iff_preimage_eq
 
-alias iff_symm_preimage_eq ↔ local_equiv.is_image.symm_preimage_eq
-  local_equiv.is_image.of_symm_preimage_eq
+alias iff_symm_preimage_eq ↔ symm_preimage_eq of_symm_preimage_eq
 
 lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
 of_symm_preimage_eq $ eq.trans (of_symm_preimage_eq rfl).image_eq.symm h
@@ -487,6 +486,7 @@ protected def trans : local_equiv α γ :=
 
 @[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
 @[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+lemma trans_apply {x : α} : (e.trans e') x = e' (e x) := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
@@ -534,6 +534,11 @@ local_equiv.ext (λx, rfl) (λx, rfl) $ by { simp [trans_source], rw [← inter_
 lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=
 local_equiv.ext (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rwa inter_assoc }
+
+/-- A lemma commonly useful when `e` and `e'` are charts of a manifold. -/
+lemma mem_symm_trans_source {e' : local_equiv α γ} {x : α} (he : x ∈ e.source)
+  (he' : x ∈ e'.source) : e x ∈ (e.symm.trans e').source :=
+⟨e.maps_to he, by rwa [mem_preimage, local_equiv.symm_symm, e.left_inv he]⟩
 
 /-- Postcompose a local equivalence with an equivalence.
 We modify the source and target to have better definitional behavior. -/

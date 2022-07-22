@@ -167,7 +167,7 @@ begin
 end
 
 lemma continuous_stereo_inv_fun (hv : ∥v∥ = 1) : continuous (stereo_inv_fun hv) :=
-continuous_induced_rng (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
+continuous_induced_rng.2 (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
 
 variables [complete_space E]
 
@@ -386,7 +386,7 @@ lemma cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
   cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
 begin
   rw cont_mdiff_iff_target,
-  refine ⟨continuous_induced_rng hf.continuous, _⟩,
+  refine ⟨continuous_induced_rng.2 hf.continuous, _⟩,
   intros v,
   let U := -- Again, removing type ascription... Weird that this helps!
     (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,

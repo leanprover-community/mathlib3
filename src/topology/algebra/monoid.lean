@@ -563,7 +563,7 @@ variables {ι' : Sort*} [has_mul M]
 @[to_additive] lemma has_continuous_mul_Inf {ts : set (topological_space M)}
   (h : Π t ∈ ts, @has_continuous_mul M t _) :
   @has_continuous_mul M (Inf ts) _ :=
-{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+{ continuous_mul := continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ ht ht
   (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
 
 @[to_additive] lemma has_continuous_mul_infi {ts : ι' → topological_space M}

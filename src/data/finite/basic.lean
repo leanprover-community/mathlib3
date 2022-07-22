@@ -4,49 +4,31 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import data.fintype.basic
+import data.finite.defs
 
 /-!
 # Finite types
 
-This module defines a finiteness predicate on types called `finite`.
-A type is `finite` if it is equivalent to `fin n` for some `n`, and
-otherwise it is `infinite` (see `finite_or_infinite`). This predicate is
-a `class`, and finiteness proofs are given as instances.
-
-The `finite` predicate has no computational relevance and, being
-`Prop`-valued, gets to enjoy proof irrelevance -- it represents the mere fact
-that the type is finite.
-While the `fintype` class also represents finiteness of a type, a key
-difference is that a `fintype` instance represents finiteness in a
-computable way: it gives a concrete algorithm to produce a `finset` whose
-elements enumerate the terms of the given type. As such, one generally
-relies on congruence lemmas when rewriting expressions involving
-`fintype` instances.
-
-Every `fintype` instance automatically gives a `finite` instance, but not
-vice versa. Every `fintype` instance should be computable since they are meant
-for computation. If it's not possible to write a computable `fintype` instance,
-one should prefer writing a `finite` instance instead.
+In this file we prove some theorems about `finite` and provide some instances. This typeclass is a
+`Prop`-valued counterpart of the typeclass `fintype`. See more details in the file where `finite` is
+defined.
 
 ## Main definitions
 
-* `finite α` denotes that `α` is a finite type.
-* `finite.of_fintype` creates a `finite` instance from a `fintype` instance.
+* `fintype.finite`, `finite.of_fintype` creates a `finite` instance from a `fintype` instance. The
+  former lemma takes `fintype α` as an explicit argument while the latter takes it as an instance
+  argument.
 * `fintype.of_finite` noncomputably creates a `fintype` instance from a `finite` instance.
 * `finite_or_infinite` is that every type is either `finite` or `infinite`.
 
 ## Implementation notes
-
-The definition of `finite α` is not just `nonempty (fintype α)` since `fintype` requires
-that `α : Type*`, and the definition in this module allows for `α : Sort*`. This means
-we can write the instance `finite.prop`.
 
 There is an apparent duplication of many `fintype` instances in this module,
 however they follow a pattern: if a `fintype` instance depends on `decidable`
 instances or other `fintype` instances, then we need to "lower" the instance
 to be a `finite` instance by removing the `decidable` instances and switching
 the `fintype` instances to `finite` instances. These are precisely the ones
-that cannot be inferred using `finite.of_fintype'`. (However, when using
+that cannot be inferred using `finite.of_fintype`. (However, when using
 `open_locale classical` or the `classical` tactic the instances relying only
 on `decidable` instances will give `finite` instances.) In the future we might
 consider writing automation to create these "lowered" instances.
@@ -54,7 +36,6 @@ consider writing automation to create these "lowered" instances.
 ## Tags
 
 finiteness, finite types
-
 -/
 
 noncomputable theory

@@ -18,6 +18,21 @@ in a computable way: it gives a concrete algorithm to produce a `finset` whose e
 the terms of the given type. As such, one generally relies on congruence lemmas when rewriting
 expressions involving `fintype` instances.
 
+Every `fintype` instance automatically gives a `finite` instance, see `fintype.finite`, but not vice
+versa. Every `fintype` instance should be computable since they are meant for computation. If it's
+not possible to write a computable `fintype` instance, one should prefer writing a `finite` instance
+instead.
+
+## Main definitions
+
+* `finite α` denotes that `α` is a finite type.
+
+## Implementation notes
+
+The definition of `finite α` is not just `nonempty (fintype α)` since `fintype` requires
+that `α : Type*`, and the definition in this module allows for `α : Sort*`. This means
+we can write the instance `finite.prop`.
+
 ## Tags
 
 finite, fintype
@@ -35,7 +50,6 @@ in this way to allow there to be `finite` instances for propositions.
 -/
 class inductive finite (α : Sort*) : Prop
 | intro {n : ℕ} : α ≃ fin n → finite
-
 
 lemma finite_iff_exists_equiv_fin {α : Sort*} : finite α ↔ ∃ n, nonempty (α ≃ fin n) :=
 ⟨λ ⟨e⟩, ⟨_, ⟨e⟩⟩, λ ⟨n, ⟨e⟩⟩, ⟨e⟩⟩

@@ -41,11 +41,6 @@ complement operator `a \ b` for all `a`, `b`. Instead, the postulates there amou
 that for all `a, b : α` where `a ≤ b`, the equations `x ⊔ a = b` and `x ⊓ a = ⊥` have a solution
 `x`. `disjoint.sdiff_unique` proves that this `x` is in fact `b \ a`.
 
-## Notations
-
-* `xᶜ` is notation for `compl x`
-* `x \ y` is notation for `sdiff x y`.
-
 ## References
 
 * <https://en.wikipedia.org/wiki/Boolean_algebra_(structure)#Generalizations>

@@ -351,7 +351,7 @@ by { ext x, cases x; refl }
 
 @[simp]
 lemma sum.elim_lam_const_lam_const (c : γ) :
-  sum.elim (λ (_ : α), c) (λ (_ : β), c) = const _ c :=
+  sum.elim (λ (_ : α), c) (λ (_ : β), c) = λ _, c :=
 sum.elim_const_const c
 
 end function

@@ -41,7 +41,7 @@ begin
   { exact le_of_lt (hM.2 x hx) }
 end
 
-@[simp] lemma pos_semidef.minor {M : matrix n n R} (hM : M.pos_semidef) (e : m ≃ n):
+lemma pos_semidef.minor {M : matrix n n R} (hM : M.pos_semidef) (e : m ≃ n):
   (M.minor e e).pos_semidef :=
 begin
   refine ⟨hM.1.minor e, λ x, _⟩,

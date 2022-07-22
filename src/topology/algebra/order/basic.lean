@@ -1799,7 +1799,7 @@ begin
   have hx : 0 < 2 * (1 + |x|) := by positivity,
   rw ((nhds_basis_zero_abs_sub_lt α).prod $ nhds_basis_abs_sub_lt x).tendsto_iff
      (nhds_basis_zero_abs_sub_lt α),
-  refine λ ε ε_pos, ⟨(ε/(2 * (1 + |x|)), 1), ⟨by { dsimp at *, positivity }, zero_lt_one⟩, _⟩,
+  refine λ ε ε_pos, ⟨(ε/(2 * (1 + |x|)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
   suffices : ∀ (a b : α), |a| < ε / (2 * (1 + |x|)) → |b - x| < 1 → |a| * |b| < ε,
   by simpa only [and_imp, prod.forall, mem_prod, ← abs_mul],
   intros a b h h',

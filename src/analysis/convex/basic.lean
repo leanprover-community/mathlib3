@@ -1005,7 +1005,7 @@ begin
   { rintro ⟨v, hv, rfl⟩,
     exact ⟨p • v, q • v, smul_mem_smul_set hv, smul_mem_smul_set hv, (add_smul _ _ _).symm⟩ },
   { rintro ⟨v₁, v₂, ⟨v₁₁, h₁₂, rfl⟩, ⟨v₂₁, h₂₂, rfl⟩, rfl⟩,
-    have hpq : 0 < p + q := by positivity,
+    have hpq := add_pos hp' hq',
     refine mem_smul_set.2 ⟨_, h_conv h₁₂ h₂₂ _ _
       (by rw [←div_self hpq.ne', add_div] : p / (p + q) + q / (p + q) = 1),
       by simp only [← mul_smul, smul_add, mul_div_cancel' _ hpq.ne']⟩; positivity }

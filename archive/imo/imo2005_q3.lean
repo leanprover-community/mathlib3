@@ -25,12 +25,13 @@ begin
   have h₂ : 0 < x^3 := by positivity,
   have h₃ : 0 < x^2+y^2+z^2 := by positivity,
   have h₄ : 0 < x^3*(x^2+y^2+z^2) := by positivity,
-  have h₅ : ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))) ≥ 0 := by positivity,
 
   have key : (x^5-x^2)/(x^5+y^2+z^2) - (x^5-x^2)/(x^3*(x^2+y^2+z^2))
            = ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))),
   { field_simp [h₁.ne', h₄.ne'],
     ring },
+
+  have h₅ : ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))) ≥ 0 := by positivity,
 
   calc  (x^5-x^2)/(x^5+y^2+z^2)
       ≥ (x^5-x^2)/(x^3*(x^2+y^2+z^2)) : by linarith [key, h₅]

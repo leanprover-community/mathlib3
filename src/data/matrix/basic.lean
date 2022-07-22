@@ -1546,10 +1546,9 @@ matrix.ext $ by simp [mul_apply]
   (- M)ᴴ = - Mᴴ :=
 matrix.ext $ by simp
 
-/-- `matrix.conj_transpose` as an `add_equiv` -/
-
 variables (m n α)
 
+/-- `matrix.conj_transpose` as an `add_equiv` -/
 @[simps apply]
 def conj_transpose_add_equiv [add_monoid α] [star_add_monoid α] : matrix m n α ≃+ matrix n m α :=
 { to_fun := conj_transpose,

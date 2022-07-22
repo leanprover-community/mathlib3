@@ -475,12 +475,8 @@ end
 
 lemma isometry_Lp_meas_subgroup_to_Lp_trim [hp : fact (1 ≤ p)] (hm : m ≤ m0) :
   isometry (Lp_meas_subgroup_to_Lp_trim F p μ hm) :=
-begin
-  rw isometry_emetric_iff_metric,
-  intros f g,
-  rw [dist_eq_norm, ← Lp_meas_subgroup_to_Lp_trim_sub, Lp_meas_subgroup_to_Lp_trim_norm_map,
-    dist_eq_norm],
-end
+isometry.of_dist_eq $ λ f g, by rw [dist_eq_norm, ← Lp_meas_subgroup_to_Lp_trim_sub,
+  Lp_meas_subgroup_to_Lp_trim_norm_map, dist_eq_norm]
 
 variables (F p μ)
 /-- `Lp_meas_subgroup` and `Lp F p (μ.trim hm)` are isometric. -/

@@ -411,7 +411,7 @@ variables (𝕜 𝕜')
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry [norm_one_class 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
 

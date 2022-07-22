@@ -801,7 +801,7 @@ lemma normalize_zero [inhabited α] : (0 : finite_measure α).normalize = defaul
 by simp only [normalize, zero.mass, dif_pos]
 
 @[simp] lemma self_eq_mass_mul_normalize [inhabited α] (s : set α) :
-  μ s = (μ.mass) * (μ.normalize s) :=
+  μ s = μ.mass * μ.normalize s :=
 begin
   by_cases μ = 0,
   { rw h,

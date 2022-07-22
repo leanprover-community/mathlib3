@@ -58,7 +58,7 @@ begin
   { push_neg,
     intro j,
     rw set.Icc_eq_empty_of_lt h,
-    simp only [set.mem_empty_eq, forall_false_left], },
+    simp only [set.mem_empty_eq, is_empty.forall_iff], },
   simp only [h_not, if_false],
 end
 

@@ -675,24 +675,78 @@ begin
   rw [int.coe_nat_abs_eq_normalize]
 end
 
-.
+@[simps]
+def ring_equiv.fin_two (α : fin 2 → Type*) [Π i, semiring (α i)] :
+  (Π (i : fin 2), α i) ≃+* α 0 × α 1 :=
+{ to_fun := pi_fin_two_equiv α,
+  map_add' := λ a b, rfl,
+  map_mul' := λ a b, rfl,
+  .. pi_fin_two_equiv α }
 
-lemma inf_eq_mul_of_coprime {I J : ideal S} (coprime : I ⊔ J = ⊤) :
-  I ⊓ J = I * J :=
+section dedekind_domain_inf
+
+open_locale classical
+
+local attribute [instance] unique_factorization_monoid.to_normalized_gcd_monoid
+
+lemma gcd_eq_sup {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] (I J : ideal R) :
+  gcd I J = I ⊔ J :=
 begin
-  
+  rw ← normalize_eq (I ⊔ J),
+  convert gcd_eq_normalize _ _,
+  { rw [ideal.dvd_iff_le, sup_le_iff, ← ideal.dvd_iff_le, ← ideal.dvd_iff_le],
+    exact ⟨gcd_dvd_left _ _, gcd_dvd_right _ _⟩ },
+  { rw [dvd_gcd_iff, ideal.dvd_iff_le, ideal.dvd_iff_le],
+    simp, },
 end
 
+lemma lcm_eq_inf {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] (I J : ideal R) :
+  lcm I J = I ⊓ J :=
+begin
+  rw ← normalize_eq (I ⊓ J),
+  convert lcm_eq_normalize _ _,
+  { rw [lcm_dvd_iff, ideal.dvd_iff_le, ideal.dvd_iff_le],
+    simp, },
+  { rw [ideal.dvd_iff_le, le_inf_iff, ← ideal.dvd_iff_le, ← ideal.dvd_iff_le],
+    exact ⟨dvd_lcm_left _ _, dvd_lcm_right _ _⟩ },
+end
+
+lemma inf_eq_mul_of_coprime [is_dedekind_domain S] {I J : ideal S} (coprime : I ⊔ J = ⊤) :
+  I ⊓ J = I * J :=
+by rw [← associated_iff_eq.mp (gcd_mul_lcm I J), lcm_eq_inf, gcd_eq_sup, coprime, ideal.top_mul]
+
+end dedekind_domain_inf
+
+lemma set.range_fin_two {α : Type*} (f : fin 2 → α) :
+  set.range f = {f 0, f 1} :=
+begin
+  ext fi,
+  rw set.mem_range,
+  split,
+  { rintro ⟨i, rfl⟩,
+    fin_cases i; simp },
+  { rintro (hi | hi); exact ⟨_, hi.symm⟩ },
+end
+
+@[simp]
+lemma infi_fin_two {α : Type*} (f : fin 2 → α) [complete_lattice α] :
+  (⨅ (i : fin 2), f i) = f 0 ⊓ f 1 :=
+by rw [infi, set.range_fin_two, Inf_insert, Inf_singleton]
+
 /-- Chinese remainder theorem, specialized to two ideals. -/
-noncomputable def ideal.quotient_mul_equiv_quotient_prod (I J : ideal S) (coprime : I ⊔ J = ⊤) :
+noncomputable def ideal.quotient_mul_equiv_quotient_prod [is_dedekind_domain S] (I J : ideal S)
+  (coprime : I ⊔ J = ⊤) :
   (S ⧸ (I * J)) ≃+* (S ⧸ I) × S ⧸ J :=
 let f : fin 2 → ideal S := ![I, J] in
 have hf : ∀ (i j : fin 2), i ≠ j → f i ⊔ f j = ⊤,
 { intros i j h,
   fin_cases i; fin_cases j; try { contradiction }; simpa [f, sup_comm] using coprime },
 ring_equiv.trans (ideal.quotient_equiv _ _ (ring_equiv.refl S)
-  ((inf_eq_mul_of_coprime coprime).trans (ideal.map_id _).symm)) $
-ring_equiv.trans (ideal.quotient_inf_ring_equiv_pi_quotient f hf) _
+  (trans (infi_fin_two f) $ (inf_eq_mul_of_coprime coprime).trans $ (ideal.map_id _).symm)) $
+ring_equiv.trans (ideal.quotient_inf_ring_equiv_pi_quotient f hf)
+  (ring_equiv.fin_two (λ i, S ⧸ f i))
+
+variables [is_dedekind_domain S]
 
 /-- Multiplicity of the ideal norm, for coprime ideals.
 
@@ -716,8 +770,6 @@ begin
       fintype.card_eq.mpr ⟨(ideal.quotient_mul_equiv_quotient_prod I J coprime).to_equiv⟩,
       fintype.card_prod]
 end
-
-variables [is_dedekind_domain S]
 
 lemma unique_factorization_monoid.pow_eq_pow_iff {M : Type*}
   [cancel_comm_monoid_with_zero M] [unique_factorization_monoid M]
@@ -984,15 +1036,21 @@ begin
     have hd' := mem_map.mpr ⟨a * d, hc', rfl⟩,
     refine ⟨⟨_, hd'⟩, _⟩,
     simp only [submodule.quotient.mk'_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.eq],
-    obtain ⟨he, hd'⟩ := (ideal.exists_mul_add_mem_pow_succ P hP a _ a_mem a_not_mem hc').some_spec.some_spec,
+    obtain ⟨he, hd''⟩ := (ideal.exists_mul_add_mem_pow_succ P hP a _ a_mem a_not_mem hc').some_spec.some_spec,
     refine ideal.mul_add_mem_pow_succ_unique P hP a _ _ 0 _ a_mem a_not_mem _ he _,
     { exact (P ^ (i + 1)).zero_mem },
     convert submodule.neg_mem _ (ideal.add_mem _ he he), -- Come on, Lean!
     rw add_zero,
-    conv_lhs { congr, skip, congr, rw ← hd' },
+    conv_lhs { congr, skip, congr, rw ← hd'' },
     rw [eq_neg_iff_add_eq_zero, add_assoc, ← sub_sub, sub_add_cancel],
-    convert sub_self _,  -- Come on, Lean!!
-    sorry }
+    convert sub_self _, -- At some point we used `a * d` as a witness for an existential, so now we need to show the choice of witness doesn't matter.
+    have sub_mem := (submodule.quotient.eq _).mp (classical.some_spec (mem_map.mp hd')).2,
+    ext x,
+    split; rintro ⟨e, he, eq⟩,
+    { refine ⟨_, submodule.add_mem _ he sub_mem, _⟩,
+      rw [← add_assoc, eq], ring },
+    { refine ⟨_, submodule.sub_mem _ he sub_mem, _⟩,
+      rw [← add_sub_assoc, eq], ring } }
 end
 
 /-- If `P` holds units and powers of primes,

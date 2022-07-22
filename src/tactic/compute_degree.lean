@@ -237,22 +237,6 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
 | e              := eval_expr' ℕ e <|> pure n
 
-meta def guess_degree_to_nat : expr → ℕ
-| `(has_zero.zero)           := 0
-| `(has_one.one)             := 0
-| `(- %%f)                   := guess_degree_to_nat f
-| (app `(⇑C) x)              := 0
-| `(X)                       := 1
-| `(bit0 %%a)                := guess_degree_to_nat a
-| `(bit1 %%a)                := guess_degree_to_nat a
-| `(%%a + %%b)               := max (guess_degree_to_nat a) (guess_degree_to_nat b)
-| `(%%a - %%b)               := max (guess_degree_to_nat a) (guess_degree_to_nat b)
-| `(%%a * %%b)               := (guess_degree_to_nat a) + (guess_degree_to_nat b)
-| `(%%a ^ %%b)               := let bn := b.to_nat.get_or_else 0 in
-                                (guess_degree_to_nat a) * bn
-| (app `(⇑(monomial %%n)) x) := n.to_nat.get_or_else 0
-| e                          := 0
-
 /-- `resolve_sum_step e` takes the type of the current goal `e` as input.
 It tries to make progress on the goal `e` by reducing it to subgoals.
 It assumes that `e` is of the form `f.nat_degree ≤ d`, failing otherwise.
@@ -423,7 +407,6 @@ do t ← target,
   summ ← list_binary_operands ad pol,
   just_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
   let low_degs := prod.mk ff <$> just_degs.map to_pexpr,
---  let low_degs := prod.mk ff <$> (summ.filter (λ t, guess_degree_to_nat t < deg)).map to_pexpr,
   --  would be nice to not have to `try move_op` and simply do it!
   try $ move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
   iterate_at_most low_degs.length $

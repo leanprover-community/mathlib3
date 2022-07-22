@@ -648,7 +648,7 @@ linear_isometry_equiv.to_linear_equiv_injective $ b.ext' h
 omit σ₂₁
 
 /-- Reinterpret a `linear_isometry` as a `linear_isometry_equiv` to the range. -/
-noncomputable def linear_isometry.to_linear_isometry_equiv {S : Type*} [ring S] {σ₁₂ : R →+* S}
+noncomputable def linear_isometry.equiv_range {S : Type*} [ring S] {σ₁₂ : R →+* S}
   {σ₂₁ : S →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [module S E]
   (f : F →ₛₗᵢ[σ₁₂] E) :
   F ≃ₛₗᵢ[σ₁₂] f.to_linear_map.range :=

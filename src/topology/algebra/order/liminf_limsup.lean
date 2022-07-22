@@ -190,7 +190,7 @@ section monotone
 
 variables {ι R S : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
-  [complete_linear_order S] [topological_space S] [order_topology S]
+  [complete_linear_order S] [topological_space S] [order_closed_topology S]
 
 /-- A continuous antitone function between complete linear ordered spaces sends a `filter.limsup`
 to the `filter.liminf` of the images. -/

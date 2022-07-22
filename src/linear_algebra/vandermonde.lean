@@ -134,18 +134,18 @@ lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
 by simpa only [det_vandermonde_eq_zero_iff, ne.def, not_exists, not_and, not_not]
 
 theorem eq_zero_of_forall_index_sum_pow_mul_eq_zero {R : Type*} [comm_ring R]
-[is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
-(hfv : ∀ j, ∑ i : fin n, (f j ^ (i : ℕ)) * v i = 0) : v = 0
-:= eq_zero_of_mul_vec_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
+  [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
+  (hfv : ∀ j, ∑ i : fin n, (f j ^ (i : ℕ)) * v i = 0) : v = 0 :=
+eq_zero_of_mul_vec_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
 
 theorem eq_zero_of_forall_index_sum_mul_pow_eq_zero {R : Type*} [comm_ring R]
-[is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
-(hfv : ∀ j, ∑ i, v i * (f j ^ (i : ℕ)) = 0) : v = 0
-:= by { refine eq_zero_of_forall_index_sum_pow_mul_eq_zero hf _, simp_rw mul_comm, exact hfv }
+  [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
+  (hfv : ∀ j, ∑ i, v i * (f j ^ (i : ℕ)) = 0) : v = 0 :=
+by { refine eq_zero_of_forall_index_sum_pow_mul_eq_zero hf _, simp_rw mul_comm, exact hfv }
 
 theorem eq_zero_of_forall_pow_sum_mul_pow_eq_zero {R : Type*} [comm_ring R]
-[is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
-(hfv : ∀ i : fin n, ∑ j : fin n, v j * (f j ^ (i : ℕ)) = 0) : v = 0
-:= eq_zero_of_vec_mul_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
+  [is_domain R] {n : ℕ} {f v : fin n → R} (hf : function.injective f)
+  (hfv : ∀ i : fin n, ∑ j : fin n, v j * (f j ^ (i : ℕ)) = 0) : v = 0 :=
+eq_zero_of_vec_mul_eq_zero (det_vandermonde_ne_zero_iff.mpr hf) (funext hfv)
 
 end matrix

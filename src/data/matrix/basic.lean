@@ -1404,7 +1404,6 @@ variables (m n R α)
 def transpose_linear_equiv [semiring R] [add_comm_monoid α] [module R α] :
   matrix m n α ≃ₗ[R] matrix n m α := { map_smul' := transpose_smul, ..transpose_add_equiv m n α}
 
-
 @[simp] lemma transpose_linear_equiv_symm [semiring R] [add_comm_monoid α] [module R α] :
   (transpose_linear_equiv m n R α).symm = transpose_linear_equiv n m R α := rfl
 

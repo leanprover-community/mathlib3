@@ -4,12 +4,53 @@ open polynomial
 open_locale polynomial
 universe u
 
+section suggestions
+variables {F : Type*} [ring F] [nontrivial F] (n : ℕ) (a : F)
+
+/-
+Should these commented examples be solved by `compute_degree`?
+example : degree (X ^ n : F[X]) = n :=
+example : degree (X ^ n : F[X]) = n :=
+example (a0 : a ≠ 0) : degree (C a : F[X]) = 0 :=
+example : degree (X : F[X]) = 1 :=
+example (a0 : a ≠ 0) : degree (C a * X ^ n : F[X]) = n :=
+example (a0 : a ≠ 0) : degree (C a * X : F[X]) = 1 :=
+-/
+
+example : nat_degree (X ^ n : F[X]) = n :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_X_pow _",
+     exact polynomial.nat_degree_X_pow _ }
+
+example : nat_degree (C a : F[X]) = 0 :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_C _",
+     exact polynomial.nat_degree_C _ }
+
+example : nat_degree (X : F[X]) = 1 :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_X",
+     exact polynomial.nat_degree_X }
+
+example (a0 : a ≠ 0) : nat_degree (C a * X ^ n : F[X]) = n :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
+     exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_› }
+
+example (a0 : a ≠ 0) : nat_degree (C a * X : F[X]) = 1 :=
+by { success_if_fail_with_msg {compute_degree}
+       "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
+     exact polynomial.nat_degree_C_mul_X _ ‹_› }
+
+end suggestions
+
 /-  Issue: goals hidden and needing recover. -/
-example {F : Type*} [ring F] (h37 : ((37 : ℕ) : F) ≠ 0) : nat_degree (((2 * 2 + 2) ^ 2 + 1) * X + 1 : F[X]) = 1 :=
+example {F : Type*} [ring F] (h37 : ((37 : ℕ) : F) ≠ 0) :
+  nat_degree (((2 * 2 + 2) ^ 2 + 1) * X + 1 : F[X]) = 1 :=
 begin
   compute_degree,
---  recover,
---  norm_num,
+  recover,
+  norm_num,
 end
 
 /-  Issue: cannot use `norm_num` on one of the goals, since it times out
@@ -27,11 +68,6 @@ begin
   convert nat_degree_C_mul_X _ t,
   simp only [nat.cast_bit0, nat.cast_one, C_bit0, map_one],
 end
-
-#exit
-
---set_option pp.all true
---instance {F : Type*} [comm_semiring F] : has_add (polynomial F) := by refine polynomial.has_add
 
 section one_term_polynomials
 variables {F : Type*} [comm_semiring F] [nontrivial F] (n : ℕ) (a : F)
@@ -130,10 +166,8 @@ example {R} [semiring R] (a b c : R) (h3 : (3 : R) ≠ 0) (f g h : R[X]) :
 begin
   compute_degree,
 end
-.
---/-- goal did not change
---set_option pp.all true
-example {F : Type*} [ring F] (t : ((2 : ℕ) : F) ≠ 0) (a b c : F[X]) (a0 : a.nat_degree ≤ 0) :
+
+example {F : Type*} [comm_ring F] (t : ((2 : ℕ) : F) ≠ 0) (a b c : F[X]) (a0 : a.nat_degree ≤ 0) :
   nat_degree (X + a + X : F[X]) = 1 :=
 begin
   compute_degree,
@@ -141,7 +175,6 @@ begin
   compute_degree,
   exact a0,
 end
---/
 
 /- From here
 This part should be better and about `compute_degree_le`. -/
@@ -184,8 +217,6 @@ by {
   compute_degree,
   norm_num,
   }
---#exit
---variables {R : Type*} [semiring R] {f g h : R[X]} {a b c d e : R}
 
 section tests_for_compute_degree
 
@@ -302,10 +333,10 @@ by compute_degree
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + 0 * X ^ 10 + monomial 9 1 + C e * X) = 9 :=
 begin
---  success_if_fail_with_msg {compute_degree}
---    "'10' is the expected degree
---'9' is the given degree
---",
+  success_if_fail_with_msg {compute_degree}
+    "'10' is the expected degree
+'9' is the given degree
+",
   rw zero_mul,
   compute_degree,
 end
@@ -342,9 +373,9 @@ by compute_degree_le
 
 example : (1 : polynomial R).nat_degree ≤ 0 :=
 begin
---  success_if_fail_with_msg {compute_degree}
---    "Goal is not of the form
---`f.nat_degree = d` or `f.degree = d`",
+  success_if_fail_with_msg {compute_degree}
+    "Goal is not of the form
+`f.nat_degree = d` or `f.degree = d`",
   compute_degree_le
 end
 

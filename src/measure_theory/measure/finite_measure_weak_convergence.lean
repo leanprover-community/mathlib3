@@ -25,8 +25,11 @@ TODOs:
 ## Main definitions
 
 The main definitions are the
- * types `finite_measure α` and `probability_measure α` with topologies of weak convergence;
- * `to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
+ * types `measure_theory.finite_measure α` and `measure_theory.probability_measure α` with
+   the topologies of weak convergence;
+ * `measure_theory.finite_measure.normalize`, normalizing a finite measure to a probability measure
+   (returns junk for the zero measure);
+ * `measure_theory.finite_measure.to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
    allowing to interpret a finite measure as a continuous linear functional on the space of
    bounded continuous nonnegative functions on `α`. This is used for the definition of the
    topology of weak convergence.
@@ -35,15 +38,23 @@ The main definitions are the
 
  * Finite measures `μ` on `α` give rise to continuous linear functionals on the space of
    bounded continuous nonnegative functions on `α` via integration:
-   `to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
- * `tendsto_iff_forall_lintegral_tendsto`: Convergence of finite measures and probability measures
-   is characterized by the convergence of integrals of all bounded continuous (nonnegative)
-   functions. This essentially shows that the given definition of topology corresponds to the
-   common textbook definition of weak convergence of measures.
+   `measure_theory.finite_measure.to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
+ * `measure_theory.finite_measure.tendsto_iff_forall_integral_tendsto` and
+   `measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto`: Convergence of finite
+   measures and probability measures is characterized by the convergence of integrals of all
+   bounded continuous functions. This shows that the given definition of topology corresponds to
+   the common textbook definition of weak convergence of measures.
+   Similar characterizations by the convergence of integrals (in the `measure_theory.lintegral`
+   sense) of all bounded continuous nonnegative functions are
+   `measure_theory.finite_measure.tendsto_iff_forall_lintegral_tendsto` and
+   `measure_theory.probability_measure.tendsto_iff_forall_lintegral_tendsto`.
+ * `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`: The convergence of finite
+   measures to a nonzero limit is characterized by the convergence of the probability-normalized
+   versions and of the total masses.
 
 TODO:
 * Portmanteau theorem:
-  * `finite_measure.limsup_measure_closed_le_of_tendsto` proves one implication.
+  * `measure_theory.finite_measure.limsup_measure_closed_le_of_tendsto` proves one implication.
     The current formulation assumes `pseudo_emetric_space`. The only reason is to have
     bounded continuous pointwise approximations to the indicator function of a closed set. Clearly
     for example metrizability or pseudo-emetrizability would be sufficient assumptions. The
@@ -69,6 +80,7 @@ drastic downstream effects, so it can be changed later if appropriate.
 Potential advantages of using the `nnreal`-valued vector measure alternative:
  * The coercion to function would avoid need to compose with `ennreal.to_nnreal`, the
    `nnreal`-valued API could be more directly available.
+
 Potential drawbacks of the vector measure alternative:
  * The coercion to function would lose monotonicity, as non-measurable sets would be defined to
    have measure 0.
@@ -831,15 +843,14 @@ variables {α : Type*} [measurable_space α] (μ : finite_measure α) [nonempty 
 total mass. -/
 def normalize : probability_measure α :=
 if zero : μ.mass = 0 then ⟨measure.dirac ‹nonempty α›.some, measure.dirac.is_probability_measure⟩
-  else {
-    val := (μ.mass)⁻¹ • μ,
-    property := begin
-      refine ⟨_⟩,
-      simp only [mass, measure.coe_nnreal_smul_apply,
-                  ←ennreal_coe_fn_eq_coe_fn_to_measure μ univ],
-      norm_cast,
-      exact inv_mul_cancel zero,
-    end }
+  else {  val := (μ.mass)⁻¹ • μ,
+          property := begin
+            refine ⟨_⟩,
+            simp only [mass, measure.coe_nnreal_smul_apply,
+                        ←ennreal_coe_fn_eq_coe_fn_to_measure μ univ],
+            norm_cast,
+            exact inv_mul_cancel zero,
+          end }
 
 --lemma normalize_zero : (0 : finite_measure α).normalize = default :=
 --by simp only [normalize, zero.mass, dif_pos]

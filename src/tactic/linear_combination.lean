@@ -269,14 +269,14 @@ do to_expr ``(eq_zero_of_sub_eq_zero %%hsum_on_left) >>= apply, skip
 /--
 If an exponent `n` is provided, changes the goal from `t = 0` to `t^n = 0`.
 * Input:
-  * `exponent : option ℕ`, the power to raise the goal by. If `none`, this tactic is a no-op.
+  * `exponent : ℕ`, the power to raise the goal by. If `1`, this tactic is a no-op.
 
 * Output: N/A
 -/
-meta def raise_goal_to_power (exponent : option ℕ) : tactic unit :=
+meta def raise_goal_to_power (exponent : ℕ) : tactic unit :=
 match exponent with
-| some n := refine ``(@pow_eq_zero _ _ _ _ %%`(n) _)
-| none := skip
+| 1 := skip
+| n := refine ``(@pow_eq_zero _ _ _ _ %%`(n) _)
 end
 
 /--
@@ -327,7 +327,7 @@ do
   hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
-  raise_goal_to_power exponent,
+  raise_goal_to_power (exponent.get_or_else 1),
   set_goal_to_hleft_sub_tleft hsum_on_left,
   normalize_if_desired config
 

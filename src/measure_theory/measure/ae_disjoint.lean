@@ -33,7 +33,7 @@ lemma exists_null_pairwise_disjoint_diff [encodable ι] {s : ι → set α}
 begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
     λ i, measurable_set_to_measurable _ _, λ i, _, _⟩,
-  { simp only [measure_to_measurable, inter_Union, measure_bUnion_null_iff (countable_encodable _)],
+  { simp only [measure_to_measurable, inter_Union, measure_bUnion_null_iff (to_countable _)],
     exact λ j hj, hd _ _ (ne.symm hj) },
   { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,

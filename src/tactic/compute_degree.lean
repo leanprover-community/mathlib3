@@ -278,6 +278,7 @@ do t ← target, match t with
   | e                := fail!"'{e}' is not supported"
   end
 | e := fail!("'resolve_sum_step' was called on\n{e}\nbut it expects `f.nat_degree ≤ d`")
+end
 
 /--  `norm_assum` simply tries `norm_num` and `assumption`.
 It is used to try to discharge as many as possible of the side-goals of `compute_degree_le`.
@@ -405,7 +406,6 @@ do t ← target,
   try $ any_goals' norm_assum
 -/
 
-#check list.foldl
 add_tactic_doc
 { name := "compute_degree_le",
   category := doc_category.tactic,

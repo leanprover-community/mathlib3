@@ -41,18 +41,6 @@ $P(P(t))-t$ is a root of $P(t)-t-a-b$, and we're again done by the fundamental t
 
 open function polynomial
 
-@[simp] theorem coe_succ_sign (n : ℕ) : int.sign (n + 1) = 1 := rfl
-@[simp] theorem neg_succ_of_nat_sign (n : ℕ) : int.sign -[1+ n] = -1 := rfl
-
-theorem sign_add_eq_of_sign_eq : ∀ {m n : ℤ} (h : m.sign = n.sign), (m + n).sign = n.sign :=
-begin
-  have : (1 : ℤ) ≠ -1 := dec_trivial,
-  rintro ((_ | m) | m) ((_ | n) | n);
-  simp [this, this.symm],
-  rw int.sign_eq_one_iff_pos,
-  apply add_pos; apply nat.cast_add_one_pos
-end
-
 /-- If every entry in a cyclic list of integers divides the next, then they all have the same
 absolute value -/
 theorem nat_abs_eq_of_chain_dvd {l : cycle ℤ} {x y : ℤ} (hl : l.chain (∣))

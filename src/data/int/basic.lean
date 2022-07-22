@@ -107,6 +107,9 @@ by rw [abs_eq_nat_abs]; refl
 theorem sign_mul_abs (a : ℤ) : sign a * |a| = a :=
 by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 
+@[simp] theorem coe_add_one_sign (n : ℕ) : int.sign (n + 1) = 1 := rfl
+@[simp] theorem neg_succ_of_nat_sign (n : ℕ) : int.sign -[1+ n] = -1 := rfl
+
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
@@ -1173,6 +1176,15 @@ begin
 end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
+
+theorem sign_add_eq_of_sign_eq : ∀ {m n : ℤ} (h : m.sign = n.sign), (m + n).sign = n.sign :=
+begin
+  have : (1 : ℤ) ≠ -1 := dec_trivial,
+  rintro ((_ | m) | m) ((_ | n) | n);
+  simp [this, this.symm],
+  rw int.sign_eq_one_iff_pos,
+  apply add_pos; apply nat.cast_add_one_pos
+end
 
 lemma nat_abs_le_of_dvd_ne_zero {s t : ℤ} (hst : s ∣ t) (ht : t ≠ 0) : nat_abs s ≤ nat_abs t :=
 not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)

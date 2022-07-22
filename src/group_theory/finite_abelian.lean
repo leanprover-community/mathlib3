@@ -19,33 +19,35 @@ import data.zmod.quotient
 
 open_locale direct_sum
 
+universe u
+
+variables (G : Type u)
+
 namespace module
 
-open_locale classical
-
-/-- A finitely generated torsion `ℤ`-module is finite. -/
-noncomputable def fintype_of_fg_torsion (G : Type*) [add_comm_group G] [module ℤ G]
-  [module.finite ℤ G] (hit : module.is_torsion ℤ G) : fintype G :=
-let hG := (module.equiv_direct_sum_of_is_torsion hit).some_spec in
-@fintype.of_equiv _ _
-  (@fintype.of_equiv _ _
-    (@pi.fintype _ _ _ hG.some $ λ i,
-      @fintype.of_equiv _ _
-        (@zmod.fintype _
-          ⟨int.nat_abs_pos_of_ne_zero $ pow_ne_zero (hG.some_spec.some_spec.some_spec.some i) $
-            irreducible.ne_zero $ hG.some_spec.some_spec.some i⟩)
-        (int.quotient_span_equiv_zmod _).symm.to_equiv)
-    (@dfinsupp.equiv_fun_on_fintype _ _ _ hG.some).symm)
-  hG.some_spec.some_spec.some_spec.some_spec.some.symm.to_equiv
+lemma finite_of_fg_torsion [add_comm_group G] [module ℤ G] [module.finite ℤ G]
+  (hG : module.is_torsion ℤ G) : _root_.finite G :=
+begin
+  rcases module.equiv_direct_sum_of_is_torsion hG with ⟨ι, _, p, h, e, ⟨l⟩⟩,
+  haveI : ∀ i : ι, fact $ 0 < (p i ^ e i).nat_abs :=
+  λ i, fact.mk $ int.nat_abs_pos_of_ne_zero $ pow_ne_zero (e i) (h i).ne_zero,
+  haveI : ∀ i : ι, _root_.finite $ ℤ ⧸ submodule.span ℤ {p i ^ e i} :=
+  λ i, finite.of_equiv _ (p i ^ e i).quotient_span_equiv_zmod.symm.to_equiv,
+  haveI : _root_.finite ⨁ i, ℤ ⧸ (submodule.span ℤ {p i ^ e i} : submodule ℤ ℤ) :=
+  finite.of_equiv _ dfinsupp.equiv_fun_on_fintype.symm,
+  exact finite.of_equiv _ l.symm.to_equiv
+end
 
 end module
 
 namespace add_comm_group
 
+variable [add_comm_group G]
+
 /-- **Structure theorem of finitely generated abelian groups** : Any finitely generated abelian
 group is the product of a power of `ℤ` and a direct sum of some `zmod (p i ^ e i)` for some
-prime powers `p i ^ e i`.-/
-theorem equiv_free_prod_direct_sum_zmod (G : Type*) [add_comm_group G] [hG : add_group.fg G] :
+prime powers `p i ^ e i`. -/
+theorem equiv_free_prod_direct_sum_zmod [hG : add_group.fg G] :
   ∃ (n : ℕ) (ι : Type) [fintype ι] (p : ι → ℕ) [∀ i, nat.prime $ p i] (e : ι → ℕ),
   nonempty $ G ≃+ (fin n →₀ ℤ) × ⨁ (i : ι), zmod (p i ^ e i) :=
 begin
@@ -59,8 +61,8 @@ begin
 end
 
 /-- **Structure theorem of finite abelian groups** : Any finite abelian group is a direct sum of
-some `zmod (p i ^ e i)` for some prime powers `p i ^ e i`.-/
-theorem equiv_direct_sum_zmod_of_fintype (G : Type*) [add_comm_group G] [fintype G] :
+some `zmod (p i ^ e i)` for some prime powers `p i ^ e i`. -/
+theorem equiv_direct_sum_zmod_of_fintype [fintype G] :
   ∃ (ι : Type) [fintype ι] (p : ι → ℕ) [∀ i, nat.prime $ p i] (e : ι → ℕ),
   nonempty $ G ≃+ ⨁ (i : ι), zmod (p i ^ e i) :=
 begin
@@ -72,21 +74,15 @@ begin
       λ a, ⟨finsupp.single 0 a, finsupp.single_eq_same⟩).false.elim }
 end
 
-/-- A finitely generated torsion abelian additive group is finite. -/
-noncomputable def fintype_of_fg_torsion (G : Type*) [add_comm_group G] [hfg : add_group.fg G]
-  (hit : add_monoid.is_torsion G) : fintype G :=
-@module.fintype_of_fg_torsion _ _ _
-  (module.finite.iff_add_group_fg.mpr $ add_group.fg_iff_add_monoid.fg.mpr $
-    add_group.fg_iff_add_monoid.fg.mp hfg) $
-  add_monoid.is_torsion_iff_is_torsion_int.mp hit
+lemma finite_of_fg_torsion [hG' : add_group.fg G] (hG : add_monoid.is_torsion G) : finite G :=
+@module.finite_of_fg_torsion _ _ _ (module.finite.iff_add_group_fg.mpr hG') $
+  add_monoid.is_torsion_iff_is_torsion_int.mp hG
 
 end add_comm_group
 
 namespace comm_group
 
-/-- A finitely generated torsion abelian multiplicative group is finite. -/
-noncomputable def fintype_of_fg_torsion (G : Type*) [comm_group G] [group.fg G]
-  (hG : monoid.is_torsion G) : fintype G :=
-@fintype.of_equiv _ _ (add_comm_group.fintype_of_fg_torsion (additive G) hG) multiplicative.of_add
+lemma finite_of_fg_torsion [comm_group G] [group.fg G] (hG : monoid.is_torsion G) : finite G :=
+@finite.of_equiv _ _ (add_comm_group.finite_of_fg_torsion (additive G) hG) multiplicative.of_add
 
 end comm_group

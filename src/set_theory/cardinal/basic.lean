@@ -8,7 +8,7 @@ import data.nat.part_enat
 import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
-import order.succ_pred.basic
+import order.succ_pred.limit
 import set_theory.cardinal.schroeder_bernstein
 
 /-!

@@ -760,21 +760,19 @@ lemma uniform_integrable_zero_meas [measurable_space α] :
   unif_integrable_zero_meas, 0, λ i, snorm_measure_zero.le⟩
 
 lemma uniform_integrable.ae_eq {g : ι → α → β}
-  (hf : uniform_integrable f p μ) (hg : ∀ i, ae_strongly_measurable (g i) μ)
-  (hfg : ∀ n, f n =ᵐ[μ] g n) :
+  (hf : uniform_integrable f p μ) (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable g p μ :=
 begin
-  obtain ⟨-, hunif, C, hC⟩ := hf,
-  refine ⟨hg, (unif_integrable_congr_ae hfg).1 hunif, C, λ i, _⟩,
+  obtain ⟨hfm, hunif, C, hC⟩ := hf,
+  refine ⟨λ i, (hfm i).congr (hfg i), (unif_integrable_congr_ae hfg).1 hunif, C, λ i, _⟩,
   rw ← snorm_congr_ae (hfg i),
   exact hC i
 end
 
 lemma uniform_integrable_congr_ae {g : ι → α → β}
-  (hf : ∀ i, ae_strongly_measurable (f i) μ) (hg : ∀ i, ae_strongly_measurable (g i) μ)
   (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable f p μ ↔ uniform_integrable g p μ :=
-⟨λ h, h.ae_eq hg hfg, λ h, h.ae_eq hf (λ i, (hfg i).symm)⟩
+⟨λ h, h.ae_eq hfg, λ h, h.ae_eq (λ i, (hfg i).symm)⟩
 
 /-- A finite sequence of Lp functions is uniformly integrable in the probability sense. -/
 lemma uniform_integrable_finite [finite ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
@@ -867,7 +865,7 @@ begin
   set g : ι → α → β := λ i, (hf i).some,
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hf i).1,
   have hgeq : ∀ i, g i =ᵐ[μ] f i := λ i, (Exists.some_spec $ hf i).2.symm,
-  refine (uniform_integrable_of' hp hp' hgmeas $ λ ε hε, _).ae_eq hf hgeq,
+  refine (uniform_integrable_of' hp hp' hgmeas $ λ ε hε, _).ae_eq hgeq,
   obtain ⟨C, hC⟩ := h ε hε,
   refine ⟨C, λ i, le_trans (le_of_eq $ snorm_congr_ae _) (hC i)⟩,
   filter_upwards [(Exists.some_spec $ hf i).2] with x hx,
@@ -925,8 +923,7 @@ lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
 begin
   set g : ι → α → β := λ i, (hfu.1 i).some,
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfu.1 i).1,
-  have hgunif : uniform_integrable g p μ :=
-    hfu.ae_eq (λ i, (hgmeas i).ae_strongly_measurable) (λ i, (Exists.some_spec $ hfu.1 i).2),
+  have hgunif : uniform_integrable g p μ := hfu.ae_eq (λ i, (Exists.some_spec $ hfu.1 i).2),
   obtain ⟨C, hC⟩ := hgunif.spec' hp hp' hgmeas hε,
   refine ⟨C, λ i, le_trans (le_of_eq $ snorm_congr_ae _) (hC i)⟩,
   filter_upwards [(Exists.some_spec $ hfu.1 i).2] with x hx,

@@ -13,6 +13,7 @@ This file defines instances for mul_action and related structures on Pi types.
 
 ## See also
 
+* `group_theory.group_action.option`
 * `group_theory.group_action.prod`
 * `group_theory.group_action.sigma`
 * `group_theory.group_action.sum`

@@ -208,16 +208,6 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-instance submodule.topological_closure_has_continuous_smul (s : submodule R M) :
-  has_continuous_smul R (s.topological_closure) :=
-{ continuous_smul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : R × s.topological_closure, p.1 • (p.2 : M)),
-    continuity,
-  end,
-  ..s.to_add_submonoid.topological_closure_has_continuous_add }
-
 lemma submodule.submodule_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
@@ -906,27 +896,6 @@ lemma smul_right_apply {c : M₁ →L[R] S} {f : M₂} {x : M₁} :
 rfl
 
 end
-
-section pointwise
-open_locale pointwise
-
-@[simp] lemma image_smul_setₛₗ (f : M₁ →SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
-  f '' (c • s) = (σ₁₂ c) • f '' s :=
-f.to_linear_map.image_smul_setₛₗ c s
-
-lemma image_smul_set (fₗ : M₁ →L[R₁] M'₁) (c : R₁) (s : set M₁) :
-  fₗ '' (c • s) = c • fₗ '' s :=
-fₗ.to_linear_map.image_smul_set c s
-
-lemma preimage_smul_setₛₗ (f : M₁ →SL[σ₁₂] M₂) {c : R₁} (hc : is_unit c) (s : set M₂) :
-  f ⁻¹' (σ₁₂ c • s) = c • f ⁻¹' s :=
-f.to_linear_map.preimage_smul_setₛₗ hc s
-
-lemma preimage_smul_set (fₗ : M₁ →L[R₁] M'₁) {c : R₁} (hc : is_unit c) (s : set M'₁) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.to_linear_map.preimage_smul_set hc s
-
-end pointwise
 
 variables [module R₁ M₂] [topological_space R₁] [has_continuous_smul R₁ M₂]
 
@@ -1652,29 +1621,6 @@ rfl
   (equiv_of_inverse f₁ f₂ h₁ h₂).symm = equiv_of_inverse f₂ f₁ h₂ h₁ :=
 rfl
 omit σ₂₁
-
-section pointwise
-open_locale pointwise
-include σ₂₁
-
-@[simp] lemma image_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₁) (s : set M₁) :
-  e '' (c • s) = (σ₁₂ c) • e '' s :=
-e.to_linear_equiv.image_smul_setₛₗ c s
-
-@[simp] lemma preimage_smul_setₛₗ (e : M₁ ≃SL[σ₁₂] M₂) (c : R₂) (s : set M₂) :
-  e ⁻¹' (c • s) = σ₂₁ c • e ⁻¹' s :=
-e.to_linear_equiv.preimage_smul_setₛₗ c s
-omit σ₂₁
-
-@[simp] lemma image_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M₁) :
-  e '' (c • s) = c • e '' s :=
-e.to_linear_equiv.image_smul_set c s
-
-@[simp] lemma preimage_smul_set (e : M₁ ≃L[R₁] M'₁) (c : R₁) (s : set M'₁) :
-  e ⁻¹' (c • s) = c • e ⁻¹' s :=
-e.to_linear_equiv.preimage_smul_set c s
-
-end pointwise
 
 variable (M₁)
 

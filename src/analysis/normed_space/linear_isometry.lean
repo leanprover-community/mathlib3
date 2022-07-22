@@ -79,6 +79,13 @@ instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := 
 lemma coe_injective : @injective (E →ₛₗᵢ[σ₁₂] E₂) (E → E₂) coe_fn :=
 fun_like.coe_injective
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (σ₁₂ : R →+* R₂) (E E₂ : Type*) [semi_normed_group E]
+  [semi_normed_group E₂] [module R E] [module R₂ E₂] (h : E →ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
+
+initialize_simps_projections linear_isometry (to_linear_map_to_fun → apply)
+
 @[ext] lemma ext {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext h
 
@@ -400,6 +407,20 @@ def symm : E₂ ≃ₛₗᵢ[σ₂₁] E :=
 @[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [semi_normed_group E] [semi_normed_group E₂]
+  [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E → E₂ := h
+
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [semi_normed_group E] [semi_normed_group E₂]
+  [module R E] [module R₂ E₂] (h : E ≃ₛₗᵢ[σ₁₂] E₂) : E₂ → E := h.symm
+
+initialize_simps_projections linear_isometry_equiv
+  (to_linear_equiv_to_fun → apply, to_linear_equiv_inv_fun → symm_apply)
+
 include σ₃₁ σ₃₂
 /-- Composition of `linear_isometry_equiv`s as a `linear_isometry_equiv`. -/
 def trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : E ≃ₛₗᵢ[σ₁₃] E₃ :=
@@ -585,6 +606,20 @@ rfl
 @[simp] lemma coe_prod_assoc_symm [module R E₂] [module R E₃] :
   ((prod_assoc R E E₂ E₃).symm : E × E₂ × E₃ → (E × E₂) × E₃) = (equiv.prod_assoc E E₂ E₃).symm :=
 rfl
+
+variables {R E E₂ E₃} {R' : Type*} [ring R'] [module R' E] (p q : submodule R' E)
+
+/-- `linear_equiv.of_eq` as a `linear_isometry_equiv`. -/
+def of_eq (hpq : p = q) :
+  p ≃ₗᵢ[R'] q :=
+{ norm_map' := λ x, rfl,
+  ..linear_equiv.of_eq p q hpq }
+
+variables {p q}
+
+@[simp] lemma coe_of_eq_apply (h : p = q) (x : p) : (of_eq p q h x : E) = x := rfl
+@[simp] lemma of_eq_symm (h : p = q) : (of_eq p q h).symm = of_eq q p h.symm := rfl
+@[simp] lemma of_eq_rfl : of_eq p p rfl = linear_isometry_equiv.refl R' p := by ext; refl
 
 end linear_isometry_equiv
 

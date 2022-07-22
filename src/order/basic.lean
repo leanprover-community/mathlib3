@@ -410,15 +410,6 @@ instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x�
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
 instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
--- `dual_le` and `dual_lt` should not be simp lemmas:
--- they cause a loop since `α` and `αᵒᵈ` are definitionally equal
-
-lemma dual_le [has_le α] {a b : α} :
-  @has_le.le αᵒᵈ _ a b ↔ @has_le.le α _ b a := iff.rfl
-
-lemma dual_lt [has_lt α] {a b : α} :
-  @has_lt.lt αᵒᵈ _ a b ↔ @has_lt.lt α _ b a := iff.rfl
-
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
   le_trans         := λ a b c hab hbc, hbc.trans hab,
@@ -717,6 +708,30 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ λ h,
   ⟨λ a ha₁, le_of_not_gt $ λ ha₂, h ⟨a, ha₁, ha₂⟩,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
+namespace punit
+variables (a b : punit.{u+1})
+
+instance : linear_order punit :=
+by refine_struct
+{ le := λ _ _, true,
+  lt := λ _ _, false,
+  max := λ _ _, star,
+  min := λ _ _, star,
+  decidable_eq := punit.decidable_eq,
+  decidable_le := λ _ _, decidable.true,
+  decidable_lt := λ _ _, decidable.false };
+    intros; trivial <|> simp only [eq_iff_true_of_subsingleton, not_true, and_false] <|>
+      exact or.inl trivial
+
+lemma max_eq : max a b = star := rfl
+lemma min_eq : min a b = star := rfl
+@[simp] protected lemma le : a ≤ b := trivial
+@[simp] lemma not_lt : ¬ a < b := not_false
+
+instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
+
+end punit
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

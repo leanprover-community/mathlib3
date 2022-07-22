@@ -396,6 +396,9 @@ by simp [nat_degree]
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : R[X]) = 0 :=
 by simp only [←C_eq_int_cast, nat_degree_C]
 
+@[simp] lemma leading_coeff_neg (p : R[X]) : (-p).leading_coeff = -p.leading_coeff :=
+by rw [leading_coeff, leading_coeff, nat_degree_neg, coeff_neg]
+
 end ring
 
 section semiring
@@ -559,12 +562,11 @@ end
 lemma degree_update_le (p : R[X]) (n : ℕ) (a : R) :
   degree (p.update n a) ≤ max (degree p) n :=
 begin
-  simp only [degree, coeff_update_apply, le_max_iff, finset.sup_le_iff, mem_support_iff],
-  intros b hb,
-  split_ifs at hb with h,
-  { subst b,
-    exact or.inr le_rfl },
-  { exact or.inl (le_degree_of_ne_zero hb) }
+  rw [degree, support_update],
+  split_ifs,
+  { exact (finset.max_mono (erase_subset _ _)).trans (le_max_left _ _) },
+  { rw [sup_insert, max_comm],
+    exact le_rfl },
 end
 
 lemma degree_sum_le (s : finset ι) (f : ι → R[X]) :
@@ -827,20 +829,14 @@ by rw [ne.def, ← degree_eq_bot];
   cases degree p; exact dec_trivial
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-⟨λ h0p hp0, absurd h0p (by rw [hp0, degree_zero]; exact dec_trivial),
-  λ hp0, le_of_not_gt (λ h, by simp [gt, degree_eq_bot, *] at *)⟩
+by simp [degree_eq_bot, ← not_lt]
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
 
 theorem degree_le_iff_coeff_zero (f : R[X]) (n : with_bot ℕ) :
   degree f ≤ n ↔ ∀ m : ℕ, n < m → coeff f m = 0 :=
-⟨λ (H : finset.sup (f.support) some ≤ n) m (Hm : n < (m : with_bot ℕ)), decidable.of_not_not $ λ H4,
-  have H1 : m ∉ f.support,
-    from λ H2, not_lt_of_ge ((finset.sup_le_iff.1 H) m H2 : ((m : with_bot ℕ) ≤ n)) Hm,
-  H1 $ mem_support_iff.2 H4,
-λ H, finset.sup_le $ λ b Hb, decidable.of_not_not $ λ Hn,
-  mem_support_iff.1 Hb $ H b $ lt_of_not_ge Hn⟩
+by simp only [degree, finset.sup_le_iff, mem_support_iff, ne.def, ← not_le, not_imp_comm]
 
 theorem degree_lt_iff_coeff_zero (f : R[X]) (n : ℕ) :
   degree f < n ↔ ∀ m : ℕ, n ≤ m → coeff f m = 0 :=

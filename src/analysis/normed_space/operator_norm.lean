@@ -1017,6 +1017,10 @@ protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃SL[σ] 
 ⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →SL[σ'] M),
   λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →SL[σ] M₂).has_sum h⟩
 
+/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
+protected lemma continuous_linear_equiv.has_sum' {f : ι → M} (e : M ≃SL[σ] M₂) {x : M} :
+  has_sum (λ (b:ι), e (f b)) (e x) ↔ has_sum f x :=
+by rw [e.has_sum, continuous_linear_equiv.symm_apply_apply]
 
 protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃SL[σ] M₂) :
   summable (λ b:ι, e (f b)) ↔ summable f :=

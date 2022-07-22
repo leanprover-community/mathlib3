@@ -362,15 +362,14 @@ do t ← target,
   | `(nat_degree %%_ = %%_) := single_term_suggestions
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
   end,
-  t@`(@nat_degree %%R %%inst %%pol = %%degv) ← target |
+  `(nat_degree %%pol = %%degv) ← target |
     fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   deg ← guess_degree pol >>= eval_guessing 0,
   degvn ← eval_guessing 0 degv,
   guard (deg = degvn) <|>
   ( do ppe ← pp deg, ppg ← pp degvn,
     fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
-  ad ← to_expr ``(@has_add.add (@polynomial %%R %%inst)
-    (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
+  ad ← to_expr ``(has_add.add) tt ff,
   summ ← list_binary_operands ad pol,
   small_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
   --  would be nice to not have to `try move_op` and simply do it!
@@ -380,9 +379,8 @@ do t ← target,
   any_goals' $ try $
     (do `(nat_degree %%po = _) ← target, single_term_resolve po),
   check_target_changes t,
-  any_goals' $ try $ compute_degree_le,
-  skip
---  try $ any_goals' norm_assum
+  try $ any_goals' $ compute_degree_le,
+  try $ any_goals' norm_assum
 
 add_tactic_doc
 { name := "compute_degree_le",

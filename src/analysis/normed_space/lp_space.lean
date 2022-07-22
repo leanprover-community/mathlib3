@@ -646,6 +646,9 @@ begin
     simpa using hf.summable hp },
 end
 
+@[simp] lemma _root_.mem_ℓp.star_iff {f : Π i, E i} : mem_ℓp (star f) p ↔ mem_ℓp f p :=
+⟨λ h, star_star f ▸ mem_ℓp.star_mem h ,mem_ℓp.star_mem⟩
+
 instance : has_star (lp E p) :=
 { star := λ f, ⟨(star f : Π i, E i), f.property.star_mem⟩}
 

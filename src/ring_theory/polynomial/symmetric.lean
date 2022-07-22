@@ -124,10 +124,7 @@ def esymm (n : ℕ) : mv_polynomial σ R :=
 /-- We can define `esymm σ R n` by summing over a subtype instead of over `powerset_len`. -/
 lemma esymm_eq_sum_subtype (n : ℕ) : esymm σ R n =
   ∑ t : {s : finset σ // s.card = n}, ∏ i in (t : finset σ), X i :=
-begin
-  rw [esymm, sum_subtype],
-  simp [mem_powerset_len]
-end
+sum_subtype _ (λ _, mem_powerset_len_univ_iff) _
 
 /-- We can define `esymm σ R n` as a sum over explicit monomials -/
 lemma esymm_eq_sum_monomial (n : ℕ) : esymm σ R n =

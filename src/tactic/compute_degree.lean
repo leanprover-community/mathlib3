@@ -314,6 +314,27 @@ meta def compute_step (deg : ℕ) : expr → tactic unit
     fail "sorry, there are two or more terms of highest expected degree"
 | _ := failed
 
+/-
+/--  These are the cases in which an easy lemma computes the degree. -/
+meta def single_term_suggestions1 (tf : bool) : tactic unit := do
+success_if_fail (interactive.exact ``(polynomial.nat_degree_X_pow _)) <|>
+  if tf then fail "Try this: exact polynomial.nat_degree_X_pow _"
+  else fail "Try this: exact polynomial.degree_X_pow _",
+success_if_fail (interactive.exact ``(polynomial.nat_degree_C _)) <|>
+  if tf then fail "Try this: exact polynomial.nat_degree_C _"
+  else fail "Try this: exact polynomial.degree_C ‹_›",
+success_if_fail (interactive.exact ``(polynomial.nat_degree_X)) <|>
+  if tf then fail "Try this: exact polynomial.nat_degree_X"
+  else fail "Try this: exact polynomial.degree_X",
+success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›)) <|>
+  if tf then fail "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›"
+  else fail "Try this: exact polynomial.degree_C_mul_X_pow _ _ ‹_›",
+success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›)) <|>
+  if tf then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
+  else fail "Try this: exact polynomial.degree_C_mul_X _ ‹_›",
+skip
+-/
+
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit := do
 success_if_fail (interactive.exact ``(polynomial.nat_degree_X_pow _)) <|>
@@ -383,23 +404,28 @@ numbers, though this is mostly unimplemented still.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
-do try $ refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate,
-  single_term_suggestions,
-  t ← target,
+do t ← target,
+  match t with
+    -- the `degree` match implicitly assumes that the `nat_degree` is strictly positive
+  | `(    degree %%_ = %%_) := refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate
+  | `(nat_degree %%_ = %%_) := single_term_suggestions
+  | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
+  end,
   `(@nat_degree %%R %%inst %%pol = %%degv) ← target |
   fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-  gde ← guess_degree pol,
-  deg ← eval_guessing 0 gde,
-  degvn ← eval_expr' ℕ degv,
+  deg ← guess_degree pol >>= eval_guessing 0,
+  degvn ← eval_guessing 0 degv,
   guard (deg = degvn) <|>
   ( do ppe ← pp deg, ppg ← pp degvn,
-    fail sformat!("'{ppe}' is the expected degree\n" ++ "'{ppg}' is the given degree\n") ),
+    fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
   ad ← to_expr ``(@has_add.add (@polynomial %%R %%inst)
     (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
   summ ← list_binary_operands ad pol,
-  let low_degs := (prod.mk ff <$> (summ.filter (λ t, guess_degree_to_nat t < deg)).map to_pexpr),
-  --  would be nice to not have to `try` this and simply do it!
-  try $ tactic.move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
+  just_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
+  let low_degs := prod.mk ff <$> just_degs.map to_pexpr,
+--  let low_degs := prod.mk ff <$> (summ.filter (λ t, guess_degree_to_nat t < deg)).map to_pexpr,
+  --  would be nice to not have to `try move_op` and simply do it!
+  try $ move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
   iterate_at_most low_degs.length $
   ( do `(nat_degree %%po = _) ← target,
     compute_step deg po ),
@@ -407,11 +433,7 @@ do try $ refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate,
     (do `(nat_degree %%po = _) ← target, single_term_resolve po),
   check_target_changes t,
   any_goals' $ try $ compute_degree_le,
---  `(nat_degree %%pol = %%degv) ← target,
   skip
-  --gs ← get_goals,
-  --gt ← gs.mmap infer_type,
-  --gt.mmap expr.instantiate_univ_params,
 --  try $ any_goals' norm_assum
 
 add_tactic_doc

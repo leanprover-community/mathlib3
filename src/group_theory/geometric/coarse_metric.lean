@@ -201,7 +201,7 @@ structure c_path (δ : ℝ) (x y : α) :=
 def constant_path (δ : ℝ) (x : α) : c_path δ x x := {
   n := 0,
   c := λ(i : fin 1), x, 
-  anchors := begin let xx : x = x := by refl, exact ⟨xx,xx⟩ end,
+  anchors := ⟨rfl,rfl⟩,
   steps := by dec_trivial
 }
 

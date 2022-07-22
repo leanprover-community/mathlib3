@@ -58,25 +58,6 @@ lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
-lemma apply_eq_one_iff (p : pmf α) (a : α) :
-  p a = 1 ↔ p.support = {a} :=
-begin
-  refine ⟨λ h, set.eq_of_subset_of_subset _ _, λ h, le_antisymm (pmf.coe_le_one p a) (le_of_eq _)⟩,
-  { refine λ a' ha', by_contradiction (λ h', false.elim (ne_of_gt _ p.tsum_coe)),
-    have : a ∉ {a'} := finset.not_mem_singleton.2 (ne.symm h'),
-    calc 1 < p a + p a' : lt_add_of_le_of_pos (le_of_eq h.symm)
-        (lt_of_le_of_ne (nnreal.coe_nonneg $ p a') (ha'.symm))
-      ... ≤ ∑ x in {a, a'}, p x : by rw [finset.sum_insert this, finset.sum_singleton]
-      ... ≤ ∑' x, p x : sum_le_tsum {a, a'} (λ _ _, nnreal.coe_nonneg _) p.summable_coe },
-  { intros a' ha',
-    rw [set.mem_singleton_iff.1 ha', pmf.mem_support_iff, h],
-    exact one_ne_zero },
-  { refine trans (p.tsum_coe).symm (trans (tsum_congr $ λ a', _) (tsum_ite_eq a _)),
-    split_ifs with haa',
-    { rw haa' },
-    { rwa [pmf.apply_eq_zero_iff p, h, set.mem_singleton_iff] } }
-end
-
 section outer_measure
 
 open measure_theory measure_theory.outer_measure
@@ -101,6 +82,13 @@ begin
   refine (to_outer_measure_apply p s).trans ((@tsum_eq_sum _ _ _ _ _ _ s _).trans _),
   { exact λ x hx, set.indicator_of_not_mem hx _ },
   { exact finset.sum_congr rfl (λ x hx, set.indicator_of_mem hx _) }
+end
+
+lemma to_outer_measure_apply_singleton (a : α) : p.to_outer_measure {a} = p a :=
+begin
+  refine (p.to_outer_measure_apply {a}).trans ((tsum_eq_single a $ λ b hb, _).trans _),
+  { exact ite_eq_right_iff.2 (λ hb', false.elim $ hb hb') },
+  { exact ite_eq_left_iff.2 (λ ha', false.elim $ ha' rfl) }
 end
 
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
@@ -230,5 +218,16 @@ instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure
   to_outer_measure_apply', ennreal.coe_eq_one] using tsum_coe p⟩
 
 end measure
+
+lemma apply_eq_one_iff (p : pmf α) (a : α) :
+  p a = 1 ↔ p.support = {a} :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have : {a} ⊆ p.support := λ x hx, (p.mem_support_iff x).2 (ne_zero_of_eq_one $ hx.symm ▸ h),
+    refine antisymm ((p.to_outer_measure_apply_eq_one_iff {a}).1 _) this,
+    simpa only [to_outer_measure_apply_singleton, ennreal.coe_eq_one] using h },
+  { simpa only [← ennreal.coe_eq_one, ← to_outer_measure_apply_singleton,
+      to_outer_measure_apply_eq_one_iff] using subset_of_eq h }
+end
 
 end pmf

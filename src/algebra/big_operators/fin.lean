@@ -161,16 +161,6 @@ end partial_prod
 
 end fin
 
-namespace vector
-
-variables {n : ℕ} (a : α) (v : vector α n)
-
-lemma sum_filter_eq_nth_eq_count [decidable_eq α] :
-  ∑ i in univ.filter (λ i, a = v.nth i), 1 = v.to_list.count a :=
-trans (by rw [sum_const, nsmul_one, nat.cast_id]) (fin.card_filter_univ_eq_nth_eq_count a v)
-
-end vector
-
 namespace list
 
 section comm_monoid

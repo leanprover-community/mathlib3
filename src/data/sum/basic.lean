@@ -344,17 +344,22 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inl y) := let ⟨x, hx⟩ := hf y in ⟨inl x, congr_arg inl hx⟩
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
+end function
+
+namespace sum
+open function
+
 @[simp]
-lemma sum.elim_const_const (c : γ) :
+lemma elim_const_const (c : γ) :
   sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=
 by { ext x, cases x; refl }
 
 @[simp]
-lemma sum.elim_lam_const_lam_const (c : γ) :
+lemma elim_lam_const_lam_const (c : γ) :
   sum.elim (λ (_ : α), c) (λ (_ : β), c) = λ _, c :=
 sum.elim_const_const c
 
-@[simp] lemma sum.elim_update_left [decidable_eq α] [decidable_eq β]
+@[simp] lemma elim_update_left [decidable_eq α] [decidable_eq β]
     (f : α → γ) (g : β → γ) (i : α) (c : γ) :
   sum.elim (function.update f i c) g = function.update (sum.elim f g) (inl i) c :=
 begin
@@ -365,7 +370,7 @@ begin
   { simp }
 end
 
-@[simp] lemma sum.elim_update_right [decidable_eq α] [decidable_eq β]
+@[simp] lemma elim_update_right [decidable_eq α] [decidable_eq β]
     (f : α → γ) (g : β → γ) (i : β) (c : γ) :
   sum.elim f (function.update g i c) = function.update (sum.elim f g) (inr i) c :=
 begin
@@ -376,7 +381,7 @@ begin
     { simp [h] } }
 end
 
-end function
+end sum
 
 /-!
 ### Ternary sum

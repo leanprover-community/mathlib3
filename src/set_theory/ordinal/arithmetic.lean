@@ -2108,7 +2108,7 @@ theorem mod_opow_log_lt_self (b : ordinal) {o : ordinal} (ho : o ≠ 0) : o % b 
 begin
   rcases eq_or_ne b 0 with rfl | hb,
   { simpa using (ordinal.pos_iff_ne_zero.2 ho) },
-  exact (mod_lt _ $ opow_ne_zero _ hb).trans_le (opow_log_le_self _ ho)
+  { exact (mod_lt _ $ opow_ne_zero _ hb).trans_le (opow_log_le_self _ ho) }
 end
 
 theorem log_mod_opow_log_lt_log_self {b o : ordinal} (hb : 1 < b) (ho : o ≠ 0) (hbo : b ≤ o) :

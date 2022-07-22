@@ -1952,22 +1952,6 @@ lemma has_deriv_at.pow (hc : has_deriv_at c c' x) :
   has_deriv_at (λ y, (c y)^n) ((n : 𝕜) * (c x)^(n-1) * c') x :=
 by { rw ← has_deriv_within_at_univ at *, exact hc.pow n }
 
-lemma differentiable_within_at.pow (hc : differentiable_within_at 𝕜 c s x) :
-  differentiable_within_at 𝕜 (λx, (c x)^n) s x :=
-(hc.has_deriv_within_at.pow n).differentiable_within_at
-
-@[simp] lemma differentiable_at.pow (hc : differentiable_at 𝕜 c x) :
-  differentiable_at 𝕜 (λx, (c x)^n) x :=
-(hc.has_deriv_at.pow n).differentiable_at
-
-lemma differentiable_on.pow (hc : differentiable_on 𝕜 c s) :
-  differentiable_on 𝕜 (λx, (c x)^n) s :=
-λx h, (hc x h).pow n
-
-@[simp] lemma differentiable.pow (hc : differentiable 𝕜 c) :
-  differentiable 𝕜 (λx, (c x)^n) :=
-λx, (hc x).pow n
-
 lemma deriv_within_pow' (hc : differentiable_within_at 𝕜 c s x)
   (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, (c x)^n) s x = (n : 𝕜) * (c x)^(n-1) * (deriv_within c s x) :=
@@ -1981,7 +1965,7 @@ end pow
 
 section zpow
 /-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
-variables {x : 𝕜} {s : set 𝕜} {m : ℤ}
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] {x : 𝕜} {s : set 𝕜} {m : ℤ}
 
 lemma has_strict_deriv_at_zpow (m : ℤ) (x : 𝕜) (h : x ≠ 0 ∨ 0 ≤ m) :
   has_strict_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
@@ -2080,6 +2064,24 @@ by simpa only [zpow_neg_one, int.cast_neg, int.cast_one] using iter_deriv_zpow (
   deriv^[k] has_inv.inv = λ x : 𝕜, (∏ i in finset.range k, (-1 - i)) * x ^ (-1 - k : ℤ) :=
 funext (iter_deriv_inv k)
 
+variables {f : E → 𝕜} {t : set E} {a : E}
+
+lemma differentiable_within_at.zpow (hf : differentiable_within_at 𝕜 f t a) (h : f a ≠ 0 ∨ 0 ≤ m) :
+  differentiable_within_at 𝕜 (λ x, f x ^ m) t a :=
+(differentiable_at_zpow.2 h).comp_differentiable_within_at a hf
+
+lemma differentiable_at.zpow (hf : differentiable_at 𝕜 f a) (h : f a ≠ 0 ∨ 0 ≤ m) :
+  differentiable_at 𝕜 (λ x, f x ^ m) a :=
+(differentiable_at_zpow.2 h).comp a hf
+
+lemma differentiable_on.zpow (hf : differentiable_on 𝕜 f t) (h : (∀ x ∈ t, f x ≠ 0) ∨ 0 ≤ m) :
+  differentiable_on 𝕜 (λ x, f x ^ m) t :=
+λ x hx, (hf x hx).zpow $ h.imp_left (λ h, h x hx)
+
+lemma differentiable.zpow (hf : differentiable 𝕜 f) (h : (∀ x, f x ≠ 0) ∨ 0 ≤ m) :
+  differentiable 𝕜 (λ x, f x ^ m) :=
+λ x, (hf x).zpow $ h.imp_left (λ h, h x)
+
 end zpow
 
 /-! ### Support of derivatives -/
@@ -2094,7 +2096,7 @@ begin
   intros x,
   rw [← not_imp_not],
   intro h2x,
-  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  rw [not_mem_tsupport_iff_eventually_eq] at h2x,
   exact nmem_support.mpr (h2x.deriv_eq.trans (deriv_const x 0))
 end
 

@@ -97,20 +97,20 @@ The degree zero part of the localized ring `Aₓ` is the subring of elements of 
 that `a` and `x^n` have the same degree.
 -/
 def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f) :=
-{ carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a.1 ⟨f^n, ⟨n, rfl⟩⟩ },
+{ carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a ⟨f^n, ⟨n, rfl⟩⟩ },
   mul_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
     ⟨n+n', ⟨⟨a.1 * b.1, (mul_add m n n').symm ▸ mul_mem a.2 b.2⟩,
     by {rw mk_mul, congr' 1, simp only [pow_add], refl }⟩⟩,
   one_mem' := ⟨0, ⟨1, (mul_zero m).symm ▸ one_mem⟩,
-    by { symmetry, convert ← mk_self 1, simp only [pow_zero], refl, }⟩,
+    by { symmetry, rw subtype.coe_mk, convert ← mk_self 1, simp only [pow_zero], refl, }⟩,
   add_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
     ⟨n+n', ⟨⟨f ^ n * b.1 + f ^ n' * a.1, (mul_add m n n').symm ▸
-      add_mem (mul_mem (by { rw mul_comm, exact set_like.graded_monoid.pow_mem n f_deg }) b.2)
+      add_mem (mul_mem (by { rw mul_comm, exact set_like.pow_mem_graded n f_deg }) b.2)
         begin
           rw add_comm,
           refine mul_mem _ a.2,
           rw mul_comm,
-          exact set_like.graded_monoid.pow_mem _ f_deg
+          exact set_like.pow_mem_graded _ f_deg
         end⟩, begin
           rw add_mk,
           congr' 1,

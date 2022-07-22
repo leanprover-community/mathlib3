@@ -3,9 +3,7 @@ Copyright (c) 2021 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.constructions.borel_space
-import measure_theory.function.l1_space
-import measure_theory.function.strongly_measurable
+import measure_theory.function.conditional_expectation
 import topology.instances.discrete
 
 /-!
@@ -219,6 +217,14 @@ instance is_finite_measure.sigma_finite_filtration [preorder ι] (μ : measure �
   [is_finite_measure μ] :
   sigma_finite_filtration μ f :=
 ⟨λ n, by apply_instance⟩
+
+/-- Given a integrable function `g`, the conditional expectations of `g` with respect to a
+filtration is uniformly integrable. -/
+lemma integrable.uniform_integrable_condexp_filtration
+  [preorder ι] {μ : measure α} [is_finite_measure μ] {f : filtration ι m}
+  {g : α → ℝ} (hg : integrable g μ) :
+  uniform_integrable (λ i, μ[g | f i]) 1 μ :=
+hg.uniform_integrable_condexp f.le
 
 section adapted_process
 

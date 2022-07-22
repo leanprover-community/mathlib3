@@ -118,17 +118,77 @@ variables (f : R[X]) {g : R[X]}
 -- Examples of elements of `K` are `X^2+1`, `1/X`, `(X^2+2X+3)/(4X^3+5)` etc
 variables (K : Type) [field K] [algebra R[X] K]  [is_fraction_ring R[X] K]
 
--- Internally, `R[X]` is not a subset of `K`, for foundational reasons.
--- We set it up so that if `f : R[X]` then writing `(f : K)` will enable us to
--- think of `f` as an element of `K`. Lean will denote this "invisible map"
--- from R[X] to K with an `↑`.
+section nice_trick
+
+/-
+
+Internally, `R[X]` is not a subset of `K`, for foundational reasons.
+We set it up so that if `f : R[X]` then writing `(f : K)` will enable us to
+think of `f` as an element of `K`. Lean will denote this "invisible map"
+from R[X] to K with an `↑`.
+
+-/
+
 noncomputable instance : has_coe R[X] K := ⟨algebra_map R[X] K⟩
+
+/-
+
+If we train the `norm_cast` tactic on the basic properties of this coercion, then
+it can be used to make our lives a lot easier.
+
+-/
+@[norm_cast] lemma coe_algebra_map_add (a b : R[X]) : ((a + b : R[X]) : K) = a + b :=
+map_add (algebra_map R[X] K) a b
+
+@[norm_cast] lemma coe_algebra_map_mul (a b : R[X]) : ((a * b : R[X]) : K) = a * b :=
+map_mul (algebra_map R[X] K) a b
+
+@[norm_cast] lemma coe_algebra_map_inj_iff (a b : R[X]) : (a : K) = b ↔ a = b :=
+⟨λ h, is_fraction_ring.injective R[X] K h, by rintro rfl; refl⟩
+
+@[norm_cast] lemma coe_algebra_map_eq_zero_iff (a : R[X]) : (a : K) = 0 ↔ a = 0 :=
+begin
+  rw (show (0 : K) = (0 : R[X]), from (map_zero (algebra_map R[X] K)).symm),
+  norm_cast,
+end
+
+@[norm_cast] lemma coe_algebra_map_zero : ((0 : R[X]) : K) = 0 :=
+map_zero (algebra_map R[X] K)
+
+@[norm_cast] lemma coe_algebra_map_pow (a : R[X]) (n : ℕ) : ((a ^ n : R[X]) : K) = a ^ n :=
+map_pow (algebra_map R[X] K) _ _
+
+/-
+
+That's all the training I can think of right now. Here are examples
+of the cast tactic.
+
+-/
+
+-- if `↑f = ↑g ^ 2` then `f = g ^ 2`
+example (f g : R[X]) (h : (f : K) = g^2) : f = g^2 :=
+begin
+  exact_mod_cast h,
+end
+
+-- ↑f + ↑g = ↑(f + g)
+example (f g : R[X]) : (f : K) + g = (f + g : R[X]) :=
+begin
+  norm_cast,
+end
+
+end nice_trick
 
 -- If `g` is monic then `f/g` can be written as `q+r/g` with deg(r) < deg(g)
 lemma div_eq_div_add_mod_div (hg : g.monic) : ∃ q r : R[X], r.degree < g.degree ∧
   (f : K) / g = q + r / g :=
 begin
-  sorry
+  refine ⟨f /ₘ g, f %ₘ g, _, _⟩, -- same as `use, use, split`
+  { exact degree_mod_by_monic_lt _ hg, },
+  { have hg' : (g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
+    field_simp [hg'], -- "clear denominators" tactic
+    norm_cast, -- now a question about R[X] not K
+    rw [add_comm, mul_comm, mod_by_monic_add_div _ hg], },
 end
 
 end polynomial

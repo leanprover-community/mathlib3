@@ -286,18 +286,6 @@ with `c` a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
 try `[ norm_num ] >> try assumption
 
-meta def compute_step (deg : ℕ) : expr → tactic unit
-| `(%%l + %%r) := do [dle, dre] ← [l, r].mmap guess_degree,
-  [dl, dr] ← [dle, dre].mmap $ eval_guessing 0,
-  if dr < deg then do
-    refine ``(nat_degree_add_left_succ _ %%l %%r _ _)
-  else
-  if dl < deg then do
-    refine ``(nat_degree_add_right_succ _ %%l %%r _ _)
-  else
-    fail "sorry, there are two or more terms of highest expected degree"
-| _ := failed
-
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit := do
 success_if_fail (interactive.exact ``(polynomial.nat_degree_X_pow _)) <|>
@@ -313,7 +301,7 @@ success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›)) 
 skip
   --fail "'compute_degree' works better with polynomials involving more than one term\n"
 
-/--  A simple check: `check_target_changes t` changes if `t` unifies with one of the current
+/--  A simple check: `check_target_changes t` fails if `t` unifies with one of the current
 goals.  I use it to make sure that the tactics are actually making progress, by feeding the target
 `t`, stored before applying them. -/
 meta def check_target_changes (t : expr) : tactic unit :=
@@ -374,7 +362,7 @@ do t ← target,
   | `(nat_degree %%_ = %%_) := single_term_suggestions
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
   end,
-  `(@nat_degree %%R %%inst %%pol = %%degv) ← target |
+  t@`(@nat_degree %%R %%inst %%pol = %%degv) ← target |
     fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   deg ← guess_degree pol >>= eval_guessing 0,
   degvn ← eval_guessing 0 degv,
@@ -385,12 +373,10 @@ do t ← target,
     (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
   summ ← list_binary_operands ad pol,
   small_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
-  let low_degs := prod.mk ff <$> small_degs.map to_pexpr,
   --  would be nice to not have to `try move_op` and simply do it!
-  try $ move_op low_degs (interactive.loc.ns [none]) (to_pexpr ad),
-  iterate_at_most low_degs.length $
-  ( do `(nat_degree %%po = _) ← target,
-    compute_step deg po ),
+  try $ move_op (prod.mk ff <$> small_degs.map to_pexpr) (interactive.loc.ns [none]) (to_pexpr ad),
+  -- now that all the small degree terms are on the right, we peel them off
+  iterate_at_most small_degs.length $ refine ``(nat_degree_add_left_succ _ _ _ _ _),
   any_goals' $ try $
     (do `(nat_degree %%po = _) ← target, single_term_resolve po),
   check_target_changes t,

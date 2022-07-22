@@ -174,7 +174,7 @@ def zmod_char (n : ℕ) [fact (0 < n)] {ζ : C} (hζ : ζ ^ n = 1) : add_char (z
   map_mul' := λ x y, by rw [to_add_mul, ← pow_add, zmod.val_add (to_add x) (to_add y),
                             ← pow_eq_pow_mod _ hζ] }
 
-/-- An additive character on `zmod n` is nontrivial iff it takes the value `1` on `1`. -/
+/-- An additive character on `zmod n` is nontrivial iff it takes a value `≠ 1` on `1`. -/
 lemma zmod_char_is_nontrivial_iff (n : ℕ) [fact (0 < n)] (ψ : add_char (zmod n) C) :
   is_nontrivial ψ ↔ ψ (of_add 1) ≠ 1 :=
 begin
@@ -290,7 +290,7 @@ variables [fintype R]
 
 /-- The sum over the values of a nontrivial additive character vanishes if the target ring
 is a domain. -/
-lemma sum_eq_zero_of_is_nontrivial [is_domain R'] {ψ : add_char R R'} (hψ : is_nontrivial ψ) :
+lemma sum_eq_zero_of_is_nontrivial' [is_domain R'] {ψ : add_char R R'} (hψ : is_nontrivial ψ) :
   ∑ a, ψ a = 0 :=
 begin
   rcases hψ with ⟨b, hb⟩,
@@ -301,6 +301,10 @@ begin
   rw [← finset.mul_sum, h₂] at h₁,
   exact eq_zero_of_mul_eq_self_left hb h₁,
 end
+
+lemma sum_eq_zero_of_is_nontrivial [is_domain R'] {ψ : add_char R R'} (hψ : is_nontrivial ψ) :
+  ∑ a, ψ (of_add a) = 0 :=
+sum_eq_zero_of_is_nontrivial' hψ
 
 /-- The sum over the values of the trivial additive character is the cardinality of the source. -/
 lemma sum_eq_card_of_is_trivial {ψ : add_char R R'} (hψ : ¬ is_nontrivial ψ) :

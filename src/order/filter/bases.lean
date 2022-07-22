@@ -198,11 +198,12 @@ if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`. -/
 protected structure has_basis (l : filter α) (p : ι → Prop) (s : ι → set α) : Prop :=
 (mem_iff' : ∀ (t : set α), t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t)
 
-/-- We say that a filter `l` has a basis in sets satisfying a predicate `p` if each `s ∈ l` includes
-`t ∈ l` satisfying this predicate. Equivalently, `l` has a basis such that all sets of this basis
-satisfy `p`. -/
+/-- We say that a filter `l` has a basis in sets satisfying a predicate `p` if
+`filter.has_basis (λ s, s ∈ l ∧ p s) id`. Equivalently, each `s ∈ l` includes `t ∈ l` satisfying
+this predicate, see `has_basis_in_iff` and `has_basis_in.mk`. If `l` has a basis such that all sets
+of this basis satisfy `p`, then it has basis in `p`, see `has_basis.has_basis_in`.  -/
 def has_basis_in (l : filter α) (p : set α → Prop) : Prop :=
-∀ ⦃s⦄, s ∈ l → ∃ t ∈ l, p t ∧ t ⊆ s
+has_basis l (λ s, s ∈ l ∧ p s) (λ s, s)
 
 section same_type
 
@@ -287,9 +288,15 @@ protected lemma _root_.filter_basis.has_basis {α : Type*} (B : filter_basis α)
   has_basis (B.filter) (λ s : set α, s ∈ B) id :=
 ⟨λ t, B.mem_filter_iff⟩
 
+/-- A constructor for `filter.has_basis_in`. -/
+protected lemma has_basis_in.mk {P : set α → Prop} (h : ∀ s ∈ l, ∃ t ∈ l, P t ∧ t ⊆ s) :
+  l.has_basis_in P :=
+⟨λ t, ⟨λ ht, (h t ht).imp $ λ s hs, ⟨⟨hs.fst, hs.snd.1⟩, hs.snd.2⟩,
+  λ ⟨s, ⟨hsl, hps⟩, hst⟩, mem_of_superset hsl hst⟩⟩
+
 protected lemma has_basis.has_basis_in' {P : set α → Prop} (h : l.has_basis p s)
   (hP : ∀ i, p i → ∃ t ∈ l, P t ∧ t ⊆ s i) : l.has_basis_in P :=
-λ t ht, let ⟨i, hpi, hi⟩ := h.mem_iff.1 ht, ⟨t', ht'l, hPt', ht'i⟩ := hP i hpi in
+has_basis_in.mk $ λ t ht, let ⟨i, hpi, hi⟩ := h.mem_iff.1 ht, ⟨t', ht'l, hPt', ht'i⟩ := hP i hpi in
   ⟨t', ht'l, hPt', ht'i.trans hi⟩
 
 protected lemma has_basis.has_basis_in {P : set α → Prop} (h : l.has_basis p s)
@@ -298,16 +305,19 @@ h.has_basis_in' $ λ i hi, ⟨s i, h.mem_of_mem hi, hP i hi, subset.rfl⟩
 
 protected lemma has_basis_in.has_basis {p : set α → Prop} (h : l.has_basis_in p) :
   has_basis l (λ s : set α, s ∈ l ∧ p s) id :=
-⟨λ t, ⟨λ ht, (h ht).imp $ λ s hs, ⟨⟨hs.fst, hs.snd.1⟩, hs.snd.2⟩,
-  λ ⟨s, ⟨hsl, hps⟩, hst⟩, mem_of_superset hsl hst⟩⟩
+h
 
 lemma has_basis_in_iff_has_basis {P : set α → Prop} :
   has_basis_in l P ↔ has_basis l (λ s, s ∈ l ∧ P s) id :=
 ⟨λ h, h.has_basis, λ h, h.has_basis_in $ λ i, and.right⟩
 
+lemma has_basis_in.exists_mem_subset {P : set α → Prop} (h : l.has_basis_in P) {s} (hs : s ∈ l) :
+  ∃ t ∈ l, P t ∧ t ⊆ s :=
+let ⟨t, ⟨htl, hPt⟩, hts⟩ := h.mem_iff.1 hs in ⟨t, htl, hPt, hts⟩
+
 lemma has_basis_in.exists_mem {P : set α → Prop} (h : l.has_basis_in P) :
   ∃ s ∈ l, P s :=
-let ⟨s, hsl, hPs, hs⟩ := h univ_mem in ⟨s, hsl, hPs⟩
+let ⟨s, hsl, hPs, hs⟩ := h.exists_mem_subset univ_mem in ⟨s, hsl, hPs⟩
 
 lemma has_basis_in.exists_mem' {P : set α → Prop} (h : l.has_basis_in P) :
   ∃ s, P s ∧ s ∈ l :=
@@ -315,7 +325,7 @@ let ⟨s, hsl, hs⟩ := h.exists_mem in ⟨s, hs, hsl⟩
 
 lemma has_basis_in.mono {P₁ P₂ : set α → Prop} (hl : l.has_basis_in P₁) (h₂ : ∀ s, P₁ s → P₂ s) :
   l.has_basis_in P₂ :=
-λ t ht, let ⟨s, hsl, hPs, hst⟩ := hl ht in ⟨s, hsl, h₂ s hPs, hst⟩
+hl.has_basis_in $ λ s hs, h₂ s hs.2
 
 lemma has_basis.to_has_basis' (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
   (h' : ∀ i', p' i' → s' i' ∈ l) : l.has_basis p' s' :=
@@ -397,7 +407,7 @@ h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem hV (h.mem_of_mem hi))).imp $
 
 lemma has_basis_in.restrict_subset {P : set α → Prop} (h : l.has_basis_in P) {V : set α}
   (hV : V ∈ l) : l.has_basis_in (λ t, P t ∧ t ⊆ V) :=
-(h.has_basis.restrict_subset hV).has_basis_in $ λ t ht, ⟨ht.1.2, ht.2⟩
+by simpa only [has_basis_in, and.assoc] using h.has_basis.restrict_subset hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
@@ -920,6 +930,14 @@ begin
     (hx'.symm ▸ le_infi (λ i, le_principal_iff.2 $
       this.to_has_basis.mem_iff.2 ⟨i, trivial, x_subset i⟩))
 end
+
+/-- If `f` is countably generated and it has a basis in sets satisfying a predicate `P`, then `f`
+admits an antitone basis enumerated by natural numbers such that all sets in the basis satisfy
+`P`. -/
+lemma has_basis_in.exists_antitone_subbasis {f : filter α} [h : f.is_countably_generated]
+  {P : set α → Prop} (hB : f.has_basis_in P) :
+  ∃ t : ℕ → set α, (∀ i, P (t i)) ∧ f.has_antitone_basis t :=
+let ⟨t, htP, hb⟩ := hB.exists_antitone_subbasis in ⟨t, λ i, (htP i).2, hb⟩
 
 /-- A countably generated filter admits a basis formed by an antitone sequence of sets. -/
 lemma exists_antitone_basis (f : filter α) [f.is_countably_generated] :

@@ -167,29 +167,28 @@ When it is needed, `single_term_resolve` produces a `nontriviality` assumption u
 meta def single_term_resolve : tactic unit := do
 `(nat_degree %%pol = %%_) ← target,
 match pol with
-  | `(has_mul.mul %%a %%X) := do
-    convert_num_to_C_num a,
+| `(has_mul.mul %%a %%X) := do
+  convert_num_to_C_num a,
     refine ``(nat_degree_C_mul_X _ _) <|>
-      refine ``(nat_degree_C_mul_X_pow _ _ _) <|>
-        fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
-    assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-  | (app `(⇑(@monomial %%R %%inst %%n)) x) := do
-    refine ``(nat_degree_monomial_eq %%n _),
-    assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-  | (app `(⇑(@C %%R %%inst)) x) :=
-    interactive.exact ``(nat_degree_C _)
-  | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
-    (nontriviality_by_assumption R <|>
-      fail format!"could not produce a 'nontrivial {R}' assumption") >>
-        refine ``(nat_degree_X_pow %%n)
-  | `(@X %%R %%inst) :=
-    (nontriviality_by_assumption R <|>
-      fail format!"could not produce a 'nontrivial {R}' assumption") >>
-        interactive.exact ``(nat_degree_X)
-  | e := do ppe ← pp e,
-    fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
-  See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
-  end
+    refine ``(nat_degree_C_mul_X_pow _ _ _) <|>
+    fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
+  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
+| (app `(⇑(monomial %%n)) x) := do
+  refine ``(nat_degree_monomial_eq %%n _),
+  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
+| (app `(⇑C) x) :=
+  interactive.exact ``(nat_degree_C _)
+| `(@has_pow.pow (@polynomial %%R %%_) ℕ %%_ %%_ %%_) :=
+  (nontriviality_by_assumption R <|> fail format!"could not find a 'nontrivial {R}' assumption") >>
+      refine ``(nat_degree_X_pow _)
+| `(@X %%R %%_) :=
+  (nontriviality_by_assumption R <|>
+    fail format!"could not find a 'nontrivial {R}' assumption") >>
+      interactive.exact ``(nat_degree_X)
+| e := do ppe ← pp e,
+  fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
+See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
+end
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:

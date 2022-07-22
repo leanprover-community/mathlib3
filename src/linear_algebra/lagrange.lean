@@ -84,7 +84,7 @@ variables {ι : Type*} {v : ι → R} (s : finset ι)
 theorem eq_zero_of_degree_lt_of_eval_index_eq_zero (hvs : set.inj_on v s)
   (degree_f_lt : f.degree < s.card) (eval_f : ∀ i ∈ s, f.eval (v i) = 0) : f = 0 :=
 begin
-  classical, 
+  classical,
   rw ← finset.card_image_of_inj_on hvs at degree_f_lt,
   refine eq_zero_of_degree_lt_of_eval_eq_zero _ degree_f_lt _,
   refine λ x hx, _,
@@ -253,7 +253,7 @@ end
 lemma basis_divisor_add_symm {x y : F} (hxy : x ≠ y) : basis_divisor x y + basis_divisor y x = 1 :=
 begin
   classical,
-  rw [←basis_sum (set.inj_on_of_injective function.injective_id _) ⟨x, mem_insert_self _ {y}⟩,
+  rw [←sum_basis (set.inj_on_of_injective function.injective_id _) ⟨x, mem_insert_self _ {y}⟩,
       sum_insert (not_mem_singleton.mpr hxy), sum_singleton, basis_doubleton_left hxy,
       basis_doubleton_right hxy, id, id]
 end
@@ -285,7 +285,7 @@ by rw [interpolate_apply, sum_empty]
 by rw [interpolate_apply, sum_singleton, basis_singleton, mul_one]
 
 @[simp] theorem interpolate_one (hvs : set.inj_on v s) (hs : s.nonempty) : interpolate s v 1 = 1 :=
-by { simp_rw [interpolate_apply, pi.one_apply, map_one, one_mul], exact basis_sum hvs hs }
+by { simp_rw [interpolate_apply, pi.one_apply, map_one, one_mul], exact sum_basis hvs hs }
 
 @[simp] theorem eval_interpolate_at_node (hvs : set.inj_on v s) (hi : i ∈ s) :
   eval (v i) (interpolate s v r) = r i :=
@@ -414,7 +414,7 @@ begin
       rcases mem_erase.mp hj with ⟨hij, hj⟩,
       rw [eval_basis_ne hij hi', mul_zero] },
     { have H : ∑ j in s, eval (v i) (basis s v j) = 1,
-      { rw [← eval_finset_sum, basis_sum (hvt.mono hst) hs, eval_one] },
+      { rw [← eval_finset_sum, sum_basis (hvt.mono hst) hs, eval_one] },
       rw [← mul_one (r i), ← H, mul_sum],
       refine sum_congr rfl (λ j hj, _),
       congr,

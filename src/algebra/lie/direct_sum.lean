@@ -11,7 +11,7 @@ import algebra.lie.basic
 /-!
 # Direct sums of Lie algebras and Lie modules
 
-Direct sums of Lie algebras and Lie modules carry natural algbebra and module structures.
+Direct sums of Lie algebras and Lie modules carry natural algebra and module structures.
 
 ## Tags
 

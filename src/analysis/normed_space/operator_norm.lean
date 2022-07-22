@@ -99,9 +99,9 @@ rfl
 
 end normed_field
 
-variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜 Eₗ] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
-  [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
+variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  [nontrivially_normed_field 𝕜₃] [normed_space 𝕜 E] [normed_space 𝕜 Eₗ] [normed_space 𝕜₂ F]
+  [normed_space 𝕜 Fₗ] [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
@@ -1119,8 +1119,8 @@ omit σ₂₁
 namespace continuous_linear_map
 variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
 
-variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nontrivially_normed_field 𝕜₁'] [nontrivially_normed_field 𝕜₂']
-  [normed_space 𝕜₁' E'] [normed_space 𝕜₂' F']
+variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nontrivially_normed_field 𝕜₁']
+  [nontrivially_normed_field 𝕜₂'] [normed_space 𝕜₁' E'] [normed_space 𝕜₂' F']
   {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
   [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃'] [ring_hom_isometric σ₂₃']
@@ -1164,8 +1164,9 @@ variables [normed_group E] [normed_group F] [normed_group G] [normed_group Fₗ]
 open metric continuous_linear_map
 
 section
-variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
+variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  [nontrivially_normed_field 𝕜₃] [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G]
+  [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
   (f g : E →SL[σ₁₂] F) (x y z : E)
 
@@ -1552,8 +1553,9 @@ end
 
 namespace continuous_linear_map
 
-variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
+variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  [nontrivially_normed_field 𝕜₃] [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G]
+  [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
 
 variables {𝕜₂' : Type*} [nontrivially_normed_field 𝕜₂'] {F' : Type*} [normed_group F']
@@ -1669,8 +1671,8 @@ end
 end continuous_linear_map
 
 namespace submodule
-variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
+variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  [nontrivially_normed_field 𝕜₃] [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
 
 lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
 K.subtypeₗᵢ.norm_to_continuous_linear_map
@@ -1678,8 +1680,9 @@ K.subtypeₗᵢ.norm_to_continuous_linear_map
 end submodule
 
 namespace continuous_linear_equiv
-variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂] [nontrivially_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
+variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  [nontrivially_normed_field 𝕜₃] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
 section

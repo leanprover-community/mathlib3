@@ -2889,9 +2889,9 @@ theorem local_homeomorph.cont_diff_at_symm_deriv [complete_space 𝕜]
   cont_diff_at 𝕜 n f.symm a :=
 f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
 
-/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nontrivially normed field.
-Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times continuously
-differentiable.
+/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nontrivially normed
+field.  Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times
+continuously differentiable.
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/

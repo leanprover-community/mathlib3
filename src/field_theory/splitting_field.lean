@@ -522,11 +522,6 @@ instance algebra (n : ℕ) : Π (R : Type*) {K : Type u} [comm_semiring R] [fiel
 nat.rec_on n (λ R K _ _ _ _, by exactI ‹algebra R K›) $
          λ n ih R K _ _ _ f, by exactI ih R
 
-example (n : ℕ) {K : Type u} [field K] {f : K[X]} :
-    (add_comm_monoid.nat_module : module ℕ (splitting_field_aux n f)) =
-  @algebra.to_module _ _ _ _ (splitting_field_aux.algebra n _) :=
-rfl  -- fails
-
 instance is_scalar_tower (n : ℕ) : Π (R₁ R₂ : Type*) {K : Type u}
   [comm_semiring R₁] [comm_semiring R₂] [has_smul R₁ R₂] [field K],
   by exactI Π [algebra R₁ K] [algebra R₂ K],

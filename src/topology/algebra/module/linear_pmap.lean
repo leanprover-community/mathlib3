@@ -1,6 +1,40 @@
+/-
+Copyright (c) 2022 Moritz Doll. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Moritz Doll
+-/
+
 import linear_algebra.linear_pmap
 import topology.algebra.module.basic
 import topology.sequences
+
+/-!
+# Linear Pmap
+
+## Main definitions
+
+* `foo_bar`
+
+## Main statements
+
+* `foo_bar_unique`
+
+## Notation
+
+
+
+## Implementation details
+
+
+
+## References
+
+* [F. Bar, *Quuxes*][bibkey]
+
+## Tags
+
+Foobars, barfoos
+-/
 
 
 open_locale topological_space

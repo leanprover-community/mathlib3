@@ -79,7 +79,7 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 by simp [repeat, list.prod_repeat]
 
 @[to_additive]
-lemma prod_multiset_map_eq_pow_single {M : Type*} [comm_monoid M] [decidable_eq α]
+lemma prod_map_eq_pow_single {M : Type*} [comm_monoid M] [decidable_eq α]
   (a : α) (f : α → M) (hf : ∀ a' ≠ a, a' ∈ s → f a' = 1) :
   (s.map f).prod = (f a) ^ (s.count a) :=
 begin
@@ -88,7 +88,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_multiset_eq_pow_single [decidable_eq α] [comm_monoid α]
+lemma prod_eq_pow_single [decidable_eq α] [comm_monoid α]
   (a : α) (h : ∀ a' ≠ a, a' ∈ s → a' = 1) : s.prod = a ^ (s.count a) :=
 begin
   induction s using quotient.induction_on with l,

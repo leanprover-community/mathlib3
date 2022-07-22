@@ -136,7 +136,7 @@ lemma add_tsub_le_assoc : a + b - c ≤ a + (b - c) :=
 by { rw [tsub_le_iff_left, add_left_comm], exact add_le_add_left le_add_tsub a }
 
 /-- See `tsub_add_eq_add_tsub` for the equality. -/
-lemma tsub_add_le_right_comm : a + b - c ≤ a - c + b :=
+lemma add_tsub_le_tsub_add : a + b - c ≤ a - c + b :=
 by { rw [add_comm, add_comm _ b], exact add_tsub_le_assoc }
 
 lemma add_le_add_add_tsub : a + b ≤ (a + c) + (b - c) :=

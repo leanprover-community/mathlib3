@@ -816,12 +816,14 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
+  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_semiring β :=
-{ .. linear_order.lift f hf,
+{ .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_semiring f zero one add mul nsmul npow nat_cast }
 
@@ -1331,14 +1333,16 @@ See note [reducible non-instances]. -/
 def function.injective.linear_ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_ring β :=
-{ .. linear_order.lift f hf,
+{ .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
@@ -1412,14 +1416,16 @@ See note [reducible non-instances]. -/
 def function.injective.linear_ordered_comm_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]
+  [has_sup β] [has_inf β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
+  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_ring β :=
-{ .. linear_order.lift f hf,
+{ .. linear_order.lift f hf hsup hinf,
   .. pullback_nonzero f zero one,
   .. hf.ordered_comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
@@ -1561,16 +1567,7 @@ The main results of this section are `with_top.canonically_ordered_comm_semiring
 
 namespace with_top
 
-instance [nonempty α] : nontrivial (with_top α) :=
-option.nontrivial
-
-instance [add_monoid_with_one α] : add_monoid_with_one (with_top α) :=
-{ nat_cast := λ n, ((n : α) : with_top α),
-  nat_cast_zero := show (((0 : ℕ) : α) : with_top α) = 0, by simp,
-  nat_cast_succ :=
-    show ∀ n, (((n + 1 : ℕ) : α) : with_top α) = (((n : ℕ) : α) : with_top α) + 1,
-    by simp [with_top.coe_add],
-  .. with_top.add_monoid, .. with_top.has_one }
+instance [nonempty α] : nontrivial (with_top α) := option.nontrivial
 
 variable [decidable_eq α]
 
@@ -1580,7 +1577,7 @@ variables [has_zero α] [has_mul α]
 
 instance : mul_zero_class (with_top α) :=
 { zero := 0,
-  mul := λm n, if m = 0 ∨ n = 0 then 0 else m.bind (λa, n.bind $ λb, ↑(a * b)),
+  mul := λ m n, if m = 0 ∨ n = 0 then 0 else m.bind (λa, n.bind $ λb, ↑(a * b)),
   zero_mul := assume a, if_pos $ or.inl rfl,
   mul_zero := assume a, if_pos $ or.inr rfl }
 
@@ -1628,6 +1625,15 @@ begin
   lift a to α using ha,
   lift b to α using hb,
   simp only [← coe_mul, coe_lt_top]
+end
+
+@[simp] lemma untop'_zero_mul (a b : with_top α) : (a * b).untop' 0 = a.untop' 0 * b.untop' 0 :=
+begin
+  by_cases ha : a = 0, { rw [ha, zero_mul, ← coe_zero, untop'_coe, zero_mul] },
+  by_cases hb : b = 0, { rw [hb, mul_zero, ← coe_zero, untop'_coe, mul_zero] },
+  induction a using with_top.rec_top_coe, { rw [top_mul hb, untop'_top, zero_mul] },
+  induction b using with_top.rec_top_coe, { rw [mul_top ha, untop'_top, mul_zero] },
+  rw [← coe_mul, untop'_coe, untop'_coe, untop'_coe]
 end
 
 end mul_zero_class
@@ -1720,8 +1726,8 @@ that derives from both `non_assoc_non_unital_semiring` and `canonically_ordered_
 of which are required for distributivity. -/
 instance [nontrivial α] : comm_semiring (with_top α) :=
 { right_distrib   := distrib',
-  left_distrib    := assume a b c, by rw [mul_comm, distrib', mul_comm b, mul_comm c]; refl,
-  .. with_top.add_monoid_with_one, .. with_top.add_comm_monoid, .. with_top.comm_monoid_with_zero }
+  left_distrib    := λ a b c, by { rw [mul_comm, distrib', mul_comm b, mul_comm c], refl },
+  .. with_top.add_comm_monoid_with_one, .. with_top.comm_monoid_with_zero }
 
 instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { .. with_top.comm_semiring,
@@ -1741,16 +1747,7 @@ end with_top
 
 namespace with_bot
 
-instance [nonempty α] : nontrivial (with_bot α) :=
-option.nontrivial
-
-instance [add_monoid_with_one α] : add_monoid_with_one (with_bot α) :=
-{ nat_cast := λ n, ((n : α) : with_bot α),
-  nat_cast_zero := show (((0 : ℕ) : α) : with_bot α) = 0, by simp,
-  nat_cast_succ :=
-    show ∀ n, (((n + 1 : ℕ) : α) : with_bot α) = (((n : ℕ) : α) : with_bot α) + 1,
-    by simp [with_bot.coe_add],
-  .. with_bot.add_monoid, .. with_bot.has_one }
+instance [nonempty α] : nontrivial (with_bot α) := option.nontrivial
 
 variable [decidable_eq α]
 

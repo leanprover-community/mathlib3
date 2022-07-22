@@ -149,6 +149,7 @@ begin
 end
 
 /-- Vector bundle core associated to a basic smooth bundle core -/
+@[simps coord_change index_at]
 def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
@@ -191,6 +192,7 @@ by { simp only [chart], mfld_set_tac }
 
 /-- The total space of a basic smooth bundle is endowed with a charted space structure, where the
 charts are in bijection with the charts of the basis. -/
+@[simps chart_at (lemmas_only)]
 instance to_charted_space :
   charted_space (model_prod H F) Z.to_topological_vector_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart he},
@@ -295,7 +297,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
 model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordinate change in the
 fiber corresponds to the derivative of the coordinate change in `M`. -/
-def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
+@[simps] def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
 { coord_change := λ i j x, (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x)),
   coord_change_smooth_clm := λ i j,
   begin

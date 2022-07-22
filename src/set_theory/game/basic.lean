@@ -137,9 +137,8 @@ namespace pgame
 
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ (i : x.left_moves), ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
-  (hr : ∀ (j : y.right_moves), ⟦x.move_right (R.symm j)⟧ = ⟦y.move_right j⟧) :
-  ⟦x⟧ = ⟦y⟧ :=
+  (hl : ∀ i, ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
+  (hr : ∀ j, ⟦x.move_right j⟧ = ⟦y.move_right (R j)⟧) : ⟦x⟧ = ⟦y⟧ :=
 by { simp_rw [quotient.eq] at hl hr, exact quot.sound (equiv_of_mk_equiv L R hl hr) }
 
 /-! Multiplicative operations can be defined at the level of pre-games,
@@ -367,15 +366,15 @@ begin
     { change ⟦xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)⟧
              = ⟦x * y + (xR i * z + x * zR k - xR i * zR k)⟧,
       simp [quot_left_distrib], abel } },
-  { rintro (⟨⟨i, j⟩ | ⟨i, j⟩⟩ | ⟨i, k⟩ | ⟨i, k⟩),
+  { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
     { change ⟦xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)⟧
              = ⟦xL i * y + x * yR j - xL i * yR j + x * z⟧,
       simp [quot_left_distrib], abel },
-    { change ⟦xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)⟧
-             = ⟦xR i * y + x * yL j - xR i * yL j + x * z⟧,
-      simp [quot_left_distrib], abel },
     { change ⟦xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)⟧
              = ⟦x * y + (xL i * z + x * zR k - xL i * zR k)⟧,
+      simp [quot_left_distrib], abel },
+    { change ⟦xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)⟧
+             = ⟦xR i * y + x * yL j - xR i * yL j + x * z⟧,
       simp [quot_left_distrib], abel },
     { change ⟦xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)⟧
              = ⟦x * y + (xR i * z + x * zL k - xR i * zL k)⟧,
@@ -470,11 +469,16 @@ begin
              = ⟦xR i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
                - xR i * (yL j * z + y * zR k - yL j * zR k)⟧,
       simp [quot_mul_assoc], abel } },
-  { rintro (⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩ | ⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩),
+  { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
     { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zR k
                - (xL i * y + x * yL j - xL i * yL j) * zR k⟧
              = ⟦xL i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
                - xL i * (yL j * z + y * zR k - yL j * zR k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
+               - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
+             = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
+               - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
       simp [quot_mul_assoc], abel },
     { change ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zL k
                - (xL i * y + x * yR j - xL i * yR j) * zL k⟧
@@ -485,11 +489,6 @@ begin
                - (xR i * y + x * yL j - xR i * yL j) * zL k⟧
              = ⟦xR i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
                - xR i * (yL j * z + y * zL k - yL j * zL k)⟧,
-      simp [quot_mul_assoc], abel },
-    { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
-               - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
-             = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
-               - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
       simp [quot_mul_assoc], abel } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -558,10 +557,14 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 def inv'_zero : inv' 0 ≡r 1 :=
 begin
   change mk _ _ _ _ ≡r 1,
-  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
-  { apply equiv.equiv_punit },
-  { apply equiv.equiv_pempty },
-  { simp }
+  refine ⟨_, _, λ i, _, is_empty.elim _⟩,
+  { apply equiv.equiv_punit (inv_ty _ _ _),
+    apply_instance },
+  { apply equiv.equiv_pempty (inv_ty _ _ _),
+    apply_instance },
+  { simp },
+  { dsimp,
+    apply_instance }
 end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
@@ -572,10 +575,11 @@ begin
   change relabelling (mk _ _ _ _) 1,
   haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
-  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  refine ⟨_, _, λ i, _, is_empty.elim _⟩; dsimp,
   { apply equiv.equiv_punit },
-  { apply equiv.equiv_pempty },
-  { simp }
+  { apply equiv.equiv_of_is_empty },
+  { simp },
+  { apply_instance }
 end
 
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv

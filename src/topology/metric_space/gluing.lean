@@ -338,11 +338,11 @@ lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
 
 /-- The left injection of a space in a disjoint union is an isometry -/
 lemma isometry_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
-isometry_emetric_iff_metric.2 $ λx y, rfl
+isometry.of_dist_eq $ λ x y, rfl
 
 /-- The right injection of a space in a disjoint union is an isometry -/
 lemma isometry_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
-isometry_emetric_iff_metric.2 $ λx y, rfl
+isometry.of_dist_eq $ λ x y, rfl
 
 end sum
 
@@ -487,7 +487,7 @@ open filter
 
 /-- The injection of a space in a disjoint union is an isometry -/
 lemma isometry_mk (i : ι) : isometry (sigma.mk i : E i → Σ k, E k) :=
-isometry_emetric_iff_metric.2 (by simp)
+isometry.of_dist_eq (λ x y, by simp)
 
 /-- A disjoint union of complete metric spaces is complete. -/
 protected lemma complete_space [∀ i, complete_space (E i)] : complete_space (Σ i, E i) :=
@@ -559,10 +559,10 @@ begin
 end
 
 lemma to_glue_l_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_glue_l hΦ hΨ) :=
-isometry_emetric_iff_metric.2 $ λ_ _, rfl
+isometry.of_dist_eq $ λ_ _, rfl
 
 lemma to_glue_r_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_glue_r hΦ hΨ) :=
-isometry_emetric_iff_metric.2 $ λ_ _, rfl
+isometry.of_dist_eq $ λ_ _, rfl
 
 end gluing --section
 
@@ -656,7 +656,7 @@ instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_li
 
 /-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
 lemma to_inductive_limit_isometry (I : ∀ n, isometry (f n)) (n : ℕ) :
-  isometry (to_inductive_limit I n) := isometry_emetric_iff_metric.2 $ λx y,
+  isometry (to_inductive_limit I n) := isometry.of_dist_eq $ λ x y,
 begin
   change inductive_limit_dist f ⟨n, x⟩ ⟨n, y⟩ = dist x y,
   rw [inductive_limit_dist_eq_dist I ⟨n, x⟩ ⟨n, y⟩ n (le_refl n) (le_refl n),

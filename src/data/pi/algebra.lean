@@ -229,17 +229,6 @@ funext $ λ j, by rw [subsingleton.elim j i, pi.mul_single_eq_same]
 
 namespace sum
 variables (a a' : α → γ) (b b' : β → γ)
-open function
-
-@[simp]
-lemma sum.elim_const_const (c : γ) :
-  sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=
-by { ext x, cases x; refl }
-
-@[simp]
-lemma sum.elim_lam_const_lam_const (c : γ) :
-  sum.elim (λ (_ : α), c) (λ (_ : β), c) = const _ c :=
-sum.elim_const_const c
 
 @[simp, to_additive]
 lemma elim_one_one [has_one γ] :

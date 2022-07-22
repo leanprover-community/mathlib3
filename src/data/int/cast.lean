@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.int.basic
 import data.nat.cast
 import tactic.pi_instances
+import data.sum.basic
 
 /-!
 # Cast of integers (additional theorems)

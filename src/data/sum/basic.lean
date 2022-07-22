@@ -344,6 +344,16 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inl y) := let ⟨x, hx⟩ := hf y in ⟨inl x, congr_arg inl hx⟩
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
+@[simp]
+lemma sum.elim_const_const (c : γ) :
+  sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=
+by { ext x, cases x; refl }
+
+@[simp]
+lemma sum.elim_lam_const_lam_const (c : γ) :
+  sum.elim (λ (_ : α), c) (λ (_ : β), c) = const _ c :=
+sum.elim_const_const c
+
 end function
 
 /-!

@@ -48,7 +48,7 @@ lemma pre_post_comp_comm :
 ⟨(ihom X.V).obj Y.V,
 begin
   refine ⟨λ g, pre_comp X Y g ≫ post_comp X Y g, _, _⟩,
-  { simp [pre_comp_apply, post_comp_apply],
+  { simp,
     apply category.id_comp },
   { intros g g',
     rw [pre_comp_mul, post_comp_mul, End.mul_def, category.assoc, category.assoc],
@@ -154,18 +154,16 @@ end
 /-- Elevate the curry on `V` to an `Action V G` hom. -/
 def monoidal_closed_curry
   (f : (monoidal_category.tensor_left X).obj Y ⟶ Z) :
-  Y ⟶ (coyoneda.obj (op X)).obj Z :=
+  Y ⟶ (ihom_functor (op X)).obj Z :=
 ⟨monoidal_closed.curry f.hom,
 begin
   intro,
-  rw coyoneda_obj_obj_ρ,
+  -- rw coyoneda_obj_obj_ρ,
   rw ←monoidal_closed.curry_natural_left,
-  have : (𝟙 (unop (op X)).V ⊗ Y.ρ g) ≫ f.hom = (𝟙 X.V ⊗ Y.ρ g) ≫ f.hom := rfl,
-  rw this,
+  dsimp,
   have h := congr_arg (category_struct.comp ((X.ρ_Aut g).inv ⊗ 𝟙 Y.V)) (f.comm g),
-  have : ((monoidal_category.tensor_left X).obj Y).ρ = (X ⊗ Y).ρ := rfl,
-  rw this at h,
-  rw Action.tensor_rho at h,
+  dsimp at h,
+  rw ←Action.ρ_Aut_apply_inv at h,
   rw ←Action.ρ_Aut_apply_hom at h,
   rw monoidal_category.inv_hom_id_tensor_assoc at h,
   rw monoidal_category.tensor_id_comp_id_tensor_assoc at h,
@@ -173,8 +171,6 @@ begin
   rw h,
   simp,
   rw [←category.assoc, ←category.assoc],
-  have : (ihom (unop (op X.V))).map = (ihom X.V).map := rfl,
-  rw this,
   rw [monoidal_closed.uncurry_natural_right
     (monoidal_closed.curry f.hom ≫ (monoidal_closed.pre (X.ρ (g⁻¹ : G))).app Z.V)],
   apply congr_fun,
@@ -202,10 +198,9 @@ def monoidal_closed_uncurry
 ⟨monoidal_closed.uncurry f.hom,
 begin
   intro,
-  have : ((monoidal_category.tensor_left X).obj Y).ρ = (X ⊗ Y).ρ := rfl,
-  rw this,
+  dsimp,
   apply tensor_left_g_id_comp_injective g⁻¹,
-  rw [Action.tensor_rho, Action.ρ_Aut_apply_hom, ←Action.ρ_Aut_apply_inv,
+  rw [Action.ρ_Aut_apply_hom, ←Action.ρ_Aut_apply_inv,
     ←Action.ρ_Aut_apply_hom, ←category.assoc,
     monoidal_category.inv_hom_id_tensor,
     monoidal_category.tensor_id, category.id_comp],
@@ -213,21 +208,14 @@ begin
   rw f.comm,
   rw ihom_ρ,
   simp,
+  dsimp,
   rw ←category.assoc,
-  have : (ihom (unop (op X.V))).map = (ihom X.V).map := rfl,
-  rw this,
   rw monoidal_closed.uncurry_natural_right,
   rw ←category.assoc,
   apply congr_fun,
   apply congr_arg,
   rw monoidal_closed.uncurry_natural_left,
   rw monoidal_closed.uncurry_pre,
-  have : 𝟙 ((ihom (unop (op X.V))).obj Z.V) = 𝟙 ((ihom X.V).obj Z.V) := rfl,
-  rw this,
-  have : (ihom.ev (unop (op X.V))).app = (ihom.ev X.V).app := rfl,
-  rw this,
-  have : 𝟙 ((ihom X.V).obj Z.V) = 𝟙 (ihom X Z).V := rfl,
-  rw this,
   rw monoidal_category.id_tensor_comp_tensor_id_assoc,
   apply tensor_left_g_id_comp_injective g,
   rw ←Action.ρ_Aut_apply_inv,
@@ -251,7 +239,7 @@ end⟩
 /-- Intermediate step to constructing `monoidal_closed` -/
 def monoidal_closed_hom_equiv :
   ((monoidal_category.tensor_left X).obj Y ⟶ Z) ≃
-  (Y ⟶ (coyoneda.obj (op X)).obj Z) :=
+  (Y ⟶ (ihom_functor (op X)).obj Z) :=
 { to_fun := monoidal_closed_curry,
   inv_fun := monoidal_closed_uncurry,
   left_inv := by { intro f, apply Action.hom.ext, simp },
@@ -271,7 +259,7 @@ instance : monoidal_closed (Action V G) :=
 -- ⟨λ X, ⟨⟨_, _⟩⟩⟩
 { closed' := λ X,
   { is_adj :=
-    { right := coyoneda.obj (op X),
+    { right := ihom_functor (op X),
       adj := begin
         apply adjunction.mk_of_hom_equiv,
         refine ⟨λ Y Z, monoidal_closed_hom_equiv, _, _⟩,

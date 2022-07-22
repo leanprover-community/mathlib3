@@ -1,4 +1,4 @@
-import tactic.positivity
+import tactic.positivity_plugins
 
 /-! # Tests for the `positivity` tactic
 
@@ -62,6 +62,26 @@ example {a : ℤ} : 0 ≤ |a| := by positivity
 example {a : ℤ} : 0 < |a| + 3 := by positivity
 
 example {a : ℤ} (ha : 1 < a) : 0 < |(3:ℤ) + a| := by positivity
+
+example {a : ℝ} (ha : 0 ≤ a) : 0 ≤ real.sqrt a := by positivity
+
+example {a : ℝ} (ha : 0 ≤ a) : 0 < real.sqrt (a + 3) := by positivity
+
+example {a b : ℤ} (ha : 3 < a) : 0 ≤ min a (b ^ 2) := by positivity
+
+example : 0 ≤ max 3 4 := by positivity
+
+example {b : ℤ} : 0 ≤ max (-3) (b ^ 2) := by positivity
+
+example {b : ℤ} : 0 ≤ max (b ^ 2) 0 := by positivity
+
+example : 0 ≤ max (0:ℤ) (-3) := by positivity
+
+example : 0 ≤ max (-3 : ℤ) 5 := by positivity
+
+example {V : Type*} [normed_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
+
+example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
 
 /- ## Tests that the tactic is agnostic on reversed inequalities -/
 

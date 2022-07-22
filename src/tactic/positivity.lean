@@ -24,6 +24,10 @@ theorem lemma3 {α} [preorder α] {a a' b : α} : a = a' → a ≤ b → a' ≤ 
 theorem lemma4 {α} [preorder α] {b b' a : α} : b = b' → a < b' → a < b :=
 λ h1 h3, by rwa h1
 
+/-- Given two tactics whose result is `bool × expr`, report a `bool × expr`:
+- if at least one gives `tt`, report `tt` and one of the `tt` `expr`s
+- if neither gives `tt` but at least one gives `ff`, report `ff` and one of the `ff` `expr`s
+- if both fail, fail -/
 meta def orelse' (tac1 tac2 : tactic (bool × expr)) : tactic (bool × expr) := do
   res ← try_core tac1,
   match res with
@@ -182,7 +186,53 @@ meta def positivity_abs : expr → tactic (bool × expr)
   prod.mk ff <$> mk_app ``abs_nonneg [a] -- else report nonnegativity
 | _ := failed
 
-/- TODO: implement further plugins (raising to non-numeral powers, exp, log, norm, fintype.card) -/
+alias inv_pos ↔ _ inv_pos_of_pos
+
+@[positivity]
+meta def positivity_inv : expr → tactic (bool × expr)
+| `((%%a)⁻¹) := do
+  (do -- if can prove `0 < a`, report positivity
+    (strict_a, pa) ← positivity_core a,
+    prod.mk tt <$> mk_app ``inv_pos_of_pos [pa]) <|>
+  prod.mk ff <$> mk_app ``inv_nonneg [a] -- else report nonnegativity
+| _ := failed
+
+lemma lemma10 {R : Type*} [linear_order R] (a b c : R) (ha : a < b) (hb : a ≤ c) : a ≤ min b c :=
+le_min ha.le hb
+
+lemma lemma11 {R : Type*} [linear_order R] (a b c : R) (ha : a ≤ b) (hb : a < c) : a ≤ min b c :=
+le_min ha hb.le
+
+@[positivity]
+meta def positivity_min : expr → tactic (bool × expr)
+| `(min %%a %%b) := do
+  (strict_a, pa) ← positivity_core a,
+  (strict_b, pb) ← positivity_core b,
+  match strict_a, strict_b with
+  | tt, tt := prod.mk tt <$> mk_app ``lt_min [pa, pb]
+  | tt, ff := prod.mk ff <$> mk_app ``lemma10 [pa, pb]
+  | ff, tt := prod.mk ff <$> mk_app ``lemma11 [pa, pb]
+  | ff, ff := prod.mk ff <$> mk_app ``le_min [pa, pb]
+  end
+| _ := failed
+
+@[positivity]
+meta def positivity_max : expr → tactic (bool × expr)
+| `(max %%a %%b) := orelse' (do
+      (strict_a, pa) ← positivity_core a,
+      if strict_a then
+        prod.mk tt <$> mk_mapp ``lt_max_of_lt_left [none, none, none, a, b, pa]
+      else
+        prod.mk ff <$> mk_mapp ``le_max_of_le_left [none, none, none, a, b, pa])
+  (do
+    (strict_b, pb) ← positivity_core b,
+    if strict_b then
+      prod.mk tt <$> mk_mapp ``lt_max_of_lt_right [none, none, none, a, b, pb]
+    else do
+      prod.mk ff <$> mk_mapp ``le_max_of_le_right [none, none, none, a, b, pb])
+| _ := failed
+
+/- TODO: implement further plugins (raising to non-numeral powers, exp, log, fintype.card) -/
 
 meta def positivity : tactic unit := focus1 $ do
   (a, strict_desired) ← get_pos_goal,

@@ -252,8 +252,42 @@ noncomputable! def normalized_factors_equiv [is_domain R] [is_dedekind_domain R]
 
 open submodule.is_principal
 
+lemma mem_normalized_factors_eq_of_associated [unique_factorization_monoid R]
+  [normalization_monoid R] {a b c : R} (ha : a ∈ normalized_factors c)
+  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
+begin
+  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
+    normalize_eq_normalize_iff],
+  apply associated.dvd_dvd h,
+end
+
+lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors [is_domain R]
+  [normalization_monoid R] [is_principal_ideal_ring R] {a b : R} (ha : a ∈ normalized_factors b) :
+  ideal.span ({a} : set R) ∈ normalized_factors (ideal.span ({b} : set R)) :=
+begin
+  by_cases hb : b = 0,
+  { rw (span_singleton_eq_bot.mpr hb),
+    rw [hb, normalized_factors_zero] at ha,
+    rw [bot_eq_zero, normalized_factors_zero],
+    sorry,
+  },
+  { suffices : prime (ideal.span ({a} : set R)),
+    sorry,
+    /- { obtain ⟨c, hc, hc'⟩ := exists_mem_normalized_factors_of_dvd _ this.irreducible
+        (dvd_iff_le.mpr (span_singleton_le_span_singleton.mpr (dvd_of_mem_normalized_factors ha))),
+      rwa associated_iff_eq.mp hc',
+      { by_contra,
+        exact hb (span_singleton_eq_bot.mp h) } } -/
+    rw prime_iff_is_prime,
+    exact (span_singleton_prime (prime_of_normalized_factor a ha).ne_zero).mpr
+      (prime_of_normalized_factor a ha),
+    by_contra,
+    exact (prime_of_normalized_factor a ha).ne_zero (span_singleton_eq_bot.mp h) },
+end
+
+
 noncomputable def corr₂ [is_domain R] [is_principal_ideal_ring R] [normalization_monoid R]
- (r : R) :
+ (r : R) (hr : r ≠ 0) :
   {d : R | d ∈ normalized_factors r} ≃
   {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
 equiv.of_bijective (λ d, ⟨ideal.span ({d} : set R), sorry ⟩)
@@ -263,12 +297,22 @@ begin
   rw [subtype.mk_eq_mk, ideal.span_singleton_eq_span_singleton, subtype.coe_mk,
     subtype.coe_mk] at h,
   rw subtype.mk_eq_mk,
-  sorry,
+  exact mem_normalized_factors_eq_of_associated ha hb h,
   rintros ⟨i, hi⟩,
   letI : i.is_principal := infer_instance,
-  use ⟨generator i, show generator i ∈ normalized_factors r, from sorry⟩,
-  simpa only [subtype.coe_mk, subtype.mk_eq_mk] using ideal.span_singleton_generator i,
+  letI : i.is_prime := is_prime_of_prime (prime_of_normalized_factor i hi),
+  obtain ⟨a, ha, ha'⟩ := exists_mem_normalized_factors_of_dvd hr
+    (prime_generator_of_is_prime i (prime_of_normalized_factor i hi).ne_zero).irreducible _,
+  { use ⟨a, ha⟩,
+    simp only [subtype.coe_mk, subtype.mk_eq_mk, ← span_singleton_eq_span_singleton.mpr ha',
+      ideal.span_singleton_generator] },
+  { rw ← mem_iff_generator_dvd,
+    suffices temporary : ideal.span {r} ≤ i,
+    { exact temporary (mem_span_singleton.mpr (dvd_refl r)) },
+    rw ← dvd_iff_le,
+    exact dvd_of_mem_normalized_factors hi }
 end
+
 
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case,
   stating that the prime factors of `I*S` are in bijection with those of the minimal poly of

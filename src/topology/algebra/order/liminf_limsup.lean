@@ -188,8 +188,6 @@ end liminf_limsup
 
 section monotone
 
-open set
-
 variables {ι R S : Type*} {F : filter ι} [ne_bot F]
   [complete_linear_order R] [topological_space R] [order_topology R]
   [complete_linear_order S] [topological_space S] [order_topology S]
@@ -203,15 +201,15 @@ begin
   rw [filter.limsup_eq_Inf_Sup, filter.liminf_eq_Sup_Inf] at *,
   rw (f_decr.map_Inf_of_continuous_at' f_cont.continuous_at _),
   { apply congr_arg,
-    simp only [image_image, function.comp_app],
+    simp only [set.image_image, function.comp_app],
     refine subset_antisymm _ _;
     { intros i hi,
-      rw mem_image at *,
+      rw set.mem_image at *,
       rcases hi with ⟨I, I_mem_F, hI⟩,
       refine ⟨I, I_mem_F, _⟩,
-      rw [← hI, f_decr.map_Sup_of_continuous_at' f_cont.continuous_at _, image_image],
-      exact nonempty_image_iff.mpr (ne_bot.nonempty_of_mem ‹ne_bot F› I_mem_F), }, },
-  { refine nonempty_image_iff.mpr nonempty_of_nonempty_subtype, },
+      rw [← hI, f_decr.map_Sup_of_continuous_at' f_cont.continuous_at _, set.image_image],
+      exact set.nonempty_image_iff.mpr (ne_bot.nonempty_of_mem ‹ne_bot F› I_mem_F), }, },
+  { refine set.nonempty_image_iff.mpr set.nonempty_of_nonempty_subtype, },
 end
 
 /-- A continuous antitone function between complete linear ordered spaces sends a `filter.liminf`

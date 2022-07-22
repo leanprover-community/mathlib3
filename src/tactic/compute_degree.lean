@@ -396,7 +396,7 @@ do t ← target,
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
   end,
   `(@nat_degree %%R %%inst %%pol = %%degv) ← target |
-  fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   deg ← guess_degree pol >>= eval_guessing 0,
   degvn ← eval_guessing 0 degv,
   guard (deg = degvn) <|>

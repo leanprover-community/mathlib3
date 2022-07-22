@@ -274,7 +274,7 @@ end pi
 @[simp]
 lemma sum.elim_int_cast_int_cast {α β γ : Type*} [has_int_cast γ] (n : ℤ) :
   sum.elim (n : α → γ) (n : β → γ) = n :=
-sum.elim_const_const n
+@sum.elim_lam_const_lam_const α β γ n
 
 namespace pi
 variables {α : Type*} {β : α → Type*} [∀ a, add_group_with_one (β a)]

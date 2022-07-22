@@ -70,8 +70,8 @@ lemma is_succ_limit_rec_on_limit {C : α → Sort*} (hs : Π a, ¬ is_max a → 
   @is_succ_limit_rec_on α _ _ C b hs hl = hl b hb :=
 by { classical, exact dif_pos hb }
 
-/-- A predecessor function for a `succ_order`. We have `pred a = a` for a successor limit `a`, and
-`pred a = b` where `b` is some value with `succ b = a` otherwise.
+/-- A predecessor function for a `succ_order`. We have `pred' a = a` for a successor limit `a`, and
+`pred' (succ a) = a` when `a` is not maximal.
 
 When working in a succ-archimedean partial order, this can be used to build an `is_pred_archimdean`
 instance: see `order.succ_order.is_pred_archimedean`.
@@ -295,8 +295,8 @@ theorem is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min
   @is_pred_limit_rec_on α _ _ C b hs hl = hl b hb :=
 @is_succ_limit_rec_on_limit αᵒᵈ b _ _
 
-/-- A successor function for a `pred_order`. We have `succ a = a` for a predecessor limit `a`, and
-`succ a = b` where `b` is some value with `pred b = a` otherwise.
+/-- A successor function for a `pred_order`. We have `succ' a = a` for a predecessor limit `a`, and
+`succ' (pred a) = a` where `a` is not minimal.
 
 When working in a pred-archimedean partial order, this can be used to build an `is_succ_archimdean`
 instance: see `order.pred_order.is_succ_archimedean`.

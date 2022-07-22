@@ -998,13 +998,9 @@ compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
 (local_compact_nhds : ∀ x : α, (𝓝 x).has_basis_in is_compact)
 
-lemma nhds_has_basis_in_compact [locally_compact_space α] {x : α} :
+lemma compact_basis_nhds [locally_compact_space α] (x : α) :
   (𝓝 x).has_basis_in is_compact :=
 locally_compact_space.local_compact_nhds x
-
-lemma compact_basis_nhds [locally_compact_space α] (x : α) :
-  (𝓝 x).has_basis (λ s, s ∈ 𝓝 x ∧ is_compact s) (λ s, s) :=
-nhds_has_basis_in_compact.has_basis
 
 lemma locally_compact_space_of_has_basis {ι : α → Type*} {p : Π x, ι x → Prop}
   {s : Π x, ι x → set α} (h : ∀ x, (𝓝 x).has_basis (p x) (s x))
@@ -1023,14 +1019,14 @@ locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
   (hU : is_open U) (hx : x ∈ U) : ∃ (K : set α), is_compact K ∧ x ∈ interior K ∧ K ⊆ U :=
 begin
-  rcases nhds_has_basis_in_compact (hU.mem_nhds hx) with ⟨K, h1K, h2K, h3K⟩,
+  rcases (compact_basis_nhds x).exists_mem_subset (hU.mem_nhds hx) with ⟨K, h1K, h2K, h3K⟩,
   exact ⟨K, h2K, mem_interior_iff_mem_nhds.2 h1K, h3K⟩,
 end
 
 /-- In a locally compact space every point has a compact neighborhood. -/
 lemma exists_compact_mem_nhds [locally_compact_space α] (x : α) :
   ∃ K, is_compact K ∧ K ∈ 𝓝 x :=
-nhds_has_basis_in_compact.exists_mem'
+(compact_basis_nhds x).exists_mem'
 
 /-- In a locally compact space, every compact set is contained in the interior of a compact set. -/
 lemma exists_compact_superset [locally_compact_space α] {K : set α} (hK : is_compact K) :
@@ -1063,14 +1059,14 @@ protected lemma is_closed.locally_compact_space [locally_compact_space α] {s : 
 protected lemma open_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
   (hf : open_embedding f) : locally_compact_space α :=
 begin
-  have : ∀ x : α, (𝓝 x).has_basis (λ s, (s ∈ 𝓝 (f x) ∧ is_compact s) ∧ s ⊆ range f) (λ s, f ⁻¹' s),
+  have : ∀ x : α, (𝓝 x).has_basis (λ s, s ∈ 𝓝 (f x) ∧ is_compact s ∧ s ⊆ range f) (λ s, f ⁻¹' s),
   { intro x,
     rw hf.to_embedding.to_inducing.nhds_eq_comap,
     exact ((compact_basis_nhds _).restrict_subset $
       hf.open_range.mem_nhds $ mem_range_self _).comap _ },
   refine locally_compact_space_of_has_basis this (λ x s hs, _),
-  rw [← hf.to_inducing.is_compact_iff, image_preimage_eq_of_subset hs.2],
-  exact hs.1.2
+  rw [← hf.to_inducing.is_compact_iff, image_preimage_eq_of_subset hs.2.2],
+  exact hs.2.1
 end
 
 protected lemma is_open.locally_compact_space [locally_compact_space α] {s : set α}

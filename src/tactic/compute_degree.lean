@@ -145,7 +145,9 @@ match num_to_nat a with
   aexp ← to_expr ``(%%`(an)) tt ff,
   n_eq_Cn ← to_expr ``(%%a = C (%%aexp : %%R)),
   (_, nproof) ← solve_aux n_eq_Cn
-    `[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one] ],
+    -- the reason to use `simp + norm_num` is to speed-up and avoid timeouts.  `norm_num` would
+    -- be enough, but then some of the tests time out.
+    `[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one]; norm_num ],
   rewrite_target nproof
 | none := skip
 end
@@ -163,36 +165,32 @@ Assumptions: the tactic tries to discharge the proof that constant in front of t
 non-zero using `assumption <|> ...`.
 When it is needed, `single_term_resolve` produces a `nontriviality` assumption using tactic
 `nontriviality R` or fails. -/
-meta def single_term_resolve : expr → tactic unit
-| `(has_mul.mul %%a %%X) := do
-  convert_num_to_C_num a,
-  refine ``(nat_degree_C_mul_X _ _) <|>
-    refine ``(nat_degree_C_mul_X_pow _ _ _) <|>
-      fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
-  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-| (app `(⇑(@monomial %%R %%inst %%n)) x) := do
-  refine ``(nat_degree_monomial_eq %%n _),
-  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-| (app `(⇑(@C %%R %%inst)) x) :=
-  interactive.exact ``(nat_degree_C _)
-| `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
-  (nontriviality_by_assumption R <|>
-    fail format!"could not produce a 'nontrivial {R}' assumption") >>
-      refine ``(nat_degree_X_pow %%n)
-| `(@X %%R %%inst) :=
-  (nontriviality_by_assumption R <|>
-    fail format!"could not produce a 'nontrivial {R}' assumption") >>
-      interactive.exact ``(nat_degree_X)
-| e := do ppe ← pp e,
-  fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
-See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
-
-meta def ste : tactic unit := do
-t ← target,
-match t with
-| `(nat_degree %%po = %%_) := single_term_resolve po
-| _ := fail "not of the form `f.nat_degree = d`"
-end
+meta def single_term_resolve : tactic unit := do
+`(nat_degree %%pol = %%_) ← target,
+match pol with
+  | `(has_mul.mul %%a %%X) := do
+    convert_num_to_C_num a,
+    refine ``(nat_degree_C_mul_X _ _) <|>
+      refine ``(nat_degree_C_mul_X_pow _ _ _) <|>
+        fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
+    assumption <|> interactive.exact ``(one_ne_zero) <|> skip
+  | (app `(⇑(@monomial %%R %%inst %%n)) x) := do
+    refine ``(nat_degree_monomial_eq %%n _),
+    assumption <|> interactive.exact ``(one_ne_zero) <|> skip
+  | (app `(⇑(@C %%R %%inst)) x) :=
+    interactive.exact ``(nat_degree_C _)
+  | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
+    (nontriviality_by_assumption R <|>
+      fail format!"could not produce a 'nontrivial {R}' assumption") >>
+        refine ``(nat_degree_X_pow %%n)
+  | `(@X %%R %%inst) :=
+    (nontriviality_by_assumption R <|>
+      fail format!"could not produce a 'nontrivial {R}' assumption") >>
+        interactive.exact ``(nat_degree_X)
+  | e := do ppe ← pp e,
+    fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
+  See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
+  end
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
@@ -344,22 +342,8 @@ do t ← target,
   compute_degree_le_aux,
   check_target_changes t,
   try $ any_goals' norm_assum
-/-
-  try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
-  `(nat_degree %%tl ≤ %%tr) ← target |
-    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  expected_deg ← guess_degree tl >>= eval_guessing 0,
-  deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
-  if deg_bound < expected_deg
-  then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
-  else
-    repeat $ resolve_sum_step,
--/
---    done <|> repeat (refine ``(nat.succ_le_succ _)) >> repeat (reflexivity <|> refine ``(nat.zero_le _))
-    --,
-    --check_target_changes t,
-    --try $ any_goals' norm_assum
 
+/--  A slightly better sum of a list.  It is used for lists that have length at least one. -/
 meta def _root_.list.gsum (op : expr) : list expr → expr
 | [] := `(0)
 | [a] := a
@@ -404,7 +388,6 @@ do t ← target,
     fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
   ad ← to_expr ``(has_add.add) tt ff,
   summ ← list_binary_operands ad pol,
---  small_degs ← summ.mfilter (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (dt < deg)),
   (lg_degs, sm_degs) ← summ.mpartition
     (λ t, do dt ← guess_degree t >>= eval_guessing 0, return (deg = dt)),
   if (sm_degs.length ≠ 0) then do
@@ -417,35 +400,12 @@ do t ← target,
     rotate >> try compute_degree_le_aux
   else skip,
   gs ← get_goals,
-  focus' $ gs.map (λ g : expr, do gi ← infer_type g, match gi with
+  focus' $ gs.map (λ g : expr, do gt ← infer_type g, match gt with
     | `(nat_degree (%%_ + %%_) = %%_) := skip
     | `(nat_degree %%_ ≤ %%_) := skip
-    | `(nat_degree %%_ = %%_) := ste >> norm_assum
+    | `(nat_degree %%_ = %%_) := single_term_resolve >> norm_assum
     |_ := try norm_assum
      end)
-  --tacs ← gs.mmap (λ g : expr, (do `(nat_degree %%po = _) ← g, return $ single_term_resolve po) <|>
-  --  do return $ try norm_assum ),
-  --focus' (tacs)
---  iterate_at_most (gs.length - 1) norm_assum,
---  try $ do `(nat_degree %%po = _) ← target, single_term_resolve po
---  `(%%_ ≤ %%_) ← target >> norm_assum <|>
-  --try $ any_goals' $
-  --  (do `(nat_degree %%po = _) ← target, single_term_resolve po)
-  --,
-  --try $ any_goals' norm_assum
---    done <|> repeat (refine ``(nat.succ_le_succ _)) >> repeat (reflexivity <|> refine ``(nat.zero_le _))
-      --,
-      --try $ any_goals' norm_assum
-/-
-  try $ move_op (prod.mk ff <$> sm_degs.map to_pexpr) (interactive.loc.ns [none]) (to_pexpr ad),
-  -- now that all the small degree terms are on the right, we peel them off
-  iterate_at_most sm_degs.length $ refine ``(nat_degree_add_left_succ _ _ _ _ _),
-  any_goals' $ try $
-    (do `(nat_degree %%po = _) ← target, single_term_resolve po),
-  try $ any_goals' $ repeat $ target >>= resolve_sum_step,--compute_degree_le_no_norm_num,
-  check_target_changes t,
-  try $ any_goals' norm_assum
--/
 
 add_tactic_doc
 { name := "compute_degree_le",

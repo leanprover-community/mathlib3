@@ -32,11 +32,11 @@ Otherwise, there must be two consecutive entries that are opposites of one anoth
 $P^{n+2}(t)-P^{n+1}(t)=P^n(t)-P^{n+1}(t)$, which implies $P^{n+2}(t)=P^n(t)$ and $P(P(t))=t$.
 
 With this lemma, we can reduce the problem to the case $k=2$. If every root of $P(P(t))-t$ is also a
-root of $P(t)-t$, then we're done by the fundamental theorem of algebra. Otherwise, there exist $a$
-and $b$ with $a\ne b$ and $P(a)=b$, $P(b)=a$. For any root $t$ of $P(P(t))-t$, defining $u=P(t)$, we
-easily verify $a-t\mid b-u$, $b-u\mid a-t$, $a-u\mid b-t$, $b-t\mid a-u$, which imply $|a-t|=|b-u|$
-and $|a-u|=|b-t|$. By casing on these equalities, we deduce $a+b=t+u$. This means that every root of
-$P(P(t))-t$ is a root of $P(t)-t-a-b$, and we're again done by the fundamental theorem of algebra.
+root of $P(t)-t$, then we're done. Otherwise, there exist $a$ and $b$ with $a\ne b$ and $P(a)=b$,
+$P(b)=a$. For any root $t$ of $P(P(t))-t$, defining $u=P(t)$, we easily verify $a-t\mid b-u$,
+$b-u\mid a-t$, $a-u\mid b-t$, $b-t\mid a-u$, which imply $|a-t|=|b-u|$ and $|a-u|=|b-t|$. By casing
+on these equalities, we deduce $a+b=t+u$. This means that every root of $P(P(t))-t$ is a root of
+$P(t)+t-a-b$, and we're again done.
 -/
 
 open function polynomial
@@ -96,7 +96,7 @@ begin
     { intro n,
       induction n with n IH,
       { refl },
-      { apply eq.trans _ (sign_add_eq_of_sign_eq IH),
+      { apply eq.trans _ (int.sign_add_eq_of_sign_eq IH),
         have H := Heq n.succ 0,
         dsimp at H ⊢,
         rw [←H, sub_add_sub_cancel'] } },
@@ -189,7 +189,8 @@ begin
       rw ←hPab at hP,
       exact (zero_le_one.not_lt hP).elim },
 
-    -- We claim that every root of P(P(t)) - t is a root of P(t) - t - a - b.
+    -- We claim that every root of P(P(t)) - t is a root of P(t) + t - a - b. This allows us to
+    -- conclude the problem.
     suffices H' : (P.comp P - X).roots.to_finset ⊆ (P + X - a - b).roots.to_finset,
     { exact (finset.card_le_of_subset H').trans ((multiset.to_finset_card_le _).trans $
         (card_roots' _).trans_eq hPab) },

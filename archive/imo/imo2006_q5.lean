@@ -56,11 +56,9 @@ theorem add_eq_add_of_nat_abs_eq_of_nat_abs_eq {a b c d : ℤ} (hne : a ≠ b)
 begin
   cases int.nat_abs_eq_nat_abs_iff.1 h₁ with h₁ h₁,
   { cases int.nat_abs_eq_nat_abs_iff.1 h₂ with h₂ h₂,
-    { rw sub_eq_iff_eq_add at h₁ h₂,
-      rw [h₂, sub_add, sub_add, sub_right_inj, ←neg_sub a, eq_neg_self_iff, sub_eq_zero] at h₁,
-      contradiction },
-    { rwa [neg_sub, sub_eq_sub_iff_add_eq_add, eq_comm] at h₂ } },
-  { rwa [neg_sub, sub_eq_sub_iff_add_eq_add, eq_comm, add_comm] at h₁ }
+    { exact (hne (by linarith)).elim  },
+    { linarith } },
+  { linarith }
 end
 
 /-- The main lemma in the proof: if $P^k(t)=t$, then $P(P(t))=t$. -/

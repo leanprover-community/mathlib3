@@ -181,7 +181,7 @@ begin
   { rw ←nat_degree_lt_iff_degree_lt h,
     refine nat_degree_of_list_lt _ _,
     contrapose! h,
-    simp [h] }
+    simp [of_list_eq_zero_iff, h] }
 end
 
 lemma nat_degree_of_list_of_last_ne_zero (h : ∀ (hl : l ≠ []), l.last hl ≠ 0) :

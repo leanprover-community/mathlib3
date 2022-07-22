@@ -79,10 +79,7 @@ lemma repeat_dedup {x : α} : ∀ {k}, k ≠ 0 → (repeat x k).dedup = [x]
 
 lemma count_dedup (l : list α) (a : α) :
   l.dedup.count a = if a ∈ l then 1 else 0 :=
-begin
-  refine trans (count_eq_of_nodup $ nodup_dedup l) _,
-  simp_rw [mem_dedup],
-end
+by simp_rw [count_eq_of_nodup $ nodup_dedup l, mem_dedup]
 
 /-- Summing the count of `x` over a list filtered by some `p` is just `countp` applied to `p` -/
 lemma sum_map_count_dedup_filter_eq_countp (p : α → Prop) [decidable_pred p]
@@ -109,10 +106,6 @@ end
 
 lemma sum_map_count_dedup_eq_length (l : list α) :
   (l.dedup.map $ λ x, l.count x).sum = l.length :=
-calc (l.dedup.map $ λ x, l.count x).sum
-  = ((l.dedup.filter $ λ x, true).map (λ x, l.count x)).sum :
-    by { congr, exact symm (filter_true _) }
-  ... = l.countp (λ x, true) : sum_map_count_dedup_filter_eq_countp _ l
-  ... = l.length : (countp_eq_length _).2 (by simp)
+by simpa using sum_map_count_dedup_filter_eq_countp (λ _, true) l
 
 end list

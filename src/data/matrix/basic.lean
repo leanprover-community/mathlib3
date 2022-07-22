@@ -1546,6 +1546,11 @@ matrix.ext $ by simp [mul_apply]
   (- M)ᴴ = - Mᴴ :=
 matrix.ext $ by simp
 
+lemma conj_transpose_map [has_star α] [has_star β] {A : matrix m n α} (f : α → β)
+  (hf : function.semiconj f star star) :
+  Aᴴ.map f = (A.map f)ᴴ :=
+matrix.ext $ λ i j, hf _
+
 variables (m n α)
 
 /-- `matrix.conj_transpose` as an `add_equiv` -/

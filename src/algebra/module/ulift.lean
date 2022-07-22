@@ -23,16 +23,13 @@ variable {R : Type u}
 variable {M : Type v}
 variable {N : Type w}
 
+@[to_additive]
 instance has_smul_left [has_smul R M] :
   has_smul (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
-@[simp] lemma smul_down [has_smul R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
-
-@[simp]
-lemma smul_down' [has_smul R M] (s : R) (x : ulift M) :
-  (s • x).down = s • x.down :=
-rfl
+@[simp, to_additive]
+lemma smul_def [has_smul R M] (s : ulift R) (x : M) : s • x = s.down • x := rfl
 
 instance is_scalar_tower [has_smul R M] [has_smul M N] [has_smul R N]
   [is_scalar_tower R M N] : is_scalar_tower (ulift R) M N :=
@@ -50,16 +47,19 @@ instance [has_smul R M] [has_smul Rᵐᵒᵖ M] [is_central_scalar R M] :
   is_central_scalar R (ulift M) :=
 ⟨λ r m, congr_arg up $ op_smul_eq_smul r m.down⟩
 
+@[to_additive]
 instance mul_action [monoid R] [mul_action R M] : mul_action (ulift R) M :=
 { smul := (•),
   mul_smul := λ _ _, mul_smul _ _,
   one_smul := one_smul _ }
 
+@[to_additive]
 instance mul_action' [monoid R] [mul_action R M] :
   mul_action R (ulift M) :=
 { smul := (•),
-  mul_smul := λ r s f, by { cases f, ext, simp [mul_smul], },
-  one_smul := λ f, by { ext, simp [one_smul], } }
+  mul_smul := λ r s ⟨f⟩, ext _ _ $ mul_smul _ _ _,
+  one_smul := λ ⟨f⟩, ext _ _ $ one_smul _ _,
+  ..ulift.has_smul_left }
 
 instance distrib_mul_action [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action (ulift R) M :=

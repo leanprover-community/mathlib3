@@ -328,7 +328,7 @@ instance add_subgroup.normed_add_comm_group_quotient (S : add_subgroup M) [is_cl
 { eq_of_dist_eq_zero :=
   begin
     rintros ⟨m⟩ ⟨m'⟩ (h : ∥mk' S m - mk' S m'∥ = 0),
-    erw [← (mk' S).map_sub, quotient_norm_eq_zero_iff, ‹is_closed S›.closure_eq,
+    erw [← (mk' S).map_sub, quotient_norm_eq_zero_iff, ‹is_closed _›.closure_eq,
          ← quotient_add_group.eq_iff_sub_mem] at h,
     exact h
   end,

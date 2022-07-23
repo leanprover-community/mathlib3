@@ -454,17 +454,6 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         simp [h] }
     end,
   top_le_sup_compl := λ x, by rcases eq_bot_or_eq_top x with rfl | rfl; simp,
-  sup_inf_sdiff := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      rcases eq_bot_or_eq_top y with rfl | rfl; simp [bot_ne_top],
-  inf_inf_sdiff := λ x y, begin
-      rcases eq_bot_or_eq_top x with rfl | rfl,
-      { simpa },
-      rcases eq_bot_or_eq_top y with rfl | rfl,
-      { simpa },
-      { simp only [true_and, top_inf_eq, eq_self_iff_true],
-        split_ifs with h h;
-        simpa [h] }
-    end,
   .. (show bounded_order α, by apply_instance),
   .. is_simple_order.distrib_lattice }
 
@@ -680,7 +669,7 @@ instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] :
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
-    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+    (set.to_finite _) ⟨b, le_rfl, ht⟩,
   refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
   by_contra hyt,
   obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,

@@ -111,7 +111,7 @@ noncomputable instance : normed_group ℝ :=
 { norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 
-lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+@[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
 
 section semi_normed_group
 variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group G]
@@ -378,7 +378,7 @@ namespace isometric
 
 /-- Addition `y ↦ y + x` as an `isometry`. -/
 protected def add_right (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+{ isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_add_right _ _ _,
   .. equiv.add_right x }
 
 @[simp] lemma add_right_to_equiv (x : E) :
@@ -394,7 +394,7 @@ ext $ λ y, rfl
 
 /-- Addition `y ↦ x + y` as an `isometry`. -/
 protected def add_left (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+{ isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_add_left _ _ _,
   to_equiv := equiv.add_left x }
 
 @[simp] lemma add_left_to_equiv (x : E) :
@@ -410,7 +410,7 @@ variable (E)
 
 /-- Negation `x ↦ -x` as an `isometry`. -/
 protected def neg : E ≃ᵢ E :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+{ isometry_to_fun := isometry.of_dist_eq $ λ x y, dist_neg_neg _ _,
   to_equiv := equiv.neg E }
 
 variable {E}
@@ -511,7 +511,7 @@ end
 lemma add_monoid_hom_class.isometry_iff_norm {𝓕 : Type*} [add_monoid_hom_class 𝓕 E F]
   (f : 𝓕) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
 begin
-  simp only [isometry_emetric_iff_metric, dist_eq_norm, ←map_sub],
+  simp only [isometry_iff_dist_eq, dist_eq_norm, ←map_sub],
   refine ⟨λ h x, _, λ h x y, h _⟩,
   simpa using h x 0
 end

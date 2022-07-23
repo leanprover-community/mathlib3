@@ -84,6 +84,15 @@ lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := iff.rfl
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := iff.rfl
 
+instance decidable_mem_Ioo [decidable (a < x ∧ x < b)] : decidable (x ∈ Ioo a b) := by assumption
+instance decidable_mem_Ico [decidable (a ≤ x ∧ x < b)] : decidable (x ∈ Ico a b) := by assumption
+instance decidable_mem_Iio [decidable (x < b)] : decidable (x ∈ Iio b) := by assumption
+instance decidable_mem_Icc [decidable (a ≤ x ∧ x ≤ b)] : decidable (x ∈ Icc a b) := by assumption
+instance decidable_mem_Iic [decidable (x ≤ b)] : decidable (x ∈ Iic b) := by assumption
+instance decidable_mem_Ioc [decidable (a < x ∧ x ≤ b)] : decidable (x ∈ Ioc a b) := by assumption
+instance decidable_mem_Ici [decidable (a ≤ x)] : decidable (x ∈ Ici a) := by assumption
+instance decidable_mem_Ioi [decidable (a < x)] : decidable (x ∈ Ioi a) := by assumption
+
 @[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false := by simp [lt_irrefl]
 @[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simp [le_refl]
 @[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simp [le_refl]
@@ -696,11 +705,22 @@ by rw [←diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff, not_lt]
 
 /-! #### Two infinite intervals -/
 
-@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = univ := eq_univ_of_forall (λ x, le_total x a)
+lemma Iic_union_Ioi_of_le (h : a ≤ b) : Iic b ∪ Ioi a = univ :=
+eq_univ_of_forall $ λ x, (h.lt_or_le x).symm
 
-@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = univ := eq_univ_of_forall (λ x, lt_or_le x a)
+lemma Iio_union_Ici_of_le (h : a ≤ b) : Iio b ∪ Ici a = univ :=
+eq_univ_of_forall $ λ x, (h.le_or_lt x).symm
 
-@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := eq_univ_of_forall (λ x, le_or_lt x a)
+lemma Iic_union_Ici_of_le (h : a ≤ b) : Iic b ∪ Ici a = univ :=
+eq_univ_of_forall $ λ x, (h.le_or_le x).symm
+
+lemma Iio_union_Ioi_of_lt (h : a < b) : Iio b ∪ Ioi a = univ :=
+eq_univ_of_forall $ λ x, (h.lt_or_lt x).symm
+
+@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = univ := Iic_union_Ici_of_le le_rfl
+@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = univ := Iio_union_Ici_of_le le_rfl
+@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := Iic_union_Ioi_of_le le_rfl
+@[simp] lemma Iio_union_Ioi : Iio a ∪ Ioi a = {a}ᶜ := ext $ λ x, lt_or_lt_iff_ne
 
 /-! #### A finite and an infinite interval -/
 

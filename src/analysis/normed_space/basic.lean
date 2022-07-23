@@ -173,12 +173,12 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
   left_inv := λ x,
     begin
       have : 0 < 1 + ∥x∥ := (norm_nonneg x).trans_lt (lt_one_add _),
-      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, real.norm_eq_abs, abs_div]
+      field_simp [this.ne', abs_of_pos this, norm_smul, smul_smul, abs_div]
     end,
   right_inv := λ x, subtype.ext
     begin
       have : 0 < 1 - ∥(x : E)∥ := sub_pos.2 (mem_ball_zero_iff.1 x.2),
-      field_simp [norm_smul, smul_smul, real.norm_eq_abs, abs_div, abs_of_pos this, this.ne']
+      field_simp [norm_smul, smul_smul, abs_div, abs_of_pos this, this.ne']
     end,
   continuous_to_fun := continuous_subtype_mk _ $
     ((continuous_const.add continuous_norm).inv₀
@@ -209,7 +209,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_grou
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field 𝕜] [ring R]
   {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=
@@ -411,7 +411,7 @@ variables (𝕜 𝕜')
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry [norm_one_class 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
 

@@ -297,12 +297,10 @@ have ht : ∀b:ℝ≥0∞, b ≠ 0 → tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 
 begin
   refine assume b hb, tendsto_nhds_top_iff_nnreal.2 $ assume n, _,
   rcases lt_iff_exists_nnreal_btwn.1 (pos_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
-  replace hε : 0 < ε, from coe_pos.1 hε,
-  filter_upwards [prod_is_open.mem_nhds (lt_mem_nhds $ @coe_lt_top (n / ε)) (lt_mem_nhds hεb)],
-  rintros ⟨a₁, a₂⟩ ⟨h₁, h₂⟩,
-  dsimp at h₁ h₂ ⊢,
-  rw [← div_mul_cancel n hε.ne', coe_mul],
-  exact mul_lt_mul h₁ h₂
+  have : ∀ᶠ c : ℝ≥0∞ × ℝ≥0∞ in 𝓝 (∞, b), ↑n / ↑ε < c.1 ∧ ↑ε < c.2,
+    from (lt_mem_nhds $ div_lt_top coe_ne_top hε.ne').prod_nhds (lt_mem_nhds hεb),
+  refine this.mono (λ c hc, _),
+  exact (div_mul_cancel hε.ne' coe_ne_top).symm.trans_lt (mul_lt_mul hc.1 hc.2)
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
@@ -319,6 +317,18 @@ protected lemma tendsto.mul {f : filter α} {ma : α → ℝ≥0∞} {mb : α �
   tendsto (λa, ma a * mb a) f (𝓝 (a * b)) :=
 show tendsto ((λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
 tendsto.comp (ennreal.tendsto_mul ha hb) (hma.prod_mk_nhds hmb)
+
+lemma _root_.continuous_on.ennreal_mul [topological_space α] {f g : α → ℝ≥0∞} {s : set α}
+  (hf : continuous_on f s) (hg : continuous_on g s) (h₁ : ∀ x ∈ s, f x ≠ 0 ∨ g x ≠ ∞)
+  (h₂ : ∀ x ∈ s, g x ≠ 0 ∨ f x ≠ ∞) :
+  continuous_on (λ x, f x * g x) s :=
+λ x hx, ennreal.tendsto.mul (hf x hx) (h₁ x hx) (hg x hx) (h₂ x hx)
+
+lemma _root_.continuous.ennreal_mul [topological_space α] {f g : α → ℝ≥0∞} (hf : continuous f)
+  (hg : continuous g) (h₁ : ∀ x, f x ≠ 0 ∨ g x ≠ ∞) (h₂ : ∀ x, g x ≠ 0 ∨ f x ≠ ∞) :
+  continuous (λ x, f x * g x) :=
+continuous_iff_continuous_at.2 $
+  λ x, ennreal.tendsto.mul hf.continuous_at (h₁ x) hg.continuous_at (h₂ x)
 
 protected lemma tendsto.const_mul {f : filter α} {m : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=

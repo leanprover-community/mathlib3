@@ -186,11 +186,11 @@ def linear_equiv [decidable_eq ι] [graded_ring 𝓐] [set_like.has_graded_smul 
   map_add' := λ x y, map_add _ _ _,
   map_smul' := λ x y, begin
     rw [ring_hom.id_apply],
-    refine direct_sum.decomposition.induction_on 𝓐 x _ _ _,
+    apply direct_sum.decomposition.induction_on 𝓐 _ _ _ x,
     { simp only [zero_smul, map_zero] },
     { intros i a,
       rw [direct_sum.decompose_add_equiv_apply],
-      refine direct_sum.decomposition.induction_on 𝓜 y _ _ _,
+      apply direct_sum.decomposition.induction_on 𝓜 _ _ _ y,
       { rw [smul_zero, direct_sum.decompose_zero, smul_zero], },
       { intros j m,
         change _ = direct_sum.decompose _ _ • _,

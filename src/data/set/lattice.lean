@@ -1114,13 +1114,8 @@ end
 
 lemma bijective_iff_bijective_of_Union_eq_univ :
   function.bijective f ↔ ∀ i, function.bijective ((U i).restrict_preimage f) :=
-begin
-  delta function.bijective,
-  rw forall_and_distrib,
-  apply and_congr,
-  exacts [injective_iff_injective_of_Union_eq_univ f U hU,
-    surjective_iff_surjective_of_Union_eq_univ f U hU]
-end
+by simp_rw [bijective, forall_and_distrib, injective_iff_injective_of_Union_eq_univ f U hU, 
+  surjective_iff_surjective_of_Union_eq_univ f U hU]
 
 end
 

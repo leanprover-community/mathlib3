@@ -392,7 +392,7 @@ end
 
 lemma isometry_extend (f : α ↪ δ) (h : δ →ᵇ β) :
   isometry (λ g : α →ᵇ β, extend f g h) :=
-isometry_emetric_iff_metric.2 $ λ g₁ g₂, by simp [dist_nonneg]
+isometry.of_dist_eq $ λ g₁ g₂, by simp [dist_nonneg]
 
 end extend
 

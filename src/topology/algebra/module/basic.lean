@@ -139,7 +139,7 @@ lemma has_continuous_smul_induced :
 { continuous_smul :=
     begin
       letI : topological_space M₁ := t.induced f,
-      refine continuous_induced_rng _,
+      refine continuous_induced_rng.2 _,
       simp_rw [function.comp, f.map_smul],
       refine continuous_fst.smul (continuous_induced_dom.comp continuous_snd)
     end }
@@ -207,16 +207,6 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
 @[simp] lemma submodule.topological_closure_coe (s : submodule R M) :
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
-
-instance submodule.topological_closure_has_continuous_smul (s : submodule R M) :
-  has_continuous_smul R (s.topological_closure) :=
-{ continuous_smul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : R × s.topological_closure, p.1 • (p.2 : M)),
-    continuity,
-  end,
-  ..s.to_add_submonoid.topological_closure_has_continuous_add }
 
 lemma submodule.submodule_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=

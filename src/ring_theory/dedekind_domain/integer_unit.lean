@@ -7,10 +7,10 @@ Authors: David Kurniadi Angdinata
 import ring_theory.dedekind_domain.adic_valuation
 
 /-!
-# `S`-integers and `S`-units of Dedekind domains
+# `S`-integers and `S`-units of fraction fields of Dedekind domains
 
-This file defines the ring of `S`-integers and the group of `S`-units of a Dedekind domain,
-to be specialised to the case of a number field or a function field separately.
+This file defines the ring of `S`-integers and the group of `S`-units of the field of fractions of a
+Dedekind domain, to be specialised to the case of a number field or a function field separately.
 
 TODO: notation for `S`-integers and `S`-units, proof that `S`-integers is the intersection of
 valuation rings, proof that `S`-units is the kernel of a map to a product, proof that `∅`-integers
@@ -23,7 +23,7 @@ is the usual ring of integers, finite generation of `S`-units and Dirichlet's `S
 
 ## Main statements
 
-* `is_dedekind_domain.S_integer_unit`: the units in the `S`-integers are the `S`-units.
+* `is_dedekind_domain.S_integer_unit`: the units of the `S`-integers are the `S`-units.
 
 ## References
 
@@ -62,7 +62,8 @@ def S_unit_group : subgroup Kˣ :=
   one_mem' := λ _ _, map_one _,
   inv_mem' := λ _ hx v hv, by rw [valuation.map_units_inv, hx v hv, inv_one] }
 
-lemma S_integer_unit : (S_integer_ring K S)ˣ ≃* S_unit_group K S :=
+/-- The group of units of the ring of `S`-integers is the group of `S`-units. -/
+def S_integer_unit : (S_integer_ring K S)ˣ ≃* S_unit_group K S :=
 { to_fun    := λ x, ⟨units.mk0 x $ λ hx, x.ne_zero ((subring.coe_eq_zero_iff _).mp hx),
   λ v hv, eq_one_of_mul_eq_one_left (x.val.property v hv) (x.inv.property v hv) $
     by { rw [← map_mul, ← v.valuation.map_one], congr' 1, exact subtype.mk_eq_mk.mp x.val_inv }⟩,

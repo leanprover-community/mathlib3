@@ -107,7 +107,8 @@ by convert two_nsmul_eq_iff; simp
 lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
 by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
 
-theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
+theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} :
+  cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,
   { intro Hcos,

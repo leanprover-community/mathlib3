@@ -340,16 +340,16 @@ lemma ultrafilter.glued_generators_of_pushforwards_function_spec (h_int : algebr
   (f : ultrafilter (L →ₐ[K] L)) (hE : finite_dimensional K E) {x : L} (hx : x ∈ E) :
   f.glued_generators_of_pushforwards_function h_int x =
   (f.generator_of_pushforward : (E →ₐ[K] L)) ⟨x, hx⟩ :=
-  begin
-    haveI h_findim : finite_dimensional K ((intermediate_field.adjoin K {x}) : intermediate_field K
-    L) := intermediate_field.adjoin.finite_dimensional (h_int x),
-    have h : f.glued_generators_of_pushforwards_function h_int x = (f.generator_of_pushforward :
-    (intermediate_field.adjoin K {x}) →ₐ[K] L) ⟨x, intermediate_field.mem_adjoin_simple_self K x⟩ :=
-    rfl,
-    rw [h, ←f.generator_of_pushforward_comp_inclusion],
-    refl,
-    simp [hx],
-  end
+begin
+  haveI h_findim : finite_dimensional K ((intermediate_field.adjoin K {x}) : intermediate_field K
+  L) := intermediate_field.adjoin.finite_dimensional (h_int x),
+  have h : f.glued_generators_of_pushforwards_function h_int x = (f.generator_of_pushforward :
+  (intermediate_field.adjoin K {x}) →ₐ[K] L) ⟨x, intermediate_field.mem_adjoin_simple_self K x⟩ :=
+  rfl,
+  rw [h, ←f.generator_of_pushforward_comp_inclusion],
+  refl,
+  simp [hx],
+end
 
 lemma ultrafilter.glued_generators_of_pushforwards_function_spec' (h_int : algebra.is_integral K L)
   (f : ultrafilter (L →ₐ[K] L)) (hE : finite_dimensional K E) (x : E) :

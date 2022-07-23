@@ -19,6 +19,7 @@ scalar multiplication as a homomorphism from `α × β` to `β`.
 
 ## See also
 
+* `group_theory.group_action.option`
 * `group_theory.group_action.pi`
 * `group_theory.group_action.sigma`
 * `group_theory.group_action.sum`

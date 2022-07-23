@@ -114,12 +114,13 @@ by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
-lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : 0 < n) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
+lemma cpow_nat_inv_pow (x : ℂ) {n : ℕ} (hn : n ≠ 0) : (x ^ (n⁻¹ : ℂ)) ^ n = x :=
 begin
   suffices : im (log x * n⁻¹) ∈ Ioc (-π) π,
   { rw [← cpow_nat_cast, ← cpow_mul _ this.1 this.2, inv_mul_cancel, cpow_one],
-    exact_mod_cast hn.ne' },
+    exact_mod_cast hn },
   rw [mul_comm, ← of_real_nat_cast, ← of_real_inv, of_real_mul_im, ← div_eq_inv_mul],
+  rw [← pos_iff_ne_zero] at hn,
   have hn' : 0 < (n : ℝ), by assumption_mod_cast,
   have hn1 : 1 ≤ (n : ℝ), by exact_mod_cast (nat.succ_le_iff.2 hn),
   split,
@@ -739,14 +740,14 @@ begin
   rwa [log_rpow h1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this
 end
 
-lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
+lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : n ≠ 0) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
+have hn0 : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, mul_inv_cancel hn0, rpow_one]
 
-lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
+lemma rpow_nat_inv_pow_nat {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : n ≠ 0) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,
+have hn0 : (n : ℝ) ≠ 0, from nat.cast_ne_zero.2 hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, inv_mul_cancel hn0, rpow_one]
 
 lemma continuous_at_const_rpow {a b : ℝ} (h : a ≠ 0) : continuous_at (rpow a) b :=
@@ -1033,13 +1034,43 @@ calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
   (eventually_gt_at_top 0).mono $ λ x hx, (log_rpow hx _).symm
      ... =o[at_top] (λ x, x ^ r)       : is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)
 
-lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
+lemma is_o_log_rpow_rpow_at_top {s : ℝ} (r : ℝ) (hs : 0 < s) :
   (λ x, log x ^ r) =o[at_top] (λ x, x ^ s) :=
-have H : 0 < s / r, from div_pos hs hr,
-calc (λ x, log x ^ r) =o[at_top] (λ x, (x ^ (s / r)) ^ r) :
+let r' := max r 1 in
+have hr : 0 < r', from lt_max_iff.2 $ or.inr one_pos,
+have H : 0 < s / r', from div_pos hs hr,
+calc (λ x, log x ^ r) =O[at_top] (λ x, log x ^ r') :
+  is_O.of_bound 1 $ (tendsto_log_at_top.eventually_ge_at_top 1).mono $ λ x hx,
+    have hx₀ : 0 ≤ log x, from zero_le_one.trans hx,
+    by simp [norm_eq_abs, abs_rpow_of_nonneg, abs_rpow_of_nonneg hx₀,
+      rpow_le_rpow_of_exponent_le (hx.trans (le_abs_self _))]
+                  ... =o[at_top] (λ x, (x ^ (s / r')) ^ r') :
   (is_o_log_rpow_at_top H).rpow hr $ (tendsto_rpow_at_top H).eventually $ eventually_ge_at_top 0
                   ... =ᶠ[at_top] (λ x, x ^ s) :
   (eventually_ge_at_top 0).mono $ λ x hx, by simp only [← rpow_mul hx, div_mul_cancel _ hr.ne']
+
+lemma is_o_abs_log_rpow_rpow_nhds_zero {s : ℝ} (r : ℝ) (hs : s < 0) :
+  (λ x, |log x| ^ r) =o[𝓝[>] 0] (λ x, x ^ s) :=
+((is_o_log_rpow_rpow_at_top r (neg_pos.2 hs)).comp_tendsto tendsto_inv_zero_at_top).congr'
+  (mem_of_superset (Icc_mem_nhds_within_Ioi $ set.left_mem_Ico.2 one_pos) $
+    λ x hx, by simp [abs_of_nonpos, log_nonpos hx.1 hx.2])
+  (eventually_mem_nhds_within.mono $ λ x hx,
+    by rw [function.comp_app, inv_rpow hx.out.le, rpow_neg hx.out.le, inv_inv])
+
+lemma is_o_log_rpow_nhds_zero {r : ℝ} (hr : r < 0) : log =o[𝓝[>] 0] (λ x, x ^ r) :=
+(is_o_abs_log_rpow_rpow_nhds_zero 1 hr).neg_left.congr'
+  (mem_of_superset (Icc_mem_nhds_within_Ioi $ set.left_mem_Ico.2 one_pos) $
+    λ x hx, by simp [abs_of_nonpos (log_nonpos hx.1 hx.2)])
+  eventually_eq.rfl
+
+lemma tendsto_log_div_rpow_nhds_zero {r : ℝ} (hr : r < 0) :
+  tendsto (λ x, log x / x ^ r) (𝓝[>] 0) (𝓝 0) :=
+(is_o_log_rpow_nhds_zero hr).tendsto_div_nhds_zero
+
+lemma tensdto_log_mul_rpow_nhds_zero {r : ℝ} (hr : 0 < r) :
+  tendsto (λ x, log x * x ^ r) (𝓝[>] 0) (𝓝 0) :=
+(tendsto_log_div_rpow_nhds_zero $ neg_lt_zero.2 hr).congr' $
+  eventually_mem_nhds_within.mono $ λ x hx, by rw [rpow_neg hx.out.le, div_inv_eq_mul]
 
 end limits
 
@@ -1281,11 +1312,11 @@ by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
 lemma rpow_one_div_eq_iff {x y : ℝ≥0} {z : ℝ} (hz : z ≠ 0) :  x ^ (1 / z) = y ↔ x = y ^ z :=
 by rw [← rpow_eq_rpow_iff hz, rpow_self_rpow_inv hz]
 
-lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
+lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : n ≠ 0) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
 by { rw [← nnreal.coe_eq, coe_rpow, nnreal.coe_pow], exact real.pow_nat_rpow_nat_inv x.2 hn }
 
-lemma rpow_nat_inv_pow_nat (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
+lemma rpow_nat_inv_pow_nat (x : ℝ≥0) {n : ℕ} (hn : n ≠ 0) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
 by { rw [← nnreal.coe_eq, nnreal.coe_pow, coe_rpow], exact real.rpow_nat_inv_pow_nat x.2 hn }
 
@@ -1313,6 +1344,43 @@ begin
 end
 
 end nnreal
+
+namespace real
+variables {n : ℕ}
+
+lemma exists_rat_pow_btwn_rat_aux (hn : n ≠ 0) (x y : ℝ) (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ ↑q^n < y :=
+begin
+  have hn' : 0 < (n : ℝ) := by exact_mod_cast hn.bot_lt,
+  obtain ⟨q, hxq, hqy⟩ := exists_rat_btwn (rpow_lt_rpow (le_max_left 0 x) (max_lt hy h) $
+    inv_pos.mpr hn'),
+  have := rpow_nonneg_of_nonneg (le_max_left 0 x) n⁻¹,
+  have hq := this.trans_lt hxq,
+  replace hxq := rpow_lt_rpow this hxq hn',
+  replace hqy := rpow_lt_rpow hq.le hqy hn',
+  rw [rpow_nat_cast, rpow_nat_cast, rpow_nat_inv_pow_nat _ hn] at hxq hqy,
+  exact ⟨q, by exact_mod_cast hq, (le_max_right _ _).trans_lt hxq, hqy⟩,
+  { exact le_max_left _ _ },
+  { exact hy.le }
+end
+
+lemma exists_rat_pow_btwn_rat (hn : n ≠ 0) {x y : ℚ} (h : x < y) (hy : 0 < y) :
+  ∃ q : ℚ, 0 < q ∧ x < q^n ∧ q^n < y :=
+by apply_mod_cast exists_rat_pow_btwn_rat_aux hn x y; assumption
+
+/-- There is a rational power between any two positive elements of an archimedean ordered field. -/
+lemma exists_rat_pow_btwn {α : Type*} [linear_ordered_field α] [archimedean α] (hn : n ≠ 0)
+  {x y : α} (h : x < y) (hy : 0 < y) : ∃ q : ℚ, 0 < q ∧ x < q^n ∧ (q^n : α) < y :=
+begin
+  obtain ⟨q₂, hx₂, hy₂⟩ := exists_rat_btwn (max_lt h hy),
+  obtain ⟨q₁, hx₁, hq₁₂⟩ := exists_rat_btwn hx₂,
+  have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
+  norm_cast at hq₁₂ this,
+  obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_pow_btwn_rat hn hq₁₂ this,
+  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast,
+end
+
+end real
 
 open filter
 

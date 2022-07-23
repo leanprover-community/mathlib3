@@ -105,7 +105,7 @@ begin
   suffices : ∀ (I J : lie_ideal R L), ⁅I, J⁆ ≤ ⁅J, I⁆, { exact le_antisymm (this I J) (this J I), },
   clear I J, intros I J,
   rw [lie_ideal_oper_eq_span, lie_span_le], rintros x ⟨y, z, h⟩, rw ← h,
-  rw [← lie_skew, ← lie_neg, ← submodule.coe_neg],
+  rw [← lie_skew, ← lie_neg, ← lie_submodule.coe_neg],
   apply lie_coe_mem_lie,
 end
 

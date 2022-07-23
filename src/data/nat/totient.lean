@@ -355,42 +355,17 @@ lemma totient_dvd_of_dvd (a b : ℕ) (h : a ∣ b) : φ a ∣ φ b :=
 begin
   rcases eq_or_ne a 0 with rfl | ha0, { simp [zero_dvd_iff.1 h] },
   rcases eq_or_ne b 0 with rfl | hb0, { simp },
-  have hab : a.factors.to_finset ⊆ b.factors.to_finset, {
-    intro p,
+  have hab : a.factors.to_finset ⊆ b.factors.to_finset,
+  { intro p,
     simp only [list.mem_to_finset],
-    apply factors_subset_of_dvd h hb0,
-   },
-
-
+    apply factors_subset_of_dvd h hb0 },
   rw [totient_eq_prod_factorization ha0, totient_eq_prod_factorization hb0],
-  simp only [finsupp.prod_mul],
-  unfold finsupp.prod,
-  simp only [support_factorization],
-
-
+  simp only [finsupp.prod, finsupp.prod_mul, support_factorization],
   refine mul_dvd_mul _ (prod_dvd_prod_of_subset _ _ _ hab),
-
-  rw ←sdiff_union_of_subset hab,
-
-
-  rw prod_union sdiff_disjoint,
+  rw [←sdiff_union_of_subset hab, prod_union sdiff_disjoint],
   apply dvd_mul_of_dvd_right,
-  refine prod_dvd_prod_of_dvd _ _ (λ p hpa, _),
-  obtain ⟨pp, hpb⟩ := (mem_factors hb0).1 (list.mem_to_finset.1 (hab hpa)),
-
-
-  apply pow_dvd_pow,
-  simp only [tsub_le_iff_right],
-  apply ((factorization_le_iff_dvd ha0 hb0).2 h p).trans,
-  apply le_of_eq,
-  rw nat.sub_add_cancel _,
-  rw succ_le_iff,
-  apply nat.pos_of_ne_zero,
-  intro H,
-  rw factorization_eq_zero_iff' b p at H,
-  contrapose! H,
-
-  refine ⟨pp, hpb, hb0⟩,
+  refine prod_dvd_prod_of_dvd _ _ (λ p hpa, pow_dvd_pow p _),
+  exact tsub_le_tsub_right ((factorization_le_iff_dvd ha0 hb0).2 h p) 1,
 end
 
 end nat

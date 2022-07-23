@@ -671,6 +671,7 @@ begin
   sorry
 end
 
+
 /-
   The goal now would be to be able to bound the number of ends from below.
   The number of ends is at least the number of infinite components outside of K, for any given K,
@@ -678,124 +679,112 @@ end
   The construction to show this needs to extend each infinite component outside of K into an end.
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
+private def φ_fam (φ : ℕ ≃ V) : ℕ → set V := λ n, (K ∪ φ '' {j : ℕ | j < n})
+private lemma φ_fam_fin (Kf : K.finite) (φ : ℕ ≃ V) (n : ℕ) : (K ∪ φ '' {j : ℕ | j < n}).finite :=
+begin
+  /-
+  apply set.finite_union.mpr ⟨Kf,_⟩,
+  haveI : {j : ℕ | j < n}.finite, from {j : ℕ | j < n}.to_finite,
+  exact finite.set.finite_image {j : ℕ | j < n} φ.to_fun,
+  -/
+  sorry
+end
+private lemma φ_fam_mon_succ (φ : ℕ ≃ V) (n : ℕ) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < n.succ}) :=
+begin
+  apply set.union_subset_union (subset_refl K),
+  apply set.image_subset φ.to_fun,
+  rintros x xltn,
+  simp at *,
+  exact lt_of_lt_of_le xltn (nat.le_succ n),
+end
+private lemma φ_fam_mon_add  (φ : ℕ ≃ V) (n k : ℕ) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < n + k}) :=
+begin
+  induction k,
+  {simp,},
+  {exact set.subset.trans k_ih (φ_fam_mon_succ φ (n+k_n))},
+end
+private lemma φ_fam_mon_le  (φ : ℕ ≃ V) (n m : ℕ) (n ≤ m) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < m}) :=
+begin
+  rcases le_iff_exists_add.mp ‹n≤m› with ⟨k,eq⟩,
+  rw eq,
+  exact φ_fam_mon_add φ n k,
+end
+private lemma φ_fam_zero  (φ : ℕ ≃ V) : K = (K ∪ φ '' {j : ℕ | j < 0}) := by simp
+private lemma φ_fam_zero_comp (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  inf_components G (K ∪ φ.to_fun '' {j : ℕ | j < 0}) :=
+begin
+  /-
+  rw (φ_fam_zero φ) at C,
+  exact C
+  -/
+  sorry
+end
+private lemma φ_fam_cof (φ : ℕ ≃ V) : ∀ F : finsubsets, ∃ n, F.val ⊆  K ∪ φ '' {j : ℕ | j < n} := sorry
 
+def φ_fam (Kfin : K.finite) (φ : ℕ ≃ V) : @fam V _ _ _ := begin
+  let lol := (λ n, {K ∪ φ '' {j : ℕ | j < n}}) '' (@set.univ ℕ),
+  use lol,
+  sorry,sorry,sorry,
+end
 
-/-
-structure nat_fam :=
-  (f : ℕ → set V)
- -- (fin : ∀ n, (f n) ∈ finsubsets V)
-  (mon: ∀ m  n, m ≤ n → f m ⊆ f n)
-  (cof: ∀ K : @finsubsets V _ _ _, ∃ n : ℕ, K.val ⊆ f n)
-
-
-
-def nat_fam_to_fam  (nf : @nat_fam V _ _ _) : @fam V _ _ _ := sorry
-
-lemma extend_along (nf : @nat_fam V _ _ _) (C : inf_components G (nf.f 0)) :
-  Π i : ℕ, inf_components G (nf.f i) :=
-nat.rec
-  (by {exact C})
-  (λ k extend_along_k, some $ bwd_map_surjective G (fmon k (k+1) (nat.le_succ k))
-                              (set.nonempty.mono (fmon 0 k $ nat.zero_le k) Knempty)
-                              (f k).prop
-                              (set.nonempty.mono (fmon 0 (k+1) $ nat.zero_le $ k+1) Knempty)
-                              (f $ k + 1).prop
+lemma extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π i : ℕ, inf_components G (K ∪ φ '' {j : ℕ | j < i}) :=
+@nat.rec
+  (λ i, inf_components G (K ∪ φ '' {j : ℕ | j < i}))
+  (φ_fam_zero_comp G Kfin φ C)
+  (λ k extend_along_k, some $ @bwd_map_surjective V G _ _ _ _ _
+                              (K ∪ φ.to_fun '' {j : ℕ | j < k})
+                              (K ∪ φ.to_fun '' {j : ℕ | j < k.succ})
+                              (φ_fam_mon_succ φ k)
+                              (φ_fam_fin Kfin φ k)
+                              (φ_fam_fin Kfin φ k.succ)
                               (extend_along_k))
 
 
-lemma extend_along_comm_add (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
-  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-let e := extend_along G f fmon Knempty Kfinite C in
-  ∀ (i j : ℕ), (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i :=
-let e := extend_along G f fmon Knempty Kfinite C in
-λ i, @nat.rec
-  (λ j, (bwd_map G $ fmon i (i+j) (nat.le_add_right _ _)) (e (i+j)) = e i)
-  (by {apply bwd_map_refl,})
-  (λ j hj, by {rw ←hj,sorry})
 
-lemma extend_along_comm (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
-  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-let
-  e := extend_along G f fmon Knempty Kfinite C
-in
-  ∀ i j, i ≤ j → (bwd_map G $ fmon i j ‹i≤j›) (e j) = e i :=
+lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) (F : (φ_fam Kfin φ).fam) : inf_components G F :=
 begin
-  rintros A i j ilej, -- not sure why I have to introduce this A before the rest ?!
-  rcases le_iff_exists_add.mp ilej with ⟨k,hk⟩,
-  have lol := extend_along_comm_add G f fmon Knempty Kfinite C i k,
-  -- I want to do rewrites but I cannot!!!
+  have : ∃ n : ℕ, K ∪ φ.to_fun '' {j : ℕ | j < n} = F.val, by {
+    dsimp at F,
+    unfold φ_fam at F,
+    sorry,
+  },
   sorry,
 end
 
-lemma extend_along_spec (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
-  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-extend_along G f fmon Knempty Kfinite C 0 = C := by {sorry} -- should be by def ??
 
-lemma extend_along_fam
-  (f : ℕ → @finsubsets V _ _ _)
-  (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
-  (fcof: ∀ K : @finsubsets V _ _ _, ∃ n : ℕ, K.val ⊆ f n)
-  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
-  end_for
-
-
-def enum_fam_def
-  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
-  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) : ℕ → @finsubsets V _ _ _ :=
-  λ n, ⟨K ∪ enum '' {j | j < n}, sorry⟩
-
-lemma enum_fam_zero
-  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
-  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
-  (enum_fam_def G enum Knempty Kfinite C 0).val = K :=
+-- we need to assume that V is countable, but that's no big deal:
+-- it follows
+-- * from local finiteness and connectedness, hence most countable
+-- * the existence of C, hence infinite
+lemma end_of_component_φfam (φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
+  ends_for G (φ_fam Kfinite φ) :=
 begin
-  unfold enum_fam_def,simp,
+  sorry
 end
 
-lemma enum_fam_mono
-  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
-  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
-  ∀ (i j : ℕ), i ≤ j → (enum_fam_def G enum Knempty Kfinite C i).val ⊆ (enum_fam_def G enum Knempty Kfinite C j).val :=
-λ i j ilej, set.union_subset_union (subset_refl K) (set.image_subset _ (λ n nlei, le_trans (by {simp at nlei,exact nlei}) ilej))
-
-lemma enum_fam_cof
-  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
-  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
-  ∀ F : finsubsets, ∃ n : ℕ, F.val ⊆ (enum_fam_def G enum Knempty Kfinite C n).val :=
-begin
-  rintros ⟨F,Ffin⟩,
-  have : ∃ M : ℕ, enum.inv_fun '' F ⊆ {j : ℕ | j < M}, by sorry,
-  rcases this with ⟨M,Mbound⟩,
-  use M,
-  simp,
-  rintros v vF,
-  have : v ∈ enum.to_fun '' {j : ℕ | j < M}, by sorry,
-  exact set.mem_union_right K this,
-end
-
-def enum_fam  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
-  (Knempty : K.nonempty) (Kfinite : K.finite) : fam = ⟨enum_fam_def enum Knempty Kfinite, ⟩
-
+/-
+lemma end_of_component_φfam_spec (φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
+  eval (ends_of_component_φ_fam φ Kfinite C) (φ_fam_zero φ C) =  (φ_fam_zero_comp Kfinite φ C)
+:= sorry
 -/
 
-
--- we need to assume that V is countable, but that's no big deal: it follows from local finiteness and connectedness
-lemma end_of_component (Kfinite : K.finite) (C : inf_components G K) :
-  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val := sorry
-
+lemma end_of_component(φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
+  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
+begin
+  sorry
+end
 
 lemma eval_surjective (Kfinite : K.finite) : surjective (eval G ⟨K,Kfinite⟩) := sorry
 -- should be pretty much only λ C, end_of component G kfinite C
 
 
+-- theorem `card_components_mon` saying htat `λ K, card (inf_components G K)` is monotone
+-- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components G K)` is finite
+-- theorem `finite_ends_card_eq` saying that if `ends` is finite, the cardinality is the sup
+-- theorem `zero_ends_iff` saying that `ends = ∅` iff `V` is finite
 
 
-/-
-example (K : set V) (Knempty : K.nonempty) (Kfinite : K.finite)
-        (maxcard : ∀ L : finsubsets, K ⊆ L.val →
-                   fintype (inf_components G L) ≤ fintype.card (inf_components G K) ) :
-
--/
 
 --lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
 
@@ -803,10 +792,6 @@ example (K : set V) (Knempty : K.nonempty) (Kfinite : K.finite)
 
 end ends
 
--- theorem `card_components_mon` saying htat `λ K, card (inf_components G K)` is monotone
--- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components G K)` is finite
--- theorem `finite_ends_card_eq` saying that if `ends` is finite, the cardinality is the sup
--- theorem `zero_ends_iff` saying that `ends = ∅` iff `V` is finite
 
 
 

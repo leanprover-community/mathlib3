@@ -108,8 +108,7 @@ end
 def is_reduced : Prop := u.ap = u.bp
 def is_reduced' : Prop := u.a = u.b
 
-theorem is_reduced_iff : u.is_reduced ↔ u.is_reduced' :=
-⟨ congr_arg succ_pnat, succ_pnat_inj ⟩
+theorem is_reduced_iff : u.is_reduced ↔ u.is_reduced' := succ_pnat_inj.symm
 
 def flip : xgcd_type :=
 { wp := u.zp, x := u.y, y := u.x, zp := u.wp, ap := u.bp, bp := u.ap }

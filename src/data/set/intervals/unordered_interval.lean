@@ -73,7 +73,7 @@ by { rw [interval, mem_Icc], exact ⟨min_le_left _ _, le_max_left _ _⟩ }
 by { rw interval_swap, exact left_mem_interval }
 
 lemma Icc_subset_interval : Icc a b ⊆ [a, b] :=
-by { assume x h, rwa interval_of_le, exact le_trans h.1 h.2 }
+Icc_subset_Icc (min_le_left _ _) (le_max_right _ _)
 
 lemma Icc_subset_interval' : Icc b a ⊆ [a, b] :=
 by { rw interval_swap, apply Icc_subset_interval }
@@ -158,6 +158,12 @@ Ioc_subset_Ioc (interval_subset_interval_iff_le.1 h).1 (interval_subset_interval
 
 lemma interval_oc_swap (a b : α) : Ι a b = Ι b a :=
 by simp only [interval_oc, min_comm a b, max_comm a b]
+
+lemma Ioc_subset_interval_oc : Ioc a b ⊆ Ι a b :=
+Ioc_subset_Ioc (min_le_left _ _) (le_max_right _ _)
+
+lemma Ioc_subset_interval_oc' : Ioc a b ⊆ Ι b a :=
+Ioc_subset_Ioc (min_le_right _ _) (le_max_left _ _)
 
 end linear_order
 

@@ -349,19 +349,6 @@ end
 instance : boolean_algebra (L.definable_set A α) :=
 { sdiff := λ s t, s ⊓ tᶜ,
   sdiff_eq := λ s t, rfl,
-  sup_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩,
-  begin
-    apply le_antisymm;
-    simp [le_iff],
-  end,
-  inf_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩, begin
-    rw eq_bot_iff,
-    simp only [coe_compl, le_iff, coe_bot, coe_inf, subtype.coe_mk,
-      le_eq_subset],
-    intros x hx,
-    simp only [set.mem_inter_eq, mem_compl_eq] at hx,
-    tauto,
-  end,
   inf_compl_le_bot := λ ⟨s, hs⟩, by simp [le_iff],
   top_le_sup_compl := λ ⟨s, hs⟩, by simp [le_iff],
   .. definable_set.has_compl,

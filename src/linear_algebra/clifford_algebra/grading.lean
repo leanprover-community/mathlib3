@@ -78,12 +78,12 @@ rfl
 lemma graded_algebra.ι_sq_scalar (m : M) :
   graded_algebra.ι Q m * graded_algebra.ι Q m = algebra_map R _ (Q m) :=
 begin
-  rw [graded_algebra.ι_apply, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
+  rw [graded_algebra.ι_apply Q, direct_sum.of_mul_of, direct_sum.algebra_map_apply],
   refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext rfl $ ι_sq_scalar _ _),
 end
 
 lemma graded_algebra.lift_ι_eq (i' : zmod 2) (x' : even_odd Q i') :
-  lift Q ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
+  lift Q ⟨by apply graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩ x' =
     direct_sum.of (λ i, even_odd Q i) i' x' :=
 begin
   cases x' with x' hx',
@@ -96,7 +96,7 @@ begin
     { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
     { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
     { obtain ⟨_, rfl⟩ := hm,
-      rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
+      rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply Q, direct_sum.of_mul_of],
       refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _);
         dsimp only [graded_monoid.mk, subtype.coe_mk],
       { rw [nat.succ_eq_add_one, add_comm, nat.cast_add, nat.cast_one] },
@@ -110,16 +110,17 @@ end
 /-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom (even_odd Q)
-  (lift _ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
+  -- while not necessary, the `by apply` makes this elaborate faster
+  (lift Q ⟨by apply graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
   (begin
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
       alg_hom.id_apply],
-    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
+    rw [lift_ι_apply, graded_algebra.ι_apply Q, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (by exact graded_algebra.lift_ι_eq Q)
+  (by apply graded_algebra.lift_ι_eq Q)
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin

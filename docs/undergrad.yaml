@@ -516,8 +516,9 @@ Measures and integral calculus:
     change of variables for multiple integrals: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
     change of variables to polar co-ordinates: ''
     change of variables to spherical co-ordinates: ''
-    convolution: ''
-    regularization and approximation by convolution: ''
+    convolution: 'convolution'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''
     Riemann-Lebesgue lemma: ''
@@ -547,9 +548,10 @@ Probability Theory:
     probability density function: 'measure_theory.has_pdf'
     law of joint probability: ''
     independence of random variables: 'probability_theory.Indep_fun'
-    mean and variance of a real-valued random variable: ''
+    mean of a random variable: 'measure_theory.integral'
+    variance of a real-valued random variable: 'probability_theory.variance'
     transfer theorem: ''
-    moments: ''
+    moments: 'probability_theory.moment'
     Bernoulli law: 'pmf.bernoulli'
     binomial law: ''
     geometric law: ''
@@ -560,7 +562,7 @@ Probability Theory:
     characteristic function: ''
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
-  Convergence of series of random variables:
+  Convergence of a sequence of random variables:
     convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'

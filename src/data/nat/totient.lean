@@ -344,13 +344,11 @@ begin
   simpa [(totient_pos hp.pos).ne', mul_comm] using h1,
 end
 
-lemma totient_mul_of_prime_of_not_dvd {q n : ℕ} (hq : q.prime) (h : ¬ q ∣ n) :
-  (q * n).totient = (q - 1) * n.totient :=
+lemma totient_mul_of_prime_of_not_dvd {p n : ℕ} (hp : p.prime) (h : ¬ p ∣ n) :
+  (p * n).totient = (p - 1) * n.totient :=
 begin
-  rw [totient_mul _, totient_prime hq],
-  simpa [h] using coprime_or_dvd_of_prime hq n,
+  rw [totient_mul _, totient_prime hp],
+  simpa [h] using coprime_or_dvd_of_prime hp n,
 end
-
-
 
 end nat

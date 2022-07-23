@@ -65,7 +65,7 @@ begin
 end
 
 variables (R)
-variables [no_zero_divisors R] [nontrivial R]
+variables [nontrivial R]
 
 lemma J_det_mul_J_det [rc : fact (ring_char R ≠ 2)] : (det (J l R)) * (det (J l R)) = 1 :=
 begin

@@ -107,7 +107,7 @@ finding a hypothesis of the form `a < e` or `a ≤ e` in which `a` can be proved
 by `norm_num`. -/
 meta def compare_hyp (e p₂ : expr) : tactic strictness := do
   p_typ ← infer_type p₂,
-  (lo, hi, strict₂) ← match p_typ with
+  (lo, hi, strict₂) ← match p_typ with -- TODO also handle equality hypotheses
   | `(%%lo ≤ %%hi) := pure (lo, hi, ff)
   | `(%%hi ≥ %%lo) := pure (lo, hi, ff)
   | `(%%lo < %%hi) := pure (lo, hi, tt)

@@ -34,9 +34,13 @@ universe u
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
-noncomputable! def nim : ordinal → pgame
-| o₁ := let f := λ o₂, have hwf : ordinal.typein o₁.out.r o₂ < o₁ := ordinal.typein_lt_self o₂,
-          nim (ordinal.typein o₁.out.r o₂) in ⟨o₁.out.α, o₁.out.α, f, f⟩
+-- Uses `noncomputable!` to avoid `rec_fn_macro only allowed in meta definitions` VM error
+noncomputable! def nim : ordinal.{u} → pgame.{u}
+| o₁ :=
+  let f := λ o₂,
+    have ordinal.typein o₁.out.r o₂ < o₁ := ordinal.typein_lt_self o₂,
+    nim (ordinal.typein o₁.out.r o₂)
+  in ⟨o₁.out.α, o₁.out.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame

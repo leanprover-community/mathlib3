@@ -102,7 +102,7 @@ meta def orelse' (tac1 tac2 : tactic strictness) : tactic strictness := do
 
 /-! ### Core logic of the `positivity` tactic -/
 
-/- Second base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
+/-- Second base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
 finding a hypothesis of the form `a < e` or `a ≤ e` in which `a` can be proved positive/nonnegative
 by `norm_num`. -/
 meta def compare_hyp (e p₂ : expr) : tactic strictness := do

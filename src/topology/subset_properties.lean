@@ -9,6 +9,7 @@ import data.finset.order
 import data.set.accumulate
 import tactic.tfae
 import topology.bornology.basic
+import topology.locally_finite
 
 /-!
 # Properties of subsets of topological spaces

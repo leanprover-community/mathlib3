@@ -282,21 +282,52 @@ end
 --   continuity,
 -- end
 
-lemma senza_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend x.1.1) :=
+-- lemma senza_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend x.1.1) :=
+-- begin
+--   set π₁ := (λ p : Ω(x) × I, p.1.extend p.2) with hπ₁,
+--   have K : continuous π₁,
+--   { rw hπ₁,
+--     have thiss := @continuous_eval' ℝ X _ _ _,
+--     let ρ := @Icc_extend ℝ X _ _ _ _ 0 1 zero_le_one,
+--     have hρ : continuous ρ,
+--     { sorry },
+--     have uff := hρ.comp continuous_induced_dom,
+--     have hIR : continuous (coe : I → ℝ), from continuous_induced_dom,
+--     have also2 := continuous.prod_map uff hIR,
+--     have argh := thiss.comp also2,
+--     exact argh },
+--   { sorry },
+-- end
+
+example (Y Z : Type*) [topological_space Y] [topological_space Z] (f : Y → Z) (hf : continuous f) : continuous (λ x : C(Z,X), x ∘ f) :=
 begin
-  set π₁ := (λ p : Ω(x) × I, p.1.extend p.2) with hπ₁,
+  continuity,
+end
+
+lemma con_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend (2 * x.1.1)) :=
+begin
+  set π₁ := (λ p : Ω(x) × I, p.1.extend (2 * p.2)) with hπ₁,
   have K : continuous π₁,
   { rw hπ₁,
     have thiss := @continuous_eval' ℝ X _ _ _,
     let ρ := @Icc_extend ℝ X _ _ _ _ 0 1 zero_le_one,
     have hρ : continuous ρ,
-    { sorry },
+    { apply continuous_curry',
+      --  continuity,
+      -- refine continuous_eval',
+
+     },
     have uff := hρ.comp continuous_induced_dom,
-    have hIR : continuous (coe : I → ℝ), from continuous_induced_dom,
+    have hIR₀  : continuous (coe : I → ℝ), from continuous_induced_dom,
+    have hIR₁ : continuous (λ x : ℝ, 2 * x),
+    exact continuous_const.mul continuous_id',
+    have hIR := hIR₁.comp hIR₀,
     have also2 := continuous.prod_map uff hIR,
     have argh := thiss.comp also2,
     exact argh },
-  { sorry },
+  set π₂ := (λ p : I × Ω(x), p.2.extend (2 * p.1)) with hπ₂,
+  replace K : continuous π₂ := K.comp continuous_swap,
+  refine continuous.comp K continuous_fst,
 end
 
 lemma senza_smul_due_senza_swap (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.extend x.1.1) :=

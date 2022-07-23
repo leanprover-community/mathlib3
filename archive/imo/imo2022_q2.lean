@@ -16,9 +16,9 @@ such that for each `x ∈ ℝ+`, there is exactly one `y ∈ ℝ+` satisfying
 ## Sketch of solution
 
 `f(x) := 1/x` is the only solution. We first verify this is a solution, always
-taking `x=y`. To show this is the only solution, we first prove that the given
-identity implies `x=y` because otherwise we can derive `f(x) ≥ x⁻¹` and `f(y) ≥ y⁻¹`,
-swiftly leading to contradiction. This then shows `f(x) ≤ x⁻¹` for all `x`, but
+taking `x = y`. To show this is the only solution, we first prove that the given
+identity implies `x = y` because otherwise we can derive `f(x) ≥ 1/x` and `f(y) ≥ 1/y`,
+swiftly leading to contradiction. This then shows `f(x) ≤ 1/x` for all `x`, but
 if this inequality is strict anywhere we obtain contradiction in the uniqueness
 of `y` by taking `y` close enough to `x` (specified explicitly in this
 formalisation), hence `f(x) := 1/x` is the only solution.
@@ -42,67 +42,73 @@ begin
   nlinarith,
 end
 
-theorem imo2022Q2 (f: ℝ → ℝ) : 
-  (∀ {x : ℝ}, 0 < x → (0 < f x ∧ ∃! y : ℝ, 0 < y ∧ x * f y + y * f x ≤ 2) )
-  ↔ ∀ {x : ℝ}, 0 < x → f x = x⁻¹ := 
+notation `ℝ+` := set.Ioi (0 : ℝ) 
+
+theorem imo2022Q2 (f : ℝ+ → ℝ+) : 
+  (∀ x : ℝ+, ∃! y : ℝ+, (x * f y + y * f x : ℝ) ≤ 2) ↔ ∀ x : ℝ+, (f x : ℝ) = x⁻¹ := 
 begin 
   split, 
   swap,
-  { --Ffirst, the easy direction: showing `f(x) := 1/x` is indeed a solution
-    intros hf x hx,
-    rw hf hx,
+  { -- First, the easy direction: showing `f(x) := 1/x` is indeed a solution
+    intros hf x,
+    rw hf x,
     -- Show `f` is positive over `ℝ+` and claim `y=x` works
-    refine ⟨inv_pos.mpr hx, x, _⟩,
-    dsimp only [hf hx],
-    refine ⟨⟨hx, _⟩, λ y, _⟩, 
+    refine ⟨x, _⟩,
+    dsimp only [hf x],
+    have i0x : (0 : ℝ) < x, by exact set.mem_Ioi.mpr (subtype.mem x),
+    refine ⟨_, λ y, λ hyx, _⟩, 
     { -- With this `f`, the inequality clearly holds with equality for `y=x`, ...
-      rw [hf hx], 
-      norm_num [hx.ne'] },
+      rw [hf x],
+      norm_num [i0x.ne'] },
     { -- whereas if the inequality holds, the conclusion is exactly our lemma.
-      rintro ⟨hy, hyx⟩, 
-      rw hf hy at hyx,
-      rw recips_sum_two hx hy hyx, }, }, 
+      rw hf y at hyx,
+      have i0y : (0 : ℝ) < y, by exact set.mem_Ioi.mpr (subtype.mem y),
+      rw subtype.ext (recips_sum_two i0x i0y hyx), }, }, 
   { -- Now, the hard direction: showing that this is the only solution
     intro uf,
-    have f_pos := (λ {x} (y : 0 < x), (uf y).left),
-    have uf := (λ {x} (y : 0 < x), (uf y).right),
+    have f_pos : ∀ x : ℝ+, (0 : ℝ) < f x, by 
+    { exact (λ x, set.mem_Ioi.mpr (subtype.mem (f x))), },
     -- We first show that the unique `y` in the statement is always equal to `x`
-    have uf_imp_eq : ∀ {a b : ℝ}, 0 < a → 0 < b → a * f b + b * f a ≤ 2 → a = b, by
-    { intros a b i0a i0b hi,
+    have uf_imp_eq : ∀ {a b : ℝ+}, (a * f b + b * f a : ℝ) ≤ 2 → a = b, by
+    { intros a b hi,
+      have i0a : (0 : ℝ) < a, by exact set.mem_Ioi.mpr (subtype.mem a),
+      have i0b : (0 : ℝ) < b, by exact set.mem_Ioi.mpr (subtype.mem b),
       by_contra ic,
       -- With some sleight of hand, we assume `a f(a) < 1`, and prove this implies `a`
       -- is the unique value such that the inequality holds and thus that `a = b`
       -- which suffices to show that we only need to deal with `a⁻¹ ≤ f(a)`
-      have : b * a⁻¹ ≤ b * f a, by 
-      { rw [mul_le_mul_left i0b, ←one_mul a⁻¹, mul_inv_le_iff i0a],
+      have : (b * a⁻¹ : ℝ) ≤ b * f a, by 
+      { rw [mul_le_mul_left i0b, ←one_mul (a⁻¹ : ℝ), mul_inv_le_iff i0a],
         contrapose ic,
-        rcases uf i0a with ⟨y, ⟨i0y, hy⟩, uy⟩,
-        rw [uy b ⟨i0b, hi⟩, uy a ⟨i0a, by linarith⟩, not_not], },
+        rcases uf a with ⟨y, hy, uy⟩,
+        rw [uy b hi, uy a (by linarith), not_not], },
       -- Similarly, we show we only need to deal with `b⁻¹ ≤ f(b)`
-      have : a * b⁻¹ ≤ a * f b, by 
-      { rw [mul_le_mul_left i0a, ←one_mul b⁻¹, mul_inv_le_iff i0b],
+      have : (a * b⁻¹ : ℝ) ≤ a * f b, by 
+      { rw [mul_le_mul_left i0a, ←one_mul (b⁻¹ : ℝ), mul_inv_le_iff i0b],
         contrapose ic,
-        rcases uf i0b with ⟨z, ⟨i0z, hz⟩, uz⟩,
-        rw [uz a ⟨i0a, by linarith⟩, uz b ⟨i0b, by linarith⟩, not_not], },
+        rcases uf b with ⟨z, hz, uz⟩,
+        rw [uz a (by linarith), uz b (by linarith), not_not], },
       -- But if both of these hold, then we can use our lemma again to get `a = b`.
-      exact ic (recips_sum_two i0a i0b (by linarith)), },
+      exact ic (subtype.ext (recips_sum_two i0a i0b (by linarith))), },
     -- Using the above lemma, it is easy to show that `f(x) ≤ x⁻¹` everywhere 
     -- since the unique `y` must satisfy `y = x`.
-    have f_le_inv: ∀ {a : ℝ}, 0 < a → f a ≤ a⁻¹, by 
-    { intros a i0a,
-      rcases uf i0a with ⟨b, ⟨i0b, hb⟩, ub⟩,
+    have f_le_inv: ∀ a : ℝ+, (f a : ℝ) ≤ a⁻¹, by 
+    { intro a,
+      rcases uf a with ⟨b, hb, ub⟩,
       have := hb,
-      rw ←(uf_imp_eq i0a i0b this) at hb,
+      rw ←(uf_imp_eq this) at hb,
       rw inv_eq_one_div,
+      have i0a : (0 : ℝ) < a, by exact set.mem_Ioi.mpr (subtype.mem a),
       exact (le_div_iff' i0a).mpr (by linarith), },
-    intros x i0x,
+    intro x,
+    have i0x : (0 : ℝ) < x, by exact set.mem_Ioi.mpr (subtype.mem x),
     by_contra hi,
     -- Now, suppose the inequality is tight. First, we perform some rewriting.
-    have : x * f x < 1, by
+    have : (x * f x : ℝ) < 1, by
     { rw [←lt_div_iff' i0x, ←inv_eq_one_div],
-      exact lt_iff_le_and_ne.mpr ⟨f_le_inv i0x, hi⟩, },
-    rcases uf i0x with ⟨z, ⟨i0z, hz⟩, uz⟩,
-    have := uz x ⟨i0x, by linarith⟩,
+      exact lt_iff_le_and_ne.mpr ⟨f_le_inv _, hi⟩, },
+    rcases uf x with ⟨z, hz, uz⟩,
+    have : (x : ℝ) = z, by exact congr_arg coe (uz x (by linarith)),
     -- If we pick a point `y` close enough to `x`, it turns out that the condition
     -- that `y` is not the unique value satisfying the inequality alongside 
     -- `f(y) ≤ y⁻¹` is enough to show the desired result. In particular, while
@@ -110,17 +116,20 @@ begin
     -- `y = (2 - x f(x)) / f(x)` to prove this result (this is not tight). Thus,
     -- we simply need to verify from our assumptions that the inequality does
     -- hold for `x` and `y` and also that `x ≠ y`, which are both easy.
-    have iy : x < ((2 - x * f x) / f x), by 
-    { rw lt_div_iff (f_pos i0x),
+    have iy : (x : ℝ) < ((2 - x * f x) / f x), by 
+    { rw lt_div_iff (f_pos x),
       linarith, },
-    have := uz ((2 - x * f x) / f x) ⟨by linarith, by 
-    { field_simp [(f_pos i0x).ne'],
-      have := (mul_lt_mul_left i0x).mpr (lt_of_le_of_lt (f_le_inv (lt_trans i0x iy)) 
-        (show ((2 - x * f x) / f x)⁻¹ < f x, by 
-        { rw [inv_eq_one_div, one_div_div, div_lt_iff (show 0 < 2 - x * f x, by linarith)],
-          nth_rewrite 0 ←mul_one (f x), 
-          rw [mul_lt_mul_left (f_pos i0x)],
-          linarith, })),
-      linarith, }⟩, 
+    have : ((2 - x * f x) / f x : ℝ) = z, by exact congr_arg coe 
+      (uz ⟨(2 - x * f x) / f x, lt_trans i0x iy⟩ (by 
+      { field_simp [(f_pos x).ne'],
+        have := (mul_lt_mul_left i0x).mpr (lt_of_le_of_lt 
+          (f_le_inv ⟨(2 - x * f x) / f x, lt_trans i0x iy⟩)
+          (show (((2 - x * f x) / f x)⁻¹ : ℝ) < f x, by 
+          { rw [inv_eq_one_div, one_div_div,  
+              div_lt_iff ((show (0 : ℝ) < 2 - x * f x, by linarith))],
+            nth_rewrite 0 ←mul_one (f x : ℝ), 
+            rw [mul_lt_mul_left (f_pos x)],
+            linarith, })),
+        linarith, }) ), 
     linarith, },
 end

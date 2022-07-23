@@ -9,7 +9,7 @@ import linear_algebra.affine_space.slope
 /-!
 # Slope of a differentiable function
 
-Given a function `f : 𝕜 → E` from a nondiscrete normed field to a normed space over this field,
+Given a function `f : 𝕜 → E` from a nontrivially normed field to a normed space over this field,
 `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and as `deriv f a`
 for `a = b`.
 
@@ -20,7 +20,7 @@ differentiability.
 open_locale classical topological_space filter
 open function set filter
 
-variables {𝕜 E : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
 
 /-- `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and
 `deriv f a` for `a = b`. -/

@@ -52,7 +52,7 @@ open_locale topological_space manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 -- declare a smooth manifold `M` over the pair `(E, H)`.
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)

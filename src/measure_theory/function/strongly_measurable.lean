@@ -1511,7 +1511,7 @@ lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
 ⟨h.mk f, h.strongly_measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
 section normed_space
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 lemma _root_.ae_strongly_measurable_smul_const_iff {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
@@ -1542,9 +1542,9 @@ end
 
 end mul_action
 
-section continuous_linear_map_nondiscrete_normed_field
+section continuous_linear_map_nontrivially_normed_field
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -1565,7 +1565,7 @@ lemma _root_.continuous_linear_map.ae_strongly_measurable_comp₂ (L : E →L[�
   ae_strongly_measurable (λ x, L (f x) (g x)) μ :=
 L.continuous₂.comp_ae_strongly_measurable $ hf.prod_mk hg
 
-end continuous_linear_map_nondiscrete_normed_field
+end continuous_linear_map_nontrivially_normed_field
 
 lemma _root_.ae_strongly_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]
   {f : α → ℝ≥0} (hf : measurable f) {g : α → E} :

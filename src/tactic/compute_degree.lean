@@ -65,9 +65,8 @@ meta def guess_degree : expr → tactic expr
                                 pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
                                 pure $ expr.mk_app pe [e]
 
-/-- `resolve_sum_step e` takes the type of the current goal `e` as input.
-It tries to make progress on the goal `e` by reducing it to subgoals.
-It assumes that `e` is of the form `f.nat_degree ≤ d`, failing otherwise.
+/-- `resolve_sum_step` assumes that the current goal is of the form `f.nat_degree ≤ d`, failing
+otherwise.  It tries to make progress on the goal by reducing it to subgoals.
 
 `resolve_sum_step` progresses into `f` if `f` is
 * a sum, difference, opposite, product, or a power;

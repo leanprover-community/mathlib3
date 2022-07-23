@@ -98,8 +98,7 @@ def cotangent_ideal : ideal (R ⧸ I ^ 2) :=
     intros c x hx,
     obtain ⟨c, rfl⟩ := ideal.quotient.mk_surjective c,
     exact (submodule.map (I ^ 2).mkq I).smul_mem c hx,
-  end,
-}
+  end }
 
 lemma to_quotient_square_range :
   I.cotangent_to_quotient_square.range = I.cotangent_ideal.restrict_scalars R :=

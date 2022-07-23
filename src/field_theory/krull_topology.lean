@@ -331,22 +331,25 @@ end
 to `ϕₓ(x)` for all `x : L`. -/
 protected noncomputable def ultrafilter.glued_generators_of_pushforwards_function
   (h_int : algebra.is_integral K L) (f : ultrafilter (L →ₐ[K] L)) (x : L) : L :=
-  begin
-    -- I don't know how to do this term-style. Could someone please help with it?
-    haveI : finite_dimensional K (intermediate_field.adjoin K {x}) :=
-      intermediate_field.adjoin.finite_dimensional (h_int x),
-    exact (f.generator_of_pushforward : (intermediate_field.adjoin K {x}) →ₐ[K] L)
-  ⟨x, intermediate_field.mem_adjoin_simple_self K x⟩,
-  end
+      let foo : finite_dimensional K (intermediate_field.adjoin K {x}) :=
+      intermediate_field.adjoin.finite_dimensional (h_int x) in
+    by exactI (f.generator_of_pushforward : (intermediate_field.adjoin K {x}) →ₐ[K] L)
+  ⟨x, intermediate_field.mem_adjoin_simple_self K x⟩
 
 lemma ultrafilter.glued_generators_of_pushforwards_function_spec (h_int : algebra.is_integral K L)
   (f : ultrafilter (L →ₐ[K] L)) (hE : finite_dimensional K E) {x : L} (hx : x ∈ E) :
   f.glued_generators_of_pushforwards_function h_int x =
   (f.generator_of_pushforward : (E →ₐ[K] L)) ⟨x, hx⟩ :=
-by rw [ultrafilter.glued_generators_of_pushforwards_function,
-  ←f.generator_of_pushforward_comp_inclusion
-  (intermediate_field.adjoin.finite_dimensional $ h_int x) hE (intermediate_field.gc.l_le
-  (singleton_subset_iff.2 hx)), alg_hom.coe_comp, function.comp_app, subalgebra.inclusion_mk]
+  begin
+    haveI h_findim : finite_dimensional K ((intermediate_field.adjoin K {x}) : intermediate_field K
+    L) := intermediate_field.adjoin.finite_dimensional (h_int x),
+    have h : f.glued_generators_of_pushforwards_function h_int x = (f.generator_of_pushforward :
+    (intermediate_field.adjoin K {x}) →ₐ[K] L) ⟨x, intermediate_field.mem_adjoin_simple_self K x⟩ :=
+    rfl,
+    rw [h, ←f.generator_of_pushforward_comp_inclusion],
+    refl,
+    simp [hx],
+  end
 
 lemma ultrafilter.glued_generators_of_pushforwards_function_spec' (h_int : algebra.is_integral K L)
   (f : ultrafilter (L →ₐ[K] L)) (hE : finite_dimensional K E) (x : E) :

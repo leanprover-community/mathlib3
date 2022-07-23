@@ -374,7 +374,7 @@ padic.valuation_zero
 padic.valuation_one
 
 @[simp] lemma valuation_p : valuation (p : ℤ_[p]) = 1 :=
-by simp [valuation, -cast_eq_of_rat_of_nat]
+by simp [valuation]
 
 lemma valuation_nonneg (x : ℤ_[p]) : 0 ≤ x.valuation :=
 begin
@@ -458,7 +458,7 @@ def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : ℤ_[p]ˣ :=
 let u : ℚ_[p] := x*p^(-x.valuation) in
 have hu : ∥u∥ = 1,
 by simp [hx, nat.zpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuation,
-         norm_eq_pow_val, zpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
+         norm_eq_pow_val, zpow_neg, inv_mul_cancel],
 mk_units hu
 
 @[simp] lemma unit_coeff_coe {x : ℤ_[p]} (hx : x ≠ 0) :

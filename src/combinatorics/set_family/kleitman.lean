@@ -25,32 +25,12 @@ Note that, as opposed to the one family case, not all maximal unions of `k` fami
 * [D. J. Kleitman, *Families of non-disjoint subsets*][kleitman1966]
 -/
 
-namespace finset
-variables {α : Type*} [decidable_eq α]
-
-lemma union_sdiff_left (s t : finset α) : (s ∪ t) \ s = t \ s := sup_sdiff_left_self
-lemma union_sdiff_right (s t : finset α) : (s ∪ t) \ t = s \ t := sup_sdiff_right_self
-
-variables [fintype α]
-
-lemma sdiff_eq_inter_compl (s t : finset α) : s \ t = s ∩ tᶜ := sdiff_eq
-
-end finset
-
 open finset fintype (card)
-
-instance {α : Type*} [nonempty α] : nontrivial (set α) := ⟨⟨∅, set.univ, set.empty_ne_univ⟩⟩
-
-instance {α : Type*} [nonempty α] : nontrivial (finset α) :=
-nonempty.elim ‹_› $ λ a, ⟨⟨{a}, ∅, singleton_ne_empty _⟩⟩
-
-instance {α : Type*} [is_empty α] : unique (finset α) :=
-{ default := ∅,
-  uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
 
 variables {ι α : Type*} [fintype α] [decidable_eq α] [nonempty α]
 
-/-- **Kleitman's theorem**. -/
+/-- **Kleitman's theorem**. An intersecting family on `n` elements contains at most `2ⁿ⁻¹` sets, and
+each further intersecting family takes at most half of the sets that are in no previous family. -/
 lemma finset.card_bUnion_le_of_intersecting (s : finset ι) (ℱ : ι → finset (finset α))
   (hℱ : ∀ i ∈ s, (ℱ i : set (finset α)).intersecting) :
   (s.bUnion ℱ).card ≤ 2 ^ card α - 2 ^ (card α - s.card) :=

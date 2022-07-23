@@ -18,12 +18,13 @@ We show that the following properties of continuous maps are local at the target
 
 -/
 
-open topological_space
+open topological_space set filter
+open_locale topological_space filter
 
-variables {α β : Type*} [topological_space α] [topological_space β] (f : α → β) (h : continuous f)
+variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
 variables {s : set β} {ι : Type*} (U : ι → opens β) (hU : supr U = ⊤)
 
-lemma continuous_at.restrict_preimage (s : set β) (x : f ⁻¹' s)
+lemma continuous_at.restrict_preimage {s : set β} {x : f ⁻¹' s}
   (h : continuous_at f x) : continuous_at (s.restrict_preimage f) x :=
 begin
   intros U hU,
@@ -40,10 +41,8 @@ end
 
 /-- The restriction of a continuous map onto the preimage of a set. -/
 @[simps]
-def continuous_map.restrict_preimage {α β : Type*} [topological_space α] [topological_space β]
-  (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
-⟨s.restrict_preimage f, by { rw continuous_iff_continuous_at, intro x,
-  apply continuous_at.restrict_preimage f s, exact f.2.continuous_at }⟩
+def continuous_map.restrict_preimage (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
+⟨s.restrict_preimage f, continuous_iff_continuous_at.mpr $ λ x, f.2.continuous_at.restrict_preimage⟩
 
 include hU
 
@@ -69,35 +68,23 @@ end
 
 lemma closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
   is_closed s ↔ ∀ i, is_closed (coe ⁻¹' s : set (U i)) :=
-begin
-  let t := sᶜ, have : s = tᶜ := by simp[t], clear_value t, subst this,
-  simpa using open_iff_coe_preimage_of_supr_eq_top _ hU t,
-end
+by simpa using open_iff_coe_preimage_of_supr_eq_top _ hU sᶜ
 
 include h
 
 lemma inducing_iff_inducing_of_supr_eq_top :
   inducing f ↔ ∀ i, inducing ((U i).1.restrict_preimage f) :=
 begin
+  simp_rw [inducing_coe.inducing_iff, inducing_iff_nhds, restrict_preimage, coe_restrict, 
+    ← @filter.comap_comap _ _ _ _ coe f],
   split,
-  { intros H i, constructor, ext U, split,
-    { rintro ⟨V, hV, rfl⟩,
-      obtain ⟨s, hs, rfl⟩ := H.is_open_iff.mp hV,
-      exact ⟨_, ⟨s, hs, rfl⟩, rfl⟩ },
-    { rintro ⟨_, ⟨V, hV, rfl⟩, rfl⟩,
-      exact ⟨_, H.is_open_iff.mpr ⟨_, hV, rfl⟩, rfl⟩ } },
-  { intros H, constructor,
-    rw induced_iff_nhds_eq,
-    intro x,
+  { intros H i x, rw [← H, ← inducing_coe.nhds_eq_comap] },
+  { intros H x,
     obtain ⟨i, hi⟩ := opens.mem_supr.mp (show f x ∈ supr U, by { rw hU, triv }),
     erw ← open_embedding.map_nhds_eq (h.1 _ (U i).2).open_embedding_subtype_coe ⟨x, hi⟩,
-    rw (induced_iff_nhds_eq _).mp (H i).1 ⟨x, hi⟩,
-    erw (induced_iff_nhds_eq (coe : (U i).1 → β)).mp embedding_subtype_coe.to_inducing.1 ⟨_, hi⟩,
-    rw [filter.comap_comap, (show coe ∘ (U i).val.restrict_preimage f = f ∘ coe, from rfl),
-      subtype.coe_mk, ← filter.comap_comap, filter.subtype_coe_map_comap, inf_eq_left],
-    intros S hS,
-    rw filter.mem_comap,
-    exact ⟨U i, (U i).2.mem_nhds hi, hS⟩ }
+    rw [(H i) ⟨x, hi⟩, filter.subtype_coe_map_comap, function.comp_apply, subtype.coe_mk, 
+      inf_eq_left, filter.le_principal_iff],
+    exact filter.preimage_mem_comap ((U i).2.mem_nhds hi) }
 end
 
 attribute [mk_iff] open_embedding closed_embedding

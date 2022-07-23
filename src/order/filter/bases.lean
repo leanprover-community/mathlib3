@@ -944,7 +944,7 @@ begin
   exact has_countable_basis.is_countably_generated
     ⟨hs.to_has_basis.sup ht.to_has_basis, set.countable_encodable _⟩
 end
-  
+
 instance prod.is_countably_generated (la : filter α) (lb : filter β) [is_countably_generated la]
   [is_countably_generated lb] : is_countably_generated (la ×ᶠ lb) :=
 filter.inf.is_countably_generated _ _

@@ -125,14 +125,7 @@ instance : order_top (finset α) :=
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
-instance : boolean_algebra (finset α) :=
-{ compl := λ s, univ \ s,
-  inf_compl_le_bot := λ s x hx, by simpa using hx,
-  top_le_sup_compl := λ s x hx, by simp,
-  sdiff_eq := λ s t, by simp [generalized_boolean_algebra.sdiff, ext_iff, compl],
-  ..finset.order_top,
-  ..finset.order_bot,
-  ..finset.generalized_boolean_algebra }
+instance : boolean_algebra (finset α) :=  generalized_boolean_algebra.to_boolean_algebra
 
 lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 

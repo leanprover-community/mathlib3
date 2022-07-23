@@ -75,21 +75,24 @@ end
 variables (R)
 variables [no_zero_divisors R] [nontrivial R]
 
+lemma J_det_mul_J_det [rc : fact (ring_char R ≠ 2)] : (det (J l R)) * (det (J l R)) = 1 :=
+begin
+  rw [←det_mul, J_squared],
+  rw [←one_smul R (-1 : matrix _ _ R)],
+  rw [smul_neg, ←neg_smul, det_smul],
+  simp only [fintype.card_sum, det_one, mul_one],
+  rw neg_one_pow_eq_one_iff_even (ring.neg_one_ne_one_of_char_ne_two (fact.elim rc)),
+  exact even_add_self _
+end
+
 lemma J_det [rc : fact (ring_char R ≠ 2)] : det (J l R) = 1 ∨ det (J l R) = - 1:=
 begin
-  have H : (det (J l R)) * (det (J l R)) = 1 := by
-  { rw [←det_mul, J_squared],
-    rw [←one_smul R (-1 : matrix _ _ R)],
-    rw [smul_neg, ←neg_smul, det_smul],
-    simp only [fintype.card_sum, det_one, mul_one],
-    rw neg_one_pow_eq_one_iff_even (ring.neg_one_ne_one_of_char_ne_two (fact.elim rc)),
-    exact even_add_self _ },
   rw [←sq_eq_one_iff, pow_two],
-  exact H,
+  exact J_det_mul_J_det _ _,
 end
 
 lemma J_det_unit [fact (ring_char R ≠ 2)] : is_unit (det (J l R)) :=
-  pm_one_unit (J_det l R)
+is_unit_iff_exists_inv.mpr ⟨det (J l R), J_det_mul_J_det _ _⟩
 
 end matrix
 

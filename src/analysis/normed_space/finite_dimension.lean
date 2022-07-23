@@ -14,8 +14,8 @@ import topology.instances.matrix
 /-!
 # Finite dimensional normed spaces over complete fields
 
-Over a complete nondiscrete field, in finite dimension, all norms are equivalent and all linear maps
-are continuous. Moreover, a finite-dimensional subspace is always complete and closed.
+Over a complete nontrivially normed field, in finite dimension, all norms are equivalent and all
+linear maps are continuous. Moreover, a finite-dimensional subspace is always complete and closed.
 
 ## Main results:
 
@@ -110,7 +110,7 @@ end affine_isometry
 
 section complete_field
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type u} [nontrivially_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
 {F' : Type x} [add_comm_group F'] [module 𝕜 F'] [topological_space F']
@@ -592,7 +592,7 @@ by simp_rw [continuous_iff_continuous_on_univ, continuous_on_clm_apply]
 end complete_field
 
 section proper_field
-variables (𝕜 : Type u) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type u) [nontrivially_normed_field 𝕜]
 (E : Type v) [normed_group E] [normed_space 𝕜 E] [proper_space 𝕜]
 
 /-- Any finite-dimensional vector space over a proper field is proper.

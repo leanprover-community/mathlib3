@@ -80,7 +80,7 @@ open_locale topological_space
 
 namespace continuous_linear_map
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
 
 lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
@@ -93,7 +93,7 @@ end continuous_linear_map
 
 section fderiv
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {f : E → F} (K : set (E →L[𝕜] F))

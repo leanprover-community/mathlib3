@@ -84,9 +84,9 @@ variables {𝕜 G E E' E'' F F' F'' : Type*}
 variables [normed_group E] [normed_group E'] [normed_group E''] [normed_group F]
 variables {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
-section nondiscrete_normed_field
+section nontrivially_normed_field
 
-variables [nondiscrete_normed_field 𝕜]
+variables [nontrivially_normed_field 𝕜]
 variables [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_space 𝕜 E''] [normed_space 𝕜 F]
 variables (L : E →L[𝕜] E' →L[𝕜] F)
 
@@ -746,7 +746,7 @@ end cont_diff_bump_of_inner
 
 end measurability
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 open_locale convolution
 

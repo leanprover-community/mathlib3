@@ -22,7 +22,7 @@ groups here are not necessarily finite dimensional.
 * `lie_add_group I G` : a Lie additive group where `G` is a manifold on the model with corners `I`.
 * `lie_group I G`     : a Lie multiplicative group where `G` is a manifold on the model with
                         corners `I`.
-* `normed_space_lie_add_group` : a normed vector space over a nondiscrete normed field
+* `normed_space_lie_add_group` : a normed vector space over a nontrivially normed field
                                  is an additive Lie group.
 
 ## Implementation notes
@@ -44,7 +44,7 @@ open_locale manifold
 the addition and negation operations are smooth. -/
 -- See note [Design choices about smooth algebraic structures]
 @[ancestor has_smooth_add]
-class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+class lie_add_group {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [add_group G] [topological_space G] [charted_space H G]
@@ -55,7 +55,7 @@ class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 the multiplication and inverse operations are smooth. -/
 -- See note [Design choices about smooth algebraic structures]
 @[ancestor has_smooth_mul, to_additive]
-class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+class lie_group {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [group G] [topological_space G] [charted_space H G]
@@ -64,7 +64,7 @@ class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 section lie_group
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {F : Type*} [normed_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
@@ -121,7 +121,7 @@ section prod_lie_group
 
 /- Instance of product group -/
 @[to_additive]
-instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
+instance {𝕜 : Type*} [nontrivially_normed_field 𝕜] {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
   {G : Type*} [topological_space G] [charted_space H G] [group G] [lie_group I G]
   {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
@@ -136,7 +136,7 @@ end prod_lie_group
 
 /-! ### Normed spaces are Lie groups -/
 
-instance normed_space_lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+instance normed_space_lie_add_group {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] :
   lie_add_group (𝓘(𝕜, E)) E :=
 { smooth_add := smooth_iff.2 ⟨continuous_add, λ x y, cont_diff_add.cont_diff_on⟩,

@@ -307,7 +307,7 @@ end continuous_map
 
 section comp_left
 variables (X : Type*) {𝕜 β γ : Type*} [topological_space X] [compact_space X]
-  [nondiscrete_normed_field 𝕜]
+  [nontrivially_normed_field 𝕜]
 variables [normed_group β] [normed_space 𝕜 β] [normed_group γ] [normed_space 𝕜 γ]
 
 open continuous_map

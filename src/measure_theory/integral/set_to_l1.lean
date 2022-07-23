@@ -1032,7 +1032,7 @@ section set_to_L1
 local attribute [instance] Lp.simple_func.module
 local attribute [instance] Lp.simple_func.normed_space
 
-variables (𝕜) [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables (𝕜) [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [normed_space 𝕜 F] [complete_space F]
   {T T' T'' : set α → E →L[ℝ] F} {C C' C'' : ℝ}
 
@@ -1457,7 +1457,7 @@ lemma set_to_fun_sub (hT : dominated_fin_meas_additive μ T C)
   set_to_fun μ T hT (f - g) = set_to_fun μ T hT f - set_to_fun μ T hT g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, set_to_fun_add hT hf hg.neg, set_to_fun_neg hT g]
 
-lemma set_to_fun_smul [nondiscrete_normed_field 𝕜]
+lemma set_to_fun_smul [nontrivially_normed_field 𝕜]
   [normed_space 𝕜 E] [normed_space 𝕜 F] (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α → E) :
   set_to_fun μ T hT (c • f) = c • set_to_fun μ T hT f :=

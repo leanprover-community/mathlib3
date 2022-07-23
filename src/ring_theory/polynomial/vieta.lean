@@ -110,10 +110,10 @@ lemma _root_.multiset.prod_C_add_X_coeff (s : multiset R) (k : ℕ) (h : k ≤ s
   ((s.powerset_len (s.card - k)).map multiset.prod).sum :=
 begin
   classical,
-  rw [← s.map_univ_coe, multiset.map_map, ← prod_eq_multiset_prod, prod_C_add_X_coeff],
-  swap, { rw card_coe, exact h },
-  rw [multiset.powerset_len_map, ← map_val_val_powerset_len],
-  rw [sum_eq_multiset_sum, multiset.map_map, multiset.map_map, multiset.card_map],
+  rw [← s.map_univ_coe, multiset.map_map, ← prod_eq_multiset_prod,
+    prod_C_add_X_coeff s _ k (s.card_coe.symm ▸ h),
+    multiset.powerset_len_map, ← map_val_val_powerset_len,
+    sum_eq_multiset_sum, multiset.map_map, multiset.map_map, multiset.card_map],
   refl,
 end
 

@@ -255,7 +255,7 @@ lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.suppo
 notation `ord[` p `]` n:max := p ^ (nat.factorization n p)
 
 -- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n`.
-notation `coord[` p `]` n:max := n / p ^ n.factorization p
+notation `coord[` p `]` n:max := n / ord[p] n
 
 @[simp] lemma padic_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord[p] n = 1 :=
 by simp [factorization_eq_zero_of_non_prime n hp]

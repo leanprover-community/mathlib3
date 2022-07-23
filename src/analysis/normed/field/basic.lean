@@ -491,7 +491,23 @@ multiplication by the powers of any element, and thus to relate algebra and topo
 class nontrivially_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃ x : α, 1 < ∥x∥)
 
+/-- A densely normed field is a normed field for which the image of the norm is dense in `ℝ`,
+which means it is also nontrivially normed. However, not all nontrivally normed fields are densely
+normed; in particular, the `padic`s exhibit this fact. -/
+class densely_normed_field (α : Type*) extends normed_field α :=
+(lt_norm_lt : ∀ x y, x < y → ∃ a : α, x < ∥a∥ ∧ ∥a∥ < y)
+
 section normed_field
+
+instance densely_normed_field.to_nontrivially_normed_field [densely_normed_field α] :
+  nontrivially_normed_field α :=
+{ non_trivial :=
+  begin
+    obtain ⟨a : α, ha₁, ha₂⟩ := densely_normed_field.lt_norm_lt 1 2 one_lt_two,
+    exact ⟨a, ha₁⟩,
+  end }
+
+#exit
 
 variables [normed_field α]
 

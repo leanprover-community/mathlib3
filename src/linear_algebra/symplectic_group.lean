@@ -220,12 +220,8 @@ calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
 
 lemma coe_inv' (A : symplectic_group l R) : (↑(A⁻¹) : matrix (l ⊕ l) (l ⊕ l) R) = A⁻¹ :=
 begin
-  rw coe_inv,
-  apply eq.symm,
-  apply inv_eq_left_inv,
-  simp only [matrix.neg_mul],
-  apply inv_left_mul_aux,
-  simp only [set_like.coe_mem],
+  refine (coe_inv A).trans (inv_eq_left_inv _).symm,
+  simp only [matrix.neg_mul, inv_left_mul_aux, set_like.coe_mem],
 end
 
 lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ symplectic_group l R) :

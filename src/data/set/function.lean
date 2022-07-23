@@ -373,7 +373,7 @@ lemma range_restrict_preimage :
 range (t.restrict_preimage f) = coe ⁻¹' (range f) :=
 begin
   delta set.restrict_preimage set.maps_to.restrict,
-  rw [@set.range_subtype_map _ _ (f ⁻¹' t) t, set.image_preimage_eq_inter_range,
+  rw [@set.range_subtype_map _ _ (f ⁻¹' t) t, set_of, set.image_preimage_eq_inter_range,
     set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
 end
 

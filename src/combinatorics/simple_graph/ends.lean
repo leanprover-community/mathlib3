@@ -680,14 +680,12 @@ end
   This is done by taking a family indexed over ℕ and by iteratively extending.
 -/
 private def φ_fam (φ : ℕ ≃ V) : ℕ → set V := λ n, (K ∪ φ '' {j : ℕ | j < n})
-private lemma φ_fam_fin (Kf : K.finite) (φ : ℕ ≃ V) (n : ℕ) : (K ∪ φ '' {j : ℕ | j < n}).finite :=
+private lemma φ_fam_fin (Kf : K.finite) (φ : ℕ ≃ V) (n : ℕ) : (@φ_fam V _ _ _ K φ n).finite :=
 begin
-  /-
   apply set.finite_union.mpr ⟨Kf,_⟩,
   haveI : {j : ℕ | j < n}.finite, from {j : ℕ | j < n}.to_finite,
-  exact finite.set.finite_image {j : ℕ | j < n} φ.to_fun,
-  -/
-  sorry
+  have lol := finite.set.finite_image {j : ℕ | j < n} φ.to_fun,
+  exact (⇑φ '' {j : ℕ | j < n}).to_finite,
 end
 private lemma φ_fam_mon_succ (φ : ℕ ≃ V) (n : ℕ) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < n.succ}) :=
 begin
@@ -713,19 +711,50 @@ private lemma φ_fam_zero  (φ : ℕ ≃ V) : K = (K ∪ φ '' {j : ℕ | j < 0}
 private lemma φ_fam_zero_comp (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   inf_components G (K ∪ φ.to_fun '' {j : ℕ | j < 0}) :=
 begin
-  /-
-  rw (φ_fam_zero φ) at C,
-  exact C
-  -/
-  sorry
+  simp only [equiv.to_fun_as_coe],
+  dsimp only,
+  simpa only [not_lt_zero', set_of_false, set.image_empty, set.union_empty],
 end
-private lemma φ_fam_cof (φ : ℕ ≃ V) : ∀ F : finsubsets, ∃ n, F.val ⊆  K ∪ φ '' {j : ℕ | j < n} := sorry
+private lemma φ_fam_cof (φ : ℕ ≃ V) :
+  ∀ F : finsubsets, ∃ n, F.val ⊆  K ∪ φ '' {j : ℕ | j < n} :=
+begin
+  rintros ⟨F,Ffin⟩,
+  have : ∃ M : ℕ, ∀ v ∈ F, φ.inv_fun v < M, by {
+    by_cases h :  (F.nonempty),
+    { rcases set.finite.exists_maximal_wrt φ.inv_fun F Ffin h with ⟨v,vF,vmax⟩,
+      use (φ.inv_fun v).succ,
+      rintros u uF,
+      exact lt_of_le_of_lt (by {apply le_of_not_gt, rintro hgt, have := vmax u uF (le_of_lt (gt.lt hgt)),finish,}) (lt_add_one (φ.inv_fun v)),
+    },
+    {use 0,rintros v vF, have := (h ⟨v, vF⟩),simp,exact this},
+  },
+  rcases this with ⟨M,Mtop⟩,
+  use M,
+  apply set.subset.trans _ (set.subset_union_right K _),
+  rintros v vF,
+  exact ⟨φ.inv_fun v,⟨Mtop v vF,φ.right_inv v⟩⟩,
+end
 
-def φ_fam (Kfin : K.finite) (φ : ℕ ≃ V) : @fam V _ _ _ := begin
-  let lol := (λ n, {K ∪ φ '' {j : ℕ | j < n}}) '' (@set.univ ℕ),
+
+def φ_fami (Kfin : K.finite) (φ : ℕ ≃ V) : @fam V _ _ _ := begin
+  let lol := set.range (@φ_fam V _ _ _ _ φ),
   use lol,
-  sorry,sorry,sorry,
+  { rintros F ⟨n,Fn⟩,
+    rw ←Fn,
+    exact φ_fam_fin Kfin φ n},
+  { rintros L,
+    rcases φ_fam_cof φ L with ⟨n,ngood⟩,
+    let F := @φ_fam V _ _ _ _ φ n,
+    have : F ∈ lol, by {simp,use n,},
+    use ⟨F,‹F∈lol›⟩,
+    exact ngood,},
 end
+
+def φ_fami2 (Kfin : K.finite) (φ : ℕ ≃ V) : @fam V _ _ _ :=
+⟨ set.range (@φ_fam V _ _ _ _ φ)
+, λ F ⟨n,Fn⟩, Fn ▸ (φ_fam_fin Kfin φ n)
+, λ L, let ⟨n,ngood⟩ := @φ_fam_cof V _ _ _ K φ L in ⟨⟨@φ_fam V _ _ _ _ φ n,⟨n,refl _⟩⟩,ngood⟩
+⟩
 
 lemma extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   Π i : ℕ, inf_components G (K ∪ φ '' {j : ℕ | j < i}) :=
@@ -741,13 +770,11 @@ lemma extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) 
                               (extend_along_k))
 
 
-
-lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) (F : (φ_fam Kfin φ).fam) : inf_components G F :=
+lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) (F : (φ_fami Kfin φ).fam) :
+inf_components G F :=
 begin
-  have : ∃ n : ℕ, K ∪ φ.to_fun '' {j : ℕ | j < n} = F.val, by {
-    dsimp at F,
-    unfold φ_fam at F,
-    sorry,
+  have : ∃ n : ℕ, @φ_fam V _ _ _ _ φ n = F.val, by {
+    sorry
   },
   sorry,
 end
@@ -758,7 +785,7 @@ end
 -- * from local finiteness and connectedness, hence most countable
 -- * the existence of C, hence infinite
 lemma end_of_component_φfam (φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
-  ends_for G (φ_fam Kfinite φ) :=
+  ends_for G (φ_fami Kfinite φ) :=
 begin
   sorry
 end
@@ -788,6 +815,12 @@ lemma eval_surjective (Kfinite : K.finite) : surjective (eval G ⟨K,Kfinite⟩)
 
 --lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
 
+
+section transitivity
+
+
+
+end transitivity
 
 
 end ends

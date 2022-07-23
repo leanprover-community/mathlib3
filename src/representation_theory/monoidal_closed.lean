@@ -14,11 +14,46 @@ universe u
 open opposite
 open category_theory
 
-variables
-  {V : Type (u+1)} [large_category V] [monoidal_category V] [monoidal_closed V] {G : Group.{u}}
-  (X Y Z : Action V G) (g g' : G)
-
 namespace Action
+
+variables
+  {V : Type (u+1)} [large_category V] [monoidal_category V] {G : Group.{u}}
+  {X Y Z : Action V G} (g g' : G)
+
+@[simp] lemma left_inv_g_tensor_comp
+  {YV₁ YV₂ YV₃ : V} {fY₁ : YV₁ ⟶ YV₂} {fY₂ : YV₂ ⟶ YV₃} :
+  (X.ρ (g⁻¹ : G) ⊗ fY₁) ≫ (X.ρ g ⊗ fY₂) = 𝟙 X.V ⊗ fY₁ ≫ fY₂ :=
+by rw [←Action.ρ_Aut_apply_inv, ←Action.ρ_Aut_apply_hom, monoidal_category.inv_hom_id_tensor,
+    monoidal_category.id_tensor_comp]
+
+@[simp] lemma left_inv_g_tensor_comp_assoc
+  {YV₁ YV₂ YV₃ ZV : V} {fY₁ : YV₁ ⟶ YV₂} {fY₂ : YV₂ ⟶ YV₃} {f : X.V ⊗ YV₃ ⟶ ZV} :
+  (X.ρ (g⁻¹ : G) ⊗ fY₁) ≫ (X.ρ g ⊗ fY₂) ≫ f = (𝟙 X.V ⊗ fY₁ ≫ fY₂) ≫ f :=
+by rw [←category.assoc, left_inv_g_tensor_comp]
+
+@[simp] lemma left_g_inv_tensor_comp
+  {YV₁ YV₂ YV₃ : V} {fY₁ : YV₁ ⟶ YV₂} {fY₂ : YV₂ ⟶ YV₃} :
+  (X.ρ g ⊗ fY₁) ≫ (X.ρ (g⁻¹ : G) ⊗ fY₂) = 𝟙 X.V ⊗ fY₁ ≫ fY₂ :=
+by rw [←Action.ρ_Aut_apply_inv, ←Action.ρ_Aut_apply_hom, monoidal_category.hom_inv_id_tensor,
+    monoidal_category.id_tensor_comp]
+
+@[simp] lemma left_g_inv_tensor_comp_assoc
+  {YV₁ YV₂ YV₃ ZV : V} {fY₁ : YV₁ ⟶ YV₂} {fY₂ : YV₂ ⟶ YV₃} {f : X.V ⊗ YV₃ ⟶ ZV} :
+  (X.ρ g ⊗ fY₁) ≫ (X.ρ (g⁻¹ : G) ⊗ fY₂) ≫ f = (𝟙 X.V ⊗ fY₁ ≫ fY₂) ≫ f :=
+by rw [←category.assoc, left_g_inv_tensor_comp]
+
+lemma tensor_left_g_id_comp_injective {f₁ f₂ : X.V ⊗ Y.V ⟶ Z.V} :
+  (X.ρ g ⊗ 𝟙 Y.V) ≫ f₁ = (X.ρ g ⊗ 𝟙 Y.V) ≫ f₂ → f₁ = f₂ :=
+begin
+  intro h,
+  have h' := congr_arg (category_struct.comp (X.ρ (g⁻¹ : G) ⊗ 𝟙 Y.V)) h,
+  simp at h',
+  exact h'
+end
+
+-- Consider adding "right" versions of the above lemmas
+
+variables [monoidal_closed V] (X Y Z)
 
 /-- For f : X.V ⟶ Y.V, compose on the right by X.ρ g⁻¹ : X.V ⟶ X.V -/
 def pre_comp : (ihom X.V).obj Y.V ⟶ (ihom X.V).obj Y.V :=
@@ -96,43 +131,26 @@ def ihom_functor (X : (Action V G)ᵒᵖ) : Action V G ⥤ Action V G :=
   (monoidal_closed.internal_hom.obj X).map f = (ihom (unop X)).map f := rfl
 
 variables {X Y Z}
-lemma tensor_left_g_id_comp_injective {V : Type (u+1)} [large_category V] [monoidal_category V]
-  {G : Group.{u}} {X Y Z : Action V G} (g : G) {f' f'' : X.V ⊗ Y.V ⟶ Z.V} :
-  ((X.ρ_Aut g).hom ⊗ 𝟙 Y.V) ≫ f' = ((X.ρ_Aut g).hom ⊗ 𝟙 Y.V) ≫ f'' → f' = f'' :=
-begin
-  intro h,
-  have h' := congr_arg (category_struct.comp ((X.ρ_Aut g).inv ⊗ 𝟙 Y.V)) h,
-  rw [monoidal_category.inv_hom_id_tensor_assoc, monoidal_category.inv_hom_id_tensor_assoc] at h',
-  simp only [category_theory.category.id_comp, category_theory.monoidal_category.tensor_id] at h',
-  exact h'
-end
 
 /-- Elevate the curry on `V` to an `Action V G` hom. -/
 def monoidal_closed_curry
-  (f : (monoidal_category.tensor_left X).obj Y ⟶ Z) :
-  Y ⟶ (ihom_functor (op X)).obj Z :=
+  (f : (monoidal_category.tensor_left X).obj Y ⟶ Z) : Y ⟶ (ihom_functor (op X)).obj Z :=
 ⟨monoidal_closed.curry f.hom,
 begin
   intro,
-  rw ←monoidal_closed.curry_natural_left,
   dsimp,
-  have h := congr_arg (category_struct.comp ((X.ρ_Aut g).inv ⊗ 𝟙 Y.V)) (f.comm g),
-  dsimp at h,
-  rw [←Action.ρ_Aut_apply_inv, ←Action.ρ_Aut_apply_hom, monoidal_category.inv_hom_id_tensor_assoc,
-    monoidal_category.tensor_id_comp_id_tensor_assoc] at h,
-  apply (monoidal_closed.curry_eq_iff _ _).mpr,
-  rw [h, ρ_Aut_apply_inv, ←category.assoc, ←category.assoc],
-  rw monoidal_closed.uncurry_natural_right
-    (monoidal_closed.curry f.hom ≫ (monoidal_closed.pre (X.ρ (g⁻¹ : G))).app Z.V),
+  rw ←monoidal_closed.curry_natural_left,
+  rw monoidal_closed.curry_eq_iff,
+  apply tensor_left_g_id_comp_injective g,
+  rw monoidal_category.tensor_id_comp_id_tensor_assoc,
+  have := f.comm g,
+  dsimp at this,
+  rw [this, ←category.assoc, monoidal_closed.uncurry_natural_right, ←category.assoc],
   apply congr_fun,
   apply congr_arg,
-  rw [monoidal_closed.uncurry_natural_left, monoidal_closed.uncurry_pre],
-  rw @monoidal_category.id_tensor_comp_tensor_id_assoc _ _ _ _ ((ihom X.V).obj Z.V),
-  apply tensor_left_g_id_comp_injective g,
-  rw [←Action.ρ_Aut_apply_inv, monoidal_category.hom_inv_id_tensor_assoc,
-    monoidal_category.hom_inv_id_tensor_assoc],
-  simp only [category_theory.category.id_comp, category_theory.monoidal_category.tensor_id,
-    ←monoidal_closed.uncurry_eq, monoidal_closed.uncurry_curry]
+  rw [monoidal_closed.uncurry_natural_left, monoidal_closed.uncurry_pre,
+  monoidal_category.id_tensor_comp_tensor_id_assoc, left_g_inv_tensor_comp_assoc,
+  category.id_comp, ←monoidal_closed.uncurry_eq, monoidal_closed.uncurry_curry]
 end⟩
 
 @[simp] lemma monoidal_closed_curry_hom
@@ -141,19 +159,16 @@ end⟩
 
 /-- Elevate the uncurry on `V` to an `Action V G` hom. -/
 def monoidal_closed_uncurry
-  (f : Y ⟶ ihom X Z) :
-  (monoidal_category.tensor_left X).obj Y ⟶ Z :=
+  (f : Y ⟶ ihom X Z) : (monoidal_category.tensor_left X).obj Y ⟶ Z :=
 ⟨monoidal_closed.uncurry f.hom,
 begin
   intro,
   dsimp,
   apply tensor_left_g_id_comp_injective g⁻¹,
-  rw [Action.ρ_Aut_apply_hom, ←Action.ρ_Aut_apply_inv, ←Action.ρ_Aut_apply_hom,
-    ←category.assoc, monoidal_category.inv_hom_id_tensor, monoidal_category.tensor_id,
-    category.id_comp, ←monoidal_closed.uncurry_natural_left, f.comm, ihom_ρ],
-  simp only [Action.pre_comp_apply, Action.internal_hom_obj_map, quiver.hom.unop_op,
-    Action.ρ_Aut_apply_inv, category_theory.functor.flip_map_app, Action.internal_hom_map,
-    Action.post_comp_apply],
+  rw [Action.left_inv_g_tensor_comp_assoc, category.id_comp, ←monoidal_closed.uncurry_natural_left,
+    f.comm],
+  simp only [Action.pre_comp_apply, Action.internal_hom_obj_map, quiver.hom.unop_op, Action.ihom_ρ,
+    functor.flip_map_app, Action.internal_hom_map, Action.post_comp_apply],
   dsimp,
   rw [←category.assoc, monoidal_closed.uncurry_natural_right, ←category.assoc],
   apply congr_fun,
@@ -161,11 +176,8 @@ begin
   rw [monoidal_closed.uncurry_natural_left, monoidal_closed.uncurry_pre,
     monoidal_category.id_tensor_comp_tensor_id_assoc],
   apply tensor_left_g_id_comp_injective g,
-  rw [←Action.ρ_Aut_apply_inv, monoidal_category.hom_inv_id_tensor_assoc,
-    monoidal_category.hom_inv_id_tensor_assoc, monoidal_category.tensor_id, category.id_comp,
-    category.id_comp, ←monoidal_category.tensor_id, ←monoidal_closed.uncurry_natural_left,
-    ←monoidal_closed.curry_eq_iff, ←monoidal_closed.uncurry_eq, monoidal_closed.curry_uncurry,
-    category.id_comp]
+  rw [Action.left_g_inv_tensor_comp_assoc, category.id_comp, Action.left_g_inv_tensor_comp_assoc,
+    category.comp_id, monoidal_category.tensor_id, category.id_comp, monoidal_closed.uncurry_eq],
 end⟩
 
 @[simp] lemma monoidal_closed_uncurry_hom

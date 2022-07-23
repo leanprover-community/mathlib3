@@ -16,26 +16,15 @@ We show that the following properties of continuous maps are local at the target
 
 -/
 
+lemma set.maps_to.coe_restrict {α β : Type*} {f : α → β} {s : set α} {t : set β}
+(h : set.maps_to f s t) :
+  coe ∘ h.restrict f s t = s.restrict f := rfl
+
 open topological_space set filter
 open_locale topological_space filter
 
 variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
 variables {s : set β} {ι : Type*} (U : ι → opens β) (hU : supr U = ⊤)
-
-lemma continuous_at.restrict_preimage {s : set β} {x : f ⁻¹' s}
-  (h : continuous_at f x) : continuous_at (s.restrict_preimage f) x :=
-begin
-  intros U hU,
-  obtain ⟨_, e, ⟨V, hV, rfl⟩, hx⟩ := mem_nhds_iff.mp hU,
-  have := h (is_open.mem_nhds hV hx),
-  rw [filter.mem_map, mem_nhds_iff] at this ⊢,
-  obtain ⟨W, e', hW, hx'⟩ := this,
-  use coe ⁻¹' W,
-  refine ⟨_, continuous_subtype_coe.1 _ hW, hx'⟩,
-  intros y hy,
-  apply e,
-  exact e' hy
-end
 
 /-- The restriction of a continuous map onto the preimage of a set. -/
 @[simps]
@@ -68,19 +57,18 @@ lemma closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
   is_closed s ↔ ∀ i, is_closed (coe ⁻¹' s : set (U i)) :=
 by simpa using open_iff_coe_preimage_of_supr_eq_top _ hU sᶜ
 
-include h
 
-lemma inducing_iff_inducing_of_supr_eq_top :
+lemma inducing_iff_inducing_of_supr_eq_top (h : continuous f) :
   inducing f ↔ ∀ i, inducing ((U i).1.restrict_preimage f) :=
 begin
-  simp_rw [inducing_coe.inducing_iff, inducing_iff_nhds, restrict_preimage, coe_restrict, 
-    ← @filter.comap_comap _ _ _ _ coe f],
+  simp_rw [inducing_coe.inducing_iff, inducing_iff_nhds, restrict_preimage, maps_to.coe_restrict,
+    restrict_eq, ← @filter.comap_comap _ _ _ _ coe f],
   split,
   { intros H i x, rw [← H, ← inducing_coe.nhds_eq_comap] },
   { intros H x,
     obtain ⟨i, hi⟩ := opens.mem_supr.mp (show f x ∈ supr U, by { rw hU, triv }),
     erw ← open_embedding.map_nhds_eq (h.1 _ (U i).2).open_embedding_subtype_coe ⟨x, hi⟩,
-    rw [(H i) ⟨x, hi⟩, filter.subtype_coe_map_comap, function.comp_apply, subtype.coe_mk, 
+    rw [(H i) ⟨x, hi⟩, filter.subtype_coe_map_comap, function.comp_apply, subtype.coe_mk,
       inf_eq_left, filter.le_principal_iff],
     exact filter.preimage_mem_comap ((U i).2.mem_nhds hi) }
 end

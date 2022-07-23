@@ -250,6 +250,9 @@ subtype.map f h
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
 
+lemma maps_to.coe_restrict (h : set.maps_to f s t) :
+  coe ∘ h.restrict f s t = s.restrict f := rfl
+
 lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x : s, f x = g x :=
 ⟨λ h, ⟨h.restrict f s t, λ _, rfl⟩,
   λ ⟨g, hg⟩ x hx, by { erw [hg ⟨x, hx⟩], apply subtype.coe_prop }⟩

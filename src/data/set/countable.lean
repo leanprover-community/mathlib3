@@ -56,7 +56,7 @@ classical.choice
 
 section enumerate
 
-/-- Enumerate elements in a countable set.-/
+/-- Noncomputably enumerate elements in a set. The `default` value is used to extend the domain to all of `ℕ`. -/
 def enumerate_countable {s : set α} (h : s.countable) (default : α) : ℕ → α :=
 assume n, match @encodable.decode s h.to_encodable n with
         | (some y) := y

@@ -559,6 +559,12 @@ def of_ends_for (ℱ : fam) : ends_for G ℱ → ends G :=
   in
     ⟨f,f_comm⟩
 
+lemma of_ends_for.preserves (ℱ : fam) (K : finsubsets) (hK : K.val ∈ ℱ.fam) (e : ends_for G ℱ) :
+  e.val ⟨K.val,hK⟩ = (of_ends_for G ℱ e).val K := sorry
+
+lemma to_ends_for.preserves (ℱ : fam) (K : finsubsets) (hK : K.val ∈ ℱ.fam) (e : ends G) :
+  e.val K = (to_ends_for G ℱ e).val ⟨K.val,hK⟩ := sorry
+
 -- Thanks Kyle Miller
 def equiv_ends_for (ℱ : fam) : ends G ≃ ends_for G ℱ :=
 { to_fun := to_ends_for G ℱ,
@@ -708,13 +714,11 @@ begin
   exact φ_fam_mon_add φ n k,
 end
 private lemma φ_fam_zero  (φ : ℕ ≃ V) : K = (K ∪ φ '' {j : ℕ | j < 0}) := by simp
+
 private lemma φ_fam_zero_comp (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   inf_components G (K ∪ φ.to_fun '' {j : ℕ | j < 0}) :=
-begin
-  simp only [equiv.to_fun_as_coe],
-  dsimp only,
-  simpa only [not_lt_zero', set_of_false, set.image_empty, set.union_empty],
-end
+  @eq.rec_on  (set V) K (λ L, inf_components G L) (K ∪ φ.to_fun '' {j : ℕ | j < 0}) (@φ_fam_zero V _ _ _ K φ) C
+
 private lemma φ_fam_cof (φ : ℕ ≃ V) :
   ∀ F : finsubsets, ∃ n, F.val ⊆  K ∪ φ '' {j : ℕ | j < n} :=
 begin
@@ -769,35 +773,34 @@ def extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
                               (φ_fam_fin Kfin φ k.succ)
                               (extend_along_k))
 
-def extend_along_comm_succ (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π (i : ℕ), extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_succ φ i) (extend_along G Kfin φ C (i.succ)) :=
-begin
-  sorry,
-end
+lemma extend_along_comm_succ (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π (i : ℕ), extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_succ φ i) (extend_along G Kfin φ C (i.succ)) := λ i, by {sorry}
+lemma extend_along_comm_add (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π i j : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_add φ i j) (extend_along G Kfin φ C (i + j)) := sorry
+-- uses bwd_map_refl
+lemma extend_along_comm_le (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π i j : ℕ, i ≤ j →  extend_along G Kfin φ C i = bwd_map G (by sorry) (extend_along G Kfin φ C j) := sorry
 
-def extend_along_comm_add (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π i j : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_add φ i j) (extend_along G Kfin φ C (i + j)) :=
-begin
-  rintros i j,
-  induction j,
-  { sorry, },
-  { sorry, }
-end
-def extend_along_comm_le (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π i j : ℕ, i ≤ j →  extend_along G Kfin φ C i = bwd_map G (by sorry) (extend_along G Kfin φ C j) :=
-begin
-  sorry,
-end
+lemma extend_along_zero (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  extend_along G Kfin φ C 0 = (φ_fam_zero_comp G Kfin φ C) := by {finish}
 
+/-
+lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π (F : (φ_fami Kfin φ).fam), inf_components G F := λ ⟨F,hF⟩,
+begin
+  rw [subtype.coe_mk F hF,hF.some_spec.symm],
+  exact (extend_along G Kfin φ C hF.some),
+end
+-/
 
 lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π (F : (φ_fami Kfin φ).fam), inf_components G F :=
-begin
-  rintros ⟨F,hF⟩,
-  simp only [subtype.coe_mk],
-  rw hF.some_spec.symm,
-  exact extend_along G Kfin φ C hF.some,
-end
+  Π (F : (φ_fami Kfin φ).fam), inf_components G F := λ ⟨F,hF⟩,
+eq.rec_on
+  (subtype.coe_mk F hF).symm
+  (eq.rec_on
+    hF.some_spec
+    (extend_along G Kfin φ C hF.some))
+
 
 lemma extend_along_fam_comm (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   Π (F F' : (φ_fami Kfin φ).fam), F.val ⊆ F'.val →
@@ -830,15 +833,25 @@ end
 lemma end_of_component_φfam (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
   ends_for G (φ_fami Kfin φ) := ⟨extend_along_fam G Kfin φ C, extend_along_fam_comm G Kfin φ C⟩
 
-lemma end_of_compontent_φfam_spec (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
-  (end_of_compontent_φfam φ Kfin C) (⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},⟨0,rfl⟩⟩) = φ_fam_zero_comp G Kfin φ C :=
-  extend_along_fam_spec Kfin φ C
-
-
-lemma end_of_component(φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
-  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
+lemma end_of_component_φfam_spec (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
+  (end_of_component_φfam G φ Kfin C).val (⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},⟨0,rfl⟩⟩) = φ_fam_zero_comp G Kfin φ C :=
 begin
+  have := extend_along_fam_spec G Kfin φ C,
   sorry,
+end
+
+
+lemma end_of_component(φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
+  ∃ e : (ends G), (e.val (⟨K,Kfin⟩ : finsubsets)).val = C.val :=
+begin
+  let eφ := end_of_component_φfam G φ Kfin C,
+  let e := of_ends_for G (φ_fami Kfin φ) eφ,
+  let eφK := end_of_component_φfam_spec G φ Kfin C,
+  let lol := (@φ_fam_zero V _ _ _ K φ).symm,
+
+  let eK := of_ends_for.preserves G (φ_fami Kfin φ) ⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},sorry⟩ (⟨0,rfl⟩) eφ,
+  use e,
+
 end
 
 lemma eval_surjective (Kfinite : K.finite) : surjective (eval G ⟨K,Kfinite⟩) := sorry

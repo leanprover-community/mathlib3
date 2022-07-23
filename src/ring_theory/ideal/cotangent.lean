@@ -29,6 +29,8 @@ variables {R S : Type*} [comm_ring R] [comm_semiring S] [algebra S R] (I : ideal
 @[derive [add_comm_group, module (R ⧸ I)]]
 def cotangent := I ⧸ (I • ⊤ : submodule R I)
 
+instance : inhabited I.cotangent := ⟨0⟩
+
 instance cotangent.module_of_tower : module S I.cotangent :=
 submodule.quotient.module' _
 

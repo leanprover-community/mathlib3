@@ -370,13 +370,15 @@ begin
     simp only [hS.mul_left a, inner_smul_right, coe_smul', pi.smul_apply] }
 end
 
-#check ennreal.tsum_ne_top
-
 lemma is_positive.is_trace_class_iff {ι : Type*} {T : E →L[𝕜] E} (hT : T.is_positive)
   (e : hilbert_basis ι 𝕜 E) :
   T.is_trace_class ↔ summable (λ i, ⟪e i, T (e i)⟫) :=
 begin
   refine ⟨λ htrT, htrT.summable_of_hilbert_basis e, λ htrT, hT.is_trace_class _⟩,
+  rw [← (hT.has_sum_trace e).tsum_eq, ← ennreal.of_real_tsum_of_nonneg],
+  { exact ennreal.of_real_lt_top },
+  { exact λ i, hT.inner_nonneg_right _ },
+  { exact re_clm.summable htrT }
 end
 
 noncomputable def _root_.hilbert_basis.trace_map {ι : Type*} (e : hilbert_basis ι 𝕜 E) :

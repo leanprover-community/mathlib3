@@ -92,6 +92,21 @@ begin
   exact hT.inner_nonneg_left _
 end
 
+lemma is_positive.adjoint_conj [complete_space E] [complete_space F] {T : E →L[𝕜] E}
+  (hT : T.is_positive) (S : F →L[𝕜] E) : (S† ∘L T ∘L S).is_positive :=
+begin
+  have := hT.conj_adjoint (S†),
+  rwa adjoint_adjoint at this
+end
+
+lemma is_positive_comp_adjoint [complete_space E] [complete_space F] (S : E →L[𝕜] F) :
+  (S ∘L S†).is_positive :=
+is_positive_id.conj_adjoint S
+
+lemma is_positive_adjoint_comp [complete_space E] [complete_space F] (S : E →L[𝕜] F) :
+  (S† ∘L S).is_positive :=
+is_positive_id.adjoint_conj S
+
 lemma is_positive.conj_orthogonal_projection [complete_space E] (U : submodule 𝕜 E) {T : E →L[𝕜] E}
   (hT : T.is_positive) [complete_space U] :
   (U.subtypeL ∘L orthogonal_projection U ∘L T ∘L U.subtypeL ∘L

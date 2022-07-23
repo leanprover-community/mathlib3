@@ -47,8 +47,7 @@ def is_HS (T : E →L[𝕜] F) : Prop := (T† ∘L T).is_trace_class
 
 lemma is_HS_iff_summable (T : E →L[𝕜] F) (e : hilbert_basis ι 𝕜 E) :
   T.is_HS ↔ summable (λ i, ⟪T (e i), T (e i)⟫) :=
-begin
-
-end
+by simp_rw [is_HS_def, (is_positive_adjoint_comp T).is_trace_class_iff e, comp_apply,
+            adjoint_inner_right]
 
 end continuous_linear_map

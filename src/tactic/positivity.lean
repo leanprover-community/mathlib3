@@ -183,7 +183,7 @@ meta def positivity : tactic unit := focus1 $ do
   strictness_proved ← tactic.positivity.core a,
   match rel_desired, strictness_proved with
   | tt, (positive p) := pure p
-  | tt, (nonnegative _) := fail ("failed to prove strict positivity, but it would be possible to" ++
+  | tt, (nonnegative _) := fail ("failed to prove strict positivity, but it would be possible to " ++
       "prove nonnegativity if desired")
   | ff, (positive p) := mk_app ``le_of_lt [p]
   | ff, (nonnegative p) := pure p

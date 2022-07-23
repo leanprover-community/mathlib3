@@ -212,6 +212,12 @@ lemma drop_subset (n) (l : list α) : drop n l ⊆ l := (drop_sublist n l).subse
 lemma mem_of_mem_take (h : a ∈ l.take n) : a ∈ l := take_subset n l h
 lemma mem_of_mem_drop (h : a ∈ l.drop n) : a ∈ l := drop_subset n l h
 
+lemma take_while_prefix (p : α → Prop) [decidable_pred p] : l.take_while p <+: l :=
+⟨l.drop_while p, take_while_append_drop p l⟩
+
+lemma drop_while_suffix (p : α → Prop) [decidable_pred p] : l.drop_while p <:+ l :=
+⟨l.take_while p, take_while_append_drop p l⟩
+
 lemma init_prefix : ∀ (l : list α), l.init <+: l
 | [] := ⟨nil, by rw [init, list.append_nil]⟩
 | (a :: l) := ⟨_, init_append_last (cons_ne_nil a l)⟩

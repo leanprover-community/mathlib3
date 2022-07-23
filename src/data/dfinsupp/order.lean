@@ -44,8 +44,8 @@ lemma le_def {f g : Π₀ i, α i} : f ≤ g ↔ ∀ i, f i ≤ g i := iff.rfl
 
 /-- The order on `dfinsupp`s over a partial order embeds into the order on functions -/
 def order_embedding_to_fun : (Π₀ i, α i) ↪o Π i, α i :=
-{ to_fun := λ f, f,
-  inj' := λ f g h, dfinsupp.ext $ λ i, by { dsimp at h, rw h },
+{ to_fun := coe_fn,
+  inj' := coe_fn_injective,
   map_rel_iff' := λ a b, (@le_def _ _ _ _ a b).symm }
 
 @[simp] lemma order_embedding_to_fun_apply {f : Π₀ i, α i} {i : ι} :

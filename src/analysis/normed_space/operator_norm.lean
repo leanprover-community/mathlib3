@@ -241,6 +241,13 @@ lemma op_norm_le_bound (f : E →SL[σ₁₂] F) {M : ℝ} (hMp: 0 ≤ M) (hM : 
   ∥f∥ ≤ M :=
 cInf_le bounds_bdd_below ⟨hMp, hM⟩
 
+/-- If one controls the norm of every `A x`, `∥x∥ ≠ 0`, then one controls the norm of `A`. -/
+lemma op_norm_le_bound' (f : E →SL[σ₁₂] F) {M : ℝ} (hMp: 0 ≤ M)
+  (hM : ∀ x, ∥x∥ ≠ 0 → ∥f x∥ ≤ M * ∥x∥) :
+  ∥f∥ ≤ M :=
+op_norm_le_bound f hMp $ λ x, (ne_or_eq (∥x∥) 0).elim (hM x) $
+  λ h, by simp only [h, mul_zero, norm_image_of_norm_zero f f.2 h]
+
 theorem op_norm_le_of_lipschitz {f : E →SL[σ₁₂] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
@@ -301,13 +308,7 @@ mul_one ∥f∥ ▸ f.le_op_norm_of_le
 lemma op_norm_le_of_shell {f : E →SL[σ₁₂] F} {ε C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   {c : 𝕜} (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) :
   ∥f∥ ≤ C :=
-begin
-  refine f.op_norm_le_bound hC (λ x, _),
-  by_cases hx : ∥x∥ = 0,
-  { rw [hx, mul_zero],
-    exact le_of_eq (norm_image_of_norm_zero f f.2 hx) },
-  exact semilinear_map_class.bound_of_shell_semi_normed f ε_pos hc hf hx
-end
+f.op_norm_le_bound' hC $ λ x hx, semilinear_map_class.bound_of_shell_semi_normed f ε_pos hc hf hx
 
 lemma op_norm_le_of_ball {f : E →SL[σ₁₂] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
@@ -333,6 +334,18 @@ begin
       inv_lt_one_iff_of_pos (norm_pos_iff.2 $ inv_ne_zero h0)] at hc,
     refine op_norm_le_of_shell ε_pos hC hc _,
     rwa [norm_inv, div_eq_mul_inv, inv_inv] }
+end
+
+/-- For a continuous real linear map `f`, if one controls the norm of every `f x`, `∥x∥ = 1`, then
+one controls the norm of `f`. -/
+lemma op_norm_le_of_unit_norm [normed_space ℝ E] [normed_space ℝ F] {f : E →L[ℝ] F} {C : ℝ}
+  (hC : 0 ≤ C) (hf : ∀ x, ∥x∥ = 1 → ∥f x∥ ≤ C) : ∥f∥ ≤ C :=
+begin
+  refine op_norm_le_bound' f hC (λ x hx, _),
+  have H₁ : ∥(∥x∥⁻¹ • x)∥ = 1, by rw [norm_smul, norm_inv, norm_norm, inv_mul_cancel hx],
+  have H₂ := hf _ H₁,
+  rwa [map_smul, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul, div_le_iff] at H₂,
+  exact (norm_nonneg x).lt_of_ne' hx
 end
 
 /-- The operator norm satisfies the triangle inequality. -/
@@ -384,6 +397,17 @@ end
 lemma op_nnnorm_le_bound (f : E →SL[σ₁₂] F) (M : ℝ≥0) (hM : ∀ x, ∥f x∥₊ ≤ M * ∥x∥₊) :
   ∥f∥₊ ≤ M :=
 op_norm_le_bound f (zero_le M) hM
+
+/-- If one controls the norm of every `A x`, `∥x∥₊ ≠ 0`, then one controls the norm of `A`. -/
+lemma op_nnnorm_le_bound' (f : E →SL[σ₁₂] F) (M : ℝ≥0) (hM : ∀ x, ∥x∥₊ ≠ 0 → ∥f x∥₊ ≤ M * ∥x∥₊) :
+  ∥f∥₊ ≤ M :=
+op_norm_le_bound' f (zero_le M) $ λ x hx, hM x $ by rwa [← nnreal.coe_ne_zero]
+
+/-- For a continuous real linear map `f`, if one controls the norm of every `f x`, `∥x∥₊ = 1`, then
+one controls the norm of `f`. -/
+lemma op_nnnorm_le_of_unit_nnnorm [normed_space ℝ E] [normed_space ℝ F] {f : E →L[ℝ] F} {C : ℝ≥0}
+  (hf : ∀ x, ∥x∥₊ = 1 → ∥f x∥₊ ≤ C) : ∥f∥₊ ≤ C :=
+op_norm_le_of_unit_norm C.coe_nonneg $ λ x hx, hf x $ by rwa [← nnreal.coe_eq_one]
 
 theorem op_nnnorm_le_of_lipschitz {f : E →SL[σ₁₂] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
   ∥f∥₊ ≤ K :=
@@ -993,6 +1017,10 @@ protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃SL[σ] 
 ⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →SL[σ'] M),
   λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →SL[σ] M₂).has_sum h⟩
 
+/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
+protected lemma continuous_linear_equiv.has_sum' {f : ι → M} (e : M ≃SL[σ] M₂) {x : M} :
+  has_sum (λ (b:ι), e (f b)) (e x) ↔ has_sum f x :=
+by rw [e.has_sum, continuous_linear_equiv.symm_apply_apply]
 
 protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃SL[σ] M₂) :
   summable (λ b:ι, e (f b)) ↔ summable f :=

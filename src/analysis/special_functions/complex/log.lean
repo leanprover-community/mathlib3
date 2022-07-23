@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.complex.arg
-import analysis.special_functions.log
+import analysis.special_functions.log.basic
 
 /-!
 # The complex `log` function
@@ -86,7 +86,7 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
-@[simp] lemma countable_preimage_exp {s : set ℂ} : countable (exp ⁻¹' s) ↔ countable s :=
+@[simp] lemma countable_preimage_exp {s : set ℂ} : (exp ⁻¹' s).countable ↔ s.countable :=
 begin
   refine ⟨λ hs, _, λ hs, _⟩,
   { refine ((hs.image exp).insert 0).mono _,
@@ -100,7 +100,7 @@ begin
     { push_neg at hne, simp [preimage, hne] } }
 end
 
-alias countable_preimage_exp ↔ _ set.countable.preimage_cexp
+alias countable_preimage_exp ↔ _ _root_.set.countable.preimage_cexp
 
 lemma tendsto_log_nhds_within_im_neg_of_re_neg_of_im_zero
   {z : ℂ} (hre : z.re < 0) (him : z.im = 0) :
@@ -132,6 +132,15 @@ lemma tendsto_log_nhds_within_im_nonneg_of_re_neg_of_im_zero
   tendsto log (𝓝[{z : ℂ | 0 ≤ z.im}] z) (𝓝 $ real.log (abs z) + π * I) :=
 by simpa only [log, arg_eq_pi_iff.2 ⟨hre, him⟩]
   using (continuous_within_at_log_of_re_neg_of_im_zero hre him).tendsto
+
+@[simp] lemma map_exp_comap_re_at_bot : map exp (comap re at_bot) = 𝓝[≠] 0 :=
+by rw [← comap_exp_nhds_zero, map_comap, range_exp, nhds_within]
+
+@[simp] lemma map_exp_comap_re_at_top : map exp (comap re at_top) = comap abs at_top :=
+begin
+  rw [← comap_exp_comap_abs_at_top, map_comap, range_exp, inf_eq_left, le_principal_iff],
+  exact eventually_ne_of_tendsto_norm_at_top tendsto_comap 0
+end
 
 end complex
 

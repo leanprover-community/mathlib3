@@ -110,7 +110,7 @@ this specific chart.
 We use the names `mdifferentiable` and `mfderiv`, where the prefix letter `m` means "manifold".
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M]
@@ -239,7 +239,7 @@ end derivatives_definitions
 section derivatives_properties
 /-! ### Unique differentiability sets in manifolds -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] --
@@ -853,7 +853,7 @@ manifold structure, coincides with the usual Frechet derivative `fderiv`. In thi
 this and related statements.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {f : E → E'} {s : set E} {x : E}
@@ -959,7 +959,7 @@ section specific_functions
 
 /-! ### Differentiability of specific functions -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -1253,7 +1253,7 @@ begin
   rotate, { apply_instance },
   simp only [continuous_linear_map.coe_coe, basic_smooth_vector_bundle_core.chart, h,
     tangent_bundle_core, basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
-    chart_at] with mfld_simps,
+    chart_at, sigma.mk.inj_iff] with mfld_simps,
 end
 
 end charts
@@ -1263,7 +1263,7 @@ end specific_functions
 /-! ### Differentiable local homeomorphisms -/
 namespace local_homeomorph.mdifferentiable
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M]
@@ -1375,7 +1375,7 @@ end local_homeomorph.mdifferentiable
 
 section ext_chart_at
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
@@ -1402,7 +1402,7 @@ end ext_chart_at
 /-! ### Unique derivative sets in manifolds -/
 section unique_mdiff
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]

@@ -220,7 +220,7 @@ begin
   nth_rewrite 1 ← A.transpose_transpose,
   rw [← adjugate_transpose, adjugate_def],
   have : b = ∑ i, (b i) • (pi.single i 1),
-  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm], congr, },
+  { refine (pi_eq_sum_univ b).trans _, congr' with j, simp [pi.single_apply, eq_comm] },
   nth_rewrite 0 this, ext k,
   simp [mul_vec, dot_product, mul_comm],
 end
@@ -281,6 +281,20 @@ end
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
 by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
+@[simp] lemma adjugate_diagonal (v : n → α) :
+  adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
+begin
+  ext,
+  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  obtain rfl | hij := eq_or_ne i j,
+  { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
+      prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
+  { rw diagonal_apply_ne _ hij,
+    refine det_eq_zero_of_row_eq_zero j (λ k, _),
+    obtain rfl | hjk := eq_or_ne k j,
+    { rw [update_column_self, pi.single_eq_of_ne' hij] },
+    { rw [update_column_ne hjk, diagonal_apply_ne' _ hjk]} },
+end
 
 lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=
@@ -328,18 +342,18 @@ end
 adjugate_subsingleton A
 
 lemma adjugate_fin_two (A : matrix (fin 2) (fin 2) α) :
-  adjugate A = ![![A 1 1, -A 0 1], ![-A 1 0, A 0 0]] :=
+  adjugate A = !![A 1 1, -A 0 1; -A 1 0, A 0 0] :=
 begin
   ext i j,
   rw [adjugate_apply, det_fin_two],
   fin_cases i with [0, 1]; fin_cases j with [0, 1];
   simp only [nat.one_ne_zero, one_mul, fin.one_eq_zero_iff, pi.single_eq_same, zero_mul,
     fin.zero_eq_one_iff, sub_zero, pi.single_eq_of_ne, ne.def, not_false_iff, update_row_self,
-    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons],
+    update_row_ne, cons_val_zero, mul_zero, mul_one, zero_sub, cons_val_one, head_cons, of_apply],
 end
 
-@[simp] lemma adjugate_fin_two' (a b c d : α) :
-  adjugate ![![a, b], ![c, d]] = ![![d, -b], ![-c, a]] :=
+@[simp] lemma adjugate_fin_two_of (a b c d : α) :
+  adjugate !![a, b; c, d] = !![d, -b; -c, a] :=
 adjugate_fin_two _
 
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=

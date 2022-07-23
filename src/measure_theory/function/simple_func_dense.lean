@@ -3,7 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
-import measure_theory.integral.lebesgue
+import measure_theory.integral.mean_inequalities
+import topology.continuous_function.compact
+import topology.metric_space.metrizable
 
 /-!
 # Density of simple functions
@@ -44,7 +46,7 @@ namespace simple_func
 
 /-! ### Pointwise approximation by simple functions -/
 
-variables [measurable_space α] [emetric_space α] [opens_measurable_space α]
+variables [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
 
 /-- `nearest_pt_ind e N x` is the index `k` such that `e k` is the nearest point to `x` among the
 points `e 0`, ..., `e N`. If more than one point are at the same distance from `x`, then

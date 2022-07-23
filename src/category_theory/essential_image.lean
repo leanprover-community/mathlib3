@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.natural_isomorphism
 import category_theory.full_subcategory
+import data.set.basic
 
 /-!
 # Essential image of a functor
@@ -96,7 +97,7 @@ end functor
 A functor `F : C ⥤ D` is essentially surjective if every object of `D` is in the essential image
 of `F`. In other words, for every `Y : D`, there is some `X : C` with `F.obj X ≅ Y`.
 
-See https://stacks.math.columbia.edu/tag/001C.
+See <https://stacks.math.columbia.edu/tag/001C>.
 -/
 class ess_surj (F : C ⥤ D) : Prop :=
 (mem_ess_image [] (Y : D) : Y ∈ F.ess_image)

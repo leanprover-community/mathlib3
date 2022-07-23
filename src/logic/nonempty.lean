@@ -38,6 +38,9 @@ lemma not_nonempty_iff_imp_false {α : Sort*} : ¬ nonempty α ↔ α → false 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
 iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
 
+@[simp] lemma nonempty_psigma {α} {β : α → Sort*} : nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
+iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
+
 @[simp] lemma nonempty_subtype {α} {p : α → Prop} : nonempty (subtype p) ↔ (∃a:α, p a) :=
 iff.intro (assume ⟨⟨a, h⟩⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a, h⟩⟩)
 
@@ -57,9 +60,6 @@ iff.intro
   (assume ⟨h⟩, match h with psum.inl a := or.inl ⟨a⟩ | psum.inr b := or.inr ⟨b⟩ end)
   (assume h, match h with or.inl ⟨a⟩ := ⟨psum.inl a⟩ | or.inr ⟨b⟩ := ⟨psum.inr b⟩ end)
 
-@[simp] lemma nonempty_psigma {α} {β : α → Sort*} : nonempty (psigma β) ↔ (∃a:α, nonempty (β a)) :=
-iff.intro (assume ⟨⟨a, c⟩⟩, ⟨a, ⟨c⟩⟩) (assume ⟨a, ⟨c⟩⟩, ⟨⟨a, c⟩⟩)
-
 @[simp] lemma nonempty_empty : ¬ nonempty empty :=
 assume ⟨h⟩, h.elim
 
@@ -74,9 +74,6 @@ iff.intro (assume h a, h _) (assume h ⟨a⟩, h _)
 
 @[simp] lemma nonempty.exists {α} {p : nonempty α → Prop} : (∃h:nonempty α, p h) ↔ (∃a, p ⟨a⟩) :=
 iff.intro (assume ⟨⟨a⟩, h⟩, ⟨a, h⟩) (assume ⟨a, h⟩, ⟨⟨a⟩, h⟩)
-
-lemma classical.nonempty_pi {α} {β : α → Sort*} : nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
-iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
 /-- Using `classical.choice`, lifts a (`Prop`-valued) `nonempty` instance to a (`Type`-valued)
   `inhabited` instance. `classical.inhabited_of_nonempty` already exists, in
@@ -111,6 +108,12 @@ h.elim $ f ∘ inhabited.mk
 
 instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
+
+instance {ι : Sort*} {α : ι → Sort*} [Π i, nonempty (α i)] : nonempty (Π i, α i) :=
+⟨λ _, classical.arbitrary _⟩
+
+lemma classical.nonempty_pi {ι} {α : ι → Sort*} : nonempty (Π i, α i) ↔ ∀ i, nonempty (α i) :=
+⟨λ ⟨f⟩ a, ⟨f a⟩, @pi.nonempty _ _⟩
 
 lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
 ⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩

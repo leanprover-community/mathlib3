@@ -71,7 +71,7 @@ end
 
 lemma inf_sigma [semilattice_inf β] [order_top β] :
   (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma _ _ (order_dual β) _ _ _ _ _
+@sup_sigma _ _ βᵒᵈ _ _ _ _ _
 
 end sigma
 

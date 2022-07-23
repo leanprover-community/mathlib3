@@ -3,6 +3,7 @@ Copyright (c) 2022 Hans Parshall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hans Parshall
 -/
+import analysis.matrix
 import analysis.normed_space.basic
 import data.complex.is_R_or_C
 import linear_algebra.unitary_group
@@ -15,10 +16,10 @@ This file collects facts about the unitary matrices over `𝕜` (either `ℝ` or
 
 open_locale big_operators matrix
 
-variables {𝕜 n : Type*} [is_R_or_C 𝕜]
-variables [fintype n] [decidable_eq n]
+variables {𝕜 m n E : Type*}
 
 section entrywise_sup_norm
+variables [is_R_or_C 𝕜] [fintype n] [decidable_eq n]
 
 lemma entry_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) (i j : n):
   ∥U i j∥ ≤ 1 :=

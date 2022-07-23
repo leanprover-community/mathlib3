@@ -16,7 +16,7 @@ class of all finitely-generated structures that embed into it.
 
 Of particular interest are Fraïssé classes, which are exactly the ages of countable
 ultrahomogeneous structures. To each is associated a unique (up to nonunique isomorphism)
-Fraïssé limit - the countable structure with that age.
+Fraïssé limit - the countable ultrahomogeneous structure with that age.
 
 ## Main Definitions
 * `first_order.language.age` is the class of finitely-generated structures that embed into a
@@ -30,7 +30,7 @@ of a structure `M` in `K` into other structures in `K`, those two structures can
 fourth structure in `K` such that the resulting square of embeddings commutes.
 * `first_order.language.is_fraisse` indicates that a class is nonempty, isomorphism-invariant,
 essentially countable, and satisfies the hereditary, joint embedding, and amalgamation properties.
-* `first_order.language.fraisse_limit` noncomputably constructs a Fraïssé limit for any Fraïssé
+* `first_order.language.is_fraisse_limit` indicates that a structure is a Fraïssé limit for a given
 class.
 
 ## Main Results
@@ -38,8 +38,8 @@ class.
 joint-embedding properties.
 * `first_order.language.age.countable_quotient` shows that the age of any countable structure is
 essentially countable.
-* `first_order.language.exists_cg_is_age_of` constructs a countably-generated structure with a
-particular age.
+* `first_order.language.exists_countable_is_age_of_iff` gives necessary and sufficient conditions
+for a class to be the age of a countable structure in a language with countably many functions.
 
 ## Implementation Notes
 * Classes of structures are formalized with `set (bundled L.Structure)`.
@@ -51,10 +51,7 @@ structures. In the case of a language with countably many function symbols, thes
 - [K. Tent, M. Ziegler, *A Course in Model Theory*][Tent_Ziegler]
 
 ## TODO
-* Define ultrahomogeneous structures
-* Show that any two Fraïssé limits of a Fraïssé class are isomorphic
-* Show that any Fraïssé limit is ultrahomogeneous
-* Show that the age of any ultrahomogeneous countable structure is Fraïssé
+* Show existence and uniqueness of Fraïssé limits
 
 -/
 
@@ -133,6 +130,10 @@ lemma hereditary.is_equiv_invariant_of_fg (h : hereditary K)
 
 variable (M)
 
+lemma age.nonempty : (L.age M).nonempty :=
+⟨bundled.of (substructure.closure L (∅ : set M)),
+  (fg_iff_Structure_fg _).1 (fg_closure set.finite_empty), ⟨substructure.subtype _⟩⟩
+
 lemma age.hereditary : hereditary (L.age M) :=
 λ N hN P hP, hN.2.some.age_subset_age hP
 
@@ -199,7 +200,7 @@ theorem exists_cg_is_age_of (hn : K.nonempty)
   (jep : joint_embedding K) :
   ∃ (M : bundled.{w} L.Structure), Structure.cg L M ∧ L.age M = K :=
 begin
-  obtain ⟨F, hF⟩ := hc.exists_surjective (hn.image _),
+  obtain ⟨F, hF⟩ := hc.exists_eq_range (hn.image _),
   simp only [set.ext_iff, forall_quotient_iff, mem_image, mem_range, quotient.eq] at hF,
   simp_rw [quotient.eq_mk_iff_out] at hF,
   have hF' : ∀ n : ℕ, (F n).out ∈ K,
@@ -220,23 +221,77 @@ begin
   { exact (hFP _ n).some }
 end
 
-variable (K)
+theorem exists_countable_is_age_of_iff [L.countable_functions] :
+  (∃ (M : bundled.{w} L.Structure), (univ : set M).countable ∧ L.age M = K) ↔
+    K.nonempty ∧
+    (∀ (M N : bundled.{w} L.Structure), nonempty (M ≃[L] N) → (M ∈ K ↔ N ∈ K)) ∧
+    (quotient.mk '' K).countable ∧
+    (∀ (M : bundled.{w} L.Structure), M ∈ K → Structure.fg L M) ∧
+    hereditary K ∧
+    joint_embedding K :=
+begin
+  split,
+  { rintros ⟨M, h1, h2, rfl⟩,
+    resetI,
+    refine ⟨age.nonempty M, age.is_equiv_invariant L M, age.countable_quotient M h1, λ N hN, hN.1,
+      age.hereditary M, age.joint_embedding M⟩, },
+  { rintros ⟨Kn, eqinv, cq, hfg, hp, jep⟩,
+    obtain ⟨M, hM, rfl⟩ := exists_cg_is_age_of Kn eqinv cq hfg hp jep,
+    haveI := ((Structure.cg_iff_countable).1 hM).some,
+    refine ⟨M, to_countable _, rfl⟩, }
+end
 
-/-- A Fraïssé limit of a Fraïssé class, constructed as a direct limit. -/
-noncomputable def fraisse_limit [h : is_fraisse K] : bundled L.Structure :=
-classical.some (exists_cg_is_age_of
-  h.is_nonempty
-  h.is_equiv_invariant
-  h.is_essentially_countable
-  h.fg h.hereditary h.joint_embedding)
+variables {K} (L) (M)
 
-instance cg_fraisse_limit [h : is_fraisse K] : Structure.cg L (fraisse_limit K) :=
-(classical.some_spec (exists_cg_is_age_of h.is_nonempty h.is_equiv_invariant
-  h.is_essentially_countable h.fg h.hereditary h.joint_embedding)).1
+/-- A structure `M` is ultrahomogeneous if every embedding of a finitely generated substructure
+into `M` extends to an automorphism of `M`. -/
+def is_ultrahomogeneous : Prop :=
+∀ (S : L.substructure M) (hs : S.fg) (f : S ↪[L] M),
+  ∃ (g : M ≃[L] M), f = g.to_embedding.comp S.subtype
 
-theorem age_fraisse_limit [h : is_fraisse K] : L.age (fraisse_limit K) = K :=
-(classical.some_spec (exists_cg_is_age_of h.is_nonempty h.is_equiv_invariant
-  h.is_essentially_countable h.fg h.hereditary h.joint_embedding)).2
+variables {L} (K)
+
+/-- A structure `M` is a Fraïssé limit for a class `K` if it is countably generated,
+ultrahomogeneous, and has age `K`. -/
+structure is_fraisse_limit [countable_functions L] : Prop :=
+(ultrahomogeneous : is_ultrahomogeneous L M)
+(countable : (univ : set M).countable)
+(age : L.age M = K)
+
+variables {L} {M}
+
+lemma is_ultrahomogeneous.amalgamation_age (h : L.is_ultrahomogeneous M) :
+  amalgamation (L.age M) :=
+begin
+  rintros N P Q NP NQ ⟨Nfg, ⟨NM⟩⟩ ⟨Pfg, ⟨PM⟩⟩ ⟨Qfg, ⟨QM⟩⟩,
+  obtain ⟨g, hg⟩ := h ((PM.comp NP).to_hom.range) (Nfg.range _)
+    ((QM.comp NQ).comp (PM.comp NP).equiv_range.symm.to_embedding),
+  let s := (g.to_hom.comp PM.to_hom).range ⊔ QM.to_hom.range,
+  refine ⟨bundled.of s, embedding.comp (substructure.inclusion le_sup_left)
+      ((g.to_embedding.comp PM).equiv_range).to_embedding,
+    embedding.comp (substructure.inclusion le_sup_right) QM.equiv_range.to_embedding,
+    ⟨(fg_iff_Structure_fg _).1 (fg.sup (Pfg.range _) (Qfg.range _)), ⟨substructure.subtype _⟩⟩, _⟩,
+  ext n,
+  have hgn := (embedding.ext_iff.1 hg) ((PM.comp NP).equiv_range n),
+  simp only [embedding.comp_apply, equiv.coe_to_embedding, equiv.symm_apply_apply,
+    substructure.coe_subtype, embedding.equiv_range_apply] at hgn,
+  simp only [embedding.comp_apply, equiv.coe_to_embedding, substructure.coe_inclusion,
+    set.coe_inclusion, embedding.equiv_range_apply, hgn],
+end
+
+lemma is_ultrahomogeneous.age_is_fraisse (hc : (univ : set M).countable)
+  (h : L.is_ultrahomogeneous M) :
+  is_fraisse (L.age M) :=
+⟨age.nonempty M, λ _ hN, hN.1, age.is_equiv_invariant L M, age.countable_quotient M hc,
+  age.hereditary M, age.joint_embedding M, h.amalgamation_age⟩
+
+namespace is_fraisse_limit
+
+/-- If a class has a Fraïssé limit, it must be Fraïssé. -/
+theorem is_fraisse [countable_functions L] (h : is_fraisse_limit K M) : is_fraisse K :=
+(congr rfl h.age).mp (h.ultrahomogeneous.age_is_fraisse h.countable)
+
+end is_fraisse_limit
 
 end language
 end first_order

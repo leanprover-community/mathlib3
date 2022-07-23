@@ -50,6 +50,9 @@ inductive comp_closure ⦃s t : C⦄ : (s ⟶ t) → (s ⟶ t) → Prop
 | intro {a b} (f : s ⟶ a) (m₁ m₂ : a ⟶ b) (g : b ⟶ t) (h : r m₁ m₂) :
   comp_closure (f ≫ m₁ ≫ g) (f ≫ m₂ ≫ g)
 
+lemma comp_closure.of {a b} (m₁ m₂ : a ⟶ b) (h : r m₁ m₂) : comp_closure r m₁ m₂ :=
+by simpa using comp_closure.intro (𝟙 _) m₁ m₂ (𝟙 _) h
+
 lemma comp_left {a b c : C} (f : a ⟶ b) : Π (g₁ g₂ : b ⟶ c) (h : comp_closure r g₁ g₂),
   comp_closure r (f ≫ g₁) (f ≫ g₂)
 | _ _ ⟨x, m₁, m₂, y, h⟩ := by simpa using comp_closure.intro (f ≫ x) m₁ m₂ y h

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.analytic.composition
-
+import tactic.congrm
 /-!
 
 # Inverse of analytic functions
@@ -31,7 +31,7 @@ open finset filter
 
 namespace formal_multilinear_series
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
@@ -165,14 +165,12 @@ lemma right_inv_remove_zero (p : formal_multilinear_series 𝕜 E F) (i : E ≃L
 begin
   ext1 n,
   induction n using nat.strong_rec' with n IH,
-  cases n, { simp },
-  cases n, { simp },
+  rcases n with _|_|n,
+  { simp only [right_inv_coeff_zero] },
+  { simp only [right_inv_coeff_one] },
   simp only [right_inv, neg_inj],
-  unfold_coes,
-  congr' 1,
-  rw remove_zero_comp_of_pos _ _ (show 0 < n+2, by dec_trivial),
-  congr' 1,
-  ext k,
+  rw remove_zero_comp_of_pos _ _ (add_pos_of_nonneg_of_pos (n.zero_le) zero_lt_two),
+  congrm i.symm.to_continuous_linear_map.comp_continuous_multilinear_map (p.comp (λ k, _) _),
   by_cases hk : k < n+2; simp [hk, IH]
 end
 

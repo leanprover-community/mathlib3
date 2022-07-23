@@ -71,7 +71,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃
   complicated if we write it as an equality of natural transformations, because then we would have
   to insert natural transformations like `F ⟶ F1`.
 
-See https://stacks.math.columbia.edu/tag/001J
+See <https://stacks.math.columbia.edu/tag/001J>
 -/
 structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 mk' ::
@@ -557,7 +557,7 @@ namespace equivalence
 /--
 An equivalence is essentially surjective.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨λ Y, ⟨F.inv.obj Y, ⟨F.as_equivalence.counit_iso.app Y⟩⟩⟩
@@ -565,7 +565,7 @@ lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 /--
 An equivalence is faithful.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
@@ -578,7 +578,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
 /--
 An equivalence is full.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
@@ -597,13 +597,13 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 /--
 A functor which is full, faithful, and essentially surjective is an equivalence.
 
-See https://stacks.math.columbia.edu/tag/02C3.
+See <https://stacks.math.columbia.edu/tag/02C3>.
 -/
 noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
-    (λ X, (preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
+    (λ X, (F.preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
   (nat_iso.of_components F.obj_obj_preimage_iso (by tidy))
 

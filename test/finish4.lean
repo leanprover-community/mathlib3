@@ -56,4 +56,4 @@ constant  exp_add    : ∀ x y, exp (x + y) = exp x * exp y
 
 theorem log_mul' {x y : real} (hx : x > 0) (hy : y > 0) :
   log (x * y) = log x + log y :=
-by finish using [log_exp_eq, exp_log_eq, exp_add]
+by rw [←log_exp_eq (log x + log y), exp_add, exp_log_eq hx, exp_log_eq hy]

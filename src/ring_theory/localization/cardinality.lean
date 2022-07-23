@@ -3,9 +3,9 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import ring_theory.localization.basic
-import set_theory.cardinal_ordinal
 import ring_theory.integral_domain
+import ring_theory.localization.basic
+import set_theory.cardinal.ordinal
 
 /-!
 # Cardinality of localizations
@@ -53,7 +53,7 @@ begin
   classical,
   casesI fintype_or_infinite R,
   { exact cardinal.mk_le_of_surjective (algebra_map_surjective_of_fintype S) },
-  erw [←cardinal.mul_eq_self $ cardinal.omega_le_mk R],
+  erw [←cardinal.mul_eq_self $ cardinal.aleph_0_le_mk R],
   set f : R × R → L := λ aa, is_localization.mk' _ aa.1 (if h : aa.2 ∈ S then ⟨aa.2, h⟩ else 1),
   refine @cardinal.mk_le_of_surjective _ _ f (λ a, _),
   obtain ⟨x, y, h⟩ := is_localization.mk'_surjective S a,

@@ -23,8 +23,8 @@ mathematical arguments go: one doesn't change weights, but merely adds some. Thi
 lemmas unconditional on the sum of the weights being `1`.
 -/
 
-open set
-open_locale big_operators classical
+open set function
+open_locale big_operators classical pointwise
 
 universes u u'
 variables {R E F ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [add_comm_group F]
@@ -73,7 +73,7 @@ lemma finset.center_mass_segment'
   (s : finset ι) (t : finset ι') (ws : ι → R) (zs : ι → E) (wt : ι' → R) (zt : ι' → E)
   (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : R) (hab : a + b = 1) :
   a • s.center_mass ws zs + b • t.center_mass wt zt =
-    (s.map function.embedding.inl ∪ t.map function.embedding.inr).center_mass
+    (s.map embedding.inl ∪ t.map embedding.inr).center_mass
       (sum.elim (λ i, a * ws i) (λ j, b * wt j))
       (sum.elim zs zt) :=
 begin
@@ -152,6 +152,26 @@ lemma convex.sum_mem (hs : convex R s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : �
   ∑ i in t, w i • z i ∈ s :=
 by simpa only [h₁, center_mass, inv_one, one_smul] using
   hs.center_mass_mem h₀ (h₁.symm ▸ zero_lt_one) hz
+
+/-- A version of `convex.sum_mem` for `finsum`s. If `s` is a convex set, `w : ι → R` is a family of
+nonnegative weights with sum one and `z : ι → E` is a family of elements of a module over `R` such
+that `z i ∈ s` whenever `w i ≠ 0``, then the sum `∑ᶠ i, w i • z i` belongs to `s`. See also
+`partition_of_unity.finsum_smul_mem_convex`. -/
+lemma convex.finsum_mem {ι : Sort*} {w : ι → R} {z : ι → E} {s : set E}
+  (hs : convex R s) (h₀ : ∀ i, 0 ≤ w i) (h₁ : ∑ᶠ i, w i = 1) (hz : ∀ i, w i ≠ 0 → z i ∈ s) :
+  ∑ᶠ i, w i • z i ∈ s :=
+begin
+  have hfin_w : (support (w ∘ plift.down)).finite,
+  { by_contra H,
+    rw [finsum, dif_neg H] at h₁,
+    exact zero_ne_one h₁ },
+  have hsub : support ((λ i, w i • z i) ∘ plift.down) ⊆ hfin_w.to_finset,
+    from (support_smul_subset_left _ _).trans hfin_w.coe_to_finset.ge,
+  rw [finsum_eq_sum_plift_of_support_subset hsub],
+  refine hs.sum_mem (λ _ _, h₀ _) _ (λ i hi, hz _ _),
+  { rwa [finsum, dif_pos hfin_w] at h₁ },
+  { rwa [hfin_w.mem_to_finset] at hi }
+end
 
 lemma convex_iff_sum_mem :
   convex R s ↔
@@ -302,7 +322,7 @@ begin
       (hw₁.symm ▸ zero_lt_one) (λ x hx, hx) }
 end
 
-lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
+lemma set.finite.convex_hull_eq {s : set E} (hs : s.finite) :
   convex_hull R s = {x : E | ∃ (w : E → R) (hw₀ : ∀ y ∈ s, 0 ≤ w y)
     (hw₁ : ∑ y in hs.to_finset, w y = 1), hs.to_finset.center_mass w id = x} :=
 by simpa only [set.finite.coe_to_finset, set.finite.mem_to_finset, exists_prop]
@@ -325,13 +345,10 @@ begin
   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
-lemma convex_hull_prod (s : set E) (t : set F) :
-  convex_hull R (s ×ˢ t) = convex_hull R s ×ˢ convex_hull R t :=
+lemma mk_mem_convex_hull_prod {t : set F} {x : E} {y : F} (hx : x ∈ convex_hull R s)
+  (hy : y ∈ convex_hull R t) :
+  (x, y) ∈ convex_hull R (s ×ˢ t) :=
 begin
-  refine set.subset.antisymm _ _,
-  { exact convex_hull_min (set.prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _)
-    ((convex_convex_hull _ _).prod $ convex_convex_hull _ _) },
-  rintro ⟨x, y⟩ ⟨hx, hy⟩,
   rw convex_hull_eq at ⊢ hx hy,
   obtain ⟨ι, a, w, S, hw, hw', hS, hSp⟩ := hx,
   obtain ⟨κ, b, v, T, hv, hv', hT, hTp⟩ := hy,
@@ -367,6 +384,19 @@ begin
     rw [←finset.sum_smul, hw', one_smul] }
 end
 
+@[simp] lemma convex_hull_prod (s : set E) (t : set F) :
+  convex_hull R (s ×ˢ t) = convex_hull R s ×ˢ convex_hull R t :=
+subset.antisymm (convex_hull_min (prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _) $
+  (convex_convex_hull _ _).prod $ convex_convex_hull _ _) $
+    prod_subset_iff.2 $ λ x hx y, mk_mem_convex_hull_prod hx
+
+lemma convex_hull_add (s t : set E) : convex_hull R (s + t) = convex_hull R s + convex_hull R t :=
+by simp_rw [←image2_add, ←image_prod, is_linear_map.is_linear_map_add.convex_hull_image,
+  convex_hull_prod]
+
+lemma convex_hull_sub (s t : set E) : convex_hull R (s - t) = convex_hull R s - convex_hull R t :=
+by simp_rw [sub_eq_add_neg, convex_hull_add, convex_hull_neg]
+
 /-! ### `std_simplex` -/
 
 variables (ι) [fintype ι] {f : ι → R}
@@ -392,7 +422,7 @@ under the linear map sending each function `w` to `∑ x in s, w x • x`.
 Since we have no sums over finite sets, we use sum over `@finset.univ _ hs.fintype`.
 The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so that later we will not need
 to prove that this map is linear. -/
-lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
+lemma set.finite.convex_hull_eq_image {s : set E} (hs : s.finite) :
   convex_hull R s = by haveI := hs.fintype; exact
     (⇑(∑ x : s, (@linear_map.proj R s _ (λ i, R) _ _ x).smul_right x.1)) '' (std_simplex R s) :=
 begin

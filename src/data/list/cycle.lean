@@ -436,8 +436,11 @@ rfl
 @[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
 rfl
 
+lemma coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α) = ↑(l ++ [a]) :=
+quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
+
 /-- The unique empty cycle. -/
-def nil : cycle α := ↑([] : list α)
+def nil : cycle α := ([] : list α)
 
 @[simp] lemma coe_nil : ↑([] : list α) = @nil α :=
 rfl
@@ -445,6 +448,7 @@ rfl
 @[simp] lemma coe_eq_nil (l : list α) : (l : cycle α) = nil ↔ l = [] :=
 coe_eq_coe.trans is_rotated_nil_iff
 
+/-- For consistency with `list.has_emptyc`. -/
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
 @[simp] lemma empty_eq : ∅ = @nil α :=
@@ -459,7 +463,7 @@ quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
 /-- For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`. -/
 def mem (a : α) (s : cycle α) : Prop :=
-quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem_iff)
+quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ e, propext $ e.mem_iff)
 
 instance : has_mem α (cycle α) := ⟨mem⟩
 
@@ -477,7 +481,7 @@ quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
 
 /-- Reverse a `s : cycle α` by reversing the underlying `list`. -/
 def reverse (s : cycle α) : cycle α :=
-quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
+quot.map reverse (λ l₁ l₂, is_rotated.reverse) s
 
 @[simp] lemma reverse_coe (l : list α) : (l : cycle α).reverse = l.reverse :=
 rfl
@@ -493,7 +497,7 @@ rfl
 
 /-- The length of the `s : cycle α`, which is the number of elements, counting duplicates. -/
 def length (s : cycle α) : ℕ :=
-quot.lift_on s length (λ l₁ l₂ (e : l₁ ~r l₂), e.perm.length_eq)
+quot.lift_on s length (λ l₁ l₂ e, e.perm.length_eq)
 
 @[simp] lemma length_coe (l : list α) : length (l : cycle α) = l.length :=
 rfl
@@ -560,7 +564,7 @@ end
 
 /-- The `s : cycle α` contains no duplicates. -/
 def nodup (s : cycle α) : Prop :=
-quot.lift_on s nodup (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.nodup_iff)
+quot.lift_on s nodup (λ l₁ l₂ e, propext $ e.nodup_iff)
 
 @[simp] lemma nodup_nil : nodup (@nil α) :=
 nodup_nil
@@ -592,13 +596,19 @@ end
 The `s : cycle α` as a `multiset α`.
 -/
 def to_multiset (s : cycle α) : multiset α :=
-quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
+quotient.lift_on' s coe (λ l₁ l₂ h, multiset.coe_eq_coe.mpr h.perm)
 
 @[simp] lemma coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
 rfl
 
-@[simp] lemma nil_to_multiset : nil.to_multiset = (∅ : multiset α) :=
+@[simp] lemma nil_to_multiset : nil.to_multiset = (0 : multiset α) :=
 rfl
+
+@[simp] lemma card_to_multiset (s : cycle α) : s.to_multiset.card = s.length :=
+quotient.induction_on' s (by simp)
+
+@[simp] lemma to_multiset_eq_nil {s : cycle α} : s.to_multiset = 0 ↔ s = cycle.nil :=
+quotient.induction_on' s (by simp)
 
 /-- The lift of `list.map`. -/
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
@@ -611,13 +621,13 @@ rfl
 rfl
 
 @[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
-quotient.induction_on' s $ λ l, by simp
+quotient.induction_on' s (by simp)
 
 /-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=
 quotient.lift_on' s
   (λ l, (l.cyclic_permutations : multiset (list α))) $
-  λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
+  λ l₁ l₂ h, by simpa using h.cyclic_permutations.perm
 
 @[simp] lemma lists_coe (l : list α) : lists (l : cycle α) = ↑l.cyclic_permutations :=
 rfl
@@ -648,7 +658,7 @@ instance {s : cycle α} : decidable (nontrivial s) :=
 quot.rec_on_subsingleton s decidable_nontrivial_coe
 
 instance {s : cycle α} : decidable (nodup s) :=
-quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+quot.rec_on_subsingleton s list.nodup_decidable
 
 instance fintype_nodup_cycle [fintype α] : fintype {s : cycle α // s.nodup} :=
 fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩)
@@ -664,13 +674,22 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
 
+@[simp] theorem to_finset_to_multiset (s : cycle α) : s.to_multiset.to_finset = s.to_finset :=
+rfl
+
+@[simp] lemma coe_to_finset (l : list α) : (l : cycle α).to_finset = l.to_finset :=
+rfl
+
 @[simp] lemma nil_to_finset : (@nil α).to_finset = ∅ :=
 rfl
+
+@[simp] lemma to_finset_eq_nil {s : cycle α} : s.to_finset = ∅ ↔ s = cycle.nil :=
+quotient.induction_on' s (by simp)
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
 def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 λ s, quot.hrec_on s (λ l hn x hx, next l x hx)
-  (λ l₁ l₂ (h : l₁ ~r l₂),
+  (λ l₁ l₂ h,
   function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
     (λ x y hxy, function.hfunext (propext (by simpa [eq_of_heq hxy] using h.mem_iff))
     (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_next_eq h h₁ _)))))
@@ -678,7 +697,7 @@ def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the previous element before `x ∈ s`. -/
 def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 λ s, quot.hrec_on s (λ l hn x hx, prev l x hx)
-  (λ l₁ l₂ (h : l₁ ~r l₂),
+  (λ l₁ l₂ h,
   function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
     (λ x y hxy, function.hfunext (propext (by simpa [eq_of_heq hxy] using h.mem_iff))
     (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_prev_eq h h₁ _)))))
@@ -715,5 +734,112 @@ underlying element. This representation also supports cycles that can contain du
 -/
 instance [has_repr α] : has_repr (cycle α) :=
 ⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
+
+/-- `chain R s` means that `R` holds between adjacent elements of `s`.
+
+`chain R ([a, b, c] : cycle α) ↔ R a b ∧ R b c ∧ R c a` -/
+def chain (r : α → α → Prop) (c : cycle α) : Prop :=
+quotient.lift_on' c (λ l, match l with
+  | [] := true
+  | (a :: m) := chain r a (m ++ [a]) end) $
+λ a b hab, propext $ begin
+  cases a with a l;
+  cases b with b m,
+  { refl },
+  { have := is_rotated_nil_iff'.1 hab,
+    contradiction },
+  { have := is_rotated_nil_iff.1 hab,
+    contradiction },
+  { unfold chain._match_1,
+    cases hab with n hn,
+    induction n with d hd generalizing a b l m,
+    { simp only [rotate_zero] at hn,
+      rw [hn.1, hn.2] },
+    { cases l with c s,
+      { simp only [rotate_singleton] at hn,
+        rw [hn.1, hn.2] },
+      { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
+        rw [←hd c _ _ _ hn],
+        simp [and.comm] } } }
+end
+
+@[simp] lemma chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
+by trivial
+
+@[simp] lemma chain_coe_cons (r : α → α → Prop) (a : α) (l : list α) :
+  chain r (a :: l) ↔ list.chain r a (l ++ [a]) :=
+iff.rfl
+
+@[simp] lemma chain_singleton (r : α → α → Prop) (a : α) : chain r [a] ↔ r a a :=
+by rw [chain_coe_cons, nil_append, chain_singleton]
+
+lemma chain_ne_nil (r : α → α → Prop) {l : list α} :
+  Π hl : l ≠ [], chain r l ↔ list.chain r (last l hl) l :=
+begin
+  apply l.reverse_rec_on,
+  exact λ hm, hm.irrefl.elim,
+  intros m a H _,
+  rw [←coe_cons_eq_coe_append, chain_coe_cons, last_append_singleton]
+end
+
+lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
+  chain r (s.map f) ↔ chain (λ a b, r (f a) (f b)) s :=
+quotient.induction_on' s $ λ l, begin
+  cases l with a l,
+  refl,
+  convert list.chain_map f,
+  rw map_append f l [a],
+  refl
+end
+
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain r (list.range n.succ) ↔ r n 0 ∧ ∀ m < n, r m m.succ :=
+by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, chain_range_succ]
+
+variables {r : α → α → Prop} {s : cycle α}
+
+theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
+begin
+  induction s using cycle.induction_on with a l _,
+  exact λ _, cycle.chain.nil r,
+  intro hs,
+  have Ha : a ∈ ((a :: l) : cycle α) := by simp,
+  have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
+  rw cycle.chain_coe_cons,
+  apply pairwise.chain,
+  rw pairwise_cons,
+  refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
+    (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
+  { rw mem_append at hb,
+    cases hb,
+    { exact hs a Ha b (Hl hb) },
+    { rw mem_singleton at hb,
+      rw hb,
+      exact hs a Ha a Ha } },
+  { rw mem_singleton at hc,
+    rw hc,
+    exact hs b (Hl hb) a Ha }
+end
+
+theorem chain_iff_pairwise [is_trans α r] : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
+⟨begin
+  induction s using cycle.induction_on with a l _,
+  exact λ _ b hb, hb.elim,
+  intros hs b hb c hc,
+  rw [cycle.chain_coe_cons, chain_iff_pairwise] at hs,
+  simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
+    is_empty.forall_iff, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
+  simp only [mem_coe_iff, mem_cons_iff] at hb hc,
+  rcases hb with rfl | hb;
+  rcases hc with rfl | hc,
+  { exact hs.1 c (or.inr rfl) },
+  { exact hs.1 c (or.inl hc) },
+  { exact hs.2.2 b hb },
+  { exact trans (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
+end, cycle.chain_of_pairwise⟩
+
+theorem forall_eq_of_chain [is_trans α r] [is_antisymm α r]
+  (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=
+by { rw chain_iff_pairwise at hs, exact antisymm (hs a ha b hb) (hs b hb a ha) }
 
 end cycle

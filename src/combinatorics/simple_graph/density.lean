@@ -21,6 +21,7 @@ Between two finsets of vertices,
 -/
 
 open finset
+open_locale big_operators
 
 variables {ι κ α β : Type*}
 
@@ -29,7 +30,7 @@ variables {ι κ α β : Type*}
 namespace rel
 section asymmetric
 variables (r : α → β → Prop) [Π a, decidable_pred (r a)] {s s₁ s₂ : finset α} {t t₁ t₂ : finset β}
-  {a : α} {b : β}
+  {a : α} {b : β} {δ : ℚ}
 
 /-- Finset of edges of a relation between two finsets of vertices. -/
 def interedges (s : finset α) (t : finset β) : finset (α × β) :=
@@ -121,6 +122,106 @@ by rw [edge_density, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
 
 @[simp] lemma edge_density_empty_right (s : finset α) : edge_density r s ∅ = 0 :=
 by rw [edge_density, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
+
+lemma card_interedges_finpartition_left [decidable_eq α] (P : finpartition s) (t : finset β) :
+  (interedges r s t).card = ∑ a in P.parts, (interedges r a t).card :=
+begin
+  classical,
+  simp_rw [←P.bUnion_parts, interedges_bUnion_left, id.def],
+  rw card_bUnion,
+  exact λ x hx y hy h, interedges_disjoint_left r (P.disjoint hx hy h) _,
+end
+
+lemma card_interedges_finpartition_right [decidable_eq β] (s : finset α) (P : finpartition t) :
+  (interedges r s t).card = ∑ b in P.parts, (interedges r s b).card :=
+begin
+  classical,
+  simp_rw [←P.bUnion_parts, interedges_bUnion_right, id],
+  rw card_bUnion,
+  exact λ x hx y hy h, interedges_disjoint_right r _ (P.disjoint hx hy h),
+end
+
+lemma card_interedges_finpartition [decidable_eq α] [decidable_eq β] (P : finpartition s)
+  (Q : finpartition t) :
+  (interedges r s t).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
+by simp_rw [card_interedges_finpartition_left _ P, card_interedges_finpartition_right _ _ Q,
+  sum_product]
+
+lemma mul_edge_density_le_edge_density (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁) (hs₂ : s₂.nonempty)
+  (ht₂ : t₂.nonempty) :
+  (s₂.card : ℚ)/s₁.card * (t₂.card/t₁.card) * edge_density r s₂ t₂ ≤ edge_density r s₁ t₁ :=
+begin
+  have hst : (s₂.card : ℚ) * t₂.card ≠ 0 := by simp [hs₂.ne_empty, ht₂.ne_empty],
+  rw [edge_density, edge_density, div_mul_div_comm, mul_comm, div_mul_div_cancel _ hst],
+  refine div_le_div_of_le (by exact_mod_cast (s₁.card * t₁.card).zero_le) _,
+  exact_mod_cast card_le_of_subset (interedges_mono hs ht),
+end
+
+lemma edge_density_sub_edge_density_le_one_sub_mul (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁) (hs₂ : s₂.nonempty)
+  (ht₂ : t₂.nonempty) :
+  edge_density r s₂ t₂ - edge_density r s₁ t₁ ≤ 1 - (s₂.card)/s₁.card * (t₂.card/t₁.card) :=
+begin
+  refine (sub_le_sub_left (mul_edge_density_le_edge_density r hs ht hs₂ ht₂) _).trans _,
+  refine le_trans _ (mul_le_of_le_one_right _ (edge_density_le_one r s₂ t₂)),
+  { rw [sub_mul, one_mul] },
+  refine sub_nonneg_of_le (mul_le_one _ (div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)) _);
+  exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset ‹_›)) (nat.cast_nonneg _),
+end
+
+lemma abs_edge_density_sub_edge_density_le_one_sub_mul (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁)
+  (hs₂ : s₂.nonempty) (ht₂ : t₂.nonempty) :
+  |edge_density r s₂ t₂ - edge_density r s₁ t₁| ≤ 1 - s₂.card/s₁.card * (t₂.card/t₁.card) :=
+begin
+  have habs : abs (edge_density r s₂ t₂ - edge_density r s₁ t₁) ≤ 1,
+  { rw [abs_sub_le_iff, ←sub_zero (1 : ℚ)],
+    split; exact sub_le_sub (edge_density_le_one r _ _) (edge_density_nonneg r _ _) },
+  refine abs_sub_le_iff.2 ⟨edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂ ht₂, _⟩,
+  rw [←add_sub_cancel (edge_density r s₁ t₁) (edge_density (λ x y, ¬r x y) s₁ t₁),
+    ←add_sub_cancel (edge_density r s₂ t₂) (edge_density (λ x y, ¬r x y) s₂ t₂),
+    edge_density_add_edge_density_compl _ (hs₂.mono hs) (ht₂.mono ht),
+    edge_density_add_edge_density_compl _ hs₂ ht₂, sub_sub_sub_cancel_left],
+  exact edge_density_sub_edge_density_le_one_sub_mul _ hs ht hs₂ ht₂,
+end
+
+lemma abs_edge_density_sub_edge_density_le_two_mul_sub_sq (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁)
+  (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1) (hs₂ : (1 - δ) * s₁.card ≤ s₂.card)
+  (ht₂ : (1 - δ) * t₁.card ≤ t₂.card) :
+  |edge_density r s₂ t₂ - edge_density r s₁ t₁| ≤ 2*δ - δ^2 :=
+begin
+  have hδ' : 0 ≤ 2 * δ - δ ^ 2,
+  { rw [sub_nonneg, sq],
+    exact mul_le_mul_of_nonneg_right (hδ₁.le.trans (by norm_num)) hδ₀ },
+  rw ←sub_pos at hδ₁,
+  simp only [edge_density],
+  obtain rfl | hs₂' := s₂.eq_empty_or_nonempty,
+  { rw [finset.card_empty, nat.cast_zero] at hs₂,
+    simpa [(nonpos_of_mul_nonpos_right hs₂ hδ₁).antisymm (nat.cast_nonneg _)] using hδ' },
+  obtain rfl | ht₂' := t₂.eq_empty_or_nonempty,
+  { rw [finset.card_empty, nat.cast_zero] at ht₂,
+    simpa [(nonpos_of_mul_nonpos_right ht₂ hδ₁).antisymm (nat.cast_nonneg _)] using hδ' },
+  rw [show 2 * δ - δ ^ 2 = 1 - (1 - δ) * (1 - δ), by ring],
+  refine (abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
+  apply sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _),
+  { exact_mod_cast (hs₂'.mono hs).card_pos },
+  { exact_mod_cast (ht₂'.mono ht).card_pos },
+  { exact div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _) }
+end
+
+/-- If `s₂ ⊆ s₁`, `t₂ ⊆ t₁` and they take up all but a `δ`-proportion, then the difference in edge
+densities is at most `2 * δ`. -/
+lemma abs_edge_density_sub_edge_density_le_two_mul (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁) (hδ : 0 ≤ δ)
+  (hscard : (1 - δ) * s₁.card ≤ s₂.card) (htcard : (1 - δ) * t₁.card ≤ t₂.card) :
+  |edge_density r s₂ t₂ - edge_density r s₁ t₁| ≤ 2 * δ :=
+begin
+  cases lt_or_le δ 1,
+  { exact (abs_edge_density_sub_edge_density_le_two_mul_sub_sq r hs ht hδ h hscard htcard).trans
+    ((sub_le_self_iff _).2 $ sq_nonneg δ) },
+  rw two_mul,
+  refine (abs_sub _ _).trans (add_le_add (le_trans _ h) (le_trans _ h));
+  { rw abs_of_nonneg,
+    exact_mod_cast edge_density_le_one r _ _,
+    exact_mod_cast edge_density_nonneg r _ _ }
+end
 
 end asymmetric
 

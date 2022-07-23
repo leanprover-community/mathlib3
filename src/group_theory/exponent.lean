@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import group_theory.order_of_element
-import algebra.punit_instances
 import algebra.gcd_monoid.finset
+import algebra.punit_instances
+import data.nat.factorization.basic
 import tactic.by_contra
-import number_theory.padics.padic_norm
 
 /-!
 # Exponent of a group
@@ -219,12 +219,6 @@ end
 have _ := exponent_ne_zero_iff_range_order_of_finite h,
 by rwa [ne.def, not_iff_comm, iff.comm] at this
 
-end monoid
-
-section left_cancel_monoid
-
-variable [left_cancel_monoid G]
-
 @[to_additive lcm_add_order_eq_exponent]
 lemma lcm_order_eq_exponent [fintype G] : (finset.univ : finset G).lcm order_of = exponent G :=
 begin
@@ -234,6 +228,12 @@ begin
   rw [hm, pow_mul, pow_order_of_eq_one, one_pow]
 end
 
+end monoid
+
+section left_cancel_monoid
+
+variable [left_cancel_monoid G]
+
 @[to_additive]
 lemma exponent_ne_zero_of_fintype [fintype G] : exponent G ≠ 0 :=
 by simpa [←lcm_order_eq_exponent, finset.lcm_eq_zero_iff] using λ x, (order_of_pos x).ne'
@@ -242,7 +242,7 @@ end left_cancel_monoid
 
 section comm_monoid
 
-variable [cancel_comm_monoid G]
+variable [comm_monoid G]
 
 @[to_additive] lemma exponent_eq_supr_order_of (h : ∀ g : G, 0 < order_of g) :
   exponent G = ⨆ g : G, order_of g :=
@@ -296,6 +296,12 @@ begin
     exact exponent_eq_supr_order_of (λ g, ne.bot_lt $ this g) }
 end
 
+end comm_monoid
+
+section cancel_comm_monoid
+
+variables [cancel_comm_monoid G]
+
 @[to_additive] lemma exponent_eq_max'_order_of [fintype G] :
   exponent G = ((@finset.univ G _).image order_of).max' ⟨1, by simp⟩ :=
 begin
@@ -303,6 +309,6 @@ begin
   exact exponent_eq_supr_order_of order_of_pos
 end
 
-end comm_monoid
+end cancel_comm_monoid
 
 end monoid

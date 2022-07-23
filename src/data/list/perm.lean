@@ -215,6 +215,19 @@ theorem perm.filter (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} (s : l₁ ~ l₂) : filter p l₁ ~ filter p l₂ :=
 by rw ← filter_map_eq_filter; apply s.filter_map _
 
+theorem filter_append_perm (p : α → Prop) [decidable_pred p]
+  (l : list α) : filter p l ++ filter (λ x, ¬ p x) l ~ l :=
+begin
+  induction l with x l ih,
+  { refl },
+  { by_cases h : p x,
+    { simp only [h, filter_cons_of_pos, filter_cons_of_neg, not_true, not_false_iff, cons_append],
+      exact ih.cons x },
+    { simp only [h, filter_cons_of_neg, not_false_iff, filter_cons_of_pos],
+      refine perm.trans _ (ih.cons x),
+      exact perm_append_comm.trans (perm_append_comm.cons _), } }
+end
+
 theorem exists_perm_sublist {l₁ l₂ l₂' : list α}
   (s : l₁ <+ l₂) (p : l₂ ~ l₂') : ∃ l₁' ~ l₁, l₁' <+ l₂' :=
 begin
@@ -378,6 +391,22 @@ theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
 | ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
+theorem perm.countp_congr (s : l₁ ~ l₂) {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
+  (hp : ∀ x ∈ l₁, p x = p' x) : l₁.countp p = l₂.countp p' :=
+begin
+  rw ← s.countp_eq p',
+  clear s,
+  induction l₁ with y s hs,
+  { refl },
+  { simp only [mem_cons_iff, forall_eq_or_imp] at hp,
+    simp only [countp_cons, hs hp.2, hp.1], },
+end
+
+theorem countp_eq_countp_filter_add
+  (l : list α) (p q : α → Prop) [decidable_pred p] [decidable_pred q] :
+  l.countp p = (l.filter q).countp p + (l.filter (λ a, ¬ q a)).countp p :=
+by { rw [← countp_append], exact perm.countp_eq _ (filter_append_perm _ _).symm }
+
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=
 p.countp_eq _
@@ -517,7 +546,7 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, p.cons_inv, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, p.cons a, s.cons2 _ _ _⟩⟩
 
-alias subperm_cons ↔ list.subperm.of_cons list.subperm.cons
+alias subperm_cons ↔ subperm.of_cons subperm.cons
 
 attribute [protected] subperm.cons
 
@@ -861,6 +890,14 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂, f
     refine (pairwise_middle S).2 (pairwise_cons.2 ⟨λ b m, _, IH _ p'⟩),
     exact h _ (p'.symm.subset m) }
 end
+
+lemma pairwise.perm {R : α → α → Prop} {l l' : list α} (hR : l.pairwise R)
+  (hl : l ~ l') (hsymm : symmetric R) : l'.pairwise R :=
+(hl.pairwise_iff hsymm).mp hR
+
+lemma perm.pairwise {R : α → α → Prop} {l l' : list α}
+  (hl : l ~ l') (hR : l.pairwise R) (hsymm : symmetric R) : l'.pairwise R :=
+hR.perm hl hsymm
 
 theorem perm.nodup_iff {l₁ l₂ : list α} : l₁ ~ l₂ → (nodup l₁ ↔ nodup l₂) :=
 perm.pairwise_iff $ @ne.symm α

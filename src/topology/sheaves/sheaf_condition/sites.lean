@@ -42,7 +42,7 @@ namespace Top.presheaf
 open category_theory topological_space Top category_theory.limits opposite
 open Top.presheaf.sheaf_condition_equalizer_products
 
-variables {C : Type u} [category.{v} C] [has_products C]
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
 variables {X : Top.{v}} (F : presheaf C X)
 
 /--
@@ -138,9 +138,8 @@ lemma fork_map_comp_first_obj_iso_pi_opens_eq
   presheaf.fork_map R F ≫ (first_obj_iso_pi_opens F U R).hom =
   F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op ≫ res F (covering_of_presieve U R) :=
 begin
-  ext f,
-  rw [category.assoc, category.assoc],
-  rw first_obj_iso_pi_opens_π,
+  ext ⟨f⟩,
+  rw [category.assoc, category.assoc, first_obj_iso_pi_opens_π],
   dunfold presheaf.fork_map res,
   rw [limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← F.map_comp],
   congr,
@@ -214,7 +213,10 @@ fork.mk_hom (F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op)
 instance is_iso_postcompose_diagram_fork_hom_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
   is_iso (postcompose_diagram_fork_hom F U R hR).hom :=
-begin rw postcompose_diagram_fork_hom_hom, apply eq_to_hom.is_iso, end
+begin
+  rw [postcompose_diagram_fork_hom_hom, eq_to_hom_map],
+  apply eq_to_hom.is_iso,
+end
 
 instance is_iso_postcompose_diagram_fork_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
@@ -336,7 +338,7 @@ lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
   (s : limits.fork (left_res F U) (right_res F U)) :
   s.ι ≫ pi_opens_to_first_obj F U ≫ first_obj_to_pi_opens F U = s.ι :=
 begin
-  ext j,
+  ext ⟨j⟩,
   dunfold first_obj_to_pi_opens pi_opens_to_first_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app],
   -- The issue here is that `index_of_hom U (hom_of_index U j)` need not be equal to `j`.
@@ -522,7 +524,7 @@ namespace Top.sheaf
 
 open category_theory topological_space Top opposite
 
-variables {C : Type u} [category.{v} C] [limits.has_products C]
+variables {C : Type u} [category.{v} C] [limits.has_products.{v} C]
 variables {X : Top.{v}} {ι : Type*} {B : ι → opens X}
 variables (F : presheaf C X) (F' : sheaf C X) (h : opens.is_basis (set.range B))
 

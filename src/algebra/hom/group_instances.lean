@@ -55,11 +55,17 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   zpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
+instance [add_comm_monoid M] : add_comm_monoid (add_monoid.End M) :=
+add_monoid_hom.add_comm_monoid
+
 instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
 { zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,
   mul_zero := λ x, add_monoid_hom.ext $ λ i, add_monoid_hom.map_zero _,
   left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
   right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
   .. add_monoid.End.monoid M,
   .. add_monoid_hom.add_comm_monoid }
 
@@ -162,12 +168,12 @@ Note that the expression `λ q n, f (g q) n` is simply `monoid_hom.comp`. -/
 Note that the expression `λ q n, f (g q) n` is simply `add_monoid_hom.comp`.
 
 This also exists as a `linear_map` version, `linear_map.compl₂`"]
-def compl₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
+def compl₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class Q]
   (f : M →* N →* P) (g : Q →* N) : M →* Q →* P :=
 (comp_hom' g).comp f
 
 @[simp, to_additive]
-lemma compl₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
+lemma compl₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class Q]
   (f : M →* N →* P) (g : Q →* N) (m : M) (q : Q) :
   (compl₂ f g) m q = f m (g q) := rfl
 

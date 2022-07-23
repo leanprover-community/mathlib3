@@ -25,8 +25,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
   This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
+- `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+- `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -63,12 +63,6 @@ instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 hp.one_lt.ne'
-
-lemma two_le_iff (n : ℕ) : 2 ≤ n ↔ n ≠ 0 ∧ ¬is_unit n :=
-begin
-  rw nat.is_unit_iff,
-  rcases n with _|_|m; norm_num [one_lt_succ_succ, succ_le_iff]
-end
 
 lemma prime.eq_one_or_self_of_dvd {p : ℕ} (pp : p.prime) (m : ℕ) (hm : m ∣ p) : m = 1 ∨ m = p :=
 begin
@@ -429,6 +423,17 @@ p.mod_two_eq_zero_or_one.imp_left
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
 
+lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
+
+/-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
+lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
+begin
+  refine ⟨λ h hf, _, (nat.prime.eq_two_or_odd $ fact.out p.prime).resolve_left⟩,
+  rw hf at h,
+  simpa using h,
+end
+
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
   rw [coprime_iff_gcd_eq_one],
@@ -508,7 +513,7 @@ lemma factors_chain' (n) : list.chain' (≤) (factors n) :=
 @list.chain'.tail _ _ (_::_) (factors_chain_2 _)
 
 lemma factors_sorted (n : ℕ) : list.sorted (≤) (factors n) :=
-(list.chain'_iff_pairwise (@le_trans _ _)).1 (factors_chain' _)
+list.chain'_iff_pairwise.1 (factors_chain' _)
 
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
@@ -1025,7 +1030,7 @@ factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)
 
 lemma factors_helper_end (n : ℕ) (l : list ℕ) (H : factors_helper n 2 l) : nat.factors n = l :=
 let ⟨h₁, h₂, h₃⟩ := H nat.prime_two in
-have _, from (list.chain'_iff_pairwise (@le_trans _ _)).1 (@list.chain'.tail _ _ (_::_) h₁),
+have _, from list.chain'_iff_pairwise.1 (@list.chain'.tail _ _ (_::_) h₁),
 (list.eq_of_perm_of_sorted (nat.factors_unique h₃ h₂) this (nat.factors_sorted _)).symm
 
 /-- Given `n` and `a` natural numerals, returns `(l, ⊢ factors_helper n a l)`. -/

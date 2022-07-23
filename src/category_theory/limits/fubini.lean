@@ -194,7 +194,7 @@ begin
   exact is_limit.cone_point_unique_up_to_iso Q' Q'',
 end
 
-@[simp]
+@[simp, reassoc]
 lemma limit_uncurry_iso_limit_comp_lim_hom_π_π {j} {k} :
   (limit_uncurry_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 begin
@@ -203,13 +203,42 @@ begin
   simp,
 end
 
-@[simp]
+@[simp, reassoc]
 lemma limit_uncurry_iso_limit_comp_lim_inv_π {j} {k} :
   (limit_uncurry_iso_limit_comp_lim F).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
   rw [←cancel_epi (limit_uncurry_iso_limit_comp_lim F).hom],
   simp,
 end
+end
+
+section
+
+variables (F) [has_limits_of_shape J C] [has_limits_of_shape K C]
+-- With only moderate effort these could be derived if needed:
+variables [has_limits_of_shape (J × K) C] [has_limits_of_shape (K × J) C]
+
+/-- The limit of `F.flip ⋙ lim` is isomorphic to the limit of `F ⋙ lim`. -/
+noncomputable
+def limit_flip_comp_lim_iso_limit_comp_lim : limit (F.flip ⋙ lim) ≅ limit (F ⋙ lim) :=
+(limit_uncurry_iso_limit_comp_lim _).symm ≪≫
+  has_limit.iso_of_nat_iso (uncurry_obj_flip _) ≪≫
+  (has_limit.iso_of_equivalence (prod.braiding _ _)
+    (nat_iso.of_components (λ _, by refl) (by tidy))) ≪≫
+  limit_uncurry_iso_limit_comp_lim _
+
+@[simp, reassoc]
+lemma limit_flip_comp_lim_iso_limit_comp_lim_hom_π_π (j) (k) :
+  (limit_flip_comp_lim_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k =
+  limit.π _ k ≫ limit.π _ j :=
+by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[simp, reassoc]
+lemma limit_flip_comp_lim_iso_limit_comp_lim_inv_π_π (k) (j) :
+  (limit_flip_comp_lim_iso_limit_comp_lim F).inv ≫ limit.π _ k ≫ limit.π _ j =
+  limit.π _ j ≫ limit.π _ k :=
+by { dsimp [limit_flip_comp_lim_iso_limit_comp_lim], simp, dsimp, simp, dsimp, simp, }
+
 end
 
 section

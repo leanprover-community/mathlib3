@@ -243,7 +243,7 @@ end
 
 end
 
-section has_scalar
+section has_smul
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
@@ -257,13 +257,13 @@ def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
   not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
   m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
 
-instance : has_scalar R (vector_measure α M) := ⟨smul⟩
+instance : has_smul R (vector_measure α M) := ⟨smul⟩
 
 @[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
 lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
   (r • v) i = r • v i := rfl
 
-end has_scalar
+end has_smul
 
 section add_comm_monoid
 
@@ -1030,7 +1030,8 @@ lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 @[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
+@[trans] lemma trans {u : vector_measure α L} {v : vector_measure α M} {w : vector_measure α N}
+  (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=

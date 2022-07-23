@@ -16,7 +16,7 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_ring ℝ≥0`
+* `topological_semiring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
@@ -52,7 +52,7 @@ open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_ring ℝ≥0 :=
+instance : topological_semiring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -72,6 +72,15 @@ continuous_subtype_mk _ $ continuous_id.max continuous_const
 
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
 continuous_subtype_val
+
+/-- Embedding of `ℝ≥0` to `ℝ` as a bundled continuous map. -/
+@[simps { fully_applied := ff }] def _root_.continuous_map.coe_nnreal_real : C(ℝ≥0, ℝ) :=
+⟨coe, continuous_coe⟩
+
+instance {X : Type*} [topological_space X] : can_lift C(X, ℝ) C(X, ℝ≥0) :=
+{ coe := continuous_map.coe_nnreal_real.comp,
+  cond := λ f, ∀ x, 0 ≤ f x,
+  prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, continuous_subtype_mk _ f.2⟩, fun_like.ext' rfl⟩ }
 
 @[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
   tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
@@ -187,9 +196,7 @@ by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
 
 lemma infi_real_pos_eq_infi_nnreal_pos [complete_lattice α] {f : ℝ → α} :
   (⨅ (n : ℝ) (h : 0 < n), f n) = (⨅ (n : ℝ≥0) (h : 0 < n), f n) :=
-le_antisymm
-  (infi_le_infi2 $ assume r, ⟨r, infi_le_infi $ assume hr, le_rfl⟩)
-  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, hr.le⟩ $ infi_le _ hr)
+le_antisymm (infi_mono' $ λ r, ⟨r, le_rfl⟩) (infi₂_mono' $ λ r hr, ⟨⟨r, hr.le⟩, hr, le_rfl⟩)
 
 end coe
 

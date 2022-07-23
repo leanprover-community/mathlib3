@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Jalex Stark, Lu-Ming Zhang
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Lu-Ming Zhang
 -/
 import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.connectivity
 import data.rel
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.symmetric
@@ -28,6 +29,10 @@ properties to computational properties of the matrix.
   the adjacency matrix of the complement graph of the graph induced by `A`.
 
 * `simple_graph.adj_matrix`: the adjacency matrix of a `simple_graph`.
+
+* `simple_graph.adj_matrix_pow_apply_eq_card_walk`: each entry of the `n`th power of
+  a graph's adjacency matrix counts the number of length-`n` walks between the corresponding
+  pair of vertices.
 
 -/
 
@@ -218,9 +223,9 @@ by simp [mul_apply, neighbor_finset_eq_filter, sum_filter, adj_comm]
 
 variable (α)
 
-theorem trace_adj_matrix [non_assoc_semiring α] [semiring β] [module β α]:
-  matrix.trace _ β _ (G.adj_matrix α) = 0 :=
-by simp
+@[simp] theorem trace_adj_matrix [add_comm_monoid α] [has_one α] :
+  matrix.trace (G.adj_matrix α) = 0 :=
+by simp [matrix.trace]
 
 variable {α}
 
@@ -239,6 +244,31 @@ lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
   (hd : G.is_regular_of_degree d) {v : V} :
   (G.adj_matrix α).mul_vec (function.const _ a) v = (d * a) :=
 by simp [hd v]
+
+theorem adj_matrix_pow_apply_eq_card_walk [decidable_eq V] [semiring α] (n : ℕ) (u v : V) :
+  (G.adj_matrix α ^ n) u v = fintype.card {p : G.walk u v | p.length = n} :=
+begin
+  rw card_set_walk_length_eq,
+  induction n with n ih generalizing u v,
+  { obtain rfl | h := eq_or_ne u v; simp [finset_walk_length, *] },
+  { nth_rewrite 0 [nat.succ_eq_one_add],
+    simp only [pow_add, pow_one, finset_walk_length, ih, mul_eq_mul, adj_matrix_mul_apply],
+    rw finset.card_bUnion,
+    { norm_cast,
+      rw set.sum_indicator_subset _ (subset_univ (G.neighbor_finset u)),
+      congr' 2,
+      ext x,
+      split_ifs with hux; simp [hux], },
+    /- Disjointness for card_bUnion -/
+    { intros x hx y hy hxy p hp,
+      split_ifs at hp with hx hy;
+      simp only [inf_eq_inter, empty_inter, inter_empty, not_mem_empty, mem_inter, mem_map,
+        function.embedding.coe_fn_mk, exists_prop] at hp;
+      try { simpa using hp },
+      obtain ⟨⟨qx, hql, hqp⟩, ⟨rx, hrl, hrp⟩⟩ := hp,
+      unify_equations hqp hrp,
+      exact absurd rfl hxy, } },
+end
 
 end simple_graph
 

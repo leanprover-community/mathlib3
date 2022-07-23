@@ -58,8 +58,7 @@ structure InjectiveResolution (Z : C) :=
 (exact : ∀ n, exact (cocomplex.d n (n+1)) (cocomplex.d (n+1) (n+2)) . tactic.apply_instance)
 (mono : mono (ι.f 0) . tactic.apply_instance)
 
-attribute [instance] InjectiveResolution.injective InjectiveResolution.exact₀
-  InjectiveResolution.exact InjectiveResolution.mono
+attribute [instance] InjectiveResolution.injective InjectiveResolution.mono
 
 /-- An object admits a injective resolution. -/
 class has_injective_resolution (Z : C) : Prop :=
@@ -86,6 +85,14 @@ begin
   dsimp, refl,
 end
 
+@[simp] lemma ι_f_zero_comp_complex_d {Z : C} (I : InjectiveResolution Z) :
+  I.ι.f 0 ≫ I.cocomplex.d 0 1 = 0 :=
+I.exact₀.w
+
+@[simp] lemma complex_d_comp {Z : C} (I : InjectiveResolution Z) (n : ℕ) :
+  I.cocomplex.d n (n + 1) ≫ I.cocomplex.d (n + 1) (n + 2) = 0 :=
+(I.exact _).w
+
 instance {Z : C} (I : InjectiveResolution Z) (n : ℕ) : category_theory.mono (I.ι.f n) :=
 by cases n; apply_instance
 
@@ -97,8 +104,8 @@ def self (Z : C) [category_theory.injective Z] : InjectiveResolution Z :=
     cases n;
     { dsimp, apply_instance },
   end,
-  exact₀ := by { dsimp, apply_instance },
-  exact := λ n, by { dsimp, apply_instance, },
+  exact₀ := by { dsimp, exact exact_epi_zero _ },
+  exact := λ n, by { dsimp, exact exact_of_zero _ _ },
   mono := by { dsimp, apply_instance, }, }
 
 end InjectiveResolution

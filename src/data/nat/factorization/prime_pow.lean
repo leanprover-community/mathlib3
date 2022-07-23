@@ -65,9 +65,8 @@ lemma eq_of_dvd_div_eq_one {a b : ℕ} (h1 : b ∣ a) (h2 : a / b = 1) : a = b :
 by rw [(nat.mul_div_cancel' h1).symm, h2, mul_one]
 
 lemma is_prime_pow_of_p_odd_part_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime) :
-  n.p_odd_part p = 1 → is_prime_pow n :=
+  coord[p] n = 1 → is_prime_pow n :=
 begin
-  rw ←nat.p_odd_part_def',
   rw is_prime_pow_nat_iff,
   intro H,
   rw [eq_of_dvd_div_eq_one (nat.pow_factorization_dvd n p) H] at |- hn,
@@ -98,7 +97,7 @@ begin
   apply nat.dvd_antisymm (nat.pow_factorization_dvd _ _),
   -- We need to show n ∣ p ^ n.factorization p
   apply nat.dvd_of_factors_subperm hn₀,
-  rw [nat.padic_part_def, hp.factors_pow, list.subperm_ext_iff],
+  rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq',
   rw nat.mem_factors hn₀ at hq',
   cases hq _ hq'.1 hq'.2,

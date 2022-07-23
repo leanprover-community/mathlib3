@@ -228,13 +228,15 @@ meta def positivity_max : expr → tactic strictness
       strictness_a ← core a,
       match strictness_a with
       | (positive pa) := positive <$> mk_mapp ``lt_max_of_lt_left [none, none, none, a, b, pa]
-      | (nonnegative pa) := nonnegative <$> mk_mapp ``le_max_of_le_left [none, none, none, a, b, pa]
+      | (nonnegative pa) :=
+          nonnegative <$> mk_mapp ``le_max_of_le_left [none, none, none, a, b, pa]
       end)
     (do
       strictness_b ← core b,
       match strictness_b with
       | (positive pb) := positive <$> mk_mapp ``lt_max_of_lt_right [none, none, none, a, b, pb]
-      | (nonnegative pb) := nonnegative <$> mk_mapp ``le_max_of_le_right [none, none, none, a, b, pb]
+      | (nonnegative pb) :=
+          nonnegative <$> mk_mapp ``le_max_of_le_right [none, none, none, a, b, pb]
       end)
 | _ := failed
 

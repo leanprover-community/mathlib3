@@ -305,6 +305,7 @@ lemma is_self_adjoint_iff {A : E →L[𝕜] E} : A.is_self_adjoint ↔
 
 namespace is_self_adjoint
 
+/-- Every self-adjoint operator on an inner product space is symmetric. -/
 lemma is_symmetric {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
   (A : E →ₗ[𝕜] E).is_symmetric :=
 λ x y, by rw_mod_cast [←adjoint_inner_right, is_self_adjoint_iff.mp hA]

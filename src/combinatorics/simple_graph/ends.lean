@@ -701,7 +701,7 @@ begin
   {simp,},
   {exact set.subset.trans k_ih (φ_fam_mon_succ φ (n+k_n))},
 end
-private lemma φ_fam_mon_le  (φ : ℕ ≃ V) (n m : ℕ) (n ≤ m) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < m}) :=
+private lemma φ_fam_mon_le  (φ : ℕ ≃ V) {n m : ℕ} (n ≤ m) : (K ∪ φ '' {j : ℕ | j < n}) ⊆ (K ∪ φ '' {j : ℕ | j < m}) :=
 begin
   rcases le_iff_exists_add.mp ‹n≤m› with ⟨k,eq⟩,
   rw eq,
@@ -756,7 +756,7 @@ def φ_fami2 (Kfin : K.finite) (φ : ℕ ≃ V) : @fam V _ _ _ :=
 , λ L, let ⟨n,ngood⟩ := @φ_fam_cof V _ _ _ K φ L in ⟨⟨@φ_fam V _ _ _ _ φ n,⟨n,refl _⟩⟩,ngood⟩
 ⟩
 
-lemma extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+def extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   Π i : ℕ, inf_components G (K ∪ φ '' {j : ℕ | j < i}) :=
 @nat.rec
   (λ i, inf_components G (K ∪ φ '' {j : ℕ | j < i}))
@@ -769,37 +769,73 @@ lemma extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) 
                               (φ_fam_fin Kfin φ k.succ)
                               (extend_along_k))
 
-
-lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) (F : (φ_fami Kfin φ).fam) :
-inf_components G F :=
+def extend_along_comm_succ (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π i : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_succ φ i) (extend_along G Kfin φ C (i.succ)) :=
 begin
-  have : ∃ n : ℕ, @φ_fam V _ _ _ _ φ n = F.val, by {
-    sorry
-  },
   sorry,
 end
 
+def extend_along_comm_add (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π i j : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_add φ i j) (extend_along G Kfin φ C (i + j)) :=
+begin
+  sorry,
+end
+def extend_along_comm_le (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π i j : ℕ, i ≤ j →  extend_along G Kfin φ C i = bwd_map G (by sorry) (extend_along G Kfin φ C j) :=
+begin
+  sorry,
+end
+
+
+lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π (F : (φ_fami Kfin φ).fam), inf_components G F :=
+begin
+  rintros ⟨F,hF⟩,
+  simp only [subtype.coe_mk],
+  rw hF.some_spec.symm,
+  exact extend_along G Kfin φ C hF.some,
+end
+
+lemma extend_along_fam_comm (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  Π (F F' : (φ_fami Kfin φ).fam), F.val ⊆ F'.val →
+  bwd_map G ‹F.val⊆F'.val› (extend_along_fam G Kfin φ C F') = extend_along_fam G Kfin φ C F :=
+begin
+  rintros ⟨F,hF⟩ ⟨F',hF'⟩ sub,
+  have Fn : ∃ n, F = extend_along G Kfin φ C n, by sorry,
+  have Fn' : ∃ n', F' = extend_along G Kfin φ C n', by sorry,
+  rcases Fn with ⟨n, Fen⟩,
+  rcases Fn' with ⟨n', Fen'⟩,
+  have : n ≤ n', by sorry,
+  apply eq.symm,
+  have lol := extend_along_comm_le G Kfin φ C n n' ‹n≤n'›,
+  rw lol at Fen,
+  -- assume F is nth and F' is mth
+  -- from F ⊆ F', need to show that n ≤ m, since then we can use φ_fam_mon_le
+  sorry,
+end
+
+lemma extend_along_fam_spec (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
+  (extend_along_fam G Kfin φ C) (⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},⟨0,rfl⟩⟩)  = φ_fam_zero_comp G Kfin φ C :=
+begin
+  sorry,
+end
 
 -- we need to assume that V is countable, but that's no big deal:
 -- it follows
 -- * from local finiteness and connectedness, hence most countable
 -- * the existence of C, hence infinite
-lemma end_of_component_φfam (φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
-  ends_for G (φ_fami Kfinite φ) :=
-begin
-  sorry
-end
+lemma end_of_component_φfam (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
+  ends_for G (φ_fami Kfin φ) := ⟨extend_along_fam G Kfin φ C, extend_along_fam_comm G Kfin φ C⟩
 
-/-
-lemma end_of_component_φfam_spec (φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
-  eval (ends_of_component_φ_fam φ Kfinite C) (φ_fam_zero φ C) =  (φ_fam_zero_comp Kfinite φ C)
-:= sorry
--/
+lemma end_of_compontent_φfam_spec (φ : ℕ ≃ V) (Kfin : K.finite) (C : inf_components G K) :
+  (end_of_compontent_φfam φ Kfin C) (⟨K ∪ φ.to_fun '' {j : ℕ | j < 0},⟨0,rfl⟩⟩) = φ_fam_zero_comp G Kfin φ C :=
+  extend_along_fam_spec Kfin φ C
+
 
 lemma end_of_component(φ : ℕ ≃ V) (Kfinite : K.finite) (C : inf_components G K) :
   ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
 begin
-  sorry
+  sorry,
 end
 
 lemma eval_surjective (Kfinite : K.finite) : surjective (eval G ⟨K,Kfinite⟩) := sorry

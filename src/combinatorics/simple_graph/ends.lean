@@ -770,7 +770,7 @@ def extend_along (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
                               (extend_along_k))
 
 def extend_along_comm_succ (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π i : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_succ φ i) (extend_along G Kfin φ C (i.succ)) :=
+  Π (i : ℕ), extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_succ φ i) (extend_along G Kfin φ C (i.succ)) :=
 begin
   sorry,
 end
@@ -778,7 +778,10 @@ end
 def extend_along_comm_add (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   Π i j : ℕ, extend_along G Kfin φ C i = bwd_map G (φ_fam_mon_add φ i j) (extend_along G Kfin φ C (i + j)) :=
 begin
-  sorry,
+  rintros i j,
+  induction j,
+  { sorry, },
+  { sorry, }
 end
 def extend_along_comm_le (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   Π i j : ℕ, i ≤ j →  extend_along G Kfin φ C i = bwd_map G (by sorry) (extend_along G Kfin φ C j) :=

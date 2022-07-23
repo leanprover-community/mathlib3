@@ -201,11 +201,16 @@ instance : monoidal_closed (Action V G) :=
         refine ⟨λ Y Z, monoidal_closed_hom_equiv, _, _⟩,
         { intros Y Y' Z f f',
           apply Action.hom.ext,
-          simp,
+          simp only [Action.monoidal_closed_uncurry_hom,
+            category_theory.monoidal_category.tensor_left_map,
+            Action.id_hom, Action.tensor_hom, Action.comp_hom,
+            Action.monoidal_closed_hom_equiv_symm_apply],
           rw ←monoidal_closed.uncurry_natural_left },
         { intros Y Z' Z f f',
           apply Action.hom.ext,
-          simp,
+          simp only [Action.monoidal_closed_hom_equiv_apply, Action.internal_hom_obj_map,
+            Action.ihom_functor_map_hom, Action.comp_hom, category_theory.functor.flip_map_app,
+            Action.monoidal_closed_curry_hom],
           dsimp,
           rw monoidal_closed.curry_natural_right }
       end }}}

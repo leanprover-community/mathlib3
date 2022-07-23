@@ -333,8 +333,7 @@ section
 
 variables (S M)
 
-/--
-The map `m ↦ m / 1` is `R`-linear.export
+/-- The function `m ↦ m / 1` as an `R`-linear map.
 -/
 def mk_linear_map : M →ₗ[R] localized_module S M :=
 { to_fun := λ m, mk m 1,

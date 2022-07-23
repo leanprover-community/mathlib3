@@ -159,7 +159,7 @@ begin
   simp [h],
 end
 
-variables [no_zero_divisors R] [nontrivial R]
+variables [nontrivial R]
 variables [fact (ring_char R ≠ 2)]
 
 lemma symplectic_det (hA : A ∈ symplectic_group l R) : is_unit $ det A :=

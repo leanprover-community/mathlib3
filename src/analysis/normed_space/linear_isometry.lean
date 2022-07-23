@@ -647,7 +647,8 @@ rfl
 rfl
 
 /-- If `p` is a submodule that is equal to `⊤`, then `linear_isometry_equiv.of_top p hp` is the
-equivalence between `p` and `E`. -/
+"identity" equivalence between `p` and `E`. -/
+@[simps to_linear_equiv apply symm_apply_coe]
 def of_top {R : Type*} [ring R] [module R E] (p : submodule R E) (hp : p = ⊤) :
   p ≃ₗᵢ[R] E :=
 { to_linear_equiv := linear_equiv.of_top p hp, .. p.subtypeₗᵢ }
@@ -683,8 +684,9 @@ linear_isometry_equiv.to_linear_equiv_injective $ b.ext' h
 omit σ₂₁
 
 /-- Reinterpret a `linear_isometry` as a `linear_isometry_equiv` to the range. -/
-noncomputable def linear_isometry.equiv_range {S : Type*} [ring S] {σ₁₂ : R →+* S}
-  {σ₂₁ : S →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] [module S E]
-  (f : F →ₛₗᵢ[σ₁₂] E) :
+@[simps to_linear_equiv apply_coe]
+noncomputable def linear_isometry.equiv_range {R S : Type*} [semiring R] [ring S] [module S E]
+  [module R F] {σ₁₂ : R →+* S} {σ₂₁ : S →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
+  [ring_hom_inv_pair σ₂₁ σ₁₂] (f : F →ₛₗᵢ[σ₁₂] E) :
   F ≃ₛₗᵢ[σ₁₂] f.to_linear_map.range :=
-{ .. linear_equiv.of_injective f.to_linear_map f.injective, .. f }
+{ to_linear_equiv := linear_equiv.of_injective f.to_linear_map f.injective, .. f }

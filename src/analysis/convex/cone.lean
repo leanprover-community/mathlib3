@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Frédéric Dupuis
 -/
 import analysis.convex.hull
-import analysis.inner_product_space.projection
+import analysis.inner_product_space.basic
 
 /-!
 # Convex cones
@@ -616,111 +616,17 @@ lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
 lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
+/-- The dual cone of `s` equals the intersection of dual cones of the points in `s`. -/
 lemma inner_dual_cone_eq_Inter_inner_dual_cone_singleton :
   (s.inner_dual_cone : set H) = ⋂ i : s, (({i} : set H).inner_dual_cone : set H) :=
 begin
   simp_rw [set.Inter_coe_set, subtype.coe_mk],
   refine set.ext (λ x, iff.intro (λ hx, _) _),
-  begin
-    refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
+  { refine set.mem_Inter.2 (λ i, set.mem_Inter.2 (λ hi _, _)),
     rintro ⟨ ⟩,
-    exact hx i hi,
-  end,
+    exact hx i hi },
   { simp only [set.mem_Inter, convex_cone.mem_coe, mem_inner_dual_cone,
       set.mem_singleton_iff, forall_eq, imp_self] }
 end
 
-lemma inner_dual_cone_closed :
-  is_closed (s.inner_dual_cone : set H) :=
-begin
-  rw inner_dual_cone_eq_Inter_inner_dual_cone_singleton,
-  apply is_closed_Inter,
-  simp only [set_coe.forall, subtype.coe_mk, convex_cone.mem_coe],
-  rintro x hx,
-  suffices h : (({x} : set H).inner_dual_cone : set H) = (inner x : H → ℝ)⁻¹' (set.Ici 0),
-  { rw h,
-    refine is_closed.preimage _ is_closed_Ici,
-    have := continuous.inner (@continuous_const _ _ _ _ x) continuous_id,
-    simp_rw [id.def] at this,
-    exact this },
-  apply set.ext,
-  simp [convex_cone.mem_coe, mem_inner_dual_cone],
-end
-
-lemma pointed_of_nonempty_closed
-  {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) : K.pointed :=
-begin
-  let hx := ne.some_mem,
-  let x  := (ne.some : H),
-  let f  := λ r : ℝ, r • x,
-
-  -- f (0, ∞) is a subset of K
-  have fI : f '' set.Ioi 0 ⊆ (K : set H),
-    rw set.subset_def,
-    rintro _ ⟨_, h, rfl⟩,
-    exact K.smul_mem (set.mem_Ioi.1 h) hx,
-
-  -- closure of f (0, ∞) is a subset of K
-  have clf : closure (f '' set.Ioi 0) ⊆ (K : set H) := hc.closure_subset_iff.2 fI,
-
-  -- f is continuous at 0 from the right
-  have fc : continuous_within_at f (set.Ioi (0 : ℝ)) 0 :=
-    (continuous_id.smul continuous_const).continuous_within_at,
-
-  -- 0 belongs to the closure of the f (0, ∞)
-  have mem₀ := fc.mem_closure_image (by rw [closure_Ioi (0 : ℝ), set.mem_Ici]),
-  have f₀ : f 0 = 0 := zero_smul ℝ x,
-  rw f₀ at mem₀,
-
-  -- as 0 ∈ closure f (0, ∞) and closure f (0, ∞) ⊆ K, 0 ∈ K.
-  exact K.mem_coe.1 (set.mem_of_subset_of_mem clf mem₀),
-end
-
-section complete_space
-  variables [complete_space H]
-
-theorem hyperplane_separation_point_nonempty_closed_convex_cone {K : convex_cone ℝ H}
-  (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) {b : H} (disj : b ∉ K) :
-  ∃ (y : H), (∀ x : H, x ∈ K → 0 ≤ ⟪x, y⟫_ℝ) ∧ ⟪y, b⟫_ℝ < 0 :=
-begin
-  obtain ⟨z, hzK, infi⟩ := exists_norm_eq_infi_of_complete_convex ne hc.is_complete K.convex b,
-  have hinner := (norm_eq_infi_iff_real_inner_le_zero K.convex hzK).1 infi,
-  use z - b,
-  split,
-  begin
-    rintros x hxK,
-    specialize hinner _ (K.add_mem hxK hzK),
-    rwa [add_sub_cancel, real_inner_comm, ← neg_nonneg, neg_eq_neg_one_mul,
-         ← real_inner_smul_right, neg_smul, one_smul, neg_sub] at hinner
-  end,
-  begin
-    have hinner₀ := hinner 0 (pointed_of_nonempty_closed ne hc),
-      rw [zero_sub, inner_neg_right, right.neg_nonpos_iff] at hinner₀,
-    have hbz : b - z ≠ 0, by { rw sub_ne_zero, contrapose! hzK, rwa ← hzK },
-    rw [← neg_zero, lt_neg, ← neg_one_mul, ← real_inner_smul_left, smul_sub, neg_smul, one_smul,
-      neg_smul, neg_sub_neg, one_smul],
-    calc 0 < ⟪b - z, b - z⟫_ℝ : lt_of_not_le ((iff.not real_inner_self_nonpos).2 hbz)
-    ... = ⟪b - z, b - z⟫_ℝ + 0 : (add_zero _).symm
-    ... ≤ ⟪b - z, b - z⟫_ℝ + ⟪b - z, z⟫_ℝ : add_le_add rfl.ge hinner₀
-    ... = ⟪b - z, b - z + z⟫_ℝ : inner_add_right.symm
-    ... = ⟪b - z, b⟫_ℝ : by rw sub_add_cancel,
-  end,
-end
-
-theorem dual_of_dual_eq_self
-  {K : convex_cone ℝ H} (ne : (K : set H).nonempty) (hc : is_closed (K : set H)) :
-  ((K : set H).inner_dual_cone : set H).inner_dual_cone = K := convex_cone.ext $ λ x, iff.intro
-begin
-  rw [mem_inner_dual_cone, ← convex_cone.mem_coe],
-  contrapose!,
-  rintro hx,
-  exact hyperplane_separation_point_nonempty_closed_convex_cone ne hc hx,
-end
-begin
-  rintro hxK y h,
-  specialize h x hxK,
-  rwa real_inner_comm,
-end
-
-end complete_space
 end dual

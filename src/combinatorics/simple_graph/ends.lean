@@ -784,14 +784,14 @@ lemma extend_along_comm_le (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_componen
 lemma extend_along_zero (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   extend_along G Kfin φ C 0 = (φ_fam_zero_comp G Kfin φ C) := by {finish}
 
-/-
-lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
-  Π (F : (φ_fami Kfin φ).fam), inf_components G F := λ ⟨F,hF⟩,
+lemma extend_along_const (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K)
+  (i k : ℕ) (ilek : i ≤ k)
+  (fam_eq : K ∪ φ.to_fun '' {j : ℕ | j < i} = K ∪ φ.to_fun '' {j : ℕ | j < k}) :
+  extend_along G Kfin φ C k = @eq.rec_on _ _ (λ x, inf_components G x) _  fam_eq (extend_along G Kfin φ C i)  :=
 begin
-  rw [subtype.coe_mk F hF,hF.some_spec.symm],
-  exact (extend_along G Kfin φ C hF.some),
+  sorry,
 end
--/
+
 
 lemma extend_along_fam (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_components G K) :
   Π (F : (φ_fami Kfin φ).fam), inf_components G F := λ ⟨F,hF⟩,
@@ -806,17 +806,7 @@ lemma extend_along_fam_comm (Kfin : K.finite) (φ : ℕ ≃ V)  (C : inf_compone
   Π (F F' : (φ_fami Kfin φ).fam), F.val ⊆ F'.val →
   bwd_map G ‹F.val⊆F'.val› (extend_along_fam G Kfin φ C F') = extend_along_fam G Kfin φ C F :=
 begin
-  rintros ⟨F,hF⟩ ⟨F',hF'⟩ sub,
-  have Fn : ∃ n, F = extend_along G Kfin φ C n, by sorry,
-  have Fn' : ∃ n', F' = extend_along G Kfin φ C n', by sorry,
-  rcases Fn with ⟨n, Fen⟩,
-  rcases Fn' with ⟨n', Fen'⟩,
-  have : n ≤ n', by sorry,
-  apply eq.symm,
-  have lol := extend_along_comm_le G Kfin φ C n n' ‹n≤n'›,
-  rw lol at Fen,
-  -- assume F is nth and F' is mth
-  -- from F ⊆ F', need to show that n ≤ m, since then we can use φ_fam_mon_le
+  rintros ⟨F,⟨n,hFn⟩⟩ ⟨F',⟨n',hFn'⟩⟩ sub,
   sorry,
 end
 

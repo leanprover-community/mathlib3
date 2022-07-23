@@ -874,14 +874,14 @@ by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, ltensor_tmul] }
 
 lemma ltensor_comp_apply (x : M ⊗[R] N) :
   (g.comp f).ltensor M x = (g.ltensor M) ((f.ltensor M) x) :=
-by { rw ltensor_comp, refl, }
+by { rw [ltensor_comp, coe_comp], }
 
 lemma rtensor_comp : (g.comp f).rtensor M = (g.rtensor M).comp (f.rtensor M) :=
 by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, rtensor_tmul] }
 
 lemma rtensor_comp_apply (x : N ⊗[R] M) :
   (g.comp f).rtensor M x = (g.rtensor M) ((f.rtensor M) x) :=
-by { rw rtensor_comp, refl, }
+by { rw [rtensor_comp, coe_comp], }
 
 lemma ltensor_mul (f g : module.End R N) : (f * g).ltensor M = (f.ltensor M) * (g.ltensor M) :=
 ltensor_comp M f g
@@ -893,11 +893,13 @@ variables (N)
 
 @[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
+-- `simp` can prove this.
 lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
 by {rw [ltensor_id, id_coe, id.def], }
 
 @[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id
 
+-- `simp` can prove this.
 lemma rtensor_id_apply (x : N ⊗[R] M) : (linear_map.id : N →ₗ[R] N).rtensor M x = x :=
 by { rw [rtensor_id, id_coe, id.def], }
 

@@ -242,3 +242,43 @@ begin
   rw [range_subtype, ker_mkq]
 end
 end module
+
+open_locale tensor_product
+
+@[simp] lemma linear_equiv.symm_to_linear_map_comp {M N : Type*} [add_comm_group M]
+  [add_comm_group N] [module R M] [module R N](e : M ≃ₗ[R] N) :
+e.symm.to_linear_map.comp e.to_linear_map = linear_map.id :=
+begin
+change (e.trans e.symm).to_linear_map = linear_map.id,
+simp,
+refl,
+end
+
+@[simp] lemma linear_equiv.to_linear_map_comp_symm {M N : Type*} [add_comm_group M]
+  [add_comm_group N] [module R M] [module R N](e : M ≃ₗ[R] N) :
+e.to_linear_map.comp e.symm.to_linear_map = linear_map.id :=
+by ext; simp
+
+def linear_equiv.rtensor {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M]
+  [module R N] (K : Type*) [comm_ring K] [algebra R K] (e : M ≃ₗ[R] N) : M ⊗[R] K ≃ₗ[R] N ⊗[R] K :=
+{ to_fun := linear_map.rtensor K e.to_linear_map,
+  map_add' := linear_map.map_add _,
+  map_smul' := linear_map.map_smul _,
+  inv_fun := linear_map.rtensor K e.symm.to_linear_map,
+  left_inv := λ x, by rw [← linear_map.rtensor_comp_apply, linear_equiv.symm_to_linear_map_comp,
+      linear_map.rtensor_id_apply],
+  right_inv := λ x, by rw [← linear_map.rtensor_comp_apply, linear_equiv.to_linear_map_comp_symm,
+      linear_map.rtensor_id_apply] }
+
+theorem equiv_free_prod_direct_sum_unique (n₁ n₂ : ℕ) (ι₁ ι₂ : Type*)
+  [fintype ι₁] [fintype ι₂] (p₁ : ι₁ → R) (p₂ : ι₂ → R)
+  (h₁ : ∀ i, irreducible $ p₁ i) (h₂ : ∀ i, irreducible $ p₂ i) (e₁ : ι₁ → ℕ) (e₂ : ι₂ → ℕ)
+  (hiso : ((fin n₁ →₀ R) × ⨁ (i : ι₁), R ⧸ R ∙ (p₁ i ^ e₁ i)) ≃ₗ[R]
+           (fin n₂ →₀ R) × ⨁ (i : ι₂), R ⧸ R ∙ (p₂ i ^ e₂ i)) :
+n₁ = n₂ ∧ ∃ j : ι₁ ≃ ι₂, ∀ i₁, p₁ i₁ = p₂ (j i₁) ∧ e₁ i₁ = e₂ (j i₁) :=
+begin
+  split,
+  { let hiso2 := hiso.rtensor (fraction_ring R),
+    sorry },
+  { sorry }
+end

@@ -133,8 +133,8 @@ begin
 end
 
 @[simp]
-lemma cotangent_equiv_ideal_apply (x : I) :
-  ↑(I.cotangent_equiv_ideal (I.to_cotangent x)) = (I ^ 2).mkq x := rfl
+lemma cotangent_equiv_ideal_apply (x : I.cotangent) :
+  ↑(I.cotangent_equiv_ideal x) = I.cotangent_to_quotient_square x := rfl
 
 lemma cotangent_equiv_ideal_symm_apply (x : R) (hx : x ∈ I) :
   I.cotangent_equiv_ideal.symm ⟨(I ^ 2).mkq x, submodule.mem_map_of_mem hx⟩ =

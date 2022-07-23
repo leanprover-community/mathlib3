@@ -108,8 +108,7 @@ lemma _root_.multiset.prod_C_add_X_coeff (s : multiset R) (k : ℕ) (h : k ≤ s
   (s.map (λ r, C r + X)).prod.coeff k =
   ((s.powerset_len (s.card - k)).map multiset.prod).sum :=
 begin
-  obtain ⟨⟨_, he⟩⟩ := s.trunc_enum_of_fin_card,
-  rw [← he, multiset.map_map, ← prod_eq_multiset_prod, prod_C_add_X_coeff],
+  rw [← s.map_univ_coe, multiset.map_map, ← prod_eq_multiset_prod, prod_C_add_X_coeff],
   swap, { exact h.trans (fintype.card_fin _).ge },
   rw [multiset.powerset_len_map, ← map_val_val_powerset_len],
   rw [sum_eq_multiset_sum, multiset.map_map, multiset.map_map, multiset.card_map],

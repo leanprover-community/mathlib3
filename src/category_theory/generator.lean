@@ -342,7 +342,7 @@ lemma is_coseparator_iff_faithful_yoneda_obj (G : C) :
  λ h, (is_coseparator_def _).2 $ λ X Y f g hfg, quiver.hom.op_inj $
   by exactI (yoneda.obj G).map_injective (funext hfg)⟩
 
-lemma is_separator_iff_epi [has_coproducts C] (G : C) :
+lemma is_separator_iff_epi [has_coproducts.{v} C] (G : C) :
   is_separator G ↔ ∀ (A : C), epi (sigma.desc (λ (f : G ⟶ A), f)) :=
 begin
   rw is_separator_def,
@@ -353,7 +353,7 @@ begin
     simpa using hh j.as }
 end
 
-lemma is_coseparator_iff_mono [has_products C] (G : C) :
+lemma is_coseparator_iff_mono [has_products.{v} C] (G : C) :
   is_coseparator G ↔ ∀ (A : C), mono (pi.lift (λ (f : A ⟶ G), f)) :=
 begin
   rw is_coseparator_def,

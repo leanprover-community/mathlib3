@@ -61,8 +61,8 @@ open sets in `Proj`, more specifically:
 For a homogeneous element `f` of degree `n`
 * `Proj_iso_Spec_Top_component.to_Spec`: `forward f` is the
   continuous map between `Proj.T| pbo f` and `Spec.T A⁰_f`
-* `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero, then the preimage
-  of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
+* `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero,
+  then the preimage of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
 
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
@@ -556,49 +556,16 @@ begin
   { intros i,
     by_cases ineq1 : n ≤ i,
     { have eq1 : (graded_algebra.proj 𝒜 i) (a * x) =
-          ite (i - n ∈ (direct_sum.decompose_alg_equiv 𝒜 x).support) (a * (graded_algebra.proj 𝒜 (i - n)) x) 0,
-      { exact calc (proj 𝒜 i) (a * x)
-              = proj 𝒜 i ∑ j in (direct_sum.decompose_alg_equiv 𝒜 x).support, (a * (proj 𝒜 j x))
-              : begin
-                conv_lhs { rw [← sum_support_decompose 𝒜 x] },
-                simp_rw [proj_apply],
-                rw [finset.mul_sum],
-                refl,
-              end
-          ... = ∑ j in (direct_sum.decompose_alg_equiv 𝒜 x).support, (proj 𝒜 i (a * (proj 𝒜 j x)))
-              : by rw linear_map.map_sum
-          ... = ∑ j in (direct_sum.decompose_alg_equiv 𝒜 x).support, (ite (j = i - n) (proj 𝒜 i (a * (proj 𝒜 j x))) 0)
-              : begin
-                rw finset.sum_congr rfl,
-                intros j hj,
-                symmetry,
-                split_ifs with H,
-                refl,
-                symmetry,
-                have mem1 : a * graded_algebra.proj 𝒜 j x ∈ 𝒜 (n + j),
-                { exact mul_mem ha (submodule.coe_mem _), },
-                rw graded_algebra.proj_apply,
-                apply direct_sum.decompose_of_mem_ne 𝒜 mem1,
-                intro rid,
-                rw [←rid, add_comm, nat.add_sub_assoc, nat.sub_self, add_zero] at H,
-                apply H, refl, refl,
-              end
-          ... = ∑ j in (direct_sum.decompose_alg_equiv 𝒜 x).support,
-                (ite (j = i - n) (a * (graded_algebra.proj 𝒜 j x)) 0)
-              : begin
-                rw finset.sum_congr rfl,
-                intros j hj,
-                split_ifs with eq1 ineq1,
-                rw [graded_algebra.proj_apply, graded_algebra.proj_apply],
-                apply direct_sum.decompose_of_mem_same,
-                rw ←graded_algebra.proj_apply,
-                have eq2 : i = j + n,
-                { rw [eq1, nat.sub_add_cancel], exact ineq1, },
-                rw [eq2, add_comm],
-                apply graded_monoid.mul_mem ha (submodule.coe_mem _),
-                refl,
-              end
-          ... = ite (i - n ∈ (direct_sum.decompose_alg_equiv 𝒜 x).support) (a * (proj 𝒜 (i - n)) x) 0 : by rw finset.sum_ite_eq', },
+          ite (i - n ∈ (direct_sum.decompose_alg_equiv 𝒜 x).support)
+            (a * (graded_algebra.proj 𝒜 (i - n)) x) 0,
+      { have := @direct_sum.coe_decompose_mul_add_of_left_mem _ _ _ _ _ _ _ _ 𝒜 _ a x _ (i - n) ha,
+        rw [show n + (i - n) = i, by linarith] at this,
+        rw [proj_apply, this],
+        split_ifs,
+        { refl, },
+        { rw dfinsupp.mem_support_iff at h,
+          push_neg at h,
+          erw [h, mul_zero], } },
 
       split_ifs at eq1,
       { generalize_proofs h1 h2,
@@ -629,32 +596,18 @@ begin
                 refl,
                 exact ineq1,
               end,
-        apply ideal.mul_mem_left,
-        apply hx },
+        exact ideal.mul_mem_left _ _ (hx _), },
       { simp only [smul_eq_mul, eq1, zero_pow hm, localization.mk_zero], exact zero_mem _ } },
     { -- in this case, the left hand side is zero
       rw not_le at ineq1,
       convert submodule.zero_mem _,
       suffices : graded_algebra.proj 𝒜 i (a • x) = 0,
-      erw [this, zero_pow hm, localization.mk_zero],
+      { erw [this, zero_pow hm, localization.mk_zero] },
 
       rw [← sum_support_decompose 𝒜 x, smul_eq_mul, finset.mul_sum, linear_map.map_sum],
-      simp_rw [←proj_apply],
-      convert finset.sum_eq_zero _,
-      intros j hj,
-      rw [proj_apply],
-      have mem1 : a * graded_algebra.proj 𝒜 j x ∈ 𝒜 (n + j),
-      { exact graded_monoid.mul_mem ha (submodule.coe_mem _), },
-      apply direct_sum.decompose_of_mem_ne 𝒜 mem1,
-
-      suffices : i < n + j,
-      symmetry,
-      apply ne_of_lt this,
-
-      exact lt_of_lt_of_le ineq1 (nat.le_add_right _ _), }, },
-  { rw zero_smul,
-    apply carrier.zero_mem,
-    exact hm, },
+      convert finset.sum_eq_zero (λ j hj, _),
+      exact decompose_of_mem_ne 𝒜 (mul_mem ha (submodule.coe_mem _)) (by linarith) } },
+  { rw zero_smul, exact carrier.zero_mem hm _, },
   { intros a b ha hb,
     rw add_smul,
     apply carrier.add_mem q ha hb, },
@@ -675,53 +628,28 @@ begin
   change (proj _ i a) ∈ carrier q,
   change a ∈ carrier q at ha,
   intros j,
-  have := calc (⟨mk ((proj 𝒜 j (proj 𝒜 i a)) ^ m) ⟨f^j, ⟨_, rfl⟩⟩,
-                  ⟨j, ⟨_, by exact pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)
-          = (⟨mk ((ite (j = i) (proj 𝒜 j a) 0)^m) ⟨f^j, ⟨_, rfl⟩⟩, begin
-              refine ⟨j, ⟨((ite (j = i) (proj 𝒜 j a) 0)^m), _⟩, rfl⟩,
-              have mem1 : ite (j = i) ((proj 𝒜 j) a) 0 ∈ 𝒜 j,
-              { split_ifs,
-                exact submodule.coe_mem _,
-                exact zero_mem _ },
-              exact pow_mem_graded m mem1,
-            end⟩ : A⁰_ f_deg)
-            : begin
-              rw [subtype.ext_iff_val],
-              dsimp only,
-              congr',
-              split_ifs with eq1,
-              rw [graded_algebra.proj_apply, graded_algebra.proj_apply, eq1],
-              apply direct_sum.decompose_of_mem_same,
-              rw [←graded_algebra.proj_apply],
-              exact submodule.coe_mem _,
-
-              apply direct_sum.decompose_of_mem_ne 𝒜 (submodule.coe_mem _),
-              symmetry, exact eq1,
-            end
-      ... = (⟨localization.mk ((ite (j = i) ((graded_algebra.proj 𝒜 j a)^m) 0))
-            ⟨f^j, ⟨_, rfl⟩⟩, begin
-              refine ⟨j, ⟨(ite (j = i) ((graded_algebra.proj 𝒜 j a)^m) 0), _⟩, rfl⟩,
-              split_ifs,
-              exact pow_mem_graded _ (submodule.coe_mem _),
-              exact submodule.zero_mem _,
-            end⟩ : A⁰_ f_deg)
-            : begin
-              rw [subtype.ext_iff_val],
-              dsimp only,
-              split_ifs, refl,
-              rw zero_pow hm,
-            end
-      ... = ite (j = i)
-            (⟨localization.mk ((graded_algebra.proj 𝒜 i a)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-              ⟨i, ⟨_, by exact pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)
-            (0 : A⁰_ f_deg)
-            : begin
-              split_ifs with H,
-              erw H,
-              simp only [subtype.ext_iff_val, localization.mk_zero],
-              refl,
-            end,
-    erw this,
+  erw calc (⟨mk ((proj 𝒜 j (proj 𝒜 i a))^m) ⟨_, ⟨_, rfl⟩⟩, ⟨j, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg)
+        = ⟨mk ((ite (j = i) (proj 𝒜 j a) 0)^m) ⟨f^j, ⟨_, rfl⟩⟩,
+            ⟨j, ⟨((ite (j = i) (proj 𝒜 j a) 0)^m), by exact pow_mem_graded m
+                (show ite (j = i) ((proj 𝒜 j) a) 0 ∈ 𝒜 j, by split_ifs; tidy)⟩, rfl⟩⟩
+          : begin
+            rw [subtype.ext_iff],
+            congr',
+            split_ifs with eq1,
+            { rw [graded_algebra.proj_apply, graded_algebra.proj_apply, eq1],
+              exact direct_sum.decompose_of_mem_same _ (submodule.coe_mem _), },
+            exact direct_sum.decompose_of_mem_ne 𝒜 (submodule.coe_mem _) (ne.symm eq1),
+          end
+    ... = ⟨localization.mk ((ite (j = i) ((graded_algebra.proj 𝒜 j a)^m) 0))
+          ⟨f^j, ⟨_, rfl⟩⟩, ⟨j, ⟨(ite (j = i) ((graded_algebra.proj 𝒜 j a)^m) 0),
+            by { split_ifs, mem_tac, exact submodule.zero_mem _ }⟩, rfl⟩⟩
+          : by { split_ifs, refl, rw zero_pow hm }
+    ... = ite (j = i) ⟨mk ((proj 𝒜 i a)^m) ⟨f^i, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ 0
+          : begin
+            split_ifs with H,
+            { erw H },
+            { simpa only [localization.mk_zero], },
+          end,
     split_ifs with H,
     { apply ha, },
     { exact submodule.zero_mem _, },
@@ -730,29 +658,19 @@ end
 def carrier.as_homogeneous_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : homogeneous_ideal 𝒜 :=
 ⟨carrier.as_ideal hm q, carrier.as_ideal.homogeneous hm q⟩
 
+lemma carrier.denom_not_mem (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : f ∉ carrier.as_ideal hm q :=
+λ rid, q.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr
+begin
+  convert rid m,
+  rw [subtype.ext_iff, degree_zero_part.coe_one],
+  change (1 : away f) = mk _ _,
+  rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same _ f_deg],
+  exact (localization.mk_self (⟨_, ⟨m, rfl⟩⟩ : submonoid.powers f)).symm,
+end
+
 lemma carrier.relevant (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) :
   ¬ homogeneous_ideal.irrelevant 𝒜 ≤ carrier.as_homogeneous_ideal hm q :=
-begin
-  intro rid,
-  have mem1 : f ∉ carrier.as_ideal hm q,
-  { intro rid2,
-    specialize rid2 m,
-    apply q.is_prime.1,
-    rw ideal.eq_top_iff_one,
-    convert rid2,
-    rw [subtype.ext_iff, degree_zero_part.coe_one],
-    change (1 : away f) = mk _ _,
-    rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same _ f_deg],
-    exact (localization.mk_self (⟨_, ⟨m, rfl⟩⟩ : submonoid.powers f)).symm, },
-  apply mem1,
-  have mem2 : f ∈ homogeneous_ideal.irrelevant 𝒜,
-  { change graded_algebra.proj 𝒜 0 f = 0,
-    rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_ne 𝒜 f_deg],
-    symmetry,
-    apply ne_of_lt,
-    exact hm },
-  apply rid mem2,
-end
+λ rid, carrier.denom_not_mem hm q $ rid $ direct_sum.decompose_of_mem_ne 𝒜 f_deg $ by linarith
 
 lemma carrier.as_ideal.prime (hm : 0 < m)
   (q : Spec.T (A⁰_ f_deg)) : (carrier.as_ideal hm q).is_prime :=
@@ -764,8 +682,7 @@ begin
     rw ideal.eq_top_iff_one,
     specialize rid 0,
     have eq1 : proj 𝒜 0 1 = 1,
-    { rw [proj_apply, decompose_of_mem_same],
-      exact one_mem, },
+    { rw [proj_apply, decompose_of_mem_same], exact one_mem, },
     simp only [eq1, one_pow] at rid,
     convert rid,
     rw [subtype.ext_iff, degree_zero_part.coe_one],
@@ -777,19 +694,10 @@ begin
     contrapose hxy,
     rw not_or_distrib at hxy,
     rcases hxy with ⟨hx, hy⟩,
-    change x ∉ carrier q at hx,
-    change y ∉ carrier q at hy,
-    change ¬ ∀ (i : ℕ),
-      (⟨mk ((proj 𝒜 i x)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-        ⟨i, ⟨((proj 𝒜 i x)^m), pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at hx,
-    change ¬ ∀ (i : ℕ), (⟨mk ((proj 𝒜 i y)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨((graded_algebra.proj 𝒜 i y)^m), pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at hy,
-    rw not_forall at hx hy,
+    erw not_forall at hx hy,
     obtain ⟨ix, hix⟩ := hx,
     obtain ⟨iy, hiy⟩ := hy,
     intro rid,
-    change ∀ (i : ℕ), (⟨mk ((proj 𝒜 i (x*y))^m) ⟨f^i, ⟨_, rfl⟩⟩,
-      ⟨i, ⟨((proj 𝒜 i (x*y))^m), pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 at rid,
     specialize rid (nx + ny),
     have eqx : nx = ix,
     { by_contra rid,
@@ -804,68 +712,47 @@ begin
     rw ←eqx at hix,
     rw ←eqy at hiy,
 
-    have eqx2 : (⟨mk ((proj 𝒜 nx) x ^ m) ⟨f ^ nx, ⟨_, rfl⟩⟩,
-      ⟨nx, ⟨(proj 𝒜 nx) x ^ m, by exact pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) =
+    have eqx2 : (⟨mk ((proj 𝒜 nx) x ^ m) ⟨_, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) =
     ⟨mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, by exact pow_mem_graded m hnx⟩, rfl⟩⟩,
     { rw subtype.ext_iff_val,
       dsimp only,
       congr' 1,
-      rw [proj_apply, decompose_of_mem_same],
-      exact hnx },
+      rwa [proj_apply, decompose_of_mem_same], },
     rw eqx2 at hix,
 
-    have eqy2 : (⟨mk ((proj 𝒜 ny) y ^ m) ⟨f ^ ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, by exact pow_mem_graded _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) =
-      (⟨mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, by exact pow_mem_graded _ hny⟩, rfl⟩⟩ : A⁰_ f_deg),
+    have eqy2 : (⟨mk ((proj 𝒜 ny) y ^ m) ⟨_, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) =
+      ⟨mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, by exact pow_mem_graded _ hny⟩, rfl⟩⟩,
     { rw subtype.ext_iff_val,
       dsimp only,
       congr' 1,
-      rw [proj_apply, decompose_of_mem_same],
-      exact hny },
+      rwa [proj_apply, decompose_of_mem_same], },
     erw eqy2 at hiy,
 
-    rw show (⟨mk ((proj 𝒜 (nx+ny)) (x*y) ^ m)
-        ⟨f^(nx+ny), ⟨_, rfl⟩⟩, ⟨nx + ny, ⟨_, by exact pow_mem_graded m (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg) =
-      ⟨mk ((x*y)^m) ⟨f^(nx+ny), ⟨_, rfl⟩⟩, ⟨nx + ny, ⟨_, pow_mem_graded _ (mul_mem hnx hny)⟩, rfl⟩⟩,
+    rw show (⟨mk ((proj 𝒜 (nx+ny)) (x*y)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨_, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) =
+      ⟨mk ((x*y)^m) ⟨f^(nx+ny), ⟨_, rfl⟩⟩, ⟨_, ⟨_, pow_mem_graded _ (mul_mem hnx hny)⟩, rfl⟩⟩,
     { rw subtype.ext_iff_val,
       dsimp only,
       congr' 1,
       rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same],
       apply graded_monoid.mul_mem hnx hny, } at rid,
 
-    rw show (⟨mk ((x*y)^m) ⟨f^(nx+ny), ⟨_, rfl⟩⟩, ⟨nx + ny, ⟨_, pow_mem_graded _ (mul_mem hnx hny)⟩, rfl⟩⟩ : A⁰_ f_deg)
-    = (⟨mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, pow_mem_graded _ hnx⟩, rfl⟩⟩ : A⁰_ f_deg) *
-      (⟨mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, pow_mem_graded _ hny⟩, rfl⟩⟩ : A⁰_ f_deg),
+    rw show (⟨mk ((x*y)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨_, ⟨_, pow_mem_graded _ (mul_mem hnx hny)⟩, rfl⟩⟩: A⁰_ _)
+      = (⟨mk (x^m) ⟨f^nx, ⟨_, rfl⟩⟩, ⟨nx, ⟨_, pow_mem_graded _ hnx⟩, rfl⟩⟩ : A⁰_ f_deg) *
+        (⟨mk (y^m) ⟨f^ny, ⟨_, rfl⟩⟩, ⟨ny, ⟨_, pow_mem_graded _ hny⟩, rfl⟩⟩ : A⁰_ f_deg),
     { rw [subtype.ext_iff, degree_zero_part.coe_mul],
       change localization.mk _ _ = mk _ _ * mk _ _,
       rw [localization.mk_mul],
       congr';
       ring_exp, } at rid,
 
-    rcases ideal.is_prime.mem_or_mem (q.is_prime) rid with L | R,
-    { apply hix, exact L },
-    { apply hiy, exact R }, },
+    cases ideal.is_prime.mem_or_mem (q.is_prime) rid;
+    tauto, },
 end
 
 variable (f_deg)
-def to_fun (hm : 0 < m) :
-  (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) := λ q,
-⟨⟨carrier.as_homogeneous_ideal hm q,
-  carrier.as_ideal.prime hm q,
-  carrier.relevant hm q⟩, begin
-    erw projective_spectrum.mem_basic_open,
-    intro rid,
-    change ∀ i : ℕ, _ ∈ q.1 at rid,
-    specialize rid m,
-    apply q.is_prime.1,
-    rw ideal.eq_top_iff_one,
-    convert rid,
-    symmetry,
-    rw [subtype.ext_iff, degree_zero_part.coe_one],
-    change localization.mk _ _ = 1,
-    rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same 𝒜 f_deg],
-    convert localization.mk_self _,
-    refl,
-  end⟩
+def to_fun (hm : 0 < m) : (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) :=
+λ q, ⟨⟨carrier.as_homogeneous_ideal hm q, carrier.as_ideal.prime hm q, carrier.relevant hm q⟩,
+  (projective_spectrum.mem_basic_open _ f _).mp $ carrier.denom_not_mem hm q⟩
 
 end from_Spec
 

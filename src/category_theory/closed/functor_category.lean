@@ -39,9 +39,7 @@ def functor_closed_unit (F : D ⥤ C) : 𝟭 (D ⥤ C) ⟶ (tensor_left F) ⋙ (
       dsimp,
       rw [coev_app_comp_pre_app_assoc, ←functor.map_comp],
       simp,
-    end
-  }
-}
+    end } }
 
 /-- Auxiliary definition for `category_theory.monoidal_closed.functor_closed`.
 The counit for the adjunction `(tensor_left F) ⊣ (ihom F)`. -/
@@ -55,9 +53,7 @@ def functor_closed_counit (F : D ⥤ C) : (functor_closed_ihom F) ⋙ (tensor_le
       simp only [functor_closed_ihom_obj_map, pre_comm_ihom_map],
       rw [←tensor_id_comp_id_tensor, id_tensor_comp],
       simp,
-    end
-  }
-}
+    end } }
 
 /-- If `C` is a monoidal closed category and `D` is groupoid, then every functor `F : D ⥤ C` is
 closed in the functor category `F : D ⥤ C` with the pointwise monoidal structure. -/

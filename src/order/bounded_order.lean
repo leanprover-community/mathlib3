@@ -74,7 +74,7 @@ begin
   by_cases H : ∀ a : α, ∃ b, ¬ b ≤ a,
   { exact psum.inr ⟨H⟩ },
   { push_neg at H,
-    exact psum.inl ⟨classical.some H, classical.some_spec H⟩ }
+    exact psum.inl ⟨_, classical.some_spec H⟩ }
 end
 
 section has_le
@@ -170,7 +170,7 @@ begin
   by_cases H : ∀ a : α, ∃ b, ¬ a ≤ b,
   { exact psum.inr ⟨H⟩ },
   { push_neg at H,
-    exact psum.inl ⟨classical.some H, classical.some_spec H⟩ }
+    exact psum.inl ⟨_, classical.some_spec H⟩ }
 end
 
 section has_le

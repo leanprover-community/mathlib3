@@ -218,6 +218,14 @@ calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
 ... = (-1 : R) • -1 : by rw J_squared
 ... = 1 : by simp only [neg_smul_neg, one_smul]
 
+lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ symplectic_group l R) :
+  A⁻¹ = - (J l R) ⬝ Aᵀ ⬝ (J l R) :=
+begin
+  have H := inv_left_mul_aux hA,
+  simp only [←matrix.neg_mul] at H,
+  exact inv_eq_left_inv H
+end
+
 instance : group (symplectic_group l R) :=
 { mul_left_inv :=
   begin

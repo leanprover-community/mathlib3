@@ -139,7 +139,8 @@ end
 
 /-- When `R` is a field `F`, then a nontrivial additive character is primitive -/
 lemma is_nontrivial.is_primitive {F : Type u} [field F]
- (ψ : add_char F R') (hψ : is_nontrivial ψ) : is_primitive ψ :=
+  (ψ : add_char F R') (hψ : is_nontrivial ψ) :
+  is_primitive ψ :=
 begin
   intros a ha,
   cases hψ with x h,
@@ -185,7 +186,7 @@ end
 
 /-- A primitive additive character on `zmod n` takes the value `1` only at `0`. -/
 lemma is_primitive.zmod_char_eq_one_iff (n : ℕ) [fact (0 < n)]
- {ψ : add_char (zmod n) C} (hψ : is_primitive ψ) (a : zmod n) :
+  {ψ : add_char (zmod n) C} (hψ : is_primitive ψ) (a : zmod n) :
   ψ (of_add a) = 1 ↔ a = 0 :=
 begin
   refine ⟨λ h, not_imp_comm.mp (hψ a) _, λ ha, (by rw [ha, of_add_zero, map_one])⟩,
@@ -197,7 +198,7 @@ end
 /-- The converse: if the additive character takes the value `1` only at `0`,
 then it is primitive. -/
 lemma zmod_char_primitive_of_eq_one_only_at_zero (n : ℕ)
- (ψ : add_char (zmod n) C) (hψ : ∀ a, ψ (of_add a) = 1 → a = 0) :
+  (ψ : add_char (zmod n) C) (hψ : ∀ a, ψ (of_add a) = 1 → a = 0) :
   is_primitive ψ :=
 begin
   refine λ a ha, (is_nontrivial_iff_ne_trivial _).mpr (λ hf, _),
@@ -212,7 +213,7 @@ end
 /-- The additive character on `zmod n` associated to a primitive `n`th root of unity
 is primitive -/
 lemma zmod_char_primitive_of_primitive_root (n : ℕ) [hn : fact (0 < n)]
- {ζ : C} (h : is_primitive_root ζ n) :
+  {ζ : C} (h : is_primitive_root ζ n) :
   is_primitive (zmod_char n ((is_primitive_root.iff_def ζ n).mp h).left) :=
 begin
   apply zmod_char_primitive_of_eq_one_only_at_zero,
@@ -246,7 +247,7 @@ We obtain it as the composition of the trace from `F` to `zmod p` with a primiti
 additive character on `zmod p`, where `p` is the characteristic of `F`. -/
 noncomputable
 def primitive_char_finite_field (F F': Type) [field F] [fintype F] [field F']
- (h : ring_char F' ≠ ring_char F) :
+  (h : ring_char F' ≠ ring_char F) :
   primitive_add_char F F' :=
 begin
   let p := ring_char F,

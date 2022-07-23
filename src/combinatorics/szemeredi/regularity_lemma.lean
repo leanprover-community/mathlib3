@@ -91,16 +91,3 @@ begin
   { rw [nat.cast_succ, mul_add, mul_one],
     exact add_le_add_right hP₄ _ }
 end
-
-theorem szemeredi_regularity' :
-  ∀ {ε : ℝ} (l : ℕ), 0 < ε → ∃ (L : ℕ),
-    ∀ (α : Type*) [fintype α] (G : simple_graph α), by exactI
-      l ≤ card α →
-        ∃ (P : finpartition univ),
-          P.is_equipartition ∧ l ≤ P.parts.card ∧ P.parts.card ≤ L ∧ P.is_uniform G ε :=
-begin
-  intros ε l hε,
-  use bound ε l,
-  introsI α hα G hl,
-  apply szemeredi_regularity G l hε hl,
-end

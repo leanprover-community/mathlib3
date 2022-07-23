@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import .mathlib
 import .triangle
 import combinatorics.simple_graph.regularity.uniform
+import data.real.basic
 import order.partition.equipartition
 
 /-!

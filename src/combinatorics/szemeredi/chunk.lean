@@ -6,7 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simple_graph.regularity.bound
 import combinatorics.simple_graph.regularity.equitabilise
 import combinatorics.simple_graph.regularity.uniform
-import .prereqs
+import .mathlib
 
 /-!
 # Chunk of `increment`
@@ -68,7 +68,7 @@ begin
       ≤ 2 ^ (P.parts.card - 1) * m,
   { rw sum_const_nat,
     { apply nat.mul_le_mul_right,
-      have t := card_filter_atomise_le hX,
+      have t := card_filter_atomise_le_two_pow hX,
       rw filter_congr_decidable at t,
       apply t.trans (pow_le_pow (by norm_num) (nat.sub_le_sub_right _ _)),
       apply card_image_le.trans (card_le_of_subset (filter_subset _ _)) },
@@ -232,7 +232,7 @@ end
 
 lemma density_sub_eps_le_sum_density_div_card [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5)
-  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} {A B : finset (finset α)}
+  {hU : U ∈ P.parts} {hV : V ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hV).parts) :
   ↑(G.edge_density (A.bUnion id) (B.bUnion id)) - ε^5/50 ≤
     (∑ ab in A.product B, G.edge_density ab.1 ab.2)/(A.card * B.card) :=
@@ -244,7 +244,7 @@ begin
     exact_mod_cast G.edge_density_le_one _ _ },
   refine this.trans _,
   simp only [simple_graph.edge_density_def, simple_graph.interedges, ←sup_eq_bUnion, nat.cast_sum,
-    rel.card_interedges_finpartition (of_subset _ hA rfl) (of_subset _ hB rfl), of_subset_parts,
+    rel.card_interedges_finpartition _ (of_subset _ hA rfl) (of_subset _ hB rfl), of_subset_parts,
     sum_div, mul_sum, rat.cast_sum, rat.cast_div, rat.cast_mul, div_div,
     mul_div_left_comm ((1:ℝ) - _)],
   push_cast,
@@ -269,7 +269,7 @@ end
 
 lemma sum_density_div_card_le_density_add_eps [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1)
-  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} {A B : finset (finset α)}
+  {hU : U ∈ P.parts} {hV : V ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hV).parts) :
   (∑ ab in A.product B, (G.edge_density ab.1 ab.2 : ℝ))/(A.card * B.card) ≤
   G.edge_density (A.bUnion id) (B.bUnion id) + ε^5/49 :=
@@ -281,7 +281,7 @@ begin
     exact_mod_cast G.edge_density_le_one _ _ },
   refine le_trans _ this,
   simp only [simple_graph.edge_density, edge_density, ←sup_eq_bUnion, nat.cast_sum, mul_sum,
-    sum_div, rel.card_interedges_finpartition (of_subset _ hA rfl) (of_subset _ hB rfl),
+    sum_div, rel.card_interedges_finpartition _ (of_subset _ hA rfl) (of_subset _ hB rfl),
     rat.cast_sum, rat.cast_div, rat.cast_mul,
     of_subset_parts, mul_div_left_comm ((1:ℝ) + _), div_div],
   push_cast,
@@ -310,7 +310,7 @@ end
 
 lemma average_density_near_total_density [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1)
-  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} {A B : finset (finset α)}
+  {hU : U ∈ P.parts} {hV : V ∈ P.parts} {A B : finset (finset α)}
   (hA : A ⊆ (hP.chunk_increment G ε hU).parts) (hB : B ⊆ (hP.chunk_increment G ε hV).parts) :
   |(∑ ab in A.product B, (G.edge_density ab.1 ab.2 : ℝ))/(A.card * B.card) -
     G.edge_density (A.bUnion id) (B.bUnion id)| ≤ ε^5/49 :=
@@ -330,7 +330,7 @@ end
 -- predagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card_aux [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5)
-  {U V : finset α} (hU : U ∈ P.parts) (hV : V ∈ P.parts) :
+  (hU : U ∈ P.parts) (hV : V ∈ P.parts) :
   ↑(G.edge_density U V)^2 - ε^5/25 ≤
     ((∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
       G.edge_density ab.1 ab.2)/16^P.parts.card)^2 :=
@@ -362,7 +362,7 @@ end
 -- dagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5)
-  {U V : finset α} (hU : U ∈ P.parts) (hV : V ∈ P.parts) :
+  (hU : U ∈ P.parts) (hV : V ∈ P.parts) :
   (G.edge_density U V : ℝ)^2 - ε^5/25 ≤
   (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
     G.edge_density ab.1 ab.2^2)/16^P.parts.card :=
@@ -375,12 +375,12 @@ begin
 end
 
 lemma abs_density_star_sub_density_le_eps (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1)
-  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV' : U ≠ V)
+  {hU : U ∈ P.parts} {hV : V ∈ P.parts} (hUV' : U ≠ V)
   (hUV : ¬ G.is_uniform ε U V) :
   |(G.edge_density ((hP.star G ε hU V).bUnion id) ((hP.star G ε hV U).bUnion id) : ℝ) -
     G.edge_density (G.nonuniform_witness ε U V) (G.nonuniform_witness ε V U)| ≤ ε/5 :=
 begin
-  convert lemma_A G.adj
+  convert abs_edge_density_sub_edge_density_le_two_mul G.adj
     (bUnion_star_subset_nonuniform_witness hP G ε hU V)
     (bUnion_star_subset_nonuniform_witness hP G ε hV U)
     (div_nonneg (eps_pos hPε).le $ by norm_num)
@@ -397,7 +397,7 @@ begin
 end
 
 lemma eps_le_card_star_div [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
-  (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1) {U V : finset α} (hU : U ∈ P.parts)
+  (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1) (hU : U ∈ P.parts)
   (hV : V ∈ P.parts) (hUV : U ≠ V) (hunif : ¬ G.is_uniform ε U V) :
   4/5 * ε ≤ (hP.star G ε hU V).card / 4^P.parts.card :=
 begin
@@ -443,7 +443,7 @@ end
 
 lemma stuff [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1)
-  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (h_diff : U ≠ V)
+  {hU : U ∈ P.parts} {hV : V ∈ P.parts} (h_diff : U ≠ V)
   (hUV : ¬ G.is_uniform ε U V) :
   3/4 * ε ≤
     |(∑ ab in (hP.star G ε hU V).product (hP.star G ε hV U), G.edge_density ab.1 ab.2)
@@ -488,7 +488,7 @@ end
 -- double dagger inequality
 lemma sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform [nonempty α]
   (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1)
-  {U V : finset α} {hU : U ∈ P.parts} {hV : V ∈ P.parts} (h_diff : U ≠ V)
+  {hU : U ∈ P.parts} {hV : V ∈ P.parts} (h_diff : U ≠ V)
   (hUV : ¬ G.is_uniform ε U V) :
   (G.edge_density U V : ℝ)^2 - ε^5/25 + ε^4/3 ≤
     (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
@@ -526,7 +526,7 @@ calc
           product_subset_product star_subset_chunk_increment star_subset_chunk_increment,
       have hε : 0 ≤ ε := (eps_pos hPε).le,
       have h₁ : 0 ≤ 3/4 * ε := by linarith,
-      have := lemma_B_ineq t (λ x, G.edge_density x.1 x.2) (G.edge_density U V^2 - ε^5/25) h₁ _ _,
+      have := lemma_B_ineq t (λ x, (G.edge_density x.1 x.2 : ℝ)) (G.edge_density U V^2 - ε^5/25) h₁ _ _,
       { simp_rw [card_product, card_chunk_increment (m_pos hPα).ne', ←mul_pow, nat.cast_pow,
           mul_pow, div_pow, ←mul_assoc] at this,
         norm_num at this,

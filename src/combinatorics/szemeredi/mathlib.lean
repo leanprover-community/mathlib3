@@ -4,15 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.degree_sum
-import combinatorics.simple_graph.density
-import data.real.basic
 
 /-! # Things that belong to mathlib -/
 
 open finset function sum
 open_locale big_operators
 
-variables {α ι : Type*}
+variables {α 𝕜 ι : Type*}
 
 namespace finset
 
@@ -101,7 +99,10 @@ end
 
 end linear_ordered_field
 
-lemma sum_mul_sq_le_sq_mul_sq (s : finset α) (f g : α → ℝ) :
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] (r : α → α → Prop) [decidable_rel r] {s t : finset α} {x : 𝕜}
+
+lemma sum_mul_sq_le_sq_mul_sq (s : finset α) (f g : α → 𝕜) :
   (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * ∑ i in s, (g i)^2 :=
 begin
   have h : 0 ≤ ∑ i in s, (f i * ∑ j in s, (g j)^2 - g i * ∑ j in s, f j * g j)^2 :=
@@ -119,26 +120,52 @@ begin
   exact nonneg_of_mul_nonneg_left h h',
 end
 
-lemma chebyshev' (s : finset α) (f : α → ℝ) :
+lemma chebyshev' (s : finset α) (f : α → 𝕜) :
   (∑ (i : α) in s, f i) ^ 2 ≤ (∑ (i : α) in s, f i ^ 2) * s.card :=
 by simpa using sum_mul_sq_le_sq_mul_sq s f (λ _, 1)
 
-lemma chebyshev (s : finset α) (f : α → ℝ) :
+lemma chebyshev (s : finset α) (f : α → 𝕜) :
   ((∑ i in s, f i) / s.card)^2 ≤ (∑ i in s, (f i)^2) / s.card :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
-  rw div_pow,
-  have hs' : 0 < (s.card : ℝ) := nat.cast_pos.2 hs.card_pos,
-  rw [div_le_div_iff (sq_pos_of_ne_zero _ hs'.ne') hs', sq (s.card : ℝ), ←mul_assoc],
-  apply mul_le_mul_of_nonneg_right (chebyshev' _ _) hs'.le,
+  rw [←card_pos, ←@nat.cast_pos 𝕜] at hs,
+  rw [div_pow, div_le_div_iff (sq_pos_of_ne_zero _ hs.ne') hs, sq (s.card : 𝕜), ←mul_assoc],
+  exact mul_le_mul_of_nonneg_right (chebyshev' _ f) hs.le,
 end
+
+lemma lemma_B_ineq_zero (hst : s ⊆ t) (f : α → 𝕜) (hs : x^2 ≤ ((∑ x in s, f x)/s.card)^2)
+  (hs' : (s.card : 𝕜) ≠ 0) :
+  (s.card : 𝕜) * x^2 ≤ ∑ x in t, f x^2 :=
+(mul_le_mul_of_nonneg_left (hs.trans (chebyshev s f)) (nat.cast_nonneg _)).trans $
+  (mul_div_cancel' _ hs').le.trans $ sum_le_sum_of_subset_of_nonneg hst $ λ i _ _, sq_nonneg _
+
+lemma lemma_B_ineq (hst : s ⊆ t) (f : α → 𝕜) (d : 𝕜) (hx : 0 ≤ x)
+  (hs : x ≤ abs ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card))
+  (ht : d ≤ ((∑ i in t, f i)/t.card)^2) :
+  d + s.card/t.card * x^2 ≤ (∑ i in t, f i^2)/t.card :=
+begin
+  obtain hscard | hscard := (s.card.cast_nonneg : (0 : 𝕜) ≤ s.card).eq_or_lt,
+  { simpa [←hscard] using ht.trans (chebyshev t f) },
+  have htcard : (0:𝕜) < t.card := hscard.trans_le (nat.cast_le.2 (card_le_of_subset hst)),
+  have h₁ : x^2 ≤ ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card)^2 :=
+    sq_le_sq.2 (by rwa [abs_of_nonneg hx]),
+  have h₂ : x^2 ≤ ((∑ i in s, (f i - (∑ j in t, f j)/t.card))/s.card)^2,
+  { apply h₁.trans,
+    rw [sum_sub_distrib, sum_const, nsmul_eq_mul, sub_div, mul_div_cancel_left _ hscard.ne'] },
+  apply (add_le_add_right ht _).trans,
+  rw [←mul_div_right_comm, le_div_iff htcard, add_mul, div_mul_cancel _ htcard.ne'],
+  have h₃ := lemma_B_ineq_zero hst (λ i, f i - (∑ j in t, f j) / t.card) h₂ hscard.ne',
+  apply (add_le_add_left h₃ _).trans,
+  simp [←mul_div_right_comm _ (t.card : 𝕜), sub_div' _ _ _ htcard.ne', ←sum_div, ←add_div, mul_pow,
+    div_le_iff (sq_pos_of_ne_zero _ htcard.ne'), sub_sq, sum_add_distrib, ←sum_mul, ←mul_sum],
+  ring_nf,
+end
+
+end linear_ordered_field
 
 namespace simple_graph
 variables {G G' : simple_graph α} {s : finset α}
-
-/-- Abbreviation for a graph relation to be decidable. -/
-protected abbreviation decidable (G : simple_graph α) := decidable_rel G.adj
 
 instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
 
@@ -180,31 +207,3 @@ end
 set.to_finset_mono.2 (edge_set_mono h)
 
 end simple_graph
-
-/-! ## `interedges` with `finpartition` -/
-
-namespace rel
-variables [decidable_eq α] {r : α → α → Prop} [decidable_rel r]
-
-lemma card_interedges_finpartition_left {U : finset α} (P : finpartition U) (V : finset α) :
-  (interedges r U V).card = ∑ a in P.parts, (interedges r a V).card :=
-begin
-  simp_rw [←P.bUnion_parts, interedges_bUnion_left, id.def],
-  rw card_bUnion,
-  exact λ x hx y hy h, interedges_disjoint_left r (P.disjoint hx hy h) _,
-end
-
-lemma card_interedges_finpartition_right (U : finset α) {V : finset α} (P : finpartition V) :
-  (interedges r U V).card = ∑ b in P.parts, (interedges r U b).card :=
-begin
-  simp_rw [←P.bUnion_parts, interedges_bUnion_right, id],
-  rw card_bUnion,
-  exact λ x hx y hy h, interedges_disjoint_right r _ (P.disjoint hx hy h),
-end
-
-lemma card_interedges_finpartition {U V : finset α} (P : finpartition U) (Q : finpartition V) :
-  (interedges r U V).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
-by simp_rw [card_interedges_finpartition_left P, card_interedges_finpartition_right _ Q,
-  sum_product]
-
-end rel

@@ -327,7 +327,7 @@ subset_compl_comm.trans $ by simp_rw [← range_diag, range_subset_iff,
 
 @[simp] lemma diag_preimage_prod (s t : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ t) = s ∩ t := rfl
 
-lemma diag_preimage_prod_sellf (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
+lemma diag_preimage_prod_self (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
 
 end diagonal
 

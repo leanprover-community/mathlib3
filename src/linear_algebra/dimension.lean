@@ -1284,18 +1284,15 @@ end
 lemma submodule.rank_le_one_iff_is_principal (W : submodule K V) :
   module.rank K W ≤ 1 ↔ W.is_principal :=
 begin
-  rw dim_le_one_iff,
+  simp only [dim_le_one_iff, submodule.is_principal_iff, le_antisymm_iff,
+    le_span_singleton_iff, span_singleton_le_iff_mem],
   split,
-  { rintro ⟨m, hm⟩,
-    refine ⟨⟨m, le_antisymm _ ((submodule.span_singleton_le_iff_mem _ _).mpr m.prop)⟩⟩,
-    intros x hx,
-    obtain ⟨r, hr⟩ := hm ⟨x, hx⟩,
-    exact submodule.mem_span_singleton.mpr ⟨r, congr_arg subtype.val hr⟩ },
-  { rintro ⟨⟨a, rfl⟩⟩,
-    refine ⟨⟨a, submodule.mem_span_singleton_self a⟩, _⟩,
-    rintro ⟨m, hm⟩,
-    obtain ⟨r, hr⟩ := submodule.mem_span_singleton.mp hm,
-    exact ⟨r, subtype.ext hr⟩ }
+  { rintro ⟨⟨m, hm⟩, hm'⟩,
+    choose f hf using hm',
+    exact ⟨m, ⟨λ v hv, ⟨f ⟨v, hv⟩, congr_arg coe (hf ⟨v, hv⟩)⟩, hm⟩⟩ },
+  { rintro ⟨a, ⟨h, ha⟩⟩,
+    choose f hf using h,
+    exact ⟨⟨a, ha⟩, λ v, ⟨f v.1 v.2, subtype.ext (hf v.1 v.2)⟩⟩ }
 end
 
 lemma module.rank_le_one_iff_top_is_principal :

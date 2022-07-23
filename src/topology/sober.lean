@@ -17,99 +17,14 @@ stated via `[quasi_sober α] [t0_space α]`.
 
 ## Main definition
 
-* `specializes` : `specializes x y` (`x ⤳ y`) means that `x` specializes to `y`, i.e.
-  `y` is in the closure of `x`.
-* `specialization_preorder` : specialization gives a preorder on a topological space.
-* `specialization_order` : specialization gives a partial order on a T0 space.
 * `is_generic_point` : `x` is the generic point of `S` if `S` is the closure of `x`.
 * `quasi_sober` : A space is quasi-sober if every irreducible closed subset has a generic point.
 
 -/
 
+open set
+
 variables {α β : Type*} [topological_space α] [topological_space β]
-
-section specialize_order
-
-/-- `x` specializes to `y` if `y` is in the closure of `x`. The notation used is `x ⤳ y`. -/
-def specializes (x y : α) : Prop := y ∈ closure ({x} : set α)
-
-infix ` ⤳ `:300 := specializes
-
-lemma specializes_def (x y : α) : x ⤳ y ↔ y ∈ closure ({x} : set α) := iff.rfl
-
-lemma specializes_iff_closure_subset {x y : α} :
-  x ⤳ y ↔ closure ({y} : set α) ⊆ closure ({x} : set α) :=
-is_closed_closure.mem_iff_closure_subset
-
-lemma specializes_rfl {x : α} : x ⤳ x := subset_closure (set.mem_singleton x)
-
-lemma specializes_refl (x : α) : x ⤳ x := specializes_rfl
-
-lemma specializes.trans {x y z : α} : x ⤳ y → y ⤳ z → x ⤳ z :=
-by { simp_rw specializes_iff_closure_subset, exact λ a b, b.trans a }
-
-lemma specializes_iff_forall_closed {x y : α} :
-  x ⤳ y ↔ ∀ (Z : set α) (h : is_closed Z), x ∈ Z → y ∈ Z :=
-begin
-  split,
-  { intros h Z hZ,
-    rw [hZ.mem_iff_closure_subset, hZ.mem_iff_closure_subset],
-    exact (specializes_iff_closure_subset.mp h).trans },
-  { intro h, exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) }
-end
-
-lemma specializes_iff_forall_open {x y : α} :
-  x ⤳ y ↔ ∀ (U : set α) (h : is_open U), y ∈ U → x ∈ U :=
-begin
-  rw specializes_iff_forall_closed,
-  exact ⟨λ h U hU, not_imp_not.mp (h _ (is_closed_compl_iff.mpr hU)),
-    λ h U hU, not_imp_not.mp (h _ (is_open_compl_iff.mpr hU))⟩,
-end
-
-lemma inseparable_iff_specializes_and (x y : α) :
-  inseparable x y ↔ x ⤳ y ∧ y ⤳ x :=
-(inseparable_iff_closure x y).trans (and_comm _ _)
-
-lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
-λ h₁ h₂, ((inseparable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
-
-lemma specializes.map {x y : α} (h : x ⤳ y) {f : α → β} (hf : continuous f) : f x ⤳ f y :=
-begin
-  rw [specializes_def, ← set.image_singleton],
-  exact image_closure_subset_closure_image hf ⟨_, h, rfl⟩,
-end
-
-lemma continuous_map.map_specialization {x y : α} (h : x ⤳ y) (f : C(α, β)) : f x ⤳ f y :=
-h.map f.2
-
-lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
-(set.mem_singleton_iff.mp
-  ((specializes_iff_forall_closed.mp h) _ (t1_space.t1 _) (set.mem_singleton _))).symm
-
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
-⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
-
-variable (α)
-
-/-- Specialization forms a preorder on the topological space. -/
-def specialization_preorder : preorder α :=
-{ le := λ x y, y ⤳ x,
-  le_refl := λ x, specializes_refl x,
-  le_trans := λ _ _ _ h₁ h₂, specializes.trans h₂ h₁ }
-
-local attribute [instance] specialization_preorder
-
-/-- Specialization forms a partial order on a t0 topological space. -/
-def specialization_order [t0_space α] : partial_order α :=
-{ le_antisymm := λ _ _ h₁ h₂, specializes_antisymm _ _ h₂ h₁,
-  .. specialization_preorder α }
-
-variable {α}
-
-lemma specialization_order.monotone_of_continuous (f : α → β) (hf : continuous f) : monotone f :=
-λ x y h, specializes.map h hf
-
-end specialize_order
 
 section generic_point
 
@@ -124,61 +39,59 @@ lemma is_generic_point.def {x : α} {S : set α} (h : is_generic_point x S) :
 
 lemma is_generic_point_closure {x : α} : is_generic_point x (closure ({x} : set α)) := refl _
 
-variables {x : α} {S : set α} (h : is_generic_point x S)
+variables {x y : α} {S U Z : set α}
 
-include h
+lemma is_generic_point_iff_specializes :
+  is_generic_point x S ↔ ∀ y, x ⤳ y ↔ y ∈ S :=
+by simp only [specializes_iff_mem_closure, is_generic_point, set.ext_iff]
 
-lemma is_generic_point.specializes {y : α} (h' : y ∈ S) :
-  x ⤳ y := by rwa ← h.def at h'
+namespace is_generic_point
 
-lemma is_generic_point.mem : x ∈ S :=
-h.def ▸ subset_closure (set.mem_singleton x)
+lemma specializes_iff_mem (h : is_generic_point x S) : x ⤳ y ↔ y ∈ S :=
+is_generic_point_iff_specializes.1 h y
 
-lemma is_generic_point.is_closed : is_closed S :=
+lemma specializes (h : is_generic_point x S) (h' : y ∈ S) : x ⤳ y :=
+h.specializes_iff_mem.2 h'
+
+lemma mem (h : is_generic_point x S) : x ∈ S :=
+h.specializes_iff_mem.1 specializes_rfl
+
+protected lemma is_closed (h : is_generic_point x S) : is_closed S :=
 h.def ▸ is_closed_closure
 
-lemma is_generic_point.is_irreducible : is_irreducible S :=
+protected lemma is_irreducible (h : is_generic_point x S) : is_irreducible S :=
 h.def ▸ is_irreducible_singleton.closure
 
-lemma is_generic_point.eq [t0_space α] {y : α} (h' : is_generic_point y S) : x = y :=
-specializes_antisymm _ _ (h.specializes h'.mem) (h'.specializes h.mem)
+/-- In a T₀ space, each set has at most one generic point. -/
+protected lemma eq [t0_space α] (h : is_generic_point x S) (h' : is_generic_point y S) : x = y :=
+((h.specializes h'.mem).antisymm (h'.specializes h.mem)).eq
 
-lemma is_generic_point.mem_open_set_iff
-  {U : set α} (hU : is_open U) : x ∈ U ↔ (S ∩ U).nonempty :=
-⟨λ h', ⟨x, h.mem, h'⟩,
-    λ h', specializes_iff_forall_open.mp (h.specializes h'.some_spec.1) U hU h'.some_spec.2⟩
+lemma mem_open_set_iff (h : is_generic_point x S) (hU : is_open U) :
+  x ∈ U ↔ (S ∩ U).nonempty :=
+⟨λ h', ⟨x, h.mem, h'⟩, λ ⟨y, hyS, hyU⟩, (h.specializes hyS).mem_open hU hyU⟩
 
-lemma is_generic_point.disjoint_iff
-  {U : set α} (hU : is_open U) : disjoint S U ↔ x ∉ U :=
-by rw [h.mem_open_set_iff hU, ← set.ne_empty_iff_nonempty, not_not, set.disjoint_iff_inter_eq_empty]
+lemma disjoint_iff (h : is_generic_point x S) (hU : is_open U) : disjoint S U ↔ x ∉ U :=
+by rw [h.mem_open_set_iff hU, ← not_disjoint_iff_nonempty_inter, not_not]
 
-lemma is_generic_point.mem_closed_set_iff
-  {Z : set α} (hZ : is_closed Z) : x ∈ Z ↔ S ⊆ Z :=
-by rw [← is_generic_point_def.mp h, hZ.closure_subset_iff, set.singleton_subset_iff]
+lemma mem_closed_set_iff (h : is_generic_point x S) (hZ : is_closed Z) :
+  x ∈ Z ↔ S ⊆ Z :=
+by rw [← h.def, hZ.closure_subset_iff, singleton_subset_iff]
 
-lemma is_generic_point.image {f : α → β} (hf : continuous f) :
+protected lemma image (h : is_generic_point x S) {f : α → β} (hf : continuous f) :
   is_generic_point (f x) (closure (f '' S)) :=
 begin
-  rw [is_generic_point_def, ← is_generic_point_def.mp h],
-  apply le_antisymm,
-  { exact closure_mono
-      (set.singleton_subset_iff.mpr ⟨_, subset_closure $ set.mem_singleton x, rfl⟩) },
-  { convert is_closed_closure.closure_subset_iff.mpr (image_closure_subset_closure_image hf),
-    rw set.image_singleton }
+  rw [is_generic_point_def, ← h.def, ← image_singleton],
+  exact subset.antisymm (closure_mono (image_subset _ subset_closure))
+    (closure_minimal (image_closure_subset_closure_image hf) is_closed_closure)
 end
 
-omit h
+end is_generic_point
 
-lemma is_generic_point_iff_forall_closed {x : α} {S : set α} (hS : is_closed S) (hxS : x ∈ S) :
-  is_generic_point x S ↔ ∀ (Z : set α) (hZ : is_closed Z) (hxZ : x ∈ Z), S ⊆ Z :=
-begin
-  split,
-  { intros h Z hZ hxZ, exact (h.mem_closed_set_iff hZ).mp hxZ },
-  { intro h,
-    apply le_antisymm,
-    { rwa [set.le_eq_subset, hS.closure_subset_iff, set.singleton_subset_iff] },
-    { exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) } }
-end
+lemma is_generic_point_iff_forall_closed (hS : is_closed S) (hxS : x ∈ S) :
+  is_generic_point x S ↔ ∀ Z : set α, is_closed Z → x ∈ Z → S ⊆ Z :=
+have closure {x} ⊆ S, from closure_minimal (singleton_subset_iff.2 hxS) hS,
+by simp_rw [is_generic_point, subset_antisymm_iff, this, true_and, closure, subset_sInter_iff,
+  mem_set_of_eq, and_imp, singleton_subset_iff]
 
 end generic_point
 

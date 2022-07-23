@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
+import algebra.char_zero.quotient
 
 /-!
 # The type of angles
@@ -19,17 +20,18 @@ noncomputable theory
 namespace real
 
 /-- The type of angles -/
+@[derive [add_comm_group, topological_space, topological_add_group]]
 def angle : Type :=
 ℝ ⧸ (add_subgroup.zmultiples (2 * π))
 
 namespace angle
 
-instance angle.add_comm_group : add_comm_group angle :=
-quotient_add_group.add_comm_group _
-
 instance : inhabited angle := ⟨0⟩
 
 instance : has_coe ℝ angle := ⟨quotient_add_group.mk' _⟩
+
+@[continuity] lemma continuous_coe : continuous (coe : ℝ → angle) :=
+continuous_quotient_mk
 
 /-- Coercion `ℝ → angle` as an additive homomorphism. -/
 def coe_hom : ℝ →+ angle := quotient_add_group.mk' _
@@ -46,6 +48,8 @@ quotient.induction_on' θ h
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
 @[simp] lemma coe_sub (x y : ℝ) : ↑(x - y : ℝ) = (↑x - ↑y : angle) := rfl
+lemma coe_nsmul (n : ℕ) (x : ℝ) : ↑(n • x : ℝ) = (n • ↑x : angle) := rfl
+lemma coe_zsmul (z : ℤ) (x : ℝ) : ↑(z • x : ℝ) = (z • ↑x : angle) := rfl
 
 @[simp, norm_cast] lemma coe_nat_mul_eq_nsmul (x : ℝ) (n : ℕ) :
   ↑((n : ℝ) * x) = n • (↑x : angle) :=
@@ -80,6 +84,28 @@ by simp [←coe_int_mul_eq_zsmul]
 
 @[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
 by rw [←two_nsmul, two_nsmul_coe_pi]
+
+lemma zsmul_eq_iff {ψ θ : angle} {z : ℤ} (hz : z ≠ 0) :
+  z • ψ = z • θ ↔ (∃ k : fin z.nat_abs, ψ = θ + (k : ℕ) • (2 * π / z : ℝ)) :=
+quotient_add_group.zmultiples_zsmul_eq_zsmul_iff hz
+
+lemma nsmul_eq_iff {ψ θ : angle} {n : ℕ} (hz : n ≠ 0) :
+  n • ψ = n • θ ↔ (∃ k : fin n, ψ = θ + (k : ℕ) • (2 * π / n : ℝ)) :=
+quotient_add_group.zmultiples_nsmul_eq_nsmul_iff hz
+
+lemma two_zsmul_eq_iff {ψ θ : angle} : (2 : ℤ) • ψ = (2 : ℤ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by rw [zsmul_eq_iff two_ne_zero, int.nat_abs_bit0, int.nat_abs_one,
+    fin.exists_fin_two, fin.coe_zero, fin.coe_one, zero_smul, add_zero, one_smul,
+    int.cast_two, mul_div_cancel_left (_ : ℝ) two_ne_zero]
+
+lemma two_nsmul_eq_iff {ψ θ : angle} : (2 : ℕ) • ψ = (2 : ℕ) • θ ↔ (ψ = θ ∨ ψ = θ + π) :=
+by simp_rw [←coe_nat_zsmul, int.coe_nat_bit0, int.coe_nat_one, two_zsmul_eq_iff]
+
+lemma two_nsmul_eq_zero_iff {θ : angle} : (2 : ℕ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by convert two_nsmul_eq_iff; simp
+
+lemma two_zsmul_eq_zero_iff {θ : angle} : (2 : ℤ) • θ = 0 ↔ (θ = 0 ∨ θ = π) :=
+by simp_rw [two_zsmul, ←two_nsmul, two_nsmul_eq_zero_iff]
 
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
@@ -133,7 +159,7 @@ begin
   cases cos_eq_iff_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
   cases sin_eq_iff_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
   rw [eq_neg_iff_add_eq_zero, hs] at hc,
-  cases quotient.exact' hc with n hn, change n • _ = _ at hn,
+  obtain ⟨n, hn⟩ : ∃ n, n • _ = _ := quotient_add_group.left_rel_apply.mp (quotient.exact' hc),
   rw [← neg_one_mul, add_zero, ← sub_eq_zero, zsmul_eq_mul, ← mul_assoc, ← sub_mul,
       mul_eq_zero, eq_false_intro (ne_of_gt pi_pos), or_false, sub_neg_eq_add,
       ← int.cast_zero, ← int.cast_one, ← int.cast_bit0, ← int.cast_mul, ← int.cast_add,
@@ -149,11 +175,17 @@ def sin (θ : angle) : ℝ := sin_periodic.lift θ
 @[simp] lemma sin_coe (x : ℝ) : sin (x : angle) = real.sin x :=
 rfl
 
+@[continuity] lemma continuous_sin : continuous sin :=
+continuous_quotient_lift_on' _ real.continuous_sin
+
 /-- The cosine of a `real.angle`. -/
 def cos (θ : angle) : ℝ := cos_periodic.lift θ
 
 @[simp] lemma cos_coe (x : ℝ) : cos (x : angle) = real.cos x :=
 rfl
+
+@[continuity] lemma continuous_cos : continuous cos :=
+continuous_quotient_lift_on' _ real.continuous_cos
 
 end angle
 

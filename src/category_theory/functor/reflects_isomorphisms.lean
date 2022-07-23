@@ -3,6 +3,8 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
+import category_theory.balanced
+import category_theory.functor.epi_mono
 import category_theory.functor.fully_faithful
 
 /-!
@@ -15,7 +17,7 @@ It is formalized as a `Prop` valued typeclass `reflects_isomorphisms F`.
 Any fully faithful functor reflects isomorphisms.
 -/
 
-open category_theory
+open category_theory category_theory.functor
 
 namespace category_theory
 
@@ -50,6 +52,17 @@ instance (F : C ⥤ D) (G : D ⥤ E) [reflects_isomorphisms F] [reflects_isomorp
   reflects_isomorphisms (F ⋙ G) :=
 ⟨λ _ _ f (hf : is_iso (G.map _)),
   by { resetI, haveI := is_iso_of_reflects_iso (F.map f) G, exact is_iso_of_reflects_iso f F }⟩
+
+@[priority 100]
+instance reflects_isomorphisms_of_reflects_monomorphisms_of_reflects_epimorphisms [balanced C]
+  (F : C ⥤ D) [reflects_monomorphisms F] [reflects_epimorphisms F] : reflects_isomorphisms F :=
+{ reflects := λ A B f hf,
+  begin
+    resetI,
+    haveI : epi f := epi_of_epi_map F infer_instance,
+    haveI : mono f := mono_of_mono_map F infer_instance,
+    exact is_iso_of_mono_of_epi f
+  end }
 
 end reflects_iso
 

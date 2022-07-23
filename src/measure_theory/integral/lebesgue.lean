@@ -359,9 +359,9 @@ ext $ λ x, hg _ _
 
 variables {K : Type*}
 
-instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
-@[simp] lemma coe_smul [has_scalar K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
-lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
+instance [has_smul K β] : has_smul K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
+@[simp] lemma coe_smul [has_smul K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
+lemma smul_apply [has_smul K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
 
 instance has_nat_pow [monoid β] : has_pow (α →ₛ β) ℕ := ⟨λ f n, f.map (^ n)⟩
 @[simp] lemma coe_pow [monoid β] (f : α →ₛ β) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
@@ -411,7 +411,7 @@ instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ �
 function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
   coe_injective coe_smul
 
-lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
+lemma smul_eq_map [has_smul K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
 
 instance [preorder β] : preorder (α →ₛ β) :=
 { le_refl := λf a, le_rfl,
@@ -1052,6 +1052,17 @@ by rw [lintegral_const, measure.restrict_apply_univ]
 
 lemma set_lintegral_one (s) : ∫⁻ a in s, 1 ∂μ = μ s :=
 by rw [set_lintegral_const, one_mul]
+
+lemma set_lintegral_const_lt_top [is_finite_measure μ] (s : set α) {c : ℝ≥0∞} (hc : c ≠ ∞) :
+  ∫⁻ a in s, c ∂μ < ∞ :=
+begin
+  rw lintegral_const,
+  exact ennreal.mul_lt_top hc (measure_ne_top (μ.restrict s) univ),
+end
+
+lemma lintegral_const_lt_top [is_finite_measure μ] {c : ℝ≥0∞} (hc : c ≠ ∞) :
+  ∫⁻ a, c ∂μ < ∞ :=
+by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc
 
 section
 
@@ -1967,7 +1978,7 @@ lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 lintegral_Union₀ (λ i, (hm i).null_measurable_set) hd.ae_disjoint f
 
-lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : countable t)
+lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : t.countable)
   (hm : ∀ i ∈ t, null_measurable_set (s i) μ)
   (hd : t.pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
@@ -1976,7 +1987,7 @@ begin
   rw [bUnion_eq_Union, lintegral_Union₀ (set_coe.forall'.1 hm) (hd.subtype _ _)]
 end
 
-lemma lintegral_bUnion {t : set β} {s : β → set α} (ht : countable t)
+lemma lintegral_bUnion {t : set β} {s : β → set α} (ht : t.countable)
   (hm : ∀ i ∈ t, measurable_set (s i)) (hd : t.pairwise_disjoint s) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
 lintegral_bUnion₀ ht (λ i hi, (hm i hi).null_measurable_set) hd.ae_disjoint f
@@ -2171,7 +2182,7 @@ lemma lintegral_singleton [measurable_singleton_class α] (f : α → ℝ≥0∞
 by simp only [restrict_singleton, lintegral_smul_measure, lintegral_dirac, mul_comm]
 
 lemma lintegral_countable [measurable_singleton_class α] (f : α → ℝ≥0∞) {s : set α}
-  (hs : countable s) :
+  (hs : s.countable) :
   ∫⁻ a in s, f a ∂μ = ∑' a : s, f a * μ {(a : α)} :=
 calc ∫⁻ a in s, f a ∂μ = ∫⁻ a in ⋃ x ∈ s, {x}, f a ∂μ : by rw [bUnion_of_singleton]
 ... = ∑' a : s, ∫⁻ x in {a}, f x ∂μ :

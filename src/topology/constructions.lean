@@ -126,19 +126,15 @@ instance : topological_space (cofinite_topology α) :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,
   is_open_inter := λ s t, begin
-    classical,
     rintros hs ht ⟨x, hxs, hxt⟩,
-    haveI := set.finite.fintype (hs ⟨x, hxs⟩),
-    haveI := set.finite.fintype (ht ⟨x, hxt⟩),
     rw compl_inter,
-    exact set.finite.intro (sᶜ.fintype_union tᶜ),
+    exact (hs ⟨x, hxs⟩).union (ht ⟨x, hxt⟩),
   end,
   is_open_sUnion := begin
     rintros s h ⟨x, t, hts, hzt⟩,
     rw set.compl_sUnion,
-    apply set.finite.sInter _ (h t hts ⟨x, hzt⟩),
-    simp [hts]
-    end }
+    exact set.finite.sInter (mem_image_of_mem _ hts) (h t hts ⟨x, hzt⟩),
+  end }
 
 lemma is_open_iff {s : set (cofinite_topology α)} :
   is_open s ↔ (s.nonempty → (sᶜ).finite) := iff.rfl
@@ -389,9 +385,14 @@ lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
   s ×ˢ t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
 by rw [nhds_prod_eq, prod_mem_prod_iff]
 
-lemma prod_is_open.mem_nhds {s : set α} {t : set β} {a : α} {b : β}
+lemma prod_mem_nhds {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : s ×ˢ t ∈ 𝓝 (a, b) :=
 prod_mem_nhds_iff.2 ⟨ha, hb⟩
+
+lemma filter.eventually.prod_nhds {p : α → Prop} {q : β → Prop} {a : α} {b : β}
+  (ha : ∀ᶠ x in 𝓝 a, p x) (hb : ∀ᶠ y in 𝓝 b, q y) :
+  ∀ᶠ z : α × β in 𝓝 (a, b), p z.1 ∧ q z.2 :=
+prod_mem_nhds ha hb
 
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
@@ -615,7 +616,7 @@ end prod
 
 section sum
 open sum
-variables [topological_space α] [topological_space β] [topological_space γ]
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 @[continuity] lemma continuous_inl : continuous (@inl α β) :=
 continuous_sup_rng_left continuous_coinduced_rng
@@ -623,13 +624,17 @@ continuous_sup_rng_left continuous_coinduced_rng
 @[continuity] lemma continuous_inr : continuous (@inr α β) :=
 continuous_sup_rng_right continuous_coinduced_rng
 
-@[continuity] lemma continuous_sum_rec {f : α → γ} {g : β → γ}
-  (hf : continuous f) (hg : continuous g) : @continuous (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
+@[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
 begin
   apply continuous_sup_dom;
   rw continuous_def at hf hg ⊢;
   assumption
 end
+
+@[continuity] lemma continuous.sum_map {f : α → β} {g : γ → δ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.map f g) :=
+(continuous_inl.comp hf).sum_elim (continuous_inr.comp hg)
 
 lemma is_open_sum_iff {s : set (α ⊕ β)} :
   is_open s ↔ is_open (inl ⁻¹' s) ∧ is_open (inr ⁻¹' s) :=
@@ -763,6 +768,9 @@ continuous_subtype_mk _ continuous_subtype_coe
 lemma continuous_at_subtype_coe {p : α → Prop} {a : subtype p} :
   continuous_at (coe : subtype p → α) a :=
 continuous_iff_continuous_at.mp continuous_subtype_coe _
+
+lemma subtype.dense_iff {s : set α} {t : set s} : dense t ↔ s ⊆ closure (coe '' t) :=
+by { rw [inducing_coe.dense_iff, set_coe.forall], refl }
 
 lemma map_nhds_subtype_coe_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
   map (coe : subtype p → α) (𝓝 ⟨a, ha⟩) = 𝓝 a :=

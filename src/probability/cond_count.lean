@@ -3,13 +3,14 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Bhavik Mehta
 -/
-import probability.conditional
+import probability.conditional_probability
 
 /-!
 # Classical probability
 
-The classical formulation of probability states that the probability of an event occurring is the
-ratio of that event to all possible events. This notion can be expressed with measure theory using
+The classical formulation of probability states that the probability of an event occurring in a
+finite probability space is the ratio of that event to all possible events.
+This notion can be expressed with measure theory using
 the counting measure. In particular, given the sets `s` and `t`, we define the probability of `t`
 occuring in `s` to be `|s|⁻¹ * |s ∩ t|`. With this definition, we recover the the probability over
 the entire sample space when `s = set.univ`.
@@ -17,12 +18,12 @@ the entire sample space when `s = set.univ`.
 Classical probability is often used in combinatorics and we prove some useful lemmas in this file
 for that purpose.
 
-## main definition
+## Main definition
 
 * `probability_theory.cond_count`: given a set `s`, `cond_count s` is the counting measure
   conditioned on `s`. This is a probability measure when `s` is finite and nonempty.
 
-## notes
+## Notes
 
 The original aim of this file is to provide a measure theoretic method of describing the
 probability an element of a set `s` satisfies some predicate `P`. Our current formulation still
@@ -158,7 +159,7 @@ begin
   exacts [htu.mono inf_le_right inf_le_right, (hs.inter_of_left _).measurable_set],
 end
 
-lemma cond_count_compl (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_compl (t : set α) (hs : s.finite) (hs' : s.nonempty) :
   cond_count s t + cond_count s tᶜ = 1 :=
 begin
   rw [← cond_count_union hs disjoint_compl_right, set.union_compl_self,
@@ -189,7 +190,7 @@ begin
 end
 
 /-- A version of the law of total probability for counting probabilites. -/
-lemma cond_count_add_compl_eq (hs : s.finite) :
+lemma cond_count_add_compl_eq (u t : set α) (hs : s.finite) :
   cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
   cond_count s t :=
 begin

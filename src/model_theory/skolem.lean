@@ -52,7 +52,7 @@ begin
 end
 
 theorem card_functions_sum_skolem₁_le :
-  # (Σ n, (L.sum L.skolem₁).functions n) ≤ max ω L.card :=
+  # (Σ n, (L.sum L.skolem₁).functions n) ≤ max ℵ₀ L.card :=
 begin
   rw card_functions_sum_skolem₁,
   transitivity # (Σ n, L.bounded_formula empty n),
@@ -112,7 +112,7 @@ variables {M}
   `max (# s, L.card) ≤ κ` and `κ ≤ # M`, then `M` has an elementary substructure containing `s` of
   cardinality `κ`.  -/
 theorem exists_elementary_substructure_card_eq (s : set M) (κ : cardinal.{w'})
-  (h1 : ω ≤ κ)
+  (h1 : ℵ₀ ≤ κ)
   (h2 : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} κ)
   (h3 : cardinal.lift.{w'} L.card ≤ cardinal.lift.{max u v} κ)
   (h4 : cardinal.lift.{w} κ ≤ cardinal.lift.{w'} (# M)) :
@@ -120,7 +120,7 @@ theorem exists_elementary_substructure_card_eq (s : set M) (κ : cardinal.{w'})
     cardinal.lift.{w'} (# S) = cardinal.lift.{w} κ :=
 begin
   obtain ⟨s', hs'⟩ := cardinal.le_mk_iff_exists_set.1 h4,
-  rw ← omega_le_lift at h1,
+  rw ← aleph_0_le_lift at h1,
   rw ← hs' at *,
   refine ⟨elementary_skolem₁_reduct (closure (L.sum L.skolem₁)
     (s ∪ (equiv.ulift '' s'))),
@@ -130,19 +130,19 @@ begin
   rw [coe_sort_elementary_skolem₁_reduct, ← h, lift_inj],
   refine le_antisymm (lift_le.1 (lift_card_closure_le.trans _))
     (mk_le_mk_of_subset ((set.subset_union_right _ _).trans subset_closure)),
-  rw [max_le_iff, omega_le_lift, ← omega_le_lift, h, add_eq_max, max_le_iff, lift_le],
+  rw [max_le_iff, aleph_0_le_lift, ← aleph_0_le_lift, h, add_eq_max, max_le_iff, lift_le],
   refine ⟨h1, (mk_union_le _ _).trans _, (lift_le.2 card_functions_sum_skolem₁_le).trans _⟩,
   { rw [← lift_le, lift_add, h, add_comm, add_eq_max h1],
     exact max_le le_rfl h2 },
-  { rw [lift_max', lift_omega, max_le_iff, omega_le_lift, and_comm,
-      ← lift_le.{_ w'}, lift_lift, lift_lift, ← omega_le_lift, h],
+  { rw [lift_max, lift_aleph_0, max_le_iff, aleph_0_le_lift, and_comm,
+      ← lift_le.{_ w'}, lift_lift, lift_lift, ← aleph_0_le_lift, h],
     refine ⟨_, h1⟩,
     simp only [← lift_lift, lift_umax, lift_umax'],
     rw [lift_lift, ← lift_lift.{w' w} L.card],
     refine trans ((lift_le.{_ w}).2 h3) _,
     rw [lift_lift, ← lift_lift.{w (max u v)}, ← hs', ← h, lift_lift, lift_lift, lift_lift] },
   { refine trans _ (lift_le.2 (mk_le_mk_of_subset (set.subset_union_right _ _))),
-    rw [omega_le_lift, ← omega_le_lift, h],
+    rw [aleph_0_le_lift, ← aleph_0_le_lift, h],
     exact h1 }
 end
 

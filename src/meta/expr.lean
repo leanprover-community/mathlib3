@@ -21,9 +21,6 @@ open tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
-@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
-⟨λ b, pexpr.of_expr (reflect b)⟩
-
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -154,6 +151,19 @@ def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/-- Like `++`, except that if the right argument starts with `_root_` the namespace will be
+ignored.
+```
+append_namespace `a.b `c.d = `a.b.c.d
+append_namespace `a.b `_root_.c.d = `c.d
+```
+-/
+meta def append_namespace (ns : name) : name → name
+| (mk_string s anonymous) := if s = "_root_" then anonymous else mk_string s ns
+| (mk_string s p)         := mk_string s (append_namespace p)
+| (mk_numeral n p)        := mk_numeral n (append_namespace p)
+| anonymous               := ns
 
 /--
 Constructs a (non-simple) name from a string.
@@ -888,6 +898,19 @@ private meta def all_implicitly_included_variables_aux
     In particular, those elements of `vs` are included automatically. -/
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
+
+/-- Get the list of explicit arguments of a function. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+/--  `replace_explicit_args f parg` assumes that `f` is an expression corresponding to a function
+application.  It replaces the explicit arguments of `f`, in succession, by the elements of `parg`.
+The implicit arguments of `f` remain unchanged. -/
+meta def replace_explicit_args (f : expr) (parg : list expr) : tactic expr :=
+do finf ← (get_fun_info f.get_app_fn),
+  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
+  let nargs := list.replace_if f.get_app_args is_ex_arg parg,
+  return $ expr.mk_app f.get_app_fn nargs
 
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/

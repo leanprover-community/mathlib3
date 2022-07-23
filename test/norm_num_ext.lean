@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.big_operators.norm_num
-import algebra.squarefree
+import data.nat.squarefree
 import data.int.gcd
 import data.nat.fib
 import data.nat.prime

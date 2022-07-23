@@ -502,7 +502,7 @@ begin
   rwa [←hb.2 _ ht, hau.2 _ ht],
 end
 
-lemma card_filter_atomise_le (ht : t ∈ F) :
+lemma card_filter_atomise_le_two_pow (ht : t ∈ F) :
   ((atomise s F).parts.filter $ λ u, u ⊆ t ∧ u.nonempty).card ≤ 2 ^ (F.card - 1) :=
 begin
   suffices h : (atomise s F).parts.filter (λ u, u ⊆ t ∧ u.nonempty)

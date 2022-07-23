@@ -198,7 +198,7 @@ end balanced_hull
 
 section topology
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
   [has_continuous_smul 𝕜 E] {U : set E}
 
 protected lemma is_closed.balanced_core (hU : is_closed U) : is_closed (balanced_core 𝕜 U) :=

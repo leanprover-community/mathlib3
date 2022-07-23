@@ -72,7 +72,13 @@ instance : subgroup_class (sylow p G) G :=
   one_mem := λ s, s.one_mem',
   inv_mem := λ s, s.inv_mem' }
 
-variables (P : sylow p G) {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
+variables (P : sylow p G)
+
+/-- The action by a Sylow subgroup is the action by the underlying group. -/
+instance mul_action_left {α : Type*} [mul_action G α] : mul_action P α :=
+subgroup.mul_action ↑P
+
+variables {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
 
 /-- The preimage of a Sylow subgroup under a p-group-kernel homomorphism is a Sylow subgroup. -/
 def comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) : sylow p K :=

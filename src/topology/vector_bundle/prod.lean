@@ -56,7 +56,7 @@ lemma prod.inducing_diag : inducing
 
 end defs
 
-variables [nondiscrete_normed_field R] [topological_space B]
+variables [nontrivially_normed_field R] [topological_space B]
 
 variables (F₁ : Type*) [normed_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]

@@ -28,18 +28,19 @@ instead use `o.out.α` for the possible moves. You can use `to_left_moves_nim` a
 vice versa.
 -/
 
-universes u
+noncomputable theory
 
-/-- `ordinal.out'` has the sole purpose of making `nim` computable. It performs the same job as
-  `quotient.out` but is specific to ordinals. -/
-def ordinal.out' (o : ordinal) : Well_order :=
-⟨o.out.α, (<), o.out.wo⟩
+universe u
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
-def nim : ordinal → pgame
-| o₁ := let f := λ o₂, have hwf : ordinal.typein o₁.out'.r o₂ < o₁ := ordinal.typein_lt_self o₂,
-          nim (ordinal.typein o₁.out'.r o₂) in ⟨o₁.out'.α, o₁.out'.α, f, f⟩
+-- Uses `noncomputable!` to avoid `rec_fn_macro only allowed in meta definitions` VM error
+noncomputable! def nim : ordinal.{u} → pgame.{u}
+| o₁ :=
+  let f := λ o₂,
+    have ordinal.typein o₁.out.r o₂ < o₁ := ordinal.typein_lt_self o₂,
+    nim (ordinal.typein o₁.out.r o₂)
+  in ⟨o₁.out.α, o₁.out.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -106,19 +107,19 @@ by { rw nim_def, exact ordinal.is_empty_out_zero }
 instance : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-noncomputable instance : unique (nim 1).left_moves :=
+instance : unique (nim 1).left_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
-noncomputable instance : unique (nim 1).right_moves :=
+instance : unique (nim 1).right_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
 def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 
-@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
+theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : nim 1 ≡r star :=
+def nim_one_relabelling : nim 1 ≡r star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i, _, λ j, _⟩,
@@ -126,7 +127,7 @@ begin
   all_goals { simp, exact nim_zero_relabelling }
 end
 
-@[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
+theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
 
 @[simp] lemma nim_birthday (o : ordinal) : (nim o).birthday = o :=
 begin
@@ -243,24 +244,26 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (o : ordinal) :
+lemma grundy_value_eq_iff_equiv_nim {G : pgame} [G.impartial] {o : ordinal} :
   grundy_value G = o ↔ G ≈ nim o :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
   by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
-lemma nim.grundy_value (o : ordinal.{u}) : grundy_value (nim o) = o :=
-by simp
+@[simp] lemma nim.grundy_value (o : ordinal.{u}) : grundy_value (nim o) = o :=
+grundy_value_eq_iff_equiv_nim.2 pgame.equiv_rfl
 
-@[simp] lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
+lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
   grundy_value G = grundy_value H ↔ G ≈ H :=
-(grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
+grundy_value_eq_iff_equiv_nim.trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-@[simp] lemma grundy_value_zero : grundy_value 0 = 0 := by simp [nim.nim_zero_equiv.symm]
+@[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
+grundy_value_eq_iff_equiv_nim.2 nim.nim_zero_equiv.symm
 
-@[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
+lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
-lemma grundy_value_star : grundy_value star = 1 := by simp [nim.nim_one_equiv.symm]
+@[simp] lemma grundy_value_star : grundy_value star = 1 :=
+grundy_value_eq_iff_equiv_nim.2 nim.nim_one_equiv.symm
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=

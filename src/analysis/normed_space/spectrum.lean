@@ -130,7 +130,7 @@ section resolvent
 
 open filter asymptotics
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
@@ -185,10 +185,10 @@ open continuous_multilinear_map ennreal formal_multilinear_series
 open_locale nnreal ennreal
 
 variables
-[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+[nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
-/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+/-- In a Banach algebra `A` over a nontrivially normed field `𝕜`, for any `a : A` the
 power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
 radius `∥a∥₊⁻¹`. -/
 lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :
@@ -424,8 +424,8 @@ lemma continuous [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : continuous φ :
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 @[simp] lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
@@ -434,6 +434,6 @@ continuous_linear_map.op_norm_eq_of_bounds zero_le_one
   (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
   (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
 
-end nondiscrete_normed_field
+end nontrivially_normed_field
 
 end alg_hom

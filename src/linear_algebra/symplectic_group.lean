@@ -28,14 +28,6 @@ open_locale matrix
 
 variables {l R : Type*}
 
-lemma pm_one_unit [ring R] {x : R} (h : x = 1 ∨ x = -1) : is_unit x :=
-begin
-  cases h,
-  { simp only [h, is_unit_one] },
-  { use -1,
-    simp only [h, units.coe_neg_one] }
-end
-
 section J_matrix_lemmas
 
 namespace matrix
@@ -178,17 +170,15 @@ variables [fact (ring_char R ≠ 2)]
 
 lemma symplectic_det (hA : A ∈ symplectic_group l R) : is_unit $ det A :=
 begin
+  rw is_unit_iff_exists_inv,
+  use A.det,
+  refine (J_det_unit l R).mul_left_cancel _,
+  rw [mul_one],
   rw mem_iff at hA,
   apply_fun det at hA,
   simp only [det_mul, det_transpose] at hA,
-  have H := J_det l R,
-  cases H,
-  { rw [H, mul_one, ←sq, sq_eq_one_iff] at hA,
-    exact pm_one_unit hA },
-  { rw H at hA,
-    simp only [mul_neg, mul_one, neg_mul, neg_inj] at hA,
-    rw [←sq, sq_eq_one_iff] at hA,
-    exact pm_one_unit hA },
+  rw [mul_comm A.det, mul_assoc] at hA,
+  exact hA,
 end
 
 lemma transpose_mem (hA : A ∈ symplectic_group l R) :

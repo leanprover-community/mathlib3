@@ -121,9 +121,9 @@ instance ghas_one.to_has_one [has_zero ι] [ghas_one A] : has_one (graded_monoid
 class ghas_mul [has_add ι] :=
 (mul {i j} : A i → A j → A (i + j))
 
-/-- A graded version of `has_scalar`. Scalar multiplication combines grades additively, i.e.
+/-- A graded version of `has_smul`. Scalar multiplication combines grades additively, i.e.
 if `a ∈ A i` and `m ∈ M j`, then `a • b` must be in `M (i + j)`-/
-class ghas_scalar [has_add ι] :=
+class ghas_smul [has_add ι] :=
 (smul {i j} : A i → M j → M (i + j))
 
 /-- `ghas_mul` implies `has_mul (graded_monoid A)`. -/
@@ -131,9 +131,9 @@ instance ghas_mul.to_has_mul [has_add ι] [ghas_mul A] :
   has_mul (graded_monoid A) :=
 ⟨λ (x y : graded_monoid A), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩
 
-instance ghas_scalar.to_has_scalar [has_add ι] [ghas_scalar A M] :
-  has_scalar (graded_monoid A) (graded_monoid M) :=
-⟨λ (x : graded_monoid A) (y : graded_monoid M), ⟨_, ghas_scalar.smul x.snd y.snd⟩⟩
+instance ghas_smul.to_has_smul [has_add ι] [ghas_smul A M] :
+  has_smul (graded_monoid A) (graded_monoid M) :=
+⟨λ (x : graded_monoid A) (y : graded_monoid M), ⟨_, ghas_smul.smul x.snd y.snd⟩⟩
 
 lemma mk_mul_mk [has_add ι] [ghas_mul A] {i j} (a : A i) (b : A j) :
   mk i a * mk j b = mk (i + j) (ghas_mul.mul a b) :=
@@ -457,9 +457,36 @@ instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (
   [set_like.has_graded_mul A] {i j : ι} (x : A i) (y : A j) :
     ↑(@graded_monoid.ghas_mul.mul _ (λ i, A i) _ _ _ _ x y) = (x * y : R) := rfl
 
+/-- A version of `graded_monoid.ghas_smul` for internally graded objects. -/
+class set_like.has_graded_smul {S R N M : Type*} [set_like S R] [set_like N M]
+  [has_smul R M] [has_add ι] (A : ι → S) (B : ι → N) : Prop :=
+(smul_mem : ∀ ⦃i j : ι⦄ {ai bj}, ai ∈ A i → bj ∈ B j → ai • bj ∈ B (i + j))
+
+lemma set_like.smul_mem_graded {S R N M : Type*} [set_like S R] [set_like N M]
+  [has_smul R M] [has_add ι] (A : ι → S) (B : ι → N) [set_like.has_graded_smul A B]
+  ⦃i j⦄ {gi gj} (hi : gi ∈ A i) (hj : gj ∈ B j) :
+  gi • gj ∈ B (i + j) :=
+set_like.has_graded_smul.smul_mem hi hj
+
+instance set_like.ghas_smul {S R N M : Type*} [set_like S R] [set_like N M]
+  [has_smul R M] [has_add ι] (A : ι → S) (B : ι → N) [set_like.has_graded_smul A B] :
+  graded_monoid.ghas_smul (λ i, A i) (λ i, B i) :=
+{ smul := λ i j a b, ⟨(a : R) • b, set_like.has_graded_smul.smul_mem a.2 b.2⟩ }
+
+@[simp] lemma set_like.coe_ghas_smul {S R N M : Type*} [set_like S R] [set_like N M]
+  [has_smul R M] [has_add ι] (A : ι → S) (B : ι → N) [set_like.has_graded_smul A B]
+  {i j : ι} (x : A i) (y : B j) :
+  (@graded_monoid.ghas_smul.smul ι (λ i, A i) (λ i, B i) _ _ i j x y : M) = ((x : R) • y) :=
+rfl
+
 /-- A version of `graded_monoid.gmonoid` for internally graded objects. -/
 class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (A : ι → S) extends set_like.has_graded_one A, set_like.has_graded_mul A : Prop
+
+instance set_like.graded_monoid.to_has_graded_smul
+  {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S) [set_like.graded_monoid A] :
+  set_like.has_graded_smul A A :=
+{ smul_mem := λ i j ai bj hi hj, set_like.graded_monoid.mul_mem hi hj, }
 
 namespace set_like
 variables {S : Type*} [set_like S R] [monoid R] [add_monoid ι]

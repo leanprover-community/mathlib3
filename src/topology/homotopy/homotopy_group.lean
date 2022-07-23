@@ -202,7 +202,7 @@ begin
   cases j, refl,
 end
 
-/-- Product with `I` homeomorphism; for all `i : fin n` witnessed by `insert`ing and `ectract`ing behaving appropiately.
+/-- Product with `I` homeomorphism for all components.
  -/
 def prod_homeomorph (i : fin n) : I×I^n ≃ₜ I^(n+1) :=
 { to_fun := insert i,

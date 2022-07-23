@@ -19,6 +19,10 @@ ones.
   predecessor function given by `order.pred'` forms a `pred_order`.
 - `order.pred_order.to_succ_order`: in a partial order satisfying `exists_pred_iterate_of_le`, the
   successor function given by `order.succ'` forms a `succ_order`.
+
+Note that because of the previous two results, there's no loss of generality in assuming
+`pred_order` and `succ_order` respectively in the following results:
+
 - `succ_pred_archimedean_of_succ`: a `succ_order` and `pred_order` satisfying `exists_succ_of_le` is
   `succ_pred_archimedean`.
 - `succ_pred_archimedean_of_pred`: a `succ_order` and `pred_order` satisfying `exists_pred_of_le` is

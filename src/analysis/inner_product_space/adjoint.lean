@@ -307,26 +307,14 @@ namespace is_self_adjoint
 
 lemma is_symmetric {A : E →L[𝕜] E} (hA : A.is_self_adjoint) :
   (A : E →ₗ[𝕜] E).is_symmetric :=
-begin
-  intros x y,
-  norm_cast,
-  rw [←adjoint_inner_right, is_self_adjoint_iff.mp hA],
-end
+λ x y, by rw_mod_cast [←adjoint_inner_right, is_self_adjoint_iff.mp hA]
 
 end is_self_adjoint
 
 lemma is_self_adjoint_iff_is_symmetric {A : E →L[𝕜] E} :
   A.is_self_adjoint ↔ (A : E →ₗ[𝕜] E).is_symmetric :=
-begin
-  refine ⟨λ hA, hA.is_symmetric, λ hA, _⟩,
-  ext,
-  refine inner_product_space.ext_inner_right 𝕜 _,
-  intros y,
-  rw A.adjoint_inner_left,
-  specialize hA x y,
-  rw coe_coe at hA,
-  exact hA.symm,
-end
+⟨λ hA, hA.is_symmetric, λ hA, ext $ λ x, inner_product_space.ext_inner_right 𝕜 $
+  λ y, (A.adjoint_inner_left y x).symm ▸ (hA x y).symm⟩
 
 end continuous_linear_map
 
@@ -346,11 +334,7 @@ lemma is_symmetric.clm_apply (hT : is_symmetric T) {x : E} : hT.clm x = T x := r
 
 lemma is_symmetric.clm_is_self_adjoint (hT : is_symmetric T) :
   hT.clm.is_self_adjoint :=
-begin
-  rw continuous_linear_map.is_self_adjoint_iff_is_symmetric,
-  rw coe_is_symmetric,
-  exact hT,
-end
+by rwa continuous_linear_map.is_self_adjoint_iff_is_symmetric
 
 end linear_map
 

@@ -1570,6 +1570,57 @@ lemma continuous_set_to_fun (hT : dominated_fin_meas_additive μ T C) :
   continuous (λ (f : α →₁[μ] E), set_to_fun μ T hT f) :=
 by { simp_rw L1.set_to_fun_eq_set_to_L1 hT, exact continuous_linear_map.continuous _, }
 
+/-- If `F i → f` in `L1`, then `set_to_fun μ T hT (F i) → set_to_fun μ T hT f`. -/
+lemma tendsto_set_to_fun_of_L1 (hT : dominated_fin_meas_additive μ T C)
+  {ι} (f : α → E) (hfi : integrable f μ)
+  {fs : ι → α → E} {l : filter ι} (hfsi : ∀ᶠ i in l, integrable (fs i) μ)
+  (hfs : tendsto (λ i, ∫⁻ x, ∥fs i x - f x∥₊ ∂μ) l (𝓝 0)) :
+  tendsto (λ i, set_to_fun μ T hT (fs i)) l (𝓝 $ set_to_fun μ T hT f) :=
+begin
+  classical,
+  let f_lp := hfi.to_L1 f,
+  let F_lp := λ i, if hFi : integrable (fs i) μ then hFi.to_L1 (fs i) else 0,
+  have tendsto_L1 : tendsto F_lp l (𝓝 f_lp),
+  { rw Lp.tendsto_Lp_iff_tendsto_ℒp',
+    simp_rw [snorm_one_eq_lintegral_nnnorm, pi.sub_apply],
+    refine (tendsto_congr' _).mp hfs,
+    filter_upwards [hfsi] with i hi,
+    refine lintegral_congr_ae _,
+    filter_upwards [hi.coe_fn_to_L1, hfi.coe_fn_to_L1] with x hxi hxf,
+    simp_rw [F_lp, dif_pos hi, hxi, hxf], },
+  suffices : tendsto (λ i, set_to_fun μ T hT (F_lp i)) l (𝓝 (set_to_fun μ T hT f)),
+  { refine (tendsto_congr' _).mp this,
+    filter_upwards [hfsi] with i hi,
+    suffices h_ae_eq : F_lp i =ᵐ[μ] fs i, from set_to_fun_congr_ae hT h_ae_eq,
+    simp_rw [F_lp, dif_pos hi],
+    exact hi.coe_fn_to_L1, },
+  rw set_to_fun_congr_ae hT (hfi.coe_fn_to_L1).symm,
+  exact ((continuous_set_to_fun hT).tendsto f_lp).comp tendsto_L1,
+end
+
+lemma tendsto_set_to_fun_approx_on_of_measurable (hT : dominated_fin_meas_additive μ T C)
+  [measurable_space E] [borel_space E]
+  {f : α → E} {s : set E} [separable_space s] (hfi : integrable f μ)
+  (hfm : measurable f) (hs : ∀ᵐ x ∂μ, f x ∈ closure s) {y₀ : E} (h₀ : y₀ ∈ s)
+  (h₀i : integrable (λ x, y₀) μ) :
+  tendsto (λ n, set_to_fun μ T hT (simple_func.approx_on f hfm s y₀ h₀ n)) at_top
+    (𝓝 $ set_to_fun μ T hT f) :=
+tendsto_set_to_fun_of_L1 hT _ hfi
+  (eventually_of_forall (simple_func.integrable_approx_on hfm hfi h₀ h₀i))
+  (simple_func.tendsto_approx_on_L1_nnnorm hfm _ hs (hfi.sub h₀i).2)
+
+lemma tendsto_set_to_fun_approx_on_of_measurable_of_range_subset
+  (hT : dominated_fin_meas_additive μ T C)
+  [measurable_space E] [borel_space E] {f : α → E}
+  (fmeas : measurable f) (hf : integrable f μ) (s : set E) [separable_space s]
+  (hs : range f ∪ {0} ⊆ s) :
+  tendsto (λ n, set_to_fun μ T hT (simple_func.approx_on f fmeas s 0 (hs $ by simp) n)) at_top
+    (𝓝 $ set_to_fun μ T hT f) :=
+begin
+  refine tendsto_set_to_fun_approx_on_of_measurable hT hf fmeas _ _ (integrable_zero _ _ _),
+  exact eventually_of_forall (λ x, subset_closure (hs (set.mem_union_left _ (mem_range_self _)))),
+end
+
 /-- Auxiliary lemma for `set_to_fun_congr_measure`: the function sending `f : α →₁[μ] G` to
 `f : α →₁[μ'] G` is continuous when `μ' ≤ c' • μ` for `c' ≠ ∞`. -/
 lemma continuous_L1_to_L1

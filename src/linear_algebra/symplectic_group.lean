@@ -218,6 +218,16 @@ calc -(J l R ⬝ Aᵀ ⬝ J l R ⬝ A)
 ... = (-1 : R) • -1 : by rw J_squared
 ... = 1 : by simp only [neg_smul_neg, one_smul]
 
+lemma coe_inv' (A : symplectic_group l R) : (↑(A⁻¹) : matrix (l ⊕ l) (l ⊕ l) R) = A⁻¹ :=
+begin
+  rw coe_inv,
+  apply eq.symm,
+  apply inv_eq_left_inv,
+  simp only [matrix.neg_mul],
+  apply inv_left_mul_aux,
+  simp only [set_like.coe_mem],
+end
+
 lemma inv_eq_symplectic_inv (A : matrix (l ⊕ l) (l ⊕ l) R) (hA : A ∈ symplectic_group l R) :
   A⁻¹ = - (J l R) ⬝ Aᵀ ⬝ (J l R) :=
 begin

@@ -28,18 +28,19 @@ instead use `o.out.α` for the possible moves. You can use `to_left_moves_nim` a
 vice versa.
 -/
 
-universes u
+noncomputable theory
 
-/-- `ordinal.out'` has the sole purpose of making `nim` computable. It performs the same job as
-  `quotient.out` but is specific to ordinals. -/
-def ordinal.out' (o : ordinal) : Well_order :=
-⟨o.out.α, (<), o.out.wo⟩
+universe u
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
   take a positive number of stones from it on their turn. -/
-def nim : ordinal → pgame
-| o₁ := let f := λ o₂, have hwf : ordinal.typein o₁.out'.r o₂ < o₁ := ordinal.typein_lt_self o₂,
-          nim (ordinal.typein o₁.out'.r o₂) in ⟨o₁.out'.α, o₁.out'.α, f, f⟩
+-- Uses `noncomputable!` to avoid `rec_fn_macro only allowed in meta definitions` VM error
+noncomputable! def nim : ordinal.{u} → pgame.{u}
+| o₁ :=
+  let f := λ o₂,
+    have ordinal.typein o₁.out.r o₂ < o₁ := ordinal.typein_lt_self o₂,
+    nim (ordinal.typein o₁.out.r o₂)
+  in ⟨o₁.out.α, o₁.out.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -106,10 +107,10 @@ by { rw nim_def, exact ordinal.is_empty_out_zero }
 instance : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-noncomputable instance : unique (nim 1).left_moves :=
+instance : unique (nim 1).left_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
-noncomputable instance : unique (nim 1).right_moves :=
+instance : unique (nim 1).right_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
@@ -118,7 +119,7 @@ def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : nim 1 ≡r star :=
+def nim_one_relabelling : nim 1 ≡r star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i, _, λ j, _⟩,

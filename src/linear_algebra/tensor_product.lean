@@ -893,13 +893,13 @@ variables (N)
 
 @[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
-@[simp] lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
-by { rw ltensor_id, refl, }
+lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
+by {rw [ltensor_id, id_coe, id.def], }
 
 @[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id
 
-@[simp] lemma rtensor_id_apply (x : N ⊗[R] M) : (linear_map.id : N →ₗ[R] N).rtensor M x = x :=
-by { rw rtensor_id, refl, }
+lemma rtensor_id_apply (x : N ⊗[R] M) : (linear_map.id : N →ₗ[R] N).rtensor M x = x :=
+by { rw [rtensor_id, id_coe, id.def], }
 
 variables {N}
 

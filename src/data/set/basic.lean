@@ -1986,7 +1986,7 @@ range_subset_iff.2 $ λ x, rfl
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
 
 lemma range_subtype_map {p : α → Prop} {q : β → Prop} (f : α → β) (h : ∀ x, p x → q (f x)) :
-  range (subtype.map f h) = coe ⁻¹' (f '' p) :=
+  range (subtype.map f h) = coe ⁻¹' (f '' set_of p) :=
 begin
   ext ⟨x, hx⟩,
   simp only [mem_preimage, mem_range, mem_image, subtype.exists, subtype.map, subtype.coe_mk],

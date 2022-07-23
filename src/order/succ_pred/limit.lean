@@ -52,6 +52,9 @@ by { cases not_is_succ_limit_iff.1 h with b hb, exact ⟨b, hb.2⟩ }
 lemma is_succ_limit_of_succ_lt (H : ∀ a < b, succ a < b) : is_succ_limit b :=
 by { rintros a rfl, by_contra ha, exact (H a $ lt_succ_of_not_is_max ha).false }
 
+lemma is_succ_limit_of_le_succ (H : ∀ a, b ≤ succ a → b ≤ a) : is_succ_limit b :=
+by { rintros a rfl, exact max_of_succ_le (H a le_rfl) }
+
 /-- A value can be built by building it on successors and successor limits.
 
 Note that you need a partial order for data built using this to behave nicely on successors. -/
@@ -92,6 +95,17 @@ begin
     exact (classical.some_spec $ not_is_succ_limit_iff.1 h).2.symm }
 end
 
+lemma pred'_eq_iff_is_succ_limit : pred' a = a ↔ is_succ_limit a :=
+begin
+  change dite _ _ _ = a ↔ _,
+  split_ifs,
+  { simp [h] },
+  { simp only [h, iff_false, eq_mpr_eq_cast, cast_eq],
+    obtain ⟨H₁, H₂⟩ := classical.some_spec (not_is_succ_limit_iff.1 h),
+    convert (lt_succ_of_not_is_max H₁).ne,
+    exact H₂.symm }
+end
+
 section no_max_order
 variables [no_max_order α]
 
@@ -104,6 +118,15 @@ lemma is_succ_limit_iff_succ_ne : is_succ_limit a ↔ ∀ b, succ b ≠ a :=
 
 lemma not_is_succ_limit_iff' : ¬ is_succ_limit a ↔ a ∈ range (@succ α _ _) :=
 by { simp_rw [is_succ_limit_iff_succ_ne, not_forall, not_ne_iff], refl }
+
+lemma succ_pred'_eq_iff_not_is_succ_limit : succ (pred' a) = a ↔ ¬ is_succ_limit a :=
+begin
+  change succ (dite _ _ _) = a ↔ _,
+  split_ifs,
+  { simp [h, h.succ_ne] },
+  { simp only [h, not_false_iff, iff_true, eq_mpr_eq_cast, cast_eq],
+    exact (classical.some_spec (not_is_succ_limit_iff.1 h)).2 }
+end
 
 end no_max_order
 
@@ -154,6 +177,19 @@ lemma is_succ_limit.succ_lt_iff (hb : is_succ_limit b) : succ a < b ↔ a < b :=
 lemma is_succ_limit_iff_succ_lt : is_succ_limit b ↔ ∀ a < b, succ a < b :=
 ⟨λ hb a, hb.succ_lt, is_succ_limit_of_succ_lt⟩
 
+lemma is_succ_limit.le_of_le_succ (hb : is_succ_limit b) (ha : b ≤ succ a) : b ≤ a :=
+begin
+  rcases le_succ_iff_eq_or_le.1 ha with rfl | ha,
+  { rw hb.is_max.succ_eq },
+  { exact ha }
+end
+
+lemma is_succ_limit.le_succ_iff (hb : is_succ_limit b) : b ≤ succ a ↔ b ≤ a :=
+⟨hb.le_of_le_succ, λ h, h.trans (le_succ a)⟩
+
+lemma is_succ_limit_iff_le_succ : is_succ_limit b ↔ ∀ a, b ≤ succ a → b ≤ a :=
+⟨λ hb a, hb.le_of_le_succ, is_succ_limit_of_le_succ⟩
+
 lemma is_succ_limit_rec_on_succ' {C : α → Sort*} (hs : Π a, ¬ is_max a → C (succ a))
   (hl : Π a, is_succ_limit a → C a) {b : α} (hb : ¬ is_max b) :
   @is_succ_limit_rec_on α _ _ C (succ b) hs hl = hs b hb :=
@@ -166,6 +202,9 @@ begin
   { exact (succ_eq_succ_iff_of_not_is_max H.1 hb).1 H.2 },
   { apply proof_irrel_heq }
 end
+
+lemma pred'_lt_iff_not_is_succ_limit : pred' a < a ↔ ¬ is_succ_limit a :=
+by { rw ←pred'_eq_iff_is_succ_limit, exact ⟨λ h, h.ne, (pred'_le a).lt_of_ne⟩ }
 
 lemma pred'_succ_of_not_is_max : ¬ is_max a → pred' (succ a) = a := is_succ_limit_rec_on_succ' _ _
 
@@ -204,6 +243,20 @@ variables [no_max_order α]
 is_succ_limit_rec_on_succ' _ _ _
 
 @[simp] lemma pred'_succ (a : α) : pred' (succ a) = a := pred'_succ_of_not_is_max (not_is_max a)
+
+theorem lt_pred'_iff : a < pred' b ↔ succ a < b :=
+begin
+  refine is_succ_limit_rec_on b (λ c hc, _) (λ c hc, _),
+  { simp },
+  { rw [pred'_of_limit hc, hc.succ_lt_iff] }
+end
+
+theorem pred'_le_iff : pred' b ≤ a ↔ b ≤ succ a :=
+begin
+  refine is_succ_limit_rec_on b (λ c hc, _) (λ c hc, _),
+  { simp },
+  { rw [pred'_of_limit hc, hc.le_succ_iff] }
+end
 
 end no_max_order
 
@@ -295,6 +348,9 @@ lemma mem_range_pred_of_not_is_pred_limit : ¬ is_pred_limit a → a ∈ range (
 lemma is_pred_limit_of_lt_pred : (∀ b > a, a < pred b) → is_pred_limit a :=
 @is_succ_limit_of_succ_lt αᵒᵈ a _ _
 
+lemma is_succ_limit_of_pred_le : (∀ a, pred a ≤ b → a ≤ b) → is_pred_limit b :=
+@is_succ_limit_of_le_succ αᵒᵈ _ _ _
+
 /-- A value can be built by building it on predecessors and predecessor limits.
 
 Note that you need a partial order for data built using this to behave nicely on successors. -/
@@ -322,6 +378,9 @@ alias succ'_of_limit ← is_pred_limit.succ'_eq
 
 lemma le_succ' : ∀ b : α, b ≤ succ' b := @pred'_le αᵒᵈ _ _
 
+lemma succ'_eq_iff_is_pred_limit : succ' a = a ↔ is_pred_limit a :=
+@pred'_eq_iff_is_succ_limit αᵒᵈ _ _ _
+
 section no_min_order
 variables [no_min_order α]
 
@@ -334,6 +393,9 @@ lemma is_pred_limit_iff_pred_ne : is_pred_limit a ↔ ∀ b, pred b ≠ a :=
 
 lemma not_is_pred_limit_iff' : ¬ is_pred_limit a ↔ a ∈ range (@pred α _ _) :=
 @not_is_succ_limit_iff' αᵒᵈ a _ _ _
+
+lemma pred_succ'_eq_iff_not_is_pred_limit : pred (succ' a) = a ↔ ¬ is_pred_limit a :=
+@succ_pred'_eq_iff_not_is_succ_limit αᵒᵈ _ _ _ _
 
 end no_min_order
 
@@ -373,10 +435,22 @@ lemma is_pred_limit.lt_pred_iff : ∀ (ha : is_pred_limit a), a < pred b ↔ a <
 lemma is_pred_limit_iff_lt_pred : is_pred_limit a ↔ ∀ b > a, a < pred b :=
 @is_succ_limit_iff_succ_lt αᵒᵈ a _ _
 
+lemma is_pred_limit.le_of_pred_le : is_pred_limit b → pred a ≤ b → a ≤ b :=
+@is_succ_limit.le_of_le_succ αᵒᵈ _ _ _ _
+
+lemma is_pred_limit.pred_le_iff : is_pred_limit b → (pred a ≤ b ↔ a ≤ b) :=
+@is_succ_limit.le_succ_iff αᵒᵈ _ _ _ _
+
+lemma is_pred_limit_iff_pred_le : is_pred_limit b ↔ ∀ a, pred a ≤ b → a ≤ b :=
+@is_succ_limit_iff_le_succ αᵒᵈ _ _ _
+
 lemma is_pred_limit_rec_on_pred' : ∀ {C : α → Sort*} (hs : Π a, ¬ is_min a → C (pred a))
   (hl : Π a, is_pred_limit a → C a) {b : α} (hb : ¬ is_min b),
   @is_pred_limit_rec_on α _ _ C (pred b) hs hl = hs b hb :=
 @is_succ_limit_rec_on_succ' αᵒᵈ _ _
+
+lemma lt_succ'_iff_not_is_pred_limit : a < succ' a ↔ ¬ is_pred_limit a :=
+@pred'_lt_iff_not_is_succ_limit αᵒᵈ _ _ _
 
 lemma succ'_pred_of_not_is_min : ¬ is_min a → succ' (pred a) = a :=
 @pred'_succ_of_not_is_max αᵒᵈ _ _ _
@@ -396,6 +470,10 @@ variables [no_min_order α]
 @is_succ_limit_rec_on_succ αᵒᵈ _ _ _
 
 @[simp] lemma succ'_pred : ∀ a : α, succ' (pred a) = a := @pred'_succ αᵒᵈ _ _ _
+
+theorem succ'_lt_iff : succ' b < a ↔ b < pred a := @lt_pred'_iff αᵒᵈ _ _ _ _ _
+
+theorem le_succ'_iff : a ≤ succ' b ↔ pred a ≤ b := @pred'_le_iff αᵒᵈ _ _ _ _ _
 
 end no_min_order
 

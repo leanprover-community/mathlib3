@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
+import order.succ_pred.limit
 import set_theory.ordinal.basic
 import tactic.by_contra
 
@@ -26,7 +27,7 @@ successor ordinals and limit ordinals, in `limit_rec_on`.
 * `o₁ / o₂` is the ordinal `o` such that `o₁ = o₂ * o + o'` with `o' < o₂`. We also define the
   divisibility predicate, and a modulo operation.
 * `order.succ o = o + 1` is the successor of `o`.
-* `pred o` if the predecessor of `o`. If `o` is not a successor, we set `pred o = o`.
+* `order.pred' o` is the predecessor of `o`. If `o` is not a successor, we have `order.pred' o = o`.
 
 We also define the power function and the logarithm function on ordinals, and discuss the properties
 of casts of natural numbers of and of `ω` with respect to these operations.
@@ -207,47 +208,43 @@ theorem right_eq_zero_of_add_eq_zero {a b : ordinal} (h : a + b = 0) : b = 0 :=
 
 /-! ### The predecessor of an ordinal -/
 
-/-- The ordinal predecessor of `o` is `o'` if `o = succ o'`,
-  and `o` otherwise. -/
-def pred (o : ordinal) : ordinal :=
-if h : ∃ a, o = succ a then classical.some h else o
+@[simp] theorem pred'_zero : pred' (0 : ordinal) = 0 := pred'_bot
 
-@[simp] theorem pred_succ (o) : pred (succ o) = o :=
-by have h : ∃ a, succ o = succ a := ⟨_, rfl⟩;
-   simpa only [pred, dif_pos h] using (succ_injective $ classical.some_spec h).symm
-
-theorem pred_le_self (o) : pred o ≤ o :=
-if h : ∃ a, o = succ a then let ⟨a, e⟩ := h in
-by rw [e, pred_succ]; exact le_succ a
-else by rw [pred, dif_neg h]
-
-theorem pred_eq_iff_not_succ {o} : pred o = o ↔ ¬ ∃ a, o = succ a :=
-⟨λ e ⟨a, e'⟩, by rw [e', pred_succ] at e; exact (lt_succ a).ne e,
- λ h, dif_neg h⟩
-
-theorem pred_eq_iff_not_succ' {o} : pred o = o ↔ ∀ a, o ≠ succ a :=
-by simpa using pred_eq_iff_not_succ
-
-theorem pred_lt_iff_is_succ {o} : pred o < o ↔ ∃ a, o = succ a :=
-iff.trans (by simp only [le_antisymm_iff, pred_le_self, true_and, not_le])
-  (iff_not_comm.1 pred_eq_iff_not_succ).symm
-
-@[simp] theorem pred_zero : pred 0 = 0 :=
-pred_eq_iff_not_succ'.2 $ λ a, (succ_ne_zero a).symm
-
-theorem succ_pred_iff_is_succ {o} : succ (pred o) = o ↔ ∃ a, o = succ a :=
-⟨λ e, ⟨_, e.symm⟩, λ ⟨a, e⟩, by simp only [e, pred_succ]⟩
+theorem succ_pred'_iff_is_succ {o : ordinal} : succ (pred' o) = o ↔ ∃ a, o = succ a :=
+⟨λ e, ⟨_, e.symm⟩, λ ⟨a, e⟩, by simp only [e, pred'_succ]⟩
 
 theorem succ_lt_of_not_succ {o b : ordinal} (h : ¬ ∃ a, o = succ a) : succ b < o ↔ b < o :=
 ⟨(lt_succ b).trans, λ l, lt_of_le_of_ne (succ_le_of_lt l) (λ e, h ⟨_, e.symm⟩)⟩
 
-theorem lt_pred {a b} : a < pred b ↔ succ a < b :=
-if h : ∃ a, b = succ a then let ⟨c, e⟩ := h in
-by rw [e, pred_succ, succ_lt_succ_iff]
-else by simp only [pred, dif_neg h, succ_lt_of_not_succ h]
+theorem pred'_lt_iff_is_succ {o : ordinal} : pred' o < o ↔ ∃ a, o = succ a :=
+begin
+  rw [pred'_lt_iff_not_is_succ_limit, not_is_succ_limit_iff'],
+  apply exists_congr (λ a, _),
+  rw eq_comm
+end
 
-theorem pred_le {a b} : pred a ≤ b ↔ a ≤ succ b :=
-le_iff_le_iff_lt_iff_lt.2 lt_pred
+@[simp] theorem lift_is_succ_limit {o : ordinal} : is_succ_limit o.lift ↔ is_succ_limit o :=
+begin
+  split,
+  { rintros h a rfl,
+    rw lift_succ at h,
+    exact (not_is_succ_limit_succ _ h).elim },
+  { rintros h a ha,
+    cases lift_down ((le_succ a).trans_eq ha) with b hb,
+    subst hb,
+    rw [←lift_succ, lift_inj] at ha,
+    subst ha,
+    exact (not_is_succ_limit_succ _ h).elim }
+end
+
+@[simp] theorem lift_pred' {o : ordinal} : lift (pred' o) = pred' (lift o) :=
+begin
+  apply is_succ_limit_rec_on o,
+  { intros a _,
+    rw [lift_succ, pred'_succ, pred'_succ] },
+  { intros a ha,
+    rw [pred'_of_limit ha, pred'_of_limit (lift_is_succ_limit.2 ha)] }
+end
 
 @[simp] theorem lift_is_succ {o} : (∃ a, lift o = succ a) ↔ (∃ a, o = succ a) :=
 ⟨λ ⟨a, h⟩,
@@ -255,12 +252,6 @@ le_iff_le_iff_lt_iff_lt.2 lt_pred
     h.symm ▸ lt_succ a in
   ⟨b, lift_inj.1 $ by rw [h, ← e, lift_succ]⟩,
  λ ⟨a, h⟩, ⟨lift a, by simp only [h, lift_succ]⟩⟩
-
-@[simp] theorem lift_pred (o) : lift (pred o) = pred (lift o) :=
-if h : ∃ a, o = succ a then
-by cases h with a e; simp only [e, pred_succ, lift_succ]
-else by rw [pred_eq_iff_not_succ.2 h,
-            pred_eq_iff_not_succ.2 (mt lift_is_succ.1 h)]
 
 /-! ### Limit ordinals -/
 
@@ -326,8 +317,8 @@ or.inr $ or.inr ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩
 lt_wf.fix (λ o IH,
   if o0 : o = 0 then by rw o0; exact H₁ else
   if h : ∃ a, o = succ a then
-    by rw ← succ_pred_iff_is_succ.2 h; exact
-    H₂ _ (IH _ $ pred_lt_iff_is_succ.2 h)
+    by rw ← succ_pred'_iff_is_succ.2 h; exact
+    H₂ _ (IH _ $ pred'_lt_iff_is_succ.2 h)
   else H₃ _ ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩ IH) o
 
 @[simp] theorem limit_rec_on_zero {C} (H₁ H₂ H₃) : @limit_rec_on C 0 H₁ H₂ H₃ = H₁ :=
@@ -340,8 +331,8 @@ begin
   rw [limit_rec_on, lt_wf.fix_eq, dif_neg (succ_ne_zero o), dif_pos h],
   generalize : limit_rec_on._proof_2 (succ o) h = h₂,
   generalize : limit_rec_on._proof_3 (succ o) h = h₃,
-  revert h₂ h₃, generalize e : pred (succ o) = o', intros,
-  rw pred_succ at e, subst o', refl
+  revert h₂ h₃, generalize e : pred' (succ o) = o', intros,
+  rw pred'_succ at e, subst o', refl
 end
 
 @[simp] theorem limit_rec_on_limit {C} (o H₁ H₂ H₃ h) :
@@ -2000,13 +1991,13 @@ end
 /-- The ordinal logarithm is the solution `u` to the equation `x = b ^ u * v + w` where `v < b` and
     `w < b ^ u`. -/
 @[pp_nodot] def log (b : ordinal) (x : ordinal) : ordinal :=
-if h : 1 < b then pred (Inf {o | x < b ^ o}) else 0
+if h : 1 < b then pred' (Inf {o | x < b ^ o}) else 0
 
 /-- The set in the definition of `log` is nonempty. -/
 theorem log_nonempty {b x : ordinal} (h : 1 < b) : {o | x < b ^ o}.nonempty :=
 ⟨_, succ_le_iff.1 (right_le_opow _ h)⟩
 
-theorem log_def {b : ordinal} (b1 : 1 < b) (x : ordinal) : log b x = pred (Inf {o | x < b ^ o}) :=
+theorem log_def {b : ordinal} (b1 : 1 < b) (x : ordinal) : log b x = pred' (Inf {o | x < b ^ o}) :=
 by simp only [log, dif_pos b1]
 
 theorem log_of_not_one_lt_left {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
@@ -2020,7 +2011,7 @@ log_of_left_le_one zero_le_one
 
 @[simp] theorem log_zero_right (b : ordinal) : log b 0 = 0 :=
 if b1 : 1 < b then begin
-  rw [log_def b1, ← ordinal.le_zero, pred_le],
+  rw [log_def b1, ← ordinal.le_zero, pred'_le_iff],
   apply cInf_le',
   dsimp,
   rw [succ_zero, opow_one],
@@ -2039,8 +2030,8 @@ begin
   rcases zero_or_succ_or_limit t with h|h|h,
   { refine ((one_le_iff_pos.2 x0).not_lt _).elim,
     simpa only [h, opow_zero] },
-  { rw [show log b x = pred t, from log_def b1 x,
-        succ_pred_iff_is_succ.2 h] },
+  { rw [show log b x = pred' t, from log_def b1 x,
+        succ_pred'_iff_is_succ.2 h] },
   { rcases (lt_opow_of_limit (zero_lt_one.trans b1).ne' h).1 this with ⟨a, h₁, h₂⟩,
     exact h₁.not_le.elim ((le_cInf_iff'' (log_nonempty b1)).1 le_rfl a h₂) }
 end

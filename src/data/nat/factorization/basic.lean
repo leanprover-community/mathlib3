@@ -251,86 +251,78 @@ lemma factorization_equiv_inv_apply {f : ℕ →₀ ℕ} (hf : ∀ p ∈ f.suppo
 
 /-! ### Factorization and divisibility -/
 
-/-- The largest power of `p` that divides into `n`.  For `p = 2` this is the even part of `n` -/
--- @[reducible]
-def padic_part (n p : ℕ) := p ^ n.factorization p
+-- The largest power of `p` that divides into `n`.  For `p = 2` this is the even part of `n`.
+notation `ord[` p `]` n:max := p ^ (nat.factorization n p)
 
-/-- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n` -/
-def p_odd_part (n p : ℕ) := n / p ^ n.factorization p
+-- The largest divisor of `n` not divisible by `p`.  For `p = 2` this is the odd part of `n`.
+notation `coord[` p `]` n:max := n / p ^ n.factorization p
 
--- @[simp]
-lemma padic_part_def (n p : ℕ) : n.padic_part p = p ^ n.factorization p := rfl
--- @[simp]
-lemma p_odd_part_def (n p : ℕ) : n.p_odd_part p = n / p ^ n.factorization p := rfl
--- @[simp]
-lemma p_odd_part_def' (n p : ℕ) : n / n.padic_part p = n.p_odd_part p := rfl
+@[simp] lemma padic_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : ord[p] n = 1 :=
+by simp [factorization_eq_zero_of_non_prime n hp]
 
-@[simp] lemma padic_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : n.padic_part p = 1 :=
-by simp [padic_part_def, factorization_eq_zero_of_non_prime n hp]
-
-@[simp] lemma p_odd_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : n.p_odd_part p = n :=
-by simp [p_odd_part_def, factorization_eq_zero_of_non_prime n hp]
+@[simp] lemma p_odd_part_of_not_prime (n p : ℕ) (hp : ¬ p.prime) : coord[p] n = n :=
+by simp [factorization_eq_zero_of_non_prime n hp]
 
 -- TODO: Rename the following lemmas
 
 -- TODO: Prove:
--- [*] n.padic_part p ∣ n
--- [*] n.p_odd_part p ∣ n
--- [*] 0 < n.padic_part p ≤ n
--- [*] 0 < n.p_odd_part p ≤ n
--- [*] n.padic_part p * n.p_odd_part p = n
--- [*] a.padic_part p * b.padic_part p = (a*b).padic_part p
--- [*] a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p
--- [*] n.padic_part p is the largest power of `p` that divides into `n`
--- [*] n.p_odd_part p is the largest divisor of `n` not divisible by `p`.
+-- [*] ord[p] n ∣ n
+-- [*] coord[p] n ∣ n
+-- [*] 0 < ord[p] n ≤ n
+-- [*] 0 < coord[p] n ≤ n
+-- [*] ord[p] n * coord[p] n = n
+-- [*] ord[p] a * ord[p] b = ord[p] (a*b)
+-- [*] coord[p] a * coord[p] b = coord[p] (a*b)
+-- [*] ord[p] n is the largest power of `p` that divides into `n`
+-- [*] coord[p] n is the largest divisor of `n` not divisible by `p`.
 
 -- TODO: Rename this to `padic_part_dvd`
-lemma pow_factorization_dvd (n p : ℕ) : n.padic_part p ∣ n :=
+lemma pow_factorization_dvd (n p : ℕ) : ord[p] n ∣ n :=
 begin
   by_cases hp : p.prime, swap, { simp [hp] },
-  rw [padic_part_def, ←factors_count_eq],
+  rw [←factors_count_eq],
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
   simp [list.eq_of_mem_repeat hq],
 end
 
-lemma p_odd_part_dvd (n p : ℕ) : n.p_odd_part p ∣ n :=
+lemma p_odd_part_dvd (n p : ℕ) : coord[p] n ∣ n :=
 div_dvd_of_dvd (pow_factorization_dvd n p)
 
-lemma padic_part_pos (n p : ℕ) : 0 < n.padic_part p :=
+lemma padic_part_pos (n p : ℕ) : 0 < ord[p] n :=
 begin
   by_cases pp : p.prime,
-  { simp [padic_part_def, pow_pos pp.pos] },
+  { simp [pow_pos pp.pos] },
   { simp [pp] },
 end
 
-lemma padic_part_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : n.padic_part p ≤ n :=
+lemma padic_part_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : ord[p] n ≤ n :=
 le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
-lemma p_odd_part_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < n.p_odd_part p :=
+lemma p_odd_part_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < coord[p] n :=
 begin
   cases em' p.prime with pp pp,
-  { simpa [p_odd_part_def, nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
+  { simpa [nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
   exact nat.div_pos (padic_part_le p hn) (padic_part_pos n p),
 end
 
-lemma p_odd_part_le (n p : ℕ) : n.p_odd_part p ≤ n :=
+lemma p_odd_part_le (n p : ℕ) : coord[p] n ≤ n :=
 nat.div_le_self _ _
 
-lemma padic_mul_p_odd_part_eq_self (n p : ℕ) : n.padic_part p * n.p_odd_part p = n :=
+lemma padic_mul_p_odd_part_eq_self (n p : ℕ) : ord[p] n * coord[p] n = n :=
 nat.mul_div_cancel' (pow_factorization_dvd n p)
 
 lemma mul_padic_part {a b : ℕ} (p : ℕ) (ha : a ≠ 0) (hb : b ≠ 0):
-  (a*b).padic_part p = a.padic_part p * b.padic_part p :=
-by simp [padic_part_def, factorization_mul ha hb, pow_add]
+  ord[p] (a*b) = ord[p] a * ord[p] b :=
+by simp [factorization_mul ha hb, pow_add]
 
 lemma mul_p_odd_part (a b p : ℕ) :
-  a.p_odd_part p * b.p_odd_part p = (a*b).p_odd_part p :=
+  coord[p] a * coord[p] b = coord[p] (a*b) :=
 begin
-  rcases eq_or_ne a 0 with rfl | ha, { simp [p_odd_part_def] },
-  rcases eq_or_ne b 0 with rfl | hb, { simp [p_odd_part_def] },
-  simp only [←p_odd_part_def', mul_padic_part p ha hb],
+  rcases eq_or_ne a 0 with rfl | ha, { simp },
+  rcases eq_or_ne b 0 with rfl | hb, { simp },
+  simp only [mul_padic_part p ha hb],
   rw (mul_div_mul_comm_of_dvd_dvd (pow_factorization_dvd a p) (pow_factorization_dvd b p)),
 end
 
@@ -397,8 +389,8 @@ lemma prime.pow_dvd_iff_le_factorization {p k n : ℕ} (pp : prime p) (hn : n �
 by rw [←factorization_le_iff_dvd (pow_pos pp.pos k).ne' hn, pp.factorization_pow, single_le_iff]
 
 lemma prime.pow_dvd_iff_dvd_pow_factorization {p k n : ℕ} (pp : prime p) (hn : n ≠ 0) :
-  p ^ k ∣ n ↔ p ^ k ∣ n.padic_part p :=
-by rw [padic_part, pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
+  p ^ k ∣ n ↔ p ^ k ∣ ord[p] n :=
+by rw [pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
 
 lemma prime.dvd_iff_one_le_factorization {p n : ℕ} (pp : prime p) (hn : n ≠ 0) :
   p ∣ n ↔ 1 ≤ n.factorization p :=
@@ -426,41 +418,40 @@ begin
 end
 
 lemma dvd_padic_part_of_dvd {n p : ℕ} (hn : n ≠ 0) (pp : p.prime) (h : p ∣ n) :
-  p ∣ n.padic_part p :=
+  p ∣ ord[p] n :=
 dvd_pow_self p (prime.factorization_pos_of_dvd pp hn h).ne'
 
 -- TODO: Rename this to `not_dvd_p_odd_part`
 lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
-  ¬p ∣ n.p_odd_part p :=
+  ¬p ∣ coord[p] n :=
 begin
   rw [nat.prime.dvd_iff_one_le_factorization hp (p_odd_part_pos p hn).ne'],
-  rw ←p_odd_part_def',
   rw [nat.factorization_div (nat.pow_factorization_dvd n p)],
-  simp [padic_part_def, hp.factorization],
+  simp [hp.factorization],
 end
 
 lemma coprime_of_p_odd_part {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
-  coprime p (n.p_odd_part p) :=
+  coprime p (coord[p] n) :=
 (or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma factorization_p_odd_part (n p : ℕ) :
-  (n.p_odd_part p).factorization = n.factorization.erase p :=
+  (coord[p] n).factorization = n.factorization.erase p :=
 begin
-  rcases eq_or_ne n 0 with rfl | hn, { simp [p_odd_part_def] },
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
   by_cases pp : p.prime, swap, { simp [pp] },
   ext q,
   rcases eq_or_ne q p with rfl | hqp,
   { simp only [finsupp.erase_same, factorization_eq_zero_iff', not_dvd_div_pow_factorization pp hn],
     simp },
-  { rw [finsupp.erase_ne hqp, ←p_odd_part_def', factorization_div (pow_factorization_dvd n p)],
-    simp [padic_part_def, pp.factorization, hqp.symm] },
+  { rw [finsupp.erase_ne hqp, factorization_div (pow_factorization_dvd n p)],
+    simp [pp.factorization, hqp.symm] },
 end
 
--- `n.padic_part p` is the largest divisor of `n` not divisible by `p`.
+-- `ord[p] n` is the largest divisor of `n` not divisible by `p`.
 lemma dvd_p_odd_part_of_dvd_not_dvd {p d n : ℕ} (hdn : d ∣ n) (hpd : ¬ p ∣ d) :
-  d ∣ n.p_odd_part p :=
+  d ∣ coord[p] n :=
 begin
-  rcases eq_or_ne n 0 with rfl | hn0, { simp [p_odd_part_def] },
+  rcases eq_or_ne n 0 with rfl | hn0, { simp },
   rcases eq_or_ne d 0 with rfl | hd0, { simp at hpd, cases hpd },
   rw [←(factorization_le_iff_dvd hd0 (p_odd_part_pos p hn0).ne'), factorization_p_odd_part],
   intro q,

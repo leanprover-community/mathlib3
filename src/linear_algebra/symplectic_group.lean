@@ -77,12 +77,6 @@ begin
   exact even_add_self _
 end
 
-lemma J_det [rc : fact (ring_char R ≠ 2)] : det (J l R) = 1 ∨ det (J l R) = - 1:=
-begin
-  rw [←sq_eq_one_iff, pow_two],
-  exact J_det_mul_J_det _ _,
-end
-
 lemma J_det_unit [fact (ring_char R ≠ 2)] : is_unit (det (J l R)) :=
 is_unit_iff_exists_inv.mpr ⟨det (J l R), J_det_mul_J_det _ _⟩
 

@@ -9,7 +9,7 @@ import data.nat.succ_pred
 /-!
 # Successors and predecessors of integers
 
-In this file, we show that `ℤ` is both an archimedean `succ_order` and an archimedean `pred_order`.
+In this file, we show that `ℤ` is a `succ_pred_archimedean` order.
 -/
 
 open function order
@@ -42,11 +42,9 @@ lemma pred_iterate (a : ℤ) : ∀ n, pred^[n] a = a - n
 | (n + 1) := by { rw [function.iterate_succ', int.coe_nat_succ, ←sub_sub],
     exact congr_arg _ (pred_iterate n) }
 
-instance : is_succ_archimedean ℤ :=
-⟨λ a b h, ⟨(b - a).to_nat,
-  by rw [succ_eq_succ, succ_iterate, to_nat_sub_of_le h, ←add_sub_assoc, add_sub_cancel']⟩⟩
-
-instance : is_pred_archimedean ℤ := succ_order.to_is_pred_archimedean
+instance : succ_pred_archimedean ℤ :=
+succ_pred_archimedean_of_succ $ λ a b h, ⟨(b - a).to_nat,
+  by rw [succ_eq_succ, succ_iterate, to_nat_sub_of_le h, ←add_sub_assoc, add_sub_cancel']⟩
 
 /-! ### Covering relation -/
 

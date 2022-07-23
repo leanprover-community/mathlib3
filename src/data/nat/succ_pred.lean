@@ -8,7 +8,7 @@ import order.succ_pred.limit
 /-!
 # Successors and predecessors of naturals
 
-In this file, we show that `ℕ` is both an archimedean `succ_order` and an archimedean `pred_order`.
+In this file, we show that `ℕ` is a `succ_pred_archimedean` order.
 -/
 
 open function order
@@ -51,9 +51,7 @@ lemma pred_iterate (a : ℕ) : ∀ n, pred^[n] a = a - n
 | 0       := rfl
 | (n + 1) := by { rw [function.iterate_succ', sub_succ], exact congr_arg _ n.pred_iterate }
 
-instance : is_pred_archimedean ℕ := by apply_instance
-
-instance : is_succ_archimedean ℕ := pred_order.to_is_succ_archimedean
+instance : succ_pred_archimedean ℕ := by apply_instance
 
 /-! ### Covering relation -/
 

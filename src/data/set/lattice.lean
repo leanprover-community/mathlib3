@@ -1092,15 +1092,17 @@ open function
 variables (s : set β) {f : α → β} {U : ι → set β} (hU : Union U = univ)
 
 lemma restrict_preimage_injective (hf : injective f) : injective (s.restrict_preimage f) :=
-begin
-  intros x y e, injection e with e, exact subtype.coe_injective (hf e)
-end
+λ x y e, subtype.mk.inj_arrow e (λ e, subtype.coe_injective (hf e))
 
 lemma restrict_preimage_surjective (hf : surjective f) : surjective (s.restrict_preimage f) :=
 λ x, ⟨⟨_, (show f (hf x).some ∈ s, from (hf x).some_spec.symm ▸ x.2)⟩, subtype.ext (hf x).some_spec⟩
 
 lemma restrict_preimage_bijective (hf : bijective f) : bijective (s.restrict_preimage f) :=
 ⟨s.restrict_preimage_injective hf.1, s.restrict_preimage_surjective hf.2⟩
+
+alias set.restrict_preimage_injective  ← _root_.function.injective.restrict_preimage
+alias set.restrict_preimage_surjective ← _root_.function.surjective.restrict_preimage
+alias set.restrict_preimage_bijective  ← _root_.function.bijective.restrict_preimage
 
 include hU
 

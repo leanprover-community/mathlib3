@@ -351,4 +351,13 @@ begin
   apply mul_le_mul_left' (nat.totient_le d),
 end
 
+lemma totient_mul_of_prime_of_not_dvd {q n : ℕ} (hq : q.prime) (h : ¬ q ∣ n) :
+  (q * n).totient = (q - 1) * n.totient :=
+begin
+  rw [totient_mul _, totient_prime hq],
+  simpa [h] using coprime_or_dvd_of_prime hq n,
+end
+
+
+
 end nat

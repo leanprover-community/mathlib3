@@ -17,7 +17,7 @@ bounded linear map between Banach spaces has a bounded inverse.
 open function metric set filter finset
 open_locale classical topological_space big_operators nnreal
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 (f : E →L[𝕜] F)

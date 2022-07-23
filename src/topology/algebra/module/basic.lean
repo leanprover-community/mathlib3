@@ -83,7 +83,7 @@ variables {R : Type*} {M : Type*}
 
 /-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior.
-This is the case, e.g., if `R` is a nondiscrete normed field. -/
+This is the case, e.g., if `R` is a nontrivially normed field. -/
 lemma submodule.eq_top_of_nonempty_interior'
   [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
@@ -104,7 +104,7 @@ end
 
 variables (R M)
 
-/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nontrivially
 normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
 using `ne_bot (𝓝[≠] x)`.

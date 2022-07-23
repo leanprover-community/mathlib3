@@ -33,7 +33,7 @@ existence of a nice sequence of derivatives, expressed with a predicate
 We prove basic properties of these notions.
 
 ## Main definitions and results
-Let `f : E → F` be a map between normed vector spaces over a nondiscrete normed field `𝕜`.
+Let `f : E → F` be a map between normed vector spaces over a nontrivially normed field `𝕜`.
 
 * `has_ftaylor_series_up_to n f p`: expresses that the formal multilinear series `p` is a sequence
   of iterated derivatives of `f`, up to the `n`-th term (where `n` is a natural number or `∞`).
@@ -170,7 +170,7 @@ normed_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_com
 open set fin filter
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -2877,7 +2877,7 @@ theorem homeomorph.cont_diff_symm [complete_space E] (f : E ≃ₜ F) {f₀' : E
 cont_diff_iff_cont_diff_at.2 $ λ x,
   f.to_local_homeomorph.cont_diff_at_symm (mem_univ x) (hf₀' _) hf.cont_diff_at
 
-/-- Let `f` be a local homeomorphism of a nondiscrete normed field, let `a` be a point in its
+/-- Let `f` be a local homeomorphism of a nontrivially normed field, let `a` be a point in its
 target. if `f` is `n` times continuously differentiable at `f.symm a`, and if the derivative at
 `f.symm a` is nonzero, then `f.symm` is `n` times continuously differentiable at the point `a`.
 
@@ -2889,9 +2889,9 @@ theorem local_homeomorph.cont_diff_at_symm_deriv [complete_space 𝕜]
   cont_diff_at 𝕜 n f.symm a :=
 f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
 
-/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nondiscrete normed field.
-Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times continuously
-differentiable.
+/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nontrivially normed
+field.  Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times
+continuously differentiable.
 
 This is one of the easy parts of the inverse function theorem: it assumes that we already have
 an inverse function. -/
@@ -3233,7 +3233,7 @@ situation where `ℂ` and `ℝ` are replaced respectively by `𝕜'` and `𝕜` 
 over `𝕜`.
 -/
 
-variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F}

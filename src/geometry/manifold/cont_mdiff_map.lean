@@ -14,7 +14,7 @@ In this file we define the type `cont_mdiff_map` of `n` times continuously diffe
 bundled maps.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H]

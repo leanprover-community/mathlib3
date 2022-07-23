@@ -906,7 +906,7 @@ by simp_rw [div_eq_mul_inv, h.mul_const]
 end normed_space
 
 section normed_space_over_complete_field
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 lemma integrable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
@@ -1187,7 +1187,7 @@ end measure_theory
 open measure_theory
 
 variables {E : Type*} [normed_group E]
-          {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+          {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
           {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
 lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[𝕜] E}

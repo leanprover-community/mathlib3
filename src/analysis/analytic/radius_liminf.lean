@@ -13,7 +13,7 @@ In this file we prove that the radius of convergence of a `formal_multilinear_se
 $\liminf_{n\to\infty} \frac{1}{\sqrt[n]{∥p n∥}}$. This lemma can't go to `basic.lean` because this
 would create a circular dependency once we redefine `exp` using `formal_multilinear_series`.
 -/
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 

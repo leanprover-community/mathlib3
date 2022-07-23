@@ -587,7 +587,7 @@ open simple_func
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
-variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_space ℝ E] [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [normed_space ℝ F] [complete_space E]
 
 section integration_in_L1
@@ -687,7 +687,7 @@ functions, and 0 otherwise; prove its basic properties.
 -/
 
 variables [normed_group E] [normed_space ℝ E] [complete_space E]
-          [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+          [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
           [normed_group F] [normed_space ℝ F] [complete_space F]
 
 section

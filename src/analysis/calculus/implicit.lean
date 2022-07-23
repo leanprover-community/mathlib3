@@ -88,7 +88,7 @@ such that
 * the derivatives are surjective;
 * the kernels of the derivatives are complementary subspaces of `E`. -/
 @[nolint has_inhabited_instance]
-structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] [complete_space E]
   (F : Type*) [normed_group F] [normed_space 𝕜 F] [complete_space F]
   (G : Type*) [normed_group G] [normed_space 𝕜 G] [complete_space G] :=
@@ -105,7 +105,7 @@ structure implicit_function_data (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 namespace implicit_function_data
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
   {G : Type*} [normed_group G] [normed_space 𝕜 G] [complete_space G]
@@ -203,7 +203,7 @@ Note that a map with these properties is not unique. E.g., different choices of 
 complementary to `ker f'` lead to different maps `φ`.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
   {f : E → F} {f' : E →L[𝕜] F} {a : E}
@@ -335,7 +335,7 @@ complementary to `ker f'` lead to different maps `φ`.
 
 section finite_dimensional
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
   (f : E → F) (f' : E →L[𝕜] F) {a : E}

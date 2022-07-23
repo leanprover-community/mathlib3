@@ -40,7 +40,7 @@ begin
   haveI : nonempty α,
   { rw ←fintype.card_pos_iff,
     exact (bound_pos _ _).trans_le hα },
-  suffices h : ∀ i, ∃ (P : finpartition (univ : finset α)), P.is_equipartition ∧
+  suffices h : ∀ i, ∃ P : finpartition (univ : finset α), P.is_equipartition ∧
     t ≤ P.parts.card ∧ P.parts.card ≤ (step_bound^[i]) t ∧
       (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.energy G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (⌊4 / ε^5⌋₊ + 1),
@@ -81,7 +81,7 @@ begin
     hP₃.trans (monotone_iterate_of_id_le le_step_bound (nat.le_floor hi) _),
   have hPα : P.parts.card * 16^P.parts.card ≤ card α :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hα,
-  refine ⟨hP₁.increment G ε, increment_is_equipartition hP₁ G ε, _, _,
+  refine ⟨increment hP₁ G ε, increment_is_equipartition hP₁ G ε, _, _,
     or.inr (le_trans _ (energy_increment hP₁ ((seven_le_initial_bound ε l).trans hP₂)
       hεl' hPα huniform hε₁))⟩,
   { rw card_increment hPα huniform,

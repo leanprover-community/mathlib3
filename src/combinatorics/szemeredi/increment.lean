@@ -20,29 +20,27 @@ variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : 
 
 local notation `m` := (card α/step_bound P.parts.card : ℕ)
 
-namespace finpartition
+namespace szemeredi_regularity
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher energy. This is helpful since the
 energy is bounded by a constant (see `energy_le_one`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
-noncomputable def is_equipartition.increment : finpartition (univ : finset α) :=
-P.bind (λ U, hP.chunk_increment G ε)
+noncomputable def increment : finpartition (univ : finset α) := P.bind $ λ U, chunk hP G ε
 
 open finpartition finpartition.is_equipartition
 
 variables {hP G ε}
 
 lemma card_increment (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPG : ¬P.is_uniform G ε) :
-  (hP.increment G ε).parts.card = step_bound P.parts.card :=
+  (increment hP G ε).parts.card = step_bound P.parts.card :=
 begin
   have hPα' : step_bound P.parts.card ≤ card α :=
-    (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα,
+    (mul_le_mul_left' (pow_le_pow_of_le_left' (by norm_num) _) _).trans hPα,
   have hPpos : 0 < step_bound P.parts.card := step_bound_pos (nonempty_of_not_uniform hPG).card_pos,
   rw [is_equipartition, finset.equitable_on_iff] at hP,
   rw [increment, card_bind],
-  simp_rw [finpartition.is_equipartition.chunk_increment, apply_dite finpartition.parts,
-    apply_dite card],
+  simp_rw [chunk, apply_dite finpartition.parts, apply_dite card],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
   { exact λ x hx, card_parts_equitabilise _ _ (nat.div_pos hPα' hPpos).ne' },
   { exact λ x hx, card_parts_equitabilise _ _ (nat.div_pos hPα' hPpos).ne' },
@@ -53,27 +51,26 @@ begin
 end
 
 lemma increment_is_equipartition (hP : P.is_equipartition) (G : simple_graph α) (ε : ℝ) :
-  (hP.increment G ε).is_equipartition :=
+  (increment hP G ε).is_equipartition :=
 begin
   rw [is_equipartition, set.equitable_on_iff_exists_eq_eq_add_one],
   refine ⟨m, λ A hA, _⟩,
   rw [mem_coe, increment, mem_bind] at hA,
   obtain ⟨U, hU, hA⟩ := hA,
-  exact card_eq_of_mem_parts_chunk_increment hA,
+  exact card_eq_of_mem_parts_chunk hA,
 end
 
 lemma distinct_pairs_increment :
   P.parts.off_diag.attach.bUnion
-    (λ UV, (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).1).parts.product
-      (hP.chunk_increment G ε ((mem_off_diag _ _).1 UV.2).2.1).parts)
-  ⊆ (hP.increment G ε).parts.off_diag :=
+    (λ UV, (chunk hP G ε ((mem_off_diag _ _).1 UV.2).1).parts.product
+      (chunk hP G ε ((mem_off_diag _ _).1 UV.2).2.1).parts)
+  ⊆ (increment hP G ε).parts.off_diag :=
 begin
   rintro ⟨Ui, Vj⟩,
-  simp only [finpartition.is_equipartition.increment, mem_off_diag, bind_parts, mem_bUnion,
-    prod.exists, exists_and_distrib_left, exists_prop, mem_product, mem_attach, true_and,
-    subtype.exists, and_imp, mem_off_diag, forall_exists_index, bex_imp_distrib, ne.def],
-  rintro U V hUV hUi hVj,
-  refine ⟨⟨_, hUV.1, hUi⟩, ⟨_, hUV.2.1, hVj⟩, _⟩,
+  simp only [increment, mem_off_diag, bind_parts, mem_bUnion, prod.exists, exists_and_distrib_left,
+    exists_prop, mem_product, mem_attach, true_and, subtype.exists, and_imp, mem_off_diag,
+    forall_exists_index, bex_imp_distrib, ne.def],
+  refine λ U V hUV hUi hVj, ⟨⟨_, hUV.1, hUi⟩, ⟨_, hUV.2.1, hVj⟩, _⟩,
   rintro rfl,
   obtain ⟨i, hi⟩ := nonempty_of_mem_parts _ hUi,
   apply hUV.2.2 (P.disjoint.elim_finset hUV.1 hUV.2.1 i (finpartition.le _ hUi hi)
@@ -84,13 +81,13 @@ end
 noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
   (x : {x // x ∈ P.parts.off_diag}) : ℚ :=
 (∑ i in
-  (hP.chunk_increment G ε ((mem_off_diag _ _).1 x.2).1).parts.product
-    (hP.chunk_increment G ε ((mem_off_diag _ _).1 x.2).2.1).parts,
+  (chunk hP G ε ((mem_off_diag _ _).1 x.2).1).parts.product
+    (chunk hP G ε ((mem_off_diag _ _).1 x.2).2.1).parts,
   G.edge_density i.fst i.snd ^ 2)
 
 lemma off_diag_pairs_le_increment_energy :
-  ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (hP.increment G ε).parts.card ^ 2 ≤
-    (hP.increment G ε).energy G :=
+  ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (increment hP G ε).parts.card ^ 2 ≤
+    (increment hP G ε).energy G :=
 begin
   simp_rw [pair_contrib, ←sum_div],
   refine div_le_div_of_le_of_nonneg _ (sq_nonneg _),
@@ -117,9 +114,8 @@ begin
   push_cast,
   split_ifs,
   { rw add_zero,
-    exact sq_density_sub_eps_le_sum_sq_density_div_card hPα hPε _ _ },
-  { apply sq_density_sub_eps_le_sum_sq_density_div_card_of_nonuniform hPα hPε hε₁ _ h,
-    exact ((mem_off_diag _ _).1 x.2).2.2 }
+    exact edge_density_increment hPα hPε _ _ },
+  { exact edge_density_increment_nonuniform hPα hPε hε₁ ((mem_off_diag _ _).1 x.2).2.2 h }
 end
 
 lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.parts.card)
@@ -127,7 +123,7 @@ lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1)
   (hPG : ¬P.is_uniform G ε) :
   (∑ x in P.parts.off_diag, G.edge_density x.1 x.2 ^ 2 + P.parts.card^2 * (ε ^ 5 / 4) : ℝ)
     / P.parts.card ^ 2
-      ≤ ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (hP.increment G ε).parts.card ^ 2 :=
+      ≤ ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (increment hP G ε).parts.card ^ 2 :=
 begin
   conv_rhs
   { rw [←sum_div, card_increment hPα hPG, step_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
@@ -166,7 +162,7 @@ end
 lemma energy_increment [nonempty α] (hP : P.is_equipartition) (hP₇ : 7 ≤ P.parts.card)
   (hε : 100 < 4^P.parts.card * ε^5) (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPG : ¬P.is_uniform G ε) (hε₁ : ε ≤ 1) :
-  ↑(P.energy G) + ε^5 / 4 ≤ (hP.increment G ε).energy G :=
+  ↑(P.energy G) + ε^5 / 4 ≤ (increment hP G ε).energy G :=
 begin
   have h := uniform_add_nonuniform_eq_off_diag_pairs hε₁ hP₇ hPα hε.le hPG,
   rw [add_div, mul_div_cancel_left] at h,
@@ -178,4 +174,4 @@ begin
   linarith,
 end
 
-end finpartition
+end szemeredi_regularity

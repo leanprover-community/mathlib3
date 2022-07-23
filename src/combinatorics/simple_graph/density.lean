@@ -202,7 +202,8 @@ begin
       using hδ' },
   rw [show 2 * δ - δ ^ 2 = 1 - (1 - δ) * (1 - δ), by ring],
   norm_cast,
-  refine (rat.cast_le.2 $ abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
+  refine (rat.cast_le.2 $
+    abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
   push_cast,
   apply sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _),
   { exact_mod_cast (hs₂'.mono hs).card_pos },

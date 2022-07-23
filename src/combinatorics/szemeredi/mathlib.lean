@@ -77,8 +77,7 @@ begin
   exact ⟨c, by simpa [not_or_distrib, @eq_comm _ c] using hc⟩,
 end
 
-lemma fin3_cases (i j : fin 3) : i = j ∨ i = j + 1 ∨ i = j + 2 :=
-by { fin_cases i; fin_cases j; finish }
+lemma fin3_cases (i j : fin 3) : i = j ∨ i = j + 1 ∨ i = j + 2 :=by fin_cases i; fin_cases j; finish
 
 protected lemma set.pairwise_disjoint.disjoint [semilattice_inf α] [order_bot α] {s : set α}
   (h : s.pairwise_disjoint id) :
@@ -96,6 +95,9 @@ begin
   { simpa using hy },
   rwa le_div_iff hz at h,
 end
+
+lemma m_bound (hx : 0 < x) : (x + 1) * (1 - 1/x) / x ≤ 1 :=
+by { rw [div_le_one hx, one_sub_div hx.ne', mul_div_assoc', div_le_iff hx], linarith }
 
 end linear_ordered_field
 

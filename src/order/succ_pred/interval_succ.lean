@@ -3,7 +3,7 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import order.succ_pred.limit
+import order.succ_pred.archimedean
 import data.set.lattice
 
 /-!
@@ -11,8 +11,8 @@ import data.set.lattice
 
 In this file we prove
 
-* `monotone.bUnion_Ico_Ioc_map_succ`: if `α` is a linear archimedean succ order and `β` is a linear
-  order, then for any monotone function `f` and `m n : α`, the union of intervals
+* `monotone.bUnion_Ico_Ioc_map_succ`: if `α` is a linear succ-pred archimedean order and `β` is a
+  linear order, then for any monotone function `f` and `m n : α`, the union of intervals
   `set.Ioc (f i) (f (order.succ i))`, `m ≤ i < n`, is equal to `set.Ioc (f m) (f n)`;
 
 * `monotone.pairwise_disjoint_on_Ioc_succ`: if `α` is a linear succ order, `β` is a preorder, and

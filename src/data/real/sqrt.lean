@@ -283,11 +283,8 @@ its input is. -/
 meta def _root_.tactic.positivity_sqrt : expr → tactic strictness
 | `(real.sqrt %%a) := do
   (do -- if can prove `0 < a`, report positivity
-    strictness_a ← core a,
-    match strictness_a with
-    | (positive pa) := positive <$> mk_app ``sqrt_pos_of_pos [pa]
-    | (nonnegative _) := failed
-    end) <|>
+    positive pa ← core a,
+    positive <$> mk_app ``sqrt_pos_of_pos [pa]) <|>
   nonnegative <$> mk_app ``sqrt_nonneg [a] -- else report nonnegativity
 | _ := failed
 

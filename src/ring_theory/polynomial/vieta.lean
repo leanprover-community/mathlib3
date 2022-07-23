@@ -5,6 +5,7 @@ Authors: Hanting Zhang
 -/
 import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
+import data.multiset.fintype
 
 /-!
 # Vieta's Formula
@@ -108,8 +109,9 @@ lemma _root_.multiset.prod_C_add_X_coeff (s : multiset R) (k : ℕ) (h : k ≤ s
   (s.map (λ r, C r + X)).prod.coeff k =
   ((s.powerset_len (s.card - k)).map multiset.prod).sum :=
 begin
+  classical,
   rw [← s.map_univ_coe, multiset.map_map, ← prod_eq_multiset_prod, prod_C_add_X_coeff],
-  swap, { exact h.trans (fintype.card_fin _).ge },
+  swap, { rw card_coe, exact h },
   rw [multiset.powerset_len_map, ← map_val_val_powerset_len],
   rw [sum_eq_multiset_sum, multiset.map_map, multiset.map_map, multiset.card_map],
   refl,

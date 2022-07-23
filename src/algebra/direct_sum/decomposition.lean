@@ -72,7 +72,7 @@ def decompose : M ≃ ⨁ i, ℳ i :=
   left_inv := decomposition.left_inv,
   right_inv := decomposition.right_inv }
 
-@[elab_as_eliminator] protected lemma decomposition.induction_on (m : M) {p : M → Prop}
+protected lemma decomposition.induction_on (m : M) {p : M → Prop}
   (h_zero : p 0) (h_homogeneous : ∀ {i} (m : ℳ i), p (m : M))
   (h_add : ∀ (m m' : M), p m → p m' → p (m + m')) : p m :=
 begin

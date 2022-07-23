@@ -34,16 +34,16 @@ The vertical maps in the above diagrams are also normed group homs constructed i
 ## Main definitions and results:
 
 * `normed_add_group_hom.completion`: see the discussion above.
-* `normed_add_group.to_compl : normed_add_group_hom G (completion G)`: the canonical map from `G` to its
-  completion, as a normed group hom
+* `normed_add_comm_group.to_compl : normed_add_group_hom G (completion G)`: the canonical map from
+  `G` to its completion, as a normed group hom
 * `normed_add_group_hom.completion_to_compl`: the above diagram indeed commutes.
 * `normed_add_group_hom.norm_completion`: `∥f.completion∥ = ∥f∥`
-* `normed_add_group_hom.ker_le_ker_completion`: the kernel of `f.completion` contains the image of the
-  kernel of `f`.
-* `normed_add_group_hom.ker_completion`: the kernel of `f.completion` is the closure of the image of the
-  kernel of `f` under an assumption that `f` is quantitatively surjective onto its image.
-* `normed_add_group_hom.extension` : if `H` is complete, the extension of `f : normed_add_group_hom G H`
-  to a `normed_add_group_hom (completion G) H`.
+* `normed_add_group_hom.ker_le_ker_completion`: the kernel of `f.completion` contains the image of
+  the kernel of `f`.
+* `normed_add_group_hom.ker_completion`: the kernel of `f.completion` is the closure of the image of
+  the kernel of `f` under an assumption that `f` is quantitatively surjective onto its image.
+* `normed_add_group_hom.extension` : if `H` is complete, the extension of
+  `f : normed_add_group_hom G H` to a `normed_add_group_hom (completion G) H`.
 -/
 
 noncomputable theory
@@ -52,9 +52,9 @@ open set normed_add_group_hom uniform_space
 
 section completion
 
-variables {G : Type*} [seminormed_add_group G]
-variables {H : Type*} [seminormed_add_group H]
-variables {K : Type*} [seminormed_add_group K]
+variables {G : Type*} [seminormed_add_comm_group G]
+variables {H : Type*} [seminormed_add_comm_group H]
+variables {K : Type*} [seminormed_add_comm_group K]
 
 /-- The normed group hom induced between completions. -/
 def normed_add_group_hom.completion (f : normed_add_group_hom G H) :
@@ -83,7 +83,8 @@ lemma normed_add_group_hom.completion_coe_to_fun (f : normed_add_group_hom G H) 
 by { ext x, exact normed_add_group_hom.completion_def f x }
 
 @[simp]
-lemma normed_add_group_hom.completion_coe (f : normed_add_group_hom G H) (g : G) : f.completion g = f g :=
+lemma normed_add_group_hom.completion_coe (f : normed_add_group_hom G H) (g : G) :
+  f.completion g = f g :=
 completion.map_coe f.uniform_continuous _
 
 /-- Completion of normed group homs as a normed group hom. -/
@@ -108,7 +109,8 @@ begin
   refl
 end
 
-lemma normed_add_group_hom.completion_comp (f : normed_add_group_hom G H) (g : normed_add_group_hom H K) :
+lemma normed_add_group_hom.completion_comp (f : normed_add_group_hom G H)
+  (g : normed_add_group_hom H K) :
   g.completion.comp f.completion = (g.comp f).completion :=
 begin
   ext x,
@@ -136,17 +138,17 @@ lemma normed_add_group_hom.zero_completion : (0 : normed_add_group_hom G H).comp
 normed_add_group_hom_completion_hom.map_zero
 
 /-- The map from a normed group to its completion, as a normed group hom. -/
-def normed_add_group.to_compl : normed_add_group_hom G (completion G) :=
+def normed_add_comm_group.to_compl : normed_add_group_hom G (completion G) :=
 { to_fun := coe,
   map_add' := completion.to_compl.map_add,
   bound' := ⟨1, by simp [le_refl]⟩ }
 
-open normed_add_group
+open normed_add_comm_group
 
-lemma normed_add_group.norm_to_compl (x : G) : ∥to_compl x∥ = ∥x∥ :=
+lemma normed_add_comm_group.norm_to_compl (x : G) : ∥to_compl x∥ = ∥x∥ :=
 completion.norm_coe x
 
-lemma normed_add_group.dense_range_to_compl : dense_range (to_compl : G → completion G) :=
+lemma normed_add_comm_group.dense_range_to_compl : dense_range (to_compl : G → completion G) :=
 completion.dense_inducing_coe.dense
 
 @[simp]
@@ -158,7 +160,8 @@ begin
   simpa
 end
 
-@[simp] lemma normed_add_group_hom.norm_completion (f : normed_add_group_hom G H) : ∥f.completion∥ = ∥f∥ :=
+@[simp] lemma normed_add_group_hom.norm_completion (f : normed_add_group_hom G H) :
+  ∥f.completion∥ = ∥f∥ :=
 begin
   apply f.completion.op_norm_eq_of_bounds (norm_nonneg _),
   { intro x,
@@ -191,14 +194,14 @@ begin
   rcases h.exists_pos with ⟨C', C'_pos, hC'⟩,
   apply le_antisymm,
   { intros hatg hatg_in,
-    rw seminormed_add_group.mem_closure_iff,
+    rw seminormed_add_comm_group.mem_closure_iff,
     intros ε ε_pos,
     have hCf : 0 ≤ C'*∥f∥ := (zero_le_mul_left C'_pos).mpr (norm_nonneg f),
     have ineq : 0 < 1 + C'*∥f∥, by linarith,
     set δ := ε/(1 + C'*∥f∥),
     have δ_pos : δ > 0, from div_pos ε_pos ineq,
-    obtain ⟨_, ⟨g : G, rfl⟩, hg : ∥hatg - g∥ < δ⟩ :=
-      seminormed_add_group.mem_closure_iff.mp (completion.dense_inducing_coe.dense hatg) δ δ_pos,
+    obtain ⟨_, ⟨g : G, rfl⟩, hg : ∥hatg - g∥ < δ⟩ := seminormed_add_comm_group.mem_closure_iff.mp
+      (completion.dense_inducing_coe.dense hatg) δ δ_pos,
     obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C' * ∥f g∥⟩ :=
       hC' (f g) (mem_range_self g),
     have mem_ker : g - g' ∈ f.ker,
@@ -236,12 +239,13 @@ end completion
 
 section extension
 
-variables {G : Type*} [seminormed_add_group G]
-variables {H : Type*} [seminormed_add_group H] [separated_space H] [complete_space H]
+variables {G : Type*} [seminormed_add_comm_group G]
+variables {H : Type*} [seminormed_add_comm_group H] [separated_space H] [complete_space H]
 
 /-- If `H` is complete, the extension of `f : normed_add_group_hom G H` to a
 `normed_add_group_hom (completion G) H`. -/
-def normed_add_group_hom.extension (f : normed_add_group_hom G H) : normed_add_group_hom (completion G) H :=
+def normed_add_group_hom.extension (f : normed_add_group_hom G H) :
+  normed_add_group_hom (completion G) H :=
 { bound' := begin
     refine ⟨∥f∥, λ v, completion.induction_on v (is_closed_le _ _) (λ a, _)⟩,
     { exact continuous.comp continuous_norm completion.continuous_extension },

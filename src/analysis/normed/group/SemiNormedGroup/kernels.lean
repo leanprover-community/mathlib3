@@ -91,8 +91,8 @@ def fork {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) : fork f g :=
 begin
   ext v,
   have : v.1 ∈ (f - g).ker := v.2,
-  simpa only [normed_add_group_hom.incl_apply, pi.zero_apply, coe_comp, normed_add_group_hom.coe_zero,
-    subtype.val_eq_coe, normed_add_group_hom.mem_ker,
+  simpa only [normed_add_group_hom.incl_apply, pi.zero_apply, coe_comp,
+    normed_add_group_hom.coe_zero, subtype.val_eq_coe, normed_add_group_hom.mem_ker,
     normed_add_group_hom.coe_sub, pi.sub_apply, sub_eq_zero] using this
 end
 

@@ -28,14 +28,16 @@ noncomputable theory
 open_locale nnreal big_operators
 
 /-- A morphism of seminormed abelian groups is a bounded group homomorphism. -/
-structure normed_add_group_hom (V W : Type*) [seminormed_add_group V] [seminormed_add_group W] :=
+structure normed_add_group_hom (V W : Type*) [seminormed_add_comm_group V]
+  [seminormed_add_comm_group W] :=
 (to_fun : V → W)
 (map_add' : ∀ v₁ v₂, to_fun (v₁ + v₂) = to_fun v₁ + to_fun v₂)
 (bound' : ∃ C, ∀ v, ∥to_fun v∥ ≤ C * ∥v∥)
 
 namespace add_monoid_hom
 
-variables {V W : Type*} [seminormed_add_group V] [seminormed_add_group W] {f g : normed_add_group_hom V W}
+variables {V W : Type*} [seminormed_add_comm_group V] [seminormed_add_comm_group W]
+  {f g : normed_add_group_hom V W}
 
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
 
@@ -53,7 +55,8 @@ def mk_normed_add_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, ∥f x∥
 
 end add_monoid_hom
 
-lemma exists_pos_bound_of_bound {V W : Type*} [seminormed_add_group V] [seminormed_add_group W]
+lemma exists_pos_bound_of_bound {V W : Type*} [seminormed_add_comm_group V]
+  [seminormed_add_comm_group W]
   {f : V → W} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
   ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
 ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
@@ -62,11 +65,12 @@ lemma exists_pos_bound_of_bound {V W : Type*} [seminormed_add_group V] [seminorm
 
 namespace normed_add_group_hom
 
-variables {V V₁ V₂ V₃ : Type*}
-variables [seminormed_add_group V] [seminormed_add_group V₁] [seminormed_add_group V₂] [seminormed_add_group V₃]
+variables {V V₁ V₂ V₃ : Type*} [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
+  [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
 variables {f g : normed_add_group_hom V₁ V₂}
 
-instance : has_coe_to_fun (normed_add_group_hom V₁ V₂) (λ _, V₁ → V₂) := ⟨normed_add_group_hom.to_fun⟩
+instance : has_coe_to_fun (normed_add_group_hom V₁ V₂) (λ _, V₁ → V₂) :=
+⟨normed_add_group_hom.to_fun⟩
 
 initialize_simps_projections normed_add_group_hom (to_fun → apply)
 
@@ -218,14 +222,16 @@ le_antisymm (f.op_norm_le_bound M_nonneg h_above)
   ((le_cInf_iff normed_add_group_hom.bounds_bdd_below ⟨M, M_nonneg, h_above⟩).mpr $
    λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
 
-theorem op_norm_le_of_lipschitz {f : normed_add_group_hom V₁ V₂} {K : ℝ≥0} (hf : lipschitz_with K f) :
+theorem op_norm_le_of_lipschitz {f : normed_add_group_hom V₁ V₂} {K : ℝ≥0}
+  (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, map_zero] using hf.dist_le_mul x 0
 
 /-- If a bounded group homomorphism map is constructed from a group homomorphism via the constructor
 `mk_normed_add_group_hom`, then its norm is bounded by the bound given to the constructor if it is
 nonnegative. -/
-lemma mk_normed_add_group_hom_norm_le (f : V₁ →+ V₂) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+lemma mk_normed_add_group_hom_norm_le (f : V₁ →+ V₂) {C : ℝ} (hC : 0 ≤ C)
+  (h : ∀ x, ∥f x∥ ≤ C * ∥x∥) :
   ∥f.mk_normed_add_group_hom C h∥ ≤ C :=
 op_norm_le_bound _ hC h
 
@@ -281,7 +287,7 @@ le_antisymm (cInf_le bounds_bdd_below
     (op_norm_nonneg _)
 
 /-- For normed groups, an operator is zero iff its norm vanishes. -/
-theorem op_norm_zero_iff {V₁ V₂ : Type*} [normed_add_group V₁] [normed_add_group V₂]
+theorem op_norm_zero_iff {V₁ V₂ : Type*} [normed_add_comm_group V₁] [normed_add_comm_group V₂]
   {f : normed_add_group_hom V₁ V₂} : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
   (λ hn, ext (λ x, norm_le_zero_iff.1
@@ -319,7 +325,7 @@ have _ := (id V).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id {V : Type*} [normed_add_group V] [nontrivial V] : ∥(id V)∥ = 1 :=
+lemma norm_id {V : Type*} [normed_add_comm_group V] [nontrivial V] : ∥(id V)∥ = 1 :=
 begin
   refine norm_id_of_nontrivial_seminorm V _,
   obtain ⟨x, hx⟩ := exists_ne (0 : V),
@@ -381,7 +387,8 @@ instance : has_smul R (normed_add_group_hom V₁ V₂) :=
     end⟩ } }
 
 @[simp] lemma coe_smul (r : R) (f : normed_add_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
-@[simp] lemma smul_apply (r : R) (f : normed_add_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+@[simp] lemma smul_apply (r : R) (f : normed_add_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v :=
+rfl
 
 instance [smul_comm_class R R' V₂] : smul_comm_class R R' (normed_add_group_hom V₁ V₂) :=
 { smul_comm := λ r r' f, ext $ λ v, smul_comm _ _ _ }
@@ -406,7 +413,8 @@ instance has_nat_scalar : has_smul ℕ (normed_add_group_hom V₁ V₂) :=
     end⟩ } }
 
 @[simp] lemma coe_nsmul (r : ℕ) (f : normed_add_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
-@[simp] lemma nsmul_apply (r : ℕ) (f : normed_add_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : normed_add_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v :=
+rfl
 
 instance has_int_scalar : has_smul ℤ (normed_add_group_hom V₁ V₂) :=
 { smul := λ z f,
@@ -418,7 +426,8 @@ instance has_int_scalar : has_smul ℤ (normed_add_group_hom V₁ V₂) :=
     end⟩ } }
 
 @[simp] lemma coe_zsmul (r : ℤ) (f : normed_add_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
-@[simp] lemma zsmul_apply (r : ℤ) (f : normed_add_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : normed_add_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v :=
+rfl
 
 /-! ### Normed group structure on normed group homs -/
 
@@ -428,16 +437,18 @@ coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _
 
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/
-instance to_seminormed_add_group : seminormed_add_group (normed_add_group_hom V₁ V₂) :=
-seminormed_add_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
+instance to_seminormed_add_comm_group : seminormed_add_comm_group (normed_add_group_hom V₁ V₂) :=
+seminormed_add_comm_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
 
 /-- Normed group homomorphisms themselves form a normed group with respect to
     the operator norm. -/
-instance to_normed_add_group {V₁ V₂ : Type*} [normed_add_group V₁] [normed_add_group V₂] :
-  normed_add_group (normed_add_group_hom V₁ V₂) :=
-normed_add_group.of_core _ ⟨λ f, op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+instance to_normed_add_comm_group {V₁ V₂ : Type*} [normed_add_comm_group V₁]
+  [normed_add_comm_group V₂] :
+  normed_add_comm_group (normed_add_group_hom V₁ V₂) :=
+normed_add_comm_group.of_core _ ⟨λ f, op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-/-- Coercion of a `normed_add_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn` -/
+/-- Coercion of a `normed_add_group_hom` is an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.
+-/
 @[simps]
 def coe_fn_add_hom : normed_add_group_hom V₁ V₂ →+ (V₁ → V₂) :=
 { to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add}
@@ -477,7 +488,8 @@ lemma norm_comp_le (g : normed_add_group_hom V₂ V₃) (f : normed_add_group_ho
   ∥g.comp f∥ ≤ ∥g∥ * ∥f∥ :=
 mk_normed_add_group_hom_norm_le _ (mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
-lemma norm_comp_le_of_le {g : normed_add_group_hom V₂ V₃} {C₁ C₂ : ℝ} (hg : ∥g∥ ≤ C₂) (hf : ∥f∥ ≤ C₁) :
+lemma norm_comp_le_of_le {g : normed_add_group_hom V₂ V₃} {C₁ C₂ : ℝ} (hg : ∥g∥ ≤ C₂)
+  (hf : ∥f∥ ≤ C₁) :
   ∥g.comp f∥ ≤ C₂ * C₁ :=
 le_trans (norm_comp_le g f) $ mul_le_mul hg hf (norm_nonneg _) (le_trans (norm_nonneg _) hg)
 
@@ -486,19 +498,22 @@ lemma norm_comp_le_of_le' {g : normed_add_group_hom V₂ V₃} (C₁ C₂ C₃ :
 by { rw h, exact norm_comp_le_of_le hg hf }
 
 /-- Composition of normed groups hom as an additive group morphism. -/
-def comp_hom : (normed_add_group_hom V₂ V₃) →+ (normed_add_group_hom V₁ V₂) →+ (normed_add_group_hom V₁ V₃) :=
+def comp_hom :
+  normed_add_group_hom V₂ V₃ →+ normed_add_group_hom V₁ V₂ →+ normed_add_group_hom V₁ V₃ :=
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
   (by { intros, ext, exact map_add g _ _ }))
   (by { intros, ext, simp only [comp_apply, pi.add_apply, function.comp_app,
                                 add_monoid_hom.add_apply, add_monoid_hom.mk'_apply, coe_add] })
 
-@[simp] lemma comp_zero (f : normed_add_group_hom V₂ V₃) : f.comp (0 : normed_add_group_hom V₁ V₂) = 0 :=
+@[simp] lemma comp_zero (f : normed_add_group_hom V₂ V₃) :
+  f.comp (0 : normed_add_group_hom V₁ V₂) = 0 :=
 by { ext, exact map_zero f }
 
-@[simp] lemma zero_comp (f : normed_add_group_hom V₁ V₂) : (0 : normed_add_group_hom V₂ V₃).comp f = 0 :=
+@[simp] lemma zero_comp (f : normed_add_group_hom V₁ V₂) :
+  (0 : normed_add_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
 
-lemma comp_assoc {V₄: Type* } [seminormed_add_group V₄] (h : normed_add_group_hom V₃ V₄)
+lemma comp_assoc {V₄: Type* } [seminormed_add_comm_group V₄] (h : normed_add_group_hom V₃ V₄)
   (g : normed_add_group_hom V₂ V₃) (f : normed_add_group_hom V₁ V₂) :
   (h.comp g).comp f = h.comp (g.comp f) :=
 by { ext, refl }
@@ -510,9 +525,8 @@ end normed_add_group_hom
 
 namespace normed_add_group_hom
 
-variables {V W V₁ V₂ V₃ : Type*}
-variables [seminormed_add_group V] [seminormed_add_group W] [seminormed_add_group V₁] [seminormed_add_group V₂]
-[seminormed_add_group V₃]
+variables {V W V₁ V₂ V₃ : Type*} [seminormed_add_comm_group V] [seminormed_add_comm_group W]
+  [seminormed_add_comm_group V₁] [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
 
 /-- The inclusion of an `add_subgroup`, as bounded group homomorphism. -/
 @[simps] def incl (s : add_subgroup V) : normed_add_group_hom s V :=
@@ -528,7 +542,7 @@ section kernels
 variables (f : normed_add_group_hom V₁ V₂) (g : normed_add_group_hom V₂ V₃)
 
 /-- The kernel of a bounded group homomorphism. Naturally endowed with a
-`seminormed_add_group` instance. -/
+`seminormed_add_comm_group` instance. -/
 def ker : add_subgroup V₁ := f.to_add_monoid_hom.ker
 
 lemma mem_ker (v : V₁) : v ∈ f.ker ↔ f v = 0 :=
@@ -552,7 +566,7 @@ by { ext, simp [mem_ker] }
 
 lemma coe_ker : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} := rfl
 
-lemma is_closed_ker {V₂ : Type*} [normed_add_group V₂] (f : normed_add_group_hom V₁ V₂) :
+lemma is_closed_ker {V₂ : Type*} [normed_add_comm_group V₂] (f : normed_add_group_hom V₁ V₂) :
   is_closed (f.ker : set V₁) :=
 f.coe_ker ▸ is_closed.preimage f.continuous (t1_space.t1 0)
 
@@ -564,7 +578,7 @@ section range
 variables (f : normed_add_group_hom V₁ V₂) (g : normed_add_group_hom V₂ V₃)
 
 /-- The image of a bounded group homomorphism. Naturally endowed with a
-`seminormed_add_group` instance. -/
+`seminormed_add_comm_group` instance. -/
 def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
@@ -637,7 +651,8 @@ lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
 
 end isometry
 
-variables {W₁ W₂ W₃ : Type*} [seminormed_add_group W₁] [seminormed_add_group W₂] [seminormed_add_group W₃]
+variables {W₁ W₂ W₃ : Type*} [seminormed_add_comm_group W₁] [seminormed_add_comm_group W₂]
+  [seminormed_add_comm_group W₃]
 variables (f) (g : normed_add_group_hom V W)
 variables {f₁ g₁ : normed_add_group_hom V₁ W₁}
 variables {f₂ g₂ : normed_add_group_hom V₂ W₂}
@@ -711,7 +726,8 @@ by { ext, refl }
 lemma ι_norm_noninc : (ι f g).norm_noninc := λ v, le_rfl
 
 /-- The lifting of a norm nonincreasing morphism is norm nonincreasing. -/
-lemma lift_norm_noninc (φ : normed_add_group_hom V₁ V) (h : f.comp φ = g.comp φ) (hφ : φ.norm_noninc) :
+lemma lift_norm_noninc (φ : normed_add_group_hom V₁ V) (h : f.comp φ = g.comp φ)
+  (hφ : φ.norm_noninc) :
   (lift φ h).norm_noninc :=
 hφ
 
@@ -734,8 +750,8 @@ end normed_add_group_hom
 section controlled_closure
 open filter finset
 open_locale topological_space
-variables {G : Type*} [normed_add_group G] [complete_space G]
-variables {H : Type*} [normed_add_group H]
+variables {G : Type*} [normed_add_comm_group G] [complete_space G]
+variables {H : Type*} [normed_add_comm_group H]
 
 /-- Given `f : normed_add_group_hom G H` for some complete `G` and a subgroup `K` of `H`, if every
 element `x` of `K` has a preimage under `f` whose norm is at most `C*∥x∥` then the same holds for
@@ -773,7 +789,7 @@ begin
   `b` ensures `s` is Cauchy. -/
   set s : ℕ → G := λ n, ∑ k in range (n+1), u k,
   have : cauchy_seq s,
-  { apply normed_add_group.cauchy_series_of_le_geometric'' (by norm_num) one_half_lt_one,
+  { apply normed_add_comm_group.cauchy_series_of_le_geometric'' (by norm_num) one_half_lt_one,
     rintro n (hn : n ≥ 1),
     calc ∥u n∥ ≤ C*∥v n∥ : hnorm_u n
     ... ≤ C * b n : mul_le_mul_of_nonneg_left (hv _ $ nat.succ_le_iff.mp hn).le hC.le
@@ -825,7 +841,7 @@ This is useful in particular if `j` is the inclusion of a normed group into its 
 (in this case the closure is the full target group).
 -/
 lemma controlled_closure_range_of_complete {f : normed_add_group_hom G H}
-  {K : Type*} [seminormed_add_group K] {j : normed_add_group_hom K H} (hj : ∀ x, ∥j x∥ = ∥x∥)
+  {K : Type*} [seminormed_add_comm_group K] {j : normed_add_group_hom K H} (hj : ∀ x, ∥j x∥ = ∥x∥)
   {C ε : ℝ} (hC : 0 < C) (hε : 0 < ε) (hyp : ∀ k, ∃ g, f g = j k ∧ ∥g∥ ≤ C*∥k∥) :
   f.surjective_on_with j.range.topological_closure (C + ε) :=
 begin

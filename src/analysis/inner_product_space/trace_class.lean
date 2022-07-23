@@ -309,6 +309,9 @@ variables {𝕜 E}
 def is_trace_class (T : E →L[𝕜] E) : Prop :=
 T ∈ trace_class_submodule 𝕜 E
 
+@[simp] lemma is_trace_class.mk_apply {T : E →L[𝕜] E} (hT : T.is_trace_class) (x : E) :
+  (⟨T, hT⟩ : trace_class_submodule 𝕜 E) x = T x := rfl
+
 lemma is_positive.is_trace_class {T : E →L[𝕜] E} (hT : T.is_positive)
   (htrT : hT.trace < ⊤) : T.is_trace_class :=
 begin
@@ -366,20 +369,46 @@ noncomputable def _root_.hilbert_basis.trace_map {ι : Type*} (e : hilbert_basis
     { apply_instance }
   end }
 
+lemma _root_.hilbert_basis.trace_map_apply {ι : Type*} (e : hilbert_basis ι 𝕜 E)
+  (T : trace_class_submodule 𝕜 E) : e.trace_map T = ∑' i, ⟪e i, T (e i)⟫ :=
+rfl
+
 lemma _root_.hilbert_basis.re_trace_map_of_is_positive {ι : Type*} (e : hilbert_basis ι 𝕜 E)
   {T : E →L[𝕜] E} (hT : T.is_positive) (htrT : hT.trace < ⊤) :
   (re (e.trace_map ⟨T, hT.is_trace_class htrT⟩) : 𝕜) = e.trace_map ⟨T, hT.is_trace_class htrT⟩ :=
-sorry
+begin
+  have : T.is_trace_class := hT.is_trace_class htrT,
+  have hsum : summable (λ i, ⟪e i, T (e i)⟫) := this.summable_of_hilbert_basis e,
+  simp_rw [e.trace_map_apply, ← re_clm_apply, ← of_real_clm_apply, this.mk_apply,
+           continuous_linear_map.map_tsum _ hsum,
+           continuous_linear_map.map_tsum _ (re_clm.summable hsum)],
+  sorry -- same small API hole
+end
 
 lemma _root_.hilbert_basis.nonneg_trace_map_of_is_positive {ι : Type*} (e : hilbert_basis ι 𝕜 E)
   {T : E →L[𝕜] E} (hT : T.is_positive) (htrT : hT.trace < ⊤) :
   (0 : ℝ) ≤ re (e.trace_map ⟨T, hT.is_trace_class htrT⟩) :=
-sorry
+begin
+  have : T.is_trace_class := hT.is_trace_class htrT,
+  have hsum : summable (λ i, ⟪e i, T (e i)⟫) := this.summable_of_hilbert_basis e,
+  simp_rw [e.trace_map_apply, ← re_clm_apply, this.mk_apply,
+           continuous_linear_map.map_tsum _ hsum],
+  exact tsum_nonneg (λ i, hT.inner_nonneg_right _),
+end
 
 lemma _root_.hilbert_basis.trace_map_eq_is_positive_trace {ι : Type*} (e : hilbert_basis ι 𝕜 E)
   {T : E →L[𝕜] E} (hT : T.is_positive) (htrT : hT.trace < ⊤) :
   ennreal.of_real (re $ e.trace_map ⟨T, hT.is_trace_class htrT⟩) = hT.trace :=
-sorry
+begin
+  have : T.is_trace_class := hT.is_trace_class htrT,
+  have hsum : summable (λ i, ⟪e i, T (e i)⟫) := this.summable_of_hilbert_basis e,
+  simp_rw [e.trace_map_apply, ← re_clm_apply, this.mk_apply,
+           continuous_linear_map.map_tsum _ hsum, re_clm_apply],
+  rw ennreal.of_real_tsum_of_nonneg,
+  { rw (hT.has_sum_trace e).tsum_eq },
+  { exact λ i, hT.inner_nonneg_right _ },
+  { exact re_clm.summable hsum }
+end
 
 lemma exists_extend_trace : ∃ tr : (trace_class_submodule 𝕜 E) →ₗ[𝕜] 𝕜,
   ∀ (T : E →L[𝕜] E) (hT : T.is_positive) (htrT : hT.trace < ⊤),
@@ -443,7 +472,7 @@ begin
   rw [H₁, ← H₁', is_R_or_C.of_real_inj, ← ennreal.inj_on_of_real.eq_iff H₂ H₂', ← H₃, H₃']
 end
 
-lemma _root_.hilbert_space.trace_map_eq_traceₗ {ι : Type*} (e : hilbert_basis ι 𝕜 E) :
+lemma _root_.hilbert_basis.trace_map_eq_traceₗ {ι : Type*} (e : hilbert_basis ι 𝕜 E) :
   e.trace_map = traceₗ 𝕜 E :=
 traceₗ_spec (λ T hTpos htrT, ⟨(e.re_trace_map_of_is_positive hTpos htrT).symm,
   e.nonneg_trace_map_of_is_positive hTpos htrT,
@@ -454,7 +483,12 @@ if hT : T.is_trace_class then traceₗ 𝕜 E ⟨T, hT⟩ else 0
 
 lemma is_trace_class.has_sum_trace_of_hilbert_basis {ι : Type*} (e : hilbert_basis ι 𝕜 E)
   {T : E →L[𝕜] E} (hT : T.is_trace_class) : has_sum (λ i, ⟪e i, T (e i)⟫) (trace T) :=
-sorry
+begin
+  rw [(hT.summable_of_hilbert_basis e).has_sum_iff, trace],
+  split_ifs,
+  change e.trace_map ⟨T, hT⟩ = traceₗ 𝕜 E ⟨T, hT⟩,
+  rw e.trace_map_eq_traceₗ
+end
 
 end trace_class
 

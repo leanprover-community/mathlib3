@@ -234,6 +234,9 @@ instance zero_hom_class : zero_hom_class (add_group_seminorm E) E ℝ :=
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero' }
 
+/- TODO: All the following ought to be automated using `to_additive`. The problem is that it doesn't
+see that `has_smul R ℝ` should be fixed because `ℝ` is fixed. -/
+
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
 instance [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_smul R (add_group_seminorm E) :=
@@ -273,6 +276,46 @@ from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul �
 ext $ λ x, real.smul_max _ _
 
 end add_group_seminorm
+
+namespace group_seminorm
+variables [group E] [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
+
+/-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
+@[to_additive add_group_seminorm.has_smul] instance : has_smul R (group_seminorm E) :=
+ ⟨λ r p,
+  { to_fun := λ x, r • p x,
+    nonneg' := λ x, begin
+      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
+    end,
+    map_one' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
+      p.map_one, mul_zero],
+    mul_le' := λ _ _, begin
+      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
+      exact (mul_le_mul_of_nonneg_left (p.mul_le _ _) $ nnreal.coe_nonneg _).trans_eq
+        (mul_add _ _ _),
+    end,
+    inv' := λ x, by rw p.inv }⟩
+
+@[to_additive]
+instance [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ] [has_smul R R']
+  [is_scalar_tower R R' ℝ] : is_scalar_tower R R' (group_seminorm E) :=
+⟨λ r a p, ext $ λ x, smul_assoc r a $ p x⟩
+
+@[simp, to_additive add_group_seminorm.coe_smul]
+lemma coe_smul (r : R) (p : group_seminorm E) : ⇑(r • p) = r • p := rfl
+
+@[simp, to_additive add_group_seminorm.smul_apply]
+lemma smul_apply (r : R) (p : group_seminorm E) (x : E) : (r • p) x = r • p x := rfl
+
+@[to_additive add_group_seminorm.smul_sup]
+lemma smul_sup (r : R) (p q : group_seminorm E) : r • (p ⊔ q) = r • p ⊔ r • q :=
+have real.smul_max : ∀ x y : ℝ, r • max x y = max (r • x) (r • y),
+from λ x y, by simpa only [←smul_eq_mul, ←nnreal.smul_def, smul_one_smul ℝ≥0 r (_ : ℝ)]
+                     using mul_max_of_nonneg x y (r • 1 : ℝ≥0).prop,
+ext $ λ x, real.smul_max _ _
+
+end group_seminorm
 
 /-- A seminorm on a module over a normed ring is a function to the reals that is positive
 semidefinite, positive homogeneous, and subadditive. -/

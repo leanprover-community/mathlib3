@@ -330,6 +330,26 @@ lemma is_trace_class.smul {T : E →L[𝕜] E} (hT : T.is_trace_class) (c : 𝕜
   (c • T).is_trace_class :=
 smul_mem _ c hT
 
+lemma is_trace_class.adjoint {T : E →L[𝕜] E} (hT : T.is_trace_class) :
+  (T†).is_trace_class :=
+begin
+  refine submodule.span_induction hT _ _ _ _,
+  { rintros S hS,
+    rw ← hS.1.is_self_adjoint.eq_adjoint,
+    exact subset_span hS },
+  { sorry }, -- API hole : adjoint of zero !
+  { intros S₁ S₂ h₁ h₂,
+    rw map_add,
+    exact h₁.add h₂ },
+  { intros a S hS,
+    rw adjoint.map_smulₛₗ a S,
+    exact hS.smul _ }
+end
+
+lemma is_trace_class_adjoint_iff {T : E →L[𝕜] E} :
+  (T†).is_trace_class ↔ T.is_trace_class :=
+⟨λ hT, (adjoint_adjoint T) ▸ hT.adjoint, is_trace_class.adjoint⟩
+
 lemma is_trace_class.summable_of_hilbert_basis {ι : Type*} {T : E →L[𝕜] E} (hT : T.is_trace_class)
   (e : hilbert_basis ι 𝕜 E) : summable (λ i, ⟪e i, T (e i)⟫) :=
 begin

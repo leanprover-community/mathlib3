@@ -50,6 +50,14 @@ lemma is_positive.is_self_adjoint {T : E →L[𝕜] E} (hT : is_positive T) :
   is_self_adjoint (T : E →ₗ[𝕜] E) :=
 hT.1
 
+lemma is_positive.adjoint [complete_space E] {T : E →L[𝕜] E} (hT : is_positive T) :
+  is_positive (T†) :=
+by rwa ← hT.is_self_adjoint.eq_adjoint
+
+lemma is_positive_adjoint_iff [complete_space E] {T : E →L[𝕜] E} :
+  (T†).is_positive ↔ T.is_positive :=
+⟨λ hT, adjoint_adjoint T ▸ hT.adjoint, is_positive.adjoint⟩
+
 lemma is_positive.inner_nonneg_left {T : E →L[𝕜] E} (hT : is_positive T) (x : E) :
   0 ≤ re ⟪T x, x⟫ :=
 hT.2 x

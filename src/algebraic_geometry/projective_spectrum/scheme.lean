@@ -389,16 +389,24 @@ end
 namespace from_Spec
 
 open graded_algebra set_like finset (hiding mk_zero)
-variable {𝒜}
 
-variables {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
+variables {𝒜} {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m}
 
 private meta def mem_tac : tactic unit :=
 let b : tactic unit :=
   `[exact pow_mem_graded _ (submodule.coe_mem _) <|> exact nat_cast_mem_graded _ _] in
 b <|> `[by repeat { all_goals { apply graded_monoid.mul_mem } }; b]
 
-/--The underlying set-/
+/--The function from `Spec A⁰_f` to `Proj|D(f)` is defined by `q ↦ {a | aᵢᵐ ∈ q}`, i.e. send `q` a
+prime ideal in `A⁰_f` to the homogeneous prime relevant ideal containing only and all the element
+`a : A` such that the `m`-th power of `i`-th projection of `a` is in `q`.
+
+Th set `{a | aᵢᵐ ∈ q}`
+* is an ideal is proved in  `carrier.as_ideal`;
+* is homogeneous is proved in `carrier.as_homogeneous_ideal`;
+* is prime is proved in `carrier.as_ideal.prime`;
+* is relevant is proved in `carrier.as_ideal.relevant`
+-/
 def carrier (q : Spec.T (A⁰_ f_deg)) : set A :=
 {a | ∀ i, (⟨mk ((proj 𝒜 i a)^m) ⟨_, ⟨_, rfl⟩⟩, ⟨i, ⟨_, by mem_tac⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ q.1 }
 
@@ -613,6 +621,9 @@ begin
     apply carrier.add_mem q ha hb, },
 end
 
+/--
+For a prime ideal `q` in `A⁰_f`, the set `{a | aᵐᵢ ∈ q }` as an ideal.
+-/
 def carrier.as_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg) ) :
   ideal A :=
 { carrier := carrier q,
@@ -655,6 +666,9 @@ begin
     { exact submodule.zero_mem _, },
 end
 
+/--
+For a prime ideal `q` in `A⁰_f`, the set `{a | aᵐᵢ ∈ q }` as a homogeneous ideal.
+-/
 def carrier.as_homogeneous_ideal (hm : 0 < m) (q : Spec.T (A⁰_ f_deg)) : homogeneous_ideal 𝒜 :=
 ⟨carrier.as_ideal hm q, carrier.as_ideal.homogeneous hm q⟩
 
@@ -750,6 +764,9 @@ begin
 end
 
 variable (f_deg)
+/--
+The function `Spec A⁰_f → Proj|D(f)` by sending `q` to `{a | aᵐᵢ ∈ q}`.
+-/
 def to_fun (hm : 0 < m) : (Spec.T (A⁰_ f_deg)) → (Proj.T| (pbo f)) :=
 λ q, ⟨⟨carrier.as_homogeneous_ideal hm q, carrier.as_ideal.prime hm q, carrier.relevant hm q⟩,
   (projective_spectrum.mem_basic_open _ f _).mp $ carrier.denom_not_mem hm q⟩

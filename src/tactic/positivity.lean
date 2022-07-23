@@ -15,7 +15,7 @@ recursively according to the syntax of the expression `x`.  For example, a goal 
 * by the application of the lemma `add_nonneg` and the success of the `positivity` tactic on the two
   sub-expressions `3 * a ^ 2` and `b * c`.
 
-For each supported operation, one must write a small tactic, tagged with the aposribute
+For each supported operation, one must write a small tactic, tagged with the attribute
 `@[positivity]`, which operates only on goals whose leading function application is that operation.
 Typically, this small tactic will run the full `positivity` tactic on one or more of the function's
 arguments (which is where the recursion comes in), and if successful will combine this with an
@@ -28,15 +28,22 @@ introduce these operations.
 
 ## Main declarations
 
-* `tactic.positivity.base` is the base case of the recursion
-* `tactic.positivity.attr` creates the `positivity` user aposribute for tagging the extension
+* `tactic.norm_num.positivity` tries to prove positivity of an expression by running `norm_num` on
+  it.  This is one of the base cases of the recursion.
+* `tactic.positivity.compare_hyp` tries to prove positivity of an expression by comparing with a
+  provided hypothesis.  If the hypothesis is of the form `a ≤ b` or similar, with `b` matching the
+  expression whose proof of positivity is desired, then it will check whether `a` can be proved
+  positive via `tactic.norm_num.positivity` and if so apply a transitivity lemma.  This is the other
+  base case of the recursion.
+* `tactic.positivity.attr` creates the `positivity` user attribute for tagging the extension
   tactics handling specific operations, and specifies the behaviour for a single step of the
   recursion
-* `tactic.positivity.core` collects the list of tactics with the `@[positivity]` aposribute and
+* `tactic.positivity.core` collects the list of tactics with the `@[positivity]` attribute and
   calls the first recursion step as specified in `tactic.positivity.attr`.  Its input is `e : expr`
-  and its output (if it succeeds) is a term of a custom inductive type `strictness`, containing an
-  `expr` which is a proof of the strict-positivity/nonnegativity of `e` as well as an indication of
-  whether what could be proved was strict-positivity or nonnegativity
+  and its output (if it succeeds) is a term of a custom inductive type
+  `tactic.positivity.strictness`, containing an `expr` which is a proof of the
+  strict-positivity/nonnegativity of `e` as well as an indication of whether what could be proved
+  was strict-positivity or nonnegativity
 * `tactic.interactive.positivity` is the user-facing tactic.  It parses the goal and, if it is of
   one of the forms `0 ≤ e`, `0 < e`, `e > 0`, `e ≥ 0`, it sends `e` to `tactic.positivity.core`.
 
@@ -49,16 +56,35 @@ from `ℕ` and `ℝ≥0`).
 
 namespace tactic
 
-namespace positivity
-
 /-- Inductive type recording either `positive` and an expression (typically a proof of a fact
 `0 < x`) or `nonnegative` and an expression (typically a proof of a fact `0 ≤ x`). -/
 @[derive [decidable_eq]]
-meta inductive strictness : Type
-| positive : expr → strictness
-| nonnegative : expr → strictness
+meta inductive positivity.strictness : Type
+| positive : expr → positivity.strictness
+| nonnegative : expr → positivity.strictness
 
-export strictness (positive nonnegative)
+export positivity.strictness (positive nonnegative)
+
+private lemma lt_of_lt_of_eq'' {α} [preorder α] {b b' a : α} : b = b' → a < b' → a < b :=
+λ h1 h2, lt_of_lt_of_eq h2 h1.symm
+
+/-- First base case of the `positivity` tactic.  We try `norm_num` to prove directly that an
+expression `e` is positive or nonnegative. -/
+meta def norm_num.positivity (e : expr) : tactic strictness := do
+  (e', p) ← norm_num.derive e <|> refl_conv e,
+  e'' ← e'.to_rat,
+  typ ← infer_type e',
+  ic ← mk_instance_cache typ,
+  if e'' > 0 then do
+    (ic, p₁) ← norm_num.prove_pos ic e',
+    p ← mk_app ``lt_of_lt_of_eq'' [p, p₁],
+    pure (positive p)
+  else if e'' = 0 then do
+    p' ← mk_app ``ge_of_eq [p],
+    pure (nonnegative p')
+  else failed
+
+namespace positivity
 
 /-- Given two tactics whose result is `strictness`, report a `strictness`:
 - if at least one gives `positive`, report `positive` and one of the expressions giving a proof of
@@ -74,72 +100,33 @@ meta def orelse' (tac1 tac2 : tactic strictness) : tactic strictness := do
   | some res@(positive _) := pure res
   end
 
-
 /-! ### Core logic of the `positivity` tactic -/
 
-private lemma lt_of_le_of_eq_of_lt {α} [preorder α] {a b b' c : α} :
-  b = b' → a ≤ b' → b < c → a < c :=
-λ h1 h2 h3, lt_of_le_of_lt (by rw h1; exact h2) h3
+/- Second base case of the `positivity` tactic.  Prove an expression `e` is positive/nonnegative by
+finding a hypothesis of the form `a < e` or `a ≤ e` in which `a` can be proved positive/nonnegative
+by `norm_num`. -/
+meta def compare_hyp (e p₂ : expr) : tactic strictness := do
+  p_typ ← infer_type p₂,
+  (lo, hi, strict₂) ← match p_typ with
+  | `(%%lo ≤ %%hi) := pure (lo, hi, ff)
+  | `(%%hi ≥ %%lo) := pure (lo, hi, ff)
+  | `(%%lo < %%hi) := pure (lo, hi, tt)
+  | `(%%hi > %%lo) := pure (lo, hi, tt)
+  | _ := failed
+  end,
+  is_def_eq e hi,
+  strictness₁ ← norm_num.positivity lo,
+  match strictness₁, strict₂ with
+  | (positive p₁), tt := positive <$> mk_app ``lt_trans [p₁, p₂]
+  | (positive p₁), ff := positive <$> mk_app `lt_of_lt_of_le [p₁, p₂]
+  | (nonnegative p₁), tt := positive <$> mk_app `lt_of_le_of_lt [p₁, p₂]
+  | (nonnegative p₁), ff := nonnegative <$> mk_app `le_trans [p₁, p₂]
+  end
 
-private lemma lt_of_lt_of_eq_of_le {α} [preorder α] {a b b' c : α} :
-  b = b' → a < b' → b ≤ c → a < c :=
-λ h1 h2 h3, lt_of_lt_of_le (by rw h1; exact h2) h3
-
-private lemma le_of_eq_of_le'' {α} [preorder α] {a a' b : α} : a = a' → a ≤ b → a' ≤ b :=
-λ h1 h2, le_of_eq_of_le h1.symm h2
-
-private lemma lt_of_lt_of_eq'' {α} [preorder α] {b b' a : α} : b = b' → a < b' → a < b :=
-λ h1 h2, lt_of_lt_of_eq h2 h1.symm
-
-/-- Base case of the recursive tactic `positivity`. It proves an expression `e` is
-positive/nonnegative either by `norm_num` directly on `e`, or by finding a hypothesis of the form
-`a < e` or `a ≤ e` in which `a` can be proved positive/nonnegative by `norm_num`. -/
-meta def base (e : expr) : tactic strictness :=
-orelse' (do -- try `norm_num` to prove the goal positive directly
-  (e', p) ← norm_num.derive e <|> refl_conv e,
-  e'' ← e'.to_rat,
-  typ ← infer_type e',
-  ic ← mk_instance_cache typ,
-  if e'' > 0 then do
-    (ic, p₁) ← norm_num.prove_pos ic e',
-    p ← mk_app ``lt_of_lt_of_eq'' [p, p₁],
-    pure (positive p)
-  else if e'' = 0 then do
-    p' ← mk_app ``ge_of_eq [p],
-    pure (nonnegative p')
-  else failed) $ -- loop over hypotheses
-  local_context >>= list.foldl (λ tac p₃,
-    orelse' tac $ do -- if RHS of the hypothesis is the object whose positivity is sought, try
-    -- `norm_num` to prove positivity of the LHS and then apply transitivity
-      p_typ ← infer_type p₃,
-      (lo, hi, strict) ← match p_typ with
-      | `(%%lo ≤ %%hi) := pure (lo, hi, ff)
-      | `(%%hi ≥ %%lo) := pure (lo, hi, ff)
-      | `(%%lo < %%hi) := pure (lo, hi, tt)
-      | `(%%hi > %%lo) := pure (lo, hi, tt)
-      | _ := failed
-      end,
-      is_def_eq e hi,
-      (lo', p₂) ← norm_num.derive lo <|> refl_conv lo,
-      typ ← infer_type lo',
-      ic ← mk_instance_cache typ,
-      if strict then do
-        (ic, p₁) ← norm_num.prove_nonneg ic lo',
-        p ← mk_app ``lt_of_le_of_eq_of_lt [p₂, p₁, p₃],
-        pure (positive p)
-      else do
-        z ← mk_mapp ``has_zero.zero [some typ, none], -- there was a way to get from instance cache?
-        if lo' = z then do
-          p ← mk_app ``le_of_eq_of_le'' [p₂, p₃],
-          pure (nonnegative p)
-        else do
-          (ic, p₁) ← norm_num.prove_pos ic lo',
-          p ← mk_app ``lt_of_lt_of_eq_of_le [p₂, p₁, p₃],
-          pure (positive p)) failed
-
-/-- Attribute allowing a user to tag a tactic as an extension for the `positivity` tactic.  The main
-(recursive) step of the `positivity` tactic is to try successively all the `positivity` extensions
-on the goal, and also to try `tactic.positivity.base` on the goal. -/
+/-- Attribute allowing a user to tag a tactic as an extension for `tactic.positivity`.  The main
+(recursive) step of this tactic is to try successively all the extensions tagged with this attribute
+on the expression at hand, and also to try the two "base case" tactics `tactic.norm_num.positivity`,
+`tactic.positivity.compare_hyp` on the expression at hand. -/
 @[user_attribute]
 meta def attr : user_attribute (expr → tactic strictness) unit :=
 { name      := `positivity,
@@ -151,7 +138,11 @@ meta def attr : user_attribute (expr → tactic strictness) unit :=
           t' ← eval_expr (expr → tactic strictness) (expr.const n []),
           pure (λ e, orelse' (t' e) (t e)))
         (λ _, failed),
-      pure (λ e, orelse' (base e) (t e)) },
+      pure $ λ e, orelse'
+        (t e) $ orelse' -- run all the extensions on `e`
+          (norm_num.positivity e) $ -- directly try `norm_num` on `e`
+          -- loop over hypotheses and try to compare with `e`
+          local_context >>= list.foldl (λ tac h, orelse' tac (compare_hyp e h)) failed  },
     dependencies := [] } }
 
 /-- Look for a proof of positivity/nonnegativity of an expression `e`; if found, return the proof

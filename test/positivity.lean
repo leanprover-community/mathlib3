@@ -17,7 +17,7 @@ example : 0 < 3 := by positivity
 
 /- ## Goals working directly from a hypothesis -/
 
-example {a : ℤ} (ha : 0 ≤ a) : 0 ≤ a := by positivity -- fails
+example {a : ℤ} (ha : 0 ≤ a) : 0 ≤ a := by positivity
 
 example {a : ℤ} (ha : 0 < a) : 0 ≤ a := by positivity
 
@@ -29,7 +29,7 @@ example {a : ℤ} (ha : 3 < a) : 0 ≤ a := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 < a := by positivity
 
-example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity -- fails
+example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity
 
 /- ## Tests of the @[positivity] plugin tactics (addition, multiplication, division) -/
 

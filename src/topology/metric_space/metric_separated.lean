@@ -87,7 +87,7 @@ begin
   rw [bUnion_insert, ball_insert_iff, union_left_iff, hI]
 end
 
-alias finite_Union_left_iff ↔ _ is_metric_separated.finite_Union_left
+alias finite_Union_left_iff ↔ _ finite_Union_left
 
 lemma finite_Union_right_iff {ι : Type*} {I : set ι} (hI : I.finite) {s : set X} {t : ι → set X} :
   is_metric_separated s (⋃ i ∈ I, t i) ↔ ∀ i ∈ I, is_metric_separated s (t i) :=
@@ -97,12 +97,12 @@ by simpa only [@comm _ _ s] using finite_Union_left_iff hI
   is_metric_separated (⋃ i ∈ I, s i) t ↔ ∀ i ∈ I, is_metric_separated (s i) t :=
 finite_Union_left_iff I.finite_to_set
 
-alias finset_Union_left_iff ↔ _ is_metric_separated.finset_Union_left
+alias finset_Union_left_iff ↔ _ finset_Union_left
 
 @[simp] lemma finset_Union_right_iff {ι : Type*} {I : finset ι} {s : set X} {t : ι → set X} :
   is_metric_separated s (⋃ i ∈ I, t i) ↔ ∀ i ∈ I, is_metric_separated s (t i) :=
 finite_Union_right_iff I.finite_to_set
 
-alias finset_Union_right_iff ↔ _ is_metric_separated.finset_Union_right
+alias finset_Union_right_iff ↔ _ finset_Union_right
 
 end is_metric_separated

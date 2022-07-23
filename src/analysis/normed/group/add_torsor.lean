@@ -48,6 +48,12 @@ lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_torsor.dist_eq_norm' x y
 
+/-- The distance equals the norm of subtracting two points. In this
+lemma, it is necessary to have `V` as an explicit argument; otherwise
+`rw dist_eq_norm_vsub'` sometimes doesn't work. -/
+lemma dist_eq_norm_vsub' (x y : P) : dist x y = ∥y -ᵥ x∥ :=
+(dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
+
 end
 
 @[simp] lemma dist_vadd_cancel_left (v : V) (x y : P) :
@@ -68,7 +74,7 @@ by rw [dist_comm, dist_vadd_left]
 addition/subtraction of `x : P`. -/
 @[simps] def isometric.vadd_const (x : P) : V ≃ᵢ P :=
 { to_equiv := equiv.vadd_const x,
-  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ _ _, dist_vadd_cancel_right _ _ _ }
+  isometry_to_fun := isometry.of_dist_eq $ λ _ _, dist_vadd_cancel_right _ _ _ }
 
 section
 
@@ -77,7 +83,7 @@ variable (P)
 /-- Self-isometry of a (semi)normed add torsor given by addition of a constant vector `x`. -/
 @[simps] def isometric.const_vadd (x : V) : P ≃ᵢ P :=
 { to_equiv := equiv.const_vadd P x,
-  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ _ _, dist_vadd_cancel_left _ _ _ }
+  isometry_to_fun := isometry.of_dist_eq $ λ _ _, dist_vadd_cancel_left _ _ _ }
 
 end
 
@@ -88,7 +94,7 @@ by rw [dist_eq_norm, vsub_sub_vsub_cancel_left, dist_comm, dist_eq_norm_vsub V]
 subtraction from `x : P`. -/
 @[simps] def isometric.const_vsub (x : P) : P ≃ᵢ V :=
 { to_equiv := equiv.const_vsub x,
-  isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_vsub_cancel_left _ _ _ }
+  isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_vsub_cancel_left _ _ _ }
 
 @[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
 (isometric.vadd_const z).symm.dist_eq x y

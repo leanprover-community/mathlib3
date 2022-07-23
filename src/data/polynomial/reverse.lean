@@ -88,11 +88,11 @@ noncomputable def reflect (N : ℕ) : R[X] → R[X]
 | ⟨f⟩ := ⟨finsupp.emb_domain (rev_at N) f⟩
 
 lemma reflect_support (N : ℕ) (f : R[X]) :
-  (reflect N f).support = image (rev_at N) f.support :=
+  (reflect N f).support = finset.image (rev_at N) f.support :=
 begin
   rcases f,
   ext1,
-  rw [reflect, mem_image, support, support, support_emb_domain, mem_map],
+  simp only [reflect, support_of_finsupp, support_emb_domain, finset.mem_map, finset.mem_image],
 end
 
 @[simp] lemma coeff_reflect (N : ℕ) (f : R[X]) (i : ℕ) :

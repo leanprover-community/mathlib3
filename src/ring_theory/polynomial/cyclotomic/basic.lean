@@ -423,7 +423,7 @@ open_locale big_operators
 open finset
 
 lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
-  ∏ i in n.divisors \ {1}, cyclotomic i R = ∑ i in range n, X ^ i :=
+  ∏ i in n.divisors \ {1}, cyclotomic i R = ∑ i in finset.range n, X ^ i :=
 begin
   apply_fun (* cyclotomic 1 R) using mul_left_injective₀ (cyclotomic_ne_zero 1 R),
   have : ∏ i in {1}, cyclotomic i R = cyclotomic 1 R := finset.prod_singleton,
@@ -432,10 +432,10 @@ begin
 end
 
 lemma cyclotomic_dvd_geom_sum_of_dvd (R) [comm_ring R] {d n : ℕ} (hdn : d ∣ n)
-  (hd : d ≠ 1) : cyclotomic d R ∣ ∑ i in range n, X ^ i :=
+  (hd : d ≠ 1) : cyclotomic d R ∣ ∑ i in finset.range n, X ^ i :=
 begin
   suffices : (cyclotomic d ℤ).map (int.cast_ring_hom R) ∣
-    (∑ i in range n, X ^ i).map (int.cast_ring_hom R),
+    (∑ i in finset.range n, X ^ i).map (int.cast_ring_hom R),
   { have key := (map_ring_hom (int.cast_ring_hom R)).map_geom_sum X n,
     simp only [coe_map_ring_hom, map_X] at key,
     rwa [map_cyclotomic, key] at this },
@@ -707,7 +707,7 @@ end
 
 /-- If `p` is prime, then `cyclotomic p R = ∑ i in range p, X ^ i`. -/
 lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] {p : ℕ}
-  (hp : nat.prime p) : cyclotomic p R = ∑ i in range p, X ^ i :=
+  (hp : nat.prime p) : cyclotomic p R = ∑ i in finset.range p, X ^ i :=
 begin
   refine ((eq_cyclotomic_iff hp.pos _).mpr _).symm,
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
@@ -720,10 +720,10 @@ by rw [cyclotomic_eq_geom_sum hn.out, geom_sum_mul]
 /-- If `p ^ k` is a prime power, then
 `cyclotomic (p ^ (n + 1)) R = ∑ i in range p, (X ^ (p ^ n)) ^ i`. -/
 lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
-  cyclotomic (p ^ (n + 1)) R = ∑ i in range p, (X ^ (p ^ n)) ^ i :=
+  cyclotomic (p ^ (n + 1)) R = ∑ i in finset.range p, (X ^ (p ^ n)) ^ i :=
 begin
-  have : ∀ m, cyclotomic (p ^ (m + 1)) R = ∑ i in range p, (X ^ (p ^ m)) ^ i ↔
-    (∑ i in range p, (X ^ (p ^ m)) ^ i) * ∏ (x : ℕ) in finset.range (m + 1),
+  have : ∀ m, cyclotomic (p ^ (m + 1)) R = ∑ i in finset.range p, (X ^ (p ^ m)) ^ i ↔
+    (∑ i in finset.range p, (X ^ (p ^ m)) ^ i) * ∏ (x : ℕ) in finset.range (m + 1),
       cyclotomic (p ^ x) R = X ^ p ^ (m + 1) - 1,
   { intro m,
     have := eq_cyclotomic_iff (pow_pos hp.pos (m + 1)) _,
@@ -828,7 +828,7 @@ lemma _root_.is_primitive_root.minpoly_dvd_cyclotomic {n : ℕ} {K : Type*} [fie
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
-  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  apply minpoly.gcd_domain_dvd (is_integral h hpos) (cyclotomic_ne_zero n ℤ),
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 
@@ -857,7 +857,7 @@ lemma cyclotomic_eq_minpoly_rat {n : ℕ} {K : Type*} [field K] {μ : K}
   cyclotomic n ℚ = minpoly ℚ μ :=
 begin
   rw [← map_cyclotomic_int, cyclotomic_eq_minpoly h hpos],
-  exact (minpoly.gcd_domain_eq_field_fractions _ (is_integral h hpos)).symm
+  exact (minpoly.gcd_domain_eq_field_fractions' _ (is_integral h hpos)).symm
 end
 
 /-- `cyclotomic n ℤ` is irreducible. -/
@@ -950,9 +950,8 @@ begin
   { have hpos := nat.mul_pos hzero hp.pos,
     have hprim := complex.is_primitive_root_exp _ hpos.ne.symm,
     rw [cyclotomic_eq_minpoly hprim hpos],
-    refine @minpoly.gcd_domain_dvd ℤ ℂ ℚ _ _ _ _ _ _ _ _ complex.algebra (algebra_int ℂ) _ _
-      (is_primitive_root.is_integral hprim hpos) _ ((cyclotomic.monic n ℤ).expand
-      hp.pos).is_primitive _,
+    refine minpoly.gcd_domain_dvd (hprim.is_integral hpos)
+      ((cyclotomic.monic n ℤ).expand hp.pos).ne_zero _,
     rw [aeval_def, ← eval_map, map_expand, map_cyclotomic, expand_eval,
         ← is_root.def, is_root_cyclotomic_iff],
     { convert is_primitive_root.pow_of_dvd hprim hp.ne_zero (dvd_mul_left p n),

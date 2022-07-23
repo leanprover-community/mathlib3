@@ -3,7 +3,7 @@ Copyright (c) 2020 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Devon Tuma
 -/
-import measure_theory.probability_mass_function.basic
+import probability.probability_mass_function.basic
 
 /-!
 # Monad Operations for Probability Mass Functions
@@ -97,7 +97,7 @@ by simp
 lemma coe_bind_apply (b : β) : (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
 eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
-@[simp] lemma pure_bind (a : α) : (pure a).bind f = f a :=
+@[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
   assume b a', by split_ifs; simp; subst h; simp,
 by ext b; simp [this]
@@ -164,7 +164,6 @@ end bind
 instance : monad pmf :=
 { pure := λ A a, pure a,
   bind := λ A B pa pb, pa.bind pb }
-
 
 section bind_on_support
 

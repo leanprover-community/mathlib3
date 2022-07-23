@@ -30,8 +30,6 @@ We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/
 noncomputable theory
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
-
 namespace complex
 
 open_locale complex_conjugate topological_space
@@ -62,6 +60,8 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
     refl,
   end,
   to_algebra := complex.algebra }
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 
 /-- The module structure from `module.complex_to_real` is a normed space. -/
 @[priority 900] -- see Note [lower instance priority]

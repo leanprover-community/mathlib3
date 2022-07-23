@@ -809,6 +809,8 @@ and `⊥` otherwise. It belongs to `with_bot α`. If you want to get an element 
 protected def max (s : finset α) : with_bot α :=
 sup s coe
 
+lemma max_eq_sup_coe {s : finset α} : s.max = s.sup coe := rfl
+
 theorem max_eq_sup_with_bot (s : finset α) :
   s.max = sup s coe := rfl
 

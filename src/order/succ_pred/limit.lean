@@ -453,8 +453,8 @@ end
 lemma min_of_le_pred' : a ≤ pred' a → is_min a :=
 min_of_le_pred'_aux $ λ a b, exists_succ_iterate_of_le
 
-/- Given a partial `succ_order` satisfying `exists_succ_iterate_of_le`, one can use `order.pred'` to
-build a `pred_order` instance. This order is also succ-pred archimedean, see
+/-- Given a partial `succ_order` satisfying `exists_succ_iterate_of_le`, one can use `order.pred'`
+to build a `pred_order` instance. This order is also succ-pred archimedean, see
 `order.succ_pred_archimedean_of_succ`. -/
 noncomputable def succ_order.to_pred_order {α : Type*} [partial_order α] [succ_order α]
   (H : ∀ a b : α, a ≤ b → ∃ n, succ^[n] a = b) : pred_order α :=
@@ -514,8 +514,8 @@ lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simp
 
 lemma max_of_succ'_le : succ' a ≤ a → is_max a := @min_of_le_pred' αᵒᵈ _ _ _ _ _
 
-/- Given a partial `pred_order` satisfying `exists_pred_iterate_of_le`, one can use `order.succ'` to
-build a `succ_order` instance. This order is also succ-pred archimedean, see
+/-- Given a partial `pred_order` satisfying `exists_pred_iterate_of_le`, one can use `order.succ'`
+to build a `succ_order` instance. This order is also succ-pred archimedean, see
 `order.succ_pred_archimedean_of_pred`. -/
 noncomputable def pred_order.to_succ_order {α : Type*} [partial_order α] [pred_order α]
   (H : ∀ a b : α, a ≤ b → ∃ n, pred^[n] b = a) : succ_order α :=

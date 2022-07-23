@@ -314,6 +314,9 @@ instance : set_like (L.elementary_substructure M) M :=
   exact h,
 end⟩
 
+instance induced_Structure (S : L.elementary_substructure M) : L.Structure S :=
+substructure.induced_Structure
+
 @[simp] lemma is_elementary (S : L.elementary_substructure M) :
   (S : L.substructure M).is_elementary := S.is_elementary'
 

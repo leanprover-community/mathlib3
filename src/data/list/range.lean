@@ -66,7 +66,7 @@ theorem chain_lt_range' (s n : ℕ) : chain (<) s (range' (s+1) n) :=
 
 theorem pairwise_lt_range' : ∀ s n : ℕ, pairwise (<) (range' s n)
 | s 0     := pairwise.nil
-| s (n+1) := (chain_iff_pairwise (by exact λ a b c, lt_trans)).1 (chain_lt_range' s n)
+| s (n+1) := chain_iff_pairwise.1 (chain_lt_range' s n)
 
 theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 (pairwise_lt_range' s n).imp (λ a b, ne_of_lt)

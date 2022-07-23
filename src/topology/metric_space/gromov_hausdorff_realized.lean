@@ -461,7 +461,7 @@ def optimal_GH_injl (x : X) : optimal_GH_coupling X Y := ⟦inl x⟧
 /-- The injection of `X` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injl : isometry (optimal_GH_injl X Y) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   change dist ⟦inl x⟧ ⟦inl y⟧ = dist x y,
   exact candidates_dist_inl (optimal_GH_dist_mem_candidates_b X Y) _ _,
 end
@@ -472,7 +472,7 @@ def optimal_GH_injr (y : Y) : optimal_GH_coupling X Y := ⟦inr y⟧
 /-- The injection of `Y` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injr : isometry (optimal_GH_injr X Y) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   change dist ⟦inr x⟧ ⟦inr y⟧ = dist x y,
   exact candidates_dist_inr (optimal_GH_dist_mem_candidates_b X Y) _ _,
 end

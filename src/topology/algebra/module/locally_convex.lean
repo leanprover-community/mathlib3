@@ -109,7 +109,7 @@ begin
       ((If.2 i) ∈ @nhds _ ↑i x ∧ convex 𝕜 (If.2 i)))
     (λ x, _) (λ x If hif, convex_Inter $ λ i, convex_Inter $ λ hi, (hif.2 i hi).2),
   rw [nhds_Inf, ← infi_subtype''],
-  exact has_basis_infi (λ i : ts, (@locally_convex_space_iff 𝕜 E _ _ _ ↑i).mp (h ↑i i.2) x),
+  exact has_basis_infi' (λ i : ts, (@locally_convex_space_iff 𝕜 E _ _ _ ↑i).mp (h ↑i i.2) x),
 end
 
 lemma locally_convex_space_infi {ts' : ι → topological_space E}

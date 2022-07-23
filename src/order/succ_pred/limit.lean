@@ -77,8 +77,8 @@ by { classical, exact dif_pos hb }
 /-- A predecessor function for a `succ_order`. We have `pred' a = a` for a successor limit `a`, and
 `pred' (succ a) = a` when `a` is not maximal.
 
-When working in a succ-archimedean partial order, this can be used to build an `is_pred_archimdean`
-instance: see `order.succ_order.to_is_pred_archimedean`.
+When working in a partial order satisfying `exists_succ_iterate_of_le`, this can be used to build a
+`pred_order` instance: see `order.succ_order.to_pred_order`.
 
 Note that this is only nicely behaved on partial orders. -/
 noncomputable def pred' (a : α) : α := is_succ_limit_rec_on a (λ b _, b) (λ b _, b)
@@ -238,8 +238,8 @@ lemma is_pred_limit_rec_on_limit : Π {C : α → Sort*} (hs : Π a, ¬ is_min a
 /-- A successor function for a `pred_order`. We have `succ' a = a` for a predecessor limit `a`, and
 `succ' (pred a) = a` where `a` is not minimal.
 
-When working in a pred-archimedean partial order, this can be used to build an `is_succ_archimdean`
-instance: see `order.pred_order.to_is_succ_archimedean`.
+When working in a partial order satisfying `exists_pred_iterate_of_le`, this can be used to build a
+`succ_order` instance: see `order.pred_order.to_succ_order`.
 
 Note that this is only nicely behaved on partial orders. -/
 noncomputable def succ' : α → α := @pred' αᵒᵈ _ _
@@ -453,8 +453,10 @@ end
 lemma min_of_le_pred' : a ≤ pred' a → is_min a :=
 min_of_le_pred'_aux $ λ a b, exists_succ_iterate_of_le
 
--- We prove this using only the `exists_succ_iterate_of_le` assumption.
-private noncomputable def succ_order.to_pred_order_aux {α : Type*} [partial_order α] [succ_order α]
+/- Given a partial `succ_order` satisfying `exists_succ_iterate_of_le`, one can use `order.pred'` to
+build a `pred_order` instance. This order is also succ-pred archimedean, see
+`order.succ_pred_archimedean_of_succ`. -/
+noncomputable def succ_order.to_pred_order {α : Type*} [partial_order α] [succ_order α]
   (H : ∀ a b : α, a ≤ b → ∃ n, succ^[n] a = b) : pred_order α :=
 { pred := pred',
   pred_le := pred'_le,
@@ -462,14 +464,10 @@ private noncomputable def succ_order.to_pred_order_aux {α : Type*} [partial_ord
   le_pred_of_lt := λ a b, le_pred'_of_lt,
   le_of_pred_lt := λ a b, le_of_pred'_lt }
 
-/-- Builds a `pred_order` from a `succ_order` via `order.pred'`. -/
-noncomputable def succ_order.to_pred_order : pred_order α :=
-{ pred := pred', ..succ_order.to_pred_order_aux $ λ a b, exists_succ_iterate_of_le }
-
 -- We prove this using only the `exists_succ_iterate_of_le` assumption.
 private lemma pred'_eq_pred_aux {α : Type*} [partial_order α] [succ_order α] [pred_order α]
   (H : ∀ a b : α, a ≤ b → ∃ n, succ^[n] a = b) : @pred' α _ _ = pred :=
-show @pred α _ (succ_order.to_pred_order_aux H) = pred, by congr
+show @pred α _ (succ_order.to_pred_order H) = pred, by congr
 
 @[simp] lemma pred'_eq_pred : @pred' α _ _ = pred :=
 pred'_eq_pred_aux $ λ a b, exists_succ_iterate_of_le
@@ -516,11 +514,14 @@ lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simp
 
 lemma max_of_succ'_le : succ' a ≤ a → is_max a := @min_of_le_pred' αᵒᵈ _ _ _ _ _
 
-/-- Builds a `succ_order` from a `pred_order` via `order.succ'`. -/
-noncomputable def pred_order.to_succ_order : succ_order α :=
+/- Given a partial `pred_order` satisfying `exists_pred_iterate_of_le`, one can use `order.succ'` to
+build a `succ_order` instance. This order is also succ-pred archimedean, see
+`order.succ_pred_archimedean_of_pred`. -/
+noncomputable def pred_order.to_succ_order {α : Type*} [partial_order α] [pred_order α]
+  (H : ∀ a b : α, a ≤ b → ∃ n, pred^[n] b = a) : succ_order α :=
 { succ := succ',
   le_succ := le_succ',
-  max_of_succ_le := λ a, max_of_succ'_le,
+  max_of_succ_le := λ a, @min_of_le_pred'_aux αᵒᵈ _ _ a $ λ a b, H b a,
   succ_le_of_lt := λ a b, succ'_le_of_lt,
   le_of_lt_succ := λ a b, le_of_lt_succ' }
 

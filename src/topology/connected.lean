@@ -218,7 +218,7 @@ theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι 
 section succ_order
 open order
 
-variables [linear_order β] [succ_order β] [is_succ_archimedean β]
+variables [linear_order β] [succ_order β] [pred_order β] [succ_pred_archimedean β]
 
 /-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
   such that any two neighboring sets meet is preconnected. -/

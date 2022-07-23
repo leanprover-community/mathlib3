@@ -3,7 +3,7 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import order.succ_pred.basic
+import order.succ_pred.limit
 import data.set.lattice
 
 /-!
@@ -28,10 +28,10 @@ variables {α β : Type*} [linear_order α]
 
 namespace monotone
 
-/-- If `α` is a linear archimedean succ order and `β` is a linear order, then for any monotone
+/-- If `α` is a linear succ-pred archimedean order and `β` is a linear order, then for any monotone
 function `f` and `m n : α`, the union of intervals `set.Ioc (f i) (f (order.succ i))`, `m ≤ i < n`,
 is equal to `set.Ioc (f m) (f n)` -/
-lemma bUnion_Ico_Ioc_map_succ [succ_order α] [is_succ_archimedean α]
+lemma bUnion_Ico_Ioc_map_succ [succ_order α] [pred_order α] [succ_pred_archimedean α]
   [linear_order β] {f : α → β} (hf : monotone f) (m n : α) :
   (⋃ i ∈ Ico m n, Ioc (f i) (f (succ i))) = Ioc (f m) (f n) :=
 begin

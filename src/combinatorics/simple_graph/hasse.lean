@@ -59,18 +59,12 @@ end partial_order
 section linear_order
 variables [linear_order α]
 
-lemma hasse_preconnected_of_succ [succ_order α] [is_succ_archimedean α] : (hasse α).preconnected :=
+lemma hasse_preconnected_of_succ_pred_archimedean
+  [succ_order α] [pred_order α] [succ_pred_archimedean α] : (hasse α).preconnected :=
 λ a b, begin
   rw reachable_iff_refl_trans_gen,
   exact refl_trans_gen_of_succ _ (λ c hc, or.inl $ covby_succ_of_not_is_max hc.2.not_is_max)
     (λ c hc, or.inr $ covby_succ_of_not_is_max hc.2.not_is_max),
-end
-
-lemma hasse_preconnected_of_pred [pred_order α] [is_pred_archimedean α] : (hasse α).preconnected :=
-λ a b, begin
-  rw [reachable_iff_refl_trans_gen, ←refl_trans_gen_swap],
-  exact refl_trans_gen_of_pred _ (λ c hc, or.inl $ pred_covby_of_not_is_min hc.1.not_is_min)
-    (λ c hc, or.inr $ pred_covby_of_not_is_min hc.1.not_is_min),
 end
 
 end linear_order
@@ -78,7 +72,9 @@ end linear_order
 /-- The path graph on `n` vertices. -/
 def path_graph (n : ℕ) : simple_graph (fin n) := hasse _
 
-lemma path_graph_preconnected (n : ℕ) : (path_graph n).preconnected := hasse_preconnected_of_succ _
+lemma path_graph_preconnected (n : ℕ) : (path_graph n).preconnected :=
+hasse_preconnected_of_succ_pred_archimedean _
+
 lemma path_graph_connected (n : ℕ) : (path_graph (n + 1)).connected := ⟨path_graph_preconnected _⟩
 
 end simple_graph

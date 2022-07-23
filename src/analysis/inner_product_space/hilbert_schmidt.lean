@@ -37,11 +37,18 @@ open_locale inner_product
 
 namespace continuous_linear_map
 
-variables {𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
+variables {ι 𝕜 E F : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E] [inner_product_space 𝕜 F]
   [complete_space E] [complete_space F]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 def is_HS (T : E →L[𝕜] F) : Prop := (T† ∘L T).is_trace_class
 
 @[simp] lemma is_HS_def {T : E →L[𝕜] F} : T.is_HS ↔ (T† ∘L T).is_trace_class := iff.rfl
+
+lemma is_HS_iff_summable (T : E →L[𝕜] F) (e : hilbert_basis ι 𝕜 E) :
+  T.is_HS ↔ summable (λ i, ⟪T (e i), T (e i)⟫) :=
+begin
+
+end
 
 end continuous_linear_map

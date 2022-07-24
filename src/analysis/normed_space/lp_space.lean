@@ -76,15 +76,20 @@ def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (set.finite {i | f i ≠ 0}) else
   (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
 
-lemma mem_ℓp.comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
+lemma mem_ℓp.comp_inj {β : Type*} (φ : β → α) (hφ : function.injective φ) {f : Π i, E i} {p : ℝ≥0∞}
   (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
 begin
   rw mem_ℓp at *,
   split_ifs at ⊢ hf with h₁ h₂,
-  { exact hf.preimage_embedding φ },
+  { exact hf.preimage (hφ.inj_on _) },
   { exact hf.mono (set.range_subset_iff.mpr $ λ b, set.mem_range_self (φ b)) },
-  { exact hf.comp_injective φ.injective }
+  { exact hf.comp_injective hφ }
 end
+
+-- TODO : use this to get a continuous linear map between lp spaces.
+lemma mem_ℓp.comp_embedding {β : Type*} (φ : β ↪ α) {f : Π i, E i} {p : ℝ≥0∞}
+  (hf : mem_ℓp f p) : mem_ℓp (λ x, f (φ x)) p :=
+hf.comp_inj φ φ.injective
 
 lemma mem_ℓp_zero_iff {f : Π i, E i} : mem_ℓp f 0 ↔ set.finite {i | f i ≠ 0} :=
 by dsimp [mem_ℓp]; rw [if_pos rfl]
@@ -494,6 +499,12 @@ normed_group.of_core _
   end,
   norm_neg := norm_neg }
 
+lemma nnnorm_eq_csupr (f : lp E ∞) : ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
+begin
+  ext,
+  simp_rw [nnreal.coe_supr, coe_nnnorm, norm_eq_csupr]
+end
+
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.
 /-- Hölder inequality -/
@@ -635,41 +646,6 @@ begin
   refine ⟨λ r c f, _⟩,
   ext1,
   exact (lp.coe_fn_smul _ _).trans (smul_assoc _ _ _)
-end
-
-variables (𝕜 E)
-
-def comp_embeddingₗ {β : Type*} (φ : β ↪ α) (p : ℝ≥0∞) [fact (1 ≤ p)] :
-  lp (λ i, E i) p →ₗ[𝕜] lp (λ i, E (φ i)) p :=
-{ to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_embedding φ $ lp.mem_ℓp f⟩,
-  map_add' := λ _ _, by ext; refl,
-  map_smul' := λ _ _, by ext; refl }
-
-lemma comp_embeddingₗ_apply {β : Type*} (φ : β ↪ α) (p : ℝ≥0∞) [fact (1 ≤ p)] (f) :
-  (lp.comp_embeddingₗ E 𝕜 φ p f : Π i, E (φ i)) = (λ x, f (φ x)) :=
-rfl
-
-noncomputable! def comp_embedding {β : Type*} (φ : β ↪ α) {p : ℝ≥0∞} [h : fact (1 ≤ p)] :
-  lp (λ i, E i) p →L[𝕜] lp (λ i, E (φ i)) p :=
-(lp.comp_embeddingₗ E 𝕜 φ p).mk_continuous 1
-begin
-  unfreezingI
-  { rintros ⟨f, hf : mem_ℓp _ _⟩,
-    have hφf : mem_ℓp _ _ := (lp.comp_embeddingₗ E 𝕜 φ p ⟨f, hf⟩).2,
-    rw one_mul,
-    rcases p.trichotomy with rfl | rfl | hp,
-    { sorry },
-    { cases is_empty_or_nonempty β; resetI,
-      { sorry },
-      { rw [lp.norm_eq_csupr, lp.norm_eq_csupr, lp.comp_embeddingₗ_apply],
-        haveI : nonempty α := nonempty.map φ infer_instance,
-        rw mem_ℓp_infty_iff at hf,
-        exact csupr_le (λ b, le_csupr hf (φ b)) } },
-    { rw [norm_eq_tsum_rpow hp, norm_eq_tsum_rpow hp],
-      rw mem_ℓp_gen_iff hp at hf hφf,
-      exact real.rpow_le_rpow (tsum_nonneg $ λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
-        (tsum_le_tsum_of_inj φ φ.injective (λ i _, real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
-          (λ j, le_rfl) hφf hf) (one_div_pos.mpr hp).le } },
 end
 
 end normed_space
@@ -1063,36 +1039,120 @@ end topology
 
 end lp
 
-.
-
 section lp_lp
 
-#where
-
-noncomputable! def lp.curry_pi {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)]
-  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (f : lp (λ ab : Σ (a : α), β a, 𝕜) p) (a : α) :
-  lp (λ b : β a, 𝕜) p :=
-⟨λ b, f ⟨a, b⟩,
+def lp.curry {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0∞}
+  [fact (1 ≤ p)] [Π a b, normed_group (F a b)] (f : lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p) :
+  lp (λ a, lp (λ b : β a, F a b) p) p :=
+⟨λ a, ⟨λ b, f ⟨a, b⟩, (lp.mem_ℓp f).comp_inj (sigma.mk a) sigma_mk_injective⟩,
   begin
     rcases f with ⟨f, hf : mem_ℓp _ _⟩,
     change mem_ℓp _ _,
-    unfreezingI
-    { rcases p.trichotomy with rfl | rfl | hp,
-      { sorry },
-      { sorry },
-      { rw mem_ℓp_gen_iff hp at hf ⊢, } }
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { rw mem_ℓp_infty_iff at hf ⊢,
+      rcases hf with ⟨M, hM⟩,
+      refine ⟨max (Sup ∅) M, _⟩,
+      rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
+      intro a,
+      rw lp.norm_eq_csupr,
+      rcases is_empty_or_nonempty (β a) with hβa | hβa;
+      haveI := hβa,
+      { rw [← Sup_range, set.range_eq_empty],
+        exact le_max_left _ _ },
+      { exact csupr_le (λ b, le_max_of_le_right $ hM ⟨a, b⟩) } },
+    { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at hf ⊢,
+      rw summable_sigma_of_nonneg at hf,
+      { convert hf.2,
+        ext a,
+        rw lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp),
+        refl },
+      { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
   end⟩
 
-noncomputable! def lp_sigma_equiv {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)]
-  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] :
-  lp (λ ab : Σ (a : α), β a, 𝕜) p ≃ lp (λ (a : α), lp (λ b : β a, 𝕜) p) p :=
-{ to_fun := λ f, ⟨λ a, ⟨λ b, f ⟨a, b⟩, _⟩, _⟩,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry }
+def lp.uncurry {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0∞}
+  [fact (1 ≤ p)] [Π a b, normed_group (F a b)] (g : lp (λ a, lp (λ b : β a, F a b) p) p) :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p :=
+⟨λ ab, g ab.1 ab.2,
+  begin
+    change mem_ℓp _ _,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { have : mem_ℓp _ ⊤ := g.2,
+      rw mem_ℓp_infty_iff at this ⊢,
+      rcases this with ⟨M, hM⟩,
+      refine ⟨M, _⟩,
+      rw [mem_upper_bounds, set.forall_range_iff] at hM ⊢,
+      rintros ⟨a, b⟩,
+      specialize hM a,
+      rw lp.norm_eq_csupr at hM,
+      have : mem_ℓp _ ⊤ := (g a).2,
+      rw mem_ℓp_infty_iff at this,
+      exact (le_csupr this b).trans hM },
+    { rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp),
+      rw summable_sigma_of_nonneg,
+      { split,
+        { intro a,
+          have : mem_ℓp _ _ := (g a).2,
+          rwa mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this },
+        { have : mem_ℓp _ _ := g.2,
+          rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this,
+          convert this,
+          ext a,
+          rw lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp),
+          refl } },
+      { exact (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) } }
+  end⟩
 
-noncomputable! def lp_sigma_equivₗᵢ {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [normed_field 𝕜] :
-  lp (λ ab : Σ (a : α), β a, 𝕜) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, 𝕜) p) p :=
-{ to_fun := λ f, ⟨_, _⟩ }
+def lp_sigma_equiv {β : α → Type*} {F : Π (a : α), β a → Type*} {p : ℝ≥0∞}
+  [fact (1 ≤ p)] [Π a b, normed_group (F a b)] :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ lp (λ (a : α), lp (λ b : β a, F a b) p) p :=
+{ to_fun := lp.curry,
+  inv_fun := lp.uncurry,
+  left_inv := λ f, by ext ⟨a, b⟩; refl,
+  right_inv := λ f, by ext ab; refl }
+
+-- TODO : move and generalize to conditionally complete linear order bot
+theorem supr_sigma' {p : α → Type*} {f : sigma p → nnreal} (hf : bdd_above (set.range f)) :
+  (⨆ x, f x) = ⨆ i j, f ⟨i, j⟩ :=
+have hf' : ∀ i, bdd_above (set.range $ λ j, f ⟨i, j⟩),
+  from λ i, hf.mono (set.range_subset_iff.mpr $ λ _, set.mem_range_self _),
+have hf'' : bdd_above (set.range $ λ i, ⨆ j, f ⟨i, j⟩),
+  begin
+    rcases hf with ⟨M, hM⟩,
+    refine ⟨M, _⟩,
+    rw [mem_upper_bounds, set.forall_range_iff] at *,
+    exact λ i, csupr_le' (λ j, hM _)
+  end,
+eq_of_forall_ge_iff $ λ c, by simp only [csupr_le_iff' hf, csupr_le_iff' hf'',
+  csupr_le_iff' (hf' _), sigma.forall]
+
+def lp_sigma_equivₗᵢ {𝕜 : Type*} [normed_field 𝕜] {β : α → Type*}
+  {F : Π (a : α), β a → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [Π a b, normed_group (F a b)]
+  [Π a b, normed_space 𝕜 (F a b)] :
+  lp (λ ab : Σ (a : α), β a, F ab.1 ab.2) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, F a b) p) p  :=
+{ map_add' := λ f g, by ext; refl,
+  map_smul' := λ a f, by ext; refl,
+  norm_map' :=
+  begin
+    intros f,
+    change ∥lp.curry f∥ = ∥f∥,
+    unfreezingI { rcases p.dichotomy with rfl | hp},
+    { suffices : ∥lp.curry f∥₊ = ∥f∥₊,
+      { rw [← coe_nnnorm, ← coe_nnnorm],
+        exact congr_arg _ this },
+      simp_rw [lp.nnnorm_eq_csupr],
+      rw supr_sigma',
+      { refl },
+      { have : mem_ℓp f ⊤ := f.2,
+        simp_rw [mem_ℓp_infty_iff, ← coe_nnnorm] at this,
+        rwa [← nnreal.bdd_above_coe, ← set.range_comp] } },
+    { rw [lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp),
+          lp.norm_eq_tsum_rpow (zero_lt_one.trans_le hp)],
+      simp_rw [lp.norm_rpow_eq_tsum (zero_lt_one.trans_le hp)],
+      have : mem_ℓp f _ := f.2,
+      rw mem_ℓp_gen_iff (zero_lt_one.trans_le hp) at this,
+      rw tsum_sigma this,
+      refl }
+  end,
+  ..lp_sigma_equiv }
 
 end lp_lp

@@ -485,10 +485,10 @@ class normed_field (α : Type*) extends has_norm α, field α, metric_space α :
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
-/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
-`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
-by the powers of any element, and thus to relate algebra and topology. -/
-class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+/-- A nontrivially normed field is a normed field in which there is an element of norm different
+from `0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by
+multiplication by the powers of any element, and thus to relate algebra and topology. -/
+class nontrivially_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃ x : α, 1 < ∥x∥)
 
 section normed_field
@@ -515,9 +515,9 @@ end normed_field
 
 namespace normed_field
 
-variables (α) [nondiscrete_normed_field α]
+variables (α) [nontrivially_normed_field α]
 
-lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_normed_field α›.non_trivial
+lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nontrivially_normed_field α›.non_trivial
 
 lemma exists_lt_norm (r : ℝ) : ∃ x : α, r < ∥x∥ :=
 let ⟨w, hw⟩ := exists_one_lt_norm α in
@@ -553,7 +553,7 @@ instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_group }
 
-instance : nondiscrete_normed_field ℝ :=
+instance : nontrivially_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 namespace real
@@ -661,7 +661,7 @@ instance : normed_field ℚ :=
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
   dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
 
-instance : nondiscrete_normed_field ℚ :=
+instance : nontrivially_normed_field ℚ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 @[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl

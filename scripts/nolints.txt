@@ -547,9 +547,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/countable.lean
-apply_nolint set.countable_pi fintype_finite
-
 -- data/set/finite.lean
 apply_nolint infi_supr_of_antitone fintype_finite
 apply_nolint infi_supr_of_monotone fintype_finite
@@ -1080,7 +1077,7 @@ apply_nolint cardinal.mk_compl_eq_mk_compl_finite_same fintype_finite
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
--- set_theory/zfc.lean
+-- set_theory/zfc/basic.lean
 apply_nolint Set.map_definable_aux unused_arguments
 
 -- tactic/abel.lean

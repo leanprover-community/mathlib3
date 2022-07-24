@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.finite
+import data.countable.basic
 import logic.equiv.list
 
 /-!
@@ -15,8 +16,8 @@ open function set encodable
 
 open classical (hiding some)
 open_locale classical
-universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+universes u v w x
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
 namespace set
 
@@ -27,10 +28,17 @@ constructive analogue of countability. (For the most part, theorems about
 -/
 protected def countable (s : set α) : Prop := nonempty (encodable s)
 
-lemma countable_iff_exists_injective {s : set α} :
-  s.countable ↔ ∃f:s → ℕ, injective f :=
-⟨λ ⟨h⟩, by exactI ⟨encode, encode_injective⟩,
- λ ⟨f, h⟩, ⟨⟨f, partial_inv f, partial_inv_left h⟩⟩⟩
+@[simp] lemma countable_coe_iff {s : set α} : countable s ↔ s.countable := nonempty_encodable.symm
+
+/-- Prove `set.countable` from a `countable` instance on the subtype. -/
+lemma to_countable (s : set α) [countable s] : s.countable := countable_coe_iff.mp ‹_›
+
+/-- Restate `set.countable` as a `countable` instance. -/
+alias countable_coe_iff ↔ _root_.countable.to_set countable.to_subtype
+
+protected lemma countable_iff_exists_injective {s : set α} :
+  s.countable ↔ ∃ f : s → ℕ, injective f :=
+countable_coe_iff.symm.trans (countable_iff_exists_injective s)
 
 protected lemma countable_iff_nonempty_embedding {s : set α} : s.countable ↔ nonempty (s ↪ ℕ) :=
 countable_iff_exists_injective.trans ⟨λ ⟨f, hf⟩, ⟨⟨f, hf⟩⟩, λ ⟨⟨f, hf⟩⟩, ⟨f, hf⟩⟩
@@ -39,77 +47,75 @@ countable_iff_exists_injective.trans ⟨λ ⟨f, hf⟩, ⟨⟨f, hf⟩⟩, λ �
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :
   s.countable ↔ ∃ f : α → ℕ, inj_on f s :=
-countable_iff_exists_injective.trans
+set.countable_iff_exists_injective.trans
 ⟨λ ⟨f, hf⟩, ⟨λ a, if h : a ∈ s then f ⟨a, h⟩ else 0,
    λ a as b bs h, congr_arg subtype.val $
      hf $ by simpa [as, bs] using h⟩,
  λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
 
-lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
-  s.countable ↔ ∃f:ℕ → α, s ⊆ range f :=
-⟨λ ⟨h⟩, by inhabit α; exactI ⟨λ n, ((decode s n).map subtype.val).iget,
-  λ a as, ⟨encode (⟨a, as⟩ : s), by simp [encodek]⟩⟩,
- λ ⟨f, hf⟩, ⟨⟨
-  λ x, inv_fun f x.1,
-  λ n, if h : f n ∈ s then some ⟨f n, h⟩ else none,
-  λ ⟨x, hx⟩, begin
-    have := inv_fun_eq (hf hx), dsimp at this ⊢,
-    simp [this, hx]
-  end⟩⟩⟩
+/-- Convert `set.countable s` to `encodable s` (noncomputable). -/
+protected def countable.to_encodable {s : set α} : s.countable → encodable s :=
+classical.choice
+
+section enumerate
+
+/-- Noncomputably enumerate elements in a set. The `default` value is used to extend the domain to
+all of `ℕ`. -/
+
+def enumerate_countable {s : set α} (h : s.countable) (default : α) : ℕ → α :=
+assume n, match @encodable.decode s h.to_encodable n with
+        | (some y) := y
+        | (none)   := default
+        end
+
+lemma subset_range_enumerate {s : set α} (h : s.countable) (default : α) :
+   s ⊆ range (enumerate_countable h default) :=
+assume x hx,
+⟨@encodable.encode s h.to_encodable ⟨x, hx⟩,
+by simp [enumerate_countable, encodable.encodek]⟩
+
+end enumerate
+
+lemma countable.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : s₂.countable → s₁.countable
+| ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset _ _ h).2⟩
+
+lemma countable_range [countable ι] (f : ι → β) : (range f).countable :=
+surjective_onto_range.countable.to_set
+
+lemma countable_iff_exists_subset_range [nonempty α] {s : set α} :
+  s.countable ↔ ∃ f : ℕ → α, s ⊆ range f :=
+⟨λ h, by { inhabit α, exact ⟨enumerate_countable h default, subset_range_enumerate _ _⟩ },
+  λ ⟨f, hsf⟩, (countable_range f).mono hsf⟩
 
 /--
 A non-empty set is countable iff there exists a surjection from the
 natural numbers onto the subtype induced by the set.
 -/
-lemma countable_iff_exists_surjective_to_subtype {s : set α} (hs : s.nonempty) :
+protected lemma countable_iff_exists_surjective {s : set α} (hs : s.nonempty) :
   s.countable ↔ ∃ f : ℕ → s, surjective f :=
-have inhabited s, from ⟨classical.choice hs.to_subtype⟩,
-have s.countable → ∃ f : ℕ → s, surjective f, from assume ⟨h⟩,
-  by exactI ⟨λ n, (decode s n).iget, λ a, ⟨encode a, by simp [encodek]⟩⟩,
-have (∃ f : ℕ → s, surjective f) → s.countable, from assume ⟨f, fsurj⟩,
-  ⟨⟨inv_fun f, option.some ∘ f,
-    by intro h; simp [(inv_fun_eq (fsurj h) : f (inv_fun f h) = h)]⟩⟩,
-by split; assumption
+countable_coe_iff.symm.trans $ @countable_iff_exists_surjective s hs.to_subtype
 
-/-- Convert `set.countable s` to `encodable s` (noncomputable). -/
-def countable.to_encodable {s : set α} : s.countable → encodable s :=
-classical.choice
+alias set.countable_iff_exists_surjective ↔ countable.exists_surjective _
 
-lemma countable_encodable' (s : set α) [H : encodable s] : s.countable :=
-⟨H⟩
-
-lemma countable_encodable [encodable α] (s : set α) : s.countable :=
-⟨by apply_instance⟩
+lemma countable_univ [countable α] : (univ : set α).countable := to_countable univ
 
 /-- If `s : set α` is a nonempty countable set, then there exists a map
 `f : ℕ → α` such that `s = range f`. -/
-lemma countable.exists_surjective {s : set α} (hc : s.countable) (hs : s.nonempty) :
-  ∃f:ℕ → α, s = range f :=
+lemma countable.exists_eq_range {s : set α} (hc : s.countable) (hs : s.nonempty) :
+  ∃ f : ℕ → α, s = range f :=
 begin
-  letI : encodable s := countable.to_encodable hc,
-  letI : nonempty s := hs.to_subtype,
-  have : (univ : set s).countable := countable_encodable _,
-  rcases countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
-  have : range g = univ := univ_subset_iff.1 hg,
-  use coe ∘ g,
-  simp only [range_comp, this, image_univ, subtype.range_coe]
+  rcases hc.exists_surjective hs with ⟨f, hf⟩,
+  refine ⟨coe ∘ f, _⟩,
+  rw [hf.range_comp, subtype.range_coe]
 end
 
-@[simp] lemma countable_empty : (∅ : set α).countable :=
-⟨⟨λ x, x.2.elim, λ n, none, λ x, x.2.elim⟩⟩
+@[simp] lemma countable_empty : (∅ : set α).countable := to_countable _
 
 @[simp] lemma countable_singleton (a : α) : ({a} : set α).countable :=
 ⟨of_equiv _ (equiv.set.singleton a)⟩
 
-lemma countable.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : s₂.countable → s₁.countable
-| ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset _ _ h).2⟩
-
 lemma countable.image {s : set α} (hs : s.countable) (f : α → β) : (f '' s).countable :=
-have surjective ((maps_to_image f s).restrict _ _ _), from surjective_maps_to_image_restrict f s,
-⟨@encodable.of_inj _ _ hs.to_encodable (surj_inv this) (injective_surj_inv this)⟩
-
-lemma countable_range [encodable α] (f : α → β) : (range f).countable :=
-by rw ← image_univ; exact (countable_encodable _).image _
+by { rw [image_eq_range], haveI := hs.to_subtype, apply countable_range }
 
 lemma maps_to.countable_of_inj_on {s : set α} {t : set β} {f : α → β}
   (hf : maps_to f s t) (hf' : inj_on f s) (ht : t.countable) :
@@ -136,7 +142,7 @@ begin
     rcases eq_empty_or_nonempty S with rfl|hne,
     { rw [Sup_empty] at hS, haveI := subsingleton_of_bot_eq_top hS,
       rcases h with ⟨x, hx⟩, exact ⟨λ n, x, λ n, hx, subsingleton.elim _ _⟩ },
-    { rcases (countable_iff_exists_surjective_to_subtype hne).1 hSc with ⟨s, hs⟩,
+    { rcases (set.countable_iff_exists_surjective hne).1 hSc with ⟨s, hs⟩,
       refine ⟨λ n, s n, λ n, hps _ (s n).coe_prop, _⟩,
       rwa [hs.supr_comp, ← Sup_eq_supr'] } }
 end
@@ -151,17 +157,16 @@ lemma countable_of_injective_of_countable_image {s : set α} {f : α → β}
 let ⟨g, hg⟩ := countable_iff_exists_inj_on.1 hs in
 countable_iff_exists_inj_on.2 ⟨g ∘ f, hg.comp hf (maps_to_image _ _)⟩
 
-lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, (t a).countable) :
+lemma countable_Union {t : ι → set α} [countable ι] (ht : ∀ i, (t i).countable) :
   (⋃a, t a).countable :=
-by haveI := (λ a, (ht a).to_encodable);
-   rw Union_eq_range_sigma; apply countable_range
+by { haveI := λ a, (ht a).to_subtype, rw Union_eq_range_psigma, apply countable_range }
 
 lemma countable.bUnion
   {s : set α} {t : Π x ∈ s, set β} (hs : s.countable) (ht : ∀a∈s, (t a ‹_›).countable) :
   (⋃a∈s, t a ‹_›).countable :=
 begin
   rw bUnion_eq_Union,
-  haveI := hs.to_encodable,
+  haveI := hs.to_subtype,
   exact countable_Union (by simpa using ht)
 end
 
@@ -215,44 +220,28 @@ begin
   simpa using @ts a
 end
 
-lemma countable_pi {π : α → Type*} [fintype α] {s : Πa, set (π a)} (hs : ∀a, (s a).countable) :
+lemma countable_univ_pi {π : α → Type*} [finite α] {s : Π a, set (π a)}
+  (hs : ∀ a, (s a).countable) : (pi univ s).countable :=
+begin
+  haveI := λ a, (hs a).to_subtype,
+  exact (countable.of_equiv _ (equiv.set.univ_pi s).symm).to_set
+end
+
+lemma countable_pi {π : α → Type*} [finite α] {s : Πa, set (π a)} (hs : ∀a, (s a).countable) :
   {f : Πa, π a | ∀a, f a ∈ s a}.countable :=
-countable.mono
-  (show {f : Πa, π a | ∀a, f a ∈ s a} ⊆ range (λf : Πa, s a, λa, (f a).1), from
-    assume f hf, ⟨λa, ⟨f a, hf a⟩, funext $ assume a, rfl⟩) $
-have trunc (encodable (Π (a : α), s a)), from
-  @encodable.fintype_pi α _ _ _ (assume a, (hs a).to_encodable),
-trunc.induction_on this $ assume h,
-@countable_range _ _ h _
+by simpa only [← mem_univ_pi] using countable_univ_pi hs
 
 protected lemma countable.prod {s : set α} {t : set β} (hs : s.countable) (ht : t.countable) :
   set.countable (s ×ˢ t) :=
 begin
-  haveI : encodable s := hs.to_encodable,
-  haveI : encodable t := ht.to_encodable,
-  exact ⟨of_equiv (s × t) (equiv.set.prod _ _)⟩
+  haveI : countable s := hs.to_subtype,
+  haveI : countable t := ht.to_subtype,
+  exact (countable.of_equiv _ $ (equiv.set.prod _ _).symm).to_set
 end
 
 lemma countable.image2 {s : set α} {t : set β} (hs : s.countable) (ht : t.countable)
   (f : α → β → γ) : (image2 f s t).countable :=
 by { rw ← image_prod, exact (hs.prod ht).image _ }
-
-section enumerate
-
-/-- Enumerate elements in a countable set.-/
-def enumerate_countable {s : set α} (h : s.countable) (default : α) : ℕ → α :=
-assume n, match @encodable.decode s h.to_encodable n with
-        | (some y) := y
-        | (none)   := default
-        end
-
-lemma subset_range_enumerate {s : set α} (h : s.countable) (default : α) :
-   s ⊆ range (enumerate_countable h default) :=
-assume x hx,
-⟨@encodable.encode s h.to_encodable ⟨x, hx⟩,
-by simp [enumerate_countable, encodable.encodek]⟩
-
-end enumerate
 
 end set
 

@@ -30,7 +30,7 @@ variables (x y : Π i, f i) (i : I)
 
 namespace pi
 
-/-! `1`, `0`, `+`, `•`, `*`, `^`, `-`, `⁻¹`, and `/` are defined pointwise. -/
+/-! `1`, `0`, `+`, `*`, `+ᵥ`, `•`, `^`, `-`, `⁻¹`, and `/` are defined pointwise. -/
 
 @[to_additive] instance has_one [∀ i, has_one $ f i] :
   has_one (Π i : I, f i) :=
@@ -45,25 +45,6 @@ namespace pi
 
 @[simp, to_additive] lemma comp_one [has_one β] (x : β → γ) : x ∘ 1 = const α (x 1) := rfl
 
-
-@[to_additive pi.has_vadd]
-instance has_smul {α : Type*} [Π i, has_smul α $ f i] : has_smul α (Π i : I, f i) :=
-⟨λ s x, λ i, s • (x i)⟩
-
-@[to_additive]
-lemma smul_def {α : Type*} [Π i, has_smul α $ f i] (s : α) : s • x = λ i, s • x i := rfl
-@[simp, to_additive]
-lemma smul_apply {α : Type*} [Π i, has_smul α $ f i] (s : α) : (s • x) i = s • x i := rfl
-
-@[to_additive pi.has_smul]
-instance has_pow {β : Type*} [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
-{ pow := λ x b i, (x i) ^ b }
-
-@[simp, to_additive pi.smul_apply] lemma pow_apply {β : Type*} [Π i, has_pow (f i) β]
-  (x : Π i, f i) (b : β) (i : I) : (x ^ b) i = (x i) ^ b := rfl
-@[to_additive pi.smul_def] lemma pow_def {β : Type*} [Π i, has_pow (f i) β]
-  (x : Π i, f i) (b : β) : x ^ b = λ i, (x i) ^ b := rfl
-
 @[to_additive]
 instance has_mul [∀ i, has_mul $ f i] :
   has_mul (Π i : I, f i) :=
@@ -77,6 +58,38 @@ instance has_mul [∀ i, has_mul $ f i] :
 
 @[to_additive] lemma mul_comp [has_mul γ] (x y : β → γ) (z : α → β) :
   (x * y) ∘ z = x ∘ z * y ∘ z := rfl
+
+@[to_additive pi.has_vadd] instance has_smul [Π i, has_smul α $ f i] : has_smul α (Π i : I, f i) :=
+⟨λ s x, λ i, s • (x i)⟩
+
+@[simp, to_additive] lemma smul_apply [Π i, has_smul α $ f i] (s : α) (x : Π i, f i) (i : I) :
+  (s • x) i = s • x i := rfl
+
+@[to_additive] lemma smul_def [Π i, has_smul α $ f i] (s : α) (x : Π i, f i) :
+  s • x = λ i, s • x i := rfl
+
+@[simp, to_additive]
+lemma smul_const [has_smul α β] (a : α) (b : β) : a • const I b = const I (a • b) := rfl
+
+@[to_additive]
+lemma smul_comp [has_smul α γ] (a : α) (x : β → γ) (y : I → β) : (a • x) ∘ y = a • (x ∘ y) := rfl
+
+@[to_additive pi.has_smul]
+instance has_pow [Π i, has_pow (f i) β] : has_pow (Π i, f i) β :=
+⟨λ x b i, (x i) ^ b⟩
+
+@[simp, to_additive pi.smul_apply, to_additive_reorder 5]
+lemma pow_apply [Π i, has_pow (f i) β] (x : Π i, f i) (b : β) (i : I) : (x ^ b) i = (x i) ^ b := rfl
+
+@[to_additive pi.smul_def, to_additive_reorder 5]
+lemma pow_def [Π i, has_pow (f i) β] (x : Π i, f i) (b : β) : x ^ b = λ i, (x i) ^ b := rfl
+
+-- `to_additive` generates bad output if we take `has_pow α β`.
+@[simp, to_additive smul_const, to_additive_reorder 5]
+lemma const_pow [has_pow β α] (b : β) (a : α) : const I b ^ a = const I (b ^ a) := rfl
+
+@[to_additive smul_comp, to_additive_reorder 6]
+lemma pow_comp [has_pow γ α] (x : β → γ) (a : α) (y : I → β) : (x ^ a) ∘ y = (x ∘ y) ^ a := rfl
 
 @[simp] lemma bit0_apply [Π i, has_add $ f i] : (bit0 x) i = bit0 (x i) := rfl
 

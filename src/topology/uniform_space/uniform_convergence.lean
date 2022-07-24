@@ -87,13 +87,8 @@ begin
   { rintros ⟨pa, hpa, pb, hpb, hpapb⟩,
     refine ⟨_, hpa, (λ n hn y hy, hpapb hn _)⟩,
     exact (eventually_principal.mp hpb) y hy, },
-
-  rintros ⟨t, ht, htmem⟩,
-  refine ⟨_, ht, _⟩,
-  use (λ a, a ∈ s),
-  simp only [eventually_principal, imp_self, implies_true_iff, true_and],
-  intros n hn y hy,
-  exact htmem n hn y hy,
+  { rintros ⟨t, ht, htmem⟩,
+    refine ⟨_, ht, _, (by simp), htmem⟩, },
 end
 
 lemma filter.prod_le_of_le_of_le {p₁ p₂ : filter ι} {q₁ q₂ : filter α} (hp : p₁ ≤ p₂)

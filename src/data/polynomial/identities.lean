@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.derivative
+import tactic.linear_combination
 import tactic.ring_exp
 
 /-!
@@ -93,10 +94,7 @@ def pow_sub_pow_factor (x y : R) : Π (i : ℕ), {z : R // x^i - y^i = z * (x - 
   begin
     cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    calc x ^ (k + 2) - y ^ (k + 2)
-        = x * (x ^ (k + 1) - y ^ (k + 1)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by ring_exp
-    ... = x * (z * (x - y)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by rw hz
-    ... = (z * x + y ^ (k + 1)) * (x - y) : by ring_exp
+    linear_combination x * hz with { normalization_tactic := `[ring_exp] }
   end
 
 /--

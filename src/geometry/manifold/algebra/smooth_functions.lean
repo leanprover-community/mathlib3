@@ -16,7 +16,7 @@ noncomputable theory
 
 open_locale manifold
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
@@ -179,8 +179,8 @@ In this section we show that smooth functions valued in a vector space `M` over 
 field `𝕜` inherit a vector space structure.
 -/
 
-instance has_scalar {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  has_scalar 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+instance has_smul {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_smul 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
 @[simp]
@@ -233,12 +233,6 @@ instance algebra : algebra 𝕜 C^∞⟮I, N; 𝓘(𝕜, A), A⟯ :=
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..smooth_map.semiring }
 
-/-- A special case of `pi.algebra` for non-dependent types. Lean get stuck on the definition
-below without this. -/
-instance _root_.function.algebra (I : Type*) {R : Type*} (A : Type*) {r : comm_semiring R}
-  [semiring A] [algebra R A] : algebra R (I → A) :=
-pi.algebra _ _
-
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]
 def coe_fn_alg_hom : C^∞⟮I, N; 𝓘(𝕜, A), A⟯ →ₐ[𝕜] (N → A) :=
@@ -260,8 +254,8 @@ section module_over_continuous_functions
 If `V` is a module over `𝕜`, then we show that the space of smooth functions from `N` to `V`
 is naturally a vector space over the ring of smooth functions from `N` to `𝕜`. -/
 
-instance has_scalar' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  has_scalar C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+instance has_smul' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_smul C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
 @[simp] lemma smul_comp' {V : Type*} [normed_group V] [normed_space 𝕜 V]

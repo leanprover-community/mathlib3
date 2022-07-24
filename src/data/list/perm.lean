@@ -25,7 +25,7 @@ open_locale nat
 universes uu vv
 
 namespace list
-variables {α : Type uu} {β : Type vv}
+variables {α : Type uu} {β : Type vv} {l₁ l₂ : list α}
 
 /-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
   of each other. This is defined by induction using pairwise swaps. -/
@@ -215,6 +215,19 @@ theorem perm.filter (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} (s : l₁ ~ l₂) : filter p l₁ ~ filter p l₂ :=
 by rw ← filter_map_eq_filter; apply s.filter_map _
 
+theorem filter_append_perm (p : α → Prop) [decidable_pred p]
+  (l : list α) : filter p l ++ filter (λ x, ¬ p x) l ~ l :=
+begin
+  induction l with x l ih,
+  { refl },
+  { by_cases h : p x,
+    { simp only [h, filter_cons_of_pos, filter_cons_of_neg, not_true, not_false_iff, cons_append],
+      exact ih.cons x },
+    { simp only [h, filter_cons_of_neg, not_false_iff, filter_cons_of_pos],
+      refine perm.trans _ (ih.cons x),
+      exact perm_append_comm.trans (perm_append_comm.cons _), } }
+end
+
 theorem exists_perm_sublist {l₁ l₂ l₂' : list α}
   (s : l₁ <+ l₂) (p : l₂ ~ l₂') : ∃ l₁' ~ l₁, l₁' <+ l₂' :=
 begin
@@ -378,6 +391,22 @@ theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
 | ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
 
+theorem perm.countp_congr (s : l₁ ~ l₂) {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
+  (hp : ∀ x ∈ l₁, p x = p' x) : l₁.countp p = l₂.countp p' :=
+begin
+  rw ← s.countp_eq p',
+  clear s,
+  induction l₁ with y s hs,
+  { refl },
+  { simp only [mem_cons_iff, forall_eq_or_imp] at hp,
+    simp only [countp_cons, hs hp.2, hp.1], },
+end
+
+theorem countp_eq_countp_filter_add
+  (l : list α) (p q : α → Prop) [decidable_pred p] [decidable_pred q] :
+  l.countp p = (l.filter q).countp p + (l.filter (λ a, ¬ q a)).countp p :=
+by { rw [← countp_append], exact perm.countp_eq _ (filter_append_perm _ _).symm }
+
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=
 p.countp_eq _
@@ -442,7 +471,7 @@ depend on the order of elements-/
 lemma perm.prod_eq' [monoid α] {l₁ l₂ : list α} (h : l₁ ~ l₂)
   (hc : l₁.pairwise (λ x y, x * y = y * x)) :
   l₁.prod = l₂.prod :=
-h.foldl_eq' (forall_of_forall_of_pairwise (λ x y h z, (h z).symm) (λ x hx z, rfl) $
+h.foldl_eq' (pairwise.forall_of_forall (λ x y h z, (h z).symm) (λ x hx z, rfl) $
   hc.imp $ λ x y h z, by simp only [mul_assoc, h]) _
 
 variable [comm_monoid α]
@@ -517,6 +546,10 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, p.cons_inv, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, p.cons a, s.cons2 _ _ _⟩⟩
 
+alias subperm_cons ↔ subperm.of_cons subperm.cons
+
+attribute [protected] subperm.cons
+
 theorem cons_subperm_of_mem {a : α} {l₁ l₂ : list α} (d₁ : nodup l₁) (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
  (s : l₁ <+~ l₂) : a :: l₁ <+~ l₂ :=
 begin
@@ -533,7 +566,7 @@ begin
     have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
     rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
-    rcases ih am (nodup_of_sublist st d₁)
+    rcases ih am (d₁.sublist st)
       (mt (λ x, st.subset x) h₁)
       (perm.cons_inv $ p.trans perm_middle) with ⟨t, p', s'⟩,
     exact ⟨b::t, (p'.cons b).trans $ (swap _ _ _).trans (perm_middle.symm.cons a), s'.cons2 _ _ _⟩ }
@@ -562,8 +595,7 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
         (λ a s, (swap _ _ _).subperm_right.1 $ (subperm_cons _).2 s) }
   end
 
-theorem subperm_of_subset_nodup
-  {l₁ l₂ : list α} (d : nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :=
+protected lemma nodup.subperm (d : nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :=
 begin
   induction d with a l₁' h d IH,
   { exact ⟨nil, perm.nil, nil_sublist _⟩ },
@@ -574,9 +606,7 @@ end
 
 theorem perm_ext {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂) :
   l₁ ~ l₂ ↔ ∀a, a ∈ l₁ ↔ a ∈ l₂ :=
-⟨λ p a, p.mem_iff, λ H, subperm.antisymm
-  (subperm_of_subset_nodup d₁ (λ a, (H a).1))
-  (subperm_of_subset_nodup d₂ (λ a, (H a).2))⟩
+⟨λ p a, p.mem_iff, λ H, (d₁.subperm $ λ a, (H a).1).antisymm $ d₂.subperm $ λ a, (H a).2⟩
 
 theorem nodup.sublist_ext {l₁ l₂ l : list α} (d : nodup l)
   (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ :=
@@ -860,6 +890,14 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂, f
     refine (pairwise_middle S).2 (pairwise_cons.2 ⟨λ b m, _, IH _ p'⟩),
     exact h _ (p'.symm.subset m) }
 end
+
+lemma pairwise.perm {R : α → α → Prop} {l l' : list α} (hR : l.pairwise R)
+  (hl : l ~ l') (hsymm : symmetric R) : l'.pairwise R :=
+(hl.pairwise_iff hsymm).mp hR
+
+lemma perm.pairwise {R : α → α → Prop} {l l' : list α}
+  (hl : l ~ l') (hR : l.pairwise R) (hsymm : symmetric R) : l'.pairwise R :=
+hR.perm hl hsymm
 
 theorem perm.nodup_iff {l₁ l₂ : list α} : l₁ ~ l₂ → (nodup l₁ ↔ nodup l₂) :=
 perm.pairwise_iff $ @ne.symm α

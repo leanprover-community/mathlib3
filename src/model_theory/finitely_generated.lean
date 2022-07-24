@@ -3,7 +3,6 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.countable
 import model_theory.substructures
 
 /-!
@@ -61,13 +60,13 @@ end
 theorem fg_bot : (⊥ : L.substructure M).fg :=
 ⟨∅, by rw [finset.coe_empty, closure_empty]⟩
 
-theorem fg_closure {s : set M} (hs : finite s) : fg (closure L s) :=
+theorem fg_closure {s : set M} (hs : s.finite) : fg (closure L s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 
 theorem fg_closure_singleton (x : M) : fg (closure L ({x} : set M)) :=
 fg_closure (finite_singleton x)
 
-theorem fg_sup {N₁ N₂ : L.substructure M}
+theorem fg.sup {N₁ N₂ : L.substructure M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [closure_union, ht₁.2, ht₂.2]⟩
@@ -112,7 +111,7 @@ begin
   { rintros ⟨S, Scount, hS⟩,
     cases eq_empty_or_nonempty ↑N with h h,
     { exact or.intro_left _ h },
-    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_surjective
+    obtain ⟨f, h'⟩ := (Scount.union (set.countable_singleton h.some)).exists_eq_range
       (singleton_nonempty h.some).inr,
     refine or.intro_right _ ⟨f, _⟩,
     rw [← h', closure_union, hS, sup_eq_left, closure_le],
@@ -128,12 +127,12 @@ end
 
 theorem cg_bot : (⊥ : L.substructure M).cg := fg_bot.cg
 
-theorem cg_closure {s : set M} (hs : countable s) : cg (closure L s) :=
+theorem cg_closure {s : set M} (hs : s.countable) : cg (closure L s) :=
 ⟨s, hs, rfl⟩
 
 theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := (fg_closure_singleton x).cg
 
-theorem cg_sup {N₁ N₂ : L.substructure M}
+theorem cg.sup {N₁ N₂ : L.substructure M}
   (hN₁ : N₁.cg) (hN₂ : N₂.cg) : (N₁ ⊔ N₂).cg :=
 let ⟨t₁, ht₁⟩ := cg_def.1 hN₁, ⟨t₂, ht₂⟩ := cg_def.1 hN₂ in
 cg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [closure_union, ht₁.2, ht₂.2]⟩
@@ -155,6 +154,14 @@ begin
   have h' := subset_closure hx,
   rw h2 at h',
   exact hom.map_le_range h'
+end
+
+theorem cg_iff_countable [L.countable_functions] {s : L.substructure M} :
+  s.cg ↔ nonempty (encodable s) :=
+begin
+  refine ⟨_, λ h, ⟨s, h, s.closure_eq⟩⟩,
+  rintro ⟨s, h, rfl⟩,
+  exact h.substructure_closure L
 end
 
 end substructure
@@ -217,8 +224,15 @@ begin
   exact h.range f,
 end
 
-@[priority 100] instance cg_of_fg [h : fg L M] : cg L M :=
+lemma cg_iff_countable [L.countable_functions] :
+  cg L M ↔ nonempty (encodable M) :=
+by rw [cg_def, cg_iff_countable, cardinal.encodable_iff, cardinal.encodable_iff,
+  top_equiv.to_equiv.cardinal_eq]
+
+lemma fg.cg (h : fg L M) : cg L M :=
 cg_def.2 (fg_def.1 h).cg
+
+@[priority 100] instance cg_of_fg [h : fg L M] : cg L M := h.cg
 
 end Structure
 

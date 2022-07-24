@@ -56,29 +56,31 @@ end
 instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
 finsupp.coe_fn_injective.semigroup_with_zero _ coe_zero coe_mul
 
--- note we cannot use `function.injective.non_unital_non_assoc_semiring` here as it creates
--- a conflicting `nsmul` field
 instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α →₀ β) :=
-{ ..(function.injective.distrib _ finsupp.coe_fn_injective coe_add coe_mul : distrib (α →₀ β)),
-  ..(finsupp.mul_zero_class : mul_zero_class (α →₀ β)),
-  ..(finsupp.add_comm_monoid : add_comm_monoid (α →₀ β)) }
+finsupp.coe_fn_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
 instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
-{ ..(infer_instance : semigroup (α →₀ β)),
-  ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)) }
+finsupp.coe_fn_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
+
+instance [non_unital_comm_semiring β] : non_unital_comm_semiring (α →₀ β) :=
+finsupp.coe_fn_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
 instance [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring (α →₀ β) :=
-{ ..(infer_instance : non_unital_non_assoc_semiring (α →₀ β)),
-  ..(infer_instance : add_comm_group (α →₀ β)) }
+finsupp.coe_fn_injective.non_unital_non_assoc_ring _
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [non_unital_ring β] : non_unital_ring (α →₀ β) :=
-{ ..(infer_instance : non_unital_semiring (α →₀ β)),
-  ..(infer_instance : add_comm_group (α →₀ β)) }
+finsupp.coe_fn_injective.non_unital_ring _
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
--- TODO can this be generalized in the direction of `pi.has_scalar'`
+instance [non_unital_comm_ring β] : non_unital_comm_ring (α →₀ β) :=
+finsupp.coe_fn_injective.non_unital_comm_ring _
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+-- TODO can this be generalized in the direction of `pi.has_smul'`
 -- (i.e. dependent functions and finsupps)
 -- TODO in theory this could be generalised, we only really need `smul_zero` for the definition
-instance pointwise_scalar [semiring β] : has_scalar (α → β) (α →₀ β) :=
+instance pointwise_scalar [semiring β] : has_smul (α → β) (α →₀ β) :=
 { smul := λ f g, finsupp.of_support_finite (λ a, f a • g a) begin
     apply set.finite.subset g.finite_support,
     simp only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,

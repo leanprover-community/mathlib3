@@ -80,13 +80,20 @@ lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b�
 lemma swap_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).swap = p.swap⁻¹ := rfl
 
 @[to_additive]
+instance [has_involutive_inv M] [has_involutive_inv N] : has_involutive_inv (M × N) :=
+{ inv_inv := λ a, ext (inv_inv _) (inv_inv _),
+  ..prod.has_inv }
+
+@[to_additive]
 instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
 
-@[simp, to_additive] lemma fst_div [group G] [group H] (a b : G × H) : (a / b).1 = a.1 / b.1 := rfl
-@[simp, to_additive] lemma snd_div [group G] [group H] (a b : G × H) : (a / b).2 = a.2 / b.2 := rfl
-@[simp, to_additive] lemma mk_div_mk [group G] [group H] (x₁ x₂ : G) (y₁ y₂ : H) :
+@[simp, to_additive] lemma fst_div [has_div G] [has_div H] (a b : G × H) : (a / b).1 = a.1 / b.1 :=
+rfl
+@[simp, to_additive] lemma snd_div [has_div G] [has_div H] (a b : G × H) : (a / b).2 = a.2 / b.2 :=
+rfl
+@[simp, to_additive] lemma mk_div_mk [has_div G] [has_div H] (x₁ x₂ : G) (y₁ y₂ : H) :
   (x₁, y₁) / (x₂, y₂) = (x₁ / x₂, y₁ / y₂) := rfl
-@[simp, to_additive] lemma swap_div [group G] [group H] (a b : G × H) :
+@[simp, to_additive] lemma swap_div [has_div G] [has_div H] (a b : G × H) :
   (a / b).swap = a.swap / b.swap := rfl
 
 instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
@@ -98,6 +105,11 @@ instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
 instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
+
+@[to_additive]
+instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
+{ mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
+  .. prod.semigroup }
 
 instance [semigroup_with_zero M] [semigroup_with_zero N] : semigroup_with_zero (M × N) :=
 { .. prod.mul_zero_class, .. prod.semigroup }
@@ -115,7 +127,7 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
   npow_succ' := λ z a, ext (monoid.npow_succ' _ _) (monoid.npow_succ' _ _),
   .. prod.semigroup, .. prod.mul_one_class }
 
-@[to_additive]
+@[to_additive prod.sub_neg_monoid]
 instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 { div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
   zpow := λ z a, ⟨div_inv_monoid.zpow z a.1, div_inv_monoid.zpow z a.2⟩,
@@ -124,15 +136,21 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
   zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
+@[to_additive subtraction_monoid]
+instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
+{ mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
+  inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)
+    (inv_eq_of_mul_eq_one_right $ congr_arg snd h),
+  .. prod.div_inv_monoid, .. prod.has_involutive_inv }
+
+@[to_additive subtraction_comm_monoid]
+instance [division_comm_monoid G] [division_comm_monoid H] : division_comm_monoid (G × H) :=
+{ .. prod.division_monoid, .. prod.comm_semigroup }
+
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
   .. prod.div_inv_monoid }
-
-@[to_additive]
-instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
-{ mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
-  .. prod.semigroup }
 
 @[to_additive]
 instance [left_cancel_semigroup G] [left_cancel_semigroup H] :
@@ -192,42 +210,42 @@ variables (M N) [has_mul M] [has_mul N] [has_mul P]
 /-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
 @[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism
 from `A × B` to `A`"]
-def fst : mul_hom (M × N) M := ⟨prod.fst, λ _ _, rfl⟩
+def fst : (M × N) →ₙ* M := ⟨prod.fst, λ _ _, rfl⟩
 
 /-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `N`.-/
 @[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism
 from `A × B` to `B`"]
-def snd : mul_hom (M × N) N := ⟨prod.snd, λ _ _, rfl⟩
+def snd : (M × N) →ₙ* N := ⟨prod.snd, λ _ _, rfl⟩
 
 variables {M N}
 
 @[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
 @[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
 
-/-- Combine two `monoid_hom`s `f : mul_hom M N`, `g : mul_hom M P` into
-`f.prod g : mul_hom M (N × P)` given by `(f.prod g) x = (f x, g x)`. -/
+/-- Combine two `monoid_hom`s `f : M →ₙ* N`, `g : M →ₙ* P` into
+`f.prod g : M →ₙ* (N × P)` given by `(f.prod g) x = (f x, g x)`. -/
 @[to_additive prod "Combine two `add_monoid_hom`s `f : add_hom M N`, `g : add_hom M P` into
 `f.prod g : add_hom M (N × P)` given by `(f.prod g) x = (f x, g x)`"]
-protected def prod (f : mul_hom M N) (g : mul_hom M P) : mul_hom M (N × P) :=
+protected def prod (f : M →ₙ* N) (g : M →ₙ* P) : M →ₙ* (N × P) :=
 { to_fun := pi.prod f g,
   map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
 
 @[to_additive coe_prod]
-lemma coe_prod (f : mul_hom M N) (g : mul_hom M P) : ⇑(f.prod g) = pi.prod f g := rfl
+lemma coe_prod (f : M →ₙ* N) (g : M →ₙ* P) : ⇑(f.prod g) = pi.prod f g := rfl
 
 @[simp, to_additive prod_apply]
-lemma prod_apply (f : mul_hom M N) (g : mul_hom M P) (x) : f.prod g x = (f x, g x) := rfl
+lemma prod_apply (f : M →ₙ* N) (g : M →ₙ* P) (x) : f.prod g x = (f x, g x) := rfl
 
 @[simp, to_additive fst_comp_prod]
-lemma fst_comp_prod (f : mul_hom M N) (g : mul_hom M P) : (fst N P).comp (f.prod g) = f :=
+lemma fst_comp_prod (f : M →ₙ* N) (g : M →ₙ* P) : (fst N P).comp (f.prod g) = f :=
 ext $ λ x, rfl
 
 @[simp, to_additive snd_comp_prod]
-lemma snd_comp_prod (f : mul_hom M N) (g : mul_hom M P) : (snd N P).comp (f.prod g) = g :=
+lemma snd_comp_prod (f : M →ₙ* N) (g : M →ₙ* P) : (snd N P).comp (f.prod g) = g :=
 ext $ λ x, rfl
 
 @[simp, to_additive prod_unique]
-lemma prod_unique (f : mul_hom M (N × P)) :
+lemma prod_unique (f : M →ₙ* (N × P)) :
   ((fst N P).comp f).prod ((snd N P).comp f) = f :=
 ext $ λ x, by simp only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
 
@@ -236,11 +254,11 @@ end prod
 section prod_map
 
 variables {M' : Type*} {N' : Type*} [has_mul M] [has_mul N] [has_mul M'] [has_mul N'] [has_mul P]
-  (f : mul_hom M M') (g : mul_hom N N')
+  (f : M →ₙ* M') (g : N →ₙ* N')
 
 /-- `prod.map` as a `monoid_hom`. -/
 @[to_additive prod_map "`prod.map` as an `add_monoid_hom`"]
-def prod_map : mul_hom (M × N) (M' × N') := (f.comp (fst M N)).prod (g.comp (snd M N))
+def prod_map : (M × N) →ₙ* (M' × N') := (f.comp (fst M N)).prod (g.comp (snd M N))
 
 @[to_additive prod_map_def]
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
@@ -249,8 +267,8 @@ lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) :
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
 @[to_additive prod_comp_prod_map]
-lemma prod_comp_prod_map (f : mul_hom P M) (g : mul_hom P N)
-  (f' : mul_hom M M') (g' : mul_hom N N') :
+lemma prod_comp_prod_map (f : P →ₙ* M) (g : P →ₙ* N)
+  (f' : M →ₙ* M') (g' : N →ₙ* N') :
   (f'.prod_map g').comp (f.prod g) = (f'.comp f).prod (g'.comp g) :=
 rfl
 
@@ -258,20 +276,20 @@ end prod_map
 
 section coprod
 
-variables [has_mul M] [has_mul N] [comm_semigroup P] (f : mul_hom M P) (g : mul_hom N P)
+variables [has_mul M] [has_mul N] [comm_semigroup P] (f : M →ₙ* P) (g : N →ₙ* P)
 
 /-- Coproduct of two `mul_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 * g p.2`. -/
 @[to_additive "Coproduct of two `add_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
-def coprod : mul_hom (M × N) P := f.comp (fst M N) * g.comp (snd M N)
+def coprod : (M × N) →ₙ* P := f.comp (fst M N) * g.comp (snd M N)
 
 @[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
 @[to_additive]
 lemma comp_coprod {Q : Type*} [comm_semigroup Q]
-  (h : mul_hom P Q) (f : mul_hom M P) (g : mul_hom N P) :
+  (h : P →ₙ* Q) (f : M →ₙ* P) (g : N →ₙ* P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
 ext $ λ x, by simp
 
@@ -430,6 +448,26 @@ def prod_comm : M × N ≃* N × M :=
 @[simp, to_additive coe_prod_comm_symm] lemma coe_prod_comm_symm :
   ⇑((prod_comm : M × N ≃* N × M).symm) = prod.swap := rfl
 
+variables {M' N' : Type*} [mul_one_class M'] [mul_one_class N']
+
+/--Product of multiplicative isomorphisms; the maps come from `equiv.prod_congr`.-/
+@[to_additive prod_congr "Product of additive isomorphisms; the maps come from `equiv.prod_congr`."]
+def prod_congr (f : M ≃* M') (g : N ≃* N') : M × N ≃* M' × N' :=
+{ map_mul' := λ x y, prod.ext (f.map_mul _ _) (g.map_mul _ _),
+  ..f.to_equiv.prod_congr g.to_equiv }
+
+/--Multiplying by the trivial monoid doesn't change the structure.-/
+@[to_additive unique_prod "Multiplying by the trivial monoid doesn't change the structure."]
+def unique_prod [unique N] : N × M ≃* M :=
+{ map_mul' := λ x y, rfl,
+  ..equiv.unique_prod M N }
+
+/--Multiplying by the trivial monoid doesn't change the structure.-/
+@[to_additive prod_unique "Multiplying by the trivial monoid doesn't change the structure."]
+def prod_unique [unique N] : M × N ≃* M :=
+{ map_mul' := λ x y, rfl,
+  ..equiv.prod_unique M N }
+
 end
 
 section
@@ -460,9 +498,13 @@ Used mainly to define the natural topology of `αˣ`. -/
 Used mainly to define the natural topology of `add_units α`."]
 def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
-  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
+  map_one' := by simp only [inv_one, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
+
+@[to_additive]
+lemma embed_product_injective (α : Type*) [monoid α] : function.injective (embed_product α) :=
+λ a₁ a₂ h, units.ext $ (congr_arg prod.fst h : _)
 
 end units
 
@@ -473,7 +515,7 @@ variables {α : Type*}
 
 /-- Multiplication as a multiplicative homomorphism. -/
 @[to_additive "Addition as an additive homomorphism.", simps]
-def mul_mul_hom [comm_semigroup α] : mul_hom (α × α) α :=
+def mul_mul_hom [comm_semigroup α] : (α × α) →ₙ* α :=
 { to_fun := λ a, a.1 * a.2,
   map_mul' := λ a b, mul_mul_mul_comm _ _ _ _ }
 
@@ -491,10 +533,10 @@ def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 
 /-- Division as a monoid homomorphism. -/
 @[to_additive "Subtraction as an additive monoid homomorphism.", simps]
-def div_monoid_hom [comm_group α] : α × α →* α :=
+def div_monoid_hom [division_comm_monoid α] : α × α →* α :=
 { to_fun := λ a, a.1 / a.2,
-  map_one' := div_one' _,
-  map_mul' := λ a b, mul_div_comm' _ _ _ _ }
+  map_one' := div_one _,
+  map_mul' := λ a b, mul_div_mul_comm _ _ _ _ }
 
 /-- Division as a multiplicative homomorphism with zero. -/
 @[simps]
@@ -502,6 +544,6 @@ def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,
-  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+  map_mul' := λ a b, mul_div_mul_comm _ _ _ _ }
 
 end bundled_mul_div

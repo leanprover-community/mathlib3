@@ -3,13 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.continuous_on
-import topology.separation
-import topology.algebra.mul_action
-import group_theory.submonoid.operations
-import algebra.group.prod
-import algebra.pointwise
 import algebra.big_operators.finprod
+import data.set.pointwise
+import topology.algebra.mul_action
 
 /-!
 # Theory of topological monoids
@@ -94,6 +90,17 @@ lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
 
+/-- Construct a unit from limits of units and their inverses. -/
+@[to_additive filter.tendsto.add_units "Construct an additive unit from limits of additive units
+and their negatives.", simps]
+def filter.tendsto.units [topological_space N] [monoid N] [has_continuous_mul N] [t2_space N]
+  {f : ι → Nˣ} {r₁ r₂ : N} {l : filter ι} [l.ne_bot]
+  (h₁ : tendsto (λ x, ↑(f x)) l (𝓝 r₁)) (h₂ : tendsto (λ x, ↑(f x)⁻¹) l (𝓝 r₂)) : Nˣ :=
+{ val := r₁,
+  inv := r₂,
+  val_inv := tendsto_nhds_unique (by simpa using h₁.mul h₂) tendsto_const_nhds,
+  inv_val := tendsto_nhds_unique (by simpa using h₂.mul h₁) tendsto_const_nhds }
+
 @[to_additive]
 lemma continuous_at.mul {f g : X → M} {x : X} (hf : continuous_at f x) (hg : continuous_at g x) :
   continuous_at (λx, f x * g x) x :=
@@ -107,14 +114,13 @@ hf.mul hg
 
 @[to_additive]
 instance [topological_space N] [has_mul N] [has_continuous_mul N] : has_continuous_mul (M × N) :=
-⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
- ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+⟨(continuous_fst.fst'.mul continuous_fst.snd').prod_mk
+  (continuous_snd.fst'.mul continuous_snd.snd')⟩
 
 @[to_additive]
 instance pi.has_continuous_mul {C : ι → Type*} [∀ i, topological_space (C i)]
   [∀ i, has_mul (C i)] [∀ i, has_continuous_mul (C i)] : has_continuous_mul (Π i, C i) :=
-{ continuous_mul := continuous_pi (λ i, continuous.mul
-    ((continuous_apply i).comp continuous_fst) ((continuous_apply i).comp continuous_snd)) }
+{ continuous_mul := continuous_pi (λ i, (continuous_apply i).fst'.mul (continuous_apply i).snd') }
 
 /-- A version of `pi.has_continuous_mul` for non-dependent functions. It is needed because sometimes
 Lean fails to use `pi.has_continuous_mul` for non-dependent functions. -/
@@ -215,18 +221,27 @@ is_closed_of_closure_subset $ λ f hf, ⟨monoid_hom_of_mem_closure_range_coe f 
 
 end pointwise_limits
 
-namespace submonoid
+@[to_additive] lemma inducing.has_continuous_mul {M N F : Type*} [has_mul M] [has_mul N]
+  [mul_hom_class F M N] [topological_space M] [topological_space N] [has_continuous_mul N]
+  (f : F) (hf : inducing f) :
+  has_continuous_mul M :=
+⟨hf.continuous_iff.2 $ by simpa only [(∘), map_mul f]
+  using (hf.continuous.fst'.mul hf.continuous.snd')⟩
 
-@[to_additive] instance [topological_space α] [monoid α] [has_continuous_mul α] (S : submonoid α) :
+@[to_additive] lemma has_continuous_mul_induced {M N F : Type*} [has_mul M] [has_mul N]
+  [mul_hom_class F M N] [topological_space N] [has_continuous_mul N] (f : F) :
+  @has_continuous_mul M (induced f ‹_›) _ :=
+by { letI := induced f ‹_›, exact inducing.has_continuous_mul f ⟨rfl⟩ }
+
+@[to_additive] instance subsemigroup.has_continuous_mul [topological_space M] [semigroup M]
+  [has_continuous_mul M] (S : subsemigroup M) :
   has_continuous_mul S :=
-{ continuous_mul :=
-  begin
-    rw embedding_subtype_coe.to_inducing.continuous_iff,
-    exact (continuous_subtype_coe.comp continuous_fst).mul
-      (continuous_subtype_coe.comp continuous_snd)
-  end }
+inducing.has_continuous_mul (⟨coe, λ _ _, rfl⟩ : mul_hom S M) ⟨rfl⟩
 
-end submonoid
+@[to_additive] instance submonoid.has_continuous_mul [topological_space M] [monoid M]
+  [has_continuous_mul M] (S : submonoid M) :
+  has_continuous_mul S :=
+S.to_subsemigroup.has_continuous_mul
 
 section has_continuous_mul
 
@@ -257,16 +272,6 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
 { carrier := closure (s : set M),
   one_mem' := subset_closure s.one_mem,
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
-
-@[to_additive]
-instance submonoid.topological_closure_has_continuous_mul (s : submonoid M) :
-  has_continuous_mul (s.topological_closure) :=
-{ continuous_mul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : s.topological_closure × s.topological_closure, (p.1 : M) * (p.2 : M)),
-    continuity,
-  end }
 
 @[to_additive]
 lemma submonoid.submonoid_topological_closure (s : submonoid M) :
@@ -372,7 +377,7 @@ lemma continuous_list_prod {f : ι → X → M} (l : list ι)
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
-@[continuity, to_additive continuous_nsmul]
+@[continuity, to_additive]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
@@ -380,16 +385,20 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 instance add_monoid.has_continuous_const_smul_nat {A} [add_monoid A] [topological_space A]
   [has_continuous_add A] : has_continuous_const_smul ℕ A := ⟨continuous_nsmul⟩
 
+instance add_monoid.has_continuous_smul_nat {A} [add_monoid A] [topological_space A]
+  [has_continuous_add A] : has_continuous_smul ℕ A :=
+⟨continuous_uncurry_of_discrete_topology continuous_nsmul⟩
+
 @[continuity, to_additive continuous.nsmul]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
 (continuous_pow n).comp h
 
-@[to_additive continuous_on_nsmul]
+@[to_additive]
 lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
 (continuous_pow n).continuous_on
 
-@[to_additive continuous_at_nsmul]
+@[to_additive]
 lemma continuous_at_pow (x : M) (n : ℕ) : continuous_at (λ x, x ^ n) x :=
 (continuous_pow n).continuous_at
 
@@ -413,16 +422,40 @@ lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : 
   continuous_on (λ x, f x ^ n) s :=
 λ x hx, (hf x hx).pow n
 
+/-- If `R` acts on `A` via `A`, then continuous multiplication implies continuous scalar
+multiplication by constants.
+
+Notably, this instances applies when `R = A`, or when `[algebra R A]` is available. -/
+@[priority 100]
+instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
+  [is_scalar_tower R A A] [topological_space A] [has_continuous_mul A] :
+  has_continuous_const_smul R A :=
+{ continuous_const_smul := λ q, begin
+    simp only [←smul_one_mul q (_ : A)] { single_pass := tt },
+    exact continuous_const.mul continuous_id,
+  end }
+
+/-- If the action of `R` on `A` commutes with left-multiplication, then continuous multiplication
+implies continuous scalar multiplication by constants.
+
+Notably, this instances applies when `R = Aᵐᵒᵖ` -/
+@[priority 100]
+instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
+  [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
+  has_continuous_const_smul R A :=
+{ continuous_const_smul := λ q, begin
+    simp only [←mul_smul_one q (_ : A)] { single_pass := tt },
+    exact continuous_id.mul continuous_const,
+  end }
+
 end has_continuous_mul
 
 namespace mul_opposite
 
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
-@[to_additive] instance [topological_space α] [has_mul α] [has_continuous_mul α] :
-  has_continuous_mul αᵐᵒᵖ :=
-⟨ let h₁ := @continuous_mul α _ _ _ in
-  let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
-  continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
+@[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]
+instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵐᵒᵖ :=
+⟨continuous_op.comp (continuous_unop.snd'.mul continuous_unop.fst')⟩
 
 end mul_opposite
 
@@ -437,9 +470,12 @@ with respect to the induced topology, is continuous.
 
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
-@[to_additive] instance : has_continuous_mul αˣ :=
-⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
-  continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
+@[to_additive "If addition on an additive monoid is continuous, then addition on the additive units
+of the monoid, with respect to the induced topology, is continuous.
+
+Negation is also continuous, but we register this in a later file, `topology.algebra.group`, because
+the predicate `has_continuous_neg` has not yet been defined."]
+instance : has_continuous_mul αˣ := inducing_embed_product.has_continuous_mul (embed_product α)
 
 end units
 
@@ -477,18 +513,31 @@ continuous_multiset_prod _
 
 open function
 
+@[to_additive]
+lemma locally_finite.exists_finset_mul_support {M : Type*} [comm_monoid M] {f : ι → X → M}
+  (hf : locally_finite (λ i, mul_support $ f i)) (x₀ : X) :
+  ∃ I : finset ι, ∀ᶠ x in 𝓝 x₀, mul_support (λ i, f i x) ⊆ I :=
+begin
+  rcases hf x₀ with ⟨U, hxU, hUf⟩,
+  refine ⟨hUf.to_finset, mem_of_superset hxU $ λ y hy i hi, _⟩,
+  rw [hUf.coe_to_finset],
+  exact ⟨y, hi, hy⟩
+end
+
+@[to_additive] lemma finprod_eventually_eq_prod {M : Type*} [comm_monoid M]
+  {f : ι → X → M} (hf : locally_finite (λ i, mul_support (f i))) (x : X) :
+  ∃ s : finset ι, ∀ᶠ y in 𝓝 x, (∏ᶠ i, f i y) = ∏ i in s, f i y :=
+let ⟨I, hI⟩ := hf.exists_finset_mul_support x in
+  ⟨I, hI.mono (λ y hy, finprod_eq_prod_of_mul_support_subset _ $ λ i hi, hy hi)⟩
+
 @[to_additive] lemma continuous_finprod {f : ι → X → M} (hc : ∀ i, continuous (f i))
   (hf : locally_finite (λ i, mul_support (f i))) :
   continuous (λ x, ∏ᶠ i, f i x) :=
 begin
   refine continuous_iff_continuous_at.2 (λ x, _),
-  rcases hf x with ⟨U, hxU, hUf⟩,
-  have : continuous_at (λ x, ∏ i in hUf.to_finset, f i x) x,
-    from tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
-  refine this.congr (mem_of_superset hxU $ λ y hy, _),
-  refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)).symm,
-  rw [hUf.coe_to_finset],
-  exact ⟨y, hi, hy⟩
+  rcases finprod_eventually_eq_prod hf x with ⟨s, hs⟩,
+  refine continuous_at.congr _ (eventually_eq.symm hs),
+  exact tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
 end
 
 @[to_additive] lemma continuous_finprod_cond {f : ι → X → M} {p : ι → Prop}
@@ -511,43 +560,22 @@ instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_ad
 
 section lattice_ops
 
-variables {ι' : Sort*} [has_mul M] [has_mul N] {ts : set (topological_space M)}
-  (h : Π t ∈ ts, @has_continuous_mul M t _) {ts' : ι' → topological_space M}
-  (h' : Π i, @has_continuous_mul M (ts' i) _) {t₁ t₂ : topological_space M}
-  (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _)
-  {t : topological_space N} [has_continuous_mul N] {F : Type*}
-  [mul_hom_class F M N] (f : F)
+variables {ι' : Sort*} [has_mul M]
 
-@[to_additive] lemma has_continuous_mul_Inf :
+@[to_additive] lemma has_continuous_mul_Inf {ts : set (topological_space M)}
+  (h : Π t ∈ ts, @has_continuous_mul M t _) :
   @has_continuous_mul M (Inf ts) _ :=
-{ continuous_mul := continuous_Inf_rng (λ t ht, continuous_Inf_dom₂ ht ht
+{ continuous_mul := continuous_Inf_rng.2 (λ t ht, continuous_Inf_dom₂ ht ht
   (@has_continuous_mul.continuous_mul M t _ (h t ht))) }
 
-include h'
+@[to_additive] lemma has_continuous_mul_infi {ts : ι' → topological_space M}
+  (h' : Π i, @has_continuous_mul M (ts i) _) :
+  @has_continuous_mul M (⨅ i, ts i) _ :=
+by { rw ← Inf_range, exact has_continuous_mul_Inf (set.forall_range_iff.mpr h') }
 
-@[to_additive] lemma has_continuous_mul_infi :
-  @has_continuous_mul M (⨅ i, ts' i) _ :=
-by {rw ← Inf_range, exact has_continuous_mul_Inf (set.forall_range_iff.mpr h')}
-
-omit h'
-
-include h₁ h₂
-
-@[to_additive] lemma has_continuous_mul_inf :
+@[to_additive] lemma has_continuous_mul_inf {t₁ t₂ : topological_space M}
+  (h₁ : @has_continuous_mul M t₁ _) (h₂ : @has_continuous_mul M t₂ _) :
   @has_continuous_mul M (t₁ ⊓ t₂) _ :=
-by {rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumption}
-
-omit h₁ h₂
-
-@[to_additive] lemma has_continuous_mul_induced :
-  @has_continuous_mul M (t.induced f) _ :=
-{ continuous_mul :=
-    begin
-      letI : topological_space M := t.induced f,
-      refine continuous_induced_rng _,
-      simp_rw [function.comp, map_mul],
-      change continuous ((λ p : N × N, p.1 * p.2) ∘ (prod.map f f)),
-      exact continuous_mul.comp (continuous_induced_dom.prod_map continuous_induced_dom),
-    end }
+by { rw inf_eq_infi, refine has_continuous_mul_infi (λ b, _), cases b; assumption }
 
 end lattice_ops

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.pi
+import linear_algebra.span
 
 /-!
 # Properties of the module `α →₀ M`
@@ -128,7 +129,7 @@ lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range)
 begin
   refine (eq_top_iff.2 $ set_like.le_def.2 $ assume f _, _),
   rw [← sum_single f],
-  exact sum_mem _ (assume a ha, submodule.mem_supr_of_mem a ⟨_, rfl⟩),
+  exact sum_mem (assume a ha, submodule.mem_supr_of_mem a ⟨_, rfl⟩),
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
@@ -156,12 +157,12 @@ variables (M R)
 def supported (s : set α) : submodule R (α →₀ M) :=
 begin
   refine ⟨ {p | ↑p.support ⊆ s }, _, _, _ ⟩,
-  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
-    assume h ha, exact (ha rfl).elim },
   { assume p q hp hq,
     refine subset.trans
       (subset.trans (finset.coe_subset.2 support_add) _) (union_subset hp hq),
     rw [finset.coe_union] },
+  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
+    assume h ha, exact (ha rfl).elim },
   { assume a p hp,
     refine subset.trans (finset.coe_subset.2 support_smul) hp }
 end
@@ -190,7 +191,7 @@ begin
   refine (span_eq_of_le _ _ (set_like.le_def.2 $ λ l hl, _)).symm,
   { rintro _ ⟨_, hp, rfl ⟩ , exact single_mem_supported R 1 hp },
   { rw ← l.sum_single,
-    refine sum_mem _ (λ i il, _),
+    refine sum_mem (λ i il, _),
     convert @smul_mem R (α →₀ R) _ _ _ _ (single i 1) (l i) _,
     { simp },
     apply subset_span,
@@ -248,8 +249,8 @@ begin
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
-  apply finsupp.induction l, {exact zero_mem _},
-  refine λ x a l hl a0, add_mem _ _,
+  apply finsupp.induction l, { exact zero_mem _ },
+  refine λ x a l hl a0, add_mem _,
   by_cases (∃ i, x ∈ s i); simp [h],
   { cases h with i hi,
     exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) }
@@ -465,9 +466,7 @@ begin
     rcases hx with ⟨l, hl⟩,
     rw ← hl,
     rw finsupp.total_apply,
-    unfold finsupp.sum,
-    apply sum_mem (span R (range v)),
-    exact λ i hi, submodule.smul_mem _ _ (subset_span (mem_range_self i)) },
+    exact sum_mem (λ i hi, submodule.smul_mem _ _ (subset_span (mem_range_self i))) },
   { apply span_le.2,
     intros x hx,
     rcases hx with ⟨i, hi⟩,
@@ -523,7 +522,7 @@ begin
       by_cases c ∈ s,
       { exact smul_mem _ _ (subset_span (set.mem_image_of_mem _ h)) },
       { simp [(finsupp.mem_supported' R _).1 hz _ h] } },
-    refine sum_mem _ _, simp [this] }
+    refine sum_mem _, simp [this] }
 end
 
 theorem mem_span_image_iff_total {s : set α} {x : M} :
@@ -843,9 +842,9 @@ attribute [irreducible] span.repr
 
 end
 
-lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M) (f : ι →₀ β)
-  (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
-S.to_add_submonoid.finsupp_sum_mem f g h
+protected lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : submodule R M)
+  (f : ι →₀ β) (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
+add_submonoid_class.finsupp_sum_mem S f g h
 
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
@@ -856,27 +855,10 @@ lemma submodule.exists_finset_of_mem_supr
   {ι : Sort*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
   ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
 begin
-  obtain ⟨f, hf, rfl⟩ : ∃ f ∈ finsupp.supported R R (⋃ i, ↑(p i)), finsupp.total M M R id f = m,
-  { have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
-    rwa [supr_eq_span, ← aux, finsupp.mem_span_image_iff_total R] at hm },
-  let t : finset M := f.support,
-  have ht : ∀ x : {x // x ∈ t}, ∃ i, ↑x ∈ p i,
-  { intros x,
-    rw finsupp.mem_supported at hf,
-    specialize hf x.2,
-    rwa set.mem_Union at hf },
-  choose g hg using ht,
-  let s : finset ι := finset.univ.image g,
-  use s,
-  simp only [mem_supr, supr_le_iff],
-  assume N hN,
-  rw [finsupp.total_apply, finsupp.sum, ← set_like.mem_coe],
-  apply N.sum_mem,
-  assume x hx,
-  apply submodule.smul_mem,
-  let i : ι := g ⟨x, hx⟩,
-  have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
-  exact hN i hi (hg _),
+  have := complete_lattice.is_compact_element.exists_finset_of_le_supr (submodule R M)
+    (submodule.singleton_span_is_compact_element m) p,
+  simp only [submodule.span_singleton_le_iff_mem] at this,
+  exact this hm,
 end
 
 /-- `submodule.exists_finset_of_mem_supr` as an `iff` -/
@@ -884,14 +866,14 @@ lemma submodule.mem_supr_iff_exists_finset
   {ι : Sort*} {p : ι → submodule R M} {m : M} :
   (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
 ⟨submodule.exists_finset_of_mem_supr p,
- λ ⟨_, hs⟩, supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
+ λ ⟨_, hs⟩, supr_mono (λ i, (supr_const_le : _ ≤ p i)) hs⟩
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=
 ⟨λ hx, let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_image_iff_total _).1
     (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
-λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩
+λ ⟨f, hf⟩, hf ▸ sum_mem (λ i hi, smul_mem _ _ $ subset_span hi)⟩
 
 /-- An element `m ∈ M` is contained in the `R`-submodule spanned by a set `s ⊆ M`, if and only if
 `m` can be written as a finite `R`-linear combination of elements of `s`.

@@ -33,7 +33,7 @@ open function multiset nat
 variables {α β : Type*}
 
 namespace finset
-variables {s t : finset α} {a : α}
+variables {s t : finset α} {a b : α}
 
 /-- `s.card` is the number of elements of `s`, aka its cardinality. -/
 def card (s : finset α) : ℕ := s.1.card
@@ -53,7 +53,7 @@ lemma card_le_of_subset : s ⊆ t → s.card ≤ t.card := multiset.card_le_of_l
 lemma card_pos : 0 < s.card ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 
-alias finset.card_pos ↔ _ finset.nonempty.card_pos
+alias card_pos ↔ _ nonempty.card_pos
 
 lemma card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 := (not_congr card_eq_zero).2 $ ne_empty_of_mem h
 
@@ -87,6 +87,9 @@ begin
   { rw [card_insert_of_mem h, if_pos h] },
   { rw [card_insert_of_not_mem h, if_neg h] }
 end
+
+@[simp] lemma card_doubleton (h : a ≠ b) : ({a, b} : finset α).card = 2 :=
+by rw [card_insert_of_not_mem (not_mem_singleton.2 h), card_singleton]
 
 @[simp] lemma card_erase_of_mem : a ∈ s → (s.erase a).card = s.card - 1 := card_erase_of_mem
 @[simp] lemma card_erase_add_one : a ∈ s → (s.erase a).card + 1 = s.card := card_erase_add_one
@@ -157,7 +160,7 @@ begin
   exact inj_on_of_nodup_map this,
 end
 
-lemma card_image_eq_iff_inj_on [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
+lemma card_image_iff [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
 ⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
 
 lemma card_image_of_injective [decidable_eq β] (s : finset α) (H : injective f) :
@@ -287,6 +290,9 @@ have hif : injective f',
       (right_inverse_surj_inv _)).injective,
 subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
+@[simp] lemma card_disj_union (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
+multiset.card_add _ _
+
 /-! ### Lattice structure -/
 
 section lattice
@@ -299,14 +305,17 @@ lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+by rw [←disj_union_eq_union s t $ disjoint_left.mp h, card_disj_union _ _ _]
 
 @[simp] lemma card_disjoint_union (h : disjoint s t) : card (s ∪ t) = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+card_union_eq h
 
 lemma card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - s.card, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, add_tsub_cancel_right]
+
+lemma card_sdiff_add_card_eq_card {s t : finset α} (h : s ⊆ t) : card (t \ s) + card s = card t :=
+((nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (card_sdiff h).symm).symm
 
 lemma le_card_sdiff (s t : finset α) : t.card - s.card ≤ card (t \ s) :=
 calc card t - card s
@@ -460,8 +469,8 @@ begin
     simp_rw [card_eq_one],
     rintro ⟨a, _, hab, rfl, b, rfl⟩,
     exact ⟨a, b, not_mem_singleton.1 hab, rfl⟩ },
-  { rintro ⟨x, y, hxy, rfl⟩,
-    simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
+  { rintro ⟨x, y, h, rfl⟩,
+    exact card_doubleton h }
 end
 
 lemma card_eq_three [decidable_eq α] :

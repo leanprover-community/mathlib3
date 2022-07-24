@@ -18,11 +18,11 @@ In this file we define and prove properties about finite products of measures
   Given `μ : Π i : ι, measure (α i)` for `[fintype ι]` it has type `measure (Π i : ι, α i)`.
 
 To apply Fubini along some subset of the variables, use
-`measure_theory.measure.map_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
-of two measures: this lemma states that the bijection `equiv.pi_equiv_pi_subtype_prod p α`
-between `(Π i : ι, α i)` and `(Π i : {i // p i}, α i) × (Π i : {i // ¬ p i}, α i)` maps a product
-measure to a direct product of product measures, to which one can apply the usual Fubini for
-direct product of measures.
+`measure_theory.measure_preserving_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
+of two measures: this lemma states that the bijection
+`measurable_equiv.pi_equiv_pi_subtype_prod α p` between `(Π i : ι, α i)` and
+`(Π i : {i // p i}, α i) × (Π i : {i // ¬ p i}, α i)` maps a product measure to a direct product of
+product measures, to which one can apply the usual Fubini for direct product of measures.
 
 ## Implementation Notes
 
@@ -83,7 +83,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -96,7 +96,7 @@ lemma generate_from_pi_eq {C : Π i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,
@@ -147,9 +147,11 @@ lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 by simp [hs]
 
-lemma pi_premeasure_pi' [nonempty ι] {s : Π i, set (α i)} :
+lemma pi_premeasure_pi' {s : Π i, set (α i)} :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 begin
+  casesI is_empty_or_nonempty ι,
+  { simp, },
   cases (pi univ s).eq_empty_or_nonempty with h h,
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
@@ -162,7 +164,7 @@ lemma pi_premeasure_pi_mono {s t : set (Π i, α i)} (h : s ⊆ t) :
   pi_premeasure m s ≤ pi_premeasure m t :=
 finset.prod_le_prod' (λ i _, (m i).mono' (image_subset _ h))
 
-lemma pi_premeasure_pi_eval [nonempty ι] {s : set (Π i, α i)} :
+lemma pi_premeasure_pi_eval {s : set (Π i, α i)} :
   pi_premeasure m (pi univ (λ i, eval i '' s)) = pi_premeasure m s :=
 by simp [pi_premeasure_pi']
 
@@ -275,7 +277,7 @@ begin
   refine le_antisymm _ _,
   { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { haveI : encodable ι := fintype.encodable ι,
+  { haveI : encodable ι := fintype.to_encodable ι,
     rw [← pi'_pi μ s],
     simp_rw [← pi'_pi μ s, measure.pi,
       to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
@@ -296,9 +298,13 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
   haveI := λ i, (hμ i).sigma_finite,
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
+  refine ⟨λ n, pi univ (λ i, (hμ i).set ((decode (ι → ℕ) n).iget i)), λ n, _, λ n, _, _⟩;
+  -- TODO (kmill) If this let comes before the refine, while the noncomputability checker
+  -- correctly sees this definition is computable, the Lean VM fails to see the binding is
+  -- computationally irrelevant. The `noncomputable theory` doesn't help because all it does
+  -- is insert `noncomputable` for you when necessary.
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
-  refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
   { calc measure.pi μ (pi univ (λ i, (hμ i).set (e n i)))
         ≤ measure.pi μ (pi univ (λ i, to_measurable (μ i) ((hμ i).set (e n i)))) :
@@ -351,7 +357,7 @@ eq.symm $ pi_eq $ λ s hs, pi'_pi μ s
 
 @[simp] lemma pi_pi (s : Π i, set (α i)) : measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
-  haveI : encodable ι := fintype.encodable ι,
+  haveI : encodable ι := fintype.to_encodable ι,
   rw [← pi'_eq_pi, pi'_pi]
 end
 
@@ -422,7 +428,7 @@ lemma ae_le_pi {β : ι → Type*} [Π i, preorder (β i)] {f f' : Π i, α i �
 
 lemma ae_le_set_pi {I : set ι} {s t : Π i, set (α i)} (h : ∀ i ∈ I, s i ≤ᵐ[μ i] t i) :
   (set.pi I s) ≤ᵐ[measure.pi μ] (set.pi I t) :=
-((eventually_all_finite (finite.of_fintype I)).2
+((eventually_all_finite I.to_finite).2
   (λ i hi, tendsto_eval_ae_ae.eventually (h i hi))).mono $
     λ x hst hx i hi, hst i hi $ hx i hi
 
@@ -501,40 +507,6 @@ end
 
 variable (μ)
 
-/-- Separating the indices into those that satisfy a predicate `p` and those that don't maps
-a product measure to a product of product measures. This is useful to apply Fubini to some subset
-of the variables. The converse is `measure_theory.measure.map_pi_equiv_pi_subtype_prod`. -/
-lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
-  map (equiv.pi_equiv_pi_subtype_prod p α).symm
-    (measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i))) = measure.pi μ :=
-begin
-  refine (measure.pi_eq (λ s hs, _)).symm,
-  have A : (equiv.pi_equiv_pi_subtype_prod p α).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
-    (set.pi set.univ (λ i : {i // p i}, s i)) ×ˢ (set.pi set.univ (λ i : {i // ¬p i}, s i)),
-  { ext x,
-    simp only [equiv.pi_equiv_pi_subtype_prod_symm_apply, mem_prod, mem_univ_pi, mem_preimage,
-      subtype.forall],
-    split,
-    { exact λ h, ⟨λ i hi, by simpa [dif_pos hi] using h i,
-                  λ i hi, by simpa [dif_neg hi] using h i⟩ },
-    { assume h i,
-      by_cases hi : p i,
-      { simpa only [dif_pos hi] using h.1 i hi },
-      {simpa only [dif_neg hi] using h.2 i hi } } },
-  rw [measure.map_apply (measurable_pi_equiv_pi_subtype_prod_symm _ p)
-        (measurable_set.univ_pi_fintype hs), A,
-      measure.prod_prod, pi_pi, pi_pi, ← fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))],
-end
-
-lemma map_pi_equiv_pi_subtype_prod (p : ι → Prop) [decidable_pred p] :
-  map (equiv.pi_equiv_pi_subtype_prod p α) (measure.pi μ) =
-    measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i)) :=
-begin
-  rw [← map_pi_equiv_pi_subtype_prod_symm μ p, measure.map_map
-      (measurable_pi_equiv_pi_subtype_prod _ p) (measurable_pi_equiv_pi_subtype_prod_symm _ p)],
-  simp only [equiv.self_comp_symm, map_id]
-end
-
 @[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
   [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
 begin
@@ -581,7 +553,9 @@ measure.pi_closed_ball _ _ hr
 open measure
 /-- We intentionally restrict this only to the nondependent function space, since type-class
 inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
-@[to_additive]
+@[to_additive "We intentionally restrict this only to the nondependent function space, since
+type-class inference cannot find an instance for `ι → ℝ` when this is stated for dependent function
+spaces."]
 instance pi.is_mul_left_invariant_volume {α} [group α] [measure_space α]
   [sigma_finite (volume : measure α)]
   [has_measurable_mul α] [is_mul_left_invariant (volume : measure α)] :
@@ -590,7 +564,9 @@ pi.is_mul_left_invariant _
 
 /-- We intentionally restrict this only to the nondependent function space, since type-class
 inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
-@[to_additive]
+@[to_additive "We intentionally restrict this only to the nondependent function space, since
+type-class inference cannot find an instance for `ι → ℝ` when this is stated for dependent function
+spaces."]
 instance pi.is_inv_invariant_volume {α} [group α] [measure_space α]
   [sigma_finite (volume : measure α)]
   [has_measurable_inv α] [is_inv_invariant (volume : measure α)] :
@@ -608,6 +584,47 @@ measures of corresponding sets (images or preimages) have equal measures and fun
 
 section measure_preserving
 
+lemma measure_preserving_pi_equiv_pi_subtype_prod {ι : Type u} {α : ι → Type v} [fintype ι]
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)]
+  (p : ι → Prop) [decidable_pred p] :
+  measure_preserving (measurable_equiv.pi_equiv_pi_subtype_prod α p) (measure.pi μ)
+    ((measure.pi $ λ i : subtype p, μ i).prod (measure.pi $ λ i, μ i)) :=
+begin
+  set e := (measurable_equiv.pi_equiv_pi_subtype_prod α p).symm,
+  refine measure_preserving.symm e _,
+  refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
+  have : e ⁻¹' (pi univ s) =
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)),
+    from equiv.preimage_pi_equiv_pi_subtype_prod_symm_pi p s,
+  rw [e.map_apply, this, prod_prod, pi_pi, pi_pi],
+  exact fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))
+end
+
+lemma volume_preserving_pi_equiv_pi_subtype_prod {ι : Type*} (α : ι → Type*) [fintype ι]
+  [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  (p : ι → Prop) [decidable_pred p] :
+  measure_preserving (measurable_equiv.pi_equiv_pi_subtype_prod α p) :=
+measure_preserving_pi_equiv_pi_subtype_prod (λ i, volume) p
+
+lemma measure_preserving_pi_fin_succ_above_equiv {n : ℕ} {α : fin (n + 1) → Type u}
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)]
+  (i : fin (n + 1)) :
+  measure_preserving (measurable_equiv.pi_fin_succ_above_equiv α i) (measure.pi μ)
+    ((μ i).prod $ measure.pi $ λ j, μ (i.succ_above j)) :=
+begin
+  set e := (measurable_equiv.pi_fin_succ_above_equiv α i).symm,
+  refine measure_preserving.symm e _,
+  refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
+  rw [e.map_apply, i.prod_univ_succ_above _, ← pi_pi, ← prod_prod],
+  congr' 1 with ⟨x, f⟩,
+  simp [i.forall_iff_succ_above]
+end
+
+lemma volume_preserving_pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type u)
+  [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))] (i : fin (n + 1)) :
+  measure_preserving (measurable_equiv.pi_fin_succ_above_equiv α i) :=
+measure_preserving_pi_fin_succ_above_equiv (λ _, volume) i
+
 lemma measure_preserving_fun_unique {β : Type u} {m : measurable_space β} (μ : measure β)
   (α : Type v) [unique α] :
   measure_preserving (measurable_equiv.fun_unique α β) (measure.pi (λ a : α, μ)) μ :=
@@ -618,7 +635,7 @@ begin
     rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
     congr' 1, exact e.to_equiv.image_eq_preimage s },
   simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
-  exact ((measurable_equiv.fun_unique α β).symm.measurable.measure_preserving _).symm
+  exact (e.symm.measurable.measure_preserving _).symm e.symm
 end
 
 lemma volume_preserving_fun_unique (α : Type u) (β : Type v) [unique α] [measure_space β] :

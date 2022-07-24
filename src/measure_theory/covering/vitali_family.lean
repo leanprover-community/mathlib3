@@ -134,7 +134,7 @@ lemma covering_mem_family {x : α} (hx : x ∈ h.index) : h.covering x ∈ v.set
 lemma measure_diff_bUnion : μ (s \ ⋃ x ∈ h.index, h.covering x) = 0 :=
 h.exists_disjoint_covering_ae.some_spec.some_spec.2.2.2
 
-lemma index_countable [second_countable_topology α] : countable h.index :=
+lemma index_countable [second_countable_topology α] : h.index.countable :=
 h.covering_disjoint.countable_of_nonempty_interior
   (λ x hx, v.nonempty_interior _ _ (h.covering_mem_family hx))
 

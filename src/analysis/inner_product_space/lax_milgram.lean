@@ -53,9 +53,9 @@ begin
   intro v,
   by_cases h : 0 < ∥v∥,
   { refine (mul_le_mul_right h).mp _,
-    exact calc C * ∥v∥ * ∥v∥
+    calc C * ∥v∥ * ∥v∥
         ≤ B v v : coercivity v
-    ... = ⟪B♯ v, v⟫_ℝ : by simp
+    ... = ⟪B♯ v, v⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B v v).symm
     ... ≤ ∥B♯ v∥ * ∥v∥ : real_inner_le_norm (B♯ v) v, },
   { have : v = 0 := by simpa using h,
     simp [this], }
@@ -66,7 +66,7 @@ lemma antilipschitz (coercive : is_coercive B) :
 begin
   rcases coercive.bounded_below with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
-  refine linear_map.antilipschitz_of_bound B♯ _,
+  refine continuous_linear_map.antilipschitz_of_bound B♯ _,
   simp_rw [real.coe_to_nnreal',
     max_eq_left_of_lt (inv_pos.mpr C_pos),
     ←inv_mul_le_iff (inv_pos.mpr C_pos)],
@@ -82,7 +82,7 @@ end
 
 lemma closed_range (coercive : is_coercive B) : is_closed (B♯.range : set V) :=
 begin
-  rcases  coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
+  rcases coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.is_closed_range B♯.uniform_continuous,
 end
 
@@ -92,16 +92,16 @@ begin
   rw ← B♯.range.orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,
-  rcases coercive with ⟨C, C_ge_0, coercivity⟩,
-  have : C * ∥w∥ * ∥w∥ ≤ 0 :=
-  calc C * ∥w∥ * ∥w∥
-       ≤ B w w : coercivity w
-  ...  = ⟪B♯ w, w⟫_ℝ : by simp
-  ...  = 0 : mem_w_orthogonal _ ⟨w, rfl⟩,
-  have : ∥w∥ * ∥w∥ ≤ 0 := by nlinarith,
-  have h : ∥w∥ = 0 := by nlinarith [norm_nonneg w],
-  have w_eq_zero : w = 0 := by simpa using h,
-  simp [w_eq_zero],
+  rcases coercive with ⟨C, C_pos, coercivity⟩,
+  obtain rfl : w = 0,
+  { rw [←norm_eq_zero, ←mul_self_eq_zero, ←mul_right_inj' C_pos.ne', mul_zero, ←mul_assoc],
+    apply le_antisymm,
+    { calc C * ∥w∥ * ∥w∥
+          ≤ B w w : coercivity w
+      ... = ⟪B♯ w, w⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B w w).symm
+      ... = 0 : mem_w_orthogonal _ ⟨w, rfl⟩ },
+    { exact mul_nonneg (mul_nonneg C_pos.le (norm_nonneg w)) (norm_nonneg w) } },
+  exact inner_zero_left,
 end
 
 /--

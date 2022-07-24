@@ -296,10 +296,8 @@ meta def extensional_attribute : user_attribute unit (option name) :=
 { name := `ext,
   descr := "lemmas usable by `ext` tactic",
   parser := optional ident,
-  before_unset := some $ λ _ _, pure (),
   after_set := some $ λ n _ b, do
     add ← extensional_attribute.get_param n,
-    unset_attribute `ext n,
     e ← get_env,
     n ← if (e.structure_fields n).is_some
       then derive_struct_ext_lemma n
@@ -442,7 +440,7 @@ do ⟨_, σ⟩ ← state_t.run (ext1_core cfg) {patts := xs},
 /-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
   `ext ps (some n)` applies at most `n` extensionality lemmas. Returns the unused patterns. -/
 meta def ext (xs : list rcases_patt) (fuel : option ℕ) (cfg : apply_cfg := {})
-  (trace : bool := ff): tactic (list rcases_patt) :=
+  (trace : bool := ff) : tactic (list rcases_patt) :=
 do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
    when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
@@ -523,10 +521,10 @@ Try this: apply funext, rintro ⟨a, b⟩
 A maximum depth can be provided with `ext x y z : 3`.
 -/
 meta def interactive.ext :
-  (parse $ (tk "?")?) → parse rcases_patt_parse_hi* → parse (tk ":" *> small_nat)? → tactic unit
+  (parse $ (tk "?")?) → parse rintro_patt_parse_hi* → parse (tk ":" *> small_nat)? → tactic unit
  | trace [] (some n)  := iterate_range 1 n (ext1 [] {} trace.is_some $> ())
  | trace [] none      := repeat1 (ext1 [] {} trace.is_some $> ())
- | trace xs n         := ext xs n {} trace.is_some $> ()
+ | trace xs n         := ext xs.join n {} trace.is_some $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with

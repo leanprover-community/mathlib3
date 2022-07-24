@@ -47,7 +47,14 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 ## Implementation Details
 
-`add_valuation R Γ₀` is implemented as `valuation R (multiplicative (order_dual Γ₀))`.
+`add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
+
+## Notation
+
+In the `discrete_valuation` locale:
+
+ * `ℕₘ₀` is a shorthand for `with_zero (multiplicative ℕ)`
+ * `ℤₘ₀` is a shorthand for `with_zero (multiplicative ℤ)`
 
 ## TODO
 
@@ -181,6 +188,10 @@ def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   map_add_le_max' := λ x y, by simp only [comp_app, map_add, f.map_add],
   .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
+@[simp]
+lemma comap_apply {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) (s : S) :
+  v.comap f s = v (f s) := rfl
+
 @[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
 
 lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁ →+* S₂) (g : S₂ →+* R) :
@@ -250,11 +261,36 @@ begin
     rwa [add_comm, max_comm] at h' }
 end
 
+lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=
+begin
+  convert v.map_add_of_distinct_val _,
+  { symmetry, rw max_eq_right_iff, exact le_of_lt h },
+  { exact ne_of_lt h }
+end
+
+lemma map_add_eq_of_lt_left (h : v y < v x) : v (x + y) = v x :=
+begin
+  rw add_comm, exact map_add_eq_of_lt_right _ h,
+end
+
 lemma map_eq_of_sub_lt (h : v (y - x) < v x) : v y = v x :=
 begin
   have := valuation.map_add_of_distinct_val v (ne_of_gt h).symm,
   rw max_eq_right (le_of_lt h) at this,
   simpa using this
+end
+
+lemma map_one_add_of_lt (h : v x < 1) : v (1 + x) = 1 :=
+begin
+  rw ← v.map_one at h,
+  simpa only [v.map_one] using v.map_add_eq_of_lt_left h
+end
+
+lemma map_one_sub_of_lt (h : v x < 1) : v (1 - x) = 1 :=
+begin
+  rw [← v.map_one, ← v.map_neg] at h,
+  rw sub_eq_add_neg 1 x,
+  simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
 end
 
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
@@ -343,6 +379,46 @@ begin
     rwa h, },
 end
 
+lemma is_equiv_iff_val_le_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x ≤ 1 ↔ v' x ≤ 1 :=
+⟨λ h x, by  simpa using h x 1, is_equiv_of_val_le_one _ _⟩
+
+lemma is_equiv_iff_val_eq_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x = 1 ↔ v' x = 1 :=
+begin
+  split,
+  { intros h x,
+    simpa using @is_equiv.val_eq _ _ _ _ _ _ v v' h x 1 },
+  { intros h, apply is_equiv_of_val_le_one, intros x,
+    split,
+    { intros hx,
+      cases lt_or_eq_of_le hx with hx' hx',
+      { have : v (1 + x) = 1,
+        { rw ← v.map_one, apply map_add_eq_of_lt_left, simpa },
+        rw h at this,
+        rw (show x = (-1) + (1 + x), by simp),
+        refine le_trans (v'.map_add _ _) _,
+        simp [this] },
+      { rw h at hx', exact le_of_eq hx' } },
+    { intros hx,
+      cases lt_or_eq_of_le hx with hx' hx',
+      { have : v' (1 + x) = 1,
+        { rw ← v'.map_one, apply map_add_eq_of_lt_left, simpa },
+        rw ← h at this,
+        rw (show x = (-1) + (1 + x), by simp),
+        refine le_trans (v.map_add _ _) _,
+        simp [this] },
+      { rw ← h at hx', exact le_of_eq hx' } } }
+end
+
 end
 
 section supp
@@ -391,8 +467,9 @@ Note: it's just the function; the valuation is `on_quot hJ`. -/
 def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
   R ⧸ J → Γ₀ :=
 λ q, quotient.lift_on' q v $ λ a b h,
-calc v a = v (b + (a - b)) : by simp
-     ... = v b             : v.map_add_supp b (hJ h)
+calc v a = v (b + -(-a + b)) : by simp
+     ... = v b             :
+      v.map_add_supp b $ (ideal.neg_mem_iff _).2 $ hJ $ quotient_add_group.left_rel_apply.mp h
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :
@@ -405,12 +482,7 @@ def on_quot {J : ideal R} (hJ : J ≤ supp v) :
 
 @[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
   (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
-ext $ λ r,
-begin
-  refine @quotient.lift_on_mk _ _ (J.quotient_rel) v (λ a b h, _) _,
-  calc v a = v (b + (a - b)) : by simp
-       ... = v b             : v.map_add_supp b (hJ h)
-end
+ext $ λ r, rfl
 
 lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
   supp (v.comap f) = ideal.comap f v.supp :=
@@ -453,7 +525,7 @@ variables (R) [ring R] (Γ₀ : Type*) [linear_ordered_add_comm_monoid_with_top 
 
 /-- The type of `Γ₀`-valued additive valuations on `R`. -/
 @[nolint has_inhabited_instance]
-def add_valuation := valuation R (multiplicative (order_dual Γ₀))
+def add_valuation := valuation R (multiplicative Γ₀ᵒᵈ)
 
 end add_monoid
 
@@ -478,8 +550,7 @@ section
 variables (f : R → Γ₀) (h0 : f 0 = ⊤) (h1 : f 1 = 0)
 variables (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x * y) = f x + f y)
 
-/-- An alternate constructor of `add_valuation`, that doesn't reference
-  `multiplicative (order_dual Γ₀)` -/
+/-- An alternate constructor of `add_valuation`, that doesn't reference `multiplicative Γ₀ᵒᵈ` -/
 def of : add_valuation R Γ₀ :=
 { to_fun := f,
   map_one' := h1,
@@ -491,6 +562,13 @@ variables {h0} {h1} {hadd} {hmul} {r : R}
 
 @[simp]
 theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
+
+/-- The `valuation` associated to an `add_valuation` (useful if the latter is constructed using
+`add_valuation.of`). -/
+def valuation : valuation R (multiplicative Γ₀ᵒᵈ) := v
+
+@[simp] lemma valuation_apply (r : R) :
+  v.valuation r = multiplicative.of_add (order_dual.to_dual (v r)) := rfl
 
 end
 
@@ -686,3 +764,10 @@ end supp -- end of section
 attribute [irreducible] add_valuation
 
 end add_valuation
+
+section valuation_notation
+
+localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+
+end valuation_notation

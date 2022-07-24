@@ -42,15 +42,17 @@ General algebra:
     abelianization: 'abelianization'
     free group: 'free_group'
     presented group: 'presented_group'
+    Schreier's lemma: 'subgroup.closure_mul_image_eq'
     cyclic group: 'is_cyclic'
     nilpotent group: 'group.is_nilpotent'
     permutation group of a type: 'equiv.perm'
+    structure of fintely generated abelian groups: 'add_comm_group.equiv_free_prod_direct_sum_zmod'
 
   Rings:
     ring: 'ring'
     ring morphism: 'ring_hom'
     the category of rings: 'Ring'
-    subring: 'is_subring'
+    subring: 'subring'
     localization: 'localization'
     local ring: 'local_ring'
     noetherian ring: 'is_noetherian_ring'
@@ -85,7 +87,7 @@ General algebra:
     $K[X]$ is Euclidean: 'polynomial.euclidean_domain'
     Hilbert basis theorem: 'polynomial.is_noetherian_ring'
     $A[X]$ has gcd and lcm if $A$ does: 'polynomial.normalized_gcd_monoid'
-    $A[X]$ is a UFD when $A$ is a UFD: 'polynomial.unique_factorization_monoid'
+    $A[{X_i}]$ is a UFD when $A$ is a UFD: 'mv_polynomial.unique_factorization_monoid'
     irreducible polynomial: 'irreducible'
     Eisenstein's criterion: 'polynomial.irreducible_of_eisenstein_criterion'
     polynomial in several indeterminates: 'mv_polynomial'
@@ -157,6 +159,8 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
+  Finitely generated modules over a PID:
+    structure theorem: 'module.equiv_free_prod_direct_sum'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
@@ -225,7 +229,6 @@ Topology:
     completion of a topological ring: 'uniform_space.completion.ring'
     topological module: 'has_continuous_smul'
     continuous linear map: 'continuous_linear_map'
-    weak-* topology: 'weak_dual.topological_space'
     Haar measure on a locally compact Hausdorff group: 'measure_theory.measure.haar_measure'
   Metric spaces:
     metric space: 'metric_space'
@@ -241,6 +244,11 @@ Topology:
     Gromov-Hausdorff space: 'Gromov_Hausdorff.GH_space'
 
 Analysis:
+  Topological vector spaces:
+    local convexity: 'locally_convex_space'
+    Bornology: 'bornology'
+    weak-* topology for dualities: 'weak_bilin.topological_space'
+
   Normed vector spaces/Banach spaces:
     normed vector space over a normed field: 'normed_space'
     topology on a normed vector space: 'normed_space.has_bounded_smul'
@@ -248,6 +256,7 @@ Analysis:
     finite dimensional normed spaces over complete normed fields are complete: 'submodule.complete_of_finite_dimensional'
     Heine-Borel theorem (finite dimensional normed spaces are proper): 'finite_dimensional.proper'
     norm of a continuous linear map: 'linear_map.mk_continuous'
+    Banach-Steinhaus theorem: 'banach_steinhaus'
     Banach open mapping theorem: 'continuous_linear_map.is_open_map'
     absolutely convergent series in Banach spaces: 'summable_of_summable_norm'
     Hahn-Banach theorem: 'exists_extension_norm_eq'
@@ -265,6 +274,7 @@ Analysis:
     existence of Hilbert basis: 'exists_hilbert_basis'
     eigenvalues from Rayleigh quotient: 'inner_product_space.is_self_adjoint.has_eigenvector_of_is_local_extr_on'
     Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
+    Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
 
   Differentiability:
     differentiable function between normed vector spaces: 'has_fderiv_at'
@@ -310,6 +320,7 @@ Analysis:
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
     Fatou's lemma: 'measure_theory.lintegral_liminf_le'
     vector-valued integrable function (Bochner integral): 'measure_theory.integrable'
+    uniform integrability: 'measure_theory.uniform_integrable'
     $L^p$ space: 'measure_theory.Lp'
     Bochner integral: 'measure_theory.integral'
     dominated convergence theorem: 'measure_theory.tendsto_integral_of_dominated_convergence'
@@ -317,6 +328,49 @@ Analysis:
     fundamental theorem of calculus, part 2: 'interval_integral.integral_eq_sub_of_has_deriv_right_of_le'
     Fubini's theorem: 'measure_theory.integral_prod'
     product of finitely many measures: 'measure_theory.measure.pi'
+    convolution: 'convolution'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
+    regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
+    change of variables formula: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
+
+  Complex analysis:
+    Cauchy integral formula: 'diff_cont_on_cl.circle_integral_sub_inv_smul'
+    Liouville theorem: 'differentiable.apply_eq_apply_of_bounded'
+    maximum modulus principle: 'complex.eventually_eq_of_is_local_max_norm'
+    analyticity of holomorphic functions: 'differentiable_on.analytic_at'
+    Schwarz lemma: 'complex.abs_le_abs_of_maps_to_ball_self'
+    removable singularity: 'complex.differentiable_on_update_lim_insert_of_is_o'
+    Phragmen-Lindelöf principle: 'phragmen_lindelof.horizontal_strip'
+    fundamental theorem of algebra: 'complex.is_alg_closed'
+
+Probability Theory:
+  Definitions in probability theory:
+    probability measure: 'measure_theory.is_probability_measure'
+    independent events: 'probability_theory.Indep_set'
+    independent sigma-algebras: 'probability_theory.Indep'
+    conditional probability: 'probability_theory.cond'
+    conditional expectation: 'measure_theory.condexp'
+  Random variables and their laws:
+    discrete law: 'pmf'
+    probability density function: 'measure_theory.has_pdf'
+    variance of a real-valued random variable: 'probability_theory.variance'
+    independence of random variables: 'probability_theory.Indep_fun'
+    mean of product of independent random variables: 'probability_theory.indep_fun.integral_mul_of_integrable'
+    moment of a random variable: 'probability_theory.moment'
+    Bernoulli law: 'pmf.bernoulli'
+  Convergence of a sequence of random variables:
+    convergence in probability: 'measure_theory.tendsto_in_measure'
+    $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
+    almost sure convergence: 'measure_theory.measure.ae'
+    convergence in distribution: 'measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto'
+    Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
+    Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
+    strong law of large numbers: 'probability_theory.strong_law_ae'
+  Stochastic Processes:
+    martingale: 'measure_theory.martingale'
+    optional stopping theorem: 'measure_theory.submartingale_iff_expected_stopped_value_mono'
+    stopping time: 'measure_theory.is_stopping_time'
+    hitting time: 'measure_theory.hitting'
 
 Geometry:
   Affine and Euclidean geometry:
@@ -409,3 +463,12 @@ Logic and computation:
     ordinal: 'ordinal'
     cardinal: 'cardinal'
     model of ZFC: 'Set'
+  Model theory:
+    first-order structure: 'first_order.language.Structure'
+    first-order formula: 'first_order.language.formula'
+    satisfiability: 'first_order.language.Theory.is_satisfiable'
+    substructure: 'first_order.language.substructure'
+    definable set: 'set.definable'
+    elementary embedding: 'first_order.language.elementary_embedding'
+    Compactness theorem: 'first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable'
+    Löwenheim-Skolem: 'first_order.language.exists_elementary_embedding_card_eq'

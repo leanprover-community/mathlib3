@@ -147,11 +147,15 @@ by simpa only [closure_Ici, closure_Iic, frontier_Ici, frontier_Iic]
 
 end complex
 
-open complex
+open complex metric
 
-lemma is_open.re_prod_im {s t : set ℝ} (hs : is_open s) (ht : is_open t) : is_open (s ×ℂ t) :=
+variables {s t : set ℝ}
+
+lemma is_open.re_prod_im (hs : is_open s) (ht : is_open t) : is_open (s ×ℂ t) :=
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)
 
-lemma is_closed.re_prod_im {s t : set ℝ} (hs : is_closed s) (ht : is_closed t) :
-  is_closed (s ×ℂ t) :=
+lemma is_closed.re_prod_im (hs : is_closed s) (ht : is_closed t) : is_closed (s ×ℂ t) :=
 (hs.preimage continuous_re).inter (ht.preimage continuous_im)
+
+lemma metric.bounded.re_prod_im (hs : bounded s) (ht : bounded t) : bounded (s ×ℂ t) :=
+equiv_real_prodₗ.antilipschitz.bounded_preimage (hs.prod ht)

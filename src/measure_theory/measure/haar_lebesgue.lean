@@ -39,7 +39,7 @@ open topological_space set filter metric
 open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
+def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
   compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
@@ -47,11 +47,11 @@ noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts 
 universe u
 
 /-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
+def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
   compact' := is_compact_univ_pi (λ i, is_compact_Icc),
-  interior_nonempty' := by simp only [interior_pi_set, finite.of_fintype, interior_Icc,
+  interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
 namespace measure_theory
@@ -163,6 +163,21 @@ begin
   exact hx this
 end
 
+/-- A strict affine subspace has measure zero. -/
+lemma add_haar_affine_subspace
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  (s : affine_subspace ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
+begin
+  rcases s.eq_bot_or_nonempty with rfl|hne,
+  { rw [affine_subspace.bot_coe, measure_empty] },
+  rw [ne.def, ← affine_subspace.direction_eq_top_iff_of_nonempty hne] at hs,
+  rcases hne with ⟨x, hx : x ∈ s⟩,
+  simpa only [affine_subspace.coe_direction_eq_vsub_set_right hx, vsub_eq_sub,
+    sub_eq_add_neg, image_add_right, neg_neg, measure_preimage_add_right]
+    using add_haar_submodule μ s.direction hs
+end
+
 /-!
 ### Applying a linear map rescales Haar measure by the determinant
 
@@ -180,9 +195,8 @@ begin
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
-  rw this,
-  simp [add_haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume_pi hf,
-    smul_smul, mul_comm],
+  rw [this, add_haar_measure_eq_volume_pi, measure.map_smul,
+    real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
@@ -214,7 +228,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 
@@ -300,7 +314,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
-add_haar_image_linear_map μ _ s
+μ.add_haar_image_linear_map (f : E →ₗ[ℝ] E) s
 
 /-!
 ### Basic properties of Haar measures on real vector spaces
@@ -333,7 +347,7 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv] },
+  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
@@ -345,6 +359,13 @@ begin
     simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
       measure_singleton] }
 end
+
+@[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
+  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
+  by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
+... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+  by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/
@@ -398,7 +419,7 @@ lemma add_haar_closed_ball_mul_of_pos (x : E) {r : ℝ} (hr : 0 < r) (s : ℝ) :
   μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
-    by simp [smul_closed_ball' hr.ne' (0 : E), real.norm_eq_abs, abs_of_nonneg hr.le],
+    by simp [smul_closed_ball' hr.ne' (0 : E), abs_of_nonneg hr.le],
   simp only [this, add_haar_smul, abs_of_nonneg hr.le, add_haar_closed_ball_center, abs_pow],
 end
 
@@ -406,7 +427,7 @@ lemma add_haar_closed_ball_mul (x : E) {r : ℝ} (hr : 0 ≤ r) {s : ℝ} (hs : 
   μ (closed_ball x (r * s)) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball 0 s) :=
 begin
   have : closed_ball (0 : E) (r * s) = r • closed_ball 0 s,
-    by simp [smul_closed_ball r (0 : E) hs, real.norm_eq_abs, abs_of_nonneg hr],
+    by simp [smul_closed_ball r (0 : E) hs, abs_of_nonneg hr],
   simp only [this, add_haar_smul, abs_of_nonneg hr, add_haar_closed_ball_center, abs_pow],
 end
 
@@ -424,7 +445,7 @@ begin
   have A : tendsto (λ (r : ℝ), ennreal.of_real (r ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))
     (𝓝[<] 1) (𝓝 (ennreal.of_real (1 ^ (finrank ℝ E)) * μ (closed_ball (0 : E) 1))),
   { refine ennreal.tendsto.mul _ (by simp) tendsto_const_nhds (by simp),
-    exact ennreal.tendsto_of_real ((tendsto_id' nhds_within_le_nhds).pow _) },
+    exact ennreal.tendsto_of_real ((tendsto_id'.2 nhds_within_le_nhds).pow _) },
   simp only [one_pow, one_mul, ennreal.of_real_one] at A,
   refine le_of_tendsto A _,
   refine mem_nhds_within_Iio_iff_exists_Ioo_subset.2 ⟨(0 : ℝ), by simp, λ r hr, _⟩,
@@ -563,7 +584,7 @@ begin
   { apply tendsto_add_haar_inter_smul_zero_of_density_zero_aux1 μ s x h
       t' u',
     { simp only [h'u, (pow_pos Rpos _).ne', abs_nonpos_iff, add_haar_smul, not_false_iff,
-        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow₀, ne.def, or_self, mul_eq_zero] },
+        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow, ne.def, or_self, mul_eq_zero] },
     { convert smul_set_mono t_bound,
       rw [smul_closed_ball _ _ Rpos.le, smul_zero, real.norm_of_nonneg (inv_nonneg.2 Rpos.le),
         inv_mul_cancel Rpos.ne'] } },

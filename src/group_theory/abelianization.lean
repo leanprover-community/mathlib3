@@ -36,13 +36,26 @@ def commutator : subgroup G :=
 
 lemma commutator_def : commutator G = ⁅(⊤ : subgroup G), ⊤⁆ := rfl
 
-lemma commutator_eq_closure :
-  commutator G = subgroup.closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
+lemma commutator_eq_closure : commutator G = subgroup.closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 by simp_rw [commutator, subgroup.commutator_def, subgroup.mem_top, exists_true_left]
 
 lemma commutator_eq_normal_closure :
-  commutator G = subgroup.normal_closure {x | ∃ p q, p * q * p⁻¹ * q⁻¹ = x} :=
+  commutator G = subgroup.normal_closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_left]
+
+instance commutator_characteristic : (commutator G).characteristic :=
+subgroup.commutator_characteristic ⊤ ⊤
+
+lemma commutator_centralizer_commutator_le_center :
+  ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=
+begin
+  rw [←subgroup.centralizer_top, ←subgroup.commutator_eq_bot_iff_le_centralizer],
+  suffices : ⁅⁅⊤, (commutator G).centralizer⁆, (commutator G).centralizer⁆ = ⊥,
+  { refine subgroup.commutator_commutator_eq_bot_of_rotate _ this,
+    rwa subgroup.commutator_comm (commutator G).centralizer },
+  rw [subgroup.commutator_comm, subgroup.commutator_eq_bot_iff_le_centralizer],
+  exact set.centralizer_subset (subgroup.commutator_mono le_top le_top),
+end
 
 /-- The abelianization of G is the quotient of G by its commutator subgroup. -/
 def abelianization : Type u :=
@@ -54,6 +67,7 @@ local attribute [instance] quotient_group.left_rel
 
 instance : comm_group (abelianization G) :=
 { mul_comm := λ x y, quotient.induction_on₂' x y $ λ a b, quotient.sound' $
+    quotient_group.left_rel_apply.mpr $
     subgroup.subset_closure ⟨b⁻¹, subgroup.mem_top b⁻¹, a⁻¹, subgroup.mem_top a⁻¹, by group⟩,
 .. quotient_group.quotient.group _ }
 
@@ -84,7 +98,7 @@ lemma commutator_subset_ker : commutator G ≤ f.ker :=
 begin
   rw [commutator_eq_closure, subgroup.closure_le],
   rintros x ⟨p, q, rfl⟩,
-  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q)],
+  simp [monoid_hom.mem_ker, mul_right_comm (f p) (f q), commutator_element_def],
 end
 
 /-- If `f : G → A` is a group homomorphism to an abelian group, then `lift f` is the unique map from

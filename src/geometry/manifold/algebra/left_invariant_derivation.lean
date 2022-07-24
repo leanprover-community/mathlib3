@@ -23,7 +23,7 @@ noncomputable theory
 
 open_locale lie_group manifold derivation
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
@@ -112,12 +112,17 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
-instance : add_comm_group (left_invariant_derivation I G) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+instance has_nat_scalar : has_smul ℕ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
 
-instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
-{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
-            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
+instance has_int_scalar : has_smul ℤ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul_of_tower, left_invariant']⟩ }
+
+instance : add_comm_group (left_invariant_derivation I G) :=
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+instance : has_smul 𝕜 (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul, left_invariant']⟩ }
 
 variables (r X)
 

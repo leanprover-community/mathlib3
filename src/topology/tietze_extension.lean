@@ -17,7 +17,7 @@ function belong to some (finite or infinite, open or closed) interval, then the 
 chosen so that it takes values in the same interval. In particular, if the original function is a
 bounded function, then there exists a bounded extension of the same norm.
 
-The proof mostly follows https://ncatlab.org/nlab/show/Tietze+extension+theorem. We patch a small
+The proof mostly follows <https://ncatlab.org/nlab/show/Tietze+extension+theorem>. We patch a small
 gap in the proof for unbounded functions, see
 `exists_extension_forall_exists_le_ge_of_closed_embedding`.
 
@@ -61,12 +61,12 @@ begin
   have hc₂ : is_closed (e '' (f ⁻¹' (Ici (∥f∥ / 3)))),
     from he.is_closed_map _ (is_closed_Ici.preimage f.continuous),
   have hd : disjoint (e '' (f ⁻¹' (Iic (-∥f∥ / 3)))) (e '' (f ⁻¹' (Ici (∥f∥ / 3)))),
-  { refine disjoint_image_of_injective he.inj (disjoint_preimage _ _),
+  { refine disjoint_image_of_injective he.inj (disjoint.preimage _ _),
     rwa [Iic_disjoint_Ici, not_le] },
   rcases exists_bounded_mem_Icc_of_closed_of_le hc₁ hc₂ hd hf3.le with ⟨g, hg₁, hg₂, hgf⟩,
   refine ⟨g, _, _⟩,
   { refine (norm_le $ div_nonneg hf.le h3.le).mpr (λ y, _),
-    simpa [real.norm_eq_abs, abs_le, neg_div] using hgf y },
+    simpa [abs_le, neg_div] using hgf y },
   { refine (dist_le $ mul_nonneg h23.le hf.le).mpr (λ x, _),
     have hfx : -∥f∥ ≤ f x ∧ f x ≤ ∥f∥,
       by simpa only [real.norm_eq_abs, abs_le] using f.norm_coe_le_norm x,
@@ -219,7 +219,7 @@ begin
     function `dg : Y → ℝ` such that `dg ∘ e = 0`, `dg y = 0` whenever `c ≤ g y`, `dg y = c - a`
     whenever `g y = a`, and `0 ≤ dg y ≤ c - a` for all `y`.  -/
     have hd : disjoint (range e ∪ g ⁻¹' (Ici c)) (g ⁻¹' {a}),
-    { refine disjoint_union_left.2 ⟨_, disjoint_preimage _ _⟩,
+    { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
       { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = a⟩,
         exact ha' ⟨x, (congr_fun hgf x).symm⟩ },
       { exact set.disjoint_singleton_right.2 hac.not_le } },
@@ -248,7 +248,7 @@ begin
   rcases em (∃ x, f x = b) with ⟨x, rfl⟩|hb',
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
   have hd : disjoint (range e ∪ g ⁻¹' (Iic c)) (g ⁻¹' {b}),
-  { refine disjoint_union_left.2 ⟨_, disjoint_preimage _ _⟩,
+  { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
     { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = b⟩,
       exact hb' ⟨x, (congr_fun hgf x).symm⟩ },
     { exact set.disjoint_singleton_right.2 hcb.not_le } },

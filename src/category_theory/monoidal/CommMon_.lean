@@ -133,6 +133,9 @@ def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit.
     unit' := f.one_hom,
     tensor' := λ _ _, f.mul_hom, }, }
 
+local attribute [tidy] tactic.discrete_cases
+local attribute [simp] eq_to_iso_map
+
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]
 def unit_iso :
@@ -153,6 +156,7 @@ nat_iso.of_components (λ F, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _
 end equiv_lax_braided_functor_punit
 
 open equiv_lax_braided_functor_punit
+local attribute [simp] eq_to_iso_map
 
 /--
 Commutative monoid objects in `C` are "just" braided lax monoidal functors from the trivial

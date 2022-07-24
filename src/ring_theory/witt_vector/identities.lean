@@ -43,6 +43,8 @@ lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
 by rw [← frobenius_verschiebung, frobenius_zmodp]
 
+variables (p R)
+
 lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
 begin
   induction i with i h,
@@ -65,13 +67,11 @@ begin
       { exact ne_of_apply_ne (λ (j : ℕ), j.succ) hj } } }
 end
 
-variables (p R)
-
 lemma coeff_p [char_p R p] (i : ℕ) : (p : 𝕎 R).coeff i = if i = 1 then 1 else 0 :=
 begin
   split_ifs with hi,
-  { simpa only [hi, pow_one] using coeff_p_pow 1, },
-  { simpa only [pow_one] using coeff_p_pow_eq_zero hi, }
+  { simpa only [hi, pow_one] using coeff_p_pow p R 1, },
+  { simpa only [pow_one] using coeff_p_pow_eq_zero p R hi, }
 end
 
 @[simp] lemma coeff_p_zero [char_p R p] : (p : 𝕎 R).coeff 0 = 0 :=

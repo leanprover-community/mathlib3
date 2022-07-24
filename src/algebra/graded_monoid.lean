@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
 import data.list.big_operators
-import data.list.prod_monoid
 import data.list.range
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
@@ -41,7 +40,7 @@ the base type `A 0` with:
 and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplication:
 
 * (nothing)
-* `graded_monoid.grade_zero.has_scalar (A 0)`
+* `graded_monoid.grade_zero.has_smul (A 0)`
 * `graded_monoid.grade_zero.mul_action (A 0)`
 * (nothing)
 
@@ -65,16 +64,24 @@ provides the `Prop` typeclasses:
 * `set_like.has_graded_mul A` (which provides the obvious `graded_monoid.ghas_mul A` instance)
 * `set_like.graded_monoid A` (which provides the obvious `graded_monoid.gmonoid A` and
   `graded_monoid.gcomm_monoid A` instances)
-* `set_like.is_homogeneous A` (which says that `a` is homogeneous iff `a ∈ A i` for some `i : ι`)
+
+which respectively provide the API lemmas
+
+* `set_like.one_mem_graded`
+* `set_like.mul_mem_graded`
+* `set_like.pow_mem_graded`, `set_like.list_prod_map_mem_graded`
 
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
-included for convenience. Note that there is no need for `graded_ring` or similar, as all the
-information it would contain is already supplied by `graded_monoid` when `A` is a collection
-of additively-closed set_like objects such as `submodules`. These constructions are explored in
-`algebra.direct_sum.internal`.
+included for convenience. Note that there is no need for `set_like.graded_ring` or similar, as all
+the information it would contain is already supplied by `graded_monoid` when `A` is a collection
+of objects satisfying `add_submonoid_class` such as `submodule`s. These constructions are explored
+in `algebra.direct_sum.internal`.
 
-This file also contains the definition of `set_like.homogeneous_submonoid A`, which is, as the name
-suggests, the submonoid consisting of all the homogeneous elements.
+This file also defines:
+
+* `set_like.is_homogeneous A` (which says that `a` is homogeneous iff `a ∈ A i` for some `i : ι`)
+* `set_like.homogeneous_submonoid A`, which is, as the name suggests, the submonoid consisting of
+  all the homogeneous elements.
 
 ## tags
 
@@ -218,12 +225,12 @@ instance grade_zero.has_one : has_one (A 0) :=
 end one
 
 section mul
-variables [add_monoid ι] [ghas_mul A]
+variables [add_zero_class ι] [ghas_mul A]
 
 /-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
 -/
-instance grade_zero.has_scalar (i : ι) : has_scalar (A 0) (A i) :=
+instance grade_zero.has_smul (i : ι) : has_smul (A 0) (A i) :=
 { smul := λ x y, (zero_add i).rec (ghas_mul.mul x y) }
 
 /-- `(*) : A 0 → A 0 → A 0` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
@@ -245,9 +252,19 @@ end mul
 section monoid
 variables [add_monoid ι] [gmonoid A]
 
+instance : has_pow (A 0) ℕ :=
+{ pow := λ x n, (nsmul_zero n).rec (gmonoid.gnpow n x : A (n • 0)) }
+
+variables {A}
+
+@[simp] lemma mk_zero_pow (a : A 0) (n : ℕ) : mk _ (a ^ n) = mk _ a ^ n :=
+sigma.ext (nsmul_zero n).symm $ eq_rec_heq _ _
+
+variables (A)
+
 /-- The `monoid` structure derived from `gmonoid A`. -/
 instance grade_zero.monoid : monoid (A 0) :=
-function.injective.monoid (mk 0) sigma_mk_injective rfl mk_zero_smul
+function.injective.monoid (mk 0) sigma_mk_injective rfl mk_zero_smul mk_zero_pow
 
 end monoid
 
@@ -256,7 +273,7 @@ variables [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_monoid` structure derived from `gcomm_monoid A`. -/
 instance grade_zero.comm_monoid : comm_monoid (A 0) :=
-function.injective.comm_monoid (mk 0) sigma_mk_injective rfl mk_zero_smul
+function.injective.comm_monoid (mk 0) sigma_mk_injective rfl mk_zero_smul mk_zero_pow
 
 end monoid
 
@@ -402,9 +419,12 @@ class set_like.has_graded_one {S : Type*} [set_like S R] [has_one R] [has_zero �
   (A : ι → S) : Prop :=
 (one_mem : (1 : R) ∈ A 0)
 
+lemma set_like.one_mem_graded {S : Type*} [set_like S R] [has_one R] [has_zero ι] (A : ι → S)
+  [set_like.has_graded_one A] : (1 : R) ∈ A 0 := set_like.has_graded_one.one_mem
+
 instance set_like.ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] (A : ι → S)
   [set_like.has_graded_one A] : graded_monoid.ghas_one (λ i, A i) :=
-{ one := ⟨1, set_like.has_graded_one.one_mem⟩ }
+{ one := ⟨1, set_like.one_mem_graded _⟩ }
 
 @[simp] lemma set_like.coe_ghas_one {S : Type*} [set_like S R] [has_one R] [has_zero ι] (A : ι → S)
   [set_like.has_graded_one A] : ↑(@graded_monoid.ghas_one.one _ (λ i, A i) _ _) = (1 : R) := rfl
@@ -414,10 +434,15 @@ class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι
   (A : ι → S) : Prop :=
 (mul_mem : ∀ ⦃i j⦄ {gi gj}, gi ∈ A i → gj ∈ A j → gi * gj ∈ A (i + j))
 
+lemma set_like.mul_mem_graded {S : Type*} [set_like S R] [has_mul R] [has_add ι] {A : ι → S}
+  [set_like.has_graded_mul A] ⦃i j⦄ {gi gj} (hi : gi ∈ A i) (hj : gj ∈ A j) :
+  gi * gj ∈ A (i + j) :=
+set_like.has_graded_mul.mul_mem hi hj
+
 instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
   [set_like.has_graded_mul A] :
   graded_monoid.ghas_mul (λ i, A i) :=
-{ mul := λ i j a b, ⟨(a * b : R), set_like.has_graded_mul.mul_mem a.prop b.prop⟩ }
+{ mul := λ i j a b, ⟨(a * b : R), set_like.mul_mem_graded a.prop b.prop⟩ }
 
 @[simp] lemma set_like.coe_ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
   [set_like.has_graded_mul A] {i j : ι} (x : A i) (y : A j) :
@@ -427,35 +452,37 @@ instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (
 class set_like.graded_monoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
   (A : ι → S) extends set_like.has_graded_one A, set_like.has_graded_mul A : Prop
 
-namespace set_like.graded_monoid
+namespace set_like
 variables {S : Type*} [set_like S R] [monoid R] [add_monoid ι]
 variables {A : ι → S} [set_like.graded_monoid A]
 
-lemma pow_mem (n : ℕ) {r : R} {i : ι} (h : r ∈ A i) : r ^ n ∈ A (n • i) :=
+lemma pow_mem_graded (n : ℕ) {r : R} {i : ι} (h : r ∈ A i) : r ^ n ∈ A (n • i) :=
 begin
   induction n,
-  { rw [pow_zero, zero_nsmul], exact one_mem },
-  { rw [pow_succ', succ_nsmul'], exact mul_mem n_ih h },
+  { rw [pow_zero, zero_nsmul], exact one_mem_graded _ },
+  { rw [pow_succ', succ_nsmul'], exact mul_mem_graded n_ih h },
 end
 
-lemma list_prod_map_mem {ι'} (l : list ι') (i : ι' → ι) (r : ι' → R) (h : ∀ j ∈ l, r j ∈ A (i j)) :
+lemma list_prod_map_mem_graded {ι'} (l : list ι') (i : ι' → ι) (r : ι' → R)
+  (h : ∀ j ∈ l, r j ∈ A (i j)) :
   (l.map r).prod ∈ A (l.map i).sum :=
 begin
   induction l,
   { rw [list.map_nil, list.map_nil, list.prod_nil, list.sum_nil],
-    exact one_mem },
+    exact one_mem_graded _ },
   { rw [list.map_cons, list.map_cons, list.prod_cons, list.sum_cons],
-    exact mul_mem (h _ $ list.mem_cons_self _ _) (l_ih $ λ j hj, h _ $ list.mem_cons_of_mem _ hj) },
+    exact mul_mem_graded
+      (h _ $ list.mem_cons_self _ _) (l_ih $ λ j hj, h _ $ list.mem_cons_of_mem _ hj) },
 end
 
-lemma list_prod_of_fn_mem {n} (i : fin n → ι) (r : fin n → R) (h : ∀ j, r j ∈ A (i j)) :
+lemma list_prod_of_fn_mem_graded {n} (i : fin n → ι) (r : fin n → R) (h : ∀ j, r j ∈ A (i j)) :
   (list.of_fn r).prod ∈ A (list.of_fn i).sum :=
 begin
   rw [list.of_fn_eq_map, list.of_fn_eq_map],
-  exact list_prod_map_mem _ _ _ (λ _ _, h _),
+  exact list_prod_map_mem_graded _ _ _ (λ _ _, h _),
 end
 
-end set_like.graded_monoid
+end set_like
 
 /-- Build a `gmonoid` instance for a collection of subobjects. -/
 instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S)
@@ -465,7 +492,7 @@ instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] 
   mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
   mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
     sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
-  gnpow := λ n i a, ⟨a ^ n, set_like.graded_monoid.pow_mem n a.prop⟩,
+  gnpow := λ n i a, ⟨a ^ n, set_like.pow_mem_graded n a.prop⟩,
   gnpow_zero' := λ n, sigma.subtype_ext (zero_nsmul _) (pow_zero _),
   gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),
   ..set_like.ghas_one A,
@@ -504,7 +531,7 @@ lemma set_like.list_dprod_eq (A : ι → S) [set_like.graded_monoid A]
   (fι : α → ι) (fA : Π a, A (fι a)) (l : list α) :
   (l.dprod fι fA : (λ i, ↥(A i)) _) =
     ⟨list.prod (l.map (λ a, fA a)), (l.dprod_index_eq_map_sum fι).symm ▸
-      list_prod_map_mem l _ _ (λ i hi, (fA i).prop)⟩ :=
+      list_prod_map_mem_graded l _ _ (λ i hi, (fA i).prop)⟩ :=
 subtype.ext $ set_like.coe_list_dprod _ _ _ _
 
 end dprod
@@ -524,12 +551,12 @@ def set_like.is_homogeneous (A : ι → S) (a : R) : Prop := ∃ i, a ∈ A i
 
 lemma set_like.is_homogeneous_one [has_zero ι] [has_one R]
   (A : ι → S) [set_like.has_graded_one A] : set_like.is_homogeneous A (1 : R) :=
-⟨0, set_like.has_graded_one.one_mem⟩
+⟨0, set_like.one_mem_graded _⟩
 
 lemma set_like.is_homogeneous.mul [has_add ι] [has_mul R] {A : ι → S}
   [set_like.has_graded_mul A] {a b : R} :
   set_like.is_homogeneous A a → set_like.is_homogeneous A b → set_like.is_homogeneous A (a * b)
-| ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.has_graded_mul.mul_mem hi hj⟩
+| ⟨i, hi⟩ ⟨j, hj⟩ := ⟨i + j, set_like.mul_mem_graded hi hj⟩
 
 /-- When `A` is a `set_like.graded_monoid A`, then the homogeneous elements forms a submonoid. -/
 def set_like.homogeneous_submonoid [add_monoid ι] [monoid R]

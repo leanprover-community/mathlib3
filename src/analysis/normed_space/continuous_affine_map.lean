@@ -46,7 +46,7 @@ variables [normed_group V] [metric_space P] [normed_add_torsor V P]
 variables [normed_group W] [metric_space Q] [normed_add_torsor W Q]
 variables [normed_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
 variables [normed_field R] [normed_space R V] [normed_space R W] [normed_space R W₂]
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
+variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
 
 include V W
 
@@ -185,7 +185,7 @@ normed_group.of_core _
     end,
   norm_neg := λ f, by simp [norm_def], }
 
-noncomputable instance : normed_space 𝕜 (V →A[𝕜] W) :=
+instance : normed_space 𝕜 (V →A[𝕜] W) :=
 { norm_smul_le := λ t f, by simp only [norm_def, smul_cont_linear, coe_smul, pi.smul_apply,
     norm_smul, ← mul_max_of_nonneg _ _ (norm_nonneg t)], }
 
@@ -215,7 +215,7 @@ variables (𝕜 V W)
 /-- The space of affine maps between two normed spaces is linearly isometric to the product of the
 codomain with the space of linear maps, by taking the value of the affine map at `(0 : V)` and the
 linear part. -/
-noncomputable def to_const_prod_continuous_linear_map : (V →A[𝕜] W) ≃ₗᵢ[𝕜] W × (V →L[𝕜] W) :=
+def to_const_prod_continuous_linear_map : (V →A[𝕜] W) ≃ₗᵢ[𝕜] W × (V →L[𝕜] W) :=
 { to_fun    := λ f, ⟨f 0, f.cont_linear⟩,
   inv_fun   := λ p, p.2.to_continuous_affine_map + const 𝕜 V p.1,
   left_inv  := λ f, by { ext, rw f.decomp, simp, },

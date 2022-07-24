@@ -5,7 +5,9 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
 import algebra.direct_sum.module
 import analysis.complex.basic
+import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
+import analysis.normed_space.banach
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -275,7 +277,7 @@ begin
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, inner_conj_sym, hT, ring_hom.map_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
-                  : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
+                  : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
@@ -634,7 +636,7 @@ begin
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, hT, ring_hom.map_div, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
-                  : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
+                  : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
@@ -830,6 +832,12 @@ begin
   simp [hf.eq_iff]
 end
 
+/-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
+family. -/
+lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+  orthonormal 𝕜 (coe : set.range v → E) :=
+by simpa using hv.comp _ (set.range_splitting_injective v)
+
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/
 lemma orthonormal.inner_finsupp_eq_zero
@@ -886,7 +894,7 @@ containing it. -/
 lemma exists_maximal_orthonormal {s : set E} (hs : orthonormal 𝕜 (coe : s → E)) :
   ∃ w ⊇ s, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ⊇ w, orthonormal 𝕜 (coe : u → E) → u = w :=
 begin
-  rcases zorn.zorn_subset_nonempty {b | orthonormal 𝕜 (coe : b → E)} _ _ hs  with ⟨b, bi, sb, h⟩,
+  obtain ⟨b, bi, sb, h⟩ := zorn_subset_nonempty {b | orthonormal 𝕜 (coe : b → E)} _ _ hs,
   { refine ⟨b, sb, bi, _⟩,
     exact λ u hus hu, h u hu hus },
   { refine λ c hc cc c0, ⟨⋃₀ c, _, _⟩,
@@ -1011,6 +1019,9 @@ end
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
+lemma nnnorm_inner_le_nnnorm (x y : E) : ∥⟪x, y⟫∥₊ ≤ ∥x∥₊ * ∥y∥₊ :=
+norm_inner_le_norm x y
+
 lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
@@ -1023,18 +1034,19 @@ lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
 
 include 𝕜
-lemma parallelogram_law_with_norm {x y : E} :
+lemma parallelogram_law_with_norm (x y : E) :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
   simp only [← inner_self_eq_norm_mul_norm],
   rw [← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
-omit 𝕜
 
-lemma parallelogram_law_with_norm_real {x y : F} :
-  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-by { have h := @parallelogram_law_with_norm ℝ F _ _ x y, simpa using h }
+lemma parallelogram_law_with_nnnorm (x y : E) :
+  ∥x + y∥₊ * ∥x + y∥₊ + ∥x - y∥₊ * ∥x - y∥₊ = 2 * (∥x∥₊ * ∥x∥₊ + ∥y∥₊ * ∥y∥₊) :=
+subtype.ext $ parallelogram_law_with_norm x y
+
+omit 𝕜
 
 /-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
 lemma re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : E) :
@@ -1065,6 +1077,36 @@ begin
   push_cast,
   simp only [sq, ← mul_div_right_comm, ← add_div]
 end
+
+/-- Formula for the distance between the images of two nonzero points under an inversion with center
+zero. See also `euclidean_geometry.dist_inversion_inversion` for inversions around a general
+point. -/
+lemma dist_div_norm_sq_smul {x y : F} (hx : x ≠ 0) (hy : y ≠ 0) (R : ℝ) :
+  dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y) = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :=
+have hx' : ∥x∥ ≠ 0, from norm_ne_zero_iff.2 hx,
+have hy' : ∥y∥ ≠ 0, from norm_ne_zero_iff.2 hy,
+calc dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y)
+    = sqrt (∥(R / ∥x∥) ^ 2 • x - (R / ∥y∥) ^ 2 • y∥^2) :
+  by rw [dist_eq_norm, sqrt_sq (norm_nonneg _)]
+... = sqrt ((R ^ 2 / (∥x∥ * ∥y∥)) ^ 2 * ∥x - y∥ ^ 2) :
+  congr_arg sqrt $ by { field_simp [sq, norm_sub_mul_self_real, norm_smul, real_inner_smul_left,
+    inner_smul_right, real.norm_of_nonneg (mul_self_nonneg _)], ring }
+... = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :
+  by rw [sqrt_mul (sq_nonneg _), sqrt_sq (norm_nonneg _),
+    sqrt_sq (div_nonneg (sq_nonneg _) (mul_nonneg (norm_nonneg _) (norm_nonneg _))), dist_eq_norm]
+
+@[priority 100] -- See note [lower instance priority]
+instance inner_product_space.to_uniform_convex_space : uniform_convex_space F :=
+⟨λ ε hε, begin
+  refine ⟨2 - sqrt (4 - ε^2), sub_pos_of_lt $ (sqrt_lt' zero_lt_two).2 _, λ x hx y hy hxy, _⟩,
+  { norm_num,
+    exact pow_pos hε _ },
+  rw sub_sub_cancel,
+  refine le_sqrt_of_sq_le _,
+  rw [sq, eq_sub_iff_add_eq.2 (parallelogram_law_with_norm x y), ←sq (∥x - y∥), hx, hy],
+  norm_num,
+  exact pow_le_pow_of_le_left hε.le hxy _,
+end⟩
 
 section complex
 
@@ -1355,8 +1397,8 @@ begin
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
   rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_mul_norm,
       norm_smul],
-  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
-     ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
+  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div, mul_div_cancel _ hx',
+     ←div_div, mul_comm, mul_div_cancel _ hr', div_self hx'],
 end
 
 /-- The inner product of a nonzero vector with a nonzero multiple of
@@ -1477,8 +1519,7 @@ begin
       rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
           div_eq_one_iff_eq hxy0] at h } },
   rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
-  have : x ≠ 0 := λ h, (hx0' $ norm_eq_zero.mpr h),
-  simp [this]
+  simp [hx0]
 end
 
 /-- The inner product of two vectors, divided by the product of their
@@ -1918,9 +1959,8 @@ begin
     have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
     simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
-    { rw ← hV.norm_sq_diff_sum,
-      apply sq_lt_sq,
-      rw [_root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
+    { rw [← hV.norm_sq_diff_sum, sq_lt_sq,
+        _root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
@@ -1972,9 +2012,9 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
-  (hV_sum : direct_sum.submodule_is_internal (λ i, V i))
+  (hV_sum : direct_sum.is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
@@ -2186,7 +2226,7 @@ variables (𝕜 E)
 /-- `submodule.orthogonal` gives a `galois_connection` between
 `submodule 𝕜 E` and its `order_dual`. -/
 lemma submodule.orthogonal_gc :
-  @galois_connection (submodule 𝕜 E) (order_dual $ submodule 𝕜 E) _ _
+  @galois_connection (submodule 𝕜 E) (submodule 𝕜 E)ᵒᵈ _ _
     submodule.orthogonal submodule.orthogonal :=
 λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
           λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
@@ -2243,74 +2283,3 @@ begin
 end
 
 end orthogonal
-
-/-! ### Self-adjoint operators -/
-
-namespace inner_product_space
-
-/-- A (not necessarily bounded) operator on an inner product space is self-adjoint, if for all
-`x`, `y`, we have `⟪T x, y⟫ = ⟪x, T y⟫`. -/
-def is_self_adjoint (T : E →ₗ[𝕜] E) : Prop := ∀ x y, ⟪T x, y⟫ = ⟪x, T y⟫
-
-/-- An operator `T` on a `ℝ`-inner product space is self-adjoint if and only if it is
-`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_bilin_form (T : F →ₗ[ℝ] F) :
-  is_self_adjoint T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_self_adjoint, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
-
-lemma is_self_adjoint.conj_inner_sym {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T) (x y : E) :
-  conj ⟪T x, y⟫ = ⟪T y, x⟫ :=
-by rw [hT x y, inner_conj_sym]
-
-@[simp] lemma is_self_adjoint.apply_clm {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E))
-  (x y : E) :
-  ⟪T x, y⟫ = ⟪x, T y⟫ :=
-hT x y
-
-/-- For a self-adjoint operator `T`, the function `λ x, ⟪T x, x⟫` is real-valued. -/
-@[simp] lemma is_self_adjoint.coe_re_apply_inner_self_apply
-  {T : E →L[𝕜] E} (hT : is_self_adjoint (T : E →ₗ[𝕜] E)) (x : E) :
-  (T.re_apply_inner_self x : 𝕜) = ⟪T x, x⟫ :=
-begin
-  suffices : ∃ r : ℝ, ⟪T x, x⟫ = r,
-  { obtain ⟨r, hr⟩ := this,
-    simp [hr, T.re_apply_inner_self_apply] },
-  rw ← eq_conj_iff_real,
-  exact hT.conj_inner_sym x x
-end
-
-/-- If a self-adjoint operator preserves a submodule, its restriction to that submodule is
-self-adjoint. -/
-lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
-  {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
-  is_self_adjoint (T.restrict hV) :=
-λ v w, hT v w
-
-section complex
-
-variables {V : Type*}
-  [inner_product_space ℂ V]
-
-/-- A linear operator on a complex inner product space is self-adjoint precisely when
-`⟪T v, v⟫_ℂ` is real for all v.-/
-lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
-  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
-begin
-  split,
-  { intros hT v,
-    apply is_self_adjoint.conj_inner_sym hT },
-  { intros h x y,
-    nth_rewrite 1 ← inner_conj_sym,
-    nth_rewrite 1 inner_map_polarization,
-    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
-    simp only [← star_ring_end_apply],
-    rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
-    simp only [complex.conj_I],
-    rw inner_map_polarization',
-    norm_num,
-    ring },
-end
-
-end complex
-
-end inner_product_space

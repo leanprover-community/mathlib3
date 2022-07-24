@@ -131,9 +131,9 @@ variables {α}
 
 /-- Composition of `centroid_hom`s as a `centroid_hom`. -/
 def comp (g f : centroid_hom α) : centroid_hom α :=
-⟨g.to_add_monoid_hom.comp f.to_add_monoid_hom,
-  λ a b, (congr_arg g $ f.map_mul_left' _ _).trans $ g.map_mul_left' _ _,
-  λ a b, (congr_arg g $ f.map_mul_right' _ _).trans $ g.map_mul_right' _ _⟩
+{ map_mul_left' := λ a b, (congr_arg g $ f.map_mul_left' _ _).trans $ g.map_mul_left' _ _,
+  map_mul_right' := λ a b, (congr_arg g $ f.map_mul_right' _ _).trans $ g.map_mul_right' _ _,
+  .. g.to_add_monoid_hom.comp f.to_add_monoid_hom }
 
 @[simp] lemma coe_comp (g f : centroid_hom α) : ⇑(g.comp f) = g ∘ f := rfl
 @[simp] lemma comp_apply (g f : centroid_hom α) (a : α) : g.comp f a = g (f a) := rfl

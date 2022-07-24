@@ -10,6 +10,7 @@ import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
 import data.finset.sigma
+import data.finite.defs
 import data.list.nodup_equiv_fin
 import data.sym.basic
 import data.ulift
@@ -1015,6 +1016,44 @@ instance finset.fintype_coe_sort {α : Type u} (s : finset α) : fintype s :=
 rfl
 
 end finset
+
+/-!
+### Relation to `finite`
+
+In this section we prove that `α : Type*` is `finite` if and only if `fintype α` is nonempty.
+-/
+
+@[nolint fintype_finite]
+protected lemma fintype.finite {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩
+
+/-- For efficiency reasons, we want `finite` instances to have higher
+priority than ones coming from `fintype` instances. -/
+@[nolint fintype_finite, priority 900]
+instance finite.of_fintype (α : Type*) [fintype α] : finite α := fintype.finite ‹_›
+
+lemma finite_iff_nonempty_fintype (α : Type*) :
+  finite α ↔ nonempty (fintype α) :=
+⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
+  λ ⟨_⟩, by exactI infer_instance⟩
+
+lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
+(finite_iff_nonempty_fintype α).mp ‹_›
+
+/-- Noncomputably get a `fintype` instance from a `finite` instance. This is not an
+instance because we want `fintype` instances to be useful for computations. -/
+noncomputable def fintype.of_finite (α : Type*) [finite α] : fintype α := (nonempty_fintype α).some
+
+lemma finite.of_injective {α β : Sort*} [finite β] (f : α → β) (H : injective f) : finite α :=
+begin
+  casesI nonempty_fintype (plift β),
+  rw [← equiv.injective_comp equiv.plift f, ← equiv.comp_injective _ equiv.plift.symm] at H,
+  haveI := fintype.of_injective _ H,
+  exact finite.of_equiv _ equiv.plift,
+end
+
+lemma finite.of_surjective {α β : Sort*} [finite α] (f : α → β) (H : surjective f) :
+  finite β :=
+finite.of_injective _ $ injective_surj_inv H
 
 namespace fintype
 variables [fintype α] [fintype β]

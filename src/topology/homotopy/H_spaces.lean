@@ -282,26 +282,9 @@ end
 --   continuity,
 -- end
 
--- lemma senza_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend x.1.1) :=
--- begin
---   set π₁ := (λ p : Ω(x) × I, p.1.extend p.2) with hπ₁,
---   have K : continuous π₁,
---   { rw hπ₁,
---     have thiss := @continuous_eval' ℝ X _ _ _,
---     let ρ := @Icc_extend ℝ X _ _ _ _ 0 1 zero_le_one,
---     have hρ : continuous ρ,
---     { sorry },
---     have uff := hρ.comp continuous_induced_dom,
---     have hIR : continuous (coe : I → ℝ), from continuous_induced_dom,
---     have also2 := continuous.prod_map uff hIR,
---     have argh := thiss.comp also2,
---     exact argh },
---   { sorry },
--- end
-
-example (Y Z : Type*) [topological_space Y] [topological_space Z] (f : Y → Z) (hf : continuous f) : continuous (λ x : C(Z,X), x ∘ f) :=
+lemma continuous_map.continuous_prod (X Y Z : Type*) [topological_space X] [topological_space Y] [locally_compact_space Y] [topological_space Z] : continuous (λ x : C(X, Y) × C(Y, Z), x.2.comp x.1) :=
 begin
-  continuity,
+  sorry,
 end
 
 lemma con_smul_due_con_swap (x : X) : continuous (λ x : (I × Ω(x)) × Ω(x), x.1.2.extend (2 * x.1.1)) :=
@@ -312,11 +295,9 @@ begin
     have thiss := @continuous_eval' ℝ X _ _ _,
     let ρ := @Icc_extend ℝ X _ _ _ _ 0 1 zero_le_one,
     have hρ : continuous ρ,
-    { apply continuous_curry',
-      --  continuity,
-      -- refine continuous_eval',
-
-     },
+    { let Cproj : C(ℝ, I) := ⟨@set.proj_Icc ℝ _ 0 1 zero_le_one, continuous_proj_Icc⟩,
+      exact (continuous_map.continuous_prod _ _ _).comp (continuous.prod.mk Cproj),
+    },
     have uff := hρ.comp continuous_induced_dom,
     have hIR₀  : continuous (coe : I → ℝ), from continuous_induced_dom,
     have hIR₁ : continuous (λ x : ℝ, 2 * x),
@@ -330,22 +311,17 @@ begin
   refine continuous.comp K continuous_fst,
 end
 
-lemma senza_smul_due_senza_swap (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.extend x.1.1) :=
+lemma con_smul_due_senza_swap (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.extend (2 * x.1.1)) :=
 begin
   let φ := homeomorph.prod_assoc I Ω(x) Ω(x),
-  exact (homeomorph.comp_continuous_iff' φ.symm).mpr (senza_smul_due_con_swap x),
+  exact (homeomorph.comp_continuous_iff' φ.symm).mpr (con_smul_due_con_swap x),
   end
 
 lemma Hmul_Ω_cont₁ (x : X) : continuous (λ x : I × Ω(x) × Ω(x), x.2.1.trans x.2.2 x.1) :=
 begin
   apply continuous.piecewise,
   sorry,
-  -- sorry,
-  { let ψ : (I × Ω(x) × Ω(x)) → (ℝ × Ω(x) × Ω(x)) := λ x : (I × Ω(x) × Ω(x)), ⟨(2 : ℝ) * ↑(x.1), x.2.1, x.2.2⟩,
-    have hψ : continuous ψ, sorry,
-    have := continuous.comp (senza_smul_due_senza_swap x);--the problem is that paths now leave from ℝ and not from I
-  sorry,
-  },
+  apply con_smul_due_senza_swap,
   sorry,
 end
 

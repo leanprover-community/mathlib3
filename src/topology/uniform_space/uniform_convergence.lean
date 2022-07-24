@@ -125,7 +125,8 @@ end generic
 
 universes u v w
 variables {α β γ ι : Type*} [uniform_space β]
-variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {p' : filter α} {g : ι → α}
+variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {p' : filter α}
+  {g : ι → α}
 
 /-!
 ### Different notions of uniform convergence
@@ -133,9 +134,9 @@ variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : f
 We define uniform convergence and locally uniform convergence, on a set or in the whole space.
 -/
 
-/-- A sequence of functions `Fₙ` converges uniformly on a filter `p'` to a limiting function `f` with
-respect to the filter `p` if, for any entourage of the diagonal `u`, one has `p ×ᶠ p'`-eventually
-`(f x, Fₙ x) ∈ u`. -/
+/-- A sequence of functions `Fₙ` converges uniformly on a filter `p'` to a limiting function `f`
+with respect to the filter `p` if, for any entourage of the diagonal `u`, one has
+`p ×ᶠ p'`-eventually `(f x, Fₙ x) ∈ u`. -/
 def tendsto_uniformly_on_filter (F : ι → α → β) (f : α → β) (p : filter ι) (p' : filter α) :=
 ∀ u ∈ 𝓤 β, ∀ᶠ (n : ι × α) in (p ×ᶠ p'), (f n.snd, F n.fst n.snd) ∈ u
 
@@ -145,7 +146,8 @@ filter `p` iff the function `(n, x) ↦ (f x, Fₙ x)` converges along `p ×ᶠ 
 In other words: one knows nothing about the behavior of `x` in this limit besides it being in `p'`.
 -/
 lemma tendsto_uniformly_on_filter_iff_tendsto :
-  tendsto_uniformly_on_filter F f p p' ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ p') (𝓤 β) :=
+  tendsto_uniformly_on_filter F f p p' ↔
+  tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ p') (𝓤 β) :=
 forall₂_congr $ λ u u_in, by simp [mem_map, filter.eventually, mem_prod_iff, preimage]
 
 /-- A sequence of functions `Fₙ` converges uniformly on a set `s` to a limiting function `f` with
@@ -214,8 +216,8 @@ lemma tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : 
 by simp [tendsto_uniformly_iff_tendsto_uniformly_on_filter, tendsto_uniformly_on_filter_iff_tendsto]
 
 /-- Uniform converence implies pointwise convergence. -/
-lemma tendsto_uniformly_on_filter.tendsto_at (h : tendsto_uniformly_on_filter F f p p') {x : α} (hx : 𝓟 {x} ≤ p') :
-  tendsto (λ n, F n x) p $ 𝓝 (f x) :=
+lemma tendsto_uniformly_on_filter.tendsto_at (h : tendsto_uniformly_on_filter F f p p')
+  (hx : 𝓟 {x} ≤ p') : tendsto (λ n, F n x) p $ 𝓝 (f x) :=
 begin
   refine uniform.tendsto_nhds_right.mpr (λ u hu, mem_map.mpr _),
   filter_upwards [(h u hu).curry],
@@ -254,7 +256,8 @@ tendsto_uniformly_on_iff_tendsto_uniformly_on_filter.mpr
   (h.tendsto_uniformly_on_filter.mono_right (le_principal_iff.mpr $ mem_principal.mpr h'))
 
 lemma tendsto_uniformly_on_filter.congr {F' : ι → α → β}
-  (hf : tendsto_uniformly_on_filter F f p p') (hff' : ∀ᶠ (n : ι × α) in (p ×ᶠ p'), F n.fst n.snd = F' n.fst n.snd) :
+  (hf : tendsto_uniformly_on_filter F f p p')
+  (hff' : ∀ᶠ (n : ι × α) in (p ×ᶠ p'), F n.fst n.snd = F' n.fst n.snd) :
   tendsto_uniformly_on_filter F' f p p' :=
 begin
   refine (λ u hu, ((hf u hu).and hff').mono (λ n h, _)),

@@ -1,5 +1,6 @@
 import .mathlib
 import .normed_group
+import .isom_action
 
 /-!
 # Marked groups
@@ -48,12 +49,29 @@ def to_marked : G ≃* marked m := mul_equiv.refl _
 /-- "Identity" isomorphism between a marking of `G` and itself. -/
 def of_marked : marked m ≃* G := mul_equiv.refl _
 
+
+
+
 @[simp] lemma to_marked_symm_eq : (to_marked : G ≃* marked m).symm = of_marked := rfl
 @[simp] lemma of_marked_symm_eq : (of_marked : marked m ≃* G).symm = to_marked := rfl
 @[simp] lemma to_marked_of_marked (a) : to_marked (of_marked (a : marked m)) = a := rfl
 @[simp] lemma of_marked_to_marked (a) : of_marked (to_marked a : marked m) = a := rfl
 @[simp] lemma to_marked_inj {a b} : (to_marked a : marked m) = to_marked b ↔ a = b := iff.rfl
 @[simp] lemma of_marked_inj {a b : marked m} : of_marked a = of_marked b ↔ a = b := iff.rfl
+
+variables (α : Type*)
+
+instance [has_smul G α] : has_smul (marked m) α :=
+‹has_smul G α›
+
+@[simp] lemma to_marked_smul (g : G) (x : α) [has_smul G α] : (to_marked g : marked m) • x = g • x := rfl
+@[simp] lemma of_marked_smul (g : marked m) (x : α) [has_smul G α] : of_marked g • x = g • x := rfl
+
+
+variables (X : Type*) [pseudo_metric_space X]
+
+instance [isom_action G X] : isom_action (marked m) X :=
+‹isom_action G X›
 
 lemma aux [decidable_eq S] (x : marked m) :
   ∃ n (l : free_group S), m l = x ∧ l.to_word.length ≤ n :=
@@ -89,6 +107,23 @@ group_norm.to_normed_mul_group _
     have hl3 := free_group.to_word.inj l 1 hl2,
     finish
   end }
+
+@[simp] lemma dist_inv (a g h : marked m) : dist (a⁻¹*g) h = dist g (a*h):=
+sorry
+
+@[simp] lemma dist_inv' (a g h : marked m) : dist g (a⁻¹*h) = dist (a*g) h:=
+sorry
+
+lemma gen_set_mul (x : marked m) (s : S)
+: ∥ (to_marked (of_marked x * m (free_group.of s)) : marked m) ∥ ≤ ∥x∥+1 :=
+sorry
+
+lemma dist_one_iff (x y : marked m) :
+dist x y = 1 ↔ (∃ s : S, x * m (free_group.of s) = y) ∨ ∃ s : S, y * m (free_group.of s) = x :=
+sorry
+
+lemma gen_set_div (x : marked m) (hx : x ≠ 1) : ∃ y : marked m, dist x y = 1 ∧ ∥y∥ = ∥x∥ - 1 :=
+sorry
 
 /- comments by Sébastien Gouëzel:
 

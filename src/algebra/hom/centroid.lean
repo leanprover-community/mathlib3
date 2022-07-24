@@ -114,7 +114,10 @@ protected def copy (f : centroid_hom α) (f' : α → α) (h : f' = f) :
 variables (α)
 
 /-- `id` as a `centroid_hom`. -/
-protected def id : centroid_hom α := ⟨add_monoid_hom.id α, λ _ _, rfl, λ _ _, rfl⟩
+protected def id : centroid_hom α :=
+{ map_mul_left' := λ _ _, rfl,
+  map_mul_right' := λ _ _, rfl,
+  .. add_monoid_hom.id α }
 
 instance : inhabited (centroid_hom α) := ⟨centroid_hom.id α⟩
 

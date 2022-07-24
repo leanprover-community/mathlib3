@@ -41,7 +41,6 @@ lemma mdifferentiable.const_of_is_preconnected {s : set M} (hs₁ : is_compact s
   {f : M → F} (hf : mdifferentiable 𝓘(ℂ, E) 𝓘(ℂ, F) f) {a b : M} (ha : a ∈ s) (hb : b ∈ s) :
   f a = f b :=
 begin
-  tactic.unfreeze_local_instances,
   -- for an empty set this fact is trivial
   rcases s.eq_empty_or_nonempty with rfl | hs',
   { exact false.rec _ ha },

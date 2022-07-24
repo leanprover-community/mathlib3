@@ -449,6 +449,20 @@ theorem mem_closure_iff {s : set α} {a : α} :
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
   let ⟨x, hc, hs⟩ := (H _ h₁.is_open_compl nc) in hc (h₂ hs)⟩
 
+lemma filter.le_lift'_closure (l : filter α) : l ≤ l.lift' closure :=
+le_infi₂ $ λ s hs, le_principal_iff.2 $ mem_of_superset hs subset_closure
+
+lemma filter.has_basis.lift'_closure {l : filter α} {p : ι → Prop} {s : ι → set α}
+  (h : l.has_basis p s) :
+  (l.lift' closure).has_basis p (λ i, closure (s i)) :=
+h.lift' (monotone_closure α)
+
+lemma filter.has_basis.lift'_closure_eq_self {l : filter α} {p : ι → Prop} {s : ι → set α}
+  (h : l.has_basis p s) (hc : ∀ i, p i → is_closed (s i)) :
+  l.lift' closure = l :=
+le_antisymm (h.ge_iff.2 $ λ i hi, (hc i hi).closure_eq ▸ mem_lift' (h.mem_of_mem hi))
+  l.le_lift'_closure
+
 /-- A set is dense in a topological space if every point belongs to its closure. -/
 def dense (s : set α) : Prop := ∀ x, x ∈ closure s
 

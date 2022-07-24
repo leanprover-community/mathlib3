@@ -74,7 +74,7 @@ variables [non_unital_non_assoc_semiring α]
 
 instance : centroid_hom_class (centroid_hom α) α :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
   map_zero := λ f, f.map_zero',
   map_add := λ f, f.map_add',
   map_mul_left := λ f, f.map_mul_left',

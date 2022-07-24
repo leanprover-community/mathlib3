@@ -85,10 +85,9 @@ begin
   rw [eventually_prod_iff, eventually_iff_exists_mem],
   split,
   { rintros ⟨pa, hpa, pb, hpb, hpapb⟩,
-    refine ⟨_, hpa, (λ n hn y hy, hpapb hn _)⟩,
-    exact (eventually_principal.mp hpb) y hy, },
+    exact ⟨_, hpa, (λ n hn y hy, hpapb hn ((eventually_principal.mp hpb) y hy))⟩, },
   { rintros ⟨t, ht, htmem⟩,
-    refine ⟨_, ht, _, (by simp), htmem⟩, },
+    exact ⟨_, ht, _, by simp, htmem⟩, },
 end
 
 lemma filter.prod_le_of_le_of_le {p₁ p₂ : filter ι} {q₁ q₂ : filter α} (hp : p₁ ≤ p₂)

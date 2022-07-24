@@ -628,7 +628,7 @@ by { simp only [interval_integral, integral_neg], abel }
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
 by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
-@[simp] lemma integral_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+@[simp] lemma integral_smul {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) (f : ℝ → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]
@@ -1800,6 +1800,19 @@ lemma integral_has_strict_deriv_at_left
   (hf : interval_integrable f volume a b) (hmeas : strongly_measurable_at_filter f (𝓝 a))
   (ha : continuous_at f a) : has_strict_deriv_at (λ u, ∫ x in u..b, f x) (-f a) a :=
 by simpa only [← integral_symm] using (integral_has_strict_deriv_at_right hf.symm hmeas ha).neg
+
+/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then `u ↦ ∫ x in a..u, f x`
+has derivative `f b` at `b` in the sense of strict differentiability. -/
+lemma _root_.continuous.integral_has_strict_deriv_at {f : ℝ → E} (hf : continuous f) (a b : ℝ) :
+  has_strict_deriv_at (λ u, ∫ (x : ℝ) in a..u, f x) (f b) b :=
+integral_has_strict_deriv_at_right (hf.interval_integrable _ _)
+ (hf.strongly_measurable_at_filter _ _) hf.continuous_at
+
+/-- Fundamental theorem of calculus-1: if `f : ℝ → E` is continuous, then the derivative
+of `u ↦ ∫ x in a..u, f x` at `b` is `f b`. -/
+lemma _root_.continuous.deriv_integral (f : ℝ → E) (hf : continuous f) (a b : ℝ) :
+  deriv (λ u, ∫ (x : ℝ) in a..u, f x) b = f b :=
+(hf.integral_has_strict_deriv_at a b).has_deriv_at.deriv
 
 /-!
 #### Fréchet differentiability

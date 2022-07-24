@@ -65,7 +65,7 @@ begin
   refl
 end
 
-variables (F) [nondiscrete_normed_field 𝕜]
+variables (F) [nontrivially_normed_field 𝕜]
   [normed_group F] [normed_space 𝕜 F] [topological_space B]
   [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
 

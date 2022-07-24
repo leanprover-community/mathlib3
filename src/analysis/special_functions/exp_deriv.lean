@@ -23,7 +23,7 @@ open filter asymptotics set function
 open_locale classical topological_space
 
 namespace complex
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
 
 /-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
 lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
@@ -74,7 +74,7 @@ open_map_of_strict_deriv has_strict_deriv_at_exp exp_ne_zero
 end complex
 
 section
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
   {f : 𝕜 → ℂ} {f' : ℂ} {x : 𝕜} {s : set 𝕜}
 
 lemma has_strict_deriv_at.cexp (hf : has_strict_deriv_at f f' x) :
@@ -101,7 +101,7 @@ hc.has_deriv_at.cexp.deriv
 end
 
 section
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 ℂ]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {f : E → ℂ} {f' : E →L[𝕜] ℂ}
   {x : E} {s : set E}
 

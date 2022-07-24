@@ -161,7 +161,7 @@ section normed
 
 section any_field_any_algebra
 
-variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
+variables {𝕂 𝔸 𝔹 : Type*} [nontrivially_normed_field 𝕂]
 variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
@@ -295,7 +295,7 @@ end any_field_any_algebra
 
 section any_field_division_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
 variables (𝕂)
 
@@ -334,7 +334,7 @@ end any_field_division_algebra
 
 section any_field_comm_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,

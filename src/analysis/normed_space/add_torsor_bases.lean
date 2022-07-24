@@ -26,7 +26,7 @@ This file contains results about bases in normed affine spaces.
 
 section barycentric
 
-variables {ι 𝕜 E P : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables {ι 𝕜 E P : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
 variables [metric_space P] [normed_add_torsor E P]
 variables (b : affine_basis ι 𝕜 P)

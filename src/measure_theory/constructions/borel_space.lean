@@ -64,7 +64,7 @@ lemma borel_eq_top_of_encodable [topological_space α] [t1_space α] [encodable 
   borel α = ⊤ :=
 begin
   refine (top_le_iff.1 $ λ s hs, bUnion_of_singleton s ▸ _),
-  apply measurable_set.bUnion s.countable_encodable,
+  apply measurable_set.bUnion s.to_countable,
   intros x hx,
   apply measurable_set.of_compl,
   apply generate_measurable.basic,
@@ -1281,14 +1281,14 @@ end
 @[measurability]
 lemma measurable_liminf {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, liminf at_top (λ i, f i x)) :=
-measurable_liminf' hf at_top_countable_basis (λ i, countable_encodable _)
+measurable_liminf' hf at_top_countable_basis (λ i, to_countable _)
 
 /-- `limsup` over `ℕ` is measurable. See `measurable_limsup'` for a version with a general filter.
 -/
 @[measurability]
 lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ x, limsup at_top (λ i, f i x)) :=
-measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
+measurable_limsup' hf at_top_countable_basis (λ i, to_countable _)
 
 end complete_linear_order
 
@@ -1600,7 +1600,7 @@ begin
     { have hg : ∀ q : ℚ, measurable_set[g] (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
-      refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
+      refine @measurable_set.bUnion _ _ g _ _ (to_countable _) (λ c h, _),
       exact @measurable_set.compl _ _ g (hg _) },
     { suffices : x < ↑b → (↑a < x ↔ ∃ (i : ℚ), a < i ∧ ↑i ≤ x), by simpa,
       refine λ _, ⟨λ h, _, λ ⟨i, hai, hix⟩, (rat.cast_lt.2 hai).trans_le hix⟩,
@@ -2068,7 +2068,7 @@ end continuous_linear_map
 
 namespace continuous_linear_map
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
           {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
@@ -2094,9 +2094,9 @@ measurable_pi_lambda _ measurable_apply
 
 end continuous_linear_map
 
-section continuous_linear_map_nondiscrete_normed_field
+section continuous_linear_map_nontrivially_normed_field
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
@@ -2110,10 +2110,10 @@ lemma ae_measurable.apply_continuous_linear_map {φ : α → F →L[𝕜] E} {μ
   (hφ : ae_measurable φ μ) (v : F) : ae_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).measurable.comp_ae_measurable hφ
 
-end continuous_linear_map_nondiscrete_normed_field
+end continuous_linear_map_nontrivially_normed_field
 
 section normed_space
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
 variables [borel_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 

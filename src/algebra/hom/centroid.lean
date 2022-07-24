@@ -173,8 +173,8 @@ instance has_scalar_nat : has_smul ℕ (centroid_hom α) :=
     .. (n • f : α →+ α) }⟩
 
 instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
-⟨λ f n, {
-  map_mul_left' := λ a b, begin
+⟨λ f n,
+{  map_mul_left' := λ a b, begin
     induction n with n ih,
     { simp },
     { rw pow_succ,
@@ -240,8 +240,8 @@ instance : has_neg (centroid_hom α) :=
 
 
 instance : has_sub (centroid_hom α) :=
-⟨λ f g, {
-  map_mul_left' := λ a b, by simp [map_mul_left, mul_sub],
+⟨λ f g,
+{ map_mul_left' := λ a b, by simp [map_mul_left, mul_sub],
   map_mul_right' := λ a b, by simp [map_mul_right, sub_mul],
   .. (f - g : α →+ α) }⟩
 

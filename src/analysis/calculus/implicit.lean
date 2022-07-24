@@ -89,9 +89,9 @@ such that
 * the kernels of the derivatives are complementary subspaces of `E`. -/
 @[nolint has_inhabited_instance]
 structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
-  (E : Type*) [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  (F : Type*) [normed_group F] [normed_space 𝕜 F] [complete_space F]
-  (G : Type*) [normed_group G] [normed_space 𝕜 G] [complete_space G] :=
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  (F : Type*) [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  (G : Type*) [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G] :=
 (left_fun : E → F)
 (left_deriv : E →L[𝕜] F)
 (right_fun : E → G)
@@ -106,9 +106,9 @@ structure implicit_function_data (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 namespace implicit_function_data
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
-  {G : Type*} [normed_group G] [normed_space 𝕜 G] [complete_space G]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
+  {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G] [complete_space G]
   (φ : implicit_function_data 𝕜 E F G)
 
 /-- The function given by `x ↦ (left_fun x, right_fun x)`. -/
@@ -204,8 +204,8 @@ complementary to `ker f'` lead to different maps `φ`.
 -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [complete_space F]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [complete_space F]
   {f : E → F} {f' : E →L[𝕜] F} {a : E}
 
 section defs
@@ -336,8 +336,8 @@ complementary to `ker f'` lead to different maps `φ`.
 section finite_dimensional
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [complete_space E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [complete_space E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] [finite_dimensional 𝕜 F]
   (f : E → F) (f' : E →L[𝕜] F) {a : E}
 
 /-- Given a map `f : E → F` to a finite dimensional space with a surjective derivative `f'`,

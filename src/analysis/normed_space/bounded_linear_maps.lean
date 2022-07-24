@@ -54,15 +54,15 @@ open_locale classical big_operators topological_space
 open filter (tendsto) metric continuous_linear_map
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-          {E : Type*} [normed_group E] [normed_space 𝕜 E]
-          {F : Type*} [normed_group F] [normed_space 𝕜 F]
-          {G : Type*} [normed_group G] [normed_space 𝕜 G]
+          {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+          {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+          {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `∥f x∥ ≤ M * ∥x∥` for some positive constant `M`. -/
 structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {F : Type*} [normed_group F] [normed_space 𝕜 F] (f : E → F)
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F] (f : E → F)
   extends is_linear_map 𝕜 f : Prop :=
 (bound : ∃ M, 0 < M ∧ ∀ x : E, ∥f x∥ ≤ M * ∥x∥)
 
@@ -188,7 +188,7 @@ variables {ι : Type*} [decidable_eq ι] [fintype ι]
 /-- Taking the cartesian product of two continuous multilinear maps
 is a bounded linear operation. -/
 lemma is_bounded_linear_map_prod_multilinear
-  {E : ι → Type*} [∀ i, normed_group (E i)] [∀ i, normed_space 𝕜 (E i)] :
+  {E : ι → Type*} [∀ i, normed_add_comm_group (E i)] [∀ i, normed_space 𝕜 (E i)] :
   is_bounded_linear_map 𝕜
   (λ p : (continuous_multilinear_map 𝕜 E F) × (continuous_multilinear_map 𝕜 E G), p.1.prod p.2) :=
 { map_add := λ p₁ p₂, by { ext1 m, refl },
@@ -234,16 +234,16 @@ namespace continuous_linear_map
   If `f` is a continuuous bilinear map, to use the corresponding rules for the second argument, use
   `(f _).map_add` and similar.
 
-  We have to assume that `F` and `G` are normed spaces in this section, to use
-  `continuous_linear_map.to_normed_group`, but we don't need to assume this for the first argument
-  of `f`.
+We have to assume that `F` and `G` are normed spaces in this section, to use
+`continuous_linear_map.to_normed_add_comm_group`, but we don't need to assume this for the first
+argument of `f`.
 -/
 
 variables {R : Type*}
 variables {𝕜₂ 𝕜' : Type*} [nontrivially_normed_field 𝕜'] [nontrivially_normed_field 𝕜₂]
 variables {M : Type*} [topological_space M]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
-variables {G' : Type*} [normed_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
+variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
 variables [smul_comm_class 𝕜₂ 𝕜' G']
 
 section semiring
@@ -404,7 +404,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right
   end }
 
 lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
-  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
+  [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
   [is_scalar_tower 𝕜 𝕜' E] :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=
 (lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E).is_bounded_bilinear_map
@@ -440,7 +440,7 @@ lemma is_bounded_bilinear_map_smul_right :
 /-- The composition of a continuous linear map with a continuous multilinear map is a bounded
 bilinear operation. -/
 lemma is_bounded_bilinear_map_comp_multilinear {ι : Type*} {E : ι → Type*}
-[decidable_eq ι] [fintype ι] [∀ i, normed_group (E i)] [∀ i, normed_space 𝕜 (E i)] :
+[decidable_eq ι] [fintype ι] [∀ i, normed_add_comm_group (E i)] [∀ i, normed_space 𝕜 (E i)] :
   is_bounded_bilinear_map 𝕜 (λ p : (F →L[𝕜] G) × (continuous_multilinear_map 𝕜 E F),
     p.1.comp_continuous_multilinear_map p.2) :=
 (comp_continuous_multilinear_mapL 𝕜 E F G).is_bounded_bilinear_map

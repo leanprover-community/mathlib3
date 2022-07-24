@@ -353,32 +353,29 @@ namespace restriction_of_scalars
 variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 variable (M : Module S)
 
-protected def has_smul : has_smul R M :=
-has_smul.comp _ f
-
-localized "notation r ` r•[` f `] ` m := @has_smul.smul _ _ (restriction_of_scalars.has_smul f _) r m" in change_of_rings
-
-@[simp] lemma smul_def (r : R) (m : M) : (r r•[f] m) = f r • m := rfl
-
-protected def mul_action : mul_action R M :=
-{ one_smul := λ m, by simp,
-  mul_smul := λ x y m, by simp [map_mul, mul_smul],
-  ..restriction_of_scalars.has_smul f _ }
-
-protected def distrib_mul_action : distrib_mul_action R M :=
-{ smul_add := λ r m n, by simp,
-  smul_zero := λ r, by simp,
-  ..restriction_of_scalars.mul_action f _ }
-
-protected def is_module : module R M :=
-{ add_smul := λ r s m, by simp [map_add, add_smul],
-  zero_smul := λ m, by simp,
-  ..restriction_of_scalars.distrib_mul_action f _ }
-
 def obj' : Module R :=
 { carrier := M,
   is_add_comm_group := infer_instance,
-  is_module := restriction_of_scalars.is_module f M }
+  is_module := module.comp_hom M f }
+
+section
+
+include f
+
+protected def has_smul : has_smul R M :=
+begin
+  haveI : module R M := (obj' f M).is_module,
+  apply_instance
+end
+
+end
+
+localized "notation r ` r•[` f `] ` m :=
+  @@has_smul.smul (restriction_of_scalars.has_smul f _) r m"
+  in change_of_rings
+
+@[simp] lemma smul_def (r : R) (m : M) :
+  (r r•[f] m) = f r • m := rfl
 
 @[simps]
 def map' {M M' : Module S} (g : M ⟶ M') :
@@ -415,7 +412,8 @@ protected def has_smul : has_smul S $ Hom M :=
     map_smul' := λ r (t : S), by rw [ring_hom.id_apply, restriction_of_scalars.smul_def f ⟨S⟩,
       ←linear_map.map_smul, restriction_of_scalars.smul_def f ⟨S⟩, smul_assoc] } }
 
-localized "notation s ` c•[` f `] ` m := @has_smul.smul _ _ (coextension_of_scalars.has_smul f _) s m" in change_of_rings
+localized "notation s ` c•[` f `] ` m :=
+  @has_smul.smul _ _ (coextension_of_scalars.has_smul f _) s m" in change_of_rings
 
 @[simp] lemma smul_apply (s : S) (g : Hom M) (s' : S) :
   (s c•[f] g) s' = g (s' • s : S) := rfl
@@ -471,16 +469,15 @@ include f
 
 include M
 localized "notation M `⊗[` R `,` f `]` S := @tensor_product R _ M S _ _ _
-  (restriction_of_scalars.is_module f ⟨S⟩)" in change_of_rings
+  (module.comp_hom S f)" in change_of_rings
 localized "notation m `⊗ₜ[` R `,` f `]` s := @tensor_product.tmul R _ _ _ _ _ _
-  (restriction_of_scalars.is_module f ⟨_⟩) m s" in change_of_rings
+  (module.comp_hom _ f) m s" in change_of_rings
 
 def smul_by (s : S) : (M ⊗[R, f] S) ⟶ (M ⊗[R, f] S) :=
-let m : module R S := restriction_of_scalars.is_module f ⟨S⟩ in
+let m : module R S := module.comp_hom S f in
 begin
   resetI,
-  refine tensor_product.lift _,
-  refine ⟨_, _, _⟩,
+  refine tensor_product.lift ⟨_, _, _⟩,
   { -- we define `m ↦ (s' ↦ m ⊗ (s * s'))`
     refine λ m, ⟨λ s', m ⊗ₜ[R, f] (s * s'), _, _⟩,
     { -- map_add
@@ -590,7 +587,7 @@ by simp [smul_by]
 /--
 See above
 -/
-def mul_action_S_M_tensor_S : _root_.mul_action S (M ⊗[R, f] S) :=
+def mul_action_S_M_tensor_S : mul_action S (M ⊗[R, f] S) :=
 { one_smul := λ x, begin
     change smul_by _ _ _ _ = _,
     rw smul_by.one f M,
@@ -641,8 +638,8 @@ Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` a
 -/
 @[simps]
 def map' {M1 M2 : Module R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
-let im1 : _root_.module R S := restriction_of_scalars.is_module f ⟨S⟩,
-    im2 : _root_.module R (obj' f M2) := is_module' f M2 in
+let im1 : module R S := module.comp_hom S f,
+    im2 : module R (obj' f M2) := is_module' f M2 in
 begin
   resetI,
   refine

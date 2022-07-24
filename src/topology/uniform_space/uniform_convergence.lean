@@ -66,7 +66,8 @@ section generic
 
 variables {α β γ ι : Type*} {p : filter ι} {p' : filter α}
 
-lemma filter.eventually_swap_iff {f : (ι × α) → Prop} : (∀ᶠ (x : ι × α) in (p.prod p'), f x) ↔ ∀ᶠ (y : α × ι) in (p'.prod p), f y.swap :=
+lemma filter.eventually_swap_iff {f : (ι × α) → Prop} : (∀ᶠ (x : ι × α) in (p.prod p'), f x) ↔
+  ∀ᶠ (y : α × ι) in (p'.prod p), f y.swap :=
 begin
   rw [eventually_prod_iff, eventually_prod_iff],
   split,

@@ -45,13 +45,6 @@ by { rintro rfl, exact not_is_max _ h.is_max }
 
 end no_max_order
 
-section order_bot
-variable [order_bot α]
-
-lemma is_succ_limit_bot : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
-
-end order_bot
-
 section is_succ_archimedean
 variable [is_succ_archimedean α]
 
@@ -193,13 +186,6 @@ by { rintro rfl, exact not_is_min _ h.is_min }
 @[simp] lemma not_is_pred_limit_pred (a : α) : ¬ is_pred_limit (pred a) := λ h, h.pred_ne _ rfl
 
 end no_min_order
-
-section order_top
-variable [order_top α]
-
-lemma is_pred_limit_top : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
-
-end order_top
 
 section is_pred_archimedean
 variable [is_pred_archimedean α]

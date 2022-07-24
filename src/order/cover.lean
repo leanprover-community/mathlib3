@@ -231,11 +231,15 @@ lemma set.ord_connected.apply_covby_apply_iff (f : α ↪o β) (h : (range f).or
   e a ⋖ e b ↔ a ⋖ b :=
 (ord_connected_range (e : α ≃o β)).apply_covby_apply_iff ((e : α ≃o β) : α ↪o β)
 
+protected lemma is_min.is_succ_limit : is_min a → is_succ_limit a :=
+λ h b hab, not_is_min_of_lt hab.lt h
+
 protected lemma is_max.is_pred_limit : is_max a → is_pred_limit a :=
 λ h b hab, not_is_max_of_lt hab.lt h
 
-protected lemma is_min.is_succ_limit : is_min a → is_succ_limit a :=
-λ h b hab, not_is_min_of_lt hab.lt h
+lemma is_succ_limit_bot [order_bot α] : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
+
+lemma is_pred_limit_top [order_top α] : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
 
 end preorder
 

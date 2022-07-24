@@ -90,8 +90,7 @@ instance : has_coe_to_fun (centroid_hom α) (λ _, α → α) := fun_like.has_co
 @[ext] lemma ext {f g : centroid_hom α} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
 @[simp] lemma coe_to_add_monoid_hom (f : centroid_hom α) : ⇑(f : α →+ α) = f := rfl
-@[simp] lemma to_add_monoid_hom_eq_coe (f : centroid_hom α) : f.to_add_monoid_hom = f :=
-fun_like.coe_injective rfl
+@[simp] lemma to_add_monoid_hom_eq_coe (f : centroid_hom α) : f.to_add_monoid_hom = f := rfl
 
 lemma coe_to_add_monoid_hom_injective : injective (coe : centroid_hom α → α →+ α) :=
 λ f g h, ext $ λ a, by { have := fun_like.congr_fun h a, exact this }

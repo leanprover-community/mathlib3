@@ -290,32 +290,11 @@ mk_eq.mpr ⟨1, by simp⟩
 @[simp] lemma mk_cancel_common_right (s s' : S) (m : M) : mk (s' • m) (s * s') = mk m s :=
 mk_eq.mpr ⟨1, by simp [mul_smul]⟩
 
-instance has_smul' : has_smul R (localized_module S M) :=
-{ smul := λ r x, lift_on x (λ p, mk (r • p.1) p.2) $ λ ⟨a, b⟩ ⟨a', b'⟩ ⟨c, eq1⟩, mk_eq.mpr ⟨c,
-  begin
-    haveI : smul_comm_class S R M := has_smul.comp.smul_comm_class _,
-    rw [smul_comm b r, smul_comm b' r, smul_comm c r, smul_comm c r, eq1];
-    apply_instance,
-  end⟩ }
-
-@[simp] lemma smul'_mk (r : R) (s : S) (m : M) :
-  r • localized_module.mk m s = mk (r • m) s := rfl
-
-instance mul_action' : mul_action R (localized_module S M) :=
-{ smul := (•),
-  one_smul := λ x, x.induction_on $ by { intros, simp },
-  mul_smul := λ r₁ r₂ x, x.induction_on $ by { intros, simp [mul_smul] } }
-
-instance distrib_mul_action' : distrib_mul_action R (localized_module S M) :=
-{ smul_add := λ r x y, x.induction_on₂
-    (by { intros, simp [mk_add_mk, smul_comm r s', smul_comm r s], }) y,
-  smul_zero := λ r, by rw [←localized_module.zero_mk (1 : S), smul'_mk, smul_zero],
-  ..(_ : mul_action R (localized_module S M))}
-
 instance is_module' : module R (localized_module S M) :=
-{ add_smul := λ r s x, x.induction_on $ by { intros, simp [add_smul, ←smul_add, mk_add_mk] },
-  zero_smul := λ x, x.induction_on $ by { intros, simp },
-  ..(_ : distrib_mul_action R _) }
+{ ..module.comp_hom (localized_module S M) $ (algebra_map R (localization S)) }
+
+lemma smul'_mk (r : R) (s : S) (m : M) : r • mk m s = mk (r • m) s :=
+by erw [mk_smul_mk r m 1 s, one_mul]
 
 section
 
@@ -327,7 +306,7 @@ variables (S M)
 def mk_linear_map : M →ₗ[R] localized_module S M :=
 { to_fun := λ m, mk m 1,
   map_add' := λ x y, by simp [mk_add_mk],
-  map_smul' := λ r x, rfl }
+  map_smul' := λ r x, (smul'_mk _ _ _).symm }
 
 end
 
@@ -348,7 +327,7 @@ def div_by (s : S) : localized_module S M →ₗ[R] localized_module S M :=
         mk_cancel_common_left s],
       rw show s * (t₁ * t₂) = t₁ * (s * t₂), by { ext, simp only [submonoid.coe_mul], ring },
     end) y,
-  map_smul' := λ r x, x.induction_on $ by { intros, simp [localized_module.lift_on_mk], } }
+  map_smul' := λ r x, x.induction_on $ by { intros, simp [localized_module.lift_on_mk, smul'_mk] } }
 
 lemma div_by_mul_by (s : S) (p : localized_module S M) :
   div_by s (algebra_map R (module.End R (localized_module S M)) s p) = p :=
@@ -394,8 +373,8 @@ instance localized_module_is_localized_module :
   is_localized_module S (localized_module.mk_linear_map S M) :=
 { map_units := λ s, ⟨⟨algebra_map R (module.End R (localized_module S M)) s,
     localized_module.div_by s,
-    fun_like.ext _ _ $ localized_module.mul_by_div_by _,
-    fun_like.ext _ _ $ localized_module.div_by_mul_by _⟩,
+    fun_like.ext _ _ $ localized_module.mul_by_div_by s,
+    fun_like.ext _ _ $ localized_module.div_by_mul_by s⟩,
     fun_like.ext _ _ $ λ p, p.induction_on $ by { intros, refl }⟩,
   surj := λ p, p.induction_on
     begin

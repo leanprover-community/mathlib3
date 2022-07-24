@@ -21,6 +21,13 @@ lemma isometry_smul : ∀ g : α, isometry (λ x : β, g • x) := isom_action.i
 @[simp] lemma dist_smul_smul (g : α) (x y : β) : dist (g • x) (g • y) = dist x y :=
 (isometry_smul g).dist_eq _ _
 
+variables [group α]
+
+lemma dist_smul_inv (g : α) (h : α) (x y : β) : dist (g • x) (h • y) = dist x ((g⁻¹*h) • y) :=
+sorry
+
+
+
 @[simp] lemma diam_smul (g : α) (s : set β) : diam (g • s) = diam s :=
 (isom_action.isom g).diam_image _
 
@@ -74,7 +81,7 @@ begin
   calc
     dist x y ≤ dist x a + dist y b + dist a b : dist_triangle4_right _ _ _ _
     ...      ≤ ε + ε + diam B : add_le_add_three hxa hyb $ dist_le_diam_of_mem sorry ha hb
-    ...      ≤ 2*ε + diam B : by sorry
+    ...      ≤ 2*ε + diam B : by linarith
 end
 
 def proper_action_set (α : Type*) {β : Type*} [monoid α] [pseudo_metric_space β]

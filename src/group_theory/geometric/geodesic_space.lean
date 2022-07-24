@@ -3,7 +3,7 @@ Copyright (c) 2022 Georgi Kocharyan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.txt.
 Authors: Georgi Kocharyan
 -/
-import .quasiisometry
+import .quasi_iso
 import tactic
 import data.real.basic
 import topology.metric_space.isometry
@@ -49,14 +49,6 @@ end
 lemma degenerate_quasigeodesic {X : Type*} [pseudo_metric_space X] (f: ℝ → X)
  (x : X) (y: X) (c : ℝ) (b : ℝ) (hf : quasigeodesic 0 (le_refl 0) f x y c b) : x = y :=
  eq.trans (hf.1.symm) hf.2.1
-
-
-definition fpi (L : ℝ) (Lpos : L ≥ 0) (f: ((set.Icc) (0 : ℝ) L) → X) : Π (a : ℝ),(a ≥ 0 ∧ a ≤ L) → X :=
-begin
-intros a ha,
-cases ha with h1 h2,
-exact f(⟨a, h1, h2 ⟩),
-end
 
 
 def conn_by_quasigeodesic {X : Type*} [pseudo_metric_space X] (x : X) (y: X) : Prop :=

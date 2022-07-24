@@ -233,7 +233,11 @@ variables [non_unital_non_assoc_ring α]
 
 /-- Negation of `centroid_hom`s as a `centroid_hom`. -/
 instance : has_neg (centroid_hom α) :=
-⟨λ f, ⟨-f, by simp [map_mul_left], by simp [map_mul_right]⟩⟩
+⟨λ f,
+  { map_mul_left' := by simp [map_mul_left],
+    map_mul_right' := by simp [map_mul_right],
+    .. (-f : α →+ α) }⟩
+
 
 instance : has_sub (centroid_hom α) :=
 ⟨λ f g, ⟨f - g, λ a b, by simp [map_mul_left, mul_sub], λ a b, by simp [map_mul_right, sub_mul]⟩⟩

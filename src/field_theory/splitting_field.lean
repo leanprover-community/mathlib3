@@ -526,7 +526,17 @@ submodule.quotient.distrib_mul_action' _
 instance adjoin_root.is_scalar_tower_right (α : Type*) [comm_semiring α] {K : Type u} [field K] [distrib_mul_action α K]
   [is_scalar_tower α K K]
   {f : K[X]} : is_scalar_tower α (adjoin_root f.factor) (adjoin_root f.factor) :=
-⟨sorry⟩
+⟨begin
+  rintro x ⟨y⟩ ⟨z⟩,
+  simp only [submodule.quotient.quot_mk_eq_mk, algebra.id.smul_eq_mul],
+  -- we need to copy this lemma for `ideal.quotient`; will make this proof far easier.
+  rw [←submodule.quotient.mk_smul],
+  simp only [ideal.quotient.mk_eq_mk],
+  rw [←map_mul, ←map_mul],
+  -- also maybe a `mul_assoc` for the special cases of `is_scalar_tower`
+  simp only [←ideal.quotient.mk_eq_mk, ←algebra.id.smul_eq_mul],
+  rw [←submodule.quotient.mk_smul, is_scalar_tower.smul_assoc]
+end⟩
 
 protected def smul (α : Type*) [comm_semiring α] (n : ℕ) : Π {K : Type u} [field K],
   by exactI Π [distrib_mul_action α K], by exactI Π [is_scalar_tower α K K] {f : K[X]},

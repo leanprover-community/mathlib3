@@ -40,9 +40,6 @@ protected lemma countable_iff_exists_injective {s : set α} :
   s.countable ↔ ∃ f : s → ℕ, injective f :=
 countable_coe_iff.symm.trans (countable_iff_exists_injective s)
 
-protected lemma countable_iff_nonempty_embedding {s : set α} : s.countable ↔ nonempty (s ↪ ℕ) :=
-countable_iff_exists_injective.trans ⟨λ ⟨f, hf⟩, ⟨⟨f, hf⟩⟩, λ ⟨⟨f, hf⟩⟩, ⟨f, hf⟩⟩
-
 /-- A set `s : set α` is countable if and only if there exists a function `α → ℕ` injective
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :

@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import logic.equiv.nat
 import logic.equiv.fin
 import data.countable.defs
-import data.set.countable
 
 /-!
 # Countable types
@@ -83,9 +82,6 @@ variables {α : Sort u} {β : Sort v} {π : α → Sort w}
 
 @[priority 500]
 instance set_coe.countable {α} [countable α] (s : set α) : countable s := subtype.countable
-
-theorem countable_coe_iff {α} {s : set α} : countable s ↔ s.countable :=
-by rw [countable_iff_nonempty_embedding, set.countable_iff_nonempty_embedding]
 
 instance [countable α] [countable β] : countable (psum α β) :=
 countable.of_equiv (plift α ⊕ plift β) (equiv.plift.sum_psum equiv.plift)

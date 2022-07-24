@@ -22,6 +22,10 @@ be satisfied by itself and all stricter types.
 
 * `centroid_hom_class`
 
+## References
+
+* [Jacobson, Structure of Rings][Jacobson1956]
+
 ## Tags
 
 centroid
@@ -86,7 +90,7 @@ lemma coe_to_add_monoid_hom_injective : injective (coe : centroid_hom α → α 
 /-- Turn a centroid homomorphism into an additive monoid endomorphism. -/
 def to_End (f : centroid_hom α) : add_monoid.End α := (f : α →+ α)
 
-lemma to_End_injective : injective (to_End : centroid_hom α → add_monoid.End α) :=
+lemma to_End_injective : injective (centroid_hom.to_End : centroid_hom α → add_monoid.End α) :=
 coe_to_add_monoid_hom_injective
 
 /-- Copy of a `centroid_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -184,6 +188,7 @@ instance : add_comm_monoid_with_one (centroid_hom α) := {
   ..centroid_hom.has_one
 }
 
+#check centroid_hom.to_End_injective.semiring
 -- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=
 to_End_injective.semiring _ (by { ext, refl }) (by { ext, refl }) (λ _ _, rfl) (λ _ _, rfl)

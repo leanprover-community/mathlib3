@@ -193,8 +193,9 @@ begin
   tauto
 end
 
-@[simps]
-def reduced_graph (ε : ℝ) (P : finpartition (univ : finset α)) : simple_graph α :=
+/-- The reduction of the graph `G` along partition `P` has edges between uniform pairs of parts that
+have high edge density. -/
+@[simps] def reduced_graph (ε : ℝ) (P : finpartition (univ : finset α)) : simple_graph α :=
 { adj := λ x y, G.adj x y ∧
     ∃ U V ∈ P.parts, x ∈ U ∧ y ∈ V ∧ U ≠ V ∧ G.is_uniform (ε/8) U V ∧ ε/4 ≤ G.edge_density U V,
   symm := λ x y,

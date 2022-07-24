@@ -353,6 +353,8 @@ namespace restriction_of_scalars
 variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 variable (M : Module S)
 
+/--Any `S`-module M is also an `R`-module via a ring homomorphism `f : R ⟶ S` by defining
+`r • m := f r • m`. This is called restriction of scalars. -/
 def obj' : Module R :=
 { carrier := M,
   is_add_comm_group := infer_instance,
@@ -362,6 +364,8 @@ section
 
 include f
 
+/--The `R`-scalar multiplication on `S`-module M defined by `r • m := f r • m`
+-/
 protected def has_smul : has_smul R M :=
 begin
   haveI : module R M := (obj' f M).is_module,
@@ -377,8 +381,11 @@ localized "notation r ` r•[` f `] ` m :=
 @[simp] lemma smul_def (r : R) (m : M) :
   (r r•[f] m) = f r • m := rfl
 
-@[simps]
-def map' {M M' : Module S} (g : M ⟶ M') :
+/--
+Given an `S`-linear map `g : M → M'` between `S`-modules, `g` is also `R`-linear between `M` and
+`M'` by means of restriction of scalars.
+-/
+@[simps] def map' {M M' : Module S} (g : M ⟶ M') :
   obj' f M ⟶ obj' f M' :=
 { map_smul' := λ r (x : M), by simp,
   ..g }
@@ -389,8 +396,12 @@ private lemma map_comp' {M M' M'' : Module S} (g : M ⟶ M') (h : M' ⟶ M'') :
   map' f (g ≫ h) = map' f g ≫ map' f h :=
 linear_map.ext $ λ (x : M), rfl
 
-@[simps]
-protected def functor : Module S ⥤ Module R :=
+/--
+The restriction of scalars operation is functorial. For any `f : R →+* S` a ring homomorphism,
+* `S`-module `M` can be considered as `R`-module by `r • m = f r • m`
+* `S`-linear map is also `R`-linear
+-/
+@[simps] protected def functor : Module S ⥤ Module R :=
 { obj := obj' f,
   map := λ _ _, map' f,
   map_id' := map_id' f,
@@ -405,6 +416,10 @@ variable (M : Module R)
 
 local notation `Hom` M := (restriction_of_scalars.functor f).obj ⟨S⟩ →ₗ[R] M
 
+/--
+Given an `R`-module M, consider the Hom(S, M) -- the `R`-linear maps between S (as an `R`-module by
+means of restriciton of scalars) and M. `S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`
+-/
 protected def has_smul : has_smul S $ Hom M :=
 { smul := λ s g,
   { to_fun := λ (s' : S), g (s' • s : S),
@@ -418,28 +433,49 @@ localized "notation s ` c•[` f `] ` m :=
 @[simp] lemma smul_apply (s : S) (g : Hom M) (s' : S) :
   (s c•[f] g) s' = g (s' • s : S) := rfl
 
+/--
+`S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)` such that `1 • g = g` and `(s * t) • g = s • t • g`
+-/
 protected def mul_action : mul_action S $ Hom M :=
 { one_smul := λ g, linear_map.ext $ λ (s : S), by simp,
   mul_smul := λ (s t : S) g, linear_map.ext $ λ (x : S), by simp [mul_assoc],
   ..coextension_of_scalars.has_smul f _ }
 
+/--
+`S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)` such that
+* 1 • g = g
+* (s * t) • g = s • t • g
+* s • (g + h) = s • g + s • h
+* s • 0 = 0
+-/
 protected def distrib_mul_action : distrib_mul_action S $ Hom M :=
 { smul_add := λ s g h, linear_map.ext $ λ (t : S), by simp,
   smul_zero := λ s, linear_map.ext $ λ (t : S), by simp,
   ..coextension_of_scalars.mul_action f _ }
 
+/--
+`S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`, this action defines an `S`-module structure on
+Hom(S, M).
+-/
 protected def is_module : module S $ Hom M :=
 { add_smul := λ s1 s2 g, linear_map.ext $ λ (x : S), by simp,
   zero_smul := λ g, linear_map.ext $ λ (x : S), by simp,
   ..coextension_of_scalars.distrib_mul_action f _ }
 
+/--
+Given any `R`-module M, Hom(S, M) has an `R`-module structure via `f : R →+* S`, this is called the
+coextension of scalars.
+-/
 def obj' : Module S :=
 { carrier := Hom M,
   is_add_comm_group := infer_instance,
   is_module := coextension_of_scalars.is_module f _ }
 
-@[simps]
-def map' {M M' : Module R} (g : M ⟶ M') :
+/--
+Given an `R`-linear map between `R`-modules `M` and `M'`, there is an `S`-linear map between
+Hom(S, M) and Hom(S, M').
+-/
+@[simps] def map' {M M' : Module R} (g : M ⟶ M') :
   obj' f M ⟶ obj' f M' :=
 { to_fun := λ h, g.comp h,
   map_add' := λ _ _, linear_map.comp_add _ _ _,
@@ -450,8 +486,10 @@ private lemma map_comp' {M M' M'' : Module R} (g : M ⟶ M') (h : M' ⟶ M'') :
   map' f (g ≫ h) = map' f g ≫ map' f h :=
 linear_map.ext $ λ h, linear_map.ext $ λ x, rfl
 
-@[simps]
-protected def functor : Module R ⥤ Module S :=
+/--
+The coextension of scalars is functorial by sending `M ↦ Hom(S, M)` and `g ↦ (h ↦ g ∘ h)`
+-/
+@[simps] protected def functor : Module R ⥤ Module S :=
 { obj := obj' f,
   map := λ _ _, map' _,
   map_id' := map_id' _,
@@ -473,6 +511,10 @@ localized "notation M `⊗[` R `,` f `]` S := @tensor_product R _ M S _ _ _
 localized "notation m `⊗ₜ[` R `,` f `]` s := @tensor_product.tmul R _ _ _ _ _ _
   (module.comp_hom _ f) m s" in change_of_rings
 
+/--
+Given `R`-module M, consider M ⨂ S, we define an `S`-action on M ⨂ S by
+  `s • (m ⊗ s') := m ⊗ (s * s')`.
+-/
 def smul_by (s : S) : (M ⊗[R, f] S) ⟶ (M ⊗[R, f] S) :=
 let m : module R S := module.comp_hom S f in
 begin
@@ -585,7 +627,8 @@ by simp only [smul_by, tensor_product.lift.tmul, linear_map.coe_mk]
 by simp [smul_by]
 
 /--
-See above
+Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
+The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
 -/
 def mul_action_S_M_tensor_S : mul_action S (M ⊗[R, f] S) :=
 { one_smul := λ x, begin
@@ -602,6 +645,10 @@ def mul_action_S_M_tensor_S : mul_action S (M ⊗[R, f] S) :=
 
 localized "attribute [instance] extension_of_scalars.mul_action_S_M_tensor_S" in change_of_rings
 
+/--
+Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
+The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
+-/
 def distrib_mul_action_S_M_tensor_S : _root_.distrib_mul_action S (M ⊗[R, f] S) :=
 { smul_zero := λ s, by { change smul_by f M s 0 = 0, apply smul_by.apply_zero, },
   smul_add := λ s x y, begin
@@ -609,6 +656,10 @@ def distrib_mul_action_S_M_tensor_S : _root_.distrib_mul_action S (M ⊗[R, f] S
     apply smul_by.apply_add,
   end }
 
+/--
+Since `S` has an `R`-module structure, `M ⊗[R] S` can be given an `S`-module structure.
+The scalar multiplication is defined by `s • (m ⊗ s') := m ⊗ (s * s')`
+-/
 def is_module : module S (M ⊗[R, f] S) :=
 { add_smul := λ s s' x, begin
     change smul_by _ _ _ _ = smul_by _ _ _ _ + smul_by _ _ _ _,
@@ -622,6 +673,9 @@ def is_module : module S (M ⊗[R, f] S) :=
   end,
   ..(distrib_mul_action_S_M_tensor_S f M) }.
 
+/--
+M ⨂ S is also an `R`-module
+-/
 def is_module' : module R (M ⊗[R, f] S) := infer_instance
 
 localized "attribute [instance] extension_of_scalars.is_module extension_of_scalars.is_module'"
@@ -636,8 +690,7 @@ omit M
 Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` and
 `l : M1 ⟶ M2` is sent to `m ⊗ s ↦ l m ⊗ s`
 -/
-@[simps]
-def map' {M1 M2 : Module R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
+@[simps] def map' {M1 M2 : Module R} (l : M1 ⟶ M2) : (obj' f M1) ⟶ (obj' f M2) :=
 let im1 : module R S := module.comp_hom S f,
     im2 : module R (obj' f M2) := is_module' f M2 in
 begin
@@ -661,7 +714,8 @@ begin
     simp only [add_tmul, map_add, linear_map.coe_mk, linear_map.add_apply], },
   { intros r m,
     ext s,
-    simp only [smul_tmul, linear_map.map_smulₛₗ, tmul_smul, linear_map.coe_mk, linear_map.smul_apply], },
+    rw [ring_hom.id_apply, linear_map.map_smul, linear_map.coe_mk, linear_map.smul_apply,
+      linear_map.coe_mk, smul_tmul'], },
   { intros z1 z2,
     rw [map_add], },
   { intros s z,
@@ -673,7 +727,8 @@ begin
 end
 
 /--
-The functor extension of scalars
+Extension of scalars is a functor where an `R`-module `M` is sent to `M ⊗ S` and
+`l : M1 ⟶ M2` is sent to `m ⊗ s ↦ l m ⊗ s`
 -/
 def functor : Module R ⥤ Module S :=
 { obj := λ M, obj' f M,
@@ -708,11 +763,14 @@ universes v
 
 variables {R : Type u₁} {S : Type u₂} [comm_ring R] [comm_ring S] (f : R →+* S)
 
-@[simps]
-def hom_equiv.to_restriction {X Y} (g : (extension_of_scalars.functor f).obj X ⟶ Y) :
+/--
+Given `R`-module X and `S`-module Y and a map `(extension_of_scalars.functor f).obj X ⟶ Y`,
+there is a map `X ⟶ (restriction_of_scalars.functor f).obj Y`
+-/
+@[simps] def hom_equiv.to_restriction {X Y} (g : (extension_of_scalars.functor f).obj X ⟶ Y) :
   X ⟶ (restriction_of_scalars.functor f).obj Y :=
-let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩,
-    m2 : module R Y := restriction_of_scalars.is_module f Y in
+let m1 : module R S := module.comp_hom S f,
+    m2 : module R Y := module.comp_hom Y f in
 { to_fun := λ x, g (x ⊗ₜ[R, f] 1),
   map_add' := λ x x', by rw [tensor_product.add_tmul, map_add],
   map_smul' := λ r x, begin
@@ -723,12 +781,15 @@ let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩,
     congr,
   end }
 
-@[simps]
-def hom_equiv.to_extension {X Y} (g : X ⟶ (restriction_of_scalars.functor f).obj Y) :
+/--
+Given `R`-module X and `S`-module Y and a map `X ⟶ (restriction_of_scalars.functor f).obj Y`,
+there is a map `(extension_of_scalars.functor f).obj X ⟶ Y`
+-/
+@[simps] def hom_equiv.to_extension {X Y} (g : X ⟶ (restriction_of_scalars.functor f).obj Y) :
   (extension_of_scalars.functor f).obj X ⟶ Y :=
 { to_fun := λ z,
-  let m1 := restriction_of_scalars.is_module f ⟨S⟩,
-      m2 : module R Y := restriction_of_scalars.is_module f Y,
+  let m1 := module.comp_hom S f,
+      m2 : module R Y := module.comp_hom Y f,
       m3 : module S ((restriction_of_scalars.functor f).obj Y) := Y.is_module in
   begin
     resetI,
@@ -767,6 +828,10 @@ def hom_equiv.to_extension {X Y} (g : X ⟶ (restriction_of_scalars.functor f).o
       rw [ih1, ih2], },
   end }
 
+/--
+Given `R`-module X and `S`-module Y, the linear maps `(extension_of_scalars.functor f).obj X ⟶ Y`
+bijectively corresponding to `X ⟶ (restriction_of_scalars.functor f).obj Y`
+-/
 @[simps] def hom_equiv' {X Y} :
   ((extension_of_scalars.functor f).obj X ⟶ Y) ≃ (X ⟶ (restriction_of_scalars.functor f).obj Y) :=
 { to_fun := hom_equiv.to_restriction f,
@@ -782,9 +847,12 @@ def hom_equiv.to_extension {X Y} (g : X ⟶ (restriction_of_scalars.functor f).o
   end,
   right_inv := λ g, by { ext, simp } }
 
+/--
+For any `R`-module X, there is a natural `R`-linear map from `X` to `X ⨂ S` by sending `x ↦ x ⊗ 1`
+-/
 @[simps] def unit.map {X} :
   X ⟶ (extension_of_scalars.functor f ⋙ restriction_of_scalars.functor f).obj X :=
-let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩ in
+let m1 : module R S := module.comp_hom S f in
 { to_fun := λ x, x ⊗ₜ[R, f] 1,
   map_add' := λ x x', by { rw tensor_product.add_tmul, },
   map_smul' := λ r x, begin
@@ -793,6 +861,10 @@ let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩ in
     congr,
   end }
 
+/--
+The natural transformation from ideantity functor on `R`-module to the composition of extension and
+restriction of scalars.
+-/
 def unit : 𝟭 (Module R) ⟶ extension_of_scalars.functor f ⋙ restriction_of_scalars.functor f :=
 { app := λ _, unit.map f,
   naturality' := λ X X' g, begin
@@ -806,10 +878,13 @@ def unit : 𝟭 (Module R) ⟶ extension_of_scalars.functor f ⋙ restriction_of
     simp only [linear_map.coe_mk],
   end }
 
+/--
+For any `S`-module Y, there is a natural `R`-linear map from `Y ⨂ S` to `Y` by
+`y ⊗ s ↦ s • y`-/
 @[simps] def counit.map {Y} :
   (restriction_of_scalars.functor f ⋙ extension_of_scalars.functor f).obj Y ⟶ Y :=
-let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩,
-    m2 : module R Y := restriction_of_scalars.is_module f Y in
+let m1 : module R S := module.comp_hom S f,
+    m2 : module R Y := module.comp_hom Y f in
 { to_fun :=
     begin
       resetI,
@@ -850,6 +925,10 @@ let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩,
     { rw [smul_add, map_add, map_add, ih1, ih2, smul_add], },
   end }
 
+/--
+The natural transformation from the composition of restriction and extension of scalars to the
+identity functor on `S`-module.
+-/
 @[simps] def counit :
   (restriction_of_scalars.functor f ⋙ extension_of_scalars.functor f) ⟶ (𝟭 (Module S)) :=
 { app := λ _, counit.map f,
@@ -865,6 +944,9 @@ let m1 : module R S := restriction_of_scalars.is_module f ⟨S⟩,
     { rw [map_add, map_add, ih1, ih2, map_add, map_add], }
   end }
 
+/--
+extension of scalars ⊣ restriction of scalars
+-/
 def adjunction : adjunction (extension_of_scalars.functor f) (restriction_of_scalars.functor f) :=
 { hom_equiv := λ _ _, hom_equiv' f,
   unit := unit f,
@@ -887,8 +969,11 @@ namespace restriction_coextension_adj
 
 variables {R : Type u₁} {S : Type u₂} [ring R] [ring S] (f : R →+* S)
 
-@[simps]
-def hom_equiv.from_restriction_to_to_coextension
+/--
+Given `R`-module X and `S`-module Y, any `g : (restriction_of_scalars.functor f).obj Y ⟶ X`
+corresponds to `Y ⟶ (coextension_of_scalars.functor f).obj X` by sendind `y ↦ (s ↦ g (s • y))`
+-/
+@[simps] def hom_equiv.from_restriction_to_to_coextension
   {X Y} (g : (restriction_of_scalars.functor f).obj Y ⟶ X) :
   Y ⟶ (coextension_of_scalars.functor f).obj X :=
 { to_fun := λ (y : Y),
@@ -907,8 +992,11 @@ def hom_equiv.from_restriction_to_to_coextension
   end,
   map_smul' := λ s y, linear_map.ext $ λ (t : S), by simp [mul_smul] }
 
-@[simps]
-def hom_equiv.to_coextension_to_from_restriction
+/--
+Given `R`-module X and `S`-module Y, any `g : Y ⟶ (coextension_of_scalars.functor f).obj X`
+corresponds to `(restriction_of_scalars.functor f).obj Y ⟶ X` by `y ↦ g y 1`
+-/
+@[simps] def hom_equiv.to_coextension_to_from_restriction
   {X Y} (g : Y ⟶ (coextension_of_scalars.functor f).obj X) :
   (restriction_of_scalars.functor f).obj Y ⟶ X :=
 { to_fun := λ (y : Y), (g y).to_fun (1 : S),
@@ -929,8 +1017,11 @@ lemma hom_equiv.bf {X Y} (g : Y ⟶ (coextension_of_scalars.functor f).obj X) :
     (hom_equiv.to_coextension_to_from_restriction f g) = g :=
 linear_map.ext $ λ (y : Y), by { ext, simp }
 
-@[simps]
-protected def unit' :
+/--
+The natural transformation from identity functor to the composition of restriction and coextension
+of scalars.
+-/
+@[simps] protected def unit' :
   𝟭 (Module S) ⟶ restriction_of_scalars.functor f ⋙ coextension_of_scalars.functor f :=
 { app := λ Y,
   { to_fun := λ (y : Y),
@@ -943,8 +1034,11 @@ protected def unit' :
     map_smul' := λ s (y : Y), linear_map.ext $ λ (t : S), by simp [mul_smul] },
   naturality' := λ Y Y' g, linear_map.ext $ λ (y : Y), linear_map.ext $ λ (s : S), by simp }
 
-@[simps]
-protected def counit' :
+/--
+The natural transforamtion from the composition of coextension and restriction of scalars to
+identity functor.
+-/
+@[simps] protected def counit' :
   coextension_of_scalars.functor f ⋙ restriction_of_scalars.functor f ⟶ 𝟭 (Module R) :=
 { app := λ X,
   { to_fun := λ g, g.to_fun (1 : S),
@@ -958,8 +1052,10 @@ protected def counit' :
     end },
   naturality' := λ X X' g, linear_map.ext $ λ h, by simp }
 
-@[simps]
-def _root_.change_of_rings.restriction_coextension_adj :
+/--
+restriction of scalars ⊣ coextension of scalars
+-/
+@[simps] def _root_.change_of_rings.restriction_coextension_adj :
   restriction_of_scalars.functor f ⊣ coextension_of_scalars.functor f :=
 { hom_equiv := λ Y X, ⟨hom_equiv.from_restriction_to_to_coextension f,
     hom_equiv.to_coextension_to_from_restriction f, hom_equiv.fb f, hom_equiv.bf f⟩,
@@ -978,8 +1074,8 @@ variables {S : Type u} [ring S] (f : ℤ →+* S)
 
 open_locale change_of_rings
 
-@[simps]
-def Ab_to_Z_Module : AddCommGroup ⥤ Module ℤ :=
+/-- A more constructive version of `Ab ⥤ Module ℤ`-/
+@[simps] def Ab_to_Z_Module : AddCommGroup ⥤ Module ℤ :=
 { obj := λ X, ⟨X⟩,
   map := λ X Y g,
   { map_smul' := λ z (x : X), by rw [add_monoid_hom.to_fun_eq_coe, g.map_zsmul, ring_hom.id_apply],
@@ -987,8 +1083,10 @@ def Ab_to_Z_Module : AddCommGroup ⥤ Module ℤ :=
   map_id' := λ X, fun_like.ext _ _ $ λ (x : X), rfl,
   map_comp' := λ X Y Z g h, fun_like.ext _ _ $ λ (x : X), rfl }
 
-@[simps]
-def hom_equiv.forget₂_to_coextension {X : Module S} {Y : AddCommGroup}
+/--
+Given a group homomorphism `g : X ⟶ Y`, define linear map `X ⟶ Hom(S, Y)` by `x ↦ (s ↦ g (s • x))`
+-/
+@[simps] def hom_equiv.forget₂_to_coextension {X : Module S} {Y : AddCommGroup}
   (g : (forget₂ (Module S) AddCommGroup).obj X ⟶ Y) :
   X ⟶ (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f).obj Y :=
 { to_fun := λ x,
@@ -1006,8 +1104,10 @@ def hom_equiv.forget₂_to_coextension {X : Module S} {Y : AddCommGroup}
   map_add' := λ X₁ X₂, by { ext, simp },
   map_smul' := λ s x, by { ext, simp [mul_smul], } }
 
-@[simps]
-def hom_equiv.coextension_to_forget₂ {X : Module S} {Y : AddCommGroup}
+/--
+Given linear map `g : X ⟶ Hom(S, Y)`, define `X ⟶ Y` by `x ↦ g x 1`
+-/
+@[simps] def hom_equiv.coextension_to_forget₂ {X : Module S} {Y : AddCommGroup}
   (g : X ⟶ (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f).obj Y) :
   (forget₂ (Module S) AddCommGroup).obj X ⟶ Y :=
 { to_fun := λ (x : X), (g x).to_fun (1 : S),
@@ -1024,6 +1124,10 @@ lemma hom_equiv.bf {X : Module S} {Y : AddCommGroup}
   hom_equiv.forget₂_to_coextension f (hom_equiv.coextension_to_forget₂ f g) = g :=
 by { ext, simp }
 
+/--
+The natural transformation from identity functor to the composition of identity to the composition
+of forgetful and coextension of scalars functor.
+-/
 @[simps] def unit' :
   𝟭 (Module S) ⟶
   forget₂ (Module S) AddCommGroup ⋙ Ab_to_Z_Module ⋙ coextension_of_scalars.functor f :=
@@ -1044,6 +1148,9 @@ by { ext, simp }
     map_smul' := λ s (x : X), by { ext, simp [mul_smul], } },
   naturality' := λ X Y g, by { ext, simp, } }
 
+/--
+The natural transformation from the coextension of scalars functor to the identity functor.
+-/
 @[simps] def counit' :
   (Ab_to_Z_Module ⋙ coextension_of_scalars.functor f) ⋙ forget₂ (Module S) AddCommGroup ⟶
   𝟭 AddCommGroup :=
@@ -1053,6 +1160,9 @@ by { ext, simp }
     map_add' := λ _ _, by simp },
   naturality' := λ X Y g, by { ext, simp, } }
 
+/--
+forgetful functor ⊣ coextension of scalars
+-/
 def _root_.change_of_rings.coextension_forget₂_adj :
   forget₂ (Module S) AddCommGroup ⊣
   (Ab_to_Z_Module.comp $ coextension_of_scalars.functor f) :=
@@ -1069,3 +1179,4 @@ instance : is_left_adjoint (forget₂ (Module S) AddCommGroup) :=
 end coextension_forget₂_adj
 
 end change_of_rings
+#lint

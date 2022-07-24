@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning
 -/
 import topology.is_locally_homeomorph
+import topology.fiber_bundle
 
 /-!
 # Local homeomorphisms
@@ -162,7 +163,6 @@ variables (E X)
   fibers where each point of `X` has an evenly covered neighborhood. -/
 @[nolint has_inhabited_instance] -- not all spaces are covering spaces
 structure covering_map extends continuous_map E X :=
-(surjective : function.surjective to_fun)
 (discrete_fibers : ∀ x, discrete_topology (to_fun ⁻¹' {x}))
 (evenly_covered : ∀ x, ∃ U, is_open U ∧ ∃ hU : x ∈ U, evenly_covered to_fun hU)
 
@@ -204,10 +204,14 @@ begin
       continuity! } }, ⟨⟨q x, hx⟩, subtype.ext_iff.mp (ϕ.rigid ⟨x, rfl⟩)⟩, rfl⟩,
 end
 
-lemma is_open_map (q : E ↠ X) : is_open_map q :=
+lemma open_map (q : E ↠ X) : is_open_map q :=
 q.is_locally_homeomorph.is_open_map
 
-lemma covering_map_quotient_map (q : E ↠ X) : quotient_map q :=
-q.is_open_map.to_quotient_map q.continuous q.surjective
+lemma quotient_map_of_surjective (q : E ↠ X) (hq : function.surjective q) : quotient_map q :=
+q.open_map.to_quotient_map q.continuous hq
 
 end covering_map
+
+-- TODO: prove that a topological fiber bundle with discrete fiber is a covering map
+
+-- TODO: prove that a covering map over a connected space is a topological fiber bundle

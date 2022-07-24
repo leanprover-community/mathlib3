@@ -240,7 +240,10 @@ instance : has_neg (centroid_hom α) :=
 
 
 instance : has_sub (centroid_hom α) :=
-⟨λ f g, ⟨f - g, λ a b, by simp [map_mul_left, mul_sub], λ a b, by simp [map_mul_right, sub_mul]⟩⟩
+⟨λ f g, {
+  map_mul_left' := λ a b, by simp [map_mul_left, mul_sub],
+  map_mul_right' := λ a b, by simp [map_mul_right, sub_mul],
+  .. (f - g : α →+ α) }⟩
 
 instance has_scalar_int : has_smul ℤ (centroid_hom α) :=
 ⟨λ n f, ⟨n • f,

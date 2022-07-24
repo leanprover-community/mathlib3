@@ -120,12 +120,24 @@ def ring_hom.of_localization_span_target : Prop :=
   (H : by exactI (∀ (r : s), P ((algebra_map S (localization.away (r : S))).comp f))),
   by exactI P f
 
+/-- A property `P` of ring homs satisfies `of_localization_maximal` if
+  if `P` holds for `R` whenever `P` holds for `Rₘ` for all maximal ideals `p`. -/
+def ring_hom.of_localization_maximal : Prop :=
+∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
+  by exactI (∀ (J : ideal S) (hJ : J.is_maximal),
+    by exactI P (localization.local_ring_hom _ J f rfl)) → P f
+
 /-- A property `P` of ring homs satisfies `of_localization_prime` if
   if `P` holds for `R` whenever `P` holds for `Rₘ` for all prime ideals `p`. -/
 def ring_hom.of_localization_prime : Prop :=
 ∀ ⦃R S : Type u⦄ [comm_ring R] [comm_ring S] (f : by exactI R →+* S),
   by exactI (∀ (J : ideal S) (hJ : J.is_prime),
     by exactI P (localization.local_ring_hom _ J f rfl)) → P f
+
+lemma ring_hom.of_localization_prime_of_localization_maximal
+  (h : ring_hom.of_localization_maximal $ λ R S i1 i2 f, by exactI P f) :
+  ring_hom.of_localization_prime $ λ R S i1 i2 f, by exactI P f :=
+λ R S i1 i2 f H, by exactI h f (λ J hJ, by exactI H _ _)
 
 /-- A property of ring homs is local if it is preserved by localizations and compositions, and for
 each `{ r }` that spans `S`, we have `P (R →+* S) ↔ ∀ r, P (R →+* Sᵣ)`. -/
@@ -149,6 +161,17 @@ begin
 end
 
 variables {P f R' S'}
+
+example (h1 : ring_hom.of_localization_span_target @P)
+  (h2 : ring_hom.of_localization_prime @P) : ring_hom.of_localization_span @P :=
+λ R S i1 i2 f s eq1 H,
+begin
+  apply @h1 R S i1 i2 f (f '' s),
+  { rw ideal.eq_top_iff_one at eq1 ⊢,
+    rw [ideal.span_eq_supr] at eq1,
+     },
+end
+
 
 lemma _root_.ring_hom.property_is_local.respects_iso (hP : ring_hom.property_is_local @P) :
   ring_hom.respects_iso @P :=

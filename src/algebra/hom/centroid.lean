@@ -171,17 +171,20 @@ instance has_scalar_nat : has_smul ℕ (centroid_hom α) :=
   λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩
 
 instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
-⟨λ f n, ⟨(f.to_End ^ n : add_monoid.End α), λ a b, begin
+⟨λ f n, {
+  map_mul_left' := λ a b, begin
     induction n with n ih,
     { simp },
     { rw pow_succ,
       exact (congr_arg f.to_End ih).trans (f.map_mul_left' _ _) }
-  end, λ a b, begin
+  end,
+  map_mul_right' := λ a b, begin
     induction n with n ih,
     { simp },
     { rw pow_succ,
       exact (congr_arg f.to_End ih).trans (f.map_mul_right' _ _) }
-  end⟩⟩
+  end,
+  ..(f.to_End ^ n : add_monoid.End α) }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : centroid_hom α) = 0 := rfl
 @[simp] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl

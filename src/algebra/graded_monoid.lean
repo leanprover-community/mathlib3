@@ -126,6 +126,9 @@ if `a ∈ A i` and `m ∈ M j`, then `a • b` must be in `M (i + j)`-/
 class ghas_smul [has_add ι] :=
 (smul {i j} : A i → M j → M (i + j))
 
+instance ghas_mul.to_ghas_smul [has_add ι] [ghas_mul A] : ghas_smul A A :=
+{ smul := λ _ _, ghas_mul.mul }
+
 /-- `ghas_mul` implies `has_mul (graded_monoid A)`. -/
 instance ghas_mul.to_has_mul [has_add ι] [ghas_mul A] :
   has_mul (graded_monoid A) :=
@@ -209,6 +212,33 @@ instance locally to define notation in `gmonoid` and similar typeclasses. -/
 instance gcomm_monoid.to_comm_monoid [add_comm_monoid ι] [gcomm_monoid A] :
   comm_monoid (graded_monoid A) :=
 { mul_comm := gcomm_monoid.mul_comm, ..gmonoid.to_monoid A }
+
+/-- A graded version of `mul_action`. -/
+class gmul_action [add_monoid ι] [gmonoid A] extends ghas_smul A M :=
+(one_smul (b : graded_monoid M) : (1 : graded_monoid A) • b = b)
+(mul_smul (a a' : graded_monoid A) (b : graded_monoid M) : (a * a') • b = a • a' • b)
+
+instance gmonoid.to_gmul_action [add_monoid ι] [gmonoid A] :
+  gmul_action A A :=
+{ one_smul := gmonoid.one_mul,
+  mul_smul := gmonoid.mul_assoc,
+  ..ghas_mul.to_ghas_smul _ }
+
+instance gmul_action.to_mul_action [add_monoid ι] [gmonoid A] [gmul_action A M] :
+  mul_action (graded_monoid A) (graded_monoid M) :=
+{ one_smul := gmul_action.one_smul,
+  mul_smul := gmul_action.mul_smul }
+
+/-- A graded version of `distrib_mul_action`. -/
+class gdistrib_mul_action [add_monoid ι] [gmonoid A] [Π i, add_monoid $ M i]
+  extends graded_monoid.gmul_action A M :=
+(smul_add {i j} (a : A i) (b c : M j) : smul a (b + c) = smul a b + smul a c)
+(smul_zero {i j} (a : A i) : smul a (0 : M j) = 0)
+
+class gmodule [add_monoid ι] [Π i, add_monoid $ A i] [Π i, add_monoid $ M i]
+  [graded_monoid.gmonoid A] extends gdistrib_mul_action A M :=
+(add_smul {i j} (a a' : A i) (b : M j) : smul (a + a') b = smul a b + smul a' b)
+(zero_smul {i j} (b : M j) : smul (0 : A i) b = 0)
 
 end defs
 

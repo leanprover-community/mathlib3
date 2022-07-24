@@ -207,7 +207,7 @@ section add_group
 
 variables [add_group α] [preorder α] [decidable_rel ((<) : α → α → Prop)] {a : α}
 
-lemma left.sign_neg_eq_neg_sign [covariant_class α α (+) (<)] : sign (-a) = - sign a :=
+lemma left.sign_neg [covariant_class α α (+) (<)] : sign (-a) = - sign a :=
 begin
   simp_rw [sign_apply, left.neg_pos_iff, left.neg_neg_iff],
   split_ifs with h h',
@@ -217,8 +217,7 @@ begin
   { simp }
 end
 
-lemma right.sign_neg_eq_neg_sign [covariant_class α α (function.swap (+)) (<)] :
-  sign (-a) = - sign a :=
+lemma right.sign_neg [covariant_class α α (function.swap (+)) (<)] : sign (-a) = - sign a :=
 begin
   simp_rw [sign_apply, right.neg_pos_iff, right.neg_neg_iff],
   split_ifs with h h',

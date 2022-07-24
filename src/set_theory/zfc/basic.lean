@@ -627,6 +627,7 @@ iff.trans mem_sUnion
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
 /-- Induction on the `∈` relation. -/
+@[elab_as_eliminator]
 theorem induction_on {p : Set → Prop} (x) (h : ∀ x, (∀ y ∈ x, p y) → p x) : p x :=
 quotient.induction_on x $ λ u, pSet.rec_on u $ λ α A IH, h _ $ λ y,
 show @has_mem.mem _ _ Set.has_mem y ⟦⟨α, A⟩⟧ → p y, from
@@ -784,6 +785,26 @@ instance : has_mem Class Class := ⟨Class.mem⟩
 
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+theorem mem_wf : @well_founded Class.{u} (∈) :=
+⟨begin
+  have H : ∀ x : Set.{u}, @acc Class.{u} (∈) ↑x,
+  { refine λ a, Set.induction_on a (λ x IH, ⟨x, _⟩),
+    rintros A ⟨z, rfl, hz⟩,
+    exact IH z hz },
+  { refine λ A, ⟨A, _⟩,
+    rintros B ⟨x, rfl, hx⟩,
+    exact H x }
+end⟩
+
+instance : has_well_founded Class := ⟨_, mem_wf⟩
+instance : is_asymm Class (∈) := mem_wf.is_asymm
+
+theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
+theorem mem_irrefl (x : Class) : x ∉ x := irrefl x
+
+/-- There is no universal set. -/
+theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}

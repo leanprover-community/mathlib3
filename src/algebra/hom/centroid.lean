@@ -190,17 +190,13 @@ instance : add_comm_monoid_with_one (centroid_hom α) :=
 -- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=
 to_End_injective.semiring _ (by { ext, refl }) (by { ext, refl }) (λ _ _, rfl) (λ _ _, rfl)
-  (λ _ _, rfl) (λ f a, by { ext, refl }) (λ a,begin
-  ext,
-  unfold to_End,
-  induction a,
-  simp only [nat.cast_zero, coe_to_add_monoid_hom, zero_apply, add_monoid_hom.zero_apply],
-  rw nat.cast_succ,
-  rw nat.cast_succ,
-  rw add_monoid_hom.add_apply,
-  rw ← a_ih,
-  simp only [nat.cast_succ, coe_to_add_monoid_hom, add_apply, one_apply, add_monoid_hom.add_apply,
-  add_monoid.coe_one, id.def],
+  (λ _ _, rfl) (λ _ _, by { ext, refl }) (λ n, begin
+    ext,
+    unfold to_End,
+    induction n,
+    rw [nat.cast_zero, coe_to_add_monoid_hom, zero_apply, nat.cast_zero, add_monoid_hom.zero_apply],
+    rw [nat.cast_succ, nat.cast_succ, add_monoid_hom.add_apply, ← n_ih, coe_to_add_monoid_hom,
+      add_apply, one_apply, coe_to_add_monoid_hom, add_monoid.coe_one, id.def],
   end)
 
 lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=

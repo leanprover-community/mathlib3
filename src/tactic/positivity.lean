@@ -329,8 +329,8 @@ meta def positivity_pow : expr → tactic strictness
       (do
         strictness_a ← core a,
         match strictness_a with
-        | (positive pa) := positive <$> mk_mapp ``pow_pos [pa]
-        | (nonnegative pa) := nonnegative <$> mk_mapp ``pow_nonneg [pa]
+        | (positive pa) := positive <$> mk_app ``pow_pos [pa, n]
+        | (nonnegative pa) := nonnegative <$> mk_app ``pow_nonneg [pa, n]
         end)
   | _ := failed -- TODO handle integer powers, maybe even real powers
   end

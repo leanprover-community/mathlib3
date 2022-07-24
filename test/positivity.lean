@@ -53,9 +53,11 @@ example {a : ℕ} : 0 < a ^ 0 := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 2 + a := by positivity
 
-example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 ≤ 3 * a ^ 2 * b + b * 7 + 14 := by positivity
+example {a : ℤ} (ha : 3 < a) : 0 ≤ a ^ 3 + a := by positivity
 
 example {a : ℤ} (ha : 3 < a) : 0 < a ^ 2 + a := by positivity
+
+example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 ≤ 3 * a ^ 2 * b + b * 7 + 14 := by positivity
 
 example {a b : ℤ} (ha : 3 < a) (hb : b ≥ 4) : 0 < 3 * a ^ 2 * b + b * 7 + 14 := by positivity
 

@@ -3,9 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
-
+import algebra.group_power.order
 import algebra.order.group
-import tactic.abel
 
 /-!
 # Linearly ordered commutative groups and monoids with a zero element adjoined

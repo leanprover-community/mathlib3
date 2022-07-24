@@ -39,7 +39,7 @@ section
 
 -- Making `centroid_hom` an old structure will allow the lemma `to_add_monoid_hom_eq_coe`
 -- to be true by `rfl`. After upgrading to Lean 4, this should no longer be needed
--- because eta for structures should provide the same result. 
+-- because eta for structures should provide the same result.
 set_option old_structure_cmd true
 
 /-- The type of centroid homomorphisms from `α` to `α`. -/
@@ -165,9 +165,12 @@ instance : has_add (centroid_hom α) :=
 instance : has_mul (centroid_hom α) := ⟨comp⟩
 
 instance has_scalar_nat : has_smul ℕ (centroid_hom α) :=
-⟨λ n f, ⟨n • f,
-  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_smul_comm] },
-  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩
+⟨λ n f,
+  { map_mul_left' := λ a b,
+      by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, ←mul_smul_comm] },
+    map_mul_right' := λ a b,
+      by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, ←smul_mul_assoc] },
+    .. (n • f : α →+ α) }⟩
 
 instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
 ⟨λ f n, {

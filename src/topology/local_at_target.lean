@@ -16,20 +16,11 @@ We show that the following properties of continuous maps are local at the target
 
 -/
 
-lemma set.maps_to.coe_restrict {α β : Type*} {f : α → β} {s : set α} {t : set β}
-(h : set.maps_to f s t) :
-  coe ∘ h.restrict f s t = s.restrict f := rfl
-
 open topological_space set filter
 open_locale topological_space filter
 
 variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
-variables {s : set β} {ι : Type*} (U : ι → opens β) (hU : supr U = ⊤)
-
-/-- The restriction of a continuous map onto the preimage of a set. -/
-@[simps]
-def continuous_map.restrict_preimage (f : C(α, β)) (s : set β) : C(f ⁻¹' s, s) :=
-⟨s.restrict_preimage f, continuous_iff_continuous_at.mpr $ λ x, f.2.continuous_at.restrict_preimage⟩
+variables {s : set β} {ι : Type*} {U : ι → opens β} (hU : supr U = ⊤)
 
 include hU
 
@@ -72,8 +63,6 @@ begin
       inf_eq_left, filter.le_principal_iff],
     exact filter.preimage_mem_comap ((U i).2.mem_nhds hi) }
 end
-
-attribute [mk_iff] open_embedding closed_embedding
 
 lemma embedding_iff_embedding_of_supr_eq_top (h : continuous f) :
   embedding f ↔ ∀ i, embedding ((U i).1.restrict_preimage f) :=

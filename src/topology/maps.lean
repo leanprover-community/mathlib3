@@ -423,6 +423,7 @@ section open_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- An open embedding is an embedding with open image. -/
+@[mk_iff]
 structure open_embedding (f : α → β) extends embedding f : Prop :=
 (open_range : is_open $ range f)
 
@@ -504,6 +505,7 @@ section closed_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- A closed embedding is an embedding with closed image. -/
+@[mk_iff]
 structure closed_embedding (f : α → β) extends embedding f : Prop :=
 (closed_range : is_closed $ range f)
 

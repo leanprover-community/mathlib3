@@ -142,7 +142,7 @@ instance : has_add (centroid_hom α) :=
 
 instance : has_mul (centroid_hom α) := ⟨comp⟩
 
-instance has_scalar_nat : has_scalar ℕ (centroid_hom α) :=
+instance has_scalar_nat : has_smul ℕ (centroid_hom α) :=
 ⟨λ n f, ⟨n • f,
   λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_smul_comm] },
   λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩
@@ -199,7 +199,7 @@ instance : has_neg (centroid_hom α) :=
 instance : has_sub (centroid_hom α) :=
 ⟨λ f g, ⟨f - g, λ a b, by simp [map_mul_left, mul_sub], λ a b, by simp [map_mul_right, sub_mul]⟩⟩
 
-instance has_scalar_int : has_scalar ℤ (centroid_hom α) :=
+instance has_scalar_int : has_smul ℤ (centroid_hom α) :=
 ⟨λ n f, ⟨n • f,
   λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_smul_comm] },
   λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩

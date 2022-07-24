@@ -46,7 +46,7 @@ end
 
 lemma closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
   is_closed s ↔ ∀ i, is_closed (coe ⁻¹' s : set (U i)) :=
-by simpa using open_iff_coe_preimage_of_supr_eq_top _ hU sᶜ
+by simpa using open_iff_coe_preimage_of_supr_eq_top hU sᶜ
 
 
 lemma inducing_iff_inducing_of_supr_eq_top (h : continuous f) :
@@ -81,7 +81,7 @@ begin
   rw forall_and_distrib,
   apply and_congr,
   { apply embedding_iff_embedding_of_supr_eq_top; assumption },
-  { simp_rw set.range_restrict_preimage, apply open_iff_coe_preimage_of_supr_eq_top U hU }
+  { simp_rw set.range_restrict_preimage, apply open_iff_coe_preimage_of_supr_eq_top hU }
 end
 
 lemma closed_embedding_iff_closed_embedding_of_supr_eq_top (h : continuous f) :
@@ -91,5 +91,5 @@ begin
   rw forall_and_distrib,
   apply and_congr,
   { apply embedding_iff_embedding_of_supr_eq_top; assumption },
-  { simp_rw set.range_restrict_preimage, apply closed_iff_coe_preimage_of_supr_eq_top U hU }
+  { simp_rw set.range_restrict_preimage, apply closed_iff_coe_preimage_of_supr_eq_top hU }
 end

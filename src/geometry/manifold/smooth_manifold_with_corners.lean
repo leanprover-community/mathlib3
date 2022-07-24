@@ -506,7 +506,7 @@ begin
     (of_set_mem_cont_diff_groupoid n I e.open_target) this
 end
 
-variables {E'H' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H']
+variables {E' H' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H']
 
 /-- The product of two smooth local homeomorphisms is smooth. -/
 lemma cont_diff_groupoid_prod

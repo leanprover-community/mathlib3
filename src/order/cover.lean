@@ -154,6 +154,38 @@ and_congr_right' $ forall_congr $ λ c, forall_swap
 alias to_dual_covby_to_dual_iff ↔ _ covby.to_dual
 alias of_dual_covby_of_dual_iff ↔ _ covby.of_dual
 
+/-- A successor limit is a value that doesn't cover any other.
+
+It's so named because in an order with an appropriate successor definition, a successor limit can't
+be the succesor of anything smaller. -/
+def is_succ_limit (a : α) : Prop := ∀ b, ¬ b ⋖ a
+
+lemma not_is_succ_limit_iff_exists_covby (a : α) : ¬ is_succ_limit a ↔ ∃ b, b ⋖ a :=
+by simp [is_succ_limit]
+
+lemma is_succ_limit_of_dense [densely_ordered α] (a : α) : is_succ_limit a := λ b, not_covby
+
+/-- A predecessor limit is a value that isn't covered by any other.
+
+It's so named because in an order with an appropriate predecessor definition, a predecessor limit
+can't be the predecessor of anything greater. -/
+def is_pred_limit (a : α) : Prop := ∀ b, ¬ a ⋖ b
+
+@[simp] lemma is_succ_limit_to_dual_iff : is_succ_limit (to_dual a) ↔ is_pred_limit a :=
+by simp [is_succ_limit, is_pred_limit]
+
+alias is_succ_limit_to_dual_iff ↔ _ is_pred_limit.dual
+
+@[simp] lemma is_pred_limit_to_dual_iff : is_pred_limit (to_dual a) ↔ is_succ_limit a :=
+by simp [is_succ_limit, is_pred_limit]
+
+alias is_pred_limit_to_dual_iff ↔ _ is_succ_limit.dual
+
+lemma not_is_pred_limit_iff_exists_covby (a : α) : ¬ is_pred_limit a ↔ ∃ b, a ⋖ b :=
+by simp [is_pred_limit]
+
+lemma is_pred_limit_of_dense [densely_ordered α] (a : α) : is_pred_limit a := λ b, not_covby
+
 end has_lt
 
 section preorder
@@ -198,6 +230,12 @@ lemma set.ord_connected.apply_covby_apply_iff (f : α ↪o β) (h : (range f).or
 @[simp] lemma apply_covby_apply_iff {E : Type*} [order_iso_class E α β] (e : E) :
   e a ⋖ e b ↔ a ⋖ b :=
 (ord_connected_range (e : α ≃o β)).apply_covby_apply_iff ((e : α ≃o β) : α ↪o β)
+
+protected lemma is_max.is_pred_limit : is_max a → is_pred_limit a :=
+λ h b hab, not_is_max_of_lt hab.lt h
+
+protected lemma is_min.is_succ_limit : is_min a → is_succ_limit a :=
+λ h b hab, not_is_min_of_lt hab.lt h
 
 end preorder
 

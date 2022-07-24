@@ -488,9 +488,9 @@ class normed_field (α : Type*) extends has_norm α, field α, metric_space α :
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
-/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
-`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
-by the powers of any element, and thus to relate algebra and topology. -/
+/-- A nontrivially normed field is a normed field in which there is an element of norm different
+from `0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by
+multiplication by the powers of any element, and thus to relate algebra and topology. -/
 class nontrivially_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃ x : α, 1 < ∥x∥)
 

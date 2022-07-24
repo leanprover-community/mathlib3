@@ -133,10 +133,10 @@ begin
               ring_hom_isometric.is_iso] using hf (δ • x) leδx δxle
 end
 
-/-- A continuous linear map between seminormed spaces is bounded when the field is nondiscrete. The
-continuity ensures boundedness on a ball of some radius `ε`. The nondiscreteness is then used to
-rescale any element into an element of norm in `[ε/C, ε]`, whose image has a controlled norm. The
-norm control for the original element follows by rescaling. -/
+/-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
+normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
+norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
+controlled norm. The norm control for the original element follows by rescaling. -/
 lemma semilinear_map_class.bound_of_continuous [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
   (hf : continuous f) : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 begin

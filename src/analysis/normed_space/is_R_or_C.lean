@@ -73,7 +73,7 @@ begin
 end
 
 /--
-`linear_map.bound_of_ball_bound` is a version of this over arbitrary nondiscrete normed fields.
+`linear_map.bound_of_ball_bound` is a version of this over arbitrary nontrivially normed fields.
 It produces a less precise bound so we keep both versions. -/
 lemma linear_map.bound_of_ball_bound' {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] 𝕜)
   (h : ∀ z ∈ closed_ball (0 : E) r, ∥f z∥ ≤ c) (z : E) :

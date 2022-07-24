@@ -316,14 +316,14 @@ rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
 end normed_add_comm_group
 
-section normed_space_nondiscrete
+section nontrivially_normed_space
 
 variables (𝕜 E : Type*) [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
   [nontrivial E]
 
 include 𝕜
 
-/-- If `E` is a nontrivial normed space over a nondiscrete normed field `𝕜`, then `E` is unbounded:
+/-- If `E` is a nontrivial normed space over a nontrivially normed field `𝕜`, then `E` is unbounded:
 for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than `c`. -/
 lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
 begin
@@ -338,7 +338,7 @@ protected lemma normed_space.unbounded_univ : ¬bounded (univ : set E) :=
 λ h, let ⟨R, hR⟩ := bounded_iff_forall_norm_le.1 h, ⟨x, hx⟩ := normed_space.exists_lt_norm 𝕜 E R
 in hx.not_le (hR x trivial)
 
-/-- A normed vector space over a nondiscrete normed field is a noncompact space. This cannot be
+/-- A normed vector space over a nontrivially normed field is a noncompact space. This cannot be
 an instance because in order to apply it, Lean would have to search for `normed_space 𝕜 E` with
 unknown `𝕜`. We register this as an instance in two cases: `𝕜 = E` and `𝕜 = ℝ`. -/
 protected lemma normed_space.noncompact_space : noncompact_space E :=
@@ -354,7 +354,7 @@ omit 𝕜
 instance real_normed_space.noncompact_space [normed_space ℝ E] : noncompact_space E :=
 normed_space.noncompact_space ℝ E
 
-end normed_space_nondiscrete
+end nontrivially_normed_space
 
 section normed_algebra
 
@@ -413,7 +413,7 @@ variables (𝕜 𝕜')
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry [norm_one_class 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
 

@@ -188,7 +188,7 @@ variables
 [nontrivially_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
-/-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
+/-- In a Banach algebra `A` over a nontrivially normed field `𝕜`, for any `a : A` the
 power series with coefficients `a ^ n` represents the function `(1 - z • a)⁻¹` in a disk of
 radius `∥a∥₊⁻¹`. -/
 lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) :

@@ -9,7 +9,7 @@ import linear_algebra.affine_space.slope
 /-!
 # Slope of a differentiable function
 
-Given a function `f : 𝕜 → E` from a nondiscrete normed field to a normed space over this field,
+Given a function `f : 𝕜 → E` from a nontrivially normed field to a normed space over this field,
 `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and as `deriv f a`
 for `a = b`.
 

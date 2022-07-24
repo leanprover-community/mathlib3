@@ -22,7 +22,7 @@ groups here are not necessarily finite dimensional.
 * `lie_add_group I G` : a Lie additive group where `G` is a manifold on the model with corners `I`.
 * `lie_group I G`     : a Lie multiplicative group where `G` is a manifold on the model with
                         corners `I`.
-* `normed_space_lie_add_group` : a normed vector space over a nondiscrete normed field
+* `normed_space_lie_add_group` : a normed vector space over a nontrivially normed field
                                  is an additive Lie group.
 
 ## Implementation notes

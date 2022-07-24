@@ -125,14 +125,9 @@ instance : order_top (finset α) :=
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
-instance : boolean_algebra (finset α) :=
-{ compl := λ s, univ \ s,
-  inf_compl_le_bot := λ s x hx, by simpa using hx,
-  top_le_sup_compl := λ s x hx, by simp,
-  sdiff_eq := λ s t, by simp [ext_iff, compl],
-  ..finset.order_top,
-  ..finset.order_bot,
-  ..finset.generalized_boolean_algebra }
+instance : boolean_algebra (finset α) :=  generalized_boolean_algebra.to_boolean_algebra
+
+lemma sdiff_eq_inter_compl (s t : finset α) : s \ t = s ∩ tᶜ := sdiff_eq
 
 lemma compl_eq_univ_sdiff (s : finset α) : sᶜ = univ \ s := rfl
 
@@ -1405,6 +1400,18 @@ lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ 
   pi_finset t₁ ⊆ pi_finset t₂ :=
 λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
 
+@[simp] lemma pi_finset_empty [nonempty α] : pi_finset (λ _, ∅ : Π i, finset (δ i)) = ∅ :=
+eq_empty_of_forall_not_mem $ λ _, by simp
+
+@[simp] lemma pi_finset_singleton (f : Π i, δ i) :
+  pi_finset (λ i, {f i} : Π i, finset (δ i)) = {f} :=
+ext $ λ _, by simp only [function.funext_iff, fintype.mem_pi_finset, mem_singleton]
+
+lemma pi_finset_subsingleton {f : Π i, finset (δ i)}
+  (hf : ∀ i, (f i : set (δ i)).subsingleton) :
+  (fintype.pi_finset f : set (Π i, δ i)).subsingleton :=
+λ a ha b hb, funext $ λ i, hf _ (mem_pi_finset.1 ha _) (mem_pi_finset.1 hb _)
+
 lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
   (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
@@ -1458,6 +1465,12 @@ fintype.of_equiv _ sym.sym_equiv_sym'.symm
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
+
+@[simp] lemma finset.powerset_univ [fintype α] : (univ : finset α).powerset = univ :=
+coe_injective $ by simp [-coe_eq_univ]
+
+@[simp] lemma finset.powerset_eq_univ [fintype α] {s : finset α} : s.powerset = univ ↔ s = univ :=
+by rw [←finset.powerset_univ, powerset_inj]
 
 lemma finset.mem_powerset_len_univ_iff [fintype α] {s : finset α} {k : ℕ} :
   s ∈ powerset_len k (univ : finset α) ↔ card s = k :=
@@ -1515,7 +1528,7 @@ begin
   intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
 
-theorem card_subtype_mono (p q : α → Prop) (h : p ≤ q)
+theorem fintype.card_subtype_mono (p q : α → Prop) (h : p ≤ q)
   [fintype {x // p x}] [fintype {x // q x}] :
   fintype.card {x // p x} ≤ fintype.card {x // q x} :=
 fintype.card_le_of_embedding (subtype.imp_embedding _ _ h)

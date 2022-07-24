@@ -141,7 +141,7 @@ begin
 end
 
 /-- The matrix representation of `rotation a` is equal to the conformal matrix
-`![![re a, -im a], ![im a, re a]]`. -/
+`!![re a, -im a; im a, re a]`. -/
 lemma to_matrix_rotation (a : circle) :
   linear_map.to_matrix basis_one_I basis_one_I (rotation a).to_linear_equiv =
     matrix.plane_conformal_matrix (re a) (im a) (by simp [pow_two, ←norm_sq_apply]) :=

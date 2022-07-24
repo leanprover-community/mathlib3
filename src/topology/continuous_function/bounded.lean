@@ -392,7 +392,7 @@ end
 
 lemma isometry_extend (f : α ↪ δ) (h : δ →ᵇ β) :
   isometry (λ g : α →ᵇ β, extend f g h) :=
-isometry_emetric_iff_metric.2 $ λ g₁ g₂, by simp [dist_nonneg]
+isometry.of_dist_eq $ λ g₁ g₂, by simp [dist_nonneg]
 
 end extend
 
@@ -987,7 +987,7 @@ instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →�
   exact (λ x, trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))) end⟩
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
+variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 β]
 variables [semi_normed_group γ] [normed_space 𝕜 γ]
 
 variables (α)

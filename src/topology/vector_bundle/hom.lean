@@ -70,7 +70,7 @@ by delta_instance bundle.continuous_linear_map
 
 end defs
 
-variables {𝕜₁ : Type*} [nondiscrete_normed_field 𝕜₁] {𝕜₂ : Type*} [nondiscrete_normed_field 𝕜₂]
+variables {𝕜₁ : Type*} [nontrivially_normed_field 𝕜₁] {𝕜₂ : Type*} [nontrivially_normed_field 𝕜₂]
   (σ : 𝕜₁ →+* 𝕜₂)
 
 variables {B : Type*} [topological_space B]

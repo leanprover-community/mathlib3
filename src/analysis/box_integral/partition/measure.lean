@@ -55,7 +55,7 @@ end
 lemma measurable_set_Icc : measurable_set I.Icc := measurable_set_Icc
 
 lemma measurable_set_Ioo : measurable_set I.Ioo :=
-(measurable_set_pi (set.finite.of_fintype _).countable).2 $ or.inl $ λ i hi, measurable_set_Ioo
+(measurable_set_pi (set.to_finite _).countable).2 $ or.inl $ λ i hi, measurable_set_Ioo
 
 lemma coe_ae_eq_Icc : (I : set (ι → ℝ)) =ᵐ[volume] I.Icc :=
 by { rw coe_eq_pi, exact measure.univ_pi_Ioc_ae_eq_Icc }

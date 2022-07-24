@@ -230,7 +230,7 @@ hf.comp continuous_at_snd
 
 @[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
-continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
+continuous_inf_rng.2 ⟨continuous_induced_rng.2 hf, continuous_induced_rng.2 hg⟩
 
 @[continuity] lemma continuous.prod.mk (a : α) : continuous (λ b : β, (a, b)) :=
 continuous_const.prod_mk continuous_id'
@@ -616,7 +616,7 @@ end prod
 
 section sum
 open sum
-variables [topological_space α] [topological_space β] [topological_space γ]
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 @[continuity] lemma continuous_inl : continuous (@inl α β) :=
 continuous_sup_rng_left continuous_coinduced_rng
@@ -624,13 +624,14 @@ continuous_sup_rng_left continuous_coinduced_rng
 @[continuity] lemma continuous_inr : continuous (@inr α β) :=
 continuous_sup_rng_right continuous_coinduced_rng
 
-@[continuity] lemma continuous_sum_rec {f : α → γ} {g : β → γ}
-  (hf : continuous f) (hg : continuous g) : @continuous (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
-begin
-  apply continuous_sup_dom;
-  rw continuous_def at hf hg ⊢;
-  assumption
-end
+@[continuity] lemma continuous.sum_elim {f : α → γ} {g : β → γ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.elim f g) :=
+by simp only [continuous_sup_dom, continuous_coinduced_dom, sum.elim_comp_inl, sum.elim_comp_inr,
+  true_and, *]
+
+@[continuity] lemma continuous.sum_map {f : α → β} {g : γ → δ}
+  (hf : continuous f) (hg : continuous g) : continuous (sum.map f g) :=
+(continuous_inl.comp hf).sum_elim (continuous_inr.comp hg)
 
 lemma is_open_sum_iff {s : set (α ⊕ β)} :
   is_open s ↔ is_open (inl ⁻¹' s) ∧ is_open (inr ⁻¹' s) :=
@@ -756,7 +757,7 @@ lemma is_closed.closed_embedding_subtype_coe {s : set α} (hs : is_closed s) :
 
 @[continuity] lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
-continuous_induced_rng h
+continuous_induced_rng.2 h
 
 lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
 continuous_subtype_mk _ continuous_subtype_coe
@@ -846,7 +847,7 @@ continuous_coinduced_rng
 
 @[continuity] lemma continuous_quot_lift {f : α → β} (hr : ∀ a b, r a b → f a = f b)
   (h : continuous f) : continuous (quot.lift f hr : quot r → β) :=
-continuous_coinduced_dom h
+continuous_coinduced_dom.2 h
 
 lemma quotient_map_quotient_mk : quotient_map (@quotient.mk α s) :=
 quotient_map_quot_mk
@@ -856,11 +857,11 @@ continuous_coinduced_rng
 
 lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
   (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
-continuous_coinduced_dom h
+continuous_coinduced_dom.2 h
 
 lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
   (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
-continuous_coinduced_dom h
+continuous_coinduced_dom.2 h
 
 end quotient
 
@@ -870,7 +871,7 @@ variables {ι : Type*} {π : ι → Type*}
 @[continuity]
 lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
   (h : ∀i, continuous (λa, f a i)) : continuous f :=
-continuous_infi_rng $ assume i, continuous_induced_rng $ h i
+continuous_infi_rng.2 $ assume i, continuous_induced_rng.2 $ h i
 
 @[continuity]
 lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
@@ -1131,7 +1132,7 @@ end
 @[continuity]
 lemma continuous_sigma [topological_space β] {f : sigma σ → β}
   (h : ∀ i, continuous (λ a, f ⟨i, a⟩)) : continuous f :=
-continuous_supr_dom (λ i, continuous_coinduced_dom (h i))
+continuous_supr_dom.2 (λ i, continuous_coinduced_dom.2 (h i))
 
 @[continuity]
 lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_space (τ k)]
@@ -1197,7 +1198,7 @@ continuous_induced_dom
 
 @[continuity] lemma continuous_ulift_up [topological_space α] :
   continuous (ulift.up : α → ulift.{v u} α) :=
-continuous_induced_rng continuous_id
+continuous_induced_rng.2 continuous_id
 
 end ulift
 

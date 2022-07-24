@@ -222,7 +222,7 @@ by simpa using N.lie_mem hm
 
 @[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
   (h := N.to_endomorphism_comp_subtype_mem x) :
-  ((to_endomorphism R L M x).restrict h : N →ₗ[R] N) = to_endomorphism R L N x :=
+  ((to_endomorphism R L M x).restrict h : (N : submodule R M) →ₗ[R] N) = to_endomorphism R L N x :=
 by { ext, simp [linear_map.restrict_apply], }
 
 end lie_submodule

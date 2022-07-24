@@ -232,9 +232,9 @@ begin
     exact
     F.map_iso (iso.op
     { hom := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
       inv := hom_of_le
-      (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
+      (by simp only [coe_supr, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
   { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.

@@ -198,7 +198,7 @@ end balanced_hull
 
 section topology
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
   [has_continuous_smul 𝕜 E] {U : set E}
 
 protected lemma is_closed.balanced_core (hU : is_closed U) : is_closed (balanced_core 𝕜 U) :=
@@ -218,36 +218,33 @@ end
 lemma balanced_core_mem_nhds_zero (hU : U ∈ 𝓝 (0 : E)) : balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=
 begin
   -- Getting neighborhoods of the origin for `0 : 𝕜` and `0 : E`
-  have h : filter.tendsto (λ (x : 𝕜 × E), x.fst • x.snd) (𝓝 (0,0)) (𝓝 ((0 : 𝕜) • (0 : E))) :=
-  continuous_iff_continuous_at.mp has_continuous_smul.continuous_smul (0, 0),
-  rw [smul_zero] at h,
-  have h' := filter.has_basis.prod (@metric.nhds_basis_ball 𝕜 _ 0) (filter.basis_sets (𝓝 (0 : E))),
-  simp_rw [←nhds_prod_eq, id.def] at h',
-  have h'' := filter.tendsto.basis_left h h' U hU,
-  rcases h'' with ⟨x, hx, h''⟩,
-  cases normed_field.exists_norm_lt 𝕜 hx.left with y hy,
-  have hy' : y ≠ 0 := norm_pos_iff.mp hy.1,
-  let W := y • x.snd,
-  rw ←filter.exists_mem_subset_iff,
-  refine ⟨W, (set_smul_mem_nhds_zero_iff hy').mpr hx.2, _⟩,
-  -- It remains to show that `W ⊆ balanced_core 𝕜 U`
-  refine subset_balanced_core (mem_of_mem_nhds hU) (λ a ha, _),
-  refine set.subset.trans (λ z hz, _) (set.maps_to'.mp h''),
-  rw [set.image_prod, set.image2_smul],
-  rw set.mem_smul_set at hz,
-  rcases hz with ⟨z', hz', hz⟩,
-  rw [←hz, set.mem_smul],
-  refine ⟨a • y, y⁻¹ • z', _, _, _⟩,
-  { rw [algebra.id.smul_eq_mul, mem_ball_zero_iff, norm_mul, ←one_mul x.fst],
-    exact mul_lt_mul' ha hy.2 hy.1.le zero_lt_one },
-  { convert set.smul_mem_smul_set hz',
-    rw [←smul_assoc y⁻¹ y x.snd, smul_eq_mul, inv_mul_cancel hy', one_smul] },
-  rw [smul_assoc, ←smul_assoc y y⁻¹ z', smul_eq_mul, mul_inv_cancel hy', one_smul],
+  obtain ⟨r, V, hr, hV, hrVU⟩ : ∃ (r : ℝ) (V : set E), 0 < r ∧ V ∈ 𝓝 (0 : E) ∧
+    ∀ (c : 𝕜) (y : E), ∥c∥ < r → y ∈ V → c • y ∈ U,
+  { have h : filter.tendsto (λ (x : 𝕜 × E), x.fst • x.snd) (𝓝 (0,0)) (𝓝 0),
+      from continuous_smul.tendsto' (0, 0) _ (smul_zero _),
+    simpa only [← prod.exists', ← prod.forall', ← and_imp, ← and.assoc, exists_prop]
+      using h.basis_left (normed_group.nhds_zero_basis_norm_lt.prod_nhds ((𝓝 _).basis_sets)) U hU },
+  rcases normed_field.exists_norm_lt 𝕜 hr with ⟨y, hy₀, hyr⟩,
+  rw [norm_pos_iff] at hy₀,
+  have : y • V ∈ 𝓝 (0 : E) := (set_smul_mem_nhds_zero_iff hy₀).mpr hV,
+  -- It remains to show that `y • V ⊆ balanced_core 𝕜 U`
+  refine filter.mem_of_superset this (subset_balanced_core (mem_of_mem_nhds hU) $ λ a ha, _),
+  rw [smul_smul],
+  rintro _ ⟨z, hz, rfl⟩,
+  refine hrVU _ _ _ hz,
+  rw [norm_mul, ← one_mul r],
+  exact mul_lt_mul' ha hyr (norm_nonneg y) one_pos
 end
 
 variables (𝕜 E)
 
-lemma nhds_basis_closed_balanced [regular_space E] : (𝓝 (0 : E)).has_basis
+lemma nhds_basis_balanced : (𝓝 (0 : E)).has_basis
+  (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ balanced 𝕜 s) id :=
+filter.has_basis_self.mpr
+  (λ s hs, ⟨balanced_core 𝕜 s, balanced_core_mem_nhds_zero hs,
+            balanced_core_balanced s, balanced_core_subset s⟩)
+
+lemma nhds_basis_closed_balanced [t3_space E] : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ is_closed s ∧ balanced 𝕜 s) id :=
 begin
   refine (closed_nhds_basis 0).to_has_basis (λ s hs, _) (λ s hs, ⟨s, ⟨hs.1, hs.2.1⟩, rfl.subset⟩),

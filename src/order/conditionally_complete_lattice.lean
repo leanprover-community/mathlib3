@@ -1036,7 +1036,7 @@ end
 
 lemma inf'_eq_cInf_image [conditionally_complete_lattice β] (s : finset α) (H) (f : α → β) :
   s.inf' H f = Inf (f '' s) :=
-@sup'_eq_cSup_image _ βᵒᵈ _ _ _ _
+@sup'_eq_cSup_image _ βᵒᵈ _ _ H _
 
 lemma sup'_id_eq_cSup [conditionally_complete_lattice α] (s : finset α) (H) :
   s.sup' H id = Sup s :=
@@ -1044,7 +1044,7 @@ by rw [sup'_eq_cSup_image s H, set.image_id]
 
 lemma inf'_id_eq_cInf [conditionally_complete_lattice α] (s : finset α) (H) :
   s.inf' H id = Inf s :=
-@sup'_id_eq_cSup αᵒᵈ _ _ _
+@sup'_id_eq_cSup αᵒᵈ _ _ H
 
 end finset
 

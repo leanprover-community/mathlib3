@@ -87,8 +87,7 @@ lemma fg_adjoin_finset (s : finset A) : (algebra.adjoin R (↑s : set A)).fg :=
 ⟨s, rfl⟩
 
 theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ algebra.adjoin R t = S :=
-⟨λ ⟨t, ht⟩, ⟨↑t, set.finite_mem_finset t, ht⟩,
-λ ⟨t, ht1, ht2⟩, ⟨ht1.to_finset, by rwa set.finite.coe_to_finset⟩⟩
+iff.symm set.exists_finite_iff_finset
 
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩

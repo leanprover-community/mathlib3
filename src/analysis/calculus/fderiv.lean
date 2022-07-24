@@ -121,7 +121,7 @@ noncomputable theory
 
 section
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -228,7 +228,7 @@ begin
   have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, c n • d n) :=
     (is_O_refl c l).smul_is_o this,
   have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, (1:ℝ)) :=
-    this.trans_is_O (is_O_one_of_tendsto ℝ cdlim),
+    this.trans_is_O (cdlim.is_O_one ℝ),
   have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
     (is_o_one_iff ℝ).1 this,
   have L2 : tendsto (λn, f' (c n • d n)) l (𝓝 (f' v)) :=
@@ -319,9 +319,13 @@ theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : 
   has_fderiv_at_filter f f' x L₁ :=
 h.mono hst
 
+theorem has_fderiv_within_at.mono_of_mem (h : has_fderiv_within_at f f' t x) (hst : t ∈ 𝓝[s] x) :
+  has_fderiv_within_at f f' s x :=
+h.mono $ nhds_within_le_iff.mpr hst
+
 theorem has_fderiv_within_at.mono (h : has_fderiv_within_at f f' t x) (hst : s ⊆ t) :
   has_fderiv_within_at f f' s x :=
-h.mono (nhds_within_mono _ hst)
+h.mono $ nhds_within_mono _ hst
 
 theorem has_fderiv_at.has_fderiv_at_filter (h : has_fderiv_at f f' x) (hL : L ≤ 𝓝 x) :
   has_fderiv_at_filter f f' x L :=
@@ -795,6 +799,11 @@ else
   by rw [fderiv_within_zero_of_not_differentiable_within_at h,
     fderiv_within_zero_of_not_differentiable_within_at h']
 
+lemma filter.eventually_eq.fderiv_within_eq_nhds (hs : unique_diff_within_at 𝕜 s x)
+  (hL : f₁ =ᶠ[𝓝 x] f) :
+  fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
+(show f₁ =ᶠ[𝓝[s] x] f, from nhds_within_le_nhds hL).fderiv_within_eq hs (mem_of_mem_nhds hL : _)
+
 lemma fderiv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
@@ -1103,6 +1112,21 @@ lemma fderiv_within.comp {g : F → G} {t : set F}
   (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t (f x)).comp (fderiv_within 𝕜 f s x) :=
 (hg.has_fderiv_within_at.comp x (hf.has_fderiv_within_at) h).fderiv_within hxs
+
+/-- Ternary version of `fderiv_within.comp`, with equality assumptions of basepoints added, in
+  order to apply more easily as a rewrite from right-to-left. -/
+lemma fderiv_within.comp₃ {g' : G → G'} {g : F → G} {t : set F} {u : set G} {y : F} {y' : G}
+  (hg' : differentiable_within_at 𝕜 g' u y') (hg : differentiable_within_at 𝕜 g t y)
+  (hf : differentiable_within_at 𝕜 f s x)
+  (h2g : maps_to g t u) (h2f : maps_to f s t)
+  (h3g : g y = y') (h3f : f x = y) (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (g' ∘ g ∘ f) s x = (fderiv_within 𝕜 g' u y').comp
+    ((fderiv_within 𝕜 g t y).comp (fderiv_within 𝕜 f s x)) :=
+begin
+  substs h3g h3f,
+  exact (hg'.has_fderiv_within_at.comp x
+    (hg.has_fderiv_within_at.comp x (hf.has_fderiv_within_at) h2f) $ h2g.comp h2f).fderiv_within hxs
+end
 
 lemma fderiv.comp {g : F → G}
   (hg : differentiable_at 𝕜 g (f x)) (hf : differentiable_at 𝕜 f x) :
@@ -2243,7 +2267,7 @@ field: e.g., they work for `c : E → ℂ` and `f : E → F` provided that `F` i
 normed vector space.
 -/
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'}
 
@@ -2387,6 +2411,23 @@ lemma differentiable_on.mul (ha : differentiable_on 𝕜 a s) (hb : differentiab
 @[simp] lemma differentiable.mul (ha : differentiable 𝕜 a) (hb : differentiable 𝕜 b) :
   differentiable 𝕜 (λ y, a y * b y) :=
 λx, (ha x).mul (hb x)
+
+lemma differentiable_within_at.pow (ha : differentiable_within_at 𝕜 a s x) :
+  ∀ n : ℕ, differentiable_within_at 𝕜 (λ x, a x ^ n) s x
+| 0 := by simp only [pow_zero, differentiable_within_at_const]
+| (n + 1) := by simp only [pow_succ, differentiable_within_at.pow n, ha.mul]
+
+@[simp] lemma differentiable_at.pow (ha : differentiable_at 𝕜 a x) (n : ℕ) :
+  differentiable_at 𝕜 (λ x, a x ^ n) x :=
+differentiable_within_at_univ.mp $ ha.differentiable_within_at.pow n
+
+lemma differentiable_on.pow (ha : differentiable_on 𝕜 a s) (n : ℕ) :
+  differentiable_on 𝕜 (λ x, a x ^ n) s :=
+λ x h, (ha x h).pow n
+
+@[simp] lemma differentiable.pow (ha : differentiable 𝕜 a) (n : ℕ) :
+  differentiable 𝕜 (λ x, a x ^ n) :=
+λx, (ha x).pow n
 
 lemma fderiv_within_mul' (hxs : unique_diff_within_at 𝕜 s x)
   (ha : differentiable_within_at 𝕜 a s x) (hb : differentiable_within_at 𝕜 b s x) :
@@ -2872,7 +2913,7 @@ end
 
 section tangent_cone
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {f : E → F} {s : set E} {f' : E →L[𝕜] F}
@@ -2937,8 +2978,8 @@ we give variants of this statement, in the general situation where `ℂ` and `�
 respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`.
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
 variables [is_scalar_tower 𝕜 𝕜' E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
@@ -3013,7 +3054,7 @@ end restrict_scalars
 section support
 
 open function
-variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
 
 lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
@@ -3021,7 +3062,7 @@ begin
   intros x,
   rw [← not_imp_not],
   intro h2x,
-  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  rw [not_mem_tsupport_iff_eventually_eq] at h2x,
   exact nmem_support.mpr (h2x.fderiv_eq.trans $ fderiv_const_apply 0),
 end
 

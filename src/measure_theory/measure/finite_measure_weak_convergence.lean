@@ -145,6 +145,24 @@ def mass (μ : finite_measure α) : ℝ≥0 := μ univ
 instance has_zero : has_zero (finite_measure α) :=
 { zero := ⟨0, measure_theory.is_finite_measure_zero⟩ }
 
+@[simp] lemma zero.mass : (0 : finite_measure α).mass = 0 := rfl
+
+@[simp] lemma mass_zero_iff (μ : finite_measure α) : μ.mass = 0 ↔ μ = 0 :=
+begin
+  refine ⟨λ μ_mass, _, (λ hμ, by simp only [hμ, zero.mass])⟩,
+  ext1,
+  apply measure.measure_univ_eq_zero.mp,
+  rwa [← ennreal_mass, ennreal.coe_eq_zero],
+end
+
+@[ext] lemma extensionality (μ ν : finite_measure α)
+  (h : ∀ (s : set α), measurable_set s → μ s = ν s) :
+  μ = ν :=
+begin
+  ext1, ext1 s s_mble,
+  simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
+end
+
 instance : inhabited (finite_measure α) := ⟨0⟩
 
 instance : has_add (finite_measure α) :=
@@ -175,7 +193,7 @@ by { funext, simp [← ennreal.coe_eq_coe], }
 by { funext, simp [← ennreal.coe_eq_coe, ennreal.coe_smul], }
 
 instance : add_comm_monoid (finite_measure α) :=
-finite_measure.coe_injective.add_comm_monoid coe coe_zero coe_add (λ _ _, coe_smul _ _)
+coe_injective.add_comm_monoid coe coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- Coercion is an `add_monoid_hom`. -/
 @[simps]
@@ -183,7 +201,12 @@ def coe_add_monoid_hom : finite_measure α →+ measure α :=
 { to_fun := coe, map_zero' := coe_zero, map_add' := coe_add }
 
 instance {α : Type*} [measurable_space α] : module ℝ≥0 (finite_measure α) :=
-function.injective.module _ coe_add_monoid_hom finite_measure.coe_injective coe_smul
+function.injective.module _ coe_add_monoid_hom coe_injective coe_smul
+
+@[simp] lemma coe_fn_smul_apply [is_scalar_tower R ℝ≥0 ℝ≥0]
+  (c : R) (μ : finite_measure α) (s : set α) :
+  (c • μ) s  = c • (μ s) :=
+by { simp only [coe_fn_smul, pi.smul_apply], }
 
 variables [topological_space α]
 
@@ -226,9 +249,20 @@ lemma test_against_nn_mono (μ : finite_measure α)
   μ.test_against_nn f ≤ μ.test_against_nn g :=
 begin
   simp only [←ennreal.coe_le_coe, test_against_nn_coe_eq],
-  apply lintegral_mono,
-  exact λ x, ennreal.coe_mono (f_le_g x),
+  exact lintegral_mono (λ x, ennreal.coe_mono (f_le_g x)),
 end
+
+@[simp] lemma zero.test_against_nn_apply (f : α →ᵇ ℝ≥0) :
+  (0 : finite_measure α).test_against_nn f = 0 :=
+by simp only [test_against_nn, coe_zero, lintegral_zero_measure, ennreal.zero_to_nnreal]
+
+lemma zero.test_against_nn : (0 : finite_measure α).test_against_nn = 0 :=
+by { funext, simp only [zero.test_against_nn_apply, pi.zero_apply], }
+
+@[simp] lemma smul_test_against_nn_apply (c : ℝ≥0) (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  (c • μ).test_against_nn f  = c • (μ.test_against_nn f) :=
+by simp only [test_against_nn, coe_smul, smul_eq_mul, ← ennreal.smul_to_nnreal,
+  ennreal.smul_def, lintegral_smul_measure]
 
 variables [opens_measurable_space α]
 
@@ -316,7 +350,7 @@ instance : topological_space (finite_measure α) :=
 topological_space.induced to_weak_dual_bcnn infer_instance
 
 lemma to_weak_dual_bcnn_continuous :
-  continuous (@finite_measure.to_weak_dual_bcnn α _ _ _) :=
+  continuous (@to_weak_dual_bcnn α _ _ _) :=
 continuous_induced_dom
 
 /- Integration of (nonnegative bounded continuous) test functions against finite Borel measures
@@ -487,7 +521,7 @@ theorem tendsto_of_forall_integral_tendsto
        tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
   tendsto μs F (𝓝 μ) :=
 begin
-  apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
+  apply (@tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
   intro f,
   have key := @ennreal.tendsto_to_real_iff _ F
               _ (λ i, (lintegral_lt_top_of_bounded_continuous_to_nnreal (μs i : measure α) f).ne)
@@ -528,7 +562,7 @@ theorem tendsto_iff_forall_integral_tendsto
     tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
 begin
   refine ⟨_, tendsto_of_forall_integral_tendsto⟩,
-  rw finite_measure.tendsto_iff_forall_lintegral_tendsto,
+  rw tendsto_iff_forall_lintegral_tendsto,
   intros h f,
   simp_rw bounded_continuous_function.integral_eq_integral_nnreal_part_sub,
   set f_pos := f.nnreal_part with def_f_pos,
@@ -602,8 +636,16 @@ def to_finite_measure (μ : probability_measure α) : finite_measure α := ⟨μ
 
 @[simp] lemma ennreal_coe_fn_eq_coe_fn_to_measure (ν : probability_measure α) (s : set α) :
   (ν s : ℝ≥0∞) = (ν : measure α) s :=
-by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
-     finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure], refl, }
+by rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
+  finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure, coe_comp_to_finite_measure_eq_coe]
+
+@[ext] lemma extensionality (μ ν : probability_measure α)
+  (h : ∀ (s : set α), measurable_set s → μ s = ν s) :
+  μ = ν :=
+begin
+  ext1, ext1 s s_mble,
+  simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
+end
 
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
@@ -655,7 +697,7 @@ lemma to_finite_measure_embedding (α : Type*)
 lemma tendsto_nhds_iff_to_finite_measures_tendsto_nhds {δ : Type*}
   (F : filter δ) {μs : δ → probability_measure α} {μ₀ : probability_measure α} :
   tendsto μs F (𝓝 μ₀) ↔ tendsto (to_finite_measure ∘ μs) F (𝓝 (μ₀.to_finite_measure)) :=
-embedding.tendsto_nhds_iff (probability_measure.to_finite_measure_embedding α)
+embedding.tendsto_nhds_iff (to_finite_measure_embedding α)
 
 /-- A characterization of weak convergence of probability measures by the condition that the
 integrals of every continuous bounded nonnegative function converge to the integral of the function

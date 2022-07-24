@@ -316,7 +316,7 @@ begin
   apply cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source,
   calc x ∈ tsupport (λ x, f x • g x) : hx
-     ... ⊆ tsupport f : closure_mono (support_smul_subset_left _ _)
+     ... ⊆ tsupport f : tsupport_smul_subset_left _ _
      ... ⊆ (chart_at _ c).source : f.tsupport_subset_chart_at_source,
   exact f.smooth_at.smul ((hg _ this).cont_mdiff_at $
     is_open.mem_nhds (chart_at _ _).open_source this)

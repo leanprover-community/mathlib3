@@ -51,7 +51,7 @@ def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
   compact' := is_compact_univ_pi (λ i, is_compact_Icc),
-  interior_nonempty' := by simp only [interior_pi_set, set.finite.of_fintype, interior_Icc,
+  interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
 namespace measure_theory

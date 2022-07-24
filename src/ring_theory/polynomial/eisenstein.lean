@@ -158,6 +158,40 @@ end comm_ring
 
 end is_weakly_eisenstein_at
 
+section scale_roots
+
+variables {A : Type*} [comm_ring R] [comm_ring A]
+
+lemma scale_roots.is_weakly_eisenstein_at (p : R[X]) {x : R}
+  {P : ideal R} (hP : x ∈ P) : (scale_roots p x).is_weakly_eisenstein_at P :=
+begin
+  refine ⟨λ i hi, _⟩,
+  rw coeff_scale_roots,
+  rw [nat_degree_scale_roots, ← tsub_pos_iff_lt] at hi,
+  exact ideal.mul_mem_left _ _ (ideal.pow_mem_of_mem P hP _ hi)
+end
+
+lemma dvd_pow_nat_degree_of_eval₂_eq_zero {f : R →+* A}
+  (hf : function.injective f) {p : R[X]} (hp : p.monic) (x y : R) (z : A)
+  (h : p.eval₂ f z = 0) (hz : f x * z = f y) : x ∣ y ^ p.nat_degree :=
+begin
+  rw [← nat_degree_scale_roots p x, ← ideal.mem_span_singleton],
+  refine (scale_roots.is_weakly_eisenstein_at _ (ideal.mem_span_singleton.mpr $ dvd_refl x))
+    .pow_nat_degree_le_of_root_of_monic_mem _ ((monic_scale_roots_iff x).mpr hp) _ le_rfl,
+  rw injective_iff_map_eq_zero' at hf,
+  have := scale_roots_eval₂_eq_zero f h,
+  rwa [hz, polynomial.eval₂_at_apply, hf] at this
+end
+
+lemma dvd_pow_nat_degree_of_aeval_eq_zero [algebra R A] [nontrivial A]
+  [no_zero_smul_divisors R A] {p : R[X]} (hp : p.monic) (x y : R) (z : A)
+  (h : polynomial.aeval z p = 0) (hz : z * algebra_map R A x = algebra_map R A y) :
+  x ∣ y ^ p.nat_degree :=
+dvd_pow_nat_degree_of_eval₂_eq_zero (no_zero_smul_divisors.algebra_map_injective R A)
+  hp x y z h ((mul_comm _ _).trans hz)
+
+end scale_roots
+
 namespace is_eisenstein_at
 
 section comm_semiring

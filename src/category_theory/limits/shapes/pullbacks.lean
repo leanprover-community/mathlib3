@@ -383,6 +383,10 @@ abbreviation fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app walking_cospan.
 /-- The second projection of a pullback cone. -/
 abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app walking_cospan.right
 
+@[simp] lemma π_app_left (c : pullback_cone f g) : c.π.app walking_cospan.left = c.fst := rfl
+
+@[simp] lemma π_app_right (c : pullback_cone f g) : c.π.app walking_cospan.right = c.snd := rfl
+
 @[simp] lemma condition_one (t : pullback_cone f g) : t.π.app walking_cospan.one = t.fst ≫ f :=
 begin
   have w := t.π.naturality walking_cospan.hom.inl,
@@ -573,6 +577,10 @@ abbreviation inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app walking_span.l
 
 /-- The second inclusion of a pushout cocone. -/
 abbreviation inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app walking_span.right
+
+@[simp] lemma ι_app_left (c : pushout_cocone f g) : c.ι.app walking_span.left = c.inl := rfl
+
+@[simp] lemma ι_app_right (c : pushout_cocone f g) : c.ι.app walking_span.right = c.inr := rfl
 
 @[simp] lemma condition_zero (t : pushout_cocone f g) : t.ι.app walking_span.zero = f ≫ t.inl :=
 begin
@@ -857,6 +865,26 @@ limit.lift _ (pullback_cone.mk h k w)
 abbreviation pushout.desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout f g]
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
 colimit.desc _ (pushout_cocone.mk h k w)
+
+@[simp]
+lemma pullback_cone.fst_colimit_cocone {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_limit (cospan f g)] : pullback_cone.fst (limit.cone (cospan f g)) = pullback.fst :=
+rfl
+
+@[simp]
+lemma pullback_cone.snd_colimit_cocone {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_limit (cospan f g)] : pullback_cone.snd (limit.cone (cospan f g)) = pullback.snd :=
+rfl
+
+@[simp]
+lemma pushout_cocone.inl_colimit_cocone {X Y Z : C} (f : Z ⟶ X) (g : Z ⟶ Y)
+  [has_colimit (span f g)] : pushout_cocone.inl (colimit.cocone (span f g)) = pushout.inl :=
+rfl
+
+@[simp]
+lemma pushout_cocone.inr_colimit_cocone {X Y Z : C} (f : Z ⟶ X) (g : Z ⟶ Y)
+  [has_colimit (span f g)] : pushout_cocone.inr (colimit.cocone (span f g)) = pushout.inr :=
+rfl
 
 @[simp, reassoc]
 lemma pullback.lift_fst {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
@@ -2164,10 +2192,12 @@ lemma has_pushouts_of_has_colimit_span
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
 
 /-- The duality equivalence `walking_spanᵒᵖ ≌ walking_cospan` -/
+@[simps]
 def walking_span_op_equiv : walking_spanᵒᵖ ≌ walking_cospan :=
 wide_pushout_shape_op_equiv _
 
 /-- The duality equivalence `walking_cospanᵒᵖ ≌ walking_span` -/
+@[simps]
 def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
 wide_pullback_shape_op_equiv _
 

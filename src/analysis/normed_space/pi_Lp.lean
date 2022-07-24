@@ -342,6 +342,11 @@ instance normed_space [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 
   end,
   .. pi.module ι β 𝕜 }
 
+instance finite_dimensional [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)]
+  [I : ∀ i, finite_dimensional 𝕜 (β i)] :
+  finite_dimensional 𝕜 (pi_Lp p β) :=
+finite_dimensional.finite_dimensional_pi' _ _
+
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
 variables {𝕜 p α} [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
@@ -352,6 +357,47 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
+
+variables {ι' : Type*}
+variables [fintype ι']
+
+variables (p 𝕜) (E : Type*) [normed_group E] [normed_space 𝕜 E]
+
+/-- An equivalence of finite domains induces a linearly isometric equivalence of finitely supported
+functions-/
+def _root_.linear_isometry_equiv.pi_Lp_congr_left (e : ι ≃ ι') :
+  pi_Lp p (λ i : ι, E) ≃ₗᵢ[𝕜] pi_Lp p (λ i : ι', E) :=
+{ to_linear_equiv := linear_equiv.Pi_congr_left' 𝕜 (λ i : ι, E) e,
+  norm_map' :=
+  begin
+    intro x,
+    simp only [norm],
+    simp_rw linear_equiv.Pi_congr_left'_apply 𝕜 (λ i : ι, E) e x _,
+    congr,
+    rw fintype.sum_equiv (e.symm),
+    exact λ i, rfl,
+  end, }
+
+variables {p 𝕜 E}
+
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_apply
+  (e : ι ≃ ι') (v : pi_Lp p (λ i : ι, E)) :
+  linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e v = equiv.Pi_congr_left' (λ i : ι, E) e v :=
+rfl
+
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_symm (e : ι ≃ ι') :
+  (linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e).symm
+    = (linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e.symm) :=
+linear_isometry_equiv.ext $ λ x, rfl
+
+@[simp] lemma _root_.linear_isometry_equiv.pi_Lp_congr_left_single
+  [decidable_eq ι] [decidable_eq ι'] (e : ι ≃ ι') (i : ι) (v : E) :
+  linear_isometry_equiv.pi_Lp_congr_left p 𝕜 E e (pi.single i v) = pi.single (e i) v :=
+begin
+  funext x,
+  simp [linear_isometry_equiv.pi_Lp_congr_left, linear_equiv.Pi_congr_left', equiv.Pi_congr_left',
+    pi.single, function.update, equiv.symm_apply_eq],
+end
 
 @[simp] lemma equiv_zero : pi_Lp.equiv p β 0 = 0 := rfl
 @[simp] lemma equiv_symm_zero : (pi_Lp.equiv p β).symm 0 = 0 := rfl
@@ -393,7 +439,7 @@ lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
 (norm_equiv_symm_const (1 : β)).trans rfl
 
-variables (𝕜)
+variables (𝕜 p)
 
 /-- `pi_Lp.equiv` as a linear map. -/
 @[simps {fully_applied := ff}]

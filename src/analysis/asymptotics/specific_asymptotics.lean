@@ -54,7 +54,7 @@ lemma tendsto_zpow_at_top_at_top {n : ℤ}
 begin
   lift n to ℕ using hn.le,
   simp only [zpow_coe_nat],
-  exact tendsto_pow_at_top (nat.succ_le_iff.mpr $ int.coe_nat_pos.mp hn)
+  exact tendsto_pow_at_top (nat.cast_pos.mp hn).ne'
 end
 
 lemma tendsto_pow_div_pow_at_top_at_top {p q : ℕ}

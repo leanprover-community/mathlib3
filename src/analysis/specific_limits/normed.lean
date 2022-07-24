@@ -54,7 +54,7 @@ begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
   simp only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
-  exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+  exact (tendsto_pow_at_top hm.ne').comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
 /-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
@@ -67,7 +67,7 @@ begin
   simpa using is_o.smul_is_O hε (hf.is_O_const (one_ne_zero : (1 : 𝕜) ≠ 0))
 end
 
-@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nontrivially_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
   refine ⟨_, continuous_at_zpow₀ _ _⟩,
@@ -76,7 +76,7 @@ begin
       (tendsto_norm_zpow_nhds_within_0_at_top hm)
 end
 
-@[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
+@[simp] lemma continuous_at_inv {𝕜 : Type*} [nontrivially_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
 by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 

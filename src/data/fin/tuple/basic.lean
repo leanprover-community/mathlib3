@@ -132,6 +132,22 @@ begin
   exact tail_cons _ _
 end
 
+@[simp] lemma forall_fin_zero_pi {α : fin 0 → Sort*} {P : (Π i, α i) → Prop} :
+  (∀ x, P x) ↔ P fin_zero_elim :=
+⟨λ h, h _, λ h x, subsingleton.elim fin_zero_elim x ▸ h⟩
+
+@[simp] lemma exists_fin_zero_pi {α : fin 0 → Sort*} {P : (Π i, α i) → Prop} :
+  (∃ x, P x) ↔ P fin_zero_elim :=
+⟨λ ⟨x, h⟩, subsingleton.elim x fin_zero_elim ▸ h, λ h, ⟨_, h⟩⟩
+
+lemma forall_fin_succ_pi {P : (Π i, α i) → Prop} :
+  (∀ x, P x) ↔ (∀ a v, P (fin.cons a v)) :=
+⟨λ h a v, h (fin.cons a v), cons_induction⟩
+
+lemma exists_fin_succ_pi {P : (Π i, α i) → Prop} :
+  (∃ x, P x) ↔ (∃ a v, P (fin.cons a v)) :=
+⟨λ ⟨x, h⟩, ⟨x 0, tail x, (cons_self_tail x).symm ▸ h⟩, λ ⟨a, v, h⟩, ⟨_, h⟩⟩
+
 /-- Updating the first element of a tuple does not change the tail. -/
 @[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=
 by { ext j, simp [tail, fin.succ_ne_zero] }
@@ -673,5 +689,16 @@ lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
+
+/-- To show two sigma pairs of tuples agree, it to show the second elements are related via
+`fin.cast`. -/
+lemma sigma_eq_of_eq_comp_cast {α : Type*} :
+  ∀ {a b : Σ ii, fin ii → α} (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h → a = b
+| ⟨ai, a⟩ ⟨bi, b⟩ hi h :=
+begin
+  dsimp only at hi,
+  subst hi,
+  simpa using h,
+end
 
 end fin

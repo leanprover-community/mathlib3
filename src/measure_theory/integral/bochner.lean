@@ -587,7 +587,7 @@ open simple_func
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
-variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_space ℝ E] [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [normed_space ℝ F] [complete_space E]
 
 section integration_in_L1
@@ -687,7 +687,7 @@ functions, and 0 otherwise; prove its basic properties.
 -/
 
 variables [normed_group E] [normed_space ℝ E] [complete_space E]
-          [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+          [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
           [normed_group F] [normed_space ℝ F] [complete_space F]
 
 section
@@ -833,16 +833,7 @@ lemma tendsto_integral_of_L1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
   (hF : tendsto (λ i, ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0)) :
   tendsto (λ i, ∫ x, F i x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
-begin
-  rw [tendsto_iff_norm_tendsto_zero],
-  replace hF : tendsto (λ i, ennreal.to_real $ ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0) :=
-    (ennreal.tendsto_to_real zero_ne_top).comp hF,
-  refine squeeze_zero_norm' (hFi.mp $ hFi.mono $ λ i hFi hFm, _) hF,
-  simp only [norm_norm, ← integral_sub hFi hfi],
-  convert norm_integral_le_lintegral_norm (λ x, F i x - f x),
-  ext1 x,
-  exact coe_nnreal_eq _
-end
+tendsto_set_to_fun_of_L1 (dominated_fin_meas_additive_weighted_smul μ) f hfi hFi hF
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
   everywhere convergence of a sequence of functions implies the convergence of their integrals.
@@ -1212,8 +1203,8 @@ lemma tendsto_integral_approx_on_of_measurable
 begin
   have hfi' := simple_func.integrable_approx_on hfm hfi h₀ h₀i,
   simp only [simple_func.integral_eq_integral _ (hfi' _)],
-  exact tendsto_integral_of_L1 _ hfi (eventually_of_forall hfi')
-    (simple_func.tendsto_approx_on_L1_nnnorm hfm _ hs (hfi.sub h₀i).2)
+  exact tendsto_set_to_fun_approx_on_of_measurable (dominated_fin_meas_additive_weighted_smul μ)
+    hfi hfm hs h₀ h₀i,
 end
 
 lemma tendsto_integral_approx_on_of_measurable_of_range_subset
@@ -1224,10 +1215,7 @@ lemma tendsto_integral_approx_on_of_measurable_of_range_subset
     (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   apply tendsto_integral_approx_on_of_measurable hf fmeas _ _ (integrable_zero _ _ _),
-  apply eventually_of_forall (λ x, _),
-  apply subset_closure,
-  apply hs,
-  simp,
+  exact eventually_of_forall (λ x, subset_closure (hs (set.mem_union_left _ (mem_range_self _)))),
 end
 
 variable {ν : measure α}
@@ -1401,6 +1389,36 @@ end
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
   integral_congr_ae $ ae_eq_dirac f
 ... = f a : by simp [measure.dirac_apply_of_mem]
+
+lemma mul_meas_ge_le_integral_of_nonneg [is_finite_measure μ] {f : α → ℝ} (hf_nonneg : 0 ≤ f)
+  (hf_int : integrable f μ) (ε : ℝ) :
+  ε * (μ {x | ε ≤ f x}).to_real ≤ ∫ x, f x ∂μ :=
+begin
+  cases lt_or_le ε 0 with hε hε,
+  { exact (mul_nonpos_of_nonpos_of_nonneg hε.le ennreal.to_real_nonneg).trans
+      (integral_nonneg hf_nonneg), },
+  rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, hf_nonneg x))
+    hf_int.ae_strongly_measurable, ← ennreal.to_real_of_real hε, ← ennreal.to_real_mul],
+  have : {x : α | (ennreal.of_real ε).to_real ≤ f x}
+    = {x : α | ennreal.of_real ε ≤ (λ x, ennreal.of_real (f x)) x},
+  { ext1 x,
+    rw [set.mem_set_of_eq, set.mem_set_of_eq, ← ennreal.to_real_of_real (hf_nonneg x)],
+    exact ennreal.to_real_le_to_real ennreal.of_real_ne_top ennreal.of_real_ne_top, },
+  rw this,
+  have h_meas : ae_measurable (λ x, ennreal.of_real (f x)) μ,
+    from measurable_id'.ennreal_of_real.comp_ae_measurable hf_int.ae_measurable,
+  have h_mul_meas_le := @mul_meas_ge_le_lintegral₀ _ _ μ _ h_meas (ennreal.of_real ε),
+  rw ennreal.to_real_le_to_real _ _,
+  { exact h_mul_meas_le, },
+  { simp only [ne.def, with_top.mul_eq_top_iff, ennreal.of_real_eq_zero, not_le,
+      ennreal.of_real_ne_top, false_and, or_false, not_and],
+    exact λ _, measure_ne_top _ _, },
+  { have h_lt_top : ∫⁻ a, ∥f a∥₊ ∂μ < ∞ := hf_int.has_finite_integral,
+    simp_rw [← of_real_norm_eq_coe_nnnorm, real.norm_eq_abs] at h_lt_top,
+    convert h_lt_top.ne,
+    ext1 x,
+    rw abs_of_nonneg (hf_nonneg x), },
+end
 
 end properties
 

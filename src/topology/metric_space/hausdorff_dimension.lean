@@ -402,7 +402,7 @@ end isometric
 
 namespace continuous_linear_equiv
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
 
 @[simp] lemma dimH_image (e : E ≃L[𝕜] F) (s : set E) : dimH (e '' s) = dimH s :=

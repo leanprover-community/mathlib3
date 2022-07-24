@@ -312,7 +312,7 @@ lemma ae_cover.bUnion_Iic_ae_cover [preorder ι] {φ : ι → set α} (hφ : ae_
   ae_cover μ at_top (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     (λ x h, h.mono (λ i hi, mem_bUnion right_mem_Iic hi)),
-  measurable := λ i, measurable_set.bUnion (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bUnion (to_countable _) (λ n _, hφ.measurable n) }
 
 lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι → set α}
   (hφ : ae_cover μ at_top φ) : ae_cover μ at_top (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
@@ -325,7 +325,7 @@ lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι �
       intros j hj,
       exact mem_bInter (λ k hk, hi k (le_trans hj hk)),
     end,
-  measurable := λ i, measurable_set.bInter (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bInter (to_countable _) (λ n _, hφ.measurable n) }
 
 end ae_cover_Union_Inter_encodable
 

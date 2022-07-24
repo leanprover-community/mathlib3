@@ -639,22 +639,23 @@ end
 
 variables (𝕜 E)
 
-def lp.comp_embeddingₗ {β : Type*} (φ : β ↪ α) (p : ℝ≥0∞) [fact (1 ≤ p)] :
+def comp_embeddingₗ {β : Type*} (φ : β ↪ α) (p : ℝ≥0∞) [fact (1 ≤ p)] :
   lp (λ i, E i) p →ₗ[𝕜] lp (λ i, E (φ i)) p :=
 { to_fun := λ f, ⟨λ x, f (φ x), mem_ℓp.comp_embedding φ $ lp.mem_ℓp f⟩,
   map_add' := λ _ _, by ext; refl,
   map_smul' := λ _ _, by ext; refl }
 
-lemma lp.comp_embeddingₗ_apply {β : Type*} (φ : β ↪ α) (p : ℝ≥0∞) [fact (1 ≤ p)] (f) :
+lemma comp_embeddingₗ_apply {β : Type*} (φ : β ↪ α) (p : ℝ≥0∞) [fact (1 ≤ p)] (f) :
   (lp.comp_embeddingₗ E 𝕜 φ p f : Π i, E (φ i)) = (λ x, f (φ x)) :=
 rfl
 
-noncomputable! def lp.comp_embedding {β : Type*} (φ : β ↪ α) {p : ℝ≥0∞} [h : fact (1 ≤ p)] :
+noncomputable! def comp_embedding {β : Type*} (φ : β ↪ α) {p : ℝ≥0∞} [h : fact (1 ≤ p)] :
   lp (λ i, E i) p →L[𝕜] lp (λ i, E (φ i)) p :=
 (lp.comp_embeddingₗ E 𝕜 φ p).mk_continuous 1
 begin
   unfreezingI
   { rintros ⟨f, hf : mem_ℓp _ _⟩,
+    have hφf : mem_ℓp _ _ := (lp.comp_embeddingₗ E 𝕜 φ p ⟨f, hf⟩).2,
     rw one_mul,
     rcases p.trichotomy with rfl | rfl | hp,
     { sorry },
@@ -664,7 +665,11 @@ begin
         haveI : nonempty α := nonempty.map φ infer_instance,
         rw mem_ℓp_infty_iff at hf,
         exact csupr_le (λ b, le_csupr hf (φ b)) } },
-    { sorry } },
+    { rw [norm_eq_tsum_rpow hp, norm_eq_tsum_rpow hp],
+      rw mem_ℓp_gen_iff hp at hf hφf,
+      exact real.rpow_le_rpow (tsum_nonneg $ λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
+        (tsum_le_tsum_of_inj φ φ.injective (λ i _, real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
+          (λ j, le_rfl) hφf hf) (one_div_pos.mpr hp).le } },
 end
 
 end normed_space
@@ -1058,11 +1063,33 @@ end topology
 
 end lp
 
+.
+
 section lp_lp
 
-noncomputable! def lp_sigma_equiv {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [normed_field 𝕜] :
+#where
+
+noncomputable! def lp.curry_pi {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)]
+  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] (f : lp (λ ab : Σ (a : α), β a, 𝕜) p) (a : α) :
+  lp (λ b : β a, 𝕜) p :=
+⟨λ b, f ⟨a, b⟩,
+  begin
+    rcases f with ⟨f, hf : mem_ℓp _ _⟩,
+    change mem_ℓp _ _,
+    unfreezingI
+    { rcases p.trichotomy with rfl | rfl | hp,
+      { sorry },
+      { sorry },
+      { rw mem_ℓp_gen_iff hp at hf ⊢, } }
+  end⟩
+
+noncomputable! def lp_sigma_equiv {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)]
+  [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)] :
   lp (λ ab : Σ (a : α), β a, 𝕜) p ≃ lp (λ (a : α), lp (λ b : β a, 𝕜) p) p :=
-{ to_fun := λ f, ⟨λ a, ⟨λ b, f ⟨a, b⟩, _⟩, _⟩ }
+{ to_fun := λ f, ⟨λ a, ⟨λ b, f ⟨a, b⟩, _⟩, _⟩,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry }
 
 noncomputable! def lp_sigma_equivₗᵢ {𝕜 α : Type*} {β : α → Type*} {p : ℝ≥0∞} [fact (1 ≤ p)] [normed_field 𝕜] :
   lp (λ ab : Σ (a : α), β a, 𝕜) p ≃ₗᵢ[𝕜] lp (λ (a : α), lp (λ b : β a, 𝕜) p) p :=

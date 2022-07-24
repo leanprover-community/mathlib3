@@ -200,7 +200,7 @@ theorem exists_cg_is_age_of (hn : K.nonempty)
   (jep : joint_embedding K) :
   ∃ (M : bundled.{w} L.Structure), Structure.cg L M ∧ L.age M = K :=
 begin
-  obtain ⟨F, hF⟩ := hc.exists_surjective (hn.image _),
+  obtain ⟨F, hF⟩ := hc.exists_eq_range (hn.image _),
   simp only [set.ext_iff, forall_quotient_iff, mem_image, mem_range, quotient.eq] at hF,
   simp_rw [quotient.eq_mk_iff_out] at hF,
   have hF' : ∀ n : ℕ, (F n).out ∈ K,
@@ -238,7 +238,7 @@ begin
   { rintros ⟨Kn, eqinv, cq, hfg, hp, jep⟩,
     obtain ⟨M, hM, rfl⟩ := exists_cg_is_age_of Kn eqinv cq hfg hp jep,
     haveI := ((Structure.cg_iff_countable).1 hM).some,
-    refine ⟨M, countable_encodable _, rfl⟩, }
+    refine ⟨M, to_countable _, rfl⟩, }
 end
 
 variables {K} (L) (M)

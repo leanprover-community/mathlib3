@@ -53,7 +53,7 @@ open_locale classical big_operators topological_space
 
 open filter (tendsto) metric continuous_linear_map
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
           {E : Type*} [normed_group E] [normed_space 𝕜 E]
           {F : Type*} [normed_group F] [normed_space 𝕜 F]
           {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -240,7 +240,7 @@ namespace continuous_linear_map
 -/
 
 variables {R : Type*}
-variables {𝕜₂ 𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [nondiscrete_normed_field 𝕜₂]
+variables {𝕜₂ 𝕜' : Type*} [nontrivially_normed_field 𝕜'] [nontrivially_normed_field 𝕜₂]
 variables {M : Type*} [topological_space M]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 variables {G' : Type*} [normed_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']

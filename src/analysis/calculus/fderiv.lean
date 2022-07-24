@@ -121,7 +121,7 @@ noncomputable theory
 
 section
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -2267,7 +2267,7 @@ field: e.g., they work for `c : E → ℂ` and `f : E → F` provided that `F` i
 normed vector space.
 -/
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'}
 
@@ -2411,6 +2411,23 @@ lemma differentiable_on.mul (ha : differentiable_on 𝕜 a s) (hb : differentiab
 @[simp] lemma differentiable.mul (ha : differentiable 𝕜 a) (hb : differentiable 𝕜 b) :
   differentiable 𝕜 (λ y, a y * b y) :=
 λx, (ha x).mul (hb x)
+
+lemma differentiable_within_at.pow (ha : differentiable_within_at 𝕜 a s x) :
+  ∀ n : ℕ, differentiable_within_at 𝕜 (λ x, a x ^ n) s x
+| 0 := by simp only [pow_zero, differentiable_within_at_const]
+| (n + 1) := by simp only [pow_succ, differentiable_within_at.pow n, ha.mul]
+
+@[simp] lemma differentiable_at.pow (ha : differentiable_at 𝕜 a x) (n : ℕ) :
+  differentiable_at 𝕜 (λ x, a x ^ n) x :=
+differentiable_within_at_univ.mp $ ha.differentiable_within_at.pow n
+
+lemma differentiable_on.pow (ha : differentiable_on 𝕜 a s) (n : ℕ) :
+  differentiable_on 𝕜 (λ x, a x ^ n) s :=
+λ x h, (ha x h).pow n
+
+@[simp] lemma differentiable.pow (ha : differentiable 𝕜 a) (n : ℕ) :
+  differentiable 𝕜 (λ x, a x ^ n) :=
+λx, (ha x).pow n
 
 lemma fderiv_within_mul' (hxs : unique_diff_within_at 𝕜 s x)
   (ha : differentiable_within_at 𝕜 a s x) (hb : differentiable_within_at 𝕜 b s x) :
@@ -2896,7 +2913,7 @@ end
 
 section tangent_cone
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {f : E → F} {s : set E} {f' : E →L[𝕜] F}
@@ -2961,8 +2978,8 @@ we give variants of this statement, in the general situation where `ℂ` and `�
 respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`.
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+variables {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
 variables [is_scalar_tower 𝕜 𝕜' E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
@@ -3037,7 +3054,7 @@ end restrict_scalars
 section support
 
 open function
-variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
 
 lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
@@ -3045,7 +3062,7 @@ begin
   intros x,
   rw [← not_imp_not],
   intro h2x,
-  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  rw [not_mem_tsupport_iff_eventually_eq] at h2x,
   exact nmem_support.mpr (h2x.fderiv_eq.trans $ fderiv_const_apply 0),
 end
 

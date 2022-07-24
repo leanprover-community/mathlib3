@@ -51,7 +51,7 @@ instance : normed_field ℂ :=
   norm_mul' := abs_mul,
   .. complex.field, .. complex.normed_group }
 
-instance : nondiscrete_normed_field ℂ :=
+instance : nontrivially_normed_field ℂ :=
 { non_trivial := ⟨2, by simp; norm_num⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=

@@ -167,7 +167,7 @@ begin
 end
 
 lemma continuous_stereo_inv_fun (hv : ∥v∥ = 1) : continuous (stereo_inv_fun hv) :=
-continuous_induced_rng (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
+continuous_induced_rng.2 (cont_diff_stereo_inv_fun_aux.continuous.comp continuous_subtype_coe)
 
 variables [complete_space E]
 
@@ -386,7 +386,7 @@ lemma cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
   cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
 begin
   rw cont_mdiff_iff_target,
-  refine ⟨continuous_induced_rng hf.continuous, _⟩,
+  refine ⟨continuous_induced_rng.2 hf.continuous, _⟩,
   intros v,
   let U := -- Again, removing type ascription... Weird that this helps!
     (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
@@ -436,7 +436,7 @@ instance : lie_group (𝓡 1) circle :=
     let c : circle → ℂ := coe,
     have h₂ : cont_mdiff (𝓘(ℝ, ℂ).prod 𝓘(ℝ, ℂ)) 𝓘(ℝ, ℂ) ∞ (λ (z : ℂ × ℂ), z.fst * z.snd),
     { rw cont_mdiff_iff,
-      exact ⟨continuous_mul, λ x y, (cont_diff_mul.restrict_scalars ℝ).cont_diff_on⟩ },
+      exact ⟨continuous_mul, λ x y, cont_diff_mul.cont_diff_on⟩ },
     suffices h₁ : cont_mdiff _ _ _ (prod.map c c),
     { apply h₂.comp h₁ },
     -- this elaborates much faster with `apply`

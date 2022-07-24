@@ -227,7 +227,7 @@ minpoly.eq_of_irreducible_of_monic (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points.subfield G F) F :=
-⟨λ x, is_integral G F x, λ x, (polynomial.splits_id_iff_splits _).1 $
+⟨λ x, (is_integral G F x).is_algebraic _, λ x, (polynomial.splits_id_iff_splits _).1 $
 by { rw [← minpoly_eq_minpoly, minpoly,
     coe_algebra_map, ← subfield.to_subring.subtype_eq_subtype,
     polynomial.map_to_subring _ (fixed_points.subfield G F).to_subring, prod_X_sub_smul],

@@ -51,7 +51,6 @@ variables [has_pow α E] [has_pow β E] (c : E) (p : α × β)
 @[to_additive smul_def] lemma pow_def : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
 @[simp, to_additive smul_swap] lemma pow_swap : (p ^ c).swap = p.swap ^ c := rfl
 
-
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩

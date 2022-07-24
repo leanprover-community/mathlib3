@@ -22,6 +22,37 @@ open_locale topological_space filter
 variables {α β : Type*} [topological_space α] [topological_space β] {f : α → β}
 variables {s : set β} {ι : Type*} {U : ι → opens β} (hU : supr U = ⊤)
 
+lemma set.restrict_preimage_inducing (s : set β) (h : inducing f) :
+  inducing (s.restrict_preimage f) :=
+begin
+  simp_rw [inducing_coe.inducing_iff, inducing_iff_nhds, restrict_preimage, maps_to.coe_restrict,
+    restrict_eq, ← @filter.comap_comap _ _ _ _ coe f] at h ⊢,
+  intros a,
+  rw [← h, ← inducing_coe.nhds_eq_comap],
+end
+
+alias set.restrict_preimage_inducing ← inducing.restrict_preimage
+
+lemma set.restrict_preimage_embedding (s : set β) (h : embedding f) :
+  embedding (s.restrict_preimage f) :=
+⟨h.1.restrict_preimage s, h.2.restrict_preimage s⟩
+
+alias set.restrict_preimage_embedding ← embedding.restrict_preimage
+
+lemma set.restrict_preimage_open_embedding (s : set β) (h : open_embedding f) :
+  open_embedding (s.restrict_preimage f) :=
+⟨h.1.restrict_preimage s,
+  (s.range_restrict_preimage f).symm ▸ continuous_subtype_coe.is_open_preimage _ h.2⟩
+
+alias set.restrict_preimage_open_embedding ← open_embedding.restrict_preimage
+
+lemma set.restrict_preimage_closed_embedding (s : set β) (h : closed_embedding f) :
+  closed_embedding (s.restrict_preimage f) :=
+⟨h.1.restrict_preimage s,
+  (s.range_restrict_preimage f).symm ▸ inducing_coe.is_closed_preimage _ h.2⟩
+
+alias set.restrict_preimage_closed_embedding ← closed_embedding.restrict_preimage
+
 include hU
 
 lemma open_iff_inter_of_supr_eq_top (s : set β) :
@@ -47,7 +78,6 @@ end
 lemma closed_iff_coe_preimage_of_supr_eq_top (s : set β) :
   is_closed s ↔ ∀ i, is_closed (coe ⁻¹' s : set (U i)) :=
 by simpa using open_iff_coe_preimage_of_supr_eq_top hU sᶜ
-
 
 lemma inducing_iff_inducing_of_supr_eq_top (h : continuous f) :
   inducing f ↔ ∀ i, inducing ((U i).1.restrict_preimage f) :=

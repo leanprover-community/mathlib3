@@ -129,6 +129,10 @@ lemma inducing.is_closed_iff' {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∀ x, f x ∈ closure (f '' s) → x ∈ s :=
 by rw [hf.induced, is_closed_induced_iff']
 
+lemma inducing.is_closed_preimage {f : α → β} (h : inducing f) (s : set β) (hs : is_closed s) :
+  is_closed (f ⁻¹' s) :=
+(inducing.is_closed_iff h).mpr ⟨s, hs, rfl⟩
+
 lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_open_induced_iff]

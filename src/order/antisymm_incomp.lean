@@ -7,7 +7,7 @@ Authors: Yaël Dillies, Violeta Hernández Palacios
 import order.rel_classes
 
 /-!
-# Basic relations
+# Antisymmetrization and incomparable relations
 
 We define two basic relations from any other relation `r`: the antisymmetrization or
 indistinguishable relation `r a b ∧ r b a`, and the incomparable relation `¬ r a b ∧ ¬ r b a`.
@@ -25,7 +25,7 @@ section antisymm
 def antisymm_rel (a b : α) : Prop := r a b ∧ r b a
 
 lemma antisymm_rel_swap : antisymm_rel (swap r) = antisymm_rel r :=
-funext $ λ _, funext $ λ _, propext and.comm
+funext₂ $ λ _ _, propext and.comm
 
 @[refl] lemma antisymm_rel_refl [is_refl α r] (a : α) : antisymm_rel r a a := ⟨refl _, refl _⟩
 
@@ -36,6 +36,8 @@ variables {r}
 @[symm] lemma antisymm_rel.symm {a b : α} : antisymm_rel r a b → antisymm_rel r b a := and.symm
 
 instance : is_symm α (antisymm_rel r) := ⟨λ a b, antisymm_rel.symm⟩
+
+lemma antisymm_rel_comm {a b : α} : antisymm_rel r a b ↔ antisymm_rel r b a := comm
 
 @[trans] lemma antisymm_rel.trans [is_trans α r] {a b c : α} (hab : antisymm_rel r a b)
   (hbc : antisymm_rel r b c) : antisymm_rel r a c :=
@@ -76,6 +78,8 @@ variables {r}
 @[symm] lemma incomp_rel.symm {a b : α} : incomp_rel r a b → incomp_rel r b a := and.symm
 
 instance : is_symm α (incomp_rel r) := ⟨λ a b, incomp_rel.symm⟩
+
+lemma incomp_rel_comm {a b : α} : incomp_rel r a b ↔ incomp_rel r b a := comm
 
 instance incomp_rel.decidable_rel [decidable_rel r] : decidable_rel (incomp_rel r) :=
 λ _ _, and.decidable

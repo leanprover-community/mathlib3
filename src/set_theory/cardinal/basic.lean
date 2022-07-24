@@ -961,21 +961,27 @@ lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
 lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+@[simp] theorem lt_aleph_0_iff_set_finite {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
-@[simp] lemma le_aleph_0_iff_set_countable (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
+@[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
+  #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
+lt_aleph_0_iff_set_finite
+
+@[simp] lemma le_aleph_0_iff_set_countable {s : set α} : #s ≤ ℵ₀ ↔ s.countable :=
 begin
   rw [set.countable_iff_exists_injective], split,
   { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
 
-@[simp] lemma le_aleph_0_iff_subtype_countable (p : α → Prop) :
+alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
+
+@[simp] lemma le_aleph_0_iff_subtype_countable {p : α → Prop} :
   #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
-le_aleph_0_iff_set_countable _
+le_aleph_0_iff_set_countable
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
 ⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩

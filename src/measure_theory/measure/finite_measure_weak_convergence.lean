@@ -76,8 +76,8 @@ The current implementation of `measure_theory.finite_measure α` and
 `measure_theory.probability_measure α` is directly as subtypes of `measure_theory.measure α`, and
 the coercion to a function is the composition `ennreal.to_nnreal` and the coercion to function
 of `measure_theory.measure α`. Another alternative would be to use a bijection
-with `measure_theory.vector_measure α ℝ≥0` as an intermediate step. The choice of implementation should not have
-drastic downstream effects, so it can be changed later if appropriate.
+with `measure_theory.vector_measure α ℝ≥0` as an intermediate step. The choice of implementation
+should not have drastic downstream effects, so it can be changed later if appropriate.
 
 Potential advantages of using the `nnreal`-valued vector measure alternative:
  * The coercion to function would avoid need to compose with `ennreal.to_nnreal`, the

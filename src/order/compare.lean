@@ -187,11 +187,7 @@ by rw cmp_eq_eq_iff
 variables {x y} {β : Type*} [linear_order β] {x' y' : β}
 
 lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rwa [←cmp_swap x', ←cmp_swap, swap_inj] },
-  { rwa [←cmp_swap y', ←cmp_swap, swap_inj] }
-end
+⟨λ h, by rwa [←cmp_swap x', ←cmp_swap, swap_inj], λ h, by rwa [←cmp_swap y', ←cmp_swap, swap_inj]⟩
 
 lemma lt_iff_lt_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
 by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]

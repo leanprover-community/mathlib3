@@ -171,6 +171,11 @@ It's so named because in an order with an appropriate predecessor definition, a 
 can't be the predecessor of anything greater. -/
 def is_pred_limit (a : α) : Prop := ∀ b, ¬ a ⋖ b
 
+lemma not_is_pred_limit_iff_exists_covby (a : α) : ¬ is_pred_limit a ↔ ∃ b, a ⋖ b :=
+by simp [is_pred_limit]
+
+lemma is_pred_limit_of_dense [densely_ordered α] (a : α) : is_pred_limit a := λ b, not_covby
+
 @[simp] lemma is_succ_limit_to_dual_iff : is_succ_limit (to_dual a) ↔ is_pred_limit a :=
 by simp [is_succ_limit, is_pred_limit]
 
@@ -180,11 +185,6 @@ alias is_succ_limit_to_dual_iff ↔ _ is_pred_limit.dual
 by simp [is_succ_limit, is_pred_limit]
 
 alias is_pred_limit_to_dual_iff ↔ _ is_succ_limit.dual
-
-lemma not_is_pred_limit_iff_exists_covby (a : α) : ¬ is_pred_limit a ↔ ∃ b, a ⋖ b :=
-by simp [is_pred_limit]
-
-lemma is_pred_limit_of_dense [densely_ordered α] (a : α) : is_pred_limit a := λ b, not_covby
 
 end has_lt
 

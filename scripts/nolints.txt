@@ -547,9 +547,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/countable.lean
-apply_nolint set.countable_pi fintype_finite
-
 -- data/set/finite.lean
 apply_nolint infi_supr_of_antitone fintype_finite
 apply_nolint infi_supr_of_monotone fintype_finite

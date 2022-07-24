@@ -1981,7 +1981,7 @@ lemma continuous_comp_Lp [fact (1 ≤ p)] (hg : lipschitz_with c g) (g0 : g 0 = 
 end lipschitz_with
 
 namespace continuous_linear_map
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
 
 /-- Composing `f : Lp ` with `L : E →L[𝕜] F`. -/
 def comp_Lp (L : E →L[𝕜] F) (f : Lp E p μ) : Lp F p μ :=
@@ -2686,7 +2686,7 @@ lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] (f
   to_Lp p μ 𝕜 f =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk f _
 
-lemma to_Lp_norm_le [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
   ∥(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))∥ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
 
@@ -2739,7 +2739,7 @@ rfl
   (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_norm_eq_to_Lp_norm_coe :
   ∥(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ))∥

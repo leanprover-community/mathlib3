@@ -988,7 +988,7 @@ instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →�
   exact (λ x, trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))) end⟩
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
+variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 β]
 variables [seminormed_add_comm_group γ] [normed_space 𝕜 γ]
 
 variables (α)

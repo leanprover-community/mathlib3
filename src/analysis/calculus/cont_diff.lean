@@ -170,7 +170,7 @@ normed_add_comm_group.to_add_comm_group normed_space.to_module' add_comm_group.t
 open set fin filter
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
@@ -3234,7 +3234,7 @@ situation where `ℂ` and `ℝ` are replaced respectively by `𝕜'` and `𝕜` 
 over `𝕜`.
 -/
 
-variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F}

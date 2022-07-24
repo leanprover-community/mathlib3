@@ -1514,7 +1514,7 @@ lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
 ⟨h.mk f, h.strongly_measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
 section normed_space
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 
 lemma _root_.ae_strongly_measurable_smul_const_iff {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
@@ -1547,7 +1547,7 @@ end mul_action
 
 section continuous_linear_map_nondiscrete_normed_field
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]

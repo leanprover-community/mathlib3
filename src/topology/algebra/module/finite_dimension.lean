@@ -85,7 +85,7 @@ end field
 
 section normed_field
 
-variables {𝕜 : Type u} [hnorm : nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type u} [hnorm : nontrivially_normed_field 𝕜]
   {E : Type v} [add_comm_group E] [module 𝕜 E] [topological_space E]
   [topological_add_group E] [has_continuous_smul 𝕜 E]
   {F : Type w} [add_comm_group F] [module 𝕜 F] [topological_space F]

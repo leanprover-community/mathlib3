@@ -318,7 +318,7 @@ end normed_add_comm_group
 
 section normed_space_nondiscrete
 
-variables (𝕜 E : Type*) [nondiscrete_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+variables (𝕜 E : Type*) [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
   [nontrivial E]
 
 include 𝕜
@@ -345,7 +345,7 @@ protected lemma normed_space.noncompact_space : noncompact_space E :=
 ⟨λ h, normed_space.unbounded_univ 𝕜 _ h.bounded⟩
 
 @[priority 100]
-instance nondiscrete_normed_field.noncompact_space : noncompact_space 𝕜 :=
+instance nontrivially_normed_field.noncompact_space : noncompact_space 𝕜 :=
 normed_space.noncompact_space 𝕜 𝕜
 
 omit 𝕜

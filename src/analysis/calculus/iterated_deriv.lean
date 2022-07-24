@@ -45,7 +45,7 @@ open_locale classical topological_space big_operators
 open filter asymptotics set
 
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 

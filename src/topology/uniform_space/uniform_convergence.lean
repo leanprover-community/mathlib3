@@ -107,9 +107,10 @@ lemma filter.prod_le_of_right_le (p : filter ι) {p'' : filter α} (hp : p' ≤ 
   p ×ᶠ p' ≤ p ×ᶠ p'' :=
 filter.prod_le_of_le_of_le rfl.le hp
 
-lemma bah {f : filter α} {f' : filter β} {g : filter γ} {p : (α × β) × γ × γ → Prop} :
-  (∀ᶠ x in (f ×ᶠ f' ×ᶠ (g ×ᶠ g)), p x) →
-  (∀ᶠ (x : (α × β) × γ) in (f ×ᶠ f' ×ᶠ g), p ((x.1.1, x.1.2), x.2, x.2)) :=
+lemma filter.eventually.diag_of_prod_right {f : filter α} {g : filter γ}
+  {p : α × γ × γ → Prop} :
+  (∀ᶠ x in (f ×ᶠ (g ×ᶠ g)), p x) →
+  (∀ᶠ (x : α × γ) in (f ×ᶠ g), p (x.1, x.2, x.2)) :=
 begin
   intros h,
   obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
@@ -478,7 +479,7 @@ begin
   intros u hu,
   rcases comp_symm_of_uniformity hu with ⟨t, ht, htsymm, htmem⟩,
   have := tendsto_swap4_prod.eventually ((hF t ht).prod_mk (hF t ht)),
-  apply (bah this).mono,
+  apply this.diag_of_prod_right.mono,
   simp only [and_imp, prod.forall],
   intros n1 n2 x hl hr,
   exact set.mem_of_mem_of_subset (prod_mk_mem_comp_rel (htsymm hl) hr) htmem,

@@ -332,8 +332,8 @@ to `ϕₓ(x)` for all `x : L`. -/
 protected noncomputable def ultrafilter.glued_generators_of_pushforwards_function
   (h_int : algebra.is_integral K L) (f : ultrafilter (L →ₐ[K] L)) (x : L) : L :=
 let foo : finite_dimensional K (intermediate_field.adjoin K {x}) :=
-      intermediate_field.adjoin.finite_dimensional (h_int x) in
-    by exactI (f.generator_of_pushforward : (intermediate_field.adjoin K {x}) →ₐ[K] L)
+  intermediate_field.adjoin.finite_dimensional (h_int x) in
+by exactI (f.generator_of_pushforward : (intermediate_field.adjoin K {x}) →ₐ[K] L)
   ⟨x, intermediate_field.mem_adjoin_simple_self K x⟩
 
 lemma ultrafilter.glued_generators_of_pushforwards_function_spec (h_int : algebra.is_integral K L)

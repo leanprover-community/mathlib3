@@ -35,9 +35,6 @@ by { by_contra H, exact h a (covby_succ_of_not_is_max H) }
 lemma not_is_succ_limit_succ_of_not_is_max (ha : ¬ is_max a) : ¬ is_succ_limit (succ a) :=
 by { contrapose! ha, exact ha.is_max }
 
-lemma is_pred_limit.is_max (h : is_pred_limit a) : is_max a :=
-by { have H := h (succ a), contrapose! H, exact covby_succ_of_not_is_max H }
-
 section no_max_order
 variables [no_max_order α]
 
@@ -45,8 +42,6 @@ lemma is_succ_limit.succ_ne (h : is_succ_limit a) (b) : succ b ≠ a :=
 by { rintro rfl, exact not_is_max _ h.is_max }
 
 @[simp] lemma not_is_succ_limit_succ (a : α) : ¬ is_succ_limit (succ a) := λ h, h.succ_ne _ rfl
-
-@[simp] lemma not_is_pred_limit (a : α) : ¬ is_pred_limit a := λ h, not_is_max _ h.is_max
 
 end no_max_order
 
@@ -161,7 +156,7 @@ end no_max_order
 section is_succ_archimedean
 variable [is_succ_archimedean α]
 
-protected lemma is_succ_limit.is_min' (h : is_succ_limit a) : is_min a :=
+protected lemma is_succ_limit.is_min (h : is_succ_limit a) : is_min a :=
 λ b hb, begin
   revert h,
   refine succ.rec (λ _, le_rfl) (λ c hbc H hc, _) hb,
@@ -170,10 +165,10 @@ protected lemma is_succ_limit.is_min' (h : is_succ_limit a) : is_min a :=
   exact H hc
 end
 
-@[simp] lemma is_succ_limit_iff_is_min : is_succ_limit a ↔ is_min a :=
-⟨is_succ_limit.is_min', is_min.is_succ_limit⟩
+@[simp] lemma is_succ_limit_iff : is_succ_limit a ↔ is_min a :=
+⟨is_succ_limit.is_min, is_min.is_succ_limit⟩
 
-lemma not_is_succ_limit' [no_min_order α] : ¬ is_succ_limit a := by simp
+lemma not_is_succ_limit [no_min_order α] : ¬ is_succ_limit a := by simp
 
 end is_succ_archimedean
 end partial_order
@@ -189,9 +184,6 @@ by { by_contra H, exact h a (pred_covby_of_not_is_min H) }
 lemma not_is_pred_limit_pred_of_not_is_min (ha : ¬ is_min a) : ¬ is_pred_limit (pred a) :=
 by { contrapose! ha, exact ha.is_min }
 
-lemma is_succ_limit.is_min (h : is_succ_limit a) : is_min a :=
-by { have H := h (pred a), contrapose! H, exact pred_covby_of_not_is_min H }
-
 section no_min_order
 variables [no_min_order α]
 
@@ -199,8 +191,6 @@ lemma is_pred_limit.pred_ne (h : is_pred_limit a) (b) : pred b ≠ a :=
 by { rintro rfl, exact not_is_min _ h.is_min }
 
 @[simp] lemma not_is_pred_limit_pred (a : α) : ¬ is_pred_limit (pred a) := λ h, h.pred_ne _ rfl
-
-@[simp] lemma not_is_succ_limit (a : α) : ¬ is_succ_limit a := λ h, not_is_min _ h.is_min
 
 end no_min_order
 
@@ -279,12 +269,12 @@ end no_min_order
 section is_pred_archimedean
 variable [is_pred_archimedean α]
 
-protected lemma is_pred_limit.is_max' (h : is_pred_limit a) : is_max a := h.dual.is_min'
+protected lemma is_pred_limit.is_max (h : is_pred_limit a) : is_max a := h.dual.is_min
 
-@[simp] lemma is_pred_limit_iff_is_max : is_pred_limit a ↔ is_max a :=
-is_succ_limit_to_dual_iff.symm.trans is_succ_limit_iff_is_min
+@[simp] lemma is_pred_limit_iff : is_pred_limit a ↔ is_max a :=
+is_succ_limit_to_dual_iff.symm.trans is_succ_limit_iff
 
-lemma not_is_pred_limit' [no_max_order α] : ¬ is_pred_limit a := by simp
+lemma not_is_pred_limit [no_max_order α] : ¬ is_pred_limit a := by simp
 
 end is_pred_archimedean
 end partial_order

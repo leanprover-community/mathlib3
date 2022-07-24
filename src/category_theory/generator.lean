@@ -6,6 +6,8 @@ Authors: Markus Himmel
 import category_theory.balanced
 import category_theory.limits.opposites
 import category_theory.limits.shapes.zero_morphisms
+import category_theory.subobject.lattice
+import category_theory.subobject.well_powered
 import data.set.opposite
 
 /-!
@@ -362,6 +364,23 @@ begin
   { haveI := h Y,
     refine (cancel_mono (pi.lift (λ (f : Y ⟶ G), f))).1 (limit.hom_ext (λ j, _)),
     simpa using hh j.as }
+end
+
+lemma has_initial_of_is_cosepatator [well_powered C] [has_limits C] {G : C}
+  (hG : is_coseparator G) : has_initial C :=
+begin
+  letI := complete_lattice_of_complete_semilattice_Inf (subobject G),
+  suffices : ∀ A : C, unique (((⊥ : subobject G) : C) ⟶ A),
+  { exactI has_initial_of_unique ((⊥ : subobject G) : C) },
+  refine λ A, ⟨⟨_⟩, λ f, _⟩,
+  { let s := pi.lift (λ f : A ⟶ G, 𝟙 G),
+    let t := pi.lift (λ f : A ⟶ G, f),
+    haveI : mono t := (is_coseparator_iff_mono G).1 hG A,
+    exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
+  { generalize : default = g,
+    suffices : split_epi (equalizer.ι f g),
+    { exactI eq_of_epi_equalizer },
+    exact ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _) bot_le, by { ext, simp }⟩ }
 end
 
 section zero_morphisms

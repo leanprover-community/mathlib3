@@ -150,7 +150,11 @@ lemma cancel_right {g₁ g₂ f : centroid_hom α} (hf : surjective f) :
 lemma cancel_left {g f₁ f₂ : centroid_hom α} (hg : injective g) : g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
-instance : has_zero (centroid_hom α) := ⟨⟨0, λ a b, (mul_zero _).symm, λ a b, (zero_mul _).symm⟩⟩
+instance : has_zero (centroid_hom α) :=
+⟨{ map_mul_left' := λ a b, (mul_zero _).symm,
+  map_mul_right' := λ a b, (zero_mul _).symm,
+  ..(0 : α →+ α) }⟩
+
 instance : has_one (centroid_hom α) := ⟨centroid_hom.id α⟩
 
 instance : has_add (centroid_hom α) :=

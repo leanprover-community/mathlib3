@@ -50,7 +50,7 @@ Again informally, the annihilating ideal of `a` is
 `{ p ∈ R[X] | p(a) = 0 }`. This is an ideal in `R[X]`.
 The formal definition uses the kernel of the aeval map. -/
 noncomputable def ann_ideal (a : A) : ideal R[X] :=
-(aeval a).to_ring_hom.ker
+((aeval a).to_ring_hom : R[X] →+* A).ker
 
 variables {R}
 
@@ -70,7 +70,7 @@ variable (𝕜)
 open submodule
 
 /-- `ann_ideal_generator 𝕜 a` is the monic generator of `ann_ideal 𝕜 a`
-if one exists, otherwise `0`. 
+if one exists, otherwise `0`.
 
 Since `𝕜[X]` is a principal ideal domain there is a polynomial `g` such that
  `span 𝕜 {g} = ann_ideal a`. This picks some generator.

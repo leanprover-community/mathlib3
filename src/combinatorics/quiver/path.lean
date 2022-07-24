@@ -75,6 +75,11 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 | c nil := by simp
 | c (@cons _ _ _ d _ q f) := by simp [to_list_comp]
 
+lemma to_list_chain_nonempty :
+  ∀ {b} (p : path a b), p.to_list.chain (λ x y, nonempty (y ⟶ x)) b
+| b nil := list.chain.nil
+| b (cons p f) := p.to_list_chain_nonempty.cons ⟨f⟩
+
 variables [∀ a b : V, subsingleton (a ⟶ b)]
 
 lemma to_list_injective (a : V) : ∀ b, injective (to_list : path a b → list V)
@@ -86,6 +91,9 @@ lemma to_list_injective (a : V) : ∀ b, injective (to_list : path a b → list 
   obtain ⟨rfl, hAC⟩ := h,
   simp [to_list_injective _ hAC],
 end
+
+@[simp] lemma to_list_inj {p q : path a b} : p.to_list = q.to_list ↔ p = q :=
+(to_list_injective _ _).eq_iff
 
 end path
 

@@ -42,9 +42,9 @@ submultiplicative: for a composition of maps, we have only `∥f.comp g∥ ≤ �
 namespace continuous_affine_map
 
 variables {𝕜 R V W W₂ P Q Q₂ : Type*}
-variables [normed_group V] [metric_space P] [normed_add_torsor V P]
-variables [normed_group W] [metric_space Q] [normed_add_torsor W Q]
-variables [normed_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
+variables [normed_add_comm_group V] [metric_space P] [normed_add_torsor V P]
+variables [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
+variables [normed_add_comm_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
 variables [normed_field R] [normed_space R V] [normed_space R W] [normed_space R W₂]
 variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
 
@@ -158,8 +158,8 @@ calc ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) : by rw norm_def
     ... = (max 0 ∥f.cont_linear∥) : by rw [h, norm_zero]
     ... = ∥f.cont_linear∥ : max_eq_right (norm_nonneg _)
 
-noncomputable instance : normed_group (V →A[𝕜] W) :=
-normed_group.of_core _
+noncomputable instance : normed_add_comm_group (V →A[𝕜] W) :=
+normed_add_comm_group.of_core _
 { norm_eq_zero_iff := λ f,
     begin
       rw norm_def,

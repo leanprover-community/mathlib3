@@ -20,7 +20,7 @@ open topological_space metric set filter asymptotics function
 open_locale topological_space filter nnreal
 
 universe u
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 

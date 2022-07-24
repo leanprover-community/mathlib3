@@ -1847,9 +1847,9 @@ lemma ae_measurable.coe_ereal_ennreal {f : α → ℝ≥0∞} {μ : measure α} 
   ae_measurable (λ x, (f x : ereal)) μ :=
 measurable_coe_ennreal_ereal.comp_ae_measurable hf
 
-section normed_group
+section normed_add_comm_group
 
-variables [normed_group α] [opens_measurable_space α] [measurable_space β]
+variables [normed_add_comm_group α] [opens_measurable_space α] [measurable_space β]
 
 @[measurability]
 lemma measurable_norm : measurable (norm : α → ℝ) :=
@@ -1891,7 +1891,7 @@ lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurabl
   ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable hf
 
-end normed_group
+end normed_add_comm_group
 
 section limits
 
@@ -2052,9 +2052,9 @@ end limits
 namespace continuous_linear_map
 
 variables {𝕜 : Type*} [normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E]
-variables [opens_measurable_space E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space E]
+  [opens_measurable_space E] {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+  [measurable_space F] [borel_space F]
 
 @[measurability]
 protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
@@ -2069,8 +2069,8 @@ end continuous_linear_map
 namespace continuous_linear_map
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-          {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+          {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 instance : measurable_space (E →L[𝕜] F) := borel _
 
@@ -2097,8 +2097,8 @@ end continuous_linear_map
 section continuous_linear_map_nontrivially_normed_field
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] [measurable_space E]
+  [borel_space E] {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
 @[measurability]
 lemma measurable.apply_continuous_linear_map  {φ : α → F →L[𝕜] E} (hφ : measurable φ) (v : F) :
@@ -2114,8 +2114,8 @@ end continuous_linear_map_nontrivially_normed_field
 
 section normed_space
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
-variables [borel_space 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables [borel_space 𝕜] {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  [measurable_space E] [borel_space E]
 
 lemma measurable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
   measurable (λ x, f x • c) ↔ measurable f :=

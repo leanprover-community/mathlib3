@@ -58,11 +58,11 @@ end defs
 
 variables [nontrivially_normed_field R] [topological_space B]
 
-variables (F₁ : Type*) [normed_group F₁] [normed_space R F₁]
+variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]
   [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
 
-variables (F₂ : Type*) [normed_group F₂] [normed_space R F₂]
+variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space R F₂]
   (E₂ : B → Type*) [topological_space (total_space E₂)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 

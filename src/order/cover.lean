@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Floris van Doorn
 -/
 import data.set.intervals.ord_connected
+import order.antisymmetrization
 
 /-!
 # The covering relation
@@ -26,7 +27,7 @@ variables {α β : Type*}
 section weakly_covers
 
 section preorder
-variables [preorder α] [preorder β] {a b c: α}
+variables [preorder α] [preorder β] {a b c : α}
 
 /-- `wcovby a b` means that `a = b` or `b` covers `a`.
 This means that `a ≤ b` and there is no element in between.
@@ -47,11 +48,25 @@ lemma wcovby_of_le_of_le (h1 : a ≤ b) (h2 : b ≤ a) : a ⩿ b :=
 
 alias wcovby_of_le_of_le ← has_le.le.wcovby_of_le
 
+lemma antisymm_rel.wcovby (h : antisymm_rel (≤) a b) : a ⩿ b := wcovby_of_le_of_le h.1 h.2
+
 lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
 ⟨λ h, h.le, λ h, h.wcovby_of_le hab.le⟩
 
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
 ⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
+
+lemma wcovby.imp_left (h : a ⩿ c) (hab : antisymm_rel (≤) a b) : b ⩿ c :=
+⟨hab.2.trans h.le, λ d hbd hdc, h.2 (hab.1.trans_lt hbd) hdc⟩
+
+lemma wcovby.congr_left (hab : antisymm_rel (≤) a b) : a ⩿ c ↔ b ⩿ c :=
+⟨λ h, h.imp_left hab, λ h, h.imp_left hab.symm⟩
+
+lemma wcovby.imp_right (h : c ⩿ a) (hab : antisymm_rel (≤) a b) : c ⩿ b :=
+⟨h.le.trans hab.1, λ d hcd hdb, h.2 hcd (hdb.trans_le hab.2)⟩
+
+lemma wcovby.congr_right (hab : antisymm_rel (≤) a b) : c ⩿ a ↔ c ⩿ b :=
+⟨λ h, h.imp_right hab, λ h, h.imp_right hab.symm⟩
 
 /-- If `a ≤ b`, then `b` does not cover `a` iff there's an element in between. -/
 lemma not_wcovby_iff (h : a ≤ b) : ¬ a ⩿ b ↔ ∃ c, a < c ∧ c < b :=
@@ -157,7 +172,7 @@ alias of_dual_covby_of_dual_iff ↔ _ covby.of_dual
 end has_lt
 
 section preorder
-variables [preorder α] [preorder β] {a b : α}
+variables [preorder α] [preorder β] {a b c : α}
 
 lemma covby.le (h : a ⋖ b) : a ≤ b := h.1.le
 protected lemma covby.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
@@ -166,6 +181,9 @@ lemma covby.ne' (h : a ⋖ b) : b ≠ a := h.lt.ne'
 protected lemma covby.wcovby (h : a ⋖ b) : a ⩿ b := ⟨h.le, h.2⟩
 lemma wcovby.covby_of_not_le (h : a ⩿ b) (h2 : ¬ b ≤ a) : a ⋖ b := ⟨h.le.lt_of_not_le h2, h.2⟩
 lemma wcovby.covby_of_lt (h : a ⩿ b) (h2 : a < b) : a ⋖ b := ⟨h2, h.2⟩
+
+lemma not_covby_of_lt_of_lt (h₁ : a < b) (h₂ : b < c) : ¬ a ⋖ c :=
+(not_covby_iff (h₁.trans h₂)).2 ⟨b, h₁, h₂⟩
 
 lemma covby_iff_wcovby_and_lt : a ⋖ b ↔ a ⩿ b ∧ a < b :=
 ⟨λ h, ⟨h.wcovby, h.lt⟩, λ h, h.1.covby_of_lt h.2⟩
@@ -176,6 +194,18 @@ lemma covby_iff_wcovby_and_not_le : a ⋖ b ↔ a ⩿ b ∧ ¬ b ≤ a :=
 lemma wcovby_iff_covby_or_le_and_le : a ⩿ b ↔ a ⋖ b ∨ (a ≤ b ∧ b ≤ a) :=
 ⟨λ h, or_iff_not_imp_right.mpr $ λ h', h.covby_of_not_le $ λ hba, h' ⟨h.le, hba⟩,
   λ h', h'.elim (λ h, h.wcovby) (λ h, h.1.wcovby_of_le h.2)⟩
+
+lemma covby.imp_left (h : a ⋖ c) (hab : antisymm_rel (≤) a b) : b ⋖ c :=
+⟨hab.2.trans_lt h.lt, λ d hbd hdc, h.2 (hab.1.trans_lt hbd) hdc⟩
+
+lemma covby.congr_left (hab : antisymm_rel (≤) a b) : a ⋖ c ↔ b ⋖ c :=
+⟨λ h, h.imp_left hab, λ h, h.imp_left hab.symm⟩
+
+lemma covby.imp_right (h : c ⋖ a) (hab : antisymm_rel (≤) a b) : c ⋖ b :=
+⟨h.lt.trans_le hab.1, λ d hcd hdb, h.2 hcd (hdb.trans_le hab.2)⟩
+
+lemma covby.congr_right (hab : antisymm_rel (≤) a b) : c ⋖ a ↔ c ⋖ b :=
+⟨λ h, h.imp_right hab, λ h, h.imp_right hab.symm⟩
 
 instance : is_nonstrict_strict_order α (⩿) (⋖) :=
 ⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩

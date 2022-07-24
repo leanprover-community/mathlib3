@@ -449,10 +449,7 @@ lemma maximal_ideal_injective :
 λ A B h, begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
     ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
-  rw set_like.ext_iff at h,
-  intros x,
-  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_lt_one₀] },
-  exact h (units.mk0 x hx)
+  exact set_like.ext_iff.1 h,
 end
 
 lemma eq_iff_maximal_ideal {A B : valuation_subring K} :
@@ -499,7 +496,7 @@ def principal_unit_group : subgroup Kˣ :=
   end,
   one_mem' := by simpa using zero_lt_one₀,
   inv_mem' := begin
-    rintros a ha,
+    intros a ha,
     rw set.mem_set_of_eq,
     conv {to_lhs, rw [← mul_one (A.valuation _), ← A.valuation.map_one_add_of_lt ha]},
     rwa [add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, one_mul, ← neg_sub,
@@ -551,7 +548,7 @@ def principal_unit_group_order_embedding :
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
 λ a h, by simpa using A.valuation.map_one_add_of_lt h
 
-lemma mem_principal_unit_group_iff_mem_ker {x : A.unit_group} :
+lemma coe_mem_principal_unit_group_iff {x : A.unit_group} :
   (x : Kˣ) ∈ A.principal_unit_group ↔
   (A.unit_group_mul_equiv) x ∈ (units.map (local_ring.residue A).to_monoid_hom).ker :=
 begin
@@ -563,14 +560,29 @@ begin
   simpa,
 end
 
+/-- The quotient map induced by the principal unit group of `A` being a subset of the
+kernel of the canonical map from the unit group of `A` to the units of the residue field of `A`. -/
+def unit_group_mod_to_residue_field_units :
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) →*
+  (local_ring.residue_field A)ˣ :=
+quotient_group.lift _
+(monoid_hom.comp (units.map $ (ideal.quotient.mk _).to_monoid_hom)
+  A.unit_group_mul_equiv.to_monoid_hom) (λ x, A.coe_mem_principal_unit_group_iff.1)
+
+@[simp]
+lemma unit_group_mod_to_residue_field_units_apply (x : A.unit_group) :
+  (A.unit_group_mod_to_residue_field_units
+    (quotient_group.mk x) : local_ring.residue_field A) =
+    (ideal.quotient.mk _ (A.unit_group_mul_equiv x : A)) := rfl
+
 /-- The principal unit group agrees with the kernel of the canonical map from
 the units of `A` to the units of the residue field of `A`. -/
 def principal_unit_group_equiv :
   A.principal_unit_group ≃* (units.map (local_ring.residue A).to_monoid_hom).ker :=
-{ to_fun := λ x, ⟨A.unit_group_mul_equiv ⟨_,A.principal_units_le_units x.2⟩,
-    A.mem_principal_unit_group_iff_mem_ker.1 x.2⟩,
-  inv_fun := λ x, ⟨A.unit_group_mul_equiv.symm x, by { rw A.mem_principal_unit_group_iff_mem_ker,
-      simpa using set_like.coe_mem x }⟩,
+{ to_fun := λ x, ⟨A.unit_group_mul_equiv ⟨_, A.principal_units_le_units x.2⟩,
+    A.coe_mem_principal_unit_group_iff.1 x.2⟩,
+  inv_fun := λ x, ⟨A.unit_group_mul_equiv.symm x,
+    by { rw A.coe_mem_principal_unit_group_iff, simpa using set_like.coe_mem x }⟩,
   left_inv := λ x, by simp,
   right_inv := λ x, by simp,
   map_mul' := λ x y, by refl, }
@@ -584,16 +596,20 @@ lemma principal_unit_group_symm_apply
   (a : (units.map (local_ring.residue A).to_monoid_hom).ker) :
   (A.principal_unit_group_equiv.symm a : K) = a := rfl
 
-lemma residue_field_unit_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
+lemma residue_field_unit_rep_is_unit (x : (local_ring.residue_field A)ˣ) :
+  is_unit (quotient.out' (x : local_ring.residue_field A)) :=
+begin
+  by_contra,
+  rw valuation_eq_one_iff at h,
+  simpa only [← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.mk_eq_mk,
+    ← submodule.quotient.mk'_eq_mk, quotient.out_eq', units.ne_zero] using
+    or_iff_not_imp_right.1 (A.valuation_lt_one_or_eq_one _) h,
+end
+
+lemma residue_field_unit_exists_unit_rep (x : (local_ring.residue_field A)ˣ) :
   ∃ (y : Aˣ), (local_ring.residue A) y = x :=
 begin
-  have : is_unit (quotient.out' (x : local_ring.residue_field A)),
-  { by_contra,
-    rw valuation_eq_one_iff at h,
-    simpa only [← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.mk_eq_mk,
-      ← submodule.quotient.mk'_eq_mk, quotient.out_eq', units.ne_zero] using
-      or_iff_not_imp_right.1 (A.valuation_lt_one_or_eq_one _) h },
-  choose y hy using this,
+  choose y hy using A.residue_field_unit_rep_is_unit x,
   refine ⟨y, by rw [local_ring.residue, ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk,
     hy, quotient.out_eq'] ⟩,
 end
@@ -609,9 +625,9 @@ begin
     ((units.map (local_ring.residue A).to_monoid_hom).comp A.unit_group_mul_equiv.to_monoid_hom) _),
   { rw set_like.ext_iff,
     intro x,
-    simpa only [subgroup.mem_comap, subgroup.coe_subtype, mem_principal_unit_group_iff_mem_ker] },
+    simpa only [subgroup.mem_comap, subgroup.coe_subtype, coe_mem_principal_unit_group_iff] },
   { intro x,
-    choose y hy using A.residue_field_unit_has_unit_rep x,
+    choose y hy using A.residue_field_unit_exists_unit_rep x,
     refine ⟨A.unit_group_mul_equiv.symm y, by { simpa [units.ext_iff] }⟩ },
 end
 

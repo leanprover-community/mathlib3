@@ -877,11 +877,10 @@ begin
 end
 
 lemma to_word_inv {x : free_group α} : (x⁻¹).to_word = inv_rev x.to_word :=
-calc (x⁻¹).to_word = (mk x.to_word)⁻¹.to_word : by rw mk_to_word
-  ... = (mk $ inv_rev x.to_word).to_word : by rw inv_mk
-  ... = reduce (inv_rev x.to_word) : by rw to_word_mk
-  ... = inv_rev (reduce x.to_word) : reduce_inv_rev
-  ... = inv_rev x.to_word : by rw [reduce_to_word]
+begin
+  rcases x with ⟨L⟩,
+  rw [quot_mk_eq_mk, inv_mk, to_word_mk, to_word_mk, reduce_inv_rev]
+end
 
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/
 def reduce.church_rosser (H12 : red L₁ L₂) (H13 : red L₁ L₃) :

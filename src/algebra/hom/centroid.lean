@@ -154,7 +154,10 @@ instance : has_zero (centroid_hom α) := ⟨⟨0, λ a b, (mul_zero _).symm, λ 
 instance : has_one (centroid_hom α) := ⟨centroid_hom.id α⟩
 
 instance : has_add (centroid_hom α) :=
-⟨λ f g, ⟨f + g, λ a b, by simp [map_mul_left, mul_add], λ a b, by simp [map_mul_right, add_mul]⟩⟩
+⟨λ f g,
+  { map_mul_left' := λ a b, by simp [map_mul_left, mul_add],
+    map_mul_right' := λ a b, by simp [map_mul_right, add_mul],
+    ..(f + g : α →+ α) } ⟩
 
 instance : has_mul (centroid_hom α) := ⟨comp⟩
 

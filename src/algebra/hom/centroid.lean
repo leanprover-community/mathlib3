@@ -246,9 +246,12 @@ instance : has_sub (centroid_hom α) :=
   .. (f - g : α →+ α) }⟩
 
 instance has_scalar_int : has_smul ℤ (centroid_hom α) :=
-⟨λ n f, ⟨n • f,
-  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_smul_comm] },
-  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩
+⟨λ n f,
+  { map_mul_left' := λ a b,
+      by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_nsmul_left] },
+    map_mul_right' := λ a b,
+      by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, mul_nsmul_assoc] },
+    .. (n • f : α →+ α) }⟩
 
 instance : add_comm_group (centroid_hom α) :=
 to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)

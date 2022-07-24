@@ -85,34 +85,28 @@ rfl
   (ideal.quot_equiv_of_eq h).symm = ideal.quot_equiv_of_eq h.symm :=
 by ext; refl
 
+lemma temporary (f : polynomial R) (r : R) :
+  adjoin_root.of f r = adjoin_root.mk f (polynomial.C r) := rfl
+
 /-- Let `f` be a polynomial over `R` and `I` an ideal of `R`,
 then `(R[x]/(f)) / (I)` is isomorphic to `(R/I)[x] / (f mod p)` -/
 noncomputable def adjoin_root.quot_equiv_quot_map
   (f : polynomial R) (I : ideal R) :
   (_ ⧸ (ideal.map (adjoin_root.of f) I)) ≃ₐ[R]
     _ ⧸ (ideal.span ({polynomial.map I^.quotient.mk f} : set (polynomial (R ⧸ I)))) :=
-alg_equiv.of_ring_equiv (adjoin_root.quot_map_of_equiv I f) sorry
-/- begin
-  refine alg_equiv.of_ring_equiv ((ideal.quot_equiv_of_eq _).trans _) _,
-  swap, { rw [adjoin_root.of, ← ideal.map_map, adjoin_root.mk] },
-  refine (double_quot.quot_quot_equiv_comm (ideal.span {f}) (I.map polynomial.C)).trans _,
-  refine ring_equiv.trans _ (ideal.quotient_equiv (ideal.span {ideal.quotient.mk _ f}) _
-    (ideal.polynomial_quotient_equiv_quotient_polynomial I).symm _),
-  swap,
-  { rw [ideal.map_span, set.image_singleton, ring_equiv.coe_to_ring_hom,
-        ideal.polynomial_quotient_equiv_quotient_polynomial_symm_mk I f] },
-  refine quot_equiv_of_eq _,
-  { rw [← set.image_singleton, ← ideal.map_span] },
-  { intros x,
-    rw [ring_equiv.trans_apply, ring_equiv.trans_apply, ring_equiv.trans_apply,
-        ← ideal.quotient.mk_algebra_map, quot_equiv_of_eq_mk, ideal.quotient.mk_algebra_map,
-        double_quot.quot_quot_equiv_comm_algebra_map, ← ideal.quotient.mk_algebra_map,
-        quot_equiv_of_eq_mk, ideal.quotient_equiv_apply, ring_hom.to_fun_eq_coe,
-        ideal.quotient_map_mk, ring_equiv.coe_to_ring_hom, ← ideal.quotient.mk_algebra_map,
-        ideal.polynomial_quotient_equiv_quotient_polynomial_symm_mk,
-        ← polynomial.C_eq_algebra_map, polynomial.map_C],
-    refl }
-end -/
+alg_equiv.of_ring_equiv (adjoin_root.quot_map_of_equiv I f)
+begin
+  intros x,
+  have : algebra_map R (adjoin_root f ⧸ (ideal.map (adjoin_root.of f) I)) x =
+    ideal.quotient.mk (ideal.map (adjoin_root.of f) I) (adjoin_root.of f x) := rfl,
+  rw temporary f x at this,
+  rw this,
+  rw adjoin_root.quot_adjoin_root_equiv_quot_polynomial_quot_mk_of,
+  have : algebra_map R (polynomial (R ⧸ I) ⧸ (ideal.span {polynomial.map (ideal.quotient.mk I) f})) x =
+    ideal.quotient.mk (ideal.span {polynomial.map (ideal.quotient.mk I) f}) (polynomial.C (ideal.quotient.mk I x)) := rfl,
+  rw this,
+  simp only [map_C],
+end
 
  -- TODO: split me!
 @[simp] lemma adjoin_root.quot_equiv_quot_map_apply
@@ -250,6 +244,35 @@ noncomputable! def normalized_factors_equiv [is_domain R] [is_dedekind_domain R]
   left_inv := λ ⟨j, hj⟩, by simp,
   right_inv := λ ⟨j, hj⟩, by simp }
 
+
+-- placeholder
+--other placeholder
+
+
+lemma normalized_factors_equiv_multiplicity_eq_multiplicity [is_domain R] [is_dedekind_domain R]
+  [is_domain S] [is_dedekind_domain S] (pb : power_basis R S)
+  (I : ideal R) (hI : is_maximal I) (hI' : I.map (algebra_map R S) ≠ ⊥)
+  (hpb : map I^.quotient.mk (minpoly R pb.gen) ≠ 0) {J : ideal S}
+  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
+  multiplicity J (I.map (algebra_map R S)) = multiplicity
+  (normalized_factors_equiv pb I hI ⟨J, hJ⟩ : ideal (polynomial $ R ⧸ I))
+    (ideal.span ({ map I^.quotient.mk (minpoly R pb.gen) } : set (polynomial $ R ⧸ I))) :=
+begin
+  simp only [normalized_factors_equiv, subtype.coe_mk, equiv.coe_fn_mk],
+  have temp := multiplicity_eq_multiplicity_factor_dvd_iso_of_mem_normalized_factor hI' _  hJ
+  (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
+    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }})
+    _,
+  have : (factors_equiv pb hI : {J : ideal S | J ∣ I.map (algebra_map R S) } ≃
+    {J : ideal (polynomial $ R ⧸ I ) | J ∣ ideal.span { map I^.quotient.mk (minpoly R pb.gen) }})
+    ⟨J, dvd_of_mem_normalized_factors hJ⟩ = factors_equiv pb hI
+      ⟨J, dvd_of_mem_normalized_factors hJ⟩ := rfl,
+  simp_rw [this] at temp,
+  exact temp,
+  sorry,
+  sorry,  --this one is just playing around with coercions
+end
+
 open submodule.is_principal
 
 lemma mem_normalized_factors_eq_of_associated [unique_factorization_monoid R]
@@ -266,18 +289,15 @@ lemma singleton_span_mem_normalized_factors_of_mem_normalized_factors [is_domain
   ideal.span ({a} : set R) ∈ normalized_factors (ideal.span ({b} : set R)) :=
 begin
   by_cases hb : b = 0,
-  { rw (span_singleton_eq_bot.mpr hb),
+  { rw [span_singleton_eq_bot.mpr hb, bot_eq_zero, normalized_factors_zero],
     rw [hb, normalized_factors_zero] at ha,
-    rw [bot_eq_zero, normalized_factors_zero],
-    sorry,
-  },
+    simpa only [multiset.not_mem_zero]  },
   { suffices : prime (ideal.span ({a} : set R)),
-    sorry,
-    /- { obtain ⟨c, hc, hc'⟩ := exists_mem_normalized_factors_of_dvd _ this.irreducible
+    { obtain ⟨c, hc, hc'⟩ := exists_mem_normalized_factors_of_dvd _ this.irreducible
         (dvd_iff_le.mpr (span_singleton_le_span_singleton.mpr (dvd_of_mem_normalized_factors ha))),
       rwa associated_iff_eq.mp hc',
       { by_contra,
-        exact hb (span_singleton_eq_bot.mp h) } } -/
+        exact hb (span_singleton_eq_bot.mp h) } },
     rw prime_iff_is_prime,
     exact (span_singleton_prime (prime_of_normalized_factor a ha).ne_zero).mpr
       (prime_of_normalized_factor a ha),
@@ -285,33 +305,68 @@ begin
     exact (prime_of_normalized_factor a ha).ne_zero (span_singleton_eq_bot.mp h) },
 end
 
-
-noncomputable def corr₂ [is_domain R] [is_principal_ideal_ring R] [normalization_monoid R]
- (r : R) (hr : r ≠ 0) :
+@[simps]
+noncomputable def normalized_factors_equiv_span_normalized_factors [is_domain R]
+  [is_principal_ideal_ring R] [normalization_monoid R] (r : R) (hr : r ≠ 0) :
   {d : R | d ∈ normalized_factors r} ≃
   {I : ideal R | I ∈ normalized_factors (ideal.span ({r} : set R))} :=
-equiv.of_bijective (λ d, ⟨ideal.span ({d} : set R), sorry ⟩)
+equiv.of_bijective
+  (λ d, ⟨ideal.span {↑d }, singleton_span_mem_normalized_factors_of_mem_normalized_factors d.prop ⟩)
 begin
   split,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
-  rw [subtype.mk_eq_mk, ideal.span_singleton_eq_span_singleton, subtype.coe_mk,
-    subtype.coe_mk] at h,
-  rw subtype.mk_eq_mk,
-  exact mem_normalized_factors_eq_of_associated ha hb h,
-  rintros ⟨i, hi⟩,
-  letI : i.is_principal := infer_instance,
-  letI : i.is_prime := is_prime_of_prime (prime_of_normalized_factor i hi),
-  obtain ⟨a, ha, ha'⟩ := exists_mem_normalized_factors_of_dvd hr
-    (prime_generator_of_is_prime i (prime_of_normalized_factor i hi).ne_zero).irreducible _,
-  { use ⟨a, ha⟩,
-    simp only [subtype.coe_mk, subtype.mk_eq_mk, ← span_singleton_eq_span_singleton.mpr ha',
-      ideal.span_singleton_generator] },
-  { rw ← mem_iff_generator_dvd,
-    suffices temporary : ideal.span {r} ≤ i,
-    { exact temporary (mem_span_singleton.mpr (dvd_refl r)) },
-    rw ← dvd_iff_le,
-    exact dvd_of_mem_normalized_factors hi }
+  { rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
+    rw [subtype.mk_eq_mk, ideal.span_singleton_eq_span_singleton, subtype.coe_mk,
+      subtype.coe_mk] at h,
+    exact subtype.mk_eq_mk.mpr (mem_normalized_factors_eq_of_associated ha hb h) },
+  { rintros ⟨i, hi⟩,
+    letI : i.is_principal := infer_instance,
+    letI : i.is_prime := is_prime_of_prime (prime_of_normalized_factor i hi),
+    obtain ⟨a, ha, ha'⟩ := exists_mem_normalized_factors_of_dvd hr
+      (prime_generator_of_is_prime i (prime_of_normalized_factor i hi).ne_zero).irreducible _,
+    { use ⟨a, ha⟩,
+      simp only [subtype.coe_mk, subtype.mk_eq_mk, ← span_singleton_eq_span_singleton.mpr ha',
+        ideal.span_singleton_generator] },
+    { suffices : ideal.span {r} ≤ i,
+      { exact (mem_iff_generator_dvd i).mp (this (mem_span_singleton.mpr (dvd_refl r))) },
+      exact dvd_iff_le.mp (dvd_of_mem_normalized_factors hi) } }
 end
+
+open multiplicity
+
+lemma span_singleton_dvd_span_singleton_iff_dvd [comm_ring R] [is_domain R]
+  [is_principal_ideal_ring R] {a b : R} : (ideal.span {a}) ∣ (ideal.span ({b} : set R)) ↔ a ∣ b :=
+⟨λ h, mem_span_singleton.mp (dvd_iff_le.mp h (mem_span_singleton.mpr (dvd_refl b))),
+  λ h, dvd_iff_le.mpr (λ d hd, mem_span_singleton.mpr (dvd_trans h (mem_span_singleton.mp hd)))⟩
+
+
+lemma multiplicity_eq_multiplicity_span [comm_ring R] [is_domain R]
+  [is_principal_ideal_ring R] {a b : R} :
+  multiplicity (ideal.span {a}) (ideal.span ({b} : set R)) = multiplicity a b :=
+begin
+  by_cases h : finite a b,
+    { rw ← enat.coe_get (finite_iff_dom.mp h),
+      refine (multiplicity.unique
+        (show (ideal.span {a})^(((multiplicity a b).get h)) ∣ (ideal.span {b}), from _) _).symm ;
+        rw [ideal.span_singleton_pow, span_singleton_dvd_span_singleton_iff_dvd],
+      exact pow_multiplicity_dvd h ,
+      { exact multiplicity.is_greatest ((enat.lt_coe_iff _ _).mpr (exists.intro
+          (finite_iff_dom.mp h) (nat.lt_succ_self _))) } },
+    { suffices : ¬ (finite (ideal.span {a}) (ideal.span {b})),
+      { rw [finite_iff_dom, enat.not_dom_iff_eq_top] at h this,
+        rw [h, this] },
+      refine not_finite_iff_forall.mpr (λ n, by {rw [ideal.span_singleton_pow,
+        span_singleton_dvd_span_singleton_iff_dvd], exact not_finite_iff_forall.mp h n }) }
+end
+
+
+lemma multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity [comm_ring R] [is_domain R]
+  [is_principal_ideal_ring R] [normalization_monoid R] {r d: R} (hr : r ≠ 0)
+  (hd : d ∈ normalized_factors r): multiplicity d r =
+    multiplicity (normalized_factors_equiv_span_normalized_factors r hr ⟨d, hd⟩ : ideal R)
+      (ideal.span {r}) :=
+by simp only [normalized_factors_equiv_span_normalized_factors, multiplicity_eq_multiplicity_span,
+    subtype.coe_mk, equiv.of_bijective_apply]
+
 
 
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case,
@@ -321,7 +376,8 @@ noncomputable def factors_equiv' [is_domain R] [is_dedekind_domain R] [is_domain
   [is_dedekind_domain S] [algebra R S] (pb : power_basis R S) {I : ideal R} (hI : is_maximal I) :
  {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
     {d : polynomial $ R ⧸ I  | d ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)) }:=
-(normalized_factors_equiv pb I hI).trans (corr₂ (map I^.quotient.mk (minpoly R pb.gen))).symm
+(normalized_factors_equiv pb I hI).trans (normalized_factors_equiv_span_normalized_factors
+  (map I^.quotient.mk (minpoly R pb.gen)) sorry).symm
 
 /-- The second hald of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the
     bijection `factors_equiv'` defined in the first half preserves multiplicities. -/
@@ -330,7 +386,11 @@ theorem multiplicity_factors_equiv'_eq_multiplicity [is_domain R] [is_dedekind_d
   {J : ideal S}  (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) = multiplicity ↑(factors_equiv' pb hI ⟨J, hJ⟩)
     (map I^.quotient.mk (minpoly R pb.gen)) :=
-sorry
+begin
+  simp only [factors_equiv', multiplicity_normalized_factors_equiv_span_normalized_factors_eq_multiplicity, equiv.coe_trans,
+  function.comp_app, normalized_factors_equiv_span_normalized_factors_symm_apply],
+
+end
 /-
 
 

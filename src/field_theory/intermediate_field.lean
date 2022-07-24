@@ -492,7 +492,7 @@ def subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L) :
 { to_fun := λ S, S.to_intermediate_field (λ x hx, S.inv_mem_of_algebraic (alg (⟨x, hx⟩ : S))),
   inv_fun := λ S, S.to_subalgebra,
   left_inv := λ S, to_subalgebra_to_intermediate_field _ _,
-  right_inv := λ S, to_intermediate_field_to_subalgebra _ _,
+  right_inv := to_intermediate_field_to_subalgebra,
   map_rel_iff' := λ S S', iff.rfl }
 
 @[simp] lemma mem_subalgebra_equiv_intermediate_field (alg : algebra.is_algebraic K L)

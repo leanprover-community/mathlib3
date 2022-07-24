@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Floris van Doorn
 -/
 import data.set.intervals.ord_connected
+import order.antisymmetrization
 
 /-!
 # The covering relation
@@ -47,11 +48,25 @@ lemma wcovby_of_le_of_le (h1 : a ≤ b) (h2 : b ≤ a) : a ⩿ b :=
 
 alias wcovby_of_le_of_le ← has_le.le.wcovby_of_le
 
+lemma antisymm_rel.wcovby (h : antisymm_rel (≤) a b) : a ⩿ b := wcovby_of_le_of_le h.1 h.2
+
 lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
 ⟨λ h, h.le, λ h, h.wcovby_of_le hab.le⟩
 
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
 ⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
+
+lemma wcovby.imp_left (h : a ⩿ c) (hab : antisymm_rel (≤) a b) : b ⩿ c :=
+⟨hab.2.trans h.le, λ d hbd hdc, h.2 (hab.1.trans_lt hbd) hdc⟩
+
+lemma wcovby.congr_left (hab : antisymm_rel (≤) a b) : a ⩿ c ↔ b ⩿ c :=
+⟨λ h, h.imp_left hab, λ h, h.imp_left hab.symm⟩
+
+lemma wcovby.imp_right (h : c ⩿ a) (hab : antisymm_rel (≤) a b) : c ⩿ b :=
+⟨h.le.trans hab.1, λ d hcd hdb, h.2 hcd (hdb.trans_le hab.2)⟩
+
+lemma wcovby.congr_right (hab : antisymm_rel (≤) a b) : c ⩿ a ↔ c ⩿ b :=
+⟨λ h, h.imp_right hab, λ h, h.imp_right hab.symm⟩
 
 /-- If `a ≤ b`, then `b` does not cover `a` iff there's an element in between. -/
 lemma not_wcovby_iff (h : a ≤ b) : ¬ a ⩿ b ↔ ∃ c, a < c ∧ c < b :=
@@ -160,6 +175,8 @@ It's so named because in an order with an appropriate successor definition, a su
 be the succesor of anything smaller. -/
 def is_succ_limit (a : α) : Prop := ∀ b, ¬ b ⋖ a
 
+lemma covby.not_is_succ_limit (h : a ⋖ b) : ¬ is_succ_limit b := λ h', h' a h
+
 lemma not_is_succ_limit_iff_exists_covby (a : α) : ¬ is_succ_limit a ↔ ∃ b, b ⋖ a :=
 by simp [is_succ_limit]
 
@@ -170,6 +187,8 @@ lemma is_succ_limit_of_dense [densely_ordered α] (a : α) : is_succ_limit a := 
 It's so named because in an order with an appropriate predecessor definition, a predecessor limit
 can't be the predecessor of anything greater. -/
 def is_pred_limit (a : α) : Prop := ∀ b, ¬ a ⋖ b
+
+lemma covby.not_is_pred_limit (h : a ⋖ b) : ¬ is_pred_limit a := λ h', h' b h
 
 lemma not_is_pred_limit_iff_exists_covby (a : α) : ¬ is_pred_limit a ↔ ∃ b, a ⋖ b :=
 by simp [is_pred_limit]
@@ -189,7 +208,7 @@ alias is_pred_limit_to_dual_iff ↔ _ is_succ_limit.dual
 end has_lt
 
 section preorder
-variables [preorder α] [preorder β] {a b : α}
+variables [preorder α] [preorder β] {a b c : α}
 
 lemma covby.le (h : a ⋖ b) : a ≤ b := h.1.le
 protected lemma covby.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
@@ -198,6 +217,9 @@ lemma covby.ne' (h : a ⋖ b) : b ≠ a := h.lt.ne'
 protected lemma covby.wcovby (h : a ⋖ b) : a ⩿ b := ⟨h.le, h.2⟩
 lemma wcovby.covby_of_not_le (h : a ⩿ b) (h2 : ¬ b ≤ a) : a ⋖ b := ⟨h.le.lt_of_not_le h2, h.2⟩
 lemma wcovby.covby_of_lt (h : a ⩿ b) (h2 : a < b) : a ⋖ b := ⟨h2, h.2⟩
+
+lemma not_covby_of_lt_of_lt (h₁ : a < b) (h₂ : b < c) : ¬ a ⋖ c :=
+(not_covby_iff (h₁.trans h₂)).2 ⟨b, h₁, h₂⟩
 
 lemma covby_iff_wcovby_and_lt : a ⋖ b ↔ a ⩿ b ∧ a < b :=
 ⟨λ h, ⟨h.wcovby, h.lt⟩, λ h, h.1.covby_of_lt h.2⟩
@@ -208,6 +230,18 @@ lemma covby_iff_wcovby_and_not_le : a ⋖ b ↔ a ⩿ b ∧ ¬ b ≤ a :=
 lemma wcovby_iff_covby_or_le_and_le : a ⩿ b ↔ a ⋖ b ∨ (a ≤ b ∧ b ≤ a) :=
 ⟨λ h, or_iff_not_imp_right.mpr $ λ h', h.covby_of_not_le $ λ hba, h' ⟨h.le, hba⟩,
   λ h', h'.elim (λ h, h.wcovby) (λ h, h.1.wcovby_of_le h.2)⟩
+
+lemma covby.imp_left (h : a ⋖ c) (hab : antisymm_rel (≤) a b) : b ⋖ c :=
+⟨hab.2.trans_lt h.lt, λ d hbd hdc, h.2 (hab.1.trans_lt hbd) hdc⟩
+
+lemma covby.congr_left (hab : antisymm_rel (≤) a b) : a ⋖ c ↔ b ⋖ c :=
+⟨λ h, h.imp_left hab, λ h, h.imp_left hab.symm⟩
+
+lemma covby.imp_right (h : c ⋖ a) (hab : antisymm_rel (≤) a b) : c ⋖ b :=
+⟨h.lt.trans_le hab.1, λ d hcd hdb, h.2 hcd (hdb.trans_le hab.2)⟩
+
+lemma covby.congr_right (hab : antisymm_rel (≤) a b) : c ⋖ a ↔ c ⋖ b :=
+⟨λ h, h.imp_right hab, λ h, h.imp_right hab.symm⟩
 
 instance : is_nonstrict_strict_order α (⩿) (⋖) :=
 ⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩
@@ -231,11 +265,73 @@ lemma set.ord_connected.apply_covby_apply_iff (f : α ↪o β) (h : (range f).or
   e a ⋖ e b ↔ a ⋖ b :=
 (ord_connected_range (e : α ≃o β)).apply_covby_apply_iff ((e : α ≃o β) : α ↪o β)
 
+protected lemma is_min.is_succ_limit : is_min a → is_succ_limit a :=
+λ h b hab, not_is_min_of_lt hab.lt h
+
 protected lemma is_max.is_pred_limit : is_max a → is_pred_limit a :=
 λ h b hab, not_is_max_of_lt hab.lt h
 
-protected lemma is_min.is_succ_limit : is_min a → is_succ_limit a :=
-λ h b hab, not_is_min_of_lt hab.lt h
+lemma is_succ_limit_bot [order_bot α] : is_succ_limit (⊥ : α) := is_min_bot.is_succ_limit
+
+lemma is_pred_limit_top [order_top α] : is_pred_limit (⊤ : α) := is_max_top.is_pred_limit
+
+lemma is_succ_limit.imp (ha : is_succ_limit a) (hab : antisymm_rel (≤) a b) : is_succ_limit b :=
+λ c hc, ha c (hc.imp_right hab.symm)
+
+lemma is_succ_limit.congr (hab : antisymm_rel (≤) a b) : is_succ_limit a ↔ is_succ_limit b :=
+⟨λ h, h.imp hab, λ h, h.imp hab.symm⟩
+
+lemma is_pred_limit.imp (ha : is_pred_limit a) (hab : antisymm_rel (≤) a b) : is_pred_limit b :=
+λ c hc, ha c (hc.imp_left hab.symm)
+
+lemma is_pred_limit.congr (hab : antisymm_rel (≤) a b) : is_pred_limit a ↔ is_pred_limit b :=
+⟨λ h, h.imp hab, λ h, h.imp hab.symm⟩
+
+lemma is_succ_limit.with_top (h : is_succ_limit a) : is_succ_limit (a : with_top α) :=
+begin
+  rintros (_ | b) hb,
+  { exact with_top.not_none_lt _ hb.lt },
+  { rcases (not_covby_iff (with_top.some_lt_some.1 hb.lt)).1 (h b) with ⟨c, hbc, hca⟩,
+    exact not_covby_of_lt_of_lt (with_top.some_lt_some.2 hbc) (with_top.some_lt_some.2 hca) hb }
+end
+
+lemma is_pred_limit.with_bot (h : is_pred_limit a) : is_pred_limit (a : with_bot α) :=
+is_succ_limit_to_dual_iff.1 h.dual.with_top
+
+lemma is_succ_limit.with_bot_of_not_is_min (ha : is_succ_limit a) (h : ¬ is_min a) :
+  is_succ_limit (a : with_bot α) :=
+begin
+  rintros (_ | b) hb,
+  { cases not_is_min_iff.1 h with b hba,
+    exact not_covby_of_lt_of_lt (with_bot.none_lt_some b) (with_bot.some_lt_some.2 hba) hb },
+  { rcases (not_covby_iff (with_bot.some_lt_some.1 hb.lt)).1 (ha b) with ⟨c, hbc, hca⟩,
+    exact not_covby_of_lt_of_lt (with_bot.some_lt_some.2 hbc) (with_bot.some_lt_some.2 hca) hb }
+end
+
+lemma is_pred_limit.with_top_of_not_is_max (ha : is_pred_limit a) (h : ¬ is_max a) :
+  is_pred_limit (a : with_top α) :=
+is_succ_limit_to_dual_iff.1 $ ha.dual.with_bot_of_not_is_min h
+
+lemma is_succ_limit.with_bot [no_min_order α] (h : is_succ_limit a) :
+  is_succ_limit (a : with_bot α) :=
+h.with_bot_of_not_is_min (not_is_min a)
+
+lemma is_pred_limit.with_top [no_max_order α] (h : is_pred_limit a) :
+  is_pred_limit (a : with_top α) :=
+h.with_top_of_not_is_max (not_is_max a)
+
+lemma is_succ_limit.is_min_of_well_founded_gt (h : is_succ_limit a) (hwf : @well_founded α (>)) :
+  is_min a :=
+begin
+  by_contra ha,
+  obtain ⟨m, hm : m < a, hm'⟩ := hwf.has_min _ (not_is_min_iff.1 ha),
+  obtain ⟨c, hmc, hca⟩ := (not_covby_iff hm).1 (h m),
+  exact hm' _ hca hmc
+end
+
+lemma is_pred_limit.is_max_of_well_founded_lt (h : is_pred_limit a) (hwf : @well_founded α (<)) :
+  is_max a :=
+h.dual.is_min_of_well_founded_gt hwf
 
 end preorder
 

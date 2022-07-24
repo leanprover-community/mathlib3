@@ -837,7 +837,7 @@ measures.
 
 namespace finite_measure
 
-variables {α : Type*} [measurable_space α] (μ : finite_measure α) [nonempty α]
+variables {α : Type*} [nonempty α] {m0 : measurable_space α} (μ : finite_measure α) 
 
 /-- Normalize a finite measure so that it becomes a probability measure, i.e., divide by the
 total mass. -/
@@ -851,9 +851,6 @@ if zero : μ.mass = 0 then ⟨measure.dirac ‹nonempty α›.some, measure.dira
             norm_cast,
             exact inv_mul_cancel zero,
           end }
-
---lemma normalize_zero : (0 : finite_measure α).normalize = default :=
---by simp only [normalize, zero.mass, dif_pos]
 
 @[simp] lemma self_eq_mass_mul_normalize (s : set α) : μ s = μ.mass * μ.normalize s :=
 begin
@@ -879,7 +876,7 @@ lemma normalize_eq_of_nonzero (nonzero : μ ≠ 0) (s : set α) :
 by simp only [μ.self_eq_mass_mul_normalize, μ.mass_nonzero_iff.mpr nonzero,
               inv_mul_cancel_left₀, ne.def, not_false_iff]
 
-lemma normalize_eq_inv_mass_smul_of_nonzero (μ : finite_measure α) (nonzero : μ ≠ 0) :
+lemma normalize_eq_inv_mass_smul_of_nonzero (nonzero : μ ≠ 0) :
   μ.normalize.to_finite_measure = (μ.mass)⁻¹ • μ :=
 begin
   nth_rewrite 2 μ.self_eq_mass_smul_normalize,
@@ -929,7 +926,7 @@ begin
   refl,
 end
 
-lemma normalize_test_against_nn (μ : finite_measure α) (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
+lemma normalize_test_against_nn (nonzero : μ ≠ 0) (f : α →ᵇ ℝ≥0) :
   μ.normalize.to_finite_measure.test_against_nn f = (μ.mass)⁻¹ * μ.test_against_nn f :=
 by simp [μ.test_against_nn_eq_mass_mul, μ.mass_nonzero_iff.mpr nonzero]
 
@@ -1003,8 +1000,8 @@ lemma tendsto_normalize_of_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} (μs_lim : tendsto μs F (𝓝 μ)) (nonzero : μ ≠ 0) :
   tendsto (λ i, (μs i).normalize) F (𝓝 (μ.normalize)) :=
 begin
-  rw probability_measure.tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
-  rw tendsto_iff_forall_test_against_nn_tendsto,
+  rw [probability_measure.tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
+      tendsto_iff_forall_test_against_nn_tendsto],
   exact λ f, tendsto_normalize_test_against_nn_of_tendsto μs_lim nonzero f,
 end
 

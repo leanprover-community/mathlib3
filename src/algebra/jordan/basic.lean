@@ -142,6 +142,8 @@ end lie
 
 variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 
+#check two_smul
+
 /-- Linearise the operator form of the Jordan axiom (`lie_L_L_sq`) by substituting in a → a + b and
 expanding. -/
 lemma lie_L_L_sq_add_lie_L_L_sq_add_two_lie_L_L_mul_add_two_lie_L_L_mul (a b : A) :
@@ -152,11 +154,11 @@ begin
     ... = ⁅L a + L b, L (a*a+a*b+(b*a+b*b))⁆ : by rw [add_mul, mul_add, mul_add, map_add]
     ... = ⁅L a + L b, L (a*a) + L(a*b) + (L(a*b) + L(b*b))⁆ :
       by rw [map_add, map_add, map_add, is_comm_jordan.mul_comm b a]
-    ... = ⁅L a + L b, L (a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ : by abel
+    ... = ⁅L a + L b, L (a*a) + (2:ℤ)•L(a*b) + L(b*b)⁆ : by rw [ two_smul, ← add_assoc, ← add_assoc]
     ... = ⁅L a, L (a*a)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, L(b*b)⁆
       + (⁅L b, L (a*a)⁆ + ⁅L b,(2:ℤ)•L(a*b)⁆ + ⁅L b,L(b*b)⁆) :
         by rw [add_lie, lie_add, lie_add, lie_add, lie_add]
-    ... = (2:ℤ)•⁅L a, L(a*b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L b,L(a*b)⁆) :
+    ... = (2:ℤ)•⁅L a, L (a * b)⁆ + ⁅L a, L(b*b)⁆ + (⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L b,L(a*b)⁆) :
       by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b, lie_smul, lie_smul,
         zero_add, add_zero]
     ... = ⁅L a, L (b*b)⁆ + ⁅L b, L (a*a)⁆ + (2:ℤ)•⁅L a, L (a*b)⁆ + (2:ℤ)•⁅L b, L (a*b)⁆: by abel
@@ -179,7 +181,8 @@ begin
     by rw [is_comm_jordan.mul_comm b a, is_comm_jordan.mul_comm c a,
       is_comm_jordan.mul_comm c b]
   ... = ⁅L a + L b + L c, L (a*a) + L(b*b) + L(c*c) + (2:ℤ)•L(a*b) + (2:ℤ)•L(a*c) + (2:ℤ)•L(b*c) ⁆ :
-    by abel
+    by {rw [two_smul, two_smul, two_smul],
+      simp only [lie_add, add_lie, lie_lmul_lmul_sq, zero_add, add_zero], abel}
   ... = ⁅L a, L (a*a)⁆ + ⁅L a, L(b*b)⁆ + ⁅L a, L(c*c)⁆ + ⁅L a, (2:ℤ)•L(a*b)⁆ + ⁅L a, (2:ℤ)•L(a*c)⁆
           + ⁅L a, (2:ℤ)•L(b*c)⁆
         + (⁅L b, L (a*a)⁆ + ⁅L b, L(b*b)⁆ + ⁅L b, L(c*c)⁆ + ⁅L b, (2:ℤ)•L(a*b)⁆

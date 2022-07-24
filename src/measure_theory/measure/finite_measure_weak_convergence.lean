@@ -69,12 +69,14 @@ No new notation is introduced.
 ## Implementation notes
 
 The topology of weak convergence of finite Borel measures will be defined using a mapping from
-`finite_measure α` to `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`, inheriting the topology from the latter.
+`measure_theory.finite_measure α` to `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`, inheriting the topology from the
+latter.
 
-The current implementation of `finite_measure α` and `probability_measure α` is directly as
-subtypes of `measure α`, and the coercion to a function is the composition `ennreal.to_nnreal`
-and the coercion to function of `measure α`. Another alternative would be to use a bijection
-with `vector_measure α ℝ≥0` as an intermediate step. The choice of implementation should not have
+The current implementation of `measure_theory.finite_measure α` and
+`measure_theory.probability_measure α` is directly as subtypes of `measure_theory.measure α`, and
+the coercion to a function is the composition `ennreal.to_nnreal` and the coercion to function
+of `measure_theory.measure α`. Another alternative would be to use a bijection
+with `measure_theory.vector_measure α ℝ≥0` as an intermediate step. The choice of implementation should not have
 drastic downstream effects, so it can be changed later if appropriate.
 
 Potential advantages of using the `nnreal`-valued vector measure alternative:
@@ -84,8 +86,8 @@ Potential advantages of using the `nnreal`-valued vector measure alternative:
 Potential drawbacks of the vector measure alternative:
  * The coercion to function would lose monotonicity, as non-measurable sets would be defined to
    have measure 0.
- * No integration theory directly. E.g., the topology definition requires `lintegral` w.r.t.
-   a coercion to `measure α` in any case.
+ * No integration theory directly. E.g., the topology definition requires
+   `measure_theory.lintegral` w.r.t. a coercion to `measure_theory.measure α` in any case.
 
 ## References
 
@@ -365,7 +367,7 @@ begin
 end
 
 /-- Finite measures yield elements of the `weak_dual` of bounded continuous nonnegative
-functions via `finite_measure.test_against_nn`, i.e., integration. -/
+functions via `measure_theory.finite_measure.test_against_nn`, i.e., integration. -/
 def to_weak_dual_bcnn (μ : finite_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := λ f, μ.test_against_nn f,
@@ -379,8 +381,9 @@ def to_weak_dual_bcnn (μ : finite_measure α) :
 @[simp] lemma to_weak_dual_bcnn_apply (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
 
-/-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
-topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
+/-- The topology of weak convergence on `measure_theory.finite_measure α` is inherited (induced)
+from the weak-* topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function
+`measure_theory.finite_measure.to_weak_dual_bcnn`. -/
 instance : topological_space (finite_measure α) :=
 topological_space.induced to_weak_dual_bcnn infer_instance
 
@@ -400,7 +403,7 @@ lemma continuous_mass : continuous (λ (μ : finite_measure α), μ.mass) :=
 by { simp_rw ←test_against_nn_one, exact continuous_test_against_nn_eval 1, }
 
 /-- Convergence of finite measures implies the convergence of their total masses. -/
-lemma tendsto_mass_of_tendsto {γ : Type*} {F : filter γ}
+lemma _root_.filter.tendsto.mass {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} (h : tendsto μs F (𝓝 μ)) :
   tendsto (λ i, (μs i).mass) F (𝓝 μ.mass) :=
 (continuous_mass.tendsto μ).comp h
@@ -487,7 +490,8 @@ This formulation assumes:
  * the functions tend to a limit along a countably generated filter;
  * the limit is in the almost everywhere sense;
  * boundedness holds almost everywhere;
- * integration is `lintegral`, i.e., the functions and their integrals are `ℝ≥0∞`-valued.
+ * integration is `measure_theory.lintegral`, i.e., the functions and their integrals are
+   `ℝ≥0∞`-valued.
 -/
 lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
   (μ : measure α) [is_finite_measure μ] {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
@@ -504,10 +508,11 @@ end
 
 /-- A bounded convergence theorem for a finite measure:
 If a sequence of bounded continuous non-negative functions are uniformly bounded by a constant
-and tend pointwise to a limit, then their integrals (`lintegral`) against the finite measure tend
-to the integral of the limit.
+and tend pointwise to a limit, then their integrals (`measure_theory.lintegral`) against the finite
+measure tend to the integral of the limit.
 
-A related result with more general assumptions is `tendsto_lintegral_nn_filter_of_le_const`.
+A related result with more general assumptions is
+`measure_theory.finite_measure.tendsto_lintegral_nn_filter_of_le_const`.
 -/
 lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α) {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
@@ -523,9 +528,11 @@ This formulation assumes:
  * the functions tend to a limit along a countably generated filter;
  * the limit is in the almost everywhere sense;
  * boundedness holds almost everywhere;
- * integration is the pairing against non-negative continuous test functions (`test_against_nn`).
+ * integration is the pairing against non-negative continuous test functions
+   (`measure_theory.finite_measure.test_against_nn`).
 
-A related result using `lintegral` for integration is `tendsto_lintegral_nn_filter_of_le_const`.
+A related result using `measure_theory.lintegral` for integration is
+`measure_theory.finite_measure.tendsto_lintegral_nn_filter_of_le_const`.
 -/
 lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
   [L.is_countably_generated] {μ : finite_measure α} {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
@@ -539,13 +546,15 @@ begin
 end
 
 /-- A bounded convergence theorem for a finite measure:
-If a sequence of bounded continuous non-negative functions are uniformly bounded by a constant
-and tend pointwise to a limit, then their integrals (`test_against_nn`) against the finite measure
-tend to the integral of the limit.
+If a sequence of bounded continuous non-negative functions are uniformly bounded by a constant and
+tend pointwise to a limit, then their integrals (`measure_theory.finite_measure.test_against_nn`)
+against the finite measure tend to the integral of the limit.
 
 Related results:
- * `tendsto_test_against_nn_filter_of_le_const`: more general assumptions
- * `tendsto_lintegral_nn_of_le_const`: using `lintegral` for integration.
+ * `measure_theory.finite_measure.tendsto_test_against_nn_filter_of_le_const`:
+   more general assumptions
+ * `measure_theory.finite_measure.tendsto_lintegral_nn_of_le_const`:
+   using `measure_theory.lintegral` for integration.
 -/
 lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α →ᵇ ℝ≥0}
@@ -671,13 +680,14 @@ end finite_measure -- namespace
 section probability_measure
 /-! ### Probability measures
 
-In this section we define the `Type*` of probability measures on a measurable space `α`, denoted by
-`probability_measure α`. TODO: Probability measures form a convex space.
+In this section we define the type of probability measures on a measurable space `α`, denoted by
+`measure_theory.probability_measure α`. TODO: Probability measures form a convex space.
 
 If `α` is moreover a topological space and the sigma algebra on `α` is finer than the Borel sigma
-algebra (i.e. `[opens_measurable_space α]`), then `probability_measure α` is equipped with the
-topology of weak convergence of measures. Since every probability measure is a finite measure, this
-is implemented as the induced topology from the coercion `probability_measure.to_finite_measure`.
+algebra (i.e. `[opens_measurable_space α]`), then `measure_theory.probability_measure α` is
+equipped with the topology of weak convergence of measures. Since every probability measure is a
+finite measure, this is implemented as the induced topology from the coercion
+`measure_theory.probability_measure.to_finite_measure`.
 -/
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
@@ -751,9 +761,9 @@ lemma test_against_nn_lipschitz (μ : probability_measure α) :
   lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.to_finite_measure.test_against_nn f) :=
 μ.mass_to_finite_measure ▸ μ.to_finite_measure.test_against_nn_lipschitz
 
-/-- The topology of weak convergence on `probability_measures α`. This is inherited (induced) from
-the weak-*  topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function
-`probability_measures.to_weak_dual_bcnn`. -/
+/-- The topology of weak convergence on `measure_theory.probability_measure α`. This is inherited
+(induced) from the topology of weak convergence of finite measures via the inclusion
+`measure_theory.probability_measure.to_finite_measure`. -/
 instance : topological_space (probability_measure α) :=
 topological_space.induced to_finite_measure infer_instance
 
@@ -762,7 +772,7 @@ lemma to_finite_measure_continuous :
 continuous_induced_dom
 
 /-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
-functions via `finite_measure.test_against_nn`, i.e., integration. -/
+functions via `measure_theory.finite_measure.test_against_nn`, i.e., integration. -/
 def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 finite_measure.to_weak_dual_bcnn ∘ to_finite_measure
 
@@ -837,7 +847,7 @@ measures.
 
 namespace finite_measure
 
-variables {α : Type*} [nonempty α] {m0 : measurable_space α} (μ : finite_measure α) 
+variables {α : Type*} [nonempty α] {m0 : measurable_space α} (μ : finite_measure α)
 
 /-- Normalize a finite measure so that it becomes a probability measure, i.e., divide by the
 total mass. -/
@@ -894,7 +904,7 @@ begin
 end
 
 @[simp] lemma _root_.probability_measure.to_finite_measure_normalize_eq_self
-  (μ : probability_measure α) :
+  {m0 : measurable_space α} (μ : probability_measure α) :
   μ.to_finite_measure.normalize = μ :=
 begin
   ext s s_mble,
@@ -904,7 +914,7 @@ begin
 end
 
 /-- Averaging with respect to a finite measure is the same as integraing against
-`finite_measure.normalize`. -/
+`measure_theory.finite_measure.normalize`. -/
 lemma average_eq_integral_normalize
   {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
   (nonzero : μ ≠ 0) (f : α → E) :
@@ -959,7 +969,7 @@ lemma tendsto_normalize_test_against_nn_of_tendsto {γ : Type*} {F : filter γ}
   tendsto (λ i, (μs i).normalize.to_finite_measure.test_against_nn f) F
           (𝓝 (μ.normalize.to_finite_measure.test_against_nn f)) :=
 begin
-  have lim_mass := tendsto_mass_of_tendsto μs_lim,
+  have lim_mass := μs_lim.mass,
   have aux : {(0 : ℝ≥0)}ᶜ ∈ 𝓝 (μ.mass),
     from is_open_compl_singleton.mem_nhds (μ.mass_nonzero_iff.mpr nonzero),
   have eventually_nonzero : ∀ᶠ i in F, μs i ≠ 0,
@@ -1016,7 +1026,7 @@ begin
   { rintros ⟨normalized_lim, mass_lim⟩,
     exact tendsto_of_tendsto_normalize_test_against_nn_of_tendsto_mass normalized_lim mass_lim, },
   { intro μs_lim,
-    refine ⟨tendsto_normalize_of_tendsto μs_lim nonzero, tendsto_mass_of_tendsto μs_lim⟩, },
+    refine ⟨tendsto_normalize_of_tendsto μs_lim nonzero, μs_lim.mass⟩, },
 end
 
 end finite_measure --namespace
@@ -1027,9 +1037,10 @@ section convergence_implies_limsup_closed_le
 /-! ### Portmanteau implication: weak convergence implies a limsup condition for closed sets
 
 In this section we prove, under the assumption that the underlying topological space `α` is
-pseudo-emetrizable, that the weak convergence of measures on `finite_measure α` implies that for
-any closed set `F` in `α` the limsup of the measures of `F` is at most the limit measure of `F`.
-This is one implication of the portmanteau theorem characterizing weak convergence of measures.
+pseudo-emetrizable, that the weak convergence of measures on `measure_theory.finite_measure α`
+implies that for any closed set `F` in `α` the limsup of the measures of `F` is at most the
+limit measure of `F`. This is one implication of the portmanteau theorem characterizing weak
+convergence of measures.
 -/
 
 variables {α : Type*} [measurable_space α]
@@ -1061,7 +1072,8 @@ end
 the functions are uniformly bounded, then their integrals against a finite measure tend to the
 measure of the set.
 
-A similar result with more general assumptions is `measure_of_cont_bdd_of_tendsto_filter_indicator`.
+A similar result with more general assumptions is
+`measure_theory.measure_of_cont_bdd_of_tendsto_filter_indicator`.
 -/
 lemma measure_of_cont_bdd_of_tendsto_indicator
   [topological_space α] [opens_measurable_space α]

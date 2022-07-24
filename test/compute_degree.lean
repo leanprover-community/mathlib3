@@ -5,6 +5,13 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] {a b c d e : R}
 
+example {R : Type*} [ring R] (h : ∀ {p q : R[X]}, p.nat_degree ≤ 0 → (p * q).nat_degree = 0) :
+  nat_degree (- 1 * 1 : R[X]) = 0 :=
+begin
+  apply h _,
+  compute_degree_le,
+end
+
 example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
  (p ^ n).nat_degree ≤ 0 :=
 by compute_degree_le

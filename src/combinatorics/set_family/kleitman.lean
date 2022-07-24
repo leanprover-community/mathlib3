@@ -14,8 +14,6 @@ intersecting families could cover all `2ⁿ` sets. But actually that's not case 
 none of them can contain the empty set. Intersecting families are in some sense correlated.
 Kleitman's bound stipulates that `k` intersecting families cover at most `2ⁿ - 2ⁿ⁻ᵏ` sets.
 
-Note that, as opposed to the one family case, not all maximal unions of `k` families have this size.
-
 ## Main declarations
 
 * `finset.card_bUnion_le_of_intersecting`: Kleitman's theorem.
@@ -31,34 +29,33 @@ variables {ι α : Type*} [fintype α] [decidable_eq α] [nonempty α]
 
 /-- **Kleitman's theorem**. An intersecting family on `n` elements contains at most `2ⁿ⁻¹` sets, and
 each further intersecting family takes at most half of the sets that are in no previous family. -/
-lemma finset.card_bUnion_le_of_intersecting (s : finset ι) (ℱ : ι → finset (finset α))
-  (hℱ : ∀ i ∈ s, (ℱ i : set (finset α)).intersecting) :
-  (s.bUnion ℱ).card ≤ 2 ^ card α - 2 ^ (card α - s.card) :=
+lemma finset.card_bUnion_le_of_intersecting (s : finset ι) (f : ι → finset (finset α))
+  (hℱ : ∀ i ∈ s, (f i : set (finset α)).intersecting) :
+  (s.bUnion f).card ≤ 2 ^ card α - 2 ^ (card α - s.card) :=
 begin
   obtain hs | hs := le_total (card α) s.card,
   { rw [tsub_eq_zero_of_le hs, pow_zero],
     refine (card_le_of_subset $  bUnion_subset.2 $ λ i hi a ha, mem_compl.2 $ not_mem_singleton.2 $
       (hℱ _ hi).ne_bot ha).trans_eq _,
     rw [card_compl, fintype.card_finset, card_singleton] },
-  induction s using finset.cons_induction with i s hi ih generalizing ℱ,
+  induction s using finset.cons_induction with i s hi ih generalizing f,
   { simp },
   classical,
-  set ℱ' : ι → finset (finset α) := λ j,
+  set f' : ι → finset (finset α) := λ j,
     if hj : j ∈ cons i s hi then (hℱ j hj).exists_card_eq.some else ∅ with hℱ',
   have hℱ₁ : ∀ j, j ∈ cons i s hi →
-    ℱ j ⊆ ℱ' j ∧ 2 * (ℱ' j).card = 2 ^ card α ∧ (ℱ' j : set (finset α)).intersecting,
+    f j ⊆ f' j ∧ 2 * (f' j).card = 2 ^ card α ∧ (f' j : set (finset α)).intersecting,
   { rintro j hj,
     simp_rw [hℱ', dif_pos hj, ←fintype.card_finset],
     exact classical.some_spec (hℱ j hj).exists_card_eq },
-  have hℱ₂ : ∀ j, j ∈ cons i s hi → is_upper_set (ℱ' j : set (finset α)),
+  have hℱ₂ : ∀ j, j ∈ cons i s hi → is_upper_set (f' j : set (finset α)),
   { refine λ j hj, (hℱ₁ _ hj).2.2.is_upper_set' ((hℱ₁ _ hj).2.2.is_max_iff_card_eq.2 _),
     rw fintype.card_finset,
     exact (hℱ₁ _ hj).2.1 },
   refine (card_le_of_subset $ bUnion_mono $ λ j hj, (hℱ₁ _ hj).1).trans _,
-  nth_rewrite 0 cons_eq_insert,
+  nth_rewrite 0 cons_eq_insert i,
   rw bUnion_insert,
-  refine (card_mono $ @le_sup_sdiff _ (ℱ' i) _ _).trans
-    ((card_union_le _ _).trans _),
+  refine (card_mono $ @le_sup_sdiff _ (f' i) _ _).trans ((card_union_le _ _).trans _),
   rw [union_sdiff_left, sdiff_eq_inter_compl],
   refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two $ card α + 1),
   rw [pow_succ', mul_add, mul_assoc, mul_comm _ 2, mul_assoc],
@@ -77,7 +74,6 @@ begin
     (hℱ₁ _ $ subset_cons _ hi).2.2) _).trans _,
   rw [mul_tsub, two_mul, ←pow_succ, ←add_tsub_assoc_of_le (pow_le_pow' _ tsub_le_self),
     tsub_add_eq_add_tsub hs, card_cons, add_tsub_add_eq_tsub_right],
-  recover,
   any_goals { apply_instance },
   exact one_le_two,
 end

@@ -60,6 +60,11 @@ section incomp
 /-- The incomparability relation. -/
 def incomp_rel (a b : α) : Prop := ¬ r a b ∧ ¬ r b a
 
+@[simp] lemma antisymm_rel_compl : antisymm_rel (rᶜ) = incomp_rel r := rfl
+
+@[simp] lemma incomp_rel_compl : incomp_rel (rᶜ) = antisymm_rel r :=
+by { ext, simp [incomp_rel, antisymm_rel, has_compl.compl] }
+
 lemma incomp_rel_swap : incomp_rel (swap r) = incomp_rel r := antisymm_rel_swap _
 
 @[refl] lemma incomp_rel_refl [is_irrefl α r] (a : α) : incomp_rel r a a := ⟨irrefl _, irrefl _⟩

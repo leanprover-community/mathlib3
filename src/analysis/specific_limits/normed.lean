@@ -37,7 +37,7 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
 
 /-! ### Powers -/
 
-lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
+lemma tendsto_norm_zero' {𝕜 : Type*} [normed_add_comm_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
@@ -54,12 +54,12 @@ begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
   simp only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
-  exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+  exact (tendsto_pow_at_top hm.ne').comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
 /-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
 lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [normed_field 𝕜]
-  [normed_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
+  [normed_add_comm_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
   (hε : tendsto ε l (𝓝 0)) (hf : filter.is_bounded_under (≤) l (norm ∘ f)) :
   tendsto (ε • f) l (𝓝 0) :=
 begin
@@ -67,7 +67,7 @@ begin
   simpa using is_o.smul_is_O hε (hf.is_O_const (one_ne_zero : (1 : 𝕜) ≠ 0))
 end
 
-@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nontrivially_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
   refine ⟨_, continuous_at_zpow₀ _ _⟩,
@@ -76,7 +76,7 @@ begin
       (tendsto_norm_zpow_nhds_within_0_at_top hm)
 end
 
-@[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
+@[simp] lemma continuous_at_inv {𝕜 : Type*} [nontrivially_normed_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
 by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 
@@ -342,9 +342,9 @@ end mul_geometric
 
 section summable_le_geometric
 
-variables [semi_normed_group α] {r C : ℝ} {f : ℕ → α}
+variables [seminormed_add_comm_group α] {r C : ℝ} {f : ℕ → α}
 
-lemma semi_normed_group.cauchy_seq_of_le_geometric {C : ℝ} {r : ℝ} (hr : r < 1)
+lemma seminormed_add_comm_group.cauchy_seq_of_le_geometric {C : ℝ} {r : ℝ} (hr : r < 1)
   {u : ℕ → α} (h : ∀ n, ∥u n - u (n + 1)∥ ≤ C*r^n) : cauchy_seq u :=
 cauchy_seq_of_le_geometric r C hr (by simpa [dist_eq_norm] using h)
 
@@ -386,11 +386,11 @@ lemma cauchy_series_of_le_geometric {C : ℝ} {u : ℕ → α}
   {r : ℝ} (hr : r < 1) (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range n, u k) :=
 cauchy_seq_of_le_geometric r C hr (by simp [h])
 
-lemma normed_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
+lemma normed_add_comm_group.cauchy_series_of_le_geometric' {C : ℝ} {u : ℕ → α} {r : ℝ} (hr : r < 1)
   (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
 (cauchy_series_of_le_geometric hr h).comp_tendsto $ tendsto_add_at_top_nat 1
 
-lemma normed_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}
+lemma normed_add_comm_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}
   (hr₀ : 0 < r) (hr₁ : r < 1)
   (h : ∀ n ≥ N, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
 begin
@@ -400,7 +400,8 @@ begin
   have : ∀ n ≥ N, u n = v n,
   { intros n hn,
     simp [v, hn, if_neg (not_lt.mpr hn)] },
-  refine cauchy_seq_sum_of_eventually_eq this (normed_group.cauchy_series_of_le_geometric' hr₁ _),
+  refine cauchy_seq_sum_of_eventually_eq this (normed_add_comm_group.cauchy_series_of_le_geometric'
+    hr₁ _),
   { exact C },
   intro n,
   dsimp [v],
@@ -473,8 +474,8 @@ end normed_ring_geometric
 
 /-! ### Summability tests based on comparison with geometric series -/
 
-lemma summable_of_ratio_norm_eventually_le {α : Type*} [semi_normed_group α] [complete_space α]
-  {f : ℕ → α} {r : ℝ} (hr₁ : r < 1)
+lemma summable_of_ratio_norm_eventually_le {α : Type*} [seminormed_add_comm_group α]
+  [complete_space α] {f : ℕ → α} {r : ℝ} (hr₁ : r < 1)
   (h : ∀ᶠ n in at_top, ∥f (n+1)∥ ≤ r * ∥f n∥) : summable f :=
 begin
   by_cases hr₀ : 0 ≤ r,
@@ -495,7 +496,7 @@ begin
     exact not_lt.mpr (norm_nonneg _) (lt_of_le_of_lt hn $ mul_neg_of_neg_of_pos hr₀ h), },
 end
 
-lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_group α] [complete_space α]
+lemma summable_of_ratio_test_tendsto_lt_one {α : Type*} [normed_add_comm_group α] [complete_space α]
   {f : ℕ → α} {l : ℝ} (hl₁ : l < 1) (hf : ∀ᶠ n in at_top, f n ≠ 0)
   (h : tendsto (λ n, ∥f (n+1)∥/∥f n∥) at_top (𝓝 l)) : summable f :=
 begin
@@ -505,7 +506,7 @@ begin
   rwa ← div_le_iff (norm_pos_iff.mpr h₁),
 end
 
-lemma not_summable_of_ratio_norm_eventually_ge {α : Type*} [semi_normed_group α]
+lemma not_summable_of_ratio_norm_eventually_ge {α : Type*} [seminormed_add_comm_group α]
   {f : ℕ → α} {r : ℝ} (hr : 1 < r) (hf : ∃ᶠ n in at_top, ∥f n∥ ≠ 0)
   (h : ∀ᶠ n in at_top, r * ∥f n∥ ≤ ∥f (n+1)∥) : ¬ summable f :=
 begin
@@ -528,7 +529,7 @@ begin
     ac_refl }
 end
 
-lemma not_summable_of_ratio_test_tendsto_gt_one {α : Type*} [semi_normed_group α]
+lemma not_summable_of_ratio_test_tendsto_gt_one {α : Type*} [seminormed_add_comm_group α]
   {f : ℕ → α} {l : ℝ} (hl : 1 < l)
   (h : tendsto (λ n, ∥f (n+1)∥/∥f n∥) at_top (𝓝 l)) : ¬ summable f :=
 begin
@@ -545,7 +546,7 @@ end
 section
 /-! ### Dirichlet and alternating series tests -/
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
 
 /-- **Dirichlet's Test** for monotone sequences. -/

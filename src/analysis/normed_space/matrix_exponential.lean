@@ -23,10 +23,11 @@ without issue, so are not repeated here. The topological results specific to mat
 * `matrix.exp_block_diagonal'`
 
 Lemmas like `exp_add_of_commute` require a canonical norm on the type; while there are multiple
-sensible choices for the norm of a `matrix` (`matrix.normed_group`, `matrix.frobenius_normed_group`,
-`matrix.linfty_op_normed_group`), none of them are canonical. In an application where a particular
-norm is chosen using `local attribute [instance]`, then the usual lemmas about `exp` are fine. When
-choosing a norm is undesirable, the results in this file can be used.
+sensible choices for the norm of a `matrix` (`matrix.normed_add_comm_group`,
+`matrix.frobenius_normed_add_comm_group`, `matrix.linfty_op_normed_add_comm_group`), none of them
+are canonical. In an application where a particular norm is chosen using
+`local attribute [instance]`, then the usual lemmas about `exp` are fine. When choosing a norm is
+undesirable, the results in this file can be used.
 
 In this file, we copy across the lemmas about `exp`, but hide the requirement for a norm inside the
 proof.

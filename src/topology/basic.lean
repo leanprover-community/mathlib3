@@ -1200,14 +1200,25 @@ assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
 ⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
+lemma locally_finite.comp_inj_on {ι} {f : β → set α} {g : ι → β} (hf : locally_finite f)
+  (hg : inj_on g {i | (f (g i)).nonempty}) : locally_finite (f ∘ g) :=
+λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage $ hg.mono $ λ i hi,
+  hi.out.mono $ inter_subset_left _ _⟩
+
 lemma locally_finite.comp_injective {ι} {f : β → set α} {g : ι → β} (hf : locally_finite f)
   (hg : function.injective g) : locally_finite (f ∘ g) :=
-λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage (hg.inj_on _)⟩
+hf.comp_inj_on (hg.inj_on _)
 
 lemma locally_finite.eventually_finite {f : β → set α} (hf : locally_finite f) (x : α) :
   ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
 eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
   ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
+
+lemma locally_finite.exists_mem_basis {f : β → set α} (hf : locally_finite f) {p : ι → Prop}
+  {s : ι → set α} {x : α} (hb : (𝓝 x).has_basis p s) :
+  ∃ i (hi : p i), {j | (f j ∩ s i).nonempty}.finite :=
+let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_finite x)
+in ⟨i, hpi, hi subset.rfl⟩
 
 lemma locally_finite.sum_elim {γ} {f : β → set α} {g : γ → set α} (hf : locally_finite f)
   (hg : locally_finite g) : locally_finite (sum.elim f g) :=
@@ -1253,6 +1264,59 @@ subset.antisymm
   (closure_minimal (Union_mono $ λ _, subset_closure) $
     h.closure.is_closed_Union $ λ _, is_closed_closure)
   (Union_subset $ λ i, closure_mono $ subset_Union _ _)
+
+/-- If `f : β → set α` is a locally finite family of closed sets, then for any `x : α`, the
+intersection of the complements to `f i`, `x ∉ f i`, is a neighbourhood of `x`. -/
+lemma locally_finite.Inter_compl_mem_nhds {f : β → set α} (hf : locally_finite f)
+  (hc : ∀ i, is_closed (f i)) (x : α) : (⋂ i (hi : x ∉ f i), (f i)ᶜ) ∈ 𝓝 x :=
+begin
+  refine is_open.mem_nhds _ (mem_Inter₂.2 $ λ i, id),
+  suffices : is_closed (⋃ i : {i // x ∉ f i}, f i),
+    by rwa [← is_open_compl_iff, compl_Union, Inter_subtype] at this,
+  exact (hf.comp_injective subtype.coe_injective).is_closed_Union (λ i, hc _)
+end
+
+/-- Let `f : ℕ → Π a, β a` be a sequence of (dependent) functions on a topological space. Suppose
+that the family of sets `s n = {x | f (n + 1) x ≠ f n x}` is locally finite. Then there exists a
+function `F : Π a, β a` such that for any `x`, we have `f n x = F x` on the product of an infinite
+interval `[N, +∞)` and a neighbourhood of `x`.
+
+We formulate the conclusion in terms of the product of filter `filter.at_top` and `𝓝 x`. -/
+lemma locally_finite.exists_forall_eventually_eq_prod {β : α → Sort*} {f : ℕ → Π a : α, β a}
+  (hf : locally_finite (λ n, {x | f (n + 1) x ≠ f n x})) :
+  ∃ F : Π a : α, β a, ∀ x, ∀ᶠ p : ℕ × α in at_top ×ᶠ 𝓝 x, f p.1 p.2 = F p.2 :=
+begin
+  choose U hUx hU using hf,
+  choose N hN using λ x, (hU x).bdd_above,
+  replace hN : ∀ x (n > N x) (y ∈ U x), f (n + 1) y = f n y,
+    from λ x n hn y hy, by_contra (λ hne, hn.lt.not_le $ hN x ⟨y, hne, hy⟩),
+  replace hN : ∀ x (n ≥ N x + 1) (y ∈ U x), f n y = f (N x + 1) y,
+    from λ x n hn y hy, nat.le_induction rfl (λ k hle, (hN x _ hle _ hy).trans) n hn, 
+  refine ⟨λ x, f (N x + 1) x, λ x, _⟩,
+  filter_upwards [filter.prod_mem_prod (eventually_gt_at_top (N x)) (hUx x)],
+  rintro ⟨n, y⟩ ⟨hn : N x < n, hy : y ∈ U x⟩,
+  calc f n y = f (N x + 1) y : hN _ _ hn _ hy
+  ... = f (max (N x + 1) (N y + 1)) y : (hN _ _ (le_max_left _ _) _ hy).symm
+  ... = f (N y + 1) y : hN _ _ (le_max_right _ _) _ (mem_of_mem_nhds $ hUx y)
+end
+
+/-- Let `f : ℕ → Π a, β a` be a sequence of (dependent) functions on a topological space. Suppose
+that the family of sets `s n = {x | f (n + 1) x ≠ f n x}` is locally finite. Then there exists a
+function `F : Π a, β a` such that for any `x`, for sufficiently large values of `n`, we have
+`f n y = F y` in a neighbourhood of `x`. -/
+lemma locally_finite.exists_forall_eventually_at_top_eventually_eq' {β : α → Sort*}
+  {f : ℕ → Π a : α, β a} (hf : locally_finite (λ n, {x | f (n + 1) x ≠ f n x})) :
+  ∃ F : Π a : α, β a, ∀ x, ∀ᶠ n : ℕ in at_top, ∀ᶠ y : α in 𝓝 x, f n y = F y :=
+hf.exists_forall_eventually_eq_prod.imp $ λ F hF x, (hF x).curry
+
+/-- Let `f : ℕ → α → β` be a sequence of functions on a topological space. Suppose
+that the family of sets `s n = {x | f (n + 1) x ≠ f n x}` is locally finite. Then there exists a
+function `F :  α → β` such that for any `x`, for sufficiently large values of `n`, we have
+`f n =ᶠ[𝓝 x] F`. -/
+lemma locally_finite.exists_forall_eventually_at_top_eventually_eq
+  {f : ℕ → α → β} (hf : locally_finite (λ n, {x | f (n + 1) x ≠ f n x})) :
+  ∃ F : α → β, ∀ x, ∀ᶠ n : ℕ in at_top, f n =ᶠ[𝓝 x] F :=
+hf.exists_forall_eventually_at_top_eventually_eq'
 
 end locally_finite
 

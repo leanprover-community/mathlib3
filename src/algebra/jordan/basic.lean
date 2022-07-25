@@ -145,7 +145,7 @@ variables [non_unital_non_assoc_ring A] [is_comm_jordan A]
 /-- Linearise the operator form of the Jordan axiom (`lie_lmul_lmul_sq`) by substituting in a → a + b and
 expanding. -/
 lemma lie_lmul_lmul_add_add_add_eq_zero (a b : A) :
-  ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + (2:ℤ)•⁅L a, L (a * b)⁆ + (2:ℤ)•⁅L b, L (a * b)⁆ = 0 :=
+  ⁅L a, L (b * b)⁆ + ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (b * a)⁆ = 0 :=
 begin
   symmetry,
   calc 0 = ⁅L (a + b), L ((a + b) * (a + b))⁆ : by rw (lie_lmul_lmul_sq (a + b))

@@ -45,7 +45,7 @@ right multiplication by `a` and `a^2` commute. Such algebras have connections to
 theorem [cabreragarciarodriguezpalacios2014].
 
 A real Jordan algebra `A` can be introduced by
-```
+```lean
 variables {A : Type*} [non_unital_non_assoc_ring A] [module ℝ A] [smul_comm_class ℝ A A]
   [is_scalar_tower ℝ A A] [is_comm_jordan A]
 ```

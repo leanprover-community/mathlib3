@@ -173,42 +173,42 @@ begin
     by rw [add_mul, add_mul, mul_add, mul_add, mul_add, mul_add, mul_add, mul_add,
       map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add, map_add]
   ... = ⁅L a + L b + L c,
-    L (a * a) + L (a * b) + L (a * c) + (L (a * b) + L (b * b) + L (b * c))
-      + (L (a * c) + L (b * c) + L (c * c))⁆ :
+    L (a * a) + L (a * b) + L (c * a) + (L (a * b) + L (b * b) + L (b * c))
+      + (L (c * a) + L (b * c) + L (c * c))⁆ :
     by rw [is_comm_jordan.mul_comm b a, is_comm_jordan.mul_comm c a, is_comm_jordan.mul_comm c b]
-  ... = ⁅L a + L b + L c, L (a * a) + L (b * b) + L (c * c) + 2•L (a * b) + 2•L (a * c)
+  ... = ⁅L a + L b + L c, L (a * a) + L (b * b) + L (c * c) + 2•L (a * b) + 2•L (c * a)
     + 2•L (b * c) ⁆ :
     by {rw [two_smul, two_smul, two_smul],
       simp only [lie_add, add_lie, lie_lmul_lmul_sq, zero_add, add_zero], abel}
   ... = ⁅L a, L (a * a)⁆ + ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + ⁅L a, 2•L (a * b)⁆
-        + ⁅L a, 2•L(a * c)⁆ + ⁅L a, 2•L (b * c)⁆
+        + ⁅L a, 2•L(c * a)⁆ + ⁅L a, 2•L (b * c)⁆
         + (⁅L b, L (a * a)⁆ + ⁅L b, L (b * b)⁆ + ⁅L b, L (c * c)⁆ + ⁅L b, 2•L (a * b)⁆
-          + ⁅L b, 2•L (a * c)⁆ + ⁅L b, 2•L (b * c)⁆)
+          + ⁅L b, 2•L (c * a)⁆ + ⁅L b, 2•L (b * c)⁆)
         + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + ⁅L c, L (c * c)⁆ + ⁅L c, 2•L (a * b)⁆
-          + ⁅L c, 2•L (a * c)⁆ + ⁅L c, 2•L (b * c)⁆) :
+          + ⁅L c, 2•L (c * a)⁆ + ⁅L c, 2•L (b * c)⁆) :
     by rw [add_lie, add_lie, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add,
      lie_add, lie_add, lie_add, lie_add, lie_add, lie_add, lie_add]
-  ... = ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + ⁅L a, 2•L (a * b)⁆ + ⁅L a, 2•L (a * c)⁆
+  ... = ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + ⁅L a, 2•L (a * b)⁆ + ⁅L a, 2•L (c * a)⁆
           + ⁅L a, 2•L (b * c)⁆
-        + (⁅L b, L (a * a)⁆ + ⁅L b, L (c * c)⁆ + ⁅L b, 2•L (a * b)⁆ + ⁅L b, 2•L (a * c)⁆
+        + (⁅L b, L (a * a)⁆ + ⁅L b, L (c * c)⁆ + ⁅L b, 2•L (a * b)⁆ + ⁅L b, 2•L (c * a)⁆
           + ⁅L b, 2•L (b * c)⁆)
-        + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + ⁅L c, 2•L (a * b)⁆ + ⁅L c, 2•L (a * c)⁆
+        + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + ⁅L c, 2•L (a * b)⁆ + ⁅L c, 2•L (c * a)⁆
           + ⁅L c, 2•L (b * c)⁆) :
     by rw [lie_lmul_lmul_sq a, lie_lmul_lmul_sq b,
       lie_lmul_lmul_sq c, zero_add, add_zero, add_zero]
-  ... = ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L a, L (a * c)⁆
+  ... = ⁅L a, L (b * b)⁆ + ⁅L a, L (c * c)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L a, L (c * a)⁆
           + 2•⁅L a, L (b * c)⁆
-        + (⁅L b, L (a * a)⁆ + ⁅L b, L (c * c)⁆ + 2•⁅L b, L (a * b)⁆ + 2•⁅L b, L (a * c)⁆
+        + (⁅L b, L (a * a)⁆ + ⁅L b, L (c * c)⁆ + 2•⁅L b, L (a * b)⁆ + 2•⁅L b, L (c * a)⁆
           + 2•⁅L b, L (b * c)⁆)
-        + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + 2•⁅L c, L (a * b)⁆ + 2•⁅L c, L (a * c)⁆
+        + (⁅L c, L (a * a)⁆ + ⁅L c, L (b * b)⁆ + 2•⁅L c, L (a * b)⁆ + 2•⁅L c, L (c * a)⁆
           + 2•⁅L c, L (b * c)⁆) :
     by simp only [lie_nsmul]
   ... = (⁅L a, L (b * b)⁆+ ⁅L b, L (a * a)⁆ + 2•⁅L a, L (a * b)⁆ + 2•⁅L b, L (a * b)⁆)
-        + (⁅L a, L (c * c)⁆ + ⁅L c, L (a * a)⁆ + 2•⁅L a, L (a * c)⁆ + 2•⁅L c, L (a * c)⁆)
+        + (⁅L a, L (c * c)⁆ + ⁅L c, L (a * a)⁆ + 2•⁅L a, L (c * a)⁆ + 2•⁅L c, L (c * a)⁆)
         + (⁅L b, L (c * c)⁆ + ⁅L c, L (b * b)⁆ + 2•⁅L b, L (b * c)⁆ + 2•⁅L c, L (b * c)⁆)
-        + (2•⁅L a, L (b * c)⁆ + 2•⁅L b, L (a * c)⁆ + 2•⁅L c, L (a * b)⁆) : by abel
-  ... = 2•⁅L a, L (b * c)⁆ + 2•⁅L b, L (a * c)⁆ + 2•⁅L c, L (a * b)⁆ :
+        + (2•⁅L a, L (b * c)⁆ + 2•⁅L b, L (c * a)⁆ + 2•⁅L c, L (a * b)⁆) : by abel
+  ... = 2•⁅L a, L (b * c)⁆ + 2•⁅L b, L (c * a)⁆ + 2•⁅L c, L (a * b)⁆ :
     by rw [lie_lmul_lmul_add_add_add_eq_zero, lie_lmul_lmul_add_add_add_eq_zero,
-      lie_lmul_lmul_add_add_add_eq_zero, zero_add, zero_add, zero_add]
-  ... = 2•(⁅L a, L (b * c)⁆ + ⁅L b, L (a * c)⁆ + ⁅L c, L (a * b)⁆) : by rw [nsmul_add, nsmul_add]
+      is_comm_jordan.mul_comm c a, lie_lmul_lmul_add_add_add_eq_zero, zero_add, zero_add, zero_add]
+  ... = 2•(⁅L a, L (b * c)⁆ + ⁅L b, L (c * a)⁆ + ⁅L c, L (a * b)⁆) : by rw [nsmul_add, nsmul_add]
 end

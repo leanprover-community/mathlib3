@@ -180,6 +180,31 @@ end
 
 end
 
+variables (ι 𝕜)
+
+-- TODO : This should be generalized to `pi_Lp` with finite dimensional factors.
+/-- `pi_Lp.linear_equiv` upgraded to a continuous linear map between `euclidean_space 𝕜 ι`
+and `ι → 𝕜`. -/
+@[simps] def euclidean_space.equiv :
+  euclidean_space 𝕜 ι ≃L[𝕜] (ι → 𝕜) :=
+(pi_Lp.linear_equiv 2 𝕜 (λ i : ι, 𝕜)).to_continuous_linear_equiv
+
+variables {ι 𝕜}
+
+-- TODO : This should be generalized to `pi_Lp`.
+/-- The projection on the `i`-th coordinate of `euclidean_space 𝕜 ι`, as a linear map. -/
+@[simps] def euclidean_space.projₗ (i : ι) :
+  euclidean_space 𝕜 ι →ₗ[𝕜] 𝕜 :=
+(linear_map.proj i).comp (pi_Lp.linear_equiv 2 𝕜 (λ i : ι, 𝕜) : euclidean_space 𝕜 ι →ₗ[𝕜] ι → 𝕜)
+
+-- TODO : This should be generalized to `pi_Lp`.
+/-- The projection on the `i`-th coordinate of `euclidean_space 𝕜 ι`,
+as a continuous linear map. -/
+@[simps] def euclidean_space.proj (i : ι) :
+  euclidean_space 𝕜 ι →L[𝕜] 𝕜 :=
+⟨euclidean_space.projₗ i, continuous_apply i⟩
+
+-- TODO : This should be generalized to `pi_Lp`.
 /-- The vector given in euclidean space by being `1 : 𝕜` at coordinate `i : ι` and `0 : 𝕜` at
 all other coordinates. -/
 def euclidean_space.single [decidable_eq ι] (i : ι) (a : 𝕜) :
@@ -294,9 +319,24 @@ end
 by {rw [← basis.equiv_fun_apply, orthonormal_basis.coe_to_basis_repr,
       linear_isometry_equiv.coe_to_linear_equiv]}
 
+protected lemma sum_repr (b : orthonormal_basis ι 𝕜 E) (x : E) :
+  ∑ i, b.repr x i • b i = x :=
+by { simp_rw [← b.coe_to_basis_repr_apply, ← b.coe_to_basis], exact b.to_basis.sum_repr x }
+
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+by { simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+
+protected lemma sum_inner_mul_inner (b : orthonormal_basis ι 𝕜 E) (x y : E) :
+  ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ :=
+begin
+  have := congr_arg (@innerSL 𝕜 _ _ _ x) (b.sum_repr y),
+  rw map_sum at this,
+  convert this,
+  ext i,
+  rw [smul_hom_class.map_smul, b.repr_apply_apply, mul_comm],
+  refl,
+end
 
 /-- Mapping an orthonormal basis along a `linear_isometry_equiv`. -/
 protected def map {G : Type*} [inner_product_space 𝕜 G] (b : orthonormal_basis ι 𝕜 E)

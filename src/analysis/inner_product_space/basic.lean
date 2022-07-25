@@ -99,13 +99,13 @@ spaces.
 To construct a norm from an inner product, see `inner_product_space.of_core`.
 -/
 class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
-  extends normed_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
+  extends normed_add_comm_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
 (norm_sq_eq_inner : ∀ (x : E), ∥x∥^2 = re (inner x x))
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = (conj r) * inner x y)
 
-attribute [nolint dangerous_instance] inner_product_space.to_normed_group
+attribute [nolint dangerous_instance] inner_product_space.to_normed_add_comm_group
 -- note [is_R_or_C instance]
 
 /-!
@@ -321,8 +321,8 @@ begin
 end
 
 /-- Normed group structure constructed from an `inner_product_space.core` structure -/
-def to_normed_group : normed_group F :=
-normed_group.of_core F
+def to_normed_add_comm_group : normed_add_comm_group F :=
+normed_add_comm_group.of_core F
 { norm_eq_zero_iff := assume x,
   begin
     split,
@@ -349,7 +349,7 @@ normed_group.of_core F
   end,
   norm_neg := λ x, by simp only [norm, inner_neg_left, neg_neg, inner_neg_right] }
 
-local attribute [instance] to_normed_group
+local attribute [instance] to_normed_add_comm_group
 
 /-- Normed space structure constructed from a `inner_product_space.core` structure -/
 def to_normed_space : normed_space 𝕜 F :=
@@ -369,7 +369,8 @@ the space into an inner product space, constructing the norm out of the inner pr
 def inner_product_space.of_core [add_comm_group F] [module 𝕜 F]
   (c : inner_product_space.core 𝕜 F) : inner_product_space 𝕜 F :=
 begin
-  letI : normed_group F := @inner_product_space.of_core.to_normed_group 𝕜 F _ _ _ c,
+  letI : normed_add_comm_group F :=
+    @inner_product_space.of_core.to_normed_add_comm_group 𝕜 F _ _ _ c,
   letI : normed_space 𝕜 F := @inner_product_space.of_core.to_normed_space 𝕜 F _ _ _ c,
   exact { norm_sq_eq_inner := λ x,
     begin
@@ -831,6 +832,12 @@ begin
   convert hv (f i) (f j) using 1,
   simp [hf.eq_iff]
 end
+
+/-- If `v : ι → E` is an orthonormal family, then `coe : (range v) → E` is an orthonormal
+family. -/
+lemma orthonormal.coe_range {v : ι → E} (hv : orthonormal 𝕜 v) :
+  orthonormal 𝕜 (coe : set.range v → E) :=
+by simpa using hv.comp _ (set.range_splitting_injective v)
 
 /-- A linear combination of some subset of an orthonormal set is orthogonal to other members of the
 set. -/
@@ -1957,7 +1964,8 @@ lemma orthogonal_family.summable_iff_norm_sq_summable [complete_space E] (f : Π
   summable (λ i, V i (f i)) ↔ summable (λ i, ∥f i∥ ^ 2) :=
 begin
   classical,
-  simp only [summable_iff_cauchy_seq_finset, normed_group.cauchy_seq_iff, real.norm_eq_abs],
+  simp only [summable_iff_cauchy_seq_finset, normed_add_comm_group.cauchy_seq_iff,
+    real.norm_eq_abs],
   split,
   { intros hf ε hε,
     obtain ⟨a, H⟩ := hf _ (sqrt_pos.mpr hε),

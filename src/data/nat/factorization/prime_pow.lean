@@ -65,7 +65,7 @@ lemma eq_of_dvd_div_eq_one {a b : ℕ} (h1 : b ∣ a) (h2 : a / b = 1) : a = b :
 by rw [(nat.mul_div_cancel' h1).symm, h2, mul_one]
 
 lemma is_prime_pow_of_p_odd_part_eq_one (n p : ℕ) (hn : n ≠ 1) (pp : p.prime) :
-  coord[p] n = 1 → is_prime_pow n :=
+  ord_compl[p] n = 1 → is_prime_pow n :=
 begin
   rw is_prime_pow_nat_iff,
   intro H,
